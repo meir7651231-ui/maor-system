@@ -24,14 +24,14 @@ import {
 } from './lib';
 import { FEATURES } from '../../types/features';
 import { WIZARD_SECTIONS } from '../builder/sections';
-import { featureOn } from '../../lib/config';
+import { featureOn, termOf } from '../../lib/config';
 import { isoToday } from '../../lib/date-util';
 import { agoLabel, goalProgress, quietWorkers, teamCsvRows, teamIntel, teamSummary, trendOf } from './teamIntel';
 import { openTasksFor, overdueContactTaskDrafts, PRI_LABELS, taskStatsFor } from '../../lib/worktasks';
 import { downloadCsv } from '../../lib/csvx';
 import { allDonationPurposes } from '../supporters/lib';
 import type { ModuleKey, OrgConfig } from '../../types/config';
-import type { OrgCloudDoc, OrgJoinRequestDoc } from '../../lib/cloudConfig';
+import type { EmployeeOverride, OrgCloudDoc, OrgJoinRequestDoc } from '../../lib/cloudConfig';
 
 type CloudMod = typeof import('../../store/cloudSync');
 type JoinRow = OrgJoinRequestDoc & { uid: string };
@@ -127,9 +127,28 @@ export function ManagerPanel(props: { onClose: () => void }) {
     // עובד/ת שאושרו במקביל במסך אחר — addOrgMember = arrayUnion אטומי בשרת.
     const { addOrgMember } = await import('../../lib/cloudConfig');
     await addOrgMember(slug, r.email);
+    // 6.9: השם שהעובד/ת מילא/ה בבקשת-ההצטרפות נזרע כשם-התצוגה (אפשר לשנות בכרטיס)
+    if ((r.name ?? '').trim()) {
+      const ov = overrideOf(r.email, org);
+      const { memberConfigs } = setEmployeeOverride(org, r.email, { ...ov, displayName: (r.name ?? '').trim() });
+      await mod.writeOrgCloudDoc(slug, { memberConfigs }).catch(() => {});
+    }
     await mod.deleteOrgJoinRequest(slug, r.uid).catch(() => {});
     await refresh(mod);
     toast('העובד/ת ' + r.email + ' אושר/ה — כעת אפשר לקבוע לו/ה כרטיס');
+  }
+
+  async function setDisplayName(email: string, value: string) {
+    if (!mod || !org) return;
+    const ov = overrideOf(email, org);
+    const nm = value.trim();
+    if ((ov.displayName ?? '') === nm) return;
+    const next: EmployeeOverride = { ...ov };
+    if (nm) next.displayName = nm; else delete next.displayName;
+    const { memberConfigs } = setEmployeeOverride(org, email, next);
+    await mod.writeOrgCloudDoc(slug, { memberConfigs });
+    await refresh(mod);
+    toast(nm ? '🪪 השם "' + nm + '" נשמר ל-' + email : 'שם-התצוגה הוסר');
   }
 
   async function rejectReq(r: JoinRow) {
@@ -295,7 +314,11 @@ export function ManagerPanel(props: { onClose: () => void }) {
             return (
               <div key={email} style={{ border: '1px solid var(--line)', borderRadius: 10, padding: '8px 10px', marginBottom: 8 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ flex: 1 }} dir="ltr">{email}</span>
+                  <span style={{ flex: 1, minWidth: 0 }}>
+                    {/* שם-תצוגה (6.9): "שיראו בחוץ מי זה" — השם מוצג ראשון, המייל קטן מתחתיו */}
+                    <b>{ov.displayName?.trim() || email}</b>
+                    {ov.displayName?.trim() && <span dir="ltr" style={{ display: 'block', fontSize: 11, color: 'var(--ink-faint)' }}>{email}</span>}
+                  </span>
                   <Btn sm onClick={() => setOpenCard(isOpen ? '' : email)}>{isOpen ? 'סגור' : '🃏 כרטיס-עובד'}</Btn>
                   <Btn
                     sm
@@ -308,6 +331,19 @@ export function ManagerPanel(props: { onClose: () => void }) {
                 </div>
                 {isOpen && (
                   <div style={{ marginTop: 8 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
+                      <label style={{ fontSize: 12.5, fontWeight: 700 }} htmlFor={'emp-name-' + email}>🪪 שם להצגה</label>
+                      <input
+                        id={'emp-name-' + email}
+                        defaultValue={ov.displayName ?? ''}
+                        placeholder="למשל: רבקה — מזכירות"
+                        aria-label={'שם להצגה ל-' + email}
+                        onBlur={(e) => void setDisplayName(email, e.target.value)}
+                        onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+                        style={{ flex: '1 1 180px', padding: '5px 8px', fontSize: 13 }}
+                      />
+                      <span style={{ fontSize: 11.5, color: 'var(--ink-faint)' }}>מוצג בלוג-הפעולות ובצ׳אט-הצוות במקום המייל</span>
+                    </div>
                     {/* 🔐 מאסטר-מתג הוצאת-מידע (13.8, בקשת-בעלים) — חוסם לעובד/ת כל
                         ייצוא/גיבוי/דו"ח-מותאם בלחיצה אחת. ov.features['core.export']===false = חסום. */}
                     <div style={{ marginBottom: 10, padding: '8px 10px', border: '1px solid var(--line)', borderRadius: 9, background: ov.features?.['core.export'] === false ? '#fdecec' : 'var(--surface-2, #fafaf7)' }}>
@@ -336,7 +372,7 @@ export function ManagerPanel(props: { onClose: () => void }) {
                       {scope.length === 0 && <span style={{ fontSize: 12 }}>לא הודלקו מודולים לארגון.</span>}
                       {scope.map((m) => (
                         <Chip key={m} on={ov.modules?.[m] !== false} onClick={() => void toggleModuleFor(email, m)}>
-                          {MODULE_LABELS[m]}
+                          {termOf(config, 'nav.' + m, MODULE_LABELS[m])}
                         </Chip>
                       ))}
                     </div>
@@ -485,7 +521,7 @@ export function ManagerPanel(props: { onClose: () => void }) {
                           )}
                           {open.slice(0, 8).map((t) => (
                             <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, padding: '2px 0', color: 'var(--ink-soft)' }}>
-                              <span>{PRI_LABELS[t.pri].slice(0, 2)}</span>
+                              <span>{(PRI_LABELS[t.pri] ?? PRI_LABELS[2]).slice(0, 2)}</span>
                               <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.title}</span>
                               {t.due && <span style={{ color: t.due < today ? 'var(--red)' : 'var(--ink-faint)', whiteSpace: 'nowrap' }}>{t.due.slice(5).split('-').reverse().join('/')}</span>}
                               <Btn sm onClick={() => deleteWorkTask(t.id)} title="ביטול המשימה">🗑</Btn>

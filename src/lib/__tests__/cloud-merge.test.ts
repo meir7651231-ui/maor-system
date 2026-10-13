@@ -9,9 +9,12 @@ import { allMembers } from '../../store/useApp';
 import { emptyDb } from '../../types/domain';
 import type { Db } from '../../types/domain';
 
-// משפחה אמיתית תמיד נושאת מערך docs (migrate מבטיח זאת), ולכן גם sanitizeIncoming
-// מוסיף docs:[] — הסטאב חייב לשקף זאת כדי שבדיקת ה-no-op (echo-loop) תישאר תקפה.
-const fam = (id: string, name: string, members: unknown[] = []) => ({ id, name, members, docs: [] }) as never;
+// משפחה אמיתית תמיד נושאת מערך docs + status + cred (migrate מבטיח זאת), ולכן גם
+// sanitizeIncoming/healRecord מוסיפים אותם (ביקורת-עומק 2.9: משפחה בלי status/cred
+// מהענן הקריסה את כל האפליקציה) — הסטאב חייב לשקף זאת כדי שבדיקת ה-no-op
+// (echo-loop) תישאר תקפה.
+const fam = (id: string, name: string, members: unknown[] = []) =>
+  ({ id, name, members, docs: [], status: 'active', cred: { score: 700, log: [] } }) as never;
 
 describe('applyEntityPartial', () => {
   it('הוספה מרוחקת → נכנס, בלי לגעת בקיים', () => {
@@ -36,7 +39,7 @@ describe('applyEntityPartial', () => {
   it('מסמך זהה → אותו object (no-op, מונע לולאת הד)', () => {
     const db: Db = { ...emptyDb(), families: [fam('f1', 'כהן')] };
     // גוף המסמך ב-Firestore כולל id (pushDiff כותב את הישות המלאה) — כמו בפרודקשן
-    const next = applyEntityPartial(db, 'families', [{ id: 'f1', data: { id: 'f1', name: 'כהן', members: [] }, deleted: false }]);
+    const next = applyEntityPartial(db, 'families', [{ id: 'f1', data: { id: 'f1', name: 'כהן', members: [], docs: [], status: 'active', cred: { score: 700, log: [] } }, deleted: false }]);
     expect(next).toBe(db);
   });
 

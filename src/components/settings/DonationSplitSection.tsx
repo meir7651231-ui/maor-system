@@ -87,7 +87,7 @@ export function DonationSplitSection() {
             onClick={() => {
               if (busyOff) return;
               setBusyOff(true);
-              void disableSplit().finally(() => setTimeout(() => window.location.reload(), 400));
+              void disableSplit().catch(() => { /* כשל-כיבוי — המצב ייראה אחרי הרענון */ }).finally(() => setTimeout(() => window.location.reload(), 400));
             }}
             disabled={busyOff}
           >

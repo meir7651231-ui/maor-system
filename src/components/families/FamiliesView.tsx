@@ -7,6 +7,8 @@ import { useDeferredValue, useEffect, useMemo, useState, type KeyboardEvent } fr
 import { IncMoreCard, IncMoreRow, incSlice, useIncCap } from '../incremental';
 import type { Family } from '../../types/domain';
 import { useApp } from '../../store/useApp';
+import { useListScrollRestore } from '../../lib/scrollMemory';
+import { useRemembered } from '../../lib/filterMemory';
 import { featureOn, telephonyOn, termOf } from '../../lib/config';
 import { CallBtn } from '../CallBtn';
 import { levenshtein, smartFilter } from '../../lib/search';
@@ -66,6 +68,7 @@ export function FamiliesView() {
   const db = useApp((s) => s.db);
   const setDb = useApp((s) => s.setDb);
   const selFamilyId = useApp((s) => s.selFamilyId);
+  useListScrollRestore('families', !!selFamilyId); // חזרה מהכרטיס למיקום-הגלילה הקודם (5.9)
   const selectFamily = useApp((s) => s.selectFamily);
   const config = useApp((s) => s.config);
   const go = useApp((s) => s.go);
@@ -91,18 +94,18 @@ export function FamiliesView() {
     setTimeout(() => document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' }), 250);
   }
 
-  const [q, setQ] = useState('');
+  const [q, setQ] = useRemembered('fam.q', '');
   // ⚡ מהירות (VISION-LIGHT ‏#4): ההקלדה מיידית; החיפוש-החכם רץ בעדיפות-נדחית.
   const dq = useDeferredValue(q);
-  const [status, setStatus] = useState('all');
-  const [city, setCity] = useState('all');
-  const [comm, setComm] = useState('all');
-  const [sort, setSort] = useState<{ key: SortKey; dir: 1 | -1 } | null>(null);
-  const [colFOn, setColFOn] = useState(false);
-  const [colF, setColF] = useState(EMPTY_COLF);
-  const [advOn, setAdvOn] = useState(false);
-  const [adv, setAdv] = useState(EMPTY_ADV);
-  const [commMulti, setCommMulti] = useState<string[]>([]);
+  const [status, setStatus] = useRemembered('fam.status', 'all');
+  const [city, setCity] = useRemembered('fam.city', 'all');
+  const [comm, setComm] = useRemembered('fam.comm', 'all');
+  const [sort, setSort] = useRemembered<{ key: SortKey; dir: 1 | -1 } | null>('fam.sort', null);
+  const [colFOn, setColFOn] = useRemembered('fam.colFOn', false);
+  const [colF, setColF] = useRemembered('fam.colF', EMPTY_COLF);
+  const [advOn, setAdvOn] = useRemembered('fam.advOn', false);
+  const [adv, setAdv] = useRemembered('fam.adv', EMPTY_ADV);
+  const [commMulti, setCommMulti] = useRemembered<string[]>('fam.commMulti', []);
   const [finderOpen, setFinderOpen] = useState(false);
   const [fwLocks, setFwLocks] = useState<Record<string, string>>({});
   const [fwRot, setFwRot] = useState(0);
@@ -152,6 +155,31 @@ export function FamiliesView() {
   }, [db]);
 
   const selected = db.families.find((f) => f.id === selFamilyId);
+  // ⚠️ hooks לפני ה-return המוקדם (React #300 — נחיל ב׳: ה-useMemo ישב אחרי `if (selected) return` והקריס פתיחת-כרטיס)
+  // צ'יפים של חיזוי — השלמת המילה האחרונה משמות/ערים/קהילות קיימים
+  // ⚡ swarm-b P6: ממואיז על q (לא dq — הצ׳יפים עוקבים אחר ההקלדה במכוון) + db.families;
+  // הדגל כבוי ⇒ ריק בלי סריקת-משפחות בכל הקשה.
+  const suggests = useMemo(() => {
+    if (!suggestOn) return [];
+    const lastTok = normSearch(q.trim().split(/\s+/).pop() ?? '');
+    const out: string[] = [];
+    if (lastTok) {
+      const seen = new Set<string>();
+      outer: for (const f of db.families) {
+        for (const t of [f.name, f.father, f.mother, f.city, f.community, ...f.members.map((m) => m.first)]) {
+          if (!t) continue;
+          const nt = normSearch(t);
+          if (!nt || nt === lastTok || seen.has(nt)) continue;
+          if (nt.startsWith(lastTok) || (lastTok.length >= 3 && levenshtein(lastTok, nt) <= 1)) {
+            seen.add(nt);
+            out.push(t);
+            if (out.length >= 7) break outer;
+          }
+        }
+      }
+    }
+    return out;
+  }, [q, db.families, suggestOn]);
   if (selected) return <FamilyDetail family={selected} />;
 
   const famView = db.ui.famView;
@@ -221,24 +249,6 @@ export function FamiliesView() {
   const clickSort = (key: SortKey) =>
     setSort((s) => (s?.key === key ? { key, dir: s.dir === 1 ? -1 : 1 } : { key, dir: 1 }));
 
-  // צ'יפים של חיזוי — השלמת המילה האחרונה משמות/ערים/קהילות קיימים
-  const lastTok = normSearch(q.trim().split(/\s+/).pop() ?? '');
-  const suggests: string[] = [];
-  if (lastTok) {
-    const seen = new Set<string>();
-    outer: for (const f of db.families) {
-      for (const t of [f.name, f.father, f.mother, f.city, f.community, ...f.members.map((m) => m.first)]) {
-        if (!t) continue;
-        const nt = normSearch(t);
-        if (!nt || nt === lastTok || seen.has(nt)) continue;
-        if (nt.startsWith(lastTok) || (lastTok.length >= 3 && levenshtein(lastTok, nt) <= 1)) {
-          seen.add(nt);
-          suggests.push(t);
-          if (suggests.length >= 7) break outer;
-        }
-      }
-    }
-  }
   const applySuggest = (t: string) => {
     const parts = q.trim().split(/\s+/);
     parts[parts.length - 1] = t;
@@ -365,11 +375,13 @@ export function FamiliesView() {
             value={q}
             onChange={setQ}
             placeholder={'חיפוש לפי שם ' + termOf(config, 'entity.family', 'משפחה') + ', הורה, ילד או טלפון…'}
+            ariaLabel="חיפוש"
           />
         </div>
         <Select
           value={status}
           onChange={setStatus}
+          ariaLabel="סטטוס"
           options={[
             { value: 'all', label: 'כל הסטטוסים' },
             { value: 'active', label: 'פעילה' },
@@ -380,11 +392,13 @@ export function FamiliesView() {
         <Select
           value={city}
           onChange={setCity}
+          ariaLabel="עיר"
           options={[{ value: 'all', label: 'כל הערים' }, ...cityOptions.map((c) => ({ value: c, label: c }))]}
         />
         <Select
           value={comm}
           onChange={setComm}
+          ariaLabel="קהילה"
           options={[{ value: 'all', label: 'כל הקהילות' }, ...commOptions.map((c) => ({ value: c, label: c }))]}
         />
         {famView === 'list' && colfilterOn && (
@@ -526,7 +540,7 @@ export function FamiliesView() {
       ) : famView === 'grid' ? (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 12 }}>
           {shownFams.map((f) => {
-            const st = STATUS_META[f.status];
+            const st = STATUS_META[f.status] ?? STATUS_META.active; // סטטוס לא-מוכר ⇒ לא קורסים
             const kids = kidsOf(f);
             const parents = [f.father, f.mother].filter(Boolean).join(' ו');
             return (
@@ -608,7 +622,7 @@ export function FamiliesView() {
             </thead>
             <tbody>
               {shownFams.map((f) => {
-                const st = STATUS_META[f.status];
+                const st = STATUS_META[f.status] ?? STATUS_META.active; // סטטוס לא-מוכר ⇒ לא קורסים
                 const kids = kidsOf(f);
                 const kidsLine = kids.length
                   ? kids

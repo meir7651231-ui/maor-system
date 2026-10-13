@@ -63,6 +63,7 @@ export function ProductForm(props: { product: ShopProduct | null; onClose: () =>
     setComps(comps.map((c, j) => (j === i ? { ...c, ...patch } : c)));
   }
   function removeComp(i: number) {
+    setNewItemFor(null); // ביקורת-עומק 2.9: אינדקס-מיקומי — טופס-הפריט-החדש זז לרכיב אחר אחרי הסרה
     // תיקון (swarm-audit): הסרת רכיב שיש עליו מימושים ייתמה אותם בשקט — היחידות
     // חזרו למלאי (itemRemaining סופר רק רכיבים קיימים) והשורות נעלמו מכרטיס-השיוך
     // בלי אפשרות ביטול. חוסמים — כמו deleteShopProduct שחוסם על שיוכים פעילים.

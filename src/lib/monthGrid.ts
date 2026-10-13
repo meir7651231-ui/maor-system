@@ -32,6 +32,11 @@ export interface MonthGrid<E> {
   nextIso: IsoDate;
 }
 
+/** מצבי-תצוגה ללוחות (בקשת-בעלים 30.8): יומי / שבועי / חודשי. */
+export type CalViewMode = 'day' | 'week' | 'month';
+export const CAL_VIEW_MODES: CalViewMode[] = ['day', 'week', 'month'];
+export const CAL_VIEW_LABEL: Record<CalViewMode, string> = { day: 'יומי', week: 'שבועי', month: 'חודשי' };
+
 const fmtMonthYear = new Intl.DateTimeFormat('he', { month: 'long', year: 'numeric' });
 const fmtHebMonth = new Intl.DateTimeFormat('he-u-ca-hebrew', { month: 'long' });
 const fmtHebYear = new Intl.DateTimeFormat('he-u-ca-hebrew', { year: 'numeric' });
@@ -50,12 +55,8 @@ function cellOf<E>(d: Date, inMonth: boolean, hebMode: boolean, byDate: Map<stri
   };
 }
 
-/** גריד חודשי לועזי/עברי עם אירועי המודול בלבד (אין db.events — בידוד). */
-export function buildMonthGrid<E extends { date: IsoDate }>(
-  events: readonly E[],
-  anchorIso: IsoDate,
-  hebMode: boolean,
-): MonthGrid<E> {
+/** אינדוקס אירועים לפי תאריך (משותף לכל הגרידים). */
+function indexByDate<E extends { date: IsoDate }>(events: readonly E[]): Map<string, E[]> {
   const byDate = new Map<string, E[]>();
   for (const ev of events) {
     if (!ev.date) continue;
@@ -63,6 +64,68 @@ export function buildMonthGrid<E extends { date: IsoDate }>(
     arr.push(ev);
     byDate.set(ev.date, arr);
   }
+  return byDate;
+}
+
+const fmtDayLong = new Intl.DateTimeFormat('he', { weekday: 'long', day: 'numeric', month: 'long' });
+
+/**
+ * 🗓 גריד-שבוע (ראשון–שבת) סביב העוגן — 7 תאים, אותו מבנה כמו גריד-חודש.
+ * ניווט prev/next קופץ שבוע. בקשת-בעלים 30.8 ("תצוגה יומי/שבועי/חודשי").
+ */
+export function buildWeekGrid<E extends { date: IsoDate }>(
+  events: readonly E[],
+  anchorIso: IsoDate,
+  hebMode: boolean,
+): MonthGrid<E> {
+  const byDate = indexByDate(events);
+  const anchor = new Date(anchorIso + 'T12:00:00');
+  const sunday = new Date(anchor.getFullYear(), anchor.getMonth(), anchor.getDate() - anchor.getDay());
+  const cells: MonthGridCell<E>[] = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(sunday.getFullYear(), sunday.getMonth(), sunday.getDate() + i);
+    cells.push(cellOf(d, true, hebMode, byDate));
+  }
+  const sat = new Date(sunday.getFullYear(), sunday.getMonth(), sunday.getDate() + 6);
+  const heb = (dd: Date) => gem(hpOf(isoOf(dd), dd).day) + ' ' + fmtHebMonth.format(dd);
+  return {
+    cells,
+    label: hebMode
+      ? 'שבוע: ' + heb(sunday) + ' – ' + heb(sat)
+      : 'שבוע: ' + sunday.getDate() + '.' + (sunday.getMonth() + 1) + ' – ' + sat.getDate() + '.' + (sat.getMonth() + 1),
+    subLabel: hebMode
+      ? sunday.getDate() + '.' + (sunday.getMonth() + 1) + ' – ' + sat.getDate() + '.' + (sat.getMonth() + 1)
+      : heb(sunday) + ' – ' + heb(sat),
+    prevIso: isoOf(new Date(sunday.getFullYear(), sunday.getMonth(), sunday.getDate() - 7)),
+    nextIso: isoOf(new Date(sunday.getFullYear(), sunday.getMonth(), sunday.getDate() + 7)),
+  };
+}
+
+/** 🗓 גריד-יום — תא יחיד (העוגן). ניווט prev/next קופץ יום. */
+export function buildDayGrid<E extends { date: IsoDate }>(
+  events: readonly E[],
+  anchorIso: IsoDate,
+  hebMode: boolean,
+): MonthGrid<E> {
+  const byDate = indexByDate(events);
+  const anchor = new Date(anchorIso + 'T12:00:00');
+  const cells = [cellOf(anchor, true, hebMode, byDate)];
+  return {
+    cells,
+    label: gem(hpOf(anchorIso, anchor).day) + ' ' + fmtHebMonth.format(anchor) + ' · ' + fmtDayLong.format(anchor),
+    subLabel: gemYear(fmtHebYear.format(anchor)),
+    prevIso: isoOf(new Date(anchor.getFullYear(), anchor.getMonth(), anchor.getDate() - 1)),
+    nextIso: isoOf(new Date(anchor.getFullYear(), anchor.getMonth(), anchor.getDate() + 1)),
+  };
+}
+
+/** גריד חודשי לועזי/עברי עם אירועי המודול בלבד (אין db.events — בידוד). */
+export function buildMonthGrid<E extends { date: IsoDate }>(
+  events: readonly E[],
+  anchorIso: IsoDate,
+  hebMode: boolean,
+): MonthGrid<E> {
+  const byDate = indexByDate(events);
   const anchor = new Date(anchorIso + 'T12:00:00');
 
   if (!hebMode) {
@@ -110,4 +173,18 @@ export function buildMonthGrid<E extends { date: IsoDate }>(
     prevIso: isoOf(new Date(first.getFullYear(), first.getMonth(), first.getDate() - 1)),
     nextIso: isoOf(new Date(last.getFullYear(), last.getMonth(), last.getDate() + 1)),
   };
+}
+
+/** בורר-גריד לפי מצב-תצוגה (יומי/שבועי/חודשי) — נקודת-כניסה אחת ללוחות. */
+export function buildGrid<E extends { date: IsoDate }>(
+  events: readonly E[],
+  anchorIso: IsoDate,
+  hebMode: boolean,
+  mode: CalViewMode,
+): MonthGrid<E> {
+  return mode === 'day'
+    ? buildDayGrid(events, anchorIso, hebMode)
+    : mode === 'week'
+      ? buildWeekGrid(events, anchorIso, hebMode)
+      : buildMonthGrid(events, anchorIso, hebMode);
 }

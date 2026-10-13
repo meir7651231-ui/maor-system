@@ -13,7 +13,7 @@
  */
 import { useState } from 'react';
 import { useApp } from '../../store/useApp';
-import { integrationOn, integrationSetting, isAdminUser, isSuperAdmin, termOf } from '../../lib/config';
+import { integrationOn, integrationSetting, isAdminAuthority, isSuperAdmin, termOf } from '../../lib/config';
 import { Btn } from '../ui';
 import { Section, SectionNote } from './lib';
 import { NedarimSyncModal } from '../supporters/NedarimSyncModal';
@@ -50,7 +50,8 @@ export function DonorImportSection() {
   const solaPullUrl = integrationSetting(config, 'payments', 'solaPullUrl');
   const canPullSola = !!solaPullUrl && (isSuperAdmin(cloudUser?.email) || isManager);
 
-  if (!isAdminUser(config, cloudUser?.email)) return null;
+  // נחיל ב׳ 3.9 (F1): סמכות-מנהל אפקטיבית — בארגון-פלטפורמה בלי adminEmails עובד/ת אינו/ה מנהל
+  if (!isAdminAuthority(config, cloudUser?.email, !!isManager)) return null;
   if (!paymentsOn && !hasClearingHist) return null;
 
   async function doSolaPull(reset: boolean) {

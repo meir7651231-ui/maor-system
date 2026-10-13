@@ -384,7 +384,7 @@ export type FirebaseOrgConfig = NonNullable<OrgConfig['firebase']>;
  */
 export const INTEGRATION_KEYS = [
   'receipts', 'payments', 'whatsapp', 'sms', 'phone', 'gcal',
-  'drive', 'sheets', 'maps', 'esign', 'ai', 'campaign', 'mail',
+  'drive', 'sheets', 'maps', 'esign', 'ai', 'campaign', 'mail', 'gcontacts',
 ] as const;
 
 /**
@@ -393,12 +393,19 @@ export const INTEGRATION_KEYS = [
  * מפתח-AI וכד' נשמרים מקומית-למכשיר בלבד.
  */
 export const INTEGRATION_SETTING_KEYS: Record<string, readonly string[]> = {
+  // whatsapp.mode='app' ⇒ קישורי-הוואטסאפ נפתחים דרך סכמת whatsapp:// (קריאה
+  // ישירה לאפליקציה) במקום https://wa.me — לסינון-כשר שחוסם את דומיין wa.me
+  // אך מתיר את האפליקציה עצמה (הכרעת-בעלים 24.8). חסר/'web' = wa.me (ביט-זהה).
+  whatsapp: ['mode'],
   payments: ['provider', 'payUrl', 'pullUrl', 'solaPullUrl', 'solaPayUrl'],
   campaign: ['url'],
   sheets: ['spreadsheetId'], // גל ד׳ — sheetsNightly קורא מכאן (platformOrgs.config)
   // צרור-הלילה (ROADMAP-100 ‏#3): remindersNightly קורא מכאן את יעדי-התקציר
   sms: ['adminPhone'], // טלפון-המנהל לתקציר-הבוקר (לא סוד — יעד, לא מפתח)
   mail: ['digestTo'], // מייל-היעד לתקציר; כתובת-השולח היא secret בשרת (MAIL_FROM)
+  // 📇 סנכרון אנשי-קשר ל-Google (1.9): שם-קבוצת-היעד (לא סוד — ה-refresh-token
+  // חי בכספת-השרת orgSecrets, לא כאן). חסר ⇒ ברירת-מחדל "מאור — אנשי קשר".
+  gcontacts: ['groupName'],
 };
 
 export const DEFAULT_CONFIG: OrgConfig = {

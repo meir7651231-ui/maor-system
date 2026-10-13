@@ -2,7 +2,7 @@
  * כרטיס תומכ/ת — פרטי קשר, ציון RFM ודרגה, היסטוריית תרומות,
  * רישום תרומה חדשה ותאריך יעד "קשר הבא" עם תזכורת מקושרת בלוח השנה.
  */
-import { useState } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import type { Supporter } from '../../types/domain';
 import { useApp } from '../../store/useApp';
 import { canGrantedAction, featureOn, integrationOn, integrationSetting, isSuperAdmin, telephonyOn, termOf } from '../../lib/config';
@@ -16,14 +16,17 @@ import { CallBtn } from '../CallBtn';
 import { hebDateFull } from '../../lib/hebrew';
 import { Btn, Empty, Field, FormError, Modal, Select, StickyBackBar, TextInput } from '../ui';
 import { HebDateInput } from '../HebDateInput';
-import { allSupPhones, chipStyle, fmtDate, HOK_CAT, hokMethodLabel, hokRecordedThisMonth, isoToday, SEGULA_OFFSETS, supCount, supDonEvents, supLast, supScore, supTier, totalLabel } from './lib';
+import { allSupPhones, chipStyle, fmtDate, HOK_CAT, hokMethodLabel, hokRecordedThisMonth, isoToday, RECUR_MODES, recurDef, recurStatus, SEGULA_OFFSETS, segulaStatus, supCount, type RecurMode, supDonEvents, supLast, supScore, supTier, totalLabel } from './lib';
 import { deliverReceipt, receiptFmtOf, receiptLines } from '../../lib/receipt';
 import { SupporterForm } from './SupporterForm';
 import { DonationModal } from './DonationModal';
 import { AyinCard } from './AyinCard';
+import { PrayerNames } from './PrayerNames';
 import { SupporterPhotos } from './SupporterPhotos';
+import { useArmed } from '../useArmed';
 import { PlannedChargesSection } from './PlannedChargesSection';
 import { DonationCalendar } from './DonationCalendar';
+import { addId, persistLayout, removeId, sanitizeIds, shiftId } from '../../lib/widgetLayout';
 
 function InfoRow(props: { k: string; v: string; ltr?: boolean }) {
   return (
@@ -52,8 +55,14 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
   const upsertEvent = useApp((s) => s.upsertEvent);
   const deleteEvent = useApp((s) => s.deleteEvent);
   const unlinkEvent = useApp((s) => s.unlinkEvent);
+  const setSupporterNext = useApp((s) => s.setSupporterNext);
   const nextId = useApp((s) => s.nextId);
   const toast = useApp((s) => s.toast);
+  const setDb = useApp((s) => s.setDb);
+  const supCardLayout = useApp((s) => s.db.ui.supCardLayout);
+  // ✎ סידור הכרטיס (5.10): draft מקומי בזמן עריכה; השמירה מתמידה ל-db.ui.supCardLayout (לארגון, מסתנכרן עם הנתונים)
+  const [layoutEdit, setLayoutEdit] = useState(false);
+  const [layoutDraft, setLayoutDraft] = useState<string[]>([]);
   const config = useApp((s) => s.config);
   // 🔐 רק המנהל מנפיק קבלות (הכרעת-בעלים 14.8) — כפתורי-הרישום מוסתרים מעובד/ת;
   // האכיפה-הקשיחה בליבה (addDonation). לקוח-שורש/מקומי/מנהל = מנפיק.
@@ -85,9 +94,13 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
   const smsReady = integrationOn(config, 'sms') && cloudReady && !!sp.phone;
   const [smsOpen, setSmsOpen] = useState(false);
   const [smsText, setSmsText] = useState('');
+  // ביקורת 3.9 (A6): מגן-כפילות כמו mailBusy — SMS בתשלום; לחיצה-כפולה לפני ה-await הכניסה שתי הודעות לתור
+  const [smsBusy, setSmsBusy] = useState(false);
   async function sendSms() {
     const t = smsText.trim();
     if (!t) return toast('כתבו הודעה קודם');
+    if (smsBusy) return;
+    setSmsBusy(true);
     try {
       const mod = await import('../../store/cloudSync');
       await mod.writeSmsOutbox(sp.phone, t);
@@ -96,6 +109,8 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
       setSmsText('');
     } catch {
       toast('⚠ ההכנסה לתור נכשלה — נסו שוב');
+    } finally {
+      setSmsBusy(false);
     }
   }
   // 📧 שליחת-מייל ידנית (בקשת-בעלים 26.8) — מעל-mailOutbox הקיים (שמשמש
@@ -156,10 +171,32 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
   }
   const rfmOn = featureOn(config, 'supporters.rfm');
   const nextOn = featureOn(config, 'supporters.nextdate');
-  // 🕯 סגולת 40 יום (בקשת-שטח) — opt-in; חסר-הדגל ⇒ מוסתר.
+  // 🕯 סגולת 40 יום — הדגל שנקרא "סגולת 40 יום" הוא זה ששולט (חסר=דלוק, רק false מכבה).
+  // 6.10 (בעלים: "40 יום לא עובד אפילו שהפעלתי אותו"): מאז #501 הנראות נגזרה מ-core.taxreceipt
+  // ("קבלת סעיף 46") — הבעלים הדליק את "סגולת 40 יום" בלוח-הבקרה (נשמר, raw=undefined) והכפתור
+  // נשאר מוסתר כי §46 כבוי אצלו. דגל חייב לשלוט במה ששמו אומר. ורטיקל מסחרי מכבה אותו
+  // דרך COMMERCIAL_OFF (verticalPacks) — לא דרך פרוקסי. ה-#501 נולד מ-false תקוע בענן
+  // (merge:true, תוקן ב-#504) — עכשיו הדלקה בלוח-הבקרה באמת נשמרת.
   const segulaOn = featureOn(config, 'supporters.segula');
+  // מצב-הסגולה נגזר מאירועי-הלוח של התומך/ת (בקשת-בעלים 3.9 "40 יום לא מופיע" — הכפתור זרע בשקט).
+  const segula = segulaOn ? segulaStatus(events, sp.id, isoToday()) : null;
   const seedSegulaReminders = useApp((s) => s.seedSegulaReminders);
-  const [segulaStart, setSegulaStart] = useState('');
+  // בקשת-בעלים 6.9 "מה קורה עם הכפתור": אחרי הזריעה הכפתור נעלם ונשארה שורת-מצב בלבד —
+  // עכשיו פאנל: רשימת 5 התזכורות (✓ בוצע), 🔄 התחלה-מחדש, ✖ ביטול (חימוש דו-לחיצתי).
+  const cancelSegula = useApp((s) => s.cancelSegula);
+  const restartSegula = useApp((s) => s.restartSegula);
+  const toggleEventDone = useApp((s) => s.toggleEventDone);
+  const { armed: segArmed, confirmTwice: segConfirm } = useArmed(featureOn(config, 'shell.armdel'));
+  // 🔁 בקשת-בעלים 16.9 "בחירה האם חזרה יומי שבועי חודשי או 40 יום": בורר-מצב + כמות; סדרות
+  // חוזרות פעילות (לא-סגולה) מוצגות בפאנלים משלהן. הסגולה נשארת כמו-שהיא.
+  const [recurMode, setRecurMode] = useState<RecurMode>('segula');
+  const [recurCount, setRecurCount] = useState(0); // 0 = ברירת-המחדל של המצב
+  const recurActive = segulaOn
+    ? RECUR_MODES.filter((m) => m.key !== 'segula').map((m) => ({ def: m, st: recurStatus(events, sp.id, isoToday(), m.key) })).filter((x) => x.st.active)
+    : [];
+  const recurSelDef = recurDef(recurMode);
+  const recurSelCount = recurCount > 0 ? recurCount : recurSelDef.defaultCount;
+  const recurSelActive = recurMode !== 'segula' && recurActive.some((x) => x.def.key === recurMode);
   // 🔁 הו"ק (ROADMAP-100 ‏#2): הגדרה+רישום — התרומה דרך addDonation (קבלה רציפה)
   const hokOn = featureOn(config, 'supporters.hok');
   const [hokOpen, setHokOpen] = useState(false);
@@ -195,6 +232,7 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
     toast('🔁 חיוב-החודש נרשם' + (featureOn(config, 'core.receipts') ? ' — קבלה ' + res.rid : ''));
   }
   const ayinOn = featureOn(config, 'supporters.ayin');
+  const prayerOn = featureOn(config, 'supporters.prayernames'); // 🙏 שמות לתפילה (5.9)
   // 📅 חיובים-מתוכננים (בקשת-בעלים 25.8) — opt-in מפורש; חסר-הדגל ⇒ מוסתר.
   const plannedOn = config.features?.['supporters.plannedcharges'] === true;
   // גלריית-תמונות — opt-in מפורש (=== true), שומר על ברירת-המחדל ביט-זהה בלקוח-החי.
@@ -235,15 +273,21 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
 
   // צרור-הלילה (ROADMAP-100 ‏#1): קבלה במייל — תור mailOutbox, נשלח ע"י ה-Function
   const mailReady = integrationOn(config, 'mail') && cloudReady && !!sp.email;
+  // ביקורת 3.9 (A6): מגן-כפילות כמו mailBusy — לחיצה-כפולה שלחה את אותה קבלה פעמיים לתור
+  const [mailRcptBusy, setMailRcptBusy] = useState(false);
   async function mailReceipt(rid: string) {
     const info = receiptInfoFor(rid);
     if (!info) return;
+    if (mailRcptBusy) return;
+    setMailRcptBusy(true);
     try {
       const mod = await import('../../store/cloudSync');
       await mod.writeMailOutbox(sp.email, 'קבלה ' + rid + ' — ' + info.orgName, receiptLines(info).join('\n'));
       toast('📧 קבלה ' + rid + ' נכנסה לתור-המייל');
     } catch {
       toast('⚠ ההכנסה לתור נכשלה — נסו שוב');
+    } finally {
+      setMailRcptBusy(false);
     }
   }
 
@@ -252,6 +296,8 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
   const [armDelete, setArmDelete] = useState(false);
   // 📝 "על מה לדבר בפעם הבאה" — טיוטה מקומית, נשמרת ב-blur (בלי כתיבה-לכל-תו).
   const [nextNoteDraft, setNextNoteDraft] = useState(sp.nextNote || '');
+  // ✓ הבזק-אישור-שמירה גלוי (בקשת-בעלים 30.8 "כפתור שמירה שיראו בעיניים שזה בוצע").
+  const [nextSaved, setNextSaved] = useState(false);
   // P3 פריט 11 — לחיצה על תרומה מסמנת את יומה בלוח האישי
   const [calFocus, setCalFocus] = useState<string | null>(null);
 
@@ -272,39 +318,26 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
       toast('תאריך היעד נוקה');
       return;
     }
-    const linked = sp.nextEventId ? events.find((e) => e.id === sp.nextEventId) : undefined;
-    if (linked) {
-      upsertEvent({ ...linked, title: 'יעד קשר — ' + termOf(config, 'entity.supporter', 'תומך/ת') + ': ' + sp.name, date: v, done: false, notes: nextEventNotes(nextNoteDraft) });
-      upsertSupporter({ ...sp, nextDate: v });
-      toast('נקבע תאריך יעד ' + hebDateFull(v) + ' — התזכורת בלוח השנה עודכנה');
-    } else {
-      const id = nextId('ev');
-      upsertEvent({
-        id,
-        title: 'יעד קשר — ' + termOf(config, 'entity.supporter', 'תומך/ת') + ': ' + sp.name,
-        date: v,
-        time: '',
-        type: 'call',
-        customType: '',
-        notes: nextEventNotes(nextNoteDraft),
-        price: 0,
-        roomId: '',
-        famId: '',
-        priority: 'orange',
-        done: false,
-      });
-      upsertSupporter({ ...sp, nextDate: v, nextEventId: id });
-      toast('נקבע תאריך יעד ' + hebDateFull(v) + ' — נוספה תזכורת ללוח השנה');
-    }
+    // 5.10: המנגנון עצמו ב-store (setSupporterNext) — משותף עם «קשר הבא» שאחרי «הושלם» במעקב-הטיפול
+    const hadLinked = !!(sp.nextEventId && events.some((e) => e.id === sp.nextEventId));
+    setSupporterNext(sp.id, v, nextNoteDraft);
+    toast('נקבע תאריך יעד ' + hebDateFull(v) + (hadLinked ? ' — התזכורת בלוח השנה עודכנה' : ' — נוספה תזכורת ללוח השנה'));
   }
 
-  /** שמירת "על מה לדבר בפעם הבאה" (ב-blur) — על התומך + רענון notes של תזכורת-הלוח. */
-  function saveNextNote() {
+  /** שמירת "על מה לדבר בפעם הבאה" — על התומך + רענון notes של תזכורת-הלוח.
+   *  `explicit` (לחיצת-כפתור) מציג אישור-גלוי גם כשאין שינוי; ‏blur נשאר שקט. */
+  function saveNextNote(explicit = false) {
     const v = nextNoteDraft.trim();
-    if (v === (sp.nextNote || '')) return;
-    const linked = sp.nextEventId ? events.find((e) => e.id === sp.nextEventId) : undefined;
-    if (linked) upsertEvent({ ...linked, notes: nextEventNotes(v) });
-    upsertSupporter({ ...sp, nextNote: v });
+    if (v !== (sp.nextNote || '')) {
+      const linked = sp.nextEventId ? events.find((e) => e.id === sp.nextEventId) : undefined;
+      if (linked) upsertEvent({ ...linked, notes: nextEventNotes(v) });
+      upsertSupporter({ ...sp, nextNote: v });
+    }
+    if (explicit) {
+      setNextSaved(true);
+      toast('📝 התזכורת נשמרה ✓');
+      window.setTimeout(() => setNextSaved(false), 2500);
+    }
   }
 
   /** 📞 תזכורת טלפון לתודה — נכנסת ללוח השנה כאירוע 'שיחה' ירוק להיום. */
@@ -356,109 +389,203 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
     (dsp.first ? ' · מ-' + hebDateFull(dsp.first) : '') +
     (supLast(dsp) ? ' · אחרונה ' + hebDateFull(supLast(dsp)) : '');
 
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 14, paddingBottom: 60 }}>
-      {/* כותרת הכרטיס */}
-      <div className="card" style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
-        <div
-          aria-hidden
-          style={{
-            width: 52,
-            height: 52,
-            borderRadius: 99,
-            background: 'var(--dark)',
-            color: 'var(--amber)',
-            fontWeight: 800,
-            fontSize: 22,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flex: 'none',
-          }}
-        >
-          {sp.name ? sp.name[0] : '💛'}
+  // ── הקוביות של הכרטיס (5.10) — רשימה אחת בסדר-החי (סגולה · ציון · פרטים · חיובים · קשר-הבא · תרומות · תמונות · תפילה · טיפול · לוח · הו"ק);
+  //    הסדר/ההסתרה נשלטים ע"י db.ui.supCardLayout (כמו לוח-הבית). חסר = בדיוק הסדר הזה.
+  const cardWidgets: { id: string; label: string; visible: boolean; wide?: boolean; node: ReactNode }[] = [
+      /* 🕯 סגולת 40 יום — סעיף עצמאי בראש-הכרטיס (בקשת-בעלים 9.9: "כפתור ענק שיראו אותו";
+           לא תלוי עוד בסעיף קשר-הבא / supporters.nextdate). */
+      /* 22.9 (הכרעת-בעלים "40 יום דלוק ברירת-מחדל"): אין יותר הודעת-דגל-כבוי — הסגולה
+           דלוקה בכל עמותה. בוורטיקל מסחרי היא פשוט מוסתרת (חסרת-משמעות שם). */
+      { id: 'segula', label: 'סגולת 40 יום 🕯', visible: segulaOn, wide: true, node: (
+        <div className="card" style={{ marginBottom: 12, padding: 12 }}>
+        {/* 🔁 בורר-חזרה (16.9): 40 יום · יומי · שבועי · חודשי + כמות לסדרות החוזרות */}
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+          <span style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>חזרה:</span>
+          {RECUR_MODES.map((m) => (
+            <button
+              key={m.key}
+              type="button"
+              className={'chip' + (recurMode === m.key ? ' on' : '')}
+              aria-pressed={recurMode === m.key}
+              onClick={() => { setRecurMode(m.key); setRecurCount(0); }}
+              style={{ cursor: 'pointer' }}
+            >
+              {m.emoji + ' ' + m.chip}
+            </button>
+          ))}
+          {recurMode !== 'segula' && (
+            <label style={{ fontSize: 12.5, color: 'var(--ink-soft)', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+              כמות:
+              <input
+                type="number"
+                min={1}
+                max={365}
+                value={recurSelCount}
+                onChange={(e) => setRecurCount(Math.max(0, Math.min(365, Math.floor(+e.target.value || 0))))}
+                aria-label="כמות תזכורות"
+                dir="ltr"
+                style={{ width: 64, padding: '3px 6px', fontSize: 12.5 }}
+              />
+            </label>
+          )}
         </div>
-        <div style={{ flex: 1, minWidth: 200 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-            <span style={{ fontWeight: 800, fontSize: 19 }}>{sp.name}</span>
-            {rfmOn && (
-              <span style={chipStyle(tier.bg, tier.c)} title={'ציון משוקלל (R·F·M): ' + score}>
-                {tier.label}
-              </span>
+        {/* 🔁 סדרות-חוזרות פעילות (יומי/שבועי/חודשי) — פאנל לכל אחת */}
+        {recurActive.map(({ def, st }) => (
+          <div key={def.key} style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--line)', fontSize: 13, color: 'var(--ink)' }}>
+            <div role="status" className="btn primary" style={{ width: '100%', minHeight: 64, fontSize: 20, fontWeight: 800, borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'default', boxSizing: 'border-box' }}>
+              {def.emoji + ' ' + def.label + ' פעילה · תזכורת ' + st.day + ' מתוך ' + st.total + ' · סיום ' + fmtDate(st.end)}
+            </div>
+            <div style={{ fontSize: 12, color: 'var(--ink-faint)', fontWeight: 500, marginTop: 4 }}>
+              {st.done + '/' + st.total + ' בוצעו' + (st.next ? ' · הבאה: ' + fmtDate(st.next) : '') + ' — לחיצה על תזכורת מסמנת ✓ בוצע'}
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6, maxHeight: 132, overflowY: 'auto' }}>
+              {st.reminders.map((r) => (
+                <button
+                  key={r.id || r.date}
+                  type="button"
+                  className="chip"
+                  onClick={() => r.id && toggleEventDone(r.id)}
+                  aria-pressed={r.done}
+                  style={{ cursor: 'pointer', fontSize: 12, padding: '3px 9px', borderRadius: 999, border: '1px solid ' + (r.done ? 'var(--green)' : r.date < isoToday() ? 'var(--red)' : 'var(--line)'), color: r.done ? 'var(--green)' : r.date < isoToday() ? 'var(--red)' : 'var(--ink)', textDecoration: r.done ? 'line-through' : 'none', background: 'transparent' }}
+                >
+                  {(r.done ? '☑ ' : '☐ ') + r.day + ' · ' + fmtDate(r.date)}
+                </button>
+              ))}
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
+              <Btn kind="plain" sm onClick={() => { if (segConfirm('rec-restart-' + def.key, 'להתחיל את הסדרה מחדש מהיום?')) restartSegula(sp.id, isoToday(), 'זיווג', def.key, st.total); }}>
+                {segArmed === 'rec-restart-' + def.key ? '🔄 לחצו שוב לאישור' : '🔄 התחלה מחדש מהיום'}
+              </Btn>
+              <Btn kind="danger" sm onClick={() => { if (segConfirm('rec-cancel-' + def.key, 'לבטל את הסדרה? התזכורות יוסרו מהיומן ומקשר-הבא.')) cancelSegula(sp.id, def.key); }}>
+                {segArmed === 'rec-cancel-' + def.key ? '✖ לחצו שוב לאישור' : '✖ ביטול ' + def.label}
+              </Btn>
+            </div>
+          </div>
+        ))}
+        {/* 🔁 כפתור-זריעה לסדרה חוזרת שנבחרה (לא-סגולה) — כשאינה פעילה */}
+        {recurMode !== 'segula' && !recurSelActive && (
+          <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--line)' }}>
+            <button
+              type="button"
+              className="btn primary"
+              onClick={() => seedSegulaReminders(sp.id, isoToday(), 'זיווג', recurMode, recurSelCount)}
+              style={{ width: '100%', minHeight: 64, fontSize: 20, fontWeight: 800, borderRadius: 14, letterSpacing: 0.2 }}
+            >
+              {recurSelDef.emoji + ' ' + recurSelDef.label + ' ×' + recurSelCount + ' — מהיום'}
+            </button>
+            <div style={{ fontSize: 12, color: 'var(--ink-faint)', marginTop: 4 }}>
+              {'זריעת ' + recurSelCount + ' תזכורות ' + (recurMode === 'daily' ? 'יום אחרי יום' : recurMode === 'weekly' ? 'אחת לשבוע' : 'אחת לחודש') + ' מהיום — נכנס לקשר-הבא וללוח.'}
+            </div>
+          </div>
+        )}
+        {/* 🕯 סגולת 40 יום — כפתור אחד שמחשב לבד מהיום וזורע תזכורות-סגולה
+             לזיווג לתוך קשר-הבא/הלוח (בקשת-בעלים 30.8: "כפתור בשם 40 ימים
+             שיחשב לבד וירשום תזכורת בקשר הבא, מוטבע קשר לזיווג"). */}
+        {segulaOn && segula?.active && (
+          <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--line)', fontSize: 13, color: 'var(--ink)' }}>
+            {/* בקשת-בעלים 10.9 "כל התיקונים קיימים חוץ מ-40 יום": אצל תורם שכבר הופעלה לו סגולה
+                 הכפתור הענק הוחלף בשורת-טקסט קטנה ⇒ נראה "לא קיים". עכשיו גם המצב-הפעיל = פס ענק
+                 באותו גודל בדיוק (64px / 20px), עם אותה תווית "40 ימים". */}
+            <div
+              role="status"
+              className="btn primary"
+              style={{ width: '100%', minHeight: 64, fontSize: 20, fontWeight: 800, borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'default', boxSizing: 'border-box' }}
+            >
+              {'🕯 40 ימים — סגולה פעילה · יום ' + segula.day + ' מתוך ' + segula.target + ' · סיום ' + fmtDate(segula.end)}
+            </div>
+            <div style={{ fontWeight: 700, marginTop: 8 }}>
+              {'🕯 סגולה פעילה · יום ' + segula.day + ' מתוך ' + segula.target + (segula.next ? ' · תזכורת הבאה: ' + fmtDate(segula.next) : '') + ' · סיום: ' + fmtDate(segula.end)}
+            </div>
+            <div style={{ fontSize: 12, color: 'var(--ink-faint)', fontWeight: 500, marginTop: 2 }}>
+              {segula.done + '/' + segula.total + ' תזכורות בוצעו — התזכורות ביומן ובקשר-הבא · לחיצה על תזכורת מסמנת ✓ בוצע'}
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
+              {segula.reminders.map((r) => (
+                <button
+                  key={r.id || r.date}
+                  type="button"
+                  className="chip"
+                  onClick={() => r.id && toggleEventDone(r.id)}
+                  aria-pressed={r.done}
+                  title={r.done ? 'לחיצה מבטלת את הסימון' : 'לחיצה מסמנת שבוצע'}
+                  style={{
+                    cursor: 'pointer',
+                    fontSize: 12.5,
+                    padding: '4px 10px',
+                    borderRadius: 999,
+                    border: '1px solid ' + (r.done ? 'var(--green)' : r.date < isoToday() ? 'var(--red)' : 'var(--line)'),
+                    background: r.done ? 'color-mix(in srgb, var(--green) 12%, transparent)' : 'transparent',
+                    color: r.done ? 'var(--green)' : r.date < isoToday() ? 'var(--red)' : 'var(--ink)',
+                    textDecoration: r.done ? 'line-through' : 'none',
+                  }}
+                >
+                  {(r.done ? '☑ ' : '☐ ') + (r.final ? '🎯 סיום · ' : '') + 'יום ' + r.day + ' · ' + fmtDate(r.date)}
+                </button>
+              ))}
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
+              <Btn
+                kind="plain"
+                sm
+                onClick={() => {
+                  if (segConfirm('seg-restart', 'להתחיל את הסגולה מחדש מהיום? התזכורות הנוכחיות יוחלפו בחדשות.')) restartSegula(sp.id, isoToday(), 'זיווג');
+                }}
+              >
+                {segArmed === 'seg-restart' ? '🔄 לחצו שוב לאישור' : '🔄 התחלה מחדש מהיום'}
+              </Btn>
+              <Btn
+                kind="danger"
+                sm
+                onClick={() => {
+                  if (segConfirm('seg-cancel', 'לבטל את הסגולה? התזכורות יוסרו מהיומן ומקשר-הבא.')) cancelSegula(sp.id);
+                }}
+              >
+                {segArmed === 'seg-cancel' ? '✖ לחצו שוב לאישור' : '✖ ביטול הסגולה'}
+              </Btn>
+            </div>
+          </div>
+        )}
+        {segulaOn && !segula?.active && (
+          <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--line)' }}>
+            {segula?.lastEnd ? (
+              <div style={{ fontSize: 12, color: 'var(--ink-faint)', marginBottom: 4 }}>
+                {'🕯 סגולה קודמת הסתיימה ב-' + fmtDate(segula.lastEnd) + ' · ' + segula.done + '/' + segula.total + ' תזכורות בוצעו'}
+              </div>
+            ) : null}
+            {/* בקשת-בעלים 9.9 "כפתור 40 יום עדיין לא קיים מצידי — כפתור ענק שיראו אותו":
+                 יצא מסעיף קשר-הבא (היה תלוי ב-supporters.nextdate) לראש-הכרטיס, ברוחב מלא. */}
+            {recurMode === 'segula' && (
+            <button
+              type="button"
+              className="btn primary"
+              onClick={() => seedSegulaReminders(sp.id, isoToday(), 'זיווג')}
+              style={{ width: '100%', minHeight: 64, fontSize: 20, fontWeight: 800, borderRadius: 14, letterSpacing: 0.2 }}
+            >
+              🕯 40 ימים — התחלת סגולה לזיווג מהיום
+            </button>
+            )}
+            {recurMode === 'segula' && (
+            <div style={{ fontSize: 12, color: 'var(--ink-faint)', marginTop: 4 }}>
+              זריעת {SEGULA_OFFSETS.length} תזכורות-סגולה לזיווג מהיום (ימים 1·7·21·35·40) — מחושב לבד, נכנס לקשר-הבא וללוח.
+            </div>
             )}
           </div>
-          <div style={{ fontSize: 13.5, color: 'var(--ink-soft)', marginTop: 2 }}>{statsLine}</div>
-          {/* 📞 מונה-שיחות עמיד (23.8, "גם אצל המנהל") — אותו יומן Supporter.calls
-              כמו בחייגן; נראה לכל מי שפותח את הכרטיס, גם בלי קמפיין פעיל */}
-          {(() => {
-            const cst = callStats(sp.calls);
-            return (
-              <div
-                style={{ fontSize: 12.5, color: cst.total ? 'var(--ink-soft)' : 'var(--ink-faint)', marginTop: 2 }}
-                title={cst.total ? 'שיחות שנרשמו מהחייגן (כל הקמפיינים)' : 'טרם נרשמה שיחה מהחייגן'}
-              >
-                {cst.total === 0 && <>📞 טרם התקשרו (החייגן רושם כל שיחה)</>}
-                {cst.total === 1 && <>📞 התקשרו פעם אחת · {fmtDate(cst.last)}</>}
-                {cst.total > 1 && <>📞 התקשרו {cst.total} פעמים · אחרונה {fmtDate(cst.last)}{cst.noanswer > 0 && <> · 📵 {cst.noanswer} ללא-מענה</>}</>}
-              </div>
-            );
-          })()}
+        )}
         </div>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          {canIssue && (
-            <Btn kind="primary" onClick={() => setDonOpen(true)}>
-              ➕ רישום {termOf(config, 'entity.donation', 'תרומה')}
-            </Btn>
-          )}
-          {/* ROADMAP-100 ‏#4: דוח-שנתי-לתורם — ריכוז תרומות שנת-המס (לא קבלה!) */}
-          {featureOn(config, 'supporters.annualreport') && donationYears(dsp.donations).length > 0 && (
-            <Btn
-              onClick={() => {
-                const year = donationYears(dsp.donations)[0];
-                downloadAnnualReport(
-                  'annual-' + year + '-' + sp.name.replace(/\s+/g, '_') + '.txt',
-                  annualReportLines({
-                    orgName: config.orgName || useApp.getState().db.orgName,
-                    orgTaxId: config.orgTaxId,
-                    supporterName: sp.name,
-                    payerId: sp.idNum,
-                    year,
-                    donations: dsp.donations,
-                  }),
-                );
-                toast('📄 דוח שנת ' + year + ' ירד');
-              }}
-              title="ריכוז כל תרומות השנה האחרונה — לתורם/רו״ח (הקבלות המקוריות מצוינות בכל שורה)"
-            >
-              📄 דוח שנתי
-            </Btn>
-          )}
-          {featureOn(config, 'supporters.thankyou') && (
-            <Btn onClick={thankYouCall} title="תזכורת טלפון לתודה — נכנסת ללוח השנה">
-              📞 תודה
-            </Btn>
-          )}
-          <Btn onClick={() => setEditOpen(true)}>✎ עריכה</Btn>
-          {canDeleteSupporter && (
-            <Btn kind="danger" onClick={onDelete}>
-              {armDelete ? 'לאשר מחיקה סופית?' : '🗑 מחיקה'}
-            </Btn>
-          )}
-        </div>
-      </div>
+      ) },
 
-      {/* פס ציון משוקלל */}
-      {rfmOn && (
+      /* פס ציון משוקלל */
+      { id: 'score', label: 'ציון משוקלל', visible: rfmOn, wide: true, node: (
         <div
           className="card"
           style={{ background: tier.bg, color: tier.c, fontSize: 13.5, fontWeight: 600, padding: '10px 16px' }}
         >
           ציון משוקלל: {score}/1000 · דרגת {tier.label} — משוקלל לפי טריות (R), תדירות (F) וסכום (M)
         </div>
-      )}
+      ) },
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 14 }}>
-        {/* פרטי קשר */}
+        /* פרטי קשר */
+        { id: 'details', label: 'פרטי ' + termOf(config, 'entity.supporter', 'התומך/ת'), visible: true, node: (
         <div className="card">
           <h3 style={{ fontSize: 15, marginBottom: 8 }}>{'פרטי ' + termOf(config, 'entity.supporter', 'התומך/ת')}</h3>
           {/* INTEGRATIONS — פעולות-הרחבה: 💬 וואטסאפ · 💳 עמוד-תרומה · 🤖 מכתב-תודה */}
@@ -535,69 +662,39 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
           <InfoRow k={'ייעוד ' + termOf(config, 'entity.donation', 'התרומה')} v={sp.forWho || '—'} />
           {sp.notes && <InfoRow k="הערות" v={sp.notes} />}
         </div>
+        ) },
 
-        {/* 🔁 הוראת קבע (ROADMAP-100 ‏#2 צד-מערכת) — הגדרה + רישום-החודש-בקליק */}
-        {hokOn && (
-          <div className="card">
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-              <h3 style={{ fontSize: 15 }}>הוראת קבע 🔁</h3>
-              {/* חיווי מקושר-נדרים — extId נקלט לשיוך אך לא הוצג עד היום */}
-              {sp.extId && (
-                <span style={chipStyle('#e8f0fb', '#1d4ed8')} title={'מזהה-נדרים (ToremId): ' + sp.extId}>
-                  🔗 מקושר-נדרים
-                </span>
-              )}
-              <div style={{ flex: 1 }} />
-              <Btn sm onClick={() => setHokOpen(true)}>{sp.hok ? '✏️ עריכה' : '➕ הגדרה'}</Btn>
-            </div>
-            {sp.hok ? (
-              <>
-                <div style={{ fontSize: 13.5 }}>
-                  {(sp.hok.cur === '$' ? '$' : '₪') + sp.hok.amount.toLocaleString('he-IL') +
-                    ' · יום ' + sp.hok.day + ' בחודש · ' + hokMethodLabel(sp.hok.method) +
-                    (sp.hok.startedAt ? ' · מאז ' + fmtDate(sp.hok.startedAt) : '') +
-                    (sp.hok.active ? '' : ' · ⏸ מושהית')}
-                </div>
-                {sp.hok.note && <div style={{ fontSize: 12.5, color: 'var(--ink-faint)', marginTop: 2 }}>{sp.hok.note}</div>}
-                {sp.hok.active && canIssue && (
-                  hokRecordedThisMonth(sp, isoToday()) ? (
-                    <div style={{ fontSize: 12.5, color: 'var(--ink-faint)', marginTop: 6 }}>✓ חיוב-החודש נרשם</div>
-                  ) : (
-                    <div style={{ marginTop: 8 }}>
-                      <Btn sm kind="primary" onClick={recordHok} title="רישום תרומת-ההו״ק של החודש — קבלה בסדרה הרציפה">
-                        🔁 רישום חיוב-החודש
-                      </Btn>
-                    </div>
-                  )
-                )}
-              </>
-            ) : (
-              <div style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>
-                אין הוראת-קבע. ההגדרה כאן = מעקב ותזכורת-חודשית; החיוב עצמו מוגדר אצל הסליקה/הבנק.
-              </div>
-            )}
-          </div>
-        )}
+        /* 🔁 הוראת-קבע הועברה לתחתית הכרטיס (בקשת-בעלים 30.8: "הוראת קבע תוריד למטה") */
 
-        {/* 📅 חיובים-מתוכננים (בקשת-בעלים 25.8): פריסת-תשלומים עתידית בלי-קבלה
-             עד שהחיוב באמת יורד. opt-in supporters.plannedcharges. */}
-        {plannedOn && <PlannedChargesSection supporter={sp} />}
+        /* 📅 חיובים-מתוכננים (בקשת-בעלים 25.8): פריסת-תשלומים עתידית בלי-קבלה
+             עד שהחיוב באמת יורד. opt-in supporters.plannedcharges. */
+        { id: 'planned', label: 'חיובים-מתוכננים 📅', visible: plannedOn, node: <PlannedChargesSection supporter={sp} /> },
 
-        {/* קשר הבא */}
-        {nextOn && (
+        /* קשר הבא */
+        { id: 'next', label: 'קשר הבא 🎯', visible: nextOn, node: (
           <div className="card">
             <h3 style={{ fontSize: 15, marginBottom: 8 }}>קשר הבא 🎯</h3>
             <Field label="תאריך יעד ליצירת קשר">
               <HebDateInput value={sp.nextDate || ''} onChange={setNextDate} />
             </Field>
             <Field label="על מה לדבר בפעם הבאה (תזכורת)">
-              <input
-                type="text"
+              <textarea
                 value={nextNoteDraft}
-                onChange={(e) => setNextNoteDraft(e.currentTarget.value)}
-                onBlur={saveNextNote}
+                onChange={(e) => {
+                  setNextNoteDraft(e.currentTarget.value);
+                  if (nextSaved) setNextSaved(false);
+                }}
+                onBlur={() => saveNextNote()}
+                rows={4}
                 placeholder="למשל: לעדכן על הקבלה · לבקש חידוש הו״ק · לברר כתובת"
+                style={{ width: '100%', resize: 'vertical', minHeight: 88 }}
               />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
+                <Btn kind="primary" onClick={() => saveNextNote(true)}>💾 שמירה</Btn>
+                {nextSaved && (
+                  <span style={{ color: 'var(--green)', fontWeight: 600, fontSize: 13 }}>נשמר ✓</span>
+                )}
+              </div>
             </Field>
             {sp.nextDate ? (
               <div style={{ fontSize: 13, color: sp.nextDate < isoToday() ? 'var(--red)' : 'var(--ink-soft)' }}>
@@ -618,55 +715,11 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
               </div>
             )}
           </div>
-        )}
+        ) },
 
-        {/* 🕯 סגולת 40 יום — תזכורות מדורגות מתאריך-התחלה (בקשת-שטח) */}
-        {segulaOn && (
-          <div className="card">
-            <h3 style={{ fontSize: 15, marginBottom: 8 }}>🕯 סגולת 40 יום</h3>
-            <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', marginBottom: 8 }}>
-              בחרו תאריך-התחלה — המערכת תזרע תזכורות ביומן בימים 1 · 7 · 21 · 35 · 40 (סיום), בלי לחשב ידני.
-            </div>
-            <Field label="תאריך התחלה">
-              <HebDateInput value={segulaStart} onChange={setSegulaStart} />
-            </Field>
-            <div style={{ marginTop: 8 }}>
-              <Btn
-                kind="primary"
-                disabled={!segulaStart}
-                onClick={() => {
-                  const n = seedSegulaReminders(sp.id, segulaStart);
-                  if (n) setSegulaStart('');
-                }}
-              >
-                🕯 זריעת {SEGULA_OFFSETS.length} תזכורות
-              </Btn>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* גלריית-תמונות מקומית (opt-in supporters.photos) */}
-      {photosOn && (
-        <div className="card">
-          <SupporterPhotos supporter={sp} />
-        </div>
-      )}
-
-      {/* מעקב טיפול רב-שלבי */}
-      {ayinOn && <AyinCard supporter={sp} />}
-
-      {/* לוח-חודש של תרומות (feature: supporters.doncal) */}
-      {featureOn(config, 'supporters.doncal') && dsp.donations.length > 0 && (
-        <div className="card">
-          <h3 style={{ fontSize: 15, marginBottom: 10 }}>
-            🗓 {termOf(config, 'entity.donations', 'תרומות')} לפי חודש
-          </h3>
-          <DonationCalendar supporter={dsp} focusIso={calFocus ?? undefined} />
-        </div>
-      )}
-
-      {/* היסטוריית תרומות */}
+      /* היסטוריית תרומות — הועלתה לראש הכרטיס (בקשת-בעלים 30.8:
+          "תתן לי את כל התרומות במקום שעכשיו הוראות-קבע") */
+      { id: 'history', label: 'כל ה' + termOf(config, 'entity.donations', 'תרומות'), visible: true, wide: true, node: (
       <div className="card" style={{ padding: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px' }}>
           <h3 style={{ fontSize: 15 }}>
@@ -724,7 +777,7 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
                             🧾 הורדה
                           </Btn>
                           {mailReady && (
-                            <Btn sm onClick={() => void mailReceipt(r.rid!)} title={'שליחת קבלה ' + r.rid + ' למייל ' + termOf(config, 'entity.supporter', 'התורם')}>
+                            <Btn sm onClick={() => void mailReceipt(r.rid!)} disabled={mailRcptBusy} title={'שליחת קבלה ' + r.rid + ' למייל ' + termOf(config, 'entity.supporter', 'התורם')}>
                               📧 מייל
                             </Btn>
                           )}
@@ -740,6 +793,238 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
                 {'מוצגות 60 מתוך ' + donRows.length + ' — הכול נשמר וזמין בייצוא ובדוח המותאם'}
               </div>
             )}
+          </div>
+        )}
+      </div>
+      ) },
+
+      /* גלריית-תמונות מקומית (opt-in supporters.photos) */
+      { id: 'photos', label: 'גלריית-תמונות 📷', visible: photosOn, wide: true, node: (
+        <div className="card">
+          <SupporterPhotos supporter={sp} />
+        </div>
+      ) },
+
+      /* מעקב טיפול רב-שלבי */
+      { id: 'prayer', label: 'שמות לתפילה 🙏', visible: prayerOn, wide: true, node: <PrayerNames supporter={sp} /> },
+      { id: 'ayin', label: 'מעקב טיפול 🗂', visible: ayinOn, wide: true, node: <AyinCard supporter={sp} /> },
+
+      /* לוח-חודש של תרומות (feature: supporters.doncal) */
+      { id: 'doncal', label: termOf(config, 'entity.donations', 'תרומות') + ' לפי חודש 🗓', visible: featureOn(config, 'supporters.doncal') && dsp.donations.length > 0, wide: true, node: (
+        <div className="card">
+          <h3 style={{ fontSize: 15, marginBottom: 10 }}>
+            🗓 {termOf(config, 'entity.donations', 'תרומות')} לפי חודש
+          </h3>
+          <DonationCalendar supporter={dsp} focusIso={calFocus ?? undefined} />
+        </div>
+      ) },
+
+      /* 🔁 הוראת קבע — למטה (בקשת-בעלים 30.8: "הוראת קבע תוריד למטה") */
+      { id: 'hok', label: 'הוראת קבע 🔁', visible: hokOn, wide: true, node: (
+        <div className="card">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+            <h3 style={{ fontSize: 15 }}>הוראת קבע 🔁</h3>
+            {/* חיווי מקושר-נדרים — extId נקלט לשיוך אך לא הוצג עד היום */}
+            {sp.extId && (
+              <span style={chipStyle('#e8f0fb', '#1d4ed8')} title={'מזהה-נדרים (ToremId): ' + sp.extId}>
+                🔗 מקושר-נדרים
+              </span>
+            )}
+            <div style={{ flex: 1 }} />
+            <Btn sm onClick={() => setHokOpen(true)}>{sp.hok ? '✏️ עריכה' : '➕ הגדרה'}</Btn>
+          </div>
+          {sp.hok ? (
+            <>
+              <div style={{ fontSize: 13.5 }}>
+                {(sp.hok.cur === '$' ? '$' : '₪') + sp.hok.amount.toLocaleString('he-IL') +
+                  ' · יום ' + sp.hok.day + ' בחודש · ' + hokMethodLabel(sp.hok.method) +
+                  (sp.hok.startedAt ? ' · מאז ' + fmtDate(sp.hok.startedAt) : '') +
+                  (sp.hok.active ? '' : ' · ⏸ מושהית')}
+              </div>
+              {sp.hok.note && <div style={{ fontSize: 12.5, color: 'var(--ink-faint)', marginTop: 2 }}>{sp.hok.note}</div>}
+              {sp.hok.active && canIssue && (
+                hokRecordedThisMonth(sp, isoToday()) ? (
+                  <div style={{ fontSize: 12.5, color: 'var(--ink-faint)', marginTop: 6 }}>✓ חיוב-החודש נרשם</div>
+                ) : (
+                  <div style={{ marginTop: 8 }}>
+                    <Btn sm kind="primary" onClick={recordHok} title="רישום תרומת-ההו״ק של החודש — קבלה בסדרה הרציפה">
+                      🔁 רישום חיוב-החודש
+                    </Btn>
+                  </div>
+                )
+              )}
+            </>
+          ) : (
+            <div style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>
+              אין הוראת-קבע. ההגדרה כאן = מעקב ותזכורת-חודשית; החיוב עצמו מוגדר אצל הסליקה/הבנק.
+            </div>
+          )}
+        </div>
+      ) },
+  ];
+  const layoutOn = featureOn(config, 'supporters.cardlayout');
+  const allIds = cardWidgets.map((w) => w.id);
+  const byId = Object.fromEntries(cardWidgets.map((w) => [w.id, w]));
+  const idsKey = allIds.join('|');
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- idsKey מייצג את allIds (קבוע לכל רינדור)
+  const savedLayout = useMemo(() => sanitizeIds(supCardLayout, allIds, allIds, { fallbackIfEmpty: true }), [supCardLayout, idsKey]);
+  const isVisible = (id: string) => !!byId[id]?.visible;
+  const shownIds = (layoutEdit ? layoutDraft : savedLayout).filter(isVisible);
+  const hiddenIds = allIds.filter((id) => isVisible(id) && !shownIds.includes(id));
+  const startLayoutEdit = () => {
+    setLayoutDraft(savedLayout.filter(isVisible));
+    setLayoutEdit(true);
+  };
+  const saveLayout = () => {
+    const supCardLayoutNext = persistLayout(layoutDraft, savedLayout, isVisible, allIds.filter(isVisible));
+    setDb((cur) => ({ ui: { ...cur.ui, supCardLayout: supCardLayoutNext } }));
+    setLayoutEdit(false);
+    toast('סידור הכרטיס נשמר ✓');
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 14, paddingBottom: 60 }}>
+      {/* כותרת הכרטיס */}
+      <div className="card" style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
+        <div
+          aria-hidden
+          style={{
+            width: 52,
+            height: 52,
+            borderRadius: 99,
+            background: 'var(--dark)',
+            color: 'var(--amber)',
+            fontWeight: 800,
+            fontSize: 22,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flex: 'none',
+          }}
+        >
+          {sp.name ? sp.name[0] : '💛'}
+        </div>
+        <div style={{ flex: 1, minWidth: 200 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            <span style={{ fontWeight: 800, fontSize: 19 }}>{sp.name}</span>
+            {rfmOn && (
+              <span style={chipStyle(tier.bg, tier.c)} title={'ציון משוקלל (R·F·M): ' + score}>
+                {tier.label}
+              </span>
+            )}
+          </div>
+          <div style={{ fontSize: 13.5, color: 'var(--ink-soft)', marginTop: 2 }}>{statsLine}</div>
+          {/* 📞 מונה-שיחות עמיד (23.8, "גם אצל המנהל") — אותו יומן Supporter.calls
+              כמו בחייגן; נראה לכל מי שפותח את הכרטיס, גם בלי קמפיין פעיל */}
+          {(() => {
+            const cst = callStats(sp.calls);
+            return (
+              <div
+                style={{ fontSize: 12.5, color: cst.total ? 'var(--ink-soft)' : 'var(--ink-faint)', marginTop: 2 }}
+                title={cst.total ? 'שיחות שנרשמו מהחייגן (כל הקמפיינים)' : 'טרם נרשמה שיחה מהחייגן'}
+              >
+                {cst.total === 0 && <>📞 טרם התקשרו (החייגן רושם כל שיחה)</>}
+                {cst.total === 1 && <>📞 התקשרו פעם אחת · {fmtDate(cst.last)}</>}
+                {cst.total > 1 && <>📞 התקשרו {cst.total} פעמים · אחרונה {fmtDate(cst.last)}{cst.noanswer > 0 && <> · 📵 {cst.noanswer} ללא-מענה</>}</>}
+              </div>
+            );
+          })()}
+        </div>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {canIssue && (
+            <Btn kind="primary" onClick={() => setDonOpen(true)}>
+              ➕ רישום {termOf(config, 'entity.donation', 'תרומה')}
+            </Btn>
+          )}
+          {/* ROADMAP-100 ‏#4: דוח-שנתי-לתורם — ריכוז תרומות שנת-המס (לא קבלה!) */}
+          {featureOn(config, 'supporters.annualreport') && donationYears(dsp.donations).length > 0 && (
+            <Btn
+              onClick={() => {
+                const year = donationYears(dsp.donations)[0];
+                downloadAnnualReport(
+                  'annual-' + year + '-' + sp.name.replace(/\s+/g, '_') + '.txt',
+                  annualReportLines({
+                    orgName: config.orgName || useApp.getState().db.orgName,
+                    orgTaxId: config.orgTaxId,
+                    supporterName: sp.name,
+                    payerId: sp.idNum,
+                    year,
+                    donations: dsp.donations,
+                    // TP-15: מונחי-הארגון לכותרות-הדוח (חבילות מסחריות); ברירת-המחדל ביט-זהה ('תרומות' / 'התורם/ת')
+                    terms: {
+                      donations: termOf(config, 'entity.donations', 'תרומות'),
+                      supporter: 'ה' + termOf(config, 'entity.supporter', 'תורם/ת'),
+                    },
+                  }),
+                );
+                toast('📄 דוח שנת ' + year + ' ירד');
+              }}
+              title="ריכוז כל תרומות השנה האחרונה — לתורם/רו״ח (הקבלות המקוריות מצוינות בכל שורה)"
+            >
+              📄 דוח שנתי
+            </Btn>
+          )}
+          {featureOn(config, 'supporters.thankyou') && (
+            <Btn onClick={thankYouCall} title="תזכורת טלפון לתודה — נכנסת ללוח השנה">
+              📞 תודה
+            </Btn>
+          )}
+          <Btn onClick={() => setEditOpen(true)}>✎ עריכה</Btn>
+          {canDeleteSupporter && (
+            <Btn kind="danger" onClick={onDelete}>
+              {armDelete ? 'לאשר מחיקה סופית?' : '🗑 מחיקה'}
+            </Btn>
+          )}
+        </div>
+      </div>
+      {layoutOn && !layoutEdit && (
+        <div style={{ textAlign: 'left' }}>
+          <Btn sm onClick={startLayoutEdit} title="סידור הקוביות בכרטיס — חצים, הסתרה, איפוס; נשמר לארגון">
+            ✎ סידור הכרטיס
+          </Btn>
+        </div>
+      )}
+      {layoutOn && layoutEdit && (
+        <div className="card" style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', padding: '10px 14px' }}>
+          <strong style={{ fontSize: 13.5 }}>✎ סידור הכרטיס</strong>
+          <span style={{ fontSize: 12.5, color: 'var(--ink-soft)' }}>חצים ▲▼ להזזה · ✕ להסתרה · «+» להחזרה</span>
+          <span style={{ flex: 1 }} />
+          <Btn sm onClick={() => setLayoutDraft(allIds.filter(isVisible))}>איפוס לברירת-המחדל</Btn>
+          <Btn sm onClick={() => setLayoutEdit(false)}>ביטול</Btn>
+          <Btn sm kind="primary" onClick={saveLayout}>שמירה ✓</Btn>
+        </div>
+      )}
+      {/* 6.10 — כלל 16.9: דגל שמסתיר יכולת אומר זאת על המסך (לא העלמה שקטה). מוצג רק כשהדגל false מפורש. */}
+      {!segulaOn && (
+        <div className="card" style={{ padding: '8px 12px', fontSize: 12.5, color: 'var(--ink-faint)' }}>
+          🕯 "40 ימים" כבוי בהגדרות-הארגון הזה (דגל <code dir="ltr">supporters.segula</code>) — המנהל/ת מדליק/ה בלוח-הבקרה ← דגלים ← תורמים.
+        </div>
+      )}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 14 }}>
+        {shownIds.map((id, i) => {
+          const w = byId[id];
+          return (
+            <div key={id} style={w.wide ? { gridColumn: '1 / -1' } : undefined}>
+              {layoutEdit && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4, fontSize: 12.5, color: 'var(--ink-soft)' }}>
+                  <span style={{ flex: 1 }}>{w.label}</span>
+                  <Btn sm disabled={i === 0} onClick={() => setLayoutDraft(shiftId(layoutDraft, id, -1))} title="הזזה למעלה">▲</Btn>
+                  <Btn sm disabled={i === shownIds.length - 1} onClick={() => setLayoutDraft(shiftId(layoutDraft, id, 1))} title="הזזה למטה">▼</Btn>
+                  <Btn sm onClick={() => setLayoutDraft(removeId(layoutDraft, id))} title="הסתרה (ניתן להחזיר)">✕</Btn>
+                </div>
+              )}
+              {w.node}
+            </div>
+          );
+        })}
+        {layoutEdit && hiddenIds.length > 0 && (
+          <div className="card" style={{ gridColumn: '1 / -1', borderStyle: 'dashed', display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+            <span style={{ fontSize: 12.5, color: 'var(--ink-soft)' }}>מוסתרים:</span>
+            {hiddenIds.map((id) => (
+              <Btn sm key={id} onClick={() => setLayoutDraft(addId(layoutDraft, id))} title="החזרה לכרטיס">
+                + {byId[id].label}
+              </Btn>
+            ))}
           </div>
         )}
       </div>
@@ -761,7 +1046,9 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
             נשלח אל {sp.phone} דרך תור-הענן (שרת-ההרחבות שולח תוך דקה).
           </div>
           <div className="modal-actions">
-            <Btn kind="primary" onClick={() => void sendSms()}>שליחה לתור</Btn>
+            <Btn kind="primary" onClick={() => void sendSms()} disabled={smsBusy}>
+              {smsBusy ? 'שולח…' : 'שליחה לתור'}
+            </Btn>
             <Btn onClick={() => setSmsOpen(false)}>ביטול</Btn>
           </div>
         </Modal>

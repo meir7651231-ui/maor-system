@@ -4,9 +4,13 @@
  */
 import { useEffect, useState } from 'react';
 import type { NotifPrefs } from '../../types/domain';
+import { parseBackupFile } from '../../store/persist';
+import { purgeSummary } from '../../lib/demoPurge';
+import type { Db } from '../../types/domain';
 import { useApp } from '../../store/useApp';
+import { whoLabel } from '../platform/lib';
 import { useDbWatch } from '../../store/dbWatch';
-import { featureOn, integrationOn, isAdminUser, isSuperAdmin, termOf } from '../../lib/config';
+import { featureOn, integrationOn, isAdminAuthority, isSuperAdmin, termOf, moduleOn } from '../../lib/config';
 import { readAiKey, writeAiKey } from '../../lib/ai';
 import { receiptVerifyCode } from '../../lib/receipt';
 import { Btn, Chip, Field, FormError, PageHead, TextInput } from '../ui';
@@ -26,8 +30,31 @@ import { SupEnforceSection } from './SupEnforceSection';
 import { ThemeSection } from './ThemeSection';
 import { AuditSection } from './AuditSection';
 import { DonorImportSection } from './DonorImportSection';
+import { GContactsSection } from './GContactsSection';
 import { OrgSecretsSection } from './OrgSecretsSection';
 import { OutboxSection } from './OutboxSection';
+
+/** build-id (ISO) ⇒ "05/09 23:15" מקומי; קלט לא-ISO ⇒ כמות-שהוא. */
+function fmtBuildId(id: string): string {
+  const d = new Date(id);
+  if (Number.isNaN(d.getTime())) return id || '—';
+  const p = (n: number) => String(n).padStart(2, '0');
+  return p(d.getDate()) + '/' + p(d.getMonth() + 1) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+}
+
+/** בדיקת-עדכון ידנית: version.json בלי מטמון; שונה ⇒ רענון-קשיח (ה-SW משרת index מהרשת). */
+async function checkForUpdate(): Promise<void> {
+  try {
+    const r = await fetch(import.meta.env.BASE_URL + 'version.json?t=' + Date.now(), { cache: 'no-store' });
+    const v = (await r.json()) as { id?: string };
+    if (v?.id && v.id !== __BUILD_ID__) {
+      useApp.getState().toast('נמצאה גרסה חדשה — מרענן…');
+      window.setTimeout(() => window.location.reload(), 400);
+    } else useApp.getState().toast('האתר מעודכן — זו הגרסה האחרונה ✓');
+  } catch {
+    useApp.getState().toast('לא ניתן לבדוק עדכון כרגע (אין רשת?)');
+  }
+}
 
 /** feature key פר-סעיף — הצ'יפ מוצג רק כשהסעיף עצמו מרונדר (אותו דגל בדיוק).
  *  ביקורת 6.8: ערכה/התראות/גיבוי/נגישות היו בלי מפתח ⇒ צ'יפ-מת כשהדגל כבוי;
@@ -58,7 +85,7 @@ const GROUPS = [
 type GroupId = (typeof GROUPS)[number]['id'];
 const SECTION_GROUP: Record<string, GroupId> = {
   'sec-org': 'org', 'sec-theme': 'org', 'sec-teachers': 'org', 'sec-rooms': 'org', 'sec-notif': 'org', 'sec-access': 'org',
-  'sec-backup': 'data', 'sec-export': 'data', 'sec-import': 'data', 'sec-donor-import': 'data', 'sec-audit': 'data',
+  'sec-backup': 'data', 'sec-export': 'data', 'sec-import': 'data', 'sec-donor-import': 'data', 'sec-gcontacts': 'data', 'sec-audit': 'data',
   'sec-security': 'security', 'sec-encryption': 'security', 'sec-cloud-encryption': 'security', 'sec-org-secrets': 'security', 'sec-donation-split': 'security', 'sec-outbox': 'security',
   'sec-ai': 'adv', 'sec-audittrail': 'adv', 'sec-verifyreceipt': 'adv', 'sec-reset': 'adv',
 };
@@ -70,7 +97,9 @@ export function SettingsView() {
   const cloudOn = useApp((s) => s.cloud.enabled);
   const sections = SECTIONS.filter((s) => !s.feature || featureOn(config, s.feature));
   const secOn = (id: string) => sections.some((s) => s.id === id);
-  const isAdmin = isAdminUser(config, cloudUser?.email);
+  // נחיל ב׳ 3.9 (F1): סמכות-מנהל אפקטיבית — ארגון-פלטפורמה נולד בלי adminEmails ⇒ isAdminUser
+  // היה true-לכולם והצ׳יפים/סעיפי-המנהל נחשפו לעובד/ת. שורש/אופליין — ביט-זהה להיום.
+  const isAdmin = isAdminAuthority(config, cloudUser?.email, !!isManager);
   const canPlatform = isSuperAdmin(cloudUser?.email);
 
   // בקשת-מיקוד ממסך אחר (קיצורי המשפחות וכד') — נפתחים בקבוצה הנכונה וגוללים
@@ -105,6 +134,7 @@ export function SettingsView() {
     ...(featureOn(config, 'settings.audittrail') && isAdmin ? [{ id: 'sec-audittrail', label: 'לוג פעולות' }] : []),
     ...(featureOn(config, 'core.receipt.verifycode') ? [{ id: 'sec-verifyreceipt', label: 'אימות קבלה' }] : []),
     ...(isAdmin && integrationOn(config, 'payments') && cloudOn ? [{ id: 'sec-donor-import', label: 'ייבוא ' + termOf(config, 'nav.supporters', 'תורמים') }] : []),
+    ...(isAdmin && integrationOn(config, 'gcontacts') ? [{ id: 'sec-gcontacts', label: '📇 סנכרון Google' }] : []),
   ];
   const groupChips = [...sections, ...extraChips].filter((s) => SECTION_GROUP[s.id] === shownGroup);
 
@@ -127,6 +157,12 @@ export function SettingsView() {
         {/* ניהול העובדות — מנהל-ארגון בלבד (ORGADMIN; במקום #manage בכתובת) */}
         {isManager && (
           <Chip onClick={() => { window.location.hash = '#manage'; }}>👥 ניהול העובדות</Chip>
+        )}
+        {/* 💬 צ׳אט-הצוות — כניסה מפורשת מההגדרות (בקשת-בעלים 30.8: "אין כניסה
+            לצ׳אט הפנימי"). גלוי כשהדגל דלוק כדי שתמיד יימצא; החיבור-לענן/התחברות
+            נדרשים לפעולה בלבד — המודאל מנחה להתחבר אם צריך. נפתח דרך #teamchat. */}
+        {featureOn(config, 'shell.teamchat') && (
+          <Chip onClick={() => { window.location.hash = '#teamchat'; }}>💬 צ׳אט הצוות</Chip>
         )}
       </div>
       {/* צ'יפי-הקפיצה של הקבוצה הפעילה — אותה יכולת-ניווט לסעיף, בתוך הלשונית */}
@@ -158,6 +194,8 @@ export function SettingsView() {
           {secOn('sec-import') && <ImportSection />}
           {/* הכרעת-בעלים 23.8: ייבוא-התורמים (נדרים/סולה/הו"ק) רוכז כאן — מסך-מנהל */}
           <DonorImportSection />
+          {/* 📇 סנכרון אנשי-קשר ל-Google (1.9) — מגודר בעצמו (הרחבה+מנהל) */}
+          <GContactsSection />
           {secOn('sec-audit') && <AuditSection />}
         </>
       )}
@@ -307,6 +345,16 @@ function OrgSection() {
       {featureOn(config, 'core.receipts') && featureOn(config, 'core.receipt.pdf') && (
         <ReceiptFmtRow />
       )}
+      {/* גרסת-האתר (5.9): "זה עדיין לא עובד" בענן = לרוב טאב/אפליקציה על build ישן. שורה גלויה + בדיקה-ידנית. */}
+      <div style={{ marginTop: 10, fontSize: 11.5, color: 'var(--ink-faint)', display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+        <span>{'גרסת-האתר: ' + fmtBuildId(__BUILD_ID__)}</span>
+        <Btn sm kind="plain" onClick={() => { void checkForUpdate(); }} title="מוריד version.json מהשרת ומרענן אם יש build חדש">
+          🔄 בדוק עדכון
+        </Btn>
+      </div>
+      {/* 🔎 אבחון-דגלים (16.9 — "הלקוח בענן לא רואה 40 יום"): מה הקונפיג-האפקטיבי אומר בפועל על המכשיר הזה.
+           קריא לכל משתמש (רק מצב-דגלים, לא נתונים) — הבעלים מבקש מהלקוח לצלם. */}
+      <FlagDiagnostics />
     </Section>
   );
 }
@@ -378,19 +426,130 @@ function NotifSection() {
   );
 }
 
+/** 🔎 אבחון-דגלים — מצב-אפקטיבי של מודולים/דגלים במכשיר הזה (16.9). קריאה-בלבד. */
+function FlagDiagnostics() {
+  const config = useApp((s) => s.config);
+  const cloudOn = useApp((s) => s.cloud.enabled);
+  const cloudEmail = useApp((s) => s.cloud.user?.email ?? '');
+  const isManager = useApp((s) => !!s.cloud.isManager);
+  const cfgMeta = useApp((s) => s.cloud.cfgMeta ?? null);
+  const [open, setOpen] = useState(false);
+  const offModules = Object.entries(config.modules ?? {}).filter(([, v]) => v === false).map(([k]) => k);
+  const offFeatures = Object.entries(config.features ?? {}).filter(([, v]) => v === false).map(([k]) => k).sort();
+  // 6.10: הנראות של "40 יום" = הדגל supporters.segula (חסר=דלוק); core.taxreceipt מוצג לאבחון בלבד.
+  const segula = featureOn(config, 'supporters.segula');
+  return (
+    <div style={{ marginTop: 6 }}>
+      <Btn sm kind="plain" onClick={() => setOpen((v) => !v)} title="מצב הדגלים והמודולים בפועל במכשיר הזה — לאבחון מרחוק">
+        {open ? '🔎 הסתרת האבחון' : '🔎 אבחון דגלים'}
+      </Btn>
+      {open && (
+        <pre dir="ltr" style={{ fontSize: 11.5, lineHeight: 1.5, background: 'var(--surface-2, #fafaf7)', border: '1px solid var(--line)', borderRadius: 8, padding: '8px 10px', marginTop: 6, whiteSpace: 'pre-wrap', textAlign: 'left' }}>
+          {[
+            'org: ' + config.slug + (config.cloudRoot || config.slug === 'default' ? ' (root)' : ' (platform)'),
+            'cloud: ' + (cloudOn ? 'on' : 'off') + (cloudEmail ? ' · ' + cloudEmail + (isManager ? ' · manager' : '') : ''),
+            'build: ' + fmtBuildId(__BUILD_ID__),
+            'supporters module: ' + (moduleOn(config, 'supporters') ? 'on' : 'OFF'),
+            // 5.10: גם הדגל שבאמת קובע (core.taxreceipt) — false תקוע בענן (merge:true) היה בלתי-נראה כאן
+            '40 יום נראה: ' + (segula ? 'ON' : 'OFF') + ' (לפי supporters.segula; חסר=דלוק) · raw supporters.segula=' + String(config.features?.['supporters.segula']) + ' · raw core.taxreceipt=' + String(config.features?.['core.taxreceipt']),
+            // 6.10 "נדלק ונכבה לבד": מי כתב את הקונפיג לאחרונה, מתי, מאיזה משטח ואילו מפתחות
+            'config last write: ' + (cfgMeta ? cfgMeta.at.replace('T', ' ').slice(0, 16) + ' · ' + (cfgMeta.by ?? '?') + ' · ' + cfgMeta.via + ' · ' + cfgMeta.keys.join(', ') : '—'),
+            'modules off: ' + (offModules.length ? offModules.join(', ') : '—'),
+            'features off (' + offFeatures.length + '): ' + (offFeatures.length ? offFeatures.join(', ') : '—'),
+          ].join('\n')}
+        </pre>
+      )}
+    </div>
+  );
+}
+
+/** 🧹 הסרת נתוני-הדמו בלבד (בקשת-בעלים 14.9 "איפה אני מאפס את הנתונים דמו שנכנסו"):
+ *  בדיקה (מושכת demo.json ומונה התאמות במאגר-החי) ⇒ הסרה בשתי לחיצות. לא נוגע בשום
+ *  רשומה שמזהה שלה אינו בקובץ-הדמו — הכלי הבטוח מול "איפוס" שמוחק הכול. */
+function DemoPurgeBlock() {
+  // ⚡ בלי מנוי-מאגר-מלא (ratchet המנויים הממוקדים): התוכנית מחושבת בסטור מתצלום ברגע-הבדיקה.
+  const purgeDemoData = useApp((s) => s.purgeDemoData);
+  const previewDemoPurge = useApp((s) => s.previewDemoPurge);
+  const toast = useApp((s) => s.toast);
+  const [demo, setDemo] = useState<Partial<Db> | null>(null);
+  const [plan, setPlan] = useState<{ total: number; removed: Record<string, number> } | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [armed, setArmed] = useState(false);
+  async function check() {
+    setBusy(true);
+    try {
+      const res = await fetch(`${import.meta.env.BASE_URL}demo.json`, { cache: 'no-store' });
+      if (!res.ok) throw new Error('קובץ הדמו לא נמצא');
+      const parsed = parseBackupFile(await res.text());
+      setDemo(parsed);
+      setPlan(previewDemoPurge(parsed));
+      setArmed(false);
+    } catch (e) {
+      toast('⚠ ' + (e instanceof Error ? e.message : 'הבדיקה נכשלה'));
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <div style={{ border: '1px solid var(--line)', borderRadius: 10, padding: '10px 12px', marginBottom: 14, background: 'var(--paper, transparent)' }}>
+      <div style={{ fontWeight: 700, marginBottom: 4 }}>🧹 הסרת נתוני-הדמו בלבד</div>
+      <div style={{ fontSize: 13, color: 'var(--ink-soft)', lineHeight: 1.6, marginBottom: 8 }}>
+        אם נלחץ "📊 טעינת נתוני דמו" ונתוני-הדמו התערבבו בנתונים האמיתיים — כאן מסירים <b>רק</b> את רשומות-הדמו
+        (לפי המזהים בקובץ-הדמו), בלי לגעת בשאר. בענן ההסרה מסתנכרנת לכל המכשירים.
+      </div>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+        <Btn sm onClick={() => void check()} disabled={busy}>{busy ? 'בודק…' : '🔍 בדיקה — כמה רשומות-דמו יש במאגר?'}</Btn>
+        {plan && plan.total === 0 && <span style={{ fontSize: 13, color: 'var(--green)', fontWeight: 600 }}>לא נמצאו רשומות-דמו ✓</span>}
+        {plan && plan.total > 0 && (
+          <>
+            <span style={{ fontSize: 13, fontWeight: 600 }}>{'נמצאו ' + plan.total + ' רשומות-דמו: ' + purgeSummary(plan.removed)}</span>
+            <Btn
+              sm
+              kind="danger"
+              onClick={() => {
+                if (!armed) { setArmed(true); setTimeout(() => setArmed(false), 3500); return; }
+                purgeDemoData(demo!);
+                setArmed(false);
+                setDemo(null);
+                setPlan(null);
+              }}
+            >
+              {armed ? '🧹 לחצו שוב לאישור ההסרה' : '🧹 הסרת ' + plan.total + ' רשומות-הדמו'}
+            </Btn>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 /** (8) איפוס מלא — אישור בהקלדה, ללא דרך חזרה. */
 function ResetSection() {
   const resetAll = useApp((s) => s.resetAll);
   const exportBackup = useApp((s) => s.exportBackup);
   const cloudOn = useApp((s) => s.cloud.enabled);
   const config = useApp((s) => s.config);
+  const cloudUser = useApp((s) => s.cloud.user);
+  const isManager = useApp((s) => !!s.cloud.isManager);
   const teacher = termOf(config, 'entity.teacher', 'מורה');
   const teachersT = teacher === 'מורה' ? 'מורים' : teacher;
   const [confirmText, setConfirmText] = useState('');
   const armed = confirmText.trim() === 'מחיקה';
+  // 🔐 נחיל ב׳ 3.9 (F4): בארגון-ענן האיפוס דורס גם את הענן (withRemovalTombstones + cloudReplaceNow)
+  // לכל המכשירים — שמור למנהל/ת הארגון. אופליין/שורש (כל מחובר ב-adminEmails) — ביט-זהה להיום.
+  // הסעיף נשאר מרונדר (צ׳יפ sec-reset תקף) — רק ה-UI של האיפוס מוחלף בהערה.
+  const canReset = !cloudOn || isAdminAuthority(config, cloudUser?.email, isManager);
+  if (!canReset) {
+    return (
+      <Section id="sec-reset" title="🗑 איפוס נתונים מקומיים" sub="אזור מסוכן — פעולה בלתי הפיכה">
+        <SectionNote>פעולה זו שמורה למנהל/ת הארגון.</SectionNote>
+      </Section>
+    );
+  }
 
   return (
     <Section id="sec-reset" title="🗑 איפוס נתונים מקומיים" sub="אזור מסוכן — פעולה בלתי הפיכה">
+      <DemoPurgeBlock />
       <p style={{ fontSize: 14, color: 'var(--ink-soft)', marginBottom: 12, lineHeight: 1.6 }}>
         איפוס מוחק את <b>כל</b>{' הנתונים במחשב זה — ' + termOf(config, 'nav.families', 'משפחות') + ', ' + termOf(config, 'entity.members', 'בני משפחה') + ', ' + termOf(config, 'nav.courses', 'חוגים') + ', ' + termOf(config, 'entity.enrollments', 'שיבוצים') + ', תשלומים, אירועים, ' + termOf(config, 'nav.supporters', 'תורמים') + ', ' + teachersT + ', ' + termOf(config, 'entity.rooms', 'חדרים') + ' והגדרות. אין דרך לשחזר בלי קובץ גיבוי. מומלץ מאוד להוריד גיבוי מלא לפני.'}
       </p>
@@ -446,7 +605,9 @@ function AiKeySection() {
   const cloudUser = useApp((s) => s.cloud.user);
   const toast = useApp((s) => s.toast);
   const [key, setKey] = useState(readAiKey());
-  if (!integrationOn(config, 'ai') || !isAdminUser(config, cloudUser?.email)) return null;
+  const isManagerAi = useApp((s) => !!s.cloud.isManager);
+  // נחיל ב׳ 3.9 (F1): סמכות-מנהל אפקטיבית — בארגון-פלטפורמה בלי adminEmails עובדת אינה מנהלת
+  if (!integrationOn(config, 'ai') || !isAdminAuthority(config, cloudUser?.email, isManagerAi)) return null;
   return (
     <Section id="sec-ai" title="🤖 עוזר חכם (AI)" sub="מפתח ה-API נשמר במכשיר זה בלבד — לא בענן ולא בגיבוי">
       <Field label="מפתח API (Anthropic)">
@@ -534,11 +695,14 @@ function VerifyReceiptSection() {
 function AuditTrailSection() {
   const config = useApp((s) => s.config);
   const cloudUser = useApp((s) => s.cloud.user);
+  const memberNames = useApp((s) => s.cloud.memberNames); // שם-תצוגה במקום מייל (6.9)
   // ⚠️ ברירת-המחדל מחוץ לסלקטור — `?? []` בתוך הסלקטור מייצר מערך חדש בכל
   // getSnapshot כשאין לוג ⇒ לולאת-רינדור אינסופית (React #185, נתפס ב-launch-readiness).
   const audit = useApp((s) => s.db.audit) ?? [];
+  const isManagerAudit = useApp((s) => !!s.cloud.isManager); // hook לפני כל return מוקדם (React #300)
   if (!featureOn(config, 'settings.audittrail')) return null;
-  if (!isAdminUser(config, cloudUser?.email)) return null;
+  // נחיל ב׳ 3.9 (F1): לוג-הפעולות (כולל logAccess של עמיתים) — רק לסמכות-מנהל אפקטיבית
+  if (!isAdminAuthority(config, cloudUser?.email, isManagerAudit)) return null;
   const rows = [...audit].reverse().slice(0, 100);
   return (
     <Section id="sec-audittrail" title="🧾 לוג פעולות" sub={'מי שינה מה ומתי — ' + audit.length + ' רשומות (נשמרות ' + 500 + ' האחרונות)'}>
@@ -554,7 +718,7 @@ function AuditTrailSection() {
               {rows.map((r, i) => (
                 <tr key={i}>
                   <td dir="ltr" style={{ fontSize: 12 }}>{r.at.slice(0, 16).replace('T', ' ')}</td>
-                  <td style={{ fontSize: 12 }} dir="ltr">{r.who}</td>
+                  <td style={{ fontSize: 12 }} dir={memberNames?.[(r.who ?? '').toLowerCase()] ? 'rtl' : 'ltr'} title={r.who}>{whoLabel(memberNames, r.who)}</td>
                   <td style={{ fontWeight: 600 }}>{r.act}</td>
                   <td>{r.what}</td>
                 </tr>

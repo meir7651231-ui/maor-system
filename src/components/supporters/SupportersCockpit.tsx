@@ -7,7 +7,7 @@
  *
  * מגודר opt-in מפורש (`supporters.cockpit === true`) ⇒ אפס-השפעה על הלקוח-החי.
  */
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { OrgConfig } from '../../types/config';
 import type { Supporter } from '../../types/domain';
 import { featureOn, integrationOn, termOf } from '../../lib/config';
@@ -15,6 +15,7 @@ import { WaBtn } from '../WaBtn';
 import { hebSeasonOf, hebTimingTasks } from './hebTiming';
 import { Btn } from '../ui';
 import {
+  cockpitAtRisk,
   cockpitCsvRows,
   cockpitFeed,
   cockpitKpis,
@@ -214,27 +215,38 @@ export function SupportersCockpit(props: {
   const today = isoToday();
   const rate = props.usdRate || 3.7;
 
-  const kpis = cockpitKpis(props.supporters, today, rate);
-  const queue = cockpitQueue(props.supporters, today, rate);
+  // ⚡ ביצועים (12.10.2026, נמדד על 16,000 תורמים — הלקוח האמיתי): ארבעת המנועים רצו **בכל רינדור**
+  // (גם על סימון «✓ בוצע» = setState מקומי) — 770 ms לרינדור ב-Node בלי האטה (≈2.1 s פתיחת-טאב במכשיר
+  // מואט ×4), ו-cockpitAtRisk חושב 3× (kpis · queue · segments, 173 ms כל אחת). עכשיו: כל מנוע ב-useMemo
+  // על [supporters, today, rate, config] ⇒ רץ רק כשהנתונים משתנים; הבסיכון מחושב פעם-אחת ומשותף.
+  // אותן פונקציות, אותם ארגומנטים ⇒ אותם ערכים בדיוק (אפס שינוי-התנהגות).
+  const { supporters, config } = props;
+  const atRisk = useMemo(() => cockpitAtRisk(supporters, today), [supporters, today]);
+  const kpis = useMemo(() => cockpitKpis(supporters, today, rate, atRisk), [supporters, today, rate, atRisk]);
+  const queue = useMemo(() => cockpitQueue(supporters, today, rate, config, atRisk), [supporters, today, rate, config, atRisk]);
   const prog = cockpitProgress(queue, doneIds);
   // 🕎 מנוע-העיתוי העברי (VISION-LIGHT #37) — opt-in מפורש; אפס-השפעה בלי הדגל
   const hebOn = props.config.features?.['supporters.hebtiming'] === true;
   const hebSeason = hebOn ? hebSeasonOf(today) : null;
-  const hebTasks = hebOn
-    ? hebTimingTasks(props.supporters, today).map((t) => ({
-        id: 'heb-' + t.supId,
-        kind: 'call' as const,
-        supId: t.supId,
-        name: t.name,
-        phone: t.phone,
-        email: '',
-        reason: t.reason,
-        severity: 'warm' as const,
-        sort: t.timesInMonth,
-      }))
-    : [];
-  const segs = segmentCounts(props.supporters, today, rate).filter((s) => s.count > 0);
-  const feed = cockpitFeed(props.supporters, 8);
+  const hebTasks = useMemo<CockpitTask[]>(
+    () =>
+      hebOn
+        ? hebTimingTasks(props.supporters, today).map((t) => ({
+            id: 'heb-' + t.supId,
+            kind: 'call' as const,
+            supId: t.supId,
+            name: t.name,
+            phone: t.phone,
+            email: '',
+            reason: t.reason,
+            severity: 'warm' as const,
+            sort: t.timesInMonth,
+          }))
+        : [],
+    [hebOn, props.supporters, today],
+  );
+  const segs = useMemo(() => segmentCounts(supporters, today, rate, atRisk).filter((s) => s.count > 0), [supporters, today, rate, atRisk]);
+  const feed = useMemo(() => cockpitFeed(supporters, 8), [supporters]);
 
   const toggleDone = (id: string) =>
     setDoneIds((prev) => {

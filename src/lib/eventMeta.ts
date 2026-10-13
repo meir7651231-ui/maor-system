@@ -15,7 +15,13 @@ export const EV_META: Record<EventType, { label: string; bg: string; c: string }
   custom: { label: 'אירוע', bg: '#e7edf5', c: '#3a5a86' },
 };
 
+/** מטא-אירוע חסין: סוג לא-מוכר (גיבוי-ישן/מסמך-ענן פגום) ⇒ 'custom' במקום קריסת-כל-האפליקציה
+ *  (EV_META[type] היה undefined ⇒ .bg זרק בבניית-הלוח — ביקורת-עומק 2.9). */
+export function evMeta(ev: Pick<OrgEvent, 'type'>): { label: string; bg: string; c: string } {
+  return EV_META[ev.type] ?? EV_META.custom;
+}
+
 /** תווית אירוע — סוג 'custom' עם טקסט חופשי מציג אותו, אחרת התווית לפי הסוג. */
 export function evLabel(ev: OrgEvent): string {
-  return (ev.type === 'custom' && ev.customType) || EV_META[ev.type].label;
+  return (ev.type === 'custom' && ev.customType) || evMeta(ev).label;
 }

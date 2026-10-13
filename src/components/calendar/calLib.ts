@@ -9,14 +9,14 @@ import {
   type Db,
   type OrgEvent,
 } from '../../types/domain';
-import { gem, gemYear, hebParts, hebAnnualEq, holidayOf, type HebParts } from '../../lib/hebrew';
+import { gem, gemYear, hebParts, hebAnnualEq, hebDateFull, holidayOf, type HebParts } from '../../lib/hebrew';
 import { isoLocal } from '../../lib/date-util';
 import { featureOn, termOf } from '../../lib/config';
 import { DEFAULT_CONFIG, type OrgConfig } from '../../types/config';
 import { sessionsOf } from '../courses/lib';
 // sessionsOf — מקור-אמת יחיד בקורסים; מיוצא מחדש (wallData מייבא אותו מכאן)
 export { sessionsOf };
-import { EV_META, evLabel } from '../../lib/eventMeta';
+import { EV_META, evLabel, evMeta } from '../../lib/eventMeta';
 export { EV_META, evLabel }; // מיוצא מחדש — wallData מייבא evLabel מכאן
 import type { IcsOccurrence } from '../../lib/ics';
 
@@ -44,14 +44,17 @@ function dateOf(iso: string): Date {
 }
 
 /** חלקי תאריך עברי עם מטמון לפי ISO — Intl יקר, והרשת קוראת עשרות פעמים.
- *  מטמון חסום (HP_CACHE_MAX): ניווט-לוח ארוך הגדיל אותו ללא-גבול; בחריגה מנקים
- *  (hebParts טהור ⇒ בנייה-מחדש חינמית מבחינת נכונות). */
-const HP_CACHE_MAX = 3000;
+ *  מטמון חסום (HP_CACHE_MAX): ניווט-לוח ארוך הגדיל אותו ללא-גבול; בחריגה מפנים את הישן-ביותר
+ *  (hebParts טהור ⇒ בנייה-מחדש חינמית מבחינת נכונות).
+ *  נחיל ב׳ (3.9 · ביצועים): clear-all בתקרה 3000 גרם thrash — dayItems קורא hpOf לכל לידת-
+ *  בן-משפחה לכל תא; >3000 לידות ייחודיות ⇒ המטמון נמחק כמה פעמים **בכל בניית-גריד** (2.4s מול
+ *  11ms). תקרה 30k (מכסה 3000 משפחות×6 לידות + גריד; ~≤6MB) + פינוי-הישן-ביותר (Map שומר סדר-הכנסה). */
+const HP_CACHE_MAX = 30_000;
 const hpCache = new Map<string, HebParts>();
 export function hpOf(iso: string, d?: Date): HebParts {
   let hp = hpCache.get(iso);
   if (!hp) {
-    if (hpCache.size >= HP_CACHE_MAX) hpCache.clear();
+    if (hpCache.size >= HP_CACHE_MAX) hpCache.delete(hpCache.keys().next().value as string);
     hp = hebParts(d ?? dateOf(iso));
     hpCache.set(iso, hp);
   }
@@ -272,8 +275,8 @@ export function dayItems(db: Db, d: Date, config: OrgConfig = DEFAULT_CONFIG): D
       key: 'ev-' + ev.id,
       label: (ev.time ? ev.time + ' · ' : '') + ev.title,
       title: ev.title + (ev.done ? ' · בוצע ✓' : ''),
-      bg: EV_META[ev.type].bg,
-      c: EV_META[ev.type].c,
+      bg: evMeta(ev).bg,
+      c: evMeta(ev).c,
       typeLabel: evLabel(ev),
       sort: ev.priority === 'red' ? 0.5 : 1,
       prC: PRIORITY_COLOR[ev.priority] ?? 'transparent',
@@ -506,6 +509,41 @@ export function buildHebrewGrid(db: Db, anchorIso: string, config: OrgConfig = D
   };
 }
 
+/** רשת שבוע (ראשון–שבת) סביב תאריך עוגן — 7 תאים. בקשת-בעלים 30.8. */
+export function buildWeekGrid(db: Db, anchorIso: string, config: OrgConfig = DEFAULT_CONFIG, hebMode = false): CalGrid {
+  const anchor = dateOf(anchorIso);
+  const sunday = new Date(anchor.getFullYear(), anchor.getMonth(), anchor.getDate() - anchor.getDay());
+  const todayIso = isoOf(new Date());
+  const cells: CalCell[] = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(sunday.getFullYear(), sunday.getMonth(), sunday.getDate() + i);
+    cells.push(makeCell(db, d, true, todayIso, hebMode, config));
+  }
+  const sat = new Date(sunday.getFullYear(), sunday.getMonth(), sunday.getDate() + 6);
+  const satIso = isoOf(sat);
+  const sunIso = isoOf(sunday);
+  return {
+    cells,
+    monthLabel: 'שבוע: ' + fmtD(sunIso) + ' – ' + fmtD(satIso),
+    hebLabel: hebDateFull(sunIso) + ' – ' + hebDateFull(satIso),
+    prevIso: isoOf(new Date(sunday.getFullYear(), sunday.getMonth(), sunday.getDate() - 7)),
+    nextIso: isoOf(new Date(sunday.getFullYear(), sunday.getMonth(), sunday.getDate() + 7)),
+  };
+}
+
+/** רשת יום — תא יחיד (העוגן). בקשת-בעלים 30.8. */
+export function buildDayGrid(db: Db, anchorIso: string, config: OrgConfig = DEFAULT_CONFIG, hebMode = false): CalGrid {
+  const anchor = dateOf(anchorIso);
+  const todayIso = isoOf(new Date());
+  return {
+    cells: [makeCell(db, anchor, true, todayIso, hebMode, config)],
+    monthLabel: fmtD(anchorIso),
+    hebLabel: hebDateFull(anchorIso),
+    prevIso: isoOf(new Date(anchor.getFullYear(), anchor.getMonth(), anchor.getDate() - 1)),
+    nextIso: isoOf(new Date(anchor.getFullYear(), anchor.getMonth(), anchor.getDate() + 1)),
+  };
+}
+
 /* ---------- אירועים קרובים ---------- */
 
 export interface UpcomingRow {
@@ -725,8 +763,8 @@ export function upcomingRows(db: Db, days = 14): UpcomingRow[] {
         title: ev.title,
         sub: fmtD(iso) + (ev.time ? ' · ' + ev.time : ''),
         typeLabel: evLabel(ev),
-        bg: EV_META[ev.type].bg,
-        c: EV_META[ev.type].c,
+        bg: evMeta(ev).bg,
+        c: evMeta(ev).c,
         prC: PRIORITY_COLOR[ev.priority] ?? 'transparent',
         ev,
       });

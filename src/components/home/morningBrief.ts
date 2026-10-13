@@ -40,7 +40,7 @@ export function morningBrief(db: Db, config: OrgConfig, todayIso: string, now: D
   const sections: BriefSection[] = [];
 
   // תורי-הקוקפיט — שיחות/תודות/הו"ק (אותו מנוע, אותם ספים)
-  const q = cockpitQueue(db.supporters, todayIso, rate);
+  const q = cockpitQueue(db.supporters, todayIso, rate, config);
   if (q.calls.length) sections.push({ key: 'calls', icon: '📞', title: 'שיחות להיום', count: q.calls.length, top: names(q.calls), view: 'supporters' });
   if (q.thanks.length) sections.push({ key: 'thanks', icon: '💛', title: 'תודות לומר', count: q.thanks.length, top: names(q.thanks), view: 'supporters' });
   if (q.hok.length) sections.push({ key: 'hok', icon: '🔁', title: 'הו"ק שטרם נרשמו החודש', count: q.hok.length, top: names(q.hok), view: 'supporters' });

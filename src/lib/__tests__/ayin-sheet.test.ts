@@ -73,8 +73,21 @@ describe('📤 ייצוא — ayinSheetRows (legacy:196-198)', () => {
     expect(rows).toHaveLength(4); // כותרת + 2 שמות של sp1 + שם אחד של sp2
     expect(rows[1]).toEqual(['גולדשטיין', '054-7654321', 'לאה בת חנה', '2', 'לא', 'לא', 'תשובה קיימת', 'לא']);
     expect(rows[2][3]).toBe(''); // eyes '' → ריק
+  });
+
+  // 🔁 בקשת-בעלים 31.8: הורדה-מסוננת — keep מגביל לשמות שנבחרו (הסינון המקסימלי).
+  it('keep מגביל לשמות הנבחרים בלבד; חסר-keep = כל השמות (ביט-זהה)', () => {
+    const data = seeded();
+    const all = ayinSheetRows(data);
+    // רק "לאה בת חנה" של sp1 — שאר השמות מסוננים החוצה
+    const only = ayinSheetRows(data, (sid, nm) => sid === 'sp1' && nm === 'לאה בת חנה');
+    expect(only).toHaveLength(2); // כותרת + שורה אחת
+    expect(only[0]).toEqual([...AYIN_SHEET_HEADER]);
+    expect(only[1][2]).toBe('לאה בת חנה');
+    // keep שמחזיר תמיד true = זהה להורדה-המלאה (אין רגרסיה)
+    expect(ayinSheetRows(data, () => true)).toEqual(all);
     // sp2: תיק paid ו-stage done → שולם 'כן', עופרת 'כן', נמסר 'כן'
-    expect(rows[3]).toEqual(['ברגר', '', 'שם אחר', '5', 'כן', 'כן', '', 'כן']);
+    expect(all[3]).toEqual(['ברגר', '', 'שם אחר', '5', 'כן', 'כן', '', 'כן']);
   });
 
   it('פסיקים בתשובה מוחלפים ברווח (לא שוברים CSV, כמו בלגאסי)', () => {
@@ -196,5 +209,23 @@ describe('📥 ייבוא — parseAyinSheet (legacy:852-869)', () => {
       );
       expect(parsed.upds[0]?.paid).toBe(expected);
     }
+  });
+});
+
+// 🔁 בקשת-בעלים 31.8: "כפתור להורדה + סינון מקסימלי מה להוריד + צמוד אליו העלאה
+// באותו סגנון" — במסך-השמות המלא (AyinNamesBoard), לצד הסינון הקיים.
+describe('🔁 הגנת-מקור — הורדה-מסוננת + ייבוא במסך-השמות', () => {
+  it('AyinNamesBoard בונה keep מהסינון (shown) ומוריד רק אותו, וצמוד ייבוא-דו-שלבי', async () => {
+    const src = await import('../../components/supporters/AyinNamesBoard.tsx?raw').then((m) => m.default);
+    // הורדה מסוננת — keys מ-shown, ו-ayinSheetRows עם predicate
+    expect(src).toContain('shown.map((it) => it.supporterId');
+    expect(src).toContain('ayinSheetRows(supporters, (sid, nm) => keys.has');
+    expect(src).toContain("downloadCsv('maor-ayin-eyes.csv', rows)");
+    // ייבוא צמוד — קלט-קובץ + parseAyinSheet + החלה דרך ה-store
+    expect(src).toContain('parseAyinSheet(parseCsv(await readCsvFileText(file))');
+    expect(src).toContain('applySheet(parsed.upds)');
+    expect(src).toContain('⬆ ייבוא גיליון שמולא');
+    // מגודר באותו תת-דגל של גיליון-ההגדרות (חסר=פעיל, ביט-זהה)
+    expect(src).toContain("featureOn(config, 'supporters.ayin.sheet')");
   });
 });

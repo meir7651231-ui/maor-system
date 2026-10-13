@@ -6,13 +6,13 @@
  * ורושם לשנה הבאה — שיבוץ חדש בחוג של השנה הבאה, ששומר את ההיסטוריה (החוג הישן
  * לא נגע). כל הכבידה במנוע-הטהור `reenroll-lib.ts`; כאן רק חיווט + חייגן (FAB).
  */
+import { isoToday } from '../../lib/date-util';
 import { useMemo, useState, type CSSProperties } from 'react';
 import { useApp } from '../../store/useApp';
 import { featureOn, termOf } from '../../lib/config';
 import { Btn, Empty, PageHead, Select, TextInput } from '../ui';
 import { downloadCsv } from '../../lib/csvx';
 import { guardExport } from '../../lib/exportGate';
-import { isoToday } from '../../lib/date-util';
 import type { Cell } from '../../lib/csvx';
 import {
   academicYearLabel,
@@ -174,7 +174,7 @@ export default function ReenrollView() {
           />
         </div>
         <div style={{ minWidth: 200, flex: 1 }}>
-          <TextInput value={q} onChange={setQ} placeholder={`חיפוש ${studentW} / משפחה / ${courseW}…`} ariaLabel="חיפוש" />
+          <TextInput value={q} onChange={setQ} placeholder={`חיפוש ${studentW} / ${termOf(cfg, 'entity.family', 'משפחה')} / ${courseW}…`} ariaLabel="חיפוש" />
         </div>
       </div>
 

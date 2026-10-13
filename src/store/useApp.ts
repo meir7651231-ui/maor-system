@@ -7,7 +7,7 @@
  * - מזהים נוצרים אך ורק דרך nextId().
  */
 import { create } from 'zustand';
-import {
+import { mergeDelLogs,
   emptyAyin,
   emptyDb,
   type Absence,
@@ -46,22 +46,24 @@ import {
   type DistributionDay,
   type Delivery,
   type DialOutcome,
-  type WorkTask,
-} from '../types/domain';
+  type WorkTask } from '../types/domain';
 import { ENTITY_COLLECTIONS } from '../lib/cloud-diff';
+import { mergeDonationsPreserving } from '../lib/cloud-merge';
 import { collectionScoreDelta } from '../components/tzedaka/lib';
 import { assignmentRedeemed, beneficiaryLabel, itemOf, itemRemaining } from '../components/shop/lib';
 import { advanceStatus } from '../components/shop7/lib';
 import { roomClashError } from '../components/calendar/calLib';
-import { allowedDesignationsFor, canIssueReceipt, effectiveConfigFor, isOrgManager, parseJoinFullCode } from '../components/platform/lib';
+import { allowedDesignationsFor, canIssueReceipt, effectiveConfigFor, isOrgManager, memberNamesOf, parseJoinFullCode } from '../components/platform/lib';
 import type { OrgCloudDoc } from '../lib/cloudConfig';
 import { DEFAULT_CONFIG, type FirebaseOrgConfig, type OrgConfig } from '../types/config';
-import { applyTheme, donationSplitOn, employeeSignUpError, featureOn, isSuperAdmin, loadOrgConfig, orgSlugFromUrl, resolveOrgConfig, saveConfigOverride, signUpError, supEnforceOn, termOf, writeCloudConfigCache } from '../lib/config';
+import { applyTheme, donationSplitOn, employeeSignUpError, featureOn, isAdminAuthority, isSuperAdmin, loadOrgConfig, orgSlugFromUrl, resolveOrgConfig, saveConfigOverride, signUpError, supEnforceOn, termOf, writeCloudConfigCache } from '../lib/config';
 import { formatIsraeliPhone } from '../lib/validate';
 import { deviceTag, makeId } from '../lib/ids';
 import { supporterAggregates } from '../lib/supporterAgg';
-import { HOK_CAT, hokEffectivelyActive, hokRecordedThisMonth, SEGULA_OFFSETS, segulaReminders, segulaTitle } from '../components/supporters/lib';
+import { planDemoPurge, purgeSummary } from '../lib/demoPurge';
+import { HOK_CAT, hokEffectivelyActive, hokRecordedThisMonth, recurDates, recurDef, recurStatus, SEGULA_OFFSETS, segulaTitle, stripRecurNote, type RecurMode } from '../components/supporters/lib';
 import { planCharges } from '../components/supporters/planned';
+import { planAddPrayerName, removePrayerName, setPrayerNote, togglePrayerName } from '../components/supporters/prayer';
 import { findAllOpenPlans, matchAll } from '../lib/plannedMatch';
 import { canAddPhoto, isDataImage, PHOTO_MAX, PHOTO_MAX_LEN } from '../lib/photoGallery';
 import { mergeFamilies, mergeFamiliesByFields, mergeSupporterInto, mergeSupportersGroup, mergeSupportersByFields } from '../lib/dedup';
@@ -71,18 +73,24 @@ import { isoToday as isoTodayLocal, isoLocal } from '../lib/date-util';
 import { CRED_RED_THRESHOLD } from '../components/families/lib';
 import { freshNextYearEnrollment, nextAcademicYearLabel, nextYearCourseDraft } from '../components/courses/reenroll-lib';
 import { pushNav, pushRecent, sameLoc, type NavLoc } from '../lib/navhist';
-import { applyAyinSheet, featLabel, namesToTemplateLines, planAddName, planAyinAdvance, revertPatch, stageIndex, templateLinesToNames, type AyinSheetUpd } from '../lib/ayin';
+import { AYIN_STAGES, applyAyinSheet, featLabel, namesToTemplateLines, planAddName, planAyinAdvance, revertPatch, stageIndex, templateLinesToNames, type AyinSheetUpd } from '../lib/ayin';
 import { appendCall, applyOutcome, OUTCOME_LABELS, popCall, startCampaign, undoLast } from '../lib/dialer';
 import {
   dailySnapshot,
+  scheduleDailySnapshot,
   exportBackupFile,
   loadDb,
   saveDb,
   flushSaveSync,
   isIdbBackupMissing,
+  takeLsDroppedNotice,
+  markLsDroppedNoticed,
+  takeMigrateHealed,
+  runWhenIdleVisible,
   currentDbKey,
   readStoredPlainDb,
   setPersistNamespace,
+  nsLsKey,
   decryptAndLoad,
   beginEncryption,
   stopEncryption,
@@ -140,6 +148,10 @@ export interface CloudState {
    * בלי הגבלה (מנהל/בעלים/לקוח-מקומי — רואה הכל). מערך = רק ייעודים אלו.
    */
   allowedDesignations?: string[] | null;
+  /** מייל⇒שם-תצוגה של עובדי-הארגון (memberConfigs[].displayName) — להצגת "מי" בלוג/צ׳אט (6.9). */
+  memberNames?: Record<string, string>;
+  /** 🩹 (6.10) חותמת הכתיבה האחרונה של קונפיג-הארגון בענן — לאבחון "מי שינה את הדגל". */
+  cfgMeta?: { at: string; by?: string; via: string; keys: string[] } | null;
   /**
    * סטטוס רישום-הבקשה (5.8 — "מאור נרשם ולא רואים בקשה"): 'ok' = הבקשה נכתבה
    * לענן; אחרת קוד-השגיאה של הכתיבה האחרונה (למשל permission-denied — ‏Rules).
@@ -350,6 +362,13 @@ interface AppState {
    * אטומי. תיקון באג ידוע #6: הניקוי השאיר אירוע יתום בלוח (המחיקות כן ניקו).
    */
   unlinkEvent: (kind: 'supporterNext' | 'enrollmentDue', id: string) => void;
+  /**
+   * «קשר הבא» של תומך/ת (5.10 — משותף לכרטיס ולמעקב-הטיפול): תאריך על התומך + תזכורת-שיחה **מקושרת** בלוח-השנה
+   * (יוצר פעם אחת, מעדכן את אותו אירוע בשינוי, '' ⇒ ניקוי דרך unlinkEvent). topic = «על מה לדבר» ⇒ בהערות-האירוע.
+   */
+  setSupporterNext: (id: string, dateIso: string, topic?: string) => void;
+  /** 📝 «על מה לדבר בפעם הבאה» — על התומך/ת + רענון notes של תזכורת-הלוח המקושרת (6.10: משותף לכרטיס וללוח). */
+  setSupporterNextNote: (id: string, note: string) => void;
   upsertEvent: (ev: OrgEvent) => void;
   deleteEvent: (id: string) => void;
   /**
@@ -378,8 +397,23 @@ interface AppState {
   mergeSupportersGroup: (keepId: string, loserIds: string[]) => void;
   /** מיזוג-לפי-שדות (פאריטי משפחות): ids[0]=בסיס-השומר; ערכי-שדות לפי pick/edit. */
   mergeSupportersFields: (ids: string[], pick: Record<string, number>, edit: Record<string, string>) => void;
-  /** 🕯 סגולת 40 יום — זריעת תזכורות-לוח מדורגות לתורם מתאריך-התחלה. מחזיר כמה נוצרו. */
-  seedSegulaReminders: (supId: string, startIso: string) => number;
+  /** 🙏 שמות לתפילה בכרטיס-התורם (בקשת-בעלים 5.9): הוספה (דדופ) · הערה · סימון · הסרה. */
+  addPrayerName: (supId: string, name: string, note: string) => boolean;
+  setPrayerNote: (supId: string, id: string, note: string) => void;
+  togglePrayerName: (supId: string, id: string) => void;
+  removePrayerName: (supId: string, id: string) => void;
+  /** 🕯 סגולת 40 יום — זריעת תזכורות-לוח מדורגות לתורם מתאריך-התחלה. `purpose`
+   *  אופציונלי (למשל 'זיווג') מוטבע בכותרת/הערת-התזכורת. מחזיר כמה נוצרו. */
+  /** 🔁 (16.9) mode: 'segula' (ברירת-מחדל, 40 יום) · 'daily' · 'weekly' · 'monthly'; count לסדרות החוזרות. */
+  seedSegulaReminders: (supId: string, startIso: string, purpose?: string, mode?: RecurMode, count?: number) => number;
+  /** ✖ ביטול הסגולה הנוכחית (בקשת-בעלים 6.9 "מה קורה עם הכפתור"): מוחק את אירועי-הריצה
+   *  הנוכחית (לא ריצות קודמות), מסיר את שורת-הסגולה מהערת-קשר-הבא ומנקה יעד-קשר
+   *  שהיה תזכורת-סגולה. מחזיר כמה אירועים הוסרו (0 = לא הייתה סגולה). */
+  cancelSegula: (supId: string, mode?: RecurMode) => number;
+  /** 🔄 התחלה-מחדש מהיום: ביטול + זריעה חדשה (שני שלבים, כתיבה אטומית לכל שלב). */
+  restartSegula: (supId: string, startIso: string, purpose?: string, mode?: RecurMode, count?: number) => number;
+  /** ✓ הפיכת מצב-בוצע של אירוע-לוח (תזכורת-סגולה מהכרטיס; אותו upsertEvent). */
+  toggleEventDone: (eventId: string) => void;
   /** 🔄 יישום תוכנית-סנכרון נדרים (planNedarimSync): החלפת מערך-התומכים המלא +
    *  לוג. אחרי תצוגה-מקדימה+אישור בלבד (מסך הסנכרון). */
   applyNedarimSync: (supporters: Supporter[], note: string) => void;
@@ -552,9 +586,13 @@ interface AppState {
   ayinRevert: (id: string, stage: AyinStage) => void;
   ayinAddName: (id: string, name: string, eyes: number | '') => void;
   ayinToggleName: (id: string, nameId: string) => void;
+  /** 💳 סימון/ביטול "שולם" ידני בתיק-הטיפול (שער-התשלום). */
+  ayinSetPaid: (id: string, paid: boolean) => void;
   ayinSetNameEyes: (id: string, nameId: string, eyes: number | '') => void;
   ayinSetNameRate: (id: string, nameId: string, rate: number) => void;
   ayinSetNameNote: (id: string, nameId: string, note: string) => void;
+  /** ✏ עריכת-כתיב של שם-לטיפול (בקשת-בעלים 9.9 "לשנות בשמות בכתיבה שלהם"); ריק ⇒ לא נשמר. */
+  ayinSetNameText: (id: string, nameId: string, name: string) => void;
   ayinRemoveName: (id: string, nameId: string) => void;
   ayinAddAnswer: (id: string, note: string) => void;
   ayinEditAnswer: (id: string, index: number, note: string) => void;
@@ -603,9 +641,15 @@ interface AppState {
   ayinApplySheet: (upds: AyinSheetUpd[]) => void;
 
   // גיבוי ושחזור
-  exportBackup: () => void;
+  /** מחזיר האם הקובץ ירד בפועל (ביקורת-עומק 2.9: גיבוי-סוף-יום מסמן 'בוצע-היום' רק על הצלחה). */
+  exportBackup: () => Promise<boolean>;
   restoreDb: (db: Db) => void;
   resetAll: () => void;
+  /** 🧹 הסרת נתוני-הדמו בלבד (14.9): מוחק רק רשומות שמזהיהן בקובץ-הדמו (planDemoPurge), עם
+   *  מצבות-מחיקה ⇒ נמחק גם בענן. מנהל-בלבד בארגון-ענן (כמו resetAll). מחזיר כמה הוסרו. */
+  purgeDemoData: (demo: Partial<Db>) => { total: number; removed: Record<string, number> };
+  /** תצוגה-מקדימה בלבד (בלי כתיבה): כמה רשומות-דמו יש במאגר-החי. */
+  previewDemoPurge: (demo: Partial<Db>) => { total: number; removed: Record<string, number> };
 
   /** תיקון טלפונים אוטומטי — השלמת 0 מוביל בכל המשפחות/בני המשפחה. */
   fixAllPhones: () => void;
@@ -673,6 +717,12 @@ function writeSess(k: string, v: string | null): void {
 
 let saveTimer: ReturnType<typeof setTimeout> | undefined;
 let dirty = false; // עריכה מקומית שטרם נשמרה — שער ריבוי-הטאבים לא ידרוס אותה (#3)
+/**
+ * ⚡ (12.10.2026) ה-db האחרון שנשמר בהצלחה (הפניה) — או שנטען מהאחסון. flush ביציאה/הסתרה
+ * מדלג כשאין מה לכתוב: עד היום כל מעבר-טאב/מזעור הסריאל את כל המסמך סינכרונית (34MB אצל הלקוח
+ * האמיתי — 0.5–0.8s קיפאון ב-pagehide) גם כשלא השתנה דבר מאז השמירה האחרונה.
+ */
+let lastSaved: Db | null = null;
 let mtGuardOn = false; // מאזין ה-storage מותקן פעם אחת
 let idbWarned = false; // אזהרת "שכבת גיבוי חסרה" ניתנת פעם אחת לסשן (השמירה כל 500ms)
 let toastSeq = 1;
@@ -774,6 +824,43 @@ function trendFactor(log: CredLogEntry[]): number {
   return 0.8 + 0.4 * (last3.filter((e) => e.delta > 0).length / last3.length);
 }
 
+/** מצבות לכל ישות שקיימת ב-prev ונעלמה ב-next (שחזור/איפוס עוקפים setDb) — איחוד טבעות. */
+/**
+ * מיזוג-אצווה של תוצאת-תוכנית (סנכרון-נדרים) מול המאגר-החי (ביקורת-עומק 2.9, כסף #2):
+ * לכל כרטיס-מתוכנן — אם קיים כרטיס-חי באותו id, המתוכנן מנצח על השדות, אך התרומות
+ * מאוחדות לפי rid (מונים=max, דרך mergeDonationsPreserving) ורשומות-hist שנוספו
+ * בחי מאז התצלום (לפי txn, או לפי d|a|ref כשאין txn) מצורפות. כרטיסים-חיים שאינם
+ * בתוכנית (נולדו אחרי התצלום) נשארים. טהור.
+ */
+export function reconcileNedarimApply(live: Supporter[], planned: Supporter[]): Supporter[] {
+  const liveById = new Map(live.map((s) => [s.id, s]));
+  const plannedIds = new Set(planned.map((s) => s.id));
+  const histKey = (h: NonNullable<Supporter['hist']>[number]) => (h.txn ? 'txn:' + h.txn : 'row:' + h.d + '|' + h.a + '|' + (h.ref ?? ''));
+  const merged = planned.map((p) => {
+    const l = liveById.get(p.id);
+    if (!l) return p;
+    const base = mergeDonationsPreserving('supporters', l as unknown as Record<string, unknown>, p as unknown as Record<string, unknown>) as unknown as Supporter;
+    const pHist = p.hist ?? [];
+    const keys = new Set(pHist.map(histKey));
+    const liveOnly = (l.hist ?? []).filter((h) => !keys.has(histKey(h)));
+    if (!liveOnly.length) return base;
+    return { ...base, hist: [...pHist, ...liveOnly] };
+  });
+  const born = live.filter((s) => !plannedIds.has(s.id));
+  return born.length ? [...merged, ...born] : merged;
+}
+
+function withRemovalTombstones(prev: Db, next: Db): Db {
+  const dels: DelEntry[] = [];
+  const at = new Date().toISOString();
+  for (const col of ENTITY_COLLECTIONS) {
+    const nextIds = new Set((next[col] as Array<{ id: string }>).map((x) => x.id));
+    for (const x of prev[col] as Array<{ id: string }>) if (!nextIds.has(x.id)) dels.push({ at, col, id: x.id });
+  }
+  const base = mergeDelLogs(prev.delLog ?? [], next.delLog ?? []);
+  return { ...next, delLog: dels.length ? pushDelLog(base, dels) : base };
+}
+
 export const useApp = create<AppState>()((set, get) => {
   /** טוסט "רעננו את הדף" לטאב-מיושן — מוגבל-קצב כדי לא להציף בכל עריכה. */
   let staleToastAt = 0;
@@ -796,11 +883,13 @@ export const useApp = create<AppState>()((set, get) => {
     saveTimer = setTimeout(async () => {
       if (get().staleTab) return; // הדגל נדלק בחלון ה-debounce — לא כותבים
       const saving = get().db;
-      const ok = await saveDb(saving);
+      let ok = false;
+      try { ok = await saveDb(saving); } catch { ok = false; } // ביקורת-עומק 2.9: reencrypt שזרק השאיר dirty בלי טוסט + unhandled rejection
       // 🐛 נחיל-עמוק (13.8): רק אם לא נכנסה עריכה חדשה תוך-כדי ה-await מנקים dirty.
       // אחרת החלון בין סיום-השמירה לשמירה-הבאה השאיר dirty=false בעוד עריכה ממתינה —
       // ושער ריבוי-הטאבים היה רשאי לדרוס אותה. השוואת-הפניה: כל setDb יוצר db חדש.
       if (ok && get().db === saving) dirty = false;
+      if (ok) lastSaved = saving; // ⚡ (12.10) מה שמונח כעת באחסון — flush ישווה אליו
       if (ok !== get().saveOk) set({ saveOk: ok });
       if (!ok) {
         get().toast('⚠ השמירה נכשלה — הורידו גיבוי מלא ובדקו מקום פנוי בדפדפן');
@@ -811,6 +900,13 @@ export const useApp = create<AppState>()((set, get) => {
       } else if (!isIdbBackupMissing()) {
         idbWarned = false;
       }
+      // ⚡ משטר-מכסה (12.10): המסמך גדול מ-localStorage (34MB אצל הלקוח האמיתי — QuotaExceeded בכל
+      // שמירה) ⇒ persist עבר ל-IDB-בלבד; הודעה חד-פעמית למכשיר (persist נקי מ-store — דגל נצרך כאן).
+      // ⚡ אינטגרציה (12.10): ההודעה נדחית ל-idle — ה-put של IDB מסתיים בדיוק בזמן ציור-הטאב (×4 האטה),
+      // ועדכון-store סינכרוני באמצע רינדור-מעבר של 16k שורות גרם ל-React לזרוק את הרינדור ולהתחיל מחדש
+      // (נמדד: פתיחת-טאב 2.4s ⇒ 3.6s, כל ה-useMemo-ים רצו פעמיים). ב-idle אין רינדור-בתהליך להפריע לו.
+      // ⚠️ ביקורת (12.10): החותמת "הוצג-במכשיר" נרשמת בתוך ה-callback (markLsDroppedNoticed) — טאב שנסגר בחלון-הדחייה לא שורף את ההודעה.
+      if (ok && takeLsDroppedNotice()) runWhenIdleVisible(() => { if (markLsDroppedNoticed()) get().toast('הנתונים גדולים — נשמרים במאגר הפנימי של הדפדפן בלבד'); }, 5_000);
     }, 500);
   }
 
@@ -887,7 +983,8 @@ export const useApp = create<AppState>()((set, get) => {
     applyTheme(db.ui.theme ?? config.theme, db.ui.accent ?? config.accent, config.motion);
     // אין לצלם DB פגום/ריק — אחרת emptyDb ידרוס את הצילום היומי התקין של היום
     // (dailySnapshot כותב לפי מפתח-היום ללא תנאי) ויאבד את גיבוי-הבטיחות.
-    if (!corrupt) void dailySnapshot(db);
+    // ⚡ (12.10): נדחה ל-idle וכשהטאב גלוי (34MB structured-clone בזמן הציור הראשון — ראה persist).
+    if (!corrupt) scheduleDailySnapshot(() => get().db);
     if (corrupt) {
       get().toast('⚠ הנתונים השמורים נמצאו פגומים — נשמר עותק בצד. שחזרו מגיבוי דרך הגדרות ← ייבוא');
     }
@@ -896,6 +993,8 @@ export const useApp = create<AppState>()((set, get) => {
     // התנאי מתקיים (חג-מתקרב חוזר שנה-בשנה, גיל-בי"ס נמשך חודשים) — אחרת
     // ההצעה שהוסתרה צצה-מחדש אחרי 30 יום; "איפוס סימוני טופל" עדיין מנקה הכל.
     const stale = Object.entries(db.attnDone ?? {}).filter(([k, d]) => !k.startsWith('sug:') && d < pruneCutoff);
+    // ⚡ (12.10): setDb (⇒ scheduleSave ⇒ שמירה מלאה של 34MB חצי-שנייה אחרי הציור הראשון) **רק** אם
+    // הגיזום באמת הסיר משהו — טעינה נקייה לא מתזמנת שמירה (ratchet perf-load-clean).
     if (stale.length) {
       setDb((cur) => {
         const attnDone = { ...cur.attnDone };
@@ -1008,6 +1107,8 @@ export const useApp = create<AppState>()((set, get) => {
             // ומגן קשיח על השורש; applyCloudDoc מחוּוט רק לארגון-פלטפורמה.
             if (orgDoc?.deleted) {
               void import('./persist').then((p) => p.wipeLocalOrgData(cfg.slug));
+              // swarm-b (S1): ה-db בזיכרון שלם ⇒ flush/scheduleSave היו כותבים אותו חזרה; staleTab חוסם.
+              set({ staleTab: true });
               setCloud({ membership: 'removed' });
               return;
             }
@@ -1017,12 +1118,15 @@ export const useApp = create<AppState>()((set, get) => {
             // (רק הגבלה); מנהל/מייל-על = מלא. מנהל משנה כרטיס ⇒ העובד רואה חי (watch).
             const eff = effectiveConfigFor(user.email, orgDoc, merged);
             set({ config: eff });
+            // swarm-b (N6): מודול שכובה חי אצל הבעלים בעוד המשתמש עומד עליו ⇒ הביתה (בית/הגדרות לא נוגעים).
+            const v = get().view as string;
+            if (v !== 'home' && v !== 'settings' && (eff.modules as Record<string, boolean | undefined>)?.[v] === false) set({ view: 'home' });
             // מסלול-B: מתג-הפיצול חי — הדלקה/כיבוי אצל הבעלים ⇒ שכבת-הסנכרון מיד,
             // בלי רענון (הצד-הדוחף/המושך שואל את donationSplitActive). שורש נשאר כבוי.
             mod.setDonationSplit(donationSplitOn(eff));
             mod.setSupEnforce(supEnforceOn(eff));
             // ג' (13.8) — ייעודי-התרומה שהעובד/ת רשאי/ת לראות (מתעדכן חי עם הכרטיס)
-            setCloud({ allowedDesignations: allowedDesignationsFor(user.email, orgDoc) });
+            setCloud({ allowedDesignations: allowedDesignationsFor(user.email, orgDoc), memberNames: memberNamesOf(orgDoc), cfgMeta: orgDoc.configMeta ?? null });
             const { db } = get();
             applyTheme(db.ui.theme ?? eff.theme, db.ui.accent ?? eff.accent, eff.motion);
             writeCloudConfigCache(eff.slug, eff);
@@ -1040,6 +1144,8 @@ export const useApp = create<AppState>()((set, get) => {
               // חשוב: הניקוי רק על דגל-מצבת מפורש — לעולם לא על כשל-קריאה (null).
               if (orgDoc?.deleted) {
                 void import('./persist').then((p) => p.wipeLocalOrgData(cfg.slug));
+                // swarm-b (S1): כמו ב-applyCloudDoc — חוסמים כתיבה-חוזרת של ה-db שבזיכרון.
+                set({ staleTab: true });
                 setCloud({ membership: 'removed' });
                 return;
               }
@@ -1053,7 +1159,7 @@ export const useApp = create<AppState>()((set, get) => {
                 orgIsManager ||
                 !!orgDoc?.members?.some((m) => m.trim().toLowerCase() === mail);
               const allowed = allowedDesignationsFor(user.email, orgDoc ?? {});
-              setCloud({ membership: member ? 'member' : 'pending', isManager: orgIsManager, allowedDesignations: allowed });
+              setCloud({ membership: member ? 'member' : 'pending', isManager: orgIsManager, allowedDesignations: allowed, memberNames: memberNamesOf(orgDoc) });
               // מסלול-B P3: שאילתת-donations מסוננת לעובד/ת מוגבל/ת (Rules דוחים list לא-מסוננת)
               mod.setAllowedPurposes(allowed);
               // לוג-מנהל מסונכרן: מנהל/מייל-על קורא את כל טבעות-הלוג; עובד/ת כותב/ת רק שלו/ה
@@ -1232,7 +1338,11 @@ export const useApp = create<AppState>()((set, get) => {
   function curAyin(id: string): { sp: Supporter; a: AyinCase } | null {
     const sp = get().db.supporters.find((s) => s.id === id);
     if (!sp) return null;
-    return { sp, a: sp.ayin ?? emptyAyin() };
+    // לוח-מעקב 3.9: ayin חלקי/בלי-שלב (לגאסי/ענן שטרם עבר migrate) — מיזוג emptyAyin + שלב תקין,
+    // אחרת planAyinAdvance קרס ומפתח boardEventIds נכתב כ-"undefined".
+    const a: AyinCase = { ...emptyAyin(), ...sp.ayin };
+    if (!AYIN_STAGES.includes(a.stage)) a.stage = 'new';
+    return { sp, a };
   }
 
   /** החלת patch על תיק הטיפול — יוצר את התיק בשימוש הראשון; touch מעדכן lastTouch. */
@@ -1300,6 +1410,10 @@ export const useApp = create<AppState>()((set, get) => {
       // קוראים מחדש אחרי setPersistNamespace. מדיניות-המפתח לא השתנתה: readLock
       // עצמו כולל מיגרציה-רכה מהמפתח הגלובלי (הכרעת-בעלים 9.8 — PIN משותף נשמר).
       set({ lock: readLock() });
+      // swarm-b (S2): דגלי-הפתיחה של הסשן נקראו ב-import (מפתח גלובלי) בעוד הנעילה פר-ארגון
+      // ⇒ פתיחת PIN בארגון א' "פתחה" גם את ב' באותו טאב. קוראים מחדש ממורחב-שמות
+      // (nsLsKey(base)=base אצל default ⇒ שורש ביט-זהה).
+      set({ unlockedPrimary: readSess(nsLsKey(SESS.p)), unlockedAdmin: readSess(nsLsKey(SESS.a)) });
       const res = await loadDb();
       const cloudOn = !!config.firebase;
       if (res.encrypted) {
@@ -1335,6 +1449,10 @@ export const useApp = create<AppState>()((set, get) => {
         needDecrypt: false,
         cloud: { enabled: cloudOn, authReady: !cloudOn, user: null, status: 'idle', membership: 'na' },
       });
+      lastSaved = db; // ⚡ (12.10) נטען מהאחסון = כבר שם; flush לא יסריאל אותו שוב בלי עריכה
+      // ⚠️ ביקורת (12.10): migrate ריפא (מספור-קבלות/מצברים/מונים/גרסה) ⇒ שמירה אחת — הריפוי שהוצג חייב
+      // להיות עמיד (עד היום הגיע לדיסק דרך runDecay בלי-תנאי). מסמך נקי ⇒ אפס שמירה (הרווח נשמר).
+      if (takeMigrateHealed()) { lastSaved = null; scheduleSave(); }
       // חיבור ענן — opt-in פר-ארגון; בלי config.firebase שום דבר לא משתנה
       if (config.firebase) void connectCloud(config.firebase, config);
       postLoad(db, corrupt);
@@ -1538,6 +1656,9 @@ export const useApp = create<AppState>()((set, get) => {
 
     setConfig(cfg) {
       set({ config: cfg });
+      // swarm-b (N6): כיבוי-מודול באשף בעוד המסך שלו פתוח ⇒ הביתה (בית/הגדרות לא נוגעים).
+      const v = get().view as string;
+      if (v !== 'home' && v !== 'settings' && (cfg.modules as Record<string, boolean | undefined>)?.[v] === false) set({ view: 'home' });
       saveConfigOverride(cfg);
       const { db } = get();
       applyTheme(db.ui.theme ?? cfg.theme, db.ui.accent ?? cfg.accent, cfg.motion);
@@ -1712,8 +1833,9 @@ export const useApp = create<AppState>()((set, get) => {
       const cutoff = isoDaysAgo(14);
       const today = isoToday();
       let n = 0;
-      setDb((db) => ({
-        families: db.families.map((f) => {
+      // ⚡ (12.10): הדעיכה רצה פעם ביום בטעינה; setDb בלי-תנאי יצר db חדש ⇒ scheduleSave ⇒ שמירה מלאה
+      // (34MB) גם כשאף משפחה לא דעכה. מחשבים קודם, וכותבים רק אם n>0 — אותה תוצאה בדיוק.
+      const families = get().db.families.map((f) => {
           const score = f.cred?.score ?? 700;
           if (score <= 0) return f; // אין לאן לרדת
           // אידמפוטנטיות: אם כבר נרשמה דעיכה היום (טעינה חוזרת, מצב פרטי שאיפס את
@@ -1735,11 +1857,10 @@ export const useApp = create<AppState>()((set, get) => {
               ].slice(0, 200),
             },
           };
-        }),
-      }));
-      if (n > 0) {
-        get().toast('Batch יומי: הפחתת אי-פעילות (‎-2) ל-' + n + ' ' + termOf(get().config, 'nav.families', 'משפחות'));
-      }
+        });
+      if (n === 0) return;
+      setDb({ families });
+      get().toast('Batch יומי: הפחתת אי-פעילות (‎-2) ל-' + n + ' ' + termOf(get().config, 'nav.families', 'משפחות'));
     },
 
     markAttnDone(key) {
@@ -2042,6 +2163,8 @@ export const useApp = create<AppState>()((set, get) => {
         get().toast('⛔ רק המנהל מנפיק קבלות — פנו למנהל/ת הארגון');
         return { ok: false };
       }
+      // ביקורת-עומק 2.9: שער-סכום בליבה — הסדרה-הרציפה §46 לא נסמכת על משמעת-UI בלבד
+      if (!Number.isFinite(payment.amount) || payment.amount <= 0) { get().toast('סכום לא-תקין — התשלום לא נרשם'); return { ok: false }; }
       // שער לפני צריכת המונה: אם השיבוץ נעלם (למשל נמחק בסנכרון ממכשיר אחר בעוד
       // הטופס פתוח), אין לקדם את receiptSeq — אחרת מספר קבלה R-{n} מדולג לצמיתות
       // (פוגם ברציפות הקבלות) והתשלום אובד בשקט. עקבי עם addCred/deleteTeacher.
@@ -2155,6 +2278,38 @@ export const useApp = create<AppState>()((set, get) => {
         };
       });
     },
+    setSupporterNext(id, dateIso, topic = '') {
+      if (!dateIso) { get().unlinkEvent('supporterNext', id); return; }
+      const db = get().db;
+      const sp = db.supporters.find((s) => s.id === id);
+      if (!sp) return;
+      const cfg = get().config;
+      const title = 'יעד קשר — ' + termOf(cfg, 'entity.supporter', 'תומך/ת') + ': ' + sp.name;
+      const notes = termOf(cfg, 'entity.family', 'משפחה') + ' תומכת · ' + (sp.phone || '') + (sp.email ? ' · ' + sp.email : '') + (topic.trim() ? ' · 📝 ' + topic.trim() : '');
+      const linked = sp.nextEventId ? db.events.find((e) => e.id === sp.nextEventId) : undefined;
+      if (linked) {
+        get().upsertEvent({ ...linked, title, date: dateIso, done: false, notes });
+        get().upsertSupporter({ ...sp, nextDate: dateIso });
+        return;
+      }
+      const evId = get().nextId('ev');
+      get().upsertEvent({ id: evId, title, date: dateIso, time: '', type: 'call', customType: '', notes, price: 0, roomId: '', famId: '', priority: 'orange', done: false });
+      get().upsertSupporter({ ...sp, nextDate: dateIso, nextEventId: evId });
+    },
+    setSupporterNextNote(id, note) {
+      const db = get().db;
+      const sp = db.supporters.find((s) => s.id === id);
+      if (!sp) return;
+      const v = note.trim();
+      if (v === (sp.nextNote || '')) return;
+      const cfg = get().config;
+      const linked = sp.nextEventId ? db.events.find((e) => e.id === sp.nextEventId) : undefined;
+      if (linked) {
+        const base = termOf(cfg, 'entity.family', 'משפחה') + ' תומכת · ' + (sp.phone || '') + (sp.email ? ' · ' + sp.email : '');
+        get().upsertEvent({ ...linked, notes: base + (v ? ' · 📝 ' + v : '') });
+      }
+      get().upsertSupporter({ ...sp, nextNote: v });
+    },
     upsertEvent(ev) {
       setDb((db) => ({ events: upsertIn(db.events, ev) }));
     },
@@ -2212,8 +2367,9 @@ export const useApp = create<AppState>()((set, get) => {
       }
       const sp = get().db.supporters.find((x) => x.id === id);
       if (!sp) return;
-      if (!canAddPhoto(sp.photos)) {
-        get().toast('הגעתם לתקרת ' + PHOTO_MAX + ' תמונות — הסירו תמונה כדי להוסיף');
+      // swarm-b (P4): גם תקציב-משקל כולל לתורם (מסמך-ענן < 1MB) — לא רק כמות.
+      if (!canAddPhoto(sp.photos, dataUri.length)) {
+        get().toast('הגעתם לתקרת ' + PHOTO_MAX + ' תמונות או חריגה מתקציב-התמונות — הסירו תמונה כדי להוסיף');
         return;
       }
       setDb((db) => ({
@@ -2282,22 +2438,56 @@ export const useApp = create<AppState>()((set, get) => {
       get().toast('הרשומות מוזגו לפי הבחירה ✓ — נשמרה רשומה אחת');
     },
 
-    seedSegulaReminders(supId, startIso) {
+    addPrayerName(supId, name, note) {
+      const sp = get().db.supporters.find((s) => s.id === supId);
+      if (!sp) return false;
+      const plan = planAddPrayerName(sp.prayerNames ?? [], get().nextId('pr'), name, note, isoTodayLocal());
+      if (plan.dup) {
+        get().toast('השם "' + name.trim() + '" כבר ברשימת-התפילה');
+        return false;
+      }
+      if (plan.list.length === (sp.prayerNames ?? []).length) return false;
+      setDb((db) => ({ supporters: db.supporters.map((s) => (s.id === supId ? { ...s, prayerNames: plan.list } : s)) }));
+      get().toast('🙏 "' + name.trim() + '" נוסף לשמות-לתפילה');
+      return true;
+    },
+    setPrayerNote(supId, id, note) {
+      setDb((db) => ({ supporters: db.supporters.map((s) => (s.id === supId ? { ...s, prayerNames: setPrayerNote(s.prayerNames ?? [], id, note) } : s)) }));
+    },
+    togglePrayerName(supId, id) {
+      setDb((db) => ({ supporters: db.supporters.map((s) => (s.id === supId ? { ...s, prayerNames: togglePrayerName(s.prayerNames ?? [], id) } : s)) }));
+    },
+    removePrayerName(supId, id) {
+      setDb((db) => ({ supporters: db.supporters.map((s) => (s.id === supId ? { ...s, prayerNames: removePrayerName(s.prayerNames ?? [], id) } : s)) }));
+    },
+
+    seedSegulaReminders(supId, startIso, purpose, mode = 'segula', count) {
       // 🕯 סגולת 40 יום — תזכורות-לוח מדורגות (call) עם spId, כדי שיופיעו על התורם
       // וביומן. דטרמיניסטי (segulaReminders); אינו נוגע בכספים/קבלות.
+      // `purpose` (למשל 'זיווג') מוטבע בכותרת ובהערה — בקשת-בעלים 30.8.
+      // 🔁 16.9: אותו מנוע גם ל-יומי/שבועי/חודשי (recurDates) — סדרה מזוהה בתחילית-הערה משלה.
       const sp = get().db.supporters.find((s) => s.id === supId);
       if (!sp || !startIso) return 0;
+      const def = recurDef(mode);
+      // בקשת-בעלים 3.9 "40 יום לא מופיע": (א) סדרה פעילה לא נזרעת פעמיים; (ב) הסדרה
+      // נרשמת גם ב"קשר הבא" של הכרטיס (יעד = התזכורת הראשונה, הערה מסבירה) — לא רק ביומן.
+      if (recurStatus(get().db.events, sp.id, startIso, mode).active) {
+        get().toast(def.emoji + ' ' + def.label + ' כבר פעילה לתומך/ת זה — התזכורות כבר ביומן');
+        return 0;
+      }
       const target = Math.max(...SEGULA_OFFSETS);
-      const reminders = segulaReminders(startIso);
+      const reminders = recurDates(startIso, mode, count);
+      const tag = (purpose || '').trim() ? ' · ' + (purpose || '').trim() : '';
+      const seriesNote = mode === 'segula' ? 'סגולת ' + target + ' יום' : def.prefix + ' ×' + reminders.length;
       for (const r of reminders) {
         get().upsertEvent({
           id: get().nextId('ev'),
-          title: segulaTitle(sp.name, r, target),
+          title: (mode === 'segula' ? segulaTitle(sp.name, r, target) : def.emoji + ' ' + def.label + ' — ' + (sp.name || '') + ' · ' + r.day + '/' + reminders.length) + tag,
           date: r.date,
           time: '',
           type: 'call',
           customType: '',
-          notes: 'סגולת ' + target + ' יום · ' + (sp.phone || ''),
+          notes: seriesNote + tag + ' · ' + (sp.phone || ''),
           price: 0,
           roomId: '',
           famId: '',
@@ -2306,17 +2496,69 @@ export const useApp = create<AppState>()((set, get) => {
           done: false,
         });
       }
-      logAudit('🕯 סגולת ' + target + ' יום', sp.name);
-      get().toast('נזרעו ' + reminders.length + ' תזכורות-סגולה ביומן 🕯');
+      // קשר-הבא: היעד = התזכורת הראשונה (או היעד הקיים אם הוא מוקדם יותר ועתידי); ההערה מקבלת שורת-סדרה.
+      const first = reminders[0]?.date ?? '';
+      const cur = get().db.supporters.find((s) => s.id === supId);
+      if (cur && first) {
+        const keepExisting = !!cur.nextDate && cur.nextDate >= startIso && cur.nextDate < first;
+        const lastIso = reminders[reminders.length - 1]?.date ?? '';
+        const line = def.emoji + ' ' + seriesNote + tag + ' — מ-' + startIso.slice(8, 10) + '/' + startIso.slice(5, 7) + ', סיום ' + lastIso.slice(8, 10) + '/' + lastIso.slice(5, 7);
+        const note = (cur.nextNote || '').includes(seriesNote) ? cur.nextNote || '' : [line, cur.nextNote || ''].filter(Boolean).join('\n');
+        get().upsertSupporter({ ...cur, nextDate: keepExisting ? cur.nextDate : first, nextNote: note });
+      }
+      logAudit(def.emoji + ' ' + seriesNote + tag, sp.name);
+      get().toast('נזרעו ' + reminders.length + ' תזכורות ביומן ' + def.emoji + ' — נרשם גם בקשר-הבא');
       return reminders.length;
+    },
+
+    cancelSegula(supId, mode = 'segula') {
+      const sp = get().db.supporters.find((s) => s.id === supId);
+      if (!sp) return 0;
+      const def = recurDef(mode);
+      const st = recurStatus(get().db.events, sp.id, isoToday(), mode);
+      const ids = new Set(st.reminders.map((r) => r.id).filter(Boolean));
+      if (!ids.size) return 0;
+      const dates = new Set(st.reminders.map((r) => r.date));
+      // כתיבה אטומית אחת: אירועי-הסדרה יורדים (מצבות דרך setDb), הכרטיס מנוקה משורת-הסדרה.
+      setDb((db) => ({
+        events: db.events.filter((e) => !ids.has(e.id)),
+        supporters: db.supporters.map((s) => {
+          if (s.id !== supId) return s;
+          const nextNote = stripRecurNote(s.nextNote || '', mode);
+          const nextDate = s.nextDate && dates.has(s.nextDate) ? '' : s.nextDate;
+          return { ...s, nextNote, nextDate };
+        }),
+      }));
+      logAudit('✖ ביטול ' + def.label, sp.name);
+      get().toast(def.label + ' בוטלה — ' + ids.size + ' תזכורות הוסרו מהיומן ומקשר-הבא');
+      return ids.size;
+    },
+
+    restartSegula(supId, startIso, purpose, mode = 'segula', count) {
+      const removed = get().cancelSegula(supId, mode);
+      const n = get().seedSegulaReminders(supId, startIso, purpose, mode, count);
+      if (removed && n) get().toast('🔄 ' + recurDef(mode).label + ' התחילה מחדש מהיום — ' + n + ' תזכורות חדשות');
+      return n;
+    },
+
+    toggleEventDone(eventId) {
+      const ev = get().db.events.find((e) => e.id === eventId);
+      if (!ev) return;
+      get().upsertEvent({ ...ev, done: !ev.done });
     },
 
     applyNedarimSync(supporters, note) {
       // התוכנית כבר מיזגה: מערך-סופי = קיימים-מועשרים + חדשים (superset — אף תומך
       // לא אבד). כתיבה אחת אטומית; count/ils/usd השמורים נותרו קבלות-בלבד (המנוע
       // הוסיף רק ל-hist). לוג-פעולות מתעד את היקף-הסנכרון.
+      // ביקורת-עומק 2.9 (כסף #2): התוכנית חושבה מתצלום-הכרטיסים ברגע פתיחת-המודאל;
+      // בזמן שהמודאל פתוח (קובץ נטען, המשתמש בוחן) יכולה להירשם תרומה/קבלה בטאב
+      // אחר או להגיע מהענן — כתיבה-גורפת הייתה דורסת אותה (קבלה בלי רשומה). לכן
+      // המיזוג נעשה **מול המאגר-החי ברגע-הלחיצה**: כרטיס-מתוכנן מנצח, אך תרומות
+      // (איחוד-rid, מונים=max) ורשומות-hist (איחוד-txn) שנוספו מאז נשמרות; כרטיס
+      // שנולד מאז נשאר.
       logAudit('🔄 סנכרון נדרים', note);
-      setDb(() => ({ supporters }));
+      setDb((db) => ({ supporters: reconcileNedarimApply(db.supporters, supporters) }));
       get().toast('🔄 סנכרון נדרים הושלם ✓ — ' + note);
     },
 
@@ -2485,6 +2727,8 @@ export const useApp = create<AppState>()((set, get) => {
         get().toast('⛔ רק המנהל מנפיק קבלות — פנו למנהל/ת הארגון');
         return { ok: false };
       }
+      // ביקורת-עומק 2.9: שער-סכום בליבה (finite, >0) לפני צריכת donationSeq
+      if (!Number.isFinite(donation.amount) || donation.amount <= 0) { get().toast('סכום לא-תקין — התרומה לא נרשמה'); return { ok: false }; }
       // שער לפני צריכת המונה: תומכ/ת שנעלם/ה (נמחק/ה בסנכרון בעוד הטופס פתוח) לא
       // יצרוך את donationSeq — אחרת D-{n} מדולג לצמיתות והתרומה אובדת בשקט.
       if (!get().db.supporters.some((s) => s.id === supporterId)) {
@@ -2492,6 +2736,9 @@ export const useApp = create<AppState>()((set, get) => {
         return { ok: false };
       }
       const rid = 'D-' + get().db.donationSeq;
+      // 💳 שער-תשלום במעקב-הטיפול (בקשת-בעלים 25.8, opt-in): רישום-תרומה מסמן
+      // את תיק-הטיפול הפעיל כ"שולם" ⇒ מאפשר להתקדם ל"הושלם". כבוי ⇒ ביט-זהה.
+      const payGateOn = get().config.features?.['supporters.ayin.paygate'] === true;
       setDb((db) => ({
         donationSeq: db.donationSeq + 1,
         supporters: db.supporters.map((s) => {
@@ -2499,7 +2746,8 @@ export const useApp = create<AppState>()((set, get) => {
           const donations = [{ ...donation, rid }, ...s.donations];
           // מצבור = קבלות-בלבד (#14, hist מתווסף בתצוגה) — מקור-אמת יחיד עם migrate/audit.
           const agg = supporterAggregates({ donations, hist: s.hist });
-          return { ...s, donations, count: agg.count, ils: agg.ils, usd: agg.usd, first: agg.first || s.first, last: agg.last || s.last };
+          const ayin = payGateOn && s.ayin && s.ayin.stage !== 'done' && !s.ayin.paid ? { ...s.ayin, paid: true } : s.ayin;
+          return { ...s, ...(ayin ? { ayin } : {}), donations, count: agg.count, ils: agg.ils, usd: agg.usd, first: agg.first || s.first, last: agg.last || s.last };
         }),
       }));
       // מונח-דינמי גם בלוג — הרשומה מוצגת בטבלת-הלוג ובוורטיקל עסקי "תרומה" היא דליפה
@@ -2524,7 +2772,8 @@ export const useApp = create<AppState>()((set, get) => {
           if (!idSet.has(s.id)) return s;
           const hok = s.hok;
           // דילוג-בטיחות: הו״ק לא-פעילה או שכבר-נרשמה-החודש (בחירה מיושנת) ⇒ לא כופלים.
-          if (!hok || !hokEffectivelyActive(s, todayIso) || hokRecordedThisMonth(s, todayIso)) {
+          // ביקורת 3.9: שער-סכום זהה ל-addDonation — hok פגום מגיבוי/ענן לא צורך D-
+          if (!hok || !Number.isFinite(hok.amount) || hok.amount <= 0 || !hokEffectivelyActive(s, todayIso) || hokRecordedThisMonth(s, todayIso)) {
             failed++;
             return s;
           }
@@ -3301,6 +3550,12 @@ export const useApp = create<AppState>()((set, get) => {
       if (!c) return;
       const plan = planAyinAdvance(get().config, c.sp.name, c.a);
       if (!plan) return;
+      // לוח-מעקב 3.9: חסימת-שער-התשלום החזירה patch ריק אך setAyin(id, {}) עדיין החתים lastTouch=היום
+      // ⇒ התורם/ת "עודכן/ה היום" ונכנס/ה לדוח-היומי בלי שום שינוי. חסום/ריק ⇒ טוסט בלבד.
+      if (plan.blocked || (!Object.keys(plan.patch).length && !plan.event)) {
+        get().toast(plan.toast);
+        return;
+      }
       let patch = plan.patch;
       if (plan.event) {
         // שומרים את מזהה אירוע-הלוח על התיק, לפי שלב-מקור המעבר (או 'answerPush'),
@@ -3311,6 +3566,17 @@ export const useApp = create<AppState>()((set, get) => {
         patch = { ...patch, boardEventIds: { ...c.a.boardEventIds, [key]: evId } };
       }
       setAyin(id, patch);
+      // 🎯 ביטול-ייעוד בהשלמה (בקשת-בעלים 25.8, opt-in): תיק שהגיע ל'הושלם' —
+      // הייעוד (forWho) מתנקה ⇒ העובד/ת לא רואה אותו יותר (לא-משוייך = מנהל בלבד),
+      // עד שהמנהל מייעד מחדש. חסר-הדגל ⇒ ביט-זהה. רק כשיש ייעוד להסיר.
+      if (
+        patch.stage === 'done' &&
+        get().config.features?.['supporters.ayin.unassignondone'] === true &&
+        (c.sp.forWho || '').trim()
+      ) {
+        setDb((db) => ({ supporters: db.supporters.map((s) => (s.id === id ? { ...s, forWho: '' } : s)) }));
+        logAudit('ביטול-ייעוד (הושלם)', c.sp.name);
+      }
       get().toast(plan.toast);
     },
     ayinRevert(id, stage) {
@@ -3318,7 +3584,8 @@ export const useApp = create<AppState>()((set, get) => {
       if (!c) return;
       // מוחקים אירועי-לוח של מעברים שכעת מבוטלים (סף לפי שלב-היעד של כל מעבר),
       // כדי שלא יישארו תזכורות יתומות בלוח ו-re-advance לא ייצור כפילות.
-      const KEEP_MIN: Record<string, number> = { new: 1, lead: 2, eyes: 3, answerPush: 3, answer: 4 };
+      // לוח-מעקב 3.9: 'again' = תזכורת-"שוב" ידנית (ayinCallAgain) — לא תלוית-שלב, נשמרת בכל revert.
+      const KEEP_MIN: Record<string, number> = { new: 1, lead: 2, eyes: 3, answerPush: 3, answer: 4, again: 0 };
       const si = stageIndex(stage);
       const kept: Partial<Record<string, string>> = {};
       const drop = new Set<string>();
@@ -3351,6 +3618,12 @@ export const useApp = create<AppState>()((set, get) => {
       setAyin(id, plan.log ? { names: plan.names, log: plan.log } : { names: plan.names });
       get().toast('"' + name.trim() + '" נוסף לרשימה');
     },
+    ayinSetPaid(id, paid) {
+      const c = curAyin(id);
+      if (!c) return;
+      setAyin(id, { paid }, false);
+      get().toast(paid ? '💳 סומן כשולם ✓' : 'סימון-התשלום בוטל');
+    },
     ayinToggleName(id, nameId) {
       const c = curAyin(id);
       if (!c) return;
@@ -3376,11 +3649,22 @@ export const useApp = create<AppState>()((set, get) => {
       const names = c.a.names.map((n) => (n.id === nameId ? { ...n, rate: rate > 0 ? rate : undefined } : n));
       setAyin(id, { names });
     },
+    ayinSetNameText(id, nameId, name) {
+      const c = curAyin(id);
+      if (!c) return;
+      const val = name.trim();
+      if (!val) return;
+      const names = c.a.names.map((n) => (n.id === nameId ? { ...n, name: val } : n));
+      setAyin(id, { names });
+    },
     ayinSetNameNote(id, nameId, note) {
       const c = curAyin(id);
       if (!c) return;
-      const t = note.trim();
-      const names = c.a.names.map((n) => (n.id === nameId ? { ...n, note: t || undefined } : n));
+      // 🐛 באג-שטח (בקשת-בעלים 30.8): trim חי בכל תו בלע את הרווח (השדה controlled —
+      // רווח-סופי נחתך מיד ⇒ "אי אפשר להקליד רווח בהערות"). שומרים raw; רק
+      // ריק/רווחים-בלבד ⇒ undefined (בלי לחסום רווחים בין-מילים ובסוף).
+      const val = note.trim() ? note : undefined;
+      const names = c.a.names.map((n) => (n.id === nameId ? { ...n, note: val } : n));
       setAyin(id, { names });
     },
     ayinRemoveName(id, nameId) {
@@ -3496,7 +3780,7 @@ export const useApp = create<AppState>()((set, get) => {
       }
       setDb((db) => {
         const prev = (db.ui.quoteTemplates || []).filter((t) => t.name !== nm);
-        const tpl = { id: 'qt' + db.seq, name: nm, lines };
+        const tpl = { id: makeId('qt', db.seq, deviceTag()), name: nm, lines }; // ביקורת 3.9: מזהה חסין-התנגשות (ids.ts #5)
         return { seq: db.seq + 1, ui: { ...db.ui, quoteTemplates: [tpl, ...prev].slice(0, 30) } };
       });
       get().toast('התבנית "' + nm + '" נשמרה');
@@ -3508,7 +3792,7 @@ export const useApp = create<AppState>()((set, get) => {
       if (!tpl) return;
       const base = get().db.seq;
       let k = 0;
-      const add = templateLinesToNames(tpl.lines, () => 'an' + (base + k++));
+      const add = templateLinesToNames(tpl.lines, () => makeId('an', base + k++, deviceTag())); // ביקורת 3.9: כמו nextId
       if (!add.length) return;
       setDb((db) => ({ seq: db.seq + add.length }));
       setAyin(id, { names: [...c.a.names, ...add] });
@@ -3615,8 +3899,13 @@ export const useApp = create<AppState>()((set, get) => {
     ayinCallAgain(id) {
       const c = curAyin(id);
       if (!c) return;
-      ayinEvent(c.sp, c.a, featLabel(get().config) + ': לדבר שוב — ' + c.sp.name, false);
-      setAyin(id, {});
+      // לוח-מעקב 3.9: כל "🔁 שוב" יצר אירוע-לוח חדש בלי מעקב ⇒ כפילויות שהצטברו עד מחיקת התומך/ת.
+      // עוקבים אחריו ב-boardEventIds.again — מוחקים את הקודם (כמו ayinRevert) לפני יצירת החדש.
+      const prev = c.a.boardEventIds?.again;
+      if (prev) setDb((db) => ({ events: db.events.filter((e) => e.id !== prev) }));
+      const evId = get().nextId('ev');
+      ayinEvent(c.sp, c.a, featLabel(get().config) + ': לדבר שוב — ' + c.sp.name, false, evId);
+      setAyin(id, { boardEventIds: { ...c.a.boardEventIds, again: evId } });
       get().toast('נכנסת לתזכורת בלוח');
     },
     ayinLogEyes(id, eyes, name) {
@@ -3635,6 +3924,10 @@ export const useApp = create<AppState>()((set, get) => {
         nextTalk: '',
         nextTalkTime: '',
         answerPushed: false,
+        // לוח-מעקב 3.9: מחזור חדש = תשלום חדש (אחרת שער-התשלום נעקף במחזור השני) + מפתחות-אירועים
+        // נקיים (אחרת revert במחזור-2 מחק את אירועי-הלוח של מחזור-1 — אובדן היסטוריה).
+        paid: false,
+        boardEventIds: {},
       });
       get().toast('נפתח מחזור חדש מההתחלה — ההיסטוריה נשמרה');
     },
@@ -3656,14 +3949,15 @@ export const useApp = create<AppState>()((set, get) => {
       // בכרטיס-העובד) לא יכול להוריד גיבוי — חסימה גם ברמת-הפעולה, לא רק ה-UI.
       if (!featureOn(get().config, 'core.export')) {
         get().toast('⛔ הוצאת מידע חסומה עבורך על-ידי מנהל הארגון');
-        return;
+        return Promise.resolve(false);
       }
       logAudit('ייצוא גיבוי מלא', get().encrypted ? 'מוצפן' : 'גלוי');
-      void exportBackupFile(get().db).then(() => {
+      return exportBackupFile(get().db).then(() => {
         get().toast(
           get().encrypted ? 'גיבוי מוצפן ירד — שמרו את הסיסמה/מפתח השחזור ✓' : 'קובץ גיבוי מלא ירד למחשב ✓',
         );
-      });
+        return true;
+      }).catch(() => { get().toast('⚠ הגיבוי נכשל — נסו שוב (ביקורת-עומק 2.9)'); return false; });
     },
     fixAllPhones() {
       let n = 0;
@@ -3686,13 +3980,16 @@ export const useApp = create<AppState>()((set, get) => {
     },
 
     async setLockCode(kind, pin) {
+      // swarm-b (A10): הגיבוב (PBKDF2, מאות ms) קודם — ואז צילום-הנעילה; אחרת שינוי-אזורים
+      // מטאב אחר בזמן ה-await היה נדרס ע"י הצילום הישן.
+      const hash = pin === null ? null : await hashPin(pin);
       const lock: LockCfg = { ...get().lock };
-      if (pin === null) {
+      if (hash === null) {
         delete lock[kind];
         // הסרת הקוד המשני — מנקים גם את רשימת האזורים (מיותרת בלי קוד)
         if (kind === 'secondary') delete lock.zones;
       } else {
-        lock[kind] = await hashPin(pin);
+        lock[kind] = hash;
         if (kind === 'secondary' && !lock.zones) lock.zones = [...DEFAULT_LOCK_ZONES];
       }
       writeLock(lock);
@@ -3705,8 +4002,8 @@ export const useApp = create<AppState>()((set, get) => {
     },
     clearLock() {
       writeLock({});
-      writeSess(SESS.p, null);
-      writeSess(SESS.a, null);
+      writeSess(nsLsKey(SESS.p), null);
+      writeSess(nsLsKey(SESS.a), null);
       set({ lock: {}, unlockedPrimary: false, unlockedAdmin: false });
     },
 
@@ -3715,6 +4012,8 @@ export const useApp = create<AppState>()((set, get) => {
       if (!db) return false;
       if (db.security?.primary || db.security?.secondary || db.security?.zones) db.security = {};
       set({ db, encrypted: true, needDecrypt: false, corrupt: false });
+      lastSaved = db; // ⚡ (12.10) פוענח מהאחסון = כבר שם (ראה init)
+      if (takeMigrateHealed()) { lastSaved = null; scheduleSave(); } // ⚠️ ביקורת (12.10): ריפוי-בטעינה נשמר (ראה init)
       // חיבור ענן לארגון מוצפן: init חוזר מוקדם במסלול res.encrypted (לפני
       // connectCloud), ולכן החיבור לא נעשה שם. בלי זה, ארגון עם config.firebase
       // שהופעלה בו הצפנה נתקע לצמיתות על "מתחבר…" (cloud.enabled && !authReady)
@@ -3907,22 +4206,54 @@ export const useApp = create<AppState>()((set, get) => {
     },
 
     markUnlocked(kind) {
+      // swarm-b (S2): דגל-הפתיחה ממורחב-שמות פר-ארגון (הנעילה עצמה כבר פר-ארגון ב-lock.ts).
       if (kind === 'primary') {
-        writeSess(SESS.p, '1');
+        writeSess(nsLsKey(SESS.p), '1');
         set({ unlockedPrimary: true });
       } else {
-        writeSess(SESS.a, '1');
+        writeSess(nsLsKey(SESS.a), '1');
         set({ unlockedAdmin: true });
       }
     },
     lockNow() {
-      writeSess(SESS.p, null);
-      writeSess(SESS.a, null);
+      writeSess(nsLsKey(SESS.p), null);
+      writeSess(nsLsKey(SESS.a), null);
       set({ unlockedPrimary: false, unlockedAdmin: false, view: 'home' });
       get().toast('המערכת ננעלה 🔒');
     },
 
+    previewDemoPurge(demo) {
+      const plan = planDemoPurge(get().db, demo);
+      return { total: plan.total, removed: plan.removed };
+    },
+
+    purgeDemoData(demo) {
+      const cl = get().cloud;
+      if (cl.enabled && !isAdminAuthority(get().config, cl.user?.email, !!cl.isManager)) {
+        get().toast('⛔ פעולה זו שמורה למנהל/ת הארגון');
+        return { total: 0, removed: {} };
+      }
+      const prev = get().db;
+      const plan = planDemoPurge(prev, demo);
+      if (!plan.total) {
+        get().toast('לא נמצאו רשומות-דמו במאגר ✓');
+        return { total: 0, removed: {} };
+      }
+      // מצבות לכל רשומה שהוסרה ⇒ הענן/מכשיר-אופליין לא יחזירו אותן (כמו resetAll/restoreDb).
+      set({ db: withRemovalTombstones(prev, plan.next) });
+      logAudit('🧹 הסרת נתוני-דמו', purgeSummary(plan.removed));
+      get().toast('🧹 הוסרו ' + plan.total + ' רשומות-דמו — ' + purgeSummary(plan.removed));
+      return { total: plan.total, removed: plan.removed };
+    },
+
     restoreDb(db) {
+      // swarm-b (F4): בארגון-ענן שחזור = החלפה סמכותית של הענן (cloudReplaceNow) — עובד/ת
+      // בלי סמכות-מנהל לא מוחק/ת את הארגון. שורש/אופליין: isAdminAuthority ⇒ ביט-זהה.
+      const cl = get().cloud;
+      if (cl.enabled && !isAdminAuthority(get().config, cl.user?.email, !!cl.isManager)) {
+        get().toast('⛔ פעולה זו שמורה למנהל/ת הארגון');
+        return;
+      }
       logAudit('שחזור מגיבוי', 'החלפת כל הנתונים');
       const prev = get().db;
       // ניקוי security כמו ב-init/decryptUnlock: גיבוי/צילום/עותק-ענן ישן עלול
@@ -3949,7 +4280,7 @@ export const useApp = create<AppState>()((set, get) => {
         // ה-audit של הגיבוי (תמונת-עבר) נזנח. ריפוי: תמיד מערך.
         audit: Array.isArray(prev.audit) ? prev.audit : [],
       };
-      set({ db });
+      set({ db: withRemovalTombstones(prev, db) }); // ביקורת-עומק 2.9: מצבה לכל ישות שנגרעה בשחזור (אחרת אופליין מחיה)
       dirty = true; // 🐛 נחיל-עמוק (13.8): שחזור עוקף setDb ⇒ בלי סימון-dirty שער ריבוי-הטאבים דרס שחזור טרי
       scheduleSave();
       // 12.8: שחזור = החלפה מלאה ⇒ אותה החלפה סמכותית-מיידית כמו איפוס (אחרת
@@ -3959,9 +4290,15 @@ export const useApp = create<AppState>()((set, get) => {
       get().toast('הנתונים שוחזרו מהגיבוי ✓');
     },
     resetAll() {
+      // swarm-b (F4): אותו שער-סמכות כמו restoreDb — איפוס בארגון-ענן = מחיקת-הענן.
+      const cl = get().cloud;
+      if (cl.enabled && !isAdminAuthority(get().config, cl.user?.email, !!cl.isManager)) {
+        get().toast('⛔ פעולה זו שמורה למנהל/ת הארגון');
+        return;
+      }
       const prev = get().db;
       const db = emptyDb();
-      set({ db });
+      set({ db: withRemovalTombstones(prev, db) }); // ביקורת-עומק 2.9: איפוס = מצבה לכל ישות
       dirty = true; // 🐛 נחיל-עמוק (13.8): איפוס עוקף setDb ⇒ בלי סימון-dirty שער ריבוי-הטאבים דרס איפוס טרי
       scheduleSave();
       // 12.8: החלפה סמכותית מיידית — הזרימה המושהית הרגילה נתנה ל-snapshot-ענן
@@ -4001,6 +4338,12 @@ if (typeof window !== 'undefined') {
   // סגירת הטאב הייתה דורסת סינכרונית את הכתיבה של הטאב האחר.
   const flush = () => {
     const s = useApp.getState();
+    // ⚡ (12.10): אין עריכה ממתינה (dirty) וה-db הוא בדיוק מה שנשמר/נטען ⇒ אין מה לכתוב. לפני כן
+    // כל הסתרת-טאב הסריאלה את כל המסמך סינכרונית (34MB ⇒ 0.5–0.8s קיפאון) לשווא.
+    if (!dirty && s.db === lastSaved) return;
+    // 🐛 swarm-b: לפני סיום init ה-db הוא emptyDb() (savedAt טרי) — pagehide בזמן await loadOrgConfig/loadDb
+    // דרס את maor_db (ואצל ?org= — את מפתח-השורש) ב-DB ריק ש-migrate מקבל. needDecrypt: לא כותבים ריק-גלוי מעל מעטפת ב-IDB.
+    if (!s.ready || s.needDecrypt) return;
     if (!s.staleTab) flushSaveSync(s.db);
   };
   window.addEventListener('pagehide', flush);

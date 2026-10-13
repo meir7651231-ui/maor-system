@@ -100,6 +100,30 @@ export function sortTeamMsgs(msgs: TeamMsg[]): TeamMsg[] {
   return [...msgs].sort((a, b) => (a.at < b.at ? -1 : a.at > b.at ? 1 : 0));
 }
 
+/**
+ * 🔴 מונה הודעות-צוות שלא-נקראו (לחיווי על-המסך, בקשת-בעלים 30.8) — נגזרת טהורה:
+ * כל הודעה שזמנה **אחרי** סימן-הנקרא (`lastReadIso`) ו**אינה שלי** (sender≠myEmail).
+ * דטרמיניסטי (בלי Date.now); myEmail מושווה case-insensitive; חסר-סימן ⇒ הכול-חדש
+ * (למעט שלי). ההודעות-שלי לעולם לא נספרות כלא-נקראות.
+ */
+export function teamUnreadCount(msgs: TeamMsg[], lastReadIso: string, myEmail: string): number {
+  const mine = (myEmail || '').toLowerCase();
+  const since = lastReadIso || '';
+  let n = 0;
+  for (const m of msgs) {
+    if ((m.sender ?? '').toLowerCase() === mine) continue;
+    if ((m.at || '') > since) n++;
+  }
+  return n;
+}
+
+/** הזמן האחרון בין הודעות-צוות (לסימון-נקרא) — '' כשאין הודעות. */
+export function latestTeamAt(msgs: TeamMsg[]): string {
+  let mx = '';
+  for (const m of msgs) if ((m.at || '') > mx) mx = m.at;
+  return mx;
+}
+
 /** מיון רשימת-שיחות (לוח-הבקרה): לא-נקראות-לתמיכה קודם, ואז לפי lastAt יורד. */
 export function sortSupportThreads(
   threads: Array<SupportThread & { uid: string }>,

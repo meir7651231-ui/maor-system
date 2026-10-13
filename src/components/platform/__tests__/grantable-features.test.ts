@@ -26,7 +26,10 @@ describe('🔓 ratchet — הדלקה-פר-עובד (grantable) מנתחית', (
       'settings.teachers.delete',
       'shop.delete',
       'supporters.bulkdelete',
+      'supporters.bulkmail', // ביקורת-עומק 2.9: desc "המנהל מדליק לעובד/ת" ⇒ חייב להיות grantable
+      'supporters.bulkmerge',
       'supporters.bulkselect',
+      'supporters.bulkwa',
       'supporters.delete',
       'supporters.purpose',
       'tzedaka.delete',
@@ -60,6 +63,17 @@ describe('🔓 ratchet — הדלקה-פר-עובד (grantable) מנתחית', (
     const eff = effectiveConfigFor('emp@x.com', o, base);
     expect(eff.features?.['supporters.bulkselect']).toBe(false);
     expect(eff.features?.['core.export']).toBe(false);
+  });
+
+  it('org-false + card-true ⇒ eff false (תקרת-הארגון) — נחיל ב׳ 3.9 F2', () => {
+    // 🐛 grant=true בכרטיס-העובד דרס `false` ברמת-הארגון ⇒ עובד/ת קיבל/ה יכולת שהבעלים כיבה
+    // לכל הארגון. ההדלקה-פר-עובד לעולם לא מעל תקרת-הארגון (orgConfig.features[k] !== false).
+    const base = { features: { 'supporters.bulkdelete': false }, modules: {} as Record<string, boolean> };
+    const o = { ...org, memberConfigs: { 'emp@x.com': { features: { 'supporters.bulkdelete': true } } } } as typeof org;
+    const eff = effectiveConfigFor('emp@x.com', o, base);
+    expect(eff.features?.['supporters.bulkdelete']).toBe(false);
+    // הארגון לא כיבה (חסר) ⇒ ההדלקה-פר-עובד עדיין עובדת (רגרסיה של המקרה הקיים)
+    expect(effectiveConfigFor('emp@x.com', o, cfg).features?.['supporters.bulkdelete']).toBe(true);
   });
 
   it('מנהל ⇒ קונפיג-הארגון כמו-שהוא (לא מוגבל, לא נזקק ל-grant)', () => {

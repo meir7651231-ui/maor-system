@@ -14,6 +14,8 @@ import {
   supportMsgTime,
   supportPreview,
   supportUnread,
+  teamUnreadCount,
+  latestTeamAt,
   SUPPORT_MSG_MAX,
   type SupportMsg,
   type TeamMsg,
@@ -23,6 +25,7 @@ import chatSrc from '../../components/support/SupportChat.tsx?raw';
 import appSrc from '../../App.tsx?raw';
 import cloudCfgSrc from '../cloudConfig.ts?raw';
 import rulesSrc from '../../../firestore.rules?raw';
+import settingsSrc from '../../components/settings/SettingsView.tsx?raw';
 
 describe('💬 ratchet — צ׳אט-תמיכה: מנוע טהור', () => {
   it('sanitize: trim + חיתוך-לתקרה; שליחוּת', () => {
@@ -113,6 +116,58 @@ describe('👥 ratchet — צ׳אט-צוות תוך-ארגוני (17.8)', () => 
     expect(cloudCfgSrc).toMatch(/onSnapshot\(\s*collection\(cloudDb\(\), TEAM_CHATS, slug, 'messages'\)/);
     expect(appSrc).toContain("featureOn(config, 'shell.teamchat')");
     expect(appSrc).toContain('<TeamChatModal');
+  });
+
+  // 🔴 בקשת-בעלים 30.8: "צ׳אט פנימי יופיע על המסך כהודעה שלא נקרא וגם איפה נכנסים אליו"
+  describe('🔴 חיווי צ׳אט-צוות שלא-נקרא (על-המסך)', () => {
+    const now = '2026-08-30T10:00:00Z';
+    const older = '2026-08-30T09:00:00Z';
+    const newer = '2026-08-30T11:00:00Z';
+    const msgs: TeamMsg[] = [
+      { sender: 'me@x.com', name: 'אני', text: 'שלי-ישן', at: older },
+      { sender: 'other@x.com', name: 'חבר', text: 'שלהם-ישן', at: older },
+      { sender: 'other@x.com', name: 'חבר', text: 'שלהם-חדש', at: newer },
+      { sender: 'me@x.com', name: 'אני', text: 'שלי-חדש', at: newer },
+    ];
+
+    it('סופר רק הודעות-אחרים שאחרי סימן-הנקרא — שלי לא נספר', () => {
+      // סימן-נקרא = now ⇒ רק "שלהם-חדש" (של אחר, אחרי now); "שלי-חדש" לא נספר
+      expect(teamUnreadCount(msgs, now, 'me@x.com')).toBe(1);
+    });
+
+    it('בלי סימן-נקרא ⇒ כל הודעות-האחרים חדשות (שלי לא)', () => {
+      expect(teamUnreadCount(msgs, '', 'me@x.com')).toBe(2);
+    });
+
+    it('אחרי-שקראתי-הכול (סימן=האחרון) ⇒ 0', () => {
+      expect(teamUnreadCount(msgs, latestTeamAt(msgs), 'me@x.com')).toBe(0);
+    });
+
+    it('myEmail case-insensitive; אין הודעות ⇒ 0 ו-latestTeamAt=""', () => {
+      expect(teamUnreadCount(msgs, now, 'ME@X.COM')).toBe(1);
+      expect(teamUnreadCount([], '', 'me@x.com')).toBe(0);
+      expect(latestTeamAt([])).toBe('');
+      expect(latestTeamAt(msgs)).toBe(newer);
+    });
+
+    it('🛡 App: מנוי-חי + מונה + באדג׳ על כפתור-העזרה + סימון-נקרא בפתיחה', () => {
+      expect(appSrc).toContain('watchTeamMessages(teamSlug, setTeamMsgs)');
+      expect(appSrc).toContain('teamUnreadCount(teamMsgs, teamReadAt');
+      expect(appSrc).toContain('teamBadgeEl()');
+      expect(appSrc).toContain("nsLsKey('maor_teamchat_read')");
+      expect(appSrc).toContain('if (teamChatOpen) markTeamRead()');
+    });
+
+    // בקשת-בעלים 30.8 "אין כניסה לצ׳אט הפנימי" — כניסה מפורשת מההגדרות דרך #teamchat.
+    it('🚪 כניסת-צ׳אט מפורשת: צ׳יפ בהגדרות + hash #teamchat ב-App', () => {
+      // צ׳יפ "💬 צ׳אט הצוות" גלוי כשהדגל דלוק (תמיד נמצא), מנווט ל-#teamchat
+      expect(settingsSrc).toContain('💬 צ׳אט הצוות');
+      expect(settingsSrc).toMatch(/featureOn\(config, 'shell\.teamchat'\) && \(\s*<Chip/);
+      expect(settingsSrc).toContain("window.location.hash = '#teamchat'");
+      // App פותח את הצ׳אט על #teamchat (אתחול + hashchange)
+      expect(appSrc).toContain("window.location.hash === '#teamchat'");
+      expect(appSrc).toContain("setTeamChatOpen(window.location.hash === '#teamchat')");
+    });
   });
 
   it('🛡 Rules: teamChats — צוות-הארגון (orgMember/allowedRoot-לשורש), create-בלבד, טקסט תחום', () => {

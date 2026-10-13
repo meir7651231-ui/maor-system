@@ -17,6 +17,7 @@ import { industryLabel, needLabel, sizeLabel } from '../../lib/signupWizard';
 import { Btn, Chip, Field, FormError, Modal, Select, TextInput } from '../ui';
 import { useArmed } from '../useArmed';
 import { ALL_MODULES, MODULE_LABELS, allOffConfig, isValidSlug, orgLink, slugify } from './lib';
+import { configPatchOps } from '../../lib/configPatch';
 
 type CloudMod = typeof import('../../store/cloudSync');
 interface ReqRow {
@@ -270,8 +271,12 @@ export function PlatformPanel(props: { onClose: () => void }) {
   /** הלב של העריכה-בלייב: כל שינוי נכתב מיד למסמך הענן — הלקוח רואה חי. */
   function updateCfg(next: OrgConfig) {
     if (!mod || !sel) return;
+    // 🩹 6.10 ("40 יום נדלק ונכבה לבד"): כותבים רק את מה שהשתנה מול התצלום שבמסך (diff שדה-שדה),
+    // לא את כל הקונפיג — לוח-בקרה ואשף-מרוחק (או שני טאבים) עם תצלומים שונים כבר לא דורסים זה את זה.
+    const ops = configPatchOps(cfg, next);
     setCfg(next);
-    void mod.writeOrgCloudConfig(sel, next).catch(() => toast('⚠ הכתיבה לענן נכשלה — נסו שוב'));
+    const by = useApp.getState().cloud.user?.email ?? undefined;
+    void mod.patchOrgCloudConfig(sel, ops, by, 'platform', next).catch(() => toast('⚠ הכתיבה לענן נכשלה — נסו שוב'));
   }
 
   async function markProvisioned() {

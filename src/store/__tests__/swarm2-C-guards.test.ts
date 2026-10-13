@@ -28,7 +28,8 @@ describe('#8 — ayinDailyRows לא קורס על ayin חלקי (חסר log/name
 describe('#9/#11 — הגנת-מקור על סימון-dirty', () => {
   it('restoreDb ו-resetAll מסמנים dirty=true אחרי set', () => {
     // שני המופעים: אחד ב-restoreDb ואחד ב-resetAll
-    const marks = useAppSrc.match(/set\(\{ db \}\);\s*\n\s*dirty = true;/g) ?? [];
+    // ביקורת-עומק 2.9: ה-set עוטף ב-withRemovalTombstones (מצבות למחיקות-שחזור) — הסימון נשאר מיד אחריו
+    const marks = useAppSrc.match(/set\(\{ db: withRemovalTombstones\(prev, db\) \}\);[^\n]*\n\s*dirty = true;/g) ?? [];
     expect(marks.length).toBeGreaterThanOrEqual(2);
   });
 

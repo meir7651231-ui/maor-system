@@ -10,6 +10,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import viewSrc from '../SupportersView.tsx?raw';
+import libSrc from '../lib.ts?raw';
 import widgetsSrc from '../../home/widgets.tsx?raw';
 import storeSrc from '../../../store/useApp.ts?raw';
 
@@ -20,7 +21,8 @@ describe('פילטר 📞 יעדי-קשר — הגנות-מקור', () => {
   });
 
   it('מסך-התורמים מסנן באותה סמנטיקה כמו הווידג\'ט (nextDate <= today)', () => {
-    expect(viewSrc).toContain('if (nextF && !(sp.nextDate && sp.nextDate <= today)) return false;');
+    // ⚡ 12.10.2026 (ביצועים): הפרדיקט עבר שורה-בשורה ל-lib.ts (filterSupporterList, ממומואיז במסך) — אותו כלל, מקור חדש
+    expect(libSrc).toContain('if (nextF && !(sp.nextDate && sp.nextDate <= today)) return false;');
     // הצ'יפ מציג את אותו מונה כמו הבאדג' בבית
     expect(viewSrc).toContain("'📞 יעד שהגיע · ' + dueCount");
     expect(viewSrc).toContain('const dueCount = visibleBase.filter((sp) => sp.nextDate && sp.nextDate <= today).length');

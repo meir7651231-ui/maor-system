@@ -28,6 +28,7 @@ import { CallerLookup } from './components/CallerLookup';
 import { GuideModal } from './components/GuideModal';
 import { TourOverlay } from './components/TourOverlay';
 import { A11yFab } from './components/A11yFab';
+import { UpdateBanner } from './components/UpdateBanner';
 import { HomeView } from './components/home/HomeView';
 import { CommandPalette } from './components/palette/CommandPalette';
 import { DemoDrop } from './components/DemoDrop';
@@ -36,11 +37,13 @@ import { DayGate } from './components/wheel/DayGate';
 import { ChangePasswordModal } from './components/cloud/ChangePasswordModal';
 import { NetCheckModal } from './components/cloud/NetCheckModal';
 import { SupportChatModal, SupportInbox, TeamChatModal } from './components/support/SupportChat';
+import { latestTeamAt, teamUnreadCount, type TeamMsg } from './lib/supportChat';
 import { AdminHub, HubButton } from './components/AdminHub';
 import { LockScreen } from './components/lock/LockScreen';
 import { EncUnlockScreen } from './components/lock/EncUnlockScreen';
 import { CloudUnlockScreen } from './components/lock/CloudUnlockScreen';
 import { DEFAULT_LOCK_ZONES } from './lib/lock';
+import { useViewScrollMemory } from './lib/scrollMemory';
 
 /* ⚡ VISION-LIGHT ‏#13 — פיצול-chunks לפי מודולים: כל מסך-מודול נטען עצל
  * ‏(React.lazy) ב-chunk משלו; הבנדל הראשי נשאר בית+שלד. ה-loaders משותפים
@@ -128,6 +131,11 @@ const VIEWS: Record<View, ComponentType> = {
   settings: SettingsView,
 };
 
+/** decodeURIComponent חסין — hash פגום (#builder=%E0) זרק URIError בזמן-רינדור ⇒ האפליקציה לא עלתה (ביקורת-עומק 2.9). */
+function safeDecode(s: string): string {
+  try { return decodeURIComponent(s); } catch { return s; }
+}
+
 export default function App() {
   const ready = useApp((s) => s.ready);
   const view = useApp((s) => s.view);
@@ -151,6 +159,7 @@ export default function App() {
   const selectCourse = useApp((s) => s.selectCourse);
   const navHistLen = useApp((s) => s.navHist.length);
   const goBack = useApp((s) => s.goBack);
+  useViewScrollMemory(view); // ↩ חזרה בין מסכים — למיקום-הגלילה הקודם, לא לראש העמוד (5.9)
   const privacyMode = useApp((s) => s.privacyMode);
   const togglePrivacy = useApp((s) => s.togglePrivacy);
   const applyNedarimAuto = useApp((s) => s.applyNedarimAuto);
@@ -216,7 +225,7 @@ export default function App() {
     // דילוג בסביבת Playwright (navigator.webdriver) — E2E לא מריץ ריפויים אוטומטיים
     if (typeof navigator !== 'undefined' && (navigator as { webdriver?: boolean }).webdriver) return;
     try {
-      seedOverduePlannedReminders(isoToday());
+      seedOverduePlannedReminders(isoToday()); // ביקורת-עומק 2.9: UTC-היום החסיר תזכורות 00:00–03:00 מקומי
     } catch {
       /* אל תפיל את-האפליקציה על שגיאת-תזכורת */
     }
@@ -288,7 +297,7 @@ export default function App() {
   // ‏#builder = אשף מקומי · ‏#builder=slug = אשף קשור-ענן ללקוח (RemoteWizard, 5.8)
   const [builderOpen, setBuilderOpen] = useState(() => window.location.hash.startsWith('#builder'));
   const remoteBuilderSlug = window.location.hash.startsWith('#builder=')
-    ? decodeURIComponent(window.location.hash.slice('#builder='.length))
+    ? safeDecode(window.location.hash.slice('#builder='.length))
     : null;
   // קיר ההשפעה — מצב ראווה במסך מלא, נפתח עם #wall (feature: home.impactwall)
   const [wallOpen, setWallOpen] = useState(() => window.location.hash === '#wall');
@@ -326,37 +335,43 @@ export default function App() {
   // supportInboxOpen=תיבת-השיחות של מייל-העל. שניהם מ-❓, מגודרי ענן+התחברות.
   const [supportOpen, setSupportOpen] = useState(false);
   const [supportInboxOpen, setSupportInboxOpen] = useState(false);
-  // 💬 צ׳אט-צוות תוך-ארגוני (17.8) — מגודר shell.teamchat + ענן+התחברות
-  const [teamChatOpen, setTeamChatOpen] = useState(false);
+  // 💬 צ׳אט-צוות תוך-ארגוני (17.8) — מגודר shell.teamchat + ענן+התחברות.
+  // ‏#teamchat = כניסה מפורשת (מצ׳יפ-ההגדרות/פלטה) כמו #manage/#platform.
+  const [teamChatOpen, setTeamChatOpen] = useState(() => window.location.hash === '#teamchat');
+  // 🔴 חיווי "הודעת-צוות שלא-נקראה" על-המסך (בקשת-בעלים 30.8: "שיופיע על המסך
+  // כהודעה שלא נקראה וגם איפה נכנסים אליו"). מנוי-חי ברמת-האפליקציה — רק כשהצ׳אט
+  // זמין (shell.teamchat + ענן + התחברות). מונה טהור מול סימן-נקרא מקומי פר-ארגון
+  // (nsLsKey); פתיחת-הצ׳אט מסמנת הכול-נקרא. ההודעות-שלי לא נספרות.
+  const teamchatAvail = featureOn(config, 'shell.teamchat') && cloud.enabled && !!cloud.user;
+  const teamSlug = config.slug || 'default';
+  const [teamMsgs, setTeamMsgs] = useState<TeamMsg[]>([]);
+  const [teamReadAt, setTeamReadAt] = useState<string>(() => {
+    try { return localStorage.getItem(nsLsKey('maor_teamchat_read')) || ''; } catch { return ''; }
+  });
+  useEffect(() => {
+    if (!teamchatAvail) { setTeamMsgs([]); return; }
+    let unsub: (() => void) | undefined;
+    let alive = true; // ביקורת-עומק 2.9: הצ׳אנק נפתר אחרי unmount/החלפת-slug ⇒ onSnapshot יתום שמזין setState
+    void import('./store/cloudSync').then((m) => { if (alive) unsub = m.watchTeamMessages(teamSlug, setTeamMsgs); }).catch(() => { /* צ׳אנק לא נטען — הצ׳אט נשאר ריק */ });
+    return () => { alive = false; unsub?.(); };
+  }, [teamchatAvail, teamSlug]);
+  const teamUnread = teamUnreadCount(teamMsgs, teamReadAt, (cloud.user?.email || '').toLowerCase());
+  const markTeamRead = () => {
+    const v = latestTeamAt(teamMsgs) || new Date().toISOString();
+    setTeamReadAt(v);
+    try { localStorage.setItem(nsLsKey('maor_teamchat_read'), v); } catch { /* אחסון חסום — לא קריטי */ }
+  };
+  // בזמן שהצ׳אט פתוח (וכשמגיעות הודעות תוך-כדי) — נשארים "נקרא".
+  useEffect(() => {
+    if (teamChatOpen) markTeamRead();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [teamChatOpen, teamMsgs]);
   // UX סבב-ב׳: 'עוד ▾' לרצועת-הניווט + ניווט-תחתון במובייל
   const [moreNavOpen, setMoreNavOpen] = useState(false);
-  // 🔄 ריפוי-לשונית-תקועה (5.8 — "זה הרגע ראיתי אצל לקוח"): לשונית שנשארה
-  // פתוחה ימים לא נטענת מחדש לעולם ומציגה גרסה עתיקה (נצפה בשטח: מסך-Passkey
-  // מאיטרציה שנמחקה). ברגע שחוזרים ללשונית (visibilitychange) — משווים מול
-  // version.json הטרי (no-store); גרסה אחרת ⇒ רענון עצמי, פעם-אחת פר-גרסה
-  // (שומר-ריצה ב-sessionStorage מונע לולאה אם ה-fetch מוגש מתווך ישן).
-  useEffect(() => {
-    const check = () => {
-      if (document.visibilityState !== 'visible') return;
-      void fetch(import.meta.env.BASE_URL + 'version.json', { cache: 'no-store' })
-        .then((r) => (r.ok ? r.json() : null))
-        .then((v: { id?: string } | null) => {
-          if (!v?.id || v.id === __BUILD_ID__) return;
-          const key = 'maor_ver_reload:' + v.id;
-          if (sessionStorage.getItem(key)) return;
-          sessionStorage.setItem(key, '1');
-          window.location.reload();
-        })
-        .catch(() => { /* אופליין — נבדוק בחזרה הבאה */ });
-    };
-    check();
-    document.addEventListener('visibilitychange', check);
-    const iv = window.setInterval(check, 15 * 60 * 1000);
-    return () => {
-      document.removeEventListener('visibilitychange', check);
-      window.clearInterval(iv);
-    };
-  }, []);
+  // 🔄 ריפוי-לשונית-תקועה (5.8) — לשונית שנשארה פתוחה ימים מציגה גרסה עתיקה.
+  // הבדיקה מול version.json והצגת ה"יש-גרסה-חדשה" עברו ל-<UpdateBanner/>
+  // (בקשת-בעלים 31.8): במקום רענון-שקט-פתע — באנר עדין עם "רענן עכשיו",
+  // כדי שהלקוח יֵדע שיצאה גרסה וישלוט ברגע-הרענון (לא יאבד עבודה).
 
   // PWA (6.8): רישום ה-service-worker (מגודר shell.pwa, מדולג ב-Playwright/דב)
   // + מניפסט פר-ארגון — לקוח מתקין אפליקציה עם השם שלו שנפתחת בארגון שלו.
@@ -425,6 +440,7 @@ export default function App() {
       setTourOpen(window.location.hash === '#tour');
       setPlatformOpen(window.location.hash === '#platform');
       setManagerOpen(window.location.hash === '#manage');
+      setTeamChatOpen(window.location.hash === '#teamchat');
     };
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
@@ -437,7 +453,7 @@ export default function App() {
   useEffect(() => {
     const handleCall = () => {
       if (!window.location.hash.startsWith('#call=')) return;
-      const number = decodeURIComponent(window.location.hash.slice('#call='.length));
+      const number = safeDecode(window.location.hash.slice('#call='.length));
       // ניקוי ה-hash מיד — שלא יישאר בכתובת ולא יופעל שוב ברענון
       history.replaceState(null, '', window.location.pathname + window.location.search);
       if (!telephonyOn(useApp.getState().config) || !number.trim()) return;
@@ -467,7 +483,12 @@ export default function App() {
 
   // גיבוי סוף-יום: פעם ביום, אחרי שעת הסיום שנקבעה בפתיחת היום
   // (localStorage 'maor_dayend', ברירת מחדל 17:00), יורד קובץ גיבוי אוטומטית
+  // ⚡ (12.10.2026): הגיבוי רץ ב-requestIdleCallback (timeout 30s) — המדידה אצל הלקוח האמיתי:
+  // הסריאל של 123MB (מרווח — הפורמט נשמר, ראה persist.backupFileContent) קפא את הממשק 30.9s
+  // באמצע עבודה. ⚠️ ביקורת (12.10): בלי תנאי-גלוי — עד היום הקובץ ירד בשעת-הסיום גם בטאב ברקע
+  // (ושם הקיפאון לא מפריע לאיש); עדיין פעם ביום.
   useEffect(() => {
+    let pending = false; // תוזמן ל-idle וטרם רץ — לא לתזמן שוב מהטיק הבא
     const tick = setInterval(() => {
       try {
         if (!featureOn(useApp.getState().config, 'core.dayendbackup')) return;
@@ -478,14 +499,38 @@ export default function App() {
         const now = new Date();
         if (now.getHours() * 60 + now.getMinutes() < endMin) return;
         if (!useApp.getState().db.families.length) return;
-        localStorage.setItem(nsLsKey('maor_autoexp'), today);
-        exportBackup();
+        if (pending) return;
+        pending = true;
+        const run = () => {
+          pending = false;
+          try {
+            if (localStorage.getItem(nsLsKey('maor_autoexp')) === today) return; // ירד בינתיים (ידני)
+            // ביקורת-עומק 2.9: החותמת 'בוצע-היום' רק אחרי שהקובץ ירד בפועל — כשל שקט
+            // (Blob/הורדה חסומה) לא "שורף" את הניסיון היומי; הטיק הבא ינסה שוב.
+            void exportBackup().then((ok) => { if (ok) localStorage.setItem(nsLsKey('maor_autoexp'), today); });
+          } catch {
+            /* localStorage חסום — נדלג */
+          }
+        };
+        const w = window as Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number };
+        if (typeof w.requestIdleCallback === 'function') w.requestIdleCallback(run, { timeout: 30_000 });
+        else window.setTimeout(run, 1000);
       } catch {
         /* localStorage חסום — נדלג */
       }
     }, 60_000);
     return () => clearInterval(tick);
   }, [exportBackup]);
+
+  // תפקיד מורה (P3 פריט 15, הכרעה 2): כניסות ההגדרות (ודרכן הייבוא) מוסתרות.
+  // בלי ענן/בלי roles — false ⇒ התנהגות של היום בדיוק. דגל shell.roles.
+  // swarm-b (F3): מחושב לפני ה-return-ים המוקדמים כדי שה-effect שמתחתיו ישמור על סדר-hooks.
+  const isTeacherUser = featureOn(config, 'shell.roles') && roleOf(config, cloud.user?.email) === 'teacher';
+  // swarm-b (F3): צ׳וק יחיד — מורה שהגיע/ה להגדרות בעקיפין (פלטה/DayGate/goSettingsSection)
+  // מנותב/ת הביתה. השלדים עצמם כבר מסתירים את ⚙️; זה סוגר את הדלת האחורית.
+  useEffect(() => {
+    if (isTeacherUser && view === 'settings') go('home');
+  }, [isTeacherUser, view, go]);
 
   if (!ready) return <div className="empty">טוען…</div>;
 
@@ -601,9 +646,6 @@ export default function App() {
   const onAdminUnlock = () => markUnlocked('secondary');
   // מנהל-על לפי מייל (config.adminEmails) — רק הוא פותח את האשף ומשנה ערכת נושא.
   const isAdmin = isAdminUser(config, cloud.user?.email);
-  // תפקיד מורה (P3 פריט 15, הכרעה 2): כניסות ההגדרות (ודרכן הייבוא) מוסתרות.
-  // בלי ענן/בלי roles — false ⇒ התנהגות של היום בדיוק. דגל shell.roles.
-  const isTeacherUser = featureOn(config, 'shell.roles') && roleOf(config, cloud.user?.email) === 'teacher';
   // כניסת-הניהול הגלויה (ADMINHUB) — מגודרת isSuperAdmin **בלבד** (לא
   // isAdminUser, שמחזיר true לכולם כשאין adminEmails). אצל לקוח/משתמש רגיל
   // הכפתור פשוט לא קיים ב-DOM.
@@ -616,6 +658,32 @@ export default function App() {
     cloud.enabled && config.cloudRoot !== true && config.slug !== 'default'
       ? isSuperAdmin(cloud.user?.email)
       : isAdmin;
+  // swarm-b (N1): כפתור-החזרה של מסכי-האין-הרשאה (#builder / #builder=slug / #platform) —
+  // משותף, כדי שאף מסך-נעילה לא יהיה מבוי-סתום. מנקה את ה-hash וסוגר את המודאל.
+  const denyBackBtn = (close: () => void) => (
+    <button
+      type="button"
+      onClick={() => {
+        window.location.hash = '';
+        close();
+      }}
+      title="חזרה"
+      style={{
+        position: 'absolute',
+        insetInlineStart: 16,
+        top: 16,
+        zIndex: 1,
+        background: 'none',
+        border: 'none',
+        color: 'var(--ink-faint)',
+        fontSize: 13,
+        cursor: 'pointer',
+        padding: 8,
+      }}
+    >
+      ✕ חזרה
+    </button>
+  );
 
   const Current = VIEWS[view];
   const syncDot = SYNC_DOT[cloud.status] ?? SYNC_DOT.idle;
@@ -716,15 +784,34 @@ export default function App() {
   // ❓ עזרה מאוחדת (UX סבב-א׳): כפתור אחד לשלושת השלדים — מדריך + סיור.
   const guideOn = featureOn(config, 'shell.guide');
   const demoOn = featureOn(config, 'shell.demo');
-  const helpGearBtn: ReactNode = (guideOn || demoOn) && (
-    <button type="button" className="nav-gear" onClick={() => setHelpOpen(true)} title="עזרה — מדריך וסיור" aria-label="עזרה">
+  // 🔴 באדג' הודעות-צוות שלא-נקראו — נקודה-אדומה עם מונה על כפתור-העזרה (נקודת-
+  // הכניסה לצ׳אט). ריק ⇒ null. הוצא לפונקציה כדי לרנדר עותק-טרי בכל משטח.
+  const teamBadgeEl = (): ReactNode =>
+    teamUnread > 0 ? (
+      <span
+        aria-hidden
+        style={{
+          position: 'absolute', top: -3, insetInlineEnd: -3, minWidth: 16, height: 16,
+          padding: '0 4px', borderRadius: 9, background: 'var(--red, #d33)', color: '#fff',
+          fontSize: 10, fontWeight: 800, display: 'inline-flex', alignItems: 'center',
+          justifyContent: 'center', lineHeight: 1, boxShadow: '0 0 0 2px var(--panel, #fff)',
+        }}
+      >
+        {teamUnread > 99 ? '99+' : teamUnread}
+      </span>
+    ) : null;
+  const helpTitle = teamUnread > 0 ? `עזרה · ${teamUnread} הודעות-צוות חדשות 💬` : 'עזרה — מדריך וסיור';
+  const helpAria = teamUnread > 0 ? `עזרה, ${teamUnread} הודעות-צוות שלא נקראו` : 'עזרה';
+  const helpGearBtn: ReactNode = (guideOn || demoOn || teamchatAvail) && (
+    <button type="button" className="nav-gear" onClick={() => setHelpOpen(true)} title={helpTitle} aria-label={helpAria} style={{ position: 'relative' }}>
       <span aria-hidden>❓</span>
+      {teamBadgeEl()}
     </button>
   );
-  const helpSideBtn: ReactNode = (guideOn || demoOn) && (
-    <button type="button" className="side-link" onClick={() => setHelpOpen(true)} title="עזרה — מדריך וסיור" aria-label="עזרה">
-      <span className="side-ico" aria-hidden>❓</span>
-      <span className="nav-label">עזרה</span>
+  const helpSideBtn: ReactNode = (guideOn || demoOn || teamchatAvail) && (
+    <button type="button" className="side-link" onClick={() => setHelpOpen(true)} title={helpTitle} aria-label={helpAria} style={{ position: 'relative' }}>
+      <span className="side-ico" aria-hidden style={{ position: 'relative', display: 'inline-flex' }}>❓{teamBadgeEl()}</span>
+      <span className="nav-label">{teamUnread > 0 ? `עזרה · ${teamUnread} 💬` : 'עזרה'}</span>
     </button>
   );
 
@@ -778,14 +865,16 @@ export default function App() {
       ) : (
         <>
           {config.slug === 'demo' && <DemoRibbon />}
-          {featureOn(config, 'shell.demodrop') && famCount === 0 && <DemoDrop />}
+          {/* 14.9: בארגון-ענן (יש firebase, לא ?org=demo) המאגר-המקומי ריק לרגע לפני המשיכה מהענן —
+               כפתור-הדמו במצב הזה מיזג דמו לתוך נתונים אמיתיים. מוסתר שם; הדמו הציבורי נשאר. */}
+          {featureOn(config, 'shell.demodrop') && famCount === 0 && !(config.firebase && config.slug !== 'demo') && <DemoDrop />}
           <DayGate />
           {/* ⚡ ‏#13: המסך-הנוכחי עצל — נפילת-הטעינה מקומית, הכרום נשאר חי */}
           <Suspense fallback={<div className="empty">⏳ טוען את המסך…</div>}>
             <Current />
           </Suspense>
           {/* 📞 צ'יפ-קמפיין-צף (20.8) — קמפיין-חייגן פעיל נשאר נגיש מכל מסך */}
-          {featureOn(config, 'shell.dialerchip') && telephonyOn(config) && <DialerChip />}
+          {moduleOn(config, 'supporters') && featureOn(config, 'shell.dialerchip') && telephonyOn(config) && <DialerChip />}
         </>
       )}
     </main>
@@ -1121,7 +1210,7 @@ export default function App() {
                 )}
                 {/* 💬 צ׳אט-צוות תוך-ארגוני — מגודר shell.teamchat (מתג באשף). */}
                 {featureOn(config, 'shell.teamchat') && (
-                  <HubButton emoji="👥" title="צ׳אט הצוות" sub="שיחה פנימית חיה בין אנשי-הצוות של הארגון" onClick={() => { setHelpOpen(false); setTeamChatOpen(true); }} />
+                  <HubButton emoji={teamUnread > 0 ? '🔴' : '👥'} title={teamUnread > 0 ? `צ׳אט הצוות · ${teamUnread} חדשות` : 'צ׳אט הצוות'} sub={teamUnread > 0 ? `יש ${teamUnread} הודעות-צוות שלא נקראו — לחצו לפתיחה` : 'שיחה פנימית חיה בין אנשי-הצוות של הארגון'} onClick={() => { setHelpOpen(false); setTeamChatOpen(true); }} />
                 )}
               </>
             )}
@@ -1131,7 +1220,7 @@ export default function App() {
       {featureOn(config, 'shell.netcheck') && netCheckOpen && <NetCheckModal onClose={() => setNetCheckOpen(false)} />}
       {featureOn(config, 'shell.support') && cloud.enabled && cloud.user && supportOpen && <SupportChatModal onClose={() => setSupportOpen(false)} />}
       {supportInboxOpen && <SupportInbox onClose={() => setSupportInboxOpen(false)} />}
-      {teamChatOpen && <TeamChatModal onClose={() => setTeamChatOpen(false)} />}
+      {teamChatOpen && <TeamChatModal onClose={() => { setTeamChatOpen(false); if (window.location.hash === '#teamchat') history.replaceState(null, '', window.location.pathname + window.location.search); }} />}
       {/* תפריט-החשבון (UX סבב-א׳) — מייל, סטטוס-סנכרון כטקסט, יציאה בשני צעדים */}
       {userMenuOpen && cloud.user && (
         <Modal title="החשבון שלי" onClose={() => setUserMenuOpen(false)}>
@@ -1190,31 +1279,16 @@ export default function App() {
           // אשף ההקמה — למנהל-על בלבד (לפי המייל). משתמש-לקוח שמנסה #builder
           // מקבל הודעת אין-הרשאה, לא את האשף.
           <div style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'var(--bg)' }}>
-            <button
-              type="button"
-              onClick={() => {
-                window.location.hash = '';
-                setBuilderOpen(false);
-              }}
-              title="חזרה"
-              style={{
-                position: 'absolute',
-                insetInlineStart: 16,
-                top: 16,
-                zIndex: 1,
-                background: 'none',
-                border: 'none',
-                color: 'var(--ink-faint)',
-                fontSize: 13,
-                cursor: 'pointer',
-                padding: 8,
-              }}
-            >
-              ✕ חזרה
-            </button>
+            {denyBackBtn(() => setBuilderOpen(false))}
             <div className="empty" style={{ marginTop: 120 }}>
               🔒 אשף ההקמה זמין למנהל המערכת בלבד.
             </div>
+          </div>
+        ) : adminNeededFor('wizard') ? (
+          // swarm-b (N3): אזור-הנעילה 'wizard' (DEFAULT_LOCK_ZONES) לא נאכף מעולם — האשף
+          // (מקומי וגם קשור-ענן) נפתח בלי הקוד המשני. אותו LockScreen כמו האזור-המשני במסך.
+          <div style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'var(--bg)' }}>
+            <LockScreen kind="secondary" onUnlock={onAdminUnlock} />
           </div>
         ) : remoteBuilderSlug ? (
           // אשף-הרכבה קשור-ענן (5.8) — עריכת לקוח-פלטפורמה באשף המלא; מיילי-על בלבד
@@ -1229,6 +1303,7 @@ export default function App() {
             </Suspense>
           ) : (
             <div style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'var(--bg)' }}>
+              {denyBackBtn(() => setBuilderOpen(false))}
               <div className="empty" style={{ marginTop: 120 }}>🔒 עריכת לקוח-ענן זמינה למנהל הפלטפורמה בלבד.</div>
             </div>
           )
@@ -1257,6 +1332,7 @@ export default function App() {
           </Suspense>
         ) : (
           <div style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'var(--bg)' }}>
+            {denyBackBtn(() => setPlatformOpen(false))}
             <div className="empty" style={{ marginTop: 120 }}>
               🔒 לוח הבקרה של הפלטפורמה זמין למנהל הפלטפורמה בלבד.
             </div>
@@ -1350,6 +1426,8 @@ export default function App() {
       )}
 
       {featureOn(config, 'shell.a11yfab') && <A11yFab />}
+
+      <UpdateBanner />
 
       {toastsEl}
     </div>

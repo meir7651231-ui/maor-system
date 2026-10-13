@@ -72,9 +72,9 @@ describe('🗑 ratchet — איפוס/שחזור מוחקים תורמים מה�
   it('הגנת-מקור: resetAll + restoreDb קוראים cloudReplaceNow (לא הזרימה המושהית)', () => {
     // שני מסלולי-ההחלפה עברו לדחיפה הסמכותית-המיידית (2 קריאות)
     expect((viewSrc.match(/cloudReplaceNow\(prev, db\)/g) ?? []).length).toBe(2);
-    // resetAll ממש קורא לה (החלון הורחב ל-600 — נחיל-עמוק 13.8 הוסיף סימון-dirty+הערה)
-    expect(viewSrc).toMatch(/resetAll\(\)[\s\S]{0,600}cloudReplaceNow\(prev, db\)/);
+    // resetAll ממש קורא לה (החלון הורחב ל-900 — נחיל-עמוק 13.8 הוסיף סימון-dirty+הערה; נחיל ב׳ 3.9 הוסיף שער-סמכות-מנהל)
+    expect(viewSrc).toMatch(/resetAll\(\)[\s\S]{0,900}cloudReplaceNow\(prev, db\)/);
     // ואף אחד מהשניים כבר לא משתמש בזרימה המושהית cloudOnDbChange
-    expect(viewSrc).not.toMatch(/resetAll\(\)[\s\S]{0,600}cloudOnDbChange/);
+    expect(viewSrc).not.toMatch(/resetAll\(\)[\s\S]{0,900}cloudOnDbChange/);
   });
 });

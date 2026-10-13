@@ -14,6 +14,9 @@ const BUILD_ID = new Date().toISOString()
 function versionFile(): Plugin {
   return {
     name: 'maor-version-file',
+    // ביקורת-e2e 1.9: בלי apply:'build' ההוק רץ גם תחת vitest ודרס את dist/version.json
+    // בחותמת חדשה ⇒ אי-התאמה ל-__BUILD_ID__ המוטבע ⇒ באנר-"גרסה-חדשה" כוזב ב-e2e.
+    apply: 'build',
     closeBundle() {
       writeFileSync(join(__dirname, 'dist', 'version.json'), JSON.stringify({ id: BUILD_ID }))
     },

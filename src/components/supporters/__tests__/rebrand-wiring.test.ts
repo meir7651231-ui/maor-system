@@ -16,8 +16,11 @@ describe('💛 ratchet — ריברנד (רצועת-KPI, opt-in)', () => {
     expect(viewSrc).toContain('{rebrandOn && (');
     expect(viewSrc).toContain('<SupportersKpiStrip');
     // הצ׳יפים משתמשים בסטייט-הסינון הקיים (אפס כפילות)
-    expect(viewSrc).toContain('onTier={(t) => setTierF(tierF === t ? null : t)}');
-    expect(viewSrc).toContain("onHokDue={() => setHokF(hokF === 'due' ? null : 'due')}");
+    // ⚠️ ביקורת (12.10): הקולבקים יציבים (useCallback) — אותה כוונה: צ'יפ-דרגה ⇒ tierF, הו"ק ⇒ hokF='due'
+    expect(viewSrc).toContain('const onKpiTier = useCallback((t: string) => setTierF(tierF === t ? null : t), [tierF, setTierF]);');
+    expect(viewSrc).toContain("const onKpiHokDue = useCallback(() => setHokF(hokF === 'due' ? null : 'due'), [hokF, setHokF]);");
+    expect(viewSrc).toContain('onTier={onKpiTier}');
+    expect(viewSrc).toContain('onHokDue={onKpiHokDue}');
   });
 
   it('🛡 הרצועה נהוגה מהמנועים הטהורים (portfolioIntel + cockpitCollectedThisMonth)', () => {

@@ -20,6 +20,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import viewSrc from '../SupportersView.tsx?raw';
+import libSrc from '../lib.ts?raw';
 import kpiSrc from '../SupportersKpiStrip.tsx?raw';
 import intelViewSrc from '../SupportersIntel.tsx?raw';
 import cockpitEngineSrc from '../cockpit.ts?raw';
@@ -67,14 +68,17 @@ describe('🛡 באג א — אריח קליקי מציג את האוכלוסי�
   });
 
   it('הקוקפיט עצמו כבר קוהרנטי (kpis.atRisk = cockpitAtRisk) — נשאר כך', () => {
-    expect(cockpitEngineSrc).toContain('atRisk: cockpitAtRisk(supporters, todayIso).length');
+    // ⚡ (12.10.2026) אותה כוונה: ה-KPI = אוכלוסיית cockpitAtRisk; הרשימה רק משותפת-לרינדור (atRisk ??) — לא הגדרה אחרת.
+    expect(cockpitEngineSrc).toContain('atRisk: (atRisk ?? cockpitAtRisk(supporters, todayIso)).length');
+    expect(cockpitViewSrc).toContain('const atRisk = useMemo(() => cockpitAtRisk(supporters, today), [supporters, today]);');
     expect(cockpitViewSrc).toContain('value={String(kpis.atRisk)}');
   });
 });
 
 describe("🛡 באג ב — סינון-הו״ק 'due' באותו-כלל כמו הצ'יפ (hokDue)", () => {
   it('המסנן במסך משתמש ב-hokEffectivelyActive + !hokRecordedThisMonth', () => {
-    expect(viewSrc).toContain("hokF === 'due' && !(hokEffectivelyActive(sp, today) && !hokRecordedThisMonth(sp, today))");
+    // ⚡ 12.10.2026 (ביצועים): הפרדיקט עבר שורה-בשורה ל-lib.ts (filterSupporterList, ממומואיז במסך) — אותו כלל, מקור חדש
+    expect(libSrc).toContain("hokF === 'due' && !(hokEffectivelyActive(sp, today) && !hokRecordedThisMonth(sp, today))");
   });
 
   it('כלל-המסנן ≡ חברות ב-hokDue — גם על הו"ק-נדרים שפגה', () => {

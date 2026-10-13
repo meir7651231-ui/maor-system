@@ -39,8 +39,14 @@ export function Btn(props: {
 }
 
 export function Chip(props: { children: ReactNode; on?: boolean; onClick?: () => void }) {
+  // swarm-b (A-5): צ׳יפ-מתג חושף את מצבו לקורא-מסך; צ׳יפ בלי `on` (פעולה) — בלי התכונה.
   return (
-    <button type="button" className={'chip' + (props.on ? ' on' : '')} onClick={props.onClick}>
+    <button
+      type="button"
+      className={'chip' + (props.on ? ' on' : '')}
+      aria-pressed={props.on === undefined ? undefined : props.on}
+      onClick={props.onClick}
+    >
       {props.on ? '✓ ' : ''}
       {props.children}
     </button>
@@ -82,7 +88,14 @@ export function Modal(props: { title: string; onClose: () => void; children: Rea
   // מאזין Escape + מלכודת Tab — נקשר מחדש רק כש-onClose משתנה, לא בכל render.
   useEffect(() => {
     const onClose = props.onClose;
+    // swarm-b (N2): מודאל מקונן (CalendarPicker בתוך EventModal/MemberForm/ManageModal) —
+    // Escape אחד סגר את שניהם ושתי מלכודות-Tab נלחמו. רק המודאל העליון ב-DOM מגיב.
+    const isTop = () => {
+      const all = document.querySelectorAll('.modal-back > .modal');
+      return all[all.length - 1] === dialogRef.current;
+    };
     const onKey = (e: KeyboardEvent) => {
+      if (!isTop()) return;
       if (e.key === 'Escape') {
         onClose();
         return;
@@ -197,9 +210,10 @@ export function Select(props: {
   onChange: (v: string) => void;
   options: { value: string; label: string }[];
   id?: string;
+  ariaLabel?: string;
 }) {
   return (
-    <select id={props.id} value={props.value} onChange={(e) => props.onChange(e.target.value)}>
+    <select id={props.id} value={props.value} aria-label={props.ariaLabel} onChange={(e) => props.onChange(e.target.value)}>
       {props.options.map((o) => (
         <option key={o.value} value={o.value}>
           {o.label}

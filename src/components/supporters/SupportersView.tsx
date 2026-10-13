@@ -2,10 +2,12 @@
  * משפחות תומכות (תורמים) — חיפוש מנורמל, סינון קטגוריה ודרגות RFM,
  * טבלה עם מיון תלת-מצבי (עולה/יורד/כבוי), טופס תומכ/ת וכרטיס מפורט.
  */
-import { useDeferredValue, useEffect, useMemo, useState, type KeyboardEvent } from 'react';
+import { memo, useCallback, useDeferredValue, useEffect, useMemo, useState } from 'react';
 import { IncMoreCard, IncMoreRow, incSlice, useIncCap } from '../incremental';
 import type { Supporter } from '../../types/domain';
 import { useApp } from '../../store/useApp';
+import { useListScrollRestore } from '../../lib/scrollMemory';
+import { useRemembered } from '../../lib/filterMemory';
 import { useDbWatch } from '../../store/dbWatch';
 import { featureOn, integrationOn, integrationSetting, isAdminUser, safeHttpsUrl, telephonyOn, termOf } from '../../lib/config';
 import { DialerModal } from '../dialer/DialerModal';
@@ -13,13 +15,13 @@ import { WaBtn } from '../WaBtn';
 import { IncomingPaymentsModal } from './IncomingPayments';
 import { requestSettingsSection } from '../settings/lib';
 import { annualAllLines, downloadAnnualReport } from '../../lib/annualReport';
-import { normSearch } from '../../lib/validate';
 import { hebDateFull } from '../../lib/hebrew';
-import { ayinAllRows, ayinDailyRows, ayinActive, eyesTotal, featLabel, itemLabel, stageIndex, stageLabel, unitLabel } from '../../lib/ayin';
+import { ayinAllRows, ayinDailyRows, ayinActive,
+  ayinOnBoard, eyesTotal, featLabel, itemLabel, stageLabel, unitLabel } from '../../lib/ayin';
 import { downloadCsv } from '../../lib/csvx';
 import { ActionsMenu, Btn, Chip, Empty, Modal, PageHead, Select, TextInput } from '../ui';
-import { allSupPhones, chipStyle, fmtDate, hokDue, hokEffectivelyActive, hokRecordedThisMonth, isoToday, sup12m, supAvgDon, supCount, supHasRegion, supIls, supLast, supLastInPeriod, supScore, supScoreBins, supTier, supTotalIls, supUsd, supporterVisibleForDesignations, visibleSupportersForDesignations, TIER_ORDER, totalLabel } from './lib';
-import { numMatch } from '../families/lib';
+import { buildSupporterStats, chipStyle, donationYearsFromStats, filterSupporterList, fmtDate, hokDue, hokRecordedThisMonth, isoToday, sortSupporterList, statOf, sup12m, supAvgDon, supCount, LAST_BUCKETS, type LastBucket, supScoreBins, supTier, type SupSortKey, type SupStats, supporterVisibleForDesignations, totalLabelOf, visibleSupportersForDesignations, TIER_ORDER } from './lib';
+import type { OrgConfig } from '../../types/config';
 import { SupporterForm } from './SupporterForm';
 import { SupporterDetail } from './SupporterDetail';
 import { SupporterCard } from './SupporterCard';
@@ -27,38 +29,6 @@ import { SupportersCockpit } from './SupportersCockpit';
 import { OneFlow } from './OneFlow';
 import { atRiskIdSet, matchSegment, SEGMENTS, takeSupportersSegment, type SegmentKey } from './segments';
 
-/** שנת-הגיוס (המתנה-הראשונה) — לדריל-אין מקוהורטת-הגיוס. null כשאין נתינה. */
-function supAcqYear(sp: { donations: { date: string }[]; hist?: { d: string }[] }): number | null {
-  let min = '';
-  for (const d of sp.donations) if (d.date && (!min || d.date < min)) min = d.date;
-  if (sp.hist) for (const h of sp.hist) if (h.d && (!min || h.d < min)) min = h.d;
-  return min ? +min.slice(0, 4) : null;
-}
-/** האם התורם נתן בתקופה — שנה (yyyy) ו/או חודש (1–12). null=כל. חיפוש-מפורש. */
-function supGaveInPeriod(
-  sp: { donations: { date: string }[]; hist?: { d: string }[] },
-  year: number | null,
-  month: number | null,
-): boolean {
-  if (year == null && month == null) return true;
-  const hit = (iso: string): boolean => {
-    if (!iso) return false;
-    if (year != null && +iso.slice(0, 4) !== year) return false;
-    if (month != null && +iso.slice(5, 7) !== month) return false;
-    return true;
-  };
-  if (sp.donations.some((d) => hit(String(d.date)))) return true;
-  return !!sp.hist?.some((h) => hit(String(h.d)));
-}
-/** כל שנות-הנתינה שקיימות במאגר — לבורר-השנה, מהחדשה לישנה. */
-function donationYears(sups: { donations: { date: string }[]; hist?: { d: string }[] }[]): number[] {
-  const set = new Set<number>();
-  for (const sp of sups) {
-    for (const d of sp.donations) if (d.date) set.add(+String(d.date).slice(0, 4));
-    if (sp.hist) for (const h of sp.hist) if (h.d) set.add(+String(h.d).slice(0, 4));
-  }
-  return [...set].filter((y) => y > 1900 && y < 3000).sort((a, b) => b - a);
-}
 import { SupportersIntel } from './SupportersIntel';
 import { SupportersGalaxy } from './SupportersGalaxy';
 import { SupportersUniverse3D } from './SupportersUniverse3D';
@@ -77,20 +47,7 @@ import { bulkMailRecipients, bulkWaRecipients } from '../../lib/bulkContact';
 import { waLink } from '../../lib/wa';
 import { CustomExport } from '../reports/CustomExport';
 
-type SortKey =
-  | 'name'
-  | 'cat'
-  | 'phone'
-  | 'email'
-  | 'count'
-  | 'ils'
-  | 'usd'
-  | 'last'
-  | 'nextDate'
-  | 'score'
-  | 'stage'
-  | 'eyes'
-  | 'paid';
+type SortKey = SupSortKey;
 
 const HEAD: { key: SortKey; label: string }[] = [
   { key: 'name', label: 'תומכ/ת' },
@@ -109,41 +66,9 @@ const HEAD: { key: SortKey; label: string }[] = [
   { key: 'paid', label: 'שולם' },
 ];
 
-function sortVal(sp: Supporter, key: SortKey, rate = 3.7): string | number {
-  switch (key) {
-    case 'name':
-      return sp.name;
-    case 'cat':
-      return sp.cat || '';
-    case 'phone':
-      return sp.phone || '';
-    case 'email':
-      return sp.email || '';
-    // הכרעת 9.8 "לכולל": מיון/סינון/תצוגה על הצבירה כולל-ההיסטוריה
-    case 'count':
-      return supCount(sp);
-    case 'ils':
-      return supIls(sp);
-    case 'usd':
-      return supUsd(sp);
-    case 'last':
-      return supLast(sp);
-    case 'nextDate':
-      return sp.nextDate || '';
-    case 'score':
-      return supScore(sp, rate);
-    case 'stage':
-      return sp.ayin ? stageIndex(sp.ayin.stage) : -1;
-    case 'eyes':
-      return sp.ayin ? eyesTotal(sp.ayin) : -1;
-    case 'paid':
-      return sp.ayin?.paid ? 1 : 0;
-  }
-}
-
 /** צ'יפ דרגת RFM (זהב/כסף/ארד/רדומה) עם הציון בכלי-עזר. */
-function TierChip(props: { sp: Supporter; rate?: number }) {
-  const score = supScore(props.sp, props.rate);
+function TierChip(props: { score: number }) {
+  const score = props.score;
   const tier = supTier(score);
   return (
     <span style={chipStyle(tier.bg, tier.c)} title={'ציון משוקלל (R·F·M): ' + score + '/1000'}>
@@ -151,6 +76,159 @@ function TierChip(props: { sp: Supporter; rate?: number }) {
     </span>
   );
 }
+
+/* ── ⚡ ביצועים (12.10.2026) — שורות ממומואיזות ─────────────────────────────────
+   השורות היו closures-אינליין שקראו לכל שורה supLast×4, supIls×2, supUsd×2, supCount,
+   totalLabel, supScore×2 (כולל TierChip) ו-hebDateFull(supLast(sp)) לכותרת-ריחוף —
+   ומצוירות מחדש בכל אחד מ-2–4 הרינדורים של כל הקשה (16k תורמים: הקשה 1.1–1.4 שנ׳).
+   עכשיו: רכיב memo שקורא מספרים מוכנים מ-SupStats; props פרימיטיביים + callbacks
+   יציבים ⇒ הקשה שלא משנה שורה לא מציירת אותה מחדש. אותו DOM בדיוק. ──────────── */
+interface RowProps {
+  sp: Supporter;
+  st: SupStats;
+  checked: boolean;
+  selMode: boolean;
+  nextOn: boolean;
+  rfmOn: boolean;
+  ayinOn: boolean;
+  click2call: boolean;
+  waOn: boolean;
+  config: OrgConfig;
+  today: string;
+  onOpen: (id: string) => void;
+  onToggle: (id: string) => void;
+}
+
+const SupporterRow = memo(function SupporterRow(props: RowProps) {
+  const { sp, st, config, today, selMode, nextOn, rfmOn, ayinOn } = props;
+  return (
+    <tr
+      onClick={() => (selMode ? props.onToggle(sp.id) : props.onOpen(sp.id))}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          props.onOpen(sp.id);
+        }
+      }}
+      tabIndex={0}
+      style={{ cursor: 'pointer', background: selMode && props.checked ? 'var(--sel, #eef3ff)' : undefined }}
+    >
+      {selMode && (
+        <td style={{ width: 34, textAlign: 'center' }}>
+          <input type="checkbox" checked={props.checked} readOnly aria-label={'בחירת ' + sp.name} />
+        </td>
+      )}
+      <td>
+        <div style={{ fontWeight: 700 }}>{sp.name}</div>
+        {(sp.cat || sp.forWho) && (
+          <div style={{ fontSize: 12, color: 'var(--ink-faint)' }}>
+            {[sp.cat, sp.forWho].filter(Boolean).join(' · ')}
+          </div>
+        )}
+      </td>
+      <td>{sp.cat || '—'}</td>
+      <td style={{ direction: 'ltr', textAlign: 'right' }}>{sp.phone || '—'}</td>
+      <td style={{ direction: 'ltr', textAlign: 'right' }}>{sp.email || '—'}</td>
+      <td title={'מתי וכמה בכל ' + termOf(config, 'entity.donation', 'תרומה') + ' — בכרטיס'}>{st.count}</td>
+      <td>{st.ils ? '₪' + st.ils.toLocaleString('he-IL') : '—'}</td>
+      <td>{st.usd ? '$' + st.usd.toLocaleString('he-IL') : '—'}</td>
+      <td title={totalLabelOf(st.ils, st.usd) + (st.last ? ' · ' + hebDateFull(st.last) : '')}>
+        {st.last ? fmtDate(st.last) : '—'}
+      </td>
+      {nextOn && (
+        <td style={{ whiteSpace: 'nowrap' }}>
+          {sp.nextDate ? (
+            sp.nextDate <= today ? (
+              <span style={{ color: 'var(--red)', fontWeight: 700 }}>🔔 יעד עבר</span>
+            ) : (
+              // התאריך העברי ראשי — הלועזי בשורת משנה (חובה אצל הקהל החרדי)
+              <span title={fmtDate(sp.nextDate)}>
+                🎯 {hebDateFull(sp.nextDate)}
+                <span style={{ display: 'block', fontSize: 11, color: 'var(--ink-faint)' }}>
+                  {fmtDate(sp.nextDate)}
+                </span>
+              </span>
+            )
+          ) : (
+            '—'
+          )}
+        </td>
+      )}
+      {rfmOn && <td style={{ fontWeight: 700 }}>{st.score}</td>}
+      {ayinOn && <td>{sp.ayin && ayinActive(sp.ayin) ? stageLabel(config, sp.ayin.stage) : '—'}</td>}
+      {ayinOn && <td>{sp.ayin && eyesTotal(sp.ayin) ? eyesTotal(sp.ayin) : '—'}</td>}
+      {ayinOn && <td>{sp.ayin?.paid ? '✓' : '—'}</td>}
+      {rfmOn && (
+        <td>
+          <TierChip score={st.score} />
+        </td>
+      )}
+      {/* P3 פריט 12 — 📞 פר-שורה: חיוג ישיר בלי לפתוח את הכרטיס.
+          INTEGRATIONS גל א׳ — 💬 וואטסאפ לצדו (הרחבה נמכרת, חסר=כבוי) */}
+      <td onClick={(e) => e.stopPropagation()}>
+        {sp.phone && props.click2call ? (
+          <a className="tel-link" href={'tel:' + sp.phone.replace(/\D/g, '')} title={'חיוג ל' + sp.name + ' — ' + sp.phone} aria-label={'חיוג ל' + sp.name}>
+            📞
+          </a>
+        ) : (
+          ''
+        )}
+        {sp.phone && props.waOn ? <WaBtn phone={sp.phone} title={'וואטסאפ ל' + sp.name} /> : ''}
+      </td>
+    </tr>
+  );
+});
+
+/* תצוגת גריד (5.8) — כרטיסים ידידותיים-למובייל; אותו דפוס כמו המשפחות (ממומואיז, 12.10.2026) */
+const SupporterGridCard = memo(function SupporterGridCard(props: Omit<RowProps, 'ayinOn' | 'click2call' | 'waOn'>) {
+  const { sp, st, config, today, selMode, nextOn, rfmOn } = props;
+  const tier = st.tier;
+  return (
+    <div
+      className="card"
+      role="button"
+      tabIndex={0}
+      onClick={() => (selMode ? props.onToggle(sp.id) : props.onOpen(sp.id))}
+      onKeyDown={(e) => {
+        if (e.key !== 'Enter' && e.key !== ' ') return;
+        if (selMode) props.onToggle(sp.id);
+        else props.onOpen(sp.id);
+      }}
+      style={{ cursor: 'pointer', outline: selMode && props.checked ? '2px solid var(--brand)' : undefined }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+        {selMode && (
+          <input type="checkbox" checked={props.checked} readOnly aria-label={'בחירת ' + sp.name} style={{ flex: 'none' }} />
+        )}
+        {rfmOn && (
+          <span
+            title={tier.label + ' · ציון ' + st.score}
+            style={{ width: 10, height: 10, borderRadius: 99, background: tier.dot, display: 'inline-block', flex: 'none' }}
+          />
+        )}
+        <span style={{ fontWeight: 700, fontSize: 15, flex: 1 }}>{sp.name}</span>
+        {sp.hok?.active && (
+          <span title={'הו"ק ' + (sp.hok.cur === '$' ? '$' : '₪') + sp.hok.amount + (hokRecordedThisMonth(sp, today) ? ' · נרשמה החודש ✓' : ' · טרם נרשמה החודש')} style={{ fontSize: 13 }}>
+            🔁
+          </span>
+        )}
+        {sp.cat && <span style={{ fontSize: 11.5, color: 'var(--ink-faint)' }}>{sp.cat}</span>}
+      </div>
+      {sp.phone && (
+        <div style={{ fontSize: 13, color: 'var(--ink-soft)', direction: 'ltr', textAlign: 'end' }}>{sp.phone}</div>
+      )}
+      <div style={{ fontSize: 12.5, color: 'var(--ink-faint)', marginTop: 4 }}>
+        {st.count + ' ' + termOf(config, 'entity.donations', 'תרומות') + ' · ' + totalLabelOf(st.ils, st.usd)}
+        {st.last ? ' · אחרונה ' + fmtDate(st.last) : ''}
+      </div>
+      {nextOn && sp.nextDate && (
+        <div style={{ fontSize: 12, color: sp.nextDate <= today ? 'var(--warn, #b45309)' : 'var(--ink-faint)', marginTop: 2 }}>
+          {'☎ קשר הבא: ' + fmtDate(sp.nextDate)}
+        </div>
+      )}
+    </div>
+  );
+});
 
 export function SupportersView() {
   const db = useDbWatch('orgName', 'supporters', 'ui', 'usdRate');
@@ -193,7 +271,10 @@ export function SupportersView() {
   // המנהל **הדליק** לו/ה את היכולת בכרטיס-העובד (features[key]===true בקונפיג-האפקטיבי).
   const isOrgMgr = useApp((s) => s.cloud.isManager) === true;
   const canBulkManage = isAdminUser(config, cloudEmail) || isOrgMgr;
-  const bulkGranted = (key: string) => canBulkManage || config.features?.[key] === true;
+  // חוזה-הדגלים (FLAGMAX, ביקורת-e2e 1.9): false מפורש **מכבה** גם למנהל — קודם
+  // canBulkManage קיצר-דרך והתעלם מהדגל, כך ש-supporters.bulkselect:false לא הסתיר
+  // את "☑ בחירה". חסר-הדגל ⇒ כמו קודם (מנהל רואה; לא-מנהל רק ב-opt-in מפורש).
+  const bulkGranted = (key: string) => config.features?.[key] !== false && (canBulkManage || config.features?.[key] === true);
   const desigLimit = purposeOn ? allowedDesignations : null;
   const [incomingOpen, setIncomingOpen] = useState(false);
   const dailyReportOn = featureOn(config, 'supporters.ayin.dailyreport');
@@ -204,6 +285,9 @@ export function SupportersView() {
   const colFilterOn = featureOn(config, 'supporters.colfilter');
   const advFilterOn = featureOn(config, 'supporters.advfilter');
   const ayinNamesOn = featureOn(config, 'supporters.ayin.names');
+  // דליפת-מונח (ביקורת 3.9): "כל השמות"/הטוסטים — כשהארגון שינה את שם-הפריט (חבילות
+  // מסחריות) הנוסח עוקב; בלי מונח מותאם נשמר 'שמות' ההיסטורי ביט-זהה.
+  const ayinItemsLabel = termOf(config, 'entity.ayinItem', 'שמות');
   const toast = useApp((s) => s.toast);
   const go = useApp((s) => s.go);
   // תצוגת גריד (5.8, בקשת-בעלים) — נשמרת ב-db.ui.supView, אותו דפוס כמו famView
@@ -214,47 +298,56 @@ export function SupportersView() {
   const toggleSupView = () =>
     setDb((d) => ({ ui: { ...d.ui, supView: (d.ui.supView ?? 'list') === 'grid' ? 'list' : 'grid' } }));
 
-  const [q, setQ] = useState('');
+  const [q, setQ] = useRemembered('sup.q', '');
   // ⚡ מהירות (VISION-LIGHT ‏#4): ההקלדה בתיבת-החיפוש מיידית; הסינון-והמיון על
   // אלפי-תורמים רצים בעדיפות-נדחית (useDeferredValue) — האות מופיעה מיד.
   const dq = useDeferredValue(q);
-  const [cat, setCat] = useState('all');
+  const [cat, setCat] = useRemembered('sup.cat', 'all');
   // סינון אזור-טלפון (בקשת-שטח) — הפרדת מספרי חו"ל ממספרי ישראל.
-  const [regionF, setRegionF] = useState<'all' | 'il' | 'intl'>('all');
+  const [regionF, setRegionF] = useRemembered<'all' | 'il' | 'intl'>('sup.regionF', 'all');
   // בקשת-בעלים 15.8 ("פר תורם") — סינון לפי ייעוד-שעל-הכרטיס (forWho), מגודר supporters.purpose
-  const [purposeF, setPurposeF] = useState('all');
-  const [tierF, setTierF] = useState<string | null>(null);
+  const [purposeF, setPurposeF] = useRemembered('sup.purposeF', 'all');
+  const [tierF, setTierF] = useRemembered<string | null>('sup.tierF', null);
   // פילטרים פר-עמודה בתחביר numMatch — 'N' / 'N+' / 'N-M' (P3 פריט 13, לגאסי scf:2809-2811)
-  const [colF, setColF] = useState({ count: '', total: '', score: '' });
+  const [colF, setColF] = useRemembered('sup.colF', { count: '', total: '', score: '' });
   // סינון מעקב הטיפול (P3 פריט 14, לגאסי): עם מונה / בלי מונה / עודכן היום
-  const [ayinF, setAyinF] = useState<null | 'eyes' | 'noeyes' | 'today'>(null);
+  const [ayinF, setAyinF] = useRemembered<null | 'eyes' | 'noeyes' | 'today'>('sup.ayinF', null);
   // 📞 קוהרנטיות ווידג'ט↔יעד (20.8): סינון יעדי-קשר שהגיעו — הרשימה המלאה של ווידג'ט-הבית
-  const [nextF, setNextF] = useState(false);
+  const [nextF, setNextF] = useRemembered('sup.nextF', false);
   // 📋 מסך-השמות המלא (20.8, "מה עם המסך טיפול") — הרשימה פר-שם שהייתה CSV-בלבד
-  const [ayinNamesOpen, setAyinNamesOpen] = useState(false);
+  // 17.9 שומר-מסך במעקב-טיפול: מסך-השמות נשאר "פתוח" גם בזמן הכרטיס (הרשימה לא מרונדרת) ⇒ חוזר מאליו ב-"→ כל התומכים".
+  const [ayinNamesOpen, setAyinNamesOpen] = useRemembered('sup.ayinNamesOpen', false);
   // 🔁 סינון הו"ק (ROADMAP-100 ‏#2): פעילות / טרם-נרשמו-החודש
   const hokOn = featureOn(config, 'supporters.hok');
   // opt-in מפורש (=== true, לא featureOn) — יוצר קבלות-מס, חייב הפעלה מכוונת.
   const hokBulkOn = config.features?.['supporters.hokbulk'] === true;
   const [hokBulkOpen, setHokBulkOpen] = useState(false);
-  const [hokF, setHokF] = useState<null | 'active' | 'due'>(null);
+  const [hokF, setHokF] = useRemembered<null | 'active' | 'due'>('sup.hokF', null);
   // סינון-סגמנט מהקוקפיט/הבנדים — קליק על סגמנט מסנן את הטבלה (לא רק פותח מסך ריק).
   // אתחול-עצל: אם הבית ביקש נחיתה-על-סגמנט (התראת-סיכון) — נכנסים כבר מסונן.
-  const [segF, setSegF] = useState<SegmentKey | null>(() => takeSupportersSegment());
+  const [segF, setSegF] = useRemembered<SegmentKey | null>('sup.segF', null);
+  // בקשת-סגמנט מהבית (חד-פעמית) גוברת על הזיכרון — רק כשיש בקשה.
+  useEffect(() => {
+    const req = takeSupportersSegment();
+    if (req) setSegF(req);
+  }, []);
   // סינון-חודש (מפת-עונתיות) + שנת-גיוס (קוהורטה) — דריל-אין מהבנדים האנליטיים.
-  const [monthF, setMonthF] = useState<number | null>(null);
-  const [acqYearF, setAcqYearF] = useState<number | null>(null);
+  const [monthF, setMonthF] = useRemembered<number | null>('sup.monthF', null);
+  const [acqYearF, setAcqYearF] = useRemembered<number | null>('sup.acqYearF', null);
   // חיפוש-מפורש לפי תקופת-נתינה (בקשת-בעלים "חיפוש לפי שנה לפי חודש בקטגוריה"):
   // שנת-נתינה נבחרת (מובחנת משנת-הגיוס acqYearF); החודש חולק את monthF כדי
   // שדריל-אין מהעונתיות ובורר-החודש ישקפו זה את זה.
-  const [gaveYearF, setGaveYearF] = useState<number | null>(null);
+  const [gaveYearF, setGaveYearF] = useRemembered<number | null>('sup.gaveYearF', null);
   // מצב-התקופה (בקשת-בעלים "סינון לפי תרומה אחרונה"): אותם בוררי שנה/חודש מסננים
   // או לפי **כל** תרומה בתקופה ('gave', ברירת-מחדל = התנהגות קיימת ביט-זהה) או לפי
   // ה**אחרונה** בלבד ('last'). מוצג רק כשנבחרה תקופה — אינרטי אחרת (אפס-שינוי).
-  const [periodMode, setPeriodMode] = useState<'gave' | 'last'>('gave');
+  const [periodMode, setPeriodMode] = useRemembered<'gave' | 'last'>('sup.periodMode', 'gave');
+  // 🕐 סינון עצמאי "תרומה אחרונה" (בקשת-בעלים 6.9 "נעלם הסינון") — תמיד-גלוי, דליי-זמן
+  // מהיום; נפרד מבורר-התקופה (שנה/חודש) שנשאר כמו-שהוא.
+  const [lastF, setLastF] = useRemembered<LastBucket | null>('sup.lastF', null);
   // פאנל-סינון מתקדם (בקשת-בעלים) — עוטף דרגות/הו״ק/מעקב לפאנל אחד מתקפל.
   // הצ׳יפים והסינון נשמרים בדיוק — רק מתקפלים; החיפוש+קטגוריה גלויים תמיד.
-  const [advOpen, setAdvOpen] = useState(false);
+  const [advOpen, setAdvOpen] = useRemembered('sup.advOpen', false);
   // חלון-העבודה (הקוקפיט) — opt-in מפורש בלבד (‏featureOn ברירת-מחדל=on, לכן === true).
   // חסר במפורש בכל הלקוחות-החיים ⇒ אפס-השפעה על הפרודקשן.
   const cockpitOn = config.features?.['supporters.cockpit'] === true;
@@ -290,6 +383,11 @@ export function SupportersView() {
   const rfmBins = useMemo(() => supScoreBins(db.supporters, rate), [db.supporters, rate]);
   // "היום" המקומי — פעם-אחת לרנדר (isoToday, לא UTC), משמש גם את סינון-הרשימה למטה.
   const today = isoToday();
+  // ⚠️ ביקורת (12.10): מונה-הימים של הציון (rfmScore) מעוגן ל-12:00 המקומי של התרומה האחרונה ⇒ R יכול
+  // להתחלף רק על שעה-עגולה-מצהריים (12:00, ועם הפרש-שעון-קיץ 11:00/13:00). memo-הסטטיסטיקה תלוי
+  // בדלי-השעה-מצהריים ⇒ בכל רינדור אחרי חציית-גבול (30/90/180/365 יום) הרשימה/דרגה/צ'יפים/מיון
+  // שווים ל-supScore הטרי של הכרטיס — כמו קודם, כשהציון חושב בכל רינדור (בלי זה: דרגה ישנה עד חצות).
+  const hourFromNoon = Math.floor((Date.now() - new Date(today + 'T12:00:00').getTime()) / 3600000);
   // 🐛 ביצועים (21.8): סינון-סגמנט 'atrisk' הריץ cockpitAtRisk (סינון+מיון+פרסור-תאריכים)
   // פר-תורם ⇒ O(n²) על כל הקשה. ה-Set מחושב פעם-אחת (useMemo) ומוזרק ל-matchSegment.
   const atRiskIds = useMemo(
@@ -297,11 +395,13 @@ export function SupportersView() {
     [segF, db.supporters, today],
   );
   const rfmMax = Math.max(1, ...rfmBins);
-  const [sort, setSort] = useState<{ key: SortKey; dir: 1 | -1 } | null>(null);
+  const [sort, setSort] = useRemembered<{ key: SortKey; dir: 1 | -1 } | null>('sup.sort', null);
   // ⚡ ציור-מדורג (VISION-LIGHT ‏#15): חלון-שגדל-בגלילה במקום כל הרשימה בבת-אחת;
   // שינוי חיפוש/סינון מחזיר את החלון להתחלה. הלוגיקה נשארת על הרשימה המלאה.
+  // (regionF/lastF לא במפתח — כמו היום; ביקורת 12.10: שינוי-התנהגות מחוץ למנדט-הזהות, יידון בנפרד.)
   const inc = useIncCap(JSON.stringify([dq, cat, purposeF, tierF, colF, ayinF, nextF, hokF, segF, monthF, acqYearF, gaveYearF, periodMode, sort]));
   const [selId, setSelId] = useState<string | null>(null);
+  useListScrollRestore('supporters', !!selId); // חזרה מהכרטיס למיקום-הגלילה הקודם (5.9)
   // בחירה-מרובה למחיקה (בקשת-בעלים 13.8) — מצב-בחירה + קבוצת-ids + אישור-הרסני.
   const [selMode, setSelMode] = useState(false);
   const [selSet, setSelSet] = useState<ReadonlySet<string>>(new Set<string>());
@@ -327,13 +427,18 @@ export function SupportersView() {
   const [bulkWaSent, setBulkWaSent] = useState<ReadonlySet<string>>(new Set<string>());
   const deleteSupporters = useApp((s) => s.deleteSupporters);
   const setSupportersPurpose = useApp((s) => s.setSupportersPurpose);
-  const toggleSel = (id: string) =>
-    setSelSet((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
+  // callbacks יציבים (useCallback) — כדי ש-memo של השורות יחזיק בין רינדורים (12.10.2026)
+  const toggleSel = useCallback(
+    (id: string) =>
+      setSelSet((prev) => {
+        const next = new Set(prev);
+        if (next.has(id)) next.delete(id);
+        else next.add(id);
+        return next;
+      }),
+    [],
+  );
+  const openSupporter = useCallback((id: string) => setSelId(id), []);
   const exitSelMode = () => {
     setSelMode(false);
     setSelSet(new Set<string>());
@@ -356,7 +461,7 @@ export function SupportersView() {
   // לוח התרומות הכלל-ארגוני (P1.4, legacy supCalOn/supCalAll) — מוצג בלחיצה
   const [orgCalOpen, setOrgCalOpen] = useState(false);
   // בקשת-בעלים 19.8 (פריט ז'): לוח מעקב-הטיפול מוסתר כברירת-מחדל — בחירה מפורשת להצגה.
-  const [ayinBoardOpen, setAyinBoardOpen] = useState(false);
+  const [ayinBoardOpen, setAyinBoardOpen] = useRemembered('sup.ayinBoardOpen', false); // 17.9: הלוח נשאר פתוח בחזרה מכרטיס/ממסך אחר
   const donCalOn = featureOn(config, 'supporters.doncal');
   // בקשת "+ תומכת" מהפלטה (P1.6) — אותו דפוס כמו famFormReq
   const supFormReq = useApp((s) => s.supFormReq);
@@ -408,11 +513,11 @@ export function SupportersView() {
   function namesReport() {
     const rows = ayinAllRows(config, visibleSupportersForDesignations(db.supporters, desigLimit));
     if (rows.length <= 1) {
-      toast('עדיין לא נוספו שמות בכרטיסי מעקב-הטיפול');
+      toast('עדיין לא נוספו ' + ayinItemsLabel + ' בכרטיסי ' + termOf(config, 'nav.ayin', 'מעקב-הטיפול'));
       return;
     }
     downloadCsv('ayin-names-' + isoToday() + '.csv', rows);
-    toast('דוח שמות: ' + (rows.length - 1) + ' שמות — הקובץ ירד');
+    toast('דוח ' + ayinItemsLabel + ': ' + (rows.length - 1) + ' ' + ayinItemsLabel + ' — הקובץ ירד');
   }
 
   // 🐛 נחיל-9×9 (13.8): גם פתיחת-כרטיס-ישיר (מהפלטה/עומק) מכובדת להרשאת-הייעוד —
@@ -473,6 +578,74 @@ export function SupportersView() {
     cockpitOn && paletteOpen ? (
       <CommandPalette ctx={paletteCtx} onRun={runCommand} onClose={() => setPaletteOpen(false)} />
     ) : null;
+
+  /* ── ⚡ ביצועים (12.10.2026): צינור-הרשימה ממומואיז — כל ה-hooks כאן, לפני ה-return-ים
+     המוקדמים (כרטיס/קוקפיט/מודיעין/גלקסיה/יקום/מחסן) ⇒ סדר-hooks קבוע (אין React #300).
+     קודם: הנגזרת רצה בגוף-הרכיב אחרי ה-return-ים (בלי hook) ⇒ חושבה מחדש בכל רינדור —
+     2–4 רינדורים לכל הקשה/מיון/כתיבה (useDeferredValue, טוסטים, סטטוס-ענן, כותבי db.ui).
+     נמדד: 16,000 תורמים — הקשה 1.1–1.4 שנ׳, מיון 1.0 שנ׳, פתיחת-הטאב 2.1 שנ׳ (CPU ×4). ── */
+  // ג' (13.8) — בסיס-הראייה של המשתמש: תורמים המותרים לפי הייעודים שהוקצו.
+  // כל הנגזרות בתצוגה (רשימה, מונים, סה"כ, קטגוריות) יוצאות מ-visibleBase כדי
+  // שעובד מוגבל לא יראה — ולא יסיק — תורמים של ייעוד אחר.
+  // (היה מערך-חדש בכל רינדור לעובד-מוגבל-ייעוד ⇒ שבר כל memo במורד — עכשיו יציב.)
+  const visibleBase = useMemo(
+    () => (desigLimit ? db.supporters.filter((sp) => supporterVisibleForDesignations(sp, desigLimit)) : db.supporters),
+    [db.supporters, desigLimit],
+  );
+  // המספרים של כל תורם במעבר-אחד (supIls/supUsd/supCount/supLast/supTotalIls/supScore/
+  // supTier/supAcqYear — ביט-זהה, ratchet). `today`+`hourFromNoon` בתלויות: הציון תלוי-בזמן (R) —
+  // מתרענן ביום-חדש ובכל שעה-עגולה-מצהריים (הגבולות היחידים שבהם R משתנה; ביקורת 12.10).
+  const stats = useMemo(() => buildSupporterStats(visibleBase, rate, Date.now()), [visibleBase, rate, today, hourFromNoon]);
+  // מצברי-הכותרת — על בסיס-הראייה, פעם-אחת לשינוי-נתונים (לא פר-הקשה)
+  const agg = useMemo(() => {
+    // 🩺 מוני-הטיפול על בסיס-הראייה (ביקורת 3.9): הלוח סגור כברירת-מחדל ⇒ הכותרת
+    // המקופלת צריכה אות-גילוי (מונה-פעילים); "עודכן היום" נספר על visibleBase ולא על
+    // db.supporters — עובד/ת מוגבל/ת לייעוד לא יסיק מונה של תורמים מוסתרים.
+    const ayinActiveCount = visibleBase.filter((sp) => ayinOnBoard(sp.ayin)).length; // בלי 'הושלם' (הכרעת-בעלים 3.9)
+    const ayinTodayCount = visibleBase.filter(
+      (sp) => sp.ayin && (sp.ayin.lastTouch === today || sp.ayin.log?.some((l) => l.date === today)),
+    ).length;
+    // 📞 מונה יעדי-הקשר שהגיעו — אותו מספר בדיוק כמו הבאדג' בווידג'ט-הבית
+    const dueCount = visibleBase.filter((sp) => sp.nextDate && sp.nextDate <= today).length;
+    const catOptions = [...new Set(visibleBase.map((s) => s.cat).filter(Boolean))];
+    const purposeOptions = [...new Set(visibleBase.map((s) => (s.forWho || '').trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+    const tierCounts: Record<string, number> = { זהב: 0, כסף: 0, ארד: 0, רדומה: 0 };
+    // הכרעת-בעלים 9.8 ("לכולל"): סה"כ-הכותרת = הצבירה המוצגת (קבלות + היסטוריה),
+    // דרך SupStats.ils/usd (≡ supIls/supUsd) — לא sp.ils/sp.usd השמורים (קבלות-בלבד). בלי זה
+    // עסקאות הסליקה/נדרים ב-hist[] לא נספרות בכותרת אף שהן מופיעות בכל שורה. (באג: "הסך
+    // תרומות לא מתעדכן" אחרי ייבוא/סנכרון נדרים — 19.8.2026.) סדר-הסכימה כמו ה-reduce המקורי.
+    let tIls = 0;
+    let tUsd = 0;
+    for (const sp of visibleBase) {
+      const st = statOf(stats, sp, rate);
+      tierCounts[st.tier.label]++;
+      tIls += st.ils;
+      tUsd += st.usd;
+    }
+    const yearOptions = donationYearsFromStats(stats.values());
+    return { ayinActiveCount, ayinTodayCount, dueCount, catOptions, purposeOptions, tierCounts, tIls, tUsd, yearOptions };
+  }, [visibleBase, stats, today, rate]);
+  const { ayinActiveCount, ayinTodayCount, dueCount, catOptions, purposeOptions, tierCounts, tIls, tUsd, yearOptions } = agg;
+  // P3 פריט 12 — סטטים (sup12m/supAvgDon רצו 3× בכל רינדור כשהפאנל פתוח; פעם-אחת לשינוי-נתונים)
+  const rfmStats = useMemo(() => ({ in12m: sup12m(db.supporters, today), avg: supAvgDon(db.supporters, rate) }), [db.supporters, today, rate]);
+  // סינון-סגמנט מוזרק לפרדיקט הטהור (segments.ts נשען על lib.ts — בלי ייבוא-מעגלי)
+  const matchSeg = useMemo(
+    () => (segF ? (sp: Supporter) => matchSegment(sp, segF, visibleBase, today, rate, atRiskIds) : null),
+    [segF, visibleBase, today, rate, atRiskIds],
+  );
+  const matched = useMemo(
+    () => filterSupporterList(visibleBase, stats, { dq, cat, purposeF, regionF, hokF, tierF, lastF, monthF, gaveYearF, periodMode, acqYearF, colF, nextF, ayinF }, today, rate, matchSeg),
+    [visibleBase, stats, dq, cat, purposeF, regionF, hokF, tierF, lastF, monthF, gaveYearF, periodMode, acqYearF, colF, nextF, ayinF, today, rate, matchSeg],
+  );
+  // מיון-מעוטר: מפתח-אחד פר-שורה (היה sortVal×2 לכל השוואה; מיון-ציון = supScore ‎N·logN‎)
+  const list = useMemo(() => (sort ? sortSupporterList(matched, stats, sort.key, sort.dir, rate) : matched), [matched, stats, sort, rate]);
+  // ⚠️ ביקורת (12.10): הקולבקים של רצועת-ה-KPI יציבים — אחרת ה-React.memo של SupportersKpiStrip מעולם לא פגע
+  // (arrow-חדש בכל רינדור). useRemembered ⇒ setter של useState (יציב); התלות היא הערך הנוכחי בלבד.
+  const onKpiTier = useCallback((t: string) => setTierF(tierF === t ? null : t), [tierF, setTierF]);
+  const onKpiHokDue = useCallback(() => setHokF(hokF === 'due' ? null : 'due'), [hokF, setHokF]);
+  const onKpiRisk = useCallback(() => setSegF(segF === 'atrisk' ? null : 'atrisk'), [segF, setSegF]);
+  // ⚡ ‏#15: החלון-לציור — כל הלוגיקה (בחירה/CSV/סיכומים) נשארת על `list` המלאה
+  const shownRows = incSlice(list, inc.cap);
 
   const selRaw = db.supporters.find((s) => s.id === selId);
   const selected = selRaw && supporterVisibleForDesignations(selRaw, desigLimit) ? selRaw : undefined;
@@ -574,90 +747,16 @@ export function SupportersView() {
     );
   }
 
-  const nq = normSearch(dq);
-  const qd = dq.replace(/\D/g, '');
-
-  // ג' (13.8) — בסיס-הראייה של המשתמש: תורמים המותרים לפי הייעודים שהוקצו.
-  // כל הנגזרות בתצוגה (רשימה, מונים, סה"כ, קטגוריות) יוצאות מ-visibleBase כדי
-  // שעובד מוגבל לא יראה — ולא יסיק — תורמים של ייעוד אחר.
-  const visibleBase = desigLimit
-    ? db.supporters.filter((sp) => supporterVisibleForDesignations(sp, desigLimit))
-    : db.supporters;
-
-  let list = visibleBase.filter((sp) => {
-    if (cat !== 'all' && (sp.cat || '') !== cat) return false;
-    if (purposeF !== 'all' && (sp.forWho || '').trim() !== purposeF) return false;
-    // סינון אזור-טלפון (חול/ישראל) — לפי כל מספרי התורם (ראשי + נוספים).
-    if (regionF !== 'all' && !supHasRegion(sp, regionF)) return false;
-    // 🔁 סינון הו"ק (ROADMAP-100 ‏#2): הוראות פעילות / רק שטרם-נרשמו-החודש
-    if (hokF === 'active' && !sp.hok?.active) return false;
-    // 🐛 קוהרנטיות (21.8): הצ'יפ "⏳ טרם נרשמו" מונה לפי hokDue (hokEffectivelyActive —
-    // הו"ק-נדרים ששתקה >2 חודשים מוחרגת), אבל הסינון השתמש ב-hok?.active הגולמי ⇒
-    // מונה-הצ'יפ ≠ שורות-הרשימה ≠ אוכלוסיית HokBulkModal. עכשיו אותו-כלל בדיוק.
-    if (hokF === 'due' && !(hokEffectivelyActive(sp, today) && !hokRecordedThisMonth(sp, today))) return false;
-    if (tierF && supTier(supScore(sp, rate)).label !== tierF) return false;
-    if (segF && !matchSegment(sp, segF, visibleBase, today, rate, atRiskIds)) return false;
-    // תקופה: 'last' ⇒ רק מי שתרומתו האחרונה בתקופה; 'gave' ⇒ מי שנתן בכלל בתקופה.
-    if (monthF || gaveYearF) {
-      const inPeriod = periodMode === 'last'
-        ? supLastInPeriod(sp, gaveYearF, monthF)
-        : supGaveInPeriod(sp, gaveYearF, monthF);
-      if (!inPeriod) return false;
-    }
-    if (acqYearF && supAcqYear(sp) !== acqYearF) return false;
-    // פילטרי numMatch (פריט 13) — תרומות / סה"כ ₪-שקול (לפי השער העריך) / ציון
-    if (!numMatch(colF.count, supCount(sp))) return false;
-    if (!numMatch(colF.total, Math.round(supTotalIls(sp, rate)))) return false;
-    if (!numMatch(colF.score, supScore(sp, rate))) return false;
-    // 📞 יעדי-קשר שהגיעו (20.8) — אותה סמנטיקה כמו dueContacts בווידג'ט-הבית
-    if (nextF && !(sp.nextDate && sp.nextDate <= today)) return false;
-    // סינון מעקב הטיפול (פריט 14)
-    if (ayinF === 'eyes' && !(sp.ayin && eyesTotal(sp.ayin) > 0)) return false;
-    if (ayinF === 'noeyes' && sp.ayin && eyesTotal(sp.ayin) > 0) return false;
-    if (ayinF === 'today' && !(sp.ayin && (sp.ayin.lastTouch === today || sp.ayin.log?.some((l) => l.date === today)))) return false;
-    if (!dq.trim()) return true;
-    // חיפוש-טלפון כולל את כל המספרים (ראשי + נוספים), לא רק phone.
-    const phoneHit = qd.length >= 3 && allSupPhones(sp).some((r) => r.num.replace(/\D/g, '').includes(qd));
-    const textHit =
-      !!nq && normSearch([sp.name, sp.email, sp.cat, sp.address, sp.forWho].join(' ')).includes(nq);
-    return phoneHit || textHit;
-  });
-
-  if (sort) {
-    const { key, dir } = sort;
-    list = [...list].sort((a, b) => {
-      const va = sortVal(a, key, rate);
-      const vb = sortVal(b, key, rate);
-      const c = typeof va === 'number' ? va - (vb as number) : String(va).localeCompare(String(vb), 'he');
-      return c * dir;
-    });
-  }
-
-  // ⚡ ‏#15: החלון-לציור — כל הלוגיקה (בחירה/CSV/סיכומים) נשארת על `list` המלאה
-  const shownRows = incSlice(list, inc.cap);
-
   const clickSort = (key: SortKey) =>
     setSort(sort && sort.key === key ? (sort.dir > 0 ? { key, dir: -1 } : null) : { key, dir: 1 });
 
-  const catOptions = [...new Set(visibleBase.map((s) => s.cat).filter(Boolean))];
-  const purposeOptions = [...new Set(visibleBase.map((s) => (s.forWho || '').trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b));
-  const tierCounts: Record<string, number> = { זהב: 0, כסף: 0, ארד: 0, רדומה: 0 };
-  for (const sp of visibleBase) tierCounts[supTier(supScore(sp, rate)).label]++;
-
-  // הכרעת-בעלים 9.8 ("לכולל"): סה"כ-הכותרת = הצבירה המוצגת (קבלות + היסטוריה),
-  // דרך supIls/supUsd — לא sp.ils/sp.usd השמורים (קבלות-בלבד). בלי זה עסקאות
-  // הסליקה/נדרים ב-hist[] לא נספרות בכותרת אף שהן מופיעות בכל שורה. (באג: "הסך
-  // תרומות לא מתעדכן" אחרי ייבוא/סנכרון נדרים — 19.8.2026.)
-  const tIls = visibleBase.reduce((a, x) => a + supIls(x), 0);
-  const tUsd = visibleBase.reduce((a, x) => a + supUsd(x), 0);
   // 🐛 (21.8): hokF ו-purposeF מצמצמים את הרשימה אבל לא נכללו בדגל ⇒ הכותרת
   // הציגה "M תומכות" בלי "N מתוך" כשסיננו לפי הו"ק/ייעוד. עכשיו כל מסנן נספר.
   const filtered =
-    q.trim() !== '' || cat !== 'all' || purposeF !== 'all' || !!tierF || !!hokF || !!ayinF || nextF || !!segF || !!monthF || !!gaveYearF || !!acqYearF ||
+    q.trim() !== '' || cat !== 'all' || purposeF !== 'all' || !!tierF || !!hokF || !!ayinF || nextF || !!segF || !!lastF || !!monthF || !!gaveYearF || !!acqYearF ||
     colF.count.trim() !== '' || colF.total.trim() !== '' || colF.score.trim() !== '';
   const segLabel = segF ? SEGMENTS.find((s) => s.key === segF)?.label : null;
   const MONTHS_HE = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'];
-  const yearOptions = donationYears(visibleBase);
   // תווית-התקופה: שנה+חודש = "נתנו ב-8/2025"; רק-חודש = "נתנו בחודש אוגוסט";
   // רק-שנה = "נתנו ב-2025". במצב 'last' — "תרומה אחרונה ב-…". צ׳יפ יחיד מנקה הכול.
   const periodVerb = periodMode === 'last' ? 'תרומה אחרונה' : 'נתנו';
@@ -671,6 +770,7 @@ export function SupportersView() {
           : null;
   const drillChips: { label: string; clear: () => void }[] = [
     ...(segLabel ? [{ label: 'סגמנט: ' + segLabel, clear: () => setSegF(null) }] : []),
+    ...(lastF ? [{ label: '🕐 תרומה אחרונה ' + (LAST_BUCKETS.find((b) => b.key === lastF)?.label ?? ''), clear: () => setLastF(null) }] : []),
     ...(periodLabel ? [{ label: periodLabel, clear: () => { setMonthF(null); setGaveYearF(null); setPeriodMode('gave'); } }] : []),
     ...(acqYearF ? [{ label: 'גויסו ב-' + acqYearF, clear: () => setAcqYearF(null) }] : []),
   ];
@@ -682,21 +782,17 @@ export function SupportersView() {
     ' + $' +
     tUsd.toLocaleString('he-IL');
 
-  const openRowKey = (id: string) => (e: KeyboardEvent<HTMLElement>) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      setSelId(id);
-    }
-  };
 
   // פאנל-סינון מתקדם: כמה מסננים-מתקדמים פעילים כרגע (לבאדג׳), והאם יש בכלל
   // תוכן-מתקדם להציג (אחרת אין פאנל — מסך ברירת-מחדל נשאר רזה).
   const advActive = (tierF ? 1 : 0) + (hokF ? 1 : 0) + (ayinF ? 1 : 0) + (nextF ? 1 : 0);
-  // 📞 מונה יעדי-הקשר שהגיעו — אותו מספר בדיוק כמו הבאדג' בווידג'ט-הבית
-  const dueCount = visibleBase.filter((sp) => sp.nextDate && sp.nextDate <= today).length;
   const hasAdvFilters =
     rfmOn || (hokOn && db.supporters.some((sp) => sp.hok)) || (ayinOn && db.supporters.length > 0) ||
     dueCount > 0;
+
+  // דגלי-שורה פעם-אחת לרינדור (לא פר-שורה) — props פרימיטיביים ל-memo של השורות
+  const click2call = featureOn(config, 'supporters.click2call');
+  const waOn = integrationOn(config, 'whatsapp');
 
   // "נקה הכל" — איפוס כל מסנני-המסך בקליק אחד (מוצג רק כשיש סינון פעיל).
   const clearAllFilters = () => {
@@ -708,6 +804,7 @@ export function SupportersView() {
     setAyinF(null);
     setNextF(false);
     setSegF(null);
+    setLastF(null);
     setMonthF(null);
     setGaveYearF(null);
     setAcqYearF(null);
@@ -752,14 +849,19 @@ export function SupportersView() {
                     const year = isoToday().slice(0, 4);
                     // 🔒 ייעוד-הרשאה: הדוח-לכולם יוצא רק על תורמים גלויים לעובדת, ובכל תורם
                     // רק התרומות בייעוד המותר (לא db.supporters הגולמי)
-                    const lines = annualAllLines(config.orgName || db.orgName, config.orgTaxId, year, visibleSupportersForDesignations(db.supporters, desigLimit));
+                    // TP-15: מונחי-הארגון לכותרות-הדוח (חבילות מסחריות: 'רכישות'/'תשלומים'); ברירת-המחדל ביט-זהה
+                    const lines = annualAllLines(config.orgName || db.orgName, config.orgTaxId, year, visibleSupportersForDesignations(db.supporters, desigLimit), undefined, {
+                      donations: termOf(config, 'entity.donations', 'תרומות'),
+                      supporter: 'ה' + termOf(config, 'entity.supporter', 'תורם/ת'),
+                    });
                     downloadAnnualReport('annual-all-' + year + '.txt', lines);
                     toast('📄 דוחות שנת ' + year + ' — הקובץ ירד (מקטע לכל ' + termOf(config, 'entity.supporter', 'תורם/ת') + ')');
                   },
                 },
-                ayinOn && dailyReportOn && { label: '📋 דוח יומי', onClick: dailyReport },
+                // מונה "(N)" כמו בלגאסי (markup:1312 "🧿 דוח יומי (N)") — כמה טופלו היום
+                ayinOn && dailyReportOn && { label: '📋 דוח יומי (' + ayinTodayCount + ')', onClick: dailyReport },
                 // מסך-השמות המלא (20.8, בקשת-בעלים) — הרשימה פר-שם על-המסך, לא רק CSV
-                ayinOn && ayinNamesOn && { label: '📋 ' + featLabel(config) + ' — כל השמות', onClick: () => setAyinNamesOpen(true), title: 'כל השמות מכל הכרטיסים — טבלה חיה עם חיפוש וסינון' },
+                ayinOn && ayinNamesOn && { label: '📋 ' + featLabel(config) + ' — כל ה' + ayinItemsLabel, onClick: () => setAyinNamesOpen(true), title: 'כל ה' + ayinItemsLabel + ' מכל הכרטיסים — טבלה חיה עם חיפוש וסינון' },
                 ayinOn && isAdminUser(config, cloudEmail) && { label: '📥 דוח שמות (למנהל)', onClick: namesReport, title: 'כל השמות בכרטיסי מעקב-הטיפול — CSV' },
                 dedupCount > 0 && featureOn(config, 'supporters.dedup') && { label: '🔗 איחוד כפולים · ' + dedupCount, onClick: () => setDedupOpen(true) },
                 !!campaignHref && { label: '📣 לקמפיין הגיוס', onClick: () => window.open(campaignHref!, '_blank', 'noopener') },
@@ -898,16 +1000,17 @@ export function SupportersView() {
       {ayinOn && (
         <div className="card" style={{ marginBottom: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
-            <h3 style={{ fontSize: 15 }}>🩺 לוח מעקב הטיפול</h3>
+            <h3 style={{ fontSize: 15 }}>{'🩺 לוח ' + featLabel(config)}</h3>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               {/* 📋 מסך-השמות המלא — הלוח הוא תור פר-תומכ/ת; כאן כל השמות פר-שם */}
               {ayinNamesOn && (
                 <Btn sm onClick={() => setAyinNamesOpen(true)} title={'כל ה' + itemLabel(config) + ' מכל הכרטיסים — טבלה חיה עם חיפוש וסינון'}>
-                  📋 כל השמות
+                  {'📋 כל ה' + ayinItemsLabel}
                 </Btn>
               )}
+              {/* מונה-פעילים על המתג — הלוח סגור כברירת-מחדל (19.8) ובלי מונה אין אות-גילוי */}
               <Btn sm onClick={() => setAyinBoardOpen((v) => !v)}>
-                {ayinBoardOpen ? '▲ הסתרה' : '▼ הצגה'}
+                {(ayinBoardOpen ? '▲ הסתרה' : '▼ הצגה') + (ayinActiveCount ? ' · ' + ayinActiveCount : '')}
               </Btn>
             </div>
           </div>
@@ -942,9 +1045,9 @@ export function SupportersView() {
           config={config}
           usdRate={db.usdRate}
           activeTier={tierF}
-          onTier={(t) => setTierF(tierF === t ? null : t)}
-          onHokDue={() => setHokF(hokF === 'due' ? null : 'due')}
-          onRisk={() => setSegF(segF === 'atrisk' ? null : 'atrisk')}
+          onTier={onKpiTier}
+          onHokDue={onKpiHokDue}
+          onRisk={onKpiRisk}
         />
       )}
 
@@ -965,11 +1068,12 @@ export function SupportersView() {
 
       <div className="filterbar">
         <div className="fb-search">
-          <TextInput value={q} onChange={setQ} placeholder="חיפוש לפי שם, טלפון, מייל או קטגוריה…" />
+          <TextInput value={q} onChange={setQ} placeholder="חיפוש לפי שם, טלפון, מייל או קטגוריה…" ariaLabel="חיפוש" />
         </div>
         <Select
           value={cat}
           onChange={setCat}
+          ariaLabel="קטגוריה"
           options={[{ value: 'all', label: 'כל הקטגוריות' }, ...catOptions.map((c) => ({ value: c, label: c }))]}
         />
         {/* חיפוש-מפורש לפי תקופת-נתינה (בקשת-בעלים "לפי שנה לפי חודש") —
@@ -978,14 +1082,46 @@ export function SupportersView() {
           <Select
             value={gaveYearF == null ? 'all' : String(gaveYearF)}
             onChange={(v) => setGaveYearF(v === 'all' ? null : +v)}
+            ariaLabel="שנת נתינה"
             options={[{ value: 'all', label: 'כל השנים' }, ...yearOptions.map((y) => ({ value: String(y), label: 'נתנו ב-' + y }))]}
           />
         )}
         <Select
           value={monthF == null ? 'all' : String(monthF)}
           onChange={(v) => setMonthF(v === 'all' ? null : +v)}
+          ariaLabel="חודש נתינה"
           options={[{ value: 'all', label: 'כל החודשים' }, ...MONTHS_HE.map((m, i) => ({ value: String(i + 1), label: m }))]}
         />
+        {/* 🕐 תרומה אחרונה — בורר עצמאי תמיד-גלוי (בקשת-בעלים 6.9 "נעלם הסינון של
+            תרומה אחרונה": הבורר-לפי-תקופה למטה מופיע רק אחרי בחירת שנה/חודש). */}
+        <Select
+          value={lastF ?? 'all'}
+          onChange={(v) => setLastF(v === 'all' ? null : (v as LastBucket))}
+          ariaLabel="תרומה אחרונה"
+          options={[{ value: 'all', label: '🕐 תרומה אחרונה: הכול' }, ...LAST_BUCKETS.map((b) => ({ value: b.key, label: '🕐 ' + b.label }))]}
+        />
+        {/* ↕ מיון בתצוגת-גריד — בגריד אין כותרות-טבלה ללחיצה ⇒ "תרומה אחרונה" ושאר
+            המיונים לא היו נגישים כלל (אותו sort של הטבלה). */}
+        {supView === 'grid' && sortOn && (
+          <Select
+            value={sort ? sort.key + ':' + (sort.dir > 0 ? 'asc' : 'desc') : 'none'}
+            onChange={(v) => {
+              if (v === 'none') return setSort(null);
+              const [k, d] = v.split(':');
+              setSort({ key: k as SortKey, dir: d === 'desc' ? -1 : 1 });
+            }}
+            ariaLabel="מיון"
+            options={[
+              { value: 'none', label: '↕ מיון: ללא' },
+              ...HEAD.filter((h) => ['name', 'count', 'ils', 'usd', 'last', 'nextDate', 'score'].includes(h.key))
+                .filter((h) => (nextOn || h.key !== 'nextDate') && (rfmOn || h.key !== 'score'))
+                .flatMap((h) => [
+                  { value: h.key + ':desc', label: '↓ ' + headLabel(h) + ' (יורד)' },
+                  { value: h.key + ':asc', label: '↑ ' + headLabel(h) + ' (עולה)' },
+                ]),
+            ]}
+          />
+        )}
         {/* בקשת-בעלים "סינון לפי תרומה אחרונה של הלקוח": אותם בוררי שנה/חודש —
             מצב "כל תרומה בתקופה" מול "התרומה האחרונה בתקופה". מוצג רק כשנבחרה
             תקופה (אחרת אינרטי) — ברירת-המחדל 'gave' = התנהגות קיימת ביט-זהה. */}
@@ -993,6 +1129,7 @@ export function SupportersView() {
           <Select
             value={periodMode}
             onChange={(v) => setPeriodMode(v === 'last' ? 'last' : 'gave')}
+            ariaLabel="מצב תקופה"
             options={[
               { value: 'gave', label: '📅 נתנו בתקופה' },
               { value: 'last', label: '🕐 תרומה אחרונה בתקופה' },
@@ -1003,6 +1140,7 @@ export function SupportersView() {
         <Select
           value={regionF}
           onChange={(v) => setRegionF(v as 'all' | 'il' | 'intl')}
+          ariaLabel="אזור טלפון"
           options={[
             { value: 'all', label: '🌐 כל הטלפונים' },
             { value: 'il', label: '🇮🇱 ישראל בלבד' },
@@ -1014,6 +1152,7 @@ export function SupportersView() {
           <Select
             value={purposeF}
             onChange={setPurposeF}
+            ariaLabel="ייעוד"
             // הכרעת-בעלים 19.8 (פריט ד'): עובד-סגור רואה בבורר רק את ייעודיו — בלי "כל הייעודים".
             options={[
               ...(desigLimit ? [] : [{ value: 'all', label: 'כל הייעודים' }]),
@@ -1059,8 +1198,8 @@ export function SupportersView() {
       {rfmOn && db.supporters.length > 0 && (
         <div style={{ display: 'flex', alignItems: 'flex-end', gap: 16, flexWrap: 'wrap' }}>
           <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', fontWeight: 600 }}>
-            {'תרמו ב-12 החודשים: ' + sup12m(db.supporters, today) + ' · ממוצע ל' + termOf(config, 'entity.donation', 'תרומה') + ': ' +
-              (supAvgDon(db.supporters, rate) != null ? '₪' + supAvgDon(db.supporters, rate)!.toLocaleString('he-IL') : '—')}
+            {'תרמו ב-12 החודשים: ' + rfmStats.in12m + ' · ממוצע ל' + termOf(config, 'entity.donation', 'תרומה') + ': ' +
+              (rfmStats.avg != null ? '₪' + rfmStats.avg.toLocaleString('he-IL') : '—')}
           </div>
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: 2, height: 34 }} aria-label="היסטוגרמת פיזור הציון">
             {/* 🐛 נחיל-9×9 (13.8): supScoreBins חושב 11× (פעם ל-map ופעם בכל איטרציה) —
@@ -1092,10 +1231,10 @@ export function SupportersView() {
           {db.supporters.some((sp) => sp.hok) && (
             <>
               <Chip on={hokF === 'active'} onClick={() => setHokF(hokF === 'active' ? null : 'active')}>
-                {'🔁 פעילות · ' + db.supporters.filter((sp) => sp.hok?.active).length}
+                {'🔁 פעילות · ' + visibleBase.filter((sp) => sp.hok?.active).length}
               </Chip>
               <Chip on={hokF === 'due'} onClick={() => setHokF(hokF === 'due' ? null : 'due')}>
-                {'⏳ טרם נרשמו החודש · ' + hokDue(db.supporters, today).length}
+                {'⏳ טרם נרשמו החודש · ' + hokDue(visibleBase, today).length}
               </Chip>
               {/* לחיצה-אחת-שמבצעת (הכרעת-בעלים "בחירה ידנית מרשימה") — רישום-הו״ק
                   המוני, מגודר opt-in מפורש כי יוצר קבלות-מס אמיתיות. */}
@@ -1131,8 +1270,7 @@ export function SupportersView() {
             בלי מונה
           </Chip>
           <Chip on={ayinF === 'today'} onClick={() => setAyinF(ayinF === 'today' ? null : 'today')}>
-            {'עודכן היום · ' +
-              db.supporters.filter((sp) => sp.ayin && (sp.ayin.lastTouch === today || sp.ayin.log?.some((l) => l.date === today))).length}
+            {'עודכן היום · ' + ayinTodayCount}
           </Chip>
         </div>
       )}
@@ -1150,53 +1288,21 @@ export function SupportersView() {
         /* תצוגת גריד (5.8) — כרטיסים ידידותיים-למובייל; אותו דפוס כמו המשפחות */
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 12 }}>
           {shownRows.map((sp) => {
-            const score = supScore(sp, rate);
-            const tier = supTier(score);
+            const st = statOf(stats, sp, rate);
             return (
-              <div
+              <SupporterGridCard
                 key={sp.id}
-                className="card"
-                role="button"
-                tabIndex={0}
-                onClick={() => (selMode ? toggleSel(sp.id) : setSelId(sp.id))}
-                onKeyDown={(e) => {
-                  if (e.key !== 'Enter' && e.key !== ' ') return;
-                  if (selMode) toggleSel(sp.id);
-                  else setSelId(sp.id);
-                }}
-                style={{ cursor: 'pointer', outline: selMode && selSet.has(sp.id) ? '2px solid var(--brand)' : undefined }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                  {selMode && (
-                    <input type="checkbox" checked={selSet.has(sp.id)} readOnly aria-label={'בחירת ' + sp.name} style={{ flex: 'none' }} />
-                  )}
-                  {rfmOn && (
-                    <span
-                      title={tier.label + ' · ציון ' + score}
-                      style={{ width: 10, height: 10, borderRadius: 99, background: tier.dot, display: 'inline-block', flex: 'none' }}
-                    />
-                  )}
-                  <span style={{ fontWeight: 700, fontSize: 15, flex: 1 }}>{sp.name}</span>
-                  {sp.hok?.active && (
-                    <span title={'הו"ק ' + (sp.hok.cur === '$' ? '$' : '₪') + sp.hok.amount + (hokRecordedThisMonth(sp, today) ? ' · נרשמה החודש ✓' : ' · טרם נרשמה החודש')} style={{ fontSize: 13 }}>
-                      🔁
-                    </span>
-                  )}
-                  {sp.cat && <span style={{ fontSize: 11.5, color: 'var(--ink-faint)' }}>{sp.cat}</span>}
-                </div>
-                {sp.phone && (
-                  <div style={{ fontSize: 13, color: 'var(--ink-soft)', direction: 'ltr', textAlign: 'end' }}>{sp.phone}</div>
-                )}
-                <div style={{ fontSize: 12.5, color: 'var(--ink-faint)', marginTop: 4 }}>
-                  {supCount(sp) + ' ' + termOf(config, 'entity.donations', 'תרומות') + ' · ' + totalLabel(sp)}
-                  {supLast(sp) ? ' · אחרונה ' + fmtDate(supLast(sp)) : ''}
-                </div>
-                {nextOn && sp.nextDate && (
-                  <div style={{ fontSize: 12, color: sp.nextDate <= isoToday() ? 'var(--warn, #b45309)' : 'var(--ink-faint)', marginTop: 2 }}>
-                    {'☎ קשר הבא: ' + fmtDate(sp.nextDate)}
-                  </div>
-                )}
-              </div>
+                sp={sp}
+                st={st}
+                checked={selMode && selSet.has(sp.id)}
+                selMode={selMode}
+                nextOn={nextOn}
+                rfmOn={rfmOn}
+                config={config}
+                today={today}
+                onOpen={openSupporter}
+                onToggle={toggleSel}
+              />
             );
           })}
           <IncMoreCard shown={shownRows.length} total={list.length} refCb={inc.ref} />
@@ -1275,76 +1381,22 @@ export function SupportersView() {
             </thead>
             <tbody>
               {shownRows.map((sp) => (
-                <tr
+                <SupporterRow
                   key={sp.id}
-                  onClick={() => (selMode ? toggleSel(sp.id) : setSelId(sp.id))}
-                  onKeyDown={openRowKey(sp.id)}
-                  tabIndex={0}
-                  style={{ cursor: 'pointer', background: selMode && selSet.has(sp.id) ? 'var(--sel, #eef3ff)' : undefined }}
-                >
-                  {selMode && (
-                    <td style={{ width: 34, textAlign: 'center' }}>
-                      <input type="checkbox" checked={selSet.has(sp.id)} readOnly aria-label={'בחירת ' + sp.name} />
-                    </td>
-                  )}
-                  <td>
-                    <div style={{ fontWeight: 700 }}>{sp.name}</div>
-                    {(sp.cat || sp.forWho) && (
-                      <div style={{ fontSize: 12, color: 'var(--ink-faint)' }}>
-                        {[sp.cat, sp.forWho].filter(Boolean).join(' · ')}
-                      </div>
-                    )}
-                  </td>
-                  <td>{sp.cat || '—'}</td>
-                  <td style={{ direction: 'ltr', textAlign: 'right' }}>{sp.phone || '—'}</td>
-                  <td style={{ direction: 'ltr', textAlign: 'right' }}>{sp.email || '—'}</td>
-                  <td title={'מתי וכמה בכל ' + termOf(config, 'entity.donation', 'תרומה') + ' — בכרטיס'}>{supCount(sp)}</td>
-                  <td>{supIls(sp) ? '₪' + supIls(sp).toLocaleString('he-IL') : '—'}</td>
-                  <td>{supUsd(sp) ? '$' + supUsd(sp).toLocaleString('he-IL') : '—'}</td>
-                  <td title={totalLabel(sp) + (supLast(sp) ? ' · ' + hebDateFull(supLast(sp)) : '')}>
-                    {supLast(sp) ? fmtDate(supLast(sp)) : '—'}
-                  </td>
-                  {nextOn && (
-                    <td style={{ whiteSpace: 'nowrap' }}>
-                      {sp.nextDate ? (
-                        sp.nextDate <= today ? (
-                          <span style={{ color: 'var(--red)', fontWeight: 700 }}>🔔 יעד עבר</span>
-                        ) : (
-                          // התאריך העברי ראשי — הלועזי בשורת משנה (חובה אצל הקהל החרדי)
-                          <span title={fmtDate(sp.nextDate)}>
-                            🎯 {hebDateFull(sp.nextDate)}
-                            <span style={{ display: 'block', fontSize: 11, color: 'var(--ink-faint)' }}>
-                              {fmtDate(sp.nextDate)}
-                            </span>
-                          </span>
-                        )
-                      ) : (
-                        '—'
-                      )}
-                    </td>
-                  )}
-                  {rfmOn && <td style={{ fontWeight: 700 }}>{supScore(sp, rate)}</td>}
-                  {ayinOn && <td>{sp.ayin && ayinActive(sp.ayin) ? stageLabel(config, sp.ayin.stage) : '—'}</td>}
-                  {ayinOn && <td>{sp.ayin && eyesTotal(sp.ayin) ? eyesTotal(sp.ayin) : '—'}</td>}
-                  {ayinOn && <td>{sp.ayin?.paid ? '✓' : '—'}</td>}
-                  {rfmOn && (
-                    <td>
-                      <TierChip sp={sp} rate={rate} />
-                    </td>
-                  )}
-                  {/* P3 פריט 12 — 📞 פר-שורה: חיוג ישיר בלי לפתוח את הכרטיס.
-                      INTEGRATIONS גל א׳ — 💬 וואטסאפ לצדו (הרחבה נמכרת, חסר=כבוי) */}
-                  <td onClick={(e) => e.stopPropagation()}>
-                    {sp.phone && featureOn(config, 'supporters.click2call') ? (
-                      <a href={'tel:' + sp.phone.replace(/\D/g, '')} title={'חיוג ל' + sp.name + ' — ' + sp.phone} aria-label={'חיוג ל' + sp.name}>
-                        📞
-                      </a>
-                    ) : (
-                      ''
-                    )}
-                    {sp.phone && integrationOn(config, 'whatsapp') ? <WaBtn phone={sp.phone} title={'וואטסאפ ל' + sp.name} /> : ''}
-                  </td>
-                </tr>
+                  sp={sp}
+                  st={statOf(stats, sp, rate)}
+                  checked={selMode && selSet.has(sp.id)}
+                  selMode={selMode}
+                  nextOn={nextOn}
+                  rfmOn={rfmOn}
+                  ayinOn={ayinOn}
+                  click2call={click2call}
+                  waOn={waOn}
+                  config={config}
+                  today={today}
+                  onOpen={openSupporter}
+                  onToggle={toggleSel}
+                />
               ))}
               <IncMoreRow shown={shownRows.length} total={list.length} refCb={inc.ref} colSpan={12} />
             </tbody>
@@ -1388,8 +1440,8 @@ export function SupportersView() {
           config={config}
           supporters={visibleSupportersForDesignations(db.supporters, desigLimit)}
           onClose={() => setAyinNamesOpen(false)}
+          /* 17.9: לא סוגרים את מסך-השמות בפתיחת-כרטיס — הכרטיס מכסה אותו, וב-"→ כל התומכים" חוזרים לאותו מקום. */
           onOpenSupporter={(id) => {
-            setAyinNamesOpen(false);
             setSelId(id);
           }}
           onCsv={isAdminUser(config, cloudEmail) ? namesReport : null}

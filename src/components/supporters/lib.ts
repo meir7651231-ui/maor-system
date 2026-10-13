@@ -8,7 +8,8 @@ import type { OrgConfig } from '../../types/config';
 import { termOf } from '../../lib/config';
 import { normSearch, formatIsraeliPhone } from '../../lib/validate';
 import { isoToday as isoTodayLocal } from '../../lib/date-util';
-import { planAddName } from '../../lib/ayin';
+import { eyesTotal, planAddName, stageIndex } from '../../lib/ayin';
+import { numMatch } from '../families/lib';
 import { parseAnyDate, parseCsv } from '../../lib/csvx';
 
 /** תצוגת תאריך DD/MM/YYYY (פנימית נשמר ISO). */
@@ -146,6 +147,32 @@ export function supLast(sp: Supporter): string {
   return m;
 }
 
+/** 🕐 סינון עצמאי לפי "תרומה אחרונה" (בקשת-בעלים 6.9 "נעלם הסינון של תרומה אחרונה"):
+ *  הבורר הקודם ('🕐 תרומה אחרונה בתקופה') הופיע רק אחרי בחירת שנה/חודש — בלי תקופה
+ *  הוא לא היה קיים ⇒ נראה "נעלם". עכשיו בורר-דליים תמיד-גלוי; דטרמיניסטי (היום מוזרק). */
+export const LAST_BUCKETS = [
+  { key: 'm1', label: 'ב-30 הימים האחרונים' },
+  { key: 'm3', label: 'ב-3 החודשים האחרונים' },
+  { key: 'm6', label: 'ב-6 החודשים האחרונים' },
+  { key: 'm12', label: 'ב-12 החודשים האחרונים' },
+  { key: 'over12', label: 'לפני יותר משנה' },
+  { key: 'never', label: 'ללא תרומה' },
+] as const;
+export type LastBucket = (typeof LAST_BUCKETS)[number]['key'];
+
+const BUCKET_DAYS: Record<Exclude<LastBucket, 'over12' | 'never'>, number> = { m1: 30, m3: 91, m6: 182, m12: 365 };
+
+/** האם התרומה האחרונה (קבלות+היסטוריה, supLast) נופלת בדלי. תאריך-עתידי = "עכשיו" (0 ימים). */
+export function supLastInBucket(sp: Supporter, todayIso: string, bucket: LastBucket | null): boolean {
+  if (!bucket) return true;
+  const iso = supLast(sp);
+  if (bucket === 'never') return !iso;
+  if (!iso) return false;
+  const days = Math.max(0, Math.round((new Date(`${todayIso}T12:00:00`).getTime() - new Date(`${iso}T12:00:00`).getTime()) / 86_400_000));
+  if (bucket === 'over12') return days > 365;
+  return days <= BUCKET_DAYS[bucket];
+}
+
 /** האם **התרומה האחרונה** של התורם נפלה בתקופה — שנה (yyyy) ו/או חודש (1–12).
  *  ‏null=כל. משלים את supGaveInPeriod (שבודק אם נתן **בכלל** בתקופה): כאן נבדקת
  *  רק ה**אחרונה** (המאוחרת מבין קבלות+היסטוריה, דרך supLast) — "מי שתרם לאחרונה
@@ -169,11 +196,15 @@ export function supTotalIls(sp: Supporter, rate = 3.7): number {
  * R — טריות (ימים מאז התרומה האחרונה), F — תדירות (מספר תרומות), M — סכום מצטבר.
  */
 export function supScore(sp: Supporter, rate = 3.7): number {
-  const tot = supTotalIls(sp, rate);
-  const last = supLast(sp);
-  const cnt = supCount(sp);
+  return rfmScore(supTotalIls(sp, rate), supLast(sp), supCount(sp), Date.now());
+}
+
+/** הנוסחה עצמה (R·F·M מהחלקים) — ⚡ ביצועים (12.10.2026): משותפת ל-supScore ול-
+ *  buildSupporterStats, כדי שמעבר-אחד על 16,000 תורמים יקרא Date.now() פעם-אחת
+ *  ויחשב את הציון מסכומים שכבר נצברו (במקום 4 מעברי-hist נוספים פר-תורם). */
+export function rfmScore(tot: number, last: string, cnt: number, nowMs: number): number {
   const days = last
-    ? Math.floor((Date.now() - new Date(last + 'T12:00:00').getTime()) / 86400000)
+    ? Math.floor((nowMs - new Date(last + 'T12:00:00').getTime()) / 86400000)
     : 9999;
   const R = days <= 30 ? 350 : days <= 90 ? 280 : days <= 180 ? 200 : days <= 365 ? 120 : 40;
   const F = cnt >= 10 ? 300 : cnt >= 5 ? 230 : cnt >= 3 ? 160 : cnt >= 2 ? 100 : 50;
@@ -197,6 +228,311 @@ export function supTier(sc: number): SupTier {
 }
 
 export const TIER_ORDER = ['זהב', 'כסף', 'ארד', 'רדומה'] as const;
+
+/* ── ⚡ ביצועים (12.10.2026) — סטטיסטיקת-תורם במעבר-אחד ─────────────────────────
+   נמדד על הלקוח-האמיתי (16,000 תורמים · 34MB JSON, CPU ×4): הקשה בחיפוש 1.1–1.4 שניות,
+   מיון 1.0 שנ׳, פתיחת-הטאב 2.1 שנ׳. הסיבה: כל רינדור של הרשימה חישב לכל תורם מחדש
+   supCount/supTotalIls/supScore (3 מסנני numMatch — גם כשריקים), supScore שוב ל-tierCounts,
+   שני reduce ל-tIls/tUsd, donationYears על כל תרומה, והמיון קרא supScore ‎N·logN‎ פעמים —
+   ‏~10 מעברי-hist פר-תורם פר-רינדור, ו-2–4 רינדורים לכל הקשה. ה-callbacks של ה-reduce
+   ב-supIls/supUsd היו הנקודה-החמה #1 בקוד-האפליקציה (5% מזמן-העיסוק כבר על 5k).
+   הפתרון: מעבר-אחד על donations+hist פר-תורם ⇒ Map(id→SupStats) שהמסך ממומואיז על
+   [visibleBase, rate, today]; הסינון, המיון והשורות קוראים מספרים מוכנים. הנוסחאות
+   זהות ביט-לביט לפונקציות-המקור (ratchet: supporter-stats.test). ──────────────── */
+
+/** כל המספרים-המוצגים של תורם — אותן נוסחאות של supIls/supUsd/supCount/supLast/
+ *  supTotalIls/supScore/supTier/supAcqYear, מחושבות פעם-אחת. */
+export interface SupStats {
+  ils: number;
+  usd: number;
+  count: number;
+  last: string;
+  totalIls: number;
+  score: number;
+  tier: SupTier;
+  acqYear: number | null;
+  /** שנות-הנתינה (donations+hist, גולמי — הסינון 1900<y<3000 בבורר). */
+  years: Set<number>;
+  /** טקסט-החיפוש המנורמל (normSearch על שם/מייל/קטגוריה/כתובת/ייעוד) — **עצל**: מתמלא בהקשה
+   *  הראשונה ונשמר במפה הממומואיזת (searchTextOf). נמדד: חישוב-מוקדם לכל 16k = +43ms
+   *  בפתיחת-הטאב (5 regex פר-תורם) — לא משלמים אותו כשלא מחפשים. */
+  search?: string;
+  /** ספרות כל הטלפונים (ראשי+נוספים) — עצל, כמו search (phoneDigitsOf). */
+  phoneDigits?: string[];
+}
+
+/** טקסט-החיפוש המנורמל של תורם — מחושב פעם-אחת לכל stats ונשמר (מטמון-נגזרת טהור). */
+export function searchTextOf(st: SupStats, sp: Supporter): string {
+  return st.search ?? (st.search = normSearch([sp.name, sp.email, sp.cat, sp.address, sp.forWho].join(' ')));
+}
+
+/** ספרות כל הטלפונים של תורם — מחושב פעם-אחת לכל stats ונשמר. */
+export function phoneDigitsOf(st: SupStats, sp: Supporter): string[] {
+  return st.phoneDigits ?? (st.phoneDigits = allSupPhones(sp).map((r) => r.num.replace(/\D/g, '')));
+}
+
+/** סטטיסטיקה של תורם-יחיד — מעבר-אחד על donations ועל hist. */
+export function supporterStats(sp: Supporter, rate = 3.7, nowMs = Date.now()): SupStats {
+  let hIls = 0;
+  let hUsd = 0;
+  let hCnt = 0;
+  let last = sp.last || '';
+  let min = '';
+  const years = new Set<number>();
+  for (const d of sp.donations ?? []) {
+    if (d.date && (!min || d.date < min)) min = d.date;
+    if (d.date) years.add(+String(d.date).slice(0, 4));
+  }
+  for (const h of sp.hist ?? []) {
+    // סדר-הסכימה זהה ל-reduce של supIls/supUsd (צבירה מ-0 לפי סדר-המערך, ואז + השמור)
+    if (h.c === '$') hUsd += h.a;
+    else hIls += h.a;
+    if ((h.a || 0) > 0) hCnt++;
+    if (h.d > last) last = h.d;
+    if (h.d && (!min || h.d < min)) min = h.d;
+    if (h.d) years.add(+String(h.d).slice(0, 4));
+  }
+  const ils = (sp.ils || 0) + hIls;
+  const usd = (sp.usd || 0) + hUsd;
+  const count = (sp.count || 0) + hCnt;
+  const totalIls = ils + usd * rate;
+  const score = rfmScore(totalIls, last, count, nowMs);
+  return {
+    ils,
+    usd,
+    count,
+    last,
+    totalIls,
+    score,
+    tier: supTier(score),
+    acqYear: min ? +min.slice(0, 4) : null,
+    years,
+  };
+}
+
+/**
+ * Map(רשומה→SupStats) לכל הרשימה — Date.now() נקרא פעם-אחת לכל המעבר (כמו supScore פר-קריאה).
+ * ⚠️ ביקורת (12.10): המפתח הוא **הרשומה עצמה** (זהות-אובייקט), לא sp.id — migrate אינו מאחד מזהי-תורם
+ * כפולים (רק rid/מזהי-חברים), ומפה-לפי-id הייתה מציגה/ממיינת/מסכמת שורה אחת במספרי השנייה
+ * (עד היום כל שורה חושבה מעצמה). אותה עלות, חסין-כפילות.
+ */
+export function buildSupporterStats(supporters: readonly Supporter[], rate = 3.7, nowMs = Date.now()): Map<Supporter, SupStats> {
+  const out = new Map<Supporter, SupStats>();
+  for (const sp of supporters) out.set(sp, supporterStats(sp, rate, nowMs));
+  return out;
+}
+
+/** "₪1,200 + $300" מהסכומים המוכנים — אותו נוסח של totalLabel. */
+export function totalLabelOf(i: number, u: number): string {
+  const ils = i ? '₪' + i.toLocaleString('he-IL') : '';
+  const usd = u ? '$' + u.toLocaleString('he-IL') : '';
+  return ils && usd ? ils + ' + ' + usd : ils || usd || '—';
+}
+
+/** שנת-הגיוס (המתנה-הראשונה) — לדריל-אין מקוהורטת-הגיוס. null כשאין נתינה. */
+export function supAcqYear(sp: { donations: { date: string }[]; hist?: { d: string }[] }): number | null {
+  let min = '';
+  for (const d of sp.donations) if (d.date && (!min || d.date < min)) min = d.date;
+  if (sp.hist) for (const h of sp.hist) if (h.d && (!min || h.d < min)) min = h.d;
+  return min ? +min.slice(0, 4) : null;
+}
+/** האם התורם נתן בתקופה — שנה (yyyy) ו/או חודש (1–12). null=כל. חיפוש-מפורש. */
+export function supGaveInPeriod(
+  sp: { donations: { date: string }[]; hist?: { d: string }[] },
+  year: number | null,
+  month: number | null,
+): boolean {
+  if (year == null && month == null) return true;
+  const hit = (iso: string): boolean => {
+    if (!iso) return false;
+    if (year != null && +iso.slice(0, 4) !== year) return false;
+    if (month != null && +iso.slice(5, 7) !== month) return false;
+    return true;
+  };
+  if (sp.donations.some((d) => hit(String(d.date)))) return true;
+  return !!sp.hist?.some((h) => hit(String(h.d)));
+}
+/** כל שנות-הנתינה שקיימות במאגר — לבורר-השנה, מהחדשה לישנה. */
+export function donationYears(sups: { donations: { date: string }[]; hist?: { d: string }[] }[]): number[] {
+  const set = new Set<number>();
+  for (const sp of sups) {
+    for (const d of sp.donations) if (d.date) set.add(+String(d.date).slice(0, 4));
+    if (sp.hist) for (const h of sp.hist) if (h.d) set.add(+String(h.d).slice(0, 4));
+  }
+  return [...set].filter((y) => y > 1900 && y < 3000).sort((a, b) => b - a);
+}
+/** אותו בורר-שנים מתוך הסטטיסטיקה המוכנה (איחוד SupStats.years) — ביט-זהה ל-donationYears. */
+export function donationYearsFromStats(stats: Iterable<SupStats>): number[] {
+  const set = new Set<number>();
+  for (const st of stats) for (const y of st.years) set.add(y);
+  return [...set].filter((y) => y > 1900 && y < 3000).sort((a, b) => b - a);
+}
+
+/* ── סינון + מיון הרשימה — טהורים, קוראים מספרים מ-SupStats (12.10.2026) ──────────
+   הפרדיקט הועבר כמו-שהוא מגוף-המסך (SupportersView) כדי שאפשר יהיה להוכיח ב-ratchet
+   שהתוצאה זהה לפרדיקט-הישן (list-equivalence.test) — אותן שורות, אותו סדר. ──────── */
+
+export interface SupListFilters {
+  dq: string;
+  cat: string;
+  purposeF: string;
+  regionF: 'all' | 'il' | 'intl';
+  hokF: null | 'active' | 'due';
+  tierF: string | null;
+  lastF: LastBucket | null;
+  monthF: number | null;
+  gaveYearF: number | null;
+  periodMode: 'gave' | 'last';
+  acqYearF: number | null;
+  colF: { count: string; total: string; score: string };
+  nextF: boolean;
+  ayinF: null | 'eyes' | 'noeyes' | 'today';
+}
+
+/** סטטיסטיקה מהמפה, עם נפילה-רכה לחישוב-מקומי (רשומה שאינה במפה — לא אמור לקרות). */
+export function statOf(stats: ReadonlyMap<Supporter, SupStats>, sp: Supporter, rate: number): SupStats {
+  return stats.get(sp) ?? supporterStats(sp, rate);
+}
+
+/**
+ * הסינון של מסך-התורמים — הפרדיקט המקורי שורה-בשורה; המספרים (מונה/₪-שקול/ציון/
+ * דרגה/שנת-גיוס) מגיעים מ-SupStats במקום חישוב-חוזר פר-תורם. סינון-הסגמנט מוזרק
+ * (matchSeg) כי segments.ts נשען על lib.ts (בלי ייבוא-מעגלי).
+ */
+export function filterSupporterList(
+  base: readonly Supporter[],
+  stats: ReadonlyMap<Supporter, SupStats>,
+  f: SupListFilters,
+  today: string,
+  rate: number,
+  matchSeg: ((sp: Supporter) => boolean) | null,
+): Supporter[] {
+  const { dq, cat, purposeF, regionF, hokF, tierF, lastF, monthF, gaveYearF, periodMode, acqYearF, colF, nextF, ayinF } = f;
+  const nq = normSearch(dq);
+  const qd = dq.replace(/\D/g, '');
+  const hasQ = !!dq.trim();
+  return base.filter((sp) => {
+    const st = statOf(stats, sp, rate);
+    if (cat !== 'all' && (sp.cat || '') !== cat) return false;
+    if (purposeF !== 'all' && (sp.forWho || '').trim() !== purposeF) return false;
+    // סינון אזור-טלפון (חול/ישראל) — לפי כל מספרי התורם (ראשי + נוספים).
+    if (regionF !== 'all' && !supHasRegion(sp, regionF)) return false;
+    // 🔁 סינון הו"ק (ROADMAP-100 ‏#2): הוראות פעילות / רק שטרם-נרשמו-החודש
+    if (hokF === 'active' && !sp.hok?.active) return false;
+    // 🐛 קוהרנטיות (21.8): הצ'יפ "⏳ טרם נרשמו" מונה לפי hokDue (hokEffectivelyActive —
+    // הו"ק-נדרים ששתקה >2 חודשים מוחרגת), אבל הסינון השתמש ב-hok?.active הגולמי ⇒
+    // מונה-הצ'יפ ≠ שורות-הרשימה ≠ אוכלוסיית HokBulkModal. עכשיו אותו-כלל בדיוק.
+    if (hokF === 'due' && !(hokEffectivelyActive(sp, today) && !hokRecordedThisMonth(sp, today))) return false;
+    if (tierF && st.tier.label !== tierF) return false;
+    if (matchSeg && !matchSeg(sp)) return false;
+    // תקופה: 'last' ⇒ רק מי שתרומתו האחרונה בתקופה; 'gave' ⇒ מי שנתן בכלל בתקופה.
+    if (lastF && !supLastInBucket(sp, today, lastF)) return false;
+    if (monthF || gaveYearF) {
+      const inPeriod = periodMode === 'last'
+        ? supLastInPeriod(sp, gaveYearF, monthF)
+        : supGaveInPeriod(sp, gaveYearF, monthF);
+      if (!inPeriod) return false;
+    }
+    if (acqYearF && st.acqYear !== acqYearF) return false;
+    // פילטרי numMatch (פריט 13) — תרומות / סה"כ ₪-שקול (לפי השער העריך) / ציון
+    if (!numMatch(colF.count, st.count)) return false;
+    if (!numMatch(colF.total, Math.round(st.totalIls))) return false;
+    if (!numMatch(colF.score, st.score)) return false;
+    // 📞 יעדי-קשר שהגיעו (20.8) — אותה סמנטיקה כמו dueContacts בווידג'ט-הבית
+    if (nextF && !(sp.nextDate && sp.nextDate <= today)) return false;
+    // סינון מעקב הטיפול (פריט 14)
+    if (ayinF === 'eyes' && !(sp.ayin && eyesTotal(sp.ayin) > 0)) return false;
+    if (ayinF === 'noeyes' && sp.ayin && eyesTotal(sp.ayin) > 0) return false;
+    if (ayinF === 'today' && !(sp.ayin && (sp.ayin.lastTouch === today || sp.ayin.log?.some((l) => l.date === today)))) return false;
+    if (!hasQ) return true;
+    // חיפוש-טלפון כולל את כל המספרים (ראשי + נוספים), לא רק phone.
+    const phoneHit = qd.length >= 3 && phoneDigitsOf(st, sp).some((n) => n.includes(qd));
+    const textHit = !!nq && searchTextOf(st, sp).includes(nq);
+    return phoneHit || textHit;
+  });
+}
+
+export type SupSortKey =
+  | 'name'
+  | 'cat'
+  | 'phone'
+  | 'email'
+  | 'count'
+  | 'ils'
+  | 'usd'
+  | 'last'
+  | 'nextDate'
+  | 'score'
+  | 'stage'
+  | 'eyes'
+  | 'paid';
+
+/** מפתח-המיון של שורה — אותם ערכים של sortVal המקורי, מהסטטיסטיקה המוכנה. */
+export function sortKeyOf(sp: Supporter, st: SupStats, key: SupSortKey): string | number {
+  switch (key) {
+    case 'name':
+      return sp.name;
+    case 'cat':
+      return sp.cat || '';
+    case 'phone':
+      return sp.phone || '';
+    case 'email':
+      return sp.email || '';
+    // הכרעת 9.8 "לכולל": מיון/סינון/תצוגה על הצבירה כולל-ההיסטוריה
+    case 'count':
+      return st.count;
+    case 'ils':
+      return st.ils;
+    case 'usd':
+      return st.usd;
+    case 'last':
+      return st.last;
+    case 'nextDate':
+      return sp.nextDate || '';
+    case 'score':
+      return st.score;
+    case 'stage':
+      return sp.ayin ? stageIndex(sp.ayin.stage) : -1;
+    case 'eyes':
+      return sp.ayin ? eyesTotal(sp.ayin) : -1;
+    case 'paid':
+      return sp.ayin?.paid ? 1 : 0;
+  }
+}
+
+const NUM_SORT_KEYS: ReadonlySet<SupSortKey> = new Set(['count', 'ils', 'usd', 'score', 'stage', 'eyes', 'paid']);
+
+/**
+ * מיון-מעוטר (decorate-sort): מפתח-אחד פר-שורה (במקום sortVal×2 לכל השוואה — מיון-ציון
+ * קרא supScore ‎N·logN‎ פעמים, 1.0 שנ׳ על 16k), Collator('he') יחיד. Array.prototype.sort
+ * יציב ⇒ סדר-השוויונים זהה למיון-המקורי (ratchet list-equivalence).
+ */
+export function sortSupporterList(
+  list: readonly Supporter[],
+  stats: ReadonlyMap<Supporter, SupStats>,
+  key: SupSortKey,
+  dir: 1 | -1,
+  rate: number,
+): Supporter[] {
+  const keys = list.map((sp) => sortKeyOf(sp, statOf(stats, sp, rate), key));
+  const idx = list.map((_, i) => i);
+  // ⚠️ ביקורת (12.10): הענף-המספרי רק כשכל המפתחות באמת מספרים — ההשוואה המקורית הכריעה פר-ערך
+  // (typeof va === 'number'); רשומת-ענן פגומה (ils:'5' מחרוזת, healRecord לא מרפא ils/usd) מוינה
+  // בהשוואת-מחרוזות ⇒ אותו כלל פר-זוג כדי לשמור סדר ביט-זהה גם אז.
+  if (NUM_SORT_KEYS.has(key) && keys.every((k) => typeof k === 'number')) {
+    idx.sort((a, b) => ((keys[a] as number) - (keys[b] as number)) * dir);
+  } else if (NUM_SORT_KEYS.has(key)) {
+    idx.sort((a, b) => {
+      const va = keys[a];
+      const vb = keys[b];
+      return (typeof va === 'number' ? va - (vb as number) : String(va).localeCompare(String(vb), 'he')) * dir;
+    });
+  } else {
+    const col = new Intl.Collator('he');
+    idx.sort((a, b) => col.compare(String(keys[a]), String(keys[b])) * dir);
+  }
+  return idx.map((i) => list[i]);
+}
 
 /* ---------- פאנל דרגות מורחב (P3 פריט 12) — טהור, נוסחאות הלגאסי ---------- */
 
@@ -339,6 +675,278 @@ export function segulaTitle(name: string, r: SegulaReminder, target: number): st
   return (r.final ? '🎯 סיום סגולה' : '🕯 סגולה') + ' — ' + (name || '') + ' · יום ' + r.day + '/' + target;
 }
 
+/** תחילית-ההערה שמסמנת אירוע-סגולה (נכתבת ב-seedSegulaReminders). */
+export const SEGULA_NOTE_PREFIX = 'סגולת ';
+
+/** תזכורת-סגולה אחת מהריצה הנוכחית — לרשימה בכרטיס (סימון ✓ / ביטול). */
+export interface SegulaReminderState {
+  /** מזהה אירוע-הלוח (לסימון-בוצע/מחיקה). */
+  id: string;
+  date: string;
+  /** יום בספירה מתאריך-ההתחלה (1·7·21·35·40). */
+  day: number;
+  done: boolean;
+  final: boolean;
+}
+
+export interface SegulaStatus {
+  active: boolean;
+  /** תאריך-ההתחלה (יום 0) ותאריך-הסיום (היום ה-40). */
+  start: string;
+  end: string;
+  /** התזכורת הבאה שטרם עברה (או '' אחרי הסיום). */
+  next: string;
+  /** יום נוכחי בספירה (0..target) והיעד. */
+  day: number;
+  target: number;
+  /** כמה תזכורות כבר סומנו כבוצעו. */
+  done: number;
+  total: number;
+  /** תזכורות הריצה הנוכחית (האחרונה) ממוינות לפי תאריך — לרשימה בכרטיס. */
+  reminders: SegulaReminderState[];
+  /** סיום הריצה האחרונה גם כשאינה פעילה ('' כשלא הייתה סגולה מעולם) — "סגולה קודמת הסתיימה ב-". */
+  lastEnd: string;
+}
+
+/**
+ * מצב-הסגולה של תומך/ת — נגזרת טהורה מאירועי-הלוח שלו (type 'call', spId, הערה
+ * שמתחילה ב-SEGULA_NOTE_PREFIX). בקשת-בעלים 3.9 "40 יום לא מופיע": הכפתור זרע ליומן
+ * בלבד ולא הציג כלום בכרטיס. פעילה = יש אירועי-סגולה והסיום עוד לא עבר.
+ * בקשת-בעלים 6.9 "מה קורה עם הכפתור": **ריצה נוכחית** = האירועים מתאריך-ההתחלה
+ * (סיום−40) ואילך — ריצה קודמת שהסתיימה לא מזייפת את המונים; הרשימה `reminders`
+ * מאפשרת ✓/ביטול/התחלה-מחדש מהכרטיס; `lastEnd` מציג "סגולה קודמת הסתיימה".
+ */
+export function segulaStatus(
+  events: readonly { id?: string; spId?: string; type?: string; date: string; notes?: string; done?: boolean }[],
+  spId: string,
+  todayIso: string,
+): SegulaStatus {
+  const evs = events
+    .filter((e) => e.spId === spId && e.type === 'call' && (e.notes || '').startsWith(SEGULA_NOTE_PREFIX))
+    .sort((a, b) => a.date.localeCompare(b.date));
+  const target = Math.max(...SEGULA_OFFSETS);
+  const empty: SegulaStatus = { active: false, start: '', end: '', next: '', day: 0, target, total: 0, done: 0, reminders: [], lastEnd: '' };
+  if (!evs.length) return empty;
+  const end = evs[evs.length - 1].date;
+  const endD = new Date(`${end}T12:00:00`);
+  const startD = new Date(endD);
+  startD.setDate(startD.getDate() - target);
+  const start = `${startD.getFullYear()}-${String(startD.getMonth() + 1).padStart(2, '0')}-${String(startD.getDate()).padStart(2, '0')}`;
+  // הריצה הנוכחית בלבד — אירועי ריצה קודמת (לפני תאריך-ההתחלה) לא נספרים.
+  const run = evs.filter((e) => e.date >= start);
+  const dayOf = (iso: string) => Math.round((new Date(`${iso}T12:00:00`).getTime() - startD.getTime()) / 86_400_000);
+  const reminders: SegulaReminderState[] = run.map((e) => ({ id: e.id ?? '', date: e.date, day: dayOf(e.date), done: !!e.done, final: e.date === end }));
+  const todayD = new Date(`${todayIso}T12:00:00`);
+  const day = Math.max(0, Math.round((todayD.getTime() - startD.getTime()) / 86_400_000));
+  const next = run.find((e) => e.date >= todayIso && !e.done)?.date ?? '';
+  return { active: todayIso <= end, start, end, next, day: Math.min(day, target), target, total: run.length, done: run.filter((e) => e.done).length, reminders, lastEnd: end };
+}
+
+/**
+ * הסרת שורת-הסגולה מהערת-קשר-הבא (ביטול/התחלה-מחדש) — שורות שמכילות "סגולת N יום"
+ * יורדות, השאר נשמר ביט-זהה. טהור.
+ */
+export function stripSegulaNote(note: string, target: number = Math.max(...SEGULA_OFFSETS)): string {
+  return (note || '')
+    .split('\n')
+    .filter((l) => !l.includes(SEGULA_NOTE_PREFIX + target + ' יום'))
+    .join('\n');
+}
+
+/* ── 🔁 תזכורות-חוזרות — בחירה: 40 יום (סגולה) · יומי · שבועי · חודשי (בקשת-בעלים 16.9) ── */
+
+export type RecurMode = 'segula' | 'daily' | 'weekly' | 'monthly';
+
+export interface RecurModeDef {
+  key: RecurMode;
+  emoji: string;
+  /** תווית קצרה לצ׳יפ-הבחירה. */
+  chip: string;
+  /** תווית מלאה לכפתור/פאנל. */
+  label: string;
+  /** תחילית-ההערה שמזהה את הסדרה באירועי-הלוח (מפריד בין סדרות). */
+  prefix: string;
+  /** כמות תזכורות ברירת-מחדל (סגולה = קבוע 5). */
+  defaultCount: number;
+}
+
+export const RECUR_MODES: readonly RecurModeDef[] = [
+  { key: 'segula', emoji: '🕯', chip: '40 יום', label: 'סגולת 40 יום', prefix: SEGULA_NOTE_PREFIX, defaultCount: SEGULA_OFFSETS.length },
+  { key: 'daily', emoji: '📅', chip: 'יומי', label: 'תזכורת יומית', prefix: 'חזרה יומית', defaultCount: 30 },
+  { key: 'weekly', emoji: '📆', chip: 'שבועי', label: 'תזכורת שבועית', prefix: 'חזרה שבועית', defaultCount: 12 },
+  { key: 'monthly', emoji: '🗓', chip: 'חודשי', label: 'תזכורת חודשית', prefix: 'חזרה חודשית', defaultCount: 12 },
+];
+
+export function recurDef(mode: RecurMode): RecurModeDef {
+  return RECUR_MODES.find((m) => m.key === mode) ?? RECUR_MODES[0];
+}
+
+function addMonthsIso(startIso: string, months: number): string {
+  const d = new Date(`${startIso}T12:00:00`);
+  const day = d.getDate();
+  d.setDate(1);
+  d.setMonth(d.getMonth() + months);
+  const last = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+  d.setDate(Math.min(day, last)); // 31.1 + חודש ⇒ 28/29.2 (לא גולש למרץ)
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+/**
+ * תאריכי-הסדרה מתאריך-התחלה — דטרמיניסטי. סגולה = SEGULA_OFFSETS (day = מספר-ימים);
+ * יומי/שבועי/חודשי = count תזכורות, day = מספר-סידורי (1..count), האחרונה final.
+ */
+export function recurDates(startIso: string, mode: RecurMode, count?: number): SegulaReminder[] {
+  if (mode === 'segula') return segulaReminders(startIso);
+  const n = Math.max(1, Math.min(365, Math.floor(count ?? recurDef(mode).defaultCount)));
+  const out: SegulaReminder[] = [];
+  for (let i = 1; i <= n; i++) {
+    const date = mode === 'monthly' ? addMonthsIso(startIso, i) : segulaReminders(startIso, [mode === 'daily' ? i : i * 7])[0].date;
+    out.push({ day: i, date, final: i === n });
+  }
+  return out;
+}
+
+/**
+ * מצב-סדרה חוזרת של תומך/ת — לסגולה מאציל ל-segulaStatus (ריצה-נוכחית = 40 יום אחורה);
+ * לשאר: כל אירועי-הסדרה (type call, spId, הערה מתחילה בתחילית-המצב), target = כמות, day =
+ * המספר-הסידורי של התזכורת הבאה (או הכמות כשהסתיימה).
+ */
+export function recurStatus(
+  events: readonly { id?: string; spId?: string; type?: string; date: string; notes?: string; done?: boolean }[],
+  spId: string,
+  todayIso: string,
+  mode: RecurMode,
+): SegulaStatus {
+  if (mode === 'segula') return segulaStatus(events, spId, todayIso);
+  const def = recurDef(mode);
+  const evs = events
+    .filter((e) => e.spId === spId && e.type === 'call' && (e.notes || '').startsWith(def.prefix))
+    .sort((a, b) => a.date.localeCompare(b.date));
+  const empty: SegulaStatus = { active: false, start: '', end: '', next: '', day: 0, target: 0, total: 0, done: 0, reminders: [], lastEnd: '' };
+  if (!evs.length) return empty;
+  const start = evs[0].date;
+  const end = evs[evs.length - 1].date;
+  const reminders: SegulaReminderState[] = evs.map((e, i) => ({ id: e.id ?? '', date: e.date, day: i + 1, done: !!e.done, final: i === evs.length - 1 }));
+  const nextIdx = evs.findIndex((e) => e.date >= todayIso && !e.done);
+  return {
+    active: todayIso <= end,
+    start,
+    end,
+    next: nextIdx >= 0 ? evs[nextIdx].date : '',
+    day: nextIdx >= 0 ? nextIdx + 1 : evs.length,
+    target: evs.length,
+    total: evs.length,
+    done: evs.filter((e) => e.done).length,
+    reminders,
+    lastEnd: end,
+  };
+}
+
+/** סדרה פעילה אחת של תומך/ת — לצ'יפי-המצב בלוח. */
+export interface ActiveRecur {
+  mode: RecurMode;
+  st: SegulaStatus;
+}
+
+/** כל הסדרות הפעילות של תומך/ת (סגולה/יומי/שבועי/חודשי) — נגזרת טהורה מאירועי-הלוח. */
+export function activeRecurSeries(
+  events: readonly { id?: string; spId?: string; type?: string; date: string; notes?: string; done?: boolean }[],
+  spId: string,
+  todayIso: string,
+): ActiveRecur[] {
+  return RECUR_MODES.map((m) => ({ mode: m.key, st: recurStatus(events, spId, todayIso, m.key) })).filter((x) => x.st.active);
+}
+
+/** תזכורת-סדרה שהגיע יומה (או באיחור) וטרם סומנה ✓ — לקפיצה בלוח מעקב-הטיפול. */
+export interface DueRecur {
+  /** מזהה אירוע-הלוח (לסימון ✓ בוצע דרך toggleEventDone). */
+  id: string;
+  date: string;
+  mode: RecurMode;
+  /** יום/מספר-סידורי של התזכורת בסדרה והיעד (40 לסגולה; הכמות לשאר). */
+  day: number;
+  target: number;
+  /** כמה ימים אחרי התאריך (0 = היום). */
+  overdueDays: number;
+}
+
+/**
+ * התזכורת המוקדמת-ביותר בכל הסדרות של תומך/ת שתאריכה ≤ היום ולא בוצעה — או null.
+ * בקשת-בעלים 6.10 «האם הוא קופץ בלוח מעקב טיפול כמו הקשר הבא»: זה המנגנון — נגזרת-מצב טהורה
+ * (כמו isDueNext), היום מוזרק, בלי Date.now. תזכורת שסומנה ✓ יורדת; הבאה תקפוץ ביומה.
+ */
+export function dueRecurReminder(
+  events: readonly { id?: string; spId?: string; type?: string; date: string; notes?: string; done?: boolean }[],
+  spId: string,
+  todayIso: string,
+): DueRecur | null {
+  const t = new Date(`${todayIso}T12:00:00`).getTime();
+  let best: DueRecur | null = null;
+  for (const m of RECUR_MODES) {
+    const st = recurStatus(events, spId, todayIso, m.key);
+    for (const r of st.reminders) {
+      if (r.done || !r.id || r.date > todayIso) continue;
+      if (!best || r.date < best.date) {
+        best = { id: r.id, date: r.date, mode: m.key, day: r.day, target: st.target, overdueDays: Math.max(0, Math.round((t - new Date(`${r.date}T12:00:00`).getTime()) / 86_400_000)) };
+      }
+    }
+  }
+  return best;
+}
+
+/* ── ⚡ אינדקס-סדרות (ביצועים 12.10.2026) ──
+   נמדד על 16,000 תורמים (הלקוח האמיתי): recurStatus/dueRecurReminder/activeRecurSeries סורקים את **כל**
+   אירועי-הלוח בכל קריאה (4 מצבים × filter+sort), ולוח-המעקב קורא להם ~4× לכל שורה-גלויה בכל רינדור ⇒
+   16k × 300 אירועים = 179 ms לסבב-אחד, 16k × 5,000 אירועים = 5.4 s (Node, בלי האטה; ×4 במכשיר-איטי).
+   הפתרון: אינדקס Map<spId, אירועי-call-של-סדרה> שנבנה **פעם-אחת** לכל שינוי ב-db.events, והגרסאות
+   ה-Indexed קוראות לאותן פונקציות-ישנות על תת-הרשימה של התומך/ת בלבד. הסינון הישן (spId+type+תחילית)
+   אידמפוטנטי והסדר-המקורי נשמר (sort יציב) ⇒ התוצאה **ביט-זהה** (property-test ב-perf-panels.test).
+   הפונקציות הישנות נשארות לקוראים האחרים (כרטיס, store). */
+
+/** אירוע-לוח כפי שמנועי-הסדרה צורכים אותו (צורה מינימלית, לא OrgEvent מלא). */
+export type RecurEventLike = { id?: string; spId?: string; type?: string; date: string; notes?: string; done?: boolean };
+
+/** אינדקס לפי תומך/ת: רק אירועי 'call' עם spId שהערתם מתחילה באחת מתחיליות-הסדרה, בסדר-המקור. */
+export type RecurIndex = ReadonlyMap<string, readonly RecurEventLike[]>;
+
+const EMPTY_RECUR: readonly RecurEventLike[] = [];
+
+/** בניית האינדקס — מעבר-יחיד O(E). לקרוא פעם-אחת לכל שינוי-אירועים (useMemo על db.events). */
+export function buildRecurIndex(events: readonly RecurEventLike[]): RecurIndex {
+  const map = new Map<string, RecurEventLike[]>();
+  for (const e of events) {
+    if (e.type !== 'call' || typeof e.spId !== 'string') continue;
+    const notes = e.notes || '';
+    if (!RECUR_MODES.some((m) => notes.startsWith(m.prefix))) continue;
+    const list = map.get(e.spId);
+    if (list) list.push(e);
+    else map.set(e.spId, [e]);
+  }
+  return map;
+}
+
+/** = recurStatus(events, spId, todayIso, mode) — על האינדקס. */
+export function recurStatusIndexed(index: RecurIndex, spId: string, todayIso: string, mode: RecurMode): SegulaStatus {
+  return recurStatus(index.get(spId) ?? EMPTY_RECUR, spId, todayIso, mode);
+}
+
+/** = activeRecurSeries(events, spId, todayIso) — על האינדקס. */
+export function activeRecurSeriesIndexed(index: RecurIndex, spId: string, todayIso: string): ActiveRecur[] {
+  return activeRecurSeries(index.get(spId) ?? EMPTY_RECUR, spId, todayIso);
+}
+
+/** = dueRecurReminder(events, spId, todayIso) — על האינדקס. */
+export function dueRecurReminderIndexed(index: RecurIndex, spId: string, todayIso: string): DueRecur | null {
+  return dueRecurReminder(index.get(spId) ?? EMPTY_RECUR, spId, todayIso);
+}
+
+/** הסרת שורת-הסדרה (לפי תחילית-המצב) מהערת-קשר-הבא — טהור. */
+export function stripRecurNote(note: string, mode: RecurMode): string {
+  if (mode === 'segula') return stripSegulaNote(note);
+  const pre = recurDef(mode).prefix;
+  return (note || '').split('\n').filter((l) => !l.includes(pre)).join('\n');
+}
+
 /** "₪1,200 + $300" או "—" כשאין כלום — כולל היסטוריה (הכרעת 9.8). */
 export function totalLabel(sp: Supporter): string {
   const i = supIls(sp);
@@ -440,6 +1048,9 @@ export function orgCalEntries(supporters: Supporter[]): SupCalEntry[] {
     }
     for (const an of sp.ayin?.answers ?? []) out.push({ date: an.date, amount: 0, cur: '', src: '📞 תשובה: ' + an.note, name: sp.name, spId: sp.id });
     if (sp.ayin?.nextTalk) out.push({ date: sp.ayin.nextTalk, amount: 0, cur: '', src: '🔁 לדבר שוב', name: sp.name, spId: sp.id });
+    // 🎯 יעד קשר-הבא — מחווט גם ללוח-התורמים הכלל-ארגוני (בקשת-בעלים 30.8
+    // "קשר הבא לא מחווט ללוח תורמים"); בלוח האישי כבר קיים (personalCalEntries).
+    if (sp.nextDate) out.push({ date: sp.nextDate, amount: 0, cur: '', src: '🎯 יעד לקשר הבא' + (sp.nextNote ? ' · ' + sp.nextNote : ''), name: sp.name, spId: sp.id });
   }
   return out.filter((e) => !!e.date);
 }
@@ -805,7 +1416,8 @@ export function hokEffectivelyActive(sp: Supporter, todayIso: string): boolean {
   if (!h.kevaId) return true; // הו"ק ידני — אין לאפ-אוטומטי
   let last = '';
   // 🐛 נחיל-סולה C7: גם חיובי-סולה נחשבים "חיות" של הו"ק-סליקה
-  for (const e of sp.hist ?? []) if ((e.clearer === 'נדרים' || e.clearer === 'סולה') && (e.d || '') > last) last = e.d || '';
+  // ביקורת 3.9 (MN-5): זיכוי (a≤0) אינו "חיוב-חי" — לא מאריך את חלון-החיות (עקבי עם supCount/withNedarimHok)
+  for (const e of sp.hist ?? []) if ((e.clearer === 'נדרים' || e.clearer === 'סולה') && (e.a ?? 0) > 0 && (e.d || '') > last) last = e.d || '';
   if (!last) return true; // עדיין אין היסטוריית-נדרים — סומכים על הדגל
   return monthsAgoIso(last, todayIso) <= 2;
 }
@@ -825,7 +1437,8 @@ export function hokRecordedThisMonth(sp: Supporter, todayIso: string): boolean {
   // משתנה, למשל שזוהתה-רטרואקטיבית, לא תוצג שגוי כ"ממתין"); נפילה: התאמת-סכום-מדויק
   // לרשומת-hist שאינה נדרים (מקור-ישן/לגאסי).
   return (sp.hist ?? []).some(
-    (h) => (h.d || '').startsWith(month) && (h.clearer === 'נדרים' || h.clearer === 'סולה' || (h.a === hok.amount && (h.c || '₪') === hok.cur)),
+    // ביקורת 3.9 (MN-5): זיכוי-נדרים/סולה (a≤0) החודש אינו "חיוב נרשם"
+    (h) => (h.d || '').startsWith(month) && (((h.clearer === 'נדרים' || h.clearer === 'סולה') && (h.a ?? 0) > 0) || (h.a === hok.amount && (h.c || '₪') === hok.cur)),
   );
 }
 

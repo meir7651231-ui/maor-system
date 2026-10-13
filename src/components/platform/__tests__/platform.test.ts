@@ -72,7 +72,8 @@ describe('☁️ ratchet — ענן 4: לוח הבקרה', () => {
   });
 
   it('הגנת-מקור: העריכה החיה — כל מתג נכתב מיד לענן; "שמור — הוקם" ⇒ provisioned', () => {
-    expect(panelSrc).toContain('writeOrgCloudConfig(sel, next)');
+    // 6.10 ("נדלק ונכבה לבד"): כתיבה נקודתית (diff) במקום תצלום-מלא
+    expect(panelSrc).toContain("patchOrgCloudConfig(sel, ops, by, 'platform', next)");
     expect(panelSrc).toContain('provisioned: true');
     expect(panelSrc).toContain('allOffConfig(');
     expect(panelSrc).toContain('applyVerticalPack');
@@ -316,7 +317,7 @@ describe('🛡 ORGADMIN — הגנות-מקור (חיווט 3 השכבות)', ()
     // בקשת-בעלים: "שאני אראה בלייב מה אני מדליק" — #builder=slug מלביש את
     // קונפיג-הלקוח על האפליקציה, כל שינוי נכתב לענן (onSnapshot אצל הלקוח),
     // ובסגירה/קריסה מיתוג-הבעלים חוזר מהתצלום.
-    expect(remoteSrc).toContain('writeOrgCloudConfig(slug, s.config)');
+    expect(remoteSrc).toContain("patchOrgCloudConfig(slug, ops, by, 'builder', next)");
     expect(remoteSrc).toContain('BUILDER_PREV_KEY');
     // ציד-באגים 5.8: התצלום ב-localStorage (sessionStorage נמחק עם סגירת-הטאב ⇒
     // האתר של הבעלים נשאר לבוש-כלקוח לתמיד) + כולל את הערכה-האישית (db.ui)

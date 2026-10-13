@@ -563,44 +563,60 @@ export function subscribeAll(
   // אכיפת-נתונים (dormant): קילוף skey מאוספים-נאכפים; no-op בשאר האוספים.
   const clean = (col: string, data: Record<string, unknown>) =>
     (SUP_KEYED_COLS as readonly string[]).includes(col) ? stripSupKey(data) : data;
-  const unsubs = ENTITY_COLLECTIONS.map((col) =>
-    onSnapshot(
+  const unsubs = ENTITY_COLLECTIONS.map((col) => {
+    // נחיל ב׳ (3.9): בנתיב-המוצפן שני snapshots סמוכים פוענחו במקביל (Promise.all חופשי) ⇒ onRemote
+    // עלול היה להגיע בסדר הפוך והישן דרס את החדש. שרשרת-promise פר-אוסף שומרת על סדר-ההגעה.
+    // dek===null ⇒ הנתיב הסינכרוני ביט-זהה (אינווריאנט "אין envelope ⇒ ביט-זהה").
+    let chain: Promise<void> = Promise.resolve();
+    return onSnapshot(
       // עובד/ת מוגבל/ת ⇒ מנוי אוסף-נאכף מסונן ב-skey (Rules דוחים list לא-מסונן).
       supEnforceOn && (SUP_KEYED_COLS as readonly string[]).includes(col) && allowedPurposes
         ? query(collection(db, scopedCol(col)), where('skey', 'in', supAllowedKeys(allowedPurposes)))
         : collection(db, scopedCol(col)),
       (snap) => {
-        if (snap.metadata.hasPendingWrites) return;
-        const changes = snap.docChanges();
+        // ביקורת-עומק 2.9: דילוג על **כל** ה-snapshot כשיש כתיבה-מקומית-ממתינה הפיל
+        // שינויים-מרוחקים שהגיעו באותו snapshot — ו-docChanges() לא מחזיר אותם שוב
+        // (סטייה שקטה עד רענון). מסננים פר-מסמך: ההד-המקומי מדולג, המרוחקים מוחלים.
+        const changes = snap.docChanges().filter((ch) => !ch.doc.metadata.hasPendingWrites);
         if (!changes.length) return;
         // dek נעדר ⇒ נתיב ביט-זהה להיום. קיים ⇒ פענוח לפני onRemote (מחוקים אין מה לפענח).
         if (!dek) {
           onRemote({ col, docs: changes.map((ch) => ({ id: ch.doc.id, data: clean(col, ch.doc.data()), deleted: ch.type === 'removed' })) });
           return;
         }
-        void Promise.all(
-          changes.map(async (ch) => ({
-            id: ch.doc.id,
-            data: ch.type === 'removed' ? clean(col, ch.doc.data()) : clean(col, await decryptDoc(ch.doc.data(), dek)),
-            deleted: ch.type === 'removed',
-          })),
-        )
+        chain = chain
+          .then(() =>
+            Promise.all(
+              changes.map(async (ch) => ({
+                id: ch.doc.id,
+                data: ch.type === 'removed' ? clean(col, ch.doc.data()) : clean(col, await decryptDoc(ch.doc.data(), dek)),
+                deleted: ch.type === 'removed',
+              })),
+            ),
+          )
           .then((docs) => onRemote({ col, docs }))
           .catch((e) => onError?.(e));
       },
       (e) => onError?.(e),
-    ),
-  );
+    );
+  });
+  // נחיל ב׳ (3.9): אותה שרשרת-סדר גם ל-meta (מונים bump-only — סדר הפוך היה רק מעכב, אך נשמר לעקביות)
+  let metaChain: Promise<void> = Promise.resolve();
   unsubs.push(
     onSnapshot(
       doc(db, scopedMeta()),
       (snap) => {
-        if (snap.metadata.hasPendingWrites || !snap.exists()) return;
+        // ביקורת-עומק 2.9: דילוג על meta כשיש כתיבה-ממתינה השאיר את מונה-הקבלות המקומי
+        // נמוך ממה שמכשיר אחר כבר הנפיק ⇒ **קבלת-מס כפולה**. applyMetaPartial הוא
+        // bump-only למונים ו-no-op (JSON-שווה) להד-שלנו ⇒ בטוח להחיל תמיד.
+        if (!snap.exists()) return;
         if (!dek) {
           onRemote({ meta: snap.data() });
           return;
         }
-        void decryptDoc(snap.data(), dek)
+        const data = snap.data();
+        metaChain = metaChain
+          .then(() => decryptDoc(data, dek))
           .then((meta) => onRemote({ meta }))
           .catch((e) => onError?.(e));
       },
@@ -721,6 +737,26 @@ export async function pullSola(pullUrl: string, opts: { reset?: boolean } = {}):
   const j = (await r.json().catch(() => ({}))) as { ok?: boolean; error?: string; added?: number; scanned?: number; window?: string; debug?: string };
   if (!r.ok || j.ok === false) throw new Error(j.error || 'משיכה נכשלה (' + r.status + ')');
   return j;
+}
+
+/** 📇 סנכרון אנשי-קשר ל-Google **בקליק** (1.9) — קורא ל-gcontactsSyncNow עם
+ *  טוקן-הכניסה; ה-refresh-token של גוגל יושב בכספת-הענן והפונקציה מריצה People API.
+ *  זהה בדפוס ל-pullSola: org נגזר מהתחום, vault מגשר ללקוח-השורש. */
+export async function syncGContacts(fnUrl: string): Promise<{ total?: number; created?: number; updated?: number; skipped?: string }> {
+  const clean = String(fnUrl || '').trim();
+  if (!/^https:\/\//i.test(clean)) throw new Error('כתובת-סנכרון לא-תקינה (חייבת https)');
+  const user = requireAuth().currentUser;
+  if (!user) throw new Error('נדרשת התחברות-ענן');
+  const token = await user.getIdToken();
+  const org = scope.cloudRoot ? 'root' : scope.slug;
+  const u = new URL(clean);
+  u.searchParams.set('org', org);
+  // לקוח-השורש: הנתונים ב-root אבל הכספת (orgSecrets) נכתבת תחת ה-slug האמיתי — vault מגשר (כמו pullSola)
+  if (scope.cloudRoot && scope.slug && scope.slug !== 'default') u.searchParams.set('vault', scope.slug);
+  const r = await fetch(u.toString(), { method: 'POST', headers: { Authorization: 'Bearer ' + token } });
+  const j = (await r.json().catch(() => ({}))) as { ok?: boolean; error?: string; status?: { total?: number; created?: number; updated?: number; skipped?: string } };
+  if (!r.ok || j.ok === false) throw new Error(j.error || 'סנכרון נכשל (' + r.status + ')');
+  return j.status || {};
 }
 
 /** סימון תשלום-נכנס כ"נרשם" (אחרי שהמזכירה רשמה תרומה/תשלום במערכת). */

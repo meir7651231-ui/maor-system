@@ -13,6 +13,8 @@ import { hebParts, gem, gemYear, hebDateFull } from '../../lib/hebrew';
 import { useApp } from '../../store/useApp';
 import { featureOn } from '../../lib/config';
 import { Btn } from '../ui';
+import { CalViewTabs } from '../calendar/CalViewTabs';
+import type { CalViewMode } from '../../lib/monthGrid';
 import { personalCalEntries, orgCalEntries, donCalMonthLine, visibleSupportersForDesignations, type SupCalEntry } from './lib';
 
 const DOW = ['א׳', 'ב׳', 'ג׳', 'ד׳', 'ה׳', 'ו׳', 'ש׳'];
@@ -49,6 +51,8 @@ function DonCalGrid(props: {
   config?: OrgConfig;
 }) {
   const [heb, setHeb] = useState(false);
+  const [mode, setMode] = useState<CalViewMode>('month');
+  // offset = יחידות של המצב הנוכחי (חודשים/שבועות/ימים). בקשת-בעלים 30.8.
   const [offset, setOffset] = useState(0);
   const [dayIso, setDayIso] = useState<string | null>(null);
 
@@ -76,6 +80,36 @@ function DonCalGrid(props: {
 
   const view = useMemo(() => {
     const todayIso = localIso(new Date());
+    // 🗓 יום — תא יחיד (העוגן + offset ימים). בקשת-בעלים 30.8.
+    if (mode === 'day') {
+      const d = new Date(anchor.getFullYear(), anchor.getMonth(), anchor.getDate() + offset);
+      const iso = localIso(d);
+      return {
+        cells: [{ iso, day: d.getDate(), heb: safeGem(d), inMonth: true, entries: byDay.get(iso) ?? [] }],
+        label: hebDateFull(iso),
+        subLabel: iso.split('-').reverse().join('/'),
+        todayIso,
+      };
+    }
+    // 🗓 שבוע — 7 תאים ראשון–שבת (העוגן + offset שבועות).
+    if (mode === 'week') {
+      const base = new Date(anchor.getFullYear(), anchor.getMonth(), anchor.getDate() + offset * 7);
+      const sunday = new Date(base.getFullYear(), base.getMonth(), base.getDate() - base.getDay());
+      const cells: GridCell[] = [];
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(sunday.getFullYear(), sunday.getMonth(), sunday.getDate() + i);
+        const iso = localIso(d);
+        cells.push({ iso, day: d.getDate(), heb: safeGem(d), inMonth: true, entries: byDay.get(iso) ?? [] });
+      }
+      const sat = new Date(sunday.getFullYear(), sunday.getMonth(), sunday.getDate() + 6);
+      const dm = (d: Date) => d.getDate() + '/' + (d.getMonth() + 1);
+      return {
+        cells,
+        label: 'שבוע: ' + dm(sunday) + '–' + dm(sat),
+        subLabel: hebDateFull(localIso(sunday)) + ' – ' + hebDateFull(localIso(sat)),
+        todayIso,
+      };
+    }
     if (!heb) {
       const base = new Date(anchor.getFullYear(), anchor.getMonth() + offset, 1);
       const sy = base.getFullYear();
@@ -138,25 +172,28 @@ function DonCalGrid(props: {
       subLabel: fmtMonthYear.format(first) + ' – ' + fmtMonthYear.format(lastH),
       todayIso,
     };
-  }, [heb, offset, anchor, byDay]);
+  }, [heb, mode, offset, anchor, byDay]);
 
   const inShownMonth = (iso: string) => view.cells.some((c) => c.iso === iso && c.inMonth);
   const monthLine = donCalMonthLine(props.entries, inShownMonth, props.config);
-  const dayList = dayIso ? byDay.get(dayIso) ?? [] : [];
+  // ביום — הרשימה נפתחת על התא-היחיד; בחודש/שבוע — על התא-שנלחץ.
+  const activeDay = mode === 'day' ? view.cells[0]?.iso ?? null : dayIso;
+  const dayList = activeDay ? byDay.get(activeDay) ?? [] : [];
 
   const money = (n: number, sym: string) => sym + Math.round(n).toLocaleString('he-IL');
 
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
-        <button type="button" className="chip" onClick={() => { setOffset((o) => o - 1); setDayIso(null); }} aria-label="חודש קודם">
+        <CalViewTabs mode={mode} onMode={(m) => { setMode(m); setOffset(0); setDayIso(null); }} />
+        <button type="button" className="chip" onClick={() => { setOffset((o) => o - 1); setDayIso(null); }} aria-label={mode === 'day' ? 'יום קודם' : mode === 'week' ? 'שבוע קודם' : 'חודש קודם'}>
           ›
         </button>
         <span style={{ fontWeight: 700, fontSize: 13, minWidth: 120, textAlign: 'center' }}>
           {view.label}
           <span style={{ display: 'block', fontSize: 10.5, fontWeight: 600, color: 'var(--ink-faint)' }}>{view.subLabel}</span>
         </span>
-        <button type="button" className="chip" onClick={() => { setOffset((o) => o + 1); setDayIso(null); }} aria-label="חודש הבא">
+        <button type="button" className="chip" onClick={() => { setOffset((o) => o + 1); setDayIso(null); }} aria-label={mode === 'day' ? 'יום הבא' : mode === 'week' ? 'שבוע הבא' : 'חודש הבא'}>
           ‹
         </button>
         {offset !== 0 && (
@@ -164,8 +201,8 @@ function DonCalGrid(props: {
             חזרה
           </button>
         )}
-        {/* מתג עברי/לועזי — מגודר supporters.doncal.hebgrid (חסר-קונפיג/חסר-דגל = פעיל) */}
-        {(!props.config || featureOn(props.config, 'supporters.doncal.hebgrid')) && (
+        {/* מתג עברי/לועזי — רק בתצוגה-חודשית (משפיע על פריסת-החודש); מגודר supporters.doncal.hebgrid */}
+        {mode === 'month' && (!props.config || featureOn(props.config, 'supporters.doncal.hebgrid')) && (
           <button
             type="button"
             className="chip"
@@ -179,8 +216,8 @@ function DonCalGrid(props: {
         <span style={{ fontSize: 12, color: 'var(--ink-soft)', fontWeight: 600 }}>{monthLine}</span>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2 }}>
-        {DOW.map((d) => (
+      <div style={{ display: 'grid', gridTemplateColumns: mode === 'day' ? '1fr' : 'repeat(7, 1fr)', gap: 2 }}>
+        {mode !== 'day' && DOW.map((d) => (
           <div key={d} style={{ textAlign: 'center', fontSize: 11, fontWeight: 700, color: 'var(--ink-faint)', padding: '2px 0' }}>
             {d}
           </div>
@@ -238,10 +275,10 @@ function DonCalGrid(props: {
       </div>
 
       {/* רשימת-היום (legacy dayList) — כל הרשומות של היום הנבחר, עם ניווט לתומכת */}
-      {dayIso && dayList.length > 0 && (
+      {activeDay && dayList.length > 0 && (
         <div style={{ marginTop: 8, border: '1px solid var(--line)', borderRadius: 10, padding: '8px 12px' }}>
           <div style={{ fontSize: 12.5, fontWeight: 800, marginBottom: 4 }}>
-            {hebDateFull(dayIso)} · {dayIso.split('-').reverse().join('/')}
+            {hebDateFull(activeDay)} · {activeDay.split('-').reverse().join('/')}
           </div>
           {dayList.map((e, i) => (
             <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '3px 0', fontSize: 12.5 }}>

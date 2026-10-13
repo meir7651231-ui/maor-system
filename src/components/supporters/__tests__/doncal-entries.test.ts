@@ -9,6 +9,7 @@
 import { describe, expect, it } from 'vitest';
 import { donCalMonthLine, orgCalEntries, personalCalEntries } from '../lib';
 import { emptyAyin, type Supporter } from '../../../types/domain';
+import donCalSrc from '../DonationCalendar.tsx?raw';
 
 function sup(over: Partial<Supporter>): Supporter {
   return {
@@ -51,14 +52,18 @@ describe('🗓 ratchet — personalCalEntries (legacy supCalMine)', () => {
 });
 
 describe('🗓 ratchet — orgCalEntries (legacy supCalAll)', () => {
-  it('אוסף מכל התומכות עם name/spId לניווט; בלי 🎯 (זה של הלוח האישי)', () => {
+  it('אוסף מכל התומכות עם name/spId לניווט; 🎯 יעד-קשר-הבא מחווט גם כאן (בקשת-בעלים 30.8)', () => {
     const other = sup({ id: 'sp2', name: 'ברגר', donations: [{ rid: 'D-9', date: '2026-07-20', amount: 50, cur: '₪', cat: '' }] });
     const e = orgCalEntries([RICH, other]);
     expect(e.every((x) => !!x.spId && !!x.name)).toBe(true);
     expect(e.filter((x) => x.spId === 'sp2')).toHaveLength(1);
-    expect(e.some((x) => x.src.startsWith('🎯'))).toBe(false);
-    // sp1: קבלה + hist + log + תשובה + לדבר-שוב = 5
-    expect(e.filter((x) => x.spId === 'sp1')).toHaveLength(5);
+    // 🎯 יעד-קשר-הבא (nextDate) עכשיו מחווט ללוח-התורמים הכלל-ארגוני, עם spId לניווט
+    const goal = e.find((x) => x.src.startsWith('🎯'));
+    expect(goal).toBeTruthy();
+    expect(goal!.spId).toBe('sp1');
+    expect(goal!.date).toBe('2026-08-01'); // ה-nextDate של RICH
+    // sp1: קבלה + hist + log + תשובה + לדבר-שוב + 🎯 יעד = 6
+    expect(e.filter((x) => x.spId === 'sp1')).toHaveLength(6);
   });
 });
 
@@ -74,5 +79,15 @@ describe('🗓 ratchet — donCalMonthLine (legacy:1530)', () => {
   });
   it('רק רשומות מהקובץ ההיסטורי (סכום $) — מציג את ה-$', () => {
     expect(donCalMonthLine(entries, (iso) => iso.startsWith('2025-02'))).toBe('1 תרומות החודש · $200');
+  });
+
+  // בקשת-בעלים 30.8: "לוח תורמים תצוגה יומי שבועי חודשי"
+  it('🛡 לוח-התורמים: בורר יומי/שבועי/חודשי + offset-לפי-יחידה + פאנל-יום על העוגן', () => {
+    expect(donCalSrc).toContain('<CalViewTabs');
+    expect(donCalSrc).toContain("const [mode, setMode] = useState<CalViewMode>('month')");
+    expect(donCalSrc).toContain("if (mode === 'day')");
+    expect(donCalSrc).toContain("if (mode === 'week')");
+    // ביום — הרשימה על התא-היחיד (activeDay), לא רק על תא-שנלחץ
+    expect(donCalSrc).toContain("mode === 'day' ? view.cells[0]?.iso ?? null : dayIso");
   });
 });

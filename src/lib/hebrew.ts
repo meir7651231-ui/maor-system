@@ -132,14 +132,17 @@ export function hebParts(d: Date): HebParts {
  * hebParts ממומואיז לפי מחרוזת-ISO (חלקי-התאריך העברי דטרמיניסטיים לכל יום).
  * מטמון **חסום** (HP_CACHE_MAX): homeData ו-calLib החזיקו כל אחד Map ללא-גבול
  * שגדל עם כל תאריך שנצפה (ניווט-לוח ארוך = דליפת-זיכרון איטית). בחריגה מהתקרה
- * מנקים — hebParts טהור, אז הבנייה-מחדש חינמית מבחינת נכונות. משותף לשני הקוראים.
+ * מפנים את הישן-ביותר — hebParts טהור, אז הבנייה-מחדש חינמית מבחינת נכונות. משותף לשני הקוראים.
+ * נחיל ב׳ (3.9 · ביצועים): clear-all בתקרה 3000 גרם thrash כשמספר התאריכים הייחודיים בסריקה
+ * אחת (homeData: כל לידות בני-המשפחה) עלה על התקרה — המטמון נמחק כמה פעמים בכל חישוב. תקרה
+ * 30k (~≤6MB) + פינוי-הישן-ביותר (Map שומר סדר-הכנסה) — אותו דפוס כמו calLib.hpOf.
  */
-const HP_CACHE_MAX = 3000;
+const HP_CACHE_MAX = 30_000;
 const hpCacheShared = new Map<string, HebParts>();
 export function hebPartsOfIso(iso: string): HebParts {
   let hp = hpCacheShared.get(iso);
   if (!hp) {
-    if (hpCacheShared.size >= HP_CACHE_MAX) hpCacheShared.clear();
+    if (hpCacheShared.size >= HP_CACHE_MAX) hpCacheShared.delete(hpCacheShared.keys().next().value as string);
     hp = hebParts(new Date(iso.slice(0, 10) + 'T12:00:00'));
     hpCacheShared.set(iso, hp);
   }
@@ -153,11 +156,20 @@ export function hebPartsOfIso(iso: string): HebParts {
  * וגורם לתאריך העברי לסטות ביום. צהריים חסין לכך ולשעון קיץ — עקבי עם שאר
  * שכבת התאריכים (hebToIsoEn · isoToHebParts · homeData).
  */
+const HDF_CACHE_MAX = 5_000;
+const hdfCache = new Map<string, string>();
 export function hebDateFull(iso: string): string {
   if (!iso) return '';
+  // ⚡ ביצועים (12.10.2026): רשימת-התורמים קראה hebDateFull לכל שורה (כותרת-ריחוף +
+  // "קשר הבא") — 3 פורמטי-ICU לא-ממוטמנים פר-שורה פר-רינדור, כשרוב התאריכים חוזרים.
+  // טהור לכל ISO ⇒ מטמון מוגבל (5k, פינוי-הישן-ביותר) — אותו דפוס כמו hebPartsOfIso.
+  const hit = hdfCache.get(iso);
+  if (hit !== undefined) return hit;
   const d = new Date(iso.slice(0, 10) + 'T12:00:00');
-  if (isNaN(d.getTime())) return '';
-  return `${gem(hebParts(d).day)} ${fmtHM.format(d)} ${gemYear(fmtHY.format(d))}`;
+  const out = isNaN(d.getTime()) ? '' : `${gem(hebParts(d).day)} ${fmtHM.format(d)} ${gemYear(fmtHY.format(d))}`;
+  if (hdfCache.size >= HDF_CACHE_MAX) hdfCache.delete(hdfCache.keys().next().value as string);
+  hdfCache.set(iso, out);
+  return out;
 }
 
 /** חגים ומועדים לפי 'חודש-אנגלי יום'. */

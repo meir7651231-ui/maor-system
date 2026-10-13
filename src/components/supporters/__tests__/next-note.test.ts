@@ -18,11 +18,28 @@ describe('📝 ratchet — תזכורת קשר-הבא (nextNote)', () => {
     expect(detailSrc).toContain('על מה לדבר בפעם הבאה');
     expect(detailSrc).toContain('nextNoteDraft');
     expect(detailSrc).toContain('saveNextNote');
-    expect(detailSrc).toContain('onBlur={saveNextNote}');
+    // blur נשאר שקט (בלי explicit) — קריאה עטופה כי הפונקציה מקבלת דגל
+    expect(detailSrc).toContain('onBlur={() => saveNextNote()}');
     // התזכורת נכנסת גם ל-notes של אירוע-הלוח המקושר (מה, לא רק מתי)
     expect(detailSrc).toContain('nextEventNotes(');
     // תצוגת התזכורת כשקיימת
     expect(detailSrc).toMatch(/sp\.nextNote \?/);
+  });
+
+  // בקשת-בעלים 30.8: "תגדיל את משבצת הכתיבה של הערות וכפתור שמירה שיראו בעיניים
+  // שזה בוצע" — משבצת-הכתיבה הפכה ל-textarea גדול; נוסף כפתור-שמירה מפורש
+  // עם אישור-גלוי ("נשמר ✓" + toast), בלי לפגוע בשמירת-ה-blur הקיימת.
+  it('SupporterDetail: משבצת-כתיבה גדולה (textarea) + כפתור-שמירה מפורש + אישור-גלוי', () => {
+    // התזכורת = textarea רב-שורות (לא input חד-שורה)
+    expect(detailSrc).toMatch(/<textarea[\s\S]*?value={nextNoteDraft}/);
+    expect(detailSrc).toContain('rows={4}');
+    // כפתור-שמירה מפורש → saveNextNote(true) (explicit)
+    expect(detailSrc).toContain('onClick={() => saveNextNote(true)}');
+    expect(detailSrc).toContain('💾 שמירה');
+    // אישור גלוי בעיניים — "נשמר ✓" + toast
+    expect(detailSrc).toContain('nextSaved');
+    expect(detailSrc).toContain('נשמר ✓');
+    expect(detailSrc).toContain('התזכורת נשמרה ✓');
   });
 
   it('DialerModal: התזכורת מוצגת לפני החיוג ("לדבר על")', () => {

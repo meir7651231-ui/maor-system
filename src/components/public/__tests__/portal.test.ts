@@ -35,6 +35,25 @@ describe('🚪 שער-ההצטרפות — מנוע', () => {
     expect(msg).not.toContain('הערה:'); // ריק ⇒ מדולג
   });
 
+  // ratchet swarm-b TP-14: הנוסח-החוצה (הורה/ארגון) מכבד entity.course; הפרוטוקול-הפנימי
+  // (portalChatLine ↔ parsePortalChat) נשאר על תוויות מילוליות — אחרת מונח מותאם היה שובר את הכרטיס.
+  it('portalMessage עם מונח-ארגון (entity.course=פרויקט) — והצ׳אט-הפנימי עדיין round-trip', () => {
+    const c = { ...DEFAULT_CONFIG, terms: { 'entity.course': 'פרויקט' } } as OrgConfig;
+    const msg = portalMessage('מאור', form, c);
+    expect(msg).toContain('בקשת הרשמה לפרויקט — מאור');
+    expect(msg).toContain('פרויקט מבוקש: ציור');
+    expect(msg).not.toContain('חוג');
+    // בלי cfg ⇒ ביט-זהה לנוסח ההיסטורי
+    expect(portalMessage('מאור', form)).toContain('בקשת הרשמה לחוג — מאור');
+    // הערוצים (mailto-subject) נגזרים מאותו מונח
+    const ch = portalChannels({ ...c, site: { contact: { email: 'a@b.org' } } } as OrgConfig, 'מאור', form);
+    expect(decodeURIComponent(ch.find((x) => x.key === 'email')!.href)).toContain('subject=בקשת הרשמה לפרויקט — מאור');
+    // הפרוטוקול-הפנימי אינו מושפע ממונחים
+    const line = portalChatLine(form);
+    expect(line).toContain('חוג: ציור');
+    expect(parsePortalChat(line)!.course).toBe('ציור');
+  });
+
   it('portalChannels: WhatsApp+SMS+טלפון מטלפון, מייל ממייל — client-side', () => {
     const ch = portalChannels(cfg({ whatsapp: '0501234567', phones: ['025556677'], email: 'a@b.org' }), 'מאור', form);
     const keys = ch.map((c) => c.key);
@@ -92,7 +111,8 @@ describe('🚪 פאזה 2 — פנייה בצ׳אט-הצוות', () => {
   });
   it('הגנת-מקור — צ׳אט-הצוות מרנדר בקשת-שער ככרטיס-פעולה', () => {
     expect(chatSrc).toContain('parsePortalChat(m.text) ? <PortalReqCard');
-    expect(chatSrc).toContain('📥 בקשת הרשמה לחוג');
+    // swarm-b TP-14: הכותרת נגזרת ממונח-הארגון ('חוג' = הנפילה ⇒ ביט-זהה ללקוח-החי)
+    expect(chatSrc).toContain("'📥 בקשת הרשמה ל' + ");
     expect(chatSrc).toContain('💬 וואטסאפ');
   });
 });

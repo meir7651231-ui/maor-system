@@ -143,7 +143,9 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
     const res = addPayment(en.id, { date, amount: amt, method });
     if (!res.ok || !res.rid) return; // ה-store כבר הציג טוסט דחייה
     const rid = res.rid;
-    const newBal = Math.max(0, (en.totalDue || 0) - (paid + amt));
+    // ביקורת 3.9 (MN-3): עיגול-לאגורות — paid+amt גולמי הדפיס ₪0.30000000000000004 בסיכום-הקבלה
+    const paidNow = Math.round((paid + amt) * 100) / 100;
+    const newBal = Math.max(0, Math.round(((en.totalDue || 0) - paidNow) * 100) / 100);
     // קבלות כבויות בקונפיגורציה → התשלום נרשם, אך ללא הורדת קבלה וללא טוסט הקבלה
     if (receiptsOn) {
       // 5.5d (הכרעה 9.8): מסירה לפי בחירת-הלקוח — קובץ טקסט או PDF/הדפסה
@@ -159,7 +161,7 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
         mark: featureOn(cfg, 'core.receipt.copymark'),
         // שורות סיכום העסקה — רק כשהדגל דלוק (בלעדיו הקבלה כמו קודם)
         summary: receiptSummaryOn
-          ? { totalDue: en.totalDue || 0, paidSoFar: paid + amt, balance: newBal, nextDate: en.dueDate || undefined }
+          ? { totalDue: en.totalDue || 0, paidSoFar: paidNow, balance: newBal, nextDate: en.dueDate || undefined }
           : undefined,
       }, receiptFmtOf(cfg, useApp.getState().db.ui));
     }
@@ -419,18 +421,9 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
 
       {featureOn(cfg, 'courses.enroll.note') && (
         <Field label={'📝 הערה על ה' + termOf(cfg, 'entity.student', 'תלמיד/ה') + ' ב' + termOf(cfg, 'entity.course', 'חוג')}>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <TextInput value={note} onChange={setNote} placeholder="לדוגמה: רגישות, הסעה, העדפת קבוצה…" />
-            <Btn
-              sm
-              onClick={() => {
-                upsertEnrollment({ ...en, note: note.trim() });
-                toast(note.trim() ? 'ההערה נשמרה — מוצגת ברשימת ה' + termOf(cfg, 'entity.students', 'תלמידים') : 'ההערה נמחקה');
-              }}
-            >
-              שמירה
-            </Btn>
-          </div>
+          {/* (7) בקשת-בעלים 9.9 "שמירה ביחד ולהוריד את השמירה ליד הערות": הכפתור הנפרד ירד —
+               ההערה נשמרת בכפתור-השמירה האחד בתחתית (💾 שמירה וסגירה). */}
+          <TextInput value={note} onChange={setNote} placeholder="לדוגמה: רגישות, הסעה, העדפת קבוצה…" />
         </Field>
       )}
 
@@ -601,8 +594,18 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
         </Btn>
       </div>
       <div className="modal-actions">
-        <Btn kind="primary" onClick={props.onClose}>
-          סגירה
+        <Btn
+          kind="primary"
+          onClick={() => {
+            // שמירה-אחת: ההערה (אם השתנתה) + סגירה. שאר השדות כבר נשמרים מיד בשינוי.
+            if (note.trim() !== (en.note ?? '').trim()) {
+              upsertEnrollment({ ...en, note: note.trim() });
+              toast(note.trim() ? 'ההערה נשמרה — מוצגת ברשימת ה' + termOf(cfg, 'entity.students', 'תלמידים') : 'ההערה נמחקה');
+            }
+            props.onClose();
+          }}
+        >
+          💾 שמירה וסגירה
         </Btn>
       </div>
     </Modal>

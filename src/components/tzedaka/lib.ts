@@ -9,7 +9,7 @@ import type { Db, IsoDate, TzBox, TzBoxStatus, TzCampaign, TzCollection, TzCoord
 import type { OrgConfig } from '../../types/config';
 import { termOf } from '../../lib/config';
 import { DAY_NAMES, isoOf } from '../calendar/calLib';
-import { buildMonthGrid, type MonthGrid, type MonthGridCell } from '../../lib/monthGrid';
+import { buildGrid, type CalViewMode, type MonthGrid, type MonthGridCell } from '../../lib/monthGrid';
 import { smartFilter } from '../../lib/search';
 import { dateInRange } from '../../lib/date-util';
 
@@ -296,11 +296,12 @@ export type TzGridCell = MonthGridCell<TzEvent>;
 export type TzGrid = MonthGrid<TzEvent>;
 
 /**
- * גריד חודשי לועזי/עברי עם האירועים הייעודיים בלבד — wrapper דק על הגנרי
- * המשותף ב-lib/monthGrid (חולץ באשכול חנות 3; החתימה נשמרת כמות שהיא).
+ * גריד יומי/שבועי/חודשי לועזי/עברי עם האירועים הייעודיים בלבד — wrapper דק על
+ * הגנרי המשותף ב-lib/monthGrid. `mode` אופציונלי (בקשת-בעלים 30.8), ברירת-מחדל
+ * 'month' ⇒ תאימות-לאחור מלאה לחתימה הישנה.
  */
-export function buildTzGrid(tzEvents: readonly TzEvent[], anchorIso: IsoDate, hebMode: boolean): TzGrid {
-  return buildMonthGrid(tzEvents, anchorIso, hebMode);
+export function buildTzGrid(tzEvents: readonly TzEvent[], anchorIso: IsoDate, hebMode: boolean, mode: CalViewMode = 'month'): TzGrid {
+  return buildGrid(tzEvents, anchorIso, hebMode, mode);
 }
 
 export { DAY_NAMES };

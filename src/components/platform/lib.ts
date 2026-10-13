@@ -180,6 +180,10 @@ export function overrideOf(email: string, org: OrgCloudDoc): EmployeeOverride {
 export const GRANTABLE_STAFF_FEATURES: ReadonlySet<string> = new Set([
   'supporters.bulkselect',
   'supporters.bulkdelete',
+  // ביקורת-עומק 2.9: ה-desc מבטיח "המנהל מדליק לעובד/ת" — בלי הרישום כאן effectiveConfigFor זרק את ה-true
+  'supporters.bulkmail',
+  'supporters.bulkwa',
+  'supporters.bulkmerge',
   'supporters.purpose',
   'supporters.delete',
   'families.delete',
@@ -213,7 +217,7 @@ export function effectiveConfigFor<
   const features = { ...orgConfig.features };
   for (const [k, v] of Object.entries(ov.features ?? {})) {
     if (v === false) features[k] = false;
-    else if (v === true && GRANTABLE_STAFF_FEATURES.has(k)) features[k] = true; // הדלקה פר-עובד
+    else if (v === true && GRANTABLE_STAFF_FEATURES.has(k) && orgConfig.features?.[k] !== false) features[k] = true; // הדלקה פר-עובד — לעולם לא מעל תקרת-הארגון
   }
   return { ...orgConfig, modules, features };
 }
@@ -253,6 +257,29 @@ export function approveMember(org: OrgCloudDoc, email: string): { members: strin
 }
 
 /** קביעת כרטיס-עובד (טהור) — כותב/מעדכן את דריסות המייל. */
+/** שם-תצוגה של עובד/ת — memberConfigs[email].displayName, אחרת המייל עצמו. */
+export function memberDisplayName(org: OrgCloudDoc | null | undefined, email: string): string {
+  const nm = org?.memberConfigs?.[normEmail(email)]?.displayName?.trim();
+  return nm || email;
+}
+
+/** מפת מייל⇒שם-תצוגה (רק למי שהוגדר שם) — לסטור, כדי שכל המסכים יציגו שם במקום מייל. */
+export function memberNamesOf(org: OrgCloudDoc | null | undefined): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const [email, ov] of Object.entries(org?.memberConfigs ?? {})) {
+    const nm = ov?.displayName?.trim();
+    if (nm) out[normEmail(email)] = nm;
+  }
+  return out;
+}
+
+/** תווית "מי" — שם-תצוגה אם ידוע, אחרת המחרוזת כמות-שהיא (מייל/'—'). טהור. */
+export function whoLabel(names: Record<string, string> | undefined, who: string | undefined): string {
+  const w = (who ?? '').trim();
+  if (!w) return '—';
+  return names?.[w.toLowerCase()] ?? w;
+}
+
 export function setEmployeeOverride(
   org: OrgCloudDoc,
   email: string,

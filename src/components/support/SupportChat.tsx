@@ -26,6 +26,7 @@ import {
 import { Modal } from '../ui';
 import { parsePortalChat } from '../public/portal';
 import { waLink } from '../../lib/wa';
+import { termOf } from '../../lib/config';
 
 type CloudMod = typeof import('../../store/cloudSync');
 
@@ -36,10 +37,14 @@ type CloudMod = typeof import('../../store/cloudSync');
  */
 function PortalReqCard({ text, onClose }: { text: string; onClose: () => void }) {
   const openEnrollDraft = useApp((s) => s.openEnrollDraft);
+  const config = useApp((s) => s.config);
   const req = parsePortalChat(text);
   if (!req) return null;
+  // מונח-החוג של הארגון (swarm-b TP-14) — גם בטקסט-הוואטסאפ החוצה; חסר ⇒ 'חוג' ביט-זהה.
+  // הפענוח עצמו (parsePortalChat) נשאר על התוויות המילוליות — פרוטוקול-wire.
+  const course = termOf(config, 'entity.course', 'חוג');
   const tel = req.phone.replace(/[^\d+]/g, '');
-  const wa = req.phone ? waLink(req.phone, 'שלום, בנוגע לבקשת-ההרשמה לחוג — ') : null;
+  const wa = req.phone ? waLink(req.phone, 'שלום, בנוגע לבקשת-ההרשמה ל' + course + ' — ') : null;
   const row = (label: string, val: string) =>
     val ? (
       <div style={{ fontSize: 13 }}>
@@ -49,10 +54,10 @@ function PortalReqCard({ text, onClose }: { text: string; onClose: () => void })
     ) : null;
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      <div style={{ fontWeight: 800, fontSize: 13, color: '#8a5a1a' }}>📥 בקשת הרשמה לחוג</div>
+      <div style={{ fontWeight: 800, fontSize: 13, color: '#8a5a1a' }}>{'📥 בקשת הרשמה ל' + course}</div>
       {row('ילד/ה', req.childName)}
       {row('הורה', req.parentName)}
-      {row('חוג', req.course)}
+      {row(course, req.course)}
       {req.phone && <div style={{ fontSize: 13 }} dir="ltr">📞 {req.phone}</div>}
       {row('הערה', req.note)}
       <div style={{ display: 'flex', gap: 6, marginTop: 4 }}>
@@ -208,7 +213,7 @@ export function SupportChatModal({ onClose }: { onClose: () => void }) {
   const orgName = useApp((s) => s.config.orgName);
   const [mod, setMod] = useState<CloudMod | null>(null);
   useEffect(() => {
-    void import('../../store/cloudSync').then(setMod);
+    void import('../../store/cloudSync').then(setMod).catch(() => { /* צ׳אנק לא נטען */ });
   }, []);
   return (
     <Modal title="💬 צ׳אט עם התמיכה" onClose={onClose}>
@@ -234,11 +239,13 @@ export function SupportInbox({ onClose }: { onClose: () => void }) {
     // watchAllSupportThreads לא בוטל אף פעם (onSnapshot חי + setThreads על רכיב מפורק).
     // כמו TeamChatModal: unsub בסקופ-חיצוני + cleanup אמיתי מה-effect.
     let unsub: (() => void) | undefined;
+    let alive = true; // ביקורת-עומק 2.9: סגירה לפני פתרון-הצ׳אנק ⇒ onSnapshot יתום
     void import('../../store/cloudSync').then((m) => {
+      if (!alive) return;
       setMod(m);
       unsub = m.watchAllSupportThreads(setThreads);
-    });
-    return () => unsub?.();
+    }).catch(() => { /* צ׳אנק לא נטען */ });
+    return () => { alive = false; unsub?.(); };
   }, []);
 
   const shown = useMemo(() => {
@@ -323,18 +330,22 @@ export function TeamChatModal({ onClose }: { onClose: () => void }) {
 
   useEffect(() => {
     let unsub: (() => void) | undefined;
+    let alive = true;
     void import('../../store/cloudSync').then((m) => {
+      if (!alive) return;
       setMod(m);
       unsub = m.watchTeamMessages(slug, setMsgs);
-    });
-    return () => unsub?.();
+    }).catch(() => { /* צ׳אנק לא נטען */ });
+    return () => { alive = false; unsub?.(); };
   }, [slug]);
 
   const sorted = useMemo(() => sortTeamMsgs(msgs), [msgs]);
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [sorted.length]);
 
   const myEmail = (user?.email ?? '').toLowerCase();
-  const myName = myEmail.split('@')[0] || 'אני';
+  const memberNames = useApp((s) => s.cloud.memberNames);
+  // שם-תצוגה מכרטיס-העובד (6.9) גובר על קידומת-המייל
+  const myName = memberNames?.[myEmail] || myEmail.split('@')[0] || 'אני';
 
   async function send() {
     const t = text;
@@ -395,7 +406,7 @@ export function TeamChatModal({ onClose }: { onClose: () => void }) {
                       }}
                     >
                       {!mine && (
-                        <span style={{ display: 'block', fontSize: 11.5, fontWeight: 700, opacity: 0.85, marginBottom: 1 }}>{m.name || (m.sender ?? '').split('@')[0]}</span>
+                        <span style={{ display: 'block', fontSize: 11.5, fontWeight: 700, opacity: 0.85, marginBottom: 1 }}>{memberNames?.[(m.sender ?? '').toLowerCase()] || m.name || (m.sender ?? '').split('@')[0]}</span>
                       )}
                       {/* פאזה 2: בקשת-שער מרונדרת ככרטיס-פעולה; אחרת טקסט רגיל */}
                       {parsePortalChat(m.text) ? <PortalReqCard text={m.text} onClose={onClose} /> : m.text}

@@ -10,6 +10,7 @@
  * 3. cloudOnDbChange(prev, next) — נקרא מנתיב setDb של ה-store, debounce
  *    800ms, מחשב diffDb ודוחף. תור לא-מקוון מנוהל ע"י Firestore עצמו.
  */
+import { mergeDonationsPreserving } from '../lib/cloud-merge';
 import { mergeDelLogs, type AuditEntry, type Db } from '../types/domain';
 import { diffDb, emptyDiff, ENTITY_COLLECTIONS, fullDbDiff, stripSupporterDonations, type DbDiff } from '../lib/cloud-diff';
 import { applyEntityPartial, applyMetaPartial } from '../lib/cloud-merge';
@@ -57,8 +58,8 @@ export function getCloudDek(): CryptoKey | null {
 export { changePassword, encryptExistingCloud, fetchIncomingPayments, fetchOutboxIssues, retryOutboxItem, fetchNedarimDonors, fetchProviderRows, initCloud, markIncomingPayment, pullNedarim, pullSola, migrateDonationsToCollection, migrateSupportersToKeyed, readCloudEnvelope, resetPassword, setAllowedPurposes, setAuditContext, setCloudScope, setDonationSplit, setSupEnforce, signIn, signOutCloud, signUp, supEnforceActive, watchAuth, watchIncomingPayments, writeCloudEnvelope, writeMailOutbox, writeSmsOutbox } from '../lib/cloud';
 export type { CloudUser, IncomingPayment, NedarimDonor, OutboxIssue } from '../lib/cloud';
 // קונפיג-בענן (CLOUD2 ענן 2) — נטען עם מודול הענן, לא עם ה-bundle הראשי
-export { deleteOrgCompletely, deleteOrgRequest, deleteOrgJoinRequest, deleteOrgMemberConfig, fetchAllOrgs, fetchOrgCloudConfig, fetchOrgJoinRequests, fetchOrgLeads, fetchOrgRequests, findMemberOrgSlugs, watchOrgCloudConfig, writeOrgCloudConfig, writeOrgCloudDoc, writeOrgJoinRequest, writeOrgLead, writeOrgRequest } from '../lib/cloudConfig';
-export type { EmployeeOverride, OrgCloudDoc, OrgJoinRequestDoc, OrgLeadDoc, OrgRequestDoc } from '../lib/cloudConfig';
+export { deleteOrgCompletely, deleteOrgRequest, deleteOrgJoinRequest, deleteOrgMemberConfig, fetchAllOrgs, fetchOrgCloudConfig, fetchOrgJoinRequests, fetchOrgLeads, fetchOrgRequests, findMemberOrgSlugs, patchOrgCloudConfig, watchOrgCloudConfig, writeOrgCloudConfig, writeOrgCloudDoc, writeOrgJoinRequest, writeOrgLead, writeOrgRequest } from '../lib/cloudConfig';
+export type { ConfigWriteMeta, EmployeeOverride, OrgCloudDoc, OrgJoinRequestDoc, OrgLeadDoc, OrgRequestDoc } from '../lib/cloudConfig';
 // 💬 צ׳אט-תמיכה חי (17.8) — onSnapshot אמיתי, נטען עם מודול-הענן
 export { sendSupportMessage, sendSupportReply, watchSupportMessages, watchSupportThreadMeta, watchAllSupportThreads, markSupportRead } from '../lib/cloudConfig';
 // 💬 צ׳אט-צוות תוך-ארגוני (17.8)
@@ -103,6 +104,8 @@ function describeErr(e: unknown): { msg: string; perm: boolean } {
     unavailable: 'ענן זמנית לא-זמין',
     'failed-precondition': 'תקלת-קדם בענן',
     'resource-exhausted': 'מכסת-הענן מוצתה — נסי שוב מאוחר יותר',
+    // נחיל ב׳ (3.9): מסמך >1MB (גלריית-תמונות) / שדה-פגום — Firestore דוחה; retry לא יעזור
+    'invalid-argument': 'מסמך גדול/פגום בענן — לא ניתן לדחוף',
   };
   const msg = map[code] || raw.slice(0, 120) || 'שגיאה לא-ידועה';
   return { msg, perm };
@@ -124,6 +127,8 @@ let unsubAll: (() => void) | null = null;
 let pushTimer: ReturnType<typeof setTimeout> | undefined;
 let pushBase: Db | null = null;
 let pushLatest: Db | null = null;
+// נחיל ב׳ (3.9): רצף-כשלונות-דחיפה — backoff מעריכי (5s→5min) + טוסט פעם-לרצף (במקום כל 5 שניות לנצח).
+let pushFails = 0;
 
 const PUSH_DEBOUNCE_MS = 800;
 
@@ -194,12 +199,21 @@ export async function startCloudSync(h: CloudSyncHooks): Promise<void> {
       const tombs = new Set(mergeDelLogs(local.delLog, cloudDb.delLog).map((e) => e.col + '|' + e.id));
       merged.delLog = mergeDelLogs(local.delLog, cloudDb.delLog);
       for (const col of ENTITY_COLLECTIONS) {
-        const cloudList = cloudDb[col] as Array<{ id: string }>;
+        const localList = local[col] as Array<{ id: string }>;
+        const localById = new Map(localList.map((x) => [x.id, x]));
+        const localIds = new Set(localList.map((x) => x.id));
+        // ביקורת-עומק 2.9 (א): מצבה-מקומית על רשומה שעדיין בענן (המחיקה טרם נדחפה) ⇒
+        // המחיקה גוברת — לא מחיים אותה מהענן. (ב): id בשני הצדדים ⇒ **איחוד-לפי-rid**
+        // (תרומה/תשלום שנרשמו בזמן שהסנכרון לא היה פעיל אינם נדרסים — קבלה לא אובדת).
+        const cloudList = (cloudDb[col] as Array<{ id: string }>)
+          .filter((c) => !(local.delLog ?? []).some((e) => e.col === col && e.id === c.id && !localIds.has(c.id)))
+          .map((c) => {
+            const l = localById.get(c.id);
+            return l ? (mergeDonationsPreserving(col, l as unknown as Record<string, unknown>, c as unknown as Record<string, unknown>) as unknown as { id: string }) : c;
+          });
         const cloudIds = new Set(cloudList.map((x) => x.id));
-        const localOnly = (local[col] as Array<{ id: string }>).filter(
-          (x) => !cloudIds.has(x.id) && !tombs.has(col + '|' + x.id),
-        );
-        if (localOnly.length) (merged[col] as Array<{ id: string }>) = [...cloudList, ...localOnly];
+        const localOnly = localList.filter((x) => !cloudIds.has(x.id) && !tombs.has(col + '|' + x.id));
+        (merged[col] as Array<{ id: string }>) = [...cloudList, ...localOnly];
       }
       // 🐛 נחיל-עמוק (13.8): מוני-הקבלות חייבים לעלות בלבד. merged ירש את מונה-הענן
       // (אולי נמוך ממה שהמכשיר כבר הנפיק local-first לפני החיבור) ⇒ הקבלה הבאה קיבלה
@@ -275,6 +289,7 @@ export function stopCloudSync(): void {
   clearTimeout(pushTimer);
   pushBase = null;
   pushLatest = null;
+  pushFails = 0;
   setStat(hooks, 'idle');
   hooks = null;
 }
@@ -290,9 +305,15 @@ async function flushPush(): Promise<void> {
   pushBase = null;
   pushLatest = null;
   const diff = diffDb(base, latest);
-  if (emptyDiff(diff)) return; // כל שינוי-תרומה משנה גם את מסמך-התומך ⇒ diff לא-ריק (גם בפיצול)
+  if (emptyDiff(diff)) {
+    // נחיל ב׳ (3.9): עריכה+ביטול בתוך ה-debounce ⇒ diff ריק, אבל cloudOnDbChange כבר סימן
+    // 'pending' — הנקודה הכחולה נתקעה עד הדחיפה הלא-ריקה הבאה. אין מה לדחוף = מסונכרן.
+    if (active && statusCache === 'pending') setStat(hooks, 'synced');
+    return; // כל שינוי-תרומה משנה גם את מסמך-התומך ⇒ diff לא-ריק (גם בפיצול)
+  }
   try {
     await pushSplitAware(base.supporters, latest.supporters, diff);
+    pushFails = 0;
     if (active) { lastError = null; hooks?.setLastError?.(null); setStat(hooks, 'synced'); }
   } catch (e) {
     // כשל שאינו-offline: משחזרים את הדלתא הממתינה כדי שתידחף בעריכה הבאה.
@@ -306,10 +327,17 @@ async function flushPush(): Promise<void> {
       // הצגת השגיאה המדויקת (בקשת-שטח 25.8): המשתמש צריך לדעת מה קורה במקום
       // לראות "אדום סתום". permission-denied ⇒ בעיית-Rules/הרשאה שלא תתוקן ע"י
       // ניסיון-חוזר; משאירים אדום עם ההודעה, בלי retry-לולאה.
-      hooks?.toast(info.perm ? '🔒 שגיאת-הרשאה בענן — ' + info.msg : '⚠ הדחיפה לענן נכשלה: ' + info.msg + ' — הנתונים שמורים מקומית');
-      if (!info.perm) {
+      // נחיל ב׳ (3.9): גם invalid-argument (מסמך >1MB / שדה-פגום) קבוע — retry אינסופי לא יעזור.
+      // טוסט פעם-לרצף (לא כל ניסיון), ו-backoff מעריכי 5s·2^n עד 5 דקות במקום 5s קבוע.
+      const code = String((e as { code?: string } | undefined)?.code ?? '');
+      const fatal = info.perm || code === 'invalid-argument';
+      if (pushFails === 0 || fatal) {
+        hooks?.toast(info.perm ? '🔒 שגיאת-הרשאה בענן — ' + info.msg : '⚠ הדחיפה לענן נכשלה: ' + info.msg + ' — הנתונים שמורים מקומית');
+      }
+      pushFails++;
+      if (!fatal) {
         clearTimeout(pushTimer);
-        pushTimer = setTimeout(() => void flushPush(), 5000);
+        pushTimer = setTimeout(() => void flushPush(), Math.min(5000 * 2 ** (pushFails - 1), 300_000));
       }
     }
   }

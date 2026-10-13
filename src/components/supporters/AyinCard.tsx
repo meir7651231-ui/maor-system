@@ -24,25 +24,32 @@ import {
   stageLabel,
   unitLabel,
 } from '../../lib/ayin';
-import { featureOn } from '../../lib/config';
+import { featureOn, integrationOn, integrationSetting } from '../../lib/config';
+import { payLink } from '../../lib/payLink';
 import { scheduleTasks } from '../../lib/projectSchedule';
 import { kitProgress, DEFAULT_KIT_LABELS } from '../../lib/installKit';
 import { hebDateFull } from '../../lib/hebrew';
 import { Btn, Empty } from '../ui';
+import { EditableText } from './EditableText';
 import { HebDateInput } from '../HebDateInput';
 import { fmtDate, supIls } from './lib';
 
 export function AyinCard(props: { supporter: Supporter }) {
   const sp = props.supporter;
-  const a = sp.ayin ?? emptyAyin();
+  const a = { ...emptyAyin(), ...(sp.ayin ?? {}) }; // ayin חלקי (גיבוי-ישן/ענן) — כל תת-מערך מובטח
   const cfg = useApp((s) => s.config);
+  const toast = useApp((s) => s.toast);
+  const setSupporterNext = useApp((s) => s.setSupporterNext);
+  const liveNext = useApp((s) => s.db.supporters.find((x) => x.id === props.supporter.id)?.nextDate || '');
   const advance = useApp((s) => s.ayinAdvance);
+  const setPaid = useApp((s) => s.ayinSetPaid);
   const revert = useApp((s) => s.ayinRevert);
   const addName = useApp((s) => s.ayinAddName);
   const toggleName = useApp((s) => s.ayinToggleName);
   const setNameEyes = useApp((s) => s.ayinSetNameEyes);
   const setNameRate = useApp((s) => s.ayinSetNameRate);
   const setNameNote = useApp((s) => s.ayinSetNameNote);
+  const setNameText = useApp((s) => s.ayinSetNameText);
   const removeName = useApp((s) => s.ayinRemoveName);
   const addAnswer = useApp((s) => s.ayinAddAnswer);
   const editAnswer = useApp((s) => s.ayinEditAnswer);
@@ -79,10 +86,20 @@ export function AyinCard(props: { supporter: Supporter }) {
   const item = itemLabel(cfg);
   const unit = unitLabel(cfg);
   const cur = stageIndex(a.stage);
-  const showNames = a.stage === 'new' || a.stage === 'lead' || a.stage === 'eyes';
+  // בקשת-בעלים 30.8: השמות נשארים על המסך גם בשלב 'מסירה' (answer) — יורדים
+  // מהמסך רק כשהתיק 'הושלם' (done), שאז הם בהיסטוריה. קודם נעלמו כבר במסירה.
+  const showNames = a.stage !== 'done';
   // גידור-דגלים (FLAGMAX): חזרה-לשלב / יומן-תשובות / "מתי לדבר שוב" / מחזור-חדש —
   // חסר-דגל = פעיל (עטיפה = אפס-שינוי-ברירת-מחדל); false מסתיר.
   const revertOn = featureOn(cfg, 'supporters.ayin.revert');
+  // 💳 שער-תשלום (בקשת-בעלים 25.8, opt-in) — חסר-הדגל ⇒ מוסתר, ביט-זהה להיום.
+  const payGateOn = cfg.features?.['supporters.ayin.paygate'] === true;
+  // 💳 קישור-תשלום לנדרים בתוך השער (בקשת-בעלים 31.8: "בתשלום לפני הושלם
+  // תתן כרטיס לתשלום קישור לנדרים"). אותה בניית-קישור כמו בכרטיס-התומך —
+  // דורש הרחבת-תשלומים דלוקה + payUrl בקונפיג; אחרת null (אפס-שינוי).
+  const ayinPayHref = payGateOn && integrationOn(cfg, 'payments')
+    ? payLink(integrationSetting(cfg, 'payments', 'payUrl'), 0, sp.name)
+    : null;
   // כתב-כמויות/הצעת-מחיר — רק בהקשר מסחרי (§46 כבוי) + דגל. בעמותה מוסתר לגמרי.
   const boqOn = featureOn(cfg, 'supporters.ayin.boq') && !featureOn(cfg, 'core.taxreceipt');
   const timeOn = featureOn(cfg, 'supporters.ayin.time') && !featureOn(cfg, 'core.taxreceipt');
@@ -189,6 +206,44 @@ export function AyinCard(props: { supporter: Supporter }) {
         })}
       </div>
 
+      {/* 💳 שער-תשלום (בקשת-בעלים 25.8, opt-in) — סטטוס-שולם + סימון-ידני;
+          רישום-תרומה בכרטיס מסמן שולם אוטומטית. חסר-הדגל ⇒ מוסתר (ביט-זהה). */}
+      {payGateOn && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '8px 0' }}>
+          <span
+            style={{
+              fontSize: 12,
+              fontWeight: 700,
+              padding: '2px 10px',
+              borderRadius: 999,
+              background: a.paid ? '#e4f5ea' : '#fdeaea',
+              color: a.paid ? '#12803c' : '#b91c1c',
+            }}
+          >
+            {a.paid ? '💰 שולם ✓' : '💰 טרם שולם'}
+          </span>
+          <Btn sm onClick={() => setPaid(sp.id, !a.paid)} title="סימון/ביטול תשלום — רישום תרומה בכרטיס מסמן שולם אוטומטית">
+            {a.paid ? 'ביטול סימון' : 'סמן שולם'}
+          </Btn>
+          {/* 💳 קישור-תשלום לנדרים — נפתח בעמוד-הסליקה של הארגון, השם ממולא.
+              מוצג רק כשטרם-שולם ויש עמוד-תרומה מוגדר (הרחבת-תשלומים דלוקה). */}
+          {!a.paid && ayinPayHref && (
+            <a
+              href={ayinPayHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="chip"
+              title="עמוד-התשלום בנדרים — קישור לתשלום מקוון, השם ממולא"
+              aria-label="פתיחת עמוד-התשלום בנדרים"
+              style={{ textDecoration: 'none' }}
+            >
+              💳 תשלום בנדרים
+            </a>
+          )}
+          {!a.paid && <span style={{ fontSize: 11.5, color: 'var(--ink-faint)' }}>נדרש תשלום כדי להשלים</span>}
+        </div>
+      )}
+
       {ayinActionVisible(a) && (
         <div>
           <Btn kind="primary" onClick={() => advance(sp.id)} title="הכפתור החכם — מקדם לשלב הבא ומסנכרן ללוח ולדוח היומי">
@@ -239,7 +294,7 @@ export function AyinCard(props: { supporter: Supporter }) {
                     padding: '6px 10px',
                   }}
                 >
-                  <span style={{ flex: 1, fontWeight: 600, fontSize: 13.5 }}>{n.name}</span>
+                  <EditableText value={n.name} onSave={(v) => setNameText(sp.id, n.id, v)} style={{ fontWeight: 600, fontSize: 13.5 }} />
                   <input
                     value={n.eyes === '' ? '' : String(n.eyes)}
                     onChange={(e) => {
@@ -441,7 +496,7 @@ export function AyinCard(props: { supporter: Supporter }) {
               return (
                 <div key={n.id} style={{ border: '1px solid var(--line)', borderRadius: 8, padding: '6px 8px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                    <span style={{ flex: 1, minWidth: 90, fontWeight: 600, fontSize: 12.5 }}>{n.name}{t?.critical ? <span title="נתיב-קריטי" style={{ color: '#b91c1c', marginInlineStart: 5 }}>◆</span> : null}</span>
+                    <span style={{ flex: 1, minWidth: 90, fontWeight: 600, fontSize: 12.5, display: 'inline-flex', alignItems: 'center' }}><EditableText value={n.name} onSave={(v) => setNameText(sp.id, n.id, v)} />{t?.critical ? <span title="נתיב-קריטי" style={{ color: '#b91c1c', marginInlineStart: 5 }}>◆</span> : null}</span>
                     <label style={{ fontSize: 11.5, color: 'var(--ink-faint)' }}>ימים:
                       <input value={n.days ?? ''} onChange={(e) => setSchedule(sp.id, n.id, +e.target.value || 0, n.deps || [])}
                         dir="ltr" style={{ width: 44, marginInlineStart: 4, padding: '2px 4px', fontSize: 12 }} />
@@ -543,7 +598,7 @@ export function AyinCard(props: { supporter: Supporter }) {
             >
               ✎
             </button>
-            <button onClick={() => deleteAnswer(sp.id, i)} title="מחיקה" style={{ color: 'var(--ink-faint)', fontWeight: 700 }}>
+            <button onClick={() => { deleteAnswer(sp.id, i); setEditIdx(null); }} title="מחיקה" style={{ color: 'var(--ink-faint)', fontWeight: 700 }}>
               🗑
             </button>
           </div>
@@ -564,7 +619,13 @@ export function AyinCard(props: { supporter: Supporter }) {
             onChange={(e) => setNextTalk(sp.id, a.nextTalk || '', e.target.value)}
             style={{ width: 120 }}
           />
-          <Btn sm onClick={() => callAgain(sp.id)} title="כותב תזכורת ללוח השנה">
+          {/* כמו בלגאסי (script:2957): "🔁 שוב" רק כשיש מועד — בלי תאריך היה נכתב אירוע-להיום */}
+          <Btn
+            sm
+            onClick={() => callAgain(sp.id)}
+            disabled={!a.nextTalk}
+            title={a.nextTalk ? 'כותב תזכורת ללוח השנה' : 'בחרו קודם תאריך "מתי לדבר שוב" — אז התזכורת תיכתב ללוח'}
+          >
             🔁 שוב
           </Btn>
         </div>
@@ -585,6 +646,42 @@ export function AyinCard(props: { supporter: Supporter }) {
                 <span style={{ fontWeight: 700 }}>{l.eyes}</span>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* ✓ באנר-סיום (לגאסי doneLine, markup:2730-2731) — ב'הושלם' השמות יורדים מהמסך,
+          והסיכום הזה מחליף אותם: כמה נמסרו וסה"כ המונה. */}
+      {a.stage === 'done' && (
+        <div
+          style={{
+            fontSize: 13,
+            fontWeight: 700,
+            color: '#12803c',
+            background: '#e4f5ea',
+            border: '1px solid #cde9d6',
+            borderRadius: 10,
+            padding: '8px 12px',
+          }}
+        >
+          {'✓ הטיפול הושלם · ' + a.names.length + ' ' + item + ' נמסרו · ' + unit + ' ' + eyesTotal(a)}
+        </div>
+      )}
+
+      {/* 🎯 קשר הבא אחרי «הושלם» (בקשת-בעלים 5.10) — אותו מנגנון של הכרטיס (store.setSupporterNext):
+          תאריך על התומך/ת + תזכורת-שיחה מקושרת בלוח-השנה הראשי; מגודר כמו הקובייה בכרטיס (supporters.nextdate) */}
+      {a.stage === 'done' && featureOn(cfg, 'supporters.nextdate') && (
+        <div style={{ border: '1px dashed var(--line)', borderRadius: 10, padding: '8px 12px' }}>
+          <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>קשר הבא 🎯 — אחרי שהטיפול הושלם</div>
+          <HebDateInput
+            value={liveNext}
+            onChange={(iso) => {
+              setSupporterNext(sp.id, iso, 'אחרי סיום ' + feat);
+              toast(iso ? 'נקבע קשר הבא ' + hebDateFull(iso) + ' — נכנס ללוח השנה' : 'תאריך הקשר הבא נוקה');
+            }}
+          />
+          <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', marginTop: 4 }}>
+            {liveNext ? hebDateFull(liveNext) + ' · תזכורת 📞 בלוח השנה ובכרטיס' : 'קביעת תאריך תוסיף תזכורת שיחה ללוח השנה — כמו «קשר הבא» בכרטיס'}
           </div>
         </div>
       )}

@@ -616,7 +616,7 @@ export function SupportersIntel(props: {
                 </div>
               );
             })}
-            {shown.length === 0 ? <div style={{ padding: 24, textAlign: 'center', color: 'var(--ink-faint)' }}>אין תורמים עם היסטוריית-נתינה עדיין.</div> : null}
+            {shown.length === 0 ? <div style={{ padding: 24, textAlign: 'center', color: 'var(--ink-faint)' }}>אין {supPlural} עם היסטוריית-נתינה עדיין.</div> : null}
             {sorted.length > 60 ? (
               props.onExit
                 ? <button type="button" onClick={props.onExit} style={{ display: 'block', width: '100%', padding: 10, textAlign: 'center', fontSize: 11.5, color: 'var(--accent-deep, #a05008)', fontWeight: 700, background: 'none', border: 'none', cursor: 'pointer' }}>מוצגים 60 מתוך {sorted.length} · למסך-הנתונים המלא ↗</button>

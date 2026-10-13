@@ -1207,6 +1207,18 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
                 </Field>
               </div>
             )}
+            {/* 📱 מצב-אפליקציה לסינון-כשר (הכרעת-בעלים 24.8) — פותח whatsapp:// */}
+            {config.integrations?.whatsapp?.enabled && (
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, cursor: 'pointer', marginTop: 8 }}>
+                <input
+                  type="checkbox"
+                  checked={integrationSetting(config, 'whatsapp', 'mode') === 'app'}
+                  onChange={(e) => setIntegrationField('whatsapp', 'mode', e.target.checked ? 'app' : '')}
+                  style={{ width: 'auto' }}
+                />
+                📱 מצב-אפליקציה (לסינון כשר) — פותח את אפליקציית-וואטסאפ ישירות במקום דרך הקישור wa.me
+              </label>
+            )}
             {/* 📝 תבניות-הודעה עריכות (#12) — מוצג כשוואטסאפ דלוק; ריק = ברירת-המחדל */}
             {config.integrations?.whatsapp?.enabled && (
               <div style={{ marginTop: 8 }}>

@@ -6,7 +6,7 @@
  * הרצה: firebase emulators:exec --only firestore --project demo-maor 'node e2e/rules-redteam.mjs'
  */
 import { initializeTestEnvironment, assertFails, assertSucceeds } from '@firebase/rules-unit-testing';
-import { doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs, FieldPath, deleteField } from 'firebase/firestore';
 import { readFileSync } from 'node:fs';
 
 const SUPER = 'meir7651231@gmail.com'; // מייל-העל (superAdmin ב-Rules)
@@ -171,6 +171,57 @@ await T('🔴 זר לא כותב לצ׳אט-צוות של acme', assertFails(set
 // ❌ הודעת-ענק / שדה-זר
 await T('🔴 הודעת-ענק בצ׳אט-צוות נחסמת', assertFails(setDoc(doc(emp, 'teamChats/acme/messages/big'), { sender: 'emp@acme.com', name: 'x', text: 'x'.repeat(5000), at: '2026-08-18T10:00:00.000Z' })));
 await T('🔴 שדה-זר בצ׳אט-צוות נחסם (hasOnly)', assertFails(setDoc(doc(emp, 'teamChats/acme/messages/j'), { sender: 'emp@acme.com', name: 'x', text: 'x', at: '2026-08-18T10:00:00.000Z', evil: 'y' })));
+
+console.log('\n═══ י״א · ⚙️ קונפיג-ארגון — "הדלקת דגל" חייבת להגיע לענן (שורש "40 יום לא נשמר דלוק", 5.10) ═══');
+// הרקע: האשף מדליק דגל ע"י **מחיקת-המפתח** (חסר=דלוק). writeOrgCloudConfig כתב עם merge:true,
+// ו-merge:true ממזג-עומק מפות ⇒ ה-false הישן שרד כל הדלקה. כאן מוכיחים על Firestore אמיתי:
+// (1) merge:true משאיר את ה-false (הבאג); (2) mergeFields:['config'] — הנתיב המתוקן — מחליף את
+// config בשלמותו ושומר members/manager; (3) Rules: רק מייל-על כותב config; מנהל-ארגון לא.
+await env.withSecurityRulesDisabled(async (ctx) => {
+  await setDoc(doc(ctx.firestore(), 'platformOrgs/stale'), {
+    members: ['boss@stale.com'], manager: 'boss@stale.com',
+    config: { slug: 'stale', orgName: 'Stale', features: { 'supporters.segula': false, 'core.taxreceipt': false }, modules: { shop: false } },
+  });
+});
+const onCfg = { slug: 'stale', orgName: 'Stale', features: { 'supporters.hok': false }, modules: { tzedaka: false } }; // הדגלים הודלקו = נמחקו
+await T('(הבאג) merge:true משאיר supporters.segula/core.taxreceipt=false אחרי "הדלקה"', (async () => {
+  await setDoc(doc(su, 'platformOrgs/stale'), { config: onCfg }, { merge: true });
+  const f = (await getDoc(doc(su, 'platformOrgs/stale'))).data().config.features;
+  if (f['supporters.segula'] !== false || f['core.taxreceipt'] !== false) throw new Error('merge:true כבר לא ממזג-עומק? ' + JSON.stringify(f));
+})());
+await T('(התיקון) mergeFields:[config] — הדגלים שהודלקו נעלמים מהענן, members/manager נשמרים', (async () => {
+  await setDoc(doc(su, 'platformOrgs/stale'), { config: onCfg }, { mergeFields: ['config'] });
+  const d = (await getDoc(doc(su, 'platformOrgs/stale'))).data();
+  const f = d.config.features;
+  if ('supporters.segula' in f || 'core.taxreceipt' in f) throw new Error('false תקוע נשאר: ' + JSON.stringify(f));
+  if (f['supporters.hok'] !== false || d.config.modules.tzedaka !== false || 'shop' in d.config.modules) throw new Error('config לא הוחלף בשלמותו: ' + JSON.stringify(d.config));
+  if (d.manager !== 'boss@stale.com' || !d.members.includes('boss@stale.com')) throw new Error('members/manager נפגעו: ' + JSON.stringify(d));
+})());
+const staleBoss = env.authenticatedContext('staleboss', { email: 'boss@stale.com' }).firestore();
+// (כתיבה **שונה** — כתיבה זהה-לקיים = affectedKeys ריק = לא-שינוי, ו-Rules מתירים no-op)
+await T('🔴 מנהל-ארגון לא כותב config (גם עם mergeFields)', assertFails(setDoc(doc(staleBoss, 'platformOrgs/stale'), { config: { ...onCfg, features: {} } }, { mergeFields: ['config'] })));
+
+console.log('\n═══ י״ב · 🩹 כתיבה נקודתית של קונפיג — שני תצלומים לא דורסים זה את זה ("40 יום נדלק ונכבה לבד", 6.10) ═══');
+// הרקע: לוח-הבקרה והאשף כתבו תצלום-מלא; שני משטחים עם תצלומים שונים התחלפו. עכשיו: updateDoc ב-FieldPath
+// פר-מפתח (מחיקה = deleteField). כאן מוכיחים על Firestore אמיתי: (1) דחיפת-A (הדלקת segula = מחיקה) +
+// דחיפת-B מתצלום ישן (כיבוי hok) ⇒ שתיהן שורדות; (2) מחיקה נקודתית לא מחיה false; (3) מנהל לא כותב config.
+await env.withSecurityRulesDisabled(async (ctx) => {
+  await setDoc(doc(ctx.firestore(), 'platformOrgs/patchy'), {
+    members: ['boss@patchy.com'], manager: 'boss@patchy.com',
+    config: { slug: 'patchy', orgName: 'P', features: { 'supporters.segula': false, 'supporters.hok': false }, modules: {} },
+  });
+});
+await T('(התיקון) A מדליק segula (deleteField) · B מתצלום ישן מכבה hok ⇒ שניהם שורדים, אין דריסה', (async () => {
+  const ref = doc(su, 'platformOrgs/patchy');
+  await updateDoc(ref, new FieldPath('config', 'features', 'supporters.segula'), deleteField(), new FieldPath('configMeta'), { at: 'a', via: 'platform', keys: ['features.supporters.segula'] });
+  await updateDoc(ref, new FieldPath('config', 'features', 'courses.broadcast'), false, new FieldPath('configMeta'), { at: 'b', via: 'builder', keys: ['features.courses.broadcast'] });
+  const d = (await getDoc(ref)).data();
+  if ('supporters.segula' in d.config.features) throw new Error('segula לא נמחק: ' + JSON.stringify(d.config.features));
+  if (d.config.features['supporters.hok'] !== false || d.config.features['courses.broadcast'] !== false) throw new Error('דריסה: ' + JSON.stringify(d.config.features));
+  if (d.manager !== 'boss@patchy.com' || d.configMeta.via !== 'builder') throw new Error('שאר המסמך נפגע: ' + JSON.stringify(d));
+})());
+const patchyBoss = env.authenticatedContext('patchyboss', { email: 'boss@patchy.com' }).firestore();
+await T('🔴 מנהל-ארגון לא כותב config נקודתית', assertFails(updateDoc(doc(patchyBoss, 'platformOrgs/patchy'), new FieldPath('config', 'features', 'supporters.hok'), deleteField())));
 
 await env.cleanup();
 console.log(`\n── סיכום red-team ── ${pass} עברו · ${fail} נכשלו`);

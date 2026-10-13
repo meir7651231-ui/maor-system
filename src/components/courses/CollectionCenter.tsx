@@ -7,7 +7,8 @@ import { featureOn, integrationOn, integrationSetting } from '../../lib/config';
 import { payLink } from '../../lib/payLink';
 import { Btn, Empty, Modal } from '../ui';
 import { WaBtn } from '../WaBtn';
-import { downloadCsv } from '../../lib/csvx';
+import { guardExport } from '../../lib/exportGate';
+import { csvEscape, downloadCsv } from '../../lib/csvx';
 import { collectionCsvRows, collectionList, collectionMessage, collectionTotal } from './collection';
 import { isoToday } from './lib';
 
@@ -45,7 +46,8 @@ export function CollectionCenter(props: { onClose: () => void }) {
             <Btn
               sm
               onClick={() => {
-                void navigator.clipboard?.writeText(collectionCsvRows(rows).map((r) => r.join('\t')).join('\n'));
+                if (!guardExport()) return; // 🔐 שער יציאת-מידע
+                    void navigator.clipboard?.writeText(collectionCsvRows(rows).map((r) => r.map(csvEscape).join('\t')).join('\n')); // csvEscape: בלי הזרקת-נוסחה בהדבקה לאקסל
                 toast('רשימת-החייבים הועתקה');
               }}
             >

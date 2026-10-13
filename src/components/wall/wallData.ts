@@ -16,6 +16,7 @@
  * · השבוע בלוח העברי — 7 הימים הבאים: חגים, אירועים (כולל חוזרים עבריים) ומפגשי חוגים.
  * · טיקר — משפחות חדשות, תרומות אחרונות, כרטיסיות שהושלמו וימי הולדת של היום (עד 8).
  */
+import { supIls } from '../supporters/lib';
 import type { Db, EventType, Supporter } from '../../types/domain';
 import type { OrgConfig } from '../../types/config';
 import { termOf } from '../../lib/config';
@@ -150,10 +151,10 @@ export function buildPodium(db: Db, monthKey: string, yearKey: string, config?: 
   }
   if (!rows.length) {
     rows = db.supporters
-      .filter((s: Supporter) => s.ils > 0)
-      // amount=s.ils הוא סכום השקלים בלבד; count חייב לספור תרומות-שקל בלבד (לא
-      // סה"כ כל המטבעות) כדי שהתווית 'N תרומות' תתאים לסכום המוצג.
-      .map((s) => ({ id: s.id, name: s.name, amount: s.ils, count: s.donations.filter((d) => d.cur !== '$').length }));
+      // הכרעת-בעלים 9.8 "לכולל": הצבירה המוצגת = קבלות+היסטוריה (supIls) — הקיר היה
+      // המשטח היחיד שהציג קבלות-בלבד (ביקורת-עומק 2.9). count = תרומות-₪ + היסטוריה.
+      .filter((s: Supporter) => supIls(s) > 0)
+      .map((s) => ({ id: s.id, name: s.name, amount: supIls(s), count: s.donations.filter((d) => d.cur !== '$').length + (s.hist?.length ?? 0) }));
     scopeLabel = 'מאז ומעולם';
   }
   rows.sort((a, b) => b.amount - a.amount);
@@ -327,9 +328,9 @@ export function buildWallData(db: Db, now = new Date(), config?: OrgConfig): Wal
   /* --- שישה KPI צד --- */
   const famTotal = db.families.length;
   const famActive = db.families.filter((f) => f.status === 'active').length;
-  const famNew = db.families.filter((f) => f.createdAt.startsWith(yearKey)).length;
+  const famNew = db.families.filter((f) => (f.createdAt ?? '').startsWith(yearKey)).length;
   const activeKids = new Set(db.enrollments.filter((e) => e.status === 'active').map((e) => e.memberId));
-  const newEnrolls = db.enrollments.filter((e) => e.enrolledAt.startsWith(yearKey)).length;
+  const newEnrolls = db.enrollments.filter((e) => (e.enrolledAt ?? '').startsWith(yearKey)).length;
   const sessionsHeld = sessionsHeldEstimate(db, todayIso);
   const newSupporters = db.supporters.filter((s) => s.first && s.first.startsWith(yearKey)).length;
   const retention = famTotal > 0 ? Math.round((famActive / famTotal) * 100) : 0;

@@ -4,6 +4,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import viewSrc from '../SupportersView.tsx?raw';
+import libSrc from '../lib.ts?raw';
 import cockpitSrc from '../SupportersCockpit.tsx?raw';
 import galaxySrc from '../SupportersGalaxy.tsx?raw';
 import cardSrc from '../SupporterCard.tsx?raw';
@@ -40,7 +41,9 @@ describe('💛 ratchet — אינטראקטיביות המסכים החדשים'
     // ₪ בסכנה במודיעין
     expect(intelSrc).toContain("props.onSegment!('atrisk')");
     // רצועת-KPI — אריח-הסיכון
-    expect(viewSrc).toContain("onRisk={() => setSegF(segF === 'atrisk' ? null : 'atrisk')}");
+    // ⚠️ ביקורת (12.10): הקולבק יציב (useCallback) כדי שה-React.memo של הרצועה יפגע — אותה כוונה: אריח-הסיכון ⇒ סגמנט 'atrisk'
+    expect(viewSrc).toContain("const onKpiRisk = useCallback(() => setSegF(segF === 'atrisk' ? null : 'atrisk'), [segF, setSegF]);");
+    expect(viewSrc).toContain('onRisk={onKpiRisk}');
     // קוקפיט KPI — אריח-הסיכון
     expect(cockpitSrc).toContain("props.onSegment!('atrisk')");
   });
@@ -51,8 +54,9 @@ describe('💛 ratchet — אינטראקטיביות המסכים החדשים'
     expect(intelSrc).toContain("props.onMonth!(m.month)");
     expect(intelSrc).toContain("props.onYear!(c.year)");
     // מסך-הנתונים מקבל את הדריל-אין ומסנן
-    expect(viewSrc).toContain('supGaveInPeriod(sp, gaveYearF, monthF)');
-    expect(viewSrc).toContain('supAcqYear(sp) !== acqYearF');
+    // ⚡ 12.10.2026 (ביצועים): הפרדיקט עבר שורה-בשורה ל-lib.ts (filterSupporterList, ממומואיז במסך) — אותו כלל, מקור חדש
+    expect(libSrc).toContain('supGaveInPeriod(sp, gaveYearF, monthF)');
+    expect(libSrc).toContain('st.acqYear !== acqYearF'); // SupStats.acqYear ≡ supAcqYear(sp) (ratchet supporter-stats)
   });
 
   it('🛡 חיפוש-מפורש לפי שנה/חודש/קטגוריה — בוררים גלויים + מנוע-תקופה', () => {
@@ -62,7 +66,7 @@ describe('💛 ratchet — אינטראקטיביות המסכים החדשים'
     expect(viewSrc).toContain('כל השנים');
     expect(viewSrc).toContain('כל החודשים');
     // מנוע-התקופה: שנה+חודש משולבים, צ׳יפ-יחיד מנקה שניהם
-    expect(viewSrc).toContain('supGaveInPeriod(sp, gaveYearF, monthF)');
+    expect(libSrc).toContain('supGaveInPeriod(sp, gaveYearF, monthF)'); // 12.10.2026: הפרדיקט ב-lib.ts
     expect(viewSrc).toContain('setMonthF(null); setGaveYearF(null);');
   });
 

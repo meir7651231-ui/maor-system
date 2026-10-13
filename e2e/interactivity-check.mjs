@@ -81,7 +81,7 @@ await wait(800);
 
 // אימות: צ׳יפ-הסינון "סגמנט:" הופיע במסך-הנתונים
 const segChip = await page.locator('text=/סגמנט:.*בסיכון/').count();
-const clearChip = await page.locator('text=/✕ ניקוי/').count();
+const clearChip = await page.locator('button.filter-clear-all', { hasText: '✕ נקה הכל' }).count(); // התווית הנוכחית (הייתה '✕ ניקוי')
 console.log('סגמנט "בסיכון" קיים בקוקפיט:', hasSeg > 0 ? '✅' : '❌');
 console.log('אחרי קליק — צ׳יפ-סינון "סגמנט: בסיכון" הופיע:', segChip > 0 ? '✅ מסנן!' : '❌ לא סינן');
 console.log('צ׳יפ-ניקוי קיים:', clearChip > 0 ? '✅' : '❌');
@@ -116,7 +116,7 @@ if (hasYearSel > 0) {
   await yearSel.selectOption('2024').catch(() => {});
   await wait(600);
   // הצ׳יפ הוא כפתור-ניקוי (מובחן מאופציית-הבורר) — מוכיח שהסינון פעל
-  const periodChip = await page.locator('button', { hasText: 'נתנו ב-2024' }).filter({ hasText: '✕ ניקוי' }).count();
+  const periodChip = await page.locator('button.filter-pill', { hasText: 'נתנו ב-2024' }).count(); // צ׳יפ-הסינון (button.filter-pill) — מובחן מ-<option> של הבורר
   console.log('אחרי בחירת שנה — צ׳יפ-סינון "נתנו ב-2024" הופיע:', periodChip > 0 ? '✅ מסנן!' : '❌');
   await page.screenshot({ path: join(OUT, 'func-year-filter.png') });
   console.log('📸 func-year-filter');

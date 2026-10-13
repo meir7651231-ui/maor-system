@@ -4,6 +4,7 @@
  * הקוד נשמר מגובב במכשיר בלבד (localStorage, ראה lib/lock) — לא בגיבוי ולא
  * בענן. הגנת-גישה מפני עיון מזדמן, לא הצפנת נתונים.
  */
+import { termOf } from '../../lib/config';
 import { useRef, useState } from 'react';
 import { useApp } from '../../store/useApp';
 import { Btn, Chip, Field, FormError, TextInput } from '../ui';
@@ -118,6 +119,7 @@ function SecondaryZones() {
   const secondarySet = useApp((s) => !!s.lock.secondary);
   const zones = useApp((s) => s.lock.zones);
   const setLockZones = useApp((s) => s.setLockZones);
+  const config = useApp((s) => s.config);
   if (!secondarySet) return null;
   const active = zones ?? DEFAULT_LOCK_ZONES;
   const toggle = (key: string) =>
@@ -127,7 +129,7 @@ function SecondaryZones() {
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
         {LOCK_ZONES.map((z) => (
           <Chip key={z.key} on={active.includes(z.key)} onClick={() => toggle(z.key)}>
-            {z.label}
+            {z.key === 'supporters' ? termOf(config, 'nav.supporters', z.label) : z.label}
           </Chip>
         ))}
       </div>

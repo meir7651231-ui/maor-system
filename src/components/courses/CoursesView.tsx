@@ -2,13 +2,18 @@
  * מסך ניהול הקורסים — גריד/רשימה (db.ui.crsView), חיפוש וסינון לפי קטגוריה
  * וסמסטר, קורס חדש, וכרטיס קורס מלא בבחירה.
  */
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import type { Course } from '../../types/domain';
+import { useCallback, useEffect, useMemo, useState, type KeyboardEvent } from 'react';
+import type { Course, Weekday } from '../../types/domain';
 import { useApp, useCourse } from '../../store/useApp';
+import { useListScrollRestore } from '../../lib/scrollMemory';
+import { useRemembered } from '../../lib/filterMemory';
 import { featureOn, isSuperAdmin, roleOf, teacherIdOf, termOf } from '../../lib/config';
 import { normSearch } from '../../lib/validate';
 import { isoToday } from '../../lib/date-util';
 import { Btn, Empty, Modal, PageHead, Select, TextInput } from '../ui';
+
+/** ימי-פעילות לסינון (0=ראשון … 5=שישי — כמו Weekday). */
+const DAY_FILTER: { v: Weekday; t: string }[] = [[0, 'ראשון'], [1, 'שני'], [2, 'שלישי'], [3, 'רביעי'], [4, 'חמישי'], [5, 'שישי']].map(([v, t]) => ({ v: v as Weekday, t: t as string }));
 import { numMatch } from '../families/lib';
 import { CourseForm } from './CourseForm';
 import { CourseDetail } from './CourseDetail';
@@ -20,12 +25,21 @@ import { TeacherPanel } from './TeacherPanel';
 import { RetentionCenter } from './RetentionCenter';
 import { coursesOfTeacher, DAY_LETTERS, TINTS, chipStyle, modelMeta, priceSuffix, roomsNow } from './lib';
 
+/** A-2 (3.9): שורת-חוג נפתחת גם במקלדת (Enter/רווח) — כמו שורות FamiliesView/SupportersView. */
+const openRowKey = (fn: () => void) => (e: KeyboardEvent<HTMLElement>) => {
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    fn();
+  }
+};
+
 type CrsSortKey = 'name' | 'audience' | 'teacher' | 'model' | 'count' | 'price' | 'price1' | 'price2' | 'price3';
 
 const EMPTY_CRS_COLF = { name: '', audience: '', teacher: '', model: 'all', count: '', price: '' };
 
 export function CoursesView() {
   const selCourseId = useApp((s) => s.selCourseId);
+  useListScrollRestore('courses', !!selCourseId); // חזרה מהכרטיס למיקום-הגלילה הקודם (5.9)
   const selected = useCourse(selCourseId);
   const cfg = useApp((s) => s.config);
   const wheelOn = featureOn(cfg, 'courses.wheel');
@@ -91,16 +105,19 @@ function CoursesList(props: { onOpenWheel: () => void }) {
   const rolesOn = featureOn(cfg, 'shell.roles');
   const myTeacherId = rolesOn && roleOf(cfg, userEmail) === 'teacher' ? teacherIdOf(cfg, userEmail) : null;
 
-  const [q, setQ] = useState('');
-  const [cat, setCat] = useState('all');
-  const [sem, setSem] = useState('all');
+  const [q, setQ] = useRemembered('crs.q', '');
+  const [cat, setCat] = useRemembered('crs.cat', 'all');
+  const [sem, setSem] = useRemembered('crs.sem', 'all');
+  // בקשות-בעלים 9.9: (3) סינון לפי יום-בשבוע של המפגשים · (5) סינון לפי מורה "כמו שאר הסינון".
+  const [dayF, setDayF] = useRemembered<'all' | Weekday>('crs.dayF', 'all');
+  const [teacherF, setTeacherF] = useRemembered('crs.teacherF', 'all');
   // 📚 סינון היסטוריה (בקשת-בעלים 24.8) — חוג שתאריך-הסיום שלו עבר נכנס
   // אוטומטית ל"היסטוריה". ברירת-המחדל 'active' ⇒ מסתיר חוגים ישנים.
-  const [histF, setHistF] = useState<'active' | 'history' | 'all'>('active');
+  const [histF, setHistF] = useRemembered<'active' | 'history' | 'all'>('crs.histF', 'active');
   const today = isoToday();
-  const [sort, setSort] = useState<{ key: CrsSortKey; dir: 1 | -1 } | null>(null);
-  const [colFOn, setColFOn] = useState(false);
-  const [colF, setColF] = useState(EMPTY_CRS_COLF);
+  const [sort, setSort] = useRemembered<{ key: CrsSortKey; dir: 1 | -1 } | null>('crs.sort', null);
+  const [colFOn, setColFOn] = useRemembered('crs.colFOn', false);
+  const [colF, setColF] = useRemembered('crs.colF', EMPTY_CRS_COLF);
   const [formOpen, setFormOpen] = useState(false);
   // בקשת-בעלים: תפריט-⋯ בכרטיס-החוג במסך-החיצוני — מציג את ההערות (התיאור)
   const [notesCourse, setNotesCourse] = useState<Course | null>(null);
@@ -168,6 +185,8 @@ function CoursesList(props: { onOpenWheel: () => void }) {
     const list = coursesOfTeacher(db.courses, myTeacherId).filter((c) => {
       if (cat !== 'all' && c.cat !== cat) return false;
       if (sem !== 'all' && c.semester !== sem) return false;
+      if (dayF !== 'all' && !c.sessions.some((x) => x.day === dayF)) return false;
+      if (teacherF !== 'all' && c.teacherId !== teacherF) return false;
       // 📚 היסטוריה: c.end < today ⇒ נגמר. חוג בלי end כלול תמיד ב'active'.
       const isHistory = !!c.end && c.end < today;
       if (histF === 'active' && isHistory) return false;
@@ -201,7 +220,7 @@ function CoursesList(props: { onOpenWheel: () => void }) {
       const cc = typeof va === 'string' ? va.localeCompare(String(vb), 'he') : va - (vb as number);
       return cc * sort.dir;
     });
-  }, [db, q, cat, sem, colF, sort, teacherName, enrollCounts, histF, today]);
+  }, [db, q, cat, sem, dayF, teacherF, colF, sort, teacherName, enrollCounts, histF, today]);
 
   const clickSort = (key: CrsSortKey) =>
     setSort((s) => (s?.key === key ? { key, dir: s.dir === 1 ? -1 : 1 } : { key, dir: 1 }));
@@ -427,12 +446,13 @@ function CoursesList(props: { onOpenWheel: () => void }) {
 
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', margin: '14px 0' }}>
         <div style={{ flex: 1, minWidth: 200 }}>
-          <TextInput value={q} onChange={setQ} placeholder={'חיפוש לפי שם, ' + termOf(cfg, 'entity.teacher', 'מורה') + ', קהל או קטגוריה…'} />
+          <TextInput value={q} onChange={setQ} placeholder={'חיפוש לפי שם, ' + termOf(cfg, 'entity.teacher', 'מורה') + ', קהל או קטגוריה…'} ariaLabel="חיפוש" />
         </div>
         <div style={{ width: 170 }}>
           <Select
             value={cat}
             onChange={setCat}
+            ariaLabel="קטגוריה"
             options={[{ value: 'all', label: 'כל הקטגוריות' }, ...cats.map((x) => ({ value: x, label: x }))]}
           />
         </div>
@@ -440,9 +460,30 @@ function CoursesList(props: { onOpenWheel: () => void }) {
           <Select
             value={sem}
             onChange={setSem}
+            ariaLabel="סמסטר"
             options={[{ value: 'all', label: 'כל הסמסטרים' }, ...sems.map((x) => ({ value: x, label: x }))]}
           />
         </div>
+        {/* (3) יום-בשבוע — חוג מוצג אם אחד ממפגשיו באותו יום */}
+        <div style={{ width: 150 }}>
+          <Select
+            value={dayF === 'all' ? 'all' : String(dayF)}
+            onChange={(v) => setDayF(v === 'all' ? 'all' : (+v as Weekday))}
+            ariaLabel="יום"
+            options={[{ value: 'all', label: '📅 כל הימים' }, ...DAY_FILTER.map((d) => ({ value: String(d.v), label: 'יום ' + d.t }))]}
+          />
+        </div>
+        {/* (5) מורה — כמו שאר הסינון (מוסתר כשאין מורות) */}
+        {db.teachers.length > 0 && (
+          <div style={{ width: 170 }}>
+            <Select
+              value={teacherF}
+              onChange={setTeacherF}
+              ariaLabel={termOf(cfg, 'entity.teacher', 'מורה')}
+              options={[{ value: 'all', label: 'כל המורות/ים' }, ...db.teachers.map((t) => ({ value: t.id, label: t.name }))]}
+            />
+          </div>
+        )}
         {view === 'list' && featureOn(cfg, 'courses.colfilter') && (
           <Btn
             onClick={() => setColFOn(!colFOn)}
@@ -597,7 +638,7 @@ function CoursesList(props: { onOpenWheel: () => void }) {
                 const mm = modelMeta(c);
                 const n = (enrollCounts.get(c.id) || 0);
                 return (
-                  <tr key={c.id} style={{ cursor: 'pointer' }} onClick={() => selectCourse(c.id)}>
+                  <tr key={c.id} style={{ cursor: 'pointer' }} tabIndex={0} onClick={() => selectCourse(c.id)} onKeyDown={openRowKey(() => selectCourse(c.id))}>
                     <td style={{ fontWeight: 700 }}>{c.name}</td>
                     <td style={{ fontSize: 12, color: 'var(--ink-faint)' }}>{c.audience || 'כללי'}</td>
                     <td>{teacherName(c.teacherId)}</td>

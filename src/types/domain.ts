@@ -603,6 +603,15 @@ export interface SupPhone {
   wa?: boolean;
 }
 
+/** שם לתפילה על כרטיס-תורם — שם + הערה (למי/על מה) + תאריך-הוספה + סימון "הוזכר/הסתיים". */
+export interface PrayerName {
+  id: Id;
+  name: string;
+  note: string;
+  addedAt: IsoDate;
+  done?: boolean;
+}
+
 export interface Supporter {
   id: Id;
   name: string;
@@ -640,6 +649,11 @@ export interface Supporter {
    * מגודר supporters.photos. undefined בכרטיסים ישנים.
    */
   photos?: string[];
+  /**
+   * 🙏 שמות לתפילה (בקשת-בעלים 5.9) — שמות שהתורם/ת מבקש/ת להזכיר בתפילה, עם הערה
+   * חופשית לכל שם (למי/על מה). additive, אופציונלי, אין מיגרציה; נפרד ממעקב-הטיפול (ayin).
+   */
+  prayerNames?: PrayerName[];
   /** אירוע 'שיחה' שנוצר אוטומטית ביומן. */
   nextEventId?: Id;
   donations: Donation[];
@@ -772,6 +786,8 @@ export interface UiPrefs {
   receiptFmt?: 'txt' | 'pdf';
   /** פריסת לוח הבית: מזהי ווידג'טים בסדר תצוגה (ריק = ברירת המחדל). */
   homeLayout?: string[];
+  /** פריסת כרטיס-התורם (5.10): מזהי ווידג'טים בסדר תצוגה; מזהה חסר = מוסתר; ריק/חסר = ברירת-המחדל (ביט-זהה). */
+  supCardLayout?: string[];
   /** ערכת נושא נבחרת (or-rishon/heichal/tsohar/kehila) — ריק = לפי קונפיגורציית הארגון. */
   theme?: string;
   /** דריסת צבע הדגשה (hex) — ריק = צבע הערכה. */

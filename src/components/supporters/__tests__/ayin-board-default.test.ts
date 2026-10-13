@@ -8,7 +8,7 @@ import viewSrc from '../SupportersView.tsx?raw';
 
 describe('🩺 ratchet — לוח מעקב-הטיפול מוסתר כברירת-מחדל', () => {
   it('מצב-התחלתי סגור: useState(false) ל-ayinBoardOpen', () => {
-    expect(viewSrc).toMatch(/const \[ayinBoardOpen, setAyinBoardOpen\] = useState\(false\)/);
+    expect(viewSrc).toMatch(/const \[ayinBoardOpen, setAyinBoardOpen\] = useRemembered\('sup\.ayinBoardOpen', false\)/); // 17.9: זכור בין מסכים — ברירת-המחדל עדיין סגור
   });
 
   it('הלוח מרונדר רק כשפתוח, מאחורי כפתור-תצוגה', () => {

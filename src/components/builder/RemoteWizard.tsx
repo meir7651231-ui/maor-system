@@ -12,6 +12,8 @@ import { useEffect, useRef, useState } from 'react';
 import { useApp } from '../../store/useApp';
 import { normalizeConfig } from '../../lib/config';
 import { allOffConfig, orgLink } from '../platform/lib';
+import { configPatchOps } from '../../lib/configPatch';
+import type { OrgConfig } from '../../types/config';
 import { BuilderWizard } from './BuilderWizard';
 
 type CloudMod = typeof import('../../store/cloudSync');
@@ -47,6 +49,7 @@ export function RemoteWizard({ slug, onClose }: { slug: string; onClose: () => v
   const toast = useApp((s) => s.toast);
   const [ready, setReady] = useState(false);
   const [err, setErr] = useState('');
+  const lastWritten = useRef<OrgConfig | null>(null);
   const modRef = useRef<CloudMod | null>(null);
 
   // כניסה: תצלום → טעינת-הלקוח → הלבשה חיה
@@ -71,6 +74,7 @@ export function RemoteWizard({ slug, onClose }: { slug: string; onClose: () => v
         if (!alive) return;
         const norm = (doc?.config ? normalizeConfig(doc.config) : null) ?? allOffConfig(slug, doc?.orgName ?? '');
         useApp.getState().setConfig({ ...norm, slug });
+        lastWritten.current = { ...norm, slug };
         setReady(true);
       } catch {
         if (alive) setErr('טעינת הלקוח מהענן נכשלה — בדקו חיבור ונסו שוב');
@@ -81,7 +85,9 @@ export function RemoteWizard({ slug, onClose }: { slug: string; onClose: () => v
     };
   }, [slug]);
 
-  // כל שינוי-קונפיג בזמן שהאשף פתוח → כתיבה חיה לענן של הלקוח
+  // כל שינוי-קונפיג בזמן שהאשף פתוח → כתיבה חיה לענן של הלקוח.
+  // 🩹 6.10 ("40 יום נדלק ונכבה לבד"): רק ה-diff מול מה שהאשף כתב/טען לאחרונה (configPatchOps) —
+  // לא תצלום-מלא שדורס את מה שלוח-הבקרה/טאב-אחר שינה בינתיים.
   useEffect(() => {
     if (!ready) return;
     let t = 0;
@@ -89,8 +95,13 @@ export function RemoteWizard({ slug, onClose }: { slug: string; onClose: () => v
       if (s.config !== p.config) {
         clearTimeout(t);
         t = window.setTimeout(() => {
+          const next = s.config;
+          const ops = configPatchOps(lastWritten.current, next);
+          if (!ops.length) return;
+          lastWritten.current = next;
+          const by = s.cloud.user?.email ?? undefined;
           void modRef.current
-            ?.writeOrgCloudConfig(slug, s.config)
+            ?.patchOrgCloudConfig(slug, ops, by, 'builder', next)
             .catch(() => useApp.getState().toast('⚠ הכתיבה לענן נכשלה — המתג לא נשמר אצל הלקוח'));
         }, 400);
       }

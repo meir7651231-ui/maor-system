@@ -4,6 +4,7 @@
  * כולם client-side דרך URI-schemes — אפס-שרת. הערוצים נגזרים מ-config.site.contact.
  */
 import type { OrgConfig } from '../../types/config';
+import { termOf } from '../../lib/config';
 import { waLink } from '../../lib/wa';
 
 export interface PortalForm {
@@ -21,14 +22,19 @@ export function portalValid(f: PortalForm): boolean {
   return f.childName.trim().length >= 2 && f.phone.replace(/\D/g, '').length >= 6;
 }
 
-/** נוסח-הבקשה המשותף לכל הערוצים. */
-export function portalMessage(orgName: string, f: PortalForm): string {
+/**
+ * נוסח-הבקשה המשותף לכל הערוצים (החוצה — להורה/לארגון). cfg אופציונלי ⇒ מונח-החוג של
+ * הארגון (swarm-b TP-14); בלי cfg — 'חוג' ביט-זהה. ⚠️ שורת-הצ׳אט הפנימית (portalChatLine)
+ * נשארת מילולית במכוון — פרוטוקול-wire של parsePortalChat.
+ */
+export function portalMessage(orgName: string, f: PortalForm, cfg?: OrgConfig): string {
+  const course = cfg ? termOf(cfg, 'entity.course', 'חוג') : 'חוג';
   return [
-    'בקשת הרשמה לחוג — ' + (orgName || 'העמותה'),
+    'בקשת הרשמה ל' + course + ' — ' + (orgName || 'העמותה'),
     'ילד/ה: ' + f.childName.trim(),
     f.parentName.trim() && 'הורה: ' + f.parentName.trim(),
     'טלפון: ' + f.phone.trim(),
-    f.course.trim() && 'חוג מבוקש: ' + f.course.trim(),
+    f.course.trim() && course + ' מבוקש: ' + f.course.trim(),
     f.note.trim() && 'הערה: ' + f.note.trim(),
   ]
     .filter(Boolean)
@@ -56,7 +62,8 @@ function telDigits(phone: string): string {
  */
 export function portalChannels(config: OrgConfig, orgName: string, f: PortalForm): PortalChannel[] {
   const c = config.site?.contact ?? {};
-  const msg = portalMessage(orgName, f);
+  const course = termOf(config, 'entity.course', 'חוג');
+  const msg = portalMessage(orgName, f, config);
   const out: PortalChannel[] = [];
 
   const wa = c.whatsapp ? waLink(c.whatsapp, msg) : null;
@@ -73,7 +80,7 @@ export function portalChannels(config: OrgConfig, orgName: string, f: PortalForm
       key: 'email',
       label: 'מייל',
       icon: '📧',
-      href: 'mailto:' + c.email + '?subject=' + encodeURIComponent('בקשת הרשמה לחוג — ' + (orgName || '')) + '&body=' + encodeURIComponent(msg),
+      href: 'mailto:' + c.email + '?subject=' + encodeURIComponent('בקשת הרשמה ל' + course + ' — ' + (orgName || '')) + '&body=' + encodeURIComponent(msg),
     });
   }
   return out;

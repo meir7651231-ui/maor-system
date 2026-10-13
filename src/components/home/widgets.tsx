@@ -15,6 +15,7 @@
 // פוגע בעיצוב. כיבוי ממוקד של כלל ה-Fast-Refresh (רלוונטי רק ל-HMR בפיתוח, אפס
 // השפעה על המוצר) — קו-לוקיישן מכוון ומוצדק.
 /* oxlint-disable react/only-export-components */
+import { evMeta } from '../../lib/eventMeta';
 import { useEffect, useMemo, useState, type CSSProperties, type ReactElement, type ReactNode } from 'react';
 import { useApp, type View } from '../../store/useApp';
 import type { Db, Family, OrgEvent } from '../../types/domain';
@@ -40,7 +41,6 @@ import {
   credTodayTrend,
   DAY_NAMES,
   dueContacts,
-  EV_META,
   evLabel,
   fmtD,
   monthDonationSum,
@@ -55,6 +55,7 @@ import {
   type HomeStats,
   type TodaySession,
 } from './homeData';
+import { sanitizeIds } from '../../lib/widgetLayout';
 
 /* ── סגנונות משותפים (הצ'יפים הצבעוניים נשארים data-driven מ-homeData) ── */
 
@@ -179,7 +180,7 @@ function MyTasksWidget({ ctx }: { ctx: HomeCtx }) {
             onClick={() => jump(t)}
             title={t.ref ? 'לכרטיס ←' : undefined}
           >
-            <span aria-hidden>{PRI_LABELS[t.pri].slice(0, 2)}</span>
+            <span aria-hidden>{(PRI_LABELS[t.pri] ?? PRI_LABELS[2]).slice(0, 2)}</span>
             <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>{t.title}</span>
             {t.due && (
               <span style={{ marginInlineStart: 'auto', fontSize: 11.5, whiteSpace: 'nowrap', color: taskOverdue(t, todayIso) ? 'var(--red)' : 'var(--ink-faint)' }}>
@@ -897,7 +898,7 @@ function TodayWidget({ ctx }: { ctx: HomeCtx }) {
           onClick={() => ctx.navTo(ev.famId ? { kind: 'family', id: ev.famId } : { kind: 'calendar' })}
           title={ev.famId ? 'לכרטיס ה' + termOf(config, 'entity.family', 'משפחה') : 'ללוח השנה'}
         >
-          <span style={chipStyle(ctx, EV_META[ev.type].bg, EV_META[ev.type].c)}>{evLabel(ev)}</span>
+          <span style={chipStyle(ctx, evMeta(ev).bg, evMeta(ev).c)}>{evLabel(ev)}</span>
           <span>
             {(ev.time ? ev.time + ' · ' : '') + ev.title}
             {ev.famId ? ' · ' + termOf(config, 'entity.familyOf', 'משפחת') + ' ' + famName(ev.famId) : ''}
@@ -1288,8 +1289,8 @@ function RecentWidget({ ctx }: { ctx: HomeCtx }) {
                   <td>{f.city || '—'}</td>
                   <td>{f.members.filter((m) => !m.isParent).length}</td>
                   <td>
-                    <span style={chipStyle(ctx, ST_META[f.status].bg, ST_META[f.status].c)}>
-                      {ST_META[f.status].label}
+                    <span style={chipStyle(ctx, (ST_META[f.status] ?? ST_META.active).bg, (ST_META[f.status] ?? ST_META.active).c)}>
+                      {(ST_META[f.status] ?? ST_META.active).label}
                     </span>
                   </td>
                   <td>{fmtD(f.createdAt)}</td>
@@ -2175,9 +2176,6 @@ export const WIDGET_LIBRARY: readonly WidgetId[] = [
   'suggest',
 ];
 
-function isWidgetId(id: string): id is WidgetId {
-  return id in HOME_WIDGETS;
-}
 
 /**
  * נרמול פריסה שמורה (db.ui.homeLayout) לרשימת מזהים תקפה:
@@ -2188,11 +2186,8 @@ export function sanitizeLayout(
   raw: readonly string[] | undefined,
   fallback: readonly WidgetId[] = DEFAULT_LAYOUT,
 ): WidgetId[] {
-  if (!raw || raw.length === 0) return [...fallback];
-  const out: WidgetId[] = [];
-  for (const id of raw) {
-    if (isWidgetId(id) && !out.includes(id)) out.push(id);
-  }
+  // 5.10: הניקוי המשותף ב-lib/widgetLayout (גם כרטיס-התורם משתמש בו); כאן נשאר רק דין-ה-hero
+  const out = sanitizeIds(raw, Object.keys(HOME_WIDGETS), fallback) as WidgetId[];
   const i = out.indexOf('hero');
   if (i > 0) out.splice(i, 1);
   if (i !== 0) out.unshift('hero');

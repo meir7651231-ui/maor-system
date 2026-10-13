@@ -10,8 +10,10 @@ import { openDB, type IDBPDatabase } from 'idb';
 import { isoLocal } from '../lib/date-util';
 import { supporterAggregates } from '../lib/supporterAgg';
 import { sanitizePhotos } from '../lib/photoGallery';
+import { AYIN_STAGES } from '../lib/ayin';
 import {
   DB_VERSION,
+  emptyAyin,
   emptyDb,
   type CredLogEntry,
   type Db,
@@ -40,6 +42,99 @@ let envelope: EncEnvelope | null = null;
 // שכבת הגיבוי (IndexedDB) נכשלה בשמירה האחרונה בעוד localStorage הצליח.
 let idbBackupMissing = false;
 
+/**
+ * ⚡ משטר-מכסה (12.10.2026) — המדידה אצל הלקוח האמיתי (16,000 תורמים · 34MB JSON): localStorage
+ * (מכסה ~5M תווים) זרק QuotaExceeded **בכל** שמירה, אחרי ש-JSON.stringify של כל המסמך שרף
+ * 50–800ms (×4 האטת-CPU) — ואז IndexedDB שמר בפועל. מרגע שלמדנו שהמסמך לא נכנס ל-LS (הזריקה
+ * הראשונה) מדלגים על ה-stringify+setItem לצמיתות (עד רענון — טעינה מחדש לומדת שוב).
+ * ⚠️ ביקורת (12.10): **אין סף-מקדים** — הסף 4,000,000 תווים שהיה כאן נטש את LS ‏1.24M תווים
+ * מתחת למכסה האמיתית של Chromium (5,242,675 תווים למפתח, נמדד בדפדפן), ומסמך של 8–10MB
+ * שנכנס היה מאבד את עותק-ה-LS ואת שער-ה-storage (#3). הדפדפן מכריע — אנחנו רק לומדים מהזריקה.
+ * ה-stringify הראשון נעשה ממילא (json נבנה כש-!lsDropped) ⇒ הסף חסך רק את ניסיון-ה-setItem
+ * היחיד בסשן. במשטר-IDB-בלבד אין אירועי storage ⇒ שער ריבוי-הטאבים (#3) אינו פעיל — בדיוק
+ * כמו היום (setItem שנכשל מעולם לא פרסם אירוע).
+ */
+let lsDropped = false;
+/** הודעה חד-פעמית למשתמש (נצרכת ע"י ה-store דרך takeLsDroppedNotice — persist נקי מ-store). */
+let lsDroppedNotice = false;
+/**
+ * ⚡ (12.10) המסמך המאוחסן הוא מעטפת מוצפנת — דגל-בזיכרון לסירוב הזול של טאב-גלוי (בלי idb.get של
+ * כל המסמך, 34MB structured-clone, לפני **כל** put רק כדי לבדוק isEncrypted). נלמד ב-loadDb,
+ * מתעדכן בכל כתיבה מוצלחת ל-IDB (saveDb/writeEnvelope/stopEncryption). ב-LS קריא הגשש-התחילי
+ * עדיין גובר. השוואת-מעטפות בין טאבים נעשית מול **כותרת-המעטפת** ב-IDB (ENC_HEADER_KEY) — ראה
+ * readStoredEnvelope.
+ */
+let storedIsEnvelope = false;
+/** מעטפת-עד (sentinel) למקרה שהדגל דלוק ואין מעטפת בזיכרון — רק truthiness נבדקת (טאב גלוי ⇒ סירוב). */
+const ENVELOPE_UNSEEN: EncEnvelope = { $enc: 2, iter: 0, saltPass: '', saltRec: '', wrapPass: '', wrapRec: '', data: '' };
+
+function dropLs(err?: unknown): void {
+  lsDropped = true;
+  // ההודעה — רק כשזה באמת "המסמך גדול" (שגיאת-מכסה מפורשת); חסימת-LS אחרת (מצב פרטי) שקטה כמו היום
+  const e = err as { name?: string; code?: number } | undefined;
+  if (e && (/quota/i.test(e.name ?? '') || e.code === 22 || e.code === 1014)) lsDroppedNotice = true;
+}
+
+/** כתיבת המסמך ל-localStorage לפי משטר-המכסה. false = לא נכתב (נזנח/נכשל). */
+function lsWrite(payload: string): boolean {
+  if (lsDropped) return false;
+  try {
+    localStorage.setItem(LS_KEY, payload);
+    return true;
+  } catch (e) {
+    dropLs(e); /* מכסה מלאה / מצב פרטי */
+    return false;
+  }
+}
+
+/** האם המסמך נשמר במשטר-IDB-בלבד (localStorage נזנח בסשן זה). */
+export function isLsDropped(): boolean {
+  return lsDropped;
+}
+
+/**
+ * צריכת ההודעה החד-פעמית "הנתונים גדולים — IDB בלבד": true פעם אחת **למכשיר/ארגון** (נרשם
+ * ב-localStorage — מפתח זעיר שנכנס גם כשהמסמך לא), כדי לא להטריד בכל פתיחה.
+ * ⚠️ ביקורת (12.10): ההצגה נדחית ל-idle (עד 5s) — החותמת "הוצג" נרשמת רק ב-markLsDroppedNoticed,
+ * מתוך ה-callback שמציג בפועל; טאב שנסגר בחלון-הדחייה לא "שורף" את ההודעה למכשיר.
+ */
+export function takeLsDroppedNotice(): boolean {
+  if (!lsDroppedNotice) return false;
+  lsDroppedNotice = false;
+  try {
+    if (localStorage.getItem(nsLsKey('maor_lsdrop_noticed'))) return false;
+  } catch {
+    /* חסום — נציג פעם-בסשן */
+  }
+  return true;
+}
+
+/** חותמת "ההודעה הוצגה" — נקראת ברגע ההצגה. false = כבר הוצגה במכשיר (מאז ה-take). */
+export function markLsDroppedNoticed(): boolean {
+  const k = nsLsKey('maor_lsdrop_noticed');
+  try {
+    if (localStorage.getItem(k)) return false;
+    localStorage.setItem(k, '1');
+  } catch {
+    /* חסום — נציג פעם-בסשן */
+  }
+  return true;
+}
+
+/**
+ * ⚠️ ביקורת (12.10): migrate ריפא (מספור-קבלות כפול, מצברי-תורם, מונים, גרסה) — ועד היום הריפוי
+ * הגיע לדיסק רק כתופעת-לוואי של runDecay (setDb בלי-תנאי בטעינה). מאז ש-runDecay כותב רק כשיש
+ * דעיכה, טעינה-נקייה לא מתזמנת שמירה — אבל מסמך **שרופא** חייב להישמר (מספר-קבלה שהוצג לתורם
+ * חייב להיות עמיד, לא לחכות לעריכה הראשונה). loadDb/decryptAndLoad מאפסים; migrate מדליק;
+ * ה-store צורך (takeMigrateHealed) ומתזמן שמירה אחת. מסמך נקי ⇒ false ⇒ אפס שמירה (הרווח נשמר).
+ */
+let migrateHealed = false;
+export function takeMigrateHealed(): boolean {
+  const h = migrateHealed;
+  migrateHealed = false;
+  return h;
+}
+
 /** האם השמירה הנוכחית מוצפנת (יש DEK בזיכרון). */
 export function isCryptoActive(): boolean {
   return !!dek && !!envelope;
@@ -48,6 +143,8 @@ export function isCryptoActive(): boolean {
 export function clearCrypto(): void {
   dek = null;
   envelope = null;
+  // ⚡ (12.10) דגל-המעטפת-המאוחסנת נלמד מחדש ב-loadDb הבא (הבדיקות מדמות כך "טאב חדש")
+  storedIsEnvelope = false;
 }
 
 let LS_KEY = 'maor_db';
@@ -70,6 +167,7 @@ export function setPersistNamespace(slug: string): void {
     LS_CORRUPT_KEY = 'maor_db_corrupt';
     IDB_NAME = 'maor';
     idb = null;
+    lsDropped = lsDroppedNotice = storedIsEnvelope = false; // ⚡ (12.10) משטר-המכסה ודגל-המעטפת הם פר-מפתח
     return;
   }
   nsSlug = slug;
@@ -77,6 +175,7 @@ export function setPersistNamespace(slug: string): void {
   LS_CORRUPT_KEY = `maor_db_corrupt:${slug}`;
   IDB_NAME = `maor:${slug}`;
   idb = null; // חיבור קודם (אם נפתח) מצביע ל-DB הלא נכון
+  lsDropped = lsDroppedNotice = storedIsEnvelope = false; // ⚡ (12.10) משטר-המכסה ודגל-המעטפת הם פר-מפתח
 }
 
 let nsSlug = '';
@@ -126,11 +225,18 @@ let idb: Promise<IDBPDatabase> | null = null;
 
 function getIdb(): Promise<IDBPDatabase> {
   if (!idb) {
-    idb = openDB(IDB_NAME, 1, {
+    // נחיל ב׳ (3.9): openDB שנכשל (IDB חסום/נעול רגעית) נשמר כ-promise-דחוי לצמיתות ⇒ כל
+    // שמירה/צילום עתידי נפל בלי ניסיון-חוזר עד רענון. בכשל מאפסים — רק אם זה עדיין אותו
+    // promise (בדיקת-זהות: החלפת-namespace כבר הציבה חיבור חדש שאסור לאפס).
+    const p = openDB(IDB_NAME, 1, {
       upgrade(d) {
         d.createObjectStore(IDB_STORE);
         d.createObjectStore(IDB_SNAPSHOTS);
       },
+    });
+    idb = p;
+    p.catch(() => {
+      if (idb === p) idb = null;
     });
   }
   return idb;
@@ -223,18 +329,22 @@ export function migrate(raw: unknown): Db | null {
   if (!raw || typeof raw !== 'object') return null;
   const db = raw as Partial<Db> & { v?: number };
   if (!db.v || db.v > DB_VERSION) return null;
+  if (db.v !== DB_VERSION) migrateHealed = true; // שדרוג-גרסה = ריפוי שחייב להישמר
   const base = emptyDb();
   const merged: Db = {
     ...base,
     ...db,
     v: DB_VERSION,
     families: Array.isArray(db.families) ? db.families : [],
-    enrollments: Array.isArray(db.enrollments) ? db.enrollments : [],
-    courses: Array.isArray(db.courses) ? db.courses : [],
+    // נחיל ב׳ (3.9): איבר null בשיבוצים/חוגים/תומכים (JSON ערוך-ידנית/חלקי) זרק TypeError בתוך
+    // migrate (e.payments / c.sessions / s.donations) ⇒ loadDb נפל ⇒ האפליקציה נתקעה על מסך-
+    // הטעינה. מסננים כמו families (:515) — אידמפוטנטי, נתונים תקינים ביט-זהים.
+    enrollments: Array.isArray(db.enrollments) ? db.enrollments.filter(Boolean) : [],
+    courses: Array.isArray(db.courses) ? db.courses.filter(Boolean) : [],
     events: Array.isArray(db.events) ? db.events : [],
     rooms: Array.isArray(db.rooms) ? db.rooms : [],
     teachers: Array.isArray(db.teachers) ? db.teachers : [],
-    supporters: Array.isArray(db.supporters) ? db.supporters : [],
+    supporters: Array.isArray(db.supporters) ? db.supporters.filter(Boolean) : [],
     // קופות צדקה (מודול tzedaka) — תוספת אדיטיבית, DB_VERSION נשאר 5:
     // מפתח חסר בגיבוי ישן = מערך ריק מ-emptyDb
     tzCoordinators: Array.isArray(db.tzCoordinators) ? db.tzCoordinators : [],
@@ -284,11 +394,12 @@ export function migrate(raw: unknown): Db | null {
     }, 0);
   const rNext = maxRid(
     'R-',
-    merged.enrollments.flatMap((e) => (Array.isArray(e.payments) ? e.payments.map((p) => p.rid) : [])),
+    merged.enrollments.flatMap((e) => (Array.isArray(e.payments) ? e.payments.filter(Boolean).map((p) => p.rid) : [])),
   );
   const dNext = maxRid(
     'D-',
-    merged.supporters.flatMap((s) => (Array.isArray(s.donations) ? s.donations.map((d) => d.rid) : [])),
+    // נחיל ב׳ (3.9) EC-1: איבר-null בתרומות (מסמך פגום) נזרק כאן — לפני הריפוי המלא בהמשך
+    merged.supporters.flatMap((s) => (Array.isArray(s.donations) ? s.donations.filter(Boolean).map((d) => d.rid) : [])),
   );
   // אישורי S- של החנות — אותו דפוס זריעה (רציפות גם בגיבוי שקדם למונה)
   const sNext = maxRid(
@@ -297,9 +408,9 @@ export function migrate(raw: unknown): Db | null {
       Array.isArray(a.redemptions) ? a.redemptions.map((r) => r.rid ?? '') : [],
     ),
   );
-  if (rNext > merged.receiptSeq) merged.receiptSeq = rNext;
-  if (dNext > merged.donationSeq) merged.donationSeq = dNext;
-  if (sNext > merged.shopReceiptSeq) merged.shopReceiptSeq = sNext;
+  if (rNext > merged.receiptSeq) { merged.receiptSeq = rNext; migrateHealed = true; }
+  if (dNext > merged.donationSeq) { merged.donationSeq = dNext; migrateHealed = true; }
+  if (sNext > merged.shopReceiptSeq) { merged.shopReceiptSeq = sNext; migrateHealed = true; }
   // הגנה על ייחודיות מספרי-קבלה בנתונים: מרוץ בין-מכשירי (אותו receiptSeq נקרא
   // בשני מכשירים) עלול להנפיק rid זהה לשתי קבלות. פס זה רץ בכל טעינה ובכל משיכה
   // מהענן (pullAll→migrate). #5.5a: הדדופ דטרמיניסטי — הקבלה המוקדמת-בתאריך שומרת
@@ -308,60 +419,121 @@ export function migrate(raw: unknown): Db | null {
   // מנרמלים גם את שדות-הרשימה הפנימיים ל-[] כשהם חסרים (לא רק כשהם כבר מערך) —
   // מסמך שהגיע מהענן/גיבוי ללא payments/absences/donations היה משאיר undefined,
   // וקוד ש-.map/.filter עליהם (paidOf, sessionsOf, דוחות) היה קורס.
-  merged.enrollments = merged.enrollments.map((e) => ({
-    ...e,
-    payments: Array.isArray(e.payments) ? e.payments : [],
-    absences: Array.isArray(e.absences) ? e.absences : [],
-  }));
+  // ⚡ ביצועים (12.10.2026): migrate רץ בכל טעינה (ובכל משיכת-ענן) — אצל הלקוח האמיתי
+  // (16,000 תורמים · 34MB) כל פס שמשכפל רשומה "נקייה" עלה זמן-CPU + זיכרון לשווא: רשומה
+  // שאין בה מה לרפא מוחזרת **באותה הפניה**; רק רשומה פגומה משוכפלת — תוצאת-הריפוי ביט-זהה.
+  merged.enrollments = merged.enrollments.map((e) =>
+    Array.isArray(e.payments) && Array.isArray(e.absences)
+      ? e
+      : {
+          ...e,
+          payments: Array.isArray(e.payments) ? e.payments : [],
+          absences: Array.isArray(e.absences) ? e.absences : [],
+        },
+  );
   // 🐛 נחיל-9×9 (13.8): חוג מגיבוי-ישן/ענן-חלקי יכול להגיע עם sessions===undefined —
   // כל קוד ש-.length/.map עליו (יצוא-CSV, עריכת-חוג) קרס. ריפוי: מערך תמיד.
-  merged.courses = merged.courses.map((c) => ({ ...c, sessions: Array.isArray(c.sessions) ? c.sessions : [] }));
+  merged.courses = merged.courses.map((c) => (Array.isArray(c.sessions) ? c : { ...c, sessions: [] }));
   // key = מזהה-השיבוץ + סכום — זהות יציבה שסדר-המערך (מיזוג-ענן) אינו משנה (swarm-audit)
   const payCoords = merged.enrollments.flatMap((e, ei) =>
     e.payments.map((p, pi) => ({ ei, pi, rid: p.rid, date: p.date, key: e.id + '|' + p.amount + '|' + (p.method ?? '') })),
   );
   const rPlan = planRidRenumber(payCoords, merged.receiptSeq, 'R-');
   payCoords.forEach((c, k) => {
-    if (rPlan.newRid[k]) merged.enrollments[c.ei].payments[c.pi] = { ...merged.enrollments[c.ei].payments[c.pi], rid: rPlan.newRid[k]! };
+    if (!rPlan.newRid[k]) return;
+    migrateHealed = true;
+    // ⚡ (12.10): copy-on-write — מערך-התשלומים של רשומה נקייה הוא כעת הפניית-הקלט; לא כותבים לתוכו
+    const e = merged.enrollments[c.ei];
+    const payments = e.payments.slice();
+    payments[c.pi] = { ...payments[c.pi], rid: rPlan.newRid[k]! };
+    merged.enrollments[c.ei] = { ...e, payments };
   });
   merged.receiptSeq = rPlan.nextSeq;
-  merged.supporters = merged.supporters.map((s) => ({
-    ...s,
-    donations: Array.isArray(s.donations) ? s.donations : [],
+  merged.supporters = merged.supporters.map((s) => {
+    // נחיל ב׳ (3.9): תרומה בלי date (מסמך-ענן/גיבוי חלקי) הקריסה d.date.startsWith ב-hokRecordedThisMonth/
+    // wallData ⇒ מסך-התורמים כולו נפל מרשומה אחת. ריפוי ⇒ '' (ה-rid לעולם לא נזרק — קבלה); איבר
+    // null נזרק (אין לו rid). תרומה תקינה נשמרת באותה הפניה (ביט-זהה).
+    // ⚡ (12.10): מערך שכל איבריו תקינים נשמר באותה הפניה (במקום filter+map חדשים לכל תורם —
+    // 80,000 תרומות אצל הלקוח האמיתי).
+    const donations: Supporter['donations'] = !Array.isArray(s.donations)
+      ? []
+      : s.donations.every((d) => !!d && typeof d === 'object' && typeof d.date === 'string')
+        ? s.donations
+        : s.donations.filter((d) => !!d && typeof d === 'object').map((d) => (typeof d.date === 'string' ? d : { ...d, date: '' }));
     // גלריית-תמונות: חיטוי-הגנתי (ייבוא/ענן/ישן) — רק data:URI תקינים מתחת-לתקרה.
     // נוגעים רק כשהשדה קיים ⇒ כרטיס בלי-תמונות נשאר ביט-זהה (undefined).
-    ...(s.photos !== undefined ? { photos: sanitizePhotos(s.photos) } : {}),
+    // ⚡ (12.10): חיטוי שלא זרק/קיצץ דבר ⇒ אותו מערך (אותם איברים, אותו אורך).
+    let photos = s.photos;
+    if (photos !== undefined) {
+      const clean = sanitizePhotos(photos);
+      if (!Array.isArray(photos) || clean.length !== photos.length || clean.some((p, i) => p !== photos![i])) photos = clean;
+    }
     // hist מהקובץ ההיסטורי (לגאסי {d,a,c}) — נרמול: לא-מערך → undefined;
     // איברים בלי תאריך d או סכום a מספרי — נזרקים. מטבע לא-מוכר → ברירת ₪ בתצוגה.
     // 🐛 נחיל-עמוק (13.8): המיגרציה שכתבה {d,a,c} בלבד ומחקה את מטא-דאטת-הסליקה
     // (ref/txn/receipt/brand/last4/clearer/pays/status — additive 13.8) בכל טעינה.
     // כעת שומרים את כל השדות ורק מנרמלים מטבע לא-מוכר.
-    hist: Array.isArray(s.hist)
-      ? s.hist
-          .filter((h): h is NonNullable<Supporter['hist']>[number] =>
-            !!h && typeof h === 'object' && !!(h as { d?: unknown }).d &&
-            typeof (h as { a?: unknown }).a === 'number' && Number.isFinite((h as { a?: unknown }).a as number))
-          .map((h) => {
+    // ⚡ (12.10): hist שכל איבריו תקינים (d · a מספרי · c חסר או ₪/$) נשמר באותה הפניה — לפני
+    // כן כל טעינה שכפלה כל שורת-hist ({...rest, c}); 128,000 שורות אצל הלקוח האמיתי.
+    const histOk = (h: unknown): h is NonNullable<Supporter['hist']>[number] =>
+      !!h && typeof h === 'object' && !!(h as { d?: unknown }).d &&
+      typeof (h as { a?: unknown }).a === 'number' && Number.isFinite((h as { a?: unknown }).a as number);
+    const curOk = (c: unknown): boolean => c === '$' || c === '₪';
+    const hist: Supporter['hist'] = !Array.isArray(s.hist)
+      ? undefined
+      : s.hist.every((h) => histOk(h) && (!('c' in h) || curOk(h.c)))
+        ? s.hist
+        : s.hist.filter(histOk).map((h) => {
             const { c, ...rest } = h;
-            return { ...rest, ...(c === '$' || c === '₪' ? { c } : {}) };
-          })
-      : undefined,
-  }));
+            return { ...rest, ...(curOk(c) ? { c } : {}) };
+          });
+    // לוח-מעקב 3.9 — הלגאסי יוצר ayin חלקי (`legacy-main-script.js:1596` — {stage,eyes,note,nextTalk,lastTouch}
+    // בלי names/log/answers; המערכים נוצרים אצלו עצלנית) ⇒ eyesTotal (a.names.reduce) קרס את מסך-התורמים
+    // כולו על רשומה אחת. ריפוי בנקודת-הכניסה היחידה: מיזוג emptyAyin (שדות קיימים גוברים) + שלב לא-מוכר
+    // ⇒ 'new'. תומכ/ת בלי ayin נשאר/ת בלי המפתח (לא מוסיפים); ayin מלא ביט-זהה; אידמפוטנטי.
+    // ⚡ (12.10): ayin שכל מפתחות-הבסיס קיימים בו והשלב מוכר — אותה הפניה (המיזוג היה מחזיר ערכים זהים).
+    let ayin = s.ayin;
+    if (ayin && typeof ayin === 'object') {
+      const base = emptyAyin();
+      const full = AYIN_STAGES.includes(ayin.stage) && Object.keys(base).every((k) => k in ayin!);
+      if (!full) ayin = { ...base, ...ayin, stage: AYIN_STAGES.includes(ayin.stage) ? ayin.stage : 'new' };
+    }
+    if (donations === s.donations && photos === s.photos && hist === s.hist && ayin === s.ayin) return s;
+    return {
+      ...s,
+      donations,
+      ...(photos !== undefined ? { photos } : {}),
+      hist,
+      ...(ayin && typeof ayin === 'object' ? { ayin } : {}),
+    };
+  });
   // key = מזהה-התומכ/ת + סכום/מטבע/קטגוריה — זהות יציבה בלי תלות בסדר-המערך (swarm-audit)
   const donCoords = merged.supporters.flatMap((s, si) =>
     s.donations.map((d, di) => ({ si, di, rid: d.rid, date: d.date, key: s.id + '|' + d.amount + '|' + (d.cur ?? '') + '|' + (d.cat ?? '') })),
   );
   const dPlan = planRidRenumber(donCoords, merged.donationSeq, 'D-');
   donCoords.forEach((c, k) => {
-    if (dPlan.newRid[k]) merged.supporters[c.si].donations[c.di] = { ...merged.supporters[c.si].donations[c.di], rid: dPlan.newRid[k]! };
+    if (!dPlan.newRid[k]) return;
+    migrateHealed = true;
+    // ⚡ (12.10): copy-on-write — מערך-התרומות של תורם נקי הוא כעת הפניית-הקלט; לא כותבים לתוכו
+    const s = merged.supporters[c.si];
+    const donations = s.donations.slice();
+    donations[c.di] = { ...donations[c.di], rid: dPlan.newRid[k]! };
+    merged.supporters[c.si] = { ...s, donations };
   });
   merged.donationSeq = dPlan.nextSeq;
   // ריפוי-עצמי של מצבורי-התומכת (#14, הכרעת בעלים "כל מה שיעלה בקובץ"): count/ils/
   // usd = קבלות-בלבד (hist מתווסף בתצוגה, supporters/lib) — נמנע כפל-ספירה. first/last —
   // המחושב, ובהיעדר תאריכים נשמר הסימון הישן (fallback ל-supDonEvents לא נשבר).
+  // ⚡ (12.10): מצבורים שכבר נכונים ⇒ אותה הפניה (הפס השני שכפל כל תורם בכל טעינה; 16,000
+  // אצל הלקוח האמיתי). NaN שמור ≠ NaN מחושב ⇒ עדיין משוכפל ומרופא, כמו קודם.
   merged.supporters = merged.supporters.map((s) => {
     const agg = supporterAggregates(s);
-    return { ...s, count: agg.count, ils: agg.ils, usd: agg.usd, first: agg.first || s.first, last: agg.last || s.last };
+    const first = agg.first || s.first;
+    const last = agg.last || s.last;
+    if (s.count === agg.count && s.ils === agg.ils && s.usd === agg.usd && s.first === first && s.last === last) return s;
+    migrateHealed = true;
+    return { ...s, count: agg.count, ils: agg.ils, usd: agg.usd, first, last };
   });
   // קופות צדקה — ריפוי פר-רשומה (מודול מבודד, אותה רוח כמו שאר הריפויים):
   // רכז: score לא-מספרי → 0, scoreLog לא-מערך → []; קופה: collections
@@ -470,11 +642,13 @@ export function migrate(raw: unknown): Db | null {
   );
   const sPlan = planRidRenumber(sCoords, merged.shopReceiptSeq, 'S-');
   sCoords.forEach((c, k) => {
-    if (sPlan.newRid[k])
+    if (sPlan.newRid[k]) {
+      migrateHealed = true;
       merged.shopAssignments[c.ai].redemptions[c.ri] = {
         ...merged.shopAssignments[c.ai].redemptions[c.ri],
         rid: sPlan.newRid[k]!,
       };
+    }
   });
   merged.shopReceiptSeq = sPlan.nextSeq;
   merged.shopCriteria = merged.shopCriteria.map((c) => ({
@@ -529,11 +703,20 @@ export function migrate(raw: unknown): Db | null {
         members,
         docs: migrateDocs(f.docs),
         cred: migrateCred(f.cred),
+        // ריפוי-סטטוס (ביקורת-e2e 1.9): סטטוס לא-מוכר/חסר ⇒ 'active'. בלעדיו
+        // STATUS_META[f.status] היה undefined ⇒ .bg זורק ⇒ **כל האפליקציה קורסת**
+        // (error-boundary) מרשומה אחת פגומה. הערך התקין נשמר ביט-זהה.
+        status: f.status === 'active' || f.status === 'pending' || f.status === 'inactive' ? f.status : 'active',
       };
     })
     .filter((f) => !seen.has(f.id) && !!seen.add(f.id));
   // שדות ארגון מגיבוי לגאסי (v:1 שומר orgName/orgSite/orgDonate ברמת השורש) —
   // ערך לא-מחרוזתי (undefined מפורש וכד') נופל לברירת המחדל ולא מזהם את ה-Db.
+  // ביקורת-עומק 2.9: סוג-אירוע לא-מוכר קרס את בניית-הלוח (EV_META[type].bg); pri לא-תקין
+  // במשימה קרס את ווידג'ט-הבית (PRI_LABELS[pri].slice). ריפוי בשער-הטעינה — ערך תקין ביט-זהה.
+  const EVT = new Set(['reminder', 'call', 'wedding', 'memorial', 'anniversary', 'bday', 'org', 'custom']);
+  merged.events = (merged.events as unknown as Array<Record<string, unknown>>).map((e) => (e && EVT.has(String(e.type)) ? e : { ...e, type: 'custom' })) as unknown as typeof merged.events;
+  merged.tasks = (merged.tasks as unknown as Array<Record<string, unknown>>).map((t) => (t && [1, 2, 3].includes(t.pri as number) ? t : { ...t, pri: 2 })) as unknown as typeof merged.tasks;
   if (typeof merged.orgName !== 'string') merged.orgName = base.orgName;
   if (typeof merged.orgSite !== 'string') merged.orgSite = base.orgSite;
   if (typeof merged.orgDonate !== 'string') merged.orgDonate = base.orgDonate;
@@ -554,7 +737,7 @@ export function migrate(raw: unknown): Db | null {
   for (const arr of [merged.enrollments, merged.courses, merged.events, merged.rooms, merged.teachers, merged.supporters] as { id?: unknown }[][]) {
     for (const x of arr) scanId(x?.id);
   }
-  if (maxIdNum >= merged.seq) merged.seq = maxIdNum + 1;
+  if (maxIdNum >= merged.seq) { merged.seq = maxIdNum + 1; migrateHealed = true; }
   return merged;
 }
 
@@ -577,6 +760,67 @@ async function readRaw(): Promise<unknown> {
     return await (await getIdb()).get(IDB_STORE, 'current');
   } catch {
     return null;
+  }
+}
+
+/**
+ * נחיל ב׳ (3.9): גשש-תחילית למעטפת מוצפנת — בלי לפרסר את כל ה-DB. encryptDb כותב `$enc` כמפתח
+ * הראשון (crypto.ts:89-90) וה-spread ב-saveDb משמר את הסדר; ל-Db אין מפתח `$enc`, ובתוך מחרוזת-
+ * JSON הגרשיים מוברחים (\") ולכן הליטרל לא יכול להופיע. ⇒ לכל מחרוזת שהכותבים שלנו מייצרים:
+ * isEncrypted(JSON.parse(s)) === ENC_PROBE.test(s).
+ */
+const ENC_PROBE = /^\{[^{}]{0,40}"\$enc":2/;
+
+/**
+ * ⚠️ ביקורת (12.10): כותרת-המעטפת ב-IDB — רשומה זעירה (המעטפת בלי `data`, כמה מאות בייטים) שנכתבת
+ * **באותה טרנזקציה** עם המסמך ('current'): מוצפן ⇒ הכותרת; גלוי ⇒ נמחקת. דרכה שער ריבוי-הטאבים
+ * של saveDb (החלפת-סיסמה / הצפנה-מחדש / טאב-גלוי מול מעטפת) פעיל גם במשטר-IDB-בלבד — בלי
+ * idb.get של 34MB. אטומיות: שתי הכתיבות באותה tx ⇒ אין מצב-ביניים "כותרת אומרת מוצפן, מסמך גלוי"
+ * (שהיה תוקע כל שמירה גלויה ב-false לצמיתות).
+ */
+const ENC_HEADER_KEY = 'enc';
+function envHeaderOf(env: EncEnvelope): EncEnvelope {
+  return { $enc: env.$enc, iter: env.iter, saltPass: env.saltPass, saltRec: env.saltRec, wrapPass: env.wrapPass, wrapRec: env.wrapRec, data: '' };
+}
+/** כתיבת 'current' + כותרת-המעטפת (או מחיקתה) בטרנזקציה אחת. זורק כשה-IDB נכשל. */
+async function putCurrent(value: unknown, env: EncEnvelope | null): Promise<void> {
+  const tx = (await getIdb()).transaction(IDB_STORE, 'readwrite');
+  await Promise.all([
+    tx.store.put(value, 'current'),
+    env ? tx.store.put(envHeaderOf(env), ENC_HEADER_KEY) : tx.store.delete(ENC_HEADER_KEY),
+    tx.done,
+  ]);
+}
+
+/**
+ * המעטפת המאוחסנת (אם יש) — לשער ריבוי-הטאבים של saveDb. במקום readRaw (JSON.parse מלא של
+ * ~5MB בכל שמירה, רק כדי לבדוק isEncrypted) בודקים תחילית; מפרסרים רק בהתאמה. null = גלוי/חסר.
+ * ⚡ (12.10): LS ריק/חסום/נזנח ⇒ **אין** idb.get של המסמך כולו (34MB structured-clone לפני כל
+ * put — המדידה: 3 מעברי-DB-מלאים לעריכה במשטר-המכסה). טאב-גלוי שכבר למד שיש מעטפת (דגל-הזיכרון)
+ * מסרב בלי IDB; אחרת קוראים את **כותרת-המעטפת** (ENC_HEADER_KEY — בייטים, לא המסמך) — כך
+ * החלפת-סיסמה/הצפנה-מחדש בטאב אחר נראות גם כשהמסמך לא נכנס ל-LS (ביקורת 12.10: לפני כן
+ * הטאב השווה את מעטפת-הזיכרון שלו לעצמה ודרס סיסמה חדשה / מעטפת עם DEK אחר).
+ * IDB חסום ⇒ נופלים לדגל-הזיכרון (כמו היום כש-idb.get נכשל ⇒ null).
+ */
+async function readStoredEnvelope(): Promise<EncEnvelope | null> {
+  try {
+    const raw = lsDropped ? null : localStorage.getItem(LS_KEY);
+    if (raw) {
+      if (!ENC_PROBE.test(raw)) return null;
+      const parsed: unknown = JSON.parse(raw);
+      return isEncrypted(parsed) ? parsed : null;
+    }
+  } catch {
+    /* חסום או JSON פגום — נופלים ל-IDB */
+  }
+  if (storedIsEnvelope && !dek) return envelope ?? ENVELOPE_UNSEEN; // סירוב-זול של טאב-גלוי (אפס IDB)
+  try {
+    const h: unknown = await (await getIdb()).get(IDB_STORE, ENC_HEADER_KEY);
+    if (isEncrypted(h)) return h;
+    // אין כותרת: מסמך מלפני הכותרת (נכתבת בשמירה הבאה) — הדגל שנלמד בטעינה עדיין מכריע לטאב-גלוי
+    return !dek && storedIsEnvelope ? (envelope ?? ENVELOPE_UNSEEN) : null;
+  } catch {
+    return storedIsEnvelope ? (envelope ?? ENVELOPE_UNSEEN) : null;
   }
 }
 
@@ -605,7 +849,9 @@ export function readStoredPlainDb(raw?: string | null): Db | null {
 
 /** טעינה: localStorage תחילה, נפילה ל-IndexedDB, ואז DB ריק. מזהה מעטפת מוצפנת. */
 export async function loadDb(): Promise<LoadResult> {
+  migrateHealed = false; // ⚠️ ביקורת (12.10): נלמד מחדש בטעינה זו — ראה takeMigrateHealed
   const raw = await readRaw();
+  storedIsEnvelope = isEncrypted(raw); // ⚡ (12.10) נלמד פעם אחת — saveDb לא קורא עוד את ה-IDB לפני put
   if (isEncrypted(raw)) {
     // מוצפן — לא מפענחים כאן (אין קוד). מחזירים דגל; App יבקש קוד.
     envelope = raw;
@@ -623,6 +869,7 @@ export async function loadDb(): Promise<LoadResult> {
   }
   if (idbRaw && idbRaw !== raw) {
     if (isEncrypted(idbRaw)) {
+      storedIsEnvelope = true;
       envelope = idbRaw as EncEnvelope;
       return { db: emptyDb(), corrupt: false, encrypted: true };
     }
@@ -651,6 +898,7 @@ export async function decryptAndLoad(secret: string, via: 'pass' | 'rec'): Promi
   if (!key) return null;
   try {
     const json = await decryptDb(envelope, key);
+    migrateHealed = false; // ⚠️ ביקורת (12.10): ראה takeMigrateHealed
     const parsed = migrate(JSON.parse(json));
     if (!parsed) return null;
     dek = key;
@@ -702,7 +950,8 @@ export async function stopEncryption(db: Db): Promise<void> {
   await saveDb(db, { plaintext: true }); // נכתב גלוי (אין DEK)
   try {
     // ודא שהעותק המוצפן הישן לא נשאר ב-IndexedDB
-    await (await getIdb()).put(IDB_STORE, { ...db, savedAt: new Date().toISOString() }, 'current');
+    await putCurrent({ ...db, savedAt: new Date().toISOString() }, null); // + מחיקת כותרת-המעטפת (ביקורת 12.10)
+    storedIsEnvelope = false;
   } catch {
     /* לא קריטי */
   }
@@ -715,23 +964,23 @@ export async function changeEncryptionPassword(oldPw: string, newPw: string): Pr
   if (!envelope || !dek) return false;
   const check = await openDek(envelope, oldPw, 'pass');
   if (!check) return false;
-  envelope = await rewrapPassword(envelope, dek, newPw);
-  await writeEnvelope(envelope);
+  const next = await rewrapPassword(envelope, dek, newPw);
+  // ביקורת-עומק 2.9: כתיבה-שנכשלה (מכסה/IDB) החזירה true ⇒ הסיסמה "הוחלפה" רק בזיכרון;
+  // אחרי רענון פתחה רק הישנה. עכשיו false אמיתי — והמעטפה-בזיכרון לא מוחלפת.
+  if (!(await writeEnvelope(next))) return false;
+  envelope = next;
   return true;
 }
 
 /** כתיבת מעטפת מוצפנת לשתי השכבות. */
-async function writeEnvelope(env: EncEnvelope): Promise<void> {
+async function writeEnvelope(env: EncEnvelope): Promise<boolean> {
   const json = JSON.stringify(env);
-  let lsOk = false;
+  let idbOk = false;
+  const lsOk = lsWrite(json); // ⚡ (12.10) משטר-המכסה — מעטפת של מסמך-ענק לא תיכנס ל-LS ממילא
   try {
-    localStorage.setItem(LS_KEY, json);
-    lsOk = true;
-  } catch {
-    /* מכסה מלאה */
-  }
-  try {
-    await (await getIdb()).put(IDB_STORE, env, 'current');
+    await putCurrent(env, env); // + כותרת-המעטפת באותה טרנזקציה (ביקורת 12.10)
+    idbOk = true;
+    storedIsEnvelope = true;
     // LS נכשל אך IDB הצליח → מוחקים את העותק הישן ב-LS כדי ש-readRaw ייפול
     // לעותק הטרי ב-IndexedDB במקום להחזיר snapshot מיושן וקריא.
     if (!lsOk) {
@@ -744,6 +993,7 @@ async function writeEnvelope(env: EncEnvelope): Promise<void> {
   } catch {
     /* IndexedDB נכשל */
   }
+  return lsOk || idbOk;
 }
 
 /**
@@ -753,7 +1003,10 @@ async function writeEnvelope(env: EncEnvelope): Promise<void> {
  */
 export async function saveDb(db: Db, opts?: { plaintext?: boolean }): Promise<boolean> {
   const doc: Db = { ...db, savedAt: new Date().toISOString() };
-  const json = JSON.stringify(doc);
+  // ⚡ (12.10): במשטר-IDB-בלבד וגלוי אין JSON.stringify כלל — ה-put עובד על האובייקט (structured
+  // clone). המדידה: 50–800ms של stringify לכל עריכה אצל הלקוח האמיתי, רק כדי ש-setItem ייכשל.
+  const encrypting = !!dek && !!envelope;
+  const json: string | null = encrypting || !lsDropped ? JSON.stringify(doc) : null;
   // ⚠️ רב-טאבי: מצב ההצפנה (dek/envelope) הוא ברמת-מודול ולכן פרטי לכל טאב,
   // בלי סנכרון בין טאבים. לפני שדורסים את הערך המאוחסן, קוראים אותו מחדש:
   //  • טאב גלוי (dek==null) שרואה מעטפת מוצפנת = טאב אחר הפעיל הצפנה → אסור
@@ -761,9 +1014,10 @@ export async function saveDb(db: Db, opts?: { plaintext?: boolean }): Promise<bo
   //  • טאב מוצפן שהמעטפת בזיכרונו התיישנה (טאב אחר החליף סיסמה) → מאמצים את
   //    עטיפת-הסיסמה הטרייה מהמאוחסן, אחרת reencryptDb היה משחזר את הסיסמה הישנה.
   if (!opts?.plaintext) {
-    const stored = await readRaw();
+    // נחיל ב׳ (3.9): גשש-תחילית (readStoredEnvelope) במקום readRaw — אותה תוצאה, בלי parse מלא בכל שמירה
+    const stored = await readStoredEnvelope();
     if (dek && envelope) {
-      if (isEncrypted(stored)) {
+      if (stored) {
         // wrapRec/saltRec זהים ⇒ אותו DEK (רק החלפת סיסמה) → מאמצים את עטיפת
         // הסיסמה הטרייה. שונים ⇒ הצפנה הופעלה מחדש עם DEK אחר בטאב אחר; ה-DEK
         // שבידינו מיושן וכתיבה תשחית — נמנעים מדריסה.
@@ -774,27 +1028,24 @@ export async function saveDb(db: Db, opts?: { plaintext?: boolean }): Promise<bo
         }
       }
       // stored גלוי/חסר → המעטפת שבזיכרון מוסמכת (למשל מיד אחרי beginEncryption)
-    } else if (isEncrypted(stored)) {
+    } else if (stored) {
       return false; // טאב גלוי מול מעטפת מוצפנת של טאב אחר — לא דורסים
     }
   }
   // הצפנה פעילה → כותבים מעטפת מוצפנת (אותו DEK, data מעודכן)
-  const payload: string = dek && envelope ? JSON.stringify((envelope = await reencryptDb(envelope, dek, json))) : json;
+  const payload: string | null =
+    dek && envelope ? JSON.stringify((envelope = await reencryptDb(envelope, dek, json!))) : json;
   const idbValue: unknown = dek && envelope ? envelope : doc;
   let ok = false;
-  let lsOk = false;
   let idbOk = false;
+  const lsSkipped = lsDropped; // ה-LS דולג במשטר-המכסה (לא נוסה בשמירה זו)
+  let lsOk = payload !== null && lsWrite(payload);
+  if (lsOk) ok = true;
   try {
-    localStorage.setItem(LS_KEY, payload);
-    ok = true;
-    lsOk = true;
-  } catch {
-    /* מכסה מלאה / מצב פרטי */
-  }
-  try {
-    await (await getIdb()).put(IDB_STORE, idbValue, 'current');
+    await putCurrent(idbValue, dek && envelope ? envelope : null); // + כותרת-המעטפת / מחיקתה (ביקורת 12.10)
     ok = true;
     idbOk = true;
+    storedIsEnvelope = !!(dek && envelope); // ⚡ (12.10) מה שיש עכשיו ב-IDB — בלי לקרוא אותו
     // LS נכשל (מכסה מלאה) אך IDB הצליח → מוחקים את העותק הישן ב-LS. אחרת
     // readRaw היה מחזיר את ה-snapshot הקריא שקדם למכסה, וכל עריכה שנשמרה
     // רק ל-IndexedDB לאחר מכן הייתה נעלמת בטעינה הבאה (איבוד נתונים שקט).
@@ -807,6 +1058,18 @@ export async function saveDb(db: Db, opts?: { plaintext?: boolean }): Promise<bo
     }
   } catch {
     /* IndexedDB נכשל */
+  }
+  // ⚠️ ביקורת (12.10): שתי השכבות נכשלו במשטר-IDB-בלבד (IDB חסום — Safari פרטי) ⇒ ניסיון-אחרון
+  // ישיר ב-LS, גם במחיר stringify (המסמך אולי הצטמצם מאז הזריקה; LS הוא העותק היחיד). עד היום
+  // (origin/main) setItem נוסה בכל שמירה ⇒ ספק-יחיד-LS מעולם לא איבד שמירה בגלל הסף/הזיכרון.
+  if (!ok && lsSkipped) {
+    try {
+      localStorage.setItem(LS_KEY, payload ?? JSON.stringify(doc));
+      ok = lsOk = true;
+      lsDropped = false; // נכנס ⇒ LS שוב שכבה חיה (השמירות הבאות ינסו כמו היום)
+    } catch {
+      /* באמת לא נכנס */
+    }
   }
   // מעקב שכבת-הגיבוי: LS נכתב אך IDB נכשל = אין עותק שני (Safari פרטי / IDB חסום).
   if (lsOk && !idbOk) idbBackupMissing = true;
@@ -830,17 +1093,21 @@ export function flushSaveSync(db: Db): void {
     void saveDb(db);
     return;
   }
+  // ⚡ (12.10): במשטר-IDB-בלבד אין כתיבה סינכרונית אפשרית (IDB אסינכרוני) — stringify של 34MB
+  // ב-pagehide רק כדי ש-setItem ייכשל שוב נחסך; במקומו כתיבה-מיטבית אסינכרונית כמו בנתיב-המוצפן.
+  if (lsDropped) {
+    void saveDb(db);
+    return;
+  }
   try {
     const cur = localStorage.getItem(LS_KEY);
-    if (cur && isEncrypted(JSON.parse(cur))) return; // טאב אחר הצפין — לא לדרוס גלוי
+    // נחיל ב׳ (3.9): גשש-תחילית לפני parse מלא (pagehide — כל מילישנייה חשובה); זהות: ראה ENC_PROBE
+    if (cur && ENC_PROBE.test(cur) && isEncrypted(JSON.parse(cur))) return; // טאב אחר הצפין — לא לדרוס גלוי
   } catch {
     /* JSON פגום — ממשיכים לכתיבה */
   }
-  try {
-    localStorage.setItem(LS_KEY, JSON.stringify({ ...db, savedAt: new Date().toISOString() }));
-  } catch {
-    /* מכסה מלאה */
-  }
+  // ⚡ (12.10) אותו משטר-מכסה כמו saveDb: כישלון/חריגה-מהסף כאן נלמדים לשאר הסשן
+  if (!lsWrite(JSON.stringify({ ...db, savedAt: new Date().toISOString() }))) void saveDb(db);
 }
 
 /** צילום יומי ל-IndexedDB — טבעת של SNAPSHOT_KEEP ימים. מוצפן אם ההצפנה פעילה. */
@@ -859,6 +1126,56 @@ export async function dailySnapshot(db: Db): Promise<void> {
   } catch {
     /* לא קריטי — יש עוד שכבות */
   }
+}
+
+/**
+ * ⚡ (12.10.2026) הרצה ב-idle **וכשהטאב גלוי**: requestIdleCallback (עם timeout — מובטח לרוץ),
+ * נפילה ל-setTimeout בדפדפן בלי rIC (Safari); טאב מוסתר בטעינה ⇒ ממתינים ל-visibilitychange
+ * הראשון לגלוי ורק אז מתזמנים. הכול חד-פעמי. (בלי window/document — מיד.)
+ */
+export function runWhenIdleVisible(fn: () => void, timeoutMs: number): void {
+  const w = typeof window !== 'undefined'
+    ? (window as Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number })
+    : null;
+  const doc = typeof document !== 'undefined' ? document : null;
+  const go = () => {
+    if (w && typeof w.requestIdleCallback === 'function') w.requestIdleCallback(fn, { timeout: timeoutMs });
+    else setTimeout(fn, w ? Math.min(timeoutMs, 3000) : 0);
+  };
+  if (doc && doc.visibilityState === 'hidden') {
+    const onVis = () => {
+      if (doc.visibilityState !== 'visible') return;
+      doc.removeEventListener('visibilitychange', onVis);
+      go();
+    };
+    doc.addEventListener('visibilitychange', onVis);
+    return;
+  }
+  go();
+}
+
+/**
+ * ⚡ (12.10) הרצה ב-idle **בלי** תנאי-גלוי: rIC עם timeout (מובטח לרוץ), נפילה ל-setTimeout.
+ * ⚠️ ביקורת (12.10): הצילום-היומי חייב להיכתב גם בטאב שנטען מוסתר (שחזור-סשן/לינק-ברקע) — עד היום
+ * נכתב מיד בטעינה בלי קשר לגלוי; המתנה-ל-visible השאירה חור בטבעת-30-הימים. ה-structured-clone
+ * בטאב מוסתר לא מפריע לאיש. (תנאי-הגלוי נשאר רק להודעה למשתמש — runWhenIdleVisible.)
+ */
+export function runWhenIdle(fn: () => void, timeoutMs: number): void {
+  const w = typeof window !== 'undefined'
+    ? (window as Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number })
+    : null;
+  if (w && typeof w.requestIdleCallback === 'function') w.requestIdleCallback(fn, { timeout: timeoutMs });
+  else setTimeout(fn, w ? Math.min(timeoutMs, 3000) : 0);
+}
+
+/**
+ * ⚡ (12.10) הצילום היומי — נדחה ל-idle במקום מיד אחרי הציור הראשון: המדידה אצל הלקוח
+ * האמיתי — dailySnapshot עשה structured-clone של 34MB ל-IDB בזמן שהמשתמש מחכה לבית (טעינה
+ * 3.3s CPU / 6s קיר). getDb נקרא רק ברגע הריצה ⇒ הצילום משקף את המצב-החי דאז (לא ישן יותר).
+ * עדיין מובטח פעם ביום (rIC עם timeout של 10s; מפתח-היום ב-dailySnapshot לא השתנה), וגם בטאב מוסתר.
+ */
+export function scheduleDailySnapshot(getDb: () => Db): void {
+  runWhenIdle(() => void dailySnapshot(getDb()), 10_000);
 }
 
 export async function listSnapshots(): Promise<string[]> {
@@ -884,14 +1201,24 @@ export async function loadSnapshot(key: string): Promise<Db | null> {
   }
 }
 
+/**
+ * תוכן קובץ-הגיבוי (טהור-יחסית — בלי DOM): JSON **מרווח** (JSON.stringify(doc, null, 1)) — ביט-זהה
+ * לקובץ ההיסטורי. מוצפן אם ההצפנה פעילה.
+ * ⚡ ידע (12.10.2026): אצל הלקוח האמיתי (16,000 תורמים) הקובץ המרווח הוא 123MB (קומפקטי: 34MB),
+ * וגיבוי-סוף-היום האוטומטי הקפיא את הממשק 30.9s באמצע עבודה. ⚠️ ביקורת (12.10): שינוי-הפורמט
+ * = קובץ אחר למשתמש (ייצוא-ידני, רשתות-הביטחון-לענן, סוף-היום) ⇒ **לא שונה** בלי הכרעת-בעלים;
+ * הפורמט הקומפקטי זמין כ-opt-in (`compact`) ואינו מחובר. הריצה האוטומטית נדחתה ל-idle (App).
+ */
+export async function backupFileContent(db: Db, opts?: { compact?: boolean }): Promise<string> {
+  const doc = { ...db, savedAt: new Date().toISOString() };
+  const ser = (v: unknown): string => (opts?.compact ? JSON.stringify(v) : JSON.stringify(v, null, 1));
+  // הצפנה פעילה → הגיבוי יורד מוצפן (שחזור ידרוש סיסמה/מפתח שחזור)
+  return dek && envelope ? ser((envelope = await reencryptDb(envelope, dek, JSON.stringify(doc)))) : ser(doc);
+}
+
 /** ייצוא קובץ גיבוי JSON (הורדה בדפדפן). מוצפן אם ההצפנה פעילה. */
 export async function exportBackupFile(db: Db): Promise<void> {
-  const doc = { ...db, savedAt: new Date().toISOString() };
-  // הצפנה פעילה → הגיבוי יורד מוצפן (שחזור ידרוש סיסמה/מפתח שחזור)
-  const content =
-    dek && envelope
-      ? JSON.stringify((envelope = await reencryptDb(envelope, dek, JSON.stringify(doc))), null, 1)
-      : JSON.stringify(doc, null, 1);
+  const content = await backupFileContent(db);
   const blob = new Blob([content], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);

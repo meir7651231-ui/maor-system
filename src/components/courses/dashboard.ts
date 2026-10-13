@@ -4,6 +4,8 @@
  * מהחוגים והשיבוצים הקיימים (אפס-סכמה, בלי store/DOM) — מעבר-יחיד O(E) על השיבוצים.
  */
 import type { Db, Enrollment } from '../../types/domain';
+import type { OrgConfig } from '../../types/config';
+import { termOf } from '../../lib/config';
 import { payBal } from './lib';
 
 export interface CourseRow {
@@ -116,9 +118,10 @@ export function courseDashboard(db: Db, opts?: { riskMinAbs?: number }): CourseD
   return { rows, summary, mostWanted };
 }
 
-/** שורות-CSV לייצוא הדשבורד (כותרת + שורה-פר-חוג). */
-export function dashboardCsvRows(dash: CourseDashboard): (string | number)[][] {
-  const head = ['חוג', 'מורה', 'רשומים', 'מקסימום', 'תפוסה %', 'רשימת-המתנה', 'חוב (₪)', 'חיסורים', 'בסיכון'];
+/** שורות-CSV לייצוא הדשבורד (כותרת + שורה-פר-חוג). cfg אופציונלי ⇒ כותרות לפי מונחי-הארגון (בלעדיו — ביט-זהה). */
+export function dashboardCsvRows(dash: CourseDashboard, cfg?: OrgConfig): (string | number)[][] {
+  const T = (k: string, fb: string) => (cfg ? termOf(cfg, k, fb) : fb);
+  const head = [T('entity.course', 'חוג'), T('entity.teacher', 'מורה'), 'רשומים', 'מקסימום', 'תפוסה %', 'רשימת-המתנה', 'חוב (₪)', 'חיסורים', 'בסיכון'];
   const body = dash.rows.map((r) => [
     r.name,
     r.teacher,

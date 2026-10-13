@@ -39,6 +39,7 @@ export const INTEGRATION_LABELS: Record<string, string> = {
   ai: '🤖 עוזר חכם (AI)',
   campaign: '📣 חיבור קמפיין גיוס',
   mail: '📧 קבלות ותזכורות במייל',
+  gcontacts: '📇 סנכרון אנשי-קשר ל-Google',
 };
 
 /**
@@ -64,6 +65,7 @@ export const INTEGRATION_STATUS: Record<string, IntegrationStatus> = {
   sms: 'roadmap', // שרת-מוכן-בריפו (functions/)
   phone: 'roadmap', // שרת-מוכן-בריפו (functions/)
   mail: 'roadmap', // צרור-הלילה — mailOutbox בשרת (functions/), ממתין ל-Blaze+deploy
+  gcontacts: 'roadmap', // People API בשרת (functions/gcontactsSync) — ממתין ל-OAuth של הבעלים
 };
 
 function esc(s: string): string {

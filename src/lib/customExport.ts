@@ -10,7 +10,7 @@ import type { Cell } from './csvx';
 import { featureOn, termOf } from './config';
 import { featLabel, itemLabel, stageLabel, unitLabel } from './ayin';
 import { hebDateFull, hebParts, hebAnnualEq } from './hebrew';
-import { EV_META } from './eventMeta';
+import { evMeta } from './eventMeta';
 import { DAY_NAMES, enrollCount, sessionsOf } from '../components/courses/lib';
 import { supCount, supIls, supScore, supTier, supUsd } from '../components/supporters/lib';
 
@@ -38,7 +38,7 @@ export function expFieldDefs(cfg: OrgConfig, target: ExportTarget): ExpField[] {
   if (target === 'courses') {
     if (!full) {
       return [
-        { key: 'name', label: 'שם החוג' },
+        { key: 'name', label: 'שם ה' + termOf(cfg, 'entity.course', 'חוג') },
         { key: 'teacher', label: 'מורה + טלפון' },
         { key: 'model', label: 'מסלול ומחיר' },
         { key: 'occ', label: 'תפוסה' },
@@ -153,6 +153,13 @@ function fmtD(iso: string): string {
 }
 
 /**
+ * נחיל ב׳ (3.9): עיגול לאגורות לפני שרשור-למחרוזת — סכימת-float (10.1+20.2) הודפסה ל-CSV
+ * כ-"₪30.299999999999997" (המסך משתמש ב-toLocaleString, ה-CSV לא). זהות על שלמים. מקומי
+ * (לא round2 של reports/lib — חוצה-מודול; אותו דפוס כמו payLink.ts:18).
+ */
+const r2 = (x: number) => Math.round(x * 100) / 100;
+
+/**
  * בניית שורות הדו"ח — כותרת מהשדות הנבחרים בלבד, ואז שורת נתונים לכל רשומה.
  * selectedKeys קובע גם את הסדר (לפי סדר ה-defs, מסונן להנבחרים).
  */
@@ -216,12 +223,12 @@ export function buildCustomExport(
               const mi = memberInfo.get(e.memberId);
               if (!mi) return '';
               const paid = (e.payments || []).reduce((a, p) => a + (p.amount || 0), 0);
-              return mi.first + (mi.phone ? ' ' + mi.phone : '') + ' · יתרה ₪' + Math.max(0, (e.totalDue || 0) - paid);
+              return mi.first + (mi.phone ? ' ' + mi.phone : '') + ' · יתרה ₪' + Math.max(0, r2((e.totalDue || 0) - paid));
             })
             .filter(Boolean)
             .join(' | '),
-          pays: payN + ' תשלומים · ₪' + paySum,
-          revenue: '₪' + revenue,
+          pays: payN + ' תשלומים · ₪' + r2(paySum),
+          revenue: '₪' + r2(revenue),
           abs: absN + ' חיסורים',
           notes: c.notes || '',
         }),
@@ -237,7 +244,7 @@ export function buildCustomExport(
       if (!ev.date) continue;
       const rec = {
         title: ev.title,
-        type: ev.customType || EV_META[ev.type].label,
+        type: ev.customType || evMeta(ev).label,
         time: ev.time || '',
         fam: db.families.find((f) => f.id === ev.famId)?.name || '',
         notes: ev.notes || '',
@@ -299,10 +306,10 @@ export function buildCustomExport(
       city: sp.city || '',
       cat: sp.cat || '',
       forWho: sp.forWho || '',
-      dons: dons.length + ' ' + termOf(cfg, 'entity.donations', 'תרומות') + ' · ₪' + ils + (usd ? ' + $' + usd : ''),
+      dons: dons.length + ' ' + termOf(cfg, 'entity.donations', 'תרומות') + ' · ₪' + r2(ils) + (usd ? ' + $' + r2(usd) : ''),
       // "כל-הזמן" = הצבירה המוצגת (קבלות + היסטוריה) — הכרעת-בעלים 9.8 "לכולל":
       // CSV הוא משטח-תצוגה, לכן supCount/supIls/supUsd (כולל hist), לא המונים השמורים.
-      donsAll: supCount(sp) + ' ' + termOf(cfg, 'entity.donations', 'תרומות') + ' · ₪' + supIls(sp) + (supUsd(sp) ? ' + $' + supUsd(sp) : ''),
+      donsAll: supCount(sp) + ' ' + termOf(cfg, 'entity.donations', 'תרומות') + ' · ₪' + r2(supIls(sp)) + (supUsd(sp) ? ' + $' + r2(supUsd(sp)) : ''),
       tier: supTier(supScore(sp, db.usdRate)).label,
       notes: sp.notes || '',
     };
