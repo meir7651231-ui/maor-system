@@ -1,0 +1,42 @@
+{
+ "hosting/HostingView": {
+  "sha": "15a2ac1fb4074af0f3e85a118065ee9be1052a65ea7700d338d3f99a7e32e63c",
+  "len": 6772
+ },
+ "hosting/DashTab": {
+  "sha": "b04850551f000837f4acc13a60721968aafdc98ecad21bba20018ceee9cf52d5",
+  "len": 5268
+ },
+ "hosting/BookingDialog:shabbat-stay": {
+  "sha": "b3b32d84d511d9a21ab0916a23b949bfe906965c7cddffe358554ebf517573dd",
+  "len": 2512
+ },
+ "hosting/BookingDialog:midweek": {
+  "sha": "77bde4345b4828de859ad37b16e1a5bcc7a4760597ae992a16c6efae48359aed",
+  "len": 2647
+ },
+ "hosting/ShabbatTab": {
+  "sha": "e6774c3ebde362cac9dcd1493faaa2c1e6508a3fe9390584e3cd69f7da006e13",
+  "len": 2359
+ },
+ "hosting/MaintTab": {
+  "sha": "acf882ac3087211999f984695a149d7c4e7d3a1ec2f803fc3e21b0207f306427",
+  "len": 3244
+ },
+ "hosting/CleanTab": {
+  "sha": "b38c87b38084f10d54c0b88ac76ce83a247f08de25b16dc29d5ca31aff487305",
+  "len": 1666
+ },
+ "parnasa/ParnasaView": {
+  "sha": "278688231588dd75a4eb1eddb63cfe98ee8c862295352d817a225126413dc166",
+  "len": 2101
+ },
+ "parnasa/CareTab": {
+  "sha": "035d2e26ee08e1b8588d899feb6c5478b4b285d446841fc447fe3e42c8cd0001",
+  "len": 1185
+ },
+ "parnasa/PhoneTab": {
+  "sha": "790577085e3262da0b8c7d7bb69df0b63473ec2137b61c8c9a38a2a5939ca611",
+  "len": 5819
+ }
+}
