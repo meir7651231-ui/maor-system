@@ -42,6 +42,10 @@ describe('🛡 הגנות-מקור — העורך והתצוגה מחווטים'
     expect(formSrc).toContain('cleanSupPhones(phones)');
   });
 
+  it('🐛 צ\'יפי "תת-קהילות קיימות" צמודים לשדה שלהם — עורך-הטלפונים אחריהם, לא ביניהם (נתפס בצילום 13.10)', () => {
+    expect(formSrc.indexOf('תת-קהילות קיימות:')).toBeLessThan(formSrc.indexOf('<PhonesEditor phones={phones} onChange={setPhones} />'));
+  });
+
   it('משפחה בלי טלפונים-נוספים — המפתח phones לא נכתב (ביט-זהה לנתונים הקיימים)', () => {
     expect(formSrc).toContain('return extraPhones.length ? { ...rest, phones: extraPhones } : rest;');
   });

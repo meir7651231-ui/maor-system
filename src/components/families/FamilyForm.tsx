@@ -322,8 +322,6 @@ export function FamilyForm(props: { family: Family | null; onClose: () => void; 
         </Field>
         </div>
       )}
-      {/* טלפונים נוספים (בקשת-בעלים 13.10) — לצד "טלפון נוסף", באותו חלק "פרטים נוספים" */}
-      {moreOpen && <PhonesEditor phones={phones} onChange={setPhones} />}
       {communities.length > 0 && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12, alignItems: 'center' }}>
           <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink-faint)' }}>תת-קהילות קיימות:</span>
@@ -334,6 +332,8 @@ export function FamilyForm(props: { family: Family | null; onClose: () => void; 
           ))}
         </div>
       )}
+      {/* טלפונים נוספים (בקשת-בעלים 13.10) — בחלק "פרטים נוספים"; אחרי צ'יפי תת-הקהילה (שצמודים לשדה שלהם) */}
+      {moreOpen && <PhonesEditor phones={phones} onChange={setPhones} />}
       <Field label="הערות">
         <textarea rows={2} value={f.notes} onChange={(e) => set({ notes: e.target.value })} />
       </Field>
