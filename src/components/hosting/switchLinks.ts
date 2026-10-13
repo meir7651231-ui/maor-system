@@ -4,7 +4,7 @@
  * המודול לא מייבא את פרנסה׳לע.
  *   · stayFriday — האם השהייה לנה בליל-שבת (ואיזה) ⇒ זמני-השבת של אותה שבת.
  *   · groupMinyanim — מניינים לפי בית-כנסת (כתובת) ואז לפי יום ("שישי: מנחה 17:53 · שבת: שחרית 08:30").
- *   · shabbatTimesText / shabbatFamilyText — הזמנים לכרטיס, וההודעה הממולאת "📤 שליחה למשפחה" (זמנים + מניינים + כתובות).
+ *   · shabbatTimeItems / shabbatFamilyText — הזמנים לכרטיס (תווית + שעה), וההודעה הממולאת "📤 שליחה למשפחה" (זמנים + מניינים + כתובות).
  *   · faultNeed / cleanNeed — מה שואלים את המדריך מתוך קריאת-תחזוקה / משימת-ניקיון.
  */
 import type { HostBooking, HostCleanTask, HostFault } from '../../types/domain';
@@ -56,11 +56,13 @@ export function shulDaysText(g: ShulGroup): string {
   return g.days.map((d) => d.dayName + ': ' + d.items.join(', ')).join(' · ');
 }
 
-/** "הדלקת נרות 16/10 17:46 · צאת השבת 18:47 · ר״ת 19:19" — הזמנים של השבת לכרטיס. */
-export function shabbatTimesText(sh: Shabbat): string {
-  return [sh.candle ? 'הדלקת נרות ' + dm(sh.friIso) + ' ' + sh.candle : '', sh.end ? 'צאת השבת ' + sh.end : '', sh.rabbeinuTam ? 'ר״ת ' + sh.rabbeinuTam : '']
-    .filter(Boolean)
-    .join(' · ');
+/** זמני השבת לכרטיס — תווית + שעה (השעה מוצגת בספרות, מופרדת מהעברית). */
+export function shabbatTimeItems(sh: Shabbat): Array<{ label: string; time: string }> {
+  return [
+    sh.candle ? { label: 'הדלקת נרות · שישי ' + dm(sh.friIso), time: sh.candle } : null,
+    sh.end ? { label: 'צאת השבת', time: sh.end } : null,
+    sh.rabbeinuTam ? { label: 'ר״ת', time: sh.rabbeinuTam } : null,
+  ].filter((x): x is { label: string; time: string } => x !== null);
 }
 
 /**

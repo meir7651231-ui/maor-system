@@ -88,7 +88,9 @@ describe('🕯 א׳ כרטיס-ההזמנה ולשונית-השבת ⇐ parnasa.
   it('שהייה לשבת (לוי, שישי–ראשון): זמני השבת, המניינים לפי בית-כנסת וכתובת, "📤 שליחה למשפחה" ממולא לטלפון-האורח', () => {
     const h = html(cfgWith(BOTH), booking('hb1'));
     expect(h).toContain('🕯️ שבת בשהייה · ו׳ חשוון תשפ״ז');
-    expect(h).toContain('הדלקת נרות 16/10 17:46 · צאת השבת 18:47 · ר״ת 19:19');
+    expect(h).toContain('<span>הדלקת נרות · שישי 16/10 <b class="h-mono" dir="ltr">17:46</b></span>');
+    expect(h).toContain('<span>צאת השבת <b class="h-mono" dir="ltr">18:47</b></span>');
+    expect(h).toContain('<span>ר״ת <b class="h-mono" dir="ltr">19:19</b></span>');
     expect(h).toContain('בית המדרש הגדול');
     expect(h).toContain('רח׳ רבי עקיבא 10');
     expect(h).toContain('שישי: שחרית 06:30, מנחה 17:53 · שבת: שחרית 06:30, מנחה 17:52');

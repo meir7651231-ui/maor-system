@@ -23,7 +23,7 @@ import { useHostData, useHostEnv, useNowMs, type HostData, type HostEnv } from '
 import { HModal, h, useHostUi } from './hui';
 import { blocksAvailability, telHref } from './lib';
 import { copyText } from './exportDoc';
-import { groupMinyanim, shabbatFamilyText, shabbatTimesText, shulDaysText, stayFriday } from './switchLinks';
+import { groupMinyanim, shabbatFamilyText, shabbatTimeItems, shulDaysText, stayFriday } from './switchLinks';
 
 const SHABBAT_IDS: readonly AbilityId[] = ['parnasa.shabbat', 'parnasa.minyanim'];
 const PRO_IDS: readonly AbilityId[] = ['parnasa.findPro', 'parnasa.emergency'];
@@ -47,6 +47,23 @@ type MinyanList = OutputOf<'parnasa.minyanim'>['minyanim'];
 function minyanimOf(ctx: SwitchCtx, friIso: string): MinyanList {
   const r = ask('parnasa.minyanim', ctx, { fromIso: friIso, days: 2 });
   return r.ok ? r.value.minyanim : [];
+}
+
+/** הזמנים: התווית בעברית, השעה בספרות (מונו, LTR) — "הדלקת נרות · שישי 16/10 17:46 · צאת השבת 18:47 · ר״ת 19:19". */
+function ShabbatTimes(props: { sh: OutputOf<'parnasa.shabbat'> }) {
+  const items = shabbatTimeItems(props.sh);
+  return (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2px 12px', marginTop: 2 }}>
+      {items.map((it) => (
+        <span key={it.label}>
+          {it.label + ' '}
+          <b className="h-mono" dir="ltr">
+            {it.time}
+          </b>
+        </span>
+      ))}
+    </div>
+  );
 }
 
 /** מניינים לפי בית-כנסת — שורה לכל אחד: שם · כתובת — שישי: … · שבת: … */
@@ -110,9 +127,7 @@ export function StayShabbat(props: { b: HostBooking }) {
         {'🕯️ שבת בשהייה · ' + sh.value.hebDate + (sh.value.holiday ? ' · ' + sh.value.holiday : '')}
         <span style={{ ...DIM, fontWeight: 400 }}> · מלוח הקהילה</span>
       </div>
-      <div className="h-mono" style={{ marginTop: 2 }}>
-        {shabbatTimesText(sh.value)}
-      </div>
+      <ShabbatTimes sh={sh.value} />
       <MinyanRows list={minyanimOf(ctx, sh.value.friIso)} />
       <div style={DIM}>{sh.value.loc + ' · ' + sh.value.brand}</div>
       {link && <SendLink link={link} />}
@@ -136,9 +151,7 @@ export function BoardShabbatPanel(props: { ctx: SwitchCtx }) {
     <div className="h-panel" style={{ marginTop: 16 }} data-switch="board-shabbat">
       <h2>🕯️ זמני השבת מלוח הקהילה</h2>
       <div style={{ fontWeight: 700 }}>{(sh.value.current ? 'השבת · ' : 'השבת הקרובה · ') + sh.value.hebDate + (sh.value.holiday ? ' · ' + sh.value.holiday : '')}</div>
-      <div className="h-mono" style={{ marginTop: 2 }}>
-        {shabbatTimesText(sh.value)}
-      </div>
+      <ShabbatTimes sh={sh.value} />
       <MinyanRows list={minyanimOf(props.ctx, sh.value.friIso)} />
       <div className="h-hint">{sh.value.loc + ' · ' + sh.value.brand + ' · השדות הידניים למטה נשמרים כמו שהם'}</div>
     </div>
