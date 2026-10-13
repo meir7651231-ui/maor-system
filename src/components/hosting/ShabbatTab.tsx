@@ -10,6 +10,7 @@ import { useHostData, useHostEnv } from './hooks';
 import { FInput, Pill, h } from './hui';
 import { blocksAvailability, fmtDM, staySacredDays } from './lib';
 import { SB_MODE } from './labels';
+import { BoardShabbatPanel, ShabbatSendLink, useShabbatSwitch } from './SwitchPanels';
 
 const MODES: HostShabbatMode[] = ['off', 'prep', 'shabbat', 'motzash'];
 
@@ -23,6 +24,8 @@ export function ShabbatTab() {
   const mode = s.mode ?? 'off';
   const upcoming = useMemo(() => d.bookings.filter(blocksAvailability).sort((a, b) => (a.checkIn < b.checkIn ? -1 : 1)), [d.bookings]);
   const t = env.terms;
+  // 🔌 המרכזייה (חיבור א׳): זמני-השבת והמניינים מלוח-הקהילה — רק כשהיכולת זמינה (פרנסה׳לע כבוי ⇒ הלשונית ביט-זהה)
+  const sw = useShabbatSwitch();
   return (
     <>
       <h1 className="h-vh">🕯️ אירוח שבת וכשרות</h1>
@@ -47,6 +50,7 @@ export function ShabbatTab() {
         </div>
         <div className="h-hint">במצב "שבת": הודעות/חיובים אוטומטיים/תזכורות מושהים, מוצג מידע-סטטי והוראות-חירום, ופעולות נשמרות לתור למוצאי-שבת.</div>
       </div>
+      <BoardShabbatPanel ctx={sw} />
       <div className="h-two" style={{ marginTop: 16 }}>
         <div className="h-panel">
           <h2>🕯️ זמני שבת</h2>
@@ -99,6 +103,7 @@ export function ShabbatTab() {
                             ＋ חבילת שבת
                           </button>
                         )}
+                        <ShabbatSendLink ctx={sw} b={b} />
                       </td>
                     </tr>
                   );

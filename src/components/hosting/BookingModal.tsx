@@ -27,6 +27,7 @@ import {
   unitHasRooms,
 } from './lib';
 import { KO_ST, RES_ST } from './labels';
+import { StayShabbat } from './SwitchPanels';
 
 export function BookingDialog(props: { id: string | null; pre?: { unitId?: string; checkIn?: string } }) {
   const d = useHostData();
@@ -216,6 +217,7 @@ export function BookingDialog(props: { id: string | null; pre?: { unitId?: strin
       {isNew && check?.ok && roomed && u && <div className="h-okbox">✓ {bookBeds(u, form.roomIds)} מיטות פנויות — משפחות נוספות יכולות לחלוק חדרים אחרים</div>}
       {isNew && roomed && !form.roomIds.length && nights > 0 && <div className="h-warnbox">בחרו לפחות חדר אחד</div>}
       {warns.length > 0 && <div className="h-okbox" style={{ color: 'var(--h-violet)', background: 'color-mix(in srgb,var(--h-violet) 12%,transparent)', borderColor: 'var(--h-violet)' }}>🕯️ {warns.join(' · ')}</div>}
+      {b && <StayShabbat b={b} />}
       <FSelect label={t.guest} value={form.guestId} onChange={(v) => set({ guestId: v })} options={guestOpts} />
       <FSelect label={unitWord} value={form.unitId} disabled={!isNew} onChange={(v) => set({ unitId: v, roomIds: [] })} options={unitOpts} />
       {isNew && roomed && u && (

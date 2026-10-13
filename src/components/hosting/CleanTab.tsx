@@ -9,6 +9,8 @@ import { useHostData, useHostEnv, useToday } from './hooks';
 import { BigEmpty, FSelect, HModal, Kpi, cssVar, h, useHostUi } from './hui';
 import { cleanTasksOf, fmtDM, unitLiveStatus } from './lib';
 import { CLEAN_TYPES, tint } from './labels';
+import { useFindProOn } from './SwitchPanels';
+import { cleanNeed } from './switchLinks';
 
 export function CleanTab() {
   const d = useHostData();
@@ -16,6 +18,8 @@ export function CleanTab() {
   const ui = useHostUi();
   const today = useToday();
   const finish = useApp((s) => s.finishHostCleanTask);
+  // 🔌 המרכזייה (חיבור ב׳): עזרה בניקיון מהמדריך — רק כשהמדריך זמין
+  const proOn = useFindProOn();
   const { open, done } = useMemo(() => cleanTasksOf(d.records), [d.records]);
   const dirty = useMemo(() => d.units.filter((u) => unitLiveStatus(u, d.bookings, today) === 'dirty').length, [d.units, d.bookings, today]);
   const list = [...open, ...done.slice().reverse()];
@@ -61,6 +65,11 @@ export function CleanTab() {
                     <button type="button" className={h('crm-ab g')} onClick={() => finish(tk.id)}>
                       ✓ סיום ← {env.terms.unit} זמינה
                     </button>
+                    {proOn && (
+                      <button type="button" className={h('crm-ab')} onClick={() => ui.open({ k: 'findPro', text: cleanNeed(tk), title: (tk.type || 'ניקיון') + ' · ' + d.unitName(tk.unitId) })}>
+                        🔧 מצא בעל מקצוע
+                      </button>
+                    )}
                   </div>
                 ) : (
                   <div className="h-crm-meta" style={{ color: 'var(--h-good)' }}>

@@ -43,6 +43,9 @@ import './parnasa.css';
 
 type PrTab = 'directory' | 'requests' | 'board' | 'me' | 'admin';
 
+/** 🔌 ספק-המרכזייה של פרנסה׳לע רוכב על הצ'אנק של המסך (אין נקודת-כניסה עצלה חדשה — lib/switchboard/registry). */
+export * as parnasaProvider from './abilities';
+
 export function ParnasaView() {
   const config = useApp((s) => s.config);
   const listings = useApp((s) => s.db.prListings);

@@ -23,6 +23,7 @@ import { adminLists } from './admin';
 import { Editor, forgetEditorDraft } from './Editor';
 import { Medal } from './Home';
 import { cx, Ic, Seal, StPill, vars } from './skin';
+import { TodayCard } from './TodayCard';
 
 export type CareJump = { tab: 'directory'; id: string | null } | { tab: 'requests'; id: string } | { tab: 'ads' } | { tab: 'board' };
 
@@ -194,6 +195,8 @@ export function CareTab(props: {
 
   return (
     <>
+      {/* 🔌 המרכזייה (חיבור ד׳): ☀ תקציר-היום מכל הכלים — רק כשכלי נוסף זמין */}
+      <TodayCard now={now} />
       <div className="pn-agrp">
         <h2>
           ממתינים לאישור <span className="pn-n">{pend.total}</span>

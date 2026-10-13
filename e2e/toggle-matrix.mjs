@@ -897,6 +897,152 @@ for (const profile of PROFILES) {
   await ctx.close();
 }
 
+// ── 🔌 המרכזייה (13.10 — BUILD-ORDER-SWITCHBOARD): שני הכלים דלוקים — הסיפור של משפחת לוי מקצה לקצה:
+//    אינסטלטור במדריך ⇒ שהייה לשבת ⇒ זמני-השבת מלוח-הקהילה בכרטיס-ההזמנה (+ 📤 למשפחה) ⇒ נזילה ⇒ "🔧 מצא בעל מקצוע" ⇒
+//    האינסטלטור ⇒ ☀ תקציר-היום ⇒ הקו: "אינסטלטור" מוצא את אותו אינסטלטור, ומקש 5 = בדיקת יחידת אירוח פנויה ──
+{
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 950 } });
+  const page = await ctx.newPage();
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(String(e)));
+  const log = [];
+  const t = (name, ok, extra = '') => {
+    log.push(`  ${ok ? '✅' : '❌'} ${name}${extra ? ' — ' + extra : ''}`);
+    if (!ok) failures++;
+  };
+  const modal = () => page.locator('.hst-portal .h-modal').last();
+  const hTab = async (label) => {
+    await page.locator('.hst-root button.h-tab', { hasText: label }).first().click();
+    await page.waitForTimeout(250);
+  };
+  const prTab = (label) => page.locator('main button.chip', { hasText: label }).first().click();
+
+  await page.goto(BASE, { waitUntil: 'networkidle' });
+  await page.evaluate(() => {
+    localStorage.clear();
+    localStorage.setItem(
+      'maor_org_config',
+      JSON.stringify({ slug: 'default', orgName: 'צימרי מבחן', theme: 'or-rishon', modules: { parnasa: true, hosting: true }, integrations: { whatsapp: { enabled: true } } }),
+    );
+    localStorage.setItem('maor_day', new Date().toISOString().slice(0, 10));
+  });
+  await page.reload({ waitUntil: 'networkidle' });
+  await page.waitForTimeout(700);
+  const navTxt = (await page.locator('nav').first().textContent()) ?? '';
+  t('שני הכלים בניווט (פרנסה׳לע + אירוח משפחתי)', navTxt.includes('פרנסה׳לע') && navTxt.includes('אירוח משפחתי'));
+
+  // 1 · אינסטלטור במדריך (גבאי ⇒ מאושר + קוד 101), זמין 24/7
+  await page.locator('nav >> text=פרנסה׳לע').click();
+  await page.waitForTimeout(600);
+  await prTab('📇 מדריך');
+  await page.waitForTimeout(300);
+  await page.locator('main button', { hasText: '➕ הוספת עסק' }).click();
+  await page.locator('.modal input[placeholder="ר׳ יעקב כהן"]').fill('אינסטלציה-מרכזייה');
+  await page.locator('.modal input[placeholder="חשמלאי מוסמך, תיקוני קצרים ולוחות"]').fill('נזילות וסתימות');
+  await page.locator('.modal select').first().selectOption('elec');
+  await page.locator('.modal input[placeholder="050-0000000"]').fill('050-0000101');
+  await page.locator('.modal button', { hasText: '▸ פרטים נוספים' }).click();
+  await page.locator('.modal label', { hasText: 'זמין 24/7' }).locator('input').check();
+  await page.locator('.modal label', { hasText: 'קיבלתי את הסכמת' }).locator('input').check();
+  await page.locator('.modal button', { hasText: 'הוספה למדריך' }).click();
+  await page.waitForTimeout(500);
+  t('אינסטלטור נוסף למדריך (קוד חיוג 101)', ((await page.locator('main').textContent()) ?? '').includes('קוד חיוג 101'));
+
+  // 2 · אירוח: יחידה + משפחת לוי + שהייה לשבת (שישי ⇒ ראשון)
+  await page.locator('nav >> text=אירוח משפחתי').first().click();
+  await page.waitForTimeout(800);
+  await hTab('🏠 יחידות');
+  await page.locator('.hst-root button', { hasText: /יחידה (חדשה|ראשונה)/ }).first().click();
+  await modal().getByLabel('שם היחידה').fill('צימר הגפן');
+  await modal().locator('button', { hasText: 'שמירה' }).click();
+  await page.waitForTimeout(300);
+  await hTab('👪 אורחים');
+  await page.locator('.hst-root button', { hasText: /אורח (חדש|ראשון)/ }).first().click();
+  await modal().getByLabel('שם', { exact: true }).fill('משפחת לוי');
+  await modal().getByLabel('טלפון').fill('050-1234567');
+  await modal().locator('button', { hasText: 'שמירה' }).click();
+  await page.waitForTimeout(300);
+  const now = new Date();
+  const toFri = (5 - now.getDay() + 7) % 7;
+  const iso = (d) => d.toISOString().slice(0, 10);
+  const fri = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate() + toFri, 12));
+  const sun = new Date(fri.getTime() + 2 * 86_400_000);
+  await hTab('🗂️ הזמנות');
+  await page.locator('.hst-root button', { hasText: 'הזמנה חדשה' }).first().click();
+  await page.waitForTimeout(200);
+  await modal().getByLabel('צ׳ק-אאוט').fill(iso(sun));
+  await modal().getByLabel('צ׳ק-אין').fill(iso(fri));
+  await modal().locator('button', { hasText: 'צור הזמנה' }).click();
+  await page.waitForTimeout(300);
+  const card = () => page.locator('.hst-root .h-crmc', { hasText: 'משפחת לוי' }).first();
+  t('שהייה לשבת נוצרה (' + iso(fri) + ' ⇒ ' + iso(sun) + ')', (await card().count()) === 1);
+
+  // 3 · כרטיס-ההזמנה: זמני השבת + מניינים מלוח-הקהילה, ו"📤 שליחה למשפחה" לוואטסאפ של המשפחה
+  await card().click();
+  const stay = await page.waitForSelector('.hst-portal [data-switch="stay-shabbat"]', { timeout: 5000 }).catch(() => null);
+  const stayTxt = stay ? ((await stay.textContent()) ?? '') : '';
+  t('🕯 כרטיס-ההזמנה: "שבת בשהייה" עם הדלקת נרות וצאת השבת מלוח-הקהילה', /שבת בשהייה/.test(stayTxt) && /הדלקת נרות · שישי \d+\/\d+ \d\d:\d\d/.test(stayTxt) && /צאת השבת \d\d:\d\d/.test(stayTxt), stayTxt.slice(0, 120));
+  const send = page.locator('.hst-portal [data-switch="stay-shabbat"] a', { hasText: '📤 שליחה למשפחה' });
+  const sendHref = (await send.count()) ? ((await send.getAttribute('href')) ?? '') : '';
+  t('📤 שליחה למשפחה ⇒ וואטסאפ ממולא למשפחת לוי (זמנים בפנים)', sendHref.startsWith('https://wa.me/972501234567?text=') && decodeURIComponent(sendHref).includes('הדלקת נרות'));
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(250);
+
+  // 4 · תחזוקה: נזילה בכיור ⇒ "🔧 מצא בעל מקצוע" ⇒ האינסטלטור מהמדריך (שם · ☎ 101)
+  await hTab('🔧 תחזוקה');
+  await page.locator('.hst-root button', { hasText: '＋ קריאת תחזוקה' }).click();
+  await modal().getByLabel('תיאור התקלה').fill('נזילה בכיור');
+  await modal().getByLabel('קטגוריה').selectOption('אינסטלציה');
+  await modal().locator('button', { hasText: 'פתח קריאה' }).click();
+  await page.waitForTimeout(300);
+  await page.locator('.hst-root button', { hasText: '🔧 מצא בעל מקצוע' }).first().click();
+  const pro = await page.waitForSelector('.hst-portal [data-switch="pro"]', { timeout: 5000 }).catch(() => null);
+  const proTxt = (await modal().textContent()) ?? '';
+  t('🔧 "מצא בעל מקצוע" ⇒ האינסטלטור מהמדריך (שם · ☎ 101 · מצב-פתיחה)', !!pro && proTxt.includes('אינסטלציה-מרכזייה') && proTxt.includes('☎ 101') && /פנוי עכשיו|חוזר ב/.test(proTxt), proTxt.slice(0, 140));
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(250);
+
+  // 5 · ☀ תקציר היום בלוח-הבקרה — מכל הכלים
+  await hTab('📊 לוח בקרה');
+  const today = await page.waitForSelector('.hst-root [data-switch="today"]', { timeout: 5000 }).catch(() => null);
+  const todayTxt = today ? ((await today.textContent()) ?? '') : '';
+  t('☀ תקציר היום בלוח-הבקרה — אירוח + שבת מהלוח', todayTxt.includes('☀ תקציר היום') && todayTxt.includes('🏡 הגעות היום') && /🕯 שבת/.test(todayTxt), todayTxt.slice(0, 160));
+
+  // 6 · הקו: "אינסטלטור" ⇒ אותו אינסטלטור; מקש 5 = בדיקת יחידת אירוח פנויה
+  await page.locator('nav >> text=פרנסה׳לע').click();
+  await page.waitForTimeout(600);
+  await prTab('🏠 טיפול ואישורים'); // הלשונית נזכרת (זיכרון-סשן) — היינו במדריך
+  await page.waitForSelector('main [data-switch="today"]', { timeout: 5000 }).catch(() => null);
+  const careTxt = (await page.locator('main').textContent()) ?? '';
+  t('☀ תקציר היום גם בלשונית-הטיפול של פרנסה׳לע', careTxt.includes('☀ תקציר היום') && careTxt.includes('🏡 הגעות היום'));
+  await prTab('📞 הקו');
+  await page.waitForTimeout(600);
+  let prMain = (await page.locator('main').textContent()) ?? '';
+  if (prMain.includes('🕯 סגור ברגע')) {
+    await page.locator('main button.chip', { hasText: '☀ ביום חול' }).click();
+    await page.waitForTimeout(400);
+    prMain = (await page.locator('main').textContent()) ?? '';
+  }
+  t('📞 הקו: "לבדיקת יחידת אירוח פנויה הקישו 5" (דרך המרכזייה)', prMain.includes('לבדיקת יחידת אירוח פנויה הקישו 5'));
+  await page.locator('#pr-phone-say').fill('אינסטלטור');
+  await page.locator('main button', { hasText: '🎙 אמירה' }).click();
+  await page.waitForTimeout(250);
+  prMain = (await page.locator('main').textContent()) ?? '';
+  t('📞 "אינסטלטור" בקו ⇒ אותו אינסטלטור שהאירוח מצא (צומת-אישור, לא חיבור)', prMain.includes('שמעתי: אינסטלטור') && prMain.includes('אינסטלציה-מרכזייה') && prMain.includes('לאישור הקישו 1'));
+  await page.locator('main button', { hasText: '🔄 מההתחלה' }).click();
+  await page.getByRole('button', { name: 'מקש 5', exact: true }).click();
+  await page.waitForTimeout(200);
+  await page.getByRole('button', { name: 'מקש 1', exact: true }).click();
+  await page.waitForTimeout(200);
+  prMain = (await page.locator('main').textContent()) ?? '';
+  t('📞 5 ⇒ 1 ⇒ הקראת היחידות הפנויות הלילה (צימר הגפן)', /(הלילה|בליל).*(פנויה|פנויות|אין יחידת אירוח פנויה)/.test(prMain) && prMain.includes('המידע נכון לרגע זה'));
+  t('אפס שגיאות JS בפרופיל', errors.length === 0, errors.slice(0, 2).join(' | '));
+
+  console.log('\n📦 🔌 המרכזייה — שני הכלים דלוקים (משפחת לוי מקצה לקצה)');
+  console.log(log.join('\n'));
+  await ctx.close();
+}
+
 await browser.close();
 server.close();
 console.log(failures === 0 ? '\n🏆 המטריצה כולה ירוקה — מחווט מקצה לקצה בכל פרופיל' : `\n💥 ${failures} כשלים`);

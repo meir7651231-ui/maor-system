@@ -294,7 +294,11 @@ describe('📞 (ג) הגנות-מקור', () => {
   it('הלשונית לא ממציאה הליכה משלה — רק simPress/simSay/simStart מעל המודל; אין tel:/מנוי-DB-מלא', () => {
     expect(tabSrc).toContain('setSim(simPress(menu, sim, k))');
     expect(tabSrc).toContain('simSay(menu, sim, t, listings,');
-    expect(tabSrc).toContain('buildPhoneMenu({ listings, posts, prefs, nowMs: atMs, loc: now.loc, config })');
+    // שינוי-נעילה מכוון (13.10, BUILD-ORDER-SWITCHBOARD חיבור ג׳): אותה קריאה אחת למודל, + המרכזייה בהזרקה (ask + ctx
+    // של אותו רגע-תצוגה). הלשונית עדיין לא בונה ענפים בעצמה — רק המודל, ורק דרך ask.
+    expect(tabSrc).toContain('buildPhoneMenu({ listings, posts, prefs, nowMs: atMs, loc: now.loc, config, switchboard: { ask, ctx: sw } })');
+    expect((tabSrc.match(/buildPhoneMenu\(/g) ?? []).length).toBe(1);
+    expect(tabSrc).toContain('const sw = useSwitchCtx(atMs, LINE_ABILITIES);');
     expect(tabSrc).not.toMatch(/tel:|href=/);
     expect(tabSrc).not.toMatch(/useApp\(\(s\) => s\.db\)/);
     expect(simSrc).toContain('const r = phoneStep(menu, { node, buf: st.buf }, key);');

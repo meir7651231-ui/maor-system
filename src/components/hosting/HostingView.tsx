@@ -33,10 +33,14 @@ import { ShabbatTab } from './ShabbatTab';
 import { AssetDialog, FaultDialog, MaintTab, PlanDialog, TempDialog } from './MaintTab';
 import { ReportsTab } from './ReportsTab';
 import { SettingsTab } from './SettingsTab';
+import { FindProDialog } from './SwitchPanels';
 import './hosting.css';
 
 // פעולות-המודול נטענות עם הצ'אנק הזה ("שוקל רק מה שהדלקת") — מותקנות ב-store לפני הרינדור הראשון
 installHostingActions();
+
+/** 🔌 ספק-המרכזייה של האירוח רוכב על הצ'אנק של המסך (אין נקודת-כניסה עצלה חדשה — lib/switchboard/registry). */
+export * as hostingProvider from './abilities';
 
 type Ask = { title: string; val: string; cb: (v: string) => void; ph?: string };
 type Confirm = { msg: string; onYes: () => void; yesLabel?: string };
@@ -227,6 +231,8 @@ function DialogSwitch(props: { d: HostDialog }) {
       return <AssetDialog key={key} />;
     case 'plan':
       return <PlanDialog key={key} />;
+    case 'findPro':
+      return <FindProDialog key={key + ':' + x.text} text={x.text} title={x.title} urgent={x.urgent} />;
     default:
       return null;
   }

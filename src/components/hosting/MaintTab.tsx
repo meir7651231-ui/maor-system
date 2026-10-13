@@ -12,6 +12,8 @@ import { useHostData, useHostEnv } from './hooks';
 import { FCheck, FInput, FSelect, HModal, Kpi, Pill, h, useHostUi } from './hui';
 import { nextFaultStatus } from './lib';
 import { CRITS, MP, M_CAT, M_ST, PM_FREQS, TEMP_DEVICES } from './labels';
+import { useFindProOn } from './SwitchPanels';
+import { faultNeed } from './switchLinks';
 
 export function MaintTab() {
   const d = useHostData();
@@ -20,6 +22,8 @@ export function MaintTab() {
   const advance = useApp((s) => s.advanceHostFault);
   const release = useApp((s) => s.releaseHostFaultUnit);
   const del = useApp((s) => s.deleteHostRecord);
+  // 🔌 המרכזייה (חיבור ב׳): "🔧 מצא בעל מקצוע" רק כשהמדריך זמין (שער סינכרוני — לא טוען דבר)
+  const proOn = useFindProOn();
   const open = d.faults.filter((r) => r.status !== 'done');
   const p0 = open.filter((r) => r.priority <= 1).length;
   const sorted = d.faults.slice().sort((a, b) => a.priority - b.priority);
@@ -91,6 +95,18 @@ export function MaintTab() {
                           </button>
                         ) : (
                           '✓'
+                        )}
+                        {proOn && r.status !== 'done' && (
+                          <>
+                            {' '}
+                            <button
+                              type="button"
+                              className={h('btn ghost sm')}
+                              onClick={() => ui.open({ k: 'findPro', text: faultNeed(r), title: r.desc.trim() || r.category, urgent: r.priority <= 1 || r.safety })}
+                            >
+                              🔧 מצא בעל מקצוע
+                            </button>
+                          </>
                         )}
                       </td>
                     </tr>

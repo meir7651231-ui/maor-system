@@ -589,7 +589,12 @@ describe('📜 התסריט · דטרמיניזם · טוהר', () => {
   });
   it('🛡 טוהר: אין store/DOM/firebase/רשת, אין Date.now / new Date(); אין בקשות-תושבים; בידוד-כסף', () => {
     const imports = [...phoneSrc.matchAll(/from '([^']+)'/g)].map((x) => x[1]);
-    expect(imports.sort()).toEqual(['../../lib/config', '../../types/config', '../../types/domain', './lib', './zmanimBoard']);
+    // שינוי-נעילה מכוון (13.10, BUILD-ORDER-SWITCHBOARD חיבור ג׳): שני ייבואי-טיפוסים מהמרכזייה — נמחקים בקומפילציה, כך
+    // שהקו עדיין לא תלוי בזמן-ריצה באף כלי (ask מוזרק דרך input.switchboard). ייבוא-ערך מהמרכזייה ⇒ אדום.
+    expect(imports.sort()).toEqual(['../../lib/config', '../../lib/switchboard/contract', '../../lib/switchboard/registry', '../../types/config', '../../types/domain', './lib', './zmanimBoard']);
+    expect(phoneSrc).toMatch(/^import type \{ SwitchCtx \} from '\.\.\/\.\.\/lib\/switchboard\/contract';$/m);
+    expect(phoneSrc).toMatch(/^import type \{ AskFn, OutputOf \} from '\.\.\/\.\.\/lib\/switchboard\/registry';$/m);
+    expect(phoneSrc, 'הקו לא מייבא את האירוח').not.toMatch(/from '[^']*hosting/);
     expect(phoneSrc).not.toMatch(/Date\.now|new Date\b/);
     expect(phoneSrc).not.toMatch(/\bfetch\(|XMLHttpRequest|WebSocket|EventSource|navigator\.|\bdocument\.|\bwindow\.|localStorage|sessionStorage|indexedDB|useApp|firebase/);
     expect(phoneSrc).not.toMatch(/prRequests|PrRequest|requester|businessView|communityRequests|requestsForListing|routeRequest/);
