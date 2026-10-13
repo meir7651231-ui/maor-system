@@ -1,0 +1,70 @@
+/* 🧩 ארגז המנועים — עיצוב המסך. רק tokens (ערכות-נושא + מצב-כהה + ניגודיות-גבוהה
+   מגיעים חינם), mobile-first ל-390px, יעדי-מגע ≥ 40px. נטען רק עם ה-chunk העצל. */
+.eb-intro { color: var(--ink-soft); font-size: 14px; margin: 0 0 14px; line-height: 1.5; }
+.eb-body { display: flex; flex-direction: column; gap: 14px; }
+.eb-step-title { font-size: 18px; font-weight: 700; margin: 0 0 10px; color: var(--ink); }
+.eb-step-title:focus { outline: none; }
+.eb-step-title:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.eb-sub-title { font-size: 15px; font-weight: 700; margin: 16px 0 8px; color: var(--ink-soft); }
+.eb-empty { font-size: 16px; }
+
+.eb-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.eb-card {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 4px; text-align: right;
+  min-height: 96px; padding: 12px; border-radius: 12px; cursor: pointer;
+  border: 1px solid var(--line); background: var(--card-bg, var(--panel)); color: var(--ink);
+  transition: border-color 0.15s, background 0.15s;
+}
+.eb-card:hover { border-color: var(--accent); background: var(--bg); }
+.eb-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.eb-product { border-width: 2px; }
+.eb-emoji { font-size: 26px; line-height: 1; }
+.eb-name { font-weight: 700; font-size: 15px; }
+.eb-what { font-size: 13px; color: var(--ink-soft); line-height: 1.4; }
+.eb-from {
+  font-size: 11.5px; padding: 1px 8px; border-radius: 999px;
+  border: 1px solid var(--line); color: var(--ink-soft); background: var(--panel);
+}
+
+.eb-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+  padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg);
+}
+.eb-head-start { display: flex; align-items: center; gap: 10px; }
+.eb-head .btn { min-height: 40px; }
+
+.eb-options, .eb-future-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.eb-option {
+  border: 1px solid var(--line); border-radius: 12px; padding: 12px;
+  background: var(--card-bg, var(--panel)); display: flex; flex-direction: column; gap: 8px;
+}
+.eb-option.eb-linked { border-color: var(--green); border-width: 2px; }
+.eb-result { font-size: 18px; font-weight: 800; color: var(--ink); line-height: 1.4; }
+.eb-plug { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 13.5px; color: var(--ink-soft); }
+.eb-end { display: inline-flex; flex-direction: column; gap: 1px; }
+.eb-role { font-size: 11.5px; color: var(--ink-faint); }
+.eb-arrow { color: var(--ink-faint); }
+.eb-plug-chip {
+  font-size: 12.5px; padding: 3px 10px; border-radius: 999px; font-weight: 600;
+  border: 1px solid var(--accent); color: var(--ink);
+}
+.eb-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.eb-actions .btn { min-height: 40px; min-width: 88px; justify-content: center; }
+.eb-on { color: var(--green); font-weight: 700; }
+
+.eb-future { opacity: 0.75; }
+.eb-soon {
+  font-size: 11.5px; font-weight: 600; padding: 1px 8px; border-radius: 999px; margin-inline-start: 6px;
+  border: 1px dashed var(--line); color: var(--ink-faint);
+}
+.eb-future-item {
+  border: 1px dashed var(--line); border-radius: 12px; padding: 10px 12px; cursor: default;
+  color: var(--ink-faint);
+}
+.eb-future-result { font-size: 15px; font-weight: 700; color: var(--ink-soft); }
+.eb-future-plug { font-size: 12.5px; }
+
+@media (max-width: 420px) {
+  .eb-grid { grid-template-columns: 1fr 1fr; }
+  .eb-result { font-size: 17px; }
+}

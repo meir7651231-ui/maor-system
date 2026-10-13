@@ -87,6 +87,8 @@ const PublicSite = lazy(async () => ({ default: (await import('./components/publ
 const LoginScreen = lazy(async () => ({ default: (await import('./components/cloud/LoginScreen')).LoginScreen }));
 const PendingApprovalScreen = lazy(async () => ({ default: (await import('./components/cloud/LoginScreen')).PendingApprovalScreen }));
 // 🤖 "שאל את מאור" (VISION-LIGHT #30) — עצל: נטען רק בפתיחה ממרכז-העזרה
+// 🧩 ארגז המנועים — chunk עצל משלו (opt-in shell.enginebox); הבנדל הראשי לא גדל
+const EngineBoxScreen = lazy(async () => ({ default: (await import('./components/enginebox/EngineBoxScreen')).EngineBoxScreen }));
 const AskMaorModal = lazy(async () => ({ default: (await import('./components/AskMaor')).AskMaorModal }));
 /** מפתח תצלום-המיתוג של האשף-קשור-הענן — חייב להיות זהה ל-BUILDER_PREV_KEY
  *  ב-RemoteWizard (ננעל ב-ratchet bundle-light; ייבוא-ערך סטטי היה מחזיר את
@@ -347,6 +349,9 @@ export default function App() {
   // 💬 צ׳אט-צוות תוך-ארגוני (17.8) — מגודר shell.teamchat + ענן+התחברות.
   // ‏#teamchat = כניסה מפורשת (מצ׳יפ-ההגדרות/פלטה) כמו #manage/#platform.
   const [teamChatOpen, setTeamChatOpen] = useState(() => window.location.hash === '#teamchat');
+  // 🧩 ארגז המנועים — #enginebox, מגודר opt-in מפורש `shell.enginebox === true`
+  const engineBoxOn = config.features?.['shell.enginebox'] === true;
+  const [engineBoxOpen, setEngineBoxOpen] = useState(() => window.location.hash === '#enginebox');
   // 🔴 חיווי "הודעת-צוות שלא-נקראה" על-המסך (בקשת-בעלים 30.8: "שיופיע על המסך
   // כהודעה שלא נקראה וגם איפה נכנסים אליו"). מנוי-חי ברמת-האפליקציה — רק כשהצ׳אט
   // זמין (shell.teamchat + ענן + התחברות). מונה טהור מול סימן-נקרא מקומי פר-ארגון
@@ -451,6 +456,7 @@ export default function App() {
       setPlatformOpen(window.location.hash === '#platform');
       setManagerOpen(window.location.hash === '#manage');
       setTeamChatOpen(window.location.hash === '#teamchat');
+      setEngineBoxOpen(window.location.hash === '#enginebox');
     };
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
@@ -1330,6 +1336,19 @@ export default function App() {
             </div>
           </div>
         ))}
+
+      {/* 🧩 ארגז המנועים — עד שסשן-החיבור ממש את התפר, source=null ⇒ מצב-ריק כן */}
+      {engineBoxOpen && engineBoxOn && (
+        <Suspense fallback={null}>
+          <EngineBoxScreen
+            source={null}
+            onClose={() => {
+              window.location.hash = '';
+              setEngineBoxOpen(false);
+            }}
+          />
+        </Suspense>
+      )}
 
       {/* פאנל-המנהל (ORGADMIN) — #manage, למנהל-הארגון בלבד (cloud.isManager) */}
       {managerOpen && cloud.isManager && (

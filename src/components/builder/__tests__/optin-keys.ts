@@ -37,4 +37,6 @@ export const OPT_IN_KEYS = [
   'home.morningbrief',
   // 🤖 שאל-את-מאור (VISION-LIGHT ‏#30, 23.8) — פרשן-שאלות מקומי במרכז-העזרה
   'shell.askmaor',
+  // 🧩 ארגז המנועים (13.10) — מסך opt-in מגודר `=== true` (הגדרות + App)
+  'shell.enginebox',
 ];
