@@ -13,6 +13,7 @@ import { sanitizePhotos } from '../lib/photoGallery';
 import { AYIN_STAGES } from '../lib/ayin';
 import { healParnasaPrefs, healPrCollection } from '../components/parnasa/model';
 import { healHostCollection, healHostingPrefs } from '../components/hosting/model';
+import { healEngineLinksIn } from '../lib/enginebox/links';
 import {
   DB_VERSION,
   emptyAyin,
@@ -601,6 +602,9 @@ export function migrate(raw: unknown): Db | null {
     const hp = healHostingPrefs(merged.ui.hosting);
     if (hp !== merged.ui.hosting) merged.ui = { ...merged.ui, hosting: hp };
   }
+  // 🧰 ארגז-המנועים — חיבורים שמורים: רק חיבורים תקינים, בלי כפילויות, ממוינים; לא-מערך ⇒ המפתח יורד.
+  // בלי המפתח ⇒ ללא נגיעה (ביט-זהה); רשימה תקינה ⇒ אותה הפניה.
+  merged.ui = healEngineLinksIn(merged.ui);
   if (typeof merged.orgName !== 'string') merged.orgName = base.orgName;
   if (typeof merged.orgSite !== 'string') merged.orgSite = base.orgSite;
   if (typeof merged.orgDonate !== 'string') merged.orgDonate = base.orgDonate;
