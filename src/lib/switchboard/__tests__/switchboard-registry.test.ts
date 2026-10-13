@@ -29,6 +29,7 @@ import {
 } from '../registry';
 import { abilities as hostingAbilities } from '../../../components/hosting/abilities';
 import { abilities as parnasaAbilities, FIND_SURE_CONCEPT, proWaIntro } from '../../../components/parnasa/abilities';
+import { abilities as calendarAbilities } from '../../../components/calendar/abilities';
 // 13.10 מיזוג עם העיצוב המקורי: ListingCard הוחלף ב-BizSheet (סקין-המקור) — הנוסח נעול מול מקור-הכרטיס החדש
 import bizSheetSrc from '../../../components/parnasa/BizSheet.tsx?raw';
 import { cfgWith, fixtureDb, NOW_MS } from './fixture';
@@ -36,7 +37,9 @@ import phoneLineSrc from '../../../components/parnasa/phoneLine.ts?raw';
 import appSrc from '../../../App.tsx?raw';
 
 const ALL_IDS = ['hosting.today', 'hosting.availability', 'parnasa.findPro', 'parnasa.shabbat', 'parnasa.minyanim', 'parnasa.emergency'];
-const ids = (cfg: OrgConfig): string[] => listAbilities(cfg).map((a) => a.id);
+// ENGINEBOX-SOCKETS (13.10): ספק-ליבה שקט (calendar.dayInfo — מודול-הלוח דלוק-כברירת-מחדל) נבדק בנפרד ב-calendar-ability.test;
+// כאן — היכולות של שני הכלים (opt-in), כמו שננעלו.
+const ids = (cfg: OrgConfig): string[] => listAbilities(cfg).map((a) => a.id).filter((id) => !id.startsWith('calendar.'));
 const ctxOf = (config: OrgConfig) => ({ db: fixtureDb(), config, nowMs: NOW_MS });
 
 afterEach(() => {
@@ -47,7 +50,7 @@ afterEach(() => {
 
 describe('🔌 (א) הקטלוג — שורה לכל כלי', () => {
   it('שני כלים, שש יכולות, בסדר-הרישום; לכל יכולת מודול ותווית עברית', () => {
-    expect(REGISTRY.map((e) => e.module)).toEqual(['hosting', 'parnasa']);
+    expect(REGISTRY.map((e) => e.module)).toEqual(['hosting', 'parnasa', 'calendar']);
     expect(ids(cfgWith({ parnasa: true, hosting: true }))).toEqual(ALL_IDS);
     for (const id of ALL_IDS) {
       const info = abilityInfo(id)!;
@@ -62,9 +65,9 @@ describe('🔌 (א) הקטלוג — שורה לכל כלי', () => {
   });
 
   it('מזהי-השורה = מזהי-הספק (שני הכיוונים) — אין יכולת רשומה בלי מימוש, ואין מימוש בלי רישום', () => {
-    const byModule: Record<string, readonly string[]> = { hosting: Object.keys(hostingAbilities), parnasa: Object.keys(parnasaAbilities) };
+    const byModule: Record<string, readonly string[]> = { hosting: Object.keys(hostingAbilities), parnasa: Object.keys(parnasaAbilities), calendar: Object.keys(calendarAbilities) };
     for (const e of REGISTRY) expect(Object.keys(e.abilities).sort(), e.module).toEqual([...byModule[e.module]].sort());
-    for (const a of [...Object.values(hostingAbilities), ...Object.values(parnasaAbilities)]) expect(typeof a.run).toBe('function');
+    for (const a of [...Object.values(hostingAbilities), ...Object.values(parnasaAbilities), ...Object.values(calendarAbilities)]) expect(typeof a.run).toBe('function');
   });
 
   it('אותו כלל של הקו: סף-הוודאות של findPro = SURE_CONCEPT של phoneLine; נוסח-הוואטסאפ = של כרטיס-העסק', () => {
@@ -179,12 +182,14 @@ describe('🔌 (ד) טעינה עצלה — רק מה שהודלק, רק מה ש
     await loadProviders(cfgWith({ hosting: true }));
     expect(providerLoaded('hosting')).toBe(true);
     expect(providerLoaded('parnasa')).toBe(false);
+    // ENGINEBOX-SOCKETS: בלי ids — גם ספק-הלוח (מודול-ליבה דלוק) נטען; התקנה אחת נוספת למונה
+    expect(providerLoaded('calendar')).toBe(true);
     await loadProviders(cfgWith({ hosting: true, parnasa: true }), ['hosting.today']);
     expect(providerLoaded('parnasa'), 'ids מצמצם — רק הספק של היכולת המבוקשת').toBe(false);
     await Promise.all([loadProviders(cfgWith({ parnasa: true })), loadProviders(cfgWith({ parnasa: true }))]);
     expect(providerLoaded('parnasa')).toBe(true);
-    expect(switchboardVersion() - v0).toBe(2);
-    expect(n).toBe(2);
+    expect(switchboardVersion() - v0).toBe(3);
+    expect(n).toBe(3);
     off();
     await loadProviders(DEFAULT_CONFIG);
     expect(ask('parnasa.emergency', ctxOf(cfgWith({ parnasa: true })), {})).toMatchObject({ ok: true });
@@ -209,9 +214,9 @@ function fromTestDir(rel: string): string {
 }
 
 describe('🔌 (ה) הגנות-מקור — טוהר · בידוד · קריאה מוצהרת · בנדל', () => {
-  it('ה-glob חי: 3 קובצי-ליבה + 2 ספקים', () => {
+  it('ה-glob חי: 3 קובצי-ליבה + 3 ספקים (+ הלוח העברי — ENGINEBOX-SOCKETS)', () => {
     expect(Object.keys(CORE_SRC).map((p) => p.split('/').pop()).sort()).toEqual(['contract.ts', 'registry.ts', 'summary.ts']);
-    expect(Object.keys(PROVIDER_SRC).length).toBe(2);
+    expect(Object.keys(PROVIDER_SRC).length).toBe(3);
   });
 
   it('טוהר: בלי Date.now / new Date() / store / DOM / אחסון / כתיבה — בליבה ובספקים', () => {
@@ -239,14 +244,17 @@ describe('🔌 (ה) הגנות-מקור — טוהר · בידוד · קריאה
     for (const [p, src] of Object.entries(PROVIDER_SRC)) {
       const mod = /components\/(\w+)\/abilities\.ts$/.exec(p)![1];
       const used = [...new Set([...src.matchAll(/\bdb\.([A-Za-z0-9_]+)/g)].map((m) => m[1]))];
-      expect(used.length, p + ' קורא משהו').toBeGreaterThan(0);
+      // ספק בלי reads (הלוח העברי — מנוע טהור מעל lib/hebrew) לא נוגע ב-db בכלל; האחרים קוראים משהו
+      if (reads[mod].length === 0) expect(used, p + ' — reads ריק ⇒ אסור לקרוא db').toEqual([]);
+      else expect(used.length, p + ' קורא משהו').toBeGreaterThan(0);
       for (const k of used) expect(reads[mod], p + ' קורא db.' + k + ' שלא הוצהר ב-REGISTRY.reads').toContain(k);
       expect(src, p + ' — db[…]').not.toMatch(/\bdb\[/);
     }
   });
 
   it('בנדל: המרכזייה מיובאת רק מקוד-עצל (המרכזייה עצמה, מסכי-האירוח/פרנסה׳לע, דבק-React) — לא מ-App/store/main/lib אחר', () => {
-    const allowed = /^src\/(lib\/switchboard\/|components\/switchboard\/|components\/hosting\/|components\/parnasa\/)/;
+    // + ספק-הלוח (ENGINEBOX-SOCKETS) — רק קובץ-הספק, שנטען דרך מסך-הלוח העצל
+    const allowed = /^src\/(lib\/switchboard\/|components\/switchboard\/|components\/hosting\/|components\/parnasa\/|components\/calendar\/abilities\.ts$)/;
     const importers = Object.entries(ALL_SRC)
       .filter(([, s]) => s.split('\n').some((l) => /^import (?!type )/.test(l.trim()) && /from '[^']*lib\/switchboard\/(registry|summary|contract)'/.test(l)))
       .map(([p]) => fromTestDir(p));
@@ -273,12 +281,14 @@ describe('🔌 (ה) הגנות-מקור — טוהר · בידוד · קריאה
       }
     }
     expect(reexports.sort()).toEqual([
+      "src/components/calendar/CalendarView.tsx :: export * as calendarProvider from './abilities';",
       "src/components/hosting/HostingView.tsx :: export * as hostingProvider from './abilities';",
       "src/components/parnasa/ParnasaView.tsx :: export * as parnasaProvider from './abilities';",
     ]);
     const reg = CORE_SRC['../registry.ts'];
     expect(reg).toContain("load: (): Promise<typeof import('../../components/hosting/abilities')> => import('../../components/hosting/HostingView').then((m) => m.hostingProvider) },");
     expect(reg).toContain("load: (): Promise<typeof import('../../components/parnasa/abilities')> => import('../../components/parnasa/ParnasaView').then((m) => m.parnasaProvider) },");
+    expect(reg).toContain("load: (): Promise<typeof import('../../components/calendar/abilities')> => import('../../components/calendar/CalendarView').then((m) => m.calendarProvider) },");
     expect(reg, 'הרישום לא מייבא מסך/ספק סטטית').not.toMatch(/^import (?!type )[^\n]*components\//m);
   });
 });

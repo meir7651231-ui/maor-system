@@ -57,6 +57,7 @@ import {
   dayTimes,
   dayZmanim,
   dowOfIso,
+  hebDateAt,
   hebDateText,
   isIsoDate,
   locNote,
@@ -166,6 +167,12 @@ export interface PhoneMenuInput {
    * ctx.nowMs = אותו רגע של הקו.
    */
   switchboard?: PhoneSwitchboard;
+  /**
+   * 📅 (ENGINEBOX-SOCKETS 13.10, ברירה false): ברכת-התפריט הראשי אומרת גם את התאריך העברי של היום, והחג אם יש —
+   * "היום ה׳ חשוון." · "היום כ״ה כסלו, חנוכה." — מהלוח העברי של אורביט דרך ask('calendar.dayInfo'). כבוי / היכולת לא
+   * זמינה ⇒ העץ ביט-זהה. (הצרכן צריך לטעון גם את 'calendar.dayInfo' ברשימת-היכולות של הלשונית.)
+   */
+  hebDateGreeting?: boolean;
 }
 
 /** ההזרקה מהמרכזייה (lib/switchboard): ask + ההקשר — הקו לא מכיר אף כלי, הוא רק שואל. */
@@ -496,13 +503,15 @@ export function buildPhoneMenu(input: PhoneMenuInput): PhoneMenu {
 
   // 🔌 ענף-המרכזייה (חיבור ג׳) — רק דרך ask; יכולת לא זמינה ⇒ null ⇒ העץ ביט-זהה
   const host = hostBranch(input.switchboard, today, board.shabbat.friIso, loc.tz);
+  // 📅 התאריך העברי בברכה — רק כשהודלק (ברירה false) ורק דרך ask; אחרת '' ⇒ phonePrompt מדלג ⇒ ביט-זהה
+  const hebToday = input.hebDateGreeting === true ? hebTodaySentence(input.switchboard, hebDateAt(clock, loc)) : '';
 
   // ── התפריט הראשי (מקשים קבועים) ──
   add({
     id: 'main',
     kind: 'menu',
     label: 'התפריט הראשי',
-    prompt: phonePrompt([community ? `שלום וברוכים הבאים לקו של ${brand}.` : `שלום וברוכים הבאים לקו של ${brand}, מדריך בעלי המקצוע של הקהילה.`]),
+    prompt: phonePrompt([community ? `שלום וברוכים הבאים לקו של ${brand}.` : `שלום וברוכים הבאים לקו של ${brand}, מדריך בעלי המקצוע של הקהילה.`, hebToday]),
     options: [
       opt('1', hasBiz ? `ל${many} הקישו 1 — או פשוט אמרו מה אתם צריכים` : `ל${many} הקישו 1`, 'cats/1'),
       opt('2', 'לזמני היום הקישו 2', 'zmanim'),
@@ -704,6 +713,23 @@ export function buildPhoneMenu(input: PhoneMenuInput): PhoneMenu {
   }
 
   return { root: cl.closed ? 'closed' : 'main', nodes, codes, closed: cl.closed, asOf: `${clock.iso} ${clock.hhmm}`, brand };
+}
+
+/* ═══════════════ 📅 התאריך העברי בברכה (calendar.dayInfo) ═══════════════ */
+
+/**
+ * "היום ה׳ חשוון." · "היום כ״ה כסלו, חנוכה." — מהלוח העברי דרך ask. היום-העברי מתחלף **בשקיעה** (שעון-הקו — hebDateAt):
+ * אחרי השקיעה הלוח נשאל על מחר האזרחי ונאמר "הלילה …" ("הלילה כ״ה כסלו, חנוכה." — נרות ראשון). אין המרכזייה / היכולת
+ * לא זמינה / תאריך פגום ⇒ '' (הברכה כמו שהייתה). מיוצא לבדיקות.
+ */
+export function hebTodaySentence(sw: PhoneSwitchboard | undefined, at: { readonly anchorIso: string; readonly night: boolean }): string {
+  if (!sw || typeof sw.ask !== 'function' || !at) return '';
+  const r = sw.ask('calendar.dayInfo', sw.ctx, { iso: at.anchorIso });
+  if (!r.ok || !r.value.valid) return '';
+  const date = said(r.value.hebDayMonth, CAP.label);
+  if (!date) return '';
+  const hol = r.value.holiday ? said(expand(r.value.holiday), CAP.label) : '';
+  return (at.night ? 'הלילה ' : 'היום ') + date + (hol ? ', ' + hol : '') + '.';
 }
 
 /* ═══════════════ 🔌 ענף-המרכזייה: בדיקת יחידת אירוח פנויה ═══════════════ */

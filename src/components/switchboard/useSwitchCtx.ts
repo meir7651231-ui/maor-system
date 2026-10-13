@@ -46,8 +46,10 @@ export function useSwitchCtx(nowMs: number, ids: readonly AbilityId[]): SwitchCt
   const keys = useMemo(() => readsFor(config, idsKey ? idsKey.split('|') : []), [config, idsKey]);
   const ver = useSyncExternalStore(subscribeSwitchboard, switchboardVersion, switchboardVersion);
   useEffect(() => {
-    if (keys.length) void loadProviders(config, idsKey.split('|'));
-  }, [config, idsKey, keys.length]);
+    // loadProviders מסנן בעצמו לזמינות ⇒ ids שאף אחת מהן לא זמינה = אפס טעינה. (לא keys.length: ספק-ליבה כמו הלוח העברי
+    // לא קורא מה-db — reads ריק — ועדיין צריך להיטען.)
+    if (idsKey) void loadProviders(config, idsKey.split('|'));
+  }, [config, idsKey]);
   const db = useWatchedDb(keys);
   return useMemo((): SwitchCtx => {
     void ver; // ספק שנטען/נכשל ⇒ ctx חדש ⇒ הצרכנים שואלים שוב

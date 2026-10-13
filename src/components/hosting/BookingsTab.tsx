@@ -11,8 +11,10 @@ import { useHostData, useHostEnv, useToday } from './hooks';
 import { Kpi, clickable, cssVar, h, useHostUi } from './hui';
 import { HOST_BOOKING_FILTERS, bookingBalance, bookingCounts, bookingParty, bookingTotal, bookingsKpis, bookingsView, fmtDM, initialsOf, money, nightsBetween, roomsLabel, type HostBookingFilter } from './lib';
 import { RES_ST, tint } from './labels';
+import { StayHebDates } from './SwitchPanels';
 
-export function BookingsTab() {
+/** `hebDates` (ENGINEBOX-SOCKETS, ברירה false): התאריכים העבריים של השהייה מהלוח של אורביט (calendar.dayInfo) לצד הרגילים. */
+export function BookingsTab(props: { hebDates?: boolean } = {}) {
   const d = useHostData();
   const env = useHostEnv();
   const ui = useHostUi();
@@ -103,6 +105,7 @@ export function BookingsTab() {
                 <div className="h-crm-meta">
                   <span>
                     📅 <b>{fmtDM(b.checkIn) + ' – ' + fmtDM(b.checkOut)}</b>
+                    {props.hebDates === true && <StayHebDates b={b} />}
                   </span>
                   <span>
                     🌙 <b>{nightsBetween(b.checkIn, b.checkOut)}</b> לילות

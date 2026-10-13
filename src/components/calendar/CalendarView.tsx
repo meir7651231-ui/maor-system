@@ -37,6 +37,9 @@ import type { CalViewMode } from '../../lib/monthGrid';
 import { CustomExport } from '../reports/CustomExport';
 import { IcsFeedModal } from './IcsFeedModal';
 
+/** 🔌 ספק-המרכזייה של הלוח העברי רוכב על הצ'אנק של המסך (אין נקודת-כניסה עצלה חדשה — lib/switchboard/registry). */
+export * as calendarProvider from './abilities';
+
 const MAX_PILLS = 3;
 
 const pillStyle = (bg: string, c: string, prC: string): CSSProperties => ({

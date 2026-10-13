@@ -9,8 +9,7 @@ import { useMemo } from 'react';
 import { useApp } from '../../store/useApp';
 import { featureOn, integrationOn, integrationSetting } from '../../lib/config';
 import { guardExport } from '../../lib/exportGate';
-import { listAbilities } from '../../lib/switchboard/registry';
-import { hasOtherTool, shareWaUrl, summaryHeader, summaryText, todaySummary } from '../../lib/switchboard/summary';
+import { hasOtherTool, shareWaUrl, summaryHeader, summaryText, todaySummary, voiceIds } from '../../lib/switchboard/summary';
 import { NO_ABILITIES, useSwitchCtx } from '../switchboard/useSwitchCtx';
 import { Btn } from '../ui';
 import type { PrNow } from './hooks';
@@ -19,7 +18,7 @@ export function TodayCard(props: { now: PrNow }) {
   const config = useApp((s) => s.config);
   const toast = useApp((s) => s.toast);
   const other = hasOtherTool(config, 'parnasa');
-  const ids = useMemo(() => (other ? listAbilities(config).map((a) => a.id) : NO_ABILITIES), [config, other]);
+  const ids = useMemo(() => (other ? voiceIds(config) : NO_ABILITIES), [config, other]);
   const ctx = useSwitchCtx(props.now.nowMs, ids);
   if (!other) return null;
   const lines = todaySummary(ctx);

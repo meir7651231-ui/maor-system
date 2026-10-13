@@ -26,6 +26,8 @@ import type { AskResult, SwitchCtx, Unavailable, UnavailableReason } from './con
 export const REGISTRY = [
   { module: 'hosting', reads: ['hostUnits', 'hostBookings', 'hostRecords', 'ui', 'orgName'], abilities: { 'hosting.today': { label: 'האירוח היום' }, 'hosting.availability': { label: 'בדיקת יחידת אירוח פנויה' } }, load: (): Promise<typeof import('../../components/hosting/abilities')> => import('../../components/hosting/HostingView').then((m) => m.hostingProvider) },
   { module: 'parnasa', reads: ['prListings', 'prPosts', 'ui'], abilities: { 'parnasa.findPro': { label: 'מציאת בעל מקצוע', flag: 'parnasa.directory' }, 'parnasa.shabbat': { label: 'זמני השבת', flag: 'parnasa.zmanim' }, 'parnasa.minyanim': { label: 'מניינים בקהילה', flag: 'parnasa.board' }, 'parnasa.emergency': { label: 'מספרי חירום', flag: 'parnasa.board' } }, load: (): Promise<typeof import('../../components/parnasa/abilities')> => import('../../components/parnasa/ParnasaView').then((m) => m.parnasaProvider) },
+  // 📅 מליבת-אורביט (מודול דלוק-כברירת-מחדל) — שירות-רקע שקט: אין לו קול בתקציר-היום ואינו "כלי נוסף" לכרטיס (ENGINEBOX-SOCKETS 13.10)
+  { module: 'calendar', reads: [], abilities: { 'calendar.dayInfo': { label: 'יום בלוח העברי', quiet: true } }, load: (): Promise<typeof import('../../components/calendar/abilities')> => import('../../components/calendar/CalendarView').then((m) => m.calendarProvider) },
 ] as const satisfies readonly ProviderEntry[];
 
 /* ═══════════════ טיפוסים ═══════════════ */
@@ -34,6 +36,11 @@ interface AbilityMeta {
   readonly label: string;
   /** תת-הדגל של הכלי שבלעדיו היכולת שותקת (featureOn) — חסר ⇒ די במודול דלוק. */
   readonly flag?: string;
+  /**
+   * שירות-רקע שקט (מנוע-ליבה, למשל הלוח העברי): זמין לשאלה, אבל אין לו קול בתקציר-היום ואינו נחשב "כלי נוסף"
+   * (hasOtherTool) — כך שמודול-ליבה דלוק-כברירת-מחדל לא משנה אף מסך קיים.
+   */
+  readonly quiet?: boolean;
 }
 
 /** צורת-יכולת אחרי "מחיקת-טיפוסים" (מה שהרישום מחזיק בזמן-ריצה). */
@@ -68,12 +75,14 @@ export interface AbilityInfo {
   readonly module: ModuleKey;
   readonly label: string;
   readonly flag: string | null;
+  /** שירות-רקע שקט (AbilityMeta.quiet). */
+  readonly quiet: boolean;
 }
 
 /* ═══════════════ הקטלוג והזמינות ═══════════════ */
 
 const CATALOG: readonly AbilityInfo[] = (REGISTRY as readonly ProviderEntry[]).flatMap((e) =>
-  Object.entries(e.abilities).map(([id, m]) => ({ id: id as AbilityId, module: e.module, label: m.label, flag: m.flag ?? null })),
+  Object.entries(e.abilities).map(([id, m]) => ({ id: id as AbilityId, module: e.module, label: m.label, flag: m.flag ?? null, quiet: m.quiet === true })),
 );
 const BY_ID = new Map<string, AbilityInfo>(CATALOG.map((a) => [a.id, a]));
 
