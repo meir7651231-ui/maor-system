@@ -21,9 +21,17 @@
  * פרטיות: רק עסקים **מאושרים** ומודעות-לוח **מאושרות ופעילות**. בקשות-תושבים אינן בקלט בכלל, ואף
  * פרט-מבקש; הערה-פנימית, המלצות, מחירון וחותמות-ביקורת לא נקראים; ספרות-חיוג (tel) רק מטלפון-עסק
  * או ממספר-חירום — לעולם לא מטקסט-חופשי. בידוד (הכרעה 4): אפס כסף/קבלות/אירועים.
+ *
+ * 🔌 ענפי-המרכזייה (BUILD-ORDER-SWITCHBOARD-2026-10-13, חיבור ג׳): כלי אחר "מדבר" בקו **רק** דרך `ask` המוזרק
+ * (`input.switchboard`) — המודל לא מייבא אף כלי (ייבוא-טיפוסים בלבד). `hosting.availability` זמין ⇒ מקש 5 "לבדיקת יחידת
+ * אירוח פנויה" ⇒ הלילה · מחר בלילה · ליל-השבת ⇒ הקראת היחידות הפנויות (בלי מחירים, בלי אורחים). כל הכללים נשמרים: הענף
+ * מקשים-בלבד (אין צומת-דיבור חדש), אין בו פעולה (אין מה לאשר), בשבת/יו״ט השורש סגור, ודטרמיניסטי. יכולת לא זמינה (כלי
+ * כבוי, ספק שלא נטען, שגיאה) ⇒ אין ענף ⇒ העץ **ביט-זהה** (זהב: phoneLine-golden.test).
  */
 import type { ParnasaPrefs, PrListing, PrPost } from '../../types/domain';
 import type { OrgConfig } from '../../types/config';
+import type { SwitchCtx } from '../../lib/switchboard/contract';
+import type { AskFn, OutputOf } from '../../lib/switchboard/registry';
 import { termOf } from '../../lib/config';
 import {
   categoryOf,
@@ -153,6 +161,17 @@ export interface PhoneMenuInput {
   config?: OrgConfig;
   /** עסקים בעמוד (1–8) — ברירה PHONE_PAGE.listings. */
   listingsPerPage?: number;
+  /**
+   * 🔌 המרכזייה (חיבור ג׳): ענפי-יכולת של כלים אחרים — רק דרך ask. חסר / היכולת לא זמינה ⇒ העץ ביט-זהה.
+   * ctx.nowMs = אותו רגע של הקו.
+   */
+  switchboard?: PhoneSwitchboard;
+}
+
+/** ההזרקה מהמרכזייה (lib/switchboard): ask + ההקשר — הקו לא מכיר אף כלי, הוא רק שואל. */
+export interface PhoneSwitchboard {
+  readonly ask: AskFn;
+  readonly ctx: SwitchCtx;
 }
 
 /** תוצאת קוד-חיוג/דיבור: צומת-אישור דינמי (לא חלק מ-menu.nodes) — לעולם בלי פעולה. */
@@ -475,6 +494,9 @@ export function buildPhoneMenu(input: PhoneMenuInput): PhoneMenu {
     }
   }
 
+  // 🔌 ענף-המרכזייה (חיבור ג׳) — רק דרך ask; יכולת לא זמינה ⇒ null ⇒ העץ ביט-זהה
+  const host = hostBranch(input.switchboard, today, board.shabbat.friIso, loc.tz);
+
   // ── התפריט הראשי (מקשים קבועים) ──
   add({
     id: 'main',
@@ -486,6 +508,7 @@ export function buildPhoneMenu(input: PhoneMenuInput): PhoneMenu {
       opt('2', 'לזמני היום הקישו 2', 'zmanim'),
       opt('3', 'להודעות הקהילה הקישו 3', 'notices/1'),
       opt('4', 'למספרי חירום הקישו 4', 'emergency/1'),
+      ...(host ? [opt('5', 'ל' + host.label + ' הקישו 5', 'host')] : []),
       opt('*', 'יש לכם קוד של עסק מהחוברת? הקישו כוכבית ואת שלוש הספרות', 'code'),
       opt('0', 'לשמיעה חוזרת הקישו 0', 'main'),
     ],
@@ -660,7 +683,69 @@ export function buildPhoneMenu(input: PhoneMenuInput): PhoneMenu {
     collect: 3,
   });
 
+  // ── 5 · 🔌 בדיקת יחידת אירוח פנויה (המרכזייה ⇐ hosting.availability): מקשים בלבד, הקראה בלבד — אין פעולה ──
+  if (host) {
+    add({
+      id: 'host',
+      kind: 'menu',
+      label: host.label,
+      prompt: phonePrompt([host.label + (host.biz ? ' — ' + host.biz : '') + '.', 'בחרו את הלילה.']),
+      options: [...host.nights.map((n) => opt(n.digit, n.say, 'host/' + n.digit)), opt('0', 'לחזרה לתפריט הראשי הקישו 0', 'main')],
+    });
+    for (const n of host.nights) {
+      add({
+        id: 'host/' + n.digit,
+        kind: 'info',
+        label: host.label + ' — ' + n.when,
+        prompt: phonePrompt(freeUnitsParts(n.when, n.v)),
+        options: [opt('1', 'לשמיעה חוזרת הקישו 1', 'host/' + n.digit), opt('0', 'לחזרה הקישו 0', 'host')],
+      });
+    }
+  }
+
   return { root: cl.closed ? 'closed' : 'main', nodes, codes, closed: cl.closed, asOf: `${clock.iso} ${clock.hhmm}`, brand };
+}
+
+/* ═══════════════ 🔌 ענף-המרכזייה: בדיקת יחידת אירוח פנויה ═══════════════ */
+
+type Avail = OutputOf<'hosting.availability'>;
+
+interface HostBranch {
+  /** תווית-היכולת מהרישום ("בדיקת יחידת אירוח פנויה") — מנוסח-התפריט. */
+  label: string;
+  biz: string;
+  nights: Array<{ digit: string; say: string; when: string; v: Avail }>;
+}
+
+/**
+ * שואל את המרכזייה על הלילה · מחר · ליל-השבת הקרובה. אין המרכזייה / היכולת לא זמינה / אין יחידות במקום ⇒ null — ואז
+ * העץ ביט-זהה. כל שאלה שנכשלה (גם אחרי הראשונה) — האפשרות שלה פשוט לא נאמרת.
+ */
+function hostBranch(sw: PhoneSwitchboard | undefined, today: string, friIso: string, tz: string): HostBranch | null {
+  if (!sw || typeof sw.ask !== 'function') return null;
+  const tonight = sw.ask('hosting.availability', sw.ctx, { fromIso: today, nights: 1 });
+  if (!tonight.ok || !(tonight.value.units > 0)) return null;
+  const label = said(tonight.label, CAP.label) || 'בדיקת יחידת אירוח פנויה';
+  const nights: HostBranch['nights'] = [{ digit: '1', say: 'להלילה הקישו 1', when: 'הלילה', v: tonight.value }];
+  const tomorrow = sw.ask('hosting.availability', sw.ctx, { fromIso: addDaysIso(today, 1), nights: 1 });
+  if (tomorrow.ok) nights.push({ digit: '2', say: 'למחר בלילה הקישו 2', when: 'מחר בלילה', v: tomorrow.value });
+  if (isIsoDate(friIso) && friIso >= today) {
+    const fri = sw.ask('hosting.availability', sw.ctx, { fromIso: friIso, nights: 1 });
+    if (fri.ok) nights.push({ digit: '3', say: 'לליל השבת הקרובה הקישו 3', when: 'בליל השבת הקרובה, ' + hebDateText(friIso, tz), v: fri.value });
+  }
+  return { label, biz: said(tonight.value.bizName, CAP.community), nights };
+}
+
+/** הקראת היחידות הפנויות — שם, ויחידה משותפת: חדרים/מיטות פנויים; אחרת: קיבולת. עד 4, ואז "ועוד N". בלי מחירים. */
+function freeUnitsParts(when: string, v: Avail): string[] {
+  const units = v.free.map((u) => {
+    const name = said(u.name, CAP.name) || 'יחידה ללא שם';
+    return u.rooms > 0 ? `${name}, ${u.freeRooms === 1 ? 'חדר אחד פנוי' : u.freeRooms + ' חדרים פנויים'}, ${u.freeBeds} מיטות` : `${name}, עד ${u.cap} אורחים`;
+  });
+  if (!units.length) return [`${when} אין יחידת אירוח פנויה.`, 'המידע נכון לרגע זה.'];
+  const head = units.length === 1 ? `${when} פנויה יחידת אירוח אחת:` : `${when} פנויות ${units.length} יחידות אירוח:`;
+  const more = units.length > 4 ? `, ועוד ${units.length - 4}` : '';
+  return [`${head} ${units.slice(0, 4).join('; ')}${more}.`, 'המידע נכון לרגע זה ועשוי להשתנות.'];
 }
 
 /* ═══════════════ קוד-חיוג ודיבור ⇒ צומת-אישור (לעולם לא פעולה) ═══════════════ */

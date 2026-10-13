@@ -6,13 +6,19 @@
  * כל שינוי בנוסח/בסדר/במקש של הקו בלי אירוח ⇒ אדום, עם רשימת הצמתים שזזו.
  *
  * רענון מכוון בלבד (שינוי-קו שהוכרע): ‎UPDATE_GOLDEN=1 npx vitest run phoneLine-golden‎ — וזה מופיע ב-diff של הקומיט.
+ *
+ * 🔌 המרכזייה (חיבור ג׳): אותו זהב גם כשמוזרקת מרכזייה — אירוח כבוי · ספק שלא נטען · ספק שזורק · אין יחידות ⇒ ביט-זהה.
+ * אירוח דלוק ⇒ מקש 5 + ענף "בדיקת יחידת אירוח פנויה" בסוף-העץ; הסרתם מחזירה בדיוק את הזהב. כללי-הקו נשמרים בענף.
  */
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { buildPhoneMenu, phoneScriptText, resolveDialCode, resolveSpeech, walkPhone, type PhoneMenu, type PhoneMenuInput } from '../phoneLine';
+import { buildPhoneMenu, phoneScriptText, resolveDialCode, resolveSpeech, walkPhone, type PhoneMenu, type PhoneMenuInput, type PhoneSwitchboard } from '../phoneLine';
+import { ask, installProvider, resetSwitchboard } from '../../../lib/switchboard/registry';
+import { abilities as hostingAbilities } from '../../hosting/abilities';
+import { cfgWith, fixtureDb, U } from '../../../lib/switchboard/__tests__/fixture';
 import { clockAt, makeClosureFn, resolveZmanimLoc } from '../zmanimBoard';
 import { DEFAULT_CONFIG } from '../../../types/config';
 import type { PrListing, PrPost } from '../../../types/domain';
@@ -149,4 +155,133 @@ describe('📞 זהב — הקו בלי אירוח ביט-זהה לקוד שלפ
       expect(sha(serializeLine(menu, c.input)), 'העץ + התסריט + הליכות + קודים + דיבור').toBe(g.sha);
     });
   }
+});
+
+/* ═══════════════ 🔌 המרכזייה: אותו זהב עם מרכזייה מוזרקת; הענף כשהאירוח דלוק ═══════════════ */
+
+const swFor = (input: PhoneMenuInput, mods: { parnasa?: boolean; hosting?: boolean }, db = fixtureDb()): PhoneSwitchboard => ({
+  ask,
+  ctx: { db, config: cfgWith(mods), nowMs: input.nowMs },
+});
+const HOST_IDS = ['host', 'host/1', 'host/2', 'host/3'];
+
+/** העץ בלי הענף של המרכזייה (מקש 5 + צמתי host) — אמור להיות בדיוק הזהב. */
+function withoutHost(menu: PhoneMenu): PhoneMenu {
+  const nodes: PhoneMenu['nodes'] = {};
+  for (const [id, n] of Object.entries(menu.nodes)) {
+    if (HOST_IDS.includes(id)) continue;
+    nodes[id] = id === 'main' ? { ...n, options: n.options.filter((o) => o.to !== 'host') } : n;
+  }
+  return { ...menu, nodes };
+}
+
+describe('🔌 זהב עם מרכזייה מוזרקת — כל מצב שאינו "אירוח זמין" ⇒ ביט-זהה', () => {
+  afterEach(() => {
+    resetSwitchboard();
+  });
+  if (process.env.UPDATE_GOLDEN === '1') return;
+  const cases = goldenInputs();
+  const variants: Array<{ name: string; make: (input: PhoneMenuInput) => PhoneSwitchboard; prep?: () => void }> = [
+    { name: 'אירוח כבוי (רק פרנסה׳לע)', make: (i) => swFor(i, { parnasa: true }), prep: () => installProvider('hosting', hostingAbilities) },
+    { name: 'אירוח דלוק — הספק עוד לא נטען', make: (i) => swFor(i, { parnasa: true, hosting: true }) },
+    {
+      name: 'אירוח דלוק — הספק זורק',
+      make: (i) => swFor(i, { parnasa: true, hosting: true }),
+      prep: () => installProvider('hosting', { 'hosting.availability': { run: () => { throw new Error('boom'); } } }),
+    },
+    {
+      name: 'אירוח דלוק — אין יחידות במקום',
+      make: (i) => swFor(i, { parnasa: true, hosting: true }, fixtureDb({ hostUnits: [] })),
+      prep: () => installProvider('hosting', hostingAbilities),
+    },
+    { name: 'ask מזויף שאינו פונקציה', make: (i) => ({ ask: undefined as never, ctx: swFor(i, { hosting: true }).ctx }) },
+  ];
+  for (const v of variants) {
+    for (const c of cases) {
+      it(v.name + ' · ' + c.name, () => {
+        v.prep?.();
+        const g = readGolden()[c.name];
+        const input = { ...c.input, switchboard: v.make(c.input) };
+        const menu = buildPhoneMenu(input);
+        expect(Object.keys(menu.nodes)).toEqual(g.nodes);
+        expect(sha(serializeLine(menu, input))).toBe(g.sha);
+      });
+    }
+  }
+});
+
+describe('🔌 ענף-המרכזייה — "לבדיקת יחידת אירוח פנויה" (hosting.availability)', () => {
+  afterEach(() => {
+    resetSwitchboard();
+  });
+  const WED_11 = idt(2026, 10, 14, 11);
+  const base: PhoneMenuInput = { listings: GOLDEN_LISTINGS, posts: GOLDEN_POSTS, prefs: PREFS, nowMs: WED_11 };
+  const build = (nowMs = WED_11, db = fixtureDb()): PhoneMenu => {
+    installProvider('hosting', hostingAbilities);
+    const input = { ...base, nowMs };
+    return buildPhoneMenu({ ...input, switchboard: swFor(input, { parnasa: true, hosting: true }, db) });
+  };
+
+  it('מקש 5 בתפריט הראשי (אחרי 4, לפני כוכבית) — התווית מהרישום; הענף בסוף-העץ; בלעדיו — הזהב בדיוק', () => {
+    const menu = build();
+    expect(menu.nodes.main.options.map((o) => o.digit)).toEqual(['1', '2', '3', '4', '5', '*', '0']);
+    expect(menu.nodes.main.options[4]).toEqual({ digit: '5', say: 'לבדיקת יחידת אירוח פנויה הקישו 5', to: 'host' });
+    expect(Object.keys(menu.nodes).slice(-4)).toEqual(HOST_IDS);
+    // ההשוואה לזהב של אותו רגע בלי הענף: בונים את הזהב-ההשוואתי מהקלט בלי מרכזייה
+    const plain = buildPhoneMenu(base);
+    expect(JSON.stringify(withoutHost(menu))).toBe(JSON.stringify(plain));
+  });
+
+  it('הלילה · מחר · ליל-השבת — הקראת היחידות הפנויות (שם · קיבולת / חדרים ומיטות), בלי מחירים ובלי אורחים', () => {
+    const menu = build();
+    expect(menu.nodes.host).toMatchObject({ kind: 'menu', prompt: 'בדיקת יחידת אירוח פנויה — צימרי הגליל. בחרו את הלילה.' });
+    expect(menu.nodes.host.options.map((o) => o.digit + ':' + o.say)).toEqual([
+      '1:להלילה הקישו 1',
+      '2:למחר בלילה הקישו 2',
+      '3:לליל השבת הקרובה הקישו 3',
+      '0:לחזרה לתפריט הראשי הקישו 0',
+    ]);
+    expect(walkPhone(menu, '51').map((n) => n.id)).toEqual(['main', 'host', 'host/1']);
+    expect(menu.nodes['host/1'].prompt).toBe('הלילה פנויות 2 יחידות אירוח: צימר הגפן, עד 4 אורחים; בית ההארחה, חדר אחד פנוי, 3 מיטות. המידע נכון לרגע זה ועשוי להשתנות.');
+    expect(menu.nodes['host/3'].prompt).toBe(
+      'בליל השבת הקרובה, ה׳ חשוון תשפ״ז פנויות 2 יחידות אירוח: בית ההארחה, 2 חדרים פנויים, 5 מיטות; דירת הנחל, עד 6 אורחים. המידע נכון לרגע זה ועשוי להשתנות.',
+    );
+    const text = HOST_IDS.map((id) => JSON.stringify(menu.nodes[id])).join('\n');
+    expect(text, 'בלי שמות-אורחים, מחירים או טלפונים').not.toMatch(/משפחת|₪|\d{2,3}-\d{6,7}/);
+    expect(walkPhone(menu, '5100').map((n) => n.id)).toEqual(['main', 'host', 'host/1', 'host', 'main']);
+  });
+
+  it('כללי-הקו נשמרים בענף: מקשים בלבד (אין צומת-דיבור חדש), אין פעולה ואין חיבור, 0 תמיד חוזר', () => {
+    const menu = build();
+    for (const id of HOST_IDS) {
+      const n = menu.nodes[id];
+      expect(n.speech, id).toBeUndefined();
+      expect(n.action, id).toBeUndefined();
+      expect(n.kind === 'connect' || n.kind === 'confirm', id).toBe(false);
+      expect(n.options.some((o) => o.digit === '0'), id).toBe(true);
+      for (const o of n.options) expect(Object.hasOwn(menu.nodes, o.to), id + ' ⇒ ' + o.to).toBe(true);
+    }
+    const speechIds = (m: PhoneMenu): string[] => Object.values(m.nodes).filter((n) => n.speech).map((n) => n.id);
+    expect(speechIds(menu), 'אותם צמתי-דיבור כמו בלי הענף').toEqual(speechIds(buildPhoneMenu(base)));
+    expect(phoneScriptText(menu)).toContain('[host] תפריט');
+  });
+
+  it('שבת/יו״ט: השורש סגור — מקש 5 לא קיים בפועל (אין תפריט), קוד ודיבור מחזירים סגירה', () => {
+    const fri = build(idt(2026, 10, 16, 18));
+    expect(fri.root).toBe('closed');
+    expect(walkPhone(fri, '51').map((n) => n.id)).toEqual(['closed']);
+    expect(resolveDialCode(fri, '101').confirm.kind).toBe('closed');
+    const sat = build(idt(2026, 10, 17, 10));
+    expect(sat.root).toBe('closed');
+    expect(Object.keys(sat.nodes), 'בשבת עצמה אין "ליל-שבת קרוב" נפרד').not.toContain('host/3');
+  });
+
+  it('דטרמיניסטי: אותו רגע ואותם נתונים ⇒ אותו עץ, תו-בתו', () => {
+    expect(JSON.stringify(build())).toBe(JSON.stringify(build()));
+  });
+
+  it('יחידה חסומה לא נקראת כפנויה (אותה זמינות של הטופס)', () => {
+    const db = fixtureDb({ hostUnits: [U({ id: 'hu1', name: 'צימר הגפן', status: 'blocked' }), ...fixtureDb().hostUnits.slice(1)] });
+    expect(build(WED_11, db).nodes['host/1'].prompt).toBe('הלילה פנויה יחידת אירוח אחת: בית ההארחה, חדר אחד פנוי, 3 מיטות. המידע נכון לרגע זה ועשוי להשתנות.');
+  });
 });
