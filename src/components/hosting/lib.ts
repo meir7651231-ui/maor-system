@@ -61,6 +61,11 @@ export function waShareHref(text: string, appScheme: boolean): string {
   return appScheme ? 'whatsapp://send?text=' + t : 'https://wa.me/?text=' + t;
 }
 
+/** קישור-חיוג — ספרות ו-+ בלבד (כמו בשאר אורביט; רווחים/מקפים/תווים זרים לא נכנסים ל-URI). */
+export function telHref(phone: string): string {
+  return 'tel:' + String(phone || '').replace(/[^\d+]/g, '');
+}
+
 /** ראשית-החודש / סופו של תאריך ISO. */
 export function monthBounds(iso: string): { from: string; to: string } {
   const y = +iso.slice(0, 4);

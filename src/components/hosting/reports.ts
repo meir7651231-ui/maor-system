@@ -97,6 +97,11 @@ export interface HostReportData {
   /** מונח-האורח (termOf + "משפחה מתארחת"). */
   guestWord: string;
   guestsWord: string;
+  /** מונחי-היחידה וההזמנה (termOf — אשף) — חסר = "יחידה/יחידות", "הזמנה/הזמנות" של המקור. */
+  unitWord?: string;
+  unitsWord?: string;
+  bookingWord?: string;
+  bookingsWord?: string;
 }
 
 const vmaxOf = (items: { val: number }[]) => items.reduce((m, x) => Math.max(m, x.val), 0);
@@ -108,6 +113,10 @@ function mealDate(m: HostMeal, bookings: readonly HostBooking[]): string {
 
 /** בניית הדוח (`buildReport`). */
 export function buildReport(type: HostRepType, from: string, to: string, d: HostReportData): HostReport {
+  const uW = d.unitWord || 'יחידה';
+  const usW = d.unitsWord || 'יחידות';
+  const bW = d.bookingWord || 'הזמנה';
+  const bsW = d.bookingsWord || 'הזמנות';
   const active = d.bookings.filter(isActive);
   const rN = (a: string, b: string) => rangeNights(a, b, from, to);
 
@@ -141,7 +150,7 @@ export function buildReport(type: HostRepType, from: string, to: string, d: Host
     return {
       key: 'occupancy',
       title: 'דוח תפוסה',
-      sub: d.units.length + ' יחידות · ' + days + ' ימים',
+      sub: d.units.length + ' ' + usW + ' · ' + days + ' ימים',
       kc: 'var(--h-info)',
       kpis: [
         { kc: 'var(--h-info)', lab: 'תפוסה כוללת', val: occAll + '%', sub: soldT + ' / ' + availT + ' לילות' },
@@ -149,10 +158,10 @@ export function buildReport(type: HostRepType, from: string, to: string, d: Host
         { kc: 'var(--h-good)', lab: 'הכנסה בתקופה', val: money(revT), sub: '' },
         { kc: 'var(--h-violet)', lab: 'הכנסה ללילה זמין', val: money(revpan), sub: 'RevPAN' },
       ],
-      cols: ['יחידה', 'מכורים', 'זמינים', 'תפוסה', 'הכנסה'],
+      cols: [uW, 'מכורים', 'זמינים', 'תפוסה', 'הכנסה'],
       rows,
       viz: { max: vmaxOf(items) || 100, items },
-      csvHead: ['יחידה', 'לילות_מכורים', 'זמינים', 'תפוסה_אחוז', 'הכנסה'],
+      csvHead: [uW, 'לילות_מכורים', 'זמינים', 'תפוסה_אחוז', 'הכנסה'],
       csvRows,
     };
   }
@@ -254,10 +263,10 @@ export function buildReport(type: HostRepType, from: string, to: string, d: Host
         { kc: 'var(--h-good)', lab: 'נגבה (הכל)', val: money(totPaid), sub: '' },
         { kc: 'var(--h-info)', lab: 'שיעור גבייה', val: (totChg ? Math.round((totPaid / totChg) * 100) : 0) + '%', sub: '' },
       ],
-      cols: [d.guestWord, 'יחידה', 'תאריכים', 'חיוב', 'שולם', 'יתרה'],
+      cols: [d.guestWord, uW, 'תאריכים', 'חיוב', 'שולם', 'יתרה'],
       rows: open.map((b) => [d.guestName(b.guestId), d.unitName(b.unitId), fmtDM(b.checkIn) + '–' + fmtDM(b.checkOut), money(bookingTotal(b)), money(bookingPaid(b)), money(bookingBalance(b))]),
       viz: { max: vmaxOf(items), items },
-      csvHead: [d.guestWord, 'יחידה', 'צק_אין', 'צק_אאוט', 'חיוב', 'שולם', 'יתרה'],
+      csvHead: [d.guestWord, uW, 'צק_אין', 'צק_אאוט', 'חיוב', 'שולם', 'יתרה'],
       csvRows: open.map((b) => [d.guestName(b.guestId), d.unitName(b.unitId), b.checkIn, b.checkOut, Math.round(bookingTotal(b)), Math.round(bookingPaid(b)), Math.round(bookingBalance(b))]),
     };
   }
@@ -277,7 +286,7 @@ export function buildReport(type: HostRepType, from: string, to: string, d: Host
     const koRev = ko.reduce((s, x) => s + mealSum(x.m), 0);
     const outAll = active.reduce((s, b) => s + Math.max(0, bookingBalance(b)), 0);
     const rows = [
-      ['הזמנות בתקופה', String(inR.length)],
+      [bsW + ' בתקופה', String(inR.length)],
       ['חיובים', money(charged)],
       ['תקבולים', money(paid)],
       ['תפוסה', occAll + '%'],
@@ -295,7 +304,7 @@ export function buildReport(type: HostRepType, from: string, to: string, d: Host
       sub: 'תמונת-על',
       kc: 'var(--h-brand)',
       kpis: [
-        { kc: 'var(--h-good)', lab: 'הכנסות', val: money(charged), sub: inR.length + ' הזמנות' },
+        { kc: 'var(--h-good)', lab: 'הכנסות', val: money(charged), sub: inR.length + ' ' + bsW },
         { kc: 'var(--h-info)', lab: 'תפוסה', val: occAll + '%', sub: sold + ' לילות' },
         { kc: 'var(--h-amber)', lab: 'מטבח', val: money(koRev), sub: ko.length + ' ארוחות' },
         { kc: 'var(--h-crit)', lab: 'לגבייה', val: money(outAll), sub: '' },
@@ -330,18 +339,18 @@ export function buildReport(type: HostRepType, from: string, to: string, d: Host
   return {
     key: 'revenue',
     title: 'דוח הכנסות',
-    sub: sorted.length + ' הזמנות',
+    sub: sorted.length + ' ' + bsW,
     kc: 'var(--h-good)',
     kpis: [
       { kc: 'var(--h-good)', lab: 'סה״כ חיובים', val: money(charged), sub: '' },
       { kc: 'var(--h-brand)', lab: 'תקבולים', val: money(paid), sub: '' },
       { kc: 'var(--h-crit)', lab: 'יתרה', val: money(charged - paid), sub: 'טרם שולם' },
-      { kc: 'var(--h-info)', lab: 'ממוצע להזמנה', val: money(sorted.length ? charged / sorted.length : 0), sub: '' },
+      { kc: 'var(--h-info)', lab: 'ממוצע ל' + bW, val: money(sorted.length ? charged / sorted.length : 0), sub: '' },
     ],
-    cols: [d.guestWord, 'יחידה', 'תאריכים', 'לילות', 'חיוב', 'שולם', 'יתרה'],
+    cols: [d.guestWord, uW, 'תאריכים', 'לילות', 'חיוב', 'שולם', 'יתרה'],
     rows,
     viz: { max: vmaxOf(items), items },
-    csvHead: [d.guestWord, 'יחידה', 'צק_אין', 'צק_אאוט', 'לילות', 'חיוב', 'שולם', 'יתרה'],
+    csvHead: [d.guestWord, uW, 'צק_אין', 'צק_אאוט', 'לילות', 'חיוב', 'שולם', 'יתרה'],
     csvRows,
   };
 }

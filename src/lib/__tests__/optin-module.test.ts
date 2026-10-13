@@ -54,6 +54,7 @@ import type { OrgCloudDoc } from '../cloudConfig';
 import appSrc from '../../App.tsx?raw';
 import stubSrc from '../../components/parnasa/ParnasaView.tsx?raw';
 import hostingViewSrc from '../../components/hosting/HostingView.tsx?raw';
+import hostingTransitionsSrc from '../../components/hosting/transitions.ts?raw';
 import configLibSrc from '../config.ts?raw';
 
 /* ───────────── קונפיגים אמיתיים (כמו שהאפליקציה טוענת — דרך normalizeConfig) ───────────── */
@@ -576,6 +577,8 @@ describe('🏡 שרשרת-הרישום של hosting (אשכול 0)', () => {
     expect(appSrc).toContain("{ view: 'hosting', icon: '🏡', label: 'אירוח משפחתי' }");
     expect(appSrc).toContain('hosting: HostingView,');
     expect(hostingViewSrc).toContain('export function HostingView()');
-    expect(hostingViewSrc).toContain("termOf(config, 'nav.hosting', 'אירוח משפחתי')");
+    // שם-העמודה דרך מונחי-המודול (hostTerms — מקור-אמת אחד לממשק ול-store), לא מחרוזת קשיחה
+    expect(hostingViewSrc).toMatch(/const t = env\.terms;/);
+    expect(hostingTransitionsSrc).toContain("termOf(config, 'nav.hosting', 'אירוח משפחתי')");
   });
 });

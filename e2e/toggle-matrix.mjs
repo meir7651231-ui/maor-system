@@ -684,6 +684,127 @@ for (const profile of PROFILES) {
   await ctx.close();
 }
 
+// ── אירוח משפחתי מודלק במפורש (opt-in, 12.10 — BUILD-ORDER-HOSTING): הקישור מופיע, ה-chunk העצל + הסקין נטענים,
+//    המודולים הקיימים לא זזים; אשכול 5: 11 הלשוניות של המקור, זרימת-שהייה מלאה — יחידה ⇒ אורח ⇒ הזמנה ⇒ אישור ⇒
+//    צ׳ק-אין ⇒ תשלום (פנקס, לא קבלה) ⇒ צ׳ק-אאוט ⇒ ניקיון נפתח ונסגר ⇒ דוח CSV; התמדה אחרי רענון; אפס שגיאות JS ──
+{
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 950 } });
+  const page = await ctx.newPage();
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(String(e)));
+  const log = [];
+  const t = (name, ok, extra = '') => {
+    log.push(`  ${ok ? '✅' : '❌'} ${name}${extra ? ' — ' + extra : ''}`);
+    if (!ok) failures++;
+  };
+  // המודאלים בשכבת-פורטל של הסקין (‎.hst-portal על body) — לא בתוך main
+  const modal = () => page.locator('.hst-portal .h-modal').last();
+  const hTab = async (label) => {
+    await page.locator('.hst-root button.h-tab', { hasText: label }).first().click();
+    await page.waitForTimeout(250);
+  };
+  const hTxt = async () => (await page.locator('.hst-root').textContent()) ?? '';
+
+  await page.goto(BASE, { waitUntil: 'networkidle' });
+  await page.evaluate(() => {
+    localStorage.clear();
+    localStorage.setItem(
+      'maor_org_config',
+      JSON.stringify({ slug: 'default', orgName: 'צימרי מבחן', theme: 'or-rishon', modules: { hosting: true } }),
+    );
+    localStorage.setItem('maor_day', new Date().toISOString().slice(0, 10));
+  });
+  await page.reload({ waitUntil: 'networkidle' });
+  await page.waitForTimeout(700);
+
+  const navTxt = (await page.locator('nav').first().textContent()) ?? '';
+  t('קישור "אירוח משפחתי" קיים (modules.hosting === true)', navTxt.includes('אירוח משפחתי'));
+  t('המודולים הקיימים נשארו דלוקים (חסר = פעיל) ופרנסה׳לע לא הודלק', navTxt.includes('קופות צדקה') && navTxt.includes('דוחות') && !navTxt.includes('פרנסה'));
+  await page.locator('nav >> text=אירוח משפחתי').first().click();
+  await page.waitForTimeout(800);
+  const HS_TABS = ['📊 לוח בקרה', '📅 יומן', '🗂️ הזמנות', '🏠 יחידות', '👪 אורחים', '🧹 ניקיון', '🍳 מטבח', '🕯️ שבת', '🔧 תחזוקה', '📈 דוחות', '⚙️ הגדרות'];
+  const tabsNow = await page.locator('.hst-root button.h-tab').allTextContents();
+  t('מסך האירוח נטען בסקין המקורי — 11 הלשוניות (מקומי = מנהל ⇒ ⚙️)', JSON.stringify(tabsNow) === JSON.stringify(HS_TABS), tabsNow.join(' | '));
+  t('הכותרת: 🏡 + שם-הארגון', ((await page.locator('.hst-root .h-brand').textContent()) ?? '').includes('צימרי מבחן'));
+
+  // יחידה + אורח
+  await hTab('🏠 יחידות');
+  await page.locator('.hst-root button', { hasText: /יחידה (חדשה|ראשונה)/ }).first().click();
+  await modal().getByLabel('שם היחידה').fill('צימר-מטריצה');
+  await modal().locator('button', { hasText: 'שמירה' }).click();
+  await page.waitForTimeout(300);
+  t('יחידה נוספה', (await hTxt()).includes('צימר-מטריצה'));
+  await hTab('👪 אורחים');
+  await page.locator('.hst-root button', { hasText: /אורח (חדש|ראשון)/ }).first().click();
+  await modal().getByLabel('שם', { exact: true }).fill('משפחת-מטריצה');
+  await modal().getByLabel('טלפון').fill('050-1234567');
+  await modal().locator('button', { hasText: 'שמירה' }).click();
+  await page.waitForTimeout(300);
+  t('אורח נוסף', (await hTxt()).includes('משפחת-מטריצה'));
+
+  // הזמנה ⇒ אישור ⇒ צ׳ק-אין ⇒ תשלום ⇒ צ׳ק-אאוט
+  await hTab('🗂️ הזמנות');
+  await page.locator('.hst-root button', { hasText: 'הזמנה חדשה' }).first().click();
+  await page.waitForTimeout(200);
+  const quote = (await modal().textContent()) ?? '';
+  t('טופס-הזמנה: תיק-מחיר חי (לינה · ניקיון · מע״מ · סה״כ)', quote.includes('דמי ניקיון') && quote.includes('מע״מ') && quote.includes('סה״כ'));
+  await modal().locator('button', { hasText: 'צור הזמנה' }).click();
+  await page.waitForTimeout(300);
+  const card = () => page.locator('.hst-root .h-crmc', { hasText: 'משפחת-מטריצה' }).first();
+  t('הזמנה נוצרה (ממתינה)', (await card().count()) === 1 && ((await card().textContent()) ?? '').includes('ממתינה'));
+  await card().click();
+  await modal().locator('button', { hasText: 'אשר הזמנה' }).click();
+  await page.waitForTimeout(250);
+  await card().click();
+  await modal().locator('button', { hasText: 'צ׳ק-אין' }).click();
+  await page.waitForTimeout(250);
+  t('צ׳ק-אין ⇒ בשהייה', ((await card().textContent()) ?? '').includes('בשהייה'));
+  await card().click();
+  await modal().locator('button', { hasText: '＋ תשלום' }).click();
+  await modal().getByLabel('הערה').fill('מזומן');
+  await modal().locator('button', { hasText: 'רשום תשלום' }).click();
+  await page.waitForTimeout(300);
+  const folio = (await modal().textContent()) ?? '';
+  t('תשלום נרשם בתיק-השהייה (פנקס, לא קבלה) — יתרה ₪ 0', folio.includes('תשלום · מזומן') && folio.includes('יתרה לתשלום₪ 0'), folio.slice(0, 80));
+  await modal().locator('button', { hasText: 'צ׳ק-אאוט' }).click();
+  await page.waitForTimeout(300);
+  t('צ׳ק-אאוט ⇒ הושלמה', ((await card().textContent()) ?? '').includes('הושלמה'));
+
+  // ניקיון: הצ׳ק-אאוט פתח משימה ⇒ סיום ⇒ היחידה זמינה
+  await hTab('🧹 ניקיון');
+  t('הצ׳ק-אאוט פתח "ניקיון אחרי עזיבה"', (await hTxt()).includes('ניקיון אחרי עזיבה'));
+  await page.locator('.hst-root button', { hasText: '✓ סיום' }).first().click();
+  await page.waitForTimeout(300);
+  t('הניקיון הסתיים — אין משימות פתוחות', (await hTxt()).includes('0 משימות פתוחות'));
+
+  // 📈 דוח ⇒ CSV (שער יציאת-המידע פתוח)
+  await hTab('📈 דוחות');
+  const [csv] = await Promise.all([
+    page.waitForEvent('download', { timeout: 5000 }).catch(() => null),
+    page.locator('.hst-root button', { hasText: '📄 CSV' }).click(),
+  ]);
+  const csvPath = csv ? await csv.path() : null;
+  const csvTxt = csvPath ? readFileSync(csvPath, 'utf8') : '';
+  t('📄 דוח הכנסות ירד כ-CSV — ההזמנה בפנים', !!csv && csv.suggestedFilename().startsWith('revenue-') && csvTxt.includes('משפחת-מטריצה'), csv ? csv.suggestedFilename() : 'אין הורדה');
+
+  // כל לשונית מתרנדרת בדפדפן בלי שגיאה
+  for (const label of HS_TABS) await hTab(label);
+  t('⚙️ הגדרות נטענו (פרטי הארגון · גיבוי ושחזור)', (await hTxt()).includes('גיבוי ושחזור'));
+
+  // התמדה: רענון ⇒ חזרה לאירוח ⇒ ההזמנה שם
+  await page.reload({ waitUntil: 'networkidle' });
+  await page.waitForTimeout(700);
+  await page.locator('nav >> text=אירוח משפחתי').first().click();
+  await page.waitForTimeout(700);
+  await hTab('🗂️ הזמנות');
+  t('התמדה — ההזמנה שרדה רענון', ((await card().textContent()) ?? '').includes('הושלמה'));
+  t('אפס שגיאות JS בפרופיל', errors.length === 0, errors.slice(0, 2).join(' | '));
+
+  console.log('\n📦 אירוח משפחתי מודלק במפורש (opt-in)');
+  console.log(log.join('\n'));
+  await ctx.close();
+}
+
 await browser.close();
 server.close();
 console.log(failures === 0 ? '\n🏆 המטריצה כולה ירוקה — מחווט מקצה לקצה בכל פרופיל' : `\n💥 ${failures} כשלים`);

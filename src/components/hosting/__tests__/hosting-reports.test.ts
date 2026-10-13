@@ -111,6 +111,22 @@ describe('📈 ששת הדוחות', () => {
     expect(reportCsvRows(r)[0]).toEqual(['אורח', 'יחידה', 'צק_אין', 'צק_אאוט', 'לילות', 'חיוב', 'שולם', 'יתרה']);
   });
 
+  it('מונחי-האשף (יחידה/הזמנה) עוברים לכותרות, לתת-הכותרות ולכותרות-ה-CSV — לא "יחידה/הזמנות" קבועים', () => {
+    const words = { unitWord: 'צימר', unitsWord: 'צימרים', bookingWord: 'שריון', bookingsWord: 'שריונים' };
+    const r = buildReport('revenue', from, to, { ...DATA(bookings), ...words });
+    expect(r.sub).toBe('3 שריונים');
+    expect(r.cols[1]).toBe('צימר');
+    expect(r.kpis[3].lab).toBe('ממוצע לשריון');
+    expect(reportCsvRows(r)[0].slice(0, 2)).toEqual(['אורח', 'צימר']);
+    const o = buildReport('occupancy', from, to, { ...DATA(bookings), ...words });
+    expect(o.sub).toBe('2 צימרים · 31 ימים');
+    expect(o.cols[0]).toBe('צימר');
+    const sm = buildReport('summary', from, to, { ...DATA(bookings), ...words });
+    expect(sm.rows[0][0]).toBe('שריונים בתקופה');
+    expect(sm.kpis[0].sub).toBe('3 שריונים');
+    expect(buildReport('debts', from, to, { ...DATA(bookings), ...words }).cols[1]).toBe('צימר');
+  });
+
   it('🏠 תפוסה: לילות-מכורים מול זמינים פר-יחידה, הכנסה יחסית ללילות שבטווח, RevPAN', () => {
     const r = buildReport('occupancy', from, to, DATA(bookings));
     expect(r.sub).toBe('2 יחידות · 31 ימים');
