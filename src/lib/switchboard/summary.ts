@@ -40,10 +40,17 @@ export function todaySummary(ctx: SwitchCtx): SummaryLine[] {
 
 /**
  * תנאי-הכרטיס (חיבור ד׳): יש יכולת זמינה של כלי **אחר** מ-self. כלי יחיד ⇒ אין "מערכת אחת" לאסוף ⇒ הכרטיס לא מוצג
- * (והמסך ביט-זהה).
+ * (והמסך ביט-זהה). שירות-רקע שקט (quiet — הלוח העברי) אינו "כלי אחר".
  */
 export function hasOtherTool(config: OrgConfig, self: string): boolean {
-  return listAbilities(config).some((a) => a.module !== self);
+  return listAbilities(config).some((a) => a.module !== self && !a.quiet);
+}
+
+/** היכולות שיש להן קול בתקציר (זמינות, לא-שקטות) — רשימת-הטעינה של כרטיסי-התקציר. */
+export function voiceIds(config: OrgConfig): AbilityId[] {
+  return listAbilities(config)
+    .filter((a) => !a.quiet)
+    .map((a) => a.id);
 }
 
 const DAY_NAMES = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'] as const;

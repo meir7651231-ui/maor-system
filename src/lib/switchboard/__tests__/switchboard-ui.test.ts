@@ -281,18 +281,22 @@ describe('🔌 הגנות-מקור — כל שער במקומו; אין גישה
     const asked = (s: string): string[] => [...new Set([...s.matchAll(/\bask\('([a-z]+\.[A-Za-z]+)'/g)].map((x) => x[1]))];
     // הקו: מה שהמודל (phoneLine) שואל ⊆ מה שהלשונית טוענת
     const line = asked(src('phoneLine.ts'));
-    expect(line).toEqual(['hosting.availability']);
-    for (const id of line) expect(idsIn(src('PhoneTab.tsx'), 'LINE_ABILITIES'), id).toContain(id);
+    expect(line).toEqual(['calendar.dayInfo', 'hosting.availability']);
+    // ENGINEBOX-SOCKETS: calendar.dayInfo נשאל רק מאחורי hebDateGreeting (ברירה false) — מי שמדליק מוסיף אותו ל-LINE_ABILITIES
+    const lineOptIn = new Set(['calendar.dayInfo']);
+    for (const id of line) if (!lineOptIn.has(id)) expect(idsIn(src('PhoneTab.tsx'), 'LINE_ABILITIES'), id).toContain(id);
+    expect(src('phoneLine.ts')).toContain("input.hebDateGreeting === true ? hebTodaySentence(input.switchboard, hebDateAt(clock, loc)) : ''");
     // מסכי-האירוח: מה ש-SwitchPanels שואל ⊆ רשימות-הטעינה שלו
     const panels = src('SwitchPanels.tsx');
-    const loaded = [...idsIn(panels, 'SHABBAT_IDS'), ...idsIn(panels, 'PRO_IDS')];
+    const loaded = [...idsIn(panels, 'SHABBAT_IDS'), ...idsIn(panels, 'PRO_IDS'), ...idsIn(panels, 'CAL_IDS')];
     for (const id of asked(panels)) expect(loaded, id).toContain(id);
   });
 
   it('דבק-React: צפייה צרה (לא מנוי-DB-מלא), טעינה רק כשיש יכולת זמינה', () => {
     const s = src('useSwitchCtx.ts');
     expect(s).not.toMatch(/useApp\(\(s\) => s\.db\)/);
-    expect(s).toContain('if (keys.length) void loadProviders(config, idsKey.split(\'|\'));');
+    // ENGINEBOX-SOCKETS: השער עבר ל-idsKey (ספק-ליבה בלי reads צריך להיטען); הסינון-לזמינות — בתוך loadProviders
+    expect(s).toContain("if (idsKey) void loadProviders(config, idsKey.split('|'));");
     expect(s).toContain("keysRef.current.some((k) => !Object.is(prev[k], cur[k]))");
   });
 });

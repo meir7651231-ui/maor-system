@@ -27,9 +27,13 @@ import {
   unitHasRooms,
 } from './lib';
 import { KO_ST, RES_ST } from './labels';
-import { StayShabbat } from './SwitchPanels';
+import { ShabbatGuard, StayShabbat } from './SwitchPanels';
 
-export function BookingDialog(props: { id: string | null; pre?: { unitId?: string; checkIn?: string } }) {
+/**
+ * `shabbatGuard` (ENGINEBOX-SOCKETS, ברירה false): אזהרת-השבת/יו״ט נשאלת מהלוח העברי של אורביט (calendar.dayInfo) — עם
+ * התאריך העברי ("⚠ הכניסה נופלת בשבת · ה׳ חשוון"). כבוי ⇒ הכרטיס ביט-זהה.
+ */
+export function BookingDialog(props: { id: string | null; pre?: { unitId?: string; checkIn?: string }; shabbatGuard?: boolean }) {
   const d = useHostData();
   const env = useHostEnv();
   const ui = useHostUi();
@@ -70,6 +74,7 @@ export function BookingDialog(props: { id: string | null; pre?: { unitId?: strin
   }, [u, nights, isNew, form.roomIds, form.checkIn, form.checkOut, b, roomed, d.bookings]);
   const quote = u && nights > 0 ? priceQuote(u, isNew ? form.roomIds : (b?.roomIds ?? []), form.checkIn, form.checkOut, d.settings) : null;
   const warns = nights > 0 ? arrivalWarnings(form.checkIn, form.checkOut) : [];
+  const sacredWarn = warns.length > 0 && <div className="h-okbox" style={{ color: 'var(--h-violet)', background: 'color-mix(in srgb,var(--h-violet) 12%,transparent)', borderColor: 'var(--h-violet)' }}>🕯️ {warns.join(' · ')}</div>;
 
   if (props.id && !b) {
     return (
@@ -216,7 +221,7 @@ export function BookingDialog(props: { id: string | null; pre?: { unitId?: strin
       {check && !check.ok && check.reason === 'blocked' && <div className="h-warnbox">⚠ ה{unitWord} חסומה (תקלה או חסימה ידנית) — שחררו אותה לפני הזמנה</div>}
       {isNew && check?.ok && roomed && u && <div className="h-okbox">✓ {bookBeds(u, form.roomIds)} מיטות פנויות — משפחות נוספות יכולות לחלוק חדרים אחרים</div>}
       {isNew && roomed && !form.roomIds.length && nights > 0 && <div className="h-warnbox">בחרו לפחות חדר אחד</div>}
-      {warns.length > 0 && <div className="h-okbox" style={{ color: 'var(--h-violet)', background: 'color-mix(in srgb,var(--h-violet) 12%,transparent)', borderColor: 'var(--h-violet)' }}>🕯️ {warns.join(' · ')}</div>}
+      {props.shabbatGuard === true && nights > 0 ? <ShabbatGuard checkIn={form.checkIn} checkOut={form.checkOut} fallback={sacredWarn} /> : sacredWarn}
       {b && <StayShabbat b={b} />}
       <FSelect label={t.guest} value={form.guestId} onChange={(v) => set({ guestId: v })} options={guestOpts} />
       <FSelect label={unitWord} value={form.unitId} disabled={!isNew} onChange={(v) => set({ unitId: v, roomIds: [] })} options={unitOpts} />

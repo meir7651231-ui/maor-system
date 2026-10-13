@@ -165,6 +165,10 @@ export function SettingsView() {
         {featureOn(config, 'shell.teamchat') && (
           <Chip onClick={() => { window.location.hash = '#teamchat'; }}>💬 צ׳אט הצוות</Chip>
         )}
+        {/* 🧩 ארגז המנועים — opt-in מפורש (חסר-דגל = אין צ׳יפ, ביט-זהה). נפתח דרך #enginebox */}
+        {config.features?.['shell.enginebox'] === true && (
+          <Chip onClick={() => { window.location.hash = '#enginebox'; }}>🧩 ארגז המנועים</Chip>
+        )}
       </div>
       {/* צ'יפי-הקפיצה של הקבוצה הפעילה — אותה יכולת-ניווט לסעיף, בתוך הלשונית */}
       {groupChips.length > 1 && (

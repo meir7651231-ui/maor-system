@@ -8,14 +8,16 @@
  *   ב׳ FindProDialog ⇐ parnasa.findPro (+ parnasa.emergency בחירום) — "🔧 מצא בעל מקצוע" מקריאה/משימת-ניקיון; 📞 בטלפוניה,
  *      💬 בהרחבת-וואטסאפ.
  *   ד׳ TodayPanel (לוח-הבקרה) ⇐ todaySummary — רק כשכלי נוסף זמין; ⧉ העתקה / 💬 שיתוף — hosting.export + שער-הייצוא.
+ *   📅 (ENGINEBOX-SOCKETS 13.10) ⇐ calendar.dayInfo — הלוח העברי של אורביט: ShabbatGuard (טופס-ההזמנה, prop `shabbatGuard`)
+ *      ו-StayHebDates (כרטיס-השהייה במרכז-ההזמנות, prop `hebDates`). **כבויים כברירת-מחדל** — המסך ביט-זהה עד שמחברים.
  */
-import { useMemo, type CSSProperties } from 'react';
+import { useMemo, type CSSProperties, type ReactNode } from 'react';
 import { useApp } from '../../store/useApp';
 import { telephonyOn } from '../../lib/config';
 import { guardExport } from '../../lib/exportGate';
 import { waHref } from '../../lib/wa';
-import { ask, isAvailable, listAbilities, type AbilityId, type OutputOf } from '../../lib/switchboard/registry';
-import { hasOtherTool, shareWaUrl, summaryHeader, summaryText, todaySummary } from '../../lib/switchboard/summary';
+import { ask, isAvailable, type AbilityId, type OutputOf } from '../../lib/switchboard/registry';
+import { hasOtherTool, shareWaUrl, summaryHeader, summaryText, todaySummary, voiceIds } from '../../lib/switchboard/summary';
 import type { SwitchCtx } from '../../lib/switchboard/contract';
 import { NO_ABILITIES, useSwitchCtx } from '../switchboard/useSwitchCtx';
 import type { HostBooking } from '../../types/domain';
@@ -23,10 +25,11 @@ import { useHostData, useHostEnv, useNowMs, type HostData, type HostEnv } from '
 import { HModal, h, useHostUi } from './hui';
 import { blocksAvailability, telHref } from './lib';
 import { copyText } from './exportDoc';
-import { groupMinyanim, shabbatFamilyText, shabbatTimeItems, shulDaysText, stayFriday } from './switchLinks';
+import { groupMinyanim, hebRangeText, sacredGuardLines, shabbatFamilyText, shabbatTimeItems, shulDaysText, stayFriday } from './switchLinks';
 
 const SHABBAT_IDS: readonly AbilityId[] = ['parnasa.shabbat', 'parnasa.minyanim'];
 const PRO_IDS: readonly AbilityId[] = ['parnasa.findPro', 'parnasa.emergency'];
+const CAL_IDS: readonly AbilityId[] = ['calendar.dayInfo'];
 const VIOLET: CSSProperties = { color: 'var(--h-violet)', background: 'color-mix(in srgb,var(--h-violet) 12%,transparent)', borderColor: 'var(--h-violet)' };
 const DIM: CSSProperties = { color: 'var(--h-dim)', fontSize: 12 };
 
@@ -262,7 +265,7 @@ export function TodayPanel() {
   const env = useHostEnv();
   const nowMs = useNowMs(60_000);
   const other = hasOtherTool(config, 'hosting');
-  const ids = useMemo(() => (other ? listAbilities(config).map((a) => a.id) : NO_ABILITIES), [config, other]);
+  const ids = useMemo(() => (other ? voiceIds(config) : NO_ABILITIES), [config, other]);
   const ctx = useSwitchCtx(nowMs, ids);
   if (!other) return null;
   const lines = todaySummary(ctx);
@@ -303,5 +306,51 @@ export function TodayPanel() {
         </div>
       )}
     </div>
+  );
+}
+
+/* ═══════════════ 📅 הלוח העברי — calendar.dayInfo (ENGINEBOX-SOCKETS) ═══════════════ */
+
+type DayInfo = OutputOf<'calendar.dayInfo'>;
+
+/**
+ * שני הימים מהלוח העברי (כניסה · עזיבה), או null כשהיכולת לא זמינה (מודול-הלוח כבוי · הספק עוד נטען · שגיאה) או שתאריך
+ * פגום. התאריכים מפורשים ⇒ הרגע לא משמש (nowMs=0, בלי שעון מתקתק).
+ */
+function useStayDays(checkIn: string, checkOut: string): [DayInfo, DayInfo] | null {
+  const ctx = useSwitchCtx(0, CAL_IDS);
+  const a = ask('calendar.dayInfo', ctx, { iso: checkIn });
+  const b = ask('calendar.dayInfo', ctx, { iso: checkOut });
+  if (!a.ok || !b.ok || !a.value.valid || !b.value.valid) return null;
+  return [a.value, b.value];
+}
+
+/**
+ * טופס-ההזמנה (prop `shabbatGuard`): כניסה/עזיבה בשבת או ביו״ט ⇒ "⚠ הכניסה נופלת בשבת · ה׳ חשוון". הלוח לא זמין ⇒
+ * `fallback` (האזהרה המקומית הקיימת) — אף פעם לא פחות ממה שהיה.
+ */
+export function ShabbatGuard(props: { checkIn: string; checkOut: string; fallback: ReactNode }) {
+  const days = useStayDays(props.checkIn, props.checkOut);
+  if (!days) return <>{props.fallback}</>;
+  const lines = sacredGuardLines(days[0], days[1]);
+  if (!lines.length) return null;
+  return (
+    <div className="h-warnbox" data-switch="shabbat-guard">
+      {lines.map((l) => (
+        <div key={l}>{l}</div>
+      ))}
+    </div>
+  );
+}
+
+/** כרטיס-השהייה (prop `hebDates`): " · ה׳–ז׳ חשוון" לצד התאריכים הרגילים; הלוח לא זמין ⇒ כלום. */
+export function StayHebDates(props: { b: Pick<HostBooking, 'checkIn' | 'checkOut'> }) {
+  const days = useStayDays(props.b.checkIn, props.b.checkOut);
+  const text = days ? hebRangeText(days[0], days[1]) : '';
+  if (!text) return null;
+  return (
+    <span style={{ ...DIM, fontWeight: 600 }} data-switch="stay-hebdates">
+      {' · ' + text}
+    </span>
   );
 }
