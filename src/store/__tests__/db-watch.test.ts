@@ -23,8 +23,10 @@ import { join } from 'node:path';
  *  · 56 — היסטוריים (אחרי המרת 17 הצרים, 23.8)
  *  · +1 — MorningBriefCard (23.8, ‏#29): מזין cockpitQueue/hebTiming/todaySessions
  *  · +1 — AskMaorModal (23.8, ‏#30): מזין את פרשן-askMaor (supporters/families/courses)
+ *  · +1 — EngineBoxEntry (13.10, ENGINEBOX-FINAL): מזין את מנוע-ההשפעה impactOf (+ ה-ask של המרכזייה, שספקיו קוראים
+ *         אוספים נוספים) — נפתח רק במודאל-הארגז העצל, opt-in `shell.enginebox`
  */
-const FULL_SUB_CAP = 58;
+const FULL_SUB_CAP = 59;
 
 function walk(dir: string, out: string[] = []): string[] {
   for (const name of readdirSync(dir)) {

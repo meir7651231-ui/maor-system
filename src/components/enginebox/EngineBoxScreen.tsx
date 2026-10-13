@@ -13,13 +13,19 @@
  * רכיבי-הצעדים טהורים (בלי hooks) — כך הם נבדקים ב-renderToStaticMarkup ובהפעלת
  * onClick ישירה על עץ-האלמנטים (אידיום הפרויקט; אין testing-library בריפו).
  */
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Btn, Modal } from '../ui';
-import type { BoxFuture, BoxOption, BoxPart, BoxProduct, EngineBoxSource } from './types';
+import { GoalPanel } from './GoalPanel';
+import type { BoxFuture, BoxImpact, BoxOption, BoxPart, BoxProduct, EngineBoxSource } from './types';
 import { linksLabel, pickableParts, resolveStart, type BoxStart } from './model';
 import './enginebox.css';
 
 export type BoxStep = 'start' | 'pick' | 'plug';
+export type BoxTab = 'plug' | 'goal';
+
+export const TAB_PLUG_TEXT = '🔌 לחבר מנוע';
+export const TAB_GOAL_TEXT = '🎯 להתחיל מהסוף';
+export const IMPACT_TITLE = '📊 מה היה קורה בחודש האחרון';
 
 export const EMPTY_SOURCE_TEXT = 'הארגז בהרכבה — עוד מעט';
 export const NO_FIT_TEXT = 'המנוע הזה עוד לא מתחבר למוצר הזה';
@@ -105,6 +111,7 @@ export function OptionRow(props: {
   return (
     <li className={'eb-option' + (o.linked ? ' eb-linked' : '')} data-option={o.key}>
       <div className="eb-result">{o.result}</div>
+      {o.impact && <ImpactLine impact={o.impact} optionKey={o.key} />}
       <div className="eb-plug">
         <span className="eb-end">
           <span className="eb-role">🔌 נותן</span>
@@ -132,6 +139,24 @@ export function OptionRow(props: {
       )}
       {!props.canEdit && o.linked && <div className="eb-actions"><span className="eb-on">✓ מחובר</span></div>}
     </li>
+  );
+}
+
+/** 📊 "מה היה קורה בחודש האחרון" — קטן מהתוצאה; 0 = מידע כן בצבע ניטרלי. null לא מגיע לכאן. */
+export function ImpactLine(props: { impact: BoxImpact; optionKey: string }) {
+  const im = props.impact;
+  return (
+    <div className={'eb-impact' + (im.count === 0 ? ' eb-impact-zero' : '')} data-impact={props.optionKey}>
+      <div className="eb-impact-title">{IMPACT_TITLE}</div>
+      <div className="eb-impact-text">{im.headline}</div>
+      {im.examples.length > 0 && (
+        <ul className="eb-impact-ex">
+          {im.examples.slice(0, 3).map((ex, i) => (
+            <li key={i}>{ex}</li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }
 
@@ -194,12 +219,52 @@ export function BoxHeader(props: { start: BoxStart; linked: number; onBack: () =
   );
 }
 
+// ——— הלשוניות: לחבר מנוע / להתחיל מהסוף ———
+export function BoxTabs(props: { tab: BoxTab; onTab: (tab: BoxTab) => void }) {
+  const tabs: [BoxTab, string][] = [['plug', TAB_PLUG_TEXT], ['goal', TAB_GOAL_TEXT]];
+  return (
+    <div className="eb-tabs" role="tablist" aria-label="איך מתחילים">
+      {tabs.map(([id, label]) => (
+        <button
+          key={id}
+          type="button"
+          role="tab"
+          aria-selected={props.tab === id}
+          className={'eb-tab' + (props.tab === id ? ' eb-tab-on' : '')}
+          data-tab={id}
+          onClick={() => props.onTab(id)}
+        >
+          {label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/** 🎯 הלשונית: המשפט ⇒ goalRoutes (דרך המקור) ⇒ GoalPanel. canEdit=false ⇒ מסלולים בלי כפתורים. */
+export function GoalTab(props: { source: EngineBoxSource; start: string | null; text: string; onText: (text: string) => void }) {
+  const { source, start, text } = props;
+  const result = useMemo(() => (source.goal ? source.goal(text, start) : null), [source, text, start]);
+  return (
+    <GoalPanel
+      text={text}
+      result={result}
+      canEdit={source.canEdit}
+      onText={props.onText}
+      onApply={(keys) => source.applyRoute?.(keys)}
+      onRequestEngine={(plug, t) => source.requestEngine?.(plug, t)}
+    />
+  );
+}
+
 // ——— המסך המלא ———
 export function EngineBoxBody(props: {
   source: EngineBoxSource | null;
-  initial?: { start?: string; picked?: string };
+  initial?: { start?: string; picked?: string; tab?: BoxTab; goal?: string };
 }) {
   const { source } = props;
+  const [tab, setTab] = useState<BoxTab>(props.initial?.tab ?? 'plug');
+  const [goalText, setGoalText] = useState(props.initial?.goal ?? '');
   const [startId, setStartId] = useState<string | null>(props.initial?.start ?? null);
   const [pickedId, setPickedId] = useState<string | null>(props.initial?.picked ?? null);
   // מונה-רענון: connect/disconnect משנים את הליבה מחוץ ל-React — מרנדרים מחדש.
@@ -209,13 +274,29 @@ export function EngineBoxBody(props: {
   const start = source && startId ? resolveStart(source, startId) : null;
   const picked = source && start && pickedId ? source.parts().find((p) => p.id === pickedId) ?? null : null;
   const step: BoxStep = !start ? 'start' : !picked ? 'pick' : 'plug';
+  const hasGoal = !!source?.goal;
+  const goalOn = hasGoal && tab === 'goal';
 
   // פוקוס לכותרת-הצעד בכל מעבר — קורא-מסך שומע איפה הוא
   useEffect(() => {
-    bodyRef.current?.querySelector<HTMLElement>('.eb-step-title')?.focus();
-  }, [step]);
+    if (!goalOn) bodyRef.current?.querySelector<HTMLElement>('.eb-step-title')?.focus();
+  }, [step, goalOn]);
 
   if (!source) return <div className="empty eb-empty">🧩 {EMPTY_SOURCE_TEXT}</div>;
+
+  if (goalOn) {
+    return (
+      <div ref={bodyRef} className="eb-body" data-tab="goal">
+        <BoxTabs tab="goal" onTab={setTab} />
+        {start && (
+          <div className="eb-goal-from">
+            מתחילים מ: <span aria-hidden="true">{start.emoji}</span> {start.name}
+          </div>
+        )}
+        <GoalTab source={source} start={start ? start.id : null} text={goalText} onText={setGoalText} />
+      </div>
+    );
+  }
 
   const back = () => {
     if (step === 'plug') setPickedId(null);
@@ -228,6 +309,7 @@ export function EngineBoxBody(props: {
 
   return (
     <div ref={bodyRef} className="eb-body" data-step={step}>
+      {hasGoal && <BoxTabs tab="plug" onTab={setTab} />}
       {start && (
         <BoxHeader
           start={start}
@@ -255,7 +337,7 @@ export function EngineBoxBody(props: {
 export function EngineBoxScreen(props: {
   source: EngineBoxSource | null;
   onClose: () => void;
-  initial?: { start?: string; picked?: string };
+  initial?: { start?: string; picked?: string; tab?: BoxTab; goal?: string };
 }) {
   return (
     <Modal title="🧩 ארגז המנועים" onClose={props.onClose} wide>

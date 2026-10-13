@@ -360,7 +360,9 @@ describe('(ז) הגנות-מקור', () => {
     expect(code).not.toMatch(/donation|receipt|payment|charges|bookingTotal|bookingPaid|setDb|setState/i);
   });
 
-  it('שום קובץ באפליקציה עוד לא מייבא אותו (הלקוח-החי לא זז)', () => {
+  // שינוי-נעילה מכוון (FINAL 13.10): המנוע חווט — רק הכניסה העצלה של הארגז (EngineBoxEntry, chunk משלה) מייבאת אותו;
+  // שום קובץ אחר באפליקציה (ובפרט App/store/persist — הבנדל-הראשי) לא.
+  it('רק הכניסה העצלה של הארגז מייבאת אותו (הלקוח-החי לא זז)', () => {
     const root = resolve(__dirname, '../../..');
     const hits: string[] = [];
     const walk = (dir: string): void => {
@@ -372,6 +374,6 @@ describe('(ז) הגנות-מקור', () => {
       }
     };
     walk(root);
-    expect(hits).toEqual([]);
+    expect(hits.map((h) => h.slice(root.length + 1).replace(/\\/g, '/'))).toEqual(['components/enginebox/EngineBoxEntry.tsx']);
   });
 });

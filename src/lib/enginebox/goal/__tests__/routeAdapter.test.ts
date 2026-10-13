@@ -14,6 +14,7 @@ import adapterSrc from '../routeAdapter.ts?raw';
 
 const BOTH: OrgConfig = { ...DEFAULT_CONFIG, modules: { ...DEFAULT_CONFIG.modules, parnasa: true, hosting: true } };
 const ONLY_HOSTING: OrgConfig = { ...DEFAULT_CONFIG, modules: { ...DEFAULT_CONFIG.modules, hosting: true } };
+const CAL_LINKS = ['orbit.calendar>times.blocked>host.stay', 'orbit.calendar>date.hebrew>host.bookings', 'orbit.calendar>date.hebrew>pr.phone'];
 const OWNER = 'אני רוצה שאורחים יוכלו להזמין שבת גם מטלפון כשר';
 
 const SENTENCES = [
@@ -47,11 +48,14 @@ describe('🎯 המשפט של הבעלים — מקצה לקצה על הקטל�
     expect(route.linkKeys).toContain('host.units>availability>pr.phone');
     expect(route.linkKeys).toContain('pr.zmanim>times.shabbat>host.stay');
     expect(route.linkKeys).toContain('pr.zmanim>times.shabbat>host.shabbat');
-    expect(route.steps[0]).toBe('הוסף את 📞 הקו (טלפון כשר)');
+    // שינוי-נעילה מכוון (FINAL 13.10, אחרי המיזוג עם שלב ב׳): 📅 הלוח העברי נכנס לקטלוג — הקו צריך ממנו תאריך עברי,
+    // ושני צרכני-האירוח שלו בדרך; לכן הדרך מוסיפה גם אותו, וצעד "הוסף את הקו" כבר לא הראשון.
+    expect(route.steps).toContain('הוסף את 📞 הקו (טלפון כשר)');
+    expect(route.linkKeys).toContain('orbit.calendar>date.hebrew>pr.phone');
     expect(route.steps).toContain('📞 הקו (טלפון כשר) מקבל מקום פנוי מ-🛏️ יחידות ותפוסה');
     expect(route.steps.some((s) => s.startsWith('הוסף את 🕯️ זמני היום והשבת וחבר אותו ל-') && s.endsWith('הוא נותן זמני שבת'))).toBe(true);
-    // כל החיבורים האלה חווטו כבר היום (ברירת-המחדל) ⇒ "כבר מחובר"
-    expect(route.alreadyLinked).toBe(true);
+    // חיבורי-הלוח מתחילים מנותקים (שלב ב׳) ⇒ בברירת-המחדל הדרך עוד לא מחוברת ⇒ "חבר את כל הדרך"
+    expect(route.alreadyLinked).toBe(false);
     // החוסר הכן: הזמנה מהקו ושלוחה בקו — עוד לא בנויים ("בקרוב"), לא "חסר מנוע"
     expect(r.missing.map((m) => [m.plug, m.kind, m.line])).toEqual([
       ['booking', 'planned', 'הזמנה עוד לא זמין · בקרוב'],
@@ -63,13 +67,15 @@ describe('🎯 המשפט של הבעלים — מקצה לקצה על הקטל�
   it('מתחילים מפרנסה׳לע: מוסיפים את יחידות-האירוח ומחברים אותן לקו', () => {
     const r = goalRoutes({ text: OWNER, start: 'parnasa', config: BOTH });
     expect(r.routes[0].steps[0]).toBe('הוסף את 🛏️ יחידות ותפוסה וחבר אותו ל-📞 הקו (טלפון כשר)');
-    expect(r.routes[0].linkKeys).toEqual(['host.units>availability>pr.phone']);
+    // + שלב ב׳: הקו מקבל גם תאריך עברי מהלוח (שינוי-נעילה מכוון, FINAL 13.10)
+    expect(r.routes[0].linkKeys).toEqual(['host.units>availability>pr.phone', 'orbit.calendar>date.hebrew>pr.phone']);
   });
 
   it('ניתוק שמור ⇒ הדרך כבר לא "מחוברת" (והכפתור יופיע)', () => {
     const r = goalRoutes({ text: OWNER, start: 'hosting', config: BOTH, stored: [] });
     expect(r.routes[0].alreadyLinked).toBe(false);
-    const kept = goalRoutes({ text: OWNER, start: 'hosting', config: BOTH, stored: [...DEFAULT_LINKS] });
+    // "הכול מחובר" = ברירת-המחדל + שלושת חיבורי-הלוח (שלב ב׳ — הם מתחילים מנותקים)
+    const kept = goalRoutes({ text: OWNER, start: 'hosting', config: BOTH, stored: [...DEFAULT_LINKS, ...CAL_LINKS] });
     expect(kept.routes[0].alreadyLinked).toBe(true);
   });
 

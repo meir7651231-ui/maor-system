@@ -68,3 +68,21 @@
   .eb-grid { grid-template-columns: 1fr 1fr; }
   .eb-result { font-size: 17px; }
 }
+
+/* 🎯 הלשוניות + 📊 "מה היה קורה" (FINAL 13.10) */
+.eb-tabs { display: flex; gap: 6px; padding: 4px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); }
+.eb-tab {
+  flex: 1 1 0; min-height: 44px; padding: 8px 10px; border-radius: 9px; border: 0; cursor: pointer;
+  background: transparent; color: var(--ink-soft); font-weight: 700; font-size: 15px;
+}
+.eb-tab-on { background: var(--card-bg, var(--panel)); color: var(--ink); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12); }
+.eb-tab:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.eb-goal-from { font-size: 13.5px; color: var(--ink-soft); }
+.eb-impact {
+  border-inline-start: 3px solid var(--accent); padding: 6px 10px; border-radius: 8px;
+  background: var(--bg); display: flex; flex-direction: column; gap: 3px;
+}
+.eb-impact-zero { border-inline-start-color: var(--line); }
+.eb-impact-title { font-size: 12.5px; font-weight: 700; color: var(--ink-soft); }
+.eb-impact-text { font-size: 13.5px; color: var(--ink); line-height: 1.45; }
+.eb-impact-ex { margin: 0; padding-inline-start: 18px; font-size: 12.5px; color: var(--ink-soft); line-height: 1.4; }

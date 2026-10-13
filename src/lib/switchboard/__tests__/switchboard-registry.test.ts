@@ -254,7 +254,8 @@ describe('🔌 (ה) הגנות-מקור — טוהר · בידוד · קריאה
 
   it('בנדל: המרכזייה מיובאת רק מקוד-עצל (המרכזייה עצמה, מסכי-האירוח/פרנסה׳לע, דבק-React) — לא מ-App/store/main/lib אחר', () => {
     // + ספק-הלוח (ENGINEBOX-SOCKETS) — רק קובץ-הספק, שנטען דרך מסך-הלוח העצל
-    const allowed = /^src\/(lib\/switchboard\/|components\/switchboard\/|components\/hosting\/|components\/parnasa\/|components\/calendar\/abilities\.ts$)/;
+    // + הכניסה העצלה של ארגז-המנועים (ENGINEBOX-FINAL — ה-ask של "מה היה קורה בחודש האחרון"; chunk משלה, נטען lazy מ-App)
+    const allowed = /^src\/(lib\/switchboard\/|components\/switchboard\/|components\/hosting\/|components\/parnasa\/|components\/calendar\/abilities\.ts$|components\/enginebox\/EngineBoxEntry\.tsx$)/;
     const importers = Object.entries(ALL_SRC)
       .filter(([, s]) => s.split('\n').some((l) => /^import (?!type )/.test(l.trim()) && /from '[^']*lib\/switchboard\/(registry|summary|contract)'/.test(l)))
       .map(([p]) => fromTestDir(p));

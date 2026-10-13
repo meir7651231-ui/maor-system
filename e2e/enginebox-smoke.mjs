@@ -9,6 +9,9 @@
  *       הזמנים נעלמו ⇒ "חבר" ⇒ חזרו.
  *   3 · "📅 הלוח העברי" ⇒ חבר תאריכים עבריים ⇒ ברשימת-ההזמנות רואים תאריך עברי ⇒ חבר שומר-שבת ⇒ ההזמנה שנכנסת בשבת:
  *       "⚠ הכניסה נופלת בשבת · …".
+ *   4 · (FINAL) 🎯 "להתחיל מהסוף": מנתקים קודם חיבור אחד של הדרך ⇒ לשונית "🎯 להתחיל מהסוף" ⇒ המשפט של הבעלים ⇒ הדרך
+ *       + "בקרוב" הכן ⇒ "חבר את כל הדרך" ⇒ "✓ כבר מחובר" ⇒ "בקשו מהמחולל לבנות אותו" ⇒ טוסט + שורת-לוג.
+ *   5 · (FINAL) 📊 בזרימת 3-הצעדים: זמני השבת ⇒ "מה היה קורה בחודש האחרון" עם המספרים האמיתיים של הארגון.
  *   אפס שגיאות קונסולה. צילום PNG לכל צעד ⇒ knowledge/shots/enginebox-2026-10-13/ (‏≤150KB).
  *
  *   npm run build && node e2e/enginebox-smoke.mjs
@@ -56,10 +59,14 @@ const SEED_DB = {
   hostBookings: [
     booking({ id: 'hb1', guestId: 'hg1', unitId: 'hu1', checkIn: '2026-10-16', checkOut: '2026-10-18', kids: 3 }), // שישי ⇒ ראשון
     booking({ id: 'hb2', guestId: 'hg2', unitId: 'hu2', checkIn: '2026-10-17', checkOut: '2026-10-19' }), // נכנסת בשבת
+    // (FINAL) שתי שהיות-שבת שכבר היו בחודש האחרון — ל"מה היה קורה" (ליל-שבת 9.10 · 2.10)
+    booking({ id: 'hb3', guestId: 'hg3', unitId: 'hu1', checkIn: '2026-10-09', checkOut: '2026-10-11', status: 'done' }),
+    booking({ id: 'hb4', guestId: 'hg3', unitId: 'hu2', checkIn: '2026-10-02', checkOut: '2026-10-04', status: 'done' }),
   ],
   hostRecords: [
     guest({ id: 'hg1', name: 'משפחת לוי', phone: '050-1234567', kids: 3 }),
     guest({ id: 'hg2', name: 'משפחת שפירא', phone: '052-7654321' }),
+    guest({ id: 'hg3', name: 'משפחת כהן', phone: '053-1111111' }),
     { id: 'hf1', kind: 'fault', unitId: 'hu1', assetId: '', category: 'אינסטלציה', priority: 2, desc: 'נזילה בכיור', status: 'open', safety: false, blocked: false, createdAt: AT, updatedAt: AT },
     { id: 'hc1', kind: 'clean', unitId: 'hu2', type: 'ניקיון אחרי עזיבה', status: 'open', date: '2026-10-14', createdAt: AT, updatedAt: AT },
   ],
@@ -272,6 +279,75 @@ console.log('🧩 ארגז המנועים — מסע אמיתי');
   // לוג-הפעולות: שורה לכל שינוי
   const audit = await page.evaluate(() => (JSON.parse(localStorage.getItem('maor_db') || '{}').audit || []).map((a) => a.act + ': ' + a.what));
   T('לוג-הפעולות: 4 שורות (ניתוק · חיבור · חיבור · חיבור)', audit.filter((a) => a.startsWith('ניתוק מנוע')).length === 1 && audit.filter((a) => a.startsWith('חיבור מנוע')).length === 3, audit.join(' | '));
+
+  // ───────── 4 · (FINAL) 🎯 להתחיל מהסוף ─────────
+  const OWNER = 'אני רוצה שאורחים יוכלו להזמין שבת גם מטלפון כשר';
+  // מנתקים קודם חיבור אחד של הדרך (זמני השבת ⇒ כרטיס השהייה), כדי שהדרך תציע "חבר את כל הדרך"
+  await openBox(page);
+  await boxTo(page, 'hosting', 'pr.zmanim');
+  await opt(page, STAY).locator('button', { hasText: 'נתק' }).click();
+  await wait(500);
+  T('לפני המטרה: ניתקנו חיבור של הדרך (זמני השבת ⇒ כרטיס השהייה)', (await opt(page, STAY).locator('button', { hasText: 'חבר' }).count()) === 1);
+  T('הלשוניות: "🔌 לחבר מנוע" · "🎯 להתחיל מהסוף"', (await page.locator(`${BOX} [data-tab="plug"]`).count()) === 1 && (await page.locator(`${BOX} [data-tab="goal"]`).count()) === 1);
+  await page.locator(`${BOX} [data-tab="goal"]`).click();
+  await wait(300);
+  await page.locator(`${BOX} #eg-goal-text`).fill(OWNER);
+  await page.locator(`${BOX} .eg-route`).first().waitFor({ timeout: 5000 }).catch(() => {});
+  await wait(300);
+  const goalTxt = (await page.locator(BOX).textContent()) ?? '';
+  T('המטרה: "מתחילים מ: אירוח משפחתי" + מה הובן (להזמין · שבת · מטלפון כשר)', goalTxt.includes('מתחילים מ:') && goalTxt.includes('להזמין · הזמנה') && goalTxt.includes('מטלפון כשר · שלוחה בקו'), goalTxt.slice(0, 160));
+  T('הדרך: צעדים ממוספרים — הקו מקבל מקום פנוי מהיחידות', (await page.locator(`${BOX} .eg-route .eg-step`).count()) >= 3 && goalTxt.includes('📞 הקו (טלפון כשר) מקבל מקום פנוי מ-🛏️ יחידות ותפוסה'));
+  T('החסר הכן: "הזמנה עוד לא זמין · בקרוב" · "שלוחה בקו עוד לא זמין · בקרוב"', goalTxt.includes('הזמנה עוד לא זמין · בקרוב') && goalTxt.includes('שלוחה בקו עוד לא זמין · בקרוב'));
+  const applyBtn = page.locator(`${BOX} .eg-route button`, { hasText: 'חבר את כל הדרך' }).first();
+  T('הדרך מציעה "חבר את כל הדרך"', (await applyBtn.count()) === 1);
+  T('אין גלילה אופקית ב-390px (לשונית המטרה)', !(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1)));
+  await page.locator(`${BOX} .eg-route`).first().scrollIntoViewIfNeeded();
+  await shot(page, '11-goal-route.png');
+  const linkedBefore = (await page.evaluate(() => (JSON.parse(localStorage.getItem('maor_db') || '{}').audit || []).filter((a) => a.act === 'חיבור מנוע').length));
+  await applyBtn.click();
+  await page.locator(`${BOX} .eg-on`).first().waitFor({ timeout: 5000 }).catch(() => {});
+  await wait(700);
+  T('אחרי "חבר את כל הדרך": "✓ כבר מחובר"', (await page.locator(`${BOX} .eg-route .eg-on`, { hasText: '✓ כבר מחובר' }).count()) === 1 && (await page.locator(`${BOX} .eg-route button`, { hasText: 'חבר את כל הדרך' }).count()) === 0);
+  const applyToast = (await page.locator('.toasts').textContent().catch(() => '')) ?? '';
+  T('טוסט אחד: "הדרך מחוברת ✓"', applyToast.includes('הדרך מחוברת ✓'), applyToast);
+  await shot(page, '12-goal-applied.png');
+  const linkedAfter = (await page.evaluate(() => (JSON.parse(localStorage.getItem('maor_db') || '{}').audit || []).filter((a) => a.act === 'חיבור מנוע').length));
+  T('לוג-הפעולות: שורת "חיבור מנוע" לכל חיבור שנוסף (לפחות 2 — כולל זה שניתקנו)', linkedAfter - linkedBefore >= 2, linkedBefore + '⇒' + linkedAfter);
+  const reqBtn = page.locator(`${BOX} .eg-missing button`, { hasText: 'בקשו מהמחולל לבנות אותו' }).last();
+  await reqBtn.scrollIntoViewIfNeeded();
+  await reqBtn.click();
+  await wait(600);
+  const reqToast = (await page.locator('.toasts').textContent().catch(() => '')) ?? '';
+  T('"בקשו מהמחולל" ⇒ טוסט "הבקשה נרשמה בלוג הפעולות"', reqToast.includes('הבקשה נרשמה בלוג הפעולות'), reqToast);
+  await shot(page, '13-goal-request.png');
+  const reqLines = await page.evaluate(() => (JSON.parse(localStorage.getItem('maor_db') || '{}').audit || []).filter((a) => a.act === 'בקשה למנוע חדש').map((a) => a.what));
+  T('לוג-הפעולות: "בקשה למנוע חדש: שלוחה בקו — «…»"', reqLines.length === 1 && reqLines[0] === 'שלוחה בקו — «' + OWNER + '»', reqLines.join(' | '));
+
+  // ───────── 5 · (FINAL) 📊 מה היה קורה בחודש האחרון ─────────
+  // חזרה ללשונית החיבור — המסך זוכר את ההתחלה ואת המנוע שנבחר; בוחרים מחדש את זמני השבת במפורש
+  await page.locator(`${BOX} [data-tab="plug"]`).click();
+  await wait(300);
+  if ((await page.locator(`${BOX} [data-pick="pr.zmanim"]`).count()) === 0) {
+    await page.locator(`${BOX} .eb-head button`, { hasText: 'מנוע אחר' }).click();
+    await wait(300);
+  }
+  await page.locator(`${BOX} [data-pick="pr.zmanim"]`).first().click();
+  await page.locator(`${BOX} [data-impact="${STAY}"]`).waitFor({ timeout: 5000 }).catch(() => {});
+  await wait(500);
+  const imp = (await page.locator(`${BOX} [data-impact="${STAY}"]`).textContent().catch(() => '')) ?? '';
+  T('📊 "מה היה קורה בחודש האחרון" מתחת לכרטיס השהייה', imp.includes('📊 מה היה קורה בחודש האחרון'), imp);
+  T('המספרים האמיתיים: "ב-30 הימים האחרונים היו 2 הזמנות עם שבת"', imp.includes('ב-30 הימים האחרונים היו 2 הזמנות עם שבת'), imp);
+  T('דוגמאות לפי יחידה ותאריך — בלי שם אורח', imp.includes('צימר הגפן') && !imp.includes('משפחת כהן') && !imp.includes('משפחת לוי'), imp);
+  T('השורה קטנה מהתוצאה', await page.evaluate((k) => {
+    const row = document.querySelector(`[data-option="${k}"]`);
+    const r = row?.querySelector('.eb-result');
+    const t = row?.querySelector('.eb-impact-text');
+    return !!r && !!t && parseFloat(getComputedStyle(t).fontSize) < parseFloat(getComputedStyle(r).fontSize);
+  }, STAY));
+  await page.locator(`${BOX} [data-impact="${STAY}"]`).scrollIntoViewIfNeeded();
+  await page.waitForFunction(() => document.querySelectorAll('.toast').length === 0, null, { timeout: 8000 }).catch(() => {});
+  await shot(page, '14-impact-shabbat.png');
+  await closeBox(page);
 
   T('אפס שגיאות קונסולה במסע', errors.length === 0, errors.slice(0, 3).join(' | '));
   await ctx.close();

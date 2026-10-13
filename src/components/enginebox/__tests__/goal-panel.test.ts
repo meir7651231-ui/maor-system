@@ -21,6 +21,7 @@ import {
 import { Btn } from '../../ui';
 import { DEFAULT_CONFIG, type OrgConfig } from '../../../types/config';
 import { goalRoutes, type GoalResult } from '../../../lib/enginebox/goal/routeAdapter';
+import { DEFAULT_LINKS } from '../../../lib/enginebox/links';
 
 const BOTH: OrgConfig = { ...DEFAULT_CONFIG, modules: { ...DEFAULT_CONFIG.modules, parnasa: true, hosting: true } };
 const OWNER = GOAL_EXAMPLES[0];
@@ -72,7 +73,9 @@ describe('🎯 הפאנל', () => {
   });
 
   it('המשפט של הבעלים: מילים שהובנו כצ׳יפים, צעדים ממוספרים, "✓ כבר מחובר" והחוסר', () => {
-    const result = goalRoutes({ text: OWNER, start: 'hosting', config: BOTH });
+    // "הכול מחובר" = ברירת-המחדל + חיבורי-הלוח (שלב ב׳ — מתחילים מנותקים; שינוי-נעילה מכוון, FINAL 13.10)
+    const stored = [...DEFAULT_LINKS, 'orbit.calendar>times.blocked>host.stay', 'orbit.calendar>date.hebrew>host.bookings', 'orbit.calendar>date.hebrew>pr.phone'];
+    const result = goalRoutes({ text: OWNER, start: 'hosting', config: BOTH, stored });
     const out = renderToStaticMarkup(panel({ text: OWNER, result }));
     expect(out).toContain('הבנתי:');
     expect(out).toContain('להזמין · הזמנה');

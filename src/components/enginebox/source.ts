@@ -14,7 +14,9 @@ import type { OrgConfig } from '../../types/config';
 import { catalogFor, connectOptions, futureOptions, type ConnectOption, type FutureOption } from '../../lib/enginebox/match';
 import { PRODUCTS, partById, productById, type Part } from '../../lib/enginebox/parts';
 import { effectiveLinks, parseLink } from '../../lib/enginebox/links';
-import type { BoxFuture, BoxOption, BoxPart, BoxProduct, EngineBoxSource } from './types';
+import { plugInfo } from '../../lib/enginebox/plugs';
+import type { GoalResult } from '../../lib/enginebox/goal/routeAdapter';
+import type { BoxFuture, BoxImpact, BoxOption, BoxPart, BoxProduct, EngineBoxSource } from './types';
 
 export interface EngineBoxDeps {
   readonly config: OrgConfig;
@@ -23,6 +25,42 @@ export interface EngineBoxDeps {
   readonly canEdit: boolean;
   connect(key: string): void;
   disconnect(key: string): void;
+  /** 📊 "מה היה קורה" לאפשרות (FINAL) — נקרא רק לאפשרויות של המנוע שנבחר; חסר ⇒ אין שורה. */
+  impact?(key: string): BoxImpact | null;
+  /** 🎯 המתאם (`goalRoutes`, נטען עצל ע"י הכניסה) — חסר ⇒ אין לשונית; null ⇒ עוד נטען. */
+  goalRoutes?: ((q: { text: string; start: string | null; config: OrgConfig; stored?: readonly string[] | null }) => GoalResult) | null;
+  applyRoute?(keys: readonly string[]): void;
+  requestEngine?(plug: string, text: string): void;
+}
+
+/** שורת-הלוג של בקשה למחולל: "שלוחה בקו — «המשפט»" (המשפט מקוצר, בלי שורות-חדשות). */
+export function engineRequestLine(plug: string, text: string): string {
+  const label = plugInfo(plug)?.label ?? plug;
+  const t = String(text ?? '').replace(/\s+/g, ' ').trim();
+  const clip = t.length > 120 ? t.slice(0, 119) + '…' : t;
+  return clip ? label + ' — «' + clip + '»' : label;
+}
+
+/**
+ * מחיל דרך: linkEngine לכל מפתח, לפי הסדר (כל אחד קורא את המצב הטרי — אין דריסה); מחזיר כמה חוברו עכשיו
+ * (מפתח שכבר מחובר ⇒ false מה-store ⇒ לא נספר). כשל ⇒ ממשיכים לבא.
+ */
+export async function applyRouteKeys(keys: readonly string[], link: (key: string) => Promise<boolean>): Promise<number> {
+  let n = 0;
+  for (const k of keys) {
+    try {
+      if (await link(k)) n++;
+    } catch {
+      /* מפתח אחד שנכשל לא עוצר את השאר */
+    }
+  }
+  return n;
+}
+
+/** טוסט אחד אחרי "חבר את כל הדרך". */
+export function applyRouteToast(n: number): string {
+  if (n <= 0) return 'הדרך כבר מחוברת';
+  return n === 1 ? '🔌 חובר חיבור אחד — הדרך מחוברת ✓' : '🔌 חוברו ' + n + ' חיבורים — הדרך מחוברת ✓';
 }
 
 /** חלק בארגז ⇒ כרטיס-התפר. */
@@ -35,8 +73,16 @@ const ghost = (id: string, name: string): BoxPart => {
   return p ? boxPart(p) : { id, name, emoji: '🧩', from: '', what: '' };
 };
 
-function toOption(o: ConnectOption): BoxOption {
-  return { key: o.key, giver: ghost(o.giver, o.giverName), needer: ghost(o.needer, o.neederName), plugLabel: o.plugLabel, result: o.result, side: o.side, linked: o.linked };
+function toOption(o: ConnectOption, impact?: (key: string) => BoxImpact | null): BoxOption {
+  const base: BoxOption = { key: o.key, giver: ghost(o.giver, o.giverName), needer: ghost(o.needer, o.neederName), plugLabel: o.plugLabel, result: o.result, side: o.side, linked: o.linked };
+  if (!impact) return base;
+  let im: BoxImpact | null = null;
+  try {
+    im = impact(o.key);
+  } catch {
+    im = null;
+  }
+  return { ...base, impact: im };
 }
 
 function toFuture(o: FutureOption): BoxFuture {
@@ -69,7 +115,7 @@ export function engineBoxSource(deps: EngineBoxDeps): EngineBoxSource {
       return catalog.map(boxPart);
     },
     options(start, picked) {
-      return connectOptions({ start, picked, stored: links, config }).map(toOption);
+      return connectOptions({ start, picked, stored: links, config }).map((o) => toOption(o, deps.impact));
     },
     future(start, picked) {
       return futureOptions({ start, picked, stored: links, config }).map(toFuture);
@@ -90,5 +136,20 @@ export function engineBoxSource(deps: EngineBoxDeps): EngineBoxSource {
     disconnect(key) {
       if (deps.canEdit) deps.disconnect(key);
     },
+    ...(deps.goalRoutes !== undefined
+      ? {
+          goal(text: string, start: string | null): GoalResult | null {
+            const fn = deps.goalRoutes;
+            if (!fn || !String(text ?? '').trim()) return null;
+            return fn({ text, start, config, stored: links });
+          },
+          applyRoute(keys: readonly string[]) {
+            if (deps.canEdit && deps.applyRoute) deps.applyRoute(keys);
+          },
+          requestEngine(plug: string, text: string) {
+            if (deps.canEdit && deps.requestEngine) deps.requestEngine(plug, text);
+          },
+        }
+      : {}),
   };
 }
