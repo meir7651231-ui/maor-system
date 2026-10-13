@@ -37,7 +37,9 @@ describe('(8) כפתור-40 ענק בראש-הכרטיס — לא תלוי בק�
   });
   it('כפתור ענק: רוחב-מלא, גובה ≥64, פונט 20', () => {
     expect(src).toContain("style={{ width: '100%', minHeight: 64, fontSize: 20, fontWeight: 800");
-    expect(src).toContain('🕯 40 ימים — התחלת סגולה לזיווג מהיום');
+    // 13.10: התווית נגזרת מהתאריך שנבחר — "מהיום" כשהוא היום (ברירת-המחדל)
+    expect(src).toContain("'🕯 40 ימים — התחלת סגולה לזיווג ' + recurStartLabel");
+    expect(src).toContain("const recurStartLabel = recurStart === isoToday() ? 'מהיום' : 'מ-' + fmtDate(recurStart);");
   });
 });
 

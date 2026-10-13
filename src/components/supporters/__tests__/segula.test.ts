@@ -50,11 +50,12 @@ describe('🕯 ratchet — סגולת 40 יום', () => {
 
     it('5. כפתור "🕯 40 ימים" בכרטיס קשר-הבא — מחושב מהיום (isoToday) עם ייעוד זיווג', () => {
       expect(detailSrc).toContain('🕯 40 ימים');
-      expect(detailSrc).toContain("seedSegulaReminders(sp.id, isoToday(), 'זיווג')");
+      expect(detailSrc).toContain("seedSegulaReminders(sp.id, recurStart, 'זיווג')"); // 13.10: תאריך נבחר, ברירת-מחדל היום
+      expect(detailSrc).toContain('useState(() => isoToday())');
     });
 
     it('6. store: seedSegulaReminders מקבל purpose ומטביע אותו בכותרת/הערה', () => {
-      expect(storeSrc).toMatch(/seedSegulaReminders\(supId, startIso, purpose(, mode = 'segula', count)?\)/); // 16.9: הרחבה ל-mode/count (אותו שם, ברירת-מחדל סגולה)
+      expect(storeSrc).toMatch(/seedSegulaReminders\(supId, startIso, purpose(, mode = 'segula', count(, opts)?)?\)/); // 13.10: + opts (תאריך-ראשון/לוח) // 16.9: הרחבה ל-mode/count (אותו שם, ברירת-מחדל סגולה)
       expect(storeSrc).toContain('segulaTitle(sp.name, r, target)') // 16.9: בתוך ביטוי-מותנה לפי mode;
     });
   });

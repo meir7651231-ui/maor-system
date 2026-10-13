@@ -11,6 +11,7 @@ import { isoToday as isoTodayLocal } from '../../lib/date-util';
 import { eyesTotal, planAddName, stageIndex } from '../../lib/ayin';
 import { numMatch } from '../families/lib';
 import { parseAnyDate, parseCsv } from '../../lib/csvx';
+import { hebAnnualEq, hebPartsOfIso } from '../../lib/hebrew';
 
 /** תצוגת תאריך DD/MM/YYYY (פנימית נשמר ISO). */
 export function fmtDate(iso: string): string {
@@ -778,7 +779,11 @@ export function stripSegulaNote(note: string, target: number = Math.max(...SEGUL
 
 /* ── 🔁 תזכורות-חוזרות — בחירה: 40 יום (סגולה) · יומי · שבועי · חודשי (בקשת-בעלים 16.9) ── */
 
-export type RecurMode = 'segula' | 'daily' | 'weekly' | 'monthly';
+/** 13.10 (בקשת-בעלים "40 · 7 · 1 · כל ראש חודש · דו-חודשי · שנתי — עברי/לועזי"): + bimonthly · yearly · roshchodesh. */
+export type RecurMode = 'segula' | 'daily' | 'weekly' | 'monthly' | 'bimonthly' | 'yearly' | 'roshchodesh';
+
+/** לוח-השנה לחישוב סדרה חודשית/דו-חודשית/שנתית: לועזי (ברירת-מחדל, ביט-זהה) או עברי. */
+export type RecurCal = 'greg' | 'heb';
 
 export interface RecurModeDef {
   key: RecurMode;
@@ -791,13 +796,21 @@ export interface RecurModeDef {
   prefix: string;
   /** כמות תזכורות ברירת-מחדל (סגולה = קבוע 5). */
   defaultCount: number;
+  /** האם יש בחירה עברי/לועזי (חודשי · דו-חודשי · שנתי). ראש-חודש תמיד עברי; יומי/שבועי/40 — ספירת-ימים. */
+  calChoice?: boolean;
+  /** תקרת-כמות (שנתי — 50; השאר 365). */
+  maxCount?: number;
 }
 
+// ⚠️ תחיליות זרות זו לזו (אף אחת אינה תחילית של אחרת) — הסדרה מזוהה ב-startsWith על ההערה.
 export const RECUR_MODES: readonly RecurModeDef[] = [
   { key: 'segula', emoji: '🕯', chip: '40 יום', label: 'סגולת 40 יום', prefix: SEGULA_NOTE_PREFIX, defaultCount: SEGULA_OFFSETS.length },
   { key: 'daily', emoji: '📅', chip: 'יומי', label: 'תזכורת יומית', prefix: 'חזרה יומית', defaultCount: 30 },
   { key: 'weekly', emoji: '📆', chip: 'שבועי', label: 'תזכורת שבועית', prefix: 'חזרה שבועית', defaultCount: 12 },
-  { key: 'monthly', emoji: '🗓', chip: 'חודשי', label: 'תזכורת חודשית', prefix: 'חזרה חודשית', defaultCount: 12 },
+  { key: 'monthly', emoji: '🗓', chip: 'חודשי', label: 'תזכורת חודשית', prefix: 'חזרה חודשית', defaultCount: 12, calChoice: true },
+  { key: 'bimonthly', emoji: '🔂', chip: 'חודשיים', label: 'תזכורת דו-חודשית', prefix: 'חזרה דו-חודשית', defaultCount: 6, calChoice: true },
+  { key: 'yearly', emoji: '🎗', chip: 'שנתי', label: 'תזכורת שנתית', prefix: 'חזרה שנתית', defaultCount: 5, calChoice: true, maxCount: 50 },
+  { key: 'roshchodesh', emoji: '🌙', chip: 'ראש חודש', label: 'תזכורת ראש-חודש', prefix: 'חזרה ראש-חודש', defaultCount: 12 },
 ];
 
 export function recurDef(mode: RecurMode): RecurModeDef {
@@ -814,19 +827,101 @@ function addMonthsIso(startIso: string, months: number): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
+const addDaysIso = (iso: string, days: number): string => segulaReminders(iso, [days])[0].date;
+
+/**
+ * חודשי/דו-חודשי **עברי** (13.10): כל step חודשים עבריים, באותו יום-בחודש כמו העוגן.
+ * סריקה קדימה יום-אחר-יום (hebPartsOfIso ממוטמן) — מעבר-חודש = יום א׳. בלי חשבון-לוח ידני:
+ * שנה מעוברת (אדר א׳+ב׳) נספרת טבעית כחודש נוסף. כלל ל׳ (הכרעת-בעלים "במקום ל אז א"): עוגן ל׳
+ * בחודש שאין בו ל׳ ⇒ א׳ בחודש הבא — אותו כלל כמו hebAnnualEq.
+ */
+function hebMonthlyDates(startIso: string, step: number, n: number, firstOnStart: boolean): string[] {
+  const anchor = hebPartsOfIso(startIso).day;
+  const out: string[] = firstOnStart ? [startIso] : [];
+  let iso = startIso;
+  let monthsSince = 0; // חודשים מאז חודש-ההתחלה
+  let inTarget = false; // האם החודש הנוכחי הוא חודש-יעד
+  let found = false; // האם כבר נמצא יום-העוגן בחודש-היעד הנוכחי
+  for (let guard = 0; out.length < n && guard < n * step * 31 + 62; guard++) {
+    iso = addDaysIso(iso, 1);
+    const p = hebPartsOfIso(iso);
+    if (p.day === 1) {
+      // חודש-יעד נגמר בלי יום-העוגן (ל׳ חסר) ⇒ היום (א׳ בחודש הבא) הוא התאריך
+      if (inTarget && !found) out.push(iso);
+      monthsSince++;
+      inTarget = monthsSince % step === 0;
+      found = false;
+      if (out.length >= n) break;
+    }
+    if (inTarget && !found && p.day === anchor) {
+      out.push(iso);
+      found = true;
+    }
+  }
+  return out.slice(0, n);
+}
+
+/** שנתי **עברי** (13.10): אותו תאריך עברי כל שנה — דרך hebAnnualEq (מקור-האמת: כללי אדר וכלל ל׳). */
+function hebYearlyDates(startIso: string, n: number, firstOnStart: boolean): string[] {
+  const a = hebPartsOfIso(startIso);
+  const out: string[] = firstOnStart ? [startIso] : [];
+  let iso = startIso;
+  for (let guard = 0; out.length < n && guard < n * 390 + 30; guard++) {
+    iso = addDaysIso(iso, 1);
+    const q = hebPartsOfIso(iso);
+    if (q.year > a.year && hebAnnualEq({ day: a.day, month: a.month }, q)) out.push(iso);
+  }
+  return out.slice(0, n);
+}
+
+/** ראש-חודש (13.10): כל א׳ בחודש עברי — הראשון הוא ההתחלה עצמה (אם היא ראש-חודש וזה firstOnStart) או הבא אחריה. */
+function roshChodeshDates(startIso: string, n: number, firstOnStart: boolean): string[] {
+  const out: string[] = firstOnStart && hebPartsOfIso(startIso).day === 1 ? [startIso] : [];
+  let iso = startIso;
+  for (let guard = 0; out.length < n && guard < n * 31 + 31; guard++) {
+    iso = addDaysIso(iso, 1);
+    if (hebPartsOfIso(iso).day === 1) out.push(iso);
+  }
+  return out.slice(0, n);
+}
+
+/** אפשרויות-זריעה (13.10). חסר ⇒ ההתנהגות ההיסטורית בדיוק (לועזי; התזכורת הראשונה = צעד אחד אחרי ההתחלה). */
+export interface RecurDatesOpts {
+  cal?: RecurCal;
+  /** התאריך שנבחר הוא התזכורת הראשונה (בקשת-בעלים "לבחור את התאריך הראשוני ואז את המסלול").
+   *  סגולה לא מושפעת — אצלה ההתחלה היא יום 0 והתזכורות בימים 1·7·21·35·40. */
+  firstOnStart?: boolean;
+}
+
 /**
  * תאריכי-הסדרה מתאריך-התחלה — דטרמיניסטי. סגולה = SEGULA_OFFSETS (day = מספר-ימים);
- * יומי/שבועי/חודשי = count תזכורות, day = מספר-סידורי (1..count), האחרונה final.
+ * שאר המצבים = count תזכורות, day = מספר-סידורי (1..count), האחרונה final.
+ * ברירת-המחדל (בלי opts) ביט-זהה ל-16.9: התזכורת הראשונה צעד-אחד אחרי ההתחלה, לועזי.
  */
-export function recurDates(startIso: string, mode: RecurMode, count?: number): SegulaReminder[] {
+export function recurDates(startIso: string, mode: RecurMode, count?: number, opts: RecurDatesOpts = {}): SegulaReminder[] {
   if (mode === 'segula') return segulaReminders(startIso);
-  const n = Math.max(1, Math.min(365, Math.floor(count ?? recurDef(mode).defaultCount)));
-  const out: SegulaReminder[] = [];
-  for (let i = 1; i <= n; i++) {
-    const date = mode === 'monthly' ? addMonthsIso(startIso, i) : segulaReminders(startIso, [mode === 'daily' ? i : i * 7])[0].date;
-    out.push({ day: i, date, final: i === n });
+  const def = recurDef(mode);
+  const n = Math.max(1, Math.min(def.maxCount ?? 365, Math.floor(count ?? def.defaultCount)));
+  const first = !!opts.firstOnStart;
+  const heb = opts.cal === 'heb' && !!def.calChoice;
+  let dates: string[];
+  if (mode === 'roshchodesh') dates = roshChodeshDates(startIso, n, first);
+  else if (heb && mode === 'yearly') dates = hebYearlyDates(startIso, n, first);
+  else if (heb) dates = hebMonthlyDates(startIso, mode === 'bimonthly' ? 2 : 1, n, first);
+  else {
+    dates = [];
+    const off = first ? 0 : 1;
+    for (let i = 0; i < n; i++) {
+      const k = i + off;
+      dates.push(
+        mode === 'monthly' ? addMonthsIso(startIso, k)
+          : mode === 'bimonthly' ? addMonthsIso(startIso, 2 * k)
+            : mode === 'yearly' ? addMonthsIso(startIso, 12 * k)
+              : addDaysIso(startIso, mode === 'daily' ? k : k * 7),
+      );
+    }
   }
-  return out;
+  return dates.map((date, i) => ({ day: i + 1, date, final: i === dates.length - 1 }));
 }
 
 /**
