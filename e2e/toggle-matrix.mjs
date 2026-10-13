@@ -915,7 +915,13 @@ for (const profile of PROFILES) {
     await page.locator('.hst-root button.h-tab', { hasText: label }).first().click();
     await page.waitForTimeout(250);
   };
-  const prTab = (label) => page.locator('main button.chip', { hasText: label }).first().click();
+  // 13.10 מיזוג עם העיצוב המקורי: הניווט של פרנסה׳לע = פס-הלשוניות של המקור + אזורי "ניהול" (כמו ריצת-פרנסה׳לע)
+  const prTab = (label) => page.locator('main .pn-tabbar button', { hasText: label }).first().click();
+  const prSeg = async (label) => {
+    await prTab('ניהול');
+    await page.waitForTimeout(250);
+    await page.locator('main .pn-seg button', { hasText: label }).first().click();
+  };
 
   await page.goto(BASE, { waitUntil: 'networkidle' });
   await page.evaluate(() => {
@@ -931,22 +937,28 @@ for (const profile of PROFILES) {
   const navTxt = (await page.locator('nav').first().textContent()) ?? '';
   t('שני הכלים בניווט (פרנסה׳לע + אירוח משפחתי)', navTxt.includes('פרנסה׳לע') && navTxt.includes('אירוח משפחתי'));
 
-  // 1 · אינסטלטור במדריך (גבאי ⇒ מאושר + קוד 101), זמין 24/7
+  // 1 · אינסטלטור באלפון (גבאי ⇒ מאושר + קוד 101) — דרך "העסק שלי" של המקור (עורך-הדף), כמו ריצת-פרנסה׳לע
   await page.locator('nav >> text=פרנסה׳לע').click();
   await page.waitForTimeout(600);
-  await prTab('📇 מדריך');
+  await prTab('העסק שלי');
   await page.waitForTimeout(300);
-  await page.locator('main button', { hasText: '➕ הוספת עסק' }).click();
-  await page.locator('.modal input[placeholder="ר׳ יעקב כהן"]').fill('אינסטלציה-מרכזייה');
-  await page.locator('.modal input[placeholder="חשמלאי מוסמך, תיקוני קצרים ולוחות"]').fill('נזילות וסתימות');
-  await page.locator('.modal select').first().selectOption('elec');
-  await page.locator('.modal input[placeholder="050-0000000"]').fill('050-0000101');
-  await page.locator('.modal button', { hasText: '▸ פרטים נוספים' }).click();
-  await page.locator('.modal label', { hasText: 'זמין 24/7' }).locator('input').check();
-  await page.locator('.modal label', { hasText: 'קיבלתי את הסכמת' }).locator('input').check();
-  await page.locator('.modal button', { hasText: 'הוספה למדריך' }).click();
-  await page.waitForTimeout(500);
-  t('אינסטלטור נוסף למדריך (קוד חיוג 101)', ((await page.locator('main').textContent()) ?? '').includes('קוד חיוג 101'));
+  await page.locator('main .pn-mepick button', { hasText: '➕ הוספת עסק' }).click();
+  await page.waitForTimeout(200);
+  await page.locator('main .pn-ed [data-f="name"]').fill('אינסטלציה-מרכזייה');
+  await page.locator('main .pn-ed [data-f="title"]').fill('נזילות וסתימות');
+  await page.locator('main .pn-ed select[data-f="cat"]').selectOption('elec');
+  await page.locator('main .pn-ed [data-f="phone"]').fill('050-0000101');
+  // זמין 24/7 (חלק "שעות פעילות" בעורך) — כדי ש"מצא בעל מקצוע" יראה אותו פתוח בכל שעת-ריצה
+  await page.locator('main .pn-ed [data-sec="hours"] .pn-edh').click();
+  await page.waitForTimeout(150);
+  await page.locator('main .pn-ed [data-sec="hours"] label', { hasText: 'זמין 24/7' }).locator('input').check();
+  await page.locator('main .pn-edsave label', { hasText: 'קיבלתי את הסכמתו' }).locator('input').check();
+  await page.locator('main .pn-edsave button', { hasText: 'הוספה לאלפון' }).click();
+  await page.waitForTimeout(900);
+  const addedTxt = ((await page.locator('.pn-sheet').first().textContent().catch(() => '')) ?? '');
+  t('אינסטלטור נוסף לאלפון (קוד חיוג 101)', addedTxt.includes('אינסטלציה-מרכזייה') && addedTxt.includes('קוד חיוג 101'));
+  await page.locator('.pn-sheet .pn-cx button[aria-label="חזרה"]').first().click();
+  await page.locator('.pn-sheet').waitFor({ state: 'detached', timeout: 4000 }).catch(() => {});
 
   // 2 · אירוח: יחידה + משפחת לוי + שהייה לשבת (שישי ⇒ ראשון)
   await page.locator('nav >> text=אירוח משפחתי').first().click();
@@ -1011,11 +1023,11 @@ for (const profile of PROFILES) {
   // 6 · הקו: "אינסטלטור" ⇒ אותו אינסטלטור; מקש 5 = בדיקת יחידת אירוח פנויה
   await page.locator('nav >> text=פרנסה׳לע').click();
   await page.waitForTimeout(600);
-  await prTab('🏠 טיפול ואישורים'); // הלשונית נזכרת (זיכרון-סשן) — היינו במדריך
+  await prSeg('אישורים'); // "ניהול" ⇒ "אישורים" = לשונית-הטיפול (עם ☀ תקציר-היום)
   await page.waitForSelector('main [data-switch="today"]', { timeout: 5000 }).catch(() => null);
   const careTxt = (await page.locator('main').textContent()) ?? '';
   t('☀ תקציר היום גם בלשונית-הטיפול של פרנסה׳לע', careTxt.includes('☀ תקציר היום') && careTxt.includes('🏡 הגעות היום'));
-  await prTab('📞 הקו');
+  await prSeg('📞 הקו');
   await page.waitForTimeout(600);
   let prMain = (await page.locator('main').textContent()) ?? '';
   if (prMain.includes('🕯 סגור ברגע')) {
