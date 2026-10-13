@@ -16,13 +16,16 @@ import type {
   HostBookingStatus,
   HostCharge,
   HostCleanTask,
+  HostDish,
+  HostFault,
   HostingPrefs,
   HostMeal,
+  HostMealItem,
   HostRecord,
   HostUnit,
 } from '../../types/domain';
 import type { OrgConfig } from '../../types/config';
-import { canGrantedAction, featureOn } from '../../lib/config';
+import { canGrantedAction, featureOn, termOf } from '../../lib/config';
 import { HOST_DEFAULTS } from './model';
 
 /* ═══════════════ הרשאות ═══════════════ */
@@ -33,6 +36,35 @@ export type HostGrantKey = 'hosting.delete' | 'hosting.manage';
 /** הרשאה אחידה לממשק ול-store: הדגל דלוק (כולל שרשור-המודול — opt-in) **וגם** סמכות-מנהל או הדלקה-פר-עובד. */
 export function hostCan(config: OrgConfig, email: string | null | undefined, isManager: boolean, key: HostGrantKey): boolean {
   return featureOn(config, key) && canGrantedAction(config, email, isManager, key);
+}
+
+/* ═══════════════ מונחים ═══════════════ */
+
+export interface HostTerms {
+  nav: string;
+  unit: string;
+  units: string;
+  guest: string;
+  guests: string;
+  booking: string;
+  bookings: string;
+}
+
+/**
+ * מונחי-המודול לממשק ול-store (מקור-אמת אחד): מונח-האשף גובר; אחרת — מתג "משפחה מתארחת" של המקור
+ * (`term('אורח')` ⇒ "משפחה מתארחת", ובלשונית/KPI "אורחים" ⇒ "משפחות").
+ */
+export function hostTerms(config: OrgConfig, prefs?: HostingPrefs | null): HostTerms {
+  const fam = prefs?.familyTerm === true;
+  return {
+    nav: termOf(config, 'nav.hosting', 'אירוח משפחתי'),
+    unit: termOf(config, 'entity.hostUnit', 'יחידה'),
+    units: termOf(config, 'entity.hostUnits', 'יחידות'),
+    guest: termOf(config, 'entity.hostGuest', fam ? 'משפחה מתארחת' : 'אורח'),
+    guests: termOf(config, 'entity.hostGuests', fam ? 'משפחות' : 'אורחים'),
+    booking: termOf(config, 'entity.hostBooking', 'הזמנה'),
+    bookings: termOf(config, 'entity.hostBookings', 'הזמנות'),
+  };
 }
 
 /* ═══════════════ תאריכים (ISO, בלי אזורי-זמן — חשבון-UTC על תאריך-קלנדרי) ═══════════════ */
@@ -266,6 +298,60 @@ export function syncMealsToParty(meals: readonly HostMeal[], b: HostBooking, now
   return { meals: changed, charges };
 }
 
+/* ═══════════════ מטבח — הליבה שה-store אוכף (המנוע המלא ב-kitchen.ts) ═══════════════ */
+
+/** ארוחה פעילה = לא נמסרה ולא בוטלה. */
+export function isMealActive(m: Pick<HostMeal, 'status'>): boolean {
+  return m.status !== 'served' && m.status !== 'cancelled';
+}
+
+/** המנה בתפריט — לפי dishId, ואם אין (נתוני-מקור) — לפי השם (כמו במקור). */
+export function dishOf(item: Pick<HostMealItem, 'dishId' | 'name'>, dishes: readonly HostDish[]): HostDish | undefined {
+  return (item.dishId && dishes.find((d) => d.id === item.dishId)) || dishes.find((d) => d.name === item.name);
+}
+
+/**
+ * "🔄 סנכרן הכל" (`syncAllKitchen`): כל ארוחה פעילה המשויכת — סועדים ⇐ משתתפי-ההזמנה (וחיוב-המטבח מתחדש);
+ * כל מנה בלי טבח ⇐ טבח-ברירת-המחדל של המנה, ואם אין — המכין-האחראי של הארוחה.
+ */
+export function syncAllKitchen(
+  meals: readonly HostMeal[],
+  bookings: readonly HostBooking[],
+  dishes: readonly HostDish[],
+  nowIso: string,
+): { meals: HostMeal[]; bookings: HostBooking[]; mealsSynced: number; dishesAssigned: number } {
+  const byId = new Map(meals.map((m) => [m.id, m] as const));
+  const changedBookings: HostBooking[] = [];
+  const seen = new Set<string>();
+  let mealsSynced = 0;
+  for (const m of meals) {
+    if (!isMealActive(m) || !m.bookingId || seen.has(m.bookingId)) continue;
+    seen.add(m.bookingId);
+    const b = bookings.find((x) => x.id === m.bookingId);
+    if (!b) continue;
+    const res = syncMealsToParty([...byId.values()], b, nowIso);
+    for (const nm of res.meals) byId.set(nm.id, nm);
+    mealsSynced += res.meals.length;
+    changedBookings.push({ ...b, charges: res.charges, updatedAt: nowIso });
+  }
+  let dishesAssigned = 0;
+  for (const m of Array.from(byId.values())) {
+    if (!isMealActive(m)) continue;
+    let touched = false;
+    const items = m.items.map((it) => {
+      if (it.by) return it;
+      const def = dishOf(it, dishes)?.defBy || m.cook;
+      if (!def) return it;
+      dishesAssigned++;
+      touched = true;
+      return { ...it, by: def };
+    });
+    if (touched) byId.set(m.id, { ...m, items, updatedAt: nowIso });
+  }
+  const changedMeals = [...byId.values()].filter((m) => m !== meals.find((x) => x.id === m.id));
+  return { meals: changedMeals, bookings: changedBookings, mealsSynced, dishesAssigned };
+}
+
 /* ═══════════════ מעברי-סטטוס של הזמנה ═══════════════ */
 
 /**
@@ -341,6 +427,14 @@ export function checkoutTasksToClose(unitId: string, records: readonly HostRecor
   return records.filter((r) => isCleanTask(r) && r.unitId === unitId && r.status === 'open' && r.type === AFTER_CHECKOUT_CLEAN).map((r) => r.id);
 }
 
+/**
+ * תיקון F12: שחרור-חסימה מחזיר את היחידה ל"לניקיון" כשממתינה לה משימת "ניקיון אחרי עזיבה" (צ׳ק-אאוט שקרה
+ * בזמן שהיחידה הייתה חסומה) — אחרת לפנויה. במקור צ׳ק-אאוט ביחידה חסומה "שחרר" אותה בשקט ל"מלוכלכת".
+ */
+export function releasedUnitStatus(unitId: string, records: readonly HostRecord[]): 'free' | 'dirty' {
+  return checkoutTasksToClose(unitId, records).length ? 'dirty' : 'free';
+}
+
 /* ═══════════════ תחזוקה וטמפרטורה ═══════════════ */
 
 /** P0 (סכנת חיים) / P1 (יחידה לא ראויה) חוסמות את היחידה ומתריעות (כמו במקור). */
@@ -352,9 +446,154 @@ export function nextFaultStatus(s: 'open' | 'inprogress' | 'done'): 'inprogress'
   return s === 'open' ? 'inprogress' : s === 'inprogress' ? 'done' : null;
 }
 
+/**
+ * תיקון F13: קריאה חוסמת **נוספת** פתוחה על אותה יחידה — אז סגירת הקריאה הנוכחית לא משחררת את היחידה
+ * (במקור סגירת קריאה אחת שחררה יחידה שעוד עמדה עליה קריאת P0 אחרת).
+ */
+export function otherBlockingFault(records: readonly HostRecord[], unitId: string, exceptId: string): boolean {
+  return !!unitId && records.some((r) => r.kind === 'fault' && r.id !== exceptId && r.unitId === unitId && r.blocked && r.status !== 'done');
+}
+
+/** נקודות-המדידה של יומן-הטמפרטורה (כמו במקור). */
+export const HOST_TEMP_DEVICES = ['מקרר', 'מקפיא', 'חימום'] as const;
+
 /** בטיחות-מזון: מקרר עד 5° · מקפיא עד −15° · חימום מעל 63° (כמו במקור). */
 export function tempOk(device: string, temp: number): boolean {
   return device === 'מקרר' ? temp <= 5 : device === 'מקפיא' ? temp <= -15 : temp >= 63;
+}
+
+/**
+ * תיקון F7: חריגת-טמפרטורה ⇒ קריאה **כללית** (בלי יחידה), בטיחות, P1, לא חוסמת יחידה. במקור הקריאה נפתחה על
+ * "היחידה הראשונה ברשימה" (שרירותי) — והופיעה כתקלה של צימר שאין לו קשר למטבח.
+ */
+export function tempBreachFault(device: string, temp: number, id: string, nowIso: string): HostFault {
+  return {
+    id,
+    kind: 'fault',
+    unitId: '',
+    assetId: '',
+    category: 'מיזוג/קירור',
+    priority: 1,
+    desc: 'חריגת טמפרטורה ב' + device + ' (' + temp + '°)',
+    status: 'open',
+    safety: true,
+    blocked: false,
+    createdAt: nowIso,
+    updatedAt: nowIso,
+  };
+}
+
+/* ═══════════════ מחיקה בלי יתומים ═══════════════ */
+
+/**
+ * תיקון F5: מחיקת הזמנה — הארוחות המשויכות **נשמרות ומתנתקות** (במקור נשארו מצביעות להזמנה שאינה), ומשימת-העזיבה
+ * שלה מאבדת את הקישור. בלי שינוי ⇒ אותו מערך.
+ */
+export function unlinkBookingRecords(records: readonly HostRecord[], bookingId: string, nowIso: string): HostRecord[] {
+  let touched = false;
+  const out = records.map((r): HostRecord => {
+    if (r.kind === 'meal' && r.bookingId === bookingId) {
+      touched = true;
+      return { ...r, bookingId: '', updatedAt: nowIso };
+    }
+    if (r.kind === 'clean' && r.bookingId === bookingId) {
+      touched = true;
+      const next: HostCleanTask = { ...r, updatedAt: nowIso };
+      delete next.bookingId;
+      return next;
+    }
+    return r;
+  });
+  return touched ? out : (records as HostRecord[]);
+}
+
+/** מחיקת איש-צוות (כמו במקור): כל השיבוצים שלו — מכין/מגיש/מפנה/מסדר, טבח-המנה, טבח-ברירת-המחדל של מנה — מתרוקנים. */
+export function clearStaffRefs(records: readonly HostRecord[], staffId: string, nowIso: string): HostRecord[] {
+  let touched = false;
+  const out = records.map((r): HostRecord => {
+    if (r.kind === 'meal') {
+      const roles = r.cook === staffId || r.server === staffId || r.clearer === staffId || r.tableSetter === staffId;
+      const items = r.items.some((it) => it.by === staffId);
+      if (!roles && !items) return r;
+      touched = true;
+      return {
+        ...r,
+        cook: r.cook === staffId ? '' : r.cook,
+        server: r.server === staffId ? '' : r.server,
+        clearer: r.clearer === staffId ? '' : r.clearer,
+        tableSetter: r.tableSetter === staffId ? '' : r.tableSetter,
+        items: items ? r.items.map((it) => (it.by === staffId ? { ...it, by: '' } : it)) : r.items,
+        updatedAt: nowIso,
+      };
+    }
+    if (r.kind === 'dish' && r.defBy === staffId) {
+      touched = true;
+      return { ...r, defBy: '', updatedAt: nowIso };
+    }
+    return r;
+  });
+  return touched ? out : (records as HostRecord[]);
+}
+
+/** מחיקת ציוד (יכולת חדשה — במקור לא היה אפשר למחוק ציוד): קריאות ותוכניות-תחזוקה שהצביעו אליו — מתנתקות. */
+export function clearAssetRefs(records: readonly HostRecord[], assetId: string, nowIso: string): HostRecord[] {
+  let touched = false;
+  const out = records.map((r): HostRecord => {
+    if ((r.kind === 'fault' || r.kind === 'plan') && r.assetId === assetId) {
+      touched = true;
+      return { ...r, assetId: '', updatedAt: nowIso };
+    }
+    return r;
+  });
+  return touched ? out : (records as HostRecord[]);
+}
+
+/* ═══════════════ רשומות "פשוטות" (טופס ⇒ שמירה) ═══════════════ */
+
+/**
+ * הסוגים שנשמרים בשמירה-גנרית (upsertHostRecord). ארוחה (חיוב-תיק), ניקיון (שחרור-יחידה), תקלה (חסימה) וטמפ׳
+ * (קריאה בחריגה) — רק דרך הפעולות הייעודיות שאוכפות את הכללים.
+ */
+export const HOST_PLAIN_KINDS = ['guest', 'dish', 'staff', 'supply', 'tableItem', 'asset', 'plan'] as const;
+export type HostPlainKind = (typeof HOST_PLAIN_KINDS)[number];
+
+export function isPlainKind(kind: unknown): kind is HostPlainKind {
+  return typeof kind === 'string' && (HOST_PLAIN_KINDS as readonly string[]).includes(kind);
+}
+
+/** ניקוי-הטופס של המקור + הודעת-השגיאה שלו (שם חסר וכו׳). הרשומה כבר מרופאת (healHostRecord). */
+export function cleanPlainRecord(r: HostRecord): { ok: true; record: HostRecord } | { ok: false; error: string } {
+  switch (r.kind) {
+    case 'guest':
+      return { ok: true, record: { ...r, name: r.name.trim() || '—', phone: r.phone.trim(), email: r.email.trim() } };
+    case 'dish': {
+      const name = r.name.trim();
+      if (!name) return { ok: false, error: 'שם מנה חסר' };
+      return { ok: true, record: { ...r, name, ingredients: r.ingredients.filter((x) => x.trim()), steps: r.steps.filter((x) => x.trim()) } };
+    }
+    case 'staff': {
+      const name = r.name.trim();
+      return name ? { ok: true, record: { ...r, name, phone: r.phone.trim() } } : { ok: false, error: 'שם חסר' };
+    }
+    case 'supply': {
+      const name = r.name.trim();
+      return name ? { ok: true, record: { ...r, name } } : { ok: false, error: 'שם פריט חסר' };
+    }
+    case 'tableItem': {
+      const name = r.name.trim();
+      return name ? { ok: true, record: { ...r, name } } : { ok: false, error: 'שם חסר' };
+    }
+    case 'asset': {
+      const name = r.name.trim();
+      return name ? { ok: true, record: { ...r, name } } : { ok: false, error: 'שם חסר' };
+    }
+    case 'plan': {
+      const task = r.task.trim();
+      return task ? { ok: true, record: { ...r, task } } : { ok: false, error: 'משימה חסרה' };
+    }
+    default:
+      return { ok: false, error: '' };
+  }
 }
 
 /* ═══════════════ מזהים מקומיים (חדרים/חיובים/תשלומים/הושבה) ═══════════════ */

@@ -8,6 +8,10 @@
 import { useApp } from '../../store/useApp';
 import { termOf } from '../../lib/config';
 import { Empty, PageHead } from '../ui';
+import { installHostingActions } from './actions';
+
+// פעולות-המודול נטענות עם הצ'אנק הזה ("שוקל רק מה שהדלקת") — מותקנות ב-store לפני הרינדור הראשון
+installHostingActions();
 
 export function HostingView() {
   const config = useApp((s) => s.config);

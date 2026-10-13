@@ -51,7 +51,17 @@ import { mergeDelLogs,
   type PrAd,
   type PrListing,
   type PrPost,
-  type PrRequest } from '../types/domain';
+  type PrRequest,
+  type HostBooking,
+  type HostBookingStatus,
+  type HostingPrefs,
+  type HostMeal,
+  type HostMealStatus,
+  type HostRecord,
+  type HostSeatPlan,
+  type HostShabbatPrefs,
+  type HostUnit,
+  type HostUnitStatus } from '../types/domain';
 import { ENTITY_COLLECTIONS } from '../lib/cloud-diff';
 import { mergeDonationsPreserving } from '../lib/cloud-merge';
 import { collectionScoreDelta } from '../components/tzedaka/lib';
@@ -190,7 +200,88 @@ export interface CloudState {
   lastSyncError?: string | null;
 }
 
-interface AppState {
+/**
+ * 🏡 פעולות מודול "אירוח משפחתי" (hosting — opt-in ומבודד; BUILD-ORDER-HOSTING-2026-10-12, אשכול 4).
+ * נכתבות רק ל-hostUnits/hostBookings/hostRecords ול-db.ui.hosting — התיק = פנקס (חיובים/תשלומים) + payLink בלבד, אפס
+ * קבלות (הכרעה 2). מחיקה-לצמיתות/איפוס: hosting.delete · הגדרות/שחזור: hosting.manage (hostCan).
+ * **המימוש נטען עם המסך** (components/hosting/actions.ts, installHostingActions) — "שוקל רק מה שהדלקת": ארגון שהמודול
+ * כבוי אצלו לא מוריד את ~7.5KB gzip של הפעולות. עד הטעינה — hostingNotLoaded (אין משטח שקורא להן לפני המסך).
+ */
+export interface HostingActions {
+  /** יחידה — חדשה (פנויה, בלי חדרים) או עריכת השדות (שם/סוג/מחיר/מיטות/קיבולת); מצב וחדרים לא נדרסים. */
+  upsertHostUnit: (u: HostUnit) => { ok: boolean; unit?: HostUnit };
+  /** 🗑 hosting.delete; נחסם כשיש הזמנות ליחידה (כמו המקור). */
+  deleteHostUnit: (id: string) => boolean;
+  /** 🧹 נקייה / 🚫 חסום / 🔓 שחרר — "נקייה" סוגרת גם את משימת-העזיבה הפתוחה (F11). */
+  setHostUnitStatus: (id: string, status: HostUnitStatus) => boolean;
+  addHostRoom: (unitId: string, room: { name: string; beds: number; rate: number }) => boolean;
+  /** נחסם כשהחדר בהזמנה פעילה (כמו המקור). */
+  deleteHostRoom: (unitId: string, roomId: string) => boolean;
+  /** הזמנה חדשה/עריכה: תאריכים · חדרים · זמינות (כולל יחידה חסומה — F1) · חיובים מחושבים (F3) · סנכרון ארוחות. */
+  upsertHostBooking: (b: HostBooking) => { ok: boolean; booking?: HostBooking; mealsSynced?: number };
+  /** אישור / צ׳ק-אין / צ׳ק-אאוט (יחידה ⇒ לניקיון + משימה) / ביטול (ההיסטוריה נשמרת). */
+  setHostBookingStatus: (id: string, status: HostBookingStatus) => boolean;
+  /** רישום-תשלום בפנקס-השהייה (לא קבלה) — גם אחרי צ׳ק-אאוט (F6), לא בהזמנה שבוטלה. */
+  addHostPayment: (bookingId: string, p: { amount: number; note: string }) => boolean;
+  /** 🗑 hosting.delete — ארוחות משויכות נשמרות ומתנתקות (F5). */
+  deleteHostBooking: (id: string) => boolean;
+  /** 🕯️ חבילת שבת — חיוב 250 + הזמנת-מטבח (כשהמטבח דלוק); אידמפוטנטי (F9). */
+  addHostShabbatPackage: (bookingId: string) => boolean;
+  /** אורח / מנה / איש-צוות / מוצר-נלווה / פריט-שולחן / ציוד / תחזוקה-מונעת (HOST_PLAIN_KINDS בלבד). */
+  upsertHostRecord: (r: HostRecord) => { ok: boolean; record?: HostRecord };
+  /**
+   * מחיקת רשומה — hosting.delete, למעט נלווה/פריט-שולחן (רשימת-קניות, כמו במקור). אורח עם הזמנות נחסם; צוות ⇒
+   * ניקוי-שיבוצים; ציוד ⇒ ניתוק קריאות/תוכניות; ארוחה ⇒ deleteHostMeal (גם החיוב).
+   */
+  deleteHostRecord: (id: string) => boolean;
+  /** מערך-שולחן: לכל פריט — שם קיים ⇒ עדכון כמות-לאורח, חדש ⇒ הוספה (`tsAddItem` + מערכים מוכנים, בכתיבה אחת). */
+  setHostTableItems: (items: { name: string; perGuest: number }[]) => boolean;
+  /** הזמנת-מטבח — משויכת להזמנה ⇒ חיוב בתיק (מתחדש בכל שמירה). */
+  upsertHostMeal: (m: HostMeal) => { ok: boolean; meal?: HostMeal };
+  /** קידום בשרשרת / ביטול (ביטול מסיר את חיוב-התיק — F4). */
+  setHostMealStatus: (id: string, status: HostMealStatus) => boolean;
+  /** 🗑 hosting.delete — מסיר גם את חיוב-התיק. */
+  deleteHostMeal: (id: string) => boolean;
+  /** 🔄 סנכרן הכל — סועדים ⇐ משתתפי-ההזמנה, טבח-ברירת-מחדל למנה (מחושב מול ה-db החי). */
+  syncHostKitchen: () => { meals: number; dishes: number };
+  /** תוכנית-ההושבה — f מוחל על התוכנית הנוכחית בתוך ה-updater (לא תצלום). */
+  updateHostSeatPlan: (mealId: string, f: (sp: HostSeatPlan) => HostSeatPlan) => boolean;
+  addHostCleanTask: (unitId: string, type: string) => boolean;
+  /** סיום משימה — היחידה משתחררת רק כשאין לה משימה פתוחה אחרת (F10). */
+  finishHostCleanTask: (id: string) => { ok: boolean; freed: boolean };
+  /** קריאת-תחזוקה — P0/P1 חוסמות את היחידה. */
+  addHostFault: (f: { unitId: string; assetId: string; category: string; priority: number; desc: string; safety: boolean }) => { ok: boolean; blocked: boolean };
+  /** פתוחה ⇒ בטיפול ⇒ טופלה (טופלה ⇒ שחרור-היחידה שחסמה). */
+  advanceHostFault: (id: string) => boolean;
+  releaseHostFaultUnit: (id: string) => boolean;
+  /** מדידת-טמפ׳ — חריגה ⇒ קריאה כללית בטיחותית (F7; לא על "היחידה הראשונה"). */
+  addHostTempReading: (device: string, temp: number) => { ok: boolean; breach: boolean };
+  /** ⚙ הגדרות-המודול (שם-העסק/שעות/דמי-ניקיון/מע״מ/ימי-הזמנה/"משפחה מתארחת") — hosting.manage. undefined = מחיקת-מפתח. */
+  setHostingPrefs: (patch: Partial<HostingPrefs>) => boolean;
+  /** 🕯️ מצב-שבת · זמנים · כשרות (פתוח לצוות — כמו המקור). */
+  setHostShabbat: (patch: Partial<HostShabbatPrefs>) => void;
+  /** עגלת-הקניות: "לקחתי" (נלווה ⇒ גם bought) · אמוג׳י ידני (null = חזרה לאוטומטי). */
+  setHostShop: (patch: { got?: [string, boolean]; emoji?: [string, string | null] }) => void;
+  /** ⤵️ שחזור (מגיבוי-המודול או מגיבוי האפליקציה המקורית) — מחליף את נתוני-המודול בלבד; hosting.manage. */
+  restoreHosting: (data: { units: HostUnit[]; bookings: HostBooking[]; records: HostRecord[]; prefs: HostingPrefs }) => boolean;
+  /** 🗑 אפס הכל — נתוני-המודול בלבד (לא שאר אורביט); hosting.delete. */
+  resetHosting: () => boolean;
+}
+
+/** 🏡 מה שפעולות-האירוח רשאיות לכתוב — שלושת אוספי-המודול + הגדרותיו; שום דבר אחר (הכרעה 2). */
+export type HostPatch = { hostUnits?: HostUnit[]; hostBookings?: HostBooking[]; hostRecords?: HostRecord[]; prefs?: HostingPrefs };
+
+/** 🏡 צינור-הכתיבה שה-store חושף למודול-האירוח העצל — הכתיבה מוגבלת-טיפוס לאוספי-המודול בלבד. */
+export interface HostStoreApi {
+  /** הכתיבה היחידה: f מחושב בתוך ה-updater מול ה-db החי (לקח 3.9); מחיקה מאוסף ⇒ מצבה (setDb). */
+  write: (f: (db: Db) => HostPatch) => void;
+  /** מזהה חדש (תג-מכשיר) בלי התנגשות: קיים באוספי-המודול או בעל-מצבה ⇒ דילוג. */
+  newId: (prefix: 'hu' | 'hb' | 'hr') => string;
+  /** לוג-הפעולות (logAudit). */
+  audit: (act: string, what: string) => void;
+}
+
+interface AppState extends HostingActions {
   db: Db;
   ready: boolean;
   corrupt: boolean;
@@ -660,6 +751,9 @@ interface AppState {
   /** ⚙ הגדרות המודול (db.ui.parnasa) — גבאי בלבד (parnasa.approve); מחוטא ב-healParnasaPrefs. undefined = מחיקת-מפתח. */
   setParnasaPrefs: (patch: Partial<ParnasaPrefs>) => boolean;
 
+  /** 🏡 צינור-הכתיבה של מודול-האירוח (נצרך רק ע״י components/hosting/actions.ts העצל). */
+  hostApi: HostStoreApi;
+
   saveQuoteTemplate: (id: string, name: string) => void;
   applyQuoteTemplate: (id: string, templateId: string) => void;
   deleteQuoteTemplate: (templateId: string) => void;
@@ -894,6 +988,11 @@ export function reconcileNedarimApply(live: Supporter[], planned: Supporter[]): 
   });
   const born = live.filter((s) => !plannedIds.has(s.id));
   return born.length ? [...merged, ...born] : merged;
+}
+
+/** 🏡 שומר-מקום לפעולת-אירוח לפני שהמסך נטען — באג-תכנות (אין משטח שקורא להן מחוץ למסך), נכשל בקול. */
+function hostingNotLoaded(): never {
+  throw new Error('🏡 פעולות-האירוח נטענות עם המסך — installHostingActions() (components/hosting/actions.ts) טרם רץ');
 }
 
 function withRemovalTombstones(prev: Db, next: Db): Db {
@@ -1381,6 +1480,37 @@ export const useApp = create<AppState>()((set, get) => {
     const s = get();
     return { canApprove: prCanNow('parnasa.approve'), requireApproval: requireApprovalOf(s.db.ui.parnasa), who: s.cloud.user?.email ?? 'מקומי' };
   }
+
+  // ── אירוח משפחתי · עזרי-store (BUILD-ORDER-HOSTING אשכול 4) ──
+  /**
+   * 🏡 הכתיבה **היחידה** של מודול-האירוח (הכרעה 2 — בידוד): f מחושב בתוך ה-updater, מול ה-db החי (לא תצלום — לקח 3.9),
+   * ומחזיר רק את שלושת אוספי-המודול ו/או את הגדרותיו — הטיפוס עצמו (HostPatch) אוטם כתיבה לקבלות/מונים/תרומות/לוח-
+   * ראשי/חדרי-החוגים (וננעל בסריקת-מקור ב-hosting-isolation.test). מחיקה מאוסף ⇒ setDb מטביע מצבה.
+   */
+  function hostWrite(f: (db: Db) => HostPatch): void {
+    setDb((db) => {
+      const { prefs, ...cols } = f(db);
+      return prefs ? { ...cols, ui: { ...db.ui, hosting: prefs } } : cols;
+    });
+  }
+
+  /**
+   * 🏡 מזהה חדש למודול — nextId (תג-מכשיר) **ובלי התנגשות**: מזהה שכבר קיים באוספי-המודול (שחזור-גיבוי אחרי
+   * איפוס, ייבוא) או שיש לו מצבה (היה נדחה בסנכרון הבא) — מדולג. ללא לולאה אינסופית: seq עולה בכל סיבוב.
+   */
+  function hostNewId(prefix: 'hu' | 'hb' | 'hr'): string {
+    for (;;) {
+      const id = get().nextId(prefix);
+      const db = get().db;
+      const taken =
+        db.hostUnits.some((x) => x.id === id) ||
+        db.hostBookings.some((x) => x.id === id) ||
+        db.hostRecords.some((x) => x.id === id) ||
+        (db.delLog ?? []).some((e) => e.id === id);
+      if (!taken) return id;
+    }
+  }
+  // ── סוף עזרי-אירוח ──
 
   /** תיק הטיפול הנוכחי של תומכ/ת (emptyAyin אם עדיין אין), או null. */
   function curAyin(id: string): { sp: Supporter; a: AyinCase } | null {
@@ -4036,6 +4166,46 @@ export const useApp = create<AppState>()((set, get) => {
       return true;
     },
     // ── סוף פרנסה׳לע ──
+
+    // ── אירוח משפחתי (מודול hosting — opt-in ומבודד; BUILD-ORDER-HOSTING אשכול 4) ──
+    // הפעולות עצמן — components/hosting/actions.ts (נטען עם המסך, installHostingActions). כאן: צינור-הכתיבה המוגבל
+    // (hostApi) + שומרי-מקום. בידוד (הכרעה 2): המודול כותב **רק** דרך hostApi.write — HostPatch = 3 אוספים + הגדרות.
+    hostApi: { write: hostWrite, newId: hostNewId, audit: logAudit },
+    ...((): HostingActions => {
+      const nl = hostingNotLoaded as never;
+      return {
+        upsertHostUnit: nl,
+        deleteHostUnit: nl,
+        setHostUnitStatus: nl,
+        addHostRoom: nl,
+        deleteHostRoom: nl,
+        upsertHostBooking: nl,
+        setHostBookingStatus: nl,
+        addHostPayment: nl,
+        deleteHostBooking: nl,
+        addHostShabbatPackage: nl,
+        upsertHostRecord: nl,
+        deleteHostRecord: nl,
+        setHostTableItems: nl,
+        upsertHostMeal: nl,
+        setHostMealStatus: nl,
+        deleteHostMeal: nl,
+        syncHostKitchen: nl,
+        updateHostSeatPlan: nl,
+        addHostCleanTask: nl,
+        finishHostCleanTask: nl,
+        addHostFault: nl,
+        advanceHostFault: nl,
+        releaseHostFaultUnit: nl,
+        addHostTempReading: nl,
+        setHostingPrefs: nl,
+        setHostShabbat: nl,
+        setHostShop: nl,
+        restoreHosting: nl,
+        resetHosting: nl,
+      };
+    })(),
+    // ── סוף אירוח משפחתי ──
 
     saveQuoteTemplate(id, name) {
       const c = curAyin(id);

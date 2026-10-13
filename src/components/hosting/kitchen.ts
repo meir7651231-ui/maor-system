@@ -9,26 +9,17 @@
  */
 import type { HostBooking, HostDiner, HostDish, HostMeal, HostMealItem, HostSeatPerson, HostSupply, HostTableItem } from '../../types/domain';
 import { HOST_MEAL_CHAIN } from './model';
-import { addDaysIso, syncMealsToParty } from './transitions';
+import { addDaysIso, dishOf, isMealActive } from './transitions';
+
+// ליבת-המטבח שה-store אוכף (פעילה/מנה⇄מתכון/סנכרן-הכל) יושבת ב-transitions.ts — מיוצאת-מחדש כאן לממשק ולבדיקות.
+export { dishOf, isMealActive, syncAllKitchen } from './transitions';
 
 /* ═══════════════ שרשרת-הסטטוס ═══════════════ */
-
-/** ארוחה פעילה = לא נמסרה ולא בוטלה. */
-export function isMealActive(m: Pick<HostMeal, 'status'>): boolean {
-  return m.status !== 'served' && m.status !== 'cancelled';
-}
 
 /** השלב הבא בשרשרת (חדש ⇒ בהכנה ⇒ בקרת איכות ⇒ מוכן ⇒ נמסר) — null בסוף/בבוטל. */
 export function mealNextStatus(s: HostMeal['status']): HostMeal['status'] | null {
   const i = (HOST_MEAL_CHAIN as readonly string[]).indexOf(s);
   return i >= 0 && i < HOST_MEAL_CHAIN.length - 1 ? HOST_MEAL_CHAIN[i + 1] : null;
-}
-
-/* ═══════════════ מנה ⇄ מתכון ═══════════════ */
-
-/** המנה בתפריט — לפי dishId, ואם אין (נתוני-מקור) — לפי השם (כמו במקור). */
-export function dishOf(item: Pick<HostMealItem, 'dishId' | 'name'>, dishes: readonly HostDish[]): HostDish | undefined {
-  return (item.dishId && dishes.find((d) => d.id === item.dishId)) || dishes.find((d) => d.name === item.name);
 }
 
 /* ═══════════════ מנוע-הזמן ═══════════════ */
@@ -172,48 +163,6 @@ export function staffRoleIn(m: HostMeal, staffId: string): string[] {
 /** הארוחות הפעילות שאיש-הצוות משובץ בהן (`staffOrders`). */
 export function staffActiveMeals(staffId: string, meals: readonly HostMeal[]): HostMeal[] {
   return meals.filter((m) => isMealActive(m) && staffRoleIn(m, staffId).length > 0);
-}
-
-/**
- * "🔄 סנכרן הכל" (`syncAllKitchen`): כל ארוחה פעילה המשויכת — סועדים ⇐ משתתפי-ההזמנה (וחיוב-המטבח מתחדש);
- * כל מנה בלי טבח ⇐ טבח-ברירת-המחדל של המנה, ואם אין — המכין-האחראי של הארוחה.
- */
-export function syncAllKitchen(
-  meals: readonly HostMeal[],
-  bookings: readonly HostBooking[],
-  dishes: readonly HostDish[],
-  nowIso: string,
-): { meals: HostMeal[]; bookings: HostBooking[]; mealsSynced: number; dishesAssigned: number } {
-  const byId = new Map(meals.map((m) => [m.id, m] as const));
-  const changedBookings: HostBooking[] = [];
-  const seen = new Set<string>();
-  let mealsSynced = 0;
-  for (const m of meals) {
-    if (!isMealActive(m) || !m.bookingId || seen.has(m.bookingId)) continue;
-    seen.add(m.bookingId);
-    const b = bookings.find((x) => x.id === m.bookingId);
-    if (!b) continue;
-    const res = syncMealsToParty([...byId.values()], b, nowIso);
-    for (const nm of res.meals) byId.set(nm.id, nm);
-    mealsSynced += res.meals.length;
-    changedBookings.push({ ...b, charges: res.charges, updatedAt: nowIso });
-  }
-  let dishesAssigned = 0;
-  for (const m of Array.from(byId.values())) {
-    if (!isMealActive(m)) continue;
-    let touched = false;
-    const items = m.items.map((it) => {
-      if (it.by) return it;
-      const def = dishOf(it, dishes)?.defBy || m.cook;
-      if (!def) return it;
-      dishesAssigned++;
-      touched = true;
-      return { ...it, by: def };
-    });
-    if (touched) byId.set(m.id, { ...m, items, updatedAt: nowIso });
-  }
-  const changedMeals = [...byId.values()].filter((m) => m !== meals.find((x) => x.id === m.id));
-  return { meals: changedMeals, bookings: changedBookings, mealsSynced, dishesAssigned };
 }
 
 /* ═══════════════ עגלת-הקניות ═══════════════ */

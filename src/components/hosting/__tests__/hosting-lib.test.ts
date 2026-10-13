@@ -32,6 +32,7 @@ import {
   guestsView,
   hostCan,
   hostSettings,
+  hostTerms,
   initialsOf,
   money,
   monthPaidRevenue,
@@ -451,6 +452,15 @@ describe('🏡 עזרי-תצוגה (נוסח המקור)', () => {
     expect([4, 11, 16, 20, 22].map((h) => greetingOf(h)[0])).toEqual(['לילה טוב', 'בוקר טוב', 'צהריים טובים', 'ערב טוב', 'לילה טוב']);
     expect(waShareHref('שלום & ברכה', false)).toBe('https://wa.me/?text=' + encodeURIComponent('שלום & ברכה'));
     expect(waShareHref('x', true)).toBe('whatsapp://send?text=x');
+  });
+});
+
+describe('🏡 מונחים (מקור-אמת אחד לממשק ול-store)', () => {
+  it('hostTerms: נוסח המקור; "משפחה מתארחת"/"משפחות" כשהמתג דלוק; מונח-האשף גובר על המתג', () => {
+    expect(hostTerms(DEFAULT_CONFIG)).toEqual({ nav: 'אירוח משפחתי', unit: 'יחידה', units: 'יחידות', guest: 'אורח', guests: 'אורחים', booking: 'הזמנה', bookings: 'הזמנות' });
+    expect(hostTerms(DEFAULT_CONFIG, { familyTerm: true })).toMatchObject({ guest: 'משפחה מתארחת', guests: 'משפחות' });
+    const cfg: OrgConfig = { ...DEFAULT_CONFIG, terms: { 'entity.hostGuest': 'נופש', 'nav.hosting': 'הצימרים' } };
+    expect(hostTerms(cfg, { familyTerm: true })).toMatchObject({ guest: 'נופש', guests: 'משפחות', nav: 'הצימרים' });
   });
 });
 
