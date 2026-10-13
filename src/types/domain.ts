@@ -77,6 +77,8 @@ export interface Family {
   motherId: string;
   phone: string;
   phone2: string;
+  /** טלפונים נוספים מעבר לשניים (בקשת-בעלים 13.10) — additive; חסר = אין. אותו מבנה כמו בתורמים. */
+  phones?: SupPhone[];
   email: string;
   city: string;
   address: string;
@@ -590,7 +592,7 @@ export interface Hok {
   kevaId?: string;
 }
 
-/** מספר-טלפון נוסף לתורם (ריבוי-טלפונים) — additive. */
+/** מספר-טלפון נוסף (ריבוי-טלפונים) — לתורם ולמשפחה; additive. */
 export interface SupPhone {
   id: Id;
   /** המספר עצמו (מפורמט דרך fixPhone). */

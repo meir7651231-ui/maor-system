@@ -378,6 +378,16 @@ export function FamilyDetail(props: { family: Family }) {
           {/* הרחבות נמכרות: 📞 חיוג (מודול טלפוניה, opt-in) · 💬 wa.me · 🗺️ Maps — חסר=כבוי */}
           <InfoRow k="טלפון ראשי" v={fam.phone || '—'} action={commsAction(fam.phone)} ltr />
           <InfoRow k="טלפון נוסף" v={fam.phone2 || '—'} action={commsAction(fam.phone2)} ltr />
+          {/* טלפונים נוספים (בקשת-בעלים 13.10) — כל מספר עם התווית וה"ממי זה" שלו */}
+          {(fam.phones ?? []).map((p) => (
+            <InfoRow
+              key={p.id}
+              k={'📞 ' + (p.label || 'טלפון')}
+              v={p.num + (p.note ? ' · ' + p.note : '')}
+              action={commsAction(p.num)}
+              ltr
+            />
+          ))}
           <InfoRow k="אימייל" v={fam.email || '—'} ltr />
           <InfoRow
             k="כתובת"
