@@ -19,6 +19,8 @@ import { hebDateFull } from '../../lib/hebrew';
 import { ayinAllRows, ayinDailyRows, ayinActive,
   ayinOnBoard, eyesTotal, featLabel, itemLabel, stageLabel, unitLabel } from '../../lib/ayin';
 import { downloadCsv } from '../../lib/csvx';
+import { printHtmlDoc } from '../../lib/printDoc';
+import { prayerDocHtml, prayerGroups } from './prayer';
 import { ActionsMenu, Btn, Chip, Empty, Modal, PageHead, Select, TextInput } from '../ui';
 import { buildSupporterStats, chipStyle, donationYearsFromStats, filterSupporterList, fmtDate, hokDue, hokRecordedThisMonth, isoToday, sortSupporterList, statOf, sup12m, supAvgDon, supCount, LAST_BUCKETS, type LastBucket, supScoreBins, supTier, type SupSortKey, type SupStats, supporterVisibleForDesignations, totalLabelOf, visibleSupportersForDesignations, TIER_ORDER } from './lib';
 import type { OrgConfig } from '../../types/config';
@@ -520,6 +522,22 @@ export function SupportersView() {
     toast('דוח ' + ayinItemsLabel + ': ' + (rows.length - 1) + ' ' + ayinItemsLabel + ' — הקובץ ירד');
   }
 
+  /**
+   * 🙏 שמות לתפילה — קובץ מסודר של כל הארגון (בקשת-בעלים 13.10): השמות הפעילים מכל התורמים,
+   * מקובצים לפי תורם, להדפסה/שמירה כ-PDF. 🔒 רק תורמים גלויים לעובד/ת (ייעוד-הרשאה).
+   * מחושב רק בלחיצה — לא מעבר נוסף על כל התורמים בכל רינדור (ביצועי-16k).
+   */
+  function prayerAllDoc() {
+    const groups = prayerGroups(visibleSupportersForDesignations(db.supporters, desigLimit));
+    const n = groups.reduce((s, g) => s + g.names.length, 0);
+    if (!n) {
+      toast('אין עדיין שמות פעילים לתפילה בכרטיסי ה' + termOf(config, 'entity.supporters', 'תורמים'));
+      return;
+    }
+    const html = prayerDocHtml(groups, { title: '🙏 שמות לתפילה', dateLabel: fmtDate(isoToday()) });
+    if (printHtmlDoc(html)) toast(n + ' שמות · נפתח חלון הדפסה — אפשר לבחור "שמירה כ-PDF"');
+  }
+
   // 🐛 נחיל-9×9 (13.8): גם פתיחת-כרטיס-ישיר (מהפלטה/עומק) מכובדת להרשאת-הייעוד —
   // id מחוץ-להיקף לא ייפתח (הגנה-בעומק מעל סינון visibleBase).
   // ⌘K — פלטת-הפיקוד (קופיילוט). מגודרת opt-in (cockpitOn); עוטפת פעולות קיימות.
@@ -863,6 +881,7 @@ export function SupportersView() {
                 // מסך-השמות המלא (20.8, בקשת-בעלים) — הרשימה פר-שם על-המסך, לא רק CSV
                 ayinOn && ayinNamesOn && { label: '📋 ' + featLabel(config) + ' — כל ה' + ayinItemsLabel, onClick: () => setAyinNamesOpen(true), title: 'כל ה' + ayinItemsLabel + ' מכל הכרטיסים — טבלה חיה עם חיפוש וסינון' },
                 ayinOn && isAdminUser(config, cloudEmail) && { label: '📥 דוח שמות (למנהל)', onClick: namesReport, title: 'כל השמות בכרטיסי מעקב-הטיפול — CSV' },
+                featureOn(config, 'supporters.prayernames') && { label: '🙏 שמות לתפילה — קובץ מסודר', onClick: prayerAllDoc, title: 'כל השמות הפעילים מכל הכרטיסים, מקובצים לפי תורם — להדפסה או שמירה כ-PDF' },
                 dedupCount > 0 && featureOn(config, 'supporters.dedup') && { label: '🔗 איחוד כפולים · ' + dedupCount, onClick: () => setDedupOpen(true) },
                 !!campaignHref && { label: '📣 לקמפיין הגיוס', onClick: () => window.open(campaignHref!, '_blank', 'noopener') },
               ]}

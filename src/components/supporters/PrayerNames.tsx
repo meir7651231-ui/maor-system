@@ -7,8 +7,10 @@ import { useState } from 'react';
 import { useApp } from '../../store/useApp';
 import { Btn } from '../ui';
 import type { Supporter } from '../../types/domain';
-import { prayerListText, prayerOpenCount } from './prayer';
+import { prayerDocHtml, prayerGroups, prayerListText, prayerOpenCount } from './prayer';
 import { fmtDate } from './lib';
+import { printHtmlDoc } from '../../lib/printDoc';
+import { isoToday } from '../../lib/date-util';
 
 export function PrayerNames(props: { supporter: Supporter }) {
   const sp = props.supporter;
@@ -36,6 +38,11 @@ export function PrayerNames(props: { supporter: Supporter }) {
       () => toast('לא ניתן להעתיק — נסו ידנית'),
     );
   }
+  // 🖨 קובץ מסודר (13.10) — השמות הפעילים של התורם, להדפסה או שמירה כ-PDF
+  function printList() {
+    const html = prayerDocHtml(prayerGroups([sp]), { title: '🙏 שמות לתפילה — ' + sp.name, dateLabel: fmtDate(isoToday()) });
+    if (printHtmlDoc(html)) toast('נפתח חלון הדפסה — אפשר לבחור "שמירה כ-PDF"');
+  }
 
   return (
     <div className="card" style={{ marginTop: 12 }} data-testid="prayer-names">
@@ -45,9 +52,16 @@ export function PrayerNames(props: { supporter: Supporter }) {
           {list.length > 0 && <span style={{ fontSize: 12, color: 'var(--ink-faint)', fontWeight: 600, marginInlineStart: 8 }}>{prayerOpenCount(list) + ' פתוחים · ' + list.length + ' סה"כ'}</span>}
         </h3>
         {list.length > 0 && (
-          <Btn sm kind="plain" onClick={copyAll} title="העתקת כל הרשימה (שם — הערה) ללוח">
-            📋 העתקת הרשימה
-          </Btn>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            <Btn sm kind="plain" onClick={copyAll} title="העתקת כל הרשימה (שם — הערה) ללוח">
+              📋 העתקת הרשימה
+            </Btn>
+            {prayerOpenCount(list) > 0 && (
+              <Btn sm kind="plain" onClick={printList} title="קובץ מסודר של השמות הפעילים — להדפסה או שמירה כ-PDF">
+                🖨 הורדה / הדפסה
+              </Btn>
+            )}
+          </div>
         )}
       </div>
 
