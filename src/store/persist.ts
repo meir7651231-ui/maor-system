@@ -13,7 +13,7 @@ import { sanitizePhotos } from '../lib/photoGallery';
 import { AYIN_STAGES } from '../lib/ayin';
 import { healParnasaPrefs, healPrCollection } from '../components/parnasa/model';
 import { healHostCollection, healHostingPrefs } from '../components/hosting/model';
-import { healEngineLinksIn } from '../lib/enginebox/links';
+import { healEngineLinksIn } from '../lib/enginebox/linkShape';
 import {
   DB_VERSION,
   emptyAyin,
