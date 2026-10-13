@@ -7,7 +7,7 @@ import { useRef } from 'react';
 import { dateWords } from './zmanimBoard';
 import { cx, Ic } from './skin';
 
-export function PnDate(props: { value: string; onChange: (v: string) => void; label: string; min?: string }) {
+export function PnDate(props: { value: string; onChange: (v: string) => void; label: string; min?: string; /** תווית במקום התאריך במילים (הדגשה "עד שיבוטל"). */ text?: string }) {
   const ref = useRef<HTMLInputElement>(null);
   const open = (): void => {
     const el = ref.current;
@@ -24,7 +24,7 @@ export function PnDate(props: { value: string; onChange: (v: string) => void; la
       <input ref={ref} className="pn-dhid" type="date" tabIndex={-1} aria-label={props.label} min={props.min} value={props.value} onChange={(e) => props.onChange(e.target.value)} />
       <button type="button" className={cx('pn-dbtn', !props.value && 'pn-empty')} onClick={open}>
         <Ic n="clock" />
-        <span>{props.value ? dateWords(props.value) : 'בחירת תאריך'}</span>
+        <span>{props.value ? (props.text ?? dateWords(props.value)) : 'בחירת תאריך'}</span>
       </button>
       <button type="button" className="pn-dclr" aria-label="ניקוי התאריך" hidden={!props.value} onClick={() => props.onChange('')}>
         ✕

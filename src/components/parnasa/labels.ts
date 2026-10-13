@@ -50,8 +50,8 @@ export const PR_PRAYERS: readonly string[] = ['שחרית', 'מנחה', 'מער�
 export const PR_PRICE_LABELS: ReadonlyArray<readonly [PrPriceKey, string, string]> = [
   ['featured', 'כרטיס מודגש', 'לחודש'],
   ['sponsor', 'חסות על שער', 'לחודש'],
-  ['board', 'שורת חסות בלוח הקהילה', 'לחודש'],
-  ['dedication', 'הקדשה', 'לחודש'],
+  ['board', 'חסות על דף הבית', 'לחודש'],
+  ['dedication', 'הקדשה בראש האלפון', 'לחודש'],
   ['job', 'משרה מקודמת', 'לפרסום'],
   ['full', 'מודעה בחוברת: עמוד שלם', 'לחוברת'],
   ['half', 'מודעה בחוברת: חצי עמוד', 'לחוברת'],
@@ -98,7 +98,7 @@ export function agoText(iso: string, nowMs: number): string {
 
 /** רבים למונח בנקבה ("בקשה" ⇒ "בקשות", "מודעה" ⇒ "מודעות"); מונח אחר — כמות-שהוא. */
 export function pluralOf(w: string): string {
-  return /ה$/.test(w) ? w.slice(0, -1) + 'ות' : w;
+  return w.endsWith('ה') ? w.slice(0, -1) + 'ות' : w;
 }
 
 /** dd/mm מתאריך ISO. */

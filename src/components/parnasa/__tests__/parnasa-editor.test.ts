@@ -353,7 +353,8 @@ describe('📒 (ה) הגנות-מקור', () => {
   it('הטיוטה שורדת מעבר-לשונית (במקור הטופס נשאר בדף) ונשמרת במיזוג מול הרשומה החיה', () => {
     for (const k of ['d', 'sched', 'wa', 'consent', 'open', 'saved']) expect(editorSrc, k).toMatch(new RegExp("useKept<[^(]+>\\(mk \\+ '" + k + "'"));
     expect(editorSrc).toContain('upsertPrListing(live ? rebaseDraft(cur, saved, live) : cur)');
-    expect(editorSrc).toMatch(/\{dirty \? \(\s*<button className="pn-btn" type="button" onClick=\{revert\}>\s*ביטול עריכה/); // "ביטול עריכה" של המקור
+    // "ביטול עריכה" של המקור: זורק את השינויים (revert); ב"ניהול" (onCancel) — גם חוזר לטופס ריק (resetAdm)
+    expect(editorSrc).toMatch(/\{dirty \|\| props\.onCancel \? \(\s*<button\s+className="pn-btn"\s+type="button"\s+onClick=\{\(\) => \{\s*revert\(\);\s*props\.onCancel\?\.\(\);\s*\}\}\s*>\s*ביטול עריכה/);
     expect(meSrc).toContain('memKey={edKey}');
     expect(meSrc).toContain("useRemembered('parnasa.me.newN', 0)");
     expect(meSrc).toContain('forgetEditorDraft(lastEdKey)');

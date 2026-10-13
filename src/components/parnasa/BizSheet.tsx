@@ -120,6 +120,8 @@ export interface BizActs {
   edit: () => void;
   /** יש לאן לערוך (לשונית "העסק שלי" דלוקה). */
   canEdit: boolean;
+  /** "הדגשה" ⇒ ניהול · הכנסות עם טופס-ההדגשה ממולא (featGo במקור); null ⇒ שדות-הגבאי בעורך. */
+  feature: (() => void) | null;
   respond: (id: string, quiet: boolean) => void;
   decide: (status: 'approved' | 'rejected') => void;
   del: () => void;
@@ -136,6 +138,7 @@ const NO_ACTS: BizActs = {
   env: () => {},
   edit: () => {},
   canEdit: false,
+  feature: null,
   respond: () => {},
   decide: () => {},
   del: () => {},
@@ -587,8 +590,8 @@ export function BizBody(props: { l: PrListing; qtext: string; ctx: BizCtx; prev?
               <Ic n="copy" />
               העתקת הפרטים כטקסט
             </button>
-            {canApprove && a.canEdit ? (
-              <button className="pn-btn pn-ghost2" type="button" onClick={a.edit}>
+            {canApprove && (a.feature || a.canEdit) ? (
+              <button className="pn-btn pn-ghost2" type="button" onClick={a.feature ?? a.edit}>
                 <Crown style={{ width: 18, height: 12 }} />
                 {feat ? 'ניהול ההדגשה' : 'הדגשה'}
               </button>
@@ -625,7 +628,16 @@ export function BizBody(props: { l: PrListing; qtext: string; ctx: BizCtx; prev?
   );
 }
 
-export function BizSheet(props: { id?: string; draft?: PrListing; qtext: string; ctx: BizCtx; onClose: () => void; onOpen: (id: string) => void; onEdit?: (id: string) => void }) {
+export function BizSheet(props: {
+  id?: string;
+  draft?: PrListing;
+  qtext: string;
+  ctx: BizCtx;
+  onClose: () => void;
+  onOpen: (id: string) => void;
+  onEdit?: (id: string) => void;
+  onFeature?: (id: string) => void;
+}) {
   const stored = useApp((s) => (props.id ? (s.db.prListings.find((x) => x.id === props.id) ?? null) : null));
   const l = props.draft ?? stored;
   // העסק נמחק בזמן שהגיליון פתוח ⇒ סוגרים
@@ -633,10 +645,19 @@ export function BizSheet(props: { id?: string; draft?: PrListing; qtext: string;
     if (!l) props.onClose();
   });
   if (!l) return null;
-  return <BizSheetInner key="sheet" l={l} prev={!!props.draft} qtext={props.draft ? '' : props.qtext} ctx={props.ctx} onClose={props.onClose} onOpen={props.onOpen} onEdit={props.onEdit} />;
+  return <BizSheetInner key="sheet" l={l} prev={!!props.draft} qtext={props.draft ? '' : props.qtext} ctx={props.ctx} onClose={props.onClose} onOpen={props.onOpen} onEdit={props.onEdit} onFeature={props.onFeature} />;
 }
 
-function BizSheetInner(props: { l: PrListing; prev: boolean; qtext: string; ctx: BizCtx; onClose: () => void; onOpen: (id: string) => void; onEdit?: (id: string) => void }) {
+function BizSheetInner(props: {
+  l: PrListing;
+  prev: boolean;
+  qtext: string;
+  ctx: BizCtx;
+  onClose: () => void;
+  onOpen: (id: string) => void;
+  onEdit?: (id: string) => void;
+  onFeature?: (id: string) => void;
+}) {
   const { l, ctx, prev } = props;
   const config = useApp((s) => s.config);
   const listings = useApp((s) => s.db.prListings);
@@ -771,6 +792,7 @@ function BizSheetInner(props: { l: PrListing; prev: boolean; qtext: string; ctx:
     env: () => setEnv(true),
     edit: () => props.onEdit?.(l.id),
     canEdit: !!props.onEdit,
+    feature: props.onFeature ? () => props.onFeature?.(l.id) : null,
     respond: (id, quiet) => setRespondTo({ id, quiet }),
     decide,
     del,

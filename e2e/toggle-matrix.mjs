@@ -645,15 +645,18 @@ for (const profile of PROFILES) {
   t('📌 לוח המודעות — לבד, שלט, ופתקי-הדוגמה של המקור כשאין מודעות', (await page.locator('main .pl-plaque').count()) === 1 && (await page.locator('main .pl-notes .pl-note').count()) === 8 && (await page.locator('main .pl-exb').count()) === 1);
   await page.locator('main .pl-seg button', { hasText: 'לוח הזמנים' }).click();
 
-  // אשכול 8 · 📖 החוברת יורדת כקובץ HTML (שער יציאת-המידע פתוח) — העסק וקוד-החיוג מודפסים
+  // אשכול 8 · 📖 החוברת יורדת כקובץ HTML (שער יציאת-המידע פתוח) — העסק וקוד-החיוג מודפסים. עיצוב 6: "הפקת חוברת
+  //    להדפסה" של המקור (כריכה-זעירה + קווי-נקודות), והכריכה עם סמל-הפושקע הווקטורי שנטען בצ'אנק עצל
   await prSeg('מודעות וחוברת');
   await page.waitForTimeout(250);
-  const [dl] = await Promise.all([page.waitForEvent('download'), page.locator('main button', { hasText: '⬇ הורדת החוברת' }).click()]);
+  t('📖 "חוברת להדפסה" של המקור — כריכה-זעירה ותוכן-עניינים בקווי-נקודות', (await page.locator('main .pn-bk .pn-mini').count()) === 1 && (await page.locator('main .pn-toc .pn-dots').count()) >= 5);
+  await page.waitForTimeout(400); // הסמל נטען עצל עם פתיחת האזור
+  const [dl] = await Promise.all([page.waitForEvent('download'), page.locator('main button', { hasText: 'הפקת חוברת להדפסה' }).click()]);
   const dlPath = await dl.path();
   const bookletTxt = dlPath ? readFileSync(dlPath, 'utf8') : '';
   t(
-    '📖 חוברת ירדה כקובץ HTML — העסק + קוד-חיוג 101, בלי סקריפט',
-    dl.suggestedFilename().startsWith('parnasa-booklet-') && bookletTxt.includes('אינסטלציה-מטריצה') && bookletTxt.includes('☎ קוד 101') && !bookletTxt.includes('<script'),
+    '📖 חוברת ירדה כקובץ HTML — העסק + קוד-חיוג 101, כריכת המקור עם הסמל, בלי סקריפט ובלי כתובת-רשת',
+    dl.suggestedFilename().startsWith('parnasa-booklet-') && bookletTxt.includes('אינסטלציה-מטריצה') && bookletTxt.includes('☎ קוד 101') && bookletTxt.includes('<div class="frame"><svg class="mk"') && !bookletTxt.includes('<script') && !/https?:\/\//.test(bookletTxt),
   );
 
   // אשכול 6ב · 📞 הקו — סימולטור, לא קו חי: 1 ⇒ תחומי-המקצוע · "אמרו משהו" ⇒ צומת-אישור, לעולם לא חיבור
@@ -691,17 +694,42 @@ for (const profile of PROFILES) {
     sdl.suggestedFilename().startsWith('parnasa-line-script-') && scriptTxt.includes('תסריט הקריינות') && scriptTxt.includes('אינסטלציה-מטריצה') && scriptTxt.includes('הקוד בקו: אחת אפס אחת'),
   );
 
-  // אשכול 8 · 📣 פרסומת ⇒ סימון-תשלום ידני (רישום בלבד, אפס קבלות)
-  await prSeg('הכנסות');
+  // אשכול 8 · 📣 מודעה בחוברת ⇒ סימון-תשלום ידני (רישום בלבד, אפס קבלות). עיצוב 6: הטופס של המקור בתוך הדף
+  await prSeg('מודעות וחוברת');
   await page.waitForTimeout(250);
-  await page.locator('main button', { hasText: '➕ הוספת פרסומת' }).click();
-  await page.locator('.modal input').first().fill('מפרסם-מטריצה');
-  await page.locator('.modal button', { hasText: 'שמירה' }).first().click();
+  await page.locator('main .pn-adForm input[type=text]').first().fill('מפרסם-מטריצה');
+  await page.locator('main .pn-adForm button[type=submit]').click();
   await page.waitForTimeout(300);
-  await page.locator('main button', { hasText: '✓ סימון כשולם' }).first().click();
+  await page.locator('main .pn-ritem', { hasText: 'מפרסם-מטריצה' }).locator('button', { hasText: 'סימון כשולם' }).click();
   await page.waitForTimeout(300);
   prMain = (await page.locator('main').textContent()) ?? '';
-  t('📣 פרסומת נשמרה וסומנה כשולמה (הפנקס מתעדכן)', prMain.includes('מפרסם-מטריצה') && prMain.includes('ביטול סימון התשלום') && prMain.includes('נגבה'));
+  t('📣 מודעה נשמרה (הטופס בדף) וסומנה כשולמה — אריחי-הסיכום מתעדכנים', prMain.includes('מפרסם-מטריצה') && prMain.includes('ביטול סימון התשלום') && prMain.includes('נגבה'));
+  // עיצוב 6 · ⭐ "כרטיסים מודגשים": הטופס של המקור ⇒ הכרטיס מודגש "עד שיבוטל", ההכנסה החודשית עולה
+  await prSeg('הכנסות');
+  await page.waitForTimeout(300);
+  t('💰 "הכנסות" של המקור — 4 אריחים (הקטיפה ראשונה) ופנקס עם "סה״כ לחודש"', (await page.locator('main .pn-kpis .pn-kpi').count()) === 4 && (await page.locator('main .pn-kpi.pn-lead').count()) === 1 && (await page.locator('main .pn-lg-row.pn-sum').count()) === 1);
+  const ftSel = page.locator('main .pn-ftForm select');
+  const ftOpt = await ftSel.locator('option', { hasText: 'אינסטלציה-מטריצה' }).first().getAttribute('value');
+  await ftSel.selectOption(ftOpt ?? '');
+  await page.locator('main .pn-ftForm button[type=submit]').click();
+  await page.waitForTimeout(400);
+  const ftItem = (await page.locator('main .pn-ritem', { hasText: 'אינסטלציה-מטריצה' }).first().textContent().catch(() => '')) ?? '';
+  t('⭐ "הדגשת הכרטיס" ⇒ ברשימת המודגשים "עד שיבוטל", ו"כרטיסים מודגשים" בפנקס', ftItem.includes('עד שיבוטל') && ((await page.locator('main .pn-lg-row', { hasText: 'כרטיסים מודגשים' }).textContent()) ?? '').includes('כרטיס אחד פעיל'));
+  // עיצוב 6 · 🪙 "חסויות": שורת מטבע-הפלטינה ⇒ הטופס נפתח מתחתיה ⇒ "בחסות …"
+  await prSeg('חסויות');
+  await page.waitForTimeout(300);
+  t('👑 "חסויות" של המקור — דף הבית, מטבע הפלטינה ו-15 השערים', (await page.locator('main .pn-sprow').count()) === 17);
+  await page.locator('main .pn-sprow[data-cat="coin"] .pn-end button', { hasText: 'הגדרה' }).click();
+  await page.waitForTimeout(300);
+  await page.locator('main .pn-spForm input[type=text]').first().fill('מטבע-מטריצה');
+  await page.locator('main .pn-spForm select').selectOption('elec');
+  await page.locator('main .pn-spForm button[type=submit]').click();
+  await page.waitForTimeout(400);
+  t('🪙 מטבע הפלטינה בחסות (הטופס נסגר, השורה מציגה את נותן החסות)', (await page.locator('main .pn-spForm').count()) === 0 && ((await page.locator('main .pn-sprow[data-cat="coin"]').textContent()) ?? '').includes('בחסות מטבע-מטריצה'));
+  // עיצוב 6 · ✅ "אישורים": כרטיסי-הניהול + "הוספת איש מקצוע ידנית" עם אותו עורך
+  await prSeg('אישורים');
+  await page.waitForTimeout(300);
+  t('✅ "אישורים" של המקור — "הוספת איש מקצוע ידנית" עם עורך-הדף, ו"כרטיסים מוסתרים"', (await page.locator('main .pn-admForm form.pn-ed').count()) === 1 && ((await page.locator('main').textContent()) ?? '').includes('כרטיסים מוסתרים'));
 
   // אשכול 7 · 🔎 פלטת-החיפוש: עסק כתוצאת-ישות (שם · מקצוע · ☎ קוד) ⇒ Enter ⇒ כרטיס-העסק נפתח במדריך — גם כשהמסך
   //    עולה מחדש (יוצאים קודם הביתה): בקשה חוצה-מסכים בלי store (paletteLink)

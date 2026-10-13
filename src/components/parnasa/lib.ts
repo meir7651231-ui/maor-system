@@ -772,21 +772,21 @@ export function inMinsText(ms: number): string {
   return m < 60 ? m + ' דקות' : r < 5 ? H : H + ' ו־' + r + ' דקות';
 }
 
-/** שורת-המסלול למבקש/לגבאי (נוסח המקור, "מדריך" במקום "אלפון"). */
+/** שורת-המסלול למבקש/לגבאי (נוסח המקור, מילה-במילה). */
 export function routeSummary(route: PrRoute, r: PrRequest): string {
   const n = route.recipients.length;
   switch (route.stage) {
     case 'closed':
       return 'הבקשה נסגרה';
     case 'gabbai':
-      return 'בקשה בשקט · אין עדיין עסק בתחום במדריך, הגבאי יכוון אותך באופן אישי';
+      return 'בקשה בשקט · אין עדיין עסק בתחום באלפון, הגבאי יכוון אותך באופן אישי';
     case 'biz':
       if (r.quiet) return 'בקשה בשקט · נשלחה רק ל־' + n + ' עסקים בתחום, בלי השם שלך · לא תפורסם בלוח ולא תעבור לקהילה';
       if (Array.isArray(r.responses) && r.responses.length) return r.responses.length + ' עסקים זמינים לבקשה הזו';
       return 'נשלחה ל־' + n + ' עסקים בתחום · אם אף אחד לא יענה, תעבור לכל הקהילה בעוד ' + inMinsText(route.msLeft);
     default:
       if (r.job || !r.category) return 'פתוחה לכל הקהילה';
-      return n ? 'פתוחה לכל הקהילה · העסקים בתחום לא ענו בזמן' : 'פתוחה לכל הקהילה · אין עדיין עסק בתחום הזה במדריך';
+      return n ? 'פתוחה לכל הקהילה · העסקים בתחום לא ענו בזמן' : 'פתוחה לכל הקהילה · אין עדיין עסק בתחום הזה באלפון';
   }
 }
 

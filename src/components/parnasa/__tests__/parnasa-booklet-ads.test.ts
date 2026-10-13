@@ -28,6 +28,7 @@ import { clockAt, makeClosureFn, resolveZmanimLoc } from '../zmanimBoard';
 import type { PrNow } from '../hooks';
 import bookletTabSrc from '../BookletTab.tsx?raw';
 import adsTabSrc from '../AdsTab.tsx?raw';
+import adminSrc from '../admin.ts?raw';
 import exportDocSrc from '../exportDoc.ts?raw';
 
 const TODAY = '2026-10-14';
@@ -163,7 +164,9 @@ describe('💳 (ד) תשלום = קישור-סליקה בלבד', () => {
     expect(adsTabSrc).toContain("const payUrl = integrationOn(config, 'payments') ? integrationSetting(config, 'payments', 'payUrl') : '';");
     expect(adsTabSrc).toContain('const href = payUrl && !a.paid && a.price > 0 ? adPayLink(a, payUrl) : null;');
     expect(adsTabSrc).toContain('adRotation(');
-    expect(adsTabSrc).toContain('adsLedger(');
+    // עיצוב 6: הפנקס ("ממתין לגבייה") מהמנוע — revenueOf (admin.ts) על adsLedger
+    expect(adsTabSrc).toContain('revenueOf(');
+    expect(adminSrc).toContain('adsLedger(snap.ads, todayIso).due');
     expect(adsTabSrc).toContain('אינו מנפיק קבלה');
   });
 });
@@ -220,8 +223,8 @@ describe('📣 (ה) התצוגה', () => {
     const off = renderToStaticMarkup(createElement(AdsTab, { now }));
     expect(off).toContain('ממתין לגבייה');
     expect(off).toContain('1,500 ₪'); // לוח 300 + חוברת 1200 שלא שולמו
-    expect(off).toContain('מאפיית השכונה'); // התורנית בלוח
-    expect(off).toContain('בחסות חשמל אור הגנוז');
+    expect(off).toContain('בחסות <strong>מאפיית השכונה</strong>'); // התורנית בדף הבית (ובלוח)
+    expect(off).toContain('בחסות <strong>חשמל אור הגנוז</strong>');
     expect(off).toContain('פנוי לחסות');
     expect(off).not.toContain('💳 קישור-תשלום'); // הרחבת התשלומים כבויה
     setup(ON({}, { integrations: { payments: { enabled: true, payUrl: 'https://pay.example.org/kehila' } } } as Partial<OrgConfig>), { prAds: ADS, prListings: [L({})] });
@@ -248,7 +251,7 @@ describe('📣 (ה) התצוגה', () => {
     setup(ON(), { prAds: ADS, prListings: [L({})] });
     const html = renderToStaticMarkup(createElement(BookletTab, { now }));
     expect(html).toContain('🖨 הדפסה / שמירה כ-PDF');
-    expect(html).toContain('⬇ הורדת החוברת (קובץ HTML)');
+    expect(html).toContain('הפקת חוברת להדפסה'); // המקור: קובץ ‎.html לבית-הדפוס
     setup(ON({ 'parnasa.export': false }), { prAds: ADS, prListings: [L({})] });
     const off = renderToStaticMarkup(createElement(BookletTab, { now }));
     expect(off).not.toContain('🖨 הדפסה');

@@ -233,7 +233,7 @@ describe('📒 (ד) מוסכמות-הממשק', () => {
     expect(src('MeTab')).toMatch(/➕ הוספת \{termOf\(config, 'entity\.prListing', 'עסק'\)\}/);
     expect(src('RequestsTab')).toMatch(/➕ הוספת \{termOf\(config, 'entity\.prRequest', 'בקשה'\)\}/);
     expect(src('BoardTab')).toMatch(/➕ הוספת \{termOf\(config, 'entity\.prPost', 'מודעה'\)\}/);
-    expect(src('AdsTab')).toMatch(/➕ הוספת \{termOf\(config, 'entity\.prAd', 'פרסומת'\)\}/);
+    expect(src('AdForm')).toMatch(/➕ הוספת \{termOf\(config, 'entity\.prAd', 'פרסומת'\)\}/); // עיצוב 6: הטופס בתוך הדף
   });
 
   it('רשימות: זיכרון-סינון (useRemembered) + חזרה-למקום מהכרטיס (useListScrollRestore)', () => {
@@ -325,7 +325,10 @@ describe('📒 עשן-רינדור לכל לשונית (נתונים אמיתי�
     setup(ON(), DATA);
     const html = render(createElement(CareTab, { now, onJump: noop, canJump: () => true }));
     expect(html).toContain('גינון עדן');
-    expect(html).toContain('✓ אישור');
+    // עיצוב 6: כרטיס-הניהול של המקור (acard) — "אישור" עם ✓ של המקור, "הסתרה", "מחיקה"
+    expect(html).toMatch(/<article class="pn-acard"><div class="pn-row1">/);
+    expect(html).toMatch(/<button class="pn-btn pn-primary" type="button"><svg[^>]*><use href="#pn-i-check"><\/use><\/svg>אישור<\/button>/);
+    expect(html).toContain('>הסתרה</button>');
     expect(html).not.toContain('רחל');
   });
 
@@ -411,16 +414,16 @@ describe('📒 עשן-רינדור לכל לשונית (נתונים אמיתי�
     setup(ON(), DATA);
     const html = render(createElement(BookletTab, { now }));
     expect(html).toContain('מפתח המקצועות');
-    expect(html).toContain('אנשי מקצוע');
+    expect(html).toContain('<span>שער אחד · איש מקצוע אחד</span>'); // pl() של המקור — יחיד
     expect(html).toContain('עמודי A5');
-    expect(html).toContain('בחסות חשמל אור הגנוז');
+    expect(html).toContain('<span>מספרי חירום</span><span class="pn-dots"></span><b>עמוד אחד</b>'); // תוספת-הפורט בקווי-הנקודות
   });
 
   it('📣 פרסומות: חסות-שער ברשימה, מחיר וסטטוס-תשלום', () => {
     setup(ON(), DATA);
     const html = render(createElement(AdsTab, { now }));
     expect(html).toContain('חשמל אור הגנוז');
-    expect(html).toContain('לא שולם');
+    expect(html).toContain('טרם שולם');
   });
 
   it('⚙ הגדרות: שם-קהילה, אישור, מחירון ומיקום-הזמנים', () => {

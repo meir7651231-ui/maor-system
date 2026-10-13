@@ -2,11 +2,13 @@
  * 📒 פרנסה׳לע — חוברת A5 להדפסה / "שמירה כ-PDF" (אשכול 3 · טהור: מחזיר מחרוזת בלבד, כמו
  * receiptHtml; ההדפסה/ההורדה — דרך iframe נסתר / downloadTextFile עם guardExport אצל הקורא).
  *
- * המבנה (מהמקור, §6): כריכה · הקדשה (אופציונלית) · מפתח-המקצועות · מדריך בשני טורים לפי שער
- * (מודגשים ראשונים, **קוד-חיוג בן 3 ספרות ליד כל עסק** — הפער שהמקור סימן) · דף מספרי-חירום ·
- * זמני השבוע · דפי-מודעות (עמוד/חצי/קטנה + "מקום פנוי") · סוף-דבר.
- * 🛡 כל טקסט-משתמש עובר escHtml (גם " ו-') — אין סקריפט, אין קישור חיצוני, אין גופן-רשת.
- * רק עסקים **מאושרים**; הערה-פנימית ובקשות-תושבים לעולם לא נכנסות לחוברת.
+ * עיצוב 6: העיצוב של חוברת המקור (BOOK_CSS / bookletHTML) — כריכת סאטן בורדו עם מסגרת-קשת כפולה מזהב, סמל-הפושקע
+ * הווקטורי (opts.mark — נטען עצל), סימן-המילה עם גרש-יהלום, "ספר המקצועות של הקהילה", הפסוק, לוחית "שנת …" ושוליית-
+ * זהב · דף-הקדשה עם כתר ומסגרת-קשת · "מפתח המקצועות" בקווי-נקודות · המדריך בשני טורים עם כותרת-שער "שער ב׳",
+ * רצועת-חסות, כרטיס מודגש במסגרת כפולה עם "מומלץ" · דפי-מודעות במסגרת כפולה (מקום פנוי מאוחד) · "תם ונשלם".
+ * תוספות-הפורט נשמרות באותה שפה: **קוד-חיוג בן 3 ספרות ליד כל עסק**, דף מספרי-חירום, זמני השבוע, השגחה/מתאים.
+ * 🛡 כל טקסט-משתמש עובר escHtml (גם " ו-') — אין סקריפט, אין קישור חיצוני, אין גופן-רשת (משפחות-גופן עם נפילה
+ * לגופני-המערכת). רק עסקים **מאושרים**; הערה-פנימית ובקשות-תושבים לעולם לא נכנסות לחוברת.
  */
 import type { IsoDate, ParnasaPrefs, PrAd, PrListing, PrPost } from '../../types/domain';
 import { approvedListings, categoryOf, groupByCategory, hoursText, isFeatured, PR_AUD_NAMES, PR_MARK_LABELS, activeAds } from './lib';
@@ -50,6 +52,8 @@ export interface PrBookletOpts {
   zmanimDays?: number;
   /** תחילת טבלת-הזמנים (ברירת todayIso). */
   zmanimFrom?: IsoDate;
+  /** סמל-הפושקע לכריכה (PN_BOOK_MARK — SVG סטטי שנטען עצל); חסר ⇒ כריכה בלי הסמל. */
+  mark?: string;
 }
 
 export interface PrBookletGate {
@@ -69,6 +73,9 @@ export interface PrBookletPlan {
   hasZmanim: boolean;
   /** הערכת עמודי-A5 (נוסחת המקור + דף-חירום + דף-זמנים). */
   pages: number;
+  /** עמודי-המדריך (שני טורים — הערכת המקור) ועמודי-המודעות (שלם · 2 חצאים · 6 קטנות לעמוד). */
+  dirPages: number;
+  adPages: number;
   /** כמה עמודי-מודעה שלמים עוד נכנסים עד כפולה של 4 (חוברת מקופלת). */
   spareFullPages: number;
 }
@@ -105,46 +112,155 @@ export function bookletPlan(snap: PrBookletSnapshot, opts: PrBookletOpts): PrBoo
   const directory = Math.max(1, Math.ceil((listings * 25 + gates.length * 22) / (2 * 176)));
   const adPages = full.length + Math.ceil(half.length / 2) + Math.ceil(small.length / 6);
   const pages = 1 + (hasDedication ? 1 : 0) + 1 + directory + 1 + (hasZmanim ? 1 : 0) + adPages + 1;
-  return { gates, listings, ads: { full, half, small }, hasDedication, hasZmanim, pages, spareFullPages: (4 - (pages % 4)) % 4 };
+  return { gates, listings, ads: { full, half, small }, hasDedication, hasZmanim, pages, dirPages: directory, adPages, spareFullPages: (4 - (pages % 4)) % 4 };
 }
 
+const SERIF = '"Frank Ruhl Libre","David","Times New Roman",serif';
+const RASHI = '"Noto Rashi Hebrew","Frank Ruhl Libre","David",serif';
+const SANS = 'Assistant,"Noto Sans Hebrew",Arial,sans-serif';
+
+/** BOOK_CSS של המקור (גופני-הרשת הוחלפו בנפילה לגופני-המערכת) + תוספות-הפורט (קוד-חיוג · חירום · זמנים). */
 const CSS = [
-  '@page{size:A5;margin:14mm 12mm 16mm;@bottom-center{content:counter(page,hebrew);font-size:9pt;color:#555}}',
-  '@page plain{@bottom-center{content:none}}',
+  '@page{size:A5;margin:14mm 12mm 16mm;@bottom-center{content:counter(page,hebrew);font-family:' + SERIF + ';font-size:9pt;color:#555}}',
+  '@page cover{margin:0;@bottom-center{content:none}}',
+  '@page bare{@bottom-center{content:none}}',
   '*{box-sizing:border-box}',
-  'body{margin:0;direction:rtl;color:#1b1b1b;font-family:"Assistant","Arial","Noto Sans Hebrew",sans-serif;font-size:10pt;line-height:1.45}',
-  'h1,h2,h3,.serif{font-family:"Frank Ruhl Libre","David","Times New Roman",serif}',
-  '.bar{position:sticky;top:0;z-index:2;background:#fff8e1;border-bottom:1px solid #e0c97a;padding:6px 12px;font-size:12px}',
-  '@media print{.bar{display:none}}',
-  '.page{break-after:page;page-break-after:always}',
-  '.plain{page:plain}',
-  '.cover{min-height:180mm;text-align:center;padding:20mm 8mm;background:#4d0a1c;color:#f3e3b5;-webkit-print-color-adjust:exact;print-color-adjust:exact}',
-  'body.ink .cover{background:#fff;color:#111;border:1px solid #111}',
-  '.cover .bh{text-align:right;font-size:10pt}.cover .eyebrow{letter-spacing:.06em;font-size:10pt;margin-top:14mm}',
-  '.cover h1{font-size:30pt;margin:6mm 0 2mm}.cover .tag{font-size:11pt;opacity:.9}.cover .comm{font-size:16pt;margin:10mm 0 4mm}',
-  '.cover .verse{font-size:12pt;margin-top:14mm}.cover .src{font-size:9pt;opacity:.85}.cover .year{margin-top:8mm;font-size:12pt}',
-  '.rule{border:0;border-top:1px solid currentColor;width:40%;margin:6mm auto;opacity:.6}',
-  '.dedication{text-align:center;padding-top:40mm;font-size:14pt}.dedication .crown{font-size:22pt}',
-  '.index table,.zmanim table{width:100%;border-collapse:collapse}',
-  '.index td{padding:1.4mm 0;border-bottom:1px dotted #999}.index td.n{width:12mm;font-weight:700}.index td.c{width:16mm;text-align:left}',
-  '.index .sp{font-size:8.5pt;color:#7a5b12}',
-  '.dir{column-count:2;column-gap:6mm;column-rule:1px solid #ccc}',
-  '.gate-h{break-after:avoid;margin:3mm 0 2mm;padding:1mm 2mm;background:#f1e6cc;font-weight:700;-webkit-print-color-adjust:exact;print-color-adjust:exact}',
-  '.sponsor{break-inside:avoid;font-size:8.5pt;border:1px dashed #b08d2e;padding:1mm 2mm;margin-bottom:2mm}',
-  '.entry{break-inside:avoid;margin:0 0 3mm}.entry.feat{border:1px solid #b08d2e;padding:1.5mm 2mm}',
-  '.entry .nm{font-weight:700}.entry .seal{font-size:8pt;color:#7a5b12;margin-inline-start:2mm}',
-  '.entry .ti{font-size:9pt}.entry .ph{font-size:11.5pt;font-weight:700}.entry .code{font-size:8.5pt;font-weight:400;border:1px solid #999;border-radius:3px;padding:0 1mm;margin-inline-start:2mm}',
-  '.entry .meta,.entry .marks{font-size:8.5pt;color:#444}',
-  '.empty{text-align:center;color:#666;padding:10mm 0}',
-  '.emergency li{font-size:12pt;margin:2mm 0}.emergency .ph{font-weight:700}',
-  '.zmanim th,.zmanim td{border-bottom:1px solid #ddd;padding:1mm .5mm;text-align:center;font-size:8.5pt}.zmanim .note{font-size:8pt;color:#555;margin-top:3mm}',
-  '.adpage{display:grid;gap:4mm;min-height:170mm}.adpage.full{grid-template-rows:1fr}.adpage.half{grid-template-rows:1fr 1fr}.adpage.small{grid-template-columns:1fr 1fr;grid-template-rows:repeat(3,1fr)}',
-  '.ad{border:1px solid #888;padding:3mm;overflow:hidden}.ad h3{margin:0 0 2mm}.ad .body{white-space:pre-line}.ad .by{font-size:8pt;color:#555;margin-top:2mm}',
-  '.ad.vacant{border-style:dashed;color:#777;text-align:center;display:flex;flex-direction:column;justify-content:center}',
-  '.end{text-align:center;padding-top:30mm}.end .disc{font-size:8.5pt;color:#555;margin-top:10mm}',
+  '[hidden]{display:none!important}',
+  'html{-webkit-print-color-adjust:exact;print-color-adjust:exact}',
+  'body{margin:0;direction:rtl;font-family:' + SANS + ';color:#16161a;font-size:9pt;line-height:1.4}',
+  'h1,h2,h3{margin:0;font-family:' + SERIF + '}',
+  '.ltr{direction:ltr;unicode-bidi:isolate;display:inline-block}',
+  '.rule{display:block;width:58mm;height:4mm;color:#b8862e;margin:0 auto}',
+  '.cover{page:cover;position:relative;width:148mm;height:209.5mm;overflow:hidden;color:#f6e6c4;background:radial-gradient(90% 55% at 50% 30%,rgba(255,170,120,.2) 0%,transparent 62%),linear-gradient(104deg,transparent 20%,rgba(255,214,226,.07) 32%,transparent 44%,transparent 60%,rgba(255,214,226,.09) 70%,transparent 80%),linear-gradient(180deg,#4d0a1c 0%,#6e1430 46%,#2a050f 100%);break-after:page}',
+  '.cover .bh{position:absolute;top:6mm;right:9mm;font:700 10pt ' + SERIF + ';color:#e3c06e}',
+  '.cover .frame{position:absolute;inset:13mm 12mm 20mm;border:1.2pt solid #c99536;outline:.6pt solid #c99536;outline-offset:2mm;border-radius:62mm 62mm 3mm 3mm/36mm 36mm 3mm 3mm;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:2.6mm;padding:10mm 7mm 7mm;background:radial-gradient(80% 60% at 50% 40%,rgba(20,2,8,.35),transparent 70%)}',
+  '.cover .mk{width:44mm;height:55mm;filter:drop-shadow(0 2mm 3mm rgba(0,0,0,.45))}',
+  '.gm{display:inline-block;width:.2em;height:.32em;margin:0 .05em 0 .04em;vertical-align:.42em;fill:#f6d585;filter:drop-shadow(0 0 .6mm rgba(255,200,95,.95))}',
+  '.cover .eyebrow{font-weight:700;font-size:8.5pt;letter-spacing:.14em;color:#e3c06e}',
+  '.cover h1{font-size:44pt;font-weight:900;line-height:1;white-space:nowrap;background:linear-gradient(180deg,#fff6d6 0%,#f4d27c 40%,#bd8529 64%,#f2d58a 84%,#a06d1e 100%);-webkit-background-clip:text;background-clip:text;color:transparent;padding-bottom:1mm}',
+  '.cover .tag{font:600 9.5pt ' + SANS + ';letter-spacing:.06em;color:#f3dcae;margin-top:-1.4mm}',
+  '.cover .comm{font:700 14pt/1.25 ' + SERIF + ';text-wrap:balance}',
+  '.cover .rule{color:#e3c06e}',
+  '.cover .verse{font-family:' + RASHI + ';font-size:10.5pt;opacity:.92}',
+  '.cover .verse cite{display:block;font:normal 7pt ' + SANS + ';letter-spacing:.04em;color:#e3c06e;margin-top:1mm}',
+  '.cover .year{margin-top:3mm;font:700 12pt ' + SERIF + ';color:#e3c06e;letter-spacing:.06em;border-block:.6pt solid #c99536;padding:1mm 7mm}',
+  '.cover .fringe{position:absolute;inset-inline:0;bottom:9mm;height:.7mm;background:linear-gradient(90deg,#6b4512,#e2b65a 18%,#fff1c2 50%,#e2b65a 82%,#6b4512);box-shadow:0 0 3mm .6mm rgba(240,186,90,.45)}',
+  '.ink .cover{background:#fff;color:#111}',
+  '.ink .cover .frame{border-color:#111;outline-color:#111;background:none}',
+  '.ink .cover h1{background:none;color:#111}',
+  '.ink .cover .mk{filter:grayscale(1) contrast(1.05) brightness(1.15)}',
+  '.ink .gm{fill:#111;filter:none}',
+  '.ink .cover .eyebrow,.ink .cover .year,.ink .cover .bh,.ink .cover .verse cite,.ink .cover .rule,.ink .cover .tag{color:#111}',
+  '.ink .cover .year{border-color:#111}',
+  '.ink .cover .fringe{background:#111;box-shadow:none;height:.4mm}',
+  '.pg{break-before:page}',
+  '.fixed{height:179mm;overflow:hidden;display:flex;flex-direction:column}',
+  '.ded,.end{page:bare;justify-content:center;align-items:center;text-align:center}',
+  '.ded .dd{width:100%;min-height:150mm;justify-content:center;border:1pt solid #8a6416;outline:.5pt solid #8a6416;outline-offset:1.6mm;border-radius:46mm 46mm 2mm 2mm/26mm 26mm 2mm 2mm;padding:22mm 10mm 16mm;display:flex;flex-direction:column;align-items:center;gap:6mm}',
+  '.ded .sc{width:13mm;height:9mm;color:#8a6416}',
+  '.ded .dt{font:700 15pt/1.55 ' + SERIF + ';text-wrap:balance}',
+  '.ded .tz{font:600 11pt ' + RASHI + ';letter-spacing:.24em;color:#8a6416}',
+  '.ttl{text-align:center;margin-bottom:6mm}',
+  '.ttl h2{font-size:21pt;font-weight:900;color:#5b0f22}',
+  '.ttl .s{font-family:' + RASHI + ';font-size:8.5pt;color:#666;margin-top:1mm}',
+  '.ttl .rule{margin-top:2.5mm}',
+  '.ti{display:flex;align-items:baseline;gap:2.5mm;padding:1.7mm 0;font-size:10.5pt;break-inside:avoid}',
+  '.tl{font:900 11pt ' + SERIF + ';color:#8a6416;min-width:7mm}',
+  '.tt{font-weight:700}.tt small{display:block;font-weight:400;font-size:7.5pt;color:#666}',
+  '.td{flex:1;border-bottom:1pt dotted #999;transform:translateY(-1mm);min-width:6mm}',
+  '.tn{font:700 10.5pt ' + SERIF + ';font-variant-numeric:tabular-nums}',
+  '.ti.x .tl{color:#5b0f22}',
+  '.dir .sh{display:flex;align-items:baseline;gap:2.5mm;border-bottom:2.4pt double #8a6416;padding-bottom:1.2mm;margin:7mm 0 2.6mm;break-after:avoid}',
+  '.dir .sh:first-child{margin-top:0}',
+  '.sh .no{font:700 7.5pt ' + SANS + ';letter-spacing:.02em;background:#5b0f22;color:#f6e6c4;padding:.5mm 1.8mm;border-radius:.8mm;white-space:nowrap}',
+  '.sh h2{font-size:14pt;font-weight:900;flex:1}',
+  '.sh .c{font:700 9pt ' + SERIF + ';color:#8a6416}',
+  '.ink .sh .no{background:none;color:#111;border:.6pt solid #111}',
+  '.spn{text-align:center;font-size:8pt;padding:1.3mm 2mm;border-block:.5pt solid #b8862e;margin:0 0 2.8mm;break-after:avoid;background:#fbf6e8}',
+  '.spn .k{font-family:' + RASHI + ';color:#8a6416}',
+  '.spn strong{font-family:' + SERIF + ';font-size:9.5pt}',
+  '.ink .spn{background:none}',
+  '.cols{column-count:2;column-gap:5mm;column-rule:.4pt solid #d6ccb4}',
+  '.e{break-inside:avoid;padding:1.5mm 0 1.7mm;border-bottom:.4pt dotted #b9ae96}',
+  '.en{font:900 10.5pt/1.15 ' + SERIF + '}',
+  '.et{font-size:8.2pt;color:#333}',
+  '.eg{font-family:' + RASHI + ';font-size:8pt;color:#8a6416}',
+  '.ep{font:800 11pt ' + SERIF + ';font-variant-numeric:tabular-nums;letter-spacing:.02em}',
+  '.code{font:700 7pt ' + SANS + ';letter-spacing:0;color:#5b0f22;border:.5pt solid #8a6416;border-radius:.8mm;padding:0 1mm;margin-inline-start:1.6mm;vertical-align:1pt;white-space:nowrap}',
+  '.ink .code{color:#111;border-color:#111}',
+  '.em{font-size:7.4pt;color:#555}',
+  '.marks,.ek{font-size:7pt;font-weight:700;color:#8a6416;margin-top:.4mm}',
+  '.ek .u{direction:ltr;unicode-bidi:isolate;color:#5b0f22}',
+  '.e.f{border:1.8pt double #8a6416;padding:1.6mm 2.2mm 1.8mm;margin:.6mm 0 2mm;background:#fbf6e8;border-radius:.6mm}',
+  '.ink .e.f{background:none;border-color:#111}',
+  '.rec{display:flex;align-items:center;gap:1mm;font:800 7pt ' + SANS + ';letter-spacing:.04em;color:#8a6416}',
+  '.rec svg{width:3.6mm;height:2.4mm}',
+  '.empty{text-align:center;color:#666;padding:20mm 0}',
+  '.adpage{flex:1;display:grid;gap:4mm;min-height:0}',
+  '.adpage.two{grid-template-rows:1fr 1fr}',
+  '.adpage.six{grid-template-columns:1fr 1fr;grid-template-rows:repeat(3,1fr);gap:3mm}',
+  '.ad{border:1.3pt solid #5b0f22;padding:1.6mm;min-height:0;overflow:hidden;display:flex}',
+  '.ad-in{flex:1;border:.5pt solid #8a6416;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:2.6mm;padding:5mm;min-height:0}',
+  '.ad h3{font-weight:900;color:#5b0f22;line-height:1.12;text-wrap:balance}',
+  '.ad p{margin:0;white-space:pre-wrap;text-wrap:balance;line-height:1.45}',
+  '.ad-ph{font-family:' + SERIF + ';font-weight:900;direction:ltr;unicode-bidi:isolate;font-variant-numeric:tabular-nums}',
+  '.ad-by{font-size:.85em;letter-spacing:.03em;color:#8a6416;font-weight:700}',
+  '.full .ad-in{border-width:.8pt;outline:.4pt solid #8a6416;outline-offset:-2.2mm}',
+  '.full h3{font-size:28pt}.full p{font-size:13pt}.full .ad-ph{font-size:22pt}.full .ad-by{font-size:10pt}',
+  '.half h3{font-size:18pt}.half p{font-size:10pt}.half .ad-ph{font-size:15pt}',
+  '.small{padding:1mm}.small .ad-in{padding:2.4mm;gap:1.2mm}.small h3{font-size:11pt}.small p{font-size:7.6pt}.small .ad-ph{font-size:10.5pt}.small .ad-by{font-size:6.5pt}',
+  '.vac{border:.8pt dashed #999}.vac .ad-in{border:0;color:#777}.vac h3{color:#777;font-size:12pt}.vac p{font-size:8.5pt}',
+  '.end .ee{display:flex;flex-direction:column;align-items:center;gap:5mm;max-width:100mm}',
+  '.fin{font:900 17pt/1.4 ' + SERIF + ';color:#5b0f22}',
+  '.end p{margin:0;font-size:9.5pt;line-height:1.6;text-wrap:balance}',
+  '.end b.ltr{font:900 14pt ' + SERIF + '}',
+  '.end .disc{font-size:7.5pt;color:#666}',
+  '.end .hd{font-family:' + RASHI + ';font-size:9pt;color:#8a6416}',
+  '.end .brand{font:900 13pt ' + SERIF + ';color:#5b0f22}.end .brand .gm{fill:#b8862e;filter:none}.end .brand small{display:block;font:600 8pt ' + SANS + ';letter-spacing:.05em;color:#8a6416;margin-top:.6mm}',
+  '.ink .end .brand{color:#111}',
+  // תוספות-הפורט בשפת החוברת: מספרי-חירום וזמני-השבוע
+  '.emg .tn{font-size:13pt;direction:ltr;unicode-bidi:isolate}',
+  '.emg h3{font-size:12pt;color:#5b0f22;margin:7mm 0 2mm;border-bottom:2.4pt double #8a6416;padding-bottom:1.2mm}',
+  '.zm table{width:100%;border-collapse:collapse}',
+  '.zm th{font:700 7.5pt ' + SANS + ';background:#5b0f22;color:#f6e6c4;padding:1mm .5mm}',
+  '.zm td{border-bottom:.4pt dotted #b9ae96;padding:1mm .5mm;text-align:center;font-size:8pt;font-variant-numeric:tabular-nums}',
+  '.ink .zm th{background:none;color:#111;border-bottom:.6pt solid #111}',
+  '.zm .note{font-size:7.5pt;color:#666;margin-top:3mm;text-align:center}',
+  '@media screen{',
+  'body{background:#d8d3c6;padding:0 0 20mm}',
+  '.cover,.pg{width:148mm;margin:0 auto 8mm;box-shadow:0 2mm 8mm rgba(0,0,0,.25)}',
+  '.pg{background:#fff;padding:14mm 12mm 16mm;min-height:210mm}',
+  '.pg.fixed{height:210mm}',
+  '.bar{position:sticky;top:0;z-index:2;margin:0 0 10mm;padding:3mm 5mm;background:#5b0f22;color:#f6e6c4;display:flex;flex-wrap:wrap;gap:2mm 5mm;align-items:center;justify-content:center;font-size:10.5pt;text-align:center}',
+  '}',
+  '@media print{.bar{display:none}.cover h1{background:none;-webkit-background-clip:border-box;background-clip:border-box;color:#e3c06e}.ink .cover h1{color:#111}}',
 ].join('\n');
 
 const ltr = (s: string): string => '<span dir="ltr">' + escHtml(s) + '</span>';
+
+/** קו-הקישוט של המקור (rule). */
+const RULE =
+  '<svg class="rule" viewBox="0 0 320 12" aria-hidden="true"><path d="M0 6 H130 M190 6 H320" stroke="currentColor" stroke-width="1"/><path d="M160 1 L166 6 L160 11 L154 6Z M140 6 L144 3 L148 6 L144 9Z M172 6 L176 3 L180 6 L176 9Z" fill="currentColor"/></svg>';
+/** הכתר של המקור (CROWN). */
+const CROWN_SVG = '<svg viewBox="0 0 24 16" aria-hidden="true"><path d="M2 14 L3.4 4.5 L8 9 L12 2 L16 9 L20.6 4.5 L22 14Z" fill="currentColor"/></svg>';
+/** גרש-היהלום של סימן-המילה. */
+const GM = '<svg class="gm" viewBox="0 0 10 16" aria-hidden="true"><path d="M5 0 10 8 5 16 0 8Z"/></svg>';
+const TAGLINE = 'א פרנסה׳לע פאר יעדן איד';
+
+/** סימן-המילה: הגרש (׳) כיהלום; שם בלי גרש ⇒ טקסט. */
+function wordmarkHtml(brand: string): string {
+  const i = brand.indexOf('׳');
+  return i > 0 ? escHtml(brand.slice(0, i)) + GM + escHtml(brand.slice(i + 1)) : escHtml(brand);
+}
+
+/** "example.co.il" מכתובת-אתר (בלי פרוטוקול ונתיב — כמו host() במקור; החוברת בלי אף כתובת-רשת מלאה). */
+function hostOf(url: string): string {
+  return String(url ?? '')
+    .trim()
+    .replace(/^[a-z][a-z0-9+.-]*:\/\//i, '')
+    .split(/[/?#]/)[0]
+    .replace(/^www\./i, '');
+}
 
 /**
  * טקסט-שעות כ-HTML (אשכול 8): כל טווח "08:00–19:00" בבידוד-LTR. בלי זה, בפסקה RTL מקף-הטווח (ON)
@@ -157,6 +273,7 @@ export function hoursHtml(s: string): string {
     .join('');
 }
 
+/** כרטיס במדריך (ent במקור): מודגש ⇒ מסגרת כפולה + "מומלץ" + שורת-הפרסום + האתר; קוד-החיוג ליד הטלפון. */
 function entryHtml(l: PrListing, todayIso: IsoDate): string {
   const feat = isFeatured(l, todayIso);
   const marks: string[] = [];
@@ -167,49 +284,61 @@ function entryHtml(l: PrListing, todayIso: IsoDate): string {
   if (l.kashrut.trim()) marks.push('השגחה: ' + l.kashrut.trim());
   const hours = hoursText(l);
   const meta = [l.city.trim() ? escHtml(l.city) : '', hours.trim() ? hoursHtml(hours) : ''].filter(Boolean).join(' · ');
+  const host = feat && l.promoUrl ? hostOf(l.promoUrl) : '';
   return (
-    '<div class="entry' + (feat ? ' feat' : '') + '">' +
-    '<div class="nm">' + escHtml(l.name) + (feat ? '<span class="seal">👑 מומלץ</span>' : '') + '</div>' +
-    (l.title ? '<div class="ti">' + escHtml(l.title) + '</div>' : '') +
-    '<div class="ph">' + ltr(l.phone) + (l.dialCode ? '<span class="code">☎ קוד ' + escHtml(l.dialCode) + '</span>' : '') + '</div>' +
-    (meta ? '<div class="meta">' + meta + '</div>' : '') +
+    '<div class="e' + (feat ? ' f' : '') + '">' +
+    (feat ? '<div class="rec">' + CROWN_SVG + 'מומלץ</div>' : '') +
+    '<div class="en">' + escHtml(l.name) + '</div>' +
+    (l.title ? '<div class="et">' + escHtml(l.title) + '</div>' : '') +
+    (feat && l.promoLine ? '<div class="eg">' + escHtml(l.promoLine) + '</div>' : '') +
+    '<div class="ep">' + ltr(l.phone) + (l.dialCode ? '<span class="code">☎ קוד ' + escHtml(l.dialCode) + '</span>' : '') + '</div>' +
+    (meta ? '<div class="em">' + meta + '</div>' : '') +
     (marks.length ? '<div class="marks">' + escHtml(marks.join(' · ')) + '</div>' : '') +
+    (host ? '<div class="ek"><span class="u">' + escHtml(host) + '</span></div>' : '') +
     '</div>'
   );
 }
 
-function adHtml(a: PrAd): string {
+/** מודעה (ad(a,z) במקור). */
+function adHtml(a: PrAd, z: 'full' | 'half' | 'small'): string {
+  const head = a.headline || a.advertiser;
   return (
-    '<div class="ad ' + escHtml(a.kind) + '">' +
-    '<h3>' + escHtml(a.headline || a.advertiser) + '</h3>' +
-    (a.body ? '<div class="body">' + escHtml(a.body) + '</div>' : '') +
-    (a.phone ? '<div class="ph">' + ltr(a.phone) + '</div>' : '') +
-    '<div class="by">' + escHtml(a.advertiser) + '</div>' +
-    '</div>'
+    '<div class="ad ' + z + '"><div class="ad-in"><h3>' + escHtml(head) + '</h3>' +
+    (a.body ? '<p>' + escHtml(a.body) + '</p>' : '') +
+    (a.phone ? '<div class="ad-ph">' + escHtml(a.phone) + '</div>' : '') +
+    (a.headline && a.advertiser && a.headline !== a.advertiser ? '<div class="ad-by">' + escHtml(a.advertiser) + '</div>' : '') +
+    '</div></div>'
   );
 }
 
-function vacantHtml(contactPhone: string): string {
+/** "מקום זה שמור לפרסום" (vac במקור); style = תא מאוחד בדף-הקטנות. */
+function vacantHtml(contactPhone: string, style = ''): string {
   return (
-    '<div class="ad vacant"><div>מקום זה שמור לפרסום</div><div>בחוברת הבאה</div>' +
-    (contactPhone ? '<div>לפרטים: ' + ltr(contactPhone) + '</div>' : '') +
-    '</div>'
+    '<div class="ad vac"' + (style ? ' style="' + style + '"' : '') + '><div class="ad-in"><h3>מקום זה שמור לפרסום</h3><p>בחוברת הבאה' +
+    (contactPhone ? '<br>לפרטים: <span class="ltr">' + escHtml(contactPhone) + '</span>' : '') +
+    '</p></div></div>'
   );
 }
 
-/** דפי-המודעות: עמוד-שלם = דף; חצי = 2 לדף; קטנה = 6 לדף (2×3); משבצות-חסר = "מקום פנוי". */
+/** דפי-המודעות: עמוד-שלם = דף; חצי = 2 לדף; קטנה = 6 לדף (2×3) — המשבצות הפנויות מאוחדות לתא אחד, כמו המקור. */
 function adPagesHtml(plan: PrBookletPlan, contactPhone: string): string {
   const pages: string[] = [];
-  for (const a of plan.ads.full) pages.push('<section class="page adpage full" data-sec="ads">' + adHtml(a) + '</section>');
+  const page = (cls: string, inner: string): string => '<section class="pg fixed" data-sec="ads"><div class="adpage' + cls + '">' + inner + '</div></section>';
+  for (const a of plan.ads.full) pages.push(page('', adHtml(a, 'full')));
   for (let i = 0; i < plan.ads.half.length; i += 2) {
-    const two = plan.ads.half.slice(i, i + 2).map(adHtml);
-    while (two.length < 2) two.push(vacantHtml(contactPhone));
-    pages.push('<section class="page adpage half" data-sec="ads">' + two.join('') + '</section>');
+    const two = plan.ads.half.slice(i, i + 2);
+    pages.push(page(' two', two.map((a) => adHtml(a, 'half')).join('') + (two.length < 2 ? vacantHtml(contactPhone) : '')));
   }
   for (let i = 0; i < plan.ads.small.length; i += 6) {
-    const six = plan.ads.small.slice(i, i + 6).map(adHtml);
-    while (six.length < 6) six.push(vacantHtml(contactPhone));
-    pages.push('<section class="page adpage small" data-sec="ads">' + six.join('') + '</section>');
+    const six = plan.ads.small.slice(i, i + 6);
+    let cells = six.map((a) => adHtml(a, 'small')).join('');
+    let left = 6 - six.length;
+    if (left && six.length % 2) {
+      cells += vacantHtml(contactPhone);
+      left--;
+    }
+    if (left) cells += vacantHtml(contactPhone, 'grid-column:1/-1;grid-row:span ' + left / 2);
+    pages.push(page(' six', cells));
   }
   return pages.join('\n');
 }
@@ -229,6 +358,7 @@ export function bookletHtml(snap: PrBookletSnapshot, opts: PrBookletOpts): strin
   const plan = bookletPlan(snap, opts);
   const dedication = dedicationOf(snap, opts);
   const gates = groupByCategory(snap.listings, today);
+  const wm = wordmarkHtml(brand);
   const out: string[] = [];
 
   out.push(
@@ -237,80 +367,85 @@ export function bookletHtml(snap: PrBookletSnapshot, opts: PrBookletOpts): strin
       '<title>' + escHtml(brand + ' · ' + (community ? community + ' ' : '') + yearHe) + '</title>' +
       '<style>' + CSS + '</style></head><body' + (opts.ink ? ' class="ink"' : '') + '>',
   );
-  out.push('<div class="bar">להדפסה: Ctrl+P · גודל נייר A5 · לסמן ״גרפיקת רקע״ · או ״שמירה כ־PDF״ לבית הדפוס</div>');
+  out.push('<div class="bar"><span>להדפסה: Ctrl+P · גודל נייר A5 · לסמן ״גרפיקת רקע״ · או ״שמירה כ־PDF״ לבית הדפוס</span></div>');
 
   // ── כריכה ──
   out.push(
-    '<section class="page plain cover" data-sec="cover">' +
-      '<div class="bh">ב״ה</div>' +
+    '<section class="cover" data-sec="cover"><div class="bh">ב״ה</div><div class="frame">' +
+      (opts.mark && opts.mark.startsWith('<svg class="mk"') ? opts.mark : '') +
       '<div class="eyebrow">ספר המקצועות של הקהילה</div>' +
-      '<h1>' + escHtml(brand) + '</h1>' +
-      '<div class="tag">א פרנסה׳לע פאר יעדן איד</div>' +
+      '<h1 aria-label="' + escHtml(brand) + '">' + wm + '</h1>' +
+      '<div class="tag">' + escHtml(TAGLINE) + '</div>' +
       '<div class="comm">' + escHtml(community || 'אנשי המקצוע שלנו') + '</div>' +
-      '<hr class="rule">' +
-      '<div class="verse serif">וּבֵרַכְךָ ה׳ אֱלֹקֶיךָ בְּכֹל אֲשֶׁר תַּעֲשֶׂה</div><div class="src">דברים ט״ו, י״ח</div>' +
-      '<div class="year">שנת ' + escHtml(yearHe) + '</div>' +
-      '</section>',
+      RULE +
+      '<div class="verse">וּבֵרַכְךָ ה׳ אֱלֹקֶיךָ בְּכֹל אֲשֶׁר תַּעֲשֶׂה<cite>דברים ט״ו, י״ח</cite></div>' +
+      (yearHe ? '<div class="year">שנת ' + escHtml(yearHe) + '</div>' : '') +
+      '</div><div class="fringe"></div></section>',
   );
 
   // ── הקדשה (אופציונלית) ──
   if (dedication) {
     out.push(
-      '<section class="page plain dedication" data-sec="dedication"><div class="crown">👑</div>' +
-        '<div class="serif">' + escHtml(dedication) + '</div>' +
-        (dedication.includes('נשמ') ? '<div>ת.נ.צ.ב.ה.</div>' : '') +
-        '<hr class="rule"></section>',
+      '<section class="pg fixed ded" data-sec="dedication"><div class="dd">' +
+        '<svg class="sc" viewBox="0 0 24 16" aria-hidden="true"><path d="M2 14 L3.4 4.5 L8 9 L12 2 L16 9 L20.6 4.5 L22 14Z" fill="currentColor"/></svg>' +
+        '<div class="dt">' + escHtml(dedication) + '</div>' +
+        (dedication.includes('נשמ') ? '<div class="tz">ת.נ.צ.ב.ה.</div>' : '') +
+        RULE +
+        '</div></section>',
     );
   }
 
   // ── מפתח המקצועות ──
-  const indexRows = plan.gates
-    .map(
-      (g) =>
-        '<tr><td class="n">' + escHtml(g.num) + '</td><td>' + escHtml(g.name) +
-        (g.sponsor ? ' <span class="sp">· בחסות ' + escHtml(g.sponsor) + '</span>' : '') +
-        '</td><td class="c">' + g.count + '</td></tr>',
-    )
-    .join('');
   const adCount = plan.ads.full.length + plan.ads.half.length + plan.ads.small.length;
+  const toc =
+    plan.gates
+      .map(
+        (g) =>
+          '<div class="ti"><span class="tl">' + escHtml(g.num) + '</span><span class="tt">' + escHtml(g.name) +
+          (g.sponsor ? '<small>בחסות ' + escHtml(g.sponsor) + '</small>' : '') +
+          '</span><span class="td"></span><span class="tn">' + g.count + '</span></div>',
+      )
+      .join('') + (adCount ? '<div class="ti x"><span class="tl">◆</span><span class="tt">מודעות</span><span class="td"></span><span class="tn">' + adCount + '</span></div>' : '');
   out.push(
-    '<section class="page index" data-sec="index"><h2>מפתח המקצועות</h2>' +
-      '<div class="serif">שער · תחום · מספר אנשי המקצוע</div>' +
-      (indexRows ? '<table>' + indexRows + '</table>' : '<div class="empty">המדריך עדיין ריק.</div>') +
-      (adCount ? '<p>◆ מודעות ' + adCount + '</p>' : '') +
+    '<section class="pg" data-sec="index"><div class="ttl"><h2>מפתח המקצועות</h2><div class="s">שער · תחום · מספר אנשי המקצוע</div>' + RULE + '</div>' +
+      (toc || '<div class="empty">האלפון עדיין ריק.</div>') +
       '</section>',
   );
 
-  // ── המדריך (שני טורים) ──
+  // ── המדריך (שני טורים, לפי שער) ──
   const dir: string[] = [];
   for (const g of gates) {
-    dir.push('<div class="gate-h">שער ' + escHtml(g.cat.num) + ' · ' + escHtml(g.cat.name) + ' · ' + g.items.length + '</div>');
+    dir.push('<div class="sh"><span class="no">שער ' + escHtml(g.cat.num) + '</span><h2>' + escHtml(g.cat.name) + '</h2><span class="c">' + g.items.length + '</span></div>');
     const sp = activeAds(snap.ads, 'category', today, g.cat.key)[0];
-    if (sp) dir.push('<div class="sponsor">השער בחסות ' + escHtml([sp.advertiser, sp.headline, sp.phone].filter((x) => x && x.trim()).join(' · ')) + '</div>');
-    for (const l of g.items) dir.push(entryHtml(l, today));
+    if (sp)
+      dir.push(
+        '<div class="spn"><span class="k">השער בחסות</span> <strong>' + escHtml(sp.advertiser) + '</strong>' +
+          (sp.headline.trim() ? ' · ' + escHtml(sp.headline) : '') +
+          (sp.phone.trim() ? ' · <span class="ltr">' + escHtml(sp.phone) + '</span>' : '') +
+          '</div>',
+      );
+    dir.push('<div class="cols">' + g.items.map((l) => entryHtml(l, today)).join('') + '</div>');
   }
-  out.push('<section class="page dir" data-sec="directory">' + (dir.length ? dir.join('') : '<div class="empty">המדריך עדיין ריק.</div>') + '</section>');
+  out.push('<section class="pg dir" data-sec="directory">' + (dir.length ? dir.join('') : '<div class="empty">האלפון עדיין ריק.</div>') + '</section>');
 
-  // ── מספרי חירום ──
+  // ── מספרי חירום (תוספת-הפורט) ──
   const emergency = emergencyNumbers(snap.posts, today);
   const emergencyBiz = approvedListings(snap.listings)
     .filter((l) => l.emergency)
     .sort((a, b) => a.name.localeCompare(b.name, 'he') || a.id.localeCompare(b.id));
+  const emRow = (label: string, sub: string, phone: string): string =>
+    '<div class="ti"><span class="tt">' + escHtml(label) + (sub ? '<small>' + escHtml(sub) + '</small>' : '') + '</span><span class="td"></span><span class="tn">' + escHtml(phone) + '</span></div>';
   out.push(
-    '<section class="page emergency" data-sec="emergency"><h2>מספרי חירום</h2><ul>' +
-      emergency.map((e) => '<li><strong>' + escHtml(e.label) + '</strong> — <span class="ph">' + ltr(e.phone) + '</span>' + (e.note ? ' · ' + escHtml(e.note) : '') + '</li>').join('') +
-      '</ul>' +
+    '<section class="pg emg" data-sec="emergency"><div class="ttl"><h2>מספרי חירום</h2><div class="s">לשמור ליד הטלפון</div>' + RULE + '</div>' +
+      emergency.map((e) => emRow(e.label, e.note, e.phone)).join('') +
       (emergencyBiz.length
-        ? '<h3>בעלי מקצוע לקריאות חירום</h3><ul>' +
-          emergencyBiz
-            .map((l) => '<li>' + escHtml(l.name) + ' · ' + escHtml(categoryOf(l.category).short) + ' — ' + ltr(l.phone) + (l.dialCode ? ' · קוד ' + escHtml(l.dialCode) : '') + '</li>')
-            .join('') +
-          '</ul>'
+        ? '<h3>בעלי מקצוע לקריאות חירום</h3>' +
+          emergencyBiz.map((l) => emRow(l.name, categoryOf(l.category).short + (l.dialCode ? ' · ☎ קוד ' + l.dialCode : ''), l.phone)).join('')
         : '') +
       '</section>',
   );
 
-  // ── זמני השבוע ──
+  // ── זמני השבוע (תוספת-הפורט) ──
   if (plan.hasZmanim) {
     const rows = weekZmanim(isIsoDate(opts.zmanimFrom) ? opts.zmanimFrom : today, loc, opts.zmanimDays ?? 7);
     const trs = rows
@@ -323,7 +458,7 @@ export function bookletHtml(snap: PrBookletSnapshot, opts: PrBookletOpts): strin
       )
       .join('');
     out.push(
-      '<section class="page zmanim" data-sec="zmanim"><h2>זמני השבוע</h2>' +
+      '<section class="pg zm" data-sec="zmanim"><div class="ttl"><h2>זמני השבוע</h2>' + RULE + '</div>' +
         '<table><tr><th>יום</th><th>תאריך</th><th>עלות</th><th>נץ</th><th>סוף ק״ש (גר״א)</th><th>חצות</th><th>שקיעה</th><th>צאת</th><th>הערות</th></tr>' +
         trs +
         '</table><div class="note">' + escHtml(locNote(loc) + ' · ' + PR_ZMANIM_NOTE) + '</div></section>',
@@ -334,14 +469,17 @@ export function bookletHtml(snap: PrBookletSnapshot, opts: PrBookletOpts): strin
   if (adCount) out.push(adPagesHtml(plan, contactPhone));
 
   // ── סוף דבר ──
+  const hd = hebDateText(today, loc.tz);
   out.push(
-    '<section class="page plain end" data-sec="end"><div class="serif">תם ונשלם · שבח לא־ל בורא עולם</div><hr class="rule">' +
-      '<div>להצטרפות ל' + escHtml(brand) + ', לעדכון פרטים, לחסות על שער, להקדשה או לפרסום בחוברת הבאה' +
-      (contactPhone ? ': ' + ltr(contactPhone) : ', פנו לגבאי הקהילה.') + '</div>' +
-      '<div class="disc">הפרטים נמסרו על ידי בעלי המקצוע עצמם. אין בהופעה בחוברת המלצה או אחריות, ויש לבדוק כל התקשרות לפני תחילת עבודה.</div>' +
-      '<div>' + escHtml((community ? community + ' · ' : '') + hebDateText(today, loc.tz)) + '</div>' +
-      '<div class="serif">' + escHtml(brand) + ' · א פרנסה׳לע פאר יעדן איד</div>' +
-      '</section>',
+    '<section class="pg fixed end" data-sec="end"><div class="ee">' + RULE +
+      '<div class="fin">תם ונשלם<br>שבח לא־ל בורא עולם</div>' +
+      '<p>להצטרפות לאלפון, לעדכון פרטים, לחסות על שער, להקדשה או לפרסום בחוברת הבאה' +
+      (contactPhone ? ':<br><b class="ltr">' + escHtml(contactPhone) + '</b>' : ', פנו לגבאי הקהילה.') + '</p>' +
+      '<p class="disc">הפרטים נמסרו על ידי בעלי המקצוע עצמם. אין בהופעה באלפון המלצה או אחריות, ויש לבדוק כל התקשרות לפני תחילת עבודה.</p>' +
+      '<div class="hd">' + escHtml(community) + (community && hd ? ' · ' : '') + escHtml(hd) + '</div>' +
+      '<div class="brand" aria-label="' + escHtml(brand) + '">' + wm + '<small>' + escHtml(TAGLINE) + '</small></div>' +
+      RULE +
+      '</div></section>',
   );
   out.push('</body></html>');
   return out.join('\n');

@@ -80,6 +80,10 @@ export function ParnasaView() {
   const [reqDraft, setReqDraft] = useState<Partial<PrRequest> | null>(null);
   // "לראות אותם" מלוח-הבקשות ⇒ השער ב"כל האלפון"
   const [seeCat, setSeeCat] = useState<{ cat: string; n: number } | null>(null);
+  // "הדגשה" מדף-העסק ⇒ ניהול · הכנסות עם טופס-ההדגשה ממולא (featGo במקור)
+  const [ftReq, setFtReq] = useState<{ key: string; n: number } | null>(null);
+  // "כאן יופיע מטבע פלטינה בחסות" ⇒ חסויות עם טופס-המטבע פתוח (coinAdmin במקור)
+  const [spReq, setSpReq] = useState<{ place: string; n: number } | null>(null);
   const quick = useQuickDial();
   const rootRef = useRef<HTMLDivElement>(null);
   const [focusTick, setFocusTick] = useState(0);
@@ -258,8 +262,9 @@ export function ParnasaView() {
       : null,
     goAdmin:
       segOn('rev') || segOn('spon')
-        ? (sg: AdminSeg) => {
+        ? (sg: AdminSeg, open?: 'coin') => {
             setSeg(sg);
+            if (open) setSpReq({ place: open, n: Date.now() });
             go('admin');
           }
         : null,
@@ -354,6 +359,10 @@ export function ParnasaView() {
           canJump={(k) => (k === 'ads' ? segOn('rev') : isOn(k))}
           adsOn={featureOn(config, 'parnasa.ads')}
           bookletOn={featureOn(config, 'parnasa.booklet')}
+          onOpen={directoryOn ? (id) => openBiz(id) : null}
+          onPreview={setPrevDraft}
+          ftReq={ftReq}
+          spReq={spReq}
         />
       </section>
     );
@@ -422,6 +431,16 @@ export function ParnasaView() {
                     openBiz(null);
                     setMeSel(id);
                     go('me');
+                  }
+                : undefined
+            }
+            onFeature={
+              segOn('rev') && canApprove
+                ? (id) => {
+                    openBiz(null);
+                    setSeg('rev');
+                    setFtReq({ key: id, n: Date.now() });
+                    go('admin');
                   }
                 : undefined
             }

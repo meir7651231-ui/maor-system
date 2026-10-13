@@ -53,7 +53,8 @@ export interface DirCtx {
   quick: ReturnType<typeof useQuickDial>;
   toastAct: (msg: string, action?: { label: string; run: () => void }) => void;
   goReq: ((id?: string) => void) | null;
-  goAdmin: ((seg: 'rev' | 'spon') => void) | null;
+  /** ניהול · הכנסות/חסויות; open='coin' ⇒ טופס מטבע-הפלטינה פתוח (spOpen("coin") במקור). */
+  goAdmin: ((seg: 'rev' | 'spon', open?: 'coin') => void) | null;
   goJoin: (() => void) | null;
 }
 
@@ -365,7 +366,7 @@ export function DirectoryTab(props: {
               setSelIdx(0);
             })
           }
-          onCoinAdmin={() => ctx.goAdmin?.('spon')}
+          onCoinAdmin={() => ctx.goAdmin?.('spon', 'coin')}
           onTry={(q) => {
             setQuery(q);
             inputRef.current?.focus({ preventScroll: true });

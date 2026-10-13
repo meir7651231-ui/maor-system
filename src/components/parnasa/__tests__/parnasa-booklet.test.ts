@@ -8,6 +8,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import { bookletHtml, bookletPlan, escHtml, type PrBookletSnapshot } from '../booklet';
+import { PN_BOOK_MARK } from '../bookMark';
 import type { PrAd, PrListing } from '../../../types/domain';
 
 const TODAY = '2026-10-14';
@@ -84,9 +85,13 @@ describe('📖 החוברת — מבנה', () => {
     expect(sections(noDed)).not.toContain('dedication');
   });
   it('מפתח: שער בגימטריה + חסות; מדריך: מודגש, קוד-חיוג, הנחה, סימון-חסות לשער', () => {
-    expect(html).toMatch(/<td class="n">ב׳<\/td><td>חשמל, אינסטלציה ומיזוג <span class="sp">· בחסות חשמל המרכז<\/span><\/td><td class="c">2<\/td>/);
-    expect(html).toContain('השער בחסות חשמל המרכז · הכול לחשמל · 03-1234567');
-    expect(html).toContain('👑 מומלץ');
+    // עיצוב 6 — "מפתח המקצועות" של המקור: אות-השער · תחום (+בחסות) · קו-נקודות · מספר
+    expect(html).toContain('<div class="ti"><span class="tl">ב׳</span><span class="tt">חשמל, אינסטלציה ומיזוג<small>בחסות חשמל המרכז</small></span><span class="td"></span><span class="tn">2</span></div>');
+    expect(html).toContain('<div class="ti x"><span class="tl">◆</span><span class="tt">מודעות</span>');
+    // המדריך: כותרת "שער ב׳" בקטיפה, רצועת-החסות, הכרטיס המודגש במסגרת כפולה עם "מומלץ" (כתר המקור)
+    expect(html).toContain('<div class="sh"><span class="no">שער ב׳</span><h2>חשמל, אינסטלציה ומיזוג</h2><span class="c">2</span></div>');
+    expect(html).toContain('<div class="spn"><span class="k">השער בחסות</span> <strong>חשמל המרכז</strong> · הכול לחשמל · <span class="ltr">03-1234567</span></div>');
+    expect(html).toMatch(/<div class="e f"><div class="rec"><svg viewBox="0 0 24 16" aria-hidden="true">[\s\S]*?<\/svg>מומלץ<\/div><div class="en">אינסטלציה זילברמן<\/div>/);
     expect(html).toContain('☎ קוד 101');
     expect(html).toContain('☎ קוד 112');
     expect(html).toContain('הנחה לקהילה');
@@ -112,8 +117,33 @@ describe('📖 החוברת — מבנה', () => {
   it('סוף-דבר: טלפון-קשר, הסתייגות, תאריך עברי', () => {
     const end = html.slice(html.indexOf('data-sec="end"'));
     expect(end).toContain('050-1234567');
-    expect(end).toContain('אין בהופעה בחוברת המלצה או אחריות');
+    expect(end).toContain('אין בהופעה באלפון המלצה או אחריות'); // נוסח המקור
+    expect(end).toContain('<div class="fin">תם ונשלם<br>שבח לא־ל בורא עולם</div>');
     expect(end).toContain('קהילת חסידי בעלזא · ג׳ חשוון תשפ״ז'); // 14.10.2026 = ג׳ חשוון
+  });
+});
+
+describe('🎨 עיצוב 6 — החוברת של המקור', () => {
+  it('כריכה: מסגרת-קשת כפולה, סימן-המילה עם גרש-יהלום, הפסוק, לוחית-השנה, שוליית-זהב; הסמל רק כ-svg.mk', () => {
+    const html = bookletHtml(snap(), { todayIso: TODAY });
+    expect(html).toContain('<section class="cover" data-sec="cover"><div class="bh">ב״ה</div><div class="frame"><div class="eyebrow">ספר המקצועות של הקהילה</div>');
+    expect(html).toContain('<h1 aria-label="פרנסה׳לע">פרנסה<svg class="gm" viewBox="0 0 10 16" aria-hidden="true"><path d="M5 0 10 8 5 16 0 8Z"/></svg>לע</h1>');
+    expect(html).toContain('<cite>דברים ט״ו, י״ח</cite>');
+    expect(html).toContain('<div class="fringe"></div></section>');
+    const withMark = bookletHtml(snap(), { todayIso: TODAY, mark: PN_BOOK_MARK });
+    expect(withMark).toContain('<div class="frame"><svg class="mk"');
+    expect(withMark).not.toMatch(/<script|https?:\/\//i); // הסמל — בלי סקריפט ובלי כתובת-רשת
+    // רק סמל אמיתי נכנס (לא מחרוזת שרירותית)
+    expect(bookletHtml(snap(), { todayIso: TODAY, mark: '<img src=x onerror=alert(1)>' })).not.toContain('<img');
+    // מותג בלי גרש ⇒ טקסט
+    expect(bookletHtml(snap(), { todayIso: TODAY, brand: 'מדריך השכונה' })).toContain('<h1 aria-label="מדריך השכונה">מדריך השכונה</h1>');
+  });
+  it('הקדשה: כתר ומסגרת-קשת; מפתח עם קו-הקישוט; ‎@page cover/bare של המקור', () => {
+    const html = bookletHtml(snap(), { todayIso: TODAY });
+    expect(html).toMatch(/<section class="pg fixed ded" data-sec="dedication"><div class="dd"><svg class="sc"/);
+    expect(html).toContain('<div class="ttl"><h2>מפתח המקצועות</h2><div class="s">שער · תחום · מספר אנשי המקצוע</div><svg class="rule"');
+    expect(html).toContain('@page cover{margin:0;');
+    expect(html).toContain('.ded,.end{page:bare;');
   });
 });
 
@@ -121,7 +151,9 @@ describe('📣 מודעות בחוברת', () => {
   it('עמוד=דף · 2 חצאים לדף · 6 קטנות לדף; משבצות-חסר = "מקום פנוי"; פגה/כבויה — לא', () => {
     const html = bookletHtml(snap(), { todayIso: TODAY });
     expect(sections(html).filter((s) => s === 'ads')).toHaveLength(1 + 2 + 1);
-    expect(html.match(/מקום זה שמור לפרסום/g)).toHaveLength(1 + 5);
+    // חצי פנוי אחד; בדף-הקטנות — תא פנוי ליד הקטנה + תא מאוחד לשאר (כמו המקור), לא 5 תאים
+    expect(html.match(/מקום זה שמור לפרסום/g)).toHaveLength(1 + 2);
+    expect(html).toContain('<div class="ad vac" style="grid-column:1/-1;grid-row:span 2">');
     expect(html).not.toContain('פג תוקף');
     expect(html).not.toContain('כבויה');
     expect(html).toContain('שורה א\nשורה ב'); // שורות נשמרות (white-space:pre-line)
@@ -174,9 +206,9 @@ describe('⚙️ אפשרויות ודטרמיניזם', () => {
     expect(bookletHtml(snap(), { todayIso: TODAY, zmanimFrom: '' })).toContain('ג׳ חשוון תשפ״ז');
     expect(() => bookletHtml(snap(), { todayIso: '' })).not.toThrow();
   });
-  it('מדריך ריק ⇒ "המדריך עדיין ריק." ועדיין חירום+סוף-דבר', () => {
+  it('אלפון ריק ⇒ "האלפון עדיין ריק." ועדיין חירום+סוף-דבר', () => {
     const html = bookletHtml({ listings: [], ads: [], posts: [] }, { todayIso: TODAY });
-    expect(html).toContain('המדריך עדיין ריק.');
+    expect(html).toContain('האלפון עדיין ריק.');
     expect(html).toContain('אנשי המקצוע שלנו');
     expect(sections(html)).toEqual(['cover', 'index', 'directory', 'emergency', 'zmanim', 'end']);
   });

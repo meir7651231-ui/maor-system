@@ -22,6 +22,7 @@ import { PR_IMG } from './model';
 import { shrinkImage, ShrinkError } from './imageShrink';
 import { cx, Ic } from './skin';
 import { PnDate } from './DateField';
+import { featuredOpen } from './admin';
 
 /** עסק ריק לעורך (מזהה '' ⇒ ה-store מקצה). */
 export function emptyPrListing(): PrListing {
@@ -105,9 +106,9 @@ function useKept<T>(key: string, init: () => T): [T, Dispatch<SetStateAction<T>>
 }
 
 /** מצב-העורך מעסק שמור (או ריק): הטיוטה, לוח-הזמנים, "יש וואטסאפ במספר". */
-function stateOf(l: PrListing | null): { d: PrListing; sched: PnSched; hasWa: boolean } {
+function stateOf(l: PrListing | null, seed?: Partial<PrListing>): { d: PrListing; sched: PnSched; hasWa: boolean } {
   return {
-    d: l ? { ...l, services: l.services.map((s) => ({ ...s })), faq: (l.faq ?? []).map((f) => ({ ...f })) } : emptyPrListing(),
+    d: l ? { ...l, services: l.services.map((s) => ({ ...s })), faq: (l.faq ?? []).map((f) => ({ ...f })) } : { ...emptyPrListing(), ...seed },
     sched: schedOf(l?.hours ?? []),
     hasWa: l ? !!l.whatsapp : true,
   };
@@ -131,6 +132,12 @@ export function Editor(props: {
   onPreview: (d: PrListing) => void;
   onDeleted: () => void;
   toast: (m: string) => void;
+  /** עסק חדש — שדות-פתיחה (ב"ניהול": מקור = הגבאי — "הוספת איש מקצוע ידנית"). */
+  seed?: Partial<PrListing>;
+  /** תווית-השמירה (ב"ניהול": "שמירת שינויים" בעריכת כרטיס שהוזן ידנית, כמו המקור). */
+  saveText?: string;
+  /** "ביטול עריכה" תמיד (לא רק כשיש שינויים) — חזרה לטופס ריק (resetAdm במקור). */
+  onCancel?: () => void;
 }) {
   const config = useApp((s) => s.config);
   const listings = useApp((s) => s.db.prListings);
@@ -144,7 +151,7 @@ export function Editor(props: {
   const base = props.listing;
   const isNew = !base;
   const mk = props.memKey + '\u0000';
-  const [d, setD] = useKept<PrListing>(mk + 'd', () => stateOf(base).d);
+  const [d, setD] = useKept<PrListing>(mk + 'd', () => stateOf(base, props.seed).d);
   const [sched, setSched] = useKept<PnSched>(mk + 'sched', () => stateOf(base).sched);
   const [hasWa, setHasWa] = useKept<boolean>(mk + 'wa', () => stateOf(base).hasWa);
   const [consent, setConsent] = useKept<boolean>(mk + 'consent', () => !isNew);
@@ -678,7 +685,7 @@ export function Editor(props: {
       </div>
     ),
   };
-  const saveLabel = !isNew ? 'שמירת הדף' : !canApprove && requireApproval ? 'שליחה לאישור' : 'הוספה לאלפון';
+  const saveLabel = props.saveText || (!isNew ? 'שמירת הדף' : !canApprove && requireApproval ? 'שליחה לאישור' : 'הוספה לאלפון');
 
   return (
     <form
@@ -707,7 +714,7 @@ export function Editor(props: {
             'שדות ה' + gabbai,
             'shield',
             !!cur.dialCode,
-            [cur.dialCode ? 'קוד חיוג ' + cur.dialCode : 'קוד חיוג — יוקצה באישור', cur.featuredUntil ? 'מודגש עד ' + cur.featuredUntil : '', cur.source === 'gabbai' ? 'הוזן ע״י ה' + gabbai : 'נמסר ע״י בעל ה' + word]
+            [cur.dialCode ? 'קוד חיוג ' + cur.dialCode : 'קוד חיוג — יוקצה באישור', cur.featuredUntil ? (featuredOpen(cur) ? 'מודגש עד שיבוטל' : 'מודגש עד ' + cur.featuredUntil) : '', cur.source === 'gabbai' ? 'הוזן ע״י ה' + gabbai : 'נמסר ע״י בעל ה' + word]
               .filter(Boolean)
               .join(' · '),
             <>
@@ -729,7 +736,7 @@ export function Editor(props: {
                   <span>
                     כרטיס מודגש עד <small>(ריק = לא מודגש)</small>
                   </span>
-                  <PnDate label="כרטיס מודגש עד" value={d.featuredUntil} onChange={(v) => set({ featuredUntil: v })} />
+                  <PnDate label="כרטיס מודגש עד" value={d.featuredUntil} text={featuredOpen(d) ? 'עד שיבוטל' : undefined} onChange={(v) => set({ featuredUntil: v })} />
                 </label>
               </div>
               <button className="pn-btn pn-addrow" type="button" onClick={() => set({ dialCode: nextDialCode(listings) })}>
@@ -760,10 +767,17 @@ export function Editor(props: {
               תצוגה
             </button>
           </div>
-          {base && (dirty || canDelete) ? (
+          {base && (dirty || canDelete || props.onCancel) ? (
             <div>
-              {dirty ? (
-                <button className="pn-btn" type="button" onClick={revert}>
+              {dirty || props.onCancel ? (
+                <button
+                  className="pn-btn"
+                  type="button"
+                  onClick={() => {
+                    revert();
+                    props.onCancel?.();
+                  }}
+                >
                   ביטול עריכה
                 </button>
               ) : null}

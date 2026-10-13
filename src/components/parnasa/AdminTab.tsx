@@ -5,8 +5,11 @@
  *   ו-15 השערים · מודעות וחוברת = מודעות-החוברת + "חוברת להדפסה" (תת-האזור book של המקור) · 📞 הקו (תוספת-הפורט,
  *   סימולטור) · הגדרות (גבאי בלבד). כל אזור מגודר בתת-הדגל שלו — אותו חוזה כמו הלשוניות הקודמות.
  * המונים על האזורים (‎.sc במקור): אישורים = ממתינים + דורש-טיפול · מודעות = לא-שולמו.
+ * עיצוב 6: התוכן של כל אזור בשפת המקור (agrp · acard · kpis · ledger · sprow · ritem · הטפסים בתוך הדף) — רק 📞 הקו
+ * (תוספת-הפורט, סימולטור) נשאר ברכיבי-אורביט (‎.pn-orbit).
  */
 import type { OrgConfig } from '../../types/config';
+import type { PrListing } from '../../types/domain';
 import { featureOn } from '../../lib/config';
 import { Page } from './Shell';
 import { CareTab, type CareJump } from './CareTab';
@@ -47,6 +50,14 @@ export function AdminTab(props: {
   canJump: (tab: CareJump['tab']) => boolean;
   bookletOn: boolean;
   adsOn: boolean;
+  /** "לדף" מכרטיסי-הניהול (null = האלפון כבוי). */
+  onOpen?: ((id: string) => void) | null;
+  /** "תצוגה" של עורך "הוספת איש מקצוע ידנית". */
+  onPreview?: (d: PrListing) => void;
+  /** "הדגשה" מדף-העסק ⇒ טופס-ההדגשה ממולא (featGo במקור). */
+  ftReq?: { key: string; n: number } | null;
+  /** "כאן יופיע מטבע פלטינה בחסות" ⇒ טופס-החסות של המקום פתוח (coinAdmin במקור). */
+  spReq?: { place: string; n: number } | null;
 }) {
   const on = props.segs.filter((s) => s.on);
   const active: AdminSeg | null = on.some((s) => s.key === props.seg) ? props.seg : (on[0]?.key ?? null);
@@ -61,22 +72,22 @@ export function AdminTab(props: {
         ))}
       </div>
       {active === 'appr' && (
-        <div className="pn-apanel pn-orbit" data-panel="appr">
-          <CareTab now={props.now} onJump={props.onJump} canJump={props.canJump} />
+        <div className="pn-apanel" data-panel="appr">
+          <CareTab now={props.now} onJump={props.onJump} canJump={props.canJump} onOpen={props.onOpen} onPreview={props.onPreview} />
         </div>
       )}
       {(active === 'rev' || active === 'spon') && (
-        <div className="pn-apanel pn-orbit" data-panel={active}>
-          <AdsTab now={props.now} section={active} />
+        <div className="pn-apanel" data-panel={active}>
+          <AdsTab now={props.now} section={active} ftReq={props.ftReq} spReq={props.spReq} />
         </div>
       )}
       {active === 'ads' && props.adsOn && (
-        <div className="pn-apanel pn-orbit" data-panel="ads">
+        <div className="pn-apanel" data-panel="ads">
           <AdsTab now={props.now} section="ads" />
         </div>
       )}
       {active === 'ads' && props.bookletOn && (
-        <div className="pn-apanel pn-orbit" data-panel="ads" data-sub="book">
+        <div className="pn-apanel" data-panel="ads" data-sub="book">
           <BookletTab now={props.now} />
         </div>
       )}
@@ -86,7 +97,7 @@ export function AdminTab(props: {
         </div>
       )}
       {active === 'set' && (
-        <div className="pn-apanel pn-orbit" data-panel="set">
+        <div className="pn-apanel" data-panel="set">
           <SettingsTab />
         </div>
       )}

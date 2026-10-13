@@ -1,17 +1,23 @@
 /**
- * 📒 פרנסה׳לע — לשונית 📖 חוברת (אשכולות 5+8): אפשרויות-ההפקה, תוכן-העניינים החי (bookletPlan) והערכת
- * עמודי-A5 (כולל "כפולה של 4" לחוברת מקופלת), והפקה: 🖨 הדפסה / שמירה כ-PDF (iframe נסתר) או ⬇ קובץ
- * ‎.html לבית-הדפוס. רק עסקים מאושרים, עם **קוד-חיוג בן 3 ספרות** ליד כל עסק; הערות-פנימיות ובקשות-תושבים
- * לעולם לא בחוברת (המנוע). ההפקה מגודרת parnasa.export ועוברת את שער יציאת-המידע (guardExport), ונרשמת
- * ביומן-הגישה (logAccess) רק כשיצאה בפועל. זמני-השבוע — רק ב-parnasa.zmanim; מודעות — רק ב-parnasa.ads.
+ * 📒 פרנסה׳לע — "חוברת להדפסה" של המקור (עיצוב 6 · renderBook): כריכה-זעירה (הפושקע, סימן-המילה, שם הקהילה, השנה),
+ * תוכן-העניינים החי עם קווי-הנקודות (bookletPlan — הערכת עמודי-A5 ו"כפולה של 4" לחוברת מקופלת), נוסח ההקדשה,
+ * "לכלול את המודעות" · "רק מודעות ששולמו" · "חיסכון בדיו", ו"הפקת חוברת להדפסה".
+ * "הפקת חוברת להדפסה" = קובץ ‎.html לבית-הדפוס (כמו המקור). תוספות-הפורט: דף מספרי-חירום, דף זמני-השבוע
+ * (parnasa.zmanim), **קוד-חיוג בן 3 ספרות** ליד כל עסק, ו-🖨 הדפסה / שמירה כ-PDF ישירות (iframe נסתר). רק עסקים מאושרים; הערות-פנימיות ובקשות-תושבים
+ * לעולם לא בחוברת (המנוע). ההפקה מגודרת parnasa.export ועוברת את שער יציאת-המידע (guardExport), ונרשמת ביומן-הגישה
+ * (logAccess) רק כשיצאה בפועל. מודעות — רק ב-parnasa.ads.
  */
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useApp } from '../../store/useApp';
 import { featureOn, termOf } from '../../lib/config';
-import { Btn, Chip, Field } from '../ui';
+import { hebcalParts } from '../../lib/telephony/engine';
+import { gemYear } from '../../lib/hebrew';
 import { bookletHtml, bookletPlan, type PrBookletOpts } from './booklet';
 import { downloadHtmlDoc, printHtmlDoc } from './exportDoc';
 import { usePrPerms, type PrNow } from './hooks';
+import { pl } from './admin';
+import { Wordmark } from './Shell';
+import { Ic, Pm } from './skin';
 
 export function BookletTab(props: { now: PrNow }) {
   const config = useApp((s) => s.config);
@@ -32,8 +38,23 @@ export function BookletTab(props: { now: PrNow }) {
   const [ink, setInk] = useState(false);
   const [withZmanim, setWithZmanim] = useState(true);
   const [done, setDone] = useState<'' | 'print' | 'file'>('');
+  // סמל-הפושקע הווקטורי לכריכה — נטען עצל (צ'אנק נפרד), רק כשפותחים את "חוברת להדפסה"
+  const [mark, setMark] = useState('');
+  useEffect(() => {
+    let live = true;
+    import('./bookMark')
+      .then((m) => {
+        if (live) setMark(m.PN_BOOK_MARK);
+      })
+      .catch(() => {});
+    return () => {
+      live = false;
+    };
+  }, []);
 
   const brand = termOf(config, 'nav.parnasa', 'פרנסה׳לע');
+  const community = (prefs?.communityName ?? '').trim();
+  const yr = gemYear(hebcalParts(props.now.todayIso).year);
   const opts: PrBookletOpts = {
     todayIso: props.now.todayIso,
     brand,
@@ -42,11 +63,13 @@ export function BookletTab(props: { now: PrNow }) {
     paidAdsOnly: paidOnly,
     ink,
     zmanimDays: zmanimOn && withZmanim ? 7 : 0,
+    mark: mark || undefined,
   };
   const snap = { listings, ads, posts, prefs };
   const plan = bookletPlan(snap, opts);
   const words = termOf(config, 'entity.prListings', 'עסקים');
   const adCount = plan.ads.full.length + plan.ads.half.length + plan.ads.small.length;
+  const pad = plan.spareFullPages;
 
   function produce(kind: 'print' | 'file') {
     const html = bookletHtml(snap, opts);
@@ -59,79 +82,96 @@ export function BookletTab(props: { now: PrNow }) {
     setDone(kind);
     if (kind === 'print') toast('נפתח חלון-ההדפסה — בחרו גודל נייר A5, או ״שמירה כ־PDF״');
   }
+  const li = (t: string, n: string) => (
+    <li key={t}>
+      <span>{t}</span>
+      <span className="pn-dots" />
+      <b>{n}</b>
+    </li>
+  );
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-      <section className="card" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        <h2 style={{ fontSize: 15, fontWeight: 800 }}>חוברת להדפסה — A5</h2>
-        <div style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>
-          {'ספר המקצועות של הקהילה: מפתח לפי שער, ' + words + ' בשני טורים עם קוד-חיוג בן 3 ספרות, מספרי חירום' + (zmanimOn ? ', זמני השבוע' : '') + (adsOn ? ' ומודעות' : '') + '.'}
+    <div className="pn-agrp">
+      <h2>חוברת להדפסה</h2>
+      <div className="pn-bk">
+        <div className="pn-mini" aria-hidden="true">
+          <Pm />
+          <b className="pn-pwm">
+            <Wordmark name={brand} />
+          </b>
+          <span>{community || 'אנשי המקצוע שלנו'}</span>
+          <em>{yr ? 'שנת ' + yr : ''}</em>
         </div>
-        <Field label="נוסח ההקדשה בחוברת (ריק = בלי עמוד הקדשה)">
-          <textarea rows={2} value={dedication} onChange={(e) => setDedication(e.target.value.slice(0, 240))} />
-        </Field>
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-          {adsOn && (
-            <Chip on={includeAds} onClick={() => setIncludeAds(!includeAds)}>
-              לכלול את המודעות
-            </Chip>
+        <div style={{ display: 'grid', gap: 14, minWidth: 0 }}>
+          <ol className="pn-toc">
+            {li('כריכה', 'עמוד אחד')}
+            {plan.hasDedication ? li('עמוד הקדשה', 'עמוד אחד') : null}
+            {li('מפתח המקצועות', 'עמוד אחד')}
+            {li(pl(plan.gates.length, 'שער אחד', 'שערים') + ' · ' + pl(plan.listings, 'איש מקצוע אחד', 'אנשי מקצוע'), plan.dirPages === 1 ? 'עמוד אחד' : 'כ־' + plan.dirPages + ' עמודים')}
+            {li('מספרי חירום', 'עמוד אחד')}
+            {plan.hasZmanim ? li('זמני השבוע', 'עמוד אחד') : null}
+            {opts.includeAds && plan.adPages
+              ? li('מודעות: ' + plan.ads.full.length + ' שלמות · ' + plan.ads.half.length + ' חצאים · ' + plan.ads.small.length + ' קטנות', pl(plan.adPages, 'עמוד אחד', 'עמודים'))
+              : null}
+            {li('סוף דבר', 'עמוד אחד')}
+            <li style={{ borderTop: '1px solid var(--pn-line2)', marginTop: 4, paddingTop: 8 }}>
+              <span>
+                <b>{'סה״כ כ־' + plan.pages + ' עמודי A5'}</b>
+              </span>
+            </li>
+            {pad ? <li className="pn-note">{'לחוברת מקופלת צריך כפולה של 4 עמודים: יש מקום לעוד ' + (pad === 1 ? 'מודעה אחת' : pad + ' מודעות') + ' של עמוד שלם.'}</li> : null}
+            {plan.listings === 0 ? <li className="pn-note">{'האלפון עדיין ריק — רק ' + words + ' מאושרים נכנסים לחוברת.'}</li> : null}
+          </ol>
+          <label className="pn-fl">
+            <span>
+              נוסח ההקדשה בחוברת <small>(ריק = בלי עמוד הקדשה)</small>
+            </span>
+            <textarea maxLength={240} style={{ minHeight: 70 }} value={dedication} onChange={(e) => setDedication(e.target.value)} />
+          </label>
+          <div className="pn-checks">
+            {adsOn ? (
+              <label>
+                <input type="checkbox" checked={includeAds} onChange={(e) => setIncludeAds(e.target.checked)} /> לכלול את המודעות
+              </label>
+            ) : null}
+            {adsOn ? (
+              <label>
+                <input type="checkbox" checked={paidOnly} disabled={!includeAds} onChange={(e) => setPaidOnly(e.target.checked)} /> רק מודעות ששולמו
+              </label>
+            ) : null}
+            {zmanimOn ? (
+              <label>
+                <input type="checkbox" checked={withZmanim} onChange={(e) => setWithZmanim(e.target.checked)} /> דף זמני השבוע
+              </label>
+            ) : null}
+            <label>
+              <input type="checkbox" checked={ink} onChange={(e) => setInk(e.target.checked)} /> חיסכון בדיו (כריכה לבנה)
+            </label>
+          </div>
+          {exportOn ? (
+            <div className="pn-actions">
+              <button className="pn-btn pn-primary" type="button" disabled={plan.listings === 0} onClick={() => produce('file')}>
+                <Ic n="down" />
+                הפקת חוברת להדפסה
+              </button>
+              <button className="pn-btn" type="button" disabled={plan.listings === 0} onClick={() => produce('print')}>
+                🖨 הדפסה / שמירה כ-PDF
+              </button>
+            </div>
+          ) : (
+            <p className="pn-note">הפקת החוברת כבויה באשף (תדפיס וייצוא).</p>
           )}
-          {adsOn && includeAds && (
-            <Chip on={paidOnly} onClick={() => setPaidOnly(!paidOnly)}>
-              רק מודעות ששולמו
-            </Chip>
-          )}
-          {zmanimOn && (
-            <Chip on={withZmanim} onClick={() => setWithZmanim(!withZmanim)}>
-              דף זמני השבוע
-            </Chip>
-          )}
-          <Chip on={ink} onClick={() => setInk(!ink)}>
-            חיסכון בדיו (כריכה לבנה)
-          </Chip>
+          {done === 'file' ? (
+            <div className="pn-notice" role="status">
+              החוברת נשמרה. פתחו את הקובץ בדפדפן, לחצו Ctrl+P, בחרו גודל נייר A5 והדפיסו, או בחרו ״שמירה כ־PDF״ ושלחו לבית הדפוס.
+            </div>
+          ) : done === 'print' ? (
+            <div className="pn-notice" role="status">
+              נפתח חלון-ההדפסה. בחרו גודל נייר A5 והדפיסו, או בחרו ״שמירה כ־PDF״ ושלחו לבית הדפוס.
+            </div>
+          ) : null}
         </div>
-        {exportOn ? (
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 4 }}>
-            <Btn kind="primary" onClick={() => produce('print')} disabled={plan.listings === 0}>
-              🖨 הדפסה / שמירה כ-PDF
-            </Btn>
-            <Btn onClick={() => produce('file')} disabled={plan.listings === 0}>
-              ⬇ הורדת החוברת (קובץ HTML)
-            </Btn>
-          </div>
-        ) : (
-          <div style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>הפקת החוברת כבויה באשף (תדפיס וייצוא).</div>
-        )}
-        {done === 'file' && (
-          <div role="status" style={{ fontSize: 12.5, border: '1px solid var(--line)', borderRadius: 8, padding: '6px 8px' }}>
-            החוברת נשמרה. פתחו את הקובץ בדפדפן, לחצו Ctrl+P, בחרו גודל נייר A5 והדפיסו, או בחרו ״שמירה כ־PDF״ ושלחו לבית הדפוס.
-          </div>
-        )}
-      </section>
-
-      <section className="card" style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 13.5 }}>
-        <h2 style={{ fontSize: 15, fontWeight: 800 }}>תוכן החוברת</h2>
-        <div>כריכה</div>
-        {plan.hasDedication && <div>עמוד הקדשה</div>}
-        <div>מפתח המקצועות</div>
-        <div>{plan.gates.length + ' שערים · ' + plan.listings + ' אנשי מקצוע'}</div>
-        {plan.gates.map((g) => (
-          <div key={g.key} style={{ fontSize: 12.5, color: 'var(--ink-faint)', paddingInlineStart: 12 }}>
-            {g.num + ' · ' + g.name + ' — ' + g.count + (g.sponsor ? ' · בחסות ' + g.sponsor : '')}
-          </div>
-        ))}
-        <div>מספרי חירום</div>
-        {plan.hasZmanim && <div>זמני השבוע</div>}
-        {opts.includeAds && <div>{'מודעות: ' + plan.ads.full.length + ' שלמות · ' + plan.ads.half.length + ' חצאים · ' + plan.ads.small.length + ' קטנות'}</div>}
-        <div>סוף דבר</div>
-        <div style={{ fontWeight: 800, marginTop: 4 }}>{'סה״כ כ־' + plan.pages + ' עמודי A5'}</div>
-        {plan.spareFullPages > 0 && (
-          <div style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>
-            {'לחוברת מקופלת צריך כפולה של 4 עמודים: יש מקום לעוד ' + plan.spareFullPages + ' מודעות של עמוד שלם.'}
-          </div>
-        )}
-        {plan.listings === 0 && <div style={{ fontSize: 12.5, color: '#a16207' }}>המדריך עדיין ריק — רק עסקים מאושרים נכנסים לחוברת.</div>}
-      </section>
+      </div>
     </div>
   );
 }
