@@ -33,7 +33,7 @@ describe('📅 ratchet — initialHebMode (legacy calHebMode:true)', () => {
 describe('🛡 הגנת-מקור — CalendarView מאותחל דרך initialHebMode ולא useState(false)', () => {
   it('אתחול hebMode עובר דרך initialHebMode(config)', () => {
     // מ-13.10 דרך useRemembered (זיכרון-מעבר-מסך) — עדיין מאותחל מ-initialHebMode, לא false קשיח.
-    expect(calViewSrc).toMatch(/useRemembered\('cal\.hebMode', \(\) => initialHebMode\(/);
-    expect(calViewSrc).not.toMatch(/\[hebMode, setHebMode\] = use(State|Remembered)\((?:'cal\.hebMode', )?false\)/);
+    expect(calViewSrc).toMatch(/usePersisted\('cal\.hebMode', \(\) => initialHebMode\(/); // 13.10: נשמר גם אחרי רענון; הבחירה השמורה גוברת על ברירת-המחדל
+    expect(calViewSrc).not.toMatch(/\[hebMode, setHebMode\] = use(State|Remembered|Persisted)\((?:'cal\.hebMode', )?false\)/);
   });
 });

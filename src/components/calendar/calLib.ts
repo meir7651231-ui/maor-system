@@ -240,6 +240,27 @@ export const DEFAULT_FILTERS: CalFilters = {
   urgentOnly: false,
 };
 
+/* ---------- שמירה במכשיר (13.10, "לשמור גם אחרי רענון") — חיטוי ערך-גולמי מ-localStorage ---------- */
+
+/** מסננים שמורים ⇒ ברירת-המחדל + רק מפתחות מוכרים עם ערך בוליאני (מפתח-חדש בעתיד ⇒ ברירת-המחדל שלו). */
+export function keepCalFilters(raw: unknown): CalFilters | undefined {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return undefined;
+  const out: CalFilters = { ...DEFAULT_FILTERS };
+  for (const k of Object.keys(DEFAULT_FILTERS) as (keyof CalFilters)[]) {
+    const v = (raw as Record<string, unknown>)[k];
+    if (typeof v === 'boolean') out[k] = v;
+  }
+  return out;
+}
+
+export function keepViewMode(raw: unknown): 'day' | 'week' | 'month' | undefined {
+  return raw === 'day' || raw === 'week' || raw === 'month' ? raw : undefined;
+}
+
+export function keepBool(raw: unknown): boolean | undefined {
+  return typeof raw === 'boolean' ? raw : undefined;
+}
+
 /** האם פריט יום עובר את הפילטרים (כמו allowE במקור). */
 export function allowItem(it: DayItem, f: CalFilters): boolean {
   if (f.urgentOnly && !(it.ev && it.ev.priority === 'red')) return false;
