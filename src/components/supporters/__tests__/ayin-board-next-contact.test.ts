@@ -54,13 +54,15 @@ describe('לוח מעקב-הטיפול · קשר הבא 🎯', () => {
     expect(src).toContain("nextDateOn && ayinActive(sp.ayin) && (sp.ayin!.stage || 'new') === 'done' && !!sp.nextDate && sp.nextDate <= today;");
     expect(src).toContain('const due = visible.filter(isDueNext);');
     // 6.10 (סגולה בלוח): גם תזכורות-סדרה שהגיע יומן עולות ללוח — «הגיע הזמן» של קשר-הבא נשאר ראשון
-    expect(src).toContain("filter === 'all' ? [...due, ...dueRem.filter((sp) => !due.includes(sp)), ...active.filter((sp) => !dueRem.includes(sp))]");
+    // 13.10 (בקשת-בעלים «בתצוגה של תזכורת, לא במצב רישום או תשלום»): תזכורות-סדרה שהגיע יומן עברו לרצועה
+    // נפרדת בראש הלוח (reminders) — הטבלה = קשר-הבא-שהגיע + תיקי-טיפול לפי שלב
+    expect(src).toContain("filter === 'all' ? [...due, ...active.filter((sp) => !due.includes(sp))]");
     // היום מוזרק דרך isoToday (דטרמיניסטי), לא Date.now
     expect(src).not.toMatch(/Date\.now\(/);
   });
 
   it('שורת «הגיע הזמן» — צבועה, היעד מציג את קשר-הבא, וכפתור «📞 הגיע הזמן»; פעולות: קשר-בוצע (מנקה+מוריד מהלוח) · מחזור-חדש (מגודר supporters.ayin.restart)', () => {
-    expect(src).toContain("background: dueNext || dueR ? '#fff4ea' : '#fff'");
+    expect(src).toContain("background: dueNext ? '#fff4ea' : '#fff'"); // 13.10: תזכורת-סדרה צבועה ברצועה שלה, לא בטבלה
     expect(src).toContain("{(dueNext ? '📞 ' : '🎯 ') + fmtDate(sp.nextDate)}");
     expect(src).toContain("{dueNext ? '📞 הגיע הזמן' : sp.nextDate ? '🎯 ' + fmtDate(sp.nextDate) : '🎯 קשר הבא'}");
     expect(src).toContain("const restartOn = featureOn(cfg, 'supporters.ayin.restart');");
@@ -74,8 +76,9 @@ describe('לוח מעקב-הטיפול · קשר הבא 🎯', () => {
   });
 
   it('מיון «יעד קרוב» — לתיק שהושלם היעד הוא קשר-הבא (ולא nextTalk)', () => {
-    // 6.10: תזכורת-סדרה שהגיע יומה קודמת ליעד; תומך/ת בלי תיק (?.) לא מפיל את המיון
-    expect(src).toContain("const tgt = (sp: Supporter) => dueRemOf(sp)?.date || ((sp.ayin?.stage || 'new') === 'done' ? sp.nextDate : sp.ayin?.nextTalk) || '9999';");
+    // 13.10: תזכורות-סדרה ברצועה נפרדת (ממוינות לפי תאריכן) ⇒ היעד בטבלה = יעד-הטיפול בלבד; תומך/ת בלי תיק (?.) לא מפיל את המיון
+    expect(src).toContain("const tgt = (sp: Supporter) => ((sp.ayin?.stage || 'new') === 'done' ? sp.nextDate : sp.ayin?.nextTalk) || '9999';");
+    expect(src).toContain("const reminders = [...dueRem].sort((x, y) => dueRemOf(x)!.date.localeCompare(dueRemOf(y)!.date) || x.name.localeCompare(y.name, 'he'));");
   });
 });
 

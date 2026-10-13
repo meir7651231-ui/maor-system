@@ -39,7 +39,7 @@ import { SupportersKpiStrip } from './SupportersKpiStrip';
 import { SupportersViewSwitcher } from './SupportersViewSwitcher';
 import { CommandPalette } from './CommandPalette';
 import type { Command } from './commands';
-import { AyinBoard } from './AyinBoard';
+import { AyinBoard, AyinDueBadge } from './AyinBoard';
 import { AyinNamesBoard } from './AyinNamesBoard';
 import { OrgDonationCalendar } from './DonationCalendar';
 import { SupDedupModal } from './SupDedupModal';
@@ -1037,6 +1037,8 @@ export function SupportersView() {
                   {'📋 כל ה' + ayinItemsLabel}
                 </Btn>
               )}
+              {/* ⏰ 13.10: תזכורות שהגיע זמנן — גלוי גם כשהלוח סגור; לחיצה פותחת (והן ברצועה בראש הלוח) */}
+              <AyinDueBadge onOpen={() => setAyinBoardOpen(true)} />
               {/* מונה-פעילים על המתג — הלוח סגור כברירת-מחדל (19.8) ובלי מונה אין אות-גילוי */}
               <Btn sm onClick={() => setAyinBoardOpen((v) => !v)}>
                 {(ayinBoardOpen ? '▲ הסתרה' : '▼ הצגה') + (ayinActiveCount ? ' · ' + ayinActiveCount : '')}

@@ -421,7 +421,7 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
         <div className="card" style={{ marginBottom: 12, padding: 12 }}>
         {/* 🔁 בורר-חזרה (16.9): 40 יום · יומי · שבועי · חודשי + כמות לסדרות החוזרות */}
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center', marginBottom: 8 }}>
-          <label style={{ fontSize: 12.5, color: 'var(--ink-soft)', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+          <label style={{ fontSize: 12.5, color: 'var(--ink-soft)', display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
             {recurMode === 'segula' ? '📅 תאריך תחילת הסגולה:' : '📅 תאריך התזכורת הראשונה:'}
             <input
               type="date"
