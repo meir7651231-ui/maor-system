@@ -664,6 +664,15 @@ export function roleOf(config: OrgConfig, email: string | null | undefined): Use
   return 'staff';
 }
 
+/**
+ * 🧰 ארגז-המנועים: מי רשאי לחבר/לנתק מנועים (`db.ui.engineLinks` — הגדרה ברמת-הארגון ב-db.ui).
+ * אותה תבנית של שאר הגדרות-הארגון ב-db.ui (סידור כרטיס-התורם `supCardLayout`, לוח-הבית `homeLayout`): כל מי שמגיע
+ * למסך עורך — ושער-המסך כאן הוא ההגדרות, שסגורות לתפקיד-מורה (`shell.roles`). מורה ⇒ קריאה-בלבד.
+ */
+export function canEditEngineLinks(config: OrgConfig, email: string | null | undefined): boolean {
+  return !(featureOn(config, 'shell.roles') && roleOf(config, email) === 'teacher');
+}
+
 /** ה-teacherId הממופה למייל המורה — null כשאין מיפוי. */
 export function teacherIdOf(config: OrgConfig, email: string | null | undefined): string | null {
   const e = (email || '').trim().toLowerCase();

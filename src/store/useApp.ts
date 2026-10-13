@@ -96,7 +96,7 @@ import { roomClashError } from '../components/calendar/calLib';
 import { allowedDesignationsFor, canIssueReceipt, effectiveConfigFor, isOrgManager, memberNamesOf, parseJoinFullCode } from '../components/platform/lib';
 import type { OrgCloudDoc } from '../lib/cloudConfig';
 import { DEFAULT_CONFIG, moduleEnabledIn, type FirebaseOrgConfig, type OrgConfig } from '../types/config';
-import { applyTheme, donationSplitOn, employeeSignUpError, featureOn, isAdminAuthority, isSuperAdmin, loadOrgConfig, orgSlugFromUrl, resolveOrgConfig, saveConfigOverride, signUpError, supEnforceOn, termOf, writeCloudConfigCache } from '../lib/config';
+import { applyTheme, canEditEngineLinks, donationSplitOn, employeeSignUpError, featureOn, isAdminAuthority, isSuperAdmin, loadOrgConfig, orgSlugFromUrl, resolveOrgConfig, saveConfigOverride, signUpError, supEnforceOn, termOf, writeCloudConfigCache } from '../lib/config';
 import { formatIsraeliPhone } from '../lib/validate';
 import { deviceTag, makeId } from '../lib/ids';
 import { supporterAggregates } from '../lib/supporterAgg';
@@ -487,6 +487,13 @@ interface AppState extends HostingActions {
   setSupporterNext: (id: string, dateIso: string, topic?: string) => void;
   /** 📝 «על מה לדבר בפעם הבאה» — על התומך/ת + רענון notes של תזכורת-הלוח המקושרת (6.10: משותף לכרטיס וללוח). */
   setSupporterNextNote: (id: string, note: string) => void;
+  /**
+   * 🧰 ארגז-המנועים (ENGINEBOX-B 13.10) — חיבור/ניתוק אמיתי של שני מנועים (`db.ui.engineLinks`). חסר ⇒ מתחילים
+   * מ-DEFAULT_LINKS ומחילים את השינוי; המפתח מאומת מול הקטלוג (רק חי⇄חי בין כלים שונים). שורת-לוג לכל שינוי.
+   * מורה (shell.roles) ⇒ נדחה. אסינכרוני: הקטלוג נטען עצל (הבנדל-הראשי לא מייבא אותו). true ⇔ נשמר שינוי.
+   */
+  linkEngine: (key: string) => Promise<boolean>;
+  unlinkEngine: (key: string) => Promise<boolean>;
   upsertEvent: (ev: OrgEvent) => void;
   deleteEvent: (id: string) => void;
   /**
@@ -1461,6 +1468,22 @@ export const useApp = create<AppState>()((set, get) => {
       setDb((db) => ({ audit: pushAudit(db.audit, { at: new Date().toISOString(), who, act, what }) }));
     } catch {
       /* הלוג הוא עזר — לא חוסם עבודה */
+    }
+  }
+
+  /** 🧰 חיבור/ניתוק מנוע — הקטלוג נטען עצל (import דינמי: הבנדל-הראשי לא גורר את חלקי-הארגז). */
+  async function changeEngineLink(key: string, on: boolean): Promise<boolean> {
+    try {
+      const s0 = get();
+      if (!canEditEngineLinks(s0.config, s0.cloud.user?.email)) return false;
+      const L = await import('../lib/enginebox/links');
+      const next = on ? L.withLink(get().db.ui.engineLinks, key) : L.withoutLink(get().db.ui.engineLinks, key);
+      if (!next) return false;
+      setDb((cur) => ({ ui: { ...cur.ui, engineLinks: next } }));
+      logAudit(on ? 'חיבור מנוע' : 'ניתוק מנוע', L.linkLabel(key));
+      return true;
+    } catch {
+      return false;
     }
   }
 
@@ -2491,6 +2514,12 @@ export const useApp = create<AppState>()((set, get) => {
     },
     upsertEvent(ev) {
       setDb((db) => ({ events: upsertIn(db.events, ev) }));
+    },
+    async linkEngine(key) {
+      return changeEngineLink(key, true);
+    },
+    async unlinkEngine(key) {
+      return changeEngineLink(key, false);
     },
     auditToAttention(issue) {
       get().upsertEvent({

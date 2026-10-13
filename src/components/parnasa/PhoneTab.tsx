@@ -21,11 +21,22 @@ import { hebrewVoice, phonePreviewMs, simListening, simNode, simPress, simSay, s
 import { clockAt } from './zmanimBoard';
 import { ask, type AbilityId } from '../../lib/switchboard/registry';
 import { useSwitchCtx } from '../switchboard/useSwitchCtx';
+import { useEngineLinks } from '../switchboard/useEngineLink';
+import { isLinked } from '../../lib/enginebox/links';
 import { downloadTextDoc } from './exportDoc';
 import type { PrNow } from './hooks';
 
-/** 🔌 המרכזייה (חיבור ג׳): היכולות שהקו שואל — "לבדיקת יחידת אירוח פנויה" כשהאירוח דלוק. */
-const LINE_ABILITIES: readonly AbilityId[] = ['hosting.availability'];
+/**
+ * 🔌 המרכזייה (חיבור ג׳): היכולות שהקו שואל — "לבדיקת יחידת אירוח פנויה" כשהאירוח דלוק, והתאריך העברי בברכה.
+ * 🧰 (ENGINEBOX-B) נטענות רק אלה שמחוברות לקו בארגז-המנועים (`lineIdsFor`) — ברירת-המחדל: רק מקום-פנוי (ביט-זהה).
+ */
+const LINE_ABILITIES: readonly AbilityId[] = ['hosting.availability', 'calendar.dayInfo'];
+const LINE_LINK: Record<string, readonly [string, string]> = { 'hosting.availability': ['host.units', 'availability'], 'calendar.dayInfo': ['orbit.calendar', 'date.hebrew'] };
+
+/** רשימת-הטעינה של הקו לפי החיבורים שלו (מנותק ⇒ הספק לא נטען ולא נשאל). */
+function lineIdsFor(engineLinks: readonly string[] | undefined): AbilityId[] {
+  return LINE_ABILITIES.filter((id) => isLinked(engineLinks, LINE_LINK[id]![0], LINE_LINK[id]![1], 'pr.phone'));
+}
 
 /** מקלדת-הטלפון בסדר הפיזי (LTR): 1 2 3 · 4 5 6 · 7 8 9 · * 0 #. */
 const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '*', '0', '#'] as const;
@@ -96,10 +107,13 @@ export function PhoneTab(props: { now: PrNow }) {
   const atMs = useMemo(() => phonePreviewMs(now.nowMs, now.loc, mode), [now.nowMs, now.loc, mode]);
   const clock = useMemo(() => clockAt(atMs, now.loc.tz), [atMs, now.loc.tz]);
   // ענפי-המרכזייה: הקו שואל דרך ask בלבד (אותו רגע-תצוגה); האירוח כבוי / הספק לא נטען ⇒ העץ ביט-זהה
-  const sw = useSwitchCtx(atMs, LINE_ABILITIES);
+  const engineLinks = useEngineLinks();
+  const lineIds = useMemo(() => lineIdsFor(engineLinks), [engineLinks]);
+  const hebDateGreeting = lineIds.includes('calendar.dayInfo');
+  const sw = useSwitchCtx(atMs, lineIds);
   const menu = useMemo(
-    () => buildPhoneMenu({ listings, posts, prefs, nowMs: atMs, loc: now.loc, config, switchboard: { ask, ctx: sw } }),
-    [listings, posts, prefs, atMs, now.loc, config, sw],
+    () => buildPhoneMenu({ listings, posts, prefs, nowMs: atMs, loc: now.loc, config, switchboard: { ask, ctx: sw }, engineLinks, hebDateGreeting }),
+    [listings, posts, prefs, atMs, now.loc, config, sw, engineLinks, hebDateGreeting],
   );
   const dups = useMemo(() => duplicateDialCodes(listings, clock.iso), [listings, clock.iso]);
 

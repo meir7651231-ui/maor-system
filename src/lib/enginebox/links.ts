@@ -14,6 +14,7 @@
  * את המרכזייה ולא את config.
  */
 import { PARTS, partById } from './parts';
+import { plugInfo } from './plugs';
 
 /** מפתח חיבור. */
 export function linkKey(giver: string, plug: string, needer: string): string {
@@ -114,4 +115,61 @@ export function healEngineLinksIn<T>(ui: T): T {
   }
   if (Array.isArray(cur) && sameList(cur as readonly string[], clean)) return ui;
   return { ...rec, engineLinks: clean } as T;
+}
+
+/* ═══════════════ שלב ב׳ (ENGINEBOX-B 13.10): חיבור/ניתוק אמיתי · שורות-התקציר לפי החיבורים ═══════════════ */
+
+/**
+ * הרשימה אחרי חיבור `key`: מתחילים מהחיבורים שבתוקף (חסר ⇒ ברירת-המחדל) ומוסיפים. מפתח לא-תקין, או שכבר מחובר ⇒ null
+ * (אין מה לשמור). התוצאה מחוטאת וממוינת — ערך מוכן ל-`ui.engineLinks`.
+ */
+export function withLink(stored: readonly string[] | null | undefined, key: string): string[] | null {
+  if (!isValidLink(key)) return null;
+  const cur = effectiveLinks(stored);
+  if (cur.has(key)) return null;
+  return sanitizeLinks([...cur, key]) ?? null;
+}
+
+/** הרשימה אחרי ניתוק `key` (חסר ⇒ מתחילים מברירת-המחדל). מפתח לא-תקין, או שלא מחובר ⇒ null. ניתוק אחרון ⇒ [] מפורש. */
+export function withoutLink(stored: readonly string[] | null | undefined, key: string): string[] | null {
+  if (!isValidLink(key)) return null;
+  const cur = effectiveLinks(stored);
+  if (!cur.has(key)) return null;
+  return sanitizeLinks([...cur].filter((k) => k !== key)) ?? null;
+}
+
+/** תיאור עברי של חיבור לשורת-הלוג: "זמני היום והשבת ← כרטיס השהייה · זמני שבת". מפתח לא-תקין ⇒ המפתח עצמו. */
+export function linkLabel(key: string): string {
+  const l = parseLink(key);
+  if (!l) return key;
+  return partById(l.giver)!.name + ' ← ' + partById(l.needer)!.name + ' · ' + (plugInfo(l.plug)?.label ?? l.plug);
+}
+
+/** החלק שנותן שורות-תקציר (day.summary) דרך היכולת הזו — undefined כשאין (שירות שקט / יכולת בלי חלק-נותן). */
+export function summaryGiverOf(ability: string): string | undefined {
+  for (const p of PARTS) for (const g of p.gives) if (g.live && g.plug === 'day.summary' && g.via === ability) return p.id;
+  return undefined;
+}
+
+/** האם לכרטיס "☀ תקציר היום" של `needer` מחובר לפחות נותן אחד (אחרת — זה רכיב חוצה-כלים שאין לו מקור ⇒ לא מוצג). */
+export function hasSummaryLink(stored: readonly string[] | null | undefined, needer: string): boolean {
+  const eff = effectiveLinks(stored);
+  for (const k of eff) {
+    const l = parseLink(k);
+    if (l && l.plug === 'day.summary' && l.needer === needer) return true;
+  }
+  return false;
+}
+
+/**
+ * שורות-התקציר שמותר להציג בכרטיס של `needer` (מודול `self`): שורות הכלי עצמו — תמיד (התנהגות מקומית); שורת כלי אחר —
+ * רק כשהחלק שנותן אותה מחובר ל-`needer` ב-day.summary. שורה זרה בלי חלק-נותן ⇒ לא מוצגת. חסר ⇒ ברירת-המחדל ⇒ כמו היום.
+ */
+export function linkedSummaryLines<L extends { readonly ability: string; readonly module: string }>(lines: readonly L[], stored: readonly string[] | null | undefined, self: string, needer: string): L[] {
+  const eff = effectiveLinks(stored);
+  return lines.filter((l) => {
+    if (l.module === self) return true;
+    const g = summaryGiverOf(l.ability);
+    return !!g && eff.has(linkKey(g, 'day.summary', needer));
+  });
 }

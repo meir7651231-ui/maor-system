@@ -233,7 +233,8 @@ describe('☀ ד׳ תקציר היום — לוח-הבקרה ולשונית-הט
 describe('🔌 הגנות-מקור — כל שער במקומו; אין גישה ישירה בין הכלים', () => {
   it('א׳: צרכן (hosting.shabbat) + ספק (ask ok) + וואטסאפ/טלפון בקישור', () => {
     const s = src('SwitchPanels.tsx');
-    expect(s).toContain('const on = env.on.shabbat && !!friIso;');
+    // שינוי-נעילה מכוון (ENGINEBOX-B 13.10): + החיבור בארגז-המנועים (זמני-השבת ⇒ כרטיס-השהייה)
+    expect(s).toContain('const on = env.on.shabbat && !!friIso && lk.times;');
     expect(s).toMatch(/const sh = ask\('parnasa\.shabbat', ctx, \{ atIso: friIso \}\);\s*if \(!sh\.ok\) return null;/);
     expect(s).toContain('const wa = env.wa && g.phone ? waHref(g.phone, text, env.waApp) : null;');
     expect(src('BookingModal.tsx')).toContain('{b && <StayShabbat b={b} />}');
@@ -242,7 +243,8 @@ describe('🔌 הגנות-מקור — כל שער במקומו; אין גישה
 
   it('ב׳: הכפתור בשער סינכרוני (isAvailable) ובקריאה/משימה פתוחה בלבד; 📞 בטלפוניה, 💬 בוואטסאפ', () => {
     const s = src('SwitchPanels.tsx');
-    expect(s).toContain("return isAvailable('parnasa.findPro', config);");
+    // שינוי-נעילה מכוון (ENGINEBOX-B): + המדריך מחובר למסך הזה בארגז-המנועים
+    expect(s).toContain("return linked && isAvailable('parnasa.findPro', config);");
     expect(s).toContain('{telOn && p.phone && (');
     expect(s).toContain('const wa = env.wa && p.whatsapp ? waHref(p.whatsapp, res.waIntro, env.waApp) : null;');
     expect(src('MaintTab.tsx')).toContain("{proOn && r.status !== 'done' && (");
@@ -252,12 +254,13 @@ describe('🔌 הגנות-מקור — כל שער במקומו; אין גישה
 
   it('ד׳: הכרטיס רק עם כלי נוסף; הכפתורים בדגל-הייצוא; השיתוף בוואטסאפ ובשער-הייצוא', () => {
     const s = src('SwitchPanels.tsx');
-    expect(s).toContain("const other = hasOtherTool(config, 'hosting');");
-    expect(s).toMatch(/if \(!other\) return null;\s*const lines = todaySummary\(ctx\);\s*if \(!lines\.length\) return null;/);
+    // שינוי-נעילה מכוון (ENGINEBOX-B): + לפחות נותן אחד מחובר; רק שורות מנותנים מחוברים
+    expect(s).toContain("const other = hasOtherTool(config, 'hosting') && hasSummaryLink(stored, 'host.dash');");
+    expect(s).toMatch(/if \(!other\) return null;\s*const lines = linkedSummaryLines\(todaySummary\(ctx\), stored, 'hosting', 'host\.dash'\);\s*if \(!lines\.length\) return null;/);
     expect(s).toContain('{env.on.export && (');
     expect(s).toContain('if (!guardExport()) e.preventDefault();');
     const c = src('TodayCard.tsx');
-    expect(c).toContain("const other = hasOtherTool(config, 'parnasa');");
+    expect(c).toContain("const other = hasOtherTool(config, 'parnasa') && hasSummaryLink(stored, 'pr.care');");
     expect(c).toContain('{exportOn && (');
     expect(c).toContain('{waOn && (');
     expect(c).toMatch(/function copy\(\): void \{\s*if \(!guardExport\(\)\) return;/);
@@ -282,9 +285,8 @@ describe('🔌 הגנות-מקור — כל שער במקומו; אין גישה
     // הקו: מה שהמודל (phoneLine) שואל ⊆ מה שהלשונית טוענת
     const line = asked(src('phoneLine.ts'));
     expect(line).toEqual(['calendar.dayInfo', 'hosting.availability']);
-    // ENGINEBOX-SOCKETS: calendar.dayInfo נשאל רק מאחורי hebDateGreeting (ברירה false) — מי שמדליק מוסיף אותו ל-LINE_ABILITIES
-    const lineOptIn = new Set(['calendar.dayInfo']);
-    for (const id of line) if (!lineOptIn.has(id)) expect(idsIn(src('PhoneTab.tsx'), 'LINE_ABILITIES'), id).toContain(id);
+    // ENGINEBOX-B: LINE_ABILITIES = כל מה שהקו יכול לשאול; הלשונית טוענת מתוכה רק את המחובר לקו (lineIdsFor)
+    for (const id of line) expect(idsIn(src('PhoneTab.tsx'), 'LINE_ABILITIES'), id).toContain(id);
     expect(src('phoneLine.ts')).toContain("input.hebDateGreeting === true ? hebTodaySentence(input.switchboard, hebDateAt(clock, loc)) : ''");
     // מסכי-האירוח: מה ש-SwitchPanels שואל ⊆ רשימות-הטעינה שלו
     const panels = src('SwitchPanels.tsx');

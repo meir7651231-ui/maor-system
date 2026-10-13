@@ -12,7 +12,10 @@
  *
  * מוצר = צרור-חלקים בשם (אירוח משפחתי · פרנסה׳לע). התחלה ממנוע בודד = התחלה מחלק אחד.
  * טהור: נתונים בלבד (ייבוא-טיפוסים בלבד מהמרכזייה — שום קוד-ריצה שלה לא נגרר לכאן).
- * בידוד: אין כאן כסף, קבלות, לוח-ראשי או חדרי-חוגים.
+ * בידוד: אין כאן כסף, קבלות, אירועי-הלוח-הראשי או חדרי-חוגים.
+ *   ⚠️ (ENGINEBOX-B 13.10 — מחליף את הכרעה 10 של הליבה "בלי חלק לוח-שנה של אורביט"): **קריאה** מהלוח העברי של אורביט
+ *   מותרת — `orbit.calendar` נותן תאריך עברי ושבת/חג דרך `calendar.dayInfo` (חישוב טהור, reads: [] — לא נוגע ב-db).
+ *   הבידוד עדיין אוסר **כתיבה**: אירועי-הלוח-הראשי, חדרים, כסף וקבלות.
  */
 import type { ModuleKey } from '../../types/config';
 import type { AbilityId } from '../switchboard/registry';
@@ -89,8 +92,6 @@ export const PARTS: readonly Part[] = [
     gives: [
       { plug: 'times.shabbat', label: 'זמני השבת (הדלקת נרות · צאת השבת · ר״ת) ותאריך השבת העברי', via: 'parnasa.shabbat', live: true },
       { plug: 'day.summary', label: 'שורת השבת בתקציר היום (הדלקת נרות · צאת השבת)', via: 'parnasa.shabbat', live: true },
-      { plug: 'times.blocked', label: 'האם עכשיו שבת או יום טוב', live: false },
-      { plug: 'date.hebrew', label: 'תאריך עברי וחג של כל יום', live: false },
     ],
     needs: [],
   },
@@ -137,6 +138,13 @@ export const PARTS: readonly Part[] = [
         at: { file: 'src/components/parnasa/phoneLine.ts', marker: "sw.ask('hosting.availability', sw.ctx, { fromIso: today, nights: 1 })" },
         live: true,
       },
+      {
+        plug: 'date.hebrew',
+        label: 'התאריך העברי של היום',
+        result: 'מי שמתקשר לקו שומע בברכה גם את התאריך העברי ואת החג: "היום כ״ז כסלו, חנוכה." (אחרי השקיעה: "הלילה ה׳ חשוון.")',
+        at: { file: 'src/components/parnasa/phoneLine.ts', marker: 'input.hebDateGreeting === true ? hebTodaySentence(' },
+        live: true,
+      },
       { plug: 'booking', label: 'בקשת הזמנה מהקו', result: 'מתקשר יוכל לבקש בקו לילה ביחידה פנויה, והבקשה תחכה לאישור המארח', live: false },
     ],
   },
@@ -154,7 +162,7 @@ export const PARTS: readonly Part[] = [
         plug: 'day.summary',
         label: 'שורות היום של הכלי השני',
         result: 'בלשונית האישורים מופיע כרטיס "☀ תקציר היום" עם שורות היום של הכלי השני (הגעות, עזיבות, ניקיון וקריאות תחזוקה באירוח) לצד הזמנים והמניין הבא — עם העתקה ושיתוף כשהייצוא דלוק',
-        at: { file: 'src/components/parnasa/TodayCard.tsx', marker: 'const lines = todaySummary(ctx);' },
+        at: { file: 'src/components/parnasa/TodayCard.tsx', marker: "const lines = linkedSummaryLines(todaySummary(ctx), stored, 'parnasa', 'pr.care');" },
         live: true,
       },
     ],
@@ -220,7 +228,32 @@ export const PARTS: readonly Part[] = [
         at: { file: SW, marker: 'minyanim: minyanimOf(ctx, sh.value.friIso)' },
         live: true,
       },
+      {
+        plug: 'times.blocked',
+        label: 'שבת וחג בתאריכי ההזמנה',
+        result: 'כשקובעים הזמנה שהכניסה או היציאה שלה נופלת בשבת או בחג — מופיעה אזהרה ברורה עם התאריך העברי: "⚠ הכניסה נופלת בשבת · ו׳ חשוון"',
+        at: { file: 'src/components/hosting/BookingModal.tsx', marker: 'props.shabbatGuard === true && nights > 0 ? <ShabbatGuard' },
+        live: true,
+      },
       { plug: 'payment.link', label: 'קישור תשלום', result: 'הודעה למשפחה תוכל לכלול קישור לעמוד הסליקה של הארגון', live: false },
+    ],
+  },
+  {
+    id: 'host.bookings',
+    name: 'רשימת ההזמנות',
+    emoji: '📋',
+    from: 'אירוח משפחתי',
+    what: 'מרכז ההזמנות — כל השהיות, מי מגיע ומתי, ומה נשאר לגבות',
+    module: 'hosting',
+    gives: [],
+    needs: [
+      {
+        plug: 'date.hebrew',
+        label: 'התאריך העברי של כל שהייה',
+        result: 'ליד התאריכים של כל שהייה רואים גם את התאריך העברי: "16/10 – 18/10 · ה׳–ז׳ חשוון"',
+        at: { file: 'src/components/hosting/BookingsTab.tsx', marker: '{props.hebDates === true && <StayHebDates b={b} />}' },
+        live: true,
+      },
     ],
   },
   {
@@ -307,13 +340,27 @@ export const PARTS: readonly Part[] = [
         plug: 'day.summary',
         label: 'שורות היום של הכלי השני',
         result: 'בלוח הבקרה מופיע כרטיס "☀ תקציר היום" עם שורות היום של הכלי השני (הדלקת נרות וצאת השבת, המניין הבא) לצד שורות האירוח — עם העתקה ושיתוף כשהייצוא דלוק',
-        at: { file: SW, marker: 'const lines = todaySummary(ctx);' },
+        at: { file: SW, marker: "const lines = linkedSummaryLines(todaySummary(ctx), stored, 'hosting', 'host.dash');" },
         live: true,
       },
     ],
   },
 
-  /* ───────── 🪐 אורביט (מנועים קיימים בלי נקודת-צריכה בכלים — "בקרוב" בלבד) ───────── */
+  /* ───────── 🪐 אורביט ───────── */
+  {
+    // קריאה בלבד מהלוח העברי (calendar.dayInfo — חישוב טהור, לא קורא ולא כותב db); אין כאן אירועי-לוח, חדרים, כסף או קבלות
+    id: 'orbit.calendar',
+    name: 'הלוח העברי',
+    emoji: '📅',
+    from: 'אורביט',
+    what: 'התאריך העברי והחגים של כל יום — ומתי שבת או יום טוב',
+    module: 'calendar',
+    gives: [
+      { plug: 'date.hebrew', label: 'התאריך העברי והחג של כל יום', via: 'calendar.dayInfo', live: true },
+      { plug: 'times.blocked', label: 'האם יום מסוים הוא שבת או יום טוב', via: 'calendar.dayInfo', live: true },
+    ],
+    needs: [],
+  },
   {
     id: 'orbit.families',
     name: 'משפחות',
@@ -329,7 +376,7 @@ export const PARTS: readonly Part[] = [
 /* ═══════════════ המוצרים ═══════════════ */
 
 export const PRODUCTS: readonly Product[] = [
-  { id: 'hosting', name: 'אירוח משפחתי', emoji: '🏡', module: 'hosting', parts: ['host.units', 'host.stay', 'host.shabbat', 'host.maint', 'host.clean', 'host.dash'] },
+  { id: 'hosting', name: 'אירוח משפחתי', emoji: '🏡', module: 'hosting', parts: ['host.units', 'host.stay', 'host.bookings', 'host.shabbat', 'host.maint', 'host.clean', 'host.dash'] },
   { id: 'parnasa', name: 'פרנסה׳לע', emoji: '📒', module: 'parnasa', parts: ['pr.zmanim', 'pr.board', 'pr.directory', 'pr.phone', 'pr.care', 'pr.booklet', 'pr.ads'] },
 ];
 

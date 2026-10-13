@@ -19,7 +19,7 @@ export function CleanTab() {
   const today = useToday();
   const finish = useApp((s) => s.finishHostCleanTask);
   // 🔌 המרכזייה (חיבור ב׳): עזרה בניקיון מהמדריך — רק כשהמדריך זמין
-  const proOn = useFindProOn();
+  const proOn = useFindProOn('host.clean');
   const { open, done } = useMemo(() => cleanTasksOf(d.records), [d.records]);
   const dirty = useMemo(() => d.units.filter((u) => unitLiveStatus(u, d.bookings, today) === 'dirty').length, [d.units, d.bookings, today]);
   const list = [...open, ...done.slice().reverse()];

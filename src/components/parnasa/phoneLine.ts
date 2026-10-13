@@ -33,6 +33,7 @@ import type { OrgConfig } from '../../types/config';
 import type { SwitchCtx } from '../../lib/switchboard/contract';
 import type { AskFn, OutputOf } from '../../lib/switchboard/registry';
 import { termOf } from '../../lib/config';
+import { isLinked } from '../../lib/enginebox/links';
 import {
   categoryOf,
   dialCodeHolders,
@@ -173,6 +174,11 @@ export interface PhoneMenuInput {
    * זמינה ⇒ העץ ביט-זהה. (הצרכן צריך לטעון גם את 'calendar.dayInfo' ברשימת-היכולות של הלשונית.)
    */
   hebDateGreeting?: boolean;
+  /**
+   * 🧰 (ENGINEBOX-B 13.10) `db.ui.engineLinks` — החיבורים בארגז-המנועים. חסר ⇒ ברירת-המחדל ⇒ העץ ביט-זהה. שלוחת "בדיקת
+   * יחידת אירוח פנויה" נבנית רק כש-host.units⇒availability⇒pr.phone מחובר (מנותק ⇒ לא נשאל ולא נאמר).
+   */
+  engineLinks?: readonly string[];
 }
 
 /** ההזרקה מהמרכזייה (lib/switchboard): ask + ההקשר — הקו לא מכיר אף כלי, הוא רק שואל. */
@@ -502,7 +508,7 @@ export function buildPhoneMenu(input: PhoneMenuInput): PhoneMenu {
   }
 
   // 🔌 ענף-המרכזייה (חיבור ג׳) — רק דרך ask; יכולת לא זמינה ⇒ null ⇒ העץ ביט-זהה
-  const host = hostBranch(input.switchboard, today, board.shabbat.friIso, loc.tz);
+  const host = isLinked(input.engineLinks, 'host.units', 'availability', 'pr.phone') ? hostBranch(input.switchboard, today, board.shabbat.friIso, loc.tz) : null;
   // 📅 התאריך העברי בברכה — רק כשהודלק (ברירה false) ורק דרך ask; אחרת '' ⇒ phonePrompt מדלג ⇒ ביט-זהה
   const hebToday = input.hebDateGreeting === true ? hebTodaySentence(input.switchboard, hebDateAt(clock, loc)) : '';
 

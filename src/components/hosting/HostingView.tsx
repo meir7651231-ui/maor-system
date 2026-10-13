@@ -34,6 +34,7 @@ import { AssetDialog, FaultDialog, MaintTab, PlanDialog, TempDialog } from './Ma
 import { ReportsTab } from './ReportsTab';
 import { SettingsTab } from './SettingsTab';
 import { FindProDialog } from './SwitchPanels';
+import { useEngineLink } from '../switchboard/useEngineLink';
 import './hosting.css';
 
 // פעולות-המודול נטענות עם הצ'אנק הזה ("שוקל רק מה שהדלקת") — מותקנות ב-store לפני הרינדור הראשון
@@ -103,10 +104,12 @@ export function HostingView() {
     setTheme(darkNow ? 'light' : 'dark');
   }
 
+  // 🧰 ארגז-המנועים: התאריך העברי ברשימת-ההזמנות — רק כשהלוח העברי מחובר אליה (ברירה: מנותק ⇒ ביט-זהה)
+  const hebDates = useEngineLink('orbit.calendar', 'date.hebrew', 'host.bookings');
   let body: ReactNode = null;
   if (active === 'dash') body = <DashTab biz={biz} />;
   else if (active === 'cal') body = <CalendarTab />;
-  else if (active === 'res') body = <BookingsTab />;
+  else if (active === 'res') body = <BookingsTab hebDates={hebDates} />;
   else if (active === 'units') body = <UnitsTab />;
   else if (active === 'guests') body = <GuestsTab />;
   else if (active === 'clean') body = <CleanTab />;
@@ -190,9 +193,11 @@ export function HostingView() {
 function DialogSwitch(props: { d: HostDialog }) {
   const x = props.d;
   const key = x.k + ':' + ('id' in x ? String(x.id) : '');
+  // 🧰 ארגז-המנועים: שומר שבת/חג מהלוח העברי בטופס-ההזמנה — רק כשמחובר (ברירה: מנותק ⇒ האזהרה המקומית, ביט-זהה)
+  const shabbatGuard = useEngineLink('orbit.calendar', 'times.blocked', 'host.stay');
   switch (x.k) {
     case 'booking':
-      return <BookingDialog key={key} id={x.id} pre={x.pre} />;
+      return <BookingDialog key={key} id={x.id} pre={x.pre} shabbatGuard={shabbatGuard} />;
     case 'pay':
       return <PayDialog key={key} id={x.id} />;
     case 'unit':

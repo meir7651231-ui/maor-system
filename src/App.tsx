@@ -88,7 +88,7 @@ const LoginScreen = lazy(async () => ({ default: (await import('./components/clo
 const PendingApprovalScreen = lazy(async () => ({ default: (await import('./components/cloud/LoginScreen')).PendingApprovalScreen }));
 // 🤖 "שאל את מאור" (VISION-LIGHT #30) — עצל: נטען רק בפתיחה ממרכז-העזרה
 // 🧩 ארגז המנועים — chunk עצל משלו (opt-in shell.enginebox); הבנדל הראשי לא גדל
-const EngineBoxScreen = lazy(async () => ({ default: (await import('./components/enginebox/EngineBoxScreen')).EngineBoxScreen }));
+const EngineBoxEntry = lazy(async () => ({ default: (await import('./components/enginebox/EngineBoxEntry')).EngineBoxEntry }));
 const AskMaorModal = lazy(async () => ({ default: (await import('./components/AskMaor')).AskMaorModal }));
 /** מפתח תצלום-המיתוג של האשף-קשור-הענן — חייב להיות זהה ל-BUILDER_PREV_KEY
  *  ב-RemoteWizard (ננעל ב-ratchet bundle-light; ייבוא-ערך סטטי היה מחזיר את
@@ -1337,11 +1337,10 @@ export default function App() {
           </div>
         ))}
 
-      {/* 🧩 ארגז המנועים — עד שסשן-החיבור ממש את התפר, source=null ⇒ מצב-ריק כן */}
+      {/* 🧩 ארגז המנועים — המקור האמיתי (הקטלוג · המתאים · החיבורים) נבנה בתוך ה-chunk העצל */}
       {engineBoxOpen && engineBoxOn && (
         <Suspense fallback={null}>
-          <EngineBoxScreen
-            source={null}
+          <EngineBoxEntry
             onClose={() => {
               window.location.hash = '';
               setEngineBoxOpen(false);

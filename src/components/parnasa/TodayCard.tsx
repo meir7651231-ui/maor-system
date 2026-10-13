@@ -11,17 +11,22 @@ import { featureOn, integrationOn, integrationSetting } from '../../lib/config';
 import { guardExport } from '../../lib/exportGate';
 import { hasOtherTool, shareWaUrl, summaryHeader, summaryText, todaySummary, voiceIds } from '../../lib/switchboard/summary';
 import { NO_ABILITIES, useSwitchCtx } from '../switchboard/useSwitchCtx';
+import { useEngineLinks } from '../switchboard/useEngineLink';
+import { abilityInfo } from '../../lib/switchboard/registry';
+import { hasSummaryLink, linkedSummaryLines } from '../../lib/enginebox/links';
 import { Btn } from '../ui';
 import type { PrNow } from './hooks';
 
 export function TodayCard(props: { now: PrNow }) {
   const config = useApp((s) => s.config);
   const toast = useApp((s) => s.toast);
-  const other = hasOtherTool(config, 'parnasa');
-  const ids = useMemo(() => (other ? voiceIds(config) : NO_ABILITIES), [config, other]);
+  // 🧰 ארגז-המנועים: רק שורות מנותנים שמחוברים ללשונית-האישורים (day.summary); אף אחד לא מחובר ⇒ אין כרטיס
+  const stored = useEngineLinks();
+  const other = hasOtherTool(config, 'parnasa') && hasSummaryLink(stored, 'pr.care');
+  const ids = useMemo(() => (other ? linkedSummaryLines(voiceIds(config).map((id) => ({ ability: id, module: abilityInfo(id)?.module ?? '' })), stored, 'parnasa', 'pr.care').map((v) => v.ability) : NO_ABILITIES), [config, other, stored]);
   const ctx = useSwitchCtx(props.now.nowMs, ids);
   if (!other) return null;
-  const lines = todaySummary(ctx);
+  const lines = linkedSummaryLines(todaySummary(ctx), stored, 'parnasa', 'pr.care');
   if (!lines.length) return null;
   const text = summaryText(lines, summaryHeader(props.now.nowMs));
   const exportOn = featureOn(config, 'parnasa.export');

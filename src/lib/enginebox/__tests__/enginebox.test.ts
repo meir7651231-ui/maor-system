@@ -165,8 +165,9 @@ describe('🧰 (ג) ברירת-המחדל = החיווט של היום', () => {
     }
   });
 
-  it('היום: כל חיבור חי-תקין כבר מחווט (שלב ב׳ רשאי להוסיף חי-לא-מחובר — אז הבדיקה הזו תשתנה במכוון)', () => {
-    expect([...VALID_LINKS].sort()).toEqual([...DEFAULT_LINKS].sort());
+  it('כל חיבור חי-תקין מחווט כברירת-מחדל — חוץ משלושת חיבורי-הלוח-העברי (ENGINEBOX-B: מתחילים מנותקים — שינוי מכוון)', () => {
+    const CAL = ['orbit.calendar>times.blocked>host.stay', 'orbit.calendar>date.hebrew>host.bookings', 'orbit.calendar>date.hebrew>pr.phone'];
+    expect([...VALID_LINKS].sort()).toEqual([...DEFAULT_LINKS, ...CAL].sort());
   });
 });
 

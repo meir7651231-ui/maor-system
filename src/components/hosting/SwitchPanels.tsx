@@ -10,14 +10,18 @@
  *   ד׳ TodayPanel (לוח-הבקרה) ⇐ todaySummary — רק כשכלי נוסף זמין; ⧉ העתקה / 💬 שיתוף — hosting.export + שער-הייצוא.
  *   📅 (ENGINEBOX-SOCKETS 13.10) ⇐ calendar.dayInfo — הלוח העברי של אורביט: ShabbatGuard (טופס-ההזמנה, prop `shabbatGuard`)
  *      ו-StayHebDates (כרטיס-השהייה במרכז-ההזמנות, prop `hebDates`). **כבויים כברירת-מחדל** — המסך ביט-זהה עד שמחברים.
+ *   🧰 (ENGINEBOX-B 13.10) כל רכיב חוצה-כלים מציית גם לחיבור שלו בארגז-המנועים (`useEngineLink` ⇐ db.ui.engineLinks):
+ *      מנותק ⇒ לא מחושב (היכולת לא נטענת/נשאלת) ולא מרונדר; הכלי ממשיך בהתנהגות המקומית שלו. חסר ⇒ ברירת-המחדל ⇒ ביט-זהה.
  */
 import { useMemo, type CSSProperties, type ReactNode } from 'react';
 import { useApp } from '../../store/useApp';
 import { telephonyOn } from '../../lib/config';
 import { guardExport } from '../../lib/exportGate';
 import { waHref } from '../../lib/wa';
-import { ask, isAvailable, type AbilityId, type OutputOf } from '../../lib/switchboard/registry';
-import { hasOtherTool, shareWaUrl, summaryHeader, summaryText, todaySummary, voiceIds } from '../../lib/switchboard/summary';
+import { ask, isAvailable, listAbilities, type AbilityId, type OutputOf } from '../../lib/switchboard/registry';
+import { hasOtherTool, shareWaUrl, summaryHeader, summaryText, todaySummary } from '../../lib/switchboard/summary';
+import { hasSummaryLink, linkedSummaryLines } from '../../lib/enginebox/links';
+import { useEngineLink, useEngineLinks } from '../switchboard/useEngineLink';
 import type { SwitchCtx } from '../../lib/switchboard/contract';
 import { NO_ABILITIES, useSwitchCtx } from '../switchboard/useSwitchCtx';
 import type { HostBooking } from '../../types/domain';
@@ -28,6 +32,18 @@ import { copyText } from './exportDoc';
 import { groupMinyanim, hebRangeText, sacredGuardLines, shabbatFamilyText, shabbatTimeItems, shulDaysText, stayFriday } from './switchLinks';
 
 const SHABBAT_IDS: readonly AbilityId[] = ['parnasa.shabbat', 'parnasa.minyanim'];
+const SHABBAT_ONLY: readonly AbilityId[] = ['parnasa.shabbat'];
+const MINYANIM_ONLY: readonly AbilityId[] = ['parnasa.minyanim'];
+
+/** היכולות שהמקבל צריך לפי החיבורים שלו: זמני-שבת ⇐ parnasa.shabbat · מניינים ⇐ parnasa.minyanim (מנותק ⇒ לא נטען). */
+function shabbatIdsFor(times: boolean, prayers: boolean): readonly AbilityId[] {
+  return times && prayers ? SHABBAT_IDS : times ? SHABBAT_ONLY : prayers ? MINYANIM_ONLY : NO_ABILITIES;
+}
+
+/** החיבורים של מקבל-שבת (כרטיס-השהייה / לשונית-השבת) בארגז-המנועים. */
+function useShabbatLinks(needer: 'host.stay' | 'host.shabbat'): { times: boolean; prayers: boolean } {
+  return { times: useEngineLink('pr.zmanim', 'times.shabbat', needer), prayers: useEngineLink('pr.board', 'times.prayers', needer) };
+}
 const PRO_IDS: readonly AbilityId[] = ['parnasa.findPro', 'parnasa.emergency'];
 const CAL_IDS: readonly AbilityId[] = ['calendar.dayInfo'];
 const VIOLET: CSSProperties = { color: 'var(--h-violet)', background: 'color-mix(in srgb,var(--h-violet) 12%,transparent)', borderColor: 'var(--h-violet)' };
@@ -111,19 +127,23 @@ function SendLink(props: { link: { href: string; app: boolean; who: string }; sm
   );
 }
 
-/** כרטיס-הזמנה: השהייה לנה בליל-שבת ⇒ זמני השבת והמניינים מלוח-הקהילה + "📤 שליחה למשפחה". */
+/**
+ * כרטיס-הזמנה: השהייה לנה בליל-שבת ⇒ זמני השבת והמניינים מלוח-הקהילה + "📤 שליחה למשפחה".
+ * 🧰 זמני-השבת מנותקים ⇒ אין כרטיס; המניינים מנותקים ⇒ בלי שורות-המניין ובלי "📤 שליחה למשפחה" (ההודעה בנויה משניהם).
+ */
 export function StayShabbat(props: { b: HostBooking }) {
   const d = useHostData();
   const env = useHostEnv();
   const nowMs = useNowMs(60_000);
   const biz = useBizName();
+  const lk = useShabbatLinks('host.stay');
   const friIso = blocksAvailability(props.b) ? stayFriday(props.b) : '';
-  const on = env.on.shabbat && !!friIso;
-  const ctx = useSwitchCtx(nowMs, on ? SHABBAT_IDS : NO_ABILITIES);
+  const on = env.on.shabbat && !!friIso && lk.times;
+  const ctx = useSwitchCtx(nowMs, on ? shabbatIdsFor(true, lk.prayers) : NO_ABILITIES);
   if (!on) return null;
   const sh = ask('parnasa.shabbat', ctx, { atIso: friIso });
   if (!sh.ok) return null;
-  const link = familyLink(env, d, props.b, ctx, friIso, biz);
+  const link = lk.prayers ? familyLink(env, d, props.b, ctx, friIso, biz) : null;
   return (
     <div className="h-okbox" style={{ ...VIOLET, display: 'block' }} data-switch="stay-shabbat">
       <div style={{ fontWeight: 800 }}>
@@ -131,7 +151,7 @@ export function StayShabbat(props: { b: HostBooking }) {
         <span style={{ ...DIM, fontWeight: 400 }}> · מלוח הקהילה</span>
       </div>
       <ShabbatTimes sh={sh.value} />
-      <MinyanRows list={minyanimOf(ctx, sh.value.friIso)} />
+      {lk.prayers && <MinyanRows list={minyanimOf(ctx, sh.value.friIso)} />}
       <div style={DIM}>{sh.value.loc + ' · ' + sh.value.brand}</div>
       {link && <SendLink link={link} />}
     </div>
@@ -140,14 +160,17 @@ export function StayShabbat(props: { b: HostBooking }) {
 
 /* ═══════════════ א׳ · לשונית 🕯️ שבת ═══════════════ */
 
-/** ההקשר של לשונית-השבת — פעם אחת למסך (הפאנל + כפתורי-השליחה בשורות). */
+/** ההקשר של לשונית-השבת — פעם אחת למסך (הפאנל + כפתורי-השליחה בשורות); טוען רק את מה שמחובר ללשונית. */
 export function useShabbatSwitch(): SwitchCtx {
   const nowMs = useNowMs(60_000);
-  return useSwitchCtx(nowMs, SHABBAT_IDS);
+  const lk = useShabbatLinks('host.shabbat');
+  return useSwitchCtx(nowMs, shabbatIdsFor(lk.times, lk.prayers));
 }
 
-/** "🕯️ זמני השבת מלוח הקהילה" — השבת הקרובה (או הנוכחית) + המניינים לשישי-שבת. */
+/** "🕯️ זמני השבת מלוח הקהילה" — השבת הקרובה (או הנוכחית) + המניינים לשישי-שבת. 🧰 זמני-השבת מנותקים ⇒ אין פאנל. */
 export function BoardShabbatPanel(props: { ctx: SwitchCtx }) {
+  const lk = useShabbatLinks('host.shabbat');
+  if (!lk.times) return null;
   const sh = ask('parnasa.shabbat', props.ctx, {});
   if (!sh.ok) return null;
   return (
@@ -155,28 +178,35 @@ export function BoardShabbatPanel(props: { ctx: SwitchCtx }) {
       <h2>🕯️ זמני השבת מלוח הקהילה</h2>
       <div style={{ fontWeight: 700 }}>{(sh.value.current ? 'השבת · ' : 'השבת הקרובה · ') + sh.value.hebDate + (sh.value.holiday ? ' · ' + sh.value.holiday : '')}</div>
       <ShabbatTimes sh={sh.value} />
-      <MinyanRows list={minyanimOf(props.ctx, sh.value.friIso)} />
+      {lk.prayers && <MinyanRows list={minyanimOf(props.ctx, sh.value.friIso)} />}
       <div className="h-hint">{sh.value.loc + ' · ' + sh.value.brand + ' · השדות הידניים למטה נשמרים כמו שהם'}</div>
     </div>
   );
 }
 
-/** 📤 בשורת-החבילה — רק להזמנה ששוהה בליל-שבת (השבת של השהייה שלה); אחרת כלום (גם לא עוטף ריק). */
+/** 📤 בשורת-החבילה — רק להזמנה ששוהה בליל-שבת (השבת של השהייה שלה); אחרת כלום (גם לא עוטף ריק). 🧰 צריך את שני החיבורים. */
 export function ShabbatSendLink(props: { ctx: SwitchCtx; b: HostBooking }) {
   const d = useHostData();
   const env = useHostEnv();
   const biz = useBizName();
-  const friIso = stayFriday(props.b);
+  const lk = useShabbatLinks('host.shabbat');
+  const friIso = lk.times && lk.prayers ? stayFriday(props.b) : '';
   const link = friIso ? familyLink(env, d, props.b, props.ctx, friIso, biz) : null;
   return link ? <SendLink link={link} sm /> : null;
 }
 
 /* ═══════════════ ב׳ · 🔧 מצא בעל מקצוע ═══════════════ */
 
-/** שער-הכפתור (סינכרוני, לא טוען דבר): יכולת המדריך זמינה. */
-export function useFindProOn(): boolean {
+/** שער-הכפתור (סינכרוני, לא טוען דבר): יכולת המדריך זמינה **ו**המדריך מחובר למסך הזה בארגז-המנועים. */
+export function useFindProOn(needer: 'host.maint' | 'host.clean'): boolean {
   const config = useApp((s) => s.config);
-  return isAvailable('parnasa.findPro', config);
+  const linked = useEngineLink('pr.directory', 'pro.match', needer);
+  return linked && isAvailable('parnasa.findPro', config);
+}
+
+/** 🧰 מספרי-החירום של לוח-הקהילה מחוברים לקריאות-התחזוקה (מנותק ⇒ גם קריאה דחופה פותחת את החלון בלי שורת-החירום). */
+export function useEmergencyLinked(): boolean {
+  return useEngineLink('pr.board', 'emergency', 'host.maint');
 }
 
 /** הדיאלוג: בעלי-מקצוע פתוחים-עכשיו מהמדריך (אין — הכי מתאימים, עם מצבם); חירום ⇒ גם מספרי-החירום של הלוח. */
@@ -258,17 +288,21 @@ export function FindProDialog(props: { text: string; title: string; urgent?: boo
 
 /* ═══════════════ ד׳ · ☀ תקציר היום — לוח-הבקרה ═══════════════ */
 
-/** תקציר-הבוקר מכל הכלים — רק כשכלי נוסף זמין (כלי יחיד ⇒ לוח-הבקרה ביט-זהה). */
+/**
+ * תקציר-הבוקר מכל הכלים — רק כשכלי נוסף זמין (כלי יחיד ⇒ לוח-הבקרה ביט-זהה).
+ * 🧰 רק שורות מנותנים שמחוברים ללוח-הבקרה (day.summary); אף נותן לא מחובר ⇒ אין כרטיס. נותן מנותק לא נטען.
+ */
 export function TodayPanel() {
   const config = useApp((s) => s.config);
   const toast = useApp((s) => s.toast);
   const env = useHostEnv();
   const nowMs = useNowMs(60_000);
-  const other = hasOtherTool(config, 'hosting');
-  const ids = useMemo(() => (other ? voiceIds(config) : NO_ABILITIES), [config, other]);
+  const stored = useEngineLinks();
+  const other = hasOtherTool(config, 'hosting') && hasSummaryLink(stored, 'host.dash');
+  const ids = useMemo(() => (other ? summaryIdsFor(config, stored, 'hosting', 'host.dash') : NO_ABILITIES), [config, other, stored]);
   const ctx = useSwitchCtx(nowMs, ids);
   if (!other) return null;
-  const lines = todaySummary(ctx);
+  const lines = linkedSummaryLines(todaySummary(ctx), stored, 'hosting', 'host.dash');
   if (!lines.length) return null;
   const text = summaryText(lines, summaryHeader(nowMs));
   return (
@@ -307,6 +341,14 @@ export function TodayPanel() {
       )}
     </div>
   );
+}
+
+/** רשימת-הטעינה של כרטיס-תקציר: יכולות עם קול (לא-שקטות) של הכלי עצמו + של נותנים מחוברים למקבל. */
+export function summaryIdsFor(config: Parameters<typeof listAbilities>[0], stored: readonly string[] | undefined, self: string, needer: string): AbilityId[] {
+  const voices = listAbilities(config)
+    .filter((a) => !a.quiet)
+    .map((a) => ({ ability: a.id, module: a.module as string }));
+  return linkedSummaryLines(voices, stored, self, needer).map((v) => v.ability);
 }
 
 /* ═══════════════ 📅 הלוח העברי — calendar.dayInfo (ENGINEBOX-SOCKETS) ═══════════════ */

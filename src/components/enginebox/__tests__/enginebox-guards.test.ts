@@ -3,8 +3,9 @@
  *  (א) `shell.enginebox` הוא opt-in אמיתי — ב-OPT_IN_KEYS, ב-FEATURES עם optIn:true, וכל שער
  *      בקוד הוא `=== true` מפורש (לא featureOn: חסר=דלוק היה מדליק לכל לקוח-חי בשקט — לקח-הקוקפיט).
  *  (ב) נתוני-הדוגמה לא דולפים לייצור: אף קובץ-מקור (מחוץ ל-__tests__) לא מייבא את fixtures.
- *  (ג) עד שסשן-החיבור ממש את התפר — הכניסה מעבירה source={null}, והמסך מציג מצב-ריק כן.
- *  (ד) המסך נטען lazy — אין import סטטי שלו ב-App/הגדרות (הבנדל הראשי לא גדל).
+ *  (ג) המסך עם source={null} מציג מצב-ריק כן; הכניסה האמיתית (EngineBoxEntry) בונה את המקור מהליבה (source.ts),
+ *      והמתאם לא מייבא נתוני-דוגמה (ראו גם ב׳).
+ *  (ד) הכניסה נטענת lazy — אין import סטטי של המסך/הכניסה ב-App/הגדרות (הבנדל הראשי לא גדל).
  */
 import { describe, expect, it } from 'vitest';
 import { createElement } from 'react';
@@ -49,15 +50,23 @@ describe('🧩 ארגז המנועים — שערים והגנות-מקור', ()
     }
   });
 
-  it('(ג) הכניסה מעבירה source={null} — והמסך מציג מצב-ריק כן', () => {
-    expect(appSrc).toMatch(/<EngineBoxScreen\s+source=\{null\}/);
+  it('(ג) המסך עם source={null} מציג מצב-ריק כן; הכניסה מעבירה מקור אמיתי מהליבה', () => {
     const out = renderToStaticMarkup(createElement(EngineBoxScreen, { source: null, onClose: () => {} }));
     expect(out).toContain(EMPTY_SOURCE_TEXT);
+    // שינוי-נעילה מכוון (ENGINEBOX-B 13.10): הכניסה כבר לא source={null} — EngineBoxEntry בונה engineBoxSource מעל הליבה
+    expect(appSrc).not.toMatch(/<EngineBoxScreen\s+source=\{null\}/);
+    expect(appSrc).toMatch(/<EngineBoxEntry\s+onClose=/);
+    const entry = prod.find(([p]) => p.endsWith('/components/enginebox/EngineBoxEntry.tsx'))?.[1] ?? '';
+    expect(entry).toContain('<EngineBoxScreen source={source} onClose={props.onClose} />');
+    expect(entry).toMatch(/engineBoxSource\(\{/);
+    const source = prod.find(([p]) => p.endsWith('/components/enginebox/source.ts'))?.[1] ?? '';
+    expect(source).toContain("from '../../lib/enginebox/match'");
+    expect(/fixtures|__tests__/.test(source.replace(/\/\*[\s\S]*?\*\//g, ''))).toBe(false);
   });
 
-  it('(ד) המסך נטען lazy בלבד', () => {
-    expect(appSrc).toContain("lazy(async () => ({ default: (await import('./components/enginebox/EngineBoxScreen')).EngineBoxScreen }))");
+  it('(ד) הכניסה נטענת lazy בלבד', () => {
+    expect(appSrc).toContain("lazy(async () => ({ default: (await import('./components/enginebox/EngineBoxEntry')).EngineBoxEntry }))");
     expect(appSrc).not.toMatch(/^import[^\n]*enginebox/m);
-    expect(settingsSrc).not.toMatch(/enginebox\/EngineBoxScreen/);
+    expect(settingsSrc).not.toMatch(/enginebox\/(EngineBoxScreen|EngineBoxEntry|source)/);
   });
 });
