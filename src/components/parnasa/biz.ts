@@ -173,26 +173,11 @@ export function kupaOf(l: PrListing, requests: readonly PrRequest[], startIso: I
   return { n, ans, th, mo, art: kupaArt(n) };
 }
 
-/* ═══════════════ תמונות ולוגו (data:URI מקומי — תקרות המקור + תקציב) ═══════════════ */
+/* ═══════════════ תמונות ולוגו (data:URI מקומי — תקרות המקור + תקציב; השער עצמו ב-transitions) ═══════════════ */
 
-/** עד 4 תמונות לעסק (המקור). */
-export const PR_PHOTO_MAX = 4;
-/** צלע-מרבית לתמונה (900px במקור) ולוגו (256px). */
+/** צלע-מרבית לתמונה (900px במקור) וללוגו (256px). */
 export const PR_PHOTO_DIM = 900;
 export const PR_LOGO_DIM = 256;
-/** תקרת-אורך למחרוזת (≈45KB/25KB בינארי במקור, base64 ≈ ×1.37 + כותרת). */
-export const PR_PHOTO_LEN = 64_000;
-export const PR_LOGO_LEN = 36_000;
-/** תקציב-הארגון לכל תמונות-העסקים והלוגואים יחד (מסמך-ה-DB המקומי; מספר = פשרת-מוצר — לבעלים). */
-export const PR_ORG_PHOTO_BUDGET = 3_000_000;
 
-/** משקל-התמונות של עסק (לוגו + תמונות). */
-export function listingImageLen(l: Pick<PrListing, 'logo' | 'photos'>): number {
-  return (typeof l.logo === 'string' ? l.logo.length : 0) + (Array.isArray(l.photos) ? l.photos.reduce((a, p) => a + (typeof p === 'string' ? p.length : 0), 0) : 0);
-}
-/** משקל-התמונות של כל הארגון (בלי העסק הנערך — exceptId). */
-export function orgImageLen(listings: readonly PrListing[], exceptId = ''): number {
-  let n = 0;
-  for (const l of listings) if (l.id !== exceptId) n += listingImageLen(l);
-  return n;
-}
+/** משקל-התמונות (המימוש ב-model — אותו חשבון בשער של ה-store). */
+export { listingImageLen, orgImageLen } from './model';

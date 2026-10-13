@@ -20,7 +20,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { useApp } from '../../store/useApp';
 import { featureOn, termOf } from '../../lib/config';
 import { useRemembered } from '../../lib/filterMemory';
-import type { PrRequest } from '../../types/domain';
+import type { PrListing, PrRequest } from '../../types/domain';
 import { needsCare, pendingApprovals } from './lib';
 import { usePrNow, usePrPerms } from './hooks';
 import { prOpenBox } from './paletteLink';
@@ -60,17 +60,23 @@ export function ParnasaView() {
   const [seg, setSeg] = useRemembered<AdminSeg>('parnasa.admin.seg', 'appr');
   const [dirQ, setDirQ] = useRemembered<string>('parnasa.dir.q', '');
   const [selListing, setSelListing] = useRemembered<string | null>('parnasa.dir.sel', null);
+  // עיצוב 4: הדף שבעריכה ב"העסק שלי" (null = עסק חדש) + התצוגה-המקדימה של העורך (טיוטה בגיליון)
+  const [meSel, setMeSel] = useRemembered<string | null>('parnasa.me.sel', null);
+  const [prevDraft, setPrevDraft] = useState<PrListing | null>(null);
   // השאלה שממנה נפתח הדף (להודעת-הוואטסאפ המוכנה "צריך עזרה: …")
   const [selQ, setSelQ] = useState('');
   const openBiz = useCallback(
     (id: string | null, q = '') => {
       setSelQ(q);
       setSelListing(id);
+      // דף אמיתי נפתח (גם מהפלטה) ⇒ התצוגה-המקדימה של העורך נסגרת — לא שני גיליונות זה על זה
+      if (id) setPrevDraft(null);
     },
     [setSelListing],
   );
   const [focusReq, setFocusReq] = useState<string | null>(null);
   const [meAdd, setMeAdd] = useState(0);
+  const meAddDone = useCallback(() => setMeAdd(0), []);
   const [reqDraft, setReqDraft] = useState<Partial<PrRequest> | null>(null);
   const quick = useQuickDial();
   const rootRef = useRef<HTMLDivElement>(null);
@@ -324,7 +330,7 @@ export function ParnasaView() {
   else if (active === 'me')
     body = (
       <section className="pn-view pn-on pn-v-me" aria-label="העסק שלי">
-        <MeTab addTick={meAdd} onOpen={(id) => openBiz(id)} />
+        <MeTab ctx={bizCtx} sel={meSel} setSel={setMeSel} addTick={meAdd} onAddConsumed={meAddDone} onOpen={directoryOn ? (id) => openBiz(id) : null} onPreview={setPrevDraft} />
       </section>
     );
   else
@@ -395,7 +401,25 @@ export function ParnasaView() {
         {shown.length > 0 && active && (
           <TabBar tabs={shown.map((t) => ({ key: t.key, label: t.label, icon: t.icon, badge: badges[t.key] }))} active={active} onGo={go} />
         )}
-        {selListing && directoryOn ? <BizSheet id={selListing} qtext={selQ} ctx={bizCtx} onClose={() => openBiz(null)} onOpen={(id) => openBiz(id)} /> : null}
+        {selListing && directoryOn ? (
+          <BizSheet
+            id={selListing}
+            qtext={selQ}
+            ctx={bizCtx}
+            onClose={() => openBiz(null)}
+            onOpen={(id) => openBiz(id)}
+            onEdit={
+              isOn('me')
+                ? (id) => {
+                    openBiz(null);
+                    setMeSel(id);
+                    go('me');
+                  }
+                : undefined
+            }
+          />
+        ) : null}
+        {prevDraft ? <BizSheet draft={prevDraft} qtext="" ctx={bizCtx} onClose={() => setPrevDraft(null)} onOpen={() => {}} /> : null}
         <PnPortal>
           <div className={cx('pn-toast', pnToast && 'pn-on')} role="status" aria-live="polite">
             {pnToast ? (

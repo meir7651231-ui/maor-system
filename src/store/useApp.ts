@@ -82,6 +82,7 @@ import {
   requireApprovalOf,
   saveAd,
   saveListing,
+  listingImagesWhy,
   savePost,
   saveRequest,
   takeDownPost,
@@ -3967,6 +3968,12 @@ export const useApp = create<AppState>()((set, get) => {
       }
       if (actor.canApprove && code && dialCodeTaken(get().db.prListings, code, prev?.id)) {
         get().toast('קוד-החיוג ' + code + ' כבר תפוס — בחרו אחר');
+        return { ok: false };
+      }
+      // תמונות-הדף: data:image בתקרות המקור, ותקציב-התמונות של הארגון (עיצוב 4)
+      const imgWhy = listingImagesWhy(prev, l, get().db.prListings);
+      if (imgWhy) {
+        get().toast(imgWhy);
         return { ok: false };
       }
       // רשומה שנמחקה בינתיים (מכשיר אחר) לא "קמה" עם המזהה הישן — יש לה מצבה; מזהה חדש

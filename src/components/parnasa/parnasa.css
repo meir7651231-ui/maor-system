@@ -2166,3 +2166,10 @@ html.pn-scroll-lock{overflow:hidden}
 .pn .pn-orbit .chip.on{color:var(--primary-ink)}
 .pn .pn-orbit input:not([type=checkbox]):not([type=radio]),.pn .pn-orbit select,.pn .pn-orbit textarea{font-size:inherit;border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:8px 10px;color:var(--ink);box-shadow:none}
 .pn .pn-orbit :focus-visible{outline:2px solid var(--accent-deep);outline-offset:1px;border-radius:0}
+/* עורך-הדף (עיצוב 4): במקור שורת-השמירה relative+bottom:86px כדי לעלות מעל הפס הקבוע — וכך היא מכסה את השדה האחרון
+   ("השגחה"). כאן הפס דביק בתוך המודול ונח אחרי התוכן, ולכן השורה בזרימה; כשיש שינויים — דביקה מעל הפס (בטלפון גם מעל
+   ניווט-התחתית של אורביט, 56px) */
+.pn .pn-edsave{bottom:auto}
+.pn form.pn-ed.pn-dirty .pn-edsave{bottom:calc(86px + env(safe-area-inset-bottom,0px))}
+@media (max-width:760px){.pn form.pn-ed.pn-dirty .pn-edsave{bottom:calc(142px + env(safe-area-inset-bottom,0px))}}
+@media (orientation:landscape) and (max-height:500px){.pn form.pn-ed.pn-dirty .pn-edsave{bottom:calc(62px + env(safe-area-inset-bottom,0px))}}

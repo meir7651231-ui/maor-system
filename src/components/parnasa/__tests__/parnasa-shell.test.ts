@@ -190,15 +190,16 @@ describe('📒 (ג) הניווט של המקור — כל לשונית ואזו�
     expect(ads).toContain('מפתח המקצועות');
   });
 
-  it('"העסק שלי": כותרת-המקור + רשימת-העסקים עם מצב-האישור + ➕ הוספה', () => {
+  it('"העסק שלי": כותרת-המקור + בורר הדף-שבעריכה (כל העסקים עם מצב-האישור) + ➕ הוספה + העורך', () => {
     setup(ON(), DATA);
-    const html = render(createElement(MeTab, { onOpen: () => {} }));
+    const html = render(createElement(MeTab, { ctx: bizCtx(nowOf()), sel: null, setSel: () => {}, onOpen: () => {}, onPreview: () => {} }));
     expect(html).toContain('לבעלי עסקים');
     expect(html).toContain('<h1>העסק שלי</h1>');
-    expect(html).toContain('אינסטלציה זילברמן');
-    expect(html).toContain('מופיע באלפון');
-    expect(html).toContain('ממתין לאישור');
+    expect(html).toContain('אינסטלציה זילברמן · ☎ 101');
+    expect(html).toContain('גינון עדן · ממתין');
     expect(html).toContain('➕ הוספת עסק');
+    expect(html).toContain('עורך הדף');
+    expect(html).toContain('טיוטה · עוד לא נשמר');
   });
 
   it('כל הלשוניות כבויות ⇒ מצב-ריק מסביר, לא מסך שבור', () => {

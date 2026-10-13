@@ -18,7 +18,7 @@ for themselves; the port is a gabbai/staff tool inside Orbit — residents' requ
 is no owner login).
 
 **Before the re-skin** (design phase, 164 capabilities in A–K): **30 present · 65 partial · 69 missing**.
-**Now (after cluster 3 — browse + business page)**: **99 present · 39 partial · 26 missing**
+**Now (after cluster 4 — העסק שלי)**: **117 present · 32 partial · 15 missing**
 
 **Design-phase breakdown** (before the re-skin): of the 134 partial+missing rows, the main blocker is: 93 UI-only · 26 need new data fields (DATA, usually with UI) · 15 need a server or public access (SERVER, out of scope). A parenthetical "(+DATA…)"/"(+SERVER…)" marks a secondary, smaller part of the gap.
 
@@ -34,7 +34,7 @@ Current counts per area (recomputed from the rows after every cluster):
 | F. Contact | 3 | 0 | 1 |
 | G. Requests | 6 | 9 | 4 |
 | H. Community board | 6 | 5 | 3 |
-| I. העסק שלי | 3 | 10 | 11 |
+| I. העסק שלי | 21 | 3 | 0 |
 | J. Admin | 5 | 7 | 2 |
 | K. Booklet | 4 | 3 | 0 |
 
@@ -201,30 +201,30 @@ Current counts per area (recomputed from the rows after every cluster):
 
 | # | original | status | port file | gap | notes |
 |---|---|---|---|---|---|
-| I1 | Page "לבעלי עסקים · העסק שלי · דף עסק מלא בתוך האלפון…" for a signed-in business owner | missing | — | SERVER | no owner identity in the port |
-| I2 | "בקשות בתחום שלך — {cat} · מגיעות אליכם לפני כל הקהילה" (14 days, quiet seals, "עוד X רק אצל העסקים", "אני זמין" / quiet reply) | partial | BizSheet.tsx ("מה מבקשים בתחום") | SERVER | the gabbai sees the business's routed requests on its page (quiet ones sealed); the owner's own board in העסק שלי needs owner logins (SERVER) |
-| I3 | Status pill "טיוטה · עוד לא נשמר" / "באוויר באלפון" / "ממתין לאישור הגבאי" / "מוסתר ע״י הגבאי" | partial | BizSheet.tsx (badges) · Home.tsx `Banner` (browse) | UI | "ממתין לאישור הגבאי" / "מוסתר מהאלפון" as badges on the page and on browse banners (gabbai); the owner's status pill = cluster 4 |
-| I4 | Live mini preview of the page ("לתצוגה המלאה") + "כך תופיעו בתוצאות החיפוש" (your banner) | missing | — | UI | useful in the gabbai form too |
-| I5 | Completeness ring with weights (basics 20, description ≥60 chars 12, tagline 6, logo 10, palette 4, ≥2 services 15, photo 12, hours 8, FAQ 5, payment 4, area 4) and the three most valuable "+N%" chips that jump to the section | missing | — | UI (+DATA for the fields) | |
-| I6 | Tiles "פניות מהאלפון" (velvet) and "המלצות" | partial | BizSheet.tsx (kupa, recommendations) | SERVER | recommendations counted on the page and in the kupa; "פניות מהאלפון" needs F3 (SERVER) |
-| I7 | "הקופה שלך" | missing | — | UI | |
-| I8 | "קידום העסק": "כרטיס מודגש" 45 ₪ / "חסות על שער ״…״" 300 ₪ ("השער בחסות כרגע. נרשום אתכם לתור."), "הערה לגבאי (רשות)", "שליחת בקשה לגבאי"; sent state + "ביטול הבקשה" | missing | — | SERVER (+DATA) | |
-| I9 | "המלצות שקיבלתם" (up to 6) + "לדף ולשיתוף" | missing | — | UI | |
-| I10 | "המעטפת שלי" — 3-ring constellation, legend, empty slots with "העתקת הזמנה" | missing | — | UI | |
-| I11 | Editor "עריכת דף העסק": 8 collapsible sections, gold progress bar, live summaries, ✓ when complete | partial | ListingForm.tsx | UI | one modal: core fields + "פרטים נוספים" |
-| I12 | §פרטים בסיסיים: name, title, trade, phone, "משפט מפתח", "מבצע לבאנר" + "בתוקף עד", "על העסק", city, area, "שירות מתאים ל", chips "יש וואטסאפ במספר" / "הנחה לאנשי הקהילה" / "גמ״ח / בהתנדבות" / "פנוי ללקוחות נוספים" | partial | ListingForm.tsx | DATA + UI | all except offer and seek; port adds second phone and gabbai fields |
-| I13 | §עיצוב: "צבע הדף" — 8 palettes (קטיפה · תכלת · אזמרגד · חצות · זית · נחושת · שזיף · צפחה); logo upload (≤256px, ≤25 KB, monogram fallback, replace/remove) | missing | — | DATA + UI | |
-| I14 | §שירותים ומחירים: ≤12 rows (name, price "150"/"מ־300"/"לפי הצעה", note), ↑↓ reorder, delete | partial | ListingForm.tsx | UI | no reorder |
-| I15 | §תמונות: up to 4, compressed in the browser (≤900px, ≤45 KB WebP), remove, size meter | missing | — | DATA + UI | |
-| I16 | §שעות פעילות: day chips א׳–ו׳, from/to, "זמין 24/7", "שעות במילים", "זמינים לקריאות חירום" | present | ListingForm.tsx | UI | richer multi-window editor |
-| I17 | §שאלות נפוצות: ≤4 question/answer rows, reorder | missing | — | DATA + UI | |
-| I18 | §תשלום ושפות: מזומן · העברה בנקאית · ביט · אשראי · צ׳קים + languages | partial | ListingForm.tsx | DATA + UI | languages only |
-| I19 | §תעודות, השגחה וותק: "שנות ותק", "תעודה / הסמכה", "השגחה" | partial | ListingForm.tsx | DATA + UI | kashrut only |
-| I20 | Consent "אני מסכים שהפרטים יוצגו לחברי הקהילה" / "קיבלתי את הסכמתו להופיע באלפון" | present | ListingForm.tsx | — | |
-| I21 | Sticky frosted save bar: "שמירת הדף" / "שליחה לאישור" / "פרסום הדף", "תצוגה", "יש שינויים שלא נשמרו", size meter (240 KB) | partial | ListingForm.tsx | UI | modal buttons; save labels follow the approval mode |
-| I22 | Full preview with a "תצוגה מקדימה" ribbon | missing | — | UI | |
-| I23 | "הסרת העסק" (press twice: "ללחוץ שוב כדי להסיר את הדף") | partial | BizSheet.tsx (gabbai delete, press twice) | SERVER (owner) | the gabbai deletes from the page; the owner's own "הסרת העסק" needs owner logins (SERVER) |
-| I24 | Validation: "חסר: …", consent, "הדף גדול מדי (…)" | present | ListingForm.tsx | UI | |
+| I1 | Page "לבעלי עסקים · העסק שלי · דף עסק מלא בתוך האלפון…" for a signed-in business owner | partial | MeTab.tsx (`.pn-mepage`) · Shell.tsx `Page` | SERVER | the page in the original's look ("לבעלי עסקים · העסק שלי · דף עסק מלא בתוך האלפון…"); in Orbit the gabbai/staff builds each page on the owner's behalf and with consent — picker "הדף שבעריכה" (every business with its approval state and ☎ code) + "➕ הוספת עסק"; a business owner signing in to edit their own page = owner decision (SERVER) |
+| I2 | "בקשות בתחום שלך — {cat} · מגיעות אליכם לפני כל הקהילה" (14 days, quiet seals, "עוד X רק אצל העסקים", "אני זמין" / quiet reply) | present | MeTab.tsx (`.pn-mereqs`) · InTrade.tsx `inTradeOf`/`TradeRows`/`RespondModal` (shared with the business page) | UI | "בקשות בתחום שלך" + "{gate} · מגיעות אליכם לפני כל הקהילה" at the top of the page: the last 14 days, urgent first, "עוד X רק אצל העסקים", "אני זמין" / quiet "שליחת תשובה" (a written answer is required) answered on the business's behalf, then "סימנת שאתה זמין" / "שלחת תשובה."; a quiet request shows only its redacted text (the port's stricter privacy) instead of each owner's own 10-minute seal (per-owner screens = SERVER) |
+| I3 | Status pill "טיוטה · עוד לא נשמר" / "באוויר באלפון" / "ממתין לאישור הגבאי" / "מוסתר ע״י הגבאי" | present | MeTab.tsx (`.pn-livepill`) | UI | "טיוטה · עוד לא נשמר" / "באוויר באלפון" / "ממתין לאישור הגבאי" / "מוסתר ע״י הגבאי" (term-aware) with the original's pulsing dot, over the mini card |
+| I4 | Live mini preview of the page ("לתצוגה המלאה") + "כך תופיעו בתוצאות החיפוש" (your banner) | present | MeTab.tsx (`.pn-bpmini`, `.pn-mebn`) · BizSheet.tsx `BizBody` (prev + mini) | UI | the live mini page (follows the draft, 140 ms like edChanged) + "לתצוגה המלאה"; "כך תופיעו בתוצאות החיפוש" = the real result banner, inert |
+| I5 | Completeness ring with weights (basics 20, description ≥60 chars 12, tagline 6, logo 10, palette 4, ≥2 services 15, photo 12, hours 8, FAQ 5, payment 4, area 4) and the three most valuable "+N%" chips that jump to the section | present | editor.ts `completeness` · MeTab.tsx (`.pn-ring`, `.pn-stepc`) | UI | the original's weights (20/12/6/10/4/15/12/8/5/4/4) and texts ("הדף שלכם מושלם" / "הדף נראה מצוין" / "עוד כמה צעדים לדף מלא" / "בואו נבנה את הדף שלכם"); the three heaviest "+N%" chips open the section and scroll to it |
+| I6 | Tiles "פניות מהאלפון" (velvet) and "המלצות" | partial | MeTab.tsx (`.pn-dtiles`) | SERVER | "המלצות" tile as in the original; the velvet "פניות מהאלפון" tile (distinct people who pressed WhatsApp/copy) needs per-viewer contact logs (F3, SERVER) — in its place the velvet tile counts the same 14-day "בקשות בתחום" |
+| I7 | "הקופה שלך" | present | BizSheet.tsx `Kupa` (own) · MeTab.tsx | UI | kupaRow(e, own): "הקופה שלך" · "N פעמים עזרת לקהילה" · "כל תשובה לבקשה בתחום שלך היא מטבע", shown even when empty, the 7 renders by fill |
+| I8 | "קידום העסק": "כרטיס מודגש" 45 ₪ / "חסות על שער ״…״" 300 ₪ ("השער בחסות כרגע. נרשום אתכם לתור."), "הערה לגבאי (רשות)", "שליחת בקשה לגבאי"; sent state + "ביטול הבקשה" | partial | Editor.tsx ("שדות הגבאי": "כרטיס מודגש עד") · AdsTab.tsx (gate sponsorship) | SERVER (+DATA) | the gabbai, who edits the page, sets "כרטיס מודגש עד" directly and sells gate sponsorships in ניהול; the owner→gabbai request inbox ("שליחת בקשה לגבאי", promoreq) needs owner logins (SERVER) — owner decision |
+| I9 | "המלצות שקיבלתם" (up to 6) + "לדף ולשיתוף" | present | MeTab.tsx (`.pn-dcard`) | UI | "המלצות שקיבלתם" (up to 6, "— שם · לפני …") + "לדף ולשיתוף" (opens the business page; disabled unless approved). The empty note drops "שלחו לו את הקישור לדף שלכם" — public deep links are SERVER |
+| I10 | "המעטפת שלי" — 3-ring constellation, legend, empty slots with "העתקת הזמנה" | present | MeTab.tsx (`.pn-meenv`) · EnvMap.tsx · envelope.ts | UI | "המעטפת שלי" for an approved page: the constellation, legend and empty slots with "העתקת הזמנה" |
+| I11 | Editor "עריכת דף העסק": 8 collapsible sections, gold progress bar, live summaries, ✓ when complete | present | Editor.tsx · editor.ts (`PN_SECS`, `secDone`, `secSum`) | UI | 8 collapsible sections with live summaries and ✓, the gold progress bar and "N מתוך 8 חלקים"; the heading is the original's gabbai form "עורך הדף" (the owner-mode "עריכת דף העסק" belongs to the owner login, SERVER). A ninth section "שדות הגבאי" (source · dial code + "🎲 הקוד הבא" · "כרטיס מודגש עד" · internal note) only for an approver. The draft survives switching tabs (the original keeps its form in the DOM) and is saved by a three-way merge against the live record (a recommendation, approval, dial code or promotion added meanwhile is never overwritten); "ביטול עריכה" (the original's admin form) discards unsaved changes |
+| I12 | §פרטים בסיסיים: name, title, trade, phone, "משפט מפתח", "מבצע לבאנר" + "בתוקף עד", "על העסק", city, area, "שירות מתאים ל", chips "יש וואטסאפ במספר" / "הנחה לאנשי הקהילה" / "גמ״ח / בהתנדבות" / "פנוי ללקוחות נוספים" | present | Editor.tsx (basic) | UI | every field and chip of the original incl. offer + "בתוקף עד" (the original's date button in words — "יום ד׳, 11 בנובמבר 2026 · א׳ כסלו" + ✕, `PnDate`) and "פנוי ללקוחות נוספים"; the port adds "טלפון נוסף" |
+| I13 | §עיצוב: "צבע הדף" — 8 palettes (קטיפה · תכלת · אזמרגד · חצות · זית · נחושת · שזיף · צפחה); logo upload (≤256px, ≤25 KB, monogram fallback, replace/remove) | present | Editor.tsx (design) · imageShrink.ts | UI | the 8 palette swatches; logo upload shrunk in the browser (≤256px, ≤25 KB, WebP keeps transparency), the monogram fallback, "החלפת הלוגו" / "הסרת הלוגו" |
+| I14 | §שירותים ומחירים: ≤12 rows (name, price "150"/"מ־300"/"לפי הצעה", note), ↑↓ reorder, delete | present | Editor.tsx (svc, `Rb`) | UI | ≤12 rows (name, price, note), ↑ ↓ and delete, the original's hint |
+| I15 | §תמונות: up to 4, compressed in the browser (≤900px, ≤45 KB WebP), remove, size meter | present | Editor.tsx (photos) · imageShrink.ts · transitions.ts `listingImagesWhy` | UI | up to 4, shrunk in the browser (≤900px, ≤45 KB WebP, JPEG fallback) through photoGallery's fitDimensions/isDataImage; size label per photo, remove; the store re-checks the caps, the 240 KB page and a per-org image budget |
+| I16 | §שעות פעילות: day chips א׳–ו׳, from/to, "זמין 24/7", "שעות במילים", "זמינים לקריאות חירום" | present | Editor.tsx (hours) · editor.ts `schedOf`/`composeHours` | UI | the original's day chips א׳–ו׳ + from/to + "זמין 24/7" + "שעות במילים" + "זמינים לקריאות חירום"; the port's extra windows (a short Friday, מוצ״ש) kept under "חלונות נוספים" |
+| I17 | §שאלות נפוצות: ≤4 question/answer rows, reorder | present | Editor.tsx (faq) | UI | ≤4 question/answer rows, ↑ ↓, delete |
+| I18 | §תשלום ושפות: מזומן · העברה בנקאית · ביט · אשראי · צ׳קים + languages | present | Editor.tsx (pay) | UI | מזומן · העברה בנקאית · ביט · אשראי · צ׳קים + the languages |
+| I19 | §תעודות, השגחה וותק: "שנות ותק", "תעודה / הסמכה", "השגחה" | present | Editor.tsx (cert) | UI | "שנות ותק" · "תעודה / הסמכה" · "השגחה" |
+| I20 | Consent "אני מסכים שהפרטים יוצגו לחברי הקהילה" / "קיבלתי את הסכמתו להופיע באלפון" | present | Editor.tsx (`.pn-edsave`) | — | "קיבלתי את הסכמתו להופיע באלפון" (the original's gabbai wording — the staff edits on the owner's behalf), required for a new page |
+| I21 | Sticky frosted save bar: "שמירת הדף" / "שליחה לאישור" / "פרסום הדף", "תצוגה", "יש שינויים שלא נשמרו", size meter (240 KB) | present | Editor.tsx (`.pn-edsave`) · editor.ts `sizeState` | UI | the frosted bar turns sticky with a gold edge when dirty: "שמירת הדף" / "שליחה לאישור" / "הוספה לאלפון" (approval mode and role), "תצוגה", "יש שינויים שלא נשמרו", the size meter (82% warn, 240 KB block). Deliberate fix: the original lifts the idle bar 86px over the last field ("השגחה" is hidden behind it); here it stays in flow, and when sticky it clears the tab bar and, on phones, Orbit's bottom navigation |
+| I22 | Full preview with a "תצוגה מקדימה" ribbon | present | ParnasaView.tsx (`prevDraft`) · BizSheet.tsx (`draft`) | UI | the full sheet with the "תצוגה מקדימה" ribbon, no ★ / recommendation form / kupa, "כאן יופיעו ההמלצות שתקבלו" |
+| I23 | "הסרת העסק" (press twice: "ללחוץ שוב כדי להסיר את הדף") | present | Editor.tsx (`del`, useArmed) | — | "הסרת העסק" → "ללחוץ שוב כדי להסיר את הדף" in the save bar, for whoever may delete (parnasa.delete); the owner deleting their own page = owner login (SERVER) |
+| I24 | Validation: "חסר: …", consent, "הדף גדול מדי (…)" | present | Editor.tsx `save` | UI | "חסר: …" opens the section and focuses the field; consent; hours windows; "הדף גדול מדי (…)"; dial code (3 digits, free) |
 
 ## J. ניהול (gabbai)
 
@@ -232,12 +232,12 @@ Current counts per area (recomputed from the rows after every cluster):
 |---|---|---|---|---|---|
 | J1 | "גבאי האלפון · ניהול" + segmented tabs with counts: אישורים · הכנסות · חסויות · מודעות וחוברת · הגדרות | partial | ParnasaView.tsx | UI | chips: טיפול ואישורים · חוברת · פרסומות · הגדרות |
 | J2 | "ממתינים לאישור" cards (medallion, info, badges; "לדף" / "אישור" / "הסתרה" / "מחיקה") | present | CareTab.tsx | UI | |
-| J3 | "הוספת איש מקצוע ידנית" — "למי שאין לו אינטרנט או שיש לו טלפון כשר…" — with the same 8-section editor ("הוספה לאלפון", "שמירת שינויים", "ביטול עריכה") | partial | ListingForm.tsx (`source: gabbai`) | UI + DATA | editor gaps as in I12–I19 |
+| J3 | "הוספת איש מקצוע ידנית" — "למי שאין לו אינטרנט או שיש לו טלפון כשר…" — with the same 8-section editor ("הוספה לאלפון", "שמירת שינויים", "ביטול עריכה") | partial | Editor.tsx ("מקור הרישום" = הוזן ע״י הגבאי) in העסק שלי | UI + DATA | the same 8-section editor; the entry point under ניהול = cluster 6 |
 | J4 | "כרטיסים שהוזנו ידנית" (עריכה / מחיקה) and "כרטיסים מוסתרים" lists | partial | DirectoryTab.tsx ("כולל ממתינים ומוסתרים") | UI | |
 | J5 | "בקשות קידום" inbox ("הגדרת ההדגשה" / "הגדרת החסות", "לדף העסק", "טופל") | missing | — | SERVER (+DATA) | depends on I8 |
 | J6 | KPI tiles "הכנסה חודשית קבועה" (velvet), "חוברת {year}", "ממתין לגבייה" ("הכול נגבה, ברוך ה׳"), "צפי לשנה" (count-up) | partial | AdsTab.tsx, lib.ts `adsLedger` | UI + DATA | ads ledger only (total / collected / pending + meter) |
 | J7 | Ledger with gold bars: כרטיסים מודגשים · חסויות ("N מתוך 15 שערים · ודף הבית · ומטבע הפלטינה") · הקדשה בראש האלפון · סה״כ לחודש · מודעות בחוברת · משרות מקודמות | partial | AdsTab.tsx | UI + DATA | needs featured price, dedication billing, job promotions |
-| J8 | Featured-card form: "איש המקצוע", "מחיר לחודש (₪)", "שורת פרסום", "אתר", "בתוקף עד" (custom date picker), "הערה פנימית (רק לגבאי)"; list with "עריכה" / "חידוש" / "הסרת ההדגשה" | partial | ListingForm.tsx ("כרטיס מודגש עד") | DATA + UI | only an end date |
+| J8 | Featured-card form: "איש המקצוע", "מחיר לחודש (₪)", "שורת פרסום", "אתר", "בתוקף עד" (custom date picker), "הערה פנימית (רק לגבאי)"; list with "עריכה" / "חידוש" / "הסרת ההדגשה" | partial | Editor.tsx ("שדות הגבאי": "כרטיס מודגש עד") | DATA + UI | only an end date |
 | J9 | "חסויות": rows "דף הבית", "מטבע פלטינה" and the 15 gates (business count — "שער עמוס שווה יותר", "פנוי לחסות" / "בחסות {name}", price, "הגדרה" / "עריכה"), inline form (name, price, line, phone, site; coin: trade + monogram), "הסרת החסות" | partial | AdsTab.tsx, AdForm.tsx | DATA + UI | gates + board line as ad slots (with rotation, queue and payLink); no home slot, no platinum coin, no site URL |
 | J10 | "מודעות לחוברת השנתית": form (המפרסם, גודל + price, כותרת, טלפון, נוסח, מחיר, שולם) + KPIs + list ("סימון כשולם" → "התשלום נרשם. תזכו למצוות!", "עריכה", "מחיקה") | present | AdsTab.tsx, AdForm.tsx | UI | port adds dates, active flag and a payment link |
 | J11 | "חוברת להדפסה": mini A5 cover, live TOC with page estimate and "כפולה של 4", dedication text, "לכלול את המודעות", "רק מודעות ששולמו", "חיסכון בדיו", "הפקת חוברת להדפסה" | present | BookletTab.tsx, booklet.ts | UI | port: print/PDF or .html download, dial codes; no mini cover |
@@ -261,9 +261,9 @@ Current counts per area (recomputed from the rows after every cluster):
 
 | original field / collection | used by | port today |
 |---|---|---|
-| `palette` (8 keys) | cover tint, accents, medallion colour (B, C3, E2–E4, I13) | `PrListing.palette?` (healed; cluster 2) — editor cluster 4 |
-| `logo` (data URL ≤256px/25 KB) | banners, medallions, cover, mini header | `PrListing.logo?` (healed; banners/medallions — cluster 2; cover disc + mini header — cluster 3) — upload cluster 4 |
-| `photos[≤4]` (≤900px/45 KB each) | gallery (E12), completeness | `PrListing.photos?` (healed; cluster 2; gallery + lightbox — cluster 3) — upload with the original's caps + a per-org budget = cluster 4 |
+| `palette` (8 keys) | cover tint, accents, medallion colour (B, C3, E2–E4, I13) | `PrListing.palette?` (healed; cluster 2) — swatches in the editor (cluster 4) |
+| `logo` (data URL ≤256px/25 KB) | banners, medallions, cover, mini header | `PrListing.logo?` (healed; banners/medallions — cluster 2; cover disc + mini header — cluster 3) — upload shrunk in the browser (imageShrink.ts) + the store's image gate (cluster 4) |
+| `photos[≤4]` (≤900px/45 KB each) | gallery (E12), completeness | `PrListing.photos?` (healed; cluster 2; gallery + lightbox — cluster 3) — upload with the original's caps, page ≤240 KB and a per-org image budget (`PR_IMG`, model.ts; enforced in `upsertPrListing` via `listingImagesWhy`) — cluster 4 |
 | `offer {text ≤60, until}` | gold ribbon on banners, cover pill (C3, E4, I12) | `PrListing.offer?` (healed; ribbon + seal on banners, cluster 2) |
 | `faq[≤4] {q,a}` | FAQ accordion (E15) | `PrListing.faq?` (healed; cluster 2; accordion — cluster 3) |
 | `pay[]` (cash, transfer, bit, credit, checks) | details tile (E14) | `PrListing.pay?` (healed; cluster 2; payment chips — cluster 3) |
@@ -279,4 +279,4 @@ Current counts per area (recomputed from the rows after every cluster):
 
 ## M. In the port but not in the original (keep)
 
-Dial codes and the booklet code column (`transitions.ts nextDialCode`, booklet.ts) · the phone-line model (`phoneLine.ts`, mirrors the separate IVR artifact) · the care queue "🔔 דורש טיפול" (CareTab.tsx `needsCare`) · editable shuls/minyanim/events/emergency numbers and the zmanim location editor (PostForm.tsx, ZmanimLocationEditor.tsx — the original had no UI) · weekly zmanim table and emergency numbers on the board (BoardTab.tsx) · multiple opening windows per day · sponsor rotation and waiting queue per gate (lib.ts `adRotation`) · payment links on ads (`adPayLink`) · strict quiet-request privacy with logged reveal (`businessView`, `logAccess`) · CSV with more columns.
+Dial codes and the booklet code column (`transitions.ts nextDialCode`, booklet.ts) · the phone-line model (`phoneLine.ts`, mirrors the separate IVR artifact) · the care queue "🔔 דורש טיפול" (CareTab.tsx `needsCare`) · editable shuls/minyanim/events/emergency numbers and the zmanim location editor (PostForm.tsx, ZmanimLocationEditor.tsx — the original had no UI) · weekly zmanim table and emergency numbers on the board (BoardTab.tsx) · multiple opening windows per day · sponsor rotation and waiting queue per gate (lib.ts `adRotation`) · payment links on ads (`adPayLink`) · strict quiet-request privacy with logged reveal (`businessView`, `logAccess`) · CSV with more columns · "העסק שלי" run by the gabbai on the owner's behalf: picker "הדף שבעריכה" + "➕ הוספת עסק", the "שדות הגבאי" section (source, dial code + "🎲 הקוד הבא", "כרטיס מודגש עד", internal note), a draft that survives switching tabs and saves by a three-way merge against the live record (MeTab.tsx, Editor.tsx, editor.ts `rebaseDraft`).

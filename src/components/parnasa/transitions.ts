@@ -13,7 +13,8 @@
 import type { IsoDate, ParnasaPrefs, PrAd, PrListing, PrPost, PrRequest, PrResponse, PrStatus } from '../../types/domain';
 import type { OrgConfig } from '../../types/config';
 import { canGrantedAction, featureOn } from '../../lib/config';
-import { healPrAd, healPrPost, optKeys, PR_AD_SLOTS, PR_CATEGORY_KEYS, PR_LISTING_EXTRA, PR_LISTING_PROMO } from './model';
+import { docBytes, healPrAd, healPrPost, listingImageLen, optKeys, orgImageLen, PR_AD_SLOTS, PR_CATEGORY_KEYS, PR_IMG, PR_LISTING_EXTRA, PR_LISTING_PROMO } from './model';
+import { isDataImage } from '../../lib/photoGallery';
 
 /* ═══════════════ הרשאת-גבאי ═══════════════ */
 
@@ -99,6 +100,20 @@ export function saveListing(prev: PrListing | null, draft: PrListing, actor: PrA
       };
   const status = listingStatusOnSave(prev, guarded, actor);
   return { ...guarded, status, createdAt: prev?.createdAt || guarded.createdAt || nowIso, updatedAt: nowIso };
+}
+
+/**
+ * שער-התמונות של שמירת-עסק ('' = תקין): לוגו ותמונות = data:image בתקרות המקור; כשמשקל-התמונות עלה — הדף ≤240KB
+ * ותקציב-התמונות של הארגון. (שמירה שלא הוסיפה תמונות לא נחסמת — המלצה/שינוי-טקסט על נתונים ישנים.)
+ */
+export function listingImagesWhy(prev: PrListing | null, next: PrListing, all: readonly PrListing[]): string {
+  const photos = next.photos ?? [];
+  if (next.logo && (!isDataImage(next.logo) || next.logo.length > PR_IMG.logo)) return 'הלוגו לא נשמר — קובץ-תמונה עד 25KB';
+  if (!Array.isArray(photos) || photos.length > PR_IMG.photos || photos.some((p) => !isDataImage(p) || p.length > PR_IMG.photo)) return 'עד 4 תמונות, כל אחת עד 45KB';
+  const len = listingImageLen(next);
+  if (len <= (prev ? listingImageLen(prev) : 0)) return '';
+  if (docBytes(next) > PR_IMG.doc) return 'הדף גדול מדי. הסירו תמונה או קצרו טקסט';
+  return len + orgImageLen(all, next.id) > PR_IMG.org ? 'תקציב-התמונות של האלפון מלא — הסירו תמונות מדפים אחרים' : '';
 }
 
 /** אישור-גבאי (pending/rejected ⇒ approved) עם חותמת-ביקורת. */

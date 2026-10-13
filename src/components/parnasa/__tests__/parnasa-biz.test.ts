@@ -318,14 +318,19 @@ describe('📒 (ג) דף-העסק בסקין של המקור', () => {
     expect(sheet()).not.toContain('המעטפת של העסק');
   });
 
-  it('מה מבקשים בתחום: בקשה שקטה — בלי שם/טלפון ("בשקט, לא יודעים מי ביקש"); "אני זמין"', () => {
+  it('מה מבקשים בתחום: בקשה שקטה — בלי שם/טלפון ("בשקט, לא יודעים מי ביקש"), "שליחת תשובה"; רגילה — "אני זמין"; ענה — "סימנת שאתה זמין"', () => {
     setup(ON(), { prListings: [L({})], prRequests: [R({ quiet: true, category: 'elec', text: 'צריך עזרה דיסקרטית 052-9998887' })] });
     const h = sheet();
     expect(h).toContain('מה מבקשים בתחום');
     expect(h).toContain('בשקט, לא יודעים מי ביקש');
-    expect(h).toContain('אני זמין');
+    expect(h).toContain('שליחת תשובה'); // qReplyUI של המקור
     expect(h).not.toContain('שרה כהן');
     expect(h).not.toContain('9998887');
+    setup(ON(), { prListings: [L({})], prRequests: [R({ id: 'r1' }), R({ id: 'r2', text: 'קצר בלוח', responses: [{ listingId: 'l1', text: 'זמין', at: '2026-10-13T06:00:00.000Z' }] })] });
+    const h2 = sheet();
+    expect(h2).toContain('אני זמין');
+    expect(h2).toContain('עוד 30 דקות רק אצל העסקים'); // נוצרה 2.5 שעות לפני — 3 שעות רק לעסקים
+    expect(h2).toContain('סימנת שאתה זמין'); // availBtn "done" של המקור
   });
 
   it('הגנת-מקור: אין innerHTML ישיר בגיליון; וואטסאפ/חיוג דרך usePnContact', () => {
@@ -411,7 +416,8 @@ describe('📒 (ה) שכבות ונעילת-השבת', () => {
   it('נעילת-השבת על המסמך (הגיליון בפורטל) — רק בתוך הסקין; הגיליון נפתח מכל לשונית', () => {
     expect(viewSrc).toContain("document.addEventListener('click', onClick, true)");
     expect(viewSrc).toContain("if (!t || !t.closest('.pn')) return;");
-    expect(viewSrc).toMatch(/<BizSheet id=\{selListing\}/);
-    expect(viewSrc).toContain('<MeTab addTick={meAdd} onOpen={(id) => openBiz(id)} />');
+    expect(viewSrc).toMatch(/<BizSheet\s+id=\{selListing\}/);
+    expect(viewSrc).toMatch(/<BizSheet draft=\{prevDraft\}/); // עיצוב 4: התצוגה-המקדימה של העורך
+    expect(viewSrc).toContain('<MeTab ctx={bizCtx} sel={meSel} setSel={setMeSel} addTick={meAdd} onAddConsumed={meAddDone} onOpen={directoryOn ? (id) => openBiz(id) : null} onPreview={setPrevDraft} />');
   });
 });

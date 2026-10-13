@@ -568,16 +568,21 @@ for (const profile of PROFILES) {
   const segTxt = (await page.locator('main .pn-seg').textContent().catch(() => '')) ?? '';
   t('"ניהול" — 6 אזורי-הניהול (טיפול, פרסום, חוברת, הקו, הגדרות-גבאי)', PR_SEGS.every((x) => segTxt.includes(x)), PR_SEGS.filter((x) => !segTxt.includes(x)).join(', '));
 
-  // ➕ עסק (גבאי ⇒ מאושר מיד + קוד-החיוג הבא) ⇒ הכרטיס המלא נפתח — עיצוב 2: ההוספה ב"העסק שלי" (כמו המקור)
+  // ➕ עסק (גבאי ⇒ מאושר מיד + קוד-החיוג הבא) ⇒ הכרטיס המלא נפתח — עיצוב 4: "העסק שלי" של המקור = עורך-הדף
+  //    בן 8 החלקים בתוך הלשונית (לא מודאל); "פרטים בסיסיים" פתוח לעסק חדש, וטבעת-ההשלמות זזה עם ההקלדה
   await prTab('העסק שלי');
   await page.waitForTimeout(300);
-  await page.locator('main button', { hasText: '➕ הוספת עסק' }).click();
-  await page.locator('.modal input[placeholder="ר׳ יעקב כהן"]').fill('אינסטלציה-מטריצה');
-  await page.locator('.modal input[placeholder="חשמלאי מוסמך, תיקוני קצרים ולוחות"]').fill('נזילות וסתימות');
-  await page.locator('.modal select').first().selectOption('elec');
-  await page.locator('.modal input[placeholder="050-0000000"]').fill('050-0000101');
-  await page.locator('.modal label', { hasText: 'קיבלתי את הסכמת' }).locator('input').check();
-  await page.locator('.modal button', { hasText: 'הוספה למדריך' }).click();
+  await page.locator('main .pn-mepick button', { hasText: '➕ הוספת עסק' }).click();
+  await page.waitForTimeout(200);
+  t('"העסק שלי" — עורך-הדף של המקור: 8 חלקים, טיוטה, טבעת 0%', (await page.locator('main .pn-ed .pn-eds').count()) >= 8 && ((await page.locator('main .pn-livepill').textContent().catch(() => '')) ?? '').includes('טיוטה') && ((await page.locator('main .pn-ring b').textContent().catch(() => '')) ?? '').startsWith('0'));
+  await page.locator('main .pn-ed [data-f="name"]').fill('אינסטלציה-מטריצה');
+  await page.locator('main .pn-ed [data-f="title"]').fill('נזילות וסתימות');
+  await page.locator('main .pn-ed select[data-f="cat"]').selectOption('elec');
+  await page.locator('main .pn-ed [data-f="phone"]').fill('050-0000101');
+  await page.waitForTimeout(250);
+  t('טבעת-ההשלמות זזה עם ההקלדה (שם, מקצוע וטלפון = +20%)', ((await page.locator('main .pn-ring b').textContent().catch(() => '')) ?? '').startsWith('2'));
+  await page.locator('main .pn-edsave label', { hasText: 'קיבלתי את הסכמתו' }).locator('input').check();
+  await page.locator('main .pn-edsave button', { hasText: 'הוספה לאלפון' }).click();
   await page.waitForTimeout(900);
   // עיצוב 3: דף-העסק = הגיליון של המקור (פורטל מעל הלשונית, לא בתוך main)
   const sheetTxt = async () => ((await page.locator('.pn-sheet').first().textContent().catch(() => '')) ?? '');

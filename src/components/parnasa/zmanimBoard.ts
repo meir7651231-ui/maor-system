@@ -305,6 +305,14 @@ export interface PrHebDate {
   night: boolean;
 }
 
+/** תאריך במילים (dateFmt של המקור, לבוררי-התאריך): "יום ד׳, 11 בנובמבר 2026 · א׳ כסלו". */
+export function dateWords(iso: string, tz: string = PR_TZ): string {
+  if (!isIsoDate(iso)) return iso;
+  const civil = new Date(iso + 'T12:00:00').toLocaleDateString('he-IL', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' });
+  const p = hebcalParts(iso, tz);
+  return civil + (p.day ? ' · ' + gem(p.day) + ' ' + p.monthHe : '');
+}
+
 /** "ה׳ חשוון תשפ״ז" לתאריך לועזי (בצהריים, באזור-הזמן). */
 export function hebDateText(iso: IsoDate, tz: string = PR_TZ): string {
   if (!isIsoDate(iso)) return '';

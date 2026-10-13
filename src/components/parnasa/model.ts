@@ -109,6 +109,33 @@ function fixOpt(o: Rec, p: Rec, spec: string): void {
     if (o[k] !== undefined && !OPT_OK[f.slice(-1)](o[k])) p[k] = undefined;
   }
 }
+/**
+ * תמונות דף-העסק (data:image מקומי, כמו הגלריה של התורמים): התקרות של המקור — לוגו ≤25KB, עד 4 תמונות ≤45KB,
+ * דף ≤240KB (גם מגן על מסמך-הענן); ותקציב-תמונות לארגון כולו (מסמך-ה-DB המקומי — מספר = פשרת-מוצר, לבעלים).
+ */
+export const PR_IMG = { logo: 25 * 1024, photo: 45 * 1024, photos: 4, doc: 240 * 1024, org: 6_000_000 } as const;
+
+/** גודל ה-JSON בבייטים (docBytes במקור). */
+export function docBytes(o: unknown): number {
+  const j = JSON.stringify(o) ?? '';
+  try {
+    return new TextEncoder().encode(j).length;
+  } catch {
+    return j.length * 2;
+  }
+}
+
+/** משקל-התמונות של עסק (לוגו + תמונות, בתווים). */
+export function listingImageLen(l: Pick<PrListing, 'logo' | 'photos'>): number {
+  return (typeof l.logo === 'string' ? l.logo.length : 0) + (Array.isArray(l.photos) ? l.photos.reduce((a, p) => a + (typeof p === 'string' ? p.length : 0), 0) : 0);
+}
+/** משקל-התמונות של כל הארגון (בלי העסק הנערך — exceptId). */
+export function orgImageLen(listings: readonly PrListing[], exceptId = ''): number {
+  let n = 0;
+  for (const l of listings) if (l.id !== exceptId) n += listingImageLen(l);
+  return n;
+}
+
 /** שדות-התוכן הנוספים של עסק (דף-העסק של המקור) — גם במפתח-התוכן של מכונת-האישור. */
 export const PR_LISTING_EXTRA = 'palette:s logo:s photos:S offer:o faq:O pay:S years:n cert:s seek:b';
 /** שדות-הקידום — שדות-גבאי (כמו featuredUntil): לא-מאשר לא משנה אותם. */

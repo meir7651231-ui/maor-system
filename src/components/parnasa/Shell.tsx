@@ -290,9 +290,9 @@ export function Colophon(props: { brand: string; contactPhone: string }) {
 }
 
 /** עמוד-פנימי (div.page / div.pagew) עם כותרת-המקור (div.ph: kicker · h1 · p). */
-export function Page(props: { k?: string; title?: string; sub?: string; wide?: boolean; children: ReactNode }) {
+export function Page(props: { k?: string; title?: string; sub?: string; wide?: boolean; className?: string; children: ReactNode }) {
   return (
-    <div className={props.wide ? 'pn-pagew' : 'pn-page'}>
+    <div className={cx(props.wide ? 'pn-pagew' : 'pn-page', props.className)}>
       {props.title ? (
         <div className="pn-ph">
           {props.k ? <div className="pn-k">{props.k}</div> : null}

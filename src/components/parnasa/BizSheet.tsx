@@ -6,24 +6,25 @@
  * המעטפת (רק הגבאי), הקופה של העסק, עובדים לצידו, חסות-השער, והקולופון. הסרגל — וואטסאפ עכשיו / חיוג / העתקה + ★.
  * תוספות-הפורט נשמרות בשפת-המקור: קוד-החיוג, מצב-האישור, טלפון נוסף, חלונות-שעות, הערה-פנימית (רק למאשר),
  * בקשות-בתחום בתצוגת-העסקים (בקשה שקטה — בלי זהות), ופעולות-הגבאי. וואטסאפ מגודר-הרחבה, חיוג מגודר-טלפוניה.
+ * עיצוב 4: גוף-הדף (BizBody) משותף גם לתצוגה-המקדימה של העורך — בגיליון ("תצוגה מקדימה", טיוטה שלא נשמרה) ובכרטיס-
+ * המיני של "העסק שלי" (bizHTML(e,{prev,mini}) במקור); "עריכה" פותחת את העורך ב"העסק שלי" (onEdit).
  */
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useApp } from '../../store/useApp';
 import { featureOn, termOf } from '../../lib/config';
 import type { IsoDate, PrListing } from '../../types/domain';
-import { Btn, Field, Modal } from '../ui';
 import { useArmed } from '../useArmed';
-import { adRotation, categoryOf, isFeatured, listingStatus, requestsForListing } from './lib';
-import { ListingForm } from './ListingForm';
+import { adRotation, categoryOf, isFeatured, listingStatus } from './lib';
 import { usePnContact, usePrBrand, usePrPerms, type PrNow } from './hooks';
 import { agoText } from './labels';
-import { cx, Crown, Ic, OrbitLayer, Pm, PnPortal, StPill, vars } from './skin';
+import { cx, Crown, Ic, Pm, PnPortal, StPill, vars } from './skin';
 import { Medal, hostOf, offerOf, safeUrl } from './Home';
 import { photoOf, photoUrl } from './banners';
 import { tradeIcon } from './home';
-import { fmtPrice, howtoOf, kupaOf, offerUntilText, shareLine, tilesOf, trustOf, weekRows, hasHours } from './biz';
+import { fmtPrice, howtoOf, kupaOf, offerUntilText, shareLine, tilesOf, trustOf, weekRows, hasHours, type PnKupa } from './biz';
 import { envSummary, nearOf } from './envelope';
 import { EnvMap } from './EnvMap';
+import { inTradeOf, RespondModal, TradeRows } from './InTrade';
 import { mountSheet, trapTab, type SheetCtl } from './sheetFx';
 import type { useQuickDial } from './skinPrefs';
 
@@ -66,38 +67,585 @@ function Sec(props: { t: string; sm?: string; className?: string; children: Reac
   );
 }
 
-export function BizSheet(props: { id: string; qtext: string; ctx: BizCtx; onClose: () => void; onOpen: (id: string) => void }) {
-  const l = useApp((s) => s.db.prListings.find((x) => x.id === props.id) ?? null);
-  // העסק נמחק בזמן שהגיליון פתוח ⇒ סוגרים
-  useEffect(() => {
-    if (!l) props.onClose();
-  });
-  if (!l) return null;
-  return <BizSheetInner key="sheet" l={l} {...props} />;
+/** הקופה של העסק (kupaRow): הפושקע לפי המילוי, "N פעמים עזר לקהילה", תשובות/תודות, "N החודש" — "זה לא דירוג". */
+export function Kupa(props: { k: PnKupa; own?: boolean }) {
+  const { k, own } = props;
+  if (!k.n && !own) return null;
+  return (
+    <section className={'pn-bps pn-kupa' + (own ? ' pn-own' : '')} title="זה לא דירוג. כל מטבע הוא פעם שמישהו מהקהילה נעזר">
+      <div className="pn-kp-art">
+        <span className="pn-kp-3d">
+          <span className="pn-kp-halo" />
+          <img src={'./parnasa/kupa/' + k.art + '.webp'} alt="" width={236} height={275} decoding="async" />
+        </span>
+      </div>
+      <div className="pn-kp-tx">
+        <span className="pn-kp-k">{own ? 'הקופה שלך' : 'הקופה של העסק'}</span>
+        <span className="pn-kp-big">
+          <b className="pn-kp-n">{k.n}</b>
+          <span className="pn-kp-l">{!k.n ? 'עוד אין מטבעות' : (k.n === 1 ? 'פעם אחת' : 'פעמים') + (own ? ' עזרת' : ' עזר') + ' לקהילה'}</span>
+        </span>
+        <span className="pn-kp-sub">
+          {k.n ? (
+            <>
+              {k.ans ? (
+                <span className="pn-kp-m">
+                  <KpIc k="ans" />
+                  {k.ans + ' ' + (k.ans === 1 ? 'תשובה' : 'תשובות')}
+                </span>
+              ) : null}
+              {k.th ? (
+                <span className="pn-kp-m pn-th">
+                  <KpIc k="th" />
+                  {k.th + ' ' + (k.th === 1 ? 'תודה' : 'תודות')}
+                </span>
+              ) : null}
+              {k.mo ? <span className="pn-kp-mo">{k.mo + ' החודש'}</span> : null}
+            </>
+          ) : (
+            <span className="pn-kp-mo">{own ? 'כל תשובה לבקשה בתחום שלך היא מטבע' : 'כל תשובה לבקשה בתחום היא מטבע'}</span>
+          )}
+        </span>
+      </div>
+    </section>
+  );
 }
 
-function BizSheetInner(props: { l: PrListing; qtext: string; ctx: BizCtx; onClose: () => void; onOpen: (id: string) => void }) {
+/** פעולות-הדף שהגיליון מספק לגוף (בכרטיס-המיני ובתצוגה המקדימה — ריקות). */
+export interface BizActs {
+  close: () => void;
+  open: (id: string) => void;
+  lb: (list: string[], i: number) => void;
+  env: () => void;
+  edit: () => void;
+  /** יש לאן לערוך (לשונית "העסק שלי" דלוקה). */
+  canEdit: boolean;
+  respond: (id: string, quiet: boolean) => void;
+  decide: (status: 'approved' | 'rejected') => void;
+  del: () => void;
+  armed: string | null;
+  copy: (v: string, ok: string, fail: string) => Promise<boolean>;
+  copyPhone: (p: string) => void;
+  copied: boolean;
+  toggleFav: () => void;
+}
+const NO_ACTS: BizActs = {
+  close: () => {},
+  open: () => {},
+  lb: () => {},
+  env: () => {},
+  edit: () => {},
+  canEdit: false,
+  respond: () => {},
+  decide: () => {},
+  del: () => {},
+  armed: null,
+  copy: () => Promise.resolve(false),
+  copyPhone: () => {},
+  copied: false,
+  toggleFav: () => {},
+};
+
+/**
+ * גוף דף-העסק (bizHTML): כותרת-מיני (לא במיני), כריכה ומעטפת-המידע. prev = תצוגה-מקדימה של העורך (סרט "תצוגה
+ * מקדימה", בלי ★/טופס-המלצה/קופה/מעטפת/עובדים-לצידו/פעולות); mini = הכרטיס הקטן ב"העסק שלי".
+ */
+export function BizBody(props: { l: PrListing; qtext: string; ctx: BizCtx; prev?: boolean; mini?: boolean; acts?: BizActs }) {
   const { l, ctx } = props;
   const { now } = ctx;
+  const a = props.acts ?? NO_ACTS;
+  const prev = !!props.prev;
   const config = useApp((s) => s.config);
   const listings = useApp((s) => s.db.prListings);
   const requests = useApp((s) => s.db.prRequests);
   const ads = useApp((s) => s.db.prAds);
-  const setPrStatus = useApp((s) => s.setPrStatus);
-  const deletePrListing = useApp((s) => s.deletePrListing);
   const upsertPrListing = useApp((s) => s.upsertPrListing);
-  const addPrResponse = useApp((s) => s.addPrResponse);
   const toast = (m: string): void => ctx.toastAct(m);
   const brand = usePrBrand();
   const contact = usePnContact();
   const { canApprove, canDelete } = usePrPerms();
-  const { armed, confirmTwice } = useArmed(featureOn(config, 'shell.armdel'));
   const name = termOf(config, 'nav.parnasa', 'פרנסה׳לע');
   const word = termOf(config, 'entity.prListing', 'עסק');
   const gabbai = termOf(config, 'entity.prGabbai', 'גבאי');
   const reqWord = termOf(config, 'entity.prRequest', 'בקשה');
   const requestsOn = featureOn(config, 'parnasa.requests');
   const adsOn = featureOn(config, 'parnasa.ads');
+  const [rec, setRec] = useState({ by: '', text: '' });
+
+  const cat = categoryOf(l.category);
+  const feat = isFeatured(l, now.todayIso);
+  const st = listingStatus(l, now.clock, now.closureAt);
+  const of = offerOf(l, now.todayIso);
+  const ph = photoOf(l);
+  const fav = ctx.quick.favs.includes(l.id);
+  const photos = (Array.isArray(l.photos) ? l.photos : []).filter(isImg).slice(0, 4);
+  const faq = (Array.isArray(l.faq) ? l.faq : []).filter((f) => f && (f.q || '').trim());
+  const trust = trustOf(l, now.todayIso, name);
+  const tiles = tilesOf(l);
+  const where2 = [l.city, l.area].filter((x) => x && x.trim());
+  const wa = l.whatsapp ? contact.wa(l.whatsapp, '') : null;
+  const promoUrl = feat ? safeUrl(l.promoUrl) : '';
+  const promoLine = feat ? (l.promoLine ?? '').trim() : '';
+  const sameWa = !!l.whatsapp && digits(l.whatsapp).slice(-9) === digits(l.phone).slice(-9);
+  const full = !prev && !props.mini;
+  const kupa = useMemo(() => kupaOf(l, requests, ctx.monthStartIso, now.loc.tz), [l, requests, ctx.monthStartIso, now.loc.tz]);
+  const near = useMemo(() => (full ? nearOf(l, listings) : []), [full, l, listings]);
+  const envS = useMemo(() => (full && canApprove ? envSummary(l, listings) : null), [full, canApprove, l, listings]);
+  const inTrade = full && requestsOn && l.status === 'approved' ? inTradeOf(l, requests, listings, now.nowMs) : [];
+  const gateSp = adsOn ? adRotation(ads, 'category', now.todayIso, cat.key).today : null;
+
+  function addRec(): void {
+    const text = rec.text.trim();
+    if (!text) return toast('כתבו את ההמלצה');
+    // המלצה = שינוי לא-תוכני ⇒ מכונת-האישור משאירה את הסטטוס כמות-שהוא
+    const res = upsertPrListing({ ...l, recs: [{ by: rec.by.trim(), text: text.slice(0, 240), at: new Date().toISOString() }, ...l.recs] });
+    if (res.ok) {
+      setRec({ by: '', text: '' });
+      toast('תודה! ההמלצה נשמרה');
+    }
+  }
+  function removeRec(i: number): void {
+    if (upsertPrListing({ ...l, recs: l.recs.filter((_, j) => j !== i) }).ok) toast('ההמלצה נמחקה');
+  }
+
+  const star = prev ? null : (
+    <button className="pn-ib" type="button" aria-pressed={fav} aria-label="חיוג מהיר" onClick={a.toggleFav}>
+      <Ic n="star" />
+    </button>
+  );
+  const logo = isImg(l.logo) ? (
+    <span className="pn-bplogo">
+      <img src={l.logo} alt={'הלוגו של ' + l.name} decoding="async" />
+    </span>
+  ) : (
+    <span className="pn-bplogo pn-mono" aria-hidden="true">
+      <b className="pn-tic">
+        <Ic n={tradeIcon(l)} />
+      </b>
+    </span>
+  );
+  const hasStory = !!l.desc.trim();
+  const close = a.close;
+  const copyPhone = a.copyPhone;
+  const copied = a.copied;
+  const decide = a.decide;
+  const del = a.del;
+  const armed = a.armed;
+  const copy = a.copy;
+  const setLb = (x: { list: string[]; i: number }): void => a.lb(x.list, x.i);
+
+  return (
+    <>
+      {props.mini ? null : (
+      <div className="pn-bptop">
+        <div>
+          <button className="pn-ib" type="button" data-act="close" aria-label="חזרה" onClick={close}>
+            <Ic n="back" />
+          </button>
+          <span className="pn-bmini" aria-hidden="true">
+            {isImg(l.logo) ? (
+              <img src={l.logo} alt="" />
+            ) : (
+              <b className="pn-tic">
+                <Ic n={tradeIcon(l)} />
+              </b>
+            )}
+          </span>
+          <b>{l.name}</b>
+          {star}
+        </div>
+      </div>
+      )}
+      <header className="pn-bpc" data-ph={ph || 'brand'}>
+        {ph ? <span className="pn-bpc-ph" aria-hidden="true" style={{ backgroundImage: 'url(' + photoUrl(ph) + ')' }} /> : <span className="pn-bpc-ph pn-brand" aria-hidden="true" />}
+        {prev ? <span className="pn-prevrib">תצוגה מקדימה</span> : null}
+        {props.mini ? null : (
+          <span className="pn-cx">
+            <button className="pn-ib" type="button" data-act="close" aria-label="חזרה" onClick={close}>
+              <Ic n="back" />
+            </button>
+          </span>
+        )}
+        {props.mini || !star ? null : <span className="pn-cs">{star}</span>}
+        {logo}
+        {props.mini ? <h2>{l.name}</h2> : <h2 id="pn-sname">{l.name}</h2>}
+        {l.tagline?.trim() ? <p className="pn-tg">{l.tagline.trim()}</p> : null}
+        {of ? (
+          <p className="pn-bpof">
+            <Ic n="tag" />
+            <span>{of.text}</span>
+            {of.until ? <small>{offerUntilText(of.until)}</small> : null}
+          </p>
+        ) : null}
+        {l.title ? (
+          <div className="pn-tr">
+            <span>{l.title}</span>
+          </div>
+        ) : null}
+        <div className="pn-tr">
+          <span>{cat.name}</span>
+          {where2.length ? <span>{where2.join(' · ')}</span> : null}
+        </div>
+        <StPill st={st && st.k !== 'open' ? st : null} />
+      </header>
+      <div className="pn-bpm">
+        <div className="pn-tbs">
+          {trust.map((t, i) => (
+            <span key={i} className={cx('pn-tb2', t.k && 'pn-' + t.k)}>
+              {t.i === 'crown' ? <Crown /> : <Ic n={t.i} />}
+              {t.t}
+            </span>
+          ))}
+          {l.dialCode ? (
+            <span className="pn-tb2" title="קוד-החיוג בקו (מודפס בחוברת)">
+              <Ic n="phone" />
+              {'קוד חיוג ' + l.dialCode}
+            </span>
+          ) : null}
+          {!full ? null : l.status === 'pending' ? (
+            <span className="pn-tb2 pn-em">
+              <Ic n="clock" />
+              {'ממתין לאישור ה' + gabbai}
+            </span>
+          ) : l.status === 'rejected' ? (
+            <span className="pn-tb2 pn-em">
+              <Ic n="eye" />
+              מוסתר מהאלפון
+            </span>
+          ) : null}
+        </div>
+        {l.phone ? (
+          <div className="pn-bpcall">
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <span className="pn-k">{'טלפון' + (sameWa ? ' · וואטסאפ' : '')}</span>
+              <span className="pn-num pn-ltr">{l.phone}</span>
+            </div>
+            <button className={cx('pn-copy', copied && 'pn-ok')} type="button" data-act="copy" onClick={() => copyPhone(l.phone)}>
+              <Ic n="copy" />
+              <span className="pn-cl">העתקה</span>
+            </button>
+          </div>
+        ) : null}
+        {l.whatsapp && !sameWa ? (
+          <div className="pn-bpcall">
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <span className="pn-k">וואטסאפ</span>
+              <span className="pn-num pn-ltr">{l.whatsapp}</span>
+            </div>
+            <button className="pn-copy" type="button" data-act="copy" onClick={() => copyPhone(l.whatsapp)}>
+              <Ic n="copy" />
+              <span className="pn-cl">העתקה</span>
+            </button>
+          </div>
+        ) : null}
+        {l.phone2 ? (
+          <div className="pn-bpcall">
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <span className="pn-k">טלפון נוסף</span>
+              <span className="pn-num pn-ltr">{l.phone2}</span>
+            </div>
+            <button className="pn-copy" type="button" data-act="copy" onClick={() => copyPhone(l.phone2)}>
+              <Ic n="copy" />
+              <span className="pn-cl">העתקה</span>
+            </button>
+          </div>
+        ) : null}
+        {feat && (promoLine || promoUrl) ? (
+          <div className="pn-bpfeat">
+            <span className="pn-seal">
+              <Crown />
+              {'מומלץ ' + name}
+            </span>
+            {promoLine ? <p>{promoLine}</p> : null}
+            {promoUrl ? (
+              <a href={promoUrl} target="_blank" rel="noopener noreferrer">
+                {hostOf(promoUrl)}
+              </a>
+            ) : null}
+          </div>
+        ) : null}
+        {!hasStory && !l.services.length && !photos.length ? (
+          <Sec t="איך פונים">
+            <div className="pn-howto">
+              {howtoOf(!!wa).map(([t, d], i) => (
+                <div key={i} className="pn-how">
+                  <b aria-hidden="true">{'אבג'[i]}</b>
+                  <span>
+                    <strong>{t}</strong>
+                    {d}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </Sec>
+        ) : null}
+        {hasStory ? (
+          <Sec t="על העסק">
+            <div className="pn-story">{l.desc.trim()}</div>
+          </Sec>
+        ) : null}
+        {l.services.length ? (
+          <Sec t="שירותים ומחירים" sm="המחירים להמחשה. סופי בתיאום">
+            <div className="pn-svcs">
+              {l.services.map((s, i) => (
+                <div key={i} className="pn-svc">
+                  <div className="pn-r">
+                    <span className="pn-n">{s.name}</span>
+                    {s.price ? (
+                      <>
+                        <span className="pn-d" />
+                        <span className="pn-p">{fmtPrice(s.price)}</span>
+                      </>
+                    ) : null}
+                  </div>
+                  {s.note ? <div className="pn-o">{s.note}</div> : null}
+                </div>
+              ))}
+            </div>
+          </Sec>
+        ) : null}
+        {photos.length ? (
+          <Sec t="מהעבודות שלנו">
+            <div className={'pn-gal pn-n' + photos.length}>
+              {photos.map((u, i) => (
+                <button key={i} type="button" data-act="gal" aria-label={'תמונה ' + (i + 1) + ' מתוך ' + photos.length} onClick={() => setLb({ list: photos, i })}>
+                  <img src={u} alt="" loading="lazy" decoding="async" />
+                  {i === 0 && photos.length > 1 ? <span className="pn-cnt">{photos.length + ' תמונות'}</span> : null}
+                </button>
+              ))}
+            </div>
+          </Sec>
+        ) : null}
+        {hasHours(l) ? (
+          <Sec t="שעות פעילות">
+            {l.always || l.hours.length ? (
+              <div className="pn-hours">
+                {weekRows(l, now.clock.dow).map((r) => (
+                  <div key={r.d} className={r.today ? 'pn-today' : undefined}>
+                    <span>{r.label}</span>
+                    <span>{r.v}</span>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+            {l.hoursNote.trim() ? (
+              <div className="pn-hnote">
+                <Ic n="clock" />
+                {l.hoursNote.trim()}
+              </div>
+            ) : null}
+            {l.emergency ? (
+              <div className="pn-hnote" style={{ color: 'var(--pn-danger)', fontWeight: 800 }}>
+                <Ic n="siren" />
+                זמינים גם לקריאות חירום, 24/7
+              </div>
+            ) : null}
+          </Sec>
+        ) : null}
+        <Sec t={hasStory || l.services.length ? 'פרטים' : 'פרטי העסק'}>
+          <div className="pn-tiles">
+            {tiles.map((t) => (
+              <div key={t.k} className={cx('pn-tile', t.chips && 'pn-w')}>
+                <span className="pn-k">
+                  <Ic n={t.i} />
+                  {t.k}
+                </span>
+                <span className="pn-v">
+                  {t.chips ? (
+                    <span className="pn-paychips">
+                      {t.chips.map((c) => (
+                        <span key={c}>{c}</span>
+                      ))}
+                    </span>
+                  ) : (
+                    t.v
+                  )}
+                </span>
+              </div>
+            ))}
+          </div>
+        </Sec>
+        {faq.length ? (
+          <Sec t="שאלות נפוצות">
+            {faq.map((f, i) => (
+              <details key={i} className="pn-faq" open={i === 0}>
+                <summary>
+                  <Ic n="q" />
+                  {f.q}
+                </summary>
+                <div>{f.a}</div>
+              </details>
+            ))}
+          </Sec>
+        ) : null}
+        <Sec t="המלצות מהקהילה" sm={l.recs.length ? (l.recs.length === 1 ? 'המלצה אחת' : l.recs.length + ' המלצות') : ''}>
+          {l.recs.length ? (
+            <div className="pn-wall">
+              {l.recs.map((r, i) => (
+                <div key={i} className="pn-rec">
+                  {r.text}
+                  <span className="pn-by">
+                    {'— '}
+                    <span className="pn-nm">{r.by || 'חבר הקהילה'}</span>
+                    {' · ' + agoText(r.at, now.nowMs)}
+                    {full && canApprove ? (
+                      <button type="button" className="pn-rec-x" aria-label="הסרת ההמלצה" onClick={() => removeRec(i)} style={{ marginInlineStart: 8, border: 0, background: 'none', color: 'inherit', cursor: 'pointer', padding: 0 }}>
+                        ✕
+                      </button>
+                    ) : null}
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="pn-reccta">
+              <b>{prev ? 'כאן יופיעו ההמלצות שתקבלו' : 'עוד אין המלצות'}</b>
+              <span>{prev ? 'לקוחות מרוצים מהקהילה יכולים לכתוב כאן מילה טובה.' : 'עבדתם איתו? מילה טובה עוזרת לכל הקהילה לבחור.'}</span>
+            </div>
+          )}
+          {full ? (
+            <div className="pn-rec-form">
+              <input type="text" className="pn-rec-input" maxLength={240} aria-label="המלצה" placeholder="למשל: הגיע בזמן, עבודה נקייה ומחיר הוגן" value={rec.text} onChange={(e) => setRec({ ...rec, text: e.target.value })} />
+              <input type="text" className="pn-rec-input" maxLength={60} aria-label="שם הממליץ" placeholder="שם הממליץ (רשות)" value={rec.by} onChange={(e) => setRec({ ...rec, by: e.target.value })} />
+              <button className="pn-btn pn-primary" type="button" onClick={addRec}>
+                הוספת המלצה
+              </button>
+            </div>
+          ) : null}
+        </Sec>
+        {full && canApprove && l.notes.trim() ? (
+          <Sec t="הערה פנימית" sm={'רק ה' + gabbai + ' רואה'}>
+            <div className="pn-hnote">
+              <Ic n="shield" />
+              {l.notes.trim()}
+            </div>
+          </Sec>
+        ) : null}
+        {envS ? (
+          <button className="pn-ev-row" type="button" onClick={a.env}>
+            <span className="pn-ev-rg" style={vars({ pct: envS.pct })}>
+              <b className="pn-ltr">{envS.pct + '%'}</b>
+            </span>
+            <span className="pn-tx">
+              <b>המעטפת של העסק</b>
+              <small>{envS.have + ' קשרים בקהילה' + (envS.miss ? ' · ' + envS.miss + ' מקומות פנויים' : '') + ' · רק ה' + gabbai + ' רואה'}</small>
+            </span>
+            <Ic n="chev" />
+          </button>
+        ) : null}
+        {full ? <Kupa k={kupa} /> : null}
+        {near.length ? (
+          <section className="pn-bps pn-nearrow">
+            <h3>
+              עובדים לצידו<small>מי שפונה אליו צריך בדרך כלל גם</small>
+            </h3>
+            <div className="pn-nr-l">
+              {near.map((x) => (
+                <button key={x.e.id} className="pn-nr-c" type="button" onClick={() => a.open(x.e.id)}>
+                  <Medal l={x.e} feat={isFeatured(x.e, now.todayIso)} />
+                  <span>
+                    <b>{x.e.name}</b>
+                    <small>{x.why || x.e.title}</small>
+                  </span>
+                </button>
+              ))}
+            </div>
+          </section>
+        ) : null}
+        {full && (inTrade.length || (requestsOn && l.status === 'approved')) ? (
+          <Sec t="מה מבקשים בתחום" sm={inTrade.length ? String(inTrade.length) : ''}>
+            <p className="pn-note" style={{ margin: '0 0 8px', fontSize: 13, opacity: 0.8 }}>
+              {l.source === 'gabbai'
+                ? 'הוזן ע״י ה' + gabbai + ' — לא מקבל ניתוב אוטומטי (טלפון כשר); ה' + gabbai + ' מתקשר/ת כשמתאים.'
+                : 'כך ה' + word + ' רואה כל ' + reqWord + ': ' + reqWord + ' בשקט — בלי שם ובלי טלפון של הפונה.'}
+            </p>
+            {inTrade.length ? (
+              <TradeRows rows={inTrade} nowMs={now.nowMs} onRespond={a.respond} />
+            ) : (
+              <div className="pn-reccta">
+                <span>{'אין כרגע ' + reqWord + ' פתוחה בתחום.'}</span>
+              </div>
+            )}
+          </Sec>
+        ) : null}
+        {gateSp ? (
+          <div className="pn-bpspn">
+            <Crown />
+            <span>
+              {'שער ״' + cat.name + '״ בחסות '}
+              <b>{gateSp.advertiser}</b>
+            </span>
+          </div>
+        ) : null}
+        <div className="pn-colo">
+          <Pm c="sm" />
+          <span>{'חבר ב' + brand}</span>
+          {full ? <span style={{ fontSize: 12, opacity: 0.75 }}>{l.source === 'gabbai' ? 'הוזן ע״י ה' + gabbai : 'נמסר ע״י בעל ה' + word}</span> : null}
+          {full ? (
+          <div className="pn-acts">
+            <button className="pn-btn pn-ghost2" type="button" onClick={() => void copy(shareLine(l, brand), 'הכרטיס הועתק לשיתוף', 'לא הצלחנו להעתיק')}>
+              <Ic n="copy" />
+              העתקת הפרטים כטקסט
+            </button>
+            {canApprove && a.canEdit ? (
+              <button className="pn-btn pn-ghost2" type="button" onClick={a.edit}>
+                <Crown style={{ width: 18, height: 12 }} />
+                {feat ? 'ניהול ההדגשה' : 'הדגשה'}
+              </button>
+            ) : null}
+            {a.canEdit ? (
+              <button className="pn-btn pn-ghost2" type="button" onClick={a.edit}>
+                <Ic n="edit" />
+                עריכה
+              </button>
+            ) : null}
+            {canApprove && l.status !== 'approved' ? (
+              <button className="pn-btn pn-primary" type="button" onClick={() => decide('approved')}>
+                <Ic n="check" />
+                אישור
+              </button>
+            ) : null}
+            {canApprove && l.status !== 'rejected' ? (
+              <button className="pn-btn pn-ghost2" type="button" onClick={() => decide('rejected')}>
+                <Ic n="eye" />
+                הסתרה
+              </button>
+            ) : null}
+            {canDelete ? (
+              <button className="pn-btn pn-ghost2 pn-danger" type="button" onClick={del}>
+                <Ic n="trash" />
+                {armed === 'prl-' + l.id ? 'בטוח?' : 'מחיקה'}
+              </button>
+            ) : null}
+          </div>
+          ) : null}
+        </div>
+      </div>
+    </>
+  );
+}
+
+export function BizSheet(props: { id?: string; draft?: PrListing; qtext: string; ctx: BizCtx; onClose: () => void; onOpen: (id: string) => void; onEdit?: (id: string) => void }) {
+  const stored = useApp((s) => (props.id ? (s.db.prListings.find((x) => x.id === props.id) ?? null) : null));
+  const l = props.draft ?? stored;
+  // העסק נמחק בזמן שהגיליון פתוח ⇒ סוגרים
+  useEffect(() => {
+    if (!l) props.onClose();
+  });
+  if (!l) return null;
+  return <BizSheetInner key="sheet" l={l} prev={!!props.draft} qtext={props.draft ? '' : props.qtext} ctx={props.ctx} onClose={props.onClose} onOpen={props.onOpen} onEdit={props.onEdit} />;
+}
+
+function BizSheetInner(props: { l: PrListing; prev: boolean; qtext: string; ctx: BizCtx; onClose: () => void; onOpen: (id: string) => void; onEdit?: (id: string) => void }) {
+  const { l, ctx, prev } = props;
+  const config = useApp((s) => s.config);
+  const listings = useApp((s) => s.db.prListings);
+  const setPrStatus = useApp((s) => s.setPrStatus);
+  const deletePrListing = useApp((s) => s.deletePrListing);
+  const toast = (m: string): void => ctx.toastAct(m);
+  const brand = usePrBrand();
+  const contact = usePnContact();
+  const { armed, confirmTwice } = useArmed(featureOn(config, 'shell.armdel'));
 
   const sheetRef = useRef<HTMLDivElement>(null);
   const scrimRef = useRef<HTMLDivElement>(null);
@@ -108,17 +656,14 @@ function BizSheetInner(props: { l: PrListing; qtext: string; ctx: BizCtx; onClos
   reducedRef.current = ctx.reduced;
   const onCloseRef = useRef(props.onClose);
   onCloseRef.current = props.onClose;
-  const [editOpen, setEditOpen] = useState(false);
-  const [rec, setRec] = useState({ by: '', text: '' });
   const [respondTo, setRespondTo] = useState<{ id: string; quiet: boolean } | null>(null);
-  const [respText, setRespText] = useState('');
   const [lb, setLb] = useState<{ list: string[]; i: number } | null>(null);
   const [env, setEnv] = useState(false);
   const [copied, setCopied] = useState(false);
   const lbRef = useRef<HTMLDivElement>(null);
   const lbLast = useRef<HTMLElement | null>(null);
 
-  // הגיליון: עלייה בקפיץ פעם אחת; עסק אחר באותו גיליון ⇒ גלילה לראש (וגם "אחרונים" — touch)
+  // הגיליון: עלייה בקפיץ פעם אחת; עסק אחר באותו גיליון ⇒ גלילה לראש (וגם "אחרונים" — touch; לא בתצוגה מקדימה)
   useEffect(() => {
     const sheet = sheetRef.current;
     const scrim = scrimRef.current;
@@ -134,8 +679,8 @@ function BizSheetInner(props: { l: PrListing; qtext: string; ctx: BizCtx; onClos
   const quickTouch = ctx.quick.touch;
   useEffect(() => {
     ctl.current?.reset();
-    quickTouch(l.id);
-  }, [l.id, quickTouch]);
+    if (!prev) quickTouch(l.id);
+  }, [l.id, quickTouch, prev]);
   const close = (): void => {
     if (ctl.current) ctl.current.close();
     else props.onClose();
@@ -176,29 +721,11 @@ function BizSheetInner(props: { l: PrListing; qtext: string; ctx: BizCtx; onClos
     };
   }, [lbOpen]);
 
-  const cat = categoryOf(l.category);
-  const feat = isFeatured(l, now.todayIso);
-  const st = listingStatus(l, now.clock, now.closureAt);
-  const of = offerOf(l, now.todayIso);
-  const ph = photoOf(l);
   const pal = l.palette || 'velvet';
   const fav = ctx.quick.favs.includes(l.id);
-  const photos = (Array.isArray(l.photos) ? l.photos : []).filter(isImg).slice(0, 4);
-  const faq = (Array.isArray(l.faq) ? l.faq : []).filter((f) => f && (f.q || '').trim());
-  const trust = trustOf(l, now.todayIso, name);
-  const tiles = tilesOf(l);
-  const where2 = [l.city, l.area].filter((x) => x && x.trim());
   const waMsg = 'שלום, הגעתי אליך דרך ' + brand + '.' + (props.qtext ? ' צריך עזרה: ' + props.qtext : '');
   const wa = l.whatsapp ? contact.wa(l.whatsapp, waMsg) : null;
   const tel = contact.tel(l.phone);
-  const promoUrl = feat ? safeUrl(l.promoUrl) : '';
-  const promoLine = feat ? (l.promoLine ?? '').trim() : '';
-  const sameWa = !!l.whatsapp && digits(l.whatsapp).slice(-9) === digits(l.phone).slice(-9);
-  const kupa = useMemo(() => kupaOf(l, requests, ctx.monthStartIso, now.loc.tz), [l, requests, ctx.monthStartIso, now.loc.tz]);
-  const near = useMemo(() => nearOf(l, listings), [l, listings]);
-  const envS = useMemo(() => (canApprove ? envSummary(l, listings) : null), [canApprove, l, listings]);
-  const inTrade = requestsOn && l.status === 'approved' ? requestsForListing(l, requests, listings, now.nowMs) : [];
-  const gateSp = adsOn ? adRotation(ads, 'category', now.todayIso, cat.key).today : null;
 
   async function copy(v: string, ok: string, fail: string): Promise<boolean> {
     let done = false;
@@ -213,7 +740,7 @@ function BizSheetInner(props: { l: PrListing; qtext: string; ctx: BizCtx; onClos
   }
   function copyPhone(p: string): void {
     void copy(p, 'המספר ' + p + ' הועתק', 'המספר: ' + p).then((ok) => {
-      ctx.quick.touch(l.id);
+      if (!prev) ctx.quick.touch(l.id);
       if (ok) {
         setCopied(true);
         setTimeout(() => setCopied(false), 1500);
@@ -227,28 +754,6 @@ function BizSheetInner(props: { l: PrListing; qtext: string; ctx: BizCtx; onClos
   function decide(status: 'approved' | 'rejected'): void {
     if (setPrStatus('listing', l.id, status)) toast(status === 'approved' ? 'אושר — מופיע באלפון' : 'הוסתר מהאלפון');
   }
-  function addRec(): void {
-    const text = rec.text.trim();
-    if (!text) return toast('כתבו את ההמלצה');
-    // המלצה = שינוי לא-תוכני ⇒ מכונת-האישור משאירה את הסטטוס כמות-שהוא
-    const res = upsertPrListing({ ...l, recs: [{ by: rec.by.trim(), text: text.slice(0, 240), at: new Date().toISOString() }, ...l.recs] });
-    if (res.ok) {
-      setRec({ by: '', text: '' });
-      toast('תודה! ההמלצה נשמרה');
-    }
-  }
-  function removeRec(i: number): void {
-    if (upsertPrListing({ ...l, recs: l.recs.filter((_, j) => j !== i) }).ok) toast('ההמלצה נמחקה');
-  }
-  function respond(): void {
-    if (!respondTo) return;
-    if (respondTo.quiet && !respText.trim()) return toast('לבקשה בשקט — כתבו תשובה (המבקש יראה אותה, ואתם לא תדעו מי הוא)');
-    if (addPrResponse(respondTo.id, { listingId: l.id, text: respText.trim() || 'זמין' })) {
-      toast(respondTo.quiet ? 'שלחת תשובה. אתה לא יודע מי ביקש…' : 'נרשם שה' + word + ' זמין/ה');
-      setRespondTo(null);
-      setRespText('');
-    }
-  }
   function del(): void {
     if (!confirmTwice('prl-' + l.id, 'למחוק את ' + l.name + ' מהאלפון?')) {
       toast('בטוחים? לחיצה נוספת בתוך 3.5 שניות תמחק לצמיתות');
@@ -259,24 +764,22 @@ function BizSheetInner(props: { l: PrListing; qtext: string; ctx: BizCtx; onClos
       close();
     }
   }
-
-  const star = (
-    <button className="pn-ib" type="button" aria-pressed={fav} aria-label="חיוג מהיר" onClick={toggleFav}>
-      <Ic n="star" />
-    </button>
-  );
-  const logo = isImg(l.logo) ? (
-    <span className="pn-bplogo">
-      <img src={l.logo} alt={'הלוגו של ' + l.name} decoding="async" />
-    </span>
-  ) : (
-    <span className="pn-bplogo pn-mono" aria-hidden="true">
-      <b className="pn-tic">
-        <Ic n={tradeIcon(l)} />
-      </b>
-    </span>
-  );
-  const hasStory = !!l.desc.trim();
+  const acts: BizActs = {
+    close,
+    open: props.onOpen,
+    lb: (list, i) => setLb({ list, i }),
+    env: () => setEnv(true),
+    edit: () => props.onEdit?.(l.id),
+    canEdit: !!props.onEdit,
+    respond: (id, quiet) => setRespondTo({ id, quiet }),
+    decide,
+    del,
+    armed,
+    copy,
+    copyPhone,
+    copied,
+    toggleFav,
+  };
 
   return (
     <PnPortal>
@@ -286,446 +789,7 @@ function BizSheetInner(props: { l: PrListing; qtext: string; ctx: BizCtx; onClos
           <i />
         </button>
         <div className="pn-sbody" ref={bodyRef}>
-          <div className="pn-bptop">
-            <div>
-              <button className="pn-ib" type="button" data-act="close" aria-label="חזרה" onClick={close}>
-                <Ic n="back" />
-              </button>
-              <span className="pn-bmini" aria-hidden="true">
-                {isImg(l.logo) ? (
-                  <img src={l.logo} alt="" />
-                ) : (
-                  <b className="pn-tic">
-                    <Ic n={tradeIcon(l)} />
-                  </b>
-                )}
-              </span>
-              <b>{l.name}</b>
-              {star}
-            </div>
-          </div>
-          <header className="pn-bpc" data-ph={ph || 'brand'}>
-            {ph ? <span className="pn-bpc-ph" aria-hidden="true" style={{ backgroundImage: 'url(' + photoUrl(ph) + ')' }} /> : <span className="pn-bpc-ph pn-brand" aria-hidden="true" />}
-            <span className="pn-cx">
-              <button className="pn-ib" type="button" data-act="close" aria-label="חזרה" onClick={close}>
-                <Ic n="back" />
-              </button>
-            </span>
-            <span className="pn-cs">{star}</span>
-            {logo}
-            <h2 id="pn-sname">{l.name}</h2>
-            {l.tagline?.trim() ? <p className="pn-tg">{l.tagline.trim()}</p> : null}
-            {of ? (
-              <p className="pn-bpof">
-                <Ic n="tag" />
-                <span>{of.text}</span>
-                {of.until ? <small>{offerUntilText(of.until)}</small> : null}
-              </p>
-            ) : null}
-            {l.title ? (
-              <div className="pn-tr">
-                <span>{l.title}</span>
-              </div>
-            ) : null}
-            <div className="pn-tr">
-              <span>{cat.name}</span>
-              {where2.length ? <span>{where2.join(' · ')}</span> : null}
-            </div>
-            <StPill st={st && st.k !== 'open' ? st : null} />
-          </header>
-          <div className="pn-bpm">
-            <div className="pn-tbs">
-              {trust.map((t, i) => (
-                <span key={i} className={cx('pn-tb2', t.k && 'pn-' + t.k)}>
-                  {t.i === 'crown' ? <Crown /> : <Ic n={t.i} />}
-                  {t.t}
-                </span>
-              ))}
-              {l.dialCode ? (
-                <span className="pn-tb2" title="קוד-החיוג בקו (מודפס בחוברת)">
-                  <Ic n="phone" />
-                  {'קוד חיוג ' + l.dialCode}
-                </span>
-              ) : null}
-              {l.status === 'pending' ? (
-                <span className="pn-tb2 pn-em">
-                  <Ic n="clock" />
-                  {'ממתין לאישור ה' + gabbai}
-                </span>
-              ) : l.status === 'rejected' ? (
-                <span className="pn-tb2 pn-em">
-                  <Ic n="eye" />
-                  מוסתר מהאלפון
-                </span>
-              ) : null}
-            </div>
-            {l.phone ? (
-              <div className="pn-bpcall">
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <span className="pn-k">{'טלפון' + (sameWa ? ' · וואטסאפ' : '')}</span>
-                  <span className="pn-num pn-ltr">{l.phone}</span>
-                </div>
-                <button className={cx('pn-copy', copied && 'pn-ok')} type="button" data-act="copy" onClick={() => copyPhone(l.phone)}>
-                  <Ic n="copy" />
-                  <span className="pn-cl">העתקה</span>
-                </button>
-              </div>
-            ) : null}
-            {l.whatsapp && !sameWa ? (
-              <div className="pn-bpcall">
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <span className="pn-k">וואטסאפ</span>
-                  <span className="pn-num pn-ltr">{l.whatsapp}</span>
-                </div>
-                <button className="pn-copy" type="button" data-act="copy" onClick={() => copyPhone(l.whatsapp)}>
-                  <Ic n="copy" />
-                  <span className="pn-cl">העתקה</span>
-                </button>
-              </div>
-            ) : null}
-            {l.phone2 ? (
-              <div className="pn-bpcall">
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <span className="pn-k">טלפון נוסף</span>
-                  <span className="pn-num pn-ltr">{l.phone2}</span>
-                </div>
-                <button className="pn-copy" type="button" data-act="copy" onClick={() => copyPhone(l.phone2)}>
-                  <Ic n="copy" />
-                  <span className="pn-cl">העתקה</span>
-                </button>
-              </div>
-            ) : null}
-            {feat && (promoLine || promoUrl) ? (
-              <div className="pn-bpfeat">
-                <span className="pn-seal">
-                  <Crown />
-                  {'מומלץ ' + name}
-                </span>
-                {promoLine ? <p>{promoLine}</p> : null}
-                {promoUrl ? (
-                  <a href={promoUrl} target="_blank" rel="noopener noreferrer">
-                    {hostOf(promoUrl)}
-                  </a>
-                ) : null}
-              </div>
-            ) : null}
-            {!hasStory && !l.services.length && !photos.length ? (
-              <Sec t="איך פונים">
-                <div className="pn-howto">
-                  {howtoOf(!!wa).map(([t, d], i) => (
-                    <div key={i} className="pn-how">
-                      <b aria-hidden="true">{'אבג'[i]}</b>
-                      <span>
-                        <strong>{t}</strong>
-                        {d}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </Sec>
-            ) : null}
-            {hasStory ? (
-              <Sec t="על העסק">
-                <div className="pn-story">{l.desc.trim()}</div>
-              </Sec>
-            ) : null}
-            {l.services.length ? (
-              <Sec t="שירותים ומחירים" sm="המחירים להמחשה. סופי בתיאום">
-                <div className="pn-svcs">
-                  {l.services.map((s, i) => (
-                    <div key={i} className="pn-svc">
-                      <div className="pn-r">
-                        <span className="pn-n">{s.name}</span>
-                        {s.price ? (
-                          <>
-                            <span className="pn-d" />
-                            <span className="pn-p">{fmtPrice(s.price)}</span>
-                          </>
-                        ) : null}
-                      </div>
-                      {s.note ? <div className="pn-o">{s.note}</div> : null}
-                    </div>
-                  ))}
-                </div>
-              </Sec>
-            ) : null}
-            {photos.length ? (
-              <Sec t="מהעבודות שלנו">
-                <div className={'pn-gal pn-n' + photos.length}>
-                  {photos.map((u, i) => (
-                    <button key={i} type="button" data-act="gal" aria-label={'תמונה ' + (i + 1) + ' מתוך ' + photos.length} onClick={() => setLb({ list: photos, i })}>
-                      <img src={u} alt="" loading="lazy" decoding="async" />
-                      {i === 0 && photos.length > 1 ? <span className="pn-cnt">{photos.length + ' תמונות'}</span> : null}
-                    </button>
-                  ))}
-                </div>
-              </Sec>
-            ) : null}
-            {hasHours(l) ? (
-              <Sec t="שעות פעילות">
-                {l.always || l.hours.length ? (
-                  <div className="pn-hours">
-                    {weekRows(l, now.clock.dow).map((r) => (
-                      <div key={r.d} className={r.today ? 'pn-today' : undefined}>
-                        <span>{r.label}</span>
-                        <span>{r.v}</span>
-                      </div>
-                    ))}
-                  </div>
-                ) : null}
-                {l.hoursNote.trim() ? (
-                  <div className="pn-hnote">
-                    <Ic n="clock" />
-                    {l.hoursNote.trim()}
-                  </div>
-                ) : null}
-                {l.emergency ? (
-                  <div className="pn-hnote" style={{ color: 'var(--pn-danger)', fontWeight: 800 }}>
-                    <Ic n="siren" />
-                    זמינים גם לקריאות חירום, 24/7
-                  </div>
-                ) : null}
-              </Sec>
-            ) : null}
-            <Sec t={hasStory || l.services.length ? 'פרטים' : 'פרטי העסק'}>
-              <div className="pn-tiles">
-                {tiles.map((t) => (
-                  <div key={t.k} className={cx('pn-tile', t.chips && 'pn-w')}>
-                    <span className="pn-k">
-                      <Ic n={t.i} />
-                      {t.k}
-                    </span>
-                    <span className="pn-v">
-                      {t.chips ? (
-                        <span className="pn-paychips">
-                          {t.chips.map((c) => (
-                            <span key={c}>{c}</span>
-                          ))}
-                        </span>
-                      ) : (
-                        t.v
-                      )}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </Sec>
-            {faq.length ? (
-              <Sec t="שאלות נפוצות">
-                {faq.map((f, i) => (
-                  <details key={i} className="pn-faq" open={i === 0}>
-                    <summary>
-                      <Ic n="q" />
-                      {f.q}
-                    </summary>
-                    <div>{f.a}</div>
-                  </details>
-                ))}
-              </Sec>
-            ) : null}
-            <Sec t="המלצות מהקהילה" sm={l.recs.length ? (l.recs.length === 1 ? 'המלצה אחת' : l.recs.length + ' המלצות') : ''}>
-              {l.recs.length ? (
-                <div className="pn-wall">
-                  {l.recs.map((r, i) => (
-                    <div key={i} className="pn-rec">
-                      {r.text}
-                      <span className="pn-by">
-                        {'— '}
-                        <span className="pn-nm">{r.by || 'חבר הקהילה'}</span>
-                        {' · ' + agoText(r.at, now.nowMs)}
-                        {canApprove ? (
-                          <button type="button" className="pn-rec-x" aria-label="הסרת ההמלצה" onClick={() => removeRec(i)} style={{ marginInlineStart: 8, border: 0, background: 'none', color: 'inherit', cursor: 'pointer', padding: 0 }}>
-                            ✕
-                          </button>
-                        ) : null}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="pn-reccta">
-                  <b>עוד אין המלצות</b>
-                  <span>עבדתם איתו? מילה טובה עוזרת לכל הקהילה לבחור.</span>
-                </div>
-              )}
-              <div className="pn-rec-form">
-                <input type="text" className="pn-rec-input" maxLength={240} aria-label="המלצה" placeholder="למשל: הגיע בזמן, עבודה נקייה ומחיר הוגן" value={rec.text} onChange={(e) => setRec({ ...rec, text: e.target.value })} />
-                <input type="text" className="pn-rec-input" maxLength={60} aria-label="שם הממליץ" placeholder="שם הממליץ (רשות)" value={rec.by} onChange={(e) => setRec({ ...rec, by: e.target.value })} />
-                <button className="pn-btn pn-primary" type="button" onClick={addRec}>
-                  הוספת המלצה
-                </button>
-              </div>
-            </Sec>
-            {canApprove && l.notes.trim() ? (
-              <Sec t="הערה פנימית" sm={'רק ה' + gabbai + ' רואה'}>
-                <div className="pn-hnote">
-                  <Ic n="shield" />
-                  {l.notes.trim()}
-                </div>
-              </Sec>
-            ) : null}
-            {envS ? (
-              <button className="pn-ev-row" type="button" onClick={() => setEnv(true)}>
-                <span className="pn-ev-rg" style={vars({ pct: envS.pct })}>
-                  <b className="pn-ltr">{envS.pct + '%'}</b>
-                </span>
-                <span className="pn-tx">
-                  <b>המעטפת של העסק</b>
-                  <small>{envS.have + ' קשרים בקהילה' + (envS.miss ? ' · ' + envS.miss + ' מקומות פנויים' : '') + ' · רק ה' + gabbai + ' רואה'}</small>
-                </span>
-                <Ic n="chev" />
-              </button>
-            ) : null}
-            {kupa.n ? (
-              <section className="pn-bps pn-kupa" title="זה לא דירוג. כל מטבע הוא פעם שמישהו מהקהילה נעזר">
-                <div className="pn-kp-art">
-                  <span className="pn-kp-3d">
-                    <span className="pn-kp-halo" />
-                    <img src={'./parnasa/kupa/' + kupa.art + '.webp'} alt="" width={236} height={275} decoding="async" />
-                  </span>
-                </div>
-                <div className="pn-kp-tx">
-                  <span className="pn-kp-k">הקופה של העסק</span>
-                  <span className="pn-kp-big">
-                    <b className="pn-kp-n">{kupa.n}</b>
-                    <span className="pn-kp-l">{(kupa.n === 1 ? 'פעם אחת' : 'פעמים') + ' עזר לקהילה'}</span>
-                  </span>
-                  <span className="pn-kp-sub">
-                    {kupa.ans ? (
-                      <span className="pn-kp-m">
-                        <KpIc k="ans" />
-                        {kupa.ans + ' ' + (kupa.ans === 1 ? 'תשובה' : 'תשובות')}
-                      </span>
-                    ) : null}
-                    {kupa.th ? (
-                      <span className="pn-kp-m pn-th">
-                        <KpIc k="th" />
-                        {kupa.th + ' ' + (kupa.th === 1 ? 'תודה' : 'תודות')}
-                      </span>
-                    ) : null}
-                    {kupa.mo ? <span className="pn-kp-mo">{kupa.mo + ' החודש'}</span> : null}
-                  </span>
-                </div>
-              </section>
-            ) : null}
-            {near.length ? (
-              <section className="pn-bps pn-nearrow">
-                <h3>
-                  עובדים לצידו<small>מי שפונה אליו צריך בדרך כלל גם</small>
-                </h3>
-                <div className="pn-nr-l">
-                  {near.map((x) => (
-                    <button key={x.e.id} className="pn-nr-c" type="button" onClick={() => props.onOpen(x.e.id)}>
-                      <Medal l={x.e} feat={isFeatured(x.e, now.todayIso)} />
-                      <span>
-                        <b>{x.e.name}</b>
-                        <small>{x.why || x.e.title}</small>
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </section>
-            ) : null}
-            {inTrade.length || (requestsOn && l.status === 'approved') ? (
-              <Sec t="מה מבקשים בתחום" sm={inTrade.length ? String(inTrade.length) : ''}>
-                <p className="pn-note" style={{ margin: '0 0 8px', fontSize: 13, opacity: 0.8 }}>
-                  {l.source === 'gabbai'
-                    ? 'הוזן ע״י ה' + gabbai + ' — לא מקבל ניתוב אוטומטי (טלפון כשר); ה' + gabbai + ' מתקשר/ת כשמתאים.'
-                    : 'כך ה' + word + ' רואה כל ' + reqWord + ': ' + reqWord + ' בשקט — בלי שם ובלי טלפון של הפונה.'}
-                </p>
-                {inTrade.length ? (
-                  <div className="pn-rqs">
-                    {inTrade.map((v) => (
-                      <div key={v.id} className={cx('pn-rq', v.urgent && 'pn-urgent')}>
-                        <div className="pn-rq-tx">
-                          {v.urgent ? (
-                            <span className="pn-badge pn-urg">
-                              <i />
-                              דחוף
-                            </span>
-                          ) : null}
-                          <p style={{ whiteSpace: 'pre-line' }}>{v.text}</p>
-                          <span className="pn-rq-m">
-                            {agoText(v.createdAt, now.nowMs)}
-                            {v.quiet ? (
-                              <>
-                                {' · '}
-                                <b className="pn-q-m">
-                                  <Ic n="shield" />
-                                  בשקט, לא יודעים מי ביקש
-                                </b>
-                              </>
-                            ) : v.contact && (v.contact.name || v.contact.phone) ? (
-                              <>
-                                {' · ' + v.contact.name + ' '}
-                                <bdi dir="ltr">{v.contact.phone}</bdi>
-                              </>
-                            ) : null}
-                          </span>
-                        </div>
-                        <button className="pn-rq-b pn-bd" type="button" data-act="imAvail" onClick={() => setRespondTo({ id: v.id, quiet: v.quiet })}>
-                          <Ic n="hand" />
-                          אני זמין
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="pn-reccta">
-                    <span>{'אין כרגע ' + reqWord + ' פתוחה בתחום.'}</span>
-                  </div>
-                )}
-              </Sec>
-            ) : null}
-            {gateSp ? (
-              <div className="pn-bpspn">
-                <Crown />
-                <span>
-                  {'שער ״' + cat.name + '״ בחסות '}
-                  <b>{gateSp.advertiser}</b>
-                </span>
-              </div>
-            ) : null}
-            <div className="pn-colo">
-              <Pm c="sm" />
-              <span>{'חבר ב' + brand}</span>
-              <span style={{ fontSize: 12, opacity: 0.75 }}>{l.source === 'gabbai' ? 'הוזן ע״י ה' + gabbai : 'נמסר ע״י בעל ה' + word}</span>
-              <div className="pn-acts">
-                <button className="pn-btn pn-ghost2" type="button" onClick={() => void copy(shareLine(l, brand), 'הכרטיס הועתק לשיתוף', 'לא הצלחנו להעתיק')}>
-                  <Ic n="copy" />
-                  העתקת הפרטים כטקסט
-                </button>
-                {canApprove ? (
-                  <button className="pn-btn pn-ghost2" type="button" onClick={() => setEditOpen(true)}>
-                    <Crown style={{ width: 18, height: 12 }} />
-                    {feat ? 'ניהול ההדגשה' : 'הדגשה'}
-                  </button>
-                ) : null}
-                <button className="pn-btn pn-ghost2" type="button" onClick={() => setEditOpen(true)}>
-                  <Ic n="edit" />
-                  עריכה
-                </button>
-                {canApprove && l.status !== 'approved' ? (
-                  <button className="pn-btn pn-primary" type="button" onClick={() => decide('approved')}>
-                    <Ic n="check" />
-                    אישור
-                  </button>
-                ) : null}
-                {canApprove && l.status !== 'rejected' ? (
-                  <button className="pn-btn pn-ghost2" type="button" onClick={() => decide('rejected')}>
-                    <Ic n="eye" />
-                    הסתרה
-                  </button>
-                ) : null}
-                {canDelete ? (
-                  <button className="pn-btn pn-ghost2 pn-danger" type="button" onClick={del}>
-                    <Ic n="trash" />
-                    {armed === 'prl-' + l.id ? 'בטוח?' : 'מחיקה'}
-                  </button>
-                ) : null}
-              </div>
-            </div>
-          </div>
+          <BizBody l={l} qtext={props.qtext} ctx={ctx} prev={prev} acts={acts} />
         </div>
         <div className="pn-bpbar">
           {wa ? (
@@ -758,9 +822,11 @@ function BizSheetInner(props: { l: PrListing; qtext: string; ctx: BizCtx; onClos
               <Ic n="phone" f />
             </a>
           ) : null}
-          <button className="pn-bpib pn-star" type="button" aria-pressed={fav} aria-label="חיוג מהיר" onClick={toggleFav}>
-            <Ic n="star" />
-          </button>
+          {prev ? null : (
+            <button className="pn-bpib pn-star" type="button" aria-pressed={fav} aria-label="חיוג מהיר" onClick={toggleFav}>
+              <Ic n="star" />
+            </button>
+          )}
         </div>
       </div>
       {lb ? (
@@ -835,30 +901,7 @@ function BizSheetInner(props: { l: PrListing; qtext: string; ctx: BizCtx; onClos
           </div>
         </div>
       ) : null}
-      {editOpen ? <ListingForm listing={l} onClose={() => setEditOpen(false)} /> : null}
-      {respondTo ? (
-        <OrbitLayer>
-          <Modal title={respondTo.quiet ? 'שליחת תשובה (בשקט)' : '✋ סימון זמין'} onClose={() => setRespondTo(null)}>
-            {respondTo.quiet ? (
-              <div style={{ fontSize: 12.5, color: 'var(--ink-faint)', marginBottom: 8 }}>המבקש יראה את התשובה ואת הכרטיס שלך. אתה לא תדע מי הוא, עד שהוא יבחר לפנות.</div>
-            ) : null}
-            <Field label={respondTo.quiet ? 'התשובה *' : 'הערה (רשות)'}>
-              <textarea
-                rows={3}
-                value={respText}
-                onChange={(e) => setRespText(e.target.value.slice(0, 500))}
-                placeholder={respondTo.quiet ? 'למשל: אני מטפלת רגשית מוסמכת, מקבלת בבית, הפגישה הראשונה בחינם. אפשר להתקשר בכל ערב.' : 'זמין מחר בבוקר'}
-              />
-            </Field>
-            <div className="modal-actions">
-              <Btn kind="primary" onClick={respond}>
-                שליחה
-              </Btn>
-              <Btn onClick={() => setRespondTo(null)}>ביטול</Btn>
-            </div>
-          </Modal>
-        </OrbitLayer>
-      ) : null}
+      {respondTo ? <RespondModal l={l} target={respondTo} toast={toast} onClose={() => setRespondTo(null)} /> : null}
     </PnPortal>
   );
 }
