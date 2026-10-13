@@ -8,6 +8,7 @@ import { useHostData, useHostEnv, useNowMs, useToday } from './hooks';
 import { BigEmpty, CountUp, Kpi, LiveClock, Pill, clickable, cssVar, h, useHostUi } from './hui';
 import { bookingBalance, dashboardOf, greetingOf, initialsOf, money } from './lib';
 import { U_LABEL } from './labels';
+import { TodayPanel } from './SwitchPanels';
 import type { HostBooking } from '../../types/domain';
 
 const fmtDay = new Intl.DateTimeFormat('he-IL', { weekday: 'long', day: 'numeric', month: 'long' });
@@ -95,6 +96,7 @@ export function DashTab(props: { biz: string }) {
           <Stat em="💰" v={<CountUp to={dash.monthRevenue} fmt={money} />} l="הכנסות החודש" />
         </div>
       </div>
+      <TodayPanel />
       <div className="h-kpis">
         <Kpi kc="var(--h-brand)" lab="תפוסה היום" val={<CountUp to={dash.occPct} fmt={(v) => n(v) + '%'} />} sub={dash.occN + ' מתוך ' + dash.unitsN + ' ' + env.terms.units} />
         <Kpi kc="var(--h-good)" lab="צ׳ק-אין היום" val={<CountUp to={dash.arrivals.length} fmt={n} />} sub="הגעות מתוכננות" />

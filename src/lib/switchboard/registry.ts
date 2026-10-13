@@ -2,8 +2,12 @@
  * 🔌 המרכזייה — הרישום (BUILD-ORDER-SWITCHBOARD-2026-10-13): מי מציע מה, ואיך שואלים.
  *
  * `REGISTRY` = **שורה אחת לכל כלי**: מודול-הספק · אוספי-ה-DB שהספק קורא · היכולות (מזהה ⇒ תווית עברית + תת-דגל
- * אופציונלי) · `load` — הספק עצמו ב-`import()` דינמי. הטיפוסים (`AbilityId`/`InputOf`/`OutputOf`) נגזרים מקובץ-הספק
- * (`typeof import(...)` — חינם בזמן-ריצה), כך שכלי חדש מצטרף בקובץ-ספק אחד + שורה אחת כאן.
+ * אופציונלי) · `load` — הספק, ב-`import()` דינמי **של מסך-הכלי** (שמייצא אותו מחדש: `export * as <כלי>Provider from
+ * './abilities'`). הטיפוסים (`AbilityId`/`InputOf`/`OutputOf`) נגזרים מקובץ-הספק (`typeof import(...)` — חינם בזמן-ריצה),
+ * כך שכלי חדש מצטרף בקובץ-ספק אחד + שורה אחת כאן (+ שורת-ייצוא במסך שלו).
+ * למה דרך המסך ולא chunk-ספק משלו: נמדד (13.10) — נקודת-כניסה עצלה חדשה שמגיעה סטטית למודולים של הבנדל-הראשי (המודל,
+ * המעברים, הלוח-העברי) גרמה למאגד לפצל אותם לקבצים נפרדים: משקל-ההפעלה +3.2KB gzip לכל ארגון (8⇒14 קבצים). דרך
+ * המסך הקיים — אפס נקודות-כניסה חדשות, משקל-ההפעלה כמו שהיה; ארגון עם כלי אחד לא מוריד דבר מהכלי השני.
  *
  *   · `listAbilities(config)` — רק יכולות שמודול-הספק שלהן דלוק (moduleOn ⇒ moduleEnabledIn; parnasa/hosting הם opt-in —
  *     רק true מדליק) ושתת-הדגל שלהן (אם הוגדר) דלוק (featureOn).
@@ -20,8 +24,8 @@ import type { AskResult, SwitchCtx, Unavailable, UnavailableReason } from './con
 /* ═══════════════ הרישום — שורה לכל כלי (הסדר = סדר תקציר-היום) ═══════════════ */
 
 export const REGISTRY = [
-  { module: 'hosting', reads: ['hostUnits', 'hostBookings', 'hostRecords', 'ui', 'orgName'], abilities: { 'hosting.today': { label: 'האירוח היום' }, 'hosting.availability': { label: 'בדיקת יחידת אירוח פנויה' } }, load: () => import('../../components/hosting/abilities') },
-  { module: 'parnasa', reads: ['prListings', 'prPosts', 'ui'], abilities: { 'parnasa.findPro': { label: 'מציאת בעל מקצוע', flag: 'parnasa.directory' }, 'parnasa.shabbat': { label: 'זמני השבת', flag: 'parnasa.zmanim' }, 'parnasa.minyanim': { label: 'מניינים בקהילה', flag: 'parnasa.board' }, 'parnasa.emergency': { label: 'מספרי חירום', flag: 'parnasa.board' } }, load: () => import('../../components/parnasa/abilities') },
+  { module: 'hosting', reads: ['hostUnits', 'hostBookings', 'hostRecords', 'ui', 'orgName'], abilities: { 'hosting.today': { label: 'האירוח היום' }, 'hosting.availability': { label: 'בדיקת יחידת אירוח פנויה' } }, load: (): Promise<typeof import('../../components/hosting/abilities')> => import('../../components/hosting/HostingView').then((m) => m.hostingProvider) },
+  { module: 'parnasa', reads: ['prListings', 'prPosts', 'ui'], abilities: { 'parnasa.findPro': { label: 'מציאת בעל מקצוע', flag: 'parnasa.directory' }, 'parnasa.shabbat': { label: 'זמני השבת', flag: 'parnasa.zmanim' }, 'parnasa.minyanim': { label: 'מניינים בקהילה', flag: 'parnasa.board' }, 'parnasa.emergency': { label: 'מספרי חירום', flag: 'parnasa.board' } }, load: (): Promise<typeof import('../../components/parnasa/abilities')> => import('../../components/parnasa/ParnasaView').then((m) => m.parnasaProvider) },
 ] as const satisfies readonly ProviderEntry[];
 
 /* ═══════════════ טיפוסים ═══════════════ */

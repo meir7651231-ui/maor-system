@@ -15,6 +15,7 @@ import { useArmed } from '../useArmed';
 import { categoryOf, needsCare, pendingApprovals, type PrCareItem } from './lib';
 import { usePrPerms, type PrNow } from './hooks';
 import { agoText, PR_NOTICE_KIND_LABELS, PR_POST_KIND_LABELS } from './labels';
+import { TodayCard } from './TodayCard';
 
 export type CareJump = { tab: 'directory'; id: string | null } | { tab: 'requests'; id: string } | { tab: 'ads' } | { tab: 'board' };
 
@@ -73,6 +74,8 @@ export function CareTab(props: { now: PrNow; onJump: (j: CareJump) => void; canJ
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      {/* 🔌 המרכזייה (חיבור ד׳): ☀ תקציר-היום מכל הכלים — רק כשכלי נוסף זמין */}
+      <TodayCard now={now} />
       <section className="card">
         <h2 style={{ fontSize: 15, fontWeight: 800, marginBottom: 6 }}>{'⏳ ממתינים לאישור ה' + gabbai + ' (' + pend.total + ')'}</h2>
         {pend.total === 0 && <div style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>אין ממתינים לאישור.</div>}

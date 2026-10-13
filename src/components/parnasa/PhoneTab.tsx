@@ -19,8 +19,13 @@ import { duplicateDialCodes } from './lib';
 import { buildPhoneMenu, nodeSpeech, PHONE_KIND_LABELS, phoneKeyName, phoneScriptText } from './phoneLine';
 import { hebrewVoice, phonePreviewMs, simListening, simNode, simPress, simSay, simStart, type PhonePreview, type PhoneSimState } from './phoneSim';
 import { clockAt } from './zmanimBoard';
+import { ask, type AbilityId } from '../../lib/switchboard/registry';
+import { useSwitchCtx } from '../switchboard/useSwitchCtx';
 import { downloadTextDoc } from './exportDoc';
 import type { PrNow } from './hooks';
+
+/** 🔌 המרכזייה (חיבור ג׳): היכולות שהקו שואל — "לבדיקת יחידת אירוח פנויה" כשהאירוח דלוק. */
+const LINE_ABILITIES: readonly AbilityId[] = ['hosting.availability'];
 
 /** מקלדת-הטלפון בסדר הפיזי (LTR): 1 2 3 · 4 5 6 · 7 8 9 · * 0 #. */
 const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '*', '0', '#'] as const;
@@ -90,7 +95,12 @@ export function PhoneTab(props: { now: PrNow }) {
   // הרגע שהקו "נשמע" בו: עכשיו, או השבת / יום-החול הקרובים (תצוגה) — תמיד בשעון-הקהילה
   const atMs = useMemo(() => phonePreviewMs(now.nowMs, now.loc, mode), [now.nowMs, now.loc, mode]);
   const clock = useMemo(() => clockAt(atMs, now.loc.tz), [atMs, now.loc.tz]);
-  const menu = useMemo(() => buildPhoneMenu({ listings, posts, prefs, nowMs: atMs, loc: now.loc, config }), [listings, posts, prefs, atMs, now.loc, config]);
+  // ענפי-המרכזייה: הקו שואל דרך ask בלבד (אותו רגע-תצוגה); האירוח כבוי / הספק לא נטען ⇒ העץ ביט-זהה
+  const sw = useSwitchCtx(atMs, LINE_ABILITIES);
+  const menu = useMemo(
+    () => buildPhoneMenu({ listings, posts, prefs, nowMs: atMs, loc: now.loc, config, switchboard: { ask, ctx: sw } }),
+    [listings, posts, prefs, atMs, now.loc, config, sw],
+  );
   const dups = useMemo(() => duplicateDialCodes(listings, clock.iso), [listings, clock.iso]);
 
   // מצב-הסימולטור קשור לשורש ולתצוגה: שבת נכנסה/יצאה או מעבר-תצוגה ⇒ מתחילים מההתחלה (בלי אפקט)

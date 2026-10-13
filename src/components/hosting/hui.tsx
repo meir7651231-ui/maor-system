@@ -75,7 +75,9 @@ export type HostDialog =
   | { k: 'temp' }
   | { k: 'fault'; assetId?: string }
   | { k: 'asset' }
-  | { k: 'plan' };
+  | { k: 'plan' }
+  /** 🔌 המרכזייה (חיבור ב׳): בעל-מקצוע מהמדריך לקריאה/משימה — text = מה שואלים, title = מה מוצג. */
+  | { k: 'findPro'; text: string; title: string; urgent?: boolean };
 
 export interface HostUi {
   /** ערכת-השיחה (◑) — null = לפי המכשיר/אורביט. */

@@ -257,16 +257,24 @@ describe('🔌 (ה) הגנות-מקור — טוהר · בידוד · קריאה
     }
   });
 
-  it('הספקים נטענים רק ב-import() של הרישום — אין ייבוא סטטי של abilities בשום קובץ', () => {
+  it('הספקים נטענים רק דרך מסך-הכלי (import() של הרישום) — אין נקודת-כניסה חדשה; הייצוא-מחדש היחיד: שורה אחת במסך', () => {
+    // נמדד 13.10: chunk-ספק נפרד שמגיע סטטית למודולי-הבנדל-הראשי ⇒ המאגד מפצל אותם ⇒ +3.2KB gzip בהפעלה לכל ארגון
+    const reexports: string[] = [];
     for (const [p, s] of Object.entries(ALL_SRC)) {
       for (const l of s.split('\n')) {
         const t = l.trim();
         if (!t.startsWith('import ') && !t.startsWith('export ')) continue;
-        expect(t, fromTestDir(p) + ' — ייבוא סטטי של ספק').not.toMatch(/from '[^']*\/abilities'/);
+        if (!/from '[^']*\/abilities'/.test(t)) continue;
+        reexports.push(fromTestDir(p) + ' :: ' + t);
       }
     }
+    expect(reexports.sort()).toEqual([
+      "src/components/hosting/HostingView.tsx :: export * as hostingProvider from './abilities';",
+      "src/components/parnasa/ParnasaView.tsx :: export * as parnasaProvider from './abilities';",
+    ]);
     const reg = CORE_SRC['../registry.ts'];
-    expect(reg).toContain("load: () => import('../../components/hosting/abilities')");
-    expect(reg).toContain("load: () => import('../../components/parnasa/abilities')");
+    expect(reg).toContain("load: (): Promise<typeof import('../../components/hosting/abilities')> => import('../../components/hosting/HostingView').then((m) => m.hostingProvider) },");
+    expect(reg).toContain("load: (): Promise<typeof import('../../components/parnasa/abilities')> => import('../../components/parnasa/ParnasaView').then((m) => m.parnasaProvider) },");
+    expect(reg, 'הרישום לא מייבא מסך/ספק סטטית').not.toMatch(/^import (?!type )[^\n]*components\//m);
   });
 });
