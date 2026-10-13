@@ -823,7 +823,6 @@ for (const profile of PROFILES) {
     await page.locator('.hst-root button.h-tab', { hasText: label }).first().click();
     await page.waitForTimeout(250);
   };
-  const hTxt = async () => (await page.locator('.hst-root').textContent()) ?? '';
   const prTab = (label) => page.locator('main button.chip', { hasText: label }).first().click();
 
   await page.goto(BASE, { waitUntil: 'networkidle' });
