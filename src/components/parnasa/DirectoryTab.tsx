@@ -4,32 +4,17 @@
  *   · answer — הבמה מתכווצת (המטבעות נעשים גלולות) + התשובות: searchListings (מושגי-בעיה/תחיליות/גזע/שגיאת-כתיב,
  *     דירוג כיסוי ⇒ שכבה ⇒ מודגש ⇒ פתוח-עכשיו ⇒ המלצות) כבאנרי-תמונה; מטבע-הפלטינה מוצמד; אין תוצאה ⇒ "לא מצאתי":
  *     פרסום בלוח-הבקשות (בשקט כשהנושא רגיש) או בקשה ממולאת.
- *   · browse — "כל האלפון" לפי 15 השערים + מסננים (אשכול 3 מלביש אותו).
- * מסננים זכורים בין מסכים (useRemembered) + חזרה מהכרטיס למקום-הגלילה (useListScrollRestore).
+ *   · browse — "כל האלפון" של המקור (Browse.tsx, עיצוב 3): מפתח-השערים, המתגים, השערים כבאנרים.
+ * דף-העסק = גיליון מעל המסך (BizSheet, בשלד) — הרשימה נשארת מתחת. מסננים זכורים בין מסכים (useRemembered).
  */
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { useApp } from '../../store/useApp';
-import { featureOn, termOf } from '../../lib/config';
+import { featureOn } from '../../lib/config';
 import { useRemembered } from '../../lib/filterMemory';
 import { useListScrollRestore } from '../../lib/scrollMemory';
-import { downloadCsv } from '../reports/csv';
-import type { PrAd, PrListing, PrRequest } from '../../types/domain';
-import { Btn, Chip, Empty } from '../ui';
-import {
-  adRotation,
-  categoryOf,
-  coinSponsor,
-  filterListings,
-  listingsCsvRows,
-  PR_CATEGORIES,
-  PR_CONCEPTS,
-  priceOf,
-  searchCount,
-  searchListings,
-  sensitiveTopic,
-} from './lib';
-import { ListingCard } from './ListingCard';
-import { ListingDetail } from './ListingDetail';
+import type { PrRequest } from '../../types/domain';
+import { adRotation, categoryOf, coinSponsor, PR_CATEGORIES, PR_CONCEPTS, priceOf, searchCount, searchListings, sensitiveTopic } from './lib';
+import { Browse, type PnAud } from './Browse';
 import { usePnContact, usePrBrand, usePrPerms, type PrNow } from './hooks';
 import {
   askingNow,
@@ -52,12 +37,10 @@ import {
 import { AskStage, Answers, HomeSections, type CoinTileData } from './Home';
 import { CN, coinTap, cnFit, cnMint, wireCoinGrid } from './coinFx';
 import { installBannerFx, pbJustSwiped, pbMount, pbNudge, pbRipple, pbWA } from './bannerFx';
-import { Ic } from './skin';
 import type { PnHebNow } from './shell';
 import type { PrClosure } from './zmanimBoard';
 import type { useQuickDial } from './skinPrefs';
 
-type Aud = 'all' | 'men' | 'women';
 
 /** הקשר-המסך מהשלד (ParnasaView): שעון, תאריך עברי, שבת, חיוג-מהיר, טוסט-עם-פעולה, וקפיצות בין-לשוניות. */
 export interface DirCtx {
@@ -74,19 +57,6 @@ export interface DirCtx {
   goJoin: (() => void) | null;
 }
 
-/** תיבת-החסות בראש השער (התורנית של היום — סבב-יומי מהמנוע). */
-function GateSponsor(props: { ad: PrAd | null }) {
-  const a = props.ad;
-  if (!a) return null;
-  return (
-    <div style={{ fontSize: 12.5, border: '1px dashed #b08d2e', borderRadius: 8, padding: '4px 10px' }}>
-      {'👑 השער בחסות '}
-      <b>{a.advertiser}</b>
-      {[a.headline, a.phone].filter((x) => x && x.trim()).map((x) => ' · ' + x).join('')}
-    </div>
-  );
-}
-
 const WEEK_KEY = 'maor_pn_week';
 function readWeekOff(): string {
   try {
@@ -101,7 +71,8 @@ export function DirectoryTab(props: {
   q: string;
   setQ: (q: string) => void;
   selId: string | null;
-  setSelId: (id: string | null) => void;
+  /** פתיחת דף-העסק (הגיליון בשלד); q = השאלה שממנה נפתח (להודעת-הוואטסאפ המוכנה). */
+  setSelId: (id: string | null, q?: string) => void;
   /** "לא מצאתי" ⇒ פתיחת בקשה ממולאת (null = לשונית-הבקשות כבויה). */
   onNewRequest: ((draft: Partial<PrRequest>) => void) | null;
   /** פתיחה ישר ב"כל האלפון" (מצב browse) — לרינדור-שרת/בדיקות; אחרת הזיכרון. */
@@ -112,9 +83,9 @@ export function DirectoryTab(props: {
   const ads = useApp((s) => s.db.prAds);
   const requests = useApp((s) => s.db.prRequests);
   const prefs = useApp((s) => s.db.ui.parnasa);
-  const logAccess = useApp((s) => s.logAccess);
   const upsertPrRequest = useApp((s) => s.upsertPrRequest);
-  const toast = useApp((s) => s.toast);
+  const toastAct = props.ctx.toastAct;
+  const toast = useCallback((m: string): void => toastAct(m), [toastAct]);
   const brand = usePrBrand();
   const contact = usePnContact();
   const { canApprove } = usePrPerms();
@@ -126,7 +97,9 @@ export function DirectoryTab(props: {
   const [free, setFree] = useRemembered<boolean>('parnasa.dir.free', false);
   const [emergency, setEmergency] = useRemembered<boolean>('parnasa.dir.emergency', false);
   const [openOnly, setOpenOnly] = useRemembered<boolean>('parnasa.dir.open', false);
-  const [aud, setAud] = useRemembered<Aud>('parnasa.dir.aud', 'all');
+  const [aud, setAud] = useRemembered<PnAud>('parnasa.dir.aud', 'all');
+  const [seek, setSeek] = useRemembered<boolean>('parnasa.dir.seek', false);
+  const [bq, setBq] = useRemembered<string>('parnasa.dir.bq', '');
   const [showAll, setShowAll] = useRemembered<boolean>('parnasa.dir.all', false);
   const [pin, setPin] = useState<{ q: string; cat: string } | null>(null);
   const [selIdx, setSelIdx] = useState(0);
@@ -140,8 +113,7 @@ export function DirectoryTab(props: {
   const viewRef = useRef<HTMLElement>(null);
   const statsRef = useRef<HTMLParagraphElement>(null);
   const lastKey = useRef('');
-  const sel = props.selId ? (listings.find((l) => l.id === props.selId) ?? null) : null;
-  useListScrollRestore('parnasa.dir', !!sel);
+  useListScrollRestore('parnasa.dir', !!props.selId);
 
   const query = props.q.trim();
   const mode: 'ask' | 'answer' | 'browse' = browse ? 'browse' : query ? 'answer' : 'ask';
@@ -284,8 +256,9 @@ export function DirectoryTab(props: {
     const i = hits.findIndex((h) => h.listing.id === id);
     if (i > -1) setSelIdx(i);
     ctx.quick.touch(id);
-    if (ctx.reduced || !ev || ev.kb) props.setSelId(id);
-    else setTimeout(() => props.setSelId(id), 260);
+    const q = mode === 'answer' ? query : '';
+    if (ctx.reduced || !ev || ev.kb) props.setSelId(id, q);
+    else setTimeout(() => props.setSelId(id, q), 260);
   }
   async function copyPhone(phone: string, id: string): Promise<void> {
     let ok = false;
@@ -341,8 +314,6 @@ export function DirectoryTab(props: {
     setCat(c ?? '');
     window.scrollTo({ top: 0 });
   }
-
-  if (sel) return <ListingDetail listing={sel} now={now} onBack={() => props.setSelId(null)} />;
 
   return (
     <section className="pn-view pn-on pn-v-dir" data-mode={mode} aria-label="אלפון" ref={viewRef}>
@@ -450,162 +421,27 @@ export function DirectoryTab(props: {
         />
       ) : null}
       {mode === 'browse' ? (
-        <BrowseLegacy
+        <Browse
           now={now}
-          q={props.q}
           cat={cat}
           setCat={setCat}
-          f={{ disc, setDisc, free, setFree, emergency, setEmergency, openOnly, setOpenOnly, aud, setAud, showAll, setShowAll }}
+          f={{ bq, setBq, disc, setDisc, free, setFree, seek, setSeek, emergency, setEmergency, openOnly, setOpenOnly, aud, setAud, showAll, setShowAll }}
           canApprove={canApprove}
-          onBack={() => setBrowse(false)}
-          onOpen={(id) => openCard(id)}
-          logAccess={logAccess}
           brand={brand}
-          ads={ads}
-          adsOn={adsOn}
+          contact={contact}
+          reduced={ctx.reduced}
+          onBack={() => {
+            setBrowse(false);
+            window.scrollTo({ top: 0 });
+          }}
+          onOpen={openCard}
+          onTouch={ctx.quick.touch}
+          onCopy={(p, id) => void copyPhone(p, id)}
+          onPostReq={ctx.goReq ? () => ctx.goReq?.() : null}
+          onAdd={ctx.goJoin}
+          toast={toast}
         />
       ) : null}
     </section>
-  );
-}
-
-/** "כל האלפון" (מצב browse) — הכותרת של המקור; הרשימה עצמה בסקין בעיצוב 3. */
-function BrowseLegacy(props: {
-  now: PrNow;
-  q: string;
-  cat: string;
-  setCat: (c: string) => void;
-  f: {
-    disc: boolean;
-    setDisc: (v: boolean) => void;
-    free: boolean;
-    setFree: (v: boolean) => void;
-    emergency: boolean;
-    setEmergency: (v: boolean) => void;
-    openOnly: boolean;
-    setOpenOnly: (v: boolean) => void;
-    aud: Aud;
-    setAud: (v: Aud) => void;
-    showAll: boolean;
-    setShowAll: (v: boolean) => void;
-  };
-  canApprove: boolean;
-  onBack: () => void;
-  onOpen: (id: string) => void;
-  logAccess: (act: string, what: string) => void;
-  brand: string;
-  ads: PrAd[];
-  adsOn: boolean;
-}) {
-  const config = useApp((s) => s.config);
-  const listings = useApp((s) => s.db.prListings);
-  const toast = useApp((s) => s.toast);
-  const { now, f, cat } = props;
-  const words = termOf(config, 'entity.prListings', 'עסקים');
-  const exportOn = featureOn(config, 'parnasa.export');
-  const filtered = useMemo(
-    () =>
-      filterListings(listings, {
-        category: cat || undefined,
-        disc: f.disc,
-        free: f.free,
-        emergency: f.emergency,
-        aud: f.aud,
-        includeAll: props.canApprove && f.showAll,
-        openOnly: f.openOnly ? { clock: now.clock, closureAt: now.closureAt } : undefined,
-        todayIso: now.todayIso,
-      }),
-    [listings, cat, f.disc, f.free, f.emergency, f.aud, props.canApprove, f.showAll, f.openOnly, now],
-  );
-  const counts = useMemo(() => {
-    const m = new Map<string, number>();
-    for (const l of listings) if (l.status === 'approved') m.set(categoryOf(l.category).key, (m.get(categoryOf(l.category).key) ?? 0) + 1);
-    return m;
-  }, [listings]);
-  const approvedCount = [...counts.values()].reduce((a, b) => a + b, 0);
-  const gates = PR_CATEGORIES.map((c) => ({ cat: c, items: filtered.filter((l: PrListing) => categoryOf(l.category).key === c.key) })).filter((g) => g.items.length);
-
-  function exportCsv() {
-    props.logAccess('ייצוא מדריך ' + termOf(config, 'nav.parnasa', 'פרנסה׳לע') + ' (CSV)', approvedCount + ' ' + words);
-    downloadCsv('parnasa-directory.csv', listingsCsvRows(listings, now.todayIso));
-    toast('האלפון ירד כקובץ CSV — מאושרים בלבד, בלי הערות פנימיות');
-  }
-
-  return (
-    <div className="pn-browse" style={{ display: 'block' }}>
-      <div className="pn-bhead">
-        <button className="pn-back" type="button" onClick={props.onBack}>
-          <Ic n="back" />
-          לשאלה
-        </button>
-        <h2>כל האלפון</h2>
-        <span className="pn-cnt">{filtered.length + ' ' + (filtered.length === 1 ? 'בעל מקצוע' : 'בעלי מקצוע')}</span>
-      </div>
-      <div className="pn-orbit" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            <Chip on={!cat} onClick={() => props.setCat('')}>
-              {'הכול (' + approvedCount + ')'}
-            </Chip>
-            {PR_CATEGORIES.filter((c) => counts.has(c.key) || c.key === cat).map((c) => (
-              <Chip key={c.key} on={cat === c.key} onClick={() => props.setCat(cat === c.key ? '' : c.key)}>
-                {c.icon + ' ' + c.short + ' (' + (counts.get(c.key) ?? 0) + ')'}
-              </Chip>
-            ))}
-          </div>
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
-            <Chip on={f.openOnly} onClick={() => f.setOpenOnly(!f.openOnly)}>
-              🟢 פתוח עכשיו
-            </Chip>
-            <Chip on={f.disc} onClick={() => f.setDisc(!f.disc)}>
-              הנחה לקהילה
-            </Chip>
-            <Chip on={f.free} onClick={() => f.setFree(!f.free)}>
-              גמ״ח
-            </Chip>
-            <Chip on={f.emergency} onClick={() => f.setEmergency(!f.emergency)}>
-              🚨 חירום
-            </Chip>
-            <span style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>מתאים ל:</span>
-            {(['all', 'men', 'women'] as const).map((a) => (
-              <Chip key={a} on={f.aud === a} onClick={() => f.setAud(a)}>
-                {a === 'all' ? 'כולם' : a === 'men' ? 'גברים' : 'נשים'}
-              </Chip>
-            ))}
-            {props.canApprove && (
-              <Chip on={f.showAll} onClick={() => f.setShowAll(!f.showAll)}>
-                כולל ממתינים ומוסתרים
-              </Chip>
-            )}
-            {exportOn && approvedCount > 0 && (
-              <span style={{ marginInlineStart: 'auto' }}>
-                <Btn sm onClick={exportCsv} title="להדפסה, לבית המדרש ולמי שיש לו טלפון כשר">
-                  ⬇ הורדת האלפון לאקסל (CSV)
-                </Btn>
-              </span>
-            )}
-          </div>
-        </div>
-        {listings.length === 0 && (
-          <Empty>
-            <div style={{ fontWeight: 800 }}>האלפון מחכה לכרטיס הראשון…</div>
-          </Empty>
-        )}
-        {listings.length > 0 && gates.length === 0 && <Empty>לא נמצא מתאים — נסו להסיר מסנן.</Empty>}
-        {gates.map((g) => (
-          <section key={g.cat.key} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <h2 style={{ fontSize: 15, fontWeight: 800, borderBottom: '2px solid ' + g.cat.color, paddingBottom: 3 }}>
-              {g.cat.num + ' · ' + g.cat.icon + ' ' + g.cat.name + ' — ' + g.items.length + ' כרטיסים'}
-            </h2>
-            {props.adsOn && <GateSponsor ad={adRotation(props.ads, 'category', now.todayIso, g.cat.key).today} />}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 10 }}>
-              {g.items.map((l) => (
-                <ListingCard key={l.id} listing={l} now={now} brand={props.brand} onOpen={() => props.onOpen(l.id)} />
-              ))}
-            </div>
-          </section>
-        ))}
-      </div>
-    </div>
   );
 }

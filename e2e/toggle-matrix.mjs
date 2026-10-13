@@ -578,16 +578,28 @@ for (const profile of PROFILES) {
   await page.locator('.modal input[placeholder="050-0000000"]').fill('050-0000101');
   await page.locator('.modal label', { hasText: 'קיבלתי את הסכמת' }).locator('input').check();
   await page.locator('.modal button', { hasText: 'הוספה למדריך' }).click();
+  await page.waitForTimeout(900);
+  // עיצוב 3: דף-העסק = הגיליון של המקור (פורטל מעל הלשונית, לא בתוך main)
+  const sheetTxt = async () => ((await page.locator('.pn-sheet').first().textContent().catch(() => '')) ?? '');
+  let prSheet = await sheetTxt();
+  t('עסק חדש של הגבאי — מאושר עם קוד-חיוג 101, דף-העסק (הגיליון) נפתח', prSheet.includes('אינסטלציה-מטריצה') && prSheet.includes('קוד חיוג 101') && prSheet.includes('פרטי העסק'));
+  await page.locator('.pn-sheet .pn-cx button[aria-label="חזרה"]').first().click();
+  await page.locator('.pn-sheet').waitFor({ state: 'detached', timeout: 4000 }).catch(() => {});
+  t('הגיליון נסגר ("חזרה") — נעילת-הגלילה הוסרה', (await page.locator('.pn-sheet').count()) === 0 && !(await page.evaluate(() => document.documentElement.classList.contains('pn-scroll-lock'))));
+  await prTab('אלפון');
+  await page.waitForTimeout(400);
+  // עיצוב 3: "כל האלפון" של המקור — מפתח 15 השערים באותיות (+הכול) והשער עם הבאנר וקוד-החיוג
+  await page.locator('main .pn-hmore-all').click();
   await page.waitForTimeout(500);
-  let prMain = (await page.locator('main').textContent()) ?? '';
-  t('עסק חדש של הגבאי — מאושר עם קוד-חיוג 101, הכרטיס המלא נפתח', prMain.includes('אינסטלציה-מטריצה') && prMain.includes('קוד חיוג 101') && prMain.includes('שעות פעילות'));
-  await page.locator('button', { hasText: '→ חזרה למדריך' }).first().click();
-  await page.waitForTimeout(300);
+  const browseTxt = (await page.locator('main .pn-browse').textContent().catch(() => '')) ?? '';
+  t('"כל האלפון" — 16 אריחי-שערים, הבאנר עם קוד-החיוג', (await page.locator('main .pn-idx .pn-ix').count()) === 16 && browseTxt.includes('אינסטלציה-מטריצה') && browseTxt.includes('☎ 101'));
+  await page.locator('main .pn-browse .pn-back').click();
+  await page.waitForTimeout(400);
 
   // "מה צריך?" — שאילתת-בעיה מוצאת את בעל-המקצוע
   await page.locator('main input[placeholder="נזילה, קצר בחשמל, מלמד…"]').fill('יש לי נזילה בכיור');
   await page.waitForTimeout(300);
-  prMain = (await page.locator('main').textContent()) ?? '';
+  let prMain = (await page.locator('main').textContent()) ?? '';
   t('"מה צריך?" — "נזילה בכיור" מוצא את אינסטלציה-מטריצה', prMain.includes('אינסטלציה-מטריצה') && prMain.includes('אינסטלציה'));
 
   // עיצוב 2: התשובות כבאנרי-תמונה של המקור + שורת-ההבנה
@@ -678,9 +690,12 @@ for (const profile of PROFILES) {
   const palTxt = (await page.locator('.palette').textContent()) ?? '';
   t('🔎 הפלטה מוצאת את העסק (שם · מקצוע · ☎ 101) תחת "פרנסה׳לע"', palTxt.includes('אינסטלציה-מטריצה — עסק') && palTxt.includes('נזילות וסתימות · ☎ 101') && palTxt.includes('פרנסה׳לע'));
   await page.keyboard.press('Enter');
-  await page.waitForTimeout(800);
-  prMain = (await page.locator('main').textContent()) ?? '';
-  t('🔎 Enter ⇒ מסך פרנסה׳לע עם כרטיס-העסק פתוח (קוד חיוג 101 · שעות פעילות)', prMain.includes('אינסטלציה-מטריצה') && prMain.includes('קוד חיוג 101') && prMain.includes('שעות פעילות'));
+  await page.waitForTimeout(1100);
+  prSheet = await sheetTxt();
+  t('🔎 Enter ⇒ מסך פרנסה׳לע עם דף-העסק פתוח (קוד חיוג 101 · פרטי העסק)', prSheet.includes('אינסטלציה-מטריצה') && prSheet.includes('קוד חיוג 101') && prSheet.includes('פרטי העסק'));
+  await page.keyboard.press('Escape');
+  await page.locator('.pn-sheet').waitFor({ state: 'detached', timeout: 4000 }).catch(() => {});
+  t('Esc סוגר את דף-העסק', (await page.locator('.pn-sheet').count()) === 0);
   // אשכול 7 · 📖 המדריך המהיר — שורת פרנסה׳לע (רק כשהמודול דלוק; כבוי ⇒ ביט-זהה — נבדק ביחידה)
   await page.evaluate(() => {
     window.location.hash = '#guide';

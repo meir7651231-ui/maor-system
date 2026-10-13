@@ -13,7 +13,8 @@
  * העדפות-הצופה (אותיות גדולות · מצב לילה/יום · צלילים) — פר-אדם במכשיר (skinPrefs), לא ב-DB.
  * הניווט בין הלשוניות (קפיצה מטיפול לכרטיס/לבקשה, "לא מצאתי" ⇒ בקשה, צ'יפ-עזרה בלוח ⇒ חיפוש) — מצב
  * מקומי בלבד (בידוד: אין ניווט חוצה-מסכים דרך ה-store). הכניסה היחידה מבחוץ: תוצאת-עסק בפלטת-החיפוש
- * (אשכול 7) ⇒ requestOpenListing (paletteLink — תיבה בלי store) ⇒ כאן נפתח כרטיס-העסק באלפון.
+ * (אשכול 7) ⇒ requestOpenListing (paletteLink — תיבה בלי store) ⇒ כאן נפתח דף-העסק.
+ * עיצוב 3: דף-העסק = הגיליון של המקור (BizSheet) — נפתח מעל כל לשונית (אלפון, בקשות, העסק שלי, ניהול), כמו במקור.
  */
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useApp } from '../../store/useApp';
@@ -25,6 +26,7 @@ import { usePrNow, usePrPerms } from './hooks';
 import { prOpenBox } from './paletteLink';
 import type { CareJump } from './CareTab';
 import { DirectoryTab, type DirCtx } from './DirectoryTab';
+import { BizSheet, type BizCtx } from './BizSheet';
 import { RequestsTab } from './RequestsTab';
 import { BoardTab } from './BoardTab';
 import { MeTab } from './MeTab';
@@ -58,6 +60,15 @@ export function ParnasaView() {
   const [seg, setSeg] = useRemembered<AdminSeg>('parnasa.admin.seg', 'appr');
   const [dirQ, setDirQ] = useRemembered<string>('parnasa.dir.q', '');
   const [selListing, setSelListing] = useRemembered<string | null>('parnasa.dir.sel', null);
+  // השאלה שממנה נפתח הדף (להודעת-הוואטסאפ המוכנה "צריך עזרה: …")
+  const [selQ, setSelQ] = useState('');
+  const openBiz = useCallback(
+    (id: string | null, q = '') => {
+      setSelQ(q);
+      setSelListing(id);
+    },
+    [setSelListing],
+  );
   const [focusReq, setFocusReq] = useState<string | null>(null);
   const [meAdd, setMeAdd] = useState(0);
   const [reqDraft, setReqDraft] = useState<Partial<PrRequest> | null>(null);
@@ -94,15 +105,14 @@ export function ParnasaView() {
       const id = prOpenBox.id;
       prOpenBox.id = '';
       if (!id || !directoryOn) return;
-      setSelListing(id);
-      setTab('directory');
+      openBiz(id);
     };
     open();
     prOpenBox.ring = open;
     return () => {
       if (prOpenBox.ring === open) prOpenBox.ring = undefined;
     };
-  }, [directoryOn, setSelListing, setTab]);
+  }, [directoryOn, openBiz]);
 
   // מוני-הלשוניות (‎.bdg במקור) ומוני-האזורים (‎.sc)
   const pend = useMemo(() => pendingApprovals({ prListings: listings, prPosts: posts }, now.todayIso), [listings, posts, now.todayIso]);
@@ -145,8 +155,11 @@ export function ParnasaView() {
       return;
     }
     if (j.tab === 'directory') {
-      setSelListing(j.id);
-      if (!j.id) setDirQ('');
+      if (j.id) {
+        openBiz(j.id);
+        return;
+      }
+      setDirQ('');
     }
     if (j.tab === 'requests') setFocusReq(j.id);
     go(j.tab);
@@ -176,14 +189,14 @@ export function ParnasaView() {
   // 🕯 שבת: פנייה נחה בעדינות — וואטסאפ/חיוג/פרסום ננעלים, עם "שעת צורך, להמשיך" (15 דקות) — המקור
   const shabOk = useRef(0);
   useEffect(() => {
-    const root = rootRef.current;
-    if (!root || !calm) return;
-    // SHAB_LOCK של המקור (גם העתקת-המספר — .bn-wa.cp — נחה) + "מכיר מישהו?" של הבית
+    if (!calm) return;
+    // SHAB_LOCK של המקור (גם העתקת-המספר — .bn-wa.cp — נחה) + "מכיר מישהו?" של הבית; על המסמך (כמו במקור) —
+    // דף-העסק והטוסטים בשכבות-פורטל מחוץ לשורש-המודול; רק בתוך הסקין (‎.pn)
     const LOCK = 'a[data-act="wa"],a[data-act="call"],.pn-bpwa,.pn-bn-wa,.pn-rsw-a,[data-act="postNow"],.pn-reqSubmit,[data-act="qrSend"],[data-act="imAvail"],[data-act="postPrefill"],a.pn-rq-b';
     const onClick = (e: MouseEvent): void => {
       if (shabOk.current > Date.now()) return;
       const t = (e.target as Element | null)?.closest?.(LOCK) as HTMLElement | null;
-      if (!t) return;
+      if (!t || !t.closest('.pn')) return;
       e.preventDefault();
       e.stopPropagation();
       toastAct('שבת קודש. האלפון נח עד ' + hm(closure.endTime), {
@@ -194,8 +207,8 @@ export function ParnasaView() {
         },
       });
     };
-    root.addEventListener('click', onClick, true);
-    return () => root.removeEventListener('click', onClick, true);
+    document.addEventListener('click', onClick, true);
+    return () => document.removeEventListener('click', onClick, true);
   }, [calm, closure.endTime, toastAct]);
   // 🕯 כניסת-השבת: "שבת שלום" פעם אחת לכל שבת (במכשיר)
   const [shabOv, setShabOv] = useState<'' | 'on' | 'out'>('');
@@ -220,6 +233,7 @@ export function ParnasaView() {
     return () => clearTimeout(t);
   }, [shabOv]);
 
+  const bizCtx: BizCtx = { now, calm, reduced, quick, monthStartIso: monthStart, toastAct };
   const dirCtx: DirCtx = {
     now,
     heb,
@@ -258,7 +272,7 @@ export function ParnasaView() {
         q={dirQ}
         setQ={setDirQ}
         selId={selListing}
-        setSelId={setSelListing}
+        setSelId={openBiz}
         onNewRequest={
           isOn('requests')
             ? (draft) => {
@@ -281,12 +295,7 @@ export function ParnasaView() {
               draft={reqDraft}
               onDraftConsumed={() => setReqDraft(null)}
               onOpenListing={
-                directoryOn
-                  ? (id) => {
-                      setSelListing(id);
-                      go('directory');
-                    }
-                  : null
+                directoryOn ? (id) => openBiz(id) : null
               }
             />
           </div>
@@ -315,13 +324,7 @@ export function ParnasaView() {
   else if (active === 'me')
     body = (
       <section className="pn-view pn-on pn-v-me" aria-label="העסק שלי">
-        <MeTab
-          addTick={meAdd}
-          onOpen={(id) => {
-            setSelListing(id);
-            go('directory');
-          }}
-        />
+        <MeTab addTick={meAdd} onOpen={(id) => openBiz(id)} />
       </section>
     );
   else
@@ -392,6 +395,7 @@ export function ParnasaView() {
         {shown.length > 0 && active && (
           <TabBar tabs={shown.map((t) => ({ key: t.key, label: t.label, icon: t.icon, badge: badges[t.key] }))} active={active} onGo={go} />
         )}
+        {selListing && directoryOn ? <BizSheet id={selListing} qtext={selQ} ctx={bizCtx} onClose={() => openBiz(null)} onOpen={(id) => openBiz(id)} /> : null}
         <PnPortal>
           <div className={cx('pn-toast', pnToast && 'pn-on')} role="status" aria-live="polite">
             {pnToast ? (

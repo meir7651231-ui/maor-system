@@ -32,6 +32,7 @@ import { MeTab } from '../MeTab';
 import { clockAt, makeClosureFn, resolveZmanimLoc } from '../zmanimBoard';
 import type { PrNow } from '../hooks';
 import type { DirCtx } from '../DirectoryTab';
+import { BizSheet, type BizCtx } from '../BizSheet';
 import { hebNow } from '../shell';
 import appSrc from '../../../App.tsx?raw';
 
@@ -238,7 +239,7 @@ describe('📒 (ד) מוסכמות-הממשק', () => {
     const remembered = /useRemembered(<[^>]+>)?\('parnasa\./;
     const dir = src('DirectoryTab');
     expect(dir).toMatch(remembered);
-    expect(dir).toContain("useListScrollRestore('parnasa.dir', !!sel)");
+    expect(dir).toContain("useListScrollRestore('parnasa.dir', !!props.selId)");
     expect(src('RequestsTab')).toMatch(remembered);
     expect(src('BoardTab')).toMatch(remembered);
   });
@@ -287,6 +288,11 @@ function dirCtx(now: PrNow): DirCtx {
     goJoin: () => {},
   };
 }
+
+function bizCtx(now: PrNow): BizCtx {
+  return { now, calm: false, reduced: true, quick: { favs: [], recents: [], toggleFav: () => false, touch: () => {} }, monthStartIso: now.todayIso, toastAct: () => {} };
+}
+const sheet = (now: PrNow, id = 'prl1') => render(createElement(BizSheet, { id, qtext: '', ctx: bizCtx(now), onClose: () => {}, onOpen: () => {} }));
 
 function L(over: Partial<PrListing>): PrListing {
   return {
@@ -357,15 +363,17 @@ describe('📒 עשן-רינדור לכל לשונית (נתונים אמיתי�
     expect(html).toContain('<mark>נזילה</mark>'); // שורת-ההבנה מדגישה
   });
 
-  it('📇 כרטיס-העסק המלא: שעות, שירותים, המלצות; הערה-פנימית רק למאשר', () => {
+  it('📇 דף-העסק (הגיליון של המקור): שעות, שירותים, המלצות, קוד-החיוג; הערה-פנימית רק למאשר', () => {
     setup(ON(), DATA);
-    const html = render(createElement(DirectoryTab, { ctx: dirCtx(now), q: '', setQ: noop, selId: 'prl1', setSelId: noop, onNewRequest: noop }));
+    const html = sheet(now);
+    expect(html).toContain('class="pn-sheet"');
     expect(html).toContain('שעות פעילות');
     expect(html).toContain('פתיחת סתימה');
     expect(html).toContain('250 ₪');
+    expect(html).toContain('קוד חיוג 101');
     expect(html).toContain('סוד פנימי'); // מקומי = מאשר
     setup(ON({}, { adminEmails: ['gabbai@x.org'] }), DATA, 'staff@x.org');
-    expect(render(createElement(DirectoryTab, { ctx: dirCtx(now), q: '', setQ: noop, selId: 'prl1', setSelId: noop, onNewRequest: noop }))).not.toContain('סוד פנימי');
+    expect(sheet(now)).not.toContain('סוד פנימי');
   });
 
   it('🙋 (ה) בקשה שקטה מתרנדרת בלי שם/טלפון הפונה (וגם לא טלפון שהוקלד בטקסט); רגילה — עם הפרטים', () => {

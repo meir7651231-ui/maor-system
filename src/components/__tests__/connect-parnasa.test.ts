@@ -230,7 +230,8 @@ describe('📒 (ג) הגנות-מקור', () => {
 
   it('המסך צורך את הבקשה פעם אחת (בעלייה + צלצול כשפתוח), ורק כשהמדריך דלוק; מסיר את הצלצול ביציאה', () => {
     expect(parnasaViewSrc).toContain("import { prOpenBox } from './paletteLink';");
-    expect(parnasaViewSrc).toMatch(/const id = prOpenBox\.id;\s*prOpenBox\.id = '';\s*if \(!id \|\| !directoryOn\) return;\s*setSelListing\(id\);\s*setTab\('directory'\);/);
+    // עיצוב 3 (13.10): דף-העסק = הגיליון של המקור — נפתח מעל המודול (openBiz), בלי לכפות לשונית
+    expect(parnasaViewSrc).toMatch(/const id = prOpenBox\.id;\s*prOpenBox\.id = '';\s*if \(!id \|\| !directoryOn\) return;\s*openBiz\(id\);/);
     expect(parnasaViewSrc).toMatch(/open\(\);\s*prOpenBox\.ring = open;\s*return \(\) => \{\s*if \(prOpenBox\.ring === open\) prOpenBox\.ring = undefined;/);
   });
 

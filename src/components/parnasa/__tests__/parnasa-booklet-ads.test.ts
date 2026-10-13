@@ -234,10 +234,14 @@ describe('📣 (ה) התצוגה', () => {
     setup(ON(), { prAds: ADS, prListings: [L({})] });
     expect(renderToStaticMarkup(createElement(BoardTab, { now, onSearch: null }))).toContain('📌 הלוח בחסות');
     const dir = renderToStaticMarkup(createElement(DirectoryTab, { ctx: dirCtx(), q: '', setQ: () => {}, selId: null, setSelId: () => {}, onNewRequest: null, initialBrowse: true }));
-    expect(dir).toContain('👑 השער בחסות');
+    // עיצוב 3: תיבת-החסות של המקור (spn — "בחסות" · שם) בראש השער + כתר על אריח-השער במפתח
+    expect(dir).toContain('class="pn-spn"');
+    expect(dir).toContain('title="בחסות חשמל אור הגנוז"');
     setup(ON({ 'parnasa.ads': false }), { prAds: ADS, prListings: [L({})] });
     expect(renderToStaticMarkup(createElement(BoardTab, { now, onSearch: null }))).not.toContain('הלוח בחסות');
-    expect(renderToStaticMarkup(createElement(DirectoryTab, { ctx: dirCtx(), q: '', setQ: () => {}, selId: null, setSelId: () => {}, onNewRequest: null, initialBrowse: true }))).not.toContain('השער בחסות');
+    const off = renderToStaticMarkup(createElement(DirectoryTab, { ctx: dirCtx(), q: '', setQ: () => {}, selId: null, setSelId: () => {}, onNewRequest: null, initialBrowse: true }));
+    expect(off).not.toContain('pn-spn');
+    expect(off).not.toContain('בחסות חשמל אור הגנוז');
   });
 
   it('לשונית החוברת: כפתורי-ההפקה רק ב-parnasa.export (וכשיש עסקים); כבוי ⇒ הסבר', () => {

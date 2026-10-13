@@ -2138,11 +2138,14 @@
 @media (max-width:760px){.pn .pn-tabbar{bottom:calc(66px + env(safe-area-inset-bottom,0px))}}
 @media (orientation:landscape) and (max-height:500px){.pn .pn-tabbar{bottom:calc(6px + env(safe-area-inset-bottom,0px))}}
 .pn .pn-wrap.pn-mainw{padding-bottom:18px}
-/* שכבות שנפתחות מעל הכל (פורטל על body, עטוף ב-.pn) — מעל כרום אורביט (≤95) ומודאליו (100), מתחת לפלטה (150) ולטוסטים (200) */
-.pn .pn-scrim{z-index:118}
-.pn .pn-sheet{z-index:119}
-.pn .pn-lbox{z-index:121}
-.pn .pn-ev-ov{z-index:122}
+/* שכבות-הפורטל (על body, עטופות ב-.pn): דף-העסק מעל כרום אורביט (≤95) אבל מתחת למודאלים שלו (100) — טופס-עריכה/
+   "אני זמין" שנפתחים מהגיליון עולים מעליו; הלייטבוקס והמעטפת מעל הגיליון; הטוסט של הסקין מעל המודאלים (מתחת
+   לטוסטים של אורביט, 200); שכבת-השבת ומעוף-המטבעות מעל הכל במודול */
+.pn .pn-scrim{z-index:96}
+.pn .pn-sheet{z-index:97}
+.pn .pn-lbox{z-index:98}
+.pn .pn-ev-ov{z-index:98}
+.pn .pn-toast{z-index:160}
 .pn .pn-shab-ov{z-index:123}
 .pn .pn-cn-fly,.pn .pn-pk-coin{z-index:124}
 /* גוון-השקיעה של ערב-שבת (body::after במקור) — בתוך חלון-המודול */

@@ -87,6 +87,10 @@ export interface BannerOpts {
   row?: boolean;
   sm?: boolean;
   why?: string;
+  /** תוספות-הפורט ב"כל האלפון": קוד-החיוג בקו, ומצב-האישור (רק הגבאי רואה ממתינים/מוסתרים). */
+  code?: boolean;
+  st?: boolean;
+  gabbai?: string;
 }
 
 export function Banner(props: {
@@ -114,6 +118,11 @@ export function Banner(props: {
   const wh = l.area || l.city || cat.name;
   const vb = c ? (c.vb ?? '0 0 1408 765') : '0 0 1408 768';
   const badges = [l.disc && 'disc', l.free && 'free'].filter(Boolean).slice(0, 2) as string[];
+  const extra = [
+    o.st && l.status === 'pending' ? 'ממתין לאישור ה' + (o.gabbai || 'גבאי') : '',
+    o.st && l.status === 'rejected' ? 'מוסתר מהאלפון' : '',
+    o.code && l.dialCode ? '☎ ' + l.dialCode : '',
+  ].filter(Boolean);
   const cls = cx(
     'pn-bn pn-pbn',
     c && !c.r && 'pn-left',
@@ -195,11 +204,16 @@ export function Banner(props: {
                     <span>{wh}</span>
                   </span>
                 ) : null}
-                {badges.length ? (
+                {badges.length || extra.length ? (
                   <span className="pn-bn-bs">
                     {badges.map((b) => (
                       <span key={b} className={cx('pn-bn-b', b === 'free' && 'pn-ok')}>
                         {b === 'disc' ? 'הנחה לקהילה' : 'גמ״ח'}
+                      </span>
+                    ))}
+                    {extra.map((x) => (
+                      <span key={x} className="pn-bn-b">
+                        {x}
                       </span>
                     ))}
                   </span>

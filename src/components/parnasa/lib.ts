@@ -439,6 +439,8 @@ export interface PrBrowseOpts {
   disc?: boolean;
   free?: boolean;
   emergency?: boolean;
+  /** "פנויים לעבודה" (seek — פנוי ללקוחות נוספים). */
+  seek?: boolean;
   /** 'men'/'women' — עסק "לכולם" תמיד מתאים. */
   aud?: 'all' | 'men' | 'women';
   /** גבאי: גם ממתינים/נדחים. */
@@ -448,12 +450,26 @@ export interface PrBrowseOpts {
   todayIso: IsoDate;
 }
 
+/**
+ * סינון "כל האלפון" (matches במקור): כל מילה בשאילתה מופיעה בשם / מקצוע / תיאור / עיר / אזור / שער / שעות /
+ * משפט-מפתח / שירותים — ובפורט גם קוד-החיוג.
+ */
+export function matchesAll(l: PrListing, q: string): boolean {
+  const qq = prNorm(q).split(' ').filter(Boolean);
+  if (!qq.length) return true;
+  const hay = prNorm(
+    [l.name, l.title, l.desc, l.city, l.area, categoryOf(l.category).name, l.hoursNote, l.tagline ?? '', ...(Array.isArray(l.services) ? l.services : []).map((x) => x?.name ?? ''), l.dialCode].join(' '),
+  );
+  return qq.every((w) => hay.includes(w));
+}
+
 export function filterListings(listings: readonly PrListing[], o: PrBrowseOpts): PrListing[] {
   let base = o.includeAll ? listings.slice() : approvedListings(listings);
   if (o.category) base = base.filter((l) => l.category === o.category);
   if (o.disc) base = base.filter((l) => l.disc === true);
   if (o.free) base = base.filter((l) => l.free === true);
   if (o.emergency) base = base.filter((l) => l.emergency === true);
+  if (o.seek) base = base.filter((l) => l.seek === true);
   if (o.aud && o.aud !== 'all') base = base.filter((l) => !l.aud || l.aud === 'all' || l.aud === o.aud);
   if (o.openOnly) {
     const { clock, closureAt } = o.openOnly;

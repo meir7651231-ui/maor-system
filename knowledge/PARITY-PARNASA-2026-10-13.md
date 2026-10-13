@@ -18,7 +18,7 @@ for themselves; the port is a gabbai/staff tool inside Orbit — residents' requ
 is no owner login).
 
 **Before the re-skin** (design phase, 164 capabilities in A–K): **30 present · 65 partial · 69 missing**.
-**Now (after cluster 2 — home + photo banners)**: **70 present · 56 partial · 38 missing**
+**Now (after cluster 3 — browse + business page)**: **99 present · 39 partial · 26 missing**
 
 **Design-phase breakdown** (before the re-skin): of the 134 partial+missing rows, the main blocker is: 93 UI-only · 26 need new data fields (DATA, usually with UI) · 15 need a server or public access (SERVER, out of scope). A parenthetical "(+DATA…)"/"(+SERVER…)" marks a secondary, smaller part of the gap.
 
@@ -27,11 +27,11 @@ Current counts per area (recomputed from the rows after every cluster):
 | area | present | partial | missing |
 |---|---|---|---|
 | A. Shell & brand | 12 | 2 | 3 |
-| B. Home | 18 | 3 | 0 |
+| B. Home | 19 | 2 | 0 |
 | C. Results | 10 | 0 | 1 |
-| D. Browse | 1 | 6 | 1 |
-| E. Business page | 3 | 10 | 12 |
-| F. Contact | 2 | 1 | 1 |
+| D. Browse | 8 | 0 | 0 |
+| E. Business page | 23 | 1 | 1 |
+| F. Contact | 3 | 0 | 1 |
 | G. Requests | 6 | 9 | 4 |
 | H. Community board | 6 | 5 | 3 |
 | I. העסק שלי | 3 | 10 | 11 |
@@ -68,7 +68,7 @@ Current counts per area (recomputed from the rows after every cluster):
 | B2 | "מה צריך?" at up to 7.4rem + "כותבים את הבעיה במילים שלכם, ומקבלים את האדם הנכון." (Shabbat: "שבת שלום. לשעת צורך, האדם הנכון כאן.") | present | Home.tsx `AskStage` (`h2.pn-q`) | UI | the original's huge "מה צריך?" with the gold question mark and both sub-lines verbatim (the Shabbat one during the closure) |
 | B3 | Omnibox: 4rem pill, gold lens, gold ring spinning on focus, "/" hint, clear; typing switches to answer mode | present | Home.tsx `AskStage` (`.pn-box`/`.pn-ask`) · DirectoryTab.tsx | UI | 4rem pill, gold lens, gold ring spinning on focus, "/" hint, clear button; typing switches the screen to answer mode (`data-mode`) with the coins shrinking into pills |
 | B4 | "חיפושים נפוצים" — 5 chips per season | present | home.ts `PN_SEASONS[*].pop` · Home.tsx (`.pn-pop`) | UI | 5 popular-search chips per season, verbatim from the original's season table |
-| B5 | "חיוג מהיר" — favourites ★ (≤20) and recents (≤10) as medallions with a green open-now dot; replaces B4 when not empty | partial | skinPrefs.ts `useQuickDial` · home.ts `quickDialList` · Home.tsx (`.pn-dial`) | UI | medallions with the green open-now dot, replacing the popular searches when not empty; recents (≤10, per viewer, namespaced) are recorded on open / WhatsApp / call / copy. The ★ that adds a favourite (≤20) sits on the business page — cluster 3 |
+| B5 | "חיוג מהיר" — favourites ★ (≤20) and recents (≤10) as medallions with a green open-now dot; replaces B4 when not empty | present | skinPrefs.ts `useQuickDial` · home.ts `quickDialList` · Home.tsx (`.pn-dial`) · BizSheet.tsx (★) | UI | medallions with the green open-now dot, replacing the popular searches when not empty; ★ on the business page (header and bar) toggles a favourite (≤20, toasts "נוסף לחיוג המהיר" / "הוסר מהחיוג המהיר"); recents (≤10) recorded on open / WhatsApp / call / copy; per viewer, namespaced per org |
 | B6 | "בעונה הזו · {edition}" + season title; 6 minted coins per Hebrew season (editions: Sukkot weave, Chanukah silver, Purim masks + confetti, Pesach matzah) | present | home.ts `PN_SEASONS`/`PN_EDITIONS`/`seasonOf` · coins.ts · Home.tsx `AskStage` | UI | "בעונה הזו · {edition}" + the season title; 6 minted coins per Hebrew season with the original's coin art (generated 1:1 from its code: metals, rims, reliefs, editions — Sukkot weave, Chanukah silver, Purim masks + confetti, Pesach matzah) and each coin's live count (`searchCount`) |
 | B7 | Tap a coin → it flies into the header pushke with a clink, then its query runs | present | coinFx.ts `coinTap`/`cnFly` · sound.ts | UI | tap ⇒ the coin flies into the header pushke (bump + clink; an off-screen pushke glows instead), then its query runs; reduced motion ⇒ straight to the query |
 | B8 | Long-press / F → the coin flips to its live count ("N בעלי מקצוע"); hint "לחיצה: חיפוש · לחיצה ארוכה: כמה בעלי מקצוע יש" | present | coinFx.ts `cnFlip` · Home.tsx | UI | long-press or F/כ flips the coin to its live count ("N בעלי מקצוע"); hint verbatim (only in the first 3 visits) |
@@ -106,51 +106,51 @@ Current counts per area (recomputed from the rows after every cluster):
 
 | # | original | status | port file | gap | notes |
 |---|---|---|---|---|---|
-| D1 | Browse header: "לשאלה" back pill · "כל האלפון" · "N אנשי מקצוע" | missing | — | UI | no separate browse mode |
-| D2 | Filter field "סינון לפי שם, מקצוע או עיר" (every word must match) | partial | DirectoryTab.tsx | UI | only the ranked search |
-| D3 | Gate index: 15 tiles with the gematria numeral in Karantina, name, count, crown when sponsored; "הכול · כל השערים"; selected tile turns velvet with a gold numeral | partial | DirectoryTab.tsx (`PR_CATEGORIES` with `num`) | UI | chips "num · emoji name (n)" |
-| D4 | Toggles "הנחה לקהילה", "גמ״ח", "פנויים לעבודה", "מתאים ל: כולם/גברים/נשים" | partial | DirectoryTab.tsx, lib.ts `filterListings` | DATA + UI | disc/free/aud present (+ port-only "פתוח עכשיו", "חירום"); "פנויים לעבודה" needs `seek` |
-| D5 | Gate groups: huge numeral + name + "N כרטיסים" over a 2px rule; featured first, then name | partial | DirectoryTab.tsx, lib.ts `groupByCategory` | UI | |
-| D6 | Gate sponsor box ("בחסות" pill, name, line, call, site) | partial | DirectoryTab.tsx `GateSponsor` | UI (+DATA: url) | port rotates several sponsors per gate (superset) |
-| D7 | Empty gate "עוד אין אנשי מקצוע בשער הזה." + "פרסום בקשה בלוח"; "האלפון מחכה לכרטיס הראשון…" + "הוספת הכרטיס שלי"; "לא נמצא מתאים" | partial | DirectoryTab.tsx | UI | |
-| D8 | "הורדת האלפון לאקסל (CSV)" — "להדפסה, לבית המדרש ולמי שיש לו טלפון כשר." (BOM, CRLF, quoted, injection guard, LRM phones; approved only, gate order) | present | DirectoryTab.tsx, lib.ts `listingsCsvRows` | — | port adds columns (dial code, second phone, WhatsApp, languages, kashrut, emergency) |
+| D1 | Browse header: "לשאלה" back pill · "כל האלפון" · "N אנשי מקצוע" | present | Browse.tsx (`.pn-bhead`) | UI | "לשאלה" back pill · "כל האלפון" · "N אנשי מקצוע" (approved, like the original) |
+| D2 | Filter field "סינון לפי שם, מקצוע או עיר" (every word must match) | present | Browse.tsx (`.pn-filter`) · lib.ts `matchesAll` | UI | "סינון לפי שם, מקצוע או עיר" — every word must appear (name, title, description, city, area, gate, hours, tagline, services; the port adds the dial code); remembered per session |
+| D3 | Gate index: 15 tiles with the gematria numeral in Karantina, name, count, crown when sponsored; "הכול · כל השערים"; selected tile turns velvet with a gold numeral | present | Browse.tsx (`.pn-idx`) | UI | 16 tiles — "הכול · כל השערים" + the 15 gates with the gematria letter (Karantina), name and count, a crown when the gate has a sponsor today; the selected tile turns velvet with a gold letter (the original's CSS) |
+| D4 | Toggles "הנחה לקהילה", "גמ״ח", "פנויים לעבודה", "מתאים ל: כולם/גברים/נשים" | present | Browse.tsx (`.pn-toggles`) · lib.ts `filterListings` (`seek`) | DATA + UI | הנחה לקהילה · גמ״ח · פנויים לעבודה (`seek`) · מתאים ל: כולם/גברים/נשים — plus the port's פנוי עכשיו (the original's hidden toggle), חירום 24/7 and, for the gabbai, כולל ממתינים ומוסתרים (banners then carry the approval state) |
+| D5 | Gate groups: huge numeral + name + "N כרטיסים" over a 2px rule; featured first, then name | present | Browse.tsx (`.pn-grp`) | UI | huge gate letter + name + "N כרטיסים" over the 2px rule; featured first, then name; the entries are the original's photo banners (first full, the rest rows) with the port's dial code as a badge; swipe hint on touch screens |
+| D6 | Gate sponsor box ("בחסות" pill, name, line, call, site) | present | Browse.tsx `GateSponsor` · lib.ts `adRotation` | UI (+DATA: url) | the original's sponsor box ("בחסות" pill, name, line, call when telephony is on, site — https only) under the gate head; the port's daily rotation between several sponsors of a gate is kept. The original's home-line sponsor also lit the "בית, ניקיון וגינון" gate (both keyed `home`) — that collision is not ported |
+| D7 | Empty gate "עוד אין אנשי מקצוע בשער הזה." + "פרסום בקשה בלוח"; "האלפון מחכה לכרטיס הראשון…" + "הוספת הכרטיס שלי"; "לא נמצא מתאים" | present | Browse.tsx | UI | "האלפון מחכה לכרטיס הראשון" + "הוספת הכרטיס שלי" · "לא נמצא מתאים" + "פרסום בקשה בלוח" · "עוד אין אנשי מקצוע בשער הזה." — verbatim |
+| D8 | "הורדת האלפון לאקסל (CSV)" — "להדפסה, לבית המדרש ולמי שיש לו טלפון כשר." (BOM, CRLF, quoted, injection guard, LRM phones; approved only, gate order) | present | Browse.tsx (`.pn-exportrow`) · lib.ts `listingsCsvRows` | — | the original's export row ("הורדת האלפון לאקסל (CSV)" + "להדפסה, לבית המדרש ולמי שיש לו טלפון כשר."), through the export gate (`parnasa.export`) and the access log; the port's extra columns kept |
 
 ## E. Business page
 
 | # | original | status | port file | gap | notes |
 |---|---|---|---|---|---|
-| E1 | Full-height spring sheet over the list (drag down / swipe sideways / Esc, focus trap), frosted mini header on scroll, floating sheet on desktop | partial | ListingDetail.tsx | UI | inline page + "→ חזרה למדריך" sticky bar |
-| E2 | Cover: trade photo tinted by the page palette, or palette velvet with a pushke watermark; 7px gold rope edge | missing | — | UI + DATA | needs `palette` + photos |
-| E3 | Logo in an ivory disc with a conic gold ring, or a trade-icon monogram | missing | ListingDetail.tsx (emoji) | DATA + UI | `logo` |
-| E4 | Name (Frank Ruhl 900), tagline (palette light), offer pill "{text} · עד D.M", title, "category · city · area", status pill when not open (סגור עכשיו / נפתח בקרוב / חוזר במוצ״ש) | partial | ListingDetail.tsx, ListingCard.tsx `OpenBadge` | UI + DATA | no offer |
-| E5 | Back + ★ quick-dial toggle ("נוסף לחיוג המהיר" / "הוסר מהחיוג המהיר") | partial | ListingDetail.tsx | UI | back only |
-| E6 | Trust badges: "מומלץ פרנסה׳לע", "ותק N שנים", "N ממליצים", certificate, "השגחה: …", "הנחה לקהילה", "גמ״ח", "24/7 חירום" | partial | ListingDetail.tsx | DATA + UI | featured chip; kashrut/disc/free/emergency as text; needs `years`, `cert` |
-| E7 | Phone row "טלפון · וואטסאפ" + large number + "העתקה" | partial | ListingCard.tsx `ContactRow` | UI | no copy button |
-| E8 | Featured block: seal + promo line + website host | missing | — | DATA + UI | promo `tagline`, `url` |
-| E9 | "איך פונים" — three steps א/ב/ג when there is no description, services or photos | missing | — | UI | |
-| E10 | "על העסק" story with a drop cap in the palette accent | partial | ListingDetail.tsx | UI | |
-| E11 | "שירותים ומחירים" with dotted leaders, price formatting ("150" → "150 ₪", "מ300" → "מ־300 ₪"), "המחירים להמחשה. סופי בתיאום" | partial | ListingDetail.tsx, labels.ts `priceText` | UI | same footnote |
-| E12 | "מהעבודות שלנו" — gallery of 1–4 photos ("N תמונות") + lightbox (arrows/swipe/Esc) | missing | — | DATA + UI | `photos`; storage decision (inline data URLs vs. files) |
-| E13 | "שעות פעילות": week table, today highlighted with a palette bar, "שבת קודש", "24 שעות", free-text hours, "זמינים גם לקריאות חירום, 24/7" | present | ListingDetail.tsx, zmanimBoard.ts | UI | port supports several windows per day (superset) |
-| E14 | "פרטים / פרטי העסק" tiles: תחום · גר ב · אזור שירות · שפות · מתאים · אמצעי תשלום (chips) | partial | ListingDetail.tsx | DATA + UI | one text line; needs `pay` |
-| E15 | "שאלות נפוצות" accordion (first item open) | missing | — | DATA + UI | `faq` |
-| E16 | "המלצות מהקהילה" wall ("״…״ — name · ago"), empty state, member input "הוספת המלצה" / "עדכון" / "מחיקת שלי" (one per member, never on your own page) | partial | ListingDetail.tsx | UI (+SERVER) | gabbai types a recommendation with a free-text name; members cannot recommend themselves |
-| E17 | "המעטפת של העסק · {pct}% · רק הגבאי רואה" → constellation overlay | missing | — | UI | static tables ENV_P / ENV_C / ENV_ROLES (spec A16) |
-| E18 | "הקופה של העסק" — 3D pushke by fill level, "N פעמים עזר לקהילה", answers/thanks, "N החודש", "זה לא דירוג…" | missing | — | UI | data exists (responses, recs) |
-| E19 | "עובדים לצידו — מי שפונה אליו צריך בדרך כלל גם" (up to 6) | missing | — | UI | envelope tables |
-| E20 | Gate-sponsor line "שער ״…״ בחסות {name}" | missing | — | UI | data exists (ad slot `category`) |
-| E21 | Colophon "חבר ב{brand}" + "העתקת הפרטים כטקסט" + gabbai "הדגשה / ניהול ההדגשה" | missing | — | UI | |
-| E22 | Sticky bar: big green "וואטסאפ עכשיו" (second line "ההודעה מוכנה: ״…״"; "וואטסאפ במוצ״ש" on Shabbat) or velvet "חיוג" + number; call icon; share; ★ | partial | ListingCard.tsx `ContactRow` | UI | small 📞/💬 buttons (gated by Orbit's telephony/WhatsApp extensions) |
+| E1 | Full-height spring sheet over the list (drag down / swipe sideways / Esc, focus trap), frosted mini header on scroll, floating sheet on desktop | present | BizSheet.tsx · sheetFx.ts `mountSheet` | UI | full-height spring sheet over any tab (the list stays below), drag down from the cover/grabber, swipe sideways, Esc (lightbox ⇒ envelope ⇒ sheet), focus trap and focus return, frosted mini header when scrolled, floating on desktop; page scroll locked while open. Sits under Orbit's modals (edit / "אני זמין" open above it) |
+| E2 | Cover: trade photo tinted by the page palette, or palette velvet with a pushke watermark; 7px gold rope edge | present | BizSheet.tsx (`.pn-bpc`) · banners.ts `photoOf` | UI + DATA | the trade photo under the page palette tint (8 palettes, `data-pal`), or the palette velvet with the pushke watermark; 7px gold rope |
+| E3 | Logo in an ivory disc with a conic gold ring, or a trade-icon monogram | present | BizSheet.tsx (`.pn-bplogo`) | DATA + UI | logo (data image only) in the ivory disc with the conic gold ring, else the trade-icon monogram on the palette |
+| E4 | Name (Frank Ruhl 900), tagline (palette light), offer pill "{text} · עד D.M", title, "category · city · area", status pill when not open (סגור עכשיו / נפתח בקרוב / חוזר במוצ״ש) | present | BizSheet.tsx · lib.ts `listingStatus` · skin.tsx `StPill` | UI + DATA | name, tagline, offer pill "{text} · עד D.M", title, "gate · city · area", status pill when not open (סגור עכשיו / נפתח בקרוב / חוזר במוצ״ש) |
+| E5 | Back + ★ quick-dial toggle ("נוסף לחיוג המהיר" / "הוסר מהחיוג המהיר") | present | BizSheet.tsx | UI | back on the cover and in the mini header; ★ quick-dial toggle with the original toasts |
+| E6 | Trust badges: "מומלץ פרנסה׳לע", "ותק N שנים", "N ממליצים", certificate, "השגחה: …", "הנחה לקהילה", "גמ״ח", "24/7 חירום" | present | biz.ts `trustOf` · BizSheet.tsx (`.pn-tbs`) | DATA + UI | מומלץ · ותק · ממליצים · תעודה · השגחה · הנחה לקהילה · גמ״ח · 24/7 חירום in the original's order; the port adds the dial code and, for the gabbai, the approval state as badges of the same kind |
+| E7 | Phone row "טלפון · וואטסאפ" + large number + "העתקה" | present | BizSheet.tsx (`.pn-bpcall`) | UI | "טלפון · וואטסאפ" + the large number + "העתקה" (button lights, toast "המספר … הועתק"); the port's second phone and a separate WhatsApp number get rows of their own |
+| E8 | Featured block: seal + promo line + website host | present | BizSheet.tsx (`.pn-bpfeat`) | DATA + UI | seal "מומלץ פרנסה׳לע" + the promo line + the site host (gabbai-only `promoLine`/`promoUrl`, https only) while featured |
+| E9 | "איך פונים" — three steps א/ב/ג when there is no description, services or photos | present | biz.ts `howtoOf` · BizSheet.tsx | UI | "איך פונים" א/ב/ג verbatim when there is no description, services or photos; the first step follows whether WhatsApp is on |
+| E10 | "על העסק" story with a drop cap in the palette accent | present | BizSheet.tsx (`.pn-story`) | UI | "על העסק" with the drop cap in the palette accent (the original's CSS) |
+| E11 | "שירותים ומחירים" with dotted leaders, price formatting ("150" → "150 ₪", "מ300" → "מ־300 ₪"), "המחירים להמחשה. סופי בתיאום" | present | BizSheet.tsx (`.pn-svcs`) · biz.ts `fmtPrice` | UI | dotted leaders, the original's price format ("1500" ⇒ "1,500 ₪", "מ300" ⇒ "מ־300 ₪"), "המחירים להמחשה. סופי בתיאום" |
+| E12 | "מהעבודות שלנו" — gallery of 1–4 photos ("N תמונות") + lightbox (arrows/swipe/Esc) | present | BizSheet.tsx (`.pn-gal`, `.pn-lbox`) | DATA + UI | "מהעבודות שלנו" 1–4 photos ("N תמונות") + lightbox (arrows, swipe, Esc, focus trap). Photos are local data images in the listing (`photos`, healed); upload with the original's caps and a per-org budget = the editor (cluster 4) |
+| E13 | "שעות פעילות": week table, today highlighted with a palette bar, "שבת קודש", "24 שעות", free-text hours, "זמינים גם לקריאות חירום, 24/7" | present | biz.ts `weekRows` · BizSheet.tsx (`.pn-hours`) | UI | week table with the original's day letters and time format ("7:30–19:00", RTL like the original), today highlighted, "שבת קודש", "24 שעות", free-text hours, the emergency line; the port's several windows per day and Motzei-Shabbat windows kept |
+| E14 | "פרטים / פרטי העסק" tiles: תחום · גר ב · אזור שירות · שפות · מתאים · אמצעי תשלום (chips) | present | biz.ts `tilesOf` · BizSheet.tsx (`.pn-tiles`) | DATA + UI | "פרטים" / "פרטי העסק": תחום · גר ב · אזור שירות · שפות · מתאים · אמצעי תשלום (chips, from `pay`) |
+| E15 | "שאלות נפוצות" accordion (first item open) | present | BizSheet.tsx (`.pn-faq`) | DATA + UI | "שאלות נפוצות" accordion, first item open (`faq`, healed; editing = cluster 4) |
+| E16 | "המלצות מהקהילה" wall ("״…״ — name · ago"), empty state, member input "הוספת המלצה" / "עדכון" / "מחיקת שלי" (one per member, never on your own page) | partial | BizSheet.tsx (`.pn-wall`, `.pn-rec-form`) | UI (+SERVER) | the original's wall ("…" — name · ago), empty state "עוד אין המלצות" and form; in the port whoever uses the module adds a recommendation with a free-text name and the gabbai removes one. One recommendation per member / "מחיקת שלי" needs member logins (SERVER) |
+| E17 | "המעטפת של העסק · {pct}% · רק הגבאי רואה" → constellation overlay | present | envelope.ts (`ENV_P`/`ENV_C`/`ENV_ROLES`/`ENV_G` verbatim) · EnvMap.tsx · BizSheet.tsx (`.pn-ev-row`, `.pn-ev-ov`) | UI | "המעטפת של העסק · N% · רק הגבאי רואה" ⇒ the constellation overlay (three rings, open slots, the card with "לדף העסק" / "העתקת הזמנה" — the invitation without a public link) |
+| E18 | "הקופה של העסק" — 3D pushke by fill level, "N פעמים עזר לקהילה", answers/thanks, "N החודש", "זה לא דירוג…" | present | biz.ts `kupaOf`/`kupaArt` · BizSheet.tsx (`.pn-kupa`) · public/parnasa/kupa/ | UI | the 3D pushke by fill level (the original's 7 renders, loaded on demand), "N פעמים עזר לקהילה", answers/thanks, "N החודש" from the Hebrew month start, "זה לא דירוג…" — a coin per response and per recommendation |
+| E19 | "עובדים לצידו — מי שפונה אליו צריך בדרך כלל גם" (up to 6) | present | envelope.ts `nearOf` · BizSheet.tsx (`.pn-nearrow`) | UI | "עובדים לצידו — מי שפונה אליו צריך בדרך כלל גם", up to 6 partners/peers; opens their page in the same sheet |
+| E20 | Gate-sponsor line "שער ״…״ בחסות {name}" | present | BizSheet.tsx (`.pn-bpspn`) | UI | "שער ״…״ בחסות {name}" from today's gate sponsor (ads on) |
+| E21 | Colophon "חבר ב{brand}" + "העתקת הפרטים כטקסט" + gabbai "הדגשה / ניהול ההדגשה" | present | BizSheet.tsx (`.pn-colo`) · biz.ts `shareLine` | UI | "חבר ב{brand}" + "העתקת הפרטים כטקסט" ("הכרטיס הועתק לשיתוף") + gabbai "הדגשה / ניהול ההדגשה" (opens the edit form with the featured date until the admin form of cluster 6); the port's source line, edit/approve/hide/delete live here too |
+| E22 | Sticky bar: big green "וואטסאפ עכשיו" (second line "ההודעה מוכנה: ״…״"; "וואטסאפ במוצ״ש" on Shabbat) or velvet "חיוג" + number; call icon; share; ★ | present | BizSheet.tsx (`.pn-bpbar`) | UI | big green "וואטסאפ עכשיו" + "ההודעה מוכנה: ״…״" ("וואטסאפ במוצ״ש" on Shabbat) when the WhatsApp extension is on; else the velvet "חיוג" + number when telephony is on, else "העתקת המספר"; call icon; ★. The share button = E23 |
 | E23 | Share panel "שיתוף הדף של {name}" (link field, "העתקה", "שליחה בוואטסאפ") | missing | — | SERVER | needs a public link |
-| E24 | Requests in the business's trade | present | ListingDetail.tsx ("🙋 מה מבקשים בתחום") | — | original shows them in העסק שלי (I2) |
-| E25 | Gabbai actions: approve / hide / delete / edit | present | ListingDetail.tsx, CareTab.tsx | — | |
+| E24 | Requests in the business's trade | present | BizSheet.tsx ("מה מבקשים בתחום") | — | kept, now in the original's request rows: urgent badge, quiet requests sealed ("בשקט, לא יודעים מי ביקש", no name/phone), "אני זמין" ⇒ the port's response dialog |
+| E25 | Gabbai actions: approve / hide / delete / edit | present | BizSheet.tsx (colophon actions) · CareTab.tsx | — | edit / approve / hide / delete (press twice) for whoever holds the grant, in the original's button style |
 
 ## F. Contact flow
 
 | # | original | status | port file | gap | notes |
 |---|---|---|---|---|---|
-| F1 | WhatsApp `wa.me/972…` with "שלום, הגעתי אליך דרך {brand}." + " צריך עזרה: {q}" | present | ListingCard.tsx `waIntro` + `WaBtn` | — | |
-| F2 | Call `tel:`; copy number → "המספר … הועתק" | partial | ListingCard.tsx `CallBtn` · Home.tsx `Banner` · DirectoryTab.tsx `copyPhone` | UI | banners: swipe-left/`tel:` call and the copy fallback "המספר … הועתק" when WhatsApp is off; the business page's contact bar = cluster 3 |
+| F1 | WhatsApp `wa.me/972…` with "שלום, הגעתי אליך דרך {brand}." + " צריך עזרה: {q}" | present | Home.tsx `Banner` · BizSheet.tsx (bar) · hooks.ts `usePnContact` | — | "שלום, הגעתי אליך דרך {brand}." + " צריך עזרה: {q}" (the question the page was opened from); gated by the WhatsApp extension |
+| F2 | Call `tel:`; copy number → "המספר … הועתק" | present | Home.tsx `Banner` · BizSheet.tsx (`.pn-copy`, bar) · hooks.ts `usePnContact` | UI | `tel:` when telephony is on (banner swipe-left, bar, call icon); copy number everywhere ("המספר … הועתק") — the phone row, the bar fallback and the banners when WhatsApp is off |
 | F3 | Once-per-viewer "someone reached out" marker → owner's "פניות מהאלפון"; recents | missing | — | SERVER | |
 | F4 | Shabbat gentle lock on contact | present | ParnasaView.tsx (gentle lock) | UI | see B20 — WhatsApp, call and post links are held on Shabbat with "שעת צורך, להמשיך" (15 min) |
 
@@ -202,11 +202,11 @@ Current counts per area (recomputed from the rows after every cluster):
 | # | original | status | port file | gap | notes |
 |---|---|---|---|---|---|
 | I1 | Page "לבעלי עסקים · העסק שלי · דף עסק מלא בתוך האלפון…" for a signed-in business owner | missing | — | SERVER | no owner identity in the port |
-| I2 | "בקשות בתחום שלך — {cat} · מגיעות אליכם לפני כל הקהילה" (14 days, quiet seals, "עוד X רק אצל העסקים", "אני זמין" / quiet reply) | partial | ListingDetail.tsx | SERVER | gabbai view on the business page |
-| I3 | Status pill "טיוטה · עוד לא נשמר" / "באוויר באלפון" / "ממתין לאישור הגבאי" / "מוסתר ע״י הגבאי" | partial | ListingCard.tsx, ListingDetail.tsx | UI | status chips |
+| I2 | "בקשות בתחום שלך — {cat} · מגיעות אליכם לפני כל הקהילה" (14 days, quiet seals, "עוד X רק אצל העסקים", "אני זמין" / quiet reply) | partial | BizSheet.tsx ("מה מבקשים בתחום") | SERVER | the gabbai sees the business's routed requests on its page (quiet ones sealed); the owner's own board in העסק שלי needs owner logins (SERVER) |
+| I3 | Status pill "טיוטה · עוד לא נשמר" / "באוויר באלפון" / "ממתין לאישור הגבאי" / "מוסתר ע״י הגבאי" | partial | BizSheet.tsx (badges) · Home.tsx `Banner` (browse) | UI | "ממתין לאישור הגבאי" / "מוסתר מהאלפון" as badges on the page and on browse banners (gabbai); the owner's status pill = cluster 4 |
 | I4 | Live mini preview of the page ("לתצוגה המלאה") + "כך תופיעו בתוצאות החיפוש" (your banner) | missing | — | UI | useful in the gabbai form too |
 | I5 | Completeness ring with weights (basics 20, description ≥60 chars 12, tagline 6, logo 10, palette 4, ≥2 services 15, photo 12, hours 8, FAQ 5, payment 4, area 4) and the three most valuable "+N%" chips that jump to the section | missing | — | UI (+DATA for the fields) | |
-| I6 | Tiles "פניות מהאלפון" (velvet) and "המלצות" | partial | ListingDetail.tsx (recs count) | SERVER | contacts need F3 |
+| I6 | Tiles "פניות מהאלפון" (velvet) and "המלצות" | partial | BizSheet.tsx (kupa, recommendations) | SERVER | recommendations counted on the page and in the kupa; "פניות מהאלפון" needs F3 (SERVER) |
 | I7 | "הקופה שלך" | missing | — | UI | |
 | I8 | "קידום העסק": "כרטיס מודגש" 45 ₪ / "חסות על שער ״…״" 300 ₪ ("השער בחסות כרגע. נרשום אתכם לתור."), "הערה לגבאי (רשות)", "שליחת בקשה לגבאי"; sent state + "ביטול הבקשה" | missing | — | SERVER (+DATA) | |
 | I9 | "המלצות שקיבלתם" (up to 6) + "לדף ולשיתוף" | missing | — | UI | |
@@ -223,7 +223,7 @@ Current counts per area (recomputed from the rows after every cluster):
 | I20 | Consent "אני מסכים שהפרטים יוצגו לחברי הקהילה" / "קיבלתי את הסכמתו להופיע באלפון" | present | ListingForm.tsx | — | |
 | I21 | Sticky frosted save bar: "שמירת הדף" / "שליחה לאישור" / "פרסום הדף", "תצוגה", "יש שינויים שלא נשמרו", size meter (240 KB) | partial | ListingForm.tsx | UI | modal buttons; save labels follow the approval mode |
 | I22 | Full preview with a "תצוגה מקדימה" ribbon | missing | — | UI | |
-| I23 | "הסרת העסק" (press twice: "ללחוץ שוב כדי להסיר את הדף") | partial | ListingDetail.tsx (gabbai delete) | SERVER (owner) | |
+| I23 | "הסרת העסק" (press twice: "ללחוץ שוב כדי להסיר את הדף") | partial | BizSheet.tsx (gabbai delete, press twice) | SERVER (owner) | the gabbai deletes from the page; the owner's own "הסרת העסק" needs owner logins (SERVER) |
 | I24 | Validation: "חסר: …", consent, "הדף גדול מדי (…)" | present | ListingForm.tsx | UI | |
 
 ## J. ניהול (gabbai)
@@ -262,13 +262,13 @@ Current counts per area (recomputed from the rows after every cluster):
 | original field / collection | used by | port today |
 |---|---|---|
 | `palette` (8 keys) | cover tint, accents, medallion colour (B, C3, E2–E4, I13) | `PrListing.palette?` (healed; cluster 2) — editor cluster 4 |
-| `logo` (data URL ≤256px/25 KB) | banners, medallions, cover, mini header | `PrListing.logo?` (healed; shown on banners/medallions, cluster 2) — upload cluster 3/4 |
-| `photos[≤4]` (≤900px/45 KB each) | gallery (E12), completeness | `PrListing.photos?` (healed; cluster 2) — gallery cluster 3 |
+| `logo` (data URL ≤256px/25 KB) | banners, medallions, cover, mini header | `PrListing.logo?` (healed; banners/medallions — cluster 2; cover disc + mini header — cluster 3) — upload cluster 4 |
+| `photos[≤4]` (≤900px/45 KB each) | gallery (E12), completeness | `PrListing.photos?` (healed; cluster 2; gallery + lightbox — cluster 3) — upload with the original's caps + a per-org budget = cluster 4 |
 | `offer {text ≤60, until}` | gold ribbon on banners, cover pill (C3, E4, I12) | `PrListing.offer?` (healed; ribbon + seal on banners, cluster 2) |
-| `faq[≤4] {q,a}` | FAQ accordion (E15) | `PrListing.faq?` (healed; cluster 2) |
-| `pay[]` (cash, transfer, bit, credit, checks) | details tile (E14) | `PrListing.pay?` (healed; cluster 2) |
-| `years`, `cert` | trust badges (E6) | `PrListing.years?`/`cert?` (healed; cluster 2) + `kashrut` |
-| `seek` ("פנוי ללקוחות נוספים") | browse toggle, booklet mark (D4) | `PrListing.seek?` (healed; cluster 2) |
+| `faq[≤4] {q,a}` | FAQ accordion (E15) | `PrListing.faq?` (healed; cluster 2; accordion — cluster 3) |
+| `pay[]` (cash, transfer, bit, credit, checks) | details tile (E14) | `PrListing.pay?` (healed; cluster 2; payment chips — cluster 3) |
+| `years`, `cert` | trust badges (E6) | `PrListing.years?`/`cert?` (healed; cluster 2; trust badges — cluster 3) + `kashrut` |
+| `seek` ("פנוי ללקוחות נוספים") | browse toggle, booklet mark (D4) | `PrListing.seek?` (healed; cluster 2; "פנויים לעבודה" toggle — cluster 3) |
 | promo `{price, tagline, url, until, note}` | featured block, revenue (E8, J6–J8) | `featuredUntil` + gabbai-only `promoLine`/`promoUrl`/`promoPrice`/`promoNote` (healed; a non-approver's save keeps them) |
 | sponsors `home`, `coin {cat, mono}`, `url` on every sponsor | home line, platinum coin (B9, B14, J9) | slot `board` = the home line; `PrAd.coin?` + `mono?` = the platinum coin (kept out of the gate rotation); `PrAd.url?` (https only) |
 | `jobpromo` + job price | board sort, gold frame (G7, G10, G18) | — |
