@@ -729,10 +729,12 @@ console.log('🧩 ארגז המנועים — מסע אמיתי');
   const TURNS = 'bookings:bookings.turnover:divide';
   const NEXT3 = 'bookings:bookings.nights:merge>next';
 
-  // 9.1 · הכרטיס העליון בלשונית
+  // 9.1 · הכרטיס — DESIGN 14.10 (שינוי מכוון): עבר מראש "מנועים וחלקים" לדלת הראשונה "🎯 תגיד מה אתה רוצה" (לוחצים עליה קודם)
   await openBox(page, null);
+  T('🎯 9.1 בפתיחה ("בנה בעצמך") אין את הכרטיס — הוא בדלת 🎯', (await A('[data-goal]').count()) === 0 && (await A('[data-tab="goal"]').count()) === 1);
+  await plugTab(page, 'goal');
   await A('[data-goal]').waitFor({ timeout: 6000 }).catch(() => {});
-  T('🎯 9.1 בראש "מנועים וחלקים": "🎯 מה אתה רוצה לקבל?" עם 6 צ\'יפי-דוגמה', (await goalText()).includes('🎯 מה אתה רוצה לקבל?') && (await G('[data-goal-example]').count()) === 6);
+  T('🎯 9.1 דלת "🎯 תגיד מה אתה רוצה": "🎯 מה אתה רוצה לקבל?" עם 6 צ\'יפי-דוגמה', (await goalText()).includes('🎯 מה אתה רוצה לקבל?') && (await G('[data-goal-example]').count()) === 6 && (await A('[data-tab="goal"][aria-selected="true"]').count()) === 1);
   await gshot('01-goal-card.png');
 
   // 9.2 · כותבים את המטרה ⇒ המשפט במילים + התורים האמיתיים

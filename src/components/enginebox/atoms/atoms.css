@@ -9,28 +9,35 @@
   --eb-ok-tint: color-mix(in srgb, var(--green) 9%, var(--panel));
   --eb-ok-line: color-mix(in srgb, var(--green) 45%, var(--line));
   --eb-warn: var(--orange);
+  /* ♿ AA גם על משטחים צבועים ובכל 4 הערכות: טקסט-משני כהה מעט מ---ink-soft (בהיכל — בהיר מעט), ירוק-טקסט כהה מעט מ---green,
+     וכפתור ראשי — בקהילה --primary-bg (טורקיז עם לבן, 3.98:1) מוחלף ב---accent-deep של אותה ערכה (5.9:1) */
+  --eb-soft: color-mix(in srgb, var(--ink-soft) 72%, var(--ink));
+  --eb-ok-ink: color-mix(in srgb, var(--green) 78%, var(--ink));
+  --eb-primary: var(--primary-bg);
 }
+:root[data-theme="kehila"] .eb-body, :root[data-theme="kehila"] .at-body { --eb-primary: var(--accent-deep); }
+.eb-body .btn.primary { background: var(--eb-primary); border-color: var(--eb-primary); }
 .at-body { display: flex; flex-direction: column; gap: 16px; }
 .at-empty { font-size: 16px; }
 .at-title { font-size: 20px; font-weight: 800; margin: 0 0 4px; color: var(--ink); line-height: 1.3; letter-spacing: -0.01em; }
 .at-title:focus, .at-question:focus { outline: none; }
 .at-title:focus-visible, .at-question:focus-visible { outline: 2px solid var(--accent-deep); outline-offset: 3px; border-radius: 6px; }
 .at-sub { font-size: 16px; font-weight: 800; margin: 0 0 4px; color: var(--ink); }
-.at-hint { font-size: 14px; color: var(--ink-soft); margin: 0 0 12px; line-height: 1.55; }
+.at-hint { font-size: 14px; color: var(--eb-soft); margin: 0 0 12px; line-height: 1.55; }
 .at-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
 .at-group { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; }
 .at-name { font-weight: 800; font-size: 16px; color: var(--ink); line-height: 1.35; }
-.at-what { font-size: 14px; color: var(--ink-soft); line-height: 1.5; }
+.at-what { font-size: 14px; color: var(--eb-soft); line-height: 1.5; }
 .at-chip {
   display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; padding: 2px 9px; border-radius: 999px;
-  border: 1px solid var(--line); color: var(--ink-soft); background: var(--bg); width: fit-content; line-height: 1.5;
+  border: 1px solid var(--line); color: var(--eb-soft); background: var(--bg); width: fit-content; line-height: 1.5;
 }
 .at-inbox { border-color: var(--accent-deep); color: var(--ink); background: var(--eb-tint); margin-inline-start: 6px; }
 .at-kind { border-style: dashed; }
-.at-saved { border-color: var(--eb-ok-line); color: var(--green); background: var(--eb-ok-tint); font-weight: 700; }
+.at-saved { border-color: var(--eb-ok-line); color: var(--eb-ok-ink); background: var(--eb-ok-tint); font-weight: 700; }
 .at-verified {
   display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 700; padding: 2px 9px; border-radius: 999px;
-  color: var(--green); background: var(--eb-ok-tint); border: 1px solid var(--eb-ok-line); white-space: nowrap;
+  color: var(--eb-ok-ink); background: var(--eb-ok-tint); border: 1px solid var(--eb-ok-line); white-space: nowrap;
 }
 .at-go {
   display: inline-flex; align-items: center; gap: 6px; font-size: 13.5px; font-weight: 800; color: var(--accent-deep);
@@ -41,16 +48,16 @@
 .at-steps { list-style: none; margin: 0; padding: 0; display: flex; gap: 6px; }
 .at-step {
   flex: 1 1 0; min-width: 0; display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 12px;
-  background: var(--bg); color: var(--ink-soft); font-size: 13px; font-weight: 700; line-height: 1.25;
+  background: var(--bg); color: var(--eb-soft); font-size: 13px; font-weight: 700; line-height: 1.25;
 }
 .at-step-n {
   flex: none; width: 26px; height: 26px; border-radius: 999px; display: inline-grid; place-items: center;
-  font-size: 13px; font-weight: 800; border: 1.5px solid var(--line); background: var(--panel); color: var(--ink-soft);
+  font-size: 13px; font-weight: 800; border: 1.5px solid var(--line); background: var(--panel); color: var(--eb-soft);
 }
 .at-step-now { background: var(--eb-tint); color: var(--ink); box-shadow: inset 0 0 0 1.5px var(--accent-deep); }
-.at-step-now .at-step-n { background: var(--primary-bg); border-color: var(--primary-bg); color: var(--primary-ink); }
+.at-step-now .at-step-n { background: var(--eb-primary); border-color: var(--eb-primary); color: var(--primary-ink); }
 .at-step-done { color: var(--ink); }
-.at-step-done .at-step-n { background: var(--eb-ok-tint); border-color: var(--green); color: var(--green); }
+.at-step-done .at-step-n { background: var(--eb-ok-tint); border-color: var(--eb-ok-ink); color: var(--eb-ok-ink); }
 
 /* ── הפס העליון הדביק: "חזור" + המנוע ── */
 .at-head {
@@ -113,7 +120,7 @@
 }
 .at-parts-toggle {
   display: flex; align-items: center; gap: 8px; width: 100%; min-height: 44px; padding: 10px 16px; margin-top: 4px;
-  border: 0; border-top: 1px solid var(--line-soft, var(--line)); background: transparent; color: var(--ink-soft);
+  border: 0; border-top: 1px solid var(--line-soft, var(--line)); background: transparent; color: var(--eb-soft);
   font: inherit; font-size: 13.5px; font-weight: 700; cursor: pointer; text-align: start;
 }
 .at-parts-toggle:hover { background: var(--bg); color: var(--ink); }
@@ -124,7 +131,7 @@
 .at-part-inbox { background: var(--eb-tint); }
 .at-num {
   flex: 0 0 auto; min-width: 26px; height: 26px; border-radius: 999px; display: inline-flex; align-items: center;
-  justify-content: center; font-size: 12.5px; font-weight: 800; border: 1px solid var(--line); color: var(--ink-soft); background: var(--panel);
+  justify-content: center; font-size: 12.5px; font-weight: 800; border: 1px solid var(--line); color: var(--eb-soft); background: var(--panel);
 }
 .at-part-text { display: flex; flex-direction: column; gap: 2px; }
 .at-part-name { font-weight: 700; font-size: 14px; color: var(--ink); }
@@ -134,12 +141,12 @@
 .at-q-card .at-examples { padding: 6px 0 0; }
 .at-ex-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
 .at-ex {
-  font-size: 13px; line-height: 1.5; color: var(--ink-soft); padding: 6px 10px; border-radius: 10px; background: var(--bg);
+  font-size: 13px; line-height: 1.5; color: var(--eb-soft); padding: 6px 10px; border-radius: 10px; background: var(--bg);
 }
 .at-q-card .at-ex { background: color-mix(in srgb, var(--panel) 70%, transparent); }
 .at-ex-arrow { color: var(--accent-deep); font-weight: 800; padding: 0 5px; }
 .at-more > summary {
-  cursor: pointer; font-size: 13px; font-weight: 700; color: var(--ink-soft); min-height: 36px; width: fit-content;
+  cursor: pointer; font-size: 13px; font-weight: 700; color: var(--eb-soft); min-height: 36px; width: fit-content;
   display: flex; align-items: center; list-style-position: inside; border-radius: 8px; padding: 0 4px;
 }
 .at-more > summary:hover { color: var(--ink); }
@@ -162,9 +169,9 @@ button.at-mine-face { cursor: pointer; }
 .at-mine-actions { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
 /* "בנה עליו" = הצעד הבא (אקסנט); "הסר" שקט — חמוש ⇒ אדום */
 .at-mine-actions .btn[title^="בנה עליו"] { background: var(--eb-tint); border-color: var(--accent-deep); color: var(--ink); font-weight: 800; }
-.at-mine-actions .btn[title^="הסר"]:not(.danger) { background: transparent; border-color: transparent; color: var(--ink-soft); }
+.at-mine-actions .btn[title^="הסר"]:not(.danger) { background: transparent; border-color: transparent; color: var(--eb-soft); }
 .at-mine-actions .btn[title^="הסר"]:not(.danger):hover { border-color: var(--line); color: var(--ink); }
-.at-orphan { color: var(--ink-soft); font-style: italic; }
+.at-orphan { color: var(--eb-soft); font-style: italic; }
 .at-blocked {
   display: block; padding: 10px 12px; border-radius: 12px; font-weight: 700; color: var(--ink);
   background: color-mix(in srgb, var(--eb-warn) 10%, var(--panel)); border-inline-start: 4px solid var(--eb-warn);
@@ -197,7 +204,7 @@ button.at-mine-face { cursor: pointer; }
   padding: 18px 20px; border-radius: 22px; background: linear-gradient(160deg, var(--eb-tint-strong), var(--eb-tint) 70%);
   margin-bottom: 14px;
 }
-.at-asks { font-size: 14px; color: var(--ink-soft); font-weight: 700; }
+.at-asks { font-size: 14px; color: var(--eb-soft); font-weight: 700; }
 .at-question { font-size: 32px; font-weight: 800; margin: 2px 0 6px; color: var(--ink); line-height: 1.2; letter-spacing: -0.015em; }
 .at-q-explain { margin: 0; }
 .at-option {
@@ -208,14 +215,14 @@ button.at-mine-face { cursor: pointer; }
 .at-option:hover { box-shadow: var(--shadow-lift); transform: translateY(-1px); border-color: var(--accent-deep); }
 .at-option .at-go { align-self: flex-end; }
 .at-option-head { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-.at-place { font-size: 14px; color: var(--ink-soft); font-weight: 700; flex: 1 1 140px; min-width: 0; }
+.at-place { font-size: 14px; color: var(--eb-soft); font-weight: 700; flex: 1 1 140px; min-width: 0; }
 .at-result { font-size: 18px; font-weight: 800; color: var(--ink); line-height: 1.4; }
 
 /* ── התוצאה האמיתית: בקטן ליד כל אפשרות, וכגיבור בפרטים ובמנוע החדש ── */
 .at-preview { display: flex; flex-direction: column; gap: 4px; }
 .at-preview-title { font-size: 14px; font-weight: 800; color: var(--ink); }
 .at-preview-lines { margin: 0; padding-inline-start: 20px; font-size: 15px; color: var(--ink); line-height: 1.65; }
-.at-soon { font-size: 14px; color: var(--ink-soft); }
+.at-soon { font-size: 14px; color: var(--eb-soft); }
 .at-preview-mini {
   margin-top: 2px; padding: 10px 12px; border-radius: 12px; border-inline-start: 3px solid var(--green);
   background: var(--eb-ok-tint); text-align: start;
@@ -225,7 +232,7 @@ button.at-mine-face { cursor: pointer; }
   display: flex; flex-direction: column; gap: 8px; padding: 16px 18px; border-radius: 18px;
   border: 1.5px solid var(--eb-ok-line); background: var(--eb-ok-tint);
 }
-.at-hero-label { font-size: 12.5px; font-weight: 800; color: var(--green); letter-spacing: 0.01em; }
+.at-hero-label { font-size: 12.5px; font-weight: 800; color: var(--eb-ok-ink); letter-spacing: 0.01em; }
 .at-hero .at-preview-mini { margin: 0; padding: 0; border: 0; background: transparent; }
 .at-hero .at-preview-title { font-size: 16px; }
 .at-hero .at-preview-line { font-size: 15.5px; line-height: 1.65; }
@@ -236,7 +243,7 @@ button.at-mine-face { cursor: pointer; }
   border: 2px dashed var(--accent-deep); background: var(--eb-tint);
 }
 .at-snap-text { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
-.at-snap-into { font-size: 12.5px; font-weight: 700; color: var(--ink-soft); }
+.at-snap-into { font-size: 12.5px; font-weight: 700; color: var(--eb-soft); }
 .at-snap-place { font-size: 15px; font-weight: 800; color: var(--ink); }
 .at-plug-in { animation: at-snap 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.25) both; }
 @keyframes at-snap { from { transform: translateX(16px); opacity: 0.4; } to { transform: none; opacity: 1; } }
@@ -245,7 +252,7 @@ button.at-mine-face { cursor: pointer; }
   display: flex; flex-direction: column; gap: 14px; margin-top: 12px; padding: 16px; border-radius: 16px;
   border: 1px solid var(--line); background: var(--card-bg, var(--panel));
 }
-.at-form-title { font-size: 13px; font-weight: 800; color: var(--ink-soft); }
+.at-form-title { font-size: 13px; font-weight: 800; color: var(--eb-soft); }
 .at-field { display: flex; flex-direction: column; gap: 6px; }
 .at-label { font-size: 15px; font-weight: 700; color: var(--ink); }
 .at-input-row { display: flex; align-items: center; gap: 8px; }
@@ -254,13 +261,13 @@ button.at-mine-face { cursor: pointer; }
   border: 1px solid var(--line); background: var(--panel); color: var(--ink);
 }
 .at-input:focus-visible { outline: 2px solid var(--accent-deep); outline-offset: 2px; }
-.at-unit { font-size: 14px; color: var(--ink-soft); }
+.at-unit { font-size: 14px; color: var(--eb-soft); }
 .at-choices { display: flex; flex-wrap: wrap; gap: 8px; }
 .at-choice {
   min-height: 44px; padding: 8px 16px; border-radius: 999px; cursor: pointer; font: inherit; font-size: 14.5px; font-weight: 600;
   border: 1px solid var(--line); background: var(--panel); color: var(--ink);
 }
-.at-choice.at-on { background: var(--primary-bg); border-color: var(--primary-bg); color: var(--primary-ink); font-weight: 800; }
+.at-choice.at-on { background: var(--eb-primary); border-color: var(--eb-primary); color: var(--primary-ink); font-weight: 800; }
 .at-choice:disabled { cursor: default; }
 .at-actions { display: flex; gap: 10px; margin-top: 12px; align-items: center; flex-wrap: wrap; }
 .at-actions .btn { min-width: 120px; min-height: 44px; justify-content: center; }
@@ -271,7 +278,7 @@ button.at-mine-face { cursor: pointer; }
   border-radius: 16px 16px 0 0;
 }
 .at-sticky .btn.primary { min-height: 52px; padding: 0 26px; font-size: 16px; font-weight: 800; border-radius: 14px; }
-.at-sticky-hint { font-size: 13px; color: var(--ink-soft); }
+.at-sticky-hint { font-size: 13px; color: var(--eb-soft); }
 
 /* ── ✨ המנוע החדש ── */
 .at-made {
@@ -306,21 +313,37 @@ button.at-mine-face { cursor: pointer; }
   .at-mine-actions .btn[title^="בנה עליו"] { flex: 1 1 0; }
 }
 
-/* ATOMS-GOAL · "🎯 מה אתה רוצה לקבל?" — כרטיס עליון: תיבה + צ'יפי-דוגמה + עד 3 הרכבות או שאלות סגורות */
-.at-goal { border: 2px solid var(--accent); border-radius: 12px; padding: 12px; background: var(--card-bg, var(--panel)); display: flex; flex-direction: column; gap: 10px; }
-.at-goal .at-title, .at-goal .at-hint { margin: 0; }
+/* ATOMS-GOAL (G) · "🎯 מה אתה רוצה לקבל?" — DESIGN 14.10: הדלת הראשונה. כרטיס-גיבור: שאלה גדולה, תיבה גדולה, דוגמאות כצ'יפים,
+   כל הרכבה ככרטיס עם התוצאה האמיתית (אותו ירוק של "תוצאה אמיתית" בכל הארגז), "חבר" ראשי. */
+.at-goal {
+  display: flex; flex-direction: column; gap: 12px; padding: 18px 20px; border-radius: 22px;
+  background: linear-gradient(160deg, var(--eb-tint-strong), var(--eb-tint) 70%); box-shadow: var(--shadow);
+}
+.at-goal .at-title { font-size: 24px; margin: 0; }
+.at-goal .at-hint { margin: 0; }
 .at-goal-form { display: flex; gap: 8px; align-items: stretch; }
-.at-goal-input { flex: 1 1 auto; width: auto; min-width: 0; font-size: 16px; }
-.at-goal-form .btn { min-height: 44px; min-width: 88px; justify-content: center; }
-.at-goal-examples .at-choice { font-size: 13px; text-align: right; }
-.at-goal-answer { display: flex; flex-direction: column; gap: 10px; }
-.at-goal-res { display: flex; flex-direction: column; gap: 6px; padding: 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); }
-.at-goal-sentence { font-size: 16px; font-weight: 700; color: var(--ink); line-height: 1.5; overflow-wrap: anywhere; }
+.at-goal-input {
+  flex: 1 1 auto; width: auto; min-width: 0; min-height: 52px; font-size: 17px; font-weight: 600; border-radius: 14px;
+  box-shadow: var(--shadow);
+}
+.at-goal-form .btn { min-height: 52px; min-width: 96px; justify-content: center; border-radius: 14px; font-size: 16px; font-weight: 800; }
+.at-goal-examples .at-choice { font-size: 13.5px; text-align: start; background: color-mix(in srgb, var(--panel) 80%, transparent); }
+.at-goal-answer { display: flex; flex-direction: column; gap: 12px; }
+.at-goal-res {
+  display: flex; flex-direction: column; gap: 8px; padding: 16px; border-radius: 16px; border: 1px solid var(--line);
+  background: var(--card-bg, var(--panel)); box-shadow: var(--shadow);
+}
+.at-goal-res.at-made { border: 2px solid var(--eb-ok-line); box-shadow: var(--shadow-lift); }
+.at-goal-sentence { font-size: 17px; font-weight: 800; color: var(--ink); line-height: 1.5; overflow-wrap: anywhere; }
 .at-goal-res .at-actions { margin-top: 4px; }
-.at-goal-q { display: flex; flex-direction: column; gap: 6px; }
-.at-goal-q-text { font-size: 20px; font-weight: 800; color: var(--ink); }
+.at-goal-res .at-actions .btn.primary { min-height: 48px; font-weight: 800; border-radius: 12px; }
+.at-goal-q { display: flex; flex-direction: column; gap: 8px; padding: 14px 16px; border-radius: 16px; background: var(--card-bg, var(--panel)); }
+.at-goal-q-text { font-size: 22px; font-weight: 800; color: var(--ink); }
 .at-goal-none { font-size: 15px; }
-@media (max-width: 420px) {
+.eb-goal-v1 { margin-top: 18px; }
+@media (max-width: 480px) {
+  .at-goal { padding: 16px; border-radius: 18px; }
+  .at-goal .at-title { font-size: 21px; }
   .at-goal-form { flex-wrap: wrap; }
   .at-goal-form .btn { flex: 1 1 100%; }
 }

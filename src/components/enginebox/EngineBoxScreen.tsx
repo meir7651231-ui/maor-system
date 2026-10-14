@@ -19,6 +19,7 @@ import { GoalPanel } from './GoalPanel';
 import type { BoxFuture, BoxImpact, BoxOption, BoxPart, BoxProduct, EngineBoxSource } from './types';
 import { linksLabel, pickableParts, resolveStart, type BoxStart } from './model';
 import { AtomsBody } from './atoms/AtomsBody';
+import { GoalCard } from './atoms/GoalCard';
 import { TAB_ATOMS_TEXT } from './atoms/AtomSteps';
 import type { AtomsSource } from './atoms/seam';
 import './enginebox.css';
@@ -39,6 +40,8 @@ export const DOORS: readonly { id: BoxTab; emoji: string; title: string; sub: st
   { id: 'plug', emoji: '🔌', title: 'חבר מנוע מוכן', sub: 'מנוע שלם למוצר' },
 ];
 export const DOORS_LEAD = 'בוחרים מנוע, מחברים לו חלק קטן — ומקבלים מנוע חדש שחוזר לארגז.';
+/** DESIGN 14.10: בדלת 🎯, מתחת לכרטיס של G — "להתחיל מהסוף" הוותיק (דרך בין מוצרים שלמים) נשאר, עם כותרת שמבדילה. */
+export const GOAL_V1_TITLE = '🔌 או: דרך בין מוצרים שלמים';
 export const IMPACT_TITLE = '📊 מה היה קורה בחודש האחרון';
 
 export const EMPTY_SOURCE_TEXT = 'הארגז בהרכבה — עוד מעט';
@@ -325,7 +328,9 @@ export function EngineBoxBody(props: {
   const picked = source && start && pickedId ? source.parts().find((p) => p.id === pickedId) ?? null : null;
   const step: BoxStep = !start ? 'start' : !picked ? 'pick' : 'plug';
   const hasGoal = !!source?.goal;
-  const goalOn = hasGoal && tab === 'goal';
+  // DESIGN 14.10 + GOAL (G): הדלת 🎯 קיימת גם כשרק "מנועים וחלקים" יודעים להרכיב ממשפט (props.atoms.goal)
+  const atomsGoal = !!props.atoms?.goal;
+  const goalOn = (hasGoal || atomsGoal) && tab === 'goal';
   const hasAtoms = props.atoms !== undefined;
   const atomsOn = hasAtoms && tab === 'atoms';
 
@@ -341,19 +346,22 @@ export function EngineBoxBody(props: {
   if (atomsOn) {
     return (
       <div ref={bodyRef} className="eb-body" data-tab="atoms">
-        {Tabs({ tab: 'atoms', goal: hasGoal })}
+        {Tabs({ tab: 'atoms', goal: hasGoal || atomsGoal })}
         <AtomsBody source={props.atoms ?? null} />
       </div>
     );
   }
 
+  // 🎯 הדלת הראשונה: הכרטיס של G (מהחלקים) ומתחתיו — כשיש — "להתחיל מהסוף" הוותיק (מהמוצרים)
+  const partsGoal = goalOn && atomsGoal && props.atoms ? <GoalCard source={props.atoms} /> : null;
+
   if (!source) {
     const empty = <div className="empty eb-empty">🧩 {EMPTY_SOURCE_TEXT}</div>;
     if (!hasAtoms) return empty;
     return (
-      <div ref={bodyRef} className="eb-body">
-        {Tabs({ tab, goal: false })}
-        {empty}
+      <div ref={bodyRef} className="eb-body" data-tab={partsGoal ? 'goal' : undefined}>
+        {Tabs({ tab, goal: atomsGoal })}
+        {partsGoal ?? empty}
       </div>
     );
   }
@@ -361,13 +369,15 @@ export function EngineBoxBody(props: {
   if (goalOn) {
     return (
       <div ref={bodyRef} className="eb-body" data-tab="goal">
-        {Tabs({ tab: 'goal' })}
-        {start && (
+        {Tabs({ tab: 'goal', goal: true })}
+        {partsGoal}
+        {hasGoal && partsGoal && <h3 className="eb-sub-title eb-goal-v1">{GOAL_V1_TITLE}</h3>}
+        {hasGoal && start && (
           <div className="eb-goal-from">
             מתחילים מ: <span aria-hidden="true">{start.emoji}</span> {start.name}
           </div>
         )}
-        <GoalTab source={source} start={start ? start.id : null} text={goalText} onText={setGoalText} />
+        {hasGoal && <GoalTab source={source} start={start ? start.id : null} text={goalText} onText={setGoalText} />}
       </div>
     );
   }
@@ -383,7 +393,7 @@ export function EngineBoxBody(props: {
 
   return (
     <div ref={bodyRef} className="eb-body" data-step={step}>
-      {(hasGoal || hasAtoms) && Tabs({ tab: 'plug', goal: hasGoal })}
+      {(hasGoal || hasAtoms) && Tabs({ tab: 'plug', goal: hasGoal || atomsGoal })}
       {start && (
         <BoxHeader
           start={start}

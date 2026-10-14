@@ -95,7 +95,7 @@
 .modal:has(> .eb-body) > button[aria-label="סגירה"] { width: 44px !important; height: 44px !important; top: 8px !important; font-size: 16px !important; }
 .modal:has(> .eb-body) > h2 { padding-inline-start: 52px !important; font-size: 21px; font-weight: 800; letter-spacing: -0.01em; }
 .eb-doors { display: flex; flex-direction: column; gap: 12px; }
-.eb-doors-lead { margin: 0; font-size: 15px; line-height: 1.55; color: var(--ink-soft); }
+.eb-doors-lead { margin: 0; font-size: 15px; line-height: 1.55; color: var(--eb-soft); }
 .eb-doors-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); gap: 10px; }
 .eb-door {
   position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; min-height: 104px;
@@ -112,11 +112,11 @@
 }
 .eb-door-on::after {
   content: '✓'; position: absolute; top: 10px; inset-inline-end: 10px; width: 22px; height: 22px; border-radius: 999px;
-  display: grid; place-items: center; font-size: 12px; font-weight: 800; background: var(--primary-bg); color: var(--primary-ink);
+  display: grid; place-items: center; font-size: 12px; font-weight: 800; background: var(--eb-primary); color: var(--primary-ink);
 }
 .eb-door-emoji { font-size: 30px; line-height: 1; margin-bottom: 4px; }
 .eb-door-title { font-size: 15.5px; font-weight: 800; line-height: 1.25; }
-.eb-door-sub { font-size: 12.5px; color: var(--ink-soft); line-height: 1.35; }
+.eb-door-sub { font-size: 12.5px; color: var(--eb-soft); line-height: 1.35; }
 @media (max-width: 480px) {
   .modal:has(> .eb-body) { padding: 16px 14px; }
   .eb-doors-row { gap: 8px; }
@@ -136,18 +136,18 @@
 .eb-product { border-bottom: 3px solid color-mix(in srgb, var(--accent) 55%, var(--line)); }
 .eb-emoji { font-size: 28px; }
 .eb-name { font-size: 16px; font-weight: 800; }
-.eb-what { font-size: 13.5px; color: var(--ink-soft); }
+.eb-what { font-size: 13.5px; color: var(--eb-soft); }
 .eb-from { font-size: 12px; font-weight: 600; background: var(--bg); }
 .eb-head {
   position: sticky; top: 6px; z-index: 4; border-radius: 14px; background: color-mix(in srgb, var(--panel) 94%, transparent);
   box-shadow: var(--shadow); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
 }
-.eb-head .btn, .eb-actions .btn { min-height: 44px; border-radius: 12px; }
+.eb-head .btn, .eb-actions .btn, .modal:has(> .eb-body) > .modal-actions .btn { min-height: 44px; border-radius: 12px; }
 .eb-option { border-radius: 16px; padding: 16px; box-shadow: var(--shadow); gap: 10px; }
 .eb-option.eb-linked { border-color: var(--green); background: color-mix(in srgb, var(--green) 6%, var(--card-bg, var(--panel))); }
 .eb-plug-chip { border-color: var(--accent-deep); background: color-mix(in srgb, var(--accent) 14%, var(--panel)); }
-.eb-role, .eb-arrow { color: var(--ink-soft); }
-.eb-future-item, .eb-soon { color: var(--ink-soft); }
+.eb-role, .eb-arrow { color: var(--eb-soft); }
+.eb-future-item, .eb-soon { color: var(--eb-soft); }
 .eb-impact { border-inline-start-color: var(--accent-deep); border-radius: 12px; padding: 8px 12px; }
 .eb-tab:focus-visible { outline-color: var(--accent-deep); }
 @media (prefers-reduced-motion: reduce) {

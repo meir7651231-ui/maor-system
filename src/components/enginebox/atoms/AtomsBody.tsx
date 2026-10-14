@@ -11,6 +11,7 @@
  * DESIGN 14.10: מונה 1-2-3 בראש · צעד 1 מאוחד (כל מנוע פעם אחת) ו"המנועים שיצרת" מיד אחריו · הפרטים מקבלים את המנוע
  * (פס "התקע נכנס לשקע") · "✨ נוצר מנוע חדש" מציע את הצעד הבא ("בנה עליו" / "עוד חלק"). אותן פעולות בדיוק.
  * חריצים (UI בלבד, בלי לוגיקה כאן): `source.found?()` ⇒ "🤖 מנועים שנמצאו אוטומטית" · `source.verified?(capId)` ⇒ "✅ מאומת".
+ * הכרטיס של G ("🎯 מה אתה רוצה לקבל?") עבר לדלת הראשונה "🎯 תגיד מה אתה רוצה" (EngineBoxScreen) — לא כאן.
  */
 import { useEffect, useRef, useState } from 'react';
 import { optionsFor } from '../../../lib/atoms/contract';
@@ -32,7 +33,6 @@ import {
   StepIndicator,
   type Verified,
 } from './AtomSteps';
-import { GoalCard } from './GoalCard';
 import './atoms.css';
 
 export type AtomsStep = 'engines' | 'atom' | 'question' | 'details' | 'made';
@@ -167,10 +167,7 @@ export function AtomsBody(props: { source: AtomsSource | null; initial?: AtomsIn
       <StepIndicator at={stepAt} />
       {host && <AtomsHeader host={host} onBack={back} backLabel={backLabel} />}
       {step === 'engines' && (
-        <>
-          {source.goal && <GoalCard source={source} />}
-          <EnginesStep engines={engines} atoms={atoms} open={open} onToggle={(id) => setOpen((o) => (o === id ? null : id))} onHost={openHost} found={found} />
-        </>
+        <EnginesStep engines={engines} atoms={atoms} open={open} onToggle={(id) => setOpen((o) => (o === id ? null : id))} onHost={openHost} found={found} />
       )}
       {step === 'engines' && mine}
       {step === 'atom' && host && (

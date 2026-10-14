@@ -133,6 +133,8 @@ const connectBtn = (page) => page.locator(`${BOX} [data-connect], ${BOX} .at-act
   await A(page, '[data-detail="size"]').fill('40');
   await A(page, '[data-detail="gap"]').fill('0');
   await wait(300);
+  // הפרטים מהכותרת: "מתחבר אל" + התוצאה כגיבור (מתחת לפס העליון הדביק)
+  await A(page, '#at-h-details').evaluate((el) => { el.scrollIntoView({ block: 'start' }); el.closest('.modal-back')?.scrollBy(0, -90); });
   await shot(page, '04-details');
   await connectBtn(page).scrollIntoViewIfNeeded();
   await connectBtn(page).click();
@@ -169,6 +171,13 @@ const connectBtn = (page) => page.locator(`${BOX} [data-connect], ${BOX} .at-act
   await shot(page, '13-plug-options');
   await click(page, '[data-tab="goal"]');
   await shot(page, '14-goal');
+  if (PREFIX === 'after') {
+    // 🎯 הכרטיס של G בדלת הראשונה: משפט ⇒ ההרכבה עם התוצאה האמיתית
+    await A(page, '[data-goal-input]').fill('תורים של 40 דקות בחלון הניקיון');
+    await A(page, '[data-goal] form button[type=submit]').click();
+    await A(page, '[data-goal-result]').waitFor({ timeout: 6000 }).catch(() => {});
+    await shot(page, '14b-goal-result', '[data-goal-result]');
+  }
   if (errors.length) { console.log('  ❌ שגיאות קונסולה:', errors.slice(0, 3).join(' | ')); problems++; }
   await ctx.close();
 }
