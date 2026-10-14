@@ -1,8 +1,8 @@
 /**
  * 🔒 ratchets · "🧬 מנועים וחלקים" (ATOMS-SCREEN 14.10.2026):
  *  (א) הזרימה הישנה ביט-זהה: בלי `atoms` — המסך זהה בדיוק לתצלום שנלקח לפני השינוי (old-flow-markup.json).
- *  (ב) עם `atoms` — לשונית ראשונה "🧬 מנועים וחלקים", הלשונית הפעילה בפתיחה נשארת "🔌 לחבר מנוע", ותוכן הלשוניות
- *      הקיימות זהה לתצלום (רק פס-הלשוניות מקבל לשונית נוספת).
+ *  (ב) עם `atoms` — לשונית ראשונה "🧬 מנועים וחלקים", והיא **לשונית-הפתיחה** (שינוי-נעילה מכוון, ATOMS 14.10 — הסשן המשלב:
+ *      "🧬 מנועים וחלקים" ברירת-המחדל); אחרי לחיצה על "🔌 לחבר מנוע" תוכן הלשוניות הקיימות זהה לתצלום (רק פס-הלשוניות שונה).
  *  (ג) קוד-ייצור לעולם לא מייבא את נתוני-הדוגמה של החלקים.
  *  (ד) החוזה המשותף לא נגע: md5 קבוע, שורה-חדשה אחת בסוף.
  *  (ה) ההתאמה לא משוכפלת: המסך קורא ל-optionsFor של החוזה.
@@ -21,9 +21,12 @@ import atomsBodySrc from '../atoms/AtomsBody.tsx?raw';
 const g = () => ({ ...fixtureSource(), goal: () => null });
 const ro = () => ({ ...fixtureSource({ canEdit: false }), goal: () => null });
 type Atoms = ReturnType<typeof atomsFixture> | null | undefined;
-const states = (atoms: Atoms): Record<string, string> => {
-  const B = (source: ReturnType<typeof g> | ReturnType<typeof fixtureSource>, initial?: Parameters<typeof EngineBoxBody>[0]['initial']) =>
-    renderToStaticMarkup(createElement(EngineBoxBody, atoms === undefined ? { source, initial } : { source, initial, atoms }));
+/** `plugTab` ⇒ כאילו נלחצה "🔌 לחבר מנוע" (עם atoms לשונית-הפתיחה היא "מנועים וחלקים"). */
+const states = (atoms: Atoms, plugTab = false): Record<string, string> => {
+  const B = (source: ReturnType<typeof g> | ReturnType<typeof fixtureSource>, initial?: Parameters<typeof EngineBoxBody>[0]['initial']) => {
+    const ini = plugTab && !initial?.tab ? { ...initial, tab: 'plug' as const } : initial;
+    return renderToStaticMarkup(createElement(EngineBoxBody, atoms === undefined ? { source, initial: ini } : { source, initial: ini, atoms }));
+  };
   return {
     start: B(fixtureSource()),
     pick: B(fixtureSource(), { start: 'parnasa' }),
@@ -33,7 +36,9 @@ const states = (atoms: Atoms): Record<string, string> => {
     'goal-plug-ro': B(ro(), { start: 'parnasa', picked: 'host' }),
     'goal-tab': B(g(), { tab: 'goal', start: 'parnasa', goal: 'שבת' }),
     'screen-null': renderToStaticMarkup(createElement(EngineBoxScreen, atoms === undefined ? { source: null, onClose: () => {} } : { source: null, onClose: () => {}, atoms })),
-    'screen-goal': renderToStaticMarkup(createElement(EngineBoxScreen, atoms === undefined ? { source: g(), onClose: () => {} } : { source: g(), onClose: () => {}, atoms })),
+    'screen-goal': renderToStaticMarkup(
+      createElement(EngineBoxScreen, atoms === undefined ? { source: g(), onClose: () => {} } : { source: g(), onClose: () => {}, atoms, ...(plugTab ? { initial: { tab: 'plug' as const } } : {}) }),
+    ),
   };
 };
 const stripTabs = (s: string) => s.replace(/<div class="eb-tabs"[\s\S]*?<\/div>/, '');
@@ -46,9 +51,15 @@ describe('🧬 מנועים וחלקים — הגנות', () => {
     expect(states(undefined)).toEqual(OLD);
   });
 
-  it('(ב) עם atoms — לשונית ראשונה חדשה; ברירת-המחדל נשארת "לחבר מנוע"; תוכן הלשוניות הקיימות זהה', () => {
+  it('(ב) עם atoms — לשונית ראשונה חדשה והיא לשונית-הפתיחה; אחרי "לחבר מנוע" תוכן הלשוניות הקיימות זהה', () => {
     for (const atoms of [atomsFixture(), null]) {
-      const now = states(atoms);
+      // ברירת-המחדל (ATOMS 14.10): בלי initial.tab ⇒ "🧬 מנועים וחלקים" פתוחה
+      const dflt = states(atoms);
+      for (const k of ['start', 'goal-start', 'screen-goal'] as const) {
+        expect(dflt[k], k).toMatch(/aria-selected="true"[^>]*data-tab="atoms"/);
+        expect(dflt[k], k).toContain(atoms ? 'data-atoms="engines"' : '🧬 החלקים בהרכבה — עוד מעט');
+      }
+      const now = states(atoms, true);
       for (const k of ['goal-start', 'goal-plug', 'goal-plug-ro', 'goal-tab', 'screen-goal'] as const) {
         expect(stripTabs(now[k]), k).toBe(stripTabs((OLD as Record<string, string>)[k]));
         const tabs = [...now[k].matchAll(/data-tab="(\w+)"[^>]*>([^<]+)</g)].map((m) => m[1]);

@@ -13,7 +13,7 @@ import { sanitizePhotos } from '../lib/photoGallery';
 import { AYIN_STAGES } from '../lib/ayin';
 import { healParnasaPrefs, healPrCollection } from '../components/parnasa/model';
 import { healHostCollection, healHostingPrefs } from '../components/hosting/model';
-import { healEngineLinksIn } from '../lib/enginebox/linkShape';
+import { healEngineBoxIn } from '../lib/enginebox/linkShape';
 import {
   DB_VERSION,
   emptyAyin,
@@ -604,7 +604,8 @@ export function migrate(raw: unknown): Db | null {
   }
   // 🧰 ארגז-המנועים — חיבורים שמורים: רק חיבורים תקינים, בלי כפילויות, ממוינים; לא-מערך ⇒ המפתח יורד.
   // בלי המפתח ⇒ ללא נגיעה (ביט-זהה); רשימה תקינה ⇒ אותה הפניה.
-  merged.ui = healEngineLinksIn(merged.ui);
+  // 🧬 ATOMS 14.10: וגם capabilities (היכולות שנוצרו) — רק צורה, באותה קריאה.
+  merged.ui = healEngineBoxIn(merged.ui);
   if (typeof merged.orgName !== 'string') merged.orgName = base.orgName;
   if (typeof merged.orgSite !== 'string') merged.orgSite = base.orgSite;
   if (typeof merged.orgDonate !== 'string') merged.orgDonate = base.orgDonate;

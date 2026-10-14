@@ -11,7 +11,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { optionsFor } from '../../../lib/atoms/contract';
 import type { AtomsSource } from './seam';
-import { connectCapability, detailDefaults, removeTap, type DetailValues } from './naming';
+import { buildCapability, connectCapability, detailDefaults, removeTap, type DetailValues } from './naming';
 import {
   ATOMS_EMPTY_TEXT,
   AtomGrid,
@@ -76,6 +76,10 @@ export function AtomsBody(props: { source: AtomsSource | null; initial?: AtomsIn
   };
   const backLabel = step === 'details' ? 'מקום אחר' : step === 'question' ? 'חלק אחר' : step === 'made' ? 'עוד חלק' : 'מנוע אחר';
   const vals = values ?? (atom ? detailDefaults(atom.details) : {});
+  // ATOMS 14.10: התוצאה האמיתית ליד כל אפשרות (עם ברירות-המחדל) ובטופס (עם מה שנבחר) — רק כשהמקור מחשב תצוגות
+  const optionPreviews =
+    step === 'question' && host && atom ? Object.fromEntries(options.map((o) => [o.place, source.preview(buildCapability(host, atom, o, detailDefaults(atom.details)))])) : undefined;
+  const livePreview = step === 'details' && host && atom && option ? source.preview(buildCapability(host, atom, option, vals)) : undefined;
 
   const connect = () => {
     if (!host || !atom || !option) return;
@@ -111,7 +115,7 @@ export function AtomsBody(props: { source: AtomsSource | null; initial?: AtomsIn
           <ChainsList chains={source.chains(host.id)} atoms={atoms} />
         </>
       )}
-      {step === 'question' && atom && <QuestionStep atom={atom} options={options} onOption={(p) => { setPlaceId(p); setValues(detailDefaults(atom.details)); }} />}
+      {step === 'question' && atom && <QuestionStep atom={atom} options={options} previews={optionPreviews} onOption={(p) => { setPlaceId(p); setValues(detailDefaults(atom.details)); }} />}
       {step === 'details' && atom && option && (
         <DetailsStep
           atom={atom}
@@ -120,6 +124,7 @@ export function AtomsBody(props: { source: AtomsSource | null; initial?: AtomsIn
           canEdit={source.canEdit}
           onValue={(id, v) => setValues({ ...vals, [id]: v })}
           onConnect={connect}
+          preview={livePreview}
         />
       )}
       {step === 'made' && made && <CreatedCard capability={made} preview={source.preview(made)} />}

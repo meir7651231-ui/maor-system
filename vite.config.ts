@@ -35,11 +35,17 @@ export default defineConfig({
          * משקל-ההפעלה (W, 14.10.2026): ה-chunks העצלים של ארגז-המנועים (מתאם-המסלול, מנוע-ההשפעה) צורכים את
          * `lib/config` בלי persist ⇒ rolldown פיצל את config ל-chunk-הפעלה משלו (+494B gzip ובקשה נוספת לכל ארגון).
          * הקבוצה מצמידה את persist+config (ותלויותיהם) ל-chunk אחד — ביט-זהה ל-persist של b063a79.
-         * linkShape נשאר נפרד (כמו לפני), בעדיפות גבוהה יותר. נעול: src/lib/__tests__/startup-chunks.test.ts + scripts/bundle-budget.mjs.
+         * linkShape נשאר נפרד (ואיתו `atoms/capShape` — ריפוי-צורת היכולות, ATOMS 14.10; אותו chunk ⇒ אין בקשה נוספת), בעדיפות גבוהה יותר. נעול: src/lib/__tests__/startup-chunks.test.ts + scripts/bundle-budget.mjs.
          */
         codeSplitting: {
           groups: [
-            { name: 'linkShape', test: /[\\/]src[\\/]lib[\\/]enginebox[\\/]linkShape\.ts$/, priority: 2 },
+            { name: 'linkShape', test: /[\\/]src[\\/]lib[\\/](enginebox[\\/]linkShape|atoms[\\/]capShape)\.ts$/, priority: 2 },
+            // 🧬 ATOMS 14.10: הכתיבה העצלה (boxChange) + היכולות + הכרטיסים (נטענים מה-store ב-import()) — chunk עצל אחד ⇒ שם-קובץ אחד בלבד
+            // ברשימת-התלויות שבבנדל-ההפעלה (חוזה+כרטיסים+אימות היו מתפצלים לשניים-שלושה).
+            { name: 'atoms', test: /[\\/]src[\\/]lib[\\/]atoms[\\/](contract|cards|capabilities|boxChange|engines[\\/](index|zmanim|whatNeed|bookings))\.ts$/, priority: 1 },
+            // links נשאר chunk משלו (כמו ב-ed81ea9): boxChange מייבא אותו, ובלי הקבוצה rolldown קיפל אותו לתוך atoms — ומסכי האירוח/
+            // פרנסה׳לע (useEngineLink) היו טוענים 11KB במקום 5KB. המחיר: שם-קובץ אחד נוסף ברשימת-התלויות של ההפעלה (נמדד).
+            { name: 'links', test: /[\\/]src[\\/]lib[\\/]enginebox[\\/]links\.ts$/, priority: 2 },
             { name: 'persist', test: /[\\/]src[\\/](store[\\/]persist|lib[\\/]config)\.ts$/, priority: 1 },
           ],
         },

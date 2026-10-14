@@ -7,7 +7,13 @@
 import type { AtomCard, Capability, EngineCard } from '../../../lib/atoms/contract';
 
 export interface AtomPreview { title: string; lines: string[] }
-export interface AtomChain { atoms: [string, string]; name: string; result: string }
+export interface AtomChain {
+  atoms: [string, string];
+  name: string;
+  result: string;
+  /** ATOMS 14.10 (תוספתי): שורות מחושבות מנתוני-הארגון ("צימר הגפן · 3 לילות פנויים ברצף מ-18/10"). חסר/ריק ⇒ רק המשפט. */
+  lines?: string[];
+}
 export interface AtomsSource {
   engines(): EngineCard[];
   atoms(): AtomCard[];

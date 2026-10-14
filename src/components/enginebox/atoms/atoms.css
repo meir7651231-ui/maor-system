@@ -95,6 +95,12 @@
 .at-preview-title { font-size: 14px; font-weight: 700; color: var(--ink-soft); }
 .at-preview-lines { margin: 0; padding-inline-start: 18px; font-size: 14px; color: var(--ink); line-height: 1.5; }
 .at-soon { font-size: 14px; color: var(--ink-soft); }
+/* ATOMS 14.10 — התוצאה האמיתית ליד כל אפשרות, בטופס ובשרשראות */
+.at-preview-mini {
+  margin-top: 6px; padding: 8px 10px; border-radius: 10px; border-inline-start: 3px solid var(--green);
+  background: var(--bg); text-align: start;
+}
+.at-preview-line { font-size: 14px; color: var(--ink); line-height: 1.5; overflow-wrap: anywhere; }
 .at-mine {
   display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
   padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--card-bg, var(--panel));

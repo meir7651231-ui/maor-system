@@ -271,7 +271,8 @@ export function EngineBoxBody(props: {
   atoms?: AtomsSource | null;
 }) {
   const { source } = props;
-  const [tab, setTab] = useState<BoxTab>(props.initial?.tab ?? 'plug');
+  // ATOMS 14.10 (הסשן המשלב): כשיש מקור-חלקים — "🧬 מנועים וחלקים" היא לשונית-הפתיחה; בלי ⇒ 'plug' כמו קודם (ביט-זהה)
+  const [tab, setTab] = useState<BoxTab>(props.initial?.tab ?? (props.atoms !== undefined ? 'atoms' : 'plug'));
   const [goalText, setGoalText] = useState(props.initial?.goal ?? '');
   const [startId, setStartId] = useState<string | null>(props.initial?.start ?? null);
   const [pickedId, setPickedId] = useState<string | null>(props.initial?.picked ?? null);

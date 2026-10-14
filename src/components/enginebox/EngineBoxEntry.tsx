@@ -8,6 +8,10 @@
  *     "חבר את כל הדרך" ⇒ linkEngine לכל מפתח לפי הסדר + טוסט אחד; "בקשו מהמחולל" ⇒ שורת-לוג כנה (logAccess) + טוסט.
  *   · 📊 "מה היה קורה בחודש האחרון": impactOf על נתוני-הארגון, `nowMs` נלקח כאן (קצה-ה-UI) פעם אחת בפתיחה, ה-ask של
  *     המרכזייה עם הספקים הנחוצים (useSwitchCtx ⇒ loadProviders — רק כלים דלוקים). נקרא רק לאפשרויות של המנוע שנבחר.
+ *
+ * ATOMS 14.10 — 🧬 "מנועים וחלקים" (לשונית-הפתיחה): המקור האמיתי (`atoms/source.ts` — הכרטיסים, החלקים, התצוגות) נטען ב-import()
+ *   מתוך ה-chunk הזה (chunk משלו); עד שנטען ⇒ `null` (מצב-ריק כן). "חבר"/"הסר" ⇒ createCapability/removeCapability
+ *   (אימות מול הכרטיסים · אותה הרשאה · שורת-לוג). התצוגות מחושבות על db של הארגון עם אותו `nowMs`.
  */
 import { useEffect, useMemo, useState } from 'react';
 import { useApp } from '../../store/useApp';
@@ -18,6 +22,8 @@ import { useSwitchCtx } from '../switchboard/useSwitchCtx';
 import { EngineBoxScreen } from './EngineBoxScreen';
 import { applyRouteKeys, applyRouteToast, engineBoxSource, engineRequestLine, type EngineBoxDeps } from './source';
 import type { BoxImpact } from './types';
+import type { AtomsSource } from './atoms/seam';
+import type { AtomsDeps } from './atoms/source';
 
 /** היכולות שמדדי-ההשפעה שואלים (impact/index.ts) — loadProviders מסנן לזמינות בקונפיג. */
 const IMPACT_ABILITIES: readonly AbilityId[] = ['parnasa.shabbat', 'parnasa.minyanim', 'parnasa.findPro', 'parnasa.emergency', 'hosting.availability'];
@@ -33,17 +39,23 @@ export function EngineBoxEntry(props: { onClose: () => void }) {
   const email = useApp((s) => s.cloud.user?.email);
   const linkEngine = useApp((s) => s.linkEngine);
   const unlinkEngine = useApp((s) => s.unlinkEngine);
+  const createCapability = useApp((s) => s.createCapability);
+  const removeCapability = useApp((s) => s.removeCapability);
   const logAccess = useApp((s) => s.logAccess);
   const toast = useApp((s) => s.toast);
   // הרגע — פעם אחת בפתיחת-הארגז (קצה-ה-UI; המנוע עצמו טהור)
   const [nowMs] = useState(() => Date.now());
   const sw = useSwitchCtx(nowMs, IMPACT_ABILITIES);
   const [goalFn, setGoalFn] = useState<EngineBoxDeps['goalRoutes']>(null);
+  const [atomsFn, setAtomsFn] = useState<((d: AtomsDeps) => AtomsSource) | null>(null);
 
   useEffect(() => {
     let alive = true;
     import('../../lib/enginebox/goal/routeAdapter')
       .then((m) => alive && setGoalFn(() => m.goalRoutes))
+      .catch(() => undefined);
+    import('./atoms/source')
+      .then((m) => alive && setAtomsFn(() => m.atomsSource))
       .catch(() => undefined);
     return () => {
       alive = false;
@@ -73,5 +85,20 @@ export function EngineBoxEntry(props: { onClose: () => void }) {
     [config, links, db, email, linkEngine, unlinkEngine, logAccess, toast, sw, nowMs, goalFn],
   );
   // ATOMS 14.10: לשונית "🧬 מנועים וחלקים" — המקור האמיתי (כרטיסי-המנועים והחלקים) מחובר בסשן הסופי; עד אז מצב-ריק כן
-  return <EngineBoxScreen source={source} atoms={null} onClose={props.onClose} />;
+  const canEdit = canEditEngineLinks(config, email);
+  const atoms = useMemo(
+    () =>
+      atomsFn
+        ? atomsFn({
+            db,
+            config,
+            nowMs,
+            canEdit,
+            create: (c) => void createCapability(c).then((ok) => ok && toast('✨ נוצר מנוע חדש')),
+            remove: (id) => void removeCapability(id).then((ok) => ok && toast('המנוע הוסר')),
+          })
+        : null,
+    [atomsFn, db, config, nowMs, canEdit, createCapability, removeCapability, toast],
+  );
+  return <EngineBoxScreen source={source} atoms={atoms} onClose={props.onClose} />;
 }

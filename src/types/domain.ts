@@ -4,6 +4,8 @@
  */
 
 /** מזהה ייחודי — מחרוזת עם קידומת לפי סוג הישות (f/m/c/e/ev/t/r/sp/tzc/tzb/tzp/tze/tzl/shp/shs/shc/sha/shr/she/shi/prl/prq/prp/pra/hu/hb/hr). */
+import type { Capability } from '../lib/atoms/contract';
+
 export type Id = string;
 
 /** תאריך בפורמט ISO ‏(YYYY-MM-DD). */
@@ -815,6 +817,11 @@ export interface UiPrefs {
    * חסר נשאר חסר (ביט-זהה). שלב א׳: מתאר בלבד — עוד לא מדליק/מכבה דבר בכלים.
    */
   engineLinks?: string[];
+  /**
+   * 🧬 מנועים וחלקים (ATOMS 14.10.2026): היכולות החדשות שנוצרו מחיבור חלק-קטן למקום במנוע ("מנוע תורים").
+   * חסר = אין (ביט-זהה). מחוטא-צורה ב-migrate ובמיזוג-הענן (atoms/capShape); אימות מול הכרטיסים בזמן-השימוש.
+   */
+  capabilities?: Capability[];
 }
 
 /** רשומת אישור-תשלום של הקופה-הרושמת (שיקוף — המבנה של הרכיב). */

@@ -57,8 +57,10 @@ describe('🧩 ארגז המנועים — שערים והגנות-מקור', ()
     expect(appSrc).not.toMatch(/<EngineBoxScreen\s+source=\{null\}/);
     expect(appSrc).toMatch(/<EngineBoxEntry\s+onClose=/);
     const entry = prod.find(([p]) => p.endsWith('/components/enginebox/EngineBoxEntry.tsx'))?.[1] ?? '';
-    // שינוי-נעילה מכוון (ATOMS-SCREEN 14.10): לשונית "🧬 מנועים וחלקים" — atoms={null} עד שהסשן הסופי מחבר מקור אמיתי
-    expect(entry).toContain('<EngineBoxScreen source={source} atoms={null} onClose={props.onClose} />');
+    // שינוי-נעילה מכוון (ATOMS 14.10, הסשן המשלב): לשונית "🧬 מנועים וחלקים" מקבלת את המקור האמיתי, שנטען ב-import()
+    expect(entry).toContain('<EngineBoxScreen source={source} atoms={atoms} onClose={props.onClose} />');
+    expect(entry).toMatch(/import\('\.\/atoms\/source'\)/);
+    expect(entry).not.toMatch(/^import (?!type )[^;]*from '\.\/atoms\/source'/m);
     expect(entry).toMatch(/engineBoxSource\(\{/);
     const source = prod.find(([p]) => p.endsWith('/components/enginebox/source.ts'))?.[1] ?? '';
     expect(source).toContain("from '../../lib/enginebox/match'");
