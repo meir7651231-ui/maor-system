@@ -1,0 +1,2567 @@
+{
+  "source": "mmmm",
+  "repo": "meir7651231-ui/MMMM",
+  "ref": "main@4bec20ae13aab7abe6dc9b9ae63caa3ebfcefc3b",
+  "generatedAt": null,
+  "parts": [
+    {
+      "id": "mmmm:artifacts/agents-chat/src/hooks/use-mobile.tsx#useIsMobile",
+      "source": "mmmm",
+      "path": "artifacts/agents-chat/src/hooks/use-mobile.tsx",
+      "symbol": "useIsMobile",
+      "lang": "ts",
+      "what": "component",
+      "name": "לבדוק אם המסך בגודל נייד",
+      "does": "לבדוק אם המסך בגודל נייד — בלי קלט, ומחזיר כן/לא.",
+      "takes": [],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "artifacts/agents-chat/src/hooks"
+      ]
+    },
+    {
+      "id": "mmmm:artifacts/agents-chat/src/hooks/use-toast.ts#reducer",
+      "source": "mmmm",
+      "path": "artifacts/agents-chat/src/hooks/use-toast.ts",
+      "symbol": "reducer",
+      "lang": "ts",
+      "what": "function",
+      "name": "לעדכן רשימת הודעות קופצות לפי פעולה",
+      "does": "לעדכן רשימת הודעות קופצות לפי פעולה — מקבל רשומת state, רשומת action, ומחזיר רשומת state.",
+      "takes": [
+        {
+          "name": "state",
+          "kind": "record:state",
+          "type": "State"
+        },
+        {
+          "name": "action",
+          "kind": "record:action",
+          "type": "Action"
+        }
+      ],
+      "gives": {
+        "kind": "record:state",
+        "type": "State"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "artifacts/agents-chat/src/hooks"
+      ]
+    },
+    {
+      "id": "mmmm:artifacts/agents-chat/src/hooks/use-toast.ts#toast",
+      "source": "mmmm",
+      "path": "artifacts/agents-chat/src/hooks/use-toast.ts",
+      "symbol": "toast",
+      "lang": "ts",
+      "what": "component",
+      "name": "להציג הודעה קופצת",
+      "does": "להציג הודעה קופצת — מקבל רשומת toast, ומחזיר תצוגה.",
+      "takes": [
+        {
+          "name": "{props}",
+          "kind": "record:toast",
+          "type": "Toast"
+        }
+      ],
+      "gives": {
+        "kind": "ui",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "artifacts/agents-chat/src/hooks"
+      ]
+    },
+    {
+      "id": "mmmm:artifacts/agents-chat/src/lib/utils.ts#cn",
+      "source": "mmmm",
+      "path": "artifacts/agents-chat/src/lib/utils.ts",
+      "symbol": "cn",
+      "lang": "ts",
+      "what": "particle",
+      "name": "לחבר שמות מחלקות CSS בלי כפילויות",
+      "does": "לחבר שמות מחלקות CSS בלי כפילויות — מקבל רשימה, ומחזיר טקסט.",
+      "takes": [
+        {
+          "name": "...inputs",
+          "kind": "list",
+          "type": "ClassValue[]"
+        }
+      ],
+      "gives": {
+        "kind": "text",
+        "type": null
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "inputs": [
+            "px-2",
+            "px-4",
+            "font-bold"
+          ]
+        },
+        "out": "px-4 font-bold"
+      },
+      "tags": [
+        "artifacts/agents-chat/src/lib"
+      ]
+    },
+    {
+      "id": "mmmm:artifacts/api-server/src/routes/notes.ts#buildSummary",
+      "source": "mmmm",
+      "path": "artifacts/api-server/src/routes/notes.ts",
+      "symbol": "buildSummary",
+      "lang": "ts",
+      "what": "function",
+      "name": "לנסח סיכום העדפות לבוש",
+      "does": "לנסח סיכום העדפות לבוש — מקבל רשימה, ומחזיר טקסט.",
+      "takes": [
+        {
+          "name": "prefs",
+          "kind": "list",
+          "type": "string[]"
+        },
+        {
+          "name": "brands",
+          "kind": "list",
+          "type": "string[]"
+        },
+        {
+          "name": "colors",
+          "kind": "list",
+          "type": "string[]"
+        }
+      ],
+      "gives": {
+        "kind": "text",
+        "type": "string"
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "artifacts/api-server/src/routes"
+      ]
+    },
+    {
+      "id": "mmmm:artifacts/api-server/src/routes/notes.ts#extractFromText",
+      "source": "mmmm",
+      "path": "artifacts/api-server/src/routes/notes.ts",
+      "symbol": "extractFromText",
+      "lang": "ts",
+      "what": "function",
+      "name": "לחלץ מותגים וצבעים מתוך הערה חופשית",
+      "does": "לחלץ מותגים וצבעים מתוך הערה חופשית — מקבל טקסט, ומחזיר רשימה.",
+      "takes": [
+        {
+          "name": "text",
+          "kind": "text",
+          "type": "string"
+        }
+      ],
+      "gives": {
+        "kind": "list",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "artifacts/api-server/src/routes"
+      ]
+    },
+    {
+      "id": "mmmm:artifacts/api-server/src/swarm/agents.ts#fallbackSuggestions",
+      "source": "mmmm",
+      "path": "artifacts/api-server/src/swarm/agents.ts",
+      "symbol": "fallbackSuggestions",
+      "lang": "ts",
+      "what": "function",
+      "name": "להציע תלבושות קבועות כשאין חיבור",
+      "does": "להציע תלבושות קבועות כשאין חיבור — מקבל רשומת profile, טקסט, ומחזיר רשימה.",
+      "takes": [
+        {
+          "name": "profile",
+          "kind": "record:profile",
+          "type": "Profile"
+        },
+        {
+          "name": "occasion",
+          "kind": "text",
+          "type": "string"
+        }
+      ],
+      "gives": {
+        "kind": "list",
+        "type": "OutfitSuggestion[]"
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "artifacts/api-server/src/swarm"
+      ]
+    },
+    {
+      "id": "mmmm:artifacts/api-server/src/swarm/agents.ts#runDirectorAgent",
+      "source": "mmmm",
+      "path": "artifacts/api-server/src/swarm/agents.ts",
+      "symbol": "runDirectorAgent",
+      "lang": "ts",
+      "what": "engine",
+      "name": "לפרק פרופיל לבריף סטיילינג",
+      "does": "לפרק פרופיל לבריף סטיילינג — מקבל רשומת profile, טקסט, ומחזיר טקסט.",
+      "takes": [
+        {
+          "name": "profile",
+          "kind": "record:profile",
+          "type": "Profile"
+        },
+        {
+          "name": "occasion",
+          "kind": "text",
+          "type": "string"
+        },
+        {
+          "name": "season",
+          "kind": "text",
+          "type": "string"
+        },
+        {
+          "name": "mood",
+          "kind": "text",
+          "type": "string"
+        }
+      ],
+      "gives": {
+        "kind": "text",
+        "type": "Promise<string>"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "artifacts/api-server/src/swarm",
+        "async"
+      ]
+    },
+    {
+      "id": "mmmm:artifacts/api-server/src/swarm/agents.ts#runMarketAgent",
+      "source": "mmmm",
+      "path": "artifacts/api-server/src/swarm/agents.ts",
+      "symbol": "runMarketAgent",
+      "lang": "ts",
+      "what": "engine",
+      "name": "למפות כיוון מראה לפריטים בשוק",
+      "does": "למפות כיוון מראה לפריטים בשוק — מקבל רשומת profile, טקסט, ומחזיר טקסט.",
+      "takes": [
+        {
+          "name": "profile",
+          "kind": "record:profile",
+          "type": "Profile"
+        },
+        {
+          "name": "lookDirections",
+          "kind": "text",
+          "type": "string"
+        },
+        {
+          "name": "occasion",
+          "kind": "text",
+          "type": "string"
+        }
+      ],
+      "gives": {
+        "kind": "text",
+        "type": "Promise<string>"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "artifacts/api-server/src/swarm",
+        "async"
+      ]
+    },
+    {
+      "id": "mmmm:artifacts/api-server/src/swarm/agents.ts#runQAAgent",
+      "source": "mmmm",
+      "path": "artifacts/api-server/src/swarm/agents.ts",
+      "symbol": "runQAAgent",
+      "lang": "ts",
+      "what": "engine",
+      "name": "לבקר ולשפר את הצעות התלבושת",
+      "does": "לבקר ולשפר את הצעות התלבושת — מקבל רשומת profile, טקסט, ומחזיר רשימה.",
+      "takes": [
+        {
+          "name": "profile",
+          "kind": "record:profile",
+          "type": "Profile"
+        },
+        {
+          "name": "marketOutput",
+          "kind": "text",
+          "type": "string"
+        },
+        {
+          "name": "occasion",
+          "kind": "text",
+          "type": "string"
+        }
+      ],
+      "gives": {
+        "kind": "list",
+        "type": "Promise<OutfitSuggestion[]>"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "artifacts/api-server/src/swarm",
+        "async"
+      ]
+    },
+    {
+      "id": "mmmm:artifacts/api-server/src/swarm/agents.ts#runStyleAnalystAgent",
+      "source": "mmmm",
+      "path": "artifacts/api-server/src/swarm/agents.ts",
+      "symbol": "runStyleAnalystAgent",
+      "lang": "ts",
+      "what": "engine",
+      "name": "לנתח סגנון ולהגדיר כיוון למראה",
+      "does": "לנתח סגנון ולהגדיר כיוון למראה — מקבל רשומת profile, טקסט, ומחזיר טקסט.",
+      "takes": [
+        {
+          "name": "profile",
+          "kind": "record:profile",
+          "type": "Profile"
+        },
+        {
+          "name": "directorBrief",
+          "kind": "text",
+          "type": "string"
+        }
+      ],
+      "gives": {
+        "kind": "text",
+        "type": "Promise<string>"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "artifacts/api-server/src/swarm",
+        "async"
+      ]
+    },
+    {
+      "id": "mmmm:artifacts/api-server/src/swarm/agents.ts#runSwarm",
+      "source": "mmmm",
+      "path": "artifacts/api-server/src/swarm/agents.ts",
+      "symbol": "runSwarm",
+      "lang": "ts",
+      "what": "engine",
+      "name": "להריץ נחיל סוכנים שמציע תלבושות",
+      "does": "במאי ⇒ מנתח סגנון ⇒ סוכן שוק ⇒ בקרת איכות; כל שלב בונה על הקודם.",
+      "takes": [
+        {
+          "name": "profile",
+          "kind": "record:profile",
+          "type": "Profile"
+        },
+        {
+          "name": "occasion",
+          "kind": "text",
+          "type": "string"
+        },
+        {
+          "name": "season",
+          "kind": "text",
+          "type": "string"
+        },
+        {
+          "name": "mood",
+          "kind": "text",
+          "type": "string"
+        },
+        {
+          "name": "onEvent",
+          "kind": "unknown",
+          "type": "(event: SwarmEvent) => void"
+        }
+      ],
+      "gives": {
+        "kind": "list",
+        "type": "Promise<OutfitSuggestion[]>"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "artifacts/api-server/src/swarm",
+        "async"
+      ]
+    },
+    {
+      "id": "mmmm:ask-director-keys.js#extractKeyRequirements",
+      "source": "mmmm",
+      "path": "ask-director-keys.js",
+      "symbol": "extractKeyRequirements",
+      "lang": "js",
+      "what": "function",
+      "name": "לחלץ דרישות מפתחות מתשובת סוכן",
+      "does": "לחלץ דרישות מפתחות מתשובת סוכן — מקבל רשומת http, ומחזיר רשימה.",
+      "takes": [
+        {
+          "name": "response",
+          "kind": "record:http",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "list",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "ask-director-keys"
+      ]
+    },
+    {
+      "id": "mmmm:chat_manager/server.js#communicateWithAgent",
+      "source": "mmmm",
+      "path": "chat_manager/server.js",
+      "symbol": "communicateWithAgent",
+      "lang": "js",
+      "what": "function",
+      "name": "לתקשר עם סוכן",
+      "does": "לתקשר עם סוכן — מקבל רשומת agent, טקסט, רשומת context, ומחזיר משהו. (שלד: מחזיר ערך קבוע)",
+      "takes": [
+        {
+          "name": "agent",
+          "kind": "record:agent",
+          "type": null
+        },
+        {
+          "name": "message",
+          "kind": "text",
+          "type": null
+        },
+        {
+          "name": "context",
+          "kind": "record:context",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "chat_manager",
+        "name:auto",
+        "stub"
+      ]
+    },
+    {
+      "id": "mmmm:final_meeting.js#getRequestDetails",
+      "source": "mmmm",
+      "path": "final_meeting.js",
+      "symbol": "getRequestDetails",
+      "lang": "js",
+      "what": "function",
+      "name": "להרכיב פרטי בקשה לספק של סוכן",
+      "does": "להרכיב פרטי בקשה לספק של סוכן — מקבל רשומת agent, טקסט, ומחזיר רשומת request_detail.",
+      "takes": [
+        {
+          "name": "agent",
+          "kind": "record:agent",
+          "type": null
+        },
+        {
+          "name": "message",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "record:request_detail",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "final_meeting"
+      ]
+    },
+    {
+      "id": "mmmm:lib/api-client-react/src/custom-fetch.ts#applyBaseUrl",
+      "source": "mmmm",
+      "path": "lib/api-client-react/src/custom-fetch.ts",
+      "symbol": "applyBaseUrl",
+      "lang": "ts",
+      "what": "function",
+      "name": "להוסיף כתובת בסיס לכתובת יחסית",
+      "does": "להוסיף כתובת בסיס לכתובת יחסית — מקבל רשומת input, ומחזיר משהו.",
+      "takes": [
+        {
+          "name": "input",
+          "kind": "record:input",
+          "type": "RequestInfo | URL"
+        }
+      ],
+      "gives": {
+        "kind": "unknown",
+        "type": "RequestInfo | URL"
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "lib/api-client-react/src"
+      ]
+    },
+    {
+      "id": "mmmm:lib/api-client-react/src/custom-fetch.ts#buildErrorMessage",
+      "source": "mmmm",
+      "path": "lib/api-client-react/src/custom-fetch.ts",
+      "symbol": "buildErrorMessage",
+      "lang": "ts",
+      "what": "function",
+      "name": "לנסח הודעת שגיאה קריאה מתשובת שרת",
+      "does": "לנסח הודעת שגיאה קריאה מתשובת שרת — מקבל רשומת response, רשומת data, ומחזיר טקסט.",
+      "takes": [
+        {
+          "name": "response",
+          "kind": "record:response",
+          "type": "Response"
+        },
+        {
+          "name": "data",
+          "kind": "record:data",
+          "type": "unknown"
+        }
+      ],
+      "gives": {
+        "kind": "text",
+        "type": "string"
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "lib/api-client-react/src"
+      ]
+    },
+    {
+      "id": "mmmm:lib/api-client-react/src/custom-fetch.ts#customFetch",
+      "source": "mmmm",
+      "path": "lib/api-client-react/src/custom-fetch.ts",
+      "symbol": "customFetch",
+      "lang": "ts",
+      "what": "engine",
+      "name": "לשלוח בקשת רשת עם טיפול בשגיאות",
+      "does": "עוטף fetch: מוסיף כתובת בסיס והרשאה, מפענח JSON או טקסט, וזורק שגיאה קריאה.",
+      "takes": [
+        {
+          "name": "input",
+          "kind": "record:input",
+          "type": "RequestInfo | URL"
+        },
+        {
+          "name": "options",
+          "kind": "record:custom_fetch_options",
+          "type": "CustomFetchOptions"
+        }
+      ],
+      "gives": {
+        "kind": "record:t",
+        "type": "Promise<T>"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "async",
+        "lib/api-client-react/src"
+      ]
+    },
+    {
+      "id": "mmmm:lib/api-client-react/src/custom-fetch.ts#getMediaType",
+      "source": "mmmm",
+      "path": "lib/api-client-react/src/custom-fetch.ts",
+      "symbol": "getMediaType",
+      "lang": "ts",
+      "what": "function",
+      "name": "לחלץ את סוג התוכן מהכותרות",
+      "does": "לחלץ את סוג התוכן מהכותרות — מקבל רשומת headers, ומחזיר טקסט.",
+      "takes": [
+        {
+          "name": "headers",
+          "kind": "record:headers",
+          "type": "Headers"
+        }
+      ],
+      "gives": {
+        "kind": "text",
+        "type": "string | null"
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "lib/api-client-react/src"
+      ]
+    },
+    {
+      "id": "mmmm:lib/api-client-react/src/custom-fetch.ts#getStringField",
+      "source": "mmmm",
+      "path": "lib/api-client-react/src/custom-fetch.ts",
+      "symbol": "getStringField",
+      "lang": "ts",
+      "what": "particle",
+      "name": "לקרוא שדה טקסט מאובייקט בבטחה",
+      "does": "לקרוא שדה טקסט מאובייקט בבטחה — מקבל רשומת value, טקסט, ומחזיר טקסט.",
+      "takes": [
+        {
+          "name": "value",
+          "kind": "record:value",
+          "type": "unknown"
+        },
+        {
+          "name": "key",
+          "kind": "text",
+          "type": "string"
+        }
+      ],
+      "gives": {
+        "kind": "text",
+        "type": "string | undefined"
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "lib/api-client-react/src"
+      ]
+    },
+    {
+      "id": "mmmm:lib/api-client-react/src/custom-fetch.ts#hasNoBody",
+      "source": "mmmm",
+      "path": "lib/api-client-react/src/custom-fetch.ts",
+      "symbol": "hasNoBody",
+      "lang": "ts",
+      "what": "function",
+      "name": "לבדוק אם לתשובה אין גוף",
+      "does": "לבדוק אם לתשובה אין גוף — מקבל רשומת response, טקסט, ומחזיר כן/לא.",
+      "takes": [
+        {
+          "name": "response",
+          "kind": "record:response",
+          "type": "Response"
+        },
+        {
+          "name": "method",
+          "kind": "text",
+          "type": "string"
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": "boolean"
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "lib/api-client-react/src"
+      ]
+    },
+    {
+      "id": "mmmm:lib/api-client-react/src/custom-fetch.ts#inferResponseType",
+      "source": "mmmm",
+      "path": "lib/api-client-react/src/custom-fetch.ts",
+      "symbol": "inferResponseType",
+      "lang": "ts",
+      "what": "function",
+      "name": "לנחש אם התשובה JSON, טקסט או קובץ",
+      "does": "לנחש אם התשובה JSON, טקסט או קובץ — מקבל רשומת response, ומחזיר טקסט.",
+      "takes": [
+        {
+          "name": "response",
+          "kind": "record:response",
+          "type": "Response"
+        }
+      ],
+      "gives": {
+        "kind": "text",
+        "type": "\"json\" | \"text\" | \"blob\""
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "lib/api-client-react/src"
+      ]
+    },
+    {
+      "id": "mmmm:lib/api-client-react/src/custom-fetch.ts#isJsonMediaType",
+      "source": "mmmm",
+      "path": "lib/api-client-react/src/custom-fetch.ts",
+      "symbol": "isJsonMediaType",
+      "lang": "ts",
+      "what": "particle",
+      "name": "לבדוק אם סוג התוכן הוא JSON",
+      "does": "לבדוק אם סוג התוכן הוא JSON — מקבל טקסט, ומחזיר כן/לא.",
+      "takes": [
+        {
+          "name": "mediaType",
+          "kind": "text",
+          "type": "string | null"
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": "boolean"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "mediaType": "application/problem+json"
+        },
+        "out": true
+      },
+      "tags": [
+        "lib/api-client-react/src"
+      ]
+    },
+    {
+      "id": "mmmm:lib/api-client-react/src/custom-fetch.ts#isRequest",
+      "source": "mmmm",
+      "path": "lib/api-client-react/src/custom-fetch.ts",
+      "symbol": "isRequest",
+      "lang": "ts",
+      "what": "particle",
+      "name": "לבדוק אם בקשה",
+      "does": "לבדוק אם בקשה — מקבל רשומת input, ומחזיר כן/לא.",
+      "takes": [
+        {
+          "name": "input",
+          "kind": "record:input",
+          "type": "RequestInfo | URL"
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": "input is Request"
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "lib/api-client-react/src",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "mmmm:lib/api-client-react/src/custom-fetch.ts#isTextMediaType",
+      "source": "mmmm",
+      "path": "lib/api-client-react/src/custom-fetch.ts",
+      "symbol": "isTextMediaType",
+      "lang": "ts",
+      "what": "particle",
+      "name": "לבדוק אם סוג התוכן הוא טקסט",
+      "does": "לבדוק אם סוג התוכן הוא טקסט — מקבל טקסט, ומחזיר כן/לא.",
+      "takes": [
+        {
+          "name": "mediaType",
+          "kind": "text",
+          "type": "string | null"
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": "boolean"
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "lib/api-client-react/src"
+      ]
+    },
+    {
+      "id": "mmmm:lib/api-client-react/src/custom-fetch.ts#isUrl",
+      "source": "mmmm",
+      "path": "lib/api-client-react/src/custom-fetch.ts",
+      "symbol": "isUrl",
+      "lang": "ts",
+      "what": "particle",
+      "name": "לבדוק אם כתובת",
+      "does": "לבדוק אם כתובת — מקבל רשומת input, ומחזיר כן/לא.",
+      "takes": [
+        {
+          "name": "input",
+          "kind": "record:input",
+          "type": "RequestInfo | URL"
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": "input is URL"
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "lib/api-client-react/src",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "mmmm:lib/api-client-react/src/custom-fetch.ts#looksLikeJson",
+      "source": "mmmm",
+      "path": "lib/api-client-react/src/custom-fetch.ts",
+      "symbol": "looksLikeJson",
+      "lang": "ts",
+      "what": "particle",
+      "name": "לבדוק אם טקסט נראה כמו JSON",
+      "does": "לבדוק אם טקסט נראה כמו JSON — מקבל טקסט, ומחזיר כן/לא.",
+      "takes": [
+        {
+          "name": "text",
+          "kind": "text",
+          "type": "string"
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": "boolean"
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "lib/api-client-react/src"
+      ]
+    },
+    {
+      "id": "mmmm:lib/api-client-react/src/custom-fetch.ts#mergeHeaders",
+      "source": "mmmm",
+      "path": "lib/api-client-react/src/custom-fetch.ts",
+      "symbol": "mergeHeaders",
+      "lang": "ts",
+      "what": "function",
+      "name": "למזג כמה קבוצות כותרות לאחת",
+      "does": "למזג כמה קבוצות כותרות לאחת — מקבל רשימה, ומחזיר רשומת headers.",
+      "takes": [
+        {
+          "name": "...sources",
+          "kind": "list",
+          "type": "Array<HeadersInit | undefined>"
+        }
+      ],
+      "gives": {
+        "kind": "record:headers",
+        "type": "Headers"
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "lib/api-client-react/src"
+      ]
+    },
+    {
+      "id": "mmmm:lib/api-client-react/src/custom-fetch.ts#parseErrorBody",
+      "source": "mmmm",
+      "path": "lib/api-client-react/src/custom-fetch.ts",
+      "symbol": "parseErrorBody",
+      "lang": "ts",
+      "what": "function",
+      "name": "לפרק גוף שגיאה",
+      "does": "לפרק גוף שגיאה — מקבל רשומת response, טקסט, ומחזיר רשומת error_body.",
+      "takes": [
+        {
+          "name": "response",
+          "kind": "record:response",
+          "type": "Response"
+        },
+        {
+          "name": "method",
+          "kind": "text",
+          "type": "string"
+        }
+      ],
+      "gives": {
+        "kind": "record:error_body",
+        "type": "Promise<unknown>"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "async",
+        "lib/api-client-react/src",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "mmmm:lib/api-client-react/src/custom-fetch.ts#parseJsonBody",
+      "source": "mmmm",
+      "path": "lib/api-client-react/src/custom-fetch.ts",
+      "symbol": "parseJsonBody",
+      "lang": "ts",
+      "what": "function",
+      "name": "לפרק גוף JSON",
+      "does": "לפרק גוף JSON — מקבל רשומת response, רשומת requestinfo, ומחזיר רשומת json_body.",
+      "takes": [
+        {
+          "name": "response",
+          "kind": "record:response",
+          "type": "Response"
+        },
+        {
+          "name": "requestInfo",
+          "kind": "record:requestinfo",
+          "type": "{ method: string; url: string }"
+        }
+      ],
+      "gives": {
+        "kind": "record:json_body",
+        "type": "Promise<unknown>"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "async",
+        "lib/api-client-react/src",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "mmmm:lib/api-client-react/src/custom-fetch.ts#parseSuccessBody",
+      "source": "mmmm",
+      "path": "lib/api-client-react/src/custom-fetch.ts",
+      "symbol": "parseSuccessBody",
+      "lang": "ts",
+      "what": "function",
+      "name": "לפרק גוף הצלחה",
+      "does": "לפרק גוף הצלחה — מקבל רשומת response, טקסט, רשומת requestinfo, ומחזיר רשומת success_body.",
+      "takes": [
+        {
+          "name": "response",
+          "kind": "record:response",
+          "type": "Response"
+        },
+        {
+          "name": "responseType",
+          "kind": "text",
+          "type": "\"json\" | \"text\" | \"blob\" | \"auto\""
+        },
+        {
+          "name": "requestInfo",
+          "kind": "record:requestinfo",
+          "type": "{ method: string; url: string }"
+        }
+      ],
+      "gives": {
+        "kind": "record:success_body",
+        "type": "Promise<unknown>"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "async",
+        "lib/api-client-react/src",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "mmmm:lib/api-client-react/src/custom-fetch.ts#resolveMethod",
+      "source": "mmmm",
+      "path": "lib/api-client-react/src/custom-fetch.ts",
+      "symbol": "resolveMethod",
+      "lang": "ts",
+      "what": "function",
+      "name": "לקבוע את שיטת הבקשה (GET/POST)",
+      "does": "לקבוע את שיטת הבקשה (GET/POST) — מקבל רשומת input, טקסט, ומחזיר טקסט.",
+      "takes": [
+        {
+          "name": "input",
+          "kind": "record:input",
+          "type": "RequestInfo | URL"
+        },
+        {
+          "name": "explicitMethod",
+          "kind": "text",
+          "type": "string"
+        }
+      ],
+      "gives": {
+        "kind": "text",
+        "type": "string"
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "lib/api-client-react/src"
+      ]
+    },
+    {
+      "id": "mmmm:lib/api-client-react/src/custom-fetch.ts#resolveUrl",
+      "source": "mmmm",
+      "path": "lib/api-client-react/src/custom-fetch.ts",
+      "symbol": "resolveUrl",
+      "lang": "ts",
+      "what": "function",
+      "name": "לפתור כתובת",
+      "does": "לפתור כתובת — מקבל רשומת input, ומחזיר טקסט.",
+      "takes": [
+        {
+          "name": "input",
+          "kind": "record:input",
+          "type": "RequestInfo | URL"
+        }
+      ],
+      "gives": {
+        "kind": "text",
+        "type": "string"
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "lib/api-client-react/src",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "mmmm:lib/api-client-react/src/custom-fetch.ts#setAuthTokenGetter",
+      "source": "mmmm",
+      "path": "lib/api-client-react/src/custom-fetch.ts",
+      "symbol": "setAuthTokenGetter",
+      "lang": "ts",
+      "what": "function",
+      "name": "לקבוע מקור אסימון הזדהות",
+      "does": "לקבוע מקור אסימון הזדהות — מקבל רשומת auth_token_getter, ומחזיר משהו.",
+      "takes": [
+        {
+          "name": "getter",
+          "kind": "record:auth_token_getter",
+          "type": "AuthTokenGetter | null"
+        }
+      ],
+      "gives": {
+        "kind": "unknown",
+        "type": "void"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "lib/api-client-react/src",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "mmmm:lib/api-client-react/src/custom-fetch.ts#setBaseUrl",
+      "source": "mmmm",
+      "path": "lib/api-client-react/src/custom-fetch.ts",
+      "symbol": "setBaseUrl",
+      "lang": "ts",
+      "what": "function",
+      "name": "לקבוע כתובת בסיס",
+      "does": "לקבוע כתובת בסיס — מקבל טקסט, ומחזיר משהו.",
+      "takes": [
+        {
+          "name": "url",
+          "kind": "text",
+          "type": "string | null"
+        }
+      ],
+      "gives": {
+        "kind": "unknown",
+        "type": "void"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "lib/api-client-react/src",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "mmmm:lib/api-client-react/src/custom-fetch.ts#stripBom",
+      "source": "mmmm",
+      "path": "lib/api-client-react/src/custom-fetch.ts",
+      "symbol": "stripBom",
+      "lang": "ts",
+      "what": "particle",
+      "name": "להסיר סימן BOM מתחילת טקסט",
+      "does": "להסיר סימן BOM מתחילת טקסט — מקבל טקסט, ומחזיר טקסט.",
+      "takes": [
+        {
+          "name": "text",
+          "kind": "text",
+          "type": "string"
+        }
+      ],
+      "gives": {
+        "kind": "text",
+        "type": "string"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "text": "﻿{\"a\":1}"
+        },
+        "out": "{\"a\":1}"
+      },
+      "tags": [
+        "lib/api-client-react/src"
+      ]
+    },
+    {
+      "id": "mmmm:lib/api-client-react/src/custom-fetch.ts#truncate",
+      "source": "mmmm",
+      "path": "lib/api-client-react/src/custom-fetch.ts",
+      "symbol": "truncate",
+      "lang": "ts",
+      "what": "particle",
+      "name": "לקצר טקסט לאורך מרבי",
+      "does": "לקצר טקסט לאורך מרבי — מקבל טקסט, מספר, ומחזיר טקסט.",
+      "takes": [
+        {
+          "name": "text",
+          "kind": "text",
+          "type": "string"
+        },
+        {
+          "name": "maxLength",
+          "kind": "number",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "text",
+        "type": "string"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "text": "abcdefghij",
+          "maxLength": 5
+        },
+        "out": "abcd…"
+      },
+      "tags": [
+        "lib/api-client-react/src"
+      ]
+    },
+    {
+      "id": "mmmm:lib/integrations-openai-ai-react/src/audio/audio-playback-worklet.js#AudioPlaybackProcessor",
+      "source": "mmmm",
+      "path": "lib/integrations-openai-ai-react/src/audio/audio-playback-worklet.js",
+      "symbol": "AudioPlaybackProcessor",
+      "lang": "js",
+      "what": "brick",
+      "name": "לייצג מעבד השמעה שמע",
+      "does": "לייצג מעבד השמעה שמע — בלי קלט, ומחזיר רשומת audio_playback_processor.",
+      "takes": [],
+      "gives": {
+        "kind": "record:audio_playback_processor",
+        "type": "AudioPlaybackProcessor"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "lib/integrations-openai-ai-react/src/audio",
+        "methods:1",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "mmmm:lib/integrations-openai-ai-react/src/audio/audio-playback-worklet.js#RingBuffer",
+      "source": "mmmm",
+      "path": "lib/integrations-openai-ai-react/src/audio/audio-playback-worklet.js",
+      "symbol": "RingBuffer",
+      "lang": "js",
+      "what": "engine",
+      "name": "לאגור שמע בחוצץ מעגלי",
+      "does": "לאגור שמע בחוצץ מעגלי — בלי קלט, ומחזיר רשומת ring_buffer.",
+      "takes": [],
+      "gives": {
+        "kind": "record:ring_buffer",
+        "type": "RingBuffer"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "lib/integrations-openai-ai-react/src/audio",
+        "methods:5"
+      ]
+    },
+    {
+      "id": "mmmm:lib/integrations-openai-ai-react/src/audio/audio-playback-worklet.js#RingBuffer.available",
+      "source": "mmmm",
+      "path": "lib/integrations-openai-ai-react/src/audio/audio-playback-worklet.js",
+      "symbol": "RingBuffer.available",
+      "lang": "js",
+      "what": "function",
+      "name": "לחשב זמין",
+      "does": "לחשב זמין — בלי קלט, ומחזיר מספר.",
+      "takes": [],
+      "gives": {
+        "kind": "number",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "lib/integrations-openai-ai-react/src/audio",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "mmmm:lib/integrations-openai-ai-react/src/audio/audio-utils.ts#createAudioPlaybackContext",
+      "source": "mmmm",
+      "path": "lib/integrations-openai-ai-react/src/audio/audio-utils.ts",
+      "symbol": "createAudioPlaybackContext",
+      "lang": "ts",
+      "what": "function",
+      "name": "ליצור הקשר השמעה שמע",
+      "does": "ליצור הקשר השמעה שמע — מקבל טקסט, מספר, ומחזיר רשומת map.",
+      "takes": [
+        {
+          "name": "workletPath",
+          "kind": "text",
+          "type": "string"
+        },
+        {
+          "name": "sampleRate",
+          "kind": "number",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "record:map",
+        "type": "Promise<{ ctx: AudioContext; worklet: AudioWorkletNode }>"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "async",
+        "lib/integrations-openai-ai-react/src/audio",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "mmmm:lib/integrations-openai-ai-react/src/audio/audio-utils.ts#decodePCM16ToFloat32",
+      "source": "mmmm",
+      "path": "lib/integrations-openai-ai-react/src/audio/audio-utils.ts",
+      "symbol": "decodePCM16ToFloat32",
+      "lang": "ts",
+      "what": "function",
+      "name": "לפענח שמע PCM16 לפורמט ניגון בדפדפן",
+      "does": "לפענח שמע PCM16 לפורמט ניגון בדפדפן — מקבל טקסט, ומחזיר שמע.",
+      "takes": [
+        {
+          "name": "base64Audio",
+          "kind": "text",
+          "type": "string"
+        }
+      ],
+      "gives": {
+        "kind": "sound",
+        "type": "Float32Array"
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "lib/integrations-openai-ai-react/src/audio"
+      ]
+    },
+    {
+      "id": "mmmm:lib/integrations-openai-ai-react/src/audio/useAudioPlayback.ts#SequenceBuffer",
+      "source": "mmmm",
+      "path": "lib/integrations-openai-ai-react/src/audio/useAudioPlayback.ts",
+      "symbol": "SequenceBuffer",
+      "lang": "ts",
+      "what": "engine",
+      "name": "לסדר חתיכות שמע לפי מספר רצף",
+      "does": "לסדר חתיכות שמע לפי מספר רצף — מקבל רשומת pending, רשומת nextseq, ומחזיר רשומת sequence_buffer.",
+      "takes": [
+        {
+          "name": "pending",
+          "kind": "record:pending",
+          "type": null
+        },
+        {
+          "name": "nextSeq",
+          "kind": "record:nextseq",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "record:sequence_buffer",
+        "type": "SequenceBuffer"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "lib/integrations-openai-ai-react/src/audio",
+        "methods:2"
+      ]
+    },
+    {
+      "id": "mmmm:lib/integrations-openai-ai-react/src/audio/useAudioPlayback.ts#useAudioPlayback",
+      "source": "mmmm",
+      "path": "lib/integrations-openai-ai-react/src/audio/useAudioPlayback.ts",
+      "symbol": "useAudioPlayback",
+      "lang": "ts",
+      "what": "engine",
+      "name": "לנגן שמע שמגיע בחתיכות",
+      "does": "לנגן שמע שמגיע בחתיכות — מקבל טקסט, ומחזיר תצוגה.",
+      "takes": [
+        {
+          "name": "workletPath",
+          "kind": "text",
+          "type": "string"
+        }
+      ],
+      "gives": {
+        "kind": "ui",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "lib/integrations-openai-ai-react/src/audio"
+      ]
+    },
+    {
+      "id": "mmmm:lib/integrations-openai-ai-react/src/audio/useVoiceRecorder.ts#getSupportedMimeType",
+      "source": "mmmm",
+      "path": "lib/integrations-openai-ai-react/src/audio/useVoiceRecorder.ts",
+      "symbol": "getSupportedMimeType",
+      "lang": "ts",
+      "what": "function",
+      "name": "להביא סוג MIME נתמך",
+      "does": "להביא סוג MIME נתמך — בלי קלט, ומחזיר טקסט.",
+      "takes": [],
+      "gives": {
+        "kind": "text",
+        "type": "string | undefined"
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "lib/integrations-openai-ai-react/src/audio",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "mmmm:lib/integrations-openai-ai-react/src/audio/useVoiceRecorder.ts#useVoiceRecorder",
+      "source": "mmmm",
+      "path": "lib/integrations-openai-ai-react/src/audio/useVoiceRecorder.ts",
+      "symbol": "useVoiceRecorder",
+      "lang": "ts",
+      "what": "engine",
+      "name": "להקליט קול מהמיקרופון",
+      "does": "להקליט קול מהמיקרופון — בלי קלט, ומחזיר תצוגה.",
+      "takes": [],
+      "gives": {
+        "kind": "ui",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "lib/integrations-openai-ai-react/src/audio"
+      ]
+    },
+    {
+      "id": "mmmm:lib/integrations-openai-ai-react/src/audio/useVoiceStream.ts#blobToBase64",
+      "source": "mmmm",
+      "path": "lib/integrations-openai-ai-react/src/audio/useVoiceStream.ts",
+      "symbol": "blobToBase64",
+      "lang": "ts",
+      "what": "function",
+      "name": "לנסח קובץ לbase64",
+      "does": "לנסח קובץ לbase64 — מקבל קובץ, רשומת abort_signal, ומחזיר טקסט.",
+      "takes": [
+        {
+          "name": "blob",
+          "kind": "file",
+          "type": "Blob"
+        },
+        {
+          "name": "signal",
+          "kind": "record:abort_signal",
+          "type": "AbortSignal"
+        }
+      ],
+      "gives": {
+        "kind": "text",
+        "type": "Promise<string>"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "async",
+        "lib/integrations-openai-ai-react/src/audio",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "mmmm:lib/integrations-openai-ai-react/src/audio/useVoiceStream.ts#createAbortError",
+      "source": "mmmm",
+      "path": "lib/integrations-openai-ai-react/src/audio/useVoiceStream.ts",
+      "symbol": "createAbortError",
+      "lang": "ts",
+      "what": "function",
+      "name": "ליצור שגיאה ביטול",
+      "does": "ליצור שגיאה ביטול — בלי קלט, ומחזיר רשומת error.",
+      "takes": [],
+      "gives": {
+        "kind": "record:error",
+        "type": "Error"
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "lib/integrations-openai-ai-react/src/audio",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "mmmm:lib/integrations-openai-ai-react/src/audio/useVoiceStream.ts#extractCompleteSseBlocks",
+      "source": "mmmm",
+      "path": "lib/integrations-openai-ai-react/src/audio/useVoiceStream.ts",
+      "symbol": "extractCompleteSseBlocks",
+      "lang": "ts",
+      "what": "function",
+      "name": "לפצל זרם SSE לגושים שלמים",
+      "does": "לפצל זרם SSE לגושים שלמים — מקבל טקסט, ומחזיר רשומת map.",
+      "takes": [
+        {
+          "name": "buffer",
+          "kind": "text",
+          "type": "string"
+        }
+      ],
+      "gives": {
+        "kind": "record:map",
+        "type": "{\n  blocks: string[];\n  remaining: string;\n}"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "lib/integrations-openai-ai-react/src/audio"
+      ]
+    },
+    {
+      "id": "mmmm:lib/integrations-openai-ai-react/src/audio/useVoiceStream.ts#handleVoiceStreamEvent",
+      "source": "mmmm",
+      "path": "lib/integrations-openai-ai-react/src/audio/useVoiceStream.ts",
+      "symbol": "handleVoiceStreamEvent",
+      "lang": "ts",
+      "what": "function",
+      "name": "לטפל באירוע זרם קול",
+      "does": "לטפל באירוע זרם קול — מקבל רשומת voice_stream_event, רשומת playback_handle, רשומת callback, ומחזיר משהו.",
+      "takes": [
+        {
+          "name": "event",
+          "kind": "record:voice_stream_event",
+          "type": "VoiceStreamEvent"
+        },
+        {
+          "name": "playback",
+          "kind": "record:playback_handle",
+          "type": "PlaybackHandle"
+        },
+        {
+          "name": "callbacks",
+          "kind": "record:callback",
+          "type": "Omit<StreamCallbacks, \"workletPath\">"
+        },
+        {
+          "name": "state",
+          "kind": "record:stream_state",
+          "type": "StreamState"
+        }
+      ],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "lib/integrations-openai-ai-react/src/audio",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "mmmm:lib/integrations-openai-ai-react/src/audio/useVoiceStream.ts#isDoneEvent",
+      "source": "mmmm",
+      "path": "lib/integrations-openai-ai-react/src/audio/useVoiceStream.ts",
+      "symbol": "isDoneEvent",
+      "lang": "ts",
+      "what": "particle",
+      "name": "לבדוק אם אירוע סיום",
+      "does": "לבדוק אם אירוע סיום — מקבל רשומת voice_stream_event, ומחזיר כן/לא.",
+      "takes": [
+        {
+          "name": "event",
+          "kind": "record:voice_stream_event",
+          "type": "VoiceStreamEvent"
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": "event is DoneEvent"
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "lib/integrations-openai-ai-react/src/audio",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "mmmm:lib/integrations-openai-ai-react/src/audio/useVoiceStream.ts#isVoiceStreamEvent",
+      "source": "mmmm",
+      "path": "lib/integrations-openai-ai-react/src/audio/useVoiceStream.ts",
+      "symbol": "isVoiceStreamEvent",
+      "lang": "ts",
+      "what": "function",
+      "name": "לבדוק אם אירוע זרם קול",
+      "does": "לבדוק אם אירוע זרם קול — מקבל רשומת value, ומחזיר כן/לא.",
+      "takes": [
+        {
+          "name": "value",
+          "kind": "record:value",
+          "type": "unknown"
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": "value is VoiceStreamEvent"
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "lib/integrations-openai-ai-react/src/audio",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "mmmm:lib/integrations-openai-ai-react/src/audio/useVoiceStream.ts#notifyError",
+      "source": "mmmm",
+      "path": "lib/integrations-openai-ai-react/src/audio/useVoiceStream.ts",
+      "symbol": "notifyError",
+      "lang": "ts",
+      "what": "function",
+      "name": "להודיע על שגיאה",
+      "does": "להודיע על שגיאה — מקבל רשומת callback, רשומת error, ומחזיר משהו.",
+      "takes": [
+        {
+          "name": "callbacks",
+          "kind": "record:callback",
+          "type": "Pick<StreamCallbacks, \"onError\">"
+        },
+        {
+          "name": "error",
+          "kind": "record:error",
+          "type": "Error"
+        }
+      ],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "lib/integrations-openai-ai-react/src/audio",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "mmmm:lib/integrations-openai-ai-react/src/audio/useVoiceStream.ts#parseVoiceStreamEvent",
+      "source": "mmmm",
+      "path": "lib/integrations-openai-ai-react/src/audio/useVoiceStream.ts",
+      "symbol": "parseVoiceStreamEvent",
+      "lang": "ts",
+      "what": "function",
+      "name": "לפענח אירוע מזרם הקול",
+      "does": "לפענח אירוע מזרם הקול — מקבל טקסט, ומחזיר רשומת voice_stream_event.",
+      "takes": [
+        {
+          "name": "raw",
+          "kind": "text",
+          "type": "string"
+        }
+      ],
+      "gives": {
+        "kind": "record:voice_stream_event",
+        "type": "VoiceStreamEvent"
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "lib/integrations-openai-ai-react/src/audio"
+      ]
+    },
+    {
+      "id": "mmmm:lib/integrations-openai-ai-react/src/audio/useVoiceStream.ts#readErrorText",
+      "source": "mmmm",
+      "path": "lib/integrations-openai-ai-react/src/audio/useVoiceStream.ts",
+      "symbol": "readErrorText",
+      "lang": "ts",
+      "what": "function",
+      "name": "לקרוא טקסט שגיאה",
+      "does": "לקרוא טקסט שגיאה — מקבל רשומת response, ומחזיר טקסט.",
+      "takes": [
+        {
+          "name": "response",
+          "kind": "record:response",
+          "type": "Response"
+        }
+      ],
+      "gives": {
+        "kind": "text",
+        "type": "Promise<string>"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "async",
+        "lib/integrations-openai-ai-react/src/audio",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "mmmm:lib/integrations-openai-ai-react/src/audio/useVoiceStream.ts#readSseDataFromBlock",
+      "source": "mmmm",
+      "path": "lib/integrations-openai-ai-react/src/audio/useVoiceStream.ts",
+      "symbol": "readSseDataFromBlock",
+      "lang": "ts",
+      "what": "particle",
+      "name": "לחלץ נתונים מגוש אירועי SSE",
+      "does": "לחלץ נתונים מגוש אירועי SSE — מקבל טקסט, ומחזיר טקסט.",
+      "takes": [
+        {
+          "name": "block",
+          "kind": "text",
+          "type": "string"
+        }
+      ],
+      "gives": {
+        "kind": "text",
+        "type": "string | null"
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "lib/integrations-openai-ai-react/src/audio"
+      ]
+    },
+    {
+      "id": "mmmm:lib/integrations-openai-ai-react/src/audio/useVoiceStream.ts#toError",
+      "source": "mmmm",
+      "path": "lib/integrations-openai-ai-react/src/audio/useVoiceStream.ts",
+      "symbol": "toError",
+      "lang": "ts",
+      "what": "function",
+      "name": "להמיר לשגיאה",
+      "does": "להמיר לשגיאה — מקבל רשומת error, ומחזיר רשומת error.",
+      "takes": [
+        {
+          "name": "error",
+          "kind": "record:error",
+          "type": "unknown"
+        }
+      ],
+      "gives": {
+        "kind": "record:error",
+        "type": "Error"
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "lib/integrations-openai-ai-react/src/audio",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "mmmm:lib/integrations-openai-ai-react/src/audio/useVoiceStream.ts#useVoiceStream",
+      "source": "mmmm",
+      "path": "lib/integrations-openai-ai-react/src/audio/useVoiceStream.ts",
+      "symbol": "useVoiceStream",
+      "lang": "ts",
+      "what": "engine",
+      "name": "להזרים קול לשרת ולנגן את התשובה",
+      "does": "להזרים קול לשרת ולנגן את התשובה — מקבל רשומת stream_callbacks, ומחזיר תצוגה.",
+      "takes": [
+        {
+          "name": "{workletPath,callbacks}",
+          "kind": "record:stream_callbacks",
+          "type": "StreamCallbacks"
+        }
+      ],
+      "gives": {
+        "kind": "ui",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "lib/integrations-openai-ai-react/src/audio"
+      ]
+    },
+    {
+      "id": "mmmm:lib/integrations-openai-ai-server/src/audio/client.ts#convertToWav",
+      "source": "mmmm",
+      "path": "lib/integrations-openai-ai-server/src/audio/client.ts",
+      "symbol": "convertToWav",
+      "lang": "ts",
+      "what": "function",
+      "name": "להמיר כל קובץ שמע ל-WAV",
+      "does": "להמיר כל קובץ שמע ל-WAV — מקבל שמע, ומחזיר שמע.",
+      "takes": [
+        {
+          "name": "audioBuffer",
+          "kind": "sound",
+          "type": "Buffer"
+        }
+      ],
+      "gives": {
+        "kind": "sound",
+        "type": "Promise<Buffer>"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "async",
+        "lib/integrations-openai-ai-server/src/audio"
+      ]
+    },
+    {
+      "id": "mmmm:lib/integrations-openai-ai-server/src/audio/client.ts#detectAudioFormat",
+      "source": "mmmm",
+      "path": "lib/integrations-openai-ai-server/src/audio/client.ts",
+      "symbol": "detectAudioFormat",
+      "lang": "ts",
+      "what": "rule",
+      "name": "לזהות פורמט שמע לפי הבתים הראשונים",
+      "does": "לזהות פורמט שמע לפי הבתים הראשונים — מקבל קובץ, ומחזיר הכרעה.",
+      "takes": [
+        {
+          "name": "buffer",
+          "kind": "file",
+          "type": "Buffer"
+        }
+      ],
+      "gives": {
+        "kind": "choice",
+        "type": "AudioFormat"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "buffer": "RIFF....WAVE (בתים)"
+        },
+        "out": "wav"
+      },
+      "tags": [
+        "lib/integrations-openai-ai-server/src/audio"
+      ]
+    },
+    {
+      "id": "mmmm:lib/integrations-openai-ai-server/src/audio/client.ts#ensureCompatibleFormat",
+      "source": "mmmm",
+      "path": "lib/integrations-openai-ai-server/src/audio/client.ts",
+      "symbol": "ensureCompatibleFormat",
+      "lang": "ts",
+      "what": "function",
+      "name": "לוודא שקובץ השמע בפורמט נתמך",
+      "does": "לוודא שקובץ השמע בפורמט נתמך — מקבל שמע, ומחזיר רשומת map.",
+      "takes": [
+        {
+          "name": "audioBuffer",
+          "kind": "sound",
+          "type": "Buffer"
+        }
+      ],
+      "gives": {
+        "kind": "record:map",
+        "type": "Promise<{ buffer: Buffer; format: \"wav\" | \"mp3\" }>"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "async",
+        "lib/integrations-openai-ai-server/src/audio"
+      ]
+    },
+    {
+      "id": "mmmm:lib/integrations-openai-ai-server/src/audio/client.ts#speechToText",
+      "source": "mmmm",
+      "path": "lib/integrations-openai-ai-server/src/audio/client.ts",
+      "symbol": "speechToText",
+      "lang": "ts",
+      "what": "function",
+      "name": "לנסח דיבור לטקסט",
+      "does": "לנסח דיבור לטקסט — מקבל שמע, טקסט, ומחזיר טקסט.",
+      "takes": [
+        {
+          "name": "audioBuffer",
+          "kind": "sound",
+          "type": "Buffer"
+        },
+        {
+          "name": "format",
+          "kind": "text",
+          "type": "\"wav\" | \"mp3\" | \"webm\""
+        }
+      ],
+      "gives": {
+        "kind": "text",
+        "type": "Promise<string>"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "async",
+        "lib/integrations-openai-ai-server/src/audio",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "mmmm:lib/integrations-openai-ai-server/src/audio/client.ts#speechToTextStream",
+      "source": "mmmm",
+      "path": "lib/integrations-openai-ai-server/src/audio/client.ts",
+      "symbol": "speechToTextStream",
+      "lang": "ts",
+      "what": "function",
+      "name": "להפיק דיבור לזרם טקסט",
+      "does": "להפיק דיבור לזרם טקסט — מקבל שמע, טקסט, ומחזיר משהו.",
+      "takes": [
+        {
+          "name": "audioBuffer",
+          "kind": "sound",
+          "type": "Buffer"
+        },
+        {
+          "name": "format",
+          "kind": "text",
+          "type": "\"wav\" | \"mp3\" | \"webm\""
+        }
+      ],
+      "gives": {
+        "kind": "unknown",
+        "type": "Promise<AsyncIterable<string>>"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "async",
+        "lib/integrations-openai-ai-server/src/audio",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "mmmm:lib/integrations-openai-ai-server/src/audio/client.ts#textToSpeech",
+      "source": "mmmm",
+      "path": "lib/integrations-openai-ai-server/src/audio/client.ts",
+      "symbol": "textToSpeech",
+      "lang": "ts",
+      "what": "function",
+      "name": "להפיק טקסט לדיבור",
+      "does": "להפיק טקסט לדיבור — מקבל טקסט, ומחזיר קובץ.",
+      "takes": [
+        {
+          "name": "text",
+          "kind": "text",
+          "type": "string"
+        },
+        {
+          "name": "voice",
+          "kind": "text",
+          "type": "\"alloy\" | \"echo\" | \"fable\" | \"onyx\" | \"nova\" | \"shimmer\""
+        },
+        {
+          "name": "format",
+          "kind": "text",
+          "type": "\"wav\" | \"mp3\" | \"flac\" | \"opus\" | \"pcm16\""
+        }
+      ],
+      "gives": {
+        "kind": "file",
+        "type": "Promise<Buffer>"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "async",
+        "lib/integrations-openai-ai-server/src/audio",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "mmmm:lib/integrations-openai-ai-server/src/audio/client.ts#textToSpeechStream",
+      "source": "mmmm",
+      "path": "lib/integrations-openai-ai-server/src/audio/client.ts",
+      "symbol": "textToSpeechStream",
+      "lang": "ts",
+      "what": "function",
+      "name": "להפיק טקסט לזרם דיבור",
+      "does": "להפיק טקסט לזרם דיבור — מקבל טקסט, ומחזיר משהו.",
+      "takes": [
+        {
+          "name": "text",
+          "kind": "text",
+          "type": "string"
+        },
+        {
+          "name": "voice",
+          "kind": "text",
+          "type": "\"alloy\" | \"echo\" | \"fable\" | \"onyx\" | \"nova\" | \"shimmer\""
+        }
+      ],
+      "gives": {
+        "kind": "unknown",
+        "type": "Promise<AsyncIterable<string>>"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "async",
+        "lib/integrations-openai-ai-server/src/audio",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "mmmm:lib/integrations-openai-ai-server/src/audio/client.ts#voiceChat",
+      "source": "mmmm",
+      "path": "lib/integrations-openai-ai-server/src/audio/client.ts",
+      "symbol": "voiceChat",
+      "lang": "ts",
+      "what": "function",
+      "name": "להפיק צ׳אט קול",
+      "does": "להפיק צ׳אט קול — מקבל שמע, טקסט, ומחזיר רשומת map.",
+      "takes": [
+        {
+          "name": "audioBuffer",
+          "kind": "sound",
+          "type": "Buffer"
+        },
+        {
+          "name": "voice",
+          "kind": "text",
+          "type": "\"alloy\" | \"echo\" | \"fable\" | \"onyx\" | \"nova\" | \"shimmer\""
+        },
+        {
+          "name": "inputFormat",
+          "kind": "text",
+          "type": "\"wav\" | \"mp3\""
+        },
+        {
+          "name": "outputFormat",
+          "kind": "text",
+          "type": "\"wav\" | \"mp3\""
+        }
+      ],
+      "gives": {
+        "kind": "record:map",
+        "type": "Promise<{ transcript: string; audioResponse: Buffer }>"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "async",
+        "lib/integrations-openai-ai-server/src/audio",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "mmmm:lib/integrations-openai-ai-server/src/audio/client.ts#voiceChatStream",
+      "source": "mmmm",
+      "path": "lib/integrations-openai-ai-server/src/audio/client.ts",
+      "symbol": "voiceChatStream",
+      "lang": "ts",
+      "what": "function",
+      "name": "להפיק זרם צ׳אט קול",
+      "does": "להפיק זרם צ׳אט קול — מקבל שמע, טקסט, ומחזיר משהו.",
+      "takes": [
+        {
+          "name": "audioBuffer",
+          "kind": "sound",
+          "type": "Buffer"
+        },
+        {
+          "name": "voice",
+          "kind": "text",
+          "type": "\"alloy\" | \"echo\" | \"fable\" | \"onyx\" | \"nova\" | \"shimmer\""
+        },
+        {
+          "name": "inputFormat",
+          "kind": "text",
+          "type": "\"wav\" | \"mp3\""
+        }
+      ],
+      "gives": {
+        "kind": "unknown",
+        "type": "Promise<AsyncIterable<{ type: \"transcript\" | \"audio\"; data: string }>>"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "async",
+        "lib/integrations-openai-ai-server/src/audio",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "mmmm:lib/integrations-openai-ai-server/src/batch/utils.ts#batchProcess",
+      "source": "mmmm",
+      "path": "lib/integrations-openai-ai-server/src/batch/utils.ts",
+      "symbol": "batchProcess",
+      "lang": "ts",
+      "what": "engine",
+      "name": "לעבד רשימה בקבוצות עם הגבלת קצב",
+      "does": "לעבד רשימה בקבוצות עם הגבלת קצב — מקבל רשימה, משהו, רשומת batch_options, ומחזיר רשימה.",
+      "takes": [
+        {
+          "name": "items",
+          "kind": "list",
+          "type": "T[]"
+        },
+        {
+          "name": "processor",
+          "kind": "unknown",
+          "type": "(item: T, index: number) => Promise<R>"
+        },
+        {
+          "name": "options",
+          "kind": "record:batch_options",
+          "type": "BatchOptions"
+        }
+      ],
+      "gives": {
+        "kind": "list",
+        "type": "Promise<R[]>"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "async",
+        "lib/integrations-openai-ai-server/src/batch"
+      ]
+    },
+    {
+      "id": "mmmm:lib/integrations-openai-ai-server/src/batch/utils.ts#batchProcessWithSSE",
+      "source": "mmmm",
+      "path": "lib/integrations-openai-ai-server/src/batch/utils.ts",
+      "symbol": "batchProcessWithSSE",
+      "lang": "ts",
+      "what": "function",
+      "name": "לרשום תהליך אצווה עם SSE",
+      "does": "לרשום תהליך אצווה עם SSE — מקבל רשימה, משהו, רשומת option, ומחזיר רשימה.",
+      "takes": [
+        {
+          "name": "items",
+          "kind": "list",
+          "type": "T[]"
+        },
+        {
+          "name": "processor",
+          "kind": "unknown",
+          "type": "(item: T, index: number) => Promise<R>"
+        },
+        {
+          "name": "sendEvent",
+          "kind": "unknown",
+          "type": "(event: { type: string; [key: string]: unknown }) => void"
+        },
+        {
+          "name": "options",
+          "kind": "record:option",
+          "type": "Omit<BatchOptions, \"concurrency\" | \"onProgress\">"
+        }
+      ],
+      "gives": {
+        "kind": "list",
+        "type": "Promise<R[]>"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "async",
+        "lib/integrations-openai-ai-server/src/batch",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "mmmm:lib/integrations-openai-ai-server/src/batch/utils.ts#isRateLimitError",
+      "source": "mmmm",
+      "path": "lib/integrations-openai-ai-server/src/batch/utils.ts",
+      "symbol": "isRateLimitError",
+      "lang": "ts",
+      "what": "function",
+      "name": "לבדוק אם שגיאה מגבלה שיעור",
+      "does": "לבדוק אם שגיאה מגבלה שיעור — מקבל רשומת error, ומחזיר כן/לא.",
+      "takes": [
+        {
+          "name": "error",
+          "kind": "record:error",
+          "type": "unknown"
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": "boolean"
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "lib/integrations-openai-ai-server/src/batch",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "mmmm:lib/integrations-openai-ai-server/src/image/client.ts#editImages",
+      "source": "mmmm",
+      "path": "lib/integrations-openai-ai-server/src/image/client.ts",
+      "symbol": "editImages",
+      "lang": "ts",
+      "what": "function",
+      "name": "לערוך תמונות",
+      "does": "לערוך תמונות — מקבל רשימה, טקסט, ומחזיר קובץ.",
+      "takes": [
+        {
+          "name": "imageFiles",
+          "kind": "list",
+          "type": "string[]"
+        },
+        {
+          "name": "prompt",
+          "kind": "text",
+          "type": "string"
+        },
+        {
+          "name": "outputPath",
+          "kind": "text",
+          "type": "string"
+        }
+      ],
+      "gives": {
+        "kind": "file",
+        "type": "Promise<Buffer>"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "async",
+        "lib/integrations-openai-ai-server/src/image",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "mmmm:lib/integrations-openai-ai-server/src/image/client.ts#generateImageBuffer",
+      "source": "mmmm",
+      "path": "lib/integrations-openai-ai-server/src/image/client.ts",
+      "symbol": "generateImageBuffer",
+      "lang": "ts",
+      "what": "function",
+      "name": "להפיק חוצץ תמונה",
+      "does": "להפיק חוצץ תמונה — מקבל טקסט, ומחזיר קובץ.",
+      "takes": [
+        {
+          "name": "prompt",
+          "kind": "text",
+          "type": "string"
+        },
+        {
+          "name": "size",
+          "kind": "text",
+          "type": "\"1024x1024\" | \"512x512\" | \"256x256\""
+        }
+      ],
+      "gives": {
+        "kind": "file",
+        "type": "Promise<Buffer>"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "async",
+        "lib/integrations-openai-ai-server/src/image",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "mmmm:lib/integrations/openai_ai_integrations/src/client/audio/audio-playback-worklet.js#AudioPlaybackProcessor",
+      "source": "mmmm",
+      "path": "lib/integrations/openai_ai_integrations/src/client/audio/audio-playback-worklet.js",
+      "symbol": "AudioPlaybackProcessor",
+      "lang": "js",
+      "what": "brick",
+      "name": "לייצג מעבד השמעה שמע",
+      "does": "לייצג מעבד השמעה שמע — בלי קלט, ומחזיר רשומת audio_playback_processor.",
+      "takes": [],
+      "gives": {
+        "kind": "record:audio_playback_processor",
+        "type": "AudioPlaybackProcessor"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "lib/integrations/openai_ai_integrations/src/client/audio",
+        "methods:1",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "mmmm:lib/integrations/openai_ai_integrations/src/client/audio/audio-playback-worklet.js#RingBuffer",
+      "source": "mmmm",
+      "path": "lib/integrations/openai_ai_integrations/src/client/audio/audio-playback-worklet.js",
+      "symbol": "RingBuffer",
+      "lang": "js",
+      "what": "engine",
+      "name": "להפעיל חוצץ טבעת",
+      "does": "להפעיל חוצץ טבעת — בלי קלט, ומחזיר רשומת ring_buffer.",
+      "takes": [],
+      "gives": {
+        "kind": "record:ring_buffer",
+        "type": "RingBuffer"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "lib/integrations/openai_ai_integrations/src/client/audio",
+        "methods:5",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "mmmm:lib/integrations/openai_ai_integrations/src/client/audio/audio-utils.ts#createAudioPlaybackContext",
+      "source": "mmmm",
+      "path": "lib/integrations/openai_ai_integrations/src/client/audio/audio-utils.ts",
+      "symbol": "createAudioPlaybackContext",
+      "lang": "ts",
+      "what": "function",
+      "name": "ליצור הקשר השמעה שמע",
+      "does": "ליצור הקשר השמעה שמע — מקבל קובץ, מספר, ומחזיר רשומת map.",
+      "takes": [
+        {
+          "name": "workletPath",
+          "kind": "file",
+          "type": null
+        },
+        {
+          "name": "sampleRate",
+          "kind": "number",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "record:map",
+        "type": "Promise<{ ctx: AudioContext; worklet: AudioWorkletNode }>"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "async",
+        "lib/integrations/openai_ai_integrations/src/client/audio",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "mmmm:lib/integrations/openai_ai_integrations/src/client/audio/useAudioPlayback.ts#SequenceBuffer",
+      "source": "mmmm",
+      "path": "lib/integrations/openai_ai_integrations/src/client/audio/useAudioPlayback.ts",
+      "symbol": "SequenceBuffer",
+      "lang": "ts",
+      "what": "engine",
+      "name": "להפעיל חוצץ רצף",
+      "does": "להפעיל חוצץ רצף — מקבל רשומת pending, רשומת nextseq, ומחזיר רשומת sequence_buffer.",
+      "takes": [
+        {
+          "name": "pending",
+          "kind": "record:pending",
+          "type": null
+        },
+        {
+          "name": "nextSeq",
+          "kind": "record:nextseq",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "record:sequence_buffer",
+        "type": "SequenceBuffer"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "lib/integrations/openai_ai_integrations/src/client/audio",
+        "methods:2",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "mmmm:lib/integrations/openai_ai_integrations/src/client/audio/useAudioPlayback.ts#useAudioPlayback",
+      "source": "mmmm",
+      "path": "lib/integrations/openai_ai_integrations/src/client/audio/useAudioPlayback.ts",
+      "symbol": "useAudioPlayback",
+      "lang": "ts",
+      "what": "component",
+      "name": "להשתמש בהשמעה שמע",
+      "does": "להשתמש בהשמעה שמע — מקבל קובץ, ומחזיר תצוגה.",
+      "takes": [
+        {
+          "name": "workletPath",
+          "kind": "file",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "ui",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "lib/integrations/openai_ai_integrations/src/client/audio",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "mmmm:lib/integrations/openai_ai_integrations/src/client/audio/useVoiceRecorder.ts#useVoiceRecorder",
+      "source": "mmmm",
+      "path": "lib/integrations/openai_ai_integrations/src/client/audio/useVoiceRecorder.ts",
+      "symbol": "useVoiceRecorder",
+      "lang": "ts",
+      "what": "component",
+      "name": "להשתמש במקליט קול",
+      "does": "להשתמש במקליט קול — בלי קלט, ומחזיר תצוגה.",
+      "takes": [],
+      "gives": {
+        "kind": "ui",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "lib/integrations/openai_ai_integrations/src/client/audio",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "mmmm:lib/integrations/openai_ai_integrations/src/server/batch/utils.ts#batchProcess",
+      "source": "mmmm",
+      "path": "lib/integrations/openai_ai_integrations/src/server/batch/utils.ts",
+      "symbol": "batchProcess",
+      "lang": "ts",
+      "what": "function",
+      "name": "לרשום תהליך אצווה",
+      "does": "לרשום תהליך אצווה — מקבל רשימה, משהו, רשומת batch_options, ומחזיר רשימה.",
+      "takes": [
+        {
+          "name": "items",
+          "kind": "list",
+          "type": "T[]"
+        },
+        {
+          "name": "processor",
+          "kind": "unknown",
+          "type": "(item: T, index: number) => Promise<R>"
+        },
+        {
+          "name": "options",
+          "kind": "record:batch_options",
+          "type": "BatchOptions"
+        }
+      ],
+      "gives": {
+        "kind": "list",
+        "type": "Promise<R[]>"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "async",
+        "lib/integrations/openai_ai_integrations/src/server/batch",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "mmmm:lib/integrations/openai_ai_integrations/src/server/batch/utils.ts#batchProcessWithSSE",
+      "source": "mmmm",
+      "path": "lib/integrations/openai_ai_integrations/src/server/batch/utils.ts",
+      "symbol": "batchProcessWithSSE",
+      "lang": "ts",
+      "what": "function",
+      "name": "לרשום תהליך אצווה עם SSE",
+      "does": "לרשום תהליך אצווה עם SSE — מקבל רשימה, משהו, רשומת option, ומחזיר רשימה.",
+      "takes": [
+        {
+          "name": "items",
+          "kind": "list",
+          "type": "T[]"
+        },
+        {
+          "name": "processor",
+          "kind": "unknown",
+          "type": "(item: T, index: number) => Promise<R>"
+        },
+        {
+          "name": "sendEvent",
+          "kind": "unknown",
+          "type": "(event: { type: string; [key: string]: unknown }) => void"
+        },
+        {
+          "name": "options",
+          "kind": "record:option",
+          "type": "Omit<BatchOptions, \"concurrency\" | \"onProgress\">"
+        }
+      ],
+      "gives": {
+        "kind": "list",
+        "type": "Promise<R[]>"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "async",
+        "lib/integrations/openai_ai_integrations/src/server/batch",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "mmmm:lib/integrations/openai_ai_integrations/src/server/image/client.ts#editImages",
+      "source": "mmmm",
+      "path": "lib/integrations/openai_ai_integrations/src/server/image/client.ts",
+      "symbol": "editImages",
+      "lang": "ts",
+      "what": "function",
+      "name": "לערוך תמונות",
+      "does": "לערוך תמונות — מקבל רשימה, טקסט, ומחזיר קובץ.",
+      "takes": [
+        {
+          "name": "imageFiles",
+          "kind": "list",
+          "type": "string[]"
+        },
+        {
+          "name": "prompt",
+          "kind": "text",
+          "type": "string"
+        },
+        {
+          "name": "outputPath",
+          "kind": "text",
+          "type": "string"
+        }
+      ],
+      "gives": {
+        "kind": "file",
+        "type": "Promise<Buffer>"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "async",
+        "lib/integrations/openai_ai_integrations/src/server/image",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "mmmm:lib/integrations/openai_ai_integrations/src/server/image/client.ts#generateImageBuffer",
+      "source": "mmmm",
+      "path": "lib/integrations/openai_ai_integrations/src/server/image/client.ts",
+      "symbol": "generateImageBuffer",
+      "lang": "ts",
+      "what": "function",
+      "name": "להפיק חוצץ תמונה",
+      "does": "להפיק חוצץ תמונה — מקבל טקסט, ומחזיר קובץ.",
+      "takes": [
+        {
+          "name": "prompt",
+          "kind": "text",
+          "type": "string"
+        },
+        {
+          "name": "size",
+          "kind": "text",
+          "type": "\"1024x1024\" | \"512x512\" | \"256x256\""
+        }
+      ],
+      "gives": {
+        "kind": "file",
+        "type": "Promise<Buffer>"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "async",
+        "lib/integrations/openai_ai_integrations/src/server/image",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "mmmm:meeting.js#getApiKeyForProvider",
+      "source": "mmmm",
+      "path": "meeting.js",
+      "symbol": "getApiKeyForProvider",
+      "lang": "js",
+      "what": "function",
+      "name": "להביא מפתח API עבור ספק",
+      "does": "להביא מפתח API עבור ספק — מקבל רשומת provider, ומחזיר רשומת api_key_for_provider.",
+      "takes": [
+        {
+          "name": "provider",
+          "kind": "record:provider",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "record:api_key_for_provider",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "meeting",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "mmmm:meeting.js#getRequestDetails",
+      "source": "mmmm",
+      "path": "meeting.js",
+      "symbol": "getRequestDetails",
+      "lang": "js",
+      "what": "function",
+      "name": "להביא פרטים בקשה",
+      "does": "להביא פרטים בקשה — מקבל רשומת agent, טקסט, ומחזיר רשומת request_detail.",
+      "takes": [
+        {
+          "name": "agent",
+          "kind": "record:agent",
+          "type": null
+        },
+        {
+          "name": "message",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "record:request_detail",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "meeting",
+        "name:auto"
+      ]
+    }
+  ]
+}
