@@ -1,117 +1,121 @@
 {
  "source": "generator",
- "version": 1,
+ "version": 2,
  "files": 1626,
  "candidates": 14202,
- "sliced": 5498,
- "parts": 7248,
- "modules": 556,
+ "sliced": 5937,
+ "parts": 7924,
+ "modules": 566,
  "forms": {
-  "form:slice": 5498,
-  "form:step": 1750
+  "form:slice": 5937,
+  "form:step": 1987
  },
  "kinds": {
-  "inner:value": 6760,
-  "inner:accumulator": 488
+  "inner:value": 7406,
+  "inner:accumulator": 518
  },
  "parents": {
-  "parent:uncataloged": 6386,
-  "parent:cataloged": 862
+  "parent:uncataloged": 7000,
+  "parent:cataloged": 924
  },
  "skipped": {
   "trivial": 4140,
-  "imported-call": 1361,
-  "unknown-call": 634,
-  "closure-helper": 370,
-  "method-call": 368,
-  "mutation": 291,
-  "loop-mutation": 230,
+  "package-call": 879,
+  "unknown-call": 697,
+  "module-state": 423,
+  "method-call": 386,
+  "mutation": 367,
+  "loop-mutation": 266,
   "await": 219,
-  "loop-imported-call": 197,
-  "module-state": 175,
-  "loop-unknown-call": 145,
+  "loop-unknown-call": 151,
   "loop-return": 132,
-  "loop-method-call": 91,
+  "loop-package-call": 115,
+  "loop-method-call": 100,
+  "loop-module-state": 87,
   "dom": 64,
-  "loop-closure-helper": 50,
+  "name-clash": 59,
   "global-call": 43,
-  "name-clash": 43,
-  "loop-module-state": 37,
-  "clock": 34,
-  "imported-value": 18,
+  "clock": 36,
+  "imported-method": 28,
   "loop-await": 17,
+  "global": 16,
   "new": 14,
-  "global": 10,
   "loop-global-call": 7,
   "io": 6,
+  "loop-imported-method": 4,
   "loop-io": 4,
   "loop-this": 4,
-  "privacy": 3,
+  "privacy": 4,
+  "shadowed-name": 4,
   "random": 3,
   "too-big": 2,
-  "loop-global": 1,
-  "loop-imported-value": 1
+  "imported-value": 1,
+  "loop-global": 1
+ },
+ "via": {
+  "via:closure": 554,
+  "via:import": 211
  },
  "topFiles": [
   [
    "machtzev/ds-forge.mjs",
-   515
+   542
   ],
   [
    "machtzev/generator/render-ds.mjs",
-   274
+   296
   ],
   [
    "machtzev/generator/retarget.mjs",
-   274
-  ],
-  [
-   "machtzev/purity/purify-engine.mjs",
-   223
+   283
   ],
   [
    "machtzev/generator/app-ds.mjs",
-   198
+   253
+  ],
+  [
+   "machtzev/purity/purify-engine.mjs",
+   227
   ],
   [
    "machtzev/generator/behavior-plan.mjs",
-   163
+   177
   ],
   [
    "machtzev/purify-dart.mjs",
-   147
+   157
   ],
   [
    "machtzev/generator/generate.mjs",
-   137
+   145
   ],
   [
    "machtzev/generator/particles.mjs",
-   126
-  ],
-  [
-   "machtzev/generator/genesis-gen.mjs",
-   119
+   140
   ],
   [
    "machtzev/assemble/data-lift.mjs",
-   117
+   129
+  ],
+  [
+   "machtzev/generator/genesis-gen.mjs",
+   126
+  ],
+  [
+   "yeshiva/mavin.mjs",
+   115
   ],
   [
    "machtzev/purify-dart-native.mjs",
    112
   ],
   [
-   "yeshiva/mavin.mjs",
-   111
-  ],
-  [
    "yeshiva/koreh.mjs",
-   108
+   112
   ],
   [
    "yeshiva/ein.mjs",
-   105
+   111
   ]
  ]
 }

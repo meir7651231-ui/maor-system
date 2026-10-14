@@ -29,6 +29,7 @@ import { readSigs } from '../inner/lib/sigs.mjs';
 import { VERB_BY_ID as LAW_VERBS } from '../lib/verbs.mjs';
 import { assemble, fit, provenAs, adapterRole } from './core.mjs';
 import { HERE, CATALOG, loadGoals, loadIndex, loadParts, loadRecipes } from './load.mjs';
+await (await import('../inner/lib/ensure-gen.mjs')).ensureGen({ quiet: true }); // INNER v2: gen/ והקבצים הפנימיים הפרושים נוצרים לפי דרישה
 
 const ROOT = path.resolve(CATALOG, '..');
 export const SEED = 0x0c0b1e;

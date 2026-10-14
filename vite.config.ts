@@ -1,3 +1,4 @@
+/// <reference types="vitest/config" />
 import { writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { defineConfig, type Plugin } from 'vite'
@@ -28,6 +29,8 @@ export default defineConfig({
   base: './',
   define: { __BUILD_ID__: JSON.stringify(BUILD_ID) },
   plugins: [react(), versionFile()],
+  // INNER v2 (14.10.2026): הקבצים הנוצרים של פותח-הפונקציות לא בריפו — נוצרים לפני הבדיקות (catalog/inner/lib/ensure-gen.mjs)
+  test: { globalSetup: ['catalog/inner/lib/vitest-setup.mjs'] },
   build: {
     rolldownOptions: {
       output: {

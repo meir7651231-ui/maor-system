@@ -41,15 +41,15 @@
    "inside": "מוצא שורות תדפיס ליום חלוקה"
   },
   {
-   "id": "inner-orbit:src/lib/atoms/previewBookingsMore.ts#guestStaysMerge.byGuest:after-loop",
+   "id": "inner-orbit:src/lib/ayin.ts#applyAyinSheet.byId:after-loop",
    "project": "אורביט",
    "source": "inner-orbit",
    "name": "בונה מפתח של פריטים",
-   "file": "src/lib/atoms/previewBookingsMore.ts",
+   "file": "src/lib/ayin.ts",
    "action": "מקבץ",
    "proof": "הורץ — סוג אחר",
    "why": "אותו פועל",
-   "inside": "guestStaysMerge"
+   "inside": "applyAyinSheet"
   }
  ]
 }

@@ -55,15 +55,15 @@
   "total": 940,
   "base-only": 162,
   "both": 185,
-  "inner-only": 152,
-  "none": 441
+  "inner-only": 158,
+  "none": 435
  },
  "pairs": {
   "total": 198,
   "base-only": 15,
   "both": 31,
-  "inner-only": 21,
-  "none": 131
+  "inner-only": 24,
+  "none": 128
  },
  "examples": [
   {
@@ -75,7 +75,7 @@
     "זיקית: לשון שיורה מהר",
     "כוורת: נחיל עוזב כשצפוף"
    ],
-   "innerParts": 4,
+   "innerParts": 6,
    "part": {
     "id": "inner-generator:machtzev/ds-forge.mjs#emit.selfWidthUnbounded",
     "name": "בודק כמה תנאים יחד",
@@ -91,7 +91,7 @@
     "פינגווין: מתכרבלים בקבוצה",
     "חתונה: קרובים לפי משפחה"
    ],
-   "innerParts": 8,
+   "innerParts": 7,
    "part": {
     "id": "inner-orbit:src/components/shop/AssignmentsTab.tsx#AssignmentsTab.groups:after-loop",
     "name": "אוסף פריטים לרשימה חדשה",
@@ -107,7 +107,7 @@
     "בר-מצווה: רשימת מוזמנים",
     "הגרלה: בלי לזכות פעמיים"
    ],
-   "innerParts": 5,
+   "innerParts": 6,
    "part": {
     "id": "inner-buildsmart:functions/src/push.ts#sendToUsers.unique",
     "name": "בונה רשימה מערכים",
@@ -205,9 +205,9 @@
    ],
    "innerParts": 16,
    "part": {
-    "id": "inner-orbit:src/components/parnasa/home.ts#greetingOf.l",
-    "name": "מחשב הפרש בין ערכים",
-    "parent": "orbit:src/components/parnasa/home.ts#greetingOf"
+    "id": "inner-14kk:check_protocol_activity.js#ProtocolActivityChecker.checkCommunicationProtocol.timeDiff:step",
+    "name": "מחשב יחס בין ערכים",
+    "parent": "14kk:check_protocol_activity.js#ProtocolActivityChecker.checkCommunicationProtocol"
    }
   },
   {
@@ -226,6 +226,36 @@
    }
   },
   {
+   "verb": "extreme",
+   "material": "date",
+   "behaviors": 2,
+   "sample": [
+    "צעדים: היום הכי טוב",
+    "שמש: היום הארוך והקצר"
+   ],
+   "innerParts": 1,
+   "part": {
+    "id": "inner-orbit:src/components/hosting/lib.ts#calendarBars.end",
+    "name": "בוחר ערך לפי תנאי",
+    "parent": "orbit:src/components/hosting/lib.ts#calendarBars"
+   }
+  },
+  {
+   "verb": "filter",
+   "material": "times",
+   "behaviors": 2,
+   "sample": [
+    "שתיית-מים: רק בשעות הערות",
+    "פעמון-דלת: לא מצלצל בלילה"
+   ],
+   "innerParts": 1,
+   "part": {
+    "id": "inner-orbit:src/lib/atoms/decompose/genericPreview.ts#timesPreview.changed:step",
+    "name": "מסנן רשימה לפי תנאי",
+    "parent": "orbit:src/lib/atoms/decompose/genericPreview.ts#timesPreview"
+   }
+  },
+  {
    "verb": "lookup",
    "material": "text",
    "behaviors": 2,
@@ -241,6 +271,21 @@
    }
   },
   {
+   "verb": "rotate",
+   "material": "date",
+   "behaviors": 2,
+   "sample": [
+    "ליגה: לוח מחזורים",
+    "משאית-זבל: מסלול קבוע לפי יום"
+   ],
+   "innerParts": 1,
+   "part": {
+    "id": "inner-orbit:src/components/parnasa/phoneLine.ts#zmanimParts.dayName:step",
+    "name": "בוחר ערך ראשון שקיים",
+    "parent": "orbit:src/components/parnasa/phoneLine.ts#zmanimParts"
+   }
+  },
+  {
    "verb": "round",
    "material": "times",
    "behaviors": 2,
@@ -248,11 +293,11 @@
     "שינה: להתעורר בסוף מחזור",
     "חניון: מעגל לרבע שעה"
    ],
-   "innerParts": 8,
+   "innerParts": 11,
    "part": {
-    "id": "inner-orbit:src/components/parnasa/sound.ts#tone.frequency:envelope",
-    "name": "מחשב ערך שמשתנה בחזקה לאורך זמן",
-    "parent": "orbit:src/components/parnasa/sound.ts#tone"
+    "id": "inner-orbit:src/components/hosting/KitchenTab.tsx#KitchenTab.dueN",
+    "name": "סופר פריטים",
+    "parent": "orbit:src/components/hosting/KitchenTab.tsx#KitchenTab"
    }
   },
   {
@@ -346,7 +391,7 @@
    "sample": [
     "מזגן: מתאים לכל חדר"
    ],
-   "innerParts": 1,
+   "innerParts": 2,
    "part": {
     "id": "inner-orbit:src/components/hosting/actions.ts#hostingActions.addHostRoom.name",
     "name": "מחשב ערך בעזרת חישוב עזר",
@@ -360,11 +405,11 @@
    "sample": [
     "משכורת: נוספות בתעריף גבוה"
    ],
-   "innerParts": 6,
+   "innerParts": 5,
    "part": {
-    "id": "inner-generator:new/atoms/parse-ayin-sheet.mjs#parseAyinSheet.paidRaw",
-    "name": "בוחר ערך לפי תנאי",
-    "parent": "generator:new/atoms/parse-ayin-sheet.mjs#parseAyinSheet"
+    "id": "inner-orbit:src/components/supporters/tierMigration.ts#tierAsOf.score",
+    "name": "מחבר ערכים",
+    "parent": "orbit:src/components/supporters/tierMigration.ts#tierAsOf"
    }
   },
   {
@@ -520,28 +565,28 @@
    "name": "בודק כמה תנאים יחד"
   },
   {
+   "word": "צעדים",
+   "behavior": "היום הכי טוב",
+   "verb": "extreme",
+   "material": "date",
+   "part": "inner-orbit:src/components/hosting/lib.ts#calendarBars.end",
+   "name": "בוחר ערך לפי תנאי"
+  },
+  {
    "word": "שינה",
    "behavior": "להתעורר בסוף מחזור",
    "verb": "round",
    "material": "times",
-   "part": "inner-orbit:src/components/parnasa/sound.ts#tone.frequency:envelope",
-   "name": "מחשב ערך שמשתנה בחזקה לאורך זמן"
+   "part": "inner-orbit:src/components/hosting/KitchenTab.tsx#KitchenTab.dueN",
+   "name": "סופר פריטים"
   },
   {
-   "word": "תרופות",
-   "behavior": "לא פעמיים",
-   "verb": "dedupe",
-   "material": "list",
-   "part": "inner-buildsmart:functions/src/push.ts#sendToUsers.unique",
-   "name": "בונה רשימה מערכים"
-  },
-  {
-   "word": "תרופות",
-   "behavior": "נגמרות ⇒ להזמין",
-   "verb": "validate",
-   "material": "bool",
-   "part": "inner-generator:machtzev/ds-forge.mjs#emit.selfWidthUnbounded",
-   "name": "בודק כמה תנאים יחד"
+   "word": "שתיית-מים",
+   "behavior": "רק בשעות הערות",
+   "verb": "filter",
+   "material": "times",
+   "part": "inner-orbit:src/lib/atoms/decompose/genericPreview.ts#timesPreview.changed:step",
+   "name": "מסנן רשימה לפי תנאי"
   }
  ]
 }

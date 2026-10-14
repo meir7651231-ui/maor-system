@@ -726,6 +726,22 @@
     },
     {
      "steps": [
+      "inner-orbit:src/components/parnasa/lib.ts#needsCare.soon14",
+      "orbit:src/lib/atoms/parts/fuzzy.ts#normHe"
+     ],
+     "form": "chain",
+     "why": "הפלט לא בצורה שהחוקים של «מוצא גם עם טעות» בודקים (אין קישור מתאים)"
+    },
+    {
+     "steps": [
+      "inner-orbit:src/components/parnasa/lib.ts#needsCare.soon7",
+      "orbit:src/lib/atoms/parts/fuzzy.ts#normHe"
+     ],
+     "form": "chain",
+     "why": "הפלט לא בצורה שהחוקים של «מוצא גם עם טעות» בודקים (אין קישור מתאים)"
+    },
+    {
+     "steps": [
       "inner-orbit:src/components/parnasa/zmanimBoard.ts#closureAt.next",
       "orbit:src/lib/atoms/parts/fuzzy.ts#normHe"
      ],
@@ -734,23 +750,7 @@
     },
     {
      "steps": [
-      "inner-orbit:src/components/parnasa/zmanimBoard.ts#dateWords.civil",
-      "orbit:src/lib/atoms/parts/fuzzy.ts#normHe"
-     ],
-     "form": "chain",
-     "why": "הפלט לא בצורה שהחוקים של «מוצא גם עם טעות» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "orbit:src/components/calendar/calLib.ts#fmtD",
-      "orbit:src/lib/atoms/parts/fuzzy.ts#normHe"
-     ],
-     "form": "chain",
-     "why": "הפלט לא בצורה שהחוקים של «מוצא גם עם טעות» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "orbit:src/components/courses/lib.ts#fmtDate",
+      "inner-orbit:src/components/supporters/portfolio.ts#portfolioIntel.in30",
       "orbit:src/lib/atoms/parts/fuzzy.ts#normHe"
      ],
      "form": "chain",
@@ -806,7 +806,7 @@
     },
     {
      "steps": [
-      "inner-orbit:src/lib/atoms/previewZmanim.ts#timesOffset.rel:step",
+      "inner-orbit:src/lib/atoms/previewWhatNeed.ts#openingsOffset.rel:step",
       "orbit:src/lib/atoms/parts/fuzzy.ts#normHe"
      ],
      "form": "chain",
@@ -838,7 +838,7 @@
     },
     {
      "steps": [
-      "inner-orbit:src/lib/atoms/previewZmanim.ts#timesOffset.rel:step",
+      "inner-orbit:src/lib/atoms/previewWhatNeed.ts#openingsOffset.rel:step",
       "orbit:src/lib/atoms/parts/fuzzy.ts#fuzzyFind"
      ],
      "form": "chain",
@@ -1522,7 +1522,7 @@
     "הגרלה: פרסים לפי סדר"
    ],
    "nBehaviors": 20,
-   "candidates": 17,
+   "candidates": 14,
    "found": null,
    "tried": [
     {

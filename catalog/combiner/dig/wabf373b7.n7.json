@@ -19,6 +19,17 @@
  "statusHe": "🔎 עוד לא נחפר",
  "places": [
   {
+   "id": "inner-generator:machtzev/ds-forge.mjs#emit.collapsedCol.g",
+   "project": "המחולל",
+   "source": "inner-generator",
+   "name": "בוחר את הגדול מבין ערכים",
+   "file": "machtzev/ds-forge.mjs",
+   "action": "מדרג לשלבים",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל · אותו חומר",
+   "inside": "emit"
+  },
+  {
    "id": "inner-generator:machtzev/ds-forge.mjs#svgScene.walk.start",
    "project": "המחולל",
    "source": "inner-generator",
@@ -39,17 +50,6 @@
    "proof": "הורץ — סוג אחר",
    "why": "אותו פועל · אותו חומר",
    "inside": "svgScene"
-  },
-  {
-   "id": "inner-generator:machtzev/generator/app-ds.mjs#buildApp.liveOf0.bw:step",
-   "project": "המחולל",
-   "source": "inner-generator",
-   "name": "מצרף רשימה לטקסט",
-   "file": "machtzev/generator/app-ds.mjs",
-   "action": "מדרג לשלבים",
-   "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל · אותו חומר",
-   "inside": "buildApp"
   }
  ]
 }

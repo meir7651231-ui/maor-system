@@ -19,6 +19,28 @@
  "statusHe": "🔎 עוד לא נחפר",
  "places": [
   {
+   "id": "inner-orbit:src/components/hosting/kitchen.ts#mealLeadMinutes.mx:after-loop",
+   "project": "אורביט",
+   "source": "inner-orbit",
+   "name": "בוחר את הפריט עם הערך הגדול ביותר",
+   "file": "src/components/hosting/kitchen.ts",
+   "action": "בוחר את הקיצוני",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל · שם קרוב",
+   "inside": "מחשב זמן ההכנה הארוך מבין המנות"
+  },
+  {
+   "id": "inner-orbit:src/components/hosting/lib.ts#guestStats.last:after-loop",
+   "project": "אורביט",
+   "source": "inner-orbit",
+   "name": "בוחר את הפריט עם הערך הגדול ביותר",
+   "file": "src/components/hosting/lib.ts",
+   "action": "בוחר את הקיצוני",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל · שם קרוב",
+   "inside": "מסכם שהיות, הוצאה וביקור אחרון של אורח"
+  },
+  {
    "id": "inner-orbit:src/components/parnasa/envelope.ts#envLayout.forEach.forEach.bd:after-loop",
    "project": "אורביט",
    "source": "inner-orbit",
@@ -28,28 +50,6 @@
    "proof": "הורץ — סוג אחר",
    "why": "אותו פועל · שם קרוב",
    "inside": "בונה קבוצת הכוכבים"
-  },
-  {
-   "id": "inner-orbit:src/components/parnasa/transitions.ts#nextDialCode.max:after-loop",
-   "project": "אורביט",
-   "source": "inner-orbit",
-   "name": "בוחר את הפריט עם הערך הגדול ביותר",
-   "file": "src/components/parnasa/transitions.ts",
-   "action": "בוחר את הקיצוני",
-   "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל · שם קרוב",
-   "inside": "כותב את הקוד הבא"
-  },
-  {
-   "id": "inner-orbit:src/components/tzedaka/lib.ts#coordinatorLastCollection.last:after-loop",
-   "project": "אורביט",
-   "source": "inner-orbit",
-   "name": "בוחר את הפריט עם הערך הגדול ביותר",
-   "file": "src/components/tzedaka/lib.ts",
-   "action": "בוחר את הקיצוני",
-   "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל · שם קרוב",
-   "inside": "coordinatorLastCollection"
   }
  ]
 }

@@ -31,20 +31,21 @@
    "inside": "Carousel"
   },
   {
+   "id": "inner-orbit:src/components/parnasa/phoneLine.ts#zmanimParts.dayName:step",
+   "project": "אורביט",
+   "source": "inner-orbit",
+   "name": "בוחר ערך ראשון שקיים",
+   "file": "src/components/parnasa/phoneLine.ts",
+   "action": "מחלק בתורות",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל",
+   "inside": "zmanimParts"
+  },
+  {
    "id": "orbit:src/lib/atoms/parts/rotate.ts#dayIndex",
    "project": "אורביט",
    "source": "orbit",
    "name": "מחשב מספר יום מוחלט של תאריך",
-   "file": "src/lib/atoms/parts/rotate.ts",
-   "action": "מחלק בתורות",
-   "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל"
-  },
-  {
-   "id": "orbit:src/lib/atoms/parts/rotate.ts#fairAssign",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "מחלק בתורות",
    "file": "src/lib/atoms/parts/rotate.ts",
    "action": "מחלק בתורות",
    "proof": "הורץ — סוג אחר",

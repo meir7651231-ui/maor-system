@@ -10,6 +10,7 @@ import { join } from 'node:path';
 import { assemble, KINDS, PROJECTS } from './core.mjs';
 import { VERBS, RECIPE_VERB } from './verbs.mjs';
 import { HERE, loadGoals, loadIndex, loadProofs, loadRecipes, loadBehavior, loadLeads } from './load.mjs';
+await (await import('../inner/lib/ensure-gen.mjs')).ensureGen({ quiet: true }); // INNER v2: gen/ והקבצים הפנימיים הפרושים נוצרים לפי דרישה
 
 export function buildAll() {
   const recipes = loadRecipes();

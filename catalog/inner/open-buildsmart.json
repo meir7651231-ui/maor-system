@@ -1,66 +1,79 @@
 {
  "source": "buildsmart",
- "version": 1,
+ "version": 2,
  "files": 85,
  "candidates": 746,
- "sliced": 212,
- "parts": 260,
+ "sliced": 253,
+ "parts": 319,
  "modules": 48,
  "forms": {
-  "form:slice": 212,
-  "form:step": 48
+  "form:slice": 253,
+  "form:step": 66
  },
  "kinds": {
-  "inner:value": 232,
+  "inner:value": 291,
   "inner:accumulator": 28
  },
  "parents": {
-  "parent:uncataloged": 183,
-  "parent:cataloged": 77
+  "parent:uncataloged": 240,
+  "parent:cataloged": 79
  },
  "skipped": {
   "trivial": 286,
   "await": 86,
-  "imported-call": 86,
   "method-call": 35,
+  "package-call": 25,
+  "imported-method": 12,
   "loop-method-call": 9,
-  "clock": 7,
+  "privacy": 9,
+  "clock": 8,
   "io": 7,
-  "dom": 4,
+  "dom": 5,
   "new": 4,
-  "privacy": 3,
-  "imported-value": 1,
+  "module-state": 2,
+  "imported-namespace": 1,
   "loop-await": 1,
-  "loop-imported-call": 1,
   "loop-io": 1,
   "loop-mutation": 1,
   "loop-return": 1,
   "random": 1,
+  "shadowed-name": 1,
   "timer": 1
+ },
+ "via": {
+  "via:import": 65
  },
  "topFiles": [
   [
    "app/src/components/menu/submenu-settings.tsx",
-   40
+   49
+  ],
+  [
+   "functions/src/push.ts",
+   24
   ],
   [
    "app/src/lib/search.ts",
    20
   ],
   [
+   "functions/src/studio.ts",
+   19
+  ],
+  [
    "functions/src/orderEmail.ts",
    15
   ],
   [
-   "functions/src/studio.ts",
-   15
+   "functions/src/credit.ts",
+   14
   ],
   [
    "app/scripts/extract-catalog.mjs",
    13
   ],
   [
-   "functions/src/push.ts",
+   "functions/src/orders.ts",
    12
   ],
   [
@@ -68,7 +81,15 @@
    11
   ],
   [
+   "functions/src/taskNotifs.ts",
+   11
+  ],
+  [
    "app/src/test/tests/dupes.ts",
+   10
+  ],
+  [
+   "functions/src/deleteAccount.ts",
    10
   ],
   [
@@ -76,28 +97,12 @@
    9
   ],
   [
-   "functions/src/deleteAccount.ts",
-   8
-  ],
-  [
    "app/src/components/bs/bs-dial.tsx",
    7
   ],
   [
-   "functions/src/credit.ts",
-   6
-  ],
-  [
-   "functions/src/orders.ts",
-   6
-  ],
-  [
-   "functions/src/taskNotifs.ts",
-   6
-  ],
-  [
-   "app/src/test/tests/dsync.ts",
-   5
+   "app/src/components/product-sheet.tsx",
+   7
   ]
  ]
 }

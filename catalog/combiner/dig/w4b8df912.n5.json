@@ -19,7 +19,18 @@
  "statusHe": "🔎 עוד לא נחפר",
  "places": [
   {
-   "id": "inner-orbit:src/store/useApp.ts#call.seedOverduePlannedReminders.overdue",
+   "id": "inner-orbit:src/components/parnasa/admin.ts#revenueOf.featAct:step",
+   "project": "אורביט",
+   "source": "inner-orbit",
+   "name": "מסנן רשימה לפי תנאי",
+   "file": "src/components/parnasa/admin.ts",
+   "action": "מסנן",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל · אותו חומר",
+   "inside": "מחשב את ההכנסות מפרסומות וחסויות"
+  },
+  {
+   "id": "inner-orbit:src/store/useApp.ts#call.seedOverduePlannedReminders.overdue:step",
    "project": "אורביט",
    "source": "inner-orbit",
    "name": "מסנן רשימה לפי תנאי",
@@ -30,25 +41,15 @@
    "inside": "call"
   },
   {
-   "id": "inner-orbit:src/store/useApp.ts#call.seedOverduePlannedReminders.toSeed",
+   "id": "inner-orbit:src/lib/atoms/previewBookingsMore.ts#guestStaysMerge.inRun",
    "project": "אורביט",
    "source": "inner-orbit",
    "name": "מסנן רשימה לפי תנאי",
-   "file": "src/store/useApp.ts",
+   "file": "src/lib/atoms/previewBookingsMore.ts",
    "action": "מסנן",
-   "proof": "הורץ — סוג אחר",
+   "proof": "מהשם בלבד",
    "why": "אותו פועל · אותו חומר",
-   "inside": "call"
-  },
-  {
-   "id": "orbit:src/components/platform/lib.ts#orgEnabledFeatures",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "מוצא תקופה תת הדגלים שהמנהל יכול לחלק לעובדות",
-   "file": "src/components/platform/lib.ts",
-   "action": "מסנן",
-   "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל · שם קרוב"
+   "inside": "guestStaysMerge"
   }
  ]
 }

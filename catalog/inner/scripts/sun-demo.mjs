@@ -32,4 +32,5 @@ export async function sunDirections(iso = '2026-10-14', clocks = ['08:00', '12:0
 }
 
 const isMain = process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1]);
+if (isMain) await (await import('../lib/ensure-gen.mjs')).ensureGen({ sources: ['orbit'], quiet: true });
 if (isMain) for (const r of await sunDirections(process.argv[2])) console.log(`${r.clock} · זווית-שעה ${r.ha > 0 ? '+' : ''}${r.ha}° · אזימוט ${r.az}° ⇒ ${r.dir}`);

@@ -1,0 +1,18 @@
+{
+"v": 1,
+"kind": "behavior",
+"head": {"source":"inner-yoman-habina","ref":"claude/setup@ea2030d9233dbd11872448fb09206ba89c894b90","probe":{"version":1,"seed":13269520,"generatedAt":null},"totals":{"run":8,"runWithVerb":5,"twin":0,"static":2,"staticWithVerb":2,"why":{"no-fitting-input":2},"withMotion":0}},
+"aligned": true,
+"traits": ["in[bool|num|str]>str const","in[]>bool const","in[bool|num|str]>arr"],
+"rows": [
+["s",[{"id":"combine","by":"first"},{"id":"join","by":"name"}],"combine","unknown",-1,-1,"no-fitting-input"],
+["r",[],null,"unknown",18,0],
+["r",[{"id":"format","on":"json","holds":"15/15"}],"format","unknown",24,-1,0,"fef26ceb-1c424ccf"],
+["s",[{"id":"fuzzy","by":"first"},{"id":"group","by":"symbol"}],"fuzzy","unknown",-1,-1,"no-fitting-input"],
+["r",[],null,"unknown",24,1],
+["r",[{"id":"provide","on":"*","holds":"3/3"}],"provide","list",3],
+["r",[{"id":"normalize","on":"urls","holds":"12/12"}],"normalize","unknown",24,-1,0,"2c2179d6-15a59015"],
+["r",[{"id":"format","on":"port","holds":"15/15"}],"format","unknown",24,-1,0,"fef26ceb-20bcb41f"],
+["r",[],null,"unknown",24,2,0,"fef26ceb-c7cc1775"],
+["r",[{"id":"format","on":"c","holds":"15/15"},{"id":"personalize","on":"c","holds":"24/24"}],"personalize","record:c",24,-1,0,"e97eb103-a33fd5a6"]
+]}

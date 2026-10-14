@@ -1,6 +1,6 @@
 {
  "source": "mmmm",
- "version": 1,
+ "version": 2,
  "files": 201,
  "candidates": 1037,
  "sliced": 254,
@@ -20,12 +20,14 @@
  },
  "skipped": {
   "trivial": 300,
-  "imported-call": 247,
+  "package-call": 215,
   "await": 133,
+  "imported-namespace": 25,
   "loop-await": 24,
   "privacy": 22,
   "method-call": 8,
   "mutation": 8,
+  "global-call": 6,
   "new": 6,
   "this": 6,
   "unknown-call": 6,
@@ -33,14 +35,15 @@
   "loop-unknown-call": 4,
   "dom": 3,
   "global": 3,
+  "imported-call": 3,
   "module-state": 3,
-  "global-call": 2,
   "jsx": 2,
   "loop-this": 2,
   "timer": 2,
   "io": 1,
   "loop-return": 1
  },
+ "via": {},
  "topFiles": [
   [
    "artifacts/api-server/src/routes/notes.ts",

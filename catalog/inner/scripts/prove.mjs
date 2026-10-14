@@ -23,6 +23,8 @@ import { tally } from '../../lib/entry.mjs';
 import { entriesFor } from '../lib/prove-job.mjs';
 import { ORDER, REPOS } from '../lib/repos.mjs';
 import { readSigs } from '../lib/sigs.mjs';
+import { ensureGen, storePath } from '../lib/ensure-gen.mjs';
+import { packBehavior, storeText } from '../lib/store.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 const args = process.argv.slice(2);
@@ -90,11 +92,13 @@ export function runBucket(jobs, bridgePath, results, pairs) {
 
 async function main() {
   if (want.length > 1) {
+    await ensureGen({ src: SRC });
     const pass = args.filter((a, k) => a !== '--source' && args[k - 1] !== '--source');
-    for (const name of want) if (fs.existsSync(path.join(ROOT, 'catalog/sources', `inner-${name}.json`))) execFileSync(process.execPath, [fileURLToPath(import.meta.url), '--source', name, ...pass], { stdio: 'inherit' });
+    for (const name of want) if (fs.existsSync(path.join(ROOT, storePath('parts', name)))) execFileSync(process.execPath, [fileURLToPath(import.meta.url), '--source', name, ...pass], { stdio: 'inherit' });
     return;
   }
   const source = want[0];
+  await ensureGen({ sources: [source], src: SRC });
   const file = path.join(ROOT, 'catalog/sources', `inner-${source}.json`);
   if (!fs.existsSync(file)) { console.log(`· ${source}: אין inner-${source}.json — מדולג`); return; }
   const t0 = Date.now();
@@ -114,6 +118,8 @@ async function main() {
   totals.withMotion = entries.filter((e) => e.motion).length;
   const out = { source: `inner-${source}`, ref: doc.ref, probe: { version: PROVE_VERSION, seed: SEED, generatedAt: null }, totals, parts: entries.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)) };
   fs.writeFileSync(path.join(ROOT, 'catalog/behavior', `inner-${source}.json`), JSON.stringify(out, null, 1) + '\n');
+  // v2: בריפו — המחסן הדחוס; הקובץ הפרוש (gitignored) נוצר ממנו לפי דרישה, ביט-זהה
+  fs.writeFileSync(path.join(ROOT, storePath('behavior', source)), storeText(packBehavior(out, doc.parts.map((p) => p.id)).store));
   console.log(`inner-${source}: ${doc.parts.length} חלקים · run ${totals.run} (עם פועל ${totals.runWithVerb}, עם תנועה ${totals.withMotion}) · static ${totals.static} · ${((Date.now() - t0) / 1000).toFixed(1)}s`);
 }
 

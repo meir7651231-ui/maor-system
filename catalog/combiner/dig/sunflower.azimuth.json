@@ -64,15 +64,15 @@
    "inside": "tone"
   },
   {
-   "id": "inner-orbit:src/lib/atoms/verify/run.ts#zmanim_day_divide.n",
+   "id": "inner-orbit:src/components/hosting/DashTab.tsx#DashTab.sun:step",
    "project": "אורביט",
    "source": "inner-orbit",
-   "name": "בוחר ערך לפי תנאי",
-   "file": "src/lib/atoms/verify/run.ts",
+   "name": "מחשב ערך בעזרת חישוב עזר",
+   "file": "src/components/hosting/DashTab.tsx",
    "action": "מוצא את מקום השמש",
    "proof": "מהשם בלבד",
    "why": "אותו פועל · אותו חומר",
-   "inside": "zmanim_day_divide"
+   "inside": "DashTab"
   }
  ]
 }

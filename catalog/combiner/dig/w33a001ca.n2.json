@@ -30,6 +30,17 @@
    "inside": "sendToUsers"
   },
   {
+   "id": "inner-generator:yeshiva/read.mjs#roundTrip.lostSubject:step",
+   "project": "המחולל",
+   "source": "inner-generator",
+   "name": "בונה רשימה מערכים",
+   "file": "yeshiva/read.mjs",
+   "action": "מסיר כפולים",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל",
+   "inside": "roundTrip"
+  },
+  {
    "id": "inner-orbit:src/components/platform/teamIntel.ts#teamIntel.uniq",
    "project": "אורביט",
    "source": "inner-orbit",
@@ -39,17 +50,6 @@
    "proof": "הורץ — סוג אחר",
    "why": "אותו פועל",
    "inside": "מוצא מודיעין צוות"
-  },
-  {
-   "id": "inner-orbit:src/lib/atoms/decompose/genericPreview.ts#textPreview.vals",
-   "project": "אורביט",
-   "source": "inner-orbit",
-   "name": "מחלץ חלק מרצף",
-   "file": "src/lib/atoms/decompose/genericPreview.ts",
-   "action": "מסיר כפולים",
-   "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל",
-   "inside": "textPreview"
   }
  ]
 }
