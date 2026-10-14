@@ -1,7 +1,7 @@
 {
  "source": "machine",
  "repo": "meir7651231-ui/maor-system",
- "ref": "catalog@8d94c4a20c88",
+ "ref": "catalog@50751485facd",
  "generatedAt": null,
  "parts": [
   {
@@ -16055,6 +16055,445 @@
    "tags": [
     "catalog/scripts",
     "name:auto"
+   ]
+  },
+  {
+   "id": "machine:catalog/self/loop.mjs#at",
+   "source": "machine",
+   "path": "catalog/self/loop.mjs",
+   "symbol": "at",
+   "lang": "js",
+   "what": "function",
+   "name": "להפיק ערך",
+   "does": "להפיק — מקבל משהו, טקסט, ומחזיר משהו.",
+   "takes": [
+    {
+     "name": "p",
+     "kind": "unknown",
+     "type": "unknown"
+    },
+    {
+     "name": "line",
+     "kind": "text",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/self",
+    "name:auto"
+   ]
+  },
+  {
+   "id": "machine:catalog/self/loop.mjs#distinguishing",
+   "source": "machine",
+   "path": "catalog/self/loop.mjs",
+   "symbol": "distinguishing",
+   "lang": "js",
+   "what": "function",
+   "name": "להפיק ערך",
+   "does": "להפיק distinguishing — מקבל רשומת out, ומחזיר משהו.",
+   "takes": [
+    {
+     "name": "outs",
+     "kind": "record:out",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/self",
+    "name:auto",
+    "name:english-residue"
+   ]
+  },
+  {
+   "id": "machine:catalog/self/loop.mjs#enc",
+   "source": "machine",
+   "path": "catalog/self/loop.mjs",
+   "symbol": "enc",
+   "lang": "js",
+   "what": "function",
+   "name": "להפיק ערך",
+   "does": "להפיק enc — מקבל משהו, ומחזיר משהו.",
+   "takes": [
+    {
+     "name": "r",
+     "kind": "unknown",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/self",
+    "name:auto",
+    "name:english-residue"
+   ]
+  },
+  {
+   "id": "machine:catalog/self/loop.mjs#importable",
+   "source": "machine",
+   "path": "catalog/self/loop.mjs",
+   "symbol": "importable",
+   "lang": "js",
+   "what": "function",
+   "name": "להפיק ערך",
+   "does": "ניתן לייבוא מקוד המכונה: קובץ JS בתוך catalog (לא gen).",
+   "takes": [
+    {
+     "name": "rel",
+     "kind": "record:rel",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/self",
+    "name:auto",
+    "name:english-residue"
+   ]
+  },
+  {
+   "id": "machine:catalog/self/loop.mjs#lawsOf",
+   "source": "machine",
+   "path": "catalog/self/loop.mjs",
+   "symbol": "lawsOf",
+   "lang": "js",
+   "what": "function",
+   "name": "להפיק חוקים",
+   "does": "חוקי הפועל n/n + **כל** הקלטים שהקורא נתן (לפי הסדר, בלי כפולים).",
+   "takes": [
+    {
+     "name": "M",
+     "kind": "unknown",
+     "type": "unknown"
+    },
+    {
+     "name": "R",
+     "kind": "unknown",
+     "type": "unknown"
+    },
+    {
+     "name": "verbId",
+     "kind": "record:verbid",
+     "type": "unknown"
+    },
+    {
+     "name": "o",
+     "kind": "unknown",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/self",
+    "name:auto"
+   ]
+  },
+  {
+   "id": "machine:catalog/self/loop.mjs#ledgerOf",
+   "source": "machine",
+   "path": "catalog/self/loop.mjs",
+   "symbol": "ledgerOf",
+   "lang": "js",
+   "what": "function",
+   "name": "להפיק פנקס",
+   "does": "להפיק פנקס — מקבל רשימה, רשומת quick, ומחזיר משהו.",
+   "takes": [
+    {
+     "name": "rows",
+     "kind": "list",
+     "type": "unknown"
+    },
+    {
+     "name": "{quick}",
+     "kind": "record:quick",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/self",
+    "name:auto"
+   ]
+  },
+  {
+   "id": "machine:catalog/self/loop.mjs#probeOpts",
+   "source": "machine",
+   "path": "catalog/self/loop.mjs",
+   "symbol": "probeOpts",
+   "lang": "js",
+   "what": "function",
+   "name": "להפיק ערך",
+   "does": "איך הנבדק נבדק — **בדיוק** כמו מי שהוכיח לו את הפועל: תפקיד ⇒ כמו self/roles.mjs (זרע לפי חלק|פועל, רק הפועל הזה);.",
+   "takes": [
+    {
+     "name": "root",
+     "kind": "file",
+     "type": "unknown"
+    },
+    {
+     "name": "M",
+     "kind": "unknown",
+     "type": "unknown"
+    },
+    {
+     "name": "s",
+     "kind": "text",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/self",
+    "name:auto",
+    "name:english-residue"
+   ]
+  },
+  {
+   "id": "machine:catalog/self/loop.mjs#runOn",
+   "source": "machine",
+   "path": "catalog/self/loop.mjs",
+   "symbol": "runOn",
+   "lang": "js",
+   "what": "function",
+   "name": "להריץ ערך",
+   "does": "הפלטים (מקודדים) והצעדים על רשימת-קלטים — אותו זרע, אותו סדר.",
+   "takes": [
+    {
+     "name": "M",
+     "kind": "unknown",
+     "type": "unknown"
+    },
+    {
+     "name": "R",
+     "kind": "unknown",
+     "type": "unknown"
+    },
+    {
+     "name": "inputs",
+     "kind": "list",
+     "type": "unknown"
+    },
+    {
+     "name": "seed",
+     "kind": "record:seed",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/self",
+    "name:auto"
+   ]
+  },
+  {
+   "id": "machine:catalog/self/loop.mjs#runnerOf",
+   "source": "machine",
+   "path": "catalog/self/loop.mjs",
+   "symbol": "runnerOf",
+   "lang": "js",
+   "what": "function",
+   "name": "להפיק מריץ",
+   "does": "פונקציה בארגז ⇒ runner: {ctx, fn, sig}.",
+   "takes": [
+    {
+     "name": "M",
+     "kind": "unknown",
+     "type": "unknown"
+    },
+    {
+     "name": "mod",
+     "kind": "record:mod",
+     "type": "unknown"
+    },
+    {
+     "name": "symbol",
+     "kind": "record:symbol",
+     "type": "unknown"
+    },
+    {
+     "name": "sig",
+     "kind": "record:sig",
+     "type": "unknown"
+    },
+    {
+     "name": "adapt",
+     "kind": "record:adapt",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/self",
+    "name:auto"
+   ]
+  },
+  {
+   "id": "machine:catalog/self/loop.mjs#specFrom",
+   "source": "machine",
+   "path": "catalog/self/loop.mjs",
+   "symbol": "specFrom",
+   "lang": "js",
+   "what": "function",
+   "name": "להפיק ערך",
+   "does": "להפיק spec — מקבל רשומת fromrel, רשומת torel, ומחזיר משהו.",
+   "takes": [
+    {
+     "name": "fromRel",
+     "kind": "record:fromrel",
+     "type": "unknown"
+    },
+    {
+     "name": "toRel",
+     "kind": "record:torel",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/self",
+    "name:auto",
+    "name:english-residue"
+   ]
+  },
+  {
+   "id": "machine:catalog/self/loop.mjs#speedLaw",
+   "source": "machine",
+   "path": "catalog/self/loop.mjs",
+   "symbol": "speedLaw",
+   "lang": "js",
+   "what": "function",
+   "name": "להפיק ערך",
+   "does": "a = הקיים, b = החלופה.",
+   "takes": [
+    {
+     "name": "a",
+     "kind": "unknown",
+     "type": "unknown"
+    },
+    {
+     "name": "b",
+     "kind": "unknown",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/self",
+    "name:auto",
+    "name:english-residue"
+   ]
+  },
+  {
+   "id": "machine:catalog/self/loop.mjs#stretched",
+   "source": "machine",
+   "path": "catalog/self/loop.mjs",
+   "symbol": "stretched",
+   "lang": "js",
+   "what": "function",
+   "name": "לנסח ערך",
+   "does": "לנסח stretched — מקבל טקסט, ומחזיר טקסט.",
+   "takes": [
+    {
+     "name": "v",
+     "kind": "text",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "text",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/self",
+    "name:auto",
+    "name:english-residue"
+   ]
+  },
+  {
+   "id": "machine:catalog/self/loop.mjs#withStretched",
+   "source": "machine",
+   "path": "catalog/self/loop.mjs",
+   "symbol": "withStretched",
+   "lang": "js",
+   "what": "function",
+   "name": "להפיק עם",
+   "does": "להפיק עם stretched — מקבל רשימה, ומחזיר משהו.",
+   "takes": [
+    {
+     "name": "inputs",
+     "kind": "list",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/self",
+    "name:auto",
+    "name:english-residue"
    ]
   },
   {

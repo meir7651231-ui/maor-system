@@ -1,0 +1,363 @@
+{
+ "quick": false,
+ "demos": [
+  {
+   "demo": "fix",
+   "he": "תיקון — חוק שנשבר",
+   "ok": true,
+   "checks": "מלא: חוקים · פלטים · צעדים · rebuild ביט-זהה · vitest catalog",
+   "before": "const fnv = (s) => fnvHex(s).replace(/^0+/, ''); // הדגמה: נשבר (בלי ריפוד)",
+   "after": "const fnv = (s) => fnvHex(s);",
+   "loopWrote": true,
+   "row": {
+    "subject": "machine:catalog/lib/verbs.mjs#fnv·fingerprint",
+    "at": "catalog/lib/verbs.mjs:76",
+    "verb": "fingerprint",
+    "from": "תפקיד",
+    "role": "מימוש-הייחוס של הפועל",
+    "laws": "✗ fingerprint.fixed — אורכים: 8,7",
+    "inputs": 71,
+    "steps": 1626,
+    "found": [
+     "באג: fingerprint.fixed"
+    ],
+    "considered": 6,
+    "skipped": {},
+    "tried": [
+     {
+      "cand": "inner-orbit:src/components/platform/lib.ts#genJoinCode.out:after-loop",
+      "project": "inner-orbit",
+      "at": "src/components/platform/lib.ts:86",
+      "laws": "17/17",
+      "inputs": 82,
+      "same": "פלט אחר על 82 קלטים (#0)",
+      "steps": "2236 מול 1744",
+      "verdict": "מתקן (עובר n/n) · דורש מתאם-ייבוא (קובץ TS)"
+     },
+     {
+      "cand": "machine:catalog/combiner/core.mjs#wordId",
+      "project": "machine",
+      "at": "catalog/combiner/core.mjs:828",
+      "laws": "17/17",
+      "inputs": 82,
+      "same": "פלט אחר על 82 קלטים (#0)",
+      "steps": "1744 מול 1744",
+      "verdict": "מתקן (עובר n/n)"
+     },
+     {
+      "cand": "machine:catalog/scripts/core-census.mjs#refOf",
+      "project": "machine",
+      "at": "catalog/scripts/core-census.mjs:49",
+      "laws": "17/17",
+      "inputs": 82,
+      "same": "פלט אחר על 82 קלטים (#0)",
+      "steps": "1908 מול 1744",
+      "verdict": "מתקן (עובר n/n)"
+     },
+     {
+      "cand": "machine:catalog/self/parts.mjs#fnvHex",
+      "project": "machine",
+      "at": "catalog/self/parts.mjs:22",
+      "laws": "17/17",
+      "inputs": 82,
+      "same": "פלט אחר על 7 קלטים (#10)",
+      "steps": "1662 מול 1744",
+      "verdict": "מתקן (עובר n/n)"
+     },
+     {
+      "cand": "machine:catalog/self/parts.mjs#fnvHexPoints",
+      "project": "machine",
+      "at": "catalog/self/parts.mjs:31",
+      "laws": "17/17",
+      "inputs": 82,
+      "same": "פלט אחר על 7 קלטים (#10)",
+      "steps": "1662 מול 1744",
+      "verdict": "מתקן (עובר n/n)"
+     },
+     {
+      "cand": "orbit:src/components/platform/lib.ts#genJoinCode",
+      "project": "orbit",
+      "at": "src/components/platform/lib.ts:86",
+      "laws": "17/17",
+      "inputs": 82,
+      "same": "פלט אחר על 82 קלטים (#0)",
+      "steps": "2236 מול 1744",
+      "verdict": "מתקן (עובר n/n) · דורש מתאם-ייבוא (קובץ TS)"
+     }
+    ],
+    "decision": "הוחלף",
+    "attempts": [
+     {
+      "cand": "machine:catalog/self/parts.mjs#fnvHex",
+      "ok": true,
+      "checks": {
+       "laws": "17/17",
+       "outputs": "זהים (82 קלטים)",
+       "steps": "1744 מול 1744",
+       "rebuild": "ביט-זהה",
+       "vitest": "✓ Tests  429 passed | 5 skipped (434)"
+      }
+     }
+    ],
+    "by": "machine:catalog/self/parts.mjs#fnvHex (machine · catalog/self/parts.mjs:22)",
+    "why": "החוק נכשל (fingerprint.fixed) ⇒ החלק המוכח עובר n/n",
+    "files": [
+     "catalog/lib/verbs.mjs"
+    ]
+   }
+  },
+  {
+   "demo": "speed",
+   "he": "מהירות — גרסה איטית",
+   "ok": true,
+   "checks": "מלא: חוקים · פלטים · צעדים · rebuild ביט-זהה · vitest catalog",
+   "before": "const fnv = (s) => { let h = fnvHex(s); for (let i = 1; i <= s.length; i++) h = fnvHex(s.slice(0, i)); return h; }; // הדגמה: O(n²)",
+   "after": "const fnv = (s) => fnvHex(s);",
+   "loopWrote": true,
+   "row": {
+    "subject": "machine:catalog/lib/verbs.mjs#fnv·fingerprint",
+    "at": "catalog/lib/verbs.mjs:76",
+    "verb": "fingerprint",
+    "from": "תפקיד",
+    "role": "מימוש-הייחוס של הפועל",
+    "laws": "17/17",
+    "inputs": 82,
+    "steps": 87331,
+    "found": [
+     "חלופה זולה: machine:catalog/self/parts.mjs#fnvHex",
+     "חלופה זולה: machine:catalog/self/parts.mjs#fnvHexPoints"
+    ],
+    "considered": 6,
+    "skipped": {
+     "עובר את החוקים — פלט אחר (חלק מהמחסן)": 2
+    },
+    "tried": [
+     {
+      "cand": "machine:catalog/combiner/core.mjs#wordId",
+      "project": "machine",
+      "at": "catalog/combiner/core.mjs:828",
+      "laws": "17/17",
+      "inputs": 82,
+      "same": "פלט אחר על 82 קלטים (#0)",
+      "steps": "1744 מול 87331",
+      "verdict": "נדחה — פלט אחר על 82 קלטים (#0)"
+     },
+     {
+      "cand": "machine:catalog/scripts/core-census.mjs#refOf",
+      "project": "machine",
+      "at": "catalog/scripts/core-census.mjs:49",
+      "laws": "17/17",
+      "inputs": 82,
+      "same": "פלט אחר על 82 קלטים (#0)",
+      "steps": "1908 מול 87331",
+      "verdict": "נדחה — פלט אחר על 82 קלטים (#0)"
+     },
+     {
+      "cand": "machine:catalog/self/parts.mjs#fnvHex",
+      "project": "machine",
+      "at": "catalog/self/parts.mjs:22",
+      "laws": "17/17",
+      "inputs": 82,
+      "same": "כן",
+      "steps": "1662 מול 87331",
+      "verdict": "מהיר יותר (1662 מול 87331 צעדים)"
+     },
+     {
+      "cand": "machine:catalog/self/parts.mjs#fnvHexPoints",
+      "project": "machine",
+      "at": "catalog/self/parts.mjs:31",
+      "laws": "17/17",
+      "inputs": 82,
+      "same": "כן",
+      "steps": "1662 מול 87331",
+      "verdict": "מהיר יותר (1662 מול 87331 צעדים)"
+     }
+    ],
+    "decision": "הוחלף",
+    "attempts": [
+     {
+      "cand": "machine:catalog/self/parts.mjs#fnvHex",
+      "ok": true,
+      "checks": {
+       "laws": "17/17",
+       "outputs": "זהים (82 קלטים)",
+       "steps": "1744 מול 87331",
+       "rebuild": "ביט-זהה",
+       "vitest": "✓ Tests  429 passed | 5 skipped (434)"
+      }
+     }
+    ],
+    "by": "machine:catalog/self/parts.mjs#fnvHex (machine · catalog/self/parts.mjs:22)",
+    "why": "חוק-המהירות: אותם פלטים, 1744 מול 87331 צעדים",
+    "files": [
+     "catalog/lib/verbs.mjs"
+    ]
+   }
+  },
+  {
+   "demo": "revert",
+   "he": "החזרה — שווה על הקלטים של הקורא, לא על הקטלוג",
+   "ok": true,
+   "checks": "מלא: חוקים · פלטים · צעדים · rebuild ביט-זהה · vitest catalog",
+   "before": "export const fnvHex = (s) => { let h = ''; for (let i = 0; i <= s.length; i++) h = fnv1a(s.slice(0, i)).toString(16).padStart(8, '0'); return h; }; // הדגמה: O(n²)",
+   "after": "export const fnvHex = (s) => { let h = ''; for (let i = 0; i <= s.length; i++) h = fnv1a(s.slice(0, i)).toString(16).padStart(8, '0'); return h; }; // הדגמה: O(n²)",
+   "loopWrote": false,
+   "row": {
+    "subject": "machine:catalog/self/parts.mjs#fnvHex·fingerprint",
+    "at": "catalog/self/parts.mjs:22",
+    "verb": "fingerprint",
+    "from": "תפקיד",
+    "role": "שני חצאי behaviorHash · מימוש-הייחוס של «מטביע חותם»",
+    "laws": "18/18",
+    "inputs": 90,
+    "steps": 97293,
+    "found": [
+     "כפילות: machine:catalog/lib/verbs.mjs#fnv",
+     "חלופה זולה: machine:catalog/self/parts.mjs#fnvHexPoints"
+    ],
+    "considered": 6,
+    "skipped": {
+     "עובר את החוקים — פלט אחר (חלק מהמחסן)": 2
+    },
+    "tried": [
+     {
+      "cand": "machine:catalog/combiner/core.mjs#wordId",
+      "project": "machine",
+      "at": "catalog/combiner/core.mjs:828",
+      "laws": "18/18",
+      "inputs": 90,
+      "same": "פלט אחר על 90 קלטים (#0)",
+      "steps": "1874 מול 97293",
+      "verdict": "נדחה — פלט אחר על 90 קלטים (#0)"
+     },
+     {
+      "cand": "machine:catalog/lib/verbs.mjs#fnv",
+      "project": "machine",
+      "at": "catalog/lib/verbs.mjs:76",
+      "laws": "18/18",
+      "inputs": 90,
+      "same": "כן",
+      "steps": "97293 מול 97293",
+      "verdict": "כפילות — שוויון בצעדים (97293) — לא מחליפים"
+     },
+     {
+      "cand": "machine:catalog/scripts/core-census.mjs#refOf",
+      "project": "machine",
+      "at": "catalog/scripts/core-census.mjs:49",
+      "laws": "18/18",
+      "inputs": 90,
+      "same": "פלט אחר על 90 קלטים (#0)",
+      "steps": "101221 מול 97293",
+      "verdict": "נדחה — פלט אחר על 90 קלטים (#0)"
+     },
+     {
+      "cand": "machine:catalog/self/parts.mjs#fnvHexPoints",
+      "project": "machine",
+      "at": "catalog/self/parts.mjs:31",
+      "laws": "18/18",
+      "inputs": 90,
+      "same": "כן",
+      "steps": "1784 מול 97293",
+      "verdict": "מהיר יותר (1784 מול 97293 צעדים)"
+     }
+    ],
+    "decision": "הוחזר",
+    "attempts": [
+     {
+      "cand": "machine:catalog/self/parts.mjs#fnvHexPoints",
+      "ok": false,
+      "checks": {
+       "laws": "18/18",
+       "outputs": "זהים (90 קלטים)",
+       "steps": "1874 מול 97293",
+       "rebuild": "✗ 2 פלטים השתנו (catalog/behavior/orbit.json · catalog/inner/store/behavior-orbit.json)"
+      },
+      "why": "פלטי-הקטלוג השתנו: catalog/behavior/orbit.json · catalog/inner/store/behavior-orbit.json"
+     }
+    ],
+    "why": "כל המועמדים נכשלו בבדיקה על העותק — פלטי-הקטלוג השתנו: catalog/behavior/orbit.json · catalog/inner/store/behavior-orbit.json"
+   }
+  },
+  {
+   "demo": "refuse",
+   "he": "סירוב — חלופה מהירה שטועה בקלט אחד",
+   "ok": true,
+   "checks": "מלא: חוקים · פלטים · צעדים · rebuild ביט-זהה · vitest catalog",
+   "before": "const fnv = fnvHex; // 🧩 SELF: חלק-המכונה המוכח (catalog/self/parts.mjs) — היה כאן העתק של FNV-1a",
+   "after": "const fnv = fnvHex; // 🧩 SELF: חלק-המכונה המוכח (catalog/self/parts.mjs) — היה כאן העתק של FNV-1a",
+   "loopWrote": false,
+   "row": {
+    "subject": "machine:catalog/lib/verbs.mjs#fnv·fingerprint",
+    "at": "catalog/lib/verbs.mjs:76",
+    "verb": "fingerprint",
+    "from": "תפקיד",
+    "role": "מימוש-הייחוס של הפועל",
+    "laws": "17/17",
+    "inputs": 82,
+    "steps": 1662,
+    "found": [
+     "כפילות: machine:catalog/self/parts.mjs#fnvHex",
+     "כפילות: machine:catalog/self/parts.mjs#fnvHexPoints"
+    ],
+    "considered": 7,
+    "skipped": {
+     "עובר את החוקים — פלט אחר (חלק מהמחסן)": 2
+    },
+    "tried": [
+     {
+      "cand": "machine:catalog/combiner/core.mjs#wordId",
+      "project": "machine",
+      "at": "catalog/combiner/core.mjs:828",
+      "laws": "17/17",
+      "inputs": 82,
+      "same": "פלט אחר על 82 קלטים (#0)",
+      "steps": "1744 מול 1662",
+      "verdict": "נדחה — פלט אחר על 82 קלטים (#0)"
+     },
+     {
+      "cand": "machine:catalog/scripts/core-census.mjs#refOf",
+      "project": "machine",
+      "at": "catalog/scripts/core-census.mjs:49",
+      "laws": "17/17",
+      "inputs": 82,
+      "same": "פלט אחר על 82 קלטים (#0)",
+      "steps": "1908 מול 1662",
+      "verdict": "נדחה — פלט אחר על 82 קלטים (#0)"
+     },
+     {
+      "cand": "machine:catalog/self/parts.mjs#fnvHex",
+      "project": "machine",
+      "at": "catalog/self/parts.mjs:22",
+      "laws": "17/17",
+      "inputs": 82,
+      "same": "כן",
+      "steps": "1662 מול 1662",
+      "verdict": "כפילות — שוויון בצעדים (1662) — לא מחליפים"
+     },
+     {
+      "cand": "machine:catalog/self/parts.mjs#fnvHexBait",
+      "project": "machine",
+      "at": "catalog/self/parts.mjs:34",
+      "laws": "17/17",
+      "inputs": 82,
+      "same": "פלט אחר על קלט אחד (#0)",
+      "steps": "1581 מול 1662",
+      "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
+     },
+     {
+      "cand": "machine:catalog/self/parts.mjs#fnvHexPoints",
+      "project": "machine",
+      "at": "catalog/self/parts.mjs:31",
+      "laws": "17/17",
+      "inputs": 82,
+      "same": "כן",
+      "steps": "1662 מול 1662",
+      "verdict": "כפילות — שוויון בצעדים (1662) — לא מחליפים"
+     }
+    ],
+    "decision": "נשאר",
+    "why": "אין חלופה מהירה יותר שאפשר לייבא"
+   }
+  }
+ ]
+}

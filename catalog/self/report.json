@@ -1,26 +1,26 @@
 {
  "source": "machine",
- "ref": "catalog@8d94c4a20c88",
+ "ref": "catalog@50751485facd",
  "seed": 13269520,
  "generatedAt": null,
  "census": {
-  "files": 62,
-  "parts": 526
+  "files": 64,
+  "parts": 539
  },
  "parts": {
   "totals": {
-   "run": 335,
-   "runWithVerb": 64,
+   "run": 340,
+   "runWithVerb": 66,
    "twin": 0,
-   "static": 191,
-   "staticWithVerb": 17,
+   "static": 199,
+   "staticWithVerb": 18,
    "why": {
-    "no-fitting-input": 166,
+    "no-fitting-input": 174,
     "load-failed": 25
    }
   },
   "verbs": {
-   "format": 24,
+   "format": 26,
    "round": 12,
    "validate": 11,
    "normalize": 10,
@@ -407,6 +407,18 @@
     ]
    },
    {
+    "id": "machine:catalog/self/loop.mjs#at",
+    "verbs": [
+     "format 15/15"
+    ]
+   },
+   {
+    "id": "machine:catalog/self/loop.mjs#stretched",
+    "verbs": [
+     "format 15/15"
+    ]
+   },
+   {
     "id": "machine:catalog/self/parts.mjs#byId",
     "verbs": [
      "round 12/12",
@@ -443,28 +455,28 @@
  },
  "inner": {
   "totals": {
-   "candidates": 3138,
-   "parts": 1337,
-   "run": 877,
-   "runWithVerb": 278,
+   "candidates": 3373,
+   "parts": 1422,
+   "run": 933,
+   "runWithVerb": 289,
    "twin": 0,
-   "static": 460,
-   "staticWithVerb": 236,
+   "static": 489,
+   "staticWithVerb": 249,
    "why": {
-    "no-fitting-input": 460
+    "no-fitting-input": 489
    }
   },
   "verbs": {
-   "format": 88,
-   "round": 67,
+   "format": 94,
+   "round": 70,
    "normalize": 49,
    "convert": 37,
    "clamp": 32,
    "split": 19,
    "tier": 14,
+   "validate": 11,
+   "personalize": 10,
    "provide": 10,
-   "personalize": 9,
-   "validate": 9,
    "filter": 4,
    "gap": 4,
    "map": 4,

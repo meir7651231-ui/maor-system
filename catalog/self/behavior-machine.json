@@ -1,19 +1,19 @@
 {
  "source": "machine",
- "ref": "catalog@8d94c4a20c88",
+ "ref": "catalog@50751485facd",
  "probe": {
   "version": 1,
   "seed": 13269520,
   "generatedAt": null
  },
  "totals": {
-  "run": 335,
-  "runWithVerb": 64,
+  "run": 340,
+  "runWithVerb": 66,
   "twin": 0,
-  "static": 191,
-  "staticWithVerb": 17,
+  "static": 199,
+  "staticWithVerb": 18,
   "why": {
-   "no-fitting-input": 166,
+   "no-fitting-input": 174,
    "load-failed": 25
   }
  },
@@ -5051,6 +5051,133 @@
    "material": "unknown",
    "cases": 24,
    "hash": "5e5eaa09-2f86f734"
+  },
+  {
+   "id": "machine:catalog/self/loop.mjs#at",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "format",
+     "on": "p",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "format",
+   "material": "unknown",
+   "cases": 24,
+   "hash": "9e5de6ff-15c94d01"
+  },
+  {
+   "id": "machine:catalog/self/loop.mjs#distinguishing",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:out",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "machine:catalog/self/loop.mjs#enc",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "machine:catalog/self/loop.mjs#importable",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "record:rel",
+   "cases": 24,
+   "traits": "in[]>bool const"
+  },
+  {
+   "id": "machine:catalog/self/loop.mjs#lawsOf",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "machine:catalog/self/loop.mjs#ledgerOf",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[arr,obj]>obj rec:mix",
+   "hash": "ff18ac9e-d921850e"
+  },
+  {
+   "id": "machine:catalog/self/loop.mjs#probeOpts",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "sample",
+     "by": "symbol"
+    }
+   ],
+   "primary": "sample",
+   "material": "file",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "machine:catalog/self/loop.mjs#runOn",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "machine:catalog/self/loop.mjs#runnerOf",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "machine:catalog/self/loop.mjs#specFrom",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:fromrel",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "machine:catalog/self/loop.mjs#speedLaw",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "machine:catalog/self/loop.mjs#stretched",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "format",
+     "on": "v",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "format",
+   "material": "text",
+   "cases": 24,
+   "hash": "e18e0653-782bed8d"
+  },
+  {
+   "id": "machine:catalog/self/loop.mjs#withStretched",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 4,
+   "traits": "in[arr]>arr const len="
   },
   {
    "id": "machine:catalog/self/parts.mjs#byId",
