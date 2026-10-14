@@ -3,31 +3,31 @@
  "note": "נוצר ע\"י catalog/scripts/rebuild.mjs — לכל שלב: טביעת-הקלטים שממנה נוצרו הפלטים שבריפו, וטביעת כל פלט. שכפול טרי שהקלטים שלו זהים ⇒ השלב לא רץ.",
  "stages": {
   "orbit-census": {
-   "in": "56a655e1c67c5ce7a56bd95bbfa58c41",
+   "in": "44b8e48ef73b189d2320840148ff3f28",
    "out": {
     "catalog/sources/orbit.json": "44154de90547b606eb1fdb1f7fdaffe5"
    }
   },
   "core-census": {
-   "in": "8a713ae9d4357a7ff207100bbd7ab64b",
+   "in": "c24bb063c148fedbc93286fea7d59d82",
    "out": {
     "catalog/sources/core.json": "f5f39a218f51353e63e8d68c2d4b9f69"
    }
   },
   "core-b-census": {
-   "in": "d5488a8355771cf570618dafed6be9e1",
+   "in": "8932ade94aeeb83887a2f57a62e9024d",
    "out": {
     "catalog/sources/core-b.json": "b8b2e383a4e53ff71fc28bfdc6341695"
    }
   },
   "core-c-census": {
-   "in": "65088d5559703def0fee616c75f51608",
+   "in": "c4da786a06a1f41511074756284e1e17",
    "out": {
     "catalog/sources/core-c.json": "c0c242d9305e196e2b3ba7dc3ca5bb3b"
    }
   },
   "open-orbit": {
-   "in": "9b719a8b2dcd45ad97ed27542ebe78d8",
+   "in": "b6e27f34fe05896f671bee3c90cd780e",
    "out": {
     "catalog/inner/gen.manifest.json": "7e4a59f4ad13d9e90eac024adef1df12",
     "catalog/inner/open-orbit.json": "869c9762a2cc8fd2551cd88321cb614c",
@@ -35,42 +35,42 @@
    }
   },
   "probe-orbit": {
-   "in": "e2f6492df645aad1a83f32c10dc32f08",
+   "in": "0fffed47dd9a709f757b04e32a6a07d5",
    "out": {
     "catalog/behavior/orbit.json": "d414b430c461091665eb20c6ec8498a2",
-    "catalog/self/stamps/behavior-orbit.json": "9e4e935d51cff9c7778e205af24a81c9"
+    "catalog/self/stamps/behavior-orbit.json": "486b13fe5c9531e101f5353e2017e52c"
    }
   },
   "probe-core": {
-   "in": "ae36d2810c4e52e8dbf4eaef71fb8a36",
+   "in": "4ad74837afee15337373532602943838",
    "out": {
     "catalog/behavior/core.json": "283b98945d08dd16b8dc7f5abd49025a",
-    "catalog/self/stamps/behavior-core.json": "16910dbd662b6f09d59dc92755d479a9"
+    "catalog/self/stamps/behavior-core.json": "71564275d49b1555049eacd8aa63dc0b"
    }
   },
   "probe-core-b": {
-   "in": "3811da63cf83b80cc8be38520086ca6d",
+   "in": "c1c1825e4b7266499ba604ad25684059",
    "out": {
     "catalog/behavior/core-b.json": "eff1c76dc4f3947a55966a81c507cfbc",
-    "catalog/self/stamps/behavior-core-b.json": "7a48113ff7ec595291f7f3c10af5bf40"
+    "catalog/self/stamps/behavior-core-b.json": "7f51879a99c8579631234b9b6a83f579"
    }
   },
   "probe-core-c": {
-   "in": "f0b8c8f59fa004fa23b031302544a24b",
+   "in": "8e54402c59d1a38e2dfc1fc498264ef0",
    "out": {
     "catalog/behavior/core-c.json": "944e8af4f392147090be38f564a13046",
-    "catalog/self/stamps/behavior-core-c.json": "a3e5a4d64c73e0f225a9278968be3c4a"
+    "catalog/self/stamps/behavior-core-c.json": "c7db152f4c1d09158b380e595919fa04"
    }
   },
   "prove-orbit": {
-   "in": "660ad7a1d6fb201300fd5258893e8873",
+   "in": "2b769a2b2ea57cfde4593f43706a9e3e",
    "out": {
     "catalog/inner/store/behavior-orbit.json": "2985a931c760ef8e47f80671b3be4568",
-    "catalog/self/stamps/inner-orbit.json": "5a0a0ca16d6632637b988b602700004c"
+    "catalog/self/stamps/inner-orbit.json": "709a284e0583c6abd2cf2bc06f75e299"
    }
   },
   "catalog-build": {
-   "in": "6a1115d3313b41ac5f695966c0e6f3c3",
+   "in": "934accc84b62542f3bbb04a5fa65521b",
    "out": {
     "catalog/alphabet.md": "d7e8479a041fc18f959d37e1e4e331a3",
     "catalog/index.json": "1712692ca380d4088761906cd426ab03",
@@ -79,32 +79,32 @@
    }
   },
   "lift": {
-   "in": "68228086326500a6bfc279cdd9324905",
+   "in": "65e046783a856774a32b9ed620a057a4",
    "out": {
     "catalog/inner/lift.json": "a534ea46208b611c28e9616546c0e60a"
    }
   },
   "goals-coverage": {
-   "in": "c0650ea29afa25b24775073388f8349f",
+   "in": "0c173aa1c3ad284e17ef7383d64a3f41",
    "out": {
     "catalog/goals/coverage.json": "a16ba13f023bcfd90187e876477988b9",
     "catalog/goals/coverage.md": "a455274ffe9260a29e157e8328340bfa"
    }
   },
   "core-demo": {
-   "in": "fa056be575e9326b4424674e489bbb95",
+   "in": "47867c5dd34f2633114fbe895e8f42d8",
    "out": {
     "catalog/core/demo.html": "45d3376f2b2676a22f5cba34299e74f4"
    }
   },
   "combiner-prove": {
-   "in": "30557059fbec2bcf30877f2adaa65689",
+   "in": "ce199ee8a468058335c97afc8c0c7d64",
    "out": {
     "catalog/combiner/proofs.json": "368c0d0b6f1a9fedcc43919305bcc3da"
    }
   },
   "combine": {
-   "in": "648042191a0272f5056975f3f6f38247",
+   "in": "90481c0fc1f12c5c1002530dc6d50e9a",
    "out": {
     "catalog/combiner/combos.json": "d5bc29b77c9d6a6ad51a34353b7f5248",
     "catalog/recipes/combo-allot-geo.json": "a39e7bf380efdee0eb7a71eb80fec36e",
@@ -128,29 +128,29 @@
     "catalog/recipes/combo-tolerate-geo.json": "f46596f09109517a2f53926650acca31",
     "catalog/recipes/combo-tolerate-waiting.json": "50585f34c7389a7e7c7902336c5e7159",
     "catalog/recipes/combo-tour-geo.json": "e172eee01c3457297e3b360256be089f",
-    "catalog/self/stamps/combine.json": "cfa7c806ad030437785e81a2daa2eafe"
+    "catalog/self/stamps/combine.json": "6d5c69f74162efe1c9373cdf8876cb3c"
    }
   },
   "build": {
-   "in": "a6709eba3e66d6ccfda3039f8aa19ac9",
+   "in": "020775806a1576cd0f211acd20d0c906",
    "out": {
     "catalog/combiner/dig/w61ae0275.n4.json": "59fb2b9a7389e6b6e63ecbe18a57e6de",
     "catalog/combiner/lab-data.json": "23535bc48987d0d4fc1259fa6314ee31"
    }
   },
   "bundle": {
-   "in": "7b5b443bf45ab65ef96497a7a560b66c",
+   "in": "1bbd0e8ec8aac097dbcfa68c42728e11",
    "out": {
     "catalog/products/distribution/assembly.json": "0bd2390f3a702463acb0f5aaf7c26ff4",
     "catalog/products/distribution/parts.bundle.mjs": "0bdf55048a42d34095c48c93c92261dc"
    }
   },
   "self-check": {
-   "in": "3a0f7231408960b6df93c360b474f250",
+   "in": "1e64648df6074dbe808f7c4773166688",
    "out": {
-    "catalog/self/behavior-machine.json": "f183087fb4c6a02bf88c26ff1164eda8",
-    "catalog/self/machine.json": "0392b38ec313d1921b879af46c65f826",
-    "catalog/self/report.json": "a4f71e328bbb008af73695b8e4c53bb4"
+    "catalog/self/behavior-machine.json": "f454cb20f674f71bffe2860316a8bce1",
+    "catalog/self/machine.json": "4afe5468ba8f7eb93fb90a398b04addf",
+    "catalog/self/report.json": "b23419aa53573b1af9577c940e797a24"
    }
   }
  }

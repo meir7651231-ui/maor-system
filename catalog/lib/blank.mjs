@@ -12,6 +12,8 @@
  * צמתים בעצמם) — כך `//` בתוך מחרוזת / regex / טקסט-JSX לא נחשב הערה.
  */
 import ts from 'typescript';
+import fs from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { fingerprint, cacheGet, cachePut } from './cache.mjs';
 
 const TS_EXT = /\.(ts|tsx|mts|cts)$/;
@@ -88,10 +90,22 @@ export const sourceView = (file, text) => (isBlankable(file) ? blankComments(tex
 /* ═══════════════ מהר: «מחפש לפי מפתח» — טקסט-מקור ⇒ הגרסה בלי ההערות, נזכרת לפי טביעת-התוכן ═══════════════ */
 
 const memo = new Map();
+/**
+ * טביעת **האלגוריתם** = טביעת הקוד של הקובץ הזה (+ גרסת המהדר) — לא תג ידני. (SELF-LOOP, תיקון לפי מדידת-המנהל:
+ * האלגוריתם שונה פעמיים תחת אותו תג 'blank-v3' ⇒ שכפול עם מטמון מאיטרציה קודמת חישב טביעות-view ישנות ⇒ החותמות
+ * שבריפו לא תאמו לשכפול טרי.) שינוי בקובץ ⇒ מפתחות חדשים ⇒ שום תוצאה ישנה לא נשלפת. ratchet: self-loop.test.
+ */
+let algoMemo = null;
+export function blankAlgoKey() {
+  if (algoMemo) return algoMemo;
+  let src = '';
+  try { src = fs.readFileSync(fileURLToPath(import.meta.url), 'utf8'); } catch { /* ארגז-חול — אין קובץ; אין גם מטמון */ }
+  return (algoMemo = fingerprint('blank-algo', ts.version, src));
+}
 /** sourceView עם מטמון (בזיכרון + lib/cache.mjs לפי טביעת הטקסט המקורי) — פרסור-מהדר לכל קובץ רק כשהתוכן חדש. */
 export function sourceViewCached(file, text) {
   if (!isBlankable(file)) return text;
-  const k = fingerprint('blank-v3', ts.version, file.endsWith('x') ? 'x' : 't', text);
+  const k = fingerprint(blankAlgoKey(), file.endsWith('x') ? 'x' : 't', text);
   let v = memo.get(k);
   if (v === undefined) { v = cacheGet('blank', k); if (typeof v !== 'string') { v = blankComments(text, file); cachePut('blank', k, v); } memo.set(k, v); }
   return v;

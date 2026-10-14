@@ -166,3 +166,24 @@ describe('SELF-LOOP · ההדגמות בשערים המלאים (catalog/self/lo
     expect(by('revert').loopWrote).toBe(false);
   });
 });
+
+describe('SELF-LOOP · מטמון-«מנרמל» לפי טביעת-הקוד (הערת-המנהל על a57cc9c)', () => {
+  it('מפתח-המטמון של blank נגזר מהקוד של lib/blank.mjs עצמו — לא מתג ידני (היה: "blank-v3" ⇒ שתי גרסאות-אלגוריתם חלקו מפתחות ⇒ שכפול טרי לא תאם לחותמות)', async () => {
+    const { blankAlgoKey } = await import('../lib/blank.mjs');
+    const { fingerprint } = await import('../lib/cache.mjs');
+    const ts = (await import('typescript')).default;
+    const src = readFileSync(join(ROOT, 'catalog/lib/blank.mjs'), 'utf8');
+    expect(blankAlgoKey()).toBe(fingerprint('blank-algo', ts.version, src));
+    expect(src).not.toMatch(/fingerprint\('blank-v\d/); // המוטנט: תג-גרסה ידני
+    expect(fingerprint('blank-algo', ts.version, src + ' ')).not.toBe(blankAlgoKey()); // שינוי בקובץ ⇒ מפתח אחר
+  });
+});
+
+describe('SELF-LOOP · שער השכפול-הטרי (catalog/self/fresh-gate.mjs)', () => {
+  it.runIf(!!process.env.CATALOG_FULL)('worktree של HEAD + מטמון ריק ⇒ rebuild --check ✓ ו-git status נקי אחרי rebuild', async () => {
+    const { freshGate } = await import('../self/fresh-gate.mjs');
+    const r = freshGate({ log: () => {} });
+    expect(r.dirty).toBe('');
+    expect(r.checkOk).toBe(true);
+  }, 1_800_000);
+});

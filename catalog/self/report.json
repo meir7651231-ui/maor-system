@@ -1,10 +1,10 @@
 {
  "source": "machine",
- "ref": "catalog@c67518e64fe2",
+ "ref": "catalog@59443026c19d",
  "seed": 13269520,
  "generatedAt": null,
  "census": {
-  "files": 64,
+  "files": 65,
   "parts": 539
  },
  "parts": {
@@ -455,10 +455,10 @@
  },
  "inner": {
   "totals": {
-   "candidates": 3373,
-   "parts": 1422,
-   "run": 933,
-   "runWithVerb": 289,
+   "candidates": 3382,
+   "parts": 1423,
+   "run": 934,
+   "runWithVerb": 290,
    "twin": 0,
    "static": 489,
    "staticWithVerb": 249,
@@ -474,7 +474,7 @@
    "clamp": 32,
    "split": 19,
    "tier": 14,
-   "validate": 11,
+   "validate": 12,
    "personalize": 10,
    "provide": 10,
    "filter": 4,
