@@ -4,7 +4,7 @@
  "need": "azimuth",
  "behavior": "יודעת לאיזה כיוון השמש (אזימוט)",
  "verb": "sun-position",
- "verbHe": "מקום השמש",
+ "verbHe": "מוצא את מקום השמש",
  "isNewVerb": false,
  "material": "number",
  "takes": [
@@ -48,9 +48,19 @@
    "source": "orbit",
    "name": "מחשב איפה השמש עומדת בעונה הזו",
    "file": "src/lib/atoms/engines/zmanim.ts",
-   "action": "מקום השמש",
+   "action": "מוצא את מקום השמש",
    "proof": "מהשם בלבד",
    "why": "אותו פועל · אותו חומר · שם קרוב"
+  },
+  {
+   "id": "core:catalog/core/sun-position.mjs#sunPosition",
+   "project": "הליבה",
+   "source": "core",
+   "name": "מחשב מתי השמש בזווית מתחת לאופק",
+   "file": "catalog/core/sun-position.mjs",
+   "action": "מוצא את מקום השמש",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל · שם קרוב"
   },
   {
    "id": "orbit:src/lib/atoms/engines/generated/zmanimBoard.ts#GEN_ZMANIM_BOARD",
@@ -58,17 +68,7 @@
    "source": "orbit",
    "name": "יודע איפה השמש נמצאת בכל מקום ובכל יום",
    "file": "src/lib/atoms/engines/generated/zmanimBoard.ts",
-   "action": "מקום השמש",
-   "proof": "מהשם בלבד",
-   "why": "אותו פועל · שם קרוב"
-  },
-  {
-   "id": "orbit:src/lib/atoms/engines/zmanim.ts#ZMANIM_CARD",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "יודע איפה השמש נמצאת בכל מקום ובכל יום",
-   "file": "src/lib/atoms/engines/zmanim.ts",
-   "action": "מקום השמש",
+   "action": "מוצא את מקום השמש",
    "proof": "מהשם בלבד",
    "why": "אותו פועל · שם קרוב"
   }

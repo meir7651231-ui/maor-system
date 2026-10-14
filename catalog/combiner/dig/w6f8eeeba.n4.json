@@ -8,8 +8,7 @@
  "isNewVerb": false,
  "material": "sound",
  "takes": [
-  "choice",
-  "record"
+  "text|choice"
  ],
  "gives": "sound",
  "detail": null,

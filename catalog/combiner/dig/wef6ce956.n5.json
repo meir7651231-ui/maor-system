@@ -3,11 +3,14 @@
  "word": "פינגווין",
  "need": "n5",
  "behavior": "מחליק על הבטן",
- "verb": "NEW:gravity",
- "verbHe": "פועל חדש: gravity",
- "isNewVerb": true,
+ "verb": "gravity",
+ "verbHe": "נופל",
+ "isNewVerb": false,
  "material": "number",
- "takes": [],
+ "takes": [
+  "record",
+  "number"
+ ],
  "gives": "number",
  "detail": "מהירות שגדלה במורד",
  "example": {
@@ -17,34 +20,34 @@
  "statusHe": "⛏️ נמצא בקוד — בכרייה",
  "places": [
   {
-   "id": "orbit:src/lib/atoms/parts/divide.ts#divideAmount",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "מחלק סכום לחלקים שווים",
-   "file": "src/lib/atoms/parts/divide.ts",
-   "action": "מחלק",
+   "id": "core:catalog/core/gravity.mjs#gravity",
+   "project": "הליבה",
+   "source": "core",
+   "name": "מחשב נפילה שמאיצה בכל צעד",
+   "file": "catalog/core/gravity.mjs",
+   "action": "נופל",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו חומר · שם קרוב"
+   "why": "אותו פועל"
   },
   {
-   "id": "orbit:src/lib/atoms/parts/rotate.ts#dayIndex",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "מחשב מספר יום מוחלט של תאריך",
-   "file": "src/lib/atoms/parts/rotate.ts",
-   "action": "ממיר ערך",
-   "proof": "הורץ — סוג אחר",
-   "why": "אותו חומר · שם קרוב"
+   "id": "buildsmart:app_flutter/lib/features/fittings/intel/line_pressure.dart#pressureDropForPlan",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "מוצא ירידה לחץ עבור תוכנית",
+   "file": "app_flutter/lib/features/fittings/intel/line_pressure.dart",
+   "action": "נופל",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל"
   },
   {
-   "id": "rings:lab-rings/lab13/shelf3.json#הפרש מוחלט",
-   "project": "הטבעות",
-   "source": "rings",
-   "name": "חשב הפרש מוחלט",
-   "file": "lab-rings/lab13/shelf3.json",
-   "action": "מודד מרחק",
-   "proof": "הורץ — סוג אחר",
-   "why": "אותו חומר · שם קרוב"
+   "id": "generator:machtzev/merge-regen.mjs#merge-regen",
+   "project": "המחולל",
+   "source": "generator",
+   "name": "הפעל אחר ⇒ נופל ל-theirs ומדווח",
+   "file": "machtzev/merge-regen.mjs",
+   "action": "נופל",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל"
   }
  ]
 }

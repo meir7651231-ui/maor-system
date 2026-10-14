@@ -30,6 +30,7 @@ const KNOWN: Record<string, Record<string, number>> = {
   mmmm: { '$.parts[].gives.type': 17, '$.parts[].name': 16, '$.parts[].takes[].type': 18, '$.parts[].gives.kind': 13, '$.parts[].takes[].kind': 10 },
   orbit: {},
   core: {},
+  'core-b': {},
   'qa-scanner': { '$.parts[].takes[].type': 204, '$.parts[].gives.type': 170, '$.parts[].name': 70, '$.parts[].id': 32 },
   rings: { '$.parts[].id': 143, '$.parts[].name': 1 },
   yeshiva: { '$.parts[].gives.kind': 68, '$.parts[].name': 20, '$.parts[].takes[].kind': 27, '$.parts[].takes[].type': 30, '$.parts[].gives.type': 45, '$.parts[].id': 198 },
@@ -46,8 +47,10 @@ function violationsByField(doc: unknown): Record<string, number> {
 }
 
 describe('הקטלוג המאוחד', () => {
-  it('כל 9 המקורות + הליבה בפנים', () => {
-    expect(Object.keys(sources).sort()).toEqual(['14kk', 'buildsmart', 'core', 'generator', 'mmmm', 'orbit', 'qa-scanner', 'rings', 'yeshiva', 'yoman-habina']);
+  it('כל 9 המקורות בפנים + הליבות (core: 15 פעלי-התנועה · core-b: 7 הפעלים שהיו static-only)', () => {
+    expect(Object.keys(sources).filter((s) => !s.startsWith('core')).sort()).toEqual(['14kk', 'buildsmart', 'generator', 'mmmm', 'orbit', 'qa-scanner', 'rings', 'yeshiva', 'yoman-habina']);
+    expect(Object.keys(sources)).toContain('core');
+    expect(Object.keys(sources)).toContain('core-b');
     for (const [s, d] of Object.entries(sources)) { expect(d.source, s).toBe(s); expect(d.generatedAt, s).toBeNull(); expect(d.parts.length, s).toBeGreaterThan(0); }
   });
 
@@ -55,7 +58,7 @@ describe('הקטלוג המאוחד', () => {
     it(`הסכמה: ${s} — ${Object.keys(KNOWN[s]).length ? 'לא יותר חריגות מהרשימה הקפואה' : 'בלי חריגות'}`, () => {
       const got = violationsByField(sources[s]);
       for (const [k, n] of Object.entries(got)) expect(n, s + ' ' + k + ' (חריגה חדשה או שגדלה)').toBeLessThanOrEqual(KNOWN[s][k] ?? 0);
-      if (s === 'orbit' || s === 'core') expect(validateSource(sources[s], { strict: true })).toEqual([]);
+      if (s === 'orbit' || s === 'core' || s === 'core-b') expect(validateSource(sources[s], { strict: true })).toEqual([]);
     });
   }
 

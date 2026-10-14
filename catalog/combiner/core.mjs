@@ -46,7 +46,13 @@ export const PROJECTS = {
   '14kk': { he: '14kk', color: '#5c940d' },
   mmmm: { he: 'MMMM', color: '#d6336c' },
   recipe: { he: 'מתכון', color: '#c92a2a' },
+  // הליבות שחולצו מהקוד (catalog/core): לא "פרויקט" — הפרויקטים שלהן הם ה-origins
+  core: { he: 'הליבה', color: '#495057', core: true },
+  'core-b': { he: 'ליבות-הפעלים', color: '#495057', core: true },
 };
+/** שם-ריפו (כמו ב-origins של core-b) ⇒ מזהה-הפרויקט. */
+const REPO_SOURCE = { 'maor-system': 'orbit', buildsmart: 'buildsmart', 'yeshiva-engine': 'yeshiva', '14kk': '14kk', mmmm: 'mmmm', MMMM: 'mmmm', 'yoman-habina': 'yoman-habina', 'qa-scanner': 'qa-scanner', '-ai-chat-server': 'generator' };
+const isCoreSrc = (s) => !!PROJECTS[s]?.core;
 const SOURCE_ORDER = ['orbit', 'rings', 'buildsmart', 'generator', 'yeshiva', 'qa-scanner', 'yoman-habina', '14kk', 'mmmm', 'recipe'];
 const srcRank = (s) => {
   const i = SOURCE_ORDER.indexOf(s);
@@ -233,12 +239,14 @@ function originsOf(homes) {
     if (!out.some((o) => o.source === source && o.file === file)) out.push({ source, file: file || '' });
   };
   for (const p of homes) {
-    const own = Array.isArray(p.origins) && p.origins.length ? p.origins : null;
-    // מקור מפורש (הכורים) ⇒ פרויקטי-המקור; הבית עצמו נספר רק אם הוא פרויקט מוכר
-    if (!own || PROJECTS[p.source]) add(p.source, p.path || fileOfId(p.id));
+    // מקורות מפורשים: `origins[]` (core-b, inner) או תגיות `origin:<פרויקט>:<קובץ>:<שורה>` (core — החוזה לא מכיר origins)
+    const tagged = (p.tags || []).filter((t) => typeof t === 'string' && t.startsWith('origin:')).map((t) => { const [, src, ...rest] = t.split(':'); return { source: src, file: rest.join(':').replace(/:\d+$/, '') }; });
+    const own = Array.isArray(p.origins) && p.origins.length ? p.origins : tagged.length ? tagged : null;
+    // מקור מפורש (הכורים) ⇒ פרויקטי-המקור; הבית עצמו נספר רק אם הוא פרויקט מוכר (לא ליבה)
+    if (!own || (PROJECTS[p.source] && !isCoreSrc(p.source))) add(p.source, p.path || fileOfId(p.id));
     for (const o of own || []) {
       if (typeof o === 'string') add(o.split(':')[0], o.includes(':') ? fileOfId(o) : '');
-      else if (o && typeof o === 'object') add(o.source || o.project || (o.id ? String(o.id).split(':')[0] : ''), o.path || o.file || (o.id && String(o.id).includes(':') ? fileOfId(o.id) : ''));
+      else if (o && typeof o === 'object') add(o.source || o.project || REPO_SOURCE[String(o.repo || '').split('@')[0]] || (String(o.repo || '').includes('/') ? REPO_SOURCE[String(o.repo).split('/')[1].split('@')[0]] : '') || (o.id ? String(o.id).split(':')[0] : ''), o.path || o.file || (o.id && String(o.id).includes(':') ? fileOfId(o.id) : ''));
     }
   }
   return out;
@@ -450,13 +458,13 @@ const PROOF_HE = { judge: 'השופט הריץ על קלטים מחוללים', 
 function whereOf(p) {
   const origins = (p.origins || [{ source: p.source, file: p.path || '' }]).map((o) => ({ source: o.source, project: PROJECTS[o.source]?.he || o.source, file: o.file }));
   const homes = p.homes.map((h) => h.source).filter((s, i, a) => a.indexOf(s) === i);
-  for (const s of homes) if (PROJECTS[s] && !origins.some((o) => o.source === s)) origins.push({ source: s, project: PROJECTS[s]?.he || s, file: '' });
+  for (const s of homes) if (PROJECTS[s] && !isCoreSrc(s) && !origins.some((o) => o.source === s)) origins.push({ source: s, project: PROJECTS[s]?.he || s, file: '' });
   return { name: p.name, file: p.path || '', origins, parent: p.parent ? { name: p.parent.name, file: p.parent.path } : null };
 }
 /** שורה קטנה מתחת לפעולה. */
 export function whereLine(w) {
   if (w.parent) return 'נמצא בתוך: ' + w.parent.name + ' · ' + (w.parent.file || w.file);
-  return 'נמצא ב: ' + w.origins.map((o) => o.project).join(' · ') + ' · ' + w.name;
+  return 'נמצא ב: ' + [...new Set(w.origins.map((o) => o.project))].join(' · ') + ' · ' + w.name;
 }
 /** הפעולה עצמה, בלי עולם: שם הפועל בעברית + שורה אחת מה הוא עושה (`catalog/verbs.json`). */
 export function actionOf(verb) {

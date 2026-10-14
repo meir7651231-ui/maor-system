@@ -3,11 +3,14 @@
  "word": "נמלה",
  "need": "n1",
  "behavior": "משאירה שביל ריח",
- "verb": "NEW:accumulate",
- "verbHe": "פועל חדש: accumulate",
- "isNewVerb": true,
+ "verb": "accumulate",
+ "verbHe": "צובר",
+ "isNewVerb": false,
  "material": "number",
- "takes": [],
+ "takes": [
+  "record",
+  "list"
+ ],
  "gives": "number",
  "detail": "צובר — ערך שגדל מעט בכל צעד-זמן עד שמשהו מרוקן אותו",
  "example": {
@@ -17,34 +20,34 @@
  "statusHe": "⛏️ נמצא בקוד — בכרייה",
  "places": [
   {
-   "id": "rings:lab-rings/lab13/shelf3.json#מ8 שארית ב-3",
-   "project": "הטבעות",
-   "source": "rings",
-   "name": "חשב שארית ב-3",
-   "file": "lab-rings/lab13/shelf3.json",
-   "action": "מנרמל",
+   "id": "core:catalog/core/accumulate.mjs#accumulate",
+   "project": "הליבה",
+   "source": "core",
+   "name": "אוסף לקופה עד שהיא מתמלאת ומרוקנת",
+   "file": "catalog/core/accumulate.mjs",
+   "action": "צובר",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו חומר · שם קרוב"
+   "why": "אותו פועל"
   },
   {
-   "id": "rings:lab-rings/lab13/shelf3.json#ש1 שארית א+ב ב-3",
-   "project": "הטבעות",
-   "source": "rings",
-   "name": "חשב שארית א+ב ב-3",
-   "file": "lab-rings/lab13/shelf3.json",
-   "action": "מצרף שניים",
-   "proof": "הורץ — סוג אחר",
-   "why": "אותו חומר · שם קרוב"
+   "id": "generator:machtzev/assemble/box-audit.mjs#box-audit",
+   "project": "המחולל",
+   "source": "generator",
+   "name": "הפעל תוכנית-חיווט ↔ קופסה-בנויה",
+   "file": "machtzev/assemble/box-audit.mjs",
+   "action": "צובר",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל"
   },
   {
-   "id": "rings:lab-rings/lab13/shelf3.json#שארית",
-   "project": "הטבעות",
-   "source": "rings",
-   "name": "חשב שארית",
-   "file": "lab-rings/lab13/shelf3.json",
-   "action": "מנרמל",
-   "proof": "הורץ — סוג אחר",
-   "why": "אותו חומר · שם קרוב"
+   "id": "generator:machtzev/box-assemble.mjs#box-assemble",
+   "project": "המחולל",
+   "source": "generator",
+   "name": "הפעל קובץ-מקור עם ≥1 יצוא ⇒ קופסה",
+   "file": "machtzev/box-assemble.mjs",
+   "action": "צובר",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל"
   }
  ]
 }

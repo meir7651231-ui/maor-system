@@ -8,7 +8,8 @@
  "isNewVerb": false,
  "material": "text",
  "takes": [
-  "record"
+  "list|record",
+  "list"
  ],
  "gives": "text",
  "detail": null,
@@ -19,23 +20,13 @@
  "statusHe": "⛏️ נמצא בקוד — בכרייה",
  "places": [
   {
-   "id": "orbit:src/lib/atoms/engines/bookings.ts#BOOKINGS_CARD.6",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "מעביר הזמנה משלב לשלב",
-   "file": "src/lib/atoms/engines/bookings.ts",
+   "id": "core-b:catalog/core/relay.mjs#relay",
+   "project": "ליבות-הפעלים",
+   "source": "core-b",
+   "name": "מעביר הודעות דרך מרכז",
+   "file": "catalog/core/relay.mjs",
    "action": "מעביר דרך מרכז",
-   "proof": "מהשם בלבד",
-   "why": "אותו פועל · שם קרוב"
-  },
-  {
-   "id": "orbit:src/lib/atoms/engines/whatNeed.ts#WHAT_NEED_CARD.8",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "מעביר בקשה הלאה כשאין תשובה",
-   "file": "src/lib/atoms/engines/whatNeed.ts",
-   "action": "מעביר דרך מרכז",
-   "proof": "מהשם בלבד",
+   "proof": "הורץ — סוג אחר",
    "why": "אותו פועל · שם קרוב"
   },
   {
@@ -44,6 +35,16 @@
    "source": "14kk",
    "name": "להפעיל אינטגרציה GitHub",
    "file": "services/business-integrations.js",
+   "action": "מעביר דרך מרכז",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "generator:box-drafts/io-wiring/fetch-outbox-issues@src_lib_cloud_ts.mjs#fetchOutboxIssues",
+   "project": "המחולל",
+   "source": "generator",
+   "name": "הבא תקלות תיבת-יוצא",
+   "file": "box-drafts/io-wiring/fetch-outbox-issues@src_lib_cloud_ts.mjs",
    "action": "מעביר דרך מרכז",
    "proof": "מהשם בלבד",
    "why": "אותו פועל"

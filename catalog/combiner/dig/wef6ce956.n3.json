@@ -8,7 +8,8 @@
  "isNewVerb": false,
  "material": "record:penguin",
  "takes": [
-  "record"
+  "list|record",
+  "list"
  ],
  "gives": "record:penguin",
  "detail": "אחד דוגר ואחד הולך לדוג",
@@ -19,31 +20,31 @@
  "statusHe": "⛏️ נמצא בקוד — בכרייה",
  "places": [
   {
-   "id": "14kk:api/server_advanced.js#AdvancedAssetManagerAPI.getUserPermissions",
-   "project": "14kk",
-   "source": "14kk",
-   "name": "להביא הרשאות משתמש",
-   "file": "api/server_advanced.js",
+   "id": "buildsmart:app_flutter/lib/logic/install_engine.dart#flowRole",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "מחזיר תפקיד זרימה",
+   "file": "app_flutter/lib/logic/install_engine.dart",
    "action": "מקצה תפקיד",
    "proof": "מהשם בלבד",
    "why": "אותו פועל · אותו חומר"
   },
   {
-   "id": "buildsmart:app_flutter/lib/data/repositories/orders_local.dart#orderVisibleToRole",
+   "id": "buildsmart:app_flutter/lib/state/auth_state.dart#rolesFromClaims",
    "project": "בנייה חכמה",
    "source": "buildsmart",
-   "name": "ממיר הזמנה לתפקיד",
-   "file": "app_flutter/lib/data/repositories/orders_local.dart",
+   "name": "מחזיר תפקידים מתוך הרשאות",
+   "file": "app_flutter/lib/state/auth_state.dart",
    "action": "מקצה תפקיד",
    "proof": "מהשם בלבד",
    "why": "אותו פועל · אותו חומר"
   },
   {
-   "id": "buildsmart:app_flutter/lib/data/repositories/users_repository.dart#withOwnerApproval",
-   "project": "בנייה חכמה",
-   "source": "buildsmart",
-   "name": "מחזיר עותק עם אישור בעלים",
-   "file": "app_flutter/lib/data/repositories/users_repository.dart",
+   "id": "generator:new/dart-maor/eligible-assignments-for-day.dart#eligibleAssignmentsForDay",
+   "project": "המחולל",
+   "source": "generator",
+   "name": "הפק שיוכים פעילים שטרם נמסרו ביום",
+   "file": "new/dart-maor/eligible-assignments-for-day.dart",
    "action": "מקצה תפקיד",
    "proof": "מהשם בלבד",
    "why": "אותו פועל · אותו חומר"

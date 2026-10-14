@@ -11,7 +11,7 @@
   "runWithVerb": 73,
   "twin": 0,
   "static": 94,
-  "staticWithVerb": 5,
+  "staticWithVerb": 6,
   "why": {
    "impure": 33,
    "no-fitting-input": 33,
@@ -24,8 +24,13 @@
   {
    "id": "14kk:api/server_advanced.js#AdvancedAssetManagerAPI",
    "labeledBy": "static",
-   "verbs": [],
-   "primary": null,
+   "verbs": [
+    {
+     "id": "move-along-path",
+     "by": "name"
+    }
+   ],
+   "primary": "move-along-path",
    "material": "record:advanced_asset_manager_api",
    "reason": "impure"
   },
@@ -56,13 +61,8 @@
   {
    "id": "14kk:api/server_advanced.js#AdvancedAssetManagerAPI.getUserPermissions",
    "labeledBy": "static",
-   "verbs": [
-    {
-     "id": "assign-role",
-     "by": "symbol"
-    }
-   ],
-   "primary": "assign-role",
+   "verbs": [],
+   "primary": null,
    "material": "record:role",
    "reason": "load-failed — PARSE_ERROR: Expected `,` or `}` but found `;`"
   },
@@ -163,8 +163,13 @@
   {
    "id": "14kk:comprehensive_testing_suite.js#ComprehensiveTestingSuite",
    "labeledBy": "static",
-   "verbs": [],
-   "primary": null,
+   "verbs": [
+    {
+     "id": "orbit",
+     "by": "name"
+    }
+   ],
+   "primary": "orbit",
    "material": "record:comprehensive_testing_suite",
    "reason": "impure"
   },

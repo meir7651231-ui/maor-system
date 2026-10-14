@@ -8,7 +8,8 @@
  "isNewVerb": false,
  "material": "record",
  "takes": [
-  "record"
+  "list|record",
+  "list"
  ],
  "gives": "record",
  "detail": null,
@@ -29,21 +30,21 @@
    "why": "אותו פועל · אותו חומר"
   },
   {
-   "id": "buildsmart:app_flutter/lib/state/intel/consent_gate.dart#analyticsForwardEnabled",
-   "project": "בנייה חכמה",
-   "source": "buildsmart",
-   "name": "בודק ניתוח",
-   "file": "app_flutter/lib/state/intel/consent_gate.dart",
+   "id": "core-b:catalog/core/relay.mjs#relay",
+   "project": "ליבות-הפעלים",
+   "source": "core-b",
+   "name": "מעביר הודעות דרך מרכז",
+   "file": "catalog/core/relay.mjs",
    "action": "מעביר דרך מרכז",
-   "proof": "מהשם בלבד",
-   "why": "אותו פועל"
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל · שם קרוב"
   },
   {
-   "id": "buildsmart:app_flutter/lib/state/intel/consent_gate.dart#presenceForwardEnabled",
-   "project": "בנייה חכמה",
-   "source": "buildsmart",
-   "name": "בודק נוכחות",
-   "file": "app_flutter/lib/state/intel/consent_gate.dart",
+   "id": "generator:box-drafts/io-wiring/fetch-outbox-issues@src_lib_cloud_ts.mjs#fetchOutboxIssues",
+   "project": "המחולל",
+   "source": "generator",
+   "name": "הבא תקלות תיבת-יוצא",
+   "file": "box-drafts/io-wiring/fetch-outbox-issues@src_lib_cloud_ts.mjs",
    "action": "מעביר דרך מרכז",
    "proof": "מהשם בלבד",
    "why": "אותו פועל"

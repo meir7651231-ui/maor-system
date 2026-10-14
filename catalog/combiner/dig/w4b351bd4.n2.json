@@ -3,11 +3,14 @@
  "word": "גחלילית",
  "need": "n2",
  "behavior": "מתאימה את הקצב לשכנה",
- "verb": "NEW:follow",
- "verbHe": "פועל חדש: follow",
- "isNewVerb": true,
+ "verb": "follow",
+ "verbHe": "הולך אחרי",
+ "isNewVerb": false,
  "material": "times",
- "takes": [],
+ "takes": [
+  "record",
+  "number"
+ ],
  "gives": "times",
  "detail": "לזוז מעט לקצב של השכן",
  "example": {
@@ -17,32 +20,32 @@
  "statusHe": "⛏️ נמצא בקוד — בכרייה",
  "places": [
   {
+   "id": "core:catalog/core/follow.mjs#follow",
+   "project": "הליבה",
+   "source": "core",
+   "name": "מזיז ערך חלק קבוע מהדרך למטרה",
+   "file": "catalog/core/follow.mjs",
+   "action": "הולך אחרי",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "core:catalog/core/sun-position.mjs#sunPosition",
+   "project": "הליבה",
+   "source": "core",
+   "name": "מחשב מתי השמש בזווית מתחת לאופק",
+   "file": "catalog/core/sun-position.mjs",
+   "action": "מוצא את מקום השמש",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו חומר"
+  },
+  {
    "id": "orbit:src/components/calendar/calLib.ts#isoOf",
    "project": "אורביט",
    "source": "orbit",
    "name": "מחשב תאריך מקומי",
    "file": "src/components/calendar/calLib.ts",
    "action": "מקבץ לפי יום",
-   "proof": "הורץ — סוג אחר",
-   "why": "אותו חומר"
-  },
-  {
-   "id": "orbit:src/components/diary/lib.ts#localIso",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "מחשב תאריך מקומי",
-   "file": "src/components/diary/lib.ts",
-   "action": "מקבץ לפי יום",
-   "proof": "הורץ — סוג אחר",
-   "why": "אותו חומר"
-  },
-  {
-   "id": "orbit:src/components/diary/lib.ts#minToHM",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "הופך דקות מחצות לשעה",
-   "file": "src/components/diary/lib.ts",
-   "action": "ממיר ערך",
    "proof": "הורץ — סוג אחר",
    "why": "אותו חומר"
   }

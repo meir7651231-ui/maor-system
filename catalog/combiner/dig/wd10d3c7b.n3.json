@@ -3,11 +3,14 @@
  "word": "פטרייה",
  "need": "n3",
  "behavior": "מפזרת נבגים לסביבה",
- "verb": "NEW:spread",
- "verbHe": "פועל חדש: spread",
- "isNewVerb": true,
+ "verb": "spread",
+ "verbHe": "מתפשט",
+ "isNewVerb": false,
  "material": "geo",
- "takes": [],
+ "takes": [
+  "record",
+  "number"
+ ],
  "gives": "geo",
  "detail": "משהו שעובר לשכנים הקרובים בכל צעד",
  "example": {
@@ -17,33 +20,33 @@
  "statusHe": "⛏️ נמצא בקוד — בכרייה",
  "places": [
   {
-   "id": "orbit:src/lib/mapsLink.ts#mapsSearchUrl",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "כותב כתובת חיפוש אחת",
-   "file": "src/lib/mapsLink.ts",
-   "action": "מעצב לטקסט",
+   "id": "core:catalog/core/spread.mjs#spread",
+   "project": "הליבה",
+   "source": "core",
+   "name": "מרחיב גל לכל השכנים בכל צעד",
+   "file": "catalog/core/spread.mjs",
+   "action": "מתפשט",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "core:catalog/core/move-along-path.mjs#moveAlongPath",
+   "project": "הליבה",
+   "source": "core",
+   "name": "מזיז נקודה לאורך מסלול של תחנות",
+   "file": "catalog/core/move-along-path.mjs",
+   "action": "מתקדם במסלול",
    "proof": "הורץ — סוג אחר",
    "why": "אותו חומר"
   },
   {
-   "id": "buildsmart:app_flutter/lib/state/site_hub_state.dart#formatGeo",
-   "project": "בנייה חכמה",
-   "source": "buildsmart",
-   "name": "מעצב אתר מצב",
-   "file": "app_flutter/lib/state/site_hub_state.dart",
-   "action": "מעצב לטקסט",
-   "proof": "מהשם בלבד",
-   "why": "אותו חומר"
-  },
-  {
-   "id": "orbit:src/lib/atoms/engines/zmanim.ts#ZMANIM_CARD.3",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "מחשב מתי זריחה ושקיעה",
-   "file": "src/lib/atoms/engines/zmanim.ts",
-   "action": "מקום השמש",
-   "proof": "מהשם בלבד",
+   "id": "core:catalog/core/orbit.mjs#orbit",
+   "project": "הליבה",
+   "source": "core",
+   "name": "מחשב נקודה שמקיפה מרכז במעגל",
+   "file": "catalog/core/orbit.mjs",
+   "action": "מקיף",
+   "proof": "הורץ — סוג אחר",
    "why": "אותו חומר"
   }
  ]

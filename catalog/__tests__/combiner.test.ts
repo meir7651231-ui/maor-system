@@ -24,7 +24,7 @@ const goals = loadGoals();
 const ix = loadIndex();
 const dictWords = new Set(
   readdirSync(join(CATALOG, 'goals'))
-    .filter((f) => f.endsWith('.json') && f !== 'schema.json')
+    .filter((f) => f.endsWith('.json') && f !== 'schema.json' && f !== 'coverage.json')
     .flatMap((f) => JSON.parse(readFileSync(join(CATALOG, 'goals', f), 'utf8')).goals.map((g: { word: string }) => g.word)),
 );
 
@@ -74,7 +74,8 @@ describe('המצרף · מילון-המטרות', () => {
   });
 
   it('פועל חדש (NEW:) שהאלפבית עוד לא מכיר — ⛏️ בכרייה, עם בקשת-חפירה מלאה ומקומות', () => {
-    const g = goals.find((x: { needs: { verb: string }[] }) => x.needs.some((n) => n.verb.startsWith('NEW:')));
+    // מאז הכורים (14.10.2026) כל NEW: של המילון מוכר לאלפבית ⇒ פועל שעוד לא קיים נבדק על מטרה סינתטית
+    const g = goals.find((x: { needs: { verb: string }[] }) => x.needs.some((n) => n.verb.startsWith('NEW:'))) ?? normGoal({ word: 'בדיקה', needs: [{ behavior: 'מתעטש', verb: 'NEW:sneeze', material: 'sound' }] });
     const a = assemble(g, ix) as Asm;
     const m = a.dig.find((x) => x.verb.startsWith('NEW:'))!;
     expect(m).toBeTruthy();
@@ -99,7 +100,7 @@ describe('המצרף · החמנייה של הבעלים', () => {
   });
 
   it('מוצאת את החלקים שהבעלים מנה', () => {
-    expect(['sunrise', 'sunset']).toContain(core('sun'));
+    expect(['sunrise', 'sunset', 'sunPosition']).toContain(core('sun'));
     expect(core('next-sunrise')).toBe('nextAfter');
     expect(core('turn-back')).toBe('offsetAll');
     expect(core('small-steps')).toBe('roundTo');
@@ -110,7 +111,8 @@ describe('המצרף · החמנייה של הבעלים', () => {
     expect(core('bees-escalate')).toBe('escalationState');
     for (const id of ['snapshot', 'stages', 'bloom-gate', 'diary']) expect(by(id).chain, id).not.toBeNull();
     // מווסת-קצב / מרכז / סובל-כשל — רק תוויות-שם ⇒ לא נספרים; הם בכרייה עכשיו
-    for (const id of ['bees-pace', 'field-hub', 'field-shade']) expect(by(id).status, id).toBe('mining');
+    // מאז הכורים (core-b) לשלושתם יש ליבה מוכחת-בהרצה ⇒ או ✅ (הליבה או שילוב שעבר את החוקים) — אף פעם לא "חסר"
+    for (const id of ['bees-pace', 'field-hub', 'field-shade']) expect(['proven', 'inner', 'combo', 'mining'], id).toContain(by(id).status);
   });
 
   it('מקום-השמש, הבא, מזיז ומעגל — מוכחים, והזרימה ביניהם מוכחת (זריחה ⇒ הבא ⇒ מזיז ⇒ מעגל)', () => {
@@ -310,7 +312,8 @@ describe('המצרף · לא חסר כלום', () => {
       const a = assemble(g, buildIndex([part], { behavior: beh, leads: loadLeads() })) as Asm;
       expect(a.needs[0].status).toBe('proven');
       const s = a.needs[0].chain!.steps[0];
-      expect(s.action.he).toBe('מסתובב סביב מרכז');
+      // האלפבית כבר מכיר את orbit (פעלי-התנועה) ⇒ השם שלו גובר על הפועל המוזרק
+      expect(s.action.he).toBe(base.find((v: { id: string }) => v.id === 'orbit')?.he ?? 'מסתובב סביב מרכז');
       expect(s.where.origins.map((o) => o.source)).toEqual(['orbit', 'buildsmart']);
       expect(whereLine(s.where)).toBe('נמצא ב: אורביט · בנייה חכמה · מחשב נקודה על מעגל');
       // בלי ההוכחה — לא נספר, וחוזר ל-⛏️ עם המקום הידוע
@@ -320,7 +323,8 @@ describe('המצרף · לא חסר כלום', () => {
     } finally {
       useAlphabet(base);
     }
-    expect(VERB_BY_ID.orbit).toBeUndefined();
+    // אחרי השחזור — האלפבית חזר בדיוק למה שהיה (orbit קיים בו מאז הכורים)
+    expect(VERB_BY_ID.orbit?.he).toBe(loadAlphabet()!.find((v: { id: string }) => v.id === 'orbit')?.he);
   });
 
   it('קיבוע: חלק פנימי עם parent ⇒ ✅ מוכח — חלק פנימי, "נמצא בתוך: <ההורה> · <קובץ>"', () => {

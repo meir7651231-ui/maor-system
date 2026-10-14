@@ -8,7 +8,8 @@
  * חוק = בדיקת-תכונה שחורה (black-box): מקבל מקרה (`e`) ומחזיר true (עבר) / null (לא חל) / משפט (מה נשבר).
  * לכל חוק יש "מוטנט" — מימוש מקולקל שהחוק חייב לתפוס (הבדיקה מוכיחה שהחוק נושך).
  * 8 פעלי-הארגז מצביעים גם על 30 החוקים של המאמת (`boxLaws` — src/lib/atoms/verify/laws.ts) שרצים על החלקים עצמם.
- * פועל בלי חוק חד ⇒ `staticOnly` (מזוהה רק משם/חתימה).
+ * פועל בלי חוק חד ⇒ `staticOnly` (מזוהה רק משם/חתימה). מאז STATIC-VERBS (14.10.2026) לכל 45 הפעלים יש חוקים;
+ * 7 הפעלים שהיו static-only רצים מול ליבות טהורות ב-catalog/core/*.mjs (עם origins — איפה הם נמצאו בקוד שלנו).
  *
  * הסביבה `e` (נבנית ב-probe.mjs): args · out · i · j · x=args[i] · y=args[j] · f(args)⇒ערך (זורק=כישלון) ·
  * put(v,k=i)⇒args חדשים · fresh(k=i)⇒ערך-חדש לקלט k · r (rng עם זרע) · B (הגשר) · mod · sweep=[{x,out}] (רק בחוקי-סריקה).
@@ -16,6 +17,13 @@
  */
 import { canon, same, isArr, isNum, isStr, isObj, isNil, classOf, toNum, axisClass, numEq, isSubseq, isPerm, shuffle, cat, entriesOf } from './shape.mjs';
 import { MOTION_VERBS } from './verbs-motion.mjs';
+import * as C_SOURCE from '../core/require-source.mjs';
+import * as C_FREEZE from '../core/freeze.mjs';
+import * as C_ROLE from '../core/assign-role.mjs';
+import * as C_ROUTE from '../core/route.mjs';
+import * as C_TOL from '../core/tolerate.mjs';
+import * as C_PACE from '../core/pace.mjs';
+import * as C_RELAY from '../core/relay.mjs';
 
 /* ═══════════════ עזרים ═══════════════ */
 
@@ -948,17 +956,341 @@ export const VERBS = [
     cues: { en: ['default', 'defaults', 'empty', 'blank', 'initial', 'options', 'presets', 'list', 'all', 'catalog', 'schema', 'make', 'new', 'create'], he: ['ריק', 'ברירת', 'מחזיר את'] },
   },
 
-  /* ─────────── פעלים שמזוהים רק משם/חתימה (אין חוק חד) ─────────── */
-  { id: 'require-source', he: 'דורש מקור', staticOnly: true, means: 'לא מקבל טענה/נתון בלי מקור מצוין (ציטוט, מזהה, קישור)', takes: ['record'], gives: 'bool', cues: { en: ['source', 'provenance', 'cite', 'citation', 'requireSource', 'sourced', 'evidence', 'ref'], he: ['מקור', 'מצטט', 'ציטוט', 'ראיה'] } },
-  { id: 'freeze', he: 'מקפיא ומחליף תוכן', staticOnly: true, means: 'מקבע תמונה ומחליף את התוכן שבתוכה בלי לשבור את המסגרת', takes: ['record'], gives: 'record', cues: { en: ['freeze', 'frozen', 'immutable', 'swap', 'replaceContent', 'keyframe', 'still'], he: ['מקפיא', 'קפוא', 'מחליף'] } },
-  { id: 'assign-role', he: 'מקצה תפקיד', staticOnly: true, means: 'קובע מי עושה מה (מנהל/מורה/מתנדב) ומה מותר לו', takes: ['record'], gives: 'choice', cues: { en: ['role', 'roles', 'assign', 'owner', 'permission', 'permissions', 'grant', 'acl', 'isManager', 'isAdmin'], he: ['תפקיד', 'מקצה', 'משייך', 'הרשאה'] } },
-  { id: 'route', he: 'מנתב לפי ערוץ', staticOnly: true, means: 'שולח את אותו דבר בדרך שמתאימה לערוץ (וואטסאפ/SMS/מייל/טלפון)', takes: ['choice', 'record'], gives: 'record', cues: { en: ['route', 'routing', 'channel', 'channels', 'dispatch', 'driver', 'via', 'transport', 'deliver'], he: ['מנתב', 'ערוץ', 'שולח'] } },
-  { id: 'tolerate', he: 'סובל כשל', staticOnly: true, means: 'כשמשהו נכשל — ממשיך בנחת עם תשובה בטוחה במקום ליפול', takes: ['any'], gives: 'any', cues: { en: ['safe', 'try', 'fallback', 'retry', 'tolerant', 'soft', 'graceful', 'guard', 'catch', 'orDefault'], he: ['בטוח', 'נופל-רך', 'כשל'] } },
-  { id: 'pace', he: 'מווסת קצב', staticOnly: true, means: 'לא נותן לעשות יותר מדי מהר (השהיה, הגבלת-קצב, ניסיון-חוזר עם המתנה)', takes: ['times'], gives: 'times', cues: { en: ['throttle', 'debounce', 'pace', 'backoff', 'rateLimit', 'cooldown', 'quiet', 'quietHours', 'wait'], he: ['קצב', 'השהיה', 'מנוחה'] } },
+  /* ─────────── 7 הפעלים שהיו static-only — עכשיו עם חוקים (STATIC-VERBS 14.10.2026; הליבות ב-catalog/core) ─────────── */
+  {
+    id: 'require-source', he: 'דורש מקור', means: 'לא מקבל טענה/נתון בלי מקור מצוין (ציטוט, מזהה, קישור https) — עם מקור עובר כמו שהוא, ומקור לא ממציאים',
+    takes: ['list|record'], gives: 'record|list|bool', bind: 'list>any',
+    fit: (e) => isArr(e.x) && e.x.length > 0 && e.x.every(isObj) && acceptedOf(e.out) !== null,
+    // העד עצמו חייב לעמוד בחוקים (העד נבחר מכל המקרים, החוקים רצים רק על 12 הראשונים)
+    witness: (e) => { const a = acceptedOf(e.out); return a.length >= 1 && a.length < e.x.length && a.every(sourced) && isSubseq(a, e.x); },
+    laws: [
+      { id: 'source.reject', says: 'פריט בלי מקור (או עם קישור שאינו https) לא מתקבל', check: (e) => { const bad = acceptedOf(e.out).find((it) => !sourced(it)); return bad === undefined ? true : FAIL('התקבל פריט בלי מקור'); } },
+      { id: 'source.pass', says: 'כל פריט עם מקור מתקבל, לפי הסדר', check: (e) => { const a = acceptedOf(e.out); const want = e.x.filter(sourced); return a.length === want.length ? true : FAIL(want.length + ' פריטים עם מקור, התקבלו ' + a.length); } },
+      { id: 'source.never-invent', says: 'מקור לא ממציאים: כל מה שהתקבל הוא פריט מהקלט, בלי שינוי, לפי הסדר', check: (e) => (isSubseq(acceptedOf(e.out), e.x) ? true : FAIL('התקבל פריט שלא היה בקלט כמו שהוא (נוסף לו מקור?)')) },
+    ],
+    ref: { sig: [{ name: 'items', d: { t: 'arr', max: 7, of: { t: 'obj', p: [['text', { t: 'lit', v: ['טענה', 'מספר', 'ציטוט', 'חדשה'] }, false], ['src', { t: 'arr', max: 2, of: { t: 'obj', p: [['t', { t: 'lit', v: ['', 'ספר', 'אתר'] }, false], ['url', { t: 'lit', v: ['https://example.test/a', 'http://example.test/b', 'javascript:x', ''] }, true]] } }, true]] } } }], fn: () => (items) => C_SOURCE.requireSource(items) },
+    mutants: {
+      'source.reject': () => (items) => ({ accepted: items.slice(), rejected: [] }),
+      'source.pass': () => (items) => { const a = C_SOURCE.requireSource(items).accepted; return { accepted: a.slice(0, 1), rejected: [] }; },
+      'source.never-invent': () => (items) => ({ accepted: items.map((it) => (C_SOURCE.hasSource(it) ? it : { ...it, src: [{ t: 'לא ידוע', url: 'https://example.test/' }] })), rejected: [] }),
+    },
+    cues: { en: ['source', 'provenance', 'cite', 'citation', 'requireSource', 'sourced', 'evidence', 'ref'], he: ['מקור', 'מצטט', 'ציטוט', 'ראיה'] },
+  },
+  {
+    id: 'freeze', he: 'מקפיא ומחליף תוכן', means: 'מקבע תמונה ומחליף את התוכן שבתוכה בלי לשבור את המסגרת: מה שהוקפא לא משתנה, והחלפה מוסיפה גרסה חדשה ושומרת את הישנה',
+    takes: ['list|record'], gives: 'record', bind: 'list>any',
+    fit: (e) => isArr(e.x) && e.x.every((o) => isObj(o) && 'op' in o) && isObj(e.out) && isObj(e.out.records),
+    witness: (e) => Object.values(e.out.records).some((r) => r && r.frozen) && ((e.out.rejected?.length ?? 0) > 0 || Object.values(e.out.records).some((r) => isArr(r?.versions) && r.versions.length > 1)),
+    laws: [
+      {
+        id: 'freeze.still', says: 'מה שהוקפא לא זז: הגרסאות שהיו ברגע ההקפאה נשארות בדיוק כמו שהן עד הסוף, והרשומה נשארת קפואה',
+        check: (e) => {
+          for (let k = 0; k < e.x.length; k++) {
+            if (e.x[k]?.op !== 'freeze') continue;
+            const s = e.f(e.put(e.x.slice(0, k + 1)));
+            for (const [id, r] of Object.entries(s?.records ?? {})) {
+              if (!r?.frozen) continue;
+              const fin = e.out.records[id];
+              if (!fin || !fin.frozen || !isArr(fin.versions) || !same(fin.versions.slice(0, r.versions.length), r.versions)) return FAIL('"' + id + '" השתנה אחרי שהוקפא');
+            }
+          }
+          return true;
+        },
+      },
+      {
+        id: 'freeze.keep', says: 'החלפה ברשומה קפואה מוסיפה גרסה חדשה בסוף ושומרת את הקודמת; שאר הרשומות לא נוגעות',
+        check: (e) => {
+          const id = 'k' + e.r.int(100, 999); const a = 'v' + e.r.int(1, 9); const b = 'w' + e.r.int(1, 9);
+          const s = e.f(e.put([...e.x, { op: 'put', id, content: a }, { op: 'freeze', id }, { op: 'replace', id, content: b }]));
+          if (!same(s?.records?.[id]?.versions, [a, b])) return FAIL('אחרי החלפה: ' + JSON.stringify(s?.records?.[id]?.versions) + ' ולא [' + a + ', ' + b + ']');
+          for (const [k2, r] of Object.entries(e.out.records)) if (!same(s.records[k2], r)) return FAIL('רשומה אחרת השתנתה');
+          return true;
+        },
+      },
+      {
+        id: 'freeze.reject', says: 'כתיבה רגילה על רשומה קפואה נדחית — התוכן לא משתנה ולא נוספת גרסה',
+        check: (e) => {
+          const id = 'k' + e.r.int(100, 999); const a = 'v' + e.r.int(1, 9); const b = 'w' + e.r.int(1, 9);
+          const s = e.f(e.put([...e.x, { op: 'put', id, content: a }, { op: 'freeze', id }, { op: 'put', id, content: b }]));
+          return same(s?.records?.[id]?.versions, [a]) ? true : FAIL('כתיבה על קפוא: ' + JSON.stringify(s?.records?.[id]?.versions));
+        },
+      },
+    ],
+    ref: { sig: [{ name: 'ops', d: { t: 'arr', max: 10, of: { t: 'obj', p: [['op', { t: 'lit', v: ['put', 'put', 'freeze', 'replace'] }, false], ['id', { t: 'lit', v: ['r1', 'r2', 'r3'] }, false], ['content', { t: 'lit', v: ['a', 'b', 'c', 'd'] }, false]] } } }], fn: () => (ops) => C_FREEZE.applyFrozen(ops) },
+    mutants: {
+      'freeze.still': () => (ops) => freezeMut(ops, 'overwrite'),
+      'freeze.keep': () => (ops) => freezeMut(ops, 'replace-overwrites'),
+      'freeze.reject': () => (ops) => freezeMut(ops, 'put-appends'),
+    },
+    cues: { en: ['freeze', 'frozen', 'immutable', 'swap', 'replaceContent', 'keyframe', 'still', 'void', 'voided', 'snapshot', 'version'], he: ['מקפיא', 'קפוא', 'מחליף', 'גרסה'] },
+  },
+  {
+    id: 'assign-role', he: 'מקצה תפקיד', means: 'קובע מי עושה מה: כל חבר מקבל תפקיד אחד בדיוק, כמה מכל תפקיד — לפי התוכנית, ושאר החברים לתפקיד-השארית; אותו זרע ⇒ אותה חלוקה',
+    takes: ['list|record', 'list'], gives: 'list|choice', bind: 'list+key',
+    fit: (e) => isArr(e.x) && e.x.length > 0 && isArr(e.y) && e.y.length > 0 && e.y.every((p) => isObj(p) && isStr(p.role) && isNum(p.count)) && isArr(e.out),
+    witness: (e) => new Set(e.out.map((o) => o?.role)).size >= 2,
+    laws: [
+      { id: 'role.one', says: 'כל חבר מופיע פעם אחת, במקומו, עם תפקיד אחד (טקסט לא-ריק)', check: (e) => (e.out.length === e.x.length && e.out.every((o, k) => isObj(o) && same(o.who, e.x[k]) && isStr(o.role) && o.role.length > 0) ? true : FAIL('חבר בלי תפקיד אחד, חסר או כפול')) },
+      {
+        id: 'role.counts', says: 'כמה מכל תפקיד = התוכנית (לפי הסדר, עד שנגמרים החברים), וכל השאר באותו תפקיד-שארית',
+        check: (e) => {
+          const want = planCounts(e.y, e.x.length);
+          const got = new Map();
+          for (const o of e.out) got.set(o?.role, (got.get(o?.role) ?? 0) + 1);
+          const restN = e.x.length - [...want.values()].reduce((a, b) => a + b, 0);
+          const extra = [...got.keys()].filter((r) => !want.has(r));
+          if (extra.length > 1) return FAIL('יותר מתפקיד-שארית אחד: ' + extra.join(', '));
+          for (const [r, n] of want) {
+            const g = got.get(r) ?? 0;
+            if (g !== n && !(extra.length === 0 && g === n + restN)) return FAIL('"' + r + '": ' + g + ' ולא ' + n);
+          }
+          if (extra.length === 1 && got.get(extra[0]) !== restN) return FAIL('בתפקיד-השארית ' + got.get(extra[0]) + ' ולא ' + restN);
+          return true;
+        },
+      },
+      {
+        id: 'role.seeded', says: 'אותו זרע ⇒ אותה חלוקה; ערבוב סדר-החברים לא משנה כמה מכל תפקיד',
+        check: (e) => {
+          if (!same(e.f(e.args), e.out)) return FAIL('אותו קלט, חלוקה אחרת');
+          const sh = e.f(e.put(shuffle(e.x, e.r)));
+          const cnt = (o) => isArr(o) ? o.map((x) => x?.role).sort().join('|') : '';
+          return cnt(sh) === cnt(e.out) ? true : FAIL('ערבוב החברים שינה את המספרים');
+        },
+      },
+    ],
+    ref: {
+      sig: [
+        { name: 'members', d: { t: 'arr', u: true, max: 9, of: { t: 'lit', v: ['m1', 'm2', 'm3', 'm4', 'm5', 'm6', 'm7', 'm8', 'm9'] } } },
+        { name: 'plan', d: { t: 'arr', max: 3, of: { t: 'obj', p: [['role', { t: 'lit', v: ['admin', 'teacher', 'driver', 'cook'] }, false], ['count', { t: 'int', lo: 0, hi: 3 }, false]] } } },
+        { name: 'seed', d: { t: 'int', lo: 1, hi: 999 } },
+      ],
+      fn: () => (m, p, s) => C_ROLE.assignRoles(m, p, s),
+    },
+    mutants: {
+      'role.one': () => (m, p, s) => C_ROLE.assignRoles(m, p, s).slice(0, Math.max(0, m.length - 1)),
+      'role.counts': () => (m, p) => m.map((who) => ({ who, role: p.find((x) => x.role)?.role ?? 'staff' })),
+      'role.seeded': () => counter((c, m, p, s) => C_ROLE.assignRoles(m, p, s + c)),
+    },
+    cues: { en: ['role', 'roles', 'roleOf', 'assign', 'owner', 'permission', 'permissions', 'grant', 'acl', 'isManager', 'isAdmin'], he: ['תפקיד', 'מקצה', 'משייך', 'הרשאה'] },
+  },
+  {
+    id: 'route', he: 'מנתב לפי ערוץ', means: 'שולח כל דבר בדרך אחת שמתאימה לו (וואטסאפ/SMS/מייל/טלפון, ספק, פורמט) — תמיד ערוץ אחד, ומה שלא מוכר הולך לברירת-המחדל',
+    takes: ['text|choice'], gives: 'choice|text', bind: 'str>any',
+    fit: (e) => isStr(e.x) && !isNil(e.out),
+    witness: (e) => !same(e.out, e.f(e.put(unknownKey(e.r)))),
+    laws: [
+      { id: 'route.one', says: 'ערוץ אחד בדיוק: שם-ערוץ יחיד (טקסט לא-ריק), לא רשימה, לא מספר ולא כלום', check: (e) => (isOneChannel(e.out) ? true : FAIL('לא ערוץ אחד: ' + canon(e.out).slice(0, 40))) },
+      {
+        id: 'route.few', says: 'מעט ערוצים: הרבה קלטים שונים הולכים לקבוצה קטנה וסגורה של ערוצים — לא ערך חדש לכל קלט',
+        check: (e) => {
+          const outs = new Set();
+          let n = 0;
+          for (let k = 0; k < 16; k++) { const v = e.fresh(); if (!isStr(v)) continue; n++; outs.add(canon(e.f(e.put(v)))); }
+          if (n < 6) return null;
+          return outs.size <= Math.max(3, Math.floor(n / 3)) ? true : FAIL(outs.size + ' ערוצים שונים ל-' + n + ' קלטים');
+        },
+      },
+      { id: 'route.det', says: 'אותו קלט ⇒ אותו ערוץ, גם אחרי ניתוב של קלט אחר באמצע', check: (e) => { e.f(e.put(unknownKey(e.r))); return same(e.f(e.args), e.out) ? true : FAIL('אותו קלט, ערוץ אחר'); } },
+      {
+        id: 'route.default', says: 'קלט לא מוכר ⇒ ערוץ ברירת-המחדל — אותו ערוץ אחד לכל הלא-מוכרים',
+        check: (e) => {
+          const outs = [0, 1, 2].map(() => e.f(e.put(unknownKey(e.r))));
+          if (!outs.every(isOneChannel)) return FAIL('קלט לא מוכר לא קיבל ערוץ');
+          return outs.every((o) => same(o, outs[0])) ? true : FAIL('קלטים לא מוכרים הלכו לערוצים שונים');
+        },
+      },
+    ],
+    ref: { sig: [{ name: 'channel', d: { t: 'lit', v: ['wa', 'sms', 'SMS ', 'mail', 'Email', 'tel', 'fax', 'pager', 'יונת-דואר'] } }], fn: () => (c) => C_ROUTE.route(c) },
+    mutants: {
+      'route.one': () => (c) => [C_ROUTE.route(c)],
+      'route.few': () => (c) => C_ROUTE.route(c) + ':' + String(c).length,
+      'route.det': () => counter((n, c) => (n % 2 ? 'default' : C_ROUTE.route(c))),
+      'route.default': () => (c) => (C_ROUTE.route(c) === 'default' ? String(c).trim() || 'default' : C_ROUTE.route(c)),
+    },
+    cues: { en: ['route', 'routing', 'channel', 'channels', 'dispatch', 'driver', 'via', 'transport', 'deliver', 'provider'], he: ['מנתב', 'ערוץ', 'שולח'] },
+  },
+  {
+    id: 'tolerate', he: 'סובל כשל', means: 'כשצעד נכשל — ממשיך בנחת: הצעד שנכשל מקבל ערך-נפילה בטוח, השאר נשארים במקום ובסדר, ושום דבר לא נופל',
+    takes: ['any'], gives: 'any', bind: 'list>list',
+    fit: (e) => isArr(e.x) && e.x.length > 0 && isArr(e.out) && e.out.length === e.x.length,
+    witness: (e) => !same(e.out, e.x),
+    laws: [
+      {
+        id: 'tolerate.total', says: 'לא זורק: גם כשפריט שבור (null, אובייקט, טקסט פגום, כן/לא) וגם כשכל הקלט שבור',
+        check: (e) => { e.f(e.put(null)); for (const p of POISONS) e.f(e.put(poisonAt(e.x, e.r.int(0, e.x.length - 1), p))); return true; },
+      },
+      {
+        id: 'tolerate.slot', says: 'צעד שנכשל נותן ערך-נפילה אחד וקבוע (או משאיר את הפריט כמו שהיה) — לא זבל שמשתנה',
+        check: (e) => {
+          const k = e.r.int(0, e.x.length - 1);
+          const got = [];
+          for (const p of POISONS) {
+            const o = e.f(e.put(poisonAt(e.x, k, p)));
+            if (!isArr(o) || o.length !== e.x.length) return FAIL('הפלט לא באותו אורך');
+            if (!same(o[k], p)) got.push(o[k]);
+          }
+          return got.every((v) => same(v, got[0])) ? true : FAIL('ערכי-נפילה שונים: ' + got.map(canon).join(' · ').slice(0, 60));
+        },
+      },
+      {
+        id: 'tolerate.keep', says: 'הצלחה נשארת הצלחה: כשפריט אחד נכשל, כל האחרים יוצאים בדיוק כמו קודם ובאותו סדר',
+        check: (e) => {
+          const k = e.r.int(0, e.x.length - 1);
+          for (const p of POISONS) {
+            const o = e.f(e.put(poisonAt(e.x, k, p)));
+            if (!isArr(o) || o.length !== e.out.length) return FAIL('כשל של פריט אחד שינה את האורך');
+            for (let j = 0; j < o.length; j++) if (j !== k && !same(o[j], e.out[j])) return FAIL('כשל בפריט ' + k + ' שינה את פריט ' + j);
+          }
+          return true;
+        },
+      },
+    ],
+    ref: { sig: [{ name: 'texts', d: { t: 'arr', max: 8, of: { t: 'lit', v: ['1', '"א"', '[1,2]', '{"n":3}', '{bad', '', 'null', 'x%'] } } }, { name: 'fallback', d: { t: 'lit', v: [null, 0, 'X'] } }], fn: () => (t, fb) => C_TOL.tolerateParse(t, fb) },
+    mutants: {
+      'tolerate.total': () => (t, fb) => t.map((s) => { if (typeof s !== 'string') throw new TypeError('לא טקסט'); return C_TOL.tolerateParse([s], fb)[0]; }),
+      'tolerate.slot': () => (t) => C_TOL.tolerateEach(t, (s) => { if (typeof s !== 'string') throw new Error('x'); return JSON.parse(s); }, (x) => 'שגיאה:' + typeof x),
+      'tolerate.keep': () => (t, fb) => C_TOL.tolerateParse(t, fb).filter((_, k) => typeof t[k] === 'string'),
+    },
+    cues: { en: ['safe', 'try', 'fallback', 'retry', 'tolerant', 'soft', 'graceful', 'guard', 'catch', 'orDefault'], he: ['בטוח', 'נופל-רך', 'כשל'] },
+  },
+  {
+    id: 'pace', he: 'מווסת קצב', means: 'לא נותן לעשות יותר מדי מהר: בין שתי יציאות לפחות המרווח — בהשהיה האחרון בגל מנצח, בהגבלת-קצב הראשון',
+    takes: ['times|list', 'number'], gives: 'times|list', bind: 'list+key',
+    fit: (e) => isArr(e.x) && e.x.length > 0 && e.x.every(isNum) && isNum(e.y) && e.y > 0 && isArr(e.out) && e.out.every(isNum),
+    witness: (e) => e.out.length >= 1 && e.out.length < e.x.length,
+    laws: [
+      { id: 'pace.spacing', says: 'אין שתי יציאות קרובות מהמרווח', check: (e) => { const o = e.out.slice().sort((a, b) => a - b); for (let k = 1; k < o.length; k++) if (o[k] - o[k - 1] < e.y - 1e-9) return FAIL('שתי יציאות במרחק ' + (o[k] - o[k - 1]) + ' < ' + e.y); return true; } },
+      { id: 'pace.bound', says: 'מספר היציאות ≤ ⌈T/מרווח⌉+1 (T = משך הבקשות)', check: (e) => { const T = Math.max(...e.x) - Math.min(...e.x); const cap = Math.ceil(T / e.y) + 1; return e.out.length <= cap ? true : FAIL(e.out.length + ' יציאות > ' + cap); } },
+      {
+        id: 'pace.idle', says: 'בקשה בודדת (אין אחרת בטווח המרווח) תמיד יוצאת — בתוך מרווח אחד ממנה',
+        check: (e) => {
+          for (const t of e.x) {
+            if (e.x.some((u) => u !== t && Math.abs(u - t) < e.y) || e.x.filter((u) => u === t).length > 1) continue;
+            if (!e.out.some((o) => o >= t - 1e-9 && o <= t + e.y + 1e-9)) return FAIL('בקשה בודדת ב-' + t + ' לא יצאה');
+          }
+          return true;
+        },
+      },
+      { id: 'pace.winner', says: 'בכל גל יוצא אחד: הראשון (הגבלת-קצב) או האחרון אחרי מרווח (השהיה) — לא אחד מהאמצע', check: (e) => { const o = e.out.slice().sort((a, b) => a - b); return same(o, throttleOf(e.x, e.y)) || same(o, debounceOf(e.x, e.y)) ? true : FAIL('היציאות לא "הראשון בגל" ולא "האחרון בגל"'); } },
+    ],
+    ref: { sig: [{ name: 'times', d: { t: 'arr', max: 10, of: { t: 'int', lo: 0, hi: 40 } } }, { name: 'gap', d: { t: 'int', lo: 1, hi: 8 } }, { name: 'mode', d: { t: 'lit', v: ['throttle', 'debounce'] } }], fn: () => (t, g, m) => C_PACE.pace(t, g, m) },
+    mutants: {
+      'pace.spacing': () => (t) => [...new Set(t)].sort((a, b) => a - b),
+      'pace.bound': () => (t, g) => (t.length ? t.map((_, k) => Math.min(...t) + k * g) : []),
+      'pace.idle': () => (t, g, m) => C_PACE.pace(t, g, m).slice(0, -1),
+      'pace.winner': () => (t, g) => { const s = t.slice().sort((a, b) => a - b); return s.filter((v, k) => k === 0 || v - s[k - 1] >= g).map((v) => v + g); },
+    },
+    cues: { en: ['throttle', 'debounce', 'pace', 'backoff', 'rateLimit', 'cooldown', 'quiet', 'quietHours', 'wait'], he: ['קצב', 'השהיה', 'מנוחה'] },
+  },
+  {
+    id: 'relay', he: 'מעביר דרך מרכז', means: 'לא מדבר ישר — כל הודעה עוברת פעם אחת בתחנה שבאמצע (מרכזייה, תור, שרת), שמפיצה אותה לכל השאר בלי להחזיר לשולח ובלי לשבש את הסדר',
+    takes: ['list|record', 'list'], gives: 'list|record', bind: 'list+key',
+    fit: (e) => isArr(e.x) && e.x.length > 0 && e.x.every((m) => isObj(m) && 'from' in m) && isArr(e.y) && isArr(e.out) && e.out.every((d) => isObj(d) && 'to' in d && 'n' in d),
+    witness: (e) => e.out.length >= 2,
+    laws: [
+      {
+        id: 'relay.once', says: 'כל הודעה עוברת במרכז פעם אחת (מספר-תחנה אחד) ומגיעה לכל חבר אחר בדיוק פעם אחת, כמו שהיא',
+        check: (e) => {
+          const msgs = e.x.filter((m) => isStr(m.from));
+          const who = [...new Set(e.y.filter((m) => isStr(m) && m))];
+          const seen = new Set();
+          for (const d of e.out) {
+            const m = msgs[d.n];
+            if (!m || d.from !== m.from || !same(d.body, m.body)) return FAIL('מסירה שלא תואמת הודעה ' + d.n);
+            const key = d.n + '>' + d.to;
+            if (seen.has(key)) return FAIL('הודעה ' + d.n + ' הגיעה פעמיים ל-' + d.to);
+            seen.add(key);
+          }
+          for (let q = 0; q < msgs.length; q++) for (const to of who) if (to !== msgs[q].from && !seen.has(q + '>' + to)) return FAIL('הודעה ' + q + ' לא הגיעה ל-' + to);
+          return true;
+        },
+      },
+      { id: 'relay.order', says: 'הסדר של כל שולח נשמר אצל כל מקבל', check: (e) => { const last = new Map(); for (const d of e.out) { const k = d.from + '>' + d.to; if (last.has(k) && last.get(k) > d.n) return FAIL('אצל ' + d.to + ' ההודעות של ' + d.from + ' התהפכו'); last.set(k, d.n); } return true; } },
+      { id: 'relay.noecho', says: 'הודעה לא חוזרת לשולח שלה', check: (e) => (e.out.every((d) => d.to !== d.from) ? true : FAIL('הד: הודעה חזרה לשולח')) },
+    ],
+    ref: {
+      sig: [
+        { name: 'messages', d: { t: 'arr', max: 6, of: { t: 'obj', p: [['from', { t: 'lit', v: ['a', 'b', 'c', 'd'] }, false], ['body', { t: 'int', lo: 0, hi: 99 }, false]] } } },
+        { name: 'members', d: { t: 'arr', u: true, max: 4, of: { t: 'lit', v: ['a', 'b', 'c', 'd'] } } },
+      ],
+      fn: () => (m, w) => C_RELAY.relay(m, w),
+    },
+    mutants: {
+      'relay.once': () => (m, w) => { const o = C_RELAY.relay(m, w); return o.concat(o.slice(0, 1)); },
+      'relay.order': () => (m, w) => C_RELAY.relay(m, w).reverse(),
+      'relay.noecho': () => (m, w) => { const ms = m.filter((x) => isStr(x?.from)); return ms.flatMap((x, n) => [...new Set(w)].map((to) => ({ n, from: x.from, to, body: x.body }))); },
+    },
+    cues: { en: ['relay', 'proxy', 'hub', 'forward', 'bridge', 'switchboard', 'broker', 'outbox', 'queue'], he: ['מעביר', 'מתווך', 'מרכזייה', 'ממסר'] },
+  },
   /* ─────────── 15 פעלי-הזמן-והתנועה — נכרו מהקוד שכתבנו (verbs-motion.mjs · catalog/core) ─────────── */
   ...MOTION_VERBS,
-  { id: 'relay', he: 'מעביר דרך מרכז', staticOnly: true, means: 'לא מדבר ישר — מעביר דרך תחנה באמצע (מרכזייה, מתווך, שרת)', takes: ['record'], gives: 'record', cues: { en: ['relay', 'proxy', 'hub', 'forward', 'bridge', 'switchboard', 'broker', 'outbox', 'queue'], he: ['מעביר', 'מתווך', 'מרכזייה', 'ממסר'] } },
 ];
+
+/* ═══════════════ עזרים ל-7 הפעלים שהיו static-only ═══════════════ */
+
+/** הרשימה-שהתקבלה מתוך פלט: רשימה (מסנן) או {accepted|kept|ok|valid}. */
+function acceptedOf(out) {
+  if (isArr(out)) return out;
+  if (!isObj(out)) return null;
+  for (const k of ['accepted', 'kept', 'ok', 'valid']) if (isArr(out[k])) return out[k];
+  return null;
+}
+/** המפרט של "יש מקור" (נכתב כאן בנפרד מהליבה — החוק לא מעתיק את המימוש). */
+function sourced(item) {
+  if (!isObj(item)) return false;
+  const k = ['src', 'source', 'sources'].find((x) => Object.hasOwn(item, x) && !isNil(item[x]));
+  if (!k) return false;
+  const ok1 = (s) => {
+    if (isStr(s)) { const t = s.trim(); return t.length > 0 && (!/^[a-z][a-z0-9+.-]*:/i.test(t) || /^https:\/\/\S+$/.test(t)); }
+    if (!isObj(s)) return false;
+    const url = s.url ?? s.href;
+    if (url !== undefined && !(isStr(url) && /^https:\/\/\S+$/.test(url.trim()))) return false;
+    const t = s.t ?? s.title ?? s.text;
+    return (isStr(t) && t.trim().length > 0) || (isStr(url) && /^https:\/\/\S+$/.test(url.trim()));
+  };
+  const v = item[k];
+  return isArr(v) ? v.length > 0 && v.every(ok1) : ok1(v);
+}
+/** מוטנטים של "מקפיא": overwrite = כתיבה על קפוא דורסת · replace-overwrites = החלפה דורסת · put-appends = כתיבה על קפוא מוסיפה גרסה. */
+function freezeMut(ops, kind) {
+  const rec = {};
+  for (const o of ops) {
+    if (!isObj(o) || !isStr(o.id)) continue;
+    const r = rec[o.id];
+    const c = o.content === undefined ? null : o.content;
+    if (o.op === 'freeze') { if (r) r.frozen = true; continue; }
+    if (!r) { rec[o.id] = { versions: [c], frozen: false }; continue; }
+    if (!r.frozen) { r.versions[r.versions.length - 1] = c; continue; }
+    if (o.op === 'replace') { if (kind === 'replace-overwrites') r.versions[r.versions.length - 1] = c; else r.versions.push(c); }
+    else if (kind === 'overwrite') r.versions[r.versions.length - 1] = c;
+    else if (kind === 'put-appends') r.versions.push(c);
+  }
+  const records = {};
+  for (const id of Object.keys(rec).sort()) records[id] = rec[id];
+  return { records, rejected: [] };
+}
+/** ספירת-התוכנית: לפי הסדר, עד שנגמרים החברים. */
+function planCounts(plan, n) {
+  const m = new Map();
+  let left = n;
+  for (const p of plan) {
+    if (!isObj(p) || !isStr(p.role) || !p.role) continue;
+    const c = Math.min(left, Math.max(0, Math.floor(Number(p.count) || 0)));
+    m.set(p.role, (m.get(p.role) ?? 0) + c);
+    left -= c;
+  }
+  for (const [r, c] of [...m]) if (c === 0) m.delete(r);
+  return m;
+}
+/** שם-ערוץ: טקסט לא-ריק ולא שארית של קלט שבור (NaN · undefined · Invalid Date · [object …]). */
+const isOneChannel = (v) => isStr(v) && v.trim().length > 0 && !/NaN|undefined|Invalid|\[object|^null$/.test(v);
+/** מפתח שלא יכול להיות מוכר לשום טבלה. */
+const unknownKey = (r) => '⟂zq' + r.int(100000, 999999) + '⟂';
+/** קלטים שבורים: null · אובייקט · טקסט פגום · כן/לא. */
+const POISONS = [null, { bad: 1 }, '{%E0', true];
+const poisonAt = (xs, k, p) => { const a = xs.slice(); a[k] = p; return a; };
+function throttleOf(xs, g) { const s = xs.slice().sort((a, b) => a - b); const o = []; for (const t of s) if (!o.length || t - o[o.length - 1] >= g) o.push(t); return o; }
+function debounceOf(xs, g) { const s = xs.slice().sort((a, b) => a - b); return s.filter((t, k) => k === s.length - 1 || s[k + 1] - t >= g).map((t) => t + g); }
 
 /* ═══════════════ חוקים משותפים ═══════════════ */
 
@@ -1057,6 +1389,6 @@ function fuzzyCase(e, kind) {
 
 export const VERB_BY_ID = new Map(VERBS.map((v) => [v.id, v]));
 /** סדר-הספציפיות: הפועל הראשון שמתקיים = "הפועל הראשי" של החלק. */
-export const PRIMARY_ORDER = ['divide', 'merge', 'next', 'rotate', 'fuzzy', 'escalate', 'shortest-path', 'spread', 'sun-position', 'move-along-path', 'orbit', 'gravity', 'bounce', 'decay', 'oscillate', 'countdown', 'accumulate', 'follow', 'echo', 'random', 'sample', 'tier', 'round', 'offset', 'bucket', 'fingerprint', 'clamp', 'sort', 'reverse', 'dedupe', 'filter', 'transcript', 'group', 'tally', 'count', 'sum', 'average', 'extreme', 'lookup', 'gap', 'compare', 'ratio', 'combine', 'split', 'join', 'personalize', 'map', 'settle', 'normalize', 'convert', 'format', 'validate', 'provide'];
+export const PRIMARY_ORDER = ['divide', 'merge', 'next', 'rotate', 'fuzzy', 'escalate', 'shortest-path', 'spread', 'sun-position', 'move-along-path', 'orbit', 'gravity', 'bounce', 'decay', 'oscillate', 'countdown', 'accumulate', 'follow', 'echo', 'random', 'sample', 'tier', 'round', 'offset', 'bucket', 'fingerprint', 'clamp', 'pace', 'freeze', 'relay', 'assign-role', 'require-source', 'tolerate', 'route', 'sort', 'reverse', 'dedupe', 'filter', 'transcript', 'group', 'tally', 'count', 'sum', 'average', 'extreme', 'lookup', 'gap', 'compare', 'ratio', 'combine', 'split', 'join', 'personalize', 'map', 'settle', 'normalize', 'convert', 'format', 'validate', 'provide'];
 /** פועל ספציפי שמכסה פועל כללי — כשהספציפי מתקיים, הכללי לא נספר בנפרד. */
 export const IMPLIES = { count: ['sum'], gap: ['compare'], escalate: ['tier'], fuzzy: ['lookup'], round: ['normalize', 'convert'], clamp: ['normalize'], filter: ['normalize'], dedupe: ['normalize'], sort: ['normalize'], settle: ['normalize'] };

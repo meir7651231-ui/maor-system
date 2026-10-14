@@ -8,7 +8,8 @@
  "isNewVerb": false,
  "material": "record:player",
  "takes": [
-  "record"
+  "list|record",
+  "list"
  ],
  "gives": "record:player",
  "detail": null,
@@ -18,16 +19,6 @@
  "status": "mining",
  "statusHe": "⛏️ נמצא בקוד — בכרייה",
  "places": [
-  {
-   "id": "orbit:src/lib/atoms/engines/bookings.ts#BOOKINGS_CARD.6",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "מעביר הזמנה משלב לשלב",
-   "file": "src/lib/atoms/engines/bookings.ts",
-   "action": "מעביר דרך מרכז",
-   "proof": "מהשם בלבד",
-   "why": "אותו פועל · אותו חומר · שם קרוב"
-  },
   {
    "id": "14kk:services/business-integrations.js#GitHubIntegration",
    "project": "14kk",
@@ -39,14 +30,24 @@
    "why": "אותו פועל · אותו חומר"
   },
   {
-   "id": "buildsmart:app_flutter/lib/state/intel/consent_gate.dart#analyticsForwardEnabled",
-   "project": "בנייה חכמה",
-   "source": "buildsmart",
-   "name": "בודק ניתוח",
-   "file": "app_flutter/lib/state/intel/consent_gate.dart",
+   "id": "yeshiva:random/minisql/minisql/btree.py#BTree._range_forward",
+   "project": "הישיבה",
+   "source": "yeshiva",
+   "name": "להפיק קדימה טווח",
+   "file": "random/minisql/minisql/btree.py",
    "action": "מעביר דרך מרכז",
    "proof": "מהשם בלבד",
    "why": "אותו פועל · אותו חומר"
+  },
+  {
+   "id": "core-b:catalog/core/relay.mjs#relay",
+   "project": "ליבות-הפעלים",
+   "source": "core-b",
+   "name": "מעביר הודעות דרך מרכז",
+   "file": "catalog/core/relay.mjs",
+   "action": "מעביר דרך מרכז",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל · שם קרוב"
   }
  ]
 }

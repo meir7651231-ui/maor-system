@@ -39,11 +39,11 @@
    "why": "אותו פועל"
   },
   {
-   "id": "mmmm:lib/api-client-react/src/custom-fetch.ts#buildErrorMessage",
-   "project": "MMMM",
-   "source": "mmmm",
-   "name": "לנסח הודעת שגיאה קריאה מתשובת שרת",
-   "file": "lib/api-client-react/src/custom-fetch.ts",
+   "id": "core-b:catalog/core/route.mjs#route",
+   "project": "ליבות-הפעלים",
+   "source": "core-b",
+   "name": "שולח כל דבר לערוץ אחד",
+   "file": "catalog/core/route.mjs",
    "action": "מעצב לטקסט",
    "proof": "הורץ — סוג אחר",
    "why": "אותו פועל"

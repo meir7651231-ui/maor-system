@@ -8,7 +8,8 @@
  "isNewVerb": false,
  "material": "number",
  "takes": [
-  "times"
+  "times|list",
+  "number"
  ],
  "gives": "number",
  "detail": null,
@@ -19,16 +20,6 @@
  "statusHe": "⛏️ נמצא בקוד — בכרייה",
  "places": [
   {
-   "id": "generator:new/dart-maor/cooldown-for-fails.dart#cooldownForFails",
-   "project": "המחולל",
-   "source": "generator",
-   "name": "חשב כשלונות-PIN ⇒ מ״ש-קירור",
-   "file": "new/dart-maor/cooldown-for-fails.dart",
-   "action": "מווסת קצב",
-   "proof": "מהשם בלבד",
-   "why": "אותו פועל · אותו חומר"
-  },
-  {
    "id": "generator:new/dart-maor/intel-churn-from-scan.dart#churnFromScan",
    "project": "המחולל",
    "source": "generator",
@@ -37,6 +28,16 @@
    "action": "מווסת קצב",
    "proof": "מהשם בלבד",
    "why": "אותו פועל · אותו חומר"
+  },
+  {
+   "id": "core-b:catalog/core/pace.mjs#pace",
+   "project": "ליבות-הפעלים",
+   "source": "core-b",
+   "name": "מגביל את קצב הבקשות",
+   "file": "catalog/core/pace.mjs",
+   "action": "מווסת קצב",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
   },
   {
    "id": "mmmm:lib/integrations-openai-ai-server/src/batch/utils.ts#batchProcess",

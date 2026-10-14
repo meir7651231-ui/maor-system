@@ -39,11 +39,11 @@
    "why": "אותו פועל"
   },
   {
-   "id": "orbit:src/components/courses/lib.ts#lessonsInTerm",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "מחשב מספר השיעורים בתקופה לפי התדירות שנבחרה",
-   "file": "src/components/courses/lib.ts",
+   "id": "core:catalog/core/echo.mjs#echo",
+   "project": "הליבה",
+   "source": "core",
+   "name": "מודד מרחק מזמן החזרה של ההד",
+   "file": "catalog/core/echo.mjs",
    "action": "ממיר ערך",
    "proof": "הורץ — סוג אחר",
    "why": "אותו פועל"

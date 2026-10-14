@@ -3,11 +3,14 @@
  "word": "נחשים-וסולמות",
  "need": "n1",
  "behavior": "זורקים קובייה",
- "verb": "NEW:random",
- "verbHe": "פועל חדש: random",
- "isNewVerb": true,
+ "verb": "random",
+ "verbHe": "מגריל",
+ "isNewVerb": false,
  "material": "number",
- "takes": [],
+ "takes": [
+  "record",
+  "number"
+ ],
  "gives": "number",
  "detail": "מגריל — בחירה או ערך לפי סיכוי",
  "example": {
@@ -17,34 +20,34 @@
  "statusHe": "⛏️ נמצא בקוד — בכרייה",
  "places": [
   {
-   "id": "14kk:final_supervisor_protocol.js#FinalSupervisorProtocol.calculateFileQuality",
-   "project": "14kk",
-   "source": "14kk",
-   "name": "לחשב איכות קובץ",
-   "file": "final_supervisor_protocol.js",
-   "action": "מעגל",
+   "id": "core:catalog/core/random.mjs#random",
+   "project": "הליבה",
+   "source": "core",
+   "name": "מפיק רצף מספרים אקראי מזרע",
+   "file": "catalog/core/random.mjs",
+   "action": "מגריל",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו חומר"
+   "why": "אותו פועל"
   },
   {
-   "id": "14kk:strategic_protocol.js#StrategicAnalyzer.estimateCosts",
-   "project": "14kk",
-   "source": "14kk",
-   "name": "להעריך עלויות",
-   "file": "strategic_protocol.js",
-   "action": "נותן ערך קבוע",
-   "proof": "הורץ — סוג אחר",
-   "why": "אותו חומר"
+   "id": "buildsmart:app_flutter/lib/features/card_keyboard/pool_seed.dart#seedPool",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "זורע מאגר",
+   "file": "app_flutter/lib/features/card_keyboard/pool_seed.dart",
+   "action": "מגריל",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל"
   },
   {
-   "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.calculateBuffers",
-   "project": "14kk",
-   "source": "14kk",
-   "name": "לחשב חוצצים",
-   "file": "work_manager_protocol.js",
-   "action": "נותן ערך קבוע",
-   "proof": "הורץ — סוג אחר",
-   "why": "אותו חומר"
+   "id": "buildsmart:app_flutter/lib/state/tasks_engine.dart#buildTasksSeed",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "בונה נתוני פתיחה משימות",
+   "file": "app_flutter/lib/state/tasks_engine.dart",
+   "action": "מגריל",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל"
   }
  ]
 }

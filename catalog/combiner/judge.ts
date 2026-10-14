@@ -19,6 +19,7 @@ import { roundTo } from '../../src/lib/atoms/parts/round';
 import { hmToMin, minToHm } from '../../src/components/parnasa/zmanimBoard';
 // @ts-expect-error — מודול JS של הטלפון, בלי טיפוסים
 import { sunrise, sunset } from '../../telephony/lib/zmanim.mjs';
+import { sunPosition } from '../core/sun-position.mjs';
 
 export const JUDGE_SEED = 20261014;
 export const JUDGE_N = 400;
@@ -219,6 +220,10 @@ interface Runner {
 }
 
 const asMinutes = (v: unknown): number[] | null => {
+  // פלט של ליבת מקום-השמש: {rise, noon, set} בדקות-UTC (שבר) ⇒ שלושה רגעים ביום
+  const o = v as { rise?: unknown; noon?: unknown; set?: unknown } | null;
+  if (o && typeof o === 'object' && !Array.isArray(o) && [o.rise, o.noon, o.set].every((x) => typeof x === 'number' && Number.isFinite(x)))
+    return [o.rise, o.noon, o.set].map((x) => ((Math.round(x as number) % 1440) + 1440) % 1440);
   const xs = Array.isArray(v) ? v : [v];
   const out: number[] = [];
   for (const x of xs) {
@@ -234,6 +239,8 @@ const RUNNERS: Runner[] = [
   { id: P('src/components/parnasa/zmanimBoard.ts', 'minToHm'), produce: (r) => minToHm(r.int(0, 1439)) },
   { id: P('telephony/lib/zmanim.mjs', 'sunrise'), produce: (r) => { const c = sunCase(r); return RISE(c.iso, c.lat, c.lon, c.tz); } },
   { id: P('telephony/lib/zmanim.mjs', 'sunset'), produce: (r) => { const c = sunCase(r); return SET(c.iso, c.lat, c.lon, c.tz); } },
+  // ליבת מקום-השמש (catalog/core, נכרתה מ-zmanimBoard של פרנס׳לע): עולה ⇒ הבא בתור / מזיז / מעגל
+  { id: 'core:catalog/core/sun-position.mjs#sunPosition', produce: (r) => { const c = sunCase(r); return (sunPosition as (s: object, d: string) => unknown)({ lat: c.lat, lon: c.lon, depression: 0.833 }, c.iso); } },
   {
     id: AP('next', 'nextAfter'),
     atom: 'next',

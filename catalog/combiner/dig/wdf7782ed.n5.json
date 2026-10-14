@@ -8,7 +8,7 @@
  "isNewVerb": false,
  "material": "choice",
  "takes": [
-  "record"
+  "list|record"
  ],
  "gives": "choice",
  "detail": null,
@@ -18,16 +18,6 @@
  "status": "mining",
  "statusHe": "⛏️ נמצא בקוד — בכרייה",
  "places": [
-  {
-   "id": "qa-scanner:scanner.py#scan_page:issue[תמונה בלי מקור]",
-   "project": "סורק QA",
-   "source": "qa-scanner",
-   "name": "לזהות באתר: תמונה בלי מקור",
-   "file": "scanner.py",
-   "action": "דורש מקור",
-   "proof": "מהשם בלבד",
-   "why": "אותו פועל · אותו חומר"
-  },
   {
    "id": "generator:machtzev/audit/lib.mjs#faces",
    "project": "המחולל",
@@ -39,11 +29,21 @@
    "why": "אותו פועל · שם קרוב"
   },
   {
-   "id": "buildsmart:app_flutter/lib/data/related_info.dart#quoteTextFor",
-   "project": "בנייה חכמה",
-   "source": "buildsmart",
-   "name": "מצטט טקסט",
-   "file": "app_flutter/lib/data/related_info.dart",
+   "id": "core-b:catalog/core/require-source.mjs#requireSource",
+   "project": "ליבות-הפעלים",
+   "source": "core-b",
+   "name": "מקבל רק פריטים עם מקור",
+   "file": "catalog/core/require-source.mjs",
+   "action": "דורש מקור",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "generator:box-drafts/buildsmart-seed/search-fuzzy@app_src_lib_search_ts.mjs#searchFuzzy",
+   "project": "המחולל",
+   "source": "generator",
+   "name": "חפש מקורב",
+   "file": "box-drafts/buildsmart-seed/search-fuzzy@app_src_lib_search_ts.mjs",
    "action": "דורש מקור",
    "proof": "מהשם בלבד",
    "why": "אותו פועל"

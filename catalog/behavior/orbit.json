@@ -8,10 +8,10 @@
  },
  "totals": {
   "run": 889,
-  "runWithVerb": 314,
+  "runWithVerb": 318,
   "twin": 0,
   "static": 90,
-  "staticWithVerb": 32,
+  "staticWithVerb": 31,
   "why": {
    "machine": 60,
    "no-fitting-input": 16,
@@ -712,11 +712,16 @@
   {
    "id": "orbit:src/components/courses/lib.ts#planWord",
    "labeledBy": "run",
-   "verbs": [],
-   "primary": null,
+   "verbs": [
+    {
+     "id": "route",
+     "on": "model",
+     "holds": "48/48"
+    }
+   ],
+   "primary": "route",
    "material": "choice",
    "cases": 24,
-   "traits": "in[str]>str",
    "hash": "fa38d86f-fa662b1"
   },
   {
@@ -3834,10 +3839,15 @@
      "id": "format",
      "on": "n",
      "holds": "15/15"
+    },
+    {
+     "id": "route",
+     "on": "metal",
+     "holds": "48/48"
     }
    ],
-   "primary": "format",
-   "material": "number",
+   "primary": "route",
+   "material": "choice",
    "cases": 24,
    "hash": "f1e18262-7ff0c675"
   },
@@ -3854,10 +3864,15 @@
      "id": "personalize",
      "on": "ic0",
      "holds": "18/18"
+    },
+    {
+     "id": "route",
+     "on": "metal",
+     "holds": "48/48"
     }
    ],
-   "primary": "personalize",
-   "material": "record:coinIc",
+   "primary": "route",
+   "material": "choice",
    "cases": 24,
    "hash": "b7c2c0b3-6a57424"
   },
@@ -3869,10 +3884,15 @@
      "id": "format",
      "on": "key",
      "holds": "15/15"
+    },
+    {
+     "id": "route",
+     "on": "rim",
+     "holds": "48/48"
     }
    ],
-   "primary": "format",
-   "material": "text",
+   "primary": "route",
+   "material": "choice",
    "cases": 24,
    "hash": "ec7b89d7-23ea6d3a"
   },
@@ -4102,11 +4122,16 @@
   {
    "id": "orbit:src/components/parnasa/home.ts#editionOf",
    "labeledBy": "run",
-   "verbs": [],
-   "primary": null,
+   "verbs": [
+    {
+     "id": "route",
+     "on": "k",
+     "holds": "48/48"
+    }
+   ],
+   "primary": "route",
    "material": "choice",
    "cases": 24,
-   "traits": "in[str]>str",
    "hash": "fe093850-1b770ce0"
   },
   {
@@ -6766,11 +6791,16 @@
   {
    "id": "orbit:src/components/shop7/lib.ts#advanceStatus",
    "labeledBy": "run",
-   "verbs": [],
-   "primary": null,
+   "verbs": [
+    {
+     "id": "route",
+     "on": "status",
+     "holds": "48/48"
+    }
+   ],
+   "primary": "route",
    "material": "choice",
    "cases": 24,
-   "traits": "in[str]>str",
    "hash": "5f36d91-5065e4a9"
   },
   {
@@ -6897,11 +6927,16 @@
   {
    "id": "orbit:src/components/shop7/lib.ts#statusLabel",
    "labeledBy": "run",
-   "verbs": [],
-   "primary": null,
+   "verbs": [
+    {
+     "id": "route",
+     "on": "status",
+     "holds": "48/48"
+    }
+   ],
+   "primary": "route",
    "material": "choice",
    "cases": 24,
-   "traits": "in[str]>str",
    "hash": "5f36d91-f55f5ea3"
   },
   {
@@ -8313,6 +8348,11 @@
      "id": "tier",
      "on": "asOfIso",
      "holds": "6/6"
+    },
+    {
+     "id": "route",
+     "on": "asOfIso",
+     "holds": "48/48"
     }
    ],
    "primary": "tier",
@@ -8929,21 +8969,21 @@
   {
    "id": "orbit:src/lib/atoms/engines/bookings.ts#BOOKINGS_CARD.5",
    "labeledBy": "static",
-   "verbs": [],
-   "primary": null,
+   "verbs": [
+    {
+     "id": "countdown",
+     "by": "name"
+    }
+   ],
+   "primary": "countdown",
    "material": "record:hostBooking",
    "reason": "machine — אין מריץ"
   },
   {
    "id": "orbit:src/lib/atoms/engines/bookings.ts#BOOKINGS_CARD.6",
    "labeledBy": "static",
-   "verbs": [
-    {
-     "id": "relay",
-     "by": "first"
-    }
-   ],
-   "primary": "relay",
+   "verbs": [],
+   "primary": null,
    "material": "record:hostBooking",
    "reason": "machine — אין מריץ"
   },
@@ -9140,6 +9180,10 @@
     {
      "id": "validate",
      "by": "first"
+    },
+    {
+     "id": "accumulate",
+     "by": "name"
     }
    ],
    "primary": "validate",
@@ -9149,8 +9193,13 @@
   {
    "id": "orbit:src/lib/atoms/engines/generated/wall.ts#GEN_WALL",
    "labeledBy": "static",
-   "verbs": [],
-   "primary": null,
+   "verbs": [
+    {
+     "id": "bounce",
+     "by": "symbol"
+    }
+   ],
+   "primary": "bounce",
    "material": "record:db",
    "reason": "machine — אין מריץ"
   },
@@ -9161,6 +9210,10 @@
     {
      "id": "validate",
      "by": "first"
+    },
+    {
+     "id": "sun-position",
+     "by": "symbol"
     }
    ],
    "primary": "validate",
@@ -9170,8 +9223,13 @@
   {
    "id": "orbit:src/lib/atoms/engines/whatNeed.ts#WHAT_NEED_CARD",
    "labeledBy": "static",
-   "verbs": [],
-   "primary": null,
+   "verbs": [
+    {
+     "id": "sample",
+     "by": "first"
+    }
+   ],
+   "primary": "sample",
    "material": "record:db",
    "reason": "machine — אין מריץ"
   },
@@ -9199,13 +9257,8 @@
   {
    "id": "orbit:src/lib/atoms/engines/whatNeed.ts#WHAT_NEED_CARD.11",
    "labeledBy": "static",
-   "verbs": [
-    {
-     "id": "freeze",
-     "by": "first"
-    }
-   ],
-   "primary": "freeze",
+   "verbs": [],
+   "primary": null,
    "material": "list",
    "reason": "machine — אין מריץ"
   },
@@ -9270,26 +9323,16 @@
   {
    "id": "orbit:src/lib/atoms/engines/whatNeed.ts#WHAT_NEED_CARD.7",
    "labeledBy": "static",
-   "verbs": [
-    {
-     "id": "route",
-     "by": "first"
-    }
-   ],
-   "primary": "route",
+   "verbs": [],
+   "primary": null,
    "material": "record:listing",
    "reason": "machine — אין מריץ"
   },
   {
    "id": "orbit:src/lib/atoms/engines/whatNeed.ts#WHAT_NEED_CARD.8",
    "labeledBy": "static",
-   "verbs": [
-    {
-     "id": "relay",
-     "by": "first"
-    }
-   ],
-   "primary": "relay",
+   "verbs": [],
+   "primary": null,
    "material": "waiting",
    "reason": "machine — אין מריץ"
   },
@@ -9308,6 +9351,10 @@
     {
      "id": "validate",
      "by": "first"
+    },
+    {
+     "id": "sun-position",
+     "by": "symbol"
     }
    ],
    "primary": "validate",
@@ -10320,10 +10367,15 @@
      "id": "format",
      "on": "amount",
      "holds": "15/15"
+    },
+    {
+     "id": "route",
+     "on": "currency",
+     "holds": "44/44"
     }
    ],
-   "primary": "format",
-   "material": "amount",
+   "primary": "route",
+   "material": "choice",
    "cases": 24,
    "hash": "82de28bc-1916827f"
   },

@@ -8,7 +8,7 @@
  "isNewVerb": false,
  "material": "waiting",
  "takes": [
-  "record"
+  "list|record"
  ],
  "gives": "waiting",
  "detail": null,
@@ -19,31 +19,31 @@
  "statusHe": "⛏️ נמצא בקוד — בכרייה",
  "places": [
   {
-   "id": "buildsmart:app_flutter/lib/data/related_info.dart#quoteTextFor",
-   "project": "בנייה חכמה",
-   "source": "buildsmart",
-   "name": "מצטט טקסט",
-   "file": "app_flutter/lib/data/related_info.dart",
+   "id": "core-b:catalog/core/require-source.mjs#requireSource",
+   "project": "ליבות-הפעלים",
+   "source": "core-b",
+   "name": "מקבל רק פריטים עם מקור",
+   "file": "catalog/core/require-source.mjs",
+   "action": "דורש מקור",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "generator:box-drafts/buildsmart-seed/search-fuzzy@app_src_lib_search_ts.mjs#searchFuzzy",
+   "project": "המחולל",
+   "source": "generator",
+   "name": "חפש מקורב",
+   "file": "box-drafts/buildsmart-seed/search-fuzzy@app_src_lib_search_ts.mjs",
    "action": "דורש מקור",
    "proof": "מהשם בלבד",
    "why": "אותו פועל"
   },
   {
-   "id": "buildsmart:app_flutter/lib/features/card_keyboard/card_signals.dart#sourcesFor",
-   "project": "בנייה חכמה",
-   "source": "buildsmart",
-   "name": "מחזיר מקורות",
-   "file": "app_flutter/lib/features/card_keyboard/card_signals.dart",
-   "action": "דורש מקור",
-   "proof": "מהשם בלבד",
-   "why": "אותו פועל"
-  },
-  {
-   "id": "buildsmart:app_flutter/lib/logic/fuzzy_match.dart#damerauLevenshtein",
-   "project": "בנייה חכמה",
-   "source": "buildsmart",
-   "name": "מחשב התאמה מקורב",
-   "file": "app_flutter/lib/logic/fuzzy_match.dart",
+   "id": "generator:gen/looks/app/build.mjs#build",
+   "project": "המחולל",
+   "source": "generator",
+   "name": "הפעל מקורות",
+   "file": "gen/looks/app/build.mjs",
    "action": "דורש מקור",
    "proof": "מהשם בלבד",
    "why": "אותו פועל"

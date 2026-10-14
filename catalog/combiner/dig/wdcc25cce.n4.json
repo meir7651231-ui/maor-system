@@ -27,21 +27,21 @@
    "why": "אותו פועל · אותו חומר"
   },
   {
+   "id": "core-b:catalog/core/tolerate.mjs#tolerateParse",
+   "project": "ליבות-הפעלים",
+   "source": "core-b",
+   "name": "קורא כל פריט וסובל פריט שבור",
+   "file": "catalog/core/tolerate.mjs",
+   "action": "סובל כשל",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
    "id": "mmmm:artifacts/api-server/src/swarm/agents.ts#fallbackSuggestions",
    "project": "MMMM",
    "source": "mmmm",
    "name": "להציע תלבושות קבועות כשאין חיבור",
    "file": "artifacts/api-server/src/swarm/agents.ts",
-   "action": "סובל כשל",
-   "proof": "מהשם בלבד",
-   "why": "אותו פועל"
-  },
-  {
-   "id": "buildsmart:app_flutter/lib/features/card_keyboard/card_soft.dart#softSuggestionsFor",
-   "project": "בנייה חכמה",
-   "source": "buildsmart",
-   "name": "מרכך הצעות",
-   "file": "app_flutter/lib/features/card_keyboard/card_soft.dart",
    "action": "סובל כשל",
    "proof": "מהשם בלבד",
    "why": "אותו פועל"

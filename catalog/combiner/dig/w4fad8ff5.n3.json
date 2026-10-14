@@ -3,11 +3,14 @@
  "word": "להקת-ציפורים",
  "need": "n3",
  "behavior": "כל ציפור הולכת אחרי השכנה",
- "verb": "NEW:follow",
- "verbHe": "פועל חדש: follow",
- "isNewVerb": true,
+ "verb": "follow",
+ "verbHe": "הולך אחרי",
+ "isNewVerb": false,
  "material": "geo",
- "takes": [],
+ "takes": [
+  "record",
+  "number"
+ ],
  "gives": "geo",
  "detail": "לזוז לכיוון השכן הקרוב",
  "example": {
@@ -17,33 +20,33 @@
  "statusHe": "⛏️ נמצא בקוד — בכרייה",
  "places": [
   {
-   "id": "orbit:src/lib/mapsLink.ts#mapsSearchUrl",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "כותב כתובת חיפוש אחת",
-   "file": "src/lib/mapsLink.ts",
-   "action": "מעצב לטקסט",
+   "id": "core:catalog/core/follow.mjs#follow",
+   "project": "הליבה",
+   "source": "core",
+   "name": "מזיז ערך חלק קבוע מהדרך למטרה",
+   "file": "catalog/core/follow.mjs",
+   "action": "הולך אחרי",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "core:catalog/core/move-along-path.mjs#moveAlongPath",
+   "project": "הליבה",
+   "source": "core",
+   "name": "מזיז נקודה לאורך מסלול של תחנות",
+   "file": "catalog/core/move-along-path.mjs",
+   "action": "מתקדם במסלול",
    "proof": "הורץ — סוג אחר",
    "why": "אותו חומר"
   },
   {
-   "id": "buildsmart:app_flutter/lib/state/site_hub_state.dart#formatGeo",
-   "project": "בנייה חכמה",
-   "source": "buildsmart",
-   "name": "מעצב אתר מצב",
-   "file": "app_flutter/lib/state/site_hub_state.dart",
-   "action": "מעצב לטקסט",
-   "proof": "מהשם בלבד",
-   "why": "אותו חומר"
-  },
-  {
-   "id": "orbit:src/lib/atoms/engines/zmanim.ts#ZMANIM_CARD.3",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "מחשב מתי זריחה ושקיעה",
-   "file": "src/lib/atoms/engines/zmanim.ts",
-   "action": "מקום השמש",
-   "proof": "מהשם בלבד",
+   "id": "core:catalog/core/orbit.mjs#orbit",
+   "project": "הליבה",
+   "source": "core",
+   "name": "מחשב נקודה שמקיפה מרכז במעגל",
+   "file": "catalog/core/orbit.mjs",
+   "action": "מקיף",
+   "proof": "הורץ — סוג אחר",
    "why": "אותו חומר"
   }
  ]

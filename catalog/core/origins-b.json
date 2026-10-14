@@ -1,0 +1,449 @@
+{
+ "_note": "איפה כל אחד מ-7 הפעלים נמצא בקוד שלנו (STATIC-VERBS 14.10.2026). line=null ⇒ לא אומת. MMMM: הגישה לריפו נדחתה בסשן הזה — הלידים שלו לא אומתו.",
+ "require-source": [
+  {
+   "repo": "yoman-habina",
+   "file": "schema.json",
+   "line": 46,
+   "what": "src = {t (לא ריק), url ^https://} — מקור שקיים חייב שם וקישור https"
+  },
+  {
+   "repo": "yoman-habina",
+   "file": "verify.mjs",
+   "line": 138,
+   "what": "partInjection — כל קישור-מקור שאינו https מפיל את השער"
+  },
+  {
+   "repo": "yoman-habina",
+   "file": "engine.js",
+   "line": 25,
+   "what": "srcLine — שורת \"מקורות\" רק כשיש מקור; בלי מקור לא ממציאים (null)"
+  },
+  {
+   "repo": "maor-system",
+   "file": "src/lib/config.ts",
+   "line": 112,
+   "what": "safeHttpsUrl — קישור מהקונפיג עובר רק אם הוא https, אחרת null"
+  },
+  {
+   "repo": "yeshiva-engine",
+   "file": "yeshiva/gate.py",
+   "line": 1721,
+   "what": "cmd_mimai — \"ממאי\": טענה לא נרשמת בלי claim/dilma/lima, וכל ראיה מדורגת"
+  },
+  {
+   "repo": "yeshiva-engine",
+   "file": "yeshiva/gate.py",
+   "line": 1420,
+   "what": "novel_facts — עובדות בפלט שלא היו בבקשה מסומנות עד שמסווגים אותן"
+  },
+  {
+   "repo": "-ai-chat-server",
+   "file": "machtzev/quarry-check.mjs",
+   "line": 10,
+   "what": "טיוטת-אטום בלי כותרת \"מוצא:\" נכשלת"
+  },
+  {
+   "repo": "-ai-chat-server",
+   "file": "new/atoms/safe-https-url.mjs",
+   "line": 3,
+   "what": "safeHttpsUrl — עותק-אטום"
+  },
+  {
+   "repo": "buildsmart",
+   "file": "edge-proxy/worker.js",
+   "line": 66,
+   "what": "רשימת-מארחים סגורה — יעד לא מוכר ⇒ 404 (לא פרוקסי פתוח)"
+  }
+ ],
+ "freeze": [
+  {
+   "repo": "maor-system",
+   "file": "src/store/useApp.ts",
+   "line": 3513,
+   "what": "voidShopRedemption — ביטול = voidedAt+voidReason; הרשומה וה-S- נשארים; ביטול-כפול נדחה"
+  },
+  {
+   "repo": "maor-system",
+   "file": "firestore.rules",
+   "line": 224,
+   "what": "orgs/{slug}/donations — קבלת §46 שהונפקה: עדכון/מחיקה למנהל בלבד"
+  },
+  {
+   "repo": "maor-system",
+   "file": "src/components/shop/lib.ts",
+   "line": 25,
+   "what": "liveRedemptions — מבוטלים נשארים שמורים ורק מסוננים מהחי"
+  },
+  {
+   "repo": "maor-system",
+   "file": "src/components/builder/RemoteWizard.tsx",
+   "line": 21,
+   "what": "תצלום-המיתוג נשמר בכניסה ומשוחזר ביציאה/אחרי קריסה"
+  },
+  {
+   "repo": "yeshiva-engine",
+   "file": "arena/shop/orders.py",
+   "line": 100,
+   "what": "Order.transition — מצבים סופיים בלי יציאה, וכל מעבר מעלה version"
+  },
+  {
+   "repo": "yeshiva-engine",
+   "file": "yeshiva/terms.py",
+   "line": 22,
+   "what": "@dataclass(frozen=True) — מקור/טענה/כלל שלא משתנים אחרי יצירה"
+  },
+  {
+   "repo": "buildsmart",
+   "file": "firestore.rules",
+   "line": 1127,
+   "what": "allow update, delete: if false — אוספים שרק מוסיפים להם (append-only)"
+  },
+  {
+   "repo": "-ai-chat-server",
+   "file": "machtzev/pins-check.mjs",
+   "line": 55,
+   "what": "קבצים מקובעים ב-sha256 — שינוי בלי חתימה חדשה נכשל"
+  },
+  {
+   "repo": "-ai-chat-server",
+   "file": "new/atoms/next-year-course-draft.mjs",
+   "line": 6,
+   "what": "nextYearCourseDraft — שנה חדשה = רשומה חדשה עם prevYearId, הישנה לא נוגעת"
+  },
+  {
+   "repo": "yoman-habina",
+   "file": "verify.mjs",
+   "line": 16,
+   "what": "allContent — כל מהדורה נשמרת בארכיון issues/ והשער מאמת את כולן"
+  }
+ ],
+ "assign-role": [
+  {
+   "repo": "maor-system",
+   "file": "src/lib/config.ts",
+   "line": 658,
+   "what": "roleOf — כל מייל מקבל תפקיד אחד: admin ⇒ teacher ⇒ staff (שארית)"
+  },
+  {
+   "repo": "maor-system",
+   "file": "src/lib/config.ts",
+   "line": 703,
+   "what": "isAdminAuthority — סמכות-מנהל אפקטיבית (מנהל-ארגון/מייל-על; ארגון-פלטפורמה בלי adminEmails ⇒ לא מנהל)"
+  },
+  {
+   "repo": "maor-system",
+   "file": "src/components/platform/lib.ts",
+   "line": 219,
+   "what": "effectiveConfigFor — קונפיג-אפקטיבי לעובד/ת = ארגון בניכוי כרטיס-העובד"
+  },
+  {
+   "repo": "maor-system",
+   "file": "src/components/hosting/kitchen.ts",
+   "line": 152,
+   "what": "staffRoleIn — תפקידי איש-צוות בארוחה (מכין/מגיש/מוריד/שולחן). וריאנט: כמה תפקידים לאדם"
+  },
+  {
+   "repo": "yeshiva-engine",
+   "file": "yeshiva/shut.py",
+   "line": 190,
+   "what": "next_part — תור סבבי על החלקים הפתוחים"
+  },
+  {
+   "repo": "buildsmart",
+   "file": "app_flutter/lib/state/persona_fulfillment.dart",
+   "line": 430,
+   "what": "split — פיזור שורות-הזמנה ל-N משלוחים בסבב"
+  },
+  {
+   "repo": "buildsmart",
+   "file": "app_flutter/lib/state/ab_experiments.dart",
+   "line": 31,
+   "what": "ensure — שיוך דטרמיניסטי לווריאנט (hash % n) שנשאר קבוע"
+  },
+  {
+   "repo": "buildsmart",
+   "file": "functions/src/reviewRoleRequest.ts",
+   "line": 139,
+   "what": "reviewRoleRequest — מוחק role/roles וקובע claims.role אחד בדיוק"
+  },
+  {
+   "repo": "-ai-chat-server",
+   "file": "new/atoms/role-of.mjs",
+   "line": 5,
+   "what": "roleOf — עותק-אטום של roleOf של אורביט"
+  }
+ ],
+ "route": [
+  {
+   "repo": "maor-system",
+   "file": "functions/index.js",
+   "line": 115,
+   "what": "sendSmsVia — ספק 'inforu' ⇒ inforu, כל ספק אחר ⇒ 019 (ברירת-מחדל)"
+  },
+  {
+   "repo": "maor-system",
+   "file": "src/lib/receipt.ts",
+   "line": 225,
+   "what": "deliverReceipt — 'pdf' ⇒ הדפסה, כל השאר ⇒ קובץ-טקסט"
+  },
+  {
+   "repo": "maor-system",
+   "file": "src/components/parnasa/phoneLine.ts",
+   "line": 803,
+   "what": "resolveDialCode — קוד-חיוג מוכר ⇒ העסק; לא מוכר ⇒ \"לא נמצא\" עם הקשה-מחדש"
+  },
+  {
+   "repo": "maor-system",
+   "file": "src/components/public/portal.ts",
+   "line": 63,
+   "what": "portalChannels — ערוצי-השליחה (WhatsApp/SMS/מייל/טלפון). וריאנט: מפזר לכל הערוצים הזמינים ולא בוחר אחד"
+  },
+  {
+   "repo": "buildsmart",
+   "file": "edge-proxy/worker.js",
+   "line": 58,
+   "what": "ROUTES — תת-דומיין/קידומת-נתיב ⇒ שרת-יעד אחד; לא מוכר ⇒ 404"
+  },
+  {
+   "repo": "14kk",
+   "file": "services/ai-telegram-integration.js",
+   "line": 135,
+   "what": "generateResponse — switch על סוג-הכוונה, עם default של תשובה כללית"
+  },
+  {
+   "repo": "yeshiva-engine",
+   "file": "yeshiva/gate.py",
+   "line": 2160,
+   "what": "main — פקודה ⇒ מטפל אחד; לא מוכרת ⇒ \"פקודה לא מוכרת\""
+  },
+  {
+   "repo": "yoman-habina",
+   "file": "engine.js",
+   "line": 372,
+   "what": "RENDERERS[s.type] — סוג-מדור ⇒ מצייר אחד; לא מוכר ⇒ מדולג (בלי ברירת-מחדל)"
+  },
+  {
+   "repo": "qa-scanner",
+   "file": "scanner3.py",
+   "line": 30,
+   "what": "detect_platform — אתר ⇒ פלטפורמה אחת, ברירת-מחדל \"unknown\""
+  },
+  {
+   "repo": "-ai-chat-server",
+   "file": "new/boxes/lib-cloud.mjs",
+   "line": 117,
+   "what": "hebrewAuthError — קוד-שגיאה ⇒ הודעה אחת, עם default כללי"
+  }
+ ],
+ "tolerate": [
+  {
+   "repo": "maor-system",
+   "file": "src/App.tsx",
+   "line": 146,
+   "what": "safeDecode — decodeURIComponent שנכשל מחזיר את הטקסט עצמו (hash פגום לא מפיל את האפליקציה)"
+  },
+  {
+   "repo": "maor-system",
+   "file": "src/lib/lock.ts",
+   "line": 135,
+   "what": "readPinFails — JSON פגום/חסר ב-localStorage ⇒ {n:0, until:0}"
+  },
+  {
+   "repo": "maor-system",
+   "file": "src/lib/cloud.ts",
+   "line": 459,
+   "what": "readCloudEnvelope — כל כשל (Rules/רשת/ענן) ⇒ null והזרימה ממשיכה בטקסט-גלוי"
+  },
+  {
+   "repo": "maor-system",
+   "file": "src/lib/cloud-merge.ts",
+   "line": 50,
+   "what": "healRecord — מסמך-ענן פגום מרופא לצורה תקינה במקום להפיל את הסנכרון"
+  },
+  {
+   "repo": "maor-system",
+   "file": "src/lib/switchboard/registry.ts",
+   "line": 228,
+   "what": "ask — ספק שזרק ⇒ תשובת 'error', לעולם לא זורק"
+  },
+  {
+   "repo": "maor-system",
+   "file": "functions/index.js",
+   "line": 202,
+   "what": "smsOutbox — הודעה שנכשלה מסומנת error והלולאה ממשיכה (נופל-רך)"
+  },
+  {
+   "repo": "yeshiva-engine",
+   "file": "arena/shop/events.py",
+   "line": 40,
+   "what": "EventBus.publish — מנוי שזרק נרשם ב-log.errors והעסקה ממשיכה"
+  },
+  {
+   "repo": "yoman-habina",
+   "file": "verify.mjs",
+   "line": 103,
+   "what": "partSchema — קובץ-תוכן עם JSON שבור נרשם ככישלון וממשיכים לבא"
+  },
+  {
+   "repo": "qa-scanner",
+   "file": "exposure_audit.py",
+   "line": 431,
+   "what": "run — כל בדיקה ב-try/except; קריסה הופכת לממצא והבדיקה הבאה רצה"
+  },
+  {
+   "repo": "14kk",
+   "file": "archive/final-bridge-v1.3.js",
+   "line": 456,
+   "what": "executeTask — עד 3 ניסיונות ואז לתור-מתים"
+  },
+  {
+   "repo": "-ai-chat-server",
+   "file": "new/atoms/parse-acc.mjs",
+   "line": 3,
+   "what": "parseAcc — JSON שבור ⇒ ברירת-מחדל כבויה"
+  },
+  {
+   "repo": "MMMM",
+   "file": "meeting.js",
+   "line": null,
+   "what": "סבב סוכנים שסובל כשל — לא אומת: הגישה לריפו נדחתה בסשן הזה"
+  }
+ ],
+ "pace": [
+  {
+   "repo": "maor-system",
+   "file": "src/store/useApp.ts",
+   "line": 1062,
+   "what": "שמירה אוטומטית ל-localStorage — debounce 500ms (האחרון ברצף נשמר)"
+  },
+  {
+   "repo": "maor-system",
+   "file": "src/store/cloudSync.ts",
+   "line": 360,
+   "what": "דחיפה לענן — debounce 800ms (PUSH_DEBOUNCE_MS, cloudOnDbChange)"
+  },
+  {
+   "repo": "maor-system",
+   "file": "src/store/cloudSync.ts",
+   "line": 340,
+   "what": "flushPush — backoff מעריכי 5s·2^n עד 5 דקות אחרי כשלונות-דחיפה"
+  },
+  {
+   "repo": "maor-system",
+   "file": "src/lib/lock.ts",
+   "line": 167,
+   "what": "cooldownForFails/notePinFail — השהיה גדלה אחרי ניסיונות-PIN שגויים (3→5ש׳, 4→15ש׳, 5+→30ש׳)"
+  },
+  {
+   "repo": "maor-system",
+   "file": "src/components/settings/SecuritySection.tsx",
+   "line": 56,
+   "what": "שומר לחיצה-כפולה 400ms — לחיצה שנייה בתוך 400ms נבלעת (throttle)"
+  },
+  {
+   "repo": "maor-system",
+   "file": "functions/index.js",
+   "line": 194,
+   "what": "smsOutbox — לכל היותר 20 הודעות לדקה (limit(20) בריצה של כל דקה)"
+  },
+  {
+   "repo": "buildsmart",
+   "file": "app_flutter/lib/data/repositories/presence_repository.dart",
+   "line": 292,
+   "what": "heartbeat — כתיבת-נוכחות נבלעת אם הקודמת לפני פחות מ-30 שניות (throttle)"
+  },
+  {
+   "repo": "buildsmart",
+   "file": "app_flutter/lib/features/card_keyboard/card_keyboard_screen.dart",
+   "line": 322,
+   "what": "חיפוש בהקלדה — debounce 250ms"
+  },
+  {
+   "repo": "yeshiva-engine",
+   "file": "yeshiva/shut.py",
+   "line": 235,
+   "what": "step — שינה 2·(ניסיון+1) שניות בין ניסיונות-משיכה (backoff לינארי), delay=0.2 בין משיכות"
+  },
+  {
+   "repo": "14kk",
+   "file": "services/api-gateway/server.js",
+   "line": 61,
+   "what": "limiter — express-rate-limit (windowMs/max)"
+  },
+  {
+   "repo": "qa-scanner",
+   "file": "scanner.py",
+   "line": 126,
+   "what": "crawl — time.sleep(0.4) בין דפים"
+  },
+  {
+   "repo": "-ai-chat-server",
+   "file": "new/atoms/cooldown-for-fails.mjs",
+   "line": 3,
+   "what": "עותק-אטום של cooldownForFails (המחולל)"
+  },
+  {
+   "repo": "MMMM",
+   "file": "meeting.js",
+   "line": null,
+   "what": "השהיה 200ms בין סוכנים — לא אומת: הגישה לריפו נדחתה בסשן הזה"
+  }
+ ],
+ "relay": [
+  {
+   "repo": "maor-system",
+   "file": "src/lib/switchboard/registry.ts",
+   "line": 228,
+   "what": "ask — כלי שואל כלי אחר רק דרך המרכזייה (מזהה ⇒ זמינות ⇒ ספק ⇒ ריצה)"
+  },
+  {
+   "repo": "maor-system",
+   "file": "functions/index.js",
+   "line": 191,
+   "what": "smsOutbox — האפליקציה כותבת לתור, השרת שולח (תור במקום שליחה ישירה)"
+  },
+  {
+   "repo": "maor-system",
+   "file": "functions/index.js",
+   "line": 214,
+   "what": "yemotProxy — פרוקסי לימות-המשיח: הבקשה עוברת דרך השרת שמוסיף טוקן"
+  },
+  {
+   "repo": "maor-system",
+   "file": "src/lib/supportChat.ts",
+   "line": 4,
+   "what": "צ׳אט-הצוות — הודעות עוברות דרך Firestore (onSnapshot) ולא ישר בין אנשים"
+  },
+  {
+   "repo": "yeshiva-engine",
+   "file": "arena/shop/events.py",
+   "line": 36,
+   "what": "EventBus.publish — פרסום/מנוי דרך מרכז (עם \"*\"), כל אירוע נרשם פעם אחת ביומן"
+  },
+  {
+   "repo": "14kk",
+   "file": "services/api-gateway/server.js",
+   "line": 210,
+   "what": "authProxy/telegramProxy/aiProxy — שער-API שמעביר כל בקשה לשירות שמאחוריו"
+  },
+  {
+   "repo": "buildsmart",
+   "file": "edge-proxy/worker.js",
+   "line": 46,
+   "what": "Cloudflare Worker — כל תעבורת Google/Firebase עוברת דרך דומיין אחד מאושר"
+  },
+  {
+   "repo": "-ai-chat-server",
+   "file": "new/atoms/write-sms-outbox.mjs",
+   "line": 5,
+   "what": "writeSmsOutbox — עותק-אטום: SMS נכתב לתור במצב pending"
+  },
+  {
+   "repo": "MMMM",
+   "file": "connecthub-master.js",
+   "line": null,
+   "what": "מרכז-חיבור בין סוכנים — לא אומת: הגישה לריפו נדחתה בסשן הזה"
+  }
+ ]
+}

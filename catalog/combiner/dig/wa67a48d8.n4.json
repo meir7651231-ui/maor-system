@@ -19,6 +19,16 @@
  "statusHe": "🔎 עוד לא נחפר",
  "places": [
   {
+   "id": "core:catalog/core/follow.mjs#follow",
+   "project": "הליבה",
+   "source": "core",
+   "name": "מזיז ערך חלק קבוע מהדרך למטרה",
+   "file": "catalog/core/follow.mjs",
+   "action": "ממיר ערך",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל · שם קרוב"
+  },
+  {
    "id": "buildsmart:functions/src/creditCore.ts#contractorCredit",
    "project": "בנייה חכמה",
    "source": "buildsmart",
@@ -34,16 +44,6 @@
    "source": "buildsmart",
    "name": "מחשב קוד חתימה מחרוזת",
    "file": "functions/src/creditCore.ts",
-   "action": "ממיר ערך",
-   "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל"
-  },
-  {
-   "id": "orbit:src/components/courses/lib.ts#lessonsInTerm",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "מחשב מספר השיעורים בתקופה לפי התדירות שנבחרה",
-   "file": "src/components/courses/lib.ts",
    "action": "ממיר ערך",
    "proof": "הורץ — סוג אחר",
    "why": "אותו פועל"

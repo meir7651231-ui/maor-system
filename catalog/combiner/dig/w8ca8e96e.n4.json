@@ -3,11 +3,14 @@
  "word": "כוורת",
  "need": "n4",
  "behavior": "דבש מצטבר בתאים",
- "verb": "NEW:accumulate",
- "verbHe": "פועל חדש: accumulate",
- "isNewVerb": true,
+ "verb": "accumulate",
+ "verbHe": "צובר",
+ "isNewVerb": false,
  "material": "amount",
- "takes": [],
+ "takes": [
+  "record",
+  "list"
+ ],
  "gives": "amount",
  "detail": "אוסף שגדל",
  "example": {
@@ -17,34 +20,34 @@
  "statusHe": "⛏️ נמצא בקוד — בכרייה",
  "places": [
   {
-   "id": "rings:lab-rings/lab13/shelf3.json#כתוב לכתובת שבתא",
-   "project": "הטבעות",
-   "source": "rings",
-   "name": "כתוב ערך לכתובת שבתא",
-   "file": "lab-rings/lab13/shelf3.json",
-   "action": "מעגל",
+   "id": "core:catalog/core/accumulate.mjs#accumulate",
+   "project": "הליבה",
+   "source": "core",
+   "name": "אוסף לקופה עד שהיא מתמלאת ומרוקנת",
+   "file": "catalog/core/accumulate.mjs",
+   "action": "צובר",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו חומר · שם קרוב"
+   "why": "אותו פועל"
   },
   {
-   "id": "14kk:final_supervisor_protocol.js#FinalSupervisorProtocol.calculateFileQuality",
-   "project": "14kk",
-   "source": "14kk",
-   "name": "לחשב איכות קובץ",
-   "file": "final_supervisor_protocol.js",
-   "action": "מעגל",
-   "proof": "הורץ — סוג אחר",
-   "why": "אותו חומר"
+   "id": "generator:machtzev/assemble/box-audit.mjs#box-audit",
+   "project": "המחולל",
+   "source": "generator",
+   "name": "הפעל תוכנית-חיווט ↔ קופסה-בנויה",
+   "file": "machtzev/assemble/box-audit.mjs",
+   "action": "צובר",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל"
   },
   {
-   "id": "14kk:strategic_protocol.js#StrategicAnalyzer.estimateCosts",
-   "project": "14kk",
-   "source": "14kk",
-   "name": "להעריך עלויות",
-   "file": "strategic_protocol.js",
-   "action": "נותן ערך קבוע",
-   "proof": "הורץ — סוג אחר",
-   "why": "אותו חומר"
+   "id": "generator:machtzev/box-assemble.mjs#box-assemble",
+   "project": "המחולל",
+   "source": "generator",
+   "name": "הפעל קובץ-מקור עם ≥1 יצוא ⇒ קופסה",
+   "file": "machtzev/box-assemble.mjs",
+   "action": "צובר",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל"
   }
  ]
 }

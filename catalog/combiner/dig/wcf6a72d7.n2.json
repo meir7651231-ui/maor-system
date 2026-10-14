@@ -3,11 +3,14 @@
  "word": "רכב-חשמלי",
  "need": "n2",
  "behavior": "מחזיר אנרגיה בבלימה",
- "verb": "NEW:accumulate",
- "verbHe": "פועל חדש: accumulate",
- "isNewVerb": true,
+ "verb": "accumulate",
+ "verbHe": "צובר",
+ "isNewVerb": false,
  "material": "number",
- "takes": [],
+ "takes": [
+  "record",
+  "list"
+ ],
  "gives": "number",
  "detail": "צובר — ערך שגדל מעט בכל צעד-זמן עד שמשהו מרוקן אותו",
  "example": {
@@ -17,34 +20,34 @@
  "statusHe": "⛏️ נמצא בקוד — בכרייה",
  "places": [
   {
-   "id": "buildsmart:functions/src/studio.ts#revertStillApplies",
-   "project": "בנייה חכמה",
-   "source": "buildsmart",
-   "name": "מחזיר אחורה סטודיו",
-   "file": "functions/src/studio.ts",
-   "action": "בודק",
-   "proof": "הורץ — סוג אחר",
-   "why": "אותו חומר · שם קרוב"
-  },
-  {
-   "id": "generator:new/dart-maor/cycle-hit.dart#cycleHit",
+   "id": "generator:new/dart-maor/spotlight-box.dart#spotlightBox",
    "project": "המחולל",
    "source": "generator",
-   "name": "בדוק פגיעת מחזור לפי שארית מול סף",
-   "file": "new/dart-maor/cycle-hit.dart",
-   "action": "בודק",
+   "name": "החזר חלון-ה-spotlight של הסיור סביב מלבן-אלמנט",
+   "file": "new/dart-maor/spotlight-box.dart",
+   "action": "צובר",
    "proof": "מהשם בלבד",
-   "why": "אותו חומר · שם קרוב"
+   "why": "אותו פועל · שם קרוב"
   },
   {
-   "id": "14kk:final_supervisor_protocol.js#FinalSupervisorProtocol.calculateFileQuality",
-   "project": "14kk",
-   "source": "14kk",
-   "name": "לחשב איכות קובץ",
-   "file": "final_supervisor_protocol.js",
-   "action": "מעגל",
-   "proof": "הורץ — סוג אחר",
-   "why": "אותו חומר"
+   "id": "generator:new/dart-maor/unit-label.dart#unitLabel",
+   "project": "המחולל",
+   "source": "generator",
+   "name": "החזר שם מונה-הפריט במודול-העין",
+   "file": "new/dart-maor/unit-label.dart",
+   "action": "צובר",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · שם קרוב"
+  },
+  {
+   "id": "generator:new/dart/collect.dart#collect",
+   "project": "המחולל",
+   "source": "generator",
+   "name": "החזר מעבר-עומק רקורסיבי שאוסף את קטגוריות-העלים של תת-עץ CatalogNode",
+   "file": "new/dart/collect.dart",
+   "action": "צובר",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · שם קרוב"
   }
  ]
 }

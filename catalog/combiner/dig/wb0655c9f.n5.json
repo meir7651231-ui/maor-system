@@ -3,11 +3,14 @@
  "word": "תופסת",
  "need": "n5",
  "behavior": "זמן מנוחה אחרי שנתפס",
- "verb": "NEW:countdown",
- "verbHe": "פועל חדש: countdown",
- "isNewVerb": true,
+ "verb": "countdown",
+ "verbHe": "סופר לאחור",
+ "isNewVerb": false,
  "material": "times",
- "takes": [],
+ "takes": [
+  "record",
+  "number"
+ ],
  "gives": "times",
  "detail": "סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה",
  "example": {

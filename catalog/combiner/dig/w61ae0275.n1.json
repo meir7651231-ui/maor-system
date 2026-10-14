@@ -3,11 +3,14 @@
  "word": "כוונן",
  "need": "n1",
  "behavior": "שומע צליל",
- "verb": "NEW:sample",
- "verbHe": "פועל חדש: sample",
- "isNewVerb": true,
+ "verb": "sample",
+ "verbHe": "דוגם",
+ "isNewVerb": false,
  "material": "sound",
- "takes": [],
+ "takes": [
+  "record",
+  "list"
+ ],
  "gives": "sound",
  "detail": "קורא מהסביבה — מודד צבע/קול/ערך מבחוץ",
  "example": {

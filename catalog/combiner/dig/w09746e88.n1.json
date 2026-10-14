@@ -3,11 +3,14 @@
  "word": "בינגו",
  "need": "n1",
  "behavior": "מגרילים מספר",
- "verb": "NEW:random",
- "verbHe": "פועל חדש: random",
- "isNewVerb": true,
+ "verb": "random",
+ "verbHe": "מגריל",
+ "isNewVerb": false,
  "material": "number",
- "takes": [],
+ "takes": [
+  "record",
+  "number"
+ ],
  "gives": "number",
  "detail": "מגריל — בחירה או ערך לפי סיכוי",
  "example": {
@@ -17,34 +20,34 @@
  "statusHe": "⛏️ נמצא בקוד — בכרייה",
  "places": [
   {
-   "id": "orbit:src/components/courses/lib.ts#lessonsInTerm",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "מחשב מספר השיעורים בתקופה לפי התדירות שנבחרה",
-   "file": "src/components/courses/lib.ts",
-   "action": "מגביל לטווח",
+   "id": "core:catalog/core/random.mjs#random",
+   "project": "הליבה",
+   "source": "core",
+   "name": "מפיק רצף מספרים אקראי מזרע",
+   "file": "catalog/core/random.mjs",
+   "action": "מגריל",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו חומר · שם קרוב"
+   "why": "אותו פועל · שם קרוב"
   },
   {
-   "id": "orbit:src/components/diary/lib.ts#pad2",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "מוסיף אפס לפני מספר של ספרה אחת",
-   "file": "src/components/diary/lib.ts",
-   "action": "מעצב לטקסט",
-   "proof": "הורץ — סוג אחר",
-   "why": "אותו חומר · שם קרוב"
+   "id": "buildsmart:app_flutter/lib/features/card_keyboard/pool_seed.dart#seedPool",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "זורע מאגר",
+   "file": "app_flutter/lib/features/card_keyboard/pool_seed.dart",
+   "action": "מגריל",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל"
   },
   {
-   "id": "orbit:src/components/parnasa/admin.ts#pl",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "בוחר צורת יחיד או רבים לפי מספר",
-   "file": "src/components/parnasa/admin.ts",
-   "action": "מנרמל",
-   "proof": "הורץ — סוג אחר",
-   "why": "אותו חומר · שם קרוב"
+   "id": "buildsmart:app_flutter/lib/state/tasks_engine.dart#buildTasksSeed",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "בונה נתוני פתיחה משימות",
+   "file": "app_flutter/lib/state/tasks_engine.dart",
+   "action": "מגריל",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל"
   }
  ]
 }

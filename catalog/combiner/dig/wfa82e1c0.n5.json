@@ -8,8 +8,7 @@
  "isNewVerb": false,
  "material": "list",
  "takes": [
-  "choice",
-  "record"
+  "text|choice"
  ],
  "gives": "list",
  "detail": null,
@@ -20,34 +19,34 @@
  "statusHe": "⛏️ נמצא בקוד — בכרייה",
  "places": [
   {
-   "id": "buildsmart:app_flutter/lib/features/fittings/geometry/route_assembly.dart#assembleRoute",
-   "project": "בנייה חכמה",
-   "source": "buildsmart",
-   "name": "מרכיב מסלול",
-   "file": "app_flutter/lib/features/fittings/geometry/route_assembly.dart",
+   "id": "core-b:catalog/core/route.mjs#route",
+   "project": "ליבות-הפעלים",
+   "source": "core-b",
+   "name": "שולח כל דבר לערוץ אחד",
+   "file": "catalog/core/route.mjs",
    "action": "מנתב לפי ערוץ",
-   "proof": "מהשם בלבד",
-   "why": "אותו פועל · אותו חומר"
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
   },
   {
-   "id": "buildsmart:app_flutter/lib/features/fittings/geometry/route_meshes.dart#buildRoutePreviewMeshes",
-   "project": "בנייה חכמה",
-   "source": "buildsmart",
-   "name": "בונה רשתות תצוגה מקדימה מסלול",
-   "file": "app_flutter/lib/features/fittings/geometry/route_meshes.dart",
+   "id": "orbit:src/components/courses/lib.ts#planWord",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "כותב שם המסלול",
+   "file": "src/components/courses/lib.ts",
    "action": "מנתב לפי ערוץ",
-   "proof": "מהשם בלבד",
-   "why": "אותו פועל · אותו חומר"
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
   },
   {
-   "id": "buildsmart:app_flutter/lib/features/fittings/intel/line_planner.dart#routeFromProducts",
-   "project": "בנייה חכמה",
-   "source": "buildsmart",
-   "name": "מנתב מוצרים",
-   "file": "app_flutter/lib/features/fittings/intel/line_planner.dart",
+   "id": "orbit:src/components/parnasa/coins.ts#coinBack",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מצייר את גב המטבע",
+   "file": "src/components/parnasa/coins.ts",
    "action": "מנתב לפי ערוץ",
-   "proof": "מהשם בלבד",
-   "why": "אותו פועל · אותו חומר"
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
   }
  ]
 }

@@ -165,13 +165,8 @@
   {
    "id": "yoman-habina:engine.js#srcLine",
    "labeledBy": "static",
-   "verbs": [
-    {
-     "id": "require-source",
-     "by": "name"
-    }
-   ],
-   "primary": "require-source",
+   "verbs": [],
+   "primary": null,
    "material": "text",
    "reason": "impure"
   },
@@ -210,8 +205,13 @@
   {
    "id": "yoman-habina:verify.mjs#collectUrls",
    "labeledBy": "static",
-   "verbs": [],
-   "primary": null,
+   "verbs": [
+    {
+     "id": "accumulate",
+     "by": "symbol"
+    }
+   ],
+   "primary": "accumulate",
    "material": "text",
    "reason": "impure"
   },

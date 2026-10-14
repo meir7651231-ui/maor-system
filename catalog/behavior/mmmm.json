@@ -437,11 +437,15 @@
    "labeledBy": "static",
    "verbs": [
     {
+     "id": "orbit",
+     "by": "name"
+    },
+    {
      "id": "round",
      "by": "name"
     }
    ],
-   "primary": "round",
+   "primary": "orbit",
    "material": "record:ring_buffer",
    "reason": "impure"
   },

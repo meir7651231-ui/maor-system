@@ -3,11 +3,14 @@
  "word": "חנוכייה",
  "need": "n6",
  "behavior": "הנרות דולקים חצי שעה לפחות",
- "verb": "NEW:countdown",
- "verbHe": "פועל חדש: countdown",
- "isNewVerb": true,
+ "verb": "countdown",
+ "verbHe": "סופר לאחור",
+ "isNewVerb": false,
  "material": "times",
- "takes": [],
+ "takes": [
+  "record",
+  "number"
+ ],
  "gives": "times",
  "detail": "סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה",
  "example": {

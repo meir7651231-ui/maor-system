@@ -3,11 +3,14 @@
  "word": "מטוס-נייר",
  "need": "n4",
  "behavior": "יורד לאט",
- "verb": "NEW:gravity",
- "verbHe": "פועל חדש: gravity",
- "isNewVerb": true,
+ "verb": "gravity",
+ "verbHe": "נופל",
+ "isNewVerb": false,
  "material": "number",
- "takes": [],
+ "takes": [
+  "record",
+  "number"
+ ],
  "gives": "number",
  "detail": "נופל — מהירות שגדלה בכל צעד של נפילה",
  "example": {
@@ -17,34 +20,34 @@
  "statusHe": "⛏️ נמצא בקוד — בכרייה",
  "places": [
   {
-   "id": "14kk:final_supervisor_protocol.js#FinalSupervisorProtocol.calculateFileQuality",
-   "project": "14kk",
-   "source": "14kk",
-   "name": "לחשב איכות קובץ",
-   "file": "final_supervisor_protocol.js",
-   "action": "מעגל",
+   "id": "core:catalog/core/gravity.mjs#gravity",
+   "project": "הליבה",
+   "source": "core",
+   "name": "מחשב נפילה שמאיצה בכל צעד",
+   "file": "catalog/core/gravity.mjs",
+   "action": "נופל",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו חומר"
+   "why": "אותו פועל"
   },
   {
-   "id": "14kk:strategic_protocol.js#StrategicAnalyzer.estimateCosts",
-   "project": "14kk",
-   "source": "14kk",
-   "name": "להעריך עלויות",
-   "file": "strategic_protocol.js",
-   "action": "נותן ערך קבוע",
-   "proof": "הורץ — סוג אחר",
-   "why": "אותו חומר"
+   "id": "buildsmart:app_flutter/lib/features/fittings/intel/line_pressure.dart#pressureDropForPlan",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "מוצא ירידה לחץ עבור תוכנית",
+   "file": "app_flutter/lib/features/fittings/intel/line_pressure.dart",
+   "action": "נופל",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל"
   },
   {
-   "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.calculateBuffers",
-   "project": "14kk",
-   "source": "14kk",
-   "name": "לחשב חוצצים",
-   "file": "work_manager_protocol.js",
-   "action": "נותן ערך קבוע",
-   "proof": "הורץ — סוג אחר",
-   "why": "אותו חומר"
+   "id": "generator:machtzev/merge-regen.mjs#merge-regen",
+   "project": "המחולל",
+   "source": "generator",
+   "name": "הפעל אחר ⇒ נופל ל-theirs ומדווח",
+   "file": "machtzev/merge-regen.mjs",
+   "action": "נופל",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל"
   }
  ]
 }

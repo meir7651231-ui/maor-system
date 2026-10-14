@@ -3,11 +3,14 @@
  "word": "זיקית",
  "need": "n1",
  "behavior": "מחליפה צבע לפי הרקע",
- "verb": "NEW:sample",
- "verbHe": "פועל חדש: sample",
- "isNewVerb": true,
+ "verb": "sample",
+ "verbHe": "דוגם",
+ "isNewVerb": false,
  "material": "image",
- "takes": [],
+ "takes": [
+  "record",
+  "list"
+ ],
  "gives": "image",
  "detail": "לקרוא את הצבע מהסביבה",
  "example": {
@@ -17,34 +20,34 @@
  "statusHe": "⛏️ נמצא בקוד — בכרייה",
  "places": [
   {
-   "id": "orbit:src/components/hosting/transitions.ts#withSystemCharges",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "מחליף רק את החיובים המחושבים בהזמנה",
-   "file": "src/components/hosting/transitions.ts",
-   "action": "מנרמל",
-   "proof": "הורץ — סוג אחר",
-   "why": "שם קרוב"
+   "id": "generator:machtzev/audit/gen-forge-dart.mjs#gen-forge-dart",
+   "project": "המחולל",
+   "source": "generator",
+   "name": "הפעל קורא ומחולל בדיקת-flutter שמציירת כל אטום-FORGE ל-PNG",
+   "file": "machtzev/audit/gen-forge-dart.mjs",
+   "action": "דוגם",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · שם קרוב"
   },
   {
-   "id": "orbit:src/components/supporters/lib.ts#mergeSupporterRow",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "מחיל שורת ייבוא על תומכת קיימת",
-   "file": "src/components/supporters/lib.ts",
-   "action": "מעדכן למצב",
-   "proof": "הורץ — סוג אחר",
-   "why": "שם קרוב"
+   "id": "generator:machtzev/ds-pure.mjs#ds-pure",
+   "project": "המחולל",
+   "source": "generator",
+   "name": "הפעל קורא את אטום-הזרע ומחולל דטרמיניסטית את",
+   "file": "machtzev/ds-pure.mjs",
+   "action": "דוגם",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · שם קרוב"
   },
   {
-   "id": "orbit:src/lib/atoms/parts/divide.ts#divideAmount",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "מחלק סכום לחלקים שווים",
-   "file": "src/lib/atoms/parts/divide.ts",
-   "action": "מחלק",
-   "proof": "הורץ — סוג אחר",
-   "why": "שם קרוב"
+   "id": "generator:machtzev/ds-tokens.mjs#ds-tokens",
+   "project": "המחולל",
+   "source": "generator",
+   "name": "הפעל קורא ומחולל דטרמיניסטית את",
+   "file": "machtzev/ds-tokens.mjs",
+   "action": "דוגם",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · שם קרוב"
   }
  ]
 }

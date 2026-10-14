@@ -3,11 +3,14 @@
  "word": "משלוחי-מנות",
  "need": "n3",
  "behavior": "שליח עובר בבתים",
- "verb": "NEW:shortest-path",
- "verbHe": "פועל חדש: shortest-path",
- "isNewVerb": true,
+ "verb": "shortest-path",
+ "verbHe": "מוצא דרך קצרה",
+ "isNewVerb": false,
  "material": "geo",
- "takes": [],
+ "takes": [
+  "record",
+  "choice"
+ ],
  "gives": "geo",
  "detail": "דרך קצרה — המסלול הקצר ביותר ברשת של נקודות",
  "example": {
@@ -17,34 +20,34 @@
  "statusHe": "⛏️ נמצא בקוד — בכרייה",
  "places": [
   {
-   "id": "orbit:src/lib/mapsLink.ts#mapsSearchUrl",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "כותב כתובת חיפוש אחת",
-   "file": "src/lib/mapsLink.ts",
-   "action": "מעצב לטקסט",
-   "proof": "הורץ — סוג אחר",
-   "why": "אותו חומר"
+   "id": "generator:machtzev/root.mjs#p",
+   "project": "המחולל",
+   "source": "generator",
+   "name": "הפעל pins עוברת דרך כאן",
+   "file": "machtzev/root.mjs",
+   "action": "מוצא דרך קצרה",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · שם קרוב"
   },
   {
-   "id": "buildsmart:app_flutter/lib/state/site_hub_state.dart#formatGeo",
+   "id": "core:catalog/core/shortest-path.mjs#shortestPath",
+   "project": "הליבה",
+   "source": "core",
+   "name": "מוצא את הדרך הזולה ברשת נקודות",
+   "file": "catalog/core/shortest-path.mjs",
+   "action": "מוצא דרך קצרה",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "buildsmart:app_flutter/lib/logic/install_engine.dart#findAlternativePaths",
    "project": "בנייה חכמה",
    "source": "buildsmart",
-   "name": "מעצב אתר מצב",
-   "file": "app_flutter/lib/state/site_hub_state.dart",
-   "action": "מעצב לטקסט",
+   "name": "מוצא מסלול חלופה",
+   "file": "app_flutter/lib/logic/install_engine.dart",
+   "action": "מוצא דרך קצרה",
    "proof": "מהשם בלבד",
-   "why": "אותו חומר"
-  },
-  {
-   "id": "orbit:src/lib/atoms/engines/zmanim.ts#ZMANIM_CARD.3",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "מחשב מתי זריחה ושקיעה",
-   "file": "src/lib/atoms/engines/zmanim.ts",
-   "action": "מקום השמש",
-   "proof": "מהשם בלבד",
-   "why": "אותו חומר"
+   "why": "אותו פועל"
   }
  ]
 }

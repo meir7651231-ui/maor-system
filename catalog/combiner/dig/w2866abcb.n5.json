@@ -3,11 +3,14 @@
  "word": "אקווריום",
  "need": "n5",
  "behavior": "המים מתלכלכים לאט",
- "verb": "NEW:accumulate",
- "verbHe": "פועל חדש: accumulate",
- "isNewVerb": true,
+ "verb": "accumulate",
+ "verbHe": "צובר",
+ "isNewVerb": false,
  "material": "number",
- "takes": [],
+ "takes": [
+  "record",
+  "list"
+ ],
  "gives": "number",
  "detail": "צובר — ערך שגדל מעט בכל צעד-זמן עד שמשהו מרוקן אותו",
  "example": {
@@ -17,34 +20,34 @@
  "statusHe": "⛏️ נמצא בקוד — בכרייה",
  "places": [
   {
-   "id": "14kk:final_supervisor_protocol.js#FinalSupervisorProtocol.calculateFileQuality",
-   "project": "14kk",
-   "source": "14kk",
-   "name": "לחשב איכות קובץ",
-   "file": "final_supervisor_protocol.js",
-   "action": "מעגל",
-   "proof": "הורץ — סוג אחר",
-   "why": "אותו חומר"
+   "id": "generator:machtzev/box-data-lift.mjs#box-data-lift",
+   "project": "המחולל",
+   "source": "generator",
+   "name": "הפעל מורם לאטום-דאטה",
+   "file": "machtzev/box-data-lift.mjs",
+   "action": "צובר",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · שם קרוב"
   },
   {
-   "id": "14kk:strategic_protocol.js#StrategicAnalyzer.estimateCosts",
-   "project": "14kk",
-   "source": "14kk",
-   "name": "להעריך עלויות",
-   "file": "strategic_protocol.js",
-   "action": "נותן ערך קבוע",
+   "id": "core:catalog/core/accumulate.mjs#accumulate",
+   "project": "הליבה",
+   "source": "core",
+   "name": "אוסף לקופה עד שהיא מתמלאת ומרוקנת",
+   "file": "catalog/core/accumulate.mjs",
+   "action": "צובר",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו חומר"
+   "why": "אותו פועל"
   },
   {
-   "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.calculateBuffers",
-   "project": "14kk",
-   "source": "14kk",
-   "name": "לחשב חוצצים",
-   "file": "work_manager_protocol.js",
-   "action": "נותן ערך קבוע",
-   "proof": "הורץ — סוג אחר",
-   "why": "אותו חומר"
+   "id": "generator:machtzev/assemble/box-audit.mjs#box-audit",
+   "project": "המחולל",
+   "source": "generator",
+   "name": "הפעל תוכנית-חיווט ↔ קופסה-בנויה",
+   "file": "machtzev/assemble/box-audit.mjs",
+   "action": "צובר",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל"
   }
  ]
 }

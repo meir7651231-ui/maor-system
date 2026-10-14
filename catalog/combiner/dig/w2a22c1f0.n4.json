@@ -3,11 +3,14 @@
  "word": "פסנתר",
  "need": "n4",
  "behavior": "הצליל דועך",
- "verb": "NEW:decay",
- "verbHe": "פועל חדש: decay",
- "isNewVerb": true,
+ "verb": "decay",
+ "verbHe": "דועך",
+ "isNewVerb": false,
  "material": "sound",
- "takes": [],
+ "takes": [
+  "record",
+  "number"
+ ],
  "gives": "sound",
  "detail": "דועך — ערך שיורד מעט בכל צעד-זמן עד אפס",
  "example": {

@@ -4,10 +4,13 @@
  "need": "n4",
  "behavior": "גובה בצהריים",
  "verb": "sun-position",
- "verbHe": "מקום השמש",
+ "verbHe": "מוצא את מקום השמש",
  "isNewVerb": false,
  "material": "geo",
- "takes": [],
+ "takes": [
+  "record",
+  "date"
+ ],
  "gives": "geo",
  "detail": null,
  "example": {
@@ -22,7 +25,7 @@
    "source": "orbit",
    "name": "מחשב מתי זריחה ושקיעה",
    "file": "src/lib/atoms/engines/zmanim.ts",
-   "action": "מקום השמש",
+   "action": "מוצא את מקום השמש",
    "proof": "מהשם בלבד",
    "why": "אותו פועל · אותו חומר"
   },
@@ -32,17 +35,17 @@
    "source": "orbit",
    "name": "מחשב מתי השמש יורדת לעומק מסוים",
    "file": "src/lib/atoms/engines/zmanim.ts",
-   "action": "מקום השמש",
+   "action": "מוצא את מקום השמש",
    "proof": "מהשם בלבד",
    "why": "אותו פועל · אותו חומר"
   },
   {
-   "id": "orbit:telephony/lib/zmanim.mjs#sunrise",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "מחשב שעת זריחה במקום ובתאריך",
-   "file": "telephony/lib/zmanim.mjs",
-   "action": "מקום השמש",
+   "id": "core:catalog/core/sun-position.mjs#sunPosition",
+   "project": "הליבה",
+   "source": "core",
+   "name": "מחשב מתי השמש בזווית מתחת לאופק",
+   "file": "catalog/core/sun-position.mjs",
+   "action": "מוצא את מקום השמש",
    "proof": "הורץ — סוג אחר",
    "why": "אותו פועל"
   }

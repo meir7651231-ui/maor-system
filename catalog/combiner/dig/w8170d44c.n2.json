@@ -39,12 +39,12 @@
    "why": "אותו חומר · שם קרוב"
   },
   {
-   "id": "orbit:src/lib/atoms/engines/bookings.ts#BOOKINGS_CARD.6",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "מעביר הזמנה משלב לשלב",
-   "file": "src/lib/atoms/engines/bookings.ts",
-   "action": "מעביר דרך מרכז",
+   "id": "buildsmart:app_flutter/lib/screens/notifications_screen.dart#notifPasses",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "בודק עובר התראה",
+   "file": "app_flutter/lib/screens/notifications_screen.dart",
+   "action": "בודק",
    "proof": "מהשם בלבד",
    "why": "אותו חומר · שם קרוב"
   }

@@ -3,11 +3,14 @@
  "word": "פעמון-דלת",
  "need": "n5",
  "behavior": "תמונה של מי שבדלת",
- "verb": "NEW:sample",
- "verbHe": "פועל חדש: sample",
- "isNewVerb": true,
+ "verb": "sample",
+ "verbHe": "דוגם",
+ "isNewVerb": false,
  "material": "image",
- "takes": [],
+ "takes": [
+  "record",
+  "list"
+ ],
  "gives": "image",
  "detail": "קורא מהסביבה — מודד צבע/קול/ערך מבחוץ",
  "example": {
@@ -17,34 +20,34 @@
  "statusHe": "⛏️ נמצא בקוד — בכרייה",
  "places": [
   {
-   "id": "orbit:src/components/parnasa/banners.ts#photoUrl",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "כותב כתובת התמונה",
-   "file": "src/components/parnasa/banners.ts",
-   "action": "מעצב לטקסט",
+   "id": "core:catalog/core/sample.mjs#sample",
+   "project": "הליבה",
+   "source": "core",
+   "name": "קורא מהסביבה כל קריאה במרווח קבוע",
+   "file": "catalog/core/sample.mjs",
+   "action": "דוגם",
    "proof": "הורץ — סוג אחר",
-   "why": "שם קרוב"
+   "why": "אותו פועל"
   },
   {
-   "id": "orbit:src/components/parnasa/model.ts#orgImageLen",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "מחשב משקל התמונות של כל הארגון",
-   "file": "src/components/parnasa/model.ts",
-   "action": "מסכם",
-   "proof": "הורץ — סוג אחר",
-   "why": "שם קרוב"
+   "id": "buildsmart:app_flutter/lib/data/csv_kernel.dart#*",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "קורא וכותב טבלאות CSV",
+   "file": "app_flutter/lib/data/csv_kernel.dart",
+   "action": "דוגם",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל"
   },
   {
-   "id": "orbit:src/components/supporters/lib.ts#totalLabel",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "כותב סכום בשקלים ובדולרים",
-   "file": "src/components/supporters/lib.ts",
-   "action": "מעצב לטקסט",
-   "proof": "הורץ — סוג אחר",
-   "why": "שם קרוב"
+   "id": "generator:buildsmart/scripts/mutation_hard_test.py#read",
+   "project": "המחולל",
+   "source": "generator",
+   "name": "קרא מנוע",
+   "file": "buildsmart/scripts/mutation_hard_test.py",
+   "action": "דוגם",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל"
   }
  ]
 }

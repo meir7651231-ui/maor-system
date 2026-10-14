@@ -44,7 +44,7 @@
    "source": "orbit",
    "name": "מחשב מתי השמש יורדת לעומק מסוים",
    "file": "src/lib/atoms/engines/zmanim.ts",
-   "action": "מקום השמש",
+   "action": "מוצא את מקום השמש",
    "proof": "מהשם בלבד",
    "why": "אותו חומר · שם קרוב"
   }

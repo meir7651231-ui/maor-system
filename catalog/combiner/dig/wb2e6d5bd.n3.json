@@ -39,12 +39,12 @@
    "why": "שם קרוב"
   },
   {
-   "id": "orbit:src/components/diary/lib.ts#minToHM",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "הופך דקות מחצות לשעה",
-   "file": "src/components/diary/lib.ts",
-   "action": "ממיר ערך",
+   "id": "core:catalog/core/follow.mjs#follow",
+   "project": "הליבה",
+   "source": "core",
+   "name": "מזיז ערך חלק קבוע מהדרך למטרה",
+   "file": "catalog/core/follow.mjs",
+   "action": "הולך אחרי",
    "proof": "הורץ — סוג אחר",
    "why": "שם קרוב"
   }

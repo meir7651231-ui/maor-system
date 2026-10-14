@@ -8,7 +8,8 @@
  "isNewVerb": false,
  "material": "text",
  "takes": [
-  "record"
+  "list|record",
+  "list"
  ],
  "gives": "text",
  "detail": null,
@@ -18,6 +19,16 @@
  "status": "mining",
  "statusHe": "⛏️ נמצא בקוד — בכרייה",
  "places": [
+  {
+   "id": "core-b:catalog/core/relay.mjs#relay",
+   "project": "ליבות-הפעלים",
+   "source": "core-b",
+   "name": "מעביר הודעות דרך מרכז",
+   "file": "catalog/core/relay.mjs",
+   "action": "מעביר דרך מרכז",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
   {
    "id": "14kk:services/business-integrations.js#GitHubIntegration",
    "project": "14kk",
@@ -29,21 +40,11 @@
    "why": "אותו פועל"
   },
   {
-   "id": "buildsmart:app_flutter/lib/state/intel/consent_gate.dart#analyticsForwardEnabled",
-   "project": "בנייה חכמה",
-   "source": "buildsmart",
-   "name": "בודק ניתוח",
-   "file": "app_flutter/lib/state/intel/consent_gate.dart",
-   "action": "מעביר דרך מרכז",
-   "proof": "מהשם בלבד",
-   "why": "אותו פועל"
-  },
-  {
-   "id": "buildsmart:app_flutter/lib/state/intel/consent_gate.dart#presenceForwardEnabled",
-   "project": "בנייה חכמה",
-   "source": "buildsmart",
-   "name": "בודק נוכחות",
-   "file": "app_flutter/lib/state/intel/consent_gate.dart",
+   "id": "generator:box-drafts/io-wiring/fetch-outbox-issues@src_lib_cloud_ts.mjs#fetchOutboxIssues",
+   "project": "המחולל",
+   "source": "generator",
+   "name": "הבא תקלות תיבת-יוצא",
+   "file": "box-drafts/io-wiring/fetch-outbox-issues@src_lib_cloud_ts.mjs",
    "action": "מעביר דרך מרכז",
    "proof": "מהשם בלבד",
    "why": "אותו פועל"

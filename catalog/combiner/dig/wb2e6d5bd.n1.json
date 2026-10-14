@@ -3,11 +3,14 @@
  "word": "קליידוסקופ",
  "need": "n1",
  "behavior": "חרוזים במקום אקראי",
- "verb": "NEW:random",
- "verbHe": "פועל חדש: random",
- "isNewVerb": true,
+ "verb": "random",
+ "verbHe": "מגריל",
+ "isNewVerb": false,
  "material": "geo",
- "takes": [],
+ "takes": [
+  "record",
+  "number"
+ ],
  "gives": "geo",
  "detail": "מגריל — בחירה או ערך לפי סיכוי",
  "example": {
@@ -17,34 +20,34 @@
  "statusHe": "⛏️ נמצא בקוד — בכרייה",
  "places": [
   {
-   "id": "orbit:src/lib/mapsLink.ts#mapsSearchUrl",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "כותב כתובת חיפוש אחת",
-   "file": "src/lib/mapsLink.ts",
-   "action": "מעצב לטקסט",
+   "id": "core:catalog/core/random.mjs#random",
+   "project": "הליבה",
+   "source": "core",
+   "name": "מפיק רצף מספרים אקראי מזרע",
+   "file": "catalog/core/random.mjs",
+   "action": "מגריל",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו חומר"
+   "why": "אותו פועל · שם קרוב"
   },
   {
-   "id": "buildsmart:app_flutter/lib/state/site_hub_state.dart#formatGeo",
+   "id": "buildsmart:app_flutter/lib/features/card_keyboard/pool_seed.dart#seedPool",
    "project": "בנייה חכמה",
    "source": "buildsmart",
-   "name": "מעצב אתר מצב",
-   "file": "app_flutter/lib/state/site_hub_state.dart",
-   "action": "מעצב לטקסט",
+   "name": "זורע מאגר",
+   "file": "app_flutter/lib/features/card_keyboard/pool_seed.dart",
+   "action": "מגריל",
    "proof": "מהשם בלבד",
-   "why": "אותו חומר"
+   "why": "אותו פועל"
   },
   {
-   "id": "orbit:src/lib/atoms/engines/zmanim.ts#ZMANIM_CARD.3",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "מחשב מתי זריחה ושקיעה",
-   "file": "src/lib/atoms/engines/zmanim.ts",
-   "action": "מקום השמש",
+   "id": "buildsmart:app_flutter/lib/state/tasks_engine.dart#buildTasksSeed",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "בונה נתוני פתיחה משימות",
+   "file": "app_flutter/lib/state/tasks_engine.dart",
+   "action": "מגריל",
    "proof": "מהשם בלבד",
-   "why": "אותו חומר"
+   "why": "אותו פועל"
   }
  ]
 }

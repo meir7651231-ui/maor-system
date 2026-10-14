@@ -3,11 +3,14 @@
  "word": "צוללת",
  "need": "n3",
  "behavior": "מקשיבה לקולות מסביב",
- "verb": "NEW:echo",
- "verbHe": "פועל חדש: echo",
- "isNewVerb": true,
+ "verb": "echo",
+ "verbHe": "מודד בהד",
+ "isNewVerb": false,
  "material": "sound",
- "takes": [],
+ "takes": [
+  "record",
+  "number"
+ ],
  "gives": "sound",
  "detail": "הד — שולח אות ומודד אחרי כמה זמן חזר, וממנו מרחק",
  "example": {

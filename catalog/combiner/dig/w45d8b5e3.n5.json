@@ -8,7 +8,8 @@
  "isNewVerb": false,
  "material": "sound",
  "takes": [
-  "times"
+  "times|list",
+  "number"
  ],
  "gives": "sound",
  "detail": null,

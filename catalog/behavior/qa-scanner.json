@@ -11,7 +11,7 @@
   "runWithVerb": 0,
   "twin": 0,
   "static": 174,
-  "staticWithVerb": 6,
+  "staticWithVerb": 4,
   "why": {
    "python": 150,
    "impure": 24
@@ -1124,13 +1124,8 @@
   {
    "id": "qa-scanner:scanner.py#scan_page:issue[תמונה בלי מקור]",
    "labeledBy": "static",
-   "verbs": [
-    {
-     "id": "require-source",
-     "by": "name"
-    }
-   ],
-   "primary": "require-source",
+   "verbs": [],
+   "primary": null,
    "material": "record:page",
    "reason": "python — לא מורץ כאן (לפי ההנחיה)"
   },
@@ -1406,13 +1401,8 @@
   {
    "id": "qa-scanner:scanner3.py#scan",
    "labeledBy": "static",
-   "verbs": [
-    {
-     "id": "require-source",
-     "by": "name"
-    }
-   ],
-   "primary": "require-source",
+   "verbs": [],
+   "primary": null,
    "material": "text",
    "reason": "impure"
   },

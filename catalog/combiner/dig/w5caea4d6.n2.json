@@ -3,11 +3,14 @@
  "word": "חידון",
  "need": "n2",
  "behavior": "זמן לכל שאלה",
- "verb": "NEW:countdown",
- "verbHe": "פועל חדש: countdown",
- "isNewVerb": true,
+ "verb": "countdown",
+ "verbHe": "סופר לאחור",
+ "isNewVerb": false,
  "material": "times",
- "takes": [],
+ "takes": [
+  "record",
+  "number"
+ ],
  "gives": "times",
  "detail": "סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה",
  "example": {

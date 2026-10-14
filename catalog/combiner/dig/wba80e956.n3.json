@@ -19,6 +19,16 @@
  "statusHe": "🔎 עוד לא נחפר",
  "places": [
   {
+   "id": "core-b:catalog/core/pace.mjs#pace",
+   "project": "ליבות-הפעלים",
+   "source": "core-b",
+   "name": "מגביל את קצב הבקשות",
+   "file": "catalog/core/pace.mjs",
+   "action": "ממיין",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
    "id": "rings:lab-rings/lab13/shelf3.json#מיין רשימה",
    "project": "הטבעות",
    "source": "rings",
@@ -34,16 +44,6 @@
    "source": "buildsmart",
    "name": "מסדר משימות על ציר גאנט",
    "file": "app_flutter/lib/logic/tasks_gantt.dart",
-   "action": "ממיין",
-   "proof": "מהשם בלבד",
-   "why": "אותו פועל"
-  },
-  {
-   "id": "buildsmart:app_flutter/lib/screens/catalog_screen.dart#sortCatalogProducts",
-   "project": "בנייה חכמה",
-   "source": "buildsmart",
-   "name": "ממיין מוצרים קטלוג",
-   "file": "app_flutter/lib/screens/catalog_screen.dart",
    "action": "ממיין",
    "proof": "מהשם בלבד",
    "why": "אותו פועל"

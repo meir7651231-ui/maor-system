@@ -3,11 +3,14 @@
  "word": "אמבולנס",
  "need": "n4",
  "behavior": "סירנה עולה ויורדת",
- "verb": "NEW:oscillate",
- "verbHe": "פועל חדש: oscillate",
- "isNewVerb": true,
+ "verb": "oscillate",
+ "verbHe": "מתנדנד",
+ "isNewVerb": false,
  "material": "sound",
- "takes": [],
+ "takes": [
+  "record",
+  "number"
+ ],
  "gives": "sound",
  "detail": "מתנדנד — גל שעולה ויורד שוב ושוב בקצב קבוע",
  "example": {

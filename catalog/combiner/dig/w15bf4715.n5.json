@@ -3,11 +3,14 @@
  "word": "דואר",
  "need": "n5",
  "behavior": "מסלול הדוור",
- "verb": "NEW:shortest-path",
- "verbHe": "פועל חדש: shortest-path",
- "isNewVerb": true,
+ "verb": "shortest-path",
+ "verbHe": "מוצא דרך קצרה",
+ "isNewVerb": false,
  "material": "geo",
- "takes": [],
+ "takes": [
+  "record",
+  "choice"
+ ],
  "gives": "geo",
  "detail": "דרך קצרה — המסלול הקצר ביותר ברשת של נקודות",
  "example": {
@@ -17,34 +20,34 @@
  "statusHe": "⛏️ נמצא בקוד — בכרייה",
  "places": [
   {
-   "id": "orbit:src/lib/mapsLink.ts#mapsSearchUrl",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "כותב כתובת חיפוש אחת",
-   "file": "src/lib/mapsLink.ts",
-   "action": "מעצב לטקסט",
-   "proof": "הורץ — סוג אחר",
-   "why": "אותו חומר"
-  },
-  {
-   "id": "buildsmart:app_flutter/lib/state/site_hub_state.dart#formatGeo",
+   "id": "buildsmart:app_flutter/lib/logic/install_engine.dart#findAlternativePaths",
    "project": "בנייה חכמה",
    "source": "buildsmart",
-   "name": "מעצב אתר מצב",
-   "file": "app_flutter/lib/state/site_hub_state.dart",
-   "action": "מעצב לטקסט",
+   "name": "מוצא מסלול חלופה",
+   "file": "app_flutter/lib/logic/install_engine.dart",
+   "action": "מוצא דרך קצרה",
    "proof": "מהשם בלבד",
-   "why": "אותו חומר"
+   "why": "אותו פועל · שם קרוב"
   },
   {
-   "id": "orbit:src/lib/atoms/engines/zmanim.ts#ZMANIM_CARD.3",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "מחשב מתי זריחה ושקיעה",
-   "file": "src/lib/atoms/engines/zmanim.ts",
-   "action": "מקום השמש",
+   "id": "buildsmart:app_flutter/lib/logic/install_engine.dart#findShortestPath",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "מוצא מסלול",
+   "file": "app_flutter/lib/logic/install_engine.dart",
+   "action": "מוצא דרך קצרה",
    "proof": "מהשם בלבד",
-   "why": "אותו חומר"
+   "why": "אותו פועל · שם קרוב"
+  },
+  {
+   "id": "generator:gen/flutter.mjs#toSpecDs",
+   "project": "המחולל",
+   "source": "generator",
+   "name": "הפעל מסלול-התצוגה",
+   "file": "gen/flutter.mjs",
+   "action": "מוצא דרך קצרה",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · שם קרוב"
   }
  ]
 }

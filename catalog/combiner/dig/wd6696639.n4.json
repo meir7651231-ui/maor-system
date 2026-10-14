@@ -3,11 +3,14 @@
  "word": "שלכת",
  "need": "n4",
  "behavior": "נופלים ברוח",
- "verb": "NEW:random",
- "verbHe": "פועל חדש: random",
- "isNewVerb": true,
+ "verb": "random",
+ "verbHe": "מגריל",
+ "isNewVerb": false,
  "material": "bool",
- "takes": [],
+ "takes": [
+  "record",
+  "number"
+ ],
  "gives": "bool",
  "detail": "כן/לא לפי סיכוי",
  "example": {
@@ -17,34 +20,34 @@
  "statusHe": "⛏️ נמצא בקוד — בכרייה",
  "places": [
   {
-   "id": "orbit:src/components/supporters/lib.ts#supLastInPeriod",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "בודק אם התרומה האחרונה של התורם נפלה בתקופה",
-   "file": "src/components/supporters/lib.ts",
-   "action": "בודק",
+   "id": "core:catalog/core/random.mjs#random",
+   "project": "הליבה",
+   "source": "core",
+   "name": "מפיק רצף מספרים אקראי מזרע",
+   "file": "catalog/core/random.mjs",
+   "action": "מגריל",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו חומר · שם קרוב"
+   "why": "אותו פועל"
   },
   {
-   "id": "generator:new/dart-maor/sup-last-in-period.dart#supLastInPeriod",
-   "project": "המחולל",
-   "source": "generator",
-   "name": "בדוק האם התרומה-האחרונה נפלה",
-   "file": "new/dart-maor/sup-last-in-period.dart",
-   "action": "בודק",
-   "proof": "תאום של חלק שהורץ",
-   "why": "אותו חומר · שם קרוב"
-  },
-  {
-   "id": "orbit:src/lib/atoms/engines/bookings.ts#BOOKINGS_CARD.2",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "בודק אם שתי הזמנות נופלות על אותו לילה",
-   "file": "src/lib/atoms/engines/bookings.ts",
-   "action": "בודק",
+   "id": "buildsmart:app_flutter/lib/features/card_keyboard/pool_seed.dart#seedPool",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "זורע מאגר",
+   "file": "app_flutter/lib/features/card_keyboard/pool_seed.dart",
+   "action": "מגריל",
    "proof": "מהשם בלבד",
-   "why": "אותו חומר · שם קרוב"
+   "why": "אותו פועל"
+  },
+  {
+   "id": "buildsmart:app_flutter/lib/state/tasks_engine.dart#buildTasksSeed",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "בונה נתוני פתיחה משימות",
+   "file": "app_flutter/lib/state/tasks_engine.dart",
+   "action": "מגריל",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל"
   }
  ]
 }

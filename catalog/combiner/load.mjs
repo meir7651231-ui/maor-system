@@ -46,7 +46,7 @@ export function loadRecipes() {
  */
 export function loadGoals() {
   const dict = jsonFiles(join(CATALOG, 'goals'))
-    .filter((f) => !f.endsWith('schema.json'))
+    .filter((f) => !f.endsWith('schema.json') && !f.endsWith('coverage.json'))
     .flatMap((f) => {
       const d = readJson(f);
       return (Array.isArray(d) ? d : d.goals || []).map((g) => ({ ...g, world: d.world }));

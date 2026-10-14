@@ -4,10 +4,13 @@
  "need": "n1",
  "behavior": "מתחמם כשיש שמש",
  "verb": "sun-position",
- "verbHe": "מקום השמש",
+ "verbHe": "מוצא את מקום השמש",
  "isNewVerb": false,
  "material": "geo",
- "takes": [],
+ "takes": [
+  "record",
+  "date"
+ ],
  "gives": "geo",
  "detail": null,
  "example": {
@@ -22,7 +25,7 @@
    "source": "orbit",
    "name": "מחשב מתי השמש יורדת לעומק מסוים",
    "file": "src/lib/atoms/engines/zmanim.ts",
-   "action": "מקום השמש",
+   "action": "מוצא את מקום השמש",
    "proof": "מהשם בלבד",
    "why": "אותו פועל · אותו חומר · שם קרוב"
   },
@@ -32,18 +35,18 @@
    "source": "orbit",
    "name": "מחשב מתי זריחה ושקיעה",
    "file": "src/lib/atoms/engines/zmanim.ts",
-   "action": "מקום השמש",
+   "action": "מוצא את מקום השמש",
    "proof": "מהשם בלבד",
    "why": "אותו פועל · אותו חומר"
   },
   {
-   "id": "orbit:src/lib/atoms/engines/generated/zmanimBoard.ts#GEN_ZMANIM_BOARD",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "יודע איפה השמש נמצאת בכל מקום ובכל יום",
-   "file": "src/lib/atoms/engines/generated/zmanimBoard.ts",
-   "action": "מקום השמש",
-   "proof": "מהשם בלבד",
+   "id": "core:catalog/core/sun-position.mjs#sunPosition",
+   "project": "הליבה",
+   "source": "core",
+   "name": "מחשב מתי השמש בזווית מתחת לאופק",
+   "file": "catalog/core/sun-position.mjs",
+   "action": "מוצא את מקום השמש",
+   "proof": "הורץ — סוג אחר",
    "why": "אותו פועל · שם קרוב"
   }
  ]

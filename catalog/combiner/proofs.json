@@ -246,6 +246,30 @@
   }
  },
  "flows": {
+  "core:catalog/core/sun-position.mjs#sunPosition>orbit:src/lib/atoms/parts/next.ts#nextAfter": {
+   "status": "proven",
+   "cases": 200,
+   "laws": [
+    "next.earliest",
+    "next.future"
+   ]
+  },
+  "core:catalog/core/sun-position.mjs#sunPosition>orbit:src/lib/atoms/parts/offset.ts#offsetAll": {
+   "status": "proven",
+   "cases": 200,
+   "laws": [
+    "offset.exact"
+   ]
+  },
+  "core:catalog/core/sun-position.mjs#sunPosition>orbit:src/lib/atoms/parts/round.ts#roundTo": {
+   "status": "proven",
+   "cases": 200,
+   "laws": [
+    "round.direction",
+    "round.idempotent",
+    "round.multiple"
+   ]
+  },
   "orbit:src/components/parnasa/zmanimBoard.ts#hmToMin>orbit:src/lib/atoms/parts/next.ts#nextAfter": {
    "status": "proven",
    "cases": 200,
