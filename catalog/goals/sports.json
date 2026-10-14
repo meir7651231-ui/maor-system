@@ -1,0 +1,354 @@
+{
+  "world": "ספורט",
+  "goals": [
+    {
+      "word": "אולימפיאדה",
+      "emoji": "🥇",
+      "does": "תחרות של הרבה ענפים, מדליות וטבלת מדינות",
+      "needs": [
+        {
+          "behavior": "ענפים בימים שונים",
+          "verb": "divide",
+          "material": "span"
+        },
+        {
+          "behavior": "זהב כסף ארד",
+          "verb": "rank-tiers",
+          "material": "list"
+        },
+        {
+          "behavior": "טבלת מדליות",
+          "verb": "sort",
+          "material": "list"
+        },
+        {
+          "behavior": "שיא חדש",
+          "verb": "compare",
+          "material": "number"
+        },
+        {
+          "behavior": "הלפיד עובר מיד ליד",
+          "verb": "hub-relay",
+          "material": "sequence"
+        },
+        {
+          "behavior": "כל ארבע שנים",
+          "verb": "offset",
+          "material": "date"
+        }
+      ]
+    },
+    {
+      "word": "טורניר-נוקאאוט",
+      "emoji": "🏆",
+      "does": "טורניר שבו המפסיד יוצא, בכל שלב חצי, עד שנשאר אחד",
+      "needs": [
+        {
+          "behavior": "זוגות בכל שלב",
+          "verb": "divide",
+          "material": "list"
+        },
+        {
+          "behavior": "המנצח עולה",
+          "verb": "filter",
+          "material": "list"
+        },
+        {
+          "behavior": "בכל שלב חצי",
+          "verb": "divide",
+          "material": "number"
+        },
+        {
+          "behavior": "זריעה: החזקים לא נפגשים מוקדם",
+          "verb": "rank-tiers",
+          "material": "list"
+        },
+        {
+          "behavior": "עולה אוטומטית כשאין יריב",
+          "verb": "gate",
+          "material": "bool"
+        }
+      ]
+    },
+    {
+      "word": "טניס",
+      "emoji": "🎾",
+      "does": "משחק שבו הנקודות נספרות בצורה מיוחדת, מחליפים מגיש ומחליפים צד",
+      "needs": [
+        {
+          "behavior": "15, 30, 40, משחק",
+          "verb": "convert",
+          "material": "number"
+        },
+        {
+          "behavior": "שוויון ⇒ צריך שתיים ברצף",
+          "verb": "compare",
+          "material": "number"
+        },
+        {
+          "behavior": "מחליפים מגיש כל משחק",
+          "verb": "round-robin",
+          "material": "sequence"
+        },
+        {
+          "behavior": "מחליפים צד כל שני משחקים",
+          "verb": "rotate",
+          "material": "choice"
+        },
+        {
+          "behavior": "הכדור חוזר מהרשת",
+          "verb": "reverse",
+          "material": "geo"
+        }
+      ]
+    },
+    {
+      "word": "כדורגל",
+      "emoji": "⚽",
+      "does": "שתי קבוצות, תפקידים במגרש, שתי מחציות ושופט שסופר",
+      "needs": [
+        {
+          "behavior": "שתי קבוצות",
+          "verb": "divide",
+          "material": "list"
+        },
+        {
+          "behavior": "תפקיד לכל שחקן",
+          "verb": "assign-role",
+          "material": "list",
+          "detail": "שוער, הגנה, קישור, התקפה"
+        },
+        {
+          "behavior": "שתי מחציות",
+          "verb": "divide",
+          "material": "span"
+        },
+        {
+          "behavior": "זמן תוספת",
+          "verb": "offset",
+          "material": "times"
+        },
+        {
+          "behavior": "כרטיס צהוב ואדום",
+          "verb": "escalate",
+          "material": "choice"
+        },
+        {
+          "behavior": "מסירה משחקן לשחקן",
+          "verb": "hub-relay",
+          "material": "sequence"
+        },
+        {
+          "behavior": "ספירת שערים",
+          "verb": "count",
+          "material": "number"
+        }
+      ]
+    },
+    {
+      "word": "כדורסל",
+      "emoji": "🏀",
+      "does": "משחק ששעון הזריקה מכריח לזרוק, והנקודות לפי המרחק",
+      "needs": [
+        {
+          "behavior": "שעון זריקה",
+          "verb": "NEW:countdown",
+          "material": "times",
+          "detail": "סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה"
+        },
+        {
+          "behavior": "נקודות לפי מרחק",
+          "verb": "convert",
+          "material": "number"
+        },
+        {
+          "behavior": "חמש עבירות ⇒ יוצא",
+          "verb": "count",
+          "material": "number"
+        },
+        {
+          "behavior": "חילופים בלי הגבלה",
+          "verb": "round-robin",
+          "material": "list"
+        },
+        {
+          "behavior": "הכדור עולה ונופל",
+          "verb": "NEW:gravity",
+          "material": "number",
+          "detail": "נופל — מהירות שגדלה בכל צעד של נפילה"
+        }
+      ]
+    },
+    {
+      "word": "ליגה",
+      "emoji": "📊",
+      "does": "כל קבוצה משחקת נגד כל השאר, נקודות וטבלה",
+      "needs": [
+        {
+          "behavior": "כל אחד נגד כל אחד",
+          "verb": "round-robin",
+          "material": "list"
+        },
+        {
+          "behavior": "לוח מחזורים",
+          "verb": "rotate",
+          "material": "date"
+        },
+        {
+          "behavior": "שלוש לניצחון, אחת לתיקו",
+          "verb": "convert",
+          "material": "number"
+        },
+        {
+          "behavior": "טבלה לפי נקודות",
+          "verb": "sort",
+          "material": "list"
+        },
+        {
+          "behavior": "שוויון ⇒ הפרש שערים",
+          "verb": "compare",
+          "material": "number"
+        },
+        {
+          "behavior": "עולות ויורדות",
+          "verb": "rank-tiers",
+          "material": "list"
+        }
+      ]
+    },
+    {
+      "word": "מרתון",
+      "emoji": "🏃‍♀️",
+      "does": "ריצה ארוכה עם תחנות שתייה, קצב קבוע וטבלת זמנים",
+      "needs": [
+        {
+          "behavior": "קצב קבוע",
+          "verb": "pace",
+          "material": "times"
+        },
+        {
+          "behavior": "תחנות שתייה כל כמה קילומטר",
+          "verb": "divide",
+          "material": "span"
+        },
+        {
+          "behavior": "זמן ביניים בכל נקודה",
+          "verb": "daily-snapshot",
+          "material": "times"
+        },
+        {
+          "behavior": "דירוג לפי גיל",
+          "verb": "group",
+          "material": "list"
+        },
+        {
+          "behavior": "מי שעבר את הזמן נעצר",
+          "verb": "gate",
+          "material": "bool"
+        },
+        {
+          "behavior": "הכוח יורד לאורך הדרך",
+          "verb": "NEW:decay",
+          "material": "number",
+          "detail": "דועך — ערך שיורד מעט בכל צעד-זמן עד אפס"
+        }
+      ]
+    },
+    {
+      "word": "קיר-טיפוס",
+      "emoji": "🧗",
+      "does": "קיר עם מסלולים לפי קושי, אחיזות בצבע ובטחה מלמטה",
+      "needs": [
+        {
+          "behavior": "מסלולים לפי קושי",
+          "verb": "rank-tiers",
+          "material": "list"
+        },
+        {
+          "behavior": "רק אחיזות בצבע של המסלול",
+          "verb": "filter",
+          "material": "list"
+        },
+        {
+          "behavior": "האחיזה הבאה בהישג יד",
+          "verb": "next",
+          "material": "geo"
+        },
+        {
+          "behavior": "מבטח מושך את החבל",
+          "verb": "hub-relay",
+          "material": "record:climber"
+        },
+        {
+          "behavior": "נפילה נעצרת",
+          "verb": "clamp",
+          "material": "number"
+        }
+      ]
+    },
+    {
+      "word": "קפיצה-לגובה",
+      "emoji": "🤸",
+      "does": "הרף עולה בכל סבב ולכל אחד שלושה ניסיונות",
+      "needs": [
+        {
+          "behavior": "הרף עולה",
+          "verb": "escalate",
+          "material": "number"
+        },
+        {
+          "behavior": "שלושה ניסיונות",
+          "verb": "count",
+          "material": "number"
+        },
+        {
+          "behavior": "נכשל שלוש ⇒ יוצא",
+          "verb": "gate",
+          "material": "bool"
+        },
+        {
+          "behavior": "סדר קופצים",
+          "verb": "round-robin",
+          "material": "sequence"
+        },
+        {
+          "behavior": "הגובה הטוב ביותר",
+          "verb": "minmax",
+          "material": "number"
+        }
+      ]
+    },
+    {
+      "word": "שליחים",
+      "emoji": "🏊",
+      "does": "מרוץ שבו כל אחד עושה קטע ומעביר את המקל לבא",
+      "needs": [
+        {
+          "behavior": "סדר הרצים",
+          "verb": "sort",
+          "material": "sequence"
+        },
+        {
+          "behavior": "מעבירים מקל",
+          "verb": "hub-relay",
+          "material": "sequence"
+        },
+        {
+          "behavior": "רק בתוך אזור המסירה",
+          "verb": "gate",
+          "material": "bool"
+        },
+        {
+          "behavior": "סכום הזמנים",
+          "verb": "sum",
+          "material": "times"
+        },
+        {
+          "behavior": "הכי מהיר לקטע האחרון",
+          "verb": "assign-role",
+          "material": "list"
+        }
+      ]
+    }
+  ]
+}

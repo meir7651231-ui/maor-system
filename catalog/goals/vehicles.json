@@ -1,0 +1,390 @@
+{
+  "world": "כלי תחבורה",
+  "goals": [
+    {
+      "word": "אוטובוס",
+      "emoji": "🚌",
+      "does": "אוטובוס שעובר במסלול, אוסף נוסעים ויוצא כל רבע שעה",
+      "needs": [
+        {
+          "behavior": "יוצא כל רבע שעה",
+          "verb": "pace",
+          "material": "times"
+        },
+        {
+          "behavior": "עוצר רק כשמישהו לחץ",
+          "verb": "gate",
+          "material": "bool"
+        },
+        {
+          "behavior": "מסלול קבוע",
+          "verb": "NEW:move-along-path",
+          "material": "geo",
+          "detail": "מתקדם במסלול — נקודה שזזה לאורך דרך נתונה"
+        },
+        {
+          "behavior": "סופר עולים ויורדים",
+          "verb": "count",
+          "material": "number"
+        },
+        {
+          "behavior": "מלא ⇒ לא עוצר",
+          "verb": "clamp",
+          "material": "number"
+        }
+      ]
+    },
+    {
+      "word": "אופניים",
+      "emoji": "🚲",
+      "does": "אופניים עם הילוכים: פדל אחד מסובב את הגלגל יותר או פחות",
+      "needs": [
+        {
+          "behavior": "הילוך משנה את היחס",
+          "verb": "convert",
+          "material": "number"
+        },
+        {
+          "behavior": "הילוך הבא בעלייה",
+          "verb": "next",
+          "material": "sequence"
+        },
+        {
+          "behavior": "שומרים על שיווי משקל",
+          "verb": "clamp",
+          "material": "number"
+        },
+        {
+          "behavior": "בלימה מדרגתית",
+          "verb": "escalate",
+          "material": "number"
+        },
+        {
+          "behavior": "סופרים קילומטרים",
+          "verb": "sum",
+          "material": "number"
+        }
+      ]
+    },
+    {
+      "word": "אמבולנס",
+      "emoji": "🚑",
+      "does": "אמבולנס שמקבל קריאה, בוחר את הקרוב ונוסע בדרך המהירה",
+      "needs": [
+        {
+          "behavior": "מיון קריאות לפי דחיפות",
+          "verb": "rank-tiers",
+          "material": "list"
+        },
+        {
+          "behavior": "האמבולנס הקרוב",
+          "verb": "minmax",
+          "material": "geo"
+        },
+        {
+          "behavior": "הדרך המהירה",
+          "verb": "NEW:shortest-path",
+          "material": "geo",
+          "detail": "מסלול קצר ביותר ברשת דרכים"
+        },
+        {
+          "behavior": "סירנה עולה ויורדת",
+          "verb": "NEW:oscillate",
+          "material": "sound",
+          "detail": "מתנדנד — גל שעולה ויורד שוב ושוב בקצב קבוע"
+        },
+        {
+          "behavior": "הודעה לבית החולים",
+          "verb": "route-channel",
+          "material": "text"
+        }
+      ]
+    },
+    {
+      "word": "מונית",
+      "emoji": "🚕",
+      "does": "מונית שהמונה שלה רץ לפי זמן ומרחק, ובלילה במחיר אחר",
+      "needs": [
+        {
+          "behavior": "מונה לפי מרחק",
+          "verb": "convert",
+          "material": "amount"
+        },
+        {
+          "behavior": "מונה לפי זמן המתנה",
+          "verb": "sum",
+          "material": "amount"
+        },
+        {
+          "behavior": "תעריף לילה",
+          "verb": "gate",
+          "material": "bool"
+        },
+        {
+          "behavior": "מעגל את המחיר",
+          "verb": "round",
+          "material": "amount"
+        },
+        {
+          "behavior": "המונית הקרובה מקבלת את הנסיעה",
+          "verb": "minmax",
+          "material": "geo"
+        }
+      ]
+    },
+    {
+      "word": "מטוס",
+      "emoji": "✈️",
+      "does": "מטוס שממריא, עולה לגובה, טס במסלול ונוחת בתורו",
+      "needs": [
+        {
+          "behavior": "ממריא כשהמהירות מספיקה",
+          "verb": "gate",
+          "material": "bool"
+        },
+        {
+          "behavior": "עולה בשלבים",
+          "verb": "escalate",
+          "material": "number"
+        },
+        {
+          "behavior": "טס במסלול",
+          "verb": "NEW:move-along-path",
+          "material": "geo",
+          "detail": "מתקדם במסלול — נקודה שזזה לאורך דרך נתונה"
+        },
+        {
+          "behavior": "מחכה בתור לנחיתה",
+          "verb": "NEW:orbit",
+          "material": "geo",
+          "detail": "מקיף — תנועה במעגל או בעקומה סביב נקודה"
+        },
+        {
+          "behavior": "הפרש שעות ביעד",
+          "verb": "offset",
+          "material": "times"
+        },
+        {
+          "behavior": "מושבים לפי מחלקות",
+          "verb": "rank-tiers",
+          "material": "list"
+        }
+      ]
+    },
+    {
+      "word": "מסוק",
+      "emoji": "🚁",
+      "does": "מסוק שמסובב כנף מעליו, מרחף במקום ונוחת בנקודה מדויקת",
+      "needs": [
+        {
+          "behavior": "הכנף מסתובבת",
+          "verb": "rotate",
+          "material": "number"
+        },
+        {
+          "behavior": "מרחף במקום",
+          "verb": "clamp",
+          "material": "geo"
+        },
+        {
+          "behavior": "נוחת בנקודה",
+          "verb": "minmax",
+          "material": "geo"
+        },
+        {
+          "behavior": "דלק יורד",
+          "verb": "NEW:decay",
+          "material": "number",
+          "detail": "דועך — ערך שיורד מעט בכל צעד-זמן עד אפס"
+        },
+        {
+          "behavior": "חוזר לבסיס לפני שנגמר",
+          "verb": "gate",
+          "material": "bool"
+        }
+      ]
+    },
+    {
+      "word": "מעבורת",
+      "emoji": "⛴️",
+      "does": "ספינה שעוברת הלוך וחזור בין שני חופים לפי תור",
+      "needs": [
+        {
+          "behavior": "הלוך וחזור",
+          "verb": "reverse",
+          "material": "sequence"
+        },
+        {
+          "behavior": "מעמיסה לפי תור",
+          "verb": "sort",
+          "material": "sequence"
+        },
+        {
+          "behavior": "נוסעת כשמלאה או בזמן",
+          "verb": "gate",
+          "material": "bool"
+        },
+        {
+          "behavior": "מקום לפי גודל הרכב",
+          "verb": "divide",
+          "material": "number"
+        },
+        {
+          "behavior": "לוח הפלגות",
+          "verb": "offset",
+          "material": "times"
+        }
+      ]
+    },
+    {
+      "word": "משאית-זבל",
+      "emoji": "🚛",
+      "does": "משאית שעוברת בתחנות קבועות, מתמלאת וחוזרת לרוקן",
+      "needs": [
+        {
+          "behavior": "מסלול קבוע לפי יום",
+          "verb": "rotate",
+          "material": "date"
+        },
+        {
+          "behavior": "מתמלאת בכל תחנה",
+          "verb": "NEW:accumulate",
+          "material": "number",
+          "detail": "צובר — ערך שגדל מעט בכל צעד-זמן עד שמשהו מרוקן אותו"
+        },
+        {
+          "behavior": "מלאה ⇒ חוזרת לרוקן",
+          "verb": "gate",
+          "material": "bool"
+        },
+        {
+          "behavior": "מדלגת על פח ריק",
+          "verb": "filter",
+          "material": "list"
+        },
+        {
+          "behavior": "יום מחזור ויום רגיל",
+          "verb": "rotate",
+          "material": "choice"
+        }
+      ]
+    },
+    {
+      "word": "צוללת",
+      "emoji": "🚤",
+      "does": "ספינה שיורדת מתחת למים, שומרת על עומק, מקשיבה סביב ועולה כשהאוויר נגמר",
+      "needs": [
+        {
+          "behavior": "יורדת בשלבים",
+          "verb": "escalate",
+          "material": "number",
+          "detail": "עומק שגדל"
+        },
+        {
+          "behavior": "שומרת על עומק קבוע",
+          "verb": "clamp",
+          "material": "number"
+        },
+        {
+          "behavior": "מקשיבה לקולות מסביב",
+          "verb": "NEW:echo",
+          "material": "sound",
+          "detail": "הד — שולח אות ומודד אחרי כמה זמן חזר, וממנו מרחק"
+        },
+        {
+          "behavior": "האוויר יורד לאט",
+          "verb": "NEW:decay",
+          "material": "number",
+          "detail": "דועך — ערך שיורד מעט בכל צעד-זמן עד אפס"
+        },
+        {
+          "behavior": "עולה כשהאוויר מתחת לסף",
+          "verb": "gate",
+          "material": "bool"
+        },
+        {
+          "behavior": "פריסקופ מסתובב",
+          "verb": "rotate",
+          "material": "geo"
+        },
+        {
+          "behavior": "מחליפים משמרות בפנים",
+          "verb": "round-robin",
+          "material": "sequence"
+        }
+      ]
+    },
+    {
+      "word": "רכב-חשמלי",
+      "emoji": "🔋",
+      "does": "רכב שנטען, מתכנן עצירות טעינה ומחזיר אנרגיה בבלימה",
+      "needs": [
+        {
+          "behavior": "הסוללה יורדת בנסיעה",
+          "verb": "NEW:decay",
+          "material": "number",
+          "detail": "דועך — ערך שיורד מעט בכל צעד-זמן עד אפס"
+        },
+        {
+          "behavior": "מחזיר אנרגיה בבלימה",
+          "verb": "NEW:accumulate",
+          "material": "number",
+          "detail": "צובר — ערך שגדל מעט בכל צעד-זמן עד שמשהו מרוקן אותו"
+        },
+        {
+          "behavior": "מתכנן עצירות טעינה",
+          "verb": "divide",
+          "material": "span"
+        },
+        {
+          "behavior": "תחנה קרובה פנויה",
+          "verb": "search",
+          "material": "geo"
+        },
+        {
+          "behavior": "טוען עד 80 אחוז",
+          "verb": "clamp",
+          "material": "number"
+        }
+      ]
+    },
+    {
+      "word": "רכבת",
+      "emoji": "🚆",
+      "does": "רכבת שעוצרת בתחנות לפי לוח זמנים ומודיעה על התחנה הבאה",
+      "needs": [
+        {
+          "behavior": "תחנות בסדר קבוע",
+          "verb": "sort",
+          "material": "sequence"
+        },
+        {
+          "behavior": "התחנה הבאה",
+          "verb": "next",
+          "material": "sequence"
+        },
+        {
+          "behavior": "לוח זמנים",
+          "verb": "offset",
+          "material": "times",
+          "detail": "כמה דקות בין תחנה לתחנה"
+        },
+        {
+          "behavior": "מאחרת ומודיעה",
+          "verb": "compare",
+          "material": "times"
+        },
+        {
+          "behavior": "הכרזה בתחנה",
+          "verb": "format",
+          "material": "text"
+        },
+        {
+          "behavior": "הקרון המלא והפנוי",
+          "verb": "minmax",
+          "material": "list"
+        }
+      ]
+    }
+  ]
+}

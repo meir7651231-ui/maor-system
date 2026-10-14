@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "catalog/goals/schema.json",
+  "title": "מילון המטרות — עולם אחד",
+  "description": "Goals dictionary, one file per world (catalog/goals/<world>.json). Each goal = a word and what it DOES, broken into world-free (verb, material) needs. See catalog/goals/README.md.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "world",
+    "goals"
+  ],
+  "properties": {
+    "world": {
+      "type": "string",
+      "minLength": 2,
+      "pattern": "^[^A-Za-z]+$"
+    },
+    "goals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "word",
+          "emoji",
+          "does",
+          "needs"
+        ],
+        "properties": {
+          "word": {
+            "type": "string",
+            "minLength": 2,
+            "pattern": "^[א-ת][א-ת׳״'-]*[א-ת]$"
+          },
+          "emoji": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 12
+          },
+          "does": {
+            "type": "string",
+            "minLength": 10,
+            "maxLength": 240,
+            "pattern": "^[^A-Za-z]+$"
+          },
+          "needs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "behavior",
+                "verb",
+                "material"
+              ],
+              "properties": {
+                "behavior": {
+                  "type": "string",
+                  "minLength": 2,
+                  "maxLength": 80,
+                  "pattern": "^[^A-Za-z]+$"
+                },
+                "verb": {
+                  "type": "string",
+                  "pattern": "^(divide|merge|next|round|offset|escalate|rotate|fuzzy|sort|filter|count|sum|minmax|group|dedupe|rank-tiers|compare|convert|clamp|reverse|search|gate|format|personalize|require-source|frame-swap|daily-snapshot|assign-role|round-robin|route-channel|tolerate-failure|pace|hub-relay|transcript|sun-position|NEW:[a-z][a-z0-9-]*)$"
+                },
+                "material": {
+                  "type": "string",
+                  "pattern": "^(span|amount|number|times|date|sequence|list|waiting|text|bool|geo|image|sound|file|choice|ui|unknown|record:[a-z][A-Za-z0-9]*)$"
+                },
+                "detail": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 160
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
