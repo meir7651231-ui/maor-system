@@ -21,6 +21,9 @@ import { escalationState, type EscStep } from './parts/escalate';
 import { dayIndex, fairAssign, turnOf } from './parts/rotate';
 import { chainPreviewOf } from './chainPreview';
 import { arrivals, balances, nightsOf, stays, totals, turnoverSpan, untilArrival, waiting, type Recipient, type WaitingKind } from './engines/bookingsData';
+import { ZMANIM_BUILDERS } from './previewZmanim';
+import { WHAT_NEED_BUILDERS } from './previewWhatNeed';
+import { BOOKINGS_MORE_BUILDERS } from './previewBookingsMore';
 
 export interface PreviewCtx {
   db: Partial<Db> | null | undefined;
@@ -235,7 +238,7 @@ function rotatePreview(ctx: PreviewCtx, kind: WaitingKind, p: Record<string, num
 
 /* ───────── התצוגות לפי מקום ───────── */
 
-type Builder = (ctx: PreviewCtx, p: Record<string, number | string>) => Preview | null;
+export type Builder = (ctx: PreviewCtx, p: Record<string, number | string>) => Preview | null;
 
 function turnoverDivide(ctx: PreviewCtx, p: Record<string, number | string>): Preview | null {
   // בלי יחידות אין חלון-ניקיון אמיתי (רק ברירת-המחדל של ההגדרות) ⇒ אין תצוגה
@@ -393,6 +396,9 @@ const BUILDERS: Readonly<Record<string, Builder>> = {
   'bookings.faults:rotate': waitBuilder('rotate', 'bookings.faults'),
   'bookings.unpaid:escalate': waitBuilder('escalate', 'bookings.unpaid'),
   'bookings.unpaid:rotate': waitBuilder('rotate', 'bookings.unpaid'),
+  ...ZMANIM_BUILDERS,
+  ...WHAT_NEED_BUILDERS,
+  ...BOOKINGS_MORE_BUILDERS,
 };
 
 /** לאילו חיבורים (מקום:חלק) יש תצוגה אמיתית. השאר ⇒ "התצוגה תגיע בקרוב". */
