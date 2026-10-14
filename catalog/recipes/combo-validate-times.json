@@ -1,0 +1,34 @@
+{
+ "id": "combo-validate-times",
+ "word": "validate · times",
+ "title": "שילוב: מחשב ערך מערכים ⇒ בודק אם תקלה סוגרת את היחידה",
+ "combo": {
+  "verb": "validate",
+  "material": "times",
+  "form": "chain",
+  "steps": [
+   "inner-generator:gen/looks/full5/art.mjs#rnd.fn.x",
+   "orbit:src/components/hosting/transitions.ts#faultBlocksUnit"
+  ],
+  "roles": [
+   "convert",
+   "validate"
+  ],
+  "holds": "24/24",
+  "laws": [
+   "validate.bool",
+   "validate.det"
+  ]
+ },
+ "needs": [
+  {
+   "need": "combo",
+   "verb": "validate",
+   "material": "times",
+   "chain": [
+    "inner-generator:gen/looks/full5/art.mjs#rnd.fn.x",
+    "orbit:src/components/hosting/transitions.ts#faultBlocksUnit"
+   ]
+  }
+ ]
+}

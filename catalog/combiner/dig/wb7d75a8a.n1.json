@@ -16,8 +16,8 @@
  "example": {
   "say": "«זיקית»: מחליפה צבע לפי הרקע — לקרוא את הצבע מהסביבה"
  },
- "status": "mining",
- "statusHe": "⛏️ נמצא בקוד — בכרייה",
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
  "places": [
   {
    "id": "generator:machtzev/audit/gen-forge-dart.mjs#gen-forge-dart",

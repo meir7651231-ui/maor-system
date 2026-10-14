@@ -1,0 +1,34 @@
+{
+ "id": "combo-convert-choice",
+ "word": "convert · choice",
+ "title": "שילוב: מעגל מספר ⇒ הופך דקות מחצות לשעה",
+ "combo": {
+  "verb": "convert",
+  "material": "choice",
+  "form": "chain",
+  "steps": [
+   "inner-orbit:src/components/timer/CashRegister.tsx#CashRegister.exact.cents",
+   "orbit:src/components/diary/lib.ts#minToHM"
+  ],
+  "roles": [
+   "convert",
+   "convert"
+  ],
+  "holds": "15/15",
+  "laws": [
+   "convert.injective",
+   "convert.det"
+  ]
+ },
+ "needs": [
+  {
+   "need": "combo",
+   "verb": "convert",
+   "material": "choice",
+   "chain": [
+    "inner-orbit:src/components/timer/CashRegister.tsx#CashRegister.exact.cents",
+    "orbit:src/components/diary/lib.ts#minToHM"
+   ]
+  }
+ ]
+}

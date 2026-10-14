@@ -232,7 +232,7 @@ export const MOTION_VERBS = [
   {
     id: 'oscillate', he: 'מתנדנד', mined: true, bind: 'spec',
     means: 'עולה ויורד סביב מרכז בקצב קבוע (נשימה, הבהוב, גל, צליל) — חוזר על עצמו כל מחזור ולא חורג מהמשרעת',
-    takes: ['record', 'number'], gives: 'number',
+    takes: ['record', 'number'], gives: 'number|sound', // צליל = גל שמתנדנד (המשמעות עצמה: "נשימה, הבהוב, גל, צליל")
     fit: (e) => has(e.x, ['center', 'amplitude', 'period']) && isNum(e.y) && isNum(e.out),
     witness: (e) => nums(e.x, ['center']) && !close(e.out, e.x.center, 1, 1e-6),
     laws: [
@@ -648,7 +648,7 @@ export const MOTION_VERBS = [
   {
     id: 'sun-position', he: 'מוצא את מקום השמש', mined: true, bind: 'spec',
     means: 'מתי השמש נמצאת בזווית נתונה מתחת לאופק ביום ובמקום נתונים — בבוקר עולה, בערב שוקעת, וחצות-היום באמצע',
-    takes: ['record', 'date'], gives: 'times',
+    takes: ['geo|record', 'date'], gives: 'times', // הקלט הוא מקום על הארץ (lat, lon) + זווית
     fit: (e) => has(e.x, ['lat', 'lon', 'depression']) && isStr(e.y) && (isNil(e.out) || nums(e.out, ['rise', 'noon', 'set'])),
     witness: (e) => isObj(e.out) && e.out.set - e.out.rise > 60,
     laws: [

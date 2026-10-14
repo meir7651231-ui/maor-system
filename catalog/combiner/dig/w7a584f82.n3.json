@@ -16,8 +16,8 @@
  "example": {
   "say": "«צוללת»: מקשיבה לקולות מסביב — הד — שולח אות ומודד אחרי כמה זמן חזר, וממנו מרחק"
  },
- "status": "mining",
- "statusHe": "⛏️ נמצא בקוד — בכרייה",
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
  "places": [
   {
    "lead": true,
@@ -27,6 +27,37 @@
    "file": "src/components/parnasa/sound.ts",
    "lines": "42-113",
    "why": "מקום ידוע — אומת ביד"
+  },
+  {
+   "id": "core:catalog/core/echo.mjs#echo",
+   "project": "הליבה",
+   "source": "core",
+   "name": "מודד מרחק מזמן החזרה של ההד",
+   "file": "catalog/core/echo.mjs",
+   "action": "מודד בהד",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "inner-generator:yeshiva/read.mjs#roundTrip.SFX",
+   "project": "המחולל",
+   "source": "inner-generator",
+   "name": "בונה ערך חדש",
+   "file": "yeshiva/read.mjs",
+   "action": "מודד בהד",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל",
+   "inside": "roundTrip"
+  },
+  {
+   "id": "generator:machtzev/assemble/tokens-roundtrip.mjs#tokens-roundtrip",
+   "project": "המחולל",
+   "source": "generator",
+   "name": "הפעל ב-CSS ומשווים למקור",
+   "file": "machtzev/assemble/tokens-roundtrip.mjs",
+   "action": "מודד בהד",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל"
   }
  ]
 }

@@ -304,7 +304,7 @@
         },
         {
           "behavior": "פריסקופ מסתובב",
-          "verb": "rotate",
+          "verb": "orbit",
           "material": "geo"
         },
         {

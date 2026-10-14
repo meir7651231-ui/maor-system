@@ -54,7 +54,7 @@
   },
   {
    "id": "inner-orbit:src/components/parnasa/sound.ts#tone.frequency:envelope",
-   "project": "inner-orbit",
+   "project": "אורביט",
    "source": "inner-orbit",
    "name": "מחשב ערך שמשתנה בחזקה לאורך זמן",
    "file": "src/components/parnasa/sound.ts",
@@ -65,7 +65,7 @@
   },
   {
    "id": "inner-orbit:src/lib/atoms/verify/run.ts#zmanim_day_divide.n",
-   "project": "inner-orbit",
+   "project": "אורביט",
    "source": "inner-orbit",
    "name": "בוחר ערך לפי תנאי",
    "file": "src/lib/atoms/verify/run.ts",

@@ -16,8 +16,8 @@
  "example": {
   "say": "«כוונן»: שומע צליל — קורא מהסביבה — מודד צבע/קול/ערך מבחוץ"
  },
- "status": "mining",
- "statusHe": "⛏️ נמצא בקוד — בכרייה",
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
  "places": [
   {
    "lead": true,
@@ -27,6 +27,38 @@
    "file": "src/components/parnasa/sound.ts",
    "lines": "42-113",
    "why": "מקום ידוע — אומת ביד"
+  },
+  {
+   "id": "core:catalog/core/sample.mjs#sample",
+   "project": "הליבה",
+   "source": "core",
+   "name": "קורא מהסביבה כל קריאה במרווח קבוע",
+   "file": "catalog/core/sample.mjs",
+   "action": "דוגם",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "inner-14kk:communication_protocol.js#SmartCommunicationProtocol.detectChanges.protocolFiles",
+   "project": "14kk",
+   "source": "inner-14kk",
+   "name": "מסנן רשימה לפי תנאי",
+   "file": "communication_protocol.js",
+   "action": "דוגם",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל",
+   "inside": "SmartCommunicationProtocol.detectChanges"
+  },
+  {
+   "id": "inner-14kk:communication_protocol.js#SmartCommunicationProtocol.detectChanges.taskFiles",
+   "project": "14kk",
+   "source": "inner-14kk",
+   "name": "מסנן רשימה לפי תנאי",
+   "file": "communication_protocol.js",
+   "action": "דוגם",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל",
+   "inside": "SmartCommunicationProtocol.detectChanges"
   }
  ]
 }

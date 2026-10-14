@@ -39,7 +39,7 @@
   },
   {
    "id": "inner-generator:machtzev/assemble/data-lift.mjs#untangle.n",
-   "project": "inner-generator",
+   "project": "המחולל",
    "source": "inner-generator",
    "name": "מחבר ערכים",
    "file": "machtzev/assemble/data-lift.mjs",
@@ -50,7 +50,7 @@
   },
   {
    "id": "inner-generator:machtzev/generator/auto-logic.mjs#sigOf.i",
-   "project": "inner-generator",
+   "project": "המחולל",
    "source": "inner-generator",
    "name": "מחבר ערכים",
    "file": "machtzev/generator/auto-logic.mjs",

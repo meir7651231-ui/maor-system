@@ -28,7 +28,7 @@
   },
   {
    "id": "inner-14kk:comprehensive_testing_suite.js#ComprehensiveTestingSuite.testPerformance.test.passed",
-   "project": "inner-14kk",
+   "project": "14kk",
    "source": "inner-14kk",
    "name": "בודק אם ערך עובר סף",
    "file": "comprehensive_testing_suite.js",
@@ -39,7 +39,7 @@
   },
   {
    "id": "inner-buildsmart:app/src/components/product-card.tsx#ProductCard.inCart",
-   "project": "inner-buildsmart",
+   "project": "בנייה חכמה",
    "source": "inner-buildsmart",
    "name": "בודק אם ערך עובר סף",
    "file": "app/src/components/product-card.tsx",

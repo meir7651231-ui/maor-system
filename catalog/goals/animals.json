@@ -108,7 +108,7 @@
         {
           "behavior": "מדרג את הפולשים לפי סכנה",
           "verb": "tier",
-          "material": "list"
+          "material": "choice"
         },
         {
           "behavior": "סופר את האוצר כל לילה",

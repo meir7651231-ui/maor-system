@@ -15,7 +15,7 @@ import { describe, it, expect, vi } from 'vitest';
 vi.setConfig({ testTimeout: 180_000 });
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
-import { assemble, buildIndex, indexOf, findGoal, askChips, goalFromChips, recipeFrom, piiLeak, fit, normGoal, ADAPTER_VERBS, STATUS_ORDER, whereLine } from '../combiner/core.mjs';
+import { assemble, buildIndex, indexOf, findGoal, askChips, goalFromChips, recipeFrom, piiLeak, fit, normGoal, ADAPTER_VERBS, STATUS_ORDER, whereLine, ownKinds } from '../combiner/core.mjs';
 import { loadGoals, loadIndex, loadParts, loadProofs, loadBehavior, loadAlphabet, loadLeads, CATALOG } from '../combiner/load.mjs';
 import { VERB_BY_ID, useAlphabet } from '../combiner/verbs.mjs';
 import { buildAll } from '../combiner/build.mjs';
@@ -58,6 +58,8 @@ describe('המצרף · מילון-המטרות', () => {
           expect(a.dig.some((m) => m.need === n.need.id)).toBe(true);
           continue;
         }
+        // שילוב: שני חלקים מוכחים, והפונקציה המורכבת עברה את חוקי הפועל — נבדק בנפרד ("מכונת-השילוב")
+        if (n.status === 'combo') { chains++; continue; }
         chains++;
         const st = n.chain.steps;
         expect(st.length).toBeGreaterThanOrEqual(1);
@@ -66,7 +68,9 @@ describe('המצרף · מילון-המטרות', () => {
         // הפלט של אחד הוא הקלט (הראשי) של הבא
         for (let i = 1; i < st.length; i++) expect(fit(st[i - 1].gives, st[i].takes[0]), st[i - 1].id + ' ⇒ ' + st[i].id).toBeGreaterThan(0);
         // החומר: בקצה (נותן) או בכניסה (מקבל)
-        const onMat = fit(st[st.length - 1].gives, n.need.material) > 0 || (st[0].takes.length > 0 && fit(n.need.material, st[0].takes[0]) > 0);
+        // …או החומר הוא בדיוק סוג שהפועל עצמו מקבל/נותן (האלפבית) — החוקים מבטיחים אותו; או החומר שהקורא מדד
+        const core = st.find((x) => x.role === n.need.verb)!;
+        const onMat = fit(st[st.length - 1].gives, n.need.material) > 0 || (st[0].takes.length > 0 && fit(n.need.material, st[0].takes[0]) > 0) || ownKinds(n.need.verb).includes(n.need.material) || fit(ix.byId.get(core.id)?.material ?? '', n.need.material) > 0;
         expect(onMat, n.need.id).toBe(true);
         // בדיוק אחד מהצעדים עושה את הפועל של הצורך
         expect(st.some((s) => s.role === n.need.verb)).toBe(true);
@@ -187,7 +191,16 @@ describe('המצרף · דטרמיניזם', () => {
   it('הדף (lab-data.json) מרכיב בדיוק כמו ה-CLI', () => {
     const lab = JSON.parse(readFileSync(join(HERE, 'lab-data.json'), 'utf8'));
     const lix = indexOf(lab.parts, lab.flows, lab.leads);
-    for (const g of sample) expect(JSON.stringify(assemble(g, lix))).toBe(JSON.stringify(assemble(g, ix)));
+    // האלפבית של הדף (DATA.verbs) — כמו ש-lab.html טוען אותו; כולל 3 המילים (חומר-לפי-חוק צריך את gives)
+    const base = loadAlphabet()!;
+    const words = [...sample, ...['חמנייה', 'דרקון', 'קרוסלה'].map((w) => findGoal(w, goals))];
+    const cli = words.map((g) => JSON.stringify(assemble(g, ix)));
+    try {
+      useAlphabet(lab.verbs);
+      words.forEach((g, k) => expect(JSON.stringify(assemble(g, lix)), g.word).toBe(cli[k]));
+    } finally {
+      useAlphabet(base);
+    }
   }, 180_000); // האינדקס גדל ל-~20 אלף חלקים (החלקים הפנימיים)
 });
 
@@ -249,9 +262,10 @@ describe('המצרף · לא חסר כלום', () => {
   const all = goals.map((g: unknown) => assemble(g, ix) as Asm);
   const chains = all.flatMap((a) => a.needs.flatMap((n) => (n.chain ? [{ n, c: n.chain }, ...n.alternatives.map((c) => ({ n, c }))] : [])));
 
-  it('בלי שרשראות-שטות: חלק-ליבה אחד מחזיק את הפועל, כל השאר מתאמי-סוג מוכחים', () => {
+  it('בלי שרשראות-שטות: חלק-ליבה אחד מחזיק את הפועל, כל השאר מתאמי-סוג מוכחים (שילוב — נבדק בחוקי הפועל, למטה)', () => {
     expect(chains.length).toBeGreaterThan(300);
     for (const { n, c } of chains) {
+      if ((c as { combo?: unknown }).combo) continue;
       expect(c.steps.filter((s) => s.role === n.need.verb).length, n.need.behavior).toBe(1);
       for (const s of c.steps) if (s.role !== n.need.verb) expect(ADAPTER_VERBS.has(s.role), s.name + ' · ' + s.role).toBe(true);
     }
@@ -263,7 +277,9 @@ describe('המצרף · לא חסר כלום', () => {
     const names = (x: Need): string => (x.chain ? x.chain.steps.map((s) => s.name).join(' → ') : '');
     expect(names(n('מדרג את הפולשים לפי סכנה'))).not.toMatch(/שנת לימודים|ארוחות/);
     expect(names(n('נח בין התקפה להתקפה'))).not.toMatch(/סיכון-נטישה|דקות מחצות/);
-    expect(n('נח בין התקפה להתקפה').status).toBe('mining');
+    // מאז הכורים: ליבת מווסת-הקצב (core-b) מוכחת בהרצה, והחומר (רגעים בזמן) הוא בדיוק מה שהפועל מקבל
+    expect(n('נח בין התקפה להתקפה').status).toBe('proven');
+    expect(names(n('נח בין התקפה להתקפה'))).toBe('מגביל את קצב הבקשות');
     // אותו דבר בחמנייה › דבורים
     const sun = all.find((a) => a.goal.word === 'חמנייה')!;
     expect(names(sun.needs.find((x) => x.need.id === 'bees-pace')!)).not.toMatch(/סיכון-נטישה|דקות מחצות/);
@@ -318,9 +334,9 @@ describe('המצרף · לא חסר כלום', () => {
       expect(s.action.he).toBe(base.find((v: { id: string }) => v.id === 'orbit')?.he ?? 'מסתובב סביב מרכז');
       expect(s.where.origins.map((o) => o.source)).toEqual(['orbit', 'buildsmart']);
       expect(whereLine(s.where)).toBe('נמצא ב: אורביט · בנייה חכמה · מחשב נקודה על מעגל');
-      // בלי ההוכחה — לא נספר, וחוזר ל-⛏️ עם המקום הידוע
+      // בלי ההוכחה — לא נספר; orbit כבר נכרה (אין ⛏️ לפעלים שהאלפבית מכיר) ⇒ 🔎, והמקום הידוע ראשון
       const a0 = assemble(g, buildIndex([part], { leads: loadLeads() })) as Asm;
-      expect(a0.needs[0].status).toBe('mining');
+      expect(a0.needs[0].status).toBe('dig');
       expect(a0.needs[0].places![0].file).toBe('src/components/supporters/SupportersGalaxy.tsx');
     } finally {
       useAlphabet(base);

@@ -20,7 +20,7 @@
  "places": [
   {
    "id": "inner-generator:gen/sentence.mjs#sentenceToSpec.toField.name",
-   "project": "inner-generator",
+   "project": "המחולל",
    "source": "inner-generator",
    "name": "בודק כמה תנאים יחד",
    "file": "gen/sentence.mjs",
@@ -31,7 +31,7 @@
   },
   {
    "id": "inner-generator:machtzev/carve/carve-land.mjs#landOne.harnessBody:step",
-   "project": "inner-generator",
+   "project": "המחולל",
    "source": "inner-generator",
    "name": "מרכיב טקסט מערכים",
    "file": "machtzev/carve/carve-land.mjs",
@@ -42,7 +42,7 @@
   },
   {
    "id": "inner-generator:machtzev/emit/fuzz-parity.mjs#fuzz.src",
-   "project": "inner-generator",
+   "project": "המחולל",
    "source": "inner-generator",
    "name": "מרכיב טקסט מערכים",
    "file": "machtzev/emit/fuzz-parity.mjs",

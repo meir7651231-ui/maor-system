@@ -384,7 +384,7 @@
         },
         {
           "behavior": "הודעה בקול",
-          "verb": "transcript",
+          "verb": "route",
           "material": "sound"
         },
         {

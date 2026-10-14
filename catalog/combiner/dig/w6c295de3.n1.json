@@ -15,8 +15,8 @@
  "example": {
   "say": "«זרע»: מחכה לחום ולמים"
  },
- "status": "mining",
- "statusHe": "⛏️ נמצא בקוד — בכרייה",
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
  "places": [
   {
    "id": "core-b:catalog/core/require-source.mjs#requireSource",
@@ -30,7 +30,7 @@
   },
   {
    "id": "inner-generator:machtzev/emit/ast-js-to-dart.mjs#typesFromEvidence.forEach.t",
-   "project": "inner-generator",
+   "project": "המחולל",
    "source": "inner-generator",
    "name": "מחשב ערך בעזרת חישוב עזר",
    "file": "machtzev/emit/ast-js-to-dart.mjs",
@@ -41,7 +41,7 @@
   },
   {
    "id": "inner-generator:machtzev/emit/ast-js-to-dart.mjs#typesFromEvidence.out:after-loop",
-   "project": "inner-generator",
+   "project": "המחולל",
    "source": "inner-generator",
    "name": "מעדכן ערך לאורך רשימה",
    "file": "machtzev/emit/ast-js-to-dart.mjs",

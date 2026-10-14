@@ -30,7 +30,7 @@
   },
   {
    "id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#action.tail",
-   "project": "inner-buildsmart",
+   "project": "בנייה חכמה",
    "source": "inner-buildsmart",
    "name": "בוחר ערך לפי תנאי",
    "file": "app/src/components/menu/submenu-settings.tsx",
@@ -41,7 +41,7 @@
   },
   {
    "id": "inner-buildsmart:app/src/test/tests/dupes.ts#testDupes.k",
-   "project": "inner-buildsmart",
+   "project": "בנייה חכמה",
    "source": "inner-buildsmart",
    "name": "מחשב ערך בעזרת חישוב עזר",
    "file": "app/src/test/tests/dupes.ts",

@@ -16,8 +16,8 @@
  "example": {
   "say": "«משלוחי-מנות»: שליח עובר בבתים — דרך קצרה — המסלול הקצר ביותר ברשת של נקודות"
  },
- "status": "mining",
- "statusHe": "⛏️ נמצא בקוד — בכרייה",
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
  "places": [
   {
    "id": "generator:machtzev/root.mjs#p",
@@ -41,7 +41,7 @@
   },
   {
    "id": "inner-generator:machtzev/generator/generate.mjs#routeOf.entLabels",
-   "project": "inner-generator",
+   "project": "המחולל",
    "source": "inner-generator",
    "name": "בונה ערך חדש",
    "file": "machtzev/generator/generate.mjs",

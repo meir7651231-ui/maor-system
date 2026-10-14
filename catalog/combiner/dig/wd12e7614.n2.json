@@ -16,8 +16,8 @@
  "example": {
   "say": "«כדור-קפיצי»: קופץ מהרצפה — מהירות מתהפכת בפגיעה"
  },
- "status": "mining",
- "statusHe": "⛏️ נמצא בקוד — בכרייה",
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
  "places": [
   {
    "id": "core:catalog/core/bounce.mjs#bounce",

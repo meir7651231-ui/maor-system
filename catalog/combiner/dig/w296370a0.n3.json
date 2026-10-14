@@ -29,7 +29,7 @@
   },
   {
    "id": "inner-generator:new/atoms/hok-cat.mjs#monthsAgoIso.ty",
-   "project": "inner-generator",
+   "project": "המחולל",
    "source": "inner-generator",
    "name": "ממיר כל פריט ברשימה",
    "file": "new/atoms/hok-cat.mjs",
@@ -40,7 +40,7 @@
   },
   {
    "id": "inner-generator:new/atoms/hok-cat.mjs#monthsAgoIso.y",
-   "project": "inner-generator",
+   "project": "המחולל",
    "source": "inner-generator",
    "name": "ממיר כל פריט ברשימה",
    "file": "new/atoms/hok-cat.mjs",
@@ -51,7 +51,7 @@
   },
   {
    "id": "inner-generator:new/atoms/hok-effectively-active.mjs#hokEffectivelyActive.monthsAgoIso.ty",
-   "project": "inner-generator",
+   "project": "המחולל",
    "source": "inner-generator",
    "name": "ממיר כל פריט ברשימה",
    "file": "new/atoms/hok-effectively-active.mjs",

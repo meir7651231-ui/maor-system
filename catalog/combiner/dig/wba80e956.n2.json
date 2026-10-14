@@ -3,12 +3,12 @@
  "word": "מחבואים",
  "need": "n2",
  "behavior": "כולם מתפזרים",
- "verb": "divide",
- "verbHe": "מחלק",
+ "verb": "spread",
+ "verbHe": "מתפשט",
  "isNewVerb": false,
  "material": "geo",
  "takes": [
-  "span|amount|list",
+  "record",
   "number"
  ],
  "gives": "geo",
@@ -20,37 +20,34 @@
  "statusHe": "🔎 עוד לא נחפר",
  "places": [
   {
-   "id": "inner-generator:machtzev/generator/genesis-gen.mjs#writeGoalSpecs.rooms:after-loop",
-   "project": "inner-generator",
-   "source": "inner-generator",
-   "name": "אוסף פריטים לרשימה חדשה",
-   "file": "machtzev/generator/genesis-gen.mjs",
-   "action": "מחלק",
+   "id": "core:catalog/core/spread.mjs#spread",
+   "project": "הליבה",
+   "source": "core",
+   "name": "מרחיב גל לכל השכנים בכל צעד",
+   "file": "catalog/core/spread.mjs",
+   "action": "מתפשט",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל",
-   "inside": "writeGoalSpecs"
+   "why": "אותו פועל"
   },
   {
-   "id": "inner-generator:yeshiva/shape.mjs#searchLinked.cands",
-   "project": "inner-generator",
-   "source": "inner-generator",
-   "name": "בונה רשימה מערכים",
-   "file": "yeshiva/shape.mjs",
-   "action": "מחלק",
+   "id": "core:catalog/core/move-along-path.mjs#moveAlongPath",
+   "project": "הליבה",
+   "source": "core",
+   "name": "מזיז נקודה לאורך מסלול של תחנות",
+   "file": "catalog/core/move-along-path.mjs",
+   "action": "מתקדם במסלול",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל",
-   "inside": "searchLinked"
+   "why": "אותו חומר"
   },
   {
-   "id": "inner-generator:yeshiva/shape.mjs#searchLinked.cands:after-loop",
-   "project": "inner-generator",
-   "source": "inner-generator",
-   "name": "אוסף פריטים לרשימה חדשה",
-   "file": "yeshiva/shape.mjs",
-   "action": "מחלק",
+   "id": "core:catalog/core/orbit.mjs#orbit",
+   "project": "הליבה",
+   "source": "core",
+   "name": "מחשב נקודה שמקיפה מרכז במעגל",
+   "file": "catalog/core/orbit.mjs",
+   "action": "מקיף",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל",
-   "inside": "searchLinked"
+   "why": "אותו חומר"
   }
  ]
 }

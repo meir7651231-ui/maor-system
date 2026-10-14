@@ -97,7 +97,7 @@
         },
         {
           "behavior": "הכדור חוזר מהרשת",
-          "verb": "reverse",
+          "verb": "bounce",
           "material": "geo"
         }
       ]

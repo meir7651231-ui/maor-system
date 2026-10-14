@@ -349,7 +349,7 @@
         },
         {
           "behavior": "תקתוק קבוע",
-          "verb": "pace",
+          "verb": "oscillate",
           "material": "sound"
         }
       ]
@@ -377,8 +377,8 @@
         },
         {
           "behavior": "מצפצף בסוף",
-          "verb": "route",
-          "material": "sound"
+          "verb": "countdown",
+          "material": "times"
         },
         {
           "behavior": "מנורה דולקת בזמן אפייה",

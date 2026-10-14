@@ -60,8 +60,8 @@
         },
         {
           "behavior": "קו החוף זז",
-          "verb": "convert",
-          "material": "geo",
+          "verb": "oscillate",
+          "material": "number",
           "detail": "גובה המים ⇒ איפה החוף"
         },
         {

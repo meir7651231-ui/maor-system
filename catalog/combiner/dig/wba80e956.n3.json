@@ -20,7 +20,7 @@
  "places": [
   {
    "id": "inner-generator:machtzev/generator/auto-logic.mjs#rankAll.d",
-   "project": "inner-generator",
+   "project": "המחולל",
    "source": "inner-generator",
    "name": "מחפש ערך לפי מפתח",
    "file": "machtzev/generator/auto-logic.mjs",
@@ -41,7 +41,7 @@
   },
   {
    "id": "inner-generator:new/boxes/pareto.mjs#paretoReport.asc",
-   "project": "inner-generator",
+   "project": "המחולל",
    "source": "inner-generator",
    "name": "ממיין רשימה",
    "file": "new/boxes/pareto.mjs",

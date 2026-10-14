@@ -80,7 +80,7 @@
       "needs": [
         {
           "behavior": "מסתובבת סביב העין",
-          "verb": "rotate",
+          "verb": "orbit",
           "material": "geo"
         },
         {
@@ -130,7 +130,7 @@
         },
         {
           "behavior": "עוקב אחרי הסיבוב",
-          "verb": "rotate",
+          "verb": "follow",
           "material": "geo"
         },
         {

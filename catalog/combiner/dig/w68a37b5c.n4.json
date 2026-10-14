@@ -3,13 +3,12 @@
  "word": "תחנת-אוטובוס",
  "need": "n4",
  "behavior": "הודעה בקול",
- "verb": "transcript",
- "verbHe": "רושם ביומן",
+ "verb": "route",
+ "verbHe": "מנתב לפי ערוץ",
  "isNewVerb": false,
  "material": "sound",
  "takes": [
-  "list",
-  "record"
+  "text|choice"
  ],
  "gives": "sound",
  "detail": null,
@@ -29,37 +28,36 @@
    "why": "מקום ידוע — אומת ביד"
   },
   {
-   "id": "inner-buildsmart:functions/src/deleteAccount.ts#purgeIntelForSubject.actorKeys",
-   "project": "inner-buildsmart",
-   "source": "inner-buildsmart",
-   "name": "מחשב ערך מערכים",
-   "file": "functions/src/deleteAccount.ts",
-   "action": "רושם ביומן",
+   "id": "core-b:catalog/core/route.mjs#route",
+   "project": "ליבות-הפעלים",
+   "source": "core-b",
+   "name": "שולח כל דבר לערוץ אחד",
+   "file": "catalog/core/route.mjs",
+   "action": "מנתב לפי ערוץ",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל",
-   "inside": "purgeIntelForSubject"
+   "why": "אותו פועל"
   },
   {
-   "id": "inner-buildsmart:functions/src/taskNotifs.ts#onDocumentUpdated.runTransaction.items:step",
-   "project": "inner-buildsmart",
-   "source": "inner-buildsmart",
-   "name": "מחלץ חלק מרצף",
-   "file": "functions/src/taskNotifs.ts",
-   "action": "רושם ביומן",
+   "id": "inner-14kk:unused_files_backup/telegram-bot-connected.js#startMessageProcessing.checkMessages.getUpdates.forEach.intent",
+   "project": "14kk",
+   "source": "inner-14kk",
+   "name": "מחשב ערך בעזרת חישוב עזר",
+   "file": "unused_files_backup/telegram-bot-connected.js",
+   "action": "מנתב לפי ערוץ",
    "proof": "הורץ — סוג אחר",
    "why": "אותו פועל",
-   "inside": "onDocumentUpdated"
+   "inside": "startMessageProcessing"
   },
   {
-   "id": "inner-generator:machtzev/ds-forge.mjs#emit.childAnc",
-   "project": "inner-generator",
-   "source": "inner-generator",
-   "name": "מצרף רצפים",
-   "file": "machtzev/ds-forge.mjs",
-   "action": "רושם ביומן",
+   "id": "inner-buildsmart:app/scripts/extract-catalog.mjs#liftConst.closeChar:step",
+   "project": "בנייה חכמה",
+   "source": "inner-buildsmart",
+   "name": "בוחר ערך לפי תנאי",
+   "file": "app/scripts/extract-catalog.mjs",
+   "action": "מנתב לפי ערוץ",
    "proof": "הורץ — סוג אחר",
    "why": "אותו פועל",
-   "inside": "emit"
+   "inside": "liftConst"
   }
  ]
 }

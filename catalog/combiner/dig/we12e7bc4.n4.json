@@ -16,8 +16,8 @@
  "example": {
   "say": "«מרק»: מתחזק בטעם לאט — צובר — ערך שגדל מעט בכל צעד-זמן עד שמשהו מרוקן אותו"
  },
- "status": "mining",
- "statusHe": "⛏️ נמצא בקוד — בכרייה",
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
  "places": [
   {
    "id": "generator:machtzev/box-data-lift.mjs#box-data-lift",
@@ -41,7 +41,7 @@
   },
   {
    "id": "inner-generator:engine/generate.mjs#generate.fillProp.pick",
-   "project": "inner-generator",
+   "project": "המחולל",
    "source": "inner-generator",
    "name": "בוחר ערך לפי תנאי",
    "file": "engine/generate.mjs",

@@ -20,7 +20,7 @@
  "places": [
   {
    "id": "inner-14kk:communication_protocol.js#SmartCommunicationProtocol.generateProtocolSummary.activeCount",
-   "project": "inner-14kk",
+   "project": "14kk",
    "source": "inner-14kk",
    "name": "סופר פריטים",
    "file": "communication_protocol.js",
@@ -31,7 +31,7 @@
   },
   {
    "id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#SettingsTreeSubmenu.parent",
-   "project": "inner-buildsmart",
+   "project": "בנייה חכמה",
    "source": "inner-buildsmart",
    "name": "מוצא פריט ברשימה",
    "file": "app/src/components/menu/submenu-settings.tsx",
@@ -42,7 +42,7 @@
   },
   {
    "id": "inner-generator:gen/inventory.mjs#inventory.consts",
-   "project": "inner-generator",
+   "project": "המחולל",
    "source": "inner-generator",
    "name": "סופר פריטים",
    "file": "gen/inventory.mjs",

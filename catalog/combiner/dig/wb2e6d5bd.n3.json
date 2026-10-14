@@ -20,7 +20,7 @@
  "places": [
   {
    "id": "inner-orbit:src/components/settings/SettingsView.tsx#AuditTrailSection.rows",
-   "project": "inner-orbit",
+   "project": "אורביט",
    "source": "inner-orbit",
    "name": "מחלץ חלק מרצף",
    "file": "src/components/settings/SettingsView.tsx",
@@ -41,7 +41,7 @@
   },
   {
    "id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#CartSubmenu.reversed:step",
-   "project": "inner-buildsmart",
+   "project": "בנייה חכמה",
    "source": "inner-buildsmart",
    "name": "מחשב ערך מערכים",
    "file": "app/src/components/menu/submenu-settings.tsx",

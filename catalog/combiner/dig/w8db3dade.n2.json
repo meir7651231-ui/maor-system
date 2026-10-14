@@ -29,7 +29,7 @@
   },
   {
    "id": "inner-orbit:src/lib/atoms/verify/laws.ts#clusters.out:after-loop",
-   "project": "inner-orbit",
+   "project": "אורביט",
    "source": "inner-orbit",
    "name": "אוסף פריטים לרשימה חדשה",
    "file": "src/lib/atoms/verify/laws.ts",
@@ -50,7 +50,7 @@
   },
   {
    "id": "inner-generator:machtzev/assemble/data-lift.mjs#untangle.n",
-   "project": "inner-generator",
+   "project": "המחולל",
    "source": "inner-generator",
    "name": "מחבר ערכים",
    "file": "machtzev/assemble/data-lift.mjs",

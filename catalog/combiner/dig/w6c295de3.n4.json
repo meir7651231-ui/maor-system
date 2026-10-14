@@ -20,7 +20,7 @@
  "places": [
   {
    "id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#CartSubmenu.reversed:step",
-   "project": "inner-buildsmart",
+   "project": "בנייה חכמה",
    "source": "inner-buildsmart",
    "name": "מחשב ערך מערכים",
    "file": "app/src/components/menu/submenu-settings.tsx",
@@ -31,7 +31,7 @@
   },
   {
    "id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#HomeSubmenu.reversed:step",
-   "project": "inner-buildsmart",
+   "project": "בנייה חכמה",
    "source": "inner-buildsmart",
    "name": "מחשב ערך מערכים",
    "file": "app/src/components/menu/submenu-settings.tsx",
@@ -42,7 +42,7 @@
   },
   {
    "id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#ProfileTreeSubmenu.reversed:step",
-   "project": "inner-buildsmart",
+   "project": "בנייה חכמה",
    "source": "inner-buildsmart",
    "name": "מחשב ערך מערכים",
    "file": "app/src/components/menu/submenu-settings.tsx",

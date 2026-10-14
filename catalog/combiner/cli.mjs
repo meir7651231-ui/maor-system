@@ -63,6 +63,7 @@ for (const n of a.needs) {
   const head = (n.need.group ? n.need.group + ' › ' : '') + n.need.behavior;
   console.log(STATUS_HE[n.status] + ' │ ' + head + '   [' + VERB_HE(n.need.verb) + ' · ' + kindHe(n.need.material) + ']');
   if (n.chain) {
+    if (n.chain.combo) console.log('    🧩 שילוב · ' + n.chain.combo.line + (n.chain.combo.hint ? ' — ' + n.chain.combo.hint : ''));
     n.chain.steps.forEach((s, i) => {
       console.log('    ' + (i ? '→ ' : '  ') + s.action.he + (s.action.plain ? ' — ' + s.action.plain : '') + '   (' + proofMark(s) + (s.flow?.status === 'proven' ? ' · זרימה ✅' : '') + ')');
       console.log('        ' + whereLine(s.where));

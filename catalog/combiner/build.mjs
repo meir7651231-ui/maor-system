@@ -25,7 +25,8 @@ export function buildAll() {
   const lab = {
     about: 'נבנה ע״י catalog/combiner/build.mjs — לא לערוך ביד',
     labeledBy: loadBehavior() ? 'behavior' : 'static',
-    verbs: VERBS.map((v) => ({ id: v.id, he: v.he, plain: v.plain, takes: v.takes || [], staticOnly: !!v.staticOnly })),
+    // gives + takes — המצרף בדפדפן צריך אותם לחומר-לפי-חוק (ownKinds), כדי להרכיב בדיוק כמו ה-CLI
+    verbs: VERBS.map((v) => ({ id: v.id, he: v.he, plain: v.plain, takes: v.takes || [], gives: v.gives || '', staticOnly: !!v.staticOnly })),
     recipeVerb: RECIPE_VERB,
     kinds: KINDS,
     projects: PROJECTS,

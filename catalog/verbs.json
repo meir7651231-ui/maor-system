@@ -2195,7 +2195,7 @@
     "record",
     "number"
    ],
-   "gives": "number",
+   "gives": "number|sound",
    "laws": [
     {
      "id": "oscillate.periodic",
@@ -2736,7 +2736,7 @@
    "he": "מוצא את מקום השמש",
    "means": "מתי השמש נמצאת בזווית נתונה מתחת לאופק ביום ובמקום נתונים — בבוקר עולה, בערב שוקעת, וחצות-היום באמצע",
    "takes": [
-    "record",
+    "geo|record",
     "date"
    ],
    "gives": "times",

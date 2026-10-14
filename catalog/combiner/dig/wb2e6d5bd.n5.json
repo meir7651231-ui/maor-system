@@ -20,7 +20,7 @@
  "places": [
   {
    "id": "inner-buildsmart:functions/src/push.ts#sendToUsers.unique",
-   "project": "inner-buildsmart",
+   "project": "בנייה חכמה",
    "source": "inner-buildsmart",
    "name": "בונה רשימה מערכים",
    "file": "functions/src/push.ts",
@@ -31,7 +31,7 @@
   },
   {
    "id": "inner-orbit:src/components/platform/teamIntel.ts#teamIntel.uniq",
-   "project": "inner-orbit",
+   "project": "אורביט",
    "source": "inner-orbit",
    "name": "בונה רשימה מערכים",
    "file": "src/components/platform/teamIntel.ts",
@@ -42,7 +42,7 @@
   },
   {
    "id": "inner-orbit:src/lib/atoms/decompose/genericPreview.ts#textPreview.vals",
-   "project": "inner-orbit",
+   "project": "אורביט",
    "source": "inner-orbit",
    "name": "מחלץ חלק מרצף",
    "file": "src/lib/atoms/decompose/genericPreview.ts",

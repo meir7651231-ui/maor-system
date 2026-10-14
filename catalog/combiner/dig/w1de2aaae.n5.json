@@ -3,13 +3,13 @@
  "word": "מטוס-נייר",
  "need": "n5",
  "behavior": "רוח מזיזה",
- "verb": "fuzzy",
- "verbHe": "מוצא גם עם טעות",
+ "verb": "offset",
+ "verbHe": "מזיז",
  "isNewVerb": false,
  "material": "geo",
  "takes": [
-  "text",
-  "list"
+  "times|date|number",
+  "number"
  ],
  "gives": "geo",
  "detail": null,
@@ -20,34 +20,34 @@
  "statusHe": "🔎 עוד לא נחפר",
  "places": [
   {
-   "id": "orbit:src/lib/atoms/parts/fuzzy.ts#fuzzyFind",
+   "id": "orbit:src/components/supporters/intel.ts#shiftIso",
    "project": "אורביט",
    "source": "orbit",
-   "name": "מוצא גם עם טעות כתיב",
-   "file": "src/lib/atoms/parts/fuzzy.ts",
-   "action": "מוצא גם עם טעות",
+   "name": "מזיז תאריך בכמה ימים",
+   "file": "src/components/supporters/intel.ts",
+   "action": "מזיז",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל"
+   "why": "אותו פועל · שם קרוב"
   },
   {
-   "id": "orbit:src/lib/atoms/parts/fuzzy.ts#normHe",
+   "id": "orbit:src/components/supporters/planned.ts#addMonthsClamped",
    "project": "אורביט",
    "source": "orbit",
-   "name": "מנרמל עברי לחיפוש",
-   "file": "src/lib/atoms/parts/fuzzy.ts",
-   "action": "מוצא גם עם טעות",
+   "name": "מזיז חודשים כלפי מעלה על תאריך",
+   "file": "src/components/supporters/planned.ts",
+   "action": "מזיז",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל"
+   "why": "אותו פועל · שם קרוב"
   },
   {
-   "id": "orbit:src/lib/atoms/parts/fuzzy.ts#wordScore",
+   "id": "orbit:src/lib/atoms/parts/offset.ts#offsetAll",
    "project": "אורביט",
    "source": "orbit",
-   "name": "מחשב ציון מילה מול מילה",
-   "file": "src/lib/atoms/parts/fuzzy.ts",
-   "action": "מוצא גם עם טעות",
+   "name": "מזיז זמן לפני או אחרי",
+   "file": "src/lib/atoms/parts/offset.ts",
+   "action": "מזיז",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל"
+   "why": "אותו פועל · שם קרוב"
   }
  ]
 }

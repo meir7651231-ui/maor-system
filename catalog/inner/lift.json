@@ -53,17 +53,17 @@
  },
  "behaviors": {
   "total": 940,
-  "base-only": 152,
+  "base-only": 162,
   "both": 185,
-  "inner-only": 151,
-  "none": 452
+  "inner-only": 152,
+  "none": 441
  },
  "pairs": {
-  "total": 199,
+  "total": 198,
   "base-only": 15,
   "both": 31,
   "inner-only": 21,
-  "none": 132
+  "none": 131
  },
  "examples": [
   {
@@ -149,11 +149,11 @@
   {
    "verb": "tier",
    "material": "choice",
-   "behaviors": 5,
+   "behaviors": 6,
    "sample": [
+    "דרקון: מדרג את הפולשים לפי סכנה",
     "חום-גוף: חום ⇒ דרגות",
-    "כבאות: גודל השריפה",
-    "גשם: גשם חזק ⇒ התראה"
+    "כבאות: גודל השריפה"
    ],
    "innerParts": 1,
    "part": {
@@ -392,6 +392,14 @@
    "name": "אוסף פריטים לרשימה חדשה"
   },
   {
+   "word": "דרקון",
+   "behavior": "מדרג את הפולשים לפי סכנה",
+   "verb": "tier",
+   "material": "choice",
+   "part": "inner-orbit:src/components/timer/CashRegister.tsx#CashRegister.exact.n",
+   "name": "מעגל מספר כלפי מטה"
+  },
+  {
    "word": "זאב",
    "behavior": "יללה בירח מלא",
    "verb": "validate",
@@ -534,14 +542,6 @@
    "material": "bool",
    "part": "inner-generator:machtzev/ds-forge.mjs#emit.selfWidthUnbounded",
    "name": "בודק כמה תנאים יחד"
-  },
-  {
-   "word": "בר-מצווה",
-   "behavior": "רשימת מוזמנים",
-   "verb": "dedupe",
-   "material": "list",
-   "part": "inner-buildsmart:functions/src/push.ts#sendToUsers.unique",
-   "name": "בונה רשימה מערכים"
   }
  ]
 }

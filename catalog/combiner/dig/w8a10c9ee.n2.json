@@ -16,8 +16,8 @@
  "example": {
   "say": "«תזמורת»: המנצח מאחד"
  },
- "status": "mining",
- "statusHe": "⛏️ נמצא בקוד — בכרייה",
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
  "places": [
   {
    "lead": true,
@@ -27,6 +27,38 @@
    "file": "src/components/parnasa/sound.ts",
    "lines": "42-113",
    "why": "מקום ידוע — אומת ביד"
+  },
+  {
+   "id": "core-b:catalog/core/relay.mjs#relay",
+   "project": "ליבות-הפעלים",
+   "source": "core-b",
+   "name": "מעביר הודעות דרך מרכז",
+   "file": "catalog/core/relay.mjs",
+   "action": "מעביר דרך מרכז",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "inner-generator:machtzev/generator/behavior-plan.mjs#forwardSigOf.f",
+   "project": "המחולל",
+   "source": "inner-generator",
+   "name": "מוצא פריט ברשימה",
+   "file": "machtzev/generator/behavior-plan.mjs",
+   "action": "מעביר דרך מרכז",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל",
+   "inside": "forwardSigOf"
+  },
+  {
+   "id": "inner-generator:machtzev/generator/render-ds.mjs#renderHub.roleVis",
+   "project": "המחולל",
+   "source": "inner-generator",
+   "name": "ממיר כל פריט ברשימה",
+   "file": "machtzev/generator/render-ds.mjs",
+   "action": "מעביר דרך מרכז",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל",
+   "inside": "renderHub"
   }
  ]
 }

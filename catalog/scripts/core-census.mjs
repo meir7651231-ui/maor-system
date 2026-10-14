@@ -28,7 +28,7 @@ const ORIGINS = JSON.parse(fs.readFileSync(path.join(ROOT, 'catalog/core/origins
 /** שם (פועל בהווה, עד 9 מילים, בלי לטינית) · מה נכנס · מה יוצא. */
 const CARD = {
   decay: { name: 'מחשב ערך שדועך עד הרצפה', takes: [['spec', 'record:decaySpec', '{from, floor, keepPct}'], ['step', 'number', 'number']], gives: ['number', 'number'] },
-  countdown: { name: 'סופר לאחור עד אפס בדיוק', takes: [['spec', 'record:countdownSpec', '{total}'], ['elapsed', 'number', 'number']], gives: ['number', 'number'] },
+  countdown: { name: 'סופר לאחור עד אפס בדיוק', takes: [['spec', 'record:countdownSpec', '{total}'], ['elapsed', 'times', 'number']], gives: ['times', 'number'] }, // זמן שעבר ⇒ זמן שנשאר (שניות/דקות/ms — MoneyTimer, LockScreen, kitchen)
   accumulate: { name: 'אוסף לקופה עד שהיא מתמלאת ומרוקנת', takes: [['spec', 'record:accumulateSpec', '{capacity}'], ['deposits', 'sequence', 'number[]']], gives: ['sequence', 'number[]'] },
   oscillate: { name: 'מחשב גל שעולה ויורד סביב מרכז', takes: [['spec', 'record:oscillateSpec', '{center, amplitude, period}'], ['step', 'number', 'number']], gives: ['number', 'number'] },
   random: { name: 'מפיק רצף מספרים אקראי מזרע', takes: [['spec', 'record:randomSpec', '{seed}'], ['count', 'number', 'number']], gives: ['sequence', 'number[]'] },

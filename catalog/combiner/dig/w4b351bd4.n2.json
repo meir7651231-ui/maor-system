@@ -16,8 +16,8 @@
  "example": {
   "say": "«גחלילית»: מתאימה את הקצב לשכנה — לזוז מעט לקצב של השכן"
  },
- "status": "mining",
- "statusHe": "⛏️ נמצא בקוד — בכרייה",
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
  "places": [
   {
    "id": "core:catalog/core/follow.mjs#follow",
@@ -31,7 +31,7 @@
   },
   {
    "id": "inner-generator:new/atoms/segula-reminders.mjs#segulaReminders.map.y:step",
-   "project": "inner-generator",
+   "project": "המחולל",
    "source": "inner-generator",
    "name": "מחלץ חלק מתאריך",
    "file": "new/atoms/segula-reminders.mjs",
@@ -42,7 +42,7 @@
   },
   {
    "id": "inner-generator:new/boxes/planned.mjs#addMonthsClamped.lastDay:step",
-   "project": "inner-generator",
+   "project": "המחולל",
    "source": "inner-generator",
    "name": "מחלץ חלק מתאריך",
    "file": "new/boxes/planned.mjs",

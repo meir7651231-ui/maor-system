@@ -1,0 +1,34 @@
+{
+ "id": "combo-sum-times",
+ "word": "sum · times",
+ "title": "שילוב: מחשב סך כל החוב הפתוח ⇒ מחשב יחס בין ערכים",
+ "combo": {
+  "verb": "sum",
+  "material": "times",
+  "form": "chain",
+  "steps": [
+   "orbit:src/components/courses/collection.ts#collectionTotal",
+   "inner-orbit:src/components/parnasa/coinFx.ts#cnFly.t"
+  ],
+  "roles": [
+   "sum",
+   "convert"
+  ],
+  "holds": "24/24",
+  "laws": [
+   "sum.empty",
+   "sum.add"
+  ]
+ },
+ "needs": [
+  {
+   "need": "combo",
+   "verb": "sum",
+   "material": "times",
+   "chain": [
+    "orbit:src/components/courses/collection.ts#collectionTotal",
+    "inner-orbit:src/components/parnasa/coinFx.ts#cnFly.t"
+   ]
+  }
+ ]
+}

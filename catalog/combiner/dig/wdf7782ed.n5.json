@@ -15,8 +15,8 @@
  "example": {
   "say": "«וילון»: ידני גובר על אוטומטי"
  },
- "status": "mining",
- "statusHe": "⛏️ נמצא בקוד — בכרייה",
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
  "places": [
   {
    "id": "generator:machtzev/audit/lib.mjs#faces",
@@ -40,7 +40,7 @@
   },
   {
    "id": "inner-generator:machtzev/emit/ast-js-to-dart.mjs#typesFromEvidence.forEach.t",
-   "project": "inner-generator",
+   "project": "המחולל",
    "source": "inner-generator",
    "name": "מחשב ערך בעזרת חישוב עזר",
    "file": "machtzev/emit/ast-js-to-dart.mjs",

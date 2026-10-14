@@ -20,7 +20,7 @@
  "places": [
   {
    "id": "inner-generator:machtzev/assemble/data-lift.mjs#threadProps.j",
-   "project": "inner-generator",
+   "project": "המחולל",
    "source": "inner-generator",
    "name": "מוצא את המקום של ערך",
    "file": "machtzev/assemble/data-lift.mjs",
@@ -31,7 +31,7 @@
   },
   {
    "id": "inner-generator:machtzev/generator/app-ds.mjs#buildApp.liveOf0.ofI",
-   "project": "inner-generator",
+   "project": "המחולל",
    "source": "inner-generator",
    "name": "מוצא את המקום של ערך",
    "file": "machtzev/generator/app-ds.mjs",
@@ -42,7 +42,7 @@
   },
   {
    "id": "inner-generator:machtzev/rethread-boxes.mjs#repairBox.pos",
-   "project": "inner-generator",
+   "project": "המחולל",
    "source": "inner-generator",
    "name": "מוצא את המקום של ערך",
    "file": "machtzev/rethread-boxes.mjs",

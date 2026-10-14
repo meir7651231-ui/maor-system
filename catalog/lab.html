@@ -71,7 +71,7 @@ section{margin-top:18px}
 details{font-size:14px;color:var(--ink-2)} details summary{cursor:pointer;color:var(--ink-3)}
 details .alt{margin:8px 0;padding-inline-start:8px;border-inline-start:2px solid var(--line)}
 .st{font-size:12px;font-weight:700;border-radius:999px;padding:2px 10px;white-space:nowrap}
-.st.proven,.st.inner{background:var(--ok-bg);color:var(--ok)} .st.mining{background:var(--run-bg);color:var(--run)} .st.dig{background:var(--ex-bg);color:var(--ex)}
+.st.proven,.st.inner,.st.combo{background:var(--ok-bg);color:var(--ok)} .combo-line{font-weight:600;color:var(--ok);margin:6px 0 2px} .st.mining{background:var(--run-bg);color:var(--run)} .st.dig{background:var(--ex-bg);color:var(--ex)}
 .need.mining{border-color:var(--run)} .need.dig{border-color:var(--ex)}
 .act{font-weight:700;font-size:15px}
 .act-plain{font-size:13px;color:var(--ink-2)}
@@ -184,9 +184,10 @@ const stBadge = (st) => `<span class="st ${st}">${esc(STATUS_HE[st])}</span>`;
 
 /* הפעולה קודם (בלי עולם), ומתחתיה — איפה היא גרה */
 function chainHtml(c) {
-  return '<div class="chain">' + c.steps.map((s, i) =>
+  const combo = c.combo ? `<div class="combo-line">🧩 שילוב · ${esc(c.combo.line)}${c.combo.hint ? ' — ' + esc(c.combo.hint) : ''}</div>` : '';
+  return combo + '<div class="chain">' + c.steps.map((s, i) =>
     (i ? '<span class="arrow" aria-hidden="true">←</span>' : '') +
-    `<div class="part" style="--c:${PROJECTS[s.source]?.color || '#888'}">
+    `<div class="part" style="--c:${PROJECTS[String(s.source).replace(/^inner-/, '')]?.color || '#888'}">
        <div class="act">${esc(s.action.he)}</div>
        ${s.action.plain ? `<div class="act-plain">${esc(s.action.plain)}</div>` : ''}
        <div class="meta">${proofBadge(s)}<span>${esc(s.takes.map(kindHe).join(' + ') || '—')} ⇒ ${esc(kindHe(s.gives))}</span></div>
@@ -209,8 +210,9 @@ function render(a) {
     <div class="title">«${esc(a.goal.word)}»${a.goal.title ? ' — ' + esc(a.goal.title) : ''}</div>
     <p>${esc(a.outcome)}</p>
     <div class="kpis">
-      <div class="kpi ok"><b>${a.counts.proven + a.counts.inner}/${a.needs.length}</b><span>מוכחים בהרצה</span></div>
+      <div class="kpi ok"><b>${a.counts.proven + a.counts.inner + a.counts.combo}/${a.needs.length}</b><span>מוכחים בהרצה</span></div>
       ${a.counts.inner ? `<div class="kpi ok"><b>${a.counts.inner}</b><span>מתוכם חלק פנימי</span></div>` : ''}
+      ${a.counts.combo ? `<div class="kpi ok"><b>${a.counts.combo}</b><span>מתוכם שילוב</span></div>` : ''}
       <div class="kpi mining"><b>${a.counts.mining}</b><span>⛏️ בכרייה</span></div>
       <div class="kpi dig"><b>${a.counts.dig}</b><span>🔎 עוד לא נחפר</span></div>
       <div class="kpi"><b>${new Set(steps.map((s) => s.id)).size}</b><span>חלקים · ${proven} צעדים</span></div>

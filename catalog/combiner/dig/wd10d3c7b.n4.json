@@ -16,8 +16,8 @@
  "example": {
   "say": "«פטרייה»: מעגל פטריות שהולך ומתרחב — רדיוס שגדל בכל שנה"
  },
- "status": "mining",
- "statusHe": "⛏️ נמצא בקוד — בכרייה",
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
  "places": [
   {
    "id": "generator:machtzev/box-purify.mjs#box-purify",
@@ -41,7 +41,7 @@
   },
   {
    "id": "inner-generator:engine/generate.mjs#generate.fillProp.pick",
-   "project": "inner-generator",
+   "project": "המחולל",
    "source": "inner-generator",
    "name": "בוחר ערך לפי תנאי",
    "file": "engine/generate.mjs",

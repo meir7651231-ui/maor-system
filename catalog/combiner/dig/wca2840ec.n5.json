@@ -16,8 +16,8 @@
  "example": {
   "say": "«חנוכייה»: השמש נדלק ראשון"
  },
- "status": "mining",
- "statusHe": "⛏️ נמצא בקוד — בכרייה",
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
  "places": [
   {
    "id": "buildsmart:app_flutter/lib/logic/install_engine.dart#flowRole",

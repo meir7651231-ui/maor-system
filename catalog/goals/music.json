@@ -332,7 +332,7 @@
         },
         {
           "behavior": "רקדנית מסתובבת",
-          "verb": "rotate",
+          "verb": "orbit",
           "material": "geo"
         },
         {

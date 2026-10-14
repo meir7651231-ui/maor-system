@@ -37,7 +37,7 @@
   },
   {
    "id": "inner-14kk:check_protocol_activity.js#ProtocolActivityChecker.checkCommunicationProtocol.timeDiff:step",
-   "project": "inner-14kk",
+   "project": "14kk",
    "source": "inner-14kk",
    "name": "מחשב יחס בין ערכים",
    "file": "check_protocol_activity.js",
@@ -48,7 +48,7 @@
   },
   {
    "id": "inner-14kk:check_protocol_activity.js#ProtocolActivityChecker.checkConstructionProtocol.timeDiff:step",
-   "project": "inner-14kk",
+   "project": "14kk",
    "source": "inner-14kk",
    "name": "מחשב יחס בין ערכים",
    "file": "check_protocol_activity.js",

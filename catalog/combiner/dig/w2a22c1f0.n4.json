@@ -16,8 +16,8 @@
  "example": {
   "say": "«פסנתר»: הצליל דועך — דועך — ערך שיורד מעט בכל צעד-זמן עד אפס"
  },
- "status": "mining",
- "statusHe": "⛏️ נמצא בקוד — בכרייה",
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
  "places": [
   {
    "lead": true,
@@ -27,6 +27,36 @@
    "file": "src/components/parnasa/sound.ts",
    "lines": "42-113",
    "why": "מקום ידוע — אומת ביד"
+  },
+  {
+   "id": "core:catalog/core/decay.mjs#decay",
+   "project": "הליבה",
+   "source": "core",
+   "name": "מחשב ערך שדועך עד הרצפה",
+   "file": "catalog/core/decay.mjs",
+   "action": "דועך",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל · שם קרוב"
+  },
+  {
+   "id": "generator:new/dart/friction_factor.dart#frictionFactor",
+   "project": "המחולל",
+   "source": "generator",
+   "name": "חשב מקדם-חיכוך Darcy מודע-ריינולדס למים בצינור חלק",
+   "file": "new/dart/friction_factor.dart",
+   "action": "דועך",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "14kk:strategic_protocol.js#StrategicAnalyzer.defineSuccessMetrics",
+   "project": "14kk",
+   "source": "14kk",
+   "name": "להגדיר מדדים הצלחה",
+   "file": "strategic_protocol.js",
+   "action": "נותן ערך קבוע",
+   "proof": "הורץ — סוג אחר",
+   "why": "שם קרוב"
   }
  ]
 }

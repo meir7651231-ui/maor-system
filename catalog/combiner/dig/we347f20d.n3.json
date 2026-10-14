@@ -13,8 +13,8 @@
  "example": {
   "say": "«מדפסת»: נתקע דף ⇒ מנסה שוב"
  },
- "status": "mining",
- "statusHe": "⛏️ נמצא בקוד — בכרייה",
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
  "places": [
   {
    "id": "generator:new/dart-maor/push-diff.dart#pushDiff",
@@ -38,7 +38,7 @@
   },
   {
    "id": "inner-buildsmart:app/src/lib/search.ts#searchExact.bucket",
-   "project": "inner-buildsmart",
+   "project": "בנייה חכמה",
    "source": "inner-buildsmart",
    "name": "בוחר ערך לפי תנאי",
    "file": "app/src/lib/search.ts",

@@ -59,7 +59,7 @@
         },
         {
           "behavior": "זז עם הרוח",
-          "verb": "convert",
+          "verb": "follow",
           "material": "geo"
         },
         {
@@ -175,7 +175,7 @@
         },
         {
           "behavior": "רוח מזיזה",
-          "verb": "fuzzy",
+          "verb": "offset",
           "material": "geo"
         },
         {
@@ -423,7 +423,7 @@
         {
           "behavior": "תור לסיבוב הבא",
           "verb": "next",
-          "material": "waiting"
+          "material": "list"
         },
         {
           "behavior": "מספר מקומות מוגבל",
@@ -432,7 +432,7 @@
         },
         {
           "behavior": "מנגינה בזמן הסיבוב",
-          "verb": "validate",
+          "verb": "oscillate",
           "material": "sound"
         }
       ]
@@ -455,7 +455,7 @@
         },
         {
           "behavior": "עוברת בלולאה",
-          "verb": "rotate",
+          "verb": "orbit",
           "material": "geo"
         },
         {

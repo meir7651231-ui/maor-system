@@ -3,13 +3,13 @@
  "word": "טלסקופ",
  "need": "n3",
  "behavior": "עוקב אחרי הסיבוב",
- "verb": "rotate",
- "verbHe": "מחלק בתורות",
+ "verb": "follow",
+ "verbHe": "הולך אחרי",
  "isNewVerb": false,
  "material": "geo",
  "takes": [
-  "list",
-  "number|date"
+  "record",
+  "number"
  ],
  "gives": "geo",
  "detail": null,
@@ -20,35 +20,34 @@
  "statusHe": "🔎 עוד לא נחפר",
  "places": [
   {
-   "id": "inner-orbit:src/components/home/widgets.tsx#Carousel.cur",
-   "project": "inner-orbit",
-   "source": "inner-orbit",
-   "name": "בוחר ערך לפי תנאי",
-   "file": "src/components/home/widgets.tsx",
-   "action": "מחלק בתורות",
-   "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל",
-   "inside": "Carousel"
-  },
-  {
-   "id": "orbit:src/lib/atoms/parts/rotate.ts#dayIndex",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "מחשב מספר יום מוחלט של תאריך",
-   "file": "src/lib/atoms/parts/rotate.ts",
-   "action": "מחלק בתורות",
+   "id": "core:catalog/core/follow.mjs#follow",
+   "project": "הליבה",
+   "source": "core",
+   "name": "מזיז ערך חלק קבוע מהדרך למטרה",
+   "file": "catalog/core/follow.mjs",
+   "action": "הולך אחרי",
    "proof": "הורץ — סוג אחר",
    "why": "אותו פועל"
   },
   {
-   "id": "orbit:src/lib/atoms/parts/rotate.ts#fairAssign",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "מחלק בתורות",
-   "file": "src/lib/atoms/parts/rotate.ts",
-   "action": "מחלק בתורות",
+   "id": "core:catalog/core/move-along-path.mjs#moveAlongPath",
+   "project": "הליבה",
+   "source": "core",
+   "name": "מזיז נקודה לאורך מסלול של תחנות",
+   "file": "catalog/core/move-along-path.mjs",
+   "action": "מתקדם במסלול",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל"
+   "why": "אותו חומר"
+  },
+  {
+   "id": "core:catalog/core/orbit.mjs#orbit",
+   "project": "הליבה",
+   "source": "core",
+   "name": "מחשב נקודה שמקיפה מרכז במעגל",
+   "file": "catalog/core/orbit.mjs",
+   "action": "מקיף",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו חומר"
   }
  ]
 }

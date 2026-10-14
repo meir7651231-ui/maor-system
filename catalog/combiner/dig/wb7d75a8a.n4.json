@@ -21,7 +21,7 @@
  "places": [
   {
    "id": "inner-generator:machtzev/generator/genesis-gen.mjs#writeGoalSpecs.rooms:after-loop",
-   "project": "inner-generator",
+   "project": "המחולל",
    "source": "inner-generator",
    "name": "אוסף פריטים לרשימה חדשה",
    "file": "machtzev/generator/genesis-gen.mjs",
@@ -32,7 +32,7 @@
   },
   {
    "id": "inner-generator:yeshiva/shape.mjs#searchLinked.cands",
-   "project": "inner-generator",
+   "project": "המחולל",
    "source": "inner-generator",
    "name": "בונה רשימה מערכים",
    "file": "yeshiva/shape.mjs",
@@ -43,7 +43,7 @@
   },
   {
    "id": "inner-generator:yeshiva/shape.mjs#searchLinked.cands:after-loop",
-   "project": "inner-generator",
+   "project": "המחולל",
    "source": "inner-generator",
    "name": "אוסף פריטים לרשימה חדשה",
    "file": "yeshiva/shape.mjs",

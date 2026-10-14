@@ -59,7 +59,7 @@
   {
    "source": "core",
    "repo": "meir7651231-ui/maor-system",
-   "ref": "claude/final-261014@dfdd577a87a2159ed45a9b830264cc46725e143f",
+   "ref": "claude/final-261014@db0cbcda6171c0883fb4e04a78f7ba84e1867395",
    "parts": 15
   },
   {
@@ -133,12 +133,12 @@
    "unknown": 4621,
    "list": 3432,
    "text": 3119,
-   "number": 2861,
+   "number": 2860,
    "record:*": 2152,
    "bool": 1160,
    "ui": 1023,
    "choice": 780,
-   "times": 377,
+   "times": 378,
    "amount": 244,
    "date": 141,
    "sequence": 81,
@@ -660,19 +660,20 @@
     "js": 15
    },
    "gives": {
-    "number": 5,
+    "number": 4,
     "sequence": 4,
     "geo": 2,
     "record:*": 2,
-    "list": 1,
-    "times": 1
+    "times": 2,
+    "list": 1
    },
    "takes": {
     "record:*": 15,
-    "number": 10,
+    "number": 9,
     "sequence": 2,
     "choice": 1,
-    "date": 1
+    "date": 1,
+    "times": 1
    },
    "labeledBy": {
     "run": 15
@@ -1132,7 +1133,7 @@
      "14kk": 29,
      "inner-mmmm": 18,
      "yeshiva": 14,
-     "core": 5,
+     "core": 4,
      "mmmm": 1
     },
     "takes": {
@@ -1145,13 +1146,13 @@
      "yeshiva": 61,
      "inner-14kk": 40,
      "inner-buildsmart": 25,
-     "core": 10,
+     "core": 9,
      "qa-scanner": 4,
      "mmmm": 3,
      "core-b": 2,
      "inner-mmmm": 2
     },
-    "pairs": 7238330
+    "pairs": 7232940
    },
    "record:a": {
     "gives": {
@@ -11553,7 +11554,7 @@
      "inner-generator": 91,
      "inner-14kk": 23,
      "orbit": 18,
-     "core": 1,
+     "core": 2,
      "inner-buildsmart": 1
     },
     "takes": {
@@ -11563,9 +11564,10 @@
      "inner-14kk": 17,
      "inner-buildsmart": 3,
      "buildsmart": 1,
+     "core": 1,
      "generator": 1
     },
-    "pairs": 154947
+    "pairs": 155736
    },
    "waiting": {
     "gives": {
@@ -11589,7 +11591,7 @@
     "yoman-habina": 4009,
     "14kk": 11285,
     "mmmm": 8612,
-    "core": 847,
+    "core": 800,
     "core-b": 1823,
     "inner-14kk": 19364,
     "inner-buildsmart": 24768,
@@ -11609,7 +11611,7 @@
     "yoman-habina": 4083,
     "14kk": 11750,
     "mmmm": 9056,
-    "core": 415,
+    "core": 376,
     "core-b": 2146,
     "inner-14kk": 18998,
     "inner-buildsmart": 27539,
@@ -11629,7 +11631,7 @@
     "yoman-habina": 5307,
     "14kk": 14846,
     "mmmm": 11100,
-    "core": 927,
+    "core": 836,
     "core-b": 2096,
     "inner-14kk": 24705,
     "inner-buildsmart": 30003,
@@ -11649,7 +11651,7 @@
     "yoman-habina": 7,
     "14kk": 49,
     "mmmm": 501,
-    "core": 1462,
+    "core": 1316,
     "core-b": 341,
     "inner-14kk": 5966,
     "inner-buildsmart": 4091,
@@ -11669,7 +11671,7 @@
     "yoman-habina": 1429,
     "14kk": 4348,
     "mmmm": 3491,
-    "core": 485,
+    "core": 471,
     "core-b": 1386,
     "inner-14kk": 7360,
     "inner-buildsmart": 16319,
@@ -11729,7 +11731,7 @@
     "yoman-habina": 42,
     "14kk": 225,
     "mmmm": 313,
-    "core": 322,
+    "core": 293,
     "core-b": 239,
     "inner-14kk": 1609,
     "inner-buildsmart": 2516,
@@ -11749,7 +11751,7 @@
     "yoman-habina": 389,
     "14kk": 1060,
     "mmmm": 792,
-    "core": 11,
+    "core": 10,
     "core-b": 102,
     "inner-14kk": 1480,
     "inner-buildsmart": 1704,
@@ -11760,22 +11762,22 @@
     "inner-yoman-habina": 9
    },
    "core": {
-    "orbit": 959,
-    "buildsmart": 780,
-    "generator": 2284,
-    "rings": 600,
-    "yeshiva": 391,
-    "qa-scanner": 27,
+    "orbit": 887,
+    "buildsmart": 665,
+    "generator": 1967,
+    "rings": 489,
+    "yeshiva": 330,
+    "qa-scanner": 23,
     "yoman-habina": 1,
     "14kk": 7,
-    "mmmm": 24,
-    "core": 59,
-    "core-b": 17,
-    "inner-14kk": 235,
-    "inner-buildsmart": 191,
-    "inner-generator": 4853,
-    "inner-mmmm": 42,
-    "inner-orbit": 6940,
+    "mmmm": 21,
+    "core": 47,
+    "core-b": 15,
+    "inner-14kk": 212,
+    "inner-buildsmart": 169,
+    "inner-generator": 4189,
+    "inner-mmmm": 40,
+    "inner-orbit": 6227,
     "inner-yeshiva": 0,
     "inner-yoman-habina": 1
    },
@@ -11809,7 +11811,7 @@
     "yoman-habina": 547,
     "14kk": 1510,
     "mmmm": 1248,
-    "core": 395,
+    "core": 380,
     "core-b": 293,
     "inner-14kk": 4120,
     "inner-buildsmart": 4067,
@@ -11829,7 +11831,7 @@
     "yoman-habina": 1455,
     "14kk": 4081,
     "mmmm": 3150,
-    "core": 359,
+    "core": 325,
     "core-b": 680,
     "inner-14kk": 7334,
     "inner-buildsmart": 9231,
@@ -11849,7 +11851,7 @@
     "yoman-habina": 23825,
     "14kk": 66943,
     "mmmm": 52751,
-    "core": 8036,
+    "core": 7338,
     "core-b": 11999,
     "inner-14kk": 130709,
     "inner-buildsmart": 160053,
@@ -11869,7 +11871,7 @@
     "yoman-habina": 2101,
     "14kk": 5499,
     "mmmm": 3955,
-    "core": 186,
+    "core": 168,
     "core-b": 387,
     "inner-14kk": 8127,
     "inner-buildsmart": 7791,
@@ -11889,7 +11891,7 @@
     "yoman-habina": 25572,
     "14kk": 72466,
     "mmmm": 59640,
-    "core": 16149,
+    "core": 14801,
     "core-b": 15134,
     "inner-14kk": 174567,
     "inner-buildsmart": 197676,
@@ -14791,7 +14793,7 @@
   {"id":"core-b:catalog/core/tolerate.mjs#tolerateParse","source":"core-b","name":"קורא כל פריט וסובל פריט שבור","what":"brick","lang":"js","takes":["list","unknown"],"gives":"list","pure":true,"labeledBy":"run","verbs":["map","normalize","tolerate"],"primary":"tolerate","material":"text"},
   {"id":"core:catalog/core/accumulate.mjs#accumulate","source":"core","name":"אוסף לקופה עד שהיא מתמלאת ומרוקנת","what":"brick","lang":"js","takes":["record:accumulateSpec","sequence"],"gives":"sequence","pure":true,"labeledBy":"run","verbs":["accumulate"],"primary":"accumulate","material":"record:accumulateSpec"},
   {"id":"core:catalog/core/bounce.mjs#bounce","source":"core","name":"מחזיר גוף מהרצפה במקדם קפיצה","what":"brick","lang":"js","takes":["record:bounceSpec","record:body"],"gives":"record:body","pure":true,"labeledBy":"run","verbs":["bounce"],"primary":"bounce","material":"record:bounceSpec"},
-  {"id":"core:catalog/core/countdown.mjs#countdown","source":"core","name":"סופר לאחור עד אפס בדיוק","what":"brick","lang":"js","takes":["record:countdownSpec","number"],"gives":"number","pure":true,"dup":"countdown","labeledBy":"run","verbs":["countdown"],"primary":"countdown","material":"record:countdownSpec"},
+  {"id":"core:catalog/core/countdown.mjs#countdown","source":"core","name":"סופר לאחור עד אפס בדיוק","what":"brick","lang":"js","takes":["record:countdownSpec","times"],"gives":"times","pure":true,"dup":"countdown","labeledBy":"run","verbs":["countdown"],"primary":"countdown","material":"record:countdownSpec"},
   {"id":"core:catalog/core/decay.mjs#decay","source":"core","name":"מחשב ערך שדועך עד הרצפה","what":"brick","lang":"js","takes":["record:decaySpec","number"],"gives":"number","pure":true,"labeledBy":"run","verbs":["decay"],"primary":"decay","material":"record:decaySpec"},
   {"id":"core:catalog/core/echo.mjs#echo","source":"core","name":"מודד מרחק מזמן החזרה של ההד","what":"brick","lang":"js","takes":["record:echoSpec","number"],"gives":"number","pure":true,"labeledBy":"run","verbs":["convert","echo"],"primary":"echo","material":"record:echoSpec"},
   {"id":"core:catalog/core/follow.mjs#follow","source":"core","name":"מזיז ערך חלק קבוע מהדרך למטרה","what":"brick","lang":"js","takes":["record:followSpec","number"],"gives":"number","pure":true,"labeledBy":"run","verbs":["convert","follow"],"primary":"follow","material":"record:followSpec"},

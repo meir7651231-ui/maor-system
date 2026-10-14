@@ -20,7 +20,7 @@
  "places": [
   {
    "id": "inner-buildsmart:functions/src/push.ts#onDocumentCreated.recipients:step",
-   "project": "inner-buildsmart",
+   "project": "בנייה חכמה",
    "source": "inner-buildsmart",
    "name": "מסנן רשימה לפי תנאי",
    "file": "functions/src/push.ts",
@@ -31,7 +31,7 @@
   },
   {
    "id": "inner-buildsmart:functions/src/push.ts#sendToUsers.targets",
-   "project": "inner-buildsmart",
+   "project": "בנייה חכמה",
    "source": "inner-buildsmart",
    "name": "מסנן רשימה לפי תנאי",
    "file": "functions/src/push.ts",
@@ -42,7 +42,7 @@
   },
   {
    "id": "inner-generator:gen/looks/medrash/probe.mjs#VERIFY.wall:step",
-   "project": "inner-generator",
+   "project": "המחולל",
    "source": "inner-generator",
    "name": "מסנן רשימה לפי תנאי",
    "file": "gen/looks/medrash/probe.mjs",

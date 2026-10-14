@@ -30,7 +30,7 @@
   },
   {
    "id": "inner-generator:new/atoms/build-month-grid.mjs#buildMonthGrid.d:step",
-   "project": "inner-generator",
+   "project": "המחולל",
    "source": "inner-generator",
    "name": "בונה תאריך מערך",
    "file": "new/atoms/build-month-grid.mjs",
@@ -41,7 +41,7 @@
   },
   {
    "id": "inner-generator:new/atoms/holiday-names.mjs#holidayNames.d:step",
-   "project": "inner-generator",
+   "project": "המחולל",
    "source": "inner-generator",
    "name": "בונה תאריך מערך",
    "file": "new/atoms/holiday-names.mjs",

@@ -16,8 +16,8 @@
  "example": {
   "say": "«שלכת»: נופלים ברוח — כן/לא לפי סיכוי"
  },
- "status": "mining",
- "statusHe": "⛏️ נמצא בקוד — בכרייה",
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
  "places": [
   {
    "id": "core:catalog/core/random.mjs#random",

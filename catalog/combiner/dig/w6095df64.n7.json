@@ -16,8 +16,8 @@
  "example": {
   "say": "«משחק-מאפיה»: המנחה מעביר את ההודעות"
  },
- "status": "mining",
- "statusHe": "⛏️ נמצא בקוד — בכרייה",
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
  "places": [
   {
    "id": "core-b:catalog/core/relay.mjs#relay",
@@ -31,7 +31,7 @@
   },
   {
    "id": "inner-generator:machtzev/generator/behavior-plan.mjs#forwardSigOf.f",
-   "project": "inner-generator",
+   "project": "המחולל",
    "source": "inner-generator",
    "name": "מוצא פריט ברשימה",
    "file": "machtzev/generator/behavior-plan.mjs",
@@ -42,7 +42,7 @@
   },
   {
    "id": "inner-generator:machtzev/generator/render-ds.mjs#renderHub.roleVis",
-   "project": "inner-generator",
+   "project": "המחולל",
    "source": "inner-generator",
    "name": "ממיר כל פריט ברשימה",
    "file": "machtzev/generator/render-ds.mjs",

@@ -16,8 +16,8 @@
  "example": {
   "say": "«קקטוס»: שומר מים כשיש — צובר — ערך שגדל מעט בכל צעד-זמן עד שמשהו מרוקן אותו"
  },
- "status": "mining",
- "statusHe": "⛏️ נמצא בקוד — בכרייה",
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
  "places": [
   {
    "id": "core:catalog/core/accumulate.mjs#accumulate",
@@ -31,7 +31,7 @@
   },
   {
    "id": "inner-generator:engine/generate.mjs#generate.fillProp.pick",
-   "project": "inner-generator",
+   "project": "המחולל",
    "source": "inner-generator",
    "name": "בוחר ערך לפי תנאי",
    "file": "engine/generate.mjs",
@@ -42,7 +42,7 @@
   },
   {
    "id": "inner-generator:engine/generate.mjs#generate.fillProp.rm2",
-   "project": "inner-generator",
+   "project": "המחולל",
    "source": "inner-generator",
    "name": "מחפש תבנית בטקסט",
    "file": "engine/generate.mjs",

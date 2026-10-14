@@ -16,8 +16,8 @@
  "example": {
   "say": "«קופסת-הפתעה»: כל פעם בזמן קצת אחר — מגריל — בחירה או ערך לפי סיכוי"
  },
- "status": "mining",
- "statusHe": "⛏️ נמצא בקוד — בכרייה",
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
  "places": [
   {
    "id": "core:catalog/core/random.mjs#random",

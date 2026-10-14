@@ -1,0 +1,37 @@
+{
+ "id": "combo-compare-geo",
+ "word": "compare · geo",
+ "title": "שילוב: מודד מרחק בין שתי נקודות ⇒ מחשב את הפרש סגירה",
+ "combo": {
+  "verb": "compare",
+  "material": "geo",
+  "form": "pair",
+  "at": 2,
+  "steps": [
+   "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+   "orbit:src/components/timer/cashLib.ts#drawerDiff"
+  ],
+  "roles": [
+   "convert",
+   "compare"
+  ],
+  "holds": "35/35",
+  "laws": [
+   "compare.self",
+   "compare.anti",
+   "compare.trans"
+  ],
+  "hint": "מתקרב = מודד מרחק לכל אחד (כל חלק מוכח שמקבל מקום ונותן מספר), ואז משווה מי קרוב יותר"
+ },
+ "needs": [
+  {
+   "need": "combo",
+   "verb": "compare",
+   "material": "geo",
+   "chain": [
+    "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+    "orbit:src/components/timer/cashLib.ts#drawerDiff"
+   ]
+  }
+ ]
+}

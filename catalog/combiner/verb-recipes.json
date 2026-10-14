@@ -1,0 +1,17 @@
+{
+ "about": "רמזים למכונת-השילוב (combine.mjs): לפועל V על חומר M — אילו שני פעלים לנסות קודם. רמז בלבד: רק החוקים של V מחליטים (n/n).",
+ "forms": {
+  "chain": "C(a…, b…) = P2(P1(a…), b…) — הפלט של הראשון נכנס לקלט הראשי של השני",
+  "pair": "C(x, y, k…) = P2(P1(x, k…), P1(y, k…)) — שני הדברים עוברים בראשון, והשני משווה ביניהם"
+ },
+ "recipes": [
+  { "verb": "compare", "material": "geo", "form": "pair", "steps": [{ "verb": "gap" }, { "verb": "compare" }], "why": "מתקרב = מודד מרחק לכל אחד, ואז משווה מי קרוב יותר" },
+  { "verb": "compare", "material": "geo", "form": "pair", "steps": [{ "takes": "geo" }, { "verb": "compare" }], "why": "מתקרב = מודד מרחק לכל אחד (כל חלק מוכח שמקבל מקום ונותן מספר), ואז משווה מי קרוב יותר" },
+  { "verb": "escalate", "material": "choice", "form": "chain", "steps": [{ "verb": "escalate" }, { "verb": "extreme" }], "why": "מתרגז בשלבים = מסלים בזמן, ואז בוחר את השלב הנוכחי (הכי-גבוה שהגיע)" },
+  { "verb": "escalate", "material": "choice", "form": "chain", "steps": [{ "verb": "escalate" }, { "verb": "lookup" }], "why": "מתרגז בשלבים = מסלים בזמן, ואז מוצא את השלב הנוכחי ברשימה" },
+  { "verb": "bounce", "form": "chain", "steps": [{ "verb": "oscillate" }, { "verb": "decay" }], "why": "קופץ = מתנדנד שמתקפל מהרצפה × דועך (הליבה עצמה כבר בנויה כך — catalog/core/bounce.mjs)" },
+  { "verb": "oscillate", "material": "sound", "form": "chain", "steps": [{ "verb": "countdown" }, { "verb": "oscillate" }], "why": "מנגינה = גל-קול שמתנדנד לאורך הסיבוב" },
+  { "verb": "oscillate", "material": "sound", "form": "chain", "steps": [{ "verb": "rotate" }, { "verb": "oscillate" }], "why": "מנגינה = צלילים בתורות, כל אחד גל שמתנדנד" },
+  { "verb": "tier", "material": "list", "form": "chain", "steps": [{ "verb": "sort" }, { "verb": "tier" }], "why": "מדרג רשימה = ממיין ואז שם כל אחד על הסולם" }
+ ]
+}

@@ -20,7 +20,7 @@
  "places": [
   {
    "id": "inner-orbit:src/store/useApp.ts#call.seedOverduePlannedReminders.overdue",
-   "project": "inner-orbit",
+   "project": "אורביט",
    "source": "inner-orbit",
    "name": "מסנן רשימה לפי תנאי",
    "file": "src/store/useApp.ts",
@@ -31,7 +31,7 @@
   },
   {
    "id": "inner-orbit:src/store/useApp.ts#call.seedOverduePlannedReminders.toSeed",
-   "project": "inner-orbit",
+   "project": "אורביט",
    "source": "inner-orbit",
    "name": "מסנן רשימה לפי תנאי",
    "file": "src/store/useApp.ts",

@@ -16,10 +16,15 @@ import { VERBS, VERB_BY_ID, RECIPE_VERB, EXTRA_IDS, canonVerb, staticVerbsScored
 
 /** מתאמי-סוג: הפועל שלהם רק משנה צורה. רק הם מותרים כ"דבק" סביב חלק-הליבה. */
 export const ADAPTER_VERBS = new Set(['convert', 'format', 'map', 'split', 'join', 'normalize']);
-/** 21 הפעלים שנכרים עכשיו מהקוד (ענפי הכרייה). צורך עליהם בלי חלק מוכח ⇒ ⛏️ בכרייה. */
-export const MINING_VERBS = new Set(['decay', 'countdown', 'accumulate', 'oscillate', 'random', 'gravity', 'move-along-path', 'orbit', 'shortest-path', 'spread', 'sample', 'echo', 'follow', 'bounce', 'pace', 'relay', 'tolerate', 'route', 'assign-role', 'freeze', 'require-source']);
-export const STATUS_HE = { proven: '✅ מוכח בהרצה', inner: '✅ מוכח — חלק פנימי', mining: '⛏️ נמצא בקוד — בכרייה', dig: '🔎 עוד לא נחפר' };
-export const STATUS_ORDER = ['proven', 'inner', 'mining', 'dig'];
+/**
+ * פעלים שנכרים עכשיו מהקוד. צורך עליהם בלי חלק מוכח ⇒ ⛏️ בכרייה.
+ * ריק מאז 14.10.2026: 21 הפעלים (decay…require-source) נכרו ומוזגו — לכל אחד ליבה מוכחת וחוקים. צורך עליהם שעוד לא
+ * נמצא (גם לא כשילוב) ⇒ 🔎 עם המקומות (הליבה ראשונה). ⛏️ נשאר רק ל-`NEW:x` שהאלפבית עוד לא מכיר.
+ */
+export const MINING_VERBS = new Set();
+export const STATUS_HE = { proven: '✅ מוכח בהרצה', inner: '✅ מוכח — חלק פנימי', combo: '✅ מוכח — שילוב', mining: '⛏️ נמצא בקוד — בכרייה', dig: '🔎 עוד לא נחפר' };
+/** סדר-העדיפות (הכרעת-בעלים): חלק מוכח אחד > חלק פנימי > שילוב מוכח (שני חלקים שעברו את חוקי הפועל) > ⛏️/🔎. */
+export const STATUS_ORDER = ['proven', 'inner', 'combo', 'mining', 'dig'];
 
 /** פועל מבוקש ⇒ פועל באלפבית: כינוי (gate ⇒ validate), ו-`NEW:x` ⇒ x כשהאלפבית כבר מכיר את x (נקרא בזמן ריצה). */
 export function resolveVerb(v) {
@@ -53,6 +58,9 @@ export const PROJECTS = {
 /** שם-ריפו (כמו ב-origins של core-b) ⇒ מזהה-הפרויקט. */
 const REPO_SOURCE = { 'maor-system': 'orbit', buildsmart: 'buildsmart', 'yeshiva-engine': 'yeshiva', '14kk': '14kk', mmmm: 'mmmm', MMMM: 'mmmm', 'yoman-habina': 'yoman-habina', 'qa-scanner': 'qa-scanner', '-ai-chat-server': 'generator' };
 const isCoreSrc = (s) => !!PROJECTS[s]?.core;
+/** חלק פנימי (inner-<פרויקט>) גר בפרויקט שלו. */
+const projSrc = (s) => String(s || '').replace(/^inner-/, '');
+const projHe = (s) => PROJECTS[projSrc(s)]?.he || projSrc(s);
 const SOURCE_ORDER = ['orbit', 'rings', 'buildsmart', 'generator', 'yeshiva', 'qa-scanner', 'yoman-habina', '14kk', 'mmmm', 'recipe'];
 const srcRank = (s) => {
   const i = SOURCE_ORDER.indexOf(s);
@@ -197,6 +205,8 @@ export function buildIndex(parts, opts = {}) {
     const pp = parent ? rawById.get(parent) : null;
     const origins = originsOf(rated.map((r) => r.p));
     const bPrimary = rated.map((r) => behavior?.get(r.p.id)?.primary).find((x) => typeof x === 'string');
+    // החומר שהקורא מדד (סוג הקלט שהפועל נקשר אליו; ברשימה — סוג הפריט): "רשימת הודעות" עובדת על הודעה
+    const bMaterial = rated.map((r) => behavior?.get(r.p.id)?.material).find((x) => typeof x === 'string' && x !== 'unknown');
     const jPrimary = rated.map((r) => judge[r.p.id]).find((j) => j?.status === 'proven')?.verb;
     const primary = [bPrimary && canonVerb(bPrimary), jPrimary].find((v) => v && proofs[v]) || verbs.slice().sort((a, b) => TIER_RANK[proofs[a].tier] - TIER_RANK[proofs[b].tier] || proofs[a].s - proofs[b].s)[0] || null;
     out.push({
@@ -214,6 +224,7 @@ export function buildIndex(parts, opts = {}) {
       pure: !!best.p.pure,
       takes: best.p.takes.map((t) => t.kind),
       gives: best.p.gives.kind,
+      ...(bMaterial && bMaterial !== best.p.takes[0]?.kind && bMaterial !== best.p.gives.kind ? { material: bMaterial } : {}),
       verbs,
       strength,
       labeledBy: best.labeledBy,
@@ -280,6 +291,7 @@ export function indexOf(parts, flows = {}, leads = []) {
 
 /** מתכון שמור ⇒ חלק חדש (לבנה). הפלט = רשומה מסוג המתכון; הפועל = "מתכון שמור" (הפעלים שבתוכו — ב-inner). */
 export function recipePart(r, known = []) {
+  if (r.combo) return comboPart(r, known);
   const steps = r.needs.flatMap((n) => n.chain);
   const byId = new Map(known.map((p) => [p.id, p]));
   const tiers = steps.map((id) => byId.get(id)?.tier || 'static');
@@ -307,6 +319,38 @@ export function recipePart(r, known = []) {
     // מתכון מוכח = כל הצעדים שבתוכו הוכחו בהרצה (רק כאלה נכנסים למתכון)
     proofs: { [RECIPE_VERB.id]: { status: tier === 'proven' ? 'proven' : 'static', by: 'recipe', tier } },
     recipe: { id: r.id, word: r.word, parts: steps.length, projects: [...new Set(steps.map((id) => id.split(':')[0]))].sort() },
+  };
+}
+
+/**
+ * שילוב מוכח (catalog/combiner/combine.mjs) ⇒ חלק אחד שמוכח לפועל שלו: שני חלקים מוכחים-בהרצה, מחוברים,
+ * והפונקציה המורכבת עברה את **החוקים של הפועל** n/n. נכנס לחיפוש רק אחרי חלק בודד וחלק פנימי.
+ */
+function comboPart(r, known) {
+  const c = r.combo;
+  const byId = new Map(known.map((p) => [p.id, p]));
+  const [a, b] = c.steps.map((id) => byId.get(id));
+  const takes = c.form === 'pair' ? [c.material] : a ? [a.takes[0], ...a.takes.slice(1)] : [];
+  return {
+    id: 'recipe:' + r.id,
+    source: 'recipe',
+    homes: [{ source: 'recipe', id: 'recipe:' + r.id }],
+    name: r.title || r.word,
+    does: c.hint || r.title || '',
+    what: 'brick',
+    lang: 'machine',
+    pure: true,
+    takes,
+    gives: c.form === 'pair' ? (b?.gives || 'number') : b?.gives || 'unknown',
+    material: c.material,
+    verbs: [c.verb],
+    strength: { [c.verb]: 0 },
+    labeledBy: 'combo',
+    tier: 'proven',
+    path: 'catalog/recipes/' + r.id + '.json',
+    primary: c.verb,
+    proofs: { [c.verb]: { status: 'proven', by: 'combo', cases: Number(String(c.holds).split('/')[0]) || 0, laws: c.laws || [], tier: 'proven' } },
+    combo: { verb: c.verb, form: c.form, steps: c.steps, roles: c.roles, holds: c.holds, laws: c.laws || [], ...(c.hint ? { hint: c.hint } : {}) },
   };
 }
 
@@ -340,6 +384,19 @@ function matFitsVerb(verb, mat) {
   const v = VERB_BY_ID[verb];
   const ks = [...kindsOf(v?.gives), ...kindsOf(v?.takes?.[0])];
   return !ks.length || ks.some((k) => k === 'any' || fit(k, mat) > 0 || fit(mat, k) > 0);
+}
+/**
+ * החומר הוא בדיוק סוג שהפועל עצמו מקבל (הקלט הראשי) או נותן — לפי האלפבית (`catalog/verbs.json`).
+ * פעלי-התנועה מקבלים קודם מפרט (`record`) ורק אז את מה שמשתנה (צעד, זמן, גוף) — אצלם הקלט השני הוא החומר.
+ */
+export function ownKinds(verb) {
+  const v = VERB_BY_ID[verb];
+  if (!v) return [];
+  const spec = v.takes?.length === 2 && v.takes[0] === 'record';
+  return [...kindsOf(v.gives), ...kindsOf(v.takes?.[0]), ...(spec ? kindsOf(v.takes[1]) : [])];
+}
+function lawMat(verb, mat) {
+  return ownKinds(verb).includes(mat);
 }
 const CAP_CORE = 60;
 const CAP_LINK = 40;
@@ -402,7 +459,10 @@ function ringsFor(need, ix, cores) {
   const feeders = (into) => (from ? (ix.byTake.get(from) || []).filter((f) => accepts(f, from) && glue(f) && linked(f, into)).slice(0, CAP_LINK) : []);
   const startOk = (p) => !from || accepts(p, from);
   // "חומר" = על מה הפועל עובד (מילון-המטרות): החלק נותן אותו, או מקבל אותו כקלט הראשי
-  const onMat = (p) => fit(p.gives, mat) > 0 || accepts(p, mat);
+  // …או החומר שהקורא מדד; או — החומר הוא בדיוק סוג שהפועל עצמו מקבל/נותן (האלפבית), והחלק מוכח לפועל:
+  // אז החוקים כבר מבטיחים שהוא עובד על החומר הזה ("הבקשה מביאה את העולם; החלק מביא רק את הפעולה")
+  const byLaw = lawMat(need.verb, mat);
+  const onMat = (p) => fit(p.gives, mat) > 0 || accepts(p, mat) || (!!p.material && fit(p.material, mat) > 0) || (byLaw && provenAs(p, need.verb));
   const chains = [];
   const push = (steps, ring, core) => {
     const ids = steps.map((s) => s.id);
@@ -465,7 +525,7 @@ const PROOF_HE = { judge: 'השופט הריץ על קלטים מחוללים', 
 
 /** איפה הפעולה גרה: "נמצא ב: <פרויקט> · <שם>" / "נמצא בתוך: <ההורה> · <קובץ>" / כל פרויקטי-המקור. */
 function whereOf(p) {
-  const origins = (p.origins || [{ source: p.source, file: p.path || '' }]).map((o) => ({ source: o.source, project: PROJECTS[o.source]?.he || o.source, file: o.file }));
+  const origins = (p.origins || [{ source: projSrc(p.source), file: p.path || '' }]).map((o) => ({ source: projSrc(o.source), project: projHe(o.source), file: o.file }));
   const homes = p.homes.map((h) => h.source).filter((s, i, a) => a.indexOf(s) === i);
   for (const s of homes) if (PROJECTS[s] && !isCoreSrc(s) && !origins.some((o) => o.source === s)) origins.push({ source: s, project: PROJECTS[s]?.he || s, file: '' });
   return { name: p.name, file: p.path || '', origins, parent: p.parent ? { name: p.parent.name, file: p.parent.path } : null };
@@ -491,7 +551,7 @@ function stepView(p, prev, flows, role) {
     id: p.id,
     name: p.name,
     source: p.source,
-    project: PROJECTS[p.source]?.he || p.source,
+    project: projHe(p.source),
     homes: p.homes.map((h) => h.source).filter((s, i, a) => a.indexOf(s) === i),
     takes: p.takes,
     gives: p.gives,
@@ -552,7 +612,7 @@ export function digPlaces(goal, need, ix, opts = {}) {
     const st = p.proofs?.[verb]?.status || 'static';
     return {
       id: p.id,
-      project: PROJECTS[p.source]?.he || p.source,
+      project: projHe(p.source),
       source: p.source,
       name: p.name,
       file: p.path || '',
@@ -602,15 +662,10 @@ export function assemble(goal, ix) {
       needs.push({ need, status, chain: null, alternatives: [], ring: 0, places: digPlaces(goal, need, ix, { leadsOnly: mining }) });
       continue;
     }
-    const views = ranked.slice(0, KEEP).map((c) => ({
-      ring: c.ring,
-      tier: chainTier(c),
-      sentence: chainSentence(c.steps),
-      steps: c.steps.map((s, i) => stepView(s, c.steps[i - 1], ix.flows, c.roles[i])),
-    }));
-    for (const s of ranked[0].steps) used.add(s.source);
-    const core = views[0].steps[ranked[0].core];
-    needs.push({ need, status: core.inner ? 'inner' : 'proven', chain: views[0], alternatives: views.slice(1), ring: views[0].ring });
+    const views = ranked.slice(0, KEEP).map((c) => chainView(c, ix));
+    for (const s of views[0].steps) used.add(projSrc(s.source));
+    const core = views[0].combo ? null : views[0].steps[ranked[0].core];
+    needs.push({ need, status: views[0].combo ? 'combo' : core.inner ? 'inner' : 'proven', chain: views[0], alternatives: views.slice(1), ring: views[0].ring });
   }
   // זרימה בין צרכים צמודים באותה קבוצה: הפלט של הצורך הקודם נכנס לבא (למשל זריחה ⇒ הבא בתור ⇒ מזיז ⇒ מעגל)
   for (let i = 1; i < needs.length; i++) {
@@ -625,6 +680,25 @@ export function assemble(goal, ix) {
   const projects = [...used].sort((a, b) => srcRank(a) - srcRank(b));
   const counts = Object.fromEntries(STATUS_ORDER.map((s) => [s, needs.filter((n) => n.status === s).length]));
   return { goal, needs, dig, projects, counts, outcome: outcomeText(goal, needs, projects) };
+}
+
+/** תצוגת שרשרת. שילוב מוכח נפרש לשני החלקים שלו — כל אחד עם הפעולה שלו ו"נמצא ב:" — ועם "עבר N/N חוקים של <פועל>". */
+function chainView(c, ix) {
+  const cp = c.steps.length === 1 && c.steps[0].combo ? c.steps[0] : null;
+  if (cp) {
+    const parts = cp.combo.steps.map((id) => ix.byId.get(id)).filter(Boolean);
+    if (parts.length === 2) {
+      const n = Number(String(cp.combo.holds).split('/')[0]) || 0;
+      return {
+        ring: 2,
+        tier: 'proven',
+        sentence: chainSentence(parts),
+        steps: parts.map((s, i) => stepView(s, parts[i - 1], ix.flows, cp.combo.roles?.[i] || s.primary)),
+        combo: { verb: cp.combo.verb, verbHe: VERB_HE(cp.combo.verb), form: cp.combo.form, holds: cp.combo.holds, cases: n, laws: cp.combo.laws, line: 'עבר ' + cp.combo.holds + ' חוקים של ' + VERB_HE(cp.combo.verb), ...(cp.combo.hint ? { hint: cp.combo.hint } : {}) },
+      };
+    }
+  }
+  return { ring: c.ring, tier: chainTier(c), sentence: chainSentence(c.steps), steps: c.steps.map((s, i) => stepView(s, c.steps[i - 1], ix.flows, c.roles[i])) };
 }
 
 /** "מה יצא" — פסקה אחת שמחברת את הצרכים לדבר עצמו. */

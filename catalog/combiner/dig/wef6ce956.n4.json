@@ -30,7 +30,7 @@
   },
   {
    "id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#SettingsTreeSubmenu.parent",
-   "project": "inner-buildsmart",
+   "project": "בנייה חכמה",
    "source": "inner-buildsmart",
    "name": "מוצא פריט ברשימה",
    "file": "app/src/components/menu/submenu-settings.tsx",
@@ -41,7 +41,7 @@
   },
   {
    "id": "inner-generator:machtzev/census/engine-index.mjs#build.row",
-   "project": "inner-generator",
+   "project": "המחולל",
    "source": "inner-generator",
    "name": "מוצא פריט ברשימה",
    "file": "machtzev/census/engine-index.mjs",
@@ -52,7 +52,7 @@
   },
   {
    "id": "inner-generator:machtzev/ds-forge.mjs#emit.map.pt:step",
-   "project": "inner-generator",
+   "project": "המחולל",
    "source": "inner-generator",
    "name": "בוחר ערך לפי תנאי",
    "file": "machtzev/ds-forge.mjs",

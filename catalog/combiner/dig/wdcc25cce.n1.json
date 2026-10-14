@@ -20,7 +20,7 @@
  "places": [
   {
    "id": "inner-orbit:src/components/shop/AssignmentsTab.tsx#AssignmentsTab.groups:after-loop",
-   "project": "inner-orbit",
+   "project": "אורביט",
    "source": "inner-orbit",
    "name": "אוסף פריטים לרשימה חדשה",
    "file": "src/components/shop/AssignmentsTab.tsx",
@@ -31,7 +31,7 @@
   },
   {
    "id": "inner-orbit:src/components/shop7/lib.ts#deliveryListLines.byVol:after-loop",
-   "project": "inner-orbit",
+   "project": "אורביט",
    "source": "inner-orbit",
    "name": "בונה מפתח של פריטים",
    "file": "src/components/shop7/lib.ts",
@@ -42,7 +42,7 @@
   },
   {
    "id": "inner-orbit:src/lib/atoms/previewBookingsMore.ts#guestStaysMerge.byGuest:after-loop",
-   "project": "inner-orbit",
+   "project": "אורביט",
    "source": "inner-orbit",
    "name": "בונה מפתח של פריטים",
    "file": "src/lib/atoms/previewBookingsMore.ts",

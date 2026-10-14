@@ -16,8 +16,8 @@
  "example": {
   "say": "«פעמון-דלת»: תמונה של מי שבדלת — קורא מהסביבה — מודד צבע/קול/ערך מבחוץ"
  },
- "status": "mining",
- "statusHe": "⛏️ נמצא בקוד — בכרייה",
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
  "places": [
   {
    "id": "core:catalog/core/sample.mjs#sample",
@@ -31,7 +31,7 @@
   },
   {
    "id": "inner-14kk:communication_protocol.js#SmartCommunicationProtocol.detectChanges.protocolFiles",
-   "project": "inner-14kk",
+   "project": "14kk",
    "source": "inner-14kk",
    "name": "מסנן רשימה לפי תנאי",
    "file": "communication_protocol.js",
@@ -42,7 +42,7 @@
   },
   {
    "id": "inner-14kk:communication_protocol.js#SmartCommunicationProtocol.detectChanges.taskFiles",
-   "project": "inner-14kk",
+   "project": "14kk",
    "source": "inner-14kk",
    "name": "מסנן רשימה לפי תנאי",
    "file": "communication_protocol.js",

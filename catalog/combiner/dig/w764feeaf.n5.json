@@ -3,12 +3,13 @@
  "word": "טניס",
  "need": "n5",
  "behavior": "הכדור חוזר מהרשת",
- "verb": "reverse",
- "verbHe": "הופך סדר",
+ "verb": "bounce",
+ "verbHe": "קופץ",
  "isNewVerb": false,
  "material": "geo",
  "takes": [
-  "list"
+  "record",
+  "record"
  ],
  "gives": "geo",
  "detail": null,
@@ -19,37 +20,34 @@
  "statusHe": "🔎 עוד לא נחפר",
  "places": [
   {
-   "id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#CartSubmenu.reversed:step",
-   "project": "inner-buildsmart",
-   "source": "inner-buildsmart",
-   "name": "מחשב ערך מערכים",
-   "file": "app/src/components/menu/submenu-settings.tsx",
-   "action": "הופך סדר",
+   "id": "core:catalog/core/bounce.mjs#bounce",
+   "project": "הליבה",
+   "source": "core",
+   "name": "מחזיר גוף מהרצפה במקדם קפיצה",
+   "file": "catalog/core/bounce.mjs",
+   "action": "קופץ",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל",
-   "inside": "מציג רכיב תת-תפריט עגלה"
+   "why": "אותו פועל · שם קרוב"
   },
   {
-   "id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#HomeSubmenu.reversed:step",
-   "project": "inner-buildsmart",
-   "source": "inner-buildsmart",
-   "name": "מחשב ערך מערכים",
-   "file": "app/src/components/menu/submenu-settings.tsx",
-   "action": "הופך סדר",
-   "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל",
-   "inside": "מציג רכיב תת-תפריט בית"
+   "id": "generator:new/dart-maor/with-nedarim-hok.dart#withNedarimHok",
+   "project": "המחולל",
+   "source": "generator",
+   "name": "בנה מילוי משבצת-ההוק מחיוב-נדרים חוזר",
+   "file": "new/dart-maor/with-nedarim-hok.dart",
+   "action": "קופץ",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · שם קרוב"
   },
   {
-   "id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#ProfileTreeSubmenu.reversed:step",
-   "project": "inner-buildsmart",
-   "source": "inner-buildsmart",
-   "name": "מחשב ערך מערכים",
-   "file": "app/src/components/menu/submenu-settings.tsx",
-   "action": "הופך סדר",
-   "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל",
-   "inside": "מציג רכיב תת-תפריט עץ פרופיל"
+   "id": "orbit:src/lib/atoms/engines/generated/wall.ts#GEN_WALL",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מראה כמה גויס ולמה.",
+   "file": "src/lib/atoms/engines/generated/wall.ts",
+   "action": "קופץ",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל"
   }
  ]
 }

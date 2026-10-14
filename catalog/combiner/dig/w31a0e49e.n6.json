@@ -16,8 +16,8 @@
  "example": {
   "say": "«יער»: שריפה עוברת מעץ לעץ — אש שעוברת לשכנים בכל צעד"
  },
- "status": "mining",
- "statusHe": "⛏️ נמצא בקוד — בכרייה",
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
  "places": [
   {
    "id": "core:catalog/core/spread.mjs#spread",
