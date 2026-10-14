@@ -82,6 +82,7 @@ export function coverageMd(c) {
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) {
+  await (await import('../inner/lib/ensure-gen.mjs')).ensureGen({ quiet: true }); // החלקים הפנימיים — מהמחסן (INNER v2)
   const c = coverage();
   const out = { 'coverage.json': JSON.stringify(c, null, 2) + '\n', 'coverage.md': coverageMd(c) };
   let stale = 0;

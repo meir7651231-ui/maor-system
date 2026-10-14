@@ -3,7 +3,7 @@
  "seed": 789278,
  "k": 24,
  "k3": 24,
- "pairs": 50,
+ "pairs": 49,
  "proven": 11,
  "depth": {
   "2": 2,
@@ -150,6 +150,20 @@
     },
     {
      "steps": [
+      "inner-generator:machtzev/dart-bin.mjs#parseAnalyze.infoN"
+     ],
+     "form": "on",
+     "why": "הפלט לא בצורה שהחוקים של «מגביל לטווח» בודקים (אין קישור מתאים)"
+    },
+    {
+     "steps": [
+      "inner-generator:machtzev/dart-bin.mjs#parseAnalyze.warnN"
+     ],
+     "form": "on",
+     "why": "הפלט לא בצורה שהחוקים של «מגביל לטווח» בודקים (אין קישור מתאים)"
+    },
+    {
+     "steps": [
       "inner-generator:machtzev/generator/auto-logic.mjs#runTests.f"
      ],
      "form": "on",
@@ -158,20 +172,6 @@
     {
      "steps": [
       "inner-generator:machtzev/generator/auto-logic.mjs#runTests.f:step"
-     ],
-     "form": "on",
-     "why": "הפלט לא בצורה שהחוקים של «מגביל לטווח» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-generator:machtzev/generator/auto-logic.mjs#runTests.p"
-     ],
-     "form": "on",
-     "why": "הפלט לא בצורה שהחוקים של «מגביל לטווח» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-generator:machtzev/generator/gen-verify.mjs#parseVerify.failed:step"
      ],
      "form": "on",
      "why": "הפלט לא בצורה שהחוקים של «מגביל לטווח» בודקים (אין קישור מתאים)"
@@ -220,7 +220,7 @@
    ],
    "nBehaviors": 1,
    "candidates": 2,
-   "candidatesOn": 17,
+   "candidatesOn": 16,
    "candidates3": 24,
    "found": null,
    "tried": [
@@ -290,7 +290,7 @@
    ],
    "nBehaviors": 1,
    "candidates": 0,
-   "candidatesOn": 17,
+   "candidatesOn": 16,
    "candidates3": 0,
    "found": null,
    "tried": [
@@ -444,7 +444,7 @@
    ],
    "nBehaviors": 1,
    "candidates": 0,
-   "candidatesOn": 1,
+   "candidatesOn": 2,
    "candidates3": 0,
    "found": null,
    "tried": [
@@ -454,6 +454,14 @@
      ],
      "form": "on",
      "why": "שגיאה: אין קלט פתוח שאפשר להכניס אליו geo"
+    },
+    {
+     "steps": [
+      "inner-generator:yeshiva/read.mjs#roundTrip.lostSubject:step"
+     ],
+     "form": "on",
+     "law": "dedupe.double",
+     "why": "החוק כמעט לא חל (0 מקרים)"
     }
    ]
   },
@@ -465,7 +473,7 @@
    ],
    "nBehaviors": 1,
    "candidates": 0,
-   "candidatesOn": 1,
+   "candidatesOn": 2,
    "candidates3": 0,
    "found": null,
    "tried": [
@@ -475,6 +483,13 @@
      ],
      "form": "on",
      "why": "שגיאה: אין קלט פתוח שאפשר להכניס אליו image"
+    },
+    {
+     "steps": [
+      "inner-generator:yeshiva/read.mjs#roundTrip.lostSubject:step"
+     ],
+     "form": "on",
+     "why": "לא רץ: no-fitting-input"
     }
    ]
   },
@@ -486,7 +501,7 @@
     "זיקוקים: ניצוצות לכל כיוון"
    ],
    "nBehaviors": 2,
-   "candidates": 4,
+   "candidates": 0,
    "candidatesOn": 1,
    "candidates3": 0,
    "found": {
@@ -602,7 +617,7 @@
    ],
    "nBehaviors": 3,
    "candidates": 0,
-   "candidatesOn": 19,
+   "candidatesOn": 20,
    "candidates3": 0,
    "found": null,
    "tried": [
@@ -663,19 +678,6 @@
      "why": "אין מקרה-עד לא-טריוויאלי"
     }
    ]
-  },
-  {
-   "verb": "filter",
-   "material": "times",
-   "behaviors": [
-    "שתיית-מים: רק בשעות הערות",
-    "פעמון-דלת: לא מצלצל בלילה"
-   ],
-   "nBehaviors": 2,
-   "candidates": 0,
-   "candidates3": 0,
-   "found": null,
-   "tried": []
   },
   {
    "verb": "follow",
@@ -1204,7 +1206,7 @@
     },
     {
      "steps": [
-      "inner-orbit:src/components/courses/AttendanceSheet.tsx#AttendanceSheet.ids",
+      "inner-orbit:src/components/courses/AttendanceSheet.tsx#AttendanceSheet.ids:step",
       "orbit:src/lib/atoms/parts/next.ts#firstRun"
      ],
      "form": "chain",
@@ -1377,7 +1379,7 @@
    "tried": [
     {
      "steps": [
-      "inner-orbit:src/components/courses/AttendanceSheet.tsx#AttendanceSheet.ids",
+      "inner-orbit:src/components/courses/AttendanceSheet.tsx#AttendanceSheet.ids:step",
       "core-b:catalog/core/require-source.mjs#requireSource"
      ],
      "form": "chain",
@@ -1465,7 +1467,7 @@
    "nBehaviors": 2,
    "candidates": 4,
    "candidatesOn": 1,
-   "candidates3": 6,
+   "candidates3": 12,
    "found": null,
    "tried": [
     {
@@ -1548,7 +1550,7 @@
    "nBehaviors": 1,
    "candidates": 2,
    "candidatesOn": 1,
-   "candidates3": 4,
+   "candidates3": 8,
    "found": null,
    "tried": [
     {
@@ -1613,6 +1615,17 @@
      "form": "chain",
      "depth": 3,
      "why": "הפלט לא בצורה שהחוקים של «מחלק בתורות» בודקים (אין קישור מתאים)"
+    },
+    {
+     "steps": [
+      "inner-orbit:src/lib/imagePick.ts#pickAndCompressImage.h:step",
+      "inner-orbit:src/lib/atoms/verify/laws.ts#check.gotIso:step",
+      "inner-orbit:src/components/parnasa/phoneLine.ts#zmanimParts.dayName:step"
+     ],
+     "form": "chain",
+     "depth": 3,
+     "law": "rotate.period",
+     "why": "אחרי 7 תורות לא חזר"
     }
    ]
   },
@@ -2130,7 +2143,7 @@
     "משלוחים: לא בבית ⇒ ניסיון חוזר"
    ],
    "nBehaviors": 4,
-   "candidates": 8,
+   "candidates": 10,
    "candidatesOn": 1,
    "candidates3": 0,
    "found": {

@@ -1,6 +1,6 @@
 {
  "source": "14kk",
- "version": 1,
+ "version": 2,
  "files": 113,
  "candidates": 1797,
  "sliced": 346,
@@ -20,16 +20,18 @@
  },
  "skipped": {
   "trivial": 558,
-  "imported-call": 316,
+  "imported-namespace": 206,
   "await": 151,
   "method-call": 112,
+  "package-call": 103,
   "this": 89,
   "clock": 86,
   "dom": 39,
   "privacy": 30,
   "io": 20,
-  "loop-imported-call": 14,
+  "loop-imported-namespace": 14,
   "global": 8,
+  "imported-call": 7,
   "loop-method-call": 7,
   "mutation": 6,
   "random": 5,
@@ -39,6 +41,7 @@
   "module-state": 2,
   "global-call": 1
  },
+ "via": {},
  "topFiles": [
   [
    "knowledge_protocol.js",

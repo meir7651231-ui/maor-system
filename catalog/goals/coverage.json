@@ -6,12 +6,12 @@
   "newVerbsLeft": 0,
   "before": {
     "byVerb": 760,
-    "byVerbAndMaterial": 552,
+    "byVerbAndMaterial": 567,
     "pct": 80.9
   },
   "after": {
     "byVerb": 940,
-    "byVerbAndMaterial": 703,
+    "byVerbAndMaterial": 718,
     "pct": 100
   },
   "uncoveredAfter": [],
@@ -22,7 +22,7 @@
       "needs": 90,
       "before": 90,
       "after": 90,
-      "parts": 636
+      "parts": 716
     },
     {
       "verb": "rotate",
@@ -30,7 +30,7 @@
       "needs": 68,
       "before": 68,
       "after": 68,
-      "parts": 2
+      "parts": 3
     },
     {
       "verb": "convert",
@@ -38,7 +38,7 @@
       "needs": 53,
       "before": 53,
       "after": 53,
-      "parts": 906
+      "parts": 955
     },
     {
       "verb": "divide",
@@ -46,7 +46,7 @@
       "needs": 45,
       "before": 45,
       "after": 45,
-      "parts": 44
+      "parts": 51
     },
     {
       "verb": "next",
@@ -62,7 +62,7 @@
       "needs": 42,
       "before": 42,
       "after": 42,
-      "parts": 78
+      "parts": 89
     },
     {
       "verb": "sort",
@@ -70,7 +70,7 @@
       "needs": 38,
       "before": 38,
       "after": 38,
-      "parts": 42
+      "parts": 45
     },
     {
       "verb": "escalate",
@@ -78,7 +78,7 @@
       "needs": 37,
       "before": 37,
       "after": 37,
-      "parts": 78
+      "parts": 80
     },
     {
       "verb": "count",
@@ -86,7 +86,7 @@
       "needs": 30,
       "before": 30,
       "after": 30,
-      "parts": 173
+      "parts": 187
     },
     {
       "verb": "filter",
@@ -94,7 +94,7 @@
       "needs": 28,
       "before": 28,
       "after": 28,
-      "parts": 365
+      "parts": 403
     },
     {
       "verb": "decay",
@@ -110,7 +110,7 @@
       "needs": 27,
       "before": 27,
       "after": 27,
-      "parts": 3
+      "parts": 4
     },
     {
       "verb": "compare",
@@ -118,7 +118,7 @@
       "needs": 26,
       "before": 26,
       "after": 26,
-      "parts": 33
+      "parts": 34
     },
     {
       "verb": "countdown",
@@ -134,7 +134,7 @@
       "needs": 21,
       "before": 0,
       "after": 21,
-      "parts": 45
+      "parts": 48
     },
     {
       "verb": "oscillate",
@@ -158,7 +158,7 @@
       "needs": 20,
       "before": 20,
       "after": 20,
-      "parts": 199
+      "parts": 221
     },
     {
       "verb": "extreme",
@@ -166,7 +166,7 @@
       "needs": 20,
       "before": 20,
       "after": 20,
-      "parts": 114
+      "parts": 128
     },
     {
       "verb": "assign-role",
@@ -174,7 +174,7 @@
       "needs": 18,
       "before": 18,
       "after": 18,
-      "parts": 32
+      "parts": 44
     },
     {
       "verb": "relay",
@@ -190,7 +190,7 @@
       "needs": 17,
       "before": 17,
       "after": 17,
-      "parts": 115
+      "parts": 140
     },
     {
       "verb": "tier",
@@ -198,7 +198,7 @@
       "needs": 15,
       "before": 15,
       "after": 15,
-      "parts": 298
+      "parts": 306
     },
     {
       "verb": "dedupe",
@@ -206,7 +206,7 @@
       "needs": 14,
       "before": 14,
       "after": 14,
-      "parts": 19
+      "parts": 20
     },
     {
       "verb": "group",
@@ -230,7 +230,7 @@
       "needs": 13,
       "before": 13,
       "after": 13,
-      "parts": 74
+      "parts": 102
     },
     {
       "verb": "merge",
@@ -238,7 +238,7 @@
       "needs": 12,
       "before": 12,
       "after": 12,
-      "parts": 39
+      "parts": 45
     },
     {
       "verb": "reverse",
@@ -254,7 +254,7 @@
       "needs": 12,
       "before": 12,
       "after": 12,
-      "parts": 27
+      "parts": 28
     },
     {
       "verb": "gravity",
@@ -270,7 +270,7 @@
       "needs": 11,
       "before": 11,
       "after": 11,
-      "parts": 213
+      "parts": 244
     },
     {
       "verb": "orbit",
@@ -294,7 +294,7 @@
       "needs": 7,
       "before": 7,
       "after": 7,
-      "parts": 1074
+      "parts": 1137
     },
     {
       "verb": "lookup",
@@ -302,7 +302,7 @@
       "needs": 7,
       "before": 7,
       "after": 7,
-      "parts": 78
+      "parts": 86
     },
     {
       "verb": "round",
@@ -310,7 +310,7 @@
       "needs": 7,
       "before": 7,
       "after": 7,
-      "parts": 389
+      "parts": 429
     },
     {
       "verb": "route",
@@ -318,7 +318,7 @@
       "needs": 7,
       "before": 7,
       "after": 7,
-      "parts": 72
+      "parts": 74
     },
     {
       "verb": "shortest-path",
@@ -358,7 +358,7 @@
       "needs": 3,
       "before": 3,
       "after": 3,
-      "parts": 361
+      "parts": 378
     },
     {
       "verb": "sample",
@@ -398,7 +398,7 @@
       "needs": 1,
       "before": 1,
       "after": 1,
-      "parts": 402
+      "parts": 431
     }
   ]
 }

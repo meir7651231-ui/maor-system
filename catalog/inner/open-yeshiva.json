@@ -1,6 +1,6 @@
 {
  "source": "yeshiva",
- "version": 1,
+ "version": 2,
  "files": 2,
  "candidates": 14,
  "sliced": 10,
@@ -18,9 +18,10 @@
   "parent:cataloged": 3
  },
  "skipped": {
-  "imported-call": 2,
+  "package-call": 2,
   "trivial": 2
  },
+ "via": {},
  "topFiles": [
   [
    "harness/police.mjs",

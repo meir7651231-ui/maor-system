@@ -19,28 +19,6 @@
  "statusHe": "🔎 עוד לא נחפר",
  "places": [
   {
-   "id": "inner-generator:machtzev/assemble/data-lift.mjs#threadProps.j",
-   "project": "המחולל",
-   "source": "inner-generator",
-   "name": "מוצא את המקום של ערך",
-   "file": "machtzev/assemble/data-lift.mjs",
-   "action": "מגביל לטווח",
-   "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל · שם קרוב",
-   "inside": "threadProps"
-  },
-  {
-   "id": "inner-generator:machtzev/generator/app-ds.mjs#buildApp.liveOf0.ofI",
-   "project": "המחולל",
-   "source": "inner-generator",
-   "name": "מוצא את המקום של ערך",
-   "file": "machtzev/generator/app-ds.mjs",
-   "action": "מגביל לטווח",
-   "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל · שם קרוב",
-   "inside": "buildApp"
-  },
-  {
    "id": "inner-generator:machtzev/rethread-boxes.mjs#repairBox.pos",
    "project": "המחולל",
    "source": "inner-generator",
@@ -50,6 +28,27 @@
    "proof": "הורץ — סוג אחר",
    "why": "אותו פועל · שם קרוב",
    "inside": "repairBox"
+  },
+  {
+   "id": "buildsmart:functions/src/creditCore.ts#readCreditLimit",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "קורא אשראי",
+   "file": "functions/src/creditCore.ts",
+   "action": "מגביל לטווח",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "inner-14kk:archive/final-bridge.js#AegisSentinel.intelligentSegment.end",
+   "project": "14kk",
+   "source": "inner-14kk",
+   "name": "בוחר את הקטן מבין ערכים",
+   "file": "archive/final-bridge.js",
+   "action": "מגביל לטווח",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל",
+   "inside": "AegisSentinel.intelligentSegment"
   }
  ]
 }

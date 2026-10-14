@@ -16,6 +16,7 @@ import { loadBridge } from '../lib/load-bridge.mjs';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const CHECK = process.argv.includes('--check');
 const B = await loadBridge();
+await (await import('../inner/lib/ensure-gen.mjs')).ensureGen({ quiet: true }); // החלקים הפנימיים — מהמחסן (INNER v2)
 const files = buildAll(ROOT, B.ATOM_LAWS);
 let stale = 0;
 for (const [rel, text] of Object.entries(files)) {

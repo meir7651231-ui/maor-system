@@ -6,15 +6,17 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import ts from 'typescript';
-import { makeProgram, typeToDesc } from '../../lib/tsdesc.mjs';
+import { typeToDesc } from '../../lib/tsdesc.mjs';
+import { makeRepoProgram } from './resolve.mjs';
 import { kindOfDesc as rawKind } from '../../lib/entry.mjs';
 import { conformKind } from '../../lib/build-index.mjs';
-import { openFile, moduleText, toJs, PII } from './opener.mjs';
+import { openFile, moduleText, toJs, PII, makeRepoCtx } from './opener.mjs';
 import { nameOf, doesOf } from './name.mjs';
 import { REPOS, sourceFiles } from './repos.mjs';
+import { packParts, storeText } from './store.mjs';
 import { unwrap, symbolOf, isValueRef } from './purity.mjs';
 
-export const INNER_VERSION = 1;
+export const INNER_VERSION = 2; // v2: מעקב-ייבוא · עוזרים-סגורים · namespace · מחסן דחוס
 /** סוג מהמילון המשותף (אחרי יישור: record:Foo-bar ⇒ record:fooBar; לא מוכר ⇒ unknown). */
 const kindOfDesc = (d, n) => conformKind(rawKind(d, n));
 const ARITH = new Set([ts.SyntaxKind.MinusToken, ts.SyntaxKind.AsteriskToken, ts.SyntaxKind.SlashToken, ts.SyntaxKind.PercentToken, ts.SyntaxKind.AsteriskAsteriskToken,
@@ -86,8 +88,11 @@ export function buildSource(ROOT, SRC, source) {
     if (!sha || !head.startsWith(sha.slice(0, 7))) return { missing: `השכפול ב-${head.slice(0, 7) || '?'} ולא ב-${sha.slice(0, 7)} (ה-ref של המפקד)` };
   }
   const rels = sourceFiles(base, R.roots);
-  const program = makeProgram(rels.map((r) => path.join(base, r)), { noResolve: false });
+  const program = makeRepoProgram(rels.map((r) => path.join(base, r)), base);
   const checker = program.getTypeChecker();
+  // v2: עוזרים מקבצים אחרים — רק מקבצי-המקור של הריפו עצמו (אותה רשימה שהפותח קורא)
+  const repoSfs = new Set(rels.map((r) => program.getSourceFile(path.join(base, r))).filter(Boolean));
+  const repo = makeRepoCtx(program, (x) => repoSfs.has(x));
   const catalogued = new Set(catDoc.parts.map((p) => p.path + '#' + p.symbol));
   const repoName = catDoc.repo;
   const files = {};
@@ -99,7 +104,7 @@ export function buildSource(ROOT, SRC, source) {
     const sf = program.getSourceFile(path.join(base, rel));
     if (!sf) continue;
     let r;
-    try { r = openFile({ program, sf }); } catch (err) { skips['opener-error'] = (skips['opener-error'] ?? 0) + 1; void err; continue; }
+    try { r = openFile({ program, sf, repo }); } catch (err) { skips['opener-error'] = (skips['opener-error'] ?? 0) + 1; void err; continue; }
     candidates += r.candidates;
     for (const [k, v] of Object.entries(r.skips)) skips[k] = (skips[k] ?? 0) + v;
     if (!r.lifts.length) continue;
@@ -145,7 +150,7 @@ export function buildSource(ROOT, SRC, source) {
         id: `inner-${source}:${rel}#${L.symbol}`, source: `inner-${source}`, path: rel, symbol: L.symbol, lang, what: 'inner',
         name: nameOf(L), does: doesOf(L),
         takes: takes.map((t) => ({ name: t.name, kind: kindOfDesc(t.d, t.name), type: t.type })), gives, pure: true, example: null,
-        tags: [`inner:${L.kind}`, `form:${L.form}`, isCat ? 'parent:cataloged' : 'parent:uncataloged', `gen:${genRel}#${exp}`],
+        tags: [`inner:${L.kind}`, `form:${L.form}`, isCat ? 'parent:cataloged' : 'parent:uncataloged', `gen:${genRel}#${exp}`, ...(L.foreign ? ['via:import'] : []), ...(L.closures && L.closures.size ? ['via:closure'] : [])],
         parent: `${R.catalog}:${rel}#${parentSym}`,
         origins: [{ repo: repoName, file: rel, line: L.line, what: `${L.kind}:${L.value}` }],
       });
@@ -160,12 +165,17 @@ export function buildSource(ROOT, SRC, source) {
   parts.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
   const doc = { source: `inner-${source}`, repo: repoName, ref: catDoc.ref, generatedAt: null, parts };
   files[`catalog/sources/inner-${source}.json`] = JSON.stringify(doc, null, 1) + '\n';
+  // v2: מה שנכנס לריפו = המחסן הדחוס (lib/store.mjs); הקובץ הפרוש נוצר לפי דרישה (ensure-gen) — ביט-זהה
+  const packed = packParts(doc, { short: source, catalog: R.catalog });
+  files[`catalog/inner/store/parts-${source}.json`] = storeText(packed.store);
   const stats = {
     source, version: INNER_VERSION, files: rels.length, candidates, sliced, parts: parts.length, modules: perFile.length,
     forms: sortObj(parts.reduce((o, p) => { const k = p.tags.find((t) => t.startsWith('form:')); o[k] = (o[k] ?? 0) + 1; return o; }, {})),
     kinds: sortObj(parts.reduce((o, p) => { const k = p.tags.find((t) => t.startsWith('inner:')); o[k] = (o[k] ?? 0) + 1; return o; }, {})),
     parents: sortObj(parts.reduce((o, p) => { const k = p.tags.find((t) => t.startsWith('parent:')); o[k] = (o[k] ?? 0) + 1; return o; }, {})),
     skipped: sortObj(skips),
+    via: sortObj(parts.reduce((o, p) => { for (const t of p.tags) if (t.startsWith('via:')) o[t] = (o[t] ?? 0) + 1; return o; }, {})),
+    ...(packed.overrides ? { storeOverrides: packed.overrides } : {}),
     topFiles: perFile.sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1)).slice(0, 15),
   };
 

@@ -11,6 +11,7 @@ import { writeFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { assemble, askChips, findGoal, pickWord, recipeFrom, kindHe, actionOf, whereLine, STATUS_HE, STATUS_ORDER, PROJECTS, VERB_HE } from './core.mjs';
 import { CATALOG, HERE, loadGoals, loadIndex } from './load.mjs';
+await (await import('../inner/lib/ensure-gen.mjs')).ensureGen({ quiet: true }); // INNER v2: בשכפול טרי — החלקים הפנימיים נפרשים לפני שהמילה מורכבת
 
 const args = process.argv.slice(2);
 const flag = (f) => args.includes(f);

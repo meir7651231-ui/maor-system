@@ -33,12 +33,14 @@ const NS_PURE = {
 };
 const STR = new Set(['slice', 'substring', 'substr', 'split', 'trim', 'trimStart', 'trimEnd', 'padStart', 'padEnd', 'toUpperCase', 'toLowerCase', 'replace', 'replaceAll',
   'includes', 'indexOf', 'lastIndexOf', 'startsWith', 'endsWith', 'charAt', 'charCodeAt', 'codePointAt', 'concat', 'repeat', 'match', 'matchAll', 'search', 'normalize',
-  'localeCompare', 'at', 'toString', 'valueOf', 'toLocaleUpperCase', 'toLocaleLowerCase']);
+  'localeCompare', 'at', 'toString', 'valueOf', 'toLocaleUpperCase', 'toLocaleLowerCase', 'isWellFormed', 'toWellFormed']);
 const NUM = new Set(['toFixed', 'toPrecision', 'toString', 'valueOf', 'toExponential', 'toLocaleString']);
 const ARR = new Set(['map', 'filter', 'reduce', 'reduceRight', 'slice', 'concat', 'join', 'find', 'findIndex', 'findLast', 'findLastIndex', 'some', 'every', 'includes',
-  'indexOf', 'lastIndexOf', 'flat', 'flatMap', 'at', 'keys', 'values', 'entries', 'forEach', 'toSorted', 'toReversed', 'with', 'toString']);
+  'indexOf', 'lastIndexOf', 'flat', 'flatMap', 'at', 'keys', 'values', 'entries', 'forEach', 'toSorted', 'toReversed', 'with', 'toString', 'toSpliced']);
 const MUT = new Set(['push', 'pop', 'shift', 'unshift', 'splice', 'sort', 'reverse', 'fill', 'copyWithin', 'set', 'add', 'delete', 'clear']);
-const MAPSET = new Set(['get', 'has', 'keys', 'values', 'entries', 'forEach']);
+const MAPSET = new Set(['get', 'has', 'keys', 'values', 'entries', 'forEach',
+  // v2: מתודות-קבוצה שמחזירות קבוצה חדשה / כן-לא (ES2025), על Set שהמהדר מוכיח
+  'union', 'intersection', 'difference', 'symmetricDifference', 'isSubsetOf', 'isSupersetOf', 'isDisjointFrom']);
 const DATE = /^(get[A-Z]\w*|toISOString|toJSON|valueOf|getTime|toDateString|toUTCString|toLocaleDateString|toLocaleTimeString|toLocaleString)$/;
 const REGEX = new Set(['test', 'exec']);
 /** כשאין טיפוס (JS בלי JSDoc): שמות שטהורים כמעט בכל מקבל. */
@@ -135,7 +137,16 @@ function recvKind(checker, e) {
   try { t = checker.getTypeAtLocation(e); } catch { return 'any'; }
   if (!t) return 'any';
   const F = ts.TypeFlags;
-  const one = (x) => {
+  const one = (x) => kindOfType(checker, x);
+  if (t.isUnion && t.isUnion()) {
+    const ks = [...new Set(t.types.filter((x) => !(x.flags & (F.Null | F.Undefined | F.Void))).map(one))];
+    return ks.length === 1 ? ks[0] : ks.includes('any') ? 'any' : 'mixed';
+  }
+  return one(t);
+}
+function kindOfType(checker, x) {
+  const F = ts.TypeFlags;
+  {
     if (x.flags & (F.Any | F.Unknown)) return 'any';
     if (x.flags & F.StringLike) return 'str';
     if (x.flags & F.NumberLike) return 'num';
@@ -147,12 +158,7 @@ function recvKind(checker, e) {
     if (n === 'String') return 'str';
     if (n === 'Array' || n === 'ReadonlyArray') return 'arr';
     return 'obj';
-  };
-  if (t.isUnion && t.isUnion()) {
-    const ks = [...new Set(t.types.filter((x) => !(x.flags & (F.Null | F.Undefined | F.Void))).map(one))];
-    return ks.length === 1 ? ks[0] : ks.includes('any') ? 'any' : 'mixed';
   }
-  return one(t);
 }
 
 /**
@@ -250,7 +256,12 @@ function callWhy(n, ctx, canMutate) {
       if (callee.text === 'Date') return 'clock';
       return 'global-call';
     }
-    if (c.k === 'import') return 'imported-call';
+    if (c.k === 'import') {
+      // v2: עוזר מקובץ אחר באותו ריפו — אותם חוקים, בהקשר של הקובץ שלו
+      const f = ctx.foreign && ctx.foreign(s, callee.text);
+      if (f) return f.why ?? (f.fnLike ? ctx.helper(f.decl) : 'imported-state');
+      return 'imported-call';
+    }
     if (c.k === 'fn') return ctx.helper(c.decl);
     if (c.k === 'var') {
       const init = c.vd.initializer && unwrap(c.vd.initializer);
@@ -273,7 +284,14 @@ function callWhy(n, ctx, canMutate) {
       }
       if (c.k === 'global' && WORLD_GLOBALS[recv.text]) return WORLD_GLOBALS[recv.text];
       if (c.k === 'global' && recv.text === 'Date' && m === 'now') return 'clock';
-      if (c.k === 'import') return 'imported-call';
+      if (c.k === 'import') {
+        // X.f(): חבילה ⇒ package-call · אובייקט מקובץ שלנו ⇒ imported-method · `import * as X` ⇒ imported-namespace
+        const ns = ctx.nsCall && ctx.nsCall(recv, s);
+        if (ns) return ns.why ?? (ns.fnLike ? ctx.helper(ns.decl) : 'imported-state');
+        const f = ctx.foreign && ctx.foreign(s, recv.text);
+        if (f && f.why) return f.why;
+        return f ? 'imported-method' : ctx.foreign ? 'imported-namespace' : 'imported-call';
+      }
     }
     if (ts.isPropertyAccessExpression(recv) && ts.isIdentifier(recv.expression) && recv.expression.text === 'performance') return 'clock';
     if (MUT.has(m)) {
@@ -283,6 +301,26 @@ function callWhy(n, ctx, canMutate) {
     }
     if (m === 'then' || m === 'catch' || m === 'finally') return 'await';
     const k = recvKind(checker, recv);
+    // v2: תאריך מקומי-טרי (new Date(x)) — מותר לכוון אותו (setDate…); תאריך של מישהו אחר — שינוי מבחוץ
+    if (k === 'date' && DATE_SET.test(m)) return canMutate(recv) ? null : 'mutation';
+    // v2: איחוד שהמהדר מוכיח (string | string[]) — טהור רק אם המתודה טהורה לכל אחד מהם
+    if (k === 'mixed') { const ks = recvKinds(checker, recv); if (ks.length && ks.every((x) => PROVEN.has(x) && methodRes(x, m) === null)) return null; }
+    return methodRes(k, m);
+  }
+  return 'unknown-call';
+}
+const PROVEN = new Set(['str', 'num', 'arr', 'mapset', 'date']);
+const DATE_SET = /^set(Date|FullYear|Month|Hours|Minutes|Seconds|Milliseconds|Time|UTCDate|UTCFullYear|UTCMonth|UTCHours|UTCMinutes|UTCSeconds|UTCMilliseconds)$/;
+/** הסוגים של איחוד (בלי null/undefined), או [] כשלא הוכח. */
+function recvKinds(checker, e) {
+  let t;
+  try { t = checker.getTypeAtLocation(e); } catch { return []; }
+  if (!t || !(t.isUnion && t.isUnion())) return [];
+  const F = ts.TypeFlags;
+  return [...new Set(t.types.filter((x) => !(x.flags & (F.Null | F.Undefined | F.Void))).map((x) => kindOfType(checker, x)))];
+}
+function methodRes(k, m) {
+  {
     if (k === 'str') return STR.has(m) ? null : 'method-call';
     if (k === 'num') return NUM.has(m) ? null : 'method-call';
     if (k === 'arr') return ARR.has(m) ? null : 'method-call';

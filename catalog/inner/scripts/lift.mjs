@@ -108,6 +108,7 @@ function motionMats(p, mo) {
 
 const isMain = process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1]);
 if (isMain) {
+  await (await import('../lib/ensure-gen.mjs')).ensureGen({ quiet: true }); // v2: הקבצים הפרושים לא בריפו
   const text = JSON.stringify(computeLift(), null, 1) + '\n';
   const file = path.join(ROOT, 'catalog/inner/lift.json');
   if (CHECK) { if (!fs.existsSync(file) || fs.readFileSync(file, 'utf8') !== text) { console.error('✗ catalog/inner/lift.json לא מעודכן — הרץ: node catalog/inner/scripts/lift.mjs'); process.exit(1); } console.log('✓ lift.json מעודכן'); }

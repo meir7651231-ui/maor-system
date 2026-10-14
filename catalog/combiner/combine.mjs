@@ -31,6 +31,7 @@ import { assemble, fit, provenAs, adapterRole, ADAPTER_VERBS } from './core.mjs'
 import { SHAPE_KINDS, materialDesc } from '../lib/kind-shape.mjs';
 import { HERE, CATALOG, loadGoals, loadIndex, loadParts, loadRecipes } from './load.mjs';
 import { runGraph, graphProblem, graphParts } from './graph.mjs';
+await (await import('../inner/lib/ensure-gen.mjs')).ensureGen({ quiet: true }); // INNER v2: gen/ והקבצים הפנימיים הפרושים נוצרים לפי דרישה
 
 const ROOT = path.resolve(CATALOG, '..');
 export const SEED = 0x0c0b1e;

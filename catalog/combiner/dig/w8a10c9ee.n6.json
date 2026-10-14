@@ -29,7 +29,7 @@
    "why": "אותו פועל"
   },
   {
-   "id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#action.tail",
+   "id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#action.tail:step",
    "project": "בנייה חכמה",
    "source": "inner-buildsmart",
    "name": "בוחר ערך לפי תנאי",

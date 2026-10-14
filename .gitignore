@@ -23,3 +23,9 @@ e2e/shots-kh/
 e2e/shots-swarm/
 e2e/shots-mob/
 e2e/proof-shots/
+
+# 🔓 פותח-הפונקציות (INNER v2): נוצרים לפי דרישה — node catalog/inner/lib/ensure-gen.mjs
+# (המחסן catalog/inner/store/* · המניפסט · החבילות catalog/inner/pack/* — כן בריפו)
+catalog/inner/gen/
+catalog/sources/inner-*.json
+catalog/behavior/inner-*.json

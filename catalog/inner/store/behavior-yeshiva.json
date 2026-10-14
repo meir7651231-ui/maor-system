@@ -1,0 +1,18 @@
+{
+"v": 1,
+"kind": "behavior",
+"head": {"source":"inner-yeshiva","ref":"main@598f0d827df10c2940a20d6fb21d48cd0582936b","probe":{"version":1,"seed":13269520,"generatedAt":null},"totals":{"run":10,"runWithVerb":4,"twin":0,"static":0,"staticWithVerb":0,"why":{},"withMotion":0}},
+"aligned": true,
+"traits": ["in[str]>bool const","in[bool,bool|num|str]>bool|nil","in[bool|num]>bool|nil|num real+","in[str]>set const","in[bool|num|str,bool|num|str]>arr|nil","in[str]>num int"],
+"rows": [
+["r",[{"id":"normalize","on":"c","holds":"10/10"},{"id":"format","on":"c","holds":"13/13"}],"normalize","unknown",10,-1,0,"fef26ceb-9c38f311"],
+["r",[{"id":"round","on":"k","holds":"11/11"}],"round","unknown",13],
+["r",[{"id":"format","on":"f","holds":"15/15"}],"format","unknown",24,-1,0,"fef26ceb-ab04456b"],
+["r",[],null,"unknown",15,0],
+["r",[],null,"bool",18,1],
+["r",[],null,"unknown",10,2,0,"fef26ceb-69b001ba"],
+["r",[],null,"unknown",11,3],
+["r",[],null,"unknown",24,4,0,"a29d061d-1d3c0157"],
+["r",[{"id":"round","on":"k","holds":"11/11"}],"round","unknown",10],
+["r",[],null,"unknown",11,5,0,"fef26ceb-a38ebd08"]
+]}

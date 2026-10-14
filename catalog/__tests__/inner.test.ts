@@ -7,6 +7,9 @@
  * 5. צופי-התנועה: החוקים נושכים (סינוס ⇒ מתנדנד; רעש ⇒ כלום; קו יורד עם רצפה ⇒ סופר לאחור).
  * 6. הקורא מעודכן: הוכחה מחדש של המודולים של ארבעת המקומות = בדיוק השורות שבקובץ.
  * 7. פרטיות: אין מייל/טלפון/ת״ז/טוקן ב-gen, במקורות ובהתנהגות הפנימיים.
+ * 8. v2 · מעקב-ייבוא בתוך הריפו (טרנזיטיבי · כינוי · namespace · מעגל · תקרת-עומק · עוזר לא-טהור · חבילה · קבוע שמשתנה
+ *    מקובץ אחר) + עוזר-סגור + מתודות שהמהדר מוכיח (setDate על תאריך טרי · Set.union) — על פרויקט-סינתטי, מורץ.
+ * 9. v2 · המחסן הדחוס: פרישה = הקבצים הפרושים ביט-אחר-ביט · החבילות תואמות למניפסט · משקל-הריפו של הפנימיים < 10MB.
  */
 import { describe, it, expect } from 'vitest';
 import { readFileSync, existsSync, readdirSync, writeFileSync, mkdtempSync, rmSync } from 'node:fs';
@@ -17,7 +20,10 @@ import { validateSource } from '../lib/check.mjs';
 import { makeProgram } from '../lib/tsdesc.mjs';
 import { bundleFile, loadInSandbox } from '../lib/sandbox.mjs';
 import { VERBS } from '../lib/verbs.mjs';
-import { openFile, PII } from '../inner/lib/opener.mjs';
+import { openFile, PII, makeRepoCtx, moduleText, toJs, exportName, MAX_HOPS } from '../inner/lib/opener.mjs';
+import { makeRepoProgram } from '../inner/lib/resolve.mjs';
+import { packParts, unpackParts, packBehavior, unpackBehavior, docText } from '../inner/lib/store.mjs';
+import { readManifest, manifestEntry, readPack, hashOf, storePath, packPath, genDir } from '../inner/lib/ensure-gen.mjs';
 import { buildSource } from '../inner/lib/build.mjs';
 import { seriesTraits, motionOf } from '../inner/lib/motion.mjs';
 import { readSigs } from '../inner/lib/sigs.mjs';
@@ -29,7 +35,7 @@ import { literalPool } from '../lib/tsdesc.mjs';
 
 const ROOT = join(__dirname, '..', '..');
 const SEED = 0x0ca7a10;
-const INNER = Object.keys(REPOS).filter((s) => existsSync(join(ROOT, 'catalog/sources', `inner-${s}.json`)));
+const INNER = Object.keys(REPOS).filter((s) => existsSync(join(ROOT, 'catalog/inner/store', `parts-${s}.json`)));
 const src = (s: string) => JSON.parse(readFileSync(join(ROOT, 'catalog/sources', `inner-${s}.json`), 'utf8'));
 const beh = (s: string) => JSON.parse(readFileSync(join(ROOT, 'catalog/behavior', `inner-${s}.json`), 'utf8'));
 type Part = { id: string; symbol: string; path: string; name: string; takes: { name: string; kind: string }[]; gives: { kind: string }; tags: string[]; parent: string; origins: { line: number }[] };
@@ -128,16 +134,20 @@ describe('פותח-הפונקציות — ארבעת המקומות', () => {
 });
 
 describe('פותח-הפונקציות — המנגנון', () => {
-  it('דטרמיניסטי ומעודכן: בנייה מחדש של אורביט = הקבצים שבריפו (catalog/inner/scripts/open.mjs --check)', () => {
+  it('דטרמיניסטי ומעודכן: בנייה מחדש של אורביט = המחסן, המונים והחתימות שבריפו (catalog/inner/scripts/open.mjs --check)', () => {
     const a = buildSource(ROOT, '', 'orbit');
     const b = buildSource(ROOT, '', 'orbit');
     expect(Object.keys(a.files)).toEqual(Object.keys(b.files));
-    for (const [rel, text] of Object.entries(a.files)) {
-      expect(text === b.files[rel], rel + ' לא דטרמיניסטי').toBe(true);
-      expect(readFileSync(join(ROOT, rel), 'utf8') === text, rel + ' לא מעודכן — node catalog/inner/scripts/open.mjs --source orbit').toBe(true);
+    for (const [rel, text] of Object.entries(a.files)) expect(text === b.files[rel], rel + ' לא דטרמיניסטי').toBe(true);
+    // בריפו: המחסן + המונים — זהים לבנייה
+    for (const rel of [storePath('parts', 'orbit'), 'catalog/inner/open-orbit.json']) {
+      expect(readFileSync(join(ROOT, rel), 'utf8') === a.files[rel], rel + ' לא מעודכן — node catalog/inner/scripts/open.mjs --source orbit').toBe(true);
     }
-    const gen = readdirSync(join(ROOT, 'catalog/inner/gen/orbit'), { recursive: true }).filter((f) => String(f).endsWith('.mjs')).map((f) => 'catalog/inner/gen/orbit/' + String(f).split('\\').join('/'));
-    expect(gen.sort()).toEqual(Object.keys(a.files).filter((f) => f.startsWith('catalog/inner/gen/')).sort());
+    // המודולים לא בריפו — החתימות שלהם כן
+    const gen = Object.fromEntries(Object.entries(a.files).filter(([rel]) => rel.startsWith(genDir('orbit') + '/')));
+    expect(manifestEntry('orbit', gen)).toEqual(readManifest(ROOT).sources.orbit.files);
+    // הקובץ הפרוש = פרישת המחסן = הבנייה
+    expect(docText(unpackParts(JSON.parse(a.files[storePath('parts', 'orbit')]))) === a.files['catalog/sources/inner-orbit.json']).toBe(true);
   }, 180_000);
 
   it('סיבות-דילוג נכונות, ותלות לא-טהורה נחתכת לקלט (הזרקה)', () => {
@@ -267,5 +277,117 @@ describe('פרטיות', () => {
       const text = readFileSync(f, 'utf8').split('\n').filter((l) => !/"ref":/.test(l)).join('\n');
       for (const re of PII) expect(re.test(text), f + ' ' + re).toBe(false);
     }
+  });
+});
+
+describe('v2 · מעקב-ייבוא בתוך הריפו (פרויקט-סינתטי, מורץ)', () => {
+  it('עוזר מקובץ אחר נכנס (טרנזיטיבי · כינוי · namespace · מעגל) — ועוזר לא-טהור / חבילה / עומק-יתר / קבוע-שמשתנה נשארים בחוץ עם סיבה', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'inner2-'));
+    try {
+      const W = (f: string, t: string) => writeFileSync(join(dir, f), t);
+      W('util.ts', `export const RATE = 3;
+function bump(x: number) { return x > 10 ? 1 : 0; }
+export function scale(x: number) { return x * RATE + bump(x); }
+export const fmt = (n: number) => n.toFixed(1);
+export function readDisk(p: string) { return localStorage.getItem(p); }
+export function addDay(ms: number) { const t = new Date(ms); t.setDate(t.getDate() + 1); return t.getTime(); }
+export const REG = [1, 2];
+export function total() { return REG.length; }
+`);
+      W('cyc-a.ts', `import { isOdd } from './cyc-b';\nexport function isEven(n: number): boolean { return n === 0 ? true : isOdd(n - 1); }\n`);
+      W('cyc-b.ts', `import { isEven } from './cyc-a';\nexport function isOdd(n: number): boolean { return n === 0 ? false : isEven(n - 1); }\n`);
+      for (let i = 0; i <= MAX_HOPS + 1; i++) W(`d${i}.ts`, i <= MAX_HOPS ? `import { f${i + 1} } from './d${i + 1}';\nexport function f${i}(x: number): number { return f${i + 1}(x) + 1; }\n` : `export function f${i}(x: number): number { return x; }\n`);
+      W('main.ts', `import { scale, fmt as format, readDisk, addDay, total, REG } from './util';
+import * as U from './util';
+import { isEven } from './cyc-a';
+import { f0 } from './d0';
+import { useState } from 'react';
+REG.push(3);
+export function main(a: number, b: Set<number>, c: Set<number>) {
+  const viaImport = scale(a) + 1;
+  const viaAlias = format(a / 2);
+  const viaNs = U.scale(a) * 2;
+  const viaCycle = isEven(a) ? 1 : 0;
+  const tooDeep = f0(a) + 1;
+  const impure = readDisk('k') + a;
+  const pkg = useState(a)[0] + 1;
+  const mutated = total() + a;
+  const off = 2;
+  const add = (x: number) => x + off + a;
+  const viaClosure = add(3) * 2;
+  const nextDay = addDay(a) - a;
+  const both = b.union(c).size + 0;
+  return [viaImport, viaAlias, viaNs, viaCycle, tooDeep, impure, pkg, mutated, viaClosure, nextDay, both];
+}
+`);
+      const files = ['util.ts', 'cyc-a.ts', 'cyc-b.ts', 'main.ts', ...Array.from({ length: MAX_HOPS + 2 }, (_, i) => `d${i}.ts`)].map((f) => join(dir, f));
+      const program = makeRepoProgram(files, dir);
+      const mine = new Set(files.map((f) => program.getSourceFile(f)));
+      const sf = program.getSourceFile(join(dir, 'main.ts'))!;
+      const r = openFile({ program, sf, repo: makeRepoCtx(program, (x: unknown) => mine.has(x as never)) });
+      const by = (v: string) => r.lifts.filter((L: { value: string; form: string }) => L.value === v && L.form === 'slice');
+      for (const v of ['viaImport', 'viaAlias', 'viaNs', 'viaCycle', 'viaClosure', 'nextDay', 'both']) expect(by(v), v).toHaveLength(1);
+      for (const v of ['tooDeep', 'impure', 'pkg', 'mutated']) expect(by(v), v).toHaveLength(0);
+      for (const k of ['import-depth', 'io', 'package-call', 'module-state']) expect(r.skips[k], k).toBeGreaterThan(0);
+      expect(by('viaImport')[0].foreign).toBe(true);
+      expect(by('viaClosure')[0].params.map((p: { name: string }) => p.name)).toEqual(['a']); // off = קבוע מילולי; a = קלט
+      // המודול: נטען ורץ — אותה תשובה כמו הקוד המקורי
+      const mod = moduleText(r.lifts, sf, '// t');
+      expect(mod.text).toContain('const format = fmt;');
+      expect(mod.text).toMatch(/const U = \{ scale \};/);
+      const genFile = join(dir, 'gen.mjs');
+      writeFileSync(genFile, toJs(mod.text, false));
+      const m = loadInSandbox(await bundleFile(genFile, { esm: true })).exports;
+      const call = (v: string, ...xs: unknown[]) => m[exportName(by(v)[0].symbol)](...xs);
+      expect(call('viaImport', 12)).toBe(12 * 3 + 1 + 1);
+      expect(call('viaAlias', 5)).toBe('2.5');
+      expect(call('viaNs', 2)).toBe(12);
+      expect([call('viaCycle', 4), call('viaCycle', 7)]).toEqual([1, 0]);
+      expect(call('viaClosure', 10)).toBe(30);
+      expect(call('nextDay', Date.UTC(2026, 9, 14))).toBe(86_400_000);
+      expect(call('both', new Set([1, 2]), new Set([2, 3]))).toBe(3);
+    } finally { rmSync(dir, { recursive: true, force: true }); }
+  }, 60_000);
+});
+
+describe('v2 · המחסן הדחוס והמודולים לפי דרישה', () => {
+  it('פרישת המחסן = הקבצים הפרושים ביט-אחר-ביט; קידוד-מחדש = אותו מחסן; 0 שדות-עקיפה', () => {
+    for (const s of INNER) {
+      const store = JSON.parse(readFileSync(join(ROOT, storePath('parts', s)), 'utf8'));
+      const doc = unpackParts(store);
+      expect(docText(doc) === readFileSync(join(ROOT, 'catalog/sources', `inner-${s}.json`), 'utf8'), s).toBe(true);
+      const again = packParts(doc, { short: s, catalog: REPOS[s].catalog });
+      expect(again.overrides, s).toBe(0);
+      expect(JSON.stringify(again.store)).toBe(JSON.stringify(store));
+      const bs = JSON.parse(readFileSync(join(ROOT, storePath('behavior', s)), 'utf8'));
+      const ids = doc.parts.map((p: { id: string }) => p.id);
+      expect(docText(unpackBehavior(bs, ids)) === readFileSync(join(ROOT, 'catalog/behavior', `inner-${s}.json`), 'utf8'), s).toBe(true);
+      expect(packBehavior(unpackBehavior(bs, ids), ids).overrides, s).toBe(0);
+    }
+  });
+
+  it('המניפסט: כל מודול על הדיסק תואם לחתימה; החבילות של הריפואים החיצוניים תואמות למניפסט; לאורביט אין חבילה', () => {
+    const man = readManifest(ROOT);
+    for (const s of INNER) {
+      const e = man.sources[s];
+      expect(e, s).toBeTruthy();
+      for (const [k, h] of Object.entries(e.files)) expect(hashOf(readFileSync(join(ROOT, genDir(s), k + '.mjs'), 'utf8')), k).toBe(h);
+      if (REPOS[s].dir) {
+        expect(e.pack).toBe(packPath(s));
+        const files = JSON.parse(readPack(ROOT, s)!);
+        expect(Object.keys(files).sort()).toEqual(Object.keys(e.files).sort());
+        for (const [k, t] of Object.entries(files)) expect(hashOf(t as string), k).toBe(e.files[k]);
+      } else expect(existsSync(join(ROOT, packPath(s)))).toBe(false);
+    }
+  });
+
+  it('משקל-הריפו של הפנימיים < 10MB (המודולים והקבצים הפרושים — gitignored)', () => {
+    const size = (rel: string) => { try { return readFileSync(join(ROOT, rel)).length; } catch { return 0; } };
+    const dirFiles = (rel: string) => (existsSync(join(ROOT, rel)) ? readdirSync(join(ROOT, rel)).map((f) => rel + '/' + f) : []);
+    const committed = [...dirFiles('catalog/inner/store'), ...dirFiles('catalog/inner/pack'), ...readdirSync(join(ROOT, 'catalog/inner')).filter((f) => f.endsWith('.json')).map((f) => 'catalog/inner/' + f)];
+    const total = committed.reduce((s, f) => s + size(f), 0);
+    expect(total).toBeLessThan(10 * 1024 * 1024);
+    const ig = readFileSync(join(ROOT, '.gitignore'), 'utf8');
+    for (const p of ['catalog/inner/gen/', 'catalog/sources/inner-*.json', 'catalog/behavior/inner-*.json']) expect(ig).toContain(p);
   });
 });

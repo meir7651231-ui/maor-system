@@ -59,6 +59,8 @@
 | `rule` | כלל/בדיקה/תבנית שאינם פונקציה (regex, טבלת-כללים, סכמה) · a rule, table or schema that is not a function |
 | `inner` | ערך-בדרך שהורם מתוך פונקציה גדולה יותר (פותח-הפונקציות, `catalog/inner/`) — פונקציה טהורה עומדת-בפני-עצמה. עם `parent` (מזהה החלק-ההורה) ו-`origins` (`[{repo, file, line, what}]`) · an intermediate value lifted out of a bigger function |
 
+**איפה הם בריפו (INNER v2, 14.10.2026):** קובצי-ה-Part של החלקים הפנימיים (`catalog/sources/inner-*.json`) וקובצי-ההתנהגות שלהם (`catalog/behavior/inner-*.json`) **לא נשמרים בריפו** — הם עומדים בחוזה הזה בדיוק כמו קודם (אותה סכמה, אותם שדות, ביט-זהים), אבל נוצרים לפי דרישה ע"י `node catalog/inner/lib/ensure-gen.mjs` (כל צרכן קורא לו לפני שהוא קורא אותם; הבדיקות — ב-globalSetup). בריפו נשמר **המחסן הדחוס** `catalog/inner/store/<parts|behavior>-<source>.json` (`lib/store.mjs`): שורה לכל חלק, רק מה שלא נגזר — `id`/`source`/`lang`/`what`/`pure`/`example`, תגית-`gen:`, `parent`, `origins.repo/file/what` ו-`does` נגזרים בפרישה; טיפוסים, שמות ותכונות — במילון לכל קובץ. כל שורה מאומתת בכתיבה (פרישה ⇒ אותו JSON), ושדה שלא נגזר נכון נשמר במפורש. **הסכמה לא השתנתה.** · Inner Part files are generated on demand (identical bytes, same schema); the repo keeps a compact, verified store.
+
 ### `lang`
 
 `ts` TypeScript · `js` JavaScript (`.js`/`.mjs`) · `dart` · `py` · `json` (נתונים/סכמה) · `machine` — תיאור הצהרתי (כרטיס-מנוע, טבלה) שאינו קוד-להרצה · a declarative description, not runnable code.

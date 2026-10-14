@@ -1,116 +1,125 @@
 {
  "source": "orbit",
- "version": 1,
+ "version": 2,
  "files": 503,
  "candidates": 16613,
- "sliced": 4785,
- "parts": 5970,
- "modules": 399,
+ "sliced": 6600,
+ "parts": 8426,
+ "modules": 424,
  "forms": {
-  "form:slice": 4785,
-  "form:step": 1185
+  "form:slice": 6600,
+  "form:step": 1826
  },
  "kinds": {
-  "inner:value": 5600,
-  "inner:accumulator": 368,
+  "inner:value": 7926,
+  "inner:accumulator": 498,
   "inner:envelope": 2
  },
  "parents": {
-  "parent:uncataloged": 4142,
-  "parent:cataloged": 1828
+  "parent:uncataloged": 6149,
+  "parent:cataloged": 2277
  },
  "skipped": {
-  "imported-call": 6414,
   "trivial": 3201,
-  "method-call": 468,
-  "unknown-call": 311,
-  "loop-imported-call": 269,
-  "await": 255,
-  "closure-helper": 141,
-  "mutation": 107,
-  "clock": 84,
-  "io": 72,
-  "loop-mutation": 63,
-  "loop-method-call": 61,
-  "dom": 59,
-  "imported-value": 52,
-  "loop-unknown-call": 34,
-  "jsx": 31,
+  "package-call": 2670,
+  "imported-state": 1378,
+  "method-call": 611,
+  "unknown-call": 411,
+  "await": 259,
+  "mutation": 246,
+  "clock": 194,
+  "imported-method": 134,
+  "loop-mutation": 115,
+  "name-clash": 102,
+  "loop-method-call": 90,
+  "io": 83,
+  "module-state": 79,
+  "privacy": 62,
+  "dom": 60,
+  "loop-unknown-call": 55,
+  "new": 42,
+  "jsx": 32,
+  "random": 31,
   "timer": 30,
-  "random": 29,
   "loop-return": 26,
-  "module-state": 26,
-  "new": 23,
   "loop-await": 20,
-  "loop-closure-helper": 20,
+  "loop-clock": 17,
+  "imported-call": 15,
+  "loop-module-state": 14,
+  "loop-imported-state": 10,
   "global": 8,
-  "loop-clock": 7,
+  "shadowed-name": 8,
+  "loop-imported-method": 7,
   "loop-new": 5,
   "loop-random": 5,
-  "loop-module-state": 4,
-  "privacy": 2,
+  "loop-package-call": 3,
+  "imported-namespace": 2,
   "global-call": 1
+ },
+ "via": {
+  "via:import": 2418,
+  "via:closure": 334
  },
  "topFiles": [
   [
    "src/store/useApp.ts",
-   188
-  ],
-  [
-   "src/lib/atoms/verify/run.ts",
-   139
+   243
   ],
   [
    "src/components/supporters/lib.ts",
-   124
+   182
+  ],
+  [
+   "src/lib/atoms/verify/run.ts",
+   141
   ],
   [
    "src/components/parnasa/zmanimBoard.ts",
-   121
+   123
   ],
   [
    "src/components/parnasa/phoneLine.ts",
-   96
-  ],
-  [
-   "src/lib/atoms/preview.ts",
-   77
-  ],
-  [
-   "src/lib/nedarimSync.ts",
-   73
-  ],
-  [
-   "telephony/lib/zmanim.mjs",
-   73
-  ],
-  [
-   "src/components/hosting/actions.ts",
-   72
-  ],
-  [
-   "src/lib/atoms/goal.ts",
-   71
-  ],
-  [
-   "src/components/parnasa/lib.ts",
-   65
-  ],
-  [
-   "src/components/home/homeData.ts",
-   64
+   120
   ],
   [
    "src/lib/atoms/previewZmanim.ts",
-   64
+   112
   ],
   [
-   "telephony/lib/generate.mjs",
-   63
+   "src/components/home/homeData.ts",
+   104
+  ],
+  [
+   "src/components/supporters/SupportersView.tsx",
+   104
+  ],
+  [
+   "src/components/hosting/actions.ts",
+   99
   ],
   [
    "src/components/home/widgets.tsx",
-   62
+   98
+  ],
+  [
+   "src/lib/atoms/verify/laws.ts",
+   97
+  ],
+  [
+   "src/lib/atoms/goal.ts",
+   93
+  ],
+  [
+   "src/lib/atoms/previewWhatNeed.ts",
+   93
+  ],
+  [
+   "src/components/parnasa/lib.ts",
+   92
+  ],
+  [
+   "src/lib/config.ts",
+   91
   ]
  ]
 }
