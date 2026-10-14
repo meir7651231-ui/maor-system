@@ -87,3 +87,33 @@
 - **מתכונים משותפים** (`rankByRecipes`) — שרת + הכרעת-פרטיות.
 - הרחבת המילון (`GOAL_LEXICON`) מנתוני-אמת; צ׳יפי-חלון 7/30/90 ל"מה היה קורה"; מסך "מה מחובר אצלי" (`impactsFor`).
 - (אופציונלי) הצמדת `lib/config` ל-persist ב-build (§5).
+
+## תיקון משקל-ההפעלה (W) — 14.10.2026
+**הבעיה (§5):** ה-chunks העצלים החדשים (מתאם-המסלול, מנוע-ההשפעה) צורכים את `lib/config` (דרך `match`/`featureOn`) בלי persist ⇒
+rolldown הוציא את config מ-persist ל-chunk-הפעלה משלו: ‏+497B gzip ובקשה נוספת **לכל ארגון**, גם לארגון שלא הדליק את הארגז.
+**התיקון (build בלבד, אפס שינוי-התנהגות):** קבוצת `codeSplitting` ב-`vite.config.ts` — `persist` לוכדת את `store/persist.ts`+`lib/config.ts`
+ותלויותיהם; `linkShape` בעדיפות גבוהה יותר נשאר נפרד כמו לפני. התוצאה: **chunk-ה-persist ביט-זהה ל-b063a79** (אותו hash ‏`persist-BFm3gRXI`),
+ובכל רשימת-הנכסים ההבדל היחיד מול לפני-התיקון = `config` נעלם.
+
+מדידה: `zlib.gzipSync` פר-chunk; chunks-ההפעלה = `<script>` + `modulepreload` ב-`dist/index.html`.
+
+| chunk-הפעלה | b063a79 | לפני התיקון (fb2c6a1) | אחרי |
+|---|---|---|---|
+| index | 158,597 | 158,675 | 158,656 |
+| rolldown-runtime | 422 | 422 | 422 |
+| **config** | — | **6,100** | **—** |
+| linkShape | 352 | 352 | 352 |
+| persist | 21,981 | 16,300 | 21,981 (ביט-זהה) |
+| cloud-diff | 1,046 | 1,046 | 1,046 |
+| cloud-merge | 1,486 | 1,486 | 1,486 |
+| preload-helper | 1,114 | 1,113 | 1,114 |
+| jsx-runtime | 62,144 | 62,145 | 62,148 |
+| **בקשות-הפעלה** | **8** | **9** | **8** |
+| **סה״כ gzip** | **247,142** | **247,639 (+497)** | **247,205 (+63)** |
+
+(ה-index זז בכמה בייטים בין builds בגלל חותמת `__BUILD_ID__`; ה-+56 על index = הפניות-chunk של הארגז, כבר ב-§5.)
+נבחנה גם קבוצה בלי linkShape — 7 בקשות ו-246,937B (−205), אבל מאחדת את linkShape; נבחר המבנה הזהה ל-b063a79.
+
+**ratchet:** `scripts/bundle-budget.mjs` (postbuild) נכשל אם chunk ‏`config-*` מופיע בין chunks-ההפעלה (`FORBIDDEN_STARTUP`; אומת: נכשל על
+ה-dist הישן, עובר על החדש) + `src/lib/__tests__/startup-chunks.test.ts` (הגנת-מקור על הקבוצה ועל השומר).
+**שערים:** verify ‏(443 קבצים · 3806 בדיקות) ✅ · `npm run e2e` מטריצה ירוקה ✅ · `e2e/enginebox-smoke.mjs` ‏54/54 ✅.

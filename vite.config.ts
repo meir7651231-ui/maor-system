@@ -28,4 +28,22 @@ export default defineConfig({
   base: './',
   define: { __BUILD_ID__: JSON.stringify(BUILD_ID) },
   plugins: [react(), versionFile()],
+  build: {
+    rolldownOptions: {
+      output: {
+        /**
+         * משקל-ההפעלה (W, 14.10.2026): ה-chunks העצלים של ארגז-המנועים (מתאם-המסלול, מנוע-ההשפעה) צורכים את
+         * `lib/config` בלי persist ⇒ rolldown פיצל את config ל-chunk-הפעלה משלו (+494B gzip ובקשה נוספת לכל ארגון).
+         * הקבוצה מצמידה את persist+config (ותלויותיהם) ל-chunk אחד — ביט-זהה ל-persist של b063a79.
+         * linkShape נשאר נפרד (כמו לפני), בעדיפות גבוהה יותר. נעול: src/lib/__tests__/startup-chunks.test.ts + scripts/bundle-budget.mjs.
+         */
+        codeSplitting: {
+          groups: [
+            { name: 'linkShape', test: /[\\/]src[\\/]lib[\\/]enginebox[\\/]linkShape\.ts$/, priority: 2 },
+            { name: 'persist', test: /[\\/]src[\\/](store[\\/]persist|lib[\\/]config)\.ts$/, priority: 1 },
+          ],
+        },
+      },
+    },
+  },
 })

@@ -31,4 +31,21 @@ if (gz > ENTRY_GZIP_BUDGET) {
   );
   process.exit(1);
 }
-console.log(`✅ bundle-budget: ‏${entry} = ${gz.toLocaleString('en-US')}B gzip (${pct}% מהתקרה)`);
+
+/**
+ * משקל-ההפעלה (W, 14.10.2026): chunks שאסור שיופיעו בהפעלה (<script> + modulepreload ב-index.html).
+ * `config` — rolldown פיצל את lib/config מ-persist כשצרכן-עצל חדש ייבא אותו בלי persist (+494B ובקשה לכל
+ * ארגון). התיקון בקבוצת codeSplitting ב-vite.config; כאן — הפלט עצמו.
+ */
+const FORBIDDEN_STARTUP = ['config'];
+const startup = [...new Set([...html.matchAll(/assets\/([^"']+\.js)/g)].map((x) => x[1]))];
+const bad = startup.filter((f) => FORBIDDEN_STARTUP.some((n) => f.startsWith(n + '-')));
+if (bad.length) {
+  console.error(
+    `❌ bundle-budget: chunk-הפעלה אסור — ${bad.join(', ')}. ‏lib/config נפרד מ-persist ` +
+      '(בקשה נוספת לכל ארגון) — לבדוק את קבוצת codeSplitting ב-vite.config, לא להוסיף chunk-הפעלה.',
+  );
+  process.exit(1);
+}
+
+console.log(`✅ bundle-budget: ‏${entry} = ${gz.toLocaleString('en-US')}B gzip (${pct}% מהתקרה) · ${startup.length} chunks-הפעלה`);
