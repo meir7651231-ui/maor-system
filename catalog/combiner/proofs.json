@@ -1,0 +1,371 @@
+{
+ "seed": 20261014,
+ "n": 400,
+ "flowN": 200,
+ "parts": {
+  "orbit:src/components/parnasa/zmanimBoard.ts#hmToMin": {
+   "status": "proven",
+   "cases": 1440,
+   "checks": 1440,
+   "laws": [
+    "convert.roundtrip"
+   ]
+  },
+  "orbit:src/components/parnasa/zmanimBoard.ts#minToHm": {
+   "status": "proven",
+   "cases": 1440,
+   "checks": 1440,
+   "laws": [
+    "convert.roundtrip"
+   ]
+  },
+  "orbit:src/lib/atoms/parts/divide.ts#divideAmount": {
+   "status": "proven",
+   "cases": 100,
+   "checks": 100,
+   "laws": [
+    "divide.amount.equal",
+    "divide.amount.sum"
+   ]
+  },
+  "orbit:src/lib/atoms/parts/divide.ts#divideSpan": {
+   "status": "proven",
+   "cases": 200,
+   "checks": 200,
+   "laws": [
+    "divide.parts.count-cover",
+    "divide.parts.equal",
+    "divide.size.exact",
+    "divide.size.maximal"
+   ]
+  },
+  "orbit:src/lib/atoms/parts/divide.ts#pointsAt": {
+   "status": "proven",
+   "cases": 100,
+   "checks": 100,
+   "laws": [
+    "divide.points.formula"
+   ]
+  },
+  "orbit:src/lib/atoms/parts/escalate.ts#escalationPlan": {
+   "status": "proven",
+   "cases": 400,
+   "checks": 400,
+   "laws": [
+    "escalate.answered",
+    "escalate.nobody-skipped",
+    "escalate.plan",
+    "escalate.state"
+   ]
+  },
+  "orbit:src/lib/atoms/parts/escalate.ts#escalationState": {
+   "status": "proven",
+   "cases": 400,
+   "checks": 400,
+   "laws": [
+    "escalate.answered",
+    "escalate.nobody-skipped",
+    "escalate.plan",
+    "escalate.state"
+   ]
+  },
+  "orbit:src/lib/atoms/parts/fuzzy.ts#fuzzyFind": {
+   "status": "proven",
+   "cases": 400,
+   "checks": 400,
+   "laws": [
+    "fuzzy.far",
+    "fuzzy.finds",
+    "fuzzy.rank"
+   ]
+  },
+  "orbit:src/lib/atoms/parts/fuzzy.ts#normHe": {
+   "status": "proven",
+   "cases": 400,
+   "checks": 400,
+   "laws": [
+    "fuzzy.far",
+    "fuzzy.finds",
+    "fuzzy.rank"
+   ]
+  },
+  "orbit:src/lib/atoms/parts/fuzzy.ts#wordScore": {
+   "status": "proven",
+   "cases": 400,
+   "checks": 400,
+   "laws": [
+    "fuzzy.far",
+    "fuzzy.finds",
+    "fuzzy.rank"
+   ]
+  },
+  "orbit:src/lib/atoms/parts/merge.ts#mergeRuns": {
+   "status": "proven",
+   "cases": 400,
+   "checks": 400,
+   "laws": [
+    "merge.cover",
+    "merge.gaps",
+    "merge.shape"
+   ]
+  },
+  "orbit:src/lib/atoms/parts/next.ts#firstRun": {
+   "status": "proven",
+   "cases": 200,
+   "checks": 200,
+   "laws": [
+    "next.firstRun"
+   ]
+  },
+  "orbit:src/lib/atoms/parts/next.ts#nextAfter": {
+   "status": "proven",
+   "cases": 200,
+   "checks": 200,
+   "laws": [
+    "next.earliest",
+    "next.future"
+   ]
+  },
+  "orbit:src/lib/atoms/parts/offset.ts#hhmmToMinutes": {
+   "status": "proven",
+   "cases": 133,
+   "checks": 133,
+   "laws": [
+    "offset.relative"
+   ]
+  },
+  "orbit:src/lib/atoms/parts/offset.ts#offsetAll": {
+   "status": "proven",
+   "cases": 267,
+   "checks": 267,
+   "laws": [
+    "offset.calendar",
+    "offset.exact"
+   ]
+  },
+  "orbit:src/lib/atoms/parts/offset.ts#resolveRelative": {
+   "status": "proven",
+   "cases": 133,
+   "checks": 133,
+   "laws": [
+    "offset.relative"
+   ]
+  },
+  "orbit:src/lib/atoms/parts/rotate.ts#dayIndex": {
+   "status": "proven",
+   "cases": 200,
+   "checks": 200,
+   "laws": [
+    "rotate.days"
+   ]
+  },
+  "orbit:src/lib/atoms/parts/rotate.ts#fairAssign": {
+   "status": "proven",
+   "cases": 200,
+   "checks": 200,
+   "laws": [
+    "rotate.assign",
+    "rotate.fair",
+    "rotate.order"
+   ]
+  },
+  "orbit:src/lib/atoms/parts/rotate.ts#turnIndex": {
+   "status": "proven",
+   "cases": 200,
+   "checks": 200,
+   "laws": [
+    "rotate.assign",
+    "rotate.fair",
+    "rotate.order"
+   ]
+  },
+  "orbit:src/lib/atoms/parts/rotate.ts#turnOf": {
+   "status": "proven",
+   "cases": 200,
+   "checks": 200,
+   "laws": [
+    "rotate.assign",
+    "rotate.fair",
+    "rotate.order"
+   ]
+  },
+  "orbit:src/lib/atoms/parts/round.ts#roundTo": {
+   "status": "proven",
+   "cases": 400,
+   "checks": 400,
+   "laws": [
+    "round.direction",
+    "round.idempotent",
+    "round.multiple"
+   ]
+  },
+  "orbit:telephony/lib/zmanim.mjs#sunrise": {
+   "status": "proven",
+   "cases": 400,
+   "checks": 1600,
+   "laws": [
+    "sun.deterministic",
+    "sun.hhmm",
+    "sun.order",
+    "sun.season"
+   ]
+  },
+  "orbit:telephony/lib/zmanim.mjs#sunset": {
+   "status": "proven",
+   "cases": 400,
+   "checks": 1600,
+   "laws": [
+    "sun.deterministic",
+    "sun.hhmm",
+    "sun.order",
+    "sun.season"
+   ]
+  }
+ },
+ "flows": {
+  "orbit:src/components/parnasa/zmanimBoard.ts#hmToMin>orbit:src/lib/atoms/parts/next.ts#nextAfter": {
+   "status": "proven",
+   "cases": 200,
+   "laws": [
+    "next.earliest",
+    "next.future"
+   ]
+  },
+  "orbit:src/components/parnasa/zmanimBoard.ts#hmToMin>orbit:src/lib/atoms/parts/offset.ts#offsetAll": {
+   "status": "proven",
+   "cases": 200,
+   "laws": [
+    "offset.exact"
+   ]
+  },
+  "orbit:src/components/parnasa/zmanimBoard.ts#hmToMin>orbit:src/lib/atoms/parts/round.ts#roundTo": {
+   "status": "proven",
+   "cases": 200,
+   "laws": [
+    "round.direction",
+    "round.idempotent",
+    "round.multiple"
+   ]
+  },
+  "orbit:src/components/parnasa/zmanimBoard.ts#minToHm>orbit:src/lib/atoms/parts/next.ts#nextAfter": {
+   "status": "proven",
+   "cases": 200,
+   "laws": [
+    "next.earliest",
+    "next.future"
+   ]
+  },
+  "orbit:src/components/parnasa/zmanimBoard.ts#minToHm>orbit:src/lib/atoms/parts/offset.ts#offsetAll": {
+   "status": "proven",
+   "cases": 200,
+   "laws": [
+    "offset.exact"
+   ]
+  },
+  "orbit:src/components/parnasa/zmanimBoard.ts#minToHm>orbit:src/lib/atoms/parts/round.ts#roundTo": {
+   "status": "proven",
+   "cases": 200,
+   "laws": [
+    "round.direction",
+    "round.idempotent",
+    "round.multiple"
+   ]
+  },
+  "orbit:src/lib/atoms/parts/next.ts#nextAfter>orbit:src/lib/atoms/parts/offset.ts#offsetAll": {
+   "status": "proven",
+   "cases": 147,
+   "laws": [
+    "offset.exact"
+   ]
+  },
+  "orbit:src/lib/atoms/parts/next.ts#nextAfter>orbit:src/lib/atoms/parts/round.ts#roundTo": {
+   "status": "proven",
+   "cases": 149,
+   "laws": [
+    "round.direction",
+    "round.idempotent",
+    "round.multiple"
+   ]
+  },
+  "orbit:src/lib/atoms/parts/offset.ts#offsetAll>orbit:src/lib/atoms/parts/next.ts#nextAfter": {
+   "status": "proven",
+   "cases": 200,
+   "laws": [
+    "next.earliest",
+    "next.future"
+   ]
+  },
+  "orbit:src/lib/atoms/parts/offset.ts#offsetAll>orbit:src/lib/atoms/parts/round.ts#roundTo": {
+   "status": "proven",
+   "cases": 200,
+   "laws": [
+    "round.direction",
+    "round.idempotent",
+    "round.multiple"
+   ]
+  },
+  "orbit:src/lib/atoms/parts/round.ts#roundTo>orbit:src/lib/atoms/parts/next.ts#nextAfter": {
+   "status": "proven",
+   "cases": 200,
+   "laws": [
+    "next.earliest",
+    "next.future"
+   ]
+  },
+  "orbit:src/lib/atoms/parts/round.ts#roundTo>orbit:src/lib/atoms/parts/offset.ts#offsetAll": {
+   "status": "proven",
+   "cases": 200,
+   "laws": [
+    "offset.exact"
+   ]
+  },
+  "orbit:telephony/lib/zmanim.mjs#sunrise>orbit:src/lib/atoms/parts/next.ts#nextAfter": {
+   "status": "proven",
+   "cases": 200,
+   "laws": [
+    "next.earliest",
+    "next.future"
+   ]
+  },
+  "orbit:telephony/lib/zmanim.mjs#sunrise>orbit:src/lib/atoms/parts/offset.ts#offsetAll": {
+   "status": "proven",
+   "cases": 200,
+   "laws": [
+    "offset.exact"
+   ]
+  },
+  "orbit:telephony/lib/zmanim.mjs#sunrise>orbit:src/lib/atoms/parts/round.ts#roundTo": {
+   "status": "proven",
+   "cases": 200,
+   "laws": [
+    "round.direction",
+    "round.idempotent",
+    "round.multiple"
+   ]
+  },
+  "orbit:telephony/lib/zmanim.mjs#sunset>orbit:src/lib/atoms/parts/next.ts#nextAfter": {
+   "status": "proven",
+   "cases": 200,
+   "laws": [
+    "next.earliest",
+    "next.future"
+   ]
+  },
+  "orbit:telephony/lib/zmanim.mjs#sunset>orbit:src/lib/atoms/parts/offset.ts#offsetAll": {
+   "status": "proven",
+   "cases": 200,
+   "laws": [
+    "offset.exact"
+   ]
+  },
+  "orbit:telephony/lib/zmanim.mjs#sunset>orbit:src/lib/atoms/parts/round.ts#roundTo": {
+   "status": "proven",
+   "cases": 200,
+   "laws": [
+    "round.direction",
+    "round.idempotent",
+    "round.multiple"
+   ]
+  }
+ }
+}

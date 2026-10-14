@@ -1,0 +1,611 @@
+{
+ "about": "מטרות-בדיקה של המצרף (fixtures) — עד שמילון-המטרות (catalog/goals/*.json) מתמזג. כל צורך = פועל + חומר. בלי עולם: העולם מגיע מהמילה.",
+ "goals": [
+  {
+   "id": "sunflower",
+   "word": "חמנייה",
+   "aliases": [
+    "חמניה",
+    "חמניות"
+   ],
+   "title": "פרח שפונה אחרי השמש, גדל יום אחרי יום ופורח רק כשהכול עובר",
+   "needs": [
+    {
+     "id": "sun",
+     "group": "פונה אחרי השמש",
+     "behavior": "יודעת מתי השמש זורחת ושוקעת",
+     "verb": "sun-position",
+     "material": "times"
+    },
+    {
+     "id": "next-sunrise",
+     "group": "פונה אחרי השמש",
+     "behavior": "מחכה לזריחה הבאה",
+     "verb": "next",
+     "material": "times"
+    },
+    {
+     "id": "turn-back",
+     "group": "פונה אחרי השמש",
+     "behavior": "חוזרת מזרחה שעה אחרי השקיעה",
+     "verb": "offset",
+     "material": "times",
+     "detail": "+60 דקות"
+    },
+    {
+     "id": "small-steps",
+     "group": "פונה אחרי השמש",
+     "behavior": "זזה בצעדים קטנים",
+     "verb": "round",
+     "material": "number",
+     "detail": "צעד של 5°"
+    },
+    {
+     "id": "azimuth",
+     "group": "פונה אחרי השמש",
+     "behavior": "יודעת לאיזה כיוון השמש (אזימוט)",
+     "verb": "sun-position",
+     "material": "number",
+     "keys": [
+      "כיוון",
+      "אזימוט",
+      "azimuth"
+     ],
+     "from": "geo",
+     "detail": "מעלות מהצפון",
+     "example": {
+      "in": {
+       "date": "2026-06-21",
+       "lat": 31.78,
+       "lon": 35.23,
+       "time": "12:00"
+      },
+      "out": 180
+     }
+    },
+    {
+     "id": "golden",
+     "group": "ספירלת הגרעינים",
+     "behavior": "מחלקת את המעגל בזווית הזהב",
+     "verb": "divide",
+     "material": "sequence",
+     "detail": "137.5°"
+    },
+    {
+     "id": "next-slot",
+     "group": "ספירלת הגרעינים",
+     "behavior": "כל גרעין חדש תופס את המקום הבא",
+     "verb": "rotate",
+     "material": "sequence"
+    },
+    {
+     "id": "snapshot",
+     "group": "גדלה יום אחרי יום",
+     "behavior": "שומרת צילום של כל יום",
+     "verb": "daily-snapshot",
+     "material": "list"
+    },
+    {
+     "id": "streak",
+     "group": "גדלה יום אחרי יום",
+     "behavior": "מחברת רצף של ימי גדילה",
+     "verb": "merge",
+     "material": "sequence"
+    },
+    {
+     "id": "stages",
+     "group": "גדלה יום אחרי יום",
+     "behavior": "נבט ⇒ גבעול ⇒ ניצן ⇒ פרח ⇒ גרעינים",
+     "verb": "rank-tiers",
+     "material": "record"
+    },
+    {
+     "id": "bloom-gate",
+     "group": "פורחת רק כשהכול עובר",
+     "behavior": "לא פורחת אם בדיקה אחת נכשלת",
+     "verb": "gate",
+     "material": "bool"
+    },
+    {
+     "id": "bees-ask",
+     "group": "דבורים",
+     "behavior": "דבורה שואלת פרח אחרי פרח",
+     "verb": "round-robin",
+     "material": "sequence"
+    },
+    {
+     "id": "bees-pace",
+     "group": "דבורים",
+     "behavior": "לא מהר מדי",
+     "verb": "pace",
+     "material": "bool"
+    },
+    {
+     "id": "bees-escalate",
+     "group": "דבורים",
+     "behavior": "אין צוף ⇒ לפרח הבא",
+     "verb": "escalate",
+     "material": "sequence"
+    },
+    {
+     "id": "field-hub",
+     "group": "שדה",
+     "behavior": "השמש היא המרכז שכולם פונים אליו",
+     "verb": "hub-relay",
+     "material": "record"
+    },
+    {
+     "id": "field-shade",
+     "group": "שדה",
+     "behavior": "פרח בצל שומר על הכיוון האחרון",
+     "verb": "tolerate-failure",
+     "material": "list"
+    },
+    {
+     "id": "diary",
+     "group": "יומן",
+     "behavior": "יומן של הפרח",
+     "verb": "transcript",
+     "material": "text"
+    }
+   ]
+  },
+  {
+   "id": "alarm",
+   "word": "שעון מעורר",
+   "aliases": [
+    "מעורר"
+   ],
+   "title": "מעיר בזמן, נותן נודניק, ולא מצלצל בשבת",
+   "needs": [
+    {
+     "id": "next-alarm",
+     "behavior": "מוצא את הצלצול הבא",
+     "verb": "next",
+     "material": "times"
+    },
+    {
+     "id": "snooze",
+     "behavior": "נודניק — עוד 9 דקות",
+     "verb": "offset",
+     "material": "times",
+     "detail": "+9 דקות"
+    },
+    {
+     "id": "minute",
+     "behavior": "מעגל את שעת הצלצול לדקות שלמות",
+     "verb": "round",
+     "material": "number",
+     "from": "times"
+    },
+    {
+     "id": "quiet",
+     "behavior": "לא מצלצל כשאסור",
+     "verb": "gate",
+     "material": "bool"
+    },
+    {
+     "id": "show",
+     "behavior": "מציג את השעה יפה",
+     "verb": "format",
+     "material": "text"
+    }
+   ]
+  },
+  {
+   "id": "beehive",
+   "word": "כוורת",
+   "title": "כוורת שמחלקת עבודה בין הדבורים",
+   "needs": [
+    {
+     "id": "cells",
+     "behavior": "מחלקת את החלה לתאים שווים",
+     "verb": "divide",
+     "material": "sequence"
+    },
+    {
+     "id": "shifts",
+     "behavior": "כל דבורה בתורה",
+     "verb": "rotate",
+     "material": "sequence"
+    },
+    {
+     "id": "roles",
+     "behavior": "פועלת · זכר · מלכה",
+     "verb": "assign-role",
+     "material": "list"
+    },
+    {
+     "id": "count",
+     "behavior": "סופרת כמה דבורים חזרו",
+     "verb": "count",
+     "material": "number"
+    },
+    {
+     "id": "no-answer",
+     "behavior": "אין צוף ⇒ שולחת לשדה הבא",
+     "verb": "escalate",
+     "material": "sequence"
+    }
+   ]
+  },
+  {
+   "id": "traffic-light",
+   "word": "רמזור",
+   "title": "אדום ⇒ ירוק ⇒ צהוב בתורות, עם זמנים קבועים",
+   "needs": [
+    {
+     "id": "colors",
+     "behavior": "הצבעים מתחלפים בתורות",
+     "verb": "rotate",
+     "material": "sequence"
+    },
+    {
+     "id": "next-change",
+     "behavior": "מתי ההחלפה הבאה",
+     "verb": "next",
+     "material": "times"
+    },
+    {
+     "id": "delay",
+     "behavior": "מאריך ירוק בכמה שניות",
+     "verb": "offset",
+     "material": "times"
+    },
+    {
+     "id": "safety",
+     "behavior": "לא שני ירוקים יחד",
+     "verb": "gate",
+     "material": "bool"
+    }
+   ]
+  },
+  {
+   "id": "library",
+   "word": "ספרייה",
+   "aliases": [
+    "ספריה"
+   ],
+   "title": "מוצאת ספר גם עם טעות, ממיינת ורושמת השאלות",
+   "needs": [
+    {
+     "id": "find",
+     "behavior": "מוצאת ספר גם עם טעות כתיב",
+     "verb": "fuzzy",
+     "material": "text"
+    },
+    {
+     "id": "shelf",
+     "behavior": "ממיינת לפי הסדר",
+     "verb": "sort",
+     "material": "list"
+    },
+    {
+     "id": "dupes",
+     "behavior": "בלי עותקים כפולים בקטלוג",
+     "verb": "dedupe",
+     "material": "list"
+    },
+    {
+     "id": "sections",
+     "behavior": "מקבצת למדפים לפי נושא",
+     "verb": "group",
+     "material": "list"
+    },
+    {
+     "id": "loans",
+     "behavior": "רושמת מי השאיל",
+     "verb": "transcript",
+     "material": "text"
+    }
+   ]
+  },
+  {
+   "id": "recipe-scale",
+   "word": "מתכון",
+   "aliases": [
+    "עוגה"
+   ],
+   "title": "מתכון שגדל לפי מספר הסועדים",
+   "needs": [
+    {
+     "id": "portions",
+     "behavior": "מחלק את הכמות למנות",
+     "verb": "divide",
+     "material": "list"
+    },
+    {
+     "id": "round-cups",
+     "behavior": "מעגל לחצי כוס",
+     "verb": "round",
+     "material": "number"
+    },
+    {
+     "id": "units",
+     "behavior": "ממיר כפות לגרמים",
+     "verb": "convert",
+     "material": "number"
+    },
+    {
+     "id": "total",
+     "behavior": "מחשב סך הכול",
+     "verb": "sum",
+     "material": "number"
+    },
+    {
+     "id": "card",
+     "behavior": "כותב כרטיס מתכון",
+     "verb": "format",
+     "material": "text"
+    }
+   ]
+  },
+  {
+   "id": "lighthouse",
+   "word": "מגדלור",
+   "title": "נדלק בשקיעה, מהבהב בקצב, ממשיך גם כשנורה נשרפת",
+   "needs": [
+    {
+     "id": "dusk",
+     "behavior": "יודע מתי השמש שוקעת",
+     "verb": "sun-position",
+     "material": "times",
+     "group": "נדלק בשקיעה"
+    },
+    {
+     "id": "light-on",
+     "behavior": "נדלק רבע שעה לפני השקיעה",
+     "verb": "offset",
+     "material": "times",
+     "group": "נדלק בשקיעה"
+    },
+    {
+     "id": "beam",
+     "behavior": "האלומה מסתובבת בתורות",
+     "verb": "rotate",
+     "material": "sequence",
+     "group": "מאיר את הים"
+    },
+    {
+     "id": "flash",
+     "behavior": "מהבהב בקצב קבוע",
+     "verb": "pace",
+     "material": "bool",
+     "group": "מאיר את הים"
+    },
+    {
+     "id": "spare",
+     "behavior": "נורה נשרפה ⇒ ממשיך עם הרזרבית",
+     "verb": "tolerate-failure",
+     "material": "list",
+     "group": "מאיר את הים"
+    }
+   ]
+  },
+  {
+   "id": "exam",
+   "word": "מבחן",
+   "title": "בודק, סוכם, מדרג ורושם ציונים",
+   "needs": [
+    {
+     "id": "check",
+     "behavior": "בודק כל תשובה",
+     "verb": "compare",
+     "material": "bool"
+    },
+    {
+     "id": "score",
+     "behavior": "מחשב ציון",
+     "verb": "sum",
+     "material": "number"
+    },
+    {
+     "id": "grade",
+     "behavior": "נכשל · עובר · מצטיין",
+     "verb": "rank-tiers",
+     "material": "record"
+    },
+    {
+     "id": "best",
+     "behavior": "מוצא את הציון הגבוה",
+     "verb": "minmax",
+     "material": "number"
+    },
+    {
+     "id": "sheet",
+     "behavior": "רושם את הציונים",
+     "verb": "transcript",
+     "material": "text"
+    }
+   ]
+  },
+  {
+   "id": "clinic-queue",
+   "word": "תור",
+   "aliases": [
+    "תור לרופא"
+   ],
+   "title": "תור שזז קדימה, מזכיר, ומעביר הלאה כשלא עונים",
+   "needs": [
+    {
+     "id": "next-patient",
+     "behavior": "מי הבא בתור",
+     "verb": "next",
+     "material": "times"
+    },
+    {
+     "id": "no-show",
+     "behavior": "לא ענה ⇒ הבא",
+     "verb": "escalate",
+     "material": "sequence"
+    },
+    {
+     "id": "fair",
+     "behavior": "כל רופא בתורו",
+     "verb": "round-robin",
+     "material": "sequence"
+    },
+    {
+     "id": "spacing",
+     "behavior": "מרווח בין תורים",
+     "verb": "pace",
+     "material": "bool"
+    },
+    {
+     "id": "log",
+     "behavior": "יומן ביקורים",
+     "verb": "transcript",
+     "material": "text"
+    }
+   ]
+  },
+  {
+   "id": "laundry",
+   "word": "כביסה",
+   "title": "מחלקת למכונות, בתורות, ומודיעה מתי מוכן",
+   "needs": [
+    {
+     "id": "loads",
+     "behavior": "מחלקת את הכביסה למכונות",
+     "verb": "divide",
+     "material": "sequence"
+    },
+    {
+     "id": "turns",
+     "behavior": "כל דייר בתורו",
+     "verb": "rotate",
+     "material": "sequence"
+    },
+    {
+     "id": "ready",
+     "behavior": "מתי המכונה הבאה מתפנה",
+     "verb": "next",
+     "material": "times"
+    },
+    {
+     "id": "dry",
+     "behavior": "מייבש = עוד שעה",
+     "verb": "offset",
+     "material": "times"
+    },
+    {
+     "id": "broken",
+     "behavior": "מכונה תקולה ⇒ מדלגים עליה",
+     "verb": "tolerate-failure",
+     "material": "list"
+    }
+   ]
+  },
+  {
+   "id": "choir",
+   "word": "מקהלה",
+   "title": "מחלקת קולות, מושיבה לפי קבוצות ושומרת על הקצב",
+   "needs": [
+    {
+     "id": "voices",
+     "behavior": "סופרן · אלט · טנור · בס",
+     "verb": "assign-role",
+     "material": "list"
+    },
+    {
+     "id": "rows",
+     "behavior": "מקבצת לשורות לפי קול",
+     "verb": "group",
+     "material": "list"
+    },
+    {
+     "id": "solo",
+     "behavior": "סולו בתורות",
+     "verb": "rotate",
+     "material": "sequence"
+    },
+    {
+     "id": "tempo",
+     "behavior": "שומרת על הקצב",
+     "verb": "pace",
+     "material": "bool"
+    },
+    {
+     "id": "ready",
+     "behavior": "לא עולים לבמה אם מישהו חסר",
+     "verb": "gate",
+     "material": "bool"
+    }
+   ]
+  },
+  {
+   "id": "phonebook",
+   "word": "ספר טלפונים",
+   "title": "אנשי קשר בלי כפולים, ממוינים, ומוצאים גם עם טעות",
+   "needs": [
+    {
+     "id": "find",
+     "behavior": "מוצא שם גם עם טעות",
+     "verb": "fuzzy",
+     "material": "text"
+    },
+    {
+     "id": "dupes",
+     "behavior": "מאחד כפולים",
+     "verb": "dedupe",
+     "material": "list"
+    },
+    {
+     "id": "abc",
+     "behavior": "ממיין לפי א״ב",
+     "verb": "sort",
+     "material": "list"
+    },
+    {
+     "id": "card",
+     "behavior": "כותב כרטיס יפה",
+     "verb": "format",
+     "material": "text"
+    }
+   ]
+  },
+  {
+   "id": "sunflower-field",
+   "word": "שדה חמניות",
+   "aliases": [
+    "שדה"
+   ],
+   "title": "הרבה חמניות שכולן פונות לאותה שמש",
+   "needs": [
+    {
+     "id": "flower",
+     "behavior": "כל פרח בשדה הוא חמנייה (מהמדף)",
+     "verb": "recipe",
+     "material": "record",
+     "keys": [
+      "חמנייה"
+     ]
+    },
+    {
+     "id": "rows",
+     "behavior": "מחלק את השדה לשורות",
+     "verb": "divide",
+     "material": "sequence"
+    },
+    {
+     "id": "water",
+     "behavior": "משקה שורה אחרי שורה, בתורות",
+     "verb": "rotate",
+     "material": "sequence"
+    },
+    {
+     "id": "shade",
+     "behavior": "פרח בצל לא עוצר את השדה",
+     "verb": "tolerate-failure",
+     "material": "list"
+    },
+    {
+     "id": "hub",
+     "behavior": "השמש היא המרכז של כל השדה",
+     "verb": "hub-relay",
+     "material": "record"
+    }
+   ]
+  }
+ ]
+}

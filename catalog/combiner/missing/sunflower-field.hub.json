@@ -1,0 +1,13 @@
+{
+ "goal": "sunflower-field",
+ "word": "שדה חמניות",
+ "need": "hub",
+ "behavior": "השמש היא המרכז של כל השדה",
+ "verb": "hub-relay",
+ "verbHe": "עובר דרך מרכז",
+ "material": "record",
+ "takes": [],
+ "gives": "record",
+ "detail": null,
+ "example": null
+}

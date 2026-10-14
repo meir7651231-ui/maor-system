@@ -1,0 +1,127 @@
+{
+ "id": "sunflower",
+ "word": "חמנייה",
+ "title": "פרח שפונה אחרי השמש, גדל יום אחרי יום ופורח רק כשהכול עובר",
+ "needs": [
+  {
+   "need": "sun",
+   "verb": "sun-position",
+   "material": "times",
+   "chain": [
+    "orbit:telephony/lib/zmanim.mjs#sunrise"
+   ]
+  },
+  {
+   "need": "next-sunrise",
+   "verb": "next",
+   "material": "times",
+   "chain": [
+    "orbit:src/lib/atoms/parts/next.ts#nextAfter"
+   ]
+  },
+  {
+   "need": "turn-back",
+   "verb": "offset",
+   "material": "times",
+   "chain": [
+    "orbit:src/lib/atoms/parts/offset.ts#offsetAll"
+   ]
+  },
+  {
+   "need": "small-steps",
+   "verb": "round",
+   "material": "number",
+   "chain": [
+    "orbit:src/lib/atoms/parts/round.ts#roundTo"
+   ]
+  },
+  {
+   "need": "golden",
+   "verb": "divide",
+   "material": "sequence",
+   "chain": [
+    "orbit:src/lib/atoms/parts/divide.ts#divideSpan"
+   ]
+  },
+  {
+   "need": "next-slot",
+   "verb": "rotate",
+   "material": "sequence",
+   "chain": [
+    "orbit:src/lib/atoms/parts/rotate.ts#fairAssign"
+   ]
+  },
+  {
+   "need": "snapshot",
+   "verb": "daily-snapshot",
+   "material": "list",
+   "chain": [
+    "orbit:src/components/courses/lib.ts#sheetRoster"
+   ]
+  },
+  {
+   "need": "streak",
+   "verb": "merge",
+   "material": "sequence",
+   "chain": [
+    "orbit:src/lib/atoms/parts/merge.ts#mergeRuns"
+   ]
+  },
+  {
+   "need": "stages",
+   "verb": "rank-tiers",
+   "material": "record",
+   "chain": [
+    "orbit:src/components/parnasa/zmanimBoard.ts#dayInfo"
+   ]
+  },
+  {
+   "need": "bloom-gate",
+   "verb": "gate",
+   "material": "bool",
+   "chain": [
+    "buildsmart:app_flutter/lib/logic/input_validators.dart#validEmail"
+   ]
+  },
+  {
+   "need": "bees-ask",
+   "verb": "round-robin",
+   "material": "sequence",
+   "chain": [
+    "orbit:src/lib/atoms/parts/rotate.ts#fairAssign"
+   ]
+  },
+  {
+   "need": "bees-pace",
+   "verb": "pace",
+   "material": "bool",
+   "chain": [
+    "buildsmart:functions/src/studio.ts#rateLimitExceeded"
+   ]
+  },
+  {
+   "need": "bees-escalate",
+   "verb": "escalate",
+   "material": "sequence",
+   "chain": [
+    "orbit:src/lib/atoms/parts/escalate.ts#escalationState"
+   ]
+  },
+  {
+   "need": "field-shade",
+   "verb": "tolerate-failure",
+   "material": "list",
+   "chain": [
+    "mmmm:artifacts/api-server/src/swarm/agents.ts#fallbackSuggestions"
+   ]
+  },
+  {
+   "need": "diary",
+   "verb": "transcript",
+   "material": "text",
+   "chain": [
+    "orbit:src/components/courses/lib.ts#planLabelOf"
+   ]
+  }
+ ]
+}

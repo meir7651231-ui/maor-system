@@ -1,0 +1,23 @@
+{
+ "goal": "sunflower",
+ "word": "חמנייה",
+ "need": "azimuth",
+ "behavior": "יודעת לאיזה כיוון השמש (אזימוט)",
+ "verb": "sun-position",
+ "verbHe": "מקום השמש",
+ "material": "number",
+ "takes": [
+  "geo"
+ ],
+ "gives": "number",
+ "detail": "מעלות מהצפון",
+ "example": {
+  "in": {
+   "date": "2026-06-21",
+   "lat": 31.78,
+   "lon": 35.23,
+   "time": "12:00"
+  },
+  "out": 180
+ }
+}
