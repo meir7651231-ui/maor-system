@@ -2516,7 +2516,7 @@
   },
   {
    "subject": "machine:catalog/lib/blank.mjs#needsGap·validate",
-   "at": "catalog/lib/blank.mjs:57",
+   "at": "catalog/lib/blank.mjs:59",
    "verb": "validate",
    "from": "הקורא",
    "laws": "24/24",
@@ -2536,10 +2536,10 @@
      "project": "machine",
      "at": "catalog/lib/probe.mjs:29",
      "laws": "24/24",
-     "inputs": 66,
-     "same": "פלט אחר על 23 קלטים (#1)",
-     "steps": "246 מול 66",
-     "verdict": "נדחה — פלט אחר על 23 קלטים (#1)"
+     "inputs": 67,
+     "same": "פלט אחר על 22 קלטים (#1)",
+     "steps": "251 מול 67",
+     "verdict": "נדחה — פלט אחר על 22 קלטים (#1)"
     },
     {
      "cand": "machine:catalog/lib/shape.mjs#same",
@@ -2547,9 +2547,9 @@
      "at": "catalog/lib/shape.mjs:252",
      "laws": "24/24",
      "inputs": 46,
-     "same": "פלט אחר על 29 קלטים (#0)",
+     "same": "פלט אחר על 30 קלטים (#0)",
      "steps": "149 מול 46",
-     "verdict": "נדחה — פלט אחר על 29 קלטים (#0)"
+     "verdict": "נדחה — פלט אחר על 30 קלטים (#0)"
     },
     {
      "cand": "machine:catalog/lib/verbs-net.mjs#close",
@@ -2557,9 +2557,9 @@
      "at": "catalog/lib/verbs-net.mjs:17",
      "laws": "24/24",
      "inputs": 46,
-     "same": "פלט אחר על 35 קלטים (#0)",
+     "same": "פלט אחר על 36 קלטים (#0)",
      "steps": "46 מול 46",
-     "verdict": "נדחה — פלט אחר על 35 קלטים (#0)"
+     "verdict": "נדחה — פלט אחר על 36 קלטים (#0)"
     },
     {
      "cand": "machine:catalog/scripts/rebuild.mjs#sameOut",
@@ -2567,9 +2567,9 @@
      "at": "catalog/scripts/rebuild.mjs:185",
      "laws": "24/24",
      "inputs": 46,
-     "same": "פלט אחר על 29 קלטים (#0)",
+     "same": "פלט אחר על 30 קלטים (#0)",
      "steps": "46 מול 46",
-     "verdict": "נדחה — פלט אחר על 29 קלטים (#0)"
+     "verdict": "נדחה — פלט אחר על 30 קלטים (#0)"
     }
    ],
    "decision": "נשאר",
@@ -3309,7 +3309,7 @@
     {
      "cand": "machine:catalog/lib/blank.mjs#needsGap",
      "project": "machine",
-     "at": "catalog/lib/blank.mjs:57",
+     "at": "catalog/lib/blank.mjs:59",
      "laws": "24/24",
      "inputs": 54,
      "same": "פלט אחר על 41 קלטים (#0)",
@@ -3508,7 +3508,7 @@
     {
      "cand": "machine:catalog/lib/blank.mjs#needsGap",
      "project": "machine",
-     "at": "catalog/lib/blank.mjs:57",
+     "at": "catalog/lib/blank.mjs:59",
      "laws": "24/24",
      "inputs": 57,
      "same": "פלט אחר על 49 קלטים (#0)",
@@ -6170,7 +6170,7 @@
     {
      "cand": "machine:catalog/lib/blank.mjs#needsGap",
      "project": "machine",
-     "at": "catalog/lib/blank.mjs:57",
+     "at": "catalog/lib/blank.mjs:59",
      "laws": "24/24",
      "inputs": 72,
      "same": "פלט אחר על 61 קלטים (#0)",
