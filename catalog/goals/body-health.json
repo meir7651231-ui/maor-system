@@ -1,0 +1,379 @@
+{
+  "world": "גוף ובריאות",
+  "goals": [
+    {
+      "word": "חדר-מיון",
+      "emoji": "🚑",
+      "does": "חדר מיון שממיין לפי דחיפות, לא לפי מי שהגיע קודם",
+      "needs": [
+        {
+          "behavior": "מיון לפי דחיפות",
+          "verb": "rank-tiers",
+          "material": "list"
+        },
+        {
+          "behavior": "בתוך אותה דרגה לפי הגעה",
+          "verb": "sort",
+          "material": "sequence"
+        },
+        {
+          "behavior": "מחכה הרבה ⇒ עולה דרגה",
+          "verb": "escalate",
+          "material": "waiting"
+        },
+        {
+          "behavior": "רופא פנוי ⇒ הבא",
+          "verb": "next",
+          "material": "sequence"
+        },
+        {
+          "behavior": "תפקידים לפי משמרת",
+          "verb": "assign-role",
+          "material": "list"
+        }
+      ]
+    },
+    {
+      "word": "חום-גוף",
+      "emoji": "🌡️",
+      "does": "גוף ששומר על חום קבוע, מזיע כשחם ורועד כשקר",
+      "needs": [
+        {
+          "behavior": "שומר על חום",
+          "verb": "clamp",
+          "material": "number"
+        },
+        {
+          "behavior": "מזיע מעל",
+          "verb": "gate",
+          "material": "bool"
+        },
+        {
+          "behavior": "רועד מתחת",
+          "verb": "gate",
+          "material": "bool"
+        },
+        {
+          "behavior": "חום ⇒ דרגות",
+          "verb": "rank-tiers",
+          "material": "choice"
+        },
+        {
+          "behavior": "נמוך בבוקר וגבוה בערב",
+          "verb": "NEW:oscillate",
+          "material": "number",
+          "detail": "מתנדנד — גל שעולה ויורד שוב ושוב בקצב קבוע"
+        }
+      ]
+    },
+    {
+      "word": "חיסון",
+      "emoji": "💉",
+      "does": "סדרה של מנות במרווחים קבועים, וחיזוק אחרי כמה שנים",
+      "needs": [
+        {
+          "behavior": "מנות במרווחים",
+          "verb": "offset",
+          "material": "date"
+        },
+        {
+          "behavior": "המנה הבאה",
+          "verb": "next",
+          "material": "date"
+        },
+        {
+          "behavior": "רק בגיל מתאים",
+          "verb": "gate",
+          "material": "bool"
+        },
+        {
+          "behavior": "חיזוק אחרי שנים",
+          "verb": "offset",
+          "material": "date"
+        },
+        {
+          "behavior": "כמה קיבלו",
+          "verb": "count",
+          "material": "number"
+        }
+      ]
+    },
+    {
+      "word": "לב",
+      "emoji": "❤️",
+      "does": "לב שפועם בקצב, מאיץ במאמץ ונרגע במנוחה",
+      "needs": [
+        {
+          "behavior": "פועם בקצב",
+          "verb": "pace",
+          "material": "times"
+        },
+        {
+          "behavior": "מאיץ במאמץ",
+          "verb": "convert",
+          "material": "number"
+        },
+        {
+          "behavior": "נרגע לאט אחרי",
+          "verb": "NEW:decay",
+          "material": "number",
+          "detail": "דועך — ערך שיורד מעט בכל צעד-זמן עד אפס"
+        },
+        {
+          "behavior": "ארבעה חדרים בתורות",
+          "verb": "round-robin",
+          "material": "sequence"
+        },
+        {
+          "behavior": "דופק מהיר מדי ⇒ התראה",
+          "verb": "gate",
+          "material": "bool"
+        },
+        {
+          "behavior": "הדופק הנמוך של היום",
+          "verb": "minmax",
+          "material": "number"
+        }
+      ]
+    },
+    {
+      "word": "נשימה",
+      "emoji": "🫁",
+      "does": "שאיפה ונשיפה בקצב, איטית בשינה ומהירה בריצה",
+      "needs": [
+        {
+          "behavior": "שאיפה ונשיפה",
+          "verb": "NEW:oscillate",
+          "material": "number",
+          "detail": "מתנדנד — גל שעולה ויורד שוב ושוב בקצב קבוע"
+        },
+        {
+          "behavior": "קצב לפי מאמץ",
+          "verb": "convert",
+          "material": "times"
+        },
+        {
+          "behavior": "נשימה עמוקה כל כמה זמן",
+          "verb": "pace",
+          "material": "times"
+        },
+        {
+          "behavior": "ספירה לנשימה רגועה",
+          "verb": "NEW:countdown",
+          "material": "number",
+          "detail": "סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה"
+        },
+        {
+          "behavior": "מחליפה צד באף",
+          "verb": "round-robin",
+          "material": "choice"
+        }
+      ]
+    },
+    {
+      "word": "עין-ממצמצת",
+      "emoji": "👁️",
+      "does": "עין שממצמצת כל כמה שניות ונסגרת כשמשהו מתקרב",
+      "needs": [
+        {
+          "behavior": "מצמוץ כל כמה שניות",
+          "verb": "pace",
+          "material": "times"
+        },
+        {
+          "behavior": "קצת אקראי",
+          "verb": "fuzzy",
+          "material": "times"
+        },
+        {
+          "behavior": "נסגרת כשמשהו קרוב",
+          "verb": "gate",
+          "material": "bool"
+        },
+        {
+          "behavior": "אישון לפי האור",
+          "verb": "convert",
+          "material": "number"
+        },
+        {
+          "behavior": "מתמקדת בקרוב או ברחוק",
+          "verb": "compare",
+          "material": "geo"
+        }
+      ]
+    },
+    {
+      "word": "צעדים",
+      "emoji": "👣",
+      "does": "מונה צעדים שסופר, משווה ליעד ומעודד לעמוד",
+      "needs": [
+        {
+          "behavior": "סופר צעדים",
+          "verb": "count",
+          "material": "number"
+        },
+        {
+          "behavior": "יעד יומי",
+          "verb": "compare",
+          "material": "number"
+        },
+        {
+          "behavior": "הגיע ליעד ⇒ חגיגה",
+          "verb": "gate",
+          "material": "bool"
+        },
+        {
+          "behavior": "ישבת שעה ⇒ קום",
+          "verb": "NEW:countdown",
+          "material": "times",
+          "detail": "סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה"
+        },
+        {
+          "behavior": "סיכום שבועי",
+          "verb": "sum",
+          "material": "number"
+        },
+        {
+          "behavior": "היום הכי טוב",
+          "verb": "minmax",
+          "material": "date"
+        }
+      ]
+    },
+    {
+      "word": "שינה",
+      "emoji": "😴",
+      "does": "שינה שעוברת בשלבים במחזורים של שעה וחצי",
+      "needs": [
+        {
+          "behavior": "שלבי שינה",
+          "verb": "escalate",
+          "material": "choice",
+          "detail": "קלה ⇒ עמוקה ⇒ חלום"
+        },
+        {
+          "behavior": "מחזור של שעה וחצי",
+          "verb": "rotate",
+          "material": "sequence"
+        },
+        {
+          "behavior": "נרדמים בחושך",
+          "verb": "sun-position",
+          "material": "times"
+        },
+        {
+          "behavior": "להתעורר בסוף מחזור",
+          "verb": "round",
+          "material": "times"
+        },
+        {
+          "behavior": "כמה ישנתי כל לילה",
+          "verb": "daily-snapshot",
+          "material": "number"
+        }
+      ]
+    },
+    {
+      "word": "שתיית-מים",
+      "emoji": "💧",
+      "does": "תזכורת לשתות כל שעה עד שמגיעים לכמות של היום",
+      "needs": [
+        {
+          "behavior": "תזכורת כל שעה",
+          "verb": "pace",
+          "material": "times"
+        },
+        {
+          "behavior": "סופר כוסות",
+          "verb": "sum",
+          "material": "number"
+        },
+        {
+          "behavior": "יעד לפי חום",
+          "verb": "convert",
+          "material": "number"
+        },
+        {
+          "behavior": "הגוף מתייבש",
+          "verb": "NEW:decay",
+          "material": "number",
+          "detail": "דועך — ערך שיורד מעט בכל צעד-זמן עד אפס"
+        },
+        {
+          "behavior": "רק בשעות הערות",
+          "verb": "filter",
+          "material": "times"
+        }
+      ]
+    },
+    {
+      "word": "תור-במרפאה",
+      "emoji": "🏥",
+      "does": "מרפאה שמזמינה לפי תור ודחיפות ושולחת תזכורת",
+      "needs": [
+        {
+          "behavior": "תור לפי שעה",
+          "verb": "sort",
+          "material": "sequence"
+        },
+        {
+          "behavior": "דחוף עוקף",
+          "verb": "rank-tiers",
+          "material": "list"
+        },
+        {
+          "behavior": "הבא בתור",
+          "verb": "next",
+          "material": "sequence"
+        },
+        {
+          "behavior": "תזכורת יום לפני",
+          "verb": "offset",
+          "material": "date"
+        },
+        {
+          "behavior": "לא הגיע ⇒ הבא נכנס",
+          "verb": "tolerate-failure",
+          "material": "waiting"
+        },
+        {
+          "behavior": "רופא לכל חדר",
+          "verb": "assign-role",
+          "material": "list"
+        }
+      ]
+    },
+    {
+      "word": "תרופות",
+      "emoji": "💊",
+      "does": "תרופות בשעות קבועות, לא לשכוח ולא לקחת פעמיים",
+      "needs": [
+        {
+          "behavior": "שעות קבועות",
+          "verb": "next",
+          "material": "times"
+        },
+        {
+          "behavior": "לא פעמיים",
+          "verb": "dedupe",
+          "material": "list"
+        },
+        {
+          "behavior": "תזכורת שמתגברת",
+          "verb": "escalate",
+          "material": "choice"
+        },
+        {
+          "behavior": "נגמרות ⇒ להזמין",
+          "verb": "gate",
+          "material": "bool"
+        },
+        {
+          "behavior": "לפי משקל",
+          "verb": "personalize",
+          "material": "record:patient"
+        }
+      ]
+    }
+  ]
+}

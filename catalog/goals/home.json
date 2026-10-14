@@ -1,0 +1,391 @@
+{
+  "world": "בית",
+  "goals": [
+    {
+      "word": "אזעקה",
+      "emoji": "🚨",
+      "does": "אזעקה שנדרכת כשיוצאים, מחכה רגע, ומתריעה בשלבים",
+      "needs": [
+        {
+          "behavior": "נדרכת אחרי כמה שניות",
+          "verb": "NEW:countdown",
+          "material": "number",
+          "detail": "סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה"
+        },
+        {
+          "behavior": "חיישן נפתח",
+          "verb": "gate",
+          "material": "bool"
+        },
+        {
+          "behavior": "זמן לבטל עם קוד",
+          "verb": "NEW:countdown",
+          "material": "times",
+          "detail": "סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה"
+        },
+        {
+          "behavior": "מתריעה בשלבים",
+          "verb": "escalate",
+          "material": "choice",
+          "detail": "צפצוף ⇒ סירנה ⇒ הודעה"
+        },
+        {
+          "behavior": "הודעה לכל בני הבית",
+          "verb": "route-channel",
+          "material": "list"
+        },
+        {
+          "behavior": "מתעלמת מחתול",
+          "verb": "filter",
+          "material": "number",
+          "detail": "גודל מתחת לסף"
+        }
+      ]
+    },
+    {
+      "word": "אקווריום",
+      "emoji": "🐠",
+      "does": "אקווריום שמאכיל דגים בזמנים קבועים, שומר על חום, מדליק אור ביום ומזכיר לנקות",
+      "needs": [
+        {
+          "behavior": "אוכל פעמיים ביום",
+          "verb": "next",
+          "material": "times"
+        },
+        {
+          "behavior": "מנה לפי מספר הדגים",
+          "verb": "convert",
+          "material": "number"
+        },
+        {
+          "behavior": "חימום מתחת לסף",
+          "verb": "gate",
+          "material": "bool"
+        },
+        {
+          "behavior": "אור ביום וחושך בלילה",
+          "verb": "sun-position",
+          "material": "times"
+        },
+        {
+          "behavior": "המים מתלכלכים לאט",
+          "verb": "NEW:accumulate",
+          "material": "number",
+          "detail": "צובר — ערך שגדל מעט בכל צעד-זמן עד שמשהו מרוקן אותו"
+        },
+        {
+          "behavior": "תזכורת לנקות כל שבוע",
+          "verb": "next",
+          "material": "date"
+        },
+        {
+          "behavior": "דג חדש מוכנס לאט",
+          "verb": "pace",
+          "material": "times"
+        }
+      ]
+    },
+    {
+      "word": "דוד-שמש",
+      "emoji": "☀️",
+      "does": "דוד שמחמם מים בשמש ומדליק חשמל רק כשאין מספיק",
+      "needs": [
+        {
+          "behavior": "מתחמם כשיש שמש",
+          "verb": "sun-position",
+          "material": "geo"
+        },
+        {
+          "behavior": "חום המים מצטבר",
+          "verb": "NEW:accumulate",
+          "material": "number",
+          "detail": "צובר — ערך שגדל מעט בכל צעד-זמן עד שמשהו מרוקן אותו"
+        },
+        {
+          "behavior": "מתקרר בלילה",
+          "verb": "NEW:decay",
+          "material": "number",
+          "detail": "דועך — ערך שיורד מעט בכל צעד-זמן עד אפס"
+        },
+        {
+          "behavior": "חשמל רק כשקר מדי",
+          "verb": "gate",
+          "material": "bool"
+        },
+        {
+          "behavior": "מספיק לכמה מקלחות",
+          "verb": "divide",
+          "material": "number"
+        }
+      ]
+    },
+    {
+      "word": "וילון",
+      "emoji": "🪟",
+      "does": "וילון שנפתח בבוקר וסוגר בשמש החזקה",
+      "needs": [
+        {
+          "behavior": "נפתח בזריחה",
+          "verb": "sun-position",
+          "material": "times"
+        },
+        {
+          "behavior": "נסגר כשהשמש ישירה",
+          "verb": "gate",
+          "material": "bool"
+        },
+        {
+          "behavior": "נפתח לאט",
+          "verb": "pace",
+          "material": "number"
+        },
+        {
+          "behavior": "סוגר בשקיעה",
+          "verb": "sun-position",
+          "material": "times"
+        },
+        {
+          "behavior": "ידני גובר על אוטומטי",
+          "verb": "require-source",
+          "material": "choice"
+        }
+      ]
+    },
+    {
+      "word": "מדיח",
+      "emoji": "🍽️",
+      "does": "מדיח שמחכה שיתמלא, שוטף בשלבים ומייבש",
+      "needs": [
+        {
+          "behavior": "מחכה שיתמלא",
+          "verb": "gate",
+          "material": "bool"
+        },
+        {
+          "behavior": "שלבים קבועים",
+          "verb": "escalate",
+          "material": "choice"
+        },
+        {
+          "behavior": "מים חמים רק בשטיפה",
+          "verb": "filter",
+          "material": "sequence"
+        },
+        {
+          "behavior": "זמן שנשאר",
+          "verb": "NEW:countdown",
+          "material": "times",
+          "detail": "סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה"
+        },
+        {
+          "behavior": "דחייה לשעת לילה זולה",
+          "verb": "offset",
+          "material": "times"
+        }
+      ]
+    },
+    {
+      "word": "מזגן",
+      "emoji": "❄️",
+      "does": "מזגן שמקרר עד המעלה שבחרו ונרדם לאט בלילה",
+      "needs": [
+        {
+          "behavior": "מקרר עד החום שבחרו",
+          "verb": "compare",
+          "material": "number"
+        },
+        {
+          "behavior": "מכבה בחום הנכון",
+          "verb": "gate",
+          "material": "bool"
+        },
+        {
+          "behavior": "מצב לילה מעלה קצת",
+          "verb": "offset",
+          "material": "number"
+        },
+        {
+          "behavior": "כנף שמתנדנדת",
+          "verb": "NEW:oscillate",
+          "material": "number",
+          "detail": "מתנדנד — גל שעולה ויורד שוב ושוב בקצב קבוע"
+        },
+        {
+          "behavior": "טיימר כיבוי",
+          "verb": "NEW:countdown",
+          "material": "times",
+          "detail": "סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה"
+        },
+        {
+          "behavior": "מתאים לכל חדר",
+          "verb": "personalize",
+          "material": "record:room"
+        }
+      ]
+    },
+    {
+      "word": "סל-כביסה",
+      "emoji": "🧦",
+      "does": "סל שמתמלא וממיין בגדים לפי צבע עד שיש מכונה מלאה",
+      "needs": [
+        {
+          "behavior": "מתמלא",
+          "verb": "NEW:accumulate",
+          "material": "number",
+          "detail": "צובר — ערך שגדל מעט בכל צעד-זמן עד שמשהו מרוקן אותו"
+        },
+        {
+          "behavior": "מיון לפי צבע",
+          "verb": "group",
+          "material": "list"
+        },
+        {
+          "behavior": "מכונה מלאה ⇒ כביסה",
+          "verb": "gate",
+          "material": "bool"
+        },
+        {
+          "behavior": "גרב בלי זוג",
+          "verb": "dedupe",
+          "material": "list"
+        },
+        {
+          "behavior": "תור כביסות בשבוע",
+          "verb": "round-robin",
+          "material": "sequence"
+        }
+      ]
+    },
+    {
+      "word": "עציץ",
+      "emoji": "🪴",
+      "does": "עציץ שמזכיר להשקות כשהאדמה יבשה ומסתובב לאור",
+      "needs": [
+        {
+          "behavior": "האדמה מתייבשת",
+          "verb": "NEW:decay",
+          "material": "number",
+          "detail": "דועך — ערך שיורד מעט בכל צעד-זמן עד אפס"
+        },
+        {
+          "behavior": "תזכורת השקיה מתחת לסף",
+          "verb": "gate",
+          "material": "bool"
+        },
+        {
+          "behavior": "מים לפי סוג הצמח",
+          "verb": "personalize",
+          "material": "record:plant"
+        },
+        {
+          "behavior": "מסובבים לאור כל שבוע",
+          "verb": "rotate",
+          "material": "geo"
+        },
+        {
+          "behavior": "תמונה כל שבוע",
+          "verb": "daily-snapshot",
+          "material": "image"
+        }
+      ]
+    },
+    {
+      "word": "פעמון-דלת",
+      "emoji": "🔔",
+      "does": "פעמון שמצלצל כשלוחצים ושולח הודעה לטלפון כשאין אף אחד",
+      "needs": [
+        {
+          "behavior": "מצלצל בלחיצה",
+          "verb": "gate",
+          "material": "bool"
+        },
+        {
+          "behavior": "מנגינה לפי היום",
+          "verb": "rotate",
+          "material": "choice"
+        },
+        {
+          "behavior": "הודעה לטלפון",
+          "verb": "route-channel",
+          "material": "text"
+        },
+        {
+          "behavior": "לא מצלצל בלילה",
+          "verb": "filter",
+          "material": "times"
+        },
+        {
+          "behavior": "תמונה של מי שבדלת",
+          "verb": "NEW:sample",
+          "material": "image",
+          "detail": "קורא מהסביבה — מודד צבע/קול/ערך מבחוץ"
+        }
+      ]
+    },
+    {
+      "word": "שעון-קיר",
+      "emoji": "🕛",
+      "does": "שעון עם שלושה מחוגים, כל אחד מסתובב בקצב אחר ומעביר את הבא",
+      "needs": [
+        {
+          "behavior": "מחוג שניות מסתובב",
+          "verb": "rotate",
+          "material": "number"
+        },
+        {
+          "behavior": "סיבוב שלם מקדם את הבא",
+          "verb": "hub-relay",
+          "material": "sequence"
+        },
+        {
+          "behavior": "שעות במעגל של 12",
+          "verb": "round",
+          "material": "number"
+        },
+        {
+          "behavior": "מתקן לשעון קיץ",
+          "verb": "offset",
+          "material": "times"
+        },
+        {
+          "behavior": "תקתוק קבוע",
+          "verb": "pace",
+          "material": "sound"
+        }
+      ]
+    },
+    {
+      "word": "תנור",
+      "emoji": "🔥",
+      "does": "תנור שמתחמם, שומר על חום ומצפצף כשהזמן נגמר",
+      "needs": [
+        {
+          "behavior": "מתחמם עד החום",
+          "verb": "gate",
+          "material": "bool"
+        },
+        {
+          "behavior": "שומר חום קבוע",
+          "verb": "clamp",
+          "material": "number"
+        },
+        {
+          "behavior": "טיימר אפייה",
+          "verb": "NEW:countdown",
+          "material": "times",
+          "detail": "סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה"
+        },
+        {
+          "behavior": "מצפצף בסוף",
+          "verb": "route-channel",
+          "material": "sound"
+        },
+        {
+          "behavior": "מנורה דולקת בזמן אפייה",
+          "verb": "gate",
+          "material": "bool"
+        }
+      ]
+    }
+  ]
+}

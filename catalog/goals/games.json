@@ -1,0 +1,441 @@
+{
+  "world": "משחקים",
+  "goals": [
+    {
+      "word": "בינגו",
+      "emoji": "🎱",
+      "does": "מגרילים מספרים, כל אחד מסמן בכרטיס שלו, ומי שהשלים שורה צועק",
+      "needs": [
+        {
+          "behavior": "מגרילים מספר",
+          "verb": "NEW:random",
+          "material": "number",
+          "detail": "מגריל — בחירה או ערך לפי סיכוי"
+        },
+        {
+          "behavior": "בלי לחזור על מספר",
+          "verb": "dedupe",
+          "material": "list"
+        },
+        {
+          "behavior": "כל אחד מסמן בכרטיס",
+          "verb": "filter",
+          "material": "list"
+        },
+        {
+          "behavior": "בודקים שורה מלאה",
+          "verb": "gate",
+          "material": "bool"
+        },
+        {
+          "behavior": "כרטיס שונה לכל אחד",
+          "verb": "personalize",
+          "material": "record:card"
+        }
+      ]
+    },
+    {
+      "word": "דומינו",
+      "emoji": "🁣",
+      "does": "אבנים עם מספרים שמתחברים בצד שווה, ובסוף אבן מפילה אבן",
+      "needs": [
+        {
+          "behavior": "מחברים צד שווה",
+          "verb": "compare",
+          "material": "number"
+        },
+        {
+          "behavior": "מחלקים אבנים לשחקנים",
+          "verb": "divide",
+          "material": "list"
+        },
+        {
+          "behavior": "תור לכל שחקן",
+          "verb": "round-robin",
+          "material": "sequence"
+        },
+        {
+          "behavior": "אבן מפילה אבן",
+          "verb": "hub-relay",
+          "material": "sequence"
+        },
+        {
+          "behavior": "ספירת נקודות בסוף",
+          "verb": "sum",
+          "material": "number"
+        }
+      ]
+    },
+    {
+      "word": "חידון",
+      "emoji": "❓",
+      "does": "שאלות בסבבים, זמן לכל שאלה, ניקוד ודירוג",
+      "needs": [
+        {
+          "behavior": "שאלות לפי קושי",
+          "verb": "escalate",
+          "material": "sequence"
+        },
+        {
+          "behavior": "זמן לכל שאלה",
+          "verb": "NEW:countdown",
+          "material": "times",
+          "detail": "סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה"
+        },
+        {
+          "behavior": "תשובה נכונה ⇒ נקודות",
+          "verb": "compare",
+          "material": "text"
+        },
+        {
+          "behavior": "תשובה עם שגיאת כתיב",
+          "verb": "fuzzy",
+          "material": "text"
+        },
+        {
+          "behavior": "טבלת דירוג",
+          "verb": "rank-tiers",
+          "material": "list"
+        },
+        {
+          "behavior": "מוציאים את האחרון בכל סבב",
+          "verb": "filter",
+          "material": "list"
+        }
+      ]
+    },
+    {
+      "word": "טטריס",
+      "emoji": "🧱",
+      "does": "צורות נופלות, מסובבים אותן, שורה מלאה נעלמת והמהירות עולה",
+      "needs": [
+        {
+          "behavior": "צורות נופלות",
+          "verb": "NEW:gravity",
+          "material": "number",
+          "detail": "נופל — מהירות שגדלה בכל צעד של נפילה"
+        },
+        {
+          "behavior": "מסובבים צורה",
+          "verb": "rotate",
+          "material": "geo"
+        },
+        {
+          "behavior": "הצורה הבאה",
+          "verb": "next",
+          "material": "sequence"
+        },
+        {
+          "behavior": "שורה מלאה נעלמת",
+          "verb": "filter",
+          "material": "list"
+        },
+        {
+          "behavior": "ניקוד לפי כמה שורות יחד",
+          "verb": "convert",
+          "material": "number"
+        },
+        {
+          "behavior": "המהירות עולה",
+          "verb": "escalate",
+          "material": "number"
+        }
+      ]
+    },
+    {
+      "word": "כיסאות-מוזיקליים",
+      "emoji": "🪑",
+      "does": "מסתובבים סביב כיסאות, המוזיקה נעצרת וכל סיבוב יש כיסא אחד פחות",
+      "needs": [
+        {
+          "behavior": "מסתובבים סביב",
+          "verb": "rotate",
+          "material": "sequence"
+        },
+        {
+          "behavior": "המוזיקה נעצרת פתאום",
+          "verb": "NEW:random",
+          "material": "times",
+          "detail": "מגריל — בחירה או ערך לפי סיכוי"
+        },
+        {
+          "behavior": "כיסא אחד פחות",
+          "verb": "count",
+          "material": "number"
+        },
+        {
+          "behavior": "מי שנשאר בלי כיסא יוצא",
+          "verb": "filter",
+          "material": "list"
+        },
+        {
+          "behavior": "האחרון מנצח",
+          "verb": "gate",
+          "material": "bool"
+        }
+      ]
+    },
+    {
+      "word": "מחבואים",
+      "emoji": "🙈",
+      "does": "אחד סופר והשאר מתחבאים, מי שנמצא ראשון סופר בפעם הבאה",
+      "needs": [
+        {
+          "behavior": "סופר עד עשרים",
+          "verb": "NEW:countdown",
+          "material": "number",
+          "detail": "סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה"
+        },
+        {
+          "behavior": "כולם מתפזרים",
+          "verb": "divide",
+          "material": "geo"
+        },
+        {
+          "behavior": "מחפש את הקרוב קודם",
+          "verb": "sort",
+          "material": "geo"
+        },
+        {
+          "behavior": "מי שנמצא ראשון",
+          "verb": "minmax",
+          "material": "sequence"
+        },
+        {
+          "behavior": "הוא הסופר הבא",
+          "verb": "assign-role",
+          "material": "record:player"
+        }
+      ]
+    },
+    {
+      "word": "משחק-זיכרון",
+      "emoji": "🃏",
+      "does": "קלפים הפוכים, הופכים שניים, זוג נשאר פתוח",
+      "needs": [
+        {
+          "behavior": "מערבבים קלפים",
+          "verb": "NEW:random",
+          "material": "sequence",
+          "detail": "מגריל — בחירה או ערך לפי סיכוי"
+        },
+        {
+          "behavior": "הופכים שניים",
+          "verb": "compare",
+          "material": "image"
+        },
+        {
+          "behavior": "זוג נשאר פתוח",
+          "verb": "filter",
+          "material": "list"
+        },
+        {
+          "behavior": "לא זוג ⇒ חוזר ותור עובר",
+          "verb": "round-robin",
+          "material": "sequence"
+        },
+        {
+          "behavior": "מי אסף הכי הרבה",
+          "verb": "minmax",
+          "material": "list"
+        }
+      ]
+    },
+    {
+      "word": "משחק-מאפיה",
+      "emoji": "🕵️",
+      "does": "משחק שבו מחלקים תפקידים בסוד, יש לילה ויום, מצביעים ומוציאים שחקן עד שצד אחד מנצח",
+      "needs": [
+        {
+          "behavior": "מחלקים תפקידים בסוד",
+          "verb": "assign-role",
+          "material": "list",
+          "detail": "מאפיה, שוטר, רופא, אזרחים"
+        },
+        {
+          "behavior": "כמה מאפיה לפי מספר השחקנים",
+          "verb": "divide",
+          "material": "number"
+        },
+        {
+          "behavior": "לילה ויום מתחלפים",
+          "verb": "rotate",
+          "material": "choice"
+        },
+        {
+          "behavior": "כל אחד מדבר בתורו",
+          "verb": "round-robin",
+          "material": "sequence"
+        },
+        {
+          "behavior": "ספירת קולות",
+          "verb": "count",
+          "material": "list"
+        },
+        {
+          "behavior": "הכי הרבה קולות יוצא",
+          "verb": "minmax",
+          "material": "list"
+        },
+        {
+          "behavior": "המנחה מעביר את ההודעות",
+          "verb": "hub-relay",
+          "material": "text"
+        },
+        {
+          "behavior": "נגמר כשצד אחד נשאר",
+          "verb": "gate",
+          "material": "bool"
+        }
+      ]
+    },
+    {
+      "word": "נחשים-וסולמות",
+      "emoji": "🎲",
+      "does": "זורקים קובייה, מתקדמים, סולם מקפיץ למעלה ונחש מוריד למטה",
+      "needs": [
+        {
+          "behavior": "זורקים קובייה",
+          "verb": "NEW:random",
+          "material": "number",
+          "detail": "מגריל — בחירה או ערך לפי סיכוי"
+        },
+        {
+          "behavior": "מתקדמים לפי המספר",
+          "verb": "offset",
+          "material": "number"
+        },
+        {
+          "behavior": "סולם מקפיץ",
+          "verb": "convert",
+          "material": "number",
+          "detail": "משבצת ⇒ משבצת גבוהה"
+        },
+        {
+          "behavior": "נחש מוריד",
+          "verb": "convert",
+          "material": "number"
+        },
+        {
+          "behavior": "תור לכל שחקן",
+          "verb": "round-robin",
+          "material": "sequence"
+        },
+        {
+          "behavior": "הראשון למאה מנצח",
+          "verb": "gate",
+          "material": "bool"
+        }
+      ]
+    },
+    {
+      "word": "סודוקו",
+      "emoji": "🔢",
+      "does": "לוח 9 על 9, בכל שורה, טור וריבוע כל ספרה פעם אחת",
+      "needs": [
+        {
+          "behavior": "מחלקים לריבועים",
+          "verb": "divide",
+          "material": "list"
+        },
+        {
+          "behavior": "בלי כפולים בשורה",
+          "verb": "dedupe",
+          "material": "list"
+        },
+        {
+          "behavior": "רק מה שמותר",
+          "verb": "filter",
+          "material": "list"
+        },
+        {
+          "behavior": "המשבצת עם הכי מעט אפשרויות קודם",
+          "verb": "minmax",
+          "material": "list"
+        },
+        {
+          "behavior": "טעות ⇒ חוזרים אחורה",
+          "verb": "reverse",
+          "material": "sequence"
+        }
+      ]
+    },
+    {
+      "word": "שחמט",
+      "emoji": "♟️",
+      "does": "משחק שבו כל כלי זז בדרך משלו, תור לבן ותור שחור, עם שעון לכל צד",
+      "needs": [
+        {
+          "behavior": "תור לבן ותור שחור",
+          "verb": "round-robin",
+          "material": "sequence"
+        },
+        {
+          "behavior": "כל כלי זז בדרך שלו",
+          "verb": "filter",
+          "material": "geo",
+          "detail": "רק המשבצות המותרות"
+        },
+        {
+          "behavior": "ערך לכל כלי",
+          "verb": "convert",
+          "material": "number"
+        },
+        {
+          "behavior": "שעון לכל צד",
+          "verb": "NEW:countdown",
+          "material": "times",
+          "detail": "סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה"
+        },
+        {
+          "behavior": "שח ⇒ חייבים להגן",
+          "verb": "gate",
+          "material": "bool"
+        },
+        {
+          "behavior": "רישום המהלכים",
+          "verb": "transcript",
+          "material": "sequence"
+        },
+        {
+          "behavior": "דירוג שחקנים",
+          "verb": "rank-tiers",
+          "material": "list"
+        }
+      ]
+    },
+    {
+      "word": "תופסת",
+      "emoji": "🏃",
+      "does": "אחד תופס, מי שנגעו בו הופך לתופס",
+      "needs": [
+        {
+          "behavior": "מי תופס",
+          "verb": "assign-role",
+          "material": "record:player"
+        },
+        {
+          "behavior": "הקרוב ביותר",
+          "verb": "minmax",
+          "material": "geo"
+        },
+        {
+          "behavior": "נגע ⇒ התפקיד עובר",
+          "verb": "hub-relay",
+          "material": "record:player"
+        },
+        {
+          "behavior": "בית = מקום מוגן",
+          "verb": "filter",
+          "material": "geo"
+        },
+        {
+          "behavior": "זמן מנוחה אחרי שנתפס",
+          "verb": "NEW:countdown",
+          "material": "times",
+          "detail": "סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה"
+        }
+      ]
+    }
+  ]
+}

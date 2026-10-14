@@ -1,0 +1,351 @@
+{
+  "world": "מוזיקה",
+  "goals": [
+    {
+      "word": "דיג׳יי",
+      "emoji": "🎛️",
+      "does": "דיג׳יי שמחבר שירים לפי קצב ומעלה את האנרגיה לאורך הערב",
+      "needs": [
+        {
+          "behavior": "שירים לפי קצב",
+          "verb": "sort",
+          "material": "list"
+        },
+        {
+          "behavior": "מחבר שיר לשיר",
+          "verb": "merge",
+          "material": "sound"
+        },
+        {
+          "behavior": "אנרגיה עולה",
+          "verb": "escalate",
+          "material": "number"
+        },
+        {
+          "behavior": "בקשות מהקהל",
+          "verb": "next",
+          "material": "waiting"
+        },
+        {
+          "behavior": "לא אותו שיר פעמיים",
+          "verb": "dedupe",
+          "material": "list"
+        }
+      ]
+    },
+    {
+      "word": "כוונן",
+      "emoji": "🎚️",
+      "does": "מכשיר ששומע צליל ואומר אם הוא גבוה או נמוך מדי",
+      "needs": [
+        {
+          "behavior": "שומע צליל",
+          "verb": "NEW:sample",
+          "material": "sound",
+          "detail": "קורא מהסביבה — מודד צבע/קול/ערך מבחוץ"
+        },
+        {
+          "behavior": "הכי קרוב לתו",
+          "verb": "round",
+          "material": "number"
+        },
+        {
+          "behavior": "גבוה או נמוך",
+          "verb": "compare",
+          "material": "number"
+        },
+        {
+          "behavior": "מחט על המסך",
+          "verb": "format",
+          "material": "ui"
+        },
+        {
+          "behavior": "קרוב מספיק ⇒ ירוק",
+          "verb": "gate",
+          "material": "bool"
+        }
+      ]
+    },
+    {
+      "word": "מטרונום",
+      "emoji": "⏱️",
+      "does": "מכשיר שמתקתק בקצב קבוע ומדגיש את הפעמה הראשונה",
+      "needs": [
+        {
+          "behavior": "מתקתק בקצב קבוע",
+          "verb": "pace",
+          "material": "times"
+        },
+        {
+          "behavior": "מטוטלת הלוך ושוב",
+          "verb": "NEW:oscillate",
+          "material": "number",
+          "detail": "מתנדנד — גל שעולה ויורד שוב ושוב בקצב קבוע"
+        },
+        {
+          "behavior": "פעמה ראשונה חזקה",
+          "verb": "rotate",
+          "material": "choice"
+        },
+        {
+          "behavior": "מספר פעמות בתיבה",
+          "verb": "divide",
+          "material": "span"
+        },
+        {
+          "behavior": "מהירות לפי המספר",
+          "verb": "convert",
+          "material": "times"
+        }
+      ]
+    },
+    {
+      "word": "פלייליסט",
+      "emoji": "🎧",
+      "does": "רשימת שירים שמתנגנת, מערבבת ולא חוזרת על אותו שיר",
+      "needs": [
+        {
+          "behavior": "השיר הבא",
+          "verb": "next",
+          "material": "sequence"
+        },
+        {
+          "behavior": "ערבוב",
+          "verb": "NEW:random",
+          "material": "sequence",
+          "detail": "מגריל — בחירה או ערך לפי סיכוי"
+        },
+        {
+          "behavior": "בלי לחזור על שיר",
+          "verb": "dedupe",
+          "material": "list"
+        },
+        {
+          "behavior": "לפי מצב רוח",
+          "verb": "filter",
+          "material": "choice"
+        },
+        {
+          "behavior": "הכי מושמעים",
+          "verb": "rank-tiers",
+          "material": "list"
+        },
+        {
+          "behavior": "מעבר רך בין שירים",
+          "verb": "merge",
+          "material": "sound"
+        }
+      ]
+    },
+    {
+      "word": "פסנתר",
+      "emoji": "🎹",
+      "does": "פסנתר עם קלידים לבנים ושחורים, כל קליד צליל",
+      "needs": [
+        {
+          "behavior": "קליד ⇒ צליל",
+          "verb": "convert",
+          "material": "sound"
+        },
+        {
+          "behavior": "שתים עשרה בכל אוקטבה",
+          "verb": "divide",
+          "material": "number"
+        },
+        {
+          "behavior": "אוקטבה ⇒ כפול",
+          "verb": "convert",
+          "material": "number"
+        },
+        {
+          "behavior": "הצליל דועך",
+          "verb": "NEW:decay",
+          "material": "sound",
+          "detail": "דועך — ערך שיורד מעט בכל צעד-זמן עד אפס"
+        },
+        {
+          "behavior": "דוושה מחזיקה",
+          "verb": "gate",
+          "material": "bool"
+        }
+      ]
+    },
+    {
+      "word": "פעמוני-כנסייה",
+      "emoji": "🔔",
+      "does": "פעמונים שמצלצלים בסדרות שמשתנות כל סיבוב",
+      "needs": [
+        {
+          "behavior": "כל פעמון בתורו",
+          "verb": "round-robin",
+          "material": "sequence"
+        },
+        {
+          "behavior": "הסדר משתנה כל סיבוב",
+          "verb": "rotate",
+          "material": "sequence"
+        },
+        {
+          "behavior": "כל שעה מספר צלצולים",
+          "verb": "count",
+          "material": "number"
+        },
+        {
+          "behavior": "חוזר לסדר ההתחלה",
+          "verb": "next",
+          "material": "sequence"
+        },
+        {
+          "behavior": "קול לפי גודל",
+          "verb": "convert",
+          "material": "sound"
+        }
+      ]
+    },
+    {
+      "word": "קאנון",
+      "emoji": "🎤",
+      "does": "מקהלה שבה כל קבוצה מתחילה את אותו שיר קצת אחרי הקודמת",
+      "needs": [
+        {
+          "behavior": "אותו שיר לכולם",
+          "verb": "merge",
+          "material": "sound"
+        },
+        {
+          "behavior": "כל קבוצה מתחילה באיחור",
+          "verb": "offset",
+          "material": "times"
+        },
+        {
+          "behavior": "הקבוצות בתורות",
+          "verb": "round-robin",
+          "material": "sequence"
+        },
+        {
+          "behavior": "מסתיימים יחד או אחד אחרי השני",
+          "verb": "sort",
+          "material": "sequence"
+        },
+        {
+          "behavior": "קול לפי גובה",
+          "verb": "rank-tiers",
+          "material": "list"
+        }
+      ]
+    },
+    {
+      "word": "תוף",
+      "emoji": "🥁",
+      "does": "תוף שמנגן מקצב שחוזר על עצמו ומתחזק בפזמון",
+      "needs": [
+        {
+          "behavior": "מקצב שחוזר",
+          "verb": "rotate",
+          "material": "sequence"
+        },
+        {
+          "behavior": "פעמה חזקה וחלשה",
+          "verb": "rotate",
+          "material": "choice"
+        },
+        {
+          "behavior": "מהירות קבועה",
+          "verb": "pace",
+          "material": "times"
+        },
+        {
+          "behavior": "מתחזק בפזמון",
+          "verb": "escalate",
+          "material": "number"
+        },
+        {
+          "behavior": "סולו בתורו",
+          "verb": "round-robin",
+          "material": "sequence"
+        }
+      ]
+    },
+    {
+      "word": "תזמורת",
+      "emoji": "🎻",
+      "does": "הרבה כלים, כל קבוצה בתורה, והמנצח מאחד את כולם",
+      "needs": [
+        {
+          "behavior": "כלים לפי קבוצות",
+          "verb": "group",
+          "material": "list"
+        },
+        {
+          "behavior": "המנצח מאחד",
+          "verb": "hub-relay",
+          "material": "sound"
+        },
+        {
+          "behavior": "כל קבוצה נכנסת בזמן שלה",
+          "verb": "offset",
+          "material": "times"
+        },
+        {
+          "behavior": "מתחזק לשיא",
+          "verb": "escalate",
+          "material": "number"
+        },
+        {
+          "behavior": "כוונון לפי צליל אחד",
+          "verb": "compare",
+          "material": "sound"
+        },
+        {
+          "behavior": "תווים לכל נגן",
+          "verb": "personalize",
+          "material": "file"
+        }
+      ]
+    },
+    {
+      "word": "תיבת-נגינה",
+      "emoji": "🎶",
+      "does": "קופסה שמנגנת מנגינה מגליל עם פינים, ורקדנית מסתובבת עד שהקפיץ נגמר",
+      "needs": [
+        {
+          "behavior": "גליל עם פינים",
+          "verb": "convert",
+          "material": "sequence",
+          "detail": "מקום הפין ⇒ צליל"
+        },
+        {
+          "behavior": "הגליל מסתובב",
+          "verb": "rotate",
+          "material": "number"
+        },
+        {
+          "behavior": "קפיץ שמתפרק",
+          "verb": "NEW:decay",
+          "material": "number",
+          "detail": "דועך — ערך שיורד מעט בכל צעד-זמן עד אפס"
+        },
+        {
+          "behavior": "המנגינה מאטה בסוף",
+          "verb": "pace",
+          "material": "times"
+        },
+        {
+          "behavior": "רקדנית מסתובבת",
+          "verb": "rotate",
+          "material": "geo"
+        },
+        {
+          "behavior": "נפתחת ⇒ מנגנת",
+          "verb": "gate",
+          "material": "bool"
+        },
+        {
+          "behavior": "חוזרת מההתחלה",
+          "verb": "next",
+          "material": "sequence"
+        }
+      ]
+    }
+  ]
+}

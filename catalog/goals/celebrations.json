@@ -1,0 +1,392 @@
+{
+  "world": "חגיגות",
+  "goals": [
+    {
+      "word": "בר-מצווה",
+      "emoji": "✡️",
+      "does": "שמחה בגיל שלוש עשרה, לפי התאריך העברי ופרשת השבוע",
+      "needs": [
+        {
+          "behavior": "בגיל שלוש עשרה",
+          "verb": "offset",
+          "material": "date"
+        },
+        {
+          "behavior": "לפי התאריך העברי",
+          "verb": "convert",
+          "material": "date"
+        },
+        {
+          "behavior": "פרשת השבוע",
+          "verb": "convert",
+          "material": "text"
+        },
+        {
+          "behavior": "רשימת מוזמנים",
+          "verb": "dedupe",
+          "material": "list"
+        },
+        {
+          "behavior": "עליות לתורה בתורות",
+          "verb": "round-robin",
+          "material": "sequence"
+        }
+      ]
+    },
+    {
+      "word": "גמד-וענק",
+      "emoji": "🎅",
+      "does": "כל אחד מקבל בסוד מישהו לפנק, ובסוף מגלים",
+      "needs": [
+        {
+          "behavior": "הגרלה בלי עצמך",
+          "verb": "NEW:random",
+          "material": "list",
+          "detail": "מגריל — בחירה או ערך לפי סיכוי"
+        },
+        {
+          "behavior": "כל אחד מקבל אחד",
+          "verb": "assign-role",
+          "material": "list"
+        },
+        {
+          "behavior": "נשמר בסוד",
+          "verb": "filter",
+          "material": "list"
+        },
+        {
+          "behavior": "מתנה עד סכום",
+          "verb": "clamp",
+          "material": "amount"
+        },
+        {
+          "behavior": "גילוי בסוף",
+          "verb": "gate",
+          "material": "bool"
+        }
+      ]
+    },
+    {
+      "word": "הגרלה",
+      "emoji": "🎟️",
+      "does": "הגרלה שבה כל כרטיס מקבל סיכוי ומגרילים בלי חזרות",
+      "needs": [
+        {
+          "behavior": "כרטיס לכל משתתף",
+          "verb": "count",
+          "material": "list"
+        },
+        {
+          "behavior": "יותר כרטיסים ⇒ יותר סיכוי",
+          "verb": "convert",
+          "material": "number"
+        },
+        {
+          "behavior": "מגרילים",
+          "verb": "NEW:random",
+          "material": "list",
+          "detail": "מגריל — בחירה או ערך לפי סיכוי"
+        },
+        {
+          "behavior": "בלי לזכות פעמיים",
+          "verb": "dedupe",
+          "material": "list"
+        },
+        {
+          "behavior": "פרסים לפי סדר",
+          "verb": "rank-tiers",
+          "material": "list"
+        }
+      ]
+    },
+    {
+      "word": "זיקוקים",
+      "emoji": "🎆",
+      "does": "זיקוקים שעולים בתורות, מתפוצצים ונופלים, והגדול בסוף",
+      "needs": [
+        {
+          "behavior": "עולים בתורות",
+          "verb": "offset",
+          "material": "times"
+        },
+        {
+          "behavior": "מתפוצצים בגובה",
+          "verb": "gate",
+          "material": "bool"
+        },
+        {
+          "behavior": "ניצוצות לכל כיוון",
+          "verb": "divide",
+          "material": "geo"
+        },
+        {
+          "behavior": "נופלים ודועכים",
+          "verb": "NEW:decay",
+          "material": "number",
+          "detail": "דועך — ערך שיורד מעט בכל צעד-זמן עד אפס"
+        },
+        {
+          "behavior": "הגדול בסוף",
+          "verb": "sort",
+          "material": "sequence"
+        },
+        {
+          "behavior": "הרעש מגיע אחרי האור",
+          "verb": "offset",
+          "material": "times"
+        }
+      ]
+    },
+    {
+      "word": "חנוכייה",
+      "emoji": "🕎",
+      "does": "נר אחד נוסף כל לילה, מדליקים מהחדש, בצאת הכוכבים",
+      "needs": [
+        {
+          "behavior": "נר נוסף כל לילה",
+          "verb": "count",
+          "material": "number"
+        },
+        {
+          "behavior": "מדליקים מהחדש",
+          "verb": "reverse",
+          "material": "sequence"
+        },
+        {
+          "behavior": "בצאת הכוכבים",
+          "verb": "sun-position",
+          "material": "times"
+        },
+        {
+          "behavior": "שמונה לילות",
+          "verb": "divide",
+          "material": "span"
+        },
+        {
+          "behavior": "השמש נדלק ראשון",
+          "verb": "assign-role",
+          "material": "record:candle"
+        },
+        {
+          "behavior": "הנרות דולקים חצי שעה לפחות",
+          "verb": "NEW:countdown",
+          "material": "times",
+          "detail": "סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה"
+        }
+      ]
+    },
+    {
+      "word": "חתונה",
+      "emoji": "💍",
+      "does": "חתונה עם רשימת מוזמנים, שולחנות, סדר אירוע וריקודים",
+      "needs": [
+        {
+          "behavior": "רשימת מוזמנים",
+          "verb": "dedupe",
+          "material": "list"
+        },
+        {
+          "behavior": "אישורי הגעה",
+          "verb": "count",
+          "material": "waiting"
+        },
+        {
+          "behavior": "הושבה לשולחנות",
+          "verb": "divide",
+          "material": "list"
+        },
+        {
+          "behavior": "קרובים לפי משפחה",
+          "verb": "group",
+          "material": "list"
+        },
+        {
+          "behavior": "סדר האירוע",
+          "verb": "sort",
+          "material": "sequence"
+        },
+        {
+          "behavior": "תזכורת לפני",
+          "verb": "offset",
+          "material": "date"
+        },
+        {
+          "behavior": "מתנות",
+          "verb": "sum",
+          "material": "amount"
+        }
+      ]
+    },
+    {
+      "word": "יום-הולדת",
+      "emoji": "🎉",
+      "does": "יום הולדת שחוזר כל שנה, נרות לפי גיל וברכות מכולם",
+      "needs": [
+        {
+          "behavior": "חוזר כל שנה",
+          "verb": "next",
+          "material": "date"
+        },
+        {
+          "behavior": "נרות לפי גיל",
+          "verb": "count",
+          "material": "number"
+        },
+        {
+          "behavior": "תאריך עברי או לועזי",
+          "verb": "convert",
+          "material": "date"
+        },
+        {
+          "behavior": "תזכורת לפני",
+          "verb": "offset",
+          "material": "date"
+        },
+        {
+          "behavior": "ברכות מכולם",
+          "verb": "merge",
+          "material": "text"
+        },
+        {
+          "behavior": "ברכה לכל אחד בשמו",
+          "verb": "personalize",
+          "material": "text"
+        }
+      ]
+    },
+    {
+      "word": "מסיבת-הפתעה",
+      "emoji": "🤫",
+      "does": "מסיבה שמתאמים בסוד, כולם מגיעים לפני ומחכים לרגע",
+      "needs": [
+        {
+          "behavior": "מתאמים בסוד",
+          "verb": "filter",
+          "material": "list"
+        },
+        {
+          "behavior": "כולם מגיעים לפני",
+          "verb": "offset",
+          "material": "times"
+        },
+        {
+          "behavior": "מחכים לרגע",
+          "verb": "gate",
+          "material": "waiting"
+        },
+        {
+          "behavior": "אחד מעדכן את כולם",
+          "verb": "hub-relay",
+          "material": "text"
+        },
+        {
+          "behavior": "אורות נדלקים ביחד",
+          "verb": "merge",
+          "material": "times"
+        }
+      ]
+    },
+    {
+      "word": "משלוחי-מנות",
+      "emoji": "🧺",
+      "does": "משלוחים בין חברים, מי שולח למי ושליח שעובר בבתים",
+      "needs": [
+        {
+          "behavior": "רשימת מקבלים",
+          "verb": "dedupe",
+          "material": "list"
+        },
+        {
+          "behavior": "מי שלח לי ⇒ לשלוח בחזרה",
+          "verb": "compare",
+          "material": "list"
+        },
+        {
+          "behavior": "שליח עובר בבתים",
+          "verb": "NEW:shortest-path",
+          "material": "geo",
+          "detail": "דרך קצרה — המסלול הקצר ביותר ברשת של נקודות"
+        },
+        {
+          "behavior": "מנה לכל אחד",
+          "verb": "personalize",
+          "material": "record:package"
+        },
+        {
+          "behavior": "מספיק ממה שיש",
+          "verb": "divide",
+          "material": "number"
+        }
+      ]
+    },
+    {
+      "word": "סוכה",
+      "emoji": "🛖",
+      "does": "סוכה שבונים לפני החג, לפי מידות, ומקשטים",
+      "needs": [
+        {
+          "behavior": "בונים לפני החג",
+          "verb": "offset",
+          "material": "date"
+        },
+        {
+          "behavior": "מידות מינימום",
+          "verb": "gate",
+          "material": "bool"
+        },
+        {
+          "behavior": "סכך שלא סגור לגמרי",
+          "verb": "clamp",
+          "material": "number"
+        },
+        {
+          "behavior": "קישוטים",
+          "verb": "round-robin",
+          "material": "list"
+        },
+        {
+          "behavior": "שבעה ימים",
+          "verb": "divide",
+          "material": "span"
+        },
+        {
+          "behavior": "אורח לכל לילה",
+          "verb": "rotate",
+          "material": "sequence"
+        }
+      ]
+    },
+    {
+      "word": "ספירת-העומר",
+      "emoji": "🌾",
+      "does": "ספירה של 49 ימים, כל לילה מספר אחד, בלי לדלג",
+      "needs": [
+        {
+          "behavior": "כל לילה מספר",
+          "verb": "count",
+          "material": "number"
+        },
+        {
+          "behavior": "שבועות וימים",
+          "verb": "divide",
+          "material": "number"
+        },
+        {
+          "behavior": "בצאת הכוכבים",
+          "verb": "sun-position",
+          "material": "times"
+        },
+        {
+          "behavior": "שכח יום ⇒ ממשיך בלי ברכה",
+          "verb": "tolerate-failure",
+          "material": "sequence"
+        },
+        {
+          "behavior": "תזכורת כל ערב",
+          "verb": "next",
+          "material": "times"
+        }
+      ]
+    }
+  ]
+}
