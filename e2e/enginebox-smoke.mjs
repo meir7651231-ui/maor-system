@@ -534,6 +534,40 @@ console.log('🧩 ארגז המנועים — מסע אמיתי');
   await ctx.close();
 }
 
+// ───────── 8 · (ATOMS-PREVIEWS, מוזג) תוצאות אמיתיות גם במחשבון הזמנים ובמבין בקשות ─────────
+{
+  const { ctx, page, errors } = await open(CFG({ 'shell.enginebox': true, 'shell.demodrop': false }), SEED_DB);
+  const A = (sel) => page.locator(`${BOX} ${sel}`);
+  const pshot = (name) => shot(page, name, true, undefined, OUT_CHAIN);
+  await openBox(page, null);
+  await A('[data-host="zmanim"]').waitFor({ timeout: 6000 }).catch(() => {});
+  // (א) 🕯️ ⇒ ✂️ ⇒ "היום מהנץ עד השקיעה" עם השעה הזמנית האמיתית
+  await A('[data-host="zmanim"]').click();
+  await wait(250);
+  await A('[data-atom="divide"]').click();
+  await A('.at-question').waitFor({ timeout: 4000 }).catch(() => {});
+  await wait(300);
+  const dayRow = (await A('[data-place="zmanim.day"]').textContent().catch(() => '')) ?? '';
+  T('🕯️ (א) מחשבון הזמנים · ✂️ — ליד "היום" תוצאה אמיתית: "שעה זמנית היום = …"', (await A('[data-place="zmanim.day"] [data-preview="real"]').count()) === 1 && dayRow.includes('שעה זמנית היום'), dayRow);
+  await A('[data-place="zmanim.day"]').scrollIntoViewIfNeeded();
+  await pshot('09-zmanim-real.png');
+  // (ב) 🙋 ⇒ 🔍 ⇒ שמות העסקים — תוצאה אמיתית מהמדריך
+  await A('.at-head button').first().click(); await wait(200);
+  await A('.at-head button').first().click(); await wait(250);
+  await A('[data-host="whatNeed"]').click();
+  await wait(250);
+  await A('[data-atom="fuzzy"]').click();
+  await A('.at-question').waitFor({ timeout: 4000 }).catch(() => {});
+  await wait(300);
+  const reals = await A('[data-place] [data-preview="real"]').allTextContents();
+  T('🙋 (ב) מבין בקשות · 🔍 — לפחות מקום אחד עם תוצאה אמיתית מהנתונים', reals.length >= 1 && reals.every((t) => t.trim().length > 0), reals.join(' | ').slice(0, 200));
+  T('🙋 בלי שמות אורחים בתוצאות', !reals.join(' ').includes('משפחת לוי') && !reals.join(' ').includes('משפחת שפירא'));
+  await pshot('10-whatneed-real.png');
+  await closeBox(page);
+  T('🕯️🙋 אפס שגיאות קונסולה', errors.length === 0, errors.slice(0, 3).join(' | '));
+  await ctx.close();
+}
+
 // ───────── 7 · (ATOMS-CHAIN 14.10) ✨ מנוע שנוצר חוזר לארגז — בונים עליו ─────────
 {
   const { ctx, page, errors } = await open(CFG({ 'shell.enginebox': true, 'shell.demodrop': false }), SEED_DB);

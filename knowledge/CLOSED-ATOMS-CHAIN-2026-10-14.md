@@ -98,13 +98,17 @@ ratchet (`atoms-chain.test (ה)`): אף אחת מ"מיזוג/ניתוב/הסלמ
 
 ## 9. המשקל
 הכול בצ'אנקים העצלים: chain.ts/chainPreview.ts נכנסים ל-`atoms`/`source` (לא להפעלה); capShape לא נגע.
-`bundle-budget`: ‏index = **158,675B gzip** (היה 158,669 — רעש-hash) · **8 chunks-הפעלה** · linkShape 458B ללא שינוי.
+`bundle-budget`: לפני המיזוג — index **158,675B gzip** (היה 158,669 — רעש-hash) · **8 chunks-הפעלה**; אחרי המיזוג עם P — **158,705B gzip · 8 chunks-הפעלה** (88% מהתקרה). linkShape 458B ללא שינוי.
 
-## 10. המיזוג עם P
-_ראו §12 (מתעדכן בסוף)._
+## 10. המיזוג עם P (`claude/atoms-previews-261014` a235291)
+P סיים ~10 דקות אחרי שהעבודה שלי נדחפה. מיזוג `--no-ff` **בלי קונפליקט**: P הוסיף קבצים חדשים (previewZmanim/WhatNeed/BookingsMore + 4 בדיקות + fixture), 3 ייבואים ו-3 שורות-פריסה בסוף `BUILDERS`, `export type Builder`, והרחבת קבוצת `persist` ב-vite.config. אני הוספתי ב-preview.ts רק `caps?`, dispatch ושורת-export — שני הצדדים נשמרו (`e002fa3`). כל השערים רצו מחדש אחרי המיזוג.
+הערה: שורשי-שרשרת (`ROOT_VALUE`) נשארו 5 מקומות-ההזמנות; התצוגות החדשות של P (זמנים/בקשות) עובדות כמנועים רגילים, ומנוע שנוצר מהן — בלי כרטיס ✨ עד שיוגדר מה הפלט שלהן (תוספת עתידית: שורה ב-ROOT_VALUE + ענף ב-chainPreview).
 
-## 11. השערים
-_ראו §12._
+## 11. השערים (אחרי המיזוג)
+- `npm run verify:fast` ✅ · `npm run verify` ✅ — **460 קבצי-בדיקה · 4042 בדיקות**, budget ירוק (8 chunks).
+- חדשות: `atoms-chain.test.ts` (18) · `atoms-chain-screen.test.ts` (9). אף בדיקת-זהב לא הוקלטה מחדש; הזרימה הישנה (צעדים 0–6 של ה-smoke) עוברת כמו שהיא.
+- `npm run e2e` (toggle-matrix) ✅ — "המטריצה כולה ירוקה".
+- `node e2e/enginebox-smoke.mjs` ✅ — צעדים 0–6 הקיימים + **8** (א: "שעה זמנית היום = 57 דקות ו-15 שניות …" ליד "היום מהנץ עד השקיעה"; ב: מבין בקשות · 🔍 עם תוצאה אמיתית, בלי שמות אורחים) + **7** (מסע השרשרת 7.1–7.9), אפס שגיאות קונסולה.
 
 ## 12. צילומים — `knowledge/shots/atoms-chain-2026-10-14/` (390×844, כולם ≤150KB)
-01-created-engine-in-box · 02-pick-on-created · 03-variable-length · 04-second-generation · 05-remove-blocked · 06-chains-save · 07-saved-chain · 08-build-on-saved.
+01-created-engine-in-box · 02-pick-on-created · 03-variable-length · 04-second-generation · 05-remove-blocked · 06-chains-save · 07-saved-chain · 08-build-on-saved · 09-zmanim-real · 10-whatneed-real.
