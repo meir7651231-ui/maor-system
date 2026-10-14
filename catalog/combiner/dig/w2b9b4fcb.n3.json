@@ -1,0 +1,52 @@
+{
+ "goal": "w2b9b4fcb",
+ "word": "נמלה",
+ "need": "n3",
+ "behavior": "הולכת אחרי הריח החזק",
+ "verb": "tier",
+ "verbHe": "מדרג לשלבים",
+ "isNewVerb": false,
+ "material": "list",
+ "takes": [
+  "number|amount"
+ ],
+ "gives": "list",
+ "detail": null,
+ "example": {
+  "say": "«נמלה»: הולכת אחרי הריח החזק"
+ },
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
+ "places": [
+  {
+   "id": "orbit:src/components/courses/reenroll-lib.ts#nextAcademicYearLabel",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "כותב תווית שנת הלימודים העברית הבאה אחרי תאריך הפתיחה",
+   "file": "src/components/courses/reenroll-lib.ts",
+   "action": "מדרג לשלבים",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל · שם קרוב"
+  },
+  {
+   "id": "generator:new/dart-maor/wheel-index-under-pointer.dart#wheelIndexUnderPointer",
+   "project": "המחולל",
+   "source": "generator",
+   "name": "החזר מקור",
+   "file": "new/dart-maor/wheel-index-under-pointer.dart",
+   "action": "מדרג לשלבים",
+   "proof": "תאום של חלק שהורץ",
+   "why": "אותו פועל · שם קרוב"
+  },
+  {
+   "id": "generator:new/dart-maor/tier-of.dart#tierOf",
+   "project": "המחולל",
+   "source": "generator",
+   "name": "החזר דרגת מדד-האמינות לפי ניקוד",
+   "file": "new/dart-maor/tier-of.dart",
+   "action": "מדרג לשלבים",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · שם קרוב"
+  }
+ ]
+}

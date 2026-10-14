@@ -1,0 +1,52 @@
+{
+ "goal": "w61ae0275",
+ "word": "כוונן",
+ "need": "n4",
+ "behavior": "מחט על המסך",
+ "verb": "format",
+ "verbHe": "מעצב לטקסט",
+ "isNewVerb": false,
+ "material": "ui",
+ "takes": [
+  "number|date|amount"
+ ],
+ "gives": "ui",
+ "detail": null,
+ "example": {
+  "say": "«כוונן»: מחט על המסך"
+ },
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
+ "places": [
+  {
+   "id": "orbit:src/components/hosting/kitchen.ts#scaleQty",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מכפיל את המספר הראשון בכמות",
+   "file": "src/components/hosting/kitchen.ts",
+   "action": "מעצב לטקסט",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל · שם קרוב"
+  },
+  {
+   "id": "orbit:src/lib/hebrewNumber.ts#integerInWords",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "כותב את המספר השלם במילים",
+   "file": "src/lib/hebrewNumber.ts",
+   "action": "מעצב לטקסט",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל · שם קרוב"
+  },
+  {
+   "id": "orbit:telephony/lib/cti.mjs#maskNumber",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מחזיר ממסך מספר לתצוגה",
+   "file": "telephony/lib/cti.mjs",
+   "action": "מעצב לטקסט",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל · שם קרוב"
+  }
+ ]
+}

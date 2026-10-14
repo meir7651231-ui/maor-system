@@ -1,0 +1,31 @@
+{
+ "goal": "w45d8b5e3",
+ "word": "שעון-קיר",
+ "need": "n5",
+ "behavior": "תקתוק קבוע",
+ "verb": "pace",
+ "verbHe": "מווסת קצב",
+ "isNewVerb": false,
+ "material": "sound",
+ "takes": [
+  "times"
+ ],
+ "gives": "sound",
+ "detail": null,
+ "example": {
+  "say": "«שעון-קיר»: תקתוק קבוע"
+ },
+ "status": "mining",
+ "statusHe": "⛏️ נמצא בקוד — בכרייה",
+ "places": [
+  {
+   "lead": true,
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "רצף צלילים (tone)",
+   "file": "src/components/parnasa/sound.ts",
+   "lines": "42-113",
+   "why": "מקום ידוע — אומת ביד"
+  }
+ ]
+}

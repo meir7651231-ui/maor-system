@@ -1,0 +1,29 @@
+{
+ "goal": "wfa82e1c0",
+ "word": "אזעקה",
+ "need": "n3",
+ "behavior": "זמן לבטל עם קוד",
+ "verb": "NEW:countdown",
+ "verbHe": "פועל חדש: countdown",
+ "isNewVerb": true,
+ "material": "times",
+ "takes": [],
+ "gives": "times",
+ "detail": "סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה",
+ "example": {
+  "say": "«אזעקה»: זמן לבטל עם קוד — סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה"
+ },
+ "status": "mining",
+ "statusHe": "⛏️ נמצא בקוד — בכרייה",
+ "places": [
+  {
+   "lead": true,
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "טיימר — הזמן שנותר עד היעד",
+   "file": "src/components/timer/MoneyTimer.tsx",
+   "lines": "113-127",
+   "why": "מקום ידוע — אומת ביד"
+  }
+ ]
+}

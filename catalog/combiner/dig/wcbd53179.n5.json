@@ -1,0 +1,52 @@
+{
+ "goal": "wcbd53179",
+ "word": "עונות-השנה",
+ "need": "n5",
+ "behavior": "הפוך בצד השני של העולם",
+ "verb": "reverse",
+ "verbHe": "הופך סדר",
+ "isNewVerb": false,
+ "material": "choice",
+ "takes": [
+  "list"
+ ],
+ "gives": "choice",
+ "detail": null,
+ "example": {
+  "say": "«עונות-השנה»: הפוך בצד השני של העולם"
+ },
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
+ "places": [
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#הפוך רשימה",
+   "project": "הטבעות",
+   "source": "rings",
+   "name": "הפוך רשימה",
+   "file": "lab-rings/lab13/shelf3.json",
+   "action": "הופך סדר",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל · שם קרוב"
+  },
+  {
+   "id": "14kk:knowledge_protocol.js#AssetAnalyzer.analyzeMarketTrends",
+   "project": "14kk",
+   "source": "14kk",
+   "name": "לנתח מגמות שוק",
+   "file": "knowledge_protocol.js",
+   "action": "נותן ערך קבוע",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו חומר"
+  },
+  {
+   "id": "14kk:knowledge_protocol.js#AssetAnalyzer.analyzeTechnologyTrends",
+   "project": "14kk",
+   "source": "14kk",
+   "name": "לנתח מגמות טכנולוגיה",
+   "file": "knowledge_protocol.js",
+   "action": "נותן ערך קבוע",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו חומר"
+  }
+ ]
+}

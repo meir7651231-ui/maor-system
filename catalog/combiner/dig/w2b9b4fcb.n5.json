@@ -1,0 +1,52 @@
+{
+ "goal": "w2b9b4fcb",
+ "word": "נמלה",
+ "need": "n5",
+ "behavior": "מעבירות פירור מאחת לשנייה",
+ "verb": "relay",
+ "verbHe": "מעביר דרך מרכז",
+ "isNewVerb": false,
+ "material": "sequence",
+ "takes": [
+  "record"
+ ],
+ "gives": "sequence",
+ "detail": null,
+ "example": {
+  "say": "«נמלה»: מעבירות פירור מאחת לשנייה"
+ },
+ "status": "mining",
+ "statusHe": "⛏️ נמצא בקוד — בכרייה",
+ "places": [
+  {
+   "id": "orbit:src/lib/atoms/engines/whatNeed.ts#WHAT_NEED_CARD.8",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מעביר בקשה הלאה כשאין תשובה",
+   "file": "src/lib/atoms/engines/whatNeed.ts",
+   "action": "מעביר דרך מרכז",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · אותו חומר · שם קרוב"
+  },
+  {
+   "id": "orbit:src/lib/atoms/engines/bookings.ts#BOOKINGS_CARD.6",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מעביר הזמנה משלב לשלב",
+   "file": "src/lib/atoms/engines/bookings.ts",
+   "action": "מעביר דרך מרכז",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · שם קרוב"
+  },
+  {
+   "id": "14kk:services/business-integrations.js#GitHubIntegration",
+   "project": "14kk",
+   "source": "14kk",
+   "name": "להפעיל אינטגרציה GitHub",
+   "file": "services/business-integrations.js",
+   "action": "מעביר דרך מרכז",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל"
+  }
+ ]
+}

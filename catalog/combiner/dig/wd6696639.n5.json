@@ -1,0 +1,29 @@
+{
+ "goal": "wd6696639",
+ "word": "שלכת",
+ "need": "n5",
+ "behavior": "העלה מתנדנד בדרך למטה",
+ "verb": "NEW:oscillate",
+ "verbHe": "פועל חדש: oscillate",
+ "isNewVerb": true,
+ "material": "number",
+ "takes": [],
+ "gives": "number",
+ "detail": "ימינה-שמאלה תוך כדי נפילה",
+ "example": {
+  "say": "«שלכת»: העלה מתנדנד בדרך למטה — ימינה-שמאלה תוך כדי נפילה"
+ },
+ "status": "mining",
+ "statusHe": "⛏️ נמצא בקוד — בכרייה",
+ "places": [
+  {
+   "lead": true,
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "עולה ויורד: pulse = 1 + 0.06·sin(t·0.05)",
+   "file": "src/components/supporters/SupportersGalaxy.tsx",
+   "lines": "95",
+   "why": "מקום ידוע — אומת ביד"
+  }
+ ]
+}

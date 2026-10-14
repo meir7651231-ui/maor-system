@@ -1,0 +1,53 @@
+{
+ "goal": "w81da8916",
+ "word": "סלמון",
+ "need": "n2",
+ "behavior": "מוצא את הנהר שבו נולד",
+ "verb": "lookup",
+ "verbHe": "מחפש לפי מפתח",
+ "isNewVerb": false,
+ "material": "geo",
+ "takes": [
+  "list",
+  "text"
+ ],
+ "gives": "geo",
+ "detail": null,
+ "example": {
+  "say": "«סלמון»: מוצא את הנהר שבו נולד"
+ },
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
+ "places": [
+  {
+   "id": "generator:new/dart-maor/apply-entity-partial.dart#applyEntityPartial",
+   "project": "המחולל",
+   "source": "generator",
+   "name": "מזג שינויי-אוסף מרוחקים מוצא",
+   "file": "new/dart-maor/apply-entity-partial.dart",
+   "action": "מחפש לפי מפתח",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · שם קרוב"
+  },
+  {
+   "id": "generator:new/dart-maor/merge-family-import.dart#mergeFamilyImport",
+   "project": "המחולל",
+   "source": "generator",
+   "name": "מזג שדות מיובאים למשפחה מוצא",
+   "file": "new/dart-maor/merge-family-import.dart",
+   "action": "מחפש לפי מפתח",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · שם קרוב"
+  },
+  {
+   "id": "generator:new/dart-maor/sanitize-support-text.dart#sanitizeSupportText",
+   "project": "המחולל",
+   "source": "generator",
+   "name": "נקה טקסט-הודעת-צ׳אט מוצא",
+   "file": "new/dart-maor/sanitize-support-text.dart",
+   "action": "מחפש לפי מפתח",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · שם קרוב"
+  }
+ ]
+}

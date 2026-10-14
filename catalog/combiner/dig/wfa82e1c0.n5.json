@@ -1,0 +1,53 @@
+{
+ "goal": "wfa82e1c0",
+ "word": "אזעקה",
+ "need": "n5",
+ "behavior": "הודעה לכל בני הבית",
+ "verb": "route",
+ "verbHe": "מנתב לפי ערוץ",
+ "isNewVerb": false,
+ "material": "list",
+ "takes": [
+  "choice",
+  "record"
+ ],
+ "gives": "list",
+ "detail": null,
+ "example": {
+  "say": "«אזעקה»: הודעה לכל בני הבית"
+ },
+ "status": "mining",
+ "statusHe": "⛏️ נמצא בקוד — בכרייה",
+ "places": [
+  {
+   "id": "buildsmart:app_flutter/lib/features/fittings/geometry/route_assembly.dart#assembleRoute",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "מרכיב מסלול",
+   "file": "app_flutter/lib/features/fittings/geometry/route_assembly.dart",
+   "action": "מנתב לפי ערוץ",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · אותו חומר"
+  },
+  {
+   "id": "buildsmart:app_flutter/lib/features/fittings/geometry/route_meshes.dart#buildRoutePreviewMeshes",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "בונה רשתות תצוגה מקדימה מסלול",
+   "file": "app_flutter/lib/features/fittings/geometry/route_meshes.dart",
+   "action": "מנתב לפי ערוץ",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · אותו חומר"
+  },
+  {
+   "id": "buildsmart:app_flutter/lib/features/fittings/intel/line_planner.dart#routeFromProducts",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "מנתב מוצרים",
+   "file": "app_flutter/lib/features/fittings/intel/line_planner.dart",
+   "action": "מנתב לפי ערוץ",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · אותו חומר"
+  }
+ ]
+}

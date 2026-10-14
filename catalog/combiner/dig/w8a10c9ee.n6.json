@@ -1,0 +1,52 @@
+{
+ "goal": "w8a10c9ee",
+ "word": "תזמורת",
+ "need": "n6",
+ "behavior": "תווים לכל נגן",
+ "verb": "personalize",
+ "verbHe": "ממלא טקסט מרשומה",
+ "isNewVerb": false,
+ "material": "file",
+ "takes": [
+  "record"
+ ],
+ "gives": "file",
+ "detail": null,
+ "example": {
+  "say": "«תזמורת»: תווים לכל נגן"
+ },
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
+ "places": [
+  {
+   "id": "buildsmart:functions/src/orderEmail.ts#buildOrderEmailHtml",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "בונה HTML מייל הזמנה",
+   "file": "functions/src/orderEmail.ts",
+   "action": "ממלא טקסט מרשומה",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "mmmm:lib/api-client-react/src/custom-fetch.ts#resolveUrl",
+   "project": "MMMM",
+   "source": "mmmm",
+   "name": "לפתור כתובת",
+   "file": "lib/api-client-react/src/custom-fetch.ts",
+   "action": "ממלא טקסט מרשומה",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "orbit:src/components/courses/parent.ts#parentCardText",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "כותב נוסח שיתוף להורה",
+   "file": "src/components/courses/parent.ts",
+   "action": "ממלא טקסט מרשומה",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  }
+ ]
+}

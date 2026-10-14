@@ -1,0 +1,52 @@
+{
+ "goal": "w8a10c9ee",
+ "word": "תזמורת",
+ "need": "n1",
+ "behavior": "כלים לפי קבוצות",
+ "verb": "group",
+ "verbHe": "מקבץ",
+ "isNewVerb": false,
+ "material": "list",
+ "takes": [
+  "list"
+ ],
+ "gives": "list",
+ "detail": null,
+ "example": {
+  "say": "«תזמורת»: כלים לפי קבוצות"
+ },
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
+ "places": [
+  {
+   "id": "generator:new/dart-maor/find-supporter-dup-groups.dart#findSupporterDupGroups",
+   "project": "המחולל",
+   "source": "generator",
+   "name": "הפק קבוצות כפולי-תורמים",
+   "file": "new/dart-maor/find-supporter-dup-groups.dart",
+   "action": "מקבץ",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · אותו חומר · שם קרוב"
+  },
+  {
+   "id": "generator:new/dart-maor/group-options-of.dart#groupOptionsOf",
+   "project": "המחולל",
+   "source": "generator",
+   "name": "הפק אפשרויות שיוך-קבוצה (רק כשיש יותר ממפגש אחד)",
+   "file": "new/dart-maor/group-options-of.dart",
+   "action": "מקבץ",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · אותו חומר · שם קרוב"
+  },
+  {
+   "id": "buildsmart:app_flutter/lib/data/catalog_lens.dart#groupByLens",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "מקבץ עדשה",
+   "file": "app_flutter/lib/data/catalog_lens.dart",
+   "action": "מקבץ",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · אותו חומר"
+  }
+ ]
+}

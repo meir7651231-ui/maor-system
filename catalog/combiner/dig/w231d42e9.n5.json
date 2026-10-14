@@ -1,0 +1,52 @@
+{
+ "goal": "w231d42e9",
+ "word": "גאות-ושפל",
+ "need": "n5",
+ "behavior": "טבלת שעות לשבוע",
+ "verb": "format",
+ "verbHe": "מעצב לטקסט",
+ "isNewVerb": false,
+ "material": "list",
+ "takes": [
+  "number|date|amount"
+ ],
+ "gives": "list",
+ "detail": null,
+ "example": {
+  "say": "«גאות-ושפל»: טבלת שעות לשבוע"
+ },
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
+ "places": [
+  {
+   "id": "orbit:src/components/platform/lib.ts#whoLabel",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "כותב תווית מי",
+   "file": "src/components/platform/lib.ts",
+   "action": "מעצב לטקסט",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל · אותו חומר"
+  },
+  {
+   "id": "orbit:src/components/supporters/prayer.ts#prayerListText",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "כותב טקסט להעתקה/שיתוף",
+   "file": "src/components/supporters/prayer.ts",
+   "action": "מעצב לטקסט",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל · אותו חומר"
+  },
+  {
+   "id": "buildsmart:app_flutter/lib/logic/money_format.dart#*",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "מעצב סכומי כסף בשקלים",
+   "file": "app_flutter/lib/logic/money_format.dart",
+   "action": "מעצב לטקסט",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · אותו חומר"
+  }
+ ]
+}

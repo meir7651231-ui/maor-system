@@ -1,0 +1,50 @@
+{
+ "goal": "w09746e88",
+ "word": "בינגו",
+ "need": "n1",
+ "behavior": "מגרילים מספר",
+ "verb": "NEW:random",
+ "verbHe": "פועל חדש: random",
+ "isNewVerb": true,
+ "material": "number",
+ "takes": [],
+ "gives": "number",
+ "detail": "מגריל — בחירה או ערך לפי סיכוי",
+ "example": {
+  "say": "«בינגו»: מגרילים מספר — מגריל — בחירה או ערך לפי סיכוי"
+ },
+ "status": "mining",
+ "statusHe": "⛏️ נמצא בקוד — בכרייה",
+ "places": [
+  {
+   "id": "orbit:src/components/courses/lib.ts#lessonsInTerm",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מחשב מספר השיעורים בתקופה לפי התדירות שנבחרה",
+   "file": "src/components/courses/lib.ts",
+   "action": "מגביל לטווח",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו חומר · שם קרוב"
+  },
+  {
+   "id": "orbit:src/components/diary/lib.ts#pad2",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מוסיף אפס לפני מספר של ספרה אחת",
+   "file": "src/components/diary/lib.ts",
+   "action": "מעצב לטקסט",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו חומר · שם קרוב"
+  },
+  {
+   "id": "orbit:src/components/parnasa/admin.ts#pl",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "בוחר צורת יחיד או רבים לפי מספר",
+   "file": "src/components/parnasa/admin.ts",
+   "action": "מנרמל",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו חומר · שם קרוב"
+  }
+ ]
+}

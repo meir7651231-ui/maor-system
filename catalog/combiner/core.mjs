@@ -4,11 +4,33 @@
  * "מכונה שבונה כל דבר משילוב חלקים קטנים — לא רק אורביט אלא כל מה שבנינו."
  * מטרה = רשימת צרכים {behavior, verb, material}. לכל צורך מחפשים חלקים שהפועל שלהם מתאים והסוגים שלהם מתאימים,
  * בטבעות כמו מנוע-הטבעות של הבעלים: טבעת 1 = חלק בודד · טבעת 2 = זוג · טבעת 3 = שלישייה, כשהפלט של אחד הוא הקלט של הבא.
- * מדרגים: מוכח (חוקים רצו) > ניתן-להרצה > סטטי · פחות חלקים · ערבוב פרויקטים. צורך בלי חלק ⇒ "חסר" ⇒ בקשת-בנייה למחולל (Waze).
+ * מדרגים: פחות חלקים · ערבוב פרויקטים. **"לא חסר כלום"** (הכרעת-בעלים): צורך נחשב נמצא רק דרך חלק שהוכח בהרצה;
+ * חלק אחד בלבד עושה את הפועל של הצורך, וכל השאר הם מתאמי-סוג טהורים (ממיר/מעצב/ממיר-כל-פריט/מפצל/מצרף/מנרמל).
+ * מה שלא הוכח — לא "חסר": או ⛏️ בכרייה (פועל שנכרה עכשיו / NEW:x) עם המקומות הידועים, או 🔎 עוד לא נחפר עם 3 מקומות לחפור.
  *
  * טהור ודטרמיניסטי: בלי fs/רשת/שעון/אקראי. אותו קלט ⇒ אותה הרכבה, ביט אחר ביט. רץ ב-node (cli) ובדפדפן (lab.html).
  */
 import { VERBS, VERB_BY_ID, RECIPE_VERB, EXTRA_IDS, canonVerb, staticVerbsScored } from './verbs.mjs';
+
+/* ═══════════════ "לא חסר כלום" — הסטטוסים ═══════════════ */
+
+/** מתאמי-סוג: הפועל שלהם רק משנה צורה. רק הם מותרים כ"דבק" סביב חלק-הליבה. */
+export const ADAPTER_VERBS = new Set(['convert', 'format', 'map', 'split', 'join', 'normalize']);
+/** 21 הפעלים שנכרים עכשיו מהקוד (ענפי הכרייה). צורך עליהם בלי חלק מוכח ⇒ ⛏️ בכרייה. */
+export const MINING_VERBS = new Set(['decay', 'countdown', 'accumulate', 'oscillate', 'random', 'gravity', 'move-along-path', 'orbit', 'shortest-path', 'spread', 'sample', 'echo', 'follow', 'bounce', 'pace', 'relay', 'tolerate', 'route', 'assign-role', 'freeze', 'require-source']);
+export const STATUS_HE = { proven: '✅ מוכח בהרצה', inner: '✅ מוכח — חלק פנימי', mining: '⛏️ נמצא בקוד — בכרייה', dig: '🔎 עוד לא נחפר' };
+export const STATUS_ORDER = ['proven', 'inner', 'mining', 'dig'];
+
+/** פועל מבוקש ⇒ פועל באלפבית: כינוי (gate ⇒ validate), ו-`NEW:x` ⇒ x כשהאלפבית כבר מכיר את x (נקרא בזמן ריצה). */
+export function resolveVerb(v) {
+  const s = String(v || '');
+  if (s.startsWith('NEW:')) {
+    const x = canonVerb(s.slice(4));
+    return VERB_BY_ID[x] ? x : s;
+  }
+  return canonVerb(s);
+}
+const bareVerb = (v) => String(v || '').replace(/^NEW:/, '');
 import { exampleLaw } from './laws.mjs';
 
 /* ═══════════════ פרויקטים וסוגים ═══════════════ */
@@ -138,6 +160,8 @@ export function buildIndex(parts, opts = {}) {
   const behavior = opts.behavior || null;
   const groups = new Map();
   const sorted = [...parts].sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+  // כל החלקים (גם רכיבים) — כדי לתת שם פשוט להורה של חלק פנימי
+  const rawById = new Map(sorted.map((p) => [p.id, p]));
   for (const p of sorted) {
     if (p.what === 'component' || p.gives?.kind === 'ui') continue;
     const k = dedupeKey(p);
@@ -163,10 +187,20 @@ export function buildIndex(parts, opts = {}) {
       const { s: _s, home, ...rest } = proofs[v];
       slimProofs[v] = home === best.p.id ? rest : { ...rest, home };
     }
+    const parent = rated.map((r) => r.p.parent).find((x) => typeof x === 'string') || null;
+    const pp = parent ? rawById.get(parent) : null;
+    const origins = originsOf(rated.map((r) => r.p));
+    const bPrimary = rated.map((r) => behavior?.get(r.p.id)?.primary).find((x) => typeof x === 'string');
+    const jPrimary = rated.map((r) => judge[r.p.id]).find((j) => j?.status === 'proven')?.verb;
+    const primary = [bPrimary && canonVerb(bPrimary), jPrimary].find((v) => v && proofs[v]) || verbs.slice().sort((a, b) => TIER_RANK[proofs[a].tier] - TIER_RANK[proofs[b].tier] || proofs[a].s - proofs[b].s)[0] || null;
     out.push({
       id: best.p.id,
       source: best.p.source,
       homes: rated.map((r) => ({ source: r.p.source, id: r.p.id })),
+      path: best.p.path || fileOfId(best.p.id),
+      ...(origins.length > 1 || (origins[0] && origins[0].source !== best.p.source) ? { origins } : {}),
+      ...(parent ? { parent: { id: parent, name: pp?.name || symOfId(parent), path: pp?.path || fileOfId(parent) } } : {}),
+      primary,
       name: best.p.name,
       does: String(best.p.does || '').slice(0, 160),
       what: best.p.what,
@@ -183,14 +217,38 @@ export function buildIndex(parts, opts = {}) {
   }
   for (const r of opts.recipes || []) out.push(recipePart(r, out));
   out.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
-  return indexOf(out, opts.proofs?.flows || {});
+  return indexOf(out, opts.proofs?.flows || {}, opts.leads || []);
+}
+
+const fileOfId = (id) => String(id).replace(/^[^:]*:/, '').split('#')[0];
+const symOfId = (id) => String(id).split('#')[1] || fileOfId(id);
+/**
+ * כל הפרויקטים שבהם החלק נמצא: הבתים (אותו חלק שהועתק) + `origins[]` של הכורים.
+ * סובלני לצורה: מחרוזת ("orbit" / "orbit:path#sym") או אובייקט {source|project, id?, path|file?}.
+ */
+function originsOf(homes) {
+  const out = [];
+  const add = (source, file) => {
+    if (!source) return;
+    if (!out.some((o) => o.source === source && o.file === file)) out.push({ source, file: file || '' });
+  };
+  for (const p of homes) {
+    const own = Array.isArray(p.origins) && p.origins.length ? p.origins : null;
+    // מקור מפורש (הכורים) ⇒ פרויקטי-המקור; הבית עצמו נספר רק אם הוא פרויקט מוכר
+    if (!own || PROJECTS[p.source]) add(p.source, p.path || fileOfId(p.id));
+    for (const o of own || []) {
+      if (typeof o === 'string') add(o.split(':')[0], o.includes(':') ? fileOfId(o) : '');
+      else if (o && typeof o === 'object') add(o.source || o.project || (o.id ? String(o.id).split(':')[0] : ''), o.path || o.file || (o.id && String(o.id).includes(':') ? fileOfId(o.id) : ''));
+    }
+  }
+  return out;
 }
 
 /** דרגת החלק בתפקיד מסוים (פועל); בלי פועל — הדרגה הטובה שלו. */
 export const tierFor = (p, verb) => p.proofs?.[verb]?.tier || p.tier;
 
 /** אינדקס מוכן לחיפוש (גם מתוך lab-data.json שכבר נבנה — lab.html). */
-export function indexOf(parts, flows = {}) {
+export function indexOf(parts, flows = {}, leads = []) {
   const byVerb = new Map();
   const byTake = new Map();
   for (const p of parts) {
@@ -207,7 +265,7 @@ export function indexOf(parts, flows = {}) {
     TIER_RANK[tierFor(a, verb)] - TIER_RANK[tierFor(b, verb)] || (a.takes.length ? 0 : 1) - (b.takes.length ? 0 : 1) || a.takes.length - b.takes.length || srcRank(a.source) - srcRank(b.source) || (a.id < b.id ? -1 : 1);
   for (const [v, xs] of byVerb) xs.sort(order(v));
   for (const xs of byTake.values()) xs.sort(order(null));
-  return { parts, byId: new Map(parts.map((p) => [p.id, p])), byVerb, byTake, flows };
+  return { parts, byId: new Map(parts.map((p) => [p.id, p])), byVerb, byTake, flows, leads, roots: new Map() };
 }
 
 /* ═══════════════ מתכונים — המדף ═══════════════ */
@@ -236,7 +294,10 @@ export function recipePart(r, known = []) {
     inner: verbs,
     labeledBy: 'recipe',
     tier,
-    proofs: { [RECIPE_VERB.id]: { status: 'static', by: 'recipe', tier } },
+    path: 'catalog/recipes/' + r.id + '.json',
+    primary: RECIPE_VERB.id,
+    // מתכון מוכח = כל הצעדים שבתוכו הוכחו בהרצה (רק כאלה נכנסים למתכון)
+    proofs: { [RECIPE_VERB.id]: { status: tier === 'proven' ? 'proven' : 'static', by: 'recipe', tier } },
     recipe: { id: r.id, word: r.word, parts: steps.length, projects: [...new Set(steps.map((id) => id.split(':')[0]))].sort() },
   };
 }
@@ -253,12 +314,29 @@ export function recipeFrom(assembly) {
 
 /* ═══════════════ החיפוש — טבעות ═══════════════ */
 
-const FINISH_VERBS = new Set(['convert', 'format', 'round', 'clamp', 'sort', 'filter', 'count', 'sum', 'average', 'extreme', 'dedupe', 'reverse', 'tier', 'validate', 'group', 'tally', 'map', 'normalize', 'join']);
-/** התפקיד של חלק שאינו הליבה = הפועל הכי מוכח שלו. */
-const roleOf = (p) => [...p.verbs].sort((a, b) => TIER_RANK[tierFor(p, a)] - TIER_RANK[tierFor(p, b)])[0] || null;
+/** הוכח בהרצה לפועל הזה (קורא-ההתנהגות n/n, השופט, או מתכון שכל צעדיו מוכחים). רק זה נחשב "נמצא". */
+export const provenAs = (p, v) => p.proofs?.[v]?.status === 'proven';
+const plainKind = (k) => !!k && k !== 'unknown' && !String(k).startsWith('record');
+/**
+ * תפקיד-מתאם: הפועל **הראשי** של החלק הוא מתאם-סוג והוא הוכח בהרצה; קלט אחד בלבד, סוגים פשוטים (לא רשומה של עולם),
+ * והסוג באמת משתנה. חלק-עולם (מוצא ארוחות, תווית שנה) לעולם לא דבק.
+ */
+export const adapterRole = (p) =>
+  ADAPTER_VERBS.has(p.primary) && provenAs(p, p.primary) && p.takes.length === 1 && plainKind(p.takes[0]) && plainKind(p.gives) && fit(p.gives, p.takes[0]) === 0 ? p.primary : null;
+const kindsOf = (k) => String(k || '').split('|').filter(Boolean);
+/**
+ * מותר לסיים במתאם רק כשהחומר של הצורך הוא צורה של מה שהפועל עצמו מקבל או נותן (לפי האלפבית).
+ * "מדרג ⇒ רשימה": מדרג נותן בחירה ומקבל מספר — מתאם שמפצל את התווית לרשימה רק מזייף את החומר.
+ */
+function matFitsVerb(verb, mat) {
+  const v = VERB_BY_ID[verb];
+  const ks = [...kindsOf(v?.gives), ...kindsOf(v?.takes?.[0])];
+  return !ks.length || ks.some((k) => k === 'any' || fit(k, mat) > 0 || fit(mat, k) > 0);
+}
 const CAP_CORE = 60;
 const CAP_LINK = 40;
 const KEEP = 5;
+const PLACES = 3;
 
 /** שורשים עבריים גסים: עם ובלי תחילית, בלי אמות-קריאה, בלי סיומת ה/ת/ים/ות — "שוקעת" ו"השקיעה" ⇒ שקע. */
 export function roughRoots(w) {
@@ -289,42 +367,49 @@ const textOf = (p) => (p.name + ' ' + p.id).toLowerCase();
 const matchesKeys = (p, keys) => !keys?.length || keys.some((k) => textOf(p).includes(String(k).toLowerCase()));
 const linked = (a, b) => accepts(b, a.gives);
 
-/** כל השרשראות האפשריות לצורך, טבעת אחרי טבעת (1 ⇒ 2 ⇒ 3), אחרי גיזום מה שלא מתאים בסוגים. */
+/**
+ * כל השרשראות המוכחות לצורך, טבעת אחרי טבעת (1 ⇒ 2 ⇒ 3).
+ * חוק "בלי שרשראות-שטות": חלק-ליבה אחד בדיוק מחזיק את הפועל של הצורך (ומוכח לו בהרצה);
+ * כל חלק אחר הוא מתאם-סוג טהור (`adapterRole`) שמוכח בהרצה לפועל-המתאם שלו.
+ */
 export function chainsFor(need, ix) {
   const mat = need.material;
   const from = need.from || null;
-  const cores = (ix.byVerb.get(need.verb) || []).filter((p) => matchesKeys(p, need.keys) && !(p.takes.length === 0 && p.gives === 'unknown')).slice(0, CAP_CORE);
-  // מסיים = מקבל את הפלט כקלט הראשי שלו (byTake מכיל גם חלקים שהסוג הוא קלט משני אצלם)
-  const finishers = (kind) => (ix.byTake.get(kind) || []).filter((g) => accepts(g, kind) && g.verbs.some((v) => FINISH_VERBS.has(v))).slice(0, CAP_LINK);
-  const feeders = (into) => (from ? (ix.byTake.get(from) || []).filter((f) => f.verbs.length && linked(f, into)).slice(0, CAP_LINK) : []);
+  const cores = (ix.byVerb.get(need.verb) || []).filter((p) => provenAs(p, need.verb) && matchesKeys(p, need.keys) && !(p.takes.length === 0 && p.gives === 'unknown')).slice(0, CAP_CORE);
+  const glue = (p) => {
+    const r = adapterRole(p);
+    return r && r !== need.verb ? r : null;
+  };
+  // מסיים = מתאם שמקבל את הפלט כקלט הראשי שלו (byTake מכיל גם חלקים שהסוג הוא קלט משני אצלם)
+  const finishers = (kind) => (matFitsVerb(need.verb, mat) ? (ix.byTake.get(kind) || []).filter((g) => accepts(g, kind) && glue(g)).slice(0, CAP_LINK) : []);
+  const feeders = (into) => (from ? (ix.byTake.get(from) || []).filter((f) => accepts(f, from) && glue(f) && linked(f, into)).slice(0, CAP_LINK) : []);
   const startOk = (p) => !from || accepts(p, from);
   // "חומר" = על מה הפועל עובד (מילון-המטרות): החלק נותן אותו, או מקבל אותו כקלט הראשי
   const onMat = (p) => fit(p.gives, mat) > 0 || accepts(p, mat);
   const chains = [];
-  const push = (steps, ring) => {
+  const push = (steps, ring, core) => {
     const ids = steps.map((s) => s.id);
     if (new Set(ids).size !== ids.length) return;
-    const core = steps.findIndex((s) => s.verbs.includes(need.verb) && matchesKeys(s, need.keys));
-    const roles = steps.map((s, i) => (i === core ? need.verb : roleOf(s)));
+    const roles = steps.map((s, i) => (i === core ? need.verb : glue(s)));
     chains.push({ ring, verb: need.verb, overlap: overlap(need.behavior, steps), steps, roles, core, fit: Math.max(fit(steps[steps.length - 1].gives, mat), steps[0].takes.length ? fit(mat, steps[0].takes[0]) : 0) });
   };
   // כמו מנוע-הטבעות: מתרחבים לטבעת הבאה רק כשהפנימית ריקה
   // טבעת 1 — חלק בודד
-  for (const c of cores) if (onMat(c) && startOk(c)) push([c], 1);
+  for (const c of cores) if (onMat(c) && startOk(c)) push([c], 1, 0);
   if (chains.length) return chains;
-  // טבעת 2 — זוג: מזין לפני הליבה, או מסיים אחריה
+  // טבעת 2 — זוג: מתאם לפני הליבה, או מתאם אחריה
   for (const c of cores) {
     const ends = onMat(c);
-    if (ends && !startOk(c)) for (const f of feeders(c)) push([f, c], 2);
-    if (!ends && startOk(c)) for (const g of finishers(c.gives)) if (fit(g.gives, mat) > 0 && linked(c, g)) push([c, g], 2);
+    if (ends && !startOk(c)) for (const f of feeders(c)) push([f, c], 2, 1);
+    if (!ends && startOk(c)) for (const g of finishers(c.gives)) if (fit(g.gives, mat) > 0 && linked(c, g)) push([c, g], 2, 0);
   }
   if (chains.length) return chains;
   // טבעת 3 — שלישייה
   for (const c of cores) {
     const ends = onMat(c);
-    if (!ends && !startOk(c)) for (const f of feeders(c)) for (const g of finishers(c.gives)) if (fit(g.gives, mat) > 0) push([f, c, g], 3);
+    if (!ends && !startOk(c)) for (const f of feeders(c)) for (const g of finishers(c.gives)) if (fit(g.gives, mat) > 0) push([f, c, g], 3, 1);
     if (!ends && startOk(c))
-      for (const g1 of finishers(c.gives)) if (fit(g1.gives, mat) === 0) for (const g2 of finishers(g1.gives)) if (fit(g2.gives, mat) > 0) push([c, g1, g2], 3);
+      for (const g1 of finishers(c.gives)) if (fit(g1.gives, mat) === 0) for (const g2 of finishers(g1.gives)) if (fit(g2.gives, mat) > 0) push([c, g1, g2], 3, 0);
   }
   return chains;
 }
@@ -361,6 +446,26 @@ export function chainSentence(steps) {
 
 const PROOF_HE = { judge: 'השופט הריץ על קלטים מחוללים', reader: 'קורא-ההתנהגות הריץ בארגז-חול', example: 'נבדק על הדוגמה מקובץ-בדיקה', static: 'מהשם בלבד' };
 
+/** איפה הפעולה גרה: "נמצא ב: <פרויקט> · <שם>" / "נמצא בתוך: <ההורה> · <קובץ>" / כל פרויקטי-המקור. */
+function whereOf(p) {
+  const origins = (p.origins || [{ source: p.source, file: p.path || '' }]).map((o) => ({ source: o.source, project: PROJECTS[o.source]?.he || o.source, file: o.file }));
+  const homes = p.homes.map((h) => h.source).filter((s, i, a) => a.indexOf(s) === i);
+  for (const s of homes) if (PROJECTS[s] && !origins.some((o) => o.source === s)) origins.push({ source: s, project: PROJECTS[s]?.he || s, file: '' });
+  return { name: p.name, file: p.path || '', origins, parent: p.parent ? { name: p.parent.name, file: p.parent.path } : null };
+}
+/** שורה קטנה מתחת לפעולה. */
+export function whereLine(w) {
+  if (w.parent) return 'נמצא בתוך: ' + w.parent.name + ' · ' + (w.parent.file || w.file);
+  return 'נמצא ב: ' + w.origins.map((o) => o.project).join(' · ') + ' · ' + w.name;
+}
+/** הפעולה עצמה, בלי עולם: שם הפועל בעברית + שורה אחת מה הוא עושה (`catalog/verbs.json`). */
+export function actionOf(verb) {
+  const v = VERB_BY_ID[verb];
+  if (v) return { he: v.he, plain: v.plain || '' };
+  if (verb === RECIPE_VERB.id) return { he: RECIPE_VERB.he, plain: RECIPE_VERB.plain };
+  return { he: VERB_HE(verb), plain: '' };
+}
+
 function stepView(p, prev, flows, role) {
   const flow = prev ? flows[prev.id + '>' + p.id] || null : null;
   const pr = (role && p.proofs?.[role]) || {};
@@ -376,6 +481,9 @@ function stepView(p, prev, flows, role) {
     verbs: p.verbs,
     role,
     roleHe: VERB_HE(role),
+    action: actionOf(role),
+    where: whereOf(p),
+    inner: !!p.parent,
     tier: tierFor(p, role),
     proof,
     by: pr.by || 'static',
@@ -386,8 +494,62 @@ function stepView(p, prev, flows, role) {
   };
 }
 
-/** בקשת-בנייה למחולל: צורך שאין לו חלק. */
-export function buildRequest(goal, need) {
+const PROOF_PLACE = { proven: 'הורץ — סוג אחר', twin: 'תאום של חלק שהורץ', example: 'נבדק על דוגמה', static: 'מהשם בלבד' };
+const leadMatches = (l, goal, need) =>
+  (l.verb || l.material) && (!l.verb || bareVerb(l.verb) === bareVerb(need.verb) || bareVerb(l.verb) === bareVerb(need.asked)) && (!l.material || l.material === need.material) && (!l.word || l.word === goal.word);
+
+function partRoots(ix, p) {
+  if (!ix.roots) ix.roots = new Map();
+  let r = ix.roots.get(p.id);
+  if (!r) ix.roots.set(p.id, (r = rootsOf(p.name)));
+  return r;
+}
+
+/**
+ * איפה לחפור: המקומות הידועים (`leads.json`), ואז 3 המקומות הקרובים — לפי פועל, אחר-כך חומר, אחר-כך שם.
+ * כולל מועמדים סטטיים/רופפים וחלקים פנימיים. אף אחד מהם לא "נחשב נמצא" — הם רמז, לא הוכחה.
+ */
+export function digPlaces(goal, need, ix, opts = {}) {
+  const leads = (ix.leads || []).filter((l) => leadMatches(l, goal, need)).map((l) => ({ lead: true, project: PROJECTS[l.project]?.he || l.project, source: l.project, name: l.name, file: l.file, lines: l.lines || '', why: 'מקום ידוע — אומת ביד' }));
+  if (opts.leadsOnly && leads.length) return leads;
+  const want = rootsOf(need.behavior);
+  const keys = need.keys?.length ? need.keys : null;
+  const scored = [];
+  for (const p of ix.parts) {
+    if (!p.verbs.length || p.source === 'recipe') continue;
+    const v = p.verbs.includes(need.verb) ? 0 : 1;
+    const m = fit(p.gives, need.material) > 0 || accepts(p, need.material) ? 0 : 1;
+    let o = 0;
+    const have = partRoots(ix, p);
+    for (const r of want) if (have.has(r)) o++;
+    if (keys && matchesKeys(p, keys)) o++;
+    if (v && m && !o) continue;
+    scored.push({ p, k: [v, m, -o, TIER_RANK[tierFor(p, v ? p.primary : need.verb)], p.id] });
+  }
+  scored.sort((a, b) => {
+    for (let i = 0; i < a.k.length; i++) if (a.k[i] !== b.k[i]) return a.k[i] < b.k[i] ? -1 : 1;
+    return 0;
+  });
+  const near = scored.slice(0, PLACES).map(({ p, k }) => {
+    const verb = k[0] ? p.primary : need.verb;
+    const st = p.proofs?.[verb]?.status || 'static';
+    return {
+      id: p.id,
+      project: PROJECTS[p.source]?.he || p.source,
+      source: p.source,
+      name: p.name,
+      file: p.path || '',
+      action: actionOf(verb).he,
+      proof: PROOF_PLACE[st] || PROOF_PLACE.static,
+      why: [k[0] ? null : 'אותו פועל', k[1] ? null : 'אותו חומר', k[2] ? 'שם קרוב' : null].filter(Boolean).join(' · '),
+      ...(p.parent ? { inside: p.parent.name } : {}),
+    };
+  });
+  return [...leads, ...near];
+}
+
+/** בקשת-חפירה (ולמחולל — הצרכן האחרון): צורך שעוד לא הוכח בהרצה, עם המקומות לחפור. */
+export function digRequest(goal, need, status, places) {
   return {
     goal: goal.id,
     word: goal.word,
@@ -401,12 +563,16 @@ export function buildRequest(goal, need) {
     gives: need.material,
     detail: need.detail || null,
     example: need.example || { say: '«' + goal.word + '»: ' + need.behavior + (need.detail ? ' — ' + need.detail : '') },
+    status,
+    statusHe: STATUS_HE[status],
+    places,
   };
 }
 
 /**
- * מרכיב מטרה: לכל צורך — השרשרת הטובה + עד 4 חלופות; ואז "מה יצא" ורשימת החסרים.
- * @returns {{goal, needs:[{need, chain|null, alternatives, ring}], missing, projects, outcome}}
+ * מרכיב מטרה: לכל צורך — השרשרת המוכחת הטובה + עד 4 חלופות, וסטטוס אחד מארבעה
+ * (✅ מוכח בהרצה · ✅ חלק פנימי · ⛏️ בכרייה · 🔎 עוד לא נחפר); ואז "מה יצא" ובקשות-החפירה.
+ * @returns {{goal, needs:[{need, status, chain|null, alternatives, ring, places?}], dig, projects, outcome, counts}}
  */
 export function assemble(goal, ix) {
   const used = new Set();
@@ -414,7 +580,9 @@ export function assemble(goal, ix) {
   for (const need of goal.needs) {
     const ranked = rankChains(chainsFor(need, ix), used);
     if (!ranked.length) {
-      needs.push({ need, chain: null, alternatives: [], ring: 0 });
+      const mining = MINING_VERBS.has(bareVerb(need.verb)) || need.verb.startsWith('NEW:');
+      const status = mining ? 'mining' : 'dig';
+      needs.push({ need, status, chain: null, alternatives: [], ring: 0, places: digPlaces(goal, need, ix, { leadsOnly: mining }) });
       continue;
     }
     const views = ranked.slice(0, KEEP).map((c) => ({
@@ -424,7 +592,8 @@ export function assemble(goal, ix) {
       steps: c.steps.map((s, i) => stepView(s, c.steps[i - 1], ix.flows, c.roles[i])),
     }));
     for (const s of ranked[0].steps) used.add(s.source);
-    needs.push({ need, chain: views[0], alternatives: views.slice(1), ring: views[0].ring });
+    const core = views[0].steps[ranked[0].core];
+    needs.push({ need, status: core.inner ? 'inner' : 'proven', chain: views[0], alternatives: views.slice(1), ring: views[0].ring });
   }
   // זרימה בין צרכים צמודים באותה קבוצה: הפלט של הצורך הקודם נכנס לבא (למשל זריחה ⇒ הבא בתור ⇒ מזיז ⇒ מעגל)
   for (let i = 1; i < needs.length; i++) {
@@ -435,9 +604,10 @@ export function assemble(goal, ix) {
     const f = ix.flows[from.id + '>' + b.chain.steps[0].id];
     if (f) b.groupFlow = { from: from.name, status: f.status, cases: f.cases };
   }
-  const missing = needs.filter((n) => !n.chain).map((n) => buildRequest(goal, n.need));
+  const dig = needs.filter((n) => !n.chain).map((n) => digRequest(goal, n.need, n.status, n.places));
   const projects = [...used].sort((a, b) => srcRank(a) - srcRank(b));
-  return { goal, needs, missing, projects, outcome: outcomeText(goal, needs, projects) };
+  const counts = Object.fromEntries(STATUS_ORDER.map((s) => [s, needs.filter((n) => n.status === s).length]));
+  return { goal, needs, dig, projects, counts, outcome: outcomeText(goal, needs, projects) };
 }
 
 /** "מה יצא" — פסקה אחת שמחברת את הצרכים לדבר עצמו. */
@@ -456,8 +626,8 @@ export function outcomeText(goal, needs, projects) {
   const proj = projects.map((s) => PROJECTS[s]?.he || s).join(', ');
   let t = '«' + goal.word + '» הורכבה מ-' + partsN + ' חלקים מ-' + projects.length + ' פרויקטים (' + proj + '): ' + body + '.';
   if (proven) t += ' ' + proven + ' צעדים הוכחו בהרצה על קלטים מחוללים.';
-  const miss = needs.filter((n) => !n.chain);
-  if (miss.length) t += ' עוד חסר: ' + miss.map((n) => n.need.behavior).join('; ') + ' — נשלח לבנייה.';
+  const dig = needs.filter((n) => !n.chain);
+  if (dig.length) t += ' עוד בחפירה: ' + dig.map((n) => n.need.behavior).join('; ') + '.';
   return t;
 }
 
@@ -509,7 +679,7 @@ export function wordId(w) {
 
 /**
  * מנרמל מטרה מכל צורה סבירה: מילון-המטרות ({word, emoji, does, needs}) או ה-fixtures ({id, word, title, needs}).
- * הפועל עובר דרך ALIAS לאלפבית; `NEW:x` נשאר כמו שהוא — אין לו חלקים ⇒ "חסר" ⇒ בקשת-בנייה.
+ * הפועל עובר דרך ALIAS לאלפבית; `NEW:x` ⇒ x כשהאלפבית כבר מכיר את x, ואחרת נשאר — ⛏️ בכרייה.
  */
 export function normGoal(g) {
   const needs = (g.needs || []).map((n, j) => ({
@@ -517,7 +687,7 @@ export function normGoal(g) {
     id: n.id || 'n' + (j + 1),
     behavior: n.behavior || n.he || n.text || n.verb,
     asked: n.verb,
-    verb: canonVerb(n.verb),
+    verb: resolveVerb(n.verb),
     material: n.material || n.kind,
   }));
   return { ...g, id: g.id || wordId(g.word), word: g.word, title: g.title || g.does || '', needs: needs.filter((n) => n.verb && n.material) };

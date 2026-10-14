@@ -1,0 +1,50 @@
+{
+ "goal": "w00fc827c",
+ "word": "מזרקה",
+ "need": "n4",
+ "behavior": "המים חוזרים לבריכה",
+ "verb": "NEW:gravity",
+ "verbHe": "פועל חדש: gravity",
+ "isNewVerb": true,
+ "material": "number",
+ "takes": [],
+ "gives": "number",
+ "detail": "נופל — מהירות שגדלה בכל צעד של נפילה",
+ "example": {
+  "say": "«מזרקה»: המים חוזרים לבריכה — נופל — מהירות שגדלה בכל צעד של נפילה"
+ },
+ "status": "mining",
+ "statusHe": "⛏️ נמצא בקוד — בכרייה",
+ "places": [
+  {
+   "id": "buildsmart:functions/src/studio.ts#revertStillApplies",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "מחזיר אחורה סטודיו",
+   "file": "functions/src/studio.ts",
+   "action": "בודק",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו חומר · שם קרוב"
+  },
+  {
+   "id": "generator:new/dart-maor/cycle-hit.dart#cycleHit",
+   "project": "המחולל",
+   "source": "generator",
+   "name": "בדוק פגיעת מחזור לפי שארית מול סף",
+   "file": "new/dart-maor/cycle-hit.dart",
+   "action": "בודק",
+   "proof": "מהשם בלבד",
+   "why": "אותו חומר · שם קרוב"
+  },
+  {
+   "id": "14kk:final_supervisor_protocol.js#FinalSupervisorProtocol.calculateFileQuality",
+   "project": "14kk",
+   "source": "14kk",
+   "name": "לחשב איכות קובץ",
+   "file": "final_supervisor_protocol.js",
+   "action": "מעגל",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו חומר"
+  }
+ ]
+}

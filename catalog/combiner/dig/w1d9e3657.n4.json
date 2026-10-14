@@ -1,0 +1,52 @@
+{
+ "goal": "w1d9e3657",
+ "word": "תיבת-נגינה",
+ "need": "n4",
+ "behavior": "המנגינה מאטה בסוף",
+ "verb": "pace",
+ "verbHe": "מווסת קצב",
+ "isNewVerb": false,
+ "material": "times",
+ "takes": [
+  "times"
+ ],
+ "gives": "times",
+ "detail": null,
+ "example": {
+  "say": "«תיבת-נגינה»: המנגינה מאטה בסוף"
+ },
+ "status": "mining",
+ "statusHe": "⛏️ נמצא בקוד — בכרייה",
+ "places": [
+  {
+   "id": "generator:new/dart-maor/cooldown-for-fails.dart#cooldownForFails",
+   "project": "המחולל",
+   "source": "generator",
+   "name": "חשב כשלונות-PIN ⇒ מ״ש-קירור",
+   "file": "new/dart-maor/cooldown-for-fails.dart",
+   "action": "מווסת קצב",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "generator:new/dart-maor/intel-churn-from-scan.dart#churnFromScan",
+   "project": "המחולל",
+   "source": "generator",
+   "name": "חשב סיכון-נטישה 0–100 מול קצב-הנתינה האישי",
+   "file": "new/dart-maor/intel-churn-from-scan.dart",
+   "action": "מווסת קצב",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "mmmm:lib/integrations-openai-ai-server/src/batch/utils.ts#batchProcess",
+   "project": "MMMM",
+   "source": "mmmm",
+   "name": "לעבד רשימה בקבוצות עם הגבלת קצב",
+   "file": "lib/integrations-openai-ai-server/src/batch/utils.ts",
+   "action": "מווסת קצב",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל"
+  }
+ ]
+}

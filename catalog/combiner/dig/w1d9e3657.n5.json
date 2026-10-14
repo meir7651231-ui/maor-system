@@ -1,0 +1,53 @@
+{
+ "goal": "w1d9e3657",
+ "word": "תיבת-נגינה",
+ "need": "n5",
+ "behavior": "רקדנית מסתובבת",
+ "verb": "rotate",
+ "verbHe": "מחלק בתורות",
+ "isNewVerb": false,
+ "material": "geo",
+ "takes": [
+  "list",
+  "number|date"
+ ],
+ "gives": "geo",
+ "detail": null,
+ "example": {
+  "say": "«תיבת-נגינה»: רקדנית מסתובבת"
+ },
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
+ "places": [
+  {
+   "id": "orbit:src/lib/atoms/parts/rotate.ts#dayIndex",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מחשב מספר יום מוחלט של תאריך",
+   "file": "src/lib/atoms/parts/rotate.ts",
+   "action": "מחלק בתורות",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "orbit:src/lib/atoms/parts/rotate.ts#fairAssign",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מחלק בתורות",
+   "file": "src/lib/atoms/parts/rotate.ts",
+   "action": "מחלק בתורות",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "orbit:src/lib/atoms/parts/rotate.ts#turnIndex",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מחשב אינדקס התור בכמה",
+   "file": "src/lib/atoms/parts/rotate.ts",
+   "action": "מחלק בתורות",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  }
+ ]
+}

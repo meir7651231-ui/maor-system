@@ -1,0 +1,52 @@
+{
+ "goal": "w8ca8e96e",
+ "word": "כוורת",
+ "need": "n2",
+ "behavior": "ריקוד שמראה כיוון",
+ "verb": "convert",
+ "verbHe": "ממיר ערך",
+ "isNewVerb": false,
+ "material": "geo",
+ "takes": [
+  "number|date|times"
+ ],
+ "gives": "geo",
+ "detail": "זווית הריקוד ⇒ כיוון לפרחים",
+ "example": {
+  "say": "«כוורת»: ריקוד שמראה כיוון — זווית הריקוד ⇒ כיוון לפרחים"
+ },
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
+ "places": [
+  {
+   "id": "generator:machtzev/purity/const-normalize.mjs#const-normalize",
+   "project": "המחולל",
+   "source": "generator",
+   "name": "הפעל ממיר אטום-const-דאטה לפונקציה-אפס-ארג (שומר שם מדויק)",
+   "file": "machtzev/purity/const-normalize.mjs",
+   "action": "ממיר ערך",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · שם קרוב"
+  },
+  {
+   "id": "buildsmart:functions/src/creditCore.ts#contractorCredit",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "מחשב אשראי קבלן",
+   "file": "functions/src/creditCore.ts",
+   "action": "ממיר ערך",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "buildsmart:functions/src/creditCore.ts#dartStringHashCode",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "מחשב קוד חתימה מחרוזת",
+   "file": "functions/src/creditCore.ts",
+   "action": "ממיר ערך",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  }
+ ]
+}

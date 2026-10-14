@@ -1,0 +1,50 @@
+{
+ "goal": "w0df5afdb",
+ "word": "הר-געש",
+ "need": "n4",
+ "behavior": "הלבה זורמת במורד",
+ "verb": "NEW:move-along-path",
+ "verbHe": "פועל חדש: move-along-path",
+ "isNewVerb": true,
+ "material": "geo",
+ "takes": [],
+ "gives": "geo",
+ "detail": "נקודה שמתקדמת לאורך מסלול בכל צעד",
+ "example": {
+  "say": "«הר-געש»: הלבה זורמת במורד — נקודה שמתקדמת לאורך מסלול בכל צעד"
+ },
+ "status": "mining",
+ "statusHe": "⛏️ נמצא בקוד — בכרייה",
+ "places": [
+  {
+   "id": "orbit:src/lib/mapsLink.ts#mapsSearchUrl",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "כותב כתובת חיפוש אחת",
+   "file": "src/lib/mapsLink.ts",
+   "action": "מעצב לטקסט",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו חומר"
+  },
+  {
+   "id": "buildsmart:app_flutter/lib/state/site_hub_state.dart#formatGeo",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "מעצב אתר מצב",
+   "file": "app_flutter/lib/state/site_hub_state.dart",
+   "action": "מעצב לטקסט",
+   "proof": "מהשם בלבד",
+   "why": "אותו חומר"
+  },
+  {
+   "id": "orbit:src/lib/atoms/engines/zmanim.ts#ZMANIM_CARD.3",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מחשב מתי זריחה ושקיעה",
+   "file": "src/lib/atoms/engines/zmanim.ts",
+   "action": "מקום השמש",
+   "proof": "מהשם בלבד",
+   "why": "אותו חומר"
+  }
+ ]
+}

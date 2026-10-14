@@ -1,0 +1,50 @@
+{
+ "goal": "wd12e7614",
+ "word": "כדור-קפיצי",
+ "need": "n2",
+ "behavior": "קופץ מהרצפה",
+ "verb": "NEW:bounce",
+ "verbHe": "פועל חדש: bounce",
+ "isNewVerb": true,
+ "material": "number",
+ "takes": [],
+ "gives": "number",
+ "detail": "מהירות מתהפכת בפגיעה",
+ "example": {
+  "say": "«כדור-קפיצי»: קופץ מהרצפה — מהירות מתהפכת בפגיעה"
+ },
+ "status": "mining",
+ "statusHe": "⛏️ נמצא בקוד — בכרייה",
+ "places": [
+  {
+   "id": "14kk:final_supervisor_protocol.js#FinalSupervisorProtocol.calculateFileQuality",
+   "project": "14kk",
+   "source": "14kk",
+   "name": "לחשב איכות קובץ",
+   "file": "final_supervisor_protocol.js",
+   "action": "מעגל",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו חומר"
+  },
+  {
+   "id": "14kk:strategic_protocol.js#StrategicAnalyzer.estimateCosts",
+   "project": "14kk",
+   "source": "14kk",
+   "name": "להעריך עלויות",
+   "file": "strategic_protocol.js",
+   "action": "נותן ערך קבוע",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו חומר"
+  },
+  {
+   "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.calculateBuffers",
+   "project": "14kk",
+   "source": "14kk",
+   "name": "לחשב חוצצים",
+   "file": "work_manager_protocol.js",
+   "action": "נותן ערך קבוע",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו חומר"
+  }
+ ]
+}

@@ -1,0 +1,50 @@
+{
+ "goal": "w7a584f82",
+ "word": "צוללת",
+ "need": "n4",
+ "behavior": "האוויר יורד לאט",
+ "verb": "NEW:decay",
+ "verbHe": "פועל חדש: decay",
+ "isNewVerb": true,
+ "material": "number",
+ "takes": [],
+ "gives": "number",
+ "detail": "דועך — ערך שיורד מעט בכל צעד-זמן עד אפס",
+ "example": {
+  "say": "«צוללת»: האוויר יורד לאט — דועך — ערך שיורד מעט בכל צעד-זמן עד אפס"
+ },
+ "status": "mining",
+ "statusHe": "⛏️ נמצא בקוד — בכרייה",
+ "places": [
+  {
+   "id": "orbit:src/components/hosting/kitchen.ts#mealLeadMinutes",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מחשב זמן ההכנה הארוך מבין המנות",
+   "file": "src/components/hosting/kitchen.ts",
+   "action": "בוחר את הקיצוני",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו חומר · שם קרוב"
+  },
+  {
+   "id": "orbit:src/components/parnasa/model.ts#orgImageLen",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מחשב משקל התמונות של כל הארגון",
+   "file": "src/components/parnasa/model.ts",
+   "action": "מסכם",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו חומר · שם קרוב"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#רר3 סכום כפול 2 ועוד האורך",
+   "project": "הטבעות",
+   "source": "rings",
+   "name": "חשב סכום כפול 2 ועוד האורך",
+   "file": "lab-rings/lab13/shelf3.json",
+   "action": "מסכם",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו חומר · שם קרוב"
+  }
+ ]
+}

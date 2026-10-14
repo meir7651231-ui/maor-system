@@ -1,0 +1,50 @@
+{
+ "goal": "w005893c7",
+ "word": "סל-כביסה",
+ "need": "n1",
+ "behavior": "מתמלא",
+ "verb": "NEW:accumulate",
+ "verbHe": "פועל חדש: accumulate",
+ "isNewVerb": true,
+ "material": "number",
+ "takes": [],
+ "gives": "number",
+ "detail": "צובר — ערך שגדל מעט בכל צעד-זמן עד שמשהו מרוקן אותו",
+ "example": {
+  "say": "«סל-כביסה»: מתמלא — צובר — ערך שגדל מעט בכל צעד-זמן עד שמשהו מרוקן אותו"
+ },
+ "status": "mining",
+ "statusHe": "⛏️ נמצא בקוד — בכרייה",
+ "places": [
+  {
+   "id": "14kk:final_supervisor_protocol.js#FinalSupervisorProtocol.calculateFileQuality",
+   "project": "14kk",
+   "source": "14kk",
+   "name": "לחשב איכות קובץ",
+   "file": "final_supervisor_protocol.js",
+   "action": "מעגל",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו חומר"
+  },
+  {
+   "id": "14kk:strategic_protocol.js#StrategicAnalyzer.estimateCosts",
+   "project": "14kk",
+   "source": "14kk",
+   "name": "להעריך עלויות",
+   "file": "strategic_protocol.js",
+   "action": "נותן ערך קבוע",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו חומר"
+  },
+  {
+   "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.calculateBuffers",
+   "project": "14kk",
+   "source": "14kk",
+   "name": "לחשב חוצצים",
+   "file": "work_manager_protocol.js",
+   "action": "נותן ערך קבוע",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו חומר"
+  }
+ ]
+}

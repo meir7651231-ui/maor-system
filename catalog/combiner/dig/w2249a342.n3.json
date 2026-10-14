@@ -1,0 +1,53 @@
+{
+ "goal": "w2249a342",
+ "word": "מוקד-שירות",
+ "need": "n3",
+ "behavior": "לפי נושא",
+ "verb": "route",
+ "verbHe": "מנתב לפי ערוץ",
+ "isNewVerb": false,
+ "material": "choice",
+ "takes": [
+  "choice",
+  "record"
+ ],
+ "gives": "choice",
+ "detail": null,
+ "example": {
+  "say": "«מוקד-שירות»: לפי נושא"
+ },
+ "status": "mining",
+ "statusHe": "⛏️ נמצא בקוד — בכרייה",
+ "places": [
+  {
+   "id": "buildsmart:app_flutter/lib/features/fittings/geometry/route_assembly.dart#assembleRoute",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "מרכיב מסלול",
+   "file": "app_flutter/lib/features/fittings/geometry/route_assembly.dart",
+   "action": "מנתב לפי ערוץ",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "buildsmart:app_flutter/lib/features/fittings/geometry/route_meshes.dart#buildRoutePreviewMeshes",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "בונה רשתות תצוגה מקדימה מסלול",
+   "file": "app_flutter/lib/features/fittings/geometry/route_meshes.dart",
+   "action": "מנתב לפי ערוץ",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "buildsmart:app_flutter/lib/features/fittings/intel/line_planner.dart#routeFromProducts",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "מנתב מוצרים",
+   "file": "app_flutter/lib/features/fittings/intel/line_planner.dart",
+   "action": "מנתב לפי ערוץ",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל"
+  }
+ ]
+}

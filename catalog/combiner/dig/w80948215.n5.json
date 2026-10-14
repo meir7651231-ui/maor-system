@@ -1,0 +1,50 @@
+{
+ "goal": "w80948215",
+ "word": "פעמון-דלת",
+ "need": "n5",
+ "behavior": "תמונה של מי שבדלת",
+ "verb": "NEW:sample",
+ "verbHe": "פועל חדש: sample",
+ "isNewVerb": true,
+ "material": "image",
+ "takes": [],
+ "gives": "image",
+ "detail": "קורא מהסביבה — מודד צבע/קול/ערך מבחוץ",
+ "example": {
+  "say": "«פעמון-דלת»: תמונה של מי שבדלת — קורא מהסביבה — מודד צבע/קול/ערך מבחוץ"
+ },
+ "status": "mining",
+ "statusHe": "⛏️ נמצא בקוד — בכרייה",
+ "places": [
+  {
+   "id": "orbit:src/components/parnasa/banners.ts#photoUrl",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "כותב כתובת התמונה",
+   "file": "src/components/parnasa/banners.ts",
+   "action": "מעצב לטקסט",
+   "proof": "הורץ — סוג אחר",
+   "why": "שם קרוב"
+  },
+  {
+   "id": "orbit:src/components/parnasa/model.ts#orgImageLen",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מחשב משקל התמונות של כל הארגון",
+   "file": "src/components/parnasa/model.ts",
+   "action": "מסכם",
+   "proof": "הורץ — סוג אחר",
+   "why": "שם קרוב"
+  },
+  {
+   "id": "orbit:src/components/supporters/lib.ts#totalLabel",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "כותב סכום בשקלים ובדולרים",
+   "file": "src/components/supporters/lib.ts",
+   "action": "מעצב לטקסט",
+   "proof": "הורץ — סוג אחר",
+   "why": "שם קרוב"
+  }
+ ]
+}

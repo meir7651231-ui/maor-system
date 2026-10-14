@@ -1,0 +1,50 @@
+{
+ "goal": "w231d42e9",
+ "word": "גאות-ושפל",
+ "need": "n3",
+ "behavior": "חזק יותר בירח מלא",
+ "verb": "compare",
+ "verbHe": "משווה",
+ "isNewVerb": false,
+ "material": "choice",
+ "takes": [],
+ "gives": "choice",
+ "detail": "שלב הירח מול מלא",
+ "example": {
+  "say": "«גאות-ושפל»: חזק יותר בירח מלא — שלב הירח מול מלא"
+ },
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
+ "places": [
+  {
+   "id": "orbit:src/components/hosting/transitions.ts#overlaps",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "בודק אם חפיפת שהיות",
+   "file": "src/components/hosting/transitions.ts",
+   "action": "משווה",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "orbit:src/components/supporters/cockpit.ts#daysSince",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מחשב ימים בין תאריך ליום",
+   "file": "src/components/supporters/cockpit.ts",
+   "action": "משווה",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "orbit:src/components/supporters/intel.ts#dayDiff",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מחשב את הפרש ימים בין תאריך ליום המוזרק",
+   "file": "src/components/supporters/intel.ts",
+   "action": "משווה",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  }
+ ]
+}

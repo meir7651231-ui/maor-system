@@ -1,0 +1,76 @@
+{
+ "goal": "sunflower",
+ "word": "חמנייה",
+ "need": "azimuth",
+ "behavior": "יודעת לאיזה כיוון השמש (אזימוט)",
+ "verb": "sun-position",
+ "verbHe": "מקום השמש",
+ "isNewVerb": false,
+ "material": "number",
+ "takes": [
+  "geo"
+ ],
+ "gives": "number",
+ "detail": "מעלות מהצפון",
+ "example": {
+  "in": {
+   "date": "2026-06-21",
+   "lat": 31.78,
+   "lon": 35.23,
+   "time": "12:00"
+  },
+  "out": 180
+ },
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
+ "places": [
+  {
+   "lead": true,
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "כיוון השמש בתוך חישוב הזריחה: נטיית השמש, משוואת הזמן וזווית השעה",
+   "file": "telephony/lib/zmanim.mjs",
+   "lines": "72-85",
+   "why": "מקום ידוע — אומת ביד"
+  },
+  {
+   "lead": true,
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "השעה שבה השמש בזווית נתונה (sunAngleTime)",
+   "file": "src/components/parnasa/zmanimBoard.ts",
+   "lines": "283",
+   "why": "מקום ידוע — אומת ביד"
+  },
+  {
+   "id": "orbit:src/lib/atoms/engines/zmanim.ts#ZMANIM_CARD.2",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מחשב איפה השמש עומדת בעונה הזו",
+   "file": "src/lib/atoms/engines/zmanim.ts",
+   "action": "מקום השמש",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · אותו חומר · שם קרוב"
+  },
+  {
+   "id": "orbit:src/lib/atoms/engines/generated/zmanimBoard.ts#GEN_ZMANIM_BOARD",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "יודע איפה השמש נמצאת בכל מקום ובכל יום",
+   "file": "src/lib/atoms/engines/generated/zmanimBoard.ts",
+   "action": "מקום השמש",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · שם קרוב"
+  },
+  {
+   "id": "orbit:src/lib/atoms/engines/zmanim.ts#ZMANIM_CARD",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "יודע איפה השמש נמצאת בכל מקום ובכל יום",
+   "file": "src/lib/atoms/engines/zmanim.ts",
+   "action": "מקום השמש",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · שם קרוב"
+  }
+ ]
+}

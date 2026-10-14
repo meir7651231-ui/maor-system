@@ -1,0 +1,59 @@
+{
+ "goal": "wc5a7ca34",
+ "word": "קרוסלה",
+ "need": "n7",
+ "behavior": "מנגינה בזמן הסיבוב",
+ "verb": "validate",
+ "verbHe": "בודק",
+ "isNewVerb": false,
+ "material": "sound",
+ "takes": [],
+ "gives": "sound",
+ "detail": null,
+ "example": {
+  "say": "«קרוסלה»: מנגינה בזמן הסיבוב"
+ },
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
+ "places": [
+  {
+   "lead": true,
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "רצף צלילים (tone)",
+   "file": "src/components/parnasa/sound.ts",
+   "lines": "42-113",
+   "why": "מקום ידוע — אומת ביד"
+  },
+  {
+   "id": "generator:new/dart-maor/install-available.dart#installAvailable",
+   "project": "המחולל",
+   "source": "generator",
+   "name": "בדוק האם דיאלוג-התקנת-PWA זמין",
+   "file": "new/dart-maor/install-available.dart",
+   "action": "בודק",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · שם קרוב"
+  },
+  {
+   "id": "buildsmart:functions/src/approveUsers.ts#mayApproveUsers",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "בודק אם מותר משתמשים אישור",
+   "file": "functions/src/approveUsers.ts",
+   "action": "בודק",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "buildsmart:functions/src/orderFlow.ts#isOrderStage",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "בודק אם שלב הזמנה",
+   "file": "functions/src/orderFlow.ts",
+   "action": "בודק",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  }
+ ]
+}

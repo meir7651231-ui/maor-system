@@ -1,0 +1,53 @@
+{
+ "goal": "wcbd53179",
+ "word": "עונות-השנה",
+ "need": "n4",
+ "behavior": "מעבר הדרגתי",
+ "verb": "fuzzy",
+ "verbHe": "מוצא גם עם טעות",
+ "isNewVerb": false,
+ "material": "date",
+ "takes": [
+  "text",
+  "list"
+ ],
+ "gives": "date",
+ "detail": null,
+ "example": {
+  "say": "«עונות-השנה»: מעבר הדרגתי"
+ },
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
+ "places": [
+  {
+   "id": "orbit:src/lib/atoms/parts/fuzzy.ts#normHe",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מנרמל עברי לחיפוש",
+   "file": "src/lib/atoms/parts/fuzzy.ts",
+   "action": "מוצא גם עם טעות",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל · שם קרוב"
+  },
+  {
+   "id": "buildsmart:app_flutter/lib/features/global_search/hebrew_morph.dart#hebrewSearchVariants",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "מנסח בעברית וריאנטים חיפוש",
+   "file": "app_flutter/lib/features/global_search/hebrew_morph.dart",
+   "action": "מוצא גם עם טעות",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · שם קרוב"
+  },
+  {
+   "id": "buildsmart:app_flutter/lib/widgets/smart_input/ranking.dart#rankSuggestions",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "מדרג הצעות",
+   "file": "app_flutter/lib/widgets/smart_input/ranking.dart",
+   "action": "מוצא גם עם טעות",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · שם קרוב"
+  }
+ ]
+}

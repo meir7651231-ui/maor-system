@@ -1,0 +1,29 @@
+{
+ "goal": "wb3929960",
+ "word": "צעדים",
+ "need": "n4",
+ "behavior": "ישבת שעה ⇒ קום",
+ "verb": "NEW:countdown",
+ "verbHe": "פועל חדש: countdown",
+ "isNewVerb": true,
+ "material": "times",
+ "takes": [],
+ "gives": "times",
+ "detail": "סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה",
+ "example": {
+  "say": "«צעדים»: ישבת שעה ⇒ קום — סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה"
+ },
+ "status": "mining",
+ "statusHe": "⛏️ נמצא בקוד — בכרייה",
+ "places": [
+  {
+   "lead": true,
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "טיימר — הזמן שנותר עד היעד",
+   "file": "src/components/timer/MoneyTimer.tsx",
+   "lines": "113-127",
+   "why": "מקום ידוע — אומת ביד"
+  }
+ ]
+}

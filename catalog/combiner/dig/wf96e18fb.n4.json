@@ -1,0 +1,29 @@
+{
+ "goal": "wf96e18fb",
+ "word": "נשימה",
+ "need": "n4",
+ "behavior": "ספירה לנשימה רגועה",
+ "verb": "NEW:countdown",
+ "verbHe": "פועל חדש: countdown",
+ "isNewVerb": true,
+ "material": "number",
+ "takes": [],
+ "gives": "number",
+ "detail": "סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה",
+ "example": {
+  "say": "«נשימה»: ספירה לנשימה רגועה — סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה"
+ },
+ "status": "mining",
+ "statusHe": "⛏️ נמצא בקוד — בכרייה",
+ "places": [
+  {
+   "lead": true,
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "טיימר — הזמן שנותר עד היעד",
+   "file": "src/components/timer/MoneyTimer.tsx",
+   "lines": "113-127",
+   "why": "מקום ידוע — אומת ביד"
+  }
+ ]
+}

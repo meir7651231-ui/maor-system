@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>מעבדת המצרף</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ctext y=%22.9em%22 font-size=%2290%22%3E🧲%3C/text%3E%3C/svg%3E">
-<meta name="description" content="כותבים מילה אחת — והמכונה מרכיבה אותה מחלקים קטנים מכל הפרויקטים, מוכיחה מה שאפשר, ושולחת לבנייה את מה שחסר.">
+<meta name="description" content="כותבים מילה אחת — והמכונה מרכיבה אותה מחלקים קטנים מכל הפרויקטים, מוכיחה בהרצה, ומראה איפה לחפור את השאר.">
 <style>
 :root{
   --bg:#f6f5fb; --surface:#ffffff; --surface-2:#f0eef8; --ink:#1b1830; --ink-2:#4a4566; --ink-3:#6f6a8a;
@@ -49,7 +49,7 @@ section{margin-top:18px}
 .kpi{background:var(--surface-2);border-radius:12px;padding:8px 12px;min-width:84px}
 .kpi b{display:block;font-size:20px;line-height:1.1}
 .kpi span{font-size:12px;color:var(--ink-3)}
-.kpi.miss b{color:var(--miss)} .kpi.ok b{color:var(--ok)}
+.kpi.ok b{color:var(--ok)} .kpi.mining b{color:var(--run)} .kpi.dig b{color:var(--ex)}
 .projs{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
 .badge{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:2px 10px;font-size:12px;font-weight:600;color:#fff;white-space:nowrap}
 .group h3{font-size:15px;margin:22px 0 8px;color:var(--ink-2)}
@@ -70,9 +70,16 @@ section{margin-top:18px}
 .flow{font-size:12px;color:var(--ok)}
 details{font-size:14px;color:var(--ink-2)} details summary{cursor:pointer;color:var(--ink-3)}
 details .alt{margin:8px 0;padding-inline-start:8px;border-inline-start:2px solid var(--line)}
-.miss-card{background:var(--miss-bg);border:1px solid var(--miss-line);border-radius:16px;padding:14px;display:grid;gap:8px;margin-bottom:10px}
-.miss-card .beh{color:var(--miss);font-weight:700}
-.miss-card button{border-color:var(--miss-line);background:var(--surface);color:var(--miss);font-weight:600}
+.st{font-size:12px;font-weight:700;border-radius:999px;padding:2px 10px;white-space:nowrap}
+.st.proven,.st.inner{background:var(--ok-bg);color:var(--ok)} .st.mining{background:var(--run-bg);color:var(--run)} .st.dig{background:var(--ex-bg);color:var(--ex)}
+.need.mining{border-color:var(--run)} .need.dig{border-color:var(--ex)}
+.act{font-weight:700;font-size:15px}
+.act-plain{font-size:13px;color:var(--ink-2)}
+.where{font-size:12px;color:var(--ink-3);overflow-wrap:anywhere}
+.places{display:grid;gap:6px;margin:0;padding:0;list-style:none}
+.places li{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:13px;overflow-wrap:anywhere}
+.places .file{direction:ltr;unicode-bidi:isolate;color:var(--ink-3);font-size:12px}
+.digbtn{border-color:var(--ex);color:var(--ex);font-weight:600;background:var(--surface)}
 pre{white-space:pre-wrap;overflow-wrap:anywhere;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px;font-size:12px;direction:ltr;text-align:left;margin:0}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
 .chip{min-height:36px;padding:4px 12px;border-radius:999px;font-size:14px}
@@ -107,7 +114,7 @@ pre{white-space:pre-wrap;overflow-wrap:anywhere;background:var(--surface);border
 <div class="toast" id="toast" role="status"></div>
 
 <script type="module">
-import { indexOf, assemble, findGoal, askChips, goalFromChips, recipeFrom, recipePart, PROJECTS, kindHe, TIER_HE, VERB_HE as verbHe } from './combiner/core.mjs';
+import { indexOf, assemble, findGoal, askChips, goalFromChips, recipeFrom, recipePart, PROJECTS, kindHe, VERB_HE as verbHe, STATUS_HE, STATUS_ORDER, actionOf, whereLine } from './combiner/core.mjs';
 import { useAlphabet } from './combiner/verbs.mjs';
 
 const $ = (s) => document.querySelector(s);
@@ -123,7 +130,7 @@ function rebuild() {
   const extra = shelf().filter((r) => !DATA.recipes.some((x) => x.id === r.id));
   const parts = [...DATA.parts.filter((p) => !p.id.startsWith('recipe:') || !extra.some((r) => 'recipe:' + r.id === p.id)), ...extra.map((r) => recipePart(r, DATA.parts))];
   parts.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
-  IX = indexOf(parts, DATA.flows);
+  IX = indexOf(parts, DATA.flows, DATA.leads || []);
 }
 
 async function boot() {
@@ -139,7 +146,7 @@ async function boot() {
   rebuild();
   const srcs = new Set(DATA.parts.flatMap((p) => p.homes.map((h) => h.source)));
   const proven = DATA.parts.filter((p) => Object.values(p.proofs || {}).some((x) => x.status === 'proven')).length;
-  $('#stats').textContent = DATA.parts.length.toLocaleString('he') + ' חלקים עם פועל · ' + srcs.size + ' פרויקטים · ' + proven + ' מוכחים בהרצה · ' + DATA.goals.length + ' מילים במילון · תיוג ' + (DATA.labeledBy === 'behavior' ? 'מהתנהגות' : 'זמני (מהשמות)');
+  $('#stats').textContent = DATA.parts.length.toLocaleString('he') + ' חלקים עם פועל · ' + srcs.size + ' פרויקטים · ' + proven + ' מוכחים בהרצה · ' + DATA.goals.length + ' מילים במילון';
   // 12 מילים לדוגמה (החמנייה של הבעלים ראשונה, ואז אחת מכל עולם); השאר — ב-🎲
   const seen = new Set();
   const sample = DATA.goals.filter((g) => (g.owner || !seen.has(g.world)) && seen.add(g.world)).slice(0, 12);
@@ -171,64 +178,67 @@ $('#rand').onclick = () => {
 
 const badge = (src) => `<span class="badge" style="background:${PROJECTS[src]?.color || '#666'}">${esc(PROJECTS[src]?.he || src)}</span>`;
 const proofBadge = (s) =>
-  s.proof === 'proven' ? `<span class="proof proven" title="${esc(s.laws.join(' · '))}">✅ מוכח · ${s.cases} קלטים</span>`
-  : s.proof === 'example' ? '<span class="proof example">☑️ נבדק על דוגמה</span>'
-  : s.tier === 'runnable' ? '<span class="proof runnable">▶ ניתן להרצה</span>'
-  : '<span class="proof static">סטטי</span>';
+  s.proof === 'proven' ? `<span class="proof proven" title="${esc(s.laws.join(' · '))}">✅ מוכח בהרצה · ${s.cases} קלטים</span>`
+  : '<span class="proof static">מהשם בלבד</span>';
+const stBadge = (st) => `<span class="st ${st}">${esc(STATUS_HE[st])}</span>`;
 
+/* הפעולה קודם (בלי עולם), ומתחתיה — איפה היא גרה */
 function chainHtml(c) {
   return '<div class="chain">' + c.steps.map((s, i) =>
     (i ? '<span class="arrow" aria-hidden="true">←</span>' : '') +
     `<div class="part" style="--c:${PROJECTS[s.source]?.color || '#888'}">
-       <div class="nm">${esc(s.name)}</div>
-       <div class="meta">${s.homes.map(badge).join('')}${proofBadge(s)}<span>${esc(s.takes.map(kindHe).join(' + ') || '—')} ⇒ ${esc(kindHe(s.gives))}</span></div>
+       <div class="act">${esc(s.action.he)}</div>
+       ${s.action.plain ? `<div class="act-plain">${esc(s.action.plain)}</div>` : ''}
+       <div class="meta">${proofBadge(s)}<span>${esc(s.takes.map(kindHe).join(' + ') || '—')} ⇒ ${esc(kindHe(s.gives))}</span></div>
+       <div class="where">${esc(whereLine(s.where))}</div>
        ${s.flow?.status === 'proven' ? `<div class="flow">⟵ זרימה מהחלק הקודם הוכחה · ${s.flow.cases} קלטים</div>` : ''}
      </div>`).join('') + '</div>';
 }
 
+function placesHtml(places) {
+  return '<ul class="places">' + places.map((p) => `<li><b>${esc(p.project)}</b> · ${esc(p.name)}${p.inside ? ' · בתוך: ' + esc(p.inside) : ''}
+    <div class="file">${esc(p.file)}${p.lines ? ':' + esc(p.lines) : ''}</div>
+    <div class="muted">${esc([p.action, p.proof, p.why].filter(Boolean).join(' · '))}</div></li>`).join('') + '</ul>';
+}
+
 function render(a) {
-  const found = a.needs.filter((n) => n.chain);
-  const steps = found.flatMap((n) => n.chain.steps);
+  const steps = a.needs.filter((n) => n.chain).flatMap((n) => n.chain.steps);
   const proven = steps.filter((s) => s.proof === 'proven').length;
   let html = `<section class="card out">
     <h2>מה יצא</h2>
     <div class="title">«${esc(a.goal.word)}»${a.goal.title ? ' — ' + esc(a.goal.title) : ''}</div>
     <p>${esc(a.outcome)}</p>
     <div class="kpis">
-      <div class="kpi ok"><b>${found.length}/${a.needs.length}</b><span>צרכים נמצאו</span></div>
-      <div class="kpi"><b>${new Set(steps.map((s) => s.id)).size}</b><span>חלקים</span></div>
-      <div class="kpi ok"><b>${proven}</b><span>צעדים מוכחים</span></div>
-      <div class="kpi miss"><b>${a.missing.length}</b><span>חסרים</span></div>
+      <div class="kpi ok"><b>${a.counts.proven + a.counts.inner}/${a.needs.length}</b><span>מוכחים בהרצה</span></div>
+      ${a.counts.inner ? `<div class="kpi ok"><b>${a.counts.inner}</b><span>מתוכם חלק פנימי</span></div>` : ''}
+      <div class="kpi mining"><b>${a.counts.mining}</b><span>⛏️ בכרייה</span></div>
+      <div class="kpi dig"><b>${a.counts.dig}</b><span>🔎 עוד לא נחפר</span></div>
+      <div class="kpi"><b>${new Set(steps.map((s) => s.id)).size}</b><span>חלקים · ${proven} צעדים</span></div>
     </div>
     <div class="projs">${a.projects.map(badge).join('')}</div>
-    ${found.length ? '<div style="margin-top:12px"><button type="button" id="save">💾 שמור כמתכון — יהפוך לחלק חדש</button></div>' : ''}
+    ${steps.length ? '<div style="margin-top:12px"><button type="button" id="save">💾 שמור כמתכון — יהפוך לחלק חדש</button></div>' : ''}
   </section>`;
-
-  if (a.missing.length) {
-    html += '<section><h3 class="group" style="color:var(--miss)">🚧 חסר — הצעד של Waze: נשלח לבנייה</h3>' + a.missing.map((m, i) => `
-      <div class="miss-card">
-        <div class="beh">${esc(m.behavior)}</div>
-        <div class="tags"><span class="tag">${esc(m.verbHe)}</span><span class="tag">נותן: ${esc(kindHe(m.gives))}</span>${m.takes.length ? `<span class="tag">מקבל: ${esc(m.takes.map(kindHe).join(' + '))}</span>` : ''}${m.detail ? `<span class="tag">${esc(m.detail)}</span>` : ''}</div>
-        <div><button type="button" data-send="${i}">📤 שלח לבנייה</button></div>
-        <pre hidden id="req-${i}">${esc(JSON.stringify(m, null, 2))}</pre>
-      </div>`).join('') + '</section>';
-  }
 
   let lastGroup = null;
   html += '<section>';
-  a.needs.forEach((n) => {
+  a.needs.forEach((n, i) => {
     const g = n.need.group || '';
     if (g !== lastGroup) { html += g ? `<div class="group"><h3>${esc(g)}</h3></div>` : (lastGroup ? '<div class="group"><h3>&nbsp;</h3></div>' : ''); lastGroup = g; }
-    const verb = verbHe(n.need.verb);
+    const head = `<div class="head"><span class="beh">${esc(n.need.behavior)}</span>
+        <span class="tags">${stBadge(n.status)}<span class="tag">${esc(verbHe(n.need.verb))}</span><span class="tag">${esc(kindHe(n.need.material))}</span>${n.chain ? `<span class="tag">טבעת ${n.ring}</span>` : ''}</span></div>`;
     if (!n.chain) {
-      html += `<div class="card need" style="border-color:var(--miss-line)"><div class="head"><span class="beh">${esc(n.need.behavior)}</span><span class="tags"><span class="tag">${esc(verb)}</span><span class="tag">${esc(kindHe(n.need.material))}</span></span></div><p class="sent" style="color:var(--miss)">אין עדיין חלק שעושה את זה — ראו "חסר" למעלה.</p></div>`;
+      const act = actionOf(n.need.verb);
+      const k = a.dig.findIndex((d) => d.need === n.need.id);
+      html += `<div class="card need ${n.status}">${head}
+        ${act.plain ? `<div><div class="act">${esc(act.he)}</div><div class="act-plain">${esc(act.plain)}</div></div>` : ''}
+        <div class="muted">${n.status === 'mining' ? 'הפעולה כבר בקוד — הכורים מוציאים אותה עכשיו. איפה היא:' : 'הפעולה קיימת איפשהו במה שבנינו. הכי קרוב:'}</div>
+        ${placesHtml(n.places)}
+        ${n.status === 'dig' ? `<div><button type="button" class="digbtn" data-dig="${k}">⛏️ חפור כאן</button></div><pre hidden id="dig-${k}">${esc(JSON.stringify(a.dig[k], null, 2))}</pre>` : ''}
+      </div>`;
       return;
     }
-    html += `<div class="card need">
-      <div class="head"><span class="beh">${esc(n.need.behavior)}</span>
-        <span class="tags"><span class="tag">${esc(verb)}</span><span class="tag">${esc(kindHe(n.need.material))}</span><span class="tag">טבעת ${n.ring}</span><span class="tag">${esc(TIER_HE[n.chain.tier])}</span></span></div>
+    html += `<div class="card need ${n.status}">${head}
       ${chainHtml(n.chain)}
-      <p class="sent">${esc(n.chain.sentence)}</p>
       ${n.groupFlow ? `<div class="flow">⟵ הפלט של «${esc(n.groupFlow.from)}» נכנס לכאן — הוכח על ${n.groupFlow.cases} קלטים</div>` : ''}
       ${n.alternatives.length ? `<details><summary>עוד ${n.alternatives.length} דרכים</summary>${n.alternatives.map((c) => `<div class="alt">${chainHtml(c)}</div>`).join('')}</details>` : ''}
     </div>`;
@@ -236,14 +246,14 @@ function render(a) {
   html += '</section>';
   $('#out').innerHTML = html;
 
-  $('#out').querySelectorAll('[data-send]').forEach((b) => (b.onclick = () => {
-    const i = b.dataset.send;
-    const pre = $('#req-' + i);
+  $('#out').querySelectorAll('[data-dig]').forEach((b) => (b.onclick = () => {
+    const i = Number(b.dataset.dig);
+    const pre = $('#dig-' + i);
     pre.hidden = false;
     const text = pre.textContent;
     try { navigator.clipboard?.writeText(text); } catch { /* */ }
-    download(a.missing[i].goal + '.' + a.missing[i].need + '.json', text);
-    toast('בקשת-הבנייה הועתקה והורדה — שימו אותה ב-catalog/combiner/missing/');
+    download(a.dig[i].goal + '.' + a.dig[i].need + '.json', text);
+    toast('בקשת-החפירה הועתקה והורדה — שימו אותה ב-catalog/combiner/dig/');
   }));
   const save = $('#save');
   if (save) save.onclick = () => {

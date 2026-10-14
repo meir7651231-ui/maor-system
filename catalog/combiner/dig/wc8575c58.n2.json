@@ -1,0 +1,52 @@
+{
+ "goal": "wc8575c58",
+ "word": "מסוק",
+ "need": "n2",
+ "behavior": "מרחף במקום",
+ "verb": "clamp",
+ "verbHe": "מגביל לטווח",
+ "isNewVerb": false,
+ "material": "geo",
+ "takes": [
+  "number"
+ ],
+ "gives": "geo",
+ "detail": null,
+ "example": {
+  "say": "«מסוק»: מרחף במקום"
+ },
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
+ "places": [
+  {
+   "id": "buildsmart:functions/src/creditCore.ts#readCreditLimit",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "קורא אשראי",
+   "file": "functions/src/creditCore.ts",
+   "action": "מגביל לטווח",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "orbit:src/components/courses/lib.ts#lessonsInTerm",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מחשב מספר השיעורים בתקופה לפי התדירות שנבחרה",
+   "file": "src/components/courses/lib.ts",
+   "action": "מגביל לטווח",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "orbit:src/components/parnasa/luach.ts#noteRot",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מחשב סיבוב הפתק",
+   "file": "src/components/parnasa/luach.ts",
+   "action": "מגביל לטווח",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  }
+ ]
+}

@@ -1,0 +1,52 @@
+{
+ "goal": "wb2e6d5bd",
+ "word": "קליידוסקופ",
+ "need": "n5",
+ "behavior": "אף פעם לא אותו דבר",
+ "verb": "dedupe",
+ "verbHe": "מסיר כפולים",
+ "isNewVerb": false,
+ "material": "image",
+ "takes": [
+  "list"
+ ],
+ "gives": "image",
+ "detail": null,
+ "example": {
+  "say": "«קליידוסקופ»: אף פעם לא אותו דבר"
+ },
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
+ "places": [
+  {
+   "id": "yeshiva:harness/guard.mjs#uniq",
+   "project": "הישיבה",
+   "source": "yeshiva",
+   "name": "להסיר כפילויות מרשימה",
+   "file": "harness/guard.mjs",
+   "action": "מסיר כפולים",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "buildsmart:app_flutter/lib/features/word_finder/word_finder_engine.dart#distinctProducts",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "מסיר כפילויות ממוצרים",
+   "file": "app_flutter/lib/features/word_finder/word_finder_engine.dart",
+   "action": "מסיר כפולים",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "buildsmart:app_flutter/lib/screens/_size_norm.dart#dedupLengthByMm",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "מסיר כפילויות מאורך",
+   "file": "app_flutter/lib/screens/_size_norm.dart",
+   "action": "מסיר כפולים",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל"
+  }
+ ]
+}

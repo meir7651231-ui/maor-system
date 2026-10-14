@@ -1,0 +1,50 @@
+{
+ "goal": "wef6ce956",
+ "word": "פינגווין",
+ "need": "n5",
+ "behavior": "מחליק על הבטן",
+ "verb": "NEW:gravity",
+ "verbHe": "פועל חדש: gravity",
+ "isNewVerb": true,
+ "material": "number",
+ "takes": [],
+ "gives": "number",
+ "detail": "מהירות שגדלה במורד",
+ "example": {
+  "say": "«פינגווין»: מחליק על הבטן — מהירות שגדלה במורד"
+ },
+ "status": "mining",
+ "statusHe": "⛏️ נמצא בקוד — בכרייה",
+ "places": [
+  {
+   "id": "orbit:src/lib/atoms/parts/divide.ts#divideAmount",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מחלק סכום לחלקים שווים",
+   "file": "src/lib/atoms/parts/divide.ts",
+   "action": "מחלק",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו חומר · שם קרוב"
+  },
+  {
+   "id": "orbit:src/lib/atoms/parts/rotate.ts#dayIndex",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מחשב מספר יום מוחלט של תאריך",
+   "file": "src/lib/atoms/parts/rotate.ts",
+   "action": "ממיר ערך",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו חומר · שם קרוב"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#הפרש מוחלט",
+   "project": "הטבעות",
+   "source": "rings",
+   "name": "חשב הפרש מוחלט",
+   "file": "lab-rings/lab13/shelf3.json",
+   "action": "מודד מרחק",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו חומר · שם קרוב"
+  }
+ ]
+}

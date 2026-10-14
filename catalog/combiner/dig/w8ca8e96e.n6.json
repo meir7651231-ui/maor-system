@@ -1,0 +1,52 @@
+{
+ "goal": "w8ca8e96e",
+ "word": "כוורת",
+ "need": "n6",
+ "behavior": "כל דבורה מוסרת לשכנה",
+ "verb": "relay",
+ "verbHe": "מעביר דרך מרכז",
+ "isNewVerb": false,
+ "material": "list",
+ "takes": [
+  "record"
+ ],
+ "gives": "list",
+ "detail": null,
+ "example": {
+  "say": "«כוורת»: כל דבורה מוסרת לשכנה"
+ },
+ "status": "mining",
+ "statusHe": "⛏️ נמצא בקוד — בכרייה",
+ "places": [
+  {
+   "id": "orbit:src/lib/atoms/engines/whatNeed.ts#WHAT_NEED_CARD.8",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מעביר בקשה הלאה כשאין תשובה",
+   "file": "src/lib/atoms/engines/whatNeed.ts",
+   "action": "מעביר דרך מרכז",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · אותו חומר"
+  },
+  {
+   "id": "14kk:services/business-integrations.js#GitHubIntegration",
+   "project": "14kk",
+   "source": "14kk",
+   "name": "להפעיל אינטגרציה GitHub",
+   "file": "services/business-integrations.js",
+   "action": "מעביר דרך מרכז",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "buildsmart:app_flutter/lib/state/intel/consent_gate.dart#analyticsForwardEnabled",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "בודק ניתוח",
+   "file": "app_flutter/lib/state/intel/consent_gate.dart",
+   "action": "מעביר דרך מרכז",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל"
+  }
+ ]
+}

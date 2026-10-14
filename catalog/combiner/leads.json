@@ -1,0 +1,14 @@
+{
+ "about": "מקומות ידועים בקוד שבהם הפעולה כבר קיימת, בתוך פונקציה גדולה יותר — אומתו ביד ע״י הארכיטקט (file:line). המצרף מציג אותם תחת ⛏️/🔎. ההתאמה: verb (גם NEW:x ⇒ x) ו/או material, ואופציונלית word.",
+ "leads": [
+  { "verb": "sun-position", "material": "number", "project": "orbit", "name": "כיוון השמש בתוך חישוב הזריחה: נטיית השמש, משוואת הזמן וזווית השעה", "file": "telephony/lib/zmanim.mjs", "lines": "72-85" },
+  { "verb": "sun-position", "material": "number", "project": "orbit", "name": "השעה שבה השמש בזווית נתונה (sunAngleTime)", "file": "src/components/parnasa/zmanimBoard.ts", "lines": "283" },
+  { "verb": "orbit", "project": "orbit", "name": "סיבוב במעגל: rot = t·0.0009, x = cx + cos(ang)·r", "file": "src/components/supporters/SupportersGalaxy.tsx", "lines": "101-105" },
+  { "verb": "compare", "material": "geo", "project": "orbit", "name": "הנקודה הקרובה בתוך רדיוס (Math.hypot)", "file": "src/components/supporters/SupportersGalaxy.tsx", "lines": "125" },
+  { "verb": "escalate", "material": "choice", "project": "orbit", "name": "שלבי ההסלמה (escalationState) — נותן רשימת שלבים מסודרת; הצורך רוצה את השלב הנוכחי (פער-סוג — הפעולה קיימת)", "file": "src/lib/atoms/parts/escalate.ts", "lines": "84" },
+  { "verb": "oscillate", "project": "orbit", "name": "עולה ויורד: pulse = 1 + 0.06·sin(t·0.05)", "file": "src/components/supporters/SupportersGalaxy.tsx", "lines": "95" },
+  { "verb": "countdown", "project": "orbit", "name": "טיימר — הזמן שנותר עד היעד", "file": "src/components/timer/MoneyTimer.tsx", "lines": "113-127" },
+  { "verb": "next", "material": "waiting", "project": "orbit", "name": "רשימת ההמתנה של החוגים (waitlistFor, status='wait')", "file": "src/components/courses/lib.ts", "lines": "378" },
+  { "material": "sound", "project": "orbit", "name": "רצף צלילים (tone)", "file": "src/components/parnasa/sound.ts", "lines": "42-113" }
+ ]
+}

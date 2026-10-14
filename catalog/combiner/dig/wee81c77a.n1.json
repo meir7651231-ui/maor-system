@@ -1,0 +1,50 @@
+{
+ "goal": "wee81c77a",
+ "word": "קשת-בענן",
+ "need": "n1",
+ "behavior": "שמש מאחור",
+ "verb": "sun-position",
+ "verbHe": "מקום השמש",
+ "isNewVerb": false,
+ "material": "geo",
+ "takes": [],
+ "gives": "geo",
+ "detail": null,
+ "example": {
+  "say": "«קשת-בענן»: שמש מאחור"
+ },
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
+ "places": [
+  {
+   "id": "orbit:src/lib/atoms/engines/zmanim.ts#ZMANIM_CARD.4",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מחשב מתי השמש יורדת לעומק מסוים",
+   "file": "src/lib/atoms/engines/zmanim.ts",
+   "action": "מקום השמש",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · אותו חומר · שם קרוב"
+  },
+  {
+   "id": "orbit:src/lib/atoms/engines/zmanim.ts#ZMANIM_CARD.3",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מחשב מתי זריחה ושקיעה",
+   "file": "src/lib/atoms/engines/zmanim.ts",
+   "action": "מקום השמש",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · אותו חומר"
+  },
+  {
+   "id": "orbit:src/lib/atoms/engines/generated/zmanimBoard.ts#GEN_ZMANIM_BOARD",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "יודע איפה השמש נמצאת בכל מקום ובכל יום",
+   "file": "src/lib/atoms/engines/generated/zmanimBoard.ts",
+   "action": "מקום השמש",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · שם קרוב"
+  }
+ ]
+}

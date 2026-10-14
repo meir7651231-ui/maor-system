@@ -1,0 +1,52 @@
+{
+ "goal": "w55a81913",
+ "word": "כוכב-שביט",
+ "need": "n4",
+ "behavior": "הזנב מצביע הרחק מהשמש",
+ "verb": "reverse",
+ "verbHe": "הופך סדר",
+ "isNewVerb": false,
+ "material": "geo",
+ "takes": [
+  "list"
+ ],
+ "gives": "geo",
+ "detail": null,
+ "example": {
+  "say": "«כוכב-שביט»: הזנב מצביע הרחק מהשמש"
+ },
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
+ "places": [
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#הפוך רשימה",
+   "project": "הטבעות",
+   "source": "rings",
+   "name": "הפוך רשימה",
+   "file": "lab-rings/lab13/shelf3.json",
+   "action": "הופך סדר",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "buildsmart:app_flutter/lib/state/site_hub_state.dart#formatGeo",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "מעצב אתר מצב",
+   "file": "app_flutter/lib/state/site_hub_state.dart",
+   "action": "מעצב לטקסט",
+   "proof": "מהשם בלבד",
+   "why": "אותו חומר · שם קרוב"
+  },
+  {
+   "id": "orbit:src/lib/atoms/engines/zmanim.ts#ZMANIM_CARD.4",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מחשב מתי השמש יורדת לעומק מסוים",
+   "file": "src/lib/atoms/engines/zmanim.ts",
+   "action": "מקום השמש",
+   "proof": "מהשם בלבד",
+   "why": "אותו חומר · שם קרוב"
+  }
+ ]
+}

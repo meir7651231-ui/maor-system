@@ -1,0 +1,52 @@
+{
+ "goal": "w416a7ea7",
+ "word": "מונית",
+ "need": "n5",
+ "behavior": "המונית הקרובה מקבלת את הנסיעה",
+ "verb": "extreme",
+ "verbHe": "בוחר את הקיצוני",
+ "isNewVerb": false,
+ "material": "geo",
+ "takes": [
+  "list"
+ ],
+ "gives": "geo",
+ "detail": null,
+ "example": {
+  "say": "«מונית»: המונית הקרובה מקבלת את הנסיעה"
+ },
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
+ "places": [
+  {
+   "id": "orbit:src/components/hosting/kitchen.ts#mealLeadMinutes",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מחשב זמן ההכנה הארוך מבין המנות",
+   "file": "src/components/hosting/kitchen.ts",
+   "action": "בוחר את הקיצוני",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל · שם קרוב"
+  },
+  {
+   "id": "generator:new/dart/min_bore_mm_of.dart#minBoreMmOf",
+   "project": "המחולל",
+   "source": "generator",
+   "name": "חשב הקוטר-הפנימי המינימלי (ממ) על-פני קצוות-מוצר",
+   "file": "new/dart/min_bore_mm_of.dart",
+   "action": "בוחר את הקיצוני",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · שם קרוב"
+  },
+  {
+   "id": "orbit:src/components/hosting/lib.ts#monthPaidRevenue",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מחשב תקבולי החודש",
+   "file": "src/components/hosting/lib.ts",
+   "action": "בוחר את הקיצוני",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  }
+ ]
+}

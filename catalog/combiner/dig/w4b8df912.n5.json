@@ -1,0 +1,52 @@
+{
+ "goal": "w4b8df912",
+ "word": "מקרר",
+ "need": "n5",
+ "behavior": "מוצרים שפג תוקפם",
+ "verb": "filter",
+ "verbHe": "מסנן",
+ "isNewVerb": false,
+ "material": "date",
+ "takes": [
+  "list"
+ ],
+ "gives": "date",
+ "detail": null,
+ "example": {
+  "say": "«מקרר»: מוצרים שפג תוקפם"
+ },
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
+ "places": [
+  {
+   "id": "orbit:src/components/platform/lib.ts#orgEnabledFeatures",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מוצא תקופה תת הדגלים שהמנהל יכול לחלק לעובדות",
+   "file": "src/components/platform/lib.ts",
+   "action": "מסנן",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל · שם קרוב"
+  },
+  {
+   "id": "orbit:src/components/shop/lib.ts#productAssignments",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מוצא את השיוכים של מוצר נתון",
+   "file": "src/components/shop/lib.ts",
+   "action": "מסנן",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל · שם קרוב"
+  },
+  {
+   "id": "generator:new/dart-maor/product-assignments.dart#productAssignments",
+   "project": "המחולל",
+   "source": "generator",
+   "name": "הפק שיוכי-חנות של מוצר נתון",
+   "file": "new/dart-maor/product-assignments.dart",
+   "action": "מסנן",
+   "proof": "תאום של חלק שהורץ",
+   "why": "אותו פועל · שם קרוב"
+  }
+ ]
+}

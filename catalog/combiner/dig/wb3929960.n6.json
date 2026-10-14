@@ -1,0 +1,52 @@
+{
+ "goal": "wb3929960",
+ "word": "צעדים",
+ "need": "n6",
+ "behavior": "היום הכי טוב",
+ "verb": "extreme",
+ "verbHe": "בוחר את הקיצוני",
+ "isNewVerb": false,
+ "material": "date",
+ "takes": [
+  "list"
+ ],
+ "gives": "date",
+ "detail": null,
+ "example": {
+  "say": "«צעדים»: היום הכי טוב"
+ },
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
+ "places": [
+  {
+   "id": "orbit:src/components/hosting/kitchen.ts#mealLeadMinutes",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מחשב זמן ההכנה הארוך מבין המנות",
+   "file": "src/components/hosting/kitchen.ts",
+   "action": "בוחר את הקיצוני",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "orbit:src/components/hosting/lib.ts#monthPaidRevenue",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מחשב תקבולי החודש",
+   "file": "src/components/hosting/lib.ts",
+   "action": "בוחר את הקיצוני",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "orbit:src/components/hosting/transitions.ts#bookBeds",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מחשב מיטות של בחירת החדרים",
+   "file": "src/components/hosting/transitions.ts",
+   "action": "בוחר את הקיצוני",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  }
+ ]
+}

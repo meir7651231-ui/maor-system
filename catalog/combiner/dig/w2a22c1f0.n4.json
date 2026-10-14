@@ -1,0 +1,29 @@
+{
+ "goal": "w2a22c1f0",
+ "word": "פסנתר",
+ "need": "n4",
+ "behavior": "הצליל דועך",
+ "verb": "NEW:decay",
+ "verbHe": "פועל חדש: decay",
+ "isNewVerb": true,
+ "material": "sound",
+ "takes": [],
+ "gives": "sound",
+ "detail": "דועך — ערך שיורד מעט בכל צעד-זמן עד אפס",
+ "example": {
+  "say": "«פסנתר»: הצליל דועך — דועך — ערך שיורד מעט בכל צעד-זמן עד אפס"
+ },
+ "status": "mining",
+ "statusHe": "⛏️ נמצא בקוד — בכרייה",
+ "places": [
+  {
+   "lead": true,
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "רצף צלילים (tone)",
+   "file": "src/components/parnasa/sound.ts",
+   "lines": "42-113",
+   "why": "מקום ידוע — אומת ביד"
+  }
+ ]
+}

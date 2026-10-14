@@ -1,0 +1,50 @@
+{
+ "goal": "w53528d19",
+ "word": "קופסת-הפתעה",
+ "need": "n4",
+ "behavior": "כל פעם בזמן קצת אחר",
+ "verb": "NEW:random",
+ "verbHe": "פועל חדש: random",
+ "isNewVerb": true,
+ "material": "times",
+ "takes": [],
+ "gives": "times",
+ "detail": "מגריל — בחירה או ערך לפי סיכוי",
+ "example": {
+  "say": "«קופסת-הפתעה»: כל פעם בזמן קצת אחר — מגריל — בחירה או ערך לפי סיכוי"
+ },
+ "status": "mining",
+ "statusHe": "⛏️ נמצא בקוד — בכרייה",
+ "places": [
+  {
+   "id": "orbit:src/lib/atoms/parts/offset.ts#offsetAll",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מזיז זמן לפני או אחרי",
+   "file": "src/lib/atoms/parts/offset.ts",
+   "action": "מזיז",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו חומר · שם קרוב"
+  },
+  {
+   "id": "orbit:src/lib/atoms/engines/zmanim.ts#ZMANIM_CARD.14",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מוצא את הזמן הבא",
+   "file": "src/lib/atoms/engines/zmanim.ts",
+   "action": "מוצא את הבא בתור",
+   "proof": "מהשם בלבד",
+   "why": "אותו חומר · שם קרוב"
+  },
+  {
+   "id": "orbit:src/components/calendar/calLib.ts#isoOf",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מחשב תאריך מקומי",
+   "file": "src/components/calendar/calLib.ts",
+   "action": "מקבץ לפי יום",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו חומר"
+  }
+ ]
+}

@@ -1,0 +1,61 @@
+{
+ "goal": "w8de4e5e2",
+ "word": "קאנון",
+ "need": "n1",
+ "behavior": "אותו שיר לכולם",
+ "verb": "merge",
+ "verbHe": "מחבר רצפים",
+ "isNewVerb": false,
+ "material": "sound",
+ "takes": [
+  "sequence"
+ ],
+ "gives": "sound",
+ "detail": null,
+ "example": {
+  "say": "«קאנון»: אותו שיר לכולם"
+ },
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
+ "places": [
+  {
+   "lead": true,
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "רצף צלילים (tone)",
+   "file": "src/components/parnasa/sound.ts",
+   "lines": "42-113",
+   "why": "מקום ידוע — אומת ביד"
+  },
+  {
+   "id": "orbit:src/lib/atoms/parts/merge.ts#mergeRuns",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מחבר דברים צמודים",
+   "file": "src/lib/atoms/parts/merge.ts",
+   "action": "מחבר רצפים",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "buildsmart:app_flutter/lib/domain/seeds/plumbing_trade_seed.dart#plumbingConnectorTypes",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "מחזיר סוגים מחבר אינסטלציה",
+   "file": "app_flutter/lib/domain/seeds/plumbing_trade_seed.dart",
+   "action": "מחבר רצפים",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "buildsmart:app_flutter/lib/features/global_search/narrowers.dart#mergeNarrowers",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "ממזג חיפוש כללי",
+   "file": "app_flutter/lib/features/global_search/narrowers.dart",
+   "action": "מחבר רצפים",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל"
+  }
+ ]
+}

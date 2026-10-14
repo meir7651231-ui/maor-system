@@ -1,0 +1,29 @@
+{
+ "goal": "w5cab79d9",
+ "word": "ירח",
+ "need": "n4",
+ "behavior": "מסתובב סביב הארץ",
+ "verb": "NEW:orbit",
+ "verbHe": "פועל חדש: orbit",
+ "isNewVerb": true,
+ "material": "geo",
+ "takes": [],
+ "gives": "geo",
+ "detail": "מקיף — תנועה במעגל או בעקומה סביב נקודה",
+ "example": {
+  "say": "«ירח»: מסתובב סביב הארץ — מקיף — תנועה במעגל או בעקומה סביב נקודה"
+ },
+ "status": "mining",
+ "statusHe": "⛏️ נמצא בקוד — בכרייה",
+ "places": [
+  {
+   "lead": true,
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "סיבוב במעגל: rot = t·0.0009, x = cx + cos(ang)·r",
+   "file": "src/components/supporters/SupportersGalaxy.tsx",
+   "lines": "101-105",
+   "why": "מקום ידוע — אומת ביד"
+  }
+ ]
+}

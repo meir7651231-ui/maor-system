@@ -1,0 +1,52 @@
+{
+ "goal": "wd10d3c7b",
+ "word": "פטרייה",
+ "need": "n1",
+ "behavior": "צצה רק אחרי גשם",
+ "verb": "require-source",
+ "verbHe": "דורש מקור",
+ "isNewVerb": false,
+ "material": "bool",
+ "takes": [
+  "record"
+ ],
+ "gives": "bool",
+ "detail": "גשם בימים האחרונים",
+ "example": {
+  "say": "«פטרייה»: צצה רק אחרי גשם — גשם בימים האחרונים"
+ },
+ "status": "mining",
+ "statusHe": "⛏️ נמצא בקוד — בכרייה",
+ "places": [
+  {
+   "id": "yeshiva:yeshiva/maimatai.py#interrogate_source",
+   "project": "הישיבה",
+   "source": "yeshiva",
+   "name": "לחקור מקור: אפשר לקרוא אותו אחרת?",
+   "file": "yeshiva/maimatai.py",
+   "action": "דורש מקור",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · שם קרוב"
+  },
+  {
+   "id": "buildsmart:app_flutter/lib/data/related_info.dart#quoteTextFor",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "מצטט טקסט",
+   "file": "app_flutter/lib/data/related_info.dart",
+   "action": "דורש מקור",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "buildsmart:app_flutter/lib/features/card_keyboard/card_signals.dart#sourcesFor",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "מחזיר מקורות",
+   "file": "app_flutter/lib/features/card_keyboard/card_signals.dart",
+   "action": "דורש מקור",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל"
+  }
+ ]
+}

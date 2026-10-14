@@ -1,0 +1,52 @@
+{
+ "goal": "wd56c3023",
+ "word": "ליקוי-חמה",
+ "need": "n2",
+ "behavior": "רק ברצועה מסוימת",
+ "verb": "filter",
+ "verbHe": "מסנן",
+ "isNewVerb": false,
+ "material": "geo",
+ "takes": [
+  "list"
+ ],
+ "gives": "geo",
+ "detail": null,
+ "example": {
+  "say": "«ליקוי-חמה»: רק ברצועה מסוימת"
+ },
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
+ "places": [
+  {
+   "id": "orbit:src/components/courses/lib.ts#coursesOfTeacher",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מסנן תפקיד מורה",
+   "file": "src/components/courses/lib.ts",
+   "action": "מסנן",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "orbit:src/components/courses/ops.ts#dropoutRisk",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מוצא תלמידים בסיכון נשירה",
+   "file": "src/components/courses/ops.ts",
+   "action": "מסנן",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "orbit:src/components/courses/reenroll-lib.ts#renewTargets",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "אומר מי מיועד לרישום המוני",
+   "file": "src/components/courses/reenroll-lib.ts",
+   "action": "מסנן",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  }
+ ]
+}

@@ -1,0 +1,50 @@
+{
+ "goal": "w66297ae6",
+ "word": "כיסאות-מוזיקליים",
+ "need": "n2",
+ "behavior": "המוזיקה נעצרת פתאום",
+ "verb": "NEW:random",
+ "verbHe": "פועל חדש: random",
+ "isNewVerb": true,
+ "material": "times",
+ "takes": [],
+ "gives": "times",
+ "detail": "מגריל — בחירה או ערך לפי סיכוי",
+ "example": {
+  "say": "«כיסאות-מוזיקליים»: המוזיקה נעצרת פתאום — מגריל — בחירה או ערך לפי סיכוי"
+ },
+ "status": "mining",
+ "statusHe": "⛏️ נמצא בקוד — בכרייה",
+ "places": [
+  {
+   "id": "orbit:src/components/calendar/calLib.ts#isoOf",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מחשב תאריך מקומי",
+   "file": "src/components/calendar/calLib.ts",
+   "action": "מקבץ לפי יום",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו חומר"
+  },
+  {
+   "id": "orbit:src/components/diary/lib.ts#localIso",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מחשב תאריך מקומי",
+   "file": "src/components/diary/lib.ts",
+   "action": "מקבץ לפי יום",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו חומר"
+  },
+  {
+   "id": "orbit:src/components/diary/lib.ts#minToHM",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "הופך דקות מחצות לשעה",
+   "file": "src/components/diary/lib.ts",
+   "action": "ממיר ערך",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו חומר"
+  }
+ ]
+}

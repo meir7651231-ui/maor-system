@@ -1,0 +1,50 @@
+{
+ "goal": "wcace4568",
+ "word": "גשר-נפתח",
+ "need": "n4",
+ "behavior": "נשאר פתוח עד שעברה",
+ "verb": "validate",
+ "verbHe": "בודק",
+ "isNewVerb": false,
+ "material": "waiting",
+ "takes": [],
+ "gives": "waiting",
+ "detail": null,
+ "example": {
+  "say": "«גשר-נפתח»: נשאר פתוח עד שעברה"
+ },
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
+ "places": [
+  {
+   "id": "buildsmart:app_flutter/lib/state/app_profile.dart#seedsEmptyForProfile",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "בודק ריק נתוני פתיחה עבור פרופיל",
+   "file": "app_flutter/lib/state/app_profile.dart",
+   "action": "בודק",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · שם קרוב"
+  },
+  {
+   "id": "orbit:src/components/calendar/calLib.ts#allowItem",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "בודק אם פריט יום עובר את הפילטרים",
+   "file": "src/components/calendar/calLib.ts",
+   "action": "בודק",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל · שם קרוב"
+  },
+  {
+   "id": "orbit:src/components/calendar/calLib.ts#initialHebMode",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "בודק אם מצב הפתיחה של הלוח",
+   "file": "src/components/calendar/calLib.ts",
+   "action": "בודק",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל · שם קרוב"
+  }
+ ]
+}

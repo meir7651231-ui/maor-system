@@ -1,0 +1,61 @@
+{
+ "goal": "w82fd0d44",
+ "word": "דיג׳יי",
+ "need": "n2",
+ "behavior": "מחבר שיר לשיר",
+ "verb": "merge",
+ "verbHe": "מחבר רצפים",
+ "isNewVerb": false,
+ "material": "sound",
+ "takes": [
+  "sequence"
+ ],
+ "gives": "sound",
+ "detail": null,
+ "example": {
+  "say": "«דיג׳יי»: מחבר שיר לשיר"
+ },
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
+ "places": [
+  {
+   "lead": true,
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "רצף צלילים (tone)",
+   "file": "src/components/parnasa/sound.ts",
+   "lines": "42-113",
+   "why": "מקום ידוע — אומת ביד"
+  },
+  {
+   "id": "orbit:src/lib/atoms/parts/merge.ts#mergeRuns",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מחבר דברים צמודים",
+   "file": "src/lib/atoms/parts/merge.ts",
+   "action": "מחבר רצפים",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל · שם קרוב"
+  },
+  {
+   "id": "buildsmart:app_flutter/lib/domain/seeds/plumbing_trade_seed.dart#plumbingConnectorTypes",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "מחזיר סוגים מחבר אינסטלציה",
+   "file": "app_flutter/lib/domain/seeds/plumbing_trade_seed.dart",
+   "action": "מחבר רצפים",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · שם קרוב"
+  },
+  {
+   "id": "buildsmart:app_flutter/lib/logic/equipment_stock_join.dart#*",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "מחבר ציוד למלאי הזמין",
+   "file": "app_flutter/lib/logic/equipment_stock_join.dart",
+   "action": "מחבר רצפים",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · שם קרוב"
+  }
+ ]
+}

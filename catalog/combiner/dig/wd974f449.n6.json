@@ -1,0 +1,52 @@
+{
+ "goal": "wd974f449",
+ "word": "לחם-מחמצת",
+ "need": "n6",
+ "behavior": "חותכים חריץ",
+ "verb": "format",
+ "verbHe": "מעצב לטקסט",
+ "isNewVerb": false,
+ "material": "image",
+ "takes": [
+  "number|date|amount"
+ ],
+ "gives": "image",
+ "detail": null,
+ "example": {
+  "say": "«לחם-מחמצת»: חותכים חריץ"
+ },
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
+ "places": [
+  {
+   "id": "buildsmart:app/src/data/identity.ts#formatIls",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "מעצב שקלים",
+   "file": "app/src/data/identity.ts",
+   "action": "מעצב לטקסט",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "buildsmart:functions/src/orderEmail.ts#buildOrderEmailHtml",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "בונה HTML מייל הזמנה",
+   "file": "functions/src/orderEmail.ts",
+   "action": "מעצב לטקסט",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "mmmm:lib/api-client-react/src/custom-fetch.ts#buildErrorMessage",
+   "project": "MMMM",
+   "source": "mmmm",
+   "name": "לנסח הודעת שגיאה קריאה מתשובת שרת",
+   "file": "lib/api-client-react/src/custom-fetch.ts",
+   "action": "מעצב לטקסט",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  }
+ ]
+}

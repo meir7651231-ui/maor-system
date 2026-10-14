@@ -1,0 +1,52 @@
+{
+ "goal": "wabf373b7",
+ "word": "שחמט",
+ "need": "n2",
+ "behavior": "כל כלי זז בדרך שלו",
+ "verb": "filter",
+ "verbHe": "מסנן",
+ "isNewVerb": false,
+ "material": "geo",
+ "takes": [
+  "list"
+ ],
+ "gives": "geo",
+ "detail": "רק המשבצות המותרות",
+ "example": {
+  "say": "«שחמט»: כל כלי זז בדרך שלו — רק המשבצות המותרות"
+ },
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
+ "places": [
+  {
+   "id": "orbit:src/components/courses/lib.ts#coursesOfTeacher",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מסנן תפקיד מורה",
+   "file": "src/components/courses/lib.ts",
+   "action": "מסנן",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "orbit:src/components/courses/ops.ts#dropoutRisk",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מוצא תלמידים בסיכון נשירה",
+   "file": "src/components/courses/ops.ts",
+   "action": "מסנן",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "orbit:src/components/courses/reenroll-lib.ts#renewTargets",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "אומר מי מיועד לרישום המוני",
+   "file": "src/components/courses/reenroll-lib.ts",
+   "action": "מסנן",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  }
+ ]
+}

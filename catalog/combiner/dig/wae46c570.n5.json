@@ -1,0 +1,50 @@
+{
+ "goal": "wae46c570",
+ "word": "סידור-משמרות",
+ "need": "n5",
+ "behavior": "מחליפים כשמישהו חולה",
+ "verb": "tolerate",
+ "verbHe": "סובל כשל",
+ "isNewVerb": false,
+ "material": "record:shift",
+ "takes": [],
+ "gives": "record:shift",
+ "detail": null,
+ "example": {
+  "say": "«סידור-משמרות»: מחליפים כשמישהו חולה"
+ },
+ "status": "mining",
+ "statusHe": "⛏️ נמצא בקוד — בכרייה",
+ "places": [
+  {
+   "id": "mmmm:artifacts/api-server/src/swarm/agents.ts#fallbackSuggestions",
+   "project": "MMMM",
+   "source": "mmmm",
+   "name": "להציע תלבושות קבועות כשאין חיבור",
+   "file": "artifacts/api-server/src/swarm/agents.ts",
+   "action": "סובל כשל",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · אותו חומר"
+  },
+  {
+   "id": "buildsmart:app_flutter/lib/features/card_keyboard/card_soft.dart#softSuggestionsFor",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "מרכך הצעות",
+   "file": "app_flutter/lib/features/card_keyboard/card_soft.dart",
+   "action": "סובל כשל",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · אותו חומר"
+  },
+  {
+   "id": "buildsmart:app_flutter/lib/features/catalog_config/variant_image.dart#familyFallbackImage",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "בונה תמונה משפחה",
+   "file": "app_flutter/lib/features/catalog_config/variant_image.dart",
+   "action": "סובל כשל",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · אותו חומר"
+  }
+ ]
+}

@@ -1,0 +1,59 @@
+{
+ "goal": "w8a10c9ee",
+ "word": "תזמורת",
+ "need": "n5",
+ "behavior": "כוונון לפי צליל אחד",
+ "verb": "compare",
+ "verbHe": "משווה",
+ "isNewVerb": false,
+ "material": "sound",
+ "takes": [],
+ "gives": "sound",
+ "detail": null,
+ "example": {
+  "say": "«תזמורת»: כוונון לפי צליל אחד"
+ },
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
+ "places": [
+  {
+   "lead": true,
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "רצף צלילים (tone)",
+   "file": "src/components/parnasa/sound.ts",
+   "lines": "42-113",
+   "why": "מקום ידוע — אומת ביד"
+  },
+  {
+   "id": "qa-scanner:scanner.py#scan_page",
+   "project": "סורק QA",
+   "source": "qa-scanner",
+   "name": "לבדוק עמוד אחד לטעויות לפני פרסום",
+   "file": "scanner.py",
+   "action": "משווה",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · שם קרוב"
+  },
+  {
+   "id": "orbit:src/components/hosting/transitions.ts#overlaps",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "בודק אם חפיפת שהיות",
+   "file": "src/components/hosting/transitions.ts",
+   "action": "משווה",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "orbit:src/components/supporters/cockpit.ts#daysSince",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מחשב ימים בין תאריך ליום",
+   "file": "src/components/supporters/cockpit.ts",
+   "action": "משווה",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  }
+ ]
+}

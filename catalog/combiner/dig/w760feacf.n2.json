@@ -1,0 +1,52 @@
+{
+ "goal": "w760feacf",
+ "word": "תורנות",
+ "need": "n2",
+ "behavior": "מעבירים את התור הלאה",
+ "verb": "relay",
+ "verbHe": "מעביר דרך מרכז",
+ "isNewVerb": false,
+ "material": "record:person",
+ "takes": [
+  "record"
+ ],
+ "gives": "record:person",
+ "detail": null,
+ "example": {
+  "say": "«תורנות»: מעבירים את התור הלאה"
+ },
+ "status": "mining",
+ "statusHe": "⛏️ נמצא בקוד — בכרייה",
+ "places": [
+  {
+   "id": "orbit:src/lib/atoms/engines/bookings.ts#BOOKINGS_CARD.6",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מעביר הזמנה משלב לשלב",
+   "file": "src/lib/atoms/engines/bookings.ts",
+   "action": "מעביר דרך מרכז",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · אותו חומר · שם קרוב"
+  },
+  {
+   "id": "14kk:services/business-integrations.js#GitHubIntegration",
+   "project": "14kk",
+   "source": "14kk",
+   "name": "להפעיל אינטגרציה GitHub",
+   "file": "services/business-integrations.js",
+   "action": "מעביר דרך מרכז",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · אותו חומר"
+  },
+  {
+   "id": "buildsmart:app_flutter/lib/state/intel/consent_gate.dart#analyticsForwardEnabled",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "בודק ניתוח",
+   "file": "app_flutter/lib/state/intel/consent_gate.dart",
+   "action": "מעביר דרך מרכז",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · אותו חומר"
+  }
+ ]
+}

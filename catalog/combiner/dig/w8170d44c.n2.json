@@ -1,0 +1,52 @@
+{
+ "goal": "w8170d44c",
+ "word": "גלגלי-שיניים",
+ "need": "n2",
+ "behavior": "כיוון הפוך בכל מעבר",
+ "verb": "reverse",
+ "verbHe": "הופך סדר",
+ "isNewVerb": false,
+ "material": "choice",
+ "takes": [
+  "list"
+ ],
+ "gives": "choice",
+ "detail": null,
+ "example": {
+  "say": "«גלגלי-שיניים»: כיוון הפוך בכל מעבר"
+ },
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
+ "places": [
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#הפוך רשימה",
+   "project": "הטבעות",
+   "source": "rings",
+   "name": "הפוך רשימה",
+   "file": "lab-rings/lab13/shelf3.json",
+   "action": "הופך סדר",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל · שם קרוב"
+  },
+  {
+   "id": "orbit:src/components/hosting/transitions.ts#canSetBookingStatus",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "בודק אם מעברים מותרים",
+   "file": "src/components/hosting/transitions.ts",
+   "action": "בודק",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו חומר · שם קרוב"
+  },
+  {
+   "id": "orbit:src/lib/atoms/engines/bookings.ts#BOOKINGS_CARD.6",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מעביר הזמנה משלב לשלב",
+   "file": "src/lib/atoms/engines/bookings.ts",
+   "action": "מעביר דרך מרכז",
+   "proof": "מהשם בלבד",
+   "why": "אותו חומר · שם קרוב"
+  }
+ ]
+}

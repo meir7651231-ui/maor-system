@@ -1,0 +1,52 @@
+{
+ "goal": "w31a0e49e",
+ "word": "יער",
+ "need": "n1",
+ "behavior": "הגבוהים מסתירים את הנמוכים",
+ "verb": "tier",
+ "verbHe": "מדרג לשלבים",
+ "isNewVerb": false,
+ "material": "list",
+ "takes": [
+  "number|amount"
+ ],
+ "gives": "list",
+ "detail": null,
+ "example": {
+  "say": "«יער»: הגבוהים מסתירים את הנמוכים"
+ },
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
+ "places": [
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#הגבל לתחום",
+   "project": "הטבעות",
+   "source": "rings",
+   "name": "הגבל לתחום",
+   "file": "lab-rings/lab13/shelf3.json",
+   "action": "מדרג לשלבים",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל · שם קרוב"
+  },
+  {
+   "id": "buildsmart:functions/src/analytics.ts#pickShard",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "בוחר ניתוח",
+   "file": "functions/src/analytics.ts",
+   "action": "מדרג לשלבים",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "orbit:src/components/calendar/calLib.ts#nextOccurIso",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מחשב את המופע הבא של אירוע חוזר בעברי והלאה",
+   "file": "src/components/calendar/calLib.ts",
+   "action": "מדרג לשלבים",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  }
+ ]
+}

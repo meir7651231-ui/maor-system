@@ -1,0 +1,53 @@
+{
+ "goal": "we12e7bc4",
+ "word": "מרק",
+ "need": "n1",
+ "behavior": "מצרכים לפי הסדר",
+ "verb": "offset",
+ "verbHe": "מזיז",
+ "isNewVerb": false,
+ "material": "sequence",
+ "takes": [
+  "times|date|number",
+  "number"
+ ],
+ "gives": "sequence",
+ "detail": null,
+ "example": {
+  "say": "«מרק»: מצרכים לפי הסדר"
+ },
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
+ "places": [
+  {
+   "id": "generator:new/dart-maor/op-add-to.dart#addTo",
+   "project": "המחולל",
+   "source": "generator",
+   "name": "הוסף פריט לסוף רשימה",
+   "file": "new/dart-maor/op-add-to.dart",
+   "action": "מזיז",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · אותו חומר"
+  },
+  {
+   "id": "orbit:src/components/hosting/kitchen.ts#stepPerGuest",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מחשב חצי לאורח",
+   "file": "src/components/hosting/kitchen.ts",
+   "action": "מזיז",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "orbit:src/components/hosting/transitions.ts#addDaysIso",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מחשב תאריך כמה ימים",
+   "file": "src/components/hosting/transitions.ts",
+   "action": "מזיז",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  }
+ ]
+}

@@ -1,0 +1,52 @@
+{
+ "goal": "wff2d10c6",
+ "word": "שליחים",
+ "need": "n4",
+ "behavior": "סכום הזמנים",
+ "verb": "sum",
+ "verbHe": "מסכם",
+ "isNewVerb": false,
+ "material": "times",
+ "takes": [
+  "list"
+ ],
+ "gives": "times",
+ "detail": null,
+ "example": {
+  "say": "«שליחים»: סכום הזמנים"
+ },
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
+ "places": [
+  {
+   "id": "buildsmart:functions/src/analytics.ts#sumShards",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "מסכם ניתוח",
+   "file": "functions/src/analytics.ts",
+   "action": "מסכם",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל · שם קרוב"
+  },
+  {
+   "id": "orbit:src/components/hosting/kitchen.ts#dinerTotal",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מחשב את הסכום הכולל של הסועד",
+   "file": "src/components/hosting/kitchen.ts",
+   "action": "מסכם",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל · שם קרוב"
+  },
+  {
+   "id": "orbit:src/components/supporters/cockpit.ts#cockpitCollectedThisMonth",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מחשב סכום שנגבה בפועל החודש",
+   "file": "src/components/supporters/cockpit.ts",
+   "action": "מסכם",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל · שם קרוב"
+  }
+ ]
+}

@@ -1,0 +1,53 @@
+{
+ "goal": "wefb4186e",
+ "word": "שלג",
+ "need": "n3",
+ "behavior": "כל פתית שונה",
+ "verb": "fuzzy",
+ "verbHe": "מוצא גם עם טעות",
+ "isNewVerb": false,
+ "material": "image",
+ "takes": [
+  "text",
+  "list"
+ ],
+ "gives": "image",
+ "detail": null,
+ "example": {
+  "say": "«שלג»: כל פתית שונה"
+ },
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
+ "places": [
+  {
+   "id": "orbit:src/lib/atoms/parts/fuzzy.ts#fuzzyFind",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מוצא גם עם טעות כתיב",
+   "file": "src/lib/atoms/parts/fuzzy.ts",
+   "action": "מוצא גם עם טעות",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "orbit:src/lib/atoms/parts/fuzzy.ts#normHe",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מנרמל עברי לחיפוש",
+   "file": "src/lib/atoms/parts/fuzzy.ts",
+   "action": "מוצא גם עם טעות",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "orbit:src/lib/atoms/parts/fuzzy.ts#wordScore",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מחשב ציון מילה מול מילה",
+   "file": "src/lib/atoms/parts/fuzzy.ts",
+   "action": "מוצא גם עם טעות",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  }
+ ]
+}

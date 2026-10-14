@@ -1,0 +1,53 @@
+{
+ "goal": "w1de2aaae",
+ "word": "מטוס-נייר",
+ "need": "n5",
+ "behavior": "רוח מזיזה",
+ "verb": "fuzzy",
+ "verbHe": "מוצא גם עם טעות",
+ "isNewVerb": false,
+ "material": "geo",
+ "takes": [
+  "text",
+  "list"
+ ],
+ "gives": "geo",
+ "detail": null,
+ "example": {
+  "say": "«מטוס-נייר»: רוח מזיזה"
+ },
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
+ "places": [
+  {
+   "id": "orbit:src/lib/atoms/parts/fuzzy.ts#fuzzyFind",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מוצא גם עם טעות כתיב",
+   "file": "src/lib/atoms/parts/fuzzy.ts",
+   "action": "מוצא גם עם טעות",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "orbit:src/lib/atoms/parts/fuzzy.ts#normHe",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מנרמל עברי לחיפוש",
+   "file": "src/lib/atoms/parts/fuzzy.ts",
+   "action": "מוצא גם עם טעות",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "orbit:src/lib/atoms/parts/fuzzy.ts#wordScore",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מחשב ציון מילה מול מילה",
+   "file": "src/lib/atoms/parts/fuzzy.ts",
+   "action": "מוצא גם עם טעות",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  }
+ ]
+}

@@ -1,0 +1,52 @@
+{
+ "goal": "w634c49ed",
+ "word": "מסיבת-הפתעה",
+ "need": "n4",
+ "behavior": "אחד מעדכן את כולם",
+ "verb": "relay",
+ "verbHe": "מעביר דרך מרכז",
+ "isNewVerb": false,
+ "material": "text",
+ "takes": [
+  "record"
+ ],
+ "gives": "text",
+ "detail": null,
+ "example": {
+  "say": "«מסיבת-הפתעה»: אחד מעדכן את כולם"
+ },
+ "status": "mining",
+ "statusHe": "⛏️ נמצא בקוד — בכרייה",
+ "places": [
+  {
+   "id": "14kk:services/business-integrations.js#GitHubIntegration",
+   "project": "14kk",
+   "source": "14kk",
+   "name": "להפעיל אינטגרציה GitHub",
+   "file": "services/business-integrations.js",
+   "action": "מעביר דרך מרכז",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "buildsmart:app_flutter/lib/state/intel/consent_gate.dart#analyticsForwardEnabled",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "בודק ניתוח",
+   "file": "app_flutter/lib/state/intel/consent_gate.dart",
+   "action": "מעביר דרך מרכז",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "buildsmart:app_flutter/lib/state/intel/consent_gate.dart#presenceForwardEnabled",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "בודק נוכחות",
+   "file": "app_flutter/lib/state/intel/consent_gate.dart",
+   "action": "מעביר דרך מרכז",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל"
+  }
+ ]
+}

@@ -1,0 +1,62 @@
+{
+ "goal": "wef6ce956",
+ "word": "פינגווין",
+ "need": "n4",
+ "behavior": "מזהה את הבן הזוג לפי הקול",
+ "verb": "lookup",
+ "verbHe": "מחפש לפי מפתח",
+ "isNewVerb": false,
+ "material": "sound",
+ "takes": [
+  "list",
+  "text"
+ ],
+ "gives": "sound",
+ "detail": null,
+ "example": {
+  "say": "«פינגווין»: מזהה את הבן הזוג לפי הקול"
+ },
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
+ "places": [
+  {
+   "lead": true,
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "רצף צלילים (tone)",
+   "file": "src/components/parnasa/sound.ts",
+   "lines": "42-113",
+   "why": "מקום ידוע — אומת ביד"
+  },
+  {
+   "id": "orbit:src/components/parnasa/phoneSim.ts#hebrewVoice",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מחזיר קול עברי מתוך קולות המכשיר",
+   "file": "src/components/parnasa/phoneSim.ts",
+   "action": "מחפש לפי מפתח",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "orbit:src/components/parnasa/zmanimBoard.ts#nextMinyan",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "בונה את המניין הבא מהשעה",
+   "file": "src/components/parnasa/zmanimBoard.ts",
+   "action": "מחפש לפי מפתח",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "orbit:src/lib/dedup.ts#dupFieldValue",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "כותב ערך שדה נבחר לפי הלגאסי",
+   "file": "src/lib/dedup.ts",
+   "action": "מחפש לפי מפתח",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  }
+ ]
+}

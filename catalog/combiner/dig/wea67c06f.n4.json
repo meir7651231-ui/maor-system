@@ -1,0 +1,52 @@
+{
+ "goal": "wea67c06f",
+ "word": "כדור-פורח",
+ "need": "n4",
+ "behavior": "זז עם הרוח",
+ "verb": "convert",
+ "verbHe": "ממיר ערך",
+ "isNewVerb": false,
+ "material": "geo",
+ "takes": [
+  "number|date|times"
+ ],
+ "gives": "geo",
+ "detail": null,
+ "example": {
+  "say": "«כדור-פורח»: זז עם הרוח"
+ },
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
+ "places": [
+  {
+   "id": "buildsmart:functions/src/creditCore.ts#contractorCredit",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "מחשב אשראי קבלן",
+   "file": "functions/src/creditCore.ts",
+   "action": "ממיר ערך",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "buildsmart:functions/src/creditCore.ts#dartStringHashCode",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "מחשב קוד חתימה מחרוזת",
+   "file": "functions/src/creditCore.ts",
+   "action": "ממיר ערך",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "orbit:src/components/courses/lib.ts#lessonsInTerm",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מחשב מספר השיעורים בתקופה לפי התדירות שנבחרה",
+   "file": "src/components/courses/lib.ts",
+   "action": "ממיר ערך",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  }
+ ]
+}

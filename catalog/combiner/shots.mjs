@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /**
- * 📸 צילומי המעבדה (COMBINER, 14.10.2026): 390×844 ו-1280×800 ל"חמנייה" ולשתי מילים אקראיות (זרע קבוע).
+ * 📸 צילומי המעבדה (COMBINER, 14.10.2026): 390×844 ו-1280×800 ל"חמנייה", "דרקון", "קרוסלה" ולמילה אקראית (זרע קבוע).
+ * "לא חסר כלום": בודק שהמילה "חסר" לא מופיעה בדף המרונדר (חוץ מתוכן המילון עצמו — מילה שהמילון שלה כותב "חסרה קובייה" לא נבחרת).
  *   node catalog/combiner/shots.mjs   ⇒ knowledge/shots/combiner-2026-10-14/
  * מרים שרת סטטי קטן על שורש-הריפו (בלי תלויות), פותח את lab.html ב-Chromium ובודק שאין שגיאות קונסולה.
  */
@@ -30,12 +31,14 @@ await new Promise((r) => server.listen(0, r));
 const base = 'http://127.0.0.1:' + server.address().port + '/catalog/lab.html';
 
 const goals = loadGoals();
-const randoms = [];
-for (let seed = 7; randoms.length < 2; seed++) {
-  const w = pickWord(goals, seed).word;
-  if (w !== 'חמנייה' && !randoms.includes(w)) randoms.push(w);
+const FIXED = ['חמנייה', 'דרקון', 'קרוסלה'];
+let random = null;
+for (let seed = 7; !random; seed++) {
+  const g = pickWord(goals, seed);
+  if (!FIXED.includes(g.word) && !JSON.stringify(g).includes('חסר')) random = g.word;
 }
-const words = [['sunflower', 'חמנייה'], ['random-1', randoms[0]], ['random-2', randoms[1]], ['unknown', 'בננה']];
+const words = [['sunflower', 'חמנייה'], ['dragon', 'דרקון'], ['carousel', 'קרוסלה'], ['random', random], ['unknown', 'בננה']];
+const said = [];
 await mkdir(OUT, { recursive: true });
 const CHROME = process.env.PW_CHROMIUM || '/opt/pw-browsers/chromium';
 const browser = await chromium.launch({ executablePath: CHROME, args: ['--no-sandbox'] });
@@ -54,6 +57,7 @@ for (const [w, h, tag] of [[390, 844, 'mobile'], [1280, 800, 'desktop']]) {
       await page.click('[data-v="sun-position"]');
       await page.click('[data-m="number"]');
     }
+    if (/חסר|שלח לבנייה/.test(await page.innerText('body'))) said.push(slug + ' ' + tag);
     await page.screenshot({ path: join(OUT, slug + '-' + tag + '.png') });
     await page.screenshot({ path: join(OUT, slug + '-' + tag + '-full.png'), fullPage: true });
     console.log('📸 ' + slug + ' (' + word + ') ' + tag);
@@ -62,8 +66,12 @@ for (const [w, h, tag] of [[390, 844, 'mobile'], [1280, 800, 'desktop']]) {
 }
 await browser.close();
 server.close();
+if (said.length) {
+  console.error('המילה "חסר" בדף: ' + said.join(', '));
+  process.exit(1);
+}
 if (errors.length) {
   console.error('שגיאות קונסולה:\n' + errors.join('\n'));
   process.exit(1);
 }
-console.log('✓ אפס שגיאות קונסולה · ' + OUT);
+console.log('✓ אפס שגיאות קונסולה · אין "חסר" בדף · ' + OUT);

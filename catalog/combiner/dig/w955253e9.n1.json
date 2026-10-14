@@ -1,0 +1,29 @@
+{
+ "goal": "w955253e9",
+ "word": "דולפין",
+ "need": "n1",
+ "behavior": "שולח צליל ומקשיב להד",
+ "verb": "NEW:echo",
+ "verbHe": "פועל חדש: echo",
+ "isNewVerb": true,
+ "material": "sound",
+ "takes": [],
+ "gives": "sound",
+ "detail": "זמן חזרה ⇒ מרחק",
+ "example": {
+  "say": "«דולפין»: שולח צליל ומקשיב להד — זמן חזרה ⇒ מרחק"
+ },
+ "status": "mining",
+ "statusHe": "⛏️ נמצא בקוד — בכרייה",
+ "places": [
+  {
+   "lead": true,
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "רצף צלילים (tone)",
+   "file": "src/components/parnasa/sound.ts",
+   "lines": "42-113",
+   "why": "מקום ידוע — אומת ביד"
+  }
+ ]
+}

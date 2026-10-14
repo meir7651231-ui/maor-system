@@ -1,0 +1,53 @@
+{
+ "goal": "wba80e956",
+ "word": "מחבואים",
+ "need": "n2",
+ "behavior": "כולם מתפזרים",
+ "verb": "divide",
+ "verbHe": "מחלק",
+ "isNewVerb": false,
+ "material": "geo",
+ "takes": [
+  "span|amount|list",
+  "number"
+ ],
+ "gives": "geo",
+ "detail": null,
+ "example": {
+  "say": "«מחבואים»: כולם מתפזרים"
+ },
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
+ "places": [
+  {
+   "id": "orbit:src/lib/atoms/parts/divide.ts#divideAmount",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מחלק סכום לחלקים שווים",
+   "file": "src/lib/atoms/parts/divide.ts",
+   "action": "מחלק",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "orbit:src/lib/atoms/parts/divide.ts#divideSpan",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מחלק לחלקים שווים",
+   "file": "src/lib/atoms/parts/divide.ts",
+   "action": "מחלק",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "orbit:src/lib/atoms/parts/divide.ts#pointsAt",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מוצא נקודות בתוך תקופה שחולק ל",
+   "file": "src/lib/atoms/parts/divide.ts",
+   "action": "מחלק",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  }
+ ]
+}

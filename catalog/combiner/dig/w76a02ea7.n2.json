@@ -1,0 +1,53 @@
+{
+ "goal": "w76a02ea7",
+ "word": "פופקורן",
+ "need": "n2",
+ "behavior": "כל גרעין מתפוצץ בזמן אחר",
+ "verb": "fuzzy",
+ "verbHe": "מוצא גם עם טעות",
+ "isNewVerb": false,
+ "material": "times",
+ "takes": [
+  "text",
+  "list"
+ ],
+ "gives": "times",
+ "detail": null,
+ "example": {
+  "say": "«פופקורן»: כל גרעין מתפוצץ בזמן אחר"
+ },
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
+ "places": [
+  {
+   "id": "buildsmart:app_flutter/lib/state/recent_searches.dart#addRecentSearch",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "מוסיף חיפוש אחרונים",
+   "file": "app_flutter/lib/state/recent_searches.dart",
+   "action": "מוצא גם עם טעות",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · שם קרוב"
+  },
+  {
+   "id": "orbit:src/lib/atoms/parts/fuzzy.ts#fuzzyFind",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מוצא גם עם טעות כתיב",
+   "file": "src/lib/atoms/parts/fuzzy.ts",
+   "action": "מוצא גם עם טעות",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "orbit:src/lib/atoms/parts/fuzzy.ts#normHe",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מנרמל עברי לחיפוש",
+   "file": "src/lib/atoms/parts/fuzzy.ts",
+   "action": "מוצא גם עם טעות",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  }
+ ]
+}

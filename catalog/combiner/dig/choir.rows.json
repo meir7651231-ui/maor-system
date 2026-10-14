@@ -1,0 +1,52 @@
+{
+ "goal": "choir",
+ "word": "מקהלה",
+ "need": "rows",
+ "behavior": "מקבצת לשורות לפי קול",
+ "verb": "group",
+ "verbHe": "מקבץ",
+ "isNewVerb": false,
+ "material": "list",
+ "takes": [
+  "list"
+ ],
+ "gives": "list",
+ "detail": null,
+ "example": {
+  "say": "«מקהלה»: מקבצת לשורות לפי קול"
+ },
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
+ "places": [
+  {
+   "id": "buildsmart:app_flutter/lib/data/catalog_lens.dart#groupByLens",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "מקבץ עדשה",
+   "file": "app_flutter/lib/data/catalog_lens.dart",
+   "action": "מקבץ",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · אותו חומר · שם קרוב"
+  },
+  {
+   "id": "buildsmart:app_flutter/lib/screens/worker_task_board_screen.dart#WorkerTaskBoardScreen.groupByStatus",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "מקבץ סטטוס",
+   "file": "app_flutter/lib/screens/worker_task_board_screen.dart",
+   "action": "מקבץ",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · אותו חומר · שם קרוב"
+  },
+  {
+   "id": "generator:new/dart-maor/find-supporter-dup-groups.dart#findSupporterDupGroups",
+   "project": "המחולל",
+   "source": "generator",
+   "name": "הפק קבוצות כפולי-תורמים",
+   "file": "new/dart-maor/find-supporter-dup-groups.dart",
+   "action": "מקבץ",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · אותו חומר · שם קרוב"
+  }
+ ]
+}

@@ -1,0 +1,52 @@
+{
+ "goal": "wd73ede66",
+ "word": "ראיון-עבודה",
+ "need": "n3",
+ "behavior": "ציון לכל מועמד",
+ "verb": "tier",
+ "verbHe": "מדרג לשלבים",
+ "isNewVerb": false,
+ "material": "list",
+ "takes": [
+  "number|amount"
+ ],
+ "gives": "list",
+ "detail": null,
+ "example": {
+  "say": "«ראיון-עבודה»: ציון לכל מועמד"
+ },
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
+ "places": [
+  {
+   "id": "buildsmart:functions/src/analytics.ts#pickShard",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "בוחר ניתוח",
+   "file": "functions/src/analytics.ts",
+   "action": "מדרג לשלבים",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "orbit:src/components/calendar/calLib.ts#nextOccurIso",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מחשב את המופע הבא של אירוע חוזר בעברי והלאה",
+   "file": "src/components/calendar/calLib.ts",
+   "action": "מדרג לשלבים",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "orbit:src/components/courses/lib.ts#wheelIndexUnderPointer",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מחשב גלגל החוגים",
+   "file": "src/components/courses/lib.ts",
+   "action": "מדרג לשלבים",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  }
+ ]
+}

@@ -1,0 +1,52 @@
+{
+ "goal": "wf02beb70",
+ "word": "כדורגל",
+ "need": "n6",
+ "behavior": "מסירה משחקן לשחקן",
+ "verb": "relay",
+ "verbHe": "מעביר דרך מרכז",
+ "isNewVerb": false,
+ "material": "sequence",
+ "takes": [
+  "record"
+ ],
+ "gives": "sequence",
+ "detail": null,
+ "example": {
+  "say": "«כדורגל»: מסירה משחקן לשחקן"
+ },
+ "status": "mining",
+ "statusHe": "⛏️ נמצא בקוד — בכרייה",
+ "places": [
+  {
+   "id": "orbit:src/lib/atoms/engines/whatNeed.ts#WHAT_NEED_CARD.8",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מעביר בקשה הלאה כשאין תשובה",
+   "file": "src/lib/atoms/engines/whatNeed.ts",
+   "action": "מעביר דרך מרכז",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · אותו חומר"
+  },
+  {
+   "id": "14kk:services/business-integrations.js#GitHubIntegration",
+   "project": "14kk",
+   "source": "14kk",
+   "name": "להפעיל אינטגרציה GitHub",
+   "file": "services/business-integrations.js",
+   "action": "מעביר דרך מרכז",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "buildsmart:app_flutter/lib/state/intel/consent_gate.dart#analyticsForwardEnabled",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "בודק ניתוח",
+   "file": "app_flutter/lib/state/intel/consent_gate.dart",
+   "action": "מעביר דרך מרכז",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל"
+  }
+ ]
+}

@@ -1,0 +1,50 @@
+{
+ "goal": "w634c49ed",
+ "word": "מסיבת-הפתעה",
+ "need": "n3",
+ "behavior": "מחכים לרגע",
+ "verb": "validate",
+ "verbHe": "בודק",
+ "isNewVerb": false,
+ "material": "waiting",
+ "takes": [],
+ "gives": "waiting",
+ "detail": null,
+ "example": {
+  "say": "«מסיבת-הפתעה»: מחכים לרגע"
+ },
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
+ "places": [
+  {
+   "id": "orbit:src/components/platform/rolePresets.ts#presetMatches",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "בודק אם כרטיס העובד תואם כרגע את הפרופיל",
+   "file": "src/components/platform/rolePresets.ts",
+   "action": "בודק",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל · שם קרוב"
+  },
+  {
+   "id": "buildsmart:functions/src/approveUsers.ts#mayApproveUsers",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "בודק אם מותר משתמשים אישור",
+   "file": "functions/src/approveUsers.ts",
+   "action": "בודק",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "buildsmart:functions/src/orderFlow.ts#isOrderStage",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "בודק אם שלב הזמנה",
+   "file": "functions/src/orderFlow.ts",
+   "action": "בודק",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  }
+ ]
+}

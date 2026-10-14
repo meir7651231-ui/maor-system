@@ -1,0 +1,50 @@
+{
+ "goal": "waa834980",
+ "word": "עץ",
+ "need": "n4",
+ "behavior": "גדל לכיוון האור",
+ "verb": "sun-position",
+ "verbHe": "מקום השמש",
+ "isNewVerb": false,
+ "material": "geo",
+ "takes": [],
+ "gives": "geo",
+ "detail": null,
+ "example": {
+  "say": "«עץ»: גדל לכיוון האור"
+ },
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
+ "places": [
+  {
+   "id": "orbit:src/lib/atoms/engines/zmanim.ts#ZMANIM_CARD.3",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מחשב מתי זריחה ושקיעה",
+   "file": "src/lib/atoms/engines/zmanim.ts",
+   "action": "מקום השמש",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · אותו חומר"
+  },
+  {
+   "id": "orbit:src/lib/atoms/engines/zmanim.ts#ZMANIM_CARD.4",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מחשב מתי השמש יורדת לעומק מסוים",
+   "file": "src/lib/atoms/engines/zmanim.ts",
+   "action": "מקום השמש",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · אותו חומר"
+  },
+  {
+   "id": "orbit:telephony/lib/zmanim.mjs#sunrise",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מחשב שעת זריחה במקום ובתאריך",
+   "file": "telephony/lib/zmanim.mjs",
+   "action": "מקום השמש",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  }
+ ]
+}

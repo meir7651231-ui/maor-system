@@ -1,0 +1,61 @@
+{
+ "goal": "w6d0fa09a",
+ "word": "רמזור",
+ "need": "n6",
+ "behavior": "אמבולנס מקבל ירוק",
+ "verb": "escalate",
+ "verbHe": "מסלים בזמן",
+ "isNewVerb": false,
+ "material": "choice",
+ "takes": [
+  "times"
+ ],
+ "gives": "choice",
+ "detail": null,
+ "example": {
+  "say": "«רמזור»: אמבולנס מקבל ירוק"
+ },
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
+ "places": [
+  {
+   "lead": true,
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "שלבי ההסלמה (escalationState) — נותן רשימת שלבים מסודרת; הצורך רוצה את השלב הנוכחי (פער-סוג — הפעולה קיימת)",
+   "file": "src/lib/atoms/parts/escalate.ts",
+   "lines": "84",
+   "why": "מקום ידוע — אומת ביד"
+  },
+  {
+   "id": "orbit:src/components/hosting/reports.ts#rangeNights",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מחשב את הלילות של שהייה שבתוך התקופה",
+   "file": "src/components/hosting/reports.ts",
+   "action": "מסלים בזמן",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "orbit:src/lib/atoms/parts/escalate.ts#escalationPlan",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מוצא כל השלבים עם רגע ההתחלה שלהם",
+   "file": "src/lib/atoms/parts/escalate.ts",
+   "action": "מסלים בזמן",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "orbit:src/lib/atoms/parts/escalate.ts#escalationState",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מעביר הלאה כשאין תשובה",
+   "file": "src/lib/atoms/parts/escalate.ts",
+   "action": "מסלים בזמן",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  }
+ ]
+}

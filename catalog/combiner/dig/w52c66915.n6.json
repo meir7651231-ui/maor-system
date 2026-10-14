@@ -1,0 +1,50 @@
+{
+ "goal": "w52c66915",
+ "word": "מכונת-ממכר",
+ "need": "n6",
+ "behavior": "החזרה כשמשהו נתקע",
+ "verb": "tolerate",
+ "verbHe": "סובל כשל",
+ "isNewVerb": false,
+ "material": "amount",
+ "takes": [],
+ "gives": "amount",
+ "detail": null,
+ "example": {
+  "say": "«מכונת-ממכר»: החזרה כשמשהו נתקע"
+ },
+ "status": "mining",
+ "statusHe": "⛏️ נמצא בקוד — בכרייה",
+ "places": [
+  {
+   "id": "buildsmart:app_flutter/lib/features/card_keyboard/soft_signals.dart#softTilt",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "מרכך רך מקלדת",
+   "file": "app_flutter/lib/features/card_keyboard/soft_signals.dart",
+   "action": "סובל כשל",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · אותו חומר"
+  },
+  {
+   "id": "buildsmart:app_flutter/lib/logic/studio/edit_safety.dart#softBatchWarnHe",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "מרכך אצווה בעברית",
+   "file": "app_flutter/lib/logic/studio/edit_safety.dart",
+   "action": "סובל כשל",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · אותו חומר"
+  },
+  {
+   "id": "generator:new/dart-maor/cooldown-for-fails.dart#cooldownForFails",
+   "project": "המחולל",
+   "source": "generator",
+   "name": "חשב כשלונות-PIN ⇒ מ״ש-קירור",
+   "file": "new/dart-maor/cooldown-for-fails.dart",
+   "action": "סובל כשל",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · אותו חומר"
+  }
+ ]
+}

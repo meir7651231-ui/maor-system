@@ -1,0 +1,50 @@
+{
+ "goal": "sunflower-field",
+ "word": "שדה חמניות",
+ "need": "flower",
+ "behavior": "כל פרח בשדה הוא חמנייה (מהמדף)",
+ "verb": "recipe",
+ "verbHe": "מתכון שמור",
+ "isNewVerb": false,
+ "material": "record",
+ "takes": [],
+ "gives": "record",
+ "detail": null,
+ "example": {
+  "say": "«שדה חמניות»: כל פרח בשדה הוא חמנייה (מהמדף)"
+ },
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
+ "places": [
+  {
+   "id": "orbit:src/components/hosting/transitions.ts#hostTerms",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "בונה מונחי המודול לממשק ול מאגר",
+   "file": "src/components/hosting/transitions.ts",
+   "action": "מחליף מסגרת",
+   "proof": "מהשם בלבד",
+   "why": "אותו חומר · שם קרוב"
+  },
+  {
+   "id": "generator:new/dart-maor/set-export-blocked.dart#setExportBlocked",
+   "project": "המחולל",
+   "source": "generator",
+   "name": "חשב מצב שער-יציאת-המידע החדש",
+   "file": "new/dart-maor/set-export-blocked.dart",
+   "action": "מעדכן למצב",
+   "proof": "מהשם בלבד",
+   "why": "אותו חומר · שם קרוב"
+  },
+  {
+   "id": "14kk:api/server_optimized.js#OptimizedAPIServer.getEndpointsList",
+   "project": "14kk",
+   "source": "14kk",
+   "name": "להביא רשימה נקודות קצה",
+   "file": "api/server_optimized.js",
+   "action": "נותן ערך קבוע",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו חומר"
+  }
+ ]
+}

@@ -1,0 +1,52 @@
+{
+ "goal": "w7079bde0",
+ "word": "לוויין",
+ "need": "n5",
+ "behavior": "צילום כל סיבוב",
+ "verb": "bucket",
+ "verbHe": "מקבץ לפי יום",
+ "isNewVerb": false,
+ "material": "image",
+ "takes": [
+  "times"
+ ],
+ "gives": "image",
+ "detail": null,
+ "example": {
+  "say": "«לוויין»: צילום כל סיבוב"
+ },
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
+ "places": [
+  {
+   "id": "generator:gen/looks/people/btn.mjs#btn",
+   "project": "המחולל",
+   "source": "generator",
+   "name": "הפעל לא צילום ולא זיכרון",
+   "file": "gen/looks/people/btn.mjs",
+   "action": "מקבץ לפי יום",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · שם קרוב"
+  },
+  {
+   "id": "generator:gen/looks/people/grab2.mjs#grab2",
+   "project": "המחולל",
+   "source": "generator",
+   "name": "הפעל מופיע צילום-הממשק האמיתי",
+   "file": "gen/looks/people/grab2.mjs",
+   "action": "מקבץ לפי יום",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · שם קרוב"
+  },
+  {
+   "id": "buildsmart:functions/src/analytics.ts#dayKey",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "בונה מפתח יום",
+   "file": "functions/src/analytics.ts",
+   "action": "מקבץ לפי יום",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  }
+ ]
+}

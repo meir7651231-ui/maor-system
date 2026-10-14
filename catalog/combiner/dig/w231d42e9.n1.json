@@ -1,0 +1,29 @@
+{
+ "goal": "w231d42e9",
+ "word": "גאות-ושפל",
+ "need": "n1",
+ "behavior": "עולה ויורד פעמיים ביום",
+ "verb": "NEW:oscillate",
+ "verbHe": "פועל חדש: oscillate",
+ "isNewVerb": true,
+ "material": "number",
+ "takes": [],
+ "gives": "number",
+ "detail": "גל שחוזר על עצמו כל כ-12 וחצי שעות",
+ "example": {
+  "say": "«גאות-ושפל»: עולה ויורד פעמיים ביום — גל שחוזר על עצמו כל כ-12 וחצי שעות"
+ },
+ "status": "mining",
+ "statusHe": "⛏️ נמצא בקוד — בכרייה",
+ "places": [
+  {
+   "lead": true,
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "עולה ויורד: pulse = 1 + 0.06·sin(t·0.05)",
+   "file": "src/components/supporters/SupportersGalaxy.tsx",
+   "lines": "95",
+   "why": "מקום ידוע — אומת ביד"
+  }
+ ]
+}

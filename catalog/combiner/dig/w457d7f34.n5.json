@@ -1,0 +1,61 @@
+{
+ "goal": "w457d7f34",
+ "word": "פעמוני-כנסייה",
+ "need": "n5",
+ "behavior": "קול לפי גודל",
+ "verb": "convert",
+ "verbHe": "ממיר ערך",
+ "isNewVerb": false,
+ "material": "sound",
+ "takes": [
+  "number|date|times"
+ ],
+ "gives": "sound",
+ "detail": null,
+ "example": {
+  "say": "«פעמוני-כנסייה»: קול לפי גודל"
+ },
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
+ "places": [
+  {
+   "lead": true,
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "רצף צלילים (tone)",
+   "file": "src/components/parnasa/sound.ts",
+   "lines": "42-113",
+   "why": "מקום ידוע — אומת ביד"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#עזר: הגדול כפול הקטן",
+   "project": "הטבעות",
+   "source": "rings",
+   "name": "חשב עזר: הגדול כפול הקטן",
+   "file": "lab-rings/lab13/shelf3.json",
+   "action": "ממיר ערך",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל · שם קרוב"
+  },
+  {
+   "id": "buildsmart:functions/src/creditCore.ts#contractorCredit",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "מחשב אשראי קבלן",
+   "file": "functions/src/creditCore.ts",
+   "action": "ממיר ערך",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "buildsmart:functions/src/creditCore.ts#dartStringHashCode",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "מחשב קוד חתימה מחרוזת",
+   "file": "functions/src/creditCore.ts",
+   "action": "ממיר ערך",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  }
+ ]
+}

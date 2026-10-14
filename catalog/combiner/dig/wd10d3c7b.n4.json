@@ -1,0 +1,50 @@
+{
+ "goal": "wd10d3c7b",
+ "word": "פטרייה",
+ "need": "n4",
+ "behavior": "מעגל פטריות שהולך ומתרחב",
+ "verb": "NEW:accumulate",
+ "verbHe": "פועל חדש: accumulate",
+ "isNewVerb": true,
+ "material": "number",
+ "takes": [],
+ "gives": "number",
+ "detail": "רדיוס שגדל בכל שנה",
+ "example": {
+  "say": "«פטרייה»: מעגל פטריות שהולך ומתרחב — רדיוס שגדל בכל שנה"
+ },
+ "status": "mining",
+ "statusHe": "⛏️ נמצא בקוד — בכרייה",
+ "places": [
+  {
+   "id": "orbit:src/lib/atoms/parts/round.ts#roundTo",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מעגל מספרים",
+   "file": "src/lib/atoms/parts/round.ts",
+   "action": "מעגל",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו חומר · שם קרוב"
+  },
+  {
+   "id": "yeshiva:arena/shop/money.py#Money.percent",
+   "project": "הישיבה",
+   "source": "yeshiva",
+   "name": "לחשב אחוז מסכום, מעוגל לאגורה",
+   "file": "arena/shop/money.py",
+   "action": "מחשב יחס",
+   "proof": "מהשם בלבד",
+   "why": "אותו חומר · שם קרוב"
+  },
+  {
+   "id": "generator:new/dart-maor/effective-price.dart#effectivePrice",
+   "project": "המחולל",
+   "source": "generator",
+   "name": "חשב מחיר סמלי אחרי הנחת-הקריטריון הגבוהה (עיגול",
+   "file": "new/dart-maor/effective-price.dart",
+   "action": "מנרמל",
+   "proof": "תאום של חלק שהורץ",
+   "why": "אותו חומר · שם קרוב"
+  }
+ ]
+}

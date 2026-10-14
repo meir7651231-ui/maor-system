@@ -1,0 +1,53 @@
+{
+ "goal": "wa67a48d8",
+ "word": "צב",
+ "need": "n2",
+ "behavior": "חוזר לאותו חוף",
+ "verb": "lookup",
+ "verbHe": "מחפש לפי מפתח",
+ "isNewVerb": false,
+ "material": "geo",
+ "takes": [
+  "list",
+  "text"
+ ],
+ "gives": "geo",
+ "detail": null,
+ "example": {
+  "say": "«צב»: חוזר לאותו חוף"
+ },
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
+ "places": [
+  {
+   "id": "orbit:src/components/parnasa/phoneSim.ts#hebrewVoice",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מחזיר קול עברי מתוך קולות המכשיר",
+   "file": "src/components/parnasa/phoneSim.ts",
+   "action": "מחפש לפי מפתח",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל · שם קרוב"
+  },
+  {
+   "id": "orbit:telephony/lib/channels.mjs#assignMessage",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מחזיר בוחר נציג להודעה",
+   "file": "telephony/lib/channels.mjs",
+   "action": "מחפש לפי מפתח",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל · שם קרוב"
+  },
+  {
+   "id": "generator:new/dart-maor/sup-dup-field-value.dart#supDupFieldValue",
+   "project": "המחולל",
+   "source": "generator",
+   "name": "החזר ערך-השדה הנבחר במיזוג כפולי-תורמים",
+   "file": "new/dart-maor/sup-dup-field-value.dart",
+   "action": "מחפש לפי מפתח",
+   "proof": "תאום של חלק שהורץ",
+   "why": "אותו פועל · שם קרוב"
+  }
+ ]
+}

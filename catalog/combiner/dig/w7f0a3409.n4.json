@@ -1,0 +1,50 @@
+{
+ "goal": "w7f0a3409",
+ "word": "סביבון",
+ "need": "n4",
+ "behavior": "נופל על אות אקראית",
+ "verb": "NEW:random",
+ "verbHe": "פועל חדש: random",
+ "isNewVerb": true,
+ "material": "choice",
+ "takes": [],
+ "gives": "choice",
+ "detail": "מגריל — בחירה או ערך לפי סיכוי",
+ "example": {
+  "say": "«סביבון»: נופל על אות אקראית — מגריל — בחירה או ערך לפי סיכוי"
+ },
+ "status": "mining",
+ "statusHe": "⛏️ נמצא בקוד — בכרייה",
+ "places": [
+  {
+   "id": "14kk:knowledge_protocol.js#AssetAnalyzer.analyzeMarketTrends",
+   "project": "14kk",
+   "source": "14kk",
+   "name": "לנתח מגמות שוק",
+   "file": "knowledge_protocol.js",
+   "action": "נותן ערך קבוע",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו חומר"
+  },
+  {
+   "id": "14kk:knowledge_protocol.js#AssetAnalyzer.analyzeTechnologyTrends",
+   "project": "14kk",
+   "source": "14kk",
+   "name": "לנתח מגמות טכנולוגיה",
+   "file": "knowledge_protocol.js",
+   "action": "נותן ערך קבוע",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו חומר"
+  },
+  {
+   "id": "14kk:strategic_protocol.js#StrategicAnalyzer.analyzeCompetition",
+   "project": "14kk",
+   "source": "14kk",
+   "name": "לנתח תחרות",
+   "file": "strategic_protocol.js",
+   "action": "נותן ערך קבוע",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו חומר"
+  }
+ ]
+}

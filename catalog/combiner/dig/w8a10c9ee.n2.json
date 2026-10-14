@@ -1,0 +1,31 @@
+{
+ "goal": "w8a10c9ee",
+ "word": "תזמורת",
+ "need": "n2",
+ "behavior": "המנצח מאחד",
+ "verb": "relay",
+ "verbHe": "מעביר דרך מרכז",
+ "isNewVerb": false,
+ "material": "sound",
+ "takes": [
+  "record"
+ ],
+ "gives": "sound",
+ "detail": null,
+ "example": {
+  "say": "«תזמורת»: המנצח מאחד"
+ },
+ "status": "mining",
+ "statusHe": "⛏️ נמצא בקוד — בכרייה",
+ "places": [
+  {
+   "lead": true,
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "רצף צלילים (tone)",
+   "file": "src/components/parnasa/sound.ts",
+   "lines": "42-113",
+   "why": "מקום ידוע — אומת ביד"
+  }
+ ]
+}

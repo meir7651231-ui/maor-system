@@ -1,0 +1,53 @@
+{
+ "goal": "w80948215",
+ "word": "פעמון-דלת",
+ "need": "n3",
+ "behavior": "הודעה לטלפון",
+ "verb": "route",
+ "verbHe": "מנתב לפי ערוץ",
+ "isNewVerb": false,
+ "material": "text",
+ "takes": [
+  "choice",
+  "record"
+ ],
+ "gives": "text",
+ "detail": null,
+ "example": {
+  "say": "«פעמון-דלת»: הודעה לטלפון"
+ },
+ "status": "mining",
+ "statusHe": "⛏️ נמצא בקוד — בכרייה",
+ "places": [
+  {
+   "id": "buildsmart:app_flutter/lib/state/intel/screen_view.dart#screenKeyForRoute",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "בונה מפתח מסך עבור מסלול",
+   "file": "app_flutter/lib/state/intel/screen_view.dart",
+   "action": "מנתב לפי ערוץ",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · אותו חומר"
+  },
+  {
+   "id": "buildsmart:app_flutter/lib/state/push_state.dart#pushChannelIdFor",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "דוחף מזהה",
+   "file": "app_flutter/lib/state/push_state.dart",
+   "action": "מנתב לפי ערוץ",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · אותו חומר"
+  },
+  {
+   "id": "orbit:src/lib/mapsLink.ts#mapsRouteUrl",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "כותב מסלול רב עצירות",
+   "file": "src/lib/mapsLink.ts",
+   "action": "מנתב לפי ערוץ",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · אותו חומר"
+  }
+ ]
+}

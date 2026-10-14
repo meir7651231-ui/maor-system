@@ -1,0 +1,50 @@
+{
+ "goal": "w52e332ab",
+ "word": "משחק-זיכרון",
+ "need": "n2",
+ "behavior": "הופכים שניים",
+ "verb": "compare",
+ "verbHe": "משווה",
+ "isNewVerb": false,
+ "material": "image",
+ "takes": [],
+ "gives": "image",
+ "detail": null,
+ "example": {
+  "say": "«משחק-זיכרון»: הופכים שניים"
+ },
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
+ "places": [
+  {
+   "id": "orbit:src/components/hosting/transitions.ts#overlaps",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "בודק אם חפיפת שהיות",
+   "file": "src/components/hosting/transitions.ts",
+   "action": "משווה",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "orbit:src/components/supporters/cockpit.ts#daysSince",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מחשב ימים בין תאריך ליום",
+   "file": "src/components/supporters/cockpit.ts",
+   "action": "משווה",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "orbit:src/components/supporters/intel.ts#dayDiff",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מחשב את הפרש ימים בין תאריך ליום המוזרק",
+   "file": "src/components/supporters/intel.ts",
+   "action": "משווה",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  }
+ ]
+}

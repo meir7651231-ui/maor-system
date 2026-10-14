@@ -1,0 +1,50 @@
+{
+ "goal": "wd6696639",
+ "word": "שלכת",
+ "need": "n4",
+ "behavior": "נופלים ברוח",
+ "verb": "NEW:random",
+ "verbHe": "פועל חדש: random",
+ "isNewVerb": true,
+ "material": "bool",
+ "takes": [],
+ "gives": "bool",
+ "detail": "כן/לא לפי סיכוי",
+ "example": {
+  "say": "«שלכת»: נופלים ברוח — כן/לא לפי סיכוי"
+ },
+ "status": "mining",
+ "statusHe": "⛏️ נמצא בקוד — בכרייה",
+ "places": [
+  {
+   "id": "orbit:src/components/supporters/lib.ts#supLastInPeriod",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "בודק אם התרומה האחרונה של התורם נפלה בתקופה",
+   "file": "src/components/supporters/lib.ts",
+   "action": "בודק",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו חומר · שם קרוב"
+  },
+  {
+   "id": "generator:new/dart-maor/sup-last-in-period.dart#supLastInPeriod",
+   "project": "המחולל",
+   "source": "generator",
+   "name": "בדוק האם התרומה-האחרונה נפלה",
+   "file": "new/dart-maor/sup-last-in-period.dart",
+   "action": "בודק",
+   "proof": "תאום של חלק שהורץ",
+   "why": "אותו חומר · שם קרוב"
+  },
+  {
+   "id": "orbit:src/lib/atoms/engines/bookings.ts#BOOKINGS_CARD.2",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "בודק אם שתי הזמנות נופלות על אותו לילה",
+   "file": "src/lib/atoms/engines/bookings.ts",
+   "action": "בודק",
+   "proof": "מהשם בלבד",
+   "why": "אותו חומר · שם קרוב"
+  }
+ ]
+}

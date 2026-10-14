@@ -1,0 +1,52 @@
+{
+ "goal": "wb0655c9f",
+ "word": "תופסת",
+ "need": "n4",
+ "behavior": "בית = מקום מוגן",
+ "verb": "filter",
+ "verbHe": "מסנן",
+ "isNewVerb": false,
+ "material": "geo",
+ "takes": [
+  "list"
+ ],
+ "gives": "geo",
+ "detail": null,
+ "example": {
+  "say": "«תופסת»: בית = מקום מוגן"
+ },
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
+ "places": [
+  {
+   "id": "orbit:src/components/courses/lib.ts#coursesOfTeacher",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מסנן תפקיד מורה",
+   "file": "src/components/courses/lib.ts",
+   "action": "מסנן",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "orbit:src/components/courses/ops.ts#dropoutRisk",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מוצא תלמידים בסיכון נשירה",
+   "file": "src/components/courses/ops.ts",
+   "action": "מסנן",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "orbit:src/components/courses/reenroll-lib.ts#renewTargets",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "אומר מי מיועד לרישום המוני",
+   "file": "src/components/courses/reenroll-lib.ts",
+   "action": "מסנן",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  }
+ ]
+}

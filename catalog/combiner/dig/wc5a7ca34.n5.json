@@ -1,0 +1,62 @@
+{
+ "goal": "wc5a7ca34",
+ "word": "קרוסלה",
+ "need": "n5",
+ "behavior": "תור לסיבוב הבא",
+ "verb": "next",
+ "verbHe": "מוצא את הבא בתור",
+ "isNewVerb": false,
+ "material": "waiting",
+ "takes": [
+  "times|list",
+  "times"
+ ],
+ "gives": "waiting",
+ "detail": null,
+ "example": {
+  "say": "«קרוסלה»: תור לסיבוב הבא"
+ },
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
+ "places": [
+  {
+   "lead": true,
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "רשימת ההמתנה של החוגים (waitlistFor, status='wait')",
+   "file": "src/components/courses/lib.ts",
+   "lines": "378",
+   "why": "מקום ידוע — אומת ביד"
+  },
+  {
+   "id": "orbit:src/lib/atoms/parts/next.ts#nextAfter",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מוצא את הבא בתור",
+   "file": "src/lib/atoms/parts/next.ts",
+   "action": "מוצא את הבא בתור",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל · שם קרוב"
+  },
+  {
+   "id": "generator:box-drafts/io-wiring/fetch-outbox-issues@src_lib_cloud_ts.mjs#fetchOutboxIssues",
+   "project": "המחולל",
+   "source": "generator",
+   "name": "הבא תקלות תיבת-יוצא",
+   "file": "box-drafts/io-wiring/fetch-outbox-issues@src_lib_cloud_ts.mjs",
+   "action": "מוצא את הבא בתור",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · שם קרוב"
+  },
+  {
+   "id": "generator:new/dart-maor/next-session-date.dart#nextSessionDate",
+   "project": "המחולל",
+   "source": "generator",
+   "name": "חשב מועד-המפגש הקרוב הבא של חוג",
+   "file": "new/dart-maor/next-session-date.dart",
+   "action": "מוצא את הבא בתור",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · שם קרוב"
+  }
+ ]
+}

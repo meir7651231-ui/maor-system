@@ -1,0 +1,53 @@
+{
+ "goal": "w9c90f078",
+ "word": "פנס-רחוב",
+ "need": "n2",
+ "behavior": "אחד אחרי השני",
+ "verb": "offset",
+ "verbHe": "מזיז",
+ "isNewVerb": false,
+ "material": "sequence",
+ "takes": [
+  "times|date|number",
+  "number"
+ ],
+ "gives": "sequence",
+ "detail": "עיכוב קטן בין פנס לפנס",
+ "example": {
+  "say": "«פנס-רחוב»: אחד אחרי השני — עיכוב קטן בין פנס לפנס"
+ },
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
+ "places": [
+  {
+   "id": "generator:new/dart-maor/op-add-to.dart#addTo",
+   "project": "המחולל",
+   "source": "generator",
+   "name": "הוסף פריט לסוף רשימה",
+   "file": "new/dart-maor/op-add-to.dart",
+   "action": "מזיז",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · אותו חומר"
+  },
+  {
+   "id": "orbit:src/lib/atoms/parts/offset.ts#offsetAll",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מזיז זמן לפני או אחרי",
+   "file": "src/lib/atoms/parts/offset.ts",
+   "action": "מזיז",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל · שם קרוב"
+  },
+  {
+   "id": "orbit:src/lib/atoms/parts/offset.ts#resolveRelative",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מחשב זמן לפי זמן אחר",
+   "file": "src/lib/atoms/parts/offset.ts",
+   "action": "מזיז",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל · שם קרוב"
+  }
+ ]
+}

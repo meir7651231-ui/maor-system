@@ -1,0 +1,52 @@
+{
+ "goal": "w795f1b4f",
+ "word": "דרקון",
+ "need": "n6",
+ "behavior": "מדרג את הפולשים לפי סכנה",
+ "verb": "tier",
+ "verbHe": "מדרג לשלבים",
+ "isNewVerb": false,
+ "material": "list",
+ "takes": [
+  "number|amount"
+ ],
+ "gives": "list",
+ "detail": null,
+ "example": {
+  "say": "«דרקון»: מדרג את הפולשים לפי סכנה"
+ },
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
+ "places": [
+  {
+   "id": "orbit:src/components/supporters/tierMigration.ts#tierAsOf",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "קובע דרגת התורם נכון",
+   "file": "src/components/supporters/tierMigration.ts",
+   "action": "מדרג לשלבים",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל · שם קרוב"
+  },
+  {
+   "id": "generator:new/dart-maor/tier-of.dart#tierOf",
+   "project": "המחולל",
+   "source": "generator",
+   "name": "החזר דרגת מדד-האמינות לפי ניקוד",
+   "file": "new/dart-maor/tier-of.dart",
+   "action": "מדרג לשלבים",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · שם קרוב"
+  },
+  {
+   "id": "buildsmart:functions/src/analytics.ts#pickShard",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "בוחר ניתוח",
+   "file": "functions/src/analytics.ts",
+   "action": "מדרג לשלבים",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  }
+ ]
+}

@@ -1,0 +1,52 @@
+{
+ "goal": "w33a001ca",
+ "word": "רובוט-שואב",
+ "need": "n2",
+ "behavior": "מסמן איפה כבר היה",
+ "verb": "dedupe",
+ "verbHe": "מסיר כפולים",
+ "isNewVerb": false,
+ "material": "geo",
+ "takes": [
+  "list"
+ ],
+ "gives": "geo",
+ "detail": null,
+ "example": {
+  "say": "«רובוט-שואב»: מסמן איפה כבר היה"
+ },
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
+ "places": [
+  {
+   "id": "yeshiva:harness/guard.mjs#uniq",
+   "project": "הישיבה",
+   "source": "yeshiva",
+   "name": "להסיר כפילויות מרשימה",
+   "file": "harness/guard.mjs",
+   "action": "מסיר כפולים",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "buildsmart:app_flutter/lib/features/word_finder/word_finder_engine.dart#distinctProducts",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "מסיר כפילויות ממוצרים",
+   "file": "app_flutter/lib/features/word_finder/word_finder_engine.dart",
+   "action": "מסיר כפולים",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "buildsmart:app_flutter/lib/screens/_size_norm.dart#dedupLengthByMm",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "מסיר כפילויות מאורך",
+   "file": "app_flutter/lib/screens/_size_norm.dart",
+   "action": "מסיר כפולים",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל"
+  }
+ ]
+}

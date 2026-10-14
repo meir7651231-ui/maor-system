@@ -1,0 +1,52 @@
+{
+ "goal": "wa67a48d8",
+ "word": "צב",
+ "need": "n4",
+ "behavior": "טמפרטורת החול קובעת",
+ "verb": "convert",
+ "verbHe": "ממיר ערך",
+ "isNewVerb": false,
+ "material": "choice",
+ "takes": [
+  "number|date|times"
+ ],
+ "gives": "choice",
+ "detail": "חם/קר ⇒ זכר/נקבה",
+ "example": {
+  "say": "«צב»: טמפרטורת החול קובעת — חם/קר ⇒ זכר/נקבה"
+ },
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
+ "places": [
+  {
+   "id": "buildsmart:functions/src/creditCore.ts#contractorCredit",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "מחשב אשראי קבלן",
+   "file": "functions/src/creditCore.ts",
+   "action": "ממיר ערך",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "buildsmart:functions/src/creditCore.ts#dartStringHashCode",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "מחשב קוד חתימה מחרוזת",
+   "file": "functions/src/creditCore.ts",
+   "action": "ממיר ערך",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "orbit:src/components/courses/lib.ts#lessonsInTerm",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מחשב מספר השיעורים בתקופה לפי התדירות שנבחרה",
+   "file": "src/components/courses/lib.ts",
+   "action": "ממיר ערך",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  }
+ ]
+}

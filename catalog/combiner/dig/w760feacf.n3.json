@@ -1,0 +1,50 @@
+{
+ "goal": "w760feacf",
+ "word": "תורנות",
+ "need": "n3",
+ "behavior": "מי שהחליף חייב",
+ "verb": "NEW:accumulate",
+ "verbHe": "פועל חדש: accumulate",
+ "isNewVerb": true,
+ "material": "list",
+ "takes": [],
+ "gives": "list",
+ "detail": "צובר — ערך שגדל מעט בכל צעד-זמן עד שמשהו מרוקן אותו",
+ "example": {
+  "say": "«תורנות»: מי שהחליף חייב — צובר — ערך שגדל מעט בכל צעד-זמן עד שמשהו מרוקן אותו"
+ },
+ "status": "mining",
+ "statusHe": "⛏️ נמצא בקוד — בכרייה",
+ "places": [
+  {
+   "id": "orbit:src/components/hosting/transitions.ts#withSystemCharges",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מחליף רק את החיובים המחושבים בהזמנה",
+   "file": "src/components/hosting/transitions.ts",
+   "action": "מנרמל",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו חומר · שם קרוב"
+  },
+  {
+   "id": "orbit:src/lib/atoms/engines/whatNeed.ts#WHAT_NEED_CARD.11",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מחליף פרסומות בתורות",
+   "file": "src/lib/atoms/engines/whatNeed.ts",
+   "action": "מקפיא ומחליף תוכן",
+   "proof": "מהשם בלבד",
+   "why": "אותו חומר · שם קרוב"
+  },
+  {
+   "id": "14kk:knowledge_protocol.js#AssetAnalyzer.identifyFutureOpportunities",
+   "project": "14kk",
+   "source": "14kk",
+   "name": "לזהות הזדמנויות עתיד",
+   "file": "knowledge_protocol.js",
+   "action": "נותן ערך קבוע",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו חומר"
+  }
+ ]
+}

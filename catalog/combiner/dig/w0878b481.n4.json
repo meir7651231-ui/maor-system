@@ -1,0 +1,52 @@
+{
+ "goal": "w0878b481",
+ "word": "פלייליסט",
+ "need": "n4",
+ "behavior": "לפי מצב רוח",
+ "verb": "filter",
+ "verbHe": "מסנן",
+ "isNewVerb": false,
+ "material": "choice",
+ "takes": [
+  "list"
+ ],
+ "gives": "choice",
+ "detail": null,
+ "example": {
+  "say": "«פלייליסט»: לפי מצב רוח"
+ },
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
+ "places": [
+  {
+   "id": "generator:new/dart-maor/filter-items.dart#filterItems",
+   "project": "המחולל",
+   "source": "generator",
+   "name": "סנן פריטי-קטלוג לפי שם ומצב-מלאי",
+   "file": "new/dart-maor/filter-items.dart",
+   "action": "מסנן",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · שם קרוב"
+  },
+  {
+   "id": "orbit:src/components/courses/lib.ts#coursesOfTeacher",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מסנן תפקיד מורה",
+   "file": "src/components/courses/lib.ts",
+   "action": "מסנן",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "orbit:src/components/courses/ops.ts#dropoutRisk",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מוצא תלמידים בסיכון נשירה",
+   "file": "src/components/courses/ops.ts",
+   "action": "מסנן",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  }
+ ]
+}

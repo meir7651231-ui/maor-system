@@ -1,0 +1,50 @@
+{
+ "goal": "w1e808c3b",
+ "word": "גמד-וענק",
+ "need": "n1",
+ "behavior": "הגרלה בלי עצמך",
+ "verb": "NEW:random",
+ "verbHe": "פועל חדש: random",
+ "isNewVerb": true,
+ "material": "list",
+ "takes": [],
+ "gives": "list",
+ "detail": "מגריל — בחירה או ערך לפי סיכוי",
+ "example": {
+  "say": "«גמד-וענק»: הגרלה בלי עצמך — מגריל — בחירה או ערך לפי סיכוי"
+ },
+ "status": "mining",
+ "statusHe": "⛏️ נמצא בקוד — בכרייה",
+ "places": [
+  {
+   "id": "generator:new/dart/max_oscillation.dart#maxOscillation",
+   "project": "המחולל",
+   "source": "generator",
+   "name": "חשב האטום עצמאי לחלוטין",
+   "file": "new/dart/max_oscillation.dart",
+   "action": "מצרף שניים",
+   "proof": "מהשם בלבד",
+   "why": "אותו חומר · שם קרוב"
+  },
+  {
+   "id": "14kk:knowledge_protocol.js#AssetAnalyzer.identifyFutureOpportunities",
+   "project": "14kk",
+   "source": "14kk",
+   "name": "לזהות הזדמנויות עתיד",
+   "file": "knowledge_protocol.js",
+   "action": "נותן ערך קבוע",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו חומר"
+  },
+  {
+   "id": "14kk:knowledge_protocol.js#AssetAnalyzer.identifyFutureRisks",
+   "project": "14kk",
+   "source": "14kk",
+   "name": "לזהות סיכונים עתיד",
+   "file": "knowledge_protocol.js",
+   "action": "נותן ערך קבוע",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו חומר"
+  }
+ ]
+}

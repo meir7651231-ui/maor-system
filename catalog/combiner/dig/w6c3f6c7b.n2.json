@@ -1,0 +1,50 @@
+{
+ "goal": "w6c3f6c7b",
+ "word": "נדנדה",
+ "need": "n2",
+ "behavior": "דוחפים בזמן הנכון",
+ "verb": "validate",
+ "verbHe": "בודק",
+ "isNewVerb": false,
+ "material": "times",
+ "takes": [],
+ "gives": "times",
+ "detail": null,
+ "example": {
+  "say": "«נדנדה»: דוחפים בזמן הנכון"
+ },
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
+ "places": [
+  {
+   "id": "orbit:src/components/parnasa/lib.ts#isUrgent",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "בודק אם בקשה דחופה",
+   "file": "src/components/parnasa/lib.ts",
+   "action": "בודק",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל · שם קרוב"
+  },
+  {
+   "id": "generator:new/dart-maor/install-available.dart#installAvailable",
+   "project": "המחולל",
+   "source": "generator",
+   "name": "בדוק האם דיאלוג-התקנת-PWA זמין",
+   "file": "new/dart-maor/install-available.dart",
+   "action": "בודק",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · שם קרוב"
+  },
+  {
+   "id": "generator:new/dart/wf_action_visible.dart#wfActionVisible",
+   "project": "המחולל",
+   "source": "generator",
+   "name": "בדוק האם כפתור-הקידום גלוי בשלב הנוכחי",
+   "file": "new/dart/wf_action_visible.dart",
+   "action": "בודק",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · שם קרוב"
+  }
+ ]
+}

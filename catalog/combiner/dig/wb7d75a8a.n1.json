@@ -1,0 +1,50 @@
+{
+ "goal": "wb7d75a8a",
+ "word": "זיקית",
+ "need": "n1",
+ "behavior": "מחליפה צבע לפי הרקע",
+ "verb": "NEW:sample",
+ "verbHe": "פועל חדש: sample",
+ "isNewVerb": true,
+ "material": "image",
+ "takes": [],
+ "gives": "image",
+ "detail": "לקרוא את הצבע מהסביבה",
+ "example": {
+  "say": "«זיקית»: מחליפה צבע לפי הרקע — לקרוא את הצבע מהסביבה"
+ },
+ "status": "mining",
+ "statusHe": "⛏️ נמצא בקוד — בכרייה",
+ "places": [
+  {
+   "id": "orbit:src/components/hosting/transitions.ts#withSystemCharges",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מחליף רק את החיובים המחושבים בהזמנה",
+   "file": "src/components/hosting/transitions.ts",
+   "action": "מנרמל",
+   "proof": "הורץ — סוג אחר",
+   "why": "שם קרוב"
+  },
+  {
+   "id": "orbit:src/components/supporters/lib.ts#mergeSupporterRow",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מחיל שורת ייבוא על תומכת קיימת",
+   "file": "src/components/supporters/lib.ts",
+   "action": "מעדכן למצב",
+   "proof": "הורץ — סוג אחר",
+   "why": "שם קרוב"
+  },
+  {
+   "id": "orbit:src/lib/atoms/parts/divide.ts#divideAmount",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מחלק סכום לחלקים שווים",
+   "file": "src/lib/atoms/parts/divide.ts",
+   "action": "מחלק",
+   "proof": "הורץ — סוג אחר",
+   "why": "שם קרוב"
+  }
+ ]
+}

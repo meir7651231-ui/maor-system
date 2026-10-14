@@ -1,0 +1,52 @@
+{
+ "goal": "we1bdda43",
+ "word": "שינה",
+ "need": "n5",
+ "behavior": "כמה ישנתי כל לילה",
+ "verb": "bucket",
+ "verbHe": "מקבץ לפי יום",
+ "isNewVerb": false,
+ "material": "number",
+ "takes": [
+  "times"
+ ],
+ "gives": "number",
+ "detail": null,
+ "example": {
+  "say": "«שינה»: כמה ישנתי כל לילה"
+ },
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
+ "places": [
+  {
+   "id": "buildsmart:functions/src/analytics.ts#dayKey",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "בונה מפתח יום",
+   "file": "functions/src/analytics.ts",
+   "action": "מקבץ לפי יום",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "orbit:src/components/calendar/calLib.ts#isoOf",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מחשב תאריך מקומי",
+   "file": "src/components/calendar/calLib.ts",
+   "action": "מקבץ לפי יום",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "orbit:src/components/diary/lib.ts#localIso",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מחשב תאריך מקומי",
+   "file": "src/components/diary/lib.ts",
+   "action": "מקבץ לפי יום",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  }
+ ]
+}

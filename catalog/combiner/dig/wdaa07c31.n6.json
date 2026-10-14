@@ -1,0 +1,52 @@
+{
+ "goal": "wdaa07c31",
+ "word": "מטוס",
+ "need": "n6",
+ "behavior": "מושבים לפי מחלקות",
+ "verb": "tier",
+ "verbHe": "מדרג לשלבים",
+ "isNewVerb": false,
+ "material": "list",
+ "takes": [
+  "number|amount"
+ ],
+ "gives": "list",
+ "detail": null,
+ "example": {
+  "say": "«מטוס»: מושבים לפי מחלקות"
+ },
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
+ "places": [
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#חילוק",
+   "project": "הטבעות",
+   "source": "rings",
+   "name": "חלק מספר במספר",
+   "file": "lab-rings/lab13/shelf3.json",
+   "action": "מדרג לשלבים",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל · שם קרוב"
+  },
+  {
+   "id": "buildsmart:functions/src/analytics.ts#pickShard",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "בוחר ניתוח",
+   "file": "functions/src/analytics.ts",
+   "action": "מדרג לשלבים",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "orbit:src/components/calendar/calLib.ts#nextOccurIso",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מחשב את המופע הבא של אירוע חוזר בעברי והלאה",
+   "file": "src/components/calendar/calLib.ts",
+   "action": "מדרג לשלבים",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  }
+ ]
+}

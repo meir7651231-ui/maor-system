@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * 🧲 המצרף · בונה את הנתונים של המעבדה + בקשות-הבנייה (COMBINER, 14.10.2026).
- *   node catalog/combiner/build.mjs          # כותב lab-data.json + missing/*.json
+ * 🧲 המצרף · בונה את הנתונים של המעבדה + בקשות-החפירה (COMBINER, 14.10.2026).
+ *   node catalog/combiner/build.mjs          # כותב lab-data.json + dig/*.json
  *   node catalog/combiner/build.mjs --check  # יציאה 1 אם לא מעודכן
  * lab-data.json = האינדקס המתויג והמאוחד (בלי קוד), ההוכחות, המטרות והמתכונים — מה שהדף צריך כדי להרכיב בדפדפן.
  */
@@ -9,7 +9,7 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync, unlink
 import { join } from 'node:path';
 import { assemble, KINDS, PROJECTS } from './core.mjs';
 import { VERBS, RECIPE_VERB } from './verbs.mjs';
-import { HERE, loadGoals, loadIndex, loadProofs, loadRecipes, loadBehavior } from './load.mjs';
+import { HERE, loadGoals, loadIndex, loadProofs, loadRecipes, loadBehavior, loadLeads } from './load.mjs';
 
 export function buildAll() {
   const recipes = loadRecipes();
@@ -32,33 +32,34 @@ export function buildAll() {
     goals,
     recipes,
     flows: proofs.flows,
+    leads: loadLeads(),
     parts: slim,
   };
-  const missing = {};
-  for (const g of goals) for (const m of assemble(g, ix).missing) missing[m.goal + '.' + m.need + '.json'] = JSON.stringify(m, null, 1) + '\n';
-  return { lab: JSON.stringify(lab) + '\n', missing };
+  const dig = {};
+  for (const g of goals) for (const m of assemble(g, ix).dig) dig[m.goal + '.' + m.need + '.json'] = JSON.stringify(m, null, 1) + '\n';
+  return { lab: JSON.stringify(lab) + '\n', dig };
 }
 
-const MISSING_DIR = join(HERE, 'missing');
+const DIG_DIR = join(HERE, 'dig');
 const LAB = join(HERE, 'lab-data.json');
 
 if (process.argv[1] && process.argv[1].endsWith('build.mjs')) {
-  const { lab, missing } = buildAll();
-  const cur = existsSync(MISSING_DIR) ? readdirSync(MISSING_DIR).filter((f) => f.endsWith('.json')).sort() : [];
+  const { lab, dig } = buildAll();
+  const cur = existsSync(DIG_DIR) ? readdirSync(DIG_DIR).filter((f) => f.endsWith('.json')).sort() : [];
   if (process.argv.includes('--check')) {
     const stale =
       (existsSync(LAB) ? readFileSync(LAB, 'utf8') : '') !== lab ||
-      JSON.stringify(cur) !== JSON.stringify(Object.keys(missing).sort()) ||
-      cur.some((f) => readFileSync(join(MISSING_DIR, f), 'utf8') !== missing[f]);
+      JSON.stringify(cur) !== JSON.stringify(Object.keys(dig).sort()) ||
+      cur.some((f) => readFileSync(join(DIG_DIR, f), 'utf8') !== dig[f]);
     if (stale) {
-      console.error('lab-data.json / missing/ לא מעודכנים — הריצו node catalog/combiner/build.mjs');
+      console.error('lab-data.json / dig/ לא מעודכנים — הריצו node catalog/combiner/build.mjs');
       process.exit(1);
     }
     process.exit(0);
   }
   writeFileSync(LAB, lab);
-  mkdirSync(MISSING_DIR, { recursive: true });
-  for (const f of cur) if (!missing[f]) unlinkSync(join(MISSING_DIR, f));
-  for (const [f, t] of Object.entries(missing)) writeFileSync(join(MISSING_DIR, f), t);
-  console.log('🧲 lab-data.json (' + Math.round(lab.length / 1024) + 'KB) · ' + Object.keys(missing).length + ' בקשות-בנייה');
+  mkdirSync(DIG_DIR, { recursive: true });
+  for (const f of cur) if (!dig[f]) unlinkSync(join(DIG_DIR, f));
+  for (const [f, t] of Object.entries(dig)) writeFileSync(join(DIG_DIR, f), t);
+  console.log('🧲 lab-data.json (' + Math.round(lab.length / 1024) + 'KB) · ' + Object.keys(dig).length + ' בקשות-חפירה');
 }

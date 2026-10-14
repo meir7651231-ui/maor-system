@@ -1,5 +1,6 @@
 /**
- * 📂 המצרף · טוען מהדיסק (node בלבד): כל המקורות, ההוכחות, תוויות קורא-ההתנהגות (אם התמזג), המתכונים והמטרות.
+ * 📂 המצרף · טוען מהדיסק (node בלבד): כל המקורות, ההוכחות, תוויות קורא-ההתנהגות, המתכונים, המטרות והמקומות-הידועים.
+ * גנרי: כל קובץ ב-`catalog/sources/` וב-`catalog/behavior/` נטען — קבצים חדשים של הכורים נכנסים בלי שינוי-קוד.
  */
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
@@ -13,8 +14,17 @@ export const CATALOG = resolve(HERE, '..');
 const readJson = (p) => JSON.parse(readFileSync(p, 'utf8'));
 const jsonFiles = (dir) => (existsSync(dir) ? readdirSync(dir).filter((f) => f.endsWith('.json')).sort().map((f) => join(dir, f)) : []);
 
+/** כל `catalog/sources/*.json` — גם `core`, `core-b`, `inner-*` ומה שיבוא; כל קובץ עם `parts[]`. */
 export function loadParts() {
-  return jsonFiles(join(CATALOG, 'sources')).flatMap((f) => readJson(f).parts || []);
+  return jsonFiles(join(CATALOG, 'sources')).flatMap((f) => {
+    const d = readJson(f);
+    return Array.isArray(d) ? d : d.parts || [];
+  });
+}
+/** מקומות ידועים בקוד (`leads.json`) — מוצגים תחת ⛏️ / 🔎. */
+export function loadLeads() {
+  const p = join(HERE, 'leads.json');
+  return existsSync(p) ? readJson(p).leads || [] : [];
 }
 export function loadProofs() {
   const p = join(HERE, 'proofs.json');
@@ -58,5 +68,5 @@ export function loadAlphabet() {
 }
 loadAlphabet();
 export function loadIndex(opts = {}) {
-  return buildIndex(loadParts(), { proofs: loadProofs(), behavior: loadBehavior(), recipes: opts.recipes ?? loadRecipes() });
+  return buildIndex(loadParts(), { proofs: loadProofs(), behavior: loadBehavior(), recipes: opts.recipes ?? loadRecipes(), leads: loadLeads() });
 }

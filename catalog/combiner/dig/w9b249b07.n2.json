@@ -1,0 +1,52 @@
+{
+ "goal": "w9b249b07",
+ "word": "חתונה",
+ "need": "n2",
+ "behavior": "אישורי הגעה",
+ "verb": "count",
+ "verbHe": "סופר",
+ "isNewVerb": false,
+ "material": "waiting",
+ "takes": [
+  "list"
+ ],
+ "gives": "waiting",
+ "detail": null,
+ "example": {
+  "say": "«חתונה»: אישורי הגעה"
+ },
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
+ "places": [
+  {
+   "id": "orbit:src/components/parnasa/lib.ts#searchCount",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "אומר כמה עסקים השאילתה מוצאת",
+   "file": "src/components/parnasa/lib.ts",
+   "action": "סופר",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "orbit:src/components/supporters/lib.ts#sup12m",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "בודק אם תורם תרם בשנה האחרונה",
+   "file": "src/components/supporters/lib.ts",
+   "action": "סופר",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "orbit:src/components/supporters/prayer.ts#prayerOpenCount",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "סופר שמות שעוד לא הוזכרו",
+   "file": "src/components/supporters/prayer.ts",
+   "action": "סופר",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  }
+ ]
+}

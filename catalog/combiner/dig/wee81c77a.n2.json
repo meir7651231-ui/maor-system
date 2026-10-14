@@ -1,0 +1,52 @@
+{
+ "goal": "wee81c77a",
+ "word": "קשת-בענן",
+ "need": "n2",
+ "behavior": "יש טיפות",
+ "verb": "require-source",
+ "verbHe": "דורש מקור",
+ "isNewVerb": false,
+ "material": "bool",
+ "takes": [
+  "record"
+ ],
+ "gives": "bool",
+ "detail": null,
+ "example": {
+  "say": "«קשת-בענן»: יש טיפות"
+ },
+ "status": "mining",
+ "statusHe": "⛏️ נמצא בקוד — בכרייה",
+ "places": [
+  {
+   "id": "buildsmart:app_flutter/lib/data/related_info.dart#quoteTextFor",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "מצטט טקסט",
+   "file": "app_flutter/lib/data/related_info.dart",
+   "action": "דורש מקור",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "buildsmart:app_flutter/lib/features/card_keyboard/card_signals.dart#sourcesFor",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "מחזיר מקורות",
+   "file": "app_flutter/lib/features/card_keyboard/card_signals.dart",
+   "action": "דורש מקור",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "buildsmart:app_flutter/lib/logic/fuzzy_match.dart#damerauLevenshtein",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "מחשב התאמה מקורב",
+   "file": "app_flutter/lib/logic/fuzzy_match.dart",
+   "action": "דורש מקור",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל"
+  }
+ ]
+}

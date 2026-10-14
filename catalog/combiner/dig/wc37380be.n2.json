@@ -1,0 +1,61 @@
+{
+ "goal": "wc37380be",
+ "word": "מדיח",
+ "need": "n2",
+ "behavior": "שלבים קבועים",
+ "verb": "escalate",
+ "verbHe": "מסלים בזמן",
+ "isNewVerb": false,
+ "material": "choice",
+ "takes": [
+  "times"
+ ],
+ "gives": "choice",
+ "detail": null,
+ "example": {
+  "say": "«מדיח»: שלבים קבועים"
+ },
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
+ "places": [
+  {
+   "lead": true,
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "שלבי ההסלמה (escalationState) — נותן רשימת שלבים מסודרת; הצורך רוצה את השלב הנוכחי (פער-סוג — הפעולה קיימת)",
+   "file": "src/lib/atoms/parts/escalate.ts",
+   "lines": "84",
+   "why": "מקום ידוע — אומת ביד"
+  },
+  {
+   "id": "orbit:src/lib/atoms/parts/escalate.ts#escalationPlan",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מוצא כל השלבים עם רגע ההתחלה שלהם",
+   "file": "src/lib/atoms/parts/escalate.ts",
+   "action": "מסלים בזמן",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל · שם קרוב"
+  },
+  {
+   "id": "buildsmart:app_flutter/lib/state/stage_progress.dart#StageProgressNotifier.keyFor",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "בונה מפתח להתקדמות שלב",
+   "file": "app_flutter/lib/state/stage_progress.dart",
+   "action": "מסלים בזמן",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · שם קרוב"
+  },
+  {
+   "id": "generator:buildsmart/functions/src/orderFlow.ts#isOrderStage",
+   "project": "המחולל",
+   "source": "generator",
+   "name": "בדוק אם שלב הזמנה",
+   "file": "buildsmart/functions/src/orderFlow.ts",
+   "action": "מסלים בזמן",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · שם קרוב"
+  }
+ ]
+}

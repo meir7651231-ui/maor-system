@@ -1,0 +1,29 @@
+{
+ "goal": "w7a584f82",
+ "word": "צוללת",
+ "need": "n3",
+ "behavior": "מקשיבה לקולות מסביב",
+ "verb": "NEW:echo",
+ "verbHe": "פועל חדש: echo",
+ "isNewVerb": true,
+ "material": "sound",
+ "takes": [],
+ "gives": "sound",
+ "detail": "הד — שולח אות ומודד אחרי כמה זמן חזר, וממנו מרחק",
+ "example": {
+  "say": "«צוללת»: מקשיבה לקולות מסביב — הד — שולח אות ומודד אחרי כמה זמן חזר, וממנו מרחק"
+ },
+ "status": "mining",
+ "statusHe": "⛏️ נמצא בקוד — בכרייה",
+ "places": [
+  {
+   "lead": true,
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "רצף צלילים (tone)",
+   "file": "src/components/parnasa/sound.ts",
+   "lines": "42-113",
+   "why": "מקום ידוע — אומת ביד"
+  }
+ ]
+}

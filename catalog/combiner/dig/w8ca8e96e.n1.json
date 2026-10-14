@@ -1,0 +1,52 @@
+{
+ "goal": "w8ca8e96e",
+ "word": "כוורת",
+ "need": "n1",
+ "behavior": "תפקיד לפי גיל",
+ "verb": "assign-role",
+ "verbHe": "מקצה תפקיד",
+ "isNewVerb": false,
+ "material": "record:bee",
+ "takes": [
+  "record"
+ ],
+ "gives": "record:bee",
+ "detail": "מנקה ⇒ מאכילה ⇒ שומרת ⇒ אוספת",
+ "example": {
+  "say": "«כוורת»: תפקיד לפי גיל — מנקה ⇒ מאכילה ⇒ שומרת ⇒ אוספת"
+ },
+ "status": "mining",
+ "statusHe": "⛏️ נמצא בקוד — בכרייה",
+ "places": [
+  {
+   "id": "buildsmart:app_flutter/lib/data/repositories/orders_local.dart#orderVisibleToRole",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "ממיר הזמנה לתפקיד",
+   "file": "app_flutter/lib/data/repositories/orders_local.dart",
+   "action": "מקצה תפקיד",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · אותו חומר · שם קרוב"
+  },
+  {
+   "id": "buildsmart:app_flutter/lib/data/repositories/users_repository.dart#withServerRoleApproval",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "מחזיר עותק עם אישור תפקיד שרת",
+   "file": "app_flutter/lib/data/repositories/users_repository.dart",
+   "action": "מקצה תפקיד",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · אותו חומר · שם קרוב"
+  },
+  {
+   "id": "buildsmart:app_flutter/lib/logic/install_engine.dart#flowRole",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "מחזיר תפקיד זרימה",
+   "file": "app_flutter/lib/logic/install_engine.dart",
+   "action": "מקצה תפקיד",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · אותו חומר · שם קרוב"
+  }
+ ]
+}

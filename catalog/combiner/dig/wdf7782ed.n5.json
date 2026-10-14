@@ -1,0 +1,52 @@
+{
+ "goal": "wdf7782ed",
+ "word": "וילון",
+ "need": "n5",
+ "behavior": "ידני גובר על אוטומטי",
+ "verb": "require-source",
+ "verbHe": "דורש מקור",
+ "isNewVerb": false,
+ "material": "choice",
+ "takes": [
+  "record"
+ ],
+ "gives": "choice",
+ "detail": null,
+ "example": {
+  "say": "«וילון»: ידני גובר על אוטומטי"
+ },
+ "status": "mining",
+ "statusHe": "⛏️ נמצא בקוד — בכרייה",
+ "places": [
+  {
+   "id": "qa-scanner:scanner.py#scan_page:issue[תמונה בלי מקור]",
+   "project": "סורק QA",
+   "source": "qa-scanner",
+   "name": "לזהות באתר: תמונה בלי מקור",
+   "file": "scanner.py",
+   "action": "דורש מקור",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · אותו חומר"
+  },
+  {
+   "id": "generator:machtzev/audit/lib.mjs#faces",
+   "project": "המחולל",
+   "source": "generator",
+   "name": "הפעל מקור-אמת יחיד לחציבת-אטומים + מסגור-ORIG",
+   "file": "machtzev/audit/lib.mjs",
+   "action": "דורש מקור",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · שם קרוב"
+  },
+  {
+   "id": "buildsmart:app_flutter/lib/data/related_info.dart#quoteTextFor",
+   "project": "בנייה חכמה",
+   "source": "buildsmart",
+   "name": "מצטט טקסט",
+   "file": "app_flutter/lib/data/related_info.dart",
+   "action": "דורש מקור",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל"
+  }
+ ]
+}

@@ -1,0 +1,61 @@
+{
+ "goal": "w296370a0",
+ "word": "שעון-מעורר",
+ "need": "n3",
+ "behavior": "הצלצול מתגבר",
+ "verb": "escalate",
+ "verbHe": "מסלים בזמן",
+ "isNewVerb": false,
+ "material": "sound",
+ "takes": [
+  "times"
+ ],
+ "gives": "sound",
+ "detail": null,
+ "example": {
+  "say": "«שעון-מעורר»: הצלצול מתגבר"
+ },
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
+ "places": [
+  {
+   "lead": true,
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "רצף צלילים (tone)",
+   "file": "src/components/parnasa/sound.ts",
+   "lines": "42-113",
+   "why": "מקום ידוע — אומת ביד"
+  },
+  {
+   "id": "orbit:src/components/hosting/reports.ts#rangeNights",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מחשב את הלילות של שהייה שבתוך התקופה",
+   "file": "src/components/hosting/reports.ts",
+   "action": "מסלים בזמן",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "orbit:src/lib/atoms/parts/escalate.ts#escalationPlan",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מוצא כל השלבים עם רגע ההתחלה שלהם",
+   "file": "src/lib/atoms/parts/escalate.ts",
+   "action": "מסלים בזמן",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "orbit:src/lib/atoms/parts/escalate.ts#escalationState",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מעביר הלאה כשאין תשובה",
+   "file": "src/lib/atoms/parts/escalate.ts",
+   "action": "מסלים בזמן",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  }
+ ]
+}

@@ -1,0 +1,50 @@
+{
+ "goal": "w4b351bd4",
+ "word": "גחלילית",
+ "need": "n2",
+ "behavior": "מתאימה את הקצב לשכנה",
+ "verb": "NEW:follow",
+ "verbHe": "פועל חדש: follow",
+ "isNewVerb": true,
+ "material": "times",
+ "takes": [],
+ "gives": "times",
+ "detail": "לזוז מעט לקצב של השכן",
+ "example": {
+  "say": "«גחלילית»: מתאימה את הקצב לשכנה — לזוז מעט לקצב של השכן"
+ },
+ "status": "mining",
+ "statusHe": "⛏️ נמצא בקוד — בכרייה",
+ "places": [
+  {
+   "id": "orbit:src/components/calendar/calLib.ts#isoOf",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מחשב תאריך מקומי",
+   "file": "src/components/calendar/calLib.ts",
+   "action": "מקבץ לפי יום",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו חומר"
+  },
+  {
+   "id": "orbit:src/components/diary/lib.ts#localIso",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מחשב תאריך מקומי",
+   "file": "src/components/diary/lib.ts",
+   "action": "מקבץ לפי יום",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו חומר"
+  },
+  {
+   "id": "orbit:src/components/diary/lib.ts#minToHM",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "הופך דקות מחצות לשעה",
+   "file": "src/components/diary/lib.ts",
+   "action": "ממיר ערך",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו חומר"
+  }
+ ]
+}

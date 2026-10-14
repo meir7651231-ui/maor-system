@@ -1,0 +1,52 @@
+{
+ "goal": "wc8575c58",
+ "word": "מסוק",
+ "need": "n3",
+ "behavior": "נוחת בנקודה",
+ "verb": "extreme",
+ "verbHe": "בוחר את הקיצוני",
+ "isNewVerb": false,
+ "material": "geo",
+ "takes": [
+  "list"
+ ],
+ "gives": "geo",
+ "detail": null,
+ "example": {
+  "say": "«מסוק»: נוחת בנקודה"
+ },
+ "status": "dig",
+ "statusHe": "🔎 עוד לא נחפר",
+ "places": [
+  {
+   "id": "generator:new/dart-maor/smart-score.dart#smartScore",
+   "project": "המחולל",
+   "source": "generator",
+   "name": "החזר ניקוד רב-מילתי עם AND והרחבת-תעתיקים מוצא",
+   "file": "new/dart-maor/smart-score.dart",
+   "action": "בוחר את הקיצוני",
+   "proof": "תאום של חלק שהורץ",
+   "why": "אותו פועל · שם קרוב"
+  },
+  {
+   "id": "orbit:src/components/hosting/kitchen.ts#mealLeadMinutes",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מחשב זמן ההכנה הארוך מבין המנות",
+   "file": "src/components/hosting/kitchen.ts",
+   "action": "בוחר את הקיצוני",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  },
+  {
+   "id": "orbit:src/components/hosting/lib.ts#monthPaidRevenue",
+   "project": "אורביט",
+   "source": "orbit",
+   "name": "מחשב תקבולי החודש",
+   "file": "src/components/hosting/lib.ts",
+   "action": "בוחר את הקיצוני",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל"
+  }
+ ]
+}
