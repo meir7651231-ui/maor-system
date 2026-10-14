@@ -24,7 +24,7 @@ type Need = { status: string; need: { verb: string; material: string; behavior: 
 describe('MACHINE-V4 — ליבות-החומר והמילון', () => {
   it('core-c מעודכן; כל ליבה עם origins (מקור best באורביט, ושורה אמיתית)', () => {
     execFileSync(process.execPath, [join(ROOT, 'catalog/scripts/core-c-census.mjs'), '--check'], { stdio: 'pipe' });
-    expect(src.parts.length).toBe(9);
+    expect(src.parts.length).toBe(10); // + nearestPoint (PRODUCT, 14.10.2026)
     for (const p of src.parts) {
       expect(p.pure, p.id).toBe(true);
       expect(p.origins[0].repo, p.id).toBe('maor-system');

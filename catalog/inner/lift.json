@@ -52,17 +52,17 @@
   ]
  },
  "behaviors": {
-  "total": 940,
-  "base-only": 222,
-  "both": 217,
-  "inner-only": 173,
-  "none": 328
+  "total": 956,
+  "base-only": 226,
+  "both": 229,
+  "inner-only": 168,
+  "none": 333
  },
  "pairs": {
-  "total": 176,
-  "base-only": 27,
-  "both": 34,
-  "inner-only": 29,
+  "total": 178,
+  "base-only": 28,
+  "both": 36,
+  "inner-only": 28,
   "none": 86
  },
  "examples": [
@@ -131,22 +131,6 @@
    }
   },
   {
-   "verb": "extreme",
-   "material": "geo",
-   "behaviors": 6,
-   "sample": [
-    "כבאות: תחנה קרובה",
-    "תופסת: הקרוב ביותר",
-    "קיר-טיפוס: האחיזה הבאה בהישג יד"
-   ],
-   "innerParts": 2,
-   "part": {
-    "id": "inner-orbit:src/components/parnasa/envelope.ts#envLayout.forEach.forEach.bd:after-loop",
-    "name": "בוחר את הפריט עם הערך הגדול ביותר",
-    "parent": "orbit:src/components/parnasa/envelope.ts#envLayout"
-   }
-  },
-  {
    "verb": "merge",
    "material": "list",
    "behaviors": 6,
@@ -195,6 +179,22 @@
    }
   },
   {
+   "verb": "lookup",
+   "material": "waiting",
+   "behaviors": 4,
+   "sample": [
+    "ספרייה: תור לספר מבוקש",
+    "דיג׳יי: בקשות מהקהל",
+    "מוקד-חלוקה: משפחה חדשה בהמתנה נבחרת לפי המזהה שלה"
+   ],
+   "innerParts": 8,
+   "part": {
+    "id": "inner-orbit:src/components/families/ReenrollFamilyPanel.tsx#ReenrollFamilyPanel.regEnroll",
+    "name": "בוחר ערך לפי תנאי",
+    "parent": "orbit:src/components/families/ReenrollFamilyPanel.tsx#ReenrollFamilyPanel"
+   }
+  },
+  {
    "verb": "compare",
    "material": "amount",
    "behaviors": 3,
@@ -224,22 +224,6 @@
     "id": "inner-14kk:check_protocol_activity.js#ProtocolActivityChecker.checkCommunicationProtocol.timeDiff:step",
     "name": "מחשב יחס בין ערכים",
     "parent": "14kk:check_protocol_activity.js#ProtocolActivityChecker.checkCommunicationProtocol"
-   }
-  },
-  {
-   "verb": "lookup",
-   "material": "waiting",
-   "behaviors": 3,
-   "sample": [
-    "ספרייה: תור לספר מבוקש",
-    "דיג׳יי: בקשות מהקהל",
-    "קופה-רושמת: תור לקופה הפנויה"
-   ],
-   "innerParts": 8,
-   "part": {
-    "id": "inner-orbit:src/components/families/ReenrollFamilyPanel.tsx#ReenrollFamilyPanel.regEnroll",
-    "name": "בוחר ערך לפי תנאי",
-    "parent": "orbit:src/components/families/ReenrollFamilyPanel.tsx#ReenrollFamilyPanel"
    }
   },
   {

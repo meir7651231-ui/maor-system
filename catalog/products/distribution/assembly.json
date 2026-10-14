@@ -1,0 +1,902 @@
+{
+ "word": "מוקד-חלוקה",
+ "emoji": "🧺",
+ "does": "מוקד חלוקת סלים לחג: משפחות על המפה, כל אחת למתנדב הקרוב, מסלול קצר, מעקב מסירה עד דוח סוף היום",
+ "world": "מוצרים",
+ "counts": {
+  "needs": 16,
+  "proven": 14,
+  "inner": 1,
+  "combo": 1,
+  "open": 0
+ },
+ "needs": [
+  {
+   "id": "n1",
+   "behavior": "משפחות כנקודות במקומות על מפת העיירה",
+   "verb": "random",
+   "verbHe": "מגריל",
+   "material": "geo",
+   "status": "proven",
+   "statusHe": "✅ מוכח בהרצה",
+   "form": "single",
+   "steps": [
+    {
+     "id": "core-c:catalog/core/random-points.mjs#randomPoints",
+     "key": "core-c:catalog/core/random-points.mjs#randomPoints",
+     "name": "מחשב נקודות במקומות אקראיים מזרע",
+     "role": "random",
+     "roleHe": "מגריל",
+     "project": "ליבות-החומר",
+     "inner": false,
+     "proof": "proven",
+     "cases": 41,
+     "laws": [
+      "random.replay",
+      "random.range",
+      "random.seeded",
+      "random.even"
+     ],
+     "arity": 2,
+     "module": "catalog/core/random-points.mjs",
+     "export": "randomPoints",
+     "home": "core-c:catalog/core/random-points.mjs#randomPoints",
+     "origins": [
+      {
+       "project": "אורביט",
+       "file": "src/components/parnasa/Ambient.tsx",
+       "line": 63,
+       "best": true
+      },
+      {
+       "project": "אורביט",
+       "file": "src/components/parnasa/Ambient.tsx",
+       "line": 100
+      },
+      {
+       "project": "המחולל",
+       "file": "machtzev/pure/motion-family.html",
+       "line": 150
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "n2",
+   "behavior": "כל משפחה למתנדב הקרוב אליה",
+   "verb": "extreme",
+   "verbHe": "בוחר את הקיצוני",
+   "material": "geo",
+   "status": "proven",
+   "statusHe": "✅ מוכח בהרצה",
+   "form": "single",
+   "steps": [
+    {
+     "id": "core-c:catalog/core/nearest-point.mjs#nearestPoint",
+     "key": "core-c:catalog/core/nearest-point.mjs#nearestPoint",
+     "name": "בוחר את הנקודה הקרובה ביותר למוצא",
+     "role": "extreme",
+     "roleHe": "בוחר את הקיצוני",
+     "project": "ליבות-החומר",
+     "inner": false,
+     "proof": "proven",
+     "cases": 21,
+     "laws": [
+      "extreme.split",
+      "extreme.order-free"
+     ],
+     "arity": 2,
+     "module": "catalog/core/nearest-point.mjs",
+     "export": "nearestPoint",
+     "home": "core-c:catalog/core/nearest-point.mjs#nearestPoint",
+     "origins": [
+      {
+       "project": "אורביט",
+       "file": "src/components/supporters/SupportersGalaxy.tsx",
+       "line": 125,
+       "best": true
+      },
+      {
+       "project": "אורביט",
+       "file": "src/components/supporters/SupportersUniverse3D.tsx",
+       "line": 111
+      },
+      {
+       "project": "אורביט",
+       "file": "src/components/parnasa/envelope.ts",
+       "line": 187
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "n3",
+   "behavior": "אזורים בעיירה לפי הצד של המרכז",
+   "verb": "group",
+   "verbHe": "מקבץ",
+   "material": "geo",
+   "status": "proven",
+   "statusHe": "✅ מוכח בהרצה",
+   "form": "single",
+   "steps": [
+    {
+     "id": "core-c:catalog/core/group-by-side.mjs#groupBySide",
+     "key": "core-c:catalog/core/group-by-side.mjs#groupBySide",
+     "name": "מקבץ נקודות לפי הצד של המרכז",
+     "role": "group",
+     "roleHe": "מקבץ",
+     "project": "ליבות-החומר",
+     "inner": false,
+     "proof": "proven",
+     "cases": 21,
+     "laws": [
+      "group.partition",
+      "group.order-free"
+     ],
+     "arity": 2,
+     "module": "catalog/core/group-by-side.mjs",
+     "export": "groupBySide",
+     "home": "core-c:catalog/core/group-by-side.mjs#groupBySide",
+     "origins": [
+      {
+       "project": "אורביט",
+       "file": "src/lib/three-scene.ts",
+       "line": 121,
+       "best": true
+      },
+      {
+       "project": "אורביט",
+       "file": "src/lib/three-scene.ts",
+       "line": 74
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "n4",
+   "behavior": "סדר התחנות של כל מתנדב לפי המרחק",
+   "verb": "sort",
+   "verbHe": "ממיין",
+   "material": "geo",
+   "status": "proven",
+   "statusHe": "✅ מוכח בהרצה",
+   "form": "single",
+   "steps": [
+    {
+     "id": "core-c:catalog/core/by-distance.mjs#byDistance",
+     "key": "core-c:catalog/core/by-distance.mjs#byDistance",
+     "name": "ממיין נקודות לפי המרחק מהמוצא",
+     "role": "sort",
+     "roleHe": "ממיין",
+     "project": "ליבות-החומר",
+     "inner": false,
+     "proof": "proven",
+     "cases": 32,
+     "laws": [
+      "sort.perm",
+      "sort.order-free",
+      "sort.consistent"
+     ],
+     "arity": 2,
+     "module": "catalog/core/by-distance.mjs",
+     "export": "byDistance",
+     "home": "core-c:catalog/core/by-distance.mjs#byDistance",
+     "origins": [
+      {
+       "project": "אורביט",
+       "file": "src/lib/three-scene.ts",
+       "line": 122,
+       "best": true
+      },
+      {
+       "project": "אורביט",
+       "file": "src/components/parnasa/envelope.ts",
+       "line": 187
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "n5",
+   "behavior": "הדרך הקצרה בין התחנות",
+   "verb": "shortest-path",
+   "verbHe": "מוצא דרך קצרה",
+   "material": "geo",
+   "status": "combo",
+   "statusHe": "✅ מוכח — שילוב",
+   "form": "chain",
+   "steps": [
+    {
+     "id": "core-c:catalog/core/near-net.mjs#nearNet",
+     "key": "core-c:catalog/core/near-net.mjs#nearNet",
+     "name": "מחבר כל נקודה לשכנות הקרובות אליה",
+     "role": "connect",
+     "roleHe": "מחבר לשכנים",
+     "project": "ליבות-החומר",
+     "inner": false,
+     "proof": "proven",
+     "cases": 48,
+     "laws": [
+      "connect.keeps",
+      "connect.real",
+      "connect.nearest",
+      "connect.only"
+     ],
+     "arity": 1,
+     "module": "catalog/core/near-net.mjs",
+     "export": "nearNet",
+     "home": "core-c:catalog/core/near-net.mjs#nearNet",
+     "origins": [
+      {
+       "project": "אורביט",
+       "file": "src/lib/three-scene.ts",
+       "line": 114,
+       "best": true
+      },
+      {
+       "project": "אורביט",
+       "file": "src/lib/three-scene.ts",
+       "line": 127
+      },
+      {
+       "project": "בנייה חכמה",
+       "file": "app_flutter/lib/features/card_keyboard/hop_graph.dart",
+       "line": 155
+      },
+      {
+       "project": "בנייה חכמה",
+       "file": "app_flutter/lib/logic/install_engine.dart",
+       "line": 759
+      }
+     ]
+    },
+    {
+     "id": "core:catalog/core/shortest-path.mjs#shortestPath",
+     "key": "core:catalog/core/shortest-path.mjs#shortestPath",
+     "name": "מוצא את הדרך הזולה ברשת נקודות",
+     "role": "shortest-path",
+     "roleHe": "מוצא דרך קצרה",
+     "project": "הליבה",
+     "inner": false,
+     "proof": "proven",
+     "cases": 24,
+     "laws": [
+      "shortest-path.valid",
+      "shortest-path.shortest"
+     ],
+     "arity": 3,
+     "module": "catalog/core/shortest-path.mjs",
+     "export": "shortestPath",
+     "home": "core:catalog/core/shortest-path.mjs#shortestPath",
+     "origins": [
+      {
+       "project": "בנייה חכמה",
+       "file": "app_flutter/lib/logic/install_engine.dart",
+       "line": 759,
+       "best": true
+      },
+      {
+       "project": "המחולל",
+       "file": "new/dart/find_shortest_path.dart",
+       "line": 51
+      },
+      {
+       "project": "בנייה חכמה",
+       "file": "app_flutter/lib/features/card_keyboard/hop_graph.dart",
+       "line": 135
+      },
+      {
+       "project": "אורביט",
+       "file": "src/lib/engineroute/route.ts",
+       "line": 298
+      },
+      {
+       "project": "המחולל",
+       "file": "lab-rings/lab13/wide2frames.mjs",
+       "line": 29
+      },
+      {
+       "project": "המחולל",
+       "file": "lab-rings/viz/anneal.js",
+       "line": 9
+      },
+      {
+       "project": "סורק QA",
+       "file": "scanner.py",
+       "line": 94
+      }
+     ]
+    }
+   ],
+   "combo": {
+    "recipe": "catalog/recipes/combo-shortest-path-geo.json",
+    "verb": "shortest-path",
+    "form": "chain",
+    "holds": "24/24",
+    "laws": [
+     "shortest-path.valid",
+     "shortest-path.shortest"
+    ],
+    "line": "עבר 24/24 חוקים של מוצא דרך קצרה",
+    "hint": "הדרך המהירה בין מקומות = קודם רשת: כל מקום מתחבר לקרובים אליו (רשת-הסינפסות של כדור-המוח בדף ההרשמה, three-scene.ts:114), ואז הדרך הזולה ברשת (דייקסטרה — מוצא-הדרך של בנייה-חכמה, install_engine.dart:759)"
+   }
+  },
+  {
+   "id": "n6",
+   "behavior": "הרכבים נוסעים במסלול על המפה",
+   "verb": "move-along-path",
+   "verbHe": "מתקדם במסלול",
+   "material": "geo",
+   "status": "proven",
+   "statusHe": "✅ מוכח בהרצה",
+   "form": "single",
+   "steps": [
+    {
+     "id": "core:catalog/core/move-along-path.mjs#moveAlongPath",
+     "key": "core:catalog/core/move-along-path.mjs#moveAlongPath",
+     "name": "מזיז נקודה לאורך מסלול של תחנות",
+     "role": "move-along-path",
+     "roleHe": "מתקדם במסלול",
+     "project": "הליבה",
+     "inner": false,
+     "proof": "proven",
+     "cases": 36,
+     "laws": [
+      "move-along-path.ends",
+      "move-along-path.onpath",
+      "move-along-path.even"
+     ],
+     "arity": 2,
+     "module": "catalog/core/move-along-path.mjs",
+     "export": "moveAlongPath",
+     "home": "core:catalog/core/move-along-path.mjs#moveAlongPath",
+     "origins": [
+      {
+       "project": "אורביט",
+       "file": "src/components/parnasa/coinFx.ts",
+       "line": 211,
+       "best": true
+      },
+      {
+       "project": "אורביט",
+       "file": "src/components/shop7/lib.ts",
+       "line": 12
+      },
+      {
+       "project": "אורביט",
+       "file": "src/components/shop7/lib.ts",
+       "line": 137
+      },
+      {
+       "project": "בנייה חכמה",
+       "file": "index.html",
+       "line": 7843
+      },
+      {
+       "project": "בנייה חכמה",
+       "file": "app_flutter/lib/screens/install_studio_screen.dart",
+       "line": 1853
+      },
+      {
+       "project": "המחולל",
+       "file": "design/orbit-nothinglost.html",
+       "line": 173
+      },
+      {
+       "project": "המחולל",
+       "file": "lab-rings/viz/rings-live.html",
+       "line": 323
+      },
+      {
+       "project": "הישיבה",
+       "file": "yeshiva/daf.py",
+       "line": 281
+      },
+      {
+       "project": "MMMM",
+       "file": "artifacts/api-server/src/swarm/agents.ts",
+       "line": 218
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "n7",
+   "behavior": "ספירה לאחור עד החג",
+   "verb": "countdown",
+   "verbHe": "סופר לאחור",
+   "material": "times",
+   "status": "proven",
+   "statusHe": "✅ מוכח בהרצה",
+   "form": "single",
+   "steps": [
+    {
+     "id": "core:catalog/core/countdown.mjs#countdown",
+     "key": "core:catalog/core/countdown.mjs#countdown",
+     "name": "סופר לאחור עד אפס בדיוק",
+     "role": "countdown",
+     "roleHe": "סופר לאחור",
+     "project": "הליבה",
+     "inner": false,
+     "proof": "proven",
+     "cases": 26,
+     "laws": [
+      "countdown.start",
+      "countdown.down",
+      "countdown.zero"
+     ],
+     "arity": 2,
+     "module": "catalog/core/countdown.mjs",
+     "export": "countdown",
+     "home": "core:catalog/core/countdown.mjs#countdown",
+     "origins": [
+      {
+       "project": "אורביט",
+       "file": "src/components/timer/MoneyTimer.tsx",
+       "line": 117,
+       "best": true
+      },
+      {
+       "project": "אורביט",
+       "file": "src/components/hosting/kitchen.ts",
+       "line": 85
+      },
+      {
+       "project": "אורביט",
+       "file": "src/components/lock/LockScreen.tsx",
+       "line": 40
+      },
+      {
+       "project": "אורביט",
+       "file": "src/lib/publicSite.ts",
+       "line": 225
+      },
+      {
+       "project": "אורביט",
+       "file": "src/components/shop/lib.ts",
+       "line": 221
+      },
+      {
+       "project": "בנייה חכמה",
+       "file": "app_flutter/lib/screens/login_sheet.dart",
+       "line": 203
+      },
+      {
+       "project": "בנייה חכמה",
+       "file": "index.html",
+       "line": 7847
+      },
+      {
+       "project": "המחולל",
+       "file": "machtzev/pure/temporal-family.html",
+       "line": 291
+      },
+      {
+       "project": "המחולל",
+       "file": "new/dart-ui-bs/countdown_timer.dart",
+       "line": 21
+      },
+      {
+       "project": "הישיבה",
+       "file": "arena/shop/pricing.py",
+       "line": 171
+      },
+      {
+       "project": "סורק QA",
+       "file": "exposure_audit.py",
+       "line": 201
+      },
+      {
+       "project": "14kk",
+       "file": "archive/final-bridge.js",
+       "line": 650
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "n8",
+   "behavior": "הסטטוס הבא של המשלוח: איסוף ⇒ בדרך ⇒ נמסר",
+   "verb": "route",
+   "verbHe": "מנתב לפי ערוץ",
+   "material": "choice",
+   "status": "proven",
+   "statusHe": "✅ מוכח בהרצה",
+   "form": "single",
+   "steps": [
+    {
+     "id": "orbit:src/components/shop7/lib.ts#advanceStatus",
+     "key": "orbit:src/components/shop7/lib.ts#advanceStatus",
+     "name": "קובע את הסטטוס הבא",
+     "role": "route",
+     "roleHe": "מנתב לפי ערוץ",
+     "project": "אורביט",
+     "inner": false,
+     "proof": "proven",
+     "cases": 48,
+     "laws": [
+      "route.one",
+      "route.few",
+      "route.det",
+      "route.default"
+     ],
+     "arity": 1,
+     "module": "src/components/shop7/lib.ts",
+     "export": "advanceStatus",
+     "home": "orbit:src/components/shop7/lib.ts#advanceStatus",
+     "origins": [
+      {
+       "project": "אורביט",
+       "file": "src/components/shop7/lib.ts",
+       "line": 15,
+       "best": true
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "n9",
+   "behavior": "משלוח שמאחר עובר הלאה כשאין תשובה",
+   "verb": "escalate",
+   "verbHe": "מסלים בזמן",
+   "material": "waiting",
+   "status": "proven",
+   "statusHe": "✅ מוכח בהרצה",
+   "form": "single",
+   "steps": [
+    {
+     "id": "orbit:src/lib/atoms/parts/escalate.ts#escalationState",
+     "key": "orbit:src/lib/atoms/parts/escalate.ts#escalationState",
+     "name": "מעביר הלאה כשאין תשובה",
+     "role": "escalate",
+     "roleHe": "מסלים בזמן",
+     "project": "אורביט",
+     "inner": false,
+     "proof": "proven",
+     "cases": 400,
+     "laws": [
+      "escalate.answered",
+      "escalate.nobody-skipped",
+      "escalate.plan",
+      "escalate.state"
+     ],
+     "arity": 1,
+     "module": "src/lib/atoms/parts/escalate.ts",
+     "export": "escalationState",
+     "home": "orbit:src/lib/atoms/parts/escalate.ts#escalationState",
+     "origins": [
+      {
+       "project": "אורביט",
+       "file": "src/lib/atoms/parts/escalate.ts",
+       "line": 84,
+       "best": true
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "n10",
+   "behavior": "מתנדב שלא עונה ⇒ הבקשה עוברת הלאה למתנדב הבא",
+   "verb": "escalate",
+   "verbHe": "מסלים בזמן",
+   "material": "waiting",
+   "status": "proven",
+   "statusHe": "✅ מוכח בהרצה",
+   "form": "single",
+   "steps": [
+    {
+     "id": "orbit:src/lib/atoms/parts/escalate.ts#escalationState",
+     "key": "orbit:src/lib/atoms/parts/escalate.ts#escalationState",
+     "name": "מעביר הלאה כשאין תשובה",
+     "role": "escalate",
+     "roleHe": "מסלים בזמן",
+     "project": "אורביט",
+     "inner": false,
+     "proof": "proven",
+     "cases": 400,
+     "laws": [
+      "escalate.answered",
+      "escalate.nobody-skipped",
+      "escalate.plan",
+      "escalate.state"
+     ],
+     "arity": 1,
+     "module": "src/lib/atoms/parts/escalate.ts",
+     "export": "escalationState",
+     "home": "orbit:src/lib/atoms/parts/escalate.ts#escalationState",
+     "origins": [
+      {
+       "project": "אורביט",
+       "file": "src/lib/atoms/parts/escalate.ts",
+       "line": 84,
+       "best": true
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "n11",
+   "behavior": "משפחה חדשה בהמתנה נבחרת לפי המזהה שלה",
+   "verb": "lookup",
+   "verbHe": "מחפש לפי מפתח",
+   "material": "waiting",
+   "status": "inner",
+   "statusHe": "✅ מוכח — חלק פנימי",
+   "form": "single",
+   "steps": [
+    {
+     "id": "inner-orbit:src/components/families/ReenrollFamilyPanel.tsx#ReenrollFamilyPanel.regEnroll",
+     "key": "inner-orbit:src/components/families/ReenrollFamilyPanel.tsx#ReenrollFamilyPanel.regEnroll",
+     "name": "בוחר ערך לפי תנאי",
+     "role": "lookup",
+     "roleHe": "מחפש לפי מפתח",
+     "project": "אורביט",
+     "inner": true,
+     "proof": "proven",
+     "cases": 24,
+     "laws": [
+      "lookup.member",
+      "lookup.first"
+     ],
+     "arity": 2,
+     "module": "catalog/inner/gen/orbit/src/components/families/ReenrollFamilyPanel.tsx.mjs",
+     "export": "inner$ReenrollFamilyPanel$regEnroll",
+     "home": "inner-orbit:src/components/families/ReenrollFamilyPanel.tsx#ReenrollFamilyPanel.regEnroll",
+     "origins": [
+      {
+       "project": "אורביט",
+       "file": "src/components/families/ReenrollFamilyPanel.tsx",
+       "line": 54,
+       "best": true
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "n12",
+   "behavior": "כמה סלים נותרו — סופר את השמות שעוד לא נמסרו",
+   "verb": "count",
+   "verbHe": "סופר",
+   "material": "list",
+   "status": "proven",
+   "statusHe": "✅ מוכח בהרצה",
+   "form": "single",
+   "steps": [
+    {
+     "id": "orbit:src/components/supporters/prayer.ts#prayerOpenCount",
+     "key": "orbit:src/components/supporters/prayer.ts#prayerOpenCount",
+     "name": "סופר שמות שעוד לא הוזכרו",
+     "role": "count",
+     "roleHe": "סופר",
+     "project": "אורביט",
+     "inner": false,
+     "proof": "proven",
+     "cases": 35,
+     "laws": [
+      "count.empty",
+      "count.add",
+      "count.bound"
+     ],
+     "arity": 1,
+     "module": "src/components/supporters/prayer.ts",
+     "export": "prayerOpenCount",
+     "home": "orbit:src/components/supporters/prayer.ts#prayerOpenCount",
+     "origins": [
+      {
+       "project": "אורביט",
+       "file": "src/components/supporters/prayer.ts",
+       "line": 39,
+       "best": true
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "n13",
+   "behavior": "תזכורת לכל מתנדב — תאריך יום לפני החלוקה",
+   "verb": "offset",
+   "verbHe": "מזיז",
+   "material": "date",
+   "status": "proven",
+   "statusHe": "✅ מוכח בהרצה",
+   "form": "single",
+   "steps": [
+    {
+     "id": "orbit:src/components/hosting/transitions.ts#addDaysIso",
+     "key": "orbit:src/components/hosting/transitions.ts#addDaysIso",
+     "name": "מחשב תאריך כמה ימים",
+     "role": "offset",
+     "roleHe": "מזיז",
+     "project": "אורביט",
+     "inner": false,
+     "proof": "proven",
+     "cases": 24,
+     "laws": [
+      "offset.zero",
+      "offset.compose"
+     ],
+     "arity": 2,
+     "module": "src/components/hosting/transitions.ts",
+     "export": "addDaysIso",
+     "home": "orbit:src/components/hosting/transitions.ts#addDaysIso",
+     "origins": [
+      {
+       "project": "אורביט",
+       "file": "src/components/hosting/transitions.ts",
+       "line": 90,
+       "best": true
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "n14",
+   "behavior": "מסירה נחשבת רק עם אישור מהמקבל",
+   "verb": "require-source",
+   "verbHe": "דורש מקור",
+   "material": "list",
+   "status": "proven",
+   "statusHe": "✅ מוכח בהרצה",
+   "form": "single",
+   "steps": [
+    {
+     "id": "core-b:catalog/core/require-source.mjs#requireSource",
+     "key": "core-b:catalog/core/require-source.mjs#requireSource",
+     "name": "מקבל רק פריטים עם מקור",
+     "role": "require-source",
+     "roleHe": "דורש מקור",
+     "project": "ליבות-הפעלים",
+     "inner": false,
+     "proof": "proven",
+     "cases": 36,
+     "laws": [
+      "source.reject",
+      "source.pass",
+      "source.never-invent"
+     ],
+     "arity": 1,
+     "module": "catalog/core/require-source.mjs",
+     "export": "requireSource",
+     "home": "core-b:catalog/core/require-source.mjs#requireSource",
+     "origins": [
+      {
+       "project": "יומן הבינה",
+       "file": "schema.json",
+       "line": 46
+      },
+      {
+       "project": "יומן הבינה",
+       "file": "verify.mjs",
+       "line": 138
+      },
+      {
+       "project": "יומן הבינה",
+       "file": "engine.js",
+       "line": 25
+      },
+      {
+       "project": "אורביט",
+       "file": "src/lib/config.ts",
+       "line": 112
+      },
+      {
+       "project": "הישיבה",
+       "file": "yeshiva/gate.py",
+       "line": 1721
+      },
+      {
+       "project": "הישיבה",
+       "file": "yeshiva/gate.py",
+       "line": 1420
+      },
+      {
+       "project": "המחולל",
+       "file": "machtzev/quarry-check.mjs",
+       "line": 10
+      },
+      {
+       "project": "המחולל",
+       "file": "new/atoms/safe-https-url.mjs",
+       "line": 3
+      },
+      {
+       "project": "בנייה חכמה",
+       "file": "edge-proxy/worker.js",
+       "line": 66
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "n15",
+   "behavior": "הודעה לכל מתנדב: טקסט להעתקה/שיתוף של הרשימה שלו",
+   "verb": "format",
+   "verbHe": "מעצב לטקסט",
+   "material": "text",
+   "status": "proven",
+   "statusHe": "✅ מוכח בהרצה",
+   "form": "single",
+   "steps": [
+    {
+     "id": "orbit:src/components/supporters/prayer.ts#prayerListText",
+     "key": "orbit:src/components/supporters/prayer.ts#prayerListText",
+     "name": "כותב טקסט להעתקה/שיתוף",
+     "role": "format",
+     "roleHe": "מעצב לטקסט",
+     "project": "אורביט",
+     "inner": false,
+     "proof": "proven",
+     "cases": 13,
+     "laws": [
+      "format.injective",
+      "format.det"
+     ],
+     "arity": 2,
+     "module": "src/components/supporters/prayer.ts",
+     "export": "prayerListText",
+     "home": "orbit:src/components/supporters/prayer.ts#prayerListText",
+     "origins": [
+      {
+       "project": "אורביט",
+       "file": "src/components/supporters/prayer.ts",
+       "line": 44,
+       "best": true
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "n16",
+   "behavior": "דוח סוף יום: כמה נמסרו מתוך הרשימה, לכל אזור",
+   "verb": "tally",
+   "verbHe": "סופר לפי קבוצה",
+   "material": "list",
+   "status": "proven",
+   "statusHe": "✅ מוכח בהרצה",
+   "form": "single",
+   "steps": [
+    {
+     "id": "orbit:src/components/courses/lib.ts#sheetSummary",
+     "key": "orbit:src/components/courses/lib.ts#sheetSummary",
+     "name": "בונה סיכום נוכחות ליום",
+     "role": "tally",
+     "roleHe": "סופר לפי קבוצה",
+     "project": "אורביט",
+     "inner": false,
+     "proof": "proven",
+     "cases": 24,
+     "laws": [
+      "tally.total",
+      "tally.add"
+     ],
+     "arity": 2,
+     "module": "src/components/courses/lib.ts",
+     "export": "sheetSummary",
+     "home": "orbit:src/components/courses/lib.ts#sheetSummary",
+     "origins": [
+      {
+       "project": "אורביט",
+       "file": "src/components/courses/lib.ts",
+       "line": 406,
+       "best": true
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

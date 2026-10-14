@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /**
  * 🧭 מפקד core-c (MACHINE-V4, 14.10.2026) — כותב catalog/sources/core-c.json:
- * 9 ליבות-החומר שחולצו מהקוד שלנו (catalog/core/*.mjs) — פעולות שכבר עבדו בקוד על **נקודות** ועל **צליל**, בלי עולם:
+ * 10 ליבות-החומר שחולצו מהקוד שלנו (catalog/core/*.mjs) — פעולות שכבר עבדו בקוד על **נקודות** ועל **צליל**, בלי עולם:
  * רשת-הסינפסות (נקודות ⇒ רשת), הליכה-אחרי-העכבר, אבק-הזהב (מקום אקראי, נישא ברוח), בדיקת-הפגיעה של הגלקסיה,
- * שתי האונות, `seen`, מיון-השכנים לפי מרחק, וצליל-המטבע של פרנס׳לע כנתון (`{f, t, d, g}`).
+ * שתי האונות, `seen`, מיון-השכנים לפי מרחק, הכוכב-הקרוב-לעכבר (PRODUCT, 14.10.2026), וצליל-המטבע של פרנס׳לע כנתון (`{f, t, d, g}`).
  * כל אחת עם `origins` (catalog/core/origins-c.json). הדוגמה = קלט-אמת, והיא מורצת על הליבה בכל הרצה.
  *
  *   node catalog/scripts/core-c-census.mjs           # כותב
@@ -62,6 +62,12 @@ export const PARTS = [
     does: 'הקרובה למוצא קודם; אותו מרחק ⇒ לפי x ואז y — הסדר לא תלוי באיך שהגיעו.',
     takes: [S('points', 'geo', '{x, y}[]'), S('from', 'geo', P)], gives: { kind: 'geo', type: '{x, y}[]' },
     example: { in: { points: [{ x: 5, y: 0 }, { x: 1, y: 1 }, { x: 0, y: 3 }], from: { x: 0, y: 0 } }, out: [{ x: 1, y: 1 }, { x: 0, y: 3 }, { x: 5, y: 0 }] },
+  },
+  {
+    verb: 'extreme', file: 'nearest-point.mjs', symbol: 'nearestPoint', name: 'בוחר את הנקודה הקרובה ביותר למוצא',
+    does: 'מכל הנקודות — זו שהמרחק שלה מהמוצא הכי קטן (אין נקודות ⇒ null). שוויון נשבר לפי x ואז y — הבחירה לא תלויה בסדר.',
+    takes: [S('points', 'geo', '{x, y}[]'), S('from', 'geo', P)], gives: { kind: 'geo', type: P },
+    example: { in: { points: [{ x: 5, y: 0 }, { x: 1, y: 1 }, { x: 0, y: 3 }], from: { x: 0, y: 0 } }, out: { x: 1, y: 1 } },
   },
   {
     verb: 'offset', file: 'drift.mjs', symbol: 'drift', name: 'מזיז נקודה במהירות שלה כמה צעדים',

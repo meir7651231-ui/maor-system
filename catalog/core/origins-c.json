@@ -1,10 +1,15 @@
 {
- "_note": "MACHINE-V4 (14.10.2026): איפה כל אחת מ-9 ליבות-החומר נמצאה בקוד שלנו. השורה הראשונה = המקור שממנו חולצה (best). כל file:line נקרא ואומת; שורות אורביט נבדקות ב-origins-cite.test.",
+ "_note": "MACHINE-V4 (14.10.2026): איפה כל אחת מ-9 ליבות-החומר (ו-nearestPoint — PRODUCT, 14.10.2026) נמצאה בקוד שלנו. השורה הראשונה = המקור שממנו חולצה (best). כל file:line נקרא ואומת; שורות אורביט נבדקות ב-origins-cite.test.",
  "nearNet": [
   { "repo": "maor-system", "file": "src/lib/three-scene.ts", "line": 114, "what": "synapse web — לכל צומת מועמדים לפי distanceToSquared, ממוינים, שלושת הקרובים נקשרים (nearest neighbours)", "best": true },
   { "repo": "maor-system", "file": "src/lib/three-scene.ts", "line": 127, "what": "מפתח min_max ב-seen — כל קשת פעם אחת" },
   { "repo": "buildsmart", "file": "app_flutter/lib/features/card_keyboard/hop_graph.dart", "line": 155, "what": "_addCompatEdges(adj) — קודם בונים את הקשתות, אחר כך מחפשים בגרף (BFS בתוך maxHops)" },
   { "repo": "buildsmart", "file": "app_flutter/lib/logic/install_engine.dart", "line": 759, "what": "Least-cost search (Dijkstra) על הגרף שנבנה — הצרכן של הרשת" }
+ ],
+ "nearestPoint": [
+  { "repo": "maor-system", "file": "src/components/supporters/SupportersGalaxy.tsx", "line": 125, "what": "const d = Math.hypot(p.x - mx, p.y - my); if (d < bd + p.r) { bd = d; best = p; } — הכוכב הקרוב לעכבר (bd יורד)", "best": true },
+  { "repo": "maor-system", "file": "src/components/supporters/SupportersUniverse3D.tsx", "line": 111, "what": "אותו Math.hypot(p.x - mx, p.y - my) ו-best = p — ביקום-3D" },
+  { "repo": "maor-system", "file": "src/components/parnasa/envelope.ts", "line": 187, "what": "nodes.reduce((m, n) => Math.min(m, Math.hypot(n.x - px, n.y - py)), 99) — המרחק לנקודה הקרובה" }
  ],
  "followPoint": [
   { "repo": "maor-system", "file": "src/lib/three-scene.ts", "line": 257, "what": "tg.x += (mo.x - tg.x) * 0.05; tg.y += (mo.y - tg.y) * 0.05 — הכדור נגרר אחרי העכבר, אותו צעד על x ועל y", "best": true },

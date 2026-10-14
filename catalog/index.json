@@ -71,8 +71,8 @@
   {
    "source": "core-c",
    "repo": "meir7651231-ui/maor-system",
-   "ref": "catalog/core@0030ade2",
-   "parts": 9
+   "ref": "catalog/core@b9449012",
+   "parts": 10
   },
   {
    "source": "inner-14kk",
@@ -118,7 +118,7 @@
   }
  ],
  "totals": {
-  "parts": 23234,
+  "parts": 23235,
   "what": {
    "inner": 17360,
    "function": 2227,
@@ -126,10 +126,10 @@
    "component": 1010,
    "engine": 598,
    "rule": 577,
-   "brick": 304
+   "brick": 305
   },
   "lang": {
-   "js": 9910,
+   "js": 9911,
    "ts": 9229,
    "dart": 2785,
    "py": 1096,
@@ -149,7 +149,7 @@
    "date": 206,
    "waiting": 135,
    "sequence": 81,
-   "geo": 21,
+   "geo": 22,
    "file": 10,
    "span": 7,
    "image": 6,
@@ -177,7 +177,7 @@
    "settle:static": 124,
    "map:static": 117,
    "map:run": 110,
-   "extreme:run": 108,
+   "extreme:run": 109,
    "normalize:static": 108,
    "split:run": 105,
    "sum:run": 97,
@@ -716,30 +716,30 @@
    "withVerb": 7
   },
   "core-c": {
-   "parts": 9,
-   "pure": 9,
+   "parts": 10,
+   "pure": 10,
    "what": {
-    "brick": 9
+    "brick": 10
    },
    "lang": {
-    "js": 9
+    "js": 10
    },
    "gives": {
-    "geo": 6,
+    "geo": 7,
     "list": 1,
     "record:*": 1,
     "sound": 1
    },
    "takes": {
-    "geo": 6,
+    "geo": 7,
     "number": 4,
     "record:*": 3,
     "sound": 1
    },
    "labeledBy": {
-    "run": 9
+    "run": 10
    },
-   "withVerb": 9
+   "withVerb": 10
   },
   "inner-14kk": {
    "parts": 377,
@@ -1105,18 +1105,18 @@
    "geo": {
     "gives": {
      "inner-orbit": 11,
-     "core-c": 6,
+     "core-c": 7,
      "core": 2,
      "inner-generator": 1,
      "orbit": 1
     },
     "takes": {
      "inner-orbit": 30,
+     "core-c": 7,
      "orbit": 7,
-     "core-c": 6,
      "buildsmart": 1
     },
-    "pairs": 924
+    "pairs": 990
    },
    "image": {
     "gives": {
@@ -12256,7 +12256,7 @@
     "mmmm": 8603,
     "core": 800,
     "core-b": 1816,
-    "core-c": 266,
+    "core-c": 267,
     "inner-14kk": 19346,
     "inner-buildsmart": 24995,
     "inner-generator": 439647,
@@ -12445,7 +12445,7 @@
     "mmmm": 21,
     "core": 47,
     "core-b": 15,
-    "core-c": 28,
+    "core-c": 30,
     "inner-14kk": 212,
     "inner-buildsmart": 175,
     "inner-generator": 4534,
@@ -12476,8 +12476,8 @@
     "inner-yoman-habina": 4
    },
    "core-c": {
-    "orbit": 327,
-    "buildsmart": 203,
+    "orbit": 334,
+    "buildsmart": 204,
     "generator": 645,
     "rings": 45,
     "yeshiva": 86,
@@ -12487,12 +12487,12 @@
     "mmmm": 15,
     "core": 0,
     "core-b": 7,
-    "core-c": 37,
+    "core-c": 50,
     "inner-14kk": 18,
     "inner-buildsmart": 61,
     "inner-generator": 1282,
     "inner-mmmm": 32,
-    "inner-orbit": 2406,
+    "inner-orbit": 2436,
     "inner-yeshiva": 0,
     "inner-yoman-habina": 1
    },
@@ -12550,7 +12550,7 @@
     "mmmm": 55851,
     "core": 7811,
     "core-b": 13192,
-    "core-c": 3370,
+    "core-c": 3371,
     "inner-14kk": 138570,
     "inner-buildsmart": 175116,
     "inner-generator": 3237678,
@@ -12592,7 +12592,7 @@
     "mmmm": 82225,
     "core": 17793,
     "core-b": 20678,
-    "core-c": 7710,
+    "core-c": 7721,
     "inner-14kk": 229886,
     "inner-buildsmart": 274306,
     "inner-generator": 5301213,
@@ -15635,6 +15635,7 @@
   {"id":"core-c:catalog/core/follow-point.mjs#followPoint","source":"core-c","name":"מזיז נקודה חלק קבוע מהדרך למטרה","what":"brick","lang":"js","takes":["record:followPointSpec","geo"],"gives":"geo","pure":true,"labeledBy":"run","verbs":["follow"],"primary":"follow","material":"record:followPointSpec"},
   {"id":"core-c:catalog/core/group-by-side.mjs#groupBySide","source":"core-c","name":"מקבץ נקודות לפי הצד של המרכז","what":"brick","lang":"js","takes":["geo","geo"],"gives":"list","pure":true,"labeledBy":"run","verbs":["group"],"primary":"group","material":"geo"},
   {"id":"core-c:catalog/core/near-net.mjs#nearNet","source":"core-c","name":"מחבר כל נקודה לשכנות הקרובות אליה","what":"brick","lang":"js","takes":["record:netSpec"],"gives":"record:net","pure":true,"labeledBy":"run","verbs":["settle","connect"],"primary":"connect","material":"record:netSpec"},
+  {"id":"core-c:catalog/core/nearest-point.mjs#nearestPoint","source":"core-c","name":"בוחר את הנקודה הקרובה ביותר למוצא","what":"brick","lang":"js","takes":["geo","geo"],"gives":"geo","pure":true,"labeledBy":"run","verbs":["extreme"],"primary":"extreme","material":"geo"},
   {"id":"core-c:catalog/core/points-within.mjs#pointsWithin","source":"core-c","name":"מסנן את הנקודות שבתוך העיגול","what":"brick","lang":"js","takes":["geo","geo","number"],"gives":"geo","pure":true,"labeledBy":"run","verbs":["filter"],"primary":"filter","material":"geo"},
   {"id":"core-c:catalog/core/random-points.mjs#randomPoints","source":"core-c","name":"מחשב נקודות במקומות אקראיים מזרע","what":"brick","lang":"js","takes":["record:randomSpec","number"],"gives":"geo","pure":true,"labeledBy":"run","verbs":["random"],"primary":"random","material":"record:randomSpec"},
   {"id":"core-c:catalog/core/transpose-notes.mjs#transposeNotes","source":"core-c","name":"מעביר צליל לגובה אחר ביחס קבוע","what":"brick","lang":"js","takes":["sound","number"],"gives":"sound","pure":true,"labeledBy":"run","verbs":["map"],"primary":"map","material":"sound"},
