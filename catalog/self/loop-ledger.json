@@ -2380,11 +2380,11 @@
     {
      "cand": "machine:catalog/scripts/rebuild.mjs#graph",
      "project": "machine",
-     "at": "catalog/scripts/rebuild.mjs:189",
+     "at": "catalog/scripts/rebuild.mjs:190",
      "laws": "3/3",
      "inputs": 1,
      "same": "פלט אחר על קלט אחד (#0)",
-     "steps": "19110 מול 1",
+     "steps": "19242 מול 1",
      "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
     }
    ],
@@ -2429,11 +2429,11 @@
     {
      "cand": "machine:catalog/scripts/rebuild.mjs#graph",
      "project": "machine",
-     "at": "catalog/scripts/rebuild.mjs:189",
+     "at": "catalog/scripts/rebuild.mjs:190",
      "laws": "3/3",
      "inputs": 1,
      "same": "פלט אחר על קלט אחד (#0)",
-     "steps": "19110 מול 1",
+     "steps": "19242 מול 1",
      "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
     }
    ],
@@ -2564,7 +2564,7 @@
     {
      "cand": "machine:catalog/scripts/rebuild.mjs#sameOut",
      "project": "machine",
-     "at": "catalog/scripts/rebuild.mjs:184",
+     "at": "catalog/scripts/rebuild.mjs:185",
      "laws": "24/24",
      "inputs": 46,
      "same": "פלט אחר על 29 קלטים (#0)",
@@ -3477,7 +3477,7 @@
     {
      "cand": "machine:catalog/scripts/rebuild.mjs#sameOut",
      "project": "machine",
-     "at": "catalog/scripts/rebuild.mjs:184",
+     "at": "catalog/scripts/rebuild.mjs:185",
      "laws": "24/24",
      "inputs": 77,
      "same": "פלט אחר על 23 קלטים (#3)",
@@ -3548,7 +3548,7 @@
     {
      "cand": "machine:catalog/scripts/rebuild.mjs#sameOut",
      "project": "machine",
-     "at": "catalog/scripts/rebuild.mjs:184",
+     "at": "catalog/scripts/rebuild.mjs:185",
      "laws": "24/24",
      "inputs": 52,
      "same": "פלט אחר על 7 קלטים (#24)",
@@ -5101,11 +5101,11 @@
     {
      "cand": "machine:catalog/scripts/rebuild.mjs#graph",
      "project": "machine",
-     "at": "catalog/scripts/rebuild.mjs:189",
+     "at": "catalog/scripts/rebuild.mjs:190",
      "laws": "3/3",
      "inputs": 1,
      "same": "פלט אחר על קלט אחד (#0)",
-     "steps": "19110 מול 1",
+     "steps": "19242 מול 1",
      "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
     }
    ],
@@ -6102,12 +6102,12 @@
   },
   {
    "subject": "machine:catalog/scripts/rebuild.mjs#graph·provide",
-   "at": "catalog/scripts/rebuild.mjs:189",
+   "at": "catalog/scripts/rebuild.mjs:190",
    "verb": "provide",
    "from": "הקורא",
    "laws": "3/3",
    "inputs": 1,
-   "steps": 19110,
+   "steps": 19242,
    "found": [],
    "considered": 148,
    "skipped": {
@@ -6122,7 +6122,7 @@
      "laws": "3/3",
      "inputs": 1,
      "same": "פלט אחר על קלט אחד (#0)",
-     "steps": "1 מול 19110",
+     "steps": "1 מול 19242",
      "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
     },
     {
@@ -6132,7 +6132,7 @@
      "laws": "3/3",
      "inputs": 1,
      "same": "פלט אחר על קלט אחד (#0)",
-     "steps": "1 מול 19110",
+     "steps": "1 מול 19242",
      "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
     },
     {
@@ -6142,7 +6142,7 @@
      "laws": "3/3",
      "inputs": 1,
      "same": "פלט אחר על קלט אחד (#0)",
-     "steps": "1 מול 19110",
+     "steps": "1 מול 19242",
      "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
     }
    ],
@@ -6151,7 +6151,7 @@
   },
   {
    "subject": "machine:catalog/scripts/rebuild.mjs#sameOut·validate",
-   "at": "catalog/scripts/rebuild.mjs:184",
+   "at": "catalog/scripts/rebuild.mjs:185",
    "verb": "validate",
    "from": "הקורא",
    "laws": "24/24",
@@ -6172,20 +6172,20 @@
      "project": "machine",
      "at": "catalog/lib/blank.mjs:57",
      "laws": "24/24",
-     "inputs": 74,
-     "same": "פלט אחר על 63 קלטים (#0)",
-     "steps": "74 מול 74",
-     "verdict": "נדחה — פלט אחר על 63 קלטים (#0)"
+     "inputs": 72,
+     "same": "פלט אחר על 61 קלטים (#0)",
+     "steps": "72 מול 72",
+     "verdict": "נדחה — פלט אחר על 61 קלטים (#0)"
     },
     {
      "cand": "machine:catalog/lib/probe.mjs#sameDesc",
      "project": "machine",
      "at": "catalog/lib/probe.mjs:29",
      "laws": "24/24",
-     "inputs": 74,
-     "same": "פלט אחר על 54 קלטים (#0)",
-     "steps": "314 מול 74",
-     "verdict": "נדחה — פלט אחר על 54 קלטים (#0)"
+     "inputs": 72,
+     "same": "פלט אחר על 52 קלטים (#0)",
+     "steps": "304 מול 72",
+     "verdict": "נדחה — פלט אחר על 52 קלטים (#0)"
     },
     {
      "cand": "machine:catalog/lib/verbs-net.mjs#close",
