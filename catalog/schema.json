@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "catalog/schema.json",
+  "title": "קטלוג החלקים — קובץ-מקור אחד",
+  "description": "Parts catalog, one file per source (catalog/sources/<source>.json). See catalog/contract.md.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["source", "repo", "ref", "generatedAt", "parts"],
+  "properties": {
+    "source": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+    "repo": { "type": "string", "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$" },
+    "ref": { "type": "string", "pattern": "^[^@\\s]+@[0-9a-f]{7,40}$|^unknown@unknown$" },
+    "generatedAt": { "type": "null" },
+    "parts": { "type": "array", "items": { "$ref": "#/$defs/part" } }
+  },
+  "$defs": {
+    "kind": {
+      "type": "string",
+      "pattern": "^(span|amount|number|times|date|sequence|list|waiting|text|bool|geo|image|sound|file|choice|ui|unknown|record:[a-z][A-Za-z0-9]*)$"
+    },
+    "slot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "kind", "type"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "kind": { "$ref": "#/$defs/kind" },
+        "type": { "type": "string", "minLength": 1 }
+      }
+    },
+    "part": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "source", "path", "symbol", "lang", "what", "name", "does", "takes", "gives", "pure", "example", "tags"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*:[^#\\s]+#[^\\s]+$" },
+        "source": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+        "path": { "type": "string", "minLength": 1 },
+        "symbol": { "type": "string", "minLength": 1 },
+        "lang": { "enum": ["ts", "js", "dart", "py", "machine", "json"] },
+        "what": { "enum": ["function", "brick", "particle", "engine", "component", "rule"] },
+        "name": { "type": "string", "minLength": 2, "maxLength": 80, "pattern": "^[^A-Za-z]+$" },
+        "does": { "type": "string", "minLength": 2, "maxLength": 240 },
+        "takes": { "type": "array", "items": { "$ref": "#/$defs/slot" } },
+        "gives": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "type"],
+          "properties": {
+            "kind": { "$ref": "#/$defs/kind" },
+            "type": { "type": "string", "minLength": 1 }
+          }
+        },
+        "pure": { "type": "boolean" },
+        "example": {
+          "oneOf": [
+            { "type": "null" },
+            { "type": "object", "required": ["in", "out"], "additionalProperties": false, "properties": { "in": {}, "out": {} } }
+          ]
+        },
+        "tags": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+      }
+    }
+  }
+}
