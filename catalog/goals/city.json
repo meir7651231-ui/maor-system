@@ -13,7 +13,7 @@
         },
         {
           "behavior": "מחסום לרכבים",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         },
         {
@@ -23,7 +23,7 @@
         },
         {
           "behavior": "נשאר פתוח עד שעברה",
-          "verb": "gate",
+          "verb": "validate",
           "material": "waiting"
         },
         {
@@ -45,7 +45,7 @@
         },
         {
           "behavior": "מסניף לסניף",
-          "verb": "hub-relay",
+          "verb": "relay",
           "material": "sequence"
         },
         {
@@ -55,12 +55,12 @@
         },
         {
           "behavior": "חבילה שלא נמסרה חוזרת",
-          "verb": "tolerate-failure",
+          "verb": "tolerate",
           "material": "waiting"
         },
         {
           "behavior": "מסלול הדוור",
-          "verb": "NEW:shortest-path",
+          "verb": "shortest-path",
           "material": "geo",
           "detail": "דרך קצרה — המסלול הקצר ביותר ברשת של נקודות"
         }
@@ -78,12 +78,12 @@
         },
         {
           "behavior": "מכוון לקומה עם מקום",
-          "verb": "minmax",
+          "verb": "extreme",
           "material": "list"
         },
         {
           "behavior": "מלא ⇒ שלט אדום",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         },
         {
@@ -110,7 +110,7 @@
       "needs": [
         {
           "behavior": "גודל השריפה",
-          "verb": "rank-tiers",
+          "verb": "tier",
           "material": "choice"
         },
         {
@@ -120,7 +120,7 @@
         },
         {
           "behavior": "תחנה קרובה",
-          "verb": "minmax",
+          "verb": "extreme",
           "material": "geo"
         },
         {
@@ -130,12 +130,12 @@
         },
         {
           "behavior": "משמרות 24 שעות",
-          "verb": "round-robin",
+          "verb": "rotate",
           "material": "sequence"
         },
         {
           "behavior": "האש מתפשטת לשכנים",
-          "verb": "NEW:spread",
+          "verb": "spread",
           "material": "geo",
           "detail": "מתפשט — משהו שעובר לשכנים הקרובים בכל צעד"
         }
@@ -153,7 +153,7 @@
         },
         {
           "behavior": "גובה הסילון עולה ויורד",
-          "verb": "NEW:oscillate",
+          "verb": "oscillate",
           "material": "number",
           "detail": "מתנדנד — גל שעולה ויורד שוב ושוב בקצב קבוע"
         },
@@ -164,7 +164,7 @@
         },
         {
           "behavior": "המים חוזרים לבריכה",
-          "verb": "NEW:gravity",
+          "verb": "gravity",
           "material": "number",
           "detail": "נופל — מהירות שגדלה בכל צעד של נפילה"
         },
@@ -175,7 +175,7 @@
         },
         {
           "behavior": "תאורה בצבעים בתורות",
-          "verb": "round-robin",
+          "verb": "rotate",
           "material": "choice"
         }
       ]
@@ -187,13 +187,13 @@
       "needs": [
         {
           "behavior": "מחכים שיצטברו",
-          "verb": "NEW:accumulate",
+          "verb": "accumulate",
           "material": "number",
           "detail": "צובר — ערך שגדל מעט בכל צעד-זמן עד שמשהו מרוקן אותו"
         },
         {
           "behavior": "עוברים כשהדרך פנויה",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         },
         {
@@ -203,7 +203,7 @@
         },
         {
           "behavior": "שוטר מחליף כיוונים",
-          "verb": "round-robin",
+          "verb": "rotate",
           "material": "sequence"
         },
         {
@@ -225,7 +225,7 @@
         },
         {
           "behavior": "חיפוש ספר",
-          "verb": "search",
+          "verb": "lookup",
           "material": "text"
         },
         {
@@ -245,7 +245,7 @@
         },
         {
           "behavior": "הכי מושאלים",
-          "verb": "rank-tiers",
+          "verb": "tier",
           "material": "list"
         }
       ]
@@ -273,12 +273,12 @@
         },
         {
           "behavior": "מתחזק כשמישהו עובר",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         },
         {
           "behavior": "פנס שרוף מדווח",
-          "verb": "tolerate-failure",
+          "verb": "tolerate",
           "material": "list"
         }
       ]
@@ -310,7 +310,7 @@
         },
         {
           "behavior": "בלילה מהבהב צהוב",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         },
         {
@@ -357,7 +357,7 @@
         },
         {
           "behavior": "קריאות המוכרים",
-          "verb": "round-robin",
+          "verb": "rotate",
           "material": "sound"
         }
       ]

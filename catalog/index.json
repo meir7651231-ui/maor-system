@@ -55,52 +55,59 @@
    "repo": "meir7651231-ui/MMMM",
    "ref": "main@4bec20ae13aab7abe6dc9b9ae63caa3ebfcefc3b",
    "parts": 84
+  },
+  {
+   "source": "core",
+   "repo": "meir7651231-ui/maor-system",
+   "ref": "claude/mined-verbs-261014@939ae480300dd141a69a50d0a47a1b3d78939292",
+   "parts": 15
   }
  ],
  "totals": {
-  "parts": 5843,
+  "parts": 5858,
   "what": {
    "function": 2227,
    "particle": 1158,
    "component": 1010,
    "engine": 598,
    "rule": 577,
-   "brick": 273
+   "brick": 288
   },
   "lang": {
    "dart": 2785,
    "py": 1096,
    "ts": 1024,
-   "js": 724,
+   "js": 739,
    "machine": 214
   },
   "gives": {
    "ui": 1023,
-   "record:*": 987,
-   "list": 796,
+   "record:*": 989,
+   "list": 797,
    "unknown": 708,
    "text": 692,
    "bool": 503,
    "choice": 461,
-   "number": 385,
+   "number": 390,
    "amount": 108,
-   "sequence": 77,
+   "sequence": 81,
    "date": 45,
-   "times": 18,
+   "times": 19,
    "waiting": 17,
    "file": 10,
    "span": 7,
    "image": 4,
+   "geo": 2,
    "sound": 2
   },
   "verbs": {
    "validate:static": 233,
    "format:run": 95,
    "provide:run": 80,
-   "normalize:run": 72,
+   "normalize:run": 73,
    "validate:run": 58,
    "combine:static": 47,
-   "convert:run": 42,
+   "convert:run": 44,
    "normalize:static": 40,
    "assign-role:static": 39,
    "provide:static": 38,
@@ -175,22 +182,37 @@
    "offset:static": 2,
    "split:run": 2,
    "transcript:run": 2,
+   "accumulate:run": 1,
    "average:run": 1,
    "average:twin": 1,
+   "bounce:run": 1,
    "clamp:twin": 1,
    "compare:twin": 1,
    "count:twin": 1,
+   "countdown:run": 1,
+   "decay:run": 1,
+   "echo:run": 1,
    "escalate:run": 1,
    "fingerprint:run": 1,
    "fingerprint:twin": 1,
+   "follow:run": 1,
    "fuzzy:run": 1,
+   "gravity:run": 1,
    "map:twin": 1,
    "merge:run": 1,
+   "move-along-path:run": 1,
    "next:run": 1,
    "offset:twin": 1,
+   "orbit:run": 1,
+   "oscillate:run": 1,
+   "random:run": 1,
    "reverse:run": 1,
    "rotate:run": 1,
+   "sample:run": 1,
+   "shortest-path:run": 1,
    "sort:run": 1,
+   "spread:run": 1,
+   "sun-position:run": 1,
    "tally:run": 1,
    "tally:twin": 1
   }
@@ -553,6 +575,35 @@
     "run": 29
    },
    "withVerb": 15
+  },
+  "core": {
+   "parts": 15,
+   "pure": 15,
+   "what": {
+    "brick": 15
+   },
+   "lang": {
+    "js": 15
+   },
+   "gives": {
+    "number": 5,
+    "sequence": 4,
+    "geo": 2,
+    "record:*": 2,
+    "list": 1,
+    "times": 1
+   },
+   "takes": {
+    "record:*": 15,
+    "number": 10,
+    "sequence": 2,
+    "choice": 1,
+    "date": 1
+   },
+   "labeledBy": {
+    "run": 15
+   },
+   "withVerb": 15
   }
  },
  "plugs": {
@@ -606,9 +657,10 @@
     },
     "takes": {
      "buildsmart": 49,
-     "orbit": 49
+     "orbit": 49,
+     "core": 1
     },
-    "pairs": 45178
+    "pairs": 45639
    },
    "date": {
     "gives": {
@@ -620,9 +672,10 @@
      "orbit": 193,
      "generator": 102,
      "buildsmart": 20,
-     "yeshiva": 5
+     "yeshiva": 5,
+     "core": 1
     },
-    "pairs": 14400
+    "pairs": 14445
    },
    "file": {
     "gives": {
@@ -639,12 +692,14 @@
     "pairs": 240
    },
    "geo": {
-    "gives": {},
+    "gives": {
+     "core": 2
+    },
     "takes": {
      "orbit": 6,
      "buildsmart": 1
     },
-    "pairs": 0
+    "pairs": 14
    },
    "image": {
     "gives": {
@@ -665,6 +720,7 @@
      "14kk": 21,
      "mmmm": 9,
      "rings": 7,
+     "core": 1,
      "yoman-habina": 1
     },
     "takes": {
@@ -678,7 +734,7 @@
      "qa-scanner": 7,
      "yoman-habina": 1
     },
-    "pairs": 1020472
+    "pairs": 1021754
    },
    "number": {
     "gives": {
@@ -688,6 +744,7 @@
      "buildsmart": 39,
      "14kk": 29,
      "yeshiva": 14,
+     "core": 5,
      "mmmm": 1
     },
     "takes": {
@@ -696,15 +753,23 @@
      "buildsmart": 116,
      "rings": 111,
      "yeshiva": 61,
+     "core": 10,
      "qa-scanner": 4,
      "mmmm": 3
     },
-    "pairs": 281820
+    "pairs": 289380
    },
    "record:abortSignal": {
     "gives": {},
     "takes": {
      "mmmm": 1
+    },
+    "pairs": 0
+   },
+   "record:accumulateSpec": {
+    "gives": {},
+    "takes": {
+     "core": 1
     },
     "pairs": 0
    },
@@ -1106,6 +1171,15 @@
     },
     "pairs": 1
    },
+   "record:body": {
+    "gives": {
+     "core": 1
+    },
+    "takes": {
+     "core": 1
+    },
+    "pairs": 1
+   },
    "record:bookingsKpis": {
     "gives": {
      "orbit": 1
@@ -1117,6 +1191,13 @@
     "gives": {},
     "takes": {
      "generator": 1
+    },
+    "pairs": 0
+   },
+   "record:bounceSpec": {
+    "gives": {},
+    "takes": {
+     "core": 1
     },
     "pairs": 0
    },
@@ -1833,6 +1914,13 @@
     "takes": {},
     "pairs": 0
    },
+   "record:countdownSpec": {
+    "gives": {},
+    "takes": {
+     "core": 1
+    },
+    "pairs": 0
+   },
    "record:counter": {
     "gives": {},
     "takes": {
@@ -2012,6 +2100,13 @@
     "gives": {},
     "takes": {
      "orbit": 1
+    },
+    "pairs": 0
+   },
+   "record:decaySpec": {
+    "gives": {},
+    "takes": {
+     "core": 1
     },
     "pairs": 0
    },
@@ -2198,6 +2293,13 @@
     "gives": {},
     "takes": {
      "orbit": 1
+    },
+    "pairs": 0
+   },
+   "record:echoSpec": {
+    "gives": {},
+    "takes": {
+     "core": 1
     },
     "pairs": 0
    },
@@ -2548,6 +2650,13 @@
     "takes": {},
     "pairs": 0
    },
+   "record:followSpec": {
+    "gives": {},
+    "takes": {
+     "core": 1
+    },
+    "pairs": 0
+   },
    "record:fontWeight": {
     "gives": {
      "buildsmart": 1
@@ -2718,6 +2827,27 @@
     "takes": {
      "generator": 2
     },
+    "pairs": 0
+   },
+   "record:graphSpec": {
+    "gives": {},
+    "takes": {
+     "core": 1
+    },
+    "pairs": 0
+   },
+   "record:gravitySpec": {
+    "gives": {},
+    "takes": {
+     "core": 1
+    },
+    "pairs": 0
+   },
+   "record:gravityState": {
+    "gives": {
+     "core": 1
+    },
+    "takes": {},
     "pairs": 0
    },
    "record:gridCell": {
@@ -3730,6 +3860,13 @@
     },
     "pairs": 0
    },
+   "record:orbitSpec": {
+    "gives": {},
+    "takes": {
+     "core": 1
+    },
+    "pairs": 0
+   },
    "record:order": {
     "gives": {
      "yeshiva": 2
@@ -3808,6 +3945,13 @@
     "gives": {},
     "takes": {
      "orbit": 2
+    },
+    "pairs": 0
+   },
+   "record:oscillateSpec": {
+    "gives": {},
+    "takes": {
+     "core": 1
     },
     "pairs": 0
    },
@@ -3920,6 +4064,13 @@
     "gives": {},
     "takes": {
      "14kk": 2
+    },
+    "pairs": 0
+   },
+   "record:pathSpec": {
+    "gives": {},
+    "takes": {
+     "core": 1
     },
     "pairs": 0
    },
@@ -4711,6 +4862,13 @@
     },
     "pairs": 0
    },
+   "record:randomSpec": {
+    "gives": {},
+    "takes": {
+     "core": 1
+    },
+    "pairs": 0
+   },
    "record:rank": {
     "gives": {
      "buildsmart": 2
@@ -5090,6 +5248,13 @@
      "yeshiva": 1
     },
     "takes": {},
+    "pairs": 0
+   },
+   "record:sampleSpec": {
+    "gives": {},
+    "takes": {
+     "core": 1
+    },
     "pairs": 0
    },
    "record:sanitizeTemplates": {
@@ -5529,6 +5694,13 @@
     },
     "pairs": 12
    },
+   "record:spreadSpec": {
+    "gives": {},
+    "takes": {
+     "core": 1
+    },
+    "pairs": 0
+   },
    "record:st": {
     "gives": {},
     "takes": {
@@ -5678,6 +5850,13 @@
      "yeshiva": 1
     },
     "pairs": 1
+   },
+   "record:sunSpec": {
+    "gives": {},
+    "takes": {
+     "core": 1
+    },
+    "pairs": 0
    },
    "record:supAgg": {
     "gives": {
@@ -6517,13 +6696,15 @@
    "sequence": {
     "gives": {
      "orbit": 76,
+     "core": 4,
      "rings": 1
     },
     "takes": {
      "generator": 12,
-     "orbit": 5
+     "orbit": 5,
+     "core": 2
     },
-    "pairs": 1309
+    "pairs": 1539
    },
    "sound": {
     "gives": {
@@ -6571,14 +6752,15 @@
    },
    "times": {
     "gives": {
-     "orbit": 18
+     "orbit": 18,
+     "core": 1
     },
     "takes": {
      "orbit": 47,
      "buildsmart": 1,
      "generator": 1
     },
-    "pairs": 882
+    "pairs": 931
    },
    "waiting": {
     "gives": {
@@ -6601,7 +6783,8 @@
     "qa-scanner": 6785,
     "yoman-habina": 4009,
     "14kk": 11285,
-    "mmmm": 8612
+    "mmmm": 8612,
+    "core": 847
    },
    "buildsmart": {
     "orbit": 135655,
@@ -6612,7 +6795,8 @@
     "qa-scanner": 7252,
     "yoman-habina": 4083,
     "14kk": 11750,
-    "mmmm": 9056
+    "mmmm": 9056,
+    "core": 415
    },
    "generator": {
     "orbit": 153506,
@@ -6623,7 +6807,8 @@
     "qa-scanner": 9199,
     "yoman-habina": 5307,
     "14kk": 14846,
-    "mmmm": 11100
+    "mmmm": 11100,
+    "core": 927
    },
    "rings": {
     "orbit": 19374,
@@ -6634,7 +6819,8 @@
     "qa-scanner": 633,
     "yoman-habina": 7,
     "14kk": 49,
-    "mmmm": 501
+    "mmmm": 501,
+    "core": 1462
    },
    "yeshiva": {
     "orbit": 76441,
@@ -6645,7 +6831,8 @@
     "qa-scanner": 2987,
     "yoman-habina": 1429,
     "14kk": 4348,
-    "mmmm": 3491
+    "mmmm": 3491,
+    "core": 485
    },
    "qa-scanner": {
     "orbit": 5283,
@@ -6656,7 +6843,8 @@
     "qa-scanner": 1024,
     "yoman-habina": 23,
     "14kk": 276,
-    "mmmm": 37
+    "mmmm": 37,
+    "core": 38
    },
    "yoman-habina": {
     "orbit": 1086,
@@ -6667,7 +6855,8 @@
     "qa-scanner": 66,
     "yoman-habina": 43,
     "14kk": 117,
-    "mmmm": 83
+    "mmmm": 83,
+    "core": 3
    },
    "14kk": {
     "orbit": 11653,
@@ -6678,7 +6867,8 @@
     "qa-scanner": 396,
     "yoman-habina": 42,
     "14kk": 225,
-    "mmmm": 313
+    "mmmm": 313,
+    "core": 322
    },
    "mmmm": {
     "orbit": 8647,
@@ -6689,13 +6879,275 @@
     "qa-scanner": 617,
     "yoman-habina": 389,
     "14kk": 1060,
-    "mmmm": 792
+    "mmmm": 792,
+    "core": 11
+   },
+   "core": {
+    "orbit": 959,
+    "buildsmart": 780,
+    "generator": 2284,
+    "rings": 600,
+    "yeshiva": 391,
+    "qa-scanner": 27,
+    "yoman-habina": 1,
+    "14kk": 7,
+    "mmmm": 24,
+    "core": 59
    }
   }
  },
+ "twins": {
+  "note": "חלק-ליבה (catalog/core) = הפעולה בלי עולם; twins = החלקים בקטלוג שממנה חולצה; origins = כמה מקומות בקוד נמצאה (catalog/core/origins.json).",
+  "list": [
+   {
+    "core": "core:catalog/core/accumulate.mjs#accumulate",
+    "verb": "accumulate",
+    "builtNew": false,
+    "origins": 12,
+    "sources": [
+     "orbit",
+     "buildsmart",
+     "generator",
+     "rings",
+     "qa-scanner",
+     "mmmm"
+    ],
+    "twins": [
+     "generator:new/dart-maor/box-total.dart#boxTotal",
+     "orbit:src/components/tzedaka/lib.ts#boxTotal"
+    ]
+   },
+   {
+    "core": "core:catalog/core/bounce.mjs#bounce",
+    "verb": "bounce",
+    "builtNew": true,
+    "origins": 5,
+    "sources": [
+     "orbit",
+     "buildsmart",
+     "generator",
+     "mmmm"
+    ],
+    "twins": []
+   },
+   {
+    "core": "core:catalog/core/countdown.mjs#countdown",
+    "verb": "countdown",
+    "builtNew": false,
+    "origins": 12,
+    "sources": [
+     "orbit",
+     "buildsmart",
+     "generator",
+     "yeshiva",
+     "qa-scanner",
+     "14kk"
+    ],
+    "twins": [
+     "generator:new/dart-ui-bs/countdown_timer.dart#Countdown",
+     "orbit:src/components/hosting/kitchen.ts#countdown",
+     "orbit:src/components/shop/lib.ts#couponExpiry",
+     "yeshiva:arena/shop/pricing.py#Coupon.usable"
+    ]
+   },
+   {
+    "core": "core:catalog/core/decay.mjs#decay",
+    "verb": "decay",
+    "builtNew": false,
+    "origins": 10,
+    "sources": [
+     "orbit",
+     "buildsmart",
+     "generator",
+     "rings",
+     "14kk"
+    ],
+    "twins": []
+   },
+   {
+    "core": "core:catalog/core/echo.mjs#echo",
+    "verb": "echo",
+    "builtNew": false,
+    "origins": 6,
+    "sources": [
+     "orbit",
+     "buildsmart",
+     "14kk",
+     "mmmm"
+    ],
+    "twins": [
+     "14kk:services/api-gateway/server.js#checkServiceHealth",
+     "buildsmart:app_flutter/lib/state/intel/presence.dart#presenceLive"
+    ]
+   },
+   {
+    "core": "core:catalog/core/follow.mjs#follow",
+    "verb": "follow",
+    "builtNew": false,
+    "origins": 7,
+    "sources": [
+     "orbit",
+     "buildsmart",
+     "generator",
+     "rings",
+     "mmmm"
+    ],
+    "twins": []
+   },
+   {
+    "core": "core:catalog/core/gravity.mjs#gravity",
+    "verb": "gravity",
+    "builtNew": false,
+    "origins": 6,
+    "sources": [
+     "orbit",
+     "generator"
+    ],
+    "twins": [
+     "generator:new/dart-ui-bs/confetti_burst.dart#ConfettiBurst"
+    ]
+   },
+   {
+    "core": "core:catalog/core/move-along-path.mjs#moveAlongPath",
+    "verb": "move-along-path",
+    "builtNew": false,
+    "origins": 9,
+    "sources": [
+     "orbit",
+     "buildsmart",
+     "generator",
+     "rings",
+     "yeshiva",
+     "mmmm"
+    ],
+    "twins": [
+     "mmmm:artifacts/api-server/src/swarm/agents.ts#runSwarm",
+     "orbit:src/components/shop7/lib.ts#advanceStatus",
+     "orbit:src/components/shop7/lib.ts#volunteerRouteStops"
+    ]
+   },
+   {
+    "core": "core:catalog/core/orbit.mjs#orbit",
+    "verb": "orbit",
+    "builtNew": false,
+    "origins": 9,
+    "sources": [
+     "orbit",
+     "buildsmart",
+     "generator",
+     "rings"
+    ],
+    "twins": [
+     "buildsmart:app_flutter/lib/features/fittings/render/camera.dart#orbitEye",
+     "orbit:src/components/supporters/constellation.ts#donorConstellation",
+     "orbit:src/components/supporters/universe3d.ts#project"
+    ]
+   },
+   {
+    "core": "core:catalog/core/oscillate.mjs#oscillate",
+    "verb": "oscillate",
+    "builtNew": false,
+    "origins": 10,
+    "sources": [
+     "orbit",
+     "buildsmart",
+     "generator",
+     "rings",
+     "14kk"
+    ],
+    "twins": [
+     "generator:new/dart-ui-bs/glow_pulse.dart#GlowPulse",
+     "generator:new/dart-ui-bs/notify_badge.dart#NotifyBadge"
+    ]
+   },
+   {
+    "core": "core:catalog/core/random.mjs#random",
+    "verb": "random",
+    "builtNew": false,
+    "origins": 9,
+    "sources": [
+     "orbit",
+     "buildsmart",
+     "generator",
+     "rings",
+     "14kk"
+    ],
+    "twins": [
+     "generator:new/dart-ui-bs/particle_field.dart#ParticleField",
+     "orbit:src/components/hosting/seating.ts#seatShuffle",
+     "orbit:src/components/supporters/constellation.ts#donorConstellation"
+    ]
+   },
+   {
+    "core": "core:catalog/core/sample.mjs#sample",
+    "verb": "sample",
+    "builtNew": false,
+    "origins": 8,
+    "sources": [
+     "buildsmart",
+     "generator",
+     "rings",
+     "yeshiva",
+     "14kk",
+     "mmmm"
+    ],
+    "twins": []
+   },
+   {
+    "core": "core:catalog/core/shortest-path.mjs#shortestPath",
+    "verb": "shortest-path",
+    "builtNew": false,
+    "origins": 7,
+    "sources": [
+     "orbit",
+     "buildsmart",
+     "generator",
+     "rings",
+     "qa-scanner"
+    ],
+    "twins": [
+     "buildsmart:app_flutter/lib/logic/install_engine.dart#findShortestPath",
+     "generator:new/dart/find_shortest_path.dart#findShortestPath",
+     "qa-scanner:scanner.py#crawl"
+    ]
+   },
+   {
+    "core": "core:catalog/core/spread.mjs#spread",
+    "verb": "spread",
+    "builtNew": false,
+    "origins": 7,
+    "sources": [
+     "orbit",
+     "buildsmart",
+     "generator",
+     "rings",
+     "yeshiva",
+     "qa-scanner"
+    ],
+    "twins": [
+     "generator:new/dart-maor/plan-demo-cleanup.dart#planDemoCleanup",
+     "qa-scanner:scanner.py#crawl",
+     "yeshiva:yeshiva/shiura.py#UnionFind"
+    ]
+   },
+   {
+    "core": "core:catalog/core/sun-position.mjs#sunPosition",
+    "verb": "sun-position",
+    "builtNew": false,
+    "origins": 3,
+    "sources": [
+     "orbit"
+    ],
+    "twins": [
+     "orbit:src/components/parnasa/zmanimBoard.ts#sunAngleTime",
+     "orbit:telephony/lib/zmanim.mjs#sunset"
+    ]
+   }
+  ]
+ },
  "dups": {
   "groups": 492,
-  "parts": 1014,
+  "parts": 1015,
   "byConfidence": {
    "declared": 459,
    "signature": 19,
@@ -6788,7 +7240,7 @@
   {"key":"coordinatorboxes","confidence":"declared","sources":["generator","orbit"],"members":["generator:new/dart-maor/coordinator-boxes.dart#coordinatorBoxes","orbit:src/components/tzedaka/lib.ts#coordinatorBoxes"]},
   {"key":"coordinatorprintlines","confidence":"declared","sources":["generator","orbit"],"members":["generator:new/dart-maor/coordinator-print-lines.dart#coordinatorPrintLines","orbit:src/components/tzedaka/lib.ts#coordinatorPrintLines"]},
   {"key":"coordinatortotal","confidence":"declared","sources":["generator","orbit"],"members":["generator:new/dart-maor/coordinator-total.dart#coordinatorTotal","orbit:src/components/tzedaka/lib.ts#coordinatorTotal"]},
-  {"key":"countdown","confidence":"name","sources":["generator","orbit"],"members":["generator:new/dart-ui-bs/countdown_timer.dart#Countdown","orbit:src/components/hosting/kitchen.ts#countdown"]},
+  {"key":"countdown","confidence":"name","sources":["core","generator","orbit"],"members":["core:catalog/core/countdown.mjs#countdown","generator:new/dart-ui-bs/countdown_timer.dart#Countdown","orbit:src/components/hosting/kitchen.ts#countdown"]},
   {"key":"coupler","confidence":"declared","sources":["buildsmart","generator"],"members":["buildsmart:app_flutter/lib/features/fittings/engine/fitting_dims.dart#coupler","generator:new/dart/coupler.dart#coupler"]},
   {"key":"couponexpiry","confidence":"declared","sources":["generator","orbit"],"members":["generator:new/dart-maor/coupon-expiry.dart#couponExpiry","orbit:src/components/shop/lib.ts#couponExpiry"]},
   {"key":"coursedateerror","confidence":"declared","sources":["generator","orbit"],"members":["generator:new/dart-maor/course-date-error.dart#courseDateError","orbit:src/components/courses/lib.ts#courseDateError"]},
@@ -7310,7 +7762,7 @@
   {"id":"14kk:services/ai-telegram-integration.js#AITelegramIntegration.analyzeIntent","source":"14kk","name":"לנתח כוונה","what":"function","lang":"js","takes":["text","record:context"],"gives":"choice","pure":true,"labeledBy":"static"},
   {"id":"14kk:services/ai-telegram-integration.js#AITelegramIntegration.getHelpMessage","source":"14kk","name":"להביא הודעה עזרה","what":"function","lang":"js","takes":[],"gives":"record:helpMessage","pure":true,"labeledBy":"static"},
   {"id":"14kk:services/ai-telegram-integration.js#AITelegramIntegration.handleAutomation","source":"14kk","name":"לטפל באוטומציה","what":"function","lang":"js","takes":[],"gives":"unknown","pure":true,"labeledBy":"static"},
-  {"id":"14kk:services/api-gateway/server.js#checkServiceHealth","source":"14kk","name":"לבדוק בריאות שירות","what":"function","lang":"js","takes":["text","text"],"gives":"choice","pure":false,"labeledBy":"static"},
+  {"id":"14kk:services/api-gateway/server.js#checkServiceHealth","source":"14kk","name":"לבדוק בריאות שירות","what":"function","lang":"js","takes":["text","text"],"gives":"choice","pure":false,"core":"core:catalog/core/echo.mjs#echo","labeledBy":"static"},
   {"id":"14kk:services/api-gateway/server.js#optionalAuth","source":"14kk","name":"להפיק הזדהות אופציונלי","what":"function","lang":"js","takes":["record:http","record:http","unknown"],"gives":"unknown","pure":false,"labeledBy":"static"},
   {"id":"14kk:services/api-gateway/server.js#startServer","source":"14kk","name":"להפעיל שרת","what":"function","lang":"js","takes":[],"gives":"unknown","pure":false,"dup":"startserver","labeledBy":"static"},
   {"id":"14kk:services/api-gateway/server.js#verifyToken","source":"14kk","name":"לאמת אסימון","what":"function","lang":"js","takes":["record:http","record:http","unknown"],"gives":"choice","pure":false,"labeledBy":"static"},
@@ -7775,7 +8227,7 @@
   {"id":"buildsmart:app_flutter/lib/features/fittings/plan/safety.dart#hotLineSafetyFor","source":"buildsmart","name":"מחזיר בטיחות שורה חמים","what":"function","lang":"dart","takes":["text","number"],"gives":"list","pure":true,"labeledBy":"static"},
   {"id":"buildsmart:app_flutter/lib/features/fittings/plan/weld_table.dart#weldParamsFor","source":"buildsmart","name":"מוצא פרמטרים ריתוך","what":"function","lang":"dart","takes":["number"],"gives":"record:weldParams","pure":true,"labeledBy":"static"},
   {"id":"buildsmart:app_flutter/lib/features/fittings/render/camera.dart#lookAt","source":"buildsmart","name":"מוצא רשומה","what":"function","lang":"dart","takes":["record:vec3","record:vec3","record:vec3"],"gives":"record:mat4","pure":true,"labeledBy":"static"},
-  {"id":"buildsmart:app_flutter/lib/features/fittings/render/camera.dart#orbitEye","source":"buildsmart","name":"מוצא רשומה","what":"function","lang":"dart","takes":["record:vec3","number","number","number"],"gives":"record:vec3","pure":true,"labeledBy":"static"},
+  {"id":"buildsmart:app_flutter/lib/features/fittings/render/camera.dart#orbitEye","source":"buildsmart","name":"מוצא רשומה","what":"function","lang":"dart","takes":["record:vec3","number","number","number"],"gives":"record:vec3","pure":true,"core":"core:catalog/core/orbit.mjs#orbit","labeledBy":"static"},
   {"id":"buildsmart:app_flutter/lib/features/fittings/render/camera.dart#perspective","source":"buildsmart","name":"מוצא רשומה","what":"function","lang":"dart","takes":["number","number","number","number"],"gives":"record:mat4","pure":true,"labeledBy":"static"},
   {"id":"buildsmart:app_flutter/lib/features/fittings/render/camera.dart#projectToScreen","source":"buildsmart","name":"ממיר פרויקט למסך","what":"function","lang":"dart","takes":["record:mat4","record:mat4","record:vec3","number","number"],"gives":"record:screenPoint","pure":true,"dup":"projecttoscreen","labeledBy":"static"},
   {"id":"buildsmart:app_flutter/lib/features/fittings/render/mesh_projector.dart#meshBounds","source":"buildsmart","name":"מוצא רשת","what":"function","lang":"dart","takes":["list"],"gives":"record:tuple","pure":true,"labeledBy":"static"},
@@ -7902,7 +8354,7 @@
   {"id":"buildsmart:app_flutter/lib/logic/install_engine.dart#connectionFailReason","source":"buildsmart","name":"בונה סיבה חיבור","what":"function","lang":"dart","takes":["record:lipskeyCatalogProduct","record:lipskeyCatalogProduct"],"gives":"text","pure":true,"dup":"connectionfailreason","labeledBy":"static"},
   {"id":"buildsmart:app_flutter/lib/logic/install_engine.dart#connectionMethodLabel","source":"buildsmart","name":"בונה תווית שיטה חיבור","what":"function","lang":"dart","takes":["record:lipskeyCatalogProduct","record:lipskeyCatalogProduct","record:tradeResolution"],"gives":"text","pure":true,"labeledBy":"static"},
   {"id":"buildsmart:app_flutter/lib/logic/install_engine.dart#findAlternativePaths","source":"buildsmart","name":"מוצא מסלול חלופה","what":"function","lang":"dart","takes":["record:lipskeyCatalogProduct","record:lipskeyCatalogProduct","number","number","number"],"gives":"list","pure":true,"dup":"findalternativepaths","labeledBy":"static"},
-  {"id":"buildsmart:app_flutter/lib/logic/install_engine.dart#findShortestPath","source":"buildsmart","name":"מוצא מסלול","what":"function","lang":"dart","takes":["record:lipskeyCatalogProduct","record:lipskeyCatalogProduct","number","number"],"gives":"list","pure":true,"dup":"findshortestpath","labeledBy":"static"},
+  {"id":"buildsmart:app_flutter/lib/logic/install_engine.dart#findShortestPath","source":"buildsmart","name":"מוצא מסלול","what":"function","lang":"dart","takes":["record:lipskeyCatalogProduct","record:lipskeyCatalogProduct","number","number"],"gives":"list","pure":true,"dup":"findshortestpath","core":"core:catalog/core/shortest-path.mjs#shortestPath","labeledBy":"static"},
   {"id":"buildsmart:app_flutter/lib/logic/install_engine.dart#flowRole","source":"buildsmart","name":"מחזיר תפקיד זרימה","what":"function","lang":"dart","takes":["record:lipskeyCatalogProduct"],"gives":"choice","pure":true,"dup":"flowrole","labeledBy":"static","verbs":["assign-role"],"primary":"assign-role","material":"record:lipskey-catalog-product"},
   {"id":"buildsmart:app_flutter/lib/logic/install_engine.dart#isFitting","source":"buildsmart","name":"בודק אם אביזר","what":"function","lang":"dart","takes":["record:lipskeyCatalogProduct"],"gives":"bool","pure":true,"dup":"isfitting","labeledBy":"static","verbs":["validate"],"primary":"validate","material":"record:lipskey-catalog-product"},
   {"id":"buildsmart:app_flutter/lib/logic/install_engine.dart#isPipe","source":"buildsmart","name":"בודק אם צינור","what":"function","lang":"dart","takes":["record:lipskeyCatalogProduct"],"gives":"bool","pure":true,"dup":"ispipe","labeledBy":"static","verbs":["validate"],"primary":"validate","material":"record:lipskey-catalog-product"},
@@ -8172,7 +8624,7 @@
   {"id":"buildsmart:app_flutter/lib/state/intel/consent_gate.dart#presenceAllowedForRole","source":"buildsmart","name":"בודק מותר נוכחות עבור תפקיד","what":"rule","lang":"dart","takes":["text"],"gives":"bool","pure":true,"labeledBy":"static","verbs":["validate","assign-role"],"primary":"validate","material":"text"},
   {"id":"buildsmart:app_flutter/lib/state/intel/consent_gate.dart#presenceConsentCurrent","source":"buildsmart","name":"בודק נוכחי הסכמה נוכחות","what":"rule","lang":"dart","takes":["record:appSettings"],"gives":"bool","pure":true,"labeledBy":"static","verbs":["validate"],"primary":"validate","material":"record:app-settings"},
   {"id":"buildsmart:app_flutter/lib/state/intel/consent_gate.dart#presenceForwardEnabled","source":"buildsmart","name":"בודק נוכחות","what":"rule","lang":"dart","takes":["record:appSettings","text"],"gives":"bool","pure":true,"labeledBy":"static","verbs":["validate","relay"],"primary":"validate","material":"record:app-settings"},
-  {"id":"buildsmart:app_flutter/lib/state/intel/presence.dart#presenceLive","source":"buildsmart","name":"בודק חי נוכחות","what":"function","lang":"dart","takes":["date","date","span"],"gives":"bool","pure":true,"labeledBy":"static","verbs":["validate"],"primary":"validate","material":"date"},
+  {"id":"buildsmart:app_flutter/lib/state/intel/presence.dart#presenceLive","source":"buildsmart","name":"בודק חי נוכחות","what":"function","lang":"dart","takes":["date","date","span"],"gives":"bool","pure":true,"core":"core:catalog/core/echo.mjs#echo","labeledBy":"static","verbs":["validate"],"primary":"validate","material":"date"},
   {"id":"buildsmart:app_flutter/lib/state/intel/screen_view.dart#screenKeyForRoute","source":"buildsmart","name":"בונה מפתח מסך עבור מסלול","what":"function","lang":"dart","takes":["text"],"gives":"text","pure":true,"labeledBy":"static","verbs":["route"],"primary":"route","material":"text"},
   {"id":"buildsmart:app_flutter/lib/state/intel/screen_view.dart#screenKeyForTab","source":"buildsmart","name":"בונה מפתח מסך","what":"function","lang":"dart","takes":["number"],"gives":"text","pure":true,"labeledBy":"static"},
   {"id":"buildsmart:app_flutter/lib/state/keyboard_screen_tools.dart#currentScreenTools","source":"buildsmart","name":"מחזיר את הנוכחי של כלים מסך","what":"function","lang":"dart","takes":["list"],"gives":"list","pure":true,"labeledBy":"static"},
@@ -8314,6 +8766,21 @@
   {"id":"buildsmart:functions/src/studio.ts#decideRevert","source":"buildsmart","name":"מכריע החזרה","what":"function","lang":"ts","takes":["record:revertDecisionInput"],"gives":"record:revertVerdict","pure":true,"labeledBy":"run","traits":"in[]>obj const rec:new"},
   {"id":"buildsmart:functions/src/studio.ts#rateLimitExceeded","source":"buildsmart","name":"בודק קצב","what":"function","lang":"ts","takes":["record:object","number","span","span"],"gives":"bool","pure":true,"labeledBy":"run","traits":"in[num]>bool const"},
   {"id":"buildsmart:functions/src/studio.ts#revertStillApplies","source":"buildsmart","name":"מחזיר אחורה סטודיו","what":"function","lang":"ts","takes":["number","number"],"gives":"bool","pure":true,"labeledBy":"run","verbs":["validate"],"primary":"validate","material":"number"},
+  {"id":"core:catalog/core/accumulate.mjs#accumulate","source":"core","name":"אוסף לקופה עד שהיא מתמלאת ומרוקנת","what":"brick","lang":"js","takes":["record:accumulateSpec","sequence"],"gives":"sequence","pure":true,"labeledBy":"run","verbs":["accumulate"],"primary":"accumulate","material":"record:accumulateSpec"},
+  {"id":"core:catalog/core/bounce.mjs#bounce","source":"core","name":"מחזיר גוף מהרצפה במקדם קפיצה","what":"brick","lang":"js","takes":["record:bounceSpec","record:body"],"gives":"record:body","pure":true,"labeledBy":"run","verbs":["bounce"],"primary":"bounce","material":"record:bounceSpec"},
+  {"id":"core:catalog/core/countdown.mjs#countdown","source":"core","name":"סופר לאחור עד אפס בדיוק","what":"brick","lang":"js","takes":["record:countdownSpec","number"],"gives":"number","pure":true,"dup":"countdown","labeledBy":"run","verbs":["countdown"],"primary":"countdown","material":"record:countdownSpec"},
+  {"id":"core:catalog/core/decay.mjs#decay","source":"core","name":"מחשב ערך שדועך עד הרצפה","what":"brick","lang":"js","takes":["record:decaySpec","number"],"gives":"number","pure":true,"labeledBy":"run","verbs":["decay"],"primary":"decay","material":"record:decaySpec"},
+  {"id":"core:catalog/core/echo.mjs#echo","source":"core","name":"מודד מרחק מזמן החזרה של ההד","what":"brick","lang":"js","takes":["record:echoSpec","number"],"gives":"number","pure":true,"labeledBy":"run","verbs":["convert","echo"],"primary":"echo","material":"record:echoSpec"},
+  {"id":"core:catalog/core/follow.mjs#follow","source":"core","name":"מזיז ערך חלק קבוע מהדרך למטרה","what":"brick","lang":"js","takes":["record:followSpec","number"],"gives":"number","pure":true,"labeledBy":"run","verbs":["convert","follow"],"primary":"follow","material":"record:followSpec"},
+  {"id":"core:catalog/core/gravity.mjs#gravity","source":"core","name":"מחשב נפילה שמאיצה בכל צעד","what":"brick","lang":"js","takes":["record:gravitySpec","number"],"gives":"record:gravityState","pure":true,"labeledBy":"run","verbs":["gravity"],"primary":"gravity","material":"record:gravitySpec"},
+  {"id":"core:catalog/core/move-along-path.mjs#moveAlongPath","source":"core","name":"מזיז נקודה לאורך מסלול של תחנות","what":"brick","lang":"js","takes":["record:pathSpec","number"],"gives":"geo","pure":true,"labeledBy":"run","verbs":["move-along-path"],"primary":"move-along-path","material":"record:pathSpec"},
+  {"id":"core:catalog/core/orbit.mjs#orbit","source":"core","name":"מחשב נקודה שמקיפה מרכז במעגל","what":"brick","lang":"js","takes":["record:orbitSpec","number"],"gives":"geo","pure":true,"labeledBy":"run","verbs":["orbit"],"primary":"orbit","material":"record:orbitSpec"},
+  {"id":"core:catalog/core/oscillate.mjs#oscillate","source":"core","name":"מחשב גל שעולה ויורד סביב מרכז","what":"brick","lang":"js","takes":["record:oscillateSpec","number"],"gives":"number","pure":true,"labeledBy":"run","verbs":["oscillate"],"primary":"oscillate","material":"record:oscillateSpec"},
+  {"id":"core:catalog/core/random.mjs#random","source":"core","name":"מפיק רצף מספרים אקראי מזרע","what":"brick","lang":"js","takes":["record:randomSpec","number"],"gives":"sequence","pure":true,"labeledBy":"run","verbs":["random"],"primary":"random","material":"record:randomSpec"},
+  {"id":"core:catalog/core/sample.mjs#sample","source":"core","name":"קורא מהסביבה כל קריאה במרווח קבוע","what":"brick","lang":"js","takes":["record:sampleSpec","sequence"],"gives":"sequence","pure":true,"labeledBy":"run","verbs":["normalize","sample"],"primary":"sample","material":"record:sampleSpec"},
+  {"id":"core:catalog/core/shortest-path.mjs#shortestPath","source":"core","name":"מוצא את הדרך הזולה ברשת נקודות","what":"brick","lang":"js","takes":["record:graphSpec","choice","choice"],"gives":"sequence","pure":true,"labeledBy":"run","verbs":["shortest-path"],"primary":"shortest-path","material":"record:graphSpec"},
+  {"id":"core:catalog/core/spread.mjs#spread","source":"core","name":"מרחיב גל לכל השכנים בכל צעד","what":"brick","lang":"js","takes":["record:spreadSpec","number"],"gives":"list","pure":true,"labeledBy":"run","verbs":["spread"],"primary":"spread","material":"record:spreadSpec"},
+  {"id":"core:catalog/core/sun-position.mjs#sunPosition","source":"core","name":"מחשב מתי השמש בזווית מתחת לאופק","what":"brick","lang":"js","takes":["record:sunSpec","date"],"gives":"times","pure":true,"labeledBy":"run","verbs":["sun-position"],"primary":"sun-position","material":"record:sunSpec"},
   {"id":"generator:box-drafts/buildsmart-seed/is-barcode-supported@app_src_lib_barcode_ts.mjs#isBarcodeSupported","source":"generator","name":"בדוק אם ברקוד","what":"engine","lang":"js","takes":[],"gives":"unknown","pure":false,"labeledBy":"static","verbs":["validate"],"primary":"validate","material":"unknown"},
   {"id":"generator:box-drafts/buildsmart-seed/is-voice-supported@app_src_lib_voice_ts.mjs#isVoiceSupported","source":"generator","name":"בדוק אם קול","what":"engine","lang":"js","takes":[],"gives":"unknown","pure":false,"labeledBy":"static","verbs":["validate"],"primary":"validate","material":"unknown"},
   {"id":"generator:box-drafts/buildsmart-seed/search-exact@app_src_lib_search_ts.mjs#searchExact","source":"generator","name":"חפש מדויק","what":"engine","lang":"js","takes":[],"gives":"unknown","pure":false,"labeledBy":"static","verbs":["fuzzy"],"primary":"fuzzy","material":"unknown"},
@@ -9241,7 +9708,7 @@
   {"id":"generator:new/dart-maor/block-reason.dart#blockReason","source":"generator","name":"הפק סיבת חסימת-יום לתזמון חוגים","what":"particle","lang":"dart","takes":["date","unknown","record:any","list","record:any","bool"],"gives":"text","pure":true,"dup":"blockreason","labeledBy":"static"},
   {"id":"generator:new/dart-maor/boq-line-amount.dart#boqLineAmount","source":"generator","name":"חשב סכום שורת כתב-כמויות","what":"particle","lang":"dart","takes":["record:any"],"gives":"amount","pure":true,"labeledBy":"static"},
   {"id":"generator:new/dart-maor/boq-total.dart#boqTotal","source":"generator","name":"חשב סהכ כתב-הכמויות של תיק","what":"particle","lang":"dart","takes":["record:any","unknown"],"gives":"amount","pure":true,"labeledBy":"static","verbs":["count","sum"],"primary":"count","material":"record:any"},
-  {"id":"generator:new/dart-maor/box-total.dart#boxTotal","source":"generator","name":"חשב סך-הריקונים של קופת-צדקה","what":"particle","lang":"dart","takes":["record:any"],"gives":"amount","pure":true,"dup":"boxtotal","labeledBy":"static"},
+  {"id":"generator:new/dart-maor/box-total.dart#boxTotal","source":"generator","name":"חשב סך-הריקונים של קופת-צדקה","what":"particle","lang":"dart","takes":["record:any"],"gives":"amount","pure":true,"dup":"boxtotal","core":"core:catalog/core/accumulate.mjs#accumulate","labeledBy":"static"},
   {"id":"generator:new/dart-maor/boxes-overview.dart#boxesOverview","source":"generator","name":"הפק מבט כל הקופות עם","what":"particle","lang":"dart","takes":["record:any","text","text","text","unknown","unknown","unknown"],"gives":"list","pure":true,"dup":"boxesoverview","labeledBy":"static"},
   {"id":"generator:new/dart-maor/build-course-daily-rows.dart#buildCourseDailyRows","source":"generator","name":"בנה דוח נוכחות יומי מפורט לחוג","what":"particle","lang":"dart","takes":["record:any","record:any","record:any","unknown","unknown","list","record:any"],"gives":"record:any","pure":true,"dup":"buildcoursedailyrows","labeledBy":"static"},
   {"id":"generator:new/dart-maor/build-custom-export.dart#buildCustomExport","source":"generator","name":"הפק בונה דוח מותאם לפי טווח-תאריכים ורשימת שדות נבחרים","what":"particle","lang":"dart","takes":["record:any","record:any","text","record:any","list","record:exportSockets","record:any"],"gives":"list","pure":true,"labeledBy":"static"},
@@ -9644,7 +10111,7 @@
   {"id":"generator:new/dart-maor/pin-needs-rehash.dart#pinNeedsRehash","source":"generator","name":"בדוק האם גיבוב-PIN לגאסי שצריך שדרוג","what":"particle","lang":"dart","takes":["unknown"],"gives":"bool","pure":true,"labeledBy":"static","verbs":["validate"],"primary":"validate","material":"unknown"},
   {"id":"generator:new/dart-maor/plan-add-name.dart#planAddName","source":"generator","name":"תכנן הוספת-פריט לתיק-מעקב","what":"particle","lang":"dart","takes":["record:any","text","unknown","text","unknown","unknown","record:any"],"gives":"record:any","pure":true,"dup":"planaddname","labeledBy":"static"},
   {"id":"generator:new/dart-maor/plan-ayin-advance.dart#planAyinAdvance","source":"generator","name":"תכנן פעולת הכפתור-החכם של תיק-המעקב","what":"particle","lang":"dart","takes":["record:any","text","record:any","unknown","unknown","unknown","unknown","unknown","unknown","record:any"],"gives":"record:any","pure":true,"labeledBy":"static"},
-  {"id":"generator:new/dart-maor/plan-demo-cleanup.dart#planDemoCleanup","source":"generator","name":"תכנן ניקוי נתוני-דמו שהתערבבו בנתונים האמיתיים","what":"particle","lang":"dart","takes":["record:any","record:any","record:any","record:any"],"gives":"record:any","pure":true,"labeledBy":"static"},
+  {"id":"generator:new/dart-maor/plan-demo-cleanup.dart#planDemoCleanup","source":"generator","name":"תכנן ניקוי נתוני-דמו שהתערבבו בנתונים האמיתיים","what":"particle","lang":"dart","takes":["record:any","record:any","record:any","record:any"],"gives":"record:any","pure":true,"core":"core:catalog/core/spread.mjs#spread","labeledBy":"static"},
   {"id":"generator:new/dart-maor/plan-label-of.dart#planLabelOf","source":"generator","name":"הפק תווית-המסלול","what":"particle","lang":"dart","takes":["record:any","unknown","unknown","record:any"],"gives":"text","pure":true,"dup":"planlabelof","labeledBy":"static"},
   {"id":"generator:new/dart-maor/plan-nedarim-sync.dart#planNedarimSync","source":"generator","name":"בנה מנוע-הסנכרון נדרים→מאור (תוכנית טהורה)","what":"particle","lang":"dart","takes":["list","list","list","record:any","unknown","unknown","unknown","unknown","unknown","unknown","unknown","unknown","unknown","unknown"],"gives":"record:any","pure":true,"labeledBy":"static"},
   {"id":"generator:new/dart-maor/plan-supporter-import.dart#planSupporterImport","source":"generator","name":"תכנן ייבוא-תומכות (עדכון-או-הוספה לפי שם מנורמל)","what":"particle","lang":"dart","takes":["list","list","unknown","unknown"],"gives":"record:any","pure":true,"dup":"plansupporterimport","labeledBy":"static"},
@@ -10109,9 +10576,9 @@
   {"id":"generator:new/dart-ui-bs/check_pop.dart#CheckPop","source":"generator","name":"הצג תיבת-סימון עם וי מצויר וקפיצה","what":"component","lang":"dart","takes":["text","number","number","ui","ui","ui"],"gives":"ui","pure":false,"labeledBy":"static"},
   {"id":"generator:new/dart-ui-bs/chip_cloud.dart#ChipCloud","source":"generator","name":"הצג ענן-תגיות נבחרות עם קפיצת-בחירה","what":"component","lang":"dart","takes":["list","number","number","ui","ui","ui"],"gives":"ui","pure":false,"labeledBy":"static"},
   {"id":"generator:new/dart-ui-bs/color_swatch.dart#ColorSwatchRow","source":"generator","name":"הצג בורר-צבעים בגלגול-גוון","what":"component","lang":"dart","takes":["number","ui","ui","ui"],"gives":"ui","pure":false,"labeledBy":"static"},
-  {"id":"generator:new/dart-ui-bs/confetti_burst.dart#ConfettiBurst","source":"generator","name":"הצג התפרצות-קונפטי מחזורית","what":"component","lang":"dart","takes":["number","number","number","number","ui","ui","ui","ui","number"],"gives":"ui","pure":false,"labeledBy":"static"},
+  {"id":"generator:new/dart-ui-bs/confetti_burst.dart#ConfettiBurst","source":"generator","name":"הצג התפרצות-קונפטי מחזורית","what":"component","lang":"dart","takes":["number","number","number","number","ui","ui","ui","ui","number"],"gives":"ui","pure":false,"core":"core:catalog/core/gravity.mjs#gravity","labeledBy":"static"},
   {"id":"generator:new/dart-ui-bs/count_up.dart#CountUp","source":"generator","name":"הצג מונה שמטפס 0→יעד בכניסה","what":"component","lang":"dart","takes":["text","number","number","number","ui","ui","ui"],"gives":"ui","pure":false,"labeledBy":"static"},
-  {"id":"generator:new/dart-ui-bs/countdown_timer.dart#Countdown","source":"generator","name":"הצג שעון-ספירה-לאחור M","what":"component","lang":"dart","takes":["number","ui","ui","ui"],"gives":"ui","pure":false,"dup":"countdown","labeledBy":"static"},
+  {"id":"generator:new/dart-ui-bs/countdown_timer.dart#Countdown","source":"generator","name":"הצג שעון-ספירה-לאחור M","what":"component","lang":"dart","takes":["number","ui","ui","ui"],"gives":"ui","pure":false,"dup":"countdown","core":"core:catalog/core/countdown.mjs#countdown","labeledBy":"static"},
   {"id":"generator:new/dart-ui-bs/data_grid.dart#DataGrid","source":"generator","name":"הצג טבלה קטנה ששורותיה נכנסות בהדרגה","what":"component","lang":"dart","takes":["number","number","number","ui","ui","ui"],"gives":"ui","pure":false,"labeledBy":"static"},
   {"id":"generator:new/dart-ui-bs/date_pills.dart#DatePills","source":"generator","name":"הצג רצועת-תאריכים אופקית עם נבחר","what":"component","lang":"dart","takes":["number","ui","ui","ui"],"gives":"ui","pure":false,"labeledBy":"static"},
   {"id":"generator:new/dart-ui-bs/donut_chart.dart#DonutChart","source":"generator","name":"הצג תרשים-טבעת עם קשתות שנפרשות","what":"component","lang":"dart","takes":["number","number","number","ui","ui","ui","number"],"gives":"ui","pure":false,"labeledBy":"static"},
@@ -10185,7 +10652,7 @@
   {"id":"generator:new/dart-ui-bs/generative_canvas.dart#GenerativeCanvas","source":"generator","name":"הצג שדה-רעש גנרטיבי מונפש","what":"component","lang":"dart","takes":["number","number","number","number","ui","ui","ui","number"],"gives":"ui","pure":false,"labeledBy":"static"},
   {"id":"generator:new/dart-ui-bs/glass_card.dart#GlassCard","source":"generator","name":"הצג כרטיס-זכוכית מטושטש עם כניסה מונפשת","what":"component","lang":"dart","takes":["text","text","number","number","ui","ui","ui"],"gives":"ui","pure":false,"labeledBy":"static"},
   {"id":"generator:new/dart-ui-bs/glow_field.dart#GlowField","source":"generator","name":"הצג שדה-קלט עם הילת-מיקוד מונפשת","what":"component","lang":"dart","takes":["text","number","number","ui","ui","ui"],"gives":"ui","pure":false,"labeledBy":"static"},
-  {"id":"generator:new/dart-ui-bs/glow_pulse.dart#GlowPulse","source":"generator","name":"הצג הילת-זוהר נושמת","what":"component","lang":"dart","takes":["number","number","number","ui","ui","ui"],"gives":"ui","pure":false,"labeledBy":"static"},
+  {"id":"generator:new/dart-ui-bs/glow_pulse.dart#GlowPulse","source":"generator","name":"הצג הילת-זוהר נושמת","what":"component","lang":"dart","takes":["number","number","number","ui","ui","ui"],"gives":"ui","pure":false,"core":"core:catalog/core/oscillate.mjs#oscillate","labeledBy":"static"},
   {"id":"generator:new/dart-ui-bs/glow_slider.dart#GlowSlider","source":"generator","name":"הצג מחוון עם מסלול-זוהר וכדור-נגרר","what":"component","lang":"dart","takes":["text","number","number","ui","ui","ui"],"gives":"ui","pure":false,"labeledBy":"static"},
   {"id":"generator:new/dart-ui-bs/gradient_pulse_button.dart#GradientPulseButton","source":"generator","name":"הצג כפתור עם גרדיאנט נודד + כיווץ-לחיצה","what":"component","lang":"dart","takes":["text","number","number","ui","ui","ui","unknown"],"gives":"ui","pure":false,"labeledBy":"static"},
   {"id":"generator:new/dart-ui-bs/gradient_sweep.dart#GradientSweep","source":"generator","name":"הצג מטאטא-גרדיאנט מסתובב","what":"component","lang":"dart","takes":["number","number","number","ui","ui","ui","ui"],"gives":"ui","pure":false,"labeledBy":"static"},
@@ -10203,13 +10670,13 @@
   {"id":"generator:new/dart-ui-bs/modal_dialog.dart#ModalDialog","source":"generator","name":"הצג דיאלוג שנכנס בקפיצה עם שני כפתורים","what":"component","lang":"dart","takes":["text","text","ui","ui","ui"],"gives":"ui","pure":false,"labeledBy":"static"},
   {"id":"generator:new/dart-ui-bs/neon_button.dart#NeonButton","source":"generator","name":"הצג כפתור-ניאון עם הילה נושמת + לחיצה-מכווצת","what":"component","lang":"dart","takes":["text","number","number","ui","ui","unknown"],"gives":"ui","pure":false,"labeledBy":"static"},
   {"id":"generator:new/dart-ui-bs/notif_item.dart#NotifItem","source":"generator","name":"הצג פריט-התראה עם אייקון ונקודה-לא-נקראה","what":"component","lang":"dart","takes":["text","text","ui","ui","ui"],"gives":"ui","pure":false,"labeledBy":"static"},
-  {"id":"generator:new/dart-ui-bs/notify_badge.dart#NotifyBadge","source":"generator","name":"הצג אייקון עם תגית-מונה פועמת","what":"component","lang":"dart","takes":["ui","number","number","number","ui","ui","ui"],"gives":"ui","pure":false,"labeledBy":"static"},
+  {"id":"generator:new/dart-ui-bs/notify_badge.dart#NotifyBadge","source":"generator","name":"הצג אייקון עם תגית-מונה פועמת","what":"component","lang":"dart","takes":["ui","number","number","number","ui","ui","ui"],"gives":"ui","pure":false,"core":"core:catalog/core/oscillate.mjs#oscillate","labeledBy":"static"},
   {"id":"generator:new/dart-ui-bs/number_stepper.dart#NumberStepper","source":"generator","name":"הצג המנוע","what":"component","lang":"dart","takes":["text","ui","ui","ui"],"gives":"ui","pure":false,"labeledBy":"static"},
   {"id":"generator:new/dart-ui-bs/orbit_spinner.dart#OrbitSpinner","source":"generator","name":"הצג טוען מסתובב (קשת נעה)","what":"component","lang":"dart","takes":["number","number","ui","ui"],"gives":"ui","pure":false,"labeledBy":"static"},
   {"id":"generator:new/dart-ui-bs/order_card.dart#OrderCard","source":"generator","name":"הצג כרטיס-הזמנה","what":"component","lang":"dart","takes":["text","text","text","unknown","ui","ui","ui","ui","number","number"],"gives":"ui","pure":true,"labeledBy":"static"},
   {"id":"generator:new/dart-ui-bs/otp_input.dart#OtpInput","source":"generator","name":"הצג תיבות-קוד עם סמן מתקדם","what":"component","lang":"dart","takes":["number","ui","ui","ui"],"gives":"ui","pure":false,"labeledBy":"static"},
   {"id":"generator:new/dart-ui-bs/parallax_tilt.dart#ParallaxTilt","source":"generator","name":"הצג עומק תלת-ממדי בהטיה מתנדנדת","what":"component","lang":"dart","takes":["number","number","number","number","ui","ui","ui"],"gives":"ui","pure":false,"labeledBy":"static"},
-  {"id":"generator:new/dart-ui-bs/particle_field.dart#ParticleField","source":"generator","name":"הצג שדה-חלקיקים מונפש","what":"component","lang":"dart","takes":["number","number","number","number","ui","ui","ui","number"],"gives":"ui","pure":false,"labeledBy":"static"},
+  {"id":"generator:new/dart-ui-bs/particle_field.dart#ParticleField","source":"generator","name":"הצג שדה-חלקיקים מונפש","what":"component","lang":"dart","takes":["number","number","number","number","ui","ui","ui","number"],"gives":"ui","pure":false,"core":"core:catalog/core/random.mjs#random","labeledBy":"static"},
   {"id":"generator:new/dart-ui-bs/pill_button.dart#PillButton","source":"generator","name":"הצג כפתור-גלולה","what":"component","lang":"dart","takes":["text","unknown","ui","ui","ui","ui","number","bool"],"gives":"ui","pure":true,"labeledBy":"static"},
   {"id":"generator:new/dart-ui-bs/pin_pad.dart#PinPad","source":"generator","name":"הצג מקלדת-ספרות 3×4 עם הבהוב-הקשה","what":"component","lang":"dart","takes":["unknown","unknown","number","number","ui","ui","ui"],"gives":"ui","pure":false,"labeledBy":"static"},
   {"id":"generator:new/dart-ui-bs/placeholder_row.dart#PlaceholderRow","source":"generator","name":"הצג שורת-בבנייה","what":"component","lang":"dart","takes":["text","text","unknown","ui","ui"],"gives":"ui","pure":true,"labeledBy":"static"},
@@ -10487,7 +10954,7 @@
   {"id":"generator:new/dart/find_alternative_paths.dart#findAlternativePaths","source":"generator","name":"הפק אלגוריתם בסגנון-Yen","what":"particle","lang":"dart","takes":["record:altNode","record:altNode","number","number","number","unknown","unknown","unknown"],"gives":"list","pure":true,"dup":"findalternativepaths","labeledBy":"static"},
   {"id":"generator:new/dart/find_attr_siblings.dart#findAttrSiblings","source":"generator","name":"הפק הכרעת-בעלים אפס-דאטה במנוע","what":"particle","lang":"dart","takes":["record:lipRow","text","record:attrKind","unknown","list","list","list","list","list","list","list","text"],"gives":"list","pure":false,"dup":"findattrsiblings","labeledBy":"static"},
   {"id":"generator:new/dart/find_attr_siblings.dart#isSizeToken","source":"generator","name":"בדוק הכרעת-בעלים אפס-דאטה במנוע","what":"particle","lang":"dart","takes":["text","unknown"],"gives":"bool","pure":false,"dup":"issizetoken","labeledBy":"static","verbs":["validate"],"primary":"validate","material":"text"},
-  {"id":"generator:new/dart/find_shortest_path.dart#findShortestPath","source":"generator","name":"הפק מייצג את WaterSystem כמחרוזות","what":"particle","lang":"dart","takes":["record:graphNode","record:graphNode","number","number","unknown","unknown","unknown","unknown","unknown"],"gives":"list","pure":false,"dup":"findshortestpath","labeledBy":"static"},
+  {"id":"generator:new/dart/find_shortest_path.dart#findShortestPath","source":"generator","name":"הפק מייצג את WaterSystem כמחרוזות","what":"particle","lang":"dart","takes":["record:graphNode","record:graphNode","number","number","unknown","unknown","unknown","unknown","unknown"],"gives":"list","pure":false,"dup":"findshortestpath","core":"core:catalog/core/shortest-path.mjs#shortestPath","labeledBy":"static"},
   {"id":"generator:new/dart/find_shortest_path_excluding.dart#findShortestPathExcluding","source":"generator","name":"זהה ל","what":"particle","lang":"dart","takes":["record:graphNode","record:graphNode","number","number","list","unknown","unknown","unknown","unknown","unknown"],"gives":"list","pure":false,"labeledBy":"static"},
   {"id":"generator:new/dart/find_type_siblings.dart#findTypeSiblings","source":"generator","name":"הפק הכרעת-בעלים אפס-דאטה במנוע","what":"particle","lang":"dart","takes":["record:lipRow","unknown","list","list","list","list","list","list","list","text"],"gives":"list","pure":false,"dup":"findtypesiblings","labeledBy":"static"},
   {"id":"generator:new/dart/first_open.dart#firstOpen","source":"generator","name":"חשב רק שוני-שם","what":"particle","lang":"dart","takes":["text"],"gives":"number","pure":true,"labeledBy":"static"},
@@ -10725,7 +11192,7 @@
   {"id":"mmmm:artifacts/api-server/src/swarm/agents.ts#runMarketAgent","source":"mmmm","name":"למפות כיוון מראה לפריטים בשוק","what":"engine","lang":"ts","takes":["record:profile","text","text"],"gives":"text","pure":false,"labeledBy":"static"},
   {"id":"mmmm:artifacts/api-server/src/swarm/agents.ts#runQAAgent","source":"mmmm","name":"לבקר ולשפר את הצעות התלבושת","what":"engine","lang":"ts","takes":["record:profile","text","text"],"gives":"list","pure":false,"labeledBy":"static"},
   {"id":"mmmm:artifacts/api-server/src/swarm/agents.ts#runStyleAnalystAgent","source":"mmmm","name":"לנתח סגנון ולהגדיר כיוון למראה","what":"engine","lang":"ts","takes":["record:profile","text"],"gives":"text","pure":false,"labeledBy":"static"},
-  {"id":"mmmm:artifacts/api-server/src/swarm/agents.ts#runSwarm","source":"mmmm","name":"להריץ נחיל סוכנים שמציע תלבושות","what":"engine","lang":"ts","takes":["record:profile","text","text","text","unknown"],"gives":"list","pure":false,"labeledBy":"static"},
+  {"id":"mmmm:artifacts/api-server/src/swarm/agents.ts#runSwarm","source":"mmmm","name":"להריץ נחיל סוכנים שמציע תלבושות","what":"engine","lang":"ts","takes":["record:profile","text","text","text","unknown"],"gives":"list","pure":false,"core":"core:catalog/core/move-along-path.mjs#moveAlongPath","labeledBy":"static"},
   {"id":"mmmm:ask-director-keys.js#extractKeyRequirements","source":"mmmm","name":"לחלץ דרישות מפתחות מתשובת סוכן","what":"function","lang":"js","takes":["record:http"],"gives":"list","pure":true,"labeledBy":"static"},
   {"id":"mmmm:chat_manager/server.js#communicateWithAgent","source":"mmmm","name":"לתקשר עם סוכן","what":"function","lang":"js","takes":["record:agent","text","record:context"],"gives":"unknown","pure":true,"labeledBy":"run","traits":"in[]>nil const"},
   {"id":"mmmm:final_meeting.js#getRequestDetails","source":"mmmm","name":"להרכיב פרטי בקשה לספק של סוכן","what":"function","lang":"js","takes":["record:agent","text"],"gives":"record:requestDetail","pure":true,"labeledBy":"run","traits":"in[]>nil const"},
@@ -10936,7 +11403,7 @@
   {"id":"orbit:src/components/home/morningBrief.ts#morningBrief","source":"orbit","name":"מכין את תדרוך הבוקר של היום","what":"function","lang":"ts","takes":["record:db","record:orgConfig","date","times","amount"],"gives":"record:morningBrief","pure":true,"labeledBy":"run","traits":"in[obj,time]>obj rec:new"},
   {"id":"orbit:src/components/hosting/kitchen.ts#activeDinerTotal","source":"orbit","name":"מחשב סך הסועדים בארוחות הפעילות","what":"function","lang":"ts","takes":["list"],"gives":"amount","pure":true,"labeledBy":"run","verbs":["sum"],"primary":"sum","material":"record:hostMeal"},
   {"id":"orbit:src/components/hosting/kitchen.ts#aggregateIngredients","source":"orbit","name":"מוצא את הרכיבים המצטברים מכל הארוחות הפעילות","what":"function","lang":"ts","takes":["list","list"],"gives":"list","pure":true,"labeledBy":"run","traits":"in[arr,arr]>map"},
-  {"id":"orbit:src/components/hosting/kitchen.ts#countdown","source":"orbit","name":"סופר לאחור עד רגע ההגשה","what":"function","lang":"ts","takes":["times"],"gives":"record:countdown","pure":true,"dup":"countdown","labeledBy":"run","traits":"in[num]>obj"},
+  {"id":"orbit:src/components/hosting/kitchen.ts#countdown","source":"orbit","name":"סופר לאחור עד רגע ההגשה","what":"function","lang":"ts","takes":["times"],"gives":"record:countdown","pure":true,"dup":"countdown","core":"core:catalog/core/countdown.mjs#countdown","labeledBy":"run","traits":"in[num]>obj"},
   {"id":"orbit:src/components/hosting/kitchen.ts#dinerNames","source":"orbit","name":"מוצא שמות המשפחות הסועדות","what":"function","lang":"ts","takes":["record:hostMeal","unknown"],"gives":"list","pure":true,"labeledBy":"run","traits":"in[obj]>arr"},
   {"id":"orbit:src/components/hosting/kitchen.ts#dinerTotal","source":"orbit","name":"מחשב את הסכום הכולל של הסועד","what":"function","lang":"ts","takes":["list"],"gives":"amount","pure":true,"labeledBy":"run","verbs":["sum"],"primary":"sum","material":"record:hostDiner"},
   {"id":"orbit:src/components/hosting/kitchen.ts#dinersFromBooking","source":"orbit","name":"מוצא את הסועדים ממשפחת ההזמנה","what":"function","lang":"ts","takes":["record:hostBooking"],"gives":"list","pure":true,"labeledBy":"run","traits":"in[obj]>arr"},
@@ -11024,7 +11491,7 @@
   {"id":"orbit:src/components/hosting/seating.ts#seatRing","source":"orbit","name":"בונה מידות השולחן ומשטחו מיקומי הכיסאות","what":"function","lang":"ts","takes":["record:hostSeatTable"],"gives":"record:seatRing","pure":true,"labeledBy":"run","traits":"in[obj]>obj rec:new"},
   {"id":"orbit:src/components/hosting/seating.ts#seatSetCap","source":"orbit","name":"קובע כמה כיסאות בשולחן","what":"function","lang":"ts","takes":["record:hostSeatPlan","text","unknown"],"gives":"record:hostSeatPlan","pure":true,"labeledBy":"run","verbs":["settle"],"primary":"settle","material":"record:hostSeatPlan"},
   {"id":"orbit:src/components/hosting/seating.ts#seatSetNote","source":"orbit","name":"שומר הערה על שולחן","what":"function","lang":"ts","takes":["record:hostSeatPlan","text","text"],"gives":"record:hostSeatPlan","pure":true,"labeledBy":"run","verbs":["settle"],"primary":"settle","material":"record:hostSeatPlan"},
-  {"id":"orbit:src/components/hosting/seating.ts#seatShuffle","source":"orbit","name":"מערבב את הישיבה ומושיב מחדש","what":"function","lang":"ts","takes":["record:hostSeatPlan","unknown"],"gives":"record:hostSeatPlan","pure":true,"labeledBy":"run","verbs":["settle"],"primary":"settle","material":"record:hostSeatPlan"},
+  {"id":"orbit:src/components/hosting/seating.ts#seatShuffle","source":"orbit","name":"מערבב את הישיבה ומושיב מחדש","what":"function","lang":"ts","takes":["record:hostSeatPlan","unknown"],"gives":"record:hostSeatPlan","pure":true,"core":"core:catalog/core/random.mjs#random","labeledBy":"run","verbs":["settle"],"primary":"settle","material":"record:hostSeatPlan"},
   {"id":"orbit:src/components/hosting/seating.ts#seatStats","source":"orbit","name":"סופר מקומות, יושבים וממתינים","what":"function","lang":"ts","takes":["record:hostSeatPlan"],"gives":"record:seatStats","pure":true,"labeledBy":"run","traits":"in[obj]>obj rec:new"},
   {"id":"orbit:src/components/hosting/seating.ts#seatText","source":"orbit","name":"כותב את סידור הישיבה כטקסט להעתקה","what":"function","lang":"ts","takes":["record:hostSeatPlan","text"],"gives":"text","pure":true,"labeledBy":"run","verbs":["format"],"primary":"format","material":"record:hostSeatPlan"},
   {"id":"orbit:src/components/hosting/seating.ts#seatToggleHead","source":"orbit","name":"מסמן או מבטל שולחן ראשי","what":"function","lang":"ts","takes":["record:hostSeatPlan","text"],"gives":"record:hostSeatPlan","pure":true,"labeledBy":"run","verbs":["settle"],"primary":"settle","material":"record:hostSeatPlan"},
@@ -11297,7 +11764,7 @@
   {"id":"orbit:src/components/parnasa/zmanimBoard.ts#resolveTimeToken","source":"orbit","name":"מוצא טוקן זמן","what":"function","lang":"ts","takes":["unknown","record:prDayTimes"],"gives":"times","pure":true,"labeledBy":"run","traits":"in[]>str const"},
   {"id":"orbit:src/components/parnasa/zmanimBoard.ts#resolveZmanimLoc","source":"orbit","name":"בונה מיקום מהגדרות הגבאי","what":"function","lang":"ts","takes":["record:parnasaZmanimPrefs"],"gives":"record:prZmanimLoc","pure":true,"labeledBy":"run","traits":"in[obj]>obj rec:mix"},
   {"id":"orbit:src/components/parnasa/zmanimBoard.ts#shabbatOf","source":"orbit","name":"בונה את השבת לתצוגה","what":"function","lang":"ts","takes":["record:prClock","record:prZmanimLoc"],"gives":"record:prShabbat","pure":true,"labeledBy":"static"},
-  {"id":"orbit:src/components/parnasa/zmanimBoard.ts#sunAngleTime","source":"orbit","name":"מוצא שעת קיר","what":"function","lang":"ts","takes":["date","record:prZmanimLoc","number","bool","choice"],"gives":"times","pure":true,"labeledBy":"run","traits":"in[time,obj,num,bool,str]>str|time"},
+  {"id":"orbit:src/components/parnasa/zmanimBoard.ts#sunAngleTime","source":"orbit","name":"מוצא שעת קיר","what":"function","lang":"ts","takes":["date","record:prZmanimLoc","number","bool","choice"],"gives":"times","pure":true,"core":"core:catalog/core/sun-position.mjs#sunPosition","labeledBy":"run","traits":"in[time,obj,num,bool,str]>str|time"},
   {"id":"orbit:src/components/parnasa/zmanimBoard.ts#upcomingClosures","source":"orbit","name":"מוצא חלונות שבת/חג שטרם הסתיימו","what":"function","lang":"ts","takes":["record:prClock","record:prZmanimLoc","number"],"gives":"sequence","pure":true,"labeledBy":"run","traits":"in[obj,obj,num]>arr"},
   {"id":"orbit:src/components/parnasa/zmanimBoard.ts#weekZmanim","source":"orbit","name":"מוצא טבלת זמנים לכמה ימים מתאריך","what":"function","lang":"ts","takes":["date","record:prZmanimLoc","number"],"gives":"sequence","pure":true,"labeledBy":"static"},
   {"id":"orbit:src/components/platform/lib.ts#allOffConfig","source":"orbit","name":"בונה קונפיג הלידה של ארגון חדש","what":"function","lang":"ts","takes":["text","text"],"gives":"record:orgConfig","pure":true,"dup":"alloffconfig","labeledBy":"run","traits":"in[str,str]>obj"},
@@ -11340,7 +11807,7 @@
   {"id":"orbit:src/components/shop/lib.ts#componentCounts","source":"orbit","name":"סופר רכיבי מוצר לפי סוג","what":"function","lang":"ts","takes":["record:shopProduct"],"gives":"list","pure":true,"dup":"componentcounts","labeledBy":"run","traits":"in[obj]>obj rec:new"},
   {"id":"orbit:src/components/shop/lib.ts#componentRedeemedNow","source":"orbit","name":"בודק אם רכיב כבר מומש השנה","what":"function","lang":"ts","takes":["record:db","record:shopAssignment","record:shopComponent","list"],"gives":"bool","pure":true,"dup":"componentredeemednow","labeledBy":"run","verbs":["validate"],"primary":"validate","material":"record:db"},
   {"id":"orbit:src/components/shop/lib.ts#componentRemaining","source":"orbit","name":"מחשב את הנותר במלאי לרכיב","what":"function","lang":"ts","takes":["text","text","list","number"],"gives":"number","pure":true,"dup":"componentremaining","labeledBy":"run","verbs":["normalize","convert"],"primary":"normalize","material":"number"},
-  {"id":"orbit:src/components/shop/lib.ts#couponExpiry","source":"orbit","name":"מחשב תאריך פקיעת קופון","what":"function","lang":"ts","takes":["record:shopAssignment","unknown"],"gives":"date","pure":true,"dup":"couponexpiry","labeledBy":"run","traits":"in[obj,obj]>str|time"},
+  {"id":"orbit:src/components/shop/lib.ts#couponExpiry","source":"orbit","name":"מחשב תאריך פקיעת קופון","what":"function","lang":"ts","takes":["record:shopAssignment","unknown"],"gives":"date","pure":true,"dup":"couponexpiry","core":"core:catalog/core/countdown.mjs#countdown","labeledBy":"run","traits":"in[obj,obj]>str|time"},
   {"id":"orbit:src/components/shop/lib.ts#distributionListLines","source":"orbit","name":"מוצא רשימת חלוקה מודפסת לחבילה","what":"function","lang":"ts","takes":["record:db","text","record:orgConfig"],"gives":"list","pure":true,"dup":"distributionlistlines","labeledBy":"run","traits":"in[obj]>arr"},
   {"id":"orbit:src/components/shop/lib.ts#effectivePrice","source":"orbit","name":"מחשב את המחיר הסמלי אחרי הנחות קריטריונים","what":"function","lang":"ts","takes":["amount","list","list"],"gives":"amount","pure":true,"dup":"effectiveprice","labeledBy":"run","verbs":["normalize","convert"],"primary":"normalize","material":"amount"},
   {"id":"orbit:src/components/shop/lib.ts#eligibleFamilies","source":"orbit","name":"מוצא את המשפחות הזכאיות לשיוך המוני","what":"function","lang":"ts","takes":["record:db","list","text"],"gives":"list","pure":true,"dup":"eligiblefamilies","labeledBy":"run","traits":"in[arr]>arr len~"},
@@ -11363,7 +11830,7 @@
   {"id":"orbit:src/components/shop/lib.ts#subsidyTotal","source":"orbit","name":"מחשב את הסבסוד הכולל","what":"function","lang":"ts","takes":["list"],"gives":"amount","pure":true,"dup":"subsidytotal","labeledBy":"run","verbs":["sum"],"primary":"sum","material":"record:shopAssignment"},
   {"id":"orbit:src/components/shop/lib.ts#upcomingHolidays","source":"orbit","name":"מוצא את החגים בתקופה הימים הקרוב","what":"function","lang":"ts","takes":["date","number"],"gives":"list","pure":true,"dup":"upcomingholidays","labeledBy":"run","traits":"in[time,num]>arr"},
   {"id":"orbit:src/components/shop/lib.ts#upcomingMeetings","source":"orbit","name":"מוצא את הפגישות הקרובות","what":"function","lang":"ts","takes":["record:db","date","number","record:orgConfig"],"gives":"list","pure":true,"dup":"upcomingmeetings","labeledBy":"run","traits":"in[]>arr"},
-  {"id":"orbit:src/components/shop7/lib.ts#advanceStatus","source":"orbit","name":"קובע את הסטטוס הבא","what":"function","lang":"ts","takes":["choice"],"gives":"choice","pure":true,"dup":"advancestatus","labeledBy":"run","traits":"in[str]>str"},
+  {"id":"orbit:src/components/shop7/lib.ts#advanceStatus","source":"orbit","name":"קובע את הסטטוס הבא","what":"function","lang":"ts","takes":["choice"],"gives":"choice","pure":true,"dup":"advancestatus","core":"core:catalog/core/move-along-path.mjs#moveAlongPath","labeledBy":"run","traits":"in[str]>str"},
   {"id":"orbit:src/components/shop7/lib.ts#dayProgress","source":"orbit","name":"בונה מד התקדמות ליום","what":"function","lang":"ts","takes":["record:db","text"],"gives":"record:dayProgress","pure":true,"dup":"dayprogress","labeledBy":"run","traits":"in[obj,str]>obj rec:new"},
   {"id":"orbit:src/components/shop7/lib.ts#deliveriesCsvRows","source":"orbit","name":"מוצא שורות טבלה של כל המסירות","what":"function","lang":"ts","takes":["record:db","record:orgConfig"],"gives":"list","pure":true,"dup":"deliveriescsvrows","labeledBy":"run","traits":"in[obj]>arr"},
   {"id":"orbit:src/components/shop7/lib.ts#deliveriesOfDay","source":"orbit","name":"מוצא את המסירות של יום חלוקה","what":"function","lang":"ts","takes":["record:db","text"],"gives":"sequence","pure":true,"dup":"deliveriesofday","labeledBy":"run","traits":"in[obj,str]>arr"},
@@ -11376,7 +11843,7 @@
   {"id":"orbit:src/components/shop7/lib.ts#pendingDeliveriesToday","source":"orbit","name":"מוצא מסירות פתוחות עד היום שטרם נמסרו","what":"function","lang":"ts","takes":["record:db","date"],"gives":"sequence","pure":true,"dup":"pendingdeliveriestoday","labeledBy":"run","traits":"in[]>arr"},
   {"id":"orbit:src/components/shop7/lib.ts#statusLabel","source":"orbit","name":"כותב תווית הסטטוס לתצוגה","what":"function","lang":"ts","takes":["choice"],"gives":"text","pure":true,"dup":"statuslabel","labeledBy":"run","traits":"in[str]>str"},
   {"id":"orbit:src/components/shop7/lib.ts#volunteerLoadHint","source":"orbit","name":"בונה רמז קיבולת","what":"function","lang":"ts","takes":["record:db","record:volunteer","text"],"gives":"record:volunteerLoadHint","pure":true,"dup":"volunteerloadhint","labeledBy":"run","traits":"in[obj]>obj rec:new"},
-  {"id":"orbit:src/components/shop7/lib.ts#volunteerRouteStops","source":"orbit","name":"מוצא עצירות המסלול של מתנדב ביום חלוקה","what":"function","lang":"ts","takes":["record:db","text","text"],"gives":"list","pure":true,"dup":"volunteerroutestops","labeledBy":"run","traits":"in[]>arr const"},
+  {"id":"orbit:src/components/shop7/lib.ts#volunteerRouteStops","source":"orbit","name":"מוצא עצירות המסלול של מתנדב ביום חלוקה","what":"function","lang":"ts","takes":["record:db","text","text"],"gives":"list","pure":true,"dup":"volunteerroutestops","core":"core:catalog/core/move-along-path.mjs#moveAlongPath","labeledBy":"run","traits":"in[]>arr const"},
   {"id":"orbit:src/components/shop8/lib.ts#liveSuggestions","source":"orbit","name":"מוצא את ההצעות החיות","what":"function","lang":"ts","takes":["record:db","date","record:orgConfig"],"gives":"list","pure":true,"dup":"livesuggestions","labeledBy":"run","traits":"in[obj,time]>arr"},
   {"id":"orbit:src/components/shop8/lib.ts#suggestions","source":"orbit","name":"מוצא כל ההצעות","what":"function","lang":"ts","takes":["record:db","date","record:orgConfig"],"gives":"list","pure":true,"dup":"suggestions","labeledBy":"run","traits":"in[obj,time]>arr"},
   {"id":"orbit:src/components/supporters/askMaor.ts#askMaor","source":"orbit","name":"עונה על שאלה חופשית מהנתונים","what":"function","lang":"ts","takes":["text","record:db","date","amount"],"gives":"record:askAnswer","pure":true,"labeledBy":"run","traits":"in[str,obj,time,num]>nil|obj rec:new"},
@@ -11394,7 +11861,7 @@
   {"id":"orbit:src/components/supporters/cockpit.ts#daysSince","source":"orbit","name":"מחשב ימים בין תאריך ליום","what":"function","lang":"ts","takes":["date","date"],"gives":"number","pure":true,"labeledBy":"run","verbs":["convert","gap"],"primary":"gap","material":"date"},
   {"id":"orbit:src/components/supporters/commands.ts#buildCommands","source":"orbit","name":"בונה את רשימת הפקודות המלאה לפי ההקשר","what":"function","lang":"ts","takes":["record:commandContext"],"gives":"list","pure":true,"dup":"buildcommands","labeledBy":"run","traits":"in[obj]>arr"},
   {"id":"orbit:src/components/supporters/commands.ts#filterCommands","source":"orbit","name":"מסנן פקודות לפי שאילתה","what":"function","lang":"ts","takes":["list","text","number"],"gives":"list","pure":true,"dup":"filtercommands","labeledBy":"run","verbs":["filter"],"primary":"filter","material":"record:command"},
-  {"id":"orbit:src/components/supporters/constellation.ts#donorConstellation","source":"orbit","name":"פורס את כל התורמים לכוכבים","what":"function","lang":"ts","takes":["list","date","record:constellationOpts"],"gives":"list","pure":true,"dup":"donorconstellation","labeledBy":"run","traits":"in[arr,time,obj]>arr len~"},
+  {"id":"orbit:src/components/supporters/constellation.ts#donorConstellation","source":"orbit","name":"פורס את כל התורמים לכוכבים","what":"function","lang":"ts","takes":["list","date","record:constellationOpts"],"gives":"list","pure":true,"dup":"donorconstellation","core":"core:catalog/core/random.mjs#random","labeledBy":"run","traits":"in[arr,time,obj]>arr len~"},
   {"id":"orbit:src/components/supporters/hebTiming.ts#hebSeasonOf","source":"orbit","name":"קובע איזו עונה בלוח העברי עכשיו","what":"function","lang":"ts","takes":["date"],"gives":"record:hebSeasonNow","pure":true,"labeledBy":"run","traits":"in[time]>obj"},
   {"id":"orbit:src/components/supporters/hebTiming.ts#hebTimingTasks","source":"orbit","name":"מוצא את המשימות העונתיות של היום","what":"function","lang":"ts","takes":["list","date","number"],"gives":"list","pure":true,"labeledBy":"run","traits":"in[]>arr const len~"},
   {"id":"orbit:src/components/supporters/intel.ts#churnFromScan","source":"orbit","name":"מחשב סיכון נטישה 0–100","what":"function","lang":"ts","takes":["record:donorScan","date"],"gives":"number","pure":true,"dup":"churnfromscan","labeledBy":"run","traits":"in[obj]>nan|num"},
@@ -11493,7 +11960,7 @@
   {"id":"orbit:src/components/supporters/timemachine.ts#churnAtOffset","source":"orbit","name":"מחשב סיכון נטישה של סריקה בעוד ימים","what":"function","lang":"ts","takes":["record:donorScan","date","number"],"gives":"number","pure":true,"labeledBy":"run","verbs":["round","clamp"],"primary":"round","material":"number"},
   {"id":"orbit:src/components/supporters/timemachine.ts#timeMachine","source":"orbit","name":"מדמה קדימה על כל התיק","what":"function","lang":"ts","takes":["list","date","amount","list"],"gives":"record:timeMachine","pure":true,"labeledBy":"run","traits":"in[arr,time,num,arr]>obj"},
   {"id":"orbit:src/components/supporters/universe3d.ts#donorUniverse","source":"orbit","name":"מרים את כוכבי הגלקסיה למרחב תלת ממדי","what":"function","lang":"ts","takes":["list","date","record:constellationOpts"],"gives":"list","pure":true,"labeledBy":"run","traits":"in[arr,time,obj]>arr len~"},
-  {"id":"orbit:src/components/supporters/universe3d.ts#project","source":"orbit","name":"מקרין פרספקטיבה של נקודה","what":"function","lang":"ts","takes":["unknown","number","number","number","number"],"gives":"record:project","pure":true,"labeledBy":"run","traits":"in[obj,num,num,num,num]>obj rec:new"},
+  {"id":"orbit:src/components/supporters/universe3d.ts#project","source":"orbit","name":"מקרין פרספקטיבה של נקודה","what":"function","lang":"ts","takes":["unknown","number","number","number","number"],"gives":"record:project","pure":true,"core":"core:catalog/core/orbit.mjs#orbit","labeledBy":"run","traits":"in[obj,num,num,num,num]>obj rec:new"},
   {"id":"orbit:src/components/telephony/lib.ts#emptyTelephonyConfig","source":"orbit","name":"בונה תצורת ברירת מחדל שמישה","what":"function","lang":"ts","takes":[],"gives":"record:telephonyConfig","pure":true,"dup":"emptytelephonyconfig","labeledBy":"run","verbs":["provide"],"primary":"provide","material":"record:telephonyConfig"},
   {"id":"orbit:src/components/telephony/lib.ts#explainOne","source":"orbit","name":"מריץ תיאור שיחה יחיד","what":"function","lang":"ts","takes":["record:telephonyConfig","text","text","list"],"gives":"record:explainOne","pure":true,"dup":"explainone","labeledBy":"run","traits":"in[obj,str|time]>obj rec:new"},
   {"id":"orbit:src/components/telephony/lib.ts#nextClosure","source":"orbit","name":"בונה את הסגירה ההלכתית הבאה","what":"function","lang":"ts","takes":["record:orgConfig","date"],"gives":"record:nextClosure","pure":true,"dup":"nextclosure","labeledBy":"run","traits":"in[obj,time]>nil|obj rec:new"},
@@ -11509,7 +11976,7 @@
   {"id":"orbit:src/components/timer/cashLib.ts#expectedDrawer","source":"orbit","name":"מחשב צפי המגירה בסגירה","what":"function","lang":"ts","takes":["number","number"],"gives":"number","pure":true,"labeledBy":"run","verbs":["offset","convert","combine"],"primary":"offset","material":"number"},
   {"id":"orbit:src/components/timer/cashLib.ts#filterCashSuggest","source":"orbit","name":"מסנן חכם רב מילתי","what":"function","lang":"ts","takes":["list","text","number"],"gives":"list","pure":true,"labeledBy":"run","traits":"in[]>arr const len~"},
   {"id":"orbit:src/components/timer/cashLib.ts#payerSuggestions","source":"orbit","name":"מוצא מקורות ההצעה למשלם","what":"function","lang":"ts","takes":["list","list"],"gives":"list","pure":true,"labeledBy":"run","traits":"in[arr,arr]>arr len~"},
-  {"id":"orbit:src/components/tzedaka/lib.ts#boxTotal","source":"orbit","name":"מחשב את הסכום הכולל של הקופה","what":"function","lang":"ts","takes":["record:tzBox"],"gives":"amount","pure":true,"dup":"boxtotal","labeledBy":"run","traits":"in[obj]>num real"},
+  {"id":"orbit:src/components/tzedaka/lib.ts#boxTotal","source":"orbit","name":"מחשב את הסכום הכולל של הקופה","what":"function","lang":"ts","takes":["record:tzBox"],"gives":"amount","pure":true,"dup":"boxtotal","core":"core:catalog/core/accumulate.mjs#accumulate","labeledBy":"run","traits":"in[obj]>num real"},
   {"id":"orbit:src/components/tzedaka/lib.ts#boxesOverview","source":"orbit","name":"מוצא מבט כל הקופות","what":"function","lang":"ts","takes":["record:db","text","choice","choice"],"gives":"sequence","pure":true,"dup":"boxesoverview","labeledBy":"run","traits":"in[]>arr const"},
   {"id":"orbit:src/components/tzedaka/lib.ts#buildTzGrid","source":"orbit","name":"בונה לוח יומי, שבועי או חודשי לקופות","what":"function","lang":"ts","takes":["list","date","bool","record:calViewMode"],"gives":"record:tzGrid","pure":true,"dup":"buildtzgrid","labeledBy":"static"},
   {"id":"orbit:src/components/tzedaka/lib.ts#campaignProgress","source":"orbit","name":"בונה את ההתקדמות של המבצע","what":"function","lang":"ts","takes":["record:tzCampaign","list"],"gives":"record:campaignProgress","pure":true,"dup":"campaignprogress","labeledBy":"run","traits":"in[obj,arr]>obj rec:part"},
@@ -11776,7 +12243,7 @@
   {"id":"orbit:telephony/lib/zmanim.mjs#hebrewClosedWindows","source":"orbit","name":"מוצא מתי הקו סגור בשבתות ובחגים","what":"function","lang":"js","takes":["date","number","record:tenant","unknown"],"gives":"list","pure":true,"labeledBy":"run","traits":"in[time,num,obj]>arr"},
   {"id":"orbit:telephony/lib/zmanim.mjs#shabbatTimes","source":"orbit","name":"בונה זמני שבת/חג לתאריך","what":"function","lang":"js","takes":["date","record:tenant","unknown"],"gives":"record:shabbatTimes","pure":true,"labeledBy":"run","traits":"in[time,obj]>obj rec:new"},
   {"id":"orbit:telephony/lib/zmanim.mjs#sunrise","source":"orbit","name":"מחשב שעת זריחה במקום ובתאריך","what":"function","lang":"js","takes":["date","geo","geo","text"],"gives":"times","pure":true,"labeledBy":"run","verbs":["convert"],"primary":"convert","material":"geo"},
-  {"id":"orbit:telephony/lib/zmanim.mjs#sunset","source":"orbit","name":"מחשב שעת שקיעה במקום ובתאריך","what":"function","lang":"js","takes":["date","geo","geo","text"],"gives":"times","pure":true,"labeledBy":"run","verbs":["convert"],"primary":"convert","material":"geo"},
+  {"id":"orbit:telephony/lib/zmanim.mjs#sunset","source":"orbit","name":"מחשב שעת שקיעה במקום ובתאריך","what":"function","lang":"js","takes":["date","geo","geo","text"],"gives":"times","pure":true,"core":"core:catalog/core/sun-position.mjs#sunPosition","labeledBy":"run","verbs":["convert"],"primary":"convert","material":"geo"},
   {"id":"qa-scanner:exposure_audit.py#Audit","source":"qa-scanner","name":"לבדוק אתר ב-116 בדיקות חשיפה","what":"engine","lang":"py","takes":[],"gives":"record:audit","pure":false,"labeledBy":"static","verbs":["transcript"],"primary":"transcript","material":"record:audit"},
   {"id":"qa-scanner:exposure_audit.py#Audit.has","source":"qa-scanner","name":"לבדוק אם יש","what":"particle","lang":"py","takes":["list"],"gives":"bool","pure":true,"labeledBy":"static"},
   {"id":"qa-scanner:exposure_audit.py#Audit.meta","source":"qa-scanner","name":"להפיק מטא","what":"function","lang":"py","takes":["list"],"gives":"unknown","pure":true,"labeledBy":"static","verbs":["transcript"],"primary":"transcript","material":"list"},
@@ -11899,7 +12366,7 @@
   {"id":"qa-scanner:scanner.py#Issue","source":"qa-scanner","name":"לייצג תקלה שנמצאה באתר","what":"brick","lang":"py","takes":[],"gives":"record:issue","pure":false,"labeledBy":"static"},
   {"id":"qa-scanner:scanner.py#_prices","source":"qa-scanner","name":"לחלץ מחירים מתוך טקסט","what":"particle","lang":"py","takes":["text"],"gives":"unknown","pure":true,"labeledBy":"static"},
   {"id":"qa-scanner:scanner.py#check_url_alive","source":"qa-scanner","name":"לבדוק אם קישור עדיין עובד","what":"rule","lang":"py","takes":["text"],"gives":"bool","pure":false,"labeledBy":"static"},
-  {"id":"qa-scanner:scanner.py#crawl","source":"qa-scanner","name":"לסרוק אתר עמוד אחר עמוד","what":"engine","lang":"py","takes":["text","number","bool"],"gives":"unknown","pure":false,"labeledBy":"static"},
+  {"id":"qa-scanner:scanner.py#crawl","source":"qa-scanner","name":"לסרוק אתר עמוד אחר עמוד","what":"engine","lang":"py","takes":["text","number","bool"],"gives":"unknown","pure":false,"core":"core:catalog/core/spread.mjs#spread","labeledBy":"static"},
   {"id":"qa-scanner:scanner.py#crawl:issue[עמוד לא נטען]","source":"qa-scanner","name":"לזהות באתר: עמוד לא נטען","what":"rule","lang":"py","takes":["record:page"],"gives":"choice","pure":true,"labeledBy":"static"},
   {"id":"qa-scanner:scanner.py#crawl:issue[קישור שבור]","source":"qa-scanner","name":"לזהות באתר: קישור שבור","what":"rule","lang":"py","takes":["record:page"],"gives":"choice","pure":true,"labeledBy":"static"},
   {"id":"qa-scanner:scanner.py#crawl:issue[שגיאה]","source":"qa-scanner","name":"לזהות באתר: שגיאה","what":"rule","lang":"py","takes":["record:page"],"gives":"choice","pure":true,"labeledBy":"static"},
@@ -12171,7 +12638,7 @@
   {"id":"yeshiva:arena/shop/pricing.py#BuyXGetY","source":"yeshiva","name":"לייצג Y קבל X קנה","what":"brick","lang":"py","takes":["text","number","number"],"gives":"record:buyXgetY","pure":false,"labeledBy":"static"},
   {"id":"yeshiva:arena/shop/pricing.py#CartLine","source":"yeshiva","name":"לייצג שורה עגלה","what":"brick","lang":"py","takes":["text","number"],"gives":"record:cartLine","pure":false,"labeledBy":"static"},
   {"id":"yeshiva:arena/shop/pricing.py#Coupon","source":"yeshiva","name":"לייצג קופון","what":"brick","lang":"py","takes":["text","record:discount","bool","amount","date","number"],"gives":"record:coupon","pure":false,"labeledBy":"static"},
-  {"id":"yeshiva:arena/shop/pricing.py#Coupon.usable","source":"yeshiva","name":"לבדוק אם קופון תקף להיום ולסכום","what":"rule","lang":"py","takes":["date","amount"],"gives":"choice","pure":true,"labeledBy":"static"},
+  {"id":"yeshiva:arena/shop/pricing.py#Coupon.usable","source":"yeshiva","name":"לבדוק אם קופון תקף להיום ולסכום","what":"rule","lang":"py","takes":["date","amount"],"gives":"choice","pure":true,"core":"core:catalog/core/countdown.mjs#countdown","labeledBy":"static"},
   {"id":"yeshiva:arena/shop/pricing.py#FixedOff","source":"yeshiva","name":"לייצג הנחה קבוע","what":"brick","lang":"py","takes":["amount","text"],"gives":"record:fixedOff","pure":false,"labeledBy":"static"},
   {"id":"yeshiva:arena/shop/pricing.py#PercentOff","source":"yeshiva","name":"לייצג הנחה אחוז","what":"brick","lang":"py","takes":["number","text"],"gives":"record:percentOff","pure":false,"labeledBy":"static"},
   {"id":"yeshiva:arena/shop/pricing.py#PricingEngine","source":"yeshiva","name":"לתמחר עגלה עם קופונים והנחות כמות","what":"engine","lang":"py","takes":[],"gives":"record:pricingEngine","pure":false,"labeledBy":"static"},
@@ -12921,7 +13388,7 @@
   {"id":"yeshiva:yeshiva/shiura.py#Placement","source":"yeshiva","name":"לייצג מיקום","what":"brick","lang":"py","takes":["text","text","list"],"gives":"record:placement","pure":false,"labeledBy":"static"},
   {"id":"yeshiva:yeshiva/shiura.py#Placement.possible","source":"yeshiva","name":"לבדוק אם מיקום השיעור אפשרי","what":"function","lang":"py","takes":[],"gives":"bool","pure":true,"labeledBy":"static"},
   {"id":"yeshiva:yeshiva/shiura.py#Siman","source":"yeshiva","name":"לייצג סימן","what":"brick","lang":"py","takes":["text","text"],"gives":"record:siman","pure":false,"labeledBy":"static"},
-  {"id":"yeshiva:yeshiva/shiura.py#UnionFind","source":"yeshiva","name":"לאחד קבוצות של דברים שקולים","what":"engine","lang":"py","takes":[],"gives":"record:unionFind","pure":false,"labeledBy":"static","verbs":["group","combine"],"primary":"group","material":"record:union_find"},
+  {"id":"yeshiva:yeshiva/shiura.py#UnionFind","source":"yeshiva","name":"לאחד קבוצות של דברים שקולים","what":"engine","lang":"py","takes":[],"gives":"record:unionFind","pure":false,"core":"core:catalog/core/spread.mjs#spread","labeledBy":"static","verbs":["group","combine"],"primary":"group","material":"record:union_find"},
   {"id":"yeshiva:yeshiva/shiura.py#UnionFind.same","source":"yeshiva","name":"לבדוק אם שני שיעורים זוהו כאחד","what":"function","lang":"py","takes":["text","text"],"gives":"bool","pure":false,"labeledBy":"static","verbs":["combine"],"primary":"combine","material":"text"},
   {"id":"yeshiva:yeshiva/shiura.py#_collapses","source":"yeshiva","name":"למצוא מחלוקות שקורסות בגלל זיהוי","what":"function","lang":"py","takes":["list","list"],"gives":"list","pure":true,"labeledBy":"static"},
   {"id":"yeshiva:yeshiva/shiura.py#check_siman","source":"yeshiva","name":"לבדוק שסימן מתרחש בזמן הנכון","what":"rule","lang":"py","takes":["record:siman","text","record:definition"],"gives":"list","pure":true,"labeledBy":"static"},

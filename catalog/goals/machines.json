@@ -19,12 +19,12 @@
         },
         {
           "behavior": "שרשרת של גלגלים",
-          "verb": "hub-relay",
+          "verb": "relay",
           "material": "sequence"
         },
         {
           "behavior": "גלגל שבור עוצר הכול",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         }
       ]
@@ -95,7 +95,7 @@
         },
         {
           "behavior": "צופר בערפל",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool",
           "detail": "ראות מתחת לסף"
         }
@@ -119,18 +119,18 @@
         },
         {
           "behavior": "נתקע דף ⇒ מנסה שוב",
-          "verb": "tolerate-failure",
+          "verb": "tolerate",
           "material": "waiting"
         },
         {
           "behavior": "דיו שנגמר",
-          "verb": "NEW:decay",
+          "verb": "decay",
           "material": "number",
           "detail": "דועך — ערך שיורד מעט בכל צעד-זמן עד אפס"
         },
         {
           "behavior": "התראה מתחת לסף",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         },
         {
@@ -153,7 +153,7 @@
         },
         {
           "behavior": "התוף מסתובב לכאן ולשם",
-          "verb": "NEW:oscillate",
+          "verb": "oscillate",
           "material": "number",
           "detail": "מתנדנד — גל שעולה ויורד שוב ושוב בקצב קבוע"
         },
@@ -165,13 +165,13 @@
         },
         {
           "behavior": "זמן שנשאר",
-          "verb": "NEW:countdown",
+          "verb": "countdown",
           "material": "times",
           "detail": "סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה"
         },
         {
           "behavior": "לא נפתחת באמצע",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         },
         {
@@ -193,7 +193,7 @@
         },
         {
           "behavior": "נותנת רק אם יש מספיק",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         },
         {
@@ -214,7 +214,7 @@
         },
         {
           "behavior": "החזרה כשמשהו נתקע",
-          "verb": "tolerate-failure",
+          "verb": "tolerate",
           "material": "amount"
         }
       ]
@@ -226,7 +226,7 @@
       "needs": [
         {
           "behavior": "מחממת עד החום הנכון",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         },
         {
@@ -263,7 +263,7 @@
         },
         {
           "behavior": "נפתח רק בהתאמה מלאה",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         },
         {
@@ -278,7 +278,7 @@
         },
         {
           "behavior": "נסגר שוב אחרי כמה שניות",
-          "verb": "NEW:countdown",
+          "verb": "countdown",
           "material": "number",
           "detail": "סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה"
         }
@@ -312,13 +312,13 @@
         },
         {
           "behavior": "הדלת נפתחת לכמה שניות",
-          "verb": "NEW:countdown",
+          "verb": "countdown",
           "material": "number",
           "detail": "סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה"
         },
         {
           "behavior": "לא עוברת משקל מקסימלי",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool",
           "detail": "סכום המשקלים מתחת לתקרה"
         },
@@ -329,7 +329,7 @@
         },
         {
           "behavior": "חזרה לקומת קרקע כשאין קריאות",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         }
       ]
@@ -346,7 +346,7 @@
         },
         {
           "behavior": "מדליק מעל הסף ומכבה מתחת",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         },
         {
@@ -357,7 +357,7 @@
         },
         {
           "behavior": "מצפצף כשהדלת פתוחה הרבה",
-          "verb": "NEW:countdown",
+          "verb": "countdown",
           "material": "number",
           "detail": "סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה"
         },
@@ -385,18 +385,18 @@
         },
         {
           "behavior": "מסתובב כשנתקע בקיר",
-          "verb": "tolerate-failure",
+          "verb": "tolerate",
           "material": "geo"
         },
         {
           "behavior": "הסוללה יורדת",
-          "verb": "NEW:decay",
+          "verb": "decay",
           "material": "number",
           "detail": "דועך — ערך שיורד מעט בכל צעד-זמן עד אפס"
         },
         {
           "behavior": "חוזר לטעון מתחת לסף",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         },
         {
@@ -429,7 +429,7 @@
         },
         {
           "behavior": "נגמר כשלמעלה ריק",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         },
         {
@@ -439,7 +439,7 @@
         },
         {
           "behavior": "כמה זמן נשאר",
-          "verb": "NEW:countdown",
+          "verb": "countdown",
           "material": "times",
           "detail": "סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה"
         }

@@ -8,7 +8,7 @@
       "needs": [
         {
           "behavior": "מקפיא עד קר מספיק",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         },
         {
@@ -18,7 +18,7 @@
         },
         {
           "behavior": "נמסה בחום",
-          "verb": "NEW:decay",
+          "verb": "decay",
           "material": "number",
           "detail": "דועך — ערך שיורד מעט בכל צעד-זמן עד אפס"
         },
@@ -41,18 +41,18 @@
       "needs": [
         {
           "behavior": "מאכילים את השאור כל יום",
-          "verb": "daily-snapshot",
+          "verb": "bucket",
           "material": "record:starter"
         },
         {
           "behavior": "תופח ונופל",
-          "verb": "NEW:oscillate",
+          "verb": "oscillate",
           "material": "number",
           "detail": "מתנדנד — גל שעולה ויורד שוב ושוב בקצב קבוע"
         },
         {
           "behavior": "מחכה שיכפיל את עצמו",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         },
         {
@@ -99,7 +99,7 @@
         },
         {
           "behavior": "כוס מלאה ⇒ עוצרת",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         }
       ]
@@ -116,7 +116,7 @@
         },
         {
           "behavior": "רותח ⇒ מנמיכים",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         },
         {
@@ -126,7 +126,7 @@
         },
         {
           "behavior": "מתחזק בטעם לאט",
-          "verb": "NEW:accumulate",
+          "verb": "accumulate",
           "material": "number",
           "detail": "צובר — ערך שגדל מעט בכל צעד-זמן עד שמשהו מרוקן אותו"
         },
@@ -149,7 +149,7 @@
         },
         {
           "behavior": "כל צלחת עוברת לפני כולם",
-          "verb": "hub-relay",
+          "verb": "relay",
           "material": "sequence"
         },
         {
@@ -164,7 +164,7 @@
         },
         {
           "behavior": "צלחת ישנה מדי יורדת",
-          "verb": "NEW:countdown",
+          "verb": "countdown",
           "material": "times",
           "detail": "סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה"
         }
@@ -187,13 +187,13 @@
         },
         {
           "behavior": "אופים בזמן",
-          "verb": "NEW:countdown",
+          "verb": "countdown",
           "material": "times",
           "detail": "סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה"
         },
         {
           "behavior": "בודקים בקיסם",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         },
         {
@@ -215,7 +215,7 @@
       "needs": [
         {
           "behavior": "מתחממים",
-          "verb": "NEW:accumulate",
+          "verb": "accumulate",
           "material": "number",
           "detail": "צובר — ערך שגדל מעט בכל צעד-זמן עד שמשהו מרוקן אותו"
         },
@@ -226,7 +226,7 @@
         },
         {
           "behavior": "מתפוצץ מעל חום",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         },
         {
@@ -290,7 +290,7 @@
         },
         {
           "behavior": "מבשלים עד שמסמיך",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         },
         {
@@ -322,13 +322,13 @@
         },
         {
           "behavior": "טיימר",
-          "verb": "NEW:countdown",
+          "verb": "countdown",
           "material": "times",
           "detail": "סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה"
         },
         {
           "behavior": "מתקרר לאט",
-          "verb": "NEW:decay",
+          "verb": "decay",
           "material": "number",
           "detail": "דועך — ערך שיורד מעט בכל צעד-זמן עד אפס"
         },

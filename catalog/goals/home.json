@@ -8,18 +8,18 @@
       "needs": [
         {
           "behavior": "נדרכת אחרי כמה שניות",
-          "verb": "NEW:countdown",
+          "verb": "countdown",
           "material": "number",
           "detail": "סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה"
         },
         {
           "behavior": "חיישן נפתח",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         },
         {
           "behavior": "זמן לבטל עם קוד",
-          "verb": "NEW:countdown",
+          "verb": "countdown",
           "material": "times",
           "detail": "סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה"
         },
@@ -31,7 +31,7 @@
         },
         {
           "behavior": "הודעה לכל בני הבית",
-          "verb": "route-channel",
+          "verb": "route",
           "material": "list"
         },
         {
@@ -59,7 +59,7 @@
         },
         {
           "behavior": "חימום מתחת לסף",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         },
         {
@@ -69,7 +69,7 @@
         },
         {
           "behavior": "המים מתלכלכים לאט",
-          "verb": "NEW:accumulate",
+          "verb": "accumulate",
           "material": "number",
           "detail": "צובר — ערך שגדל מעט בכל צעד-זמן עד שמשהו מרוקן אותו"
         },
@@ -97,19 +97,19 @@
         },
         {
           "behavior": "חום המים מצטבר",
-          "verb": "NEW:accumulate",
+          "verb": "accumulate",
           "material": "number",
           "detail": "צובר — ערך שגדל מעט בכל צעד-זמן עד שמשהו מרוקן אותו"
         },
         {
           "behavior": "מתקרר בלילה",
-          "verb": "NEW:decay",
+          "verb": "decay",
           "material": "number",
           "detail": "דועך — ערך שיורד מעט בכל צעד-זמן עד אפס"
         },
         {
           "behavior": "חשמל רק כשקר מדי",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         },
         {
@@ -131,7 +131,7 @@
         },
         {
           "behavior": "נסגר כשהשמש ישירה",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         },
         {
@@ -158,7 +158,7 @@
       "needs": [
         {
           "behavior": "מחכה שיתמלא",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         },
         {
@@ -173,7 +173,7 @@
         },
         {
           "behavior": "זמן שנשאר",
-          "verb": "NEW:countdown",
+          "verb": "countdown",
           "material": "times",
           "detail": "סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה"
         },
@@ -196,7 +196,7 @@
         },
         {
           "behavior": "מכבה בחום הנכון",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         },
         {
@@ -206,13 +206,13 @@
         },
         {
           "behavior": "כנף שמתנדנדת",
-          "verb": "NEW:oscillate",
+          "verb": "oscillate",
           "material": "number",
           "detail": "מתנדנד — גל שעולה ויורד שוב ושוב בקצב קבוע"
         },
         {
           "behavior": "טיימר כיבוי",
-          "verb": "NEW:countdown",
+          "verb": "countdown",
           "material": "times",
           "detail": "סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה"
         },
@@ -230,7 +230,7 @@
       "needs": [
         {
           "behavior": "מתמלא",
-          "verb": "NEW:accumulate",
+          "verb": "accumulate",
           "material": "number",
           "detail": "צובר — ערך שגדל מעט בכל צעד-זמן עד שמשהו מרוקן אותו"
         },
@@ -241,7 +241,7 @@
         },
         {
           "behavior": "מכונה מלאה ⇒ כביסה",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         },
         {
@@ -251,7 +251,7 @@
         },
         {
           "behavior": "תור כביסות בשבוע",
-          "verb": "round-robin",
+          "verb": "rotate",
           "material": "sequence"
         }
       ]
@@ -263,13 +263,13 @@
       "needs": [
         {
           "behavior": "האדמה מתייבשת",
-          "verb": "NEW:decay",
+          "verb": "decay",
           "material": "number",
           "detail": "דועך — ערך שיורד מעט בכל צעד-זמן עד אפס"
         },
         {
           "behavior": "תזכורת השקיה מתחת לסף",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         },
         {
@@ -284,7 +284,7 @@
         },
         {
           "behavior": "תמונה כל שבוע",
-          "verb": "daily-snapshot",
+          "verb": "bucket",
           "material": "image"
         }
       ]
@@ -296,7 +296,7 @@
       "needs": [
         {
           "behavior": "מצלצל בלחיצה",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         },
         {
@@ -306,7 +306,7 @@
         },
         {
           "behavior": "הודעה לטלפון",
-          "verb": "route-channel",
+          "verb": "route",
           "material": "text"
         },
         {
@@ -316,7 +316,7 @@
         },
         {
           "behavior": "תמונה של מי שבדלת",
-          "verb": "NEW:sample",
+          "verb": "sample",
           "material": "image",
           "detail": "קורא מהסביבה — מודד צבע/קול/ערך מבחוץ"
         }
@@ -334,7 +334,7 @@
         },
         {
           "behavior": "סיבוב שלם מקדם את הבא",
-          "verb": "hub-relay",
+          "verb": "relay",
           "material": "sequence"
         },
         {
@@ -361,7 +361,7 @@
       "needs": [
         {
           "behavior": "מתחמם עד החום",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         },
         {
@@ -371,18 +371,18 @@
         },
         {
           "behavior": "טיימר אפייה",
-          "verb": "NEW:countdown",
+          "verb": "countdown",
           "material": "times",
           "detail": "סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה"
         },
         {
           "behavior": "מצפצף בסוף",
-          "verb": "route-channel",
+          "verb": "route",
           "material": "sound"
         },
         {
           "behavior": "מנורה דולקת בזמן אפייה",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         }
       ]

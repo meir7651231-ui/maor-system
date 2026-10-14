@@ -25,9 +25,9 @@ function report(v: Verb, fn: (...a: unknown[]) => unknown, want?: { i: number; j
 }
 
 describe('אלפבית-הפעלים', () => {
-  it('25–45 פעלים, מזהים ייחודיים, לכל אחד שם עברי ומשמעות; פועל-עם-חוקים — לפחות חוק אחד', () => {
+  it('25–60 פעלים, מזהים ייחודיים, לכל אחד שם עברי ומשמעות; פועל-עם-חוקים — לפחות חוק אחד', () => {
     expect(VERBS.length).toBeGreaterThanOrEqual(25);
-    expect(VERBS.length).toBeLessThanOrEqual(45);
+    expect(VERBS.length).toBeLessThanOrEqual(60);
     expect(new Set(VERBS.map((v) => v.id)).size).toBe(VERBS.length);
     for (const v of VERBS as Verb[]) {
       expect(v.he, v.id).toMatch(/[א-ת]/);

@@ -8,13 +8,13 @@
       "needs": [
         {
           "behavior": "מהבהבת",
-          "verb": "NEW:oscillate",
+          "verb": "oscillate",
           "material": "number",
           "detail": "מתנדנד — גל שעולה ויורד שוב ושוב בקצב קבוע"
         },
         {
           "behavior": "מתאימה את הקצב לשכנה",
-          "verb": "NEW:follow",
+          "verb": "follow",
           "material": "times",
           "detail": "לזוז מעט לקצב של השכן"
         },
@@ -42,13 +42,13 @@
       "needs": [
         {
           "behavior": "שולח צליל ומקשיב להד",
-          "verb": "NEW:echo",
+          "verb": "echo",
           "material": "sound",
           "detail": "זמן חזרה ⇒ מרחק"
         },
         {
           "behavior": "ישן עם חצי מוח",
-          "verb": "round-robin",
+          "verb": "rotate",
           "material": "sequence",
           "detail": "חצי ער וחצי ישן בתורות"
         },
@@ -64,7 +64,7 @@
         },
         {
           "behavior": "קופץ מעל הגלים",
-          "verb": "NEW:gravity",
+          "verb": "gravity",
           "material": "number",
           "detail": "נופל — מהירות שגדלה בכל צעד של נפילה"
         }
@@ -95,7 +95,7 @@
         },
         {
           "behavior": "יורק אש בתורות",
-          "verb": "round-robin",
+          "verb": "rotate",
           "material": "sequence",
           "detail": "פעם לכל כיוון"
         },
@@ -107,17 +107,17 @@
         },
         {
           "behavior": "מדרג את הפולשים לפי סכנה",
-          "verb": "rank-tiers",
+          "verb": "tier",
           "material": "list"
         },
         {
           "behavior": "סופר את האוצר כל לילה",
-          "verb": "daily-snapshot",
+          "verb": "bucket",
           "material": "record:hoard"
         },
         {
           "behavior": "עף במעגלים מעל ההר",
-          "verb": "NEW:orbit",
+          "verb": "orbit",
           "material": "geo",
           "detail": "תנועה במעגל סביב נקודה"
         }
@@ -130,7 +130,7 @@
       "needs": [
         {
           "behavior": "סדר דרגות בלהקה",
-          "verb": "rank-tiers",
+          "verb": "tier",
           "material": "list"
         },
         {
@@ -140,12 +140,12 @@
         },
         {
           "behavior": "יללה בירח מלא",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         },
         {
           "behavior": "מקיפים את הטרף",
-          "verb": "NEW:orbit",
+          "verb": "orbit",
           "material": "geo",
           "detail": "מקיף — תנועה במעגל או בעקומה סביב נקודה"
         },
@@ -163,7 +163,7 @@
       "needs": [
         {
           "behavior": "מחליפה צבע לפי הרקע",
-          "verb": "NEW:sample",
+          "verb": "sample",
           "material": "image",
           "detail": "לקרוא את הצבע מהסביבה"
         },
@@ -186,13 +186,13 @@
         },
         {
           "behavior": "לשון שיורה מהר",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool",
           "detail": "רק אם הזבוב קרוב מספיק"
         },
         {
           "behavior": "מתנדנדת כמו עלה",
-          "verb": "NEW:oscillate",
+          "verb": "oscillate",
           "material": "number",
           "detail": "מתנדנד — גל שעולה ויורד שוב ושוב בקצב קבוע"
         }
@@ -222,7 +222,7 @@
         },
         {
           "behavior": "דבש מצטבר בתאים",
-          "verb": "NEW:accumulate",
+          "verb": "accumulate",
           "material": "amount",
           "detail": "אוסף שגדל"
         },
@@ -233,12 +233,12 @@
         },
         {
           "behavior": "כל דבורה מוסרת לשכנה",
-          "verb": "hub-relay",
+          "verb": "relay",
           "material": "list"
         },
         {
           "behavior": "נחיל עוזב כשצפוף",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool",
           "detail": "יותר מדי דבורים"
         }
@@ -257,12 +257,12 @@
         },
         {
           "behavior": "המובילה מתחלפת כשמתעייפת",
-          "verb": "round-robin",
+          "verb": "rotate",
           "material": "sequence"
         },
         {
           "behavior": "כל ציפור הולכת אחרי השכנה",
-          "verb": "NEW:follow",
+          "verb": "follow",
           "material": "geo",
           "detail": "לזוז לכיוון השכן הקרוב"
         },
@@ -273,7 +273,7 @@
         },
         {
           "behavior": "נוחתות באותה תחנה כל שנה",
-          "verb": "NEW:move-along-path",
+          "verb": "move-along-path",
           "material": "geo",
           "detail": "מתקדם במסלול — נקודה שזזה לאורך דרך נתונה"
         },
@@ -291,29 +291,29 @@
       "needs": [
         {
           "behavior": "משאירה שביל ריח",
-          "verb": "NEW:accumulate",
+          "verb": "accumulate",
           "material": "number",
           "detail": "צובר — ערך שגדל מעט בכל צעד-זמן עד שמשהו מרוקן אותו"
         },
         {
           "behavior": "הריח מתנדף עם הזמן",
-          "verb": "NEW:decay",
+          "verb": "decay",
           "material": "number",
           "detail": "דועך — ערך שיורד מעט בכל צעד-זמן עד אפס"
         },
         {
           "behavior": "הולכת אחרי הריח החזק",
-          "verb": "rank-tiers",
+          "verb": "tier",
           "material": "list"
         },
         {
           "behavior": "הדרך הקצרה מנצחת",
-          "verb": "minmax",
+          "verb": "extreme",
           "material": "list"
         },
         {
           "behavior": "מעבירות פירור מאחת לשנייה",
-          "verb": "hub-relay",
+          "verb": "relay",
           "material": "sequence"
         },
         {
@@ -335,18 +335,18 @@
         },
         {
           "behavior": "מוצא את הנהר שבו נולד",
-          "verb": "search",
+          "verb": "lookup",
           "material": "geo"
         },
         {
           "behavior": "קופץ מעל מפלים",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool",
           "detail": "רק אם יש מספיק כוח"
         },
         {
           "behavior": "הכוח נגמר לאט",
-          "verb": "NEW:decay",
+          "verb": "decay",
           "material": "number",
           "detail": "דועך — ערך שיורד מעט בכל צעד-זמן עד אפס"
         },
@@ -375,19 +375,19 @@
         },
         {
           "behavior": "מרגיש רעידה בחוט",
-          "verb": "search",
+          "verb": "lookup",
           "material": "list",
           "detail": "איזה חוט רעד"
         },
         {
           "behavior": "רץ לכיוון הרעידה",
-          "verb": "NEW:move-along-path",
+          "verb": "move-along-path",
           "material": "geo",
           "detail": "מתקדם במסלול — נקודה שזזה לאורך דרך נתונה"
         },
         {
           "behavior": "מתקן חוט קרוע",
-          "verb": "tolerate-failure",
+          "verb": "tolerate",
           "material": "record:web"
         }
       ]
@@ -404,7 +404,7 @@
         },
         {
           "behavior": "מי בחוץ נכנס פנימה",
-          "verb": "round-robin",
+          "verb": "rotate",
           "material": "sequence",
           "detail": "תורות על המקום החם"
         },
@@ -416,12 +416,12 @@
         },
         {
           "behavior": "מזהה את הבן הזוג לפי הקול",
-          "verb": "search",
+          "verb": "lookup",
           "material": "sound"
         },
         {
           "behavior": "מחליק על הבטן",
-          "verb": "NEW:gravity",
+          "verb": "gravity",
           "material": "number",
           "detail": "מהירות שגדלה במורד"
         },
@@ -444,7 +444,7 @@
         },
         {
           "behavior": "חוזר לאותו חוף",
-          "verb": "search",
+          "verb": "lookup",
           "material": "geo"
         },
         {
@@ -488,12 +488,12 @@
         },
         {
           "behavior": "מפסיק כשכולם קמו",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         },
         {
           "behavior": "סדר ניקור בלול",
-          "verb": "rank-tiers",
+          "verb": "tier",
           "material": "list",
           "detail": "מי אוכל ראשון"
         }

@@ -58,6 +58,7 @@ function bindingsFor(verb, sig, cases) {
     case 'time>any': return ks.filter((k) => someArgs(cases, k, (v) => timeLike(v, sig.takes[k].d))).map((i) => ({ i }));
     case 'rec>str': return ks.filter((k) => someArgs(cases, k, isObj)).map((i) => ({ i }));
     case 'any>any': return [{ i: -1 }];
+    case 'spec': for (const i of ks.filter((k) => someArgs(cases, k, isObj))) for (const j of ks) if (j !== i) out.push({ i, j }); return out;
     case 'x+x>any': for (const i of ks) for (const j of ks) if (i < j && sameDesc(sig.takes[i].d, sig.takes[j].d) && someArgs(cases, i, (v, c) => !isNil(v) && classOf(v) === classOf(c.args[j]))) out.push({ i, j }); return out;
     case 'x+n>x': for (const i of ks) for (const j of numArgs) if (i !== j) out.push({ i, j }); return out;
     case 'tier': return ks.filter((k) => someArgs(cases, k, (v) => axisClass(classOf(v)) && (verb.axis !== 'time' || timeLike(v, sig.takes[k].d) || classOf(v) === 'iso'))).map((i) => ({ i }));
@@ -86,6 +87,7 @@ function baseFit(verb, b, c) {
     case 'time>any': return !isNil(o);
     case 'rec>str': return isObj(x) && isStr(o);
     case 'any>any': return true;
+    case 'spec': return isObj(x) && y !== undefined && !(isObj(y) && y.$$ === 'undef');
     case 'x+x>any': return !isNil(x) && !isNil(y);
     case 'x+n>x': { const cx = classOf(x); return cx !== 'nil' && cx !== 'bool' && cx !== 'str' && isNum(y) && Number.isInteger(y) && cx === classOf(o) && (cx !== 'arr' || (x.length > 0 && x.every(isNum))); }
     case 'tier': { const co = classOf(o); return axisClass(classOf(x)) && (co === 'num' || co === 'str' || co === 'iso' || co === 'hhmm'); }

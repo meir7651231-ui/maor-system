@@ -1,0 +1,642 @@
+{
+ "source": "core",
+ "repo": "meir7651231-ui/maor-system",
+ "ref": "claude/mined-verbs-261014@939ae480300dd141a69a50d0a47a1b3d78939292",
+ "generatedAt": null,
+ "parts": [
+  {
+   "id": "core:catalog/core/accumulate.mjs#accumulate",
+   "source": "core",
+   "path": "catalog/core/accumulate.mjs",
+   "symbol": "accumulate",
+   "lang": "js",
+   "what": "brick",
+   "name": "אוסף לקופה עד שהיא מתמלאת ומרוקנת",
+   "does": "מוסיף עוד ועוד לקופה — כל הפקדה מגדילה בדיוק בגודלה, וכשהקופה מלאה: ריקון ומתחילים מאפס",
+   "takes": [
+    {
+     "name": "spec",
+     "kind": "record:accumulateSpec",
+     "type": "{capacity}"
+    },
+    {
+     "name": "deposits",
+     "kind": "sequence",
+     "type": "number[]"
+    }
+   ],
+   "gives": {
+    "kind": "sequence",
+    "type": "number[]"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "core",
+    "verb:accumulate",
+    "origin:orbit:src/store/useApp.ts:3128",
+    "origin:orbit:src/components/tzedaka/lib.ts:52",
+    "origin:orbit:src/components/timer/MoneyTimer.tsx:113",
+    "origin:orbit:src/components/parnasa/biz.ts:145",
+    "origin:orbit:src/components/timer/BodyMap.tsx:87",
+    "origin:buildsmart:index.html:16380",
+    "origin:buildsmart:functions/src/claude.ts:85",
+    "origin:generator:design/orbit-nothinglost.html:138",
+    "origin:generator:new/dart-maor/box-total.dart:24",
+    "origin:rings:lab-rings/viz/rings-live.html:373",
+    "origin:mmmm:lib/integrations-openai-ai-server/src/audio/audio-playback-worklet.js:23",
+    "origin:qa-scanner:exposure_audit.py:421",
+    "twin:orbit:src/components/tzedaka/lib.ts#boxTotal",
+    "twin:generator:new/dart-maor/box-total.dart#boxTotal"
+   ]
+  },
+  {
+   "id": "core:catalog/core/bounce.mjs#bounce",
+   "source": "core",
+   "path": "catalog/core/bounce.mjs",
+   "symbol": "bounce",
+   "lang": "js",
+   "what": "brick",
+   "name": "מחזיר גוף מהרצפה במקדם קפיצה",
+   "does": "גוף שפוגע ברצפה חוזר ממנה: המהירות מתהפכת ונחלשת לפי מקדם-הקפיצה, ואף פעם לא נשאר מתחת לרצפה",
+   "takes": [
+    {
+     "name": "spec",
+     "kind": "record:bounceSpec",
+     "type": "{floor, bouncePct}"
+    },
+    {
+     "name": "body",
+     "kind": "record:body",
+     "type": "{pos, vel}"
+    }
+   ],
+   "gives": {
+    "kind": "record:body",
+    "type": "{pos, vel}"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "core",
+    "verb:bounce",
+    "built-new",
+    "origin:generator:new/dart-ui-bs/dots_loader.dart:46",
+    "origin:generator:new/dart-ui-bs/modal_dialog.dart:16",
+    "origin:buildsmart:app/src/styles/global.css:536",
+    "origin:orbit:src/components/parnasa/Ambient.tsx:98",
+    "origin:mmmm:lib/integrations-openai-ai-server/src/batch/utils.ts:54"
+   ]
+  },
+  {
+   "id": "core:catalog/core/countdown.mjs#countdown",
+   "source": "core",
+   "path": "catalog/core/countdown.mjs",
+   "symbol": "countdown",
+   "lang": "js",
+   "what": "brick",
+   "name": "סופר לאחור עד אפס בדיוק",
+   "does": "כמה נשאר עד הרגע: יורד בדיוק במה שעבר, נעצר באפס ולא יורד מתחתיו",
+   "takes": [
+    {
+     "name": "spec",
+     "kind": "record:countdownSpec",
+     "type": "{total}"
+    },
+    {
+     "name": "elapsed",
+     "kind": "number",
+     "type": "number"
+    }
+   ],
+   "gives": {
+    "kind": "number",
+    "type": "number"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "core",
+    "verb:countdown",
+    "origin:orbit:src/components/timer/MoneyTimer.tsx:117",
+    "origin:orbit:src/components/hosting/kitchen.ts:85",
+    "origin:orbit:src/lib/lock.ts:167",
+    "origin:orbit:src/lib/publicSite.ts:225",
+    "origin:orbit:src/components/shop/lib.ts:221",
+    "origin:buildsmart:app_flutter/lib/screens/login_sheet.dart:203",
+    "origin:buildsmart:index.html:7847",
+    "origin:generator:machtzev/pure/temporal-family.html:291",
+    "origin:generator:new/dart-ui-bs/countdown_timer.dart:21",
+    "origin:yeshiva:arena/shop/pricing.py:171",
+    "origin:qa-scanner:exposure_audit.py:201",
+    "origin:14kk:archive/final-bridge.js:650",
+    "twin:orbit:src/components/hosting/kitchen.ts#countdown",
+    "twin:orbit:src/components/shop/lib.ts#couponExpiry",
+    "twin:generator:new/dart-ui-bs/countdown_timer.dart#Countdown",
+    "twin:yeshiva:arena/shop/pricing.py#Coupon.usable"
+   ]
+  },
+  {
+   "id": "core:catalog/core/decay.mjs#decay",
+   "source": "core",
+   "path": "catalog/core/decay.mjs",
+   "symbol": "decay",
+   "lang": "js",
+   "what": "brick",
+   "name": "מחשב ערך שדועך עד הרצפה",
+   "does": "ערך שמתקרב לרצפה בכל צעד (חיכוך, דהייה, ריסון) — לא עובר אותה, ובסוף נוגע בה בדיוק ונשאר",
+   "takes": [
+    {
+     "name": "spec",
+     "kind": "record:decaySpec",
+     "type": "{from, floor, keepPct}"
+    },
+    {
+     "name": "step",
+     "kind": "number",
+     "type": "number"
+    }
+   ],
+   "gives": {
+    "kind": "number",
+    "type": "number"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "core",
+    "verb:decay",
+    "origin:orbit:src/components/parnasa/Ambient.tsx:91",
+    "origin:orbit:src/components/parnasa/bannerFx.ts:498",
+    "origin:orbit:src/components/parnasa/sound.ts:50",
+    "origin:orbit:src/store/useApp.ts:2029",
+    "origin:generator:design/capabilities-showcase.html:290",
+    "origin:generator:design/orbit-covenant.html:212",
+    "origin:generator:machtzev/pure/motion-family.html:172",
+    "origin:rings:lab-rings/viz/anneal.js:21",
+    "origin:buildsmart:index.html:100",
+    "origin:14kk:database/mongo-init.js:413"
+   ]
+  },
+  {
+   "id": "core:catalog/core/echo.mjs#echo",
+   "source": "core",
+   "path": "catalog/core/echo.mjs",
+   "symbol": "echo",
+   "lang": "js",
+   "what": "brick",
+   "name": "מודד מרחק מזמן החזרה של ההד",
+   "does": "שולח אות ומודד אחרי כמה זמן חזר — המרחק הוא הדרך הלוך-וחזור חלקי שתיים",
+   "takes": [
+    {
+     "name": "spec",
+     "kind": "record:echoSpec",
+     "type": "{speed}"
+    },
+    {
+     "name": "roundTrip",
+     "kind": "number",
+     "type": "number"
+    }
+   ],
+   "gives": {
+    "kind": "number",
+    "type": "number"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "core",
+    "verb:echo",
+    "origin:14kk:services/api-gateway/server.js:248",
+    "origin:orbit:src/lib/netcheck.ts:84",
+    "origin:14kk:archive/cascade_monitor.js:19",
+    "origin:buildsmart:app_flutter/lib/widgets/backend_debug_badge.dart:151",
+    "origin:buildsmart:app_flutter/lib/state/intel/presence.dart:131",
+    "origin:mmmm:agents-chat-server-17agents.js:310",
+    "twin:14kk:services/api-gateway/server.js#checkServiceHealth",
+    "twin:buildsmart:app_flutter/lib/state/intel/presence.dart#presenceLive"
+   ]
+  },
+  {
+   "id": "core:catalog/core/follow.mjs#follow",
+   "source": "core",
+   "path": "catalog/core/follow.mjs",
+   "symbol": "follow",
+   "lang": "js",
+   "what": "brick",
+   "name": "מזיז ערך חלק קבוע מהדרך למטרה",
+   "does": "בכל צעד מתקרב חלק קבוע מהדרך אל המטרה — לא עובר אותה, וכשהגיע נשאר (החלקה, מצלמה שנגררת, להקה)",
+   "takes": [
+    {
+     "name": "spec",
+     "kind": "record:followSpec",
+     "type": "{target, pullPct}"
+    },
+    {
+     "name": "current",
+     "kind": "number",
+     "type": "number"
+    }
+   ],
+   "gives": {
+    "kind": "number",
+    "type": "number"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "core",
+    "verb:follow",
+    "origin:orbit:src/lib/three-scene.ts:257",
+    "origin:orbit:src/components/parnasa/sheetFx.ts:56",
+    "origin:generator:design/orbit-covenant.html:214",
+    "origin:generator:design/orbit-final.html:599",
+    "origin:rings:lab-rings/viz/rings-live.html:420",
+    "origin:buildsmart:app_flutter/lib/features/ring_dive/catalog_wheel_screen.dart:354",
+    "origin:mmmm:agents-17-full-duplex.js:375"
+   ]
+  },
+  {
+   "id": "core:catalog/core/gravity.mjs#gravity",
+   "source": "core",
+   "path": "catalog/core/gravity.mjs",
+   "symbol": "gravity",
+   "lang": "js",
+   "what": "brick",
+   "name": "מחשב נפילה שמאיצה בכל צעד",
+   "does": "בכל צעד המהירות גדלה באותה כמות והמקום זז במהירות החדשה — מסלול ריבועי של נפילה (vy += g; y += vy)",
+   "takes": [
+    {
+     "name": "spec",
+     "kind": "record:gravitySpec",
+     "type": "{y, vy, g}"
+    },
+    {
+     "name": "step",
+     "kind": "number",
+     "type": "number"
+    }
+   ],
+   "gives": {
+    "kind": "record:gravityState",
+    "type": "{y, vy}"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "core",
+    "verb:gravity",
+    "origin:generator:machtzev/pure/motion-family.html:172",
+    "origin:orbit:src/components/parnasa/Ambient.tsx:92",
+    "origin:orbit:src/components/parnasa/coinFx.ts:96",
+    "origin:orbit:src/components/parnasa/coinFx.ts:249",
+    "origin:generator:new/dart-ui-bs/confetti_burst.dart:102",
+    "origin:generator:design/orbit-final.html:382",
+    "twin:generator:new/dart-ui-bs/confetti_burst.dart#ConfettiBurst"
+   ]
+  },
+  {
+   "id": "core:catalog/core/move-along-path.mjs#moveAlongPath",
+   "source": "core",
+   "path": "catalog/core/move-along-path.mjs",
+   "symbol": "moveAlongPath",
+   "lang": "js",
+   "what": "brick",
+   "name": "מזיז נקודה לאורך מסלול של תחנות",
+   "does": "נקודה שזזה על דרך של תחנות: 0 = בראשונה, 1 = באחרונה, ובאמצע — על הדרך עצמה, לפי המרחק שעברה",
+   "takes": [
+    {
+     "name": "spec",
+     "kind": "record:pathSpec",
+     "type": "{points: {x, y}[]}"
+    },
+    {
+     "name": "progress",
+     "kind": "number",
+     "type": "number"
+    }
+   ],
+   "gives": {
+    "kind": "geo",
+    "type": "{x, y} | null"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "core",
+    "verb:move-along-path",
+    "origin:orbit:src/components/parnasa/coinFx.ts:211",
+    "origin:orbit:src/components/shop7/lib.ts:12",
+    "origin:orbit:src/components/shop7/lib.ts:136",
+    "origin:buildsmart:index.html:7843",
+    "origin:buildsmart:app_flutter/lib/screens/install_studio_screen.dart:1853",
+    "origin:generator:design/orbit-nothinglost.html:173",
+    "origin:rings:lab-rings/viz/rings-live.html:323",
+    "origin:yeshiva:yeshiva/daf.py:281",
+    "origin:mmmm:artifacts/api-server/src/swarm/agents.ts:218",
+    "twin:orbit:src/components/shop7/lib.ts#advanceStatus",
+    "twin:orbit:src/components/shop7/lib.ts#volunteerRouteStops",
+    "twin:mmmm:artifacts/api-server/src/swarm/agents.ts#runSwarm"
+   ]
+  },
+  {
+   "id": "core:catalog/core/orbit.mjs#orbit",
+   "source": "core",
+   "path": "catalog/core/orbit.mjs",
+   "symbol": "orbit",
+   "lang": "js",
+   "what": "brick",
+   "name": "מחשב נקודה שמקיפה מרכז במעגל",
+   "does": "מסתובב סביב מרכז: תמיד באותו מרחק, באותה מהירות, וחוזר לאותו מקום אחרי מחזור שלם",
+   "takes": [
+    {
+     "name": "spec",
+     "kind": "record:orbitSpec",
+     "type": "{cx, cy, radius, period}"
+    },
+    {
+     "name": "step",
+     "kind": "number",
+     "type": "number"
+    }
+   ],
+   "gives": {
+    "kind": "geo",
+    "type": "{x, y}"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "core",
+    "verb:orbit",
+    "origin:orbit:src/components/supporters/SupportersGalaxy.tsx:101",
+    "origin:orbit:src/components/supporters/universe3d.ts:73",
+    "origin:orbit:src/lib/three-scene.ts:145",
+    "origin:orbit:src/components/hosting/seating.ts:300",
+    "origin:buildsmart:app_flutter/lib/features/fittings/render/camera.dart:74",
+    "origin:buildsmart:app_flutter/knowledge/catalog-3d/prototypes/catalog-engine.html:181",
+    "origin:rings:lab-rings/viz/rings-live.html:312",
+    "origin:generator:design/orbit-landing.html:310",
+    "origin:generator:design/orbit-covenant.html:87",
+    "twin:orbit:src/components/supporters/constellation.ts#donorConstellation",
+    "twin:orbit:src/components/supporters/universe3d.ts#project",
+    "twin:buildsmart:app_flutter/lib/features/fittings/render/camera.dart#orbitEye"
+   ]
+  },
+  {
+   "id": "core:catalog/core/oscillate.mjs#oscillate",
+   "source": "core",
+   "path": "catalog/core/oscillate.mjs",
+   "symbol": "oscillate",
+   "lang": "js",
+   "what": "brick",
+   "name": "מחשב גל שעולה ויורד סביב מרכז",
+   "does": "עולה ויורד סביב מרכז בקצב קבוע (נשימה, הבהוב, גל, צליל) — חוזר על עצמו כל מחזור ולא חורג מהמשרעת",
+   "takes": [
+    {
+     "name": "spec",
+     "kind": "record:oscillateSpec",
+     "type": "{center, amplitude, period}"
+    },
+    {
+     "name": "step",
+     "kind": "number",
+     "type": "number"
+    }
+   ],
+   "gives": {
+    "kind": "number",
+    "type": "number"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "core",
+    "verb:oscillate",
+    "origin:orbit:src/components/supporters/SupportersGalaxy.tsx:95",
+    "origin:orbit:src/components/supporters/SupportersGalaxy.tsx:111",
+    "origin:orbit:src/lib/three-scene.ts:260",
+    "origin:orbit:src/components/parnasa/Ambient.tsx:88",
+    "origin:orbit:src/components/parnasa/sound.ts:42",
+    "origin:buildsmart:app_flutter/lib/screens/home_shell.dart:1838",
+    "origin:generator:new/dart-ui-bs/glow_pulse.dart:81",
+    "origin:generator:new/dart-ui-bs/notify_badge.dart:52",
+    "origin:rings:lab-rings/viz/rings-live.html:331",
+    "origin:14kk:mvp/public/index.html:33",
+    "twin:generator:new/dart-ui-bs/glow_pulse.dart#GlowPulse",
+    "twin:generator:new/dart-ui-bs/notify_badge.dart#NotifyBadge"
+   ]
+  },
+  {
+   "id": "core:catalog/core/random.mjs#random",
+   "source": "core",
+   "path": "catalog/core/random.mjs",
+   "symbol": "random",
+   "lang": "js",
+   "what": "brick",
+   "name": "מפיק רצף מספרים אקראי מזרע",
+   "does": "רצף מספרים בין 0 ל-1 שנראה אקראי ומפוזר שווה — אבל אותו זרע נותן אותו רצף בדיוק",
+   "takes": [
+    {
+     "name": "spec",
+     "kind": "record:randomSpec",
+     "type": "{seed}"
+    },
+    {
+     "name": "count",
+     "kind": "number",
+     "type": "number"
+    }
+   ],
+   "gives": {
+    "kind": "sequence",
+    "type": "number[]"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "core",
+    "verb:random",
+    "origin:orbit:src/lib/atoms/verify/gen.ts:29",
+    "origin:orbit:src/components/supporters/constellation.ts:33",
+    "origin:orbit:src/components/hosting/seating.ts:147",
+    "origin:orbit:src/components/wheel/CourseWheel.tsx:49",
+    "origin:generator:machtzev/generator/behavior-plan.mjs:717",
+    "origin:generator:new/dart-ui-bs/particle_field.dart:86",
+    "origin:rings:lab-rings/viz/rings-live.html:161",
+    "origin:buildsmart:functions/src/creditCore.ts:38",
+    "origin:14kk:knowledge_protocol.js:688",
+    "twin:orbit:src/components/supporters/constellation.ts#donorConstellation",
+    "twin:orbit:src/components/hosting/seating.ts#seatShuffle",
+    "twin:generator:new/dart-ui-bs/particle_field.dart#ParticleField"
+   ]
+  },
+  {
+   "id": "core:catalog/core/sample.mjs#sample",
+   "source": "core",
+   "path": "catalog/core/sample.mjs",
+   "symbol": "sample",
+   "lang": "js",
+   "what": "brick",
+   "name": "קורא מהסביבה כל קריאה במרווח קבוע",
+   "does": "קורא מהסביבה כל קריאה k-ית (הראשונה, ה-k, ה-2k…) — בלי לשנות ובלי לדלג על תור",
+   "takes": [
+    {
+     "name": "spec",
+     "kind": "record:sampleSpec",
+     "type": "{every}"
+    },
+    {
+     "name": "readings",
+     "kind": "sequence",
+     "type": "number[]"
+    }
+   ],
+   "gives": {
+    "kind": "sequence",
+    "type": "number[]"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "core",
+    "verb:sample",
+    "origin:yeshiva:yeshiva/mefarshim.py:32",
+    "origin:generator:design/orbit-final.html:515",
+    "origin:buildsmart:app/src/lib/barcode.ts:59",
+    "origin:buildsmart:index.html:22224",
+    "origin:rings:lab-rings/viz/rings-live.html:176",
+    "origin:generator:machtzev/generator/behavior-plan.mjs:718",
+    "origin:14kk:archive/cascade_monitor.js:14",
+    "origin:mmmm:artifacts/agents-chat/src/hooks/useVoiceRecorder.ts:47"
+   ]
+  },
+  {
+   "id": "core:catalog/core/shortest-path.mjs#shortestPath",
+   "source": "core",
+   "path": "catalog/core/shortest-path.mjs",
+   "symbol": "shortestPath",
+   "lang": "js",
+   "what": "brick",
+   "name": "מוצא את הדרך הזולה ברשת נקודות",
+   "does": "ברשת של נקודות וקשתות עם מחיר — הדרך הזולה ביותר מנקודה לנקודה, ואם אין דרך אומר שאין",
+   "takes": [
+    {
+     "name": "spec",
+     "kind": "record:graphSpec",
+     "type": "{edges: {a, b, w}[]}"
+    },
+    {
+     "name": "from",
+     "kind": "choice",
+     "type": "0..5"
+    },
+    {
+     "name": "to",
+     "kind": "choice",
+     "type": "0..5"
+    }
+   ],
+   "gives": {
+    "kind": "sequence",
+    "type": "{cost, path} | null"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "core",
+    "verb:shortest-path",
+    "origin:buildsmart:app_flutter/lib/logic/install_engine.dart:759",
+    "origin:generator:new/dart/find_shortest_path.dart:51",
+    "origin:buildsmart:app_flutter/lib/features/card_keyboard/hop_graph.dart:135",
+    "origin:orbit:src/lib/engineroute/route.ts:122",
+    "origin:rings:lab-rings/lab13/wide2frames.mjs:29",
+    "origin:rings:lab-rings/viz/anneal.js:9",
+    "origin:qa-scanner:scanner.py:94",
+    "twin:buildsmart:app_flutter/lib/logic/install_engine.dart#findShortestPath",
+    "twin:generator:new/dart/find_shortest_path.dart#findShortestPath",
+    "twin:qa-scanner:scanner.py#crawl"
+   ]
+  },
+  {
+   "id": "core:catalog/core/spread.mjs#spread",
+   "source": "core",
+   "path": "catalog/core/spread.mjs",
+   "symbol": "spread",
+   "lang": "js",
+   "what": "brick",
+   "name": "מרחיב גל לכל השכנים בכל צעד",
+   "does": "בכל צעד מה שנגע עובר לכל השכנים הישירים — גל שמתרחב טבעת אחרי טבעת, ומה שנגע נשאר",
+   "takes": [
+    {
+     "name": "spec",
+     "kind": "record:spreadSpec",
+     "type": "{edges: {a, b}[], sources}"
+    },
+    {
+     "name": "steps",
+     "kind": "number",
+     "type": "number"
+    }
+   ],
+   "gives": {
+    "kind": "list",
+    "type": "number[]"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "core",
+    "verb:spread",
+    "origin:buildsmart:app_flutter/lib/features/card_keyboard/hop_graph.dart:115",
+    "origin:yeshiva:yeshiva/shiura.py:58",
+    "origin:orbit:src/lib/demoCleanup.ts:118",
+    "origin:generator:new/dart-maor/plan-demo-cleanup.dart:82",
+    "origin:orbit:src/components/parnasa/bannerFx.ts:531",
+    "origin:rings:lab-rings/viz/rings-live.html:270",
+    "origin:qa-scanner:scanner.py:120",
+    "twin:yeshiva:yeshiva/shiura.py#UnionFind",
+    "twin:generator:new/dart-maor/plan-demo-cleanup.dart#planDemoCleanup",
+    "twin:qa-scanner:scanner.py#crawl"
+   ]
+  },
+  {
+   "id": "core:catalog/core/sun-position.mjs#sunPosition",
+   "source": "core",
+   "path": "catalog/core/sun-position.mjs",
+   "symbol": "sunPosition",
+   "lang": "js",
+   "what": "brick",
+   "name": "מחשב מתי השמש בזווית מתחת לאופק",
+   "does": "מתי השמש נמצאת בזווית נתונה מתחת לאופק ביום ובמקום נתונים — בבוקר עולה, בערב שוקעת, וחצות-היום באמצע",
+   "takes": [
+    {
+     "name": "spec",
+     "kind": "record:sunSpec",
+     "type": "{lat, lon, depression}"
+    },
+    {
+     "name": "day",
+     "kind": "date",
+     "type": "IsoDate"
+    }
+   ],
+   "gives": {
+    "kind": "times",
+    "type": "{rise, noon, set} | null"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "core",
+    "verb:sun-position",
+    "origin:orbit:src/components/parnasa/zmanimBoard.ts:249",
+    "origin:orbit:telephony/lib/zmanim.mjs:108",
+    "origin:orbit:src/components/parnasa/zmanimBoard.ts:283",
+    "twin:orbit:telephony/lib/zmanim.mjs#sunset",
+    "twin:orbit:src/components/parnasa/zmanimBoard.ts#sunAngleTime"
+   ]
+  }
+ ]
+}

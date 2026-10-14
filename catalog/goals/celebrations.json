@@ -28,7 +28,7 @@
         },
         {
           "behavior": "עליות לתורה בתורות",
-          "verb": "round-robin",
+          "verb": "rotate",
           "material": "sequence"
         }
       ]
@@ -40,7 +40,7 @@
       "needs": [
         {
           "behavior": "הגרלה בלי עצמך",
-          "verb": "NEW:random",
+          "verb": "random",
           "material": "list",
           "detail": "מגריל — בחירה או ערך לפי סיכוי"
         },
@@ -61,7 +61,7 @@
         },
         {
           "behavior": "גילוי בסוף",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         }
       ]
@@ -83,7 +83,7 @@
         },
         {
           "behavior": "מגרילים",
-          "verb": "NEW:random",
+          "verb": "random",
           "material": "list",
           "detail": "מגריל — בחירה או ערך לפי סיכוי"
         },
@@ -94,7 +94,7 @@
         },
         {
           "behavior": "פרסים לפי סדר",
-          "verb": "rank-tiers",
+          "verb": "tier",
           "material": "list"
         }
       ]
@@ -111,7 +111,7 @@
         },
         {
           "behavior": "מתפוצצים בגובה",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         },
         {
@@ -121,7 +121,7 @@
         },
         {
           "behavior": "נופלים ודועכים",
-          "verb": "NEW:decay",
+          "verb": "decay",
           "material": "number",
           "detail": "דועך — ערך שיורד מעט בכל צעד-זמן עד אפס"
         },
@@ -169,7 +169,7 @@
         },
         {
           "behavior": "הנרות דולקים חצי שעה לפחות",
-          "verb": "NEW:countdown",
+          "verb": "countdown",
           "material": "times",
           "detail": "סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה"
         }
@@ -271,12 +271,12 @@
         },
         {
           "behavior": "מחכים לרגע",
-          "verb": "gate",
+          "verb": "validate",
           "material": "waiting"
         },
         {
           "behavior": "אחד מעדכן את כולם",
-          "verb": "hub-relay",
+          "verb": "relay",
           "material": "text"
         },
         {
@@ -303,7 +303,7 @@
         },
         {
           "behavior": "שליח עובר בבתים",
-          "verb": "NEW:shortest-path",
+          "verb": "shortest-path",
           "material": "geo",
           "detail": "דרך קצרה — המסלול הקצר ביותר ברשת של נקודות"
         },
@@ -331,7 +331,7 @@
         },
         {
           "behavior": "מידות מינימום",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         },
         {
@@ -341,7 +341,7 @@
         },
         {
           "behavior": "קישוטים",
-          "verb": "round-robin",
+          "verb": "rotate",
           "material": "list"
         },
         {
@@ -378,7 +378,7 @@
         },
         {
           "behavior": "שכח יום ⇒ ממשיך בלי ברכה",
-          "verb": "tolerate-failure",
+          "verb": "tolerate",
           "material": "sequence"
         },
         {

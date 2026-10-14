@@ -7,16 +7,19 @@
  * 3. מילים ייחודיות בכל המילון; 4–8 צרכים לכל מילה; לפחות 150 מילים ב-12 עולמות; המילים החובה בפנים.
  * 4. דטרמיניסטי: מילים ממוינות בסדר-תווים, הקובץ = JSON.stringify(doc, null, 2) + "\n".
  * 5. ה-README מונה את כל פעלי-ה-NEW ואת מספר המילים.
+ * 6. (MINED-VERBS) רשימת-הפעלים בסכמה = האלפבית (catalog/verbs.json) בדיוק; אין NEW: לפועל שכבר קיים; מד-הכיסוי מעודכן.
  */
 import { describe, it, expect } from 'vitest';
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { validateSchema } from '../lib/check.mjs';
+import { VERBS } from '../lib/verbs.mjs';
+import { coverage, coverageMd } from '../scripts/goals-coverage.mjs';
 
 const DIR = join(__dirname, '..', 'goals');
 const SCHEMA = JSON.parse(readFileSync(join(DIR, 'schema.json'), 'utf8'));
 const CATALOG = JSON.parse(readFileSync(join(__dirname, '..', 'schema.json'), 'utf8'));
-const FILES = readdirSync(DIR).filter((f) => f.endsWith('.json') && f !== 'schema.json').sort();
+const FILES = readdirSync(DIR).filter((f) => f.endsWith('.json') && f !== 'schema.json' && f !== 'coverage.json').sort();
 
 type Need = { behavior: string; verb: string; material: string; detail?: string };
 type Goal = { word: string; emoji: string; does: string; needs: Need[] };
@@ -75,4 +78,21 @@ describe('מילון המטרות', () => {
     expect(readme).toContain(`**${goals.length} מילים**`);
     for (const d of docs) expect(readme, d.file).toContain('`' + d.file + '`');
   });
+
+  it('רשימת-הפעלים בסכמה = האלפבית בדיוק; אין NEW: לפועל שכבר קיים', () => {
+    const pat = SCHEMA.properties.goals.items.properties.needs.items.properties.verb.pattern as string;
+    const listed = pat.replace(/^\^\(/, '').replace(/\)\$$/, '').split('|').filter((v) => !v.startsWith('NEW:'));
+    expect(listed).toEqual(VERBS.map((v) => v.id));
+    const ids = new Set(VERBS.map((v) => v.id));
+    for (const n of needs) if (n.verb.startsWith('NEW:')) expect(ids.has(n.verb.slice(4)), n.verb).toBe(false);
+  });
+
+  it('מד-הכיסוי מעודכן (node catalog/scripts/goals-coverage.mjs) ולא יורד', () => {
+    const c = coverage(join(__dirname, '..', '..'));
+    expect(readFileSync(join(DIR, 'coverage.json'), 'utf8')).toBe(JSON.stringify(c, null, 2) + '\n');
+    expect(readFileSync(join(DIR, 'coverage.md'), 'utf8')).toBe(coverageMd(c));
+    expect(c.behaviors).toBe(needs.length);
+    expect(c.after.byVerb).toBeGreaterThanOrEqual(c.before.byVerb);
+    expect(c.after.byVerb).toBe(940);
+  }, 60_000);
 });

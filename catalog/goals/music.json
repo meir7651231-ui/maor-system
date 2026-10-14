@@ -40,7 +40,7 @@
       "needs": [
         {
           "behavior": "שומע צליל",
-          "verb": "NEW:sample",
+          "verb": "sample",
           "material": "sound",
           "detail": "קורא מהסביבה — מודד צבע/קול/ערך מבחוץ"
         },
@@ -61,7 +61,7 @@
         },
         {
           "behavior": "קרוב מספיק ⇒ ירוק",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         }
       ]
@@ -78,7 +78,7 @@
         },
         {
           "behavior": "מטוטלת הלוך ושוב",
-          "verb": "NEW:oscillate",
+          "verb": "oscillate",
           "material": "number",
           "detail": "מתנדנד — גל שעולה ויורד שוב ושוב בקצב קבוע"
         },
@@ -111,7 +111,7 @@
         },
         {
           "behavior": "ערבוב",
-          "verb": "NEW:random",
+          "verb": "random",
           "material": "sequence",
           "detail": "מגריל — בחירה או ערך לפי סיכוי"
         },
@@ -127,7 +127,7 @@
         },
         {
           "behavior": "הכי מושמעים",
-          "verb": "rank-tiers",
+          "verb": "tier",
           "material": "list"
         },
         {
@@ -159,13 +159,13 @@
         },
         {
           "behavior": "הצליל דועך",
-          "verb": "NEW:decay",
+          "verb": "decay",
           "material": "sound",
           "detail": "דועך — ערך שיורד מעט בכל צעד-זמן עד אפס"
         },
         {
           "behavior": "דוושה מחזיקה",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         }
       ]
@@ -177,7 +177,7 @@
       "needs": [
         {
           "behavior": "כל פעמון בתורו",
-          "verb": "round-robin",
+          "verb": "rotate",
           "material": "sequence"
         },
         {
@@ -219,7 +219,7 @@
         },
         {
           "behavior": "הקבוצות בתורות",
-          "verb": "round-robin",
+          "verb": "rotate",
           "material": "sequence"
         },
         {
@@ -229,7 +229,7 @@
         },
         {
           "behavior": "קול לפי גובה",
-          "verb": "rank-tiers",
+          "verb": "tier",
           "material": "list"
         }
       ]
@@ -261,7 +261,7 @@
         },
         {
           "behavior": "סולו בתורו",
-          "verb": "round-robin",
+          "verb": "rotate",
           "material": "sequence"
         }
       ]
@@ -278,7 +278,7 @@
         },
         {
           "behavior": "המנצח מאחד",
-          "verb": "hub-relay",
+          "verb": "relay",
           "material": "sound"
         },
         {
@@ -321,7 +321,7 @@
         },
         {
           "behavior": "קפיץ שמתפרק",
-          "verb": "NEW:decay",
+          "verb": "decay",
           "material": "number",
           "detail": "דועך — ערך שיורד מעט בכל צעד-זמן עד אפס"
         },
@@ -337,7 +337,7 @@
         },
         {
           "behavior": "נפתחת ⇒ מנגנת",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         },
         {

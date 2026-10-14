@@ -13,12 +13,12 @@
         },
         {
           "behavior": "עוצר רק כשמישהו לחץ",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         },
         {
           "behavior": "מסלול קבוע",
-          "verb": "NEW:move-along-path",
+          "verb": "move-along-path",
           "material": "geo",
           "detail": "מתקדם במסלול — נקודה שזזה לאורך דרך נתונה"
         },
@@ -73,29 +73,29 @@
       "needs": [
         {
           "behavior": "מיון קריאות לפי דחיפות",
-          "verb": "rank-tiers",
+          "verb": "tier",
           "material": "list"
         },
         {
           "behavior": "האמבולנס הקרוב",
-          "verb": "minmax",
+          "verb": "extreme",
           "material": "geo"
         },
         {
           "behavior": "הדרך המהירה",
-          "verb": "NEW:shortest-path",
+          "verb": "shortest-path",
           "material": "geo",
           "detail": "מסלול קצר ביותר ברשת דרכים"
         },
         {
           "behavior": "סירנה עולה ויורדת",
-          "verb": "NEW:oscillate",
+          "verb": "oscillate",
           "material": "sound",
           "detail": "מתנדנד — גל שעולה ויורד שוב ושוב בקצב קבוע"
         },
         {
           "behavior": "הודעה לבית החולים",
-          "verb": "route-channel",
+          "verb": "route",
           "material": "text"
         }
       ]
@@ -117,7 +117,7 @@
         },
         {
           "behavior": "תעריף לילה",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         },
         {
@@ -127,7 +127,7 @@
         },
         {
           "behavior": "המונית הקרובה מקבלת את הנסיעה",
-          "verb": "minmax",
+          "verb": "extreme",
           "material": "geo"
         }
       ]
@@ -139,7 +139,7 @@
       "needs": [
         {
           "behavior": "ממריא כשהמהירות מספיקה",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         },
         {
@@ -149,13 +149,13 @@
         },
         {
           "behavior": "טס במסלול",
-          "verb": "NEW:move-along-path",
+          "verb": "move-along-path",
           "material": "geo",
           "detail": "מתקדם במסלול — נקודה שזזה לאורך דרך נתונה"
         },
         {
           "behavior": "מחכה בתור לנחיתה",
-          "verb": "NEW:orbit",
+          "verb": "orbit",
           "material": "geo",
           "detail": "מקיף — תנועה במעגל או בעקומה סביב נקודה"
         },
@@ -166,7 +166,7 @@
         },
         {
           "behavior": "מושבים לפי מחלקות",
-          "verb": "rank-tiers",
+          "verb": "tier",
           "material": "list"
         }
       ]
@@ -188,18 +188,18 @@
         },
         {
           "behavior": "נוחת בנקודה",
-          "verb": "minmax",
+          "verb": "extreme",
           "material": "geo"
         },
         {
           "behavior": "דלק יורד",
-          "verb": "NEW:decay",
+          "verb": "decay",
           "material": "number",
           "detail": "דועך — ערך שיורד מעט בכל צעד-זמן עד אפס"
         },
         {
           "behavior": "חוזר לבסיס לפני שנגמר",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         }
       ]
@@ -221,7 +221,7 @@
         },
         {
           "behavior": "נוסעת כשמלאה או בזמן",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         },
         {
@@ -248,13 +248,13 @@
         },
         {
           "behavior": "מתמלאת בכל תחנה",
-          "verb": "NEW:accumulate",
+          "verb": "accumulate",
           "material": "number",
           "detail": "צובר — ערך שגדל מעט בכל צעד-זמן עד שמשהו מרוקן אותו"
         },
         {
           "behavior": "מלאה ⇒ חוזרת לרוקן",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         },
         {
@@ -287,19 +287,19 @@
         },
         {
           "behavior": "מקשיבה לקולות מסביב",
-          "verb": "NEW:echo",
+          "verb": "echo",
           "material": "sound",
           "detail": "הד — שולח אות ומודד אחרי כמה זמן חזר, וממנו מרחק"
         },
         {
           "behavior": "האוויר יורד לאט",
-          "verb": "NEW:decay",
+          "verb": "decay",
           "material": "number",
           "detail": "דועך — ערך שיורד מעט בכל צעד-זמן עד אפס"
         },
         {
           "behavior": "עולה כשהאוויר מתחת לסף",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         },
         {
@@ -309,7 +309,7 @@
         },
         {
           "behavior": "מחליפים משמרות בפנים",
-          "verb": "round-robin",
+          "verb": "rotate",
           "material": "sequence"
         }
       ]
@@ -321,13 +321,13 @@
       "needs": [
         {
           "behavior": "הסוללה יורדת בנסיעה",
-          "verb": "NEW:decay",
+          "verb": "decay",
           "material": "number",
           "detail": "דועך — ערך שיורד מעט בכל צעד-זמן עד אפס"
         },
         {
           "behavior": "מחזיר אנרגיה בבלימה",
-          "verb": "NEW:accumulate",
+          "verb": "accumulate",
           "material": "number",
           "detail": "צובר — ערך שגדל מעט בכל צעד-זמן עד שמשהו מרוקן אותו"
         },
@@ -338,7 +338,7 @@
         },
         {
           "behavior": "תחנה קרובה פנויה",
-          "verb": "search",
+          "verb": "lookup",
           "material": "geo"
         },
         {
@@ -381,7 +381,7 @@
         },
         {
           "behavior": "הקרון המלא והפנוי",
-          "verb": "minmax",
+          "verb": "extreme",
           "material": "list"
         }
       ]
