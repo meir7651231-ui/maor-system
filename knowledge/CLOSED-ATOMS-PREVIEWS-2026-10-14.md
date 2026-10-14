@@ -148,3 +148,12 @@ ratchet-כיסוי (`atoms-preview-coverage.test.ts`): כל אחד מ-43 החי�
 ## 7. שערים
 - `npm run verify:fast` ✅ · `npm run verify` ✅ — 458 קבצים · **4,015 בדיקות** · bundle-budget 88% · 8 chunks-הפעלה.
 - בדיקות חדשות: `atoms-preview-zmanim` (12) · `atoms-preview-whatneed` (13) · `atoms-preview-bookings-more` (10) · `atoms-preview-coverage` (4).
+- `npm run e2e` (toggle-matrix) ✅ — "המטריצה כולה ירוקה".
+- `node e2e/enginebox-smoke.mjs` ✅ — 99 ✅, אפס ❌, אפס שגיאות קונסולה; הסקריפט לא שונה. הצילומים שהמסע כותב מחדש **הוחזרו** לגרסה המחויבת
+  (לא הוקלטו מחדש).
+- `contract.ts` · `explain.ts` · `cards.ts` · `engines/*` · `src/components/enginebox/**` · `e2e/*` — לא נגעו.
+
+## 8. נותר
+- `bookings.day:divide` — אם הבעלים ירצה "יום עבודה", צריך שדה בהגדרות האירוח (שעת התחלה/סוף); אז התצוגה = `divideBy` על השדה.
+- CLAUDE.md לא עודכן בענף הזה (קובץ משותף; סשן C ממזג) — שורה מוצעת לסעיף "מנועים וחלקים": "התצוגות: 41/43 חיבורים אמיתיים
+  (previewZmanim/WhatNeed/BookingsMore); HONEST_NULLS = יום עבודה · שמות אורחים. דוח: `knowledge/CLOSED-ATOMS-PREVIEWS-2026-10-14.md`".
