@@ -33,6 +33,9 @@ const OUT = join(HERE, '..', 'knowledge', 'shots', 'enginebox-2026-10-13');
 const OUT_ATOMS = join(HERE, '..', 'knowledge', 'shots', 'atoms-names-2026-10-14');
 await mkdir(OUT, { recursive: true });
 await mkdir(OUT_ATOMS, { recursive: true });
+// ATOMS-CHAIN 14.10: מנוע שנוצר חוזר לארגז — המסע של השרשרת
+const OUT_CHAIN = join(HERE, '..', 'knowledge', 'shots', 'atoms-chain-2026-10-14');
+await mkdir(OUT_CHAIN, { recursive: true });
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png', '.webmanifest': 'application/manifest+json', '.woff2': 'font/woff2' };
 const server = http.createServer(async (req, res) => {
   try { let p = decodeURIComponent(req.url.split('?')[0]).replace(/^\/maor-system\/?/, '/'); if (p === '/' || p === '') p = '/index.html';
@@ -528,6 +531,171 @@ console.log('🧩 ארגז המנועים — מסע אמיתי');
   await closeBox(page);
 
   T('🧬 אפס שגיאות קונסולה', errors.length === 0, errors.slice(0, 3).join(' | '));
+  await ctx.close();
+}
+
+// ───────── 8 · (ATOMS-PREVIEWS, מוזג) תוצאות אמיתיות גם במחשבון הזמנים ובמבין בקשות ─────────
+{
+  const { ctx, page, errors } = await open(CFG({ 'shell.enginebox': true, 'shell.demodrop': false }), SEED_DB);
+  const A = (sel) => page.locator(`${BOX} ${sel}`);
+  const pshot = (name) => shot(page, name, true, undefined, OUT_CHAIN);
+  await openBox(page, null);
+  await A('[data-host="zmanim"]').waitFor({ timeout: 6000 }).catch(() => {});
+  // (א) 🕯️ ⇒ ✂️ ⇒ "היום מהנץ עד השקיעה" עם השעה הזמנית האמיתית
+  await A('[data-host="zmanim"]').click();
+  await wait(250);
+  await A('[data-atom="divide"]').click();
+  await A('.at-question').waitFor({ timeout: 4000 }).catch(() => {});
+  await wait(300);
+  const dayRow = (await A('[data-place="zmanim.day"]').textContent().catch(() => '')) ?? '';
+  T('🕯️ (א) מחשבון הזמנים · ✂️ — ליד "היום" תוצאה אמיתית: "שעה זמנית היום = …"', (await A('[data-place="zmanim.day"] [data-preview="real"]').count()) === 1 && dayRow.includes('שעה זמנית היום'), dayRow);
+  await A('[data-place="zmanim.day"]').scrollIntoViewIfNeeded();
+  await pshot('09-zmanim-real.png');
+  // (ב) 🙋 ⇒ 🔍 ⇒ שמות העסקים — תוצאה אמיתית מהמדריך
+  await A('.at-head button').first().click(); await wait(200);
+  await A('.at-head button').first().click(); await wait(250);
+  await A('[data-host="whatNeed"]').click();
+  await wait(250);
+  await A('[data-atom="fuzzy"]').click();
+  await A('.at-question').waitFor({ timeout: 4000 }).catch(() => {});
+  await wait(300);
+  const reals = await A('[data-place] [data-preview="real"]').allTextContents();
+  T('🙋 (ב) מבין בקשות · 🔍 — לפחות מקום אחד עם תוצאה אמיתית מהנתונים', reals.length >= 1 && reals.every((t) => t.trim().length > 0), reals.join(' | ').slice(0, 200));
+  T('🙋 בלי שמות אורחים בתוצאות', !reals.join(' ').includes('משפחת לוי') && !reals.join(' ').includes('משפחת שפירא'));
+  await pshot('10-whatneed-real.png');
+  await closeBox(page);
+  T('🕯️🙋 אפס שגיאות קונסולה', errors.length === 0, errors.slice(0, 3).join(' | '));
+  await ctx.close();
+}
+
+// ───────── 7 · (ATOMS-CHAIN 14.10) ✨ מנוע שנוצר חוזר לארגז — בונים עליו ─────────
+{
+  const { ctx, page, errors } = await open(CFG({ 'shell.enginebox': true, 'shell.demodrop': false }), SEED_DB);
+  const A = (sel) => page.locator(`${BOX} ${sel}`);
+  const boxText = async () => (await page.locator(BOX).textContent().catch(() => '')) ?? '';
+  const cshot = (name, clip) => shot(page, name, true, clip, OUT_CHAIN);
+  const auditOf = () => page.evaluate(() => (JSON.parse(localStorage.getItem('maor_db') || '{}').audit || []).map((a) => a.act + ': ' + a.what));
+  const capsOf = () => page.evaluate(() => (JSON.parse(localStorage.getItem('maor_db') || '{}').ui || {}).capabilities || []);
+  const waitMade = async () => { await A('[data-made]').first().waitFor({ timeout: 6000 }).catch(() => {}); await wait(400); };
+  const flushToasts = () => page.waitForFunction(() => document.querySelectorAll('.toast').length === 0, null, { timeout: 8000 }).catch(() => {});
+  const backTo = async (step) => {
+    for (let i = 0; i < 5 && !(await A(`[data-atoms="${step}"]`).count()); i++) { await A('.at-head button').first().click().catch(() => {}); await wait(250); }
+  };
+  const TURNS = 'bookings:bookings.turnover:divide';
+  const VAR = TURNS + '>merge';
+  const ROW = (id) => A(`[data-capability="${id}"]`);
+  const rmBtn = (name) => A(`button[title="הסר: ${name}"]`);
+
+  // 7.1 · יוצרים "מנוע תורים" כמו היום
+  await openBox(page, null);
+  await A('[data-host="bookings"]').waitFor({ timeout: 6000 }).catch(() => {});
+  await A('[data-host="bookings"]').click();
+  await wait(250);
+  await A('[data-atom="divide"]').click();
+  await wait(250);
+  await A('[data-place="bookings.turnover"]').click();
+  await wait(250);
+  await A('[data-choice="by:size"]').click();
+  await A('[data-detail="size"]').fill('40');
+  await A('[data-detail="gap"]').fill('0');
+  await wait(200);
+  await A('.at-actions button').filter({ hasText: 'חבר' }).first().click();
+  await waitMade();
+  T('✨ 7.1 "מנוע תורים" נוצר כמו היום', ((await A('[data-made]').textContent().catch(() => '')) ?? '').includes('✨ נוצר מנוע חדש: מנוע תורים'));
+  await flushToasts();
+
+  // 7.2 · פותחים את "✨ מנוע תורים" מהארגז — כרטיס בגריד המנועים
+  await backTo('engines');
+  const capCard = A(`[data-host-cap="${TURNS}"]`);
+  T('✨ 7.2 בגריד המנועים יש כרטיס "✨ מנוע תורים"', (await capCard.count()) === 1 && ((await capCard.textContent()) ?? '').includes('מנוע תורים'));
+  await capCard.scrollIntoViewIfNeeded();
+  await cshot('01-created-engine-in-box.png');
+  await capCard.click();
+  await wait(300);
+  const offered = await A('[data-atom]').evaluateAll((els) => els.map((e) => e.getAttribute('data-atom')));
+  T('✨ "איזה חלק לחבר אל ✨ מנוע תורים?" — רק מה שמתחבר לתורים: 🔗 ⏭️ 🔄', (await boxText()).includes('איזה חלק לחבר אל ✨ מנוע תורים?') && offered.join(',') === 'merge,next,rotate', offered.join(','));
+  T('✨ אין גלילה אופקית ב-390px', !(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1)));
+  await cshot('02-pick-on-created.png');
+
+  // 7.3 · 🔗 ⇒ המקום היחיד, עם התורים באורך משתנה האמיתיים
+  await A('[data-atom="merge"]').click();
+  await A('.at-question').waitFor({ timeout: 4000 }).catch(() => {});
+  await wait(250);
+  const outRow = (await A(`[data-place="out:${TURNS}"]`).textContent().catch(() => '')) ?? '';
+  T('✨ 7.3 מקום אחד: "התורים של מנוע תורים"', (await A('[data-place]').count()) === 1 && outRow.includes('התורים של מנוע תורים'), outRow);
+  T('✨ התוצאה האמיתית: "6 תורים של 40 דקות" · "תור של 2 צמודים = 80 דקות · 11:00–12:20"', outRow.includes('6 תורים של 40 דקות בחלון 11:00–15:00') && outRow.includes('תור של 2 צמודים = 80 דקות · 11:00–12:20'), outRow);
+  await cshot('03-variable-length.png');
+  await A(`[data-place="out:${TURNS}"]`).click();
+  await wait(250);
+
+  // 7.4 · "חבר" ⇒ מנוע מהדור השני
+  await A('.at-actions button').filter({ hasText: 'חבר' }).first().click();
+  await waitMade();
+  const made = (await A('[data-made]').textContent().catch(() => '')) ?? '';
+  T('✨ 7.4 "✨ נוצר מנוע חדש: מנוע תורים באורך משתנה" — עם התורים הארוכים', made.includes('✨ נוצר מנוע חדש: מנוע תורים באורך משתנה') && made.includes('יחידה גדולה ⇒ 3 תורים ארוכים'), made);
+  await flushToasts();
+  await cshot('04-second-generation.png');
+
+  // 7.5 · ברשימה: "בנוי על ✨ מנוע תורים"
+  T('✨ 7.5 "המנועים שיצרת": מנוע תורים באורך משתנה · בנוי על ✨ מנוע תורים', (await ROW(VAR).count()) === 1 && ((await ROW(VAR).textContent()) ?? '').includes('בנוי על ✨ מנוע תורים'));
+
+  // 7.6 · "הסר" על מנוע תורים — חסום, עם הסבר
+  await rmBtn('מנוע תורים').scrollIntoViewIfNeeded();
+  await rmBtn('מנוע תורים').click();
+  await wait(250);
+  const blocked = (await A(`[data-blocked="${TURNS}"]`).textContent().catch(() => '')) ?? '';
+  T('✨ 7.6 הסרת מנוע תורים חסומה: "קודם הסירו את ✨ מנוע תורים באורך משתנה שבנוי עליו"', blocked === 'קודם הסירו את ✨ מנוע תורים באורך משתנה שבנוי עליו', blocked);
+  await wait(700);
+  T('✨ ושום דבר לא הוסר (2 מנועים)', (await capsOf()).length === 2);
+  await cshot('05-remove-blocked.png');
+
+  // 7.7 · מסירים את הבנוי, ואז את מנוע תורים — שניהם נעלמים
+  await rmBtn('מנוע תורים באורך משתנה').click();
+  await wait(150);
+  await rmBtn('מנוע תורים באורך משתנה').click();
+  await page.waitForFunction((id) => !document.querySelector(`[data-capability="${id}"]`), VAR, { timeout: 5000 }).catch(() => {});
+  await rmBtn('מנוע תורים').click();
+  await wait(150);
+  await rmBtn('מנוע תורים').click();
+  await page.waitForFunction((id) => !document.querySelector(`[data-capability="${id}"]`), TURNS, { timeout: 5000 }).catch(() => {});
+  await wait(1000);
+  T('✨ 7.7 הבנוי ואחריו מנוע תורים — שניהם הוסרו', (await capsOf()).length === 0 && (await A('[data-capability]').count()) === 0);
+  const audit = await auditOf();
+  T('✨ לוג עם כל הדרך: "מנוע חדש: מנוע תורים באורך משתנה (מנהל ההזמנות · חלון הניקיון · ✂️ ← 🔗)"', audit.includes('מנוע חדש: מנוע תורים באורך משתנה (מנהל ההזמנות · חלון הניקיון · ✂️ ← 🔗)'), audit.join(' | '));
+  T('✨ ו-2 × "הסרת מנוע" (הבנוי קודם)', audit.filter((a) => a.startsWith('הסרת מנוע')).map((a) => a.split(' (')[0]).join('|') === 'הסרת מנוע: מנוע תורים באורך משתנה|הסרת מנוע: מנוע תורים', audit.join(' | '));
+  await flushToasts();
+
+  // 7.8 · "שמור כמנוע" משרשרת מוצעת — 🔗 ⇒ ⏭️ החלון הפנוי הבא של 3 לילות
+  await backTo('engines');
+  await A('[data-host="bookings"]').click();
+  await wait(300);
+  const save = A('[data-save-chain="merge>next"]');
+  await save.scrollIntoViewIfNeeded();
+  await cshot('06-chains-save.png');
+  await save.click();
+  await waitMade();
+  const made2 = (await A('[data-made]').textContent().catch(() => '')) ?? '';
+  T('✨ 7.8 "שמור כמנוע" ⇒ "✨ נוצר מנוע חדש: מנוע החלון הפנוי הבא" — "צימר הגפן · 3 לילות פנויים ברצף מ-18/10"', made2.includes('✨ נוצר מנוע חדש: מנוע החלון הפנוי הבא') && made2.includes('צימר הגפן · 3 לילות פנויים ברצף מ-18/10'), made2);
+  await wait(800);
+  const ids = (await capsOf()).map((c) => c.id);
+  T('✨ נוצרו שניים: מנוע לילות פנויים צמודים ⇒ והבנוי עליו', ids.join(',') === 'bookings:bookings.nights:merge,bookings:bookings.nights:merge>next', ids.join(','));
+  await flushToasts();
+  await cshot('07-saved-chain.png');
+
+  // 7.9 · סוגרים ופותחים — הכול נשמר; "בנה עליו" פותח את המנוע השמור
+  await closeBox(page);
+  await openBox(page, null);
+  await A('[data-host="bookings"]').waitFor({ timeout: 6000 }).catch(() => {});
+  T('✨ 7.9 אחרי סגירה ופתיחה: 2 מנועים, והבנוי "בנוי על ✨ מנוע לילות פנויים צמודים"', (await A('[data-capability]').count()) === 2 && ((await ROW('bookings:bookings.nights:merge>next').textContent()) ?? '').includes('בנוי על ✨ מנוע לילות פנויים צמודים'));
+  T('✨ שני כרטיסי ✨ בגריד המנועים', (await A('[data-host-cap]').count()) === 2);
+  await A('[data-open-cap="bookings:bookings.nights:merge>next"]').scrollIntoViewIfNeeded();
+  await A('[data-open-cap="bookings:bookings.nights:merge>next"]').click();
+  await wait(300);
+  T('✨ "בנה עליו" ⇒ "איזה חלק לחבר אל ✨ מנוע החלון הפנוי הבא?" — 🎯 ⏭️ ⏱️', (await boxText()).includes('איזה חלק לחבר אל ✨ מנוע החלון הפנוי הבא?') && (await A('[data-atom]').evaluateAll((els) => els.map((e) => e.getAttribute('data-atom')))).join(',') === 'next,round,offset');
+  await cshot('08-build-on-saved.png');
+  await closeBox(page);
+
+  T('✨ אפס שגיאות קונסולה', errors.length === 0, errors.slice(0, 3).join(' | '));
   await ctx.close();
 }
 

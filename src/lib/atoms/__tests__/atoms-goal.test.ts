@@ -4,8 +4,8 @@
  * הקורפוס: משפטי-מטרה, לכל אחד ההרכבה הצפויה (מנוע · מקום · שרשרת-החלקים · הפרטים העיקריים), כולל תחיליות,
  * טעויות-כתיב, מספרים ויחידות, ושלוש השרשראות (✂️⇒🔗, 🔗⇒⏭️, 🔗⇒✂️). משפטים לא-ברורים ⇒ שאלות סגורות, לא ניחוש.
  * **המד** (הרעיון של "המחולל"): כמה משפטים מגיעים ל"תוצאה מוכחת" — ההרכבה הראשונה היא הצפויה והיא רצה על הנתונים.
- * המספר לא יורד (METER_FLOOR). משפט שעוד אין לו תצוגה (לפני שהתצוגות של מחשבון הזמנים / מבין בקשות הגיעו) —
- * חייב לא לתת תשובה *אחרת*: או ההרכבה הצפויה, או שום הרכבה.
+ * המספר לא יורד (METER_FLOOR). אחרי מיזוג התצוגות של מחשבון הזמנים ומבין בקשות (P, דרך C) — גם הם מוכחים.
+ * משפט שאין לו נתונים (פרסומות) ⇒ "לא מצאתי" כן, עם השאלה של החלק — לא ניחוש.
  * פרטיות: אין שם אורח או מבקש בשום משפט/שורה. דטרמיניזם: לא תלוי בשעון המערכת.
  */
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -42,8 +42,8 @@ interface Case {
   top?: Expect;
   /** משפט לא-ברור ⇒ שאלה סגורה (הטקסט שלה), וצ'יפים שחייבים להופיע. */
   asks?: { q: string; chips: string[] };
-  /** צריך תצוגה שמגיעה עם התצוגות של מחשבון הזמנים / מבין בקשות (P). */
-  later?: boolean;
+  /** אין נתונים שנותנים תוצאה ⇒ "לא מצאתי" + השאלה של החלק על מה שכן. */
+  none?: { q: string; chips: string[] };
   /** מה שחייב להיות בתחילת המשפט "הלוך-חזור". */
   say?: string;
 }
@@ -85,15 +85,19 @@ const CORPUS: readonly Case[] = [
   { text: 'לחלק את הזמן הפנוי בין אנשי הצוות', top: ['bookings.nights', 'merge>divide'] },
   { text: 'התזכורת להגעה הבאה, שעה לפני', top: ['bookings.arrivals', 'next>offset', [{}, { minutes: -60 }]] },
   { text: 'תזכורת יום לפני החלון הפנוי הבא של 3 לילות ברצף', top: ['bookings.nights', 'merge>next>offset', [{ minLength: 3 }, { minLength: 3 }, { minutes: -1440 }]] },
-  // 🕯️ מחשבון הזמנים · 🙋 מבין בקשות — מוכחים כשהתצוגות שלהם מגיעות
-  { text: 'השעות הזמניות של היום', top: ['zmanim.day', 'divide'], later: true },
-  { text: '20 דקות לפני השקיעה', top: ['zmanim.times', 'offset', [{ minutes: -20 }]], later: true },
-  { text: 'משמרות שמירה בשבת ל-4', top: ['zmanim.shabbat', 'divide', [{ parts: 4 }]], later: true },
-  { text: 'השבת או החג הבא', top: ['zmanim.closedDays', 'next'], later: true },
-  { text: 'בקשה בלי מענה תוך 3 שעות להעביר לכל הקהילה', top: ['whatNeed.requests', 'escalate', [{ waitMin: 180 }]], later: true },
-  { text: 'למצוא עסק גם עם טעות כתיב', top: ['whatNeed.names', 'fuzzy'], later: true },
-  { text: 'כל יום פרסומת אחרת בתורות', top: ['whatNeed.adSlot', 'rotate', [{ by: 'day' }]], later: true },
-  { text: 'תורים של 30 דקות בשעות הפתיחה', top: ['whatNeed.hours', 'divide', [{ by: 'size', size: 30 }]], later: true },
+  // 🕯️ מחשבון הזמנים · 🙋 מבין בקשות — מוכחים על התצוגות של P
+  { text: 'השעות הזמניות של היום', top: ['zmanim.day', 'divide'] },
+  { text: '20 דקות לפני השקיעה', top: ['zmanim.times', 'offset', [{ minutes: -20 }]] },
+  { text: 'משמרות שמירה בשבת ל-4', top: ['zmanim.shabbat', 'divide', [{ parts: 4 }]] },
+  { text: 'השבת או החג הבא', top: ['zmanim.closedDays', 'next'] },
+  { text: 'בקשה בלי מענה תוך 3 שעות להעביר לכל הקהילה', top: ['whatNeed.requests', 'escalate', [{ waitMin: 180 }]] },
+  { text: 'למצוא עסק גם עם טעות כתיב', top: ['whatNeed.names', 'fuzzy'] },
+  { text: 'כל בקשה חדשה לעסק אחר בתורות', top: ['whatNeed.requests', 'rotate', [{ by: 'item' }]] },
+  { text: 'חג ושבת צמודים', top: ['zmanim.closedDays', 'merge'] },
+  { text: 'לעגל את זמני היום לדקה למטה', top: ['zmanim.times', 'round', [{ step: 1, dir: 'down' }]], say: '🎯 מעגל מספרים את זמני היום, לכל דקה, למטה' },
+  // אין נתונים ⇒ אין הרכבה (כן), והשאלה של החלק על מה שכן נותן תוצאה — בלי פרסומות בארגון אין "פרסומת בתורות"
+  { text: 'כל יום פרסומת אחרת בתורות', none: { q: '🔄 מה לחלק בתורות?', chips: ['הבקשות', 'משימות הניקיון'] } },
+  { text: 'תורים של 30 דקות בשעות הפתיחה', top: ['whatNeed.hours', 'divide', [{ by: 'size', size: 30 }]] },
   // ❓ לא ברור ⇒ שאלות סגורות
   { text: 'לעגל', asks: { q: '🎯 מה לעגל?', chips: ['היתרה', 'המחיר הכולל', 'ההגעות'] } },
   { text: 'לחלק', asks: { q: '✂️ מה לחלק?', chips: ['חלון הניקיון', 'היתרה'] } },
@@ -108,7 +112,7 @@ const CORPUS: readonly Case[] = [
  * המד: כמה משפטים מהקורפוס מגיעים לתוצאה מוכחת (ההרכבה הראשונה = הצפויה, עם שורות אמיתיות).
  * עולה בלבד — הורדה = מישהו שבר הבנה או תצוגה.
  */
-const METER_FLOOR = 28;
+const METER_FLOOR = 38;
 
 const chainOf = (a: GoalAnswer): string => (a.results[0] ? a.results[0].steps.map((s) => s.atom).join('>') : '');
 const rootOf = (a: GoalAnswer): string => a.results[0]?.steps[0]?.place ?? '';
@@ -131,6 +135,14 @@ describe('🎯 הקורפוס — כל משפט נותן את ההרכבה הצ�
   for (const c of CORPUS) {
     it(c.text || '(ריק)', () => {
       const a = ask(c.text);
+      if (c.none) {
+        expect(a.status).toBe('none');
+        expect(a.results).toEqual([]);
+        expect(a.questions[0].text).toBe(c.none.q);
+        const labels = a.questions[0].chips.map((x) => x.label);
+        for (const ch of c.none.chips) expect(labels.some((l) => l.endsWith(' ' + ch)), ch).toBe(true);
+        return;
+      }
       if (c.asks) {
         // לא מנחשים: אין הרכבה, יש שאלה סגורה עם הצ'יפים
         expect(a.status).toBe('ask');
@@ -148,11 +160,6 @@ describe('🎯 הקורפוס — כל משפט נותן את ההרכבה הצ�
       expect(g.unclear).toBe(false);
       for (const atom of chain.split('>')) if (!g.atoms.includes(atom as AtomId)) expect(chain.split('>').length, 'חלק "' + atom + '" רק כדרך').toBeGreaterThan(1);
       expect(g.places[0], 'המקום').toBe(place);
-      if (c.later && a.status !== 'ok') {
-        // עוד אין תצוגה — אסור לתת תשובה אחרת
-        expect(a.results).toEqual([]);
-        return;
-      }
       expect(a.status).toBe('ok');
       expect(rootOf(a)).toBe(place);
       expect(chainOf(a)).toBe(chain);

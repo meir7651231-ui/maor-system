@@ -550,6 +550,7 @@ const minutesWord = (m: number): string => {
   const a = Math.abs(m);
   if (a % 1440 === 0) return a === 1440 ? 'יום' : a === 2880 ? 'יומיים' : a / 1440 + ' ימים';
   if (a % 60 === 0) return a === 60 ? 'שעה' : a === 120 ? 'שעתיים' : a / 60 + ' שעות';
+  if (a === 1) return 'דקה';
   if (a === 30) return 'חצי שעה';
   return a + ' דקות';
 };

@@ -98,6 +98,12 @@ describe('🧬 (ב) המסך', () => {
     const h = body(src([TURNS]));
     expect(h).toContain('data-host-cap="' + TURNS.id + '"');
     expect(h).toContain('data-open-cap="' + TURNS.id + '"');
+    // מנוע שאין על מה לבנות (📣 העברה הלאה) — בלי "בנה עליו" ובלי כרטיס ✨ ("הסר" נשאר)
+    const esc1: Capability = { id: capabilityId('bookings', 'bookings.cleaning', 'escalate'), engine: 'bookings', place: 'bookings.cleaning', atom: 'escalate', params: {}, name: 'מנוע העברת ניקיון' };
+    const h2 = body(src([esc1]));
+    expect(h2).not.toContain('data-open-cap=');
+    expect(h2).not.toContain('data-host-cap=');
+    expect(h2).toContain('title="הסר: מנוע העברת ניקיון"');
   });
 
   it('"איזה חלק לחבר אל ✨ מנוע תורים?" — רק חלקים מהסוג של הפלט', () => {
