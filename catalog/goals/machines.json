@@ -1,0 +1,481 @@
+{
+  "world": "מכונות",
+  "goals": [
+    {
+      "word": "גלגלי-שיניים",
+      "emoji": "⚙️",
+      "does": "גלגלי שיניים שמעבירים תנועה, גדול מסתובב לאט וקטן מהר",
+      "needs": [
+        {
+          "behavior": "גלגל גדול מסובב קטן",
+          "verb": "convert",
+          "material": "number",
+          "detail": "יחס השיניים"
+        },
+        {
+          "behavior": "כיוון הפוך בכל מעבר",
+          "verb": "reverse",
+          "material": "choice"
+        },
+        {
+          "behavior": "שרשרת של גלגלים",
+          "verb": "hub-relay",
+          "material": "sequence"
+        },
+        {
+          "behavior": "גלגל שבור עוצר הכול",
+          "verb": "gate",
+          "material": "bool"
+        }
+      ]
+    },
+    {
+      "word": "טחנת-רוח",
+      "emoji": "🌬️",
+      "does": "טחנה שמסתובבת לפי הרוח ומפנה את הכנפיים מול הכיוון שלה",
+      "needs": [
+        {
+          "behavior": "מסתובבת מול הרוח",
+          "verb": "convert",
+          "material": "geo"
+        },
+        {
+          "behavior": "מהירות לפי חוזק הרוח",
+          "verb": "convert",
+          "material": "number"
+        },
+        {
+          "behavior": "נעצרת בסערה",
+          "verb": "clamp",
+          "material": "number"
+        },
+        {
+          "behavior": "כנפיים בתורות",
+          "verb": "rotate",
+          "material": "sequence"
+        },
+        {
+          "behavior": "כמה קמח נטחן היום",
+          "verb": "sum",
+          "material": "number"
+        }
+      ]
+    },
+    {
+      "word": "מגדלור",
+      "emoji": "🗼",
+      "does": "מגדל שמסובב אור בקצב קבוע, נדלק בשקיעה ומזהה את עצמו בדפוס הבהוב משלו",
+      "needs": [
+        {
+          "behavior": "נדלק בשקיעה",
+          "verb": "sun-position",
+          "material": "times"
+        },
+        {
+          "behavior": "כבה בזריחה",
+          "verb": "sun-position",
+          "material": "times"
+        },
+        {
+          "behavior": "האור מסתובב",
+          "verb": "rotate",
+          "material": "number",
+          "detail": "זווית שמתקדמת בכל צעד"
+        },
+        {
+          "behavior": "סיבוב בקצב קבוע",
+          "verb": "pace",
+          "material": "times"
+        },
+        {
+          "behavior": "דפוס הבהוב משלו",
+          "verb": "format",
+          "material": "sequence",
+          "detail": "ארוך-קצר-קצר"
+        },
+        {
+          "behavior": "צופר בערפל",
+          "verb": "gate",
+          "material": "bool",
+          "detail": "ראות מתחת לסף"
+        }
+      ]
+    },
+    {
+      "word": "מדפסת",
+      "emoji": "🖨️",
+      "does": "מדפסת שמחזיקה תור עבודות ומדפיסה אחת אחרי השנייה",
+      "needs": [
+        {
+          "behavior": "תור של עבודות",
+          "verb": "sort",
+          "material": "sequence",
+          "detail": "לפי שעת שליחה"
+        },
+        {
+          "behavior": "הבאה בתור",
+          "verb": "next",
+          "material": "sequence"
+        },
+        {
+          "behavior": "נתקע דף ⇒ מנסה שוב",
+          "verb": "tolerate-failure",
+          "material": "waiting"
+        },
+        {
+          "behavior": "דיו שנגמר",
+          "verb": "NEW:decay",
+          "material": "number",
+          "detail": "דועך — ערך שיורד מעט בכל צעד-זמן עד אפס"
+        },
+        {
+          "behavior": "התראה מתחת לסף",
+          "verb": "gate",
+          "material": "bool"
+        },
+        {
+          "behavior": "מחלקת עמודים לגיליונות",
+          "verb": "divide",
+          "material": "number"
+        }
+      ]
+    },
+    {
+      "word": "מכונת-כביסה",
+      "emoji": "🧺",
+      "does": "מכונה שעוברת שלבים קבועים: מילוי, סיבוב, שטיפה וסחיטה",
+      "needs": [
+        {
+          "behavior": "שלבים בסדר קבוע",
+          "verb": "escalate",
+          "material": "choice",
+          "detail": "מילוי ⇒ כביסה ⇒ שטיפה ⇒ סחיטה"
+        },
+        {
+          "behavior": "התוף מסתובב לכאן ולשם",
+          "verb": "NEW:oscillate",
+          "material": "number",
+          "detail": "מתנדנד — גל שעולה ויורד שוב ושוב בקצב קבוע"
+        },
+        {
+          "behavior": "סחיטה מהירה בסוף",
+          "verb": "escalate",
+          "material": "number",
+          "detail": "מהירות שעולה"
+        },
+        {
+          "behavior": "זמן שנשאר",
+          "verb": "NEW:countdown",
+          "material": "times",
+          "detail": "סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה"
+        },
+        {
+          "behavior": "לא נפתחת באמצע",
+          "verb": "gate",
+          "material": "bool"
+        },
+        {
+          "behavior": "תוכנית לפי סוג הבגד",
+          "verb": "convert",
+          "material": "choice"
+        }
+      ]
+    },
+    {
+      "word": "מכונת-ממכר",
+      "emoji": "🥤",
+      "does": "מכונה שמקבלת מטבעות, מחשבת עודף ומוציאה את מה שבחרו",
+      "needs": [
+        {
+          "behavior": "סופרת את המטבעות",
+          "verb": "sum",
+          "material": "amount"
+        },
+        {
+          "behavior": "נותנת רק אם יש מספיק",
+          "verb": "gate",
+          "material": "bool"
+        },
+        {
+          "behavior": "מחשבת עודף",
+          "verb": "compare",
+          "material": "amount"
+        },
+        {
+          "behavior": "עודף במעט מטבעות",
+          "verb": "divide",
+          "material": "amount",
+          "detail": "מהמטבע הגדול לקטן"
+        },
+        {
+          "behavior": "מסמנת מה נגמר",
+          "verb": "filter",
+          "material": "list"
+        },
+        {
+          "behavior": "החזרה כשמשהו נתקע",
+          "verb": "tolerate-failure",
+          "material": "amount"
+        }
+      ]
+    },
+    {
+      "word": "מכונת-קפה",
+      "emoji": "☕",
+      "does": "מכונה שמחממת מים, טוחנת, מבשלת ומקציפה לפי ההזמנה",
+      "needs": [
+        {
+          "behavior": "מחממת עד החום הנכון",
+          "verb": "gate",
+          "material": "bool"
+        },
+        {
+          "behavior": "טחינה לפי כמות",
+          "verb": "convert",
+          "material": "number"
+        },
+        {
+          "behavior": "שלבים לפי סוג המשקה",
+          "verb": "escalate",
+          "material": "choice"
+        },
+        {
+          "behavior": "מתאימה לטעם של כל אחד",
+          "verb": "personalize",
+          "material": "record:coffee"
+        },
+        {
+          "behavior": "מזכירה לנקות אחרי כמה כוסות",
+          "verb": "count",
+          "material": "number"
+        }
+      ]
+    },
+    {
+      "word": "מנעול-קוד",
+      "emoji": "🔐",
+      "does": "מנעול שנפתח רק כשמקישים את הספרות הנכונות בסדר הנכון",
+      "needs": [
+        {
+          "behavior": "בודק את הספרות בסדר",
+          "verb": "compare",
+          "material": "sequence"
+        },
+        {
+          "behavior": "נפתח רק בהתאמה מלאה",
+          "verb": "gate",
+          "material": "bool"
+        },
+        {
+          "behavior": "אחרי כמה טעויות ננעל",
+          "verb": "count",
+          "material": "number"
+        },
+        {
+          "behavior": "זמן נעילה שגדל",
+          "verb": "escalate",
+          "material": "times"
+        },
+        {
+          "behavior": "נסגר שוב אחרי כמה שניות",
+          "verb": "NEW:countdown",
+          "material": "number",
+          "detail": "סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה"
+        }
+      ]
+    },
+    {
+      "word": "מעלית",
+      "emoji": "🛗",
+      "does": "תא שעולה ויורד בין קומות, אוסף קריאות ומחליט לאן לנסוע קודם",
+      "needs": [
+        {
+          "behavior": "אוספת קריאות מכל הקומות",
+          "verb": "merge",
+          "material": "list"
+        },
+        {
+          "behavior": "לא עוצרת פעמיים באותה קומה",
+          "verb": "dedupe",
+          "material": "list"
+        },
+        {
+          "behavior": "ממשיכה באותו כיוון עד הסוף",
+          "verb": "sort",
+          "material": "sequence",
+          "detail": "לפי הכיוון הנוכחי"
+        },
+        {
+          "behavior": "הקומה הבאה בדרך",
+          "verb": "next",
+          "material": "sequence"
+        },
+        {
+          "behavior": "הדלת נפתחת לכמה שניות",
+          "verb": "NEW:countdown",
+          "material": "number",
+          "detail": "סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה"
+        },
+        {
+          "behavior": "לא עוברת משקל מקסימלי",
+          "verb": "gate",
+          "material": "bool",
+          "detail": "סכום המשקלים מתחת לתקרה"
+        },
+        {
+          "behavior": "הצגת קומה על המסך",
+          "verb": "format",
+          "material": "text"
+        },
+        {
+          "behavior": "חזרה לקומת קרקע כשאין קריאות",
+          "verb": "gate",
+          "material": "bool"
+        }
+      ]
+    },
+    {
+      "word": "מקרר",
+      "emoji": "🧊",
+      "does": "מקרר שמדליק את המנוע כשחם מדי ומכבה כשקר מספיק",
+      "needs": [
+        {
+          "behavior": "מודד חום",
+          "verb": "compare",
+          "material": "number"
+        },
+        {
+          "behavior": "מדליק מעל הסף ומכבה מתחת",
+          "verb": "gate",
+          "material": "bool"
+        },
+        {
+          "behavior": "לא מדליק ומכבה כל שנייה",
+          "verb": "pace",
+          "material": "times",
+          "detail": "הפסקה מינימלית"
+        },
+        {
+          "behavior": "מצפצף כשהדלת פתוחה הרבה",
+          "verb": "NEW:countdown",
+          "material": "number",
+          "detail": "סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה"
+        },
+        {
+          "behavior": "מוצרים שפג תוקפם",
+          "verb": "filter",
+          "material": "date"
+        }
+      ]
+    },
+    {
+      "word": "רובוט-שואב",
+      "emoji": "🤖",
+      "does": "שואב שמסתובב בבית, מסמן מה כבר נוקה וחוזר לטעון כשהסוללה נחלשת",
+      "needs": [
+        {
+          "behavior": "נוסע בשורות הלוך וחזור",
+          "verb": "rotate",
+          "material": "sequence"
+        },
+        {
+          "behavior": "מסמן איפה כבר היה",
+          "verb": "dedupe",
+          "material": "geo"
+        },
+        {
+          "behavior": "מסתובב כשנתקע בקיר",
+          "verb": "tolerate-failure",
+          "material": "geo"
+        },
+        {
+          "behavior": "הסוללה יורדת",
+          "verb": "NEW:decay",
+          "material": "number",
+          "detail": "דועך — ערך שיורד מעט בכל צעד-זמן עד אפס"
+        },
+        {
+          "behavior": "חוזר לטעון מתחת לסף",
+          "verb": "gate",
+          "material": "bool"
+        },
+        {
+          "behavior": "ממשיך מאיפה שעצר",
+          "verb": "next",
+          "material": "sequence"
+        },
+        {
+          "behavior": "ניקוי לפי לוח זמנים",
+          "verb": "next",
+          "material": "times"
+        }
+      ]
+    },
+    {
+      "word": "שעון-חול",
+      "emoji": "🕰️",
+      "does": "שני חדרים, החול נופל מלמעלה למטה, ובסוף הופכים אותו",
+      "needs": [
+        {
+          "behavior": "החול נופל בקצב קבוע",
+          "verb": "pace",
+          "material": "number"
+        },
+        {
+          "behavior": "למעלה פוחת ולמטה גדל",
+          "verb": "divide",
+          "material": "span",
+          "detail": "אותה כמות בשני החדרים"
+        },
+        {
+          "behavior": "נגמר כשלמעלה ריק",
+          "verb": "gate",
+          "material": "bool"
+        },
+        {
+          "behavior": "הופכים ומתחילים מחדש",
+          "verb": "reverse",
+          "material": "sequence"
+        },
+        {
+          "behavior": "כמה זמן נשאר",
+          "verb": "NEW:countdown",
+          "material": "times",
+          "detail": "סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה"
+        }
+      ]
+    },
+    {
+      "word": "שעון-מעורר",
+      "emoji": "⏰",
+      "does": "שעון שמצלצל בשעה שנקבעה, ומחכה עוד קצת כשלוחצים נודניק",
+      "needs": [
+        {
+          "behavior": "מצלצל בשעה שנקבעה",
+          "verb": "compare",
+          "material": "times"
+        },
+        {
+          "behavior": "נודניק ⇒ עוד חמש דקות",
+          "verb": "offset",
+          "material": "times"
+        },
+        {
+          "behavior": "הצלצול מתגבר",
+          "verb": "escalate",
+          "material": "sound"
+        },
+        {
+          "behavior": "רק בימי חול",
+          "verb": "filter",
+          "material": "date"
+        },
+        {
+          "behavior": "מתחיל בשקט ומתחזק",
+          "verb": "escalate",
+          "material": "number"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,1444 @@
+{
+ "source": "qa-scanner",
+ "ref": "main@3d7fb62bb3ec9ea12140361670d4b32513614b6d",
+ "probe": {
+  "version": 1,
+  "seed": 13269520,
+  "generatedAt": null
+ },
+ "totals": {
+  "run": 0,
+  "runWithVerb": 0,
+  "twin": 0,
+  "static": 174,
+  "staticWithVerb": 6,
+  "why": {
+   "python": 150,
+   "impure": 24
+  }
+ },
+ "parts": [
+  {
+   "id": "qa-scanner:exposure_audit.py#Audit",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "transcript",
+     "by": "symbol"
+    }
+   ],
+   "primary": "transcript",
+   "material": "record:audit",
+   "reason": "impure"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#Audit.has",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#Audit.meta",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "transcript",
+     "by": "symbol"
+    }
+   ],
+   "primary": "transcript",
+   "material": "list",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#a11y[20]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#a11y[21]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#a11y[22]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#a11y[23]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#a11y[24]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#a11y[25]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#a11y[26]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#a11y[27]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#a11y[28]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#a11y[29]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#a11y[30]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#a11y[31]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#a11y[32]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#a11y[33]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#a11y[34]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#a11y[35]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#a11y[36]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#a11y[37]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#a11y[38]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#a11y[39]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#catalog[140]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#catalog[141]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#catalog[142]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#catalog[143]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#doh",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#email[50]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#email[51]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#email[52]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#email[53]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#email[54]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#email[55]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#email[56]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#email[57]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#email[58]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#email[59]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#email_deep[150]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#get",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#images_weight[123]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#legal[10]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#legal[11]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#legal[12]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#legal[13]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#legal[14]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#legal[15]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#legal[1]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#legal[2]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#legal[3]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#legal[4]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#legal[5]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#legal[6]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#legal[7]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#legal[8]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#legal[9]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#links[144]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#perf[110]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#perf[111]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#perf[112]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#perf[113]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#perf[114]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#perf[115]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#perf[116]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#perf[117]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#perf[118]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#perf[119]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#perf[120]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#perf[121]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#perf[122]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#policies_deep[16]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#policies_deep[17]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#policies_deep[18]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#render_html",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#report",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#security[66]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#security[67]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#security[68]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#security[69]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#security[70]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#security[71]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#security[72]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#security[73]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#security[74]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#security[כותרת]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#security[פאנל  לא פתוח]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#seo[80]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#seo[81]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#seo[82]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#seo[83]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#seo[84]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#seo[85]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#seo[86]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#seo[87]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#seo[88]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#seo[89]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#seo[90]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#seo[91]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#seo[92]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#seo[93]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#seo[94]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#seo[95]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#seo[96]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#seo[97]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#seo[98]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#seo[99]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#trust[130]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#trust[131]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#trust[132]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#trust[133]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#trust[134]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#trust[135]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#trust[136]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#trust[137]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#trust[138]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:exposure_audit.py#trust[139]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:make_report.py#_issue_card",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:make_report.py#build_report",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "qa-scanner:make_report.py#screenshot",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "qa-scanner:scanner.py#Issue",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:issue",
+   "reason": "impure"
+  },
+  {
+   "id": "qa-scanner:scanner.py#_prices",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:scanner.py#check_url_alive",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "qa-scanner:scanner.py#crawl",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "qa-scanner:scanner.py#crawl:issue[עמוד לא נטען]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:scanner.py#crawl:issue[קישור שבור]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:scanner.py#crawl:issue[שגיאה]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:scanner.py#report",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "bool",
+   "reason": "impure"
+  },
+  {
+   "id": "qa-scanner:scanner.py#scan_page",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "compare",
+     "by": "name"
+    }
+   ],
+   "primary": "compare",
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "qa-scanner:scanner.py#scan_page:issue[הנחה קיצונית]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:scanner.py#scan_page:issue[טקסט זמני שנשאר]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:scanner.py#scan_page:issue[כותרת ארוכה]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:scanner.py#scan_page:issue[כותרת חסרה]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:scanner.py#scan_page:issue[מחיר 0]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:scanner.py#scan_page:issue[מחיר נמוך חשוד]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:scanner.py#scan_page:issue[תיאור חסר]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:scanner.py#scan_page:issue[תמונה בלי alt]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:scanner.py#scan_page:issue[תמונה בלי מקור]",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "require-source",
+     "by": "name"
+    }
+   ],
+   "primary": "require-source",
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:scanner2.py#Issue",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:issue",
+   "reason": "impure"
+  },
+  {
+   "id": "qa-scanner:scanner2.py#_nums",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:scanner2.py#analyze_product",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "qa-scanner:scanner2.py#analyze_product:issue[הנחה קיצונית]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:scanner2.py#analyze_product:issue[מוצר בלי מחיר]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:scanner2.py#analyze_product:issue[מחיר 0]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:scanner2.py#analyze_product:issue[מחיר נמוך חשוד]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:scanner2.py#analyze_product:issue[תבנית שלא עובדה]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:scanner2.py#crawl",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "qa-scanner:scanner2.py#crawl:issue[עמוד לא נטען]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:scanner2.py#crawl:issue[קישור עם קוד תבנית]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:scanner2.py#crawl:issue[שגיאה]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:scanner2.py#report",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "bool",
+   "reason": "impure"
+  },
+  {
+   "id": "qa-scanner:scanner2.py#scan_rendered",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "compare",
+     "by": "name"
+    }
+   ],
+   "primary": "compare",
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "qa-scanner:scanner2.py#scan_rendered:issue[כותרת חסרה]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:scanner2.py#scan_rendered:issue[תבנית שלא עובדה]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:scanner2.py#scan_rendered:issue[תיאור חסר]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:scanner3.py#Finding",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:finding",
+   "reason": "impure"
+  },
+  {
+   "id": "qa-scanner:scanner3.py#check_products",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "qa-scanner:scanner3.py#check_products:issue[הנחה קיצונית]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:scanner3.py#check_products:issue[מוצר בלי מחיר]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:scanner3.py#check_products:issue[מחיר אפס]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:scanner3.py#check_products:issue[מחיר נמוך חשוד]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:scanner3.py#check_universal",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "qa-scanner:scanner3.py#check_universal:issue[כותרת חסרה]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:scanner3.py#check_universal:issue[קוד שלא עובד]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:scanner3.py#check_universal:issue[קישור שבור]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:scanner3.py#check_universal:issue[תיאור חסר]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:scanner3.py#detect_platform",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:scanner3.py#get",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "qa-scanner:scanner3.py#products_from_jsonld",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:scanner3.py#products_from_shopify",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "qa-scanner:scanner3.py#report",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "qa-scanner:scanner3.py#scan",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "require-source",
+     "by": "name"
+    }
+   ],
+   "primary": "require-source",
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "qa-scanner:scanner3.py#scan:issue[אין נתוני מוצר]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:scanner3.py#scan:issue[עמוד לא נטען]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "qa-scanner:scanner3.py#scan:issue[שגיאה]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:page",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  }
+ ]
+}

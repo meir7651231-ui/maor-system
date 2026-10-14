@@ -1,0 +1,422 @@
+{
+  "world": "מזג אוויר וחלל",
+  "goals": [
+    {
+      "word": "ברק",
+      "emoji": "⚡",
+      "does": "ברק שמבזיק, והרעם מגיע אחריו לפי המרחק",
+      "needs": [
+        {
+          "behavior": "מבזיק",
+          "verb": "gate",
+          "material": "bool"
+        },
+        {
+          "behavior": "רעם מגיע אחר כך",
+          "verb": "offset",
+          "material": "times"
+        },
+        {
+          "behavior": "מרחק לפי ההפרש",
+          "verb": "convert",
+          "material": "number"
+        },
+        {
+          "behavior": "הולך בדרך הקצרה לאדמה",
+          "verb": "NEW:shortest-path",
+          "material": "geo",
+          "detail": "דרך קצרה — המסלול הקצר ביותר ברשת של נקודות"
+        },
+        {
+          "behavior": "סופרים ברקים בסערה",
+          "verb": "count",
+          "material": "number"
+        }
+      ]
+    },
+    {
+      "word": "גשם",
+      "emoji": "🌧️",
+      "does": "גשם שמצטבר בעננים, יורד בטיפות ונמדד בכמויות",
+      "needs": [
+        {
+          "behavior": "ענן מתמלא",
+          "verb": "NEW:accumulate",
+          "material": "number",
+          "detail": "צובר — ערך שגדל מעט בכל צעד-זמן עד שמשהו מרוקן אותו"
+        },
+        {
+          "behavior": "יורד כשמלא",
+          "verb": "gate",
+          "material": "bool"
+        },
+        {
+          "behavior": "טיפות במקומות אקראיים",
+          "verb": "NEW:random",
+          "material": "geo",
+          "detail": "מגריל — בחירה או ערך לפי סיכוי"
+        },
+        {
+          "behavior": "כמות יומית",
+          "verb": "daily-snapshot",
+          "material": "number"
+        },
+        {
+          "behavior": "סיכום עונה",
+          "verb": "sum",
+          "material": "number"
+        },
+        {
+          "behavior": "גשם חזק ⇒ התראה",
+          "verb": "rank-tiers",
+          "material": "choice"
+        }
+      ]
+    },
+    {
+      "word": "הוריקן",
+      "emoji": "🌀",
+      "does": "סערה שמסתובבת סביב עין שקטה, מתחזקת מעל ים חם ונחלשת ביבשה",
+      "needs": [
+        {
+          "behavior": "מסתובבת סביב העין",
+          "verb": "rotate",
+          "material": "geo"
+        },
+        {
+          "behavior": "דרגות לפי רוח",
+          "verb": "rank-tiers",
+          "material": "choice"
+        },
+        {
+          "behavior": "מתחזקת מעל ים חם",
+          "verb": "NEW:accumulate",
+          "material": "number",
+          "detail": "צובר — ערך שגדל מעט בכל צעד-זמן עד שמשהו מרוקן אותו"
+        },
+        {
+          "behavior": "נחלשת ביבשה",
+          "verb": "NEW:decay",
+          "material": "number",
+          "detail": "דועך — ערך שיורד מעט בכל צעד-זמן עד אפס"
+        },
+        {
+          "behavior": "מסלול צפוי",
+          "verb": "NEW:move-along-path",
+          "material": "geo",
+          "detail": "מתקדם במסלול — נקודה שזזה לאורך דרך נתונה"
+        },
+        {
+          "behavior": "שם לפי סדר האלף-בית",
+          "verb": "next",
+          "material": "sequence"
+        }
+      ]
+    },
+    {
+      "word": "טלסקופ",
+      "emoji": "🔭",
+      "does": "טלסקופ שמוצא כוכב, עוקב אחריו בזמן שהשמיים מסתובבים ומצלם בלילה בלבד",
+      "needs": [
+        {
+          "behavior": "מחפש כוכב לפי שם",
+          "verb": "search",
+          "material": "text"
+        },
+        {
+          "behavior": "מכוון למקום בשמיים",
+          "verb": "convert",
+          "material": "geo"
+        },
+        {
+          "behavior": "עוקב אחרי הסיבוב",
+          "verb": "rotate",
+          "material": "geo"
+        },
+        {
+          "behavior": "רק אחרי חושך",
+          "verb": "sun-position",
+          "material": "times"
+        },
+        {
+          "behavior": "מגדיל",
+          "verb": "convert",
+          "material": "number"
+        },
+        {
+          "behavior": "תמונה כל לילה",
+          "verb": "daily-snapshot",
+          "material": "image"
+        },
+        {
+          "behavior": "הכוכבים הבהירים קודם",
+          "verb": "sort",
+          "material": "list"
+        }
+      ]
+    },
+    {
+      "word": "ירח",
+      "emoji": "🌙",
+      "does": "ירח שמשנה צורה במחזור של חודש ומסתובב סביב הארץ",
+      "needs": [
+        {
+          "behavior": "שלבי הירח",
+          "verb": "rotate",
+          "material": "choice",
+          "detail": "מולד ⇒ חצי ⇒ מלא ⇒ חצי"
+        },
+        {
+          "behavior": "מחזור של 29 וחצי יום",
+          "verb": "divide",
+          "material": "span"
+        },
+        {
+          "behavior": "זורח מאוחר יותר כל יום",
+          "verb": "offset",
+          "material": "times"
+        },
+        {
+          "behavior": "מסתובב סביב הארץ",
+          "verb": "NEW:orbit",
+          "material": "geo",
+          "detail": "מקיף — תנועה במעגל או בעקומה סביב נקודה"
+        },
+        {
+          "behavior": "מלא באמצע החודש העברי",
+          "verb": "convert",
+          "material": "date"
+        }
+      ]
+    },
+    {
+      "word": "כוכב-שביט",
+      "emoji": "☄️",
+      "does": "שביט שחוזר כל כמה שנים, וזנב שמתארך ליד השמש",
+      "needs": [
+        {
+          "behavior": "חוזר כל כמה שנים",
+          "verb": "next",
+          "material": "date"
+        },
+        {
+          "behavior": "מסלול אליפטי",
+          "verb": "NEW:orbit",
+          "material": "geo",
+          "detail": "מקיף — תנועה במעגל או בעקומה סביב נקודה"
+        },
+        {
+          "behavior": "זנב מתארך ליד השמש",
+          "verb": "convert",
+          "material": "number"
+        },
+        {
+          "behavior": "הזנב מצביע הרחק מהשמש",
+          "verb": "reverse",
+          "material": "geo"
+        },
+        {
+          "behavior": "מתי נראה מכאן",
+          "verb": "filter",
+          "material": "date"
+        }
+      ]
+    },
+    {
+      "word": "לוויין",
+      "emoji": "🛰️",
+      "does": "לוויין שמקיף את הארץ ומעביר הודעות מתחנה לתחנה",
+      "needs": [
+        {
+          "behavior": "מקיף את הארץ",
+          "verb": "NEW:orbit",
+          "material": "geo",
+          "detail": "מקיף — תנועה במעגל או בעקומה סביב נקודה"
+        },
+        {
+          "behavior": "עובר מעלינו בשעות קבועות",
+          "verb": "next",
+          "material": "times"
+        },
+        {
+          "behavior": "מעביר הודעה הלאה",
+          "verb": "hub-relay",
+          "material": "text"
+        },
+        {
+          "behavior": "תחנה שאיבדה קשר ⇒ אחרת",
+          "verb": "tolerate-failure",
+          "material": "list"
+        },
+        {
+          "behavior": "צילום כל סיבוב",
+          "verb": "daily-snapshot",
+          "material": "image"
+        }
+      ]
+    },
+    {
+      "word": "ליקוי-חמה",
+      "emoji": "🌑",
+      "does": "הירח מכסה את השמש בשלבים, רק במקומות מסוימים",
+      "needs": [
+        {
+          "behavior": "הירח מכסה בשלבים",
+          "verb": "escalate",
+          "material": "number"
+        },
+        {
+          "behavior": "רק ברצועה מסוימת",
+          "verb": "filter",
+          "material": "geo"
+        },
+        {
+          "behavior": "כמה מכוסה",
+          "verb": "divide",
+          "material": "number"
+        },
+        {
+          "behavior": "מתי מתחיל ונגמר",
+          "verb": "divide",
+          "material": "span"
+        },
+        {
+          "behavior": "הבא בעוד שנים",
+          "verb": "next",
+          "material": "date"
+        }
+      ]
+    },
+    {
+      "word": "עונות-השנה",
+      "emoji": "🍁",
+      "does": "ארבע עונות שמתחלפות במעגל, כל אחת עם החום והאור שלה",
+      "needs": [
+        {
+          "behavior": "ארבע עונות במעגל",
+          "verb": "rotate",
+          "material": "choice"
+        },
+        {
+          "behavior": "כל עונה שלושה חודשים",
+          "verb": "divide",
+          "material": "span"
+        },
+        {
+          "behavior": "חום ממוצע לכל עונה",
+          "verb": "sum",
+          "material": "number"
+        },
+        {
+          "behavior": "מעבר הדרגתי",
+          "verb": "fuzzy",
+          "material": "date"
+        },
+        {
+          "behavior": "הפוך בצד השני של העולם",
+          "verb": "reverse",
+          "material": "choice"
+        }
+      ]
+    },
+    {
+      "word": "קשת-בענן",
+      "emoji": "🌈",
+      "does": "קשת שמופיעה כשהשמש מאחור ויש טיפות, בשבעה צבעים לפי הסדר",
+      "needs": [
+        {
+          "behavior": "שמש מאחור",
+          "verb": "sun-position",
+          "material": "geo"
+        },
+        {
+          "behavior": "יש טיפות",
+          "verb": "require-source",
+          "material": "bool"
+        },
+        {
+          "behavior": "שבעה צבעים לפי הסדר",
+          "verb": "divide",
+          "material": "sequence"
+        },
+        {
+          "behavior": "רק כשהשמש נמוכה",
+          "verb": "clamp",
+          "material": "number"
+        },
+        {
+          "behavior": "לפעמים כפולה והפוכה",
+          "verb": "reverse",
+          "material": "sequence"
+        }
+      ]
+    },
+    {
+      "word": "שלג",
+      "emoji": "❄️",
+      "does": "שלג שיורד כשקר, מצטבר ונמס כשמתחמם",
+      "needs": [
+        {
+          "behavior": "יורד רק מתחת לאפס",
+          "verb": "gate",
+          "material": "bool"
+        },
+        {
+          "behavior": "מצטבר",
+          "verb": "NEW:accumulate",
+          "material": "number",
+          "detail": "צובר — ערך שגדל מעט בכל צעד-זמן עד שמשהו מרוקן אותו"
+        },
+        {
+          "behavior": "כל פתית שונה",
+          "verb": "fuzzy",
+          "material": "image"
+        },
+        {
+          "behavior": "נמס כשחם",
+          "verb": "NEW:decay",
+          "material": "number",
+          "detail": "דועך — ערך שיורד מעט בכל צעד-זמן עד אפס"
+        },
+        {
+          "behavior": "התראה לפי עומק",
+          "verb": "rank-tiers",
+          "material": "choice"
+        }
+      ]
+    },
+    {
+      "word": "שמש",
+      "emoji": "☀️",
+      "does": "שמש שזורחת ושוקעת, היום מתארך ומתקצר לאורך השנה",
+      "needs": [
+        {
+          "behavior": "זריחה ושקיעה",
+          "verb": "sun-position",
+          "material": "times"
+        },
+        {
+          "behavior": "היום הארוך והקצר",
+          "verb": "minmax",
+          "material": "date"
+        },
+        {
+          "behavior": "היום מתארך ומתקצר",
+          "verb": "NEW:oscillate",
+          "material": "number",
+          "detail": "מתנדנד — גל שעולה ויורד שוב ושוב בקצב קבוע"
+        },
+        {
+          "behavior": "גובה בצהריים",
+          "verb": "sun-position",
+          "material": "geo"
+        },
+        {
+          "behavior": "צל לפי גובה",
+          "verb": "convert",
+          "material": "number"
+        }
+      ]
+    }
+  ]
+}

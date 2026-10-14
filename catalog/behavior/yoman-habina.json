@@ -1,0 +1,317 @@
+{
+ "source": "yoman-habina",
+ "ref": "claude/setup@ea2030d9233dbd11872448fb09206ba89c894b90",
+ "probe": {
+  "version": 1,
+  "seed": 13269520,
+  "generatedAt": null
+ },
+ "totals": {
+  "run": 0,
+  "runWithVerb": 0,
+  "twin": 0,
+  "static": 33,
+  "staticWithVerb": 6,
+  "why": {
+   "impure": 31,
+   "engine": 1,
+   "load-failed": 1
+  }
+ },
+ "parts": [
+  {
+   "id": "yoman-habina:engine.js#add",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:parent",
+   "reason": "impure"
+  },
+  {
+   "id": "yoman-habina:engine.js#boot",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "gap",
+     "by": "name"
+    }
+   ],
+   "primary": "gap",
+   "material": "unknown",
+   "reason": "impure"
+  },
+  {
+   "id": "yoman-habina:engine.js#el",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yoman-habina:engine.js#fail",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "tolerate",
+     "by": "name"
+    }
+   ],
+   "primary": "tolerate",
+   "material": "record:error",
+   "reason": "impure"
+  },
+  {
+   "id": "yoman-habina:engine.js#paras",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "impure"
+  },
+  {
+   "id": "yoman-habina:engine.js#render",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "gap",
+     "by": "name"
+    }
+   ],
+   "primary": "gap",
+   "material": "record:issue",
+   "reason": "impure"
+  },
+  {
+   "id": "yoman-habina:engine.js#renderBriefs",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yoman-habina:engine.js#renderCards",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yoman-habina:engine.js#renderColophon",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yoman-habina:engine.js#renderForecast",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yoman-habina:engine.js#renderFront",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yoman-habina:engine.js#renderMasthead",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "reason": "impure"
+  },
+  {
+   "id": "yoman-habina:engine.js#renderOpinion",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yoman-habina:engine.js#renderSupplement",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yoman-habina:engine.js#renderTwoup",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yoman-habina:engine.js#runhead",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yoman-habina:engine.js#srcLine",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "require-source",
+     "by": "name"
+    }
+   ],
+   "primary": "require-source",
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yoman-habina:engine.js#tag",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yoman-habina:engine.js#whyBox",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:why",
+   "reason": "impure"
+  },
+  {
+   "id": "yoman-habina:verify.mjs#allContent",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "reason": "impure"
+  },
+  {
+   "id": "yoman-habina:verify.mjs#bad",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yoman-habina:verify.mjs#collectUrls",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yoman-habina:verify.mjs#head",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yoman-habina:verify.mjs#islandHtml",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "gap",
+     "by": "name"
+    }
+   ],
+   "primary": "gap",
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yoman-habina:verify.mjs#makeValidator",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "validate",
+     "by": "name"
+    }
+   ],
+   "primary": "validate",
+   "material": "record:schema",
+   "reason": "engine — מנוע שלם, לא פונקציה"
+  },
+  {
+   "id": "yoman-habina:verify.mjs#ok",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yoman-habina:verify.mjs#partInjection",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "choice",
+   "reason": "impure"
+  },
+  {
+   "id": "yoman-habina:verify.mjs#partSchema",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "choice",
+   "reason": "impure"
+  },
+  {
+   "id": "yoman-habina:verify.mjs#partSmoke",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "choice",
+   "reason": "impure"
+  },
+  {
+   "id": "yoman-habina:verify.mjs#read",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yoman-habina:verify.mjs#readJSON",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yoman-habina:verify.mjs#startServer",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "reason": "impure"
+  },
+  {
+   "id": "yoman-habina:verify.mjs#walkStrings",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "load-failed — UNSUPPORTED_FEATURE: Top-level await is currently not supported with the 'cjs' output format"
+  }
+ ]
+}

@@ -1,0 +1,838 @@
+{
+ "source": "mmmm",
+ "ref": "main@4bec20ae13aab7abe6dc9b9ae63caa3ebfcefc3b",
+ "probe": {
+  "version": 1,
+  "seed": 13269520,
+  "generatedAt": null
+ },
+ "totals": {
+  "run": 29,
+  "runWithVerb": 10,
+  "twin": 0,
+  "static": 55,
+  "staticWithVerb": 5,
+  "why": {
+   "impure": 47,
+   "no-fitting-input": 6,
+   "load-failed": 2
+  }
+ },
+ "parts": [
+  {
+   "id": "mmmm:artifacts/agents-chat/src/hooks/use-mobile.tsx#useIsMobile",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "bool",
+   "reason": "impure"
+  },
+  {
+   "id": "mmmm:artifacts/agents-chat/src/hooks/use-toast.ts#reducer",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:state",
+   "reason": "impure"
+  },
+  {
+   "id": "mmmm:artifacts/agents-chat/src/hooks/use-toast.ts#toast",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:toast",
+   "reason": "impure"
+  },
+  {
+   "id": "mmmm:artifacts/agents-chat/src/lib/utils.ts#cn",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[]>fn const"
+  },
+  {
+   "id": "mmmm:artifacts/api-server/src/routes/notes.ts#buildSummary",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "join",
+     "on": "prefs",
+     "holds": "12/12"
+    }
+   ],
+   "primary": "join",
+   "material": "text",
+   "cases": 24,
+   "hash": "39531a0b-9deac7a6"
+  },
+  {
+   "id": "mmmm:artifacts/api-server/src/routes/notes.ts#extractFromText",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[str]>obj"
+  },
+  {
+   "id": "mmmm:artifacts/api-server/src/swarm/agents.ts#fallbackSuggestions",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "fuzzy",
+     "by": "symbol"
+    },
+    {
+     "id": "tolerate",
+     "by": "symbol"
+    }
+   ],
+   "primary": "fuzzy",
+   "material": "record:profile",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "mmmm:artifacts/api-server/src/swarm/agents.ts#runDirectorAgent",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:profile",
+   "reason": "impure"
+  },
+  {
+   "id": "mmmm:artifacts/api-server/src/swarm/agents.ts#runMarketAgent",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:profile",
+   "reason": "impure"
+  },
+  {
+   "id": "mmmm:artifacts/api-server/src/swarm/agents.ts#runQAAgent",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:profile",
+   "reason": "impure"
+  },
+  {
+   "id": "mmmm:artifacts/api-server/src/swarm/agents.ts#runStyleAnalystAgent",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:profile",
+   "reason": "impure"
+  },
+  {
+   "id": "mmmm:artifacts/api-server/src/swarm/agents.ts#runSwarm",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:profile",
+   "reason": "impure"
+  },
+  {
+   "id": "mmmm:ask-director-keys.js#extractKeyRequirements",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:http",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "mmmm:chat_manager/server.js#communicateWithAgent",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "record:agent",
+   "cases": 24,
+   "traits": "in[]>nil const"
+  },
+  {
+   "id": "mmmm:final_meeting.js#getRequestDetails",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "record:agent",
+   "cases": 24,
+   "traits": "in[]>nil const"
+  },
+  {
+   "id": "mmmm:lib/api-client-react/src/custom-fetch.ts#applyBaseUrl",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "record:input",
+   "cases": 24,
+   "traits": "in[obj|str]>nil|obj|str rec:same"
+  },
+  {
+   "id": "mmmm:lib/api-client-react/src/custom-fetch.ts#buildErrorMessage",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "format",
+     "on": "response",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "format",
+   "material": "record:response",
+   "cases": 24,
+   "hash": "7c4b69e6-28772177"
+  },
+  {
+   "id": "mmmm:lib/api-client-react/src/custom-fetch.ts#customFetch",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:input",
+   "reason": "impure"
+  },
+  {
+   "id": "mmmm:lib/api-client-react/src/custom-fetch.ts#getMediaType",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "record:headers",
+   "cases": 24,
+   "traits": "in[]>str const"
+  },
+  {
+   "id": "mmmm:lib/api-client-react/src/custom-fetch.ts#getStringField",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "record:value",
+   "cases": 24,
+   "traits": "in[]>nil const"
+  },
+  {
+   "id": "mmmm:lib/api-client-react/src/custom-fetch.ts#hasNoBody",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "validate",
+     "on": "*",
+     "holds": "24/24"
+    }
+   ],
+   "primary": "validate",
+   "material": "record:response",
+   "cases": 24,
+   "hash": "f4748634-92473f2a"
+  },
+  {
+   "id": "mmmm:lib/api-client-react/src/custom-fetch.ts#inferResponseType",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "record:response",
+   "cases": 24,
+   "traits": "in[]>str const"
+  },
+  {
+   "id": "mmmm:lib/api-client-react/src/custom-fetch.ts#isJsonMediaType",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "validate",
+     "on": "*",
+     "holds": "24/24"
+    }
+   ],
+   "primary": "validate",
+   "material": "text",
+   "cases": 24
+  },
+  {
+   "id": "mmmm:lib/api-client-react/src/custom-fetch.ts#isRequest",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "record:input",
+   "cases": 24,
+   "traits": "in[]>bool const"
+  },
+  {
+   "id": "mmmm:lib/api-client-react/src/custom-fetch.ts#isTextMediaType",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[]>bool const"
+  },
+  {
+   "id": "mmmm:lib/api-client-react/src/custom-fetch.ts#isUrl",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "record:input",
+   "cases": 24,
+   "traits": "in[]>bool const"
+  },
+  {
+   "id": "mmmm:lib/api-client-react/src/custom-fetch.ts#looksLikeJson",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[]>bool const"
+  },
+  {
+   "id": "mmmm:lib/api-client-react/src/custom-fetch.ts#mergeHeaders",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "combine",
+     "by": "symbol"
+    }
+   ],
+   "primary": "combine",
+   "material": "list",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "mmmm:lib/api-client-react/src/custom-fetch.ts#parseErrorBody",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:response",
+   "reason": "impure"
+  },
+  {
+   "id": "mmmm:lib/api-client-react/src/custom-fetch.ts#parseJsonBody",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:response",
+   "reason": "impure"
+  },
+  {
+   "id": "mmmm:lib/api-client-react/src/custom-fetch.ts#parseSuccessBody",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:response",
+   "reason": "impure"
+  },
+  {
+   "id": "mmmm:lib/api-client-react/src/custom-fetch.ts#resolveMethod",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "normalize",
+     "on": "explicitMethod",
+     "holds": "12/12"
+    },
+    {
+     "id": "format",
+     "on": "explicitMethod",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "normalize",
+   "material": "text",
+   "cases": 24,
+   "hash": "76e90dad-a26087f4"
+  },
+  {
+   "id": "mmmm:lib/api-client-react/src/custom-fetch.ts#resolveUrl",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "format",
+     "on": "input",
+     "holds": "15/15"
+    },
+    {
+     "id": "personalize",
+     "on": "input",
+     "holds": "12/12"
+    }
+   ],
+   "primary": "personalize",
+   "material": "record:input",
+   "cases": 22,
+   "hash": "c23b2e28-8001b889"
+  },
+  {
+   "id": "mmmm:lib/api-client-react/src/custom-fetch.ts#setAuthTokenGetter",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "require-source",
+     "by": "name"
+    },
+    {
+     "id": "settle",
+     "by": "symbol"
+    }
+   ],
+   "primary": "require-source",
+   "material": "record:auth_token_getter",
+   "reason": "impure"
+  },
+  {
+   "id": "mmmm:lib/api-client-react/src/custom-fetch.ts#setBaseUrl",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "mmmm:lib/api-client-react/src/custom-fetch.ts#stripBom",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "normalize",
+     "on": "text",
+     "holds": "12/12"
+    },
+    {
+     "id": "format",
+     "on": "text",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "normalize",
+   "material": "text",
+   "cases": 24
+  },
+  {
+   "id": "mmmm:lib/api-client-react/src/custom-fetch.ts#truncate",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "normalize",
+     "on": "text",
+     "holds": "12/12"
+    },
+    {
+     "id": "format",
+     "on": "text",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "normalize",
+   "material": "text",
+   "cases": 24,
+   "hash": "8c7f6b39-b01f8548"
+  },
+  {
+   "id": "mmmm:lib/integrations-openai-ai-react/src/audio/audio-playback-worklet.js#AudioPlaybackProcessor",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:audio_playback_processor",
+   "reason": "impure"
+  },
+  {
+   "id": "mmmm:lib/integrations-openai-ai-react/src/audio/audio-playback-worklet.js#RingBuffer",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "round",
+     "by": "name"
+    }
+   ],
+   "primary": "round",
+   "material": "record:ring_buffer",
+   "reason": "impure"
+  },
+  {
+   "id": "mmmm:lib/integrations-openai-ai-react/src/audio/audio-playback-worklet.js#RingBuffer.available",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "reason": "load-failed — AudioWorkletProcessor is not defined"
+  },
+  {
+   "id": "mmmm:lib/integrations-openai-ai-react/src/audio/audio-utils.ts#createAudioPlaybackContext",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "mmmm:lib/integrations-openai-ai-react/src/audio/audio-utils.ts#decodePCM16ToFloat32",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "mmmm:lib/integrations-openai-ai-react/src/audio/useAudioPlayback.ts#SequenceBuffer",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:pending",
+   "reason": "impure"
+  },
+  {
+   "id": "mmmm:lib/integrations-openai-ai-react/src/audio/useAudioPlayback.ts#useAudioPlayback",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "mmmm:lib/integrations-openai-ai-react/src/audio/useVoiceRecorder.ts#getSupportedMimeType",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "mmmm:lib/integrations-openai-ai-react/src/audio/useVoiceRecorder.ts#useVoiceRecorder",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "ui",
+   "reason": "impure"
+  },
+  {
+   "id": "mmmm:lib/integrations-openai-ai-react/src/audio/useVoiceStream.ts#blobToBase64",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "file",
+   "reason": "impure"
+  },
+  {
+   "id": "mmmm:lib/integrations-openai-ai-react/src/audio/useVoiceStream.ts#createAbortError",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "record:error",
+   "cases": 3
+  },
+  {
+   "id": "mmmm:lib/integrations-openai-ai-react/src/audio/useVoiceStream.ts#extractCompleteSseBlocks",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "mmmm:lib/integrations-openai-ai-react/src/audio/useVoiceStream.ts#handleVoiceStreamEvent",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:voice_stream_event",
+   "reason": "impure"
+  },
+  {
+   "id": "mmmm:lib/integrations-openai-ai-react/src/audio/useVoiceStream.ts#isDoneEvent",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "validate",
+     "on": "*",
+     "holds": "24/24"
+    }
+   ],
+   "primary": "validate",
+   "material": "record:voice_stream_event",
+   "cases": 23,
+   "hash": "55339d66-dbd4bdb9"
+  },
+  {
+   "id": "mmmm:lib/integrations-openai-ai-react/src/audio/useVoiceStream.ts#isVoiceStreamEvent",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "record:value",
+   "cases": 24,
+   "traits": "in[]>bool const"
+  },
+  {
+   "id": "mmmm:lib/integrations-openai-ai-react/src/audio/useVoiceStream.ts#notifyError",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "record:callback",
+   "cases": 24,
+   "traits": "in[]>nil const"
+  },
+  {
+   "id": "mmmm:lib/integrations-openai-ai-react/src/audio/useVoiceStream.ts#parseVoiceStreamEvent",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "mmmm:lib/integrations-openai-ai-react/src/audio/useVoiceStream.ts#readErrorText",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:response",
+   "reason": "impure"
+  },
+  {
+   "id": "mmmm:lib/integrations-openai-ai-react/src/audio/useVoiceStream.ts#readSseDataFromBlock",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[]>nil const"
+  },
+  {
+   "id": "mmmm:lib/integrations-openai-ai-react/src/audio/useVoiceStream.ts#toError",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "record:error",
+   "cases": 24,
+   "traits": "in[]>obj const rec:new"
+  },
+  {
+   "id": "mmmm:lib/integrations-openai-ai-react/src/audio/useVoiceStream.ts#useVoiceStream",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:stream_callbacks",
+   "reason": "impure"
+  },
+  {
+   "id": "mmmm:lib/integrations-openai-ai-server/src/audio/client.ts#convertToWav",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "sound",
+   "reason": "impure"
+  },
+  {
+   "id": "mmmm:lib/integrations-openai-ai-server/src/audio/client.ts#detectAudioFormat",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "file",
+   "reason": "load-failed — AI_INTEGRATIONS_OPENAI_BASE_URL must be set. Did you forget to provision the OpenAI AI integration?"
+  },
+  {
+   "id": "mmmm:lib/integrations-openai-ai-server/src/audio/client.ts#ensureCompatibleFormat",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "sound",
+   "reason": "impure"
+  },
+  {
+   "id": "mmmm:lib/integrations-openai-ai-server/src/audio/client.ts#speechToText",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "sound",
+   "reason": "impure"
+  },
+  {
+   "id": "mmmm:lib/integrations-openai-ai-server/src/audio/client.ts#speechToTextStream",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "sound",
+   "reason": "impure"
+  },
+  {
+   "id": "mmmm:lib/integrations-openai-ai-server/src/audio/client.ts#textToSpeech",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "mmmm:lib/integrations-openai-ai-server/src/audio/client.ts#textToSpeechStream",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "mmmm:lib/integrations-openai-ai-server/src/audio/client.ts#voiceChat",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "sound",
+   "reason": "impure"
+  },
+  {
+   "id": "mmmm:lib/integrations-openai-ai-server/src/audio/client.ts#voiceChatStream",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "sound",
+   "reason": "impure"
+  },
+  {
+   "id": "mmmm:lib/integrations-openai-ai-server/src/batch/utils.ts#batchProcess",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "join",
+     "by": "name"
+    },
+    {
+     "id": "pace",
+     "by": "name"
+    }
+   ],
+   "primary": "join",
+   "material": "list",
+   "reason": "impure"
+  },
+  {
+   "id": "mmmm:lib/integrations-openai-ai-server/src/batch/utils.ts#batchProcessWithSSE",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "impure"
+  },
+  {
+   "id": "mmmm:lib/integrations-openai-ai-server/src/batch/utils.ts#isRateLimitError",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "record:error",
+   "cases": 24,
+   "traits": "in[]>bool const"
+  },
+  {
+   "id": "mmmm:lib/integrations-openai-ai-server/src/image/client.ts#editImages",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "impure"
+  },
+  {
+   "id": "mmmm:lib/integrations-openai-ai-server/src/image/client.ts#generateImageBuffer",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "mmmm:lib/integrations/openai_ai_integrations/src/client/audio/audio-playback-worklet.js#AudioPlaybackProcessor",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:audio_playback_processor",
+   "reason": "impure"
+  },
+  {
+   "id": "mmmm:lib/integrations/openai_ai_integrations/src/client/audio/audio-playback-worklet.js#RingBuffer",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:ring_buffer",
+   "reason": "impure"
+  },
+  {
+   "id": "mmmm:lib/integrations/openai_ai_integrations/src/client/audio/audio-utils.ts#createAudioPlaybackContext",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "file",
+   "reason": "impure"
+  },
+  {
+   "id": "mmmm:lib/integrations/openai_ai_integrations/src/client/audio/useAudioPlayback.ts#SequenceBuffer",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:pending",
+   "reason": "impure"
+  },
+  {
+   "id": "mmmm:lib/integrations/openai_ai_integrations/src/client/audio/useAudioPlayback.ts#useAudioPlayback",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "file",
+   "reason": "impure"
+  },
+  {
+   "id": "mmmm:lib/integrations/openai_ai_integrations/src/client/audio/useVoiceRecorder.ts#useVoiceRecorder",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "ui",
+   "reason": "impure"
+  },
+  {
+   "id": "mmmm:lib/integrations/openai_ai_integrations/src/server/batch/utils.ts#batchProcess",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "impure"
+  },
+  {
+   "id": "mmmm:lib/integrations/openai_ai_integrations/src/server/batch/utils.ts#batchProcessWithSSE",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "impure"
+  },
+  {
+   "id": "mmmm:lib/integrations/openai_ai_integrations/src/server/image/client.ts#editImages",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "impure"
+  },
+  {
+   "id": "mmmm:lib/integrations/openai_ai_integrations/src/server/image/client.ts#generateImageBuffer",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "mmmm:meeting.js#getApiKeyForProvider",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "record:provider",
+   "cases": 24,
+   "traits": "in[]>nil const"
+  },
+  {
+   "id": "mmmm:meeting.js#getRequestDetails",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "record:agent",
+   "cases": 24,
+   "traits": "in[]>nil const"
+  }
+ ]
+}

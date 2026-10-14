@@ -1,0 +1,391 @@
+{
+  "world": "מקום עבודה",
+  "goals": [
+    {
+      "word": "ישיבת-צוות",
+      "emoji": "👥",
+      "does": "ישיבה עם סדר יום, כל אחד מדבר בתורו ויש סיכום",
+      "needs": [
+        {
+          "behavior": "סדר יום",
+          "verb": "sort",
+          "material": "sequence"
+        },
+        {
+          "behavior": "כל אחד בתורו",
+          "verb": "round-robin",
+          "material": "sequence"
+        },
+        {
+          "behavior": "זמן לכל נושא",
+          "verb": "NEW:countdown",
+          "material": "times",
+          "detail": "סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה"
+        },
+        {
+          "behavior": "פרוטוקול",
+          "verb": "transcript",
+          "material": "text"
+        },
+        {
+          "behavior": "משימות לכל אחד",
+          "verb": "assign-role",
+          "material": "list"
+        },
+        {
+          "behavior": "הישיבה הבאה",
+          "verb": "next",
+          "material": "date"
+        }
+      ]
+    },
+    {
+      "word": "לוח-משימות",
+      "emoji": "📋",
+      "does": "משימות שעוברות מעמודה לעמודה עד שהן גמורות",
+      "needs": [
+        {
+          "behavior": "עמודות: לעשות, בעבודה, גמור",
+          "verb": "escalate",
+          "material": "choice"
+        },
+        {
+          "behavior": "משימה לכל אחד",
+          "verb": "assign-role",
+          "material": "list"
+        },
+        {
+          "behavior": "דחוף למעלה",
+          "verb": "sort",
+          "material": "list"
+        },
+        {
+          "behavior": "תאריך יעד",
+          "verb": "compare",
+          "material": "date"
+        },
+        {
+          "behavior": "תקועה הרבה ⇒ סימון",
+          "verb": "escalate",
+          "material": "waiting"
+        }
+      ]
+    },
+    {
+      "word": "מוקד-שירות",
+      "emoji": "☎️",
+      "does": "מוקד שמקבל שיחות, מעביר לנציג הפנוי ומעלה לבכיר כשצריך",
+      "needs": [
+        {
+          "behavior": "שיחות בתור",
+          "verb": "sort",
+          "material": "sequence"
+        },
+        {
+          "behavior": "לנציג הפנוי",
+          "verb": "round-robin",
+          "material": "list"
+        },
+        {
+          "behavior": "לפי נושא",
+          "verb": "route-channel",
+          "material": "choice"
+        },
+        {
+          "behavior": "לא נפתר ⇒ לבכיר",
+          "verb": "escalate",
+          "material": "waiting"
+        },
+        {
+          "behavior": "זמן המתנה",
+          "verb": "compare",
+          "material": "times"
+        },
+        {
+          "behavior": "סקר אחרי השיחה",
+          "verb": "offset",
+          "material": "times"
+        }
+      ]
+    },
+    {
+      "word": "מחסן",
+      "emoji": "📦",
+      "does": "מחסן שסופר מלאי, מזמין כשנגמר ומוציא קודם את הישן",
+      "needs": [
+        {
+          "behavior": "סופר מלאי",
+          "verb": "count",
+          "material": "number"
+        },
+        {
+          "behavior": "מתחת לסף ⇒ להזמין",
+          "verb": "gate",
+          "material": "bool"
+        },
+        {
+          "behavior": "הישן יוצא קודם",
+          "verb": "sort",
+          "material": "sequence"
+        },
+        {
+          "behavior": "מדפים לפי סוג",
+          "verb": "group",
+          "material": "list"
+        },
+        {
+          "behavior": "ספירה כל ערב",
+          "verb": "daily-snapshot",
+          "material": "record:stock"
+        }
+      ]
+    },
+    {
+      "word": "משכורת",
+      "emoji": "💰",
+      "does": "משכורת לפי שעות, תוספת על נוספות ותשלום בתאריך קבוע",
+      "needs": [
+        {
+          "behavior": "שעות כפול תעריף",
+          "verb": "convert",
+          "material": "amount"
+        },
+        {
+          "behavior": "נוספות בתעריף גבוה",
+          "verb": "rank-tiers",
+          "material": "amount"
+        },
+        {
+          "behavior": "סכום החודש",
+          "verb": "sum",
+          "material": "amount"
+        },
+        {
+          "behavior": "תשלום ב-10 לחודש",
+          "verb": "next",
+          "material": "date"
+        },
+        {
+          "behavior": "מעגל לשקל",
+          "verb": "round",
+          "material": "amount"
+        }
+      ]
+    },
+    {
+      "word": "משלוחים",
+      "emoji": "🚚",
+      "does": "חבילות שמתחלקות לפי אזור, נוסעות במסלול ומגיעות בזמן",
+      "needs": [
+        {
+          "behavior": "חבילות לפי אזור",
+          "verb": "group",
+          "material": "geo"
+        },
+        {
+          "behavior": "מסלול קצר",
+          "verb": "NEW:shortest-path",
+          "material": "geo",
+          "detail": "דרך קצרה — המסלול הקצר ביותר ברשת של נקודות"
+        },
+        {
+          "behavior": "חלון זמן ללקוח",
+          "verb": "divide",
+          "material": "span"
+        },
+        {
+          "behavior": "לא בבית ⇒ ניסיון חוזר",
+          "verb": "tolerate-failure",
+          "material": "waiting"
+        },
+        {
+          "behavior": "הודעה בדרך",
+          "verb": "route-channel",
+          "material": "text"
+        },
+        {
+          "behavior": "איפה החבילה",
+          "verb": "NEW:move-along-path",
+          "material": "geo",
+          "detail": "מתקדם במסלול — נקודה שזזה לאורך דרך נתונה"
+        }
+      ]
+    },
+    {
+      "word": "סידור-משמרות",
+      "emoji": "🗓️",
+      "does": "לוח משמרות שמחלק בתורות, מכבד בקשות ולא שם מישהו פעמיים ברצף",
+      "needs": [
+        {
+          "behavior": "כל אחד בתורו",
+          "verb": "round-robin",
+          "material": "sequence"
+        },
+        {
+          "behavior": "מכבד בקשות חופש",
+          "verb": "filter",
+          "material": "date"
+        },
+        {
+          "behavior": "לא פעמיים ברצף",
+          "verb": "dedupe",
+          "material": "sequence"
+        },
+        {
+          "behavior": "כמה משמרות לכל אחד",
+          "verb": "count",
+          "material": "list"
+        },
+        {
+          "behavior": "מחליפים כשמישהו חולה",
+          "verb": "tolerate-failure",
+          "material": "record:shift"
+        },
+        {
+          "behavior": "לוח לשבוע הבא",
+          "verb": "next",
+          "material": "date"
+        }
+      ]
+    },
+    {
+      "word": "פס-ייצור",
+      "emoji": "🏭",
+      "does": "מוצרים שעוברים תחנה אחרי תחנה, כל אחת עושה דבר אחד",
+      "needs": [
+        {
+          "behavior": "תחנה אחרי תחנה",
+          "verb": "hub-relay",
+          "material": "sequence"
+        },
+        {
+          "behavior": "כל תחנה עושה דבר אחד",
+          "verb": "assign-role",
+          "material": "list"
+        },
+        {
+          "behavior": "קצב קבוע",
+          "verb": "pace",
+          "material": "times"
+        },
+        {
+          "behavior": "פסול יוצא מהפס",
+          "verb": "filter",
+          "material": "list"
+        },
+        {
+          "behavior": "תחנה איטית מעכבת הכול",
+          "verb": "minmax",
+          "material": "list"
+        },
+        {
+          "behavior": "סופרים מוצרים בסוף",
+          "verb": "count",
+          "material": "number"
+        }
+      ]
+    },
+    {
+      "word": "קופה-רושמת",
+      "emoji": "🧾",
+      "does": "קופה שסוכמת מוצרים, נותנת הנחה ומעגלת עודף",
+      "needs": [
+        {
+          "behavior": "סוכמת",
+          "verb": "sum",
+          "material": "amount"
+        },
+        {
+          "behavior": "הנחה מעל סכום",
+          "verb": "gate",
+          "material": "bool"
+        },
+        {
+          "behavior": "מעגלת",
+          "verb": "round",
+          "material": "amount"
+        },
+        {
+          "behavior": "עודף",
+          "verb": "compare",
+          "material": "amount"
+        },
+        {
+          "behavior": "תור לקופה הפנויה",
+          "verb": "next",
+          "material": "waiting"
+        },
+        {
+          "behavior": "סגירת יום",
+          "verb": "daily-snapshot",
+          "material": "amount"
+        }
+      ]
+    },
+    {
+      "word": "ראיון-עבודה",
+      "emoji": "🤝",
+      "does": "מועמדים שעוברים שלבים, ורק הטובים ממשיכים",
+      "needs": [
+        {
+          "behavior": "שלבי מיון",
+          "verb": "escalate",
+          "material": "choice"
+        },
+        {
+          "behavior": "רק המתאימים ממשיכים",
+          "verb": "filter",
+          "material": "list"
+        },
+        {
+          "behavior": "ציון לכל מועמד",
+          "verb": "rank-tiers",
+          "material": "list"
+        },
+        {
+          "behavior": "תיאום שעה",
+          "verb": "divide",
+          "material": "span"
+        },
+        {
+          "behavior": "תשובה לכל אחד",
+          "verb": "route-channel",
+          "material": "text"
+        }
+      ]
+    },
+    {
+      "word": "תורנות",
+      "emoji": "🧹",
+      "does": "תורנות ניקיון שעוברת מאחד לשני כל שבוע",
+      "needs": [
+        {
+          "behavior": "כל שבוע אחר",
+          "verb": "round-robin",
+          "material": "sequence"
+        },
+        {
+          "behavior": "מעבירים את התור הלאה",
+          "verb": "hub-relay",
+          "material": "record:person"
+        },
+        {
+          "behavior": "מי שהחליף חייב",
+          "verb": "NEW:accumulate",
+          "material": "list",
+          "detail": "צובר — ערך שגדל מעט בכל צעד-זמן עד שמשהו מרוקן אותו"
+        },
+        {
+          "behavior": "תזכורת ביום ראשון",
+          "verb": "next",
+          "material": "date"
+        },
+        {
+          "behavior": "רשימת משימות",
+          "verb": "divide",
+          "material": "list"
+        }
+      ]
+    }
+  ]
+}

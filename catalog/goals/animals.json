@@ -1,0 +1,503 @@
+{
+  "world": "בעלי חיים",
+  "goals": [
+    {
+      "word": "גחלילית",
+      "emoji": "✨",
+      "does": "חרקים שמהבהבים בלילה ולאט לאט מתחילים להבהב יחד",
+      "needs": [
+        {
+          "behavior": "מהבהבת",
+          "verb": "NEW:oscillate",
+          "material": "number",
+          "detail": "מתנדנד — גל שעולה ויורד שוב ושוב בקצב קבוע"
+        },
+        {
+          "behavior": "מתאימה את הקצב לשכנה",
+          "verb": "NEW:follow",
+          "material": "times",
+          "detail": "לזוז מעט לקצב של השכן"
+        },
+        {
+          "behavior": "רק בלילה",
+          "verb": "sun-position",
+          "material": "times"
+        },
+        {
+          "behavior": "כולן יחד בסוף",
+          "verb": "merge",
+          "material": "times"
+        },
+        {
+          "behavior": "מהבהבת חזק יותר כשרוצה למשוך",
+          "verb": "escalate",
+          "material": "choice"
+        }
+      ]
+    },
+    {
+      "word": "דולפין",
+      "emoji": "🐬",
+      "does": "דולפין שמשמיע צליל ומקשיב להד כדי לדעת מה יש לפניו",
+      "needs": [
+        {
+          "behavior": "שולח צליל ומקשיב להד",
+          "verb": "NEW:echo",
+          "material": "sound",
+          "detail": "זמן חזרה ⇒ מרחק"
+        },
+        {
+          "behavior": "ישן עם חצי מוח",
+          "verb": "round-robin",
+          "material": "sequence",
+          "detail": "חצי ער וחצי ישן בתורות"
+        },
+        {
+          "behavior": "עולה לנשום כל כמה דקות",
+          "verb": "pace",
+          "material": "times"
+        },
+        {
+          "behavior": "שוחה בלהקה",
+          "verb": "group",
+          "material": "list"
+        },
+        {
+          "behavior": "קופץ מעל הגלים",
+          "verb": "NEW:gravity",
+          "material": "number",
+          "detail": "נופל — מהירות שגדלה בכל צעד של נפילה"
+        }
+      ]
+    },
+    {
+      "word": "דרקון",
+      "emoji": "🐉",
+      "does": "יצור אגדה שישן על אוצר, מתעורר כשמתקרבים, מתרגז בשלבים ויורק אש בתורות",
+      "needs": [
+        {
+          "behavior": "ישן על ערימת אוצר",
+          "verb": "sum",
+          "material": "amount",
+          "detail": "שווי כל האוצר"
+        },
+        {
+          "behavior": "מתעורר כשמישהו מתקרב",
+          "verb": "compare",
+          "material": "geo",
+          "detail": "מרחק מול סף"
+        },
+        {
+          "behavior": "מתרגז בשלבים",
+          "verb": "escalate",
+          "material": "choice",
+          "detail": "נוחר ⇒ פוקח עין ⇒ שואג ⇒ יורק אש"
+        },
+        {
+          "behavior": "יורק אש בתורות",
+          "verb": "round-robin",
+          "material": "sequence",
+          "detail": "פעם לכל כיוון"
+        },
+        {
+          "behavior": "נח בין התקפה להתקפה",
+          "verb": "pace",
+          "material": "times",
+          "detail": "המתנה קבועה בין יריקות"
+        },
+        {
+          "behavior": "מדרג את הפולשים לפי סכנה",
+          "verb": "rank-tiers",
+          "material": "list"
+        },
+        {
+          "behavior": "סופר את האוצר כל לילה",
+          "verb": "daily-snapshot",
+          "material": "record:hoard"
+        },
+        {
+          "behavior": "עף במעגלים מעל ההר",
+          "verb": "NEW:orbit",
+          "material": "geo",
+          "detail": "תנועה במעגל סביב נקודה"
+        }
+      ]
+    },
+    {
+      "word": "זאב",
+      "emoji": "🐺",
+      "does": "להקה עם סדר דרגות, שמייללת יחד וצדה בתורות",
+      "needs": [
+        {
+          "behavior": "סדר דרגות בלהקה",
+          "verb": "rank-tiers",
+          "material": "list"
+        },
+        {
+          "behavior": "מייללים יחד",
+          "verb": "merge",
+          "material": "sound"
+        },
+        {
+          "behavior": "יללה בירח מלא",
+          "verb": "gate",
+          "material": "bool"
+        },
+        {
+          "behavior": "מקיפים את הטרף",
+          "verb": "NEW:orbit",
+          "material": "geo",
+          "detail": "מקיף — תנועה במעגל או בעקומה סביב נקודה"
+        },
+        {
+          "behavior": "הצעיר מחכה לתורו לאכול",
+          "verb": "next",
+          "material": "sequence"
+        }
+      ]
+    },
+    {
+      "word": "זיקית",
+      "emoji": "🦎",
+      "does": "לטאה שמחליפה צבע לפי מה שמסביב ולפי מצב הרוח, ומזיזה כל עין לחוד",
+      "needs": [
+        {
+          "behavior": "מחליפה צבע לפי הרקע",
+          "verb": "NEW:sample",
+          "material": "image",
+          "detail": "לקרוא את הצבע מהסביבה"
+        },
+        {
+          "behavior": "הצבע משתנה לאט",
+          "verb": "pace",
+          "material": "times"
+        },
+        {
+          "behavior": "צבע לפי מצב רוח",
+          "verb": "convert",
+          "material": "choice",
+          "detail": "רגוע/כועס ⇒ צבע"
+        },
+        {
+          "behavior": "כל עין זזה לבד",
+          "verb": "divide",
+          "material": "geo",
+          "detail": "שני כיוונים נפרדים"
+        },
+        {
+          "behavior": "לשון שיורה מהר",
+          "verb": "gate",
+          "material": "bool",
+          "detail": "רק אם הזבוב קרוב מספיק"
+        },
+        {
+          "behavior": "מתנדנדת כמו עלה",
+          "verb": "NEW:oscillate",
+          "material": "number",
+          "detail": "מתנדנד — גל שעולה ויורד שוב ושוב בקצב קבוע"
+        }
+      ]
+    },
+    {
+      "word": "כוורת",
+      "emoji": "🐝",
+      "does": "בית של דבורים, עם מלכה, תפקידים לפי גיל, ריקוד שמסביר איפה הפרחים ודבש שמצטבר",
+      "needs": [
+        {
+          "behavior": "תפקיד לפי גיל",
+          "verb": "assign-role",
+          "material": "record:bee",
+          "detail": "מנקה ⇒ מאכילה ⇒ שומרת ⇒ אוספת"
+        },
+        {
+          "behavior": "ריקוד שמראה כיוון",
+          "verb": "convert",
+          "material": "geo",
+          "detail": "זווית הריקוד ⇒ כיוון לפרחים"
+        },
+        {
+          "behavior": "הכיוון ביחס לשמש",
+          "verb": "sun-position",
+          "material": "geo"
+        },
+        {
+          "behavior": "דבש מצטבר בתאים",
+          "verb": "NEW:accumulate",
+          "material": "amount",
+          "detail": "אוסף שגדל"
+        },
+        {
+          "behavior": "תאים משושים",
+          "verb": "divide",
+          "material": "span"
+        },
+        {
+          "behavior": "כל דבורה מוסרת לשכנה",
+          "verb": "hub-relay",
+          "material": "list"
+        },
+        {
+          "behavior": "נחיל עוזב כשצפוף",
+          "verb": "gate",
+          "material": "bool",
+          "detail": "יותר מדי דבורים"
+        }
+      ]
+    },
+    {
+      "word": "להקת-ציפורים",
+      "emoji": "🐦",
+      "does": "ציפורים שעפות יחד ביתד, מחליפות את המובילה ונודדות לפי העונה",
+      "needs": [
+        {
+          "behavior": "עפות בצורת חץ",
+          "verb": "assign-role",
+          "material": "list",
+          "detail": "מובילה וזנבות"
+        },
+        {
+          "behavior": "המובילה מתחלפת כשמתעייפת",
+          "verb": "round-robin",
+          "material": "sequence"
+        },
+        {
+          "behavior": "כל ציפור הולכת אחרי השכנה",
+          "verb": "NEW:follow",
+          "material": "geo",
+          "detail": "לזוז לכיוון השכן הקרוב"
+        },
+        {
+          "behavior": "נודדות דרומה בסתיו",
+          "verb": "rotate",
+          "material": "choice"
+        },
+        {
+          "behavior": "נוחתות באותה תחנה כל שנה",
+          "verb": "NEW:move-along-path",
+          "material": "geo",
+          "detail": "מתקדם במסלול — נקודה שזזה לאורך דרך נתונה"
+        },
+        {
+          "behavior": "סופרים כמה עברו",
+          "verb": "count",
+          "material": "number"
+        }
+      ]
+    },
+    {
+      "word": "נמלה",
+      "emoji": "🐜",
+      "does": "נמלים שמשאירות שביל ריח, כך שהדרך הקצרה מתחזקת והארוכה נעלמת",
+      "needs": [
+        {
+          "behavior": "משאירה שביל ריח",
+          "verb": "NEW:accumulate",
+          "material": "number",
+          "detail": "צובר — ערך שגדל מעט בכל צעד-זמן עד שמשהו מרוקן אותו"
+        },
+        {
+          "behavior": "הריח מתנדף עם הזמן",
+          "verb": "NEW:decay",
+          "material": "number",
+          "detail": "דועך — ערך שיורד מעט בכל צעד-זמן עד אפס"
+        },
+        {
+          "behavior": "הולכת אחרי הריח החזק",
+          "verb": "rank-tiers",
+          "material": "list"
+        },
+        {
+          "behavior": "הדרך הקצרה מנצחת",
+          "verb": "minmax",
+          "material": "list"
+        },
+        {
+          "behavior": "מעבירות פירור מאחת לשנייה",
+          "verb": "hub-relay",
+          "material": "sequence"
+        },
+        {
+          "behavior": "תפקידים בקן",
+          "verb": "assign-role",
+          "material": "record:ant"
+        }
+      ]
+    },
+    {
+      "word": "סלמון",
+      "emoji": "🐟",
+      "does": "דג ששוחה נגד הזרם חזרה למקום שבו נולד",
+      "needs": [
+        {
+          "behavior": "שוחה נגד הזרם",
+          "verb": "reverse",
+          "material": "sequence"
+        },
+        {
+          "behavior": "מוצא את הנהר שבו נולד",
+          "verb": "search",
+          "material": "geo"
+        },
+        {
+          "behavior": "קופץ מעל מפלים",
+          "verb": "gate",
+          "material": "bool",
+          "detail": "רק אם יש מספיק כוח"
+        },
+        {
+          "behavior": "הכוח נגמר לאט",
+          "verb": "NEW:decay",
+          "material": "number",
+          "detail": "דועך — ערך שיורד מעט בכל צעד-זמן עד אפס"
+        },
+        {
+          "behavior": "רק החזקים מגיעים",
+          "verb": "filter",
+          "material": "list"
+        }
+      ]
+    },
+    {
+      "word": "עכביש",
+      "emoji": "🕷️",
+      "does": "עכביש שאורג רשת בספירלה ומרגיש כל רעידה בחוט",
+      "needs": [
+        {
+          "behavior": "חוטים מהמרכז החוצה",
+          "verb": "divide",
+          "material": "number",
+          "detail": "זוויות שוות"
+        },
+        {
+          "behavior": "ספירלה מבחוץ פנימה",
+          "verb": "rotate",
+          "material": "sequence"
+        },
+        {
+          "behavior": "מרגיש רעידה בחוט",
+          "verb": "search",
+          "material": "list",
+          "detail": "איזה חוט רעד"
+        },
+        {
+          "behavior": "רץ לכיוון הרעידה",
+          "verb": "NEW:move-along-path",
+          "material": "geo",
+          "detail": "מתקדם במסלול — נקודה שזזה לאורך דרך נתונה"
+        },
+        {
+          "behavior": "מתקן חוט קרוע",
+          "verb": "tolerate-failure",
+          "material": "record:web"
+        }
+      ]
+    },
+    {
+      "word": "פינגווין",
+      "emoji": "🐧",
+      "does": "עוף שלא עף, מתכרבל בקבוצה ומחליף מקומות כדי שכולם יתחממו",
+      "needs": [
+        {
+          "behavior": "מתכרבלים בקבוצה",
+          "verb": "group",
+          "material": "list"
+        },
+        {
+          "behavior": "מי בחוץ נכנס פנימה",
+          "verb": "round-robin",
+          "material": "sequence",
+          "detail": "תורות על המקום החם"
+        },
+        {
+          "behavior": "מחליפים תורות על הביצה",
+          "verb": "assign-role",
+          "material": "record:penguin",
+          "detail": "אחד דוגר ואחד הולך לדוג"
+        },
+        {
+          "behavior": "מזהה את הבן הזוג לפי הקול",
+          "verb": "search",
+          "material": "sound"
+        },
+        {
+          "behavior": "מחליק על הבטן",
+          "verb": "NEW:gravity",
+          "material": "number",
+          "detail": "מהירות שגדלה במורד"
+        },
+        {
+          "behavior": "הולך בשורה לים",
+          "verb": "sort",
+          "material": "sequence"
+        }
+      ]
+    },
+    {
+      "word": "צב",
+      "emoji": "🐢",
+      "does": "צב איטי מאוד שחי הרבה שנים ומטיל ביצים באותו חוף",
+      "needs": [
+        {
+          "behavior": "הולך לאט וקבוע",
+          "verb": "pace",
+          "material": "number"
+        },
+        {
+          "behavior": "חוזר לאותו חוף",
+          "verb": "search",
+          "material": "geo"
+        },
+        {
+          "behavior": "מטיל ביצים ומכסה בחול",
+          "verb": "count",
+          "material": "number"
+        },
+        {
+          "behavior": "טמפרטורת החול קובעת",
+          "verb": "convert",
+          "material": "choice",
+          "detail": "חם/קר ⇒ זכר/נקבה"
+        },
+        {
+          "behavior": "הצבים הקטנים רצים לים",
+          "verb": "sort",
+          "material": "sequence"
+        }
+      ]
+    },
+    {
+      "word": "תרנגול",
+      "emoji": "🐓",
+      "does": "תרנגול שקורא לפני הזריחה וממשיך עד שכולם קמים",
+      "needs": [
+        {
+          "behavior": "קורא לפני הזריחה",
+          "verb": "sun-position",
+          "material": "times"
+        },
+        {
+          "behavior": "קצת לפני הזמן",
+          "verb": "offset",
+          "material": "times",
+          "detail": "חצי שעה לפני"
+        },
+        {
+          "behavior": "קורא שוב ושוב",
+          "verb": "pace",
+          "material": "times"
+        },
+        {
+          "behavior": "מפסיק כשכולם קמו",
+          "verb": "gate",
+          "material": "bool"
+        },
+        {
+          "behavior": "סדר ניקור בלול",
+          "verb": "rank-tiers",
+          "material": "list",
+          "detail": "מי אוכל ראשון"
+        }
+      ]
+    }
+  ]
+}

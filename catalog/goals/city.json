@@ -1,0 +1,398 @@
+{
+  "world": "עיר",
+  "goals": [
+    {
+      "word": "גשר-נפתח",
+      "emoji": "🌉",
+      "does": "גשר שעולה כשספינה מגיעה ועוצר את התנועה בזמן הזה",
+      "needs": [
+        {
+          "behavior": "ספינה מתקרבת",
+          "verb": "compare",
+          "material": "geo"
+        },
+        {
+          "behavior": "מחסום לרכבים",
+          "verb": "gate",
+          "material": "bool"
+        },
+        {
+          "behavior": "עולה לאט",
+          "verb": "pace",
+          "material": "number"
+        },
+        {
+          "behavior": "נשאר פתוח עד שעברה",
+          "verb": "gate",
+          "material": "waiting"
+        },
+        {
+          "behavior": "לוח פתיחות קבוע",
+          "verb": "next",
+          "material": "times"
+        }
+      ]
+    },
+    {
+      "word": "דואר",
+      "emoji": "📮",
+      "does": "דואר שממיין מכתבים לפי עיר, רחוב ובית ומעביר מסניף לסניף",
+      "needs": [
+        {
+          "behavior": "ממיין לפי עיר",
+          "verb": "group",
+          "material": "list"
+        },
+        {
+          "behavior": "מסניף לסניף",
+          "verb": "hub-relay",
+          "material": "sequence"
+        },
+        {
+          "behavior": "דוור לכל שכונה",
+          "verb": "assign-role",
+          "material": "list"
+        },
+        {
+          "behavior": "חבילה שלא נמסרה חוזרת",
+          "verb": "tolerate-failure",
+          "material": "waiting"
+        },
+        {
+          "behavior": "מסלול הדוור",
+          "verb": "NEW:shortest-path",
+          "material": "geo",
+          "detail": "דרך קצרה — המסלול הקצר ביותר ברשת של נקודות"
+        }
+      ]
+    },
+    {
+      "word": "חניון",
+      "emoji": "🅿️",
+      "does": "חניון שסופר מקומות פנויים, מכוון לקומה ומחשב מחיר לפי זמן",
+      "needs": [
+        {
+          "behavior": "סופר מקומות פנויים",
+          "verb": "count",
+          "material": "number"
+        },
+        {
+          "behavior": "מכוון לקומה עם מקום",
+          "verb": "minmax",
+          "material": "list"
+        },
+        {
+          "behavior": "מלא ⇒ שלט אדום",
+          "verb": "gate",
+          "material": "bool"
+        },
+        {
+          "behavior": "מחיר לפי שעות",
+          "verb": "convert",
+          "material": "amount"
+        },
+        {
+          "behavior": "שעה ראשונה חינם",
+          "verb": "offset",
+          "material": "times"
+        },
+        {
+          "behavior": "מעגל לרבע שעה",
+          "verb": "round",
+          "material": "times"
+        }
+      ]
+    },
+    {
+      "word": "כבאות",
+      "emoji": "🚒",
+      "does": "תחנת כיבוי שמקבלת קריאה, שולחת לפי גודל השריפה ומחליפה משמרות",
+      "needs": [
+        {
+          "behavior": "גודל השריפה",
+          "verb": "rank-tiers",
+          "material": "choice"
+        },
+        {
+          "behavior": "כמה רכבים לפי גודל",
+          "verb": "convert",
+          "material": "number"
+        },
+        {
+          "behavior": "תחנה קרובה",
+          "verb": "minmax",
+          "material": "geo"
+        },
+        {
+          "behavior": "תגבורת כשגדל",
+          "verb": "escalate",
+          "material": "number"
+        },
+        {
+          "behavior": "משמרות 24 שעות",
+          "verb": "round-robin",
+          "material": "sequence"
+        },
+        {
+          "behavior": "האש מתפשטת לשכנים",
+          "verb": "NEW:spread",
+          "material": "geo",
+          "detail": "מתפשט — משהו שעובר לשכנים הקרובים בכל צעד"
+        }
+      ]
+    },
+    {
+      "word": "מזרקה",
+      "emoji": "⛲",
+      "does": "מזרקה שמשפריצת בדפוסים מתחלפים, רוקדת עם מוזיקה ונחה בלילה",
+      "needs": [
+        {
+          "behavior": "דפוסים מתחלפים",
+          "verb": "rotate",
+          "material": "sequence"
+        },
+        {
+          "behavior": "גובה הסילון עולה ויורד",
+          "verb": "NEW:oscillate",
+          "material": "number",
+          "detail": "מתנדנד — גל שעולה ויורד שוב ושוב בקצב קבוע"
+        },
+        {
+          "behavior": "רוקדת לפי המוזיקה",
+          "verb": "convert",
+          "material": "sound"
+        },
+        {
+          "behavior": "המים חוזרים לבריכה",
+          "verb": "NEW:gravity",
+          "material": "number",
+          "detail": "נופל — מהירות שגדלה בכל צעד של נפילה"
+        },
+        {
+          "behavior": "כבויה בלילה",
+          "verb": "sun-position",
+          "material": "times"
+        },
+        {
+          "behavior": "תאורה בצבעים בתורות",
+          "verb": "round-robin",
+          "material": "choice"
+        }
+      ]
+    },
+    {
+      "word": "מעבר-חציה",
+      "emoji": "🚸",
+      "does": "מעבר שבו המכוניות עוצרות והולכים עוברים בקבוצות",
+      "needs": [
+        {
+          "behavior": "מחכים שיצטברו",
+          "verb": "NEW:accumulate",
+          "material": "number",
+          "detail": "צובר — ערך שגדל מעט בכל צעד-זמן עד שמשהו מרוקן אותו"
+        },
+        {
+          "behavior": "עוברים כשהדרך פנויה",
+          "verb": "gate",
+          "material": "bool"
+        },
+        {
+          "behavior": "ילדים קודם",
+          "verb": "sort",
+          "material": "sequence"
+        },
+        {
+          "behavior": "שוטר מחליף כיוונים",
+          "verb": "round-robin",
+          "material": "sequence"
+        },
+        {
+          "behavior": "זמן מעבר לפי רוחב",
+          "verb": "convert",
+          "material": "times"
+        }
+      ]
+    },
+    {
+      "word": "ספרייה",
+      "emoji": "📚",
+      "does": "ספרייה שמשאילה ספרים, מזכירה להחזיר ומסדרת תור לספר מבוקש",
+      "needs": [
+        {
+          "behavior": "ספרים לפי נושא",
+          "verb": "group",
+          "material": "list"
+        },
+        {
+          "behavior": "חיפוש ספר",
+          "verb": "search",
+          "material": "text"
+        },
+        {
+          "behavior": "תאריך החזרה",
+          "verb": "offset",
+          "material": "date"
+        },
+        {
+          "behavior": "תזכורת שמתגברת",
+          "verb": "escalate",
+          "material": "choice"
+        },
+        {
+          "behavior": "תור לספר מבוקש",
+          "verb": "next",
+          "material": "waiting"
+        },
+        {
+          "behavior": "הכי מושאלים",
+          "verb": "rank-tiers",
+          "material": "list"
+        }
+      ]
+    },
+    {
+      "word": "פנס-רחוב",
+      "emoji": "💡",
+      "does": "פנסים שנדלקים בערב אחד אחרי השני לאורך הרחוב",
+      "needs": [
+        {
+          "behavior": "נדלק בשקיעה",
+          "verb": "sun-position",
+          "material": "times"
+        },
+        {
+          "behavior": "אחד אחרי השני",
+          "verb": "offset",
+          "material": "sequence",
+          "detail": "עיכוב קטן בין פנס לפנס"
+        },
+        {
+          "behavior": "מתעמעם באמצע הלילה",
+          "verb": "offset",
+          "material": "number"
+        },
+        {
+          "behavior": "מתחזק כשמישהו עובר",
+          "verb": "gate",
+          "material": "bool"
+        },
+        {
+          "behavior": "פנס שרוף מדווח",
+          "verb": "tolerate-failure",
+          "material": "list"
+        }
+      ]
+    },
+    {
+      "word": "רמזור",
+      "emoji": "🚦",
+      "does": "רמזור שמחליף צבעים במחזור קבוע, נותן עדיפות להולכי רגל ומתאם עם הרמזור הבא",
+      "needs": [
+        {
+          "behavior": "מחזור אדום-ירוק-צהוב",
+          "verb": "rotate",
+          "material": "choice"
+        },
+        {
+          "behavior": "כל צבע זמן משלו",
+          "verb": "divide",
+          "material": "span"
+        },
+        {
+          "behavior": "הולך רגל לחץ ⇒ ירוק בתורו",
+          "verb": "next",
+          "material": "waiting"
+        },
+        {
+          "behavior": "גל ירוק עם הרמזור הבא",
+          "verb": "offset",
+          "material": "times"
+        },
+        {
+          "behavior": "בלילה מהבהב צהוב",
+          "verb": "gate",
+          "material": "bool"
+        },
+        {
+          "behavior": "אמבולנס מקבל ירוק",
+          "verb": "escalate",
+          "material": "choice"
+        },
+        {
+          "behavior": "סופר מכוניות בכל כיוון",
+          "verb": "count",
+          "material": "number"
+        }
+      ]
+    },
+    {
+      "word": "שוק",
+      "emoji": "🍉",
+      "does": "שוק שבו המחירים יורדים לקראת הסגירה והדוכנים מסודרים בשורות",
+      "needs": [
+        {
+          "behavior": "דוכנים בשורות",
+          "verb": "divide",
+          "material": "list"
+        },
+        {
+          "behavior": "מחיר יורד לקראת סגירה",
+          "verb": "escalate",
+          "material": "amount"
+        },
+        {
+          "behavior": "מבצע לפי שעה",
+          "verb": "offset",
+          "material": "times"
+        },
+        {
+          "behavior": "סגור בשבת",
+          "verb": "filter",
+          "material": "date"
+        },
+        {
+          "behavior": "השווה מחירים בין דוכנים",
+          "verb": "compare",
+          "material": "amount"
+        },
+        {
+          "behavior": "קריאות המוכרים",
+          "verb": "round-robin",
+          "material": "sound"
+        }
+      ]
+    },
+    {
+      "word": "תחנת-אוטובוס",
+      "emoji": "🚏",
+      "does": "תחנה שמציגה מתי מגיע כל קו",
+      "needs": [
+        {
+          "behavior": "זמן הגעה לכל קו",
+          "verb": "sort",
+          "material": "sequence"
+        },
+        {
+          "behavior": "מתעדכן כל דקה",
+          "verb": "pace",
+          "material": "times"
+        },
+        {
+          "behavior": "קו שבוטל",
+          "verb": "filter",
+          "material": "list"
+        },
+        {
+          "behavior": "הודעה בקול",
+          "verb": "transcript",
+          "material": "sound"
+        },
+        {
+          "behavior": "הקו הבא לכל יעד",
+          "verb": "next",
+          "material": "sequence"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,348 @@
+{
+  "world": "אוכל",
+  "goals": [
+    {
+      "word": "גלידה",
+      "emoji": "🍦",
+      "does": "גלידה שמתקררת, מערבבים, ונמסה אם לא אוכלים מהר",
+      "needs": [
+        {
+          "behavior": "מקפיא עד קר מספיק",
+          "verb": "gate",
+          "material": "bool"
+        },
+        {
+          "behavior": "מערבבים כל כמה זמן",
+          "verb": "pace",
+          "material": "times"
+        },
+        {
+          "behavior": "נמסה בחום",
+          "verb": "NEW:decay",
+          "material": "number",
+          "detail": "דועך — ערך שיורד מעט בכל צעד-זמן עד אפס"
+        },
+        {
+          "behavior": "כדורים לפי גודל הגביע",
+          "verb": "convert",
+          "material": "number"
+        },
+        {
+          "behavior": "טעמים בתורות",
+          "verb": "rotate",
+          "material": "list"
+        }
+      ]
+    },
+    {
+      "word": "לחם-מחמצת",
+      "emoji": "🍞",
+      "does": "שאור שמאכילים כל יום, תופח, ובצק שמחכה לפני אפייה",
+      "needs": [
+        {
+          "behavior": "מאכילים את השאור כל יום",
+          "verb": "daily-snapshot",
+          "material": "record:starter"
+        },
+        {
+          "behavior": "תופח ונופל",
+          "verb": "NEW:oscillate",
+          "material": "number",
+          "detail": "מתנדנד — גל שעולה ויורד שוב ושוב בקצב קבוע"
+        },
+        {
+          "behavior": "מחכה שיכפיל את עצמו",
+          "verb": "gate",
+          "material": "bool"
+        },
+        {
+          "behavior": "התפחה לפי החום",
+          "verb": "convert",
+          "material": "times"
+        },
+        {
+          "behavior": "קיפול כל חצי שעה",
+          "verb": "pace",
+          "material": "times"
+        },
+        {
+          "behavior": "חותכים חריץ",
+          "verb": "format",
+          "material": "image"
+        }
+      ]
+    },
+    {
+      "word": "מיץ-סחוט",
+      "emoji": "🍊",
+      "does": "מסחטה שמקבלת פירות, סוחטת ומערבבת לפי מתכון",
+      "needs": [
+        {
+          "behavior": "פירות לפי מתכון",
+          "verb": "convert",
+          "material": "list"
+        },
+        {
+          "behavior": "סוחטת כמה שאפשר",
+          "verb": "sum",
+          "material": "number"
+        },
+        {
+          "behavior": "מערבבת",
+          "verb": "merge",
+          "material": "list"
+        },
+        {
+          "behavior": "מסננת גרעינים",
+          "verb": "filter",
+          "material": "list"
+        },
+        {
+          "behavior": "כוס מלאה ⇒ עוצרת",
+          "verb": "gate",
+          "material": "bool"
+        }
+      ]
+    },
+    {
+      "word": "מרק",
+      "emoji": "🍲",
+      "does": "מרק שמבשלים לאט, מוסיפים מצרכים לפי הסדר ומתבלים לפי טעם",
+      "needs": [
+        {
+          "behavior": "מצרכים לפי הסדר",
+          "verb": "offset",
+          "material": "sequence"
+        },
+        {
+          "behavior": "רותח ⇒ מנמיכים",
+          "verb": "gate",
+          "material": "bool"
+        },
+        {
+          "behavior": "מתבלים לפי טעם",
+          "verb": "personalize",
+          "material": "record:soup"
+        },
+        {
+          "behavior": "מתחזק בטעם לאט",
+          "verb": "NEW:accumulate",
+          "material": "number",
+          "detail": "צובר — ערך שגדל מעט בכל צעד-זמן עד שמשהו מרוקן אותו"
+        },
+        {
+          "behavior": "מנות שוות",
+          "verb": "divide",
+          "material": "number"
+        }
+      ]
+    },
+    {
+      "word": "סושי-על-מסוע",
+      "emoji": "🍣",
+      "does": "צלחות שעוברות לפני כולם במעגל, וכל צבע מחיר אחר",
+      "needs": [
+        {
+          "behavior": "המסוע מסתובב",
+          "verb": "rotate",
+          "material": "sequence"
+        },
+        {
+          "behavior": "כל צלחת עוברת לפני כולם",
+          "verb": "hub-relay",
+          "material": "sequence"
+        },
+        {
+          "behavior": "צבע ⇒ מחיר",
+          "verb": "convert",
+          "material": "amount"
+        },
+        {
+          "behavior": "סופרים צלחות",
+          "verb": "sum",
+          "material": "amount"
+        },
+        {
+          "behavior": "צלחת ישנה מדי יורדת",
+          "verb": "NEW:countdown",
+          "material": "times",
+          "detail": "סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה"
+        }
+      ]
+    },
+    {
+      "word": "עוגה",
+      "emoji": "🎂",
+      "does": "עוגה שמערבבים לפי סדר, אופים בזמן ובחום, ומחלקים לפרוסות שוות",
+      "needs": [
+        {
+          "behavior": "מצרכים לפי כמות האנשים",
+          "verb": "convert",
+          "material": "number"
+        },
+        {
+          "behavior": "מערבבים בסדר",
+          "verb": "next",
+          "material": "sequence"
+        },
+        {
+          "behavior": "אופים בזמן",
+          "verb": "NEW:countdown",
+          "material": "times",
+          "detail": "סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה"
+        },
+        {
+          "behavior": "בודקים בקיסם",
+          "verb": "gate",
+          "material": "bool"
+        },
+        {
+          "behavior": "פרוסות שוות",
+          "verb": "divide",
+          "material": "number"
+        },
+        {
+          "behavior": "שכבות",
+          "verb": "merge",
+          "material": "list"
+        }
+      ]
+    },
+    {
+      "word": "פופקורן",
+      "emoji": "🍿",
+      "does": "גרעינים שמתחממים ומתפוצצים כל אחד בזמן אחר, עד שהשקט אומר שסיימנו",
+      "needs": [
+        {
+          "behavior": "מתחממים",
+          "verb": "NEW:accumulate",
+          "material": "number",
+          "detail": "צובר — ערך שגדל מעט בכל צעד-זמן עד שמשהו מרוקן אותו"
+        },
+        {
+          "behavior": "כל גרעין מתפוצץ בזמן אחר",
+          "verb": "fuzzy",
+          "material": "times"
+        },
+        {
+          "behavior": "מתפוצץ מעל חום",
+          "verb": "gate",
+          "material": "bool"
+        },
+        {
+          "behavior": "סופרים פיצוצים",
+          "verb": "count",
+          "material": "number"
+        },
+        {
+          "behavior": "פחות פיצוצים ⇒ להוציא",
+          "verb": "compare",
+          "material": "number"
+        }
+      ]
+    },
+    {
+      "word": "פיצרייה",
+      "emoji": "🍕",
+      "does": "פיצרייה שמקבלת הזמנות, מחלקת לתנור ולשליחים",
+      "needs": [
+        {
+          "behavior": "תור הזמנות",
+          "verb": "sort",
+          "material": "sequence"
+        },
+        {
+          "behavior": "כמה פיצות בתנור",
+          "verb": "clamp",
+          "material": "number"
+        },
+        {
+          "behavior": "פיצה במשולשים",
+          "verb": "divide",
+          "material": "number"
+        },
+        {
+          "behavior": "תוספות לכל אחד",
+          "verb": "personalize",
+          "material": "record:order"
+        },
+        {
+          "behavior": "שליח לפי אזור",
+          "verb": "group",
+          "material": "geo"
+        },
+        {
+          "behavior": "זמן משלוח",
+          "verb": "offset",
+          "material": "times"
+        }
+      ]
+    },
+    {
+      "word": "ריבה",
+      "emoji": "🍓",
+      "does": "פירות וסוכר שמבשלים עד שמסמיך ושומרים בצנצנות",
+      "needs": [
+        {
+          "behavior": "כמות סוכר לפי פירות",
+          "verb": "convert",
+          "material": "number"
+        },
+        {
+          "behavior": "מבשלים עד שמסמיך",
+          "verb": "gate",
+          "material": "bool"
+        },
+        {
+          "behavior": "מערבבים כל כמה דקות",
+          "verb": "pace",
+          "material": "times"
+        },
+        {
+          "behavior": "צנצנות לפי כמות",
+          "verb": "divide",
+          "material": "number"
+        },
+        {
+          "behavior": "תאריך על כל צנצנת",
+          "verb": "format",
+          "material": "date"
+        }
+      ]
+    },
+    {
+      "word": "תה",
+      "emoji": "🍵",
+      "does": "תה שמשרים לפי סוג וזמן, ומתקרר לחום לשתייה",
+      "needs": [
+        {
+          "behavior": "זמן השרייה לפי סוג",
+          "verb": "convert",
+          "material": "times"
+        },
+        {
+          "behavior": "טיימר",
+          "verb": "NEW:countdown",
+          "material": "times",
+          "detail": "סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה"
+        },
+        {
+          "behavior": "מתקרר לאט",
+          "verb": "NEW:decay",
+          "material": "number",
+          "detail": "דועך — ערך שיורד מעט בכל צעד-זמן עד אפס"
+        },
+        {
+          "behavior": "חם מספיק לשתייה",
+          "verb": "clamp",
+          "material": "number"
+        },
+        {
+          "behavior": "סוכר לכל אחד",
+          "verb": "personalize",
+          "material": "record:cup"
+        }
+      ]
+    }
+  ]
+}

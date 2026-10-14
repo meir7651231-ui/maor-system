@@ -1,0 +1,462 @@
+{
+  "world": "טבע",
+  "goals": [
+    {
+      "word": "אלמוג",
+      "emoji": "🪸",
+      "does": "שונית שגדלה מעט מאוד כל שנה ובונה בית לדגים",
+      "needs": [
+        {
+          "behavior": "גדל מעט כל שנה",
+          "verb": "NEW:accumulate",
+          "material": "number",
+          "detail": "צובר — ערך שגדל מעט בכל צעד-זמן עד שמשהו מרוקן אותו"
+        },
+        {
+          "behavior": "מלבין כשהמים חמים מדי",
+          "verb": "gate",
+          "material": "bool",
+          "detail": "טמפרטורה מעל סף"
+        },
+        {
+          "behavior": "דגים מתחבאים בפינות",
+          "verb": "assign-role",
+          "material": "list"
+        },
+        {
+          "behavior": "נוצר מהרבה יצורים קטנים",
+          "verb": "merge",
+          "material": "list"
+        },
+        {
+          "behavior": "צבע לפי בריאות",
+          "verb": "convert",
+          "material": "choice"
+        }
+      ]
+    },
+    {
+      "word": "גאות-ושפל",
+      "emoji": "🌊",
+      "does": "הים שעולה ויורד פעמיים ביום, לפי הירח, ומזיז את הקו של החוף",
+      "needs": [
+        {
+          "behavior": "עולה ויורד פעמיים ביום",
+          "verb": "NEW:oscillate",
+          "material": "number",
+          "detail": "גל שחוזר על עצמו כל כ-12 וחצי שעות"
+        },
+        {
+          "behavior": "מתאחר קצת כל יום",
+          "verb": "offset",
+          "material": "times",
+          "detail": "כ-50 דקות כל יום"
+        },
+        {
+          "behavior": "חזק יותר בירח מלא",
+          "verb": "compare",
+          "material": "choice",
+          "detail": "שלב הירח מול מלא"
+        },
+        {
+          "behavior": "קו החוף זז",
+          "verb": "convert",
+          "material": "geo",
+          "detail": "גובה המים ⇒ איפה החוף"
+        },
+        {
+          "behavior": "טבלת שעות לשבוע",
+          "verb": "format",
+          "material": "list"
+        }
+      ]
+    },
+    {
+      "word": "הר-געש",
+      "emoji": "🌋",
+      "does": "הר שצובר לחץ מתחת לאדמה, מתעורר בשלבים, מתפרץ כשעובר סף ונרגע לאט",
+      "needs": [
+        {
+          "behavior": "לחץ מצטבר מתחת לאדמה",
+          "verb": "NEW:accumulate",
+          "material": "number",
+          "detail": "ערך שגדל מעט בכל צעד-זמן עד שמשהו מרוקן אותו"
+        },
+        {
+          "behavior": "רעידות קטנות לפני ההתפרצות",
+          "verb": "escalate",
+          "material": "choice",
+          "detail": "שקט ⇒ רעידות ⇒ עשן ⇒ התפרצות"
+        },
+        {
+          "behavior": "מתפרץ רק מעל הסף",
+          "verb": "gate",
+          "material": "bool",
+          "detail": "לחץ גדול מהסף"
+        },
+        {
+          "behavior": "הלבה זורמת במורד",
+          "verb": "NEW:move-along-path",
+          "material": "geo",
+          "detail": "נקודה שמתקדמת לאורך מסלול בכל צעד"
+        },
+        {
+          "behavior": "הלבה מתקררת ומתקשה",
+          "verb": "NEW:decay",
+          "material": "number",
+          "detail": "ערך שיורד מעט בכל צעד-זמן עד אפס"
+        },
+        {
+          "behavior": "מנוחה ארוכה בין התפרצויות",
+          "verb": "offset",
+          "material": "date",
+          "detail": "שנים אחרי ההתפרצות הקודמת"
+        }
+      ]
+    },
+    {
+      "word": "זרע",
+      "emoji": "🌱",
+      "does": "זרע שמחכה בסבלנות לחום ולמים, נובט, מוציא שורש ואז עלה",
+      "needs": [
+        {
+          "behavior": "מחכה לחום ולמים",
+          "verb": "require-source",
+          "material": "waiting"
+        },
+        {
+          "behavior": "נובט רק אחרי ימים חמים ברצף",
+          "verb": "count",
+          "material": "sequence",
+          "detail": "כמה ימים חמים ברצף"
+        },
+        {
+          "behavior": "קודם שורש ואחר כך עלה",
+          "verb": "escalate",
+          "material": "choice",
+          "detail": "שורש ⇒ עלה ⇒ גבעול"
+        },
+        {
+          "behavior": "שורש למטה ועלה למעלה",
+          "verb": "reverse",
+          "material": "geo",
+          "detail": "כיוונים הפוכים"
+        },
+        {
+          "behavior": "גדל קצת כל יום",
+          "verb": "daily-snapshot",
+          "material": "record:seed"
+        }
+      ]
+    },
+    {
+      "word": "חמנייה",
+      "emoji": "🌻",
+      "does": "פרח שמסובב את הראש אחרי השמש, גדל, מסדר זרעים בספירלה ופורח כשיש לו מספיק",
+      "needs": [
+        {
+          "behavior": "מסתובבת אחרי השמש",
+          "verb": "sun-position",
+          "material": "geo",
+          "detail": "כיוון השמש עכשיו"
+        },
+        {
+          "behavior": "חוזרת מזרחה בלילה",
+          "verb": "offset",
+          "material": "times",
+          "detail": "שעה אחרי השקיעה"
+        },
+        {
+          "behavior": "ספירלת זרעים",
+          "verb": "divide",
+          "material": "number",
+          "detail": "זווית קבועה סביב מעגל"
+        },
+        {
+          "behavior": "כל זרע במקום הבא",
+          "verb": "rotate",
+          "material": "sequence"
+        },
+        {
+          "behavior": "גדלה יום אחרי יום",
+          "verb": "daily-snapshot",
+          "material": "record:plant"
+        },
+        {
+          "behavior": "פורחת רק כשהכול בסדר",
+          "verb": "gate",
+          "material": "bool"
+        }
+      ]
+    },
+    {
+      "word": "יער",
+      "emoji": "🌲",
+      "does": "הרבה עצים שמתחרים על אור, כשהגבוהים מסתירים והצעירים מחכים לפתח",
+      "needs": [
+        {
+          "behavior": "הגבוהים מסתירים את הנמוכים",
+          "verb": "rank-tiers",
+          "material": "list"
+        },
+        {
+          "behavior": "עץ שנפל פותח פתח לאור",
+          "verb": "gate",
+          "material": "bool"
+        },
+        {
+          "behavior": "הצעיר הכי קרוב תופס את המקום",
+          "verb": "next",
+          "material": "sequence"
+        },
+        {
+          "behavior": "זרעים מתפזרים סביב",
+          "verb": "NEW:spread",
+          "material": "geo",
+          "detail": "מתפשט — משהו שעובר לשכנים הקרובים בכל צעד"
+        },
+        {
+          "behavior": "ספירת עצים לפי סוג",
+          "verb": "group",
+          "material": "list"
+        },
+        {
+          "behavior": "שריפה עוברת מעץ לעץ",
+          "verb": "NEW:spread",
+          "material": "geo",
+          "detail": "אש שעוברת לשכנים בכל צעד"
+        }
+      ]
+    },
+    {
+      "word": "מפל",
+      "emoji": "💦",
+      "does": "מים שנופלים מצוק, מתפזרים לטיפות ובונים בריכה למטה",
+      "needs": [
+        {
+          "behavior": "המים נופלים",
+          "verb": "NEW:gravity",
+          "material": "number",
+          "detail": "מהירות שגדלה בכל צעד של נפילה"
+        },
+        {
+          "behavior": "מתפזרים לטיפות",
+          "verb": "divide",
+          "material": "number"
+        },
+        {
+          "behavior": "הבריכה מתמלאת",
+          "verb": "NEW:accumulate",
+          "material": "number",
+          "detail": "צובר — ערך שגדל מעט בכל צעד-זמן עד שמשהו מרוקן אותו"
+        },
+        {
+          "behavior": "עודף ממשיך לנהר",
+          "verb": "clamp",
+          "material": "number",
+          "detail": "הבריכה לא עוברת גובה מסוים"
+        },
+        {
+          "behavior": "קשת בענן כשיש שמש",
+          "verb": "gate",
+          "material": "bool",
+          "detail": "שמש מאחור וטיפות באוויר"
+        }
+      ]
+    },
+    {
+      "word": "נהר",
+      "emoji": "🏞️",
+      "does": "מים שזורמים מההר לים, מתאספים מיובלים ועולים על הגדות כשיורד הרבה גשם",
+      "needs": [
+        {
+          "behavior": "זורם במורד בלבד",
+          "verb": "sort",
+          "material": "sequence",
+          "detail": "מהגבוה לנמוך"
+        },
+        {
+          "behavior": "יובלים מתחברים לנהר אחד",
+          "verb": "merge",
+          "material": "list"
+        },
+        {
+          "behavior": "גובה המים עולה בגשם",
+          "verb": "sum",
+          "material": "number",
+          "detail": "מכל היובלים יחד"
+        },
+        {
+          "behavior": "עולה על הגדות מעל קו",
+          "verb": "gate",
+          "material": "bool"
+        },
+        {
+          "behavior": "מתפתל סביב סלעים",
+          "verb": "NEW:move-along-path",
+          "material": "geo",
+          "detail": "זרימה לאורך מסלול מתפתל"
+        },
+        {
+          "behavior": "מתייבש בקיץ",
+          "verb": "NEW:decay",
+          "material": "number",
+          "detail": "מעט פחות מים בכל יום בלי גשם"
+        }
+      ]
+    },
+    {
+      "word": "עץ",
+      "emoji": "🌳",
+      "does": "עץ שגדל טבעת בכל שנה, מלביש עלים באביב ומשיר אותם בסתיו",
+      "needs": [
+        {
+          "behavior": "טבעת חדשה בכל שנה",
+          "verb": "count",
+          "material": "number",
+          "detail": "כמה שנים עברו"
+        },
+        {
+          "behavior": "עלים באביב ונשירה בסתיו",
+          "verb": "rotate",
+          "material": "choice",
+          "detail": "ארבע עונות במעגל"
+        },
+        {
+          "behavior": "ענף מתפצל לשניים",
+          "verb": "divide",
+          "material": "number",
+          "detail": "כל ענף לשני ענפים קטנים"
+        },
+        {
+          "behavior": "גדל לכיוון האור",
+          "verb": "sun-position",
+          "material": "geo"
+        },
+        {
+          "behavior": "הענפים הכי גבוהים מקבלים יותר שמש",
+          "verb": "rank-tiers",
+          "material": "list"
+        },
+        {
+          "behavior": "צומח לאט כל יום",
+          "verb": "daily-snapshot",
+          "material": "record:tree"
+        }
+      ]
+    },
+    {
+      "word": "פטרייה",
+      "emoji": "🍄",
+      "does": "פטרייה שצצה אחרי גשם בלילה אחד, מפזרת נבגים ומתפשטת במעגל",
+      "needs": [
+        {
+          "behavior": "צצה רק אחרי גשם",
+          "verb": "require-source",
+          "material": "bool",
+          "detail": "גשם בימים האחרונים"
+        },
+        {
+          "behavior": "גדלה בלילה אחד",
+          "verb": "offset",
+          "material": "times",
+          "detail": "בוקר אחרי לילה רטוב"
+        },
+        {
+          "behavior": "מפזרת נבגים לסביבה",
+          "verb": "NEW:spread",
+          "material": "geo",
+          "detail": "משהו שעובר לשכנים הקרובים בכל צעד"
+        },
+        {
+          "behavior": "מעגל פטריות שהולך ומתרחב",
+          "verb": "NEW:accumulate",
+          "material": "number",
+          "detail": "רדיוס שגדל בכל שנה"
+        },
+        {
+          "behavior": "נעלמת אחרי כמה ימים",
+          "verb": "NEW:countdown",
+          "material": "number",
+          "detail": "ימים שנשארו עד שנעלמת"
+        }
+      ]
+    },
+    {
+      "word": "קקטוס",
+      "emoji": "🌵",
+      "does": "צמח מדבר ששומר מים לימים יבשים ופורח פעם בשנה",
+      "needs": [
+        {
+          "behavior": "שומר מים כשיש",
+          "verb": "NEW:accumulate",
+          "material": "number",
+          "detail": "צובר — ערך שגדל מעט בכל צעד-זמן עד שמשהו מרוקן אותו"
+        },
+        {
+          "behavior": "משתמש בהם לאט",
+          "verb": "NEW:decay",
+          "material": "number",
+          "detail": "מעט מים בכל יום יבש"
+        },
+        {
+          "behavior": "לא מתמלא יותר מדי",
+          "verb": "clamp",
+          "material": "number"
+        },
+        {
+          "behavior": "פורח פעם בשנה",
+          "verb": "next",
+          "material": "date",
+          "detail": "העונה הבאה"
+        },
+        {
+          "behavior": "פורח רק אם נשארו מים",
+          "verb": "gate",
+          "material": "bool"
+        }
+      ]
+    },
+    {
+      "word": "שלכת",
+      "emoji": "🍂",
+      "does": "עלים שמשנים צבע בסתיו לפי הקור ונופלים אחד אחד",
+      "needs": [
+        {
+          "behavior": "הצבע משתנה לפי הקור",
+          "verb": "convert",
+          "material": "number",
+          "detail": "טמפרטורה ⇒ ירוק/צהוב/אדום/חום"
+        },
+        {
+          "behavior": "כל עלה בצבע שלו",
+          "verb": "fuzzy",
+          "material": "number",
+          "detail": "קצת שונה מהשכן"
+        },
+        {
+          "behavior": "נופלים בזה אחר זה",
+          "verb": "next",
+          "material": "sequence"
+        },
+        {
+          "behavior": "נופלים ברוח",
+          "verb": "NEW:random",
+          "material": "bool",
+          "detail": "כן/לא לפי סיכוי"
+        },
+        {
+          "behavior": "העלה מתנדנד בדרך למטה",
+          "verb": "NEW:oscillate",
+          "material": "number",
+          "detail": "ימינה-שמאלה תוך כדי נפילה"
+        },
+        {
+          "behavior": "ערימה מתחת לעץ",
+          "verb": "count",
+          "material": "number"
+        }
+      ]
+    }
+  ]
+}

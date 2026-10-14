@@ -1,0 +1,2261 @@
+{
+ "source": "14kk",
+ "ref": "master@4425d10f5a30c777478f77b1730e29e0494d4913",
+ "probe": {
+  "version": 1,
+  "seed": 13269520,
+  "generatedAt": null
+ },
+ "totals": {
+  "run": 121,
+  "runWithVerb": 73,
+  "twin": 0,
+  "static": 94,
+  "staticWithVerb": 5,
+  "why": {
+   "impure": 33,
+   "no-fitting-input": 33,
+   "load-failed": 18,
+   "async": 9,
+   "nondeterministic": 1
+  }
+ },
+ "parts": [
+  {
+   "id": "14kk:api/server_advanced.js#AdvancedAssetManagerAPI",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:advanced_asset_manager_api",
+   "reason": "impure"
+  },
+  {
+   "id": "14kk:api/server_advanced.js#AdvancedAssetManagerAPI.generateToken",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:user",
+   "reason": "load-failed — PARSE_ERROR: Expected `,` or `}` but found `;`"
+  },
+  {
+   "id": "14kk:api/server_advanced.js#AdvancedAssetManagerAPI.getTaskCompletionRate",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:task_completion_rate",
+   "reason": "load-failed — PARSE_ERROR: Expected `,` or `}` but found `;`"
+  },
+  {
+   "id": "14kk:api/server_advanced.js#AdvancedAssetManagerAPI.getTopAssetTypes",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:top_asset_type",
+   "reason": "load-failed — PARSE_ERROR: Expected `,` or `}` but found `;`"
+  },
+  {
+   "id": "14kk:api/server_advanced.js#AdvancedAssetManagerAPI.getUserPermissions",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "assign-role",
+     "by": "symbol"
+    }
+   ],
+   "primary": "assign-role",
+   "material": "record:role",
+   "reason": "load-failed — PARSE_ERROR: Expected `,` or `}` but found `;`"
+  },
+  {
+   "id": "14kk:api/server_minimal.js#SimpleAssetManagerAPI",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:simple_asset_manager_api",
+   "reason": "impure"
+  },
+  {
+   "id": "14kk:api/server_optimized.js#OptimizedAPIServer",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:optimized_apiserver",
+   "reason": "impure"
+  },
+  {
+   "id": "14kk:api/server_optimized.js#OptimizedAPIServer.checkAI",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "choice",
+   "reason": "async"
+  },
+  {
+   "id": "14kk:api/server_optimized.js#OptimizedAPIServer.checkCache",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "choice",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "14kk:api/server_optimized.js#OptimizedAPIServer.checkDatabase",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "choice",
+   "reason": "async"
+  },
+  {
+   "id": "14kk:api/server_optimized.js#OptimizedAPIServer.getAIInsights",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:ai_insight",
+   "reason": "async"
+  },
+  {
+   "id": "14kk:api/server_optimized.js#OptimizedAPIServer.getEndpointsList",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "record:endpoints_list",
+   "cases": 3
+  },
+  {
+   "id": "14kk:api/server_optimized.js#OptimizedAPIServer.getPerformanceMetrics",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:performance_metric",
+   "reason": "async"
+  },
+  {
+   "id": "14kk:code_optimization_protocol.js#CodeOptimizationProtocol",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:code_optimization_protocol",
+   "reason": "impure"
+  },
+  {
+   "id": "14kk:communication_protocol.js#SmartCommunicationProtocol",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:smart_communication_protocol",
+   "reason": "impure"
+  },
+  {
+   "id": "14kk:communication_protocol.js#SmartCommunicationProtocol.calculateChangeScore",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "load-failed — __dirname is not defined"
+  },
+  {
+   "id": "14kk:comprehensive_testing_suite.js#ComprehensiveTestingSuite",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:comprehensive_testing_suite",
+   "reason": "impure"
+  },
+  {
+   "id": "14kk:comprehensive_testing_suite.js#ComprehensiveTestingSuite.calculateOverallScore",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "14kk:comprehensive_testing_suite.js#ComprehensiveTestingSuite.generateNextSteps",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "14kk:comprehensive_testing_suite.js#ComprehensiveTestingSuite.generateRecommendations",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:recommendation",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "14kk:construction_supervisor_protocol.js#ConstructionSupervisor",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:construction_supervisor",
+   "reason": "impure"
+  },
+  {
+   "id": "14kk:construction_supervisor_protocol.js#ConstructionSupervisor.calculateBudgetUtilization",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "ratio",
+     "by": "name"
+    }
+   ],
+   "primary": "ratio",
+   "material": "number",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "14kk:construction_supervisor_protocol.js#ConstructionSupervisor.calculateHealthScore",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "14kk:construction_supervisor_protocol.js#ConstructionSupervisor.calculateQualityScore",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "14kk:construction_supervisor_protocol.js#ConstructionSupervisor.generateSummary",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:summary",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "14kk:construction_supervisor_protocol.js#ConstructionSupervisor.loadTodoList",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:todo_list",
+   "reason": "async"
+  },
+  {
+   "id": "14kk:diagnostic_protocol.js#DiagnosticProtocol",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:diagnostic_protocol",
+   "reason": "impure"
+  },
+  {
+   "id": "14kk:final_supervisor_protocol.js#FinalSupervisorProtocol",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:final_supervisor_protocol",
+   "reason": "impure"
+  },
+  {
+   "id": "14kk:final_supervisor_protocol.js#FinalSupervisorProtocol.calculateFileQuality",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "round",
+     "on": "filename",
+     "holds": "12/12"
+    }
+   ],
+   "primary": "round",
+   "material": "file",
+   "cases": 24
+  },
+  {
+   "id": "14kk:final_supervisor_protocol.js#FinalSupervisorProtocol.generateFinalRecommendations",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "14kk:final_supervisor_protocol.js#FinalSupervisorProtocol.generateNextSteps",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "14kk:knowledge_protocol.js#AssetAnalyzer",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:asset_analyzer",
+   "reason": "impure"
+  },
+  {
+   "id": "14kk:knowledge_protocol.js#AssetAnalyzer.analyzeAccessControl",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[]>num const int+"
+  },
+  {
+   "id": "14kk:knowledge_protocol.js#AssetAnalyzer.analyzeAuditTrail",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[str]>num const int+"
+  },
+  {
+   "id": "14kk:knowledge_protocol.js#AssetAnalyzer.analyzeAuthentication",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[]>num const int+"
+  },
+  {
+   "id": "14kk:knowledge_protocol.js#AssetAnalyzer.analyzeBusinessValue",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "choice",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "14kk:knowledge_protocol.js#AssetAnalyzer.analyzeCodeQuality",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[str]>obj rec:new",
+   "hash": "9e22bda5-2d51320d"
+  },
+  {
+   "id": "14kk:knowledge_protocol.js#AssetAnalyzer.analyzeDependencySecurity",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[]>obj const"
+  },
+  {
+   "id": "14kk:knowledge_protocol.js#AssetAnalyzer.analyzeEncryption",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[]>num const int+"
+  },
+  {
+   "id": "14kk:knowledge_protocol.js#AssetAnalyzer.analyzeInputValidation",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[]>num const int+"
+  },
+  {
+   "id": "14kk:knowledge_protocol.js#AssetAnalyzer.analyzeMarketTrends",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "choice",
+   "cases": 3
+  },
+  {
+   "id": "14kk:knowledge_protocol.js#AssetAnalyzer.analyzePerformance",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[]>obj const rec:new"
+  },
+  {
+   "id": "14kk:knowledge_protocol.js#AssetAnalyzer.analyzeSecurity",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "14kk:knowledge_protocol.js#AssetAnalyzer.analyzeTechnologyTrends",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "choice",
+   "cases": 3
+  },
+  {
+   "id": "14kk:knowledge_protocol.js#AssetAnalyzer.assessBreakthroughPotential",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[]>num const int+"
+  },
+  {
+   "id": "14kk:knowledge_protocol.js#AssetAnalyzer.assessCompetitiveAdvantage",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[]>num const int+"
+  },
+  {
+   "id": "14kk:knowledge_protocol.js#AssetAnalyzer.assessCreativity",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[]>num const real+"
+  },
+  {
+   "id": "14kk:knowledge_protocol.js#AssetAnalyzer.assessDisruptionPotential",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[]>num const int+"
+  },
+  {
+   "id": "14kk:knowledge_protocol.js#AssetAnalyzer.assessMarketFit",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "nondeterministic"
+  },
+  {
+   "id": "14kk:knowledge_protocol.js#AssetAnalyzer.assessMarketScalability",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[]>num const int+"
+  },
+  {
+   "id": "14kk:knowledge_protocol.js#AssetAnalyzer.assessNovelty",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[]>num int+"
+  },
+  {
+   "id": "14kk:knowledge_protocol.js#AssetAnalyzer.assessSustainability",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[]>num const int+"
+  },
+  {
+   "id": "14kk:knowledge_protocol.js#AssetAnalyzer.assessTechnologicalAdvancement",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[]>num const int+"
+  },
+  {
+   "id": "14kk:knowledge_protocol.js#AssetAnalyzer.calculateCognitiveComplexity",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[]>num int+"
+  },
+  {
+   "id": "14kk:knowledge_protocol.js#AssetAnalyzer.calculateCoupling",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[]>num const int+"
+  },
+  {
+   "id": "14kk:knowledge_protocol.js#AssetAnalyzer.calculateCyclomaticComplexity",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[]>num const int+"
+  },
+  {
+   "id": "14kk:knowledge_protocol.js#AssetAnalyzer.calculateDocumentation",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[]>num const int+"
+  },
+  {
+   "id": "14kk:knowledge_protocol.js#AssetAnalyzer.calculateEfficiency",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[]>num const int+"
+  },
+  {
+   "id": "14kk:knowledge_protocol.js#AssetAnalyzer.calculateErrorHandling",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[]>num const int+"
+  },
+  {
+   "id": "14kk:knowledge_protocol.js#AssetAnalyzer.calculateMaintainabilityIndex",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[]>num const int+"
+  },
+  {
+   "id": "14kk:knowledge_protocol.js#AssetAnalyzer.calculateModularity",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[]>num const int+"
+  },
+  {
+   "id": "14kk:knowledge_protocol.js#AssetAnalyzer.calculateNamingQuality",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[str]>num int+"
+  },
+  {
+   "id": "14kk:knowledge_protocol.js#AssetAnalyzer.calculateReadability",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[str]>num int+",
+   "hash": "e18e0653-3794951"
+  },
+  {
+   "id": "14kk:knowledge_protocol.js#AssetAnalyzer.calculateReusability",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[]>num const int+"
+  },
+  {
+   "id": "14kk:knowledge_protocol.js#AssetAnalyzer.calculateScalability",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[]>num const int+"
+  },
+  {
+   "id": "14kk:knowledge_protocol.js#AssetAnalyzer.calculateStructureQuality",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[str]>num real+",
+   "hash": "e18e0653-eb19cbef"
+  },
+  {
+   "id": "14kk:knowledge_protocol.js#AssetAnalyzer.calculateTechnicalDebt",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[]>num const int+"
+  },
+  {
+   "id": "14kk:knowledge_protocol.js#AssetAnalyzer.calculateTestability",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[]>num const int+"
+  },
+  {
+   "id": "14kk:knowledge_protocol.js#AssetAnalyzer.createInnovationTimeline",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "record:innovation_timeline",
+   "cases": 3
+  },
+  {
+   "id": "14kk:knowledge_protocol.js#AssetAnalyzer.detectSecrets",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "14kk:knowledge_protocol.js#AssetAnalyzer.detectSecrets~2",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "14kk:knowledge_protocol.js#AssetAnalyzer.detectVulnerabilities",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[]>arr"
+  },
+  {
+   "id": "14kk:knowledge_protocol.js#AssetAnalyzer.estimateCpuUsage",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[]>num const int+"
+  },
+  {
+   "id": "14kk:knowledge_protocol.js#AssetAnalyzer.estimateLatency",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[]>num const int+"
+  },
+  {
+   "id": "14kk:knowledge_protocol.js#AssetAnalyzer.estimateMemoryUsage",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[]>num const int+"
+  },
+  {
+   "id": "14kk:knowledge_protocol.js#AssetAnalyzer.estimateThroughput",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[]>num const int+"
+  },
+  {
+   "id": "14kk:knowledge_protocol.js#AssetAnalyzer.extractFunctions",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[]>arr const"
+  },
+  {
+   "id": "14kk:knowledge_protocol.js#AssetAnalyzer.extractImports",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[]>arr const"
+  },
+  {
+   "id": "14kk:knowledge_protocol.js#AssetAnalyzer.generateImplementationPlan",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "record:implementation_plan",
+   "cases": 3
+  },
+  {
+   "id": "14kk:knowledge_protocol.js#AssetAnalyzer.generateInsights",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:insight",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "14kk:knowledge_protocol.js#AssetAnalyzer.generateRecommendations",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:recommendation",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "14kk:knowledge_protocol.js#AssetAnalyzer.identifyBottlenecks",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[]>arr const"
+  },
+  {
+   "id": "14kk:knowledge_protocol.js#AssetAnalyzer.identifyFutureOpportunities",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "list",
+   "cases": 3
+  },
+  {
+   "id": "14kk:knowledge_protocol.js#AssetAnalyzer.identifyFutureRisks",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "list",
+   "cases": 3
+  },
+  {
+   "id": "14kk:knowledge_protocol.js#AssetAnalyzer.identifyOptimizations",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[]>arr const"
+  },
+  {
+   "id": "14kk:knowledge_protocol.js#AssetAnalyzer.identifyPatentableContent",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[]>arr const"
+  },
+  {
+   "id": "14kk:knowledge_protocol.js#AssetAnalyzer.identifyResearchOpportunities",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[]>arr const"
+  },
+  {
+   "id": "14kk:mvp/asset-manager-mvp.js#AssetManagerMVP",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:asset_manager_mvp",
+   "reason": "impure"
+  },
+  {
+   "id": "14kk:mvp/asset-manager-mvp.js#AssetManagerMVP.getAssetsByType",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:assets_by_type",
+   "reason": "load-failed — __dirname is not defined"
+  },
+  {
+   "id": "14kk:mvp/asset-manager-mvp.js#AssetManagerMVP.setupMiddleware",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "reason": "load-failed — __dirname is not defined"
+  },
+  {
+   "id": "14kk:mvp/asset-manager-mvp.js#AssetManagerMVP.setupRoutes",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "reason": "load-failed — __dirname is not defined"
+  },
+  {
+   "id": "14kk:mvp/simple-mvp.js#SimpleAssetManagerMVP",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:simple_asset_manager_mvp",
+   "reason": "impure"
+  },
+  {
+   "id": "14kk:mvp/simple-mvp.js#SimpleAssetManagerMVP.analyzeIntent",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[str]>obj rec:new",
+   "hash": "e5bf0e36-744e8c76"
+  },
+  {
+   "id": "14kk:mvp/simple-mvp.js#SimpleAssetManagerMVP.calculateConfidence",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[arr]>nan|num int+",
+   "hash": "b35fe59a-d06d1ad8"
+  },
+  {
+   "id": "14kk:mvp/simple-mvp.js#SimpleAssetManagerMVP.extractEntities",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[]>obj const"
+  },
+  {
+   "id": "14kk:mvp/simple-mvp.js#SimpleAssetManagerMVP.generateAssetResponse",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:intent",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "14kk:mvp/simple-mvp.js#SimpleAssetManagerMVP.generateHelpResponse",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "record:intent",
+   "cases": 24,
+   "traits": "in[]>str const"
+  },
+  {
+   "id": "14kk:mvp/simple-mvp.js#SimpleAssetManagerMVP.generateTelegramResponse",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "record:intent",
+   "cases": 24,
+   "traits": "in[]>str const"
+  },
+  {
+   "id": "14kk:self_reviewing_code.js#SelfReviewingCode",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:self_reviewing_code",
+   "reason": "impure"
+  },
+  {
+   "id": "14kk:self_reviewing_code.js#SelfReviewingCode.analyzeSegment",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:segment",
+   "reason": "load-failed — PARSE_ERROR: Expected `,` or `}` but found `;`"
+  },
+  {
+   "id": "14kk:self_reviewing_code.js#SelfReviewingCode.checkLogic",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "load-failed — PARSE_ERROR: Expected `,` or `}` but found `;`"
+  },
+  {
+   "id": "14kk:self_reviewing_code.js#SelfReviewingCode.checkPerformance",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "load-failed — PARSE_ERROR: Expected `,` or `}` but found `;`"
+  },
+  {
+   "id": "14kk:self_reviewing_code.js#SelfReviewingCode.checkSecurity",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "load-failed — PARSE_ERROR: Expected `,` or `}` but found `;`"
+  },
+  {
+   "id": "14kk:self_reviewing_code.js#SelfReviewingCode.checkStandards",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "load-failed — PARSE_ERROR: Expected `,` or `}` but found `;`"
+  },
+  {
+   "id": "14kk:self_reviewing_code.js#SelfReviewingCode.checkSyntax",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "load-failed — PARSE_ERROR: Expected `,` or `}` but found `;`"
+  },
+  {
+   "id": "14kk:self_reviewing_code.js#SelfReviewingCode.documentLearning",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "reason": "load-failed — PARSE_ERROR: Expected `,` or `}` but found `;`"
+  },
+  {
+   "id": "14kk:self_reviewing_code.js#SelfReviewingCode.proposeSolutions",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "bool",
+   "reason": "load-failed — PARSE_ERROR: Expected `,` or `}` but found `;`"
+  },
+  {
+   "id": "14kk:self_reviewing_code.js#SelfReviewingCode.segmentCode",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "divide",
+     "by": "symbol"
+    }
+   ],
+   "primary": "divide",
+   "material": "list",
+   "reason": "load-failed — PARSE_ERROR: Expected `,` or `}` but found `;`"
+  },
+  {
+   "id": "14kk:self_reviewing_code.js#SelfReviewingCode.summarizeResults",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "load-failed — PARSE_ERROR: Expected `,` or `}` but found `;`"
+  },
+  {
+   "id": "14kk:services/ai-telegram-integration.js#AITelegramIntegration",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:aitelegram_integration",
+   "reason": "impure"
+  },
+  {
+   "id": "14kk:services/ai-telegram-integration.js#AITelegramIntegration.analyzeIntent",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "async"
+  },
+  {
+   "id": "14kk:services/ai-telegram-integration.js#AITelegramIntegration.getHelpMessage",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:help_message",
+   "reason": "async"
+  },
+  {
+   "id": "14kk:services/ai-telegram-integration.js#AITelegramIntegration.handleAutomation",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "reason": "async"
+  },
+  {
+   "id": "14kk:services/api-gateway/server.js#checkServiceHealth",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "14kk:services/api-gateway/server.js#optionalAuth",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:http",
+   "reason": "impure"
+  },
+  {
+   "id": "14kk:services/api-gateway/server.js#startServer",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "reason": "impure"
+  },
+  {
+   "id": "14kk:services/api-gateway/server.js#verifyToken",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:http",
+   "reason": "impure"
+  },
+  {
+   "id": "14kk:services/auth-service/server.js#authenticateToken",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:http",
+   "reason": "impure"
+  },
+  {
+   "id": "14kk:services/auth-service/server.js#generateTokens",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "14kk:services/auth-service/server.js#hashPassword",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:password",
+   "reason": "impure"
+  },
+  {
+   "id": "14kk:services/auth-service/server.js#validateRequest",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:http",
+   "reason": "impure"
+  },
+  {
+   "id": "14kk:services/auth-service/server.js#verifyPassword",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:password",
+   "reason": "impure"
+  },
+  {
+   "id": "14kk:services/business-integrations.js#AnalyticsIntegration",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:analytics_integration",
+   "reason": "impure"
+  },
+  {
+   "id": "14kk:services/business-integrations.js#AnalyticsIntegration.getFeatures",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "record:feature",
+   "cases": 3
+  },
+  {
+   "id": "14kk:services/business-integrations.js#BusinessIntegrations",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:business_integrations",
+   "reason": "impure"
+  },
+  {
+   "id": "14kk:services/business-integrations.js#BusinessIntegrations.getStatus",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:statu",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "14kk:services/business-integrations.js#GitHubIntegration",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "relay",
+     "by": "symbol"
+    }
+   ],
+   "primary": "relay",
+   "material": "record:git_hub_integration",
+   "reason": "impure"
+  },
+  {
+   "id": "14kk:services/business-integrations.js#GitHubIntegration.getFeatures",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "record:feature",
+   "cases": 3
+  },
+  {
+   "id": "14kk:services/business-integrations.js#SlackIntegration",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:slack_integration",
+   "reason": "impure"
+  },
+  {
+   "id": "14kk:services/business-integrations.js#SlackIntegration.getFeatures",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "record:feature",
+   "cases": 3
+  },
+  {
+   "id": "14kk:services/business-integrations.js#StripeIntegration",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:stripe_integration",
+   "reason": "impure"
+  },
+  {
+   "id": "14kk:services/business-integrations.js#StripeIntegration.getFeatures",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "record:feature",
+   "cases": 3
+  },
+  {
+   "id": "14kk:services/business-integrations.js#StripeIntegration.isConnected",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "bool",
+   "cases": 3
+  },
+  {
+   "id": "14kk:services/business-integrations.js#ZapierIntegration",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:zapier_integration",
+   "reason": "impure"
+  },
+  {
+   "id": "14kk:services/business-integrations.js#ZapierIntegration.getFeatures",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "record:feature",
+   "cases": 3
+  },
+  {
+   "id": "14kk:services/telegram-bot-service.js#TelegramBotService",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:telegram_bot_service",
+   "reason": "impure"
+  },
+  {
+   "id": "14kk:services/telegram-bot-service.js#TelegramBotService.getAssetTypeEmoji",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "record:type",
+   "cases": 24,
+   "traits": "in[]>str const"
+  },
+  {
+   "id": "14kk:services/telegram-bot-service.js#TelegramBotService.searchAssets",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "async"
+  },
+  {
+   "id": "14kk:strategic_protocol.js#StrategicAnalyzer",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:strategic_analyzer",
+   "reason": "impure"
+  },
+  {
+   "id": "14kk:strategic_protocol.js#StrategicAnalyzer.analyzeCompetition",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "choice",
+   "cases": 3
+  },
+  {
+   "id": "14kk:strategic_protocol.js#StrategicAnalyzer.analyzeRevenueStreams",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "choice",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "14kk:strategic_protocol.js#StrategicAnalyzer.assessGrowthRisks",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "record:growth_risk",
+   "cases": 3
+  },
+  {
+   "id": "14kk:strategic_protocol.js#StrategicAnalyzer.assessMarketSize",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "record:market_size",
+   "cases": 3
+  },
+  {
+   "id": "14kk:strategic_protocol.js#StrategicAnalyzer.assessProfitability",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "record:profitability",
+   "cases": 3
+  },
+  {
+   "id": "14kk:strategic_protocol.js#StrategicAnalyzer.assessTechArchitecture",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "record:tech_architecture",
+   "cases": 3
+  },
+  {
+   "id": "14kk:strategic_protocol.js#StrategicAnalyzer.assessTechRisks",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "record:tech_risk",
+   "cases": 3
+  },
+  {
+   "id": "14kk:strategic_protocol.js#StrategicAnalyzer.assessValueProposition",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:value_proposition",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "14kk:strategic_protocol.js#StrategicAnalyzer.createTechRoadmap",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "record:tech_roadmap",
+   "cases": 3
+  },
+  {
+   "id": "14kk:strategic_protocol.js#StrategicAnalyzer.defineGrowthMetrics",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "unknown",
+   "cases": 3
+  },
+  {
+   "id": "14kk:strategic_protocol.js#StrategicAnalyzer.defineGrowthPhases",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "unknown",
+   "cases": 3
+  },
+  {
+   "id": "14kk:strategic_protocol.js#StrategicAnalyzer.defineMarketPositioning",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "unknown",
+   "cases": 3
+  },
+  {
+   "id": "14kk:strategic_protocol.js#StrategicAnalyzer.defineSuccessMetrics",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "unknown",
+   "cases": 3
+  },
+  {
+   "id": "14kk:strategic_protocol.js#StrategicAnalyzer.defineTeamCulture",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "unknown",
+   "cases": 3
+  },
+  {
+   "id": "14kk:strategic_protocol.js#StrategicAnalyzer.defineTeamStructure",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "unknown",
+   "cases": 3
+  },
+  {
+   "id": "14kk:strategic_protocol.js#StrategicAnalyzer.estimateCosts",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "number",
+   "cases": 3
+  },
+  {
+   "id": "14kk:strategic_protocol.js#StrategicAnalyzer.generateActionPlan",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "record:action_plan",
+   "cases": 3
+  },
+  {
+   "id": "14kk:strategic_protocol.js#StrategicAnalyzer.generateExecutiveSummary",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "record:executive_summary",
+   "cases": 3
+  },
+  {
+   "id": "14kk:strategic_protocol.js#StrategicAnalyzer.generateRiskAssessment",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "record:risk_assessment",
+   "cases": 3
+  },
+  {
+   "id": "14kk:strategic_protocol.js#StrategicAnalyzer.generateStrategicRecommendations",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "list",
+   "cases": 3
+  },
+  {
+   "id": "14kk:strategic_protocol.js#StrategicAnalyzer.hasAIIntegration",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "bool",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "14kk:strategic_protocol.js#StrategicAnalyzer.hasAPIEndpoints",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "bool",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "14kk:strategic_protocol.js#StrategicAnalyzer.hasBusinessFeatures",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "bool",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "14kk:strategic_protocol.js#StrategicAnalyzer.hasDeveloperTools",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "bool",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "14kk:strategic_protocol.js#StrategicAnalyzer.hasEnterpriseFeatures",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "bool",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "14kk:strategic_protocol.js#StrategicAnalyzer.hasMarketplaceFeatures",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "bool",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "14kk:strategic_protocol.js#StrategicAnalyzer.hasMicroservices",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "bool",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "14kk:strategic_protocol.js#StrategicAnalyzer.hasPricingConfig",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "bool",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "14kk:strategic_protocol.js#StrategicAnalyzer.hasStyleAnalysis",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "bool",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "14kk:strategic_protocol.js#StrategicAnalyzer.hasSubscriptionLogic",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "bool",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "14kk:strategic_protocol.js#StrategicAnalyzer.hasTelegramIntegration",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "bool",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "14kk:strategic_protocol.js#StrategicAnalyzer.identifyBusinessModel",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "14kk:strategic_protocol.js#StrategicAnalyzer.identifyCustomerSegments",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "divide",
+     "by": "symbol"
+    }
+   ],
+   "primary": "divide",
+   "material": "list",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "14kk:strategic_protocol.js#StrategicAnalyzer.identifyRequiredSkills",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "list",
+   "cases": 3
+  },
+  {
+   "id": "14kk:strategic_protocol.js#StrategicAnalyzer.planFundingStrategy",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "unknown",
+   "cases": 3
+  },
+  {
+   "id": "14kk:strategic_protocol.js#StrategicAnalyzer.planHiring",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "unknown",
+   "cases": 3
+  },
+  {
+   "id": "14kk:strategic_protocol.js#StrategicAnalyzer.planInnovation",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "unknown",
+   "cases": 3
+  },
+  {
+   "id": "14kk:strategic_protocol.js#StrategicAnalyzer.planMarketEntry",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "unknown",
+   "cases": 3
+  },
+  {
+   "id": "14kk:strategic_protocol.js#StrategicAnalyzer.planScaling",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "unknown",
+   "cases": 3
+  },
+  {
+   "id": "14kk:strategic_protocol.js#StrategicAnalyzer.projectRevenue",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "unknown",
+   "cases": 3
+  },
+  {
+   "id": "14kk:utils/code_optimizer.js#CodeOptimizer",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:code_optimizer",
+   "reason": "impure"
+  },
+  {
+   "id": "14kk:work_manager_protocol.js#WorkManagerArchitect",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:work_manager_architect",
+   "reason": "impure"
+  },
+  {
+   "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.assessBusinessRisks",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "record:business_risk",
+   "cases": 3
+  },
+  {
+   "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.assessProjectRisks",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "record:project_risk",
+   "cases": 3
+  },
+  {
+   "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.assessTechnicalRisks",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "record:technical_risk",
+   "cases": 3
+  },
+  {
+   "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.calculateBuffers",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "number",
+   "cases": 3
+  },
+  {
+   "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.createMitigationPlans",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "record:mitigation_plan",
+   "cases": 3
+  },
+  {
+   "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.defineArchitecture",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "unknown",
+   "cases": 3
+  },
+  {
+   "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.defineCodeQuality",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "unknown",
+   "cases": 3
+  },
+  {
+   "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.defineCommunicationProtocols",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "unknown",
+   "cases": 3
+  },
+  {
+   "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.defineDocumentationStandards",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "unknown",
+   "cases": 3
+  },
+  {
+   "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.defineInterfaces",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "unknown",
+   "cases": 3
+  },
+  {
+   "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.defineMeetings",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "unknown",
+   "cases": 3
+  },
+  {
+   "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.defineMilestones",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "unknown",
+   "cases": 3
+  },
+  {
+   "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.defineNextSteps",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "unknown",
+   "cases": 3
+  },
+  {
+   "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.definePerformanceStandards",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "unknown",
+   "cases": 3
+  },
+  {
+   "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.definePhases",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "unknown",
+   "cases": 3
+  },
+  {
+   "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.defineQualityMonitoring",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "unknown",
+   "cases": 3
+  },
+  {
+   "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.defineReporting",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "unknown",
+   "cases": 3
+  },
+  {
+   "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.defineRiskMonitoring",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "unknown",
+   "cases": 3
+  },
+  {
+   "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.defineSecurityStandards",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "unknown",
+   "cases": 3
+  },
+  {
+   "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.defineSuccessMetrics",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "unknown",
+   "cases": 3
+  },
+  {
+   "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.defineTeamStructure",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "unknown",
+   "cases": 3
+  },
+  {
+   "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.defineTestingStandards",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "unknown",
+   "cases": 3
+  },
+  {
+   "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.estimateBudget",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "number",
+   "cases": 3
+  },
+  {
+   "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.generateExecutiveSummary",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "record:executive_summary",
+   "cases": 3
+  },
+  {
+   "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.generateImplementationPlan",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "record:implementation_plan",
+   "cases": 3
+  },
+  {
+   "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.identifyComponents",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "list",
+   "cases": 3
+  },
+  {
+   "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.identifyCriticalPath",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "list",
+   "cases": 3
+  },
+  {
+   "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.identifyTrainingNeeds",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "list",
+   "cases": 3
+  },
+  {
+   "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.mapDataFlow",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "unknown",
+   "cases": 3
+  },
+  {
+   "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.mapDependencies",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "unknown",
+   "cases": 3
+  },
+  {
+   "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.mapTimelineDependencies",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "unknown",
+   "cases": 3
+  },
+  {
+   "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.planInfrastructure",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "unknown",
+   "cases": 3
+  },
+  {
+   "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.selectCommunicationTools",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "unknown",
+   "cases": 3
+  },
+  {
+   "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.selectTools",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "unknown",
+   "cases": 3
+  }
+ ]
+}

@@ -1,0 +1,7665 @@
+{
+ "source": "yeshiva",
+ "ref": "main@598f0d827df10c2940a20d6fb21d48cd0582936b",
+ "probe": {
+  "version": 1,
+  "seed": 13269520,
+  "generatedAt": null
+ },
+ "totals": {
+  "run": 0,
+  "runWithVerb": 0,
+  "twin": 0,
+  "static": 902,
+  "staticWithVerb": 74,
+  "why": {
+   "python": 690,
+   "impure": 200,
+   "load-failed": 12
+  }
+ },
+ "parts": [
+  {
+   "id": "yeshiva:arena/shop/catalog.py#Catalog",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:catalog",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:arena/shop/catalog.py#Catalog.category",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/catalog.py#Catalog.get",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/catalog.py#Catalog.is_within",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/catalog.py#Catalog.path",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/catalog.py#Catalog.products_in",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/catalog.py#Catalog.variants_of",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/catalog.py#Category",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:arena/shop/catalog.py#Product",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:arena/shop/catalog.py#Product.family",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/catalog.py#parse_sku",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/events.py#AuditLog",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "transcript",
+     "by": "name"
+    }
+   ],
+   "primary": "transcript",
+   "material": "record:audit_log",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:arena/shop/events.py#AuditLog.for_order",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/events.py#AuditLog.of",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/events.py#Event",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:arena/shop/events.py#EventBus",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:event_bus",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:arena/shop/inventory.py#Inventory",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:inventory",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:arena/shop/inventory.py#Inventory.available",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/inventory.py#Inventory.on_hand",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/inventory.py#Inventory.reservation",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/inventory.py#Inventory.warehouses",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/inventory.py#Inventory.warehouses_for",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/inventory.py#Lot",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:arena/shop/inventory.py#Reservation",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:arena/shop/inventory.py#Reservation.qty_of",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/inventory.py#Warehouse",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:arena/shop/money.py#Money",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "amount",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:arena/shop/money.py#Money.__add__",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "amount",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/money.py#Money.__bool__",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "provide",
+     "by": "name"
+    }
+   ],
+   "primary": "provide",
+   "material": "bool",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/money.py#Money.__mul__",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/money.py#Money.__neg__",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "amount",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/money.py#Money.__sub__",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "amount",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/money.py#Money._check",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "amount",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/money.py#Money.allocate",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/money.py#Money.clamp_min_zero",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "clamp",
+     "by": "symbol"
+    },
+    {
+     "id": "combine",
+     "by": "symbol"
+    }
+   ],
+   "primary": "clamp",
+   "material": "amount",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/money.py#Money.from_json",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:map",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/money.py#Money.min",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "combine",
+     "by": "symbol"
+    }
+   ],
+   "primary": "combine",
+   "material": "amount",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/money.py#Money.of",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "amount",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/money.py#Money.percent",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "ratio",
+     "by": "name"
+    }
+   ],
+   "primary": "ratio",
+   "material": "number",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/money.py#Money.ratio",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "ratio",
+     "by": "name"
+    }
+   ],
+   "primary": "ratio",
+   "material": "number",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/money.py#Money.to_json",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:map",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/money.py#Money.zero",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/money.py#sum_money",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "sum",
+     "by": "symbol"
+    }
+   ],
+   "primary": "sum",
+   "material": "list",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/orders.py#Order",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:arena/shop/orders.py#Order.line",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/orders.py#Order.transition",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:order_state",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:arena/shop/orders.py#OrderLine",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:arena/shop/orders.py#OrderLine.open",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/orders.py#OrderService",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:order_service",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:arena/shop/orders.py#OrderService._require",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:order",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/orders.py#OrderService._restock_wh",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:order",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/orders.py#OrderService.get",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/orders.py#Totals",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "amount",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:arena/shop/payments.py#FakeGateway",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:fake_gateway",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:arena/shop/payments.py#Gateway",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:gateway",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:arena/shop/payments.py#Gateway.authorize",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "amount",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/payments.py#Gateway.capture",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/payments.py#Gateway.refund",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/payments.py#Gateway.void",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "compare",
+     "by": "name"
+    }
+   ],
+   "primary": "compare",
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/payments.py#PaymentIntent",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:arena/shop/payments.py#PaymentIntent.refundable",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "count",
+     "by": "name"
+    }
+   ],
+   "primary": "count",
+   "material": "amount",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/payments.py#PaymentService",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:payment_service",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:arena/shop/payments.py#PaymentService.intent",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/pricing.py#BuyXGetY",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:arena/shop/pricing.py#CartLine",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:arena/shop/pricing.py#Coupon",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:arena/shop/pricing.py#Coupon.usable",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "date",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/pricing.py#FixedOff",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "amount",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:arena/shop/pricing.py#PercentOff",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:arena/shop/pricing.py#PricingEngine",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:pricing_engine",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:arena/shop/pricing.py#PricingEngine._apply",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:coupon",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/pricing.py#PricingEngine._targets",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:discount",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/pricing.py#PricingEngine._value",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:coupon",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/pricing.py#PricingEngine.coupon",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/pricing.py#PricingEngine.price",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/pricing.py#PricingEngine.unit_price",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:product",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/pricing.py#Quote",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:arena/shop/pricing.py#Quote.discount",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "amount",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/pricing.py#Quote.gross",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "amount",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/pricing.py#Quote.subtotal",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "amount",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/pricing.py#QuoteLine",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:product",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:arena/shop/pricing.py#QuoteLine.net",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "amount",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/pricing.py#TieredQuantity",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:arena/shop/repo.py#Repository",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:repository",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:arena/shop/repo.py#Repository.all",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/repo.py#Repository.load",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/repo.py#_decode",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/repo.py#_encode",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/reports.py#Bucket",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "tier",
+     "by": "symbol"
+    }
+   ],
+   "primary": "tier",
+   "material": "number",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:arena/shop/reports.py#Bucket.margin",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "amount",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/reports.py#Bucket.margin_bp",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "tier",
+     "by": "symbol"
+    }
+   ],
+   "primary": "tier",
+   "material": "number",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/reports.py#Bucket.revenue",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "sum",
+     "by": "symbol"
+    }
+   ],
+   "primary": "sum",
+   "material": "amount",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/reports.py#SalesReport",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:sales_report",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:arena/shop/reports.py#SalesReport._add_lines",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:out",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/reports.py#SalesReport._inclusive",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:order",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/reports.py#SalesReport.by_category",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/reports.py#SalesReport.by_product",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:map",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/reports.py#SalesReport.top_products",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/shipping.py#RateTable",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:arena/shop/shipping.py#ShippingEngine",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:shipping_engine",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:arena/shop/shipping.py#ShippingEngine.billable_weight",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/shipping.py#ShippingEngine.quote",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/shipping.py#ShippingEngine.zone_for",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/shipping.py#ShippingQuote",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:arena/shop/shipping.py#Zone",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:arena/shop/shipping.py#dimensional_weight_g",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/tax.py#TaxEngine",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:tax_engine",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:arena/shop/tax.py#TaxEngine.compute",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "amount",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/tax.py#TaxEngine.rate_for",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:product",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/tax.py#TaxEngine.rule",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:arena/shop/tax.py#TaxLine",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "amount",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:arena/shop/tax.py#TaxRule",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:bench/report.py#_cell",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:bench/report.py#group",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:bench/report.py#load",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "file",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:bench/report.py#render",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:summary",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:bench/report.py#summarize",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:bench/score.py#materialize",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:bench/score.py#score",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:task",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:bench/tasks.py#Check",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:bench/tasks.py#Task",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:bench/tasks.py#_age_fn",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "gap",
+     "by": "name"
+    }
+   ],
+   "primary": "gap",
+   "material": "unknown",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:bench/tasks.py#_code_only",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:bench/tasks.py#_dedupe",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "file",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:bench/tasks.py#_errors_readable",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "file",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:bench/tasks.py#_found",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "file",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:bench/tasks.py#_sentences",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:bench/tasks.py#_syntax_noise",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "file",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:bench/tasks.py#age_documented",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "file",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:bench/tasks.py#age_future_rejected",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "file",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:bench/tasks.py#age_injectable",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "file",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:bench/tasks.py#load_module",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "file",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:bench/tasks.py#novel",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "file",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:bench/tasks.py#raises",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:bench/tasks.py#read",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "file",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:bench/tasks.py#sched_checks",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "bool",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:bench/tasks.py#states_assumptions",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:harness/guard.mjs#has",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "reason": "load-failed — Unexpected end of JSON input"
+  },
+  {
+   "id": "yeshiva:harness/guard.mjs#opt",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "reason": "load-failed — Unexpected end of JSON input"
+  },
+  {
+   "id": "yeshiva:harness/guard.mjs#sh",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "load-failed — Unexpected end of JSON input"
+  },
+  {
+   "id": "yeshiva:harness/guard.mjs#stub",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "load-failed — Unexpected end of JSON input"
+  },
+  {
+   "id": "yeshiva:harness/guard.mjs#uniq",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "dedupe",
+     "by": "name"
+    }
+   ],
+   "primary": "dedupe",
+   "material": "unknown",
+   "reason": "load-failed — Unexpected end of JSON input"
+  },
+  {
+   "id": "yeshiva:harness/police.mjs#has",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "reason": "load-failed — Unexpected end of JSON input"
+  },
+  {
+   "id": "yeshiva:harness/police.mjs#hashes",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "reason": "load-failed — Unexpected end of JSON input"
+  },
+  {
+   "id": "yeshiva:harness/police.mjs#icon",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "load-failed — Unexpected end of JSON input"
+  },
+  {
+   "id": "yeshiva:harness/police.mjs#isSelf",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "load-failed — Unexpected end of JSON input"
+  },
+  {
+   "id": "yeshiva:harness/police.mjs#opt",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "reason": "load-failed — Unexpected end of JSON input"
+  },
+  {
+   "id": "yeshiva:harness/police.mjs#sh",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "load-failed — Unexpected end of JSON input"
+  },
+  {
+   "id": "yeshiva:harness/police.mjs#tail",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "reason": "load-failed — Unexpected end of JSON input"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/ast.py#Between",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:expr",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/ast.py#Binary",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/ast.py#Call",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/ast.py#Case",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/ast.py#Cast",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:expr",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/ast.py#Checkpoint",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:checkpoint",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/ast.py#Column",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/ast.py#ColumnDef",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/ast.py#CreateIndex",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/ast.py#CreateTable",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/ast.py#Delete",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/ast.py#DropTable",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/ast.py#Exists",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:select",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/ast.py#Explain",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/ast.py#Expr",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:expr",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/ast.py#InList",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:expr",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/ast.py#InSubquery",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:expr",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/ast.py#Insert",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/ast.py#IsNull",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "provide",
+     "by": "name"
+    }
+   ],
+   "primary": "provide",
+   "material": "record:expr",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/ast.py#Join",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "combine",
+     "by": "symbol"
+    }
+   ],
+   "primary": "combine",
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/ast.py#Literal",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/ast.py#OrderItem",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:expr",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/ast.py#ScalarSubquery",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:select",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/ast.py#Select",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/ast.py#SelectItem",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:expr",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/ast.py#Star",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/ast.py#TableRef",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/ast.py#TableRef.label",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/ast.py#Transaction",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/ast.py#Unary",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/ast.py#Update",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "settle",
+     "by": "symbol"
+    }
+   ],
+   "primary": "settle",
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/btree.py#BTree",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:btree",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/btree.py#BTree._leaf_for",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:sort_key",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/btree.py#BTree._range_forward",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "relay",
+     "by": "symbol"
+    }
+   ],
+   "primary": "relay",
+   "material": "record:low",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/btree.py#BTree._split",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:node",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/btree.py#BTree.check",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "choice",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/btree.py#BTree.depth",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/btree.py#BTree.get",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/btree.py#BTree.items",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/btree.py#BTree.range",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/btree.py#_Node",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:_node",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/database.py#Database",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:database",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/database.py#Database._execute",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:stmt",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/database.py#Database._insert",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:stmt",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/database.py#Database._transaction",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/database.py#Database._update",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "settle",
+     "by": "symbol"
+    }
+   ],
+   "primary": "settle",
+   "material": "record:stmt",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/database.py#Database._write",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:stmt",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/database.py#Database.execute",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/database.py#Database.in_transaction",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "bool",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/database.py#Result",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/database.py#Result.scalar",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/database.py#Result.table",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#AggRef",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#Aggregate",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "sum",
+     "by": "symbol"
+    }
+   ],
+   "primary": "sum",
+   "material": "record:aggregate",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#Aggregate.children",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "sum",
+     "by": "symbol"
+    }
+   ],
+   "primary": "sum",
+   "material": "unknown",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#Aggregate.describe",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#Aggregate.exprs",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "sum",
+     "by": "symbol"
+    }
+   ],
+   "primary": "sum",
+   "material": "unknown",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#BoundCol",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#BoundExists",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:subplan",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#BoundIn",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:operand",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#BoundScalar",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:subplan",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#Distinct",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "dedupe",
+     "by": "symbol"
+    }
+   ],
+   "primary": "dedupe",
+   "material": "record:distinct",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#Distinct.children",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "dedupe",
+     "by": "symbol"
+    }
+   ],
+   "primary": "dedupe",
+   "material": "unknown",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#Filter",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "filter",
+     "by": "symbol"
+    }
+   ],
+   "primary": "filter",
+   "material": "record:filter",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#Filter.children",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "filter",
+     "by": "symbol"
+    }
+   ],
+   "primary": "filter",
+   "material": "unknown",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#Filter.describe",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#Filter.exprs",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "filter",
+     "by": "symbol"
+    }
+   ],
+   "primary": "filter",
+   "material": "unknown",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#HashJoin",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "combine",
+     "by": "symbol"
+    },
+    {
+     "id": "fingerprint",
+     "by": "symbol"
+    },
+    {
+     "id": "join",
+     "by": "symbol"
+    }
+   ],
+   "primary": "combine",
+   "material": "record:hash_join",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#HashJoin.children",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "combine",
+     "by": "symbol"
+    },
+    {
+     "id": "fingerprint",
+     "by": "symbol"
+    },
+    {
+     "id": "join",
+     "by": "symbol"
+    }
+   ],
+   "primary": "combine",
+   "material": "unknown",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#HashJoin.describe",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "combine",
+     "by": "symbol"
+    },
+    {
+     "id": "fingerprint",
+     "by": "symbol"
+    },
+    {
+     "id": "join",
+     "by": "symbol"
+    }
+   ],
+   "primary": "combine",
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#HashJoin.exprs",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "combine",
+     "by": "symbol"
+    },
+    {
+     "id": "fingerprint",
+     "by": "symbol"
+    },
+    {
+     "id": "join",
+     "by": "symbol"
+    }
+   ],
+   "primary": "combine",
+   "material": "unknown",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#IndexScan",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:index_scan",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#IndexScan.describe",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#IndexScan.exprs",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#IndexScan.run",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:rows",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#IndexScan.run_ids",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:rows",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#Limit",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:limit",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#Limit.children",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#Limit.describe",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#NestedLoopJoin",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "combine",
+     "by": "symbol"
+    },
+    {
+     "id": "join",
+     "by": "symbol"
+    }
+   ],
+   "primary": "combine",
+   "material": "record:nested_loop_join",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#NestedLoopJoin.children",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "combine",
+     "by": "symbol"
+    },
+    {
+     "id": "join",
+     "by": "symbol"
+    }
+   ],
+   "primary": "combine",
+   "material": "unknown",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#NestedLoopJoin.describe",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "combine",
+     "by": "symbol"
+    },
+    {
+     "id": "join",
+     "by": "symbol"
+    }
+   ],
+   "primary": "combine",
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#NestedLoopJoin.exprs",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "combine",
+     "by": "symbol"
+    },
+    {
+     "id": "join",
+     "by": "symbol"
+    }
+   ],
+   "primary": "combine",
+   "material": "unknown",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#Node",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#Node.children",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#Node.describe",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#Node.explain",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#Node.exprs",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#Node.run",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:rows",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#Project",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:project",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#Project.children",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#Project.describe",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#Project.exprs",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#Scan",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:scan",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#Scan.describe",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#Scan.run",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:rows",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#Scan.run_ids",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:rows",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#Scope",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:scope",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#Scope.resolve",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#Sort",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "sort",
+     "by": "symbol"
+    }
+   ],
+   "primary": "sort",
+   "material": "record:sort",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#Sort.children",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "sort",
+     "by": "symbol"
+    }
+   ],
+   "primary": "sort",
+   "material": "unknown",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#Sort.describe",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#Sort.exprs",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "sort",
+     "by": "symbol"
+    }
+   ],
+   "primary": "sort",
+   "material": "unknown",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#Subplan",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:subplan",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#Union",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "combine",
+     "by": "symbol"
+    }
+   ],
+   "primary": "combine",
+   "material": "record:union",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#Union.children",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "combine",
+     "by": "symbol"
+    }
+   ],
+   "primary": "combine",
+   "material": "unknown",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#Union.describe",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "combine",
+     "by": "symbol"
+    }
+   ],
+   "primary": "combine",
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#Values",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#Values.describe",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#Values.run",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:rows",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#_Agg",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:_agg",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#_Agg.result",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#_in",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#_num",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#bind",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:expr",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#call_scalar",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#evaluate",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:error",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#has_aggregate",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:error",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#is_aggregate",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:error",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#pred",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:error",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#show",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:error",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#uses_outer",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:node",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/executor.py#walk",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/lexer.py#Token",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/lexer.py#Token.is_kw",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/lexer.py#Token.is_op",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/lexer.py#tokenize",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "split",
+     "by": "symbol"
+    }
+   ],
+   "primary": "split",
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/parser.py#Parser",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:parser",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/parser.py#Parser.cur",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:token",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/parser.py#Parser.error",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/parser.py#Parser.peek",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/parser.py#parse",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/parser.py#parse_one",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/planner.py#Planner",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:planner",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/planner.py#Planner._agg_rewrite",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:error",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/planner.py#Planner._index_form",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/planner.py#Planner._leaf",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:scan",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/planner.py#Planner._name",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:error",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/planner.py#_pushable",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:error",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/planner.py#conjoin",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/planner.py#conjuncts",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:error",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/planner.py#rebase",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:error",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/planner.py#refs",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:error",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/storage.py#ColumnInfo",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/storage.py#ColumnInfo.from_json",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:map",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/storage.py#ColumnInfo.to_json",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:map",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/storage.py#IndexInfo",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/storage.py#Storage",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "transcript",
+     "by": "name"
+    }
+   ],
+   "primary": "transcript",
+   "material": "record:storage",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/storage.py#Storage._dump",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:map",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/storage.py#Storage._snap_path",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "file",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/storage.py#Storage._wal_path",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "file",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/storage.py#Storage.savepoint",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/storage.py#Storage.table",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/storage.py#Table",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:table",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/storage.py#Table.check_row",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:row",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/storage.py#Table.col",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/storage.py#Table.index_on",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/storage.py#Table.scan",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/values.py#SortKey",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:sort_key",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/values.py#SortKey.__eq__",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:other",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/values.py#SortKey.__lt__",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:sort_key",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/values.py#SortKey._rank",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "sort",
+     "by": "symbol"
+    }
+   ],
+   "primary": "sort",
+   "material": "list",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/values.py#_like_re",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/values.py#coerce",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/values.py#compare",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "compare",
+     "by": "symbol"
+    }
+   ],
+   "primary": "compare",
+   "material": "unknown",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/values.py#group_key",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "group",
+     "by": "symbol"
+    }
+   ],
+   "primary": "group",
+   "material": "list",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/values.py#like",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/values.py#sql_and",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "bool",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/values.py#sql_not",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "bool",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/values.py#sql_or",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "bool",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/values.py#truthy",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:random/minisql/minisql/values.py#type_name",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[אוקימתא]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[אי הכי]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[אידי ואידי]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[איכא דאמרי]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[אין הכי נמי]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[אין לי אלא]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[איני]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[איפכא מסתברא]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[אלא מעתה]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[אלא]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[אלמא]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[אם אינו ענין]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[אם כן לימא קרא]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[אם תימצי לומר]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[אמר לך]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[אמר מר]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[אתה אומר או אינו אלא]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[במאי קמיפלגי]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[במה דברים אמורים]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[בנין אב]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[בעיא]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[בראשונה]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[בשלמא]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[גזירה שווה]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[גזירה שמא]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[דברה תורה כלשון בני אדם]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[דיוקא]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[דילמא]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[דמיא]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[דתניא]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[הא גופא קשיא]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[הדר ביה]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[ההוא מיבעי ליה]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[הוא מותיב לה והוא מפרק לה]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[הוי אומר]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[היינו הך]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[היכא קאי]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[היכי דמי]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[היכי נעביד]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[היקש]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[הכי נמי]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[הכי קאמר]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[הכל מודים]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[הלכתא]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[הניחא]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[השתא דאתית להכי]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[השתא מיהא]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[והא כתיב]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[וכי מאחר]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[וכי תימא]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[ולא היא]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[ומה ראית]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[ורמינהו]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[ותו]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[ותסברא]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[זאת אומרת]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[זה הכלל]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[זו דברי]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[חד שיעורא]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[חילוק]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[חסורי מחסרא]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[חריג]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[כדאמר]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[כי תיבעי לך]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[כלל ופרט]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[לא נחלקו אלא]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[לא שנו אלא]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[לאתויי]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[לומר לך]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[לימא]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[למה לך כולי האי]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[לעולם]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[לשיטתך]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[לשתוק קרא]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[מאי איריא]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[מאי הוי עלה]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[מאי טעמא]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[מאי לאו]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[מאי משמע]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[מאי נפקא מינה]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[מאי עביד ליה]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[מאי שנא]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[מאי]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[מאימתי]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[מאן קתני]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[מה תיקן]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[מוחלפת השיטה]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[מי סברת]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[מיבעיא]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[מיתיבי]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[מכללא]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[מלמד ש]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[ממאי]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[ממה נפשך]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[מנא ידעי]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[מנא לן]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[מסייעא ליה]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[מעשה]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[מתקיף]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[נהי]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[נפקא]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[סוף סוף]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[סימן לדבר]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[סמיכות]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[עד כאן לא]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[פשיטא]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[צריכותא]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[קא סלקא דעתך]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[קל וחומר]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[קתני מיהת]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[שמע מינה]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[שנאמר]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[תא שמע]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[תיקו]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#LEXICON[תרי תנאי]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#Move",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#Scan",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:found",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#Scan.by_kind",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#Scan.unbuilt_task_moves",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#active_seeds",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#fetch",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#learn",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#next_ref",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:ledger",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#scan",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#seed_stats",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:map",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#strip_nikud",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "normalize",
+     "by": "symbol"
+    }
+   ],
+   "primary": "normalize",
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#summary_line",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:map",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/daf.py#update_seed_states",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "settle",
+     "by": "symbol"
+    }
+   ],
+   "primary": "settle",
+   "material": "record:seed",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/dialectic.py#_complement",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:knowledge_base",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/dialectic.py#_geder_outcome",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:knowledge_base",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/dialectic.py#_kushya_kind",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:claim",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/dialectic.py#_outcome_from",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/dialectic.py#_yes",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "bool",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/dialectic.py#binyan_av",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:knowledge_base",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/dialectic.py#find_kushyot",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:knowledge_base",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/dialectic.py#kal_vachomer",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:knowledge_base",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/dialectic.py#nafka_minot",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:knowledge_base",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/dialectic.py#rules_outcome",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/dialectic.py#run_chakira",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:knowledge_base",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/dialectic.py#terutzim",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:knowledge_base",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/dialectic.py#tzrichuta",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:knowledge_base",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/engine.py#Answer",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/engine.py#YeshivaEngine",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:yeshiva_engine",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/engine.py#YeshivaEngine.ask",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/engine.py#YeshivaEngine.sugya",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/engine.py#_marker",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "require-source",
+     "by": "name"
+    }
+   ],
+   "primary": "require-source",
+   "material": "record:claim",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/engine.py#_yes",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "bool",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#AUDIT_STEPS[אין לי אלא]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#AUDIT_STEPS[אלא מעתה]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#AUDIT_STEPS[דבק עם]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#AUDIT_STEPS[הא גופא קשיא]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#AUDIT_STEPS[היכי דמי]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#AUDIT_STEPS[ורמינהו]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#AUDIT_STEPS[כל זמן ש]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#AUDIT_STEPS[לא מצינו]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#AUDIT_STEPS[מנא ידעי]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#AUDIT_STEPS[מקרא הוא]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#BUG_STEPS[אם כנים הדברים]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#BUG_STEPS[גזירה שמא]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#BUG_STEPS[ורמינהו וחילוק]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#BUG_STEPS[חקירה ונפקא מינה]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#BUG_STEPS[כי תיבעי לך]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#BUG_STEPS[מה תיקן וסוף סוף]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#BUG_STEPS[סיבה מול סימן]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#BUG_STEPS[ראובן ושמעון]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#MENU[היקף]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#MENU[חילוק]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#MENU[כלל ופרט]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#MENU[מניע]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#MENU[נסיבה]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#MENU[שלילת ההנחה]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#MENU[שני דברים]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#MENU[שתי קריאות]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#MENU[תכלית]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#Seed",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#_changes_tree",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#_clean",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "normalize",
+     "by": "symbol"
+    }
+   ],
+   "primary": "normalize",
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#_content_words",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#_decision_or_design",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#_decision_prompt",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#_digest",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "fingerprint",
+     "by": "symbol"
+    }
+   ],
+   "primary": "fingerprint",
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#_dormant",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#_is_audit",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#_is_build",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#_is_diag",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#_is_mutation",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#_is_open_diag",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#_is_text_task",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#_kv_args",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#_multi",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#_norm",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "normalize",
+     "by": "symbol"
+    }
+   ],
+   "primary": "normalize",
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#_present",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#_prose",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#_unacked_facts",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#_variants",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#abarbanel_triggers",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#answer_menu",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#answered",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#answered_in",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#audit_file",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "file",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#audit_reply",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#bediavad",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#bug_reply",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#deliverable_checks",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#denied",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#details",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#detect",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#detect[איכא דאמרי]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#detect[אימתי]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#detect[הא גופא קשיא]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#detect[היכא קאי]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#detect[לימא]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#detect[מאי נפקא מינה]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#detect[מאי שנא ברישא]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#detect[מאי]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#detect[מאן קתני]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#detect[מנא לן]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#doc_commands",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#docs_are_true",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#ein_mearvin",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#generic_audience",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#gufa_kashya",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#hanachon",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#heichi_dami",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#hotra",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#imperatives",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#kasavar",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#keilu_amar",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#keitzad",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#kelashon_hashoel",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#kol_hamosif",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#lemaaseh",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#lo_amar",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#lo_shanu",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#named_files",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#novel_facts",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#rename_pair",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#scope_hint",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#seed_stats",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:map",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#shiur",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#signals",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#split_active",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "divide",
+     "by": "symbol"
+    }
+   ],
+   "primary": "divide",
+   "material": "list",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#teacher_checks",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#teiku",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#tree_sig",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#umikol_makom",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#vayaas_ken",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#ve_elu_hen",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#vechi_teima",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#veim_i_efshar",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#veod",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#veraminhu",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#yitur",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/gate.py#zehu_sheamar",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/knowledge.py#KnowledgeBase",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/knowledge.py#KnowledgeBase.cases_over",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/knowledge.py#KnowledgeBase.claims_on",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/knowledge.py#KnowledgeBase.compare_severity",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "compare",
+     "by": "symbol"
+    }
+   ],
+   "primary": "compare",
+   "material": "record:case",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/knowledge.py#KnowledgeBase.derive",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:case",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/knowledge.py#KnowledgeBase.dims_relevant_to",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/knowledge.py#KnowledgeBase.laws",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/knowledge.py#KnowledgeBase.outcome",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/knowledge.py#KnowledgeBase.severity_index",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/knowledge.py#KnowledgeBase.sources",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/maimatai.py#Argument",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/maimatai.py#LexEntry",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/maimatai.py#Question",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/maimatai.py#Question.open",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "bool",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/maimatai.py#Question.walk",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/maimatai.py#Reading",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/maimatai.py#Reconciliation",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/maimatai.py#Reconciliation.render",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/maimatai.py#Source",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "require-source",
+     "by": "name"
+    }
+   ],
+   "primary": "require-source",
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/maimatai.py#Statement",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/maimatai.py#Teaching",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/maimatai.py#World",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "require-source",
+     "by": "name"
+    }
+   ],
+   "primary": "require-source",
+   "material": "record:established",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/maimatai.py#World.cite",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "require-source",
+     "by": "name"
+    }
+   ],
+   "primary": "require-source",
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/maimatai.py#World.concepts_of",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/maimatai.py#World.derive",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:world",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/maimatai.py#World.entries_in",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/maimatai.py#World.lexicon_report",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/maimatai.py#World.measure_of",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/maimatai.py#World.order_sources_for",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "require-source",
+     "by": "name"
+    }
+   ],
+   "primary": "require-source",
+   "material": "list",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/maimatai.py#World.sources_sharing",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "require-source",
+     "by": "name"
+    }
+   ],
+   "primary": "require-source",
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/maimatai.py#World.src",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "require-source",
+     "by": "name"
+    }
+   ],
+   "primary": "require-source",
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/maimatai.py#World.term_for",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/maimatai.py#_ambiguous_terms",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:statement",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/maimatai.py#_clean",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "normalize",
+     "by": "symbol"
+    }
+   ],
+   "primary": "normalize",
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/maimatai.py#_dispute",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:statement",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/maimatai.py#_ei_hachi",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:statement",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/maimatai.py#_generalization",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:statement",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/maimatai.py#_hilchata",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:statement",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/maimatai.py#_impersonal",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/maimatai.py#_indirect",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:statement",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/maimatai.py#_maaseh_listor",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:statement",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/maimatai.py#_mai_taama",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:statement",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/maimatai.py#_man_tanna",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:statement",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/maimatai.py#_missing_slots",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:statement",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/maimatai.py#_muchlefet",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:statement",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/maimatai.py#_obvious",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:statement",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/maimatai.py#_order",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:statement",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/maimatai.py#_presupposition",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:statement",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/maimatai.py#_ramei",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:statement",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/maimatai.py#_shma_mina",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:statement",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/maimatai.py#_taama",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:statement",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/maimatai.py#_teaching",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:world",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/maimatai.py#_teachings",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:world",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/maimatai.py#_tnan_hatam",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:statement",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/maimatai.py#cited_verse",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "require-source",
+     "by": "name"
+    }
+   ],
+   "primary": "require-source",
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/maimatai.py#interrogate",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:statement",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/maimatai.py#interrogate_source",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "require-source",
+     "by": "name"
+    }
+   ],
+   "primary": "require-source",
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/maimatai.py#interrogate_sugya",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/maimatai.py#interrogate_trace",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:statement",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/maimatai.py#lex",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/maimatai.py#parse_opinions",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/maimatai.py#reconcile",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:statement",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/maimatai.py#split_clauses",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "split",
+     "by": "symbol"
+    }
+   ],
+   "primary": "split",
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/maimatai.py#strictness",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/mefarshim.py#CMove",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/mefarshim.py#LEXICON[אין ספק]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/mefarshim.py#LEXICON[אלא ודאי]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/mefarshim.py#LEXICON[אם תמצי לומר]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/mefarshim.py#LEXICON[ביטוי ביטוי]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/mefarshim.py#LEXICON[גדר]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/mefarshim.py#LEXICON[דבק עם]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/mefarshim.py#LEXICON[דחייה]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/mefarshim.py#LEXICON[דיוק]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/mefarshim.py#LEXICON[היה לו לומר]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/mefarshim.py#LEXICON[הנכון]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/mefarshim.py#LEXICON[הקשר]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/mefarshim.py#LEXICON[התועלת]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/mefarshim.py#LEXICON[ואולי]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/mefarshim.py#LEXICON[וזהו שאמר]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/mefarshim.py#LEXICON[ויש לומר]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/mefarshim.py#LEXICON[חילוק]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/mefarshim.py#LEXICON[חקירה]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/mefarshim.py#LEXICON[טעם]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/mefarshim.py#LEXICON[ייתור]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/mefarshim.py#LEXICON[כבר ביארנו]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/mefarshim.py#LEXICON[כגון]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/mefarshim.py#LEXICON[כל שכן]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/mefarshim.py#LEXICON[כלומר]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/mefarshim.py#LEXICON[כלל]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/mefarshim.py#LEXICON[לאו דוקא]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/mefarshim.py#LEXICON[לכאורה]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/mefarshim.py#LEXICON[לענין פסק]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/mefarshim.py#LEXICON[מטרה]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/mefarshim.py#LEXICON[נביעה]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/mefarshim.py#LEXICON[נפקא מינה]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/mefarshim.py#LEXICON[סגירה]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/mefarshim.py#LEXICON[סדר]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/mefarshim.py#LEXICON[סתירה]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/mefarshim.py#LEXICON[עם היות]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/mefarshim.py#LEXICON[פירוש אחר]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/mefarshim.py#LEXICON[פשט]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/mefarshim.py#LEXICON[צריך לדעת]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/mefarshim.py#LEXICON[צריך לומר]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/mefarshim.py#LEXICON[צריך עיון]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/mefarshim.py#LEXICON[ראיה]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/mefarshim.py#LEXICON[שאלות ממוספרות]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/mefarshim.py#LEXICON[תימה]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/mefarshim.py#Scan",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:counter",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/mefarshim.py#Scan.unbuilt",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/mefarshim.py#clean",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "normalize",
+     "by": "symbol"
+    }
+   ],
+   "primary": "normalize",
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/mefarshim.py#commentators_for",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/mefarshim.py#fetch",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/mefarshim.py#learn",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/mefarshim.py#next_unit",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:ledger",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/mefarshim.py#profile",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:ledger",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/mefarshim.py#scan",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/mefarshim.py#summary_line",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:map",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/mefarshim.py#units",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/mine.py#mine",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/mine.py#source_of",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "file",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/moves.py#BinyanAv",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/moves.py#BinyanAv.holds",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "bool",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/moves.py#ChakiraResult",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/moves.py#ChakiraResult.standing",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/moves.py#Dichuy",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "require-source",
+     "by": "name"
+    }
+   ],
+   "primary": "require-source",
+   "material": "record:raya",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/moves.py#Dichuy.render",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "require-source",
+     "by": "name"
+    }
+   ],
+   "primary": "require-source",
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/moves.py#KalVachomer",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:claim",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/moves.py#KalVachomer.holds",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "bool",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/moves.py#Kushya",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:claim",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/moves.py#Kushya.render",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/moves.py#NafkaMina",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:case",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/moves.py#NafkaMina.render",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/moves.py#Raya",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "require-source",
+     "by": "name"
+    }
+   ],
+   "primary": "require-source",
+   "material": "record:claim",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/moves.py#Raya.render",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "require-source",
+     "by": "name"
+    }
+   ],
+   "primary": "require-source",
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/moves.py#Terutz",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/moves.py#Terutz.render",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/moves.py#Tzrichuta",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:claim",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/moves.py#_yes",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "bool",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/poskim.py#LEXICON[אינו נוהג]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/poskim.py#LEXICON[בזמן הזה]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/poskim.py#LEXICON[במה דברים אמורים]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/poskim.py#LEXICON[הגה]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/poskim.py#LEXICON[ואחר כך]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/poskim.py#LEXICON[ואלו הן]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/poskim.py#LEXICON[ואם אי אפשר]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/poskim.py#LEXICON[ואפילו]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/poskim.py#LEXICON[וכן עיקר]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/poskim.py#LEXICON[ונוהגין]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/poskim.py#LEXICON[טעם]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/poskim.py#LEXICON[יש אומרים]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/poskim.py#LEXICON[יש להקל]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/poskim.py#LEXICON[כיוצא בזה]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/poskim.py#LEXICON[כיצד]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/poskim.py#LEXICON[לכתחילה ובדיעבד]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/poskim.py#LEXICON[מי ש]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/poskim.py#LEXICON[מקור]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/poskim.py#LEXICON[ספק]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/poskim.py#LEXICON[צריך עיון]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/poskim.py#LEXICON[צריך]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/poskim.py#LEXICON[שיעור]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/poskim.py#LEXICON[שעת הדחק]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/poskim.py#PMove",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/poskim.py#Scan",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:counter",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/poskim.py#Scan.unbuilt",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/poskim.py#learn",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/poskim.py#next_part",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:ledger",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/poskim.py#profile",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:ledger",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/poskim.py#scan",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/poskim.py#step",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/poskim.py#summary_line",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:map",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/rashi.py#LEXICON[איכא בינייהו]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/rashi.py#LEXICON[אין לי אלא]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/rashi.py#LEXICON[איני יודע]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/rashi.py#LEXICON[אם כן]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/rashi.py#LEXICON[אמר לך]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/rashi.py#LEXICON[אפילו]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/rashi.py#LEXICON[במאי עסקינן]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/rashi.py#LEXICON[בעינן]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/rashi.py#LEXICON[בתמיה]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/rashi.py#LEXICON[גירסא]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/rashi.py#LEXICON[גלי דעתיה]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/rashi.py#LEXICON[דאי לא תימא הכי]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/rashi.py#LEXICON[דברי הכל]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/rashi.py#LEXICON[דחיית פירוש]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/rashi.py#LEXICON[הא קמ\"ל]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/rashi.py#LEXICON[הוה אמינא]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/rashi.py#LEXICON[הוה ליה]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/rashi.py#LEXICON[היינו]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/rashi.py#LEXICON[הלך אחר]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/rashi.py#LEXICON[הפניה]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/rashi.py#LEXICON[ודאי/דלמא]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/rashi.py#LEXICON[ודקשיא לך]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/rashi.py#LEXICON[והוא הדין]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/rashi.py#LEXICON[והכי קאמר]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/rashi.py#LEXICON[ותו לא]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/rashi.py#LEXICON[טעם]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/rashi.py#LEXICON[ייחוס]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/rashi.py#LEXICON[כגון]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/rashi.py#LEXICON[כיון]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/rashi.py#LEXICON[כל זמן ש]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/rashi.py#LEXICON[כל שכן]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/rashi.py#LEXICON[כלומר]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/rashi.py#LEXICON[כמשמעו]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/rashi.py#LEXICON[כתיב הכא]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/rashi.py#LEXICON[לא צריכא]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/rashi.py#LEXICON[לא קשיא]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/rashi.py#LEXICON[לאו דוקא]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/rashi.py#LEXICON[לפיכך]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/rashi.py#LEXICON[לשון]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/rashi.py#LEXICON[מקור]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/rashi.py#LEXICON[מקרא הוא]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/rashi.py#LEXICON[משמע]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/rashi.py#LEXICON[נקט]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/rashi.py#LEXICON[סימון שלבים]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/rashi.py#LEXICON[עיקר]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/rashi.py#LEXICON[פירוש שני]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/rashi.py#LEXICON[קאי א]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/rashi.py#LEXICON[קסבר]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/rashi.py#LEXICON[קרא יתירא]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/rashi.py#LEXICON[קשה לי]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/rashi.py#LEXICON[שלא מצינו]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/rashi.py#LEXICON[שם חכם]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/rashi.py#RMove",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/rashi.py#Scan",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:found",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/rashi.py#Scan.unbuilt_output_moves",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/rashi.py#fetch",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/rashi.py#learn",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/rashi.py#scan",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/rashi.py#split_dibur",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "split",
+     "by": "symbol"
+    }
+   ],
+   "primary": "split",
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/rashi.py#summary_line",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:map",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/shiura.py#Collapse",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:dispute",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/shiura.py#Collapse.render",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/shiura.py#CollapseResult",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/shiura.py#CollapseResult.holds",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "bool",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/shiura.py#CollapseResult.render",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/shiura.py#Dispute",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/shiura.py#Identification",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/shiura.py#Opinion",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/shiura.py#Placement",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/shiura.py#Placement.possible",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "bool",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/shiura.py#Siman",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/shiura.py#UnionFind",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "group",
+     "by": "name"
+    },
+    {
+     "id": "combine",
+     "by": "symbol"
+    }
+   ],
+   "primary": "group",
+   "material": "record:union_find",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/shiura.py#UnionFind.same",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "combine",
+     "by": "symbol"
+    }
+   ],
+   "primary": "combine",
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/shiura.py#_collapses",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/shiura.py#check_siman",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:siman",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/shiura.py#collapse_test",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/shiura.py#place",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/shiura.py#render_placement",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/shut.py#LEXICON[או דלמא]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/shut.py#LEXICON[אי נמי]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/shut.py#LEXICON[אין ספק]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/shut.py#LEXICON[אלא ודאי]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/shut.py#LEXICON[אם ואם]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/shut.py#LEXICON[אם כנים הדברים]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/shut.py#LEXICON[אמנם]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/shut.py#LEXICON[גבול התשובה]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/shut.py#LEXICON[גוף הדין]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/shut.py#LEXICON[דוחק]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/shut.py#LEXICON[הוראה קודמת]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/shut.py#LEXICON[הכי נמי]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/shut.py#LEXICON[הן אמת]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/shut.py#LEXICON[הנחת השואל]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/shut.py#LEXICON[ואילו היה]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/shut.py#LEXICON[ואם תאמר]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/shut.py#LEXICON[ובזה מיושב]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/shut.py#LEXICON[וגדולה מזו]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/shut.py#LEXICON[ודע]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/shut.py#LEXICON[ויש לומר]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/shut.py#LEXICON[ונחזי אנן]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/shut.py#LEXICON[ועדיין]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/shut.py#LEXICON[ועוד]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/shut.py#LEXICON[כבר כתבתי]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/shut.py#LEXICON[כיון שכן]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/shut.py#LEXICON[לא דמי]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/shut.py#LEXICON[לא מצינו]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/shut.py#LEXICON[לכאורה]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/shut.py#LEXICON[למעשה]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/shut.py#LEXICON[לעניות דעתי]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/shut.py#LEXICON[מה ששאלת]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/shut.py#LEXICON[מעשה]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/shut.py#LEXICON[מקור]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/shut.py#LEXICON[משמע]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/shut.py#LEXICON[נדון דידן]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/shut.py#LEXICON[סוף דבר]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/shut.py#LEXICON[פירוק]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/shut.py#LEXICON[צריך להתיישב]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/shut.py#LEXICON[ראובן ושמעון]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/shut.py#LEXICON[שבתי וראיתי]",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/shut.py#SMove",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/shut.py#Scan",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:counter",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/shut.py#Scan.unbuilt",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/shut.py#learn",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/shut.py#next_part",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:ledger",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/shut.py#profile",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:ledger",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/shut.py#scan",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/shut.py#step",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/shut.py#summary_line",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:map",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/terms.py#Case",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/terms.py#Case.as_dict",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:map",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/terms.py#Case.compatible",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:case",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/terms.py#Case.conflicts",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:case",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/terms.py#Case.dims",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/terms.py#Case.get",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/terms.py#Case.is_general",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "bool",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/terms.py#Case.merged",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:case",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/terms.py#Case.narrowed",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/terms.py#Case.of",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:mapping",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/terms.py#Case.only_in_self",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:case",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/terms.py#Case.subsumes",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:case",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/terms.py#Claim",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/terms.py#Claim.contradicts",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:claim",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/terms.py#Claim.covers",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:case",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/terms.py#Claim.same_ruling",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:claim",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/terms.py#Geder",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/terms.py#Geder.dims",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/terms.py#Geder.laws",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/terms.py#Rule",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:case",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/terms.py#Rule.applies_to",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:case",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/terms.py#Rule.fire",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:case",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/terms.py#Source",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "require-source",
+     "by": "name"
+    }
+   ],
+   "primary": "require-source",
+   "material": "number",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/terms.py#enumerate_cases",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:dimension",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/terms.py#source",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "require-source",
+     "by": "name"
+    }
+   ],
+   "primary": "require-source",
+   "material": "text",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/trace.py#Step",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/trace.py#Trace",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "impure"
+  },
+  {
+   "id": "yeshiva:yeshiva/trace.py#Trace.markers",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/trace.py#Trace.render",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  },
+  {
+   "id": "yeshiva:yeshiva/trace.py#Trace.to_dict",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:map",
+   "reason": "python — לא מורץ כאן (לפי ההנחיה)"
+  }
+ ]
+}
