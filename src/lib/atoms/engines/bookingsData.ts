@@ -50,7 +50,10 @@ export function turnoverSpan(db: DbLike): MinuteSpan & { fromHm: string; toHm: s
   const s = hostSettings(db?.ui?.hosting);
   const from = hmToMinutes(s.checkout) ?? 11 * 60;
   const to = hmToMinutes(s.checkin) ?? 15 * 60;
-  return { from, to: Math.max(from, to), fromHm: s.checkout, toHm: s.checkin };
+  // VERIFY 14.10: הטקסט = השעה שבאמת בשימוש. שעה פגומה בהגדרות ("25:00") נופלת לברירת-המחדל — והכותרת הציגה "25:00"
+  // בזמן שהתורים התחילו ב-11:00. (בהגדרה הפוכה הטקסט נשאר השעה שנכתבה, כדי שאפשר יהיה להגיד מה לתקן.)
+  const txt = (m: number): string => String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0');
+  return { from, to: Math.max(from, to), fromHm: txt(from), toHm: txt(to) };
 }
 
 /** טווח תאריכים [from, to) של הזמנה. */

@@ -19,7 +19,7 @@ import { roundTo, type RoundDir } from './parts/round';
 import { offsetAll } from './parts/offset';
 import { escalationState, type EscStep } from './parts/escalate';
 import { dayIndex, fairAssign, turnOf } from './parts/rotate';
-import { chainPreviewOf } from './chainPreview';
+import { chainPreviewStrict } from './chainPreview';
 import { arrivals, balances, nightsOf, stays, totals, turnoverSpan, untilArrival, waiting, type Recipient, type WaitingKind } from './engines/bookingsData';
 import { ZMANIM_BUILDERS } from './previewZmanim';
 import { WHAT_NEED_BUILDERS } from './previewWhatNeed';
@@ -152,6 +152,28 @@ function runLine(name: string, nights: { iso: string }[], r: Run): string {
   return name + ' · פנוי ' + (open ? 'מ-' + dm(nights[r.from].iso) + ' והלאה' : r.length + (r.length === 1 ? ' לילה' : ' לילות') + ' ברצף מ-' + dm(nights[r.from].iso));
 }
 
+/**
+ * VERIFY 14.10: שם-תצוגה לכל איש צוות — השם, ובלי שם התפקיד. שני אנשים עם אותה תווית (בלי שם באותו תפקיד, או שתי "דנה")
+ * ⇒ ממוספרים ("משק בית 1", "משק בית 2"): בלי זה התורות נראו כאילו אותו אדם מקבל הכול ("היום ⇒ משק בית · מחר ⇒ משק בית").
+ */
+export function staffLabels(list: readonly { name?: string; role?: string }[]): string[] {
+  const base = list.map((r) => (typeof r.name === 'string' && r.name.trim()) || (typeof r.role === 'string' && r.role.trim()) || 'איש צוות');
+  const total = new Map<string, number>();
+  for (const b of base) total.set(b, (total.get(b) ?? 0) + 1);
+  const seen = new Map<string, number>();
+  return base.map((b) => {
+    if ((total.get(b) ?? 0) < 2) return b;
+    const k = (seen.get(b) ?? 0) + 1;
+    seen.set(b, k);
+    return b + ' ' + k;
+  });
+}
+
+/** אנשי צוות בלי כפילויות (לפי מזהה), עם התוויות של staffLabels. */
+export function staffPeople(list: readonly { id: string; name?: string; role?: string }[]): string[] {
+  return staffLabels([...new Map(list.map((r) => [r.id, r])).values()]);
+}
+
 /* ───────── הסלמה וסבב על "ממתין" ───────── */
 
 const WAIT_KIND: Readonly<Record<string, WaitingKind>> = { 'bookings.cleaning': 'cleaning', 'bookings.faults': 'faults', 'bookings.unpaid': 'unpaid' };
@@ -166,12 +188,15 @@ const WAIT_TITLE: Readonly<Record<WaitingKind, string>> = { cleaning: 'משימ�
 function waitingSafe(db: PreviewCtx['db'], kind: WaitingKind): { items: { id: string; label: string; since: string; createdMs: number | null; urgent: boolean }[]; recipients: Recipient[] } {
   const w = waiting(db, kind);
   const names = unitNameMap(db);
-  const recs = new Map<string, { createdAt?: unknown }>();
-  for (const r of Array.isArray(db?.hostRecords) ? db!.hostRecords : []) if (r && typeof r.id === 'string') recs.set(r.id, r as { createdAt?: unknown });
+  const recs = new Map<string, { createdAt?: unknown; category?: unknown }>();
+  for (const r of Array.isArray(db?.hostRecords) ? db!.hostRecords : []) if (r && typeof r.id === 'string') recs.set(r.id, r as { createdAt?: unknown; category?: unknown });
   const items = w.items.map((it) => {
     const unit = names.get(it.unitId);
+    // VERIFY 14.10: תקלה ⇒ התחום שלה, לא התיאור החופשי — התיאור נכתב ביד ("משפחת לוי דיווחו…, טלפון 050…") ודלף לתצוגה
+    const cat = recs.get(it.id)?.category;
+    const faultLabel = (typeof cat === 'string' && cat.trim() ? cat.trim() : 'תקלה') + (unit ? ' · ' + unit : '');
     const label =
-      kind === 'unpaid' ? shekel(it.amount ?? 0) + (unit ? ' · ' + unit : '') : kind === 'cleaning' ? unit || it.label : it.label + (unit ? ' · ' + unit : '');
+      kind === 'unpaid' ? shekel(it.amount ?? 0) + (unit ? ' · ' + unit : '') : kind === 'cleaning' ? unit || it.label : faultLabel;
     const ca = recs.get(it.id)?.createdAt;
     const createdMs = typeof ca === 'string' && Number.isFinite(Date.parse(ca)) ? Date.parse(ca) : null;
     return { id: it.id, label, since: it.since, createdMs, urgent: kind === 'faults' && (it.priority ?? 4) <= 1 };
@@ -201,7 +226,8 @@ function escalatePreview(ctx: PreviewCtx, kind: WaitingKind, p: Record<string, n
   if (!recipients.length) return { title, lines: [NOBODY[kind]] };
   const waitMin = num(p, 'waitMin', 180);
   const steps: EscStep[] = recipients.map((r) => ({ to: [r.id], waitMin }));
-  const nameOf = new Map(recipients.map((r) => [r.id, r.name || r.role]));
+  const labels = staffLabels(recipients);
+  const nameOf = new Map(recipients.map((r, i) => [r.id, labels[i]]));
   const now = israelNow(ctx.nowMs);
   const lines: string[] = [];
   for (const it of items) {
@@ -224,7 +250,7 @@ function rotatePreview(ctx: PreviewCtx, kind: WaitingKind, p: Record<string, num
   const { items, recipients } = waitingSafe(ctx.db, kind);
   if (!recipients.length) return items.length ? { title: 'בתורות', lines: [NOBODY[kind]] } : null;
   const now = israelNow(ctx.nowMs);
-  const names = recipients.map((r) => r.name || r.role);
+  const names = staffLabels(recipients);
   if (str(p, 'by', 'day') === 'day') {
     const d = dayIndex(now.iso);
     const lines = [0, 1, 2].map((k) => (k === 0 ? 'היום' : k === 1 ? 'מחר' : dm(isoOfDay(d + k))) + ' ⇒ ' + turnOf(names, d + k));
@@ -240,13 +266,19 @@ function rotatePreview(ctx: PreviewCtx, kind: WaitingKind, p: Record<string, num
 
 export type Builder = (ctx: PreviewCtx, p: Record<string, number | string>) => Preview | null;
 
+/** חלון-ניקיון ריק: שעת הכניסה בהגדרות לא אחרי שעת העזיבה. */
+const EMPTY_TURNOVER = (span: { fromHm: string; toHm: string }): string =>
+  'שעת הכניסה בהגדרות (' + span.toHm + ') לא אחרי שעת העזיבה (' + span.fromHm + ') — אין זמן לניקיון ביניהן, ולכן אין תורים. כדאי לבדוק את השעות בהגדרות האירוח.';
+
 function turnoverDivide(ctx: PreviewCtx, p: Record<string, number | string>): Preview | null {
   // בלי יחידות אין חלון-ניקיון אמיתי (רק ברירת-המחדל של ההגדרות) ⇒ אין תצוגה
   if (!unitsOf(ctx.db).length) return null;
   const span = turnoverSpan(ctx.db);
+  // VERIFY 14.10: כניסה לא אחרי עזיבה ⇒ אין חלון (הקורא מחזיר טווח ריק) — לא מציגים 12 תורים של "12:00–12:00"
+  if (span.to <= span.from) return { title: 'חלון הניקיון', lines: [EMPTY_TURNOVER(span)] };
   const pieces = divideBy(span, p);
   if (!pieces.length) return null;
-  const cleaners = waiting(ctx.db, 'cleaning').recipients.map((r) => r.name || r.role);
+  const cleaners = staffLabels(waiting(ctx.db, 'cleaning').recipients);
   const who = fairAssign(pieces, cleaners, 0);
   const lines = pieces.map((x, i) => hm(x.from) + '–' + hm(x.to) + (who[i] ? ' · ' + who[i].person : ''));
   return { title: 'חלון הניקיון ' + span.fromHm + '–' + span.toHm + ' · ' + pieces.length + ' תורים', lines: capped(lines) };
@@ -411,15 +443,20 @@ export function hasPreview(place: string, atom: AtomId | string): boolean {
 /** התצוגה האמיתית של יכולת על נתוני-הארגון. אין תצוגה כנה ⇒ null. לעולם לא זורק. */
 export function previewOf(cap: Pick<Capability, 'place' | 'atom' | 'params'> & { id?: string; parent?: string }, ctx: PreviewCtx): Preview | null {
   try {
-    // CHAIN 14.10: מנוע שבנוי על מנוע — קודם הפלט של מה שהוא בנוי עליו, אחר כך החלק (chainPreview.ts)
-    if (cap.parent) return chainPreviewOf(cap as Capability, ctx);
-    const b = BUILDERS[cap.place + ':' + cap.atom];
-    if (!b || !ctx || !Number.isFinite(ctx.nowMs)) return null;
-    const r = b(ctx, paramsOf(cap));
-    return r && r.lines.length ? r : null;
+    return previewStrict(cap, ctx);
   } catch {
     return null;
   }
+}
+
+/** ✅ VERIFY 14.10: אותו חישוב בדיוק, בלי ה-try — כדי שהמאמת יראה חריגה אמיתית ולא null שקט. המסך משתמש ב-previewOf. */
+export function previewStrict(cap: Pick<Capability, 'place' | 'atom' | 'params'> & { id?: string; parent?: string }, ctx: PreviewCtx): Preview | null {
+  // CHAIN 14.10: מנוע שבנוי על מנוע — קודם הפלט של מה שהוא בנוי עליו, אחר כך החלק (chainPreview.ts)
+  if (cap.parent) return chainPreviewStrict(cap as Capability, ctx);
+  const b = BUILDERS[cap.place + ':' + cap.atom];
+  if (!b || !ctx || !Number.isFinite(ctx.nowMs)) return null;
+  const r = b(ctx, paramsOf(cap));
+  return r && r.lines.length ? r : null;
 }
 
 /** CHAIN 14.10: העזרים שהשרשראות השמורות (chainPreview.ts) משתמשות בהם — אותו קוד, לא עותק. */
@@ -481,7 +518,7 @@ const addDay = (iso: string): string => isoOfDay(dayIndex(iso) + 1);
 function mergeDivideLines(ctx: PreviewCtx): string[] {
   const today = israelNow(ctx.nowMs).iso;
   const staff = [...waiting(ctx.db, 'cleaning').recipients, ...waiting(ctx.db, 'faults').recipients];
-  const people = [...new Map(staff.map((r) => [r.id, r.name || r.role])).values()];
+  const people = staffPeople(staff);
   const parts = Math.max(2, people.length);
   const lines: string[] = [];
   for (const u of unitsOf(ctx.db)) {

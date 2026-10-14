@@ -98,18 +98,26 @@ function decimalsOf(step: number): number {
 }
 
 /**
- * חלוקת סכום ל-`parts` חלקים, כל חלק מעוגל ל-`step` (ברירה 1). הסכום יוצא בדיוק `total`:
- * השארית שלא מתחלקת הולכת לחלק הראשון. שלילי — בסדר (חיתוך לכיוון אפס). פגום ⇒ [].
+ * חלוקת סכום ל-`parts` חלקים, כל חלק כפולה של `step` (ברירה 1). הסכום יוצא בדיוק `total` (עד האגורה), והחלקים שווים
+ * ככל האפשר: היחידות שלא מתחלקות מתפזרות **אחת-אחת על החלקים הראשונים** (הפרש של יחידה אחת לכל היותר — ₪500 ב-12 =
+ * 8 × ₪42 + 4 × ₪41), ושבר שקטן מיחידה (₪1,234.5 ביחידות של ₪1) נשאר בחלק הראשון. שלילי — בסדר (חיתוך לכיוון אפס). פגום ⇒ [].
+ * VERIFY 14.10: עד היום כל השארית הלכה לחלק הראשון (₪49 + 11 × ₪41), והשבר נעגל והלך לאיבוד (₪1,234.5 ⇒ 1,235).
  */
 export function divideAmount(total: number, parts: number, step = 1): number[] {
   const n = Math.floor(Number(parts));
   if (!fin(total) || !fin(n) || n < 1 || n > DIVIDE_MAX_PIECES) return [];
   const st = fin(step) && step > 0 ? step : 1;
-  const dec = decimalsOf(st);
+  const dec = Math.max(decimalsOf(st), decimalsOf(total));
   const fix = (v: number): number => Number(v.toFixed(dec));
-  const units = Math.round(total / st);
-  const base = fix(Math.trunc(units / n) * st);
-  const out: number[] = Array.from({ length: n }, () => base);
-  out[0] = fix(total - base * (n - 1));
+  const q = total / st;
+  const qi = Math.round(q);
+  // רעש נקודה-צפה (0.3 / 0.1 = 2.9999…) ⇒ השלם הקרוב; אחרת — חיתוך לכיוון אפס, והשבר נשאר בצד
+  const units = Math.abs(q - qi) <= 1e-9 * Math.max(1, Math.abs(q)) ? qi : Math.trunc(q);
+  const rest = total - units * st;
+  const base = Math.trunc(units / n);
+  const extra = units - base * n;
+  const sign = Math.sign(extra);
+  const out = Array.from({ length: n }, (_, i) => fix((base + (i < Math.abs(extra) ? sign : 0)) * st));
+  out[0] = fix(out[0] + rest);
   return out;
 }

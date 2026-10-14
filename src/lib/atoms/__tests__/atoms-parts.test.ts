@@ -59,12 +59,13 @@ describe('✂️ divide', () => {
     expect(pointsAt({ from: 0, to: 10 }, 0, [1])).toEqual([]);
     expect(pointsAt({ from: 0, to: 12 }, 12, [NaN, 1])).toEqual([1]);
   });
-  it('divideAmount: הסכום יוצא בדיוק, השארית לחלק הראשון', () => {
+  it('divideAmount: הסכום יוצא בדיוק, השארית מתפזרת יחידה-יחידה על החלקים הראשונים', () => {
     expect(divideAmount(100, 3)).toEqual([34, 33, 33]);
     expect(divideAmount(100, 4)).toEqual([25, 25, 25, 25]);
     expect(divideAmount(0, 3)).toEqual([0, 0, 0]);
     expect(divideAmount(-100, 3)).toEqual([-34, -33, -33]);
-    expect(divideAmount(1000, 3, 50)).toEqual([400, 300, 300]);
+    // VERIFY 14.10 (עודכן במכוון): היה [400, 300, 300] — כל השארית בחלק הראשון, הפרש של 2 יחידות. עכשיו הפרש ≤ יחידה.
+    expect(divideAmount(1000, 3, 50)).toEqual([350, 350, 300]);
     const cents = divideAmount(100, 3, 0.01);
     expect(cents).toEqual([33.34, 33.33, 33.33]);
     expect(Math.round(cents.reduce((a, b) => a + b, 0) * 100)).toBe(10000);
