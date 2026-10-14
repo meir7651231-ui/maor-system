@@ -3,7 +3,7 @@
  * 📸 צילומי המעבדה (COMBINER, 14.10.2026): 390×844 ו-1280×800 ל"חמנייה", "דרקון", "קרוסלה" ולשתי מילים אקראיות (זרע קבוע).
  * (MACHINE-V2) החמנייה חייבת להראות 17/17.
  * "לא חסר כלום": בודק שהמילה "חסר" לא מופיעה בדף המרונדר (חוץ מתוכן המילון עצמו — מילה שהמילון שלה כותב "חסרה קובייה" לא נבחרת).
- *   node catalog/combiner/shots.mjs [--out <תיקייה>]   ⇒ knowledge/shots/combiner-2026-10-14/ (ברירת-מחדל)
+ *   node catalog/combiner/shots.mjs [--out <תיקייה>] [--words a,b,c]   ⇒ knowledge/shots/combiner-2026-10-14/ (ברירת-מחדל)
  * וגם דף-הליבות (catalog/core/demo.html): בלי שגיאות, בלי "חסר"/"נבנה חדש", וכותרת 15/15.
  * מרים שרת סטטי קטן על שורש-הריפו (בלי תלויות), פותח את lab.html ב-Chromium ובודק שאין שגיאות קונסולה.
  */
@@ -41,7 +41,10 @@ for (let seed = 7; randoms.length < 2; seed++) {
   const g = pickWord(goals, seed);
   if (!FIXED.includes(g.word) && !randoms.includes(g.word) && !JSON.stringify(g).includes('חסר')) randoms.push(g.word);
 }
-const words = [['sunflower', 'חמנייה'], ['dragon', 'דרקון'], ['carousel', 'קרוסלה'], ['random', randoms[0]], ['random2', randoms[1]], ['unknown', 'בננה']];
+// --words a,b,c (MACHINE-V3): עוד מילים לצילום (למשל מילים שהיו מלאות 🔎 — מקום/קול/תמונה)
+const wArg = process.argv.indexOf('--words');
+const extra = wArg > 0 ? process.argv[wArg + 1].split(',').filter(Boolean).map((w, i) => ['word' + (i + 1), w]) : [];
+const words = [['sunflower', 'חמנייה'], ['dragon', 'דרקון'], ['carousel', 'קרוסלה'], ['random', randoms[0]], ['random2', randoms[1]], ...extra, ['unknown', 'בננה']];
 const said = [];
 await mkdir(OUT, { recursive: true });
 const CHROME = process.env.PW_CHROMIUM || '/opt/pw-browsers/chromium';

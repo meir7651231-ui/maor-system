@@ -16,7 +16,7 @@ import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { CATALOG, loadGoals, loadIndex, loadParts } from '../combiner/load.mjs';
 import { assemble, buildIndex, findGoal, normGoal } from '../combiner/core.mjs';
-import { combineAll, loadRunners, compose, composeChain, composeGraph, verify, partByHome, SEED } from '../combiner/combine.mjs';
+import { combineAll, loadRunners, compose, composeChain, composeGraph, composeOn, verify, partByHome, SEED } from '../combiner/combine.mjs';
 import { VERB_BY_ID as LAW_VERBS } from '../lib/verbs.mjs';
 import { sunHeadingRef } from '../lib/verbs-sun.mjs';
 import { bundleBridge } from '../lib/load-bridge.mjs';
@@ -28,7 +28,7 @@ const HERE = join(CATALOG, 'combiner');
 const combos = JSON.parse(readFileSync(join(HERE, 'combos.json'), 'utf8'));
 const found = combos.results.filter((r: { found: unknown }) => r.found);
 type Graph = { inputs: string[]; nodes: { id: string; part: string; role: string; args: unknown }[]; out: string };
-type Found = { verb: string; material: string; found: { form: string; at?: number; steps: string[]; holds: string; depth?: number; graph?: Graph } };
+type Found = { verb: string; material: string; found: { form: string; at?: number; slot?: number; many?: boolean; on?: string; steps: string[]; holds: string; depth?: number; graph?: Graph } };
 type Runner = { sig: { takes: { name: string; d: unknown }[] }; ctx: unknown; fn: unknown; self?: unknown };
 
 describe('מכונת-השילוב', () => {
@@ -69,10 +69,12 @@ describe('מכונת-השילוב', () => {
         c = composeGraph(g, g.nodes.map((n) => R.get(partByHome(ix, n.part).id)), seed, ref.map((t: object, k: number) => ({ ...t, name: g.inputs[k] })));
       } else {
         const Rs = r.found.steps.map((id) => R.get(partByHome(ix, id).id));
-        c = r.found.form === 'pair' ? compose('pair', Rs[0], Rs[1], seed, r.found.at ?? 0) : composeChain(Rs, seed);
+        c = r.found.form === 'on' ? composeOn(Rs[0], { k: r.found.slot!, many: !!r.found.many }, r.material, seed) : r.found.form === 'pair' ? compose('pair', Rs[0], Rs[1], seed, r.found.at ?? 0) : composeChain(Rs, seed);
       }
       const v = verify(r.verb, c, seed, B);
       expect(v.ok, r.verb + '·' + r.material + ' — ' + (v.law || '') + ' ' + (v.why || '')).toBe(true);
+      // MACHINE-V3: על החומר — בצורת on הקישור שעבר הוא הקלט שהוחלף (נקודות/צלילים/תמונות/תור), לא קלט צדדי
+      if (r.found.form === 'on') expect(String(v.on).split('+'), r.verb + '·' + r.material).toContain(c.sig.takes[r.found.slot!].name);
     }
     // מוטנטים על השילוב של הדרקון (מודד-מרחק × משווה)
     const geo = (found as Found[]).find((r) => r.verb === 'compare' && r.material === 'geo');

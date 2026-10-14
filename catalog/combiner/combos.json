@@ -3,7 +3,7 @@
  "seed": 789278,
  "k": 24,
  "k3": 24,
- "pairs": 49,
+ "pairs": 46,
  "proven": 11,
  "depth": {
   "2": 2,
@@ -17,18 +17,6 @@
    "material": "geo",
    "behaviors": [
     "טניס: הכדור חוזר מהרשת"
-   ],
-   "nBehaviors": 1,
-   "candidates": 0,
-   "candidates3": 0,
-   "found": null,
-   "tried": []
-  },
-  {
-   "verb": "bounce",
-   "material": "number",
-   "behaviors": [
-    "כדור-קפיצי: קופץ מהרצפה"
    ],
    "nBehaviors": 1,
    "candidates": 0,
@@ -55,56 +43,56 @@
       "orbit:src/components/calendar/calLib.ts#isoOf"
      ],
      "form": "on",
-     "why": "שגיאה: אין קלט פתוח שאפשר להכניס אליו image"
+     "why": "לא רץ: no-fitting-input"
     },
     {
      "steps": [
       "orbit:src/components/diary/lib.ts#localIso"
      ],
      "form": "on",
-     "why": "שגיאה: אין קלט פתוח שאפשר להכניס אליו image"
+     "why": "לא רץ: no-fitting-input"
     },
     {
      "steps": [
       "orbit:src/lib/date-util.ts#isoLocal"
      ],
      "form": "on",
-     "why": "שגיאה: אין קלט פתוח שאפשר להכניס אליו image"
+     "why": "לא רץ: no-fitting-input"
     },
     {
      "steps": [
       "orbit:src/lib/hebrew.ts#hebParts"
      ],
      "form": "on",
-     "why": "שגיאה: אין קלט פתוח שאפשר להכניס אליו image"
+     "why": "לא רץ: no-fitting-input"
     },
     {
      "steps": [
       "inner-generator:new/atoms/segula-reminders.mjs#segulaReminders.map.dd"
      ],
      "form": "on",
-     "why": "שגיאה: אין קלט פתוח שאפשר להכניס אליו image"
+     "why": "הפלט לא בצורה שהחוקים של «מקבץ לפי יום» בודקים (אין קישור מתאים)"
     },
     {
      "steps": [
       "inner-generator:new/atoms/sup12m.mjs#sup12m.cut:step"
      ],
      "form": "on",
-     "why": "שגיאה: אין קלט פתוח שאפשר להכניס אליו image"
+     "why": "לא רץ: no-fitting-input"
     },
     {
      "steps": [
       "inner-generator:new/atoms/support-day-label.mjs#supportDayLabel.dd:step"
      ],
      "form": "on",
-     "why": "שגיאה: אין קלט פתוח שאפשר להכניס אליו image"
+     "why": "לא רץ: no-fitting-input"
     },
     {
      "steps": [
       "inner-generator:new/boxes/planned.mjs#addMonthsClamped.dd:step"
      ],
      "form": "on",
-     "why": "שגיאה: אין קלט פתוח שאפשר להכניס אליו image"
+     "why": "לא רץ: no-fitting-input"
     }
    ]
   },
@@ -139,7 +127,7 @@
       "inner-generator:gen/looks/buybox/build.mjs#split.c"
      ],
      "form": "on",
-     "why": "שגיאה: אין קלט פתוח שאפשר להכניס אליו geo"
+     "why": "הפלט לא בצורה שהחוקים של «מגביל לטווח» בודקים (אין קישור מתאים)"
     },
     {
      "steps": [
@@ -229,56 +217,56 @@
       "inner-14kk:check_protocol_activity.js#ProtocolActivityChecker.checkCommunicationProtocol.timeDiff:step"
      ],
      "form": "on",
-     "why": "שגיאה: אין קלט פתוח שאפשר להכניס אליו image"
+     "why": "הפלט לא בצורה שהחוקים של «משווה» בודקים (אין קישור מתאים)"
     },
     {
      "steps": [
       "inner-14kk:check_protocol_activity.js#ProtocolActivityChecker.checkConstructionProtocol.timeDiff:step"
      ],
      "form": "on",
-     "why": "שגיאה: אין קלט פתוח שאפשר להכניס אליו image"
+     "why": "הפלט לא בצורה שהחוקים של «משווה» בודקים (אין קישור מתאים)"
     },
     {
      "steps": [
       "inner-14kk:check_protocol_activity.js#ProtocolActivityChecker.checkKnowledgeProtocol.timeDiff:step"
      ],
      "form": "on",
-     "why": "שגיאה: אין קלט פתוח שאפשר להכניס אליו image"
+     "why": "הפלט לא בצורה שהחוקים של «משווה» בודקים (אין קישור מתאים)"
     },
     {
      "steps": [
       "inner-14kk:check_protocol_activity.js#ProtocolActivityChecker.checkOptimizationProtocol.timeDiff:step"
      ],
      "form": "on",
-     "why": "שגיאה: אין קלט פתוח שאפשר להכניס אליו image"
+     "why": "הפלט לא בצורה שהחוקים של «משווה» בודקים (אין קישור מתאים)"
     },
     {
      "steps": [
       "inner-14kk:check_protocol_activity.js#ProtocolActivityChecker.checkTelegramActivity.timeDiff:step"
      ],
      "form": "on",
-     "why": "שגיאה: אין קלט פתוח שאפשר להכניס אליו image"
+     "why": "הפלט לא בצורה שהחוקים של «משווה» בודקים (אין קישור מתאים)"
     },
     {
      "steps": [
       "inner-14kk:check_protocol_activity.js#ProtocolActivityChecker.checkWorkManagerProtocol.timeDiff:step"
      ],
      "form": "on",
-     "why": "שגיאה: אין קלט פתוח שאפשר להכניס אליו image"
+     "why": "הפלט לא בצורה שהחוקים של «משווה» בודקים (אין קישור מתאים)"
     },
     {
      "steps": [
       "inner-generator:gen/looks/buybox/build.mjs#split.c:step"
      ],
      "form": "on",
-     "why": "שגיאה: אין קלט פתוח שאפשר להכניס אליו image"
+     "why": "הפלט לא בצורה שהחוקים של «משווה» בודקים (אין קישור מתאים)"
     },
     {
      "steps": [
       "inner-generator:gen/looks/grafa/build.mjs#map.over"
      ],
      "form": "on",
-     "why": "שגיאה: אין קלט פתוח שאפשר להכניס אליו image"
+     "why": "הפלט לא בצורה שהחוקים של «משווה» בודקים (אין קישור מתאים)"
     }
    ]
   },
@@ -299,56 +287,56 @@
       "inner-14kk:check_protocol_activity.js#ProtocolActivityChecker.checkCommunicationProtocol.timeDiff:step"
      ],
      "form": "on",
-     "why": "שגיאה: אין קלט פתוח שאפשר להכניס אליו sound"
+     "why": "הפלט לא בצורה שהחוקים של «משווה» בודקים (אין קישור מתאים)"
     },
     {
      "steps": [
       "inner-14kk:check_protocol_activity.js#ProtocolActivityChecker.checkConstructionProtocol.timeDiff:step"
      ],
      "form": "on",
-     "why": "שגיאה: אין קלט פתוח שאפשר להכניס אליו sound"
+     "why": "הפלט לא בצורה שהחוקים של «משווה» בודקים (אין קישור מתאים)"
     },
     {
      "steps": [
       "inner-14kk:check_protocol_activity.js#ProtocolActivityChecker.checkKnowledgeProtocol.timeDiff:step"
      ],
      "form": "on",
-     "why": "שגיאה: אין קלט פתוח שאפשר להכניס אליו sound"
+     "why": "הפלט לא בצורה שהחוקים של «משווה» בודקים (אין קישור מתאים)"
     },
     {
      "steps": [
       "inner-14kk:check_protocol_activity.js#ProtocolActivityChecker.checkOptimizationProtocol.timeDiff:step"
      ],
      "form": "on",
-     "why": "שגיאה: אין קלט פתוח שאפשר להכניס אליו sound"
+     "why": "הפלט לא בצורה שהחוקים של «משווה» בודקים (אין קישור מתאים)"
     },
     {
      "steps": [
       "inner-14kk:check_protocol_activity.js#ProtocolActivityChecker.checkTelegramActivity.timeDiff:step"
      ],
      "form": "on",
-     "why": "שגיאה: אין קלט פתוח שאפשר להכניס אליו sound"
+     "why": "הפלט לא בצורה שהחוקים של «משווה» בודקים (אין קישור מתאים)"
     },
     {
      "steps": [
       "inner-14kk:check_protocol_activity.js#ProtocolActivityChecker.checkWorkManagerProtocol.timeDiff:step"
      ],
      "form": "on",
-     "why": "שגיאה: אין קלט פתוח שאפשר להכניס אליו sound"
+     "why": "הפלט לא בצורה שהחוקים של «משווה» בודקים (אין קישור מתאים)"
     },
     {
      "steps": [
       "inner-generator:gen/looks/buybox/build.mjs#split.c:step"
      ],
      "form": "on",
-     "why": "שגיאה: אין קלט פתוח שאפשר להכניס אליו sound"
+     "why": "הפלט לא בצורה שהחוקים של «משווה» בודקים (אין קישור מתאים)"
     },
     {
      "steps": [
       "inner-generator:gen/looks/grafa/build.mjs#map.over"
      ],
      "form": "on",
-     "why": "שגיאה: אין קלט פתוח שאפשר להכניס אליו sound"
+     "why": "הפלט לא בצורה שהחוקים של «משווה» בודקים (אין קישור מתאים)"
     }
    ]
   },
@@ -371,14 +359,14 @@
       "orbit:src/components/parnasa/zmanimBoard.ts#hmToMin"
      ],
      "form": "on",
-     "why": "שגיאה: אין קלט פתוח שאפשר להכניס אליו sound"
+     "why": "הפלט לא בצורה שהחוקים של «ממיר ערך» בודקים (אין קישור מתאים)"
     },
     {
      "steps": [
       "orbit:src/lib/atoms/parts/offset.ts#hhmmToMinutes"
      ],
      "form": "on",
-     "why": "שגיאה: אין קלט פתוח שאפשר להכניס אליו sound"
+     "why": "הפלט לא בצורה שהחוקים של «ממיר ערך» בודקים (אין קישור מתאים)"
     },
     {
      "steps": [
@@ -392,7 +380,7 @@
       "inner-generator:machtzev/assemble/data-lift.mjs#purposeOf.k"
      ],
      "form": "on",
-     "why": "שגיאה: אין קלט פתוח שאפשר להכניס אליו sound"
+     "why": "הפלט לא בצורה שהחוקים של «ממיר ערך» בודקים (אין קישור מתאים)"
     },
     {
      "steps": [
@@ -406,21 +394,21 @@
       "inner-generator:machtzev/ds-wear.mjs#constScope.k"
      ],
      "form": "on",
-     "why": "שגיאה: אין קלט פתוח שאפשר להכניס אליו sound"
+     "why": "הפלט לא בצורה שהחוקים של «ממיר ערך» בודקים (אין קישור מתאים)"
     },
     {
      "steps": [
       "inner-generator:machtzev/generator/retarget.mjs#parentWidget.i"
      ],
      "form": "on",
-     "why": "שגיאה: אין קלט פתוח שאפשר להכניס אליו sound"
+     "why": "הפלט לא בצורה שהחוקים של «ממיר ערך» בודקים (אין קישור מתאים)"
     },
     {
      "steps": [
       "inner-generator:machtzev/generator/retarget.mjs#parentWidget.skipStrBack.j"
      ],
      "form": "on",
-     "why": "שגיאה: אין קלט פתוח שאפשר להכניס אליו sound"
+     "why": "הפלט לא בצורה שהחוקים של «ממיר ערך» בודקים (אין קישור מתאים)"
     }
    ]
   },
@@ -453,7 +441,8 @@
       "inner-orbit:src/lib/dedup.ts#dedupById.out:after-loop"
      ],
      "form": "on",
-     "why": "שגיאה: אין קלט פתוח שאפשר להכניס אליו geo"
+     "law": "dedupe.keeps",
+     "why": "הוסר פריט שאינו כפול"
     },
     {
      "steps": [
@@ -482,7 +471,8 @@
       "inner-orbit:src/lib/dedup.ts#dedupById.out:after-loop"
      ],
      "form": "on",
-     "why": "שגיאה: אין קלט פתוח שאפשר להכניס אליו image"
+     "law": "dedupe.keeps",
+     "why": "הוסר פריט שאינו כפול"
     },
     {
      "steps": [
@@ -568,7 +558,7 @@
       "inner-generator:new/atoms/segula-reminders.mjs#segulaReminders.map.y:step"
      ],
      "form": "on",
-     "why": "שגיאה: אין קלט פתוח שאפשר להכניס אליו sound"
+     "why": "לא רץ: no-fitting-input"
     },
     {
      "steps": [
@@ -603,7 +593,7 @@
       "inner-generator:new/boxes/planned.mjs#addMonthsClamped.lastDay:step"
      ],
      "form": "on",
-     "why": "שגיאה: אין קלט פתוח שאפשר להכניס אליו sound"
+     "why": "לא רץ: no-fitting-input"
     }
    ]
   },
@@ -647,28 +637,28 @@
       "inner-orbit:src/components/parnasa/booklet.ts#bookletPlan.full:step"
      ],
      "form": "on",
-     "why": "שגיאה: אין קלט פתוח שאפשר להכניס אליו geo"
+     "why": "אין מקרה-עד לא-טריוויאלי"
     },
     {
      "steps": [
       "inner-orbit:src/components/parnasa/booklet.ts#bookletPlan.half:step"
      ],
      "form": "on",
-     "why": "שגיאה: אין קלט פתוח שאפשר להכניס אליו geo"
+     "why": "אין מקרה-עד לא-טריוויאלי"
     },
     {
      "steps": [
       "inner-orbit:src/components/parnasa/booklet.ts#bookletPlan.small:step"
      ],
      "form": "on",
-     "why": "שגיאה: אין קלט פתוח שאפשר להכניס אליו geo"
+     "why": "אין מקרה-עד לא-טריוויאלי"
     },
     {
      "steps": [
       "inner-orbit:src/lib/bulkContact.ts#bulkMailRecipients.out:after-loop"
      ],
      "form": "on",
-     "why": "שגיאה: אין קלט פתוח שאפשר להכניס אליו geo"
+     "why": "אין מקרה-עד לא-טריוויאלי"
     },
     {
      "steps": [
@@ -735,21 +725,24 @@
       "orbit:src/components/parnasa/booklet.ts#escHtml"
      ],
      "form": "on",
-     "why": "שגיאה: אין קלט פתוח שאפשר להכניס אליו image"
+     "law": "format.injective",
+     "why": "שני ערכים שונים ⇒ אותה תוצאה"
     },
     {
      "steps": [
       "orbit:src/components/parnasa/lib.ts#prNorm"
      ],
      "form": "on",
-     "why": "שגיאה: אין קלט פתוח שאפשר להכניס אליו image"
+     "law": "format.injective",
+     "why": "שני ערכים שונים ⇒ אותה תוצאה"
     },
     {
      "steps": [
       "orbit:src/lib/atoms/parts/fuzzy.ts#normHe"
      ],
      "form": "on",
-     "why": "שגיאה: אין קלט פתוח שאפשר להכניס אליו image"
+     "law": "format.injective",
+     "why": "שני ערכים שונים ⇒ אותה תוצאה"
     },
     {
      "steps": [
@@ -790,7 +783,7 @@
       "orbit:src/lib/atoms/parts/fuzzy.ts#normHe"
      ],
      "form": "on",
-     "why": "שגיאה: אין קלט פתוח שאפשר להכניס אליו image"
+     "why": "הפלט לא בצורה שהחוקים של «מוצא גם עם טעות» בודקים (אין קישור מתאים)"
     },
     {
      "steps": [
@@ -882,28 +875,28 @@
       "inner-orbit:src/lib/monthGrid.ts#buildDayGrid.byDate"
      ],
      "form": "on",
-     "why": "שגיאה: אין קלט פתוח שאפשר להכניס אליו geo"
+     "why": "הפלט לא בצורה שהחוקים של «מקבץ» בודקים (אין קישור מתאים)"
     },
     {
      "steps": [
       "inner-orbit:src/lib/monthGrid.ts#buildMonthGrid.byDate"
      ],
      "form": "on",
-     "why": "שגיאה: אין קלט פתוח שאפשר להכניס אליו geo"
+     "why": "הפלט לא בצורה שהחוקים של «מקבץ» בודקים (אין קישור מתאים)"
     },
     {
      "steps": [
       "inner-orbit:src/lib/monthGrid.ts#buildWeekGrid.byDate"
      ],
      "form": "on",
-     "why": "שגיאה: אין קלט פתוח שאפשר להכניס אליו geo"
+     "why": "הפלט לא בצורה שהחוקים של «מקבץ» בודקים (אין קישור מתאים)"
     },
     {
      "steps": [
       "inner-orbit:src/lib/monthGrid.ts#indexByDate.byDate:after-loop"
      ],
      "form": "on",
-     "why": "שגיאה: אין קלט פתוח שאפשר להכניס אליו geo"
+     "why": "הפלט לא בצורה שהחוקים של «מקבץ» בודקים (אין קישור מתאים)"
     }
    ]
   },
@@ -1104,14 +1097,14 @@
       "orbit:src/lib/atoms/parts/next.ts#firstRun"
      ],
      "form": "on",
-     "why": "שגיאה: אין קלט פתוח שאפשר להכניס אליו geo"
+     "why": "הפלט לא בצורה שהחוקים של «מוצא את הבא בתור» בודקים (אין קישור מתאים)"
     },
     {
      "steps": [
       "orbit:src/lib/atoms/parts/next.ts#nextAfter"
      ],
      "form": "on",
-     "why": "שגיאה: אין קלט פתוח שאפשר להכניס אליו geo"
+     "why": "הפלט לא בצורה שהחוקים של «מוצא את הבא בתור» בודקים (אין קישור מתאים)"
     },
     {
      "steps": [
@@ -1195,14 +1188,14 @@
       "orbit:src/lib/atoms/parts/next.ts#firstRun"
      ],
      "form": "on",
-     "why": "שגיאה: אין קלט פתוח שאפשר להכניס אליו waiting"
+     "why": "הפלט לא בצורה שהחוקים של «מוצא את הבא בתור» בודקים (אין קישור מתאים)"
     },
     {
      "steps": [
       "orbit:src/lib/atoms/parts/next.ts#nextAfter"
      ],
      "form": "on",
-     "why": "שגיאה: אין קלט פתוח שאפשר להכניס אליו waiting"
+     "why": "הפלט לא בצורה שהחוקים של «מוצא את הבא בתור» בודקים (אין קישור מתאים)"
     },
     {
      "steps": [
@@ -1239,7 +1232,7 @@
       "orbit:src/lib/atoms/parts/offset.ts#hhmmToMinutes"
      ],
      "form": "on",
-     "why": "שגיאה: אין קלט פתוח שאפשר להכניס אליו geo"
+     "why": "הפלט לא בצורה שהחוקים של «מזיז» בודקים (אין קישור מתאים)"
     },
     {
      "steps": [
@@ -1253,28 +1246,28 @@
       "inner-generator:machtzev/assemble/data-lift.mjs#untangle.vlen:step"
      ],
      "form": "on",
-     "why": "שגיאה: אין קלט פתוח שאפשר להכניס אליו geo"
+     "why": "הפלט לא בצורה שהחוקים של «מזיז» בודקים (אין קישור מתאים)"
     },
     {
      "steps": [
       "inner-generator:new/atoms/coral-palette.mjs#hslToRgb.m:step"
      ],
      "form": "on",
-     "why": "שגיאה: אין קלט פתוח שאפשר להכניס אליו geo"
+     "why": "הפלט לא בצורה שהחוקים של «מזיז» בודקים (אין קישור מתאים)"
     },
     {
      "steps": [
       "inner-generator:new/atoms/intel-trend-from-scan.mjs#trendFromScan.i:step"
      ],
      "form": "on",
-     "why": "שגיאה: אין קלט פתוח שאפשר להכניס אליו geo"
+     "why": "הפלט לא בצורה שהחוקים של «מזיז» בודקים (אין קישור מתאים)"
     },
     {
      "steps": [
       "inner-generator:new/atoms/site-palette.mjs#sitePalette.hslToRgb.m:step"
      ],
      "form": "on",
-     "why": "שגיאה: אין קלט פתוח שאפשר להכניס אליו geo"
+     "why": "הפלט לא בצורה שהחוקים של «מזיז» בודקים (אין קישור מתאים)"
     },
     {
      "steps": [
@@ -1288,7 +1281,7 @@
       "inner-orbit:src/components/shop8/lib.ts#upcomingHoliday.d:step"
      ],
      "form": "on",
-     "why": "שגיאה: אין קלט פתוח שאפשר להכניס אליו geo"
+     "why": "לא רץ: no-fitting-input"
     }
    ]
   },
@@ -1306,35 +1299,10 @@
   },
   {
    "verb": "random",
-   "material": "bool",
-   "behaviors": [
-    "שלכת: נופלים ברוח"
-   ],
-   "nBehaviors": 1,
-   "candidates": 0,
-   "candidates3": 0,
-   "found": null,
-   "tried": []
-  },
-  {
-   "verb": "random",
    "material": "geo",
    "behaviors": [
     "קליידוסקופ: חרוזים במקום אקראי",
     "גשם: טיפות במקומות אקראיים"
-   ],
-   "nBehaviors": 2,
-   "candidates": 0,
-   "candidates3": 0,
-   "found": null,
-   "tried": []
-  },
-  {
-   "verb": "random",
-   "material": "times",
-   "behaviors": [
-    "כיסאות-מוזיקליים: המוזיקה נעצרת פתאום",
-    "קופסת-הפתעה: כל פעם בזמן קצת אחר"
    ],
    "nBehaviors": 2,
    "candidates": 0,

@@ -53,17 +53,17 @@
  },
  "behaviors": {
   "total": 940,
-  "base-only": 197,
+  "base-only": 198,
   "both": 211,
   "inner-only": 168,
-  "none": 364
+  "none": 363
  },
  "pairs": {
-  "total": 191,
-  "base-only": 17,
+  "total": 189,
+  "base-only": 18,
   "both": 33,
   "inner-only": 28,
-  "none": 113
+  "none": 110
  },
  "examples": [
   {

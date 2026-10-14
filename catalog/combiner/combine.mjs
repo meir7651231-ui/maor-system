@@ -212,12 +212,19 @@ export function candidatesOnFor(need, ix, raw) {
 }
 const LIST_BINDS = new Set(['list>list', 'list>any', 'list+key', 'list+any>list', 'flags', 'text+list', 'divide']);
 const openD = (d) => !d || d.t === 'any' || (d.t === 'tp' && (!d.of || d.of.t === 'any')) || (d.t === 'obj' && !(d.p || []).length);
-/** הקלט הפתוח שאליו נכנס החומר: ברשימה (פועל של רשימות) — מערך של פתוח; אחרת — פתוח. */
-export function onSlot(R, V, M) {
-  const many = LIST_BINDS.has(LAW_VERBS.get(V)?.bind) || M === 'waiting';
+/**
+ * הקלט הפתוח שאליו נכנס החומר — לפי הטיפוס **כפי שנכתב בקוד** (OPEN_TYPE: any · T · T[]…), כי הצורה שהקורא בונה כבר
+ * הושלמה מסוג-הקטלוג (`x: any` בשם `date` ⇒ מחרוזת-תאריך). ברשימה (פועל של רשימות, או טיפוס מערך) — רשימה של החומר.
+ */
+export function onSlot(R, V, M, rawTakes = []) {
+  const listVerb = LIST_BINDS.has(LAW_VERBS.get(V)?.bind) || M === 'waiting';
   const ts = R.sig.takes;
-  for (let k = 0; k < ts.length; k++) { const d = ts[k].d; if (many && d && (d.t === 'arr' || d.t === 'set') && openD(d.of)) return { k, many: true }; }
-  for (let k = 0; k < ts.length; k++) if (openD(ts[k].d)) return { k, many };
+  const isArrT = (t) => /\[\]$|^(Readonly)?Array</.test(String(t || '').trim());
+  const ks = ts.map((_, k) => k).filter((k) => OPEN_TYPE.test(String(rawTakes[k]?.type || '').trim()));
+  const pick = (listVerb ? ks.find((k) => isArrT(rawTakes[k]?.type)) : undefined) ?? ks.find((k) => !isArrT(rawTakes[k]?.type)) ?? ks[0];
+  if (pick !== undefined) return { k: pick, many: isArrT(rawTakes[pick]?.type) || listVerb };
+  for (let k = 0; k < ts.length; k++) { const d = ts[k].d; if (listVerb && d && (d.t === 'arr' || d.t === 'set') && openD(d.of)) return { k, many: true }; }
+  for (let k = 0; k < ts.length; k++) if (openD(ts[k].d)) return { k, many: listVerb };
   return null;
 }
 /** אותו חלק, כשבקלט הפתוח נכנס החומר. */
@@ -391,7 +398,7 @@ export async function combineAll() {
           if (!ref || ref.length !== c.graph.inputs.length) throw new Error('הקלטים של הגרף לא תואמים את הפועל');
           composed = composeGraph(c.graph, Rs, seed, ref.map((t, k) => ({ ...t, name: c.graph.inputs[k] })));
         } else if (c.form === 'on') {
-          const slot = onSlot(Rs[0], pl.verb, pl.material);
+          const slot = onSlot(Rs[0], pl.verb, pl.material, homeOf(c.steps[0], raw)?.takes);
           if (!slot) throw new Error('אין קלט פתוח שאפשר להכניס אליו ' + pl.material);
           composed = composeOn(Rs[0], slot, pl.material, seed);
           v = verify(pl.verb, composed, seed, B);

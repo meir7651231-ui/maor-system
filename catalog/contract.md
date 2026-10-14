@@ -92,6 +92,20 @@
 
 **כלל-הכרעה · Tie-break:** כסף ⇒ `amount` לפני `number`; יום-בלוח ⇒ `date`, שעה/רגע ⇒ `times`; רשימה שהסדר בה קובע ⇒ `sequence`, אחרת `list`; ערך-מתוך-רשימה-קבועה ⇒ `choice` לפני `text`.
 
+### 3.1 סוג לפי צורה · Kind by shape (MACHINE-V3, 14.10.2026)
+
+מקום · קול · תמונה · תור **כבר קיימים בקוד** — הם פשוט נכתבו כ"רשומה" או "רשימה". מיפוי אחד משותף, [`lib/kind-shape.mjs`](./lib/kind-shape.mjs), מזהה אותם **לפי הצורה בלבד** (לא לפי העולם), לפני המיפוי הכללי. משתמשים בו: הפותח והקורא (`lib/entry.mjs` › `kindOfDesc` — צורת-desc), המפקדים של אורביט / בנייה-חכמה / האחרים (טקסט-טיפוס של TS), ומכונת-השילוב (ערך-ריצה וקלט מחולל). Dart (המחולל, הטבעות) — לא; שם נשארים `Offset`/`LatLng` הקיימים.
+· One shared mapping recognises these four kinds by shape only (desc · TS type text · runtime value), before the generic record/list mapping.
+
+| kind | צורה · Shape | דוגמה מהקוד · From the code | לא · Not |
+|---|---|---|---|
+| `geo` | נקודה `{x, y}` · `{x, y, z}` · `{lat, lon\|lng}` (מספרים, עד 6 שדות) · `[x, y]` עם שם-נקודה · **רשימה של נקודות = מסלול** | `universe3d.ts` › `project(p: {x,y,z}, …)` · `seating.ts` › `seatPositions ⇒ {x,y}[]` · `envelope.ts` | רשומה גדולה שיש בה x,y (יותר מ-6 שדות) |
+| `sound` | צליל: תדר מפורש (`freq`/`frequency`/`hz`/`pitch`) + זמן/משך, **או** `{f, d, g}` כמו `tone(f, t, d, g)` של פרנס׳לע (`parnasa/sound.ts`) · רשימה של צלילים = מנגינה | — | `{f, t}` לבד (מ-עד, חלון-שעות) |
+| `image` | מחרוזת `data:image/…` · `{width, height}` (גודל-בד, עד 3 שדות או עם `src`/`data`) · `{w, h}` עם שם-תמונה · מחרוזת ששמה תמונה (`photo`, `avatar`, `dataUrl`, `…Image`) | `photoGallery.ts` (תקרות/הקטנה) · `imagePick.ts` › `pickAndCompressImage` | שם שרק *מכיל* "pic" (`sensitiveTopic`) |
+| `waiting` | **תור**: רשימה של פריטים שה-`status`/`state`/`stage` שלהם כולל המתנה (`wait` · `waiting` · `waitlist` · `pending` · `queued` · `awaiting` · `hold`) | `Enrollment[]` (`status: 'wait'` — `waitlistFor`) · `PrListing[]` (`pending`) · `HostBooking[]` (`pending`) · `Family[]` (`pending`) | פריט בודד — נשאר `record:x` (ההמתנה היא מצב שלו, לא הסוג שלו) |
+
+**התאמה במצרף** (`combiner/core.mjs`): תור ⊂ רשימה ומנגינה ⊂ רצף — **רק בצד החלק** (`SUB_KIND`/`fitPart`): חלק שעובד על תור עונה לצורך על רשימה; חלק של רשימה כללית **לא** "עובד על תור" עד שהורץ על תור (מכונת-השילוב, צורת `on`, `MATERIAL_DESC`). מקום — בלי התאמה חלשה (נקודה אינה רשימה).
+
 ## 4. דוגמאות ופרטיות · Examples and privacy
 
 - דוגמה נלקחת **רק** מקובץ-בדיקה או fixture שקיים בריפו, ורק כשהקלט והפלט מילוליים.
