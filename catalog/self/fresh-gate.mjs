@@ -32,7 +32,7 @@ export function freshGate({ rev = 'HEAD', log = console.log } = {}) {
     const checkOk = chk.status === 0;
     log((checkOk ? '✓' : '✗') + ' שכפול טרי + מטמון ריק: rebuild --check' + (checkOk ? '' : '\n' + String(chk.stdout + chk.stderr).trim().split('\n').slice(-8).join('\n')));
     const rb = run('catalog/scripts/rebuild.mjs');
-    const dirty = rb.status === 0 ? execFileSync('git', ['-C', W, 'status', '--porcelain'], { encoding: 'utf8' }).trim() : 'rebuild נכשל: ' + String(rb.stderr).slice(-400);
+    const dirty = rb.status === 0 ? execFileSync('git', ['-C', W, 'status', '--porcelain', '--', '.', ':!node_modules'], { encoding: 'utf8' }).trim() : 'rebuild נכשל: ' + String(rb.stderr).slice(-400);
     log((dirty ? '✗' : '✓') + ' rebuild בשכפול הטרי ⇒ git status ' + (dirty ? 'לא נקי:\n' + dirty.split('\n').slice(0, 10).join('\n') : 'נקי'));
     return { ok: checkOk && !dirty, checkOk, dirty };
   } finally {
