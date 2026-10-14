@@ -46,7 +46,9 @@ export default defineConfig({
             // links נשאר chunk משלו (כמו ב-ed81ea9): boxChange מייבא אותו, ובלי הקבוצה rolldown קיפל אותו לתוך atoms — ומסכי האירוח/
             // פרנסה׳לע (useEngineLink) היו טוענים 11KB במקום 5KB. המחיר: שם-קובץ אחד נוסף ברשימת-התלויות של ההפעלה (נמדד).
             { name: 'links', test: /[\\/]src[\\/]lib[\\/]enginebox[\\/]links\.ts$/, priority: 2 },
-            { name: 'persist', test: /[\\/]src[\\/](store[\\/]persist|lib[\\/]config|lib[\\/]hebrew|lib[\\/]search|components[\\/]parnasa[\\/]transitions)\.ts$/, priority: 1 },
+            // 🏭 FACTORY 14.10: + lib/cloudCrypto — הוא ממילא בהפעלה (היה בתוך index); כשהארגז קיבל chunks עצלים חדשים (המנועים שנמצאו),
+            // rolldown הוציא אותו ל-chunk-הפעלה תשיעי (נמדד: גם import() של מנוע אחד). כאן הוא יושב ב-persist — אותם בייטים, 8 בקשות.
+            { name: 'persist', test: /[\\/]src[\\/](store[\\/]persist|lib[\\/]config|lib[\\/]hebrew|lib[\\/]search|components[\\/]parnasa[\\/]transitions|lib[\\/]cloudCrypto)\.ts$/, priority: 1 },
           ],
         },
       },
