@@ -30,7 +30,7 @@ import { VERB_BY_ID as LAW_VERBS } from '../lib/verbs.mjs';
 import { assemble, fit, provenAs, adapterRole, ADAPTER_VERBS } from './core.mjs';
 import { SHAPE_KINDS, materialDesc } from '../lib/kind-shape.mjs';
 import { HERE, CATALOG, loadGoals, loadIndex, loadParts, loadRecipes } from './load.mjs';
-import { runGraph, graphProblem, graphParts } from './graph.mjs';
+import { runGraph, graphProblem, graphParts, graphNodes } from './graph.mjs';
 import { inputsKey, cacheGet, cachePut, fingerprint, machineSalt, CACHE_OFF } from '../lib/cache.mjs';
 
 const ROOT = path.resolve(CATALOG, '..');
@@ -100,14 +100,14 @@ function graphCandidate(h, ix, raw) {
   const parts = graphParts(h).map((id) => partByHome(ix, id));
   let bad = prob;
   if (!bad) {
-    for (const n of h.nodes) {
+    for (const n of graphNodes(h)) {
       const p = partByHome(ix, n.part);
       if (!p) { bad = n.id + ': החלק לא באינדקס (' + n.part + ')'; break; }
       if (!provenAs(p, n.role)) { bad = n.id + ': ' + n.part + ' לא מוכח כ-' + n.role; break; }
       if (!homeOf(p, raw)) { bad = n.id + ': ' + n.part + ' לא רץ כאן'; break; }
     }
   }
-  const roles = graphParts(h).map((id) => h.nodes.find((n) => n.part === id).role);
+  const roles = graphParts(h).map((id) => graphNodes(h).find((n) => n.part === id).role);
   return { form: 'graph', graph: h, steps: parts.filter(Boolean), roles, hint: h.why, ...(bad ? { bad } : {}) };
 }
 
@@ -476,7 +476,7 @@ async function combineAllRaw() {
     let n3 = 0;
     const attempt = (c) => {
       if (c.bad) { tried.push({ steps: ids(c), form: c.form, why: c.bad }); return null; }
-      const Rs = c.form === 'graph' ? c.graph.nodes.map((n) => runners.get(partByHome(ix, n.part).id)) : c.steps.map((s) => runners.get(s.id));
+      const Rs = c.form === 'graph' ? graphNodes(c.graph).map((n) => runners.get(partByHome(ix, n.part).id)) : c.steps.map((s) => runners.get(s.id));
       if (Rs.some((R) => !R)) { tried.push({ steps: ids(c), form: c.form, why: 'לא נטען להרצה' }); return null; }
       if (c.form === 'pair' && pl.material === 'geo' && !pointDesc(Rs[0].sig.takes[c.at]?.d) && Rs[0].sig.takes[c.at]?.kind !== 'geo') { tried.push({ steps: ids(c), form: c.form, why: 'הקלט אינו מקום (אין x,y)' }); return null; }
       const seed = (fnvHash(c.form + ids(c).join('>')) ^ SEED) >>> 0;

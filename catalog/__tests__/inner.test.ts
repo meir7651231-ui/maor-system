@@ -240,9 +240,9 @@ export async function waits(a: number) { const w = (await Promise.resolve(a)) * 
     }
   }, 240_000);
 
-  it('ההרמה (lift.json) מעודכנת ונספרת מכל 940 ההתנהגויות', () => {
+  it('ההרמה (lift.json) מעודכנת ונספרת מכל 959 ההתנהגויות', () => {
     const lift = computeLift(ROOT);
-    expect(lift.behaviors.total).toBe(940);
+    expect(lift.behaviors.total).toBe(959); // + 16 של «מוקד-חלוקה» + 3 של PRODUCT-V2
     expect(JSON.stringify(lift, null, 1) + '\n').toBe(readFileSync(join(ROOT, 'catalog/inner/lift.json'), 'utf8'));
   }, 60_000);
 });

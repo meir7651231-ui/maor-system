@@ -47,34 +47,22 @@
    }
   },
   "buildsmart": {
-   "runnable": 41,
-   "withMotion": 0,
-   "parts": {}
+   "skipped": "no-clone"
   },
   "generator": {
-   "runnable": 0,
-   "withMotion": 0,
-   "parts": {}
+   "skipped": "no-clone"
   },
   "14kk": {
-   "runnable": 182,
-   "withMotion": 0,
-   "parts": {}
+   "skipped": "no-clone"
   },
   "mmmm": {
-   "runnable": 37,
-   "withMotion": 0,
-   "parts": {}
+   "skipped": "no-clone"
   },
   "yoman-habina": {
-   "runnable": 1,
-   "withMotion": 0,
-   "parts": {}
+   "skipped": "no-clone"
   },
   "yeshiva": {
-   "runnable": 12,
-   "withMotion": 0,
-   "parts": {}
+   "skipped": "no-clone"
   }
  }
 }

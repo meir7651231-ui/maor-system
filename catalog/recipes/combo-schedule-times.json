@@ -1,0 +1,189 @@
+{
+ "id": "combo-schedule-times",
+ "word": "schedule · times",
+ "title": "שילוב «מתזמן בחלונות» (שעת-הגעה, eta · schedule): 6 חלקים — מודד מרחק בין שתי נקודות ⇒ … ⇒ משווה שני ערכים",
+ "combo": {
+  "verb": "schedule",
+  "material": "times",
+  "form": "graph",
+  "steps": [
+   "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+   "inner-orbit:src/lib/atoms/verify/generic.ts#waitingLines.sum:step",
+   "inner-orbit:src/lib/atoms/parts/divide.ts#divideSpan.unit:step",
+   "inner-orbit:src/components/hosting/StaffModals.tsx#StaffDialog.maxL:step",
+   "inner-orbit:src/components/wheel/CourseWheel.tsx#CourseWheel.spin.delta:step",
+   "inner-orbit:src/components/supporters/AyinBoard.tsx#StageChips.map.done"
+  ],
+  "roles": [
+   "convert",
+   "sum",
+   "ratio",
+   "extreme",
+   "gap",
+   "validate"
+  ],
+  "holds": "60/60",
+  "laws": [
+   "schedule.each",
+   "schedule.drive",
+   "schedule.late",
+   "schedule.km",
+   "schedule.det"
+  ],
+  "hint": "שעת-הגעה = יציאה + מרחק (מודד-המרחק של הגלקסיה) ÷ מהירות (היחידה של מחלק-הטווח) — מסכם; לא לפני פתיחת-החלון: הגדול מהשניים (העומס-המרבי של הצוות); המתנה = הפרש (גלגל-החוגים); מאחר = החלון נסגר לפני ההגעה (שלב-שעבר של לוח-הטיפול); ק״מ מצטבר = מסכם",
+  "takes": [
+   "geo",
+   "record"
+  ],
+  "gives": "times",
+  "graph": {
+   "inputs": [
+    "route",
+    "spec"
+   ],
+   "consts": {
+    "loops": "🔁 הלולאה חיווט בלבד (graph.mjs: loop)",
+    "floor1": "הגדול-מבין של הצוות לא יורד מ-1 — שעות-ההגעה הן דקות-מחצות (מעל 1) ולכן זה לא משנה"
+   },
+   "nodes": [
+    {
+     "id": "go",
+     "loop": {
+      "over": {
+       "$slice": [
+        "$route",
+        1
+       ]
+      },
+      "init": {
+       "t": "$spec.start",
+       "prev": "$route.0",
+       "km": 0
+      },
+      "item": "p",
+      "state": "s",
+      "nodes": [
+       {
+        "id": "d",
+        "part": "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+        "role": "convert",
+        "args": [
+         "$s.prev.x",
+         "$s.prev.y",
+         "$p"
+        ],
+        "says": "הרגל"
+       },
+       {
+        "id": "km",
+        "part": "inner-orbit:src/lib/atoms/verify/generic.ts#waitingLines.sum:step",
+        "role": "sum",
+        "args": [
+         [
+          "$s.km",
+          "@d"
+         ]
+        ],
+        "says": "ק״מ מצטבר"
+       },
+       {
+        "id": "m",
+        "part": "inner-orbit:src/lib/atoms/parts/divide.ts#divideSpan.unit:step",
+        "role": "ratio",
+        "args": [
+         "@d",
+         "$spec.speed"
+        ],
+        "says": "דקות-נסיעה = מרחק ÷ מהירות"
+       },
+       {
+        "id": "eta",
+        "part": "inner-orbit:src/lib/atoms/verify/generic.ts#waitingLines.sum:step",
+        "role": "sum",
+        "args": [
+         [
+          "$s.t",
+          "@m"
+         ]
+        ],
+        "says": "מתי מגיעים בלי לחכות"
+       },
+       {
+        "id": "at",
+        "part": "inner-orbit:src/components/hosting/StaffModals.tsx#StaffDialog.maxL:step",
+        "role": "extreme",
+        "args": [
+         [
+          "@eta",
+          "$p.open"
+         ]
+        ],
+        "says": "לא לפני שהחלון נפתח"
+       },
+       {
+        "id": "w",
+        "part": "inner-orbit:src/components/wheel/CourseWheel.tsx#CourseWheel.spin.delta:step",
+        "role": "gap",
+        "args": [
+         "@eta",
+         "@at"
+        ],
+        "says": "כמה מחכים"
+       },
+       {
+        "id": "late",
+        "part": "inner-orbit:src/components/supporters/AyinBoard.tsx#StageChips.map.done",
+        "role": "validate",
+        "args": [
+         "@at",
+         "$p.close"
+        ],
+        "says": "החלון נסגר לפני ההגעה?"
+       },
+       {
+        "id": "out",
+        "part": "inner-orbit:src/lib/atoms/verify/generic.ts#waitingLines.sum:step",
+        "role": "sum",
+        "args": [
+         [
+          "@at",
+          "$spec.stay"
+         ]
+        ],
+        "says": "יוצאים אחרי העצירה"
+       }
+      ],
+      "next": {
+       "t": "@out",
+       "prev": "$p",
+       "km": "@km"
+      },
+      "emit": {
+       "at": "@at",
+       "wait": "@w",
+       "late": "@late",
+       "km": "@km"
+      }
+     },
+     "says": "תחנה אחרי תחנה"
+    }
+   ],
+   "out": "@go.emits"
+  }
+ },
+ "needs": [
+  {
+   "need": "combo",
+   "verb": "schedule",
+   "material": "times",
+   "chain": [
+    "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+    "inner-orbit:src/lib/atoms/verify/generic.ts#waitingLines.sum:step",
+    "inner-orbit:src/lib/atoms/parts/divide.ts#divideSpan.unit:step",
+    "inner-orbit:src/components/hosting/StaffModals.tsx#StaffDialog.maxL:step",
+    "inner-orbit:src/components/wheel/CourseWheel.tsx#CourseWheel.spin.delta:step",
+    "inner-orbit:src/components/supporters/AyinBoard.tsx#StageChips.map.done"
+   ]
+  }
+ ]
+}

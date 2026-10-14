@@ -1,8 +1,8 @@
 /**
  * 🧽 «מנרמל» — מקור בלי הערות (SELF-V2, 14.10.2026).
  *
- * קובץ TS (.ts/.tsx/.mts/.cts — לא .d.ts) ⇒ אותו טקסט שבו כל הערה הוחלפה ברווח אחד (או בסופי-השורה שבתוכה) — מספרי-
- * השורה נשמרים, ואורך ההערה לא משנה (הערה ארוכה או קצרה ⇒ אותו טקסט). ב-TS הערות לא משנות טיפוסים ולא התנהגות, ולכן הפותח, הקורא ומכונת-השילוב קוראים את הגרסה
+ * קובץ TS (.ts/.tsx/.mts/.cts — לא .d.ts) ⇒ אותו טקסט שבו כל הערה הוסרה (עם הרווחים שסביבה; רווח רק כשצריך, סופי-השורה
+ * שבתוכה נשמרים) — מספרי-השורה נשמרים, ואורך ההערה לא משנה (הערה ארוכה או קצרה ⇒ אותו טקסט). ב-TS הערות לא משנות טיפוסים ולא התנהגות, ולכן הפותח, הקורא ומכונת-השילוב קוראים את הגרסה
  * הזו — **ולכן** הפלט שלהם תלוי רק בה, והטביעה שלה (`blankHash`) היא מפתח-המטמון: שינוי של הערה בלבד ⇒ אותה טביעה ⇒
  * שום שלב שקורא קוד לא רץ שוב. (המפקד קורא את הקובץ המקורי — הוא כן משתמש ב-JSDoc לתיאורים.)
  * לא נמחקות: `///` (הנחיות-מהדר), `// @ts-…`, `@jsx…` — הן משנות את מה שהמהדר רואה, ולכן נשארות (וגם בטביעה).
@@ -50,7 +50,19 @@ export function commentRanges(text, fileName = 'x.ts') {
   return [...out].sort((a, b) => a[0] - b[0]);
 }
 
-/** הטקסט בלי הערות (רווח אחד במקום כל הערה; סופי-שורה נשמרים). */
+const HSPACE = /[ \t]/;
+const WORD = /[\w$\u0080-\uffff]/;
+const OP = /[-+*/<>=&|!?.%^~:]/;
+/** האם שני תווים סמוכים (אחרי הסרת הערה ביניהם) צריכים רווח כדי לא להתמזג לאסימון אחד (`a b`, `+ +`, `/ /`). */
+const needsGap = (l, r) => (WORD.test(l) && WORD.test(r)) || (OP.test(l) && OP.test(r));
+
+/**
+ * הטקסט בלי הערות. הערה + הרווחים האופקיים שסביבה ⇒ (SELF-LOOP, 14.10.2026 — תיקון):
+ *   · כלום — כשהיא בסוף שורה / בתחילת שורה (`x; // הערה` ⇒ `x;` — כמו בלי ההערה בכלל);
+ *   · רווח אחד — כשהיה רווח לצידה, או כשבלעדיו שני אסימונים היו מתמזגים; אחרת כלום: הערת-בלוק צמודה בתוך סוגריים ⇒ נעלמת;
+ *   · סופי-השורה שבתוכה — כשהיא רב-שורתית (השורות נשמרות).
+ * היה: רווח קבוע במקום ההערה ⇒ `x; // x` נתן `x;  ` ≠ `x;` ⇒ הוספת הערה בסוף שורה שינתה את הטביעה וכל הצינור רץ (38.7 שנ׳).
+ */
 export function blankComments(text, fileName = 'x.ts') {
   const rs = commentRanges(text, fileName);
   if (!rs.length) return text;
@@ -59,10 +71,13 @@ export function blankComments(text, fileName = 'x.ts') {
     if (s < at) continue;
     const c = text.slice(s, e);
     if (KEEP.test(c)) continue;
-    // רווח אחד (או סופי-השורה שבתוך הערה רב-שורתית) — **אורך קבוע**, כך שהערה ארוכה/קצרה נותנת אותו טקסט; השורות נשמרות
+    let a = s; while (a > at && HSPACE.test(text[a - 1])) a--;
+    let b = e; while (b < text.length && HSPACE.test(text[b])) b++;
+    const l = a > 0 ? text[a - 1] : '\n'; const r = b < text.length ? text[b] : '\n';
     const nl = c.match(/\r?\n/g);
-    out += text.slice(at, s) + (nl ? nl.join('') : ' ');
-    at = e;
+    const lineEdge = l === '\n' || l === '\r' || r === '\n' || r === '\r';
+    out += text.slice(at, a) + (nl ? nl.join('') : lineEdge ? '' : a < s || b > e || needsGap(l, r) ? ' ' : '');
+    at = b;
   }
   return out + text.slice(at);
 }
@@ -76,7 +91,7 @@ const memo = new Map();
 /** sourceView עם מטמון (בזיכרון + lib/cache.mjs לפי טביעת הטקסט המקורי) — פרסור-מהדר לכל קובץ רק כשהתוכן חדש. */
 export function sourceViewCached(file, text) {
   if (!isBlankable(file)) return text;
-  const k = fingerprint('blank-v2', ts.version, file.endsWith('x') ? 'x' : 't', text);
+  const k = fingerprint('blank-v3', ts.version, file.endsWith('x') ? 'x' : 't', text);
   let v = memo.get(k);
   if (v === undefined) { v = cacheGet('blank', k); if (typeof v !== 'string') { v = blankComments(text, file); cachePut('blank', k, v); } memo.set(k, v); }
   return v;

@@ -606,7 +606,7 @@ export function actionOf(verb) {
   return { he: VERB_HE(verb), plain: '' };
 }
 
-function stepView(p, prev, flows, role) {
+export function stepView(p, prev, flows, role) {
   const flow = prev ? flows[prev.id + '>' + p.id] || null : null;
   const pr = (role && p.proofs?.[role]) || {};
   const proof = pr.status === 'proven' ? 'proven' : pr.status === 'twin' ? 'twin' : pr.status === 'example' ? 'example' : 'static';

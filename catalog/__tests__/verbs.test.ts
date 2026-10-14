@@ -25,9 +25,9 @@ function report(v: Verb, fn: (...a: unknown[]) => unknown, want?: { i: number; j
 }
 
 describe('אלפבית-הפעלים', () => {
-  it('25–64 פעלים, מזהים ייחודיים, לכל אחד שם עברי ומשמעות; פועל-עם-חוקים — לפחות חוק אחד', () => {
+  it('25–65 פעלים, מזהים ייחודיים, לכל אחד שם עברי ומשמעות; פועל-עם-חוקים — לפחות חוק אחד', () => {
     expect(VERBS.length).toBeGreaterThanOrEqual(25);
-    expect(VERBS.length).toBeLessThanOrEqual(64);
+    expect(VERBS.length).toBeLessThanOrEqual(65); // PRODUCT-V2: +3 פעלי-המסלול (tour · allot · schedule)
     expect(new Set(VERBS.map((v) => v.id)).size).toBe(VERBS.length);
     for (const v of VERBS as Verb[]) {
       expect(v.he, v.id).toMatch(/[א-ת]/);

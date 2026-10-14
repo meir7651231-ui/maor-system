@@ -1,7 +1,7 @@
 {
  "source": "core-c",
  "repo": "meir7651231-ui/maor-system",
- "ref": "catalog/core@0d1f71d9",
+ "ref": "catalog/core@07e27527",
  "generatedAt": null,
  "parts": [
   {
@@ -492,6 +492,84 @@
      "file": "app_flutter/lib/logic/install_engine.dart",
      "line": 759,
      "what": "Least-cost search (Dijkstra) על הגרף שנבנה — הצרכן של הרשת"
+    }
+   ]
+  },
+  {
+   "id": "core-c:catalog/core/nearest-point.mjs#nearestPoint",
+   "source": "core-c",
+   "path": "catalog/core/nearest-point.mjs",
+   "symbol": "nearestPoint",
+   "lang": "js",
+   "what": "brick",
+   "name": "בוחר את הנקודה הקרובה ביותר למוצא",
+   "does": "מכל הנקודות — זו שהמרחק שלה מהמוצא הכי קטן (אין נקודות ⇒ null). שוויון נשבר לפי x ואז y — הבחירה לא תלויה בסדר.",
+   "takes": [
+    {
+     "name": "points",
+     "kind": "geo",
+     "type": "{x, y}[]"
+    },
+    {
+     "name": "from",
+     "kind": "geo",
+     "type": "{x, y}"
+    }
+   ],
+   "gives": {
+    "kind": "geo",
+    "type": "{x, y}"
+   },
+   "pure": true,
+   "example": {
+    "in": {
+     "points": [
+      {
+       "x": 5,
+       "y": 0
+      },
+      {
+       "x": 1,
+       "y": 1
+      },
+      {
+       "x": 0,
+       "y": 3
+      }
+     ],
+     "from": {
+      "x": 0,
+      "y": 0
+     }
+    },
+    "out": {
+     "x": 1,
+     "y": 1
+    }
+   },
+   "tags": [
+    "core",
+    "verb:extreme",
+    "world-free"
+   ],
+   "origins": [
+    {
+     "repo": "maor-system",
+     "file": "src/components/supporters/SupportersGalaxy.tsx",
+     "line": 125,
+     "what": "const d = Math.hypot(p.x - mx, p.y - my); if (d < bd + p.r) { bd = d; best = p; } — הכוכב הקרוב לעכבר (bd יורד)"
+    },
+    {
+     "repo": "maor-system",
+     "file": "src/components/supporters/SupportersUniverse3D.tsx",
+     "line": 111,
+     "what": "אותו Math.hypot(p.x - mx, p.y - my) ו-best = p — ביקום-3D"
+    },
+    {
+     "repo": "maor-system",
+     "file": "src/components/parnasa/envelope.ts",
+     "line": 187,
+     "what": "nodes.reduce((m, n) => Math.min(m, Math.hypot(n.x - px, n.y - py)), 99) — המרחק לנקודה הקרובה"
     }
    ]
   },

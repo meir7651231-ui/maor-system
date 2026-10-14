@@ -1,14 +1,14 @@
 {
  "source": "core-c",
- "ref": "catalog/core@0d1f71d9",
+ "ref": "catalog/core@07e27527",
  "probe": {
   "version": 1,
   "seed": 13269520,
   "generatedAt": null
  },
  "totals": {
-  "run": 9,
-  "runWithVerb": 9,
+  "run": 10,
+  "runWithVerb": 10,
   "twin": 0,
   "static": 0,
   "staticWithVerb": 0,
@@ -125,6 +125,21 @@
    "material": "record:netSpec",
    "cases": 24,
    "hash": "ac0ca42a-520c946c"
+  },
+  {
+   "id": "core-c:catalog/core/nearest-point.mjs#nearestPoint",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "extreme",
+     "on": "points",
+     "holds": "21/21"
+    }
+   ],
+   "primary": "extreme",
+   "material": "geo",
+   "cases": 24,
+   "hash": "703cd1af-f52350d3"
   },
   {
    "id": "core-c:catalog/core/points-within.mjs#pointsWithin",

@@ -9,13 +9,14 @@ import path from 'node:path';
 import { CATALOG, loadIndex, loadParts, loadRecipes } from './load.mjs';
 import { loadRunners, composeGraph, composeChain, compose, partByHome, SEED } from './combine.mjs';
 import { VERB_BY_ID as LAW_VERBS } from '../lib/verbs.mjs';
+import { graphNodes } from './graph.mjs';
 
 export async function comboFunction(file) {
   const rec = JSON.parse(fs.readFileSync(path.join(CATALOG, 'recipes', file), 'utf8'));
   const c = rec.combo;
   const raw = new Map(loadParts().map((p) => [p.id, p]));
   const ix = loadIndex({ recipes: loadRecipes().filter((r) => !r.combo) });
-  const ids = c.form === 'graph' ? c.graph.nodes.map((n) => n.part) : c.steps;
+  const ids = c.form === 'graph' ? graphNodes(c.graph).map((n) => n.part) : c.steps;
   const parts = ids.map((id) => partByHome(ix, id));
   if (parts.some((p) => !p)) throw new Error('חלק חסר באינדקס: ' + ids[parts.indexOf(null)]);
   const runners = await loadRunners([...new Set(parts)], raw);

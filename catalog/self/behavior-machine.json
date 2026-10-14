@@ -1,19 +1,19 @@
 {
  "source": "machine",
- "ref": "catalog@a59e68bcd0ea",
+ "ref": "catalog@8d94c4a20c88",
  "probe": {
   "version": 1,
   "seed": 13269520,
   "generatedAt": null
  },
  "totals": {
-  "run": 323,
-  "runWithVerb": 61,
+  "run": 335,
+  "runWithVerb": 64,
   "twin": 0,
-  "static": 189,
-  "staticWithVerb": 18,
+  "static": 191,
+  "staticWithVerb": 17,
   "why": {
-   "no-fitting-input": 164,
+   "no-fitting-input": 166,
    "load-failed": 25
   }
  },
@@ -794,38 +794,49 @@
    "hash": "e18e0653-1663dc57"
   },
   {
-   "id": "machine:catalog/combiner/graph.mjs#graphParts",
-   "labeledBy": "static",
-   "verbs": [
-    {
-     "id": "shortest-path",
-     "by": "symbol"
-    }
-   ],
-   "primary": "shortest-path",
-   "material": "unknown",
-   "reason": "no-fitting-input"
-  },
-  {
-   "id": "machine:catalog/combiner/graph.mjs#runGraph",
-   "labeledBy": "static",
-   "verbs": [
-    {
-     "id": "shortest-path",
-     "by": "symbol"
-    }
-   ],
-   "primary": "shortest-path",
-   "material": "unknown",
-   "reason": "no-fitting-input"
-  },
-  {
-   "id": "machine:catalog/combiner/graph.mjs#wire",
-   "labeledBy": "static",
+   "id": "machine:catalog/combiner/graph.mjs#bad",
+   "labeledBy": "run",
    "verbs": [],
    "primary": null,
    "material": "text",
-   "reason": "no-fitting-input"
+   "cases": 24,
+   "traits": "in[]>bool const"
+  },
+  {
+   "id": "machine:catalog/combiner/graph.mjs#graphLoops",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 21,
+   "traits": "in[bool|num|str]>arr const"
+  },
+  {
+   "id": "machine:catalog/combiner/graph.mjs#graphNodes",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 19,
+   "traits": "in[bool|num|str]>arr const"
+  },
+  {
+   "id": "machine:catalog/combiner/graph.mjs#graphParts",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 21,
+   "traits": "in[bool|num|str]>arr const"
+  },
+  {
+   "id": "machine:catalog/combiner/graph.mjs#isOp",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[]>bool const"
   },
   {
    "id": "machine:catalog/combiner/laws.mjs#arrIn",
@@ -1875,6 +1886,21 @@
    "material": "file",
    "cases": 24,
    "traits": "in[]>bool const"
+  },
+  {
+   "id": "machine:catalog/lib/blank.mjs#needsGap",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "validate",
+     "on": "*",
+     "holds": "24/24"
+    }
+   ],
+   "primary": "validate",
+   "material": "unknown",
+   "cases": 24,
+   "hash": "7a33080d-2f9afdb0"
   },
   {
    "id": "machine:catalog/lib/blank.mjs#sourceView",
@@ -3306,6 +3332,117 @@
    "material": "unknown",
    "cases": 24,
    "traits": "in[]>bool const"
+  },
+  {
+   "id": "machine:catalog/lib/verbs-route.mjs#FAIL",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[str]>str"
+  },
+  {
+   "id": "machine:catalog/lib/verbs-route.mjs#allotFit",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:error",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "machine:catalog/lib/verbs-route.mjs#counter",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 24,
+   "traits": "in[]>fn const"
+  },
+  {
+   "id": "machine:catalog/lib/verbs-route.mjs#nnOrder",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:from",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "machine:catalog/lib/verbs-route.mjs#pathLen",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "round",
+     "on": "r",
+     "holds": "16/16"
+    }
+   ],
+   "primary": "round",
+   "material": "unknown",
+   "cases": 21,
+   "hash": "5e5eaa09-4f06283c"
+  },
+  {
+   "id": "machine:catalog/lib/verbs-route.mjs#pt",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 24,
+   "traits": "in[]>bool const"
+  },
+  {
+   "id": "machine:catalog/lib/verbs-route.mjs#schedFit",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "sun-position",
+     "by": "name"
+    }
+   ],
+   "primary": "sun-position",
+   "material": "record:error",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "machine:catalog/lib/verbs-route.mjs#scheduleRef",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "record:route",
+   "cases": 24,
+   "traits": "in[]>arr const"
+  },
+  {
+   "id": "machine:catalog/lib/verbs-route.mjs#tol",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "convert",
+     "on": "L",
+     "holds": "9/9"
+    }
+   ],
+   "primary": "convert",
+   "material": "unknown",
+   "cases": 24,
+   "hash": "5e5eaa09-41eea785"
+  },
+  {
+   "id": "machine:catalog/lib/verbs-route.mjs#tourFit",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:error",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "machine:catalog/lib/verbs-route.mjs#uniq",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:x",
+   "reason": "no-fitting-input"
   },
   {
    "id": "machine:catalog/lib/verbs-sun.mjs#FAIL",

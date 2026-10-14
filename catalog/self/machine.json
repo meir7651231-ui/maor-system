@@ -1,7 +1,7 @@
 {
  "source": "machine",
  "repo": "meir7651231-ui/maor-system",
- "ref": "catalog@a59e68bcd0ea",
+ "ref": "catalog@8d94c4a20c88",
  "generatedAt": null,
  "parts": [
   {
@@ -2612,6 +2612,89 @@
    ]
   },
   {
+   "id": "machine:catalog/combiner/graph.mjs#bad",
+   "source": "machine",
+   "path": "catalog/combiner/graph.mjs",
+   "symbol": "bad",
+   "lang": "js",
+   "what": "function",
+   "name": "להפיק כישלון",
+   "does": "להפיק כישלון — מקבל טקסט, ומחזיר משהו.",
+   "takes": [
+    {
+     "name": "v",
+     "kind": "text",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/combiner",
+    "name:auto"
+   ]
+  },
+  {
+   "id": "machine:catalog/combiner/graph.mjs#graphLoops",
+   "source": "machine",
+   "path": "catalog/combiner/graph.mjs",
+   "symbol": "graphLoops",
+   "lang": "js",
+   "what": "function",
+   "name": "להפיק ערך",
+   "does": "האם בגרף יש לולאה (חיווט-חוזר — נבנה חדש ב-PRODUCT-V2; מוצג במפורש).",
+   "takes": [
+    {
+     "name": "g",
+     "kind": "unknown",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/combiner",
+    "name:auto",
+    "name:english-residue"
+   ]
+  },
+  {
+   "id": "machine:catalog/combiner/graph.mjs#graphNodes",
+   "source": "machine",
+   "path": "catalog/combiner/graph.mjs",
+   "symbol": "graphNodes",
+   "lang": "js",
+   "what": "function",
+   "name": "להפיק ערך",
+   "does": "כל צמתי-החלקים של הגרף, כולל אלה שבתוך לולאות — לפי הסדר (זה המספור של callNode).",
+   "takes": [
+    {
+     "name": "g",
+     "kind": "unknown",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/combiner",
+    "name:auto",
+    "name:english-residue"
+   ]
+  },
+  {
    "id": "machine:catalog/combiner/graph.mjs#graphParts",
    "source": "machine",
    "path": "catalog/combiner/graph.mjs",
@@ -2640,79 +2723,30 @@
    ]
   },
   {
-   "id": "machine:catalog/combiner/graph.mjs#runGraph",
+   "id": "machine:catalog/combiner/graph.mjs#isOp",
    "source": "machine",
    "path": "catalog/combiner/graph.mjs",
-   "symbol": "runGraph",
+   "symbol": "isOp",
    "lang": "js",
-   "what": "function",
-   "name": "להריץ ערך",
-   "does": "מריץ את הגרף. callNode(k, args) ⇒ {v} | {err} | {async} (כמו callerFor של ארגז-החול).",
-   "takes": [
-    {
-     "name": "g",
-     "kind": "unknown",
-     "type": "unknown"
-    },
-    {
-     "name": "args",
-     "kind": "list",
-     "type": "unknown"
-    },
-    {
-     "name": "callNode",
-     "kind": "record:callnode",
-     "type": "unknown"
-    }
-   ],
-   "gives": {
-    "kind": "unknown",
-    "type": "unknown"
-   },
-   "pure": true,
-   "example": null,
-   "tags": [
-    "catalog/combiner",
-    "name:auto",
-    "name:english-residue"
-   ]
-  },
-  {
-   "id": "machine:catalog/combiner/graph.mjs#wire",
-   "source": "machine",
-   "path": "catalog/combiner/graph.mjs",
-   "symbol": "wire",
-   "lang": "js",
-   "what": "function",
-   "name": "להפיק ערך",
-   "does": "חוט ⇒ ערך. זורק אם החוט מצביע על משהו שאין (צומת לפני שרץ, שדה חסר).",
+   "what": "particle",
+   "name": "לבדוק אם פעולה",
+   "does": "לבדוק אם פעולה — מקבל טקסט, ומחזיר כן/לא.",
    "takes": [
     {
      "name": "w",
      "kind": "text",
      "type": "unknown"
-    },
-    {
-     "name": "inputs",
-     "kind": "list",
-     "type": "unknown"
-    },
-    {
-     "name": "vals",
-     "kind": "record:val",
-     "type": "unknown"
     }
    ],
    "gives": {
-    "kind": "unknown",
+    "kind": "bool",
     "type": "unknown"
    },
    "pure": true,
    "example": null,
    "tags": [
     "catalog/combiner",
-    "name:auto",
-    "name:english-residue"
+    "name:auto"
    ]
   },
   {
@@ -6156,7 +6190,7 @@
    "lang": "js",
    "what": "function",
    "name": "להפיק ערך",
-   "does": "הטקסט בלי הערות (רווח אחד במקום כל הערה; סופי-שורה נשמרים).",
+   "does": "הטקסט בלי הערות. הערה + הרווחים האופקיים שסביבה ⇒ (SELF-LOOP, 14.10.2026 — תיקון):.",
    "takes": [
     {
      "name": "text",
@@ -6232,6 +6266,39 @@
    ],
    "gives": {
     "kind": "bool",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/lib",
+    "name:auto",
+    "name:english-residue"
+   ]
+  },
+  {
+   "id": "machine:catalog/lib/blank.mjs#needsGap",
+   "source": "machine",
+   "path": "catalog/lib/blank.mjs",
+   "symbol": "needsGap",
+   "lang": "js",
+   "what": "function",
+   "name": "לבדוק אם",
+   "does": "האם שני תווים סמוכים (אחרי הסרת הערה ביניהם) צריכים רווח כדי לא להתמזג לאסימון אחד (`a b`, `+ +`, `/ /`).",
+   "takes": [
+    {
+     "name": "l",
+     "kind": "unknown",
+     "type": "unknown"
+    },
+    {
+     "name": "r",
+     "kind": "unknown",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
     "type": "unknown"
    },
    "pure": true,
@@ -10962,6 +11029,318 @@
     "catalog/lib",
     "name:auto",
     "name:english-residue"
+   ]
+  },
+  {
+   "id": "machine:catalog/lib/verbs-route.mjs#FAIL",
+   "source": "machine",
+   "path": "catalog/lib/verbs-route.mjs",
+   "symbol": "FAIL",
+   "lang": "js",
+   "what": "function",
+   "name": "להפיק כשל",
+   "does": "להפיק כשל — מקבל טקסט, ומחזיר משהו.",
+   "takes": [
+    {
+     "name": "s",
+     "kind": "text",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/lib",
+    "name:auto"
+   ]
+  },
+  {
+   "id": "machine:catalog/lib/verbs-route.mjs#allotFit",
+   "source": "machine",
+   "path": "catalog/lib/verbs-route.mjs",
+   "symbol": "allotFit",
+   "lang": "js",
+   "what": "function",
+   "name": "להפיק התאמה",
+   "does": "להפיק התאמה allot — מקבל רשומת error, ומחזיר משהו.",
+   "takes": [
+    {
+     "name": "e",
+     "kind": "record:error",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/lib",
+    "name:auto",
+    "name:english-residue"
+   ]
+  },
+  {
+   "id": "machine:catalog/lib/verbs-route.mjs#counter",
+   "source": "machine",
+   "path": "catalog/lib/verbs-route.mjs",
+   "symbol": "counter",
+   "lang": "js",
+   "what": "function",
+   "name": "לחשב מונה",
+   "does": "לחשב מונה — מקבל משהו, ומחזיר מספר.",
+   "takes": [
+    {
+     "name": "fn",
+     "kind": "unknown",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "number",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/lib",
+    "name:auto"
+   ]
+  },
+  {
+   "id": "machine:catalog/lib/verbs-route.mjs#nnOrder",
+   "source": "machine",
+   "path": "catalog/lib/verbs-route.mjs",
+   "symbol": "nnOrder",
+   "lang": "js",
+   "what": "function",
+   "name": "להפיק הזמנה",
+   "does": "מימושי-ייחוס (לבדיקת החוקים בלבד).",
+   "takes": [
+    {
+     "name": "from",
+     "kind": "record:from",
+     "type": "unknown"
+    },
+    {
+     "name": "stops",
+     "kind": "record:stop",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/lib",
+    "name:auto",
+    "name:english-residue"
+   ]
+  },
+  {
+   "id": "machine:catalog/lib/verbs-route.mjs#pathLen",
+   "source": "machine",
+   "path": "catalog/lib/verbs-route.mjs",
+   "symbol": "pathLen",
+   "lang": "js",
+   "what": "function",
+   "name": "להפיק אורך נתיב",
+   "does": "אורך דרך: סכום הרגליים בין תחנות צמודות.",
+   "takes": [
+    {
+     "name": "r",
+     "kind": "unknown",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/lib",
+    "name:auto"
+   ]
+  },
+  {
+   "id": "machine:catalog/lib/verbs-route.mjs#pt",
+   "source": "machine",
+   "path": "catalog/lib/verbs-route.mjs",
+   "symbol": "pt",
+   "lang": "js",
+   "what": "function",
+   "name": "להפיק ערך",
+   "does": "להפיק pt — מקבל משהו, ומחזיר משהו.",
+   "takes": [
+    {
+     "name": "o",
+     "kind": "unknown",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/lib",
+    "name:auto",
+    "name:english-residue"
+   ]
+  },
+  {
+   "id": "machine:catalog/lib/verbs-route.mjs#schedFit",
+   "source": "machine",
+   "path": "catalog/lib/verbs-route.mjs",
+   "symbol": "schedFit",
+   "lang": "js",
+   "what": "function",
+   "name": "להפיק התאמה לוח זמנים",
+   "does": "להפיק התאמה לוח זמנים — מקבל רשומת error, ומחזיר משהו.",
+   "takes": [
+    {
+     "name": "e",
+     "kind": "record:error",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/lib",
+    "name:auto"
+   ]
+  },
+  {
+   "id": "machine:catalog/lib/verbs-route.mjs#scheduleRef",
+   "source": "machine",
+   "path": "catalog/lib/verbs-route.mjs",
+   "symbol": "scheduleRef",
+   "lang": "js",
+   "what": "function",
+   "name": "לתזמן הפניה",
+   "does": "ייחוס «מתזמן בחלונות»: נוסעים בקו ישר במהירות קבועה, לא מגיעים לפני פתיחת-החלון, נשארים stay דקות בכל תחנה.",
+   "takes": [
+    {
+     "name": "route",
+     "kind": "record:route",
+     "type": "unknown"
+    },
+    {
+     "name": "spec",
+     "kind": "record:spec",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/lib",
+    "name:auto"
+   ]
+  },
+  {
+   "id": "machine:catalog/lib/verbs-route.mjs#tol",
+   "source": "machine",
+   "path": "catalog/lib/verbs-route.mjs",
+   "symbol": "tol",
+   "lang": "js",
+   "what": "function",
+   "name": "להפיק ערך",
+   "does": "להפיק tol — מקבל משהו, ומחזיר משהו.",
+   "takes": [
+    {
+     "name": "L",
+     "kind": "unknown",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/lib",
+    "name:auto",
+    "name:english-residue"
+   ]
+  },
+  {
+   "id": "machine:catalog/lib/verbs-route.mjs#tourFit",
+   "source": "machine",
+   "path": "catalog/lib/verbs-route.mjs",
+   "symbol": "tourFit",
+   "lang": "js",
+   "what": "function",
+   "name": "להפיק התאמה",
+   "does": "החוקים.",
+   "takes": [
+    {
+     "name": "e",
+     "kind": "record:error",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/lib",
+    "name:auto",
+    "name:english-residue"
+   ]
+  },
+  {
+   "id": "machine:catalog/lib/verbs-route.mjs#uniq",
+   "source": "machine",
+   "path": "catalog/lib/verbs-route.mjs",
+   "symbol": "uniq",
+   "lang": "js",
+   "what": "particle",
+   "name": "להפיק ייחודיים",
+   "does": "כל תחנה פעם אחת (אותו מקום = אותה תחנה), בסדר ההגעה.",
+   "takes": [
+    {
+     "name": "xs",
+     "kind": "record:x",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/lib",
+    "name:auto"
    ]
   },
   {

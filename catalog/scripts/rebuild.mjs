@@ -68,6 +68,8 @@ export const STAGES = [
   { name: 'combiner-prove', run: ['catalog/combiner/prove.mjs'], in: [...view(...CODE), ...TSENV], out: ['catalog/combiner/proofs.json'] },
   { name: 'combine', early: ['catalog-build'], run: ['catalog/combiner/combine.mjs'], in: [...view(...CODE), ...TSENV, SOURCES, BEHAVIOR, STORES, GOALS, RECIPES, ...COMBINER_DATA, 'catalog/combiner/proofs.json', 'catalog/inner/gen.manifest.json', 'catalog/verbs.json', { p: 'catalog/self/stamps/*.json', not: /\/combine\.json$/ }], out: ['catalog/combiner/combos.json', 'catalog/recipes/combo-', 'catalog/self/stamps/combine.json'] },
   { name: 'build', run: ['catalog/combiner/build.mjs'], in: [SOURCES, BEHAVIOR, STORES, GOALS, 'catalog/recipes/', ...COMBINER_DATA, 'catalog/combiner/proofs.json', 'catalog/inner/gen.manifest.json', 'catalog/verbs.json'], out: ['catalog/combiner/lab-data.json', 'catalog/combiner/dig/'] },
+  // 📦 המוצר «מוקד-חלוקה» (PRODUCT-V2): ההרכבה ⇒ חבילה. אורז את קוד-המקור **עם ההערות** (rolldown שומר אותן) ⇒ CODE כמו שהוא
+  { name: 'bundle', run: ['catalog/runtime/bundle.mjs'], in: ['catalog/runtime/', ...CODE, ...TSENV, SOURCES, BEHAVIOR, STORES, GOALS, 'catalog/recipes/', ...COMBINER_DATA, 'catalog/combiner/combos.json', 'catalog/combiner/proofs.json', 'catalog/inner/gen.manifest.json', 'catalog/verbs.json', 'catalog/index.json'], out: ['catalog/products/distribution/assembly.json', 'catalog/products/distribution/parts.bundle.mjs'] },
   { name: 'self-check', run: ['catalog/scripts/self-check.mjs'], in: ['catalog/schema.json', ...TSENV, 'src/lib/atoms/'], out: ['catalog/self/machine.json', 'catalog/self/behavior-machine.json', 'catalog/self/report.json'], heavy: true },
 ];
 

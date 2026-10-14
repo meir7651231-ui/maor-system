@@ -2,19 +2,22 @@
   "version": 1,
   "generatedAt": null,
   "note": "מכוסה = לפועל של ההתנהגות יש חלק בקטלוג שמתויג בו (catalog/behavior). לפני = 45 פעלים, 9 מקורות. אחרי = 60 פעלים + הליבה (catalog/core). material = גם אותו סוג-חומר.",
-  "behaviors": 940,
+  "behaviors": 959,
   "newVerbsLeft": 0,
   "before": {
-    "byVerb": 753,
-    "byVerbAndMaterial": 595,
-    "pct": 80.1
+    "byVerb": 766,
+    "byVerbAndMaterial": 605,
+    "pct": 79.9
   },
   "after": {
-    "byVerb": 940,
-    "byVerbAndMaterial": 763,
-    "pct": 100
+    "byVerb": 957,
+    "byVerbAndMaterial": 776,
+    "pct": 99.8
   },
-  "uncoveredAfter": [],
+  "uncoveredAfter": [
+    "allot",
+    "tour"
+  ],
   "verbs": [
     {
       "verb": "validate",
@@ -51,10 +54,26 @@
     {
       "verb": "offset",
       "mined": false,
-      "needs": 42,
-      "before": 42,
-      "after": 42,
+      "needs": 43,
+      "before": 43,
+      "after": 43,
       "parts": 90
+    },
+    {
+      "verb": "escalate",
+      "mined": false,
+      "needs": 39,
+      "before": 39,
+      "after": 39,
+      "parts": 80
+    },
+    {
+      "verb": "sort",
+      "mined": false,
+      "needs": 39,
+      "before": 39,
+      "after": 39,
+      "parts": 46
     },
     {
       "verb": "next",
@@ -65,27 +84,11 @@
       "parts": 9
     },
     {
-      "verb": "sort",
-      "mined": false,
-      "needs": 38,
-      "before": 38,
-      "after": 38,
-      "parts": 46
-    },
-    {
-      "verb": "escalate",
-      "mined": false,
-      "needs": 37,
-      "before": 37,
-      "after": 37,
-      "parts": 80
-    },
-    {
       "verb": "count",
       "mined": false,
-      "needs": 30,
-      "before": 30,
-      "after": 30,
+      "needs": 31,
+      "before": 31,
+      "after": 31,
       "parts": 188
     },
     {
@@ -115,9 +118,9 @@
     {
       "verb": "countdown",
       "mined": true,
-      "needs": 25,
+      "needs": 26,
       "before": 0,
-      "after": 25,
+      "after": 26,
       "parts": 11
     },
     {
@@ -129,20 +132,20 @@
       "parts": 34
     },
     {
+      "verb": "extreme",
+      "mined": false,
+      "needs": 22,
+      "before": 22,
+      "after": 22,
+      "parts": 130
+    },
+    {
       "verb": "accumulate",
       "mined": true,
       "needs": 21,
       "before": 0,
       "after": 21,
       "parts": 48
-    },
-    {
-      "verb": "extreme",
-      "mined": false,
-      "needs": 21,
-      "before": 21,
-      "after": 21,
-      "parts": 129
     },
     {
       "verb": "oscillate",
@@ -185,6 +188,14 @@
       "parts": 44
     },
     {
+      "verb": "random",
+      "mined": true,
+      "needs": 17,
+      "before": 0,
+      "after": 17,
+      "parts": 9
+    },
+    {
       "verb": "sum",
       "mined": false,
       "needs": 17,
@@ -193,12 +204,12 @@
       "parts": 140
     },
     {
-      "verb": "random",
-      "mined": true,
-      "needs": 16,
-      "before": 0,
-      "after": 16,
-      "parts": 9
+      "verb": "group",
+      "mined": false,
+      "needs": 15,
+      "before": 15,
+      "after": 15,
+      "parts": 21
     },
     {
       "verb": "tier",
@@ -209,20 +220,20 @@
       "parts": 306
     },
     {
-      "verb": "group",
-      "mined": false,
-      "needs": 14,
-      "before": 14,
-      "after": 14,
-      "parts": 21
-    },
-    {
       "verb": "dedupe",
       "mined": false,
       "needs": 13,
       "before": 13,
       "after": 13,
       "parts": 21
+    },
+    {
+      "verb": "lookup",
+      "mined": false,
+      "needs": 12,
+      "before": 12,
+      "after": 12,
+      "parts": 86
     },
     {
       "verb": "reverse",
@@ -257,20 +268,20 @@
       "parts": 3
     },
     {
-      "verb": "lookup",
-      "mined": false,
-      "needs": 11,
-      "before": 11,
-      "after": 11,
-      "parts": 86
-    },
-    {
       "verb": "personalize",
       "mined": false,
       "needs": 11,
       "before": 11,
       "after": 11,
       "parts": 244
+    },
+    {
+      "verb": "move-along-path",
+      "mined": true,
+      "needs": 10,
+      "before": 0,
+      "after": 10,
+      "parts": 15
     },
     {
       "verb": "orbit",
@@ -281,12 +292,12 @@
       "parts": 4
     },
     {
-      "verb": "move-along-path",
-      "mined": true,
-      "needs": 9,
-      "before": 0,
-      "after": 9,
-      "parts": 15
+      "verb": "format",
+      "mined": false,
+      "needs": 8,
+      "before": 8,
+      "after": 8,
+      "parts": 1134
     },
     {
       "verb": "merge",
@@ -297,12 +308,12 @@
       "parts": 45
     },
     {
-      "verb": "format",
+      "verb": "route",
       "mined": false,
-      "needs": 7,
-      "before": 7,
-      "after": 7,
-      "parts": 1134
+      "needs": 8,
+      "before": 8,
+      "after": 8,
+      "parts": 76
     },
     {
       "verb": "round",
@@ -311,14 +322,6 @@
       "before": 7,
       "after": 7,
       "parts": 430
-    },
-    {
-      "verb": "route",
-      "mined": false,
-      "needs": 7,
-      "before": 7,
-      "after": 7,
-      "parts": 76
     },
     {
       "verb": "follow",
@@ -339,9 +342,9 @@
     {
       "verb": "shortest-path",
       "mined": true,
-      "needs": 5,
+      "needs": 6,
       "before": 0,
-      "after": 5,
+      "after": 6,
       "parts": 24
     },
     {
@@ -351,6 +354,14 @@
       "before": 0,
       "after": 5,
       "parts": 1
+    },
+    {
+      "verb": "require-source",
+      "mined": false,
+      "needs": 3,
+      "before": 3,
+      "after": 3,
+      "parts": 18
     },
     {
       "verb": "bounce",
@@ -369,20 +380,20 @@
       "parts": 378
     },
     {
-      "verb": "require-source",
-      "mined": false,
-      "needs": 2,
-      "before": 2,
-      "after": 2,
-      "parts": 18
-    },
-    {
       "verb": "transcript",
       "mined": false,
       "needs": 2,
       "before": 2,
       "after": 2,
       "parts": 31
+    },
+    {
+      "verb": "allot",
+      "mined": false,
+      "needs": 1,
+      "before": 0,
+      "after": 0,
+      "parts": 0
     },
     {
       "verb": "echo",
@@ -415,6 +426,30 @@
       "before": 1,
       "after": 1,
       "parts": 228
+    },
+    {
+      "verb": "schedule",
+      "mined": false,
+      "needs": 1,
+      "before": 1,
+      "after": 1,
+      "parts": 3
+    },
+    {
+      "verb": "tally",
+      "mined": false,
+      "needs": 1,
+      "before": 1,
+      "after": 1,
+      "parts": 23
+    },
+    {
+      "verb": "tour",
+      "mined": false,
+      "needs": 1,
+      "before": 0,
+      "after": 0,
+      "parts": 0
     }
   ]
 }

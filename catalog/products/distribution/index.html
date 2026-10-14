@@ -1,0 +1,753 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>מוקד חלוקת סלים</title>
+<link rel="icon" href="data:,">
+<meta name="description" content="מוקד חלוקת סלים לחג — מוצר שלם שהמכונה הרכיבה מהמילה «מוקד-חלוקה»: שיבוץ עם קיבולת, מסלול ממוטב, שעות הגעה עם חלונות, וכל מספר בדף הוא חלק מוכח מהקוד שלנו.">
+<style>
+:root{
+  --bg:#f5f4fa; --surface:#ffffff; --surface-2:#f0eef7; --ink:#1b1830; --ink-2:#47425f; --ink-3:#6b6685;
+  --line:#e2dfee; --accent:#5536d1; --accent-2:#ece8fd; --accent-ink:#ffffff; --ok:#0b7a4b; --ok-bg:#e3f6ec; --warn:#875700; --warn-bg:#fbf1d6;
+  --bad:#b4231a; --bad-bg:#fdecea; --map:#fbfaff; --grid:#ebe8f5; --shadow:0 1px 2px rgba(20,16,50,.05),0 8px 28px rgba(20,16,50,.06);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#110f18; --surface:#1a1725; --surface-2:#231f32; --ink:#f1eefc; --ink-2:#c9c3e4; --ink-3:#a29bc0;
+    --line:#302b45; --accent:#a08cff; --accent-2:#2a2446; --accent-ink:#130f22; --ok:#5fd59c; --ok-bg:#163327; --warn:#f2cd6b; --warn-bg:#33290e;
+    --bad:#ff8d84; --bad-bg:#3a1714; --map:#16131f; --grid:#2a2539; --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 28px rgba(0,0,0,.3);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#110f18; --surface:#1a1725; --surface-2:#231f32; --ink:#f1eefc; --ink-2:#c9c3e4; --ink-3:#a29bc0;
+  --line:#302b45; --accent:#a08cff; --accent-2:#2a2446; --accent-ink:#130f22; --ok:#5fd59c; --ok-bg:#163327; --warn:#f2cd6b; --warn-bg:#33290e;
+  --bad:#ff8d84; --bad-bg:#3a1714; --map:#16131f; --grid:#2a2539; --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 28px rgba(0,0,0,.3);
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Rubik,Heebo,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1200px;margin:0 auto;padding:16px 16px 64px}
+header{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-start;justify-content:space-between;margin:8px 0 16px}
+h1{font-size:24px;line-height:1.2;margin:0;letter-spacing:-.01em}
+.sub{color:var(--ink-2);margin:4px 0 0;font-size:15px;max-width:66ch}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:var(--shadow);min-width:0}
+.card h2{font-size:16px;margin:0 0 6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.chip{display:inline-block;font-size:12px;line-height:1.4;color:var(--ink-3);background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:1px 9px;margin:2px 0;overflow-wrap:anywhere}
+.chips{display:flex;flex-wrap:wrap;gap:4px;margin:8px 0 0}
+.count{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;align-items:center}
+.big{font-size:28px;font-weight:750;line-height:1.1;font-variant-numeric:tabular-nums}
+.muted{color:var(--ink-3);font-size:13px}
+.grid{display:grid;gap:16px;grid-template-columns:1fr}
+@media (min-width:920px){ .grid{grid-template-columns:minmax(0,1.2fr) minmax(0,1fr)} }
+.stack{display:grid;gap:16px;align-content:start;min-width:0}
+.bar{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+button,.btn{font:inherit;cursor:pointer;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:10px 14px;min-height:44px;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:650}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,.btn:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.small,.btn.small{min-height:36px;padding:4px 10px;font-size:14px;border-radius:10px}
+button[aria-pressed="true"]{background:var(--accent-2);border-color:var(--accent);font-weight:650}
+.mapbox{position:relative;width:100%;aspect-ratio:1/1;max-height:660px;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:var(--map)}
+canvas{display:block;width:100%;height:100%}
+.legend{display:flex;flex-wrap:wrap;gap:6px 12px;margin-top:8px;font-size:13px;color:var(--ink-2)}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-inline-end:4px;vertical-align:middle}
+.kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:8px}
+@media (min-width:520px){ .kpis{grid-template-columns:repeat(3,minmax(0,1fr))} }
+.kpi{background:var(--surface-2);border-radius:12px;padding:8px 10px;min-width:0}
+.kpi b{display:block;font-size:24px;line-height:1.15;font-variant-numeric:tabular-nums}
+.kpi span{font-size:12px;color:var(--ink-3)}
+.kpi.ok b{color:var(--ok)} .kpi.warn b{color:var(--warn)} .kpi.bad b{color:var(--bad)} .kpi.hero{background:var(--accent-2)} .kpi.hero b{color:var(--accent)}
+.save{background:var(--accent-2);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin:4px 0 0;font-size:17px;font-weight:650}
+.save small{display:block;font-weight:400;font-size:13px;color:var(--ink-2);margin-top:2px}
+.prog{height:8px;border-radius:99px;background:var(--surface-2);overflow:hidden;margin-top:10px}
+.prog i{display:block;height:100%;background:var(--ok);width:0;transition:width .3s}
+ul.list{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:8px}
+ul.list li{background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:8px 10px;display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;justify-content:space-between;min-width:0}
+.tag{font-size:12px;font-weight:650;border-radius:999px;padding:1px 9px;white-space:nowrap}
+.tag.ok{background:var(--ok-bg);color:var(--ok)} .tag.warn{background:var(--warn-bg);color:var(--warn)} .tag.bad{background:var(--bad-bg);color:var(--bad)} .tag.n{background:var(--surface);color:var(--ink-2);border:1px solid var(--line)}
+.ctl{display:grid;gap:10px;grid-template-columns:1fr}
+@media (min-width:640px){ .ctl{grid-template-columns:repeat(3,minmax(0,1fr))} }
+.ctl .box{background:var(--surface-2);border-radius:12px;padding:8px 10px;display:grid;gap:6px;min-width:0}
+.ctl label{font-size:13px;color:var(--ink-2)}
+.stepper{display:flex;align-items:center;gap:8px}
+.stepper b{min-width:2.5ch;text-align:center;font-size:20px;font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--accent);min-height:36px}
+.timing{font-size:13px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.load{display:grid;grid-template-columns:minmax(78px,auto) minmax(0,1fr) auto;gap:8px;align-items:center;font-size:13px}
+.load .track{height:10px;border-radius:99px;background:var(--surface-2);overflow:hidden;position:relative}
+.load .track i{position:absolute;inset-block:0;inset-inline-start:0;border-radius:99px}
+.load .track s{position:absolute;inset-block:-2px;width:2px;background:var(--ink-3);text-decoration:none}
+.loads{display:grid;gap:5px;margin-top:8px;max-height:320px;overflow:auto;padding-inline-end:4px}
+.vol{display:grid;gap:8px}
+.vol summary{cursor:pointer;list-style:none;display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;justify-content:space-between;min-height:36px}
+.vol summary::-webkit-details-marker{display:none}
+.vol .nm{font-weight:650}
+.vol .acts{display:flex;flex-wrap:wrap;gap:6px}
+ol.stops{margin:0;padding-inline-start:22px;display:grid;gap:2px;font-size:14px}
+ol.stops .eta{font-variant-numeric:tabular-nums;color:var(--ink-2)}
+pre.msg{white-space:pre-wrap;background:var(--surface);border:1px dashed var(--line);border-radius:10px;padding:8px 10px;margin:0;font:13px/1.5 inherit;color:var(--ink-2);max-height:180px;overflow:auto;width:100%}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:start;padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--ink-3);font-weight:600;font-size:12px}
+td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+.tbl{overflow-x:auto}
+.empty{color:var(--ink-3);font-size:14px;margin:8px 0 0}
+.banner{display:none;background:var(--ok-bg);color:var(--ok);border-radius:12px;padding:10px 12px;font-weight:650;margin-top:10px}
+.banner.on{display:block}
+.machine td:first-child{font-weight:600}
+.machine .src{font-size:12px;color:var(--ink-3);overflow-wrap:anywhere}
+@media (max-width:640px){ #machine thead{display:none} #machine tr,#machine td{display:block;width:100%} #machine td{border-bottom:none;padding:2px 0} #machine tr{border-bottom:1px solid var(--line);padding:8px 0} }
+footer{margin-top:20px;color:var(--ink-2);font-size:14px}
+footer .card{box-shadow:none}
+#print{display:none}
+@media (prefers-reduced-motion: reduce){ .prog i{transition:none} }
+@media print{
+  @page{margin:14mm}
+  body{background:#fff;color:#000;font-size:12pt}
+  .wrap > *:not(#print){display:none !important}
+  #print{display:block}
+  #print h2{font-size:18pt;margin:0 0 4pt} #print p{margin:0 0 8pt}
+  #print table{font-size:12pt} #print th,#print td{border-bottom:1px solid #999;padding:5pt 4pt}
+  #print .box{border:1.5px solid #000;width:14pt;height:14pt;display:inline-block}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>🧺 מוקד חלוקת סלים לחג</h1>
+      <p class="sub" id="sub">עיירה בדויה, משפחות ומתנדבים עם רכב. השיבוץ (עם מקום ברכב), המסלול הממוטב, שעות ההגעה וכל מספר בדף — חלקים מוכחים שהמכונה הרכיבה מהמילה «מוקד-חלוקה».</p>
+    </div>
+    <button id="theme" type="button" aria-label="מעבר בין בהיר לכהה">🌓 תצוגה</button>
+  </header>
+
+  <section class="card" aria-labelledby="h-count">
+    <div class="count">
+      <div>
+        <h2 id="h-count">⏳ עד החג</h2>
+        <div class="big" id="countdown" aria-live="polite">—</div>
+        <div class="muted" id="simclock">—</div>
+      </div>
+      <div>
+        <div class="muted">🔔 תזכורת לכל מתנדב</div>
+        <div id="reminder" style="font-weight:650">—</div>
+      </div>
+    </div>
+    <div class="chips"><span class="chip" data-chip="n7"></span><span class="chip" data-chip="n13"></span></div>
+  </section>
+
+  <section class="card" aria-labelledby="h-plan" style="margin-top:16px">
+    <h2 id="h-plan">🧮 מה אם…</h2>
+    <p class="muted" style="margin:0">משנים — והכול משובץ ומחושב מחדש מיד: מי לוקח את מי, הסדר, השעות והמספרים.</p>
+    <div class="ctl" style="margin-top:10px">
+      <div class="box">
+        <label for="cap">🚗 כמה סלים נכנסים ברכב: <b id="cap-v">—</b></label>
+        <input id="cap" type="range" min="2" max="40" step="1" value="8" aria-describedby="cap-hint">
+        <span class="muted" id="cap-hint">—</span>
+      </div>
+      <div class="box">
+        <span class="muted">🙋 מתנדבים</span>
+        <div class="stepper"><button class="small" id="v-minus" type="button" aria-label="מתנדב אחד פחות">−</button><b id="v-n" aria-live="polite">—</b><button class="small" id="v-plus" type="button" aria-label="עוד מתנדב">+</button></div>
+      </div>
+      <div class="box">
+        <span class="muted">🏠 משפחות</span>
+        <div class="stepper"><button class="small" id="f-minus" type="button" aria-label="משפחה אחת פחות">−</button><b id="f-n" aria-live="polite">—</b><button class="small" id="f-plus" type="button" aria-label="עוד משפחה">+</button></div>
+      </div>
+    </div>
+    <div class="bar" style="align-items:center">
+      <button id="b-scale" type="button" aria-pressed="false">🏙️ 400 משפחות · 30 מתנדבים</button>
+      <span class="timing" id="timing" aria-live="polite">—</span>
+    </div>
+    <div class="chips"><span class="chip" data-chip="n18"></span></div>
+  </section>
+
+  <div class="grid" style="margin-top:16px">
+    <section class="card" aria-labelledby="h-map">
+      <h2 id="h-map">🗺️ המפה</h2>
+      <div class="bar" role="group" aria-label="שלבי החלוקה">
+        <button class="primary" id="b-assign" type="button">① שבץ משפחות לרכבים</button>
+        <button id="b-routes" type="button" disabled>② סדר מסלולים</button>
+        <button id="b-start" type="button" disabled>③ התחל חלוקה</button>
+        <button id="b-reset" type="button">↺ מההתחלה</button>
+      </div>
+      <div class="bar" style="margin-top:0">
+        <button class="small" id="b-board" type="button" aria-pressed="false">〰️ הראה גם את סדר הרשימה</button>
+      </div>
+      <div class="mapbox"><canvas id="map" role="img" aria-label="מפת העיירה: משפחות, מתנדבים ומסלולים"></canvas></div>
+      <div class="legend" id="legend"></div>
+      <p class="muted" id="stage" aria-live="polite" style="margin:8px 0 0">המשפחות על המפה. לחצו ① כדי לשבץ אותן לרכבים.</p>
+      <div class="chips">
+        <span class="chip" data-chip="n1"></span><span class="chip" data-chip="n3"></span><span class="chip" data-chip="n17"></span>
+        <span class="chip" data-chip="n5"></span><span class="chip" data-chip="n6"></span>
+      </div>
+    </section>
+
+    <div class="stack">
+      <section class="card" aria-labelledby="h-kpi">
+        <h2 id="h-kpi">📏 התכנית במספרים</h2>
+        <div class="save" id="save" aria-live="polite">לחצו ① ו-② — והחיסכון יופיע כאן.</div>
+        <div class="kpis">
+          <div class="kpi hero"><b id="p-km">—</b><span>ק״מ בסך הכול</span></div>
+          <div class="kpi"><b id="p-base">—</b><span>ק״מ בסדר הרשימה</span></div>
+          <div class="kpi ok"><b id="p-ontime">—</b><span>יגיעו בזמן</span></div>
+          <div class="kpi warn"><b id="p-late">—</b><span>יגיעו אחרי החלון</span></div>
+          <div class="kpi"><b id="p-wait">—</b><span>יחכו לחלון</span></div>
+          <div class="kpi"><b id="p-left">—</b><span>סלים שנותרו</span></div>
+        </div>
+        <div class="loads" id="loads" aria-label="עומס לכל רכב"></div>
+        <div class="chips">
+          <span class="chip" data-x="sum"></span><span class="chip" data-x="gap"></span><span class="chip" data-x="pct"></span><span class="chip" data-x="max"></span>
+          <span class="chip" data-chip="n19"></span><span class="chip" data-chip="n4"></span><span class="chip" data-chip="n12"></span><span class="chip" data-chip="n16"></span>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="h-live">
+        <h2 id="h-live">📊 עכשיו</h2>
+        <div class="kpis">
+          <div class="kpi ok"><b id="k-done">0</b><span>נמסרו ואושרו</span></div>
+          <div class="kpi"><b id="k-left">0</b><span>נותרו</span></div>
+          <div class="kpi warn"><b id="k-late">0</b><span>מאחרים מהתכנית</span></div>
+        </div>
+        <div class="prog" aria-hidden="true"><i id="k-bar"></i></div>
+        <div class="banner" id="done-banner">🏁 כל הסלים נמסרו.</div>
+        <div class="chips"><span class="chip" data-chip="n16"></span><span class="chip" data-chip="n12"></span><span class="chip" data-chip="n14"></span></div>
+      </section>
+
+      <section class="card" aria-labelledby="h-alerts">
+        <h2 id="h-alerts">🚨 דורש תשומת לב</h2>
+        <ul class="list" id="alerts"></ul>
+        <p class="empty" id="alerts-empty">אין כרגע מה לטפל.</p>
+        <div class="chips"><span class="chip" data-chip="n9"></span><span class="chip" data-chip="n10"></span><span class="chip" data-chip="n8"></span></div>
+      </section>
+
+      <section class="card" aria-labelledby="h-wait">
+        <h2 id="h-wait">⏳ רשימת המתנה</h2>
+        <div class="bar"><button id="b-addwait" type="button">➕ משפחה חדשה</button></div>
+        <ul class="list" id="waitlist"></ul>
+        <p class="empty" id="wait-empty">אין משפחות בהמתנה. משפחה שאין לה מקום ברכב, או משפחה חדשה, נכנסת לכאן.</p>
+        <div class="chips"><span class="chip" data-chip="n11"></span><span class="chip" data-chip="n2"></span></div>
+      </section>
+    </div>
+  </div>
+
+  <section class="card" aria-labelledby="h-vols" style="margin-top:16px">
+    <h2 id="h-vols">🚗 ערכת המתנדב</h2>
+    <p class="muted" style="margin:0">לכל מתנדב — התחנות בסדר הממוטב עם שעת הגעה, הודעה מוכנה ודף מסלול להדפסה. <b>שום דבר לא נשלח מהדף:</b> וואטסאפ נפתח עם הטקסט בלבד, בלי מספר, ואתם בוחרים למי.</p>
+    <ul class="list" id="vols"></ul>
+    <div class="chips"><span class="chip" data-chip="n15"></span><span class="chip" data-chip="n19"></span><span class="chip" data-chip="n8"></span></div>
+  </section>
+
+  <section class="card" aria-labelledby="h-report" style="margin-top:16px">
+    <h2 id="h-report">📋 דוח סוף יום לפי אזור</h2>
+    <div class="tbl"><table id="report"><thead><tr><th>אזור</th><th>משפחות</th><th>נמסרו</th><th>לא נמסרו</th></tr></thead><tbody></tbody></table></div>
+    <div class="chips"><span class="chip" data-chip="n16"></span><span class="chip" data-chip="n3"></span></div>
+  </section>
+
+  <section class="card machine" aria-labelledby="h-machine" style="margin-top:16px">
+    <h2 id="h-machine">🧩 מה המכונה הרכיבה</h2>
+    <p class="muted" style="margin:0" id="machine-sum"></p>
+    <div class="tbl"><table id="machine"><thead><tr><th>צורך</th><th>חלק מוכח</th><th>נמצא ב</th></tr></thead><tbody></tbody></table></div>
+  </section>
+
+  <footer>
+    <div class="card">
+      <b>מה חדש ומה קיים.</b> המעטפת של המסך — הכפתורים, ציור המפה, שעון ההדמיה (איפה הרכב בין שתי תחנות), עיצוב המספרים לתצוגה ודף ההדפסה — חדשה, ונכתבה לדף הזה. כל חישוב — איפה המשפחות, השיבוץ עם מקום ברכב, המסלול הממוטב (השכן הקרוב ואז היפוכי-קטעים), הדרך ברשת השכונות, שעות ההגעה והחלונות, הסטטוס, ההסלמה, הספירות, הק״מ, החיסכון והאחוזים, ההודעה, הספירה לאחור, התזכורת והדוח — הוא חלק מוכח שכבר היה בקוד שלנו (או שילוב של כמה כאלה שעבר את חוקי הפועל שלו), והוא רץ מהקוד המקורי (<code>parts.bundle.mjs</code>). הלולאות בתוך השילובים הן חיווט בלבד. כל הנתונים בדויים: אין כאן שמות, טלפונים או כתובות של אף אחד; הק״מ נמדדים בקו ישר.
+    </div>
+  </footer>
+
+  <section id="print" aria-hidden="true"></section>
+</div>
+
+<script type="module">
+import { ASSEMBLY, runtime, extras } from './parts.bundle.mjs';
+
+/* ───── החלקים: כל פונקציה כאן = צורך של המכונה (ASSEMBLY.needs) או כלי-מדידה (ASSEMBLY.extras), רץ מהקוד המקורי ───── */
+const M = runtime();
+const X = extras();
+const NEED = Object.fromEntries(ASSEMBLY.needs.map((n) => [n.id, n]));
+const EXTRA = Object.fromEntries(ASSEMBLY.extras.map((x) => [x.as, x]));
+const randomPoints = M.n1, nearestVolunteer = M.n2, areasOf = M.n3, byDistance = M.n4, shortestPath = M.n5, carAt = M.n6;
+const countdown = M.n7, nextStatus = M.n8, lateStage = M.n9, passOn = M.n10, findWaiting = M.n11, openCount = M.n12;
+const daysFrom = M.n13, confirmed = M.n14, volunteerText = M.n15, daySummary = M.n16;
+const tour = M.n17, allot = M.n18, schedule = M.n19;
+const total = X.sum, minus = X.gap, percent = X.pct, biggest = X.max;
+
+/** שבב "נמצא ב" — מההרכבה עצמה: הפרויקט שהחלק בא ממנו · שם החלק (וב-title — קובץ:שורה). */
+function chipOf(steps, behavior, line) {
+  const seen = new Set(); const uniq = steps.filter((s) => !seen.has(s.id) && seen.add(s.id));
+  const parts = uniq.map((s) => (s.origins[0]?.project || s.project) + ' · ' + s.name);
+  const where = uniq.map((s) => s.origins[0] ? s.origins[0].file + (s.origins[0].line ? ':' + s.origins[0].line : '') : s.module).join(' ⇒ ');
+  return { text: '🧩 נמצא ב: ' + parts.join(' ⇒ ') + (line ? ' (' + line + ')' : ''), title: behavior + ' — ' + where };
+}
+const chip = (id) => chipOf(NEED[id].steps, NEED[id].behavior, NEED[id].combo?.line);
+for (const el of document.querySelectorAll('[data-chip]')) { const c = chip(el.dataset.chip); el.textContent = c.text; el.title = c.title; }
+for (const el of document.querySelectorAll('[data-x]')) { const x = EXTRA[el.dataset.x]; const c = chipOf([x], x.says); el.textContent = c.text.replace('🧩', '📏'); el.title = c.title; }
+// לכל צורך — שבב אחד לפחות בדף (נבדק ב-product-distribution.test):
+// chip('n1' chip('n2' chip('n3' chip('n4' chip('n5' chip('n6' chip('n7' chip('n8' chip('n9' chip('n10' chip('n11' chip('n12' chip('n13' chip('n14' chip('n15' chip('n16' chip('n17' chip('n18' chip('n19'
+
+/* ───── העולם הבדוי ───── */
+const SEED = 45;
+const DEMO = { fams: 40, vols: 6, cap: 8 }, CITY = { fams: 400, vols: 30, cap: 16 };
+const DAY = '2026-10-15';
+const DAY0 = Date.parse(DAY + 'T00:00:00');
+const START_MIN = 15 * 60; // יוצאים ב-15:00
+const HOLIDAY = Date.parse('2026-10-16T18:00:00');
+const SIZE = 6; // העיירה: 6×6 ק״מ — הנקודות נשמרות בק״מ, וכל מרחק הוא ק״מ
+const CENTER = { x: SIZE / 2, y: SIZE / 2 };
+const PLAN = { start: START_MIN, speed: 0.5, stay: 3 }; // 30 קמ״ש, 3 דקות בכל בית
+const AREA_HE = { '+-': 'צפון-מזרח', '--': 'צפון-מערב', '++': 'דרום-מזרח', '-+': 'דרום-מערב' };
+const PALETTE = ['#5536d1', '#e8590c', '#0c8599', '#c2255c', '#2b8a3e', '#b08900', '#1971c2', '#9c36b5', '#e03131', '#5c940d'];
+const SILENT = 2; // מתנדב 3 לא עונה בהתחלה
+const SLOW = 4; // מתנדב 5 נוסע לאט מהתכנית ⇒ איחורים
+const LATE_STEPS = [{ to: ['בזמן'], waitMin: 6 }, { to: ['תזכורת למתנדב'], waitMin: 8 }, { to: ['רכז האזור'], waitMin: 8 }, { to: ['מנהל המוקד'], waitMin: 0 }];
+const NO_CONFIRM = new Set([9, 22, 31]); // משפחות שהמקבל לא אישר מיד
+const STATUS_HE = { pickup: 'באיסוף', enroute: 'בדרך', delivered: 'נמסר' };
+const WA = 'https://wa.me/?text='; // שיתוף-טקסט בלבד: בלי מספר טלפון
+const fit = (p) => ({ x: (0.06 + p.x * 0.88) * SIZE, y: (0.06 + p.y * 0.88) * SIZE });
+/** חלון בדוי לפי מספר-המשפחה: חלק רק אחרי 16:00, חלק רק עד 15:30, השאר — עד 20:00. */
+const windowOf = (n) => (n % 9 === 4 ? { open: 16 * 60, close: 20 * 60, he: 'רק אחרי 16:00' } : n % 11 === 7 ? { open: 0, close: 15 * 60 + 30, he: 'רק עד 15:30' } : { open: 0, close: 20 * 60, he: '' });
+const hhmm = (min) => { const m = Math.round(min); return String(Math.floor(m / 60) % 24).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); };
+const km = (v) => (Math.round(v * 10) / 10).toLocaleString('he-IL', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+
+let S;
+function pointsFor(nF, nV) {
+  const pts = randomPoints({ seed: SEED }, nF + nV + 40).map(fit);
+  const vols = pts.slice(0, nV).map((p, i) => ({ ...p, id: 'v' + (i + 1), n: i + 1, label: 'מתנדב ' + (i + 1), color: PALETTE[i % PALETTE.length] }));
+  const fams = pts.slice(40, 40 + nF).map((p, i) => ({ ...p, id: 'f' + (i + 1), n: i + 1, label: 'משפחה ' + (i + 1), win: windowOf(i + 1) }));
+  return { fams, vols };
+}
+function freshState(cfg) {
+  const { fams, vols } = pointsFor(cfg.fams, cfg.vols);
+  return { cfg: { ...cfg }, fams, vols, wait: [], over: [], extraWait: 0, stage: 'map', now: START_MIN, of: new Map(), plan: null, cars: new Map(), del: new Map(), silent: null, handed: null, showBoard: false, ms: null };
+}
+const areaOf = (f) => { for (const [k, g] of Object.entries(areasOf(S.fams, CENTER))) if (g.includes(f)) return AREA_HE[k] || 'מרכז'; return 'מרכז'; };
+const allPoints = () => [...S.fams, ...S.vols];
+const asStop = (f) => ({ x: f.x, y: f.y, open: f.win.open, close: f.win.close });
+const lastOf = (rows) => rows[rows.length - 1];
+
+/* ① שיבוץ עם קיבולת: כל משפחה ⇒ הרכב הקרוב שיש בו מקום; אין מקום ⇒ רשימת המתנה (allot) */
+function doAssign() {
+  const res = allot(S.vols, S.fams, S.cfg.cap);
+  const byPoint = new Map(S.fams.map((f) => [f, f]));
+  S.of = new Map(); S.over = [];
+  for (const o of res) {
+    const f = byPoint.get(o.item) || S.fams.find((x) => x.x === o.item.x && x.y === o.item.y);
+    if (o.b >= 0) S.of.set(f.id, S.vols[o.b]); else S.over.push(f);
+  }
+  S.del = new Map();
+  for (const f of S.fams) if (S.of.has(f.id)) S.del.set(f.id, { f, status: 'pickup', at: null, src: NO_CONFIRM.has(f.n) ? null : 'אישור המקבל' });
+}
+/** התחנות של מתנדב בסדר הרשימה (כמו בלוח של היום) — הבסיס להשוואה. */
+const boardOf = (v) => S.fams.filter((f) => S.of.get(f.id) === v);
+
+/* ② מסלול: tour (השכן-הקרוב ⇒ 2-opt) · שעות: schedule · ובשביל ההשוואה — אותו schedule על סדר הרשימה ועל "מהקרובה לרחוקה" */
+function doPlan() {
+  const plan = new Map();
+  for (const v of S.vols) {
+    const board = boardOf(v);
+    const route = tour(v, board); // [v, …משפחות בסדר-ביקור] — אותם אובייקטים חזרה? לא בהכרח: מזהים לפי מקום
+    const byXY = new Map(board.map((f) => [f.x + ',' + f.y, f]));
+    const order = route.slice(1).map((p) => byXY.get(p.x + ',' + p.y));
+    const rows = schedule([v, ...order].map((p, k) => (k ? asStop(p) : { x: p.x, y: p.y, open: 0, close: 24 * 60 })), PLAN);
+    const base = schedule([v, ...board].map((p, k) => (k ? asStop(p) : { x: p.x, y: p.y, open: 0, close: 24 * 60 })), PLAN);
+    const radial = byDistance(board, v);
+    const v1 = schedule([v, ...radial].map((p, k) => (k ? asStop(p) : { x: p.x, y: p.y, open: 0, close: 24 * 60 })), PLAN);
+    plan.set(v.id, { v, order, rows, base, v1 });
+  }
+  S.plan = plan;
+}
+function replan() {
+  const t0 = performance.now();
+  if (S.stage !== 'map') doAssign();
+  if (S.stage === 'routed' || S.stage === 'run') doPlan();
+  S.ms = performance.now() - t0;
+}
+
+/* ───── מספרי-התכנית: כל מספר — חלק מוכח (סכום · הפרש · אחוז · הגדול-מבין · ספירה) ───── */
+function planNumbers() {
+  if (!S.plan) return null;
+  const P = [...S.plan.values()];
+  const kmOf = (rows) => (rows.length ? lastOf(rows).km : 0);
+  const opt = total(P.map((p) => kmOf(p.rows)));
+  const base = total(P.map((p) => kmOf(p.base)));
+  const v1 = total(P.map((p) => kmOf(p.v1)));
+  const saved = minus(opt, base);
+  const rows = P.flatMap((p) => p.rows);
+  const stops = daySummary(rows.map(() => ({ presents: [] })), DAY).total;
+  const late = openCount(rows.map((r) => ({ name: '', note: '', done: !r.late })));
+  const waits = openCount(rows.map((r) => ({ name: '', note: '', done: !(r.wait > 0) })));
+  const onTime = minus(late, stops);
+  return { opt, base, v1, saved, pct: percent(base, saved), pctV1: percent(v1, minus(opt, v1)), stops, late, waits, onTime, onPct: percent(stops, onTime) };
+}
+
+/* ③ ההדמיה: שעון בדקות; כל רכב חי לפי schedule של עצמו (מהירות אמיתית — מתנדב 5 לאט), מתקדם על הרגל (moveAlongPath) */
+function legsFrom(start, stops) {
+  const pts = allPoints();
+  const at = (p) => pts.indexOf(p);
+  const street = pts.length <= 80; // ברשת השכונות; במצב 400 — קו ישר (הרשת על 430 נקודות כבדה מדי לכל רגל)
+  let prev = start;
+  return stops.map((s) => {
+    const r = street ? shortestPath({ points: pts, near: 3 }, at(prev), at(s)) : null;
+    const leg = { to: s, pts: r ? r.path.map((k) => pts[k]) : [prev, s] };
+    prev = s;
+    return leg;
+  });
+}
+function startDistribution() {
+  S.stage = 'run';
+  for (const p of S.plan.values()) {
+    const v = p.v;
+    const speed = v.n - 1 === SLOW ? PLAN.speed * 0.35 : PLAN.speed;
+    S.cars.set(v.id, { v, driver: v, legs: legsFrom(v, p.order), order: p.order, plan: p.rows, speed, start: v.n - 1 === SILENT ? null : START_MIN, real: null, pos: { x: v.x, y: v.y } });
+    if (v.n - 1 !== SILENT) for (const f of p.order) { const d = S.del.get(f.id); d.status = nextStatus(d.status); }
+  }
+  for (const car of S.cars.values()) if (car.start !== null) car.real = realRows(car);
+  const silent = S.vols[SILENT];
+  if (silent) {
+    const others = byDistance(S.vols.filter((v) => v !== silent), silent);
+    S.silent = { v: silent, steps: [{ to: [silent.label], waitMin: 8 }, ...others.slice(0, 2).map((o, k) => ({ to: [o.label], waitMin: k === 1 ? 0 : 8 }))], answeredMs: null };
+  }
+}
+/** השעות בפועל של רכב: אותו schedule, מהירות אמיתית, משעת-היציאה בפועל. */
+function realRows(car) {
+  return schedule([car.v, ...car.order].map((p, k) => (k ? asStop(p) : { x: p.x, y: p.y, open: 0, close: 24 * 60 })), { ...PLAN, speed: car.speed, start: car.start });
+}
+const msOf = (min) => DAY0 + min * 60000;
+function tick(minutes) {
+  S.now += minutes;
+  if (S.silent && !S.handed) {
+    const st = passOn({ createdMs: msOf(START_MIN), steps: S.silent.steps, answeredMs: S.silent.answeredMs, nowMs: msOf(S.now) });
+    if (st.stepIndex > 0) {
+      const who = S.vols.find((v) => v.label === st.currentTo[0]);
+      S.silent.answeredMs = msOf(S.now); S.handed = who;
+      const car = S.cars.get(S.silent.v.id);
+      car.driver = who; car.start = S.now; car.real = realRows(car);
+      for (const f of car.order) { const d = S.del.get(f.id); if (d.status === 'pickup') d.status = nextStatus(d.status); }
+    }
+  }
+  for (const car of S.cars.values()) {
+    if (!car.real) continue;
+    // איפה הרכב: בין היציאה מהתחנה הקודמת להגעה (בלי ההמתנה לחלון) — נוסע; אחרי ההגעה — בבית; הגיע ⇒ הסטטוס הבא
+    let pos = { x: car.v.x, y: car.v.y };
+    for (let k = 0; k < car.real.length; k++) {
+      const r = car.real[k]; const leave = k ? car.real[k - 1].at + PLAN.stay : car.start; const arrive = r.at - r.wait;
+      const leg = car.legs[k];
+      if (S.now < leave) break;
+      if (S.now < arrive) { pos = carAt({ points: leg.pts }, (S.now - leave) / Math.max(1e-9, arrive - leave)); break; }
+      pos = { x: leg.to.x, y: leg.to.y };
+      const d = S.del.get(leg.to.id);
+      if (S.now >= r.at && d.status === 'enroute') { d.status = nextStatus(d.status); d.at = r.at; }
+    }
+    car.pos = pos;
+  }
+}
+
+/* ───── מספרים חיים ───── */
+function liveNumbers() {
+  const all = [...S.del.values()];
+  const delivered = all.filter((d) => d.status === 'delivered');
+  const ok = new Set(confirmed(delivered).accepted);
+  const sum = daySummary(all.map((d) => ({ presents: ok.has(d) ? [DAY] : [] })), DAY);
+  const left = openCount(all.map((d) => ({ name: d.f.label, note: '', done: ok.has(d) })));
+  const late = [];
+  if (S.stage === 'run') for (const car of S.cars.values()) car.order.forEach((f, k) => {
+    const d = S.del.get(f.id);
+    const st = lateStage({ createdMs: msOf(car.plan[k].at), steps: LATE_STEPS, answeredMs: d.at === null ? null : msOf(d.at), nowMs: msOf(S.now) });
+    if (st.stepIndex > 0 && d.status !== 'delivered') late.push({ d, st, car });
+  });
+  const waiting = confirmed(delivered).rejected.map((k) => delivered[k]);
+  return { sum, left, late, waiting, ok, allDelivered: all.length > 0 && delivered.length === all.length };
+}
+
+/* ───── ציור ───── */
+const cv = document.getElementById('map');
+const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+function css(v) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+function draw() {
+  const box = cv.parentElement.getBoundingClientRect();
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  const W = Math.round(box.width), H = Math.round(box.height);
+  if (cv.width !== W * dpr || cv.height !== H * dpr) { cv.width = W * dpr; cv.height = H * dpr; }
+  const c = cv.getContext('2d');
+  c.setTransform(dpr, 0, 0, dpr, 0, 0);
+  c.clearRect(0, 0, W, H);
+  const X0 = (p) => (p.x / SIZE) * W, Y0 = (p) => (p.y / SIZE) * H;
+  const many = S.fams.length > 80, small = W < 520 || many;
+  c.strokeStyle = css('--grid'); c.lineWidth = 1; c.setLineDash([4, 6]);
+  c.beginPath(); c.moveTo(W / 2, 0); c.lineTo(W / 2, H); c.moveTo(0, H / 2); c.lineTo(W, H / 2); c.stroke(); c.setLineDash([]);
+  c.fillStyle = css('--ink-3'); c.font = '12px system-ui, sans-serif'; c.textAlign = 'center';
+  [['צפון-מערב', 0.25, 0.04], ['צפון-מזרח', 0.75, 0.04], ['דרום-מערב', 0.25, 0.985], ['דרום-מזרח', 0.75, 0.985]].forEach(([t, x, y]) => c.fillText(t, x * W, y * H));
+  const poly = (pts) => { c.beginPath(); pts.forEach((p, k) => (k ? c.lineTo(X0(p), Y0(p)) : c.moveTo(X0(p), Y0(p)))); c.stroke(); };
+  if (S.plan) for (const p of S.plan.values()) {
+    if (S.showBoard) { c.strokeStyle = p.v.color; c.globalAlpha = 0.35; c.lineWidth = 1.5; c.setLineDash([3, 4]); poly([p.v, ...boardOf(p.v)]); c.setLineDash([]); }
+    c.strokeStyle = p.v.color; c.globalAlpha = 0.7; c.lineWidth = many ? 1.6 : 3; c.lineJoin = 'round';
+    const car = S.cars.get(p.v.id);
+    if (car) for (const leg of car.legs) poly(leg.pts); else poly([p.v, ...p.order]);
+    c.globalAlpha = 1;
+  }
+  for (const f of S.fams) {
+    const v = S.of.get(f.id); const d = S.del.get(f.id);
+    const col = v ? v.color : css('--ink-3');
+    const r = many ? 2.6 : small ? 5 : 6;
+    c.beginPath(); c.arc(X0(f), Y0(f), r, 0, 6.2832);
+    if (d && d.status === 'delivered') { c.fillStyle = col; c.fill(); }
+    else { c.fillStyle = css('--surface'); c.fill(); c.lineWidth = many ? 1.2 : 2; c.strokeStyle = col; c.stroke(); }
+    if (f.win.open && !many) { c.fillStyle = css('--warn'); c.fillRect(X0(f) + r, Y0(f) - r - 1, 3, 3); }
+    if (!small) { c.fillStyle = css('--ink-2'); c.font = '10px system-ui, sans-serif'; c.fillText(String(f.n), X0(f), Y0(f) - 9); }
+  }
+  for (const w of [...S.wait, ...(S.over || [])]) { c.beginPath(); c.arc(X0(w), Y0(w), many ? 4 : 8, 0, 6.2832); c.setLineDash([3, 3]); c.lineWidth = 1.5; c.strokeStyle = css('--bad'); c.stroke(); c.setLineDash([]); }
+  for (const v of S.vols) {
+    const car = S.cars.get(v.id); const p = car ? car.pos : v;
+    const r = many ? 7 : small ? 10 : 12;
+    c.beginPath(); c.arc(X0(p), Y0(p), r, 0, 6.2832); c.fillStyle = v.color; c.fill();
+    c.lineWidth = 2; c.strokeStyle = css('--surface'); c.stroke();
+    c.fillStyle = '#fff'; c.font = 'bold ' + (many ? 9 : small ? 11 : 12) + 'px system-ui, sans-serif'; c.textBaseline = 'middle';
+    c.fillText(String(car && car.driver !== v ? car.driver.n : v.n), X0(p), Y0(p) + 0.5); c.textBaseline = 'alphabetic';
+  }
+}
+
+/* ───── לוחות ───── */
+const $ = (id) => document.getElementById(id);
+const fmtDate = (iso) => iso.slice(8, 10) + '.' + iso.slice(5, 7) + '.' + iso.slice(0, 4);
+function li(html) { const el = document.createElement('li'); el.innerHTML = html; return el; }
+const esc = (s) => String(s).replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[ch]);
+const stopNote = (f, r) => hhmm(r.at) + (r.wait > 0 ? ' · מגיע מוקדם — יחכה עד ' + hhmm(f.win.open) : '') + (r.late ? ' · ⚠ אחרי החלון (' + f.win.he + ')' : f.win.he && !(r.wait > 0) ? ' · ' + f.win.he : '');
+/** ההודעה למתנדב: התחנות בסדר הממוטב עם שעת-הגעה (prayerListText — מעצב לטקסט). */
+function messageOf(p) {
+  const car = S.cars.get(p.v.id);
+  return volunteerText(p.order.map((f, k) => ({ name: (k + 1) + '. ' + f.label, note: stopNote(f, p.rows[k]) + ' · ' + areaOf(f) + (car ? ' · ' + STATUS_HE[S.del.get(f.id).status] : ''), done: !!car && S.del.get(f.id).status === 'delivered' })),
+    p.v.label + ' — ' + p.order.length + ' סלים · יציאה ' + hhmm(PLAN.start) + ' · ' + km(p.rows.length ? lastOf(p.rows).km : 0) + ' ק״מ');
+}
+
+let listSig = '';
+function renderPanels(force) {
+  const nb = liveNumbers();
+  // ספירה לאחור + תזכורת
+  const rest = countdown({ total: HOLIDAY - msOf(START_MIN) }, msOf(S.now) - msOf(START_MIN));
+  const d = Math.floor(rest / 86400000), h = Math.floor((rest % 86400000) / 3600000), m = Math.floor((rest % 3600000) / 60000);
+  $('countdown').textContent = (d ? d + ' ימים · ' : '') + h + ' שעות · ' + m + ' דקות';
+  $('simclock').textContent = 'יום החלוקה ' + fmtDate(DAY) + ' · השעה בהדמיה ' + hhmm(S.now);
+  $('reminder').textContent = 'תצא ב-' + fmtDate(daysFrom(DAY, -1)) + ' — יום לפני החלוקה, עם המסלול של כל אחד';
+  $('k-done').textContent = nb.sum.present; $('k-left').textContent = nb.left; $('k-late').textContent = nb.late.length;
+  $('k-bar').style.width = (nb.sum.total ? percent(nb.sum.total, nb.sum.present) : 0) + '%';
+  $('done-banner').classList.toggle('on', S.stage === 'run' && nb.allDelivered);
+  $('done-banner').textContent = '🏁 כל הסלים נמסרו' + (nb.waiting.length ? ' — ' + nb.waiting.length + ' מחכים לאישור המקבל.' : ' ואושרו.') + ' הדוח של סוף היום למטה.';
+  const sig = [S.stage, S.cfg.cap, S.fams.length, S.vols.length, S.wait.length, S.handed?.id, [...S.del.values()].map((x) => x.status[0] + (x.src ? 1 : 0)).join(''), nb.late.map((x) => x.d.f.n + ':' + x.st.stepIndex).join(','), S.showBoard].join('|');
+  if (!force && sig === listSig) return;
+  listSig = sig;
+  // מה-אם
+  $('cap-v').textContent = S.cfg.cap; $('cap').value = S.cfg.cap;
+  $('v-n').textContent = S.vols.length; $('f-n').textContent = S.fams.length;
+  $('cap-hint').textContent = S.cfg.cap * S.vols.length >= S.fams.length ? 'יש מקום ל-' + S.cfg.cap * S.vols.length + ' סלים — לכולם' : 'מקום ל-' + S.cfg.cap * S.vols.length + ' סלים בלבד — השאר לרשימת המתנה';
+  $('b-scale').setAttribute('aria-pressed', String(S.cfg.fams === CITY.fams));
+  $('timing').textContent = S.ms === null ? '' : '⚡ חושב מחדש ב-' + Math.max(1, Math.round(S.ms)) + ' מ״ש (שיבוץ' + (S.plan ? ' + ' + S.vols.length + ' מסלולים + שעות' : '') + ')';
+  for (const id of ['v-minus', 'v-plus', 'f-minus', 'f-plus', 'cap', 'b-scale']) $(id).disabled = S.stage === 'run';
+  $('b-board').setAttribute('aria-pressed', String(S.showBoard)); $('b-board').disabled = !S.plan;
+  // מספרי-התכנית
+  const pn = planNumbers();
+  if (pn) {
+    $('save').innerHTML = 'המסלולים קצרים ב-<b>' + pn.pct + '%</b> (' + km(pn.saved) + ' ק״מ) לעומת סדר הרשימה'
+      + '<small>' + km(pn.opt) + ' ק״מ במקום ' + km(pn.base) + ' · ולעומת "מהקרובה לרחוקה" (הגרסה הקודמת, ' + km(pn.v1) + ' ק״מ): ' + pn.pctV1 + '% פחות. בקו ישר.</small>';
+    $('p-km').textContent = km(pn.opt); $('p-base').textContent = km(pn.base);
+    $('p-ontime').textContent = pn.onPct + '%'; $('p-late').textContent = pn.late; $('p-wait').textContent = pn.waits;
+  } else { for (const id of ['p-km', 'p-base', 'p-ontime', 'p-late', 'p-wait']) $(id).textContent = '—'; $('save').textContent = S.stage === 'map' ? 'לחצו ① ו-② — והחיסכון יופיע כאן.' : 'לחצו ② — והחיסכון יופיע כאן.'; }
+  $('p-left').textContent = nb.left;
+  // עומס לכל רכב
+  const lb = $('loads'); lb.replaceChildren();
+  if (S.of.size) {
+    const loads = S.vols.map((v) => daySummary(boardOf(v).map(() => ({ presents: [] })), DAY).total);
+    const top = biggest([...loads, S.cfg.cap]);
+    S.vols.forEach((v, k) => {
+      const row = document.createElement('div'); row.className = 'load';
+      const p = S.plan?.get(v.id);
+      row.innerHTML = '<span><span class="dot" style="background:' + v.color + '"></span>' + esc(v.label) + '</span><span class="track" role="img" aria-label="' + loads[k] + ' מתוך ' + S.cfg.cap + '"><i style="width:' + percent(top, loads[k]) + '%;background:' + v.color + '"></i><s style="inset-inline-start:' + percent(top, S.cfg.cap) + '%"></s></span><span class="muted">' + loads[k] + '/' + S.cfg.cap + (p && p.rows.length ? ' · ' + km(lastOf(p.rows).km) + ' ק״מ' : '') + '</span>';
+      lb.append(row);
+    });
+  }
+  // התראות
+  const al = $('alerts'); al.replaceChildren();
+  if (S.silent && S.stage === 'run') {
+    const st = passOn({ createdMs: msOf(START_MIN), steps: S.silent.steps, answeredMs: S.silent.answeredMs, nowMs: msOf(S.now) });
+    al.append(li(S.handed
+      ? '<span>📵 <b>' + S.silent.v.label + '</b> לא ענה — המסלול שלו עבר ל<b>' + esc(S.handed.label) + '</b></span><span class="tag ok">הועבר</span>'
+      : '<span>📵 <b>' + S.silent.v.label + '</b> לא עונה — אם לא יענה, עובר ל' + esc(S.silent.steps[1].to[0]) + ' ב-' + hhmm((st.nextMoveMs - DAY0) / 60000) + '</span><span class="tag warn">ממתין</span>'));
+  }
+  for (const x of nb.late.slice(0, 12)) al.append(li('<span>⏰ <b>' + x.d.f.label + '</b> (' + x.car.driver.label + ') מאחר מהתכנית — עכשיו אצל: <b>' + esc(x.st.currentTo[0]) + '</b></span><span class="tag ' + (x.st.stepIndex >= 2 ? 'bad' : 'warn') + '">שלב ' + x.st.stepIndex + '</span>'));
+  if (nb.late.length > 12) al.append(li('<span class="muted">ועוד ' + (nb.late.length - 12) + ' מאחרים…</span>'));
+  for (const w of nb.waiting) {
+    const el = li('<span>✍️ <b>' + w.f.label + '</b> — נמסר, מחכה לאישור המקבל</span>');
+    const b = document.createElement('button'); b.className = 'small'; b.type = 'button'; b.textContent = '✔ המקבל אישר';
+    b.onclick = () => { w.src = 'אישור המקבל'; renderPanels(true); };
+    el.append(b); al.append(el);
+  }
+  $('alerts-empty').style.display = al.children.length ? 'none' : '';
+  // רשימת המתנה: אין מקום ברכב (allot ⇒ −1) · ומשפחות חדשות בזמן החלוקה
+  const wl = $('waitlist'); wl.replaceChildren();
+  for (const f of S.over || []) wl.append(li('<span>🚫 <b>' + f.label + '</b> · ' + areaOf(f) + ' — אין מקום באף רכב</span><span class="tag warn">הגדילו את הרכב או הוסיפו מתנדב</span>'));
+  for (const w of S.wait) {
+    const el = li('<span>⏳ <b>' + w.label + '</b> · ' + areaOf(w) + '</span>');
+    const b = document.createElement('button'); b.className = 'small'; b.type = 'button'; b.textContent = 'שבץ לרכב הקרוב';
+    b.onclick = () => assignWaiting(w.id);
+    el.append(b); wl.append(el);
+  }
+  $('wait-empty').style.display = wl.children.length ? 'none' : '';
+  renderVols();
+  renderReport(nb);
+  $('b-assign').disabled = S.stage !== 'map'; $('b-routes').disabled = S.stage !== 'assigned'; $('b-start').disabled = S.stage !== 'routed';
+  for (const b of ['b-assign', 'b-routes', 'b-start']) $(b).classList.toggle('primary', !$(b).disabled);
+}
+
+function renderVols() {
+  const vl = $('vols'); vl.replaceChildren();
+  const many = S.vols.length > 8;
+  for (const v of S.vols) {
+    const p = S.plan?.get(v.id);
+    const board = S.of.size ? boardOf(v) : [];
+    const car = S.cars.get(v.id);
+    const el = document.createElement('li'); el.className = 'vol';
+    const det = document.createElement('details'); det.open = !many;
+    const head = v.label + ' — ' + board.length + ' סלים' + (car && car.driver !== v ? ' (נוסע במקומו: ' + car.driver.label + ')' : '');
+    const cnt = { pickup: 0, enroute: 0, delivered: 0 }; for (const f of board) { const d = S.del.get(f.id); if (d) cnt[d.status]++; }
+    det.innerHTML = '<summary><span class="nm"><span class="dot" style="background:' + v.color + '"></span>' + esc(head) + '</span><span>'
+      + (p ? '<span class="tag n">' + km(p.rows.length ? lastOf(p.rows).km : 0) + ' ק״מ</span> ' : '')
+      + (car ? '<span class="tag warn">' + STATUS_HE.enroute + ' ' + cnt.enroute + '</span> <span class="tag ok">' + STATUS_HE.delivered + ' ' + cnt.delivered + '</span>' : board.length ? '' : '<span class="muted">עוד לא שובצו משפחות</span>')
+      + '</span></summary>';
+    if (p && p.order.length) {
+      const ol = document.createElement('ol'); ol.className = 'stops';
+      p.order.forEach((f, k) => { const r = p.rows[k]; const x = document.createElement('li'); x.innerHTML = esc(f.label) + ' · <span class="eta">' + esc(stopNote(f, r)) + '</span>'; ol.append(x); });
+      const text = messageOf(p);
+      const pre = document.createElement('pre'); pre.className = 'msg'; pre.textContent = text;
+      const acts = document.createElement('div'); acts.className = 'acts';
+      const copy = document.createElement('button'); copy.className = 'small'; copy.type = 'button'; copy.textContent = '📋 העתק';
+      copy.onclick = async () => { try { await navigator.clipboard.writeText(text); copy.textContent = '✓ הועתק'; } catch { copy.textContent = 'סמנו והעתיקו ידנית'; } setTimeout(() => (copy.textContent = '📋 העתק'), 1600); };
+      const wa = document.createElement('a'); wa.className = 'btn small'; wa.href = WA + encodeURIComponent(text); wa.target = '_blank'; wa.rel = 'noopener noreferrer'; wa.textContent = '💬 שתף בוואטסאפ'; wa.setAttribute('aria-label', 'שיתוף ההודעה של ' + v.label + ' בוואטסאפ — טקסט בלבד, בלי מספר');
+      const pr = document.createElement('button'); pr.className = 'small'; pr.type = 'button'; pr.textContent = '🖨 דף מסלול';
+      pr.onclick = () => printSheet(v.id);
+      acts.append(copy, wa, pr);
+      det.append(ol, pre, acts);
+    } else if (board.length) det.append(Object.assign(document.createElement('p'), { className: 'muted', textContent: 'לחצו ② — והמסלול עם השעות יופיע כאן.' }));
+    el.append(det); vl.append(el);
+  }
+}
+
+function renderReport(nb) {
+  const tb = document.querySelector('#report tbody'); tb.replaceChildren();
+  for (const [k, g] of Object.entries(areasOf(S.fams, CENTER)).sort()) {
+    const s = daySummary(g.map((f) => ({ presents: nb.ok.has(S.del.get(f.id)) ? [DAY] : [] })), DAY);
+    const missing = g.filter((f) => !nb.ok.has(S.del.get(f.id))).map((f) => f.n).sort((a, b) => a - b);
+    const tr = document.createElement('tr');
+    const list = missing.length > 14 ? missing.slice(0, 14).join(', ') + '…' : missing.join(', ');
+    tr.innerHTML = '<td>' + (AREA_HE[k] || 'מרכז') + '</td><td class="num">' + s.total + '</td><td class="num">' + s.present + '</td><td>' + (missing.length ? missing.length + ' · משפחות ' + list : '✓ הכול נמסר') + '</td>';
+    tb.append(tr);
+  }
+}
+
+/** דף-מסלול להדפסה: מתנדב אחד, התחנות בסדר, שעה, חלון, ריבוע לסימון. */
+function printSheet(vid) {
+  const p = S.plan.get(vid);
+  const rows = p.order.map((f, k) => '<tr><td>' + (k + 1) + '</td><td>' + esc(f.label) + '</td><td>' + esc(areaOf(f)) + '</td><td class="num">' + hhmm(p.rows[k].at) + '</td><td>' + esc((p.rows[k].wait > 0 ? 'לחכות עד ' + hhmm(f.win.open) : '') + (p.rows[k].late ? ' ⚠ אחרי החלון' : '') || f.win.he || '—') + '</td><td><span class="box"></span></td></tr>').join('');
+  $('print').innerHTML = '<h2>🧺 דף מסלול — ' + esc(p.v.label) + '</h2><p>' + fmtDate(DAY) + ' · יציאה ' + hhmm(PLAN.start) + ' · ' + p.order.length + ' סלים · ' + km(p.rows.length ? lastOf(p.rows).km : 0) + ' ק״מ (בקו ישר) · חזרה משוערת ' + hhmm(p.rows.length ? lastOf(p.rows).at + PLAN.stay : PLAN.start) + '</p>'
+    + '<table><thead><tr><th>#</th><th>משפחה</th><th>אזור</th><th>שעה</th><th>חלון</th><th>נמסר</th></tr></thead><tbody>' + rows + '</tbody></table>'
+    + '<p style="margin-top:10pt">נתונים בדויים · המסלול: השכן הקרוב ואז היפוכי-קטעים (מוכח), השעות: נסיעה ב-30 קמ״ש ו-3 דקות בכל בית.</p>';
+  if (!window.__dispatch?.noPrint) window.print();
+}
+
+function legend() {
+  const many = S.vols.length > 10;
+  $('legend').innerHTML = (many ? '<span>' + S.vols.length + ' מתנדבים, צבע לכל אחד</span>' : S.vols.map((v) => '<span><span class="dot" style="background:' + v.color + '"></span>' + v.label + '</span>').join('')) + '<span>○ משפחה · ● נמסר · ◌ בהמתנה · ▪ חלון שעות</span>';
+}
+function machineTable() {
+  const tb = document.querySelector('#machine tbody'); tb.replaceChildren();
+  const c = ASSEMBLY.counts;
+  $('machine-sum').textContent = 'המילה «' + ASSEMBLY.word + '» ⇒ ' + c.needs + ' צרכים: ' + c.proven + ' חלקים מוכחים · ' + c.inner + ' חלק פנימי · ' + c.combo + ' שילובים · ' + c.open + ' פתוחים. ועוד ' + ASSEMBLY.extras.length + ' כלי-מדידה (חלק מוכח אחד כל אחד) לכל מספר במסך.';
+  const row = (title, sub, steps, combo) => {
+    const tr = document.createElement('tr');
+    const seen = new Set(); const uniq = steps.filter((s) => !seen.has(s.id) && seen.add(s.id));
+    const parts = uniq.map((s) => esc(s.name) + ' <span class="muted">(' + esc(s.roleHe) + ')</span>').join(' ⇒ ') + (combo ? '<div class="muted">🧩 ' + esc(combo) + '</div>' : '');
+    const src = uniq.map((s) => s.origins.slice(0, 2).map((o) => esc(o.project + ' · ' + o.file + (o.line ? ':' + o.line : ''))).join('<br>')).join('<br>⇒ ');
+    tr.innerHTML = '<td>' + esc(title) + '<div class="muted">' + esc(sub) + '</div></td><td>' + parts + '</td><td class="src">' + src + '</td>';
+    tb.append(tr);
+  };
+  for (const n of ASSEMBLY.needs) row(n.behavior, n.statusHe, n.steps, n.combo ? n.combo.line + (n.combo.graph && /"loop"/.test(JSON.stringify(n.combo.graph)) ? ' · 🔁 עם לולאה (חיווט בלבד)' : '') : '');
+  for (const x of ASSEMBLY.extras) row('📏 ' + x.says, 'כלי-מדידה — חלק מוכח, נבחר ביד', [x], '');
+}
+
+/* ───── פעולות ───── */
+function setStage(stage, msg) { S.stage = stage; if (msg) $('stage').textContent = msg; }
+function assignAll() { setStage('assigned', 'כל משפחה צבועה בצבע של הרכב הקרוב שיש בו מקום (עד ' + S.cfg.cap + ' סלים ברכב). לחצו ② לסידור המסלולים.'); replan(); paint(true); }
+function routes() { setStage('routed', 'לכל רכב — מסלול ממוטב: השכן הקרוב, ואז היפוכי-קטעים עד שאין שיפור; לכל בית — שעת הגעה. לחצו ③.'); replan(); paint(true); }
+let raf = 0, last = 0, timer = 0;
+const SIM_MIN_PER_SEC = 4;
+const busy = () => [...S.del.values()].some((d) => d.status !== 'delivered') || (!!S.silent && !S.handed);
+function paint(force) { renderPanels(force); draw(); }
+function loop(t) {
+  if (!last) last = t;
+  const dt = Math.min(0.1, (t - last) / 1000); last = t;
+  tick(dt * SIM_MIN_PER_SEC); paint(false);
+  raf = S.stage === 'run' && busy() ? requestAnimationFrame(loop) : 0;
+}
+function step() { tick(4); paint(false); if (!busy()) { clearInterval(timer); timer = 0; } }
+/** בלי תנועה חלקה כש-prefers-reduced-motion: קפיצות של 4 דקות-הדמיה. */
+function ensureRunning() {
+  if (S.stage !== 'run' || !busy()) return;
+  if (reduce.matches) { if (!timer) timer = setInterval(step, 700); }
+  else if (!raf) { last = 0; raf = requestAnimationFrame(loop); }
+}
+function run() { startDistribution(); setStage('run', 'החלוקה התחילה: הרכבים נוסעים במסלול הממוטב, כל הגעה מקדמת את הסטטוס, ומשלוח שמאחר מהתכנית עולה בשלבים.'); paint(true); ensureRunning(); }
+function stopAll() { cancelAnimationFrame(raf); raf = 0; clearInterval(timer); timer = 0; }
+function reset(cfg = S?.cfg || DEMO) { stopAll(); S = freshState(cfg); $('stage').textContent = 'המשפחות על המפה. לחצו ① כדי לשבץ אותן לרכבים.'; legend(); paint(true); }
+/** מה-אם: משנים ⇒ נבנה מחדש מאותו זרע, ואם כבר שובץ/סודר — משובץ ומסודר מחדש מיד. */
+function whatIf(patch) {
+  if (S.stage === 'run') return;
+  const stage = S.stage, showBoard = S.showBoard;
+  const cfg = { ...S.cfg, ...patch };
+  cfg.vols = Math.max(1, Math.min(40, cfg.vols)); cfg.fams = Math.max(1, Math.min(450, cfg.fams)); cfg.cap = Math.max(1, Math.min(60, cfg.cap));
+  S = freshState(cfg); S.stage = stage; S.showBoard = showBoard;
+  replan(); legend(); paint(true);
+}
+function addWaiting() {
+  if (S.stage !== 'run') { whatIf({ fams: S.cfg.fams + 1 }); $('stage').textContent = 'נוספה משפחה — הכול שובץ וסודר מחדש.'; return; }
+  S.extraWait++;
+  const n = S.cfg.fams + S.extraWait;
+  const p = fit(randomPoints({ seed: SEED + 1 }, n)[n - 1]);
+  S.wait.push({ ...p, id: 'w' + S.extraWait, n, label: 'משפחה ' + n, win: windowOf(n) });
+  paint(true);
+}
+/** בזמן החלוקה: משפחה חדשה ⇒ הרכב הקרוב (nearestPoint), בסוף המסלול שלו — כמו בגרסה הראשונה. */
+function assignWaiting(id) {
+  const w = findWaiting(S.wait, id);
+  if (!w) return;
+  S.wait = S.wait.filter((x) => x !== w);
+  S.fams.push(w);
+  const v = nearestVolunteer(S.vols, w);
+  S.of.set(w.id, v);
+  const d = { f: w, status: nextStatus('pickup'), at: null, src: 'אישור המקבל' };
+  S.del.set(w.id, d);
+  const car = S.cars.get(v.id);
+  if (car) {
+    car.order = [...car.order, w];
+    car.legs = [...car.legs, ...legsFrom(car.order.length > 1 ? car.order[car.order.length - 2] : v, [w])];
+    const p = S.plan.get(v.id); p.order = car.order; p.rows = schedule([v, ...car.order].map((q, k) => (k ? asStop(q) : { x: q.x, y: q.y, open: 0, close: 24 * 60 })), PLAN); car.plan = p.rows;
+    if (car.start !== null) car.real = realRows(car);
+  }
+  $('stage').textContent = w.label + ' שובצה ל' + v.label + ' — הרכב הקרוב אליה, בסוף המסלול שלו.';
+  paint(true); ensureRunning();
+}
+
+$('b-assign').onclick = assignAll; $('b-routes').onclick = routes; $('b-start').onclick = run; $('b-reset').onclick = () => reset(); $('b-addwait').onclick = addWaiting;
+let capRaf = 0;
+$('cap').oninput = (e) => { const v = Number(e.target.value); $('cap-v').textContent = v; cancelAnimationFrame(capRaf); capRaf = requestAnimationFrame(() => whatIf({ cap: v })); };
+$('v-minus').onclick = () => whatIf({ vols: S.cfg.vols - 1 }); $('v-plus').onclick = () => whatIf({ vols: S.cfg.vols + 1 });
+$('f-minus').onclick = () => whatIf({ fams: S.cfg.fams - 1 }); $('f-plus').onclick = () => whatIf({ fams: S.cfg.fams + 1 });
+$('b-scale').onclick = () => { const city = S.cfg.fams !== CITY.fams; whatIf(city ? CITY : DEMO); $('stage').textContent = city ? 'עיר: 400 משפחות ו-30 מתנדבים — הכול חושב מחדש.' : 'חזרה לעיירה: 40 משפחות ו-6 מתנדבים.'; };
+$('b-board').onclick = () => { S.showBoard = !S.showBoard; paint(true); };
+$('theme').onclick = () => { const r = document.documentElement; const dark = r.dataset.theme ? r.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches; r.dataset.theme = dark ? 'light' : 'dark'; draw(); };
+addEventListener('resize', () => draw());
+machineTable(); reset(DEMO);
+// לבדיקות ולצילומים: מקדם את ההדמיה בלי לחכות (אותו tick, אותם חלקים)
+window.__dispatch = { advance(min) { stopAll(); for (let k = 0; k < min; k++) tick(1); paint(true); }, state: () => S, live: liveNumbers, plan: planNumbers, whatIf, printSheet, noPrint: false };
+</script>
+</body>
+</html>

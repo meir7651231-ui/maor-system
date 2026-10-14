@@ -139,7 +139,7 @@ describe('SELF-V2 · A/B — החותמות והבונה-מחדש', () => {
     const dir = mkdtempSync(join(tmpdir(), 'empty-cache-'));
     const f = join(ROOT, 'catalog/behavior/core-c.json'); const before = readFileSync(f, 'utf8');
     try {
-      expect(node(['catalog/scripts/behavior-probe.mjs', '--source', 'core-c'], { CATALOG_CACHE: dir })).toMatch(/· 0 רצו עכשיו, 9 מהחותמת/);
+      expect(node(['catalog/scripts/behavior-probe.mjs', '--source', 'core-c'], { CATALOG_CACHE: dir })).toMatch(/· 0 רצו עכשיו, 10 מהחותמת/);
       expect(readFileSync(f, 'utf8')).toBe(before);
     } finally { if (readFileSync(f, 'utf8') !== before) writeFileSync(f, before); rmSync(dir, { recursive: true, force: true }); }
   }, 60_000);
