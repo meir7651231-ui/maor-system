@@ -98,3 +98,11 @@ node catalog/self/loop-demo.mjs --out catalog/self/loop-demo.json   # 4 ההדג
 node catalog/self/loop-demo.mjs --quick       # אותן הדגמות בלי rebuild/vitest (~25 שנ׳)
 ```
 ⚠️ שינוי בקוד המכונה ⇒ `node catalog/scripts/rebuild.mjs` (self-check מעדכן את `catalog/self/*.json`), ואם רוצים — `--apply` ללולאה וקומיט של הפנקס.
+
+## 9. הערת-המנהל על נקודת-הביניים a57cc9c — שכפול טרי לא תאם לחותמות (תוקן)
+
+- **מה נמדד:** worktree מנותק טרי + `node_modules` בלי מטמון ⇒ `rebuild --check` ⇒ ✗ 5 שלבים (open/probe/prove-orbit, combiner-prove, combine — ה-in שונה, ה-out זהים).
+- **השורש:** את האלגוריתם של `lib/blank.mjs` שיניתי פעמיים תחת אותו תג-מטמון ידני `'blank-v3'` ⇒ אצלי נשלפו טביעות-view מהאיטרציה הקודמת ⇒ החותמות שנכתבו לא תאמו לחישוב טרי.
+- **התיקון:** `blankAlgoKey()` — מפתח-המטמון = טביעת הקוד של `lib/blank.mjs` עצמו (+ גרסת typescript), לא תג. ratchet + מוטנט (תג-גרסה ידני) ב-`self-loop.test`. שאר המטמונים-לפי-אלגוריתם כבר יושבים על `machineSalt()` (טביעת הקוד של lib · core · inner/lib · combiner · self/parts). `rm -rf node_modules/.cache` ⇒ rebuild מלא ⇒ חותמות חדשות.
+- **שער קבוע:** `node catalog/self/fresh-gate.mjs` — worktree מנותק של HEAD + `CATALOG_CACHE=<תיקייה ריקה>` ⇒ `rebuild --check` ✓ ו-`git status` נקי אחרי `rebuild`. רץ לפני ה-push (✓ על `fb7a1bb`), ובכל CI עם `CATALOG_FULL=1` (דרך `self-loop.test`).
+- הלולאה רצה שוב (`--apply`): אותה תוצאה; זזו רק מספרי-שורה ב-`blank.mjs`.
