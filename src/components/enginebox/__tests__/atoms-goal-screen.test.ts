@@ -40,7 +40,7 @@ describe('🎯 (א) המקור', () => {
     const s = src();
     const q = s.goal!('לחלק', []);
     expect(q.status).toBe('ask');
-    const chip = q.questions[0].chips.find((c) => c.label === 'חלון הניקיון')!;
+    const chip = q.questions[0].chips.find((c) => c.label === '🛏️ חלון הניקיון')!;
     expect(s.goal!('לחלק', [chip.pick]).results[0].id).toBe('bookings:bookings.turnover:divide');
   });
 

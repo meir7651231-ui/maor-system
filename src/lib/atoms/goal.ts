@@ -17,7 +17,7 @@
  */
 import { capabilityId, optionsFor, type AtomCard, type AtomId, type Capability, type EngineCard, type EngineId, type Kind, type Place } from './contract';
 import { ATOM_CARDS, atomCard } from './cards';
-import { ATOM_EXPLAIN } from './explain';
+import { ATOM_EXPLAIN, ENGINE_EXPLAIN } from './explain';
 import { placeById } from './engines';
 import { childCapability, generationOf, MAX_GENERATIONS, outputPlaces } from './chain';
 import { cleanParams, placeShort, suggestedChildName, suggestedName } from './capabilities';
@@ -523,9 +523,25 @@ export function sayComposition(c: Pick<Composition, 'steps'> & { title?: string 
   return bits.filter(Boolean).join(' · ') + (out ? ' ← ' + out : '');
 }
 
+/** שמות קצרים למקומות שאין להם שם קצר בכרטיסים (מחשבון הזמנים ומבין בקשות) — לצ'יפים ולמשפט. */
+const GOAL_PLACE_SHORT: Readonly<Record<string, string>> = {
+  'zmanim.day': 'היום מהנץ עד השקיעה',
+  'zmanim.shabbat': 'השבת',
+  'zmanim.times': 'זמני היום',
+  'zmanim.closedDays': 'השבתות והחגים',
+  'whatNeed.requests': 'הבקשות',
+  'whatNeed.text': 'הבקשה בטקסט',
+  'whatNeed.names': 'שמות העסקים',
+  'whatNeed.hours': 'שעות הפתיחה',
+  'whatNeed.openings': 'מתי עסקים נפתחים',
+  'whatNeed.adSlot': 'משבצת הפרסומת',
+  'whatNeed.adPrice': 'מחיר הפרסומת',
+};
+export const goalPlaceShort = (place: string): string => GOAL_PLACE_SHORT[place] ?? placeShort(place);
+
 /** "את חלון הניקיון" · "את היתרה" · "בזמני היום". */
 function objectOf(atom: AtomId, place: string): string {
-  const short = place.startsWith('out:') ? '' : placeShort(place);
+  const short = place.startsWith('out:') ? '' : goalPlaceShort(place);
   if (!short) return '';
   return atom === 'fuzzy' || atom === 'next' ? 'ב' + short.replace(/^ה(?=..)/, '') : 'את ' + short;
 }
@@ -569,10 +585,9 @@ function paramPhrase(atom: AtomId, p: Record<string, number | string>, amount: b
 
 /** "חלון הניקיון 11:00–15:00 · 6 תורים" ⇒ "6 תורים" (החלק האחרון של הכותרת). */
 function outcomeOf(title: string): string {
-  const bits = title.split(' · ').map((b) => b.trim());
-  const last = bits[bits.length - 1];
-  // "תורים באורך משתנה · 11:00–15:00" ⇒ השם, לא השעות
-  return /^[\d:–\-/ ]+$/.test(last) ? bits[0] : last;
+  // החלק האחרון שאומר משהו: לא רק שעות ("תורים באורך משתנה · 11:00–15:00" ⇒ השם) ולא המקום ("· לפי בני ברק")
+  const bits = title.split(' · ').map((b) => b.trim()).filter((b) => b && !/^לפי /.test(b) && !/^[\d:–\-/ ]+$/.test(b));
+  return bits.length ? bits[bits.length - 1] : '';
 }
 
 /** הצ'יפים של שאלה "מה לחלק?": רק המקומות שנותנים תוצאה אמיתית, בשם הקצר. */
@@ -582,10 +597,14 @@ function placeChips(cands: readonly { d: Draft }[]): GoalChip[] {
   for (const { d } of cands) {
     if (seen.has(d.rootPlace)) continue;
     seen.add(d.rootPlace);
-    out.push({ label: placeShort(d.rootPlace), pick: { place: d.rootPlace } });
+    // שני מנועים יכולים להחזיק מקום דומה ("שבתות וחגים") ⇒ האימוג'י של המנוע לפני השם
+    const e = ENGINE_EMOJI[d.engine];
+    out.push({ label: (e ? e + ' ' : '') + goalPlaceShort(d.rootPlace), pick: { place: d.rootPlace } });
   }
   return out.slice(0, 8);
 }
+
+const ENGINE_EMOJI: Readonly<Record<string, string>> = { zmanim: ENGINE_EXPLAIN.zmanim.emoji, whatNeed: ENGINE_EXPLAIN.whatNeed.emoji, bookings: ENGINE_EXPLAIN.bookings.emoji };
 
 const sameParams = (a: Capability['params'], b: Capability['params']): boolean => JSON.stringify(a) === JSON.stringify(b);
 
@@ -669,7 +688,7 @@ function askAtoms(goal: Goal, all: readonly Draft[], ctx: PreviewCtx, saved: rea
     return { label: a.emoji + ' ' + a.name, pick: { atom: x.d.steps[0].atom } };
   });
   if (!chips.length) return { goal, status: 'none', results: [], questions: [] };
-  return { goal, status: 'ask', results: [], questions: [{ text: 'מה לעשות עם ' + placeShort(place) + '?', chips }] };
+  return { goal, status: 'ask', results: [], questions: [{ text: 'מה לעשות עם ' + goalPlaceShort(place) + '?', chips }] };
 }
 
 /** משפט בלי שום מילה מוכרת ⇒ "מה לעשות?" עם שמונת החלקים (בשמות שאושרו). */

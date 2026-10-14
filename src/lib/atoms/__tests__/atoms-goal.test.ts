@@ -138,7 +138,8 @@ describe('🎯 הקורפוס — כל משפט נותן את ההרכבה הצ�
         const q = a.questions[0];
         expect(q.text).toBe(c.asks.q);
         const labels = q.chips.map((x) => x.label);
-        for (const ch of c.asks.chips) expect(labels).toContain(ch);
+        // צ'יפ של מקום = האימוג'י של המנוע + השם הקצר ("🛏️ היתרה")
+        for (const ch of c.asks.chips) expect(labels.some((l) => l === ch || l.endsWith(' ' + ch)), ch + ' ∈ ' + labels.join(',')).toBe(true);
         return;
       }
       const [place, chain, params] = c.top!;
@@ -226,7 +227,7 @@ describe('🎯 התוצאות והדירוג', () => {
 describe('🎯 שאלות סגורות — הצ\'יפ משלים את המשפט', () => {
   it('"לחלק" + הצ\'יפ "היתרה" ⇒ ההרכבה של היתרה', () => {
     const a = ask('לחלק');
-    const chip = a.questions[0].chips.find((c) => c.label === 'היתרה')!;
+    const chip = a.questions[0].chips.find((c) => c.label === '🛏️ היתרה')!;
     const b = answerGoal('לחלק', [chip.pick], ENGINE_CARDS, ctx());
     expect(b.status).toBe('ok');
     expect(b.results[0].steps[0].place).toBe('bookings.balance');
