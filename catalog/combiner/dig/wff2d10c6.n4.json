@@ -29,24 +29,26 @@
    "why": "אותו פועל · שם קרוב"
   },
   {
-   "id": "orbit:src/components/hosting/kitchen.ts#dinerTotal",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "מחשב את הסכום הכולל של הסועד",
-   "file": "src/components/hosting/kitchen.ts",
+   "id": "inner-14kk:final_supervisor_protocol.js#FinalSupervisorProtocol.calculateEfficiency.totalEfficiency:after-loop",
+   "project": "inner-14kk",
+   "source": "inner-14kk",
+   "name": "מסכם ערכים לאורך רשימה",
+   "file": "final_supervisor_protocol.js",
    "action": "מסכם",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל · שם קרוב"
+   "why": "אותו פועל · שם קרוב",
+   "inside": "FinalSupervisorProtocol.calculateEfficiency"
   },
   {
-   "id": "orbit:src/components/supporters/cockpit.ts#cockpitCollectedThisMonth",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "מחשב סכום שנגבה בפועל החודש",
-   "file": "src/components/supporters/cockpit.ts",
+   "id": "inner-14kk:final_supervisor_protocol.js#FinalSupervisorProtocol.calculateEfficiency.totalWeight:after-loop",
+   "project": "inner-14kk",
+   "source": "inner-14kk",
+   "name": "מסכם ערכים לאורך רשימה",
+   "file": "final_supervisor_protocol.js",
    "action": "מסכם",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל · שם קרוב"
+   "why": "אותו פועל · שם קרוב",
+   "inside": "FinalSupervisorProtocol.calculateEfficiency"
   }
  ]
 }

@@ -20,6 +20,17 @@
  "statusHe": "🔎 עוד לא נחפר",
  "places": [
   {
+   "id": "inner-orbit:src/components/home/widgets.tsx#Carousel.cur",
+   "project": "inner-orbit",
+   "source": "inner-orbit",
+   "name": "בוחר ערך לפי תנאי",
+   "file": "src/components/home/widgets.tsx",
+   "action": "מחלק בתורות",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל",
+   "inside": "Carousel"
+  },
+  {
    "id": "orbit:src/lib/atoms/parts/rotate.ts#dayIndex",
    "project": "אורביט",
    "source": "orbit",
@@ -34,16 +45,6 @@
    "project": "אורביט",
    "source": "orbit",
    "name": "מחלק בתורות",
-   "file": "src/lib/atoms/parts/rotate.ts",
-   "action": "מחלק בתורות",
-   "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל"
-  },
-  {
-   "id": "orbit:src/lib/atoms/parts/rotate.ts#turnIndex",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "מחשב אינדקס התור בכמה",
    "file": "src/lib/atoms/parts/rotate.ts",
    "action": "מחלק בתורות",
    "proof": "הורץ — סוג אחר",

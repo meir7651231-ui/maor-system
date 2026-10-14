@@ -381,9 +381,18 @@ const linked = (a, b) => accepts(b, a.gives);
  * כל חלק אחר הוא מתאם-סוג טהור (`adapterRole`) שמוכח בהרצה לפועל-המתאם שלו.
  */
 export function chainsFor(need, ix) {
+  const all = (ix.byVerb.get(need.verb) || []).filter((p) => provenAs(p, need.verb) && matchesKeys(p, need.keys) && !(p.takes.length === 0 && p.gives === 'unknown'));
+  // סדר-העדיפות (הכרעת-בעלים): חלק מוכח אחד > חלק פנימי > שילוב מוכח — כל קבוצה עוברת את כל הטבעות לפני הבאה
+  for (const group of [all.filter((p) => !p.parent && !p.combo), all.filter((p) => p.parent && !p.combo), all.filter((p) => p.combo)]) {
+    const got = ringsFor(need, ix, group.slice(0, CAP_CORE));
+    if (got.length) return got;
+  }
+  return [];
+}
+
+function ringsFor(need, ix, cores) {
   const mat = need.material;
   const from = need.from || null;
-  const cores = (ix.byVerb.get(need.verb) || []).filter((p) => provenAs(p, need.verb) && matchesKeys(p, need.keys) && !(p.takes.length === 0 && p.gives === 'unknown')).slice(0, CAP_CORE);
   const glue = (p) => {
     const r = adapterRole(p);
     return r && r !== need.verb ? r : null;
@@ -714,8 +723,8 @@ export function pickWord(goals, seed) {
 /** אין בהרכבה טלפון/מייל/ת״ז/קישור/טוקן. מחזיר את מה שדלף, או null. */
 export function piiLeak(obj) {
   const s = JSON.stringify(obj);
-  // טוקן = רצף ארוך של אותיות-וספרות מעורבבות (לא מזהה-קובץ עם מקפים)
-  const pats = [/[\w.+-]+@[a-z0-9-]+(?:\.[a-z0-9-]+)*\.(?:com|net|org|il|io|co|edu|gov|me|info|app|dev)\b/i, /(?:\+?972|\b0)5\d[- ]?\d{3}[- ]?\d{4}/, /\b\d{9}\b/, /https?:\/\//, /\b(?=[A-Za-z0-9]*\d)(?=[A-Za-z0-9]*[A-Za-z])[A-Za-z0-9]{24,}\b/];
+  // טוקן = רצף ארוך של אותיות-וספרות מעורבבות, עם 4+ ספרות (לא מזהה-קובץ עם מקפים; לא שם-פונקציה כמו test200PercentCapabilities)
+  const pats = [/[\w.+-]+@[a-z0-9-]+(?:\.[a-z0-9-]+)*\.(?:com|net|org|il|io|co|edu|gov|me|info|app|dev)\b/i, /(?:\+?972|\b0)5\d[- ]?\d{3}[- ]?\d{4}/, /\b\d{9}\b/, /https?:\/\//, /\b(?=(?:[A-Za-z]*\d){4})(?=[A-Za-z0-9]*[A-Za-z])[A-Za-z0-9]{24,}\b/];
   for (const p of pats) {
     const m = s.match(p);
     if (m) return m[0];

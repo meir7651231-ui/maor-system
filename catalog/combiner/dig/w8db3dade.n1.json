@@ -19,34 +19,37 @@
  "statusHe": "🔎 עוד לא נחפר",
  "places": [
   {
-   "id": "orbit:src/components/supporters/tierMigration.ts#tierAsOf",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "קובע דרגת התורם נכון",
-   "file": "src/components/supporters/tierMigration.ts",
+   "id": "inner-generator:machtzev/ds-forge.mjs#svgScene.walk.start",
+   "project": "inner-generator",
+   "source": "inner-generator",
+   "name": "מעגל לספרות קבועות",
+   "file": "machtzev/ds-forge.mjs",
    "action": "מדרג לשלבים",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל · שם קרוב"
+   "why": "אותו פועל · אותו חומר",
+   "inside": "svgScene"
   },
   {
-   "id": "generator:new/dart-maor/tier-of.dart#tierOf",
-   "project": "המחולל",
-   "source": "generator",
-   "name": "החזר דרגת מדד-האמינות לפי ניקוד",
-   "file": "new/dart-maor/tier-of.dart",
-   "action": "מדרג לשלבים",
-   "proof": "מהשם בלבד",
-   "why": "אותו פועל · שם קרוב"
-  },
-  {
-   "id": "buildsmart:functions/src/analytics.ts#pickShard",
-   "project": "בנייה חכמה",
-   "source": "buildsmart",
-   "name": "בוחר ניתוח",
-   "file": "functions/src/analytics.ts",
+   "id": "inner-generator:machtzev/ds-forge.mjs#svgScene.walk.sweep",
+   "project": "inner-generator",
+   "source": "inner-generator",
+   "name": "מעגל לספרות קבועות",
+   "file": "machtzev/ds-forge.mjs",
    "action": "מדרג לשלבים",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל"
+   "why": "אותו פועל · אותו חומר",
+   "inside": "svgScene"
+  },
+  {
+   "id": "inner-generator:machtzev/generator/app-ds.mjs#buildApp.liveOf0.bw:step",
+   "project": "inner-generator",
+   "source": "inner-generator",
+   "name": "מצרף רשימה לטקסט",
+   "file": "machtzev/generator/app-ds.mjs",
+   "action": "מדרג לשלבים",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל · אותו חומר",
+   "inside": "buildApp"
   }
  ]
 }

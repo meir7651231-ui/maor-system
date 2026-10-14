@@ -1,0 +1,116 @@
+{
+ "source": "orbit",
+ "version": 1,
+ "files": 503,
+ "candidates": 16613,
+ "sliced": 4785,
+ "parts": 5970,
+ "modules": 399,
+ "forms": {
+  "form:slice": 4785,
+  "form:step": 1185
+ },
+ "kinds": {
+  "inner:value": 5600,
+  "inner:accumulator": 368,
+  "inner:envelope": 2
+ },
+ "parents": {
+  "parent:uncataloged": 4142,
+  "parent:cataloged": 1828
+ },
+ "skipped": {
+  "imported-call": 6414,
+  "trivial": 3201,
+  "method-call": 468,
+  "unknown-call": 311,
+  "loop-imported-call": 269,
+  "await": 255,
+  "closure-helper": 141,
+  "mutation": 107,
+  "clock": 84,
+  "io": 72,
+  "loop-mutation": 63,
+  "loop-method-call": 61,
+  "dom": 59,
+  "imported-value": 52,
+  "loop-unknown-call": 34,
+  "jsx": 31,
+  "timer": 30,
+  "random": 29,
+  "loop-return": 26,
+  "module-state": 26,
+  "new": 23,
+  "loop-await": 20,
+  "loop-closure-helper": 20,
+  "global": 8,
+  "loop-clock": 7,
+  "loop-new": 5,
+  "loop-random": 5,
+  "loop-module-state": 4,
+  "privacy": 2,
+  "global-call": 1
+ },
+ "topFiles": [
+  [
+   "src/store/useApp.ts",
+   188
+  ],
+  [
+   "src/lib/atoms/verify/run.ts",
+   139
+  ],
+  [
+   "src/components/supporters/lib.ts",
+   124
+  ],
+  [
+   "src/components/parnasa/zmanimBoard.ts",
+   121
+  ],
+  [
+   "src/components/parnasa/phoneLine.ts",
+   96
+  ],
+  [
+   "src/lib/atoms/preview.ts",
+   77
+  ],
+  [
+   "src/lib/nedarimSync.ts",
+   73
+  ],
+  [
+   "telephony/lib/zmanim.mjs",
+   73
+  ],
+  [
+   "src/components/hosting/actions.ts",
+   72
+  ],
+  [
+   "src/lib/atoms/goal.ts",
+   71
+  ],
+  [
+   "src/components/parnasa/lib.ts",
+   65
+  ],
+  [
+   "src/components/home/homeData.ts",
+   64
+  ],
+  [
+   "src/lib/atoms/previewZmanim.ts",
+   64
+  ],
+  [
+   "telephony/lib/generate.mjs",
+   63
+  ],
+  [
+   "src/components/home/widgets.tsx",
+   62
+  ]
+ ]
+}

@@ -30,24 +30,26 @@
    "why": "אותו פועל · שם קרוב"
   },
   {
-   "id": "14kk:services/business-integrations.js#GitHubIntegration",
-   "project": "14kk",
-   "source": "14kk",
-   "name": "להפעיל אינטגרציה GitHub",
-   "file": "services/business-integrations.js",
+   "id": "inner-generator:machtzev/generator/behavior-plan.mjs#forwardSigOf.f",
+   "project": "inner-generator",
+   "source": "inner-generator",
+   "name": "מוצא פריט ברשימה",
+   "file": "machtzev/generator/behavior-plan.mjs",
    "action": "מעביר דרך מרכז",
    "proof": "מהשם בלבד",
-   "why": "אותו פועל"
+   "why": "אותו פועל",
+   "inside": "forwardSigOf"
   },
   {
-   "id": "generator:box-drafts/io-wiring/fetch-outbox-issues@src_lib_cloud_ts.mjs#fetchOutboxIssues",
-   "project": "המחולל",
-   "source": "generator",
-   "name": "הבא תקלות תיבת-יוצא",
-   "file": "box-drafts/io-wiring/fetch-outbox-issues@src_lib_cloud_ts.mjs",
+   "id": "inner-generator:machtzev/generator/render-ds.mjs#renderHub.roleVis",
+   "project": "inner-generator",
+   "source": "inner-generator",
+   "name": "ממיר כל פריט ברשימה",
+   "file": "machtzev/generator/render-ds.mjs",
    "action": "מעביר דרך מרכז",
    "proof": "מהשם בלבד",
-   "why": "אותו פועל"
+   "why": "אותו פועל",
+   "inside": "renderHub"
   }
  ]
 }

@@ -19,6 +19,17 @@
  "statusHe": "🔎 עוד לא נחפר",
  "places": [
   {
+   "id": "inner-generator:machtzev/generator/auto-logic.mjs#rankAll.d",
+   "project": "inner-generator",
+   "source": "inner-generator",
+   "name": "מחפש ערך לפי מפתח",
+   "file": "machtzev/generator/auto-logic.mjs",
+   "action": "ממיין",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · שם קרוב",
+   "inside": "rankAll"
+  },
+  {
    "id": "core-b:catalog/core/pace.mjs#pace",
    "project": "ליבות-הפעלים",
    "source": "core-b",
@@ -29,24 +40,15 @@
    "why": "אותו פועל"
   },
   {
-   "id": "rings:lab-rings/lab13/shelf3.json#מיין רשימה",
-   "project": "הטבעות",
-   "source": "rings",
-   "name": "מיין רשימה",
-   "file": "lab-rings/lab13/shelf3.json",
+   "id": "inner-generator:new/boxes/pareto.mjs#paretoReport.asc",
+   "project": "inner-generator",
+   "source": "inner-generator",
+   "name": "ממיין רשימה",
+   "file": "new/boxes/pareto.mjs",
    "action": "ממיין",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל"
-  },
-  {
-   "id": "buildsmart:app_flutter/lib/logic/tasks_gantt.dart#*",
-   "project": "בנייה חכמה",
-   "source": "buildsmart",
-   "name": "מסדר משימות על ציר גאנט",
-   "file": "app_flutter/lib/logic/tasks_gantt.dart",
-   "action": "ממיין",
-   "proof": "מהשם בלבד",
-   "why": "אותו פועל"
+   "why": "אותו פועל",
+   "inside": "paretoReport"
   }
  ]
 }

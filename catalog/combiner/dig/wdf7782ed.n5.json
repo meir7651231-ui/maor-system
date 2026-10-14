@@ -39,14 +39,15 @@
    "why": "אותו פועל"
   },
   {
-   "id": "generator:box-drafts/buildsmart-seed/search-fuzzy@app_src_lib_search_ts.mjs#searchFuzzy",
-   "project": "המחולל",
-   "source": "generator",
-   "name": "חפש מקורב",
-   "file": "box-drafts/buildsmart-seed/search-fuzzy@app_src_lib_search_ts.mjs",
+   "id": "inner-generator:machtzev/emit/ast-js-to-dart.mjs#typesFromEvidence.forEach.t",
+   "project": "inner-generator",
+   "source": "inner-generator",
+   "name": "מחשב ערך בעזרת חישוב עזר",
+   "file": "machtzev/emit/ast-js-to-dart.mjs",
    "action": "דורש מקור",
    "proof": "מהשם בלבד",
-   "why": "אותו פועל"
+   "why": "אותו פועל",
+   "inside": "typesFromEvidence"
   }
  ]
 }

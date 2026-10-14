@@ -29,24 +29,26 @@
    "why": "אותו פועל"
   },
   {
-   "id": "orbit:src/components/calendar/calLib.ts#isoOf",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "מחשב תאריך מקומי",
-   "file": "src/components/calendar/calLib.ts",
+   "id": "inner-generator:new/atoms/build-month-grid.mjs#buildMonthGrid.d:step",
+   "project": "inner-generator",
+   "source": "inner-generator",
+   "name": "בונה תאריך מערך",
+   "file": "new/atoms/build-month-grid.mjs",
    "action": "מקבץ לפי יום",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל"
+   "why": "אותו פועל",
+   "inside": "buildMonthGrid"
   },
   {
-   "id": "orbit:src/components/diary/lib.ts#localIso",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "מחשב תאריך מקומי",
-   "file": "src/components/diary/lib.ts",
+   "id": "inner-generator:new/atoms/holiday-names.mjs#holidayNames.d:step",
+   "project": "inner-generator",
+   "source": "inner-generator",
+   "name": "בונה תאריך מערך",
+   "file": "new/atoms/holiday-names.mjs",
    "action": "מקבץ לפי יום",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל"
+   "why": "אותו פועל",
+   "inside": "holidayNames"
   }
  ]
 }

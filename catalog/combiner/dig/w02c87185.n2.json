@@ -19,6 +19,17 @@
  "statusHe": "🔎 עוד לא נחפר",
  "places": [
   {
+   "id": "inner-orbit:src/components/timer/CashRegister.tsx#CashRegister.dueNum",
+   "project": "inner-orbit",
+   "source": "inner-orbit",
+   "name": "בוחר ערך לפי תנאי",
+   "file": "src/components/timer/CashRegister.tsx",
+   "action": "בוחר את הקיצוני",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל · אותו חומר",
+   "inside": "CashRegister"
+  },
+  {
    "id": "orbit:src/components/hosting/kitchen.ts#mealLeadMinutes",
    "project": "אורביט",
    "source": "orbit",
@@ -29,24 +40,15 @@
    "why": "אותו פועל · שם קרוב"
   },
   {
-   "id": "orbit:src/components/hosting/lib.ts#monthPaidRevenue",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "מחשב תקבולי החודש",
-   "file": "src/components/hosting/lib.ts",
+   "id": "inner-generator:new/boxes/pareto.mjs#paretoReport.weighted:after-loop",
+   "project": "inner-generator",
+   "source": "inner-generator",
+   "name": "מסכם ערכים לאורך רשימה",
+   "file": "new/boxes/pareto.mjs",
    "action": "בוחר את הקיצוני",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל"
-  },
-  {
-   "id": "orbit:src/components/hosting/transitions.ts#bookBeds",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "מחשב מיטות של בחירת החדרים",
-   "file": "src/components/hosting/transitions.ts",
-   "action": "בוחר את הקיצוני",
-   "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל"
+   "why": "אותו פועל · שם קרוב",
+   "inside": "paretoReport"
   }
  ]
 }

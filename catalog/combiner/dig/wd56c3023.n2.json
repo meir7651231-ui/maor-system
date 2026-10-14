@@ -19,34 +19,37 @@
  "statusHe": "🔎 עוד לא נחפר",
  "places": [
   {
-   "id": "orbit:src/components/courses/lib.ts#coursesOfTeacher",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "מסנן תפקיד מורה",
-   "file": "src/components/courses/lib.ts",
+   "id": "inner-buildsmart:functions/src/push.ts#onDocumentCreated.recipients:step",
+   "project": "inner-buildsmart",
+   "source": "inner-buildsmart",
+   "name": "מסנן רשימה לפי תנאי",
+   "file": "functions/src/push.ts",
    "action": "מסנן",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל"
+   "why": "אותו פועל",
+   "inside": "onDocumentCreated"
   },
   {
-   "id": "orbit:src/components/courses/ops.ts#dropoutRisk",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "מוצא תלמידים בסיכון נשירה",
-   "file": "src/components/courses/ops.ts",
+   "id": "inner-buildsmart:functions/src/push.ts#sendToUsers.targets",
+   "project": "inner-buildsmart",
+   "source": "inner-buildsmart",
+   "name": "מסנן רשימה לפי תנאי",
+   "file": "functions/src/push.ts",
    "action": "מסנן",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל"
+   "why": "אותו פועל",
+   "inside": "sendToUsers"
   },
   {
-   "id": "orbit:src/components/courses/reenroll-lib.ts#renewTargets",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "אומר מי מיועד לרישום המוני",
-   "file": "src/components/courses/reenroll-lib.ts",
+   "id": "inner-generator:gen/looks/medrash/probe.mjs#VERIFY.wall:step",
+   "project": "inner-generator",
+   "source": "inner-generator",
+   "name": "מסנן רשימה לפי תנאי",
+   "file": "gen/looks/medrash/probe.mjs",
    "action": "מסנן",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל"
+   "why": "אותו פועל",
+   "inside": "VERIFY"
   }
  ]
 }

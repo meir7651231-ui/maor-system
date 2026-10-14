@@ -17,34 +17,37 @@
  "statusHe": "🔎 עוד לא נחפר",
  "places": [
   {
-   "id": "orbit:src/components/parnasa/lib.ts#isUrgent",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "בודק אם בקשה דחופה",
-   "file": "src/components/parnasa/lib.ts",
+   "id": "inner-orbit:src/components/courses/parent.ts#parentCard.ended:step",
+   "project": "inner-orbit",
+   "source": "inner-orbit",
+   "name": "הופך כן ללא",
+   "file": "src/components/courses/parent.ts",
    "action": "בודק",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל · שם קרוב"
+   "why": "אותו פועל · אותו חומר",
+   "inside": "בונה כרטיס הורה פר ילד"
   },
   {
-   "id": "generator:new/dart-maor/install-available.dart#installAvailable",
-   "project": "המחולל",
-   "source": "generator",
-   "name": "בדוק האם דיאלוג-התקנת-PWA זמין",
-   "file": "new/dart-maor/install-available.dart",
+   "id": "inner-orbit:src/components/parnasa/zmanimBoard.ts#markZmanim.map.past:step",
+   "project": "inner-orbit",
+   "source": "inner-orbit",
+   "name": "בודק כמה תנאים יחד",
+   "file": "src/components/parnasa/zmanimBoard.ts",
    "action": "בודק",
-   "proof": "מהשם בלבד",
-   "why": "אותו פועל · שם קרוב"
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל · אותו חומר",
+   "inside": "מוצא זמני היום מסומנים מול השעון"
   },
   {
-   "id": "generator:new/dart/wf_action_visible.dart#wfActionVisible",
-   "project": "המחולל",
-   "source": "generator",
-   "name": "בדוק האם כפתור-הקידום גלוי בשלב הנוכחי",
-   "file": "new/dart/wf_action_visible.dart",
+   "id": "inner-orbit:src/store/useApp.ts#call.addCred.scaled",
+   "project": "inner-orbit",
+   "source": "inner-orbit",
+   "name": "בודק כמה תנאים יחד",
+   "file": "src/store/useApp.ts",
    "action": "בודק",
-   "proof": "מהשם בלבד",
-   "why": "אותו פועל · שם קרוב"
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל · אותו חומר",
+   "inside": "call"
   }
  ]
 }

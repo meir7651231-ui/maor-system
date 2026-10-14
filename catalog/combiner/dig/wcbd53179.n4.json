@@ -20,6 +20,17 @@
  "statusHe": "🔎 עוד לא נחפר",
  "places": [
   {
+   "id": "inner-generator:new/atoms/build-course-daily-rows.mjs#buildCourseDailyRows.abs",
+   "project": "inner-generator",
+   "source": "inner-generator",
+   "name": "מוצא פריט ברשימה",
+   "file": "new/atoms/build-course-daily-rows.mjs",
+   "action": "מוצא גם עם טעות",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · אותו חומר",
+   "inside": "buildCourseDailyRows"
+  },
+  {
    "id": "orbit:src/lib/atoms/parts/fuzzy.ts#normHe",
    "project": "אורביט",
    "source": "orbit",
@@ -35,16 +46,6 @@
    "source": "buildsmart",
    "name": "מנסח בעברית וריאנטים חיפוש",
    "file": "app_flutter/lib/features/global_search/hebrew_morph.dart",
-   "action": "מוצא גם עם טעות",
-   "proof": "מהשם בלבד",
-   "why": "אותו פועל · שם קרוב"
-  },
-  {
-   "id": "buildsmart:app_flutter/lib/widgets/smart_input/ranking.dart#rankSuggestions",
-   "project": "בנייה חכמה",
-   "source": "buildsmart",
-   "name": "מדרג הצעות",
-   "file": "app_flutter/lib/widgets/smart_input/ranking.dart",
    "action": "מוצא גם עם טעות",
    "proof": "מהשם בלבד",
    "why": "אותו פועל · שם קרוב"

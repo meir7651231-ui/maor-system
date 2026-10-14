@@ -48,14 +48,15 @@
    "why": "אותו פועל · שם קרוב"
   },
   {
-   "id": "orbit:src/components/hosting/reports.ts#rangeNights",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "מחשב את הלילות של שהייה שבתוך התקופה",
-   "file": "src/components/hosting/reports.ts",
+   "id": "inner-generator:new/atoms/hok-cat.mjs#monthsAgoIso.ty",
+   "project": "inner-generator",
+   "source": "inner-generator",
+   "name": "ממיר כל פריט ברשימה",
+   "file": "new/atoms/hok-cat.mjs",
    "action": "מסלים בזמן",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל"
+   "why": "אותו פועל",
+   "inside": "monthsAgoIso"
   }
  ]
 }

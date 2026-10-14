@@ -28,34 +28,37 @@
    "why": "מקום ידוע — אומת ביד"
   },
   {
-   "id": "rings:lab-rings/lab13/shelf3.json#עזר: הגדול כפול הקטן",
-   "project": "הטבעות",
-   "source": "rings",
-   "name": "חשב עזר: הגדול כפול הקטן",
-   "file": "lab-rings/lab13/shelf3.json",
+   "id": "inner-generator:machtzev/ds-tokens.mjs#map.y2",
+   "project": "inner-generator",
+   "source": "inner-generator",
+   "name": "בוחר את הגדול מבין ערכים",
+   "file": "machtzev/ds-tokens.mjs",
    "action": "ממיר ערך",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל · שם קרוב"
+   "why": "אותו פועל · שם קרוב",
+   "inside": "map"
   },
   {
-   "id": "buildsmart:functions/src/creditCore.ts#contractorCredit",
-   "project": "בנייה חכמה",
-   "source": "buildsmart",
-   "name": "מחשב אשראי קבלן",
-   "file": "functions/src/creditCore.ts",
+   "id": "inner-generator:new/atoms/lessons-in-term.mjs#lessonsInTerm.n",
+   "project": "inner-generator",
+   "source": "inner-generator",
+   "name": "בוחר את הגדול מבין ערכים",
+   "file": "new/atoms/lessons-in-term.mjs",
    "action": "ממיר ערך",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל"
+   "why": "אותו פועל · שם קרוב",
+   "inside": "lessonsInTerm"
   },
   {
-   "id": "buildsmart:functions/src/creditCore.ts#dartStringHashCode",
-   "project": "בנייה חכמה",
-   "source": "buildsmart",
-   "name": "מחשב קוד חתימה מחרוזת",
-   "file": "functions/src/creditCore.ts",
+   "id": "inner-orbit:src/components/hosting/seating.ts#seatSetCap.patchTable.n",
+   "project": "inner-orbit",
+   "source": "inner-orbit",
+   "name": "בוחר את הגדול מבין ערכים",
+   "file": "src/components/hosting/seating.ts",
    "action": "ממיר ערך",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל"
+   "why": "אותו פועל · שם קרוב",
+   "inside": "קובע כמה כיסאות בשולחן"
   }
  ]
 }

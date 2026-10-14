@@ -40,14 +40,15 @@
    "why": "אותו פועל · שם קרוב"
   },
   {
-   "id": "orbit:src/lib/atoms/parts/rotate.ts#turnIndex",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "מחשב אינדקס התור בכמה",
-   "file": "src/lib/atoms/parts/rotate.ts",
+   "id": "inner-orbit:src/components/home/widgets.tsx#Carousel.cur",
+   "project": "inner-orbit",
+   "source": "inner-orbit",
+   "name": "בוחר ערך לפי תנאי",
+   "file": "src/components/home/widgets.tsx",
    "action": "מחלק בתורות",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל"
+   "why": "אותו פועל",
+   "inside": "Carousel"
   }
  ]
 }

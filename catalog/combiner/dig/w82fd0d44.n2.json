@@ -38,24 +38,26 @@
    "why": "אותו פועל · שם קרוב"
   },
   {
-   "id": "buildsmart:app_flutter/lib/domain/seeds/plumbing_trade_seed.dart#plumbingConnectorTypes",
-   "project": "בנייה חכמה",
-   "source": "buildsmart",
-   "name": "מחזיר סוגים מחבר אינסטלציה",
-   "file": "app_flutter/lib/domain/seeds/plumbing_trade_seed.dart",
+   "id": "inner-generator:machtzev/assemble/data-lift.mjs#untangle.n",
+   "project": "inner-generator",
+   "source": "inner-generator",
+   "name": "מחבר ערכים",
+   "file": "machtzev/assemble/data-lift.mjs",
    "action": "מחבר רצפים",
    "proof": "מהשם בלבד",
-   "why": "אותו פועל · שם קרוב"
+   "why": "אותו פועל · שם קרוב",
+   "inside": "untangle"
   },
   {
-   "id": "buildsmart:app_flutter/lib/logic/equipment_stock_join.dart#*",
-   "project": "בנייה חכמה",
-   "source": "buildsmart",
-   "name": "מחבר ציוד למלאי הזמין",
-   "file": "app_flutter/lib/logic/equipment_stock_join.dart",
+   "id": "inner-generator:machtzev/generator/auto-logic.mjs#sigOf.i",
+   "project": "inner-generator",
+   "source": "inner-generator",
+   "name": "מחבר ערכים",
+   "file": "machtzev/generator/auto-logic.mjs",
    "action": "מחבר רצפים",
    "proof": "מהשם בלבד",
-   "why": "אותו פועל · שם קרוב"
+   "why": "אותו פועל · שם קרוב",
+   "inside": "sigOf"
   }
  ]
 }

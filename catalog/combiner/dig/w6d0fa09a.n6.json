@@ -28,34 +28,37 @@
    "why": "מקום ידוע — אומת ביד"
   },
   {
-   "id": "orbit:src/components/hosting/reports.ts#rangeNights",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "מחשב את הלילות של שהייה שבתוך התקופה",
-   "file": "src/components/hosting/reports.ts",
+   "id": "inner-generator:new/atoms/hok-cat.mjs#monthsAgoIso.ty",
+   "project": "inner-generator",
+   "source": "inner-generator",
+   "name": "ממיר כל פריט ברשימה",
+   "file": "new/atoms/hok-cat.mjs",
    "action": "מסלים בזמן",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל"
+   "why": "אותו פועל",
+   "inside": "monthsAgoIso"
   },
   {
-   "id": "orbit:src/lib/atoms/parts/escalate.ts#escalationPlan",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "מוצא כל השלבים עם רגע ההתחלה שלהם",
-   "file": "src/lib/atoms/parts/escalate.ts",
+   "id": "inner-generator:new/atoms/hok-cat.mjs#monthsAgoIso.y",
+   "project": "inner-generator",
+   "source": "inner-generator",
+   "name": "ממיר כל פריט ברשימה",
+   "file": "new/atoms/hok-cat.mjs",
    "action": "מסלים בזמן",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל"
+   "why": "אותו פועל",
+   "inside": "monthsAgoIso"
   },
   {
-   "id": "orbit:src/lib/atoms/parts/escalate.ts#escalationState",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "מעביר הלאה כשאין תשובה",
-   "file": "src/lib/atoms/parts/escalate.ts",
+   "id": "inner-generator:new/atoms/hok-effectively-active.mjs#hokEffectivelyActive.monthsAgoIso.ty",
+   "project": "inner-generator",
+   "source": "inner-generator",
+   "name": "ממיר כל פריט ברשימה",
+   "file": "new/atoms/hok-effectively-active.mjs",
    "action": "מסלים בזמן",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל"
+   "why": "אותו פועל",
+   "inside": "hokEffectivelyActive"
   }
  ]
 }

@@ -49,14 +49,15 @@
    "why": "אותו פועל"
   },
   {
-   "id": "generator:box-drafts/io-wiring/fetch-outbox-issues@src_lib_cloud_ts.mjs#fetchOutboxIssues",
-   "project": "המחולל",
-   "source": "generator",
-   "name": "הבא תקלות תיבת-יוצא",
-   "file": "box-drafts/io-wiring/fetch-outbox-issues@src_lib_cloud_ts.mjs",
+   "id": "inner-generator:gen/looks/app/src/30-dossier.js#class.mount.addEventListener.next",
+   "project": "inner-generator",
+   "source": "inner-generator",
+   "name": "בוחר את הגדול מבין ערכים",
+   "file": "gen/looks/app/src/30-dossier.js",
    "action": "מוצא את הבא בתור",
    "proof": "מהשם בלבד",
-   "why": "אותו פועל"
+   "why": "אותו פועל",
+   "inside": "class.mount"
   }
  ]
 }

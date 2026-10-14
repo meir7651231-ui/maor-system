@@ -29,34 +29,37 @@
    "why": "מקום ידוע — אומת ביד"
   },
   {
-   "id": "orbit:src/components/parnasa/luach.ts#luachZmanim",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "מוצא זמני היום של הלוח",
-   "file": "src/components/parnasa/luach.ts",
+   "id": "inner-buildsmart:functions/src/deleteAccount.ts#purgeIntelForSubject.actorKeys",
+   "project": "inner-buildsmart",
+   "source": "inner-buildsmart",
+   "name": "מחשב ערך מערכים",
+   "file": "functions/src/deleteAccount.ts",
    "action": "רושם ביומן",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל"
+   "why": "אותו פועל",
+   "inside": "purgeIntelForSubject"
   },
   {
-   "id": "orbit:src/lib/widgetLayout.ts#addId",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "מוסיף פריט לסוף רשימה",
-   "file": "src/lib/widgetLayout.ts",
+   "id": "inner-buildsmart:functions/src/taskNotifs.ts#onDocumentUpdated.runTransaction.items:step",
+   "project": "inner-buildsmart",
+   "source": "inner-buildsmart",
+   "name": "מחלץ חלק מרצף",
+   "file": "functions/src/taskNotifs.ts",
    "action": "רושם ביומן",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל"
+   "why": "אותו פועל",
+   "inside": "onDocumentUpdated"
   },
   {
-   "id": "generator:box-drafts/io-wiring/audit-writer-email@src_lib_cloud_ts.mjs#auditWriterEmail",
-   "project": "המחולל",
-   "source": "generator",
-   "name": "בקר אימייל כותב",
-   "file": "box-drafts/io-wiring/audit-writer-email@src_lib_cloud_ts.mjs",
+   "id": "inner-generator:machtzev/ds-forge.mjs#emit.childAnc",
+   "project": "inner-generator",
+   "source": "inner-generator",
+   "name": "מצרף רצפים",
+   "file": "machtzev/ds-forge.mjs",
    "action": "רושם ביומן",
-   "proof": "מהשם בלבד",
-   "why": "אותו פועל"
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל",
+   "inside": "emit"
   }
  ]
 }

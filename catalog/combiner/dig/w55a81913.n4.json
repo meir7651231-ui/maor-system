@@ -19,34 +19,37 @@
  "statusHe": "🔎 עוד לא נחפר",
  "places": [
   {
-   "id": "rings:lab-rings/lab13/shelf3.json#הפוך רשימה",
-   "project": "הטבעות",
-   "source": "rings",
-   "name": "הפוך רשימה",
-   "file": "lab-rings/lab13/shelf3.json",
+   "id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#CartSubmenu.reversed:step",
+   "project": "inner-buildsmart",
+   "source": "inner-buildsmart",
+   "name": "מחשב ערך מערכים",
+   "file": "app/src/components/menu/submenu-settings.tsx",
    "action": "הופך סדר",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל"
+   "why": "אותו פועל",
+   "inside": "מציג רכיב תת-תפריט עגלה"
   },
   {
-   "id": "buildsmart:app_flutter/lib/state/site_hub_state.dart#formatGeo",
-   "project": "בנייה חכמה",
-   "source": "buildsmart",
-   "name": "מעצב אתר מצב",
-   "file": "app_flutter/lib/state/site_hub_state.dart",
-   "action": "מעצב לטקסט",
-   "proof": "מהשם בלבד",
-   "why": "אותו חומר · שם קרוב"
+   "id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#HomeSubmenu.reversed:step",
+   "project": "inner-buildsmart",
+   "source": "inner-buildsmart",
+   "name": "מחשב ערך מערכים",
+   "file": "app/src/components/menu/submenu-settings.tsx",
+   "action": "הופך סדר",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל",
+   "inside": "מציג רכיב תת-תפריט בית"
   },
   {
-   "id": "orbit:src/lib/atoms/engines/zmanim.ts#ZMANIM_CARD.4",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "מחשב מתי השמש יורדת לעומק מסוים",
-   "file": "src/lib/atoms/engines/zmanim.ts",
-   "action": "מוצא את מקום השמש",
-   "proof": "מהשם בלבד",
-   "why": "אותו חומר · שם קרוב"
+   "id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#ProfileTreeSubmenu.reversed:step",
+   "project": "inner-buildsmart",
+   "source": "inner-buildsmart",
+   "name": "מחשב ערך מערכים",
+   "file": "app/src/components/menu/submenu-settings.tsx",
+   "action": "הופך סדר",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל",
+   "inside": "מציג רכיב תת-תפריט עץ פרופיל"
   }
  ]
 }

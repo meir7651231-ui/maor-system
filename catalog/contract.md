@@ -44,6 +44,8 @@
 | `pure` | | boolean | `true` = אותו קלט ⇒ אותו פלט, בלי שעון/אקראי/רשת/דיסק/מסך · same input ⇒ same output, no clock/random/IO/DOM |
 | `example` | | `{in, out}` \| `null` | **רק מקבצי-בדיקה או fixtures, אחרי סינון.** `in` = אובייקט לפי שמות-הקלט · only from tests/fixtures, scrubbed |
 | `tags` | | string[] | חופשי; מומלץ `module:x`, `lib:x`, `brick:x`, `engine`, `place:<kind>` · free-form |
+| `parent` | | string | רק ב-`what: inner` — מזהה החלק שממנו הורם (`<source>:<path>#<symbol>`; אם ההורה לא בקטלוג — תגית `parent:uncataloged`) · inner only |
+| `origins` | | `{repo, file, line, what}[]` | רק ב-`what: inner` — איפה בדיוק בקוד · inner only |
 
 ### `what` — מה זה · what it is
 
@@ -55,6 +57,7 @@
 | `engine` | מנוע שלם: הרבה חלקים יחד, עם "מקומות" שאפשר להתחבר אליהם · a whole engine with places to plug into |
 | `component` | רכיב-מסך (`kind: ui`) · a screen component |
 | `rule` | כלל/בדיקה/תבנית שאינם פונקציה (regex, טבלת-כללים, סכמה) · a rule, table or schema that is not a function |
+| `inner` | ערך-בדרך שהורם מתוך פונקציה גדולה יותר (פותח-הפונקציות, `catalog/inner/`) — פונקציה טהורה עומדת-בפני-עצמה. עם `parent` (מזהה החלק-ההורה) ו-`origins` (`[{repo, file, line, what}]`) · an intermediate value lifted out of a bigger function |
 
 ### `lang`
 

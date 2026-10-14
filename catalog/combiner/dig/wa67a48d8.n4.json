@@ -19,34 +19,37 @@
  "statusHe": "🔎 עוד לא נחפר",
  "places": [
   {
-   "id": "core:catalog/core/follow.mjs#follow",
-   "project": "הליבה",
-   "source": "core",
-   "name": "מזיז ערך חלק קבוע מהדרך למטרה",
-   "file": "catalog/core/follow.mjs",
+   "id": "inner-orbit:src/components/courses/lib.ts#lessonsInTerm.perMonth:step",
+   "project": "inner-orbit",
+   "source": "inner-orbit",
+   "name": "בוחר ערך לפי תנאי",
+   "file": "src/components/courses/lib.ts",
    "action": "ממיר ערך",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל · שם קרוב"
+   "why": "אותו פועל · אותו חומר",
+   "inside": "מחשב מספר השיעורים בתקופה לפי התדירות שנבחרה"
   },
   {
-   "id": "buildsmart:functions/src/creditCore.ts#contractorCredit",
-   "project": "בנייה חכמה",
-   "source": "buildsmart",
-   "name": "מחשב אשראי קבלן",
-   "file": "functions/src/creditCore.ts",
+   "id": "inner-orbit:src/components/courses/lib.ts#lessonsInTerm.perWeek:step",
+   "project": "inner-orbit",
+   "source": "inner-orbit",
+   "name": "בוחר ערך לפי תנאי",
+   "file": "src/components/courses/lib.ts",
    "action": "ממיר ערך",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל"
+   "why": "אותו פועל · אותו חומר",
+   "inside": "מחשב מספר השיעורים בתקופה לפי התדירות שנבחרה"
   },
   {
-   "id": "buildsmart:functions/src/creditCore.ts#dartStringHashCode",
-   "project": "בנייה חכמה",
-   "source": "buildsmart",
-   "name": "מחשב קוד חתימה מחרוזת",
-   "file": "functions/src/creditCore.ts",
+   "id": "inner-orbit:src/components/home/BoardEdit.tsx#BoardEditor.shift.to:step",
+   "project": "inner-orbit",
+   "source": "inner-orbit",
+   "name": "מחבר ערכים",
+   "file": "src/components/home/BoardEdit.tsx",
    "action": "ממיר ערך",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל"
+   "why": "אותו פועל · אותו חומר",
+   "inside": "BoardEditor"
   }
  ]
 }

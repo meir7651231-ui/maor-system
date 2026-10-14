@@ -53,24 +53,26 @@
    "why": "אותו פועל · אותו חומר · שם קרוב"
   },
   {
-   "id": "core:catalog/core/sun-position.mjs#sunPosition",
-   "project": "הליבה",
-   "source": "core",
-   "name": "מחשב מתי השמש בזווית מתחת לאופק",
-   "file": "catalog/core/sun-position.mjs",
-   "action": "מוצא את מקום השמש",
-   "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל · שם קרוב"
-  },
-  {
-   "id": "orbit:src/lib/atoms/engines/generated/zmanimBoard.ts#GEN_ZMANIM_BOARD",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "יודע איפה השמש נמצאת בכל מקום ובכל יום",
-   "file": "src/lib/atoms/engines/generated/zmanimBoard.ts",
+   "id": "inner-orbit:src/components/parnasa/sound.ts#tone.frequency:envelope",
+   "project": "inner-orbit",
+   "source": "inner-orbit",
+   "name": "מחשב ערך שמשתנה בחזקה לאורך זמן",
+   "file": "src/components/parnasa/sound.ts",
    "action": "מוצא את מקום השמש",
    "proof": "מהשם בלבד",
-   "why": "אותו פועל · שם קרוב"
+   "why": "אותו פועל · אותו חומר · שם קרוב",
+   "inside": "tone"
+  },
+  {
+   "id": "inner-orbit:src/lib/atoms/verify/run.ts#zmanim_day_divide.n",
+   "project": "inner-orbit",
+   "source": "inner-orbit",
+   "name": "בוחר ערך לפי תנאי",
+   "file": "src/lib/atoms/verify/run.ts",
+   "action": "מוצא את מקום השמש",
+   "proof": "מהשם בלבד",
+   "why": "אותו פועל · אותו חומר",
+   "inside": "zmanim_day_divide"
   }
  ]
 }

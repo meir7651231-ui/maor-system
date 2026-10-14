@@ -19,34 +19,37 @@
  "statusHe": "🔎 עוד לא נחפר",
  "places": [
   {
-   "id": "rings:lab-rings/lab13/shelf3.json#הפוך רשימה",
-   "project": "הטבעות",
-   "source": "rings",
-   "name": "הפוך רשימה",
-   "file": "lab-rings/lab13/shelf3.json",
+   "id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#CartSubmenu.reversed:step",
+   "project": "inner-buildsmart",
+   "source": "inner-buildsmart",
+   "name": "מחשב ערך מערכים",
+   "file": "app/src/components/menu/submenu-settings.tsx",
    "action": "הופך סדר",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל"
+   "why": "אותו פועל",
+   "inside": "מציג רכיב תת-תפריט עגלה"
   },
   {
-   "id": "core:catalog/core/move-along-path.mjs#moveAlongPath",
-   "project": "הליבה",
-   "source": "core",
-   "name": "מזיז נקודה לאורך מסלול של תחנות",
-   "file": "catalog/core/move-along-path.mjs",
-   "action": "מתקדם במסלול",
+   "id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#HomeSubmenu.reversed:step",
+   "project": "inner-buildsmart",
+   "source": "inner-buildsmart",
+   "name": "מחשב ערך מערכים",
+   "file": "app/src/components/menu/submenu-settings.tsx",
+   "action": "הופך סדר",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו חומר"
+   "why": "אותו פועל",
+   "inside": "מציג רכיב תת-תפריט בית"
   },
   {
-   "id": "core:catalog/core/orbit.mjs#orbit",
-   "project": "הליבה",
-   "source": "core",
-   "name": "מחשב נקודה שמקיפה מרכז במעגל",
-   "file": "catalog/core/orbit.mjs",
-   "action": "מקיף",
+   "id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#ProfileTreeSubmenu.reversed:step",
+   "project": "inner-buildsmart",
+   "source": "inner-buildsmart",
+   "name": "מחשב ערך מערכים",
+   "file": "app/src/components/menu/submenu-settings.tsx",
+   "action": "הופך סדר",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו חומר"
+   "why": "אותו פועל",
+   "inside": "מציג רכיב תת-תפריט עץ פרופיל"
   }
  ]
 }

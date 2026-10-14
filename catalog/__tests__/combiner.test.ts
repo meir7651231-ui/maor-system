@@ -10,7 +10,9 @@
  * 5. אין פרטים אישיים בפלט (טלפון, מייל, ת״ז, קישור, טוקן).
  * 6. הקבצים הנגזרים מעודכנים: proofs.json · lab-data.json · dig/*.json.
  */
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
+// האינדקס גדל ל-~20 אלף חלקים (החלקים הפנימיים) — תחת עומס של הסוויטה המלאה הרכבה של עשרות מילים לוקחת שניות
+vi.setConfig({ testTimeout: 180_000 });
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { assemble, buildIndex, indexOf, findGoal, askChips, goalFromChips, recipeFrom, piiLeak, fit, normGoal, ADAPTER_VERBS, STATUS_ORDER, whereLine } from '../combiner/core.mjs';
@@ -180,13 +182,13 @@ describe('המצרף · דטרמיניזם', () => {
     const ix2 = buildIndex(shuffled, { proofs: loadProofs(), behavior: loadBehavior(), recipes: [] });
     const ix1 = buildIndex(parts, { proofs: loadProofs(), behavior: loadBehavior(), recipes: [] });
     for (const g of sample) expect(JSON.stringify(assemble(g, ix2))).toBe(JSON.stringify(assemble(g, ix1)));
-  });
+  }, 180_000); // האינדקס גדל ל-~20 אלף חלקים (החלקים הפנימיים)
 
   it('הדף (lab-data.json) מרכיב בדיוק כמו ה-CLI', () => {
     const lab = JSON.parse(readFileSync(join(HERE, 'lab-data.json'), 'utf8'));
     const lix = indexOf(lab.parts, lab.flows, lab.leads);
     for (const g of sample) expect(JSON.stringify(assemble(g, lix))).toBe(JSON.stringify(assemble(g, ix)));
-  });
+  }, 180_000); // האינדקס גדל ל-~20 אלף חלקים (החלקים הפנימיים)
 });
 
 describe('המצרף · השופט', () => {
@@ -231,7 +233,7 @@ describe('המצרף · פרטיות וקבצים נגזרים', () => {
     // הבודק עצמו תופס
     expect(piiLeak({ a: 'כתבו ל-x@gmail.com' })).not.toBeNull();
     expect(piiLeak({ a: '050-123-4567' })).not.toBeNull();
-  });
+  }, 180_000); // האינדקס גדל ל-~20 אלף חלקים (החלקים הפנימיים)
 
   it('lab-data.json ו-dig/ מעודכנים (node catalog/combiner/build.mjs)', () => {
     const { lab, dig } = buildAll();
@@ -253,7 +255,7 @@ describe('המצרף · לא חסר כלום', () => {
       expect(c.steps.filter((s) => s.role === n.need.verb).length, n.need.behavior).toBe(1);
       for (const s of c.steps) if (s.role !== n.need.verb) expect(ADAPTER_VERBS.has(s.role), s.name + ' · ' + s.role).toBe(true);
     }
-  });
+  }, 180_000); // האינדקס גדל ל-~20 אלף חלקים (החלקים הפנימיים)
 
   it('הדרקון: "מדרג את הפולשים" ו"נח בין התקפה להתקפה" — לא מורכבים מחלקי-עולם', () => {
     const d = all.find((a) => a.goal.word === 'דרקון')!;

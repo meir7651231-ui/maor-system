@@ -20,34 +20,37 @@
  "statusHe": "🔎 עוד לא נחפר",
  "places": [
   {
-   "id": "orbit:src/lib/atoms/parts/divide.ts#divideAmount",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "מחלק סכום לחלקים שווים",
-   "file": "src/lib/atoms/parts/divide.ts",
+   "id": "inner-generator:machtzev/generator/genesis-gen.mjs#writeGoalSpecs.rooms:after-loop",
+   "project": "inner-generator",
+   "source": "inner-generator",
+   "name": "אוסף פריטים לרשימה חדשה",
+   "file": "machtzev/generator/genesis-gen.mjs",
    "action": "מחלק",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל"
+   "why": "אותו פועל",
+   "inside": "writeGoalSpecs"
   },
   {
-   "id": "orbit:src/lib/atoms/parts/divide.ts#divideSpan",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "מחלק לחלקים שווים",
-   "file": "src/lib/atoms/parts/divide.ts",
+   "id": "inner-generator:yeshiva/shape.mjs#searchLinked.cands",
+   "project": "inner-generator",
+   "source": "inner-generator",
+   "name": "בונה רשימה מערכים",
+   "file": "yeshiva/shape.mjs",
    "action": "מחלק",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל"
+   "why": "אותו פועל",
+   "inside": "searchLinked"
   },
   {
-   "id": "orbit:src/lib/atoms/parts/divide.ts#pointsAt",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "מוצא נקודות בתוך תקופה שחולק ל",
-   "file": "src/lib/atoms/parts/divide.ts",
+   "id": "inner-generator:yeshiva/shape.mjs#searchLinked.cands:after-loop",
+   "project": "inner-generator",
+   "source": "inner-generator",
+   "name": "אוסף פריטים לרשימה חדשה",
+   "file": "yeshiva/shape.mjs",
    "action": "מחלק",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל"
+   "why": "אותו פועל",
+   "inside": "searchLinked"
   }
  ]
 }

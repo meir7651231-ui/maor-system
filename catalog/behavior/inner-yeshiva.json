@@ -1,0 +1,140 @@
+{
+ "source": "inner-yeshiva",
+ "ref": "main@598f0d827df10c2940a20d6fb21d48cd0582936b",
+ "probe": {
+  "version": 1,
+  "seed": 13269520,
+  "generatedAt": null
+ },
+ "totals": {
+  "run": 10,
+  "runWithVerb": 4,
+  "twin": 0,
+  "static": 0,
+  "staticWithVerb": 0,
+  "why": {},
+  "withMotion": 0
+ },
+ "parts": [
+  {
+   "id": "inner-yeshiva:harness/guard.mjs#flatMap.w",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "normalize",
+     "on": "c",
+     "holds": "10/10"
+    },
+    {
+     "id": "format",
+     "on": "c",
+     "holds": "13/13"
+    }
+   ],
+   "primary": "normalize",
+   "material": "unknown",
+   "cases": 10,
+   "hash": "fef26ceb-9c38f311"
+  },
+  {
+   "id": "inner-yeshiva:harness/guard.mjs#opt.i",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "round",
+     "on": "k",
+     "holds": "11/11"
+    }
+   ],
+   "primary": "round",
+   "material": "unknown",
+   "cases": 13
+  },
+  {
+   "id": "inner-yeshiva:harness/guard.mjs#stub.msg",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "format",
+     "on": "f",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "format",
+   "material": "unknown",
+   "cases": 24,
+   "hash": "fef26ceb-ab04456b"
+  },
+  {
+   "id": "inner-yeshiva:harness/police.mjs#depNames.inDeps:after-loop",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 15,
+   "traits": "in[str]>bool const"
+  },
+  {
+   "id": "inner-yeshiva:harness/police.mjs#depNames.m",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "bool",
+   "cases": 18,
+   "traits": "in[bool,bool|num|str]>bool|nil"
+  },
+  {
+   "id": "inner-yeshiva:harness/police.mjs#depNames.o",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 10,
+   "traits": "in[bool|num]>bool|nil|num real+",
+   "hash": "fef26ceb-69b001ba"
+  },
+  {
+   "id": "inner-yeshiva:harness/police.mjs#depNames.out:after-loop",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 11,
+   "traits": "in[str]>set const"
+  },
+  {
+   "id": "inner-yeshiva:harness/police.mjs#names.flatMap.m",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 24,
+   "traits": "in[bool|num|str,bool|num|str]>arr|nil",
+   "hash": "a29d061d-1d3c0157"
+  },
+  {
+   "id": "inner-yeshiva:harness/police.mjs#opt.i",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "round",
+     "on": "k",
+     "holds": "11/11"
+    }
+   ],
+   "primary": "round",
+   "material": "unknown",
+   "cases": 10
+  },
+  {
+   "id": "inner-yeshiva:harness/police.mjs#parse.map.i",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 11,
+   "traits": "in[str]>num int",
+   "hash": "fef26ceb-a38ebd08"
+  }
+ ]
+}

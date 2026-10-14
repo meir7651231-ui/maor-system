@@ -19,34 +19,37 @@
  "statusHe": "🔎 עוד לא נחפר",
  "places": [
   {
-   "id": "orbit:src/components/parnasa/lib.ts#searchCount",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "אומר כמה עסקים השאילתה מוצאת",
-   "file": "src/components/parnasa/lib.ts",
+   "id": "inner-14kk:communication_protocol.js#SmartCommunicationProtocol.generateProtocolSummary.activeCount",
+   "project": "inner-14kk",
+   "source": "inner-14kk",
+   "name": "סופר פריטים",
+   "file": "communication_protocol.js",
    "action": "סופר",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל"
+   "why": "אותו פועל",
+   "inside": "SmartCommunicationProtocol.generateProtocolSummary"
   },
   {
-   "id": "orbit:src/components/supporters/lib.ts#sup12m",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "בודק אם תורם תרם בשנה האחרונה",
-   "file": "src/components/supporters/lib.ts",
+   "id": "inner-buildsmart:functions/src/analytics.ts#summarizePresence.count:after-loop",
+   "project": "inner-buildsmart",
+   "source": "inner-buildsmart",
+   "name": "סופר פריטים מתאימים ברשימה",
+   "file": "functions/src/analytics.ts",
    "action": "סופר",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל"
+   "why": "אותו פועל",
+   "inside": "מסכם נוכחות"
   },
   {
-   "id": "orbit:src/components/supporters/prayer.ts#prayerOpenCount",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "סופר שמות שעוד לא הוזכרו",
-   "file": "src/components/supporters/prayer.ts",
+   "id": "inner-generator:gen/inventory.mjs#inventory.consts",
+   "project": "inner-generator",
+   "source": "inner-generator",
+   "name": "סופר פריטים",
+   "file": "gen/inventory.mjs",
    "action": "סופר",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל"
+   "why": "אותו פועל",
+   "inside": "הפעל המלאי המלא"
   }
  ]
 }

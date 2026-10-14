@@ -1,0 +1,117 @@
+{
+ "source": "generator",
+ "version": 1,
+ "files": 1626,
+ "candidates": 14202,
+ "sliced": 5498,
+ "parts": 7248,
+ "modules": 556,
+ "forms": {
+  "form:slice": 5498,
+  "form:step": 1750
+ },
+ "kinds": {
+  "inner:value": 6760,
+  "inner:accumulator": 488
+ },
+ "parents": {
+  "parent:uncataloged": 6386,
+  "parent:cataloged": 862
+ },
+ "skipped": {
+  "trivial": 4140,
+  "imported-call": 1361,
+  "unknown-call": 634,
+  "closure-helper": 370,
+  "method-call": 368,
+  "mutation": 291,
+  "loop-mutation": 230,
+  "await": 219,
+  "loop-imported-call": 197,
+  "module-state": 175,
+  "loop-unknown-call": 145,
+  "loop-return": 132,
+  "loop-method-call": 91,
+  "dom": 64,
+  "loop-closure-helper": 50,
+  "global-call": 43,
+  "name-clash": 43,
+  "loop-module-state": 37,
+  "clock": 34,
+  "imported-value": 18,
+  "loop-await": 17,
+  "new": 14,
+  "global": 10,
+  "loop-global-call": 7,
+  "io": 6,
+  "loop-io": 4,
+  "loop-this": 4,
+  "privacy": 3,
+  "random": 3,
+  "too-big": 2,
+  "loop-global": 1,
+  "loop-imported-value": 1
+ },
+ "topFiles": [
+  [
+   "machtzev/ds-forge.mjs",
+   515
+  ],
+  [
+   "machtzev/generator/render-ds.mjs",
+   274
+  ],
+  [
+   "machtzev/generator/retarget.mjs",
+   274
+  ],
+  [
+   "machtzev/purity/purify-engine.mjs",
+   223
+  ],
+  [
+   "machtzev/generator/app-ds.mjs",
+   198
+  ],
+  [
+   "machtzev/generator/behavior-plan.mjs",
+   163
+  ],
+  [
+   "machtzev/purify-dart.mjs",
+   147
+  ],
+  [
+   "machtzev/generator/generate.mjs",
+   137
+  ],
+  [
+   "machtzev/generator/particles.mjs",
+   126
+  ],
+  [
+   "machtzev/generator/genesis-gen.mjs",
+   119
+  ],
+  [
+   "machtzev/assemble/data-lift.mjs",
+   117
+  ],
+  [
+   "machtzev/purify-dart-native.mjs",
+   112
+  ],
+  [
+   "yeshiva/mavin.mjs",
+   111
+  ],
+  [
+   "yeshiva/koreh.mjs",
+   108
+  ],
+  [
+   "yeshiva/ein.mjs",
+   105
+  ]
+ ]
+}

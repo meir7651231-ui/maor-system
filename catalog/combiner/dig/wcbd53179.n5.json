@@ -29,24 +29,26 @@
    "why": "אותו פועל · שם קרוב"
   },
   {
-   "id": "14kk:knowledge_protocol.js#AssetAnalyzer.analyzeMarketTrends",
-   "project": "14kk",
-   "source": "14kk",
-   "name": "לנתח מגמות שוק",
-   "file": "knowledge_protocol.js",
-   "action": "נותן ערך קבוע",
+   "id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#CartSubmenu.reversed:step",
+   "project": "inner-buildsmart",
+   "source": "inner-buildsmart",
+   "name": "מחשב ערך מערכים",
+   "file": "app/src/components/menu/submenu-settings.tsx",
+   "action": "הופך סדר",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו חומר"
+   "why": "אותו פועל",
+   "inside": "מציג רכיב תת-תפריט עגלה"
   },
   {
-   "id": "14kk:knowledge_protocol.js#AssetAnalyzer.analyzeTechnologyTrends",
-   "project": "14kk",
-   "source": "14kk",
-   "name": "לנתח מגמות טכנולוגיה",
-   "file": "knowledge_protocol.js",
-   "action": "נותן ערך קבוע",
+   "id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#HomeSubmenu.reversed:step",
+   "project": "inner-buildsmart",
+   "source": "inner-buildsmart",
+   "name": "מחשב ערך מערכים",
+   "file": "app/src/components/menu/submenu-settings.tsx",
+   "action": "הופך סדר",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו חומר"
+   "why": "אותו פועל",
+   "inside": "מציג רכיב תת-תפריט בית"
   }
  ]
 }

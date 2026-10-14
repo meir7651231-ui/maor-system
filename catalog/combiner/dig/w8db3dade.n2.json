@@ -28,6 +28,17 @@
    "why": "מקום ידוע — אומת ביד"
   },
   {
+   "id": "inner-orbit:src/lib/atoms/verify/laws.ts#clusters.out:after-loop",
+   "project": "inner-orbit",
+   "source": "inner-orbit",
+   "name": "אוסף פריטים לרשימה חדשה",
+   "file": "src/lib/atoms/verify/laws.ts",
+   "action": "מחבר רצפים",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל",
+   "inside": "clusters"
+  },
+  {
    "id": "orbit:src/lib/atoms/parts/merge.ts#mergeRuns",
    "project": "אורביט",
    "source": "orbit",
@@ -38,24 +49,15 @@
    "why": "אותו פועל"
   },
   {
-   "id": "buildsmart:app_flutter/lib/domain/seeds/plumbing_trade_seed.dart#plumbingConnectorTypes",
-   "project": "בנייה חכמה",
-   "source": "buildsmart",
-   "name": "מחזיר סוגים מחבר אינסטלציה",
-   "file": "app_flutter/lib/domain/seeds/plumbing_trade_seed.dart",
+   "id": "inner-generator:machtzev/assemble/data-lift.mjs#untangle.n",
+   "project": "inner-generator",
+   "source": "inner-generator",
+   "name": "מחבר ערכים",
+   "file": "machtzev/assemble/data-lift.mjs",
    "action": "מחבר רצפים",
    "proof": "מהשם בלבד",
-   "why": "אותו פועל"
-  },
-  {
-   "id": "buildsmart:app_flutter/lib/features/global_search/narrowers.dart#mergeNarrowers",
-   "project": "בנייה חכמה",
-   "source": "buildsmart",
-   "name": "ממזג חיפוש כללי",
-   "file": "app_flutter/lib/features/global_search/narrowers.dart",
-   "action": "מחבר רצפים",
-   "proof": "מהשם בלבד",
-   "why": "אותו פועל"
+   "why": "אותו פועל",
+   "inside": "untangle"
   }
  ]
 }

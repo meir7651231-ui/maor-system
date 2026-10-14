@@ -29,34 +29,37 @@
    "why": "מקום ידוע — אומת ביד"
   },
   {
-   "id": "orbit:src/components/parnasa/phoneSim.ts#hebrewVoice",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "מחזיר קול עברי מתוך קולות המכשיר",
-   "file": "src/components/parnasa/phoneSim.ts",
+   "id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#SettingsTreeSubmenu.parent",
+   "project": "inner-buildsmart",
+   "source": "inner-buildsmart",
+   "name": "מוצא פריט ברשימה",
+   "file": "app/src/components/menu/submenu-settings.tsx",
    "action": "מחפש לפי מפתח",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל"
+   "why": "אותו פועל",
+   "inside": "מציג רכיב תת-תפריט עץ הגדרות"
   },
   {
-   "id": "orbit:src/components/parnasa/zmanimBoard.ts#nextMinyan",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "בונה את המניין הבא מהשעה",
-   "file": "src/components/parnasa/zmanimBoard.ts",
+   "id": "inner-generator:machtzev/census/engine-index.mjs#build.row",
+   "project": "inner-generator",
+   "source": "inner-generator",
+   "name": "מוצא פריט ברשימה",
+   "file": "machtzev/census/engine-index.mjs",
    "action": "מחפש לפי מפתח",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל"
+   "why": "אותו פועל",
+   "inside": "הפעל אינדקס-האמת האחד לכל מנוע"
   },
   {
-   "id": "orbit:src/lib/dedup.ts#dupFieldValue",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "כותב ערך שדה נבחר לפי הלגאסי",
-   "file": "src/lib/dedup.ts",
+   "id": "inner-generator:machtzev/ds-forge.mjs#emit.map.pt:step",
+   "project": "inner-generator",
+   "source": "inner-generator",
+   "name": "בוחר ערך לפי תנאי",
+   "file": "machtzev/ds-forge.mjs",
    "action": "מחפש לפי מפתח",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל"
+   "why": "אותו פועל",
+   "inside": "emit"
   }
  ]
 }

@@ -37,14 +37,15 @@
    "why": "אותו פועל"
   },
   {
-   "id": "mmmm:artifacts/api-server/src/swarm/agents.ts#fallbackSuggestions",
-   "project": "MMMM",
-   "source": "mmmm",
-   "name": "להציע תלבושות קבועות כשאין חיבור",
-   "file": "artifacts/api-server/src/swarm/agents.ts",
+   "id": "inner-buildsmart:app/src/lib/search.ts#searchExact.bucket",
+   "project": "inner-buildsmart",
+   "source": "inner-buildsmart",
+   "name": "בוחר ערך לפי תנאי",
+   "file": "app/src/lib/search.ts",
    "action": "סובל כשל",
-   "proof": "מהשם בלבד",
-   "why": "אותו פועל"
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל",
+   "inside": "searchExact"
   }
  ]
 }

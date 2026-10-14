@@ -29,24 +29,26 @@
    "why": "אותו פועל"
   },
   {
-   "id": "mmmm:lib/api-client-react/src/custom-fetch.ts#resolveUrl",
-   "project": "MMMM",
-   "source": "mmmm",
-   "name": "לפתור כתובת",
-   "file": "lib/api-client-react/src/custom-fetch.ts",
+   "id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#action.tail",
+   "project": "inner-buildsmart",
+   "source": "inner-buildsmart",
+   "name": "בוחר ערך לפי תנאי",
+   "file": "app/src/components/menu/submenu-settings.tsx",
    "action": "ממלא טקסט מרשומה",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל"
+   "why": "אותו פועל",
+   "inside": "action"
   },
   {
-   "id": "orbit:src/components/courses/parent.ts#parentCardText",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "כותב נוסח שיתוף להורה",
-   "file": "src/components/courses/parent.ts",
+   "id": "inner-buildsmart:app/src/test/tests/dupes.ts#testDupes.k",
+   "project": "inner-buildsmart",
+   "source": "inner-buildsmart",
+   "name": "מחשב ערך בעזרת חישוב עזר",
+   "file": "app/src/test/tests/dupes.ts",
    "action": "ממלא טקסט מרשומה",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל"
+   "why": "אותו פועל",
+   "inside": "testDupes"
   }
  ]
 }

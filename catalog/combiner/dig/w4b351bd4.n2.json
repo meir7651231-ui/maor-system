@@ -30,24 +30,26 @@
    "why": "אותו פועל"
   },
   {
-   "id": "core:catalog/core/sun-position.mjs#sunPosition",
-   "project": "הליבה",
-   "source": "core",
-   "name": "מחשב מתי השמש בזווית מתחת לאופק",
-   "file": "catalog/core/sun-position.mjs",
-   "action": "מוצא את מקום השמש",
+   "id": "inner-generator:new/atoms/segula-reminders.mjs#segulaReminders.map.y:step",
+   "project": "inner-generator",
+   "source": "inner-generator",
+   "name": "מחלץ חלק מתאריך",
+   "file": "new/atoms/segula-reminders.mjs",
+   "action": "מסלים בזמן",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו חומר"
+   "why": "אותו חומר · שם קרוב",
+   "inside": "segulaReminders"
   },
   {
-   "id": "orbit:src/components/calendar/calLib.ts#isoOf",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "מחשב תאריך מקומי",
-   "file": "src/components/calendar/calLib.ts",
-   "action": "מקבץ לפי יום",
+   "id": "inner-generator:new/boxes/planned.mjs#addMonthsClamped.lastDay:step",
+   "project": "inner-generator",
+   "source": "inner-generator",
+   "name": "מחלץ חלק מתאריך",
+   "file": "new/boxes/planned.mjs",
+   "action": "מסלים בזמן",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו חומר"
+   "why": "אותו חומר · שם קרוב",
+   "inside": "addMonthsClamped"
   }
  ]
 }

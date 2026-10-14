@@ -20,34 +20,37 @@
  "statusHe": "🔎 עוד לא נחפר",
  "places": [
   {
-   "id": "generator:new/dart-maor/apply-entity-partial.dart#applyEntityPartial",
-   "project": "המחולל",
-   "source": "generator",
-   "name": "מזג שינויי-אוסף מרוחקים מוצא",
-   "file": "new/dart-maor/apply-entity-partial.dart",
+   "id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#SettingsTreeSubmenu.parent",
+   "project": "inner-buildsmart",
+   "source": "inner-buildsmart",
+   "name": "מוצא פריט ברשימה",
+   "file": "app/src/components/menu/submenu-settings.tsx",
    "action": "מחפש לפי מפתח",
-   "proof": "מהשם בלבד",
-   "why": "אותו פועל · שם קרוב"
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל · שם קרוב",
+   "inside": "מציג רכיב תת-תפריט עץ הגדרות"
   },
   {
-   "id": "generator:new/dart-maor/merge-family-import.dart#mergeFamilyImport",
-   "project": "המחולל",
-   "source": "generator",
-   "name": "מזג שדות מיובאים למשפחה מוצא",
-   "file": "new/dart-maor/merge-family-import.dart",
+   "id": "inner-generator:machtzev/census/engine-index.mjs#build.row",
+   "project": "inner-generator",
+   "source": "inner-generator",
+   "name": "מוצא פריט ברשימה",
+   "file": "machtzev/census/engine-index.mjs",
    "action": "מחפש לפי מפתח",
-   "proof": "מהשם בלבד",
-   "why": "אותו פועל · שם קרוב"
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל · שם קרוב",
+   "inside": "הפעל אינדקס-האמת האחד לכל מנוע"
   },
   {
-   "id": "generator:new/dart-maor/sanitize-support-text.dart#sanitizeSupportText",
-   "project": "המחולל",
-   "source": "generator",
-   "name": "נקה טקסט-הודעת-צ׳אט מוצא",
-   "file": "new/dart-maor/sanitize-support-text.dart",
+   "id": "inner-generator:machtzev/generator/core-from-shape.mjs#relationTarget.exact",
+   "project": "inner-generator",
+   "source": "inner-generator",
+   "name": "מוצא פריט ברשימה",
+   "file": "machtzev/generator/core-from-shape.mjs",
    "action": "מחפש לפי מפתח",
-   "proof": "מהשם בלבד",
-   "why": "אותו פועל · שם קרוב"
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל · שם קרוב",
+   "inside": "הפעל שכבת-הגרעין נגזרת מהסכמה"
   }
  ]
 }

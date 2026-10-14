@@ -19,34 +19,37 @@
  "statusHe": "🔎 עוד לא נחפר",
  "places": [
   {
-   "id": "buildsmart:functions/src/creditCore.ts#readCreditLimit",
-   "project": "בנייה חכמה",
-   "source": "buildsmart",
-   "name": "קורא אשראי",
-   "file": "functions/src/creditCore.ts",
+   "id": "inner-generator:machtzev/assemble/data-lift.mjs#threadProps.j",
+   "project": "inner-generator",
+   "source": "inner-generator",
+   "name": "מוצא את המקום של ערך",
+   "file": "machtzev/assemble/data-lift.mjs",
    "action": "מגביל לטווח",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל"
+   "why": "אותו פועל · שם קרוב",
+   "inside": "threadProps"
   },
   {
-   "id": "orbit:src/components/courses/lib.ts#lessonsInTerm",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "מחשב מספר השיעורים בתקופה לפי התדירות שנבחרה",
-   "file": "src/components/courses/lib.ts",
+   "id": "inner-generator:machtzev/generator/app-ds.mjs#buildApp.liveOf0.ofI",
+   "project": "inner-generator",
+   "source": "inner-generator",
+   "name": "מוצא את המקום של ערך",
+   "file": "machtzev/generator/app-ds.mjs",
    "action": "מגביל לטווח",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל"
+   "why": "אותו פועל · שם קרוב",
+   "inside": "buildApp"
   },
   {
-   "id": "orbit:src/components/parnasa/luach.ts#noteRot",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "מחשב סיבוב הפתק",
-   "file": "src/components/parnasa/luach.ts",
+   "id": "inner-generator:machtzev/rethread-boxes.mjs#repairBox.pos",
+   "project": "inner-generator",
+   "source": "inner-generator",
+   "name": "מוצא את המקום של ערך",
+   "file": "machtzev/rethread-boxes.mjs",
    "action": "מגביל לטווח",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל"
+   "why": "אותו פועל · שם קרוב",
+   "inside": "repairBox"
   }
  ]
 }

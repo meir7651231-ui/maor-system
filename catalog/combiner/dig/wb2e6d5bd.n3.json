@@ -19,6 +19,17 @@
  "statusHe": "🔎 עוד לא נחפר",
  "places": [
   {
+   "id": "inner-orbit:src/components/settings/SettingsView.tsx#AuditTrailSection.rows",
+   "project": "inner-orbit",
+   "source": "inner-orbit",
+   "name": "מחלץ חלק מרצף",
+   "file": "src/components/settings/SettingsView.tsx",
+   "action": "הופך סדר",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל · שם קרוב",
+   "inside": "AuditTrailSection"
+  },
+  {
    "id": "rings:lab-rings/lab13/shelf3.json#הפוך רשימה",
    "project": "הטבעות",
    "source": "rings",
@@ -29,24 +40,15 @@
    "why": "אותו פועל · שם קרוב"
   },
   {
-   "id": "generator:new/dart-maor/parse-join-full-code.dart#parseJoinFullCode",
-   "project": "המחולל",
-   "source": "generator",
-   "name": "בנה קריאה-לשכן לא-מיובאת",
-   "file": "new/dart-maor/parse-join-full-code.dart",
-   "action": "מצרף שניים",
-   "proof": "מהשם בלבד",
-   "why": "שם קרוב"
-  },
-  {
-   "id": "core:catalog/core/follow.mjs#follow",
-   "project": "הליבה",
-   "source": "core",
-   "name": "מזיז ערך חלק קבוע מהדרך למטרה",
-   "file": "catalog/core/follow.mjs",
-   "action": "הולך אחרי",
+   "id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#CartSubmenu.reversed:step",
+   "project": "inner-buildsmart",
+   "source": "inner-buildsmart",
+   "name": "מחשב ערך מערכים",
+   "file": "app/src/components/menu/submenu-settings.tsx",
+   "action": "הופך סדר",
    "proof": "הורץ — סוג אחר",
-   "why": "שם קרוב"
+   "why": "אותו פועל",
+   "inside": "מציג רכיב תת-תפריט עגלה"
   }
  ]
 }

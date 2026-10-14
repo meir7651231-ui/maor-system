@@ -30,24 +30,26 @@
    "why": "אותו פועל"
   },
   {
-   "id": "generator:machtzev/assemble/box-audit.mjs#box-audit",
-   "project": "המחולל",
-   "source": "generator",
-   "name": "הפעל תוכנית-חיווט ↔ קופסה-בנויה",
-   "file": "machtzev/assemble/box-audit.mjs",
+   "id": "inner-generator:engine/generate.mjs#generate.fillProp.pick",
+   "project": "inner-generator",
+   "source": "inner-generator",
+   "name": "בוחר ערך לפי תנאי",
+   "file": "engine/generate.mjs",
    "action": "צובר",
    "proof": "מהשם בלבד",
-   "why": "אותו פועל"
+   "why": "אותו פועל",
+   "inside": "הפעל מנוע נקי (אפס-דאטה) משפט ⇒ role ⇒ בחירת-אטום"
   },
   {
-   "id": "generator:machtzev/box-assemble.mjs#box-assemble",
-   "project": "המחולל",
-   "source": "generator",
-   "name": "הפעל קובץ-מקור עם ≥1 יצוא ⇒ קופסה",
-   "file": "machtzev/box-assemble.mjs",
+   "id": "inner-generator:engine/generate.mjs#generate.fillProp.rm2",
+   "project": "inner-generator",
+   "source": "inner-generator",
+   "name": "מחפש תבנית בטקסט",
+   "file": "engine/generate.mjs",
    "action": "צובר",
    "proof": "מהשם בלבד",
-   "why": "אותו פועל"
+   "why": "אותו פועל",
+   "inside": "הפעל מנוע נקי (אפס-דאטה) משפט ⇒ role ⇒ בחירת-אטום"
   }
  ]
 }

@@ -30,24 +30,26 @@
    "why": "אותו פועל"
   },
   {
-   "id": "buildsmart:app_flutter/lib/data/csv_kernel.dart#*",
-   "project": "בנייה חכמה",
-   "source": "buildsmart",
-   "name": "קורא וכותב טבלאות CSV",
-   "file": "app_flutter/lib/data/csv_kernel.dart",
+   "id": "inner-14kk:communication_protocol.js#SmartCommunicationProtocol.detectChanges.protocolFiles",
+   "project": "inner-14kk",
+   "source": "inner-14kk",
+   "name": "מסנן רשימה לפי תנאי",
+   "file": "communication_protocol.js",
    "action": "דוגם",
    "proof": "מהשם בלבד",
-   "why": "אותו פועל"
+   "why": "אותו פועל",
+   "inside": "SmartCommunicationProtocol.detectChanges"
   },
   {
-   "id": "generator:buildsmart/scripts/mutation_hard_test.py#read",
-   "project": "המחולל",
-   "source": "generator",
-   "name": "קרא מנוע",
-   "file": "buildsmart/scripts/mutation_hard_test.py",
+   "id": "inner-14kk:communication_protocol.js#SmartCommunicationProtocol.detectChanges.taskFiles",
+   "project": "inner-14kk",
+   "source": "inner-14kk",
+   "name": "מסנן רשימה לפי תנאי",
+   "file": "communication_protocol.js",
    "action": "דוגם",
    "proof": "מהשם בלבד",
-   "why": "אותו פועל"
+   "why": "אותו פועל",
+   "inside": "SmartCommunicationProtocol.detectChanges"
   }
  ]
 }

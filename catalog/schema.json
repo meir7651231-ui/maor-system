@@ -38,7 +38,7 @@
         "path": { "type": "string", "minLength": 1 },
         "symbol": { "type": "string", "minLength": 1 },
         "lang": { "enum": ["ts", "js", "dart", "py", "machine", "json"] },
-        "what": { "enum": ["function", "brick", "particle", "engine", "component", "rule"] },
+        "what": { "enum": ["function", "brick", "particle", "engine", "component", "rule", "inner"] },
         "name": { "type": "string", "minLength": 2, "maxLength": 80, "pattern": "^[^A-Za-z]+$" },
         "does": { "type": "string", "minLength": 2, "maxLength": 240 },
         "takes": { "type": "array", "items": { "$ref": "#/$defs/slot" } },
@@ -59,8 +59,9 @@
           ]
         },
         "tags": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "parent": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*:[^#\\s]+#[^\\s]+$" },
         "origins": {
-          "description": "פעלים-בלי-עולם (catalog/core, אופציונלי): איפה הפעולה נמצאה בקוד שלנו. line=null ⇒ לא אומת.",
+          "description": "איפה הפעולה נמצאה בקוד שלנו: ליבות (catalog/core, line=null ⇒ לא אומת) וחלקים פנימיים (catalog/inner).",
           "type": "array",
           "items": {
             "type": "object",
@@ -70,7 +71,7 @@
               "repo": { "type": "string", "minLength": 1 },
               "file": { "type": "string", "minLength": 1 },
               "line": { "oneOf": [{ "type": "integer" }, { "type": "null" }] },
-              "what": { "type": "string", "minLength": 2 }
+              "what": { "type": "string", "minLength": 1 }
             }
           }
         }

@@ -29,24 +29,26 @@
    "why": "אותו פועל · שם קרוב"
   },
   {
-   "id": "orbit:src/components/hosting/transitions.ts#canSetBookingStatus",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "בודק אם מעברים מותרים",
-   "file": "src/components/hosting/transitions.ts",
-   "action": "בודק",
+   "id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#CartSubmenu.reversed:step",
+   "project": "inner-buildsmart",
+   "source": "inner-buildsmart",
+   "name": "מחשב ערך מערכים",
+   "file": "app/src/components/menu/submenu-settings.tsx",
+   "action": "הופך סדר",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו חומר · שם קרוב"
+   "why": "אותו פועל",
+   "inside": "מציג רכיב תת-תפריט עגלה"
   },
   {
-   "id": "buildsmart:app_flutter/lib/screens/notifications_screen.dart#notifPasses",
-   "project": "בנייה חכמה",
-   "source": "buildsmart",
-   "name": "בודק עובר התראה",
-   "file": "app_flutter/lib/screens/notifications_screen.dart",
-   "action": "בודק",
-   "proof": "מהשם בלבד",
-   "why": "אותו חומר · שם קרוב"
+   "id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#HomeSubmenu.reversed:step",
+   "project": "inner-buildsmart",
+   "source": "inner-buildsmart",
+   "name": "מחשב ערך מערכים",
+   "file": "app/src/components/menu/submenu-settings.tsx",
+   "action": "הופך סדר",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל",
+   "inside": "מציג רכיב תת-תפריט בית"
   }
  ]
 }

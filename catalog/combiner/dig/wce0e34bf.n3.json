@@ -40,14 +40,15 @@
    "why": "אותו פועל"
   },
   {
-   "id": "buildsmart:app_flutter/lib/logic/install_engine.dart#findAlternativePaths",
-   "project": "בנייה חכמה",
-   "source": "buildsmart",
-   "name": "מוצא מסלול חלופה",
-   "file": "app_flutter/lib/logic/install_engine.dart",
+   "id": "inner-generator:machtzev/generator/generate.mjs#routeOf.entLabels",
+   "project": "inner-generator",
+   "source": "inner-generator",
+   "name": "בונה ערך חדש",
+   "file": "machtzev/generator/generate.mjs",
    "action": "מוצא דרך קצרה",
    "proof": "מהשם בלבד",
-   "why": "אותו פועל"
+   "why": "אותו פועל",
+   "inside": "routeOf"
   }
  ]
 }

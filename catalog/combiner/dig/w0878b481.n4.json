@@ -29,24 +29,26 @@
    "why": "אותו פועל · שם קרוב"
   },
   {
-   "id": "orbit:src/components/courses/lib.ts#coursesOfTeacher",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "מסנן תפקיד מורה",
-   "file": "src/components/courses/lib.ts",
+   "id": "inner-buildsmart:functions/src/push.ts#onDocumentCreated.recipients:step",
+   "project": "inner-buildsmart",
+   "source": "inner-buildsmart",
+   "name": "מסנן רשימה לפי תנאי",
+   "file": "functions/src/push.ts",
    "action": "מסנן",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל"
+   "why": "אותו פועל",
+   "inside": "onDocumentCreated"
   },
   {
-   "id": "orbit:src/components/courses/ops.ts#dropoutRisk",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "מוצא תלמידים בסיכון נשירה",
-   "file": "src/components/courses/ops.ts",
+   "id": "inner-buildsmart:functions/src/push.ts#sendToUsers.targets",
+   "project": "inner-buildsmart",
+   "source": "inner-buildsmart",
+   "name": "מסנן רשימה לפי תנאי",
+   "file": "functions/src/push.ts",
    "action": "מסנן",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל"
+   "why": "אותו פועל",
+   "inside": "sendToUsers"
   }
  ]
 }

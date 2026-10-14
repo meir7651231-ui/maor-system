@@ -19,34 +19,37 @@
  "statusHe": "🔎 עוד לא נחפר",
  "places": [
   {
-   "id": "orbit:src/components/platform/lib.ts#whoLabel",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "כותב תווית מי",
-   "file": "src/components/platform/lib.ts",
+   "id": "inner-generator:gen/sentence.mjs#sentenceToSpec.toField.name",
+   "project": "inner-generator",
+   "source": "inner-generator",
+   "name": "בודק כמה תנאים יחד",
+   "file": "gen/sentence.mjs",
    "action": "מעצב לטקסט",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל · אותו חומר"
+   "why": "אותו פועל · אותו חומר",
+   "inside": "הפעל משפט-בעברית-רגילה ⇒ ספק"
   },
   {
-   "id": "orbit:src/components/supporters/prayer.ts#prayerListText",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "כותב טקסט להעתקה/שיתוף",
-   "file": "src/components/supporters/prayer.ts",
+   "id": "inner-generator:machtzev/carve/carve-land.mjs#landOne.harnessBody:step",
+   "project": "inner-generator",
+   "source": "inner-generator",
+   "name": "מרכיב טקסט מערכים",
+   "file": "machtzev/carve/carve-land.mjs",
    "action": "מעצב לטקסט",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל · אותו חומר"
+   "why": "אותו פועל · אותו חומר",
+   "inside": "landOne"
   },
   {
-   "id": "buildsmart:app_flutter/lib/logic/money_format.dart#*",
-   "project": "בנייה חכמה",
-   "source": "buildsmart",
-   "name": "מעצב סכומי כסף בשקלים",
-   "file": "app_flutter/lib/logic/money_format.dart",
+   "id": "inner-generator:machtzev/emit/fuzz-parity.mjs#fuzz.src",
+   "project": "inner-generator",
+   "source": "inner-generator",
+   "name": "מרכיב טקסט מערכים",
+   "file": "machtzev/emit/fuzz-parity.mjs",
    "action": "מעצב לטקסט",
-   "proof": "מהשם בלבד",
-   "why": "אותו פועל · אותו חומר"
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל · אותו חומר",
+   "inside": "fuzz"
   }
  ]
 }

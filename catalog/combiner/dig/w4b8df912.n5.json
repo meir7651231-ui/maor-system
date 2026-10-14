@@ -19,6 +19,28 @@
  "statusHe": "🔎 עוד לא נחפר",
  "places": [
   {
+   "id": "inner-orbit:src/store/useApp.ts#call.seedOverduePlannedReminders.overdue",
+   "project": "inner-orbit",
+   "source": "inner-orbit",
+   "name": "מסנן רשימה לפי תנאי",
+   "file": "src/store/useApp.ts",
+   "action": "מסנן",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל · אותו חומר",
+   "inside": "call"
+  },
+  {
+   "id": "inner-orbit:src/store/useApp.ts#call.seedOverduePlannedReminders.toSeed",
+   "project": "inner-orbit",
+   "source": "inner-orbit",
+   "name": "מסנן רשימה לפי תנאי",
+   "file": "src/store/useApp.ts",
+   "action": "מסנן",
+   "proof": "הורץ — סוג אחר",
+   "why": "אותו פועל · אותו חומר",
+   "inside": "call"
+  },
+  {
    "id": "orbit:src/components/platform/lib.ts#orgEnabledFeatures",
    "project": "אורביט",
    "source": "orbit",
@@ -26,26 +48,6 @@
    "file": "src/components/platform/lib.ts",
    "action": "מסנן",
    "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל · שם קרוב"
-  },
-  {
-   "id": "orbit:src/components/shop/lib.ts#productAssignments",
-   "project": "אורביט",
-   "source": "orbit",
-   "name": "מוצא את השיוכים של מוצר נתון",
-   "file": "src/components/shop/lib.ts",
-   "action": "מסנן",
-   "proof": "הורץ — סוג אחר",
-   "why": "אותו פועל · שם קרוב"
-  },
-  {
-   "id": "generator:new/dart-maor/product-assignments.dart#productAssignments",
-   "project": "המחולל",
-   "source": "generator",
-   "name": "הפק שיוכי-חנות של מוצר נתון",
-   "file": "new/dart-maor/product-assignments.dart",
-   "action": "מסנן",
-   "proof": "תאום של חלק שהורץ",
    "why": "אותו פועל · שם קרוב"
   }
  ]
