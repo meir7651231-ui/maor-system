@@ -7,6 +7,11 @@
  *
  * מדבר רק עם התפר (`AtomsSource`, ./seam). ההתאמה = `optionsFor` של החוזה (לא משוכפלת כאן).
  * source=null ⇒ מצב-ריק כן. canEdit=false ⇒ צפייה בלבד, בלי "חבר"/"הסר".
+ *
+ * DESIGN 14.10: מונה 1-2-3 בראש · צעד 1 מאוחד (כל מנוע פעם אחת) ו"המנועים שיצרת" מיד אחריו · הפרטים מקבלים את המנוע
+ * (פס "התקע נכנס לשקע") · "✨ נוצר מנוע חדש" מציע את הצעד הבא ("בנה עליו" / "עוד חלק"). אותן פעולות בדיוק.
+ * חריצים (UI בלבד, בלי לוגיקה כאן): `source.found?()` ⇒ "🤖 מנועים שנמצאו אוטומטית" · `source.verified?(capId)` ⇒ "✅ מאומת".
+ * הכרטיס של G ("🎯 מה אתה רוצה לקבל?") עבר לדלת הראשונה "🎯 תגיד מה אתה רוצה" (EngineBoxScreen) — לא כאן.
  */
 import { useEffect, useRef, useState } from 'react';
 import { optionsFor } from '../../../lib/atoms/contract';
@@ -24,10 +29,10 @@ import {
   NOTHING_FITS_TEXT,
   blockedText,
   EnginesStep,
-  HostStep,
   QuestionStep,
+  StepIndicator,
+  type Verified,
 } from './AtomSteps';
-import { GoalCard } from './GoalCard';
 import './atoms.css';
 
 export type AtomsStep = 'engines' | 'atom' | 'question' | 'details' | 'made';
@@ -55,11 +60,12 @@ export function AtomsBody(props: { source: AtomsSource | null; initial?: AtomsIn
 
   const engines = source ? source.engines() : [];
   const atoms = source ? source.atoms() : [];
-  // FACTORY 14.10: המנועים שנמצאו אוטומטית (רק מה שאומת) — מארחים כמו כרטיסי-היד
+  // DESIGN 14.10 (חריץ): מנועים שהמפעל מצא — נפתחים כמו מנוע גדול
   const found = source?.found ? source.found() : [];
-  const allEngines = [...engines, ...found.map((f) => f.card)];
+  // FACTORY 14.10: מנוע שנוצר על מנוע שנמצא אוטומטית — השם והאימוג'י של המנוע שלו ("💝 מנוע התורמים")
+  const withFound = [...engines, ...found.map((f) => f.card)];
   // CHAIN 14.10: המארח יכול להיות מנוע שנוצר (המזהה שלו) — כרטיס-מנוע שהמקום היחיד בו הוא הפלט שלו
-  const baseHost = allEngines.find((e) => e.id === hostId) ?? null;
+  const baseHost = engines.find((e) => e.id === hostId) ?? found.find((f) => f.id === hostId)?.card ?? null;
   const capHost = !baseHost && hostId && source?.capHost ? source.capHost(hostId) : null;
   const host = baseHost ?? capHost;
   const parentId = capHost ? hostId : null;
@@ -103,12 +109,13 @@ export function AtomsBody(props: { source: AtomsSource | null; initial?: AtomsIn
     parentId ? buildChildCapability(parentId, h, a, o, v) : buildCapability(h, a, o, v);
   const optionPreviews =
     step === 'question' && host && atom ? Object.fromEntries(options.map((o) => [o.place, source.preview(build(host, atom, o, detailDefaults(atom.details)))])) : undefined;
-  const livePreview = step === 'details' && host && atom && option ? source.preview(build(host, atom, option, vals)) : undefined;
   const verifiedOf = source.verified ? (id: string) => source.verified!(id) : undefined;
-  const optionVerified =
+  const optionVerified: Record<string, Verified> | undefined =
     step === 'question' && host && atom && verifiedOf
       ? Object.fromEntries(options.flatMap((o) => { const v = verifiedOf(build(host, atom, o, detailDefaults(atom.details)).id); return v ? [[o.place, v]] : []; }))
       : undefined;
+  const stepAt = step === 'engines' ? 0 : step === 'atom' ? 1 : step === 'made' ? 3 : 2;
+  const livePreview = step === 'details' && host && atom && option ? source.preview(build(host, atom, option, vals)) : undefined;
 
   const openHost = (id: string) => { reset(); setBlocked(null); setHostId(id); };
   const saveChain = (index: number) => {
@@ -140,22 +147,37 @@ export function AtomsBody(props: { source: AtomsSource | null; initial?: AtomsIn
     }
   };
 
+  // "המנועים שיצרת" — בצעד 1 מיד אחרי המנועים הגדולים (הם חזרו לארגז), בשאר הצעדים בסוף
+  const mine = (
+    <CreatedList
+      capabilities={caps}
+      engines={withFound}
+      canEdit={source.canEdit}
+      armed={armed}
+      onRemoveTap={onRemoveTap}
+      onOpen={source.capHost ? openHost : undefined}
+      canOpen={(id) => openable.has(id)}
+      stateOf={stateOf}
+      blocked={blocked}
+      lead={step === 'engines'}
+      verifiedOf={verifiedOf}
+    />
+  );
+
   return (
     <div ref={ref} className="at-body" data-atoms={step}>
+      <StepIndicator at={stepAt} />
       {host && <AtomsHeader host={host} onBack={back} backLabel={backLabel} />}
       {step === 'engines' && (
-        <>
-          {source.goal && <GoalCard source={source} />}
-          <EnginesStep engines={engines} atoms={atoms} open={open} onToggle={(id) => setOpen((o) => (o === id ? null : id))} />
-          <HostStep engines={engines} created={createdHosts} onHost={openHost} found={found} />
-        </>
+        <EnginesStep engines={engines} atoms={atoms} open={open} onToggle={(id) => setOpen((o) => (o === id ? null : id))} onHost={openHost} found={found} />
       )}
+      {step === 'engines' && mine}
       {step === 'atom' && host && (
         <>
           <AtomGrid
             host={host}
             atoms={hostAtoms}
-            engines={allEngines}
+            engines={withFound}
             onAtom={setAtomId}
             emptyText={capHost ? ((hostId ?? '').split('>').length >= 3 ? MAX_GEN_TEXT : NOTHING_FITS_TEXT) : undefined}
           />
@@ -172,21 +194,18 @@ export function AtomsBody(props: { source: AtomsSource | null; initial?: AtomsIn
           onValue={(id, v) => setValues({ ...vals, [id]: v })}
           onConnect={connect}
           preview={livePreview}
+          host={host ?? undefined}
         />
       )}
-      {step === 'made' && made && <CreatedCard capability={made} preview={source.preview(made)} />}
-      <CreatedList
-        capabilities={caps}
-        engines={allEngines}
-        canEdit={source.canEdit}
-        armed={armed}
-        onRemoveTap={onRemoveTap}
-        onOpen={source.capHost ? openHost : undefined}
-        canOpen={(id) => openable.has(id)}
-        stateOf={stateOf}
-        blocked={blocked}
-        verifiedOf={verifiedOf}
-      />
+      {step === 'made' && made && (
+        <CreatedCard
+          capability={made}
+          preview={source.preview(made)}
+          onBuildOn={openable.has(made.id) ? () => openHost(made.id) : undefined}
+          onMore={back}
+        />
+      )}
+      {step !== 'engines' && mine}
     </div>
   );
 }

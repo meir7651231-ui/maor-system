@@ -16,6 +16,8 @@ import { AtomsBody } from '../atoms/AtomsBody';
 import { GOAL_CONNECT_TEXT, GOAL_EXAMPLES, GOAL_MADE_TEXT, GOAL_NONE_TEXT, GOAL_SAVED_TEXT, GOAL_TITLE_TEXT, GoalAnswer, GoalCard } from '../atoms/GoalCard';
 import goalCardSrc from '../atoms/GoalCard.tsx?raw';
 import bodySrc from '../atoms/AtomsBody.tsx?raw';
+import screenSrc from '../EngineBoxScreen.tsx?raw';
+import { EngineBoxBody } from '../EngineBoxScreen';
 import seamSrc from '../atoms/seam.ts?raw';
 
 const STAFF = (id: string, name: string): HostStaff => ({ id, kind: 'staff', name, role: 'ניקיון', phone: '', createdAt: 'x', updatedAt: 'x' });
@@ -71,17 +73,25 @@ describe('🎯 (א) המקור', () => {
 });
 
 describe('🎯 (ב) המסך', () => {
-  it('הכרטיס העליון בלשונית — רק בצעד המנועים, לפני רשימת המנועים', () => {
-    const h = renderToStaticMarkup(createElement(AtomsBody, { source: src() }));
-    expect(h).toContain(GOAL_TITLE_TEXT);
-    expect(h.indexOf('data-goal=')).toBeLessThan(h.indexOf('id="at-h-engines"'));
-    const inside = renderToStaticMarkup(createElement(AtomsBody, { source: src(), initial: { host: 'bookings' } }));
-    expect(inside).not.toContain(GOAL_TITLE_TEXT);
-    // מקור בלי goal (תפר ישן) ⇒ אין כרטיס
+  // DESIGN 14.10 (שינוי מכוון במיזוג): הכרטיס עבר מראש "מנועים וחלקים" לדלת הראשונה "🎯 תגיד מה אתה רוצה" — אותו רכיב,
+  // אותו מקור, אותה לוגיקה. היה: "הכרטיס העליון בלשונית — רק בצעד המנועים, לפני רשימת המנועים" (AtomsBody).
+  it('הכרטיס בדלת הראשונה "🎯 תגיד מה אתה רוצה" — ולא ב"בנה בעצמך"', () => {
+    const door = renderToStaticMarkup(createElement(EngineBoxBody, { source: null, atoms: src(), initial: { tab: 'goal' } }));
+    expect(door).toContain(GOAL_TITLE_TEXT);
+    expect(door).toMatch(/aria-selected="true"[^>]*data-tab="goal"/);
+    expect(door).not.toContain('id="at-h-engines"');
+    // הדלת קיימת גם כשרק "מנועים וחלקים" יודעים להרכיב (v1 בלי goal) — ובחלקים עצמם אין כרטיס
+    const home = renderToStaticMarkup(createElement(EngineBoxBody, { source: null, atoms: src() }));
+    expect([...home.matchAll(/role="tab"[^>]*data-tab="(\w+)"/g)].map((m) => m[1])).toEqual(['goal', 'atoms', 'plug']);
+    expect(home).not.toContain(GOAL_TITLE_TEXT);
+    expect(renderToStaticMarkup(createElement(AtomsBody, { source: src() }))).not.toContain(GOAL_TITLE_TEXT);
+    // מקור בלי goal (תפר ישן) ⇒ אין כרטיס ואין דלת 🎯
     const { goal: _g, connectGoal: _c, ...old } = src();
     void _g;
     void _c;
-    expect(renderToStaticMarkup(createElement(AtomsBody, { source: old }))).not.toContain(GOAL_TITLE_TEXT);
+    const oldHome = renderToStaticMarkup(createElement(EngineBoxBody, { source: null, atoms: old }));
+    expect(oldHome).not.toContain(GOAL_TITLE_TEXT);
+    expect(oldHome).not.toContain('data-tab="goal"');
   });
 
   it('6 צ\'יפי-דוגמה, תיבה עם תווית, ובלי תשובה עד ששואלים', () => {
@@ -155,7 +165,9 @@ describe('🎯 (ג) משקל ותפר', () => {
   it('המסך לא מייבא את המנוע (lib/atoms/goal) — רק התפר; ב-AtomsBody רק שורת-חיבור אחת', () => {
     expect(goalCardSrc).not.toMatch(/from '[^']*lib\/atoms\/goal'/);
     expect(bodySrc).not.toMatch(/from '[^']*lib\/atoms\/goal'/);
-    expect(bodySrc.match(/GoalCard/g)?.length).toBe(3); // import (שם + נתיב) + שורה אחת
+    // DESIGN 14.10: החיבור עבר ל-EngineBoxScreen (הדלת 🎯) — שם import (שם + נתיב) + שורה אחת; ב-AtomsBody רק הערה שמפנה
+    expect(bodySrc).not.toMatch(/import \{ GoalCard \}/);
+    expect(screenSrc.match(/GoalCard/g)?.length).toBe(3);
     expect(seamSrc).toMatch(/goal\?\(text: string/);
   });
 });

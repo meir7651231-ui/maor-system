@@ -19,6 +19,7 @@ import { GoalPanel } from './GoalPanel';
 import type { BoxFuture, BoxImpact, BoxOption, BoxPart, BoxProduct, EngineBoxSource } from './types';
 import { linksLabel, pickableParts, resolveStart, type BoxStart } from './model';
 import { AtomsBody } from './atoms/AtomsBody';
+import { GoalCard } from './atoms/GoalCard';
 import { TAB_ATOMS_TEXT } from './atoms/AtomSteps';
 import type { AtomsSource } from './atoms/seam';
 import './enginebox.css';
@@ -28,6 +29,19 @@ export type BoxTab = 'plug' | 'goal' | 'atoms';
 
 export const TAB_PLUG_TEXT = '🔌 לחבר מנוע';
 export const TAB_GOAL_TEXT = '🎯 להתחיל מהסוף';
+
+/**
+ * DESIGN 14.10 — שלוש דלתות במקום שלוש לשוניות (רק כשיש "מנועים וחלקים"; בלי — BoxTabs הישן, ביט-זהה).
+ * אותו תפקיד (tablist/tab, אותם data-tab), כרטיסים גדולים בסדר של הבעלים: 🎯 · 🧬 · 🔌. "בנה בעצמך" פתוחה כברירת-מחדל.
+ */
+export const DOORS: readonly { id: BoxTab; emoji: string; title: string; sub: string }[] = [
+  { id: 'goal', emoji: '🎯', title: 'תגיד מה אתה רוצה', sub: 'כותבים מה רוצים' },
+  { id: 'atoms', emoji: '🧬', title: 'בנה בעצמך', sub: 'מנוע + חלק קטן' },
+  { id: 'plug', emoji: '🔌', title: 'חבר מנוע מוכן', sub: 'מנוע שלם למוצר' },
+];
+export const DOORS_LEAD = 'בוחרים מנוע, מחברים לו חלק קטן — ומקבלים מנוע חדש שחוזר לארגז.';
+/** DESIGN 14.10: בדלת 🎯, מתחת לכרטיס של G — "להתחיל מהסוף" הוותיק (דרך בין מוצרים שלמים) נשאר, עם כותרת שמבדילה. */
+export const GOAL_V1_TITLE = '🔌 או: דרך בין מוצרים שלמים';
 export const IMPACT_TITLE = '📊 מה היה קורה בחודש האחרון';
 
 export const EMPTY_SOURCE_TEXT = 'הארגז בהרכבה — עוד מעט';
@@ -263,6 +277,36 @@ export function GoalTab(props: { source: EngineBoxSource; start: string | null; 
   );
 }
 
+/** DESIGN 14.10: שלוש הדלתות. `goal:false` ⇒ בלי 🎯. role=tab נשמר — מקלדת וקורא-מסך כמו קודם. */
+export function BoxDoors(props: { tab: BoxTab; onTab: (tab: BoxTab) => void; goal?: boolean }) {
+  const doors = props.goal === false ? DOORS.filter((d) => d.id !== 'goal') : DOORS;
+  return (
+    <nav className="eb-doors" aria-label="שלוש דרכים להתחיל">
+      <p className="eb-doors-lead">{DOORS_LEAD}</p>
+      <div className="eb-doors-row" role="tablist" aria-label="איך מתחילים">
+        {doors.map((d) => {
+          const on = props.tab === d.id;
+          return (
+            <button
+              key={d.id}
+              type="button"
+              role="tab"
+              aria-selected={on}
+              className={'eb-door' + (on ? ' eb-door-on' : '')}
+              data-tab={d.id}
+              onClick={() => props.onTab(d.id)}
+            >
+              <span className="eb-door-emoji" aria-hidden="true">{d.emoji}</span>
+              <span className="eb-door-title">{d.title}</span>
+              <span className="eb-door-sub">{d.sub}</span>
+            </button>
+          );
+        })}
+      </div>
+    </nav>
+  );
+}
+
 // ——— המסך המלא ———
 export function EngineBoxBody(props: {
   source: EngineBoxSource | null;
@@ -284,7 +328,9 @@ export function EngineBoxBody(props: {
   const picked = source && start && pickedId ? source.parts().find((p) => p.id === pickedId) ?? null : null;
   const step: BoxStep = !start ? 'start' : !picked ? 'pick' : 'plug';
   const hasGoal = !!source?.goal;
-  const goalOn = hasGoal && tab === 'goal';
+  // DESIGN 14.10 + GOAL (G): הדלת 🎯 קיימת גם כשרק "מנועים וחלקים" יודעים להרכיב ממשפט (props.atoms.goal)
+  const atomsGoal = !!props.atoms?.goal;
+  const goalOn = (hasGoal || atomsGoal) && tab === 'goal';
   const hasAtoms = props.atoms !== undefined;
   const atomsOn = hasAtoms && tab === 'atoms';
 
@@ -293,22 +339,29 @@ export function EngineBoxBody(props: {
     if (!goalOn) bodyRef.current?.querySelector<HTMLElement>('.eb-step-title')?.focus();
   }, [step, goalOn]);
 
+  // DESIGN 14.10: עם "מנועים וחלקים" — שלוש הדלתות; בלי — הלשוניות הישנות (ביט-זהה)
+  const Tabs = (p: { tab: BoxTab; goal?: boolean }) =>
+    hasAtoms ? <BoxDoors tab={p.tab} onTab={setTab} goal={p.goal} /> : <BoxTabs tab={p.tab} onTab={setTab} goal={p.goal} />;
+
   if (atomsOn) {
     return (
       <div ref={bodyRef} className="eb-body" data-tab="atoms">
-        <BoxTabs tab="atoms" onTab={setTab} atoms goal={hasGoal} />
+        {Tabs({ tab: 'atoms', goal: hasGoal || atomsGoal })}
         <AtomsBody source={props.atoms ?? null} />
       </div>
     );
   }
 
+  // 🎯 הדלת הראשונה: הכרטיס של G (מהחלקים) ומתחתיו — כשיש — "להתחיל מהסוף" הוותיק (מהמוצרים)
+  const partsGoal = goalOn && atomsGoal && props.atoms ? <GoalCard source={props.atoms} /> : null;
+
   if (!source) {
     const empty = <div className="empty eb-empty">🧩 {EMPTY_SOURCE_TEXT}</div>;
     if (!hasAtoms) return empty;
     return (
-      <div ref={bodyRef} className="eb-body">
-        <BoxTabs tab={tab} onTab={setTab} atoms goal={false} />
-        {empty}
+      <div ref={bodyRef} className="eb-body" data-tab={partsGoal ? 'goal' : undefined}>
+        {Tabs({ tab, goal: atomsGoal })}
+        {partsGoal ?? empty}
       </div>
     );
   }
@@ -316,13 +369,15 @@ export function EngineBoxBody(props: {
   if (goalOn) {
     return (
       <div ref={bodyRef} className="eb-body" data-tab="goal">
-        <BoxTabs tab="goal" onTab={setTab} atoms={hasAtoms} />
-        {start && (
+        {Tabs({ tab: 'goal', goal: true })}
+        {partsGoal}
+        {hasGoal && partsGoal && <h3 className="eb-sub-title eb-goal-v1">{GOAL_V1_TITLE}</h3>}
+        {hasGoal && start && (
           <div className="eb-goal-from">
             מתחילים מ: <span aria-hidden="true">{start.emoji}</span> {start.name}
           </div>
         )}
-        <GoalTab source={source} start={start ? start.id : null} text={goalText} onText={setGoalText} />
+        {hasGoal && <GoalTab source={source} start={start ? start.id : null} text={goalText} onText={setGoalText} />}
       </div>
     );
   }
@@ -338,7 +393,7 @@ export function EngineBoxBody(props: {
 
   return (
     <div ref={bodyRef} className="eb-body" data-step={step}>
-      {(hasGoal || hasAtoms) && <BoxTabs tab="plug" onTab={setTab} atoms={hasAtoms} goal={hasGoal} />}
+      {(hasGoal || hasAtoms) && Tabs({ tab: 'plug', goal: hasGoal || atomsGoal })}
       {start && (
         <BoxHeader
           start={start}
@@ -372,7 +427,8 @@ export function EngineBoxScreen(props: {
 }) {
   return (
     <Modal title="🧩 ארגז המנועים" onClose={props.onClose} wide>
-      <p className="eb-intro">כל מנוע נותן משהו ומקבל משהו. בוחרים במה מתחילים, מוסיפים מנוע — ורואים איפה הוא מתחבר ומה יוצא מזה.</p>
+      {/* DESIGN 14.10: עם "מנועים וחלקים" ההסבר עובר לשורה מעל שלוש הדלתות; בלי — ביט-זהה */}
+      {props.atoms === undefined && <p className="eb-intro">כל מנוע נותן משהו ומקבל משהו. בוחרים במה מתחילים, מוסיפים מנוע — ורואים איפה הוא מתחבר ומה יוצא מזה.</p>}
       <EngineBoxBody source={props.source} initial={props.initial} atoms={props.atoms} />
       <div className="modal-actions">
         <Btn onClick={props.onClose}>סגירה</Btn>
