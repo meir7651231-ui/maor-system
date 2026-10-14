@@ -1,0 +1,598 @@
+{
+ "version": 1,
+ "generatedAt": null,
+ "note": "כיסוי (פועל, חומר) של מילון-המטרות: בסיס = חלקים שלמים; inner = חלקים פנימיים. \"inner-only\" = התנהגות שמקבלת חלק מוכח רק בזכות הפותח.",
+ "verbMap": {
+  "gate": [
+   "validate",
+   "compare"
+  ],
+  "minmax": [
+   "extreme"
+  ],
+  "rank-tiers": [
+   "tier"
+  ],
+  "search": [
+   "lookup",
+   "fuzzy"
+  ],
+  "round-robin": [
+   "rotate"
+  ],
+  "daily-snapshot": [
+   "bucket"
+  ],
+  "route-channel": [
+   "route"
+  ],
+  "tolerate-failure": [
+   "tolerate"
+  ],
+  "hub-relay": [
+   "relay"
+  ],
+  "frame-swap": [
+   "freeze"
+  ],
+  "NEW:decay": [
+   "~decay"
+  ],
+  "NEW:countdown": [
+   "~countdown"
+  ],
+  "NEW:accumulate": [
+   "~accumulate"
+  ],
+  "NEW:oscillate": [
+   "~oscillate"
+  ],
+  "NEW:orbit": [
+   "~orbit"
+  ]
+ },
+ "behaviors": {
+  "total": 940,
+  "base-only": 72,
+  "both": 222,
+  "inner-only": 198,
+  "none": 378,
+  "unmapped": 70
+ },
+ "pairs": {
+  "total": 202,
+  "base-only": 7,
+  "both": 33,
+  "inner-only": 24,
+  "none": 119,
+  "unmapped": 19
+ },
+ "examples": [
+  {
+   "verb": "gate",
+   "material": "bool",
+   "behaviors": 85,
+   "sample": [
+    "זאב: יללה בירח מלא",
+    "זיקית: לשון שיורה מהר",
+    "כוורת: נחיל עוזב כשצפוף"
+   ],
+   "innerParts": 5,
+   "part": {
+    "id": "inner-generator:machtzev/ds-forge.mjs#emit.selfWidthUnbounded",
+    "name": "בודק כמה תנאים יחד",
+    "parent": "generator:machtzev/ds-forge.mjs#emit"
+   }
+  },
+  {
+   "verb": "NEW:accumulate",
+   "material": "number",
+   "behaviors": 19,
+   "sample": [
+    "נמלה: משאירה שביל ריח",
+    "מעבר-חציה: מחכים שיצטברו",
+    "מרק: מתחזק בטעם לאט"
+   ],
+   "innerParts": 89,
+   "part": {
+    "id": "inner-14kk:construction_supervisor_protocol.js#ConstructionSupervisor.calculateDeveloperProductivity.productivity",
+    "name": "מכפיל ערך ביחס",
+    "parent": "14kk:construction_supervisor_protocol.js#ConstructionSupervisor.calculateDeveloperProductivity"
+   }
+  },
+  {
+   "verb": "NEW:countdown",
+   "material": "times",
+   "behaviors": 17,
+   "sample": [
+    "צעדים: ישבת שעה ⇒ קום",
+    "חנוכייה: הנרות דולקים חצי שעה לפחות",
+    "סושי-על-מסוע: צלחת ישנה מדי יורדת"
+   ],
+   "innerParts": 1,
+   "part": {
+    "id": "inner-orbit:src/components/lock/LockScreen.tsx#LockScreen.remainMs",
+    "name": "מגביל לאפס ומעלה",
+    "parent": "orbit:src/components/lock/LockScreen.tsx#LockScreen"
+   }
+  },
+  {
+   "verb": "group",
+   "material": "list",
+   "behaviors": 12,
+   "sample": [
+    "דולפין: שוחה בלהקה",
+    "פינגווין: מתכרבלים בקבוצה",
+    "חתונה: קרובים לפי משפחה"
+   ],
+   "innerParts": 8,
+   "part": {
+    "id": "inner-orbit:src/components/shop/AssignmentsTab.tsx#AssignmentsTab.groups:after-loop",
+    "name": "אוסף פריטים לרשימה חדשה",
+    "parent": "orbit:src/components/shop/AssignmentsTab.tsx#AssignmentsTab"
+   }
+  },
+  {
+   "verb": "dedupe",
+   "material": "list",
+   "behaviors": 11,
+   "sample": [
+    "תרופות: לא פעמיים",
+    "בר-מצווה: רשימת מוזמנים",
+    "הגרלה: בלי לזכות פעמיים"
+   ],
+   "innerParts": 5,
+   "part": {
+    "id": "inner-buildsmart:functions/src/push.ts#sendToUsers.unique",
+    "name": "בונה רשימה מערכים",
+    "parent": "buildsmart:functions/src/push.ts#sendToUsers"
+   }
+  },
+  {
+   "verb": "NEW:countdown",
+   "material": "number",
+   "behaviors": 7,
+   "sample": [
+    "נשימה: ספירה לנשימה רגועה",
+    "מחבואים: סופר עד עשרים",
+    "אזעקה: נדרכת אחרי כמה שניות"
+   ],
+   "innerParts": 14,
+   "part": {
+    "id": "inner-buildsmart:functions/src/credit.ts#onCall.balance",
+    "name": "מגביל לטווח",
+    "parent": "buildsmart:functions/src/credit.ts#onCall"
+   }
+  },
+  {
+   "verb": "divide",
+   "material": "list",
+   "behaviors": 7,
+   "sample": [
+    "חתונה: הושבה לשולחנות",
+    "שוק: דוכנים בשורות",
+    "דומינו: מחלקים אבנים לשחקנים"
+   ],
+   "innerParts": 5,
+   "part": {
+    "id": "inner-generator:machtzev/generator/genesis-gen.mjs#writeGoalSpecs.rooms:after-loop",
+    "name": "אוסף פריטים לרשימה חדשה",
+    "parent": "generator:machtzev/generator/genesis-gen.mjs#writeGoalSpecs"
+   }
+  },
+  {
+   "verb": "NEW:orbit",
+   "material": "geo",
+   "behaviors": 6,
+   "sample": [
+    "דרקון: עף במעגלים מעל ההר",
+    "זאב: מקיפים את הטרף",
+    "מטוס: מחכה בתור לנחיתה"
+   ],
+   "innerParts": 27,
+   "part": {
+    "id": "inner-orbit:src/components/parnasa/coinFx.ts#cnConfetti.dx",
+    "name": "מחשב גל שעולה ויורד",
+    "parent": "orbit:src/components/parnasa/coinFx.ts#cnConfetti"
+   }
+  },
+  {
+   "verb": "merge",
+   "material": "list",
+   "behaviors": 6,
+   "sample": [
+    "מיץ-סחוט: מערבבת",
+    "עוגה: שכבות",
+    "מעלית: אוספת קריאות מכל הקומות"
+   ],
+   "innerParts": 1,
+   "part": {
+    "id": "inner-orbit:src/lib/atoms/verify/laws.ts#clusters.out:after-loop",
+    "name": "אוסף פריטים לרשימה חדשה",
+    "parent": "orbit:src/lib/atoms/verify/laws.ts#clusters"
+   }
+  },
+  {
+   "verb": "rank-tiers",
+   "material": "choice",
+   "behaviors": 5,
+   "sample": [
+    "חום-גוף: חום ⇒ דרגות",
+    "כבאות: גודל השריפה",
+    "גשם: גשם חזק ⇒ התראה"
+   ],
+   "innerParts": 1,
+   "part": {
+    "id": "inner-orbit:src/components/timer/CashRegister.tsx#CashRegister.exact.n",
+    "name": "מעגל מספר כלפי מטה",
+    "parent": "orbit:src/components/timer/CashRegister.tsx#CashRegister"
+   }
+  },
+  {
+   "verb": "convert",
+   "material": "choice",
+   "behaviors": 4,
+   "sample": [
+    "זיקית: צבע לפי מצב רוח",
+    "צב: טמפרטורת החול קובעת",
+    "מכונת-כביסה: תוכנית לפי סוג הבגד"
+   ],
+   "innerParts": 7,
+   "part": {
+    "id": "inner-orbit:src/components/home/BoardEdit.tsx#BoardEditor.shift.to",
+    "name": "מחבר ערכים",
+    "parent": "orbit:src/components/home/BoardEdit.tsx#BoardEditor"
+   }
+  },
+  {
+   "verb": "compare",
+   "material": "amount",
+   "behaviors": 3,
+   "sample": [
+    "שוק: השווה מחירים בין דוכנים",
+    "מכונת-ממכר: מחשבת עודף",
+    "קופה-רושמת: עודף"
+   ],
+   "innerParts": 4,
+   "part": {
+    "id": "inner-14kk:frontend/src/pages/Assets.js#Assets.calculateReturn.totalReturn",
+    "name": "מכפיל ערכים",
+    "parent": "14kk:frontend/src/pages/Assets.js#Assets"
+   }
+  },
+  {
+   "verb": "compare",
+   "material": "times",
+   "behaviors": 3,
+   "sample": [
+    "שעון-מעורר: מצלצל בשעה שנקבעה",
+    "רכבת: מאחרת ומודיעה",
+    "מוקד-שירות: זמן המתנה"
+   ],
+   "innerParts": 16,
+   "part": {
+    "id": "inner-orbit:src/components/parnasa/home.ts#greetingOf.l",
+    "name": "מחשב הפרש בין ערכים",
+    "parent": "orbit:src/components/parnasa/home.ts#greetingOf"
+   }
+  },
+  {
+   "verb": "compare",
+   "material": "list",
+   "behaviors": 2,
+   "sample": [
+    "משלוחי-מנות: מי שלח לי ⇒ לשלוח בחזרה",
+    "לגו: שקע ופין מתחברים"
+   ],
+   "innerParts": 2,
+   "part": {
+    "id": "inner-orbit:src/components/families/JoinModal.tsx#JoinModal.hiddenCount",
+    "name": "מחשב הפרש בין ערכים",
+    "parent": "orbit:src/components/families/JoinModal.tsx#JoinModal"
+   }
+  },
+  {
+   "verb": "round",
+   "material": "times",
+   "behaviors": 2,
+   "sample": [
+    "שינה: להתעורר בסוף מחזור",
+    "חניון: מעגל לרבע שעה"
+   ],
+   "innerParts": 8,
+   "part": {
+    "id": "inner-orbit:src/components/parnasa/sound.ts#tone.frequency:envelope",
+    "name": "מחשב ערך שמשתנה בחזקה לאורך זמן",
+    "parent": "orbit:src/components/parnasa/sound.ts#tone"
+   }
+  },
+  {
+   "verb": "clamp",
+   "material": "amount",
+   "behaviors": 1,
+   "sample": [
+    "גמד-וענק: מתנה עד סכום"
+   ],
+   "innerParts": 4,
+   "part": {
+    "id": "inner-orbit:src/components/timer/CashRegister.tsx#CashRegister.dueNum",
+    "name": "בוחר ערך לפי תנאי",
+    "parent": "orbit:src/components/timer/CashRegister.tsx#CashRegister"
+   }
+  },
+  {
+   "verb": "compare",
+   "material": "choice",
+   "behaviors": 1,
+   "sample": [
+    "גאות-ושפל: חזק יותר בירח מלא"
+   ],
+   "innerParts": 1,
+   "part": {
+    "id": "inner-orbit:src/components/supporters/tierMigration.ts#tierMigration.diff",
+    "name": "מחשב הפרש בין ערכים",
+    "parent": "orbit:src/components/supporters/tierMigration.ts#tierMigration"
+   }
+  },
+  {
+   "verb": "escalate",
+   "material": "times",
+   "behaviors": 1,
+   "sample": [
+    "מנעול-קוד: זמן נעילה שגדל"
+   ],
+   "innerParts": 13,
+   "part": {
+    "id": "inner-orbit:src/components/courses/lib.ts#ageOf.a",
+    "name": "מחשב הפרש בין ערכים",
+    "parent": "orbit:src/components/courses/lib.ts#ageOf"
+   }
+  },
+  {
+   "verb": "filter",
+   "material": "choice",
+   "behaviors": 1,
+   "sample": [
+    "פלייליסט: לפי מצב רוח"
+   ],
+   "innerParts": 1,
+   "part": {
+    "id": "inner-orbit:src/components/home/BoardEdit.tsx#BoardEditor.moveTo.next",
+    "name": "מסנן רשימה לפי תנאי",
+    "parent": "orbit:src/components/home/BoardEdit.tsx#BoardEditor"
+   }
+  },
+  {
+   "verb": "format",
+   "material": "list",
+   "behaviors": 1,
+   "sample": [
+    "גאות-ושפל: טבלת שעות לשבוע"
+   ],
+   "innerParts": 5,
+   "part": {
+    "id": "inner-generator:machtzev/purity/purify-engine.mjs#purifyBox.litObj",
+    "name": "מרכיב טקסט מערכים",
+    "parent": "generator:machtzev/purity/purify-engine.mjs#purifyBox"
+   }
+  },
+  {
+   "verb": "gate",
+   "material": "times",
+   "behaviors": 1,
+   "sample": [
+    "נדנדה: דוחפים בזמן הנכון"
+   ],
+   "innerParts": 19,
+   "part": {
+    "id": "inner-orbit:src/components/parnasa/home.ts#greetingOf.l",
+    "name": "מחשב הפרש בין ערכים",
+    "parent": "orbit:src/components/parnasa/home.ts#greetingOf"
+   }
+  },
+  {
+   "verb": "personalize",
+   "material": "record:card",
+   "behaviors": 1,
+   "sample": [
+    "בינגו: כרטיס שונה לכל אחד"
+   ],
+   "innerParts": 1,
+   "part": {
+    "id": "inner-generator:machtzev/goal-card.mjs#makeCard.body",
+    "name": "ממיר ערך לטקסט",
+    "parent": "generator:machtzev/goal-card.mjs#makeCard"
+   }
+  },
+  {
+   "verb": "personalize",
+   "material": "record:room",
+   "behaviors": 1,
+   "sample": [
+    "מזגן: מתאים לכל חדר"
+   ],
+   "innerParts": 1,
+   "part": {
+    "id": "inner-orbit:src/components/hosting/actions.ts#hostingActions.addHostRoom.name",
+    "name": "מחשב ערך בעזרת חישוב עזר",
+    "parent": "orbit:src/components/hosting/actions.ts#hostingActions"
+   }
+  },
+  {
+   "verb": "rank-tiers",
+   "material": "amount",
+   "behaviors": 1,
+   "sample": [
+    "משכורת: נוספות בתעריף גבוה"
+   ],
+   "innerParts": 6,
+   "part": {
+    "id": "inner-generator:new/atoms/parse-ayin-sheet.mjs#parseAyinSheet.paidRaw",
+    "name": "בוחר ערך לפי תנאי",
+    "parent": "generator:new/atoms/parse-ayin-sheet.mjs#parseAyinSheet"
+   }
+  }
+ ],
+ "top": [
+  {
+   "word": "דולפין",
+   "behavior": "שוחה בלהקה",
+   "verb": "group",
+   "material": "list",
+   "part": "inner-orbit:src/components/shop/AssignmentsTab.tsx#AssignmentsTab.groups:after-loop",
+   "name": "אוסף פריטים לרשימה חדשה"
+  },
+  {
+   "word": "דרקון",
+   "behavior": "עף במעגלים מעל ההר",
+   "verb": "NEW:orbit",
+   "material": "geo",
+   "part": "inner-orbit:src/components/parnasa/coinFx.ts#cnConfetti.dx",
+   "name": "מחשב גל שעולה ויורד"
+  },
+  {
+   "word": "זאב",
+   "behavior": "יללה בירח מלא",
+   "verb": "gate",
+   "material": "bool",
+   "part": "inner-generator:machtzev/ds-forge.mjs#emit.selfWidthUnbounded",
+   "name": "בודק כמה תנאים יחד"
+  },
+  {
+   "word": "זאב",
+   "behavior": "מקיפים את הטרף",
+   "verb": "NEW:orbit",
+   "material": "geo",
+   "part": "inner-orbit:src/components/parnasa/coinFx.ts#cnConfetti.dx",
+   "name": "מחשב גל שעולה ויורד"
+  },
+  {
+   "word": "זיקית",
+   "behavior": "צבע לפי מצב רוח",
+   "verb": "convert",
+   "material": "choice",
+   "part": "inner-orbit:src/components/home/BoardEdit.tsx#BoardEditor.shift.to",
+   "name": "מחבר ערכים"
+  },
+  {
+   "word": "זיקית",
+   "behavior": "לשון שיורה מהר",
+   "verb": "gate",
+   "material": "bool",
+   "part": "inner-generator:machtzev/ds-forge.mjs#emit.selfWidthUnbounded",
+   "name": "בודק כמה תנאים יחד"
+  },
+  {
+   "word": "כוורת",
+   "behavior": "נחיל עוזב כשצפוף",
+   "verb": "gate",
+   "material": "bool",
+   "part": "inner-generator:machtzev/ds-forge.mjs#emit.selfWidthUnbounded",
+   "name": "בודק כמה תנאים יחד"
+  },
+  {
+   "word": "נמלה",
+   "behavior": "משאירה שביל ריח",
+   "verb": "NEW:accumulate",
+   "material": "number",
+   "part": "inner-14kk:construction_supervisor_protocol.js#ConstructionSupervisor.calculateDeveloperProductivity.productivity",
+   "name": "מכפיל ערך ביחס"
+  },
+  {
+   "word": "סלמון",
+   "behavior": "קופץ מעל מפלים",
+   "verb": "gate",
+   "material": "bool",
+   "part": "inner-generator:machtzev/ds-forge.mjs#emit.selfWidthUnbounded",
+   "name": "בודק כמה תנאים יחד"
+  },
+  {
+   "word": "פינגווין",
+   "behavior": "מתכרבלים בקבוצה",
+   "verb": "group",
+   "material": "list",
+   "part": "inner-orbit:src/components/shop/AssignmentsTab.tsx#AssignmentsTab.groups:after-loop",
+   "name": "אוסף פריטים לרשימה חדשה"
+  },
+  {
+   "word": "צב",
+   "behavior": "טמפרטורת החול קובעת",
+   "verb": "convert",
+   "material": "choice",
+   "part": "inner-orbit:src/components/home/BoardEdit.tsx#BoardEditor.shift.to",
+   "name": "מחבר ערכים"
+  },
+  {
+   "word": "תרנגול",
+   "behavior": "מפסיק כשכולם קמו",
+   "verb": "gate",
+   "material": "bool",
+   "part": "inner-generator:machtzev/ds-forge.mjs#emit.selfWidthUnbounded",
+   "name": "בודק כמה תנאים יחד"
+  },
+  {
+   "word": "חום-גוף",
+   "behavior": "מזיע מעל",
+   "verb": "gate",
+   "material": "bool",
+   "part": "inner-generator:machtzev/ds-forge.mjs#emit.selfWidthUnbounded",
+   "name": "בודק כמה תנאים יחד"
+  },
+  {
+   "word": "חום-גוף",
+   "behavior": "רועד מתחת",
+   "verb": "gate",
+   "material": "bool",
+   "part": "inner-generator:machtzev/ds-forge.mjs#emit.selfWidthUnbounded",
+   "name": "בודק כמה תנאים יחד"
+  },
+  {
+   "word": "חום-גוף",
+   "behavior": "חום ⇒ דרגות",
+   "verb": "rank-tiers",
+   "material": "choice",
+   "part": "inner-orbit:src/components/timer/CashRegister.tsx#CashRegister.exact.n",
+   "name": "מעגל מספר כלפי מטה"
+  },
+  {
+   "word": "חיסון",
+   "behavior": "רק בגיל מתאים",
+   "verb": "gate",
+   "material": "bool",
+   "part": "inner-generator:machtzev/ds-forge.mjs#emit.selfWidthUnbounded",
+   "name": "בודק כמה תנאים יחד"
+  },
+  {
+   "word": "לב",
+   "behavior": "דופק מהיר מדי ⇒ התראה",
+   "verb": "gate",
+   "material": "bool",
+   "part": "inner-generator:machtzev/ds-forge.mjs#emit.selfWidthUnbounded",
+   "name": "בודק כמה תנאים יחד"
+  },
+  {
+   "word": "נשימה",
+   "behavior": "ספירה לנשימה רגועה",
+   "verb": "NEW:countdown",
+   "material": "number",
+   "part": "inner-buildsmart:functions/src/credit.ts#onCall.balance",
+   "name": "מגביל לטווח"
+  },
+  {
+   "word": "עין-ממצמצת",
+   "behavior": "נסגרת כשמשהו קרוב",
+   "verb": "gate",
+   "material": "bool",
+   "part": "inner-generator:machtzev/ds-forge.mjs#emit.selfWidthUnbounded",
+   "name": "בודק כמה תנאים יחד"
+  },
+  {
+   "word": "צעדים",
+   "behavior": "הגיע ליעד ⇒ חגיגה",
+   "verb": "gate",
+   "material": "bool",
+   "part": "inner-generator:machtzev/ds-forge.mjs#emit.selfWidthUnbounded",
+   "name": "בודק כמה תנאים יחד"
+  }
+ ]
+}

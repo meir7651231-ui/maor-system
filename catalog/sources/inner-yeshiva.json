@@ -1,0 +1,408 @@
+{
+ "source": "inner-yeshiva",
+ "repo": "meir7651231-ui/yeshiva-engine",
+ "ref": "main@598f0d827df10c2940a20d6fb21d48cd0582936b",
+ "generatedAt": null,
+ "parts": [
+  {
+   "id": "inner-yeshiva:harness/guard.mjs#flatMap.w",
+   "source": "inner-yeshiva",
+   "path": "harness/guard.mjs",
+   "symbol": "flatMap.w",
+   "lang": "js",
+   "what": "inner",
+   "name": "מחשב ערך מערכים",
+   "does": "הערך-בדרך \"w\" מתוך flatMap (שורה 65), כפונקציה טהורה — עם כל מה שהוא תלוי בו.",
+   "takes": [
+    {
+     "name": "c",
+     "kind": "unknown",
+     "type": "any"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "any"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "inner:value",
+    "form:slice",
+    "parent:uncataloged",
+    "gen:catalog/inner/gen/yeshiva/harness/guard.mjs.mjs#inner$flatMap$w"
+   ],
+   "parent": "yeshiva:harness/guard.mjs#flatMap",
+   "origins": [
+    {
+     "repo": "meir7651231-ui/yeshiva-engine",
+     "file": "harness/guard.mjs",
+     "line": 65,
+     "what": "value:w"
+    }
+   ]
+  },
+  {
+   "id": "inner-yeshiva:harness/guard.mjs#opt.i",
+   "source": "inner-yeshiva",
+   "path": "harness/guard.mjs",
+   "symbol": "opt.i",
+   "lang": "js",
+   "what": "inner",
+   "name": "מוצא את המקום של ערך",
+   "does": "הערך-בדרך \"i\" מתוך opt (שורה 23), כפונקציה טהורה — עם כל מה שהוא תלוי בו.",
+   "takes": [
+    {
+     "name": "argv",
+     "kind": "unknown",
+     "type": "any"
+    },
+    {
+     "name": "k",
+     "kind": "unknown",
+     "type": "any"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "any"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "inner:value",
+    "form:slice",
+    "parent:cataloged",
+    "gen:catalog/inner/gen/yeshiva/harness/guard.mjs.mjs#inner$opt$i"
+   ],
+   "parent": "yeshiva:harness/guard.mjs#opt",
+   "origins": [
+    {
+     "repo": "meir7651231-ui/yeshiva-engine",
+     "file": "harness/guard.mjs",
+     "line": 23,
+     "what": "value:i"
+    }
+   ]
+  },
+  {
+   "id": "inner-yeshiva:harness/guard.mjs#stub.msg",
+   "source": "inner-yeshiva",
+   "path": "harness/guard.mjs",
+   "symbol": "stub.msg",
+   "lang": "js",
+   "what": "inner",
+   "name": "מרכיב טקסט מערכים",
+   "does": "הערך-בדרך \"msg\" מתוך stub (שורה 89), כפונקציה טהורה — עם כל מה שהוא תלוי בו.",
+   "takes": [
+    {
+     "name": "f",
+     "kind": "unknown",
+     "type": "any"
+    }
+   ],
+   "gives": {
+    "kind": "text",
+    "type": "string"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "inner:value",
+    "form:slice",
+    "parent:cataloged",
+    "gen:catalog/inner/gen/yeshiva/harness/guard.mjs.mjs#inner$stub$msg"
+   ],
+   "parent": "yeshiva:harness/guard.mjs#stub",
+   "origins": [
+    {
+     "repo": "meir7651231-ui/yeshiva-engine",
+     "file": "harness/guard.mjs",
+     "line": 89,
+     "what": "value:msg"
+    }
+   ]
+  },
+  {
+   "id": "inner-yeshiva:harness/police.mjs#depNames.inDeps:after-loop",
+   "source": "inner-yeshiva",
+   "path": "harness/police.mjs",
+   "symbol": "depNames.inDeps:after-loop",
+   "lang": "js",
+   "what": "inner",
+   "name": "מעדכן ערך לאורך רשימה",
+   "does": "הערך של \"inDeps\" אחרי הלולאה מתוך depNames (שורה 178), כפונקציה טהורה — עם כל מה שהוא תלוי בו.",
+   "takes": [
+    {
+     "name": "txt",
+     "kind": "unknown",
+     "type": "any"
+    }
+   ],
+   "gives": {
+    "kind": "bool",
+    "type": "boolean"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "inner:accumulator",
+    "form:slice",
+    "parent:uncataloged",
+    "gen:catalog/inner/gen/yeshiva/harness/police.mjs.mjs#inner$depNames$inDeps$$after_loop"
+   ],
+   "parent": "yeshiva:harness/police.mjs#depNames",
+   "origins": [
+    {
+     "repo": "meir7651231-ui/yeshiva-engine",
+     "file": "harness/police.mjs",
+     "line": 178,
+     "what": "accumulator:inDeps"
+    }
+   ]
+  },
+  {
+   "id": "inner-yeshiva:harness/police.mjs#depNames.m",
+   "source": "inner-yeshiva",
+   "path": "harness/police.mjs",
+   "symbol": "depNames.m",
+   "lang": "js",
+   "what": "inner",
+   "name": "בוחר ערך ראשון שקיים",
+   "does": "הערך-בדרך \"m\" מתוך depNames (שורה 181), כפונקציה טהורה — עם כל מה שהוא תלוי בו.",
+   "takes": [
+    {
+     "name": "inDeps",
+     "kind": "bool",
+     "type": "boolean"
+    },
+    {
+     "name": "l",
+     "kind": "unknown",
+     "type": "any"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "any"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "inner:value",
+    "form:slice",
+    "parent:uncataloged",
+    "gen:catalog/inner/gen/yeshiva/harness/police.mjs.mjs#inner$depNames$m"
+   ],
+   "parent": "yeshiva:harness/police.mjs#depNames",
+   "origins": [
+    {
+     "repo": "meir7651231-ui/yeshiva-engine",
+     "file": "harness/police.mjs",
+     "line": 181,
+     "what": "value:m"
+    }
+   ]
+  },
+  {
+   "id": "inner-yeshiva:harness/police.mjs#depNames.o",
+   "source": "inner-yeshiva",
+   "path": "harness/police.mjs",
+   "symbol": "depNames.o",
+   "lang": "js",
+   "what": "inner",
+   "name": "מפענח טקסט לערך",
+   "does": "הערך-בדרך \"o\" מתוך depNames (שורה 175), כפונקציה טהורה — עם כל מה שהוא תלוי בו.",
+   "takes": [
+    {
+     "name": "txt",
+     "kind": "unknown",
+     "type": "any"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "any"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "inner:value",
+    "form:slice",
+    "parent:uncataloged",
+    "gen:catalog/inner/gen/yeshiva/harness/police.mjs.mjs#inner$depNames$o"
+   ],
+   "parent": "yeshiva:harness/police.mjs#depNames",
+   "origins": [
+    {
+     "repo": "meir7651231-ui/yeshiva-engine",
+     "file": "harness/police.mjs",
+     "line": 175,
+     "what": "value:o"
+    }
+   ]
+  },
+  {
+   "id": "inner-yeshiva:harness/police.mjs#depNames.out:after-loop",
+   "source": "inner-yeshiva",
+   "path": "harness/police.mjs",
+   "symbol": "depNames.out:after-loop",
+   "lang": "js",
+   "what": "inner",
+   "name": "בונה מפתח של פריטים",
+   "does": "הערך של \"out\" אחרי הלולאה מתוך depNames (שורה 178), כפונקציה טהורה — עם כל מה שהוא תלוי בו.",
+   "takes": [
+    {
+     "name": "txt",
+     "kind": "unknown",
+     "type": "any"
+    }
+   ],
+   "gives": {
+    "kind": "list",
+    "type": "Set<any>"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "inner:accumulator",
+    "form:slice",
+    "parent:uncataloged",
+    "gen:catalog/inner/gen/yeshiva/harness/police.mjs.mjs#inner$depNames$out$$after_loop"
+   ],
+   "parent": "yeshiva:harness/police.mjs#depNames",
+   "origins": [
+    {
+     "repo": "meir7651231-ui/yeshiva-engine",
+     "file": "harness/police.mjs",
+     "line": 178,
+     "what": "accumulator:out"
+    }
+   ]
+  },
+  {
+   "id": "inner-yeshiva:harness/police.mjs#names.flatMap.m",
+   "source": "inner-yeshiva",
+   "path": "harness/police.mjs",
+   "symbol": "names.flatMap.m",
+   "lang": "js",
+   "what": "inner",
+   "name": "מחפש תבנית בטקסט",
+   "does": "הערך-בדרך \"m\" מתוך names ⟵ flatMap (שורה 224), כפונקציה טהורה — עם כל מה שהוא תלוי בו.",
+   "takes": [
+    {
+     "name": "EXP",
+     "kind": "unknown",
+     "type": "RegExp"
+    },
+    {
+     "name": "l",
+     "kind": "unknown",
+     "type": "any"
+    }
+   ],
+   "gives": {
+    "kind": "record:regExpMatchArray",
+    "type": "RegExpMatchArray | null"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "inner:value",
+    "form:slice",
+    "parent:uncataloged",
+    "gen:catalog/inner/gen/yeshiva/harness/police.mjs.mjs#inner$names$flatMap$m"
+   ],
+   "parent": "yeshiva:harness/police.mjs#names",
+   "origins": [
+    {
+     "repo": "meir7651231-ui/yeshiva-engine",
+     "file": "harness/police.mjs",
+     "line": 224,
+     "what": "value:m"
+    }
+   ]
+  },
+  {
+   "id": "inner-yeshiva:harness/police.mjs#opt.i",
+   "source": "inner-yeshiva",
+   "path": "harness/police.mjs",
+   "symbol": "opt.i",
+   "lang": "js",
+   "what": "inner",
+   "name": "מוצא את המקום של ערך",
+   "does": "הערך-בדרך \"i\" מתוך opt (שורה 27), כפונקציה טהורה — עם כל מה שהוא תלוי בו.",
+   "takes": [
+    {
+     "name": "argv",
+     "kind": "unknown",
+     "type": "any"
+    },
+    {
+     "name": "k",
+     "kind": "unknown",
+     "type": "any"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "any"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "inner:value",
+    "form:slice",
+    "parent:cataloged",
+    "gen:catalog/inner/gen/yeshiva/harness/police.mjs.mjs#inner$opt$i"
+   ],
+   "parent": "yeshiva:harness/police.mjs#opt",
+   "origins": [
+    {
+     "repo": "meir7651231-ui/yeshiva-engine",
+     "file": "harness/police.mjs",
+     "line": 27,
+     "what": "value:i"
+    }
+   ]
+  },
+  {
+   "id": "inner-yeshiva:harness/police.mjs#parse.map.i",
+   "source": "inner-yeshiva",
+   "path": "harness/police.mjs",
+   "symbol": "parse.map.i",
+   "lang": "js",
+   "what": "inner",
+   "name": "מוצא את המקום של ערך",
+   "does": "הערך-בדרך \"i\" מתוך parse ⟵ map (שורה 103), כפונקציה טהורה — עם כל מה שהוא תלוי בו.",
+   "takes": [
+    {
+     "name": "l",
+     "kind": "unknown",
+     "type": "any"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "any"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "inner:value",
+    "form:slice",
+    "parent:uncataloged",
+    "gen:catalog/inner/gen/yeshiva/harness/police.mjs.mjs#inner$parse$map$i"
+   ],
+   "parent": "yeshiva:harness/police.mjs#parse",
+   "origins": [
+    {
+     "repo": "meir7651231-ui/yeshiva-engine",
+     "file": "harness/police.mjs",
+     "line": 103,
+     "what": "value:i"
+    }
+   ]
+  }
+ ]
+}

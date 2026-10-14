@@ -1,0 +1,80 @@
+{
+ "version": 1,
+ "generatedAt": null,
+ "note": "תכונות-תנועה (lib/motion.mjs) של החלקים השלמים בקטלוג — קו-בסיס להשוואה הוגנת. רק חלקים שיש להם תכונה.",
+ "sources": {
+  "orbit": {
+   "runnable": 906,
+   "withMotion": 4,
+   "parts": {
+    "orbit:src/components/parnasa/shell.ts#pushkeFill": [
+     {
+      "id": "decay",
+      "on": "approved",
+      "holds": "4/4",
+      "step": 30,
+      "still": 2
+     }
+    ],
+    "orbit:src/components/supporters/lib.ts#supTotalIls": [
+     {
+      "id": "accumulate",
+      "on": "rate",
+      "holds": "5/5",
+      "step": 0.01,
+      "still": 1
+     }
+    ],
+    "orbit:src/lib/atoms/parts/rotate.ts#turnIndex": [
+     {
+      "id": "oscillate",
+      "on": "n",
+      "holds": "4/4",
+      "step": 0.3,
+      "still": 2
+     }
+    ],
+    "orbit:src/lib/atoms/parts/round.ts#roundTo": [
+     {
+      "id": "decay",
+      "on": "step",
+      "holds": "5/5",
+      "step": 30,
+      "config": "dir=\"nearest\"",
+      "still": 1
+     }
+    ]
+   }
+  },
+  "buildsmart": {
+   "runnable": 41,
+   "withMotion": 0,
+   "parts": {}
+  },
+  "generator": {
+   "runnable": 0,
+   "withMotion": 0,
+   "parts": {}
+  },
+  "14kk": {
+   "runnable": 182,
+   "withMotion": 0,
+   "parts": {}
+  },
+  "mmmm": {
+   "runnable": 37,
+   "withMotion": 0,
+   "parts": {}
+  },
+  "yoman-habina": {
+   "runnable": 1,
+   "withMotion": 0,
+   "parts": {}
+  },
+  "yeshiva": {
+   "runnable": 12,
+   "withMotion": 0,
+   "parts": {}
+  }
+ }
+}

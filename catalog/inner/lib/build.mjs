@@ -1,0 +1,174 @@
+/**
+ * 🔓 פותח-הפונקציות · בונה מקור אחד (INNER, 14.10.2026): ריפו ⇒ { files: {נתיב: טקסט}, stats }.
+ * משותף לסקריפט (open.mjs) ולבדיקה. לא כותב לדיסק ולא מריץ קוד.
+ */
+import fs from 'node:fs';
+import path from 'node:path';
+import { execFileSync } from 'node:child_process';
+import ts from 'typescript';
+import { makeProgram, typeToDesc } from '../../lib/tsdesc.mjs';
+import { kindOfDesc as rawKind } from '../../lib/entry.mjs';
+import { conformKind } from '../../lib/build-index.mjs';
+import { openFile, moduleText, toJs, PII } from './opener.mjs';
+import { nameOf, doesOf } from './name.mjs';
+import { REPOS, sourceFiles } from './repos.mjs';
+import { unwrap, symbolOf, isValueRef } from './purity.mjs';
+
+export const INNER_VERSION = 1;
+/** סוג מהמילון המשותף (אחרי יישור: record:Foo-bar ⇒ record:fooBar; לא מוכר ⇒ unknown). */
+const kindOfDesc = (d, n) => conformKind(rawKind(d, n));
+const ARITH = new Set([ts.SyntaxKind.MinusToken, ts.SyntaxKind.AsteriskToken, ts.SyntaxKind.SlashToken, ts.SyntaxKind.PercentToken, ts.SyntaxKind.AsteriskAsteriskToken,
+  ts.SyntaxKind.LessThanToken, ts.SyntaxKind.GreaterThanToken, ts.SyntaxKind.LessThanEqualsToken, ts.SyntaxKind.GreaterThanEqualsToken]);
+
+const sortObj = (o) => Object.fromEntries(Object.entries(o).sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1)));
+const typeText = (checker, t) => { try { const s = checker.typeToString(t, undefined, ts.TypeFormatFlags.NoTruncation); return (s.length > 120 ? s.slice(0, 117) + '…' : s) || 'unknown'; } catch { return 'unknown'; } };
+
+/** טיפוס של קלט: לפי ההצהרה שלו (גם בקובץ JS עם JSDoc). */
+function paramType(checker, p) {
+  let s = p.sym;
+  if (s && s.flags & ts.SymbolFlags.Alias) { try { s = checker.getAliasedSymbol(s); } catch { /* */ } }
+  const d = s && (s.valueDeclaration ?? s.declarations?.[0]);
+  if (!d) return null;
+  try { return checker.getTypeOfSymbolAtLocation(s, d); } catch { return null; }
+}
+
+/**
+ * צורה יציבה וקטנה: מפתחות-סמל פנימיים של המהדר (`__@toStringTag@51` — המספר משתנה בין ריצות) נזרקים, ואובייקט ענק
+ * (DOM, אירועים, React) נחתך בעומק עד שהצורה קטנה מ-6,000 תווים. עד 40 שדות לאובייקט (כמו typeToDesc).
+ */
+export function shrinkDesc(d, depth = 0, maxDepth = 3) {
+  if (!d || typeof d !== 'object') return d;
+  if (d.t === 'obj') return depth >= maxDepth ? { t: 'obj', ...(d.n ? { n: d.n } : {}), p: [] } : { ...d, p: (d.p ?? []).filter(([k]) => !String(k).startsWith('__@')).slice(0, 40).map(([k, v, o]) => [k, shrinkDesc(v, depth + 1, maxDepth), o]) };
+  if (d.t === 'or') return d.of.length > 8 ? { t: 'any' } : { ...d, of: d.of.map((x) => shrinkDesc(x, depth, maxDepth)) };
+  if (d.t === 'arr' || d.t === 'set' || d.t === 'rec') return { ...d, of: shrinkDesc(d.of, depth + 1, maxDepth) };
+  if (d.t === 'tup') return { ...d, of: d.of.map((x) => shrinkDesc(x, depth + 1, maxDepth)) };
+  if (d.t === 'map') return { ...d, k: shrinkDesc(d.k, depth + 1, maxDepth), v: shrinkDesc(d.v, depth + 1, maxDepth) };
+  if (d.t === 'tp') return { ...d, of: shrinkDesc(d.of, depth, maxDepth) };
+  return d;
+}
+const descOf = (checker, t) => {
+  if (!t) return { t: 'any' };
+  let d = shrinkDesc(typeToDesc(checker, t), 0, 99);
+  for (const md of [4, 3, 2, 1, 0]) { if (JSON.stringify(d).length <= 6000) break; d = shrinkDesc(d, 0, md); }
+  return d;
+};
+
+/** קלט בלי טיפוס (JS): אם הוא משמש בחשבון ⇒ מספר. */
+function usedAsNumber(L, p, checker) {
+  let num = false;
+  const nodes = [...L.stmts, ...(L.envelope ? L.envelope.events.flatMap((e) => [...e.args, ...(e.cond ? [e.cond] : [])]) : [])];
+  const visit = (n) => {
+    if (num) return;
+    if (ts.isIdentifier(n) && isValueRef(n) && symbolOf(checker, n) === p.sym) {
+      let x = n; while (x.parent && (ts.isParenthesizedExpression(x.parent) || ts.isNonNullExpression(x.parent))) x = x.parent;
+      const q = x.parent;
+      if (q && ts.isBinaryExpression(q) && (ARITH.has(q.operatorToken.kind) || (q.operatorToken.kind === ts.SyntaxKind.PlusToken && (ts.isNumericLiteral(unwrap(q.left)) || ts.isNumericLiteral(unwrap(q.right)))))) num = true;
+      if (q && ts.isPrefixUnaryExpression(q) && q.operator === ts.SyntaxKind.MinusToken) num = true;
+      if (q && ts.isCallExpression(q) && ts.isPropertyAccessExpression(q.expression) && ts.isIdentifier(q.expression.expression) && q.expression.expression.text === 'Math') num = true;
+    }
+    ts.forEachChild(n, visit);
+  };
+  for (const n of nodes) visit(n);
+  return num;
+}
+
+/** מקור אחד: { files, stats } או { missing }. */
+export function buildSource(ROOT, SRC, source) {
+  const R = REPOS[source];
+  const catDoc = JSON.parse(fs.readFileSync(path.join(ROOT, 'catalog/sources', R.catalog + '.json'), 'utf8'));
+  let base = ROOT;
+  if (R.dir) {
+    base = path.join(SRC, R.dir);
+    if (!fs.existsSync(base)) return { missing: 'אין שכפול-קריאה ב-' + base };
+    const sha = String(catDoc.ref).split('@')[1] ?? '';
+    let head = '';
+    try { head = execFileSync('git', ['-C', base, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim(); } catch { /* */ }
+    if (!sha || !head.startsWith(sha.slice(0, 7))) return { missing: `השכפול ב-${head.slice(0, 7) || '?'} ולא ב-${sha.slice(0, 7)} (ה-ref של המפקד)` };
+  }
+  const rels = sourceFiles(base, R.roots);
+  const program = makeProgram(rels.map((r) => path.join(base, r)), { noResolve: false });
+  const checker = program.getTypeChecker();
+  const catalogued = new Set(catDoc.parts.map((p) => p.path + '#' + p.symbol));
+  const repoName = catDoc.repo;
+  const files = {};
+  const parts = [];
+  const skips = {};
+  const perFile = [];
+  let candidates = 0; let sliced = 0; let clashes = 0;
+  for (const rel of rels) {
+    const sf = program.getSourceFile(path.join(base, rel));
+    if (!sf) continue;
+    let r;
+    try { r = openFile({ program, sf }); } catch (err) { skips['opener-error'] = (skips['opener-error'] ?? 0) + 1; void err; continue; }
+    candidates += r.candidates;
+    for (const [k, v] of Object.entries(r.skips)) skips[k] = (skips[k] ?? 0) + v;
+    if (!r.lifts.length) continue;
+    const genRel = `catalog/inner/gen/${source}/${rel}.mjs`;
+    const header = `// 🔓 נוצר אוטומטית ע"י catalog/inner/scripts/open.mjs מתוך ${source}:${rel} — לא לערוך ביד.\n// כל פונקציה כאן = ערך-בדרך שהורם מתוך פונקציה גדולה יותר; טהורה, בלי I/O. SIGS = צורת הקלטים לקורא-ההתנהגות.`;
+    let mod = moduleText(r.lifts, sf, header);
+    // פרטיות גם בצורות-הקלט: טיפוס-ליטרלי ('x@y.com') נכנס ל-SIGS ול-type — חלק כזה לא נכתב
+    const sigOf = (L) => L.params.map((p) => { const t = paramType(checker, p); return { p, t, d: descOf(checker, t), type: t ? typeText(checker, t) : 'unknown' }; });
+    const leaky = mod.kept.filter((L) => PII.some((re) => re.test(JSON.stringify(sigOf(L).map((x) => [x.d, x.type])))));
+    if (leaky.length) {
+      const bad = new Set(leaky.map((L) => L.symbol));
+      skips['privacy'] = (skips['privacy'] ?? 0) + leaky.length;
+      mod = moduleText(r.lifts.filter((L) => !bad.has(L.symbol)), sf, header);
+    }
+    clashes += mod.clashes;
+    if (mod.clashes) skips['name-clash'] = (skips['name-clash'] ?? 0) + mod.clashes;
+    if (mod.privacy) skips['privacy'] = (skips['privacy'] ?? 0) + mod.privacy;
+    if (mod.tooBig) skips['too-big'] = (skips['too-big'] ?? 0) + mod.tooBig;
+    if (!mod.kept.length) continue;
+    const sigs = {};
+    for (const L of mod.kept) {
+      const takes = L.params.map((p) => {
+        const t = paramType(checker, p);
+        let d = descOf(checker, t);
+        if (d.t === 'any' && usedAsNumber(L, p, checker)) d = { t: 'num' };
+        return { name: p.name, d, opt: false, type: t ? typeText(checker, t) : 'unknown' };
+      });
+      if (L.kind === 'envelope') takes.push({ name: 'since', d: { t: 'num' }, opt: false, type: 'number' });
+      let gives;
+      if (L.kind === 'envelope') gives = { kind: 'number', type: 'number' };
+      else {
+        let gt = null;
+        try { gt = checker.getTypeAtLocation(L.nameNode); } catch { /* */ }
+        const gd = descOf(checker, gt);
+        gives = { kind: kindOfDesc(gd, L.value), type: gt ? typeText(checker, gt) : 'unknown' };
+      }
+      const exp = L.text.match(/^export function (\S+)\(/)[1];
+      sigs[exp] = takes.map(({ type: _t, ...x }) => x);
+      const parentSym = L.top;
+      const isCat = catalogued.has(rel + '#' + parentSym);
+      const lang = /\.(ts|tsx|mts)$/.test(rel) ? 'ts' : 'js';
+      parts.push({
+        id: `inner-${source}:${rel}#${L.symbol}`, source: `inner-${source}`, path: rel, symbol: L.symbol, lang, what: 'inner',
+        name: nameOf(L), does: doesOf(L),
+        takes: takes.map((t) => ({ name: t.name, kind: kindOfDesc(t.d, t.name), type: t.type })), gives, pure: true, example: null,
+        tags: [`inner:${L.kind}`, `form:${L.form}`, isCat ? 'parent:cataloged' : 'parent:uncataloged', `gen:${genRel}#${exp}`],
+        parent: `${R.catalog}:${rel}#${parentSym}`,
+        origins: [{ repo: repoName, file: rel, line: L.line, what: `${L.kind}:${L.value}` }],
+      });
+    }
+    sliced += new Set(mod.kept.filter((k) => k.form === 'slice').map((k) => k.symbol)).size;
+    const tsx = /\.(tsx|jsx)$/.test(rel);
+    let js = toJs(mod.text, tsx);
+    js += `\nexport const SIGS = {\n${Object.entries(sigs).map(([k, v]) => `  ${k}: ${JSON.stringify(v)},`).join('\n')}\n};\n`;
+    files[genRel] = js;
+    perFile.push([rel, mod.kept.length]);
+  }
+  parts.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+  const doc = { source: `inner-${source}`, repo: repoName, ref: catDoc.ref, generatedAt: null, parts };
+  files[`catalog/sources/inner-${source}.json`] = JSON.stringify(doc, null, 1) + '\n';
+  const stats = {
+    source, version: INNER_VERSION, files: rels.length, candidates, sliced, parts: parts.length, modules: perFile.length,
+    forms: sortObj(parts.reduce((o, p) => { const k = p.tags.find((t) => t.startsWith('form:')); o[k] = (o[k] ?? 0) + 1; return o; }, {})),
+    kinds: sortObj(parts.reduce((o, p) => { const k = p.tags.find((t) => t.startsWith('inner:')); o[k] = (o[k] ?? 0) + 1; return o; }, {})),
+    parents: sortObj(parts.reduce((o, p) => { const k = p.tags.find((t) => t.startsWith('parent:')); o[k] = (o[k] ?? 0) + 1; return o; }, {})),
+    skipped: sortObj(skips),
+    topFiles: perFile.sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1)).slice(0, 15),
+  };
+
+  files[`catalog/inner/open-${source}.json`] = JSON.stringify(stats, null, 1) + '\n';
+  return { files, stats };
+}

@@ -46,7 +46,8 @@ function violationsByField(doc: unknown): Record<string, number> {
 
 describe('הקטלוג המאוחד', () => {
   it('כל 9 המקורות בפנים', () => {
-    expect(Object.keys(sources).sort()).toEqual(['14kk', 'buildsmart', 'generator', 'mmmm', 'orbit', 'qa-scanner', 'rings', 'yeshiva', 'yoman-habina']);
+    // + החלקים הפנימיים (inner-<source>, פותח-הפונקציות — catalog/__tests__/inner.test.ts בודק אותם)
+    expect(Object.keys(sources).filter((s) => !s.startsWith('inner-')).sort()).toEqual(['14kk', 'buildsmart', 'generator', 'mmmm', 'orbit', 'qa-scanner', 'rings', 'yeshiva', 'yoman-habina']);
     for (const [s, d] of Object.entries(sources)) { expect(d.source, s).toBe(s); expect(d.generatedAt, s).toBeNull(); expect(d.parts.length, s).toBeGreaterThan(0); }
   });
 

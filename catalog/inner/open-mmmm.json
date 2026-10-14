@@ -1,0 +1,106 @@
+{
+ "source": "mmmm",
+ "version": 1,
+ "files": 201,
+ "candidates": 1037,
+ "sliced": 254,
+ "parts": 294,
+ "modules": 55,
+ "forms": {
+  "form:slice": 254,
+  "form:step": 40
+ },
+ "kinds": {
+  "inner:value": 289,
+  "inner:accumulator": 5
+ },
+ "parents": {
+  "parent:uncataloged": 243,
+  "parent:cataloged": 51
+ },
+ "skipped": {
+  "trivial": 300,
+  "imported-call": 247,
+  "await": 133,
+  "loop-await": 24,
+  "privacy": 22,
+  "method-call": 8,
+  "mutation": 8,
+  "new": 6,
+  "this": 6,
+  "unknown-call": 6,
+  "clock": 4,
+  "loop-unknown-call": 4,
+  "dom": 3,
+  "global": 3,
+  "module-state": 3,
+  "global-call": 2,
+  "jsx": 2,
+  "loop-this": 2,
+  "timer": 2,
+  "io": 1,
+  "loop-return": 1
+ },
+ "topFiles": [
+  [
+   "artifacts/api-server/src/routes/notes.ts",
+   19
+  ],
+  [
+   "artifacts/agents-chat/src/components/ui/chart.tsx",
+   15
+  ],
+  [
+   "artifacts/mockup-sandbox/src/components/ui/chart.tsx",
+   15
+  ],
+  [
+   "agents-chat-server-hebrew-final.js",
+   13
+  ],
+  [
+   "agents-chat-server-hebrew-fixed.js",
+   13
+  ],
+  [
+   "agents-chat-server-hebrew.js",
+   13
+  ],
+  [
+   "agents-chat-server-simple.js",
+   13
+  ],
+  [
+   "agents-chat-server-5agents.js",
+   12
+  ],
+  [
+   "agents-chat-server-direct.js",
+   12
+  ],
+  [
+   "artifacts/mockup-sandbox/src/App.tsx",
+   12
+  ],
+  [
+   "lib/api-client-react/src/custom-fetch.ts",
+   12
+  ],
+  [
+   "agents-final-solution.js",
+   10
+  ],
+  [
+   "artifacts/api-server/src/routes/swarm.ts",
+   10
+  ],
+  [
+   "lib/integrations-openai-ai-react/src/audio/useVoiceStream.ts",
+   10
+  ],
+  [
+   "agents-200-percent-working.js",
+   9
+  ]
+ ]
+}

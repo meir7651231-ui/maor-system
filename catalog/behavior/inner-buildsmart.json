@@ -1,0 +1,3194 @@
+{
+ "source": "inner-buildsmart",
+ "ref": "main@1d09aa87c0aa969ec4187baf9b77e2a50f7f2803",
+ "probe": {
+  "version": 1,
+  "seed": 13269520,
+  "generatedAt": null
+ },
+ "totals": {
+  "run": 215,
+  "runWithVerb": 76,
+  "twin": 0,
+  "static": 45,
+  "staticWithVerb": 31,
+  "why": {
+   "no-fitting-input": 45
+  },
+  "withMotion": 3
+ },
+ "parts": [
+  {
+   "id": "inner-buildsmart:app/scripts/extract-catalog.mjs#liftConst.closeChar",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-buildsmart:app/scripts/extract-catalog.mjs#liftConst.closeChar:step",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "choice",
+   "cases": 24,
+   "traits": "in[str]>str",
+   "hash": "ef6b388c-991e1a2d"
+  },
+  {
+   "id": "inner-buildsmart:app/scripts/extract-catalog.mjs#liftConst.depth:after-loop",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "count",
+     "by": "first"
+    }
+   ],
+   "primary": "count",
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-buildsmart:app/scripts/extract-catalog.mjs#liftConst.end:after-loop",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-buildsmart:app/scripts/extract-catalog.mjs#liftConst.openChar",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-buildsmart:app/scripts/extract-catalog.mjs#liftConst.openChar:step",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-buildsmart:app/scripts/extract-catalog.mjs#liftConst.re",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 24,
+   "traits": "in[]>obj const"
+  },
+  {
+   "id": "inner-buildsmart:app/scripts/extract-catalog.mjs#liftConst.start",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "fuzzy",
+     "by": "first"
+    }
+   ],
+   "primary": "fuzzy",
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-buildsmart:app/scripts/extract-catalog.mjs#liftConst.start:step",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "fuzzy",
+     "by": "first"
+    }
+   ],
+   "primary": "fuzzy",
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-buildsmart:app/scripts/extract-catalog.mjs#map.accessories",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 24,
+   "traits": "in[bool|num|str]>arr const"
+  },
+  {
+   "id": "inner-buildsmart:app/scripts/extract-catalog.mjs#map.base64",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "map",
+     "by": "symbol"
+    }
+   ],
+   "primary": "map",
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-buildsmart:app/scripts/extract-catalog.mjs#map.out",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 20,
+   "traits": "in[str,bool|num|str]>obj",
+   "hash": "253bbd5d-957fdeb5"
+  },
+  {
+   "id": "inner-buildsmart:app/scripts/extract-catalog.mjs#map.out@221",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 23,
+   "traits": "in[bool|num|str]>obj const"
+  },
+  {
+   "id": "inner-buildsmart:app/smoke-settings.mjs#stored.v",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 13,
+   "traits": "in[bool|num|str]>bool|num|obj",
+   "hash": "fef26ceb-75c25d02"
+  },
+  {
+   "id": "inner-buildsmart:app/smoke-settings.mjs#stored.v:after-loop",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 20,
+   "traits": "in[bool|num|str,arr]>nil|num|obj",
+   "hash": "7408950d-69ad0a91"
+  },
+  {
+   "id": "inner-buildsmart:app/src/components/bs/bs-dial.tsx#BsDial.anchors",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 16,
+   "traits": "in[str]>arr const"
+  },
+  {
+   "id": "inner-buildsmart:app/src/components/bs/bs-dial.tsx#BsDial.current",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 8,
+   "traits": "in[str]>arr const"
+  },
+  {
+   "id": "inner-buildsmart:app/src/components/bs/bs-dial.tsx#BsDial.map.hasChildren",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "validate",
+     "on": "*",
+     "holds": "24/24"
+    }
+   ],
+   "primary": "validate",
+   "material": "record:section",
+   "cases": 24,
+   "hash": "d80cd18f-fab6f80"
+  },
+  {
+   "id": "inner-buildsmart:app/src/components/bs/bs-dial.tsx#BsDial.tile",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 24,
+   "traits": "in[]>nil|obj"
+  },
+  {
+   "id": "inner-buildsmart:app/src/components/bs/bs-dial.tsx#walkBsDrill.anchors:after-loop",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "choice",
+   "cases": 24,
+   "traits": "in[]>arr const len~"
+  },
+  {
+   "id": "inner-buildsmart:app/src/components/bs/bs-dial.tsx#walkBsDrill.current:after-loop",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "choice",
+   "cases": 24,
+   "traits": "in[str]>arr len~",
+   "hash": "1c5db9c3-7e76b4c5"
+  },
+  {
+   "id": "inner-buildsmart:app/src/components/bs/bs-dial.tsx#walkBsDrill.node",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[]>nil const"
+  },
+  {
+   "id": "inner-buildsmart:app/src/components/category-circles.tsx#CategoryCircles.isRoot",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 22,
+   "traits": "in[]>bool const"
+  },
+  {
+   "id": "inner-buildsmart:app/src/components/menu-speed-dial.tsx#MenuSpeedDial.activeDef",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[]>nil const"
+  },
+  {
+   "id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#CartSubmenu.anchors",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 12,
+   "traits": "in[str]>arr const"
+  },
+  {
+   "id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#CartSubmenu.current",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 10,
+   "traits": "in[str]>arr const"
+  },
+  {
+   "id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#CartSubmenu.map.hasChildren",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "validate",
+     "on": "*",
+     "holds": "24/24"
+    }
+   ],
+   "primary": "validate",
+   "material": "record:cartItem",
+   "cases": 24,
+   "hash": "b240d18d-e86429b7"
+  },
+  {
+   "id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#CartSubmenu.reversed",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 11,
+   "traits": "in[str]>arr const"
+  },
+  {
+   "id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#CartSubmenu.reversed:step",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "reverse",
+     "on": "current",
+     "holds": "24/24"
+    }
+   ],
+   "primary": "reverse",
+   "material": "record:cartItem",
+   "cases": 24,
+   "hash": "84ab5e65-8eb39871"
+  },
+  {
+   "id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#HomeSubmenu.anchors",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 11,
+   "traits": "in[str]>arr const"
+  },
+  {
+   "id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#HomeSubmenu.current",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 13,
+   "traits": "in[str]>arr const"
+  },
+  {
+   "id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#HomeSubmenu.map.hasChildren",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "validate",
+     "on": "*",
+     "holds": "24/24"
+    }
+   ],
+   "primary": "validate",
+   "material": "record:homeItem",
+   "cases": 24,
+   "hash": "c644661f-c638ae07"
+  },
+  {
+   "id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#HomeSubmenu.reversed",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 11,
+   "traits": "in[str]>arr const"
+  },
+  {
+   "id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#HomeSubmenu.reversed:step",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "reverse",
+     "on": "current",
+     "holds": "24/24"
+    }
+   ],
+   "primary": "reverse",
+   "material": "record:homeItem",
+   "cases": 24,
+   "hash": "22c4c99f-2ef9a9d3"
+  },
+  {
+   "id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#LeafEditor.commit.trimmed",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "normalize",
+     "on": "raw",
+     "holds": "12/12"
+    },
+    {
+     "id": "format",
+     "on": "raw",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "normalize",
+   "material": "text",
+   "cases": 24
+  },
+  {
+   "id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#ProfileTreeSubmenu.branchIcon",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 20,
+   "traits": "in[bool|num|str,bool|num|str]>bool|nil|num|str",
+   "hash": "5f13d922-7e70f645"
+  },
+  {
+   "id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#ProfileTreeSubmenu.current",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 9,
+   "traits": "in[str]>arr const"
+  },
+  {
+   "id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#ProfileTreeSubmenu.map.leafKey",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "format",
+     "on": "path",
+     "holds": "14/14"
+    }
+   ],
+   "primary": "format",
+   "material": "unknown",
+   "cases": 11,
+   "hash": "a29d061d-bd5b3b42"
+  },
+  {
+   "id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#ProfileTreeSubmenu.reversed",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 13,
+   "traits": "in[str]>arr const"
+  },
+  {
+   "id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#ProfileTreeSubmenu.reversed:step",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "reverse",
+     "on": "current",
+     "holds": "24/24"
+    }
+   ],
+   "primary": "reverse",
+   "material": "unknown",
+   "cases": 24,
+   "hash": "d440c49b-3b65d789"
+  },
+  {
+   "id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#ProjectsSubmenu.map.hasChildren",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "validate",
+     "on": "*",
+     "holds": "24/24"
+    }
+   ],
+   "primary": "validate",
+   "material": "record:projectItem",
+   "cases": 24,
+   "hash": "6a4a043f-ae624be3"
+  },
+  {
+   "id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#ProjectsSubmenu.map.usesEmoji",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "record:projectItem",
+   "cases": 24,
+   "traits": "in[]>bool const"
+  },
+  {
+   "id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#ProjectsSubmenu.map.usesEmoji:step",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "record:projectItem",
+   "cases": 24,
+   "traits": "in[]>bool const"
+  },
+  {
+   "id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#ProjectsSubmenu.reversed",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "reverse",
+     "on": "current",
+     "holds": "24/24"
+    }
+   ],
+   "primary": "reverse",
+   "material": "record:projectItem",
+   "cases": 24,
+   "hash": "a802572f-13b2f46d"
+  },
+  {
+   "id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#SettingsSubmenu.rows",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "reverse",
+     "on": "SETTINGS_ROWS",
+     "holds": "24/24"
+    }
+   ],
+   "primary": "reverse",
+   "material": "record:row",
+   "cases": 24,
+   "hash": "f5d45b49-2fdee8e3"
+  },
+  {
+   "id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#SettingsTreeSubmenu.map.isEditing",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "choice",
+   "cases": 20,
+   "traits": "in[bool|num|str,obj]>bool|nil"
+  },
+  {
+   "id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#SettingsTreeSubmenu.map.isEditing:step",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 24,
+   "traits": "in[obj]>bool|nil"
+  },
+  {
+   "id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#SettingsTreeSubmenu.map.key",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "format",
+     "on": "group",
+     "holds": "15/15"
+    },
+    {
+     "id": "join",
+     "on": "pathPrefix",
+     "holds": "12/12"
+    }
+   ],
+   "primary": "join",
+   "material": "text",
+   "cases": 22,
+   "hash": "8caa974-320e8fea"
+  },
+  {
+   "id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#SettingsTreeSubmenu.parent",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "extreme",
+     "on": "SETTINGS_ROWS",
+     "holds": "11/11"
+    },
+    {
+     "id": "lookup",
+     "on": "SETTINGS_ROWS",
+     "holds": "24/24"
+    }
+   ],
+   "primary": "extreme",
+   "material": "record:row",
+   "cases": 24,
+   "hash": "d0400997-8453fae3"
+  },
+  {
+   "id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#SettingsTreeSubmenu.reversed",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "reverse",
+     "on": "nodes",
+     "holds": "24/24"
+    }
+   ],
+   "primary": "reverse",
+   "material": "unknown",
+   "cases": 24,
+   "hash": "d440c49b-3b65d789"
+  },
+  {
+   "id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#action.tail",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "format",
+     "on": "n",
+     "holds": "15/15"
+    },
+    {
+     "id": "personalize",
+     "on": "n",
+     "holds": "24/24"
+    }
+   ],
+   "primary": "personalize",
+   "material": "record:rank",
+   "cases": 24,
+   "hash": "2aa0c89f-2c7db432"
+  },
+  {
+   "id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#walkCart.anchors:after-loop",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[]>arr const len~"
+  },
+  {
+   "id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#walkCart.current:after-loop",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[]>arr const len~"
+  },
+  {
+   "id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#walkCart.node",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[]>nil|obj",
+   "hash": "67abcaad-bd64bb83"
+  },
+  {
+   "id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#walkHome.anchors:after-loop",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[]>arr const len~"
+  },
+  {
+   "id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#walkHome.current:after-loop",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[]>arr const len~"
+  },
+  {
+   "id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#walkHome.node",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[]>nil const"
+  },
+  {
+   "id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#walkProfile.anchors:after-loop",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[]>arr const len~"
+  },
+  {
+   "id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#walkProfile.current:after-loop",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[]>arr const len~"
+  },
+  {
+   "id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#walkProfile.node",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[]>nil const"
+  },
+  {
+   "id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#walkProjects.node",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[]>nil const",
+   "hash": "597fea57-6e4efcdd"
+  },
+  {
+   "id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#walkSettings.anchors:after-loop",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "choice",
+   "cases": 24,
+   "traits": "in[]>arr const len~"
+  },
+  {
+   "id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#walkSettings.current:after-loop",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "choice",
+   "cases": 24,
+   "traits": "in[str,arr]>arr len~",
+   "hash": "faeada44-df2cfd73"
+  },
+  {
+   "id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#walkSettings.node",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[]>nil const"
+  },
+  {
+   "id": "inner-buildsmart:app/src/components/product-card.tsx#ProductCard.fn.v",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "convert",
+     "by": "first"
+    }
+   ],
+   "primary": "convert",
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-buildsmart:app/src/components/product-card.tsx#ProductCard.inCart",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "validate",
+     "on": "*",
+     "holds": "24/24"
+    }
+   ],
+   "primary": "validate",
+   "material": "number",
+   "cases": 24,
+   "hash": "3ac50b82-2c291fda"
+  },
+  {
+   "id": "inner-buildsmart:app/src/components/product-card.tsx#formatPrice.text",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "record:catalogProduct",
+   "cases": 15,
+   "traits": "in[obj]>str",
+   "hash": "8b11301e-510a9050"
+  },
+  {
+   "id": "inner-buildsmart:app/src/components/product-sheet.tsx#ProductSheetPanel.fn.v",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "convert",
+     "by": "first"
+    }
+   ],
+   "primary": "convert",
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-buildsmart:app/src/components/product-sheet.tsx#ProductSheetPanel.hasPrice",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "validate",
+     "on": "*",
+     "holds": "24/24"
+    }
+   ],
+   "primary": "validate",
+   "material": "record:catalogProduct",
+   "cases": 24,
+   "hash": "8b11301e-3ec41ba0"
+  },
+  {
+   "id": "inner-buildsmart:app/src/components/product-sheet.tsx#ProductSheetPanel.total",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "format",
+     "on": "qty",
+     "holds": "9/9"
+    }
+   ],
+   "primary": "format",
+   "material": "number",
+   "cases": 24,
+   "hash": "658134bd-4a3a7a22"
+  },
+  {
+   "id": "inner-buildsmart:app/src/components/product-sheet.tsx#ProductSheetPanel.total:step",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "format",
+     "on": "qty",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "format",
+   "material": "number",
+   "cases": 24,
+   "hash": "2e7c7735-93dc2ed0"
+  },
+  {
+   "id": "inner-buildsmart:app/src/components/regression/regression-panel.tsx#RegressionPanel.map.failed",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "count",
+     "by": "first"
+    },
+    {
+     "id": "map",
+     "by": "symbol"
+    }
+   ],
+   "primary": "count",
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-buildsmart:app/src/components/regression/regression-panel.tsx#RegressionPanel.map.ok",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "validate",
+     "by": "first"
+    }
+   ],
+   "primary": "validate",
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-buildsmart:app/src/components/regression/regression-panel.tsx#RegressionPanel.map.ok:step",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "validate",
+     "on": "*",
+     "holds": "24/24"
+    }
+   ],
+   "primary": "validate",
+   "material": "unknown",
+   "cases": 24,
+   "hash": "fef26ceb-49389730"
+  },
+  {
+   "id": "inner-buildsmart:app/src/components/search/results-list.tsx#ResultsList.q",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "normalize",
+     "by": "first"
+    }
+   ],
+   "primary": "normalize",
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-buildsmart:app/src/components/search/submenu-sort.tsx#SortSubmenu.map.on",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "validate",
+     "on": "*",
+     "holds": "24/24"
+    }
+   ],
+   "primary": "validate",
+   "material": "unknown",
+   "cases": 24
+  },
+  {
+   "id": "inner-buildsmart:app/src/components/search/tools-dial.tsx#ToolsRail.activeDef",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[bool|num|str]>nil"
+  },
+  {
+   "id": "inner-buildsmart:app/src/data/catalog.ts#productsForPath.current",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[arr]>nil|str",
+   "hash": "89c11fd6-f8248f3"
+  },
+  {
+   "id": "inner-buildsmart:app/src/data/identity.ts#currentRank.r:after-loop",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "cases": 24,
+   "traits": "in[num]>obj",
+   "hash": "397fca01-ef70676d"
+  },
+  {
+   "id": "inner-buildsmart:app/src/lib/search.ts#editDistance.cost",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "tier",
+     "on": "i",
+     "holds": "6/6"
+    },
+    {
+     "id": "normalize",
+     "on": "i",
+     "holds": "12/12"
+    }
+   ],
+   "primary": "tier",
+   "material": "number",
+   "cases": 24,
+   "hash": "e97e358b-4b4c627e"
+  },
+  {
+   "id": "inner-buildsmart:app/src/lib/search.ts#editDistance.cur",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "cases": 24,
+   "traits": "in[num]>arr",
+   "hash": "3ac50b82-cf52cef5"
+  },
+  {
+   "id": "inner-buildsmart:app/src/lib/search.ts#editDistance.prev",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "cases": 24,
+   "traits": "in[num]>arr",
+   "hash": "3ac50b82-cf52cef5"
+  },
+  {
+   "id": "inner-buildsmart:app/src/lib/search.ts#searchExact.bestPos:after-loop",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[str,obj]>num int",
+   "hash": "6eb618fc-1b12de01"
+  },
+  {
+   "id": "inner-buildsmart:app/src/lib/search.ts#searchExact.bucket",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "map",
+     "on": "contains",
+     "holds": "24/24"
+    },
+    {
+     "id": "normalize",
+     "on": "contains",
+     "holds": "12/12"
+    }
+   ],
+   "primary": "map",
+   "material": "record:contain",
+   "cases": 24,
+   "hash": "3c7f72bc-b81ef8ea"
+  },
+  {
+   "id": "inner-buildsmart:app/src/lib/search.ts#searchExact.bucket:step",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "map",
+     "on": "contains",
+     "holds": "24/24"
+    },
+    {
+     "id": "normalize",
+     "on": "contains",
+     "holds": "12/12"
+    }
+   ],
+   "primary": "map",
+   "material": "record:contain",
+   "cases": 24,
+   "hash": "7d6fdc01-905a3073"
+  },
+  {
+   "id": "inner-buildsmart:app/src/lib/search.ts#searchExact.pos",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[str]>num int",
+   "hash": "805ea888-41e0d30d"
+  },
+  {
+   "id": "inner-buildsmart:app/src/lib/search.ts#searchExact.pos:step",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[str,str]>num const int",
+   "hash": "805ea888-41e0d30d"
+  },
+  {
+   "id": "inner-buildsmart:app/src/lib/search.ts#searchExact.q",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[str]>str"
+  },
+  {
+   "id": "inner-buildsmart:app/src/lib/search.ts#searchFuzzy.bestDist:after-loop",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[str,obj]>inf|num int+",
+   "hash": "6eb618fc-c19a4b1"
+  },
+  {
+   "id": "inner-buildsmart:app/src/lib/search.ts#searchFuzzy.d",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "tier",
+     "on": "start",
+     "holds": "6/6"
+    },
+    {
+     "id": "clamp",
+     "on": "start",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "tier",
+   "material": "number",
+   "cases": 24,
+   "hash": "c2d1ad16-26b6057f",
+   "motion": [
+    {
+     "id": "decay",
+     "on": "start",
+     "holds": "5/5",
+     "step": 10,
+     "still": 1
+    }
+   ]
+  },
+  {
+   "id": "inner-buildsmart:app/src/lib/search.ts#searchFuzzy.d:step",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "gap",
+     "on": "q+slice",
+     "holds": "36/36"
+    }
+   ],
+   "primary": "gap",
+   "material": "text",
+   "cases": 24,
+   "hash": "805ea888-25fc29cf"
+  },
+  {
+   "id": "inner-buildsmart:app/src/lib/search.ts#searchFuzzy.norm",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "normalize",
+     "on": "kw",
+     "holds": "12/12"
+    },
+    {
+     "id": "format",
+     "on": "kw",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "normalize",
+   "material": "text",
+   "cases": 24
+  },
+  {
+   "id": "inner-buildsmart:app/src/lib/search.ts#searchFuzzy.q",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[str]>str"
+  },
+  {
+   "id": "inner-buildsmart:app/src/lib/search.ts#searchFuzzy.slice",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[str,num]>str",
+   "hash": "c2d1ad16-48829fd6"
+  },
+  {
+   "id": "inner-buildsmart:app/src/lib/search.ts#searchFuzzy.slice:step",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[str,num,num]>str",
+   "hash": "ddaf153a-8dbd6be"
+  },
+  {
+   "id": "inner-buildsmart:app/src/lib/search.ts#searchFuzzy.tolerance",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[str]>num int+",
+   "hash": "a15335b5-305c1022"
+  },
+  {
+   "id": "inner-buildsmart:app/src/lib/search.ts#searchFuzzy.tolerance:step",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[str]>num int+",
+   "hash": "a15335b5-305c1022"
+  },
+  {
+   "id": "inner-buildsmart:app/src/lib/search.ts#searchFuzzy.window",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[str,str]>num int+",
+   "hash": "805ea888-e7e4c561"
+  },
+  {
+   "id": "inner-buildsmart:app/src/lib/search.ts#searchFuzzy.window:step",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "tier",
+     "on": "tolerance",
+     "holds": "6/6"
+    },
+    {
+     "id": "clamp",
+     "on": "tolerance",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "tier",
+   "material": "number",
+   "cases": 24,
+   "hash": "d35fd044-326c1022"
+  },
+  {
+   "id": "inner-buildsmart:app/src/lib/voice.ts#startVoiceRecognition.onresult.isFinal:after-loop",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-buildsmart:app/src/lib/voice.ts#startVoiceRecognition.onresult.text:after-loop",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "join",
+     "by": "name"
+    }
+   ],
+   "primary": "join",
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-buildsmart:app/src/store/app-settings.ts#load.p",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 5,
+   "traits": "in[str]>nil|num"
+  },
+  {
+   "id": "inner-buildsmart:app/src/store/app-store.ts#computed.parent",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "normalize",
+     "on": "path",
+     "holds": "6/6"
+    }
+   ],
+   "primary": "normalize",
+   "material": "unknown",
+   "cases": 19,
+   "hash": "fef26ceb-683cc383"
+  },
+  {
+   "id": "inner-buildsmart:app/src/store/app-store.ts#setQty.clamped",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "cases": 24,
+   "traits": "in[num]>num int+"
+  },
+  {
+   "id": "inner-buildsmart:app/src/store/app-store.ts#setQty.existing",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "fuzzy",
+     "by": "first"
+    },
+    {
+     "id": "settle",
+     "by": "symbol"
+    }
+   ],
+   "primary": "fuzzy",
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-buildsmart:app/src/store/regression-store.ts#computed.map.items",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "filter",
+     "by": "first"
+    },
+    {
+     "id": "join",
+     "by": "name"
+    },
+    {
+     "id": "map",
+     "by": "symbol"
+    }
+   ],
+   "primary": "filter",
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-buildsmart:app/src/store/regression-store.ts#computed.passed",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "count",
+     "by": "first"
+    }
+   ],
+   "primary": "count",
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-buildsmart:app/src/store/search-store.ts#loadRecent.arr",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "split",
+     "by": "first"
+    }
+   ],
+   "primary": "split",
+   "material": "text",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-buildsmart:app/src/store/search-store.ts#recordRecent.next",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-buildsmart:app/src/store/search-store.ts#recordRecent.next:step",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-buildsmart:app/src/store/search-store.ts#recordRecent.trimmed",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[str]>str"
+  },
+  {
+   "id": "inner-buildsmart:app/src/store/user-profile.ts#load.p",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 5,
+   "traits": "in[str]>nil|num"
+  },
+  {
+   "id": "inner-buildsmart:app/src/test/tests/buttons.ts#behaviorCheck.behaviorOne.beforeCart",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "convert",
+     "by": "first"
+    }
+   ],
+   "primary": "convert",
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-buildsmart:app/src/test/tests/buttons.ts#behaviorCheck.behaviorOne.target",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 24,
+   "traits": "in[]>str const"
+  },
+  {
+   "id": "inner-buildsmart:app/src/test/tests/dsync.ts#testDsync.badBundles",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[obj]>arr",
+   "hash": "986f9a52-9d380be6"
+  },
+  {
+   "id": "inner-buildsmart:app/src/test/tests/dsync.ts#testDsync.expectedCartCount",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "join",
+     "by": "name"
+    },
+    {
+     "id": "count",
+     "by": "symbol"
+    }
+   ],
+   "primary": "join",
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-buildsmart:app/src/test/tests/dsync.ts#testDsync.knownSkus:after-loop",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[obj]>set",
+   "hash": "96827e59-7e8251bc"
+  },
+  {
+   "id": "inner-buildsmart:app/src/test/tests/dsync.ts#testDsync.orphanSkus:after-loop",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[obj]>arr",
+   "hash": "bd779cdb-c1bbc555"
+  },
+  {
+   "id": "inner-buildsmart:app/src/test/tests/dsync.ts#testDsync.orphanVariants",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[obj]>arr",
+   "hash": "5d7bf104-47b52020"
+  },
+  {
+   "id": "inner-buildsmart:app/src/test/tests/dupes.ts#testDupes.byName:after-loop",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[arr]>map",
+   "hash": "5603afac-cd99a829"
+  },
+  {
+   "id": "inner-buildsmart:app/src/test/tests/dupes.ts#testDupes.catByKey:after-loop",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[arr]>map",
+   "hash": "7f598e23-89fe7861"
+  },
+  {
+   "id": "inner-buildsmart:app/src/test/tests/dupes.ts#testDupes.catClashes",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[]>arr const len~"
+  },
+  {
+   "id": "inner-buildsmart:app/src/test/tests/dupes.ts#testDupes.catClashes:step",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[map]>arr",
+   "hash": "14d41579-e7ec9adb"
+  },
+  {
+   "id": "inner-buildsmart:app/src/test/tests/dupes.ts#testDupes.existing",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[]>arr const",
+   "hash": "3b0ceec0-d88e735c"
+  },
+  {
+   "id": "inner-buildsmart:app/src/test/tests/dupes.ts#testDupes.existing@38",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[]>arr const"
+  },
+  {
+   "id": "inner-buildsmart:app/src/test/tests/dupes.ts#testDupes.existing@38:step",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[]>arr const"
+  },
+  {
+   "id": "inner-buildsmart:app/src/test/tests/dupes.ts#testDupes.k",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "format",
+     "on": "c",
+     "holds": "15/15"
+    },
+    {
+     "id": "personalize",
+     "on": "c",
+     "holds": "24/24"
+    }
+   ],
+   "primary": "personalize",
+   "material": "record:catalogCategory",
+   "cases": 24,
+   "hash": "7743d93-25b16ce"
+  },
+  {
+   "id": "inner-buildsmart:app/src/test/tests/dupes.ts#testDupes.nameClashes",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[arr]>arr len~",
+   "hash": "5603afac-bdbe647c"
+  },
+  {
+   "id": "inner-buildsmart:app/src/test/tests/dupes.ts#testDupes.nameClashes:step",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[map]>arr",
+   "hash": "2238fb03-eff5d0e6"
+  },
+  {
+   "id": "inner-buildsmart:app/src/test/tests/products.ts#testProducts.map.bad",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "record:catalogProduct",
+   "cases": 13,
+   "traits": "in[obj]>arr",
+   "hash": "8b11301e-68966337"
+  },
+  {
+   "id": "inner-buildsmart:app/src/test/tests/products.ts#testProducts.map.missing:after-loop",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "sum",
+     "on": "STORE_IDS",
+     "holds": "24/24"
+    }
+   ],
+   "primary": "sum",
+   "material": "text",
+   "cases": 23,
+   "hash": "56ea29c1-2a28c3b2"
+  },
+  {
+   "id": "inner-buildsmart:app/src/test/tests/products.ts#testProducts.map.optsWithSku",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "record:variantDef",
+   "cases": 23,
+   "traits": "in[obj]>arr",
+   "hash": "96c30f2e-288705d5"
+  },
+  {
+   "id": "inner-buildsmart:app/src/test/tests/products.ts#testProducts.map.totalPrices",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "sum",
+     "on": "STORE_IDS",
+     "holds": "24/24"
+    }
+   ],
+   "primary": "sum",
+   "material": "text",
+   "cases": 21,
+   "hash": "c7e47017-bf531291"
+  },
+  {
+   "id": "inner-buildsmart:app/src/test/tests/products.ts#testProducts.map.totalPrices:step",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "sum",
+     "on": "STORE_IDS",
+     "holds": "24/24"
+    }
+   ],
+   "primary": "sum",
+   "material": "text",
+   "cases": 24,
+   "hash": "5a2b411-d18c4b3d"
+  },
+  {
+   "id": "inner-buildsmart:app/src/views/store.tsx#OrderSheet.order",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[]>nil const"
+  },
+  {
+   "id": "inner-buildsmart:app_flutter/web/firebase-messaging-sw.js#addEventListener.target",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-buildsmart:app_flutter/web/firebase-messaging-sw.js#addEventListener.target:step",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "format",
+     "on": "threadId",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "format",
+   "material": "unknown",
+   "cases": 24,
+   "hash": "9b6c85e8-1b2f03a2"
+  },
+  {
+   "id": "inner-buildsmart:edge-proxy/worker.js#class.fetch.label",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "record:uRL",
+   "cases": 24,
+   "traits": "in[obj]>str",
+   "hash": "288df206-8279ccae"
+  },
+  {
+   "id": "inner-buildsmart:edge-proxy/worker.js#class.fetch.seg",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "record:uRL",
+   "cases": 24,
+   "traits": "in[obj]>arr",
+   "hash": "288df206-70bfb7ce"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/analytics.ts#onSchedule.docs",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/analytics.ts#pickShard.i",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "convert",
+     "on": "numShards",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "convert",
+   "material": "number",
+   "cases": 24,
+   "hash": "2fda98ad-95927abb",
+   "motion": [
+    {
+     "id": "accumulate",
+     "on": "r",
+     "holds": "5/5",
+     "step": 100,
+     "still": 1
+    },
+    {
+     "id": "accumulate",
+     "on": "numShards",
+     "holds": "6/6",
+     "step": 100
+    }
+   ]
+  },
+  {
+   "id": "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "sum",
+     "on": "values",
+     "holds": "24/24"
+    }
+   ],
+   "primary": "sum",
+   "material": "unknown",
+   "cases": 24,
+   "hash": "d440c49b-d55d3426"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/analytics.ts#summarizePresence.byRole:after-loop",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "tally",
+     "on": "docs",
+     "holds": "24/24"
+    }
+   ],
+   "primary": "tally",
+   "material": "record:presenceDoc",
+   "cases": 24,
+   "hash": "b4e085b0-cc52e348"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/analytics.ts#summarizePresence.count:after-loop",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "round",
+     "on": "sampleCap",
+     "holds": "18/18"
+    },
+    {
+     "id": "count",
+     "on": "docs",
+     "holds": "36/36"
+    },
+    {
+     "id": "clamp",
+     "on": "sampleCap",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "round",
+   "material": "number",
+   "cases": 24,
+   "hash": "b4e085b0-680b85d4"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/analytics.ts#summarizePresence.lastSeen",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "record:presenceDoc",
+   "cases": 24,
+   "traits": "in[obj]>num real",
+   "hash": "d9ffcf3f-6c531d08"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/analytics.ts#summarizePresence.role",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "record:presenceDoc",
+   "cases": 24,
+   "traits": "in[obj]>str",
+   "hash": "d9ffcf3f-97e7f92e"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/analytics.ts#summarizePresence.sample:after-loop",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[arr,num,num,num]>arr len~",
+   "hash": "b4e085b0-241e2bcd"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/analytics.ts#summarizePresence.uid",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "personalize",
+     "on": "d",
+     "holds": "14/14"
+    }
+   ],
+   "primary": "personalize",
+   "material": "record:presenceDoc",
+   "cases": 24,
+   "hash": "d9ffcf3f-6ca9e287"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/approveUsers.ts#onCall.clean",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 21,
+   "traits": "in[bool|num|str]>obj const"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/approveUsers.ts#onCall.clean:step",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 24,
+   "traits": "in[]>obj const"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/approveUsers.ts#onCall.status",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 23,
+   "traits": "in[]>str const"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/approveUsers.ts#onCall.status:step",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "tier",
+     "on": "approve",
+     "holds": "6/6"
+    }
+   ],
+   "primary": "tier",
+   "material": "unknown",
+   "cases": 24,
+   "hash": "fef26ceb-427b94fa"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/claude.ts#enforceRateLimit.runTransaction.count",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "round",
+     "on": "cur",
+     "holds": "10/10"
+    },
+    {
+     "id": "clamp",
+     "on": "cur",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "round",
+   "material": "unknown",
+   "cases": 24
+  },
+  {
+   "id": "inner-buildsmart:functions/src/claude.ts#enforceRateLimit.runTransaction.windowStart",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "round",
+     "on": "cur",
+     "holds": "16/16"
+    },
+    {
+     "id": "clamp",
+     "on": "cur",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "round",
+   "material": "unknown",
+   "cases": 24
+  },
+  {
+   "id": "inner-buildsmart:functions/src/claude.ts#onCall.maxTokens",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "round",
+     "on": "request",
+     "holds": "11/11"
+    },
+    {
+     "id": "clamp",
+     "on": "request",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "round",
+   "material": "unknown",
+   "cases": 20
+  },
+  {
+   "id": "inner-buildsmart:functions/src/claude.ts#onCall.maxTokens:step",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "record:askClaudeData",
+   "cases": 24,
+   "traits": "in[obj]>num int+",
+   "hash": "ed57a4b7-67dcab12"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/claude.ts#onCall.model",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 22,
+   "traits": "in[bool|num|str]>str const"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/claude.ts#onCall.model:step",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "record:askClaudeData",
+   "cases": 24,
+   "traits": "in[]>str const"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/claude.ts#onCall.prompt",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 23,
+   "traits": "in[]>str const"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/claude.ts#onCall.prompt:step",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "record:askClaudeData",
+   "cases": 24,
+   "traits": "in[obj]>str",
+   "hash": "ed57a4b7-1c3ddb32"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/claude.ts#onCall.system",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 19,
+   "traits": "in[bool|num|str]>nil const"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/claude.ts#onCall.system:step",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "personalize",
+     "on": "data",
+     "holds": "10/10"
+    }
+   ],
+   "primary": "personalize",
+   "material": "record:askClaudeData",
+   "cases": 24,
+   "hash": "ed57a4b7-982b5731"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/claude.ts#onCall.text",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "combine",
+     "by": "first"
+    },
+    {
+     "id": "join",
+     "by": "name"
+    }
+   ],
+   "primary": "combine",
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/credit.ts#onCall.balance",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "offset",
+     "on": "creditLimit+used",
+     "holds": "24/24"
+    },
+    {
+     "id": "tier",
+     "on": "used",
+     "holds": "6/6"
+    },
+    {
+     "id": "clamp",
+     "on": "creditLimit",
+     "holds": "3/3"
+    },
+    {
+     "id": "normalize",
+     "on": "creditLimit",
+     "holds": "12/12",
+     "implied": true
+    }
+   ],
+   "primary": "tier",
+   "material": "number",
+   "cases": 24,
+   "hash": "7bf0457c-9e117bf",
+   "motion": [
+    {
+     "id": "countdown",
+     "on": "used",
+     "holds": "6/6",
+     "step": 0.01
+    }
+   ]
+  },
+  {
+   "id": "inner-buildsmart:functions/src/credit.ts#onCall.isManager",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "validate",
+     "on": "*",
+     "holds": "24/24"
+    }
+   ],
+   "primary": "validate",
+   "material": "list",
+   "cases": 24
+  },
+  {
+   "id": "inner-buildsmart:functions/src/credit.ts#onCall.name",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 18,
+   "traits": "in[bool|num|str]>nil const"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/credit.ts#onCall.name:step",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "personalize",
+     "on": "data",
+     "holds": "16/16"
+    }
+   ],
+   "primary": "personalize",
+   "material": "record:computeCreditData",
+   "cases": 24,
+   "hash": "b1ae8c9d-625ca44a"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/credit.ts#onCall.pct",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "round",
+     "on": "used",
+     "holds": "18/18"
+    },
+    {
+     "id": "tier",
+     "on": "used",
+     "holds": "6/6"
+    },
+    {
+     "id": "normalize",
+     "on": "used",
+     "holds": "12/12",
+     "implied": true
+    }
+   ],
+   "primary": "tier",
+   "material": "number",
+   "cases": 24,
+   "hash": "7bf0457c-fee57058"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/credit.ts#onCall.s",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "fuzzy",
+     "by": "first"
+    }
+   ],
+   "primary": "fuzzy",
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/creditCore.ts#contractorCredit.h",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "convert",
+     "on": "name",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "convert",
+   "material": "text",
+   "cases": 24,
+   "hash": "a15335b5-7d62f123"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/creditCore.ts#contractorCredit.raw",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "convert",
+     "on": "name",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "convert",
+   "material": "text",
+   "cases": 24,
+   "hash": "a15335b5-f8e22fa4"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/creditCore.ts#contractorCredit.raw:step",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "cases": 24,
+   "traits": "in[num,num]>num real+",
+   "hash": "2fda98ad-c6aca519"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/creditCore.ts#contractorCredit.span",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "number",
+   "cases": 3
+  },
+  {
+   "id": "inner-buildsmart:functions/src/creditCore.ts#orderSum.t:after-loop",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 10,
+   "traits": "in[str]>num const int+"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/deleteAccount.ts#onCall.uid",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 19,
+   "traits": "in[bool|num|str]>str const"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/deleteAccount.ts#onCall.uid:step",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "personalize",
+     "on": "data",
+     "holds": "16/16"
+    }
+   ],
+   "primary": "personalize",
+   "material": "record:data",
+   "cases": 24,
+   "hash": "460d5278-aed8fb41"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/deleteAccount.ts#purgeIntelForSubject.actorKeys",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "transcript",
+     "on": "anonKeys+uid",
+     "holds": "33/33"
+    },
+    {
+     "id": "normalize",
+     "on": "anonKeys",
+     "holds": "12/12"
+    }
+   ],
+   "primary": "transcript",
+   "material": "text",
+   "cases": 24,
+   "hash": "3beef624-12b8d2a3"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/deleteAccount.ts#purgeIntelForSubject.chunk",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[str,arr,num]>arr len~",
+   "hash": "fcaea94f-78cb896"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/deleteAccount.ts#purgeIntelForSubject.chunk:step",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[arr,num]>arr len~ ⊆",
+   "hash": "aaa9d3e5-f35c743f"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/deleteAccount.ts#purgeIntelForSubject.purgeByActorKey.chunk",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[arr,num]>arr len~ ⊆",
+   "hash": "aaa9d3e5-f35c743f"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/deleteAccount.ts#purgeIntelForSubject.raw",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 21,
+   "traits": "in[bool|num|str]>nil const"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/deleteAccount.ts#purgeMultiPartyReferences.scrub.key",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "format",
+     "on": "collection",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "format",
+   "material": "text",
+   "cases": 24,
+   "hash": "7469d297-d18c0d26"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/directory.ts#pickName.at",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[str]>num int+",
+   "hash": "dfe11998-f5ab727a"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/index.ts#onCall.targetLabel",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 19,
+   "traits": "in[]>str const"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/index.ts#onCall.targetLabel:step",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "format",
+     "on": "uid",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "format",
+   "material": "unknown",
+   "cases": 24,
+   "hash": "9b6c85e8-1722848b"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/orderEmail.ts#buildOrderEmailHtml.contactRows",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "format",
+     "on": "customerPhone",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "format",
+   "material": "text",
+   "cases": 24,
+   "hash": "2ae562a5-e245e36c"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/orderEmail.ts#buildOrderEmailHtml.contactRows:step",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "format",
+     "on": "phoneVal",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "format",
+   "material": "text",
+   "cases": 24,
+   "hash": "2ae562a5-e245e36c"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/orderEmail.ts#buildOrderEmailHtml.emailToShow",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[str]>str",
+   "hash": "2ae562a5-be034bef"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/orderEmail.ts#buildOrderEmailHtml.emailToShow:step",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[str]>str",
+   "hash": "2ae562a5-be034bef"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/orderEmail.ts#buildOrderEmailHtml.emailVal",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[str]>str"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/orderEmail.ts#buildOrderEmailHtml.map.name",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "record:line",
+   "cases": 24,
+   "traits": "in[obj]>str",
+   "hash": "ac00b96a-446f3a88"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/orderEmail.ts#buildOrderEmailHtml.map.price",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "record:line",
+   "cases": 24,
+   "traits": "in[obj]>num real+",
+   "hash": "ac00b96a-34018d0d"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/orderEmail.ts#buildOrderEmailHtml.map.qty",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "record:line",
+   "cases": 24,
+   "traits": "in[obj]>str",
+   "hash": "ac00b96a-603b2e4"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/orderEmail.ts#buildOrderEmailHtml.phoneVal",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[str]>str"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/orderEmail.ts#buildOrderEmailHtml.rows",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[arr]>str",
+   "hash": "9ec608e8-d0cdf88e"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/orderEmail.ts#fmtDate.s",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 24,
+   "traits": "in[bool|num|time]>str|time",
+   "hash": "2cb535ce-13820e52"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/orderEmail.ts#onDocumentCreated.customerEmail",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 22,
+   "traits": "in[bool|num|str]>str const"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/orderEmail.ts#onDocumentCreated.isEmail",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 20,
+   "traits": "in[bool|num|str]>bool const"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/orderEmail.ts#onDocumentCreated.isEmail:step",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "validate",
+     "on": "*",
+     "holds": "24/24"
+    }
+   ],
+   "primary": "validate",
+   "material": "unknown",
+   "cases": 24,
+   "hash": "e05a8eed-123184bd"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/orderEmail.ts#onDocumentCreated.lines",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 23,
+   "traits": "in[]>arr const"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/orderFlow.ts#isLegalStep.a",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "round",
+     "on": "from",
+     "holds": "14/14"
+    }
+   ],
+   "primary": "round",
+   "material": "unknown",
+   "cases": 24
+  },
+  {
+   "id": "inner-buildsmart:functions/src/orderFlow.ts#isLegalStep.b",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "round",
+     "on": "to",
+     "holds": "13/13"
+    }
+   ],
+   "primary": "round",
+   "material": "unknown",
+   "cases": 24
+  },
+  {
+   "id": "inner-buildsmart:functions/src/orderFlow.ts#nextStage.i",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "choice",
+   "cases": 24,
+   "traits": "in[str]>num int+",
+   "hash": "706db2b9-bdb98aa7"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/orderFlow.ts#roleMayStep.allowed",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "choice",
+   "cases": 24,
+   "traits": "in[str,str]>arr",
+   "hash": "2b4f4f79-a54acd0e"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/orderFlow.ts#rolesAllowedFor.owner",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "choice",
+   "cases": 24,
+   "traits": "in[str,str]>nil|str",
+   "hash": "2b4f4f79-69682afa"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/orders.ts#onCall.runTransaction.cur",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "fuzzy",
+     "by": "first"
+    }
+   ],
+   "primary": "fuzzy",
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/orders.ts#onCall.runTransaction.grantedVia",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[]>nil const",
+   "hash": "62255814-78ae9993"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/orders.ts#onDocumentUpdated.fromStage",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "fuzzy",
+     "by": "first"
+    },
+    {
+     "id": "escalate",
+     "by": "symbol"
+    },
+    {
+     "id": "settle",
+     "by": "symbol"
+    }
+   ],
+   "primary": "fuzzy",
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/orders.ts#onDocumentUpdated.guardAfter",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/orders.ts#onDocumentUpdated.guardBefore",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/orders.ts#onDocumentUpdated.toStage",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "fuzzy",
+     "by": "first"
+    },
+    {
+     "id": "escalate",
+     "by": "symbol"
+    },
+    {
+     "id": "settle",
+     "by": "symbol"
+    }
+   ],
+   "primary": "fuzzy",
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/push.ts#onDocumentCreated.participantUids",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/push.ts#onDocumentCreated.participantUids:step",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 24,
+   "traits": "in[]>arr const"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/push.ts#onDocumentCreated.preview",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[str]>str"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/push.ts#onDocumentCreated.raw",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "fuzzy",
+     "by": "first"
+    }
+   ],
+   "primary": "fuzzy",
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/push.ts#onDocumentCreated.recipients",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "filter",
+     "by": "first"
+    }
+   ],
+   "primary": "filter",
+   "material": "text",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/push.ts#onDocumentCreated.recipients:step",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "filter",
+     "on": "participantUids",
+     "holds": "24/24"
+    },
+    {
+     "id": "normalize",
+     "on": "participantUids",
+     "holds": "12/12",
+     "implied": true
+    }
+   ],
+   "primary": "filter",
+   "material": "text",
+   "cases": 24,
+   "hash": "df1dac8c-6c8e2379"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/push.ts#onDocumentCreated.title",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "format",
+     "on": "sender",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "format",
+   "material": "text",
+   "cases": 24,
+   "hash": "95058c23-9a9b203"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/push.ts#onDocumentUpdated.from",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "fuzzy",
+     "by": "first"
+    },
+    {
+     "id": "settle",
+     "by": "symbol"
+    }
+   ],
+   "primary": "fuzzy",
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/push.ts#onDocumentUpdated.guardChanged",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "validate",
+     "by": "first"
+    }
+   ],
+   "primary": "validate",
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/push.ts#onDocumentUpdated.to",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "fuzzy",
+     "by": "first"
+    },
+    {
+     "id": "settle",
+     "by": "symbol"
+    }
+   ],
+   "primary": "fuzzy",
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/push.ts#sendToUsers.targets",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "filter",
+     "on": "looked",
+     "holds": "24/24"
+    },
+    {
+     "id": "normalize",
+     "on": "looked",
+     "holds": "12/12",
+     "implied": true
+    }
+   ],
+   "primary": "filter",
+   "material": "record:looked",
+   "cases": 24,
+   "hash": "df0b6d8-9cbbb44a"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/push.ts#sendToUsers.unique",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "dedupe",
+     "on": "uids",
+     "holds": "48/48"
+    }
+   ],
+   "primary": "dedupe",
+   "material": "text",
+   "cases": 24,
+   "hash": "dd7f58d1-a382a71"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/r2.ts#onCall.contentType",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 21,
+   "traits": "in[bool|num|str]>str const"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/r2.ts#onCall.contentType:step",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "record:getUploadUrlData",
+   "cases": 24,
+   "traits": "in[obj]>str",
+   "hash": "cdfee86a-452a6784"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/r2.ts#sanitizeFileName.base",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "normalize",
+     "on": "name",
+     "holds": "12/12"
+    }
+   ],
+   "primary": "normalize",
+   "material": "text",
+   "cases": 24
+  },
+  {
+   "id": "inner-buildsmart:functions/src/r2.ts#sanitizeFileName.base:step",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "normalize",
+     "on": "last",
+     "holds": "12/12"
+    }
+   ],
+   "primary": "normalize",
+   "material": "text",
+   "cases": 24,
+   "hash": "bd1d2d90-b9fd9aa0"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/r2.ts#sanitizeFileName.last",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "normalize",
+     "on": "name",
+     "holds": "12/12"
+    },
+    {
+     "id": "format",
+     "on": "name",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "normalize",
+   "material": "text",
+   "cases": 24,
+   "hash": "76f822c6-c64dce4b"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/reviewRoleRequest.ts#onCall.approved",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 21,
+   "traits": "in[bool|num|str]>bool const"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/reviewRoleRequest.ts#onCall.approved:step",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 24,
+   "traits": "in[]>bool const"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/setEmployer.ts#onCall.targetLabel",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 23,
+   "traits": "in[bool|num|str]>str const"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/setEmployer.ts#onCall.targetLabel:step",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "format",
+     "on": "uid",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "format",
+   "material": "unknown",
+   "cases": 24,
+   "hash": "9b6c85e8-1722848b"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/setEmployerCore.ts#parseSetEmployerInput.trimmed",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 8,
+   "traits": "in[str]>str",
+   "hash": "fef26ceb-783e4de2"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/setOrg.ts#onCall.revoke",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "validate",
+     "on": "*",
+     "holds": "24/24"
+    }
+   ],
+   "primary": "validate",
+   "material": "text",
+   "cases": 24,
+   "hash": "95058c23-95f7ba3d"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/setOrg.ts#onCall.targetLabel",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 21,
+   "traits": "in[bool|num|str]>str const"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/setOrg.ts#onCall.targetLabel:step",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 24,
+   "traits": "in[bool|num|str]>str",
+   "hash": "9b6c85e8-1722848b"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/setOrg.ts#onCall.trimmed",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "normalize",
+     "by": "first"
+    }
+   ],
+   "primary": "normalize",
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/setOrg.ts#onCall.trimmed:step",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 8,
+   "traits": "in[str]>str",
+   "hash": "9b6c85e8-f76edea7"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/studio.ts#decideRevert.guardAfter",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "record:revertDecisionInput",
+   "cases": 24,
+   "traits": "in[obj]>str",
+   "hash": "e7d437f2-87ff17b2"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/studio.ts#decideRevert.guardBefore",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "record:revertDecisionInput",
+   "cases": 24,
+   "traits": "in[obj]>str",
+   "hash": "e7d437f2-5f551e9f"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/studio.ts#enforcePublishRateLimit.runTransaction.count",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "round",
+     "on": "cur",
+     "holds": "14/14"
+    }
+   ],
+   "primary": "round",
+   "material": "unknown",
+   "cases": 24
+  },
+  {
+   "id": "inner-buildsmart:functions/src/studio.ts#enforcePublishRateLimit.runTransaction.windowStart",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "round",
+     "on": "cur",
+     "holds": "18/18"
+    }
+   ],
+   "primary": "round",
+   "material": "unknown",
+   "cases": 24
+  },
+  {
+   "id": "inner-buildsmart:functions/src/studio.ts#onCall.runTransaction.dualControlApproved",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "validate",
+     "by": "first"
+    }
+   ],
+   "primary": "validate",
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/studio.ts#onCall.runTransaction.liveAllow",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "validate",
+     "by": "first"
+    }
+   ],
+   "primary": "validate",
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/studio.ts#onCall.runTransaction.publishedVersion",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/studio.ts#onCall.runTransaction.publishedVersion:step",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 24,
+   "traits": "in[bool|num|str]>num real+",
+   "hash": "fef26ceb-fd26ae0"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/studio.ts#onCall.runTransaction.pv",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "fuzzy",
+     "by": "first"
+    }
+   ],
+   "primary": "fuzzy",
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/studio.ts#onCall.runTransaction.snapId",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "format",
+     "on": "toVersion",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "format",
+   "material": "number",
+   "cases": 24,
+   "hash": "397fca01-77613142"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/studio.ts#onCall.runTransaction.snapPath",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "format",
+     "on": "toVersion",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "format",
+   "material": "number",
+   "cases": 24,
+   "hash": "397fca01-c971b482"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/studio.ts#onCall.runTransaction.snapPath:step",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "format",
+     "on": "snapId",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "format",
+   "material": "text",
+   "cases": 24,
+   "hash": "30a86eab-4dacec96"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/studio.ts#onDocumentUpdated.toVersion",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/studio.ts#rateLimitExceeded.count",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "record:cur",
+   "cases": 24,
+   "traits": "in[obj]>num int+",
+   "hash": "9b7bb375-4f4a3b5e"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/studio.ts#rateLimitExceeded.windowStart",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "record:cur",
+   "cases": 24,
+   "traits": "in[obj]>num int+",
+   "hash": "9b7bb375-de668e47"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/taskNotifs.ts#onDocumentUpdated.bell",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[str]>nil|obj",
+   "hash": "7469d297-1670dd9"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/taskNotifs.ts#onDocumentUpdated.entry",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "settle",
+     "by": "symbol"
+    }
+   ],
+   "primary": "settle",
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/taskNotifs.ts#onDocumentUpdated.entry:step",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "settle",
+     "on": "bell",
+     "holds": "24/24"
+    }
+   ],
+   "primary": "settle",
+   "material": "record:bell",
+   "cases": 19,
+   "hash": "2125e891-31369b7"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/taskNotifs.ts#onDocumentUpdated.runTransaction.items",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "record:bell",
+   "cases": 20,
+   "traits": "in[obj]>arr",
+   "hash": "ea405716-86f81405"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/taskNotifs.ts#onDocumentUpdated.runTransaction.items:step",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "transcript",
+     "on": "prev+entry",
+     "holds": "34/34"
+    }
+   ],
+   "primary": "transcript",
+   "material": "list",
+   "cases": 24,
+   "hash": "a10bb956-72b8cacf"
+  },
+  {
+   "id": "inner-buildsmart:functions/src/taskNotifs.ts#onDocumentUpdated.runTransaction.prev",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 21,
+   "traits": "in[]>nil const"
+  },
+  {
+   "id": "inner-buildsmart:scripts/seed/upload_seed.js#fn.ids",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 22,
+   "traits": "in[bool|num|str]>arr",
+   "hash": "fef26ceb-88d11245"
+  }
+ ]
+}

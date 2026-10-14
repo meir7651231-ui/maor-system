@@ -1,0 +1,3413 @@
+{
+ "source": "inner-mmmm",
+ "ref": "main@4bec20ae13aab7abe6dc9b9ae63caa3ebfcefc3b",
+ "probe": {
+  "version": 1,
+  "seed": 13269520,
+  "generatedAt": null
+ },
+ "totals": {
+  "run": 222,
+  "runWithVerb": 67,
+  "twin": 0,
+  "static": 72,
+  "staticWithVerb": 48,
+  "why": {
+   "no-fitting-input": 72
+  },
+  "withMotion": 0
+ },
+ "parts": [
+  {
+   "id": "inner-mmmm:agents-17-all-working.js#testAgent.Promise.question",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 20,
+   "traits": "in[]>str const"
+  },
+  {
+   "id": "inner-mmmm:agents-17-all-working.js#testAgent.Promise.request.on.response",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "split",
+     "by": "first"
+    }
+   ],
+   "primary": "split",
+   "material": "text",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:agents-17-complete.js#testAgent.Promise.request.on.response",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "split",
+     "by": "first"
+    }
+   ],
+   "primary": "split",
+   "material": "text",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:agents-17-full-duplex.js#communicateWithAgent.Promise.fullContext",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[arr]>str",
+   "hash": "be08298e-d7dfc1cf"
+  },
+  {
+   "id": "inner-mmmm:agents-17-full-duplex.js#communicateWithAgent.Promise.request.on.response",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "split",
+     "by": "first"
+    }
+   ],
+   "primary": "split",
+   "material": "text",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:agents-17-full-duplex.js#runFullDuplexMeeting.forEach.agent",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 22,
+   "traits": "in[obj]>nil|obj rec:mix"
+  },
+  {
+   "id": "inner-mmmm:agents-17-real.js#testAgent.Promise.question",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 22,
+   "traits": "in[bool|num|str]>str const"
+  },
+  {
+   "id": "inner-mmmm:agents-17-real.js#testAgent.Promise.request.on.response",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "split",
+     "by": "first"
+    }
+   ],
+   "primary": "split",
+   "material": "text",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:agents-17-simple.js#testAgent.Promise.data",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 23,
+   "traits": "in[]>str const"
+  },
+  {
+   "id": "inner-mmmm:agents-17-simple.js#testAgent.Promise.request.on.response",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 4,
+   "traits": "in[str]>num int+",
+   "hash": "bd1d2d90-5e3df2c8"
+  },
+  {
+   "id": "inner-mmmm:agents-17-ultimate.js#testAgent.Promise.request.on.response",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "split",
+     "by": "first"
+    }
+   ],
+   "primary": "split",
+   "material": "text",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:agents-200-percent-working.js#communicateWithAgent.Promise.fullContext",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[arr]>str",
+   "hash": "be08298e-d7dfc1cf"
+  },
+  {
+   "id": "inner-mmmm:agents-200-percent-working.js#communicateWithAgent.Promise.request.on.response",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "split",
+     "by": "first"
+    }
+   ],
+   "primary": "split",
+   "material": "text",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:agents-200-percent-working.js#communicateWithAgent.Promise.systemPrompt",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:agents-200-percent-working.js#test200PercentCapabilities.failCount",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "count",
+     "on": "results",
+     "holds": "36/36"
+    }
+   ],
+   "primary": "count",
+   "material": "unknown",
+   "cases": 24,
+   "hash": "d440c49b-d4722e4d"
+  },
+  {
+   "id": "inner-mmmm:agents-200-percent-working.js#test200PercentCapabilities.failCount:step",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "convert",
+     "on": "successCount",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "convert",
+   "material": "number",
+   "cases": 24,
+   "hash": "9cddb724-e9f4739b"
+  },
+  {
+   "id": "inner-mmmm:agents-200-percent-working.js#test200PercentCapabilities.successCount",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[]>num const int+"
+  },
+  {
+   "id": "inner-mmmm:agents-200-percent-working.js#test200PercentCapabilities.testAgents",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "list",
+   "cases": 3
+  },
+  {
+   "id": "inner-mmmm:agents-200-percent-working.js#test200PercentCapabilities.websiteContent",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "format",
+     "on": "agent",
+     "holds": "15/15"
+    },
+    {
+     "id": "personalize",
+     "on": "agent",
+     "holds": "24/24"
+    }
+   ],
+   "primary": "personalize",
+   "material": "record:agent",
+   "cases": 24,
+   "hash": "9a3ea812-ae4fae95"
+  },
+  {
+   "id": "inner-mmmm:agents-200-percent-working.js#test200PercentCapabilities.websiteFile",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "personalize",
+     "on": "agent",
+     "holds": "24/24"
+    }
+   ],
+   "primary": "personalize",
+   "material": "record:agent",
+   "cases": 24,
+   "hash": "9a3ea812-64b519e3"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-5agents.js#communicateWithAgent.Promise.fullContext",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[arr]>str",
+   "hash": "be08298e-d7dfc1cf"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-5agents.js#communicateWithAgent.Promise.on.fallbackResponse",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 23,
+   "traits": "in[]>str const"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-5agents.js#communicateWithAgent.Promise.on.fallbackResponse@226",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 18,
+   "traits": "in[]>str const"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-5agents.js#communicateWithAgent.Promise.request.on.fallbackResponse",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 21,
+   "traits": "in[]>str const"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-5agents.js#communicateWithAgent.Promise.request.on.response",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 4,
+   "traits": "in[str]>num int+",
+   "hash": "bd1d2d90-5e3df2c8"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-5agents.js#createServer.agent",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 12,
+   "traits": "in[str]>nil|obj"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-5agents.js#createServer.agent:step",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 24,
+   "traits": "in[]>nil|obj"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-5agents.js#createServer.agentId",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 15,
+   "traits": "in[str]>str"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-5agents.js#createServer.agentId@934",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 12,
+   "traits": "in[str]>str"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-5agents.js#createServer.agentId@938",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 11,
+   "traits": "in[str]>str"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-5agents.js#createServer.on.message",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "split",
+     "by": "first"
+    }
+   ],
+   "primary": "split",
+   "material": "text",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-5agents.js#createServer.on.message@896",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "split",
+     "by": "first"
+    }
+   ],
+   "primary": "split",
+   "material": "text",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-direct.js#communicateWithAgent.Promise.fullContext",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[arr]>str",
+   "hash": "be08298e-d7dfc1cf"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-direct.js#communicateWithAgent.Promise.on.fallbackResponse",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 22,
+   "traits": "in[bool|num|str]>str const"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-direct.js#communicateWithAgent.Promise.on.fallbackResponse@360",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 21,
+   "traits": "in[bool|num|str]>str const"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-direct.js#communicateWithAgent.Promise.request.on.fallbackResponse",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 21,
+   "traits": "in[]>str const"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-direct.js#communicateWithAgent.Promise.request.on.response",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "split",
+     "by": "first"
+    }
+   ],
+   "primary": "split",
+   "material": "text",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-direct.js#createServer.agent",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 16,
+   "traits": "in[str]>nil const"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-direct.js#createServer.agent:step",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 24,
+   "traits": "in[bool|num|str]>nil|obj"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-direct.js#createServer.agentId",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 16,
+   "traits": "in[str]>str"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-direct.js#createServer.agentId@1043",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 10,
+   "traits": "in[str]>str"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-direct.js#createServer.agentId@1047",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 14,
+   "traits": "in[str]>str"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-direct.js#createServer.on.message",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "split",
+     "by": "first"
+    }
+   ],
+   "primary": "split",
+   "material": "text",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-direct.js#createServer.on.message@1005",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "split",
+     "by": "first"
+    }
+   ],
+   "primary": "split",
+   "material": "text",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-hebrew-final.js#communicateWithAgent.Promise.fullContext",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[arr]>str",
+   "hash": "be08298e-d7dfc1cf"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-hebrew-final.js#communicateWithAgent.Promise.on.fallbackResponse",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 19,
+   "traits": "in[bool|num|str]>str const"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-hebrew-final.js#communicateWithAgent.Promise.on.fallbackResponse@357",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 23,
+   "traits": "in[bool|num|str]>str const"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-hebrew-final.js#communicateWithAgent.Promise.request.on.fallbackResponse",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 23,
+   "traits": "in[bool|num|str]>str const"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-hebrew-final.js#communicateWithAgent.Promise.request.on.response",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "split",
+     "by": "first"
+    }
+   ],
+   "primary": "split",
+   "material": "text",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-hebrew-final.js#communicateWithAgent.Promise.systemPrompt",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 17,
+   "traits": "in[bool|num|str]>str const"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-hebrew-final.js#createServer.agent",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 14,
+   "traits": "in[str]>nil|obj"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-hebrew-final.js#createServer.agent:step",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 24,
+   "traits": "in[]>nil|obj"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-hebrew-final.js#createServer.agentId",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 13,
+   "traits": "in[str]>str"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-hebrew-final.js#createServer.agentId@479",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 13,
+   "traits": "in[str]>str"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-hebrew-final.js#createServer.agentId@483",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 16,
+   "traits": "in[str]>str"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-hebrew-final.js#createServer.on.message",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "split",
+     "by": "first"
+    }
+   ],
+   "primary": "split",
+   "material": "text",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-hebrew-final.js#createServer.on.message@441",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "split",
+     "by": "first"
+    }
+   ],
+   "primary": "split",
+   "material": "text",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-hebrew-fixed.js#communicateWithAgent.Promise.fullContext",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[arr]>str",
+   "hash": "be08298e-d7dfc1cf"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-hebrew-fixed.js#communicateWithAgent.Promise.on.fallbackResponse",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 22,
+   "traits": "in[bool|num|str]>str const"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-hebrew-fixed.js#communicateWithAgent.Promise.on.fallbackResponse@362",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 22,
+   "traits": "in[]>str const"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-hebrew-fixed.js#communicateWithAgent.Promise.request.on.fallbackResponse",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 20,
+   "traits": "in[]>str const"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-hebrew-fixed.js#communicateWithAgent.Promise.request.on.response",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "split",
+     "by": "first"
+    }
+   ],
+   "primary": "split",
+   "material": "text",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-hebrew-fixed.js#communicateWithAgent.Promise.systemPrompt",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 22,
+   "traits": "in[]>str const"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-hebrew-fixed.js#createServer.agent",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 7,
+   "traits": "in[str]>nil const"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-hebrew-fixed.js#createServer.agent:step",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 24,
+   "traits": "in[bool|num|str]>nil const"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-hebrew-fixed.js#createServer.agentId",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 10,
+   "traits": "in[str]>str"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-hebrew-fixed.js#createServer.agentId@1036",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 11,
+   "traits": "in[str]>str"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-hebrew-fixed.js#createServer.agentId@1040",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "normalize",
+     "on": "pathname",
+     "holds": "11/11"
+    },
+    {
+     "id": "format",
+     "on": "pathname",
+     "holds": "14/14"
+    }
+   ],
+   "primary": "normalize",
+   "material": "unknown",
+   "cases": 11
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-hebrew-fixed.js#createServer.on.message",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "split",
+     "by": "first"
+    }
+   ],
+   "primary": "split",
+   "material": "text",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-hebrew-fixed.js#createServer.on.message@998",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "split",
+     "by": "first"
+    }
+   ],
+   "primary": "split",
+   "material": "text",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-hebrew.js#communicateWithAgent.Promise.fullContext",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[arr]>str",
+   "hash": "be08298e-d7dfc1cf"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-hebrew.js#communicateWithAgent.Promise.on.fallbackResponse",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 22,
+   "traits": "in[bool|num|str]>str const"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-hebrew.js#communicateWithAgent.Promise.on.fallbackResponse@362",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 23,
+   "traits": "in[]>str const"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-hebrew.js#communicateWithAgent.Promise.request.on.fallbackResponse",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 21,
+   "traits": "in[]>str const"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-hebrew.js#communicateWithAgent.Promise.request.on.response",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "split",
+     "by": "first"
+    }
+   ],
+   "primary": "split",
+   "material": "text",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-hebrew.js#communicateWithAgent.Promise.systemPrompt",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 21,
+   "traits": "in[]>str const"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-hebrew.js#createServer.agent",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 9,
+   "traits": "in[str]>nil|obj"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-hebrew.js#createServer.agent:step",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 24,
+   "traits": "in[]>nil const"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-hebrew.js#createServer.agentId",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 11,
+   "traits": "in[str]>str"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-hebrew.js#createServer.agentId@1036",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 11,
+   "traits": "in[str]>str"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-hebrew.js#createServer.agentId@1040",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 12,
+   "traits": "in[str]>str"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-hebrew.js#createServer.on.message",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "split",
+     "by": "first"
+    }
+   ],
+   "primary": "split",
+   "material": "text",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-hebrew.js#createServer.on.message@998",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "split",
+     "by": "first"
+    }
+   ],
+   "primary": "split",
+   "material": "text",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-simple.js#communicateWithAgent.Promise.fullContext",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[arr]>str",
+   "hash": "be08298e-d7dfc1cf"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-simple.js#communicateWithAgent.Promise.on.fallbackResponse",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 21,
+   "traits": "in[bool|num|str]>str const"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-simple.js#communicateWithAgent.Promise.on.fallbackResponse@362",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 21,
+   "traits": "in[]>str const"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-simple.js#communicateWithAgent.Promise.request.on.fallbackResponse",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 20,
+   "traits": "in[]>str const"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-simple.js#communicateWithAgent.Promise.request.on.response",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "split",
+     "by": "first"
+    }
+   ],
+   "primary": "split",
+   "material": "text",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-simple.js#communicateWithAgent.Promise.systemPrompt",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 21,
+   "traits": "in[num|str]>str const"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-simple.js#createServer.agent",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 15,
+   "traits": "in[str]>nil const"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-simple.js#createServer.agent:step",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 24,
+   "traits": "in[]>nil const"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-simple.js#createServer.agentId",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "normalize",
+     "on": "pathname",
+     "holds": "12/12"
+    },
+    {
+     "id": "format",
+     "on": "pathname",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "normalize",
+   "material": "unknown",
+   "cases": 13
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-simple.js#createServer.agentId@1035",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "normalize",
+     "on": "pathname",
+     "holds": "10/10"
+    },
+    {
+     "id": "format",
+     "on": "pathname",
+     "holds": "13/13"
+    }
+   ],
+   "primary": "normalize",
+   "material": "unknown",
+   "cases": 10
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-simple.js#createServer.agentId@1039",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "normalize",
+     "on": "pathname",
+     "holds": "10/10"
+    },
+    {
+     "id": "format",
+     "on": "pathname",
+     "holds": "13/13"
+    }
+   ],
+   "primary": "normalize",
+   "material": "unknown",
+   "cases": 10
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-simple.js#createServer.on.message",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "split",
+     "by": "first"
+    }
+   ],
+   "primary": "split",
+   "material": "text",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server-simple.js#createServer.on.message@997",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "split",
+     "by": "first"
+    }
+   ],
+   "primary": "split",
+   "material": "text",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server.js#communicateWithAgent.Promise.fullContext",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[arr]>str",
+   "hash": "be08298e-d7dfc1cf"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server.js#communicateWithAgent.Promise.on.fallbackResponse",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 21,
+   "traits": "in[]>str const"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server.js#communicateWithAgent.Promise.on.fallbackResponse@362",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 23,
+   "traits": "in[bool|num|str]>str const"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server.js#communicateWithAgent.Promise.request.on.fallbackResponse",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 21,
+   "traits": "in[bool|num|str]>str const"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server.js#communicateWithAgent.Promise.request.on.response",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "split",
+     "by": "first"
+    }
+   ],
+   "primary": "split",
+   "material": "text",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server.js#communicateWithAgent.Promise.systemPrompt",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 22,
+   "traits": "in[bool|num|str]>str const"
+  },
+  {
+   "id": "inner-mmmm:agents-chat-server.js#post.agent",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 24,
+   "traits": "in[]>nil const"
+  },
+  {
+   "id": "inner-mmmm:agents-final-solution.js#communicateWithAgent.Promise.englishMessage",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 13,
+   "traits": "in[str]>str",
+   "hash": "9c16d580-b3297dda"
+  },
+  {
+   "id": "inner-mmmm:agents-final-solution.js#communicateWithAgent.Promise.fullContext",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[arr]>str",
+   "hash": "be08298e-d7dfc1cf"
+  },
+  {
+   "id": "inner-mmmm:agents-final-solution.js#communicateWithAgent.Promise.on.fallbackResponse",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 22,
+   "traits": "in[]>str const"
+  },
+  {
+   "id": "inner-mmmm:agents-final-solution.js#communicateWithAgent.Promise.on.fallbackResponse@369",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 21,
+   "traits": "in[]>str const"
+  },
+  {
+   "id": "inner-mmmm:agents-final-solution.js#communicateWithAgent.Promise.request.on.fallbackResponse",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 20,
+   "traits": "in[bool|num|str]>str const"
+  },
+  {
+   "id": "inner-mmmm:agents-final-solution.js#communicateWithAgent.Promise.request.on.fallbackResponse@352",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 23,
+   "traits": "in[]>str const"
+  },
+  {
+   "id": "inner-mmmm:agents-final-solution.js#communicateWithAgent.Promise.request.on.response",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "split",
+     "by": "first"
+    }
+   ],
+   "primary": "split",
+   "material": "text",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:agents-final-solution.js#runFinalSolution.failCount",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "count",
+     "on": "results",
+     "holds": "36/36"
+    }
+   ],
+   "primary": "count",
+   "material": "unknown",
+   "cases": 24,
+   "hash": "d440c49b-d4722e4d"
+  },
+  {
+   "id": "inner-mmmm:agents-final-solution.js#runFinalSolution.failCount:step",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "convert",
+     "on": "successCount",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "convert",
+   "material": "number",
+   "cases": 24,
+   "hash": "9cddb724-e9f4739b"
+  },
+  {
+   "id": "inner-mmmm:agents-final-solution.js#runFinalSolution.successCount",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[]>num const int+"
+  },
+  {
+   "id": "inner-mmmm:artifacts/agents-chat/src/App.tsx#Home.activeAgent",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "fuzzy",
+     "by": "first"
+    }
+   ],
+   "primary": "fuzzy",
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:artifacts/agents-chat/src/App.tsx#Home.currentMessages",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 24,
+   "traits": "in[bool|num|str]>arr const"
+  },
+  {
+   "id": "inner-mmmm:artifacts/agents-chat/src/App.tsx#Home.handleSend.data",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "split",
+     "by": "first"
+    }
+   ],
+   "primary": "split",
+   "material": "text",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:artifacts/agents-chat/src/App.tsx#Home.handleSend.data:step",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "split",
+     "by": "first"
+    }
+   ],
+   "primary": "split",
+   "material": "text",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:artifacts/agents-chat/src/App.tsx#Home.handleSend.dataStr",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[str]>str",
+   "hash": "bd1d2d90-471dbbbb"
+  },
+  {
+   "id": "inner-mmmm:artifacts/agents-chat/src/App.tsx#Home.handleSend.lines",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[str]>arr",
+   "hash": "bd1d2d90-38b701dd"
+  },
+  {
+   "id": "inner-mmmm:artifacts/agents-chat/src/App.tsx#Home.map.isActive",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 19,
+   "traits": "in[bool|num|str]>bool const"
+  },
+  {
+   "id": "inner-mmmm:artifacts/agents-chat/src/components/ui/breadcrumb.tsx#forwardRef.Comp",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "normalize",
+     "on": "Slot",
+     "holds": "12/12"
+    },
+    {
+     "id": "format",
+     "on": "Slot",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "normalize",
+   "material": "unknown",
+   "cases": 24,
+   "hash": "a29d061d-f5c1d1e5"
+  },
+  {
+   "id": "inner-mmmm:artifacts/agents-chat/src/components/ui/button-group.tsx#ButtonGroupText.Comp",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "normalize",
+     "on": "asChild",
+     "holds": "12/12"
+    }
+   ],
+   "primary": "normalize",
+   "material": "unknown",
+   "cases": 24,
+   "hash": "a29d061d-9383cbb5"
+  },
+  {
+   "id": "inner-mmmm:artifacts/agents-chat/src/components/ui/button.tsx#forwardRef.Comp",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "normalize",
+     "on": "Slot",
+     "holds": "12/12"
+    }
+   ],
+   "primary": "normalize",
+   "material": "unknown",
+   "cases": 24,
+   "hash": "906bf3f7-d7f3bb39"
+  },
+  {
+   "id": "inner-mmmm:artifacts/agents-chat/src/components/ui/chart.tsx#ChartStyle.colorConfig",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 17,
+   "traits": "in[obj]>arr",
+   "hash": "3bdeebe2-9ed502f7"
+  },
+  {
+   "id": "inner-mmmm:artifacts/agents-chat/src/components/ui/chart.tsx#forwardRef.chartId",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "format",
+     "on": "id",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "format",
+   "material": "unknown",
+   "cases": 23,
+   "hash": "4af06edb-929f7039"
+  },
+  {
+   "id": "inner-mmmm:artifacts/agents-chat/src/components/ui/chart.tsx#forwardRef.map.itemConfig",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 24,
+   "traits": "in[bool|num|str]>nil const"
+  },
+  {
+   "id": "inner-mmmm:artifacts/agents-chat/src/components/ui/chart.tsx#forwardRef.map.itemConfig:step",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 24,
+   "traits": "in[]>nil const"
+  },
+  {
+   "id": "inner-mmmm:artifacts/agents-chat/src/components/ui/chart.tsx#forwardRef.map.itemConfig@292",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 22,
+   "traits": "in[]>nil const"
+  },
+  {
+   "id": "inner-mmmm:artifacts/agents-chat/src/components/ui/chart.tsx#forwardRef.map.itemConfig@292:step",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 24,
+   "traits": "in[]>nil const"
+  },
+  {
+   "id": "inner-mmmm:artifacts/agents-chat/src/components/ui/chart.tsx#forwardRef.map.key",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "format",
+     "on": "nameKey",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "format",
+   "material": "unknown",
+   "cases": 23,
+   "hash": "8909da80-39566084"
+  },
+  {
+   "id": "inner-mmmm:artifacts/agents-chat/src/components/ui/chart.tsx#forwardRef.map.key@291",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "format",
+     "on": "nameKey",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "format",
+   "material": "unknown",
+   "cases": 23,
+   "hash": "8909da80-39566084"
+  },
+  {
+   "id": "inner-mmmm:artifacts/agents-chat/src/components/ui/chart.tsx#forwardRef.nestLabel",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 20,
+   "traits": "in[bool|num|str]>bool const"
+  },
+  {
+   "id": "inner-mmmm:artifacts/agents-chat/src/components/ui/chart.tsx#forwardRef.useMemo.itemConfig",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 24,
+   "traits": "in[]>nil const"
+  },
+  {
+   "id": "inner-mmmm:artifacts/agents-chat/src/components/ui/chart.tsx#forwardRef.useMemo.itemConfig:step",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 24,
+   "traits": "in[]>nil const"
+  },
+  {
+   "id": "inner-mmmm:artifacts/agents-chat/src/components/ui/chart.tsx#forwardRef.useMemo.key",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "format",
+     "on": "labelKey",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "format",
+   "material": "unknown",
+   "cases": 24,
+   "hash": "8909da80-1eee1bf8"
+  },
+  {
+   "id": "inner-mmmm:artifacts/agents-chat/src/components/ui/chart.tsx#forwardRef.useMemo.value",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 24,
+   "traits": "in[bool|num|str]>nil|str",
+   "hash": "27ded60d-c0f3d99c"
+  },
+  {
+   "id": "inner-mmmm:artifacts/agents-chat/src/components/ui/chart.tsx#forwardRef.useMemo.value:step",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "normalize",
+     "on": "labelKey",
+     "holds": "7/7"
+    }
+   ],
+   "primary": "normalize",
+   "material": "unknown",
+   "cases": 23,
+   "hash": "97129855-c8b2d332"
+  },
+  {
+   "id": "inner-mmmm:artifacts/agents-chat/src/components/ui/chart.tsx#getPayloadConfigFromPayload.payloadPayload",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:artifacts/agents-chat/src/components/ui/form.tsx#forwardRef.body",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "tier",
+     "on": "error",
+     "holds": "6/6"
+    },
+    {
+     "id": "normalize",
+     "on": "children",
+     "holds": "12/12"
+    }
+   ],
+   "primary": "tier",
+   "material": "unknown",
+   "cases": 24,
+   "hash": "a29d061d-f22a7348"
+  },
+  {
+   "id": "inner-mmmm:artifacts/agents-chat/src/components/ui/item.tsx#Item.Comp",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "normalize",
+     "on": "Slot",
+     "holds": "12/12"
+    },
+    {
+     "id": "format",
+     "on": "Slot",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "normalize",
+   "material": "unknown",
+   "cases": 24,
+   "hash": "a29d061d-9383cbb5"
+  },
+  {
+   "id": "inner-mmmm:artifacts/agents-chat/src/components/ui/sidebar.tsx#SidebarGroupAction.Comp",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "normalize",
+     "on": "Slot",
+     "holds": "12/12"
+    },
+    {
+     "id": "format",
+     "on": "Slot",
+     "holds": "8/8"
+    }
+   ],
+   "primary": "normalize",
+   "material": "unknown",
+   "cases": 24,
+   "hash": "a29d061d-819dcf39"
+  },
+  {
+   "id": "inner-mmmm:artifacts/agents-chat/src/components/ui/sidebar.tsx#SidebarGroupLabel.Comp",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "round",
+     "on": "asChild",
+     "holds": "10/10"
+    },
+    {
+     "id": "normalize",
+     "on": "Slot",
+     "holds": "12/12",
+     "implied": true
+    },
+    {
+     "id": "format",
+     "on": "Slot",
+     "holds": "12/12"
+    }
+   ],
+   "primary": "round",
+   "material": "unknown",
+   "cases": 24,
+   "hash": "a29d061d-9383cbb5"
+  },
+  {
+   "id": "inner-mmmm:artifacts/agents-chat/src/components/ui/sidebar.tsx#SidebarMenuAction.Comp",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "tier",
+     "on": "asChild",
+     "holds": "6/6"
+    },
+    {
+     "id": "normalize",
+     "on": "asChild",
+     "holds": "7/7"
+    }
+   ],
+   "primary": "tier",
+   "material": "unknown",
+   "cases": 24,
+   "hash": "a29d061d-819dcf39"
+  },
+  {
+   "id": "inner-mmmm:artifacts/agents-chat/src/components/ui/sidebar.tsx#SidebarMenuButton.Comp",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "round",
+     "on": "asChild",
+     "holds": "10/10"
+    },
+    {
+     "id": "tier",
+     "on": "asChild",
+     "holds": "6/6"
+    },
+    {
+     "id": "normalize",
+     "on": "asChild",
+     "holds": "6/6",
+     "implied": true
+    },
+    {
+     "id": "format",
+     "on": "Slot",
+     "holds": "12/12"
+    }
+   ],
+   "primary": "tier",
+   "material": "unknown",
+   "cases": 24,
+   "hash": "a29d061d-819dcf39"
+  },
+  {
+   "id": "inner-mmmm:artifacts/agents-chat/src/components/ui/sidebar.tsx#SidebarMenuSubButton.Comp",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "tier",
+     "on": "asChild",
+     "holds": "6/6"
+    },
+    {
+     "id": "normalize",
+     "on": "asChild",
+     "holds": "8/8"
+    },
+    {
+     "id": "format",
+     "on": "Slot",
+     "holds": "14/14"
+    }
+   ],
+   "primary": "tier",
+   "material": "unknown",
+   "cases": 24,
+   "hash": "a29d061d-f5c1d1e5"
+  },
+  {
+   "id": "inner-mmmm:artifacts/agents-chat/src/components/ui/sidebar.tsx#SidebarProvider.state",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 24,
+   "traits": "in[bool|num|str,bool|num|str]>str",
+   "hash": "a29d061d-ec0c5e11"
+  },
+  {
+   "id": "inner-mmmm:artifacts/agents-chat/src/components/ui/sidebar.tsx#SidebarProvider.state:step",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 24,
+   "traits": "in[bool|num|str]>str",
+   "hash": "fef26ceb-36b806f7"
+  },
+  {
+   "id": "inner-mmmm:artifacts/agents-chat/src/hooks/use-toast.ts#useToast.useEffect.fn.index",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "round",
+     "on": "setState",
+     "holds": "14/14"
+    }
+   ],
+   "primary": "round",
+   "material": "unknown",
+   "cases": 24
+  },
+  {
+   "id": "inner-mmmm:artifacts/api-server/src/routes/chat.ts#post.agent",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[]>nil const"
+  },
+  {
+   "id": "inner-mmmm:artifacts/api-server/src/routes/chat.ts#post.msg",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "format",
+     "on": "err",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "format",
+   "material": "unknown",
+   "cases": 24,
+   "hash": "fef26ceb-f04f04d1"
+  },
+  {
+   "id": "inner-mmmm:artifacts/api-server/src/routes/items.ts#delete.id",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "convert",
+     "by": "first"
+    }
+   ],
+   "primary": "convert",
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:artifacts/api-server/src/routes/items.ts#get.profileId",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:artifacts/api-server/src/routes/items.ts#put.id",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "convert",
+     "by": "first"
+    }
+   ],
+   "primary": "convert",
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:artifacts/api-server/src/routes/notes.ts#extractFromText.extractedBrands",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[str]>arr"
+  },
+  {
+   "id": "inner-mmmm:artifacts/api-server/src/routes/notes.ts#extractFromText.extractedBrands:step",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[str]>arr"
+  },
+  {
+   "id": "inner-mmmm:artifacts/api-server/src/routes/notes.ts#extractFromText.extractedColors",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[str]>arr"
+  },
+  {
+   "id": "inner-mmmm:artifacts/api-server/src/routes/notes.ts#extractFromText.extractedColors:step",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[]>arr"
+  },
+  {
+   "id": "inner-mmmm:artifacts/api-server/src/routes/notes.ts#extractFromText.extractedPreferences",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[str]>arr"
+  },
+  {
+   "id": "inner-mmmm:artifacts/api-server/src/routes/notes.ts#extractFromText.extractedPreferences:step",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[]>arr"
+  },
+  {
+   "id": "inner-mmmm:artifacts/api-server/src/routes/notes.ts#extractFromText.lower",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[str]>str"
+  },
+  {
+   "id": "inner-mmmm:artifacts/api-server/src/routes/notes.ts#extractFromText.summary",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "normalize",
+     "on": "text",
+     "holds": "12/12"
+    }
+   ],
+   "primary": "normalize",
+   "material": "text",
+   "cases": 24
+  },
+  {
+   "id": "inner-mmmm:artifacts/api-server/src/routes/notes.ts#extractFromText.summary:step",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "join",
+     "on": "extractedPreferences",
+     "holds": "12/12"
+    }
+   ],
+   "primary": "join",
+   "material": "text",
+   "cases": 24,
+   "hash": "39531a0b-9deac7a6"
+  },
+  {
+   "id": "inner-mmmm:artifacts/api-server/src/routes/notes.ts#post.extractedBrands",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 12,
+   "traits": "in[str]>arr"
+  },
+  {
+   "id": "inner-mmmm:artifacts/api-server/src/routes/notes.ts#post.extractedColors",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 13,
+   "traits": "in[str]>arr"
+  },
+  {
+   "id": "inner-mmmm:artifacts/api-server/src/routes/notes.ts#post.extractedPreferences",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 11,
+   "traits": "in[str]>arr"
+  },
+  {
+   "id": "inner-mmmm:artifacts/api-server/src/routes/notes.ts#post.mergedBrands",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:artifacts/api-server/src/routes/notes.ts#post.mergedBrands:step",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:artifacts/api-server/src/routes/notes.ts#post.mergedColors",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:artifacts/api-server/src/routes/notes.ts#post.mergedColors:step",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:artifacts/api-server/src/routes/notes.ts#post.mergedPrefs",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:artifacts/api-server/src/routes/notes.ts#post.mergedPrefs:step",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:artifacts/api-server/src/routes/notes.ts#post.summary",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "normalize",
+     "on": "text",
+     "holds": "11/11"
+    }
+   ],
+   "primary": "normalize",
+   "material": "unknown",
+   "cases": 11
+  },
+  {
+   "id": "inner-mmmm:artifacts/api-server/src/routes/outfits.ts#delete.id",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "convert",
+     "by": "first"
+    }
+   ],
+   "primary": "convert",
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:artifacts/api-server/src/routes/outfits.ts#get.profileId",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:artifacts/api-server/src/routes/profiles.ts#delete.id",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "convert",
+     "by": "first"
+    }
+   ],
+   "primary": "convert",
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:artifacts/api-server/src/routes/profiles.ts#get.id",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "convert",
+     "by": "first"
+    }
+   ],
+   "primary": "convert",
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:artifacts/api-server/src/routes/profiles.ts#put.id",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "convert",
+     "by": "first"
+    }
+   ],
+   "primary": "convert",
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:artifacts/api-server/src/routes/swarm.ts#extractWithAI.jsonMatch",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "fuzzy",
+     "by": "first"
+    }
+   ],
+   "primary": "fuzzy",
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:artifacts/api-server/src/routes/swarm.ts#extractWithAI.jsonMatch:step",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 14,
+   "traits": "in[str]>nil const"
+  },
+  {
+   "id": "inner-mmmm:artifacts/api-server/src/routes/swarm.ts#post.id",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "convert",
+     "by": "first"
+    }
+   ],
+   "primary": "convert",
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:artifacts/api-server/src/routes/swarm.ts#post.mood",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 23,
+   "traits": "in[bool|num|str]>str const"
+  },
+  {
+   "id": "inner-mmmm:artifacts/api-server/src/routes/swarm.ts#post.msg",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "format",
+     "on": "err",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "format",
+   "material": "unknown",
+   "cases": 24,
+   "hash": "fef26ceb-f04f04d1"
+  },
+  {
+   "id": "inner-mmmm:artifacts/api-server/src/routes/swarm.ts#post.msg@126",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "format",
+     "on": "err",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "format",
+   "material": "unknown",
+   "cases": 24,
+   "hash": "fef26ceb-f04f04d1"
+  },
+  {
+   "id": "inner-mmmm:artifacts/api-server/src/routes/swarm.ts#post.msg@67",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "format",
+     "on": "err",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "format",
+   "material": "unknown",
+   "cases": 24,
+   "hash": "fef26ceb-f04f04d1"
+  },
+  {
+   "id": "inner-mmmm:artifacts/api-server/src/routes/swarm.ts#post.occasion",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 22,
+   "traits": "in[]>str const"
+  },
+  {
+   "id": "inner-mmmm:artifacts/api-server/src/routes/swarm.ts#post.profileNames",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "convert",
+     "by": "first"
+    }
+   ],
+   "primary": "convert",
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:artifacts/api-server/src/routes/swarm.ts#post.season",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 20,
+   "traits": "in[bool|num|str]>str const"
+  },
+  {
+   "id": "inner-mmmm:artifacts/api-server/src/swarm/agents.ts#fallbackSuggestions.brands",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "fuzzy",
+     "by": "symbol"
+    },
+    {
+     "id": "tolerate",
+     "by": "symbol"
+    }
+   ],
+   "primary": "fuzzy",
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:artifacts/api-server/src/swarm/agents.ts#runMarketAgent.userBrands",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:artifacts/api-server/src/swarm/agents.ts#runMarketAgent.userBrands:step",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:artifacts/api-server/src/swarm/agents.ts#runQAAgent.jsonMatch",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "fuzzy",
+     "by": "first"
+    }
+   ],
+   "primary": "fuzzy",
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:artifacts/api-server/src/swarm/agents.ts#runQAAgent.jsonMatch:step",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 12,
+   "traits": "in[str]>nil const"
+  },
+  {
+   "id": "inner-mmmm:artifacts/api-server/src/swarm/agents.ts#runQAAgent.parsed",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "split",
+     "by": "first"
+    }
+   ],
+   "primary": "split",
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:artifacts/api-server/src/swarm/agents.ts#runQAAgent.parsed:step",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "split",
+     "by": "first"
+    }
+   ],
+   "primary": "split",
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:artifacts/api-server/src/swarm/agents.ts#runSwarm.preview",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 12,
+   "traits": "in[str]>str",
+   "hash": "fef26ceb-783e4de2"
+  },
+  {
+   "id": "inner-mmmm:artifacts/mockup-sandbox/mockupPreviewPlugin.ts#mockupPreviewPlugin.generateSource.entries",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[arr]>str",
+   "hash": "6a78326e-388b4ef6"
+  },
+  {
+   "id": "inner-mmmm:artifacts/mockup-sandbox/mockupPreviewPlugin.ts#mockupPreviewPlugin.refresh.newSource",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[arr]>str",
+   "hash": "6a78326e-47c43106"
+  },
+  {
+   "id": "inner-mmmm:artifacts/mockup-sandbox/src/App.tsx#PreviewRenderer.useEffect.loadComponent.comp",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[]>nil const"
+  },
+  {
+   "id": "inner-mmmm:artifacts/mockup-sandbox/src/App.tsx#PreviewRenderer.useEffect.loadComponent.comp:step",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[]>nil const"
+  },
+  {
+   "id": "inner-mmmm:artifacts/mockup-sandbox/src/App.tsx#PreviewRenderer.useEffect.loadComponent.key",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "format",
+     "on": "componentPath",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "format",
+   "material": "text",
+   "cases": 24,
+   "hash": "bd1d2d90-819d353f"
+  },
+  {
+   "id": "inner-mmmm:artifacts/mockup-sandbox/src/App.tsx#PreviewRenderer.useEffect.loadComponent.message",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "format",
+     "on": "e",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "format",
+   "material": "unknown",
+   "cases": 24,
+   "hash": "fef26ceb-f04f04d1"
+  },
+  {
+   "id": "inner-mmmm:artifacts/mockup-sandbox/src/App.tsx#PreviewRenderer.useEffect.loadComponent.name",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "normalize",
+     "on": "componentPath",
+     "holds": "12/12"
+    },
+    {
+     "id": "format",
+     "on": "componentPath",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "normalize",
+   "material": "text",
+   "cases": 24
+  },
+  {
+   "id": "inner-mmmm:artifacts/mockup-sandbox/src/App.tsx#_resolveComponent.fns",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[]>arr const"
+  },
+  {
+   "id": "inner-mmmm:artifacts/mockup-sandbox/src/App.tsx#getPreviewExamplePath.basePath",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:artifacts/mockup-sandbox/src/App.tsx#getPreviewPath.basePath",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:artifacts/mockup-sandbox/src/App.tsx#getPreviewPath.local",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:artifacts/mockup-sandbox/src/App.tsx#getPreviewPath.local:step",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "normalize",
+     "on": "pathname",
+     "holds": "12/12"
+    },
+    {
+     "id": "format",
+     "on": "pathname",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "normalize",
+   "material": "text",
+   "cases": 24,
+   "hash": "32b745e2-66499a40"
+  },
+  {
+   "id": "inner-mmmm:artifacts/mockup-sandbox/src/App.tsx#getPreviewPath.match",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:artifacts/mockup-sandbox/src/App.tsx#getPreviewPath.match:step",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[]>nil const"
+  },
+  {
+   "id": "inner-mmmm:artifacts/mockup-sandbox/src/components/ui/breadcrumb.tsx#forwardRef.Comp",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "normalize",
+     "on": "Slot",
+     "holds": "12/12"
+    }
+   ],
+   "primary": "normalize",
+   "material": "unknown",
+   "cases": 24,
+   "hash": "a29d061d-f5c1d1e5"
+  },
+  {
+   "id": "inner-mmmm:artifacts/mockup-sandbox/src/components/ui/button-group.tsx#ButtonGroupText.Comp",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "tier",
+     "on": "asChild",
+     "holds": "6/6"
+    },
+    {
+     "id": "normalize",
+     "on": "asChild",
+     "holds": "4/4"
+    },
+    {
+     "id": "format",
+     "on": "Slot",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "tier",
+   "material": "unknown",
+   "cases": 24,
+   "hash": "a29d061d-9383cbb5"
+  },
+  {
+   "id": "inner-mmmm:artifacts/mockup-sandbox/src/components/ui/button.tsx#forwardRef.Comp",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "normalize",
+     "on": "Slot",
+     "holds": "12/12"
+    }
+   ],
+   "primary": "normalize",
+   "material": "unknown",
+   "cases": 24,
+   "hash": "906bf3f7-d7f3bb39"
+  },
+  {
+   "id": "inner-mmmm:artifacts/mockup-sandbox/src/components/ui/chart.tsx#ChartStyle.colorConfig",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 20,
+   "traits": "in[obj]>arr",
+   "hash": "3bdeebe2-9ed502f7"
+  },
+  {
+   "id": "inner-mmmm:artifacts/mockup-sandbox/src/components/ui/chart.tsx#forwardRef.chartId",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "format",
+     "on": "id",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "format",
+   "material": "unknown",
+   "cases": 22,
+   "hash": "4af06edb-929f7039"
+  },
+  {
+   "id": "inner-mmmm:artifacts/mockup-sandbox/src/components/ui/chart.tsx#forwardRef.map.itemConfig",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 24,
+   "traits": "in[bool|num|str]>nil const"
+  },
+  {
+   "id": "inner-mmmm:artifacts/mockup-sandbox/src/components/ui/chart.tsx#forwardRef.map.itemConfig:step",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 24,
+   "traits": "in[]>nil const"
+  },
+  {
+   "id": "inner-mmmm:artifacts/mockup-sandbox/src/components/ui/chart.tsx#forwardRef.map.itemConfig@291",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 24,
+   "traits": "in[bool|num|str]>nil const"
+  },
+  {
+   "id": "inner-mmmm:artifacts/mockup-sandbox/src/components/ui/chart.tsx#forwardRef.map.itemConfig@291:step",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 24,
+   "traits": "in[]>nil const"
+  },
+  {
+   "id": "inner-mmmm:artifacts/mockup-sandbox/src/components/ui/chart.tsx#forwardRef.map.key",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "normalize",
+     "on": "nameKey",
+     "holds": "12/12"
+    },
+    {
+     "id": "format",
+     "on": "nameKey",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "normalize",
+   "material": "unknown",
+   "cases": 23,
+   "hash": "8909da80-39566084"
+  },
+  {
+   "id": "inner-mmmm:artifacts/mockup-sandbox/src/components/ui/chart.tsx#forwardRef.map.key@290",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "format",
+     "on": "nameKey",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "format",
+   "material": "unknown",
+   "cases": 24,
+   "hash": "8909da80-39566084"
+  },
+  {
+   "id": "inner-mmmm:artifacts/mockup-sandbox/src/components/ui/chart.tsx#forwardRef.nestLabel",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "validate",
+     "on": "*",
+     "holds": "24/24"
+    }
+   ],
+   "primary": "validate",
+   "material": "unknown",
+   "cases": 20
+  },
+  {
+   "id": "inner-mmmm:artifacts/mockup-sandbox/src/components/ui/chart.tsx#forwardRef.useMemo.itemConfig",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 24,
+   "traits": "in[]>nil const"
+  },
+  {
+   "id": "inner-mmmm:artifacts/mockup-sandbox/src/components/ui/chart.tsx#forwardRef.useMemo.itemConfig:step",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 24,
+   "traits": "in[]>nil const"
+  },
+  {
+   "id": "inner-mmmm:artifacts/mockup-sandbox/src/components/ui/chart.tsx#forwardRef.useMemo.key",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "format",
+     "on": "labelKey",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "format",
+   "material": "unknown",
+   "cases": 24,
+   "hash": "8909da80-1eee1bf8"
+  },
+  {
+   "id": "inner-mmmm:artifacts/mockup-sandbox/src/components/ui/chart.tsx#forwardRef.useMemo.value",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 23,
+   "traits": "in[bool|num|str,bool|num|str]>nil|str",
+   "hash": "27ded60d-c0f3d99c"
+  },
+  {
+   "id": "inner-mmmm:artifacts/mockup-sandbox/src/components/ui/chart.tsx#forwardRef.useMemo.value:step",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "normalize",
+     "on": "label",
+     "holds": "5/5"
+    }
+   ],
+   "primary": "normalize",
+   "material": "unknown",
+   "cases": 24,
+   "hash": "97129855-c8b2d332"
+  },
+  {
+   "id": "inner-mmmm:artifacts/mockup-sandbox/src/components/ui/chart.tsx#getPayloadConfigFromPayload.payloadPayload",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:artifacts/mockup-sandbox/src/components/ui/form.tsx#forwardRef.body",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "normalize",
+     "on": "children",
+     "holds": "12/12"
+    }
+   ],
+   "primary": "normalize",
+   "material": "unknown",
+   "cases": 24,
+   "hash": "a29d061d-f22a7348"
+  },
+  {
+   "id": "inner-mmmm:artifacts/mockup-sandbox/src/components/ui/item.tsx#Item.Comp",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "normalize",
+     "on": "asChild",
+     "holds": "8/8"
+    }
+   ],
+   "primary": "normalize",
+   "material": "unknown",
+   "cases": 24,
+   "hash": "a29d061d-9383cbb5"
+  },
+  {
+   "id": "inner-mmmm:artifacts/mockup-sandbox/src/components/ui/sidebar.tsx#SidebarGroupAction.Comp",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "normalize",
+     "on": "Slot",
+     "holds": "12/12"
+    },
+    {
+     "id": "format",
+     "on": "Slot",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "normalize",
+   "material": "unknown",
+   "cases": 24,
+   "hash": "a29d061d-819dcf39"
+  },
+  {
+   "id": "inner-mmmm:artifacts/mockup-sandbox/src/components/ui/sidebar.tsx#SidebarGroupLabel.Comp",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "round",
+     "on": "asChild",
+     "holds": "10/10"
+    },
+    {
+     "id": "normalize",
+     "on": "asChild",
+     "holds": "11/11",
+     "implied": true
+    }
+   ],
+   "primary": "round",
+   "material": "unknown",
+   "cases": 24,
+   "hash": "a29d061d-9383cbb5"
+  },
+  {
+   "id": "inner-mmmm:artifacts/mockup-sandbox/src/components/ui/sidebar.tsx#SidebarMenuAction.Comp",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "format",
+     "on": "Slot",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "format",
+   "material": "unknown",
+   "cases": 24,
+   "hash": "a29d061d-819dcf39"
+  },
+  {
+   "id": "inner-mmmm:artifacts/mockup-sandbox/src/components/ui/sidebar.tsx#SidebarMenuButton.Comp",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "normalize",
+     "on": "asChild",
+     "holds": "9/9"
+    }
+   ],
+   "primary": "normalize",
+   "material": "unknown",
+   "cases": 24,
+   "hash": "a29d061d-819dcf39"
+  },
+  {
+   "id": "inner-mmmm:artifacts/mockup-sandbox/src/components/ui/sidebar.tsx#SidebarMenuSubButton.Comp",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "format",
+     "on": "Slot",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "format",
+   "material": "unknown",
+   "cases": 24,
+   "hash": "a29d061d-f5c1d1e5"
+  },
+  {
+   "id": "inner-mmmm:artifacts/mockup-sandbox/src/components/ui/sidebar.tsx#SidebarProvider.state",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 24,
+   "traits": "in[bool|num|str,bool|num|str]>str",
+   "hash": "a29d061d-ec0c5e11"
+  },
+  {
+   "id": "inner-mmmm:artifacts/mockup-sandbox/src/components/ui/sidebar.tsx#SidebarProvider.state:step",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 24,
+   "traits": "in[bool|num|str]>str",
+   "hash": "fef26ceb-36b806f7"
+  },
+  {
+   "id": "inner-mmmm:artifacts/mockup-sandbox/src/hooks/use-toast.ts#useToast.useEffect.fn.index",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "round",
+     "on": "setState",
+     "holds": "18/18"
+    }
+   ],
+   "primary": "round",
+   "material": "unknown",
+   "cases": 24
+  },
+  {
+   "id": "inner-mmmm:ask-active-agents-fix.js#askAgentAboutFix.Promise.request.on.response",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "split",
+     "by": "first"
+    },
+    {
+     "id": "normalize",
+     "by": "symbol"
+    }
+   ],
+   "primary": "split",
+   "material": "text",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:ask-agents-keys.js#askAgentAboutKeys.Promise.data",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 20,
+   "traits": "in[]>str const"
+  },
+  {
+   "id": "inner-mmmm:ask-agents-keys.js#askAgentAboutKeys.Promise.data:step",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "format",
+     "on": "question",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "format",
+   "material": "text",
+   "cases": 20,
+   "hash": "b58c969e-6baca571"
+  },
+  {
+   "id": "inner-mmmm:ask-agents-keys.js#askAgentAboutKeys.Promise.question",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 22,
+   "traits": "in[]>str const"
+  },
+  {
+   "id": "inner-mmmm:ask-agents-keys.js#askAgentAboutKeys.Promise.request.on.response",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "split",
+     "by": "first"
+    }
+   ],
+   "primary": "split",
+   "material": "text",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:ask-agents-keys.js#askAllAgentsAboutKeys.forEach.response",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "convert",
+     "by": "first"
+    }
+   ],
+   "primary": "convert",
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:ask-director-keys.js#askDirectorAboutKeys.Promise.data",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "text",
+   "cases": 3
+  },
+  {
+   "id": "inner-mmmm:ask-director-keys.js#askDirectorAboutKeys.Promise.request.on.keyRequirements",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:ask-director-keys.js#askDirectorAboutKeys.Promise.request.on.keyRequirements:step",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 7,
+   "traits": "in[str]>obj const"
+  },
+  {
+   "id": "inner-mmmm:ask-director-keys.js#askDirectorAboutKeys.Promise.request.on.response",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "split",
+     "by": "first"
+    }
+   ],
+   "primary": "split",
+   "material": "text",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:ask-director-keys.js#extractKeyRequirements.forEach.foundAgent",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "lookup",
+     "on": "agents",
+     "holds": "24/24"
+    }
+   ],
+   "primary": "lookup",
+   "material": "text",
+   "cases": 12
+  },
+  {
+   "id": "inner-mmmm:ask-director-keys.js#extractKeyRequirements.forEach.foundAgent:step",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 17,
+   "traits": "in[arr,num|str]>nil|str"
+  },
+  {
+   "id": "inner-mmmm:ask-director-keys.js#extractKeyRequirements.forEach.trimmedLine",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 8,
+   "traits": "in[str]>str",
+   "hash": "fef26ceb-783e4de2"
+  },
+  {
+   "id": "inner-mmmm:ask-director-keys.js#extractKeyRequirements.lines",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 10,
+   "traits": "in[str]>arr",
+   "hash": "fef26ceb-de22a59c"
+  },
+  {
+   "id": "inner-mmmm:connecthub-master.js#testAgentViaConnectHub.Promise.data",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 21,
+   "traits": "in[]>str const"
+  },
+  {
+   "id": "inner-mmmm:connecthub-master.js#testAgentViaConnectHub.Promise.request.on.response",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "split",
+     "by": "first"
+    },
+    {
+     "id": "relay",
+     "by": "symbol"
+    }
+   ],
+   "primary": "split",
+   "material": "text",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:connecthub-master.js#testAllAgentsViaConnectHub.providers",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "record:provider",
+   "cases": 3
+  },
+  {
+   "id": "inner-mmmm:final_meeting.js#communicateWithAgent.Promise.request.on.response",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "split",
+     "by": "first"
+    }
+   ],
+   "primary": "split",
+   "material": "text",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:final_meeting.js#getRequestDetails.systemPrompt",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 20,
+   "traits": "in[]>str const"
+  },
+  {
+   "id": "inner-mmmm:lib/api-client-react/src/custom-fetch.ts#applyBaseUrl.absolute",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "format",
+     "on": "_baseUrl",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "format",
+   "material": "text",
+   "cases": 24,
+   "hash": "969fd300-bf81af1d"
+  },
+  {
+   "id": "inner-mmmm:lib/api-client-react/src/custom-fetch.ts#buildErrorMessage.detail",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 24,
+   "traits": "in[]>nil const"
+  },
+  {
+   "id": "inner-mmmm:lib/api-client-react/src/custom-fetch.ts#buildErrorMessage.message",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 24,
+   "traits": "in[]>nil const"
+  },
+  {
+   "id": "inner-mmmm:lib/api-client-react/src/custom-fetch.ts#buildErrorMessage.prefix",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "format",
+     "on": "response",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "format",
+   "material": "record:response",
+   "cases": 24,
+   "hash": "3eaf4757-e8e2677d"
+  },
+  {
+   "id": "inner-mmmm:lib/api-client-react/src/custom-fetch.ts#buildErrorMessage.text",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "normalize",
+     "on": "data",
+     "holds": "12/12"
+    },
+    {
+     "id": "format",
+     "on": "data",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "normalize",
+   "material": "unknown",
+   "cases": 14,
+   "hash": "fef26ceb-783e4de2"
+  },
+  {
+   "id": "inner-mmmm:lib/api-client-react/src/custom-fetch.ts#buildErrorMessage.title",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 24,
+   "traits": "in[]>nil const"
+  },
+  {
+   "id": "inner-mmmm:lib/api-client-react/src/custom-fetch.ts#getStringField.trimmed",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 8,
+   "traits": "in[time]>time",
+   "hash": "2cb535ce-806e05f0"
+  },
+  {
+   "id": "inner-mmmm:lib/api-client-react/src/custom-fetch.ts#looksLikeJson.trimmed",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "normalize",
+     "on": "text",
+     "holds": "12/12"
+    },
+    {
+     "id": "format",
+     "on": "text",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "normalize",
+   "material": "text",
+   "cases": 24
+  },
+  {
+   "id": "inner-mmmm:lib/api-client-react/src/custom-fetch.ts#parseErrorBody.normalized",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[str]>str"
+  },
+  {
+   "id": "inner-mmmm:lib/api-client-react/src/custom-fetch.ts#parseErrorBody.trimmed",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "normalize",
+     "on": "raw",
+     "holds": "12/12"
+    },
+    {
+     "id": "format",
+     "on": "raw",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "normalize",
+   "material": "text",
+   "cases": 24
+  },
+  {
+   "id": "inner-mmmm:lib/api-client-react/src/custom-fetch.ts#parseErrorBody.trimmed:step",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "normalize",
+     "on": "normalized",
+     "holds": "12/12"
+    },
+    {
+     "id": "format",
+     "on": "normalized",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "normalize",
+   "material": "text",
+   "cases": 24
+  },
+  {
+   "id": "inner-mmmm:lib/api-client-react/src/custom-fetch.ts#parseJsonBody.normalized",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[str]>str"
+  },
+  {
+   "id": "inner-mmmm:lib/integrations-openai-ai-react/src/audio/audio-utils.ts#decodePCM16ToFloat32.bytes:after-loop",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[str]>arr",
+   "hash": "bd1d2d90-52ec9fb1"
+  },
+  {
+   "id": "inner-mmmm:lib/integrations-openai-ai-react/src/audio/audio-utils.ts#decodePCM16ToFloat32.float32:after-loop",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 16,
+   "traits": "in[str]>arr",
+   "hash": "bd1d2d90-2e1539c7"
+  },
+  {
+   "id": "inner-mmmm:lib/integrations-openai-ai-react/src/audio/useVoiceStream.ts#blobToBase64.Promise.onload.commaIndex",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 10,
+   "traits": "in[str]>num const int"
+  },
+  {
+   "id": "inner-mmmm:lib/integrations-openai-ai-react/src/audio/useVoiceStream.ts#readSseDataFromBlock.dataLines:after-loop",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[]>arr const"
+  },
+  {
+   "id": "inner-mmmm:lib/integrations-openai-ai-react/src/audio/useVoiceStream.ts#readSseDataFromBlock.normalizedBlock",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[str]>str"
+  },
+  {
+   "id": "inner-mmmm:lib/integrations-openai-ai-react/src/audio/useVoiceStream.ts#useVoiceStream.useCallback.err",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 24,
+   "traits": "in[]>obj const"
+  },
+  {
+   "id": "inner-mmmm:lib/integrations-openai-ai-react/src/audio/useVoiceStream.ts#useVoiceStream.useCallback.event",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:lib/integrations-openai-ai-react/src/audio/useVoiceStream.ts#useVoiceStream.useCallback.event:step",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:lib/integrations-openai-ai-react/src/audio/useVoiceStream.ts#useVoiceStream.useCallback.finalData",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[]>nil|str"
+  },
+  {
+   "id": "inner-mmmm:lib/integrations-openai-ai-react/src/audio/useVoiceStream.ts#useVoiceStream.useCallback.processBlocks.event",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:lib/integrations-openai-ai-react/src/audio/useVoiceStream.ts#useVoiceStream.useCallback.processBlocks.event:step",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:lib/integrations-openai-ai-react/src/audio/useVoiceStream.ts#useVoiceStream.useCallback.processBlocks.rawData",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[]>nil const"
+  },
+  {
+   "id": "inner-mmmm:lib/integrations-openai-ai-server/src/audio/client.ts#ensureCompatibleFormat.detected",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 21,
+   "traits": "in[]>str const"
+  },
+  {
+   "id": "inner-mmmm:lib/integrations-openai-ai-server/src/audio/client.ts#voiceChat.audioBase64",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 10,
+   "traits": "in[bool|str]>str",
+   "hash": "fef26ceb-53b71d74"
+  },
+  {
+   "id": "inner-mmmm:lib/integrations-openai-ai-server/src/audio/client.ts#voiceChatStream.audioBase64",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 9,
+   "traits": "in[bool|str]>str",
+   "hash": "fef26ceb-53b71d74"
+  },
+  {
+   "id": "inner-mmmm:lib/integrations-openai-ai-server/src/batch/utils.ts#isRateLimitError.errorMsg",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "format",
+     "on": "error",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "format",
+   "material": "unknown",
+   "cases": 24,
+   "hash": "fef26ceb-f04f04d1"
+  },
+  {
+   "id": "inner-mmmm:lib/integrations/openai_ai_integrations/src/client/audio/audio-utils.ts#decodePCM16ToFloat32.bytes:after-loop",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[str]>arr",
+   "hash": "bd1d2d90-52ec9fb1"
+  },
+  {
+   "id": "inner-mmmm:lib/integrations/openai_ai_integrations/src/client/audio/audio-utils.ts#decodePCM16ToFloat32.float32:after-loop",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 16,
+   "traits": "in[str]>arr",
+   "hash": "bd1d2d90-2e1539c7"
+  },
+  {
+   "id": "inner-mmmm:lib/integrations/openai_ai_integrations/src/server/audio/client.ts#ensureCompatibleFormat.detected",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 19,
+   "traits": "in[]>str const"
+  },
+  {
+   "id": "inner-mmmm:lib/integrations/openai_ai_integrations/src/server/audio/client.ts#voiceChat.audioBase64",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 8,
+   "traits": "in[bool|str]>str",
+   "hash": "fef26ceb-53b71d74"
+  },
+  {
+   "id": "inner-mmmm:lib/integrations/openai_ai_integrations/src/server/audio/client.ts#voiceChatStream.audioBase64",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 10,
+   "traits": "in[bool|str]>str",
+   "hash": "fef26ceb-53b71d74"
+  },
+  {
+   "id": "inner-mmmm:lib/integrations/openai_ai_integrations/src/server/batch/utils.ts#isRateLimitError.errorMsg",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "format",
+     "on": "error",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "format",
+   "material": "unknown",
+   "cases": 24,
+   "hash": "fef26ceb-f04f04d1"
+  },
+  {
+   "id": "inner-mmmm:meeting.js#communicateWithAgent.Promise.request.on.reply",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:meeting.js#communicateWithAgent.Promise.request.on.reply:step",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:meeting.js#communicateWithAgent.Promise.request.on.response",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "split",
+     "by": "first"
+    }
+   ],
+   "primary": "split",
+   "material": "text",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "inner-mmmm:meeting.js#getRequestDetails.systemPrompt",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 21,
+   "traits": "in[]>str const"
+  }
+ ]
+}

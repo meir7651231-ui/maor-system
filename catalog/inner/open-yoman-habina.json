@@ -1,0 +1,40 @@
+{
+ "source": "yoman-habina",
+ "version": 1,
+ "files": 4,
+ "candidates": 121,
+ "sliced": 8,
+ "parts": 9,
+ "modules": 2,
+ "forms": {
+  "form:slice": 8,
+  "form:step": 1
+ },
+ "kinds": {
+  "inner:value": 8,
+  "inner:accumulator": 1
+ },
+ "parents": {
+  "parent:cataloged": 7,
+  "parent:uncataloged": 2
+ },
+ "skipped": {
+  "dom": 76,
+  "trivial": 20,
+  "imported-call": 8,
+  "await": 4,
+  "closure-helper": 2,
+  "method-call": 2,
+  "unknown-call": 1
+ },
+ "topFiles": [
+  [
+   "verify.mjs",
+   7
+  ],
+  [
+   "engine.js",
+   2
+  ]
+ ]
+}

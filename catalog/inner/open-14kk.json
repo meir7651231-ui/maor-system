@@ -1,0 +1,104 @@
+{
+ "source": "14kk",
+ "version": 1,
+ "files": 113,
+ "candidates": 1797,
+ "sliced": 346,
+ "parts": 377,
+ "modules": 71,
+ "forms": {
+  "form:slice": 346,
+  "form:step": 31
+ },
+ "kinds": {
+  "inner:value": 366,
+  "inner:accumulator": 11
+ },
+ "parents": {
+  "parent:uncataloged": 305,
+  "parent:cataloged": 72
+ },
+ "skipped": {
+  "trivial": 558,
+  "imported-call": 316,
+  "await": 151,
+  "method-call": 112,
+  "this": 89,
+  "clock": 86,
+  "dom": 39,
+  "privacy": 30,
+  "io": 20,
+  "loop-imported-call": 14,
+  "global": 8,
+  "loop-method-call": 7,
+  "mutation": 6,
+  "random": 5,
+  "loop-await": 3,
+  "loop-this": 3,
+  "loop-global": 2,
+  "module-state": 2,
+  "global-call": 1
+ },
+ "topFiles": [
+  [
+   "knowledge_protocol.js",
+   55
+  ],
+  [
+   "archive/final-bridge.js",
+   48
+  ],
+  [
+   "mvp/simple-mvp.js",
+   22
+  ],
+  [
+   "check_protocol_activity.js",
+   15
+  ],
+  [
+   "ultimate_aegis_scan.js",
+   15
+  ],
+  [
+   "code_optimization_protocol.js",
+   13
+  ],
+  [
+   "archive/final-bridge-v1.3.js",
+   11
+  ],
+  [
+   "self_reviewing_code.js",
+   11
+  ],
+  [
+   "final_supervisor_protocol.js",
+   10
+  ],
+  [
+   "communication_protocol.js",
+   9
+  ],
+  [
+   "archive/architect-bridge.js",
+   8
+  ],
+  [
+   "full_aegis_scan.js",
+   7
+  ],
+  [
+   "api/server_advanced.js",
+   6
+  ],
+  [
+   "services/telegram-bot-service.js",
+   6
+  ],
+  [
+   "archive/architect-core-final.js",
+   5
+  ]
+ ]
+}
