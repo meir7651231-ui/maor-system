@@ -21,6 +21,32 @@ export const REMOVE_ARMED_TEXT = 'בטוח? לחצו שוב';
 
 export const kindLabel = (k: Kind) => KINDS.find((x) => x.id === k)?.label ?? k;
 
+/**
+ * רצף מספרי (שעות, טווחים, תאריכים, סכומים): "11:00–11:40" · "16/10 15:00" · "₪1,200 = 3 × ₪400". פסיק רק כמפריד-אלפים
+ * (צמוד לספרה) — רשימת תאריכים "13/10, 14/10" נשארת שני רצפים בסדר-הקריאה העברי.
+ */
+export const NUM_RUN = /[₪\d](?:[\d:/.₪×=+\s–-]|,(?=\d))*\d/g;
+
+/**
+ * ATOMS 14.10: שורת-תוצאה בעברית עם רצפים מספריים — כל רצף מבודד משמאל-לימין (`<bdi dir="ltr">`), אחרת בשורה עברית
+ * "11:00–11:40" מוצג הפוך ("11:40–11:00") ו"₪1,200 = 3 × ₪400" מתהפך. הטקסט עצמו לא משתנה.
+ */
+export function LtrNums(props: { text: string }) {
+  const out: (string | ReturnType<typeof Bdi>)[] = [];
+  let last = 0;
+  for (const m of props.text.matchAll(NUM_RUN)) {
+    const at = m.index ?? 0;
+    if (at > last) out.push(props.text.slice(last, at));
+    out.push(<Bdi key={at} t={m[0]} />);
+    last = at + m[0].length;
+  }
+  if (last < props.text.length) out.push(props.text.slice(last));
+  return <bdi>{out}</bdi>;
+}
+function Bdi(props: { t: string }) {
+  return <bdi dir="ltr">{props.t}</bdi>;
+}
+
 // ——— 1 · המנועים ———
 export function EnginesStep(props: { engines: EngineCard[]; atoms: AtomCard[]; open: string | null; onToggle: (id: string) => void }) {
   return (
@@ -128,7 +154,7 @@ export function ChainsList(props: { chains: AtomChain[]; atoms: AtomCard[] }) {
               {c.lines && c.lines.length > 0 && (
                 <span className="at-preview at-preview-mini" data-preview="chain">
                   {c.lines.map((l, j) => (
-                    <span key={j} className="at-preview-line"><bdi>{l}</bdi></span>
+                    <span key={j} className="at-preview-line"><LtrNums text={l} /></span>
                   ))}
                 </span>
               )}
@@ -149,9 +175,9 @@ function PreviewMini(props: { preview: AtomPreview; max?: number }) {
   const lines = props.max ? props.preview.lines.slice(0, props.max) : props.preview.lines;
   return (
     <span className="at-preview at-preview-mini" data-preview="real">
-      <span className="at-preview-title">{props.preview.title}</span>
+      <span className="at-preview-title"><LtrNums text={props.preview.title} /></span>
       {lines.map((l, i) => (
-        <span key={i} className="at-preview-line"><bdi>{l}</bdi></span>
+        <span key={i} className="at-preview-line"><LtrNums text={l} /></span>
       ))}
     </span>
   );
@@ -271,10 +297,10 @@ export function CreatedCard(props: { capability: Capability; preview: AtomPrevie
       <h3 id="at-h-made" className="at-title" tabIndex={-1}>✨ נוצר מנוע חדש: {props.capability.name}</h3>
       {props.preview ? (
         <div className="at-preview">
-          <div className="at-preview-title">{props.preview.title}</div>
+          <div className="at-preview-title"><LtrNums text={props.preview.title} /></div>
           <ul className="at-preview-lines">
             {props.preview.lines.map((l, i) => (
-              <li key={i}><bdi>{l}</bdi></li>
+              <li key={i}><LtrNums text={l} /></li>
             ))}
           </ul>
         </div>

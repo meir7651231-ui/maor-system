@@ -15,6 +15,7 @@ import { ENGINE_CARDS } from '../../../lib/atoms/engines';
 import { capabilityId, type Capability } from '../../../lib/atoms/contract';
 import { atomsSource } from '../atoms/source';
 import { AtomsBody } from '../atoms/AtomsBody';
+import { LtrNums } from '../atoms/AtomSteps';
 import { EngineBoxBody } from '../EngineBoxScreen';
 import { fixtureSource } from './fixtures';
 import entrySrc from '../EngineBoxEntry.tsx?raw';
@@ -58,7 +59,23 @@ describe('🧬 (א) atomsSource', () => {
 });
 
 describe('🧬 (ב) המסך עם המקור האמיתי', () => {
-  const html = (initial: Parameters<typeof AtomsBody>[0]['initial'], s = src()) => renderToStaticMarkup(createElement(AtomsBody, { source: s, initial }));
+  const markup = (initial: Parameters<typeof AtomsBody>[0]['initial'], s = src()) => renderToStaticMarkup(createElement(AtomsBody, { source: s, initial }));
+  /** הטקסט הנראה (בלי תגיות — הרצפים המספריים עטופים ב-<bdi dir="ltr">); data-* נשארים בשורת-הסימון. */
+  const html = (initial: Parameters<typeof AtomsBody>[0]['initial'], s = src()) => {
+    const m = markup(initial, s);
+    return m + '\n' + m.replace(/<[^>]+>/g, '');
+  };
+
+  it('RTL: כל רצף מספרי (שעות/טווחים/תאריכים/סכומים) מבודד משמאל-לימין — "11:00–11:40" לא מתהפך', () => {
+    const s2 = src({ db: { ...DB(), ui: { ...DB().ui, capabilities: [{ ...TURNS, name: 'מנוע תורים' }] } } });
+    const m = markup({ host: 'bookings', made: TURNS.id }, s2);
+    expect(m).toContain('<bdi dir="ltr">11:00–11:40</bdi> · דנה');
+    expect(m).toContain('<bdi dir="ltr">11:00–15:00</bdi> · 6 תורים');
+    const q = markup({ host: 'bookings', atom: 'divide' });
+    expect(q).toContain('<bdi dir="ltr">12/10–15/10</bdi> ⇒ ניקיון ב-<bdi dir="ltr">13/10</bdi>, <bdi dir="ltr">14/10</bdi>');
+    // סכום-בתשלומים: רצף אחד שלם
+    expect(renderToStaticMarkup(createElement(LtrNums, { text: 'צימר הגפן · ₪1,200 = 3 × ₪400' }))).toBe('<bdi>צימר הגפן · <bdi dir="ltr">₪1,200 = 3 × ₪400</bdi></bdi>');
+  });
 
   it('"מה לחלק?" — רק מקומות מסוג טווח/סכום עם משפט, וליד כל אחד התוצאה האמיתית', () => {
     const out = html({ host: 'bookings', atom: 'divide' });
