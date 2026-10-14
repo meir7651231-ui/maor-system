@@ -1,19 +1,19 @@
 {
  "source": "machine",
- "ref": "catalog@011c01750c45",
+ "ref": "catalog@ff490750407c",
  "probe": {
   "version": 1,
   "seed": 13269520,
   "generatedAt": null
  },
  "totals": {
-  "run": 340,
-  "runWithVerb": 66,
+  "run": 341,
+  "runWithVerb": 67,
   "twin": 0,
-  "static": 199,
+  "static": 201,
   "staticWithVerb": 18,
   "why": {
-   "no-fitting-input": 174,
+   "no-fitting-input": 176,
    "load-failed": 25
   }
  },
@@ -5053,6 +5053,20 @@
    "hash": "5e5eaa09-2f86f734"
   },
   {
+   "id": "machine:catalog/self/loop-demo.mjs#rootGit",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "unknown",
+   "cases": 3
+  },
+  {
    "id": "machine:catalog/self/loop.mjs#at",
    "labeledBy": "run",
    "verbs": [
@@ -5068,6 +5082,14 @@
    "hash": "9e5de6ff-15c94d01"
   },
   {
+   "id": "machine:catalog/self/loop.mjs#declSpan",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "reason": "no-fitting-input"
+  },
+  {
    "id": "machine:catalog/self/loop.mjs#distinguishing",
    "labeledBy": "static",
    "verbs": [],
@@ -5077,6 +5099,14 @@
   },
   {
    "id": "machine:catalog/self/loop.mjs#enc",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "machine:catalog/self/loop.mjs#git",
    "labeledBy": "static",
    "verbs": [],
    "primary": null,
@@ -5108,7 +5138,7 @@
    "material": "list",
    "cases": 24,
    "traits": "in[arr,obj]>obj rec:mix",
-   "hash": "ff18ac9e-d921850e"
+   "hash": "61fb8e26-4e491548"
   },
   {
    "id": "machine:catalog/self/loop.mjs#probeOpts",

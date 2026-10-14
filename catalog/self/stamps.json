@@ -146,11 +146,11 @@
    }
   },
   "self-check": {
-   "in": "26b2eaccf3937a926578c3a8690597fd",
+   "in": "c44fc39377aedc43d9ac76a862830837",
    "out": {
-    "catalog/self/behavior-machine.json": "d7819e233ddaeeff3fc93ca5b1daa231",
-    "catalog/self/machine.json": "70bafe8fdf1ea1272410bdc863dafcc6",
-    "catalog/self/report.json": "19e5e8368d866848eafd992b1f553304"
+    "catalog/self/behavior-machine.json": "9a5255be8e229d4b05df708271b92449",
+    "catalog/self/machine.json": "3357b1d5ec79d6b8f05432ded97037e1",
+    "catalog/self/report.json": "8484dbcf0373fafe979b64786287c4fe"
    }
   }
  }

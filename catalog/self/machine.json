@@ -1,7 +1,7 @@
 {
  "source": "machine",
  "repo": "meir7651231-ui/maor-system",
- "ref": "catalog@011c01750c45",
+ "ref": "catalog@ff490750407c",
  "generatedAt": null,
  "parts": [
   {
@@ -16058,6 +16058,28 @@
    ]
   },
   {
+   "id": "machine:catalog/self/loop-demo.mjs#rootGit",
+   "source": "machine",
+   "path": "catalog/self/loop-demo.mjs",
+   "symbol": "rootGit",
+   "lang": "js",
+   "what": "function",
+   "name": "להפיק ערך",
+   "does": "ה-git של הריפו (גם כש-.git הוא קובץ של worktree) — להדגמות, שהעותק שלהן בלי .git.",
+   "takes": [],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/self",
+    "name:auto",
+    "name:english-residue"
+   ]
+  },
+  {
    "id": "machine:catalog/self/loop.mjs#at",
    "source": "machine",
    "path": "catalog/self/loop.mjs",
@@ -16087,6 +16109,39 @@
    "tags": [
     "catalog/self",
     "name:auto"
+   ]
+  },
+  {
+   "id": "machine:catalog/self/loop.mjs#declSpan",
+   "source": "machine",
+   "path": "catalog/self/loop.mjs",
+   "symbol": "declSpan",
+   "lang": "js",
+   "what": "function",
+   "name": "להפיק ערך",
+   "does": "הטווח של הצהרה **כולל הערה בסוף השורה האחרונה שלה** (`… ; // …`) — השחזור מחזיר את השורה כמו שהייתה, בלי הערה ישנה.",
+   "takes": [
+    {
+     "name": "text",
+     "kind": "text",
+     "type": "unknown"
+    },
+    {
+     "name": "d",
+     "kind": "file",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/self",
+    "name:auto",
+    "name:english-residue"
    ]
   },
   {
@@ -16143,6 +16198,43 @@
     "catalog/self",
     "name:auto",
     "name:english-residue"
+   ]
+  },
+  {
+   "id": "machine:catalog/self/loop.mjs#git",
+   "source": "machine",
+   "path": "catalog/self/loop.mjs",
+   "symbol": "git",
+   "lang": "js",
+   "what": "function",
+   "name": "להפיק ערך",
+   "does": "להפיק git — מקבל משהו, רשימה, רשומת input, ומחזיר משהו.",
+   "takes": [
+    {
+     "name": "G",
+     "kind": "unknown",
+     "type": "unknown"
+    },
+    {
+     "name": "args",
+     "kind": "list",
+     "type": "unknown"
+    },
+    {
+     "name": "input",
+     "kind": "record:input",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/self",
+    "name:auto"
    ]
   },
   {
@@ -16223,7 +16315,7 @@
    "lang": "js",
    "what": "function",
    "name": "להפיק פנקס",
-   "does": "להפיק פנקס — מקבל רשימה, רשומת quick, ומחזיר משהו.",
+   "does": "להפיק פנקס — מקבל רשימה, רשומת quickhistory, ומחזיר משהו.",
    "takes": [
     {
      "name": "rows",
@@ -16231,8 +16323,8 @@
      "type": "unknown"
     },
     {
-     "name": "{quick}",
-     "kind": "record:quick",
+     "name": "{quick,history}",
+     "kind": "record:quickhistory",
      "type": "unknown"
     }
    ],

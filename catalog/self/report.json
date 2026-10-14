@@ -1,21 +1,21 @@
 {
  "source": "machine",
- "ref": "catalog@011c01750c45",
+ "ref": "catalog@ff490750407c",
  "seed": 13269520,
  "generatedAt": null,
  "census": {
   "files": 65,
-  "parts": 539
+  "parts": 542
  },
  "parts": {
   "totals": {
-   "run": 340,
-   "runWithVerb": 66,
+   "run": 341,
+   "runWithVerb": 67,
    "twin": 0,
-   "static": 199,
+   "static": 201,
    "staticWithVerb": 18,
    "why": {
-    "no-fitting-input": 174,
+    "no-fitting-input": 176,
     "load-failed": 25
    }
   },
@@ -26,7 +26,7 @@
    "normalize": 10,
    "clamp": 6,
    "convert": 6,
-   "provide": 4,
+   "provide": 5,
    "fingerprint": 3,
    "tier": 3,
    "compare": 2,
@@ -407,6 +407,12 @@
     ]
    },
    {
+    "id": "machine:catalog/self/loop-demo.mjs#rootGit",
+    "verbs": [
+     "provide 3/3"
+    ]
+   },
+   {
     "id": "machine:catalog/self/loop.mjs#at",
     "verbs": [
      "format 15/15"
@@ -455,26 +461,26 @@
  },
  "inner": {
   "totals": {
-   "candidates": 3382,
-   "parts": 1423,
-   "run": 934,
-   "runWithVerb": 290,
+   "candidates": 3439,
+   "parts": 1449,
+   "run": 953,
+   "runWithVerb": 293,
    "twin": 0,
-   "static": 489,
-   "staticWithVerb": 249,
+   "static": 496,
+   "staticWithVerb": 252,
    "why": {
-    "no-fitting-input": 489
+    "no-fitting-input": 496
    }
   },
   "verbs": {
    "format": 94,
-   "round": 70,
+   "round": 71,
    "normalize": 49,
    "convert": 37,
    "clamp": 32,
    "split": 19,
    "tier": 14,
-   "validate": 12,
+   "validate": 14,
    "personalize": 10,
    "provide": 10,
    "filter": 4,

@@ -14,19 +14,35 @@
  *   refuse — חלופה-פתיון מהירה (צעד אחד פחות לכל קריאה) שעוברת את חוקי «מטביע חותם» n/n — אבל נותנת פלט אחר על קלט אחד ⇒
  *            הלולאה מסרבת ורושמת למה; הנבדק נשאר כמו שהוא.
  *
- *   node catalog/self/loop-demo.mjs [--quick] [--only fix,speed,revert,refuse] [--out <קובץ>]
+ *   (ארבע ההדגמות האלה רצות **בלי ההיסטוריה** — `--no-history` — כדי להראות את המחסן לבד, כמו ב-SELF-LOOP.)
+ *
+ * SELF-LOOP2 — «הגרסה של אתמול» (ההיסטוריה של git כמקור-חלקים):
+ *   restore — `fnvHex` מאבד את הריפוד ⇒ אין במחסן חלק שעושה בדיוק את זה (SELF-LOOP: הוחזר) ⇒ עכשיו הלולאה משחזרת את הגרסה
+ *             מהקומיט האחרון ⇒ כל השערים ✓ ⇒ נשאר.
+ *   regress — `fnvHex` הופך ל-O(n²) (ההדגמה revert) ⇒ "נסיגה בביצועים": הגרסה מההיסטוריה — אותם פלטים, פחות צעדים ⇒ משוחזרת.
+ *   doctext — `docText` (inner/lib/store.mjs) נשבר ל-`(doc) => '\n'` ⇒ הלולאה בוחרת את הגרסה מאתמול, לא ייבוא מסקריפט.
+ *   always  — באג שהיה בכל ההיסטוריה (git סינתטי בעותק: שתי גרסאות, שתיהן שבורות) ⇒ ההיסטוריה לא עוזרת ⇒ המחסן ⇒ הוחזר.
+ *
+ *   node catalog/self/loop-demo.mjs [--quick] [--only fix,speed,revert,refuse,restore,regress,doctext,always] [--out <קובץ>]
  *   (--quick: בלי rebuild/vitest על עותק-הבדיקה של הלולאה — לבדיקות-השימור; בלי --quick: כל השערים)
  */
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { spawnSync } from 'node:child_process';
+import { spawnSync, execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { makeCopy, subjectInputs } from './loop.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const VERBS = 'catalog/lib/verbs.mjs';
 const FNV = 'machine:catalog/lib/verbs.mjs#fnv·fingerprint';
+const FNVHEX = 'machine:catalog/self/parts.mjs#fnvHex·fingerprint';
+const PARTS = 'catalog/self/parts.mjs';
+const FNVHEX_OK = "export const fnvHex = (s) => fnv1a(s).toString(16).padStart(8, '0');";
+const FNVHEX_SLOW = "export const fnvHex = (s) => { let h = ''; for (let i = 0; i <= s.length; i++) h = fnv1a(s.slice(0, i)).toString(16).padStart(8, '0'); return h; }; // הדגמה: O(n²)";
+const DOCTEXT_OK = "export const docText = (doc) => JSON.stringify(doc, null, 1) + '\\n';";
+/** ה-git של הריפו (גם כש-.git הוא קובץ של worktree) — להדגמות, שהעותק שלהן בלי .git. */
+const rootGit = () => execFileSync('git', ['-C', ROOT, 'rev-parse', '--absolute-git-dir'], { encoding: 'utf8' }).trim();
 const ORIGINAL = "const fnv = fnvHex; // 🧩 SELF: חלק-המכונה המוכח (catalog/self/parts.mjs) — היה כאן העתק של FNV-1a";
 
 const edit = (W, rel, from, to) => {
@@ -37,27 +53,27 @@ const edit = (W, rel, from, to) => {
 
 export const DEMOS = {
   fix: {
-    he: 'תיקון — חוק שנשבר',
+    he: 'תיקון — חוק שנשבר', noHistory: true,
     // המוטנט הידוע של fingerprint.fixed: בלי ריפוד ⇒ 7 או 8 תווים (היה באג אמיתי במכונה — SELF באג 2)
     setup: async (W) => edit(W, VERBS, ORIGINAL, "const fnv = (s) => fnvHex(s).replace(/^0+/, ''); // הדגמה: נשבר (בלי ריפוד)"),
     expect: (row) => row.decision === 'הוחלף' && /^✗ fingerprint\.fixed/.test(row.laws) && row.found.some((f) => f.startsWith('באג')),
   },
   speed: {
-    he: 'מהירות — גרסה איטית',
+    he: 'מהירות — גרסה איטית', noHistory: true,
     setup: async (W) => edit(W, VERBS, ORIGINAL, 'const fnv = (s) => { let h = fnvHex(s); for (let i = 1; i <= s.length; i++) h = fnvHex(s.slice(0, i)); return h; }; // הדגמה: O(n²)'),
     expect: (row) => row.decision === 'הוחלף' && row.found.some((f) => f.startsWith('חלופה זולה')),
   },
   revert: {
-    he: 'החזרה — שווה על הקלטים של הקורא, לא על הקטלוג',
+    he: 'החזרה — שווה על הקלטים של הקורא, לא על הקטלוג', noHistory: true,
     subject: 'machine:catalog/self/parts.mjs#fnvHex·fingerprint',
     // fnvHex (החלק עצמו) הופך ל-O(n²) — אותם פלטים. החלופה הזולה שהלולאה מוצאת: fnvHexPoints — זהה על כל הקלטים שהקורא
     // נותן (אין בהם אמוג'י), אבל שונה על תווים מחוץ ל-BMP. העותק מגלה: ה-ref של המפקדים (content@<fnvHex>) על חלקים
     // שבשמם יש אמוג'י משתנה ⇒ rebuild לא ביט-זהה ⇒ הלולאה מחזירה ורושמת למה.
-    setup: async (W) => edit(W, 'catalog/self/parts.mjs', "export const fnvHex = (s) => fnv1a(s).toString(16).padStart(8, '0');", "export const fnvHex = (s) => { let h = ''; for (let i = 0; i <= s.length; i++) h = fnv1a(s.slice(0, i)).toString(16).padStart(8, '0'); return h; }; // הדגמה: O(n²)"),
+    setup: async (W) => edit(W, PARTS, FNVHEX_OK, FNVHEX_SLOW),
     expect: (row, quick) => (quick ? row.decision === 'הוחלף' : row.decision === 'הוחזר' && row.attempts.some((a) => !a.ok && /פלטי-הקטלוג השתנו/.test(a.why))) && row.found.some((f) => f.startsWith('חלופה זולה')),
   },
   refuse: {
-    he: 'סירוב — חלופה מהירה שטועה בקלט אחד',
+    he: 'סירוב — חלופה מהירה שטועה בקלט אחד', noHistory: true,
     setup: async (W) => {
       // הפתיון: FNV-1a בתוך הגוף (בלי הקריאה ל-fnv1a ⇒ צעד אחד פחות לכל קריאה), וטעות על קלט אחד — הראשון שהקורא נותן ל-fnv
       const x = (await subjectInputs(W, FNV))[0][0];
@@ -76,6 +92,49 @@ export const DEMOS = {
     },
     expect: (row) => row.decision === 'נשאר' && row.tried.some((t) => t.cand.endsWith('#fnvHexBait') && /^נדחה — פלט אחר על קלט אחד/.test(t.verdict)),
   },
+  // ─── SELF-LOOP2 · «הגרסה של אתמול» ───
+  restore: {
+    he: 'שחזור מאתמול — באג שאין לו חלק במחסן',
+    subject: FNVHEX,
+    // ההדגמה של המנהל: בלי ריפוד. במחסן אין חלק שעושה בדיוק את זה (fnvHexPoints שונה על אמוג'י, fnv עוטף את fnvHex) ⇒ ב-SELF-LOOP: הוחזר
+    setup: async (W) => edit(W, PARTS, FNVHEX_OK, 'export const fnvHex = (s) => fnv1a(s).toString(16); // הדגמה: נשבר (בלי ריפוד)'),
+    expect: (row, quick, out) => row.decision === 'הוחלף' && !!row.restored && /^✗ fingerprint\.fixed/.test(row.laws) && out.after === FNVHEX_OK,
+  },
+  regress: {
+    he: 'נסיגה בביצועים — הגרסה המהירה מההיסטוריה',
+    subject: FNVHEX,
+    setup: async (W) => edit(W, PARTS, FNVHEX_OK, FNVHEX_SLOW),
+    expect: (row, quick, out) => row.decision === 'הוחלף' && !!row.restored && row.found.some((f) => f.startsWith('נסיגה בביצועים')) && out.after === FNVHEX_OK,
+  },
+  doctext: {
+    he: 'docText — הגרסה מאתמול, לא ייבוא מסקריפט',
+    subject: 'machine:catalog/inner/lib/store.mjs#docText·format',
+    only: 'machine:catalog/inner/lib/store.mjs#docText·',
+    // השבירה של המנהל. ב-SELF-LOOP הלולאה החליפה ב-`self-check.mjs#text` (import מסקריפט); עכשיו — שחזור, דיף של שורה אחת
+    setup: async (W) => edit(W, 'catalog/inner/lib/store.mjs', DOCTEXT_OK, "export const docText = (doc) => '\\n'; // הדגמה: נשבר"),
+    expect: (row, quick, out) => row.decision === 'הוחלף' && !!row.restored && out.after === DOCTEXT_OK && out.diffLines === 1,
+  },
+  always: {
+    he: 'גבול כנה — באג שהיה בכל ההיסטוריה',
+    subject: FNVHEX,
+    // git סינתטי (רק הקובץ הזה, שני קומיטים — שתי גרסאות שבורות; העותק = האחרונה) ⇒ אין בהיסטוריה גרסה שעוברת ⇒ המחסן
+    setup: async (W, base) => {
+      const A = 'export const fnvHex = (s) => fnv1a(s).toString(16); // הדגמה: שבור מהיום הראשון';
+      const B = "export const fnvHex = (s) => fnv1a(s).toString(16).replace(/^0+/, ''); // הדגמה: עדיין שבור";
+      const orig = fs.readFileSync(path.join(W, PARTS), 'utf8');
+      const R = path.join(base, 'always-git');
+      fs.rmSync(R, { recursive: true, force: true }); fs.mkdirSync(path.join(R, 'catalog/self'), { recursive: true });
+      const env = { ...process.env, GIT_AUTHOR_NAME: 'loop-demo', GIT_AUTHOR_EMAIL: 'loop-demo@example.invalid', GIT_COMMITTER_NAME: 'loop-demo', GIT_COMMITTER_EMAIL: 'loop-demo@example.invalid', GIT_AUTHOR_DATE: '2026-10-14T12:00:00Z', GIT_COMMITTER_DATE: '2026-10-14T12:00:00Z' };
+      const g = (...a) => execFileSync('git', ['-c', 'core.hooksPath=/dev/null', '-c', 'commit.gpgsign=false', '-C', R, ...a], { env, stdio: 'pipe' });
+      g('init', '-q', '-b', 'demo');
+      for (const [v, msg] of [[A, 'הדגמה · הגרסה הראשונה (שבורה)'], [B, 'הדגמה · הגרסה השנייה (עדיין שבורה)']]) {
+        fs.writeFileSync(path.join(R, PARTS), orig.replace(FNVHEX_OK, v)); g('add', PARTS); g('commit', '-q', '-m', msg);
+      }
+      edit(W, PARTS, FNVHEX_OK, B);
+      return { SELF_LOOP_GIT: path.join(R, '.git') };
+    },
+    expect: (row, quick) => !row.restored && row.history?.tried?.length === 1 && /^נדחה — חוק הפועל נכשל גם/.test(row.history.tried[0].verdict) && row.history.sameText === 1 && (quick ? row.decision === 'הוחלף' : row.decision === 'הוחזר'),
+  },
 };
 
 /** הדגמה אחת ⇒ {demo, ok, row, diff} (בלי נתיבים זמניים). */
@@ -83,18 +142,21 @@ export async function runDemo(name, { quick = false, tmp = null } = {}) {
   const D = DEMOS[name];
   const base = tmp ?? fs.mkdtempSync(path.join(os.tmpdir(), 'loop-demo-'));
   const W = makeCopy(ROOT, path.join(base, name));
-  await D.setup(W);
+  const env = (await D.setup(W, base)) ?? {};
   const subject = D.subject ?? FNV;
   const file = subject.split(':')[1].split('#')[0];
   const before = fs.readFileSync(path.join(W, file), 'utf8');
-  const r = spawnSync(process.execPath, [path.join(W, 'catalog/self/loop.mjs'), '--apply', '--only', subject, ...(quick ? ['--quick'] : [])], { cwd: W, encoding: 'utf8', maxBuffer: 1 << 28, env: { ...process.env, TMPDIR: base } });
+  const r = spawnSync(process.execPath, [path.join(W, 'catalog/self/loop.mjs'), '--apply', '--only', D.only ?? subject, ...(quick ? ['--quick'] : []), ...(D.noHistory ? ['--no-history'] : [])], { cwd: W, encoding: 'utf8', maxBuffer: 1 << 28, env: { ...process.env, TMPDIR: base, SELF_LOOP_GIT: rootGit(), ...env } });
   if (r.status !== 0) throw new Error('הלולאה נכשלה בהדגמה ' + name + ':\n' + String(r.stderr).slice(-2000));
   const ledger = JSON.parse(fs.readFileSync(path.join(W, 'catalog/self/loop-ledger.json'), 'utf8'));
   const row = ledger.rows.find((x) => x.subject === subject);
   const after = fs.readFileSync(path.join(W, file), 'utf8');
   const sym = subject.split('#')[1].split('·')[0];
   const line = (t) => t.split('\n').find((l) => new RegExp('^(export )?const ' + sym + ' =').test(l)) ?? '';
-  const out = { demo: name, he: D.he, ok: D.expect(row, quick), checks: ledger.checks, before: line(before), after: line(after), loopWrote: before !== after, row };
+  const bl = before.split('\n'); const al = after.split('\n');
+  const diffLines = bl.length === al.length ? bl.filter((l, k) => l !== al[k]).length : null; // כמה שורות הלולאה שינתה בקובץ
+  const out = { demo: name, he: D.he, history: ledger.history.state, checks: ledger.checks, before: line(before), after: line(after), loopWrote: before !== after, diffLines, row };
+  out.ok = D.expect(row, quick, out);
   if (!tmp) fs.rmSync(base, { recursive: true, force: true });
   return out;
 }

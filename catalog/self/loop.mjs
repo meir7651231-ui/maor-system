@@ -25,6 +25,12 @@
  *   node catalog/self/loop.mjs --apply    # + מחיל את מה שנשאר, וכותב את הפנקס
  *   node catalog/self/loop.mjs --check    # רק החיפוש (בלי עותק): יציאה 1 אם יש שיפור שלא הוחל — למידע
  *   --quick                               # בלי rebuild/vitest על העותק (לבדיקות-השימור בלבד; נרשם בפנקס)
+ *   --no-history                          # בלי «הגרסה של אתמול» (רק המחסן) — כמו SELF-LOOP
+ *
+ * SELF-LOOP2 (14.10.2026) — מקור-חלקים נוסף: **ההיסטוריה של המכונה עצמה**. לכל נבדק, הגרסאות הקודמות של אותה פונקציה מ-git
+ * (HEAD ואבותיו, מהחדשה לישנה, עד HIST_CAP) הן מועמדים רגילים — אותם חוקים, אותם קלטים, אותם שערי-עותק; ההחלפה = ההצהרה
+ * ההיסטורית במקום הנוכחית. סדר-ההעדפה: באג ⇒ קודם ההיסטוריה (השינוי הקטן ביותר), ואז המחסן; מהירות ⇒ הכי מעט צעדים,
+ * ובשוויון — ההיסטוריה. ראו historySource/historyVersions/makeHistoryPatch.
  */
 import fs from 'node:fs';
 import os from 'node:os';
@@ -351,13 +357,112 @@ export async function verifiable(root) {
 /** ניתן לייבוא מקוד המכונה: קובץ JS בתוך catalog (לא gen). */
 const importable = (rel) => /^catalog\/(?!inner\/gen\/)[^]*\.m?js$/.test(rel);
 
+/* ═══════════════ מקור-חלקים: ההיסטוריה של המכונה («הגרסה של אתמול») — SELF-LOOP2 ═══════════════ */
+
+/**
+ * לכל נבדק — הגרסאות הקודמות של **אותה פונקציה** מההיסטוריה של git: רק קומיטים (HEAD ואבותיו — לעולם לא שינויים שלא
+ * קומטו), מהחדשה לישנה, עד HIST_CAP גרסאות שונות. איתור לפי שם בקובץ שלה (findDecl — מנתח TS, לא regex); גרסה זהה-טקסט
+ * לנוכחית או לגרסה חדשה יותר ⇒ מדלגים; קומיט שבו הפונקציה לא קיימת ⇒ מדלגים. אין git / אין היסטוריה ⇒ נאמר בפנקס, לא נכשלים.
+ * מקור ה-git: `SELF_LOOP_GIT` (תיקיית-git — להדגמות, שהעותק שלהן בלי .git) או ה-.git של root. דטרמיניסטי: אותו ריפו ⇒ אותן גרסאות.
+ */
+export const HIST_CAP = 20;
+const git = (G, args, input) => spawnSync('git', [...G.pre, ...args], { cwd: G.cwd, input, encoding: input === undefined ? 'utf8' : 'buffer', maxBuffer: 1 << 30, env: { ...process.env, GIT_CONFIG_NOSYSTEM: '1', LC_ALL: 'C' } });
+export function historySource(root) {
+  const env = process.env.SELF_LOOP_GIT;
+  const G = env ? { pre: ['--git-dir', env], cwd: root } : fs.existsSync(path.join(root, '.git')) ? { pre: ['-C', root], cwd: root } : null;
+  if (!G) return { state: 'אין היסטוריה זמינה כאן (אין git)', G: null };
+  const head = git(G, ['rev-parse', '--verify', '-q', 'HEAD']);
+  if (head.status !== 0) return { state: 'אין היסטוריה זמינה כאן (אין קומיטים)', G: null };
+  const shallow = String(git(G, ['rev-parse', '--is-shallow-repository']).stdout).trim() === 'true';
+  return { state: shallow ? 'שכפול רדוד — רק הקומיטים שהורדו' : 'מלאה', G, memo: new Map() };
+}
+/** הקומיטים (HEAD ואבותיו) שנגעו בקובץ, מהחדש לישן, עם הטקסט של הקובץ בכל אחד (null ⇒ הקובץ לא קיים שם). */
+function fileHistory(H, rel) {
+  if (H.memo.has(rel)) return H.memo.get(rel);
+  const log = git(H.G, ['log', '--format=%H%x09%s', 'HEAD', '--', rel]);
+  const commits = log.status === 0 ? String(log.stdout).split('\n').filter(Boolean).map((l) => { const [hash, ...s] = l.split('\t'); return { hash, short: hash.slice(0, 7), subject: s.join('\t').slice(0, 120) }; }) : [];
+  if (commits.length) {
+    const r = git(H.G, ['cat-file', '--batch'], Buffer.from(commits.map((c) => c.hash + ':' + rel).join('\n') + '\n'));
+    const buf = r.stdout; let i = 0;
+    for (const c of commits) {
+      const nl = buf.indexOf(10, i); const head = buf.subarray(i, nl).toString('utf8'); i = nl + 1;
+      const m = /^\S+ blob (\d+)$/.exec(head);
+      if (!m) { c.text = null; continue; }
+      const n = Number(m[1]); c.text = buf.subarray(i, i + n).toString('utf8'); i += n + 1;
+    }
+  }
+  H.memo.set(rel, commits);
+  return commits;
+}
+/**
+ * הטווח של הצהרה **כולל הערה בסוף השורה האחרונה שלה** (`… ; // …`) — השחזור מחזיר את השורה כמו שהייתה, בלי הערה ישנה
+ * שמתארת את הגוף שהוחלף. הזהות (כפולים / "זהה לנוכחית") — לפי הקוד בלבד, בלי ההערה.
+ */
+export function declSpan(text, d) {
+  const nl = text.indexOf('\n', d.stmt[1]);
+  const rest = text.slice(d.stmt[1], nl < 0 ? text.length : nl);
+  return [d.stmt[0], /^[ \t]*(\/\/.*)?$/.test(rest) ? d.stmt[1] + rest.replace(/[ \t]+$/, '').length : d.stmt[1]];
+}
+/** הגרסאות ההיסטוריות של הפונקציה (ההצהרה העליונה בלבד), מהחדשה לישנה, בלי כפולים ובלי הנוכחית. + מונים למה דולגו. */
+export async function historyVersions(H, rel, symbol, current) {
+  const out = { versions: [], scanned: 0, absent: 0, same: 0 };
+  if (!H.G) return out;
+  const seen = new Set([current]);
+  for (const c of fileHistory(H, rel)) {
+    if (out.versions.length >= HIST_CAP) break;
+    out.scanned++;
+    const d = c.text == null ? null : await findDecl(c.text, symbol);
+    if (!d) { out.absent++; continue; }
+    const code = c.text.slice(d.stmt[0], d.stmt[1]);
+    if (seen.has(code)) { out.same++; continue; }
+    seen.add(code);
+    const sp = declSpan(c.text, d);
+    out.versions.push({ hash: c.hash, short: c.short, subject: c.subject, stmt: c.text.slice(sp[0], sp[1]), line: d.line });
+  }
+  return out;
+}
+/**
+ * «מבטל איחוד» — חלקי-המכונה המוכחים (catalog/self/parts.mjs: "כל אחד פעם אחת") שההצהרה של היום קוראת להם וההיסטורית לא.
+ * גרסה ישנה שמעתיקה את החלק במקום לקרוא לו חוסכת רק את עלות-הקריאה (צעד או שניים לכל קריאה) — ומחזירה העתק שהמכונה
+ * כבר איחדה (SELF). במסלול-המהירות זה לא "נסיגה בביצועים" ⇒ לא משחזרים. מחזיר את השמות (ממוינים). טהור.
+ */
+export const SHARED_PARTS = 'catalog/self/parts.mjs';
+export async function sharedPartsDropped(rel, text, d, histStmt) {
+  const ts = await TS();
+  const shared = [...d.imports].filter(([, v]) => path.posix.normalize(path.posix.join(path.posix.dirname(rel), v.from)) === SHARED_PARTS).map(([k]) => k);
+  if (!shared.length) return [];
+  const refs = (src) => { const out = new Set(); const sf = ts.createSourceFile('x.mjs', src, ts.ScriptTarget.Latest, true, ts.ScriptKind.JS); const walk = (n) => { if (ts.isIdentifier(n)) out.add(n.text); ts.forEachChild(n, walk); }; walk(sf); return out; };
+  const now = refs(text.slice(d.stmt[0], d.stmt[1])); const then = refs(histStmt);
+  return shared.filter((k) => now.has(k) && !then.has(k)).sort();
+}
+
+/** השינוי המכני של שחזור: ההצהרה הנוכחית ⇒ ההצהרה ההיסטורית, מילה במילה (שאר הקובץ — כמו שהוא). */
+export async function makeHistoryPatch(root, subj, stmt) {
+  const t = fs.readFileSync(path.join(root, subj.path), 'utf8');
+  const d = await findDecl(t, subj.symbol);
+  if (!d) return { why: 'ההצהרה של הנבדק לא נמצאה כפונקציה עליונה' };
+  const sp = declSpan(t, d);
+  return { files: { [subj.path]: t.slice(0, sp[0]) + stmt + t.slice(sp[1]) } };
+}
+/** טוען גרסה של קובץ (טקסט בזיכרון) לארגז: קובץ-אח זמני באותה תיקייה (הייבואים היחסיים נפתרים כמו במקור), נמחק מיד. */
+async function loadVariant(root, M, rel, text, symbols) {
+  const abs = path.join(root, rel);
+  const tmp = path.join(path.dirname(abs), '.self-loop-hist-' + process.pid + path.extname(abs));
+  const expose = [...new Set(symbols)].filter((s) => !new RegExp('export\\s+(async\\s+)?(function|const|let|class)\\s+' + s + '\\b').test(text)).sort();
+  try {
+    fs.writeFileSync(tmp, text);
+    return M.sandbox.loadInSandbox(await M.sandbox.bundleFile(tmp, { expose, esm: true, cli: true }));
+  } catch { return null; } finally { fs.rmSync(tmp, { force: true }); }
+}
+
 /* ═══════════════ הלולאה ═══════════════ */
 
 /**
  * שלב א׳ (זול, בלי עותק): לכל נבדק — חוקים, קלטים, מועמדים ופסיקה. מחזיר את שורות-הפנקס + התור לבדיקה על העותק.
  */
-export async function plan(root = ROOT, { only = null } = {}) {
+export async function plan(root = ROOT, { only = null, history = true } = {}) {
   const M = await machineMods(root);
+  const H = history ? historySource(root) : { state: 'כבוי (--no-history)', G: null };
   const all = await subjectsOf(root, M);
   const subjects = only ? all.filter((s) => only.some((o) => s.id.includes(o))) : all;
   const W = await warehouse(root, M, all);
@@ -437,7 +542,7 @@ export async function plan(root = ROOT, { only = null } = {}) {
       if (L.held && law.laws['speed.same'].ok && !strong) { count('אותם פלטים — אבל אין מספיק קלטים מבחינים (פלט אחד שולט)'); continue; }
       const diffs = run.outs.reduce((n, x, k) => n + (x === mine.outs[k] ? 0 : 1), 0);
       c.line ??= c.path ? await lineOf(root, c.path, c.symbol) : null;
-      const t = { cand: c.id, project: c.project, at: c.path ? at(c.path, c.line) : null, laws: CL.holds, inputs: ins.length, same: law.laws['speed.same'].ok ? 'כן' : law.laws['speed.same'].why, steps: run.steps + ' מול ' + mine.steps, diffs, _ins: ins, _base: mine, _n: run.steps };
+      const t = { cand: c.id, project: c.project, at: c.path ? at(c.path, c.line) : null, laws: CL.holds, inputs: ins.length, same: law.laws['speed.same'].ok ? 'כן' : law.laws['speed.same'].why, steps: run.steps + ' מול ' + mine.steps, diffs, _ins: ins, _base: mine, _n: run.steps, _outs: run.outs };
       if (!L.held) t.verdict = 'מתקן (עובר n/n)';
       else if (!law.laws['speed.same'].ok) t.verdict = 'נדחה — ' + law.laws['speed.same'].why;
       else if (!law.laws['speed.fewer'].ok) t.verdict = 'כפילות — ' + law.laws['speed.fewer'].why;
@@ -449,6 +554,40 @@ export async function plan(root = ROOT, { only = null } = {}) {
       if (eligible && !checkable) t.verdict += ' · הקוד של הנבדק לא בגרף של הבונה-מחדש — דורש שכפול לאימות ביט-זהות';
       tried.push(t);
     }
+    // ── «הגרסה של אתמול»: אותה פונקציה בקומיטים הקודמים, מהחדשה לישנה (SELF-LOOP2). כל גרסה = מועמד רגיל: חוקי-הפועל n/n
+    //    על אותם קלטים · פלטים · צעדים — וההחלפה = ההצהרה ההיסטורית במקום הנוכחית (makeHistoryPatch), ואחריה שערי-העותק.
+    const hist = [];
+    if (d && H.G) {
+      const text = fs.readFileSync(path.join(root, s.path), 'utf8');
+      const hv = await historyVersions(H, s.path, s.symbol, text.slice(d.stmt[0], d.stmt[1]));
+      const sp = declSpan(text, d);
+      row.history = { scanned: hv.scanned, versions: hv.versions.length, ...(hv.same ? { sameText: hv.same } : {}), ...(hv.absent ? { absent: hv.absent } : {}) };
+      for (const v of hv.versions) {
+        const t = { cand: 'history:' + v.short, project: 'היסטוריה', commit: v.short + ' · ' + v.subject, at: at(s.path, v.line), hist: true, eligible: false, _stmt: v.stmt };
+        hist.push(t);
+        const HR = runnerOf(M, await loadVariant(root, M, s.path, text.slice(0, sp[0]) + v.stmt + text.slice(sp[1]), [s.symbol]), s.symbol, sig, s.adapt);
+        if (!HR) { t.verdict = 'נדחה — הגרסה לא נטענת עם שאר הקובץ של היום'; continue; }
+        const HL = lawsOf(M, HR, s.verb, o);
+        t.laws = HL.held ? HL.holds : '✗ ' + HL.law;
+        if (!HL.held) { t.verdict = 'נדחה — חוק הפועל נכשל גם בגרסה הזו (' + HL.law + ')'; continue; }
+        const ins = [...L.inputs, ...HL.inputs.filter((a) => !seen.has(JSON.stringify(a)))];
+        const mine = ins.length === L.inputs.length ? base : runOn(M, R, ins, seed);
+        const run = runOn(M, HR, ins, seed);
+        const law = speedLaw(mine, run);
+        Object.assign(t, { inputs: ins.length, same: law.laws['speed.same'].ok ? 'כן' : law.laws['speed.same'].why, steps: run.steps + ' מול ' + mine.steps, _ins: ins, _base: mine, _n: run.steps, _outs: run.outs });
+        const strong = distinguishing(mine.outs);
+        if (!L.held) t.verdict = 'מתקן — שחזור (עובר n/n)';
+        else if (!law.laws['speed.same'].ok) t.verdict = 'נדחה — ' + law.laws['speed.same'].why;
+        else if (!strong) t.verdict = 'נדחה — אותם פלטים, אבל אין מספיק קלטים מבחינים';
+        else if (!law.laws['speed.fewer'].ok) t.verdict = 'כמו היום — ' + law.laws['speed.fewer'].why;
+        else if ((t._drop = await sharedPartsDropped(s.path, text, d, v.stmt)).length) t.verdict = 'נדחה — מבטל איחוד: מעתיקה את ' + t._drop.join(', ') + ' (חלק-מכונה מוכח, ' + SHARED_PARTS + ') במקום לקרוא לו — החיסכון (' + run.steps + ' מול ' + mine.steps + ' צעדים) הוא עלות-הקריאה בלבד';
+        else { t.verdict = 'נסיגה בביצועים — הגרסה הזו מהירה יותר (' + run.steps + ' מול ' + mine.steps + ' צעדים)'; t.kind = 'נסיגה בביצועים'; }
+        const fits = !L.held || (law.ok && strong && !t._drop?.length);
+        if (fits && !checkable) t.verdict += ' · הקוד של הנבדק לא בגרף של הבונה-מחדש — דורש שכפול לאימות ביט-זהות';
+        t.eligible = fits && checkable;
+      }
+    } else row.history = { state: H.G ? 'הנבדק לא נמצא כהצהרה עליונה' : H.state };
+    for (const t of hist.filter((x) => x.kind)) found.push(t.kind + ': גרסה מ-' + t.commit);
     for (const r of combos) {
       if (s.adapt) { count('שילוב — דורש מתאם (לנבדק יש מתאם-תפקיד)'); continue; }
       count('שילוב — דורש מתאם-ייבוא (זמן-ריצה)');
@@ -456,7 +595,11 @@ export async function plan(root = ROOT, { only = null } = {}) {
     // ההכרעה: באג ⇒ הקרוב ביותר להתנהגות הקיימת (הכי מעט פלטים שונים), ואז צעדים, ואז מזהה. מהירות ⇒ הכי מעט צעדים, ואז מזהה.
     const order = (a, b) => (!L.held ? a.diffs - b.diffs : 0) || a._n - b._n || (a.cand < b.cand ? -1 : a.cand > b.cand ? 1 : 0);
     tried.sort((a, b) => (a.cand < b.cand ? -1 : a.cand > b.cand ? 1 : 0));
-    const winners = tried.filter((t) => t.eligible).sort(order);
+    // סדר-ההעדפה (SELF-LOOP2): באג ⇒ קודם ההיסטוריה, מהחדשה לישנה (השינוי הקטן ביותר — אותה התנהגות בדיוק שהייתה), ורק
+    // אחריה המחסן. מהירות ⇒ הכי מעט צעדים; שוויון בצעדים ⇒ ההיסטוריה קודם (שחזור מילה-במילה, בלי import חדש).
+    const hw = hist.filter((t) => t.eligible);
+    const ww = tried.filter((t) => t.eligible).sort(order);
+    const winners = !L.held ? [...hw, ...ww] : [...hw, ...ww].sort((a, b) => a._n - b._n);
     // הממצאים: מהמכונה — כל אחד בשמו; מהמחסן — כמה, ודוגמה (הראשון לפי מזהה)
     for (const kind of ['כפילות', 'חלופה זולה']) {
       const ids = tried.filter((t) => t.kind === kind).map((t) => t.cand);
@@ -470,17 +613,18 @@ export async function plan(root = ROOT, { only = null } = {}) {
     const keep = (t) => t.cand.startsWith('machine:') || t.same === 'כן' || !L.held;
     for (const t of tried) if (!keep(t)) count('עובר את החוקים — פלט אחר (חלק מהמחסן)');
     row.skipped = Object.fromEntries(Object.entries(tally).sort((a, b) => (a[0] < b[0] ? -1 : 1)));
-    row.tried = tried.filter(keep).map(({ eligible: _e, diffs: _d, _ins, _base, _n, kind: _k, ...t }) => t);
+    row.tried = tried.filter(keep).map(({ eligible: _e, diffs: _d, _ins, _base, _n, _outs, kind: _k, ...t }) => t);
+    if (hist.length) row.history.tried = hist.map(({ eligible: _e, hist: _h, _stmt, _drop, _ins, _base, _n, _outs, kind: _k, ...t }) => t);
     if (!winners.length) {
       row.decision = 'נשאר';
-      row.why = !L.held ? 'באג — אין חלק מוכח שעובר את החוקים ונטען מקוד המכונה' : found.length ? 'אין חלופה מהירה יותר שאפשר לייבא' : tried.length ? 'אין חלק עם אותם פלטים' : 'אין מועמד מאותה צורה';
+      row.why = !L.held ? 'באג — אין גרסה בהיסטוריה ואין חלק מוכח שעוברים את החוקים ונטענים מקוד המכונה' : found.length ? 'אין חלופה מהירה יותר שאפשר לייבא' : tried.length ? 'אין חלק עם אותם פלטים' : 'אין מועמד מאותה צורה';
     } else {
       row.decision = 'לבדיקה';
       queue.push({ s, row, winners, base, L, seed });
     }
     rows.push(row);
   }
-  return { rows, queue, M };
+  return { rows, queue, M, H };
 }
 
 /* ═══════════════ העותק ═══════════════ */
@@ -527,8 +671,8 @@ function diffFiles(a, b) {
  */
 async function attempt(base, W, item, w, { quick }) {
   const { s, L } = item;
-  const note = (L.held ? 'אותם פלטים, פחות צעדים — ' : 'תיקון באג (' + L.law + ') — ') + w.cand + (w.at ? ' (' + w.at + ')' : '');
-  const p = await makePatch(W, s, { path: w.at.split(':')[0], symbol: w.cand.split('#')[1] }, note);
+  const note = w.hist ? '' : (L.held ? 'אותם פלטים, פחות צעדים — ' : 'תיקון באג (' + L.law + ') — ') + w.cand + (w.at ? ' (' + w.at + ')' : '');
+  const p = w.hist ? await makeHistoryPatch(W, s, w._stmt) : await makePatch(W, s, { path: w.at.split(':')[0], symbol: w.cand.split('#')[1] }, note);
   const checks = {};
   if (p.why) return { ok: false, why: p.why, checks };
   for (const [rel, t] of Object.entries(p.files)) fs.writeFileSync(path.join(W, rel), t);
@@ -562,33 +706,36 @@ async function attempt(base, W, item, w, { quick }) {
 }
 
 /** הלולאה כולה. apply ⇒ מעתיק לריפו את מה שנשאר (+ כל מה ש-rebuild כתב בעותק) וכותב את הפנקס. */
-export async function loop({ root = ROOT, apply = false, quick = false, only = null, work = null } = {}) {
-  const { rows, queue, M } = await plan(root, { only });
+export async function loop({ root = ROOT, apply = false, quick = false, only = null, work = null, history = true } = {}) {
+  const { rows, queue, H } = await plan(root, { only, history });
   const tmp = work ?? fs.mkdtempSync(path.join(os.tmpdir(), 'self-loop-'));
   const kept = []; let lastGood = null;
   for (const item of queue) {
     item.row.attempts = [];
     for (const w of item.winners) {
       // באג: הפלטים שהחלק המוכח נותן — הם מה שהנבדק אמור לתת אחרי השינוי
-      if (!item.L.held) item.fixOuts = await outsOfCandidate(root, M, item, w);
+      if (!item.L.held) item.fixOuts = w._outs;
       const W = makeCopy(root, path.join(tmp, 'w'));
       for (const k of kept) for (const [rel, t] of Object.entries(k.texts)) fs.writeFileSync(path.join(W, rel), t);
       const res = await attempt(lastGood ?? root, W, item, w, { quick });
-      item.row.attempts.push({ cand: w.cand, ok: res.ok, checks: res.checks, ...(res.why ? { why: res.why } : {}) });
+      item.row.attempts.push({ cand: w.cand, ...(w.hist ? { commit: w.commit } : {}), ok: res.ok, checks: res.checks, ...(res.why ? { why: res.why } : {}) });
       if (res.ok) {
         const texts = Object.fromEntries(res.files.map((f) => [f, fs.readFileSync(path.join(W, f), 'utf8')]));
         kept.push({ texts });
         const keep = path.join(tmp, 'good'); fs.rmSync(keep, { recursive: true, force: true }); fs.renameSync(W, keep); lastGood = keep;
         item.row.decision = 'הוחלף';
-        item.row.by = w.cand + (w.at ? ' (' + w.project + ' · ' + w.at + ')' : '');
-        item.row.why = item.L.held ? 'חוק-המהירות: אותם פלטים, ' + res.checks.steps + ' צעדים' : 'החוק נכשל (' + item.L.law + ') ⇒ החלק המוכח עובר n/n';
+        item.row.by = w.hist ? w.cand + ' (שחזור · ' + w.commit + ')' : w.cand + (w.at ? ' (' + w.project + ' · ' + w.at + ')' : '');
+        item.row.why = w.hist
+          ? (item.L.held ? 'נסיגה בביצועים ⇒ שוחזרה הגרסה מהקומיט: אותם פלטים, ' + res.checks.steps + ' צעדים' : 'החוק נכשל (' + item.L.law + ') ⇒ שוחזרה הגרסה האחרונה מההיסטוריה שעוברת הכול (מילה במילה)')
+          : item.L.held ? 'חוק-המהירות: אותם פלטים, ' + res.checks.steps + ' צעדים' : 'החוק נכשל (' + item.L.law + ') ⇒ החלק המוכח עובר n/n';
+        if (w.hist) item.row.restored = w.commit;
         item.row.files = res.files;
         break;
       }
     }
     if (item.row.decision === 'לבדיקה') { item.row.decision = 'הוחזר'; item.row.why = 'כל המועמדים נכשלו בבדיקה על העותק — ' + item.row.attempts.map((a) => a.why).join(' / '); }
   }
-  const ledger = ledgerOf(rows, { quick });
+  const ledger = ledgerOf(rows, { quick, history: H.state });
   if (apply && lastGood) {
     for (const f of diffFiles(root, lastGood)) {
       const src = path.join(lastGood, f); const dst = path.join(root, f);
@@ -600,22 +747,15 @@ export async function loop({ root = ROOT, apply = false, quick = false, only = n
   return ledger;
 }
 
-async function outsOfCandidate(root, M, item, w) {
-  const loadFile = fileLoader(root, M);
-  const rel = w.at.split(':')[0]; const sym = w.cand.split('#')[1];
-  const mod = await loadFile(rel, [sym]);
-  const R = runnerOf(M, mod, sym, item.s.sig ?? { takes: item.s.takes }, item.s.adapt);
-  return R ? runOn(M, R, w._ins, item.seed).outs : [];
-}
-
-export function ledgerOf(rows, { quick = false } = {}) {
+export function ledgerOf(rows, { quick = false, history = 'כבוי (--no-history)' } = {}) {
   const n = (d) => rows.filter((r) => r.decision === d).length;
   return {
-    version: 1,
+    version: 2,
     note: 'נוצר ע"י catalog/self/loop.mjs — לכל פונקציה של המכונה שהפועל שלה ידוע: מה נמצא, במה נבדק, מה הוחלט ולמה. דטרמיניסטי (בלי שעון, בלי נתיבים זמניים).',
     law: { id: SPEED_LAW.id, he: SPEED_LAW.he, laws: SPEED_LAW.laws.map((l) => l.id + ' — ' + l.he) },
+    history: { source: 'git — HEAD ואבותיו בלבד (לעולם לא שינויים שלא קומטו)', state: history, cap: HIST_CAP + ' גרסאות שונות לכל פונקציה' },
     checks: quick ? 'מהיר: חוקים · פלטים · צעדים (בלי rebuild/vitest)' : 'מלא: חוקים · פלטים · צעדים · rebuild ביט-זהה · vitest catalog',
-    summary: { subjects: rows.length, bugs: rows.filter((r) => r.found?.some((f) => f.startsWith('באג'))).length, duplicates: rows.filter((r) => r.found?.some((f) => f.startsWith('כפילות'))).length, cheaper: rows.filter((r) => r.found?.some((f) => f.startsWith('חלופה זולה'))).length, replaced: n('הוחלף'), reverted: n('הוחזר'), kept: n('נשאר') },
+    summary: { subjects: rows.length, bugs: rows.filter((r) => r.found?.some((f) => f.startsWith('באג'))).length, duplicates: rows.filter((r) => r.found?.some((f) => f.startsWith('כפילות'))).length, cheaper: rows.filter((r) => r.found?.some((f) => f.startsWith('חלופה זולה'))).length, replaced: n('הוחלף'), restored: rows.filter((r) => r.restored).length, regressions: rows.filter((r) => r.found?.some((f) => f.startsWith('נסיגה בביצועים'))).length, reverted: n('הוחזר'), kept: n('נשאר') },
     rows,
   };
 }
@@ -650,17 +790,17 @@ async function main() {
   const apply = argv.includes('--apply'); const quick = argv.includes('--quick'); const check = argv.includes('--check');
   const only = val('--only') ? val('--only').split(',') : null;
   if (check) {
-    const { rows } = await plan(ROOT, { only });
+    const { rows } = await plan(ROOT, { only, history: !argv.includes('--no-history') });
     const pending = rows.filter((r) => r.decision === 'לבדיקה');
     for (const r of pending) console.log('• ' + r.subject + ' — ' + r.found.join(' · '));
     console.log(pending.length ? '✗ ' + pending.length + ' שיפורים שלא הוחלו — הרץ: node catalog/self/loop.mjs --apply' : '✓ אין שיפור שלא הוחל');
     process.exit(pending.length ? 1 : 0);
   }
-  const ledger = await loop({ apply, quick, only });
+  const ledger = await loop({ apply, quick, only, history: !argv.includes('--no-history') });
   const out = val('--out');
   if (out) fs.writeFileSync(path.resolve(out), JSON.stringify(ledger, null, 1) + '\n');
   const s = ledger.summary;
-  console.log(`🔁 הלולאה: ${s.subjects} נבדקים · באגים ${s.bugs} · כפילויות ${s.duplicates} · חלופות זולות ${s.cheaper} ⇒ הוחלפו ${s.replaced} · הוחזרו ${s.reverted} · נשארו ${s.kept}${apply ? ' · הפנקס: ' + LEDGER : ''}`);
+  console.log(`🔁 הלולאה: ${s.subjects} נבדקים · באגים ${s.bugs} · כפילויות ${s.duplicates} · חלופות זולות ${s.cheaper} ⇒ הוחלפו ${s.replaced} (מהם שוחזרו מההיסטוריה ${s.restored}) · הוחזרו ${s.reverted} · נשארו ${s.kept}${apply ? ' · הפנקס: ' + LEDGER : ''}`);
   for (const r of ledger.rows.filter((x) => x.decision !== 'נשאר' || x.found.length)) console.log(`  ${r.decision === 'הוחלף' ? '✓' : r.decision === 'הוחזר' ? '↩' : '·'} ${r.subject} — ${r.found.join(' · ') || '—'} ⇒ ${r.decision}${r.by ? ' ב-' + r.by : ''}${r.why ? ' (' + r.why + ')' : ''}`);
 }
 
