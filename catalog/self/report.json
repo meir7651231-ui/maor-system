@@ -1,32 +1,32 @@
 {
  "source": "machine",
- "ref": "catalog@ff490750407c",
+ "ref": "catalog@4e616b9fbfdd",
  "seed": 13269520,
  "generatedAt": null,
  "census": {
-  "files": 65,
-  "parts": 542
+  "files": 66,
+  "parts": 551
  },
  "parts": {
   "totals": {
-   "run": 341,
-   "runWithVerb": 67,
+   "run": 347,
+   "runWithVerb": 70,
    "twin": 0,
-   "static": 201,
+   "static": 204,
    "staticWithVerb": 18,
    "why": {
-    "no-fitting-input": 176,
+    "no-fitting-input": 179,
     "load-failed": 25
    }
   },
   "verbs": {
-   "format": 26,
+   "format": 27,
    "round": 12,
    "validate": 11,
    "normalize": 10,
+   "provide": 7,
    "clamp": 6,
    "convert": 6,
-   "provide": 5,
    "fingerprint": 3,
    "tier": 3,
    "compare": 2,
@@ -126,6 +126,12 @@
     "id": "machine:catalog/lib/cache.mjs#fileOf",
     "verbs": [
      "format 15/15"
+    ]
+   },
+   {
+    "id": "machine:catalog/lib/gitfp.mjs#gitEnv",
+    "verbs": [
+     "provide 3/3"
     ]
    },
    {
@@ -413,7 +419,19 @@
     ]
    },
    {
+    "id": "machine:catalog/self/loop.mjs#MEMO_OFF",
+    "verbs": [
+     "provide 3/3"
+    ]
+   },
+   {
     "id": "machine:catalog/self/loop.mjs#at",
+    "verbs": [
+     "format 15/15"
+    ]
+   },
+   {
+    "id": "machine:catalog/self/loop.mjs#cacheBase",
     "verbs": [
      "format 15/15"
     ]
@@ -461,26 +479,26 @@
  },
  "inner": {
   "totals": {
-   "candidates": 3439,
-   "parts": 1449,
-   "run": 953,
-   "runWithVerb": 293,
+   "candidates": 3526,
+   "parts": 1465,
+   "run": 967,
+   "runWithVerb": 295,
    "twin": 0,
-   "static": 496,
-   "staticWithVerb": 252,
+   "static": 498,
+   "staticWithVerb": 254,
    "why": {
-    "no-fitting-input": 496
+    "no-fitting-input": 498
    }
   },
   "verbs": {
-   "format": 94,
+   "format": 97,
    "round": 71,
-   "normalize": 49,
+   "normalize": 48,
    "convert": 37,
    "clamp": 32,
    "split": 19,
    "tier": 14,
-   "validate": 14,
+   "validate": 13,
    "personalize": 10,
    "provide": 10,
    "filter": 4,

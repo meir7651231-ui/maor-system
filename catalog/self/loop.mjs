@@ -38,6 +38,9 @@ import path from 'node:path';
 import vm from 'node:vm';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { syncBuiltinESMExports } from 'node:module';
+import crypto from 'node:crypto';
+import { gitIndex, fileSha } from '../lib/gitfp.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '../..');
@@ -455,26 +458,215 @@ async function loadVariant(root, M, rel, text, symbols) {
   } catch { return null; } finally { fs.rmSync(tmp, { force: true }); }
 }
 
+/* ═══════════════ ⚡ הזיכרון (SPEED1000, 14.10.2026) ═══════════════ */
+
+/**
+ * "הלולאה עם זיכרון" — שתי שכבות, כל אחת עם נפילה בטוחה לחישוב המלא, והפנקס ביט-זהה בכל דרך (ratchet: speed1000.test):
+ *   1. **הכול-או-כלום** (`wholeKey`): טביעה של כל קובץ ב-catalog/ · src/ · telephony/ · functions/ + הגדרות-TS + גרסאות
+ *      node/typescript/rolldown + האפשרויות — דרך האינדקס של git (lib/gitfp.mjs — בלי לקרוא קובץ נקי). + ההיסטוריה: הקומיט
+ *      שבו נשמר הזיכרון (P) הוא אב של HEAD, בלי מיזוגים בדרך, ואף קומיט P..HEAD לא נגע בקובץ של נבדק ⇒ "הגרסה של אתמול"
+ *      של כל נבדק זהה. שווה ⇒ השורות מהזיכרון (הפנקס שבריפו — אם טביעתו = מה שנרשם — או המטמון המקומי). שכפול טרי: ~0.2s.
+ *   2. **לפי נבדק** (מטמון מקומי): השלב הגלובלי רץ (הנבדקים, המחסן — שניות), ולכל נבדק — שורת-הפנקס נשלפת אם **כל קובץ
+ *      שהבדיקה שלו נגעה בו** (נרשם תוך כדי: קריאות-fs בתהליך + כל מה שהאורז ארז — globalThis.__catalogBundleDeps ב-sandbox)
+ *      עם אותה טביעה, ההיסטוריה של הקובץ שלו זהה, וערכי השלב הגלובלי (הנבדקים · המחסן לפועל · כלי-הבדיקה) זהים.
+ *      שינוי בפונקציה אחת ⇒ רק הנבדקים שקבציהם (שלהם או של המועמדים שלהם) השתנו נבדקים מחדש. שינוי בכלי-הבדיקה עצמו
+ *      (catalog/lib · combiner · inner/lib · core · self/{loop,roles,parts} · src/lib/atoms — החוקים, הארגז, המחולל) ⇒ הכול.
+ * שורה שמחכה לבדיקה על עותק ('לבדיקה') לא נשמרת — היא תמיד מחושבת מחדש. `CATALOG_CACHE=off` / `SELF_LOOP_MEMO=off` ⇒ בלי זיכרון.
+ */
+export const MEMO = 'catalog/self/loop-memo.json';
+const MEMO_V = 'loop-memo-v1';
+const MEMO_OFF = () => process.env.CATALOG_CACHE === 'off' || process.env.SELF_LOOP_MEMO === 'off';
+const SCOPE_DIRS = ['catalog', 'src', 'telephony', 'functions'];
+const SCOPE_FILES = ['package.json', 'tsconfig.json', 'tsconfig.app.json', 'tsconfig.node.json', 'jsconfig.json'];
+const SCOPE_SKIP = new Set(['node_modules', 'gen', '.git', '.cache']);
+/** הפלטים של הלולאה עצמה (לא קלט שלה) + הקבצים הפרושים (נגזרים מהמחסן, שנמצא בהיקף). */
+const notInput = (rel) => rel === LEDGER || rel === MEMO || rel === 'catalog/self/loop-demo.json' || /^catalog\/(sources|behavior)\/inner-[^/]*\.json$/.test(rel);
+const fpOf = (...parts) => { const h = crypto.createHash('sha256'); for (const p of parts) { const b = Buffer.from(String(p)); h.update(b.length + ':'); h.update(b); } return h.digest('hex').slice(0, 32); };
+const verOf = (root, pkg) => { try { return JSON.parse(fs.readFileSync(path.join(root, 'node_modules', pkg, 'package.json'), 'utf8')).version; } catch { return '?'; } };
+const envKey = (root) => ['node' + process.versions.node.split('.')[0], verOf(root, 'typescript'), verOf(root, 'rolldown'), process.env.SELF_LOOP_GIT ? 'git:' + process.env.SELF_LOOP_GIT : fs.existsSync(path.join(root, '.git')) ? 'git' : 'no-git'];
+
+/** כל הקבצים בהיקף (יחסיים, ממוינים). */
+function scopeFiles(root) {
+  const out = [];
+  const walk = (rel) => {
+    let es; try { es = fs.readdirSync(path.join(root, rel), { withFileTypes: true }); } catch { return; }
+    for (const e of es) {
+      const r = rel + '/' + e.name;
+      if (e.isDirectory()) { if (!SCOPE_SKIP.has(e.name)) walk(r); } else if (e.isFile() && !/^\.env/.test(e.name) && !notInput(r)) out.push(r);
+    }
+  };
+  for (const d of SCOPE_DIRS) walk(d);
+  for (const f of SCOPE_FILES) if (fs.existsSync(path.join(root, f))) out.push(f);
+  return out.sort();
+}
+/** שכבה 1: טביעת כל ההיקף + הסביבה + האפשרויות. */
+export function wholeKey(root, opts, idx = gitIndex(root)) {
+  return fpOf(MEMO_V, JSON.stringify(opts), ...envKey(root), ...scopeFiles(root).flatMap((f) => [f, fileSha(root, idx, f)]));
+}
+/** HEAD + האם רדוד — כמו historySource (אותו מקור-git). */
+function headOf(root) {
+  const H = historySource(root);
+  if (!H.G) return { head: null, state: H.state, H };
+  return { head: String(git(H.G, ['rev-parse', 'HEAD']).stdout).trim(), state: H.state, H };
+}
+/** ההיסטוריה של כל קובץ-נבדק זהה לזו שב-P: P אב של HEAD, בלי מיזוג בדרך, ואף קומיט P..HEAD לא נגע בקבצים. */
+export function historySame(root, memo, history) {
+  if (!history) return true;
+  const { head, state, H } = headOf(root);
+  if (state !== memo.hstate) return false;
+  if (!H.G) return memo.head == null;
+  if (head === memo.head) return true;
+  if (!memo.head || git(H.G, ['merge-base', '--is-ancestor', memo.head, head]).status !== 0) return false;
+  const log = git(H.G, ['log', '--format=%x01%P', '--name-only', '-m', memo.head + '..' + head]);
+  if (log.status !== 0) return false;
+  const files = new Set(memo.subjectFiles);
+  for (const block of String(log.stdout).split('\x01').slice(1)) {
+    const [parents, ...names] = block.split('\n');
+    if (parents.trim().split(/\s+/).length > 1) return false; // מיזוג ⇒ הפישוט של git log עלול לבחור הורה אחר — לא סומכים
+    if (names.some((n) => files.has(n.trim()))) return false;
+  }
+  return true;
+}
+/** שכבה 1 — שליפה. מחזיר {rows, hstate} או null. */
+export function wholeGet(root, opts) {
+  if (MEMO_OFF()) return null;
+  const idx = gitIndex(root);
+  const key = wholeKey(root, opts, idx);
+  // (א) הזיכרון שבריפו — מצביע על הפנקס שבריפו (רק כשאין שורה שמחכה לבדיקה ⇒ הפנקס = שורות-התוכנית)
+  try {
+    const m = JSON.parse(fs.readFileSync(path.join(root, MEMO), 'utf8'));
+    if (m.version === MEMO_V && m.key === key && fileSha(root, idx, LEDGER) === m.ledger && historySame(root, m, opts.history)) {
+      const L = JSON.parse(fs.readFileSync(path.join(root, LEDGER), 'utf8'));
+      return { rows: L.rows, hstate: m.hstate, from: 'הזיכרון שבריפו' };
+    }
+  } catch { /* אין / פגום ⇒ הלאה */ }
+  // (ב) המטמון המקומי
+  const hit = cacheGetLocal(root, 'loop-all', key);
+  if (hit && historySame(root, hit, opts.history)) return { rows: hit.rows, hstate: hit.hstate, from: 'המטמון המקומי' };
+  return null;
+}
+/** שכבה 1 — שמירה (מקומי תמיד; בריפו — רק עם --apply, ורק כשאין שורה שמחכה ⇒ הפנקס שנכתב = השורות). */
+export function wholePut(root, opts, rows, hstate, subjectFiles, { repo = false } = {}) {
+  if (MEMO_OFF()) return;
+  const idx = gitIndex(root);
+  const key = wholeKey(root, opts, idx);
+  const { head } = headOf(root);
+  const files = [...new Set(subjectFiles)].sort();
+  cachePutLocal(root, 'loop-all', key, { rows, hstate, head: opts.history ? head : null, subjectFiles: files });
+  if (repo && !rows.some((r) => r.decision === 'לבדיקה')) {
+    const m = { version: MEMO_V, note: 'נוצר ע"י catalog/self/loop.mjs --apply — הזיכרון של הלולאה: טביעת כל ההיקף (key), הפנקס שנכתב (ledger = sha של git), והקומיט שממנו נגזרה ההיסטוריה (head). שכפול טרי בלי שינוי ⇒ הפנקס נלקח מכאן בלי לבדוק שוב.', key, ledger: fileSha(root, idx, LEDGER), head: opts.history ? head : null, hstate, subjectFiles: files };
+    fs.writeFileSync(path.join(root, MEMO), JSON.stringify(m, null, 1) + '\n');
+  }
+}
+/** מטמון מקומי (node_modules/.cache/catalog-<מרחב>) — כמו lib/cache.mjs, של ה-root הנבדק (עותק ⇒ ה-node_modules המקושר). */
+const cacheBase = (root) => (process.env.CATALOG_CACHE && process.env.CATALOG_CACHE !== 'off' ? path.resolve(process.env.CATALOG_CACHE) : path.join(root, 'node_modules/.cache'));
+function cacheGetLocal(root, ns, key) {
+  if (MEMO_OFF()) return undefined;
+  try { return JSON.parse(fs.readFileSync(path.join(cacheBase(root), 'catalog-' + ns, key.slice(0, 2), key + '.json'), 'utf8')); } catch { return undefined; }
+}
+function cachePutLocal(root, ns, key, v) {
+  if (MEMO_OFF()) return;
+  const f = path.join(cacheBase(root), 'catalog-' + ns, key.slice(0, 2), key + '.json');
+  try { fs.mkdirSync(path.dirname(f), { recursive: true }); const t = f + '.' + process.pid + '.tmp'; fs.writeFileSync(t, JSON.stringify(v)); fs.renameSync(t, f); } catch { /* האצה בלבד */ }
+}
+
+/**
+ * שכבה 2 — «רושם»: כל קובץ שנקרא (fs בתהליך — גם המהדר) או נארז (האורז) בזמן שקבוצה פתוחה נרשם לכל הקבוצות הפתוחות.
+ * קבצים מחוץ ל-root / ב-node_modules — מכוסים בגרסאות (envKey), לא נרשמים. תיקייה ⇒ נרשמת עם רשימת-השמות שלה.
+ */
+function makeRecorder(root) {
+  const stack = [];
+  const real = (() => { try { return fs.realpathSync(root); } catch { return root; } })();
+  const relOf = (p) => {
+    if (p instanceof URL) p = fileURLToPath(p);
+    if (typeof p !== 'string') return null;
+    const abs = path.resolve(p);
+    for (const base of [root, real]) {
+      const r = path.relative(base, abs);
+      if (r && !r.startsWith('..') && !path.isAbsolute(r)) return r.split(path.sep).includes('node_modules') ? null : r.split(path.sep).join('/');
+    }
+    return null;
+  };
+  const note = (p, dir) => { if (!stack.length) return; const r = relOf(p); if (r == null) return; for (const set of stack) set.add(dir ? r + '/' : r); };
+  const orig = {};
+  const NAMES = [['readFileSync', false], ['existsSync', false], ['statSync', false], ['lstatSync', false], ['readdirSync', true]];
+  return {
+    start() {
+      for (const [n, dir] of NAMES) { orig[n] = fs[n]; const f = orig[n]; fs[n] = function (p, ...rest) { note(p, dir); return f.call(this, p, ...rest); }; }
+      syncBuiltinESMExports();
+      globalThis.__catalogBundleDeps = (deps) => { for (const d of deps) note(d, false); };
+    },
+    stop() { for (const [n] of NAMES) fs[n] = orig[n]; syncBuiltinESMExports(); delete globalThis.__catalogBundleDeps; },
+    /** מריץ fn כשהקבוצה פתוחה (מקוננת: כל קבוצה פתוחה מקבלת). */
+    async within(set, fn) { stack.push(set); try { return await fn(); } finally { stack.splice(stack.lastIndexOf(set), 1); } },
+    /** תלויות של זיכרון-פנימי (נשלף בלי לקרוא שוב) ⇒ לכל הקבוצות הפתוחות. */
+    add(files) { for (const set of stack) for (const f of files) set.add(f); },
+  };
+}
+/** טביעה של רשימת-תלויות: קובץ ⇒ sha (חסר ⇒ '!'); תיקייה ⇒ שמות-הרשומות שבה. */
+function depsPrint(root, idx, deps) {
+  return deps.map((d) => {
+    if (d.endsWith('/')) { let es; try { es = fs.readdirSync(path.join(root, d)).sort().join('\n'); } catch { es = '!'; } return [d, fpOf(es)]; }
+    let st; try { st = fs.statSync(path.join(root, d)); } catch { return [d, '!']; }
+    return [d, st.isFile() ? fileSha(root, idx, d) : st.isDirectory() ? 'dir' : '?'];
+  });
+}
+const SUBJ_SLOTS = 4;
+/** כלי-הבדיקה: קבצים שכל שינוי בהם משנה את הבדיקה של כולם (החוקים · הארגז · המחולל · המחסן · הלולאה). */
+const TOOL_DIRS = ['catalog/lib', 'catalog/combiner', 'catalog/inner/lib', 'catalog/core', 'src/lib/atoms'];
+const TOOL_FILES = ['catalog/self/loop.mjs', 'catalog/self/roles.mjs', 'catalog/self/parts.mjs', 'catalog/scripts/rebuild.mjs'];
+function toolKey(root, idx) {
+  const out = [];
+  const walk = (rel) => { let es; try { es = fs.readdirSync(path.join(root, rel), { withFileTypes: true }); } catch { return; } for (const e of es) { const r = rel + '/' + e.name; if (e.isDirectory()) { if (!SCOPE_SKIP.has(e.name) && r !== 'src/lib/atoms/engines/generated') walk(r); } else if (e.isFile() && /\.(mjs|js|ts|tsx|json)$/.test(e.name)) out.push(r); } };
+  for (const d of TOOL_DIRS) walk(d);
+  out.push(...TOOL_FILES);
+  return fpOf('tools', ...envKey(root), ...out.sort().flatMap((f) => [f, fileSha(root, idx, f) ?? '!']));
+}
+
 /* ═══════════════ הלולאה ═══════════════ */
 
 /**
  * שלב א׳ (זול, בלי עותק): לכל נבדק — חוקים, קלטים, מועמדים ופסיקה. מחזיר את שורות-הפנקס + התור לבדיקה על העותק.
  */
 export async function plan(root = ROOT, { only = null, history = true } = {}) {
+  const R0 = makeRecorder(root);
+  R0.start();
+  try { return await planInner(root, { only, history }, R0); } finally { R0.stop(); }
+}
+async function planInner(root, { only, history }, REC) {
   const M = await machineMods(root);
   const H = history ? historySource(root) : { state: 'כבוי (--no-history)', G: null };
   const all = await subjectsOf(root, M);
   const subjects = only ? all.filter((s) => only.some((o) => s.id.includes(o))) : all;
   const W = await warehouse(root, M, all);
-  const loadFile = fileLoader(root, M);
+  const loadFile0 = fileLoader(root, M);
+  // ⚡ הזיכרון (שכבה 2): קובץ שנטען פעם אחת ונשלף מהזיכרון — התלויות שלו נרשמות גם למי ששלף
+  const loadDeps = new Map();
+  const loadFile = async (rel, symbols) => {
+    const k = rel + '|' + [...symbols].sort().join(',');
+    if (loadDeps.has(k)) { REC.add(loadDeps.get(k)); return loadFile0(rel, symbols); }
+    const set = new Set([rel]);
+    const mod = await REC.within(set, () => loadFile0(rel, symbols));
+    loadDeps.set(k, set); REC.add(set);
+    return mod;
+  };
   const VER = await verifiable(root);
+  const IDX = gitIndex(root);
+  const memoOn = !MEMO_OFF();
+  // ערכי השלב הגלובלי שכל שורה תלויה בהם — כערכים (לא כקבצים): שינוי בפונקציה אחת משנה רק את החתימה שלה כאן
+  const GKEY = fpOf('loop-subj-v1', toolKey(root, IDX), H.state, JSON.stringify(all), JSON.stringify([...VER].sort()),
+    JSON.stringify([...W.byVerb].map(([v, ps]) => [v, ps.map((p) => [p.id, p.takes.length, p.homes.map((h) => h.id)])])),
+    JSON.stringify(W.combos.map((r) => [r.verb, r.id ?? r.recipe ?? ''])));
+  const histOf = (rel) => (H.G ? fileHistory(H, rel).map((c) => c.hash) : [H.state]);
   // הרצת-המועמדים מהקטלוג — פעם אחת לכל פועל (loadRunners טוען כל קובץ פעם אחת)
-  const runnersMemo = new Map();
+  const runnersMemo = new Map(); const runnersDeps = new Map();
   const catalogRunners = async (verb, arity) => {
     const k = verb + '/' + arity;
-    if (runnersMemo.has(k)) return runnersMemo.get(k);
+    if (runnersMemo.has(k)) { REC.add(runnersDeps.get(k)); return runnersMemo.get(k); }
     const parts = W.byVerb.get(verb).filter((p) => p.takes.length === arity);
-    const rs = parts.length ? await W.comb.loadRunners(parts, W.raw) : new Map();
+    const dset = new Set(); runnersDeps.set(k, dset);
+    const rs = parts.length ? await REC.within(dset, () => W.comb.loadRunners(parts, W.raw)) : new Map();
+    REC.add(dset);
     const list = [];
     for (const p of parts) {
       const R = rs.get(p.id);
@@ -487,7 +679,22 @@ export async function plan(root = ROOT, { only = null, history = true } = {}) {
 
   const rows = [];
   const queue = [];
+  const memoStats = { reused: 0, checked: 0 };
   for (const s of subjects) {
+    const mkey = fpOf(GKEY, s.id);
+    // כמה גרסאות אחרונות לכל נבדק (ביטול-שינוי / מעבר-ענף ⇒ עדיין מהזיכרון)
+    const slot = (memoOn && cacheGetLocal(root, 'loop-subj', mkey)) || { list: [] };
+    const hist = fpOf(...histOf(s.path));
+    const hit = (slot.list || []).find((e) => e.hist === hist && JSON.stringify(depsPrint(root, IDX, e.deps.map(([d]) => d))) === JSON.stringify(e.deps));
+    if (hit) { rows.push(hit.row); memoStats.reused++; continue; }
+    memoStats.checked++;
+    const deps = new Set([s.path]);
+    const row = await REC.within(deps, () => planOne(s));
+    if (row && memoOn && row.decision !== 'לבדיקה') cachePutLocal(root, 'loop-subj', mkey, { list: [{ hist, deps: depsPrint(root, IDX, [...deps].sort()), row }, ...(slot.list || [])].slice(0, SUBJ_SLOTS) });
+  }
+  return { rows, queue, M, H, memo: memoStats, subjectFiles: all.map((x) => x.path) };
+
+  async function planOne(s) {
     const mod = await loadFile(s.path, [s.symbol]);
     const sig = s.sig ?? { takes: s.takes };
     const o = probeOpts(root, M, s); const { seed } = o;
@@ -495,7 +702,7 @@ export async function plan(root = ROOT, { only = null, history = true } = {}) {
     const arity = d?.params ? d.params.length : sig.takes.length;
     const row = { subject: s.id, at: at(s.path, d?.line), verb: s.verb, from: s.from, ...(s.role ? { role: s.role } : {}) };
     const R = runnerOf(M, mod, s.symbol, sig, s.adapt);
-    if (!R) { rows.push({ ...row, found: [], decision: 'נשאר', why: 'לא נטען לארגז-החול — אין על מה לבדוק' }); continue; }
+    if (!R) { const r = { ...row, found: [], decision: 'נשאר', why: 'לא נטען לארגז-החול — אין על מה לבדוק' }; rows.push(r); return r; }
     const checkable = VER.has(s.path);
     const L = lawsOf(M, R, s.verb, o);
     const base = runOn(M, R, L.inputs, seed);
@@ -623,8 +830,8 @@ export async function plan(root = ROOT, { only = null, history = true } = {}) {
       queue.push({ s, row, winners, base, L, seed });
     }
     rows.push(row);
+    return row;
   }
-  return { rows, queue, M, H };
 }
 
 /* ═══════════════ העותק ═══════════════ */
@@ -707,7 +914,15 @@ async function attempt(base, W, item, w, { quick }) {
 
 /** הלולאה כולה. apply ⇒ מעתיק לריפו את מה שנשאר (+ כל מה ש-rebuild כתב בעותק) וכותב את הפנקס. */
 export async function loop({ root = ROOT, apply = false, quick = false, only = null, work = null, history = true } = {}) {
-  const { rows, queue, H } = await plan(root, { only, history });
+  const opts = { only, history };
+  // ⚡ שכבה 1: כל ההיקף זהה ⇒ השורות מהזיכרון (רק כשאין שורה שמחכה לבדיקה על עותק — אחרת צריך את התור)
+  const w = wholeGet(root, opts);
+  if (w && !w.rows.some((r) => r.decision === 'לבדיקה')) {
+    const ledger = ledgerOf(w.rows, { quick, history: w.hstate });
+    if (apply) { writeIfChanged(path.join(root, LEDGER), JSON.stringify(ledger, null, 1) + '\n'); }
+    return Object.defineProperty(ledger, 'memo', { value: { from: w.from }, enumerable: false });
+  }
+  const { rows, queue, H, memo, subjectFiles } = await plan(root, opts);
   const tmp = work ?? fs.mkdtempSync(path.join(os.tmpdir(), 'self-loop-'));
   const kept = []; let lastGood = null;
   for (const item of queue) {
@@ -742,10 +957,13 @@ export async function loop({ root = ROOT, apply = false, quick = false, only = n
       if (fs.existsSync(src)) { fs.mkdirSync(path.dirname(dst), { recursive: true }); fs.copyFileSync(src, dst); } else fs.rmSync(dst, { force: true });
     }
   }
-  if (apply) fs.writeFileSync(path.join(root, LEDGER), JSON.stringify(ledger, null, 1) + '\n');
+  if (apply) writeIfChanged(path.join(root, LEDGER), JSON.stringify(ledger, null, 1) + '\n');
   if (!work) fs.rmSync(tmp, { recursive: true, force: true });
-  return ledger;
+  // הזיכרון: רק כשלא היה מה לנסות על עותק (אחרת הקוד אולי השתנה, וה-checks של הניסיונות תלויים ב---quick)
+  if (!queue.length) wholePut(root, opts, rows, H.state, subjectFiles, { repo: apply });
+  return Object.defineProperty(ledger, 'memo', { value: { from: 'חישוב', ...memo }, enumerable: false });
 }
+const writeIfChanged = (abs, text) => { let cur = null; try { cur = fs.readFileSync(abs, 'utf8'); } catch { /* */ } if (cur !== text) fs.writeFileSync(abs, text); };
 
 export function ledgerOf(rows, { quick = false, history = 'כבוי (--no-history)' } = {}) {
   const n = (d) => rows.filter((r) => r.decision === d).length;
@@ -790,7 +1008,9 @@ async function main() {
   const apply = argv.includes('--apply'); const quick = argv.includes('--quick'); const check = argv.includes('--check');
   const only = val('--only') ? val('--only').split(',') : null;
   if (check) {
-    const { rows } = await plan(ROOT, { only, history: !argv.includes('--no-history') });
+    const opts = { only, history: !argv.includes('--no-history') };
+    let rows = wholeGet(ROOT, opts)?.rows;
+    if (!rows) { const p = await plan(ROOT, opts); rows = p.rows; wholePut(ROOT, opts, rows, p.H.state, p.subjectFiles); }
     const pending = rows.filter((r) => r.decision === 'לבדיקה');
     for (const r of pending) console.log('• ' + r.subject + ' — ' + r.found.join(' · '));
     console.log(pending.length ? '✗ ' + pending.length + ' שיפורים שלא הוחלו — הרץ: node catalog/self/loop.mjs --apply' : '✓ אין שיפור שלא הוחל');
@@ -800,6 +1020,8 @@ async function main() {
   const out = val('--out');
   if (out) fs.writeFileSync(path.resolve(out), JSON.stringify(ledger, null, 1) + '\n');
   const s = ledger.summary;
+  const mm = ledger.memo;
+  if (mm) console.error('⚡ ' + (mm.from === 'חישוב' ? 'חישוב: ' + mm.checked + ' נבדקו · ' + mm.reused + ' מהזיכרון (לפי נבדק)' : 'כל הפנקס מ' + mm.from));
   console.log(`🔁 הלולאה: ${s.subjects} נבדקים · באגים ${s.bugs} · כפילויות ${s.duplicates} · חלופות זולות ${s.cheaper} ⇒ הוחלפו ${s.replaced} (מהם שוחזרו מההיסטוריה ${s.restored}) · הוחזרו ${s.reverted} · נשארו ${s.kept}${apply ? ' · הפנקס: ' + LEDGER : ''}`);
   for (const r of ledger.rows.filter((x) => x.decision !== 'נשאר' || x.found.length)) console.log(`  ${r.decision === 'הוחלף' ? '✓' : r.decision === 'הוחזר' ? '↩' : '·'} ${r.subject} — ${r.found.join(' · ') || '—'} ⇒ ${r.decision}${r.by ? ' ב-' + r.by : ''}${r.why ? ' (' + r.why + ')' : ''}`);
 }

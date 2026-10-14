@@ -1,7 +1,7 @@
 {
  "source": "machine",
  "repo": "meir7651231-ui/maor-system",
- "ref": "catalog@ff490750407c",
+ "ref": "catalog@4e616b9fbfdd",
  "generatedAt": null,
  "parts": [
   {
@@ -6924,6 +6924,87 @@
     "catalog/lib",
     "name:auto",
     "name:english-residue"
+   ]
+  },
+  {
+   "id": "machine:catalog/lib/gitfp.mjs#blobSha",
+   "source": "machine",
+   "path": "catalog/lib/gitfp.mjs",
+   "symbol": "blobSha",
+   "lang": "js",
+   "what": "function",
+   "name": "להפיק חתימה קובץ",
+   "does": "sha1 של blob ב-git — הטביעה של תוכן-קובץ.",
+   "takes": [
+    {
+     "name": "buf",
+     "kind": "record:buf",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/lib",
+    "name:auto"
+   ]
+  },
+  {
+   "id": "machine:catalog/lib/gitfp.mjs#gitEnv",
+   "source": "machine",
+   "path": "catalog/lib/gitfp.mjs",
+   "symbol": "gitEnv",
+   "lang": "js",
+   "what": "function",
+   "name": "להפיק ערך",
+   "does": "סביבה נקייה ל-git: בלי משתני-GIT_* שמפנים לריפו/אינדקס אחר.",
+   "takes": [],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/lib",
+    "name:auto",
+    "name:english-residue"
+   ]
+  },
+  {
+   "id": "machine:catalog/lib/gitfp.mjs#run",
+   "source": "machine",
+   "path": "catalog/lib/gitfp.mjs",
+   "symbol": "run",
+   "lang": "js",
+   "what": "function",
+   "name": "להריץ ערך",
+   "does": "להריץ — מקבל קובץ, רשימה, ומחזיר משהו.",
+   "takes": [
+    {
+     "name": "root",
+     "kind": "file",
+     "type": "unknown"
+    },
+    {
+     "name": "args",
+     "kind": "list",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/lib",
+    "name:auto"
    ]
   },
   {
@@ -15737,6 +15818,34 @@
    ]
   },
   {
+   "id": "machine:catalog/scripts/rebuild.mjs#stagesOf",
+   "source": "machine",
+   "path": "catalog/scripts/rebuild.mjs",
+   "symbol": "stagesOf",
+   "lang": "js",
+   "what": "function",
+   "name": "להפיק ערך",
+   "does": "להפיק stages — מקבל רשומת st, ומחזיר משהו.",
+   "takes": [
+    {
+     "name": "st",
+     "kind": "record:st",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/scripts",
+    "name:auto",
+    "name:english-residue"
+   ]
+  },
+  {
    "id": "machine:catalog/scripts/rebuild.mjs#stampsText",
    "source": "machine",
    "path": "catalog/scripts/rebuild.mjs",
@@ -15777,6 +15886,38 @@
     {
      "name": "...ps",
      "kind": "list",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/scripts",
+    "name:auto"
+   ]
+  },
+  {
+   "id": "machine:catalog/scripts/rebuild.mjs#viewKey",
+   "source": "machine",
+   "path": "catalog/scripts/rebuild.mjs",
+   "symbol": "viewKey",
+   "lang": "js",
+   "what": "function",
+   "name": "להפיק מפתח צפייה",
+   "does": "להפיק מפתח צפייה — מקבל רשומת rel, רשומת sha, ומחזיר משהו.",
+   "takes": [
+    {
+     "name": "rel",
+     "kind": "record:rel",
+     "type": "unknown"
+    },
+    {
+     "name": "sha",
+     "kind": "record:sha",
      "type": "unknown"
     }
    ],
@@ -16080,6 +16221,28 @@
    ]
   },
   {
+   "id": "machine:catalog/self/loop.mjs#MEMO_OFF",
+   "source": "machine",
+   "path": "catalog/self/loop.mjs",
+   "symbol": "MEMO_OFF",
+   "lang": "js",
+   "what": "function",
+   "name": "להפיק הנחה",
+   "does": "להפיק הנחה memo — בלי קלט, ומחזיר משהו.",
+   "takes": [],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/self",
+    "name:auto",
+    "name:english-residue"
+   ]
+  },
+  {
    "id": "machine:catalog/self/loop.mjs#at",
    "source": "machine",
    "path": "catalog/self/loop.mjs",
@@ -16097,6 +16260,33 @@
     {
      "name": "line",
      "kind": "text",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/self",
+    "name:auto"
+   ]
+  },
+  {
+   "id": "machine:catalog/self/loop.mjs#cacheBase",
+   "source": "machine",
+   "path": "catalog/self/loop.mjs",
+   "symbol": "cacheBase",
+   "lang": "js",
+   "what": "function",
+   "name": "להפיק בסיס מטמון",
+   "does": "מטמון מקומי (node_modules/.cache/catalog-<מרחב>) — כמו lib/cache.mjs, של ה-root הנבדק (עותק ⇒ ה-node_modules המקושר).",
+   "takes": [
+    {
+     "name": "root",
+     "kind": "file",
      "type": "unknown"
     }
    ],
@@ -16185,6 +16375,34 @@
     {
      "name": "r",
      "kind": "unknown",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/self",
+    "name:auto",
+    "name:english-residue"
+   ]
+  },
+  {
+   "id": "machine:catalog/self/loop.mjs#fpOf",
+   "source": "machine",
+   "path": "catalog/self/loop.mjs",
+   "symbol": "fpOf",
+   "lang": "js",
+   "what": "function",
+   "name": "להפיק ערך",
+   "does": "להפיק fp — מקבל רשימה, ומחזיר משהו.",
+   "takes": [
+    {
+     "name": "...parts",
+     "kind": "list",
      "type": "unknown"
     }
    ],
@@ -16325,6 +16543,33 @@
     {
      "name": "{quick,history}",
      "kind": "record:quickhistory",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/self",
+    "name:auto"
+   ]
+  },
+  {
+   "id": "machine:catalog/self/loop.mjs#notInput",
+   "source": "machine",
+   "path": "catalog/self/loop.mjs",
+   "symbol": "notInput",
+   "lang": "js",
+   "what": "function",
+   "name": "להפיק קלט לא",
+   "does": "הפלטים של הלולאה עצמה (לא קלט שלה) + הקבצים הפרושים (נגזרים מהמחסן, שנמצא בהיקף).",
+   "takes": [
+    {
+     "name": "rel",
+     "kind": "record:rel",
      "type": "unknown"
     }
    ],

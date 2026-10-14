@@ -25,7 +25,8 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { fingerprint, machineSalt, cacheGet, cachePut, CACHE_OFF } from '../lib/cache.mjs';
+import { fingerprint, cacheGet, cachePut, CACHE_OFF } from '../lib/cache.mjs';
+import { gitIndex, fileSha } from '../lib/gitfp.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 export const STAMPS = 'catalog/self/stamps.json';
@@ -74,12 +75,25 @@ export const STAGES = [
 ];
 
 const SKIP_DIR = new Set(['node_modules', 'gen', '.git', '.cache']);
+/**
+ * ⚡ SPEED1000: סריקת-תיקייה פעם אחת לכל הרצה (STAGES סורקים את src/ שבע פעמים) — `resetRun()` מנקה (במצב --watch: אחרי
+ * כל שינוי). `.gitattributes` בתוך תיקייה שנסרקת ⇒ האינדקס של git לא משקף את התוכן ⇒ נפילה לחישוב מהתוכן (lib/gitfp.mjs).
+ */
+const walkMemo = new Map();
+let sawAttributes = false;
 function walk(rel, out) {
-  let es; try { es = fs.readdirSync(path.join(ROOT, rel), { withFileTypes: true }); } catch { return; }
-  for (const e of es) {
-    const r = rel ? rel + '/' + e.name : e.name;
-    if (e.isDirectory()) { if (!SKIP_DIR.has(e.name)) walk(r, out); } else if (e.isFile() && !/^\.env/.test(e.name)) out.push(r); // סודות (.env*) לא נקראים ולא נטבעים
+  let list = walkMemo.get(rel);
+  if (!list) {
+    list = [];
+    let es; try { es = fs.readdirSync(path.join(ROOT, rel), { withFileTypes: true }); } catch { es = []; }
+    for (const e of es) {
+      const r = rel ? rel + '/' + e.name : e.name;
+      if (e.name === '.gitattributes') sawAttributes = true;
+      if (e.isDirectory()) { if (!SKIP_DIR.has(e.name)) walk(r, list); } else if (e.isFile() && !/^\.env/.test(e.name)) list.push(r); // סודות (.env*) לא נקראים ולא נטבעים
+    }
+    walkMemo.set(rel, list);
   }
+  for (const f of list) out.push(f);
 }
 const norm = (spec) => (typeof spec === 'string' ? { p: spec } : spec);
 const globRe = (p) => new RegExp('^' + path.posix.basename(p).replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '[^/]*') + '$');
@@ -121,31 +135,73 @@ export function outFiles(stage) {
 
 /* ═══════════════ «מטביע חותם» ═══════════════ */
 
-const hashMemo = new Map();
+/**
+ * ⚡ SPEED1000 — «טביעה בלי קריאה»: טביעת קובץ = ה-sha של git (lib/gitfp.mjs) — לקובץ נקי מהאינדקס, בלי לקרוא אותו;
+ * למלוכלך/חדש — מהתוכן (אותו חישוב בדיוק). טביעת-view (TS בלי הערות, lib/blank.mjs) נשמרת לפי ה-sha: בזיכרון ·
+ * בחותמות שבריפו (`views` ב-stamps.json — שכפול טרי לא מנתח אף קובץ) · במטמון המקומי · ורק אחרת מחושבת (טעינת המהדר).
+ * ה-sha וה-view הם פונקציה של התוכן בלבד ⇒ אותה טביעה בכל דרך (ratchet: speed1000.test — עם/בלי git, עם/בלי חותמות).
+ */
+let IDX = null;
+const idx = () => {
+  if (!IDX) { IDX = gitIndex(ROOT); if (IDX.ok && (sawAttributes || fs.existsSync(path.join(ROOT, '.gitattributes')))) IDX = { ok: false, why: '.gitattributes', shas: new Map() }; }
+  return IDX;
+};
+/** הרצה חדשה (מצב --watch): שוכחים את הסריקות ואת האינדקס — טביעות-ה-view נשארות (הן לפי תוכן). */
+export function resetRun() { walkMemo.clear(); IDX = null; sawAttributes = false; machineMemo = null; }
+const viewMemo = new Map();
+let storedViews = null; // {algo, map} מהחותמות שבריפו
 let blankMod = null;
-/** טביעת קובץ: התוכן כמו שהוא, או (view) — TS בלי הערות. */
-async function fileHash(rel, asView) {
-  const stt = fs.statSync(path.join(ROOT, rel));
-  const k = (asView ? 'v:' : 'r:') + rel + ':' + stt.mtimeMs + ':' + stt.size; // קובץ שנכתב מחדש ⇒ טביעה חדשה
-  if (hashMemo.has(k)) return hashMemo.get(k);
-  const buf = fs.readFileSync(path.join(ROOT, rel));
-  let h;
-  if (asView) {
+const BLANKABLE = /\.(ts|tsx|mts|cts)$/; // = lib/blank.mjs › isBlankable (בלי לטעון את המהדר)
+let algoMemo = null;
+/** גרסת-האלגוריתם של «מנרמל»: הקוד שלו (blank + cache) וגרסת המהדר. שינוי ⇒ טביעות-ה-view השמורות לא בתוקף. */
+export function viewAlgo() {
+  if (algoMemo) return algoMemo;
+  let tsv = '?'; try { tsv = JSON.parse(fs.readFileSync(path.join(ROOT, 'node_modules/typescript/package.json'), 'utf8')).version; } catch { /* */ }
+  return (algoMemo = fingerprint('view-algo-v1', tsv, fileSha(ROOT, idx(), 'catalog/lib/blank.mjs') ?? '!', fileSha(ROOT, idx(), 'catalog/lib/cache.mjs') ?? '!'));
+}
+const viewKey = (rel, sha) => (rel.endsWith('x') ? 'x' : 't') + sha;
+async function viewHash(rel, sha) {
+  const k = viewKey(rel, sha);
+  let h = viewMemo.get(k);
+  if (h) return h;
+  const fresh = process.env.REBUILD_VIEWS === 'off'; // בדיקות: בלי החותמות ובלי המטמון — מחושב מהמהדר (ratchet: speed1000.test)
+  if (!fresh && storedViews?.algo === viewAlgo()) h = storedViews.map[k];
+  const ck = fingerprint(viewAlgo(), k);
+  h ??= CACHE_OFF || fresh ? undefined : cacheGet('viewsha', ck);
+  if (typeof h !== 'string') {
     blankMod ??= await import('../lib/blank.mjs');
-    h = blankMod.isBlankable(rel) ? fingerprint('view', blankMod.sourceViewCached(rel, buf.toString('utf8'))) : fingerprint(buf);
-  } else h = fingerprint(buf);
-  hashMemo.set(k, h);
+    h = fingerprint('view', blankMod.sourceViewCached(rel, fs.readFileSync(path.join(ROOT, rel), 'utf8')));
+    cachePut('viewsha', ck, h);
+  }
+  viewMemo.set(k, h);
   return h;
 }
+/** טביעת קובץ: התוכן כמו שהוא (sha של git), או (view) — TS בלי הערות. */
+async function fileHash(rel, asView) {
+  const sha = fileSha(ROOT, idx(), rel);
+  if (sha == null) throw new Error('rebuild: קובץ-קלט נעלם — ' + rel);
+  return asView && BLANKABLE.test(rel) ? viewHash(rel, sha) : sha;
+}
 
-/** «מלח» של קוד-המכונה ושל הסביבה (node ראשי · typescript · rolldown) — משותף לכל השלבים. */
+/**
+ * «מלח» של קוד-המכונה ושל הסביבה (node ראשי · typescript · rolldown) — משותף לכל השלבים. SPEED1000: אותו מלח כמו
+ * lib/cache.mjs › machineSalt (אותן תיקיות, אותן גרסאות) — אבל דרך הטביעות של git ובלי לקרוא אף קובץ נקי.
+ */
+const SALT_DIRS = ['catalog/lib', 'catalog/core', 'catalog/inner/lib', 'catalog/combiner', 'src/lib/atoms/verify', 'src/lib/atoms/parts'];
+function machineSaltFast() {
+  const files = [];
+  for (const d of SALT_DIRS) { const out = []; walk(d, out); for (const f of out) if (/\.(mjs|ts)$/.test(f)) files.push(f); }
+  files.sort(); files.push('catalog/self/parts.mjs');
+  const ver = (pkg) => { try { return JSON.parse(fs.readFileSync(path.join(ROOT, 'node_modules', pkg, 'package.json'), 'utf8')).version; } catch { return '?'; } };
+  return fingerprint('salt-v3', 'node' + process.versions.node.split('.')[0], ver('typescript'), ver('rolldown'), ...files.flatMap((f) => [f, fileSha(ROOT, idx(), f) ?? '!']));
+}
 let machineMemo = null;
 async function machineKey() {
   if (machineMemo) return machineMemo;
   // הבונה-מחדש עצמו (המתזמן) לא משנה שום פלט — שינוי בו לא פוסל את החותמות; ה-STAGES שלו נכנסים ממילא דרך run/in
   const files = [...new Set(MACHINE.flatMap(expand))].filter((f) => f !== 'catalog/scripts/rebuild.mjs').sort();
   const hs = await Promise.all(files.map((f) => fileHash(f, false)));
-  machineMemo = fingerprint(machineSalt(), 'machine-v2', ...files.flatMap((f, k) => [f, hs[k]]));
+  machineMemo = fingerprint(machineSaltFast(), 'machine-v3', ...files.flatMap((f, k) => [f, hs[k]]));
   return machineMemo;
 }
 
@@ -176,12 +232,20 @@ function inputSnapshot(stage) {
 export function readStamps() {
   try { return JSON.parse(fs.readFileSync(path.join(ROOT, STAMPS), 'utf8')); } catch { return { version: 1, stages: {} }; }
 }
+const stagesOf = (st) => Object.fromEntries(STAGES.filter((s) => st.stages[s.name]).map((s) => [s.name, st.stages[s.name]]));
 const stampsText = (st) => JSON.stringify({
-  version: 1,
-  note: 'נוצר ע"י catalog/scripts/rebuild.mjs — לכל שלב: טביעת-הקלטים שממנה נוצרו הפלטים שבריפו, וטביעת כל פלט. שכפול טרי שהקלטים שלו זהים ⇒ השלב לא רץ.',
-  stages: Object.fromEntries(STAGES.filter((s) => st.stages[s.name]).map((s) => [s.name, st.stages[s.name]])),
+  version: 2,
+  note: 'נוצר ע"י catalog/scripts/rebuild.mjs — לכל שלב: טביעת-הקלטים שממנה נוצרו הפלטים שבריפו, וטביעת כל פלט (sha של git). שכפול טרי שהקלטים שלו זהים ⇒ השלב לא רץ. views: טביעת-view (TS בלי הערות) לכל sha של קובץ-קוד — שכפול טרי לא מנתח אף קובץ.',
+  stages: stagesOf(st),
+  ...(st.views ? { views: st.views } : {}),
 }, null, 1) + '\n';
-const outHashes = (stage) => Object.fromEntries(outFiles(stage).map((f) => [f, fingerprint(fs.readFileSync(path.join(ROOT, f)))]));
+const outHashes = (stage) => Object.fromEntries(outFiles(stage).map((f) => [f, fileSha(ROOT, idx(), f)]));
+/** טביעות-ה-view של כל קובצי-הקוד שהשלבים קוראים כ-view (ממוינות) — נשמרות בחותמות. */
+async function viewsNow() {
+  const map = {};
+  for (const st of STAGES) for (const [f, v] of inputFiles(st)) if (v && BLANKABLE.test(f)) { const sha = fileSha(ROOT, idx(), f); map[viewKey(f, sha)] = await viewHash(f, sha); }
+  return { algo: viewAlgo(), map: Object.fromEntries(Object.entries(map).sort((a, b) => (a[0] < b[0] ? -1 : 1))) };
+}
 const sameOut = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 
 /* ═══════════════ הגרף ═══════════════ */
@@ -213,10 +277,13 @@ async function main() {
   const TIMES = process.argv.includes('--times');
   const CHECK = process.argv.includes('--check');
   const stamps = readStamps();
-  const before = stampsText(stamps);
+  storedViews = stamps.views ?? null;
+  const before = JSON.stringify(stagesOf(stamps));
   const t00 = Date.now();
-  // הקבצים הפרושים (inner-*.json) מהמחסן — זול; המודולים עצמם (gen/) נוצרים רק כששלב שצריך להריץ אותם רץ
-  if (!CHECK) await (await import('../inner/lib/ensure-gen.mjs')).ensureGen({ quiet: true, modules: false });
+  // הקבצים הפרושים (inner-*.json) מהמחסן — זול; המודולים עצמם (gen/) נוצרים רק כששלב שצריך להריץ אותם רץ.
+  // SPEED1000: גם הקבצים הפרושים — רק לפני השלב הראשון שבאמת רץ (בלי שינוי ⇒ לא נוגעים בכלום)
+  let gen = null;
+  const ensureGen = () => (gen ??= import('../inner/lib/ensure-gen.mjs').then((m) => m.ensureGen({ quiet: true, modules: false })));
   const deps = graph();
   const rows = new Map();
   const done = new Set(); const running = new Map();
@@ -242,12 +309,15 @@ async function main() {
           for (const rel of outFiles(stage)) if (!want.has(rel)) fs.rmSync(path.join(ROOT, rel));
           let wrote = 0;
           for (const [rel, t] of texts) { const abs = path.join(ROOT, rel); if (!fs.existsSync(abs) || fs.readFileSync(abs, 'utf8') !== t) { fs.mkdirSync(path.dirname(abs), { recursive: true }); fs.writeFileSync(abs, t); wrote++; } }
+          if (wrote) { IDX = null; walkMemo.clear(); }
           how = wrote ? `cache (${wrote} נכתבו)` : 'cache';
         }
       }
       if (!how) {
+        await ensureGen();
         const outsBefore = outHashes(stage);
         await runStage(stage);
+        IDX = null; walkMemo.clear(); // השלב כתב קבצים ⇒ האינדקס (מה נקי) והסריקות לא בתוקף
         const outs = outHashes(stage);
         how = sameOut(outs, outsBefore) ? 'run (פלט זהה)' : 'run';
         if (key) {
@@ -281,7 +351,13 @@ async function main() {
     };
     pump();
   });
-  if (!CACHE_OFF && !CHECK) { const t = stampsText(stamps); if (t !== before) fs.writeFileSync(path.join(ROOT, STAMPS), t); }
+  // החותמות נכתבות רק כששלב השתנה (או שאין בהן עדיין טביעות-view בגרסה הנוכחית) — שכפול טרי בלי שינוי לא נוגע בכלום;
+  // שינוי-הערה בקוד: אותן חותמות-שלב ⇒ גם טביעות-ה-view לא נכתבות (הן מאיצות בלבד; חסרה ⇒ מחושבת)
+  if (!CACHE_OFF && !CHECK && (JSON.stringify(stagesOf(stamps)) !== before || stamps.views?.algo !== viewAlgo())) {
+    IDX = null;
+    stamps.views = await viewsNow();
+    fs.writeFileSync(path.join(ROOT, STAMPS), stampsText(stamps));
+  }
   if (TIMES || CHECK) {
     for (const s of STAGES) { const [h, sec, at] = rows.get(s.name); console.log(`  ${s.name.padEnd(16)} ${h.padEnd(18)} ${sec.toFixed(1).padStart(6)}s  (מ-${at.toFixed(1)}s)`); }
     console.log(`  ${'סה"כ'.padEnd(16)} ${''.padEnd(18)} ${((Date.now() - t00) / 1000).toFixed(1).padStart(6)}s`);

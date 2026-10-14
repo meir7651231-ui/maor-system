@@ -1,19 +1,19 @@
 {
  "source": "machine",
- "ref": "catalog@ff490750407c",
+ "ref": "catalog@4e616b9fbfdd",
  "probe": {
   "version": 1,
   "seed": 13269520,
   "generatedAt": null
  },
  "totals": {
-  "run": 341,
-  "runWithVerb": 67,
+  "run": 347,
+  "runWithVerb": 70,
   "twin": 0,
-  "static": 201,
+  "static": 204,
   "staticWithVerb": 18,
   "why": {
-   "no-fitting-input": 176,
+   "no-fitting-input": 179,
    "load-failed": 25
   }
  },
@@ -2096,6 +2096,38 @@
    "primary": "accumulate",
    "material": "record:entrie",
    "reason": "no-fitting-input"
+  },
+  {
+   "id": "machine:catalog/lib/gitfp.mjs#blobSha",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "record:buf",
+   "cases": 24,
+   "traits": "in[]>fn const"
+  },
+  {
+   "id": "machine:catalog/lib/gitfp.mjs#gitEnv",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "unknown",
+   "cases": 3
+  },
+  {
+   "id": "machine:catalog/lib/gitfp.mjs#run",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "file",
+   "cases": 24,
+   "traits": "in[]>fn const"
   },
   {
    "id": "machine:catalog/lib/kind-shape.mjs#INT",
@@ -4925,6 +4957,14 @@
    "reason": "no-fitting-input"
   },
   {
+   "id": "machine:catalog/scripts/rebuild.mjs#stagesOf",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:st",
+   "reason": "no-fitting-input"
+  },
+  {
    "id": "machine:catalog/scripts/rebuild.mjs#stampsText",
    "labeledBy": "static",
    "verbs": [],
@@ -4941,6 +4981,14 @@
    "cases": 24,
    "traits": "in[arr]>arr len~",
    "hash": "29c0c071-49eb9f87"
+  },
+  {
+   "id": "machine:catalog/scripts/rebuild.mjs#viewKey",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:rel",
+   "reason": "no-fitting-input"
   },
   {
    "id": "machine:catalog/scripts/rings-census.mjs#classify",
@@ -5067,6 +5115,20 @@
    "cases": 3
   },
   {
+   "id": "machine:catalog/self/loop.mjs#MEMO_OFF",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "unknown",
+   "cases": 3
+  },
+  {
    "id": "machine:catalog/self/loop.mjs#at",
    "labeledBy": "run",
    "verbs": [
@@ -5080,6 +5142,21 @@
    "material": "unknown",
    "cases": 24,
    "hash": "9e5de6ff-15c94d01"
+  },
+  {
+   "id": "machine:catalog/self/loop.mjs#cacheBase",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "format",
+     "on": "root",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "format",
+   "material": "file",
+   "cases": 24,
+   "hash": "5e5eaa09-2f8df92c"
   },
   {
    "id": "machine:catalog/self/loop.mjs#declSpan",
@@ -5103,6 +5180,14 @@
    "verbs": [],
    "primary": null,
    "material": "unknown",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "machine:catalog/self/loop.mjs#fpOf",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
    "reason": "no-fitting-input"
   },
   {
@@ -5139,6 +5224,15 @@
    "cases": 24,
    "traits": "in[arr,obj]>obj rec:mix",
    "hash": "61fb8e26-4e491548"
+  },
+  {
+   "id": "machine:catalog/self/loop.mjs#notInput",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "record:rel",
+   "cases": 24,
+   "traits": "in[]>bool const"
   },
   {
    "id": "machine:catalog/self/loop.mjs#probeOpts",

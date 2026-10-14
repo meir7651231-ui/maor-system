@@ -69,6 +69,8 @@ export async function bundleWithDeps(abs, { alias = {}, expose = [], esm = true,
   try {
     const { output } = await b.generate({ format: 'cjs', exports: 'named', codeSplitting: false });
     const deps = [...new Set((output[0].moduleIds ?? []).filter((id) => typeof id === 'string' && id.startsWith('/')))].sort();
+    // ⚡ SPEED1000: רשם-תלויות (הלולאה עם הזיכרון — self/loop.mjs): מי שמאזין יודע אילו קבצים נארזו. לא משנה שום פלט
+    globalThis.__catalogBundleDeps?.(deps);
     // import.meta.url ב-CJS ⇒ __filename; בארגז-החול אין קובץ — נתיב קבוע (רק למכונה עצמה, כדי שהאחרים יישארו ביט-זהים)
     return { code: cli ? CLI_PRELUDE + output[0].code.replace(/^#!.*\n/, '') : output[0].code, deps };
   } finally {

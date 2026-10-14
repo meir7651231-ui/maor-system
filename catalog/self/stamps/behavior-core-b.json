@@ -25,12 +25,12 @@
   ]
  },
  "parts": {
-  "core-b:catalog/core/assign-role.mjs#assignRoles": "825ddd8944298c88",
-  "core-b:catalog/core/freeze.mjs#applyFrozen": "6972c7bf61add719",
-  "core-b:catalog/core/pace.mjs#pace": "86eabb6661e986c6",
-  "core-b:catalog/core/relay.mjs#relay": "2b8de33aee549fc8",
-  "core-b:catalog/core/require-source.mjs#requireSource": "3437973b3c287a46",
-  "core-b:catalog/core/route.mjs#route": "89225fe62b34fadf",
-  "core-b:catalog/core/tolerate.mjs#tolerateParse": "275054826f52649b"
+  "core-b:catalog/core/assign-role.mjs#assignRoles": "694ffd1c8b344b21",
+  "core-b:catalog/core/freeze.mjs#applyFrozen": "ebc6f5ed8beb0b73",
+  "core-b:catalog/core/pace.mjs#pace": "42c301ac988521e3",
+  "core-b:catalog/core/relay.mjs#relay": "9b0e3e472446f39d",
+  "core-b:catalog/core/require-source.mjs#requireSource": "a325822546a0ad8e",
+  "core-b:catalog/core/route.mjs#route": "1dd8102c37690a0b",
+  "core-b:catalog/core/tolerate.mjs#tolerateParse": "0b711b864b6050cb"
  }
 }
