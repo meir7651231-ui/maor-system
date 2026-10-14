@@ -1,0 +1,6195 @@
+{
+  "source": "rings",
+  "repo": "meir7651231-ui/-ai-chat-server",
+  "ref": "claude/lab-rings@5805b7f53752c1d1dc8b84c1891a10c8b2512d63",
+  "generatedAt": null,
+  "parts": [
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#או (מספרים)",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "או (מספרים)",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב או",
+      "does": "לבנה «או (מספרים)» במכונת 16 התאים: לוקחת תא 0, תא 1 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        },
+        {
+          "name": "ב",
+          "kind": "number",
+          "type": "cell1:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6,
+          "ב": 3
+        },
+        "out": 7
+      },
+      "tags": [
+        "lab13",
+        "rings",
+        "shelf3",
+        "steps:14"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#אורך רשימה (לולאה + ספירה)",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "אורך רשימה (לולאה + ספירה)",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב אורך רשימה",
+      "does": "לבנה «אורך רשימה (לולאה + ספירה)» במכונת 16 התאים: לוקחת רשימה מקושרת (ראש בתא 1) ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "רשימה",
+          "kind": "list",
+          "type": "linked-list@cell1"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "רשימה": [
+            12,
+            9,
+            14,
+            10
+          ]
+        },
+        "out": 4
+      },
+      "tags": [
+        "lab13",
+        "recipe",
+        "rings",
+        "shelf3",
+        "steps:33"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#אם (תא0 לא-אפס ⇒ תא1, אחרת תא3)",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "אם (תא0 לא-אפס ⇒ תא1, אחרת תא3)",
+      "lang": "machine",
+      "what": "brick",
+      "name": "בחר בין שני מספרים לפי תנאי",
+      "does": "לבנה «אם (תא0 לא-אפס ⇒ תא1, אחרת תא3)» במכונת 16 התאים: לוקחת תא 0, תא 1, תא 3 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        },
+        {
+          "name": "ב",
+          "kind": "number",
+          "type": "cell1:0..15"
+        },
+        {
+          "name": "ג",
+          "kind": "number",
+          "type": "cell3:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6,
+          "ב": 3,
+          "ג": 2
+        },
+        "out": 3
+      },
+      "tags": [
+        "lab13",
+        "rings",
+        "shelf3",
+        "steps:13"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#אפס?",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "אפס?",
+      "lang": "machine",
+      "what": "brick",
+      "name": "בדוק אם אפס",
+      "does": "לבנה «אפס?» במכונת 16 התאים: לוקחת תא 0 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6
+        },
+        "out": 0
+      },
+      "tags": [
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:24"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#בחר לפי זוגי",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "בחר לפי זוגי",
+      "lang": "machine",
+      "what": "brick",
+      "name": "בחר לפי זוגי",
+      "does": "לבנה «בחר לפי זוגי» במכונת 16 התאים: לוקחת תא 0, תא 1, תא 3 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        },
+        {
+          "name": "ב",
+          "kind": "number",
+          "type": "cell1:0..15"
+        },
+        {
+          "name": "ג",
+          "kind": "number",
+          "type": "cell3:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6,
+          "ב": 3,
+          "ג": 2
+        },
+        "out": 3
+      },
+      "tags": [
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:21"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#בלי הגדולים מ-12",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "בלי הגדולים מ-12",
+      "lang": "machine",
+      "what": "brick",
+      "name": "הסר את הגדולים מ-12 מהרשימה",
+      "does": "לבנה «בלי הגדולים מ-12» במכונת 16 התאים: לוקחת רשימה מקושרת (ראש בתא 1) ומסדרת מחדש את הרשימה במקום (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "רשימה",
+          "kind": "list",
+          "type": "linked-list@cell1"
+        }
+      ],
+      "gives": {
+        "kind": "list",
+        "type": "linked-list@cell1"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "רשימה": [
+            12,
+            9,
+            14,
+            10
+          ]
+        },
+        "out": [
+          12,
+          9,
+          10
+        ]
+      },
+      "tags": [
+        "lab13",
+        "rings",
+        "shelf3",
+        "steps:113"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#בלי הזוגיים",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "בלי הזוגיים",
+      "lang": "machine",
+      "what": "brick",
+      "name": "הסר את הזוגיים מהרשימה",
+      "does": "לבנה «בלי הזוגיים» במכונת 16 התאים: לוקחת רשימה מקושרת (ראש בתא 1) ומסדרת מחדש את הרשימה במקום (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "רשימה",
+          "kind": "list",
+          "type": "linked-list@cell1"
+        }
+      ],
+      "gives": {
+        "kind": "list",
+        "type": "linked-list@cell1"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "רשימה": [
+            12,
+            9,
+            14,
+            10
+          ]
+        },
+        "out": [
+          9
+        ]
+      },
+      "tags": [
+        "lab13",
+        "rings",
+        "shelf3",
+        "steps:102"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#בלי הראשון",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "בלי הראשון",
+      "lang": "machine",
+      "what": "brick",
+      "name": "הסר את הראשון מהרשימה",
+      "does": "לבנה «בלי הראשון» במכונת 16 התאים: לוקחת רשימה מקושרת (ראש בתא 1) ומסדרת מחדש את הרשימה במקום (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "רשימה",
+          "kind": "list",
+          "type": "linked-list@cell1"
+        }
+      ],
+      "gives": {
+        "kind": "list",
+        "type": "linked-list@cell1"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "רשימה": [
+            12,
+            9,
+            14,
+            10
+          ]
+        },
+        "out": [
+          9,
+          14,
+          10
+        ]
+      },
+      "tags": [
+        "lab13",
+        "rings",
+        "shelf3",
+        "steps:9"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#גדול או שווה",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "גדול או שווה",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב גדול או שווה",
+      "does": "לבנה «גדול או שווה» במכונת 16 התאים: לוקחת תא 0, תא 1 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        },
+        {
+          "name": "ב",
+          "kind": "number",
+          "type": "cell1:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6,
+          "ב": 3
+        },
+        "out": 15
+      },
+      "tags": [
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:45"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#גדול וקטן",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "גדול וקטן",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב גדול וקטן",
+      "does": "לבנה «גדול וקטן» במכונת 16 התאים: לוקחת רשימה מקושרת (ראש בתא 1) ושמה בתא 6 את הגדול ובתא 7 את הקטן (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "רשימה",
+          "kind": "list",
+          "type": "linked-list@cell1"
+        }
+      ],
+      "gives": {
+        "kind": "sequence",
+        "type": "cells6,7:[max,min]"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "רשימה": [
+            12,
+            9,
+            14,
+            10
+          ]
+        },
+        "out": [
+          14,
+          9
+        ]
+      },
+      "tags": [
+        "lab13",
+        "recipe",
+        "rings",
+        "shelf3",
+        "steps:66"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#גדול מ-",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "גדול מ-",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב גדול מ-",
+      "does": "לבנה «גדול מ-» במכונת 16 התאים: לוקחת תא 0, תא 1 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        },
+        {
+          "name": "ב",
+          "kind": "number",
+          "type": "cell1:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6,
+          "ב": 3
+        },
+        "out": 15
+      },
+      "tags": [
+        "lab13",
+        "recipe",
+        "rings",
+        "shelf3",
+        "steps:49"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#גדול מ-12?",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "גדול מ-12?",
+      "lang": "machine",
+      "what": "brick",
+      "name": "בדוק אם גדול מ-12",
+      "does": "לבנה «גדול מ-12?» במכונת 16 התאים: לוקחת תא 0 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6
+        },
+        "out": 0
+      },
+      "tags": [
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:25"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#דלג אם לא-אפס (תא0 אפס ⇒ העתק תא1)",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "דלג אם לא-אפס (תא0 אפס ⇒ העתק תא1)",
+      "lang": "machine",
+      "what": "brick",
+      "name": "דלג אם לא-אפס",
+      "does": "לבנה «דלג אם לא-אפס (תא0 אפס ⇒ העתק תא1)» במכונת 16 התאים: לוקחת תא 0, תא 1 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        },
+        {
+          "name": "ב",
+          "kind": "number",
+          "type": "cell1:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6,
+          "ב": 3
+        },
+        "out": 0
+      },
+      "tags": [
+        "lab13",
+        "rings",
+        "shelf3",
+        "steps:11"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#האם ממוינת?",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "האם ממוינת?",
+      "lang": "machine",
+      "what": "brick",
+      "name": "בדוק אם ממוינת",
+      "does": "לבנה «האם ממוינת?» במכונת 16 התאים: לוקחת רשימה מקושרת (ראש בתא 1) ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "רשימה",
+          "kind": "list",
+          "type": "linked-list@cell1"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "רשימה": [
+            12,
+            9,
+            14,
+            10
+          ]
+        },
+        "out": 0
+      },
+      "tags": [
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:49"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#הגבל לתחום",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "הגבל לתחום",
+      "lang": "machine",
+      "what": "brick",
+      "name": "הגבל לתחום",
+      "does": "לבנה «הגבל לתחום» במכונת 16 התאים: לוקחת תא 0, תא 1, תא 3 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        },
+        {
+          "name": "ב",
+          "kind": "number",
+          "type": "cell1:0..15"
+        },
+        {
+          "name": "ג",
+          "kind": "number",
+          "type": "cell3:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6,
+          "ב": 3,
+          "ג": 2
+        },
+        "out": 2
+      },
+      "tags": [
+        "lab13",
+        "rings",
+        "shelf3",
+        "steps:86"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#הגדול ברשימה",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "הגדול ברשימה",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב הגדול ברשימה",
+      "does": "לבנה «הגדול ברשימה» במכונת 16 התאים: לוקחת רשימה מקושרת (ראש בתא 1) ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "רשימה",
+          "kind": "list",
+          "type": "linked-list@cell1"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "רשימה": [
+            12,
+            9,
+            14,
+            10
+          ]
+        },
+        "out": 14
+      },
+      "tags": [
+        "lab13",
+        "recipe",
+        "rings",
+        "shelf3",
+        "steps:34"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#הגדול כפול 2",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "הגדול כפול 2",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב הגדול כפול 2",
+      "does": "לבנה «הגדול כפול 2» במכונת 16 התאים: לוקחת תא 0, תא 1 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        },
+        {
+          "name": "ב",
+          "kind": "number",
+          "type": "cell1:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6,
+          "ב": 3
+        },
+        "out": 12
+      },
+      "tags": [
+        "lab13",
+        "rings",
+        "shelf3",
+        "steps:40"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#הגדול כפול הקטן",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "הגדול כפול הקטן",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב הגדול כפול הקטן",
+      "does": "לבנה «הגדול כפול הקטן» במכונת 16 התאים: לוקחת רשימה מקושרת (ראש בתא 1) ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "רשימה",
+          "kind": "list",
+          "type": "linked-list@cell1"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "רשימה": [
+            12,
+            9,
+            14,
+            10
+          ]
+        },
+        "out": 14
+      },
+      "tags": [
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:97"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#הגדול מבין שלושה",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "הגדול מבין שלושה",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב הגדול מבין שלושה",
+      "does": "לבנה «הגדול מבין שלושה» במכונת 16 התאים: לוקחת תא 0, תא 1, תא 3 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        },
+        {
+          "name": "ב",
+          "kind": "number",
+          "type": "cell1:0..15"
+        },
+        {
+          "name": "ג",
+          "kind": "number",
+          "type": "cell3:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6,
+          "ב": 3,
+          "ג": 2
+        },
+        "out": 6
+      },
+      "tags": [
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:102"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#העתק",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "העתק",
+      "lang": "machine",
+      "what": "brick",
+      "name": "העתק את המספר",
+      "does": "לבנה «העתק» במכונת 16 התאים: לוקחת תא 0 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6
+        },
+        "out": 6
+      },
+      "tags": [
+        "lab13",
+        "rings",
+        "shelf3",
+        "steps:6"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#הפוך רשימה",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "הפוך רשימה",
+      "lang": "machine",
+      "what": "brick",
+      "name": "הפוך רשימה",
+      "does": "לבנה «הפוך רשימה» במכונת 16 התאים: לוקחת רשימה מקושרת (ראש בתא 1) ומסדרת מחדש את הרשימה במקום (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "רשימה",
+          "kind": "list",
+          "type": "linked-list@cell1"
+        }
+      ],
+      "gives": {
+        "kind": "list",
+        "type": "linked-list@cell1"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "רשימה": [
+            12,
+            9,
+            14,
+            10
+          ]
+        },
+        "out": [
+          10,
+          14,
+          9,
+          12
+        ]
+      },
+      "tags": [
+        "lab13",
+        "rings",
+        "shelf3",
+        "steps:24"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#הפרש מוחלט",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "הפרש מוחלט",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב הפרש מוחלט",
+      "does": "לבנה «הפרש מוחלט» במכונת 16 התאים: לוקחת תא 0, תא 1 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        },
+        {
+          "name": "ב",
+          "kind": "number",
+          "type": "cell1:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6,
+          "ב": 3
+        },
+        "out": 3
+      },
+      "tags": [
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:64"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#הקטן ברשימה",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "הקטן ברשימה",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב הקטן ברשימה",
+      "does": "לבנה «הקטן ברשימה» במכונת 16 התאים: לוקחת רשימה מקושרת (ראש בתא 1) ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "רשימה",
+          "kind": "list",
+          "type": "linked-list@cell1"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "רשימה": [
+            12,
+            9,
+            14,
+            10
+          ]
+        },
+        "out": 9
+      },
+      "tags": [
+        "lab13",
+        "recipe",
+        "rings",
+        "shelf3",
+        "steps:42"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#הקטן מבין שלושה",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "הקטן מבין שלושה",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב הקטן מבין שלושה",
+      "does": "לבנה «הקטן מבין שלושה» במכונת 16 התאים: לוקחת תא 0, תא 1, תא 3 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        },
+        {
+          "name": "ב",
+          "kind": "number",
+          "type": "cell1:0..15"
+        },
+        {
+          "name": "ג",
+          "kind": "number",
+          "type": "cell3:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6,
+          "ב": 3,
+          "ג": 2
+        },
+        "out": 2
+      },
+      "tags": [
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:90"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#השני בגודלו",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "השני בגודלו",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב השני בגודלו",
+      "does": "לבנה «השני בגודלו» במכונת 16 התאים: לוקחת רשימה מקושרת (ראש בתא 1) ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "רשימה",
+          "kind": "list",
+          "type": "linked-list@cell1"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "רשימה": [
+            12,
+            9,
+            14,
+            10
+          ]
+        },
+        "out": 12
+      },
+      "tags": [
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:92"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#השני ברשימה",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "השני ברשימה",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב השני ברשימה",
+      "does": "לבנה «השני ברשימה» במכונת 16 התאים: לוקחת רשימה מקושרת (ראש בתא 1) ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "רשימה",
+          "kind": "list",
+          "type": "linked-list@cell1"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "רשימה": [
+            12,
+            9,
+            14,
+            10
+          ]
+        },
+        "out": 9
+      },
+      "tags": [
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:9"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#וגם (מספרים)",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "וגם (מספרים)",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב וגם",
+      "does": "לבנה «וגם (מספרים)» במכונת 16 התאים: לוקחת תא 0, תא 1 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        },
+        {
+          "name": "ב",
+          "kind": "number",
+          "type": "cell1:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6,
+          "ב": 3
+        },
+        "out": 2
+      },
+      "tags": [
+        "lab13",
+        "rings",
+        "shelf3",
+        "steps:14"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#ועוד 1",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "ועוד 1",
+      "lang": "machine",
+      "what": "brick",
+      "name": "הוסף 1 למספר",
+      "does": "לבנה «ועוד 1» במכונת 16 התאים: לוקחת תא 0 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6
+        },
+        "out": 7
+      },
+      "tags": [
+        "lab13",
+        "recipe",
+        "rings",
+        "shelf3",
+        "steps:18"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#ועוד 1 באותו תא",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "ועוד 1 באותו תא",
+      "lang": "machine",
+      "what": "brick",
+      "name": "הוסף 1 למספר שבאותו תא",
+      "does": "לבנה «ועוד 1 באותו תא» במכונת 16 התאים: לוקחת תא 2 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "תא 2",
+          "kind": "number",
+          "type": "cell2:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "תא 2": 4
+        },
+        "out": 5
+      },
+      "tags": [
+        "lab13",
+        "recipe",
+        "rings",
+        "shelf3",
+        "steps:16"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#ועוד 2",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "ועוד 2",
+      "lang": "machine",
+      "what": "brick",
+      "name": "הוסף 2 למספר",
+      "does": "לבנה «ועוד 2» במכונת 16 התאים: לוקחת תא 0 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6
+        },
+        "out": 8
+      },
+      "tags": [
+        "lab13",
+        "recipe",
+        "rings",
+        "shelf3",
+        "steps:20"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#ועוד 3",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "ועוד 3",
+      "lang": "machine",
+      "what": "brick",
+      "name": "הוסף 3 למספר",
+      "does": "לבנה «ועוד 3» במכונת 16 התאים: לוקחת תא 0 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6
+        },
+        "out": 9
+      },
+      "tags": [
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:14"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#זוגי?",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "זוגי?",
+      "lang": "machine",
+      "what": "brick",
+      "name": "בדוק אם זוגי",
+      "does": "לבנה «זוגי?» במכונת 16 התאים: לוקחת תא 0 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6
+        },
+        "out": 15
+      },
+      "tags": [
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:14"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#חזקת 2 (תא0 בריבוע)",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "חזקת 2 (תא0 בריבוע)",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב חזקת 2",
+      "does": "לבנה «חזקת 2 (תא0 בריבוע)» במכונת 16 התאים: לוקחת תא 0 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6
+        },
+        "out": 4
+      },
+      "tags": [
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:31"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#חיבור מספרים",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "חיבור מספרים",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חבר שני מספרים",
+      "does": "לבנה «חיבור מספרים» במכונת 16 התאים: לוקחת תא 0, תא 1 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        },
+        {
+          "name": "ב",
+          "kind": "number",
+          "type": "cell1:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6,
+          "ב": 3
+        },
+        "out": 9
+      },
+      "tags": [
+        "lab13",
+        "rings",
+        "shelf3",
+        "steps:10"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#חילוק",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "חילוק",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חלק מספר במספר",
+      "does": "לבנה «חילוק» במכונת 16 התאים: לוקחת תא 0, תא 1 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        },
+        {
+          "name": "ב",
+          "kind": "number",
+          "type": "cell1:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6,
+          "ב": 3
+        },
+        "out": 2
+      },
+      "tags": [
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:79"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#חיסור",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "חיסור",
+      "lang": "machine",
+      "what": "brick",
+      "name": "החסר מספר ממספר",
+      "does": "לבנה «חיסור» במכונת 16 התאים: לוקחת תא 0, תא 1 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        },
+        {
+          "name": "ב",
+          "kind": "number",
+          "type": "cell1:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6,
+          "ב": 3
+        },
+        "out": 3
+      },
+      "tags": [
+        "lab13",
+        "recipe",
+        "rings",
+        "shelf3",
+        "steps:18"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#חיסור רווי",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "חיסור רווי",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב חיסור רווי",
+      "does": "לבנה «חיסור רווי» במכונת 16 התאים: לוקחת תא 0, תא 1 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        },
+        {
+          "name": "ב",
+          "kind": "number",
+          "type": "cell1:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6,
+          "ב": 3
+        },
+        "out": 3
+      },
+      "tags": [
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:52"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#חפש ברשימה",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "חפש ברשימה",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חפש ברשימה",
+      "does": "לבנה «חפש ברשימה» במכונת 16 התאים: לוקחת תא 0, רשימה מקושרת (ראש בתא 1) ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "מפתח",
+          "kind": "number",
+          "type": "cell0:0..15"
+        },
+        {
+          "name": "רשימה",
+          "kind": "list",
+          "type": "linked-list@cell1"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "מפתח": 10,
+          "רשימה": [
+            12,
+            9,
+            14,
+            10
+          ]
+        },
+        "out": 15
+      },
+      "tags": [
+        "lab13",
+        "rings",
+        "shelf3",
+        "steps:48"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#חצי",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "חצי",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב חצי מהמספר",
+      "does": "לבנה «חצי» במכונת 16 התאים: לוקחת תא 0 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6
+        },
+        "out": 3
+      },
+      "tags": [
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:7"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#חציון של שלושה",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "חציון של שלושה",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב חציון של שלושה",
+      "does": "לבנה «חציון של שלושה» במכונת 16 התאים: לוקחת תא 0, תא 1, תא 3 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        },
+        {
+          "name": "ב",
+          "kind": "number",
+          "type": "cell1:0..15"
+        },
+        {
+          "name": "ג",
+          "kind": "number",
+          "type": "cell3:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6,
+          "ב": 3,
+          "ג": 2
+        },
+        "out": 3
+      },
+      "tags": [
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:160"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#טווח הרשימה",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "טווח הרשימה",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב טווח הרשימה",
+      "does": "לבנה «טווח הרשימה» במכונת 16 התאים: לוקחת רשימה מקושרת (ראש בתא 1) ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "רשימה",
+          "kind": "list",
+          "type": "linked-list@cell1"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "רשימה": [
+            12,
+            9,
+            14,
+            10
+          ]
+        },
+        "out": 5
+      },
+      "tags": [
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:90"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#כמה מעל האמצע",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "כמה מעל האמצע",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב כמה מעל האמצע",
+      "does": "לבנה «כמה מעל האמצע» במכונת 16 התאים: לוקחת רשימה מקושרת (ראש בתא 1) ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "רשימה",
+          "kind": "list",
+          "type": "linked-list@cell1"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "רשימה": [
+            12,
+            9,
+            14,
+            10
+          ]
+        },
+        "out": 2
+      },
+      "tags": [
+        "lab13",
+        "recipe",
+        "rings",
+        "shelf3",
+        "steps:105"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#כפול 2",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "כפול 2",
+      "lang": "machine",
+      "what": "brick",
+      "name": "הכפל את המספר ב-2",
+      "does": "לבנה «כפול 2» במכונת 16 התאים: לוקחת תא 0 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6
+        },
+        "out": 12
+      },
+      "tags": [
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:8"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#כפל",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "כפל",
+      "lang": "machine",
+      "what": "brick",
+      "name": "הכפל שני מספרים",
+      "does": "לבנה «כפל» במכונת 16 התאים: לוקחת תא 0, תא 1 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        },
+        {
+          "name": "ב",
+          "kind": "number",
+          "type": "cell1:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6,
+          "ב": 3
+        },
+        "out": 2
+      },
+      "tags": [
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:39"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#כתוב לכתובת שבתא",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "כתוב לכתובת שבתא",
+      "lang": "machine",
+      "what": "brick",
+      "name": "כתוב ערך לכתובת שבתא",
+      "does": "לבנה «כתוב לכתובת שבתא» במכונת 16 התאים: לוקחת תא 0, תא 1 ושמה את התוצאה בתא שכתובתו בתא 0 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "כתובת",
+          "kind": "number",
+          "type": "cell0:8..15"
+        },
+        {
+          "name": "ערך",
+          "kind": "number",
+          "type": "cell1:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell[cell0]:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "כתובת": 9,
+          "ערך": 5
+        },
+        "out": 5
+      },
+      "tags": [
+        "lab13",
+        "rings",
+        "shelf3",
+        "steps:9"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#לא (מספר)",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "לא (מספר)",
+      "lang": "machine",
+      "what": "brick",
+      "name": "הפוך את כל הביטים של המספר",
+      "does": "לבנה «לא (מספר)» במכונת 16 התאים: לוקחת תא 0 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6
+        },
+        "out": 9
+      },
+      "tags": [
+        "lab13",
+        "rings",
+        "shelf3",
+        "steps:8"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#מ1 שלוש פעמים",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "מ1 שלוש פעמים",
+      "lang": "machine",
+      "what": "brick",
+      "name": "הכפל את המספר ב-3",
+      "does": "לבנה «שלוש פעמים» במכונת 16 התאים: לוקחת תא 0 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6
+        },
+        "out": 2
+      },
+      "tags": [
+        "family:מ",
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:10"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#מ10 טווח של שלושה",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "מ10 טווח של שלושה",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב טווח של שלושה",
+      "does": "לבנה «טווח של שלושה» במכונת 16 התאים: לוקחת תא 0, תא 1, תא 3 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        },
+        {
+          "name": "ב",
+          "kind": "number",
+          "type": "cell1:0..15"
+        },
+        {
+          "name": "ג",
+          "kind": "number",
+          "type": "cell3:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6,
+          "ב": 3,
+          "ג": 2
+        },
+        "out": 4
+      },
+      "tags": [
+        "family:מ",
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:169"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#מ2 כפול 4",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "מ2 כפול 4",
+      "lang": "machine",
+      "what": "brick",
+      "name": "הכפל את המספר ב-4",
+      "does": "לבנה «כפול 4» במכונת 16 התאים: לוקחת תא 0 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6
+        },
+        "out": 8
+      },
+      "tags": [
+        "family:מ",
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:12"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#מ3 הפרש ריבועים",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "מ3 הפרש ריבועים",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב הפרש ריבועים",
+      "does": "לבנה «הפרש ריבועים» במכונת 16 התאים: לוקחת תא 0, תא 1 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        },
+        {
+          "name": "ב",
+          "kind": "number",
+          "type": "cell1:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6,
+          "ב": 3
+        },
+        "out": 11
+      },
+      "tags": [
+        "family:מ",
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:55"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#מ4 חיבור אם זוגי אחרת חיסור",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "מ4 חיבור אם זוגי אחרת חיסור",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב חיבור אם זוגי אחרת חיסור",
+      "does": "לבנה «חיבור אם זוגי אחרת חיסור» במכונת 16 התאים: לוקחת תא 0, תא 1 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        },
+        {
+          "name": "ב",
+          "kind": "number",
+          "type": "cell1:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6,
+          "ב": 3
+        },
+        "out": 9
+      },
+      "tags": [
+        "family:מ",
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:30"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#מ5 הקטן מבין א ו-ב+1",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "מ5 הקטן מבין א ו-ב+1",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב הקטן מבין א ו-ב+1",
+      "does": "לבנה «הקטן מבין א ו-ב+1» במכונת 16 התאים: לוקחת תא 0, תא 1 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        },
+        {
+          "name": "ב",
+          "kind": "number",
+          "type": "cell1:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6,
+          "ב": 3
+        },
+        "out": 4
+      },
+      "tags": [
+        "family:מ",
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:56"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#מ6 אפס או שלוש?",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "מ6 אפס או שלוש?",
+      "lang": "machine",
+      "what": "brick",
+      "name": "בדוק אם אפס או שלוש",
+      "does": "לבנה «אפס או שלוש?» במכונת 16 התאים: לוקחת תא 0 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6
+        },
+        "out": 0
+      },
+      "tags": [
+        "family:מ",
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:29"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#מ7 חזקת 3",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "מ7 חזקת 3",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב חזקת 3",
+      "does": "לבנה «חזקת 3» במכונת 16 התאים: לוקחת תא 0 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6
+        },
+        "out": 8
+      },
+      "tags": [
+        "family:מ",
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:52"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#מ8 שארית ב-3",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "מ8 שארית ב-3",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב שארית ב-3",
+      "does": "לבנה «שארית ב-3» במכונת 16 התאים: לוקחת תא 0 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6
+        },
+        "out": 0
+      },
+      "tags": [
+        "family:מ",
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:54"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#מ9 חצי מעוגל למעלה",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "מ9 חצי מעוגל למעלה",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב חצי מעוגל למעלה",
+      "does": "לבנה «חצי מעוגל למעלה» במכונת 16 התאים: לוקחת תא 0 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6
+        },
+        "out": 3
+      },
+      "tags": [
+        "family:מ",
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:15"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#מיין רשימה",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "מיין רשימה",
+      "lang": "machine",
+      "what": "brick",
+      "name": "מיין רשימה",
+      "does": "לבנה «מיין רשימה» במכונת 16 התאים: לוקחת רשימה מקושרת (ראש בתא 1) ומסדרת מחדש את הרשימה במקום (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "רשימה",
+          "kind": "list",
+          "type": "linked-list@cell1"
+        }
+      ],
+      "gives": {
+        "kind": "list",
+        "type": "linked-list@cell1"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "רשימה": [
+            12,
+            9,
+            14,
+            10
+          ]
+        },
+        "out": [
+          9,
+          10,
+          12,
+          14
+        ]
+      },
+      "tags": [
+        "lab13",
+        "rings",
+        "shelf3",
+        "steps:60"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#מינימום",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "מינימום",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב מינימום",
+      "does": "לבנה «מינימום» במכונת 16 התאים: לוקחת תא 0, תא 1 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        },
+        {
+          "name": "ב",
+          "kind": "number",
+          "type": "cell1:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6,
+          "ב": 3
+        },
+        "out": 3
+      },
+      "tags": [
+        "lab13",
+        "recipe",
+        "rings",
+        "shelf3",
+        "steps:40"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#ממוצע",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "ממוצע",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב ממוצע",
+      "does": "לבנה «ממוצע» במכונת 16 התאים: לוקחת תא 0, תא 1 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        },
+        {
+          "name": "ב",
+          "kind": "number",
+          "type": "cell1:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6,
+          "ב": 3
+        },
+        "out": 4
+      },
+      "tags": [
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:33"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#מקסימום",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "מקסימום",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב מקסימום",
+      "does": "לבנה «מקסימום» במכונת 16 התאים: לוקחת תא 0, תא 1 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        },
+        {
+          "name": "ב",
+          "kind": "number",
+          "type": "cell1:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6,
+          "ב": 3
+        },
+        "out": 6
+      },
+      "tags": [
+        "lab13",
+        "recipe",
+        "rings",
+        "shelf3",
+        "steps:38"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#מקסימום נייד",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "מקסימום נייד",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב מקסימום נייד",
+      "does": "לבנה «מקסימום נייד» במכונת 16 התאים: לוקחת תא 4, תא 3 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "ד",
+          "kind": "number",
+          "type": "cell4:0..15"
+        },
+        {
+          "name": "ג",
+          "kind": "number",
+          "type": "cell3:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "ד": 5,
+          "ג": 2
+        },
+        "out": 5
+      },
+      "tags": [
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:52"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#מרחק מ-8",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "מרחק מ-8",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב מרחק מ-8",
+      "does": "לבנה «מרחק מ-8» במכונת 16 התאים: לוקחת תא 0 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6
+        },
+        "out": 2
+      },
+      "tags": [
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:41"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#נאנד (מספרים)",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "נאנד (מספרים)",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב נאנד",
+      "does": "לבנה «נאנד (מספרים)» במכונת 16 התאים: לוקחת תא 0, תא 1 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        },
+        {
+          "name": "ב",
+          "kind": "number",
+          "type": "cell1:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6,
+          "ב": 3
+        },
+        "out": 13
+      },
+      "tags": [
+        "lab13",
+        "rings",
+        "shelf3",
+        "steps:10"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#סוף רשימה (לולאה, עד 6)",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "סוף רשימה (לולאה, עד 6)",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב סוף רשימה",
+      "does": "לבנה «סוף רשימה (לולאה, עד 6)» במכונת 16 התאים: לוקחת רשימה מקושרת (ראש בתא 1) ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "רשימה",
+          "kind": "list",
+          "type": "linked-list@cell1"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "רשימה": [
+            12,
+            9,
+            14,
+            10
+          ]
+        },
+        "out": 10
+      },
+      "tags": [
+        "lab13",
+        "rings",
+        "shelf3",
+        "steps:14"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#סוף רשימה באורך עד 2",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "סוף רשימה באורך עד 2",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב סוף רשימה באורך עד 2",
+      "does": "לבנה «סוף רשימה באורך עד 2» במכונת 16 התאים: לוקחת רשימה מקושרת (ראש בתא 1) ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "רשימה",
+          "kind": "list",
+          "type": "linked-list@cell1"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "רשימה": [
+            12,
+            9
+          ]
+        },
+        "out": 9
+      },
+      "tags": [
+        "lab13",
+        "rings",
+        "shelf3",
+        "steps:14"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#סכום בלי הגדול",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "סכום בלי הגדול",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב סכום בלי הגדול",
+      "does": "לבנה «סכום בלי הגדול» במכונת 16 התאים: לוקחת רשימה מקושרת (ראש בתא 1) ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "רשימה",
+          "kind": "list",
+          "type": "linked-list@cell1"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "רשימה": [
+            12,
+            9,
+            14,
+            10
+          ]
+        },
+        "out": 15
+      },
+      "tags": [
+        "lab13",
+        "recipe",
+        "rings",
+        "shelf3",
+        "steps:52"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#סכום רווי",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "סכום רווי",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב סכום רווי",
+      "does": "לבנה «סכום רווי» במכונת 16 התאים: לוקחת תא 0, תא 1 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        },
+        {
+          "name": "ב",
+          "kind": "number",
+          "type": "cell1:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6,
+          "ב": 3
+        },
+        "out": 9
+      },
+      "tags": [
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:51"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#סכום רשימה",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "סכום רשימה",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב סכום רשימה",
+      "does": "לבנה «סכום רשימה» במכונת 16 התאים: לוקחת רשימה מקושרת (ראש בתא 1) ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "רשימה",
+          "kind": "list",
+          "type": "linked-list@cell1"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "רשימה": [
+            12,
+            9,
+            14,
+            10
+          ]
+        },
+        "out": 13
+      },
+      "tags": [
+        "lab13",
+        "recipe",
+        "rings",
+        "shelf3",
+        "steps:22"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#סכום שלושה",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "סכום שלושה",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב סכום שלושה",
+      "does": "לבנה «סכום שלושה» במכונת 16 התאים: לוקחת תא 0, תא 1, תא 3 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        },
+        {
+          "name": "ב",
+          "kind": "number",
+          "type": "cell1:0..15"
+        },
+        {
+          "name": "ג",
+          "kind": "number",
+          "type": "cell3:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6,
+          "ב": 3,
+          "ג": 2
+        },
+        "out": 11
+      },
+      "tags": [
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:14"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#ספור גדולים מ-X",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "ספור גדולים מ-X",
+      "lang": "machine",
+      "what": "brick",
+      "name": "ספור גדולים מ-X",
+      "does": "לבנה «ספור גדולים מ-X» במכונת 16 התאים: לוקחת תא 0, רשימה מקושרת (ראש בתא 1) ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "מפתח",
+          "kind": "number",
+          "type": "cell0:0..15"
+        },
+        {
+          "name": "רשימה",
+          "kind": "list",
+          "type": "linked-list@cell1"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "מפתח": 10,
+          "רשימה": [
+            12,
+            9,
+            14,
+            10
+          ]
+        },
+        "out": 2
+      },
+      "tags": [
+        "lab13",
+        "recipe",
+        "rings",
+        "shelf3",
+        "steps:47"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#ספור זוגיים ברשימה",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "ספור זוגיים ברשימה",
+      "lang": "machine",
+      "what": "brick",
+      "name": "ספור זוגיים ברשימה",
+      "does": "לבנה «ספור זוגיים ברשימה» במכונת 16 התאים: לוקחת רשימה מקושרת (ראש בתא 1) ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "רשימה",
+          "kind": "list",
+          "type": "linked-list@cell1"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "רשימה": [
+            12,
+            9,
+            14,
+            10
+          ]
+        },
+        "out": 3
+      },
+      "tags": [
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:45"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#ספור ירידות",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "ספור ירידות",
+      "lang": "machine",
+      "what": "brick",
+      "name": "ספור ירידות",
+      "does": "לבנה «ספור ירידות» במכונת 16 התאים: לוקחת רשימה מקושרת (ראש בתא 1) ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "רשימה",
+          "kind": "list",
+          "type": "linked-list@cell1"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "רשימה": [
+            12,
+            9,
+            14,
+            10
+          ]
+        },
+        "out": 2
+      },
+      "tags": [
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:57"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#ספור עליות",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "ספור עליות",
+      "lang": "machine",
+      "what": "brick",
+      "name": "ספור עליות",
+      "does": "לבנה «ספור עליות» במכונת 16 התאים: לוקחת רשימה מקושרת (ראש בתא 1) ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "רשימה",
+          "kind": "list",
+          "type": "linked-list@cell1"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "רשימה": [
+            12,
+            9,
+            14,
+            10
+          ]
+        },
+        "out": 1
+      },
+      "tags": [
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:60"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#עזר: הגדול כפול הקטן",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "עזר: הגדול כפול הקטן",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב עזר: הגדול כפול הקטן",
+      "does": "לבנה «עזר: הגדול כפול הקטן» במכונת 16 התאים: לוקחת תא 0, תא 1 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        },
+        {
+          "name": "ב",
+          "kind": "number",
+          "type": "cell1:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6,
+          "ב": 3
+        },
+        "out": 2
+      },
+      "tags": [
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:39"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#פחות 1",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "פחות 1",
+      "lang": "machine",
+      "what": "brick",
+      "name": "הפחת 1 מהמספר",
+      "does": "לבנה «פחות 1» במכונת 16 התאים: לוקחת תא 0 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6
+        },
+        "out": 5
+      },
+      "tags": [
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:12"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#צעד ברשימה (הראשון, או 0)",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "צעד ברשימה (הראשון, או 0)",
+      "lang": "machine",
+      "what": "brick",
+      "name": "צעד ברשימה",
+      "does": "לבנה «צעד ברשימה (הראשון, או 0)» במכונת 16 התאים: לוקחת רשימה מקושרת (ראש בתא 1) ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "רשימה",
+          "kind": "list",
+          "type": "linked-list@cell1"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "רשימה": [
+            12,
+            9,
+            14,
+            10
+          ]
+        },
+        "out": 12
+      },
+      "tags": [
+        "lab13",
+        "rings",
+        "shelf3",
+        "steps:6"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#קבוע 1",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "קבוע 1",
+      "lang": "machine",
+      "what": "brick",
+      "name": "תן את המספר הקבוע 1",
+      "does": "לבנה «קבוע 1» במכונת 16 התאים: לוקחת תא 0 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6
+        },
+        "out": 1
+      },
+      "tags": [
+        "lab13",
+        "rings",
+        "shelf3",
+        "steps:14"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#קבוע 14 (15 ועוד 15)",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "קבוע 14 (15 ועוד 15)",
+      "lang": "machine",
+      "what": "brick",
+      "name": "תן את המספר הקבוע 14",
+      "does": "לבנה «קבוע 14 (15 ועוד 15)» במכונת 16 התאים: לוקחת תא 0 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6
+        },
+        "out": 14
+      },
+      "tags": [
+        "lab13",
+        "rings",
+        "shelf3",
+        "steps:12"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#קבוע 15",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "קבוע 15",
+      "lang": "machine",
+      "what": "brick",
+      "name": "תן את המספר הקבוע 15",
+      "does": "לבנה «קבוע 15» במכונת 16 התאים: לוקחת תא 0 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6
+        },
+        "out": 15
+      },
+      "tags": [
+        "lab13",
+        "rings",
+        "shelf3",
+        "steps:8"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#קח מהכתובת שבתא",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "קח מהכתובת שבתא",
+      "lang": "machine",
+      "what": "brick",
+      "name": "קח ערך מהכתובת שבתא",
+      "does": "לבנה «קח מהכתובת שבתא» במכונת 16 התאים: לוקחת תא 0 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "כתובת": 9,
+          "בתא 9": 7
+        },
+        "out": 7
+      },
+      "tags": [
+        "lab13",
+        "rings",
+        "shelf3",
+        "steps:9"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#קטן מ-",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "קטן מ-",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב קטן מ-",
+      "does": "לבנה «קטן מ-» במכונת 16 התאים: לוקחת תא 0, תא 1 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        },
+        {
+          "name": "ב",
+          "kind": "number",
+          "type": "cell1:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6,
+          "ב": 3
+        },
+        "out": 0
+      },
+      "tags": [
+        "lab13",
+        "recipe",
+        "rings",
+        "shelf3",
+        "steps:42"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#ר1 סכום הזוגיים",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "ר1 סכום הזוגיים",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב סכום הזוגיים",
+      "does": "לבנה «סכום הזוגיים» במכונת 16 התאים: לוקחת רשימה מקושרת (ראש בתא 1) ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "רשימה",
+          "kind": "list",
+          "type": "linked-list@cell1"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "רשימה": [
+            12,
+            9,
+            14,
+            10
+          ]
+        },
+        "out": 4
+      },
+      "tags": [
+        "family:ר",
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:40"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#ר10 האם יורדת?",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "ר10 האם יורדת?",
+      "lang": "machine",
+      "what": "brick",
+      "name": "בדוק אם יורדת",
+      "does": "לבנה «האם יורדת?» במכונת 16 התאים: לוקחת רשימה מקושרת (ראש בתא 1) ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "רשימה",
+          "kind": "list",
+          "type": "linked-list@cell1"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "רשימה": [
+            12,
+            9,
+            14,
+            10
+          ]
+        },
+        "out": 0
+      },
+      "tags": [
+        "family:ר",
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:49"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#ר2 ספור גדולים מ-12",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "ר2 ספור גדולים מ-12",
+      "lang": "machine",
+      "what": "brick",
+      "name": "ספור גדולים מ-12",
+      "does": "לבנה «ספור גדולים מ-12» במכונת 16 התאים: לוקחת רשימה מקושרת (ראש בתא 1) ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "רשימה",
+          "kind": "list",
+          "type": "linked-list@cell1"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "רשימה": [
+            12,
+            9,
+            14,
+            10
+          ]
+        },
+        "out": 1
+      },
+      "tags": [
+        "family:ר",
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:50"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#ר3 האחרון פחות הראשון",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "ר3 האחרון פחות הראשון",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב האחרון פחות הראשון",
+      "does": "לבנה «האחרון פחות הראשון» במכונת 16 התאים: לוקחת רשימה מקושרת (ראש בתא 1) ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "רשימה",
+          "kind": "list",
+          "type": "linked-list@cell1"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "רשימה": [
+            12,
+            9,
+            14,
+            10
+          ]
+        },
+        "out": 14
+      },
+      "tags": [
+        "family:ר",
+        "lab13",
+        "rings",
+        "shelf3",
+        "steps:124"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#ר4 הקטן פחות 8",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "ר4 הקטן פחות 8",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב הקטן פחות 8",
+      "does": "לבנה «הקטן פחות 8» במכונת 16 התאים: לוקחת רשימה מקושרת (ראש בתא 1) ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "רשימה",
+          "kind": "list",
+          "type": "linked-list@cell1"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "רשימה": [
+            12,
+            9,
+            14,
+            10
+          ]
+        },
+        "out": 1
+      },
+      "tags": [
+        "family:ר",
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:49"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#ר5 האם כולם אי-זוגיים?",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "ר5 האם כולם אי-זוגיים?",
+      "lang": "machine",
+      "what": "brick",
+      "name": "בדוק אם כולם אי-זוגיים",
+      "does": "לבנה «האם כולם אי-זוגיים?» במכונת 16 התאים: לוקחת רשימה מקושרת (ראש בתא 1) ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "רשימה",
+          "kind": "list",
+          "type": "linked-list@cell1"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "רשימה": [
+            12,
+            9,
+            14,
+            10
+          ]
+        },
+        "out": 0
+      },
+      "tags": [
+        "family:ר",
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:46"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#ר6 כמה גדולים מהראשון",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "ר6 כמה גדולים מהראשון",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב כמה גדולים מהראשון",
+      "does": "לבנה «כמה גדולים מהראשון» במכונת 16 התאים: לוקחת רשימה מקושרת (ראש בתא 1) ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "רשימה",
+          "kind": "list",
+          "type": "linked-list@cell1"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "רשימה": [
+            12,
+            9,
+            14,
+            10
+          ]
+        },
+        "out": 1
+      },
+      "tags": [
+        "family:ר",
+        "lab13",
+        "rings",
+        "shelf3",
+        "steps:55"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#ר7 סכום כפול 2",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "ר7 סכום כפול 2",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב סכום כפול 2",
+      "does": "לבנה «סכום כפול 2» במכונת 16 התאים: לוקחת רשימה מקושרת (ראש בתא 1) ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "רשימה",
+          "kind": "list",
+          "type": "linked-list@cell1"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "רשימה": [
+            12,
+            9,
+            14,
+            10
+          ]
+        },
+        "out": 10
+      },
+      "tags": [
+        "family:ר",
+        "lab13",
+        "rings",
+        "shelf3",
+        "steps:23"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#ר8 הגדול פחות האורך",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "ר8 הגדול פחות האורך",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב הגדול פחות האורך",
+      "does": "לבנה «הגדול פחות האורך» במכונת 16 התאים: לוקחת רשימה מקושרת (ראש בתא 1) ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "רשימה",
+          "kind": "list",
+          "type": "linked-list@cell1"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "רשימה": [
+            12,
+            9,
+            14,
+            10
+          ]
+        },
+        "out": 10
+      },
+      "tags": [
+        "family:ר",
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:53"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#ר9 האם יש שניים עוקבים?",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "ר9 האם יש שניים עוקבים?",
+      "lang": "machine",
+      "what": "brick",
+      "name": "בדוק אם יש שניים עוקבים",
+      "does": "לבנה «האם יש שניים עוקבים?» במכונת 16 התאים: לוקחת רשימה מקושרת (ראש בתא 1) ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "רשימה",
+          "kind": "list",
+          "type": "linked-list@cell1"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "רשימה": [
+            12,
+            9,
+            14,
+            10
+          ]
+        },
+        "out": 0
+      },
+      "tags": [
+        "family:ר",
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:54"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#רק הגדולים מ-12",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "רק הגדולים מ-12",
+      "lang": "machine",
+      "what": "brick",
+      "name": "השאר ברשימה רק את הגדולים מ-12",
+      "does": "לבנה «רק הגדולים מ-12» במכונת 16 התאים: לוקחת רשימה מקושרת (ראש בתא 1) ומסדרת מחדש את הרשימה במקום (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "רשימה",
+          "kind": "list",
+          "type": "linked-list@cell1"
+        }
+      ],
+      "gives": {
+        "kind": "list",
+        "type": "linked-list@cell1"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "רשימה": [
+            12,
+            9,
+            14,
+            10
+          ]
+        },
+        "out": [
+          14
+        ]
+      },
+      "tags": [
+        "lab13",
+        "rings",
+        "shelf3",
+        "steps:113"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#רק הזוגיים",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "רק הזוגיים",
+      "lang": "machine",
+      "what": "brick",
+      "name": "השאר ברשימה רק את הזוגיים",
+      "does": "לבנה «רק הזוגיים» במכונת 16 התאים: לוקחת רשימה מקושרת (ראש בתא 1) ומסדרת מחדש את הרשימה במקום (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "רשימה",
+          "kind": "list",
+          "type": "linked-list@cell1"
+        }
+      ],
+      "gives": {
+        "kind": "list",
+        "type": "linked-list@cell1"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "רשימה": [
+            12,
+            9,
+            14,
+            10
+          ]
+        },
+        "out": [
+          12,
+          14,
+          10
+        ]
+      },
+      "tags": [
+        "lab13",
+        "rings",
+        "shelf3",
+        "steps:102"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#רר1 סכום הזוגיים פחות ספור גדולים מ-12",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "רר1 סכום הזוגיים פחות ספור גדולים מ-12",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב סכום הזוגיים פחות ספור גדולים מ-12",
+      "does": "לבנה «סכום הזוגיים פחות ספור גדולים מ-12» במכונת 16 התאים: לוקחת רשימה מקושרת (ראש בתא 1) ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "רשימה",
+          "kind": "list",
+          "type": "linked-list@cell1"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "רשימה": [
+            12,
+            9,
+            14,
+            10
+          ]
+        },
+        "out": 3
+      },
+      "tags": [
+        "family:רר",
+        "lab13",
+        "rings",
+        "shelf3",
+        "steps:148"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#רר2 הגדול פחות הקטן",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "רר2 הגדול פחות הקטן",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב הגדול פחות הקטן",
+      "does": "לבנה «הגדול פחות הקטן» במכונת 16 התאים: לוקחת רשימה מקושרת (ראש בתא 1) ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "רשימה",
+          "kind": "list",
+          "type": "linked-list@cell1"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "רשימה": [
+            12,
+            9,
+            14,
+            10
+          ]
+        },
+        "out": 5
+      },
+      "tags": [
+        "family:רר",
+        "lab13",
+        "rings",
+        "shelf3",
+        "steps:184"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#רר3 סכום כפול 2 ועוד האורך",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "רר3 סכום כפול 2 ועוד האורך",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב סכום כפול 2 ועוד האורך",
+      "does": "לבנה «סכום כפול 2 ועוד האורך» במכונת 16 התאים: לוקחת רשימה מקושרת (ראש בתא 1) ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "רשימה",
+          "kind": "list",
+          "type": "linked-list@cell1"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "רשימה": [
+            12,
+            9,
+            14,
+            10
+          ]
+        },
+        "out": 14
+      },
+      "tags": [
+        "family:רר",
+        "lab13",
+        "rings",
+        "shelf3",
+        "steps:119"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#רר4 הגדול מבין סכום-הזוגיים והגדול",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "רר4 הגדול מבין סכום-הזוגיים והגדול",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב הגדול מבין סכום-הזוגיים והגדול",
+      "does": "לבנה «הגדול מבין סכום-הזוגיים והגדול» במכונת 16 התאים: לוקחת רשימה מקושרת (ראש בתא 1) ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "רשימה",
+          "kind": "list",
+          "type": "linked-list@cell1"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "רשימה": [
+            12,
+            9,
+            14,
+            10
+          ]
+        },
+        "out": 14
+      },
+      "tags": [
+        "family:רר",
+        "lab13",
+        "rings",
+        "shelf3",
+        "steps:166"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#רר5 יורדת וגם כולם אי-זוגיים",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "רר5 יורדת וגם כולם אי-זוגיים",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב יורדת וגם כולם אי-זוגיים",
+      "does": "לבנה «יורדת וגם כולם אי-זוגיים» במכונת 16 התאים: לוקחת רשימה מקושרת (ראש בתא 1) ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "רשימה",
+          "kind": "list",
+          "type": "linked-list@cell1"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "רשימה": [
+            12,
+            9,
+            14,
+            10
+          ]
+        },
+        "out": 0
+      },
+      "tags": [
+        "family:רר",
+        "lab13",
+        "rings",
+        "shelf3",
+        "steps:179"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#רר6 כמה גדולים מהראשון ועוד ספור ירידות",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "רר6 כמה גדולים מהראשון ועוד ספור ירידות",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב כמה גדולים מהראשון ועוד ספור ירידות",
+      "does": "לבנה «כמה גדולים מהראשון ועוד ספור ירידות» במכונת 16 התאים: לוקחת רשימה מקושרת (ראש בתא 1) ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "רשימה",
+          "kind": "list",
+          "type": "linked-list@cell1"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "רשימה": [
+            12,
+            9,
+            14,
+            10
+          ]
+        },
+        "out": 3
+      },
+      "tags": [
+        "family:רר",
+        "lab13",
+        "rings",
+        "shelf3",
+        "steps:162"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#רר7 האחרון פחות הראשון, כפול 2",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "רר7 האחרון פחות הראשון, כפול 2",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב האחרון פחות הראשון, כפול 2",
+      "does": "לבנה «האחרון פחות הראשון, כפול 2» במכונת 16 התאים: לוקחת רשימה מקושרת (ראש בתא 1) ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "רשימה",
+          "kind": "list",
+          "type": "linked-list@cell1"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "רשימה": [
+            12,
+            9,
+            14,
+            10
+          ]
+        },
+        "out": 12
+      },
+      "tags": [
+        "family:רר",
+        "lab13",
+        "rings",
+        "shelf3",
+        "steps:126"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#רר8 סכום פחות (הגדול פחות האורך)",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "רר8 סכום פחות (הגדול פחות האורך)",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב סכום פחות",
+      "does": "לבנה «סכום פחות (הגדול פחות האורך)» במכונת 16 התאים: לוקחת רשימה מקושרת (ראש בתא 1) ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "רשימה",
+          "kind": "list",
+          "type": "linked-list@cell1"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "רשימה": [
+            12,
+            9,
+            14,
+            10
+          ]
+        },
+        "out": 3
+      },
+      "tags": [
+        "family:רר",
+        "lab13",
+        "rings",
+        "shelf3",
+        "steps:135"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#ש1 א כפול ב ועוד א",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "ש1 א כפול ב ועוד א",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב א כפול ב ועוד א",
+      "does": "לבנה «א כפול ב ועוד א» במכונת 16 התאים: לוקחת תא 0, תא 1 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        },
+        {
+          "name": "ב",
+          "kind": "number",
+          "type": "cell1:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6,
+          "ב": 3
+        },
+        "out": 8
+      },
+      "tags": [
+        "family:ש",
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:35"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#ש1 האם ג בין א ל-ב",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "ש1 האם ג בין א ל-ב",
+      "lang": "machine",
+      "what": "brick",
+      "name": "בדוק אם ג בין א ל-ב",
+      "does": "לבנה «האם ג בין א ל-ב» במכונת 16 התאים: לוקחת תא 0, תא 1, תא 3 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        },
+        {
+          "name": "ב",
+          "kind": "number",
+          "type": "cell1:0..15"
+        },
+        {
+          "name": "ג",
+          "kind": "number",
+          "type": "cell3:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6,
+          "ב": 3,
+          "ג": 2
+        },
+        "out": 0
+      },
+      "tags": [
+        "family:ש",
+        "lab13",
+        "rings",
+        "shelf3",
+        "steps:228"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#ש1 הגדול מבין א+ב ו-ג",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "ש1 הגדול מבין א+ב ו-ג",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב הגדול מבין א+ב ו-ג",
+      "does": "לבנה «הגדול מבין א+ב ו-ג» במכונת 16 התאים: לוקחת תא 0, תא 1, תא 3 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        },
+        {
+          "name": "ב",
+          "kind": "number",
+          "type": "cell1:0..15"
+        },
+        {
+          "name": "ג",
+          "kind": "number",
+          "type": "cell3:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6,
+          "ב": 3,
+          "ג": 2
+        },
+        "out": 9
+      },
+      "tags": [
+        "family:ש",
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:54"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#ש1 הפרש מוחלט ועוד ג",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "ש1 הפרש מוחלט ועוד ג",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב הפרש מוחלט ועוד ג",
+      "does": "לבנה «הפרש מוחלט ועוד ג» במכונת 16 התאים: לוקחת תא 0, תא 1, תא 3 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        },
+        {
+          "name": "ב",
+          "kind": "number",
+          "type": "cell1:0..15"
+        },
+        {
+          "name": "ג",
+          "kind": "number",
+          "type": "cell3:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6,
+          "ב": 3,
+          "ג": 2
+        },
+        "out": 5
+      },
+      "tags": [
+        "family:ש",
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:64"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#ש1 הקטן בריבוע",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "ש1 הקטן בריבוע",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב הקטן בריבוע",
+      "does": "לבנה «הקטן בריבוע» במכונת 16 התאים: לוקחת תא 0, תא 1 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        },
+        {
+          "name": "ב",
+          "kind": "number",
+          "type": "cell1:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6,
+          "ב": 3
+        },
+        "out": 9
+      },
+      "tags": [
+        "family:ש",
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:65"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#ש1 חצי ההפרש",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "ש1 חצי ההפרש",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב חצי ההפרש",
+      "does": "לבנה «חצי ההפרש» במכונת 16 התאים: לוקחת תא 0, תא 1 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        },
+        {
+          "name": "ב",
+          "kind": "number",
+          "type": "cell1:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6,
+          "ב": 3
+        },
+        "out": 1
+      },
+      "tags": [
+        "family:ש",
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:68"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#ש1 ממוצע הגדול והקטן",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "ש1 ממוצע הגדול והקטן",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב ממוצע הגדול והקטן",
+      "does": "לבנה «ממוצע הגדול והקטן» במכונת 16 התאים: לוקחת תא 0, תא 1, תא 3 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        },
+        {
+          "name": "ב",
+          "kind": "number",
+          "type": "cell1:0..15"
+        },
+        {
+          "name": "ג",
+          "kind": "number",
+          "type": "cell3:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6,
+          "ב": 3,
+          "ג": 2
+        },
+        "out": 4
+      },
+      "tags": [
+        "family:ש",
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:172"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#ש1 ממוצע כפול 2",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "ש1 ממוצע כפול 2",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב ממוצע כפול 2",
+      "does": "לבנה «ממוצע כפול 2» במכונת 16 התאים: לוקחת תא 0, תא 1 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        },
+        {
+          "name": "ב",
+          "kind": "number",
+          "type": "cell1:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6,
+          "ב": 3
+        },
+        "out": 8
+      },
+      "tags": [
+        "family:ש",
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:25"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#ש1 סכום רווי פחות 1",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "ש1 סכום רווי פחות 1",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב סכום רווי פחות 1",
+      "does": "לבנה «סכום רווי פחות 1» במכונת 16 התאים: לוקחת תא 0, תא 1 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        },
+        {
+          "name": "ב",
+          "kind": "number",
+          "type": "cell1:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6,
+          "ב": 3
+        },
+        "out": 8
+      },
+      "tags": [
+        "family:ש",
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:156"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#ש1 שארית א+ב ב-3",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "ש1 שארית א+ב ב-3",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב שארית א+ב ב-3",
+      "does": "לבנה «שארית א+ב ב-3» במכונת 16 התאים: לוקחת תא 0, תא 1 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        },
+        {
+          "name": "ב",
+          "kind": "number",
+          "type": "cell1:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6,
+          "ב": 3
+        },
+        "out": 0
+      },
+      "tags": [
+        "family:ש",
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:171"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#ש2 (א כפול ב ועוד א) שארית 3",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "ש2 (א כפול ב ועוד א) שארית 3",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב (א כפול ב ועוד א) שארית 3",
+      "does": "לבנה «(א כפול ב ועוד א) שארית 3» במכונת 16 התאים: לוקחת תא 0, תא 1 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        },
+        {
+          "name": "ב",
+          "kind": "number",
+          "type": "cell1:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6,
+          "ב": 3
+        },
+        "out": 2
+      },
+      "tags": [
+        "family:ש",
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:74"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#ש2 אם ג בין א ל-ב: הפרש ועוד ג, אחרת 0",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "ש2 אם ג בין א ל-ב: הפרש ועוד ג, אחרת 0",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב אם ג בין א ל-ב: הפרש ועוד ג",
+      "does": "לבנה «אם ג בין א ל-ב: הפרש ועוד ג, אחרת 0» במכונת 16 התאים: לוקחת תא 0, תא 1, תא 3 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        },
+        {
+          "name": "ב",
+          "kind": "number",
+          "type": "cell1:0..15"
+        },
+        {
+          "name": "ג",
+          "kind": "number",
+          "type": "cell3:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6,
+          "ב": 3,
+          "ג": 2
+        },
+        "out": 0
+      },
+      "tags": [
+        "family:ש",
+        "lab13",
+        "rings",
+        "shelf3",
+        "steps:259"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#ש2 הגדול מבין א+ב ו-ג, פחות ממוצע הגדול והקטן",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "ש2 הגדול מבין א+ב ו-ג, פחות ממוצע הגדול והקטן",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב הגדול מבין א+ב ו-ג, פחות ממוצע הגדול והקטן",
+      "does": "לבנה «הגדול מבין א+ב ו-ג, פחות ממוצע הגדול והקטן» במכונת 16 התאים: לוקחת תא 0, תא 1, תא 3 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        },
+        {
+          "name": "ב",
+          "kind": "number",
+          "type": "cell1:0..15"
+        },
+        {
+          "name": "ג",
+          "kind": "number",
+          "type": "cell3:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6,
+          "ב": 3,
+          "ג": 2
+        },
+        "out": 5
+      },
+      "tags": [
+        "family:ש",
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:236"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#ש2 הקטן בריבוע ועוד ממוצע כפול 2",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "ש2 הקטן בריבוע ועוד ממוצע כפול 2",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב הקטן בריבוע ועוד ממוצע כפול 2",
+      "does": "לבנה «הקטן בריבוע ועוד ממוצע כפול 2» במכונת 16 התאים: לוקחת תא 0, תא 1 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        },
+        {
+          "name": "ב",
+          "kind": "number",
+          "type": "cell1:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6,
+          "ב": 3
+        },
+        "out": 1
+      },
+      "tags": [
+        "family:ש",
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:86"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#ש2 חצי ההפרש בריבוע",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "ש2 חצי ההפרש בריבוע",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב חצי ההפרש בריבוע",
+      "does": "לבנה «חצי ההפרש בריבוע» במכונת 16 התאים: לוקחת תא 0, תא 1 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        },
+        {
+          "name": "ב",
+          "kind": "number",
+          "type": "cell1:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6,
+          "ב": 3
+        },
+        "out": 1
+      },
+      "tags": [
+        "family:ש",
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:93"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#ש2 סכום רווי פחות 1, כפול 2",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "ש2 סכום רווי פחות 1, כפול 2",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב סכום רווי פחות 1, כפול 2",
+      "does": "לבנה «סכום רווי פחות 1, כפול 2» במכונת 16 התאים: לוקחת תא 0, תא 1 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        },
+        {
+          "name": "ב",
+          "kind": "number",
+          "type": "cell1:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6,
+          "ב": 3
+        },
+        "out": 0
+      },
+      "tags": [
+        "family:ש",
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:76"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#ש3 (שארית-3) כפול (סכום-רווי-כפול-2)",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "ש3 (שארית-3) כפול (סכום-רווי-כפול-2)",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב (שארית-3) כפול",
+      "does": "לבנה «(שארית-3) כפול (סכום-רווי-כפול-2)» במכונת 16 התאים: לוקחת תא 0, תא 1 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        },
+        {
+          "name": "ב",
+          "kind": "number",
+          "type": "cell1:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6,
+          "ב": 3
+        },
+        "out": 0
+      },
+      "tags": [
+        "family:ש",
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:140"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#ש3 אם-בין פחות הגדול-פחות-ממוצע",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "ש3 אם-בין פחות הגדול-פחות-ממוצע",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב אם-בין פחות הגדול-פחות-ממוצע",
+      "does": "לבנה «אם-בין פחות הגדול-פחות-ממוצע» במכונת 16 התאים: לוקחת תא 0, תא 1, תא 3 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        },
+        {
+          "name": "ב",
+          "kind": "number",
+          "type": "cell1:0..15"
+        },
+        {
+          "name": "ג",
+          "kind": "number",
+          "type": "cell3:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6,
+          "ב": 3,
+          "ג": 2
+        },
+        "out": 11
+      },
+      "tags": [
+        "family:ש",
+        "lab13",
+        "rings",
+        "shelf3",
+        "steps:497"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#ש3 הגדול מבין חצי-ההפרש-בריבוע וסכום-רווי-כפול-2",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "ש3 הגדול מבין חצי-ההפרש-בריבוע וסכום-רווי-כפול-2",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב הגדול מבין חצי-ההפרש-בריבוע וסכום-רווי-כפול-2",
+      "does": "לבנה «הגדול מבין חצי-ההפרש-בריבוע וסכום-רווי-כפול-2» במכונת 16 התאים: לוקחת תא 0, תא 1 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        },
+        {
+          "name": "ב",
+          "kind": "number",
+          "type": "cell1:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6,
+          "ב": 3
+        },
+        "out": 1
+      },
+      "tags": [
+        "family:ש",
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:183"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#ש3 חצי-ההפרש-בריבוע ועוד הקטן-בריבוע-וממוצע",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "ש3 חצי-ההפרש-בריבוע ועוד הקטן-בריבוע-וממוצע",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב חצי-ההפרש-בריבוע ועוד הקטן-בריבוע-וממוצע",
+      "does": "לבנה «חצי-ההפרש-בריבוע ועוד הקטן-בריבוע-וממוצע» במכונת 16 התאים: לוקחת תא 0, תא 1 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        },
+        {
+          "name": "ב",
+          "kind": "number",
+          "type": "cell1:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6,
+          "ב": 3
+        },
+        "out": 2
+      },
+      "tags": [
+        "family:ש",
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:124"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#ש4 הקטן מבין השלישי והראשון של שלב 3",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "ש4 הקטן מבין השלישי והראשון של שלב 3",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב הקטן מבין השלישי והראשון של שלב 3",
+      "does": "לבנה «הקטן מבין השלישי והראשון של שלב 3» במכונת 16 התאים: לוקחת תא 0, תא 1 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        },
+        {
+          "name": "ב",
+          "kind": "number",
+          "type": "cell1:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6,
+          "ב": 3
+        },
+        "out": 0
+      },
+      "tags": [
+        "family:ש",
+        "lab13",
+        "rings",
+        "shelf3",
+        "steps:303"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#ש4 הרביעי של שלב 3, כפול 2, ועוד ג",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "ש4 הרביעי של שלב 3, כפול 2, ועוד ג",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב הרביעי של שלב 3, כפול 2, ועוד ג",
+      "does": "לבנה «הרביעי של שלב 3, כפול 2, ועוד ג» במכונת 16 התאים: לוקחת תא 0, תא 1, תא 3 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        },
+        {
+          "name": "ב",
+          "kind": "number",
+          "type": "cell1:0..15"
+        },
+        {
+          "name": "ג",
+          "kind": "number",
+          "type": "cell3:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6,
+          "ב": 3,
+          "ג": 2
+        },
+        "out": 8
+      },
+      "tags": [
+        "family:ש",
+        "lab13",
+        "rings",
+        "shelf3",
+        "steps:507"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#ש4 סכום שני הראשונים של שלב 3",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "ש4 סכום שני הראשונים של שלב 3",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב סכום שני הראשונים של שלב 3",
+      "does": "לבנה «סכום שני הראשונים של שלב 3» במכונת 16 התאים: לוקחת תא 0, תא 1 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        },
+        {
+          "name": "ב",
+          "kind": "number",
+          "type": "cell1:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6,
+          "ב": 3
+        },
+        "out": 3
+      },
+      "tags": [
+        "family:ש",
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:295"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#ש5 הגדול מבין שני הראשונים של שלב 4",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "ש5 הגדול מבין שני הראשונים של שלב 4",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב הגדול מבין שני הראשונים של שלב 4",
+      "does": "לבנה «הגדול מבין שני הראשונים של שלב 4» במכונת 16 התאים: לוקחת תא 0, תא 1 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        },
+        {
+          "name": "ב",
+          "kind": "number",
+          "type": "cell1:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6,
+          "ב": 3
+        },
+        "out": 3
+      },
+      "tags": [
+        "family:ש",
+        "lab13",
+        "rings",
+        "shelf3",
+        "steps:639"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#ש5 הראשון של שלב 4 פחות השני",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "ש5 הראשון של שלב 4 פחות השני",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב הראשון של שלב 4 פחות השני",
+      "does": "לבנה «הראשון של שלב 4 פחות השני» במכונת 16 התאים: לוקחת תא 0, תא 1 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        },
+        {
+          "name": "ב",
+          "kind": "number",
+          "type": "cell1:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6,
+          "ב": 3
+        },
+        "out": 3
+      },
+      "tags": [
+        "family:ש",
+        "lab13",
+        "rings",
+        "shelf3",
+        "steps:632"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#ש5 השלישי של שלב 4 ועוד א",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "ש5 השלישי של שלב 4 ועוד א",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב השלישי של שלב 4 ועוד א",
+      "does": "לבנה «השלישי של שלב 4 ועוד א» במכונת 16 התאים: לוקחת תא 0, תא 1, תא 3 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        },
+        {
+          "name": "ב",
+          "kind": "number",
+          "type": "cell1:0..15"
+        },
+        {
+          "name": "ג",
+          "kind": "number",
+          "type": "cell3:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6,
+          "ב": 3,
+          "ג": 2
+        },
+        "out": 14
+      },
+      "tags": [
+        "family:ש",
+        "lab13",
+        "rings",
+        "shelf3",
+        "steps:509"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#ש6 הקטן מבין הראשון והשלישי של שלב 5",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "ש6 הקטן מבין הראשון והשלישי של שלב 5",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב הקטן מבין הראשון והשלישי של שלב 5",
+      "does": "לבנה «הקטן מבין הראשון והשלישי של שלב 5» במכונת 16 התאים: לוקחת תא 0, תא 1, תא 3 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        },
+        {
+          "name": "ב",
+          "kind": "number",
+          "type": "cell1:0..15"
+        },
+        {
+          "name": "ג",
+          "kind": "number",
+          "type": "cell3:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6,
+          "ב": 3,
+          "ג": 2
+        },
+        "out": 3
+      },
+      "tags": [
+        "family:ש",
+        "lab13",
+        "rings",
+        "shelf3",
+        "steps:1216"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#ש6 הראשון של שלב 5 ועוד השני",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "ש6 הראשון של שלב 5 ועוד השני",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב הראשון של שלב 5 ועוד השני",
+      "does": "לבנה «הראשון של שלב 5 ועוד השני» במכונת 16 התאים: לוקחת תא 0, תא 1 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        },
+        {
+          "name": "ב",
+          "kind": "number",
+          "type": "cell1:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6,
+          "ב": 3
+        },
+        "out": 6
+      },
+      "tags": [
+        "family:ש",
+        "lab13",
+        "rings",
+        "shelf3",
+        "steps:916"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#ש6 השני של שלב 5 כפול 2",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "ש6 השני של שלב 5 כפול 2",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב השני של שלב 5 כפול 2",
+      "does": "לבנה «השני של שלב 5 כפול 2» במכונת 16 התאים: לוקחת תא 0, תא 1 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        },
+        {
+          "name": "ב",
+          "kind": "number",
+          "type": "cell1:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6,
+          "ב": 3
+        },
+        "out": 6
+      },
+      "tags": [
+        "family:ש",
+        "lab13",
+        "rings",
+        "shelf3",
+        "steps:640"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#שארית",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "שארית",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב שארית",
+      "does": "לבנה «שארית» במכונת 16 התאים: לוקחת תא 0, תא 1 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        },
+        {
+          "name": "ב",
+          "kind": "number",
+          "type": "cell1:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6,
+          "ב": 3
+        },
+        "out": 0
+      },
+      "tags": [
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:61"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#שווה (מספרים)",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "שווה (מספרים)",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב שווה",
+      "does": "לבנה «שווה (מספרים)» במכונת 16 התאים: לוקחת תא 0, תא 1 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        },
+        {
+          "name": "ב",
+          "kind": "number",
+          "type": "cell1:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6,
+          "ב": 3
+        },
+        "out": 0
+      },
+      "tags": [
+        "lab13",
+        "recipe",
+        "rings",
+        "shelf3",
+        "steps:31"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#שונה (מספרים)",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "שונה (מספרים)",
+      "lang": "machine",
+      "what": "brick",
+      "name": "חשב שונה",
+      "does": "לבנה «שונה (מספרים)» במכונת 16 התאים: לוקחת תא 0, תא 1 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        },
+        {
+          "name": "ב",
+          "kind": "number",
+          "type": "cell1:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6,
+          "ב": 3
+        },
+        "out": 5
+      },
+      "tags": [
+        "lab13",
+        "rings",
+        "shelf3",
+        "steps:20"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#שלושה שווים?",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "שלושה שווים?",
+      "lang": "machine",
+      "what": "brick",
+      "name": "בדוק אם שלושה שווים",
+      "does": "לבנה «שלושה שווים?» במכונת 16 התאים: לוקחת תא 0, תא 1, תא 3 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        },
+        {
+          "name": "ב",
+          "kind": "number",
+          "type": "cell1:0..15"
+        },
+        {
+          "name": "ג",
+          "kind": "number",
+          "type": "cell3:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 6,
+          "ב": 3,
+          "ג": 2
+        },
+        "out": 0
+      },
+      "tags": [
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:37"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#תנאי: 10,11,14,15",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "תנאי: 10,11,14,15",
+      "lang": "machine",
+      "what": "brick",
+      "name": "בדוק אם המספר הוא אחד מ-10,11,14,15",
+      "does": "לבנה «תנאי: 10,11,14,15» במכונת 16 התאים: לוקחת תא 0 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 10
+        },
+        "out": 15
+      },
+      "tags": [
+        "flag:15=true",
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:23"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#תנאי: 10,15",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "תנאי: 10,15",
+      "lang": "machine",
+      "what": "brick",
+      "name": "בדוק אם המספר הוא אחד מ-10,15",
+      "does": "לבנה «תנאי: 10,15» במכונת 16 התאים: לוקחת תא 0 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 10
+        },
+        "out": 15
+      },
+      "tags": [
+        "flag:15=true",
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:143"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#תנאי: 11,12,14",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "תנאי: 11,12,14",
+      "lang": "machine",
+      "what": "brick",
+      "name": "בדוק אם המספר הוא אחד מ-11,12,14",
+      "does": "לבנה «תנאי: 11,12,14» במכונת 16 התאים: לוקחת תא 0 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 11
+        },
+        "out": 15
+      },
+      "tags": [
+        "flag:15=true",
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:32"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#תנאי: 8,10,13",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "תנאי: 8,10,13",
+      "lang": "machine",
+      "what": "brick",
+      "name": "בדוק אם המספר הוא אחד מ-8,10,13",
+      "does": "לבנה «תנאי: 8,10,13» במכונת 16 התאים: לוקחת תא 0 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 8
+        },
+        "out": 15
+      },
+      "tags": [
+        "flag:15=true",
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:46"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#תנאי: 8,11,12,14",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "תנאי: 8,11,12,14",
+      "lang": "machine",
+      "what": "brick",
+      "name": "בדוק אם המספר הוא אחד מ-8,11,12,14",
+      "does": "לבנה «תנאי: 8,11,12,14» במכונת 16 התאים: לוקחת תא 0 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 8
+        },
+        "out": 15
+      },
+      "tags": [
+        "flag:15=true",
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:34"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#תנאי: 8,11,12,14,15",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "תנאי: 8,11,12,14,15",
+      "lang": "machine",
+      "what": "brick",
+      "name": "בדוק אם המספר הוא אחד מ-8,11,12,14,15",
+      "does": "לבנה «תנאי: 8,11,12,14,15» במכונת 16 התאים: לוקחת תא 0 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 8
+        },
+        "out": 15
+      },
+      "tags": [
+        "flag:15=true",
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:28"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#תנאי: 8,11,13",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "תנאי: 8,11,13",
+      "lang": "machine",
+      "what": "brick",
+      "name": "בדוק אם המספר הוא אחד מ-8,11,13",
+      "does": "לבנה «תנאי: 8,11,13» במכונת 16 התאים: לוקחת תא 0 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 8
+        },
+        "out": 15
+      },
+      "tags": [
+        "flag:15=true",
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:70"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#תנאי: 8,11,13,14",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "תנאי: 8,11,13,14",
+      "lang": "machine",
+      "what": "brick",
+      "name": "בדוק אם המספר הוא אחד מ-8,11,13,14",
+      "does": "לבנה «תנאי: 8,11,13,14» במכונת 16 התאים: לוקחת תא 0 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 8
+        },
+        "out": 15
+      },
+      "tags": [
+        "flag:15=true",
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:137"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#תנאי: 8,12",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "תנאי: 8,12",
+      "lang": "machine",
+      "what": "brick",
+      "name": "בדוק אם המספר הוא אחד מ-8,12",
+      "does": "לבנה «תנאי: 8,12» במכונת 16 התאים: לוקחת תא 0 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 8
+        },
+        "out": 15
+      },
+      "tags": [
+        "flag:15=true",
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:29"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#תנאי: 8,12,13,14,15",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "תנאי: 8,12,13,14,15",
+      "lang": "machine",
+      "what": "brick",
+      "name": "בדוק אם המספר הוא אחד מ-8,12,13,14,15",
+      "does": "לבנה «תנאי: 8,12,13,14,15» במכונת 16 התאים: לוקחת תא 0 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 8
+        },
+        "out": 15
+      },
+      "tags": [
+        "flag:15=true",
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:30"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#תנאי: 8,15",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "תנאי: 8,15",
+      "lang": "machine",
+      "what": "brick",
+      "name": "בדוק אם המספר הוא אחד מ-8,15",
+      "does": "לבנה «תנאי: 8,15» במכונת 16 התאים: לוקחת תא 0 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 8
+        },
+        "out": 15
+      },
+      "tags": [
+        "flag:15=true",
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:37"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#תנאי: 8,9,10",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "תנאי: 8,9,10",
+      "lang": "machine",
+      "what": "brick",
+      "name": "בדוק אם המספר הוא אחד מ-8,9,10",
+      "does": "לבנה «תנאי: 8,9,10» במכונת 16 התאים: לוקחת תא 0 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 8
+        },
+        "out": 15
+      },
+      "tags": [
+        "flag:15=true",
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:20"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#תנאי: 8,9,10,11",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "תנאי: 8,9,10,11",
+      "lang": "machine",
+      "what": "brick",
+      "name": "בדוק אם המספר הוא אחד מ-8,9,10,11",
+      "does": "לבנה «תנאי: 8,9,10,11» במכונת 16 התאים: לוקחת תא 0 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 8
+        },
+        "out": 15
+      },
+      "tags": [
+        "flag:15=true",
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:21"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#תנאי: 8,9,10,11,12,13",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "תנאי: 8,9,10,11,12,13",
+      "lang": "machine",
+      "what": "brick",
+      "name": "בדוק אם המספר הוא אחד מ-8,9,10,11,12,13",
+      "does": "לבנה «תנאי: 8,9,10,11,12,13» במכונת 16 התאים: לוקחת תא 0 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 8
+        },
+        "out": 15
+      },
+      "tags": [
+        "flag:15=true",
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:32"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#תנאי: 8,9,11,13,14,15",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "תנאי: 8,9,11,13,14,15",
+      "lang": "machine",
+      "what": "brick",
+      "name": "בדוק אם המספר הוא אחד מ-8,9,11,13,14,15",
+      "does": "לבנה «תנאי: 8,9,11,13,14,15» במכונת 16 התאים: לוקחת תא 0 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 8
+        },
+        "out": 15
+      },
+      "tags": [
+        "flag:15=true",
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:28"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#תנאי: 9,10,11,12,14",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "תנאי: 9,10,11,12,14",
+      "lang": "machine",
+      "what": "brick",
+      "name": "בדוק אם המספר הוא אחד מ-9,10,11,12,14",
+      "does": "לבנה «תנאי: 9,10,11,12,14» במכונת 16 התאים: לוקחת תא 0 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 9
+        },
+        "out": 15
+      },
+      "tags": [
+        "flag:15=true",
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:32"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#תנאי: 9,10,11,12,14,15",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "תנאי: 9,10,11,12,14,15",
+      "lang": "machine",
+      "what": "brick",
+      "name": "בדוק אם המספר הוא אחד מ-9,10,11,12,14,15",
+      "does": "לבנה «תנאי: 9,10,11,12,14,15» במכונת 16 התאים: לוקחת תא 0 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 9
+        },
+        "out": 15
+      },
+      "tags": [
+        "flag:15=true",
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:240"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#תנאי: 9,11,12,15",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "תנאי: 9,11,12,15",
+      "lang": "machine",
+      "what": "brick",
+      "name": "בדוק אם המספר הוא אחד מ-9,11,12,15",
+      "does": "לבנה «תנאי: 9,11,12,15» במכונת 16 התאים: לוקחת תא 0 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 9
+        },
+        "out": 15
+      },
+      "tags": [
+        "flag:15=true",
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:32"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#תנאי: 9,12,14",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "תנאי: 9,12,14",
+      "lang": "machine",
+      "what": "brick",
+      "name": "בדוק אם המספר הוא אחד מ-9,12,14",
+      "does": "לבנה «תנאי: 9,12,14» במכונת 16 התאים: לוקחת תא 0 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 9
+        },
+        "out": 15
+      },
+      "tags": [
+        "flag:15=true",
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:28"
+      ]
+    },
+    {
+      "id": "rings:lab-rings/lab13/shelf3.json#תנאי: 9,14",
+      "source": "rings",
+      "path": "lab-rings/lab13/shelf3.json",
+      "symbol": "תנאי: 9,14",
+      "lang": "machine",
+      "what": "brick",
+      "name": "בדוק אם המספר הוא אחד מ-9,14",
+      "does": "לבנה «תנאי: 9,14» במכונת 16 התאים: לוקחת תא 0 ושמה את התוצאה בתא 2 (חשבון מודולו 16).",
+      "takes": [
+        {
+          "name": "א",
+          "kind": "number",
+          "type": "cell0:0..15"
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": "cell2:0..15"
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "א": 9
+        },
+        "out": 15
+      },
+      "tags": [
+        "flag:15=true",
+        "lab13",
+        "movable",
+        "rings",
+        "shelf3",
+        "steps:55"
+      ]
+    }
+  ]
+}
