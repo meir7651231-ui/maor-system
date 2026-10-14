@@ -31,7 +31,8 @@ const HEB = /[א-ת]/;
 
 describe('החוזה המשותף', () => {
   it('ביט-זהה (md5) ומסתיים בשורה-חדשה אחת', () => {
-    expect(createHash('md5').update(contractRaw).digest('hex')).toBe('d1633928cab86f6d2b0e9c3f8c7de598');
+    // CHAIN 14.10: שינוי מכוון ותוספתי בלבד (Capability.parent? + ATOM_OUTPUT/outputKind) — היה d1633928cab86f6d2b0e9c3f8c7de598
+    expect(createHash('md5').update(contractRaw).digest('hex')).toBe('09e899edbeef152b596b5773914fab03');
     expect(contractRaw.endsWith('}\n')).toBe(true);
     expect(contractRaw.endsWith('\n\n')).toBe(false);
   });

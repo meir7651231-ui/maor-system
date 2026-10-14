@@ -10,6 +10,7 @@ import { capabilityId, type AtomCard, type AtomId, type Capability, type EngineI
 import { atomCard } from './cards';
 import { engineCard, placeById } from './engines';
 import { MAX_CAPABILITIES } from './capShape';
+import { childId, childProblem, childrenOf, parseCapId } from './chain';
 
 export const CAP_NAME_MAX = 60;
 
@@ -79,9 +80,29 @@ export function suggestedName(place: string, atom: AtomId | string): string {
   return SUGGESTED[place + ':' + atom] ?? 'מנוע ' + (ATOM_SHORT[atom as AtomId] ?? atom) + ' · ' + placeShort(place);
 }
 
+/** CHAIN 14.10: שם למנוע שבנוי על מנוע (מקום-השורש:חלק>חלק…). חסר ⇒ "<שם ההורה> · <חלק>". */
+const SUGGESTED_CHAIN: Readonly<Record<string, string>> = {
+  'bookings.turnover:divide>merge': 'מנוע תורים באורך משתנה',
+  'bookings.turnover:divide>next': 'מנוע התור הבא',
+  'bookings.turnover:divide>rotate': 'מנוע תורים לפי תורות',
+  'bookings.nights:merge>next': 'מנוע החלון הפנוי הבא',
+  'bookings.nights:merge>divide': 'מנוע חלוקה הוגנת של הזמן הפנוי',
+  'bookings.nights:merge>rotate': 'מנוע חלונות פנויים לפי תורות',
+  'bookings.arrivals:next>offset': 'מנוע תזכורת להגעה הבאה',
+};
+
+export function suggestedChildName(parent: Pick<Capability, 'id' | 'name'>, atom: AtomId | string): string {
+  const p = parseCapId(childId(parent.id, atom));
+  const key = p ? p.place + ':' + p.atoms.join('>') : '';
+  return SUGGESTED_CHAIN[key] ?? parent.name + ' · ' + (ATOM_SHORT[atom as AtomId] ?? atom);
+}
+
 /** "מנוע תורים (מנהל ההזמנות · חלון הניקיון · ✂️ חלוקה)" — לשורת-הלוג. */
-export function capabilityLabel(c: Pick<Capability, 'engine' | 'place' | 'atom' | 'name'>): string {
+export function capabilityLabel(c: Pick<Capability, 'engine' | 'place' | 'atom' | 'name'> & { id?: string; parent?: string }): string {
   const e = engineCard(c.engine);
+  // CHAIN 14.10: מנוע שבנוי על מנוע ⇒ כל הדרך: "(מנהל ההזמנות · חלון הניקיון · ✂️ ← 🔗)"
+  const chain = c.parent ? parseCapId(c.id) : null;
+  if (chain) return c.name + ' (' + (e?.name ?? c.engine) + ' · ' + placeShort(chain.place) + ' · ' + chain.atoms.map((x) => atomCard(x)?.emoji ?? x).join(' ← ') + ')';
   const a = atomCard(c.atom);
   return c.name + ' (' + (e?.name ?? c.engine) + ' · ' + placeShort(c.place) + ' · ' + (a ? a.emoji + ' ' : '') + (ATOM_SHORT[c.atom] ?? c.atom) + ')';
 }
@@ -109,12 +130,24 @@ export function validCapability(x: unknown): Capability | null {
   if (!x || typeof x !== 'object') return null;
   const c = x as Partial<Capability>;
   if (typeof c.engine !== 'string' || typeof c.place !== 'string' || typeof c.atom !== 'string') return null;
+  // CHAIN 14.10: מנוע שבנוי על מנוע — כאן רק הצורה שלו (המזהה נגזר מההורה); ההורה עצמו נבדק בשימוש (chain.ts)
+  if (c.parent !== undefined) return validChild(c);
   const e = engineCard(c.engine);
   const p = placeById(c.place);
   const a = atomCard(c.atom);
   if (!e || !p || !a || p.engine !== e.id || !p.results[a.id] || !a.worksOn.includes(p.kind)) return null;
   const name = (typeof c.name === 'string' ? c.name.trim() : '').slice(0, CAP_NAME_MAX) || suggestedName(p.id, a.id);
   return { id: capabilityId(e.id, p.id, a.id), engine: e.id as EngineId, place: p.id, atom: a.id, params: cleanParams(a, c.params), name };
+}
+
+function validChild(c: Partial<Capability>): Capability | null {
+  const a = atomCard(String(c.atom));
+  const parent = typeof c.parent === 'string' ? c.parent : '';
+  const p = parseCapId(childId(parent, String(c.atom)));
+  const e = engineCard(String(c.engine));
+  if (!a || !p || !e || p.engine !== e.id || p.atoms.length < 2 || (c.place !== 'out:' + parent && c.place !== 'out:' + parent + '#span')) return null;
+  const name = (typeof c.name === 'string' ? c.name.trim() : '').slice(0, CAP_NAME_MAX) || 'מנוע ' + ATOM_SHORT[a.id];
+  return { id: childId(parent, a.id), engine: e.id as EngineId, place: c.place, atom: a.id, params: cleanParams(a, c.params), name, parent };
 }
 
 /** רשימה שמורה ⇒ רק יכולות תקינות, בלי כפילויות (הראשונה נשארת), עד התקרה. */
@@ -142,6 +175,8 @@ export function withCapability(list: unknown, x: unknown): { list: Capability[];
   const cap = validCapability(x);
   if (!cap) return null;
   const cur = sanitizeCapabilities(list);
+  // CHAIN 14.10: מנוע שבנוי על מנוע — ההורה קיים ותקין, עד 3 דורות, והחלק מתחבר לפלט שלו
+  if (cap.parent && childProblem(cap, cur)) return null;
   const i = cur.findIndex((c) => c.id === cap.id);
   if (i >= 0) {
     if (sameCap(cur[i], cap)) return null;
@@ -157,6 +192,8 @@ export function withCapability(list: unknown, x: unknown): { list: Capability[];
 export function withoutCapability(list: unknown, id: string): { list: Capability[]; cap: Capability } | null {
   const cur = sanitizeCapabilities(list);
   const cap = cur.find((c) => c.id === id);
+  // CHAIN 14.10: מנוע שיש מנוע שבנוי עליו לא מוסר (בלי הסרה-בשרשרת שקטה) — קודם מסירים את מה שבנוי עליו
+  if (cap && childrenOf(id, cur).length) return null;
   return cap ? { list: cur.filter((c) => c.id !== id), cap } : null;
 }
 

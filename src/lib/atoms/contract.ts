@@ -105,6 +105,8 @@ export interface Capability {
   params: Readonly<Record<string, number | string>>;
   /** למשל 'מנוע תורים'. */
   name: string;
+  /** CHAIN 14.10 (תוספתי): מזהה היכולת שעליה זו בנויה. חסר ⇒ בנויה ישר על מנוע גדול. */
+  parent?: string;
 }
 
 /** האפשרות שהארגז מציג: חלק + מקום מתאים + התוצאה. */
@@ -129,4 +131,22 @@ export function optionsFor(atom: AtomCard, engine: EngineCard): Option[] {
 
 export function capabilityId(engine: string, place: string, atom: string): string {
   return engine + ':' + place + ':' + atom;
+}
+
+/** CHAIN 14.10 (תוספתי): מה כל חלק נותן. 'same' = אותו סוג שקיבל. */
+export const ATOM_OUTPUT: Readonly<Record<AtomId, Kind | 'same'>> = {
+  divide: 'sequence',
+  merge: 'sequence',
+  next: 'times',
+  round: 'same',
+  offset: 'same',
+  escalate: 'sequence',
+  rotate: 'sequence',
+  fuzzy: 'text',
+};
+
+/** CHAIN 14.10 (תוספתי): הסוג שיוצא מחלק שקיבל סוג מסוים — זה הסוג של המקום היחיד במנוע שנוצר. */
+export function outputKind(atom: AtomId, input: Kind): Kind {
+  const o = ATOM_OUTPUT[atom];
+  return o === 'same' ? input : o;
 }

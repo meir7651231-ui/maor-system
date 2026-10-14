@@ -19,12 +19,15 @@ import { roundTo, type RoundDir } from './parts/round';
 import { offsetAll } from './parts/offset';
 import { escalationState, type EscStep } from './parts/escalate';
 import { dayIndex, fairAssign, turnOf } from './parts/rotate';
+import { chainPreviewOf } from './chainPreview';
 import { arrivals, balances, nightsOf, stays, totals, turnoverSpan, untilArrival, waiting, type Recipient, type WaitingKind } from './engines/bookingsData';
 
 export interface PreviewCtx {
   db: Partial<Db> | null | undefined;
   config?: OrgConfig | null;
   nowMs: number;
+  /** CHAIN 14.10 (תוספתי): היכולות השמורות — כדי שמנוע שבנוי על מנוע ימצא את מה שהוא בנוי עליו. */
+  caps?: readonly Capability[];
 }
 
 export interface Preview {
@@ -400,8 +403,10 @@ export function hasPreview(place: string, atom: AtomId | string): boolean {
 }
 
 /** התצוגה האמיתית של יכולת על נתוני-הארגון. אין תצוגה כנה ⇒ null. לעולם לא זורק. */
-export function previewOf(cap: Pick<Capability, 'place' | 'atom' | 'params'>, ctx: PreviewCtx): Preview | null {
+export function previewOf(cap: Pick<Capability, 'place' | 'atom' | 'params'> & { id?: string; parent?: string }, ctx: PreviewCtx): Preview | null {
   try {
+    // CHAIN 14.10: מנוע שבנוי על מנוע — קודם הפלט של מה שהוא בנוי עליו, אחר כך החלק (chainPreview.ts)
+    if (cap.parent) return chainPreviewOf(cap as Capability, ctx);
     const b = BUILDERS[cap.place + ':' + cap.atom];
     if (!b || !ctx || !Number.isFinite(ctx.nowMs)) return null;
     const r = b(ctx, paramsOf(cap));
@@ -410,6 +415,9 @@ export function previewOf(cap: Pick<Capability, 'place' | 'atom' | 'params'>, ct
     return null;
   }
 }
+
+/** CHAIN 14.10: העזרים שהשרשראות השמורות (chainPreview.ts) משתמשות בהם — אותו קוד, לא עותק. */
+export { capped, divideBy, freeRuns, isoOfDay, paramsOf, unitsOf, arrivalMoments, absLine, NOBODY };
 
 /* ═══════════════ שרשראות: חלק אחרי חלק ═══════════════ */
 

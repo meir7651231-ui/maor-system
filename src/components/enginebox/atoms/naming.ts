@@ -66,16 +66,26 @@ export function buildCapability(engine: EngineCard, atom: AtomCard, option: Opti
   };
 }
 
+/**
+ * CHAIN 14.10: היכולת של מנוע שבנוי על מנוע שנוצר (`parentId`). המזהה = מזהה ההורה + '>' + החלק — אותו מבנה כמו
+ * `childId` ב-lib/atoms/chain.ts (נעול ב-ratchet; לא מייבאים את chain.ts כדי שהכרטיסים לא ייכנסו ל-chunk של המסך).
+ */
+export function buildChildCapability(parentId: string, engine: EngineCard, atom: AtomCard, option: Option, values: DetailValues): Capability {
+  return { ...buildCapability(engine, atom, option, values), id: parentId + '>' + atom.id, parent: parentId };
+}
+
 /** "חבר": בונה את היכולת ומוסר אותה למקור (רק כשמותר לערוך). מחזיר את היכולת, או null כשאין הרשאה. */
 export function connectCapability(
-  source: { canEdit: boolean; create(c: Capability): void },
+  source: { canEdit: boolean; create(c: Capability): unknown },
   engine: EngineCard,
   atom: AtomCard,
   option: Option,
   values: DetailValues,
+  /** CHAIN 14.10 (תוספתי): בונים על מנוע שנוצר ⇒ המזהה שלו. */
+  parentId?: string,
 ): Capability | null {
   if (!source.canEdit) return null;
-  const cap = buildCapability(engine, atom, option, values);
+  const cap = parentId ? buildChildCapability(parentId, engine, atom, option, values) : buildCapability(engine, atom, option, values);
   source.create(cap);
   return cap;
 }

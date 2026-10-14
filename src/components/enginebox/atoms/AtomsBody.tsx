@@ -11,7 +11,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { optionsFor } from '../../../lib/atoms/contract';
 import type { AtomsSource } from './seam';
-import { buildCapability, connectCapability, detailDefaults, removeTap, type DetailValues } from './naming';
+import { buildCapability, buildChildCapability, connectCapability, detailDefaults, removeTap, type DetailValues } from './naming';
 import {
   ATOMS_EMPTY_TEXT,
   AtomGrid,
@@ -20,6 +20,9 @@ import {
   CreatedCard,
   CreatedList,
   DetailsStep,
+  MAX_GEN_TEXT,
+  NOTHING_FITS_TEXT,
+  blockedText,
   EnginesStep,
   HostStep,
   QuestionStep,
@@ -42,6 +45,7 @@ export function AtomsBody(props: { source: AtomsSource | null; initial?: AtomsIn
   const [values, setValues] = useState<DetailValues | null>(null);
   const [madeId, setMadeId] = useState<string | null>(ini?.made ?? null);
   const [armed, setArmed] = useState<string | null>(null);
+  const [blocked, setBlocked] = useState<{ id: string; text: string } | null>(null);
   // מונה-רענון: create/remove משנים את המקור מחוץ ל-React
   const [, setTick] = useState(0);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -50,11 +54,23 @@ export function AtomsBody(props: { source: AtomsSource | null; initial?: AtomsIn
 
   const engines = source ? source.engines() : [];
   const atoms = source ? source.atoms() : [];
-  const host = engines.find((e) => e.id === hostId) ?? null;
-  const atom = host ? atoms.find((a) => a.id === atomId) ?? null : null;
+  // CHAIN 14.10: המארח יכול להיות מנוע שנוצר (המזהה שלו) — כרטיס-מנוע שהמקום היחיד בו הוא הפלט שלו
+  const baseHost = engines.find((e) => e.id === hostId) ?? null;
+  const capHost = !baseHost && hostId && source?.capHost ? source.capHost(hostId) : null;
+  const host = baseHost ?? capHost;
+  const parentId = capHost ? hostId : null;
+  const hostAtoms = capHost ? atoms.filter((a) => optionsFor(a, capHost).length > 0) : atoms;
+  const atom = host ? hostAtoms.find((a) => a.id === atomId) ?? null : null;
   const options = host && atom ? optionsFor(atom, host) : [];
   const option = options.find((o) => o.place === placeId) ?? null;
   const caps = source ? source.capabilities() : [];
+  const stateOf = (id: string) => (source?.capState ? source.capState(id) : 'ok');
+  const createdHosts = source?.capHost
+    ? caps.flatMap((c) => {
+        const card = source.capHost!(c.id);
+        return card ? [{ id: c.id, card }] : [];
+      })
+    : [];
   const made = madeId ? caps.find((c) => c.id === madeId) ?? null : null;
   const step: AtomsStep = made ? 'made' : !host ? 'engines' : !atom ? 'atom' : !option ? 'question' : 'details';
 
@@ -77,18 +93,30 @@ export function AtomsBody(props: { source: AtomsSource | null; initial?: AtomsIn
   const backLabel = step === 'details' ? 'מקום אחר' : step === 'question' ? 'חלק אחר' : step === 'made' ? 'עוד חלק' : 'מנוע אחר';
   const vals = values ?? (atom ? detailDefaults(atom.details) : {});
   // ATOMS 14.10: התוצאה האמיתית ליד כל אפשרות (עם ברירות-המחדל) ובטופס (עם מה שנבחר) — רק כשהמקור מחשב תצוגות
+  const build = (h: typeof host & object, a: typeof atom & object, o: (typeof options)[number], v: DetailValues) =>
+    parentId ? buildChildCapability(parentId, h, a, o, v) : buildCapability(h, a, o, v);
   const optionPreviews =
-    step === 'question' && host && atom ? Object.fromEntries(options.map((o) => [o.place, source.preview(buildCapability(host, atom, o, detailDefaults(atom.details)))])) : undefined;
-  const livePreview = step === 'details' && host && atom && option ? source.preview(buildCapability(host, atom, option, vals)) : undefined;
+    step === 'question' && host && atom ? Object.fromEntries(options.map((o) => [o.place, source.preview(build(host, atom, o, detailDefaults(atom.details)))])) : undefined;
+  const livePreview = step === 'details' && host && atom && option ? source.preview(build(host, atom, option, vals)) : undefined;
 
+  const openHost = (id: string) => { reset(); setBlocked(null); setHostId(id); };
+  const saveChain = (index: number) => {
+    if (!host || !source.saveChain) return;
+    const id = source.saveChain(host.id, index);
+    if (id) { setMadeId(id); setTick((t) => t + 1); }
+  };
   const connect = () => {
     if (!host || !atom || !option) return;
-    const cap = connectCapability(source, host, atom, option, vals);
+    const cap = connectCapability(source, host, atom, option, vals, parentId ?? undefined);
     if (!cap) return;
     setMadeId(cap.id);
     setTick((t) => t + 1);
   };
   const onRemoveTap = (id: string) => {
+    // CHAIN 14.10: מנוע שיש מנוע שבנוי עליו — לא מוסר; אומרים מה להסיר קודם (בלי הסרה-בשרשרת שקטה)
+    const kids = source.blockedBy ? source.blockedBy(id) : [];
+    if (kids.length) { setArmed(null); setBlocked({ id, text: blockedText(kids) }); return; }
+    setBlocked(null);
     const r = removeTap(armed, id);
     setArmed(r.armed);
     if (timer.current) clearTimeout(timer.current);
@@ -96,6 +124,7 @@ export function AtomsBody(props: { source: AtomsSource | null; initial?: AtomsIn
     if (r.remove) {
       source.remove(id);
       if (madeId === id) setMadeId(null);
+      if (hostId === id) { reset(); setHostId(null); }
       setTick((t) => t + 1);
     }
   };
@@ -106,13 +135,19 @@ export function AtomsBody(props: { source: AtomsSource | null; initial?: AtomsIn
       {step === 'engines' && (
         <>
           <EnginesStep engines={engines} atoms={atoms} open={open} onToggle={(id) => setOpen((o) => (o === id ? null : id))} />
-          <HostStep engines={engines} onHost={(id) => { reset(); setHostId(id); }} />
+          <HostStep engines={engines} created={createdHosts} onHost={openHost} />
         </>
       )}
       {step === 'atom' && host && (
         <>
-          <AtomGrid host={host} atoms={atoms} engines={engines} onAtom={setAtomId} />
-          <ChainsList chains={source.chains(host.id)} atoms={atoms} />
+          <AtomGrid
+            host={host}
+            atoms={hostAtoms}
+            engines={engines}
+            onAtom={setAtomId}
+            emptyText={capHost ? ((hostId ?? '').split('>').length >= 3 ? MAX_GEN_TEXT : NOTHING_FITS_TEXT) : undefined}
+          />
+          {!capHost && <ChainsList chains={source.chains(host.id)} atoms={atoms} canEdit={source.canEdit} onSave={saveChain} />}
         </>
       )}
       {step === 'question' && atom && <QuestionStep atom={atom} options={options} previews={optionPreviews} onOption={(p) => { setPlaceId(p); setValues(detailDefaults(atom.details)); }} />}
@@ -128,7 +163,16 @@ export function AtomsBody(props: { source: AtomsSource | null; initial?: AtomsIn
         />
       )}
       {step === 'made' && made && <CreatedCard capability={made} preview={source.preview(made)} />}
-      <CreatedList capabilities={caps} engines={engines} canEdit={source.canEdit} armed={armed} onRemoveTap={onRemoveTap} />
+      <CreatedList
+        capabilities={caps}
+        engines={engines}
+        canEdit={source.canEdit}
+        armed={armed}
+        onRemoveTap={onRemoveTap}
+        onOpen={source.capHost ? openHost : undefined}
+        stateOf={stateOf}
+        blocked={blocked}
+      />
     </div>
   );
 }

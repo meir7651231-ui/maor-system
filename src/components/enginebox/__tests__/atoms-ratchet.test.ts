@@ -89,7 +89,8 @@ describe('🧬 מנועים וחלקים — הגנות', () => {
 
   it('(ד) החוזה המשותף — md5 קבוע ושורה-חדשה אחת בסוף', () => {
     const buf = readFileSync('src/lib/atoms/contract.ts');
-    expect(createHash('md5').update(buf).digest('hex')).toBe('d1633928cab86f6d2b0e9c3f8c7de598');
+    // CHAIN 14.10: שינוי מכוון ותוספתי בלבד (Capability.parent? + ATOM_OUTPUT/outputKind) — היה d1633928cab86f6d2b0e9c3f8c7de598
+    expect(createHash('md5').update(buf).digest('hex')).toBe('09e899edbeef152b596b5773914fab03');
     expect(buf.toString('utf8').endsWith('}\n')).toBe(true);
   });
 

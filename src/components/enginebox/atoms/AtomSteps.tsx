@@ -22,6 +22,18 @@ export const REMOVE_ARMED_TEXT = 'בטוח? לחצו שוב';
 
 export const MORE_EXAMPLES_TEXT = 'עוד דוגמאות';
 
+// CHAIN 14.10: מנוע שנוצר חוזר לארגז — אפשר לבנות עליו
+export const SAVE_CHAIN_TEXT = 'שמור כמנוע';
+export const SAVED_CHAIN_TEXT = 'נשמר כמנוע ✓';
+export const BUILD_ON_TEXT = 'בנה עליו';
+export const BUILT_ON_TEXT = 'בנוי על';
+export const ORPHAN_TEXT = 'המנוע שעליו הוא בנוי הוסר';
+export const NOTHING_FITS_TEXT = 'עוד אין חלק שמתחבר למנוע הזה';
+export const MAX_GEN_TEXT = 'על המנוע הזה כבר אי אפשר לבנות עוד — עד 3 מנועים בשרשרת';
+export const CREATED_HOST_HINT = 'מנועים שיצרת — לחצו כדי לחבר אליהם עוד חלק';
+/** "קודם הסירו את ✨ מנוע תורים באורך משתנה שבנוי עליו". */
+export const blockedText = (names: readonly string[]) => 'קודם הסירו את ' + names.map((n) => '✨ ' + n).join(', ') + ' ש' + (names.length > 1 ? 'בנויים' : 'בנוי') + ' עליו';
+
 /** ATOMS-NAMES: שם-הסוג כמו שהמשתמש רואה אותו ("מ… עד…", "סכום") — לא התוויות הטכניות של החוזה. */
 export const kindLabel = (k: Kind) => KIND_PLAIN[k] ?? k;
 
@@ -148,7 +160,8 @@ export function Decomposition(props: { engine: EngineCard; atoms: AtomCard[] }) 
 }
 
 // ——— 2 · יש לך מנוע ———
-export function HostStep(props: { engines: EngineCard[]; onHost: (id: string) => void }) {
+export function HostStep(props: { engines: EngineCard[]; onHost: (id: string) => void; created?: readonly { id: string; card: EngineCard }[] }) {
+  const created = props.created ?? [];
   return (
     <section aria-labelledby="at-h-host">
       <h3 id="at-h-host" className="at-title">{HOST_TITLE}</h3>
@@ -163,15 +176,26 @@ export function HostStep(props: { engines: EngineCard[]; onHost: (id: string) =>
             <Examples id={e.id} />
           </div>
         ))}
+        {created.map((c) => (
+          <div key={c.id} className="at-card-wrap">
+            <button type="button" className="at-card at-card-made" data-host-cap={c.id} onClick={() => props.onHost(c.id)}>
+              <span className="at-emoji" aria-hidden="true">✨</span>
+              <span className="at-name">{c.card.name}</span>
+              <span className="at-what"><LtrNums text={c.card.computes} /></span>
+            </button>
+          </div>
+        ))}
       </div>
+      {created.length > 0 && <p className="at-hint">{CREATED_HOST_HINT}</p>}
     </section>
   );
 }
 
-export function AtomGrid(props: { host: EngineCard; atoms: AtomCard[]; engines: EngineCard[]; onAtom: (id: string) => void }) {
+export function AtomGrid(props: { host: EngineCard; atoms: AtomCard[]; engines: EngineCard[]; onAtom: (id: string) => void; emptyText?: string }) {
   return (
     <section aria-labelledby="at-h-atoms">
       <h3 id="at-h-atoms" className="at-title" tabIndex={-1}>איזה חלק לחבר אל {props.host.emoji} {props.host.name}?</h3>
+      {props.atoms.length === 0 && props.emptyText && <div className="empty" data-atoms-none="1">{props.emptyText}</div>}
       <div className="at-grid at-grid-wide">
         {props.atoms.map((a) => (
           <div key={a.id} className="at-card-wrap">
@@ -189,7 +213,7 @@ export function AtomGrid(props: { host: EngineCard; atoms: AtomCard[]; engines: 
   );
 }
 
-export function ChainsList(props: { chains: AtomChain[]; atoms: AtomCard[] }) {
+export function ChainsList(props: { chains: AtomChain[]; atoms: AtomCard[]; canEdit?: boolean; onSave?: (index: number) => void }) {
   if (props.chains.length === 0) return null;
   const emo = (id: string) => props.atoms.find((a) => a.id === id)?.emoji ?? '🧩';
   return (
@@ -208,6 +232,17 @@ export function ChainsList(props: { chains: AtomChain[]; atoms: AtomCard[] }) {
                     <span key={j} className="at-preview-line"><LtrNums text={l} /></span>
                   ))}
                 </span>
+              )}
+              {c.savedId ? (
+                <span className="at-chip at-saved" data-chain-saved={c.savedId}>{SAVED_CHAIN_TEXT}</span>
+              ) : (
+                props.canEdit && c.canSave && props.onSave && (
+                  <span className="at-actions">
+                    <Btn onClick={() => props.onSave!(i)} title={SAVE_CHAIN_TEXT + ': ' + c.name}>
+                      <span data-save-chain={c.atoms.join('>')}>{SAVE_CHAIN_TEXT}</span>
+                    </Btn>
+                  </span>
+                )
               )}
             </span>
           </li>
@@ -370,8 +405,13 @@ export function CreatedList(props: {
   canEdit: boolean;
   armed: string | null;
   onRemoveTap: (id: string) => void;
+  /** CHAIN 14.10 (תוספתי): פתיחת מנוע שנוצר כדי לבנות עליו · מצב בתוך הרשימה · שורת-חסימה להסרה. */
+  onOpen?: (id: string) => void;
+  stateOf?: (id: string) => 'ok' | 'orphan' | 'bad';
+  blocked?: { id: string; text: string } | null;
 }) {
   if (props.capabilities.length === 0) return null;
+  const nameById = new Map(props.capabilities.map((c) => [c.id, c.name]));
   return (
     <section aria-labelledby="at-h-mine">
       <h4 id="at-h-mine" className="at-sub">המנועים שיצרת</h4>
@@ -379,12 +419,22 @@ export function CreatedList(props: {
         {props.capabilities.map((c) => {
           const e = props.engines.find((x) => x.id === c.engine);
           const armed = props.armed === c.id;
+          const state = props.stateOf ? props.stateOf(c.id) : 'ok';
+          const parentName = c.parent ? nameById.get(c.parent) : undefined;
           return (
-            <li key={c.id} className="at-mine" data-capability={c.id}>
+            <li key={c.id} className="at-mine" data-capability={c.id} data-cap-state={state}>
               <span className="at-mine-text">
                 <span className="at-name">✨ {c.name}</span>
-                {e && <span className="at-what">{e.emoji} {e.name}</span>}
+                {state === 'ok' && parentName && <span className="at-what">{BUILT_ON_TEXT} ✨ {parentName}</span>}
+                {state === 'ok' && !c.parent && e && <span className="at-what">{e.emoji} {e.name}</span>}
+                {state !== 'ok' && <span className="at-what at-orphan" data-orphan="1">{ORPHAN_TEXT}</span>}
+                {props.blocked?.id === c.id && <span className="at-what at-blocked" role="status" data-blocked={c.id}>{props.blocked.text}</span>}
               </span>
+              {state === 'ok' && props.onOpen && (
+                <Btn onClick={() => props.onOpen!(c.id)} title={BUILD_ON_TEXT + ': ' + c.name}>
+                  <span data-open-cap={c.id}>{BUILD_ON_TEXT}</span>
+                </Btn>
+              )}
               {props.canEdit && (
                 <Btn kind={armed ? 'danger' : undefined} onClick={() => props.onRemoveTap(c.id)} title={'הסר: ' + c.name}>
                   {armed ? REMOVE_ARMED_TEXT : REMOVE_TEXT}

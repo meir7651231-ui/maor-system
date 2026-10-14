@@ -97,7 +97,8 @@ describe('כרטיסים', () => {
 describe('החוזה המשותף', () => {
   it('contract.ts ביט-זהה (md5) — לא עורכים קובץ משותף', () => {
     const buf = readFileSync(new URL('../contract.ts', import.meta.url));
-    expect(createHash('md5').update(buf).digest('hex')).toBe('d1633928cab86f6d2b0e9c3f8c7de598');
+    // CHAIN 14.10: שינוי מכוון ותוספתי בלבד (Capability.parent? + ATOM_OUTPUT/outputKind) — היה d1633928cab86f6d2b0e9c3f8c7de598
+    expect(createHash('md5').update(buf).digest('hex')).toBe('09e899edbeef152b596b5773914fab03');
   });
 });
 

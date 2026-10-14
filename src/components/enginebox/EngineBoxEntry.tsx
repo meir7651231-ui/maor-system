@@ -94,7 +94,7 @@ export function EngineBoxEntry(props: { onClose: () => void }) {
             config,
             nowMs,
             canEdit,
-            create: (c) => void createCapability(c).then((ok) => ok && toast('✨ נוצר מנוע חדש')),
+            create: (c) => createCapability(c).then((ok) => ok && toast('✨ נוצר מנוע חדש')),
             remove: (id) => void removeCapability(id).then((ok) => ok && toast('המנוע הוסר')),
           })
         : null,
