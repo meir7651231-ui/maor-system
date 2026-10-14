@@ -1,0 +1,18 @@
+{
+ "goal": "wdcfa4f1c",
+ "word": "טלסקופ",
+ "need": "n2",
+ "behavior": "מכוון למקום בשמיים",
+ "verb": "convert",
+ "verbHe": "ממיר ערך",
+ "isNewVerb": false,
+ "material": "geo",
+ "takes": [
+  "number|date|times"
+ ],
+ "gives": "geo",
+ "detail": null,
+ "example": {
+  "say": "«טלסקופ»: מכוון למקום בשמיים"
+ }
+}

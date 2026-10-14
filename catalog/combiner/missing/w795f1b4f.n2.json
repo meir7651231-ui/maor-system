@@ -1,0 +1,16 @@
+{
+ "goal": "w795f1b4f",
+ "word": "דרקון",
+ "need": "n2",
+ "behavior": "מתעורר כשמישהו מתקרב",
+ "verb": "compare",
+ "verbHe": "משווה",
+ "isNewVerb": false,
+ "material": "geo",
+ "takes": [],
+ "gives": "geo",
+ "detail": "מרחק מול סף",
+ "example": {
+  "say": "«דרקון»: מתעורר כשמישהו מתקרב — מרחק מול סף"
+ }
+}

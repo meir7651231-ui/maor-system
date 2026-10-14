@@ -1,0 +1,18 @@
+{
+ "goal": "w2e15c336",
+ "word": "פיצרייה",
+ "need": "n5",
+ "behavior": "שליח לפי אזור",
+ "verb": "group",
+ "verbHe": "מקבץ",
+ "isNewVerb": false,
+ "material": "geo",
+ "takes": [
+  "list"
+ ],
+ "gives": "geo",
+ "detail": null,
+ "example": {
+  "say": "«פיצרייה»: שליח לפי אזור"
+ }
+}

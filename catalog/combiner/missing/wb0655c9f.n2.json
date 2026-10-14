@@ -1,0 +1,18 @@
+{
+ "goal": "wb0655c9f",
+ "word": "תופסת",
+ "need": "n2",
+ "behavior": "הקרוב ביותר",
+ "verb": "extreme",
+ "verbHe": "בוחר את הקיצוני",
+ "isNewVerb": false,
+ "material": "geo",
+ "takes": [
+  "list"
+ ],
+ "gives": "geo",
+ "detail": null,
+ "example": {
+  "say": "«תופסת»: הקרוב ביותר"
+ }
+}

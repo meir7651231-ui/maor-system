@@ -1,0 +1,18 @@
+{
+ "goal": "w00fc827c",
+ "word": "מזרקה",
+ "need": "n3",
+ "behavior": "רוקדת לפי המוזיקה",
+ "verb": "convert",
+ "verbHe": "ממיר ערך",
+ "isNewVerb": false,
+ "material": "sound",
+ "takes": [
+  "number|date|times"
+ ],
+ "gives": "sound",
+ "detail": null,
+ "example": {
+  "say": "«מזרקה»: רוקדת לפי המוזיקה"
+ }
+}

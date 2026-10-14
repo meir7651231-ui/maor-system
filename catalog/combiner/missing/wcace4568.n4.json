@@ -1,0 +1,16 @@
+{
+ "goal": "wcace4568",
+ "word": "גשר-נפתח",
+ "need": "n4",
+ "behavior": "נשאר פתוח עד שעברה",
+ "verb": "validate",
+ "verbHe": "בודק",
+ "isNewVerb": false,
+ "material": "waiting",
+ "takes": [],
+ "gives": "waiting",
+ "detail": null,
+ "example": {
+  "say": "«גשר-נפתח»: נשאר פתוח עד שעברה"
+ }
+}

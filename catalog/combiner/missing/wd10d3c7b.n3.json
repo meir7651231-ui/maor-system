@@ -1,0 +1,16 @@
+{
+ "goal": "wd10d3c7b",
+ "word": "פטרייה",
+ "need": "n3",
+ "behavior": "מפזרת נבגים לסביבה",
+ "verb": "NEW:spread",
+ "verbHe": "פועל חדש: spread",
+ "isNewVerb": true,
+ "material": "geo",
+ "takes": [],
+ "gives": "geo",
+ "detail": "משהו שעובר לשכנים הקרובים בכל צעד",
+ "example": {
+  "say": "«פטרייה»: מפזרת נבגים לסביבה — משהו שעובר לשכנים הקרובים בכל צעד"
+ }
+}

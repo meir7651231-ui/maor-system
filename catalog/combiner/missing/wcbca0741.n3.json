@@ -1,0 +1,18 @@
+{
+ "goal": "wcbca0741",
+ "word": "תרופות",
+ "need": "n3",
+ "behavior": "תזכורת שמתגברת",
+ "verb": "escalate",
+ "verbHe": "מסלים בזמן",
+ "isNewVerb": false,
+ "material": "choice",
+ "takes": [
+  "times"
+ ],
+ "gives": "choice",
+ "detail": null,
+ "example": {
+  "say": "«תרופות»: תזכורת שמתגברת"
+ }
+}

@@ -1,0 +1,16 @@
+{
+ "goal": "waa60b73e",
+ "word": "לב",
+ "need": "n3",
+ "behavior": "נרגע לאט אחרי",
+ "verb": "NEW:decay",
+ "verbHe": "פועל חדש: decay",
+ "isNewVerb": true,
+ "material": "number",
+ "takes": [],
+ "gives": "number",
+ "detail": "דועך — ערך שיורד מעט בכל צעד-זמן עד אפס",
+ "example": {
+  "say": "«לב»: נרגע לאט אחרי — דועך — ערך שיורד מעט בכל צעד-זמן עד אפס"
+ }
+}

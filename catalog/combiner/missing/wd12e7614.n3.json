@@ -1,0 +1,16 @@
+{
+ "goal": "wd12e7614",
+ "word": "כדור-קפיצי",
+ "need": "n3",
+ "behavior": "כל קפיצה נמוכה יותר",
+ "verb": "NEW:decay",
+ "verbHe": "פועל חדש: decay",
+ "isNewVerb": true,
+ "material": "number",
+ "takes": [],
+ "gives": "number",
+ "detail": "דועך — ערך שיורד מעט בכל צעד-זמן עד אפס",
+ "example": {
+  "say": "«כדור-קפיצי»: כל קפיצה נמוכה יותר — דועך — ערך שיורד מעט בכל צעד-זמן עד אפס"
+ }
+}

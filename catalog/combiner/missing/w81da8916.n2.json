@@ -1,0 +1,19 @@
+{
+ "goal": "w81da8916",
+ "word": "סלמון",
+ "need": "n2",
+ "behavior": "מוצא את הנהר שבו נולד",
+ "verb": "lookup",
+ "verbHe": "מחפש לפי מפתח",
+ "isNewVerb": false,
+ "material": "geo",
+ "takes": [
+  "list",
+  "text"
+ ],
+ "gives": "geo",
+ "detail": null,
+ "example": {
+  "say": "«סלמון»: מוצא את הנהר שבו נולד"
+ }
+}

@@ -1,0 +1,16 @@
+{
+ "goal": "wdcc25cce",
+ "word": "משלוחים",
+ "need": "n6",
+ "behavior": "איפה החבילה",
+ "verb": "NEW:move-along-path",
+ "verbHe": "פועל חדש: move-along-path",
+ "isNewVerb": true,
+ "material": "geo",
+ "takes": [],
+ "gives": "geo",
+ "detail": "מתקדם במסלול — נקודה שזזה לאורך דרך נתונה",
+ "example": {
+  "say": "«משלוחים»: איפה החבילה — מתקדם במסלול — נקודה שזזה לאורך דרך נתונה"
+ }
+}

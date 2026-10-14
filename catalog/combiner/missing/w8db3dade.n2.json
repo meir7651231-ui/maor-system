@@ -1,0 +1,18 @@
+{
+ "goal": "w8db3dade",
+ "word": "זאב",
+ "need": "n2",
+ "behavior": "מייללים יחד",
+ "verb": "merge",
+ "verbHe": "מחבר רצפים",
+ "isNewVerb": false,
+ "material": "sound",
+ "takes": [
+  "sequence"
+ ],
+ "gives": "sound",
+ "detail": null,
+ "example": {
+  "say": "«זאב»: מייללים יחד"
+ }
+}

@@ -1,0 +1,16 @@
+{
+ "goal": "w81da8916",
+ "word": "סלמון",
+ "need": "n4",
+ "behavior": "הכוח נגמר לאט",
+ "verb": "NEW:decay",
+ "verbHe": "פועל חדש: decay",
+ "isNewVerb": true,
+ "material": "number",
+ "takes": [],
+ "gives": "number",
+ "detail": "דועך — ערך שיורד מעט בכל צעד-זמן עד אפס",
+ "example": {
+  "say": "«סלמון»: הכוח נגמר לאט — דועך — ערך שיורד מעט בכל צעד-זמן עד אפס"
+ }
+}

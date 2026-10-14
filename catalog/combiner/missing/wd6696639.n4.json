@@ -1,0 +1,16 @@
+{
+ "goal": "wd6696639",
+ "word": "שלכת",
+ "need": "n4",
+ "behavior": "נופלים ברוח",
+ "verb": "NEW:random",
+ "verbHe": "פועל חדש: random",
+ "isNewVerb": true,
+ "material": "bool",
+ "takes": [],
+ "gives": "bool",
+ "detail": "כן/לא לפי סיכוי",
+ "example": {
+  "say": "«שלכת»: נופלים ברוח — כן/לא לפי סיכוי"
+ }
+}

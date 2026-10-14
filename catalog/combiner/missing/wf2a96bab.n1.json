@@ -1,0 +1,16 @@
+{
+ "goal": "wf2a96bab",
+ "word": "כדורסל",
+ "need": "n1",
+ "behavior": "שעון זריקה",
+ "verb": "NEW:countdown",
+ "verbHe": "פועל חדש: countdown",
+ "isNewVerb": true,
+ "material": "times",
+ "takes": [],
+ "gives": "times",
+ "detail": "סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה",
+ "example": {
+  "say": "«כדורסל»: שעון זריקה — סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה"
+ }
+}

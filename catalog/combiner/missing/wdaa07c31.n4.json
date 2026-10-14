@@ -1,0 +1,16 @@
+{
+ "goal": "wdaa07c31",
+ "word": "מטוס",
+ "need": "n4",
+ "behavior": "מחכה בתור לנחיתה",
+ "verb": "NEW:orbit",
+ "verbHe": "פועל חדש: orbit",
+ "isNewVerb": true,
+ "material": "geo",
+ "takes": [],
+ "gives": "geo",
+ "detail": "מקיף — תנועה במעגל או בעקומה סביב נקודה",
+ "example": {
+  "say": "«מטוס»: מחכה בתור לנחיתה — מקיף — תנועה במעגל או בעקומה סביב נקודה"
+ }
+}

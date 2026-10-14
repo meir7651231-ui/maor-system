@@ -1,0 +1,18 @@
+{
+ "goal": "wea67c06f",
+ "word": "כדור-פורח",
+ "need": "n4",
+ "behavior": "זז עם הרוח",
+ "verb": "convert",
+ "verbHe": "ממיר ערך",
+ "isNewVerb": false,
+ "material": "geo",
+ "takes": [
+  "number|date|times"
+ ],
+ "gives": "geo",
+ "detail": null,
+ "example": {
+  "say": "«כדור-פורח»: זז עם הרוח"
+ }
+}

@@ -1,0 +1,18 @@
+{
+ "goal": "wd73ede66",
+ "word": "ראיון-עבודה",
+ "need": "n1",
+ "behavior": "שלבי מיון",
+ "verb": "escalate",
+ "verbHe": "מסלים בזמן",
+ "isNewVerb": false,
+ "material": "choice",
+ "takes": [
+  "times"
+ ],
+ "gives": "choice",
+ "detail": null,
+ "example": {
+  "say": "«ראיון-עבודה»: שלבי מיון"
+ }
+}

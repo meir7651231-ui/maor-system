@@ -1,0 +1,16 @@
+{
+ "goal": "w02c87185",
+ "word": "שמש",
+ "need": "n3",
+ "behavior": "היום מתארך ומתקצר",
+ "verb": "NEW:oscillate",
+ "verbHe": "פועל חדש: oscillate",
+ "isNewVerb": true,
+ "material": "number",
+ "takes": [],
+ "gives": "number",
+ "detail": "מתנדנד — גל שעולה ויורד שוב ושוב בקצב קבוע",
+ "example": {
+  "say": "«שמש»: היום מתארך ומתקצר — מתנדנד — גל שעולה ויורד שוב ושוב בקצב קבוע"
+ }
+}

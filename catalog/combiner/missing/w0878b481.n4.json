@@ -1,0 +1,18 @@
+{
+ "goal": "w0878b481",
+ "word": "פלייליסט",
+ "need": "n4",
+ "behavior": "לפי מצב רוח",
+ "verb": "filter",
+ "verbHe": "מסנן",
+ "isNewVerb": false,
+ "material": "choice",
+ "takes": [
+  "list"
+ ],
+ "gives": "choice",
+ "detail": null,
+ "example": {
+  "say": "«פלייליסט»: לפי מצב רוח"
+ }
+}

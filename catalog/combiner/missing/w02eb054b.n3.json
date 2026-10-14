@@ -1,0 +1,19 @@
+{
+ "goal": "w02eb054b",
+ "word": "זיקוקים",
+ "need": "n3",
+ "behavior": "ניצוצות לכל כיוון",
+ "verb": "divide",
+ "verbHe": "מחלק",
+ "isNewVerb": false,
+ "material": "geo",
+ "takes": [
+  "span|amount|list",
+  "number"
+ ],
+ "gives": "geo",
+ "detail": null,
+ "example": {
+  "say": "«זיקוקים»: ניצוצות לכל כיוון"
+ }
+}

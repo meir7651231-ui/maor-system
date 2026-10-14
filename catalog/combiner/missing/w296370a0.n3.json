@@ -1,0 +1,18 @@
+{
+ "goal": "w296370a0",
+ "word": "שעון-מעורר",
+ "need": "n3",
+ "behavior": "הצלצול מתגבר",
+ "verb": "escalate",
+ "verbHe": "מסלים בזמן",
+ "isNewVerb": false,
+ "material": "sound",
+ "takes": [
+  "times"
+ ],
+ "gives": "sound",
+ "detail": null,
+ "example": {
+  "say": "«שעון-מעורר»: הצלצול מתגבר"
+ }
+}

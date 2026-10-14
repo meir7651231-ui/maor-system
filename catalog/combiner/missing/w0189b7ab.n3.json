@@ -1,0 +1,16 @@
+{
+ "goal": "w0189b7ab",
+ "word": "גשם",
+ "need": "n3",
+ "behavior": "טיפות במקומות אקראיים",
+ "verb": "NEW:random",
+ "verbHe": "פועל חדש: random",
+ "isNewVerb": true,
+ "material": "geo",
+ "takes": [],
+ "gives": "geo",
+ "detail": "מגריל — בחירה או ערך לפי סיכוי",
+ "example": {
+  "say": "«גשם»: טיפות במקומות אקראיים — מגריל — בחירה או ערך לפי סיכוי"
+ }
+}

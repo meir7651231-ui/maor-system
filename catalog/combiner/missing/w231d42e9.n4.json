@@ -1,0 +1,18 @@
+{
+ "goal": "w231d42e9",
+ "word": "גאות-ושפל",
+ "need": "n4",
+ "behavior": "קו החוף זז",
+ "verb": "convert",
+ "verbHe": "ממיר ערך",
+ "isNewVerb": false,
+ "material": "geo",
+ "takes": [
+  "number|date|times"
+ ],
+ "gives": "geo",
+ "detail": "גובה המים ⇒ איפה החוף",
+ "example": {
+  "say": "«גאות-ושפל»: קו החוף זז — גובה המים ⇒ איפה החוף"
+ }
+}

@@ -1,0 +1,16 @@
+{
+ "goal": "wc5a7ca34",
+ "word": "קרוסלה",
+ "need": "n7",
+ "behavior": "מנגינה בזמן הסיבוב",
+ "verb": "validate",
+ "verbHe": "בודק",
+ "isNewVerb": false,
+ "material": "sound",
+ "takes": [],
+ "gives": "sound",
+ "detail": null,
+ "example": {
+  "say": "«קרוסלה»: מנגינה בזמן הסיבוב"
+ }
+}

@@ -1,0 +1,16 @@
+{
+ "goal": "w66b4de60",
+ "word": "נחשים-וסולמות",
+ "need": "n1",
+ "behavior": "זורקים קובייה",
+ "verb": "NEW:random",
+ "verbHe": "פועל חדש: random",
+ "isNewVerb": true,
+ "material": "number",
+ "takes": [],
+ "gives": "number",
+ "detail": "מגריל — בחירה או ערך לפי סיכוי",
+ "example": {
+  "say": "«נחשים-וסולמות»: זורקים קובייה — מגריל — בחירה או ערך לפי סיכוי"
+ }
+}

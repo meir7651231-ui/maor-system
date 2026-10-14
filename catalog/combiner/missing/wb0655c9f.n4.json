@@ -1,0 +1,18 @@
+{
+ "goal": "wb0655c9f",
+ "word": "תופסת",
+ "need": "n4",
+ "behavior": "בית = מקום מוגן",
+ "verb": "filter",
+ "verbHe": "מסנן",
+ "isNewVerb": false,
+ "material": "geo",
+ "takes": [
+  "list"
+ ],
+ "gives": "geo",
+ "detail": null,
+ "example": {
+  "say": "«תופסת»: בית = מקום מוגן"
+ }
+}

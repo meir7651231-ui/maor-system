@@ -1,0 +1,19 @@
+{
+ "goal": "w203ff842",
+ "word": "מטרונום",
+ "need": "n3",
+ "behavior": "פעמה ראשונה חזקה",
+ "verb": "rotate",
+ "verbHe": "מחלק בתורות",
+ "isNewVerb": false,
+ "material": "choice",
+ "takes": [
+  "list",
+  "number|date"
+ ],
+ "gives": "choice",
+ "detail": null,
+ "example": {
+  "say": "«מטרונום»: פעמה ראשונה חזקה"
+ }
+}

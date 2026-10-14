@@ -1,0 +1,16 @@
+{
+ "goal": "wfacd5ce8",
+ "word": "מכונת-כביסה",
+ "need": "n4",
+ "behavior": "זמן שנשאר",
+ "verb": "NEW:countdown",
+ "verbHe": "פועל חדש: countdown",
+ "isNewVerb": true,
+ "material": "times",
+ "takes": [],
+ "gives": "times",
+ "detail": "סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה",
+ "example": {
+  "say": "«מכונת-כביסה»: זמן שנשאר — סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה"
+ }
+}

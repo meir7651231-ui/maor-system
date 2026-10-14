@@ -1,0 +1,18 @@
+{
+ "goal": "wba80e956",
+ "word": "מחבואים",
+ "need": "n3",
+ "behavior": "מחפש את הקרוב קודם",
+ "verb": "sort",
+ "verbHe": "ממיין",
+ "isNewVerb": false,
+ "material": "geo",
+ "takes": [
+  "list"
+ ],
+ "gives": "geo",
+ "detail": null,
+ "example": {
+  "say": "«מחבואים»: מחפש את הקרוב קודם"
+ }
+}

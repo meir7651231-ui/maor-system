@@ -1,0 +1,18 @@
+{
+ "goal": "wd56c3023",
+ "word": "ליקוי-חמה",
+ "need": "n2",
+ "behavior": "רק ברצועה מסוימת",
+ "verb": "filter",
+ "verbHe": "מסנן",
+ "isNewVerb": false,
+ "material": "geo",
+ "takes": [
+  "list"
+ ],
+ "gives": "geo",
+ "detail": null,
+ "example": {
+  "say": "«ליקוי-חמה»: רק ברצועה מסוימת"
+ }
+}

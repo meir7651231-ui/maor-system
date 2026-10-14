@@ -1,0 +1,19 @@
+{
+ "goal": "wa67a48d8",
+ "word": "צב",
+ "need": "n2",
+ "behavior": "חוזר לאותו חוף",
+ "verb": "lookup",
+ "verbHe": "מחפש לפי מפתח",
+ "isNewVerb": false,
+ "material": "geo",
+ "takes": [
+  "list",
+  "text"
+ ],
+ "gives": "geo",
+ "detail": null,
+ "example": {
+  "say": "«צב»: חוזר לאותו חוף"
+ }
+}

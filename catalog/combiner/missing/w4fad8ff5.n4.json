@@ -1,0 +1,19 @@
+{
+ "goal": "w4fad8ff5",
+ "word": "להקת-ציפורים",
+ "need": "n4",
+ "behavior": "נודדות דרומה בסתיו",
+ "verb": "rotate",
+ "verbHe": "מחלק בתורות",
+ "isNewVerb": false,
+ "material": "choice",
+ "takes": [
+  "list",
+  "number|date"
+ ],
+ "gives": "choice",
+ "detail": null,
+ "example": {
+  "say": "«להקת-ציפורים»: נודדות דרומה בסתיו"
+ }
+}

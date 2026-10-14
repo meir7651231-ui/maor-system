@@ -1,0 +1,16 @@
+{
+ "goal": "w4b351bd4",
+ "word": "גחלילית",
+ "need": "n2",
+ "behavior": "מתאימה את הקצב לשכנה",
+ "verb": "NEW:follow",
+ "verbHe": "פועל חדש: follow",
+ "isNewVerb": true,
+ "material": "times",
+ "takes": [],
+ "gives": "times",
+ "detail": "לזוז מעט לקצב של השכן",
+ "example": {
+  "say": "«גחלילית»: מתאימה את הקצב לשכנה — לזוז מעט לקצב של השכן"
+ }
+}

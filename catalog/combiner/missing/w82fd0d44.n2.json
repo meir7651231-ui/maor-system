@@ -1,0 +1,18 @@
+{
+ "goal": "w82fd0d44",
+ "word": "דיג׳יי",
+ "need": "n2",
+ "behavior": "מחבר שיר לשיר",
+ "verb": "merge",
+ "verbHe": "מחבר רצפים",
+ "isNewVerb": false,
+ "material": "sound",
+ "takes": [
+  "sequence"
+ ],
+ "gives": "sound",
+ "detail": null,
+ "example": {
+  "say": "«דיג׳יי»: מחבר שיר לשיר"
+ }
+}

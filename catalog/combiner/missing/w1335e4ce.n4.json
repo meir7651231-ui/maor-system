@@ -1,0 +1,16 @@
+{
+ "goal": "w1335e4ce",
+ "word": "מזגן",
+ "need": "n4",
+ "behavior": "כנף שמתנדנדת",
+ "verb": "NEW:oscillate",
+ "verbHe": "פועל חדש: oscillate",
+ "isNewVerb": true,
+ "material": "number",
+ "takes": [],
+ "gives": "number",
+ "detail": "מתנדנד — גל שעולה ויורד שוב ושוב בקצב קבוע",
+ "example": {
+  "say": "«מזגן»: כנף שמתנדנדת — מתנדנד — גל שעולה ויורד שוב ושוב בקצב קבוע"
+ }
+}

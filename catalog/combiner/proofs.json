@@ -5,6 +5,7 @@
  "parts": {
   "orbit:src/components/parnasa/zmanimBoard.ts#hmToMin": {
    "status": "proven",
+   "verb": "convert",
    "cases": 1440,
    "checks": 1440,
    "laws": [
@@ -13,6 +14,7 @@
   },
   "orbit:src/components/parnasa/zmanimBoard.ts#minToHm": {
    "status": "proven",
+   "verb": "convert",
    "cases": 1440,
    "checks": 1440,
    "laws": [
@@ -21,6 +23,7 @@
   },
   "orbit:src/lib/atoms/parts/divide.ts#divideAmount": {
    "status": "proven",
+   "verb": "divide",
    "cases": 100,
    "checks": 100,
    "laws": [
@@ -30,6 +33,7 @@
   },
   "orbit:src/lib/atoms/parts/divide.ts#divideSpan": {
    "status": "proven",
+   "verb": "divide",
    "cases": 200,
    "checks": 200,
    "laws": [
@@ -41,6 +45,7 @@
   },
   "orbit:src/lib/atoms/parts/divide.ts#pointsAt": {
    "status": "proven",
+   "verb": "divide",
    "cases": 100,
    "checks": 100,
    "laws": [
@@ -49,6 +54,7 @@
   },
   "orbit:src/lib/atoms/parts/escalate.ts#escalationPlan": {
    "status": "proven",
+   "verb": "escalate",
    "cases": 400,
    "checks": 400,
    "laws": [
@@ -60,6 +66,7 @@
   },
   "orbit:src/lib/atoms/parts/escalate.ts#escalationState": {
    "status": "proven",
+   "verb": "escalate",
    "cases": 400,
    "checks": 400,
    "laws": [
@@ -71,6 +78,7 @@
   },
   "orbit:src/lib/atoms/parts/fuzzy.ts#fuzzyFind": {
    "status": "proven",
+   "verb": "fuzzy",
    "cases": 400,
    "checks": 400,
    "laws": [
@@ -81,6 +89,7 @@
   },
   "orbit:src/lib/atoms/parts/fuzzy.ts#normHe": {
    "status": "proven",
+   "verb": "fuzzy",
    "cases": 400,
    "checks": 400,
    "laws": [
@@ -91,6 +100,7 @@
   },
   "orbit:src/lib/atoms/parts/fuzzy.ts#wordScore": {
    "status": "proven",
+   "verb": "fuzzy",
    "cases": 400,
    "checks": 400,
    "laws": [
@@ -101,6 +111,7 @@
   },
   "orbit:src/lib/atoms/parts/merge.ts#mergeRuns": {
    "status": "proven",
+   "verb": "merge",
    "cases": 400,
    "checks": 400,
    "laws": [
@@ -111,6 +122,7 @@
   },
   "orbit:src/lib/atoms/parts/next.ts#firstRun": {
    "status": "proven",
+   "verb": "next",
    "cases": 200,
    "checks": 200,
    "laws": [
@@ -119,6 +131,7 @@
   },
   "orbit:src/lib/atoms/parts/next.ts#nextAfter": {
    "status": "proven",
+   "verb": "next",
    "cases": 200,
    "checks": 200,
    "laws": [
@@ -128,6 +141,7 @@
   },
   "orbit:src/lib/atoms/parts/offset.ts#hhmmToMinutes": {
    "status": "proven",
+   "verb": "offset",
    "cases": 133,
    "checks": 133,
    "laws": [
@@ -136,6 +150,7 @@
   },
   "orbit:src/lib/atoms/parts/offset.ts#offsetAll": {
    "status": "proven",
+   "verb": "offset",
    "cases": 267,
    "checks": 267,
    "laws": [
@@ -145,6 +160,7 @@
   },
   "orbit:src/lib/atoms/parts/offset.ts#resolveRelative": {
    "status": "proven",
+   "verb": "offset",
    "cases": 133,
    "checks": 133,
    "laws": [
@@ -153,6 +169,7 @@
   },
   "orbit:src/lib/atoms/parts/rotate.ts#dayIndex": {
    "status": "proven",
+   "verb": "rotate",
    "cases": 200,
    "checks": 200,
    "laws": [
@@ -161,6 +178,7 @@
   },
   "orbit:src/lib/atoms/parts/rotate.ts#fairAssign": {
    "status": "proven",
+   "verb": "rotate",
    "cases": 200,
    "checks": 200,
    "laws": [
@@ -171,6 +189,7 @@
   },
   "orbit:src/lib/atoms/parts/rotate.ts#turnIndex": {
    "status": "proven",
+   "verb": "rotate",
    "cases": 200,
    "checks": 200,
    "laws": [
@@ -181,6 +200,7 @@
   },
   "orbit:src/lib/atoms/parts/rotate.ts#turnOf": {
    "status": "proven",
+   "verb": "rotate",
    "cases": 200,
    "checks": 200,
    "laws": [
@@ -191,6 +211,7 @@
   },
   "orbit:src/lib/atoms/parts/round.ts#roundTo": {
    "status": "proven",
+   "verb": "round",
    "cases": 400,
    "checks": 400,
    "laws": [
@@ -201,6 +222,7 @@
   },
   "orbit:telephony/lib/zmanim.mjs#sunrise": {
    "status": "proven",
+   "verb": "sun-position",
    "cases": 400,
    "checks": 1600,
    "laws": [
@@ -212,6 +234,7 @@
   },
   "orbit:telephony/lib/zmanim.mjs#sunset": {
    "status": "proven",
+   "verb": "sun-position",
    "cases": 400,
    "checks": 1600,
    "laws": [

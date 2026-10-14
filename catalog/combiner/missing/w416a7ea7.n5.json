@@ -1,0 +1,18 @@
+{
+ "goal": "w416a7ea7",
+ "word": "מונית",
+ "need": "n5",
+ "behavior": "המונית הקרובה מקבלת את הנסיעה",
+ "verb": "extreme",
+ "verbHe": "בוחר את הקיצוני",
+ "isNewVerb": false,
+ "material": "geo",
+ "takes": [
+  "list"
+ ],
+ "gives": "geo",
+ "detail": null,
+ "example": {
+  "say": "«מונית»: המונית הקרובה מקבלת את הנסיעה"
+ }
+}

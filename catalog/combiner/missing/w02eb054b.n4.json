@@ -1,0 +1,16 @@
+{
+ "goal": "w02eb054b",
+ "word": "זיקוקים",
+ "need": "n4",
+ "behavior": "נופלים ודועכים",
+ "verb": "NEW:decay",
+ "verbHe": "פועל חדש: decay",
+ "isNewVerb": true,
+ "material": "number",
+ "takes": [],
+ "gives": "number",
+ "detail": "דועך — ערך שיורד מעט בכל צעד-זמן עד אפס",
+ "example": {
+  "say": "«זיקוקים»: נופלים ודועכים — דועך — ערך שיורד מעט בכל צעד-זמן עד אפס"
+ }
+}

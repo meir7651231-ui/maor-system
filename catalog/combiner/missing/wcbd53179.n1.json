@@ -1,0 +1,19 @@
+{
+ "goal": "wcbd53179",
+ "word": "עונות-השנה",
+ "need": "n1",
+ "behavior": "ארבע עונות במעגל",
+ "verb": "rotate",
+ "verbHe": "מחלק בתורות",
+ "isNewVerb": false,
+ "material": "choice",
+ "takes": [
+  "list",
+  "number|date"
+ ],
+ "gives": "choice",
+ "detail": null,
+ "example": {
+  "say": "«עונות-השנה»: ארבע עונות במעגל"
+ }
+}

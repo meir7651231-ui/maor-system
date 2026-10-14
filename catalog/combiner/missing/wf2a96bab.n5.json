@@ -1,0 +1,16 @@
+{
+ "goal": "wf2a96bab",
+ "word": "כדורסל",
+ "need": "n5",
+ "behavior": "הכדור עולה ונופל",
+ "verb": "NEW:gravity",
+ "verbHe": "פועל חדש: gravity",
+ "isNewVerb": true,
+ "material": "number",
+ "takes": [],
+ "gives": "number",
+ "detail": "נופל — מהירות שגדלה בכל צעד של נפילה",
+ "example": {
+  "say": "«כדורסל»: הכדור עולה ונופל — נופל — מהירות שגדלה בכל צעד של נפילה"
+ }
+}

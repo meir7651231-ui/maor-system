@@ -1,0 +1,16 @@
+{
+ "goal": "wfacd5ce8",
+ "word": "מכונת-כביסה",
+ "need": "n2",
+ "behavior": "התוף מסתובב לכאן ולשם",
+ "verb": "NEW:oscillate",
+ "verbHe": "פועל חדש: oscillate",
+ "isNewVerb": true,
+ "material": "number",
+ "takes": [],
+ "gives": "number",
+ "detail": "מתנדנד — גל שעולה ויורד שוב ושוב בקצב קבוע",
+ "example": {
+  "say": "«מכונת-כביסה»: התוף מסתובב לכאן ולשם — מתנדנד — גל שעולה ויורד שוב ושוב בקצב קבוע"
+ }
+}

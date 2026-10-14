@@ -48,6 +48,8 @@ export const KIND_PARTS: Record<InputKind, string[]> = {
 
 export interface PartProof {
   status: 'proven' | 'failed';
+  /** הפועל שהחוקים שלו נבדקו. */
+  verb: string;
   cases: number;
   checks: number;
   laws: string[];
@@ -143,9 +145,9 @@ const ROUNDTRIP = {
 
 /** כל החלקים שנשפטים, עם הוכחה. */
 export function judgeParts(n = JUDGE_N, seed = JUDGE_SEED): Record<string, PartProof> {
-  const acc = new Map<string, { cases: number; checks: number; laws: Set<string>; fail?: string }>();
-  const touch = (id: string) => {
-    if (!acc.has(id)) acc.set(id, { cases: 0, checks: 0, laws: new Set() });
+  const acc = new Map<string, { verb: string; cases: number; checks: number; laws: Set<string>; fail?: string }>();
+  const touch = (id: string, verb: string) => {
+    if (!acc.has(id)) acc.set(id, { verb, cases: 0, checks: 0, laws: new Set() });
     return acc.get(id)!;
   };
   for (const atom of ATOM_IDS as readonly AtomId[]) {
@@ -154,7 +156,7 @@ export function judgeParts(n = JUDGE_N, seed = JUDGE_SEED): Record<string, PartP
       const input = atomCase(atom, r, i);
       const v = violations(atom, input);
       for (const id of KIND_PARTS[input.k]) {
-        const a = touch(id);
+        const a = touch(id, atom);
         a.cases++;
         a.checks += 1;
         LAW_NAMES(atom, input.k).forEach((l) => a.laws.add(l));
@@ -166,7 +168,7 @@ export function judgeParts(n = JUDGE_N, seed = JUDGE_SEED): Record<string, PartP
   for (let i = 0; i < n; i++) {
     const c = sunCase(sr);
     for (const sym of ['sunrise', 'sunset']) {
-      const a = touch(P('telephony/lib/zmanim.mjs', sym));
+      const a = touch(P('telephony/lib/zmanim.mjs', sym), 'sun-position');
       a.cases++;
       for (const law of SUN_LAWS) {
         a.checks++;
@@ -178,7 +180,7 @@ export function judgeParts(n = JUDGE_N, seed = JUDGE_SEED): Record<string, PartP
   }
   for (let m = 0; m < 1440; m++) {
     for (const sym of ['hmToMin', 'minToHm']) {
-      const a = touch(P('src/components/parnasa/zmanimBoard.ts', sym));
+      const a = touch(P('src/components/parnasa/zmanimBoard.ts', sym), 'convert');
       a.cases++;
       a.checks++;
       a.laws.add(ROUNDTRIP.id);
@@ -189,7 +191,7 @@ export function judgeParts(n = JUDGE_N, seed = JUDGE_SEED): Record<string, PartP
   const out: Record<string, PartProof> = {};
   for (const id of [...acc.keys()].sort()) {
     const a = acc.get(id)!;
-    out[id] = { status: a.fail ? 'failed' : 'proven', cases: a.cases, checks: a.checks, laws: [...a.laws].sort(), ...(a.fail ? { counterexample: a.fail } : {}) };
+    out[id] = { status: a.fail ? 'failed' : 'proven', verb: a.verb, cases: a.cases, checks: a.checks, laws: [...a.laws].sort(), ...(a.fail ? { counterexample: a.fail } : {}) };
   }
   return out;
 }

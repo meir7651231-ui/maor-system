@@ -1,0 +1,18 @@
+{
+ "goal": "w49ae1104",
+ "word": "אמבולנס",
+ "need": "n2",
+ "behavior": "האמבולנס הקרוב",
+ "verb": "extreme",
+ "verbHe": "בוחר את הקיצוני",
+ "isNewVerb": false,
+ "material": "geo",
+ "takes": [
+  "list"
+ ],
+ "gives": "geo",
+ "detail": null,
+ "example": {
+  "say": "«אמבולנס»: האמבולנס הקרוב"
+ }
+}

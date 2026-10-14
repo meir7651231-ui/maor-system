@@ -1,0 +1,16 @@
+{
+ "goal": "w31a0e49e",
+ "word": "יער",
+ "need": "n6",
+ "behavior": "שריפה עוברת מעץ לעץ",
+ "verb": "NEW:spread",
+ "verbHe": "פועל חדש: spread",
+ "isNewVerb": true,
+ "material": "geo",
+ "takes": [],
+ "gives": "geo",
+ "detail": "אש שעוברת לשכנים בכל צעד",
+ "example": {
+  "say": "«יער»: שריפה עוברת מעץ לעץ — אש שעוברת לשכנים בכל צעד"
+ }
+}

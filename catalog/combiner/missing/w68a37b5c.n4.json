@@ -1,0 +1,19 @@
+{
+ "goal": "w68a37b5c",
+ "word": "תחנת-אוטובוס",
+ "need": "n4",
+ "behavior": "הודעה בקול",
+ "verb": "transcript",
+ "verbHe": "רושם ביומן",
+ "isNewVerb": false,
+ "material": "sound",
+ "takes": [
+  "list",
+  "record"
+ ],
+ "gives": "sound",
+ "detail": null,
+ "example": {
+  "say": "«תחנת-אוטובוס»: הודעה בקול"
+ }
+}

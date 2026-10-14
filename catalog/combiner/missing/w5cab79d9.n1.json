@@ -1,0 +1,19 @@
+{
+ "goal": "w5cab79d9",
+ "word": "ירח",
+ "need": "n1",
+ "behavior": "שלבי הירח",
+ "verb": "rotate",
+ "verbHe": "מחלק בתורות",
+ "isNewVerb": false,
+ "material": "choice",
+ "takes": [
+  "list",
+  "number|date"
+ ],
+ "gives": "choice",
+ "detail": "מולד ⇒ חצי ⇒ מלא ⇒ חצי",
+ "example": {
+  "say": "«ירח»: שלבי הירח — מולד ⇒ חצי ⇒ מלא ⇒ חצי"
+ }
+}

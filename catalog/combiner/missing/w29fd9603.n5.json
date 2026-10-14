@@ -1,0 +1,16 @@
+{
+ "goal": "w29fd9603",
+ "word": "חום-גוף",
+ "need": "n5",
+ "behavior": "נמוך בבוקר וגבוה בערב",
+ "verb": "NEW:oscillate",
+ "verbHe": "פועל חדש: oscillate",
+ "isNewVerb": true,
+ "material": "number",
+ "takes": [],
+ "gives": "number",
+ "detail": "מתנדנד — גל שעולה ויורד שוב ושוב בקצב קבוע",
+ "example": {
+  "say": "«חום-גוף»: נמוך בבוקר וגבוה בערב — מתנדנד — גל שעולה ויורד שוב ושוב בקצב קבוע"
+ }
+}

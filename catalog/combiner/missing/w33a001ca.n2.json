@@ -1,0 +1,18 @@
+{
+ "goal": "w33a001ca",
+ "word": "רובוט-שואב",
+ "need": "n2",
+ "behavior": "מסמן איפה כבר היה",
+ "verb": "dedupe",
+ "verbHe": "מסיר כפולים",
+ "isNewVerb": false,
+ "material": "geo",
+ "takes": [
+  "list"
+ ],
+ "gives": "geo",
+ "detail": null,
+ "example": {
+  "say": "«רובוט-שואב»: מסמן איפה כבר היה"
+ }
+}

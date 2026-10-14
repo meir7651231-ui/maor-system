@@ -1,0 +1,19 @@
+{
+ "goal": "w80948215",
+ "word": "פעמון-דלת",
+ "need": "n2",
+ "behavior": "מנגינה לפי היום",
+ "verb": "rotate",
+ "verbHe": "מחלק בתורות",
+ "isNewVerb": false,
+ "material": "choice",
+ "takes": [
+  "list",
+  "number|date"
+ ],
+ "gives": "choice",
+ "detail": null,
+ "example": {
+  "say": "«פעמון-דלת»: מנגינה לפי היום"
+ }
+}

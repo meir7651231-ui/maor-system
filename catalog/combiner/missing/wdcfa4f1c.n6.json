@@ -1,0 +1,18 @@
+{
+ "goal": "wdcfa4f1c",
+ "word": "טלסקופ",
+ "need": "n6",
+ "behavior": "תמונה כל לילה",
+ "verb": "bucket",
+ "verbHe": "מקבץ לפי יום",
+ "isNewVerb": false,
+ "material": "image",
+ "takes": [
+  "times"
+ ],
+ "gives": "image",
+ "detail": null,
+ "example": {
+  "say": "«טלסקופ»: תמונה כל לילה"
+ }
+}

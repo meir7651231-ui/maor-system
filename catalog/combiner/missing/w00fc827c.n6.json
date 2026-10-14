@@ -1,0 +1,19 @@
+{
+ "goal": "w00fc827c",
+ "word": "מזרקה",
+ "need": "n6",
+ "behavior": "תאורה בצבעים בתורות",
+ "verb": "rotate",
+ "verbHe": "מחלק בתורות",
+ "isNewVerb": false,
+ "material": "choice",
+ "takes": [
+  "list",
+  "number|date"
+ ],
+ "gives": "choice",
+ "detail": null,
+ "example": {
+  "say": "«מזרקה»: תאורה בצבעים בתורות"
+ }
+}

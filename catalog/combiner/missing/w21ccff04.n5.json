@@ -1,0 +1,16 @@
+{
+ "goal": "w21ccff04",
+ "word": "עין-ממצמצת",
+ "need": "n5",
+ "behavior": "מתמקדת בקרוב או ברחוק",
+ "verb": "compare",
+ "verbHe": "משווה",
+ "isNewVerb": false,
+ "material": "geo",
+ "takes": [],
+ "gives": "geo",
+ "detail": null,
+ "example": {
+  "say": "«עין-ממצמצת»: מתמקדת בקרוב או ברחוק"
+ }
+}

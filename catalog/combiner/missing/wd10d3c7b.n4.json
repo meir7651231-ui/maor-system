@@ -1,0 +1,16 @@
+{
+ "goal": "wd10d3c7b",
+ "word": "פטרייה",
+ "need": "n4",
+ "behavior": "מעגל פטריות שהולך ומתרחב",
+ "verb": "NEW:accumulate",
+ "verbHe": "פועל חדש: accumulate",
+ "isNewVerb": true,
+ "material": "number",
+ "takes": [],
+ "gives": "number",
+ "detail": "רדיוס שגדל בכל שנה",
+ "example": {
+  "say": "«פטרייה»: מעגל פטריות שהולך ומתרחב — רדיוס שגדל בכל שנה"
+ }
+}

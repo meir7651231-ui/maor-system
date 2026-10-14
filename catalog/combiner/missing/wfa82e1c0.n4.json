@@ -1,0 +1,18 @@
+{
+ "goal": "wfa82e1c0",
+ "word": "אזעקה",
+ "need": "n4",
+ "behavior": "מתריעה בשלבים",
+ "verb": "escalate",
+ "verbHe": "מסלים בזמן",
+ "isNewVerb": false,
+ "material": "choice",
+ "takes": [
+  "times"
+ ],
+ "gives": "choice",
+ "detail": "צפצוף ⇒ סירנה ⇒ הודעה",
+ "example": {
+  "say": "«אזעקה»: מתריעה בשלבים — צפצוף ⇒ סירנה ⇒ הודעה"
+ }
+}

@@ -1,0 +1,16 @@
+{
+ "goal": "w7f0a3409",
+ "word": "סביבון",
+ "need": "n3",
+ "behavior": "מתנדנד לפני שנופל",
+ "verb": "NEW:oscillate",
+ "verbHe": "פועל חדש: oscillate",
+ "isNewVerb": true,
+ "material": "number",
+ "takes": [],
+ "gives": "number",
+ "detail": "מתנדנד — גל שעולה ויורד שוב ושוב בקצב קבוע",
+ "example": {
+  "say": "«סביבון»: מתנדנד לפני שנופל — מתנדנד — גל שעולה ויורד שוב ושוב בקצב קבוע"
+ }
+}

@@ -1,0 +1,18 @@
+{
+ "goal": "wd974f449",
+ "word": "לחם-מחמצת",
+ "need": "n6",
+ "behavior": "חותכים חריץ",
+ "verb": "format",
+ "verbHe": "מעצב לטקסט",
+ "isNewVerb": false,
+ "material": "image",
+ "takes": [
+  "number|date|amount"
+ ],
+ "gives": "image",
+ "detail": null,
+ "example": {
+  "say": "«לחם-מחמצת»: חותכים חריץ"
+ }
+}

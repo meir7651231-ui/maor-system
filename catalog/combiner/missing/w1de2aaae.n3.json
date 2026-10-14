@@ -1,0 +1,16 @@
+{
+ "goal": "w1de2aaae",
+ "word": "מטוס-נייר",
+ "need": "n3",
+ "behavior": "גולש קדימה",
+ "verb": "NEW:move-along-path",
+ "verbHe": "פועל חדש: move-along-path",
+ "isNewVerb": true,
+ "material": "geo",
+ "takes": [],
+ "gives": "geo",
+ "detail": "מתקדם במסלול — נקודה שזזה לאורך דרך נתונה",
+ "example": {
+  "say": "«מטוס-נייר»: גולש קדימה — מתקדם במסלול — נקודה שזזה לאורך דרך נתונה"
+ }
+}

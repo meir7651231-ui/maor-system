@@ -1,0 +1,18 @@
+{
+ "goal": "w9b249b07",
+ "word": "חתונה",
+ "need": "n2",
+ "behavior": "אישורי הגעה",
+ "verb": "count",
+ "verbHe": "סופר",
+ "isNewVerb": false,
+ "material": "waiting",
+ "takes": [
+  "list"
+ ],
+ "gives": "waiting",
+ "detail": null,
+ "example": {
+  "say": "«חתונה»: אישורי הגעה"
+ }
+}

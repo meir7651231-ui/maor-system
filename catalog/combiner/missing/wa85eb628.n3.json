@@ -1,0 +1,18 @@
+{
+ "goal": "wa85eb628",
+ "word": "כבאות",
+ "need": "n3",
+ "behavior": "תחנה קרובה",
+ "verb": "extreme",
+ "verbHe": "בוחר את הקיצוני",
+ "isNewVerb": false,
+ "material": "geo",
+ "takes": [
+  "list"
+ ],
+ "gives": "geo",
+ "detail": null,
+ "example": {
+  "say": "«כבאות»: תחנה קרובה"
+ }
+}

@@ -1,0 +1,19 @@
+{
+ "goal": "wba80e956",
+ "word": "מחבואים",
+ "need": "n2",
+ "behavior": "כולם מתפזרים",
+ "verb": "divide",
+ "verbHe": "מחלק",
+ "isNewVerb": false,
+ "material": "geo",
+ "takes": [
+  "span|amount|list",
+  "number"
+ ],
+ "gives": "geo",
+ "detail": null,
+ "example": {
+  "say": "«מחבואים»: כולם מתפזרים"
+ }
+}

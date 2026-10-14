@@ -1,0 +1,19 @@
+{
+ "goal": "wf4a5fd2c",
+ "word": "שוק",
+ "need": "n6",
+ "behavior": "קריאות המוכרים",
+ "verb": "rotate",
+ "verbHe": "מחלק בתורות",
+ "isNewVerb": false,
+ "material": "sound",
+ "takes": [
+  "list",
+  "number|date"
+ ],
+ "gives": "sound",
+ "detail": null,
+ "example": {
+  "say": "«שוק»: קריאות המוכרים"
+ }
+}

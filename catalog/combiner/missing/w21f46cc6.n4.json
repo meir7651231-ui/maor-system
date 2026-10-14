@@ -1,0 +1,18 @@
+{
+ "goal": "w21f46cc6",
+ "word": "ספרייה",
+ "need": "n4",
+ "behavior": "תזכורת שמתגברת",
+ "verb": "escalate",
+ "verbHe": "מסלים בזמן",
+ "isNewVerb": false,
+ "material": "choice",
+ "takes": [
+  "times"
+ ],
+ "gives": "choice",
+ "detail": null,
+ "example": {
+  "say": "«ספרייה»: תזכורת שמתגברת"
+ }
+}

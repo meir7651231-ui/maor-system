@@ -1,0 +1,16 @@
+{
+ "goal": "w8c7c0436",
+ "word": "עוגה",
+ "need": "n3",
+ "behavior": "אופים בזמן",
+ "verb": "NEW:countdown",
+ "verbHe": "פועל חדש: countdown",
+ "isNewVerb": true,
+ "material": "times",
+ "takes": [],
+ "gives": "times",
+ "detail": "סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה",
+ "example": {
+  "say": "«עוגה»: אופים בזמן — סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה"
+ }
+}

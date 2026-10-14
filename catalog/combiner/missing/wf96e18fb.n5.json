@@ -1,0 +1,19 @@
+{
+ "goal": "wf96e18fb",
+ "word": "נשימה",
+ "need": "n5",
+ "behavior": "מחליפה צד באף",
+ "verb": "rotate",
+ "verbHe": "מחלק בתורות",
+ "isNewVerb": false,
+ "material": "choice",
+ "takes": [
+  "list",
+  "number|date"
+ ],
+ "gives": "choice",
+ "detail": null,
+ "example": {
+  "say": "«נשימה»: מחליפה צד באף"
+ }
+}

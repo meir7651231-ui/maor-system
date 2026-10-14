@@ -1,0 +1,16 @@
+{
+ "goal": "w554819b7",
+ "word": "קקטוס",
+ "need": "n2",
+ "behavior": "משתמש בהם לאט",
+ "verb": "NEW:decay",
+ "verbHe": "פועל חדש: decay",
+ "isNewVerb": true,
+ "material": "number",
+ "takes": [],
+ "gives": "number",
+ "detail": "מעט מים בכל יום יבש",
+ "example": {
+  "say": "«קקטוס»: משתמש בהם לאט — מעט מים בכל יום יבש"
+ }
+}

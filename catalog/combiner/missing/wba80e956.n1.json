@@ -1,0 +1,16 @@
+{
+ "goal": "wba80e956",
+ "word": "מחבואים",
+ "need": "n1",
+ "behavior": "סופר עד עשרים",
+ "verb": "NEW:countdown",
+ "verbHe": "פועל חדש: countdown",
+ "isNewVerb": true,
+ "material": "number",
+ "takes": [],
+ "gives": "number",
+ "detail": "סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה",
+ "example": {
+  "say": "«מחבואים»: סופר עד עשרים — סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה"
+ }
+}

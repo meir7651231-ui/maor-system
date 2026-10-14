@@ -1,0 +1,19 @@
+{
+ "goal": "w6095df64",
+ "word": "משחק-מאפיה",
+ "need": "n3",
+ "behavior": "לילה ויום מתחלפים",
+ "verb": "rotate",
+ "verbHe": "מחלק בתורות",
+ "isNewVerb": false,
+ "material": "choice",
+ "takes": [
+  "list",
+  "number|date"
+ ],
+ "gives": "choice",
+ "detail": null,
+ "example": {
+  "say": "«משחק-מאפיה»: לילה ויום מתחלפים"
+ }
+}

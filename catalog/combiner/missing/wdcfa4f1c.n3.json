@@ -1,0 +1,19 @@
+{
+ "goal": "wdcfa4f1c",
+ "word": "טלסקופ",
+ "need": "n3",
+ "behavior": "עוקב אחרי הסיבוב",
+ "verb": "rotate",
+ "verbHe": "מחלק בתורות",
+ "isNewVerb": false,
+ "material": "geo",
+ "takes": [
+  "list",
+  "number|date"
+ ],
+ "gives": "geo",
+ "detail": null,
+ "example": {
+  "say": "«טלסקופ»: עוקב אחרי הסיבוב"
+ }
+}

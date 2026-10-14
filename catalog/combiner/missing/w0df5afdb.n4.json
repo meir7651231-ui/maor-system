@@ -1,0 +1,16 @@
+{
+ "goal": "w0df5afdb",
+ "word": "הר-געש",
+ "need": "n4",
+ "behavior": "הלבה זורמת במורד",
+ "verb": "NEW:move-along-path",
+ "verbHe": "פועל חדש: move-along-path",
+ "isNewVerb": true,
+ "material": "geo",
+ "takes": [],
+ "gives": "geo",
+ "detail": "נקודה שמתקדמת לאורך מסלול בכל צעד",
+ "example": {
+  "say": "«הר-געש»: הלבה זורמת במורד — נקודה שמתקדמת לאורך מסלול בכל צעד"
+ }
+}

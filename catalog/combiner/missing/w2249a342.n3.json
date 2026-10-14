@@ -1,0 +1,19 @@
+{
+ "goal": "w2249a342",
+ "word": "מוקד-שירות",
+ "need": "n3",
+ "behavior": "לפי נושא",
+ "verb": "route",
+ "verbHe": "מנתב לפי ערוץ",
+ "isNewVerb": false,
+ "material": "choice",
+ "takes": [
+  "choice",
+  "record"
+ ],
+ "gives": "choice",
+ "detail": null,
+ "example": {
+  "say": "«מוקד-שירות»: לפי נושא"
+ }
+}

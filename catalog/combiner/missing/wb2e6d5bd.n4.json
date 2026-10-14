@@ -1,0 +1,19 @@
+{
+ "goal": "wb2e6d5bd",
+ "word": "קליידוסקופ",
+ "need": "n4",
+ "behavior": "סיבוב ⇒ צורה חדשה",
+ "verb": "rotate",
+ "verbHe": "מחלק בתורות",
+ "isNewVerb": false,
+ "material": "image",
+ "takes": [
+  "list",
+  "number|date"
+ ],
+ "gives": "image",
+ "detail": null,
+ "example": {
+  "say": "«קליידוסקופ»: סיבוב ⇒ צורה חדשה"
+ }
+}

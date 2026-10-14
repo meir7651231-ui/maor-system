@@ -1,0 +1,16 @@
+{
+ "goal": "w8ca8e96e",
+ "word": "כוורת",
+ "need": "n4",
+ "behavior": "דבש מצטבר בתאים",
+ "verb": "NEW:accumulate",
+ "verbHe": "פועל חדש: accumulate",
+ "isNewVerb": true,
+ "material": "amount",
+ "takes": [],
+ "gives": "amount",
+ "detail": "אוסף שגדל",
+ "example": {
+  "say": "«כוורת»: דבש מצטבר בתאים — אוסף שגדל"
+ }
+}

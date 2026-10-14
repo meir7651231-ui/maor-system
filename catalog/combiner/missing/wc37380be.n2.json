@@ -1,0 +1,18 @@
+{
+ "goal": "wc37380be",
+ "word": "מדיח",
+ "need": "n2",
+ "behavior": "שלבים קבועים",
+ "verb": "escalate",
+ "verbHe": "מסלים בזמן",
+ "isNewVerb": false,
+ "material": "choice",
+ "takes": [
+  "times"
+ ],
+ "gives": "choice",
+ "detail": null,
+ "example": {
+  "say": "«מדיח»: שלבים קבועים"
+ }
+}

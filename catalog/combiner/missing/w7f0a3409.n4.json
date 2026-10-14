@@ -1,0 +1,16 @@
+{
+ "goal": "w7f0a3409",
+ "word": "סביבון",
+ "need": "n4",
+ "behavior": "נופל על אות אקראית",
+ "verb": "NEW:random",
+ "verbHe": "פועל חדש: random",
+ "isNewVerb": true,
+ "material": "choice",
+ "takes": [],
+ "gives": "choice",
+ "detail": "מגריל — בחירה או ערך לפי סיכוי",
+ "example": {
+  "say": "«סביבון»: נופל על אות אקראית — מגריל — בחירה או ערך לפי סיכוי"
+ }
+}

@@ -1,0 +1,16 @@
+{
+ "goal": "w0c1f7919",
+ "word": "מפל",
+ "need": "n3",
+ "behavior": "הבריכה מתמלאת",
+ "verb": "NEW:accumulate",
+ "verbHe": "פועל חדש: accumulate",
+ "isNewVerb": true,
+ "material": "number",
+ "takes": [],
+ "gives": "number",
+ "detail": "צובר — ערך שגדל מעט בכל צעד-זמן עד שמשהו מרוקן אותו",
+ "example": {
+  "say": "«מפל»: הבריכה מתמלאת — צובר — ערך שגדל מעט בכל צעד-זמן עד שמשהו מרוקן אותו"
+ }
+}

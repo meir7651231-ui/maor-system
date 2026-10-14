@@ -1,0 +1,19 @@
+{
+ "goal": "w6d0fa09a",
+ "word": "רמזור",
+ "need": "n3",
+ "behavior": "הולך רגל לחץ ⇒ ירוק בתורו",
+ "verb": "next",
+ "verbHe": "מוצא את הבא בתור",
+ "isNewVerb": false,
+ "material": "waiting",
+ "takes": [
+  "times|list",
+  "times"
+ ],
+ "gives": "waiting",
+ "detail": null,
+ "example": {
+  "say": "«רמזור»: הולך רגל לחץ ⇒ ירוק בתורו"
+ }
+}

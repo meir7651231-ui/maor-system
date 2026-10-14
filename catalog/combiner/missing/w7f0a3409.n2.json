@@ -1,0 +1,16 @@
+{
+ "goal": "w7f0a3409",
+ "word": "סביבון",
+ "need": "n2",
+ "behavior": "מאט לאט",
+ "verb": "NEW:decay",
+ "verbHe": "פועל חדש: decay",
+ "isNewVerb": true,
+ "material": "number",
+ "takes": [],
+ "gives": "number",
+ "detail": "דועך — ערך שיורד מעט בכל צעד-זמן עד אפס",
+ "example": {
+  "say": "«סביבון»: מאט לאט — דועך — ערך שיורד מעט בכל צעד-זמן עד אפס"
+ }
+}

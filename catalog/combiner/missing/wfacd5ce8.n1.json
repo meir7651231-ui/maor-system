@@ -1,0 +1,18 @@
+{
+ "goal": "wfacd5ce8",
+ "word": "מכונת-כביסה",
+ "need": "n1",
+ "behavior": "שלבים בסדר קבוע",
+ "verb": "escalate",
+ "verbHe": "מסלים בזמן",
+ "isNewVerb": false,
+ "material": "choice",
+ "takes": [
+  "times"
+ ],
+ "gives": "choice",
+ "detail": "מילוי ⇒ כביסה ⇒ שטיפה ⇒ סחיטה",
+ "example": {
+  "say": "«מכונת-כביסה»: שלבים בסדר קבוע — מילוי ⇒ כביסה ⇒ שטיפה ⇒ סחיטה"
+ }
+}

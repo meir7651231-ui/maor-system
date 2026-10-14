@@ -1,0 +1,19 @@
+{
+ "goal": "wcf6a72d7",
+ "word": "רכב-חשמלי",
+ "need": "n4",
+ "behavior": "תחנה קרובה פנויה",
+ "verb": "lookup",
+ "verbHe": "מחפש לפי מפתח",
+ "isNewVerb": false,
+ "material": "geo",
+ "takes": [
+  "list",
+  "text"
+ ],
+ "gives": "geo",
+ "detail": null,
+ "example": {
+  "say": "«רכב-חשמלי»: תחנה קרובה פנויה"
+ }
+}

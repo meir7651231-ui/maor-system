@@ -1,0 +1,16 @@
+{
+ "goal": "w6c3f6c7b",
+ "word": "נדנדה",
+ "need": "n2",
+ "behavior": "דוחפים בזמן הנכון",
+ "verb": "validate",
+ "verbHe": "בודק",
+ "isNewVerb": false,
+ "material": "times",
+ "takes": [],
+ "gives": "times",
+ "detail": null,
+ "example": {
+  "say": "«נדנדה»: דוחפים בזמן הנכון"
+ }
+}

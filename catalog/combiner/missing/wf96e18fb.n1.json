@@ -1,0 +1,16 @@
+{
+ "goal": "wf96e18fb",
+ "word": "נשימה",
+ "need": "n1",
+ "behavior": "שאיפה ונשיפה",
+ "verb": "NEW:oscillate",
+ "verbHe": "פועל חדש: oscillate",
+ "isNewVerb": true,
+ "material": "number",
+ "takes": [],
+ "gives": "number",
+ "detail": "מתנדנד — גל שעולה ויורד שוב ושוב בקצב קבוע",
+ "example": {
+  "say": "«נשימה»: שאיפה ונשיפה — מתנדנד — גל שעולה ויורד שוב ושוב בקצב קבוע"
+ }
+}

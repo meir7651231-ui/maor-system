@@ -1,0 +1,16 @@
+{
+ "goal": "wb7d75a8a",
+ "word": "זיקית",
+ "need": "n6",
+ "behavior": "מתנדנדת כמו עלה",
+ "verb": "NEW:oscillate",
+ "verbHe": "פועל חדש: oscillate",
+ "isNewVerb": true,
+ "material": "number",
+ "takes": [],
+ "gives": "number",
+ "detail": "מתנדנד — גל שעולה ויורד שוב ושוב בקצב קבוע",
+ "example": {
+  "say": "«זיקית»: מתנדנדת כמו עלה — מתנדנד — גל שעולה ויורד שוב ושוב בקצב קבוע"
+ }
+}

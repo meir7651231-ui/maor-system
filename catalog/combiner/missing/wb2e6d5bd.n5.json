@@ -1,0 +1,18 @@
+{
+ "goal": "wb2e6d5bd",
+ "word": "קליידוסקופ",
+ "need": "n5",
+ "behavior": "אף פעם לא אותו דבר",
+ "verb": "dedupe",
+ "verbHe": "מסיר כפולים",
+ "isNewVerb": false,
+ "material": "image",
+ "takes": [
+  "list"
+ ],
+ "gives": "image",
+ "detail": null,
+ "example": {
+  "say": "«קליידוסקופ»: אף פעם לא אותו דבר"
+ }
+}

@@ -1,0 +1,19 @@
+{
+ "goal": "w6d0fa09a",
+ "word": "רמזור",
+ "need": "n1",
+ "behavior": "מחזור אדום-ירוק-צהוב",
+ "verb": "rotate",
+ "verbHe": "מחלק בתורות",
+ "isNewVerb": false,
+ "material": "choice",
+ "takes": [
+  "list",
+  "number|date"
+ ],
+ "gives": "choice",
+ "detail": null,
+ "example": {
+  "say": "«רמזור»: מחזור אדום-ירוק-צהוב"
+ }
+}

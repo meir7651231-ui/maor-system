@@ -1,0 +1,18 @@
+{
+ "goal": "w55a81913",
+ "word": "כוכב-שביט",
+ "need": "n4",
+ "behavior": "הזנב מצביע הרחק מהשמש",
+ "verb": "reverse",
+ "verbHe": "הופך סדר",
+ "isNewVerb": false,
+ "material": "geo",
+ "takes": [
+  "list"
+ ],
+ "gives": "geo",
+ "detail": null,
+ "example": {
+  "say": "«כוכב-שביט»: הזנב מצביע הרחק מהשמש"
+ }
+}

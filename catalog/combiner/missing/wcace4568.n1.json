@@ -1,0 +1,16 @@
+{
+ "goal": "wcace4568",
+ "word": "גשר-נפתח",
+ "need": "n1",
+ "behavior": "ספינה מתקרבת",
+ "verb": "compare",
+ "verbHe": "משווה",
+ "isNewVerb": false,
+ "material": "geo",
+ "takes": [],
+ "gives": "geo",
+ "detail": null,
+ "example": {
+  "say": "«גשר-נפתח»: ספינה מתקרבת"
+ }
+}

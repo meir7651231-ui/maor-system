@@ -1,0 +1,18 @@
+{
+ "goal": "wa67a48d8",
+ "word": "צב",
+ "need": "n4",
+ "behavior": "טמפרטורת החול קובעת",
+ "verb": "convert",
+ "verbHe": "ממיר ערך",
+ "isNewVerb": false,
+ "material": "choice",
+ "takes": [
+  "number|date|times"
+ ],
+ "gives": "choice",
+ "detail": "חם/קר ⇒ זכר/נקבה",
+ "example": {
+  "say": "«צב»: טמפרטורת החול קובעת — חם/קר ⇒ זכר/נקבה"
+ }
+}

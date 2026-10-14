@@ -83,7 +83,7 @@
      "group": "גדלה יום אחרי יום",
      "behavior": "שומרת צילום של כל יום",
      "verb": "daily-snapshot",
-     "material": "list"
+     "material": "text"
     },
     {
      "id": "streak",
@@ -97,7 +97,7 @@
      "group": "גדלה יום אחרי יום",
      "behavior": "נבט ⇒ גבעול ⇒ ניצן ⇒ פרח ⇒ גרעינים",
      "verb": "rank-tiers",
-     "material": "record"
+     "material": "choice"
     },
     {
      "id": "bloom-gate",
@@ -118,7 +118,7 @@
      "group": "דבורים",
      "behavior": "לא מהר מדי",
      "verb": "pace",
-     "material": "bool"
+     "material": "times"
     },
     {
      "id": "bees-escalate",
@@ -146,9 +146,10 @@
      "group": "יומן",
      "behavior": "יומן של הפרח",
      "verb": "transcript",
-     "material": "text"
+     "material": "list"
     }
-   ]
+   ],
+   "owner": true
   },
   {
    "id": "alarm",
@@ -296,7 +297,7 @@
      "id": "loans",
      "behavior": "רושמת מי השאיל",
      "verb": "transcript",
-     "material": "text"
+     "material": "list"
     }
    ]
   },
@@ -370,7 +371,7 @@
      "id": "flash",
      "behavior": "מהבהב בקצב קבוע",
      "verb": "pace",
-     "material": "bool",
+     "material": "times",
      "group": "מאיר את הים"
     },
     {
@@ -403,7 +404,7 @@
      "id": "grade",
      "behavior": "נכשל · עובר · מצטיין",
      "verb": "rank-tiers",
-     "material": "record"
+     "material": "choice"
     },
     {
      "id": "best",
@@ -415,7 +416,7 @@
      "id": "sheet",
      "behavior": "רושם את הציונים",
      "verb": "transcript",
-     "material": "text"
+     "material": "list"
     }
    ]
   },
@@ -449,13 +450,13 @@
      "id": "spacing",
      "behavior": "מרווח בין תורים",
      "verb": "pace",
-     "material": "bool"
+     "material": "times"
     },
     {
      "id": "log",
      "behavior": "יומן ביקורים",
      "verb": "transcript",
-     "material": "text"
+     "material": "list"
     }
    ]
   },
@@ -523,7 +524,7 @@
      "id": "tempo",
      "behavior": "שומרת על הקצב",
      "verb": "pace",
-     "material": "bool"
+     "material": "times"
     },
     {
      "id": "ready",

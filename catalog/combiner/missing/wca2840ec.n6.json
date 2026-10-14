@@ -1,0 +1,16 @@
+{
+ "goal": "wca2840ec",
+ "word": "חנוכייה",
+ "need": "n6",
+ "behavior": "הנרות דולקים חצי שעה לפחות",
+ "verb": "NEW:countdown",
+ "verbHe": "פועל חדש: countdown",
+ "isNewVerb": true,
+ "material": "times",
+ "takes": [],
+ "gives": "times",
+ "detail": "סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה",
+ "example": {
+  "say": "«חנוכייה»: הנרות דולקים חצי שעה לפחות — סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה"
+ }
+}

@@ -1,0 +1,16 @@
+{
+ "goal": "w38c0e7fb",
+ "word": "הוריקן",
+ "need": "n5",
+ "behavior": "מסלול צפוי",
+ "verb": "NEW:move-along-path",
+ "verbHe": "פועל חדש: move-along-path",
+ "isNewVerb": true,
+ "material": "geo",
+ "takes": [],
+ "gives": "geo",
+ "detail": "מתקדם במסלול — נקודה שזזה לאורך דרך נתונה",
+ "example": {
+  "say": "«הוריקן»: מסלול צפוי — מתקדם במסלול — נקודה שזזה לאורך דרך נתונה"
+ }
+}

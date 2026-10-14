@@ -1,0 +1,16 @@
+{
+ "goal": "w52e332ab",
+ "word": "משחק-זיכרון",
+ "need": "n1",
+ "behavior": "מערבבים קלפים",
+ "verb": "NEW:random",
+ "verbHe": "פועל חדש: random",
+ "isNewVerb": true,
+ "material": "sequence",
+ "takes": [],
+ "gives": "sequence",
+ "detail": "מגריל — בחירה או ערך לפי סיכוי",
+ "example": {
+  "say": "«משחק-זיכרון»: מערבבים קלפים — מגריל — בחירה או ערך לפי סיכוי"
+ }
+}

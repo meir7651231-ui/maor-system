@@ -1,0 +1,16 @@
+{
+ "goal": "w33a001ca",
+ "word": "רובוט-שואב",
+ "need": "n3",
+ "behavior": "מסתובב כשנתקע בקיר",
+ "verb": "tolerate",
+ "verbHe": "סובל כשל",
+ "isNewVerb": false,
+ "material": "geo",
+ "takes": [],
+ "gives": "geo",
+ "detail": null,
+ "example": {
+  "say": "«רובוט-שואב»: מסתובב כשנתקע בקיר"
+ }
+}

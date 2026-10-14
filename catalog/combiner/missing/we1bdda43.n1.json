@@ -1,0 +1,18 @@
+{
+ "goal": "we1bdda43",
+ "word": "שינה",
+ "need": "n1",
+ "behavior": "שלבי שינה",
+ "verb": "escalate",
+ "verbHe": "מסלים בזמן",
+ "isNewVerb": false,
+ "material": "choice",
+ "takes": [
+  "times"
+ ],
+ "gives": "choice",
+ "detail": "קלה ⇒ עמוקה ⇒ חלום",
+ "example": {
+  "say": "«שינה»: שלבי שינה — קלה ⇒ עמוקה ⇒ חלום"
+ }
+}

@@ -1,0 +1,16 @@
+{
+ "goal": "w795f1b4f",
+ "word": "דרקון",
+ "need": "n8",
+ "behavior": "עף במעגלים מעל ההר",
+ "verb": "NEW:orbit",
+ "verbHe": "פועל חדש: orbit",
+ "isNewVerb": true,
+ "material": "geo",
+ "takes": [],
+ "gives": "geo",
+ "detail": "תנועה במעגל סביב נקודה",
+ "example": {
+  "say": "«דרקון»: עף במעגלים מעל ההר — תנועה במעגל סביב נקודה"
+ }
+}

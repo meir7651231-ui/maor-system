@@ -1,0 +1,18 @@
+{
+ "goal": "w39c7089f",
+ "word": "עציץ",
+ "need": "n5",
+ "behavior": "תמונה כל שבוע",
+ "verb": "bucket",
+ "verbHe": "מקבץ לפי יום",
+ "isNewVerb": false,
+ "material": "image",
+ "takes": [
+  "times"
+ ],
+ "gives": "image",
+ "detail": null,
+ "example": {
+  "say": "«עציץ»: תמונה כל שבוע"
+ }
+}

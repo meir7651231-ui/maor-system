@@ -48,7 +48,7 @@ export const EXAMPLE_LAWS = {
     if (/רווי/.test(part.name)) return ex.out === Math.min(s, 15) || m(s, M) === ex.out ? ok : bad('סכום רווי שגוי');
     return Math.abs(m(s, M) - ex.out) < 1e-9 ? ok : null; // סכום חלקי (בלי הגדול / הזוגיים) — לא נבדק כאן
   },
-  minmax: (ex) => {
+  extreme: (ex) => {
     const a = arrIn(ex.in);
     const xs = nums(a) ? a : numsIn(ex.in);
     if (xs.length < 2 || typeof ex.out !== 'number') return null;
@@ -70,7 +70,7 @@ export const EXAMPLE_LAWS = {
     const s = ex.out.map((v) => JSON.stringify(v));
     return new Set(s).size === s.length ? ok : bad('נשארו כפולים');
   },
-  gate: (ex) => (typeof ex.out === 'boolean' ? ok : null),
+  validate: (ex) => (typeof ex.out === 'boolean' ? ok : null),
   clamp: (ex) => {
     const xs = numsIn(ex.in);
     if (typeof ex.out !== 'number' || xs.length < 2) return null;

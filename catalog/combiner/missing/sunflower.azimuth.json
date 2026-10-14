@@ -5,6 +5,7 @@
  "behavior": "יודעת לאיזה כיוון השמש (אזימוט)",
  "verb": "sun-position",
  "verbHe": "מקום השמש",
+ "isNewVerb": false,
  "material": "number",
  "takes": [
   "geo"

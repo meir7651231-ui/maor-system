@@ -1,0 +1,16 @@
+{
+ "goal": "wd12e7614",
+ "word": "כדור-קפיצי",
+ "need": "n1",
+ "behavior": "נופל",
+ "verb": "NEW:gravity",
+ "verbHe": "פועל חדש: gravity",
+ "isNewVerb": true,
+ "material": "number",
+ "takes": [],
+ "gives": "number",
+ "detail": "נופל — מהירות שגדלה בכל צעד של נפילה",
+ "example": {
+  "say": "«כדור-קפיצי»: נופל — נופל — מהירות שגדלה בכל צעד של נפילה"
+ }
+}

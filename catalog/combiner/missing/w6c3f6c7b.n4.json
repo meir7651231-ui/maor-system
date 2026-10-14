@@ -1,0 +1,16 @@
+{
+ "goal": "w6c3f6c7b",
+ "word": "נדנדה",
+ "need": "n4",
+ "behavior": "נחלשת בלי דחיפה",
+ "verb": "NEW:decay",
+ "verbHe": "פועל חדש: decay",
+ "isNewVerb": true,
+ "material": "number",
+ "takes": [],
+ "gives": "number",
+ "detail": "דועך — ערך שיורד מעט בכל צעד-זמן עד אפס",
+ "example": {
+  "say": "«נדנדה»: נחלשת בלי דחיפה — דועך — ערך שיורד מעט בכל צעד-זמן עד אפס"
+ }
+}

@@ -1,0 +1,16 @@
+{
+ "goal": "w66297ae6",
+ "word": "כיסאות-מוזיקליים",
+ "need": "n2",
+ "behavior": "המוזיקה נעצרת פתאום",
+ "verb": "NEW:random",
+ "verbHe": "פועל חדש: random",
+ "isNewVerb": true,
+ "material": "times",
+ "takes": [],
+ "gives": "times",
+ "detail": "מגריל — בחירה או ערך לפי סיכוי",
+ "example": {
+  "say": "«כיסאות-מוזיקליים»: המוזיקה נעצרת פתאום — מגריל — בחירה או ערך לפי סיכוי"
+ }
+}

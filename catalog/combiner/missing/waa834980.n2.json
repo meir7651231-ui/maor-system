@@ -1,0 +1,19 @@
+{
+ "goal": "waa834980",
+ "word": "עץ",
+ "need": "n2",
+ "behavior": "עלים באביב ונשירה בסתיו",
+ "verb": "rotate",
+ "verbHe": "מחלק בתורות",
+ "isNewVerb": false,
+ "material": "choice",
+ "takes": [
+  "list",
+  "number|date"
+ ],
+ "gives": "choice",
+ "detail": "ארבע עונות במעגל",
+ "example": {
+  "say": "«עץ»: עלים באביב ונשירה בסתיו — ארבע עונות במעגל"
+ }
+}

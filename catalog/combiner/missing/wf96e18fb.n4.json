@@ -1,0 +1,16 @@
+{
+ "goal": "wf96e18fb",
+ "word": "נשימה",
+ "need": "n4",
+ "behavior": "ספירה לנשימה רגועה",
+ "verb": "NEW:countdown",
+ "verbHe": "פועל חדש: countdown",
+ "isNewVerb": true,
+ "material": "number",
+ "takes": [],
+ "gives": "number",
+ "detail": "סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה",
+ "example": {
+  "say": "«נשימה»: ספירה לנשימה רגועה — סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה"
+ }
+}

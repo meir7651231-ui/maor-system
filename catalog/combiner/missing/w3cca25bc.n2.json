@@ -1,0 +1,16 @@
+{
+ "goal": "w3cca25bc",
+ "word": "רכבת-הרים",
+ "need": "n2",
+ "behavior": "נופלת ומאיצה",
+ "verb": "NEW:gravity",
+ "verbHe": "פועל חדש: gravity",
+ "isNewVerb": true,
+ "material": "number",
+ "takes": [],
+ "gives": "number",
+ "detail": "נופל — מהירות שגדלה בכל צעד של נפילה",
+ "example": {
+  "say": "«רכבת-הרים»: נופלת ומאיצה — נופל — מהירות שגדלה בכל צעד של נפילה"
+ }
+}

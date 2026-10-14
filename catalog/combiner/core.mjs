@@ -8,7 +8,7 @@
  *
  * טהור ודטרמיניסטי: בלי fs/רשת/שעון/אקראי. אותו קלט ⇒ אותה הרכבה, ביט אחר ביט. רץ ב-node (cli) ובדפדפן (lab.html).
  */
-import { VERBS, VERB_BY_ID, RECIPE_VERB, staticVerbsScored } from './verbs.mjs';
+import { VERBS, VERB_BY_ID, RECIPE_VERB, EXTRA_IDS, canonVerb, staticVerbsScored } from './verbs.mjs';
 import { exampleLaw } from './laws.mjs';
 
 /* ═══════════════ פרויקטים וסוגים ═══════════════ */
@@ -60,6 +60,7 @@ export function fit(kind, want) {
   if (!kind || !want || kind === 'unknown') return 0;
   if (kind === want) return 2;
   if (want === 'record' && kind.startsWith('record:')) return 2;
+  if (want.startsWith('record:') && kind.startsWith('record:')) return 1;
   if (WEAK.has(kind + '|' + want)) return 1;
   return 0;
 }
@@ -78,15 +79,62 @@ const dedupeKey = (p) => {
   return strong ? sym + '|' + sig : p.source + '|' + p.id;
 };
 
+const STATUS_RANK = { proven: 0, twin: 1, example: 1, static: 2 };
+const holdsAll = (h) => typeof h === 'string' && /^(\d+)\/\1$/.test(h) && Number(h.split('/')[0]) > 0;
+
+/** דרגת-הוכחה של פועל בחלק: מוכח (חוקים רצו) · ניתן-להרצה (תאום מוכח / דוגמה / קוד טהור שאפשר להריץ) · סטטי. */
+function tierOfStatus(status, p) {
+  if (status === 'proven') return 'proven';
+  if (status === 'twin' || status === 'example') return 'runnable';
+  return p.pure && (p.lang === 'ts' || p.lang === 'js') ? 'runnable' : 'static';
+}
+
+/** הפעלים של חלק אחד, כל אחד עם ההוכחה שלו. */
+function rateHome(p, judge, behavior) {
+  const pv = {};
+  const add = (id, proof) => {
+    if (!VERB_BY_ID[id]) return;
+    const cur = pv[id];
+    if (!cur || STATUS_RANK[proof.status] < STATUS_RANK[cur.status] || (proof.status === cur.status && proof.s < cur.s)) pv[id] = proof;
+  };
+  const b = behavior?.get(p.id);
+  // "מוכח וגם השם אומר את זה" חזק יותר מ"מוכח" בלבד (חלק שמעגל בדרך-אגב לא קודם למעגל)
+  const named = new Set(staticVerbsScored(p).map((v) => v.id));
+  if (b) {
+    for (const v of b.verbs) {
+      const id = canonVerb(typeof v === 'string' ? v : v.id);
+      if (b.labeledBy === 'run' && holdsAll(v.holds)) add(id, { status: 'proven', by: 'reader', cases: Number(v.holds.split('/')[0]), laws: VERB_BY_ID[id]?.laws || [], s: named.has(id) ? 0 : 1 });
+      else if (b.labeledBy === 'twin') add(id, { status: 'twin', by: 'reader', s: named.has(id) ? 0 : 1 });
+      else add(id, { status: 'static', by: 'reader', s: v.by === 'first' || named.has(id) ? 0 : 1 });
+    }
+  }
+  // התיוג הזמני: בלי קורא — הכול; עם קורא — רק הפעלים שאין באלפבית (מקום-השמש)
+  for (const v of staticVerbsScored(p)) if (!b || EXTRA_IDS.includes(v.id)) add(v.id, { status: 'static', by: 'static', s: v.s });
+  const j = judge[p.id];
+  if (j?.status === 'proven') add(j.verb, { status: 'proven', by: 'judge', cases: j.cases, checks: j.checks, laws: j.laws, s: 0 });
+  // דוגמה אמיתית מול חוק הפועל: מקיימת ⇒ "נבדק על דוגמה"; סותרת ⇒ התווית הסטטית שגויה ויורדת
+  for (const id of Object.keys(pv)) {
+    if (pv[id].status !== 'static') continue;
+    const r = exampleLaw(id, p);
+    if (r && !r.ok) delete pv[id];
+    else if (r?.ok) pv[id] = { ...pv[id], status: 'example', by: 'example' };
+  }
+  for (const id of Object.keys(pv)) pv[id].tier = tierOfStatus(pv[id].status, p);
+  return { p, pv, labeledBy: b?.labeledBy || 'static' };
+}
+
+const bestTier = (pv) => Object.values(pv).reduce((w, x) => (TIER_RANK[x.tier] < TIER_RANK[w] ? x.tier : w), 'static');
+const verbOrder = (a, b) => VERBS.findIndex((v) => v.id === a) - VERBS.findIndex((v) => v.id === b);
+
 /**
- * בונה את האינדקס מכל החלקים: תיוג-פעלים, איחוד כפולים בין פרויקטים (חלק אחד, כמה בתים), דרגת-הוכחה.
- * @param parts   כל החלקים מכל `catalog/sources/*.json`
- * @param opts.proofs   `proofs.json` מהשופט ({parts:{id:{status,…}}, flows:{"a>b":…}})
- * @param opts.behavior Map id ⇒ verbs מקורא-ההתנהגות (גובר על הסטטי)
+ * בונה את האינדקס מכל החלקים: תיוג-פעלים, איחוד כפולים בין פרויקטים (חלק אחד, כמה בתים), הוכחה לכל פועל.
+ * @param parts         כל החלקים מכל `catalog/sources/*.json`
+ * @param opts.proofs   `proofs.json` מהשופט ({parts:{id:{status, verb,…}}, flows:{"a>b":…}})
+ * @param opts.behavior Map id ⇒ רשומת קורא-ההתנהגות ({labeledBy, verbs:[{id, holds}]}) — גוברת על התיוג הזמני
  * @param opts.recipes  מתכונים שמורים (`catalog/recipes/*.json`) — נכנסים כחלקים חדשים
  */
 export function buildIndex(parts, opts = {}) {
-  const proofs = opts.proofs?.parts || {};
+  const judge = opts.proofs?.parts || {};
   const behavior = opts.behavior || null;
   const groups = new Map();
   const sorted = [...parts].sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
@@ -98,32 +146,27 @@ export function buildIndex(parts, opts = {}) {
   }
   const out = [];
   for (const homes of groups.values()) {
-    const rated = homes.map((p) => {
-      const bverbs = behavior?.get(p.id);
-      const labeledBy = bverbs ? 'behavior' : 'static';
-      const scored = bverbs ? bverbs.filter((v) => VERB_BY_ID[v]).map((id) => ({ id, s: 0 })) : staticVerbsScored(p);
-      const strength = Object.fromEntries(scored.map((v) => [v.id, v.s]));
-      let verbs = scored.map((v) => v.id);
-      const proof = proofs[p.id] || null;
-      const exampleChecks = {};
-      verbs = verbs.filter((v) => {
-        const r = exampleLaw(v, p);
-        if (r) exampleChecks[v] = r.ok;
-        return !r || r.ok; // דוגמה שסותרת את החוק ⇒ התווית שגויה
-      });
-      const exampleOk = Object.values(exampleChecks).some(Boolean);
-      const tier = proof?.status === 'proven' ? 'proven' : exampleOk || (p.pure && (p.lang === 'ts' || p.lang === 'js')) || p.source === 'rings' ? 'runnable' : 'static';
-      return { p, verbs, strength, labeledBy, tier, proof, exampleOk };
-    });
-    rated.sort((a, b) => TIER_RANK[a.tier] - TIER_RANK[b.tier] || srcRank(a.p.source) - srcRank(b.p.source) || (a.p.id < b.p.id ? -1 : 1));
+    const rated = homes.map((p) => rateHome(p, judge, behavior));
+    rated.sort((a, b) => TIER_RANK[bestTier(a.pv)] - TIER_RANK[bestTier(b.pv)] || srcRank(a.p.source) - srcRank(b.p.source) || (a.p.id < b.p.id ? -1 : 1));
     const best = rated[0];
-    const strength = {};
-    for (const s of rated) for (const v of s.verbs) strength[v] = Math.min(strength[v] ?? 9, s.strength[v]);
-    const verbs = [...new Set(rated.flatMap((s) => s.verbs))].sort((a, b) => VERBS.findIndex((v) => v.id === a) - VERBS.findIndex((v) => v.id === b));
+    // לכל פועל — ההוכחה הטובה מבין כל הבתים (אותו חלק שהועתק בין פרויקטים)
+    const proofs = {};
+    for (const r of rated)
+      for (const [id, x] of Object.entries(r.pv)) {
+        const cur = proofs[id];
+        if (!cur || TIER_RANK[x.tier] < TIER_RANK[cur.tier] || (x.tier === cur.tier && x.s < cur.s)) proofs[id] = { ...x, home: r.p.id };
+      }
+    const verbs = Object.keys(proofs).sort(verbOrder);
+    const strength = Object.fromEntries(verbs.map((v) => [v, proofs[v].s]));
+    const slimProofs = {};
+    for (const v of verbs) {
+      const { s: _s, home, ...rest } = proofs[v];
+      slimProofs[v] = home === best.p.id ? rest : { ...rest, home };
+    }
     out.push({
       id: best.p.id,
       source: best.p.source,
-      homes: rated.map((s) => ({ source: s.p.source, id: s.p.id })),
+      homes: rated.map((r) => ({ source: r.p.source, id: r.p.id })),
       name: best.p.name,
       does: String(best.p.does || '').slice(0, 160),
       what: best.p.what,
@@ -134,8 +177,8 @@ export function buildIndex(parts, opts = {}) {
       verbs,
       strength,
       labeledBy: best.labeledBy,
-      tier: best.tier,
-      proof: best.proof ? { status: best.proof.status, cases: best.proof.cases, checks: best.proof.checks, laws: best.proof.laws } : best.exampleOk ? { status: 'example' } : null,
+      tier: verbs.length ? bestTier(proofs) : tierOfStatus('static', best.p),
+      proofs: slimProofs,
     });
   }
   for (const r of opts.recipes || []) out.push(recipePart(r, out));
@@ -143,7 +186,10 @@ export function buildIndex(parts, opts = {}) {
   return indexOf(out, opts.proofs?.flows || {});
 }
 
-/** אינדקס מוכן לחיפוש (גם מתוך parts.json שכבר נבנה — lab.html). */
+/** דרגת החלק בתפקיד מסוים (פועל); בלי פועל — הדרגה הטובה שלו. */
+export const tierFor = (p, verb) => p.proofs?.[verb]?.tier || p.tier;
+
+/** אינדקס מוכן לחיפוש (גם מתוך lab-data.json שכבר נבנה — lab.html). */
 export function indexOf(parts, flows = {}) {
   const byVerb = new Map();
   const byTake = new Map();
@@ -157,9 +203,10 @@ export function indexOf(parts, flows = {}) {
       byTake.get(t).push(p);
     }
   }
-  const order = (a, b) => TIER_RANK[a.tier] - TIER_RANK[b.tier] || (a.takes.length ? 0 : 1) - (b.takes.length ? 0 : 1) || a.takes.length - b.takes.length || srcRank(a.source) - srcRank(b.source) || (a.id < b.id ? -1 : 1);
-  for (const xs of byVerb.values()) xs.sort(order);
-  for (const xs of byTake.values()) xs.sort(order);
+  const order = (verb) => (a, b) =>
+    TIER_RANK[tierFor(a, verb)] - TIER_RANK[tierFor(b, verb)] || (a.takes.length ? 0 : 1) - (b.takes.length ? 0 : 1) || a.takes.length - b.takes.length || srcRank(a.source) - srcRank(b.source) || (a.id < b.id ? -1 : 1);
+  for (const [v, xs] of byVerb) xs.sort(order(v));
+  for (const xs of byTake.values()) xs.sort(order(null));
   return { parts, byId: new Map(parts.map((p) => [p.id, p])), byVerb, byTake, flows };
 }
 
@@ -189,7 +236,7 @@ export function recipePart(r, known = []) {
     inner: verbs,
     labeledBy: 'recipe',
     tier,
-    proof: null,
+    proofs: { [RECIPE_VERB.id]: { status: 'static', by: 'recipe', tier } },
     recipe: { id: r.id, word: r.word, parts: steps.length, projects: [...new Set(steps.map((id) => id.split(':')[0]))].sort() },
   };
 }
@@ -206,7 +253,9 @@ export function recipeFrom(assembly) {
 
 /* ═══════════════ החיפוש — טבעות ═══════════════ */
 
-const FINISH_VERBS = new Set(['convert', 'format', 'round', 'clamp', 'sort', 'filter', 'count', 'sum', 'minmax', 'dedupe', 'reverse', 'rank-tiers', 'gate', 'group']);
+const FINISH_VERBS = new Set(['convert', 'format', 'round', 'clamp', 'sort', 'filter', 'count', 'sum', 'average', 'extreme', 'dedupe', 'reverse', 'tier', 'validate', 'group', 'tally', 'map', 'normalize', 'join']);
+/** התפקיד של חלק שאינו הליבה = הפועל הכי מוכח שלו. */
+const roleOf = (p) => [...p.verbs].sort((a, b) => TIER_RANK[tierFor(p, a)] - TIER_RANK[tierFor(p, b)])[0] || null;
 const CAP_CORE = 60;
 const CAP_LINK = 40;
 const KEEP = 5;
@@ -245,23 +294,34 @@ export function chainsFor(need, ix) {
   const mat = need.material;
   const from = need.from || null;
   const cores = (ix.byVerb.get(need.verb) || []).filter((p) => matchesKeys(p, need.keys) && !(p.takes.length === 0 && p.gives === 'unknown')).slice(0, CAP_CORE);
-  const finishers = (kind) => (ix.byTake.get(kind) || []).filter((g) => g.verbs.some((v) => FINISH_VERBS.has(v))).slice(0, CAP_LINK);
+  // מסיים = מקבל את הפלט כקלט הראשי שלו (byTake מכיל גם חלקים שהסוג הוא קלט משני אצלם)
+  const finishers = (kind) => (ix.byTake.get(kind) || []).filter((g) => accepts(g, kind) && g.verbs.some((v) => FINISH_VERBS.has(v))).slice(0, CAP_LINK);
   const feeders = (into) => (from ? (ix.byTake.get(from) || []).filter((f) => f.verbs.length && linked(f, into)).slice(0, CAP_LINK) : []);
   const startOk = (p) => !from || accepts(p, from);
+  // "חומר" = על מה הפועל עובד (מילון-המטרות): החלק נותן אותו, או מקבל אותו כקלט הראשי
+  const onMat = (p) => fit(p.gives, mat) > 0 || accepts(p, mat);
   const chains = [];
   const push = (steps, ring) => {
     const ids = steps.map((s) => s.id);
     if (new Set(ids).size !== ids.length) return;
-    chains.push({ ring, verb: need.verb, overlap: overlap(need.behavior, steps), steps, core: steps.findIndex((s) => s.verbs.includes(need.verb) && matchesKeys(s, need.keys)), fit: fit(steps[steps.length - 1].gives, mat) });
+    const core = steps.findIndex((s) => s.verbs.includes(need.verb) && matchesKeys(s, need.keys));
+    const roles = steps.map((s, i) => (i === core ? need.verb : roleOf(s)));
+    chains.push({ ring, verb: need.verb, overlap: overlap(need.behavior, steps), steps, roles, core, fit: Math.max(fit(steps[steps.length - 1].gives, mat), steps[0].takes.length ? fit(mat, steps[0].takes[0]) : 0) });
   };
+  // כמו מנוע-הטבעות: מתרחבים לטבעת הבאה רק כשהפנימית ריקה
+  // טבעת 1 — חלק בודד
+  for (const c of cores) if (onMat(c) && startOk(c)) push([c], 1);
+  if (chains.length) return chains;
+  // טבעת 2 — זוג: מזין לפני הליבה, או מסיים אחריה
   for (const c of cores) {
-    const ends = fit(c.gives, mat) > 0;
-    // טבעת 1
-    if (ends && startOk(c)) push([c], 1);
-    // טבעת 2
+    const ends = onMat(c);
     if (ends && !startOk(c)) for (const f of feeders(c)) push([f, c], 2);
     if (!ends && startOk(c)) for (const g of finishers(c.gives)) if (fit(g.gives, mat) > 0 && linked(c, g)) push([c, g], 2);
-    // טבעת 3
+  }
+  if (chains.length) return chains;
+  // טבעת 3 — שלישייה
+  for (const c of cores) {
+    const ends = onMat(c);
     if (!ends && !startOk(c)) for (const f of feeders(c)) for (const g of finishers(c.gives)) if (fit(g.gives, mat) > 0) push([f, c, g], 3);
     if (!ends && startOk(c))
       for (const g1 of finishers(c.gives)) if (fit(g1.gives, mat) === 0) for (const g2 of finishers(g1.gives)) if (fit(g2.gives, mat) > 0) push([c, g1, g2], 3);
@@ -269,14 +329,14 @@ export function chainsFor(need, ix) {
   return chains;
 }
 
-const chainTier = (steps) => steps.reduce((w, s) => (TIER_RANK[s.tier] > TIER_RANK[w] ? s.tier : w), 'proven');
+const chainTier = (c) => c.steps.reduce((w, s, i) => (TIER_RANK[tierFor(s, c.roles[i])] > TIER_RANK[w] ? tierFor(s, c.roles[i]) : w), 'proven');
 
 /** מדרג: מוכח > ניתן-להרצה > סטטי · פחות חלקים · עד כמה הפועל ודאי (מילה ראשונה > ביטוי > שם-פונקציה) · התאמה מדויקת · פרויקט חדש להרכבה · יותר פרויקטים · מזהה. */
 export function rankChains(chains, used = new Set()) {
   const key = (c) => {
     const srcs = [...new Set(c.steps.map((s) => s.source))];
     const core = c.steps[Math.max(0, c.core)];
-    return [TIER_RANK[chainTier(c.steps)], c.steps.length, -c.overlap, core.strength?.[c.verb] ?? 3, 2 - c.fit, srcs.some((s) => !used.has(s)) ? 0 : 1, -srcs.length, c.steps.map((s) => s.id).join('>')];
+    return [TIER_RANK[chainTier(c)], c.steps.length, -c.overlap, core.strength?.[c.verb] ?? 3, 2 - c.fit, srcs.some((s) => !used.has(s)) ? 0 : 1, -srcs.length, c.steps.map((s) => s.id).join('>')];
   };
   const cmp = (a, b) => {
     const ka = key(a);
@@ -289,7 +349,7 @@ export function rankChains(chains, used = new Set()) {
 
 /* ═══════════════ ההרכבה ═══════════════ */
 
-const VERB_HE = (v) => VERB_BY_ID[v]?.he || (v === RECIPE_VERB.id ? RECIPE_VERB.he : v);
+export const VERB_HE = (v) => VERB_BY_ID[v]?.he || (v === RECIPE_VERB.id ? RECIPE_VERB.he : String(v || '').startsWith('NEW:') ? 'פועל חדש: ' + v.slice(4) : v);
 
 /** משפט עברי פשוט לשרשרת. */
 export function chainSentence(steps) {
@@ -299,9 +359,12 @@ export function chainSentence(steps) {
   return 'קודם ' + names[0] + ', ואז ' + names.slice(1, -1).join(', ואז ') + ', ובסוף ' + names[names.length - 1] + '.';
 }
 
-function stepView(p, prev, flows) {
+const PROOF_HE = { judge: 'השופט הריץ על קלטים מחוללים', reader: 'קורא-ההתנהגות הריץ בארגז-חול', example: 'נבדק על הדוגמה מקובץ-בדיקה', static: 'מהשם בלבד' };
+
+function stepView(p, prev, flows, role) {
   const flow = prev ? flows[prev.id + '>' + p.id] || null : null;
-  const proof = p.proof?.status === 'proven' ? 'proven' : p.proof?.status === 'example' ? 'example' : 'static';
+  const pr = (role && p.proofs?.[role]) || {};
+  const proof = pr.status === 'proven' ? 'proven' : pr.status === 'twin' ? 'twin' : pr.status === 'example' ? 'example' : 'static';
   return {
     id: p.id,
     name: p.name,
@@ -311,10 +374,14 @@ function stepView(p, prev, flows) {
     takes: p.takes,
     gives: p.gives,
     verbs: p.verbs,
-    tier: p.tier,
+    role,
+    roleHe: VERB_HE(role),
+    tier: tierFor(p, role),
     proof,
-    cases: p.proof?.cases || 0,
-    laws: p.proof?.laws || [],
+    by: pr.by || 'static',
+    byHe: PROOF_HE[pr.by] || (pr.status === 'twin' ? 'תאום של חלק שהורץ' : PROOF_HE.static),
+    cases: pr.cases || 0,
+    laws: pr.laws || [],
     flow: flow ? { status: flow.status, cases: flow.cases } : null,
   };
 }
@@ -327,12 +394,13 @@ export function buildRequest(goal, need) {
     need: need.id,
     behavior: need.behavior,
     verb: need.verb,
-    verbHe: VERB_HE(need.verb),
+    verbHe: need.verb.startsWith('NEW:') ? 'פועל חדש: ' + need.verb.slice(4) : VERB_HE(need.verb),
+    isNewVerb: need.verb.startsWith('NEW:'),
     material: need.material,
-    takes: need.from ? [need.from] : need.takes || [],
+    takes: need.from ? [need.from] : need.takes || (VERB_BY_ID[need.verb]?.takes || []).filter((t) => t !== 'any'),
     gives: need.material,
     detail: need.detail || null,
-    example: need.example || null,
+    example: need.example || { say: '«' + goal.word + '»: ' + need.behavior + (need.detail ? ' — ' + need.detail : '') },
   };
 }
 
@@ -351,9 +419,9 @@ export function assemble(goal, ix) {
     }
     const views = ranked.slice(0, KEEP).map((c) => ({
       ring: c.ring,
-      tier: chainTier(c.steps),
+      tier: chainTier(c),
       sentence: chainSentence(c.steps),
-      steps: c.steps.map((s, i) => stepView(s, c.steps[i - 1], ix.flows)),
+      steps: c.steps.map((s, i) => stepView(s, c.steps[i - 1], ix.flows, c.roles[i])),
     }));
     for (const s of ranked[0].steps) used.add(s.source);
     needs.push({ need, chain: views[0], alternatives: views.slice(1), ring: views[0].ring });
@@ -428,20 +496,31 @@ export function goalFromChips(word, picks) {
     id: 'chips',
     word: w,
     title: '',
-    needs: picks.map((p, i) => ({ id: 'n' + (i + 1), behavior: VERB_BY_ID[p.verb]?.plain + ' (' + kindHe(p.material) + ')', verb: p.verb, material: p.material })),
+    needs: picks.map((p, i) => ({ id: 'n' + (i + 1), behavior: VERB_HE(p.verb) + ' · ' + kindHe(p.material), verb: p.verb, material: p.material })),
   };
 }
 
-/** מנרמל מטרה מכל צורה סבירה (מילון-המטרות נכתב במקביל). */
-export function normGoal(g, i = 0) {
+/** מזהה ASCII יציב למילה (לשמות קבצים): FNV-1a. */
+export function wordId(w) {
+  let h = 0x811c9dc5;
+  for (const ch of String(w)) h = Math.imul(h ^ ch.codePointAt(0), 16777619) >>> 0;
+  return 'w' + h.toString(16).padStart(8, '0');
+}
+
+/**
+ * מנרמל מטרה מכל צורה סבירה: מילון-המטרות ({word, emoji, does, needs}) או ה-fixtures ({id, word, title, needs}).
+ * הפועל עובר דרך ALIAS לאלפבית; `NEW:x` נשאר כמו שהוא — אין לו חלקים ⇒ "חסר" ⇒ בקשת-בנייה.
+ */
+export function normGoal(g) {
   const needs = (g.needs || []).map((n, j) => ({
     ...n,
     id: n.id || 'n' + (j + 1),
     behavior: n.behavior || n.he || n.text || n.verb,
-    verb: n.verb,
+    asked: n.verb,
+    verb: canonVerb(n.verb),
     material: n.material || n.kind,
   }));
-  return { ...g, id: g.id || 'g' + (i + 1), word: g.word, title: g.title || '', needs: needs.filter((n) => n.verb && n.material) };
+  return { ...g, id: g.id || wordId(g.word), word: g.word, title: g.title || g.does || '', needs: needs.filter((n) => n.verb && n.material) };
 }
 
 /** בורר-מילה דטרמיניסטי לפי זרע (ה-🎲 בדף משתמש בזרע מהדפדפן; כאן — לבדיקות ול-CLI). */
@@ -457,7 +536,8 @@ export function pickWord(goals, seed) {
 /** אין בהרכבה טלפון/מייל/ת״ז/קישור/טוקן. מחזיר את מה שדלף, או null. */
 export function piiLeak(obj) {
   const s = JSON.stringify(obj);
-  const pats = [/[\w.+-]+@[\w-]+\.[\w.]+/, /(?:\+?972|0)5\d[- ]?\d{3}[- ]?\d{4}/, /\b\d{9}\b/, /https?:\/\//, /\b[A-Za-z0-9_-]{32,}\b/];
+  // טוקן = רצף ארוך של אותיות-וספרות מעורבבות (לא מזהה-קובץ עם מקפים)
+  const pats = [/[\w.+-]+@[a-z0-9-]+(?:\.[a-z0-9-]+)*\.(?:com|net|org|il|io|co|edu|gov|me|info|app|dev)\b/i, /(?:\+?972|\b0)5\d[- ]?\d{3}[- ]?\d{4}/, /\b\d{9}\b/, /https?:\/\//, /\b(?=[A-Za-z0-9]*\d)(?=[A-Za-z0-9]*[A-Za-z])[A-Za-z0-9]{24,}\b/];
   for (const p of pats) {
     const m = s.match(p);
     if (m) return m[0];

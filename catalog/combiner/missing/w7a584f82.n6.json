@@ -1,0 +1,19 @@
+{
+ "goal": "w7a584f82",
+ "word": "צוללת",
+ "need": "n6",
+ "behavior": "פריסקופ מסתובב",
+ "verb": "rotate",
+ "verbHe": "מחלק בתורות",
+ "isNewVerb": false,
+ "material": "geo",
+ "takes": [
+  "list",
+  "number|date"
+ ],
+ "gives": "geo",
+ "detail": null,
+ "example": {
+  "say": "«צוללת»: פריסקופ מסתובב"
+ }
+}

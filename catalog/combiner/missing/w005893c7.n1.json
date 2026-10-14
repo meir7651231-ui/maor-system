@@ -1,0 +1,16 @@
+{
+ "goal": "w005893c7",
+ "word": "סל-כביסה",
+ "need": "n1",
+ "behavior": "מתמלא",
+ "verb": "NEW:accumulate",
+ "verbHe": "פועל חדש: accumulate",
+ "isNewVerb": true,
+ "material": "number",
+ "takes": [],
+ "gives": "number",
+ "detail": "צובר — ערך שגדל מעט בכל צעד-זמן עד שמשהו מרוקן אותו",
+ "example": {
+  "say": "«סל-כביסה»: מתמלא — צובר — ערך שגדל מעט בכל צעד-זמן עד שמשהו מרוקן אותו"
+ }
+}

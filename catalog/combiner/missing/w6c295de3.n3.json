@@ -1,0 +1,18 @@
+{
+ "goal": "w6c295de3",
+ "word": "זרע",
+ "need": "n3",
+ "behavior": "קודם שורש ואחר כך עלה",
+ "verb": "escalate",
+ "verbHe": "מסלים בזמן",
+ "isNewVerb": false,
+ "material": "choice",
+ "takes": [
+  "times"
+ ],
+ "gives": "choice",
+ "detail": "שורש ⇒ עלה ⇒ גבעול",
+ "example": {
+  "say": "«זרע»: קודם שורש ואחר כך עלה — שורש ⇒ עלה ⇒ גבעול"
+ }
+}

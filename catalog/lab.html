@@ -107,7 +107,8 @@ pre{white-space:pre-wrap;overflow-wrap:anywhere;background:var(--surface);border
 <div class="toast" id="toast" role="status"></div>
 
 <script type="module">
-import { indexOf, assemble, findGoal, askChips, goalFromChips, recipeFrom, recipePart, PROJECTS, kindHe, TIER_HE } from './combiner/core.mjs';
+import { indexOf, assemble, findGoal, askChips, goalFromChips, recipeFrom, recipePart, PROJECTS, kindHe, TIER_HE, VERB_HE as verbHe } from './combiner/core.mjs';
+import { useAlphabet } from './combiner/verbs.mjs';
 
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
@@ -132,12 +133,17 @@ async function boot() {
     $('#stats').innerHTML = '<span class="err">לא הצלחתי לטעון את הקטלוג. פתחו את הדף דרך שרת (למשל <code>npx vite preview</code> או <code>python3 -m http.server</code> מתיקיית השורש).</span>';
     return;
   }
+  useAlphabet(DATA.verbs);
   DATA.verbs.forEach((v) => (VERB_HE[v.id] = v.he));
+  VERB_HE[DATA.recipeVerb.id] = DATA.recipeVerb.he;
   rebuild();
   const srcs = new Set(DATA.parts.flatMap((p) => p.homes.map((h) => h.source)));
-  const proven = DATA.parts.filter((p) => p.proof?.status === 'proven').length;
-  $('#stats').textContent = DATA.parts.length.toLocaleString('he') + ' חלקים עם פועל · ' + srcs.size + ' פרויקטים · ' + proven + ' מוכחים בהרצה · תיוג ' + (DATA.labeledBy === 'behavior' ? 'מהתנהגות' : 'זמני (מהשמות)');
-  $('#samples').innerHTML = DATA.goals.map((g) => `<button type="button" data-w="${esc(g.word)}">${esc(g.word)}</button>`).join('');
+  const proven = DATA.parts.filter((p) => Object.values(p.proofs || {}).some((x) => x.status === 'proven')).length;
+  $('#stats').textContent = DATA.parts.length.toLocaleString('he') + ' חלקים עם פועל · ' + srcs.size + ' פרויקטים · ' + proven + ' מוכחים בהרצה · ' + DATA.goals.length + ' מילים במילון · תיוג ' + (DATA.labeledBy === 'behavior' ? 'מהתנהגות' : 'זמני (מהשמות)');
+  // 12 מילים לדוגמה (החמנייה של הבעלים ראשונה, ואז אחת מכל עולם); השאר — ב-🎲
+  const seen = new Set();
+  const sample = DATA.goals.filter((g) => (g.owner || !seen.has(g.world)) && seen.add(g.world)).slice(0, 12);
+  $('#samples').innerHTML = sample.map((g) => `<button type="button" data-w="${esc(g.word)}">${esc(g.word)}</button>`).join('');
   $('#samples').onclick = (e) => { const w = e.target.closest('button')?.dataset.w; if (w) go(w); };
   fromHash();
   window.addEventListener('hashchange', fromHash);
@@ -213,7 +219,7 @@ function render(a) {
   a.needs.forEach((n) => {
     const g = n.need.group || '';
     if (g !== lastGroup) { html += g ? `<div class="group"><h3>${esc(g)}</h3></div>` : (lastGroup ? '<div class="group"><h3>&nbsp;</h3></div>' : ''); lastGroup = g; }
-    const verb = VERB_HE[n.need.verb] || n.need.verb;
+    const verb = verbHe(n.need.verb);
     if (!n.chain) {
       html += `<div class="card need" style="border-color:var(--miss-line)"><div class="head"><span class="beh">${esc(n.need.behavior)}</span><span class="tags"><span class="tag">${esc(verb)}</span><span class="tag">${esc(kindHe(n.need.material))}</span></span></div><p class="sent" style="color:var(--miss)">אין עדיין חלק שעושה את זה — ראו "חסר" למעלה.</p></div>`;
       return;

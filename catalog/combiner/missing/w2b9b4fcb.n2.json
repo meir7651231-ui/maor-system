@@ -1,0 +1,16 @@
+{
+ "goal": "w2b9b4fcb",
+ "word": "נמלה",
+ "need": "n2",
+ "behavior": "הריח מתנדף עם הזמן",
+ "verb": "NEW:decay",
+ "verbHe": "פועל חדש: decay",
+ "isNewVerb": true,
+ "material": "number",
+ "takes": [],
+ "gives": "number",
+ "detail": "דועך — ערך שיורד מעט בכל צעד-זמן עד אפס",
+ "example": {
+  "say": "«נמלה»: הריח מתנדף עם הזמן — דועך — ערך שיורד מעט בכל צעד-זמן עד אפס"
+ }
+}

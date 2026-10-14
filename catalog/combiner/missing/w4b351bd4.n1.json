@@ -1,0 +1,16 @@
+{
+ "goal": "w4b351bd4",
+ "word": "גחלילית",
+ "need": "n1",
+ "behavior": "מהבהבת",
+ "verb": "NEW:oscillate",
+ "verbHe": "פועל חדש: oscillate",
+ "isNewVerb": true,
+ "material": "number",
+ "takes": [],
+ "gives": "number",
+ "detail": "מתנדנד — גל שעולה ויורד שוב ושוב בקצב קבוע",
+ "example": {
+  "say": "«גחלילית»: מהבהבת — מתנדנד — גל שעולה ויורד שוב ושוב בקצב קבוע"
+ }
+}

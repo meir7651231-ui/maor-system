@@ -1,0 +1,19 @@
+{
+ "goal": "w82fd0d44",
+ "word": "דיג׳יי",
+ "need": "n4",
+ "behavior": "בקשות מהקהל",
+ "verb": "next",
+ "verbHe": "מוצא את הבא בתור",
+ "isNewVerb": false,
+ "material": "waiting",
+ "takes": [
+  "times|list",
+  "times"
+ ],
+ "gives": "waiting",
+ "detail": null,
+ "example": {
+  "say": "«דיג׳יי»: בקשות מהקהל"
+ }
+}

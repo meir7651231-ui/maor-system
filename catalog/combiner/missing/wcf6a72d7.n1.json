@@ -1,0 +1,16 @@
+{
+ "goal": "wcf6a72d7",
+ "word": "רכב-חשמלי",
+ "need": "n1",
+ "behavior": "הסוללה יורדת בנסיעה",
+ "verb": "NEW:decay",
+ "verbHe": "פועל חדש: decay",
+ "isNewVerb": true,
+ "material": "number",
+ "takes": [],
+ "gives": "number",
+ "detail": "דועך — ערך שיורד מעט בכל צעד-זמן עד אפס",
+ "example": {
+  "say": "«רכב-חשמלי»: הסוללה יורדת בנסיעה — דועך — ערך שיורד מעט בכל צעד-זמן עד אפס"
+ }
+}

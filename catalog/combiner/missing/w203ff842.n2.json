@@ -1,0 +1,16 @@
+{
+ "goal": "w203ff842",
+ "word": "מטרונום",
+ "need": "n2",
+ "behavior": "מטוטלת הלוך ושוב",
+ "verb": "NEW:oscillate",
+ "verbHe": "פועל חדש: oscillate",
+ "isNewVerb": true,
+ "material": "number",
+ "takes": [],
+ "gives": "number",
+ "detail": "מתנדנד — גל שעולה ויורד שוב ושוב בקצב קבוע",
+ "example": {
+  "say": "«מטרונום»: מטוטלת הלוך ושוב — מתנדנד — גל שעולה ויורד שוב ושוב בקצב קבוע"
+ }
+}

@@ -1,0 +1,16 @@
+{
+ "goal": "w7079bde0",
+ "word": "לוויין",
+ "need": "n1",
+ "behavior": "מקיף את הארץ",
+ "verb": "NEW:orbit",
+ "verbHe": "פועל חדש: orbit",
+ "isNewVerb": true,
+ "material": "geo",
+ "takes": [],
+ "gives": "geo",
+ "detail": "מקיף — תנועה במעגל או בעקומה סביב נקודה",
+ "example": {
+  "say": "«לוויין»: מקיף את הארץ — מקיף — תנועה במעגל או בעקומה סביב נקודה"
+ }
+}

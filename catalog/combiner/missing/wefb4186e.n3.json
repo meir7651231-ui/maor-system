@@ -1,0 +1,19 @@
+{
+ "goal": "wefb4186e",
+ "word": "שלג",
+ "need": "n3",
+ "behavior": "כל פתית שונה",
+ "verb": "fuzzy",
+ "verbHe": "מוצא גם עם טעות",
+ "isNewVerb": false,
+ "material": "image",
+ "takes": [
+  "text",
+  "list"
+ ],
+ "gives": "image",
+ "detail": null,
+ "example": {
+  "say": "«שלג»: כל פתית שונה"
+ }
+}

@@ -1,0 +1,18 @@
+{
+ "goal": "wf02beb70",
+ "word": "כדורגל",
+ "need": "n5",
+ "behavior": "כרטיס צהוב ואדום",
+ "verb": "escalate",
+ "verbHe": "מסלים בזמן",
+ "isNewVerb": false,
+ "material": "choice",
+ "takes": [
+  "times"
+ ],
+ "gives": "choice",
+ "detail": null,
+ "example": {
+  "say": "«כדורגל»: כרטיס צהוב ואדום"
+ }
+}
