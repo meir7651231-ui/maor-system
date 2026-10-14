@@ -1,0 +1,484 @@
+{
+  "world": "צעצועים",
+  "goals": [
+    {
+      "word": "יו-יו",
+      "emoji": "🪀",
+      "does": "גלגל על חוט שיורד, מסתובב בתחתית וחוזר ליד",
+      "needs": [
+        {
+          "behavior": "יורד בחוט",
+          "verb": "NEW:gravity",
+          "material": "number",
+          "detail": "נופל — מהירות שגדלה בכל צעד של נפילה"
+        },
+        {
+          "behavior": "מסתובב בתחתית",
+          "verb": "rotate",
+          "material": "number"
+        },
+        {
+          "behavior": "חוזר למעלה",
+          "verb": "reverse",
+          "material": "sequence"
+        },
+        {
+          "behavior": "נחלש בכל פעם",
+          "verb": "NEW:decay",
+          "material": "number",
+          "detail": "דועך — ערך שיורד מעט בכל צעד-זמן עד אפס"
+        },
+        {
+          "behavior": "טריקים בשלבים",
+          "verb": "escalate",
+          "material": "sequence"
+        }
+      ]
+    },
+    {
+      "word": "כדור-פורח",
+      "emoji": "🎈",
+      "does": "בלון אוויר חם שעולה כשמחממים, יורד כשמתקרר וזז עם הרוח",
+      "needs": [
+        {
+          "behavior": "עולה כשמחממים",
+          "verb": "NEW:accumulate",
+          "material": "number",
+          "detail": "צובר — ערך שגדל מעט בכל צעד-זמן עד שמשהו מרוקן אותו"
+        },
+        {
+          "behavior": "יורד כשמתקרר",
+          "verb": "NEW:decay",
+          "material": "number",
+          "detail": "דועך — ערך שיורד מעט בכל צעד-זמן עד אפס"
+        },
+        {
+          "behavior": "שומר על גובה",
+          "verb": "clamp",
+          "material": "number"
+        },
+        {
+          "behavior": "זז עם הרוח",
+          "verb": "convert",
+          "material": "geo"
+        },
+        {
+          "behavior": "רוח שונה בכל גובה",
+          "verb": "group",
+          "material": "list"
+        },
+        {
+          "behavior": "נוחת לפני השקיעה",
+          "verb": "sun-position",
+          "material": "times"
+        },
+        {
+          "behavior": "מבער נדלק בהפסקות",
+          "verb": "pace",
+          "material": "times"
+        }
+      ]
+    },
+    {
+      "word": "כדור-קפיצי",
+      "emoji": "🔴",
+      "does": "כדור שנופל, קופץ, ובכל קפיצה עולה פחות",
+      "needs": [
+        {
+          "behavior": "נופל",
+          "verb": "NEW:gravity",
+          "material": "number",
+          "detail": "נופל — מהירות שגדלה בכל צעד של נפילה"
+        },
+        {
+          "behavior": "קופץ מהרצפה",
+          "verb": "NEW:bounce",
+          "material": "number",
+          "detail": "מהירות מתהפכת בפגיעה"
+        },
+        {
+          "behavior": "כל קפיצה נמוכה יותר",
+          "verb": "NEW:decay",
+          "material": "number",
+          "detail": "דועך — ערך שיורד מעט בכל צעד-זמן עד אפס"
+        },
+        {
+          "behavior": "סופרים קפיצות",
+          "verb": "count",
+          "material": "number"
+        },
+        {
+          "behavior": "עוצר מתחת לגובה קטן",
+          "verb": "gate",
+          "material": "bool"
+        }
+      ]
+    },
+    {
+      "word": "לגו",
+      "emoji": "🧱",
+      "does": "קוביות שמתחברות בשקע, בונים לפי הוראות שלב אחרי שלב",
+      "needs": [
+        {
+          "behavior": "שקע ופין מתחברים",
+          "verb": "compare",
+          "material": "list"
+        },
+        {
+          "behavior": "הוראות שלב אחרי שלב",
+          "verb": "next",
+          "material": "sequence"
+        },
+        {
+          "behavior": "ממיינים לפי צבע וגודל",
+          "verb": "group",
+          "material": "list"
+        },
+        {
+          "behavior": "חסרה קובייה ⇒ מחליפים",
+          "verb": "tolerate-failure",
+          "material": "list"
+        },
+        {
+          "behavior": "בונים על מה שבנוי",
+          "verb": "merge",
+          "material": "list"
+        }
+      ]
+    },
+    {
+      "word": "מטוס-נייר",
+      "emoji": "✈️",
+      "does": "דף שמקפלים בסדר, זורקים, והוא גולש ונופל לאט",
+      "needs": [
+        {
+          "behavior": "קיפולים לפי הסדר",
+          "verb": "escalate",
+          "material": "sequence"
+        },
+        {
+          "behavior": "חצי ועוד חצי",
+          "verb": "divide",
+          "material": "span"
+        },
+        {
+          "behavior": "גולש קדימה",
+          "verb": "NEW:move-along-path",
+          "material": "geo",
+          "detail": "מתקדם במסלול — נקודה שזזה לאורך דרך נתונה"
+        },
+        {
+          "behavior": "יורד לאט",
+          "verb": "NEW:gravity",
+          "material": "number",
+          "detail": "נופל — מהירות שגדלה בכל צעד של נפילה"
+        },
+        {
+          "behavior": "רוח מזיזה",
+          "verb": "fuzzy",
+          "material": "geo"
+        },
+        {
+          "behavior": "מי עף הכי רחוק",
+          "verb": "minmax",
+          "material": "list"
+        }
+      ]
+    },
+    {
+      "word": "מטריושקה",
+      "emoji": "🪆",
+      "does": "בובה בתוך בובה, כל אחת קטנה מהקודמת",
+      "needs": [
+        {
+          "behavior": "כל אחת קטנה יותר",
+          "verb": "sort",
+          "material": "sequence"
+        },
+        {
+          "behavior": "פותחים ⇒ הבאה",
+          "verb": "next",
+          "material": "sequence"
+        },
+        {
+          "behavior": "סוגרים בסדר הפוך",
+          "verb": "reverse",
+          "material": "sequence"
+        },
+        {
+          "behavior": "הקטנה ביותר נשארת",
+          "verb": "minmax",
+          "material": "list"
+        },
+        {
+          "behavior": "סופרים בובות",
+          "verb": "count",
+          "material": "number"
+        }
+      ]
+    },
+    {
+      "word": "נדנדה",
+      "emoji": "🛝",
+      "does": "נדנדה שהולכת הלוך ושוב, דוחפים בזמן הנכון כדי לעלות גבוה",
+      "needs": [
+        {
+          "behavior": "הלוך ושוב",
+          "verb": "NEW:oscillate",
+          "material": "number",
+          "detail": "מתנדנד — גל שעולה ויורד שוב ושוב בקצב קבוע"
+        },
+        {
+          "behavior": "דוחפים בזמן הנכון",
+          "verb": "gate",
+          "material": "times"
+        },
+        {
+          "behavior": "עולה גבוה יותר",
+          "verb": "escalate",
+          "material": "number"
+        },
+        {
+          "behavior": "נחלשת בלי דחיפה",
+          "verb": "NEW:decay",
+          "material": "number",
+          "detail": "דועך — ערך שיורד מעט בכל צעד-זמן עד אפס"
+        },
+        {
+          "behavior": "תור בגן השעשועים",
+          "verb": "round-robin",
+          "material": "sequence"
+        }
+      ]
+    },
+    {
+      "word": "סביבון",
+      "emoji": "🔄",
+      "does": "סביבון שמסתובב, מאט, מתנדנד ונופל על אחת מארבע אותיות",
+      "needs": [
+        {
+          "behavior": "מסתובב מהר",
+          "verb": "rotate",
+          "material": "number"
+        },
+        {
+          "behavior": "מאט לאט",
+          "verb": "NEW:decay",
+          "material": "number",
+          "detail": "דועך — ערך שיורד מעט בכל צעד-זמן עד אפס"
+        },
+        {
+          "behavior": "מתנדנד לפני שנופל",
+          "verb": "NEW:oscillate",
+          "material": "number",
+          "detail": "מתנדנד — גל שעולה ויורד שוב ושוב בקצב קבוע"
+        },
+        {
+          "behavior": "נופל על אות אקראית",
+          "verb": "NEW:random",
+          "material": "choice",
+          "detail": "מגריל — בחירה או ערך לפי סיכוי"
+        },
+        {
+          "behavior": "אות ⇒ כמה לוקחים",
+          "verb": "convert",
+          "material": "amount"
+        },
+        {
+          "behavior": "תור לכל משתתף",
+          "verb": "round-robin",
+          "material": "sequence"
+        }
+      ]
+    },
+    {
+      "word": "עפיפון",
+      "emoji": "🪁",
+      "does": "עפיפון שעולה ברוח, מושכים חוט ומשחררים",
+      "needs": [
+        {
+          "behavior": "עולה רק עם רוח",
+          "verb": "gate",
+          "material": "bool"
+        },
+        {
+          "behavior": "משחררים חוט",
+          "verb": "NEW:accumulate",
+          "material": "number",
+          "detail": "צובר — ערך שגדל מעט בכל צעד-זמן עד שמשהו מרוקן אותו"
+        },
+        {
+          "behavior": "זנב מייצב",
+          "verb": "clamp",
+          "material": "number"
+        },
+        {
+          "behavior": "מתנדנד ברוח",
+          "verb": "NEW:oscillate",
+          "material": "number",
+          "detail": "מתנדנד — גל שעולה ויורד שוב ושוב בקצב קבוע"
+        },
+        {
+          "behavior": "נופל כשהרוח נעלמת",
+          "verb": "NEW:gravity",
+          "material": "number",
+          "detail": "נופל — מהירות שגדלה בכל צעד של נפילה"
+        }
+      ]
+    },
+    {
+      "word": "קופסת-הפתעה",
+      "emoji": "🎁",
+      "does": "ידית שמסובבים, מנגינה, ובסוף קופץ משהו",
+      "needs": [
+        {
+          "behavior": "מסובבים ידית",
+          "verb": "rotate",
+          "material": "number"
+        },
+        {
+          "behavior": "מנגינה מתקדמת",
+          "verb": "next",
+          "material": "sequence"
+        },
+        {
+          "behavior": "קופץ בתו מסוים",
+          "verb": "gate",
+          "material": "bool"
+        },
+        {
+          "behavior": "כל פעם בזמן קצת אחר",
+          "verb": "NEW:random",
+          "material": "times",
+          "detail": "מגריל — בחירה או ערך לפי סיכוי"
+        },
+        {
+          "behavior": "סוגרים ⇒ מתחילים מחדש",
+          "verb": "reverse",
+          "material": "sequence"
+        }
+      ]
+    },
+    {
+      "word": "קליידוסקופ",
+      "emoji": "🔮",
+      "does": "צינור עם מראות שהופכות כמה חרוזים לצורה סימטרית",
+      "needs": [
+        {
+          "behavior": "חרוזים במקום אקראי",
+          "verb": "NEW:random",
+          "material": "geo",
+          "detail": "מגריל — בחירה או ערך לפי סיכוי"
+        },
+        {
+          "behavior": "מראות משכפלות",
+          "verb": "divide",
+          "material": "number",
+          "detail": "זוויות שוות"
+        },
+        {
+          "behavior": "כל חלק הפוך לשכן",
+          "verb": "reverse",
+          "material": "image"
+        },
+        {
+          "behavior": "סיבוב ⇒ צורה חדשה",
+          "verb": "rotate",
+          "material": "image"
+        },
+        {
+          "behavior": "אף פעם לא אותו דבר",
+          "verb": "dedupe",
+          "material": "image"
+        }
+      ]
+    },
+    {
+      "word": "קרוסלה",
+      "emoji": "🎠",
+      "does": "גלגל של סוסים שמסתובב, עולים ויורדים, ומחכים בתור לסיבוב הבא",
+      "needs": [
+        {
+          "behavior": "מסתובבת במעגל",
+          "verb": "rotate",
+          "material": "number"
+        },
+        {
+          "behavior": "סוסים עולים ויורדים",
+          "verb": "NEW:oscillate",
+          "material": "number",
+          "detail": "מתנדנד — גל שעולה ויורד שוב ושוב בקצב קבוע"
+        },
+        {
+          "behavior": "כל סוס בגובה אחר",
+          "verb": "offset",
+          "material": "number"
+        },
+        {
+          "behavior": "סיבוב זמן קבוע",
+          "verb": "NEW:countdown",
+          "material": "times",
+          "detail": "סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה"
+        },
+        {
+          "behavior": "תור לסיבוב הבא",
+          "verb": "next",
+          "material": "waiting"
+        },
+        {
+          "behavior": "מספר מקומות מוגבל",
+          "verb": "clamp",
+          "material": "number"
+        },
+        {
+          "behavior": "מנגינה בזמן הסיבוב",
+          "verb": "gate",
+          "material": "sound"
+        }
+      ]
+    },
+    {
+      "word": "רכבת-הרים",
+      "emoji": "🎢",
+      "does": "קרונות שעולים לאט לשיא, נופלים במהירות ונעצרים בתחנה",
+      "needs": [
+        {
+          "behavior": "עולה לאט לשיא",
+          "verb": "pace",
+          "material": "number"
+        },
+        {
+          "behavior": "נופלת ומאיצה",
+          "verb": "NEW:gravity",
+          "material": "number",
+          "detail": "נופל — מהירות שגדלה בכל צעד של נפילה"
+        },
+        {
+          "behavior": "עוברת בלולאה",
+          "verb": "rotate",
+          "material": "geo"
+        },
+        {
+          "behavior": "גובה מינימלי לנוסע",
+          "verb": "gate",
+          "material": "bool"
+        },
+        {
+          "behavior": "קרונות יוצאים בהפרש",
+          "verb": "offset",
+          "material": "times"
+        },
+        {
+          "behavior": "תור לפי סדר הגעה",
+          "verb": "sort",
+          "material": "sequence"
+        },
+        {
+          "behavior": "בלם לפני התחנה",
+          "verb": "clamp",
+          "material": "number"
+        }
+      ]
+    }
+  ]
+}
