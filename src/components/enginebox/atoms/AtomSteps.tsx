@@ -125,6 +125,13 @@ export function ChainsList(props: { chains: AtomChain[]; atoms: AtomCard[] }) {
             <span className="at-chain-text">
               <span className="at-name">{c.name}</span>
               <span className="at-what">{c.result}</span>
+              {c.lines && c.lines.length > 0 && (
+                <span className="at-preview at-preview-mini" data-preview="chain">
+                  {c.lines.map((l, j) => (
+                    <span key={j} className="at-preview-line"><bdi>{l}</bdi></span>
+                  ))}
+                </span>
+              )}
             </span>
           </li>
         ))}
@@ -134,7 +141,23 @@ export function ChainsList(props: { chains: AtomChain[]; atoms: AtomCard[] }) {
 }
 
 // ——— 3 · השאלה האחת ———
-export function QuestionStep(props: { atom: AtomCard; options: Option[]; onOption: (place: string) => void }) {
+/** ATOMS 14.10 (תוספתי): כמה שורות מהתוצאה האמיתית מוצגות ליד כל אפשרות בשאלה. */
+export const OPTION_PREVIEW_LINES = 2;
+
+/** התוצאה האמיתית בקטן (כותרת + עד `max` שורות). */
+function PreviewMini(props: { preview: AtomPreview; max?: number }) {
+  const lines = props.max ? props.preview.lines.slice(0, props.max) : props.preview.lines;
+  return (
+    <span className="at-preview at-preview-mini" data-preview="real">
+      <span className="at-preview-title">{props.preview.title}</span>
+      {lines.map((l, i) => (
+        <span key={i} className="at-preview-line"><bdi>{l}</bdi></span>
+      ))}
+    </span>
+  );
+}
+
+export function QuestionStep(props: { atom: AtomCard; options: Option[]; onOption: (place: string) => void; previews?: Readonly<Record<string, AtomPreview | null>> }) {
   return (
     <section aria-labelledby="at-h-q">
       <div className="at-asks"><span aria-hidden="true">{props.atom.emoji}</span> {props.atom.name} שואל:</div>
@@ -151,6 +174,7 @@ export function QuestionStep(props: { atom: AtomCard; options: Option[]; onOptio
                   <span className="at-chip at-kind">{kindLabel(o.kind)}</span>
                 </span>
                 <span className="at-result">{o.result}</span>
+                {props.previews?.[o.place] && <PreviewMini preview={props.previews[o.place]!} max={OPTION_PREVIEW_LINES} />}
               </button>
             </li>
           ))}
@@ -216,6 +240,8 @@ export function DetailsStep(props: {
   canEdit: boolean;
   onValue: (id: string, v: number | string) => void;
   onConnect: () => void;
+  /** ATOMS 14.10 (תוספתי): התוצאה האמיתית עם הפרטים שבטופס, מתעדכנת בכל שינוי. undefined ⇒ בלי בלוק. */
+  preview?: AtomPreview | null;
 }) {
   return (
     <section aria-labelledby="at-h-details">
@@ -228,6 +254,7 @@ export function DetailsStep(props: {
           ))}
         </div>
       )}
+      {props.preview !== undefined && (props.preview ? <PreviewMini preview={props.preview} /> : <div className="at-preview at-soon">{PREVIEW_SOON_TEXT}</div>)}
       {props.canEdit && (
         <div className="at-actions">
           <Btn kind="primary" onClick={props.onConnect} title={'חבר: ' + props.option.result}>{CONNECT_TEXT}</Btn>

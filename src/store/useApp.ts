@@ -1475,38 +1475,12 @@ export const useApp = create<AppState>()((set, get) => {
     }
   }
 
-  /** 🧰 חיבור/ניתוק מנוע — הקטלוג נטען עצל (import דינמי: הבנדל-הראשי לא גורר את חלקי-הארגז). */
-  async function changeEngineLink(key: string, on: boolean): Promise<boolean> {
-    try {
-      const s0 = get();
-      if (!canEditEngineLinks(s0.config, s0.cloud.user?.email)) return false;
-      const L = await import('../lib/enginebox/links');
-      const next = on ? L.withLink(get().db.ui.engineLinks, key) : L.withoutLink(get().db.ui.engineLinks, key);
-      if (!next) return false;
-      setDb((cur) => ({ ui: { ...cur.ui, engineLinks: next } }));
-      logAudit(on ? 'חיבור מנוע' : 'ניתוק מנוע', L.linkLabel(key));
-      return true;
-    } catch {
-      return false;
-    }
-  }
-
-  /** 🧬 יצירה/הסרה של יכולת — הכרטיסים נטענים עצל (import דינמי: הבנדל-הראשי לא גורר את שכבת-החלקים). אותה הרשאה כמו חיבור-מנוע. */
-  async function changeCapability(add: Capability | null, removeId: string | null): Promise<boolean> {
-    try {
-      const s0 = get();
-      if (!canEditEngineLinks(s0.config, s0.cloud.user?.email)) return false;
-      const K = await import('../lib/atoms/capabilities');
-      const cur = get().db.ui.capabilities;
-      const r = add ? K.withCapability(cur, add) : K.withoutCapability(cur, removeId ?? '');
-      if (!r) return false;
-      setDb((db) => ({ ui: { ...db.ui, capabilities: r.list } }));
-      logAudit(add ? ('updated' in r && r.updated ? 'עדכון מנוע' : 'מנוע חדש') : 'הסרת מנוע', K.capabilityLabel(r.cap));
-      return true;
-    } catch {
-      return false;
-    }
-  }
+  /**
+   * 🧰 חיבור/ניתוק מנוע + 🧬 יצירה/הסרה של יכולת — מסלול עצל אחד (ATOMS 14.10): הקטלוג, הכרטיסים, האימות, הכתיבה ושורת-הלוג
+   * ב-`atoms/boxChange` (import דינמי: הבנדל-הראשי לא גורר את חלקי-הארגז; ייבוא-דינמי אחד במקום שניים). ההרשאה = canEditEngineLinks.
+   */
+  const boxDo = (arg: string | Capability | { id: string }, on: boolean): Promise<boolean> =>
+    import('../lib/atoms/boxChange').then((K) => K.boxChangeIn(get, canEditEngineLinks, arg, on), () => false);
 
   /** upsert גנרי לפי id — חדש נכנס לראש הרשימה (כמו במקור). */
   function upsertIn<T extends { id: string }>(list: T[], item: T): T[] {
@@ -2536,18 +2510,10 @@ export const useApp = create<AppState>()((set, get) => {
     upsertEvent(ev) {
       setDb((db) => ({ events: upsertIn(db.events, ev) }));
     },
-    async linkEngine(key) {
-      return changeEngineLink(key, true);
-    },
-    async unlinkEngine(key) {
-      return changeEngineLink(key, false);
-    },
-    async createCapability(c) {
-      return changeCapability(c, null);
-    },
-    async removeCapability(id) {
-      return changeCapability(null, id);
-    },
+    linkEngine: (key) => boxDo(key, true),
+    unlinkEngine: (key) => boxDo(key, false),
+    createCapability: (c) => boxDo(c, true),
+    removeCapability: (id) => boxDo({ id }, false),
     auditToAttention(issue) {
       get().upsertEvent({
         id: get().nextId('ev'),

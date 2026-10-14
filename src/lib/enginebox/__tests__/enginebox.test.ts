@@ -469,6 +469,8 @@ describe('🧰 (ז) הגנות-מקור', () => {
       expect(specs.length, f).toBeGreaterThan(0);
       for (const sp of specs) expect(sp, f).toBe('linkShape');
     }
-    expect(SRC['../linkShape.ts']!).not.toMatch(/^\s*import\b|\bimport\s*\(|\brequire\(|^\s*export\s[^;]*\bfrom\s/m);
+    // ATOMS 14.10: הייבוא היחיד המותר — `../atoms/capShape` (בלי ייבואים בעצמו, ובאותו chunk ב-vite.config)
+    const ls = SRC['../linkShape.ts']!.replace("import { healCapabilitiesIn } from '../atoms/capShape';", '');
+    expect(ls).not.toMatch(/^\s*import\b|\bimport\s*\(|\brequire\(|^\s*export\s[^;]*\bfrom\s/m);
   });
 });

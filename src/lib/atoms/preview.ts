@@ -216,7 +216,7 @@ function escalatePreview(ctx: PreviewCtx, kind: WaitingKind, p: Record<string, n
 
 function rotatePreview(ctx: PreviewCtx, kind: WaitingKind, p: Record<string, number | string>): Preview | null {
   const { items, recipients } = waitingSafe(ctx.db, kind);
-  if (!recipients.length) return items.length || kind === 'cleaning' ? { title: 'סבב הוגן', lines: [NOBODY[kind]] } : null;
+  if (!recipients.length) return items.length ? { title: 'סבב הוגן', lines: [NOBODY[kind]] } : null;
   const now = israelNow(ctx.nowMs);
   const names = recipients.map((r) => r.name || r.role);
   if (str(p, 'by', 'day') === 'day') {
@@ -235,6 +235,8 @@ function rotatePreview(ctx: PreviewCtx, kind: WaitingKind, p: Record<string, num
 type Builder = (ctx: PreviewCtx, p: Record<string, number | string>) => Preview | null;
 
 function turnoverDivide(ctx: PreviewCtx, p: Record<string, number | string>): Preview | null {
+  // בלי יחידות אין חלון-ניקיון אמיתי (רק ברירת-המחדל של ההגדרות) ⇒ אין תצוגה
+  if (!unitsOf(ctx.db).length) return null;
   const span = turnoverSpan(ctx.db);
   const pieces = divideBy(span, p);
   if (!pieces.length) return null;
@@ -435,6 +437,7 @@ function capParams(caps: readonly Capability[] | undefined, place: string, atom:
 }
 
 function divideMergeLines(ctx: PreviewCtx, caps?: readonly Capability[]): string[] {
+  if (!unitsOf(ctx.db).length) return [];
   const span = turnoverSpan(ctx.db);
   const base = capParams(caps, 'bookings.turnover', 'divide');
   const size = str(base, 'by', 'parts') === 'size' ? num(base, 'size', 20) : 20;

@@ -8,7 +8,11 @@
  * כאן רק צורה: מערך מחרוזות `חלק>מחבר>חלק` (תווי-מזהה מותרים בלבד) · trim · בלי כפילויות · מיון לקסיקוגרפי · עד 500.
  * לא-מערך ⇒ המפתח יורד (החלטה 7); חסר נשאר חסר. האימות מול הקטלוג (`sanitizeLinks`/`effectiveLinks` ב-links.ts)
  * נעשה בזמן-השימוש — מפתח בצורה תקינה שאינו בקטלוג פשוט לעולם לא "מחובר".
+ *
+ * 🧬 ATOMS 14.10: הייבוא היחיד — `../atoms/capShape` (גם הוא בלי ייבואים, ובאותו chunk — vite.config): `healEngineBoxIn` מרפא
+ * בקריאה אחת גם את `engineLinks` וגם את `capabilities`, כדי ש-persist/cloud-merge לא יגדלו בקריאה נוספת.
  */
+import { healCapabilitiesIn } from '../atoms/capShape';
 
 /** תקרת רשימה שמורה (זהה ל-`MAX_LINKS` ב-links.ts — ננעל בבדיקה). */
 export const MAX_LINK_SHAPES = 500;
@@ -47,4 +51,9 @@ export function healEngineLinksIn<T>(ui: T): T {
   }
   if (Array.isArray(cur) && sameList(cur, clean)) return ui;
   return { ...rec, engineLinks: clean } as T;
+}
+
+/** ריפוי-הצורה של ארגז-המנועים ב-ui: `engineLinks` + `capabilities` (ATOMS 14.10). בלי שני המפתחות ⇒ אותו ערך. */
+export function healEngineBoxIn<T>(ui: T): T {
+  return healCapabilitiesIn(healEngineLinksIn(ui));
 }

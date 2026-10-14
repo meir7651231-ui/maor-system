@@ -369,7 +369,10 @@ describe('🧰 (ה) הגנות-מקור', () => {
     expect(appSrc).toContain("lazy(async () => ({ default: (await import('./components/enginebox/EngineBoxEntry')).EngineBoxEntry }))");
     expect(appSrc).not.toMatch(/^import[^\n]*enginebox/m);
     expect(storeSrc).not.toMatch(/^import[^\n]*enginebox/m);
-    expect(storeSrc).toContain("await import('../lib/enginebox/links')");
+    // שינוי-נעילה מכוון (ATOMS 14.10): linkEngine/unlinkEngine + createCapability/removeCapability — ייבוא-דינמי אחד
+    // (atoms/boxChange, שמייבא את links); ההתנהגות ננעלת ב-(ב) למעלה.
+    expect(storeSrc).toContain("import('../lib/atoms/boxChange')");
+    expect(storeSrc).toMatch(/linkEngine: \(key\) => boxDo\(key, true\)/);
     expect(entrySrc).toContain("from './source'");
   });
 

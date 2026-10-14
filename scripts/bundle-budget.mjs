@@ -48,4 +48,23 @@ if (bad.length) {
   process.exit(1);
 }
 
+/**
+ * 🧬 מנועים וחלקים (ATOMS 14.10.2026): מספר ה-chunks בהפעלה לא עולה (8 — כמו ed81ea9), ושכבת-החלקים (כרטיסים · חלקים · תצוגות ·
+ * המקור) לא נכנסת לשום chunk-הפעלה — רק ריפוי-הצורה `capShape` (ב-chunk של linkShape). נבדק על הפלט: מחרוזות שקיימות רק שם.
+ */
+const MAX_STARTUP_CHUNKS = 8;
+if (startup.length > MAX_STARTUP_CHUNKS) {
+  console.error(`❌ bundle-budget: ${startup.length} chunks-הפעלה (תקרה ${MAX_STARTUP_CHUNKS}) — מישהו הוסיף בקשת-רשת לכל ארגון. להחזיר ל-import() דינמי.`);
+  process.exit(1);
+}
+const ATOMS_ONLY_TEXT = ['חלוקה לחלקים שווים', 'מנוע תורים', 'רצפים פנויים ב-'];
+for (const f of startup) {
+  const src = readFileSync(new URL('../dist/assets/' + f, import.meta.url), 'utf8');
+  const hit = ATOMS_ONLY_TEXT.find((t) => src.includes(t));
+  if (hit) {
+    console.error(`❌ bundle-budget: שכבת-החלקים נכנסה ל-chunk-הפעלה ${f} ("${hit}") — הכרטיסים/התצוגות נטענים רק ב-import() מתוך הארגז.`);
+    process.exit(1);
+  }
+}
+
 console.log(`✅ bundle-budget: ‏${entry} = ${gz.toLocaleString('en-US')}B gzip (${pct}% מהתקרה) · ${startup.length} chunks-הפעלה`);

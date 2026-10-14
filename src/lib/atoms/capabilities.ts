@@ -5,6 +5,7 @@
  * כאן: האימות המלא בזמן-השימוש (ה-store טוען את הקובץ ב-import() — הבנדל-הראשי מכיר רק את `capShape.ts`).
  * טהור: בלי React/store/DOM/שעון.
  */
+import type { Db } from '../../types/domain';
 import { capabilityId, type AtomCard, type AtomId, type Capability, type EngineId } from './contract';
 import { atomCard } from './cards';
 import { engineCard, placeById } from './engines';
@@ -157,4 +158,18 @@ export function withoutCapability(list: unknown, id: string): { list: Capability
   const cur = sanitizeCapabilities(list);
   const cap = cur.find((c) => c.id === id);
   return cap ? { list: cur.filter((c) => c.id !== id), cap } : null;
+}
+
+/**
+ * התיקון ל-db.ui של יצירה (`on`, יכולת) או הסרה (`!on`, {id}) — נקרא מ-createCapability/removeCapability ב-store אחרי בדיקת-ההרשאה.
+ * מחזיר את הרשימה החדשה ואת שורת-הלוג ("מנוע חדש" · "עדכון מנוע" · "הסרת מנוע"); לא-תקינה / זהה / לא-קיימת ⇒ null.
+ */
+export function capUiChange(
+  ui: Pick<Db['ui'], 'capabilities'>,
+  arg: Capability | { id: string },
+  on: boolean,
+): { patch: Pick<Db['ui'], 'capabilities'>; act: string; what: string } | null {
+  const r = on ? withCapability(ui.capabilities, arg) : withoutCapability(ui.capabilities, String((arg as { id?: unknown })?.id ?? ''));
+  if (!r) return null;
+  return { patch: { capabilities: r.list }, act: !on ? 'הסרת מנוע' : 'updated' in r && r.updated ? 'עדכון מנוע' : 'מנוע חדש', what: capabilityLabel(r.cap) };
 }

@@ -40,6 +40,9 @@ export default defineConfig({
         codeSplitting: {
           groups: [
             { name: 'linkShape', test: /[\\/]src[\\/]lib[\\/](enginebox[\\/]linkShape|atoms[\\/]capShape)\.ts$/, priority: 2 },
+            // 🧬 ATOMS 14.10: הכתיבה העצלה (boxChange) + היכולות + הכרטיסים (נטענים מה-store ב-import()) — chunk עצל אחד ⇒ שם-קובץ אחד בלבד
+            // ברשימת-התלויות שבבנדל-ההפעלה (חוזה+כרטיסים+אימות היו מתפצלים לשניים-שלושה).
+            { name: 'atoms', test: /[\\/]src[\\/]lib[\\/]atoms[\\/](contract|cards|capabilities|boxChange|engines[\\/](index|zmanim|whatNeed|bookings))\.ts$/, priority: 1 },
             { name: 'persist', test: /[\\/]src[\\/](store[\\/]persist|lib[\\/]config)\.ts$/, priority: 1 },
           ],
         },

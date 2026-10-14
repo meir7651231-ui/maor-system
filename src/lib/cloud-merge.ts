@@ -8,8 +8,7 @@ import { ENTITY_COLLECTIONS, type EntityCol } from './cloud-diff';
 import { AYIN_STAGES } from './ayin';
 import { healPrRecord } from '../components/parnasa/model';
 import { healHostDoc } from '../components/hosting/model';
-import { healEngineLinksIn } from './enginebox/linkShape';
-import { healCapabilitiesIn } from './atoms/capShape';
+import { healEngineBoxIn } from './enginebox/linkShape';
 
 /**
  * חיזוק מסמך ישות מרוחק: מסמך שנכתב בגרסה ישנה / נערך ידנית ב-Firestore עלול
@@ -193,8 +192,8 @@ export function applyMetaPartial(db: Db, meta: Record<string, unknown>): Db {
   assign('notif', meta.notif);
   assign('reports', meta.reports);
   // 🧰 ארגז-המנועים: engineLinks מהענן מחוטא כמו ב-migrate (בלי המפתח ⇒ אותו ערך — ביט-זהה)
-  // 🧬 גם capabilities — רק צורה
-  assign('ui', healCapabilitiesIn(healEngineLinksIn(meta.ui)));
+  // 🧬 ATOMS 14.10: וגם capabilities — רק צורה, באותה קריאה
+  assign('ui', healEngineBoxIn(meta.ui));
   assign('attnDone', meta.attnDone);
   // מונים: לעולם לא מקטינים — מונע התנגשות מזהים/מספרי-קבלה בין מכשירים
   const bumpCounter = (k: 'seq' | 'receiptSeq' | 'donationSeq' | 'shopReceiptSeq') => {
