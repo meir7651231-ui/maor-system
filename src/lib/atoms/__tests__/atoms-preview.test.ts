@@ -78,7 +78,8 @@ describe('🧬 previewOf — התצוגות הנדרשות', () => {
 
   it('✂️ היתרה: תשלומים שווים ("₪1,200 = 3 × ₪400"), ושארית לא-מתחלקת', () => {
     expect(P('bookings.balance', 'divide', { parts: 3 })).toEqual({ title: 'היתרות בתשלומים שווים', lines: ['צימר הגפן · ₪1,200 = 3 × ₪400'] });
-    expect(P('bookings.balance', 'divide', { parts: 7 })!.lines[0]).toBe('צימר הגפן · ₪1,200 = ₪174 + 6 × ₪171');
+    // VERIFY 14.10 (עודכן במכוון): היה "₪174 + 6 × ₪171" — 3 שקלים עודפים בתשלום אחד. עכשיו מתפזרים: הפרש ≤ ₪1.
+    expect(P('bookings.balance', 'divide', { parts: 7 })!.lines[0]).toBe('צימר הגפן · ₪1,200 = 3 × ₪172 + 4 × ₪171');
     expect(P('bookings.balance', 'divide', { by: 'size', size: 500 })!.lines[0]).toBe('צימר הגפן · ₪1,200 = 2 × ₪500 + ₪200');
     expect(installmentsLine(1000, [334, 333, 333])).toBe('₪1,000 = ₪334 + 2 × ₪333');
   });

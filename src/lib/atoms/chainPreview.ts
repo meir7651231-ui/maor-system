@@ -17,7 +17,7 @@ import { dayIndex, fairAssign, turnOf } from './parts/rotate';
 import { divideSpan } from './parts/divide';
 import { turnoverSpan, waiting } from './engines/bookingsData';
 import { MAX_GENERATIONS, NEXT_VALUE, ROOT_VALUE, parseCapId, rootIdOf, type ChainValue } from './chain';
-import { absLine, arrivalMoments, capped, divideBy, dm, freeRuns, hm, isoOfDay, israelNow, NOBODY, paramsOf, unitsOf, type Preview, type PreviewCtx } from './preview';
+import { absLine, arrivalMoments, capped, divideBy, dm, freeRuns, hm, isoOfDay, israelNow, NOBODY, paramsOf, staffPeople, unitsOf, type Preview, type PreviewCtx } from './preview';
 
 type P = Record<string, number | string>;
 const num = (p: P, k: string, d: number): number => (typeof p[k] === 'number' && Number.isFinite(p[k] as number) ? (p[k] as number) : d);
@@ -46,7 +46,7 @@ const winLine = (w: Window): string =>
 /** אנשי הצוות (ניקיון ואז תחזוקה), בלי כפילויות. */
 function staffOf(ctx: PreviewCtx, kinds: readonly ('cleaning' | 'faults')[]): string[] {
   const all = kinds.flatMap((k) => waiting(ctx.db, k).recipients);
-  return [...new Map(all.map((r) => [r.id, r.name || r.role])).values()];
+  return staffPeople(all);
 }
 
 /* ───────── המנוע הראשון ───────── */
@@ -56,6 +56,8 @@ function rootStep(ctx: PreviewCtx, place: string, atom: AtomId, p: P): Step | nu
   if (place === 'bookings.turnover' && atom === 'divide') {
     if (!unitsOf(ctx.db).length) return null;
     const span = turnoverSpan(ctx.db);
+    // VERIFY 14.10: אין חלון (כניסה לא אחרי עזיבה) ⇒ אין תורים לבנות עליהם
+    if (span.to <= span.from) return null;
     const slots = divideBy(span, p).map((x) => ({ from: x.from, to: x.to }));
     if (!slots.length) return null;
     const label = span.fromHm + '–' + span.toHm;
@@ -216,28 +218,33 @@ function applyStep(prev: Step, atom: AtomId, p: P, ctx: PreviewCtx): Step | null
  */
 export function chainPreviewOf(cap: Capability, ctx: PreviewCtx): Preview | null {
   try {
-    const parsed = parseCapId(cap.id);
-    if (!parsed || !cap.parent || !ctx || !Number.isFinite(ctx.nowMs) || parsed.atoms.length > MAX_GENERATIONS) return null;
-    const caps = ctx.caps ?? [];
-    const ids: string[] = [rootIdOf(parsed)];
-    for (const a of parsed.atoms.slice(1)) ids.push(ids[ids.length - 1] + '>' + a);
-    if (ids[ids.length - 1] !== cap.id || ids[ids.length - 2] !== cap.parent) return null;
-    const paramsAt = (i: number): P => {
-      const c = i === ids.length - 1 ? cap : caps.find((x) => x && x.id === ids[i]);
-      return c ? paramsOf(c) : (null as unknown as P);
-    };
-    // כל מנוע בדרך חייב להיות שמור (חוץ מהאחרון)
-    for (let i = 0; i < ids.length - 1; i++) if (!caps.some((x) => x && x.id === ids[i])) return null;
-    let v: ChainValue | undefined = ROOT_VALUE[parsed.place + ':' + parsed.atoms[0]];
-    let step = v ? rootStep(ctx, parsed.place, parsed.atoms[0], paramsAt(0)) : null;
-    for (let i = 1; i < parsed.atoms.length && step; i++) {
-      v = v ? NEXT_VALUE[v][parsed.atoms[i]] : undefined;
-      step = v ? applyStep(step, parsed.atoms[i], paramsAt(i), ctx) : null;
-    }
-    return step && step.lines.length ? { title: step.title, lines: step.lines } : null;
+    return chainPreviewStrict(cap, ctx);
   } catch {
     return null;
   }
+}
+
+/** ✅ VERIFY 14.10: אותו חישוב בלי ה-try — המאמת רואה חריגה במקום null שקט. */
+export function chainPreviewStrict(cap: Capability, ctx: PreviewCtx): Preview | null {
+  const parsed = parseCapId(cap.id);
+  if (!parsed || !cap.parent || !ctx || !Number.isFinite(ctx.nowMs) || parsed.atoms.length > MAX_GENERATIONS) return null;
+  const caps = ctx.caps ?? [];
+  const ids: string[] = [rootIdOf(parsed)];
+  for (const a of parsed.atoms.slice(1)) ids.push(ids[ids.length - 1] + '>' + a);
+  if (ids[ids.length - 1] !== cap.id || ids[ids.length - 2] !== cap.parent) return null;
+  const paramsAt = (i: number): P => {
+    const c = i === ids.length - 1 ? cap : caps.find((x) => x && x.id === ids[i]);
+    return c ? paramsOf(c) : (null as unknown as P);
+  };
+  // כל מנוע בדרך חייב להיות שמור (חוץ מהאחרון)
+  for (let i = 0; i < ids.length - 1; i++) if (!caps.some((x) => x && x.id === ids[i])) return null;
+  let v: ChainValue | undefined = ROOT_VALUE[parsed.place + ':' + parsed.atoms[0]];
+  let step = v ? rootStep(ctx, parsed.place, parsed.atoms[0], paramsAt(0)) : null;
+  for (let i = 1; i < parsed.atoms.length && step; i++) {
+    v = v ? NEXT_VALUE[v][parsed.atoms[i]] : undefined;
+    step = v ? applyStep(step, parsed.atoms[i], paramsAt(i), ctx) : null;
+  }
+  return step && step.lines.length ? { title: step.title, lines: step.lines } : null;
 }
 
 /**
