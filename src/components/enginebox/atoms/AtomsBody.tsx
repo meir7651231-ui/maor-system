@@ -32,6 +32,7 @@ import {
   StepIndicator,
   type Verified,
 } from './AtomSteps';
+import { GoalCard } from './GoalCard';
 import './atoms.css';
 
 export type AtomsStep = 'engines' | 'atom' | 'question' | 'details' | 'made';
@@ -166,7 +167,10 @@ export function AtomsBody(props: { source: AtomsSource | null; initial?: AtomsIn
       <StepIndicator at={stepAt} />
       {host && <AtomsHeader host={host} onBack={back} backLabel={backLabel} />}
       {step === 'engines' && (
-        <EnginesStep engines={engines} atoms={atoms} open={open} onToggle={(id) => setOpen((o) => (o === id ? null : id))} onHost={openHost} found={found} />
+        <>
+          {source.goal && <GoalCard source={source} />}
+          <EnginesStep engines={engines} atoms={atoms} open={open} onToggle={(id) => setOpen((o) => (o === id ? null : id))} onHost={openHost} found={found} />
+        </>
       )}
       {step === 'engines' && mine}
       {step === 'atom' && host && (
