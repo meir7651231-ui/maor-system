@@ -184,6 +184,8 @@ describe('🧬 (ד) הבנדל-הראשי לא גורר את שכבת-החלקי
     expect(viteCfg).toMatch(/name: 'atoms', test: [^\n]*capabilities/);
     expect(storeSrc).toMatch(/createCapability: \(c\) => boxDo\(c, true\)/);
     expect(viteCfg).toMatch(/name: 'atoms', test: [^\n]*boxChange/);
+    // links נשאר chunk משלו (בעדיפות גבוהה מ-atoms) — אחרת מסכי האירוח/פרנסה׳לע טוענים את הכרטיסים (11KB במקום 5KB, נמדד)
+    expect(viteCfg).toMatch(/name: 'links', test: [^\n]*enginebox\[\\\\\/\]links\\\.ts\$\/, priority: 2/);
   });
 });
 

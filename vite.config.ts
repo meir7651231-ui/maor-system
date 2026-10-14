@@ -43,6 +43,9 @@ export default defineConfig({
             // 🧬 ATOMS 14.10: הכתיבה העצלה (boxChange) + היכולות + הכרטיסים (נטענים מה-store ב-import()) — chunk עצל אחד ⇒ שם-קובץ אחד בלבד
             // ברשימת-התלויות שבבנדל-ההפעלה (חוזה+כרטיסים+אימות היו מתפצלים לשניים-שלושה).
             { name: 'atoms', test: /[\\/]src[\\/]lib[\\/]atoms[\\/](contract|cards|capabilities|boxChange|engines[\\/](index|zmanim|whatNeed|bookings))\.ts$/, priority: 1 },
+            // links נשאר chunk משלו (כמו ב-ed81ea9): boxChange מייבא אותו, ובלי הקבוצה rolldown קיפל אותו לתוך atoms — ומסכי האירוח/
+            // פרנסה׳לע (useEngineLink) היו טוענים 11KB במקום 5KB. המחיר: שם-קובץ אחד נוסף ברשימת-התלויות של ההפעלה (נמדד).
+            { name: 'links', test: /[\\/]src[\\/]lib[\\/]enginebox[\\/]links\.ts$/, priority: 2 },
             { name: 'persist', test: /[\\/]src[\\/](store[\\/]persist|lib[\\/]config)\.ts$/, priority: 1 },
           ],
         },
