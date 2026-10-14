@@ -17,7 +17,7 @@ export const NAME_RULES: readonly { atom: string; words: readonly string[]; name
   { atom: 'merge', words: ['פנוי', 'לילות', 'רצף'], name: 'מנוע חלונות פנויים' },
   { atom: 'next', words: ['פנוי', 'לילות'], name: 'מנוע הפנוי הבא' },
   { atom: 'rotate', words: [], name: 'מנוע תורנות' },
-  { atom: 'escalate', words: [], name: 'מנוע הסלמה' },
+  { atom: 'escalate', words: [], name: 'מנוע העברה הלאה' },
 ];
 
 export function capabilityName(engine: Pick<EngineCard, 'name'>, atom: Pick<AtomCard, 'id' | 'name'>, placeName: string): string {

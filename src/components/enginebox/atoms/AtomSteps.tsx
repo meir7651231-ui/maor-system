@@ -6,7 +6,8 @@
  * מקומות מהסוג שלו, כל אחד עם התוצאה ⇒ פרטים ⇒ "חבר" ⇒ מנוע חדש.
  */
 import { Btn } from '../../ui';
-import { KINDS, type AtomCard, type Capability, type Detail, type EngineCard, type Kind, type Option } from '../../../lib/atoms/contract';
+import type { AtomCard, Capability, Detail, EngineCard, Kind, Option } from '../../../lib/atoms/contract';
+import { examplesOf, KIND_PLAIN } from '../../../lib/atoms/explain';
 import type { AtomChain, AtomPreview } from './seam';
 import { fromChip, type DetailValues } from './naming';
 
@@ -19,7 +20,49 @@ export const CONNECT_TEXT = 'חבר';
 export const REMOVE_TEXT = 'הסר';
 export const REMOVE_ARMED_TEXT = 'בטוח? לחצו שוב';
 
-export const kindLabel = (k: Kind) => KINDS.find((x) => x.id === k)?.label ?? k;
+export const MORE_EXAMPLES_TEXT = 'עוד דוגמאות';
+
+/** ATOMS-NAMES: שם-הסוג כמו שהמשתמש רואה אותו ("מ… עד…", "סכום") — לא התוויות הטכניות של החוזה. */
+export const kindLabel = (k: Kind) => KIND_PLAIN[k] ?? k;
+
+/** דוגמה אחת "קלט ← תוצאה" — החץ מודגש, הטקסט נשאר כמו שאושר. */
+function ExampleLine(props: { text: string }) {
+  const bits = props.text.split('←');
+  return (
+    <li className="at-ex">
+      {bits.map((b, i) => (
+        <span key={i}>
+          {i > 0 && <span className="at-ex-arrow">←</span>}
+          {b}
+        </span>
+      ))}
+    </li>
+  );
+}
+
+/**
+ * שלוש הדוגמאות של חלק או מנוע: הראשונה גלויה, השתיים האחרות מאחורי "עוד דוגמאות"
+ * (במובייל לא מעמיס על המסך). לא בתוך כפתור — details בתוך button אינו חוקי.
+ */
+export function Examples(props: { id: string }) {
+  const ex = examplesOf(props.id);
+  if (ex.length === 0) return null;
+  return (
+    <div className="at-examples" data-examples={props.id}>
+      <ul className="at-ex-list" aria-label="דוגמה">
+        <ExampleLine text={ex[0]} />
+      </ul>
+      {ex.length > 1 && (
+        <details className="at-more">
+          <summary>{MORE_EXAMPLES_TEXT}</summary>
+          <ul className="at-ex-list">
+            {ex.slice(1).map((t) => <ExampleLine key={t} text={t} />)}
+          </ul>
+        </details>
+      )}
+    </div>
+  );
+}
 
 // ——— 1 · המנועים ———
 export function EnginesStep(props: { engines: EngineCard[]; atoms: AtomCard[]; open: string | null; onToggle: (id: string) => void }) {
@@ -46,6 +89,7 @@ export function EnginesStep(props: { engines: EngineCard[]; atoms: AtomCard[]; o
                   <span className="at-what">{e.computes}</span>
                 </span>
               </button>
+              <Examples id={e.id} />
               {isOpen && <Decomposition engine={e} atoms={props.atoms} />}
             </li>
           );
@@ -82,12 +126,16 @@ export function HostStep(props: { engines: EngineCard[]; onHost: (id: string) =>
   return (
     <section aria-labelledby="at-h-host">
       <h3 id="at-h-host" className="at-title">{HOST_TITLE}</h3>
-      <div className="at-grid">
+      <div className="at-grid at-grid-wide">
         {props.engines.map((e) => (
-          <button key={e.id} type="button" className="at-card" data-host={e.id} onClick={() => props.onHost(e.id)}>
-            <span className="at-emoji" aria-hidden="true">{e.emoji}</span>
-            <span className="at-name">{e.name}</span>
-          </button>
+          <div key={e.id} className="at-card-wrap">
+            <button type="button" className="at-card" data-host={e.id} onClick={() => props.onHost(e.id)}>
+              <span className="at-emoji" aria-hidden="true">{e.emoji}</span>
+              <span className="at-name">{e.name}</span>
+              <span className="at-what">{e.computes}</span>
+            </button>
+            <Examples id={e.id} />
+          </div>
         ))}
       </div>
     </section>
@@ -98,14 +146,17 @@ export function AtomGrid(props: { host: EngineCard; atoms: AtomCard[]; engines: 
   return (
     <section aria-labelledby="at-h-atoms">
       <h3 id="at-h-atoms" className="at-title" tabIndex={-1}>איזה חלק לחבר אל {props.host.emoji} {props.host.name}?</h3>
-      <div className="at-grid">
+      <div className="at-grid at-grid-wide">
         {props.atoms.map((a) => (
-          <button key={a.id} type="button" className="at-card" data-atom={a.id} onClick={() => props.onAtom(a.id)}>
-            <span className="at-emoji" aria-hidden="true">{a.emoji}</span>
-            <span className="at-name">{a.name}</span>
-            <span className="at-chip">{fromChip(a, props.engines)}</span>
-            <span className="at-what">{a.computes}</span>
-          </button>
+          <div key={a.id} className="at-card-wrap">
+            <button type="button" className="at-card" data-atom={a.id} onClick={() => props.onAtom(a.id)}>
+              <span className="at-emoji" aria-hidden="true">{a.emoji}</span>
+              <span className="at-name">{a.name}</span>
+              <span className="at-what">{a.computes}</span>
+              <span className="at-chip">{fromChip(a, props.engines)}</span>
+            </button>
+            <Examples id={a.id} />
+          </div>
         ))}
       </div>
     </section>
@@ -139,6 +190,8 @@ export function QuestionStep(props: { atom: AtomCard; options: Option[]; onOptio
     <section aria-labelledby="at-h-q">
       <div className="at-asks"><span aria-hidden="true">{props.atom.emoji}</span> {props.atom.name} שואל:</div>
       <h3 id="at-h-q" className="at-question" tabIndex={-1}>{props.atom.question}</h3>
+      <p className="at-what at-q-explain">{props.atom.computes}</p>
+      <Examples id={props.atom.id} />
       {props.options.length === 0 ? (
         <div className="empty">{NO_PLACE_TEXT}</div>
       ) : (

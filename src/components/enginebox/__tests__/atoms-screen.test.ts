@@ -119,8 +119,10 @@ describe('(ב) מנוע-בית ⇒ חלק ⇒ השאלה האחת', () => {
     expect(out).not.toContain('bookings.nights');
     expect(out).not.toContain('לא אמור להופיע');
     expect(out).not.toContain('bookings.note');
-    // צ׳יפ-סוג קטן
-    expect(out).toContain('סכום או כמות');
+    // צ׳יפ-סוג קטן — בשפה פשוטה (ATOMS-NAMES: KIND_PLAIN, לא "סכום או כמות"/"טווח")
+    expect(out).toContain('>סכום<');
+    expect(out).toContain('>מ… עד…<');
+    expect(out).not.toContain('סכום או כמות');
     // אותה רשימה בדיוק כמו optionsFor של החוזה (בלי שכפול ההתאמה)
     const opts = optionsFor(A_DIVIDE, E_BOOK);
     const picked: string[] = [];
@@ -248,5 +250,36 @@ describe('(ז) מצב-ריק', () => {
     expect(body(null)).toContain(ATOMS_EMPTY_TEXT);
     expect(body(atomsFixture({ empty: true }))).toContain(ATOMS_EMPTY_TEXT);
     expect(body(null)).not.toContain('data-engine');
+  });
+});
+
+const esc = (t: string) => t.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+
+describe('(ח) ATOMS-NAMES · הסבר צמוד עם דוגמאות', () => {
+  it('כל כרטיס-מנוע וכרטיס-חלק: שם, משפט-הסבר, דוגמה ראשונה גלויה ושתיים מאחורי "עוד דוגמאות"', async () => {
+    const { ATOM_EXPLAIN, ENGINE_EXPLAIN } = await import('../../../lib/atoms/explain');
+    const { MORE_EXAMPLES_TEXT } = await import('../atoms/AtomSteps');
+    const engines = body(atomsFixture());
+    for (const id of ['zmanim', 'whatNeed', 'bookings'] as const) {
+      expect(engines).toContain(`data-examples="${id}"`);
+      // הדוגמה מפוצלת סביב החץ — בודקים את שני הצדדים ואת החץ המודגש
+      const [inp, out] = ENGINE_EXPLAIN[id].examples[0].split('←').map(esc);
+      expect(engines).toContain(inp);
+      expect(engines).toContain(out);
+    }
+    expect(engines).toContain('class="at-ex-arrow">←<');
+    expect(engines).toContain('<summary>' + MORE_EXAMPLES_TEXT + '</summary>');
+    // בגריד-החלקים: כל חלק עם דוגמאות, והדוגמאות לא בתוך הכפתור
+    const grid = body(atomsFixture(), { host: 'bookings' });
+    for (const id of ['divide', 'merge', 'next'] as const) {
+      expect(grid).toContain(`data-examples="${id}"`);
+      expect(grid).toContain(esc(ATOM_EXPLAIN[id].examples[2].split('←')[1]));
+    }
+    expect(grid).not.toMatch(/<button[^>]*>(?:(?!<\/button>)[\s\S])*<details/);
+    // השאלה: "✂️ <שם> שואל:" + השאלה + ההסבר + הדוגמאות
+    const q = body(atomsFixture(), { host: 'bookings', atom: 'divide' });
+    expect(q).toContain(A_DIVIDE.name + ' שואל:');
+    expect(q).toContain('class="at-what at-q-explain">' + A_DIVIDE.computes);
+    expect(q).toContain('data-examples="divide"');
   });
 });

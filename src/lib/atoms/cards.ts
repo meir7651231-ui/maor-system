@@ -9,10 +9,10 @@ import type { AtomCard, AtomId } from './contract';
 export const ATOM_CARDS: readonly AtomCard[] = [
   {
     id: 'divide',
-    name: 'חלוקה לחלקים שווים',
+    name: 'מחלק לחלקים שווים',
     emoji: '✂️',
     from: { engine: 'zmanim', num: 7 },
-    computes: 'מחלק טווח או סכום לחלקים שווים, או לחלקים בגודל קבוע עם הפסקה ביניהם',
+    computes: 'נותנים לו התחלה, סוף ומספר, והוא חותך לחלקים באותו גודל.',
     worksOn: ['span', 'amount'],
     question: 'מה לחלק?',
     details: [
@@ -43,10 +43,10 @@ export const ATOM_CARDS: readonly AtomCard[] = [
   },
   {
     id: 'merge',
-    name: 'מיזוג רצפים',
+    name: 'מחבר דברים צמודים',
     emoji: '🔗',
     from: { engine: 'zmanim', num: 13 },
-    computes: 'מאחד פריטים צמודים מאותו מצב לרצף אחד — כמו שבת ליד חג שהופכים לחלון סגור אחד',
+    computes: 'מקבל רשימה, ומאחד לקבוצה אחת כל מה שצמוד זה לזה.',
     worksOn: ['sequence'],
     question: 'מה לאחד?',
     details: [
@@ -56,10 +56,10 @@ export const ATOM_CARDS: readonly AtomCard[] = [
   },
   {
     id: 'next',
-    name: 'מה הבא?',
+    name: 'מוצא את הבא בתור',
     emoji: '⏭️',
     from: { engine: 'zmanim', num: 14 },
-    computes: 'מוצא את הדבר הקרוב הבא אחרי עכשיו — רגע, או רצף באורך מספיק',
+    computes: 'מסתכל ברשימה ובשעה עכשיו, ואומר מה הדבר הבא שעוד לא קרה.',
     worksOn: ['times', 'sequence'],
     question: 'מה לחפש קדימה?',
     details: [
@@ -69,10 +69,10 @@ export const ATOM_CARDS: readonly AtomCard[] = [
   },
   {
     id: 'round',
-    name: 'עיגול לחומרא',
+    name: 'מעגל מספרים',
     emoji: '🎯',
     from: { engine: 'zmanim', num: 8 },
-    computes: 'מעגל מספר או זמן ליחידה קבועה, בכיוון שבוחרים — סוף למטה, התחלה למעלה',
+    computes: 'הופך מספר לא עגול למספר עגול, למעלה או למטה, לפי מה שבוחרים.',
     worksOn: ['amount', 'times'],
     question: 'מה לעגל?',
     details: [
@@ -92,20 +92,20 @@ export const ATOM_CARDS: readonly AtomCard[] = [
   },
   {
     id: 'offset',
-    name: 'זמן יחסי',
+    name: 'מזיז זמן לפני או אחרי',
     emoji: '⏱️',
     from: { engine: 'zmanim', num: 9 },
-    computes: 'מזיז זמנים בכמה דקות ביחס לעוגן — כמו "10 דקות לפני השקיעה"',
+    computes: 'לוקח זמן שכבר קיים, ומוסיף לו או מוריד ממנו דקות או ימים.',
     worksOn: ['times'],
     question: 'ביחס למה?',
     details: [{ id: 'minutes', label: 'כמה דקות? (מינוס = לפני)', type: 'minutes', min: -1440, max: 1440, default: -10 }],
   },
   {
     id: 'escalate',
-    name: 'ניתוב עם הסלמה',
+    name: 'מעביר הלאה כשאין תשובה',
     emoji: '📣',
     from: { engine: 'whatNeed', num: 8 },
-    computes: 'שולח קודם למקבלים הראשונים, ואם אין תשובה בזמן — מעביר הלאה לשלב הבא',
+    computes: 'שולח משהו למישהו. אם הוא לא עונה בזמן, מעביר לבא אחריו.',
     worksOn: ['waiting'],
     question: 'מה להעביר הלאה כשאין תשובה?',
     details: [
@@ -115,10 +115,10 @@ export const ATOM_CARDS: readonly AtomCard[] = [
   },
   {
     id: 'rotate',
-    name: 'סבב הוגן',
+    name: 'מחלק בתורות',
     emoji: '🔄',
     from: { engine: 'whatNeed', num: 11 },
-    computes: 'מחלק תורות בסבב — כל אחד בתורו, בלי לדלג ובלי להעדיף',
+    computes: 'כל פעם נותן לאדם אחר ברשימה, לפי הסדר, כדי שיהיה הוגן.',
     worksOn: ['waiting', 'sequence'],
     question: 'מה לחלק בתורות?',
     details: [
@@ -136,10 +136,10 @@ export const ATOM_CARDS: readonly AtomCard[] = [
   },
   {
     id: 'fuzzy',
-    name: 'חיפוש סלחני',
+    name: 'מוצא גם עם טעות כתיב',
     emoji: '🔍',
     from: { engine: 'whatNeed', num: 4 },
-    computes: 'מוצא מילים גם עם אותיות-שימוש בהתחלה (ו ה ב ל מ ש כ) וגם עם טעות הקלדה אחת',
+    computes: 'מחפש מילה ומוצא אותה גם כשיש בה טעות אחת, או "ו", "ה" או "ב" בהתחלה.',
     worksOn: ['text'],
     question: 'איפה לחפש?',
     details: [{ id: 'maxTypos', label: 'כמה טעויות הקלדה לסלוח?', type: 'number', min: 0, max: 1, default: 1 }],
