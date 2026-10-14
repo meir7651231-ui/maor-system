@@ -9,46 +9,220 @@
 * חוט: `$קלט` / `$קלט.שדה` (מהבקשה) · `@צומת` / `@צומת.שדה` (מפלט של צומת קודם) · מספר (קבוע מוצהר) · אובייקט (רשומה שמורכבת מחוטים).
 * החוטים לא מחשבים כלום — רק מעבירים ובוחרים שדה. כל החישוב נעשה בחלקים; הקבועים מוצהרים במתכון עם הסבר (`consts`).
 * טהור: הקריאה לחלק מוזרקת (`callNode`), בלי שעון ובלי I/O. רץ ב-node ובדפדפן.
+*
+* 🔁 PRODUCT-V2 (14.10.2026) — **חיווט בלבד, בלי חישוב** (נבנה חדש; מסומן במתכון ובדוח):
+*   · צומת-לולאה `{id, loop: {over, init, item, index?, state, nodes, next, emit?, until?, max?}}` — מריץ את אותם צמתים
+*     (חלקים מוכחים) פעם לכל פריט ב-`over`, ומעביר מצב: `$<state>` = המצב, `$<item>` = הפריט, `$<index>` = המקום שלו.
+*     הפלט: `{state, emits}` — המצב בסוף, ומה ש-`emit` אסף בכל סיבוב (כמו Array.reduce/scan; אין בקטלוג חלק-נתונים שמקבל
+*     פונקציה, ולכן החזרה היא צורת-חיבור, כמו chain). `until: "stable"` — חוזר על כל הסבב עד שסבב שלם לא שינה את המצב
+*     (השוואת-JSON — בקרה בלבד), עד `max` סבבים.
+*   · חוטים שמעבירים ולא מחשבים: `{"$slice": [רשימה, מ, עד?]}` (חתיכה — כמו בחירת-שדה, רק לטווח) ·
+*     `{"$cat": [רשימה, רשימה, …]}` או `{"$cat": רשימה-של-רשימות}` (שרשור). אין חיבור/השוואה/תנאי בחוט.
+*   · `out` יכול להיות חוט (`@opt.state.r`), לא רק שם-צומת.
 */
-/** חוט ⇒ ערך. זורק אם החוט מצביע על משהו שאין (צומת לפני שרץ, שדה חסר). */
-function wire(w, inputs, vals) {
-	if (typeof w === "number" || typeof w === "boolean" || w === null) return w;
-	if (typeof w === "string") {
-		const m = /^([$@])([\w-]+)((?:\.[\w-]+)*)$/.exec(w);
+const REF = /^([$@])([\w-]+)((?:\.[\w-]+)*)$/;
+const strCache = /* @__PURE__ */ new Map();
+/** חוט-מחרוזת ⇒ {at, name, path} (פעם אחת לכל מחרוזת — הריצה של לולאות עוברת על אותם חוטים אלפי פעמים). */
+function parseRef(w) {
+	let p = strCache.get(w);
+	if (!p) {
+		const m = REF.exec(w);
 		if (!m) throw new Error("חוט לא מובן: " + w);
-		const base = m[1] === "$" ? inputs[m[2]] : vals[m[2]];
-		if (base === void 0) throw new Error("אין " + w);
-		let v = base;
-		for (const k of m[3].split(".").filter(Boolean)) {
-			if (v === null || typeof v !== "object" || !(k in v)) throw new Error("אין שדה " + k + " ב-" + w);
-			v = v[k];
-		}
-		return v;
+		p = {
+			at: m[1],
+			name: m[2],
+			path: m[3].split(".").filter(Boolean)
+		};
+		strCache.set(w, p);
 	}
-	if (Array.isArray(w)) return w.map((x) => wire(x, inputs, vals));
-	if (typeof w === "object") return Object.fromEntries(Object.entries(w).map(([k, x]) => [k, wire(x, inputs, vals)]));
-	throw new Error("חוט לא מובן");
+	return p;
 }
+const isOp = (w) => w !== null && typeof w === "object" && !Array.isArray(w) && ("$slice" in w || "$cat" in w) && Object.keys(w).length === 1;
+const objCache = /* @__PURE__ */ new WeakMap();
+/** חוט ⇒ פונקציה (פעם אחת לכל חוט; אותה משמעות בדיוק כמו קריאת-החוט — רק בלי לפרש אותו מחדש בכל סיבוב של לולאה). */
+function compiled(w) {
+	if (typeof w === "number" || typeof w === "boolean" || w === null) return () => w;
+	if (typeof w === "string") {
+		let f = strCache.get("\0" + w);
+		if (!f) {
+			const { at, name, path } = parseRef(w);
+			f = (inputs, vals) => {
+				const base = at === "$" ? inputs[name] : vals[name];
+				if (base === void 0) throw new Error("אין " + w);
+				let v = base;
+				for (const k of path) {
+					if (v === null || typeof v !== "object" || !(k in v)) throw new Error("אין שדה " + k + " ב-" + w);
+					v = v[k];
+				}
+				return v;
+			};
+			strCache.set("\0" + w, f);
+		}
+		return f;
+	}
+	if (typeof w !== "object") throw new Error("חוט לא מובן");
+	let f = objCache.get(w);
+	if (f) return f;
+	if (Array.isArray(w)) {
+		const fs = w.map(compiled);
+		f = (i, v) => fs.map((g) => g(i, v));
+	} else if (isOp(w) && "$slice" in w) {
+		const [l, a, b] = w.$slice.map((x) => x === void 0 ? void 0 : compiled(x));
+		f = (i, v) => {
+			const list = l(i, v);
+			if (!Array.isArray(list)) throw new Error("$slice על משהו שאינו רשימה");
+			return b === void 0 ? list.slice(a(i, v)) : list.slice(a(i, v), b(i, v));
+		};
+	} else if (isOp(w)) {
+		const many = Array.isArray(w.$cat) ? w.$cat.map(compiled) : null;
+		const one = many ? null : compiled(w.$cat);
+		f = (i, v) => {
+			const parts = many ? many.map((g) => g(i, v)) : one(i, v);
+			if (!Array.isArray(parts) || !parts.every(Array.isArray)) throw new Error("$cat על משהו שאינו רשימות");
+			return [].concat(...parts);
+		};
+	} else {
+		const ks = Object.keys(w);
+		const fs = ks.map((k) => compiled(w[k]));
+		f = (i, v) => {
+			const o = {};
+			for (let k = 0; k < ks.length; k++) o[ks[k]] = fs[k](i, v);
+			return o;
+		};
+	}
+	objCache.set(w, f);
+	return f;
+}
+/** כל צמתי-החלקים של הגרף, כולל אלה שבתוך לולאות — לפי הסדר (זה המספור של callNode). */
+function graphNodes(g) {
+	const out = [];
+	const walk = (nodes) => {
+		for (const n of nodes) if (n.loop) walk(n.loop.nodes);
+		else out.push(n);
+	};
+	walk(g.nodes || []);
+	return out;
+}
+const bad = (v) => v === null || v === void 0 || typeof v === "number" && !Number.isFinite(v);
+const planCache = /* @__PURE__ */ new WeakMap();
 /**
-* מריץ את הגרף. callNode(k, args) ⇒ {v} | {err} | {async} (כמו callerFor של ארגז-החול).
-* מחזיר {v} — הפלט של צומת `out` — או את השגיאה הראשונה, עם שם הצומת.
+* הגרף ⇒ תוכנית-ריצה (פעם אחת לכל גרף): כל צומת עם החוט המהודר שלו ומספר-החלק שלו. אותה משמעות כמו לקרוא את החוטים
+* בכל פעם — רק בלי לפרש אותם שוב באלפי הסיבובים של לולאה (2-opt על 400 משפחות).
 */
-function runGraph(g, args, callNode) {
-	const inputs = Object.fromEntries(g.inputs.map((n, k) => [n, args[k]]));
-	const vals = {};
-	for (let k = 0; k < g.nodes.length; k++) {
-		const n = g.nodes[k];
+function planOf(g) {
+	let plan = planCache.get(g);
+	if (plan) return plan;
+	let k = 0;
+	const comp = (nodes) => nodes.map((n) => {
+		if (!n.loop) return {
+			id: n.id,
+			k: k++,
+			args: compiled(n.args)
+		};
+		const L = n.loop;
+		return {
+			id: n.id,
+			loop: true,
+			state: L.state,
+			item: L.item,
+			index: L.index || null,
+			over: compiled(L.over),
+			init: compiled(L.init),
+			next: compiled(L.next),
+			emit: L.emit === void 0 ? null : compiled(L.emit),
+			passes: L.until === "stable" ? Number(L.max) >= 1 ? Number(L.max) : 50 : 1,
+			stable: L.until === "stable",
+			body: comp(L.nodes)
+		};
+	});
+	plan = {
+		nodes: comp(g.nodes),
+		out: g.out.startsWith("@") ? compiled(g.out) : null
+	};
+	planCache.set(g, plan);
+	return plan;
+}
+/** מריץ רשימת-צמתים בסביבה (inputs, vals). מחזיר null, או {err}/{async} מהצומת הראשון שנכשל. */
+function runNodes(nodes, inputs, vals, callNode) {
+	for (let q = 0; q < nodes.length; q++) {
+		const n = nodes[q];
+		if (n.loop) {
+			const r = runLoop(n, inputs, vals, callNode);
+			if (r.async) return r;
+			if ("err" in r) return { err: n.id + ": " + r.err };
+			vals[n.id] = r.v;
+			continue;
+		}
 		let a;
 		try {
-			a = wire(n.args, inputs, vals);
+			a = n.args(inputs, vals);
 		} catch (e) {
 			return { err: n.id + ": " + String(e?.message || e) };
 		}
-		const r = callNode(k, a);
+		const r = callNode(n.k, a);
 		if (!r || r.async) return { async: true };
 		if ("err" in r) return { err: n.id + ": " + r.err };
-		if (r.v === null || r.v === void 0 || typeof r.v === "number" && !Number.isFinite(r.v)) return { err: n.id + ": אין ערך" };
+		if (bad(r.v)) return { err: n.id + ": אין ערך" };
 		vals[n.id] = r.v;
+	}
+	return null;
+}
+/** לולאה: אותם צמתים לכל פריט, המצב עובר הלאה. until=stable ⇒ עוד סבב כל עוד סבב שלם שינה את המצב (עד max). */
+function runLoop(n, inputs, vals, callNode) {
+	let state;
+	try {
+		state = n.init(inputs, vals);
+	} catch (e) {
+		return { err: String(e?.message || e) };
+	}
+	const ins = Object.create(inputs);
+	const inner = Object.create(vals);
+	let emits = [];
+	for (let pass = 0; pass < n.passes; pass++) {
+		ins[n.state] = state;
+		let over;
+		try {
+			over = n.over(ins, vals);
+		} catch (e) {
+			return { err: String(e?.message || e) };
+		}
+		if (!Array.isArray(over)) return { err: "over אינו רשימה" };
+		const before = n.stable ? JSON.stringify(state) : null;
+		emits = [];
+		for (let k = 0; k < over.length; k++) {
+			ins[n.state] = state;
+			ins[n.item] = over[k];
+			if (n.index) ins[n.index] = k;
+			const r = runNodes(n.body, ins, inner, callNode);
+			if (r) return r;
+			try {
+				if (n.emit) emits.push(n.emit(ins, inner));
+				state = n.next(ins, inner);
+			} catch (e) {
+				return { err: String(e?.message || e) };
+			}
+		}
+		if (before !== null && JSON.stringify(state) === before) break;
+	}
+	return { v: {
+		state,
+		emits
+	} };
+}
+/**
+* מריץ את הגרף. callNode(k, args) ⇒ {v} | {err} | {async} (כמו callerFor של ארגז-החול); k = המספר ב-graphNodes.
+* מחזיר {v} — הפלט (`out`: שם-צומת או חוט) — או את השגיאה הראשונה, עם שם הצומת.
+*/
+function runGraph(g, args, callNode) {
+	const plan = planOf(g);
+	const inputs = Object.fromEntries(g.inputs.map((n, k) => [n, args[k]]));
+	const vals = {};
+	const r = runNodes(plan.nodes, inputs, vals, callNode);
+	if (r) return r;
+	if (plan.out) try {
+		return { v: plan.out(inputs, vals) };
+	} catch (e) {
+		return { err: "out: " + String(e?.message || e) };
 	}
 	return { v: vals[g.out] };
 }
@@ -133,7 +307,7 @@ function needFunction(need, parts) {
 	if (form === "graph") {
 		const g = need.combo.graph;
 		const byPart = new Map(need.steps.map((s, k) => [s.id, fns[k]]));
-		const nodeFns = g.nodes.map((n) => byPart.get(n.part));
+		const nodeFns = graphNodes(g).map((n) => byPart.get(n.part));
 		return (...args) => {
 			const r = runGraph(g, args, (k, a) => call(nodeFns[k], a));
 			if ("err" in r) throw new Error(r.err);
@@ -146,6 +320,12 @@ function needFunction(need, parts) {
 function makeRuntime(assembly, parts) {
 	const out = {};
 	for (const need of assembly.needs) if (need.steps?.length) out[need.id] = needFunction(need, parts);
+	return out;
+}
+/** כלי-המדידה של המסך (PRODUCT-V2) ⇒ {מפתח: הפונקציה} — כל אחד חלק מוכח אחד, נקרא כמו שהוא. */
+function makeExtras(assembly, parts) {
+	const out = {};
+	for (const x of assembly.extras || []) out[x.as] = partFn(parts, x);
 	return out;
 }
 //#endregion
@@ -802,6 +982,66 @@ function sheetSummary(roster, dateIso) {
 	};
 }
 //#endregion
+//#region catalog/core/dedupe-points.mjs
+/**
+* 🧹 מסיר כפולים — נקודות: כל מקום נשאר פעם אחת (הראשון שהגיע), בסדר המקורי.
+* הליבה בלי עולם של `seen` ברשת-הסינפסות (src/lib/three-scene.ts:127–129): מפתח לכל זוג, `if (seen.has(key)) continue; seen.add(key)`,
+* ושל מניעת-הכפילות בחלוקת-המעטפות של פרנס׳לע (src/components/parnasa/envelope.ts:170): `if (seen.has(k)) r.splice(i, 1); else seen.add(k)`.
+* כאן המפתח הוא המקום עצמו — `x,y`.
+* @param {{x: number, y: number}[]} points
+* @returns {{x: number, y: number}[]}
+*/
+function dedupePoints(points) {
+	const seen = /* @__PURE__ */ new Set();
+	const out = [];
+	for (const p of Array.isArray(points) ? points : []) {
+		if (!p) continue;
+		const key = Number(p.x) + "," + Number(p.y);
+		if (seen.has(key)) continue;
+		seen.add(key);
+		out.push(p);
+	}
+	return out;
+}
+//#endregion
+//#region catalog/inner/gen/orbit/src/components/supporters/SupportersGalaxy.tsx.mjs
+function inner$SupportersGalaxy$useEffect$frame$d(mx, my, p) {
+	return Math.hypot(p.x - mx, p.y - my);
+}
+//#endregion
+//#region catalog/inner/gen/orbit/src/lib/atoms/verify/generic.ts.mjs
+function inner$waitingLines$sum$$step(counts) {
+	return counts.reduce((a, b) => a + b, 0);
+}
+//#endregion
+//#region catalog/inner/gen/buildsmart/app/src/components/menu/submenu-settings.tsx.mjs
+function inner$ProfileTreeSubmenu$reversed$$step(current) {
+	return [...current].reverse();
+}
+//#endregion
+//#region catalog/inner/gen/orbit/src/lib/atoms/parts/divide.ts.mjs
+function inner$divideSpan$unit$$step(len, n) {
+	return len / n;
+}
+//#endregion
+//#region catalog/inner/gen/orbit/src/components/hosting/StaffModals.tsx.mjs
+function inner$StaffDialog$maxL$$step(loads) {
+	return Math.max(1, ...loads);
+}
+//#endregion
+//#region catalog/inner/gen/orbit/src/components/wheel/CourseWheel.tsx.mjs
+function inner$CourseWheel$spin$delta$$step(from, target) {
+	return target - from;
+}
+function inner$StageChips$map$done(cur, i) {
+	return i < cur;
+}
+//#endregion
+//#region catalog/inner/gen/orbit/src/components/wall/wallData.ts.mjs
+function inner$buildWallData$retention$$step(famTotal, famActive) {
+	return famTotal > 0 ? Math.round(famActive / famTotal * 100) : 0;
+}
+//#endregion
 //#region __product_entry__.mjs
 const PARTS = {
 	"core-c:catalog/core/random-points.mjs#randomPoints": randomPoints,
@@ -819,7 +1059,16 @@ const PARTS = {
 	"orbit:src/components/hosting/transitions.ts#addDaysIso": addDaysIso,
 	"core-b:catalog/core/require-source.mjs#requireSource": requireSource,
 	"orbit:src/components/supporters/prayer.ts#prayerListText": prayerListText,
-	"orbit:src/components/courses/lib.ts#sheetSummary": sheetSummary
+	"orbit:src/components/courses/lib.ts#sheetSummary": sheetSummary,
+	"core-c:catalog/core/dedupe-points.mjs#dedupePoints": dedupePoints,
+	"inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d": inner$SupportersGalaxy$useEffect$frame$d,
+	"inner-orbit:src/lib/atoms/verify/generic.ts#waitingLines.sum:step": inner$waitingLines$sum$$step,
+	"inner-buildsmart:app/src/components/menu/submenu-settings.tsx#ProfileTreeSubmenu.reversed:step": inner$ProfileTreeSubmenu$reversed$$step,
+	"inner-orbit:src/lib/atoms/parts/divide.ts#divideSpan.unit:step": inner$divideSpan$unit$$step,
+	"inner-orbit:src/components/hosting/StaffModals.tsx#StaffDialog.maxL:step": inner$StaffDialog$maxL$$step,
+	"inner-orbit:src/components/wheel/CourseWheel.tsx#CourseWheel.spin.delta:step": inner$CourseWheel$spin$delta$$step,
+	"inner-orbit:src/components/supporters/AyinBoard.tsx#StageChips.map.done": inner$StageChips$map$done,
+	"inner-orbit:src/components/wall/wallData.ts#buildWallData.retention:step": inner$buildWallData$retention$$step
 };
 const ASSEMBLY = {
 	"word": "מוקד-חלוקה",
@@ -827,10 +1076,10 @@ const ASSEMBLY = {
 	"does": "מוקד חלוקת סלים לחג: משפחות על המפה, כל אחת למתנדב הקרוב, מסלול קצר, מעקב מסירה עד דוח סוף היום",
 	"world": "מוצרים",
 	"counts": {
-		"needs": 16,
+		"needs": 19,
 		"proven": 14,
 		"inner": 1,
-		"combo": 1,
+		"combo": 4,
 		"open": 0
 	},
 	"needs": [
@@ -1641,9 +1890,1069 @@ const ASSEMBLY = {
 					"best": true
 				}]
 			}]
+		},
+		{
+			"id": "n17",
+			"behavior": "מסלול קצר באמת לכל מתנדב — השכן הקרוב, ואז היפוך קטעים עד שאין שיפור",
+			"verb": "tour",
+			"verbHe": "מסדר מסלול",
+			"material": "geo",
+			"status": "combo",
+			"statusHe": "✅ מוכח — שילוב",
+			"form": "graph",
+			"steps": [
+				{
+					"id": "core-c:catalog/core/dedupe-points.mjs#dedupePoints",
+					"key": "core-c:catalog/core/dedupe-points.mjs#dedupePoints",
+					"name": "מסנן כפולים: כל נקודה פעם אחת",
+					"role": "dedupe",
+					"roleHe": "מסיר כפולים",
+					"project": "ליבות-החומר",
+					"inner": false,
+					"proof": "proven",
+					"cases": 43,
+					"laws": [
+						"dedupe.subseq",
+						"dedupe.double",
+						"dedupe.idem",
+						"dedupe.keeps"
+					],
+					"arity": 1,
+					"module": "catalog/core/dedupe-points.mjs",
+					"export": "dedupePoints",
+					"home": "core-c:catalog/core/dedupe-points.mjs#dedupePoints",
+					"origins": [
+						{
+							"project": "אורביט",
+							"file": "src/lib/three-scene.ts",
+							"line": 128,
+							"best": true
+						},
+						{
+							"project": "אורביט",
+							"file": "src/components/parnasa/envelope.ts",
+							"line": 170
+						},
+						{
+							"project": "בנייה חכמה",
+							"file": "functions/src/push.ts",
+							"line": 51
+						}
+					]
+				},
+				{
+					"id": "core-c:catalog/core/by-distance.mjs#byDistance",
+					"key": "core-c:catalog/core/by-distance.mjs#byDistance",
+					"name": "ממיין נקודות לפי המרחק מהמוצא",
+					"role": "sort",
+					"roleHe": "ממיין",
+					"project": "ליבות-החומר",
+					"inner": false,
+					"proof": "proven",
+					"cases": 32,
+					"laws": [
+						"sort.perm",
+						"sort.order-free",
+						"sort.consistent"
+					],
+					"arity": 2,
+					"module": "catalog/core/by-distance.mjs",
+					"export": "byDistance",
+					"home": "core-c:catalog/core/by-distance.mjs#byDistance",
+					"origins": [{
+						"project": "אורביט",
+						"file": "src/lib/three-scene.ts",
+						"line": 122,
+						"best": true
+					}, {
+						"project": "אורביט",
+						"file": "src/components/parnasa/envelope.ts",
+						"line": 187
+					}]
+				},
+				{
+					"id": "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+					"key": "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+					"name": "מודד מרחק בין שתי נקודות",
+					"role": "convert",
+					"roleHe": "ממיר ערך",
+					"project": "אורביט",
+					"inner": true,
+					"proof": "proven",
+					"cases": 15,
+					"laws": ["convert.injective", "convert.det"],
+					"arity": 3,
+					"module": "catalog/inner/gen/orbit/src/components/supporters/SupportersGalaxy.tsx.mjs",
+					"export": "inner$SupportersGalaxy$useEffect$frame$d",
+					"home": "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+					"origins": [{
+						"project": "אורביט",
+						"file": "src/components/supporters/SupportersGalaxy.tsx",
+						"line": 125,
+						"best": true
+					}]
+				},
+				{
+					"id": "inner-orbit:src/lib/atoms/verify/generic.ts#waitingLines.sum:step",
+					"key": "inner-orbit:src/lib/atoms/verify/generic.ts#waitingLines.sum:step",
+					"name": "מצמצם רשימה לערך אחד",
+					"role": "sum",
+					"roleHe": "מסכם",
+					"project": "אורביט",
+					"inner": true,
+					"proof": "proven",
+					"cases": 24,
+					"laws": ["sum.empty", "sum.add"],
+					"arity": 1,
+					"module": "catalog/inner/gen/orbit/src/lib/atoms/verify/generic.ts.mjs",
+					"export": "inner$waitingLines$sum$$step",
+					"home": "inner-orbit:src/lib/atoms/verify/generic.ts#waitingLines.sum:step",
+					"origins": [{
+						"project": "אורביט",
+						"file": "src/lib/atoms/verify/generic.ts",
+						"line": 202,
+						"best": true
+					}]
+				},
+				{
+					"id": "core-c:catalog/core/nearest-point.mjs#nearestPoint",
+					"key": "core-c:catalog/core/nearest-point.mjs#nearestPoint",
+					"name": "בוחר את הנקודה הקרובה ביותר למוצא",
+					"role": "extreme",
+					"roleHe": "בוחר את הקיצוני",
+					"project": "ליבות-החומר",
+					"inner": false,
+					"proof": "proven",
+					"cases": 21,
+					"laws": ["extreme.split", "extreme.order-free"],
+					"arity": 2,
+					"module": "catalog/core/nearest-point.mjs",
+					"export": "nearestPoint",
+					"home": "core-c:catalog/core/nearest-point.mjs#nearestPoint",
+					"origins": [
+						{
+							"project": "אורביט",
+							"file": "src/components/supporters/SupportersGalaxy.tsx",
+							"line": 125,
+							"best": true
+						},
+						{
+							"project": "אורביט",
+							"file": "src/components/supporters/SupportersUniverse3D.tsx",
+							"line": 111
+						},
+						{
+							"project": "אורביט",
+							"file": "src/components/parnasa/envelope.ts",
+							"line": 187
+						}
+					]
+				},
+				{
+					"id": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#ProfileTreeSubmenu.reversed:step",
+					"key": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#ProfileTreeSubmenu.reversed:step",
+					"name": "מחשב ערך מערכים",
+					"role": "reverse",
+					"roleHe": "הופך סדר",
+					"project": "בנייה חכמה",
+					"inner": true,
+					"proof": "proven",
+					"cases": 24,
+					"laws": ["reverse.involution", "reverse.split"],
+					"arity": 1,
+					"module": "catalog/inner/gen/buildsmart/app/src/components/menu/submenu-settings.tsx.mjs",
+					"export": "inner$ProfileTreeSubmenu$reversed$$step",
+					"home": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#ProfileTreeSubmenu.reversed:step",
+					"origins": [{
+						"project": "בנייה חכמה",
+						"file": "app/src/components/menu/submenu-settings.tsx",
+						"line": 1034,
+						"best": true
+					}]
+				}
+			],
+			"combo": {
+				"recipe": "catalog/recipes/combo-tour-geo.json",
+				"verb": "tour",
+				"form": "graph",
+				"holds": "60/60",
+				"laws": [
+					"tour.visits",
+					"tour.start",
+					"tour.shorter",
+					"tour.local",
+					"tour.det"
+				],
+				"line": "6 חלקים · עבר 60/60 חוקים של מסדר מסלול",
+				"hint": "מסלול קצר באמת = השכן-הקרוב (בכל צעד: ממיין את מה שנשאר לפי המרחק — ליבת «ממיין» מרשת-הסינפסות — ולוקח את הראשונה) מול הסדר שהגיע — הקצר מהשניים (הכוכב-הקרוב של הגלקסיה, על האורכים) — ואז 2-opt: כל היפוך-קטע (ההופך של בנייה-חכמה) נבדק באורך (מודד-המרחק של הגלקסיה + המסכם), והקצר נשאר; חוזר עד שסבב שלם לא משפר",
+				"graph": {
+					"inputs": ["from", "stops"],
+					"consts": {
+						"origin0": "{x:0, y:0} — כשהאורכים נעטפים כנקודות {x: אורך, y: 0}, הקרובה לאפס היא הקצרה (שוויון ⇒ הראשונה ברשימה נשארת)",
+						"loops": "🔁 הלולאות (nn · la · lb · opt · two · lc) הן חיווט בלבד — אותם חלקים מוכחים בכל סיבוב, המצב עובר הלאה (graph.mjs: loop). אין בקטלוג חלק-נתונים שמקבל פונקציה, ולכן החזרה היא צורת-חיבור — נבנתה חדש ומסומנת",
+						"max60": "עד 60 סבבי-2-opt (בפועל נעצר כשסבב שלם לא שינה כלום)",
+						"plus": "1, 2 — הסטים של המקומות i=k+1, i+1, j+1 (מחושבים במסכם, לא בחוט)"
+					},
+					"nodes": [
+						{
+							"id": "u",
+							"part": "core-c:catalog/core/dedupe-points.mjs#dedupePoints",
+							"role": "dedupe",
+							"args": ["$stops"],
+							"says": "כל תחנה פעם אחת"
+						},
+						{
+							"id": "nn",
+							"loop": {
+								"over": "@u",
+								"init": {
+									"at": "$from",
+									"left": "@u"
+								},
+								"item": "p",
+								"state": "s",
+								"nodes": [{
+									"id": "by",
+									"part": "core-c:catalog/core/by-distance.mjs#byDistance",
+									"role": "sort",
+									"args": ["$s.left", "$s.at"],
+									"says": "מה שנשאר — מהקרובה לרחוקה מהמקום הנוכחי"
+								}],
+								"next": {
+									"at": "@by.0",
+									"left": { "$slice": ["@by", 1] }
+								},
+								"emit": "@by.0"
+							},
+							"says": "השכן-הקרוב: כל פעם הקרובה שעוד לא בוקרה"
+						},
+						{
+							"id": "la",
+							"loop": {
+								"over": { "$cat": [["$from"], "@nn.emits"] },
+								"init": { "prev": "$from" },
+								"item": "aq",
+								"state": "at",
+								"nodes": [{
+									"id": "ad",
+									"part": "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+									"role": "convert",
+									"args": [
+										"$at.prev.x",
+										"$at.prev.y",
+										"$aq"
+									],
+									"says": "רגל: המרחק מהתחנה הקודמת (מודד-המרחק של הגלקסיה)"
+								}],
+								"next": { "prev": "$aq" },
+								"emit": "@ad"
+							},
+							"says": "הרגליים של הדרך, אחת-אחת"
+						},
+						{
+							"id": "lan",
+							"part": "inner-orbit:src/lib/atoms/verify/generic.ts#waitingLines.sum:step",
+							"role": "sum",
+							"args": ["@la.emits"],
+							"says": "אורך הדרך = סכום הרגליים"
+						},
+						{
+							"id": "lb",
+							"loop": {
+								"over": { "$cat": [["$from"], "@u"] },
+								"init": { "prev": "$from" },
+								"item": "bq",
+								"state": "bt",
+								"nodes": [{
+									"id": "bd",
+									"part": "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+									"role": "convert",
+									"args": [
+										"$bt.prev.x",
+										"$bt.prev.y",
+										"$bq"
+									],
+									"says": "רגל: המרחק מהתחנה הקודמת (מודד-המרחק של הגלקסיה)"
+								}],
+								"next": { "prev": "$bq" },
+								"emit": "@bd"
+							},
+							"says": "הרגליים של הדרך, אחת-אחת"
+						},
+						{
+							"id": "lbn",
+							"part": "inner-orbit:src/lib/atoms/verify/generic.ts#waitingLines.sum:step",
+							"role": "sum",
+							"args": ["@lb.emits"],
+							"says": "אורך הדרך = סכום הרגליים"
+						},
+						{
+							"id": "start",
+							"part": "core-c:catalog/core/nearest-point.mjs#nearestPoint",
+							"role": "extreme",
+							"args": [[{
+								"x": "@lan",
+								"y": 0,
+								"r": { "$cat": [["$from"], "@nn.emits"] }
+							}, {
+								"x": "@lbn",
+								"y": 0,
+								"r": { "$cat": [["$from"], "@u"] }
+							}], {
+								"x": 0,
+								"y": 0
+							}],
+							"says": "הקצרה מבין השתיים: השכן-הקרוב או הסדר שהגיע"
+						},
+						{
+							"id": "opt",
+							"loop": {
+								"over": { "$slice": ["$o.r", 1] },
+								"init": {
+									"r": "@start.r",
+									"len": "@start.x"
+								},
+								"item": "a",
+								"index": "k",
+								"state": "o",
+								"until": "stable",
+								"max": 60,
+								"nodes": [
+									{
+										"id": "i",
+										"part": "inner-orbit:src/lib/atoms/verify/generic.ts#waitingLines.sum:step",
+										"role": "sum",
+										"args": [["$k", 1]],
+										"says": "i = k+1 (תחילת הקטע; המוצא נשאר ראשון)"
+									},
+									{
+										"id": "i2",
+										"part": "inner-orbit:src/lib/atoms/verify/generic.ts#waitingLines.sum:step",
+										"role": "sum",
+										"args": [["$k", 2]],
+										"says": "i+1"
+									},
+									{
+										"id": "two",
+										"loop": {
+											"over": { "$slice": ["$o.r", "@i2"] },
+											"init": "$o",
+											"item": "b",
+											"index": "m",
+											"state": "c",
+											"nodes": [
+												{
+													"id": "e",
+													"part": "inner-orbit:src/lib/atoms/verify/generic.ts#waitingLines.sum:step",
+													"role": "sum",
+													"args": [[
+														"@i2",
+														"$m",
+														1
+													]],
+													"says": "j+1 (סוף הקטע, לא כולל)"
+												},
+												{
+													"id": "rv",
+													"part": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#ProfileTreeSubmenu.reversed:step",
+													"role": "reverse",
+													"args": [{ "$slice": [
+														"$c.r",
+														"@i",
+														"@e"
+													] }],
+													"says": "מהלך 2-opt: הקטע i..j הפוך"
+												},
+												{
+													"id": "lc",
+													"loop": {
+														"over": { "$cat": [
+															{ "$slice": [
+																"$c.r",
+																0,
+																"@i"
+															] },
+															"@rv",
+															{ "$slice": ["$c.r", "@e"] }
+														] },
+														"init": { "prev": "$c.r.0" },
+														"item": "cq",
+														"state": "ct",
+														"nodes": [{
+															"id": "cd",
+															"part": "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+															"role": "convert",
+															"args": [
+																"$ct.prev.x",
+																"$ct.prev.y",
+																"$cq"
+															],
+															"says": "רגל: המרחק מהתחנה הקודמת (מודד-המרחק של הגלקסיה)"
+														}],
+														"next": { "prev": "$cq" },
+														"emit": "@cd"
+													},
+													"says": "הרגליים של הדרך, אחת-אחת"
+												},
+												{
+													"id": "lcn",
+													"part": "inner-orbit:src/lib/atoms/verify/generic.ts#waitingLines.sum:step",
+													"role": "sum",
+													"args": ["@lc.emits"],
+													"says": "אורך הדרך = סכום הרגליים"
+												},
+												{
+													"id": "pk",
+													"part": "core-c:catalog/core/nearest-point.mjs#nearestPoint",
+													"role": "extreme",
+													"args": [[{
+														"x": "$c.len",
+														"y": 0,
+														"r": "$c.r"
+													}, {
+														"x": "@lcn",
+														"y": 0,
+														"r": { "$cat": [
+															{ "$slice": [
+																"$c.r",
+																0,
+																"@i"
+															] },
+															"@rv",
+															{ "$slice": ["$c.r", "@e"] }
+														] }
+													}], {
+														"x": 0,
+														"y": 0
+													}],
+													"says": "נשאר הקצר (שוויון ⇒ בלי שינוי)"
+												}
+											],
+											"next": {
+												"r": "@pk.r",
+												"len": "@pk.x"
+											}
+										},
+										"says": "כל j אחרי i"
+									}
+								],
+								"next": "@two.state"
+							},
+							"says": "2-opt: עד שסבב שלם לא מקצר"
+						}
+					],
+					"out": "@opt.state.r"
+				}
+			}
+		},
+		{
+			"id": "n18",
+			"behavior": "כל רכב לוקח עד מספר קבוע של סלים — כל משפחה לרכב הקרוב שיש בו מקום",
+			"verb": "allot",
+			"verbHe": "משבץ עד התקרה",
+			"material": "geo",
+			"status": "combo",
+			"statusHe": "✅ מוכח — שילוב",
+			"form": "graph",
+			"steps": [
+				{
+					"id": "core-c:catalog/core/nearest-point.mjs#nearestPoint",
+					"key": "core-c:catalog/core/nearest-point.mjs#nearestPoint",
+					"name": "בוחר את הנקודה הקרובה ביותר למוצא",
+					"role": "extreme",
+					"roleHe": "בוחר את הקיצוני",
+					"project": "ליבות-החומר",
+					"inner": false,
+					"proof": "proven",
+					"cases": 21,
+					"laws": ["extreme.split", "extreme.order-free"],
+					"arity": 2,
+					"module": "catalog/core/nearest-point.mjs",
+					"export": "nearestPoint",
+					"home": "core-c:catalog/core/nearest-point.mjs#nearestPoint",
+					"origins": [
+						{
+							"project": "אורביט",
+							"file": "src/components/supporters/SupportersGalaxy.tsx",
+							"line": 125,
+							"best": true
+						},
+						{
+							"project": "אורביט",
+							"file": "src/components/supporters/SupportersUniverse3D.tsx",
+							"line": 111
+						},
+						{
+							"project": "אורביט",
+							"file": "src/components/parnasa/envelope.ts",
+							"line": 187
+						}
+					]
+				},
+				{
+					"id": "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+					"key": "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+					"name": "מודד מרחק בין שתי נקודות",
+					"role": "convert",
+					"roleHe": "ממיר ערך",
+					"project": "אורביט",
+					"inner": true,
+					"proof": "proven",
+					"cases": 15,
+					"laws": ["convert.injective", "convert.det"],
+					"arity": 3,
+					"module": "catalog/inner/gen/orbit/src/components/supporters/SupportersGalaxy.tsx.mjs",
+					"export": "inner$SupportersGalaxy$useEffect$frame$d",
+					"home": "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+					"origins": [{
+						"project": "אורביט",
+						"file": "src/components/supporters/SupportersGalaxy.tsx",
+						"line": 125,
+						"best": true
+					}]
+				},
+				{
+					"id": "core-c:catalog/core/by-distance.mjs#byDistance",
+					"key": "core-c:catalog/core/by-distance.mjs#byDistance",
+					"name": "ממיין נקודות לפי המרחק מהמוצא",
+					"role": "sort",
+					"roleHe": "ממיין",
+					"project": "ליבות-החומר",
+					"inner": false,
+					"proof": "proven",
+					"cases": 32,
+					"laws": [
+						"sort.perm",
+						"sort.order-free",
+						"sort.consistent"
+					],
+					"arity": 2,
+					"module": "catalog/core/by-distance.mjs",
+					"export": "byDistance",
+					"home": "core-c:catalog/core/by-distance.mjs#byDistance",
+					"origins": [{
+						"project": "אורביט",
+						"file": "src/lib/three-scene.ts",
+						"line": 122,
+						"best": true
+					}, {
+						"project": "אורביט",
+						"file": "src/components/parnasa/envelope.ts",
+						"line": 187
+					}]
+				}
+			],
+			"combo": {
+				"recipe": "catalog/recipes/combo-allot-geo.json",
+				"verb": "allot",
+				"form": "graph",
+				"holds": "53/53",
+				"laws": [
+					"allot.once",
+					"allot.cap",
+					"allot.full",
+					"allot.ample",
+					"allot.det"
+				],
+				"line": "3 חלקים · עבר 53/53 חוקים של משבץ עד התקרה",
+				"hint": "רכב שמחזיק עד K סלים = K תאים בכל מתנדב, ותא-המתנה רחוק מאוד לכל פריט; כל משפחה (מהקרובה-למתנדב-שלה ראשונה — המרחק לכוכב-הקרוב של הגלקסיה, ממוין בליבת «ממיין») לוקחת את התא הפנוי הקרוב (ממיין ⇒ הראשון), והתא יוצא מהרשימה",
+				"graph": {
+					"inputs": [
+						"bins",
+						"items",
+						"cap"
+					],
+					"consts": {
+						"far": "{x:1e9, y:1e9, b:-1} — תא-המתנה: רחוק מכל מקום על המפה, ולכן נלקח רק כשאין תא פנוי אצל אף מתנדב",
+						"slots": "K עותקים של כל מתנדב: לולאה על K הפריטים הראשונים (רק המספר שלהם משמש) — כשיש פחות פריטים מ-K, יש מקום לכולם ממילא",
+						"origin0": "{x:0, y:0} — מיון לפי {x: מרחק} = מהקרוב לרחוק",
+						"loops": "🔁 הלולאות חיווט בלבד (graph.mjs: loop)"
+					},
+					"nodes": [
+						{
+							"id": "slots",
+							"loop": {
+								"over": "$bins",
+								"init": 0,
+								"item": "v",
+								"index": "bi",
+								"state": "z",
+								"nodes": [{
+									"id": "rep",
+									"loop": {
+										"over": { "$slice": [
+											"$items",
+											0,
+											"$cap"
+										] },
+										"init": 0,
+										"item": "w0",
+										"state": "y",
+										"nodes": [],
+										"next": "$y",
+										"emit": {
+											"x": "$v.x",
+											"y": "$v.y",
+											"b": "$bi"
+										}
+									},
+									"says": "K תאים במקום של המתנדב"
+								}],
+								"next": "$z",
+								"emit": "@rep.emits"
+							},
+							"says": "כל התאים של כל המתנדבים"
+						},
+						{
+							"id": "wait",
+							"loop": {
+								"over": "$items",
+								"init": 0,
+								"item": "w1",
+								"state": "y1",
+								"nodes": [],
+								"next": "$y1",
+								"emit": {
+									"x": 1e9,
+									"y": 1e9,
+									"b": -1
+								}
+							},
+							"says": "תא-המתנה לכל פריט"
+						},
+						{
+							"id": "key",
+							"loop": {
+								"over": "$items",
+								"init": 0,
+								"item": "p",
+								"state": "y2",
+								"nodes": [{
+									"id": "nb",
+									"part": "core-c:catalog/core/nearest-point.mjs#nearestPoint",
+									"role": "extreme",
+									"args": ["$bins", "$p"],
+									"says": "המתנדב הקרוב"
+								}, {
+									"id": "dk",
+									"part": "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+									"role": "convert",
+									"args": [
+										"$p.x",
+										"$p.y",
+										"@nb"
+									],
+									"says": "כמה רחוק הוא"
+								}],
+								"next": "$y2",
+								"emit": {
+									"x": "@dk",
+									"y": 0,
+									"item": "$p"
+								}
+							},
+							"says": "לכל משפחה: המרחק למתנדב הקרוב"
+						},
+						{
+							"id": "ord",
+							"part": "core-c:catalog/core/by-distance.mjs#byDistance",
+							"role": "sort",
+							"args": ["@key.emits", {
+								"x": 0,
+								"y": 0
+							}],
+							"says": "הקרובות-למתנדב ראשונות"
+						},
+						{
+							"id": "asg",
+							"loop": {
+								"over": "@ord",
+								"init": { "$cat": [{ "$cat": "@slots.emits" }, "@wait.emits"] },
+								"item": "w",
+								"state": "f",
+								"nodes": [{
+									"id": "s",
+									"part": "core-c:catalog/core/by-distance.mjs#byDistance",
+									"role": "sort",
+									"args": ["$f", "$w.item"],
+									"says": "התאים הפנויים — מהקרוב לרחוק"
+								}],
+								"next": { "$slice": ["@s", 1] },
+								"emit": {
+									"item": "$w.item",
+									"b": "@s.0.b"
+								}
+							},
+							"says": "כל משפחה לוקחת את התא הפנוי הקרוב"
+						}
+					],
+					"out": "@asg.emits"
+				}
+			}
+		},
+		{
+			"id": "n19",
+			"behavior": "שעת הגעה לכל משפחה, ומי שבבית רק אחרי שעה מסוימת — מחכים לו",
+			"verb": "schedule",
+			"verbHe": "מתזמן בחלונות",
+			"material": "times",
+			"status": "combo",
+			"statusHe": "✅ מוכח — שילוב",
+			"form": "graph",
+			"steps": [
+				{
+					"id": "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+					"key": "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+					"name": "מודד מרחק בין שתי נקודות",
+					"role": "convert",
+					"roleHe": "ממיר ערך",
+					"project": "אורביט",
+					"inner": true,
+					"proof": "proven",
+					"cases": 15,
+					"laws": ["convert.injective", "convert.det"],
+					"arity": 3,
+					"module": "catalog/inner/gen/orbit/src/components/supporters/SupportersGalaxy.tsx.mjs",
+					"export": "inner$SupportersGalaxy$useEffect$frame$d",
+					"home": "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+					"origins": [{
+						"project": "אורביט",
+						"file": "src/components/supporters/SupportersGalaxy.tsx",
+						"line": 125,
+						"best": true
+					}]
+				},
+				{
+					"id": "inner-orbit:src/lib/atoms/verify/generic.ts#waitingLines.sum:step",
+					"key": "inner-orbit:src/lib/atoms/verify/generic.ts#waitingLines.sum:step",
+					"name": "מצמצם רשימה לערך אחד",
+					"role": "sum",
+					"roleHe": "מסכם",
+					"project": "אורביט",
+					"inner": true,
+					"proof": "proven",
+					"cases": 24,
+					"laws": ["sum.empty", "sum.add"],
+					"arity": 1,
+					"module": "catalog/inner/gen/orbit/src/lib/atoms/verify/generic.ts.mjs",
+					"export": "inner$waitingLines$sum$$step",
+					"home": "inner-orbit:src/lib/atoms/verify/generic.ts#waitingLines.sum:step",
+					"origins": [{
+						"project": "אורביט",
+						"file": "src/lib/atoms/verify/generic.ts",
+						"line": 202,
+						"best": true
+					}]
+				},
+				{
+					"id": "inner-orbit:src/lib/atoms/parts/divide.ts#divideSpan.unit:step",
+					"key": "inner-orbit:src/lib/atoms/parts/divide.ts#divideSpan.unit:step",
+					"name": "מחשב יחס בין ערכים",
+					"role": "ratio",
+					"roleHe": "מחשב יחס",
+					"project": "אורביט",
+					"inner": true,
+					"proof": "proven",
+					"cases": 12,
+					"laws": ["ratio.scale"],
+					"arity": 2,
+					"module": "catalog/inner/gen/orbit/src/lib/atoms/parts/divide.ts.mjs",
+					"export": "inner$divideSpan$unit$$step",
+					"home": "inner-orbit:src/lib/atoms/parts/divide.ts#divideSpan.unit:step",
+					"origins": [{
+						"project": "אורביט",
+						"file": "src/lib/atoms/parts/divide.ts",
+						"line": 52,
+						"best": true
+					}]
+				},
+				{
+					"id": "inner-orbit:src/components/hosting/StaffModals.tsx#StaffDialog.maxL:step",
+					"key": "inner-orbit:src/components/hosting/StaffModals.tsx#StaffDialog.maxL:step",
+					"name": "בוחר את הגדול מבין ערכים",
+					"role": "extreme",
+					"roleHe": "בוחר את הקיצוני",
+					"project": "אורביט",
+					"inner": true,
+					"proof": "proven",
+					"cases": 19,
+					"laws": ["extreme.split", "extreme.order-free"],
+					"arity": 1,
+					"module": "catalog/inner/gen/orbit/src/components/hosting/StaffModals.tsx.mjs",
+					"export": "inner$StaffDialog$maxL$$step",
+					"home": "inner-orbit:src/components/hosting/StaffModals.tsx#StaffDialog.maxL:step",
+					"origins": [{
+						"project": "אורביט",
+						"file": "src/components/hosting/StaffModals.tsx",
+						"line": 21,
+						"best": true
+					}]
+				},
+				{
+					"id": "inner-orbit:src/components/wheel/CourseWheel.tsx#CourseWheel.spin.delta:step",
+					"key": "inner-orbit:src/components/wheel/CourseWheel.tsx#CourseWheel.spin.delta:step",
+					"name": "מחשב הפרש בין ערכים",
+					"role": "gap",
+					"roleHe": "מודד מרחק",
+					"project": "אורביט",
+					"inner": true,
+					"proof": "proven",
+					"cases": 36,
+					"laws": [
+						"gap.self",
+						"gap.anti",
+						"gap.chain"
+					],
+					"arity": 2,
+					"module": "catalog/inner/gen/orbit/src/components/wheel/CourseWheel.tsx.mjs",
+					"export": "inner$CourseWheel$spin$delta$$step",
+					"home": "inner-orbit:src/components/wheel/CourseWheel.tsx#CourseWheel.spin.delta:step",
+					"origins": [{
+						"project": "אורביט",
+						"file": "src/components/wheel/CourseWheel.tsx",
+						"line": 205,
+						"best": true
+					}]
+				},
+				{
+					"id": "inner-orbit:src/components/supporters/AyinBoard.tsx#StageChips.map.done",
+					"key": "inner-orbit:src/components/supporters/AyinBoard.tsx#StageChips.map.done",
+					"name": "משווה שני ערכים",
+					"role": "validate",
+					"roleHe": "בודק",
+					"project": "אורביט",
+					"inner": true,
+					"proof": "proven",
+					"cases": 24,
+					"laws": ["validate.bool", "validate.det"],
+					"arity": 2,
+					"module": "catalog/inner/gen/orbit/src/components/supporters/AyinBoard.tsx.mjs",
+					"export": "inner$StageChips$map$done",
+					"home": "inner-orbit:src/components/supporters/AyinBoard.tsx#StageChips.map.done",
+					"origins": [{
+						"project": "אורביט",
+						"file": "src/components/supporters/AyinBoard.tsx",
+						"line": 38,
+						"best": true
+					}]
+				}
+			],
+			"combo": {
+				"recipe": "catalog/recipes/combo-schedule-times.json",
+				"verb": "schedule",
+				"form": "graph",
+				"holds": "60/60",
+				"laws": [
+					"schedule.each",
+					"schedule.drive",
+					"schedule.late",
+					"schedule.km",
+					"schedule.det"
+				],
+				"line": "6 חלקים · עבר 60/60 חוקים של מתזמן בחלונות",
+				"hint": "שעת-הגעה = יציאה + מרחק (מודד-המרחק של הגלקסיה) ÷ מהירות (היחידה של מחלק-הטווח) — מסכם; לא לפני פתיחת-החלון: הגדול מהשניים (העומס-המרבי של הצוות); המתנה = הפרש (גלגל-החוגים); מאחר = החלון נסגר לפני ההגעה (שלב-שעבר של לוח-הטיפול); ק״מ מצטבר = מסכם",
+				"graph": {
+					"inputs": ["route", "spec"],
+					"consts": {
+						"loops": "🔁 הלולאה חיווט בלבד (graph.mjs: loop)",
+						"floor1": "הגדול-מבין של הצוות לא יורד מ-1 — שעות-ההגעה הן דקות-מחצות (מעל 1) ולכן זה לא משנה"
+					},
+					"nodes": [{
+						"id": "go",
+						"loop": {
+							"over": { "$slice": ["$route", 1] },
+							"init": {
+								"t": "$spec.start",
+								"prev": "$route.0",
+								"km": 0
+							},
+							"item": "p",
+							"state": "s",
+							"nodes": [
+								{
+									"id": "d",
+									"part": "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+									"role": "convert",
+									"args": [
+										"$s.prev.x",
+										"$s.prev.y",
+										"$p"
+									],
+									"says": "הרגל"
+								},
+								{
+									"id": "km",
+									"part": "inner-orbit:src/lib/atoms/verify/generic.ts#waitingLines.sum:step",
+									"role": "sum",
+									"args": [["$s.km", "@d"]],
+									"says": "ק״מ מצטבר"
+								},
+								{
+									"id": "m",
+									"part": "inner-orbit:src/lib/atoms/parts/divide.ts#divideSpan.unit:step",
+									"role": "ratio",
+									"args": ["@d", "$spec.speed"],
+									"says": "דקות-נסיעה = מרחק ÷ מהירות"
+								},
+								{
+									"id": "eta",
+									"part": "inner-orbit:src/lib/atoms/verify/generic.ts#waitingLines.sum:step",
+									"role": "sum",
+									"args": [["$s.t", "@m"]],
+									"says": "מתי מגיעים בלי לחכות"
+								},
+								{
+									"id": "at",
+									"part": "inner-orbit:src/components/hosting/StaffModals.tsx#StaffDialog.maxL:step",
+									"role": "extreme",
+									"args": [["@eta", "$p.open"]],
+									"says": "לא לפני שהחלון נפתח"
+								},
+								{
+									"id": "w",
+									"part": "inner-orbit:src/components/wheel/CourseWheel.tsx#CourseWheel.spin.delta:step",
+									"role": "gap",
+									"args": ["@eta", "@at"],
+									"says": "כמה מחכים"
+								},
+								{
+									"id": "late",
+									"part": "inner-orbit:src/components/supporters/AyinBoard.tsx#StageChips.map.done",
+									"role": "validate",
+									"args": ["@at", "$p.close"],
+									"says": "החלון נסגר לפני ההגעה?"
+								},
+								{
+									"id": "out",
+									"part": "inner-orbit:src/lib/atoms/verify/generic.ts#waitingLines.sum:step",
+									"role": "sum",
+									"args": [["@at", "$spec.stay"]],
+									"says": "יוצאים אחרי העצירה"
+								}
+							],
+							"next": {
+								"t": "@out",
+								"prev": "$p",
+								"km": "@km"
+							},
+							"emit": {
+								"at": "@at",
+								"wait": "@w",
+								"late": "@late",
+								"km": "@km"
+							}
+						},
+						"says": "תחנה אחרי תחנה"
+					}],
+					"out": "@go.emits"
+				}
+			}
+		}
+	],
+	"extras": [
+		{
+			"as": "sum",
+			"says": "סך הק״מ, סך הדקות",
+			"id": "inner-orbit:src/lib/atoms/verify/generic.ts#waitingLines.sum:step",
+			"key": "inner-orbit:src/lib/atoms/verify/generic.ts#waitingLines.sum:step",
+			"name": "מצמצם רשימה לערך אחד",
+			"role": "sum",
+			"roleHe": "מסכם",
+			"project": "אורביט",
+			"inner": true,
+			"proof": "proven",
+			"cases": 24,
+			"laws": ["sum.empty", "sum.add"],
+			"arity": 1,
+			"module": "catalog/inner/gen/orbit/src/lib/atoms/verify/generic.ts.mjs",
+			"export": "inner$waitingLines$sum$$step",
+			"home": "inner-orbit:src/lib/atoms/verify/generic.ts#waitingLines.sum:step",
+			"origins": [{
+				"project": "אורביט",
+				"file": "src/lib/atoms/verify/generic.ts",
+				"line": 202,
+				"best": true
+			}]
+		},
+		{
+			"as": "gap",
+			"says": "כמה ק״מ נחסכו (לפני פחות אחרי) · כמה הגיעו בזמן (הכול פחות המאחרים)",
+			"id": "inner-orbit:src/components/wheel/CourseWheel.tsx#CourseWheel.spin.delta:step",
+			"key": "inner-orbit:src/components/wheel/CourseWheel.tsx#CourseWheel.spin.delta:step",
+			"name": "מחשב הפרש בין ערכים",
+			"role": "gap",
+			"roleHe": "מודד מרחק",
+			"project": "אורביט",
+			"inner": true,
+			"proof": "proven",
+			"cases": 36,
+			"laws": [
+				"gap.self",
+				"gap.anti",
+				"gap.chain"
+			],
+			"arity": 2,
+			"module": "catalog/inner/gen/orbit/src/components/wheel/CourseWheel.tsx.mjs",
+			"export": "inner$CourseWheel$spin$delta$$step",
+			"home": "inner-orbit:src/components/wheel/CourseWheel.tsx#CourseWheel.spin.delta:step",
+			"origins": [{
+				"project": "אורביט",
+				"file": "src/components/wheel/CourseWheel.tsx",
+				"line": 205,
+				"best": true
+			}]
+		},
+		{
+			"as": "pct",
+			"says": "אחוז החיסכון · אחוז בזמן",
+			"id": "inner-orbit:src/components/wall/wallData.ts#buildWallData.retention:step",
+			"key": "inner-orbit:src/components/wall/wallData.ts#buildWallData.retention:step",
+			"name": "בוחר ערך לפי תנאי",
+			"role": "ratio",
+			"roleHe": "מחשב יחס",
+			"project": "אורביט",
+			"inner": true,
+			"proof": "proven",
+			"cases": 12,
+			"laws": ["ratio.scale"],
+			"arity": 2,
+			"module": "catalog/inner/gen/orbit/src/components/wall/wallData.ts.mjs",
+			"export": "inner$buildWallData$retention$$step",
+			"home": "inner-orbit:src/components/wall/wallData.ts#buildWallData.retention:step",
+			"origins": [{
+				"project": "אורביט",
+				"file": "src/components/wall/wallData.ts",
+				"line": 336,
+				"best": true
+			}]
+		},
+		{
+			"as": "max",
+			"says": "העומס הגדול ביותר (קנה-המידה של פסי-העומס)",
+			"id": "inner-orbit:src/components/hosting/StaffModals.tsx#StaffDialog.maxL:step",
+			"key": "inner-orbit:src/components/hosting/StaffModals.tsx#StaffDialog.maxL:step",
+			"name": "בוחר את הגדול מבין ערכים",
+			"role": "extreme",
+			"roleHe": "בוחר את הקיצוני",
+			"project": "אורביט",
+			"inner": true,
+			"proof": "proven",
+			"cases": 19,
+			"laws": ["extreme.split", "extreme.order-free"],
+			"arity": 1,
+			"module": "catalog/inner/gen/orbit/src/components/hosting/StaffModals.tsx.mjs",
+			"export": "inner$StaffDialog$maxL$$step",
+			"home": "inner-orbit:src/components/hosting/StaffModals.tsx#StaffDialog.maxL:step",
+			"origins": [{
+				"project": "אורביט",
+				"file": "src/components/hosting/StaffModals.tsx",
+				"line": 21,
+				"best": true
+			}]
 		}
 	]
 };
 const runtime = () => makeRuntime(ASSEMBLY, PARTS);
+const extras = () => makeExtras(ASSEMBLY, PARTS);
 //#endregion
-export { ASSEMBLY, PARTS, makeRuntime, needFunction, runtime };
+export { ASSEMBLY, PARTS, extras, makeExtras, makeRuntime, needFunction, runtime };

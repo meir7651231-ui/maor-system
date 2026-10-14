@@ -11,7 +11,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { CATALOG, loadGoals, loadIndex, loadParts, loadRecipes } from '../combiner/load.mjs';
-import { assemble, PROJECTS } from '../combiner/core.mjs';
+import { assemble, PROJECTS, provenAs, stepView } from '../combiner/core.mjs';
+import { graphParts } from '../combiner/graph.mjs';
 
 const ROOT = path.resolve(CATALOG, '..');
 const readJson = (p) => JSON.parse(fs.readFileSync(path.join(ROOT, p), 'utf8'));
@@ -47,7 +48,9 @@ function originsOf(r, role) {
   if (r.source === 'core-b') return pick(readJson('catalog/core/origins-b.json')[role]);
   if (r.source === 'core') return pick(readJson('catalog/core/origins.json').verbs[role]?.origins);
   const name = r.source.startsWith('inner-') ? r.symbol.split('.').pop() : r.symbol;
-  return [{ project: PROJECTS[r.source.replace(/^inner-/, '')]?.he || r.source, file: r.path, line: lineOf(r.path, name), best: true }];
+  // חלק פנימי: השורה שהפותח רשם (origins של המקור הפנימי) — שם-הערך (`sum:step`) אינו הגדרה שאפשר לחפש בקובץ
+  const at = r.source.startsWith('inner-') ? (r.origins || []).find((o) => o.file === r.path && Number.isInteger(o.line)) : null;
+  return [{ project: PROJECTS[r.source.replace(/^inner-/, '')]?.he || r.source, file: r.path, line: lineOf(r.path, name) ?? at?.line ?? null, best: true }];
 }
 
 /** צעד ⇒ מה שזמן-הריצה והחבילה צריכים. `module`+`export` = מה מייבאים; `key` = מזהה-החלק (מפתח בחבילה). */
@@ -68,15 +71,27 @@ function stepOf(s, ix, raw) {
 /** המתכון השמור של שילוב: לפי הפועל והחלקים (combo-<פועל>-<חומר>.json — החומר יכול להיות של צורך אחר באותו פועל). */
 function comboRecipe(chain) {
   const ids = chain.steps.map((s) => s.id);
-  const r = loadRecipes().find((x) => x.combo && x.combo.verb === chain.combo.verb && JSON.stringify(x.combo.form === 'graph' ? [...new Set(x.combo.graph.nodes.map((n) => n.part))] : x.combo.steps) === JSON.stringify(ids));
+  const r = loadRecipes().find((x) => x.combo && x.combo.verb === chain.combo.verb && JSON.stringify(x.combo.form === 'graph' ? graphParts(x.combo.graph) : x.combo.steps) === JSON.stringify(ids));
   if (!r) throw new Error('אין מתכון-שילוב שמור ל-' + ids.join(' ⇒ '));
   return r;
 }
 
 const STATUS_HE = { proven: '✅ מוכח בהרצה', inner: '✅ מוכח — חלק פנימי', combo: '✅ מוכח — שילוב' };
 
-/** המניפסט של מילה: {word, emoji, does, counts, needs:[{id, behavior, verb, material, status, form, steps, combo?}]}. */
-export function productManifest(word) {
+/**
+ * כלי-מדידה של המסך (PRODUCT-V2): חלק מוכח אחד, **שנבחר ביד** בשמו המלא ובתפקיד שהוא מוכח לו (סכום · הפרש · אחוז · הגדול-מבין)
+ * — כדי שכל מספר במסך (ק״מ, חיסכון, אחוז-בזמן, עומס) ייצא מחלק מוכח עם "נמצא ב:", ולא מחשבון של הדף.
+ * לא מוכח לתפקיד ⇒ שגיאה (לא נכנס לחבילה).
+ */
+function extraOf(x, ix, raw) {
+  const p = ix.byId.get(x.part) || ix.parts.find((q) => q.homes.some((h) => h.id === x.part));
+  if (!p) throw new Error('כלי-מדידה: החלק לא באינדקס — ' + x.part);
+  if (!provenAs(p, x.role)) throw new Error('כלי-מדידה: ' + x.part + ' לא מוכח כ-' + x.role);
+  return { as: x.key, says: x.says, ...stepOf(stepView(p, null, {}, x.role), ix, raw) };
+}
+
+/** המניפסט של מילה: {word, emoji, does, counts, needs:[{id, behavior, verb, material, status, form, steps, combo?}], extras?}. */
+export function productManifest(word, extras = []) {
   const goal = loadGoals().find((g) => g.word === word);
   if (!goal) throw new Error('אין מילה כזו במילון: ' + word);
   const raw = new Map(loadParts().map((p) => [p.id, p]));
@@ -98,5 +113,5 @@ export function productManifest(word) {
     };
   });
   const counts = { needs: needs.length, proven: needs.filter((n) => n.status === 'proven').length, inner: needs.filter((n) => n.status === 'inner').length, combo: needs.filter((n) => n.status === 'combo').length, open: needs.filter((n) => !n.steps.length).length };
-  return { word: goal.word, emoji: goal.emoji, does: goal.does, world: goal.world, counts, needs };
+  return { word: goal.word, emoji: goal.emoji, does: goal.does, world: goal.world, counts, needs, ...(extras.length ? { extras: extras.map((x) => extraOf(x, ix, raw)) } : {}) };
 }

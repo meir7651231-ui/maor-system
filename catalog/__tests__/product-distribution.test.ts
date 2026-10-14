@@ -7,6 +7,8 @@
  * 4. הליבה החדשה `nearestPoint` (הכוכב-הקרוב-לעכבר של הגלקסיה) — מוכחת ל«בוחר את הקיצוני», והקרובה באמת;
  *    6 צרכים קיימים במילון ("המונית הקרובה", "האמבולנס הקרוב"…) עברו אליה מחלק פנימי שהחזיר רק מרחק.
  * 5. פרטיות: בהרכבה ובדף — בלי טלפון/מייל/ת״ז/קישור; כל שבב "נמצא ב" בדף לקוח מההרכבה.
+ *    (PRODUCT-V2: הקישור היחיד בדף הוא שיתוף-טקסט לוואטסאפ `https://wa.me/?text=` — בלי מספר.)
+ * PRODUCT-V2 (14.10.2026) — product-v2.test.ts: מסלול ממוטב · קיבולת · חלונות · כלי-המדידה · 400 משפחות מתחת ל-300 מ״ש.
  */
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
@@ -19,6 +21,7 @@ import { nearestPoint } from '../core/nearest-point.mjs';
 import { productManifest } from '../runtime/manifest.mjs';
 import { provenFunctions } from '../runtime/proven.mjs';
 import { makeRuntime } from '../runtime/runtime.mjs';
+import { PRODUCTS } from '../runtime/bundle.mjs';
 
 const ROOT = join(__dirname, '..', '..');
 const DIR = join(ROOT, 'catalog/products/distribution');
@@ -29,10 +32,10 @@ type Need = { id: string; behavior: string; status: string; form: string; steps:
 const plain = (v: unknown) => JSON.parse(JSON.stringify(v ?? null));
 
 describe('«מוקד-חלוקה» — מוצר מההרכבה', () => {
-  it('במילון, וכל 16 הצרכים ✅ — 14 חלקים · 1 פנימי · 1 שילוב · 0 פתוחים', () => {
+  it('במילון, וכל 19 הצרכים ✅ — 14 חלקים · 1 פנימי · 4 שילובים · 0 פתוחים', () => {
     const g = loadGoals().find((x: { word: string }) => x.word === 'מוקד-חלוקה');
     expect(g?.world).toBe('מוצרים');
-    expect(assembly.counts).toEqual({ needs: 16, proven: 14, inner: 1, combo: 1, open: 0 });
+    expect(assembly.counts).toEqual({ needs: 19, proven: 14, inner: 1, combo: 4, open: 0 });
     for (const n of assembly.needs as Need[]) {
       expect(['proven', 'inner', 'combo'], n.behavior).toContain(n.status);
       expect(n.steps.length, n.behavior).toBeGreaterThan(0);
@@ -42,7 +45,7 @@ describe('«מוקד-חלוקה» — מוצר מההרכבה', () => {
 
   it('החבילה הסטטית מעודכנת (bundle.mjs --check), והמניפסט = ההרכבה של היום', () => {
     execFileSync(process.execPath, [join(ROOT, 'catalog/runtime/bundle.mjs'), '--check'], { stdio: 'pipe' });
-    expect(JSON.parse(JSON.stringify(productManifest('מוקד-חלוקה')))).toEqual(assembly);
+    expect(JSON.parse(JSON.stringify(productManifest('מוקד-חלוקה', PRODUCTS[0].extras)))).toEqual(assembly);
   }, 120_000);
 
   it('זמן-הריצה מהחבילה מחזיר בדיוק מה שהחלק המוכח מחזיר (ארגז-החול / המתכון השמור)', async () => {
@@ -94,11 +97,13 @@ describe('«מוקד-חלוקה» — מוצר מההרכבה', () => {
   it('פרטיות ויושר בדף: בלי טלפון/מייל/ת״ז/קישור; כל שבב "נמצא ב" בא מההרכבה; הכותרת התחתונה אומרת מה חדש', () => {
     const html = readFileSync(join(DIR, 'index.html'), 'utf8');
     expect(piiLeak(assembly)).toBeNull();
-    expect(piiLeak(html)).toBeNull();
+    // הקישור היחיד: שיתוף-טקסט לוואטסאפ, בלי מספר (wa.me/?text=) — כל שאר הדף בלי קישורים
+    expect(html.match(/https?:\/\/[^'"\s]*/g)).toEqual(['https://wa.me/?text=']);
+    expect(piiLeak(html.replace("'https://wa.me/?text='", "''"))).toBeNull();
     expect(piiLeak(samples)).toBeNull();
-    expect(html).not.toMatch(/https?:\/\//);
     expect(html).toContain("from './parts.bundle.mjs'");
     for (const n of assembly.needs as Need[]) expect(html, n.id).toMatch(new RegExp("chip\\('" + n.id + "'"));
     expect(html).toContain('המעטפת של המסך');
+    expect(html).toContain('הלולאות בתוך השילובים הן חיווט בלבד');
   });
 });

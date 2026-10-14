@@ -2,19 +2,23 @@
   "version": 1,
   "generatedAt": null,
   "note": "מכוסה = לפועל של ההתנהגות יש חלק בקטלוג שמתויג בו (catalog/behavior). לפני = 45 פעלים, 9 מקורות. אחרי = 60 פעלים + הליבה (catalog/core). material = גם אותו סוג-חומר.",
-  "behaviors": 956,
+  "behaviors": 959,
   "newVerbsLeft": 0,
   "before": {
     "byVerb": 765,
     "byVerbAndMaterial": 605,
-    "pct": 80
+    "pct": 79.8
   },
   "after": {
     "byVerb": 956,
     "byVerbAndMaterial": 776,
-    "pct": 100
+    "pct": 99.7
   },
-  "uncoveredAfter": [],
+  "uncoveredAfter": [
+    "allot",
+    "schedule",
+    "tour"
+  ],
   "verbs": [
     {
       "verb": "validate",
@@ -385,6 +389,14 @@
       "parts": 31
     },
     {
+      "verb": "allot",
+      "mined": false,
+      "needs": 1,
+      "before": 0,
+      "after": 0,
+      "parts": 0
+    },
+    {
       "verb": "echo",
       "mined": true,
       "needs": 1,
@@ -417,12 +429,28 @@
       "parts": 228
     },
     {
+      "verb": "schedule",
+      "mined": false,
+      "needs": 1,
+      "before": 0,
+      "after": 0,
+      "parts": 0
+    },
+    {
       "verb": "tally",
       "mined": false,
       "needs": 1,
       "before": 1,
       "after": 1,
       "parts": 23
+    },
+    {
+      "verb": "tour",
+      "mined": false,
+      "needs": 1,
+      "before": 0,
+      "after": 0,
+      "parts": 0
     }
   ]
 }

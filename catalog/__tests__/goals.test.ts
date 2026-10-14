@@ -4,7 +4,7 @@
  * חומר שאינו סוג מהחוזה, או קובץ לא-ממוין — המחבר יחפש חלק שלא יכול להימצא. הבדיקה הזו עוצרת את זה.
  * 1. כל קובץ עומד ב-`catalog/goals/schema.json`.
  * 2. כל פועל מהאלף-בית (מתוך הסכמה) או `NEW:<id>` עם הסבר ב-detail; כל חומר = סוג מ-`catalog/schema.json`.
- * 3. מילים ייחודיות בכל המילון; 4–8 צרכים לכל מילה (בעולם «מוצרים» — מוצר שלם, PRODUCT 14.10.2026: עד 16); לפחות 150 מילים ב-12 עולמות; המילים החובה בפנים.
+ * 3. מילים ייחודיות בכל המילון; 4–8 צרכים לכל מילה (בעולם «מוצרים» — מוצר שלם, PRODUCT 14.10.2026: עד 16; PRODUCT-V2: עד 19); לפחות 150 מילים ב-12 עולמות; המילים החובה בפנים.
  * 4. דטרמיניסטי: מילים ממוינות בסדר-תווים, הקובץ = JSON.stringify(doc, null, 2) + "\n".
  * 5. ה-README מונה את כל פעלי-ה-NEW ואת מספר המילים.
  * 6. (MINED-VERBS) רשימת-הפעלים בסכמה = האלפבית (catalog/verbs.json) בדיוק; אין NEW: לפועל שכבר קיים; מד-הכיסוי מעודכן.
@@ -57,7 +57,7 @@ describe('מילון המטרות', () => {
     for (const d of docs)
       for (const g of d.doc.goals) {
         expect(g.needs.length, g.word).toBeGreaterThanOrEqual(4);
-        expect(g.needs.length, g.word).toBeLessThanOrEqual(d.file === 'products.json' ? 16 : 8);
+        expect(g.needs.length, g.word).toBeLessThanOrEqual(d.file === 'products.json' ? 19 : 8);
       }
     expect(words.length).toBeGreaterThanOrEqual(150);
     expect(docs.length).toBeGreaterThanOrEqual(12);
@@ -94,6 +94,6 @@ describe('מילון המטרות', () => {
     expect(readFileSync(join(DIR, 'coverage.md'), 'utf8')).toBe(coverageMd(c));
     expect(c.behaviors).toBe(needs.length);
     expect(c.after.byVerb).toBeGreaterThanOrEqual(c.before.byVerb);
-    expect(c.after.byVerb).toBe(956); // 940 + 16 של «מוקד-חלוקה» (products.json)
+    expect(c.after.byVerb).toBe(956); // 940 + 16 של «מוקד-חלוקה» (products.json). 3 הצרכים של PRODUCT-V2 (tour · allot · schedule) נמצאים רק כשילוב — מד-הפועל לא סופר אותם (959 התנהגויות)
   }, 60_000);
 });

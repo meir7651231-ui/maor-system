@@ -35,3 +35,21 @@ export async function provenFunctions(assembly) {
   }
   return out;
 }
+
+/** כלי-המדידה (PRODUCT-V2): {as: פונקציה} — כל אחד החלק המוכח עצמו, בארגז-החול (כמו צורך של חלק בודד). */
+export async function provenExtras(assembly) {
+  const raw = new Map(loadParts().map((p) => [p.id, p]));
+  const ix = loadIndex({ recipes: loadRecipes().filter((r) => !r.combo) });
+  const xs = assembly.extras || [];
+  const parts = xs.map((x) => partByHome(ix, x.id));
+  if (parts.some((p) => !p)) throw new Error('כלי-מדידה חסר באינדקס');
+  const runners = await loadRunners([...new Set(parts)], raw);
+  const out = {};
+  xs.forEach((x, k) => {
+    const R = runners.get(parts[k].id);
+    if (!R) throw new Error('כלי-המדידה לא נטען להרצה: ' + x.id);
+    const c = callerFor(R.ctx, R.fn, SEED, R.self);
+    out[x.as] = (...args) => { const r = c(args); if ('err' in r) throw new Error(r.err); if (r.async) throw new Error('אסינכרוני'); return r.v; };
+  });
+  return out;
+}

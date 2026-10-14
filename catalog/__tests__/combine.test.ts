@@ -20,6 +20,7 @@ import { combineAll, loadRunners, compose, composeChain, composeGraph, composeOn
 import { VERB_BY_ID as LAW_VERBS } from '../lib/verbs.mjs';
 import { sunHeadingRef } from '../lib/verbs-sun.mjs';
 import { bundleBridge } from '../lib/load-bridge.mjs';
+import { graphNodes } from '../combiner/graph.mjs';
 import { loadInSandbox } from '../lib/sandbox.mjs';
 
 vi.setConfig({ testTimeout: 300_000 });
@@ -66,7 +67,7 @@ describe('מכונת-השילוב', () => {
       if (r.found.form === 'graph') {
         const g = r.found.graph!;
         const ref = LAW_VERBS.get(r.verb).ref.sig;
-        c = composeGraph(g, g.nodes.map((n) => R.get(partByHome(ix, n.part).id)), seed, ref.map((t: object, k: number) => ({ ...t, name: g.inputs[k] })));
+        c = composeGraph(g, graphNodes(g).map((n) => R.get(partByHome(ix, n.part).id)), seed, ref.map((t: object, k: number) => ({ ...t, name: g.inputs[k] })));
       } else {
         const Rs = r.found.steps.map((id) => R.get(partByHome(ix, id).id));
         c = r.found.form === 'on' ? composeOn(Rs[0], { k: r.found.slot!, many: !!r.found.many }, r.material, seed) : r.found.form === 'pair' ? compose('pair', Rs[0], Rs[1], seed, r.found.at ?? 0) : composeChain(Rs, seed);
@@ -150,8 +151,8 @@ describe('שלוש המילים — חמנייה · דרקון · קרוסלה',
     const g: Graph = r.found.graph;
     const raw = new Map(loadParts().map((p: { id: string }) => [p.id, p]));
     const ix = loadIndex();
-    const R = await loadRunners([...new Set(g.nodes.map((n) => partByHome(ix, n.part)))], raw);
-    const Rs: Runner[] = g.nodes.map((n) => R.get(partByHome(ix, n.part).id));
+    const R = await loadRunners([...new Set(graphNodes(g).map((n) => partByHome(ix, n.part)))], raw);
+    const Rs: Runner[] = graphNodes(g).map((n) => R.get(partByHome(ix, n.part).id));
     const ref = LAW_VERBS.get('sun-heading').ref.sig.map((t: object, k: number) => ({ ...t, name: g.inputs[k] }));
     const c = composeGraph(g, Rs, 5, ref);
     let worst = 0;

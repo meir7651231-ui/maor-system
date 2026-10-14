@@ -3,15 +3,212 @@
  "seed": 789278,
  "k": 24,
  "k3": 24,
- "pairs": 19,
- "proven": 18,
+ "pairs": 22,
+ "proven": 21,
  "depth": {
   "2": 4,
   "3": 0,
   "on": 13,
-  "graph": 1
+  "graph": 4
  },
  "results": [
+  {
+   "verb": "allot",
+   "material": "geo",
+   "behaviors": [
+    "מוקד-חלוקה: כל רכב לוקח עד מספר קבוע של סלים — כל משפחה לרכב הקרוב שיש בו מקום"
+   ],
+   "nBehaviors": 1,
+   "candidates": 1,
+   "candidates3": 0,
+   "found": {
+    "form": "graph",
+    "depth": 3,
+    "steps": [
+     "core-c:catalog/core/nearest-point.mjs#nearestPoint",
+     "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+     "core-c:catalog/core/by-distance.mjs#byDistance"
+    ],
+    "roles": [
+     "extreme",
+     "convert",
+     "sort"
+    ],
+    "holds": "53/53",
+    "on": "bins+items",
+    "laws": [
+     "allot.once",
+     "allot.cap",
+     "allot.full",
+     "allot.ample",
+     "allot.det"
+    ],
+    "hint": "רכב שמחזיק עד K סלים = K תאים בכל מתנדב, ותא-המתנה רחוק מאוד לכל פריט; כל משפחה (מהקרובה-למתנדב-שלה ראשונה — המרחק לכוכב-הקרוב של הגלקסיה, ממוין בליבת «ממיין») לוקחת את התא הפנוי הקרוב (ממיין ⇒ הראשון), והתא יוצא מהרשימה",
+    "graph": {
+     "inputs": [
+      "bins",
+      "items",
+      "cap"
+     ],
+     "consts": {
+      "far": "{x:1e9, y:1e9, b:-1} — תא-המתנה: רחוק מכל מקום על המפה, ולכן נלקח רק כשאין תא פנוי אצל אף מתנדב",
+      "slots": "K עותקים של כל מתנדב: לולאה על K הפריטים הראשונים (רק המספר שלהם משמש) — כשיש פחות פריטים מ-K, יש מקום לכולם ממילא",
+      "origin0": "{x:0, y:0} — מיון לפי {x: מרחק} = מהקרוב לרחוק",
+      "loops": "🔁 הלולאות חיווט בלבד (graph.mjs: loop)"
+     },
+     "nodes": [
+      {
+       "id": "slots",
+       "loop": {
+        "over": "$bins",
+        "init": 0,
+        "item": "v",
+        "index": "bi",
+        "state": "z",
+        "nodes": [
+         {
+          "id": "rep",
+          "loop": {
+           "over": {
+            "$slice": [
+             "$items",
+             0,
+             "$cap"
+            ]
+           },
+           "init": 0,
+           "item": "w0",
+           "state": "y",
+           "nodes": [],
+           "next": "$y",
+           "emit": {
+            "x": "$v.x",
+            "y": "$v.y",
+            "b": "$bi"
+           }
+          },
+          "says": "K תאים במקום של המתנדב"
+         }
+        ],
+        "next": "$z",
+        "emit": "@rep.emits"
+       },
+       "says": "כל התאים של כל המתנדבים"
+      },
+      {
+       "id": "wait",
+       "loop": {
+        "over": "$items",
+        "init": 0,
+        "item": "w1",
+        "state": "y1",
+        "nodes": [],
+        "next": "$y1",
+        "emit": {
+         "x": 1000000000,
+         "y": 1000000000,
+         "b": -1
+        }
+       },
+       "says": "תא-המתנה לכל פריט"
+      },
+      {
+       "id": "key",
+       "loop": {
+        "over": "$items",
+        "init": 0,
+        "item": "p",
+        "state": "y2",
+        "nodes": [
+         {
+          "id": "nb",
+          "part": "core-c:catalog/core/nearest-point.mjs#nearestPoint",
+          "role": "extreme",
+          "args": [
+           "$bins",
+           "$p"
+          ],
+          "says": "המתנדב הקרוב"
+         },
+         {
+          "id": "dk",
+          "part": "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+          "role": "convert",
+          "args": [
+           "$p.x",
+           "$p.y",
+           "@nb"
+          ],
+          "says": "כמה רחוק הוא"
+         }
+        ],
+        "next": "$y2",
+        "emit": {
+         "x": "@dk",
+         "y": 0,
+         "item": "$p"
+        }
+       },
+       "says": "לכל משפחה: המרחק למתנדב הקרוב"
+      },
+      {
+       "id": "ord",
+       "part": "core-c:catalog/core/by-distance.mjs#byDistance",
+       "role": "sort",
+       "args": [
+        "@key.emits",
+        {
+         "x": 0,
+         "y": 0
+        }
+       ],
+       "says": "הקרובות-למתנדב ראשונות"
+      },
+      {
+       "id": "asg",
+       "loop": {
+        "over": "@ord",
+        "init": {
+         "$cat": [
+          {
+           "$cat": "@slots.emits"
+          },
+          "@wait.emits"
+         ]
+        },
+        "item": "w",
+        "state": "f",
+        "nodes": [
+         {
+          "id": "s",
+          "part": "core-c:catalog/core/by-distance.mjs#byDistance",
+          "role": "sort",
+          "args": [
+           "$f",
+           "$w.item"
+          ],
+          "says": "התאים הפנויים — מהקרוב לרחוק"
+         }
+        ],
+        "next": {
+         "$slice": [
+          "@s",
+          1
+         ]
+        },
+        "emit": {
+         "item": "$w.item",
+         "b": "@s.0.b"
+        }
+       },
+       "says": "כל משפחה לוקחת את התא הפנוי הקרוב"
+      }
+     ],
+     "out": "@asg.emits"
+    }
+   },
+   "tried": []
+  },
   {
    "verb": "compare",
    "material": "geo",
@@ -466,6 +663,181 @@
    "tried": []
   },
   {
+   "verb": "schedule",
+   "material": "times",
+   "behaviors": [
+    "מוקד-חלוקה: שעת הגעה לכל משפחה, ומי שבבית רק אחרי שעה מסוימת — מחכים לו"
+   ],
+   "nBehaviors": 1,
+   "candidates": 1,
+   "candidates3": 0,
+   "found": {
+    "form": "graph",
+    "depth": 6,
+    "steps": [
+     "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+     "inner-orbit:src/lib/atoms/verify/generic.ts#waitingLines.sum:step",
+     "inner-orbit:src/lib/atoms/parts/divide.ts#divideSpan.unit:step",
+     "inner-orbit:src/components/hosting/StaffModals.tsx#StaffDialog.maxL:step",
+     "inner-orbit:src/components/wheel/CourseWheel.tsx#CourseWheel.spin.delta:step",
+     "inner-orbit:src/components/supporters/AyinBoard.tsx#StageChips.map.done"
+    ],
+    "roles": [
+     "convert",
+     "sum",
+     "ratio",
+     "extreme",
+     "gap",
+     "validate"
+    ],
+    "holds": "60/60",
+    "on": "spec+route",
+    "laws": [
+     "schedule.each",
+     "schedule.drive",
+     "schedule.late",
+     "schedule.km",
+     "schedule.det"
+    ],
+    "hint": "שעת-הגעה = יציאה + מרחק (מודד-המרחק של הגלקסיה) ÷ מהירות (היחידה של מחלק-הטווח) — מסכם; לא לפני פתיחת-החלון: הגדול מהשניים (העומס-המרבי של הצוות); המתנה = הפרש (גלגל-החוגים); מאחר = החלון נסגר לפני ההגעה (שלב-שעבר של לוח-הטיפול); ק״מ מצטבר = מסכם",
+    "graph": {
+     "inputs": [
+      "route",
+      "spec"
+     ],
+     "consts": {
+      "loops": "🔁 הלולאה חיווט בלבד (graph.mjs: loop)",
+      "floor1": "הגדול-מבין של הצוות לא יורד מ-1 — שעות-ההגעה הן דקות-מחצות (מעל 1) ולכן זה לא משנה"
+     },
+     "nodes": [
+      {
+       "id": "go",
+       "loop": {
+        "over": {
+         "$slice": [
+          "$route",
+          1
+         ]
+        },
+        "init": {
+         "t": "$spec.start",
+         "prev": "$route.0",
+         "km": 0
+        },
+        "item": "p",
+        "state": "s",
+        "nodes": [
+         {
+          "id": "d",
+          "part": "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+          "role": "convert",
+          "args": [
+           "$s.prev.x",
+           "$s.prev.y",
+           "$p"
+          ],
+          "says": "הרגל"
+         },
+         {
+          "id": "km",
+          "part": "inner-orbit:src/lib/atoms/verify/generic.ts#waitingLines.sum:step",
+          "role": "sum",
+          "args": [
+           [
+            "$s.km",
+            "@d"
+           ]
+          ],
+          "says": "ק״מ מצטבר"
+         },
+         {
+          "id": "m",
+          "part": "inner-orbit:src/lib/atoms/parts/divide.ts#divideSpan.unit:step",
+          "role": "ratio",
+          "args": [
+           "@d",
+           "$spec.speed"
+          ],
+          "says": "דקות-נסיעה = מרחק ÷ מהירות"
+         },
+         {
+          "id": "eta",
+          "part": "inner-orbit:src/lib/atoms/verify/generic.ts#waitingLines.sum:step",
+          "role": "sum",
+          "args": [
+           [
+            "$s.t",
+            "@m"
+           ]
+          ],
+          "says": "מתי מגיעים בלי לחכות"
+         },
+         {
+          "id": "at",
+          "part": "inner-orbit:src/components/hosting/StaffModals.tsx#StaffDialog.maxL:step",
+          "role": "extreme",
+          "args": [
+           [
+            "@eta",
+            "$p.open"
+           ]
+          ],
+          "says": "לא לפני שהחלון נפתח"
+         },
+         {
+          "id": "w",
+          "part": "inner-orbit:src/components/wheel/CourseWheel.tsx#CourseWheel.spin.delta:step",
+          "role": "gap",
+          "args": [
+           "@eta",
+           "@at"
+          ],
+          "says": "כמה מחכים"
+         },
+         {
+          "id": "late",
+          "part": "inner-orbit:src/components/supporters/AyinBoard.tsx#StageChips.map.done",
+          "role": "validate",
+          "args": [
+           "@at",
+           "$p.close"
+          ],
+          "says": "החלון נסגר לפני ההגעה?"
+         },
+         {
+          "id": "out",
+          "part": "inner-orbit:src/lib/atoms/verify/generic.ts#waitingLines.sum:step",
+          "role": "sum",
+          "args": [
+           [
+            "@at",
+            "$spec.stay"
+           ]
+          ],
+          "says": "יוצאים אחרי העצירה"
+         }
+        ],
+        "next": {
+         "t": "@out",
+         "prev": "$p",
+         "km": "@km"
+        },
+        "emit": {
+         "at": "@at",
+         "wait": "@w",
+         "late": "@late",
+         "km": "@km"
+        }
+       },
+       "says": "תחנה אחרי תחנה"
+      }
+     ],
+     "out": "@go.emits"
+    }
+   },
+   "tried": []
+  },
+  {
    "verb": "shortest-path",
    "material": "geo",
    "behaviors": [
@@ -890,6 +1262,428 @@
      "tolerate.slot",
      "tolerate.keep"
     ]
+   },
+   "tried": []
+  },
+  {
+   "verb": "tour",
+   "material": "geo",
+   "behaviors": [
+    "מוקד-חלוקה: מסלול קצר באמת לכל מתנדב — השכן הקרוב, ואז היפוך קטעים עד שאין שיפור"
+   ],
+   "nBehaviors": 1,
+   "candidates": 1,
+   "candidates3": 0,
+   "found": {
+    "form": "graph",
+    "depth": 6,
+    "steps": [
+     "core-c:catalog/core/dedupe-points.mjs#dedupePoints",
+     "core-c:catalog/core/by-distance.mjs#byDistance",
+     "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+     "inner-orbit:src/lib/atoms/verify/generic.ts#waitingLines.sum:step",
+     "core-c:catalog/core/nearest-point.mjs#nearestPoint",
+     "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#ProfileTreeSubmenu.reversed:step"
+    ],
+    "roles": [
+     "dedupe",
+     "sort",
+     "convert",
+     "sum",
+     "extreme",
+     "reverse"
+    ],
+    "holds": "60/60",
+    "on": "stops+from",
+    "laws": [
+     "tour.visits",
+     "tour.start",
+     "tour.shorter",
+     "tour.local",
+     "tour.det"
+    ],
+    "hint": "מסלול קצר באמת = השכן-הקרוב (בכל צעד: ממיין את מה שנשאר לפי המרחק — ליבת «ממיין» מרשת-הסינפסות — ולוקח את הראשונה) מול הסדר שהגיע — הקצר מהשניים (הכוכב-הקרוב של הגלקסיה, על האורכים) — ואז 2-opt: כל היפוך-קטע (ההופך של בנייה-חכמה) נבדק באורך (מודד-המרחק של הגלקסיה + המסכם), והקצר נשאר; חוזר עד שסבב שלם לא משפר",
+    "graph": {
+     "inputs": [
+      "from",
+      "stops"
+     ],
+     "consts": {
+      "origin0": "{x:0, y:0} — כשהאורכים נעטפים כנקודות {x: אורך, y: 0}, הקרובה לאפס היא הקצרה (שוויון ⇒ הראשונה ברשימה נשארת)",
+      "loops": "🔁 הלולאות (nn · la · lb · opt · two · lc) הן חיווט בלבד — אותם חלקים מוכחים בכל סיבוב, המצב עובר הלאה (graph.mjs: loop). אין בקטלוג חלק-נתונים שמקבל פונקציה, ולכן החזרה היא צורת-חיבור — נבנתה חדש ומסומנת",
+      "max60": "עד 60 סבבי-2-opt (בפועל נעצר כשסבב שלם לא שינה כלום)",
+      "plus": "1, 2 — הסטים של המקומות i=k+1, i+1, j+1 (מחושבים במסכם, לא בחוט)"
+     },
+     "nodes": [
+      {
+       "id": "u",
+       "part": "core-c:catalog/core/dedupe-points.mjs#dedupePoints",
+       "role": "dedupe",
+       "args": [
+        "$stops"
+       ],
+       "says": "כל תחנה פעם אחת"
+      },
+      {
+       "id": "nn",
+       "loop": {
+        "over": "@u",
+        "init": {
+         "at": "$from",
+         "left": "@u"
+        },
+        "item": "p",
+        "state": "s",
+        "nodes": [
+         {
+          "id": "by",
+          "part": "core-c:catalog/core/by-distance.mjs#byDistance",
+          "role": "sort",
+          "args": [
+           "$s.left",
+           "$s.at"
+          ],
+          "says": "מה שנשאר — מהקרובה לרחוקה מהמקום הנוכחי"
+         }
+        ],
+        "next": {
+         "at": "@by.0",
+         "left": {
+          "$slice": [
+           "@by",
+           1
+          ]
+         }
+        },
+        "emit": "@by.0"
+       },
+       "says": "השכן-הקרוב: כל פעם הקרובה שעוד לא בוקרה"
+      },
+      {
+       "id": "la",
+       "loop": {
+        "over": {
+         "$cat": [
+          [
+           "$from"
+          ],
+          "@nn.emits"
+         ]
+        },
+        "init": {
+         "prev": "$from"
+        },
+        "item": "aq",
+        "state": "at",
+        "nodes": [
+         {
+          "id": "ad",
+          "part": "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+          "role": "convert",
+          "args": [
+           "$at.prev.x",
+           "$at.prev.y",
+           "$aq"
+          ],
+          "says": "רגל: המרחק מהתחנה הקודמת (מודד-המרחק של הגלקסיה)"
+         }
+        ],
+        "next": {
+         "prev": "$aq"
+        },
+        "emit": "@ad"
+       },
+       "says": "הרגליים של הדרך, אחת-אחת"
+      },
+      {
+       "id": "lan",
+       "part": "inner-orbit:src/lib/atoms/verify/generic.ts#waitingLines.sum:step",
+       "role": "sum",
+       "args": [
+        "@la.emits"
+       ],
+       "says": "אורך הדרך = סכום הרגליים"
+      },
+      {
+       "id": "lb",
+       "loop": {
+        "over": {
+         "$cat": [
+          [
+           "$from"
+          ],
+          "@u"
+         ]
+        },
+        "init": {
+         "prev": "$from"
+        },
+        "item": "bq",
+        "state": "bt",
+        "nodes": [
+         {
+          "id": "bd",
+          "part": "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+          "role": "convert",
+          "args": [
+           "$bt.prev.x",
+           "$bt.prev.y",
+           "$bq"
+          ],
+          "says": "רגל: המרחק מהתחנה הקודמת (מודד-המרחק של הגלקסיה)"
+         }
+        ],
+        "next": {
+         "prev": "$bq"
+        },
+        "emit": "@bd"
+       },
+       "says": "הרגליים של הדרך, אחת-אחת"
+      },
+      {
+       "id": "lbn",
+       "part": "inner-orbit:src/lib/atoms/verify/generic.ts#waitingLines.sum:step",
+       "role": "sum",
+       "args": [
+        "@lb.emits"
+       ],
+       "says": "אורך הדרך = סכום הרגליים"
+      },
+      {
+       "id": "start",
+       "part": "core-c:catalog/core/nearest-point.mjs#nearestPoint",
+       "role": "extreme",
+       "args": [
+        [
+         {
+          "x": "@lan",
+          "y": 0,
+          "r": {
+           "$cat": [
+            [
+             "$from"
+            ],
+            "@nn.emits"
+           ]
+          }
+         },
+         {
+          "x": "@lbn",
+          "y": 0,
+          "r": {
+           "$cat": [
+            [
+             "$from"
+            ],
+            "@u"
+           ]
+          }
+         }
+        ],
+        {
+         "x": 0,
+         "y": 0
+        }
+       ],
+       "says": "הקצרה מבין השתיים: השכן-הקרוב או הסדר שהגיע"
+      },
+      {
+       "id": "opt",
+       "loop": {
+        "over": {
+         "$slice": [
+          "$o.r",
+          1
+         ]
+        },
+        "init": {
+         "r": "@start.r",
+         "len": "@start.x"
+        },
+        "item": "a",
+        "index": "k",
+        "state": "o",
+        "until": "stable",
+        "max": 60,
+        "nodes": [
+         {
+          "id": "i",
+          "part": "inner-orbit:src/lib/atoms/verify/generic.ts#waitingLines.sum:step",
+          "role": "sum",
+          "args": [
+           [
+            "$k",
+            1
+           ]
+          ],
+          "says": "i = k+1 (תחילת הקטע; המוצא נשאר ראשון)"
+         },
+         {
+          "id": "i2",
+          "part": "inner-orbit:src/lib/atoms/verify/generic.ts#waitingLines.sum:step",
+          "role": "sum",
+          "args": [
+           [
+            "$k",
+            2
+           ]
+          ],
+          "says": "i+1"
+         },
+         {
+          "id": "two",
+          "loop": {
+           "over": {
+            "$slice": [
+             "$o.r",
+             "@i2"
+            ]
+           },
+           "init": "$o",
+           "item": "b",
+           "index": "m",
+           "state": "c",
+           "nodes": [
+            {
+             "id": "e",
+             "part": "inner-orbit:src/lib/atoms/verify/generic.ts#waitingLines.sum:step",
+             "role": "sum",
+             "args": [
+              [
+               "@i2",
+               "$m",
+               1
+              ]
+             ],
+             "says": "j+1 (סוף הקטע, לא כולל)"
+            },
+            {
+             "id": "rv",
+             "part": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#ProfileTreeSubmenu.reversed:step",
+             "role": "reverse",
+             "args": [
+              {
+               "$slice": [
+                "$c.r",
+                "@i",
+                "@e"
+               ]
+              }
+             ],
+             "says": "מהלך 2-opt: הקטע i..j הפוך"
+            },
+            {
+             "id": "lc",
+             "loop": {
+              "over": {
+               "$cat": [
+                {
+                 "$slice": [
+                  "$c.r",
+                  0,
+                  "@i"
+                 ]
+                },
+                "@rv",
+                {
+                 "$slice": [
+                  "$c.r",
+                  "@e"
+                 ]
+                }
+               ]
+              },
+              "init": {
+               "prev": "$c.r.0"
+              },
+              "item": "cq",
+              "state": "ct",
+              "nodes": [
+               {
+                "id": "cd",
+                "part": "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+                "role": "convert",
+                "args": [
+                 "$ct.prev.x",
+                 "$ct.prev.y",
+                 "$cq"
+                ],
+                "says": "רגל: המרחק מהתחנה הקודמת (מודד-המרחק של הגלקסיה)"
+               }
+              ],
+              "next": {
+               "prev": "$cq"
+              },
+              "emit": "@cd"
+             },
+             "says": "הרגליים של הדרך, אחת-אחת"
+            },
+            {
+             "id": "lcn",
+             "part": "inner-orbit:src/lib/atoms/verify/generic.ts#waitingLines.sum:step",
+             "role": "sum",
+             "args": [
+              "@lc.emits"
+             ],
+             "says": "אורך הדרך = סכום הרגליים"
+            },
+            {
+             "id": "pk",
+             "part": "core-c:catalog/core/nearest-point.mjs#nearestPoint",
+             "role": "extreme",
+             "args": [
+              [
+               {
+                "x": "$c.len",
+                "y": 0,
+                "r": "$c.r"
+               },
+               {
+                "x": "@lcn",
+                "y": 0,
+                "r": {
+                 "$cat": [
+                  {
+                   "$slice": [
+                    "$c.r",
+                    0,
+                    "@i"
+                   ]
+                  },
+                  "@rv",
+                  {
+                   "$slice": [
+                    "$c.r",
+                    "@e"
+                   ]
+                  }
+                 ]
+                }
+               }
+              ],
+              {
+               "x": 0,
+               "y": 0
+              }
+             ],
+             "says": "נשאר הקצר (שוויון ⇒ בלי שינוי)"
+            }
+           ],
+           "next": {
+            "r": "@pk.r",
+            "len": "@pk.x"
+           }
+          },
+          "says": "כל j אחרי i"
+         }
+        ],
+        "next": "@two.state"
+       },
+       "says": "2-opt: עד שסבב שלם לא מקצר"
+      }
+     ],
+     "out": "@opt.state.r"
+    }
    },
    "tried": []
   }

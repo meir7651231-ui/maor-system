@@ -13,6 +13,8 @@
 
 8. **🧺 PRODUCT** (14.10.2026): **זמן-הריצה** (`catalog/runtime/`) — הרכבה ⇒ פונקציות שאפשר לקרוא להן (החלק המוכח עצמו; שילוב באותו חיבור), נארזות ל-`catalog/products/<id>/parts.bundle.mjs`. המוצר הראשון: «מוקד-חלוקה» (16/16 ✅) בדף שעובד — `catalog/products/distribution/index.html`. ליבה חדשה `nearestPoint` (הכוכב-הקרוב-לעכבר של הגלקסיה). דוח: `knowledge/CLOSED-PRODUCT-DISTRIBUTION-2026-10-14.md`.
 
+9. **🧺 PRODUCT-V2** (14.10.2026): **לולאה בגרף** (`graph.mjs` — צומת `loop` + חוטי `$slice`/`$cat`; חיווט בלבד, מסומן כ"נבנה חדש" — אין בקטלוג חלק-נתונים שמקבל פונקציה) ו-3 פעלים חדשים (`catalog/lib/verbs-route.mjs`): «מסדר מסלול» `tour` (60/60) · «משבץ עד התקרה» `allot` (53/53) · «מתזמן בחלונות» `schedule` (60/60) — כל אחד נמצא **רק כשילוב** של חלקים מוכחים. דוח: `knowledge/CLOSED-PRODUCT-V2-2026-10-14.md`.
+
 > `missing/` שונה ל-`dig/` (14.10.2026) — אותם שדות + `status` + `places[]`.
 
 ```bash

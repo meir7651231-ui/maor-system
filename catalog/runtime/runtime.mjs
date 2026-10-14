@@ -9,7 +9,7 @@
  * טהור: בלי DOM, בלי node, בלי שעון — רץ בדפדפן וב-node. `parts` = מפתח-חלק ⇒ הפונקציה (מהחבילה parts.bundle.mjs
  * בדפדפן, או מהמודולים עצמם ב-node). `assembly` = מה ש-catalog/runtime/manifest.mjs כותב מההרכבה של המכונה.
  */
-import { runGraph } from '../combiner/graph.mjs';
+import { runGraph, graphNodes } from '../combiner/graph.mjs';
 
 /** קריאה לחלק: {v} או {err} — כמו callerFor של ארגז-החול (שגיאה לא זורקת החוצה באמצע שרשרת). */
 function call(fn, args) {
@@ -70,7 +70,7 @@ export function needFunction(need, parts) {
   if (form === 'graph') {
     const g = need.combo.graph;
     const byPart = new Map(need.steps.map((s, k) => [s.id, fns[k]]));
-    const nodeFns = g.nodes.map((n) => byPart.get(n.part));
+    const nodeFns = graphNodes(g).map((n) => byPart.get(n.part));
     return (...args) => {
       const r = runGraph(g, args, (k, a) => call(nodeFns[k], a));
       if ('err' in r) throw new Error(r.err);
@@ -84,6 +84,13 @@ export function needFunction(need, parts) {
 export function makeRuntime(assembly, parts) {
   const out = {};
   for (const need of assembly.needs) if (need.steps?.length) out[need.id] = needFunction(need, parts);
+  return out;
+}
+
+/** כלי-המדידה של המסך (PRODUCT-V2) ⇒ {מפתח: הפונקציה} — כל אחד חלק מוכח אחד, נקרא כמו שהוא. */
+export function makeExtras(assembly, parts) {
+  const out = {};
+  for (const x of assembly.extras || []) out[x.as] = partFn(parts, x);
   return out;
 }
 
