@@ -33,7 +33,7 @@
     {
      "source": "orbit",
      "file": "src/store/useApp.ts",
-     "line": 2029,
+     "line": 2049,
      "what": "ניקוד-האשראי של משפחה יורד בלי פעילות, עד רצפה",
      "math": "score = max(0, score-2)",
      "repo": "meir7651231-ui/maor-system"
@@ -115,8 +115,8 @@
     },
     {
      "source": "orbit",
-     "file": "src/lib/lock.ts",
-     "line": 167,
+     "file": "src/components/lock/LockScreen.tsx",
+     "line": 40,
      "what": "המתנה אחרי קוד-PIN שגוי",
      "math": "remainMs = max(0, until - now)",
      "repo": "meir7651231-ui/maor-system"
@@ -348,7 +348,7 @@
     {
      "source": "orbit",
      "file": "src/components/parnasa/sound.ts",
-     "line": 42,
+     "line": 84,
      "what": "מתנדי-סינוס של צליל המטבע",
      "math": "2637/3960/5280/7120 Hz",
      "repo": "meir7651231-ui/maor-system"
@@ -570,9 +570,9 @@
     {
      "source": "orbit",
      "file": "src/components/shop7/lib.ts",
-     "line": 136,
+     "line": 137,
      "what": "עצירות-המסלול של מתנדב",
-     "math": "לפי סדר הלוח",
+     "math": "for (d of db.deliveries) out.push(stop) — לפי סדר הלוח",
      "part": "orbit:src/components/shop7/lib.ts#volunteerRouteStops",
      "repo": "meir7651231-ui/maor-system"
     },
@@ -656,7 +656,7 @@
     {
      "source": "orbit",
      "file": "src/lib/three-scene.ts",
-     "line": 145,
+     "line": 261,
      "what": "טבעת-השביט סביב כדור-המוח",
      "math": "pivot.rotation.z = -t*0.9",
      "repo": "meir7651231-ui/maor-system"
@@ -749,9 +749,9 @@
     {
      "source": "orbit",
      "file": "src/lib/engineroute/route.ts",
-     "line": 122,
+     "line": 298,
      "what": "הדרך הקצרה בין מנועים (BFS על קבוצות)",
-     "math": "רמה = מנוע אחד נוסף",
+     "math": "for (depth …; level = next) — רמה = מנוע אחד נוסף (BFS)",
      "repo": "meir7651231-ui/maor-system"
     },
     {
@@ -827,9 +827,9 @@
     {
      "source": "orbit",
      "file": "src/components/parnasa/bannerFx.ts",
-     "line": 531,
+     "line": 561,
      "what": "אדווה מתרחבת במגע",
-     "math": "3 טבעות, rx עד 260",
+     "math": "rx = k * 260 — 3 טבעות, rx עד 260",
      "repo": "meir7651231-ui/maor-system"
     },
     {
@@ -1055,15 +1055,36 @@
    ]
   },
   "bounce": {
-   "builtNew": true,
+   "foundAs": "combination",
+   "of": [
+    "oscillate",
+    "decay"
+   ],
    "origins": [
     {
      "source": "generator",
      "file": "new/dart-ui-bs/dots_loader.dart",
-     "line": 46,
-     "what": "נקודות \"קופצות\" (sin חיובי, בלי מקדם)",
+     "line": 47,
+     "what": "נקודות קופצות: הגל מתקפל ולא יורד מתחת לרצפה (חלק 1 — מתקפל)",
      "math": "lift = sin(phase*π).clamp(0,1)",
+     "best": true,
      "repo": "meir7651231-ui/-ai-chat-server@claude/mavin-260922"
+    },
+    {
+     "source": "buildsmart",
+     "file": "index.html",
+     "line": 100,
+     "what": "פעמון שמתנדנד ונרגע: כל נדנוד הפוך וחלש ב-~×0.7 (חלק 2 — דועך, עם היפוך)",
+     "math": "@keyframes bellring: 16° → −13° → 9° → −6° → 3° → 0",
+     "repo": "meir7651231-ui/buildsmart"
+    },
+    {
+     "source": "orbit",
+     "file": "src/components/parnasa/Ambient.tsx",
+     "line": 91,
+     "what": "חיכוך אבק-הזהב בפרנס׳לע: המהירות נחלשת בכל צעד (חלק 2 — דועך)",
+     "math": "p.vx *= 0.985",
+     "repo": "meir7651231-ui/maor-system"
     },
     {
      "source": "generator",
@@ -1080,26 +1101,10 @@
      "what": "עקומת קפיץ",
      "math": "cubic-bezier(0.2, 0.9, 0.3, 1.2)",
      "repo": "meir7651231-ui/buildsmart"
-    },
-    {
-     "source": "orbit",
-     "file": "src/components/parnasa/Ambient.tsx",
-     "line": 98,
-     "what": "גלישה-מסביב בקצה (במקום קפיצה)",
-     "math": "x < -10 ⇒ x = W + 10",
-     "repo": "meir7651231-ui/maor-system"
-    },
-    {
-     "source": "mmmm",
-     "file": "lib/integrations-openai-ai-server/src/batch/utils.ts",
-     "line": 54,
-     "what": "ניסיון-חוזר שמכפיל המתנה (לא קפיצה)",
-     "math": "factor: 2, max 128000",
-     "repo": "meir7651231-ui/MMMM"
     }
    ],
    "variants": [
-    "🔴 אין בשום פרויקט מהירות שמתהפכת בפגיעה. נבנה חדש, מינימלי: שיקוף מהרצפה × מקדם-קפיצה"
+    "🧩 שילוב: מתקפל מהרצפה (dots_loader) × דועך (bellring · Ambient) — ליבת bounce מייבאת את ליבת decay; מקדם מעל 99% (מחוץ לתחום של decay) מוכפל ישירות"
    ]
   },
   "sun-position": {
@@ -1116,9 +1121,9 @@
     {
      "source": "orbit",
      "file": "telephony/lib/zmanim.mjs",
-     "line": 108,
+     "line": 59,
      "what": "זריחה ושקיעה של הטלפון (זניט 90.833°)",
-     "math": "NOAA",
+     "math": "solarEventUTCmin — NOAA (JD, T, L0)",
      "part": "orbit:telephony/lib/zmanim.mjs#sunset",
      "repo": "meir7651231-ui/maor-system"
     },

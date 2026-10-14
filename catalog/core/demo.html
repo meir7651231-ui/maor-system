@@ -31,8 +31,8 @@ h2 { margin: 0; font: 600 19px/1.3 var(--display); display: flex; gap: 8px; alig
 h2 span { font: 12px var(--mono); color: var(--muted); }
 .means { margin: 0; font-size: 13.5px; }
 .where { margin: 6px 0 0; font-size: 13px; color: var(--teal); }
-.where.built { color: var(--rose); }
-.where code, .built code { font: 12px var(--mono); overflow-wrap: anywhere; }
+.where.combo { color: var(--teal); }
+.where code, .combo code { font: 12px var(--mono); overflow-wrap: anywhere; }
 .what, .more { margin: 0; font-size: 12.5px; color: var(--muted); }
 footer { margin-top: 28px; color: var(--muted); font-size: 13px; }
 footer code { font: 12px var(--mono); }
@@ -42,7 +42,7 @@ footer code { font: 12px var(--mono); }
 <header>
   <div class="eyebrow">הקטלוג · הליבה · 15 מנועים</div>
   <h1>מנועי הזמן והתנועה</h1>
-  <p class="lede">כל מנוע כאן נמצא בקוד שכבר כתבנו — באפקט, באנימציה, בשעון, בניתוב — וחולץ לליבה בלי עולם. <b>14 מתוך 15 נמצאו</b>, ב-120 מקומות; רק "קופץ" נבנה חדש. מה שרץ על המסך הוא בדיוק הקוד שנבדק בחוקים.</p>
+  <p class="lede">כל מנוע כאן נמצא בקוד שכבר כתבנו — באפקט, באנימציה, בשעון, בניתוב — וחולץ לליבה בלי עולם. <b>15 מתוך 15 נמצאו</b>, ב-120 מקומות; "קופץ" נמצא כשילוב של שניים מהם (מתקפל מהרצפה × דועך). מה שרץ על המסך הוא בדיוק הקוד שנבדק בחוקים.</p>
 </header>
 <main>
 <figure class="card" id="decay"><canvas data-engine="decay" width="320" height="180" aria-label="דועך — הדגמה חיה"></canvas><figcaption><h2>דועך <span dir="ltr">decay</span></h2><p class="means">ערך שמתקרב לרצפה בכל צעד (חיכוך, דהייה, ריסון) — לא עובר אותה, ובסוף נוגע בה בדיוק ונשאר</p><p class="where">נמצא ב: <b>אורביט</b> · <code dir="ltr">Ambient.tsx:91</code></p><p class="what">אבק-זהב שמתפזר בפרנס׳לע מאט מחיכוך</p><p class="more">ועוד 9 מקומות ב-5 פרויקטים</p></figcaption></figure>
@@ -58,7 +58,7 @@ footer code { font: 12px var(--mono); }
 <figure class="card" id="sample"><canvas data-engine="sample" width="320" height="180" aria-label="דוגם — הדגמה חיה"></canvas><figcaption><h2>דוגם <span dir="ltr">sample</span></h2><p class="means">קורא מהסביבה כל קריאה k-ית (הראשונה, ה-k, ה-2k…) — בלי לשנות ובלי לדלג על תור</p><p class="where">נמצא ב: <b>הישיבה</b> · <code dir="ltr">mefarshim.py:32</code></p><p class="what">דוגם כל דף עשירי בש&quot;ס (60 אלף בקשות ⇒ 6 אלף)</p><p class="more">ועוד 7 מקומות ב-6 פרויקטים</p></figcaption></figure>
 <figure class="card" id="echo"><canvas data-engine="echo" width="320" height="180" aria-label="מודד בהד — הדגמה חיה"></canvas><figcaption><h2>מודד בהד <span dir="ltr">echo</span></h2><p class="means">שולח אות ומודד אחרי כמה זמן חזר — המרחק הוא הדרך הלוך-וחזור חלקי שתיים</p><p class="where">נמצא ב: <b>14kk</b> · <code dir="ltr">server.js:248</code></p><p class="what">PING ל-Redis, מחכה ל-PONG ומודד זמן-תגובה</p><p class="more">ועוד 5 מקומות ב-4 פרויקטים</p></figcaption></figure>
 <figure class="card" id="follow"><canvas data-engine="follow" width="320" height="180" aria-label="הולך אחרי — הדגמה חיה"></canvas><figcaption><h2>הולך אחרי <span dir="ltr">follow</span></h2><p class="means">בכל צעד מתקרב חלק קבוע מהדרך אל המטרה — לא עובר אותה, וכשהגיע נשאר (החלקה, מצלמה שנגררת, להקה)</p><p class="where">נמצא ב: <b>אורביט</b> · <code dir="ltr">three-scene.ts:257</code></p><p class="what">כדור-המוח נגרר בעדינות אחרי העכבר</p><p class="more">ועוד 6 מקומות ב-5 פרויקטים</p></figcaption></figure>
-<figure class="card" id="bounce"><canvas data-engine="bounce" width="320" height="180" aria-label="קופץ — הדגמה חיה"></canvas><figcaption><h2>קופץ <span dir="ltr">bounce</span></h2><p class="means">גוף שפוגע ברצפה חוזר ממנה: המהירות מתהפכת ונחלשת לפי מקדם-הקפיצה, ואף פעם לא נשאר מתחת לרצפה</p><p class="where built">🔴 לא נמצא בשום פרויקט — נבנה חדש. הקרוב ביותר: המחולל · <code>dots_loader.dart</code></p></figcaption></figure>
+<figure class="card" id="bounce"><canvas data-engine="bounce" width="320" height="180" aria-label="קופץ — הדגמה חיה"></canvas><figcaption><h2>קופץ <span dir="ltr">bounce</span></h2><p class="means">גוף שפוגע ברצפה חוזר ממנה: המהירות מתהפכת ונחלשת לפי מקדם-הקפיצה, ואף פעם לא נשאר מתחת לרצפה</p><p class="where combo">🧩 נמצא כשילוב: <b>מתנדנד</b> × <b>דועך</b></p><p class="where">נמצא ב: <b>המחולל</b> · <code dir="ltr">dots_loader.dart:47</code></p><p class="what">נקודות קופצות: הגל מתקפל ולא יורד מתחת לרצפה (חלק 1 — מתקפל)</p><p class="more">ועוד 4 מקומות ב-3 פרויקטים</p></figcaption></figure>
 <figure class="card" id="sun-position"><canvas data-engine="sun-position" width="320" height="180" aria-label="מוצא את מקום השמש — הדגמה חיה"></canvas><figcaption><h2>מוצא את מקום השמש <span dir="ltr">sun-position</span></h2><p class="means">מתי השמש נמצאת בזווית נתונה מתחת לאופק ביום ובמקום נתונים — בבוקר עולה, בערב שוקעת, וחצות-היום באמצע</p><p class="where">נמצא ב: <b>אורביט</b> · <code dir="ltr">zmanimBoard.ts:249</code></p><p class="what">זמני-היום של פרנס׳לע — NOAA עם זווית לבחירה</p><p class="more">ועוד 2 מקומות ב-1 פרויקטים</p></figcaption></figure>
 </main>
 <footer>נוצר מ-<code>catalog/core/*.mjs</code> ו-<code>origins.json</code> ע"י <code>node catalog/scripts/core-demo.mjs</code>. במצב "הפחתת תנועה" כל מנוע מוצג כתמונה עומדת עם המסלול שלו.</footer>
@@ -393,11 +393,18 @@ function fin(x) { const v = Number(x); return Number.isFinite(v) ? v : 0; }
 return follow;
 })();
 const bounce = (() => {
+
 /**
  * 🏀 קופץ (bounce) — גוף שזז; אם בצעד הזה הוא עובר את הרצפה — הוא חוזר ממנה: המהירות מתהפכת ונחלשת לפי
  * מקדם-הקפיצה, והוא אף פעם לא נשאר מתחת לרצפה.
- * 🔴 נבנה-חדש (origin: built-new): באף אחד מ-9 הפרויקטים אין מהירות שמתהפכת בפגיעה בקיר. הקרובים ביותר (origins.json):
- * "קפיצה" מדומה ב-sin (dots_loader של המחולל), עקומות-קפיץ easeOutBack, וגלישה-מסביב במקום קפיצה (Ambient של פרנס׳לע).
+ * 🧩 נמצא כשילוב: שתי פעולות שכבר כתבנו, מחוברות.
+ *   1. "מתקפל מהרצפה" — `lift = sin(phase*π).clamp(0,1)` (dots_loader של המחולל, :47): הגל לא יורד מתחת לרצפה,
+ *      חצי-הגל התחתון מתקפל למעלה. כאן: מה שעבר את הרצפה חוזר מעליה באותו מרחק (`foldUp`).
+ *   2. "דועך" — ליבת decay (catalog/core/decay.mjs): כל נדנוד חלש מהקודם — הפעמון של בנייה-חכמה
+ *      (`@keyframes bellring`: 16° → −13° → 9° → −6° → 3° → 0, כל נדנוד הפוך וחלש ב-~×0.7), והחיכוך של
+ *      אבק-הזהב בפרנס׳לע (Ambient.tsx:91, `*= 0.985`). כאן: המהירות שהתהפכה עוברת צעד-דעיכה אחד לעבר 0.
+ * הערה מדויקת: ליבת decay מגבילה את מה-שנשאר ל-99% (דבר שדועך תמיד דועך); מקדם-קפיצה מעל 99% (כמעט-אלסטי)
+ * לא עובר דרכה ומוכפל ישירות. כל שאר הטווח (0–99%) — דרך decay עצמה. חוקי "קופץ" רצים על הפונקציה הזו.
  * טהור: צעד אחד; הלולאה אצל הקורא (יחד עם "נופל" — gravity).
  * @param {{floor: number, bouncePct: number}} spec
  * @param {{pos: number, vel: number}} body
@@ -405,12 +412,24 @@ const bounce = (() => {
  */
 function bounce(spec, body) {
   const floor = fin(spec?.floor);
-  const e = Math.min(100, Math.abs(fin(spec?.bouncePct))) / 100;
+  const pct = Math.min(100, Math.abs(fin(spec?.bouncePct)));
   const pos = Math.max(floor, fin(body?.pos));
   const vel = fin(body?.vel);
   const next = pos + vel;
-  if (next < floor) return { pos: floor + (floor - next) * e, vel: -vel * e };
-  return { pos: next, vel };
+  if (next >= floor) return { pos: next, vel };
+  // פגיעה: מתקפל מהרצפה (1) ונחלש בצעד-דעיכה אחד (2) — גם המרחק שמעל הרצפה וגם המהירות
+  return { pos: floor + weaken(foldUp(floor, next) - floor, pct), vel: weaken(-vel, pct) };
+}
+
+/** (1) "מתקפל מהרצפה": מה שמתחת לרצפה חוזר מעליה באותו מרחק — כמו sin(…).clamp שלא יורד מתחת לאפס. */
+function foldUp(floor, x) {
+  return x < floor ? floor + (floor - x) : x;
+}
+
+/** (2) "דועך" צעד אחד לעבר 0, ונשאר `pct` אחוז — ליבת decay; מעל 99% (מחוץ לתחום של decay) — כפל ישיר. */
+function weaken(v, pct) {
+  if (pct > 99) return (v * pct) / 100;
+  return decay({ from: v, floor: 0, keepPct: pct }, 1);
 }
 
 function fin(x) { const v = Number(x); return Number.isFinite(v) ? v : 0; }

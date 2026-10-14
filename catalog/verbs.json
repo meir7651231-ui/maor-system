@@ -2708,7 +2708,10 @@
    ],
    "mined": true,
    "core": "catalog/core/bounce.mjs",
-   "builtNew": true,
+   "combination": [
+    "oscillate",
+    "decay"
+   ],
    "cues": {
     "he": [
      "קופץ",

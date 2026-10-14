@@ -6,7 +6,7 @@
  * החוזה (catalog/schema.json) לא מכיר שדה `origins`, ולכן המקורות נכנסים ל-`tags` (חופשי לפי החוזה):
  *   origin:<source>:<file>:<line>  — כל מקום שבו הפעולה נמצאה (הראשון = best, המימוש שממנו חולצה הליבה)
  *   twin:<part-id>                 — החלק בקטלוג שהליבה היא ה"תאום בלי עולם" שלו
- *   verb:<id> · built-new          — הפועל; ובלי מימוש בשום מקום — "נבנה חדש"
+ *   verb:<id> · combination:<a>+<b> — הפועל; ופועל שנמצא כשילוב של שתי ליבות — "נמצא כשילוב"
  * הרשימה המלאה (מה זה עושה בעולם שלו, המתמטיקה, וריאנטים) — catalog/core/origins.json.
  *
  *   node catalog/scripts/core-census.mjs           # כותב
@@ -58,7 +58,7 @@ export function coreParts() {
     if (!c || !og) throw new Error('חסר כרטיס/מקורות ל-' + v.id);
     const best = og.origins.filter((o) => o.best);
     const ordered = [...best, ...og.origins.filter((o) => !o.best)];
-    const tags = ['core', 'verb:' + v.id, ...(og.builtNew ? ['built-new'] : []), ...ordered.map((o) => `origin:${o.source}:${o.file}:${o.line}`), ...[...new Set(ordered.filter((o) => o.part).map((o) => 'twin:' + o.part))]];
+    const tags = ['core', 'verb:' + v.id, ...(og.foundAs === 'combination' ? ['combination:' + og.of.join('+')] : []), ...ordered.map((o) => `origin:${o.source}:${o.file}:${o.line}`), ...[...new Set(ordered.filter((o) => o.part).map((o) => 'twin:' + o.part))]];
     return {
       id: `core:${file}#${symbol}`, source: 'core', path: file, symbol, lang: 'js', what: 'brick',
       name: c.name, does: v.means,

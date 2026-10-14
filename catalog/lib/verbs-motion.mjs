@@ -600,7 +600,7 @@ export const MOTION_VERBS = [
     cues: { en: ['follow', 'chase', 'lerp', 'ease', 'easeToward', 'smooth', 'smoothing', 'track', 'approach', 'ema', 'lag', 'seek'], he: ['הולך אחרי', 'עוקב', 'נגרר', 'מתקרב'] },
   },
   {
-    id: 'bounce', he: 'קופץ', mined: true, builtNew: true, bind: 'spec',
+    id: 'bounce', he: 'קופץ', mined: true, combination: ['oscillate', 'decay'], bind: 'spec',
     means: 'גוף שפוגע ברצפה חוזר ממנה: המהירות מתהפכת ונחלשת לפי מקדם-הקפיצה, ואף פעם לא נשאר מתחת לרצפה',
     takes: ['record', 'record'], gives: 'record',
     fit: (e) => has(e.x, ['floor', 'bouncePct']) && isObj(e.y) && 'pos' in e.y && 'vel' in e.y && isObj(e.out),

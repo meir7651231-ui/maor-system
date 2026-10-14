@@ -81,7 +81,7 @@ export function buildIndex(sources, behaviors) {
     const tw = (p.tags ?? []).filter((t) => t.startsWith('twin:')).map((t) => t.slice(5)).filter((id) => ids.has(id)).sort();
     for (const id of tw) coreOf.set(id, p.id);
     const origins = (p.tags ?? []).filter((t) => t.startsWith('origin:'));
-    return { core: p.id, verb: (p.tags.find((t) => t.startsWith('verb:')) ?? '').slice(5), builtNew: p.tags.includes('built-new'), origins: origins.length, sources: [...new Set(origins.map((t) => t.split(':')[1]))].sort(byKey(srcRank)), twins: tw };
+    return { core: p.id, verb: (p.tags.find((t) => t.startsWith('verb:')) ?? '').slice(5), combination: (p.tags.find((t) => t.startsWith('combination:')) ?? '').slice(12).split('+').filter(Boolean), origins: origins.length, sources: [...new Set(origins.map((t) => t.split(':')[1]))].sort(byKey(srcRank)), twins: tw };
   });
 
   const rows = parts.slice().sort(byKey((p) => p.id)).map((p) => {
@@ -137,7 +137,7 @@ export function verbsJson(atomLaws) {
       if (v.box) o.box = true;
       if (v.staticOnly) { o.staticOnly = true; o.laws = []; }
       else o.laws = v.laws.map((l) => ({ id: l.id, says: l.says, ...(l.sweep ? { sweep: true } : {}), ...(l.catches ? { catches: l.catches } : {}) }));
-      if (v.mined) { o.mined = true; o.core = 'catalog/core/' + v.id + '.mjs'; if (v.builtNew) o.builtNew = true; }
+      if (v.mined) { o.mined = true; o.core = 'catalog/core/' + v.id + '.mjs'; if (v.combination) o.combination = v.combination; }
       if (v.boxLaws) o.boxLaws = box.get(v.boxLaws) ?? [];
       o.cues = { he: v.cues?.he ?? [], en: v.cues?.en ?? [] };
       return o;
@@ -154,13 +154,13 @@ export function verbsMd(vj) {
   L.push('קוד: [`lib/verbs.mjs`](./lib/verbs.mjs) · מכונה-קריאה: [`verbs.json`](./verbs.json) · מי מקיים מה: [`alphabet.md`](./alphabet.md).', '');
   L.push('**איך פועל "מתקיים" בחלק:** מריצים את החלק בארגז-חול על קלטים עם זרע, מנסים כל קישור ("איזה קלט הוא הרשימה"), וכל החוקים של הפועל צריכים לעבור על כל המקרים (n/n), עם מספיק מקרים ועם מקרה-עד שהחלק לא טריוויאלי (לא זהות, לא קבוע, ותלוי בקלט). לכל חוק יש "מוטנט" — מימוש מקולקל שהחוק תופס (`catalog/__tests__/verbs.test.ts`).', '');
   L.push('| # | id | פועל | משמעות | מקבל ⇒ נותן | חוקים |', '|---:|---|---|---|---|---:|');
-  vj.verbs.forEach((v, k) => L.push(`| ${k + 1} | \`${v.id}\`${v.box ? ' 📦' : ''}${v.mined ? ' 🌀' : ''}${v.builtNew ? '🔴' : ''} | **${v.he}** | ${v.means} | ${v.takes.length ? v.takes.map((t) => '`' + t + '`').join(' + ') : '—'} ⇒ \`${v.gives}\` | ${v.staticOnly ? 'static-only' : v.laws.length + (v.boxLaws ? ' + ' + v.boxLaws.length : '')} |`));
-  L.push('', '📦 = אחד מ-8 פעלי-הארגז (החלקים הקטנים של אורביט). 🌀 = פועל-זמן/תנועה שנכרה מהקוד שלנו — הליבה ב-`core/<id>.mjs`, כל המקומות שבהם נמצא ב-[`core/origins.json`](./core/origins.json); 🔴 = לא נמצא בשום מקום ונבנה חדש.', '');
+  vj.verbs.forEach((v, k) => L.push(`| ${k + 1} | \`${v.id}\`${v.box ? ' 📦' : ''}${v.mined ? ' 🌀' : ''}${v.combination ? '🧩' : ''} | **${v.he}** | ${v.means} | ${v.takes.length ? v.takes.map((t) => '`' + t + '`').join(' + ') : '—'} ⇒ \`${v.gives}\` | ${v.staticOnly ? 'static-only' : v.laws.length + (v.boxLaws ? ' + ' + v.boxLaws.length : '')} |`));
+  L.push('', '📦 = אחד מ-8 פעלי-הארגז (החלקים הקטנים של אורביט). 🌀 = פועל-זמן/תנועה שנכרה מהקוד שלנו — הליבה ב-`core/<id>.mjs`, כל המקומות שבהם נמצא ב-[`core/origins.json`](./core/origins.json); 🧩 = נמצא כשילוב של שתי ליבות (קופץ = מתקפל × דועך).', '');
   L.push('## החוקים', '');
   for (const v of vj.verbs) {
     L.push(`### \`${v.id}\` — ${v.he}`, '', v.means, '');
     if (v.staticOnly) { L.push('_static-only: אין חוק חד שאפשר לבדוק מבחוץ. מזוהה משם הפעולה ומהחתימה — רמזים: ' + [...v.cues.he, ...v.cues.en].map((c) => '`' + c + '`').join(' · ') + '._', ''); continue; }
-    if (v.mined) L.push(`ליבה: [\`${v.core}\`](./${v.core.replace('catalog/', '')})${v.builtNew ? ' · 🔴 נבנה חדש — לא נמצא בשום פרויקט' : ''}`, '');
+    if (v.mined) L.push(`ליבה: [\`${v.core}\`](./${v.core.replace('catalog/', '')})${v.combination ? ' · 🧩 נמצא כשילוב: ' + v.combination.map((c) => '`' + c + '`').join(' × ') : ''}`, '');
     for (const l of v.laws) L.push(`- \`${l.id}\`${l.sweep ? ' (סריקה)' : ''} — ${l.says}${l.catches ? ' · _תופס מוטנט: ' + l.catches + '_' : ''}`);
     if (v.boxLaws?.length) {
       L.push('', `<details><summary>${v.boxLaws.length} חוקי-המאמת על החלק עצמו</summary>`, '');

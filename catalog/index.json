@@ -59,13 +59,13 @@
   {
    "source": "core",
    "repo": "meir7651231-ui/maor-system",
-   "ref": "claude/mined-verbs-261014@939ae480300dd141a69a50d0a47a1b3d78939292",
+   "ref": "claude/final-261014@dfdd577a87a2159ed45a9b830264cc46725e143f",
    "parts": 15
   },
   {
    "source": "core-b",
    "repo": "meir7651231-ui/maor-system",
-   "ref": "claude/static-verbs-261014@784d388",
+   "ref": "catalog/core@7f2d8d92",
    "parts": 7
   }
  ],
@@ -6998,7 +6998,7 @@
    {
     "core": "core:catalog/core/accumulate.mjs#accumulate",
     "verb": "accumulate",
-    "builtNew": false,
+    "combination": [],
     "origins": 12,
     "sources": [
      "orbit",
@@ -7016,20 +7016,22 @@
    {
     "core": "core:catalog/core/bounce.mjs#bounce",
     "verb": "bounce",
-    "builtNew": true,
+    "combination": [
+     "oscillate",
+     "decay"
+    ],
     "origins": 5,
     "sources": [
      "orbit",
      "buildsmart",
-     "generator",
-     "mmmm"
+     "generator"
     ],
     "twins": []
    },
    {
     "core": "core:catalog/core/countdown.mjs#countdown",
     "verb": "countdown",
-    "builtNew": false,
+    "combination": [],
     "origins": 12,
     "sources": [
      "orbit",
@@ -7049,7 +7051,7 @@
    {
     "core": "core:catalog/core/decay.mjs#decay",
     "verb": "decay",
-    "builtNew": false,
+    "combination": [],
     "origins": 10,
     "sources": [
      "orbit",
@@ -7063,7 +7065,7 @@
    {
     "core": "core:catalog/core/echo.mjs#echo",
     "verb": "echo",
-    "builtNew": false,
+    "combination": [],
     "origins": 6,
     "sources": [
      "orbit",
@@ -7079,7 +7081,7 @@
    {
     "core": "core:catalog/core/follow.mjs#follow",
     "verb": "follow",
-    "builtNew": false,
+    "combination": [],
     "origins": 7,
     "sources": [
      "orbit",
@@ -7093,7 +7095,7 @@
    {
     "core": "core:catalog/core/gravity.mjs#gravity",
     "verb": "gravity",
-    "builtNew": false,
+    "combination": [],
     "origins": 6,
     "sources": [
      "orbit",
@@ -7106,7 +7108,7 @@
    {
     "core": "core:catalog/core/move-along-path.mjs#moveAlongPath",
     "verb": "move-along-path",
-    "builtNew": false,
+    "combination": [],
     "origins": 9,
     "sources": [
      "orbit",
@@ -7125,7 +7127,7 @@
    {
     "core": "core:catalog/core/orbit.mjs#orbit",
     "verb": "orbit",
-    "builtNew": false,
+    "combination": [],
     "origins": 9,
     "sources": [
      "orbit",
@@ -7142,7 +7144,7 @@
    {
     "core": "core:catalog/core/oscillate.mjs#oscillate",
     "verb": "oscillate",
-    "builtNew": false,
+    "combination": [],
     "origins": 10,
     "sources": [
      "orbit",
@@ -7159,7 +7161,7 @@
    {
     "core": "core:catalog/core/random.mjs#random",
     "verb": "random",
-    "builtNew": false,
+    "combination": [],
     "origins": 9,
     "sources": [
      "orbit",
@@ -7177,7 +7179,7 @@
    {
     "core": "core:catalog/core/sample.mjs#sample",
     "verb": "sample",
-    "builtNew": false,
+    "combination": [],
     "origins": 8,
     "sources": [
      "buildsmart",
@@ -7192,7 +7194,7 @@
    {
     "core": "core:catalog/core/shortest-path.mjs#shortestPath",
     "verb": "shortest-path",
-    "builtNew": false,
+    "combination": [],
     "origins": 7,
     "sources": [
      "orbit",
@@ -7210,7 +7212,7 @@
    {
     "core": "core:catalog/core/spread.mjs#spread",
     "verb": "spread",
-    "builtNew": false,
+    "combination": [],
     "origins": 7,
     "sources": [
      "orbit",
@@ -7229,7 +7231,7 @@
    {
     "core": "core:catalog/core/sun-position.mjs#sunPosition",
     "verb": "sun-position",
-    "builtNew": false,
+    "combination": [],
     "origins": 3,
     "sources": [
      "orbit"

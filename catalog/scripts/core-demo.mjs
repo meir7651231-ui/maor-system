@@ -22,7 +22,8 @@ const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replac
 function coreCode() {
   return MOTION_VERBS.map((v) => {
     const { file, symbol } = CORE_OF[v.id];
-    const src = fs.readFileSync(path.join(ROOT, file), 'utf8').replace(/^export function /m, 'function ');
+    const src = fs.readFileSync(path.join(ROOT, file), 'utf8').replace(/^export function /gm, 'function ').replace(/^import \{[^}]*\} from '\.\/[a-z-]+\.mjs';\n/gm, '');
+    // ליבה שהיא שילוב (קופץ = מתקפל × דועך) מייבאת ליבה-אחות — בדף היא כבר מוגדרת קודם (decay לפני bounce)
     return `const ${symbol} = (() => {\n${src}\nreturn ${symbol};\n})();`;
   }).join('\n');
 }
@@ -30,10 +31,9 @@ function coreCode() {
 function card(v) {
   const og = ORIGINS[v.id];
   const best = og.origins.find((o) => o.best);
-  const where = og.builtNew
-    ? `<p class="where built">🔴 לא נמצא בשום פרויקט — נבנה חדש. הקרוב ביותר: ${esc(SRC_HE[og.origins[0].source])} · <code>${esc(og.origins[0].file.split('/').pop())}</code></p>`
-    : `<p class="where">נמצא ב: <b>${esc(SRC_HE[best.source])}</b> · <code dir="ltr">${esc(best.file.split('/').pop())}:${best.line}</code></p><p class="what">${esc(best.what)}</p>`;
-  const more = og.builtNew ? '' : `<p class="more">ועוד ${og.origins.length - 1} מקומות ב-${new Set(og.origins.map((o) => o.source)).size} פרויקטים</p>`;
+  const combo = og.foundAs === 'combination' ? `<p class="where combo">🧩 נמצא כשילוב: ${og.of.map((id) => '<b>' + esc(MOTION_VERBS.find((x) => x.id === id)?.he ?? id) + '</b>').join(' × ')}</p>` : '';
+  const where = `${combo}<p class="where">נמצא ב: <b>${esc(SRC_HE[best.source])}</b> · <code dir="ltr">${esc(best.file.split('/').pop())}:${best.line}</code></p><p class="what">${esc(best.what)}</p>`;
+  const more = `<p class="more">ועוד ${og.origins.length - 1} מקומות ב-${new Set(og.origins.map((o) => o.source)).size} פרויקטים</p>`;
   return `<figure class="card" id="${v.id}"><canvas data-engine="${v.id}" width="320" height="180" aria-label="${esc(v.he)} — הדגמה חיה"></canvas><figcaption><h2>${esc(v.he)} <span dir="ltr">${v.id}</span></h2><p class="means">${esc(v.means)}</p>${where}${more}</figcaption></figure>`;
 }
 
@@ -73,8 +73,8 @@ h2 { margin: 0; font: 600 19px/1.3 var(--display); display: flex; gap: 8px; alig
 h2 span { font: 12px var(--mono); color: var(--muted); }
 .means { margin: 0; font-size: 13.5px; }
 .where { margin: 6px 0 0; font-size: 13px; color: var(--teal); }
-.where.built { color: var(--rose); }
-.where code, .built code { font: 12px var(--mono); overflow-wrap: anywhere; }
+.where.combo { color: var(--teal); }
+.where code, .combo code { font: 12px var(--mono); overflow-wrap: anywhere; }
 .what, .more { margin: 0; font-size: 12.5px; color: var(--muted); }
 footer { margin-top: 28px; color: var(--muted); font-size: 13px; }
 footer code { font: 12px var(--mono); }
@@ -84,7 +84,7 @@ footer code { font: 12px var(--mono); }
 <header>
   <div class="eyebrow">הקטלוג · הליבה · ${n} מנועים</div>
   <h1>מנועי הזמן והתנועה</h1>
-  <p class="lede">כל מנוע כאן נמצא בקוד שכבר כתבנו — באפקט, באנימציה, בשעון, בניתוב — וחולץ לליבה בלי עולם. <b>${n - 1} מתוך ${n} נמצאו</b>, ב-${places} מקומות; רק "קופץ" נבנה חדש. מה שרץ על המסך הוא בדיוק הקוד שנבדק בחוקים.</p>
+  <p class="lede">כל מנוע כאן נמצא בקוד שכבר כתבנו — באפקט, באנימציה, בשעון, בניתוב — וחולץ לליבה בלי עולם. <b>${n} מתוך ${n} נמצאו</b>, ב-${places} מקומות; "קופץ" נמצא כשילוב של שניים מהם (מתקפל מהרצפה × דועך). מה שרץ על המסך הוא בדיוק הקוד שנבדק בחוקים.</p>
 </header>
 <main>
 ${MOTION_VERBS.map(card).join('\n')}

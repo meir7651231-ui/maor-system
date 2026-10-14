@@ -1,6 +1,6 @@
 {
  "source": "core-b",
- "ref": "claude/static-verbs-261014@784d388",
+ "ref": "catalog/core@7f2d8d92",
  "probe": {
   "version": 1,
   "seed": 13269520,

@@ -78,8 +78,8 @@
   {
    "repo": "maor-system",
    "file": "src/components/builder/RemoteWizard.tsx",
-   "line": 21,
-   "what": "תצלום-המיתוג נשמר בכניסה ומשוחזר ביציאה/אחרי קריסה"
+   "line": 27,
+   "what": "restoreBuilderPrev — תצלום-המיתוג נשמר בכניסה ומשוחזר ביציאה/אחרי קריסה"
   },
   {
    "repo": "yeshiva-engine",
@@ -270,7 +270,7 @@
   {
    "repo": "maor-system",
    "file": "functions/index.js",
-   "line": 202,
+   "line": 205,
    "what": "smsOutbox — הודעה שנכשלה מסומנת error והלולאה ממשיכה (נופל-רך)"
   },
   {

@@ -1,7 +1,7 @@
 {
  "source": "core",
  "repo": "meir7651231-ui/maor-system",
- "ref": "claude/mined-verbs-261014@939ae480300dd141a69a50d0a47a1b3d78939292",
+ "ref": "claude/final-261014@dfdd577a87a2159ed45a9b830264cc46725e143f",
  "generatedAt": null,
  "parts": [
   {
@@ -80,12 +80,12 @@
    "tags": [
     "core",
     "verb:bounce",
-    "built-new",
-    "origin:generator:new/dart-ui-bs/dots_loader.dart:46",
+    "combination:oscillate+decay",
+    "origin:generator:new/dart-ui-bs/dots_loader.dart:47",
+    "origin:buildsmart:index.html:100",
+    "origin:orbit:src/components/parnasa/Ambient.tsx:91",
     "origin:generator:new/dart-ui-bs/modal_dialog.dart:16",
-    "origin:buildsmart:app/src/styles/global.css:536",
-    "origin:orbit:src/components/parnasa/Ambient.tsx:98",
-    "origin:mmmm:lib/integrations-openai-ai-server/src/batch/utils.ts:54"
+    "origin:buildsmart:app/src/styles/global.css:536"
    ]
   },
   {
@@ -120,7 +120,7 @@
     "verb:countdown",
     "origin:orbit:src/components/timer/MoneyTimer.tsx:117",
     "origin:orbit:src/components/hosting/kitchen.ts:85",
-    "origin:orbit:src/lib/lock.ts:167",
+    "origin:orbit:src/components/lock/LockScreen.tsx:40",
     "origin:orbit:src/lib/publicSite.ts:225",
     "origin:orbit:src/components/shop/lib.ts:221",
     "origin:buildsmart:app_flutter/lib/screens/login_sheet.dart:203",
@@ -169,7 +169,7 @@
     "origin:orbit:src/components/parnasa/Ambient.tsx:91",
     "origin:orbit:src/components/parnasa/bannerFx.ts:498",
     "origin:orbit:src/components/parnasa/sound.ts:50",
-    "origin:orbit:src/store/useApp.ts:2029",
+    "origin:orbit:src/store/useApp.ts:2049",
     "origin:generator:design/capabilities-showcase.html:290",
     "origin:generator:design/orbit-covenant.html:212",
     "origin:generator:machtzev/pure/motion-family.html:172",
@@ -328,7 +328,7 @@
     "verb:move-along-path",
     "origin:orbit:src/components/parnasa/coinFx.ts:211",
     "origin:orbit:src/components/shop7/lib.ts:12",
-    "origin:orbit:src/components/shop7/lib.ts:136",
+    "origin:orbit:src/components/shop7/lib.ts:137",
     "origin:buildsmart:index.html:7843",
     "origin:buildsmart:app_flutter/lib/screens/install_studio_screen.dart:1853",
     "origin:generator:design/orbit-nothinglost.html:173",
@@ -372,7 +372,7 @@
     "verb:orbit",
     "origin:orbit:src/components/supporters/SupportersGalaxy.tsx:101",
     "origin:orbit:src/components/supporters/universe3d.ts:73",
-    "origin:orbit:src/lib/three-scene.ts:145",
+    "origin:orbit:src/lib/three-scene.ts:261",
     "origin:orbit:src/components/hosting/seating.ts:300",
     "origin:buildsmart:app_flutter/lib/features/fittings/render/camera.dart:74",
     "origin:buildsmart:app_flutter/knowledge/catalog-3d/prototypes/catalog-engine.html:181",
@@ -418,7 +418,7 @@
     "origin:orbit:src/components/supporters/SupportersGalaxy.tsx:111",
     "origin:orbit:src/lib/three-scene.ts:260",
     "origin:orbit:src/components/parnasa/Ambient.tsx:88",
-    "origin:orbit:src/components/parnasa/sound.ts:42",
+    "origin:orbit:src/components/parnasa/sound.ts:84",
     "origin:buildsmart:app_flutter/lib/screens/home_shell.dart:1838",
     "origin:generator:new/dart-ui-bs/glow_pulse.dart:81",
     "origin:generator:new/dart-ui-bs/notify_badge.dart:52",
@@ -550,7 +550,7 @@
     "origin:buildsmart:app_flutter/lib/logic/install_engine.dart:759",
     "origin:generator:new/dart/find_shortest_path.dart:51",
     "origin:buildsmart:app_flutter/lib/features/card_keyboard/hop_graph.dart:135",
-    "origin:orbit:src/lib/engineroute/route.ts:122",
+    "origin:orbit:src/lib/engineroute/route.ts:298",
     "origin:rings:lab-rings/lab13/wide2frames.mjs:29",
     "origin:rings:lab-rings/viz/anneal.js:9",
     "origin:qa-scanner:scanner.py:94",
@@ -593,7 +593,7 @@
     "origin:yeshiva:yeshiva/shiura.py:58",
     "origin:orbit:src/lib/demoCleanup.ts:118",
     "origin:generator:new/dart-maor/plan-demo-cleanup.dart:82",
-    "origin:orbit:src/components/parnasa/bannerFx.ts:531",
+    "origin:orbit:src/components/parnasa/bannerFx.ts:561",
     "origin:rings:lab-rings/viz/rings-live.html:270",
     "origin:qa-scanner:scanner.py:120",
     "twin:yeshiva:yeshiva/shiura.py#UnionFind",
@@ -632,7 +632,7 @@
     "core",
     "verb:sun-position",
     "origin:orbit:src/components/parnasa/zmanimBoard.ts:249",
-    "origin:orbit:telephony/lib/zmanim.mjs:108",
+    "origin:orbit:telephony/lib/zmanim.mjs:59",
     "origin:orbit:src/components/parnasa/zmanimBoard.ts:283",
     "twin:orbit:telephony/lib/zmanim.mjs#sunset",
     "twin:orbit:src/components/parnasa/zmanimBoard.ts#sunAngleTime"

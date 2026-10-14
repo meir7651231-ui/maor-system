@@ -9,17 +9,21 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import { execFileSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const CHECK = process.argv.includes('--check');
 const ORIGINS = JSON.parse(fs.readFileSync(path.join(ROOT, 'catalog/core/origins-b.json'), 'utf8'));
-/** ה-ref: הקומיט האחרון שנגע בליבות (יציב בין הרצות; לא HEAD — אחרת כל קומיט היה משנה את הקובץ). */
+/**
+ * ה-ref: טביעת-תוכן (fnv-1a) של 7 קובצי-הליבה + origins-b — יציב בין הרצות ובין קומיטים.
+ * (קודם: הקומיט האחרון שנגע ב-catalog/core — כל קומיט שנגע בליבה אחרת, למשל קופץ, הפך את הקובץ ל"לא מעודכן"
+ * עד קומיט נוסף; ובענף-המיזוג זה לא התייצב לעולם. FINAL-MACHINE 14.10.2026.)
+ */
 function refOf() {
-  let sha = '';
-  try { sha = execFileSync('git', ['-C', ROOT, 'log', '-1', '--format=%h', '--', 'catalog/core'], { encoding: 'utf8' }).trim(); } catch { /* */ }
-  return 'claude/static-verbs-261014@' + (/^[0-9a-f]{7,40}$/.test(sha) ? sha : 'e7f2ce1');
+  let h = 0x811c9dc5;
+  const files = ['origins-b.json', ...PARTS.map((p) => p.file)].sort();
+  for (const f of files) for (const ch of f + '\0' + fs.readFileSync(path.join(ROOT, 'catalog/core', f), 'utf8')) h = Math.imul(h ^ ch.codePointAt(0), 16777619) >>> 0;
+  return 'catalog/core@' + h.toString(16).padStart(8, '0');
 }
 
 const S = (name, kind, type) => ({ name, kind, type });
