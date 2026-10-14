@@ -17,15 +17,17 @@ import { REPOS } from '../lib/repos.mjs';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 const SRC = path.resolve(ROOT, process.env.CATALOG_SRC || '../catsrc');
 const bridgePath = await bundleBridge();
+const PREV = (() => { try { return JSON.parse(fs.readFileSync(path.join(ROOT, 'catalog/inner/motion-baseline.json'), 'utf8')); } catch { return {}; } })();
 const out = { version: 1, generatedAt: null, note: 'תכונות-תנועה (lib/motion.mjs) של החלקים השלמים בקטלוג — קו-בסיס להשוואה הוגנת. רק חלקים שיש להם תכונה.', sources: {} };
 for (const [source, R] of Object.entries(REPOS)) {
   const doc = JSON.parse(fs.readFileSync(path.join(ROOT, 'catalog/sources', R.catalog + '.json'), 'utf8'));
   const dir = R.dir ? path.join(SRC, R.dir) : ROOT;
-  if (!fs.existsSync(dir)) { console.log(`· ${source}: אין שכפול — מדולג`); out.sources[R.catalog] = { skipped: 'no-clone' }; continue; }
+  // 🪞 SELF: בלי שכפול — הקו הקודם נשמר (במקום להידרס ב-skipped:no-clone)
+  if (!fs.existsSync(dir)) { console.log(`· ${source}: אין שכפול — הקו הקודם נשמר`); out.sources[R.catalog] = PREV.sources?.[R.catalog] ?? { skipped: 'no-clone' }; continue; }
   if (R.dir) {
     const sha = String(doc.ref).split('@')[1] ?? '';
     const head = execFileSync('git', ['-C', dir, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
-    if (!head.startsWith(sha.slice(0, 7))) { out.sources[R.catalog] = { skipped: 'wrong-ref' }; continue; }
+    if (!head.startsWith(sha.slice(0, 7))) { out.sources[R.catalog] = PREV.sources?.[R.catalog] ?? { skipped: 'wrong-ref' }; continue; }
   }
   const runnable = doc.parts.filter(isRunnable);
   const { jobs } = prepareJobs(dir, runnable);

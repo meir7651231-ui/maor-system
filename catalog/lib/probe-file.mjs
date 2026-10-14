@@ -6,8 +6,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { makeProgram, signatureOf, fillFromKinds, literalPool } from './tsdesc.mjs';
-import { bundleFile, loadInSandbox, callerFor, resolvePart } from './sandbox.mjs';
+import { bundleWithDeps, loadInSandbox, callerFor, resolvePart } from './sandbox.mjs';
 import { probePart, behaviorHash, fnvHash } from './probe.mjs';
+import { fingerprint, machineSalt, cacheGet, cachePut, stampOf, CACHE_OFF } from './cache.mjs';
 
 const RUN_WHAT = new Set(['function', 'brick', 'particle', 'rule']);
 const IDENT = /^[A-Za-z_$][\w$]*(\.[A-Za-z_$][\w$]*)?$/;
@@ -24,7 +25,7 @@ function exampleArgs(p, takes) {
 }
 
 /** חלקים ⇒ עבודות לפי קובץ (ממוינות) + תוצאות-מוקדמות לחלקים שלא הגיעו להרצה + החתימות. */
-export function prepareJobs(dir, runnable) {
+export function prepareJobs(dir, runnable, { cli = false } = {}) {
   const results = new Map();
   const files = [...new Set(runnable.map((p) => path.join(dir, p.path)))].filter((f) => fs.existsSync(f));
   const program = makeProgram(files);
@@ -42,7 +43,7 @@ export function prepareJobs(dir, runnable) {
     jobs.get(abs).push({ id: p.id, symbol: p.symbol, method: s.method ?? undefined, internal: s.internal, sig: seeds ? { takes, seeds } : { takes } });
   }
   const list = [...jobs.entries()].sort((a, b) => (a[0] < b[0] ? -1 : 1)).map(([abs, parts]) => ({
-    abs, parts, pool: literalPool(abs), esm: esmOf.get(abs),
+    abs, parts, pool: literalPool(abs), esm: esmOf.get(abs), ...(cli ? { cli: true } : {}),
     expose: [...new Set(parts.filter((p) => p.internal).map((p) => (p.method ? p.method.cls : p.symbol)))].sort(),
   }));
   const sigs = new Map(list.flatMap((j) => j.parts.map((p) => [p.id, p.sig])));
@@ -60,16 +61,37 @@ function buildWhy(err) {
 export async function probeJob(job, { B, seed, onStart = () => {}, onDone = () => {} }) {
   let mod = null;
   let why = null;
+  // ⚡ SELF: «מטביע חותם» + «מחפש לפי מפתח». מפתח-קובץ (הקובץ, הייצוא, המלח של המכונה) ⇒ רשימת הקבצים שנארזו בפעם הקודמת;
+  // הטביעה של התוכן הנוכחי שלהם + הזרע + מילון-הקוד + החלק ⇒ מפתח-חלק. אף קובץ לא השתנה ⇒ אותה תוצאה (הקורא טהור
+  // ודטרמיניסטי) — בלי לארוז ובלי להריץ. גם "timeout" נזכר (התהליך הראשי כותב אותו), כדי שהרצה חמה לא תחכה שוב 20 שניות.
+  const fileKey = CACHE_OFF ? null : fingerprint(machineSalt(), 'probe-v2', job.abs, JSON.stringify(job.expose ?? []), String(job.esm), String(!!job.cli));
+  const partKey = (stamp, p) => fingerprint(fileKey, stamp, String(seed), JSON.stringify(job.pool ?? null), JSON.stringify(p));
+  if (fileKey) {
+    const list = cacheGet('probe-deps', fileKey);
+    if (Array.isArray(list) && list.length) {
+      const st = stampOf(list);
+      const got = job.parts.map((p) => cacheGet('probe-part', partKey(st, p)));
+      if (got.every((r) => r !== undefined)) {
+        return job.parts.map((p, k) => { onStart(p.id, null); onDone(p.id, got[k]); return { id: p.id, result: got[k] }; });
+      }
+    }
+  }
+  let code = null; let stamp = null;
   try {
-    const code = await bundleFile(job.abs, { expose: job.expose ?? [], esm: job.esm !== false });
+    const b = await bundleWithDeps(job.abs, { expose: job.expose ?? [], esm: job.esm !== false, cli: !!job.cli });
+    code = b.code;
+    if (fileKey && b.deps.length) { cachePut('probe-deps', fileKey, b.deps); stamp = stampOf(b.deps); }
     mod = loadInSandbox(code);
   } catch (err) {
     why = buildWhy(err);
   }
   const out = [];
   for (const p of job.parts) {
-    onStart(p.id);
-    if (!mod) { out.push({ id: p.id, result: { status: 'load-failed', why } }); onDone(p.id, out[out.length - 1].result); continue; }
+    const key = stamp && partKey(stamp, p);
+    const hit = key && cacheGet('probe-part', key);
+    if (hit !== undefined && hit !== null && key) { onStart(p.id, null); out.push({ id: p.id, result: hit }); onDone(p.id, hit); continue; }
+    onStart(p.id, key);
+    if (!mod) { const r = { status: 'load-failed', why }; if (key) cachePut('probe-part', key, r); out.push({ id: p.id, result: r }); onDone(p.id, r); continue; }
     let result;
     try {
       const got = resolvePart(mod.exports, p.symbol, p.method);
@@ -83,6 +105,7 @@ export async function probeJob(job, { B, seed, onStart = () => {}, onDone = () =
     } catch (err) {
       result = { status: 'probe-error', why: String((err && err.message) || err).slice(0, 160) };
     }
+    if (key) cachePut('probe-part', key, result);
     out.push({ id: p.id, result });
     onDone(p.id, result);
   }

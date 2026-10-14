@@ -12,7 +12,7 @@
  */
 export function nearNet(spec) {
   const pts = Array.isArray(spec?.points) ? spec.points : [];
-  const k = Math.max(1, Math.min(8, Math.floor(Math.abs(Number(spec?.near)) || 1)));
+  const k = Math.max(1, Math.min(8, Math.floor(Number(spec?.near)) || 1)); // near ≤ 0 ⇒ 1 (הרצפה), לא |near|
   const ok = (p) => p && Number.isFinite(Number(p.x)) && Number.isFinite(Number(p.y));
   const edges = [];
   const seen = new Set();

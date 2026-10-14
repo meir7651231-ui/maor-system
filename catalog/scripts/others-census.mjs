@@ -377,7 +377,7 @@ function jsParams(fn, sf) {
   }))
 }
 
-function jsExtract(base, files) {
+export function jsExtract(base, files) {
   const mods = []
   for (const path of files) {
     const text = readFileSync(join(base, path), 'utf8')
@@ -1261,7 +1261,7 @@ function decideWhat(it, sym, hand, path, src) {
   return 'function'
 }
 
-function buildParts(scan) {
+export function buildParts(scan) {
   const { cfg, mods } = scan
   const src = cfg.source
   const parts = []
@@ -1497,4 +1497,5 @@ function main() {
   }
 }
 
-main()
+// SELF (14.10.2026): המפקד של המכונה עצמה (machine-census.mjs) מייבא את jsExtract/buildParts — main רק כשמריצים ישירות
+if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1])) main()

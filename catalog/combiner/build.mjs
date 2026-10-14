@@ -10,9 +10,20 @@ import { join } from 'node:path';
 import { assemble, KINDS, PROJECTS } from './core.mjs';
 import { VERBS, RECIPE_VERB } from './verbs.mjs';
 import { HERE, loadGoals, loadIndex, loadProofs, loadRecipes, loadBehavior, loadLeads } from './load.mjs';
+import { inputsKey, cacheGet, cachePut, CACHE_OFF } from '../lib/cache.mjs';
 await (await import('../inner/lib/ensure-gen.mjs')).ensureGen({ quiet: true }); // INNER v2: gen/ והקבצים הפנימיים הפרושים נוצרים לפי דרישה
 
+/** ⚡ SELF: אותו דבר כמו combineAll — טביעת הקלטים ⇒ אותו דף ואותן בקשות-חפירה (build דטרמיניסטי). */
 export function buildAll() {
+  const key = CACHE_OFF ? null : inputsKey('build-v1', { isOutput: (f) => f === 'catalog/combiner/lab-data.json' || f.startsWith('catalog/combiner/dig/') });
+  const hit = key && cacheGet('build', key);
+  if (hit) return hit;
+  const res = buildAllRaw();
+  if (key) cachePut('build', key, res);
+  return res;
+}
+
+function buildAllRaw() {
   const recipes = loadRecipes();
   const ix = loadIndex({ recipes });
   const goals = loadGoals();

@@ -19,6 +19,7 @@ import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { MOTION_VERBS, CORE_OF } from '../lib/verbs-motion.mjs';
 import { validateSource } from '../lib/check.mjs';
+import { byId } from '../self/parts.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const OUT = path.join(ROOT, 'catalog/sources/core.json');
@@ -66,7 +67,7 @@ export function coreParts() {
       gives: { kind: c.gives[0], type: c.gives[1] },
       pure: true, example: null, tags,
     };
-  }).sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+  }).sort(byId);
 }
 
 function serialize(parts, ref) {

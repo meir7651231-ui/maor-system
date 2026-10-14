@@ -262,7 +262,7 @@
    "material": "text",
    "cases": 24,
    "traits": "in[str]>arr",
-   "hash": "df1fed0-c7dca16a"
+   "hash": "0df1fed0-c7dca16a"
   },
   {
    "id": "buildsmart:app/src/data/catalog.ts#productById",
@@ -281,7 +281,7 @@
    "material": "list",
    "cases": 24,
    "traits": "in[arr]>arr len~",
-   "hash": "89c11fd6-bf87267"
+   "hash": "89c11fd6-0bf87267"
   },
   {
    "id": "buildsmart:app/src/data/identity.ts#currentRank",
@@ -316,7 +316,7 @@
    "material": "record:identity-stats",
    "cases": 24,
    "traits": "in[obj]>arr",
-   "hash": "1c5daec-3fee3748"
+   "hash": "01c5daec-3fee3748"
   },
   {
    "id": "buildsmart:app/src/data/identity.ts#identityStats",
@@ -340,7 +340,7 @@
    "material": "number",
    "cases": 24,
    "traits": "in[num]>nil|obj",
-   "hash": "397fca01-8e9ff3"
+   "hash": "397fca01-008e9ff3"
   },
   {
    "id": "buildsmart:app/src/data/suppliers.ts#*",

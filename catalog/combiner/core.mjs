@@ -37,6 +37,7 @@ export function resolveVerb(v) {
 }
 const bareVerb = (v) => String(v || '').replace(/^NEW:/, '');
 import { exampleLaw } from './laws.mjs';
+import { byId, fnvHexPoints } from '../self/parts.mjs';
 
 /* ═══════════════ פרויקטים וסוגים ═══════════════ */
 
@@ -124,6 +125,31 @@ const dedupeKey = (p) => {
   return strong ? sym + '|' + sig : p.source + '|' + p.id;
 };
 
+/**
+ * 🪞 SELF (14.10.2026) — באג שהמכונה מצאה בעצמה: `dedupeKey` מאחד לפי שם+חתימה בלבד, ולכן שני חלקים **שונים** עם אותו
+ * שם (enrollStatusMeta בשני קבצים של אורביט, nextStage של בנייה-חכמה ושל אורביט…) נבלעו לחלק אחד, והפעלים שהוכחו על אחד
+ * נרשמו לשני. חוק «מסיר כפולים» (dedupe.keeps: "כשאין כפולים — הכול נשאר") נכשל.
+ * התיקון בפעולה של המכונה עצמה — טביעת-ההתנהגות (behaviorHash = צורה-פלטים): באותה צורת-קלט, פלטים שונים ⇒ לא אותו חלק.
+ * חלק בלי טביעה (לא רץ) נשאר עם הקבוצה הראשונה — כמו קודם. צורות-קלט שונות לא משוות (קלטים אחרים ⇒ פלטים אחרים).
+ */
+export function splitByBehavior(homes, behavior) {
+  if (homes.length < 2 || !behavior) return [homes];
+  const hashOf = (p) => { const h = behavior.get(p.id)?.hash; return typeof h === 'string' && h.includes('-') ? h.split('-') : null; };
+  const outs = new Map();
+  for (const p of homes) { const h = hashOf(p); if (h) { if (!outs.has(h[0])) outs.set(h[0], new Set()); outs.get(h[0]).add(h[1]); } }
+  const split = new Set([...outs].filter(([, o]) => o.size > 1).map(([sh]) => sh));
+  if (!split.size) return [homes];
+  const sub = new Map();
+  for (const p of homes) {
+    const h = hashOf(p);
+    const k = h && split.has(h[0]) ? h.join('-') : null;
+    const key = k ?? sub.keys().next().value ?? '';
+    if (!sub.has(key)) sub.set(key, []);
+    sub.get(key).push(p);
+  }
+  return [...sub.values()];
+}
+
 const STATUS_RANK = { proven: 0, twin: 1, example: 1, static: 2 };
 const holdsAll = (h) => typeof h === 'string' && /^(\d+)\/\1$/.test(h) && Number(h.split('/')[0]) > 0;
 
@@ -182,7 +208,7 @@ export function buildIndex(parts, opts = {}) {
   const judge = opts.proofs?.parts || {};
   const behavior = opts.behavior || null;
   const groups = new Map();
-  const sorted = [...parts].sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+  const sorted = [...parts].sort(byId);
   // כל החלקים (גם רכיבים) — כדי לתת שם פשוט להורה של חלק פנימי
   const rawById = new Map(sorted.map((p) => [p.id, p]));
   for (const p of sorted) {
@@ -192,7 +218,7 @@ export function buildIndex(parts, opts = {}) {
     groups.get(k).push(p);
   }
   const out = [];
-  for (const homes of groups.values()) {
+  for (const homes of [...groups.values()].flatMap((hs) => splitByBehavior(hs, behavior))) {
     const rated = homes.map((p) => rateHome(p, judge, behavior));
     rated.sort((a, b) => TIER_RANK[bestTier(a.pv)] - TIER_RANK[bestTier(b.pv)] || srcRank(a.p.source) - srcRank(b.p.source) || (a.p.id < b.p.id ? -1 : 1));
     const best = rated[0];
@@ -242,7 +268,7 @@ export function buildIndex(parts, opts = {}) {
     });
   }
   for (const r of opts.recipes || []) out.push(recipePart(r, out));
-  out.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+  out.sort(byId);
   return indexOf(out, opts.proofs?.flows || {}, opts.leads || []);
 }
 
@@ -793,9 +819,7 @@ export function goalFromChips(word, picks) {
 
 /** מזהה ASCII יציב למילה (לשמות קבצים): FNV-1a. */
 export function wordId(w) {
-  let h = 0x811c9dc5;
-  for (const ch of String(w)) h = Math.imul(h ^ ch.codePointAt(0), 16777619) >>> 0;
-  return 'w' + h.toString(16).padStart(8, '0');
+  return 'w' + fnvHexPoints(String(w)); // 🧩 SELF: חלק-המכונה המוכח (catalog/self/parts.mjs)
 }
 
 /**

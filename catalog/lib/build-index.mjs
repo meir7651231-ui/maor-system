@@ -8,6 +8,7 @@
  */
 import { VERBS, PRIMARY_ORDER } from './verbs.mjs';
 import { crossSourceDups } from './links.mjs';
+import { rankCounts } from '../self/parts.mjs';
 
 export const SOURCE_ORDER = ['orbit', 'buildsmart', 'generator', 'rings', 'yeshiva', 'qa-scanner', 'yoman-habina', '14kk', 'mmmm', 'core', 'core-b', 'core-c'];
 export const SOURCE_HE = { orbit: 'אורביט', buildsmart: 'בנייה-חכמה', generator: 'המחולל', rings: 'מנוע-הטבעות', yeshiva: 'הישיבה', 'qa-scanner': 'סורק-האיכות', 'yoman-habina': 'יומן-הבינה', '14kk': '14kk', mmmm: 'MMMM', core: 'הליבה', 'core-b': 'ליבות-הפעלים', 'core-c': 'ליבות-החומר' };
@@ -25,7 +26,7 @@ export function conformKind(k) {
   return 'unknown';
 }
 const inc = (o, k, n = 1) => { o[k] = (o[k] ?? 0) + n; };
-const sortObj = (o) => Object.fromEntries(Object.entries(o).sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1)));
+const sortObj = rankCounts; // 🧩 SELF: חלק-המכונה המוכח (catalog/self/parts.mjs)
 
 /** כל המידע שהאינדקס צריך. sources: {name: doc}, behaviors: {name: doc}. */
 export function buildIndex(sources, behaviors) {

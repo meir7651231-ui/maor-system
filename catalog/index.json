@@ -5,7 +5,7 @@
   {
    "source": "orbit",
    "repo": "meir7651231-ui/maor-system",
-   "ref": "claude/machine-v3-261014@abc82e807700",
+   "ref": "claude/self-261014@2c990a64b439",
    "parts": 979
   },
   {
@@ -59,7 +59,7 @@
   {
    "source": "core",
    "repo": "meir7651231-ui/maor-system",
-   "ref": "claude/machine-v4-261014@d220238c9bf9b774621aa544a267fe27b4088750",
+   "ref": "claude/self-261014@2c990a64b43934f0b0dc19bfee79cd9aad921bda",
    "parts": 15
   },
   {
@@ -71,7 +71,7 @@
   {
    "source": "core-c",
    "repo": "meir7651231-ui/maor-system",
-   "ref": "catalog/core@0030ade2",
+   "ref": "catalog/core@0d1f71d9",
    "parts": 9
   },
   {
@@ -101,7 +101,7 @@
   {
    "source": "inner-orbit",
    "repo": "meir7651231-ui/maor-system",
-   "ref": "claude/machine-v3-261014@abc82e807700",
+   "ref": "claude/self-261014@2c990a64b439",
    "parts": 8426
   },
   {

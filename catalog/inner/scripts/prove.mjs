@@ -25,6 +25,7 @@ import { ORDER, REPOS } from '../lib/repos.mjs';
 import { readSigs } from '../lib/sigs.mjs';
 import { ensureGen, storePath } from '../lib/ensure-gen.mjs';
 import { packBehavior, storeText } from '../lib/store.mjs';
+import { byId } from '../../self/parts.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 const args = process.argv.slice(2);
@@ -68,13 +69,25 @@ export function jobsFor(doc, source) {
   return jobs;
 }
 
+/** null ⇒ אפשר להוכיח; אחרת — למה לא (אין שכפול / השכפול ב-ref אחר מהמפקד). אורביט = הריפו הזה. */
+export function cloneMissing(source) {
+  const R = REPOS[source];
+  if (!R?.dir) return null;
+  const dir = path.join(SRC, R.dir);
+  if (!fs.existsSync(dir)) return 'אין שכפול ב-' + dir;
+  const sha = String(JSON.parse(fs.readFileSync(path.join(ROOT, 'catalog/sources', R.catalog + '.json'), 'utf8')).ref).split('@')[1] ?? '';
+  let head = '';
+  try { head = execFileSync('git', ['-C', dir, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim(); } catch { /* */ }
+  return sha && head.startsWith(sha.slice(0, 7)) ? null : `השכפול ב-${head.slice(0, 7) || '?'} ולא ב-${sha.slice(0, 7)}`;
+}
+
 export function runBucket(jobs, bridgePath, results, pairs) {
   return new Promise((resolve) => {
     let rest = jobs.map((j) => ({ ...j, parts: j.parts.slice() }));
     const spawn = () => {
       rest = rest.map((j) => ({ ...j, parts: j.parts.filter((p) => !results.has(p.id)) })).filter((j) => j.parts.length);
       if (!rest.length) return resolve();
-      const w = new Worker(path.join(ROOT, 'catalog/inner/scripts/prove-worker.mjs'), { workerData: { bridgePath, jobs: rest, seed: SEED }, env: {}, resourceLimits: { maxOldGenerationSizeMb: 1536 }, stdout: true, stderr: true });
+      const w = new Worker(path.join(ROOT, 'catalog/inner/scripts/prove-worker.mjs'), { workerData: { bridgePath, jobs: rest, seed: SEED }, env: process.env.CATALOG_CACHE ? { CATALOG_CACHE: process.env.CATALOG_CACHE } : {}, resourceLimits: { maxOldGenerationSizeMb: 1536 }, stdout: true, stderr: true });
       let cur = null; let timer = null;
       const arm = () => { clearTimeout(timer); timer = setTimeout(() => { if (cur) results.set(cur, { status: 'timeout' }); w.terminate(); }, TIMEOUT); };
       w.on('message', (m) => {
@@ -101,6 +114,10 @@ async function main() {
   await ensureGen({ sources: [source], src: SRC });
   const file = path.join(ROOT, 'catalog/sources', `inner-${source}.json`);
   if (!fs.existsSync(file)) { console.log(`· ${source}: אין inner-${source}.json — מדולג`); return; }
+  // 🪞 SELF: בלי השכפול אין מילון-הקוד של הקובץ המקורי (literalPool) ⇒ קלטים אחרים ⇒ תוצאות אחרות, והמחסן שבריפו נדרס
+  // בשקט (נתפס כשהמכונה הריצה את עצמה). בלי שכפול / ב-ref אחר — המחסן נשמר כמו שהוא. ratchet: self.test
+  const why = cloneMissing(source);
+  if (why) { console.log(`· inner-${source}: ${why} — המחסן נשמר כמו שהוא`); return; }
   const t0 = Date.now();
   const doc = JSON.parse(fs.readFileSync(file, 'utf8'));
   const bridgePath = await bundleBridge();
@@ -116,7 +133,7 @@ async function main() {
   if (ONLY) { console.log(JSON.stringify(entries, null, 1)); return; }
   const totals = tally(entries);
   totals.withMotion = entries.filter((e) => e.motion).length;
-  const out = { source: `inner-${source}`, ref: doc.ref, probe: { version: PROVE_VERSION, seed: SEED, generatedAt: null }, totals, parts: entries.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)) };
+  const out = { source: `inner-${source}`, ref: doc.ref, probe: { version: PROVE_VERSION, seed: SEED, generatedAt: null }, totals, parts: entries.sort(byId) };
   fs.writeFileSync(path.join(ROOT, 'catalog/behavior', `inner-${source}.json`), JSON.stringify(out, null, 1) + '\n');
   // v2: בריפו — המחסן הדחוס; הקובץ הפרוש (gitignored) נוצר ממנו לפי דרישה, ביט-זהה
   fs.writeFileSync(path.join(ROOT, storePath('behavior', source)), storeText(packBehavior(out, doc.parts.map((p) => p.id)).store));

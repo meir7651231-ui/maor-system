@@ -6,6 +6,7 @@ import { hintOf } from './shape.mjs';
 import { traitKey } from './probe.mjs';
 import { staticLabel } from './static-label.mjs';
 import { shapeKindOfDesc } from './kind-shape.mjs';
+import { rankCounts } from '../self/parts.mjs';
 
 const lowerCamel = (s) => String(s).replace(/^[A-Z]/, (c) => c.toLowerCase());
 export function kindOfDesc(d, name = '') {
@@ -67,6 +68,6 @@ export function tally(entries) {
     if (e.labeledBy === 'static' && e.verbs.length) t.staticWithVerb++;
     if (e.reason) { const k = e.reason.split(' — ')[0].split(':')[0]; t.why[k] = (t.why[k] ?? 0) + 1; }
   }
-  t.why = Object.fromEntries(Object.entries(t.why).sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1)));
+  t.why = rankCounts(t.why); // 🧩 SELF: חלק-המכונה המוכח
   return t;
 }

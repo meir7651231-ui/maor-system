@@ -31,6 +31,7 @@ import { assemble, fit, provenAs, adapterRole, ADAPTER_VERBS } from './core.mjs'
 import { SHAPE_KINDS, materialDesc } from '../lib/kind-shape.mjs';
 import { HERE, CATALOG, loadGoals, loadIndex, loadParts, loadRecipes } from './load.mjs';
 import { runGraph, graphProblem, graphParts } from './graph.mjs';
+import { inputsKey, cacheGet, cachePut, CACHE_OFF } from '../lib/cache.mjs';
 await (await import('../inner/lib/ensure-gen.mjs')).ensureGen({ quiet: true }); // INNER v2: gen/ והקבצים הפנימיים הפרושים נוצרים לפי דרישה
 
 const ROOT = path.resolve(CATALOG, '..');
@@ -375,7 +376,20 @@ const KIND_HE_ON = { geo: 'נקודות', sound: 'צלילים', image: 'תמו�
 const slug = (s) => String(s).replace(/[^a-z0-9-]/gi, '-');
 
 /** כל הצרכים בלי חלק מוכח ⇒ ניסיון-שילוב לכל זוג (פועל, חומר). */
+/**
+ * ⚡ SELF: «מטביע חותם» על כל מה שמכונת-השילוב קוראת (הקטלוג, הגשר, קוד אורביט שהיא מריצה, המלח) ⇒ אותה תוצאה שמורה.
+ * מכונת-השילוב דטרמיניסטית (זרע קבוע) — לכן שליפה = הרצה, ביט-זהה. CATALOG_CACHE=off ⇒ תמיד מריצה.
+ */
 export async function combineAll() {
+  const key = CACHE_OFF ? null : inputsKey('combine-v1', { isOutput: (f) => f === 'catalog/combiner/combos.json' || /^catalog\/recipes\/combo-/.test(f) || f === 'catalog/combiner/lab-data.json' || f.startsWith('catalog/combiner/dig/'), dirs: ['src', 'telephony', 'functions'] });
+  const hit = key && cacheGet('combine', key);
+  if (hit) return hit;
+  const res = await combineAllRaw();
+  if (key) cachePut('combine', key, res);
+  return res;
+}
+
+async function combineAllRaw() {
   const raw = new Map(loadParts().map((p) => [p.id, p]));
   const ix = loadIndex({ recipes: loadRecipes().filter((r) => !r.combo) });
   const goals = loadGoals();

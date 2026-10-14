@@ -26,6 +26,7 @@ import * as C_ROUTE from '../core/route.mjs';
 import * as C_TOL from '../core/tolerate.mjs';
 import * as C_PACE from '../core/pace.mjs';
 import * as C_RELAY from '../core/relay.mjs';
+import { fnvHex } from '../self/parts.mjs';
 
 /* ═══════════════ עזרים ═══════════════ */
 
@@ -71,7 +72,7 @@ const isEmptyish = (v) => isNil(v) || (isArr(v) && v.length === 0) || v === fals
 const sum = (xs) => xs.reduce((a, b) => a + b, 0);
 /** מנה של קבוצות (קבוצת-קבוצות קנונית) — לבדיקת קיבוץ שלא תלוי בסדר. */
 const partitionKey = (gs) => gs.map((g) => g.map(canon).sort().join('|')).sort().join('‖');
-const fnv = (s) => { let h = 0x811c9dc5; for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619) >>> 0; return h.toString(16).padStart(8, '0'); };
+const fnv = fnvHex; // 🧩 SELF: חלק-המכונה המוכח (catalog/self/parts.mjs) — היה כאן העתק של FNV-1a
 const counter = (fn) => { let c = 0; return (...a) => fn(c++, ...a); };
 
 /* ═══════════════ צורות-ייחוס ═══════════════ */

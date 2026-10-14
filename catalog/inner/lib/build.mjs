@@ -10,11 +10,13 @@ import { typeToDesc } from '../../lib/tsdesc.mjs';
 import { makeRepoProgram } from './resolve.mjs';
 import { kindOfDesc as rawKind } from '../../lib/entry.mjs';
 import { conformKind } from '../../lib/build-index.mjs';
-import { openFile, moduleText, toJs, PII, makeRepoCtx } from './opener.mjs';
+import { openFile, moduleText, toJs, PII, makeRepoCtx, useToJsMemo, takeToJsMemo } from './opener.mjs';
+import { fingerprint, machineSalt, cacheGet, cachePut, CACHE_OFF } from '../../lib/cache.mjs';
 import { nameOf, doesOf } from './name.mjs';
 import { REPOS, sourceFiles } from './repos.mjs';
 import { packParts, storeText } from './store.mjs';
 import { unwrap, symbolOf, isValueRef } from './purity.mjs';
+import { byId, rankCounts } from '../../self/parts.mjs';
 
 export const INNER_VERSION = 2; // v2: מעקב-ייבוא · עוזרים-סגורים · namespace · מחסן דחוס
 /** סוג מהמילון המשותף (אחרי יישור: record:Foo-bar ⇒ record:fooBar; לא מוכר ⇒ unknown). */
@@ -22,8 +24,8 @@ const kindOfDesc = (d, n) => conformKind(rawKind(d, n));
 const ARITH = new Set([ts.SyntaxKind.MinusToken, ts.SyntaxKind.AsteriskToken, ts.SyntaxKind.SlashToken, ts.SyntaxKind.PercentToken, ts.SyntaxKind.AsteriskAsteriskToken,
   ts.SyntaxKind.LessThanToken, ts.SyntaxKind.GreaterThanToken, ts.SyntaxKind.LessThanEqualsToken, ts.SyntaxKind.GreaterThanEqualsToken]);
 
-const sortObj = (o) => Object.fromEntries(Object.entries(o).sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1)));
-const typeText = (checker, t) => { try { const s = checker.typeToString(t, undefined, ts.TypeFormatFlags.NoTruncation); return (s.length > 120 ? s.slice(0, 117) + '…' : s) || 'unknown'; } catch { return 'unknown'; } };
+const sortObj = rankCounts; // 🧩 SELF: חלק-המכונה המוכח (catalog/self/parts.mjs)
+const typeTextRaw = (checker, t) => { try { const s = checker.typeToString(t, undefined, ts.TypeFormatFlags.NoTruncation); return (s.length > 120 ? s.slice(0, 117) + '…' : s) || 'unknown'; } catch { return 'unknown'; } };
 
 /** טיפוס של קלט: לפי ההצהרה שלו (גם בקובץ JS עם JSDoc). */
 function paramType(checker, p) {
@@ -48,7 +50,7 @@ export function shrinkDesc(d, depth = 0, maxDepth = 3) {
   if (d.t === 'tp') return { ...d, of: shrinkDesc(d.of, depth, maxDepth) };
   return d;
 }
-const descOf = (checker, t) => {
+const descOfRaw = (checker, t) => {
   if (!t) return { t: 'any' };
   let d = shrinkDesc(typeToDesc(checker, t), 0, 99);
   for (const md of [4, 3, 2, 1, 0]) { if (JSON.stringify(d).length <= 6000) break; d = shrinkDesc(d, 0, md); }
@@ -75,9 +77,36 @@ function usedAsNumber(L, p, checker) {
 }
 
 /** מקור אחד: { files, stats } או { missing }. */
-export function buildSource(ROOT, SRC, source) {
-  const R = REPOS[source];
-  const catDoc = JSON.parse(fs.readFileSync(path.join(ROOT, 'catalog/sources', R.catalog + '.json'), 'utf8'));
+export function buildSource(ROOT, SRC, source, self = null) {
+  // ⚡ SELF: «מטביע חותם» על כל מה שהפותח קורא (כל קובצי-המקור, קובץ-הקטלוג, tsconfig, המלח של המכונה) ⇒ אותה תוצאה
+  // שמורה. אחרת — בנייה, עם מטמון-transpile לכל צומת/מודול (טקסט זהה ⇒ אותו JS). ביט-זהה: open --check.
+  const t0 = buildInputs(ROOT, SRC, source, self);
+  if (t0.key) { const hit = cacheGet('open', t0.key); if (hit) return hit; }
+  const tjKey = fingerprint(machineSalt(), 'tojs-v1', ts.version, source);
+  useToJsMemo(CACHE_OFF ? [] : cacheGet('tojs', tjKey));
+  let res;
+  try { res = buildSourceRaw(ROOT, SRC, source, self); } finally { const used = takeToJsMemo(); if (!CACHE_OFF) cachePut('tojs', tjKey, used); }
+  if (t0.key && !res.missing) cachePut('open', t0.key, res);
+  return res;
+}
+
+/** המפתח של בנייה: כל קובץ שהפותח עשוי לקרוא. null כשאין מטמון / חסר שכפול. */
+function buildInputs(ROOT, SRC, source, self) {
+  if (CACHE_OFF) return { key: null };
+  const R = self ? { catalog: source, dir: null, roots: self.roots } : REPOS[source];
+  const base = R.dir ? path.join(SRC, R.dir) : ROOT;
+  if (!fs.existsSync(base)) return { key: null };
+  const rels = self?.files ?? sourceFiles(base, R.roots);
+  const catPath = path.join(ROOT, self ? self.docPath : path.join('catalog/sources', R.catalog + '.json'));
+  const cfgs = ['tsconfig.json', 'tsconfig.app.json', 'tsconfig.node.json', 'jsconfig.json', 'package-lock.json'].map((f) => path.join(base, f)).filter((f) => fs.existsSync(f));
+  const files = [catPath, ...cfgs, ...rels.map((r) => path.join(base, r))];
+  return { key: fingerprint(machineSalt(), 'open-v1', source, JSON.stringify(self ?? null), ...files.flatMap((f) => [f, fs.readFileSync(f)])) };
+}
+
+function buildSourceRaw(ROOT, SRC, source, self = null) {
+  // 🪞 SELF: `self` = { roots, docPath, files? } — הפותח על הקוד של המכונה עצמה (מחוץ ל-REPOS, כדי שלא ייכנס לצינור-המוצרים)
+  const R = self ? { catalog: source, dir: null, roots: self.roots } : REPOS[source];
+  const catDoc = JSON.parse(fs.readFileSync(path.join(ROOT, self ? self.docPath : path.join('catalog/sources', R.catalog + '.json')), 'utf8'));
   let base = ROOT;
   if (R.dir) {
     base = path.join(SRC, R.dir);
@@ -87,9 +116,14 @@ export function buildSource(ROOT, SRC, source) {
     try { head = execFileSync('git', ['-C', base, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim(); } catch { /* */ }
     if (!sha || !head.startsWith(sha.slice(0, 7))) return { missing: `השכפול ב-${head.slice(0, 7) || '?'} ולא ב-${sha.slice(0, 7)} (ה-ref של המפקד)` };
   }
-  const rels = sourceFiles(base, R.roots);
+  const rels = self?.files ?? sourceFiles(base, R.roots);
   const program = makeRepoProgram(rels.map((r) => path.join(base, r)), base);
   const checker = program.getTypeChecker();
+  // ⚡ SELF: «מחפש לפי מפתח» — צורת-טיפוס היא פונקציה טהורה של הטיפוס, ואותו טיפוס (Db, Supporter, OrgConfig…) חוזר
+  // אלפי פעמים, וכל קלט חושב פעמיים (פרטיות + SIGS). מטמון לפי הטיפוס עצמו ⇒ 50s ⇒ ~10s, ביט-זהה (open --check).
+  const descMemo = new Map(); const textMemo = new Map();
+  const descOf = (c, t) => { if (!t) return descOfRaw(c, t); let d = descMemo.get(t); if (d === undefined) { d = descOfRaw(c, t); descMemo.set(t, d); } return d; };
+  const typeText = (c, t) => { let x = textMemo.get(t); if (x === undefined) { x = typeTextRaw(c, t); textMemo.set(t, x); } return x; };
   // v2: עוזרים מקבצים אחרים — רק מקבצי-המקור של הריפו עצמו (אותה רשימה שהפותח קורא)
   const repoSfs = new Set(rels.map((r) => program.getSourceFile(path.join(base, r))).filter(Boolean));
   const repo = makeRepoCtx(program, (x) => repoSfs.has(x));
@@ -162,7 +196,7 @@ export function buildSource(ROOT, SRC, source) {
     files[genRel] = js;
     perFile.push([rel, mod.kept.length]);
   }
-  parts.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+  parts.sort(byId);
   const doc = { source: `inner-${source}`, repo: repoName, ref: catDoc.ref, generatedAt: null, parts };
   files[`catalog/sources/inner-${source}.json`] = JSON.stringify(doc, null, 1) + '\n';
   // v2: מה שנכנס לריפו = המחסן הדחוס (lib/store.mjs); הקובץ הפרוש נוצר לפי דרישה (ensure-gen) — ביט-זהה

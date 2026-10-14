@@ -26,6 +26,7 @@ import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { ORDER, REPOS } from './repos.mjs';
 import { unpackParts, unpackBehavior, docText } from './store.mjs';
+import { attempt } from '../../core/tolerate.mjs';
 
 export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 export const MANIFEST = 'catalog/inner/gen.manifest.json';
@@ -35,7 +36,8 @@ export const genDir = (source) => `catalog/inner/gen/${source}`;
 export const genPath = (source, rel) => `catalog/inner/gen/${source}/${rel}.mjs`;
 export const hashOf = (text) => crypto.createHash('sha256').update(text).digest('hex').slice(0, 16);
 
-const read = (root, rel) => { try { return fs.readFileSync(path.join(root, rel), 'utf8'); } catch { return null; } };
+// 🧩 SELF: «סובל כשל» — הליבה המוכחת (catalog/core/tolerate.mjs › attempt) במקום try/catch משלנו
+const read = (root, rel) => attempt((p) => fs.readFileSync(p, 'utf8'), path.join(root, rel), null);
 const write = (root, rel, text) => { const abs = path.join(root, rel); fs.mkdirSync(path.dirname(abs), { recursive: true }); fs.writeFileSync(abs, text); };
 /** כל הקבצים בתיקייה (יחסיים לשורש, ממוינים). */
 export function listFiles(root, rel) {
@@ -63,7 +65,7 @@ export function packOf(source, gen) {
 }
 export const packBytes = (json) => zlib.brotliCompressSync(Buffer.from(json), { params: { [zlib.constants.BROTLI_PARAM_QUALITY]: 11, [zlib.constants.BROTLI_PARAM_LGWIN]: 24, [zlib.constants.BROTLI_PARAM_SIZE_HINT]: json.length } });
 export function readPack(root, source) {
-  try { return zlib.brotliDecompressSync(fs.readFileSync(path.join(root, packPath(source)))).toString('utf8'); } catch { return null; }
+  return attempt((p) => zlib.brotliDecompressSync(fs.readFileSync(p)).toString('utf8'), path.join(root, packPath(source)), null);
 }
 export function readManifest(root = ROOT) {
   const t = read(root, MANIFEST);

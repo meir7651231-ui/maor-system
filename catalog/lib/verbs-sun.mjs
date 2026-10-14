@@ -14,6 +14,7 @@
  */
 import { isNum, isStr, isObj } from './shape.mjs';
 import { sunPosition } from '../core/sun-position.mjs';
+import { fnv1a } from '../self/parts.mjs';
 
 const FAIL = (s) => s;
 const ISO = /^\d{4}-\d{2}-\d{2}$/;
@@ -71,7 +72,7 @@ const deg = (v) => (Number.isFinite(v) ? Math.round(v * 10) / 10 + '°' : String
 /* ═══════════════ מוטנטים ═══════════════ */
 
 const mut = (f) => () => (s, m, d) => { const a = sunHeadingRef(s, m, d); return a === null ? null : f(a, s, d, m); };
-const hash01 = (...xs) => { let h = 0x811c9dc5; const s = xs.map(String).join('|'); for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619) >>> 0; return h / 4294967296; };
+const hash01 = (...xs) => fnv1a(xs.map(String).join('|')) / 4294967296; // 🧩 SELF: fnv1a — חלק-המכונה המוכח
 
 /** @type {import('./verbs').Verb[]} */
 export const SUN_VERBS = [

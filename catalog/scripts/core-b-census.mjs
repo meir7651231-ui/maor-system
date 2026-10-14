@@ -10,6 +10,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { byId, fnvHexPoints } from '../self/parts.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const CHECK = process.argv.includes('--check');
@@ -20,10 +21,8 @@ const ORIGINS = JSON.parse(fs.readFileSync(path.join(ROOT, 'catalog/core/origins
  * עד קומיט נוסף; ובענף-המיזוג זה לא התייצב לעולם. FINAL-MACHINE 14.10.2026.)
  */
 function refOf() {
-  let h = 0x811c9dc5;
   const files = ['origins-b.json', ...PARTS.map((p) => p.file)].sort();
-  for (const f of files) for (const ch of f + '\0' + fs.readFileSync(path.join(ROOT, 'catalog/core', f), 'utf8')) h = Math.imul(h ^ ch.codePointAt(0), 16777619) >>> 0;
-  return 'catalog/core@' + h.toString(16).padStart(8, '0');
+  return 'catalog/core@' + fnvHexPoints(files.map((f) => f + '\0' + fs.readFileSync(path.join(ROOT, 'catalog/core', f), 'utf8')).join('')); // 🧩 SELF
 }
 
 const S = (name, kind, type) => ({ name, kind, type });
@@ -81,7 +80,7 @@ const doc = {
       name: p.name, does: p.does, takes: p.takes, gives: p.gives, pure: true, example: p.example,
       tags: ['core', 'verb:' + p.verb, 'world-free'], origins: ORIGINS[p.verb],
     };
-  }).sort((a, b) => (a.id < b.id ? -1 : 1)),
+  }).sort(byId),
 };
 
 // הדוגמה חייבת להיות נכונה: מריצים את הליבה עליה

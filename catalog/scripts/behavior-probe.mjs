@@ -25,6 +25,8 @@ import { probePart, behaviorHash, fnvHash } from '../lib/probe.mjs';
 import { prepareJobs, isRunnable } from '../lib/probe-file.mjs';
 import { entryFor, tally } from '../lib/entry.mjs';
 import { crossSourceDups } from '../lib/links.mjs';
+import { cachePut } from '../lib/cache.mjs';
+import { byId } from '../self/parts.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const args = process.argv.slice(2);
@@ -50,12 +52,14 @@ const SOURCES = {
   rings: { dir: 'rings', run: 'rings' },
   generator: { dir: null, run: 'twin' },
   'qa-scanner': { dir: null, run: 'none' },
+  // 🪞 SELF (14.10.2026): המכונה עצמה — לא בסדר-ברירת-המחדל ולא ב-sources/behavior (לא חומר למוצרים); רק `--source machine`
+  machine: { dir: ROOT, run: 'code', doc: 'catalog/self/machine.json', out: 'catalog/self/behavior-machine.json' },
 };
 const ORDER = ['orbit', 'core', 'core-b', 'core-c', 'buildsmart', 'mmmm', '14kk', 'yoman-habina', 'yeshiva', 'rings', 'qa-scanner', 'generator'];
 const want = opt('--source', '') ? opt('--source', '').split(',') : ORDER;
 
-const readSource = (s) => JSON.parse(fs.readFileSync(path.join(ROOT, 'catalog/sources', s + '.json'), 'utf8'));
-const byId = (a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
+const docPath = (s) => SOURCES[s]?.doc ?? path.join('catalog/sources', s + '.json');
+const readSource = (s) => JSON.parse(fs.readFileSync(path.join(ROOT, docPath(s)), 'utf8'));
 
 /* ═══════════════ מקור עם קוד: TS/JS ═══════════════ */
 
@@ -75,7 +79,7 @@ async function runCode(name, doc, bridgePath) {
   const runnable = doc.parts.filter((p) => isRunnable(p) && (!ONLY || p.id.includes(ONLY)));
   const results = new Map();
   if (!dir) { for (const p of runnable) results.set(p.id, { status: 'no-clone', why }); return { results, runnable: runnable.length }; }
-  const { jobs: list, results: pre, sigs } = prepareJobs(dir, runnable);
+  const { jobs: list, results: pre, sigs } = prepareJobs(dir, runnable, { cli: name === 'machine' });
   for (const [k, v] of pre) results.set(k, v);
   // חלוקה לעובדים (קבוע; הפלט ממוין בסוף ולכן לא תלוי בחלוקה)
   const buckets = Array.from({ length: Math.max(1, WORKERS) }, () => []);
@@ -91,12 +95,13 @@ function runBucket(jobs, bridgePath, results) {
     const spawn = () => {
       rest = rest.map((j) => ({ ...j, parts: j.parts.filter((p) => !results.has(p.id)) })).filter((j) => j.parts.length);
       if (!rest.length) return resolve();
-      const w = new Worker(path.join(ROOT, 'catalog/scripts/probe-worker.mjs'), { workerData: { bridgePath, jobs: rest, seed: SEED }, env: {}, resourceLimits: { maxOldGenerationSizeMb: 1536 }, stdout: true, stderr: true });
-      let cur = null; let timer = null;
-      const arm = () => { clearTimeout(timer); timer = setTimeout(() => { if (cur) results.set(cur, { status: 'timeout' }); w.terminate(); }, TIMEOUT); };
+      const w = new Worker(path.join(ROOT, 'catalog/scripts/probe-worker.mjs'), { workerData: { bridgePath, jobs: rest, seed: SEED }, env: process.env.CATALOG_CACHE ? { CATALOG_CACHE: process.env.CATALOG_CACHE } : {}, resourceLimits: { maxOldGenerationSizeMb: 1536 }, stdout: true, stderr: true });
+      let cur = null; let curKey = null; let timer = null;
+      // ⚡ SELF: חלק שנתקע נזכר במטמון (לפי המפתח שהעובד שלח) — הרצה חמה לא מחכה לו שוב
+      const arm = () => { clearTimeout(timer); timer = setTimeout(() => { if (cur) { results.set(cur, { status: 'timeout' }); if (curKey) cachePut('probe-part', curKey, { status: 'timeout' }); } w.terminate(); }, TIMEOUT); };
       w.on('message', (m) => {
         if (process.env.PROBE_DEBUG) console.error('[probe]', m.type, m.id ?? '');
-        if (m.type === 'start') { cur = m.id; arm(); }
+        if (m.type === 'start') { cur = m.id; curKey = m.key ?? null; arm(); }
         else if (m.type === 'done') { results.set(m.id, m.result); cur = null; clearTimeout(timer); }
         else if (m.type === 'end') clearTimeout(timer);
       });
@@ -199,10 +204,12 @@ async function main() {
   const summary = [];
   for (const name of want) {
     if (!SOURCES[name]) { console.error('מקור לא מוכר: ' + name); continue; }
-    if (!fs.existsSync(path.join(ROOT, 'catalog/sources', name + '.json'))) continue;
+    if (!fs.existsSync(path.join(ROOT, docPath(name)))) continue;
     const t0 = Date.now();
     const doc = readSource(name);
     let results = new Map(); let sigs = new Map(); let runnable = 0;
+    // 🪞 SELF: בלי שכפול כל החלקים היו נכתבים 'no-clone' (static) — הקובץ שבריפו נדרס בשקט. עכשיו: נשמר כמו שהוא.
+    if ((SOURCES[name].run === 'code' || SOURCES[name].run === 'rings') && !cloneDir(name, doc).dir) { console.log(`· ${name}: ${cloneDir(name, doc).why} — הקובץ נשמר כמו שהוא`); continue; }
     if (SOURCES[name].run === 'code') ({ results, sigs = new Map(), runnable } = await runCode(name, doc, bridgePath));
     else if (SOURCES[name].run === 'rings') ({ results, sigs, runnable } = await runRings(doc, B));
     const entries = doc.parts.map((p) => entryFor(p, results.get(p.id), sigs.get(p.id)));
@@ -213,7 +220,7 @@ async function main() {
       totals: tally(entries),
       parts: entries.sort(byId),
     };
-    fs.writeFileSync(path.join(ROOT, 'catalog/behavior', name + '.json'), JSON.stringify(out, null, 1) + '\n');
+    fs.writeFileSync(path.join(ROOT, SOURCES[name].out ?? path.join('catalog/behavior', name + '.json')), JSON.stringify(out, null, 1) + '\n');
     summary.push(`${name}: ${doc.parts.length} חלקים · ניתנים-להרצה ${runnable} · run ${out.totals.run} (עם פועל ${out.totals.runWithVerb}) · twin ${out.totals.twin} · static ${out.totals.static} · ${((Date.now() - t0) / 1000).toFixed(1)}s`);
     console.log(summary[summary.length - 1]);
   }

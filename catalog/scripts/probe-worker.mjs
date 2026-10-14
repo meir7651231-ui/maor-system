@@ -13,6 +13,6 @@ process.on('unhandledRejection', () => {});
 const B = await import(pathToFileURL(bridgePath).href);
 
 for (const job of jobs) {
-  await probeJob(job, { B, seed, onStart: (id) => parentPort.postMessage({ type: 'start', id }), onDone: (id, result) => parentPort.postMessage({ type: 'done', id, result }) });
+  await probeJob(job, { B, seed, onStart: (id, key) => parentPort.postMessage({ type: 'start', id, key }), onDone: (id, result) => parentPort.postMessage({ type: 'done', id, result }) });
 }
 parentPort.postMessage({ type: 'end' });

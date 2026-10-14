@@ -750,7 +750,7 @@
    "primary": "combine",
    "material": "number",
    "cases": 24,
-   "hash": "84d9a7c9-5f72f7"
+   "hash": "84d9a7c9-005f72f7"
   },
   {
    "id": "rings:lab-rings/lab13/shelf3.json#כתוב לכתובת שבתא",
@@ -994,7 +994,7 @@
    "primary": "clamp",
    "material": "number",
    "cases": 24,
-   "hash": "84d9a7c9-f7dafbb"
+   "hash": "84d9a7c9-0f7dafbb"
   },
   {
    "id": "rings:lab-rings/lab13/shelf3.json#מקסימום נייד",
@@ -1020,7 +1020,7 @@
    "primary": "clamp",
    "material": "number",
    "cases": 24,
-   "hash": "84d9a7c9-f7dafbb"
+   "hash": "84d9a7c9-0f7dafbb"
   },
   {
    "id": "rings:lab-rings/lab13/shelf3.json#מרחק מ-8",
@@ -1185,7 +1185,7 @@
    "primary": "combine",
    "material": "number",
    "cases": 24,
-   "hash": "84d9a7c9-5f72f7"
+   "hash": "84d9a7c9-005f72f7"
   },
   {
    "id": "rings:lab-rings/lab13/shelf3.json#פחות 1",
@@ -1475,7 +1475,7 @@
    "primary": "filter",
    "material": "number",
    "cases": 24,
-   "hash": "3a8cb4c1-f89efc6"
+   "hash": "3a8cb4c1-0f89efc6"
   },
   {
    "id": "rings:lab-rings/lab13/shelf3.json#רר1 סכום הזוגיים פחות ספור גדולים מ-12",
@@ -1515,7 +1515,7 @@
    "primary": "sum",
    "material": "number",
    "cases": 24,
-   "hash": "3a8cb4c1-a9ed397"
+   "hash": "3a8cb4c1-0a9ed397"
   },
   {
    "id": "rings:lab-rings/lab13/shelf3.json#רר4 הגדול מבין סכום-הזוגיים והגדול",
@@ -1781,7 +1781,7 @@
    "material": "number",
    "cases": 24,
    "traits": "in[num,num,num]>num int+",
-   "hash": "a5775e06-c7a7cfa"
+   "hash": "a5775e06-0c7a7cfa"
   },
   {
    "id": "rings:lab-rings/lab13/shelf3.json#ש3 הגדול מבין חצי-ההפרש-בריבוע וסכום-רווי-כפול-2",
@@ -1995,7 +1995,7 @@
    "primary": "normalize",
    "material": "number",
    "cases": 24,
-   "hash": "82617b9a-c9e25bd"
+   "hash": "82617b9a-0c9e25bd"
   },
   {
    "id": "rings:lab-rings/lab13/shelf3.json#תנאי: 11,12,14",
@@ -2050,7 +2050,7 @@
    "material": "number",
    "cases": 24,
    "traits": "in[num]>num int+",
-   "hash": "82617b9a-c332591"
+   "hash": "82617b9a-0c332591"
   },
   {
    "id": "rings:lab-rings/lab13/shelf3.json#תנאי: 8,11,13,14",
@@ -2130,7 +2130,7 @@
    "material": "number",
    "cases": 24,
    "traits": "in[num]>num int+",
-   "hash": "82617b9a-7bb525"
+   "hash": "82617b9a-007bb525"
   },
   {
    "id": "rings:lab-rings/lab13/shelf3.json#תנאי: 8,9,11,13,14,15",

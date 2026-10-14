@@ -13,24 +13,53 @@ import { SANDBOX_PRELUDE } from './shape.mjs';
 
 const EXT = ['.ts', '.tsx', '.mts', '.mjs', '.js', '.jsx', '.json'];
 
+/**
+ * 🪞 SELF: לסקריפטים של המכונה — import.meta.url ⇒ נתיב קבוע, ו-`path` אמיתי-בלי-I/O (חישובי-מחרוזת posix בלבד),
+ * כי הקבועים בראש הקובץ (ROOT = path.resolve(dirname(…))) נחשבים בטעינה. שאר המודולים של node נשארים "אדישים".
+ */
+const CLI_PRELUDE = `var __filename = "/sandbox/part.mjs", __dirname = "/sandbox";
+var require = (function (base) {
+  var norm = function (p) { var abs = p.charAt(0) === '/'; var out = []; p.split('/').forEach(function (x) { if (!x || x === '.') return; if (x === '..') out.pop(); else out.push(x); }); return (abs ? '/' : '') + out.join('/') || (abs ? '/' : '.'); };
+  var P = { sep: '/', delimiter: ':',
+    join: function () { return norm([].slice.call(arguments).filter(Boolean).join('/')); },
+    resolve: function () { var r = '/sandbox'; [].slice.call(arguments).forEach(function (x) { if (!x) return; r = x.charAt(0) === '/' ? x : r + '/' + x; }); return norm(r); },
+    dirname: function (p) { var n = norm(p); var i = n.lastIndexOf('/'); return i <= 0 ? (n.charAt(0) === '/' ? '/' : '.') : n.slice(0, i); },
+    basename: function (p, ext) { var b = norm(p).split('/').pop(); return ext && b.slice(-ext.length) === ext ? b.slice(0, -ext.length) : b; },
+    extname: function (p) { var b = norm(p).split('/').pop(); var i = b.lastIndexOf('.'); return i > 0 ? b.slice(i) : ''; },
+    relative: function (a, b) { var x = P.resolve(a).split('/').filter(Boolean), y = P.resolve(b).split('/').filter(Boolean); var i = 0; while (i < x.length && x[i] === y[i]) i++; return x.slice(i).map(function () { return '..'; }).concat(y.slice(i)).join('/'); },
+    isAbsolute: function (p) { return p.charAt(0) === '/'; }, normalize: norm };
+  P.posix = P;
+  return function (n) { return n === 'path' || n === 'node:path' ? P : base(n); };
+})(globalThis.require);
+`;
+
 /** אורז קובץ-מקור לקוד CJS אחד (בזיכרון בלבד — לא נכתב שום קובץ). */
-export async function bundleFile(abs, { alias = {}, expose = [], esm = true } = {}) {
+export async function bundleFile(abs, opts = {}) {
+  return (await bundleWithDeps(abs, opts)).code;
+}
+
+/** כמו bundleFile, ומחזיר גם את כל הקבצים שנארזו (deps — מוחלטים, ממוינים) — בשביל מטמון-התוצאות (lib/cache.mjs). */
+export async function bundleWithDeps(abs, { alias = {}, expose = [], esm = true, cli = false } = {}) {
   const { rolldown } = await import('rolldown');
   const { builtinModules } = await import('node:module');
   // פונקציה/מחלקה פנימית (לא מיוצאת) ⇒ מוסיפים לה ייצוא בזיכרון, כדי שאפשר יהיה לקרוא לה (הקובץ בדיסק לא משתנה)
   const tail = !expose.length ? '' : esm ? '\nexport { ' + expose.join(', ') + ' };\n' : '\n;try { module.exports.__catalog = Object.assign(module.exports.__catalog || {}, { ' + expose.join(', ') + ' }); } catch (e) {}\n';
   const plugins = tail ? [{ name: 'catalog-expose', transform(code, id) { return id === abs ? code + tail : null; } }] : [];
+  // 🪞 SELF: סקריפט של המכונה — נקודת-הכניסה של שורת-הפקודה (`if (process.argv…) {…}`, `await main()`) היא לא חלק; בזיכרון בלבד
+  if (cli) { const { stripCli } = await import('./strip-cli.mjs'); plugins.unshift({ name: 'catalog-strip-cli', transform(code, id) { return /\.m?js$/.test(id) ? stripCli(code) : null; } }); }
   const b = await rolldown({
     input: abs, platform: 'neutral', logLevel: 'silent', treeshake: false, plugins,
     // מודולים של node (fs, path, child_process…) לא נארזים — בארגז-החול require שלהם מחזיר "מודול אדיש" בלי I/O
-    external: [/^node:/, ...builtinModules],
+    external: [/^node:/, ...builtinModules, ...(cli ? ['typescript', 'rolldown', 'playwright'] : [])],
     resolve: { extensions: EXT, alias, mainFields: ['module', 'main'], conditionNames: ['import', 'default'] },
     transform: { jsx: { runtime: 'classic', pragma: 'h' } },
     moduleTypes: { '.css': 'empty', '.svg': 'text', '.png': 'empty', '.md': 'text', '.txt': 'text' },
   });
   try {
     const { output } = await b.generate({ format: 'cjs', exports: 'named', codeSplitting: false });
-    return output[0].code;
+    const deps = [...new Set((output[0].moduleIds ?? []).filter((id) => typeof id === 'string' && id.startsWith('/')))].sort();
+    // import.meta.url ב-CJS ⇒ __filename; בארגז-החול אין קובץ — נתיב קבוע (רק למכונה עצמה, כדי שהאחרים יישארו ביט-זהים)
+    return { code: cli ? CLI_PRELUDE + output[0].code.replace(/^#!.*\n/, '') : output[0].code, deps };
   } finally {
     await b.close();
   }

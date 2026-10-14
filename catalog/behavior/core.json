@@ -1,6 +1,6 @@
 {
  "source": "core",
- "ref": "claude/machine-v4-261014@d220238c9bf9b774621aa544a267fe27b4088750",
+ "ref": "claude/self-261014@2c990a64b43934f0b0dc19bfee79cd9aad921bda",
  "probe": {
   "version": 1,
   "seed": 13269520,
@@ -253,7 +253,7 @@
    "primary": "sun-position",
    "material": "record:sunSpec",
    "cases": 24,
-   "hash": "c5e07d6-abc2ae3a"
+   "hash": "0c5e07d6-abc2ae3a"
   }
  ]
 }

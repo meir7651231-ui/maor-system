@@ -1,0 +1,483 @@
+{
+ "source": "machine",
+ "ref": "catalog@0f7611c17a5d",
+ "seed": 13269520,
+ "generatedAt": null,
+ "census": {
+  "files": 56,
+  "parts": 500
+ },
+ "parts": {
+  "totals": {
+   "run": 263,
+   "runWithVerb": 46,
+   "twin": 0,
+   "static": 237,
+   "staticWithVerb": 26,
+   "why": {
+    "no-fitting-input": 146,
+    "load-failed": 91
+   }
+  },
+  "verbs": {
+   "format": 15,
+   "round": 9,
+   "validate": 9,
+   "clamp": 6,
+   "normalize": 6,
+   "convert": 5,
+   "fingerprint": 3,
+   "provide": 3,
+   "compare": 2,
+   "personalize": 2,
+   "route": 1,
+   "split": 1,
+   "tier": 1
+  },
+  "held": [
+   {
+    "id": "machine:catalog/combiner/core.mjs#kindHe",
+    "verbs": [
+     "format 15/15"
+    ]
+   },
+   {
+    "id": "machine:catalog/combiner/core.mjs#normWord",
+    "verbs": [
+     "normalize 12/12",
+     "format 15/15"
+    ]
+   },
+   {
+    "id": "machine:catalog/combiner/core.mjs#plainKind",
+    "verbs": [
+     "validate 24/24"
+    ]
+   },
+   {
+    "id": "machine:catalog/combiner/core.mjs#projHe",
+    "verbs": [
+     "normalize 12/12",
+     "format 15/15"
+    ]
+   },
+   {
+    "id": "machine:catalog/combiner/core.mjs#roughRoots",
+    "verbs": [
+     "split 24/24"
+    ]
+   },
+   {
+    "id": "machine:catalog/combiner/core.mjs#verbOrder",
+    "verbs": [
+     "round 10/10"
+    ]
+   },
+   {
+    "id": "machine:catalog/combiner/core.mjs#wordId",
+    "verbs": [
+     "format 15/15",
+     "fingerprint 16/16"
+    ]
+   },
+   {
+    "id": "machine:catalog/inner/lib/ensure-gen.mjs#packOf",
+    "verbs": [
+     "personalize 24/24"
+    ]
+   },
+   {
+    "id": "machine:catalog/inner/lib/ensure-gen.mjs#storePath",
+    "verbs": [
+     "format 15/15"
+    ]
+   },
+   {
+    "id": "machine:catalog/inner/lib/opener.mjs#EMPTY",
+    "verbs": [
+     "provide 3/3"
+    ]
+   },
+   {
+    "id": "machine:catalog/inner/lib/store.mjs#dict",
+    "verbs": [
+     "provide 3/3"
+    ]
+   },
+   {
+    "id": "machine:catalog/inner/lib/store.mjs#docText",
+    "verbs": [
+     "format 15/15",
+     "personalize 24/24"
+    ]
+   },
+   {
+    "id": "machine:catalog/lib/cache.mjs#fileOf",
+    "verbs": [
+     "format 15/15"
+    ]
+   },
+   {
+    "id": "machine:catalog/lib/probe.mjs#sameDesc",
+    "verbs": [
+     "validate 24/24",
+     "compare 34/34"
+    ]
+   },
+   {
+    "id": "machine:catalog/lib/shape.mjs#canon",
+    "verbs": [
+     "format 15/15"
+    ]
+   },
+   {
+    "id": "machine:catalog/lib/shape.mjs#cat",
+    "verbs": [
+     "format 12/12"
+    ]
+   },
+   {
+    "id": "machine:catalog/lib/shape.mjs#hintOf",
+    "verbs": [
+     "normalize 11/11"
+    ]
+   },
+   {
+    "id": "machine:catalog/lib/shape.mjs#numEq",
+    "verbs": [
+     "validate 24/24"
+    ]
+   },
+   {
+    "id": "machine:catalog/lib/shape.mjs#pad",
+    "verbs": [
+     "format 15/15"
+    ]
+   },
+   {
+    "id": "machine:catalog/lib/shape.mjs#same",
+    "verbs": [
+     "validate 24/24"
+    ]
+   },
+   {
+    "id": "machine:catalog/lib/verbs-motion.mjs#close",
+    "verbs": [
+     "validate 24/24"
+    ]
+   },
+   {
+    "id": "machine:catalog/lib/verbs-motion.mjs#decayLoop",
+    "verbs": [
+     "round 18/18",
+     "clamp 3/3"
+    ]
+   },
+   {
+    "id": "machine:catalog/lib/verbs-motion.mjs#sameVec",
+    "verbs": [
+     "validate 24/24",
+     "compare 27/27"
+    ]
+   },
+   {
+    "id": "machine:catalog/lib/verbs-net.mjs#close",
+    "verbs": [
+     "validate 24/24"
+    ]
+   },
+   {
+    "id": "machine:catalog/lib/verbs-net.mjs#kOf",
+    "verbs": [
+     "round 10/10",
+     "clamp 3/3"
+    ]
+   },
+   {
+    "id": "machine:catalog/lib/verbs-sun.mjs#declOf",
+    "verbs": [
+     "convert 15/15"
+    ]
+   },
+   {
+    "id": "machine:catalog/lib/verbs-sun.mjs#fin",
+    "verbs": [
+     "convert 15/15"
+    ]
+   },
+   {
+    "id": "machine:catalog/lib/verbs-sun.mjs#sunHeadingRef",
+    "verbs": [
+     "convert 15/15"
+    ]
+   },
+   {
+    "id": "machine:catalog/lib/verbs.mjs#fgcd",
+    "verbs": [
+     "normalize 7/7"
+    ]
+   },
+   {
+    "id": "machine:catalog/lib/verbs.mjs#isEmptyish",
+    "verbs": [
+     "validate 24/24"
+    ]
+   },
+   {
+    "id": "machine:catalog/lib/verbs.mjs#isOneChannel",
+    "verbs": [
+     "validate 24/24"
+    ]
+   },
+   {
+    "id": "machine:catalog/lib/verbs.mjs#lev",
+    "verbs": [
+     "round 10/10",
+     "clamp 3/3"
+    ]
+   },
+   {
+    "id": "machine:catalog/scripts/behavior-probe.mjs#docPath",
+    "verbs": [
+     "format 15/15"
+    ]
+   },
+   {
+    "id": "machine:catalog/scripts/behavior-probe.mjs#opt",
+    "verbs": [
+     "round 12/12"
+    ]
+   },
+   {
+    "id": "machine:catalog/scripts/buildsmart-census.mjs#arrowEnd",
+    "verbs": [
+     "round 16/16",
+     "clamp 3/3"
+    ]
+   },
+   {
+    "id": "machine:catalog/scripts/buildsmart-census.mjs#clipWords",
+    "verbs": [
+     "tier 6/6",
+     "normalize 12/12",
+     "format 15/15"
+    ]
+   },
+   {
+    "id": "machine:catalog/scripts/buildsmart-census.mjs#kindHe",
+    "verbs": [
+     "route 48/48"
+    ]
+   },
+   {
+    "id": "machine:catalog/scripts/buildsmart-census.mjs#matchClose",
+    "verbs": [
+     "round 18/18"
+    ]
+   },
+   {
+    "id": "machine:catalog/scripts/buildsmart-census.mjs#rel",
+    "verbs": [
+     "normalize 12/12",
+     "format 15/15"
+    ]
+   },
+   {
+    "id": "machine:catalog/scripts/buildsmart-census.mjs#repoRef",
+    "verbs": [
+     "provide 3/3"
+    ]
+   },
+   {
+    "id": "machine:catalog/scripts/others-census.mjs#arg",
+    "verbs": [
+     "round 16/16",
+     "clamp 3/3"
+    ]
+   },
+   {
+    "id": "machine:catalog/self/parts.mjs#byId",
+    "verbs": [
+     "round 13/13",
+     "clamp 3/3"
+    ]
+   },
+   {
+    "id": "machine:catalog/self/parts.mjs#fnv1a",
+    "verbs": [
+     "convert 15/15"
+    ]
+   },
+   {
+    "id": "machine:catalog/self/parts.mjs#fnv1aPoints",
+    "verbs": [
+     "convert 15/15"
+    ]
+   },
+   {
+    "id": "machine:catalog/self/parts.mjs#fnvHex",
+    "verbs": [
+     "format 15/15",
+     "fingerprint 18/18"
+    ]
+   },
+   {
+    "id": "machine:catalog/self/parts.mjs#fnvHexPoints",
+    "verbs": [
+     "format 15/15",
+     "fingerprint 17/17"
+    ]
+   }
+  ]
+ },
+ "inner": {
+  "totals": {
+   "candidates": 2828,
+   "parts": 1226,
+   "run": 807,
+   "runWithVerb": 255,
+   "twin": 0,
+   "static": 419,
+   "staticWithVerb": 218,
+   "why": {
+    "no-fitting-input": 419
+   }
+  },
+  "verbs": {
+   "format": 82,
+   "round": 61,
+   "normalize": 45,
+   "convert": 35,
+   "clamp": 28,
+   "split": 18,
+   "tier": 13,
+   "personalize": 8,
+   "provide": 8,
+   "validate": 7,
+   "gap": 4,
+   "combine": 3,
+   "filter": 3,
+   "map": 3,
+   "extreme": 2,
+   "join": 2,
+   "offset": 2,
+   "average": 1,
+   "bucket": 1,
+   "compare": 1,
+   "lookup": 1,
+   "route": 1,
+   "tally": 1
+  }
+ },
+ "roles": {
+  "total": 15,
+  "held": 15,
+  "list": [
+   {
+    "part": "machine:catalog/combiner/core.mjs#buildIndex·homes",
+    "verb": "dedupe",
+    "role": "איחוד-הבתים של האינדקס",
+    "held": true,
+    "holds": "47/47"
+   },
+   {
+    "part": "machine:catalog/combiner/core.mjs#normWord",
+    "verb": "normalize",
+    "role": "המילה שהבעלים הקליד",
+    "held": true,
+    "holds": "12/12"
+   },
+   {
+    "part": "machine:catalog/combiner/core.mjs#resolveVerb",
+    "verb": "normalize",
+    "role": "פועל מהמילון ⇒ פועל באלפבית (gate ⇒ validate, NEW:x ⇒ x)",
+    "held": true,
+    "holds": "12/12"
+   },
+   {
+    "part": "machine:catalog/combiner/core.mjs#wordId",
+    "verb": "fingerprint",
+    "role": "מזהה-קובץ למילה (מתכונים)",
+    "held": true,
+    "holds": "18/18"
+   },
+   {
+    "part": "machine:catalog/combiner/verbs.mjs#uniq",
+    "verb": "dedupe",
+    "role": "הפעלים של המילון — כל פועל פעם אחת",
+    "held": true,
+    "holds": "41/41"
+   },
+   {
+    "part": "machine:catalog/core/tolerate.mjs#attempt·ensure-gen",
+    "verb": "tolerate",
+    "role": "read/readPack של ensure-gen",
+    "held": true,
+    "holds": "36/36"
+   },
+   {
+    "part": "machine:catalog/lib/build-index.mjs#conformKind",
+    "verb": "normalize",
+    "role": "סוג ⇒ המילון המשותף (record:org-config ⇒ record:orgConfig)",
+    "held": true,
+    "holds": "12/12"
+   },
+   {
+    "part": "machine:catalog/lib/entry.mjs#tally",
+    "verb": "tally",
+    "role": "מוני קובץ-ההתנהגות",
+    "held": true,
+    "holds": "24/24"
+   },
+   {
+    "part": "machine:catalog/lib/verbs-net.mjs#kOf",
+    "verb": "clamp",
+    "role": "כמה שכנים (1..8)",
+    "held": true,
+    "holds": "3/3"
+   },
+   {
+    "part": "machine:catalog/lib/verbs.mjs#fnv",
+    "verb": "fingerprint",
+    "role": "מימוש-הייחוס של הפועל",
+    "held": true,
+    "holds": "17/17"
+   },
+   {
+    "part": "machine:catalog/lib/verbs.mjs#isoPlus",
+    "verb": "offset",
+    "role": "תאריך + ימים (חוקי-הזמן)",
+    "held": true,
+    "holds": "24/24"
+   },
+   {
+    "part": "machine:catalog/self/parts.mjs#byId",
+    "verb": "sort",
+    "role": "כל הממיינים-לפי-id (מפקדים · אינדקס · קורא · פותח)",
+    "held": true,
+    "holds": "31/31"
+   },
+   {
+    "part": "machine:catalog/self/parts.mjs#fnvHex",
+    "verb": "fingerprint",
+    "role": "שני חצאי behaviorHash · מימוש-הייחוס של «מטביע חותם»",
+    "held": true,
+    "holds": "18/18"
+   },
+   {
+    "part": "machine:catalog/self/parts.mjs#fnvHexPoints",
+    "verb": "fingerprint",
+    "role": "wordId · ref של מפקדי-הליבות",
+    "held": true,
+    "holds": "17/17"
+   },
+   {
+    "part": "machine:catalog/self/parts.mjs#rankCounts",
+    "verb": "sort",
+    "role": "מונים בסדר יורד (index.json · open-*.json · totals.why)",
+    "held": true,
+    "holds": "30/30"
+   }
+  ]
+ }
+}

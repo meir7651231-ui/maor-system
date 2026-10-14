@@ -20,6 +20,7 @@
  */
 import ts from 'typescript';
 import { impurity, classify, symbolOf, isValueRef, homeOf, within, isPureRead, isComputation, isFnLike, unwrap, rootOf, isAssignOp } from './purity.mjs';
+import { fingerprint } from '../../lib/cache.mjs';
 
 const AUTOMATION = { setValueAtTime: 'set', linearRampToValueAtTime: 'lin', exponentialRampToValueAtTime: 'exp', setTargetAtTime: 'target' };
 const PARAM_DEFAULT = { gain: 1, frequency: 440, detune: 0, Q: 1, playbackRate: 1, pan: 0, delayTime: 0, offset: 1, threshold: -24, knee: 30, ratio: 12, attack: 0.003, release: 0.25 };
@@ -795,7 +796,23 @@ export function moduleText(lifts, sf, header) {
 }
 function fnInit(vd) { const i = vd.initializer && unwrap(vd.initializer); return !!i && (ts.isArrowFunction(i) || ts.isFunctionExpression(i)); }
 
+/**
+ * ⚡ SELF: «מחפש לפי מפתח» + «מקצב» (קריאה/כתיבה אחת לכל ריצה, לא קובץ לכל קריאה) — ה-transpile של כל צומת וכל מודול
+ * הוא פונקציה טהורה של הטקסט; buildSource טוען את המטמון בתחילת ריצה (useToJsMemo) ושומר בסופה רק מה שנגעו בו.
+ */
+let TOJS = null; let TOJS_USED = null;
+export function useToJsMemo(entries) { TOJS = new Map(entries ?? []); TOJS_USED = new Map(); }
+export function takeToJsMemo() { const used = TOJS_USED ? [...TOJS_USED] : []; TOJS = null; TOJS_USED = null; return used; }
+
 /** TS ⇒ JS (בלי טיפוסים). */
 export function toJs(text, tsx) {
+  if (!TOJS) return toJsRaw(text, tsx);
+  const k = (tsx ? 'x' : 't') + fingerprint(text);
+  let v = TOJS.get(k);
+  if (v === undefined) { v = toJsRaw(text, tsx); TOJS.set(k, v); }
+  TOJS_USED.set(k, v);
+  return v;
+}
+function toJsRaw(text, tsx) {
   return ts.transpileModule(text, { fileName: tsx ? 'gen.tsx' : 'gen.ts', compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext, jsx: ts.JsxEmit.Preserve, removeComments: false, verbatimModuleSyntax: false, isolatedModules: true } }).outputText;
 }

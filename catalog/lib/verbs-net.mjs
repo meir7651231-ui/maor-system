@@ -15,7 +15,8 @@ const FAIL = (s) => s;
 const pt = (o) => isObj(o) && isNum(o.x) && isNum(o.y);
 const d = (p, q) => Math.hypot(p.x - q.x, p.y - q.y);
 const close = (a, b) => Math.abs(a - b) <= 1e-9 * Math.max(1, Math.abs(a), Math.abs(b));
-const kOf = (x) => Math.max(1, Math.min(8, Math.floor(Math.abs(Number(x?.near)) || 1)));
+// 🪞 SELF: היה Math.abs לפני החיתוך ⇒ near = -23 נתן 8 שכנים (התקרה) במקום 1 (הרצפה) — «מגביל» דלף. ratchet: self.test
+const kOf = (x) => Math.max(1, Math.min(8, Math.floor(Number(x?.near)) || 1));
 /** המרחק של השכן ה-k הקרוב ביותר ל-i (או Infinity כשאין k שכנים). */
 function kth(P, i, k) {
   const ds = P.map((q, j) => (j === i ? Infinity : d(P[i], q))).filter((v) => v < Infinity).sort((a, b) => a - b);

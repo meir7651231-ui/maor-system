@@ -31,6 +31,7 @@ import { WHAT_NEED_CARD } from '../../src/lib/atoms/engines/whatNeed.ts';
 import { BOOKINGS_CARD } from '../../src/lib/atoms/engines/bookings.ts';
 import { validatePart, validateSource, NAME_VERBS } from '../lib/check.mjs';
 import { shapeKindOfType } from '../lib/kind-shape.mjs';
+import { byId } from '../self/parts.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const OUT = join(ROOT, 'catalog/sources/orbit.json');
@@ -725,7 +726,7 @@ export function build() {
       parts.push(partFromFn({ path, fn, lang: 'js', what: 'function', examples, nameOverrides, tags: ['telephony', 'telephony:' + f] }));
   }
 
-  parts.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+  parts.sort(byId);
   const seen = new Set();
   for (const p of parts) {
     if (seen.has(p.id)) throw new Error('מזהה כפול: ' + p.id);

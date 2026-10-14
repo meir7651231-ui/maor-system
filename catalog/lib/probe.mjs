@@ -10,17 +10,14 @@
  */
 import { gen, hintOf, canon, same, isArr, isNum, isStr, isObj, isNil, classOf, toNum, axisClass } from './shape.mjs';
 import { VERBS, PRIMARY_ORDER, IMPLIES } from './verbs.mjs';
+import { fnv1a, fnvHex } from '../self/parts.mjs';
 
 export const PROBE = { CASES: 24, MIN_FIT: 4, MIN_PASS: 3, LAW_CASES: 12, SWEEP_GROUPS: 3, SWEEP_POINTS: 16, MIN_SWEEP: 6 };
 
 class CallFail extends Error {}
 
-/** fnv-1a קצר — לטביעת-התנהגות ולזרעים. */
-export function fnvHash(s) {
-  let h = 0x811c9dc5;
-  for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619) >>> 0;
-  return h;
-}
+/** fnv-1a קצר — לטביעת-התנהגות ולזרעים. 🧩 SELF: חלק-המכונה המוכח (catalog/self/parts.mjs › fnv1a). */
+export const fnvHash = fnv1a;
 
 /* ═══════════════ קישורים: איזה קלט משחק איזה תפקיד ═══════════════ */
 
@@ -430,7 +427,9 @@ export function behaviorHash(sig, call, B) {
   const ok = outs.filter((o) => o !== '!' && o !== 'async');
   const EMPTY = new Set(['null', '[]', '{}', '""', 'false', '0', '{"$$":"undef"}']);
   if (ok.length < 4 || new Set(ok).size < 2 || ok.every((o) => EMPTY.has(o)) || ins.every((a, k) => outs[k] === canon(a[0]))) return null;
-  return (fnvHash(shapeKey).toString(16) + '-' + fnvHash(outs.join('\n')).toString(16));
+  // 🪞 SELF: היה fnvHash(…).toString(16) בלי ריפוד ⇒ האורך זז (7/8 תווים) — «מטביע חותם» דורש אורך קבוע
+  // (fingerprint.fixed). עכשיו fnvHex — חלק-המכונה המוכח (catalog/self/parts.mjs). ratchet: self.test
+  return fnvHex(shapeKey) + '-' + fnvHex(outs.join('\n'));
 }
 
 export { isArr, isNum, isStr };
