@@ -30,6 +30,7 @@ import { renderVerified, type FactoryResult } from '../verify/factory';
 import { DEMO_DB, DEMO_NOW } from '../decompose/__tests__/meterFixture';
 import { ctxOf, richDb, NOW_MS } from './previewsFixture';
 import { atomsSource } from '../../../components/enginebox/atoms/source';
+import { NUM_RUN } from '../../../components/enginebox/atoms/AtomSteps';
 
 registerGenerated(GENERATED_ENGINES);
 const DEMO = { db: DEMO_DB, nowMs: DEMO_NOW };
@@ -182,6 +183,14 @@ describe('🏭 הארגז מציג רק מה שאומת', () => {
       for (const p of f.card.places) for (const a of Object.keys(p.results)) expect(VERIFIED[p.id + ':' + a], p.id + ':' + a).toBeGreaterThan(0);
     }
     expect(found.find((f) => f.id === 'hosting')?.card.name).toBe('עוד במנהל ההזמנות');
+    // "מאיפה" בשפת הלקוח — לא נתיב-הקוד של המפרק
+    expect(found.find((f) => f.id === 'supporters')?.card.from).toBe('תורמים');
+    for (const f of found) expect(f.card.from).not.toMatch(/src\//);
+  });
+
+  it('🐞 "$90,000 = 12 × $7,500" מבודד משמאל-לימין כמו ₪ (היה מתהפך בשורה עברית)', () => {
+    expect([...'$90,000 = 12 × $7,500'.matchAll(NUM_RUN)].map((m) => m[0])).toEqual(['$90,000 = 12 × $7,500']);
+    expect([...'₪47,500 = 4 × ₪3,959 + 8 × ₪3,958'.matchAll(NUM_RUN)].map((m) => m[0])).toEqual(['₪47,500 = 4 × ₪3,959 + 8 × ₪3,958']);
   });
 
   it('"✅ מאומת" לאפשרות, ושום אפשרות לא-מאומתת בכרטיסי-היד', () => {
@@ -196,6 +205,8 @@ describe('🏭 הארגז מציג רק מה שאומת', () => {
     const r = g.results[0];
     expect(r.id).toBe(capabilityId('supporters', SUP_AMOUNT, 'divide'));
     expect(r.sentence).toContain('ל-12 תשלומים');
+    // ההרכבה חוזרת למילים — מה שיוצא, לא כל הכותרת
+    expect(r.sentence).toMatch(/ל-12 תשלומים ← מחולק לתשלומים שווים$/);
     const line = r.lines.find((l) => l.includes(' = '))!;
     const n = line.split(' = ')[1].split(' + ').reduce((a, t) => a + (/^(\d+) × /.exec(t) ? +/^(\d+) × /.exec(t)![1] : 1), 0);
     expect(n).toBe(12);

@@ -19,6 +19,10 @@
  *   9 · (ATOMS-GOAL 14.10) 🎯 "מה אתה רוצה לקבל?": כותבים "תורים של 40 דקות בחלון הניקיון" ⇒ כרטיס עם המשפט במילים והתורים
  *       האמיתיים ⇒ "חבר" ⇒ "✨ נוצר מנוע חדש" ⇒ צ'יפ "3 לילות פנויים ברצף" ⇒ גם שרשרת (2 חלקים) ⇒ "חבר" יוצר את שניהם ⇒
  *       "לחלק" ⇒ שאלה סגורה כצ'יפים ⇒ צ'יפ ⇒ תוצאה ⇒ "השעות הזמניות של היום" ⇒ מחשבון הזמנים. צילומים ⇒ knowledge/shots/atoms-goal-2026-10-14/.
+ *  10 · (ATOMS-FACTORY 14.10) 🏭 המפעל — על נתוני הדמו (תורמים, חוגים, משפחות): "🤖 מנועים שנמצאו אוטומטית" עם 💝 ו-🎨 ⇒
+ *       💝 ⇒ ✂️ ⇒ אפשרויות עם תוצאות אמיתיות ו"✅ מאומת" ⇒ "חבר" ⇒ ברשימה עם "בנה עליו" ⇒ 🎯 "לחלק את סכומי התרומות ל-12
+ *       תשלומים" ⇒ הרכבה של התורמים ⇒ 🕯️ מנוע שנוצר ממחשבון הזמנים ⇒ "בנה עליו" ⇒ תזכורת לפני הזמן הבא ⇒ בלי שמות/טלפונים/ת״ז.
+ *       צילומים ⇒ knowledge/shots/atoms-factory-2026-10-14/.
  *   אפס שגיאות קונסולה. צילום PNG לכל צעד ⇒ knowledge/shots/enginebox-2026-10-13/ (1–5) · knowledge/shots/atoms-names-2026-10-14/ (6) (‏≤150KB).
  *
  *   npm run build && node e2e/enginebox-smoke.mjs
@@ -42,6 +46,9 @@ await mkdir(OUT_CHAIN, { recursive: true });
 // ATOMS-GOAL 14.10: "🎯 מה אתה רוצה לקבל?" — להתחיל מהסוף
 const OUT_GOAL = join(HERE, '..', 'knowledge', 'shots', 'atoms-goal-2026-10-14');
 await mkdir(OUT_GOAL, { recursive: true });
+// ATOMS-FACTORY 14.10: 🏭 המפעל — המנועים שנמצאו אוטומטית, "✅ מאומת", ובונים על מחשבון הזמנים
+const OUT_FACTORY = join(HERE, '..', 'knowledge', 'shots', 'atoms-factory-2026-10-14');
+await mkdir(OUT_FACTORY, { recursive: true });
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png', '.webmanifest': 'application/manifest+json', '.woff2': 'font/woff2' };
 const server = http.createServer(async (req, res) => {
   try { let p = decodeURIComponent(req.url.split('?')[0]).replace(/^\/maor-system\/?/, '/'); if (p === '/' || p === '') p = '/index.html';
@@ -405,7 +412,8 @@ console.log('🧩 ארגז המנועים — מסע אמיתי');
   const engNames = await A('[data-machine] [data-host] .at-name').allTextContents();
   T('🔤 שמות המנועים: מחשבון הזמנים · מבין בקשות · מנהל ההזמנות', engNames.join('|') === 'מחשבון הזמנים|מבין בקשות|מנהל ההזמנות', engNames.join('|'));
   T('🔤 לכל מנוע דוגמה גלויה עם "←" ו"עוד דוגמאות"', (await A('[data-machine] > [data-examples] .at-ex-arrow').count()) >= 3 && (await A('[data-machine] > [data-examples] summary').count()) === 3);
-  T('🎨 כל מנוע פעם אחת: 3 כרטיסי-מכונה, 3 "בחר", 3 "ממה הוא בנוי"', (await A('[data-machine]').count()) === 3 && (await A('[data-host]').count()) === 3 && (await A('[data-engine]').count()) === 3);
+  // FACTORY 14.10 (שינוי-סלקטור מכוון): מתחת לשלושת המנועים יש עכשיו גם "🤖 מנועים שנמצאו אוטומטית" (`.at-machine-found`, data-host-found)
+  T('🎨 כל מנוע פעם אחת: 3 כרטיסי-מכונה, 3 "בחר", 3 "ממה הוא בנוי"', (await A('[data-machine]:not(.at-machine-found)').count()) === 3 && (await A('[data-host]').count()) === 3 && (await A('[data-engine]').count()) === 3);
   T('🎨 שלוש הדלתות בסדר של הבעלים — 🎯 · 🧬 · 🔌, "בנה בעצמך" פתוחה', (await A('[role=tab]').evaluateAll((els) => els.map((e) => e.getAttribute('data-tab')))).join(',') === 'goal,atoms,plug' && (await A('[data-tab="atoms"][aria-selected="true"]').count()) === 1);
   T('🎨 מונה 1-2-3 — שלב 1 נוכחי', (await A('.at-steps [aria-current="step"]').textContent().catch(() => '')).includes('בחר מנוע'));
   await ashot('01-engines.png');
@@ -448,7 +456,9 @@ console.log('🧩 ארגז המנועים — מסע אמיתי');
   T('השאלה הגדולה: "מה לחלק?"', q.trim() === 'מה לחלק?', q);
   const asks = (await A('.at-asks').textContent().catch(() => '')) ?? '';
   T('🔤 "✂️ מחלק לחלקים שווים שואל:"', asks.trim() === '✂️ מחלק לחלקים שווים שואל:', asks);
-  T('רק המקומות המתאימים (מ… עד… / סכום): 6, בלי הלילות', places.length === 6 && places.includes('bookings.turnover') && places.includes('bookings.balance') && !places.includes('bookings.nights'), places.join(','));
+  // FACTORY 14.10 (שינוי מכוון): רק מה שהמפעל אימת — "יום העבודה" (HONEST_NULLS, אין לו תצוגה) כבר לא מוצע ⇒ 5
+  T('רק המקומות המתאימים (מ… עד… / סכום) ורק המאומתים: 5, בלי הלילות ובלי יום העבודה', places.length === 5 && places.includes('bookings.turnover') && places.includes('bookings.balance') && !places.includes('bookings.nights') && !places.includes('bookings.day'), places.join(','));
+  T('🏭 כל אפשרות עם "✅ מאומת"', (await A('[data-place] [data-verified]').count()) === places.length);
   const turnRow = (await A('[data-place="bookings.turnover"]').textContent()) ?? '';
   const balRow = (await A('[data-place="bookings.balance"]').textContent()) ?? '';
   T('ליד חלון הניקיון — התוצאה האמיתית: "חלון הניקיון 11:00–15:00 · 12 תורים" עם המנקות', turnRow.includes('חלון הניקיון 11:00–15:00 · 12 תורים') && turnRow.includes('11:00–11:20 · דנה'), turnRow);
@@ -807,6 +817,145 @@ console.log('🧩 ארגז המנועים — מסע אמיתי');
   T('🎯 בלי שמות אורחים בכרטיס', !GUESTS.some((n) => all.includes(n)));
   await closeBox(page);
   T('🎯 אפס שגיאות קונסולה', errors.length === 0, errors.slice(0, 3).join(' | '));
+  await ctx.close();
+}
+
+// ───────── 10 · (ATOMS-FACTORY 14.10) 🏭 המפעל — מנועים שנמצאו אוטומטית, מאומתים, על נתוני הדמו ─────────
+{
+  const demo = JSON.parse(await readFile(join(HERE, '..', 'public', 'demo.json'), 'utf8'));
+  const DEMO_SEED = { ...demo, ui: { ...(demo.ui || {}), parnasa: SEED_DB.ui.parnasa } };
+  const { ctx, page, errors } = await open(CFG({ 'shell.enginebox': true, 'shell.demodrop': false }), DEMO_SEED);
+  await page.clock.setFixedTime(new Date(demo.savedAt));
+  await page.reload({ waitUntil: 'networkidle' });
+  await wait(600);
+  const A = (sel) => page.locator(`${BOX} ${sel}`);
+  const G = (sel) => page.locator(`${BOX} [data-goal] ${sel}`);
+  const fshot = (name) => shot(page, name, true, undefined, OUT_FACTORY);
+  const clean = (t) => (t ?? '').replace(/⁨|⁩/g, '');
+  const boxText = async () => clean(await page.locator(BOX).textContent().catch(() => ''));
+  const capsOf = () => page.evaluate(() => (JSON.parse(localStorage.getItem('maor_db') || '{}').ui || {}).capabilities || []);
+  const waitMade = async () => { await A('[data-made]').first().waitFor({ timeout: 6000 }).catch(() => {}); await wait(400); };
+  const flushToasts = () => page.waitForFunction(() => document.querySelectorAll('.toast').length === 0, null, { timeout: 8000 }).catch(() => {});
+  const backTo = async (step) => {
+    for (let i = 0; i < 6 && !(await A(`[data-atoms="${step}"]`).count()); i++) { await A('.at-head button').first().click().catch(() => {}); await wait(250); }
+  };
+  const SUP_AMOUNT = 'supporters.supporters.donations[].amount';
+  const SPLIT = 'supporters:' + SUP_AMOUNT + ':divide';
+  const seen = [];
+  const grab = async () => seen.push(await boxText());
+
+  // 10.a · הקבוצה "🤖 מנועים שנמצאו אוטומטית" עם 💝 ו-🎨, כל אחד עם "✅ מאומת"
+  await flushToasts(); // טוסט-היום של הדמו (לא של הארגז) — לא בצילומים
+  await openBox(page, null);
+  await A('[data-found-group]').waitFor({ timeout: 8000 }).catch(() => {});
+  const grp = clean(await A('[data-found-group]').textContent().catch(() => ''));
+  T('🏭 10.a "🤖 מנועים שנמצאו אוטומטית" — 💝 מנוע התורמים ו-🎨 מנוע החוגים', grp.includes('מנועים שנמצאו אוטומטית') && (await A('[data-host-found="supporters"]').count()) === 1 && (await A('[data-host-found="courses"]').count()) === 1 && grp.includes('מנוע התורמים') && grp.includes('מנוע החוגים'), grp.slice(0, 200));
+  T('🏭 בלי נתיבי-קוד: "מאיפה" בשפת הלקוח (תורמים · חוגים)', !grp.includes('src/') && grp.includes('תורמים') && grp.includes('חוגים'));
+  T('🏭 כל מנוע שנמצא עם "✅ מאומת · N בדיקות"', (await A('[data-found-group] [data-verified]').count()) >= 2 && grp.includes('✅ מאומת'));
+  T('🏭 אין גלילה אופקית ב-390px', !(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1)));
+  await A('[data-found-group]').scrollIntoViewIfNeeded();
+  await fshot('01-found-group.png');
+  await grab();
+
+  // 10.b · 💝 ⇒ ✂️ ⇒ אפשרויות עם תוצאות אמיתיות ו"✅ מאומת"
+  await A('[data-host-found="supporters"]').click();
+  await wait(300);
+  await A('[data-atom="divide"]').click();
+  await A('.at-question').waitFor({ timeout: 4000 }).catch(() => {});
+  await wait(300);
+  const optCount = await A('[data-place]').count();
+  const stamped = await A('[data-place] [data-verified]').count();
+  const row = clean(await A(`[data-place="${SUP_AMOUNT}"]`).textContent().catch(() => ''));
+  T('🏭 10.b 💝 ✂️ "מה לחלק?" — כל האפשרויות מאומתות', optCount >= 2 && stamped === optCount, optCount + '/' + stamped);
+  T('🏭 "סכומי התרומות של כל תורם" עם תוצאה אמיתית ("₪… = … × ₪…") ו"✅ מאומת"', /₪[\d,.]+ = .*× ₪[\d,.]+/.test(row) && row.includes('✅ מאומת'), row.slice(0, 220));
+  await A(`[data-place="${SUP_AMOUNT}"]`).scrollIntoViewIfNeeded();
+  await fshot('02-donors-divide-options.png');
+  await grab();
+
+  // 10.c · "חבר" ⇒ נוצר מנוע ⇒ ברשימה עם "בנה עליו"
+  await A(`[data-place="${SUP_AMOUNT}"]`).click();
+  await wait(300);
+  await A('[data-detail="parts"]').fill('12').catch(() => {});
+  await wait(200);
+  await A('.at-actions button').filter({ hasText: 'חבר' }).first().click();
+  await waitMade();
+  const made = clean(await A('[data-made]').textContent().catch(() => ''));
+  await page.waitForFunction((id) => ((JSON.parse(localStorage.getItem('maor_db') || '{}').ui || {}).capabilities || []).some((c) => c.id === id), SPLIT, { timeout: 8000 }).catch(() => {});
+  // 12 תשלומים: "₪47,500 = 4 × ₪3,959 + 8 × ₪3,958" — סופרים את התשלומים בשורה (השארית מתפזרת על הראשונים, תיקון V)
+  const inst = /₪[\d,.]+ = ((?:(?:\d+ × )?₪[\d,.]+(?: \+ )?)+)/.exec(made);
+  const nInst = inst ? inst[1].split(' + ').reduce((a, t) => a + (/^(\d+) × /.test(t) ? +/^(\d+) × /.exec(t)[1] : 1), 0) : 0;
+  T('🏭 10.c "חבר" ⇒ "✨ נוצר מנוע חדש" עם 12 תשלומים אמיתיים', made.includes('✨ נוצר מנוע חדש') && nInst === 12, nInst + ' · ' + made.slice(0, 220));
+  await fshot('03-donors-made.png');
+  await grab();
+  await flushToasts();
+  await backTo('engines');
+  const mineRow = A(`[data-capability="${SPLIT}"]`);
+  T('🏭 ברשימה "המנועים שיצרת" — 💝 מנוע התורמים · "✅ מאומת" · "בנה עליו"', (await mineRow.count()) === 1 && clean(await mineRow.textContent()).includes('מנוע התורמים') && (await mineRow.locator('[data-verified]').count()) === 1 && (await A(`[data-open-cap="${SPLIT}"]`).count()) === 1, clean(await mineRow.textContent().catch(() => '')).slice(0, 200));
+  await mineRow.scrollIntoViewIfNeeded();
+  await fshot('04-donors-in-mine.png');
+  // בונים עליו: 🔄 מי גובה כל תשלום
+  await A(`[data-open-cap="${SPLIT}"]`).click();
+  await wait(300);
+  await A('[data-atom="rotate"]').click();
+  await A('.at-question').waitFor({ timeout: 4000 }).catch(() => {});
+  await wait(250);
+  const outRow = clean(await A(`[data-place="out:${SPLIT}"]`).textContent().catch(() => ''));
+  T('🏭 "בנה עליו" ⇒ 🔄 "מי גובה כל תשלום" — "תשלום 1 · ₪… ⇒ איש צוות א׳"', /תשלום 1 · ₪[\d,.]+ ⇒ איש צוות/.test(outRow) && outRow.includes('✅ מאומת'), outRow.slice(0, 220));
+  await fshot('05-donors-build-on.png');
+  await grab();
+
+  // 10.d · 🎯 "לחלק את סכומי התרומות ל-12 תשלומים" ⇒ הרכבה של התורמים עם תוצאה אמיתית
+  await backTo('engines');
+  await plugTab(page, 'goal');
+  await G('[data-goal-input]').waitFor({ timeout: 5000 }).catch(() => {});
+  await G('[data-goal-input]').fill('לחלק את סכומי התרומות ל-12 תשלומים');
+  await G('form button[type=submit]').click();
+  await wait(500);
+  const gres = G(`[data-goal-result="${SPLIT}"]`);
+  await gres.waitFor({ timeout: 6000 }).catch(() => {});
+  const gTxt = clean(await gres.textContent().catch(() => ''));
+  T('🏭 10.d 🎯 "לחלק את סכומי התרומות ל-12 תשלומים" ⇒ ✂️ את סכומי התרומות, ל-12 תשלומים, עם התשלומים האמיתיים', gTxt.includes('ל-12 תשלומים') && gTxt.includes('סכומי התרומות') && /₪[\d,.]+ = /.test(gTxt), gTxt.slice(0, 220));
+  await gres.scrollIntoViewIfNeeded().catch(() => {});
+  await fshot('06-goal-donors.png');
+  await grab();
+
+  // 10.e · 🕯️ מנוע שנוצר ממחשבון הזמנים ⇒ "בנה עליו" ⇒ ⏱️ תזכורת לפני הזמן הבא
+  await plugTab(page, 'atoms');
+  await backTo('engines');
+  await A('[data-host="zmanim"]').click();
+  await wait(300);
+  await A('[data-atom="next"]').click();
+  await A('.at-question').waitFor({ timeout: 4000 }).catch(() => {});
+  await A('[data-place="zmanim.times"]').click();
+  await wait(250);
+  await A('.at-actions button').filter({ hasText: 'חבר' }).first().click();
+  await waitMade();
+  const ZNEXT = 'zmanim:zmanim.times:next';
+  await page.waitForFunction((id) => ((JSON.parse(localStorage.getItem('maor_db') || '{}').ui || {}).capabilities || []).some((c) => c.id === id), ZNEXT, { timeout: 8000 }).catch(() => {});
+  await flushToasts();
+  await backTo('engines');
+  T('🏭 10.e ✨ המנוע של מחשבון הזמנים — עם "בנה עליו" (היה חסר: רק ההזמנות)', (await A(`[data-open-cap="${ZNEXT}"]`).count()) === 1);
+  await A(`[data-open-cap="${ZNEXT}"]`).click();
+  await wait(300);
+  const zAtoms = await A('[data-atom]').evaluateAll((els) => els.map((e) => e.getAttribute('data-atom')));
+  T('🏭 על "הזמן הבא": ⏱️ 🎯 ⏭️', zAtoms.includes('offset') && zAtoms.includes('round') && zAtoms.includes('next'), zAtoms.join(','));
+  await A('[data-atom="offset"]').click();
+  await A('.at-question').waitFor({ timeout: 4000 }).catch(() => {});
+  await wait(250);
+  const zRow = clean(await A(`[data-place="out:${ZNEXT}"]`).textContent().catch(() => ''));
+  T('🏭 תזכורת לפני הזמן הבא — תוצאה משורשרת אמיתית ("זמן …/… HH:MM ⇒ תזכורת …") + "✅ מאומת"', /זמן \d+\/\d+ \d{2}:\d{2} ⇒ תזכורת \d+\/\d+ \d{2}:\d{2}/.test(zRow) && zRow.includes('✅ מאומת'), zRow.slice(0, 220));
+  await fshot('07-zmanim-build-on.png');
+  await grab();
+
+  // 10.f · בלי שמות, טלפונים או ת״ז באף מסך
+  const names = [];
+  for (const x of [...(demo.supporters || []), ...(demo.families || [])]) for (const k of ['name', 'father', 'mother']) if (typeof x[k] === 'string' && x[k].trim().length > 2 && !/^משפחת$/.test(x[k].trim())) names.push(x[k].trim());
+  for (const f of demo.families || []) for (const m of f.members || []) if (typeof m.name === 'string' && m.name.trim().length > 2) names.push(m.name.trim() + ' ' + String(f.name || '').replace(/^משפחת\s+/, ''));
+  const all = seen.join('\n');
+  const leak = names.find((n) => n.includes(' ') && all.includes(n));
+  T('🏭 10.f בלי שמות של תורמים/משפחות, טלפונים או ת״ז בכל המסכים', !leak && !/0\d{1,2}-?\d{7}/.test(all) && !/(?<![\d,.])\d{9}(?!\d)/.test(all), leak || '');
+  await closeBox(page);
+  T('🏭 אפס שגיאות קונסולה', errors.length === 0, errors.slice(0, 3).join(' | '));
   await ctx.close();
 }
 

@@ -61,6 +61,22 @@ export function verifiedCard(card: EngineCard, keyOf: (place: string, atom: stri
   return { ...card, places };
 }
 
+/** הכלי שבו המנוע שנמצא חי (במקום נתיב-הקוד של המפרק) — שפת הלקוח, כמו "אירוח משפחתי" בכרטיסי-היד. */
+const FOUND_FROM: Readonly<Record<string, string>> = {
+  supporters: 'תורמים',
+  courses: 'חוגים',
+  families: 'משפחות',
+  calendar: 'לוח שנה',
+  diary: 'יומן חדרים',
+  tzedaka: 'קופות צדקה',
+  shop: 'חנות',
+  shop7: 'חלוקה',
+  hosting: 'אירוח משפחתי',
+  parnasa: 'פרנסה׳לע',
+  platform: 'צוות',
+  zmanimBoard: 'פרנסה׳לע',
+};
+
 /** מנוע שנמצא אוטומטית במודול שיש לו כבר כרטיס-יד ⇒ שם שאומר שזה "עוד" ולא כפילות. */
 const FOUND_NAME: Readonly<Record<string, string>> = {
   hosting: 'עוד במנהל ההזמנות',
@@ -76,7 +92,7 @@ export function atomsSource(deps: AtomsDeps): AtomsSource {
   const found = generatedCards()
     .filter((c) => VERIFIED_ENGINES.includes(c.id))
     .map((c) => {
-      const card = verifiedCard({ ...c, name: FOUND_NAME[c.id] ?? c.name });
+      const card = verifiedCard({ ...c, name: FOUND_NAME[c.id] ?? c.name, from: FOUND_FROM[c.id] ?? 'נמצא אוטומטית' });
       const checks = card.places.reduce((n, p) => n + Object.keys(p.results).reduce((m, a) => m + checksOf(p.id + ':' + a), 0), 0);
       return { id: c.id, card, verified: { checks } };
     })

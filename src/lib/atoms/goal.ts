@@ -613,6 +613,9 @@ function paramPhrase(atom: AtomId, p: Record<string, number | string>, amount: b
 
 /** "חלון הניקיון 11:00–15:00 · 6 תורים" ⇒ "6 תורים" (החלק האחרון של הכותרת). */
 function outcomeOf(title: string): string {
+  // FACTORY 14.10: כותרת של מקום שנמצא אוטומטית = "<המקום>: <מה יוצא>" ⇒ רק מה שיוצא ("מחולק לתשלומים שווים")
+  const gen = /^[^:]+: (.+)$/.exec(title);
+  if (gen && !/\d:$/.test(title.split(': ')[0])) return gen[1];
   // החלק האחרון שאומר משהו: לא רק שעות ("תורים באורך משתנה · 11:00–15:00" ⇒ השם) ולא המקום ("· לפי בני ברק")
   const bits = title.split(' · ').map((b) => b.trim()).filter((b) => b && !/^לפי /.test(b) && !/^[\d:–\-/ ]+$/.test(b));
   return bits.length ? bits[bits.length - 1] : '';
