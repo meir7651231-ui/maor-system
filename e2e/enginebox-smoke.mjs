@@ -16,6 +16,9 @@
  *       "מה לחלק?" (רק המקומות המתאימים, כל אחד עם התוצאה האמיתית) ⇒ חלון הניקיון ⇒ גודל 40 · הפסקה 0 ⇒ "חבר" ⇒ "✨ נוצר מנוע
  *       חדש" עם התורים האמיתיים ⇒ 🔗 "מה לאחד?" ⇒ הלילות ⇒ "פנוי N לילות ברצף" ⇒ 📣 ⇒ משימות הניקיון ⇒ תוכנית-ההסלמה ⇒
  *       השרשראות ⇒ "הסר" בשתי לחיצות. (צעדים 1–5 לוחצים קודם על "🔌 לחבר מנוע" — לשונית-הפתיחה השתנתה.)
+ *   9 · (ATOMS-GOAL 14.10) 🎯 "מה אתה רוצה לקבל?": כותבים "תורים של 40 דקות בחלון הניקיון" ⇒ כרטיס עם המשפט במילים והתורים
+ *       האמיתיים ⇒ "חבר" ⇒ "✨ נוצר מנוע חדש" ⇒ צ'יפ "3 לילות פנויים ברצף" ⇒ גם שרשרת (2 חלקים) ⇒ "חבר" יוצר את שניהם ⇒
+ *       "לחלק" ⇒ שאלה סגורה כצ'יפים ⇒ צ'יפ ⇒ תוצאה ⇒ "השעות הזמניות של היום" ⇒ מחשבון הזמנים. צילומים ⇒ knowledge/shots/atoms-goal-2026-10-14/.
  *   אפס שגיאות קונסולה. צילום PNG לכל צעד ⇒ knowledge/shots/enginebox-2026-10-13/ (1–5) · knowledge/shots/atoms-names-2026-10-14/ (6) (‏≤150KB).
  *
  *   npm run build && node e2e/enginebox-smoke.mjs
@@ -36,6 +39,9 @@ await mkdir(OUT_ATOMS, { recursive: true });
 // ATOMS-CHAIN 14.10: מנוע שנוצר חוזר לארגז — המסע של השרשרת
 const OUT_CHAIN = join(HERE, '..', 'knowledge', 'shots', 'atoms-chain-2026-10-14');
 await mkdir(OUT_CHAIN, { recursive: true });
+// ATOMS-GOAL 14.10: "🎯 מה אתה רוצה לקבל?" — להתחיל מהסוף
+const OUT_GOAL = join(HERE, '..', 'knowledge', 'shots', 'atoms-goal-2026-10-14');
+await mkdir(OUT_GOAL, { recursive: true });
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png', '.webmanifest': 'application/manifest+json', '.woff2': 'font/woff2' };
 const server = http.createServer(async (req, res) => {
   try { let p = decodeURIComponent(req.url.split('?')[0]).replace(/^\/maor-system\/?/, '/'); if (p === '/' || p === '') p = '/index.html';
@@ -696,6 +702,104 @@ console.log('🧩 ארגז המנועים — מסע אמיתי');
   await closeBox(page);
 
   T('✨ אפס שגיאות קונסולה', errors.length === 0, errors.slice(0, 3).join(' | '));
+  await ctx.close();
+}
+
+// ───────── 9 · (ATOMS-GOAL 14.10) 🎯 "מה אתה רוצה לקבל?" — להתחיל מהסוף ─────────
+{
+  const { ctx, page, errors } = await open(CFG({ 'shell.enginebox': true, 'shell.demodrop': false }), SEED_DB);
+  const A = (sel) => page.locator(`${BOX} ${sel}`);
+  const G = (sel) => page.locator(`${BOX} [data-goal] ${sel}`);
+  const gshot = (name, clip) => shot(page, name, true, clip, OUT_GOAL);
+  const capsOf = () => page.evaluate(() => (JSON.parse(localStorage.getItem('maor_db') || '{}').ui || {}).capabilities || []);
+  const auditOf = () => page.evaluate(() => (JSON.parse(localStorage.getItem('maor_db') || '{}').audit || []).map((a) => a.act + ': ' + a.what));
+  const goalText = async () => (await A('[data-goal]').textContent().catch(() => '')) ?? '';
+  const flushToasts = () => page.waitForFunction(() => document.querySelectorAll('.toast').length === 0, null, { timeout: 8000 }).catch(() => {});
+  const askGoal = async (t) => {
+    await G('[data-goal-input]').fill(t);
+    await G('form button[type=submit]').click();
+    await wait(400);
+  };
+  const GUESTS = ['משפחת לוי', 'משפחת שפירא', 'משפחת כהן'];
+  const TURNS = 'bookings:bookings.turnover:divide';
+  const NEXT3 = 'bookings:bookings.nights:merge>next';
+
+  // 9.1 · הכרטיס העליון בלשונית
+  await openBox(page, null);
+  await A('[data-goal]').waitFor({ timeout: 6000 }).catch(() => {});
+  T('🎯 9.1 בראש "מנועים וחלקים": "🎯 מה אתה רוצה לקבל?" עם 6 צ\'יפי-דוגמה', (await goalText()).includes('🎯 מה אתה רוצה לקבל?') && (await G('[data-goal-example]').count()) === 6);
+  await gshot('01-goal-card.png');
+
+  // 9.2 · כותבים את המטרה ⇒ המשפט במילים + התורים האמיתיים
+  await askGoal('תורים של 40 דקות בחלון הניקיון');
+  const first = G(`[data-goal-result="${TURNS}"]`);
+  await first.waitFor({ timeout: 6000 }).catch(() => {});
+  const firstTxt = ((await first.textContent().catch(() => '')) ?? '').replace(/⁨|⁩/g, '');
+  T('🎯 9.2 הכרטיס הראשון: "✂️ מחלק לחלקים שווים את חלון הניקיון, כל חלק 40 דקות ← 6 תורים"', firstTxt.includes('✂️ מחלק לחלקים שווים את חלון הניקיון, כל חלק 40 דקות ← 6 תורים'), firstTxt.slice(0, 160));
+  T('🎯 התורים האמיתיים: 11:00–11:40 · דנה … 14:20–15:00 · רבקה', firstTxt.includes('11:00–11:40 · דנה') && firstTxt.includes('14:20–15:00 · רבקה'), firstTxt.slice(0, 220));
+  T('🎯 אין גלילה אופקית ב-390px', !(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1)));
+  await first.scrollIntoViewIfNeeded();
+  await gshot('02-goal-turns.png');
+
+  // 9.3 · "חבר" ⇒ "✨ נוצר מנוע חדש" (טוסט + כרטיס), ושורת-לוג
+  await first.locator('button', { hasText: 'חבר' }).click();
+  await page.locator('.toast', { hasText: '✨ נוצר מנוע חדש' }).first().waitFor({ timeout: 6000 }).catch(() => {});
+  const toastOk = (await page.locator('.toast', { hasText: '✨ נוצר מנוע חדש' }).count()) >= 1;
+  // השמירה ל-localStorage מושהית (debounce) — מחכים לה, לא לשעון
+  await page.waitForFunction((id) => ((JSON.parse(localStorage.getItem('maor_db') || '{}').ui || {}).capabilities || []).some((c) => c.id === id), TURNS, { timeout: 8000 }).catch(() => {});
+  const caps1 = await capsOf();
+  T('🎯 9.3 "חבר" ⇒ טוסט "✨ נוצר מנוע חדש" + "✨ נוצר מנוע חדש" בכרטיס', toastOk && (await G(`[data-goal-made="${TURNS}"]`).count()) === 1);
+  const audit1 = await auditOf();
+  T('🎯 המנוע נשמר עם 40 דקות, ובלוג "מנוע חדש: מנוע תורים"', caps1.some((c) => c.id === TURNS && c.params.size === 40 && c.params.by === 'size') && audit1.some((a) => a.startsWith('מנוע חדש: מנוע תורים')), JSON.stringify(caps1.map((c) => [c.id, c.params])) + ' | ' + audit1.slice(-2).join(' | '));
+  await first.scrollIntoViewIfNeeded();
+  await gshot('03-goal-connected.png');
+  await flushToasts();
+
+  // 9.4 · צ'יפ "3 לילות פנויים ברצף" ⇒ גם שרשרת (2 חלקים) עם החלון האמיתי ⇒ "חבר" יוצר את שניהם
+  await G('[data-goal-example="3 לילות פנויים ברצף"]').click();
+  await wait(400);
+  const chain = G(`[data-goal-result="${NEXT3}"]`);
+  await chain.waitFor({ timeout: 6000 }).catch(() => {});
+  const chainTxt = ((await chain.textContent().catch(() => '')) ?? '').replace(/⁨|⁩/g, '');
+  T('🎯 9.4 "3 לילות פנויים ברצף" ⇒ שרשרת: "2 חלקים" · 🔗 ואז ⏭️ · "3 לילות פנויים ברצף מ-…"', chainTxt.includes('2 חלקים') && chainTxt.includes('ואז ⏭️') && /3 לילות פנויים ברצף מ-\d+\/\d+/.test(chainTxt), chainTxt.slice(0, 220));
+  await chain.scrollIntoViewIfNeeded();
+  await gshot('04-goal-chain.png');
+  await chain.locator('button', { hasText: 'חבר' }).click();
+  await page.waitForFunction((id) => ((JSON.parse(localStorage.getItem('maor_db') || '{}').ui || {}).capabilities || []).some((c) => c.id === id), NEXT3, { timeout: 8000 }).catch(() => {});
+  const caps2 = await capsOf();
+  const child = caps2.find((c) => c.id === NEXT3);
+  T('🎯 "חבר" לשרשרת ⇒ שני מנועים: הראשון, והבנוי עליו (parent)', caps2.some((c) => c.id === 'bookings:bookings.nights:merge') && !!child && child.parent === 'bookings:bookings.nights:merge', JSON.stringify(caps2.map((c) => c.id)));
+  await flushToasts();
+
+  // 9.5 · משפט לא ברור ⇒ שאלה סגורה כצ'יפים (לא ניחוש) ⇒ צ'יפ ⇒ תוצאה
+  await askGoal('לחלק');
+  await G('[data-goal-chip]').first().waitFor({ timeout: 4000 }).catch(() => {});
+  T('🎯 9.5 "לחלק" ⇒ "✂️ מה לחלק?" עם צ\'יפים, בלי כרטיסי-הרכבה', (await goalText()).includes('✂️ מה לחלק?') && (await G('[data-goal-chip]').count()) >= 2 && (await G('[data-goal-result]').count()) === 0);
+  await G('[data-goal-question]').scrollIntoViewIfNeeded();
+  await gshot('05-goal-question.png');
+  await G('[data-goal-chip="bookings.balance"]').click();
+  await wait(400);
+  const balTxt = ((await G('[data-goal-result]').first().textContent().catch(() => '')) ?? '').replace(/⁨|⁩/g, '');
+  T('🎯 צ\'יפ "🛏️ היתרה" ⇒ "₪1,200 = 12 × ₪100"', balTxt.includes('₪1,200 = 12 × ₪100'), balTxt.slice(0, 200));
+  await gshot('06-goal-chip-answer.png');
+
+  // 9.6 · מחשבון הזמנים: "השעות הזמניות של היום"
+  await G('[data-goal-example="השעות הזמניות של היום"]').click();
+  await wait(400);
+  const zTxt = ((await G('[data-goal-result="zmanim:zmanim.day:divide"]').textContent().catch(() => '')) ?? '').replace(/⁨|⁩/g, '');
+  T('🎯 9.6 "השעות הזמניות של היום" ⇒ 🕯️ "שעה 1 · …" מהנתונים', zTxt.includes('✂️ מחלק לחלקים שווים את היום מהנץ עד השקיעה') && zTxt.includes('שעה 1 ·'), zTxt.slice(0, 200));
+  await G('[data-goal-result="zmanim:zmanim.day:divide"]').scrollIntoViewIfNeeded().catch(() => {});
+  await gshot('07-goal-zmanim.png');
+
+  // 9.7 · אין הרכבה ⇒ שורה כנה
+  await askGoal('תזכורת יומיים לפני כל הגעה');
+  T('🎯 9.7 אין הרכבה ⇒ "לא מצאתי הרכבה שנותנת את זה מהמנועים שיש…"', (await goalText()).includes('לא מצאתי הרכבה שנותנת את זה מהמנועים שיש'));
+  await gshot('08-goal-none.png');
+
+  const all = (await goalText()) + JSON.stringify(caps2);
+  T('🎯 בלי שמות אורחים בכרטיס', !GUESTS.some((n) => all.includes(n)));
+  await closeBox(page);
+  T('🎯 אפס שגיאות קונסולה', errors.length === 0, errors.slice(0, 3).join(' | '));
   await ctx.close();
 }
 
