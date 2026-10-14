@@ -72,5 +72,6 @@ export function EngineBoxEntry(props: { onClose: () => void }) {
       }),
     [config, links, db, email, linkEngine, unlinkEngine, logAccess, toast, sw, nowMs, goalFn],
   );
-  return <EngineBoxScreen source={source} onClose={props.onClose} />;
+  // ATOMS 14.10: לשונית "🧬 מנועים וחלקים" — המקור האמיתי (כרטיסי-המנועים והחלקים) מחובר בסשן הסופי; עד אז מצב-ריק כן
+  return <EngineBoxScreen source={source} atoms={null} onClose={props.onClose} />;
 }

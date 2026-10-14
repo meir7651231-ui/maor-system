@@ -18,10 +18,13 @@ import { Btn, Modal } from '../ui';
 import { GoalPanel } from './GoalPanel';
 import type { BoxFuture, BoxImpact, BoxOption, BoxPart, BoxProduct, EngineBoxSource } from './types';
 import { linksLabel, pickableParts, resolveStart, type BoxStart } from './model';
+import { AtomsBody } from './atoms/AtomsBody';
+import { TAB_ATOMS_TEXT } from './atoms/AtomSteps';
+import type { AtomsSource } from './atoms/seam';
 import './enginebox.css';
 
 export type BoxStep = 'start' | 'pick' | 'plug';
-export type BoxTab = 'plug' | 'goal';
+export type BoxTab = 'plug' | 'goal' | 'atoms';
 
 export const TAB_PLUG_TEXT = '🔌 לחבר מנוע';
 export const TAB_GOAL_TEXT = '🎯 להתחיל מהסוף';
@@ -219,9 +222,12 @@ export function BoxHeader(props: { start: BoxStart; linked: number; onBack: () =
   );
 }
 
-// ——— הלשוניות: לחבר מנוע / להתחיל מהסוף ———
-export function BoxTabs(props: { tab: BoxTab; onTab: (tab: BoxTab) => void }) {
+// ——— הלשוניות: (מנועים וחלקים) / לחבר מנוע / להתחיל מהסוף ———
+/** ATOMS 14.10: `atoms` ⇒ "🧬 מנועים וחלקים" ראשונה; `goal:false` ⇒ בלי "להתחיל מהסוף". בלי שניהם ⇒ ביט-זהה לקודם. */
+export function BoxTabs(props: { tab: BoxTab; onTab: (tab: BoxTab) => void; atoms?: boolean; goal?: boolean }) {
   const tabs: [BoxTab, string][] = [['plug', TAB_PLUG_TEXT], ['goal', TAB_GOAL_TEXT]];
+  if (props.goal === false) tabs.pop();
+  if (props.atoms) tabs.unshift(['atoms', TAB_ATOMS_TEXT]);
   return (
     <div className="eb-tabs" role="tablist" aria-label="איך מתחילים">
       {tabs.map(([id, label]) => (
@@ -261,6 +267,8 @@ export function GoalTab(props: { source: EngineBoxSource; start: string | null; 
 export function EngineBoxBody(props: {
   source: EngineBoxSource | null;
   initial?: { start?: string; picked?: string; tab?: BoxTab; goal?: string };
+  /** ATOMS 14.10: undefined ⇒ אין לשונית "מנועים וחלקים" (ביט-זהה לקודם); null ⇒ הלשונית עם מצב-ריק כן. */
+  atoms?: AtomsSource | null;
 }) {
   const { source } = props;
   const [tab, setTab] = useState<BoxTab>(props.initial?.tab ?? 'plug');
@@ -276,18 +284,38 @@ export function EngineBoxBody(props: {
   const step: BoxStep = !start ? 'start' : !picked ? 'pick' : 'plug';
   const hasGoal = !!source?.goal;
   const goalOn = hasGoal && tab === 'goal';
+  const hasAtoms = props.atoms !== undefined;
+  const atomsOn = hasAtoms && tab === 'atoms';
 
   // פוקוס לכותרת-הצעד בכל מעבר — קורא-מסך שומע איפה הוא
   useEffect(() => {
     if (!goalOn) bodyRef.current?.querySelector<HTMLElement>('.eb-step-title')?.focus();
   }, [step, goalOn]);
 
-  if (!source) return <div className="empty eb-empty">🧩 {EMPTY_SOURCE_TEXT}</div>;
+  if (atomsOn) {
+    return (
+      <div ref={bodyRef} className="eb-body" data-tab="atoms">
+        <BoxTabs tab="atoms" onTab={setTab} atoms goal={hasGoal} />
+        <AtomsBody source={props.atoms ?? null} />
+      </div>
+    );
+  }
+
+  if (!source) {
+    const empty = <div className="empty eb-empty">🧩 {EMPTY_SOURCE_TEXT}</div>;
+    if (!hasAtoms) return empty;
+    return (
+      <div ref={bodyRef} className="eb-body">
+        <BoxTabs tab={tab} onTab={setTab} atoms goal={false} />
+        {empty}
+      </div>
+    );
+  }
 
   if (goalOn) {
     return (
       <div ref={bodyRef} className="eb-body" data-tab="goal">
-        <BoxTabs tab="goal" onTab={setTab} />
+        <BoxTabs tab="goal" onTab={setTab} atoms={hasAtoms} />
         {start && (
           <div className="eb-goal-from">
             מתחילים מ: <span aria-hidden="true">{start.emoji}</span> {start.name}
@@ -309,7 +337,7 @@ export function EngineBoxBody(props: {
 
   return (
     <div ref={bodyRef} className="eb-body" data-step={step}>
-      {hasGoal && <BoxTabs tab="plug" onTab={setTab} />}
+      {(hasGoal || hasAtoms) && <BoxTabs tab="plug" onTab={setTab} atoms={hasAtoms} goal={hasGoal} />}
       {start && (
         <BoxHeader
           start={start}
@@ -338,11 +366,13 @@ export function EngineBoxScreen(props: {
   source: EngineBoxSource | null;
   onClose: () => void;
   initial?: { start?: string; picked?: string; tab?: BoxTab; goal?: string };
+  /** ATOMS 14.10 — ראו EngineBoxBody. */
+  atoms?: AtomsSource | null;
 }) {
   return (
     <Modal title="🧩 ארגז המנועים" onClose={props.onClose} wide>
       <p className="eb-intro">כל מנוע נותן משהו ומקבל משהו. בוחרים במה מתחילים, מוסיפים מנוע — ורואים איפה הוא מתחבר ומה יוצא מזה.</p>
-      <EngineBoxBody source={props.source} initial={props.initial} />
+      <EngineBoxBody source={props.source} initial={props.initial} atoms={props.atoms} />
       <div className="modal-actions">
         <Btn onClick={props.onClose}>סגירה</Btn>
       </div>
