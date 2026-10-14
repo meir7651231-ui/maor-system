@@ -1,0 +1,129 @@
+/**
+ * 🧬 ארגז המנועים · לשונית "מנועים וחלקים" (ATOMS-SCREEN 14.10.2026).
+ *
+ * חזון-הבעלים: לא מחברים מוצרים גמורים — מפרקים מנועים. כל מנוע גדול בנוי מחלקים קטנים
+ * ("חלק לשווים", "מיזוג רצפים"); חלק לא יודע למה משתמשים בו. יש לך מנוע ⇒ בוחרים חלק ⇒
+ * הוא שואל שאלה אחת ומציע רק מה שבמנוע שלך מהסוג שלו, עם התוצאה ⇒ פרטים ⇒ "חבר" ⇒ מנוע חדש.
+ *
+ * מדבר רק עם התפר (`AtomsSource`, ./seam). ההתאמה = `optionsFor` של החוזה (לא משוכפלת כאן).
+ * source=null ⇒ מצב-ריק כן. canEdit=false ⇒ צפייה בלבד, בלי "חבר"/"הסר".
+ */
+import { useEffect, useRef, useState } from 'react';
+import { optionsFor } from '../../../lib/atoms/contract';
+import type { AtomsSource } from './seam';
+import { connectCapability, detailDefaults, removeTap, type DetailValues } from './naming';
+import {
+  ATOMS_EMPTY_TEXT,
+  AtomGrid,
+  AtomsHeader,
+  ChainsList,
+  CreatedCard,
+  CreatedList,
+  DetailsStep,
+  EnginesStep,
+  HostStep,
+  QuestionStep,
+} from './AtomSteps';
+import './atoms.css';
+
+export type AtomsStep = 'engines' | 'atom' | 'question' | 'details' | 'made';
+
+export interface AtomsInitial { host?: string; atom?: string; place?: string; open?: string; made?: string }
+
+const ARM_MS = 3500;
+
+export function AtomsBody(props: { source: AtomsSource | null; initial?: AtomsInitial }) {
+  const { source } = props;
+  const ini = props.initial;
+  const [open, setOpen] = useState<string | null>(ini?.open ?? null);
+  const [hostId, setHostId] = useState<string | null>(ini?.host ?? null);
+  const [atomId, setAtomId] = useState<string | null>(ini?.atom ?? null);
+  const [placeId, setPlaceId] = useState<string | null>(ini?.place ?? null);
+  const [values, setValues] = useState<DetailValues | null>(null);
+  const [madeId, setMadeId] = useState<string | null>(ini?.made ?? null);
+  const [armed, setArmed] = useState<string | null>(null);
+  // מונה-רענון: create/remove משנים את המקור מחוץ ל-React
+  const [, setTick] = useState(0);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
+
+  const engines = source ? source.engines() : [];
+  const atoms = source ? source.atoms() : [];
+  const host = engines.find((e) => e.id === hostId) ?? null;
+  const atom = host ? atoms.find((a) => a.id === atomId) ?? null : null;
+  const options = host && atom ? optionsFor(atom, host) : [];
+  const option = options.find((o) => o.place === placeId) ?? null;
+  const caps = source ? source.capabilities() : [];
+  const made = madeId ? caps.find((c) => c.id === madeId) ?? null : null;
+  const step: AtomsStep = made ? 'made' : !host ? 'engines' : !atom ? 'atom' : !option ? 'question' : 'details';
+
+  // פוקוס לכותרת-הצעד בכל מעבר — קורא-מסך שומע איפה הוא
+  useEffect(() => {
+    if (step !== 'engines') ref.current?.querySelector<HTMLElement>('[tabindex="-1"]')?.focus();
+  }, [step]);
+
+  if (!source || (engines.length === 0 && atoms.length === 0)) {
+    return <div className="empty at-empty" data-atoms="empty">{ATOMS_EMPTY_TEXT}</div>;
+  }
+
+  const reset = () => { setAtomId(null); setPlaceId(null); setValues(null); setMadeId(null); };
+  const back = () => {
+    if (step === 'made') { setMadeId(null); setAtomId(null); setPlaceId(null); setValues(null); }
+    else if (step === 'details') { setPlaceId(null); setValues(null); }
+    else if (step === 'question') setAtomId(null);
+    else { reset(); setHostId(null); }
+  };
+  const backLabel = step === 'details' ? 'מקום אחר' : step === 'question' ? 'חלק אחר' : step === 'made' ? 'עוד חלק' : 'מנוע אחר';
+  const vals = values ?? (atom ? detailDefaults(atom.details) : {});
+
+  const connect = () => {
+    if (!host || !atom || !option) return;
+    const cap = connectCapability(source, host, atom, option, vals);
+    if (!cap) return;
+    setMadeId(cap.id);
+    setTick((t) => t + 1);
+  };
+  const onRemoveTap = (id: string) => {
+    const r = removeTap(armed, id);
+    setArmed(r.armed);
+    if (timer.current) clearTimeout(timer.current);
+    if (r.armed) timer.current = setTimeout(() => setArmed(null), ARM_MS);
+    if (r.remove) {
+      source.remove(id);
+      if (madeId === id) setMadeId(null);
+      setTick((t) => t + 1);
+    }
+  };
+
+  return (
+    <div ref={ref} className="at-body" data-atoms={step}>
+      {host && <AtomsHeader host={host} onBack={back} backLabel={backLabel} />}
+      {step === 'engines' && (
+        <>
+          <EnginesStep engines={engines} atoms={atoms} open={open} onToggle={(id) => setOpen((o) => (o === id ? null : id))} />
+          <HostStep engines={engines} onHost={(id) => { reset(); setHostId(id); }} />
+        </>
+      )}
+      {step === 'atom' && host && (
+        <>
+          <AtomGrid host={host} atoms={atoms} engines={engines} onAtom={setAtomId} />
+          <ChainsList chains={source.chains(host.id)} atoms={atoms} />
+        </>
+      )}
+      {step === 'question' && atom && <QuestionStep atom={atom} options={options} onOption={(p) => { setPlaceId(p); setValues(detailDefaults(atom.details)); }} />}
+      {step === 'details' && atom && option && (
+        <DetailsStep
+          atom={atom}
+          option={option}
+          values={vals}
+          canEdit={source.canEdit}
+          onValue={(id, v) => setValues({ ...vals, [id]: v })}
+          onConnect={connect}
+        />
+      )}
+      {step === 'made' && made && <CreatedCard capability={made} preview={source.preview(made)} />}
+      <CreatedList capabilities={caps} engines={engines} canEdit={source.canEdit} armed={armed} onRemoveTap={onRemoveTap} />
+    </div>
+  );
+}

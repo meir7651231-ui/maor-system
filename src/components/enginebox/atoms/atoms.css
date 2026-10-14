@@ -1,0 +1,109 @@
+/* 🧬 ארגז המנועים · מנועים וחלקים — רק tokens (ערכות-נושא + מצב-כהה + ניגודיות-גבוהה מגיעים חינם),
+   mobile-first ל-390px, RTL, יעדי-מגע ≥ 44px. נטען רק עם ה-chunk העצל של הארגז. */
+.at-body { display: flex; flex-direction: column; gap: 14px; }
+.at-empty { font-size: 16px; }
+.at-title { font-size: 18px; font-weight: 700; margin: 0 0 8px; color: var(--ink); }
+.at-title:focus, .at-question:focus { outline: none; }
+.at-title:focus-visible, .at-question:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.at-sub { font-size: 15px; font-weight: 700; margin: 8px 0 8px; color: var(--ink-soft); }
+.at-hint { font-size: 13.5px; color: var(--ink-soft); margin: 0 0 10px; line-height: 1.5; }
+.at-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.at-emoji { font-size: 26px; line-height: 1; }
+.at-name { font-weight: 700; font-size: 15px; color: var(--ink); }
+.at-what { font-size: 13px; color: var(--ink-soft); line-height: 1.4; }
+.at-chip {
+  display: inline-block; font-size: 11.5px; font-weight: 600; padding: 1px 8px; border-radius: 999px;
+  border: 1px solid var(--line); color: var(--ink-soft); background: var(--panel); width: fit-content;
+}
+.at-inbox { border-color: var(--accent); color: var(--ink); margin-inline-start: 6px; }
+.at-kind { border-style: dashed; }
+
+/* 1 · המנועים + הפירוק */
+.at-engine { border: 1px solid var(--line); border-radius: 12px; background: var(--card-bg, var(--panel)); overflow: hidden; }
+.at-engine.at-open { border-color: var(--accent); }
+.at-engine-head {
+  display: flex; gap: 12px; align-items: flex-start; width: 100%; min-height: 64px; padding: 12px;
+  border: 0; background: transparent; color: var(--ink); text-align: right; cursor: pointer; font: inherit;
+}
+.at-engine-text { display: flex; flex-direction: column; gap: 4px; }
+.at-engine-head:focus-visible, .at-card:focus-visible, .at-option:focus-visible, .at-choice:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 2px;
+}
+.at-parts { list-style: none; margin: 0; padding: 0 12px 12px; display: flex; flex-direction: column; gap: 6px; }
+.at-part { display: flex; gap: 10px; align-items: flex-start; padding: 8px 10px; border-radius: 10px; background: var(--bg); }
+.at-num {
+  flex: 0 0 auto; min-width: 26px; height: 26px; border-radius: 999px; display: inline-flex; align-items: center;
+  justify-content: center; font-size: 13px; font-weight: 700; border: 1px solid var(--line); color: var(--ink-soft);
+}
+.at-part-text { display: flex; flex-direction: column; gap: 2px; }
+.at-part-name { font-weight: 600; font-size: 14px; color: var(--ink); }
+
+/* 2 · גריד המנועים/החלקים */
+.at-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.at-card {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 4px; text-align: right; font: inherit;
+  min-height: 88px; padding: 12px; border-radius: 12px; cursor: pointer;
+  border: 1px solid var(--line); background: var(--card-bg, var(--panel)); color: var(--ink);
+}
+.at-card:hover, .at-option:hover { border-color: var(--accent); background: var(--bg); }
+.at-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+  padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg);
+}
+.at-head-host { display: flex; align-items: center; gap: 10px; }
+.at-head .btn, .at-actions .btn, .at-mine .btn { min-height: 44px; justify-content: center; }
+.at-chain { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: 12px; border: 1px dashed var(--line); }
+.at-chain-emo { font-size: 20px; white-space: nowrap; }
+.at-chain-text { display: flex; flex-direction: column; gap: 2px; }
+
+/* 3 · השאלה האחת */
+.at-asks { font-size: 14px; color: var(--ink-soft); font-weight: 600; }
+.at-question { font-size: 28px; font-weight: 800; margin: 0 0 6px; color: var(--ink); line-height: 1.25; }
+.at-option {
+  display: flex; flex-direction: column; gap: 6px; width: 100%; min-height: 64px; padding: 12px; text-align: right; font: inherit;
+  border: 1px solid var(--line); border-radius: 12px; background: var(--card-bg, var(--panel)); color: var(--ink); cursor: pointer;
+}
+.at-option-head { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.at-place { font-size: 13.5px; color: var(--ink-soft); font-weight: 600; }
+.at-result { font-size: 18px; font-weight: 800; color: var(--ink); line-height: 1.4; }
+
+/* 4 · הפרטים */
+.at-picked { padding: 10px 12px; border-radius: 12px; border-inline-start: 3px solid var(--accent); background: var(--bg); }
+.at-form { display: flex; flex-direction: column; gap: 12px; margin-top: 12px; }
+.at-field { display: flex; flex-direction: column; gap: 6px; }
+.at-label { font-size: 15px; font-weight: 700; color: var(--ink); }
+.at-input-row { display: flex; align-items: center; gap: 8px; }
+.at-input {
+  width: 120px; min-height: 44px; padding: 8px 10px; border-radius: 10px; font: inherit; font-size: 17px;
+  border: 1px solid var(--line); background: var(--card-bg, var(--panel)); color: var(--ink);
+}
+.at-input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.at-unit { font-size: 14px; color: var(--ink-soft); }
+.at-choices { display: flex; flex-wrap: wrap; gap: 8px; }
+.at-choice {
+  min-height: 44px; padding: 8px 14px; border-radius: 999px; cursor: pointer; font: inherit; font-size: 14px;
+  border: 1px solid var(--line); background: var(--bg); color: var(--ink);
+}
+.at-choice.at-on { border-color: var(--accent); border-width: 2px; font-weight: 700; }
+.at-choice:disabled { cursor: default; }
+.at-actions { display: flex; gap: 10px; margin-top: 12px; }
+.at-actions .btn { min-width: 120px; }
+
+/* 5 · המנוע החדש */
+.at-made { border: 2px solid var(--green); border-radius: 12px; padding: 12px; background: var(--card-bg, var(--panel)); }
+.at-preview { display: flex; flex-direction: column; gap: 4px; }
+.at-preview-title { font-size: 14px; font-weight: 700; color: var(--ink-soft); }
+.at-preview-lines { margin: 0; padding-inline-start: 18px; font-size: 14px; color: var(--ink); line-height: 1.5; }
+.at-soon { font-size: 14px; color: var(--ink-soft); }
+.at-mine {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+  padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--card-bg, var(--panel));
+}
+.at-mine-text { display: flex; flex-direction: column; gap: 2px; }
+
+@media (max-width: 420px) {
+  .at-grid { grid-template-columns: 1fr 1fr; }
+  .at-question { font-size: 24px; }
+  .at-result { font-size: 17px; }
+  .at-actions .btn { width: 100%; }
+}
