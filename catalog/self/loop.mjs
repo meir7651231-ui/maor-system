@@ -653,10 +653,13 @@ async function planInner(root, { only, history }, REC) {
   const VER = await verifiable(root);
   const IDX = gitIndex(root);
   const memoOn = !MEMO_OFF();
-  // ערכי השלב הגלובלי שכל שורה תלויה בהם — כערכים (לא כקבצים): שינוי בפונקציה אחת משנה רק את החתימה שלה כאן
-  const GKEY = fpOf('loop-subj-v1', toolKey(root, IDX), H.state, JSON.stringify(all), JSON.stringify([...VER].sort()),
-    JSON.stringify([...W.byVerb].map(([v, ps]) => [v, ps.map((p) => [p.id, p.takes.length, p.homes.map((h) => h.id)])])),
-    JSON.stringify(W.combos.map((r) => [r.verb, r.id ?? r.recipe ?? ''])));
+  // ערכי השלב הגלובלי שהשורה של נבדק תלויה בהם — כערכים (לא כקבצים), ורק של **הפועל שלו**: המועמדים הם מאותו פועל
+  // (שאר הנבדקים · המחסן · השילובים), ומהגרף של הבונה-מחדש — רק האם הקובץ שלו בתוכו. נבדק חדש בפועל אחר לא נוגע בשורה.
+  const TOOLS = toolKey(root, IDX);
+  const gkeyOf = (s) => fpOf('loop-subj-v2', TOOLS, H.state, JSON.stringify(s), VER.has(s.path) ? 'checkable' : '-',
+    JSON.stringify(all.filter((o) => o.verb === s.verb)),
+    JSON.stringify((W.byVerb.get(s.verb) ?? []).map((p) => [p.id, p.takes.length, p.homes.map((h) => h.id)])),
+    JSON.stringify(W.combos.filter((r) => r.verb === s.verb).length));
   const histOf = (rel) => (H.G ? fileHistory(H, rel).map((c) => c.hash) : [H.state]);
   // הרצת-המועמדים מהקטלוג — פעם אחת לכל פועל (loadRunners טוען כל קובץ פעם אחת)
   const runnersMemo = new Map(); const runnersDeps = new Map();
@@ -681,7 +684,7 @@ async function planInner(root, { only, history }, REC) {
   const queue = [];
   const memoStats = { reused: 0, checked: 0 };
   for (const s of subjects) {
-    const mkey = fpOf(GKEY, s.id);
+    const mkey = gkeyOf(s);
     // כמה גרסאות אחרונות לכל נבדק (ביטול-שינוי / מעבר-ענף ⇒ עדיין מהזיכרון)
     const slot = (memoOn && cacheGetLocal(root, 'loop-subj', mkey)) || { list: [] };
     const hist = fpOf(...histOf(s.path));
