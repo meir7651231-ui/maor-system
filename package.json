@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "prebuild": "node scripts/atoms-factory.mjs",
     "build": "tsc -b && vite build",
     "postbuild": "node scripts/bundle-budget.mjs",
     "lint": "oxlint",
@@ -12,9 +13,10 @@
     "typecheck": "tsc -b --noEmit",
     "preview": "vite preview",
     "e2e": "node e2e/toggle-matrix.mjs",
-    "verify": "npm run typecheck && npm run lint && npm run test && npm run build",
+    "verify": "npm run typecheck && npm run lint && npm run test && npm run atoms:factory -- --check && npm run build",
     "verify:fast": "npm run typecheck && npm run lint && npm run test",
     "e2e:verticals": "node e2e/vertical-matrix.mjs",
+    "atoms:factory": "node scripts/atoms-factory.mjs",
     "test:rules": "firebase emulators:exec --only firestore --project demo-maor 'node e2e/rules-redteam.mjs'"
   },
   "dependencies": {

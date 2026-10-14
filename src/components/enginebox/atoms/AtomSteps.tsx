@@ -32,6 +32,16 @@ export const NOTHING_FITS_TEXT = 'עוד אין חלק שמתחבר למנוע �
 export const MAX_GEN_TEXT = 'על המנוע הזה כבר אי אפשר לבנות עוד — עד 3 מנועים בשרשרת';
 export const CREATED_HOST_HINT = 'מנועים שיצרת — לחצו כדי לחבר אליהם עוד חלק';
 /** "קודם הסירו את ✨ מנוע תורים באורך משתנה שבנוי עליו". */
+/** FACTORY 14.10: הקבוצה של המנועים שהמפרק מצא, והחותמת של המאמת (אותם טקסטים כמו בחריצים של העיצוב). */
+export const FOUND_TITLE = '🤖 מנועים שנמצאו אוטומטית';
+export const VERIFIED_TEXT = '✅ מאומת';
+export const verifiedLabel = (checks: number) => VERIFIED_TEXT + ' · ' + (checks === 1 ? 'בדיקה אחת' : checks + ' בדיקות');
+export interface Verified { checks: number }
+export function VerifiedStamp(props: { verified?: Verified | null }) {
+  if (!props.verified || !(props.verified.checks > 0)) return null;
+  return <span className="at-chip at-verified" data-verified={props.verified.checks}>{verifiedLabel(props.verified.checks)}</span>;
+}
+
 export const blockedText = (names: readonly string[]) => 'קודם הסירו את ' + names.map((n) => '✨ ' + n).join(', ') + ' ש' + (names.length > 1 ? 'בנויים' : 'בנוי') + ' עליו';
 
 /** ATOMS-NAMES: שם-הסוג כמו שהמשתמש רואה אותו ("מ… עד…", "סכום") — לא התוויות הטכניות של החוזה. */
@@ -160,8 +170,15 @@ export function Decomposition(props: { engine: EngineCard; atoms: AtomCard[] }) 
 }
 
 // ——— 2 · יש לך מנוע ———
-export function HostStep(props: { engines: EngineCard[]; onHost: (id: string) => void; created?: readonly { id: string; card: EngineCard }[] }) {
+export function HostStep(props: {
+  engines: EngineCard[];
+  onHost: (id: string) => void;
+  created?: readonly { id: string; card: EngineCard }[];
+  /** FACTORY 14.10: המנועים שנמצאו אוטומטית (רק מה שאומת). */
+  found?: readonly { id: string; card: EngineCard; verified?: Verified }[];
+}) {
   const created = props.created ?? [];
+  const found = props.found ?? [];
   return (
     <section aria-labelledby="at-h-host">
       <h3 id="at-h-host" className="at-title">{HOST_TITLE}</h3>
@@ -187,6 +204,23 @@ export function HostStep(props: { engines: EngineCard[]; onHost: (id: string) =>
         ))}
       </div>
       {created.length > 0 && <p className="at-hint">{CREATED_HOST_HINT}</p>}
+      {found.length > 0 && (
+        <section aria-labelledby="at-h-found" data-found-group="1">
+          <h4 id="at-h-found" className="at-sub">{FOUND_TITLE}</h4>
+          <div className="at-grid at-grid-wide">
+            {found.map((f) => (
+              <div key={f.id} className="at-card-wrap">
+                <button type="button" className="at-card" data-host-found={f.id} onClick={() => props.onHost(f.id)}>
+                  <span className="at-emoji" aria-hidden="true">{f.card.emoji}</span>
+                  <span className="at-name">{f.card.name}</span>
+                  <span className="at-what">{f.card.computes}</span>
+                  <VerifiedStamp verified={f.verified} />
+                </button>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
     </section>
   );
 }
@@ -269,7 +303,14 @@ function PreviewMini(props: { preview: AtomPreview; max?: number }) {
   );
 }
 
-export function QuestionStep(props: { atom: AtomCard; options: Option[]; onOption: (place: string) => void; previews?: Readonly<Record<string, AtomPreview | null>> }) {
+export function QuestionStep(props: {
+  atom: AtomCard;
+  options: Option[];
+  onOption: (place: string) => void;
+  previews?: Readonly<Record<string, AtomPreview | null>>;
+  /** FACTORY 14.10: "✅ מאומת" לכל אפשרות שהמפעל אימת. */
+  verified?: Readonly<Record<string, Verified>>;
+}) {
   return (
     <section aria-labelledby="at-h-q">
       <div className="at-asks"><span aria-hidden="true">{props.atom.emoji}</span> {props.atom.name} שואל:</div>
@@ -286,6 +327,7 @@ export function QuestionStep(props: { atom: AtomCard; options: Option[]; onOptio
                 <span className="at-option-head">
                   <span className="at-place">{o.placeName}</span>
                   <span className="at-chip at-kind">{kindLabel(o.kind)}</span>
+                  <VerifiedStamp verified={props.verified?.[o.place]} />
                 </span>
                 <span className="at-result">{o.result}</span>
                 {props.previews?.[o.place] && <PreviewMini preview={props.previews[o.place]!} max={OPTION_PREVIEW_LINES} />}
@@ -410,6 +452,8 @@ export function CreatedList(props: {
   canOpen?: (id: string) => boolean;
   stateOf?: (id: string) => 'ok' | 'orphan' | 'bad';
   blocked?: { id: string; text: string } | null;
+  /** FACTORY 14.10: "✅ מאומת" למנוע שנוצר. */
+  verifiedOf?: (id: string) => Verified | undefined;
 }) {
   if (props.capabilities.length === 0) return null;
   const nameById = new Map(props.capabilities.map((c) => [c.id, c.name]));
@@ -426,6 +470,7 @@ export function CreatedList(props: {
             <li key={c.id} className="at-mine" data-capability={c.id} data-cap-state={state}>
               <span className="at-mine-text">
                 <span className="at-name">✨ {c.name}</span>
+                <VerifiedStamp verified={props.verifiedOf?.(c.id)} />
                 {state === 'ok' && parentName && <span className="at-what">{BUILT_ON_TEXT} ✨ {parentName}</span>}
                 {state === 'ok' && !c.parent && e && <span className="at-what">{e.emoji} {e.name}</span>}
                 {state !== 'ok' && <span className="at-what at-orphan" data-orphan="1">{ORPHAN_TEXT}</span>}

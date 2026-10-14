@@ -13,12 +13,13 @@
 import { capabilityId, outputKind, type AtomId, type Capability, type EngineCard, type Kind, type Place } from './contract';
 import { atomCard } from './cards';
 import { engineCard, placeById } from './engines';
+import { genPlace } from './engines/registry';
 
 /** כמה מנועים לכל היותר בשרשרת (המנוע הראשון + שניים שבנויים עליו). */
 export const MAX_GENERATIONS = 3;
 
 /** מה הפלט של מנוע — לא הסוג (זה בחוזה) אלא מה הוא באמת, כדי לדעת מה אפשר לחשב ממנו. */
-export type ChainValue = 'slots' | 'windows' | 'moments' | 'assigned';
+export type ChainValue = 'slots' | 'windows' | 'moments' | 'assigned' | 'pieces';
 
 /** המנועים הראשונים שאפשר לבנות עליהם (מקום:חלק ⇒ מה יוצא). */
 export const ROOT_VALUE: Readonly<Record<string, ChainValue>> = {
@@ -27,7 +28,36 @@ export const ROOT_VALUE: Readonly<Record<string, ChainValue>> = {
   'bookings.arrivals:next': 'moments',
   'bookings.arrivals:offset': 'moments',
   'bookings.arrivals:round': 'moments',
+  // FACTORY 14.10: סגירת הפער של C — גם מחשבון הזמנים ו"מה צריך?" נותנים פלט שאפשר לבנות עליו
+  'zmanim.times:next': 'moments',
+  'zmanim.times:offset': 'moments',
+  'zmanim.times:round': 'moments',
+  'zmanim.day:divide': 'slots',
+  'whatNeed.openings:next': 'moments',
 };
+
+/**
+ * FACTORY 14.10: מה יוצא מהמנוע הראשון — מקום-יד (ROOT_VALUE), או מקום שנמצא אוטומטית: רשימת-זמנים (⏭️ ⏱️ 🎯) ורשימה
+ * מתוארכת (⏭️) נותנות זמנים, שעות-ביום מתחילה עד סוף (✂️) נותנות תורים. אחרת — אין על מה לבנות (null).
+ */
+export function rootValueOf(place: string, atom: AtomId | string): ChainValue | null {
+  const v = ROOT_VALUE[place + ':' + atom];
+  if (v) return v;
+  const g = genPlace(place);
+  if (!g || !g.results[atom as AtomId]) return null;
+  if (g.kind === 'times' && (atom === 'next' || atom === 'offset' || (atom === 'round' && g.spec.unit === 'clock'))) return 'moments';
+  if (g.kind === 'sequence' && atom === 'next') return 'moments';
+  if (g.kind === 'span' && atom === 'divide' && g.spec.unit === 'clock') return 'slots';
+  if (g.kind === 'amount' && atom === 'divide') return 'pieces';
+  return null;
+}
+
+/** FACTORY 14.10: אילו חלקים מתחברים לפלט, לפי המנוע הראשון — 🔄 על תורים רק במנהל ההזמנות (יש לו אנשי ניקיון לתת להם). */
+export function nextOf(rootPlace: string, v: ChainValue, atom: AtomId | string): ChainValue | undefined {
+  if (v === 'slots' && atom === 'rotate' && !rootPlace.startsWith('bookings.')) return undefined;
+  return NEXT_VALUE[v][atom as AtomId];
+}
+export const nextAtoms = (rootPlace: string, v: ChainValue): AtomId[] => (Object.keys(NEXT_VALUE[v]) as AtomId[]).filter((a) => !!nextOf(rootPlace, v, a));
 
 /** איזה חלק מתחבר לכל פלט, ומה יוצא ממנו. */
 export const NEXT_VALUE: Readonly<Record<ChainValue, Partial<Record<AtomId, ChainValue>>>> = {
@@ -35,6 +65,8 @@ export const NEXT_VALUE: Readonly<Record<ChainValue, Partial<Record<AtomId, Chai
   windows: { next: 'moments', rotate: 'assigned', divide: 'assigned' },
   moments: { offset: 'moments', round: 'moments', next: 'moments' },
   assigned: {},
+  // FACTORY 14.10: סכום שחולק לתשלומים (מקום-סכום שנמצא אוטומטית) — כל תשלום לאיש צוות אחר, בתורות
+  pieces: { rotate: 'assigned' },
 };
 
 /** המקום של הפלט: שם פשוט לכל פלט (ה-✨ ושם המנוע נכנסים במקום של {n}). */
@@ -43,6 +75,7 @@ const OUT_NAME: Readonly<Record<ChainValue, string>> = {
   windows: 'החלונות הפנויים של {n}',
   moments: 'הזמנים של {n}',
   assigned: 'מה ש{n} נותן',
+  pieces: 'התשלומים של {n}',
 };
 const SPAN_NAME = 'כל חלון פנוי של {n}, מתחילתו ועד סופו';
 
@@ -64,6 +97,9 @@ const OUT_RESULT: Readonly<Record<ChainValue, Partial<Record<AtomId, string>>>> 
     next: 'מוצא את הבא מעכשיו',
   },
   assigned: {},
+  pieces: {
+    rotate: 'נותן כל תשלום לאיש צוות אחר לגבות, בתורות',
+  },
 };
 
 export interface ParsedCapId {
@@ -102,8 +138,8 @@ export const outPlaceId = (capId: string, span = false): string => 'out:' + capI
 export function valueOf(id: string): ChainValue | null {
   const p = parseCapId(id);
   if (!p) return null;
-  let v: ChainValue | undefined = ROOT_VALUE[p.place + ':' + p.atoms[0]];
-  for (const a of p.atoms.slice(1)) v = v ? NEXT_VALUE[v][a] : undefined;
+  let v: ChainValue | undefined = rootValueOf(p.place, p.atoms[0]) ?? undefined;
+  for (const a of p.atoms.slice(1)) v = v ? nextOf(p.place, v, a) : undefined;
   return v ?? null;
 }
 
@@ -130,7 +166,7 @@ export function outputPlaces(cap: Pick<Capability, 'id' | 'name'>): Place[] {
   const span: Partial<Record<AtomId, string>> = {};
   for (const [a, r] of Object.entries(results) as [AtomId, string][]) {
     const card = atomCard(a);
-    if (!card) continue;
+    if (!card || !nextOf(p.place, v, a)) continue;
     if (card.worksOn.includes(k)) seq[a] = r;
     else if (v === 'windows' && card.worksOn.includes('span')) span[a] = r;
   }

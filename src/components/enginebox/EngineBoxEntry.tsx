@@ -43,6 +43,8 @@ export function EngineBoxEntry(props: { onClose: () => void }) {
   const removeCapability = useApp((s) => s.removeCapability);
   const logAccess = useApp((s) => s.logAccess);
   const toast = useApp((s) => s.toast);
+  // FACTORY 14.10: מצב-צנעה (shell.privacy) — מקומות של משפחות ומקבלי-סיוע לא מוצגים בארגז
+  const privacyMode = useApp((s) => s.privacyMode);
   // הרגע — פעם אחת בפתיחת-הארגז (קצה-ה-UI; המנוע עצמו טהור)
   const [nowMs] = useState(() => Date.now());
   const sw = useSwitchCtx(nowMs, IMPACT_ABILITIES);
@@ -54,8 +56,9 @@ export function EngineBoxEntry(props: { onClose: () => void }) {
     import('../../lib/enginebox/goal/routeAdapter')
       .then((m) => alive && setGoalFn(() => m.goalRoutes))
       .catch(() => undefined);
+    // FACTORY 14.10: המנועים שנמצאו אוטומטית (ושאומתו) נטענים ונרשמים לפני שהמקור נבנה — מנוע-מנוע, כל אחד ב-chunk משלו
     import('./atoms/source')
-      .then((m) => alive && setAtomsFn(() => m.atomsSource))
+      .then((m) => m.loadFound().catch(() => undefined).then(() => alive && setAtomsFn(() => m.atomsSource)))
       .catch(() => undefined);
     return () => {
       alive = false;
@@ -96,9 +99,10 @@ export function EngineBoxEntry(props: { onClose: () => void }) {
             canEdit,
             create: (c) => createCapability(c).then((ok) => ok && toast('✨ נוצר מנוע חדש')),
             remove: (id) => void removeCapability(id).then((ok) => ok && toast('המנוע הוסר')),
+            privacyMode,
           })
         : null,
-    [atomsFn, db, config, nowMs, canEdit, createCapability, removeCapability, toast],
+    [atomsFn, db, config, nowMs, canEdit, createCapability, removeCapability, toast, privacyMode],
   );
   return <EngineBoxScreen source={source} atoms={atoms} onClose={props.onClose} />;
 }

@@ -243,14 +243,20 @@ describe('words — מילים פשוטות', () => {
 });
 
 describe('⚖️ משקל — המפרק לא נטען בהפעלה', () => {
-  it('אף קובץ באפליקציה לא מייבא את המפרק או את המנועים שנוצרו (חיבור לארגז = סשן-האינטגרציה, ב-import() עצל)', () => {
+  /**
+   * FACTORY 14.10: החיבור לארגז נעשה — רק בשכבת-הארגז העצלה: התצוגות (preview/chainPreview — התצוגה הכללית), ההרכבה (goal),
+   * הרישום (registry — טיפוסים בלבד) והמקור של המסך (source.ts — הטוען העצל + סיכום-האימות). שום קובץ אחר.
+   * שהם לא נכנסים להפעלה — נאכף על הפלט (bundle-budget: 8 chunks-הפעלה, מחרוזות-הארגז לא שם) וב-startup-chunks.
+   */
+  const LAZY_BOX = ['/src/lib/atoms/preview.ts', '/src/lib/atoms/chainPreview.ts', '/src/lib/atoms/goal.ts', '/src/lib/atoms/engines/registry.ts', '/src/components/enginebox/atoms/source.ts'];
+  it('אף קובץ באפליקציה לא מייבא את המפרק או את המנועים שנוצרו — חוץ משכבת-הארגז העצלה', () => {
     const files = import.meta.glob(['/src/**/*.{ts,tsx}', '!/src/lib/atoms/decompose/**', '!/src/lib/atoms/engines/generated/**', '!/src/**/__tests__/**'], {
       query: '?raw',
       import: 'default',
       eager: true,
     }) as Record<string, string>;
     const offenders = Object.entries(files)
-      .filter(([, src]) => /from ['"][^'"]*(atoms\/decompose|engines\/generated)[^'"]*['"]/.test(src))
+      .filter(([f, src]) => !LAZY_BOX.includes(f) && !f.startsWith('/src/lib/atoms/verify/') && /from ['"][^'"]*(atoms\/decompose|engines\/generated|\.\/decompose|\.\.\/decompose)[^'"]*['"]/.test(src))
       .map(([f]) => f);
     expect(offenders).toEqual([]);
   });

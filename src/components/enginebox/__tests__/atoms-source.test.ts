@@ -82,7 +82,9 @@ describe('🧬 (ב) המסך עם המקור האמיתי', () => {
     const out = html({ host: 'bookings', atom: 'divide' });
     expect(out).toContain('מה לחלק?');
     const places = [...out.matchAll(/data-place="([^"]+)"/g)].map((m) => m[1]);
-    expect(places).toEqual(['bookings.turnover', 'bookings.day', 'bookings.stay', 'bookings.balance', 'bookings.total', 'bookings.untilArrival']);
+    // FACTORY 14.10: רק מה שהמפעל אימת — יום העבודה (HONEST_NULLS, אין לו תצוגה) כבר לא מוצע
+    expect(places).toEqual(['bookings.turnover', 'bookings.stay', 'bookings.balance', 'bookings.total', 'bookings.untilArrival']);
+    expect(out).toContain('data-verified=');
     expect(out).not.toContain('data-place="bookings.nights"');
     // חלון הניקיון עם ברירות-המחדל (12 חלקים) ⇒ תורים של 20 דקות, עם השמות של המנקות
     expect(out).toContain('חלון הניקיון 11:00–15:00 · 12 תורים');
@@ -100,8 +102,11 @@ describe('🧬 (ב) המסך עם המקור האמיתי', () => {
     expect(made).toContain('14:20–15:00 · רבקה');
   });
 
-  it('מקום בלי תצוגה ⇒ "התצוגה תגיע בקרוב"', () => {
-    expect(html({ host: 'bookings', atom: 'divide', place: 'bookings.day' })).toContain('התצוגה תגיע בקרוב');
+  it('FACTORY: מקום בלי תצוגה (HONEST_NULLS) לא מאומת ⇒ לא מוצע בכלל; יכולת שמורה עליו ⇒ "התצוגה תגיע בקרוב"', () => {
+    expect(html({ host: 'bookings', atom: 'divide' })).not.toContain('data-place="bookings.day"');
+    const DAY = { id: 'bookings:bookings.day:divide', engine: 'bookings' as const, place: 'bookings.day', atom: 'divide' as const, params: {}, name: 'מנוע תורי קבלה' };
+    const s = src({ db: { ...DB(), ui: { ...DB().ui, capabilities: [DAY] } } });
+    expect(html({ host: 'bookings', made: DAY.id }, s)).toContain('התצוגה תגיע בקרוב');
   });
 
   it('שרשראות עם שורות; בלי שמות-אורחים בשום צעד', () => {

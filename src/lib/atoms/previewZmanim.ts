@@ -207,6 +207,28 @@ function shabbatDivide(ctx: PreviewCtx, p: Params): Preview | null {
   };
 }
 
+/** FACTORY 14.10: היום מהנץ עד השקיעה (דקות) — הבסיס של ✂️ על היום, גם כשבונים עליו. אי אפשר לחשב ⇒ null. */
+export function zmanimDaySpan(ctx: PreviewCtx): { from: number; to: number; label: string } | null {
+  const loc = zmanimLoc(ctx);
+  const t = dayTimes(clockOf(ctx, loc).iso, loc);
+  const sr = hmToMin(t.sunrise);
+  const ss = hmToMin(t.sunset);
+  return sr === null || ss === null || ss <= sr ? null : { from: sr, to: ss, label: t.sunrise + '–' + t.sunset };
+}
+
+/** FACTORY 14.10: זמני היום והמחר כרגעים (יום·דקה), עם שם הזמן — הבסיס של ⏭️ ⏱️ 🎯 כשבונים על מחשבון הזמנים. */
+export function zmanimMoments(ctx: PreviewCtx): { iso: string; minute: number; name: string }[] {
+  const loc = zmanimLoc(ctx);
+  const clock = clockOf(ctx, loc);
+  const out: { iso: string; minute: number; name: string }[] = [];
+  for (const iso of [clock.iso, addDaysIso(clock.iso, 1)])
+    for (const r of timedRows(iso, loc)) {
+      const m = hmToMin(r.time);
+      if (m !== null) out.push({ iso, minute: m, name: r.name });
+    }
+  return out;
+}
+
 /* ───────── zmanim.times · ⏭️ ⏱️ 🎯 ───────── */
 
 /** זמני היום שיש להם שעה (בסדר הלוח). */

@@ -295,6 +295,15 @@ function openings(l: PrListing, clock: PrClock, closure: PrClosureFn): { iso: st
   return res;
 }
 
+/** FACTORY 14.10: רגעי-הפתיחה של כל העסקים המאושרים ב-8 הימים הקרובים (שם העסק — ציבורי) — הבסיס כשבונים על ⏭️. */
+export function openingMoments(ctx: PreviewCtx): { iso: string; minute: number; name: string }[] {
+  const clock = israelClock(ctx);
+  const closure = makeClosureFn(zmanimLoc(ctx));
+  const outM: { iso: string; minute: number; name: string }[] = [];
+  for (const l of approvedOf(ctx)) for (const o of openings(l, clock, closure)) outM.push({ iso: o.iso, minute: o.min, name: bizName(l) });
+  return outM;
+}
+
 function openingsNext(ctx: PreviewCtx, p: Params): Preview | null {
   const clock = israelClock(ctx);
   const closure = makeClosureFn(zmanimLoc(ctx));

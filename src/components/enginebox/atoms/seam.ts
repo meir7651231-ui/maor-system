@@ -63,4 +63,8 @@ export interface AtomsSource {
   goal?(text: string, picks: readonly GoalPickView[]): GoalView;
   /** GOAL 14.10 (תוספתי): "חבר" להרכבה — יוצר את המנועים בדרך לפי הסדר (ההורה לפני מה שבנוי עליו). מחזיר את המזהה, או null. */
   connectGoal?(text: string, picks: readonly GoalPickView[], resultId: string): string | null;
+  /** DESIGN 14.10 (חריץ, תוספתי — המפעל ממלא): מנועים שנמצאו אוטומטית. חסר ⇒ בלי הקבוצה. */
+  found?(): { id: string; card: EngineCard; verified?: { checks: number } }[];
+  /** DESIGN 14.10 (חריץ, תוספתי — המפעל ממלא): חותמת "✅ מאומת" למנוע (מזהה יכולת). undefined ⇒ בלי חותמת. */
+  verified?(capId: string): { checks: number } | undefined;
 }

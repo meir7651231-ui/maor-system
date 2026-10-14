@@ -35,6 +35,10 @@ jobs:
       - name: Tests
         run: npm run test
 
+      # 🏭 המפעל (14.10): מפרק ⇒ מחבר ⇒ מאמת. נכשל אם הקבצים שנוצרו לא מעודכנים או חיבור מאומת נכשל
+      - name: Atoms factory (--check)
+        run: npm run atoms:factory -- --check
+
       - name: Build
         run: npm run build
 

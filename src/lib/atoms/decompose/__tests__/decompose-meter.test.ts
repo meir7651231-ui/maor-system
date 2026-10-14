@@ -87,8 +87,9 @@ describe('🔨 המד — (ג) הקבצים שנוצרו מעודכנים, וה�
 
   it('כל קובץ שנוצר מתחיל בכותרת "נוצר אוטומטית"', async () => {
     const files = import.meta.glob('../../engines/generated/*.ts', { query: '?raw', import: 'default', eager: true }) as Record<string, string>;
-    expect(Object.keys(files).length).toBe(GENERATED_ENGINES.length + 2);
-    for (const src of Object.values(files)) expect(src).toContain('נוצר אוטומטית ע״י המפרק — לא לערוך ידנית');
+    // FACTORY 14.10: + verified.ts — סיכום-האימות שהמפעל כותב לאותה תיקייה (הכותרת שלו: "ע״י המפעל")
+    expect(Object.keys(files).length).toBe(GENERATED_ENGINES.length + 3);
+    for (const [f, src] of Object.entries(files)) expect(src).toContain(f.endsWith('/verified.ts') ? 'נוצר אוטומטית ע״י המפעל — לא לערוך ידנית' : 'נוצר אוטומטית ע״י המפרק — לא לערוך ידנית');
   });
 
   it('הטוען העצל מחזיר בדיוק את אותם מנועים', async () => {

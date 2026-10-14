@@ -25,6 +25,8 @@ import * as W from '../src/lib/atoms/decompose/words.ts';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT_DIR = join(ROOT, 'src/lib/atoms/engines/generated');
 const HEADER = 'נוצר אוטומטית ע״י המפרק — לא לערוך ידנית. להרצה מחדש: node scripts/atoms-decompose.mjs';
+/** 🏭 המפעל (14.10): סיכום-האימות נכתב לאותה תיקייה ע״י scripts/atoms-factory.mjs — לא של המפרק, לא נמחק כאן. */
+const FACTORY_FILES = new Set(['verified.ts']);
 
 /* ═══════════════ תצורה (גלויה, מתועדת בדוח) ═══════════════ */
 
@@ -685,7 +687,7 @@ function main() {
       const p = join(OUT_DIR, name);
       if (!existsSync(p) || readFileSync(p, 'utf8') !== content) stale.push(name);
     }
-    const extra = existsSync(OUT_DIR) ? readdirSync(OUT_DIR).filter((f) => f.endsWith('.ts') && !files.has(f)) : [];
+    const extra = existsSync(OUT_DIR) ? readdirSync(OUT_DIR).filter((f) => f.endsWith('.ts') && !files.has(f) && !FACTORY_FILES.has(f)) : [];
     if (stale.length || extra.length) {
       console.error('המפרק: הקבצים שנוצרו לא מעודכנים —', [...stale, ...extra.map((x) => x + ' (מיותר)')].join(', '));
       console.error('להרצה: node scripts/atoms-decompose.mjs');
@@ -695,7 +697,7 @@ function main() {
     return;
   }
   mkdirSync(OUT_DIR, { recursive: true });
-  for (const f of readdirSync(OUT_DIR)) if (f.endsWith('.ts') && !files.has(f)) rmSync(join(OUT_DIR, f));
+  for (const f of readdirSync(OUT_DIR)) if (f.endsWith('.ts') && !files.has(f) && !FACTORY_FILES.has(f)) rmSync(join(OUT_DIR, f));
   for (const [name, content] of files) writeFileSync(join(OUT_DIR, name), content);
   console.log(`המפרק: נכתבו ${files.size} קבצים ל-${rel(OUT_DIR)}.`);
 }

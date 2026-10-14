@@ -16,7 +16,11 @@ import { offsetAll } from './parts/offset';
 import { dayIndex, fairAssign, turnOf } from './parts/rotate';
 import { divideSpan } from './parts/divide';
 import { turnoverSpan, waiting } from './engines/bookingsData';
-import { MAX_GENERATIONS, NEXT_VALUE, ROOT_VALUE, parseCapId, rootIdOf, type ChainValue } from './chain';
+import { MAX_GENERATIONS, nextOf, parseCapId, rootIdOf, rootValueOf, type ChainValue } from './chain';
+import { genPlace } from './engines/registry';
+import { genericClockSpan, genericMoments, genericPieces, STAFF } from './decompose/genericPreview';
+import { zmanimDaySpan, zmanimMoments } from './previewZmanim';
+import { openingMoments } from './previewWhatNeed';
 import { absLine, arrivalMoments, capped, divideBy, dm, freeRuns, hm, isoOfDay, israelNow, NOBODY, paramsOf, staffPeople, unitsOf, type Preview, type PreviewCtx } from './preview';
 
 type P = Record<string, number | string>;
@@ -32,6 +36,7 @@ type Val =
   | { t: 'slots'; slots: Slot[]; span: string }
   | { t: 'windows'; windows: Window[] }
   | { t: 'moments'; list: Moment[]; what: string }
+  | { t: 'pieces'; total: string; pieces: string[] }
   | { t: 'assigned' };
 type Step = { val: Val; title: string; lines: string[] };
 
@@ -77,6 +82,43 @@ function rootStep(ctx: PreviewCtx, place: string, atom: AtomId, p: P): Step | nu
     const list: Moment[] = arrivalMoments(ctx).map((a) => ({ abs: a.abs, label: a.unit }));
     if (!list.length) return null;
     return momentsStep({ t: 'moments', list, what: 'הגעה' }, atom, p, ctx);
+  }
+  // FACTORY 14.10 — סגירת הפער: מחשבון הזמנים, "מה צריך?" והמקומות שנמצאו אוטומטית
+  if (place === 'zmanim.times') {
+    const list: Moment[] = zmanimMoments(ctx).map((m) => ({ abs: dayIndex(m.iso) * 1440 + m.minute, label: m.name }));
+    if (!list.length) return null;
+    return momentsStep({ t: 'moments', list, what: 'זמן' }, atom, p, ctx);
+  }
+  if (place === 'whatNeed.openings' && atom === 'next') {
+    const list: Moment[] = openingMoments(ctx).map((m) => ({ abs: dayIndex(m.iso) * 1440 + m.minute, label: m.name }));
+    if (!list.length) return null;
+    return momentsStep({ t: 'moments', list, what: 'פתיחה' }, atom, p, ctx);
+  }
+  if (place === 'zmanim.day' && atom === 'divide') {
+    const span = zmanimDaySpan(ctx);
+    if (!span) return null;
+    const slots = divideBy(span, p).map((x) => ({ from: x.from, to: x.to }));
+    if (!slots.length) return null;
+    return { val: { t: 'slots', slots, span: span.label }, title: 'היום ' + span.label + ' · ' + slots.length + ' חלקים', lines: capped(slots.map(slotHm)) };
+  }
+  const g = genPlace(place);
+  const gctx = { db: ctx.db, nowMs: ctx.nowMs, privacyMode: ctx.privacyMode === true };
+  if (g && rootValueOf(place, atom) === 'moments') {
+    const list = genericMoments(g, gctx);
+    if (!list || !list.length) return null;
+    return momentsStep({ t: 'moments', list, what: 'מועד' }, atom, p, ctx);
+  }
+  if (g && rootValueOf(place, atom) === 'pieces') {
+    const r = genericPieces(g, p, gctx);
+    if (!r) return null;
+    return { val: { t: 'pieces', ...r }, title: r.total + ' ב-' + r.pieces.length + ' תשלומים', lines: capped(r.pieces.map((x, i) => 'תשלום ' + (i + 1) + ' · ' + x)) };
+  }
+  if (g && rootValueOf(place, atom) === 'slots') {
+    const span = genericClockSpan(g, gctx);
+    if (!span) return null;
+    const slots = divideBy(span, p).map((x) => ({ from: x.from, to: x.to }));
+    if (!slots.length) return null;
+    return { val: { t: 'slots', slots, span: span.label }, title: span.label + ' · ' + slots.length + ' חלקים', lines: capped(slots.map(slotHm)) };
   }
   return null;
 }
@@ -204,8 +246,17 @@ function windowsStep(v: { t: 'windows'; windows: Window[] }, atom: AtomId, p: P,
   return null;
 }
 
+/** FACTORY 14.10: 🔄 על תשלומים — מי גובה כל תשלום, בתורות (תוויות-צוות כלליות — אין שמות בנתונים). */
+function piecesStep(v: { t: 'pieces'; total: string; pieces: string[] }, atom: AtomId, p: P, ctx: PreviewCtx): Step | null {
+  if (atom !== 'rotate') return null;
+  const start = str(p, 'by', 'day') === 'day' ? dayIndex(israelNow(ctx.nowMs).iso) : 0;
+  const lines = fairAssign(v.pieces, [...STAFF], start).map((a, i) => 'תשלום ' + (i + 1) + ' · ' + a.item + ' ⇒ ' + a.person);
+  return { val: { t: 'assigned' }, title: v.total + ' · מי גובה כל תשלום, בתורות', lines: capped(lines) };
+}
+
 function applyStep(prev: Step, atom: AtomId, p: P, ctx: PreviewCtx): Step | null {
   const v = prev.val;
+  if (v.t === 'pieces') return piecesStep(v, atom, p, ctx);
   if (v.t === 'slots') return slotsStep(v, atom, p, ctx);
   if (v.t === 'windows') return windowsStep(v, atom, p, ctx, turnoverSpan(ctx.db).to);
   if (v.t === 'moments') return momentsStep(v, atom, p, ctx);
@@ -238,10 +289,10 @@ export function chainPreviewStrict(cap: Capability, ctx: PreviewCtx): Preview | 
   };
   // כל מנוע בדרך חייב להיות שמור (חוץ מהאחרון)
   for (let i = 0; i < ids.length - 1; i++) if (!caps.some((x) => x && x.id === ids[i])) return null;
-  let v: ChainValue | undefined = ROOT_VALUE[parsed.place + ':' + parsed.atoms[0]];
+  let v: ChainValue | undefined = rootValueOf(parsed.place, parsed.atoms[0]) ?? undefined;
   let step = v ? rootStep(ctx, parsed.place, parsed.atoms[0], paramsAt(0)) : null;
   for (let i = 1; i < parsed.atoms.length && step; i++) {
-    v = v ? NEXT_VALUE[v][parsed.atoms[i]] : undefined;
+    v = v ? nextOf(parsed.place, v, parsed.atoms[i]) : undefined;
     step = v ? applyStep(step, parsed.atoms[i], paramsAt(i), ctx) : null;
   }
   return step && step.lines.length ? { title: step.title, lines: step.lines } : null;

@@ -18,7 +18,8 @@
 import { capabilityId, optionsFor, type AtomCard, type AtomId, type Capability, type EngineCard, type EngineId, type Kind, type Place } from './contract';
 import { ATOM_CARDS, atomCard } from './cards';
 import { ATOM_EXPLAIN, ENGINE_EXPLAIN } from './explain';
-import { placeById } from './engines';
+import { engineCard, placeById } from './engines';
+import { isGeneratedEngine } from './engines/registry';
 import { childCapability, generationOf, MAX_GENERATIONS, outputPlaces } from './chain';
 import { cleanParams, placeShort, suggestedChildName, suggestedName } from './capabilities';
 import { previewOf, type PreviewCtx } from './preview';
@@ -193,7 +194,29 @@ function findPhrase(toks: Tok[], phrase: readonly string[]): number {
 const normWords = (s: string): string[] => normHe(s).split(' ').filter(Boolean);
 
 /** כל הביטויים (חלקים ומקומות), מהארוך לקצר — ביטוי ארוך "תופס" את המילים שלו קודם ("להעביר לבאה" לפני "הבאה"). */
-type Entry = { kind: 'atom'; id: AtomId; words: string[]; w: number } | { kind: 'place'; id: string; words: string[]; w: number };
+export type Entry = { kind: 'atom'; id: AtomId; words: string[]; w: number } | { kind: 'place'; id: string; words: string[]; w: number };
+const sortEntries = (out: Entry[]): Entry[] =>
+  out.sort((a, b) => b.words.length - a.words.length || (a.kind === b.kind ? 0 : a.kind === 'atom' ? -1 : 1));
+
+/**
+ * FACTORY 14.10: מילים למקומות שנמצאו אוטומטית — **נגזרות לבד** משם-המקום שהמפרק כתב, כדי ש"להתחיל מהסוף" יעבוד גם עליהם
+ * ("לחלק את סכומי התרומות ל-12 תשלומים" ⇒ מנוע התורמים). הראש (עד "של"/פסיק/סוגריים): 2+ מילים ⇒ מקום ברור (1);
+ * מילה אחת ⇒ רמז בלבד (0.5). מילים של פחות מ-3 אותיות לא נחשבות. רק מנועים שעברו (הארגז מעביר רק את המאומתים).
+ */
+export function generatedPlaceWords(engines: readonly EngineCard[]): Entry[] {
+  const out: Entry[] = [];
+  for (const e of engines) {
+    if (!isGeneratedEngine(e.id)) continue;
+    for (const p of e.places) {
+      const head = String(p.name ?? '').split(/ של | שמחכים|, | \(|:/)[0].trim();
+      const words = normWords(head).filter((w) => w.length >= 2);
+      if (!words.length || (words.length === 1 && words[0].length < 3)) continue;
+      out.push({ kind: 'place', id: p.id, words, w: words.length >= 2 ? 1 : 0.5 });
+    }
+  }
+  return out;
+}
+
 const ENTRIES: readonly Entry[] = (() => {
   const out: Entry[] = [];
   for (const [id, list] of Object.entries(ATOM_WORDS) as [AtomId, readonly string[]][]) for (const p of list) out.push({ kind: 'atom', id, words: normWords(p), w: 1 });
@@ -202,7 +225,7 @@ const ENTRIES: readonly Entry[] = (() => {
     out.push({ kind: 'place', id, words: normWords(txt), w });
   }
   // ארוך קודם (ביטוי ארוך תופס את המילים שלו לפני ביטוי קצר)
-  return out.sort((a, b) => b.words.length - a.words.length || (a.kind === b.kind ? 0 : a.kind === 'atom' ? -1 : 1));
+  return sortEntries(out);
 })();
 
 const parseNum = (t: string): number | null => {
@@ -294,7 +317,7 @@ function readParams(toks: Tok[]): GoalParams {
 }
 
 /** המשפט ⇒ מה רוצים: חלקים, מקומות ופרטים. משפט ריק / בלי מילים מוכרות ⇒ `unclear`. לא זורק. */
-export function readGoal(text: unknown): Goal {
+export function readGoal(text: unknown, extra: readonly Entry[] = []): Goal {
   const raw = typeof text === 'string' ? text.slice(0, 400) : '';
   // "1,200" ⇒ 1200 · "₪ 400" ⇒ "₪400" · "ל-3" ⇒ "ל 3" (normHe)
   const pre = raw.replace(/(\d),(\d{3})/g, '$1$2').replace(/₪\s*/g, ' ₪').replace(/(\d)\s*₪/g, ' ₪$1');
@@ -307,7 +330,9 @@ export function readGoal(text: unknown): Goal {
   // בתוך כל מעבר ביטוי ארוך "תופס" את המילים שלו ("להעביר לבאה" לפני "הבאה" · "חלון הניקיון" לפני "ניקיון");
   // מילה בודדת של מקום לא תופסת — "השבת" מעידה גם על השבת של מחשבון הזמנים וגם על השבתות של ההזמנות.
   const placeToks: Tok[] = toks.map((x) => ({ t: x.t, used: false }));
-  for (const e of ENTRIES) {
+  // FACTORY 14.10: מילים של מקומות שנמצאו אוטומטית — רק כשהם הועברו (בלי ⇒ ביט-זהה לקורפוס של G)
+  const entries = extra.length ? sortEntries([...ENTRIES, ...extra]) : ENTRIES;
+  for (const e of entries) {
     const list = e.kind === 'atom' ? toks : placeToks;
     const claims = e.kind === 'atom' || e.words.length > 1;
     for (let guard = 0; guard < 4; guard++) {
@@ -462,7 +487,7 @@ interface Draft {
 }
 
 /** כל ההרכבות של 1–3 חלקים שמתאימות לפי סוג. הפרטים — מהמשפט; מנוע-ביניים שכבר שמור ⇒ הפרטים השמורים שלו. */
-function enumerate(goal: Goal, engines: readonly EngineCard[], saved: readonly Capability[]): Draft[] {
+function enumerate(goal: Goal, engines: readonly EngineCard[], saved: readonly Capability[], allow: (key: string) => boolean = () => true): Draft[] {
   const out: Draft[] = [];
   const savedById = new Map(saved.map((c) => [c.id, c]));
   const grow = (d: Draft) => {
@@ -478,6 +503,8 @@ function enumerate(goal: Goal, engines: readonly EngineCard[], saved: readonly C
         if (!fitsRange(a, place, goal.params)) continue;
         const params = paramsFor(a, place, goal.params);
         const child = childCapability(parent, place.id, a.id, params, suggestedChildName(parent, a.id));
+        // FACTORY 14.10: רק שרשרת שהמפעל אימת
+        if (!allow(child.id)) continue;
         const caps = [...d.caps.slice(0, -1), parent, child];
         grow({ ...d, steps: [...d.steps, { atom: a.id, place: place.id, kind: place.kind, params }], caps });
       }
@@ -487,7 +514,7 @@ function enumerate(goal: Goal, engines: readonly EngineCard[], saved: readonly C
     for (const a of ATOM_CARDS) {
       for (const o of optionsFor(a, e)) {
         const place = placeById(o.place);
-        if (!place || !fitsRange(a, place, goal.params)) continue;
+        if (!place || !fitsRange(a, place, goal.params) || !allow(o.place + ':' + a.id)) continue;
         const params = paramsFor(a, place, goal.params);
         const cap: Capability = { id: capabilityId(e.id, o.place, a.id), engine: e.id, place: o.place, atom: a.id, params, name: suggestedName(o.place, a.id) };
         grow({ engine: e.id, rootPlace: o.place, steps: [{ atom: a.id, place: o.place, kind: place.kind, params }], caps: [cap] });
@@ -599,7 +626,7 @@ function placeChips(cands: readonly { d: Draft }[]): GoalChip[] {
     if (seen.has(d.rootPlace)) continue;
     seen.add(d.rootPlace);
     // שני מנועים יכולים להחזיק מקום דומה ("שבתות וחגים") ⇒ האימוג'י של המנוע לפני השם
-    const e = ENGINE_EMOJI[d.engine];
+    const e = ENGINE_EMOJI[d.engine] ?? engineCard(d.engine)?.emoji;
     out.push({ label: (e ? e + ' ' : '') + goalPlaceShort(d.rootPlace), pick: { place: d.rootPlace } });
   }
   return out.slice(0, 8);
@@ -613,14 +640,19 @@ const sameParams = (a: Capability['params'], b: Capability['params']): boolean =
  * כל ההרכבות של המשפט שרצות על הנתונים האמיתיים ונותנות תוצאה — עד 3, מהטובה. לא ברור ⇒ שאלות סגורות.
  * `caps` = המנועים שהארגון כבר שמר (מנוע-ביניים שמור ⇒ בונים עליו כמו שהוא). לא זורק.
  */
-export function composeGoal(goal: Goal, engines: readonly EngineCard[], ctx: PreviewCtx, caps: readonly Capability[] = []): GoalAnswer {
+/** FACTORY 14.10 (תוספתי): `allow` = רק חיבורים שהמפעל אימת (מפתח-מקום:חלק / מזהה-שרשרת). חסר ⇒ הכול (כמו קודם). */
+export interface GoalOpts {
+  allow?: (key: string) => boolean;
+}
+
+export function composeGoal(goal: Goal, engines: readonly EngineCard[], ctx: PreviewCtx, caps: readonly Capability[] = [], opts: GoalOpts = {}): GoalAnswer {
   const empty = (status: GoalStatus, questions: GoalQuestion[] = []): GoalAnswer => ({ goal, status, results: [], questions });
   try {
     if (!goal || !ctx || !Number.isFinite(ctx.nowMs)) return empty('empty');
     if (!goal.text.trim() && !goal.atoms.length && !goal.places.length) return empty('empty');
     if (goal.unclear) return empty('ask', [whatToDo(goal)]);
     const saved = Array.isArray(caps) ? caps : [];
-    const all = enumerate(goal, engines, saved);
+    const all = enumerate(goal, engines, saved, opts.allow);
     // מסננים: כל החלקים שבמשפט נמצאים בהרכבה · אם הוזכר מקום חזק — המקום הראשון הוא אחד מהם
     const strong = goal.places.filter((p) => isStrong(goal, p));
     const fits = all.filter((d) => goal.atoms.every((a) => d.steps.some((s) => s.atom === a)) && earned(goal, d));
@@ -699,8 +731,8 @@ function whatToDo(goal: Goal): GoalQuestion {
 }
 
 /** הכול בקריאה אחת: המשפט + הבחירות מהצ'יפים ⇒ תשובה. */
-export function answerGoal(text: unknown, picks: readonly GoalPick[], engines: readonly EngineCard[], ctx: PreviewCtx, caps: readonly Capability[] = []): GoalAnswer {
-  let g = readGoal(text);
+export function answerGoal(text: unknown, picks: readonly GoalPick[], engines: readonly EngineCard[], ctx: PreviewCtx, caps: readonly Capability[] = [], opts: GoalOpts = {}): GoalAnswer {
+  let g = readGoal(text, generatedPlaceWords(engines));
   for (const p of Array.isArray(picks) ? picks : []) g = withPick(g, p);
-  return composeGoal(g, engines, ctx, caps);
+  return composeGoal(g, engines, ctx, caps, opts);
 }

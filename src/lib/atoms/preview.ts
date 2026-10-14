@@ -24,6 +24,8 @@ import { arrivals, balances, nightsOf, stays, totals, turnoverSpan, untilArrival
 import { ZMANIM_BUILDERS } from './previewZmanim';
 import { WHAT_NEED_BUILDERS } from './previewWhatNeed';
 import { BOOKINGS_MORE_BUILDERS } from './previewBookingsMore';
+import { genPlace } from './engines/registry';
+import { genericPreviewStrict } from './decompose/genericPreview';
 
 export interface PreviewCtx {
   db: Partial<Db> | null | undefined;
@@ -31,6 +33,8 @@ export interface PreviewCtx {
   nowMs: number;
   /** CHAIN 14.10 (תוספתי): היכולות השמורות — כדי שמנוע שבנוי על מנוע ימצא את מה שהוא בנוי עליו. */
   caps?: readonly Capability[];
+  /** FACTORY 14.10 (תוספתי): מצב-צנעה פעיל (store.privacyMode, `shell.privacy`) ⇒ מקומות של משפחות ומקבלי-סיוע מחזירים null. */
+  privacyMode?: boolean;
 }
 
 export interface Preview {
@@ -437,7 +441,9 @@ const BUILDERS: Readonly<Record<string, Builder>> = {
 export const PREVIEW_KEYS: readonly string[] = Object.keys(BUILDERS);
 
 export function hasPreview(place: string, atom: AtomId | string): boolean {
-  return Object.prototype.hasOwnProperty.call(BUILDERS, place + ':' + atom);
+  // FACTORY 14.10: מקום שנמצא אוטומטית — יש לו תצוגה כללית לכל חלק שיש לו משפט-תוצאה שם
+  if (!Object.prototype.hasOwnProperty.call(BUILDERS, place + ':' + atom)) return !!genPlace(place)?.results[atom as AtomId];
+  return true;
 }
 
 /** התצוגה האמיתית של יכולת על נתוני-הארגון. אין תצוגה כנה ⇒ null. לעולם לא זורק. */
@@ -453,7 +459,14 @@ export function previewOf(cap: Pick<Capability, 'place' | 'atom' | 'params'> & {
 export function previewStrict(cap: Pick<Capability, 'place' | 'atom' | 'params'> & { id?: string; parent?: string }, ctx: PreviewCtx): Preview | null {
   // CHAIN 14.10: מנוע שבנוי על מנוע — קודם הפלט של מה שהוא בנוי עליו, אחר כך החלק (chainPreview.ts)
   if (cap.parent) return chainPreviewStrict(cap as Capability, ctx);
-  const b = BUILDERS[cap.place + ':' + cap.atom];
+  const key = cap.place + ':' + cap.atom;
+  const b = BUILDERS[key];
+  // FACTORY 14.10: מקום שנמצא אוטומטית (המפרק) — התצוגה הכללית: המפרט ההצהרתי ⇒ החלקים האמיתיים
+  const g = Object.prototype.hasOwnProperty.call(BUILDERS, key) ? undefined : genPlace(cap.place);
+  if (g && ctx && Number.isFinite(ctx.nowMs)) {
+    const r = genericPreviewStrict(g, cap.atom, paramsOf(cap), { db: ctx.db, nowMs: ctx.nowMs, privacyMode: ctx.privacyMode === true });
+    return r && r.lines.length ? r : null;
+  }
   if (!b || !ctx || !Number.isFinite(ctx.nowMs)) return null;
   const r = b(ctx, paramsOf(cap));
   return r && r.lines.length ? r : null;

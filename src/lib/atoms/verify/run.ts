@@ -18,7 +18,11 @@
  */
 import type { Db } from '../../../types/domain';
 import { ATOM_IDS, capabilityId, type AtomId, type Capability } from '../contract';
-import { childCapability, MAX_GENERATIONS, NEXT_VALUE, outPlaceId, outputPlaceFor, ROOT_VALUE, type ChainValue } from '../chain';
+import { childCapability, MAX_GENERATIONS, nextAtoms, nextOf, outPlaceId, outputPlaceFor, ROOT_VALUE, rootValueOf, type ChainValue } from '../chain';
+import { placeById } from '../engines';
+import { generatedCards, genPlace } from '../engines/registry';
+import { genericConsistency } from './generic';
+import { perturbDb } from './perturb';
 import { israelNow, paramsOf, PREVIEW_KEYS, PREVIEW_MAX_LINES, previewStrict, type Preview, type PreviewCtx } from '../preview';
 import { lawsFor, violations, type AtomInput } from './laws';
 import { atomCase, randomOrgDb, randomParams, rng, subSeed, type OrgSecrets } from './gen';
@@ -196,6 +200,26 @@ export function secretsOf(db: Partial<Db> | null | undefined): OrgSecrets {
       for (const k of ['phone', 'phone2']) if (str(o?.[k])) s.phones.push(str(o[k]));
       if (str(o?.email)) s.emails.push(str(o.email));
     }
+  }
+  // FACTORY 14.10: כל אוסף-אנשים שהמנועים שנמצאו אוטומטית קוראים — בני-משפחה, מורים, מתנדבים, רכזים, מסירות;
+  // והערות-בריאות/תיאורים חופשיים (טקסט גולמי). שם-דבר (חוג, יחידה, עסק) — מותר.
+  const people = db as unknown as Record<string, unknown> | null | undefined;
+  for (const key of ['teachers', 'volunteers', 'tzCoordinators', 'deliveries']) {
+    for (const x of Array.isArray(people?.[key]) ? (people![key] as unknown[]) : []) {
+      const o = x as Record<string, unknown>;
+      for (const k of ['name', 'first', 'father', 'mother']) addName(str(o?.[k]));
+      for (const k of ['phone', 'phone2']) if (str(o?.[k])) s.phones.push(str(o[k]));
+      if (str(o?.email)) s.emails.push(str(o.email));
+    }
+  }
+  for (const f of Array.isArray(db?.families) ? db!.families : []) {
+    const o = f as unknown as Record<string, unknown>;
+    for (const m of Array.isArray(o?.members) ? (o.members as Record<string, unknown>[]) : []) {
+      const first = str(m?.first) || str(m?.name);
+      if (first && str(o?.name)) addName(first + ' ' + str(o.name).replace(/^משפחת\s+/, ''));
+      if (str(m?.phone)) s.phones.push(str(m.phone));
+    }
+    for (const k of ['health', 'notes', 'address']) if (str(o?.[k]).length >= 6) s.texts.push(str(o[k]));
   }
   return s;
 }
@@ -634,9 +658,18 @@ export interface ConnTarget {
   cap: Capability;
   caps: Capability[];
   atoms: AtomId[];
+  /** FACTORY 14.10: חיבור של מנוע שנמצא אוטומטית (או שרשרת שהשורש שלה שם) — נבדק גם על הדמו ועולמות מטולטלים. */
+  gen?: boolean;
 }
 
-/** כל החיבורים עם תצוגה + כל השרשראות (עד MAX_GENERATIONS) שיש להן חישוב. */
+/** המנוע של מקום (כרטיס-יד או מנוע שנרשם); ברירה — הקידומת של המזהה. */
+const engineOfPlace = (place: string): string => placeById(place)?.engine ?? place.split('.')[0];
+
+/**
+ * כל החיבורים עם תצוגה + כל השרשראות (עד MAX_GENERATIONS) שיש להן חישוב.
+ * FACTORY 14.10: גם המנועים שנמצאו אוטומטית ונרשמו (registry) — כל מקום × כל חלק שיש לו משפט-תוצאה שם, וכל שרשרת שהשורש
+ * שלה הוא מקום כזה; והשורשים של מחשבון הזמנים ו"מה צריך?". בלי רישום ⇒ רק חיבורי-היד (כמו קודם).
+ */
 export function connectionTargets(): ConnTarget[] {
   const out: ConnTarget[] = [];
   for (const key of PREVIEW_KEYS) {
@@ -644,19 +677,34 @@ export function connectionTargets(): ConnTarget[] {
     const engine = place.split('.')[0];
     out.push({ key, cap: { id: capabilityId(engine, place, atom), engine: engine as Capability['engine'], place, atom, params: {}, name: key }, caps: [], atoms: [atom] });
   }
-  const walk = (chain: Capability[], v: ChainValue): void => {
+  const gens = generatedCards();
+  for (const e of gens)
+    for (const pl of e.places)
+      for (const atom of ATOM_IDS) {
+        if (!pl.results[atom]) continue;
+        const key = pl.id + ':' + atom;
+        out.push({ key, cap: { id: capabilityId(e.id, pl.id, atom), engine: e.id, place: pl.id, atom, params: {}, name: key }, caps: [], atoms: [atom], gen: true });
+      }
+  const walk = (chain: Capability[], v: ChainValue, root: string, gen: boolean): void => {
     if (chain.length >= MAX_GENERATIONS) return;
     const last = chain[chain.length - 1];
-    for (const atom of Object.keys(NEXT_VALUE[v]) as AtomId[]) {
+    for (const atom of nextAtoms(root, v)) {
       const place = outputPlaceFor(last, atom)?.id ?? outPlaceId(last.id);
       const child = childCapability(last, place, atom, {}, last.name + '>' + atom);
-      out.push({ key: child.id, cap: child, caps: [...chain], atoms: [...chain.map((c) => c.atom), atom] });
-      walk([...chain, child], NEXT_VALUE[v][atom]!);
+      out.push({ key: child.id, cap: child, caps: [...chain], atoms: [...chain.map((c) => c.atom), atom], gen });
+      walk([...chain, child], nextOf(root, v, atom)!, root, gen);
     }
   };
-  for (const [k, v] of Object.entries(ROOT_VALUE)) {
-    const [place, atom] = k.split(':') as [string, AtomId];
-    walk([{ id: capabilityId('bookings', place, atom), engine: 'bookings', place, atom, params: {}, name: k }], v);
+  const roots: [string, AtomId, ChainValue, boolean][] = Object.entries(ROOT_VALUE).map(([k, v]) => [...(k.split(':') as [string, AtomId]), v, false]);
+  for (const e of gens)
+    for (const pl of e.places)
+      for (const atom of ATOM_IDS) {
+        const v = genPlace(pl.id) ? rootValueOf(pl.id, atom) : null;
+        if (v) roots.push([pl.id, atom, v, true]);
+      }
+  for (const [place, atom, v, gen] of roots) {
+    const engine = engineOfPlace(place);
+    walk([{ id: capabilityId(engine, place, atom), engine: engine as Capability['engine'], place, atom, params: {}, name: place + ':' + atom }], v, place, gen);
   }
   return out;
 }
@@ -693,6 +741,14 @@ export interface VerifyConnOpts {
   secrets?: Partial<OrgSecrets>;
   /** רק חיבורים אלה (מפתח). */
   only?: readonly string[];
+  /** FACTORY 14.10: ארגון נוסף (הדמו הציבורי) — החיבורים של המנועים שנמצאו אוטומטית נבדקים גם עליו ועל עולמות מטולטלים ממנו. */
+  demo?: { db: Partial<Db>; nowMs: number; secrets?: Partial<OrgSecrets> };
+  /** כמה עולמות מטולטלים מהדמו (perturb.ts). ברירה 12. */
+  demoDbs?: number;
+  /** כמה מהעולמות האקראיים של DB-הבדיקה נבדקים גם בחיבורים שנמצאו. ברירה 8. */
+  genDbs?: number;
+  /** כמה סטים של פרטים אקראיים לחיבורים שנמצאו (חוץ מברירת-המחדל). ברירה 1. */
+  genParamSets?: number;
 }
 
 const mergeSecrets = (a: OrgSecrets, b: Partial<OrgSecrets> = {}): OrgSecrets => ({
@@ -712,12 +768,22 @@ export function verifyConnections(ctx: PreviewCtx, opts: VerifyConnOpts = {}): R
     const w = randomOrgDb(ctx.db as Db, subSeed(seed, 'db' + k));
     worlds.push({ name: 'אקראי #' + (k + 1), ctx: { db: w.db, config: ctx.config, nowMs: w.nowMs }, secrets: mergeSecrets(secretsOf(w.db), w.secrets) });
   }
+  // FACTORY 14.10: עולמות לחיבורים שנמצאו — DB-הבדיקה, חלק מהאקראיים שלו, הדמו ועולמות מטולטלים ממנו
+  const genWorlds = worlds.slice(0, 1 + (opts.genDbs ?? 8));
+  if (opts.demo && targets.some((t) => t.gen)) {
+    genWorlds.push({ name: 'הדמו', ctx: { db: opts.demo.db, config: ctx.config, nowMs: opts.demo.nowMs }, secrets: mergeSecrets(secretsOf(opts.demo.db), opts.demo.secrets) });
+    for (let k = 0; k < (opts.demoDbs ?? 12); k++) {
+      const w = perturbDb(opts.demo.db, opts.demo.nowMs, subSeed(seed, 'demo' + k));
+      genWorlds.push({ name: 'דמו מטולטל #' + (k + 1), ctx: { db: w.db, config: ctx.config, nowMs: w.nowMs }, secrets: mergeSecrets(secretsOf(w.db), { ...w.secrets, names: [...w.secrets.names, ...(opts.demo.secrets?.names ?? [])] }) });
+    }
+  }
   const out: Record<string, ConnReport> = {};
   for (const t of targets) {
     const rep: ConnReport = { evals: 0, shown: 0, checks: 0, passed: 0, failures: [] };
     const r = rng(subSeed(seed, 'params:' + t.key));
-    const sets = t.caps.length ? (opts.chainParamSets ?? paramSets) : paramSets;
-    for (const w of worlds) {
+    const sets = t.gen ? (opts.genParamSets ?? 1) : t.caps.length ? (opts.chainParamSets ?? paramSets) : paramSets;
+    const rootPlace = genPlace(t.caps.length ? t.caps[0].place : t.cap.place);
+    for (const w of t.gen ? genWorlds : worlds) {
       for (let s = 0; s <= sets; s++) {
         const chain = [...t.caps, t.cap].map((c) => ({ ...c, params: s === 0 ? {} : randomParams(c.atom, r) }));
         const cap = chain[chain.length - 1];
@@ -727,7 +793,7 @@ export function verifyConnections(ctx: PreviewCtx, opts: VerifyConnOpts = {}): R
           if (rep.failures.length < 5) rep.failures.push({ db: w.name, params, why, title: pv?.title, lines: pv?.lines });
         };
         // דטרמיניזם נבדק על פרטי ברירת-המחדל (חישוב שני של אותה תצוגה); השאר — 4 בדיקות
-        const checks = s === 0 ? 5 : 4;
+        const checks = s === 0 ? (rootPlace?.personal ? 6 : 5) : 4;
         rep.evals++;
         rep.checks += checks;
         let pv: Preview | null;
@@ -745,11 +811,14 @@ export function verifyConnections(ctx: PreviewCtx, opts: VerifyConnOpts = {}): R
         rep.shown++;
         const now = israelNow(w.ctx.nowMs);
         const env: Env = { nowMs: w.ctx.nowMs, today: now.iso, nowMin: now.minute };
+        const gp = !t.caps.length && t.gen ? genPlace(t.cap.place) : undefined;
         const issues = [
           basicIssue(pv),
           privacyLeak([pv.title, ...pv.lines].join('\n'), w.secrets),
-          t.caps.length ? null : safe(() => CONSISTENCY[t.key]?.(pv!, paramsOf(cap), env) ?? null),
+          t.caps.length ? null : gp ? safe(() => genericConsistency(gp, t.cap.atom, pv!.lines, paramsOf(cap), { today: env.today, nowMin: env.nowMin })) : safe(() => CONSISTENCY[t.key]?.(pv!, paramsOf(cap), env) ?? null),
           ...(s === 0 ? [JSON.stringify(previewStrict(cap, cctx)) === JSON.stringify(pv) ? null : 'לא דטרמיניסטי'] : []),
+          // FACTORY 14.10: מצב-צנעה (shell.privacy) — מקום של משפחות/מקבלי-סיוע לא מוצג בכלל
+          ...(s === 0 && rootPlace?.personal ? [previewStrict(cap, { ...cctx, privacyMode: true }) === null ? null : 'מוצג במצב-צנעה'] : []),
         ];
         for (const why of issues) {
           if (why) fail(why, pv);

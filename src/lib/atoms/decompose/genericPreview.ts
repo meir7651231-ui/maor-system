@@ -114,6 +114,9 @@ function amountPreview(values: number[], atom: AtomId, p: Record<string, number 
         str(p, 'by', 'parts') === 'size' ? divideBy({ from: 0, to: v }, { ...p, gap: 0, remainder: 'shorten' }).map((x) => x.length) : divideAmount(v, num(p, 'parts', 12), 1);
       // חלק של אפס הוא לא חלוקה (12 = 12 × 1 בכמות קטנה מדי) — מדלגים
       if (!pieces.length || pieces.some((x) => !(x > 0))) continue;
+      // FACTORY 14.10 (המאמת מצא): סכום ענק בגודל קטן עובר את תקרת-החלקים של ✂️ ⇒ "₪902,693.24 = 10000 × ₪45" — שורה שלא
+      // מסתכמת. חלוקה שלא מכסה את כל הסכום לא מוצגת (כן, לא קיצוץ שקט)
+      if (Math.abs(pieces.reduce((a, b) => a + b, 0) - v) > 0.005 * pieces.length) continue;
       const groups: { v: number; n: number }[] = [];
       for (const x of pieces) {
         const g = groups[groups.length - 1];
@@ -330,38 +333,127 @@ function textPreview(values: string[], echo: boolean, p: Record<string, number |
 /** התצוגה של חיבור (מקום שנוצר × חלק). null ⇒ אין תוצאה כנה. לא זורק. */
 export function genericPreviewOf(place: GenPlace, atom: AtomId, params: Readonly<Record<string, number | string>> | null | undefined, ctx: GenericCtx): GenericPreview | null {
   try {
-    if (!place || !place.spec || !ctx || !Number.isFinite(ctx.nowMs)) return null;
+    return genericPreviewStrict(place, atom, params, ctx);
+  } catch {
+    return null;
+  }
+}
+
+/** 🏭 FACTORY 14.10: אותו חישוב בדיוק, בלי ה-try — המאמת רואה חריגה אמיתית ולא null שקט. המסך משתמש ב-genericPreviewOf. */
+export function genericPreviewStrict(place: GenPlace, atom: AtomId, params: Readonly<Record<string, number | string>> | null | undefined, ctx: GenericCtx): GenericPreview | null {
+  if (!place || !place.spec || !ctx || !Number.isFinite(ctx.nowMs)) return null;
+  if (place.personal && ctx.privacyMode === true) return null;
+  const card = atomCard(atom);
+  const result = place.results?.[atom];
+  if (!card || !result || !card.worksOn.includes(place.kind) || place.spec.kind !== place.kind) return null;
+  const p = cleanParams(card, params ?? {});
+  const ex = extract(ctx.db, place.spec);
+  if (!ex) return null;
+  const now = israel(ctx.nowMs);
+  let lines: string[] | null = null;
+  switch (ex.kind) {
+    case 'amount':
+      lines = amountPreview(ex.values, atom, p, !MONEY_NAME.test(leaf(place.spec.path)) ? '' : leaf(place.spec.path) === 'usd' ? '$' : '₪');
+      break;
+    case 'times':
+      lines = timesPreview(ex.values, place.spec.unit === 'clock' ? 'clock' : 'date', atom, p, now);
+      break;
+    case 'span':
+      lines = atom === 'divide' ? spanPreview(ex.spans, ex.unit, p, now) : null;
+      break;
+    case 'sequence':
+      lines = sequencePreview(ex.groups, atom, p, now);
+      break;
+    case 'waiting':
+      lines = waitingPreview(ex.items, atom, p, ctx.nowMs, now);
+      break;
+    case 'text':
+      lines = atom === 'fuzzy' ? textPreview(ex.values, place.spec.echo === true, p) : null;
+      break;
+  }
+  if (!lines || !lines.length) return null;
+  return { title: `${place.name}: ${result}`, lines: capped(lines) };
+}
+
+/* ═══════════════ 🏭 FACTORY 14.10 — בונים על מנוע שנוצר ממקום שנמצא אוטומטית ═══════════════ */
+
+/** שם קצר למקום שנוצר — עד "של"/פסיק ("מועד הקשר הבא של כל תורם" ⇒ "מועד הקשר הבא"). שם של דבר, לא של אדם. */
+export function genPlaceLabel(name: string): string {
+  const s = String(name ?? '').split(/ של |, | \(/)[0].trim();
+  return s || 'מועד';
+}
+
+/** כמה רגעים לכל היותר נלקחים מהמקום כשבונים עליו. */
+export const GEN_MOMENTS_MAX = 50;
+
+/**
+ * הרגעים הבאים של מקום-זמנים / רשימה-מתוארכת שנמצא אוטומטית: `abs` = יום·1440 + דקה (ישראל). תאריך בלי שעה ⇒ 09:00;
+ * שעה-ביום ⇒ היום ומחר. רק מעכשיו והלאה, בלי כפילויות, עד 50. במצב-צנעה מקום אישי ⇒ null. אין ⇒ []. לא זורק.
+ */
+export function genericMoments(place: GenPlace, ctx: GenericCtx): { abs: number; label: string }[] | null {
+  try {
+    if (!place?.spec || !ctx || !Number.isFinite(ctx.nowMs)) return null;
     if (place.personal && ctx.privacyMode === true) return null;
-    const card = atomCard(atom);
-    const result = place.results?.[atom];
-    if (!card || !result || !card.worksOn.includes(place.kind) || place.spec.kind !== place.kind) return null;
-    const p = cleanParams(card, params ?? {});
     const ex = extract(ctx.db, place.spec);
-    if (!ex) return null;
+    if (!ex) return [];
     const now = israel(ctx.nowMs);
-    let lines: string[] | null = null;
-    switch (ex.kind) {
-      case 'amount':
-        lines = amountPreview(ex.values, atom, p, !MONEY_NAME.test(leaf(place.spec.path)) ? '' : leaf(place.spec.path) === 'usd' ? '$' : '₪');
-        break;
-      case 'times':
-        lines = timesPreview(ex.values, place.spec.unit === 'clock' ? 'clock' : 'date', atom, p, now);
-        break;
-      case 'span':
-        lines = atom === 'divide' ? spanPreview(ex.spans, ex.unit, p, now) : null;
-        break;
-      case 'sequence':
-        lines = sequencePreview(ex.groups, atom, p, now);
-        break;
-      case 'waiting':
-        lines = waitingPreview(ex.items, atom, p, ctx.nowMs, now);
-        break;
-      case 'text':
-        lines = atom === 'fuzzy' ? textPreview(ex.values, place.spec.echo === true, p) : null;
-        break;
+    const nowAbs = dayIndex(now.iso) * 1440 + now.minute;
+    const label = genPlaceLabel(place.name);
+    let abs: number[] = [];
+    if (ex.kind === 'times' && place.spec.unit === 'clock') {
+      const mins = uniq(ex.values.map(minOf).filter((x): x is number => x !== null));
+      const d0 = dayIndex(now.iso);
+      abs = [d0, d0 + 1].flatMap((d) => mins.map((m) => d * 1440 + m));
+    } else if (ex.kind === 'times' || ex.kind === 'sequence') {
+      const vals = ex.kind === 'times' ? ex.values : ex.groups.flat();
+      abs = uniq(vals.map((v) => String(v).slice(0, 10)).filter((v) => /^\d{4}-\d{2}-\d{2}$/.test(v))).map((d) => dayIndex(d) * 1440 + DAY_ANCHOR_MIN);
+    } else return [];
+    return uniq(abs.filter((a) => Number.isFinite(a) && a > nowAbs))
+      .sort((a, b) => a - b)
+      .slice(0, GEN_MOMENTS_MAX)
+      .map((a) => ({ abs: a, label }));
+  } catch {
+    return null;
+  }
+}
+
+/** שעות-ביום מהתחלה עד סוף של מקום שנמצא אוטומטית — הטווח הראשון התקין (הבסיס של ✂️ כשבונים עליו). אין ⇒ null. */
+export function genericClockSpan(place: GenPlace, ctx: GenericCtx): { from: number; to: number; label: string } | null {
+  try {
+    if (!place?.spec || place.spec.unit !== 'clock' || !ctx) return null;
+    if (place.personal && ctx.privacyMode === true) return null;
+    const ex = extract(ctx.db, place.spec);
+    if (!ex || ex.kind !== 'span') return null;
+    for (const s of ex.spans) {
+      const f = minOf(String(s.from));
+      const t = minOf(String(s.to));
+      if (f !== null && t !== null && t > f) return { from: f, to: t, label: hm(f) + '–' + hm(t) };
     }
-    if (!lines || !lines.length) return null;
-    return { title: `${place.name}: ${result}`, lines: capped(lines) };
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * התשלומים של הסכום הגדול במקום-סכום שנמצא אוטומטית, לפי הפרטים של ✂️ (אותו חישוב כמו השורה הראשונה בתצוגה) — הבסיס
+ * כשבונים על מנוע-תשלומים. אין סכום חיובי / החלוקה לא מכסה את כל הסכום ⇒ null.
+ */
+export function genericPieces(place: GenPlace, params: Readonly<Record<string, number | string>> | null | undefined, ctx: GenericCtx): { total: string; pieces: string[] } | null {
+  try {
+    if (!place?.spec || place.kind !== 'amount' || !ctx) return null;
+    if (place.personal && ctx.privacyMode === true) return null;
+    const card = atomCard('divide');
+    const ex = extract(ctx.db, place.spec);
+    if (!card || !ex || ex.kind !== 'amount') return null;
+    const p = cleanParams(card, params ?? {});
+    const v = ex.values.filter((x) => x > 0).sort((a, b) => b - a)[0];
+    if (!(v > 0)) return null;
+    const pieces = str(p, 'by', 'parts') === 'size' ? divideBy({ from: 0, to: v }, { ...p, gap: 0, remainder: 'shorten' }).map((x) => x.length) : divideAmount(v, num(p, 'parts', 12), 1);
+    if (!pieces.length || pieces.some((x) => !(x > 0)) || Math.abs(pieces.reduce((a, b) => a + b, 0) - v) > 0.005 * pieces.length) return null;
+    const leafName = leaf(place.spec.path);
+    const cur = !MONEY_NAME.test(leafName) ? '' : leafName === 'usd' ? '$' : '₪';
+    return { total: cur + fmtNum(v), pieces: pieces.map((x) => cur + fmtNum(x)) };
   } catch {
     return null;
   }
