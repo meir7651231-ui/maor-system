@@ -62,6 +62,7 @@ import { mergeDelLogs,
   type HostShabbatPrefs,
   type HostUnit,
   type HostUnitStatus } from '../types/domain';
+import type { Capability } from '../lib/atoms/contract';
 import { ENTITY_COLLECTIONS } from '../lib/cloud-diff';
 import { mergeDonationsPreserving } from '../lib/cloud-merge';
 import { collectionScoreDelta } from '../components/tzedaka/lib';
@@ -494,6 +495,9 @@ interface AppState extends HostingActions {
    */
   linkEngine: (key: string) => Promise<boolean>;
   unlinkEngine: (key: string) => Promise<boolean>;
+  /** 🧬 מנועים וחלקים: יכולת חדשה (חלק + מקום + פרטים) ⇒ db.ui.capabilities; אימות מול הכרטיסים · הרשאה כמו linkEngine · שורת-לוג. */
+  createCapability: (c: Capability) => Promise<boolean>;
+  removeCapability: (id: string) => Promise<boolean>;
   upsertEvent: (ev: OrgEvent) => void;
   deleteEvent: (id: string) => void;
   /**
@@ -1481,6 +1485,23 @@ export const useApp = create<AppState>()((set, get) => {
       if (!next) return false;
       setDb((cur) => ({ ui: { ...cur.ui, engineLinks: next } }));
       logAudit(on ? 'חיבור מנוע' : 'ניתוק מנוע', L.linkLabel(key));
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  /** 🧬 יצירה/הסרה של יכולת — הכרטיסים נטענים עצל (import דינמי: הבנדל-הראשי לא גורר את שכבת-החלקים). אותה הרשאה כמו חיבור-מנוע. */
+  async function changeCapability(add: Capability | null, removeId: string | null): Promise<boolean> {
+    try {
+      const s0 = get();
+      if (!canEditEngineLinks(s0.config, s0.cloud.user?.email)) return false;
+      const K = await import('../lib/atoms/capabilities');
+      const cur = get().db.ui.capabilities;
+      const r = add ? K.withCapability(cur, add) : K.withoutCapability(cur, removeId ?? '');
+      if (!r) return false;
+      setDb((db) => ({ ui: { ...db.ui, capabilities: r.list } }));
+      logAudit(add ? ('updated' in r && r.updated ? 'עדכון מנוע' : 'מנוע חדש') : 'הסרת מנוע', K.capabilityLabel(r.cap));
       return true;
     } catch {
       return false;
@@ -2520,6 +2541,12 @@ export const useApp = create<AppState>()((set, get) => {
     },
     async unlinkEngine(key) {
       return changeEngineLink(key, false);
+    },
+    async createCapability(c) {
+      return changeCapability(c, null);
+    },
+    async removeCapability(id) {
+      return changeCapability(null, id);
     },
     auditToAttention(issue) {
       get().upsertEvent({

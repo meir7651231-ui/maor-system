@@ -14,6 +14,7 @@ import { AYIN_STAGES } from '../lib/ayin';
 import { healParnasaPrefs, healPrCollection } from '../components/parnasa/model';
 import { healHostCollection, healHostingPrefs } from '../components/hosting/model';
 import { healEngineLinksIn } from '../lib/enginebox/linkShape';
+import { healCapabilitiesIn } from '../lib/atoms/capShape';
 import {
   DB_VERSION,
   emptyAyin,
@@ -605,6 +606,8 @@ export function migrate(raw: unknown): Db | null {
   // 🧰 ארגז-המנועים — חיבורים שמורים: רק חיבורים תקינים, בלי כפילויות, ממוינים; לא-מערך ⇒ המפתח יורד.
   // בלי המפתח ⇒ ללא נגיעה (ביט-זהה); רשימה תקינה ⇒ אותה הפניה.
   merged.ui = healEngineLinksIn(merged.ui);
+  // 🧬 מנועים וחלקים — יכולות שנוצרו: רק צורה (בלי המפתח ⇒ ביט-זהה; לא-מערך ⇒ יורד).
+  merged.ui = healCapabilitiesIn(merged.ui);
   if (typeof merged.orgName !== 'string') merged.orgName = base.orgName;
   if (typeof merged.orgSite !== 'string') merged.orgSite = base.orgSite;
   if (typeof merged.orgDonate !== 'string') merged.orgDonate = base.orgDonate;
