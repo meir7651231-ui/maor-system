@@ -1,6 +1,6 @@
 {
  "source": "machine",
- "ref": "catalog@a59e68bcd0ea",
+ "ref": "catalog@094532a7d780",
  "probe": {
   "version": 1,
   "seed": 13269520,
@@ -4730,7 +4730,7 @@
    "verbs": [],
    "primary": null,
    "material": "unknown",
-   "cases": 13,
+   "cases": 11,
    "traits": "in[str]>obj const"
   },
   {

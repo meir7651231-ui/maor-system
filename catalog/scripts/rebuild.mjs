@@ -55,20 +55,20 @@ export const STAGES = [
   { name: 'core-census', run: ['catalog/scripts/core-census.mjs'], in: ['catalog/core/origins.json', 'catalog/schema.json'], out: ['catalog/sources/core.json'] },
   { name: 'core-b-census', run: ['catalog/scripts/core-b-census.mjs'], in: ['catalog/core/origins-b.json'], out: ['catalog/sources/core-b.json'] },
   { name: 'core-c-census', run: ['catalog/scripts/core-c-census.mjs'], in: ['catalog/core/origins-c.json'], out: ['catalog/sources/core-c.json'] },
-  { name: 'open-orbit', early: ['orbit-census'], run: ['catalog/inner/scripts/open.mjs', '--source', 'orbit'], in: [...view(...CODE), ...TSENV, 'catalog/sources/orbit.json'], out: ['catalog/inner/store/parts-orbit.json', 'catalog/inner/open-orbit.json', 'catalog/inner/gen.manifest.json'] },
+  { name: 'open-orbit', critical: true, early: ['orbit-census'], run: ['catalog/inner/scripts/open.mjs', '--source', 'orbit'], in: [...view(...CODE), ...TSENV, 'catalog/sources/orbit.json'], out: ['catalog/inner/store/parts-orbit.json', 'catalog/inner/open-orbit.json', 'catalog/inner/gen.manifest.json'] },
   { name: 'probe-orbit', early: ['orbit-census'], run: ['catalog/scripts/behavior-probe.mjs', '--source', 'orbit'], in: [...view(...CODE), ...TSENV, 'catalog/sources/orbit.json'], out: ['catalog/behavior/orbit.json', 'catalog/self/stamps/behavior-orbit.json'], heavy: true },
   { name: 'probe-core', run: ['catalog/scripts/behavior-probe.mjs', '--source', 'core'], in: ['catalog/sources/core.json'], out: ['catalog/behavior/core.json', 'catalog/self/stamps/behavior-core.json'], heavy: true },
   { name: 'probe-core-b', run: ['catalog/scripts/behavior-probe.mjs', '--source', 'core-b'], in: ['catalog/sources/core-b.json'], out: ['catalog/behavior/core-b.json', 'catalog/self/stamps/behavior-core-b.json'], heavy: true },
   { name: 'probe-core-c', run: ['catalog/scripts/behavior-probe.mjs', '--source', 'core-c'], in: ['catalog/sources/core-c.json'], out: ['catalog/behavior/core-c.json', 'catalog/self/stamps/behavior-core-c.json'], heavy: true },
-  { name: 'prove-orbit', run: ['catalog/inner/scripts/prove.mjs', '--source', 'orbit'], in: [...view(...CODE), 'catalog/inner/store/parts-orbit.json', 'catalog/inner/gen.manifest.json'], out: ['catalog/inner/store/behavior-orbit.json', 'catalog/self/stamps/inner-orbit.json'], heavy: true },
+  { name: 'prove-orbit', critical: true, run: ['catalog/inner/scripts/prove.mjs', '--source', 'orbit'], in: [...view(...CODE), 'catalog/inner/store/parts-orbit.json', 'catalog/inner/gen.manifest.json'], out: ['catalog/inner/store/behavior-orbit.json', 'catalog/self/stamps/inner-orbit.json'], heavy: true },
   { name: 'catalog-build', run: ['catalog/scripts/catalog-build.mjs'], in: [SOURCES, BEHAVIOR, STORES, 'catalog/inner/gen.manifest.json', 'catalog/names/', 'catalog/notes/', 'catalog/schema.json'], out: ['catalog/index.json', 'catalog/verbs.json', 'catalog/verbs.md', 'catalog/alphabet.md'] },
   { name: 'lift', run: ['catalog/inner/scripts/lift.mjs'], in: [SOURCES, BEHAVIOR, STORES, GOALS, 'catalog/inner/gen.manifest.json', 'catalog/inner/motion-baseline.json', 'catalog/verbs.json'], out: ['catalog/inner/lift.json'] },
   { name: 'goals-coverage', run: ['catalog/scripts/goals-coverage.mjs'], in: [SOURCES, BEHAVIOR, STORES, GOALS, 'catalog/inner/gen.manifest.json'], out: ['catalog/goals/coverage.json', 'catalog/goals/coverage.md'] },
   { name: 'core-demo', run: ['catalog/scripts/core-demo.mjs'], in: ['catalog/core/origins.json'], out: ['catalog/core/demo.html'] },
   { name: 'combiner-prove', run: ['catalog/combiner/prove.mjs'], in: [...view(...CODE), ...TSENV], out: ['catalog/combiner/proofs.json'] },
-  { name: 'combine', early: ['catalog-build'], run: ['catalog/combiner/combine.mjs'], in: [...view(...CODE), ...TSENV, SOURCES, BEHAVIOR, STORES, GOALS, RECIPES, ...COMBINER_DATA, 'catalog/combiner/proofs.json', 'catalog/inner/gen.manifest.json', 'catalog/verbs.json', { p: 'catalog/self/stamps/*.json', not: /\/combine\.json$/ }], out: ['catalog/combiner/combos.json', 'catalog/recipes/combo-', 'catalog/self/stamps/combine.json'] },
-  { name: 'build', run: ['catalog/combiner/build.mjs'], in: [SOURCES, BEHAVIOR, STORES, GOALS, 'catalog/recipes/', ...COMBINER_DATA, 'catalog/combiner/proofs.json', 'catalog/inner/gen.manifest.json', 'catalog/verbs.json'], out: ['catalog/combiner/lab-data.json', 'catalog/combiner/dig/'] },
-  { name: 'self-check', run: ['catalog/scripts/self-check.mjs'], in: ['catalog/schema.json', ...TSENV, 'src/lib/atoms/'], out: ['catalog/self/machine.json', 'catalog/self/behavior-machine.json', 'catalog/self/report.json'], heavy: true },
+  { name: 'combine', critical: true, early: ['catalog-build'], run: ['catalog/combiner/combine.mjs'], in: [...view(...CODE), ...TSENV, SOURCES, BEHAVIOR, STORES, GOALS, RECIPES, ...COMBINER_DATA, 'catalog/combiner/proofs.json', 'catalog/inner/gen.manifest.json', 'catalog/verbs.json', { p: 'catalog/self/stamps/*.json', not: /\/combine\.json$/ }], out: ['catalog/combiner/combos.json', 'catalog/recipes/combo-', 'catalog/self/stamps/combine.json'] },
+  { name: 'build', critical: true, early: ['combine', 'catalog-build'], run: ['catalog/combiner/build.mjs'], in: [SOURCES, BEHAVIOR, STORES, GOALS, 'catalog/recipes/', ...COMBINER_DATA, 'catalog/combiner/proofs.json', 'catalog/inner/gen.manifest.json', 'catalog/verbs.json'], out: ['catalog/combiner/lab-data.json', 'catalog/combiner/dig/'] },
+  { name: 'self-check', run: ['catalog/scripts/self-check.mjs'], in: ['catalog/schema.json', ...TSENV, 'src/lib/atoms/', 'catalog/scripts/rebuild.mjs' /* המפקד של המכונה קורא גם את המתזמן */], out: ['catalog/self/machine.json', 'catalog/self/behavior-machine.json', 'catalog/self/report.json'], heavy: true },
 ];
 
 const SKIP_DIR = new Set(['node_modules', 'gen', '.git', '.cache']);
@@ -140,7 +140,8 @@ async function fileHash(rel, asView) {
 let machineMemo = null;
 async function machineKey() {
   if (machineMemo) return machineMemo;
-  const files = [...new Set(MACHINE.flatMap(expand))].sort();
+  // הבונה-מחדש עצמו (המתזמן) לא משנה שום פלט — שינוי בו לא פוסל את החותמות; ה-STAGES שלו נכנסים ממילא דרך run/in
+  const files = [...new Set(MACHINE.flatMap(expand))].filter((f) => f !== 'catalog/scripts/rebuild.mjs').sort();
   const hs = await Promise.all(files.map((f) => fileHash(f, false)));
   machineMemo = fingerprint(machineSalt(), 'machine-v2', ...files.flatMap((f, k) => [f, hs[k]]));
   return machineMemo;
@@ -196,6 +197,9 @@ export function graph() {
 function runStage(stage) {
   return new Promise((resolve, reject) => {
     const child = spawn(process.execPath, stage.run.map((a, k) => (k === 0 ? path.join(ROOT, a) : a)), { cwd: ROOT, stdio: ['ignore', 'pipe', 'pipe'] });
+    // «מדרג»: הנתיב הקריטי (פותח ⇒ מוכיח ⇒ שילוב ⇒ דף) בעדיפות רגילה; כל שלב אחר שרץ לצידו — בעדיפות נמוכה (nice 10),
+    // כך שהוא לא גוזל ליבות מהשלב שכולם מחכים לו. לא משנה שום פלט — רק את סדר-הקבלה של המעבד
+    if (!stage.critical) { try { os.setPriority(child.pid, 10); } catch { /* לא חובה */ } }
     let log = '';
     child.stdout.on('data', (d) => { log += d; });
     child.stderr.on('data', (d) => { log += d; });

@@ -3,31 +3,31 @@
  "note": "נוצר ע\"י catalog/scripts/rebuild.mjs — לכל שלב: טביעת-הקלטים שממנה נוצרו הפלטים שבריפו, וטביעת כל פלט. שכפול טרי שהקלטים שלו זהים ⇒ השלב לא רץ.",
  "stages": {
   "orbit-census": {
-   "in": "f7df62b6c81a1580d1f69649c06c0f32",
+   "in": "90973c99d65dec4a045495e1364631d5",
    "out": {
     "catalog/sources/orbit.json": "44154de90547b606eb1fdb1f7fdaffe5"
    }
   },
   "core-census": {
-   "in": "74a2560923960e7b885230637e8904c4",
+   "in": "02df7673854011b7657064bcd06a0a92",
    "out": {
     "catalog/sources/core.json": "f5f39a218f51353e63e8d68c2d4b9f69"
    }
   },
   "core-b-census": {
-   "in": "3d630ae207ac7c29c35c9318ba5af0c9",
+   "in": "7c2d892321447993a60db51cb12c70d7",
    "out": {
     "catalog/sources/core-b.json": "b8b2e383a4e53ff71fc28bfdc6341695"
    }
   },
   "core-c-census": {
-   "in": "d462dd473c7d541da750a59790206d29",
+   "in": "f2269ee71c11b6f96e9cb802be31fd85",
    "out": {
     "catalog/sources/core-c.json": "211dbc9c190d0d907c1317a651cb431e"
    }
   },
   "open-orbit": {
-   "in": "13f3cc5793d833b569eacaec5569351d",
+   "in": "a4cf60a6a528926477551d46b5eff357",
    "out": {
     "catalog/inner/gen.manifest.json": "7e4a59f4ad13d9e90eac024adef1df12",
     "catalog/inner/open-orbit.json": "869c9762a2cc8fd2551cd88321cb614c",
@@ -35,42 +35,42 @@
    }
   },
   "probe-orbit": {
-   "in": "d9da377a1f83b03a5ef1783ada19e369",
+   "in": "83cd7e417fd0976e01bfe6758c72af9a",
    "out": {
     "catalog/behavior/orbit.json": "d414b430c461091665eb20c6ec8498a2",
     "catalog/self/stamps/behavior-orbit.json": "ed50eedf06457b0826a7cae38d2e3323"
    }
   },
   "probe-core": {
-   "in": "920c3a67ea70520ea17e0530b89d9d80",
+   "in": "578ef54414b8be7f6b6273619a02bac4",
    "out": {
     "catalog/behavior/core.json": "283b98945d08dd16b8dc7f5abd49025a",
     "catalog/self/stamps/behavior-core.json": "22516831d7c1388174f0f4648f7499fb"
    }
   },
   "probe-core-b": {
-   "in": "c1397ba4712038106084fe167e7964d1",
+   "in": "3f9667b2d788ffe66a38c942771588c0",
    "out": {
     "catalog/behavior/core-b.json": "eff1c76dc4f3947a55966a81c507cfbc",
     "catalog/self/stamps/behavior-core-b.json": "7dba11c4708f63d00739a775c5e49132"
    }
   },
   "probe-core-c": {
-   "in": "14d9af5cf2700c9c340502c90e11fd18",
+   "in": "949b53112d2bf01352c5ffe5aa489037",
    "out": {
     "catalog/behavior/core-c.json": "61535dfcae59decf46fc4245e25512dd",
     "catalog/self/stamps/behavior-core-c.json": "16ea851773926f4bd4bc38630084820b"
    }
   },
   "prove-orbit": {
-   "in": "9af91cbaf18371ec0387830a7c38ff7a",
+   "in": "b03d3f47e4c1fbcb22fa179276896fe0",
    "out": {
     "catalog/inner/store/behavior-orbit.json": "b8941922e5578579b1665ca40f665f04",
     "catalog/self/stamps/inner-orbit.json": "2780db65f449be45e9bb3378db4638aa"
    }
   },
   "catalog-build": {
-   "in": "d247c9f4af012e6c1c829b7b33b80814",
+   "in": "771b4549dd1cfed96c6949ab5b19c561",
    "out": {
     "catalog/alphabet.md": "404efa8423e3802ce3287117dec284b5",
     "catalog/index.json": "6dd2f15ca9b1eb61e8342e9f3e920a8f",
@@ -79,32 +79,32 @@
    }
   },
   "lift": {
-   "in": "082eb36947f8be99b2ceea3f2d5baa36",
+   "in": "5e625a93644531eab8144174c827b853",
    "out": {
     "catalog/inner/lift.json": "9437deae74397f1576d166796d162b94"
    }
   },
   "goals-coverage": {
-   "in": "b805cfc3be1ff5e2fc31e4870577c533",
+   "in": "020cd35aeb9038e95e2875b5a2dd4e48",
    "out": {
     "catalog/goals/coverage.json": "f10b32debc01c9ff5f1fd74bc9278c2b",
     "catalog/goals/coverage.md": "e30f22e7d12ca8897eeb0324cf63c279"
    }
   },
   "core-demo": {
-   "in": "2fa3df832f403e57c372f1045b1a306a",
+   "in": "8196af59a0ddcc3fdb942ba89f32bd5b",
    "out": {
     "catalog/core/demo.html": "45d3376f2b2676a22f5cba34299e74f4"
    }
   },
   "combiner-prove": {
-   "in": "83a3ff67e18d429700ce8f9ef435679e",
+   "in": "2804419fb2e6607cd65558a0bf6fbb35",
    "out": {
     "catalog/combiner/proofs.json": "368c0d0b6f1a9fedcc43919305bcc3da"
    }
   },
   "combine": {
-   "in": "d2b3e7c4508968bb62c539b66ff1258b",
+   "in": "248cb65c28cec17d244137cd5bea4d7c",
    "out": {
     "catalog/combiner/combos.json": "1abedba0eac5c79fa470629425caa0ba",
     "catalog/recipes/combo-compare-geo.json": "18fc424689a9c831e0c36c6c07ada74a",
@@ -129,18 +129,18 @@
    }
   },
   "build": {
-   "in": "c25526e85b33128e0bf1b543e17ef49c",
+   "in": "12790aa77260ec5877cdf619c992b44d",
    "out": {
     "catalog/combiner/dig/w61ae0275.n4.json": "59fb2b9a7389e6b6e63ecbe18a57e6de",
     "catalog/combiner/lab-data.json": "d7c98362a6214ff988d81bd791600246"
    }
   },
   "self-check": {
-   "in": "5be166de30b38d30a1700ce02c440a80",
+   "in": "fbed227e3b08c11c8da35c97ae091d36",
    "out": {
-    "catalog/self/behavior-machine.json": "9e3ade5e99584f48c5a74d7feaaa77a9",
-    "catalog/self/machine.json": "37906e99d03b5b7cea51d65fa2ca2754",
-    "catalog/self/report.json": "28705137bb46a6dabd66bf21a4e34473"
+    "catalog/self/behavior-machine.json": "bc03c4108454182c067fe7eb535ef7f5",
+    "catalog/self/machine.json": "82918bddaa98be13e3efa0199bc3738a",
+    "catalog/self/report.json": "c479b2c8bbc704c6751c766f27663b75"
    }
   }
  }
