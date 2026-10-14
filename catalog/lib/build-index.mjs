@@ -9,8 +9,8 @@
 import { VERBS, PRIMARY_ORDER } from './verbs.mjs';
 import { crossSourceDups } from './links.mjs';
 
-export const SOURCE_ORDER = ['orbit', 'buildsmart', 'generator', 'rings', 'yeshiva', 'qa-scanner', 'yoman-habina', '14kk', 'mmmm'];
-export const SOURCE_HE = { orbit: 'אורביט', buildsmart: 'בנייה-חכמה', generator: 'המחולל', rings: 'מנוע-הטבעות', yeshiva: 'הישיבה', 'qa-scanner': 'סורק-האיכות', 'yoman-habina': 'יומן-הבינה', '14kk': '14kk', mmmm: 'MMMM' };
+export const SOURCE_ORDER = ['orbit', 'buildsmart', 'generator', 'rings', 'yeshiva', 'qa-scanner', 'yoman-habina', '14kk', 'mmmm', 'core'];
+export const SOURCE_HE = { orbit: 'אורביט', buildsmart: 'בנייה-חכמה', generator: 'המחולל', rings: 'מנוע-הטבעות', yeshiva: 'הישיבה', 'qa-scanner': 'סורק-האיכות', 'yoman-habina': 'יומן-הבינה', '14kk': '14kk', mmmm: 'MMMM', core: 'הליבה' };
 const srcRank = (s) => { const k = SOURCE_ORDER.indexOf(s); return k < 0 ? 99 : k; };
 const byKey = (f) => (a, b) => { const x = f(a); const y = f(b); return x < y ? -1 : x > y ? 1 : 0; };
 const kindFam = (k) => (k.startsWith('record:') ? 'record:*' : k);
@@ -74,10 +74,21 @@ export function buildIndex(sources, behaviors) {
     sourceMatrix: matrix,
   };
 
+  // הליבה (catalog/core): כל חלק-ליבה מצביע (tags: twin:<id>) על החלקים בקטלוג שהוא ה"תאום בלי עולם" שלהם
+  const ids = new Set(parts.map((p) => p.id));
+  const coreOf = new Map();
+  const twins = parts.filter((p) => p.source === 'core').map((p) => {
+    const tw = (p.tags ?? []).filter((t) => t.startsWith('twin:')).map((t) => t.slice(5)).filter((id) => ids.has(id)).sort();
+    for (const id of tw) coreOf.set(id, p.id);
+    const origins = (p.tags ?? []).filter((t) => t.startsWith('origin:'));
+    return { core: p.id, verb: (p.tags.find((t) => t.startsWith('verb:')) ?? '').slice(5), builtNew: p.tags.includes('built-new'), origins: origins.length, sources: [...new Set(origins.map((t) => t.split(':')[1]))].sort(byKey(srcRank)), twins: tw };
+  });
+
   const rows = parts.slice().sort(byKey((p) => p.id)).map((p) => {
     const b = beh.get(p.id);
     const r = { id: p.id, source: p.source, name: p.name, what: p.what, lang: p.lang, takes: p.takes.map((t) => t.kind), gives: p.gives.kind, pure: p.pure };
     if (dupOf.has(p.id)) r.dup = dupOf.get(p.id);
+    if (coreOf.has(p.id)) r.core = coreOf.get(p.id);
     if (b) {
       r.labeledBy = b.labeledBy;
       const vs = b.verbs.filter((v) => !v.implied).map((v) => v.id);
@@ -93,6 +104,7 @@ export function buildIndex(sources, behaviors) {
     version: 1, generatedAt: null,
     sources: names.map((s) => ({ source: s, repo: sources[s].repo, ref: sources[s].ref, parts: sources[s].parts.length })),
     totals: total, stats, plugs,
+    twins: { note: 'חלק-ליבה (catalog/core) = הפעולה בלי עולם; twins = החלקים בקטלוג שממנה חולצה; origins = כמה מקומות בקוד נמצאה (catalog/core/origins.json).', list: twins },
     dups: { groups: dups.length, parts: dups.reduce((a, g) => a + g.members.length, 0), byConfidence: sortObj(dups.reduce((o, g) => (inc(o, g.confidence), o), {})), list: dups },
     parts: rows,
   };
@@ -124,7 +136,8 @@ export function verbsJson(atomLaws) {
       const o = { id: v.id, he: v.he, means: v.means, takes: v.takes, gives: v.gives };
       if (v.box) o.box = true;
       if (v.staticOnly) { o.staticOnly = true; o.laws = []; }
-      else o.laws = v.laws.map((l) => (l.sweep ? { id: l.id, says: l.says, sweep: true } : { id: l.id, says: l.says }));
+      else o.laws = v.laws.map((l) => ({ id: l.id, says: l.says, ...(l.sweep ? { sweep: true } : {}), ...(l.catches ? { catches: l.catches } : {}) }));
+      if (v.mined) { o.mined = true; o.core = 'catalog/core/' + v.id + '.mjs'; if (v.builtNew) o.builtNew = true; }
       if (v.boxLaws) o.boxLaws = box.get(v.boxLaws) ?? [];
       o.cues = { he: v.cues?.he ?? [], en: v.cues?.en ?? [] };
       return o;
@@ -141,13 +154,14 @@ export function verbsMd(vj) {
   L.push('קוד: [`lib/verbs.mjs`](./lib/verbs.mjs) · מכונה-קריאה: [`verbs.json`](./verbs.json) · מי מקיים מה: [`alphabet.md`](./alphabet.md).', '');
   L.push('**איך פועל "מתקיים" בחלק:** מריצים את החלק בארגז-חול על קלטים עם זרע, מנסים כל קישור ("איזה קלט הוא הרשימה"), וכל החוקים של הפועל צריכים לעבור על כל המקרים (n/n), עם מספיק מקרים ועם מקרה-עד שהחלק לא טריוויאלי (לא זהות, לא קבוע, ותלוי בקלט). לכל חוק יש "מוטנט" — מימוש מקולקל שהחוק תופס (`catalog/__tests__/verbs.test.ts`).', '');
   L.push('| # | id | פועל | משמעות | מקבל ⇒ נותן | חוקים |', '|---:|---|---|---|---|---:|');
-  vj.verbs.forEach((v, k) => L.push(`| ${k + 1} | \`${v.id}\`${v.box ? ' 📦' : ''} | **${v.he}** | ${v.means} | ${v.takes.length ? v.takes.map((t) => '`' + t + '`').join(' + ') : '—'} ⇒ \`${v.gives}\` | ${v.staticOnly ? 'static-only' : v.laws.length + (v.boxLaws ? ' + ' + v.boxLaws.length : '')} |`));
-  L.push('', '📦 = אחד מ-8 פעלי-הארגז (החלקים הקטנים של אורביט).', '');
+  vj.verbs.forEach((v, k) => L.push(`| ${k + 1} | \`${v.id}\`${v.box ? ' 📦' : ''}${v.mined ? ' 🌀' : ''}${v.builtNew ? '🔴' : ''} | **${v.he}** | ${v.means} | ${v.takes.length ? v.takes.map((t) => '`' + t + '`').join(' + ') : '—'} ⇒ \`${v.gives}\` | ${v.staticOnly ? 'static-only' : v.laws.length + (v.boxLaws ? ' + ' + v.boxLaws.length : '')} |`));
+  L.push('', '📦 = אחד מ-8 פעלי-הארגז (החלקים הקטנים של אורביט). 🌀 = פועל-זמן/תנועה שנכרה מהקוד שלנו — הליבה ב-`core/<id>.mjs`, כל המקומות שבהם נמצא ב-[`core/origins.json`](./core/origins.json); 🔴 = לא נמצא בשום מקום ונבנה חדש.', '');
   L.push('## החוקים', '');
   for (const v of vj.verbs) {
     L.push(`### \`${v.id}\` — ${v.he}`, '', v.means, '');
     if (v.staticOnly) { L.push('_static-only: אין חוק חד שאפשר לבדוק מבחוץ. מזוהה משם הפעולה ומהחתימה — רמזים: ' + [...v.cues.he, ...v.cues.en].map((c) => '`' + c + '`').join(' · ') + '._', ''); continue; }
-    for (const l of v.laws) L.push(`- \`${l.id}\`${l.sweep ? ' (סריקה)' : ''} — ${l.says}`);
+    if (v.mined) L.push(`ליבה: [\`${v.core}\`](./${v.core.replace('catalog/', '')})${v.builtNew ? ' · 🔴 נבנה חדש — לא נמצא בשום פרויקט' : ''}`, '');
+    for (const l of v.laws) L.push(`- \`${l.id}\`${l.sweep ? ' (סריקה)' : ''} — ${l.says}${l.catches ? ' · _תופס מוטנט: ' + l.catches + '_' : ''}`);
     if (v.boxLaws?.length) {
       L.push('', `<details><summary>${v.boxLaws.length} חוקי-המאמת על החלק עצמו</summary>`, '');
       for (const l of v.boxLaws) L.push(`- \`${l.id}\` — ${l.says}`);

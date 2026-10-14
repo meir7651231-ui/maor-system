@@ -15,6 +15,7 @@
  * טהור: בלי שעון, בלי I/O.
  */
 import { canon, same, isArr, isNum, isStr, isObj, isNil, classOf, toNum, axisClass, numEq, isSubseq, isPerm, shuffle, cat, entriesOf } from './shape.mjs';
+import { MOTION_VERBS } from './verbs-motion.mjs';
 
 /* ═══════════════ עזרים ═══════════════ */
 
@@ -954,6 +955,8 @@ export const VERBS = [
   { id: 'route', he: 'מנתב לפי ערוץ', staticOnly: true, means: 'שולח את אותו דבר בדרך שמתאימה לערוץ (וואטסאפ/SMS/מייל/טלפון)', takes: ['choice', 'record'], gives: 'record', cues: { en: ['route', 'routing', 'channel', 'channels', 'dispatch', 'driver', 'via', 'transport', 'deliver'], he: ['מנתב', 'ערוץ', 'שולח'] } },
   { id: 'tolerate', he: 'סובל כשל', staticOnly: true, means: 'כשמשהו נכשל — ממשיך בנחת עם תשובה בטוחה במקום ליפול', takes: ['any'], gives: 'any', cues: { en: ['safe', 'try', 'fallback', 'retry', 'tolerant', 'soft', 'graceful', 'guard', 'catch', 'orDefault'], he: ['בטוח', 'נופל-רך', 'כשל'] } },
   { id: 'pace', he: 'מווסת קצב', staticOnly: true, means: 'לא נותן לעשות יותר מדי מהר (השהיה, הגבלת-קצב, ניסיון-חוזר עם המתנה)', takes: ['times'], gives: 'times', cues: { en: ['throttle', 'debounce', 'pace', 'backoff', 'rateLimit', 'cooldown', 'quiet', 'quietHours', 'wait'], he: ['קצב', 'השהיה', 'מנוחה'] } },
+  /* ─────────── 15 פעלי-הזמן-והתנועה — נכרו מהקוד שכתבנו (verbs-motion.mjs · catalog/core) ─────────── */
+  ...MOTION_VERBS,
   { id: 'relay', he: 'מעביר דרך מרכז', staticOnly: true, means: 'לא מדבר ישר — מעביר דרך תחנה באמצע (מרכזייה, מתווך, שרת)', takes: ['record'], gives: 'record', cues: { en: ['relay', 'proxy', 'hub', 'forward', 'bridge', 'switchboard', 'broker', 'outbox', 'queue'], he: ['מעביר', 'מתווך', 'מרכזייה', 'ממסר'] } },
 ];
 
@@ -1054,6 +1057,6 @@ function fuzzyCase(e, kind) {
 
 export const VERB_BY_ID = new Map(VERBS.map((v) => [v.id, v]));
 /** סדר-הספציפיות: הפועל הראשון שמתקיים = "הפועל הראשי" של החלק. */
-export const PRIMARY_ORDER = ['divide', 'merge', 'next', 'rotate', 'fuzzy', 'escalate', 'tier', 'round', 'offset', 'bucket', 'fingerprint', 'clamp', 'sort', 'reverse', 'dedupe', 'filter', 'transcript', 'group', 'tally', 'count', 'sum', 'average', 'extreme', 'lookup', 'gap', 'compare', 'ratio', 'combine', 'split', 'join', 'personalize', 'map', 'settle', 'normalize', 'convert', 'format', 'validate', 'provide'];
+export const PRIMARY_ORDER = ['divide', 'merge', 'next', 'rotate', 'fuzzy', 'escalate', 'shortest-path', 'spread', 'sun-position', 'move-along-path', 'orbit', 'gravity', 'bounce', 'decay', 'oscillate', 'countdown', 'accumulate', 'follow', 'echo', 'random', 'sample', 'tier', 'round', 'offset', 'bucket', 'fingerprint', 'clamp', 'sort', 'reverse', 'dedupe', 'filter', 'transcript', 'group', 'tally', 'count', 'sum', 'average', 'extreme', 'lookup', 'gap', 'compare', 'ratio', 'combine', 'split', 'join', 'personalize', 'map', 'settle', 'normalize', 'convert', 'format', 'validate', 'provide'];
 /** פועל ספציפי שמכסה פועל כללי — כשהספציפי מתקיים, הכללי לא נספר בנפרד. */
 export const IMPLIES = { count: ['sum'], gap: ['compare'], escalate: ['tier'], fuzzy: ['lookup'], round: ['normalize', 'convert'], clamp: ['normalize'], filter: ['normalize'], dedupe: ['normalize'], sort: ['normalize'], settle: ['normalize'] };

@@ -1,0 +1,1141 @@
+{
+ "version": 1,
+ "generatedAt": null,
+ "note": "איפה כל פעולת זמן/תנועה נמצאה בקוד שלנו. נכרה ב-14.10.2026 מ-9 הפרויקטים (קוד-מסך, אנימציה, אפקטים, תלת-ממד, קול, ניתוב). best = המימוש שממנו חולצה הליבה; part = החלק בקטלוג (אם יש).",
+ "verbs": {
+  "decay": {
+   "origins": [
+    {
+     "source": "orbit",
+     "file": "src/components/parnasa/Ambient.tsx",
+     "line": 91,
+     "what": "אבק-זהב שמתפזר בפרנס׳לע מאט מחיכוך",
+     "math": "p.vx *= 0.985",
+     "best": true,
+     "repo": "meir7651231-ui/maor-system"
+    },
+    {
+     "source": "orbit",
+     "file": "src/components/parnasa/bannerFx.ts",
+     "line": 498,
+     "what": "הבזק-מצלמה בבאנר הצלם דועך",
+     "math": "opacity = (1-fp)^2 * 0.7",
+     "repo": "meir7651231-ui/maor-system"
+    },
+    {
+     "source": "orbit",
+     "file": "src/components/parnasa/sound.ts",
+     "line": 50,
+     "what": "עוצמת צליל-המטבע דועכת",
+     "math": "exponentialRampToValueAtTime(0.0001, d)",
+     "repo": "meir7651231-ui/maor-system"
+    },
+    {
+     "source": "orbit",
+     "file": "src/store/useApp.ts",
+     "line": 2029,
+     "what": "ניקוד-האשראי של משפחה יורד בלי פעילות, עד רצפה",
+     "math": "score = max(0, score-2)",
+     "repo": "meir7651231-ui/maor-system"
+    },
+    {
+     "source": "generator",
+     "file": "design/capabilities-showcase.html",
+     "line": 290,
+     "what": "חיכוך שדה-הכוכבים",
+     "math": "s.vx *= .96; s.vy *= .96",
+     "repo": "meir7651231-ui/-ai-chat-server@claude/mavin-260922"
+    },
+    {
+     "source": "generator",
+     "file": "design/orbit-covenant.html",
+     "line": 212,
+     "what": "הבזק והתמדת-סיבוב דועכים",
+     "math": "burst *= 0.92; vry *= .93",
+     "repo": "meir7651231-ui/-ai-chat-server@claude/mavin-260922"
+    },
+    {
+     "source": "generator",
+     "file": "machtzev/pure/motion-family.html",
+     "line": 172,
+     "what": "חיי-קונפטי דועכים לאפס (ליניארי)",
+     "math": "q.life -= .012",
+     "repo": "meir7651231-ui/-ai-chat-server@claude/mavin-260922"
+    },
+    {
+     "source": "rings",
+     "file": "lab-rings/viz/anneal.js",
+     "line": 21,
+     "what": "טמפרטורת-החישול יורדת עד רצפה",
+     "math": "T = T0*(1-progress)+0.05",
+     "repo": "meir7651231-ui/-ai-chat-server@claude/lab-rings"
+    },
+    {
+     "source": "buildsmart",
+     "file": "index.html",
+     "line": 100,
+     "what": "פעמון שמתנדנד ונרגע (×0.7 בכל נדנוד)",
+     "math": "16° → −13° → 9° → −6° → 3° → 0",
+     "repo": "meir7651231-ui/buildsmart"
+    },
+    {
+     "source": "14kk",
+     "file": "database/mongo-init.js",
+     "line": 413,
+     "what": "רשומות-יומן נמחקות אחרי זמן (דעיכה בדידה)",
+     "math": "expireAfterSeconds: 2592000",
+     "repo": "meir7651231-ui/14kk"
+    }
+   ],
+   "variants": [
+    "גאומטרי (v *= k) — הנבחר, עם הצמדה לרצפה כמו \"אם alpha < 0.01 — הסר\"",
+    "ליניארי (life -= c) — motion-family, anneal",
+    "ריבועי בזמן ((1-p)^2) — bannerFx"
+   ]
+  },
+  "countdown": {
+   "origins": [
+    {
+     "source": "orbit",
+     "file": "src/components/timer/MoneyTimer.tsx",
+     "line": 117,
+     "what": "שעון-הכסף במצב טיימר: כמה נשאר, נעצר באפס",
+     "math": "shownSec = max(0, target - elapsed)",
+     "best": true,
+     "repo": "meir7651231-ui/maor-system"
+    },
+    {
+     "source": "orbit",
+     "file": "src/components/hosting/kitchen.ts",
+     "line": 85,
+     "what": "ספירה לאחור עד רגע-ההגשה במטבח",
+     "math": "countdown(at - now)",
+     "part": "orbit:src/components/hosting/kitchen.ts#countdown",
+     "repo": "meir7651231-ui/maor-system"
+    },
+    {
+     "source": "orbit",
+     "file": "src/lib/lock.ts",
+     "line": 167,
+     "what": "המתנה אחרי קוד-PIN שגוי",
+     "math": "remainMs = max(0, until - now)",
+     "repo": "meir7651231-ui/maor-system"
+    },
+    {
+     "source": "orbit",
+     "file": "src/lib/publicSite.ts",
+     "line": 225,
+     "what": "ימים שנותרו לקמפיין",
+     "math": "daysLeft = max(0, ceil((end-now)/86400000))",
+     "repo": "meir7651231-ui/maor-system"
+    },
+    {
+     "source": "orbit",
+     "file": "src/components/shop/lib.ts",
+     "line": 221,
+     "what": "תוקף קופון",
+     "math": "since + validDays",
+     "part": "orbit:src/components/shop/lib.ts#couponExpiry",
+     "repo": "meir7651231-ui/maor-system"
+    },
+    {
+     "source": "buildsmart",
+     "file": "app_flutter/lib/screens/login_sheet.dart",
+     "line": 203,
+     "what": "שליחה-חוזרת של קוד-SMS אחרי 30 שניות",
+     "math": "remaining = 30 - elapsed",
+     "repo": "meir7651231-ui/buildsmart"
+    },
+    {
+     "source": "buildsmart",
+     "file": "index.html",
+     "line": 7847,
+     "what": "זמן-הגעה של המשאית על המפה",
+     "math": "eta = max(0, round(12*(1-prog)))",
+     "repo": "meir7651231-ui/buildsmart"
+    },
+    {
+     "source": "generator",
+     "file": "machtzev/pure/temporal-family.html",
+     "line": 291,
+     "what": "ספירה לאחור י:ש:ד:ש עד אפס",
+     "math": "if (rem > 0) rem--",
+     "repo": "meir7651231-ui/-ai-chat-server@claude/mavin-260922"
+    },
+    {
+     "source": "generator",
+     "file": "new/dart-ui-bs/countdown_timer.dart",
+     "line": 21,
+     "what": "ווידג׳ט ספירה-לאחור",
+     "math": "left = (total*(1-t)).ceil()",
+     "part": "generator:new/dart-ui-bs/countdown_timer.dart#Countdown",
+     "repo": "meir7651231-ui/-ai-chat-server@claude/mavin-260922"
+    },
+    {
+     "source": "yeshiva",
+     "file": "arena/shop/pricing.py",
+     "line": 171,
+     "what": "קופון עם מספר שימושים",
+     "math": "uses_left -= 1; reject when <= 0",
+     "repo": "meir7651231-ui/yeshiva-engine",
+     "part": "yeshiva:arena/shop/pricing.py#Coupon.usable"
+    },
+    {
+     "source": "qa-scanner",
+     "file": "exposure_audit.py",
+     "line": 201,
+     "what": "ימים עד שתעודת-האבטחה פגה",
+     "math": "days = (exp - now).days",
+     "repo": "meir7651231-ui/qa-scanner"
+    },
+    {
+     "source": "14kk",
+     "file": "archive/final-bridge.js",
+     "line": 650,
+     "what": "מחכה לתשובה עד 30 שניות",
+     "math": "while (waited < 30000) waited += 500",
+     "repo": "meir7651231-ui/14kk"
+    }
+   ],
+   "variants": [
+    "רציף (max(0, total-elapsed)) — הנבחר",
+    "בצעדים שלמים (ceil / rem--) — temporal-family, countdown_timer"
+   ]
+  },
+  "accumulate": {
+   "origins": [
+    {
+     "source": "orbit",
+     "file": "src/store/useApp.ts",
+     "line": 3128,
+     "what": "קופת-צדקה: מטבעות מצטברים עד \"ריקון\"",
+     "math": "collections.unshift(...); boxTotal = Σamount",
+     "best": true,
+     "repo": "meir7651231-ui/maor-system"
+    },
+    {
+     "source": "orbit",
+     "file": "src/components/tzedaka/lib.ts",
+     "line": 52,
+     "what": "סך כל הריקונים של קופה",
+     "math": "Σ amount",
+     "part": "orbit:src/components/tzedaka/lib.ts#boxTotal",
+     "repo": "meir7651231-ui/maor-system"
+    },
+    {
+     "source": "orbit",
+     "file": "src/components/timer/MoneyTimer.tsx",
+     "line": 113,
+     "what": "שעון-הכסף צובר שניות ⇒ שקלים; \"גבייה\" מאפסת",
+     "math": "elapsed = accum + (now-start)/1000",
+     "repo": "meir7651231-ui/maor-system"
+    },
+    {
+     "source": "orbit",
+     "file": "src/components/parnasa/biz.ts",
+     "line": 145,
+     "what": "הכד של העסק מתמלא מטבעות",
+     "math": "n = answers + thanks ⇒ fill-00..60",
+     "repo": "meir7651231-ui/maor-system"
+    },
+    {
+     "source": "orbit",
+     "file": "src/components/timer/BodyMap.tsx",
+     "line": 87,
+     "what": "מונה-טיפולים לכל אזור בגוף",
+     "math": "done = max(0, done + by)",
+     "repo": "meir7651231-ui/maor-system"
+    },
+    {
+     "source": "buildsmart",
+     "file": "index.html",
+     "line": 16380,
+     "what": "ספירת-עלייה של מספרי-הלוח",
+     "math": "cur = min(target, cur + inc)",
+     "repo": "meir7651231-ui/buildsmart"
+    },
+    {
+     "source": "buildsmart",
+     "file": "functions/src/claude.ts",
+     "line": 85,
+     "what": "מונה-בקשות בחלון שמתאפס",
+     "math": "count+1 בחלון; 1 בחלון חדש",
+     "repo": "meir7651231-ui/buildsmart"
+    },
+    {
+     "source": "generator",
+     "file": "design/orbit-nothinglost.html",
+     "line": 138,
+     "what": "טיימר שמצטבר ומתאפס",
+     "math": "spawnT += dt; if (spawnT > 0.5) spawnT = 0",
+     "repo": "meir7651231-ui/-ai-chat-server@claude/mavin-260922"
+    },
+    {
+     "source": "generator",
+     "file": "new/dart-maor/box-total.dart",
+     "line": 24,
+     "what": "סך-הריקונים של קופת-צדקה (תאום Dart)",
+     "math": "Σ amount",
+     "part": "generator:new/dart-maor/box-total.dart#boxTotal",
+     "repo": "meir7651231-ui/-ai-chat-server@claude/mavin-260922"
+    },
+    {
+     "source": "rings",
+     "file": "lab-rings/viz/rings-live.html",
+     "line": 373,
+     "what": "זמן שהושקע בחיפוש",
+     "math": "spent += dt",
+     "repo": "meir7651231-ui/-ai-chat-server@claude/lab-rings"
+    },
+    {
+     "source": "mmmm",
+     "file": "lib/integrations-openai-ai-server/src/audio/audio-playback-worklet.js",
+     "line": 23,
+     "what": "מילוי חוצץ-השמע",
+     "math": "availableData++",
+     "repo": "meir7651231-ui/MMMM"
+    },
+    {
+     "source": "qa-scanner",
+     "file": "exposure_audit.py",
+     "line": 421,
+     "what": "משקל תמונות-הבית מצטבר",
+     "math": "total += sz",
+     "repo": "meir7651231-ui/qa-scanner"
+    }
+   ],
+   "variants": [
+    "עם תקרה ⇒ ריקון (הנבחר — קופת-צדקה)",
+    "בלי תקרה, איפוס ידני (\"גבייה\" בשעון-הכסף)",
+    "מצטבר עד יעד ונעצר (ספירת-עלייה)"
+   ]
+  },
+  "oscillate": {
+   "origins": [
+    {
+     "source": "orbit",
+     "file": "src/components/supporters/SupportersGalaxy.tsx",
+     "line": 95,
+     "what": "לב-הגלקסיה פועם",
+     "math": "1 + 0.06*sin(t*0.05)",
+     "best": true,
+     "repo": "meir7651231-ui/maor-system"
+    },
+    {
+     "source": "orbit",
+     "file": "src/components/supporters/SupportersGalaxy.tsx",
+     "line": 111,
+     "what": "תורם בסיכון מהבהב",
+     "math": "0.5 + 0.5*sin(t*0.12 + r*9)",
+     "repo": "meir7651231-ui/maor-system"
+    },
+    {
+     "source": "orbit",
+     "file": "src/lib/three-scene.ts",
+     "line": 260,
+     "what": "כדור-המוח מתנדנד",
+     "math": "rotation.x = sin(t*0.2)*0.07",
+     "repo": "meir7651231-ui/maor-system"
+    },
+    {
+     "source": "orbit",
+     "file": "src/components/parnasa/Ambient.tsx",
+     "line": 88,
+     "what": "נצנוץ אבק",
+     "math": "tw = 0.45 + 0.55*sin(ph)",
+     "repo": "meir7651231-ui/maor-system"
+    },
+    {
+     "source": "orbit",
+     "file": "src/components/parnasa/sound.ts",
+     "line": 42,
+     "what": "מתנדי-סינוס של צליל המטבע",
+     "math": "2637/3960/5280/7120 Hz",
+     "repo": "meir7651231-ui/maor-system"
+    },
+    {
+     "source": "buildsmart",
+     "file": "app_flutter/lib/screens/home_shell.dart",
+     "line": 1838,
+     "what": "נקודת-סטטוס ירוקה נושמת",
+     "math": "repeat(reverse:true), 0.35→1",
+     "repo": "meir7651231-ui/buildsmart"
+    },
+    {
+     "source": "generator",
+     "file": "new/dart-ui-bs/glow_pulse.dart",
+     "line": 81,
+     "what": "פעימת-זוהר",
+     "math": "0.5 + 0.5*sin(t*2π*speed)",
+     "repo": "meir7651231-ui/-ai-chat-server@claude/mavin-260922",
+     "part": "generator:new/dart-ui-bs/glow_pulse.dart#GlowPulse"
+    },
+    {
+     "source": "generator",
+     "file": "new/dart-ui-bs/notify_badge.dart",
+     "line": 52,
+     "what": "תג מתנפח ומתכווץ",
+     "math": "1 + 0.12*sin(v*2π)",
+     "repo": "meir7651231-ui/-ai-chat-server@claude/mavin-260922",
+     "part": "generator:new/dart-ui-bs/notify_badge.dart#NotifyBadge"
+    },
+    {
+     "source": "rings",
+     "file": "lab-rings/viz/rings-live.html",
+     "line": 331,
+     "what": "הליבה נושמת בזמן חיפוש",
+     "math": "(sin(now/140)+1)/2",
+     "repo": "meir7651231-ui/-ai-chat-server@claude/lab-rings"
+    },
+    {
+     "source": "14kk",
+     "file": "mvp/public/index.html",
+     "line": 33,
+     "what": "רקע שגולש הלוך-ושוב (CSS)",
+     "math": "0% → 100% → 0% / 15s",
+     "repo": "meir7651231-ui/14kk"
+    }
+   ],
+   "variants": [
+    "סינוס (הנבחר)",
+    "הלוך-ושוב עם עקומה (repeat(reverse:true) + easeInOut)",
+    "פולס חד (pow(sin,7) — three-scene)"
+   ]
+  },
+  "random": {
+   "origins": [
+    {
+     "source": "orbit",
+     "file": "src/lib/atoms/verify/gen.ts",
+     "line": 29,
+     "what": "mulberry32 של המאמת — הזרע של כל בדיקות-המפעל",
+     "math": "a += 0x6d2b79f5; t = imul(t^t>>>15, t|1) …",
+     "best": true,
+     "repo": "meir7651231-ui/maor-system"
+    },
+    {
+     "source": "orbit",
+     "file": "src/components/supporters/constellation.ts",
+     "line": 33,
+     "what": "זווית \"אקראית\" יציבה לכל תורם (FNV)",
+     "math": "hash/2^32",
+     "repo": "meir7651231-ui/maor-system",
+     "part": "orbit:src/components/supporters/constellation.ts#donorConstellation"
+    },
+    {
+     "source": "orbit",
+     "file": "src/components/hosting/seating.ts",
+     "line": 147,
+     "what": "ערבוב-מושבים (פישר-ייטס)",
+     "math": "j = floor(rand*(i+1))",
+     "part": "orbit:src/components/hosting/seating.ts#seatShuffle",
+     "repo": "meir7651231-ui/maor-system"
+    },
+    {
+     "source": "orbit",
+     "file": "src/components/wheel/CourseWheel.tsx",
+     "line": 49,
+     "what": "גלגל-החוגים מגריל זוכה",
+     "math": "crypto.getRandomValues",
+     "repo": "meir7651231-ui/maor-system"
+    },
+    {
+     "source": "generator",
+     "file": "machtzev/generator/behavior-plan.mjs",
+     "line": 717,
+     "what": "mulberry32 + בחירה-עם-זרע",
+     "math": "אותם קבועים",
+     "repo": "meir7651231-ui/-ai-chat-server@claude/mavin-260922"
+    },
+    {
+     "source": "generator",
+     "file": "new/dart-ui-bs/particle_field.dart",
+     "line": 86,
+     "what": "אקראי-מדומה מ-sin",
+     "math": "fract(sin(i*12.9898+k*78.233)*43758.5453)",
+     "repo": "meir7651231-ui/-ai-chat-server@claude/mavin-260922",
+     "part": "generator:new/dart-ui-bs/particle_field.dart#ParticleField"
+    },
+    {
+     "source": "rings",
+     "file": "lab-rings/viz/rings-live.html",
+     "line": 161,
+     "what": "מחולל ליניארי (LCG) לכל דפדפן",
+     "math": "s = (s*1103515245+12345) % 2^31",
+     "repo": "meir7651231-ui/-ai-chat-server@claude/lab-rings"
+    },
+    {
+     "source": "buildsmart",
+     "file": "functions/src/creditCore.ts",
+     "line": 38,
+     "what": "גיבוב דטרמיניסטי כמסגרת-אשראי \"אקראית\"",
+     "math": "h += c; h += h<<10; h ^= h>>>6",
+     "repo": "meir7651231-ui/buildsmart"
+    },
+    {
+     "source": "14kk",
+     "file": "knowledge_protocol.js",
+     "line": 688,
+     "what": "מדדים מדומים",
+     "math": "floor(random()*20)+5",
+     "repo": "meir7651231-ui/14kk"
+    }
+   ],
+   "variants": [
+    "mulberry32 (הנבחר — עם זרע, עובר את חוקי-הפיזור)",
+    "LCG (מעבדת-הטבעות)",
+    "גיבוב-sin (Flutter)",
+    "Math.random / crypto (לא חוזר על עצמו — לא בליבה)"
+   ]
+  },
+  "gravity": {
+   "origins": [
+    {
+     "source": "generator",
+     "file": "machtzev/pure/motion-family.html",
+     "line": 172,
+     "what": "קונפטי נופל",
+     "math": "q.vy += .02; q.y += q.vy",
+     "best": true,
+     "repo": "meir7651231-ui/-ai-chat-server@claude/mavin-260922"
+    },
+    {
+     "source": "orbit",
+     "file": "src/components/parnasa/Ambient.tsx",
+     "line": 92,
+     "what": "אבק-זהב נופל (עם חיכוך)",
+     "math": "vy = vy*0.985 + 12*dt",
+     "repo": "meir7651231-ui/maor-system"
+    },
+    {
+     "source": "orbit",
+     "file": "src/components/parnasa/coinFx.ts",
+     "line": 96,
+     "what": "קונפטי-המטבעות עולה ונופל בקשת",
+     "math": "frame 1.4dx, dy+130",
+     "repo": "meir7651231-ui/maor-system"
+    },
+    {
+     "source": "orbit",
+     "file": "src/components/parnasa/coinFx.ts",
+     "line": 249,
+     "what": "מטבע נופל לחריץ הקופה",
+     "math": "cubic-bezier(.55,0,.85,.5)",
+     "repo": "meir7651231-ui/maor-system"
+    },
+    {
+     "source": "generator",
+     "file": "new/dart-ui-bs/confetti_burst.dart",
+     "line": 102,
+     "what": "קונפטי בנוסחה סגורה",
+     "math": "y = y0 + vy*t + 0.5*g*t²",
+     "repo": "meir7651231-ui/-ai-chat-server@claude/mavin-260922",
+     "part": "generator:new/dart-ui-bs/confetti_burst.dart#ConfettiBurst"
+    },
+    {
+     "source": "generator",
+     "file": "design/orbit-final.html",
+     "line": 382,
+     "what": "פרצי-חלקיקים בפרבולה",
+     "math": "+ b*b*130",
+     "repo": "meir7651231-ui/-ai-chat-server@claude/mavin-260922"
+    }
+   ],
+   "variants": [
+    "צעד-אחר-צעד (vy += g; y += vy) — הנבחר, בנוסחה סגורה של אותה לולאה",
+    "נוסחה רציפה (½gt²) — confetti_burst",
+    "עם חיכוך (gravity + decay) — Ambient"
+   ]
+  },
+  "move-along-path": {
+   "origins": [
+    {
+     "source": "orbit",
+     "file": "src/components/parnasa/coinFx.ts",
+     "line": 211,
+     "what": "מטבע שעף לחריץ על עקומת בזייה",
+     "math": "x = 2ut·cx + t²·ex",
+     "best": true,
+     "repo": "meir7651231-ui/maor-system"
+    },
+    {
+     "source": "orbit",
+     "file": "src/components/shop7/lib.ts",
+     "line": 12,
+     "what": "משלוח: איסוף → בדרך → נמסר",
+     "math": "ORDER[i+1]",
+     "repo": "meir7651231-ui/maor-system",
+     "part": "orbit:src/components/shop7/lib.ts#advanceStatus"
+    },
+    {
+     "source": "orbit",
+     "file": "src/components/shop7/lib.ts",
+     "line": 136,
+     "what": "עצירות-המסלול של מתנדב",
+     "math": "לפי סדר הלוח",
+     "part": "orbit:src/components/shop7/lib.ts#volunteerRouteStops",
+     "repo": "meir7651231-ui/maor-system"
+    },
+    {
+     "source": "buildsmart",
+     "file": "index.html",
+     "line": 7843,
+     "what": "המשאית נוסעת על המסלול במפת-המשלוחים",
+     "math": "path.getPointAtLength(prog*len)",
+     "repo": "meir7651231-ui/buildsmart"
+    },
+    {
+     "source": "buildsmart",
+     "file": "app_flutter/lib/screens/install_studio_screen.dart",
+     "line": 1853,
+     "what": "פולס זוהר זורם בצינור",
+     "math": "y = (flow % 1)*height",
+     "repo": "meir7651231-ui/buildsmart"
+    },
+    {
+     "source": "generator",
+     "file": "design/orbit-nothinglost.html",
+     "line": 173,
+     "what": "אור עף לטבעת בבזייה",
+     "math": "qbez(a,c,b,t)",
+     "repo": "meir7651231-ui/-ai-chat-server@claude/mavin-260922"
+    },
+    {
+     "source": "rings",
+     "file": "lab-rings/viz/rings-live.html",
+     "line": 323,
+     "what": "המסלול הזוכה נמתח מצומת לצומת",
+     "math": "lineTo(px+(x-px)*f, …)",
+     "repo": "meir7651231-ui/-ai-chat-server@claude/lab-rings"
+    },
+    {
+     "source": "yeshiva",
+     "file": "yeshiva/daf.py",
+     "line": 281,
+     "what": "הולך על הש\"ס עמוד אחר עמוד",
+     "math": "א → ב → דף+1 → מסכת הבאה",
+     "repo": "meir7651231-ui/yeshiva-engine"
+    },
+    {
+     "source": "mmmm",
+     "file": "artifacts/api-server/src/swarm/agents.ts",
+     "line": 218,
+     "what": "ממסר של 4 סוכנים, כל אחד מקבל מהקודם",
+     "math": "director → analyst → market → qa",
+     "repo": "meir7651231-ui/MMMM",
+     "part": "mmmm:artifacts/api-server/src/swarm/agents.ts#runSwarm"
+    }
+   ],
+   "variants": [
+    "לפי אורך הדרך (getPointAtLength — הנבחר)",
+    "לפי תחנה (ORDER[i+1] — בדיד)",
+    "עקומת בזייה (coinFx, orbit-nothinglost)"
+   ]
+  },
+  "orbit": {
+   "origins": [
+    {
+     "source": "orbit",
+     "file": "src/components/supporters/SupportersGalaxy.tsx",
+     "line": 101,
+     "what": "כוכבי-התורמים מסתובבים בגלקסיה",
+     "math": "ang = angle*2π + t*0.0009; x = cx + cos·r",
+     "part": "orbit:src/components/supporters/constellation.ts#donorConstellation",
+     "best": true,
+     "repo": "meir7651231-ui/maor-system"
+    },
+    {
+     "source": "orbit",
+     "file": "src/components/supporters/universe3d.ts",
+     "line": 73,
+     "what": "היקום-3D מסתובב ומוקרן",
+     "math": "yaw/pitch + scale = 3/(3-z)",
+     "part": "orbit:src/components/supporters/universe3d.ts#project",
+     "repo": "meir7651231-ui/maor-system"
+    },
+    {
+     "source": "orbit",
+     "file": "src/lib/three-scene.ts",
+     "line": 145,
+     "what": "טבעת-השביט סביב כדור-המוח",
+     "math": "pivot.rotation.z = -t*0.9",
+     "repo": "meir7651231-ui/maor-system"
+    },
+    {
+     "source": "orbit",
+     "file": "src/components/hosting/seating.ts",
+     "line": 300,
+     "what": "כיסאות סביב שולחן עגול",
+     "math": "a = -90° + i*360/cap",
+     "repo": "meir7651231-ui/maor-system"
+    },
+    {
+     "source": "buildsmart",
+     "file": "app_flutter/lib/features/fittings/render/camera.dart",
+     "line": 74,
+     "what": "מצלמה שמקיפה את האביזר",
+     "math": "eye = target + dist*(cos·sin, sin, cos·cos)",
+     "repo": "meir7651231-ui/buildsmart",
+     "part": "buildsmart:app_flutter/lib/features/fittings/render/camera.dart#orbitEye"
+    },
+    {
+     "source": "buildsmart",
+     "file": "app_flutter/knowledge/catalog-3d/prototypes/catalog-engine.html",
+     "line": 181,
+     "what": "פטיפון מסתובב",
+     "math": "yaw += 0.007",
+     "repo": "meir7651231-ui/buildsmart"
+    },
+    {
+     "source": "rings",
+     "file": "lab-rings/viz/rings-live.html",
+     "line": 312,
+     "what": "מחוג-הסריקה המסתובב (רדאר)",
+     "math": "sweepA += 0.045",
+     "repo": "meir7651231-ui/-ai-chat-server@claude/lab-rings"
+    },
+    {
+     "source": "generator",
+     "file": "design/orbit-landing.html",
+     "line": 310,
+     "what": "חלקיקים במסלול-טבעת",
+     "math": "px = cx + cos(a)*R",
+     "repo": "meir7651231-ui/-ai-chat-server@claude/mavin-260922"
+    },
+    {
+     "source": "generator",
+     "file": "design/orbit-covenant.html",
+     "line": 87,
+     "what": "מהירויות כמו קפלר",
+     "math": "sp = 0.55/√R",
+     "repo": "meir7651231-ui/-ai-chat-server@claude/mavin-260922"
+    }
+   ],
+   "variants": [
+    "מעגל (הנבחר)",
+    "אליפסה מוטה (R*0.6 — הגלקסיה, R*0.42 — orbit-landing)",
+    "כדור + הקרנה (universe3d, camera.dart)"
+   ]
+  },
+  "shortest-path": {
+   "origins": [
+    {
+     "source": "buildsmart",
+     "file": "app_flutter/lib/logic/install_engine.dart",
+     "line": 759,
+     "what": "שרשרת-מחברים הזולה בין שני מוצרי-אינסטלציה (דייקסטרה)",
+     "math": "newCost = cost + edgeCost(tail, next)",
+     "part": "buildsmart:app_flutter/lib/logic/install_engine.dart#findShortestPath",
+     "best": true,
+     "repo": "meir7651231-ui/buildsmart"
+    },
+    {
+     "source": "generator",
+     "file": "new/dart/find_shortest_path.dart",
+     "line": 51,
+     "what": "אותו דייקסטרה (העתק Dart)",
+     "math": "SplayTreeMap bucket queue",
+     "part": "generator:new/dart/find_shortest_path.dart#findShortestPath",
+     "repo": "meir7651231-ui/-ai-chat-server@claude/mavin-260922"
+    },
+    {
+     "source": "buildsmart",
+     "file": "app_flutter/lib/features/card_keyboard/hop_graph.dart",
+     "line": 135,
+     "what": "מרחק-קפיצות בין מוצרים (BFS)",
+     "math": "hopsBetween, maxHops = 4",
+     "repo": "meir7651231-ui/buildsmart"
+    },
+    {
+     "source": "orbit",
+     "file": "src/lib/engineroute/route.ts",
+     "line": 122,
+     "what": "הדרך הקצרה בין מנועים (BFS על קבוצות)",
+     "math": "רמה = מנוע אחד נוסף",
+     "repo": "meir7651231-ui/maor-system"
+    },
+    {
+     "source": "rings",
+     "file": "lab-rings/lab13/wide2frames.mjs",
+     "line": 29,
+     "what": "הקוד הקצר ביותר לכל קבוע (BFS ממוין)",
+     "math": "q.sort by code.length",
+     "repo": "meir7651231-ui/-ai-chat-server@claude/lab-rings"
+    },
+    {
+     "source": "rings",
+     "file": "lab-rings/viz/anneal.js",
+     "line": 9,
+     "what": "הנוסחה הזולה ביותר לכל טבלה (בלמן-פורד)",
+     "math": "if (c < cost[t]) cost[t] = c",
+     "repo": "meir7651231-ui/-ai-chat-server@claude/lab-rings"
+    },
+    {
+     "source": "qa-scanner",
+     "file": "scanner.py",
+     "line": 94,
+     "what": "סריקת-אתר ברוחב (BFS)",
+     "math": "deque + popleft",
+     "repo": "meir7651231-ui/qa-scanner",
+     "part": "qa-scanner:scanner.py#crawl"
+    }
+   ],
+   "variants": [
+    "דייקסטרה עם מחירים (הנבחר — install_engine)",
+    "BFS (כל קשת = 1)",
+    "בלמן-פורד (anneal)",
+    "אין בשום מקום סידור-עצירות לפי שכן-קרוב/TSP — המסלולים של shop7 ושל המשאית לא ממוטבים"
+   ]
+  },
+  "spread": {
+   "origins": [
+    {
+     "source": "buildsmart",
+     "file": "app_flutter/lib/features/card_keyboard/hop_graph.dart",
+     "line": 115,
+     "what": "כל מה שמגיעים אליו ב-N קפיצות — חזית שמתרחבת",
+     "math": "next = ∪ neighbors(frontier) \\ seen",
+     "best": true,
+     "repo": "meir7651231-ui/buildsmart"
+    },
+    {
+     "source": "yeshiva",
+     "file": "yeshiva/shiura.py",
+     "line": 58,
+     "what": "\"שניים הם אחד\" מתפשט בשרשרת (איחוד-קבוצות)",
+     "math": "parent[x] = parent[parent[x]]",
+     "part": "yeshiva:yeshiva/shiura.py#UnionFind",
+     "repo": "meir7651231-ui/yeshiva-engine"
+    },
+    {
+     "source": "orbit",
+     "file": "src/lib/demoCleanup.ts",
+     "line": 118,
+     "what": "מחיקת ישות-דמו גוררת את התלויים בה",
+     "math": "cascade רמה אחת",
+     "repo": "meir7651231-ui/maor-system"
+    },
+    {
+     "source": "generator",
+     "file": "new/dart-maor/plan-demo-cleanup.dart",
+     "line": 82,
+     "what": "אותו מפל-מחיקה (Dart)",
+     "math": "enrollments → deliveries → …",
+     "repo": "meir7651231-ui/-ai-chat-server@claude/mavin-260922",
+     "part": "generator:new/dart-maor/plan-demo-cleanup.dart#planDemoCleanup"
+    },
+    {
+     "source": "orbit",
+     "file": "src/components/parnasa/bannerFx.ts",
+     "line": 531,
+     "what": "אדווה מתרחבת במגע",
+     "math": "3 טבעות, rx עד 260",
+     "repo": "meir7651231-ui/maor-system"
+    },
+    {
+     "source": "rings",
+     "file": "lab-rings/viz/rings-live.html",
+     "line": 270,
+     "what": "לבנים שנמצאו בדפדפן אחר מתפשטות למדף המקומי",
+     "math": "onSnapshot",
+     "repo": "meir7651231-ui/-ai-chat-server@claude/lab-rings"
+    },
+    {
+     "source": "qa-scanner",
+     "file": "scanner.py",
+     "line": 120,
+     "what": "חזית-הקישורים בסריקת-האתר גדלה",
+     "math": "queue.append(link)",
+     "repo": "meir7651231-ui/qa-scanner",
+     "part": "qa-scanner:scanner.py#crawl"
+    }
+   ],
+   "variants": [
+    "חזית-BFS בגרף (הנבחר)",
+    "איחוד-קבוצות (שקילות טרנזיטיבית)",
+    "מפל-מחיקה רמה אחת"
+   ]
+  },
+  "sample": {
+   "origins": [
+    {
+     "source": "yeshiva",
+     "file": "yeshiva/mefarshim.py",
+     "line": 32,
+     "what": "דוגם כל דף עשירי בש\"ס (60 אלף בקשות ⇒ 6 אלף)",
+     "math": "TALMUD_STEP = 10; range(2, n+1, 10)",
+     "best": true,
+     "repo": "meir7651231-ui/yeshiva-engine"
+    },
+    {
+     "source": "generator",
+     "file": "design/orbit-final.html",
+     "line": 515,
+     "what": "דוגם את הלוגו פיקסל-כל-2",
+     "math": "for (y += 2) for (x += 2) if (alpha > 110)",
+     "repo": "meir7651231-ui/-ai-chat-server@claude/mavin-260922"
+    },
+    {
+     "source": "buildsmart",
+     "file": "app/src/lib/barcode.ts",
+     "line": 59,
+     "what": "קורא את המצלמה בכל פריים עד שנמצא ברקוד",
+     "math": "detector.detect(videoEl)",
+     "repo": "meir7651231-ui/buildsmart"
+    },
+    {
+     "source": "buildsmart",
+     "file": "index.html",
+     "line": 22224,
+     "what": "חיישן-תאוצה לניעור-לדיווח",
+     "math": "force = |x|+|y|+|z| > 34",
+     "repo": "meir7651231-ui/buildsmart"
+    },
+    {
+     "source": "rings",
+     "file": "lab-rings/viz/rings-live.html",
+     "line": 176,
+     "what": "מזהה מה תוכנית מחשבת מ-240 זיכרונות אקראיים",
+     "math": "HOLD = 240",
+     "repo": "meir7651231-ui/-ai-chat-server@claude/lab-rings"
+    },
+    {
+     "source": "generator",
+     "file": "machtzev/generator/behavior-plan.mjs",
+     "line": 718,
+     "what": "בחירה עם זרע",
+     "math": "seededSample(arr, n, seed)",
+     "repo": "meir7651231-ui/-ai-chat-server@claude/mavin-260922"
+    },
+    {
+     "source": "14kk",
+     "file": "archive/cascade_monitor.js",
+     "line": 14,
+     "what": "קורא קובץ כל 500ms",
+     "math": "setInterval(check, 500)",
+     "repo": "meir7651231-ui/14kk"
+    },
+    {
+     "source": "mmmm",
+     "file": "artifacts/agents-chat/src/hooks/useVoiceRecorder.ts",
+     "line": 47,
+     "what": "מקליט במקטעים של 100ms",
+     "math": "recorder.start(100)",
+     "repo": "meir7651231-ui/MMMM"
+    }
+   ],
+   "variants": [
+    "כל k-י (הנבחר)",
+    "כל פריים / כל זמן קבוע (polling)",
+    "בחירה אקראית עם זרע (= random + sample)"
+   ]
+  },
+  "echo": {
+   "origins": [
+    {
+     "source": "14kk",
+     "file": "services/api-gateway/server.js",
+     "line": 248,
+     "what": "PING ל-Redis, מחכה ל-PONG ומודד זמן-תגובה",
+     "math": "responseTime = Date.now() - startTime",
+     "best": true,
+     "repo": "meir7651231-ui/14kk",
+     "part": "14kk:services/api-gateway/server.js#checkServiceHealth"
+    },
+    {
+     "source": "orbit",
+     "file": "src/lib/netcheck.ts",
+     "line": 84,
+     "what": "בודק אם כתובת פתוחה ומודד הלוך-וחזור",
+     "math": "ms = Date.now() - started",
+     "repo": "meir7651231-ui/maor-system"
+    },
+    {
+     "source": "14kk",
+     "file": "archive/cascade_monitor.js",
+     "line": 19,
+     "what": "מחזיר את הטקסט שקיבל (\"Cascade received\")",
+     "math": "echo",
+     "repo": "meir7651231-ui/14kk"
+    },
+    {
+     "source": "buildsmart",
+     "file": "app_flutter/lib/widgets/backend_debug_badge.dart",
+     "line": 151,
+     "what": "כותב ping לשרת וקורא חזרה",
+     "math": "write → read Source.server",
+     "repo": "meir7651231-ui/buildsmart"
+    },
+    {
+     "source": "buildsmart",
+     "file": "app_flutter/lib/state/intel/presence.dart",
+     "line": 131,
+     "what": "דופק-חיים כל 30 שניות",
+     "math": "live while now - lastBeat < 75s",
+     "repo": "meir7651231-ui/buildsmart",
+     "part": "buildsmart:app_flutter/lib/state/intel/presence.dart#presenceLive"
+    },
+    {
+     "source": "mmmm",
+     "file": "agents-chat-server-17agents.js",
+     "line": 310,
+     "what": "\"קיבלתי את הודעתך\" אחרי השהיה",
+     "math": "echo מדומה",
+     "repo": "meir7651231-ui/MMMM"
+    }
+   ],
+   "variants": [
+    "זמן הלוך-וחזור (קיים בקוד) — ההמרה למרחק (חלקי 2 × מהירות) היא החלק היחיד שנוסף"
+   ]
+  },
+  "follow": {
+   "origins": [
+    {
+     "source": "orbit",
+     "file": "src/lib/three-scene.ts",
+     "line": 257,
+     "what": "כדור-המוח נגרר בעדינות אחרי העכבר",
+     "math": "tg.x += (mo.x - tg.x)*0.05",
+     "best": true,
+     "repo": "meir7651231-ui/maor-system"
+    },
+    {
+     "source": "orbit",
+     "file": "src/components/parnasa/sheetFx.ts",
+     "line": 56,
+     "what": "גיליון-העסק נפתח על קפיץ אל היעד",
+     "math": "a = -K(y-to) - Cv",
+     "repo": "meir7651231-ui/maor-system"
+    },
+    {
+     "source": "generator",
+     "file": "design/orbit-covenant.html",
+     "line": 214,
+     "what": "הטיית-המצלמה אחרי העכבר",
+     "math": "rx += (target - rx)*.03",
+     "repo": "meir7651231-ui/-ai-chat-server@claude/mavin-260922"
+    },
+    {
+     "source": "generator",
+     "file": "design/orbit-final.html",
+     "line": 599,
+     "what": "הצבע נגרר אחרי צבע-המבטא",
+     "math": "cc += (AC - cc)*.03",
+     "repo": "meir7651231-ui/-ai-chat-server@claude/mavin-260922"
+    },
+    {
+     "source": "rings",
+     "file": "lab-rings/viz/rings-live.html",
+     "line": 420,
+     "what": "נקודות מחליקות למקומן החדש במעגל",
+     "math": "d.a += (ta - d.a)*0.12",
+     "repo": "meir7651231-ui/-ai-chat-server@claude/lab-rings"
+    },
+    {
+     "source": "buildsmart",
+     "file": "app_flutter/lib/features/ring_dive/catalog_wheel_screen.dart",
+     "line": 354,
+     "what": "כותרת שמתכווצת לפי גלילה",
+     "math": "h = dial - (dial-46)*e",
+     "repo": "meir7651231-ui/buildsmart"
+    },
+    {
+     "source": "mmmm",
+     "file": "agents-17-full-duplex.js",
+     "line": 375,
+     "what": "כל סוכן מקבל את כל מה שאמרו לפניו ועונה אחריהם",
+     "math": "Previous conversation",
+     "repo": "meir7651231-ui/MMMM"
+    }
+   ],
+   "variants": [
+    "חלק קבוע מהדרך (הנבחר — lerp)",
+    "קפיץ עם ריסון (sheetFx — follow + decay)",
+    "מהירות קבועה (לא נמצא)"
+   ]
+  },
+  "bounce": {
+   "builtNew": true,
+   "origins": [
+    {
+     "source": "generator",
+     "file": "new/dart-ui-bs/dots_loader.dart",
+     "line": 46,
+     "what": "נקודות \"קופצות\" (sin חיובי, בלי מקדם)",
+     "math": "lift = sin(phase*π).clamp(0,1)",
+     "repo": "meir7651231-ui/-ai-chat-server@claude/mavin-260922"
+    },
+    {
+     "source": "generator",
+     "file": "new/dart-ui-bs/modal_dialog.dart",
+     "line": 16,
+     "what": "קפיצת-יתר בפתיחה",
+     "math": "Curves.easeOutBack",
+     "repo": "meir7651231-ui/-ai-chat-server@claude/mavin-260922"
+    },
+    {
+     "source": "buildsmart",
+     "file": "app/src/styles/global.css",
+     "line": 536,
+     "what": "עקומת קפיץ",
+     "math": "cubic-bezier(0.2, 0.9, 0.3, 1.2)",
+     "repo": "meir7651231-ui/buildsmart"
+    },
+    {
+     "source": "orbit",
+     "file": "src/components/parnasa/Ambient.tsx",
+     "line": 98,
+     "what": "גלישה-מסביב בקצה (במקום קפיצה)",
+     "math": "x < -10 ⇒ x = W + 10",
+     "repo": "meir7651231-ui/maor-system"
+    },
+    {
+     "source": "mmmm",
+     "file": "lib/integrations-openai-ai-server/src/batch/utils.ts",
+     "line": 54,
+     "what": "ניסיון-חוזר שמכפיל המתנה (לא קפיצה)",
+     "math": "factor: 2, max 128000",
+     "repo": "meir7651231-ui/MMMM"
+    }
+   ],
+   "variants": [
+    "🔴 אין בשום פרויקט מהירות שמתהפכת בפגיעה. נבנה חדש, מינימלי: שיקוף מהרצפה × מקדם-קפיצה"
+   ]
+  },
+  "sun-position": {
+   "origins": [
+    {
+     "source": "orbit",
+     "file": "src/components/parnasa/zmanimBoard.ts",
+     "line": 249,
+     "what": "זמני-היום של פרנס׳לע — NOAA עם זווית לבחירה",
+     "math": "cosHA = cos(90+dep)/(cos lat · cos decl) − tan lat · tan decl",
+     "best": true,
+     "repo": "meir7651231-ui/maor-system"
+    },
+    {
+     "source": "orbit",
+     "file": "telephony/lib/zmanim.mjs",
+     "line": 108,
+     "what": "זריחה ושקיעה של הטלפון (זניט 90.833°)",
+     "math": "NOAA",
+     "part": "orbit:telephony/lib/zmanim.mjs#sunset",
+     "repo": "meir7651231-ui/maor-system"
+    },
+    {
+     "source": "orbit",
+     "file": "src/components/parnasa/zmanimBoard.ts",
+     "line": 283,
+     "what": "שעת-קיר לזווית (משיכיר, צאת)",
+     "math": "sunAngleTime(iso, loc, dep, rise)",
+     "part": "orbit:src/components/parnasa/zmanimBoard.ts#sunAngleTime",
+     "repo": "meir7651231-ui/maor-system"
+    }
+   ],
+   "variants": [
+    "NOAA עם זווית-עומק (הנבחר — zmanimBoard)",
+    "זניט קבוע 90.833° (telephony)"
+   ]
+  }
+ }
+}

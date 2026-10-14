@@ -1,0 +1,259 @@
+{
+ "source": "core",
+ "ref": "claude/mined-verbs-261014@939ae480300dd141a69a50d0a47a1b3d78939292",
+ "probe": {
+  "version": 1,
+  "seed": 13269520,
+  "generatedAt": null
+ },
+ "totals": {
+  "run": 15,
+  "runWithVerb": 15,
+  "twin": 0,
+  "static": 0,
+  "staticWithVerb": 0,
+  "why": {}
+ },
+ "parts": [
+  {
+   "id": "core:catalog/core/accumulate.mjs#accumulate",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "accumulate",
+     "on": "spec+deposits",
+     "holds": "22/22"
+    }
+   ],
+   "primary": "accumulate",
+   "material": "record:accumulateSpec",
+   "cases": 24,
+   "hash": "9d3de07c-462cef67"
+  },
+  {
+   "id": "core:catalog/core/bounce.mjs#bounce",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "bounce",
+     "on": "spec+body",
+     "holds": "36/36"
+    }
+   ],
+   "primary": "bounce",
+   "material": "record:bounceSpec",
+   "cases": 24,
+   "hash": "6fc5702c-5efe3ed5"
+  },
+  {
+   "id": "core:catalog/core/countdown.mjs#countdown",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "countdown",
+     "on": "spec+elapsed",
+     "holds": "26/26"
+    }
+   ],
+   "primary": "countdown",
+   "material": "record:countdownSpec",
+   "cases": 24,
+   "hash": "ff8203b6-81ce2961"
+  },
+  {
+   "id": "core:catalog/core/decay.mjs#decay",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "decay",
+     "on": "spec+step",
+     "holds": "36/36"
+    }
+   ],
+   "primary": "decay",
+   "material": "record:decaySpec",
+   "cases": 24,
+   "hash": "3c3e439d-b806c861"
+  },
+  {
+   "id": "core:catalog/core/echo.mjs#echo",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "convert",
+     "on": "roundTrip",
+     "holds": "15/15"
+    },
+    {
+     "id": "echo",
+     "on": "spec+roundTrip",
+     "holds": "35/35"
+    }
+   ],
+   "primary": "echo",
+   "material": "record:echoSpec",
+   "cases": 24,
+   "hash": "a0229937-66a908d6"
+  },
+  {
+   "id": "core:catalog/core/follow.mjs#follow",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "convert",
+     "on": "current",
+     "holds": "15/15"
+    },
+    {
+     "id": "follow",
+     "on": "spec+current",
+     "holds": "35/35"
+    }
+   ],
+   "primary": "follow",
+   "material": "record:followSpec",
+   "cases": 24,
+   "hash": "ceb17eca-5965ff03"
+  },
+  {
+   "id": "core:catalog/core/gravity.mjs#gravity",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "gravity",
+     "on": "spec+step",
+     "holds": "36/36"
+    }
+   ],
+   "primary": "gravity",
+   "material": "record:gravitySpec",
+   "cases": 24,
+   "hash": "16cf329a-2a397472"
+  },
+  {
+   "id": "core:catalog/core/move-along-path.mjs#moveAlongPath",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "move-along-path",
+     "on": "spec+progress",
+     "holds": "36/36"
+    }
+   ],
+   "primary": "move-along-path",
+   "material": "record:pathSpec",
+   "cases": 24,
+   "hash": "58cc8b98-edcf0c47"
+  },
+  {
+   "id": "core:catalog/core/orbit.mjs#orbit",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "orbit",
+     "on": "spec+step",
+     "holds": "31/31"
+    }
+   ],
+   "primary": "orbit",
+   "material": "record:orbitSpec",
+   "cases": 24,
+   "hash": "b22b01da-abf3217a"
+  },
+  {
+   "id": "core:catalog/core/oscillate.mjs#oscillate",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "oscillate",
+     "on": "spec+step",
+     "holds": "26/26"
+    }
+   ],
+   "primary": "oscillate",
+   "material": "record:oscillateSpec",
+   "cases": 24,
+   "hash": "20eff38e-130d7c85"
+  },
+  {
+   "id": "core:catalog/core/random.mjs#random",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "random",
+     "on": "spec+count",
+     "holds": "43/43"
+    }
+   ],
+   "primary": "random",
+   "material": "record:randomSpec",
+   "cases": 24,
+   "hash": "db928278-d4e1a46c"
+  },
+  {
+   "id": "core:catalog/core/sample.mjs#sample",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "normalize",
+     "on": "readings",
+     "holds": "12/12"
+    },
+    {
+     "id": "sample",
+     "on": "spec+readings",
+     "holds": "10/10"
+    }
+   ],
+   "primary": "sample",
+   "material": "record:sampleSpec",
+   "cases": 24,
+   "hash": "1c0754a7-de7a91c0"
+  },
+  {
+   "id": "core:catalog/core/shortest-path.mjs#shortestPath",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "shortest-path",
+     "on": "spec+from",
+     "holds": "24/24"
+    }
+   ],
+   "primary": "shortest-path",
+   "material": "record:graphSpec",
+   "cases": 24,
+   "hash": "a84e018b-7586af83"
+  },
+  {
+   "id": "core:catalog/core/spread.mjs#spread",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "spread",
+     "on": "spec+steps",
+     "holds": "36/36"
+    }
+   ],
+   "primary": "spread",
+   "material": "record:spreadSpec",
+   "cases": 24,
+   "hash": "faaebc40-7f14b084"
+  },
+  {
+   "id": "core:catalog/core/sun-position.mjs#sunPosition",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "sun-position",
+     "on": "spec+day",
+     "holds": "18/18"
+    }
+   ],
+   "primary": "sun-position",
+   "material": "record:sunSpec",
+   "cases": 24,
+   "hash": "c5e07d6-abc2ae3a"
+  }
+ ]
+}

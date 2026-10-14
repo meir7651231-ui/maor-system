@@ -8,7 +8,7 @@
       "needs": [
         {
           "behavior": "מבזיק",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         },
         {
@@ -23,7 +23,7 @@
         },
         {
           "behavior": "הולך בדרך הקצרה לאדמה",
-          "verb": "NEW:shortest-path",
+          "verb": "shortest-path",
           "material": "geo",
           "detail": "דרך קצרה — המסלול הקצר ביותר ברשת של נקודות"
         },
@@ -41,24 +41,24 @@
       "needs": [
         {
           "behavior": "ענן מתמלא",
-          "verb": "NEW:accumulate",
+          "verb": "accumulate",
           "material": "number",
           "detail": "צובר — ערך שגדל מעט בכל צעד-זמן עד שמשהו מרוקן אותו"
         },
         {
           "behavior": "יורד כשמלא",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         },
         {
           "behavior": "טיפות במקומות אקראיים",
-          "verb": "NEW:random",
+          "verb": "random",
           "material": "geo",
           "detail": "מגריל — בחירה או ערך לפי סיכוי"
         },
         {
           "behavior": "כמות יומית",
-          "verb": "daily-snapshot",
+          "verb": "bucket",
           "material": "number"
         },
         {
@@ -68,7 +68,7 @@
         },
         {
           "behavior": "גשם חזק ⇒ התראה",
-          "verb": "rank-tiers",
+          "verb": "tier",
           "material": "choice"
         }
       ]
@@ -85,24 +85,24 @@
         },
         {
           "behavior": "דרגות לפי רוח",
-          "verb": "rank-tiers",
+          "verb": "tier",
           "material": "choice"
         },
         {
           "behavior": "מתחזקת מעל ים חם",
-          "verb": "NEW:accumulate",
+          "verb": "accumulate",
           "material": "number",
           "detail": "צובר — ערך שגדל מעט בכל צעד-זמן עד שמשהו מרוקן אותו"
         },
         {
           "behavior": "נחלשת ביבשה",
-          "verb": "NEW:decay",
+          "verb": "decay",
           "material": "number",
           "detail": "דועך — ערך שיורד מעט בכל צעד-זמן עד אפס"
         },
         {
           "behavior": "מסלול צפוי",
-          "verb": "NEW:move-along-path",
+          "verb": "move-along-path",
           "material": "geo",
           "detail": "מתקדם במסלול — נקודה שזזה לאורך דרך נתונה"
         },
@@ -120,7 +120,7 @@
       "needs": [
         {
           "behavior": "מחפש כוכב לפי שם",
-          "verb": "search",
+          "verb": "lookup",
           "material": "text"
         },
         {
@@ -145,7 +145,7 @@
         },
         {
           "behavior": "תמונה כל לילה",
-          "verb": "daily-snapshot",
+          "verb": "bucket",
           "material": "image"
         },
         {
@@ -178,7 +178,7 @@
         },
         {
           "behavior": "מסתובב סביב הארץ",
-          "verb": "NEW:orbit",
+          "verb": "orbit",
           "material": "geo",
           "detail": "מקיף — תנועה במעגל או בעקומה סביב נקודה"
         },
@@ -201,7 +201,7 @@
         },
         {
           "behavior": "מסלול אליפטי",
-          "verb": "NEW:orbit",
+          "verb": "orbit",
           "material": "geo",
           "detail": "מקיף — תנועה במעגל או בעקומה סביב נקודה"
         },
@@ -229,7 +229,7 @@
       "needs": [
         {
           "behavior": "מקיף את הארץ",
-          "verb": "NEW:orbit",
+          "verb": "orbit",
           "material": "geo",
           "detail": "מקיף — תנועה במעגל או בעקומה סביב נקודה"
         },
@@ -240,17 +240,17 @@
         },
         {
           "behavior": "מעביר הודעה הלאה",
-          "verb": "hub-relay",
+          "verb": "relay",
           "material": "text"
         },
         {
           "behavior": "תחנה שאיבדה קשר ⇒ אחרת",
-          "verb": "tolerate-failure",
+          "verb": "tolerate",
           "material": "list"
         },
         {
           "behavior": "צילום כל סיבוב",
-          "verb": "daily-snapshot",
+          "verb": "bucket",
           "material": "image"
         }
       ]
@@ -358,12 +358,12 @@
       "needs": [
         {
           "behavior": "יורד רק מתחת לאפס",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         },
         {
           "behavior": "מצטבר",
-          "verb": "NEW:accumulate",
+          "verb": "accumulate",
           "material": "number",
           "detail": "צובר — ערך שגדל מעט בכל צעד-זמן עד שמשהו מרוקן אותו"
         },
@@ -374,13 +374,13 @@
         },
         {
           "behavior": "נמס כשחם",
-          "verb": "NEW:decay",
+          "verb": "decay",
           "material": "number",
           "detail": "דועך — ערך שיורד מעט בכל צעד-זמן עד אפס"
         },
         {
           "behavior": "התראה לפי עומק",
-          "verb": "rank-tiers",
+          "verb": "tier",
           "material": "choice"
         }
       ]
@@ -397,12 +397,12 @@
         },
         {
           "behavior": "היום הארוך והקצר",
-          "verb": "minmax",
+          "verb": "extreme",
           "material": "date"
         },
         {
           "behavior": "היום מתארך ומתקצר",
-          "verb": "NEW:oscillate",
+          "verb": "oscillate",
           "material": "number",
           "detail": "מתנדנד — גל שעולה ויורד שוב ושוב בקצב קבוע"
         },

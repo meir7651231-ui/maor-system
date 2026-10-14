@@ -1,0 +1,600 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>מנועי הזמן והתנועה</title>
+<style>
+/* פריסה: רצועת-כותרת שקטה ואז גריד של מכשירים — כל כרטיס = מנוע אחד שרץ, ומתחתיו מאיפה הוא בא. */
+:root {
+  --bg: #eef2f1; --panel: #f9fbfa; --ink: #18272b; --muted: #58696d; --line: #d3dcdb;
+  --teal: #2c7a76; --brass: #b7832a; --rose: #b4544a;
+  --display: "Frank Ruhl Libre", "David", "Times New Roman", serif;
+  --body: system-ui, "Segoe UI", "Arial Hebrew", Arial, sans-serif;
+  --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #10181b; --panel: #162125; --ink: #e2eaeb; --muted: #8ea0a4; --line: #24353a; --teal: #62b6b0; --brass: #dcaa55; --rose: #e0857a; color-scheme: dark; } }
+:root[data-theme="dark"] { --bg: #10181b; --panel: #162125; --ink: #e2eaeb; --muted: #8ea0a4; --line: #24353a; --teal: #62b6b0; --brass: #dcaa55; --rose: #e0857a; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.6 var(--body); padding-block: 32px 48px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+header, main, footer { max-width: 1120px; margin-inline: auto; }
+header { display: grid; gap: 8px; margin-bottom: 28px; }
+.eyebrow { font-size: 12px; letter-spacing: .08em; color: var(--muted); }
+h1 { font: 600 clamp(28px, 4vw, 40px)/1.15 var(--display); margin: 0; text-wrap: balance; }
+.lede { max-width: 65ch; margin: 0; color: var(--muted); }
+.lede b { color: var(--ink); font-weight: 600; }
+main { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 18px; }
+.card { margin: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; display: grid; grid-template-rows: auto 1fr; min-width: 0; }
+.card canvas { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; max-width: 100%; border-bottom: 1px solid var(--line); }
+figcaption { padding: 12px 14px 14px; display: grid; gap: 4px; align-content: start; min-width: 0; }
+h2 { margin: 0; font: 600 19px/1.3 var(--display); display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+h2 span { font: 12px var(--mono); color: var(--muted); }
+.means { margin: 0; font-size: 13.5px; }
+.where { margin: 6px 0 0; font-size: 13px; color: var(--teal); }
+.where.built { color: var(--rose); }
+.where code, .built code { font: 12px var(--mono); overflow-wrap: anywhere; }
+.what, .more { margin: 0; font-size: 12.5px; color: var(--muted); }
+footer { margin-top: 28px; color: var(--muted); font-size: 13px; }
+footer code { font: 12px var(--mono); }
+</style>
+</head>
+<body>
+<header>
+  <div class="eyebrow">הקטלוג · הליבה · 15 מנועים</div>
+  <h1>מנועי הזמן והתנועה</h1>
+  <p class="lede">כל מנוע כאן נמצא בקוד שכבר כתבנו — באפקט, באנימציה, בשעון, בניתוב — וחולץ לליבה בלי עולם. <b>14 מתוך 15 נמצאו</b>, ב-120 מקומות; רק "קופץ" נבנה חדש. מה שרץ על המסך הוא בדיוק הקוד שנבדק בחוקים.</p>
+</header>
+<main>
+<figure class="card" id="decay"><canvas data-engine="decay" width="320" height="180" aria-label="דועך — הדגמה חיה"></canvas><figcaption><h2>דועך <span dir="ltr">decay</span></h2><p class="means">ערך שמתקרב לרצפה בכל צעד (חיכוך, דהייה, ריסון) — לא עובר אותה, ובסוף נוגע בה בדיוק ונשאר</p><p class="where">נמצא ב: <b>אורביט</b> · <code dir="ltr">Ambient.tsx:91</code></p><p class="what">אבק-זהב שמתפזר בפרנס׳לע מאט מחיכוך</p><p class="more">ועוד 9 מקומות ב-5 פרויקטים</p></figcaption></figure>
+<figure class="card" id="countdown"><canvas data-engine="countdown" width="320" height="180" aria-label="סופר לאחור — הדגמה חיה"></canvas><figcaption><h2>סופר לאחור <span dir="ltr">countdown</span></h2><p class="means">כמה נשאר עד הרגע: יורד בדיוק במה שעבר, נעצר באפס ולא יורד מתחתיו</p><p class="where">נמצא ב: <b>אורביט</b> · <code dir="ltr">MoneyTimer.tsx:117</code></p><p class="what">שעון-הכסף במצב טיימר: כמה נשאר, נעצר באפס</p><p class="more">ועוד 11 מקומות ב-6 פרויקטים</p></figcaption></figure>
+<figure class="card" id="accumulate"><canvas data-engine="accumulate" width="320" height="180" aria-label="צובר — הדגמה חיה"></canvas><figcaption><h2>צובר <span dir="ltr">accumulate</span></h2><p class="means">מוסיף עוד ועוד לקופה — כל הפקדה מגדילה בדיוק בגודלה, וכשהקופה מלאה: ריקון ומתחילים מאפס</p><p class="where">נמצא ב: <b>אורביט</b> · <code dir="ltr">useApp.ts:3128</code></p><p class="what">קופת-צדקה: מטבעות מצטברים עד &quot;ריקון&quot;</p><p class="more">ועוד 11 מקומות ב-6 פרויקטים</p></figcaption></figure>
+<figure class="card" id="oscillate"><canvas data-engine="oscillate" width="320" height="180" aria-label="מתנדנד — הדגמה חיה"></canvas><figcaption><h2>מתנדנד <span dir="ltr">oscillate</span></h2><p class="means">עולה ויורד סביב מרכז בקצב קבוע (נשימה, הבהוב, גל, צליל) — חוזר על עצמו כל מחזור ולא חורג מהמשרעת</p><p class="where">נמצא ב: <b>אורביט</b> · <code dir="ltr">SupportersGalaxy.tsx:95</code></p><p class="what">לב-הגלקסיה פועם</p><p class="more">ועוד 9 מקומות ב-5 פרויקטים</p></figcaption></figure>
+<figure class="card" id="random"><canvas data-engine="random" width="320" height="180" aria-label="מגריל — הדגמה חיה"></canvas><figcaption><h2>מגריל <span dir="ltr">random</span></h2><p class="means">רצף מספרים בין 0 ל-1 שנראה אקראי ומפוזר שווה — אבל אותו זרע נותן אותו רצף בדיוק</p><p class="where">נמצא ב: <b>אורביט</b> · <code dir="ltr">gen.ts:29</code></p><p class="what">mulberry32 של המאמת — הזרע של כל בדיקות-המפעל</p><p class="more">ועוד 8 מקומות ב-5 פרויקטים</p></figcaption></figure>
+<figure class="card" id="gravity"><canvas data-engine="gravity" width="320" height="180" aria-label="נופל — הדגמה חיה"></canvas><figcaption><h2>נופל <span dir="ltr">gravity</span></h2><p class="means">בכל צעד המהירות גדלה באותה כמות והמקום זז במהירות החדשה — מסלול ריבועי של נפילה (vy += g; y += vy)</p><p class="where">נמצא ב: <b>המחולל</b> · <code dir="ltr">motion-family.html:172</code></p><p class="what">קונפטי נופל</p><p class="more">ועוד 5 מקומות ב-2 פרויקטים</p></figcaption></figure>
+<figure class="card" id="move-along-path"><canvas data-engine="move-along-path" width="320" height="180" aria-label="מתקדם במסלול — הדגמה חיה"></canvas><figcaption><h2>מתקדם במסלול <span dir="ltr">move-along-path</span></h2><p class="means">נקודה שזזה על דרך של תחנות: 0 = בראשונה, 1 = באחרונה, ובאמצע — על הדרך עצמה, לפי המרחק שעברה</p><p class="where">נמצא ב: <b>אורביט</b> · <code dir="ltr">coinFx.ts:211</code></p><p class="what">מטבע שעף לחריץ על עקומת בזייה</p><p class="more">ועוד 8 מקומות ב-6 פרויקטים</p></figcaption></figure>
+<figure class="card" id="orbit"><canvas data-engine="orbit" width="320" height="180" aria-label="מקיף — הדגמה חיה"></canvas><figcaption><h2>מקיף <span dir="ltr">orbit</span></h2><p class="means">מסתובב סביב מרכז: תמיד באותו מרחק, באותה מהירות, וחוזר לאותו מקום אחרי מחזור שלם</p><p class="where">נמצא ב: <b>אורביט</b> · <code dir="ltr">SupportersGalaxy.tsx:101</code></p><p class="what">כוכבי-התורמים מסתובבים בגלקסיה</p><p class="more">ועוד 8 מקומות ב-4 פרויקטים</p></figcaption></figure>
+<figure class="card" id="shortest-path"><canvas data-engine="shortest-path" width="320" height="180" aria-label="מוצא דרך קצרה — הדגמה חיה"></canvas><figcaption><h2>מוצא דרך קצרה <span dir="ltr">shortest-path</span></h2><p class="means">ברשת של נקודות וקשתות עם מחיר — הדרך הזולה ביותר מנקודה לנקודה, ואם אין דרך אומר שאין</p><p class="where">נמצא ב: <b>בנייה-חכמה</b> · <code dir="ltr">install_engine.dart:759</code></p><p class="what">שרשרת-מחברים הזולה בין שני מוצרי-אינסטלציה (דייקסטרה)</p><p class="more">ועוד 6 מקומות ב-5 פרויקטים</p></figcaption></figure>
+<figure class="card" id="spread"><canvas data-engine="spread" width="320" height="180" aria-label="מתפשט — הדגמה חיה"></canvas><figcaption><h2>מתפשט <span dir="ltr">spread</span></h2><p class="means">בכל צעד מה שנגע עובר לכל השכנים הישירים — גל שמתרחב טבעת אחרי טבעת, ומה שנגע נשאר</p><p class="where">נמצא ב: <b>בנייה-חכמה</b> · <code dir="ltr">hop_graph.dart:115</code></p><p class="what">כל מה שמגיעים אליו ב-N קפיצות — חזית שמתרחבת</p><p class="more">ועוד 6 מקומות ב-6 פרויקטים</p></figcaption></figure>
+<figure class="card" id="sample"><canvas data-engine="sample" width="320" height="180" aria-label="דוגם — הדגמה חיה"></canvas><figcaption><h2>דוגם <span dir="ltr">sample</span></h2><p class="means">קורא מהסביבה כל קריאה k-ית (הראשונה, ה-k, ה-2k…) — בלי לשנות ובלי לדלג על תור</p><p class="where">נמצא ב: <b>הישיבה</b> · <code dir="ltr">mefarshim.py:32</code></p><p class="what">דוגם כל דף עשירי בש&quot;ס (60 אלף בקשות ⇒ 6 אלף)</p><p class="more">ועוד 7 מקומות ב-6 פרויקטים</p></figcaption></figure>
+<figure class="card" id="echo"><canvas data-engine="echo" width="320" height="180" aria-label="מודד בהד — הדגמה חיה"></canvas><figcaption><h2>מודד בהד <span dir="ltr">echo</span></h2><p class="means">שולח אות ומודד אחרי כמה זמן חזר — המרחק הוא הדרך הלוך-וחזור חלקי שתיים</p><p class="where">נמצא ב: <b>14kk</b> · <code dir="ltr">server.js:248</code></p><p class="what">PING ל-Redis, מחכה ל-PONG ומודד זמן-תגובה</p><p class="more">ועוד 5 מקומות ב-4 פרויקטים</p></figcaption></figure>
+<figure class="card" id="follow"><canvas data-engine="follow" width="320" height="180" aria-label="הולך אחרי — הדגמה חיה"></canvas><figcaption><h2>הולך אחרי <span dir="ltr">follow</span></h2><p class="means">בכל צעד מתקרב חלק קבוע מהדרך אל המטרה — לא עובר אותה, וכשהגיע נשאר (החלקה, מצלמה שנגררת, להקה)</p><p class="where">נמצא ב: <b>אורביט</b> · <code dir="ltr">three-scene.ts:257</code></p><p class="what">כדור-המוח נגרר בעדינות אחרי העכבר</p><p class="more">ועוד 6 מקומות ב-5 פרויקטים</p></figcaption></figure>
+<figure class="card" id="bounce"><canvas data-engine="bounce" width="320" height="180" aria-label="קופץ — הדגמה חיה"></canvas><figcaption><h2>קופץ <span dir="ltr">bounce</span></h2><p class="means">גוף שפוגע ברצפה חוזר ממנה: המהירות מתהפכת ונחלשת לפי מקדם-הקפיצה, ואף פעם לא נשאר מתחת לרצפה</p><p class="where built">🔴 לא נמצא בשום פרויקט — נבנה חדש. הקרוב ביותר: המחולל · <code>dots_loader.dart</code></p></figcaption></figure>
+<figure class="card" id="sun-position"><canvas data-engine="sun-position" width="320" height="180" aria-label="מוצא את מקום השמש — הדגמה חיה"></canvas><figcaption><h2>מוצא את מקום השמש <span dir="ltr">sun-position</span></h2><p class="means">מתי השמש נמצאת בזווית נתונה מתחת לאופק ביום ובמקום נתונים — בבוקר עולה, בערב שוקעת, וחצות-היום באמצע</p><p class="where">נמצא ב: <b>אורביט</b> · <code dir="ltr">zmanimBoard.ts:249</code></p><p class="what">זמני-היום של פרנס׳לע — NOAA עם זווית לבחירה</p><p class="more">ועוד 2 מקומות ב-1 פרויקטים</p></figcaption></figure>
+</main>
+<footer>נוצר מ-<code>catalog/core/*.mjs</code> ו-<code>origins.json</code> ע"י <code>node catalog/scripts/core-demo.mjs</code>. במצב "הפחתת תנועה" כל מנוע מוצג כתמונה עומדת עם המסלול שלו.</footer>
+<script>
+"use strict";
+const decay = (() => {
+/**
+ * 🍂 דועך (decay) — ערך שמתקרב לרצפה בכל צעד, עד שהוא נוגע בה בדיוק ונשאר שם.
+ * הליבה בלי עולם של: חיכוך-מטבעות שנופלים, דהיית-קונפטי, ריסון-סיבוב בגלקסיה, גל שנחלש. מקורות: origins.json.
+ * טהור ודטרמיניסטי: הזמן = מספר-צעד, בלי שעון.
+ */
+
+/**
+ * הערך אחרי `step` צעדים: בכל צעד נשאר `keepPct` אחוז מהמרחק לרצפה (v = floor + (v − floor)·keep).
+ * כשהמרחק קטן מאוד (מיליונית מהמרחק ההתחלתי) — הערך נצמד לרצפה, כמו "אם alpha < 0.01 — הסר".
+ * @param {{from: number, floor: number, keepPct: number}} spec
+ * @param {number} step
+ * @returns {number}
+ */
+function decay(spec, step) {
+  const from = fin(spec?.from);
+  const floor = fin(spec?.floor);
+  const keep = Math.min(99, Math.abs(fin(spec?.keepPct))) / 100;
+  const n = Math.min(100000, Math.floor(Math.abs(fin(step))));
+  const snap = 1e-6 * Math.max(1e-6, Math.abs(from - floor));
+  let v = from;
+  for (let k = 0; k < n && v !== floor; k++) {
+    v = floor + (v - floor) * keep;
+    if (Math.abs(v - floor) <= snap) v = floor;
+  }
+  return v;
+}
+
+function fin(x) { const v = Number(x); return Number.isFinite(v) ? v : 0; }
+
+return decay;
+})();
+const countdown = (() => {
+/**
+ * ⏳ סופר לאחור (countdown) — כמה נשאר עד הרגע: יורד בדיוק במה שעבר, נעצר באפס ולא יורד מתחתיו.
+ * הליבה בלי עולם של: "עוד 3:12" בשעון-הכסף, "נותרו X ימים" בקופון, ספירה לזמן התפילה, שליחה-חוזרת של קוד. מקורות: origins.json.
+ * טהור: "כמה עבר" מוזרק (לא שעון).
+ * @param {{total: number}} spec
+ * @param {number} elapsed
+ * @returns {number}
+ */
+function countdown(spec, elapsed) {
+  const total = fin(spec?.total);
+  const e = Math.max(0, fin(elapsed));
+  return Math.max(0, total - e);
+}
+
+function fin(x) { const v = Number(x); return Number.isFinite(v) ? v : 0; }
+
+return countdown;
+})();
+const accumulate = (() => {
+/**
+ * 🪙 צובר (accumulate) — מטבע אחרי מטבע נכנס לקופה; כשהקופה מלאה — ריקון, ומתחילים מאפס.
+ * הליבה בלי עולם של: קופת-צדקה עד "ריקון", מונה-הכסף שגדל כל שנייה, סכום-ביניים בקופה הרושמת. מקורות: origins.json.
+ * טהור: רשימת-ההפקדות היא הזמן (צעד לכל הפקדה).
+ * @param {{capacity: number}} spec   — 0 או פחות = קופה בלי תקרה (לא מתרוקנת לבד)
+ * @param {number[]} deposits
+ * @returns {number[]} הגובה בקופה אחרי כל הפקדה
+ */
+function accumulate(spec, deposits) {
+  const c = fin(spec?.capacity);
+  const cap = c > 0 ? c : Infinity;
+  const out = [];
+  let level = 0;
+  for (const d0 of Array.isArray(deposits) ? deposits : []) {
+    const d = Math.abs(fin(d0));
+    if (level > 0 && level + d > cap) level = 0; // ריקון
+    level += d;
+    out.push(level);
+  }
+  return out;
+}
+
+function fin(x) { const v = Number(x); return Number.isFinite(v) ? v : 0; }
+
+return accumulate;
+})();
+const oscillate = (() => {
+/**
+ * 🌊 מתנדנד (oscillate) — עולה ויורד סביב מרכז, באותו קצב, ולא חורג מהמשרעת.
+ * הליבה בלי עולם של: נשימת-כפתור, הבהוב, נדנוד-כוכבים בגלקסיה, צליל של מתנד. מקורות: origins.json.
+ * טהור: הזמן = מספר-צעד.
+ * @param {{center: number, amplitude: number, period: number}} spec
+ * @param {number} step
+ * @returns {number}
+ */
+function oscillate(spec, step) {
+  const center = fin(spec?.center);
+  const amp = fin(spec?.amplitude);
+  const period = Math.abs(fin(spec?.period)) || 1;
+  const phase = (((fin(step) % period) + period) % period) / period; // 0..1 — הזמן בתוך המחזור (מדויק גם בצעדים גדולים)
+  return center + amp * Math.sin(2 * Math.PI * phase);
+}
+
+function fin(x) { const v = Number(x); return Number.isFinite(v) ? v : 0; }
+
+return oscillate;
+})();
+const random = (() => {
+/**
+ * 🎲 מגריל (random) — רצף מספרים בין 0 ל-1 שנראה אקראי, אבל אותו זרע ⇒ אותו רצף בדיוק.
+ * הליבה בלי עולם של: mulberry32 של המאמת (atoms/verify/gen.ts), הגרלות-הדמו, פיזור-הכוכבים בגלקסיה. מקורות: origins.json.
+ * טהור: ה"מזל" נכנס כזרע — אין Math.random.
+ * @param {{seed: number}} spec
+ * @param {number} count
+ * @returns {number[]}
+ */
+function random(spec, count) {
+  let a = (fin(spec?.seed) >>> 0) || 0x9e3779b9;
+  const n = Math.min(5000, Math.floor(Math.abs(fin(count))));
+  const out = [];
+  for (let k = 0; k < n; k++) {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    out.push(((t ^ (t >>> 14)) >>> 0) / 4294967296);
+  }
+  return out;
+}
+
+function fin(x) { const v = Number(x); return Number.isFinite(v) ? Math.trunc(v) : 0; }
+
+return random;
+})();
+const gravity = (() => {
+/**
+ * 🍎 נופל (gravity) — בכל צעד המהירות גדלה באותה כמות, והמקום זז במהירות החדשה: מסלול ריבועי.
+ * הליבה בלי עולם של: מטבעות נופלים, קונפטי, יו-יו. אותו צעד כמו בקוד: vy += g; y += vy. מקורות: origins.json.
+ * טהור: הזמן = מספר-צעד (נוסחה סגורה של אותה לולאה — בלי הצטברות-שגיאה).
+ * @param {{y: number, vy: number, g: number}} spec
+ * @param {number} step
+ * @returns {{y: number, vy: number}}
+ */
+function gravity(spec, step) {
+  const y = fin(spec?.y);
+  const vy = fin(spec?.vy);
+  const g = fin(spec?.g);
+  const n = Math.min(1e6, Math.floor(Math.abs(fin(step))));
+  return { y: y + n * vy + (g * n * (n + 1)) / 2, vy: vy + n * g };
+}
+
+function fin(x) { const v = Number(x); return Number.isFinite(v) ? v : 0; }
+
+return gravity;
+})();
+const moveAlongPath = (() => {
+/**
+ * 🛤️ מתקדם במסלול (move-along-path) — נקודה שזזה על דרך של תחנות: 0 = בתחנה הראשונה, 1 = באחרונה,
+ * ובאמצע — בדיוק על הדרך, לפי המרחק שעבר (לא לפי מספר התחנות).
+ * הליבה בלי עולם של: התקדמות-משלוח איסוף→בדרך→נמסר, מסלול-מתנדב, מטבע שמחליק לקופה. מקורות: origins.json.
+ * טהור: ההתקדמות מוזרקת (0..1).
+ * @param {{points: {x: number, y: number}[]}} spec
+ * @param {number} progress
+ * @returns {{x: number, y: number} | null}
+ */
+function moveAlongPath(spec, progress) {
+  const pts = (Array.isArray(spec?.points) ? spec.points : []).map((p) => ({ x: fin(p?.x), y: fin(p?.y) }));
+  if (!pts.length) return null;
+  if (pts.length === 1) return { ...pts[0] };
+  const seg = [];
+  let total = 0;
+  for (let k = 1; k < pts.length; k++) { const d = Math.hypot(pts[k].x - pts[k - 1].x, pts[k].y - pts[k - 1].y); seg.push(d); total += d; }
+  const p = Math.min(1, Math.max(0, fin(progress)));
+  if (p <= 0 || total === 0) return { ...pts[0] };
+  if (p >= 1) return { ...pts[pts.length - 1] };
+  let left = p * total;
+  for (let k = 0; k < seg.length; k++) {
+    if (left <= seg[k] || k === seg.length - 1) {
+      const t = seg[k] ? Math.min(1, left / seg[k]) : 0;
+      return { x: pts[k].x + (pts[k + 1].x - pts[k].x) * t, y: pts[k].y + (pts[k + 1].y - pts[k].y) * t };
+    }
+    left -= seg[k];
+  }
+  return { ...pts[pts.length - 1] };
+}
+
+function fin(x) { const v = Number(x); return Number.isFinite(v) ? v : 0; }
+
+return moveAlongPath;
+})();
+const orbit = (() => {
+/**
+ * 🪐 מקיף (orbit) — נקודה שמסתובבת סביב מרכז: תמיד באותו מרחק, באותה מהירות, וחוזרת למקום אחרי מחזור.
+ * הליבה בלי עולם של: כוכבי-התורמים בגלקסיה, היקום-3D שמסתובב, כדור-המוח בהרשמה, מחוג-הסריקה במעבדת-הטבעות. מקורות: origins.json.
+ * טהור: הזמן = מספר-צעד.
+ * @param {{cx: number, cy: number, radius: number, period: number}} spec
+ * @param {number} step
+ * @returns {{x: number, y: number}}
+ */
+function orbit(spec, step) {
+  const cx = fin(spec?.cx);
+  const cy = fin(spec?.cy);
+  const r = Math.abs(fin(spec?.radius));
+  const period = Math.abs(fin(spec?.period)) || 1;
+  const phase = (((fin(step) % period) + period) % period) / period;
+  const a = 2 * Math.PI * phase;
+  return { x: cx + r * Math.cos(a), y: cy + r * Math.sin(a) };
+}
+
+function fin(x) { const v = Number(x); return Number.isFinite(v) ? v : 0; }
+
+return orbit;
+})();
+const shortestPath = (() => {
+/**
+ * 🧭 דרך קצרה (shortest-path) — ברשת של נקודות וקשתות עם מחיר, הדרך הזולה ביותר מנקודה לנקודה (דייקסטרה).
+ * הליבה בלי עולם של: findShortestPath של בנייה-חכמה (שרשרת-מחברים בין שני מוצרי-אינסטלציה, תור-עדיפויות),
+ * hopsBetween (BFS = דייקסטרה כשכל קשת עולה 1). מקורות: origins.json.
+ * טהור; קשתות לא-מכוונות; מחיר שלילי ⇒ ערכו המוחלט.
+ * @param {{edges: {a: 0|1|2|3|4|5, b: 0|1|2|3|4|5, w: number}[]}} spec
+ * @param {0|1|2|3|4|5} from
+ * @param {0|1|2|3|4|5} to
+ * @returns {{cost: number, path: number[]} | null} null — אין דרך
+ */
+function shortestPath(spec, from, to) {
+  const adj = new Map();
+  const add = (u, v, w) => { if (!adj.has(u)) adj.set(u, []); adj.get(u).push([v, w]); };
+  for (const e of Array.isArray(spec?.edges) ? spec.edges : []) {
+    const a = e?.a; const b = e?.b; const w = Math.abs(Number(e?.w));
+    if (a == null || b == null || !Number.isFinite(w)) continue;
+    add(a, b, w); add(b, a, w);
+  }
+  const dist = new Map([[from, 0]]);
+  const prev = new Map();
+  const done = new Set();
+  for (;;) {
+    let u; let best = Infinity;
+    for (const [n, d] of dist) if (!done.has(n) && (d < best || (d === best && String(n) < String(u)))) { best = d; u = n; }
+    if (u === undefined) return null;
+    if (u === to) break;
+    done.add(u);
+    for (const [v, w] of adj.get(u) ?? []) {
+      const nd = best + w;
+      if (!dist.has(v) || nd < dist.get(v)) { dist.set(v, nd); prev.set(v, u); }
+    }
+  }
+  const path = [to];
+  while (path[0] !== from) path.unshift(prev.get(path[0]));
+  return { cost: dist.get(to), path };
+}
+
+return shortestPath;
+})();
+const spread = (() => {
+/**
+ * 🔥 מתפשט (spread) — בכל צעד, מה שנגע עובר לכל השכנים הישירים: גל שמתרחב טבעת אחרי טבעת.
+ * הליבה בלי עולם של: reachWithin של בנייה-חכמה (כל מה שמגיעים אליו ב-N קפיצות, חזית שמתרחבת), אש שעוברת מעץ לעץ.
+ * מקורות: origins.json. טהור; קשתות לא-מכוונות.
+ * @param {{edges: {a: 0|1|2|3|4|5|6|7, b: 0|1|2|3|4|5|6|7}[], sources: (0|1|2|3|4|5|6|7)[]}} spec
+ * @param {number} steps
+ * @returns {number[]} מי שנגעו בהם אחרי `steps` צעדים, ממוינים
+ */
+function spread(spec, steps) {
+  const adj = new Map();
+  const add = (u, v) => { if (!adj.has(u)) adj.set(u, new Set()); adj.get(u).add(v); };
+  for (const e of Array.isArray(spec?.edges) ? spec.edges : []) { if (e?.a == null || e?.b == null) continue; add(e.a, e.b); add(e.b, e.a); }
+  const seen = new Set(Array.isArray(spec?.sources) ? spec.sources.filter((s) => s != null) : []);
+  let frontier = [...seen];
+  const n = Math.min(64, Math.floor(Math.abs(Number(steps) || 0)));
+  for (let k = 0; k < n && frontier.length; k++) {
+    const next = [];
+    for (const u of frontier) for (const v of adj.get(u) ?? []) if (!seen.has(v)) { seen.add(v); next.push(v); }
+    frontier = next;
+  }
+  return [...seen].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
+}
+
+return spread;
+})();
+const sample = (() => {
+/**
+ * 🔬 דוגם (sample) — קורא מהסביבה כל קריאה k-ית: הראשונה, ה-k, ה-2k… — בלי לשנות את מה שנקרא ובלי לדלג על תור.
+ * הליבה בלי עולם של: דגימת הלוגו פיקסל-כל-2 (orbit-final של המחולל), מצלמה שנקראת כל פריים (ברקוד, בנייה-חכמה),
+ * זיקית שקוראת את הצבע מהרקע. מקורות: origins.json. טהור: הקריאות עצמן מוזרקות (הסביבה אצל הקורא).
+ * @param {{every: number}} spec
+ * @param {number[]} readings
+ * @returns {number[]}
+ */
+function sample(spec, readings) {
+  const k = Math.max(1, Math.floor(Math.abs(Number(spec?.every)) || 1));
+  const xs = Array.isArray(readings) ? readings : [];
+  const out = [];
+  for (let i = 0; i < xs.length; i += k) out.push(xs[i]);
+  return out;
+}
+
+return sample;
+})();
+const echo = (() => {
+/**
+ * 📡 הד (echo) — שולחים אות, מודדים אחרי כמה זמן חזר, וממנו המרחק: הדרך הלוך-וחזור, חלקי שתיים.
+ * הליבה בלי עולם של: מדידת זמן-תגובה (ping) בין סוכנים/שרת, "דולפין שולח צליל". מקורות: origins.json.
+ * טהור: זמן-החזרה מוזרק.
+ * @param {{speed: number}} spec
+ * @param {number} roundTrip
+ * @returns {number}
+ */
+function echo(spec, roundTrip) {
+  const speed = Math.abs(fin(spec?.speed));
+  return (speed * Math.max(0, fin(roundTrip))) / 2;
+}
+
+function fin(x) { const v = Number(x); return Number.isFinite(v) ? v : 0; }
+
+return echo;
+})();
+const follow = (() => {
+/**
+ * 🐾 הולך אחרי (follow) — בכל צעד מתקרב חלק קבוע מהדרך אל המטרה: אף פעם לא עובר אותה, וכשהגיע — נשאר.
+ * הליבה בלי עולם של: מצלמה/עכבר שנגררים בעדינות, החלקת-ערך (ממוצע נע), ציפור שהולכת אחרי השכנה. מקורות: origins.json.
+ * טהור: צעד אחד; הלולאה אצל הקורא.
+ * @param {{target: number, pullPct: number}} spec
+ * @param {number} current
+ * @returns {number}
+ */
+function follow(spec, current) {
+  const target = fin(spec?.target);
+  const k = Math.min(100, Math.abs(fin(spec?.pullPct))) / 100;
+  const c = fin(current);
+  return c + (target - c) * k;
+}
+
+function fin(x) { const v = Number(x); return Number.isFinite(v) ? v : 0; }
+
+return follow;
+})();
+const bounce = (() => {
+/**
+ * 🏀 קופץ (bounce) — גוף שזז; אם בצעד הזה הוא עובר את הרצפה — הוא חוזר ממנה: המהירות מתהפכת ונחלשת לפי
+ * מקדם-הקפיצה, והוא אף פעם לא נשאר מתחת לרצפה.
+ * 🔴 נבנה-חדש (origin: built-new): באף אחד מ-9 הפרויקטים אין מהירות שמתהפכת בפגיעה בקיר. הקרובים ביותר (origins.json):
+ * "קפיצה" מדומה ב-sin (dots_loader של המחולל), עקומות-קפיץ easeOutBack, וגלישה-מסביב במקום קפיצה (Ambient של פרנס׳לע).
+ * טהור: צעד אחד; הלולאה אצל הקורא (יחד עם "נופל" — gravity).
+ * @param {{floor: number, bouncePct: number}} spec
+ * @param {{pos: number, vel: number}} body
+ * @returns {{pos: number, vel: number}}
+ */
+function bounce(spec, body) {
+  const floor = fin(spec?.floor);
+  const e = Math.min(100, Math.abs(fin(spec?.bouncePct))) / 100;
+  const pos = Math.max(floor, fin(body?.pos));
+  const vel = fin(body?.vel);
+  const next = pos + vel;
+  if (next < floor) return { pos: floor + (floor - next) * e, vel: -vel * e };
+  return { pos: next, vel };
+}
+
+function fin(x) { const v = Number(x); return Number.isFinite(v) ? v : 0; }
+
+return bounce;
+})();
+const sunPosition = (() => {
+/**
+ * 🌅 מקום השמש (sun-position) — מתי השמש נמצאת `depression` מעלות מתחת לאופק ביום נתון ובמקום נתון:
+ * בבוקר (עולה) ובערב (שוקעת), וחצות-היום באמצע. אלגוריתם NOAA — חילוץ של noaaUtcMin מלוח-הזמנים של פרנס׳לע.
+ * הליבה בלי עולם של: זמני-היום (נץ/שקיעה/צאת-הכוכבים), "פנס שנדלק בשקיעה", "חמנייה שפונה לשמש". מקורות: origins.json.
+ * טהור: היום והמקום מוזרקים; התשובה בדקות-UTC מחצות (שבר).
+ * @param {{lat: number, lon: number, depression: number}} spec  depression: 0.833 = נץ/שקיעה, 16.1 = עלות-השחר…
+ * @param {string} day  ISO YYYY-MM-DD
+ * @returns {{rise: number, noon: number, set: number} | null} null — השמש לא מגיעה לזווית הזאת ביום הזה (קוטב, קיץ צפוני), או זווית מחוץ ל-±90°
+ */
+function sunPosition(spec, day) {
+  const m0 = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(day));
+  if (!m0) return null;
+  const lat = fin(spec?.lat);
+  const lon = fin(spec?.lon);
+  const dep = fin(spec?.depression);
+  if (Math.abs(lat) > 89 || Math.abs(dep) > 90) return null; // זווית מחוץ לחצי-הכדור — אין לה משמעות
+  const RAD = Math.PI / 180;
+  const y0 = +m0[1]; const mo = +m0[2]; const d = +m0[3];
+  const y = mo <= 2 ? y0 - 1 : y0;
+  const m = mo <= 2 ? mo + 12 : mo;
+  const A = Math.floor(y / 100);
+  const JD = Math.floor(365.25 * (y + 4716)) + Math.floor(30.6001 * (m + 1)) + d + (2 - A + Math.floor(A / 4)) - 1524.5;
+  const T = (JD - 2451545.0) / 36525.0;
+  const L0 = (280.46646 + T * (36000.76983 + T * 0.0003032)) % 360;
+  const M = 357.52911 + T * (35999.05029 - 0.0001537 * T);
+  const e = 0.016708634 - T * (0.000042037 + 0.0000001267 * T);
+  const C = Math.sin(M * RAD) * (1.914602 - T * (0.004817 + 0.000014 * T)) + Math.sin(2 * M * RAD) * (0.019993 - 0.000101 * T) + Math.sin(3 * M * RAD) * 0.000289;
+  const lambda = L0 + C - 0.00569 - 0.00478 * Math.sin((125.04 - 1934.136 * T) * RAD);
+  const eps0 = 23 + (26 + (21.448 - T * (46.815 + T * (0.00059 - T * 0.001813))) / 60) / 60;
+  const eps = eps0 + 0.00256 * Math.cos((125.04 - 1934.136 * T) * RAD);
+  const decl = Math.asin(Math.sin(eps * RAD) * Math.sin(lambda * RAD)) / RAD;
+  const yv = Math.tan((eps / 2) * RAD) ** 2;
+  const eqTime = (4 / RAD) * (yv * Math.sin(2 * L0 * RAD) - 2 * e * Math.sin(M * RAD) + 4 * e * yv * Math.sin(M * RAD) * Math.cos(2 * L0 * RAD) - 0.5 * yv * yv * Math.sin(4 * L0 * RAD) - 1.25 * e * e * Math.sin(2 * M * RAD));
+  const cosHA = Math.cos((90 + dep) * RAD) / (Math.cos(lat * RAD) * Math.cos(decl * RAD)) - Math.tan(lat * RAD) * Math.tan(decl * RAD);
+  if (!(cosHA >= -1 && cosHA <= 1)) return null;
+  const HA = Math.acos(cosHA) / RAD;
+  const noon = 720 - 4 * lon - eqTime;
+  return { rise: noon - 4 * HA, noon, set: noon + 4 * HA };
+}
+
+function fin(x) { const v = Number(x); return Number.isFinite(v) ? v : 0; }
+
+return sunPosition;
+})();
+
+const css = (k) => getComputedStyle(document.documentElement).getPropertyValue(k).trim();
+const C = () => ({ ink: css('--ink'), muted: css('--muted'), line: css('--line'), teal: css('--teal'), brass: css('--brass'), rose: css('--rose'), panel: css('--panel') });
+const dot = (g, x, y, r, fill) => { g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fillStyle = fill; g.fill(); };
+const line = (g, pts, stroke, w = 1.5) => { g.beginPath(); pts.forEach((p, k) => (k ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1]))); g.strokeStyle = stroke; g.lineWidth = w; g.stroke(); };
+const label = (g, text, x, y, fill, align = 'right') => { g.fillStyle = fill; g.font = '12px ' + css('--mono'); g.textAlign = align; g.fillText(text, x, y); };
+
+/** כל מנוע: (הקשר, רוחב, גובה, צעד, צבעים) ⇒ ציור. הצעד הוא הזמן — כמו בליבה. */
+const DRAW = {
+  decay(g, w, h, t, c) {
+    const s = { from: 150, floor: 20, keepPct: 94 }; const n = t % 140;
+    const X = (k) => 20 + k * (w - 40) / 100; const Y = (v) => h - 20 - (v - 0) * (h - 40) / 160;
+    line(g, [[X(0), Y(20)], [X(100), Y(20)]], c.line, 1);
+    line(g, Array.from({ length: Math.min(n, 100) + 1 }, (_, k) => [X(k), Y(decay(s, k))]), c.teal);
+    const v = decay(s, Math.min(n, 100)); dot(g, X(Math.min(n, 100)), Y(v), 5, c.teal);
+    label(g, v === s.floor ? 'ברצפה ✓' : v.toFixed(2), w - 16, 18, c.muted);
+  },
+  countdown(g, w, h, t, c) {
+    const s = { total: 30 }; const el = (t / 6) % 36; const r = countdown(s, el);
+    const cx = w / 2; const cy = h / 2; const R = h * 0.34;
+    g.beginPath(); g.arc(cx, cy, R, 0, Math.PI * 2); g.strokeStyle = c.line; g.lineWidth = 8; g.stroke();
+    g.beginPath(); g.arc(cx, cy, R, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * (r / s.total)); g.strokeStyle = r ? c.teal : c.rose; g.lineWidth = 8; g.stroke();
+    g.fillStyle = c.ink; g.font = '600 26px ' + css('--mono'); g.textAlign = 'center'; g.fillText(Math.ceil(r), cx, cy + 9);
+  },
+  accumulate(g, w, h, t, c) {
+    const deps = random({ seed: 46 }, 60).map((x) => 4 + Math.round(x * 14)); const k = Math.floor(t / 10) % deps.length;
+    const lv = accumulate({ capacity: 100 }, deps.slice(0, k + 1));
+    const bw = 70; const bx = w / 2 - bw / 2; const top = 18; const bh = h - 36;
+    g.strokeStyle = c.muted; g.lineWidth = 1.5; g.strokeRect(bx, top, bw, bh);
+    const f = lv[k] / 100; g.fillStyle = c.brass; g.fillRect(bx + 2, top + bh - (bh - 4) * f - 2, bw - 4, (bh - 4) * f);
+    const emptied = k > 0 && lv[k] < lv[k - 1]; label(g, emptied ? 'ריקון!' : lv[k] + '/100', bx - 10, h / 2, emptied ? c.rose : c.muted);
+    line(g, lv.map((v, i) => [w - 18 - (k - i) * 3, h - 18 - v * 0.5]).filter((p) => p[0] > bx + bw + 8), c.line, 1);
+  },
+  oscillate(g, w, h, t, c) {
+    const s = { center: h / 2, amplitude: h * 0.3, period: 90 };
+    line(g, Array.from({ length: 121 }, (_, i) => [w - 10 - i * (w - 20) / 120, oscillate(s, t - i)]), c.line, 1.2);
+    dot(g, w - 10, oscillate(s, t), 6, c.teal);
+  },
+  random(g, w, h, t, c) {
+    const seed = 7 + Math.floor(t / 150); const n = Math.min(80, (t % 150)); const xs = random({ seed }, 160);
+    for (let i = 0; i < n; i++) dot(g, 12 + xs[2 * i] * (w - 24), 12 + xs[2 * i + 1] * (h - 30), 3, i === n - 1 ? c.brass : c.muted);
+    label(g, 'זרע ' + seed, w - 12, h - 8, c.ink);
+  },
+  gravity(g, w, h, t, c) {
+    for (let j = 0; j < 5; j++) {
+      const step = (t + j * 13) % 46; const s = { y: 10, vy: -2 + j * 0.6, g: 0.18 }; const o = gravity(s, step);
+      const x = w * (0.15 + j * 0.17) + step * 0.6; dot(g, x, Math.min(h - 8, o.y + 20), 5, c.brass);
+    }
+  },
+  'move-along-path'(g, w, h, t, c) {
+    const pts = [{ x: 24, y: h - 26 }, { x: w * 0.3, y: 30 }, { x: w * 0.55, y: h * 0.62 }, { x: w - 24, y: 26 }];
+    line(g, pts.map((p) => [p.x, p.y]), c.line, 2); pts.forEach((p) => dot(g, p.x, p.y, 4, c.muted));
+    const p = moveAlongPath({ points: pts }, ((t % 200) / 200)); dot(g, p.x, p.y, 6, c.teal);
+  },
+  orbit(g, w, h, t, c) {
+    const s = { cx: w / 2, cy: h / 2, radius: h * 0.34, period: 240 };
+    dot(g, s.cx, s.cy, 9, c.brass); g.beginPath(); g.arc(s.cx, s.cy, s.radius, 0, Math.PI * 2); g.strokeStyle = c.line; g.lineWidth = 1; g.stroke();
+    for (let k = 12; k >= 0; k--) { const p = orbit(s, t - k * 3); dot(g, p.x, p.y, 5 - k * 0.3, k ? c.line : c.teal); }
+  },
+  'shortest-path'(g, w, h, t, c) {
+    const P = [[0.1, 0.5], [0.35, 0.18], [0.35, 0.82], [0.62, 0.3], [0.62, 0.75], [0.9, 0.5]].map(([x, y]) => [x * w, y * h]);
+    const edges = [{ a: 0, b: 1, w: 4 }, { a: 0, b: 2, w: 2 }, { a: 1, b: 3, w: 5 }, { a: 2, b: 4, w: 8 }, { a: 2, b: 3, w: 9 }, { a: 3, b: 5, w: 3 }, { a: 4, b: 5, w: 1 }, { a: 1, b: 4, w: 6 }];
+    const to = [5, 4, 3][Math.floor(t / 120) % 3]; const r = shortestPath({ edges }, 0, to);
+    edges.forEach((e) => { line(g, [P[e.a], P[e.b]], c.line, 1.5); label(g, String(e.w), (P[e.a][0] + P[e.b][0]) / 2, (P[e.a][1] + P[e.b][1]) / 2 - 4, c.muted, 'center'); });
+    if (r) line(g, r.path.map((k) => P[k]), c.teal, 3.5);
+    P.forEach((p, k) => dot(g, p[0], p[1], k === 0 || k === to ? 7 : 5, k === 0 || k === to ? c.teal : c.muted));
+    label(g, 'מחיר ' + (r ? r.cost : '—'), w - 10, 16, c.ink);
+  },
+  spread(g, w, h, t, c) {
+    const cols = 6; const rows = 3; const id = (x, y) => y * cols + x; const edges = [];
+    for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) { if (x < cols - 1) edges.push({ a: id(x, y), b: id(x + 1, y) }); if (y < rows - 1) edges.push({ a: id(x, y), b: id(x, y + 1) }); }
+    const reached = new Set(spread({ edges, sources: [id(2, 1)] }, Math.floor(t / 40) % 9));
+    for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) dot(g, 30 + x * (w - 60) / (cols - 1), 30 + y * (h - 60) / (rows - 1), 9, reached.has(id(x, y)) ? c.rose : c.line);
+  },
+  sample(g, w, h, t, c) {
+    const readings = Array.from({ length: 48 }, (_, i) => Math.sin((i + t * 0.05) * 0.35) * 0.8 + Math.sin(i * 1.7) * 0.15);
+    const X = (i) => 14 + i * (w - 28) / 47; const Y = (v) => h / 2 - v * h * 0.35;
+    readings.forEach((v, i) => dot(g, X(i), Y(v), 2, c.line));
+    sample({ every: 4 }, readings.map((v, i) => i)).forEach((i) => { line(g, [[X(i), h - 10], [X(i), Y(readings[i])]], c.line, 1); dot(g, X(i), Y(readings[i]), 4, c.teal); });
+    label(g, 'כל רביעית', w - 12, 16, c.muted);
+  },
+  echo(g, w, h, t, c) {
+    const wall = w - 26; const src = 24; const speed = 2; const rtt = (2 * (wall - src)) / speed; const ph = t % (rtt + 40);
+    line(g, [[wall, 20], [wall, h - 20]], c.ink, 3);
+    const out = Math.min(ph, rtt); const x = out < rtt / 2 ? src + speed * out : wall - speed * (out - rtt / 2);
+    if (ph < rtt) { g.beginPath(); g.arc(x, h / 2, 8, 0, Math.PI * 2); g.strokeStyle = c.teal; g.lineWidth = 2; g.stroke(); }
+    dot(g, src, h / 2, 6, c.brass);
+    label(g, ph >= rtt ? 'מרחק ' + echo({ speed }, rtt).toFixed(0) + ' (זמן ' + rtt + ')' : 'שולח…', w - 34, 18, c.ink);
+  },
+  follow(g, w, h, t, c) {
+    const tgt = orbit({ cx: w / 2, cy: h / 2, radius: h * 0.32, period: 260 }, t);
+    let x = w / 2; let y = h / 2; const trail = [];
+    for (let k = Math.max(0, t - 300); k <= t; k++) { const p = orbit({ cx: w / 2, cy: h / 2, radius: h * 0.32, period: 260 }, k); x = follow({ target: p.x, pullPct: 4 }, x); y = follow({ target: p.y, pullPct: 4 }, y); if (t - k < 40) trail.push([x, y]); }
+    line(g, trail, c.line, 2); dot(g, tgt.x, tgt.y, 5, c.brass); dot(g, x, y, 6, c.teal);
+  },
+  bounce(g, w, h, t, c) {
+    const floor = 0; let body = { pos: 120, vel: 0 }; const trail = [];
+    const n = t % 260;
+    for (let k = 0; k < n; k++) { body = { pos: body.pos, vel: body.vel - 0.25 }; body = bounce({ floor, bouncePct: 78 }, body); if (n - k < 60) trail.push(body.pos); }
+    const Y = (p) => h - 14 - p * (h - 30) / 125; const X = (i) => w - 30 - (trail.length - 1 - i) * 3.4;
+    line(g, [[10, Y(0)], [w - 10, Y(0)]], c.ink, 2); line(g, trail.map((p, i) => [X(i), Y(p)]), c.line, 1.2); dot(g, w - 30, Y(body.pos), 7, c.rose);
+  },
+  'sun-position'(g, w, h, t, c) {
+    const d = new Date(); const day = d.toISOString().slice(0, 10); const s = sunPosition({ lat: 31.778, lon: 35.235, depression: 0.833 }, day);
+    const X = (m) => 16 + (m / 1440) * (w - 32); const base = h - 28;
+    line(g, [[X(0), base], [X(1440), base]], c.line, 1);
+    if (!s) return;
+    const arc = (m) => base - Math.max(0, Math.sin(Math.PI * (m - s.rise) / (s.set - s.rise))) * (h - 60);
+    line(g, Array.from({ length: 97 }, (_, i) => { const m = s.rise + (s.set - s.rise) * i / 96; return [X(m), arc(m)]; }), c.line, 1.5);
+    const m = s.rise + ((t * 2) % (s.set - s.rise)); dot(g, X(m), arc(m), 8, c.brass);
+    const hhmm = (u) => { const z = Math.round(u + 180); return String(Math.floor(z / 60) % 24).padStart(2, '0') + ':' + String(z % 60).padStart(2, '0'); };
+    label(g, 'נץ ' + hhmm(s.rise), X(s.rise) + 22, base + 18, c.muted, 'center'); label(g, 'שקיעה ' + hhmm(s.set), X(s.set) - 22, base + 18, c.muted, 'center');
+  },
+};
+
+const still = matchMedia('(prefers-reduced-motion: reduce)');
+const canvases = [...document.querySelectorAll('canvas[data-engine]')];
+function paint(t) {
+  const c = C();
+  for (const cv of canvases) {
+    const r = cv.getBoundingClientRect(); const dpr = Math.min(2, window.devicePixelRatio || 1);
+    const W = Math.round(r.width * dpr); const H = Math.round(r.width * 9 / 16 * dpr);
+    if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; }
+    const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+    try { DRAW[cv.dataset.engine](g, r.width, r.width * 9 / 16, t, c); } catch (err) { label(g, 'שגיאה: ' + err.message, r.width - 10, 20, c.rose); }
+  }
+}
+let t = 0; let raf = 0;
+function loop() { t += 1; paint(t); raf = requestAnimationFrame(loop); }
+function start() { cancelAnimationFrame(raf); if (still.matches) paint(120); else loop(); }
+still.addEventListener('change', start);
+addEventListener('resize', () => { if (still.matches) paint(120); });
+start();
+</script>
+</body>
+</html>

@@ -13,7 +13,7 @@
         },
         {
           "behavior": "זהב כסף ארד",
-          "verb": "rank-tiers",
+          "verb": "tier",
           "material": "list"
         },
         {
@@ -28,7 +28,7 @@
         },
         {
           "behavior": "הלפיד עובר מיד ליד",
-          "verb": "hub-relay",
+          "verb": "relay",
           "material": "sequence"
         },
         {
@@ -60,12 +60,12 @@
         },
         {
           "behavior": "זריעה: החזקים לא נפגשים מוקדם",
-          "verb": "rank-tiers",
+          "verb": "tier",
           "material": "list"
         },
         {
           "behavior": "עולה אוטומטית כשאין יריב",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         }
       ]
@@ -87,7 +87,7 @@
         },
         {
           "behavior": "מחליפים מגיש כל משחק",
-          "verb": "round-robin",
+          "verb": "rotate",
           "material": "sequence"
         },
         {
@@ -135,7 +135,7 @@
         },
         {
           "behavior": "מסירה משחקן לשחקן",
-          "verb": "hub-relay",
+          "verb": "relay",
           "material": "sequence"
         },
         {
@@ -152,7 +152,7 @@
       "needs": [
         {
           "behavior": "שעון זריקה",
-          "verb": "NEW:countdown",
+          "verb": "countdown",
           "material": "times",
           "detail": "סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה"
         },
@@ -168,12 +168,12 @@
         },
         {
           "behavior": "חילופים בלי הגבלה",
-          "verb": "round-robin",
+          "verb": "rotate",
           "material": "list"
         },
         {
           "behavior": "הכדור עולה ונופל",
-          "verb": "NEW:gravity",
+          "verb": "gravity",
           "material": "number",
           "detail": "נופל — מהירות שגדלה בכל צעד של נפילה"
         }
@@ -186,7 +186,7 @@
       "needs": [
         {
           "behavior": "כל אחד נגד כל אחד",
-          "verb": "round-robin",
+          "verb": "rotate",
           "material": "list"
         },
         {
@@ -211,7 +211,7 @@
         },
         {
           "behavior": "עולות ויורדות",
-          "verb": "rank-tiers",
+          "verb": "tier",
           "material": "list"
         }
       ]
@@ -233,7 +233,7 @@
         },
         {
           "behavior": "זמן ביניים בכל נקודה",
-          "verb": "daily-snapshot",
+          "verb": "bucket",
           "material": "times"
         },
         {
@@ -243,12 +243,12 @@
         },
         {
           "behavior": "מי שעבר את הזמן נעצר",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         },
         {
           "behavior": "הכוח יורד לאורך הדרך",
-          "verb": "NEW:decay",
+          "verb": "decay",
           "material": "number",
           "detail": "דועך — ערך שיורד מעט בכל צעד-זמן עד אפס"
         }
@@ -261,7 +261,7 @@
       "needs": [
         {
           "behavior": "מסלולים לפי קושי",
-          "verb": "rank-tiers",
+          "verb": "tier",
           "material": "list"
         },
         {
@@ -276,7 +276,7 @@
         },
         {
           "behavior": "מבטח מושך את החבל",
-          "verb": "hub-relay",
+          "verb": "relay",
           "material": "record:climber"
         },
         {
@@ -303,17 +303,17 @@
         },
         {
           "behavior": "נכשל שלוש ⇒ יוצא",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         },
         {
           "behavior": "סדר קופצים",
-          "verb": "round-robin",
+          "verb": "rotate",
           "material": "sequence"
         },
         {
           "behavior": "הגובה הטוב ביותר",
-          "verb": "minmax",
+          "verb": "extreme",
           "material": "number"
         }
       ]
@@ -330,12 +330,12 @@
         },
         {
           "behavior": "מעבירים מקל",
-          "verb": "hub-relay",
+          "verb": "relay",
           "material": "sequence"
         },
         {
           "behavior": "רק בתוך אזור המסירה",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         },
         {

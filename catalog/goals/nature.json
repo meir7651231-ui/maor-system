@@ -8,13 +8,13 @@
       "needs": [
         {
           "behavior": "גדל מעט כל שנה",
-          "verb": "NEW:accumulate",
+          "verb": "accumulate",
           "material": "number",
           "detail": "צובר — ערך שגדל מעט בכל צעד-זמן עד שמשהו מרוקן אותו"
         },
         {
           "behavior": "מלבין כשהמים חמים מדי",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool",
           "detail": "טמפרטורה מעל סף"
         },
@@ -42,7 +42,7 @@
       "needs": [
         {
           "behavior": "עולה ויורד פעמיים ביום",
-          "verb": "NEW:oscillate",
+          "verb": "oscillate",
           "material": "number",
           "detail": "גל שחוזר על עצמו כל כ-12 וחצי שעות"
         },
@@ -78,7 +78,7 @@
       "needs": [
         {
           "behavior": "לחץ מצטבר מתחת לאדמה",
-          "verb": "NEW:accumulate",
+          "verb": "accumulate",
           "material": "number",
           "detail": "ערך שגדל מעט בכל צעד-זמן עד שמשהו מרוקן אותו"
         },
@@ -90,19 +90,19 @@
         },
         {
           "behavior": "מתפרץ רק מעל הסף",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool",
           "detail": "לחץ גדול מהסף"
         },
         {
           "behavior": "הלבה זורמת במורד",
-          "verb": "NEW:move-along-path",
+          "verb": "move-along-path",
           "material": "geo",
           "detail": "נקודה שמתקדמת לאורך מסלול בכל צעד"
         },
         {
           "behavior": "הלבה מתקררת ומתקשה",
-          "verb": "NEW:decay",
+          "verb": "decay",
           "material": "number",
           "detail": "ערך שיורד מעט בכל צעד-זמן עד אפס"
         },
@@ -144,7 +144,7 @@
         },
         {
           "behavior": "גדל קצת כל יום",
-          "verb": "daily-snapshot",
+          "verb": "bucket",
           "material": "record:seed"
         }
       ]
@@ -179,12 +179,12 @@
         },
         {
           "behavior": "גדלה יום אחרי יום",
-          "verb": "daily-snapshot",
+          "verb": "bucket",
           "material": "record:plant"
         },
         {
           "behavior": "פורחת רק כשהכול בסדר",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         }
       ]
@@ -196,12 +196,12 @@
       "needs": [
         {
           "behavior": "הגבוהים מסתירים את הנמוכים",
-          "verb": "rank-tiers",
+          "verb": "tier",
           "material": "list"
         },
         {
           "behavior": "עץ שנפל פותח פתח לאור",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         },
         {
@@ -211,7 +211,7 @@
         },
         {
           "behavior": "זרעים מתפזרים סביב",
-          "verb": "NEW:spread",
+          "verb": "spread",
           "material": "geo",
           "detail": "מתפשט — משהו שעובר לשכנים הקרובים בכל צעד"
         },
@@ -222,7 +222,7 @@
         },
         {
           "behavior": "שריפה עוברת מעץ לעץ",
-          "verb": "NEW:spread",
+          "verb": "spread",
           "material": "geo",
           "detail": "אש שעוברת לשכנים בכל צעד"
         }
@@ -235,7 +235,7 @@
       "needs": [
         {
           "behavior": "המים נופלים",
-          "verb": "NEW:gravity",
+          "verb": "gravity",
           "material": "number",
           "detail": "מהירות שגדלה בכל צעד של נפילה"
         },
@@ -246,7 +246,7 @@
         },
         {
           "behavior": "הבריכה מתמלאת",
-          "verb": "NEW:accumulate",
+          "verb": "accumulate",
           "material": "number",
           "detail": "צובר — ערך שגדל מעט בכל צעד-זמן עד שמשהו מרוקן אותו"
         },
@@ -258,7 +258,7 @@
         },
         {
           "behavior": "קשת בענן כשיש שמש",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool",
           "detail": "שמש מאחור וטיפות באוויר"
         }
@@ -288,18 +288,18 @@
         },
         {
           "behavior": "עולה על הגדות מעל קו",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         },
         {
           "behavior": "מתפתל סביב סלעים",
-          "verb": "NEW:move-along-path",
+          "verb": "move-along-path",
           "material": "geo",
           "detail": "זרימה לאורך מסלול מתפתל"
         },
         {
           "behavior": "מתייבש בקיץ",
-          "verb": "NEW:decay",
+          "verb": "decay",
           "material": "number",
           "detail": "מעט פחות מים בכל יום בלי גשם"
         }
@@ -335,12 +335,12 @@
         },
         {
           "behavior": "הענפים הכי גבוהים מקבלים יותר שמש",
-          "verb": "rank-tiers",
+          "verb": "tier",
           "material": "list"
         },
         {
           "behavior": "צומח לאט כל יום",
-          "verb": "daily-snapshot",
+          "verb": "bucket",
           "material": "record:tree"
         }
       ]
@@ -364,19 +364,19 @@
         },
         {
           "behavior": "מפזרת נבגים לסביבה",
-          "verb": "NEW:spread",
+          "verb": "spread",
           "material": "geo",
           "detail": "משהו שעובר לשכנים הקרובים בכל צעד"
         },
         {
           "behavior": "מעגל פטריות שהולך ומתרחב",
-          "verb": "NEW:accumulate",
+          "verb": "accumulate",
           "material": "number",
           "detail": "רדיוס שגדל בכל שנה"
         },
         {
           "behavior": "נעלמת אחרי כמה ימים",
-          "verb": "NEW:countdown",
+          "verb": "countdown",
           "material": "number",
           "detail": "ימים שנשארו עד שנעלמת"
         }
@@ -389,13 +389,13 @@
       "needs": [
         {
           "behavior": "שומר מים כשיש",
-          "verb": "NEW:accumulate",
+          "verb": "accumulate",
           "material": "number",
           "detail": "צובר — ערך שגדל מעט בכל צעד-זמן עד שמשהו מרוקן אותו"
         },
         {
           "behavior": "משתמש בהם לאט",
-          "verb": "NEW:decay",
+          "verb": "decay",
           "material": "number",
           "detail": "מעט מים בכל יום יבש"
         },
@@ -412,7 +412,7 @@
         },
         {
           "behavior": "פורח רק אם נשארו מים",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         }
       ]
@@ -441,13 +441,13 @@
         },
         {
           "behavior": "נופלים ברוח",
-          "verb": "NEW:random",
+          "verb": "random",
           "material": "bool",
           "detail": "כן/לא לפי סיכוי"
         },
         {
           "behavior": "העלה מתנדנד בדרך למטה",
-          "verb": "NEW:oscillate",
+          "verb": "oscillate",
           "material": "number",
           "detail": "ימינה-שמאלה תוך כדי נפילה"
         },

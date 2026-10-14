@@ -8,7 +8,7 @@
       "needs": [
         {
           "behavior": "יורד בחוט",
-          "verb": "NEW:gravity",
+          "verb": "gravity",
           "material": "number",
           "detail": "נופל — מהירות שגדלה בכל צעד של נפילה"
         },
@@ -24,7 +24,7 @@
         },
         {
           "behavior": "נחלש בכל פעם",
-          "verb": "NEW:decay",
+          "verb": "decay",
           "material": "number",
           "detail": "דועך — ערך שיורד מעט בכל צעד-זמן עד אפס"
         },
@@ -42,13 +42,13 @@
       "needs": [
         {
           "behavior": "עולה כשמחממים",
-          "verb": "NEW:accumulate",
+          "verb": "accumulate",
           "material": "number",
           "detail": "צובר — ערך שגדל מעט בכל צעד-זמן עד שמשהו מרוקן אותו"
         },
         {
           "behavior": "יורד כשמתקרר",
-          "verb": "NEW:decay",
+          "verb": "decay",
           "material": "number",
           "detail": "דועך — ערך שיורד מעט בכל צעד-זמן עד אפס"
         },
@@ -86,19 +86,19 @@
       "needs": [
         {
           "behavior": "נופל",
-          "verb": "NEW:gravity",
+          "verb": "gravity",
           "material": "number",
           "detail": "נופל — מהירות שגדלה בכל צעד של נפילה"
         },
         {
           "behavior": "קופץ מהרצפה",
-          "verb": "NEW:bounce",
+          "verb": "bounce",
           "material": "number",
           "detail": "מהירות מתהפכת בפגיעה"
         },
         {
           "behavior": "כל קפיצה נמוכה יותר",
-          "verb": "NEW:decay",
+          "verb": "decay",
           "material": "number",
           "detail": "דועך — ערך שיורד מעט בכל צעד-זמן עד אפס"
         },
@@ -109,7 +109,7 @@
         },
         {
           "behavior": "עוצר מתחת לגובה קטן",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         }
       ]
@@ -136,7 +136,7 @@
         },
         {
           "behavior": "חסרה קובייה ⇒ מחליפים",
-          "verb": "tolerate-failure",
+          "verb": "tolerate",
           "material": "list"
         },
         {
@@ -163,13 +163,13 @@
         },
         {
           "behavior": "גולש קדימה",
-          "verb": "NEW:move-along-path",
+          "verb": "move-along-path",
           "material": "geo",
           "detail": "מתקדם במסלול — נקודה שזזה לאורך דרך נתונה"
         },
         {
           "behavior": "יורד לאט",
-          "verb": "NEW:gravity",
+          "verb": "gravity",
           "material": "number",
           "detail": "נופל — מהירות שגדלה בכל צעד של נפילה"
         },
@@ -180,7 +180,7 @@
         },
         {
           "behavior": "מי עף הכי רחוק",
-          "verb": "minmax",
+          "verb": "extreme",
           "material": "list"
         }
       ]
@@ -207,7 +207,7 @@
         },
         {
           "behavior": "הקטנה ביותר נשארת",
-          "verb": "minmax",
+          "verb": "extreme",
           "material": "list"
         },
         {
@@ -224,13 +224,13 @@
       "needs": [
         {
           "behavior": "הלוך ושוב",
-          "verb": "NEW:oscillate",
+          "verb": "oscillate",
           "material": "number",
           "detail": "מתנדנד — גל שעולה ויורד שוב ושוב בקצב קבוע"
         },
         {
           "behavior": "דוחפים בזמן הנכון",
-          "verb": "gate",
+          "verb": "validate",
           "material": "times"
         },
         {
@@ -240,13 +240,13 @@
         },
         {
           "behavior": "נחלשת בלי דחיפה",
-          "verb": "NEW:decay",
+          "verb": "decay",
           "material": "number",
           "detail": "דועך — ערך שיורד מעט בכל צעד-זמן עד אפס"
         },
         {
           "behavior": "תור בגן השעשועים",
-          "verb": "round-robin",
+          "verb": "rotate",
           "material": "sequence"
         }
       ]
@@ -263,19 +263,19 @@
         },
         {
           "behavior": "מאט לאט",
-          "verb": "NEW:decay",
+          "verb": "decay",
           "material": "number",
           "detail": "דועך — ערך שיורד מעט בכל צעד-זמן עד אפס"
         },
         {
           "behavior": "מתנדנד לפני שנופל",
-          "verb": "NEW:oscillate",
+          "verb": "oscillate",
           "material": "number",
           "detail": "מתנדנד — גל שעולה ויורד שוב ושוב בקצב קבוע"
         },
         {
           "behavior": "נופל על אות אקראית",
-          "verb": "NEW:random",
+          "verb": "random",
           "material": "choice",
           "detail": "מגריל — בחירה או ערך לפי סיכוי"
         },
@@ -286,7 +286,7 @@
         },
         {
           "behavior": "תור לכל משתתף",
-          "verb": "round-robin",
+          "verb": "rotate",
           "material": "sequence"
         }
       ]
@@ -298,12 +298,12 @@
       "needs": [
         {
           "behavior": "עולה רק עם רוח",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         },
         {
           "behavior": "משחררים חוט",
-          "verb": "NEW:accumulate",
+          "verb": "accumulate",
           "material": "number",
           "detail": "צובר — ערך שגדל מעט בכל צעד-זמן עד שמשהו מרוקן אותו"
         },
@@ -314,13 +314,13 @@
         },
         {
           "behavior": "מתנדנד ברוח",
-          "verb": "NEW:oscillate",
+          "verb": "oscillate",
           "material": "number",
           "detail": "מתנדנד — גל שעולה ויורד שוב ושוב בקצב קבוע"
         },
         {
           "behavior": "נופל כשהרוח נעלמת",
-          "verb": "NEW:gravity",
+          "verb": "gravity",
           "material": "number",
           "detail": "נופל — מהירות שגדלה בכל צעד של נפילה"
         }
@@ -343,12 +343,12 @@
         },
         {
           "behavior": "קופץ בתו מסוים",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         },
         {
           "behavior": "כל פעם בזמן קצת אחר",
-          "verb": "NEW:random",
+          "verb": "random",
           "material": "times",
           "detail": "מגריל — בחירה או ערך לפי סיכוי"
         },
@@ -366,7 +366,7 @@
       "needs": [
         {
           "behavior": "חרוזים במקום אקראי",
-          "verb": "NEW:random",
+          "verb": "random",
           "material": "geo",
           "detail": "מגריל — בחירה או ערך לפי סיכוי"
         },
@@ -405,7 +405,7 @@
         },
         {
           "behavior": "סוסים עולים ויורדים",
-          "verb": "NEW:oscillate",
+          "verb": "oscillate",
           "material": "number",
           "detail": "מתנדנד — גל שעולה ויורד שוב ושוב בקצב קבוע"
         },
@@ -416,7 +416,7 @@
         },
         {
           "behavior": "סיבוב זמן קבוע",
-          "verb": "NEW:countdown",
+          "verb": "countdown",
           "material": "times",
           "detail": "סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה"
         },
@@ -432,7 +432,7 @@
         },
         {
           "behavior": "מנגינה בזמן הסיבוב",
-          "verb": "gate",
+          "verb": "validate",
           "material": "sound"
         }
       ]
@@ -449,7 +449,7 @@
         },
         {
           "behavior": "נופלת ומאיצה",
-          "verb": "NEW:gravity",
+          "verb": "gravity",
           "material": "number",
           "detail": "נופל — מהירות שגדלה בכל צעד של נפילה"
         },
@@ -460,7 +460,7 @@
         },
         {
           "behavior": "גובה מינימלי לנוסע",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         },
         {

@@ -1,0 +1,396 @@
+{
+  "version": 1,
+  "generatedAt": null,
+  "note": "מכוסה = לפועל של ההתנהגות יש חלק בקטלוג שמתויג בו (catalog/behavior). לפני = 45 פעלים, 9 מקורות. אחרי = 60 פעלים + הליבה (catalog/core). material = גם אותו סוג-חומר.",
+  "behaviors": 940,
+  "newVerbsLeft": 0,
+  "before": {
+    "byVerb": 775,
+    "byVerbAndMaterial": 542,
+    "pct": 82.4
+  },
+  "after": {
+    "byVerb": 940,
+    "byVerbAndMaterial": 636,
+    "pct": 100
+  },
+  "uncoveredAfter": [],
+  "verbs": [
+    {
+      "verb": "validate",
+      "mined": false,
+      "needs": 89,
+      "before": 89,
+      "after": 89,
+      "parts": 308
+    },
+    {
+      "verb": "rotate",
+      "mined": false,
+      "needs": 73,
+      "before": 73,
+      "after": 73,
+      "parts": 1
+    },
+    {
+      "verb": "convert",
+      "mined": false,
+      "needs": 54,
+      "before": 54,
+      "after": 54,
+      "parts": 57
+    },
+    {
+      "verb": "divide",
+      "mined": false,
+      "needs": 46,
+      "before": 46,
+      "after": 46,
+      "parts": 16
+    },
+    {
+      "verb": "next",
+      "mined": false,
+      "needs": 42,
+      "before": 42,
+      "after": 42,
+      "parts": 5
+    },
+    {
+      "verb": "offset",
+      "mined": false,
+      "needs": 40,
+      "before": 40,
+      "after": 40,
+      "parts": 14
+    },
+    {
+      "verb": "escalate",
+      "mined": false,
+      "needs": 37,
+      "before": 37,
+      "after": 37,
+      "parts": 7
+    },
+    {
+      "verb": "count",
+      "mined": false,
+      "needs": 30,
+      "before": 30,
+      "after": 30,
+      "parts": 23
+    },
+    {
+      "verb": "filter",
+      "mined": false,
+      "needs": 30,
+      "before": 30,
+      "after": 30,
+      "parts": 56
+    },
+    {
+      "verb": "pace",
+      "mined": false,
+      "needs": 28,
+      "before": 28,
+      "after": 28,
+      "parts": 3
+    },
+    {
+      "verb": "decay",
+      "mined": true,
+      "needs": 27,
+      "before": 0,
+      "after": 27,
+      "parts": 1
+    },
+    {
+      "verb": "sort",
+      "mined": false,
+      "needs": 27,
+      "before": 27,
+      "after": 27,
+      "parts": 12
+    },
+    {
+      "verb": "tier",
+      "mined": false,
+      "needs": 27,
+      "before": 27,
+      "after": 27,
+      "parts": 29
+    },
+    {
+      "verb": "compare",
+      "mined": false,
+      "needs": 26,
+      "before": 26,
+      "after": 26,
+      "parts": 14
+    },
+    {
+      "verb": "countdown",
+      "mined": true,
+      "needs": 24,
+      "before": 0,
+      "after": 24,
+      "parts": 1
+    },
+    {
+      "verb": "accumulate",
+      "mined": true,
+      "needs": 21,
+      "before": 0,
+      "after": 21,
+      "parts": 1
+    },
+    {
+      "verb": "sun-position",
+      "mined": true,
+      "needs": 21,
+      "before": 0,
+      "after": 21,
+      "parts": 1
+    },
+    {
+      "verb": "clamp",
+      "mined": false,
+      "needs": 20,
+      "before": 20,
+      "after": 20,
+      "parts": 26
+    },
+    {
+      "verb": "extreme",
+      "mined": false,
+      "needs": 19,
+      "before": 19,
+      "after": 19,
+      "parts": 27
+    },
+    {
+      "verb": "assign-role",
+      "mined": false,
+      "needs": 18,
+      "before": 18,
+      "after": 18,
+      "parts": 39
+    },
+    {
+      "verb": "relay",
+      "mined": false,
+      "needs": 18,
+      "before": 18,
+      "after": 18,
+      "parts": 22
+    },
+    {
+      "verb": "oscillate",
+      "mined": true,
+      "needs": 17,
+      "before": 0,
+      "after": 17,
+      "parts": 1
+    },
+    {
+      "verb": "sum",
+      "mined": false,
+      "needs": 17,
+      "before": 17,
+      "after": 17,
+      "parts": 44
+    },
+    {
+      "verb": "reverse",
+      "mined": false,
+      "needs": 15,
+      "before": 15,
+      "after": 15,
+      "parts": 1
+    },
+    {
+      "verb": "dedupe",
+      "mined": false,
+      "needs": 14,
+      "before": 14,
+      "after": 14,
+      "parts": 11
+    },
+    {
+      "verb": "group",
+      "mined": false,
+      "needs": 14,
+      "before": 14,
+      "after": 14,
+      "parts": 11
+    },
+    {
+      "verb": "bucket",
+      "mined": false,
+      "needs": 13,
+      "before": 13,
+      "after": 13,
+      "parts": 13
+    },
+    {
+      "verb": "merge",
+      "mined": false,
+      "needs": 13,
+      "before": 13,
+      "after": 13,
+      "parts": 10
+    },
+    {
+      "verb": "random",
+      "mined": true,
+      "needs": 12,
+      "before": 0,
+      "after": 12,
+      "parts": 1
+    },
+    {
+      "verb": "tolerate",
+      "mined": false,
+      "needs": 12,
+      "before": 12,
+      "after": 12,
+      "parts": 17
+    },
+    {
+      "verb": "gravity",
+      "mined": true,
+      "needs": 11,
+      "before": 0,
+      "after": 11,
+      "parts": 1
+    },
+    {
+      "verb": "personalize",
+      "mined": false,
+      "needs": 11,
+      "before": 11,
+      "after": 11,
+      "parts": 29
+    },
+    {
+      "verb": "move-along-path",
+      "mined": true,
+      "needs": 9,
+      "before": 0,
+      "after": 9,
+      "parts": 1
+    },
+    {
+      "verb": "format",
+      "mined": false,
+      "needs": 7,
+      "before": 7,
+      "after": 7,
+      "parts": 137
+    },
+    {
+      "verb": "fuzzy",
+      "mined": false,
+      "needs": 7,
+      "before": 7,
+      "after": 7,
+      "parts": 28
+    },
+    {
+      "verb": "lookup",
+      "mined": false,
+      "needs": 7,
+      "before": 7,
+      "after": 7,
+      "parts": 16
+    },
+    {
+      "verb": "round",
+      "mined": false,
+      "needs": 7,
+      "before": 7,
+      "after": 7,
+      "parts": 21
+    },
+    {
+      "verb": "route",
+      "mined": false,
+      "needs": 7,
+      "before": 7,
+      "after": 7,
+      "parts": 13
+    },
+    {
+      "verb": "orbit",
+      "mined": true,
+      "needs": 6,
+      "before": 0,
+      "after": 6,
+      "parts": 1
+    },
+    {
+      "verb": "shortest-path",
+      "mined": true,
+      "needs": 5,
+      "before": 0,
+      "after": 5,
+      "parts": 1
+    },
+    {
+      "verb": "require-source",
+      "mined": false,
+      "needs": 4,
+      "before": 4,
+      "after": 4,
+      "parts": 33
+    },
+    {
+      "verb": "spread",
+      "mined": true,
+      "needs": 4,
+      "before": 0,
+      "after": 4,
+      "parts": 1
+    },
+    {
+      "verb": "sample",
+      "mined": true,
+      "needs": 3,
+      "before": 0,
+      "after": 3,
+      "parts": 1
+    },
+    {
+      "verb": "transcript",
+      "mined": false,
+      "needs": 3,
+      "before": 3,
+      "after": 3,
+      "parts": 19
+    },
+    {
+      "verb": "echo",
+      "mined": true,
+      "needs": 2,
+      "before": 0,
+      "after": 2,
+      "parts": 1
+    },
+    {
+      "verb": "follow",
+      "mined": true,
+      "needs": 2,
+      "before": 0,
+      "after": 2,
+      "parts": 1
+    },
+    {
+      "verb": "bounce",
+      "mined": true,
+      "needs": 1,
+      "before": 0,
+      "after": 1,
+      "parts": 1
+    }
+  ]
+}

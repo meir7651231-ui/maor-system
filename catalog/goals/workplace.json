@@ -13,12 +13,12 @@
         },
         {
           "behavior": "כל אחד בתורו",
-          "verb": "round-robin",
+          "verb": "rotate",
           "material": "sequence"
         },
         {
           "behavior": "זמן לכל נושא",
-          "verb": "NEW:countdown",
+          "verb": "countdown",
           "material": "times",
           "detail": "סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה"
         },
@@ -83,12 +83,12 @@
         },
         {
           "behavior": "לנציג הפנוי",
-          "verb": "round-robin",
+          "verb": "rotate",
           "material": "list"
         },
         {
           "behavior": "לפי נושא",
-          "verb": "route-channel",
+          "verb": "route",
           "material": "choice"
         },
         {
@@ -120,7 +120,7 @@
         },
         {
           "behavior": "מתחת לסף ⇒ להזמין",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         },
         {
@@ -135,7 +135,7 @@
         },
         {
           "behavior": "ספירה כל ערב",
-          "verb": "daily-snapshot",
+          "verb": "bucket",
           "material": "record:stock"
         }
       ]
@@ -152,7 +152,7 @@
         },
         {
           "behavior": "נוספות בתעריף גבוה",
-          "verb": "rank-tiers",
+          "verb": "tier",
           "material": "amount"
         },
         {
@@ -184,7 +184,7 @@
         },
         {
           "behavior": "מסלול קצר",
-          "verb": "NEW:shortest-path",
+          "verb": "shortest-path",
           "material": "geo",
           "detail": "דרך קצרה — המסלול הקצר ביותר ברשת של נקודות"
         },
@@ -195,17 +195,17 @@
         },
         {
           "behavior": "לא בבית ⇒ ניסיון חוזר",
-          "verb": "tolerate-failure",
+          "verb": "tolerate",
           "material": "waiting"
         },
         {
           "behavior": "הודעה בדרך",
-          "verb": "route-channel",
+          "verb": "route",
           "material": "text"
         },
         {
           "behavior": "איפה החבילה",
-          "verb": "NEW:move-along-path",
+          "verb": "move-along-path",
           "material": "geo",
           "detail": "מתקדם במסלול — נקודה שזזה לאורך דרך נתונה"
         }
@@ -218,7 +218,7 @@
       "needs": [
         {
           "behavior": "כל אחד בתורו",
-          "verb": "round-robin",
+          "verb": "rotate",
           "material": "sequence"
         },
         {
@@ -238,7 +238,7 @@
         },
         {
           "behavior": "מחליפים כשמישהו חולה",
-          "verb": "tolerate-failure",
+          "verb": "tolerate",
           "material": "record:shift"
         },
         {
@@ -255,7 +255,7 @@
       "needs": [
         {
           "behavior": "תחנה אחרי תחנה",
-          "verb": "hub-relay",
+          "verb": "relay",
           "material": "sequence"
         },
         {
@@ -275,7 +275,7 @@
         },
         {
           "behavior": "תחנה איטית מעכבת הכול",
-          "verb": "minmax",
+          "verb": "extreme",
           "material": "list"
         },
         {
@@ -297,7 +297,7 @@
         },
         {
           "behavior": "הנחה מעל סכום",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         },
         {
@@ -317,7 +317,7 @@
         },
         {
           "behavior": "סגירת יום",
-          "verb": "daily-snapshot",
+          "verb": "bucket",
           "material": "amount"
         }
       ]
@@ -339,7 +339,7 @@
         },
         {
           "behavior": "ציון לכל מועמד",
-          "verb": "rank-tiers",
+          "verb": "tier",
           "material": "list"
         },
         {
@@ -349,7 +349,7 @@
         },
         {
           "behavior": "תשובה לכל אחד",
-          "verb": "route-channel",
+          "verb": "route",
           "material": "text"
         }
       ]
@@ -361,17 +361,17 @@
       "needs": [
         {
           "behavior": "כל שבוע אחר",
-          "verb": "round-robin",
+          "verb": "rotate",
           "material": "sequence"
         },
         {
           "behavior": "מעבירים את התור הלאה",
-          "verb": "hub-relay",
+          "verb": "relay",
           "material": "record:person"
         },
         {
           "behavior": "מי שהחליף חייב",
-          "verb": "NEW:accumulate",
+          "verb": "accumulate",
           "material": "list",
           "detail": "צובר — ערך שגדל מעט בכל צעד-זמן עד שמשהו מרוקן אותו"
         },

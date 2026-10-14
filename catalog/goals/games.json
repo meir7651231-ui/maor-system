@@ -8,7 +8,7 @@
       "needs": [
         {
           "behavior": "מגרילים מספר",
-          "verb": "NEW:random",
+          "verb": "random",
           "material": "number",
           "detail": "מגריל — בחירה או ערך לפי סיכוי"
         },
@@ -24,7 +24,7 @@
         },
         {
           "behavior": "בודקים שורה מלאה",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         },
         {
@@ -51,12 +51,12 @@
         },
         {
           "behavior": "תור לכל שחקן",
-          "verb": "round-robin",
+          "verb": "rotate",
           "material": "sequence"
         },
         {
           "behavior": "אבן מפילה אבן",
-          "verb": "hub-relay",
+          "verb": "relay",
           "material": "sequence"
         },
         {
@@ -78,7 +78,7 @@
         },
         {
           "behavior": "זמן לכל שאלה",
-          "verb": "NEW:countdown",
+          "verb": "countdown",
           "material": "times",
           "detail": "סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה"
         },
@@ -94,7 +94,7 @@
         },
         {
           "behavior": "טבלת דירוג",
-          "verb": "rank-tiers",
+          "verb": "tier",
           "material": "list"
         },
         {
@@ -111,7 +111,7 @@
       "needs": [
         {
           "behavior": "צורות נופלות",
-          "verb": "NEW:gravity",
+          "verb": "gravity",
           "material": "number",
           "detail": "נופל — מהירות שגדלה בכל צעד של נפילה"
         },
@@ -154,7 +154,7 @@
         },
         {
           "behavior": "המוזיקה נעצרת פתאום",
-          "verb": "NEW:random",
+          "verb": "random",
           "material": "times",
           "detail": "מגריל — בחירה או ערך לפי סיכוי"
         },
@@ -170,7 +170,7 @@
         },
         {
           "behavior": "האחרון מנצח",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         }
       ]
@@ -182,7 +182,7 @@
       "needs": [
         {
           "behavior": "סופר עד עשרים",
-          "verb": "NEW:countdown",
+          "verb": "countdown",
           "material": "number",
           "detail": "סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה"
         },
@@ -198,7 +198,7 @@
         },
         {
           "behavior": "מי שנמצא ראשון",
-          "verb": "minmax",
+          "verb": "extreme",
           "material": "sequence"
         },
         {
@@ -215,7 +215,7 @@
       "needs": [
         {
           "behavior": "מערבבים קלפים",
-          "verb": "NEW:random",
+          "verb": "random",
           "material": "sequence",
           "detail": "מגריל — בחירה או ערך לפי סיכוי"
         },
@@ -231,12 +231,12 @@
         },
         {
           "behavior": "לא זוג ⇒ חוזר ותור עובר",
-          "verb": "round-robin",
+          "verb": "rotate",
           "material": "sequence"
         },
         {
           "behavior": "מי אסף הכי הרבה",
-          "verb": "minmax",
+          "verb": "extreme",
           "material": "list"
         }
       ]
@@ -264,7 +264,7 @@
         },
         {
           "behavior": "כל אחד מדבר בתורו",
-          "verb": "round-robin",
+          "verb": "rotate",
           "material": "sequence"
         },
         {
@@ -274,17 +274,17 @@
         },
         {
           "behavior": "הכי הרבה קולות יוצא",
-          "verb": "minmax",
+          "verb": "extreme",
           "material": "list"
         },
         {
           "behavior": "המנחה מעביר את ההודעות",
-          "verb": "hub-relay",
+          "verb": "relay",
           "material": "text"
         },
         {
           "behavior": "נגמר כשצד אחד נשאר",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         }
       ]
@@ -296,7 +296,7 @@
       "needs": [
         {
           "behavior": "זורקים קובייה",
-          "verb": "NEW:random",
+          "verb": "random",
           "material": "number",
           "detail": "מגריל — בחירה או ערך לפי סיכוי"
         },
@@ -318,12 +318,12 @@
         },
         {
           "behavior": "תור לכל שחקן",
-          "verb": "round-robin",
+          "verb": "rotate",
           "material": "sequence"
         },
         {
           "behavior": "הראשון למאה מנצח",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         }
       ]
@@ -350,7 +350,7 @@
         },
         {
           "behavior": "המשבצת עם הכי מעט אפשרויות קודם",
-          "verb": "minmax",
+          "verb": "extreme",
           "material": "list"
         },
         {
@@ -367,7 +367,7 @@
       "needs": [
         {
           "behavior": "תור לבן ותור שחור",
-          "verb": "round-robin",
+          "verb": "rotate",
           "material": "sequence"
         },
         {
@@ -383,13 +383,13 @@
         },
         {
           "behavior": "שעון לכל צד",
-          "verb": "NEW:countdown",
+          "verb": "countdown",
           "material": "times",
           "detail": "סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה"
         },
         {
           "behavior": "שח ⇒ חייבים להגן",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         },
         {
@@ -399,7 +399,7 @@
         },
         {
           "behavior": "דירוג שחקנים",
-          "verb": "rank-tiers",
+          "verb": "tier",
           "material": "list"
         }
       ]
@@ -416,12 +416,12 @@
         },
         {
           "behavior": "הקרוב ביותר",
-          "verb": "minmax",
+          "verb": "extreme",
           "material": "geo"
         },
         {
           "behavior": "נגע ⇒ התפקיד עובר",
-          "verb": "hub-relay",
+          "verb": "relay",
           "material": "record:player"
         },
         {
@@ -431,7 +431,7 @@
         },
         {
           "behavior": "זמן מנוחה אחרי שנתפס",
-          "verb": "NEW:countdown",
+          "verb": "countdown",
           "material": "times",
           "detail": "סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה"
         }

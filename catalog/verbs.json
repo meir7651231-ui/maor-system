@@ -9,6 +9,21 @@
   "rotate",
   "fuzzy",
   "escalate",
+  "shortest-path",
+  "spread",
+  "sun-position",
+  "move-along-path",
+  "orbit",
+  "gravity",
+  "bounce",
+  "decay",
+  "oscillate",
+  "countdown",
+  "accumulate",
+  "follow",
+  "echo",
+  "random",
+  "sample",
   "tier",
   "round",
   "offset",
@@ -1880,6 +1895,750 @@
      "quiet",
      "quietHours",
      "wait"
+    ]
+   }
+  },
+  {
+   "id": "decay",
+   "he": "דועך",
+   "means": "ערך שמתקרב לרצפה בכל צעד (חיכוך, דהייה, ריסון) — לא עובר אותה, ובסוף נוגע בה בדיוק ונשאר",
+   "takes": [
+    "record",
+    "number"
+   ],
+   "gives": "number",
+   "laws": [
+    {
+     "id": "decay.start",
+     "says": "בצעד אפס — הערך ההתחלתי בדיוק",
+     "catches": "מתחיל צעד אחד מאוחר מדי"
+    },
+    {
+     "id": "decay.toward",
+     "says": "כל צעד מקרב לרצפה ולא עובר אותה: המרחק לא גדל, והצד לא מתחלף",
+     "catches": "קופץ מעבר לרצפה ובחזרה (מתנדנד סביבה)"
+    },
+    {
+     "id": "decay.reach",
+     "says": "אחרי מספיק צעדים — בדיוק על הרצפה, ונשאר שם",
+     "catches": "דועך בלי להיצמד — מתקרב לנצח ולא נוגע"
+    }
+   ],
+   "mined": true,
+   "core": "catalog/core/decay.mjs",
+   "cues": {
+    "he": [
+     "דועך",
+     "דוהה",
+     "נחלש",
+     "מאט"
+    ],
+    "en": [
+     "decay",
+     "fade",
+     "friction",
+     "damp",
+     "damping",
+     "drag",
+     "dampen",
+     "falloff",
+     "cool",
+     "attenuate"
+    ]
+   }
+  },
+  {
+   "id": "countdown",
+   "he": "סופר לאחור",
+   "means": "כמה נשאר עד הרגע: יורד בדיוק במה שעבר, נעצר באפס ולא יורד מתחתיו",
+   "takes": [
+    "record",
+    "number"
+   ],
+   "gives": "number",
+   "laws": [
+    {
+     "id": "countdown.start",
+     "says": "כשעוד לא עבר כלום — נשאר הכול",
+     "catches": "מתחיל דקה אחת פחות"
+    },
+    {
+     "id": "countdown.down",
+     "says": "עוד d עבר ⇒ נשאר d פחות (עד אפס)",
+     "catches": "יורד פי שניים מהר מהזמן"
+    },
+    {
+     "id": "countdown.zero",
+     "says": "כשעבר הכול — בדיוק אפס, ואחר כך נשאר אפס (אף פעם לא שלילי)",
+     "catches": "ממשיך מתחת לאפס"
+    }
+   ],
+   "mined": true,
+   "core": "catalog/core/countdown.mjs",
+   "cues": {
+    "he": [
+     "נותרו",
+     "נשאר",
+     "עוד",
+     "לאחור"
+    ],
+    "en": [
+     "countdown",
+     "remaining",
+     "left",
+     "timeLeft",
+     "secsLeft",
+     "daysLeft",
+     "expires",
+     "cooldown",
+     "eta",
+     "until"
+    ]
+   }
+  },
+  {
+   "id": "accumulate",
+   "he": "צובר",
+   "means": "מוסיף עוד ועוד לקופה — כל הפקדה מגדילה בדיוק בגודלה, וכשהקופה מלאה: ריקון ומתחילים מאפס",
+   "takes": [
+    "record",
+    "list"
+   ],
+   "gives": "sequence",
+   "laws": [
+    {
+     "id": "accumulate.adds",
+     "says": "אחרי כל הפקדה הקופה גדלה בדיוק בגודל ההפקדה — או שרוקנה, ואז יש בה רק את ההפקדה החדשה",
+     "catches": "מוסיף פי 1.5 מההפקדה"
+    },
+    {
+     "id": "accumulate.cap",
+     "says": "כשיש תקרה — הקופה אף פעם לא מעליה (חוץ מהפקדה אחת שגדולה מהתקרה כולה)",
+     "catches": "לא מתרוקן אף פעם (גולש מעל התקרה)"
+    },
+    {
+     "id": "accumulate.needed",
+     "says": "מרוקנים רק כשצריך: ריקון קורה רק כשההפקדה הייתה עוברת את התקרה",
+     "catches": "מרוקן כל צעד שני גם כשלא מלא"
+    }
+   ],
+   "mined": true,
+   "core": "catalog/core/accumulate.mjs",
+   "cues": {
+    "he": [
+     "צובר",
+     "מצטבר",
+     "קופה",
+     "ריקון",
+     "מונה"
+    ],
+    "en": [
+     "accumulate",
+     "accum",
+     "running",
+     "total",
+     "tally",
+     "fill",
+     "collect",
+     "counter",
+     "countUp",
+     "elapsed",
+     "empty",
+     "jar",
+     "box"
+    ]
+   }
+  },
+  {
+   "id": "oscillate",
+   "he": "מתנדנד",
+   "means": "עולה ויורד סביב מרכז בקצב קבוע (נשימה, הבהוב, גל, צליל) — חוזר על עצמו כל מחזור ולא חורג מהמשרעת",
+   "takes": [
+    "record",
+    "number"
+   ],
+   "gives": "number",
+   "laws": [
+    {
+     "id": "oscillate.periodic",
+     "says": "אחרי מחזור שלם — אותו ערך בדיוק",
+     "catches": "מחזור ארוך פי 1.5 מהמוצהר"
+    },
+    {
+     "id": "oscillate.bounded",
+     "says": "אף פעם לא רחוק מהמרכז יותר מהמשרעת",
+     "catches": "משרעת גדולה פי 1.5"
+    },
+    {
+     "id": "oscillate.balanced",
+     "says": "מאוזן: הממוצע על פני מחזור שלם (8 נקודות שוות) = המרכז",
+     "catches": "רק החצי העליון של הגל (|sin|)"
+    }
+   ],
+   "mined": true,
+   "core": "catalog/core/oscillate.mjs",
+   "cues": {
+    "he": [
+     "מתנדנד",
+     "נושם",
+     "מהבהב",
+     "גל"
+    ],
+    "en": [
+     "oscillate",
+     "wave",
+     "sin",
+     "sine",
+     "pulse",
+     "breathe",
+     "blink",
+     "twinkle",
+     "sway",
+     "bob",
+     "wobble",
+     "oscillator"
+    ]
+   }
+  },
+  {
+   "id": "random",
+   "he": "מגריל",
+   "means": "רצף מספרים בין 0 ל-1 שנראה אקראי ומפוזר שווה — אבל אותו זרע נותן אותו רצף בדיוק",
+   "takes": [
+    "record",
+    "number"
+   ],
+   "gives": "sequence",
+   "laws": [
+    {
+     "id": "random.replay",
+     "says": "אותו זרע ⇒ אותו רצף; לבקש עוד מספרים לא משנה את הראשונים",
+     "catches": "הרצף תלוי בכמה ביקשו"
+    },
+    {
+     "id": "random.range",
+     "says": "כל מספר בין 0 (כולל) ל-1 (לא כולל)",
+     "catches": "מספרים עד 1.25"
+    },
+    {
+     "id": "random.seeded",
+     "says": "זרע אחר ⇒ רצף אחר",
+     "catches": "מתעלם מהזרע"
+    },
+    {
+     "id": "random.even",
+     "says": "מפוזר שווה: ב-400 הגרלות הממוצע קרוב לחצי ובכל רבע יש לפחות 60",
+     "catches": "מוטה לאפס (x²)"
+    }
+   ],
+   "mined": true,
+   "core": "catalog/core/random.mjs",
+   "cues": {
+    "he": [
+     "מגריל",
+     "אקראי",
+     "הגרלה",
+     "ערבוב"
+    ],
+    "en": [
+     "random",
+     "rand",
+     "rng",
+     "seed",
+     "seeded",
+     "shuffle",
+     "mulberry",
+     "lcg",
+     "prng",
+     "jitter",
+     "noise",
+     "dice",
+     "lottery"
+    ]
+   }
+  },
+  {
+   "id": "gravity",
+   "he": "נופל",
+   "means": "בכל צעד המהירות גדלה באותה כמות והמקום זז במהירות החדשה — מסלול ריבועי של נפילה (vy += g; y += vy)",
+   "takes": [
+    "record",
+    "number"
+   ],
+   "gives": "record",
+   "laws": [
+    {
+     "id": "gravity.start",
+     "says": "בצעד אפס — המקום והמהירות ההתחלתיים",
+     "catches": "מתחיל צעד אחד מאוחר"
+    },
+    {
+     "id": "gravity.speed",
+     "says": "המהירות גדלה בכל צעד בדיוק ב-g",
+     "catches": "מדווח מהירות כפולה"
+    },
+    {
+     "id": "gravity.quadratic",
+     "says": "המסלול ריבועי: ההפרש-השני של המקום קבוע ושווה ל-g",
+     "catches": "נופל בקו ישר (בלי האצה)"
+    }
+   ],
+   "mined": true,
+   "core": "catalog/core/gravity.mjs",
+   "cues": {
+    "he": [
+     "נופל",
+     "נפילה",
+     "כבידה",
+     "צונח"
+    ],
+    "en": [
+     "gravity",
+     "fall",
+     "falling",
+     "drop",
+     "vy",
+     "projectile",
+     "parabola",
+     "ballistic",
+     "arc"
+    ]
+   }
+  },
+  {
+   "id": "move-along-path",
+   "he": "מתקדם במסלול",
+   "means": "נקודה שזזה על דרך של תחנות: 0 = בראשונה, 1 = באחרונה, ובאמצע — על הדרך עצמה, לפי המרחק שעברה",
+   "takes": [
+    "record",
+    "number"
+   ],
+   "gives": "geo",
+   "laws": [
+    {
+     "id": "move-along-path.ends",
+     "says": "בהתחלה (0) — בתחנה הראשונה; בסוף (1) — באחרונה",
+     "catches": "נעצר ב-90% מהדרך"
+    },
+    {
+     "id": "move-along-path.onpath",
+     "says": "באמצע — תמיד על אחד מקטעי הדרך (לא קיצור דרך)",
+     "catches": "חותך בקו ישר מהראשונה לאחרונה"
+    },
+    {
+     "id": "move-along-path.even",
+     "says": "לפי המרחק: ב-p עבר בדיוק p מאורך הדרך כולה (לא לפי מספר התחנות)",
+     "catches": "זמן שווה לכל קטע (לא לפי אורך)"
+    }
+   ],
+   "mined": true,
+   "core": "catalog/core/move-along-path.mjs",
+   "cues": {
+    "he": [
+     "מסלול",
+     "בדרך",
+     "מתקדם",
+     "תחנות"
+    ],
+    "en": [
+     "path",
+     "along",
+     "waypoint",
+     "waypoints",
+     "route",
+     "progress",
+     "lerp",
+     "bezier",
+     "tween",
+     "interpolate",
+     "pointAt",
+     "getPointAtLength"
+    ]
+   }
+  },
+  {
+   "id": "orbit",
+   "he": "מקיף",
+   "means": "מסתובב סביב מרכז: תמיד באותו מרחק, באותה מהירות, וחוזר לאותו מקום אחרי מחזור שלם",
+   "takes": [
+    "record",
+    "number"
+   ],
+   "gives": "geo",
+   "laws": [
+    {
+     "id": "orbit.radius",
+     "says": "המרחק מהמרכז תמיד הרדיוס",
+     "catches": "אליפסה במקום מעגל"
+    },
+    {
+     "id": "orbit.period",
+     "says": "אחרי מחזור שלם — באותו מקום",
+     "catches": "מחזור ארוך פי 1.3"
+    },
+    {
+     "id": "orbit.steady",
+     "says": "מהירות קבועה: כל צעד עובר אותו מרחק",
+     "catches": "מאיץ ומאט בתוך הסיבוב"
+    }
+   ],
+   "mined": true,
+   "core": "catalog/core/orbit.mjs",
+   "cues": {
+    "he": [
+     "מקיף",
+     "מסתובב",
+     "סביב",
+     "מעגל"
+    ],
+    "en": [
+     "orbit",
+     "revolve",
+     "rotate",
+     "spin",
+     "circle",
+     "circular",
+     "around",
+     "yaw",
+     "turntable",
+     "sweep",
+     "satellite"
+    ]
+   }
+  },
+  {
+   "id": "shortest-path",
+   "he": "מוצא דרך קצרה",
+   "means": "ברשת של נקודות וקשתות עם מחיר — הדרך הזולה ביותר מנקודה לנקודה, ואם אין דרך אומר שאין",
+   "takes": [
+    "record",
+    "choice"
+   ],
+   "gives": "sequence",
+   "laws": [
+    {
+     "id": "shortest-path.valid",
+     "says": "הדרך אמיתית: מתחילה במוצא, נגמרת ביעד, כל שתי נקודות צמודות מחוברות בקשת, והמחיר = סכום הקשתות",
+     "catches": "מחיר מדווח שלא תואם את הדרך"
+    },
+    {
+     "id": "shortest-path.shortest",
+     "says": "אין דרך זולה יותר לאף יעד (בדיקה בכוח-גס על כל הדרכים), ו\"אין דרך\" רק כשבאמת אין",
+     "catches": "לוקח את הדרך הראשונה שמצא (חיפוש-לעומק)"
+    }
+   ],
+   "mined": true,
+   "core": "catalog/core/shortest-path.mjs",
+   "cues": {
+    "he": [
+     "קצר",
+     "קצרה",
+     "דרך",
+     "מסלול"
+    ],
+    "en": [
+     "shortest",
+     "dijkstra",
+     "bfs",
+     "astar",
+     "path",
+     "route",
+     "hops",
+     "cheapest",
+     "nearest",
+     "graph"
+    ]
+   }
+  },
+  {
+   "id": "spread",
+   "he": "מתפשט",
+   "means": "בכל צעד מה שנגע עובר לכל השכנים הישירים — גל שמתרחב טבעת אחרי טבעת, ומה שנגע נשאר",
+   "takes": [
+    "record",
+    "number"
+   ],
+   "gives": "list",
+   "laws": [
+    {
+     "id": "spread.grows",
+     "says": "מתחיל מהמקורות, ומה שנגע נשאר: כל צעד מכיל את כל מה שהיה בצעד הקודם",
+     "catches": "רק הטבעת החדשה — מה שנגע נשכח"
+    },
+    {
+     "id": "spread.neighbors",
+     "says": "עובר רק לשכן ישיר: כל מי שנוסף בצעד הזה צמוד למישהו שנגעו בו קודם",
+     "catches": "קופץ שתי טבעות בצעד"
+    },
+    {
+     "id": "spread.reach",
+     "says": "עובר לכל השכנים: כל שכן של מי שנגעו בו — נגעו בו בצעד הבא",
+     "catches": "עובר רק לחצי מהשכנים"
+    }
+   ],
+   "mined": true,
+   "core": "catalog/core/spread.mjs",
+   "cues": {
+    "he": [
+     "מתפשט",
+     "מתפזר",
+     "מדביק",
+     "גל"
+    ],
+    "en": [
+     "spread",
+     "flood",
+     "cascade",
+     "propagate",
+     "contagion",
+     "ripple",
+     "reach",
+     "reachWithin",
+     "frontier",
+     "infect",
+     "diffuse"
+    ]
+   }
+  },
+  {
+   "id": "sample",
+   "he": "דוגם",
+   "means": "קורא מהסביבה כל קריאה k-ית (הראשונה, ה-k, ה-2k…) — בלי לשנות ובלי לדלג על תור",
+   "takes": [
+    "record",
+    "list"
+   ],
+   "gives": "list",
+   "laws": [
+    {
+     "id": "sample.picks",
+     "says": "הקריאה ה-k בפלט = הקריאה ה-k·every בקלט, לפי הסדר",
+     "catches": "קורא את השכן של הקריאה הנכונה"
+    },
+    {
+     "id": "sample.count",
+     "says": "בדיוק כמה שצריך: עיגול-למעלה של (כמה קריאות ÷ every)",
+     "catches": "מפיל את הקריאה האחרונה"
+    }
+   ],
+   "mined": true,
+   "core": "catalog/core/sample.mjs",
+   "cues": {
+    "he": [
+     "דוגם",
+     "דגימה",
+     "קורא",
+     "מודד"
+    ],
+    "en": [
+     "sample",
+     "sampling",
+     "every",
+     "nth",
+     "stride",
+     "poll",
+     "read",
+     "probe",
+     "getImageData",
+     "pixel",
+     "detect"
+    ]
+   }
+  },
+  {
+   "id": "echo",
+   "he": "מודד בהד",
+   "means": "שולח אות ומודד אחרי כמה זמן חזר — המרחק הוא הדרך הלוך-וחזור חלקי שתיים",
+   "takes": [
+    "record",
+    "number"
+   ],
+   "gives": "number",
+   "laws": [
+    {
+     "id": "echo.zero",
+     "says": "חזר מיד ⇒ המרחק אפס",
+     "catches": "מוסיף מטר אחד תמיד"
+    },
+    {
+     "id": "echo.linear",
+     "says": "פי שניים זמן ⇒ פי שניים מרחק",
+     "catches": "מרחק בריבוע הזמן"
+    },
+    {
+     "id": "echo.there-back",
+     "says": "הלוך וחזור: לעבור את המרחק פעמיים במהירות האות לוקח בדיוק את הזמן שנמדד",
+     "catches": "שוכח לחלק בשתיים (סופר רק הלוך)"
+    }
+   ],
+   "mined": true,
+   "core": "catalog/core/echo.mjs",
+   "cues": {
+    "he": [
+     "הד",
+     "פינג",
+     "זמן-תגובה"
+    ],
+    "en": [
+     "echo",
+     "ping",
+     "rtt",
+     "roundTrip",
+     "latency",
+     "sonar",
+     "pong",
+     "heartbeat"
+    ]
+   }
+  },
+  {
+   "id": "follow",
+   "he": "הולך אחרי",
+   "means": "בכל צעד מתקרב חלק קבוע מהדרך אל המטרה — לא עובר אותה, וכשהגיע נשאר (החלקה, מצלמה שנגררת, להקה)",
+   "takes": [
+    "record",
+    "number"
+   ],
+   "gives": "number",
+   "laws": [
+    {
+     "id": "follow.closer",
+     "says": "מתקרב ולא עובר: המרחק למטרה לא גדל, והצד לא מתחלף",
+     "catches": "קופץ לצד השני של המטרה"
+    },
+    {
+     "id": "follow.still",
+     "says": "כשכבר במטרה — נשאר בה",
+     "catches": "זז גם כשכבר במטרה"
+    },
+    {
+     "id": "follow.fraction",
+     "says": "החלק שעובר קבוע: מכל מרחק מתקרב באותו אחוז מהדרך",
+     "catches": "מהירות קבועה במקום חלק מהדרך"
+    }
+   ],
+   "mined": true,
+   "core": "catalog/core/follow.mjs",
+   "cues": {
+    "he": [
+     "הולך אחרי",
+     "עוקב",
+     "נגרר",
+     "מתקרב"
+    ],
+    "en": [
+     "follow",
+     "chase",
+     "lerp",
+     "ease",
+     "easeToward",
+     "smooth",
+     "smoothing",
+     "track",
+     "approach",
+     "ema",
+     "lag",
+     "seek"
+    ]
+   }
+  },
+  {
+   "id": "bounce",
+   "he": "קופץ",
+   "means": "גוף שפוגע ברצפה חוזר ממנה: המהירות מתהפכת ונחלשת לפי מקדם-הקפיצה, ואף פעם לא נשאר מתחת לרצפה",
+   "takes": [
+    "record",
+    "record"
+   ],
+   "gives": "record",
+   "laws": [
+    {
+     "id": "bounce.flip",
+     "says": "בפגיעה ברצפה המהירות מתהפכת ונחלשת בדיוק במקדם-הקפיצה",
+     "catches": "קופץ בלי לאבד אנרגיה"
+    },
+    {
+     "id": "bounce.inside",
+     "says": "אף פעם לא מתחת לרצפה",
+     "catches": "נשאר מתחת לרצפה"
+    },
+    {
+     "id": "bounce.free",
+     "says": "בלי פגיעה — ממשיך כרגיל: המקום זז במהירות והמהירות לא משתנה",
+     "catches": "מאט גם באוויר"
+    }
+   ],
+   "mined": true,
+   "core": "catalog/core/bounce.mjs",
+   "builtNew": true,
+   "cues": {
+    "he": [
+     "קופץ",
+     "קפיצה",
+     "ניתור",
+     "חוזר"
+    ],
+    "en": [
+     "bounce",
+     "rebound",
+     "restitution",
+     "reflect",
+     "collide",
+     "collision",
+     "wall",
+     "bouncy"
+    ]
+   }
+  },
+  {
+   "id": "sun-position",
+   "he": "מוצא את מקום השמש",
+   "means": "מתי השמש נמצאת בזווית נתונה מתחת לאופק ביום ובמקום נתונים — בבוקר עולה, בערב שוקעת, וחצות-היום באמצע",
+   "takes": [
+    "record",
+    "date"
+   ],
+   "gives": "times",
+   "laws": [
+    {
+     "id": "sun-position.order",
+     "says": "קודם עולה, אחר כך חצות-היום, אחר כך שוקעת",
+     "catches": "מחליף בוקר וערב"
+    },
+    {
+     "id": "sun-position.symmetric",
+     "says": "חצות-היום בדיוק באמצע בין העלייה לשקיעה",
+     "catches": "שקיעה מאוחרת ב-3 דקות"
+    },
+    {
+     "id": "sun-position.deeper",
+     "says": "זווית עמוקה יותר (דמדומים) ⇒ מוקדם יותר בבוקר ומאוחר יותר בערב, וחצות-היום לא זז",
+     "catches": "הופך את סימן הזווית"
+    }
+   ],
+   "mined": true,
+   "core": "catalog/core/sun-position.mjs",
+   "cues": {
+    "he": [
+     "שמש",
+     "זריחה",
+     "שקיעה",
+     "נץ",
+     "זמנים",
+     "צאת"
+    ],
+    "en": [
+     "sun",
+     "sunrise",
+     "sunset",
+     "zmanim",
+     "solar",
+     "noaa",
+     "dawn",
+     "dusk",
+     "twilight",
+     "declination",
+     "zenith"
     ]
    }
   },

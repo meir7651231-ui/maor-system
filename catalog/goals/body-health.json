@@ -8,7 +8,7 @@
       "needs": [
         {
           "behavior": "מיון לפי דחיפות",
-          "verb": "rank-tiers",
+          "verb": "tier",
           "material": "list"
         },
         {
@@ -45,22 +45,22 @@
         },
         {
           "behavior": "מזיע מעל",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         },
         {
           "behavior": "רועד מתחת",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         },
         {
           "behavior": "חום ⇒ דרגות",
-          "verb": "rank-tiers",
+          "verb": "tier",
           "material": "choice"
         },
         {
           "behavior": "נמוך בבוקר וגבוה בערב",
-          "verb": "NEW:oscillate",
+          "verb": "oscillate",
           "material": "number",
           "detail": "מתנדנד — גל שעולה ויורד שוב ושוב בקצב קבוע"
         }
@@ -83,7 +83,7 @@
         },
         {
           "behavior": "רק בגיל מתאים",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         },
         {
@@ -115,23 +115,23 @@
         },
         {
           "behavior": "נרגע לאט אחרי",
-          "verb": "NEW:decay",
+          "verb": "decay",
           "material": "number",
           "detail": "דועך — ערך שיורד מעט בכל צעד-זמן עד אפס"
         },
         {
           "behavior": "ארבעה חדרים בתורות",
-          "verb": "round-robin",
+          "verb": "rotate",
           "material": "sequence"
         },
         {
           "behavior": "דופק מהיר מדי ⇒ התראה",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         },
         {
           "behavior": "הדופק הנמוך של היום",
-          "verb": "minmax",
+          "verb": "extreme",
           "material": "number"
         }
       ]
@@ -143,7 +143,7 @@
       "needs": [
         {
           "behavior": "שאיפה ונשיפה",
-          "verb": "NEW:oscillate",
+          "verb": "oscillate",
           "material": "number",
           "detail": "מתנדנד — גל שעולה ויורד שוב ושוב בקצב קבוע"
         },
@@ -159,13 +159,13 @@
         },
         {
           "behavior": "ספירה לנשימה רגועה",
-          "verb": "NEW:countdown",
+          "verb": "countdown",
           "material": "number",
           "detail": "סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה"
         },
         {
           "behavior": "מחליפה צד באף",
-          "verb": "round-robin",
+          "verb": "rotate",
           "material": "choice"
         }
       ]
@@ -187,7 +187,7 @@
         },
         {
           "behavior": "נסגרת כשמשהו קרוב",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         },
         {
@@ -219,12 +219,12 @@
         },
         {
           "behavior": "הגיע ליעד ⇒ חגיגה",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         },
         {
           "behavior": "ישבת שעה ⇒ קום",
-          "verb": "NEW:countdown",
+          "verb": "countdown",
           "material": "times",
           "detail": "סופר לאחור — כמה זמן/צעדים נשארו עד שמשהו קורה"
         },
@@ -235,7 +235,7 @@
         },
         {
           "behavior": "היום הכי טוב",
-          "verb": "minmax",
+          "verb": "extreme",
           "material": "date"
         }
       ]
@@ -268,7 +268,7 @@
         },
         {
           "behavior": "כמה ישנתי כל לילה",
-          "verb": "daily-snapshot",
+          "verb": "bucket",
           "material": "number"
         }
       ]
@@ -295,7 +295,7 @@
         },
         {
           "behavior": "הגוף מתייבש",
-          "verb": "NEW:decay",
+          "verb": "decay",
           "material": "number",
           "detail": "דועך — ערך שיורד מעט בכל צעד-זמן עד אפס"
         },
@@ -318,7 +318,7 @@
         },
         {
           "behavior": "דחוף עוקף",
-          "verb": "rank-tiers",
+          "verb": "tier",
           "material": "list"
         },
         {
@@ -333,7 +333,7 @@
         },
         {
           "behavior": "לא הגיע ⇒ הבא נכנס",
-          "verb": "tolerate-failure",
+          "verb": "tolerate",
           "material": "waiting"
         },
         {
@@ -365,7 +365,7 @@
         },
         {
           "behavior": "נגמרות ⇒ להזמין",
-          "verb": "gate",
+          "verb": "validate",
           "material": "bool"
         },
         {
