@@ -111,12 +111,13 @@ node scripts/atoms-verify.mjs --json                           # { atoms: {id:{c
 ## 9. משקל וטוהר
 - המאמת לא נכנס לבנדל: אף קובץ אפליקציה לא מייבא את `atoms/verify/*` (הגנת-מקור בבדיקה, סריקת `src/` עם fs). `previewStrict`/`staffLabels`
   חיים ב-preview.ts שממילא עצל.
-- `npm run verify` — ראו §10.
+- `npm run verify` ✅ — bundle-budget: index 158,712B gzip (88%), **8 chunks-הפעלה**. אף מחרוזת של המאמת באף chunk; המשפט החדש של חלון-ניקיון ריק — רק ב-chunk העצל `source`.
 
 ## 10. שערים
 - `npm run verify:fast` ✅ — 461 קבצים · 4,162 בדיקות.
-- `npm run verify` — ראו שורת-הסיכום בהודעת-הסגירה (build + bundle-budget, 8 chunks-הפעלה).
-- `npm run e2e` (toggle-matrix) · `node e2e/enginebox-smoke.mjs` — ראו הודעת-הסגירה; הסקריפטים לא שונו, צילומים שנכתבים מחדש מוחזרים.
+- `npm run verify` ✅ — 4,162 בדיקות · build · bundle-budget 88% · 8 chunks-הפעלה.
+- `npm run e2e` (toggle-matrix) ✅ — "המטריצה כולה ירוקה".
+- `node e2e/enginebox-smoke.mjs` ✅ — 126 ✅, אפס ❌, אפס שגיאות קונסולה; הסקריפט לא שונה. הצילומים שהמסע כותב מחדש **הוחזרו** לגרסה המחויבת.
 
 ## 11. לסשן המשלב
 - החותמת: `verifySummary(verifyAtoms(), verifyConnections(ctx))` + `isVerified(key, summary)`. המאמת כבד מדי לרוץ במסך (שניות); ההצעה — להריץ
