@@ -160,7 +160,8 @@
         {
           "behavior": "רוקדת לפי המוזיקה",
           "verb": "convert",
-          "material": "sound"
+          "material": "number",
+          "note": "MACHINE-V4: היה convert·sound. העוצמה של המוזיקה בכל רגע ⇒ גובה המים: ערך-בודד ⇒ ערך-בודד, בלי איבוד מידע — «ממיר ערך». «ממיר» לא מקבל רשימת צלילים."
         },
         {
           "behavior": "המים חוזרים לבריכה",
@@ -241,8 +242,9 @@
         },
         {
           "behavior": "תור לספר מבוקש",
-          "verb": "next",
-          "material": "waiting"
+          "verb": "lookup",
+          "material": "waiting",
+          "note": "MACHINE-V4: היה next·waiting. מי מקבל את הספר = הראשון בתור שעוד מחכה: «מחפש לפי מפתח» (הראשון שמתאים, ואם אין — כלום) על התור. «הבא בתור» בודק רגעים."
         },
         {
           "behavior": "הכי מושאלים",
@@ -303,7 +305,8 @@
         {
           "behavior": "הולך רגל לחץ ⇒ ירוק בתורו",
           "verb": "next",
-          "material": "waiting"
+          "material": "times",
+          "note": "MACHINE-V4: היה next·waiting. ירוק בתורו = המשבצת הבאה של מחזור-הרמזור אחרי רגע הלחיצה — «הבא בתור» על רגעים."
         },
         {
           "behavior": "גל ירוק עם הרמזור הבא",
@@ -388,7 +391,8 @@
         {
           "behavior": "הודעה בקול",
           "verb": "route",
-          "material": "sound"
+          "material": "choice",
+          "note": "MACHINE-V4: היה route·sound. \"הודעה בקול\" = ההודעה נשלחת בערוץ אחד — הרמקול: «מנתב לפי ערוץ» על בחירת-ערוץ. הקול הוא הערוץ, לא החומר."
         },
         {
           "behavior": "הקו הבא לכל יעד",

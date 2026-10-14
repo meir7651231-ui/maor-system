@@ -14,7 +14,8 @@
         {
           "behavior": "מחבר שיר לשיר",
           "verb": "merge",
-          "material": "sound"
+          "material": "sequence",
+          "note": "MACHINE-V4: היה merge·sound. שיר-צמוד-לשיר = רצפים של \"מתנגן\" (כן/לא לכל משבצת) שמתחברים לסט אחד רציף — בדיוק «מחבר רצפים», על רצף כן/לא."
         },
         {
           "behavior": "אנרגיה עולה",
@@ -23,8 +24,9 @@
         },
         {
           "behavior": "בקשות מהקהל",
-          "verb": "next",
-          "material": "waiting"
+          "verb": "lookup",
+          "material": "waiting",
+          "note": "MACHINE-V4: היה next·waiting. הבקשה הבאה שמנגנים = הראשונה שעוד ממתינה: «מחפש לפי מפתח» על התור."
         },
         {
           "behavior": "לא אותו שיר פעמיים",
@@ -133,8 +135,9 @@
         },
         {
           "behavior": "מעבר רך בין שירים",
-          "verb": "merge",
-          "material": "sound"
+          "verb": "decay",
+          "material": "number",
+          "note": "MACHINE-V4: היה merge·sound. מעבר רך = העוצמה של השיר שנגמר דועכת לאפס צעד אחרי צעד (ובינתיים הבא מתחיל) — «דועך» על מספר. «מחבר רצפים» מאחד כן/לא צמודים."
         }
       ]
     },
@@ -146,7 +149,8 @@
         {
           "behavior": "קליד ⇒ צליל",
           "verb": "convert",
-          "material": "sound"
+          "material": "number",
+          "note": "MACHINE-V4: היה convert·sound. קליד ⇒ הגובה שלו: מספר-הקליד הופך לתדר — «ממיר ערך», שבודק ערך-בודד ⇒ ערך-בודד בלי איבוד מידע (קליד אחר ⇒ צליל אחר). «ממיר» לא מקבל רשימת צלילים."
         },
         {
           "behavior": "שתים עשרה בכל אוקטבה",
@@ -161,8 +165,9 @@
         {
           "behavior": "הצליל דועך",
           "verb": "decay",
-          "material": "sound",
-          "detail": "דועך — ערך שיורד מעט בכל צעד-זמן עד אפס"
+          "material": "number",
+          "detail": "דועך — ערך שיורד מעט בכל צעד-זמן עד אפס",
+          "note": "MACHINE-V4: היה decay·sound. מה שדועך הוא העוצמה — מספר: בדיוק מעטפת-העוצמה של tone() בפרנס׳לע (sound.ts:51, exponentialRampToValueAtTime(0.0001, …)), שהפותח כבר הרים כחלק פנימי."
         },
         {
           "behavior": "דוושה מחזיקה",
@@ -198,8 +203,9 @@
         },
         {
           "behavior": "קול לפי גודל",
-          "verb": "convert",
-          "material": "sound"
+          "verb": "map",
+          "material": "sound",
+          "note": "MACHINE-V4: היה convert·sound. אותו צליל-פעמון, כל תו שלו בגובה לפי הגודל = «ממיר כל פריט» על התווים: ליבת-החומר transposeNotes (צליל-המטבע של פרנס׳לע, sound.ts:89 — tone(f * j, …))."
         }
       ]
     },
@@ -210,8 +216,9 @@
       "needs": [
         {
           "behavior": "אותו שיר לכולם",
-          "verb": "merge",
-          "material": "sound"
+          "verb": "relay",
+          "material": "list",
+          "note": "MACHINE-V4: היה merge·sound. אותו שיר עובר מהקול הראשון לכל השאר, פעם אחת לכל אחד ולא חוזר למי ששר אותו — «מעביר דרך מרכז» על רשימת הודעות (כמו מעביר·טקסט ⇒ רשימה, MACHINE-V3)."
         },
         {
           "behavior": "כל קבוצה מתחילה באיחור",
@@ -281,7 +288,8 @@
         {
           "behavior": "המנצח מאחד",
           "verb": "relay",
-          "material": "sound"
+          "material": "list",
+          "note": "MACHINE-V4: היה relay·sound. המנצח הוא המרכז: כל סימן שלו מגיע לכל הנגנים, פעם אחת לכל אחד — «מעביר דרך מרכז» על רשימת הודעות (הקול הוא התוכן)."
         },
         {
           "behavior": "כל קבוצה נכנסת בזמן שלה",
@@ -295,13 +303,15 @@
         },
         {
           "behavior": "כוונון לפי צליל אחד",
-          "verb": "compare",
-          "material": "sound"
+          "verb": "gap",
+          "material": "number",
+          "note": "MACHINE-V4: היה compare·sound. כוונון = כמה רחוק הצליל שלי מצליל-הייחוס: «מודד מרחק» בין שני תדרים (מעצמו 0, והמרחקים מתחברים). «משווה» אומר רק מי לפני מי."
         },
         {
           "behavior": "תווים לכל נגן",
           "verb": "personalize",
-          "material": "file"
+          "material": "text",
+          "note": "MACHINE-V4: היה personalize·file. התווים של כל נגן הם טקסט שנבנה מהרשומה שלו (כלי, שם, תפקיד) — «ממלא טקסט מרשומה». \"קובץ\" הוא רק איך שומרים את הטקסט."
         }
       ]
     },

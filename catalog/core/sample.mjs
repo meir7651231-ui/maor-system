@@ -3,7 +3,7 @@
  * הליבה בלי עולם של: דגימת הלוגו פיקסל-כל-2 (orbit-final של המחולל), מצלמה שנקראת כל פריים (ברקוד, בנייה-חכמה),
  * זיקית שקוראת את הצבע מהרקע. מקורות: origins.json. טהור: הקריאות עצמן מוזרקות (הסביבה אצל הקורא).
  * @param {{every: number}} spec
- * @param {number[]} readings
+ * @param {number[]} readings  (הקוד לא נוגע בקריאה עצמה — כל סוג עובר כמו שהוא; ראו core-census: T[])
  * @returns {number[]}
  */
 export function sample(spec, readings) {

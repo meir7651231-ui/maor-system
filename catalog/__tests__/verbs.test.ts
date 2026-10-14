@@ -64,6 +64,29 @@ describe('אלפבית-הפעלים', () => {
     }
   }
 
+  /* MACHINE-V4: ארבעה פעלים רצים גם על נקודות (נקודות ⇒ רשת · נקודה שהולכת אחרי · נקודות אקראיות) — אותם חוקים, ולכל חוק מוטנט-נקודות */
+  for (const v of (RUNTIME as (Verb & { refGeo?: Verb['ref']; mutantsGeo?: Verb['mutants'] })[]).filter((x) => x.refGeo)) {
+    const geo = { ...v, ref: v.refGeo! } as Verb;
+    it(`${v.id} על נקודות — המימוש-לדוגמה מקיים את כל החוקים`, () => {
+      const { rep } = report(geo, geo.ref.fn(B));
+      expect(rep, v.id).not.toBeNull();
+      const bad = Object.entries(rep.laws as Record<string, { fail: number; why: string | null }>).filter(([, l]) => l.fail).map(([k, l]) => k + ': ' + l.why);
+      expect(bad).toEqual([]);
+      expect(rep.held, JSON.stringify({ witness: rep.witness, dep: rep.dep, laws: rep.laws })).toBe(true);
+    });
+    for (const law of v.laws) {
+      it(`${law.id} על נקודות — נושך`, () => {
+        const mk = v.mutantsGeo?.[law.id];
+        expect(mk, 'חסר מוטנט-נקודות ל-' + law.id).toBeTypeOf('function');
+        const { b } = report(geo, geo.ref.fn(B));
+        const { rep } = report(geo, mk!(B), b);
+        expect(rep, law.id).not.toBeNull();
+        expect(rep.laws[law.id].fail, JSON.stringify(rep.laws[law.id])).toBeGreaterThan(0);
+        expect(rep.held).toBe(false);
+      });
+    }
+  }
+
   it('8 פעלי-הארגז: 30 חוקי-המאמת עוברים על החלקים עצמם (200 קלטים לחלק)', () => {
     expect(B.ATOM_LAWS.length).toBe(30);
     for (const atom of ['divide', 'merge', 'next', 'round', 'offset', 'escalate', 'rotate', 'fuzzy'] as const) {

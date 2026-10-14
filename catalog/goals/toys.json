@@ -393,8 +393,9 @@
         },
         {
           "behavior": "אף פעם לא אותו דבר",
-          "verb": "dedupe",
-          "material": "image"
+          "verb": "random",
+          "material": "sequence",
+          "note": "MACHINE-V4: היה dedupe·image. \"אף פעם לא אותו דבר\" = כל סיבוב נותן הגרלה חדשה מהזרע (כמו \"קצת אקראי\", MACHINE-V3). «מסיר כפולים» דורש קלט שכבר יש בו כפולים."
         }
       ]
     },

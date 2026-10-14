@@ -3,169 +3,15 @@
  "seed": 789278,
  "k": 24,
  "k3": 24,
- "pairs": 46,
- "proven": 11,
+ "pairs": 19,
+ "proven": 18,
  "depth": {
-  "2": 2,
+  "2": 4,
   "3": 0,
-  "on": 8,
+  "on": 13,
   "graph": 1
  },
  "results": [
-  {
-   "verb": "bounce",
-   "material": "geo",
-   "behaviors": [
-    "טניס: הכדור חוזר מהרשת"
-   ],
-   "nBehaviors": 1,
-   "candidates": 0,
-   "candidates3": 0,
-   "found": null,
-   "tried": []
-  },
-  {
-   "verb": "bucket",
-   "material": "image",
-   "behaviors": [
-    "עציץ: תמונה כל שבוע",
-    "טלסקופ: תמונה כל לילה",
-    "לוויין: צילום כל סיבוב"
-   ],
-   "nBehaviors": 3,
-   "candidates": 0,
-   "candidatesOn": 24,
-   "candidates3": 24,
-   "found": null,
-   "tried": [
-    {
-     "steps": [
-      "orbit:src/components/calendar/calLib.ts#isoOf"
-     ],
-     "form": "on",
-     "why": "לא רץ: no-fitting-input"
-    },
-    {
-     "steps": [
-      "orbit:src/components/diary/lib.ts#localIso"
-     ],
-     "form": "on",
-     "why": "לא רץ: no-fitting-input"
-    },
-    {
-     "steps": [
-      "orbit:src/lib/date-util.ts#isoLocal"
-     ],
-     "form": "on",
-     "why": "לא רץ: no-fitting-input"
-    },
-    {
-     "steps": [
-      "orbit:src/lib/hebrew.ts#hebParts"
-     ],
-     "form": "on",
-     "why": "לא רץ: no-fitting-input"
-    },
-    {
-     "steps": [
-      "inner-generator:new/atoms/segula-reminders.mjs#segulaReminders.map.dd"
-     ],
-     "form": "on",
-     "why": "הפלט לא בצורה שהחוקים של «מקבץ לפי יום» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-generator:new/atoms/sup12m.mjs#sup12m.cut:step"
-     ],
-     "form": "on",
-     "why": "לא רץ: no-fitting-input"
-    },
-    {
-     "steps": [
-      "inner-generator:new/atoms/support-day-label.mjs#supportDayLabel.dd:step"
-     ],
-     "form": "on",
-     "why": "לא רץ: no-fitting-input"
-    },
-    {
-     "steps": [
-      "inner-generator:new/boxes/planned.mjs#addMonthsClamped.dd:step"
-     ],
-     "form": "on",
-     "why": "לא רץ: no-fitting-input"
-    }
-   ]
-  },
-  {
-   "verb": "clamp",
-   "material": "geo",
-   "behaviors": [
-    "מסוק: מרחף במקום"
-   ],
-   "nBehaviors": 1,
-   "candidates": 4,
-   "candidatesOn": 24,
-   "candidates3": 0,
-   "found": null,
-   "tried": [
-    {
-     "steps": [
-      "inner-buildsmart:functions/src/claude.ts#onCall.maxTokens"
-     ],
-     "form": "on",
-     "why": "הפלט לא בצורה שהחוקים של «מגביל לטווח» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-generator:box-drafts/io-wiring/score-term@src_lib_search_ts.mjs#scoreTerm.max"
-     ],
-     "form": "on",
-     "why": "הפלט לא בצורה שהחוקים של «מגביל לטווח» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-generator:gen/looks/buybox/build.mjs#split.c"
-     ],
-     "form": "on",
-     "why": "הפלט לא בצורה שהחוקים של «מגביל לטווח» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-generator:gen/looks/measure/extract.mjs#EXTRACT.hex.a:step"
-     ],
-     "form": "on",
-     "why": "הפלט לא בצורה שהחוקים של «מגביל לטווח» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-generator:machtzev/dart-bin.mjs#parseAnalyze.infoN"
-     ],
-     "form": "on",
-     "why": "הפלט לא בצורה שהחוקים של «מגביל לטווח» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-generator:machtzev/dart-bin.mjs#parseAnalyze.warnN"
-     ],
-     "form": "on",
-     "why": "הפלט לא בצורה שהחוקים של «מגביל לטווח» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-generator:machtzev/generator/auto-logic.mjs#runTests.f"
-     ],
-     "form": "on",
-     "why": "הפלט לא בצורה שהחוקים של «מגביל לטווח» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-generator:machtzev/generator/auto-logic.mjs#runTests.f:step"
-     ],
-     "form": "on",
-     "why": "הפלט לא בצורה שהחוקים של «מגביל לטווח» בודקים (אין קישור מתאים)"
-    }
-   ]
-  },
   {
    "verb": "compare",
    "material": "geo",
@@ -175,7 +21,7 @@
     "גשר-נפתח: ספינה מתקרבת"
    ],
    "nBehaviors": 3,
-   "candidates": 24,
+   "candidates": 16,
    "candidates3": 0,
    "found": {
     "form": "pair",
@@ -199,289 +45,6 @@
     "hint": "מתקרב = מודד-המרחק של הגלקסיה (hypot בין העכבר לכוכב) לכל אחד, ואז משווה מי קרוב יותר. בשמו המלא (MACHINE-V3) — כדי שמתאם-מקום חדש שאינו מרחק לא יחליף אותו"
    },
    "tried": []
-  },
-  {
-   "verb": "compare",
-   "material": "image",
-   "behaviors": [
-    "משחק-זיכרון: הופכים שניים"
-   ],
-   "nBehaviors": 1,
-   "candidates": 2,
-   "candidatesOn": 16,
-   "candidates3": 24,
-   "found": null,
-   "tried": [
-    {
-     "steps": [
-      "inner-14kk:check_protocol_activity.js#ProtocolActivityChecker.checkCommunicationProtocol.timeDiff:step"
-     ],
-     "form": "on",
-     "why": "הפלט לא בצורה שהחוקים של «משווה» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-14kk:check_protocol_activity.js#ProtocolActivityChecker.checkConstructionProtocol.timeDiff:step"
-     ],
-     "form": "on",
-     "why": "הפלט לא בצורה שהחוקים של «משווה» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-14kk:check_protocol_activity.js#ProtocolActivityChecker.checkKnowledgeProtocol.timeDiff:step"
-     ],
-     "form": "on",
-     "why": "הפלט לא בצורה שהחוקים של «משווה» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-14kk:check_protocol_activity.js#ProtocolActivityChecker.checkOptimizationProtocol.timeDiff:step"
-     ],
-     "form": "on",
-     "why": "הפלט לא בצורה שהחוקים של «משווה» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-14kk:check_protocol_activity.js#ProtocolActivityChecker.checkTelegramActivity.timeDiff:step"
-     ],
-     "form": "on",
-     "why": "הפלט לא בצורה שהחוקים של «משווה» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-14kk:check_protocol_activity.js#ProtocolActivityChecker.checkWorkManagerProtocol.timeDiff:step"
-     ],
-     "form": "on",
-     "why": "הפלט לא בצורה שהחוקים של «משווה» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-generator:gen/looks/buybox/build.mjs#split.c:step"
-     ],
-     "form": "on",
-     "why": "הפלט לא בצורה שהחוקים של «משווה» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-generator:gen/looks/grafa/build.mjs#map.over"
-     ],
-     "form": "on",
-     "why": "הפלט לא בצורה שהחוקים של «משווה» בודקים (אין קישור מתאים)"
-    }
-   ]
-  },
-  {
-   "verb": "compare",
-   "material": "sound",
-   "behaviors": [
-    "תזמורת: כוונון לפי צליל אחד"
-   ],
-   "nBehaviors": 1,
-   "candidates": 0,
-   "candidatesOn": 16,
-   "candidates3": 0,
-   "found": null,
-   "tried": [
-    {
-     "steps": [
-      "inner-14kk:check_protocol_activity.js#ProtocolActivityChecker.checkCommunicationProtocol.timeDiff:step"
-     ],
-     "form": "on",
-     "why": "הפלט לא בצורה שהחוקים של «משווה» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-14kk:check_protocol_activity.js#ProtocolActivityChecker.checkConstructionProtocol.timeDiff:step"
-     ],
-     "form": "on",
-     "why": "הפלט לא בצורה שהחוקים של «משווה» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-14kk:check_protocol_activity.js#ProtocolActivityChecker.checkKnowledgeProtocol.timeDiff:step"
-     ],
-     "form": "on",
-     "why": "הפלט לא בצורה שהחוקים של «משווה» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-14kk:check_protocol_activity.js#ProtocolActivityChecker.checkOptimizationProtocol.timeDiff:step"
-     ],
-     "form": "on",
-     "why": "הפלט לא בצורה שהחוקים של «משווה» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-14kk:check_protocol_activity.js#ProtocolActivityChecker.checkTelegramActivity.timeDiff:step"
-     ],
-     "form": "on",
-     "why": "הפלט לא בצורה שהחוקים של «משווה» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-14kk:check_protocol_activity.js#ProtocolActivityChecker.checkWorkManagerProtocol.timeDiff:step"
-     ],
-     "form": "on",
-     "why": "הפלט לא בצורה שהחוקים של «משווה» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-generator:gen/looks/buybox/build.mjs#split.c:step"
-     ],
-     "form": "on",
-     "why": "הפלט לא בצורה שהחוקים של «משווה» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-generator:gen/looks/grafa/build.mjs#map.over"
-     ],
-     "form": "on",
-     "why": "הפלט לא בצורה שהחוקים של «משווה» בודקים (אין קישור מתאים)"
-    }
-   ]
-  },
-  {
-   "verb": "convert",
-   "material": "sound",
-   "behaviors": [
-    "מזרקה: רוקדת לפי המוזיקה",
-    "פסנתר: קליד ⇒ צליל",
-    "פעמוני-כנסייה: קול לפי גודל"
-   ],
-   "nBehaviors": 3,
-   "candidates": 0,
-   "candidatesOn": 24,
-   "candidates3": 0,
-   "found": null,
-   "tried": [
-    {
-     "steps": [
-      "orbit:src/components/parnasa/zmanimBoard.ts#hmToMin"
-     ],
-     "form": "on",
-     "why": "הפלט לא בצורה שהחוקים של «ממיר ערך» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "orbit:src/lib/atoms/parts/offset.ts#hhmmToMinutes"
-     ],
-     "form": "on",
-     "why": "הפלט לא בצורה שהחוקים של «ממיר ערך» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-generator:gen/looks/full5/art.mjs#hash.h:after-loop"
-     ],
-     "form": "on",
-     "why": "הפלט לא בצורה שהחוקים של «ממיר ערך» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-generator:machtzev/assemble/data-lift.mjs#purposeOf.k"
-     ],
-     "form": "on",
-     "why": "הפלט לא בצורה שהחוקים של «ממיר ערך» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-generator:machtzev/ds-forge.mjs#edge.cl.n"
-     ],
-     "form": "on",
-     "why": "הפלט לא בצורה שהחוקים של «ממיר ערך» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-generator:machtzev/ds-wear.mjs#constScope.k"
-     ],
-     "form": "on",
-     "why": "הפלט לא בצורה שהחוקים של «ממיר ערך» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-generator:machtzev/generator/retarget.mjs#parentWidget.i"
-     ],
-     "form": "on",
-     "why": "הפלט לא בצורה שהחוקים של «ממיר ערך» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-generator:machtzev/generator/retarget.mjs#parentWidget.skipStrBack.j"
-     ],
-     "form": "on",
-     "why": "הפלט לא בצורה שהחוקים של «ממיר ערך» בודקים (אין קישור מתאים)"
-    }
-   ]
-  },
-  {
-   "verb": "decay",
-   "material": "sound",
-   "behaviors": [
-    "פסנתר: הצליל דועך"
-   ],
-   "nBehaviors": 1,
-   "candidates": 0,
-   "candidates3": 0,
-   "found": null,
-   "tried": []
-  },
-  {
-   "verb": "dedupe",
-   "material": "geo",
-   "behaviors": [
-    "רובוט-שואב: מסמן איפה כבר היה"
-   ],
-   "nBehaviors": 1,
-   "candidates": 0,
-   "candidatesOn": 2,
-   "candidates3": 0,
-   "found": null,
-   "tried": [
-    {
-     "steps": [
-      "inner-orbit:src/lib/dedup.ts#dedupById.out:after-loop"
-     ],
-     "form": "on",
-     "law": "dedupe.keeps",
-     "why": "הוסר פריט שאינו כפול"
-    },
-    {
-     "steps": [
-      "inner-generator:yeshiva/read.mjs#roundTrip.lostSubject:step"
-     ],
-     "form": "on",
-     "law": "dedupe.double",
-     "why": "החוק כמעט לא חל (0 מקרים)"
-    }
-   ]
-  },
-  {
-   "verb": "dedupe",
-   "material": "image",
-   "behaviors": [
-    "קליידוסקופ: אף פעם לא אותו דבר"
-   ],
-   "nBehaviors": 1,
-   "candidates": 0,
-   "candidatesOn": 2,
-   "candidates3": 0,
-   "found": null,
-   "tried": [
-    {
-     "steps": [
-      "inner-orbit:src/lib/dedup.ts#dedupById.out:after-loop"
-     ],
-     "form": "on",
-     "law": "dedupe.keeps",
-     "why": "הוסר פריט שאינו כפול"
-    },
-    {
-     "steps": [
-      "inner-generator:yeshiva/read.mjs#roundTrip.lostSubject:step"
-     ],
-     "form": "on",
-     "why": "לא רץ: no-fitting-input"
-    }
-   ]
   },
   {
    "verb": "divide",
@@ -512,175 +75,6 @@
      "divide.equal"
     ]
    },
-   "tried": []
-  },
-  {
-   "verb": "echo",
-   "material": "sound",
-   "behaviors": [
-    "דולפין: שולח צליל ומקשיב להד",
-    "צוללת: מקשיבה לקולות מסביב"
-   ],
-   "nBehaviors": 2,
-   "candidates": 0,
-   "candidates3": 0,
-   "found": null,
-   "tried": []
-  },
-  {
-   "verb": "escalate",
-   "material": "sound",
-   "behaviors": [
-    "שעון-מעורר: הצלצול מתגבר"
-   ],
-   "nBehaviors": 1,
-   "candidates": 0,
-   "candidatesOn": 20,
-   "candidates3": 0,
-   "found": null,
-   "tried": [
-    {
-     "steps": [
-      "inner-generator:new/atoms/intel-donor-scan.mjs#donorScan.monthsBefore.ty"
-     ],
-     "form": "on",
-     "why": "לא רץ: no-fitting-input"
-    },
-    {
-     "steps": [
-      "inner-generator:new/atoms/intel-donor-scan.mjs#donorScan.monthsBefore.y"
-     ],
-     "form": "on",
-     "why": "לא רץ: no-fitting-input"
-    },
-    {
-     "steps": [
-      "inner-generator:new/atoms/segula-reminders.mjs#segulaReminders.map.y:step"
-     ],
-     "form": "on",
-     "why": "לא רץ: no-fitting-input"
-    },
-    {
-     "steps": [
-      "inner-generator:new/atoms/support-day-label.mjs#supportDayLabel.y"
-     ],
-     "form": "on",
-     "why": "הפלט לא בצורה שהחוקים של «מסלים בזמן» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-generator:new/boxes/intel.mjs#monthsBefore.ty"
-     ],
-     "form": "on",
-     "why": "לא רץ: no-fitting-input"
-    },
-    {
-     "steps": [
-      "inner-generator:new/boxes/intel.mjs#monthsBefore.y"
-     ],
-     "form": "on",
-     "why": "לא רץ: no-fitting-input"
-    },
-    {
-     "steps": [
-      "inner-generator:new/boxes/intel.mjs#shiftIso.y"
-     ],
-     "form": "on",
-     "why": "לא רץ: no-fitting-input"
-    },
-    {
-     "steps": [
-      "inner-generator:new/boxes/planned.mjs#addMonthsClamped.lastDay:step"
-     ],
-     "form": "on",
-     "why": "לא רץ: no-fitting-input"
-    }
-   ]
-  },
-  {
-   "verb": "filter",
-   "material": "geo",
-   "behaviors": [
-    "שחמט: כל כלי זז בדרך שלו",
-    "תופסת: בית = מקום מוגן",
-    "ליקוי-חמה: רק ברצועה מסוימת"
-   ],
-   "nBehaviors": 3,
-   "candidates": 0,
-   "candidatesOn": 20,
-   "candidates3": 0,
-   "found": null,
-   "tried": [
-    {
-     "steps": [
-      "inner-generator:machtzev/generator/op-census.mjs#classifyDisplay.data"
-     ],
-     "form": "on",
-     "why": "אין מקרה-עד לא-טריוויאלי"
-    },
-    {
-     "steps": [
-      "inner-generator:machtzev/generator/render-ds.mjs#renderDashboard.mw"
-     ],
-     "form": "on",
-     "why": "אין מקרה-עד לא-טריוויאלי"
-    },
-    {
-     "steps": [
-      "inner-generator:yeshiva/ein.mjs#learnForms.words:step"
-     ],
-     "form": "on",
-     "why": "אין מקרה-עד לא-טריוויאלי"
-    },
-    {
-     "steps": [
-      "inner-orbit:src/components/parnasa/booklet.ts#bookletPlan.full:step"
-     ],
-     "form": "on",
-     "why": "אין מקרה-עד לא-טריוויאלי"
-    },
-    {
-     "steps": [
-      "inner-orbit:src/components/parnasa/booklet.ts#bookletPlan.half:step"
-     ],
-     "form": "on",
-     "why": "אין מקרה-עד לא-טריוויאלי"
-    },
-    {
-     "steps": [
-      "inner-orbit:src/components/parnasa/booklet.ts#bookletPlan.small:step"
-     ],
-     "form": "on",
-     "why": "אין מקרה-עד לא-טריוויאלי"
-    },
-    {
-     "steps": [
-      "inner-orbit:src/lib/bulkContact.ts#bulkMailRecipients.out:after-loop"
-     ],
-     "form": "on",
-     "why": "אין מקרה-עד לא-טריוויאלי"
-    },
-    {
-     "steps": [
-      "inner-orbit:src/lib/config.ts#normalizeTelephony.officeDays:step"
-     ],
-     "form": "on",
-     "why": "אין מקרה-עד לא-טריוויאלי"
-    }
-   ]
-  },
-  {
-   "verb": "follow",
-   "material": "geo",
-   "behaviors": [
-    "להקת-ציפורים: כל ציפור הולכת אחרי השכנה",
-    "כדור-פורח: זז עם הרוח",
-    "טלסקופ: עוקב אחרי הסיבוב"
-   ],
-   "nBehaviors": 3,
-   "candidates": 0,
-   "candidates3": 0,
-   "found": null,
    "tried": []
   },
   {
@@ -767,140 +161,6 @@
    "tried": []
   },
   {
-   "verb": "fuzzy",
-   "material": "image",
-   "behaviors": [
-    "שלג: כל פתית שונה"
-   ],
-   "nBehaviors": 1,
-   "candidates": 0,
-   "candidatesOn": 1,
-   "candidates3": 18,
-   "found": null,
-   "tried": [
-    {
-     "steps": [
-      "orbit:src/lib/atoms/parts/fuzzy.ts#normHe"
-     ],
-     "form": "on",
-     "why": "הפלט לא בצורה שהחוקים של «מוצא גם עם טעות» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-orbit:src/lib/imagePick.ts#pickAndCompressImage.h:step",
-      "orbit:src/components/hosting/kitchen.ts#minTo",
-      "orbit:src/lib/atoms/parts/fuzzy.ts#normHe"
-     ],
-     "form": "chain",
-     "depth": 3,
-     "why": "הפלט לא בצורה שהחוקים של «מוצא גם עם טעות» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-orbit:src/lib/imagePick.ts#pickAndCompressImage.h:step",
-      "orbit:src/components/parnasa/biz.ts#tfmt",
-      "orbit:src/lib/atoms/parts/fuzzy.ts#normHe"
-     ],
-     "form": "chain",
-     "depth": 3,
-     "why": "הפלט לא בצורה שהחוקים של «מוצא גם עם טעות» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-orbit:src/lib/imagePick.ts#pickAndCompressImage.h:step",
-      "inner-buildsmart:functions/src/studio.ts#onCall.runTransaction.snapId",
-      "orbit:src/lib/atoms/parts/fuzzy.ts#normHe"
-     ],
-     "form": "chain",
-     "depth": 3,
-     "why": "הפלט לא בצורה שהחוקים של «מוצא גם עם טעות» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-orbit:src/lib/imagePick.ts#pickAndCompressImage.w:step",
-      "orbit:src/components/hosting/kitchen.ts#minTo",
-      "orbit:src/lib/atoms/parts/fuzzy.ts#normHe"
-     ],
-     "form": "chain",
-     "depth": 3,
-     "why": "הפלט לא בצורה שהחוקים של «מוצא גם עם טעות» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-orbit:src/lib/imagePick.ts#pickAndCompressImage.w:step",
-      "orbit:src/components/parnasa/biz.ts#tfmt",
-      "orbit:src/lib/atoms/parts/fuzzy.ts#normHe"
-     ],
-     "form": "chain",
-     "depth": 3,
-     "why": "הפלט לא בצורה שהחוקים של «מוצא גם עם טעות» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-orbit:src/lib/imagePick.ts#pickAndCompressImage.w:step",
-      "inner-buildsmart:functions/src/studio.ts#onCall.runTransaction.snapId",
-      "orbit:src/lib/atoms/parts/fuzzy.ts#normHe"
-     ],
-     "form": "chain",
-     "depth": 3,
-     "why": "הפלט לא בצורה שהחוקים של «מוצא גם עם טעות» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-orbit:src/lib/imagePick.ts#pickAndCompressImage.h:step",
-      "orbit:src/components/hosting/kitchen.ts#minTo",
-      "orbit:src/lib/atoms/parts/fuzzy.ts#fuzzyFind"
-     ],
-     "form": "chain",
-     "depth": 3,
-     "why": "הפלט לא בצורה שהחוקים של «מוצא גם עם טעות» בודקים (אין קישור מתאים)"
-    }
-   ]
-  },
-  {
-   "verb": "group",
-   "material": "geo",
-   "behaviors": [
-    "פיצרייה: שליח לפי אזור",
-    "משלוחים: חבילות לפי אזור"
-   ],
-   "nBehaviors": 2,
-   "candidates": 0,
-   "candidatesOn": 4,
-   "candidates3": 0,
-   "found": null,
-   "tried": [
-    {
-     "steps": [
-      "inner-orbit:src/lib/monthGrid.ts#buildDayGrid.byDate"
-     ],
-     "form": "on",
-     "why": "הפלט לא בצורה שהחוקים של «מקבץ» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-orbit:src/lib/monthGrid.ts#buildMonthGrid.byDate"
-     ],
-     "form": "on",
-     "why": "הפלט לא בצורה שהחוקים של «מקבץ» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-orbit:src/lib/monthGrid.ts#buildWeekGrid.byDate"
-     ],
-     "form": "on",
-     "why": "הפלט לא בצורה שהחוקים של «מקבץ» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-orbit:src/lib/monthGrid.ts#indexByDate.byDate:after-loop"
-     ],
-     "form": "on",
-     "why": "הפלט לא בצורה שהחוקים של «מקבץ» בודקים (אין קישור מתאים)"
-    }
-   ]
-  },
-  {
    "verb": "lookup",
    "material": "geo",
    "behaviors": [
@@ -961,408 +221,6 @@
     ]
    },
    "tried": []
-  },
-  {
-   "verb": "merge",
-   "material": "sound",
-   "behaviors": [
-    "זאב: מייללים יחד",
-    "דיג׳יי: מחבר שיר לשיר",
-    "פלייליסט: מעבר רך בין שירים",
-    "קאנון: אותו שיר לכולם"
-   ],
-   "nBehaviors": 4,
-   "candidates": 0,
-   "candidatesOn": 1,
-   "candidates3": 0,
-   "found": null,
-   "tried": [
-    {
-     "steps": [
-      "orbit:src/lib/atoms/parts/merge.ts#mergeRuns"
-     ],
-     "form": "on",
-     "why": "הפלט לא בצורה שהחוקים של «מחבר רצפים» בודקים (אין קישור מתאים)"
-    }
-   ]
-  },
-  {
-   "verb": "merge",
-   "material": "times",
-   "behaviors": [
-    "גחלילית: כולן יחד בסוף",
-    "מסיבת-הפתעה: אורות נדלקים ביחד"
-   ],
-   "nBehaviors": 2,
-   "candidates": 0,
-   "candidates3": 9,
-   "found": null,
-   "tried": [
-    {
-     "steps": [
-      "inner-orbit:src/lib/atoms/verify/laws.ts#clusters.out:after-loop",
-      "inner-orbit:src/components/parnasa/bannerFx.ts#pbFrame.forEach.y1:step",
-      "inner-14kk:archive/architect-bridge.js#getUpdates.offset"
-     ],
-     "form": "chain",
-     "depth": 3,
-     "why": "הפלט לא בצורה שהחוקים של «מחבר רצפים» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-orbit:src/lib/atoms/verify/laws.ts#clusters.out:after-loop",
-      "inner-orbit:src/components/parnasa/bannerFx.ts#pbFrame.forEach.y1:step",
-      "inner-generator:new/atoms/holiday-names.mjs#holidayNames.d"
-     ],
-     "form": "chain",
-     "depth": 3,
-     "why": "הפלט לא בצורה שהחוקים של «מחבר רצפים» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-orbit:src/lib/atoms/verify/laws.ts#clusters.out:after-loop",
-      "inner-orbit:src/components/parnasa/bannerFx.ts#pbFrame.forEach.y1:step",
-      "inner-orbit:src/components/parnasa/coinFx.ts#cnFly.t"
-     ],
-     "form": "chain",
-     "depth": 3,
-     "why": "הפלט לא בצורה שהחוקים של «מחבר רצפים» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-orbit:src/lib/atoms/verify/laws.ts#clusters.out:after-loop",
-      "inner-orbit:src/components/supporters/universe3d.ts#project.x1",
-      "inner-14kk:archive/architect-bridge.js#getUpdates.offset"
-     ],
-     "form": "chain",
-     "depth": 3,
-     "why": "הפלט לא בצורה שהחוקים של «מחבר רצפים» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-orbit:src/lib/atoms/verify/laws.ts#clusters.out:after-loop",
-      "inner-orbit:src/components/supporters/universe3d.ts#project.x1",
-      "inner-generator:new/atoms/holiday-names.mjs#holidayNames.d"
-     ],
-     "form": "chain",
-     "depth": 3,
-     "why": "הפלט לא בצורה שהחוקים של «מחבר רצפים» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-orbit:src/lib/atoms/verify/laws.ts#clusters.out:after-loop",
-      "inner-orbit:src/components/supporters/universe3d.ts#project.x1",
-      "inner-orbit:src/components/parnasa/coinFx.ts#cnFly.t"
-     ],
-     "form": "chain",
-     "depth": 3,
-     "why": "הפלט לא בצורה שהחוקים של «מחבר רצפים» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-orbit:src/lib/atoms/verify/laws.ts#clusters.out:after-loop",
-      "inner-orbit:src/components/supporters/universe3d.ts#project.scale",
-      "inner-14kk:archive/architect-bridge.js#getUpdates.offset"
-     ],
-     "form": "chain",
-     "depth": 3,
-     "why": "הפלט לא בצורה שהחוקים של «מחבר רצפים» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-orbit:src/lib/atoms/verify/laws.ts#clusters.out:after-loop",
-      "inner-orbit:src/components/supporters/universe3d.ts#project.scale",
-      "inner-generator:new/atoms/holiday-names.mjs#holidayNames.d"
-     ],
-     "form": "chain",
-     "depth": 3,
-     "why": "הפלט לא בצורה שהחוקים של «מחבר רצפים» בודקים (אין קישור מתאים)"
-    }
-   ]
-  },
-  {
-   "verb": "next",
-   "material": "geo",
-   "behaviors": [
-    "קיר-טיפוס: האחיזה הבאה בהישג יד"
-   ],
-   "nBehaviors": 1,
-   "candidates": 0,
-   "candidatesOn": 2,
-   "candidates3": 9,
-   "found": null,
-   "tried": [
-    {
-     "steps": [
-      "orbit:src/lib/atoms/parts/next.ts#firstRun"
-     ],
-     "form": "on",
-     "why": "הפלט לא בצורה שהחוקים של «מוצא את הבא בתור» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "orbit:src/lib/atoms/parts/next.ts#nextAfter"
-     ],
-     "form": "on",
-     "why": "הפלט לא בצורה שהחוקים של «מוצא את הבא בתור» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-orbit:src/components/parnasa/bannerFx.ts#pbFrame.forEach.y1:step",
-      "inner-14kk:archive/architect-bridge.js#getUpdates.offset",
-      "orbit:src/lib/atoms/parts/next.ts#nextAfter"
-     ],
-     "form": "chain",
-     "depth": 3,
-     "why": "הפלט לא בצורה שהחוקים של «מוצא את הבא בתור» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-orbit:src/components/parnasa/bannerFx.ts#pbFrame.forEach.y1:step",
-      "inner-generator:new/atoms/holiday-names.mjs#holidayNames.d",
-      "orbit:src/lib/atoms/parts/next.ts#nextAfter"
-     ],
-     "form": "chain",
-     "depth": 3,
-     "why": "הפלט לא בצורה שהחוקים של «מוצא את הבא בתור» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-orbit:src/components/parnasa/bannerFx.ts#pbFrame.forEach.y1:step",
-      "inner-orbit:src/components/parnasa/coinFx.ts#cnFly.t",
-      "orbit:src/lib/atoms/parts/next.ts#nextAfter"
-     ],
-     "form": "chain",
-     "depth": 3,
-     "why": "הפלט לא בצורה שהחוקים של «מוצא את הבא בתור» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-orbit:src/components/supporters/universe3d.ts#project.x1",
-      "inner-14kk:archive/architect-bridge.js#getUpdates.offset",
-      "orbit:src/lib/atoms/parts/next.ts#nextAfter"
-     ],
-     "form": "chain",
-     "depth": 3,
-     "why": "הפלט לא בצורה שהחוקים של «מוצא את הבא בתור» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-orbit:src/components/supporters/universe3d.ts#project.x1",
-      "inner-generator:new/atoms/holiday-names.mjs#holidayNames.d",
-      "orbit:src/lib/atoms/parts/next.ts#nextAfter"
-     ],
-     "form": "chain",
-     "depth": 3,
-     "why": "הפלט לא בצורה שהחוקים של «מוצא את הבא בתור» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-orbit:src/components/supporters/universe3d.ts#project.x1",
-      "inner-orbit:src/components/parnasa/coinFx.ts#cnFly.t",
-      "orbit:src/lib/atoms/parts/next.ts#nextAfter"
-     ],
-     "form": "chain",
-     "depth": 3,
-     "why": "הפלט לא בצורה שהחוקים של «מוצא את הבא בתור» בודקים (אין קישור מתאים)"
-    }
-   ]
-  },
-  {
-   "verb": "next",
-   "material": "waiting",
-   "behaviors": [
-    "ספרייה: תור לספר מבוקש",
-    "רמזור: הולך רגל לחץ ⇒ ירוק בתורו",
-    "דיג׳יי: בקשות מהקהל",
-    "קופה-רושמת: תור לקופה הפנויה"
-   ],
-   "nBehaviors": 4,
-   "candidates": 2,
-   "candidatesOn": 2,
-   "candidates3": 0,
-   "found": null,
-   "tried": [
-    {
-     "steps": [
-      "orbit:src/lib/atoms/parts/next.ts#firstRun"
-     ],
-     "form": "on",
-     "why": "הפלט לא בצורה שהחוקים של «מוצא את הבא בתור» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "orbit:src/lib/atoms/parts/next.ts#nextAfter"
-     ],
-     "form": "on",
-     "why": "הפלט לא בצורה שהחוקים של «מוצא את הבא בתור» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-orbit:src/components/courses/AttendanceSheet.tsx#AttendanceSheet.ids:step",
-      "orbit:src/lib/atoms/parts/next.ts#firstRun"
-     ],
-     "form": "chain",
-     "why": "הפלט לא בצורה שהחוקים של «מוצא את הבא בתור» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-orbit:src/lib/atoms/previewWhatNeed.ts#namesFuzzy.cands:step",
-      "orbit:src/lib/atoms/parts/next.ts#firstRun"
-     ],
-     "form": "chain",
-     "why": "הפלט לא בצורה שהחוקים של «מוצא את הבא בתור» בודקים (אין קישור מתאים)"
-    }
-   ]
-  },
-  {
-   "verb": "offset",
-   "material": "geo",
-   "behaviors": [
-    "מטוס-נייר: רוח מזיזה"
-   ],
-   "nBehaviors": 1,
-   "candidates": 12,
-   "candidatesOn": 11,
-   "candidates3": 24,
-   "found": null,
-   "tried": [
-    {
-     "steps": [
-      "orbit:src/lib/atoms/parts/offset.ts#hhmmToMinutes"
-     ],
-     "form": "on",
-     "why": "הפלט לא בצורה שהחוקים של «מזיז» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "orbit:src/lib/atoms/parts/offset.ts#resolveRelative"
-     ],
-     "form": "on",
-     "why": "הפלט לא בצורה שהחוקים של «מזיז» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-generator:machtzev/assemble/data-lift.mjs#untangle.vlen:step"
-     ],
-     "form": "on",
-     "why": "הפלט לא בצורה שהחוקים של «מזיז» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-generator:new/atoms/coral-palette.mjs#hslToRgb.m:step"
-     ],
-     "form": "on",
-     "why": "הפלט לא בצורה שהחוקים של «מזיז» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-generator:new/atoms/intel-trend-from-scan.mjs#trendFromScan.i:step"
-     ],
-     "form": "on",
-     "why": "הפלט לא בצורה שהחוקים של «מזיז» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-generator:new/atoms/site-palette.mjs#sitePalette.hslToRgb.m:step"
-     ],
-     "form": "on",
-     "why": "הפלט לא בצורה שהחוקים של «מזיז» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-generator:new/boxes/tier-migration.mjs#tierMigration.fromIso"
-     ],
-     "form": "on",
-     "why": "לא רץ: no-fitting-input"
-    },
-    {
-     "steps": [
-      "inner-orbit:src/components/shop8/lib.ts#upcomingHoliday.d:step"
-     ],
-     "form": "on",
-     "why": "לא רץ: no-fitting-input"
-    }
-   ]
-  },
-  {
-   "verb": "personalize",
-   "material": "file",
-   "behaviors": [
-    "תזמורת: תווים לכל נגן"
-   ],
-   "nBehaviors": 1,
-   "candidates": 0,
-   "candidates3": 0,
-   "found": null,
-   "tried": []
-  },
-  {
-   "verb": "random",
-   "material": "geo",
-   "behaviors": [
-    "קליידוסקופ: חרוזים במקום אקראי",
-    "גשם: טיפות במקומות אקראיים"
-   ],
-   "nBehaviors": 2,
-   "candidates": 0,
-   "candidates3": 0,
-   "found": null,
-   "tried": []
-  },
-  {
-   "verb": "relay",
-   "material": "sound",
-   "behaviors": [
-    "תזמורת: המנצח מאחד"
-   ],
-   "nBehaviors": 1,
-   "candidates": 0,
-   "candidates3": 0,
-   "found": null,
-   "tried": []
-  },
-  {
-   "verb": "require-source",
-   "material": "choice",
-   "behaviors": [
-    "וילון: ידני גובר על אוטומטי"
-   ],
-   "nBehaviors": 1,
-   "candidates": 0,
-   "candidates3": 0,
-   "found": null,
-   "tried": []
-  },
-  {
-   "verb": "require-source",
-   "material": "waiting",
-   "behaviors": [
-    "זרע: מחכה לחום ולמים"
-   ],
-   "nBehaviors": 1,
-   "candidates": 2,
-   "candidates3": 0,
-   "found": null,
-   "tried": [
-    {
-     "steps": [
-      "inner-orbit:src/components/courses/AttendanceSheet.tsx#AttendanceSheet.ids:step",
-      "core-b:catalog/core/require-source.mjs#requireSource"
-     ],
-     "form": "chain",
-     "why": "אין מקרה-עד לא-טריוויאלי"
-    },
-    {
-     "steps": [
-      "inner-orbit:src/lib/atoms/previewWhatNeed.ts#namesFuzzy.cands:step",
-      "core-b:catalog/core/require-source.mjs#requireSource"
-     ],
-     "form": "chain",
-     "law": "source.pass",
-     "why": "6 פריטים עם מקור, התקבלו 0"
-    }
-   ]
   },
   {
    "verb": "reverse",
@@ -1434,77 +292,33 @@
    ],
    "nBehaviors": 2,
    "candidates": 4,
-   "candidatesOn": 1,
-   "candidates3": 12,
-   "found": null,
+   "candidatesOn": 2,
+   "candidates3": 0,
+   "found": {
+    "form": "on",
+    "depth": 1,
+    "slot": 0,
+    "many": true,
+    "steps": [
+     "orbit:src/lib/atoms/parts/rotate.ts#turnOf"
+    ],
+    "roles": [
+     "rotate"
+    ],
+    "holds": "36/36",
+    "on": "list+n",
+    "laws": [
+     "rotate.member",
+     "rotate.period",
+     "rotate.fair"
+    ]
+   },
    "tried": [
     {
      "steps": [
       "orbit:src/lib/atoms/parts/rotate.ts#fairAssign"
      ],
      "form": "on",
-     "why": "הפלט לא בצורה שהחוקים של «מחלק בתורות» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-orbit:src/components/parnasa/bannerFx.ts#pbFrame.forEach.y1:step",
-      "orbit:src/lib/atoms/parts/rotate.ts#turnIndex"
-     ],
-     "form": "chain",
-     "why": "הפלט לא בצורה שהחוקים של «מחלק בתורות» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-orbit:src/components/supporters/universe3d.ts#project.x1",
-      "orbit:src/lib/atoms/parts/rotate.ts#turnIndex"
-     ],
-     "form": "chain",
-     "why": "הפלט לא בצורה שהחוקים של «מחלק בתורות» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-orbit:src/components/supporters/universe3d.ts#project.scale",
-      "orbit:src/lib/atoms/parts/rotate.ts#turnIndex"
-     ],
-     "form": "chain",
-     "why": "הפלט לא בצורה שהחוקים של «מחלק בתורות» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-orbit:src/components/supporters/universe3d.ts#project.x1:step",
-      "orbit:src/lib/atoms/parts/rotate.ts#turnIndex"
-     ],
-     "form": "chain",
-     "why": "הפלט לא בצורה שהחוקים של «מחלק בתורות» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-orbit:src/components/parnasa/bannerFx.ts#pbFrame.forEach.y1:step",
-      "inner-orbit:src/lib/atoms/verify/laws.ts#check.gotIso:step",
-      "orbit:src/lib/atoms/parts/rotate.ts#dayIndex"
-     ],
-     "form": "chain",
-     "depth": 3,
-     "why": "הפלט לא בצורה שהחוקים של «מחלק בתורות» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-orbit:src/components/parnasa/bannerFx.ts#pbFrame.forEach.y1:step",
-      "orbit:src/components/supporters/lib.ts#excelSerialToIso",
-      "orbit:src/lib/atoms/parts/rotate.ts#dayIndex"
-     ],
-     "form": "chain",
-     "depth": 3,
-     "why": "הפלט לא בצורה שהחוקים של «מחלק בתורות» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-orbit:src/components/supporters/universe3d.ts#project.x1",
-      "inner-orbit:src/lib/atoms/verify/laws.ts#check.gotIso:step",
-      "orbit:src/lib/atoms/parts/rotate.ts#dayIndex"
-     ],
-     "form": "chain",
-     "depth": 3,
      "why": "הפלט לא בצורה שהחוקים של «מחלק בתורות» בודקים (אין קישור מתאים)"
     }
    ]
@@ -1517,9 +331,27 @@
    ],
    "nBehaviors": 1,
    "candidates": 2,
-   "candidatesOn": 1,
-   "candidates3": 8,
-   "found": null,
+   "candidatesOn": 2,
+   "candidates3": 0,
+   "found": {
+    "form": "on",
+    "depth": 1,
+    "slot": 0,
+    "many": true,
+    "steps": [
+     "orbit:src/lib/atoms/parts/rotate.ts#turnOf"
+    ],
+    "roles": [
+     "rotate"
+    ],
+    "holds": "36/36",
+    "on": "list+n",
+    "laws": [
+     "rotate.member",
+     "rotate.period",
+     "rotate.fair"
+    ]
+   },
    "tried": [
     {
      "steps": [
@@ -1527,73 +359,6 @@
      ],
      "form": "on",
      "why": "הפלט לא בצורה שהחוקים של «מחלק בתורות» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-orbit:src/lib/imagePick.ts#pickAndCompressImage.h:step",
-      "orbit:src/lib/atoms/parts/rotate.ts#turnIndex"
-     ],
-     "form": "chain",
-     "why": "הפלט לא בצורה שהחוקים של «מחלק בתורות» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-orbit:src/lib/imagePick.ts#pickAndCompressImage.w:step",
-      "orbit:src/lib/atoms/parts/rotate.ts#turnIndex"
-     ],
-     "form": "chain",
-     "why": "הפלט לא בצורה שהחוקים של «מחלק בתורות» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-orbit:src/lib/imagePick.ts#pickAndCompressImage.h:step",
-      "inner-orbit:src/lib/atoms/verify/laws.ts#check.gotIso:step",
-      "orbit:src/lib/atoms/parts/rotate.ts#dayIndex"
-     ],
-     "form": "chain",
-     "depth": 3,
-     "why": "הפלט לא בצורה שהחוקים של «מחלק בתורות» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-orbit:src/lib/imagePick.ts#pickAndCompressImage.h:step",
-      "orbit:src/components/supporters/lib.ts#excelSerialToIso",
-      "orbit:src/lib/atoms/parts/rotate.ts#dayIndex"
-     ],
-     "form": "chain",
-     "depth": 3,
-     "why": "הפלט לא בצורה שהחוקים של «מחלק בתורות» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-orbit:src/lib/imagePick.ts#pickAndCompressImage.w:step",
-      "inner-orbit:src/lib/atoms/verify/laws.ts#check.gotIso:step",
-      "orbit:src/lib/atoms/parts/rotate.ts#dayIndex"
-     ],
-     "form": "chain",
-     "depth": 3,
-     "why": "הפלט לא בצורה שהחוקים של «מחלק בתורות» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-orbit:src/lib/imagePick.ts#pickAndCompressImage.w:step",
-      "orbit:src/components/supporters/lib.ts#excelSerialToIso",
-      "orbit:src/lib/atoms/parts/rotate.ts#dayIndex"
-     ],
-     "form": "chain",
-     "depth": 3,
-     "why": "הפלט לא בצורה שהחוקים של «מחלק בתורות» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-orbit:src/lib/imagePick.ts#pickAndCompressImage.h:step",
-      "inner-orbit:src/lib/atoms/verify/laws.ts#check.gotIso:step",
-      "inner-orbit:src/components/parnasa/phoneLine.ts#zmanimParts.dayName:step"
-     ],
-     "form": "chain",
-     "depth": 3,
-     "law": "rotate.period",
-     "why": "אחרי 7 תורות לא חזר"
     }
    ]
   },
@@ -1605,9 +370,27 @@
    ],
    "nBehaviors": 1,
    "candidates": 0,
-   "candidatesOn": 1,
+   "candidatesOn": 2,
    "candidates3": 0,
-   "found": null,
+   "found": {
+    "form": "on",
+    "depth": 1,
+    "slot": 0,
+    "many": true,
+    "steps": [
+     "orbit:src/lib/atoms/parts/rotate.ts#turnOf"
+    ],
+    "roles": [
+     "rotate"
+    ],
+    "holds": "36/36",
+    "on": "list+n",
+    "laws": [
+     "rotate.member",
+     "rotate.period",
+     "rotate.fair"
+    ]
+   },
    "tried": [
     {
      "steps": [
@@ -1619,100 +402,67 @@
    ]
   },
   {
-   "verb": "route",
-   "material": "sound",
-   "behaviors": [
-    "תחנת-אוטובוס: הודעה בקול"
-   ],
-   "nBehaviors": 1,
-   "candidates": 0,
-   "candidatesOn": 10,
-   "candidates3": 0,
-   "found": null,
-   "tried": [
-    {
-     "steps": [
-      "inner-14kk:unused_files_backup/telegram-bot-connected.js#startMessageProcessing.checkMessages.getUpdates.forEach.intent"
-     ],
-     "form": "on",
-     "why": "לא רץ: no-fitting-input"
-    },
-    {
-     "steps": [
-      "inner-generator:machtzev/ds-forge.mjs#emit.alignH:step"
-     ],
-     "form": "on",
-     "why": "הפלט לא בצורה שהחוקים של «מנתב לפי ערוץ» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-generator:machtzev/generator/atom-sig.mjs#sigOfDart.dir:step"
-     ],
-     "form": "on",
-     "why": "הפלט לא בצורה שהחוקים של «מנתב לפי ערוץ» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-mmmm:artifacts/mockup-sandbox/src/components/ui/sidebar.tsx#SidebarProvider.state:step"
-     ],
-     "form": "on",
-     "why": "הפלט לא בצורה שהחוקים של «מנתב לפי ערוץ» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "inner-mmmm:artifacts/agents-chat/src/components/ui/sidebar.tsx#SidebarProvider.state"
-     ],
-     "form": "on",
-     "why": "אין מקרה-עד לא-טריוויאלי"
-    },
-    {
-     "steps": [
-      "inner-generator:machtzev/generator/display-synth.mjs#candidatesFor.head"
-     ],
-     "form": "on",
-     "why": "לא עבר"
-    },
-    {
-     "steps": [
-      "inner-generator:machtzev/purity/dehardcode.mjs#dehardcode.dataBody:step"
-     ],
-     "form": "on",
-     "law": "route.one",
-     "why": "לא ערוץ אחד: \"// 🗄️ שמות · חולצו מ-[object Object] ("
-    },
-    {
-     "steps": [
-      "inner-generator:machtzev/purity/dehardcode.mjs#dehardcode.imp:step"
-     ],
-     "form": "on",
-     "law": "route.one",
-     "why": "לא ערוץ אחד: \"import '../58/[object Object]-terms.dar"
-    }
-   ]
-  },
-  {
    "verb": "sample",
    "material": "image",
    "behaviors": [
     "זיקית: מחליפה צבע לפי הרקע",
-    "פעמון-דלת: תמונה של מי שבדלת"
+    "עציץ: תמונה כל שבוע",
+    "פעמון-דלת: תמונה של מי שבדלת",
+    "לוויין: צילום כל סיבוב"
    ],
-   "nBehaviors": 2,
+   "nBehaviors": 4,
    "candidates": 0,
+   "candidatesOn": 1,
    "candidates3": 0,
-   "found": null,
+   "found": {
+    "form": "on",
+    "depth": 1,
+    "slot": 1,
+    "many": true,
+    "steps": [
+     "core:catalog/core/sample.mjs#sample"
+    ],
+    "roles": [
+     "sample"
+    ],
+    "holds": "14/14",
+    "on": "spec+readings",
+    "laws": [
+     "sample.picks",
+     "sample.count"
+    ]
+   },
    "tried": []
   },
   {
    "verb": "sample",
    "material": "sound",
    "behaviors": [
-    "כוונן: שומע צליל"
+    "כוונן: שומע צליל",
+    "צוללת: מקשיבה לקולות מסביב"
    ],
-   "nBehaviors": 1,
+   "nBehaviors": 2,
    "candidates": 0,
+   "candidatesOn": 1,
    "candidates3": 0,
-   "found": null,
+   "found": {
+    "form": "on",
+    "depth": 1,
+    "slot": 1,
+    "many": true,
+    "steps": [
+     "core:catalog/core/sample.mjs#sample"
+    ],
+    "roles": [
+     "sample"
+    ],
+    "holds": "14/14",
+    "on": "spec+readings",
+    "laws": [
+     "sample.picks",
+     "sample.count"
+    ]
+   },
    "tried": []
   },
   {
@@ -1726,40 +476,28 @@
     "משלוחים: מסלול קצר"
    ],
    "nBehaviors": 5,
-   "candidates": 0,
+   "candidates": 1,
    "candidates3": 0,
-   "found": null,
+   "found": {
+    "form": "chain",
+    "depth": 2,
+    "steps": [
+     "core-c:catalog/core/near-net.mjs#nearNet",
+     "core:catalog/core/shortest-path.mjs#shortestPath"
+    ],
+    "roles": [
+     "connect",
+     "shortest-path"
+    ],
+    "holds": "24/24",
+    "on": "spec+from",
+    "laws": [
+     "shortest-path.valid",
+     "shortest-path.shortest"
+    ],
+    "hint": "הדרך המהירה בין מקומות = קודם רשת: כל מקום מתחבר לקרובים אליו (רשת-הסינפסות של כדור-המוח בדף ההרשמה, three-scene.ts:114), ואז הדרך הזולה ברשת (דייקסטרה — מוצא-הדרך של בנייה-חכמה, install_engine.dart:759)"
+   },
    "tried": []
-  },
-  {
-   "verb": "sort",
-   "material": "geo",
-   "behaviors": [
-    "מחבואים: מחפש את הקרוב קודם"
-   ],
-   "nBehaviors": 1,
-   "candidates": 0,
-   "candidatesOn": 2,
-   "candidates3": 0,
-   "found": null,
-   "tried": [
-    {
-     "steps": [
-      "inner-generator:new/boxes/pareto.mjs#paretoReport.asc"
-     ],
-     "form": "on",
-     "law": "sort.order-free",
-     "why": "ערבוב שינה את הסדר"
-    },
-    {
-     "steps": [
-      "inner-generator:new/boxes/pareto.mjs#paretoReport.desc"
-     ],
-     "form": "on",
-     "law": "sort.order-free",
-     "why": "ערבוב שינה את הסדר"
-    }
-   ]
   },
   {
    "verb": "spread",
@@ -1772,9 +510,28 @@
     "פטרייה: מפזרת נבגים לסביבה"
    ],
    "nBehaviors": 5,
-   "candidates": 0,
+   "candidates": 1,
    "candidates3": 0,
-   "found": null,
+   "found": {
+    "form": "chain",
+    "depth": 2,
+    "steps": [
+     "core-c:catalog/core/near-net.mjs#nearNet",
+     "core:catalog/core/spread.mjs#spread"
+    ],
+    "roles": [
+     "connect",
+     "spread"
+    ],
+    "holds": "30/30",
+    "on": "spec+steps",
+    "laws": [
+     "spread.grows",
+     "spread.neighbors",
+     "spread.reach"
+    ],
+    "hint": "מתפשט בין מקומות = קודם רשת: כל מקום מתחבר לקרובים אליו (רשת-הסינפסות, three-scene.ts:114), ואז הגל עובר לשכנים צעד אחרי צעד (reachWithin של בנייה-חכמה)"
+   },
    "tried": []
   },
   {

@@ -11,6 +11,7 @@
   "escalate",
   "shortest-path",
   "spread",
+  "connect",
   "sun-heading",
   "sun-position",
   "move-along-path",
@@ -2840,6 +2841,48 @@
      "heading",
      "compass",
      "direction"
+    ]
+   }
+  },
+  {
+   "id": "connect",
+   "he": "מחבר לשכנים",
+   "means": "הופך נקודות לרשת: כל נקודה נקשרת לנקודות הקרובות אליה (כמה — לפי near), כל קשת פעם אחת, והמחיר של קשת הוא המרחק",
+   "takes": [
+    "record"
+   ],
+   "gives": "record",
+   "laws": [
+    {
+     "id": "connect.keeps",
+     "says": "הנקודות נשארות כמו שהן — מתווספות רק הקשתות",
+     "catches": "מאבד נקודה"
+    },
+    {
+     "id": "connect.real",
+     "says": "כל קשת מחברת שתי נקודות שונות שקיימות, פעם אחת, והמחיר שלה = המרחק ביניהן",
+     "catches": "מחיר = המרחק בריבוע"
+    },
+    {
+     "id": "connect.nearest",
+     "says": "כל נקודה מחוברת לשכנות הקרובות אליה: אף נקודה קרובה יותר מהשכנה ה-near לא נשארת בחוץ",
+     "catches": "מחבר לרחוקות"
+    },
+    {
+     "id": "connect.only",
+     "says": "רק שכנות: כל קשת היא בין נקודה לאחת הקרובות אליה (לא כל-עם-כל)",
+     "catches": "מחבר כל נקודה לכל נקודה"
+    }
+   ],
+   "mined": true,
+   "core": "catalog/core/connect.mjs",
+   "cues": {
+    "he": [
+     "סינפסות"
+    ],
+    "en": [
+     "knn",
+     "synapse"
     ]
    }
   }

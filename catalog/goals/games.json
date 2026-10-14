@@ -223,8 +223,9 @@
         },
         {
           "behavior": "הופכים שניים",
-          "verb": "compare",
-          "material": "image"
+          "verb": "validate",
+          "material": "record:cards",
+          "note": "MACHINE-V4: היה compare·image. \"הופכים שניים\" = שאלה של כן/לא: זה זוג? «משווה» בודק סדר (מי לפני מי, היפוך מחליף סימן) — לשתי תמונות אין סדר, יש רק \"אותה/לא אותה\"."
         },
         {
           "behavior": "זוג נשאר פתוח",

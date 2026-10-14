@@ -465,7 +465,8 @@
         {
           "behavior": "הצלצול מתגבר",
           "verb": "escalate",
-          "material": "sound"
+          "material": "times",
+          "note": "MACHINE-V4: היה escalate·sound. \"מתגבר\" = עם הזמן עולה בשלבים ולא חוזר: «מסלים בזמן», שהציר שלו רגעים. הצלצול הוא מה שמשמיעים בכל שלב."
         },
         {
           "behavior": "רק בימי חול",

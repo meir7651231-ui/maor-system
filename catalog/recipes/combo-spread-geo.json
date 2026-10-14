@@ -1,0 +1,36 @@
+{
+ "id": "combo-spread-geo",
+ "word": "spread · geo",
+ "title": "שילוב: מחבר כל נקודה לשכנות הקרובות אליה ⇒ מרחיב גל לכל השכנים בכל צעד",
+ "combo": {
+  "verb": "spread",
+  "material": "geo",
+  "form": "chain",
+  "steps": [
+   "core-c:catalog/core/near-net.mjs#nearNet",
+   "core:catalog/core/spread.mjs#spread"
+  ],
+  "roles": [
+   "connect",
+   "spread"
+  ],
+  "holds": "30/30",
+  "laws": [
+   "spread.grows",
+   "spread.neighbors",
+   "spread.reach"
+  ],
+  "hint": "מתפשט בין מקומות = קודם רשת: כל מקום מתחבר לקרובים אליו (רשת-הסינפסות, three-scene.ts:114), ואז הגל עובר לשכנים צעד אחרי צעד (reachWithin של בנייה-חכמה)"
+ },
+ "needs": [
+  {
+   "need": "combo",
+   "verb": "spread",
+   "material": "geo",
+   "chain": [
+    "core-c:catalog/core/near-net.mjs#nearNet",
+    "core:catalog/core/spread.mjs#spread"
+   ]
+  }
+ ]
+}

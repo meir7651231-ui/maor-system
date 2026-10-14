@@ -9,8 +9,8 @@
 import { VERBS, PRIMARY_ORDER } from './verbs.mjs';
 import { crossSourceDups } from './links.mjs';
 
-export const SOURCE_ORDER = ['orbit', 'buildsmart', 'generator', 'rings', 'yeshiva', 'qa-scanner', 'yoman-habina', '14kk', 'mmmm', 'core', 'core-b'];
-export const SOURCE_HE = { orbit: 'אורביט', buildsmart: 'בנייה-חכמה', generator: 'המחולל', rings: 'מנוע-הטבעות', yeshiva: 'הישיבה', 'qa-scanner': 'סורק-האיכות', 'yoman-habina': 'יומן-הבינה', '14kk': '14kk', mmmm: 'MMMM', core: 'הליבה', 'core-b': 'ליבות-הפעלים' };
+export const SOURCE_ORDER = ['orbit', 'buildsmart', 'generator', 'rings', 'yeshiva', 'qa-scanner', 'yoman-habina', '14kk', 'mmmm', 'core', 'core-b', 'core-c'];
+export const SOURCE_HE = { orbit: 'אורביט', buildsmart: 'בנייה-חכמה', generator: 'המחולל', rings: 'מנוע-הטבעות', yeshiva: 'הישיבה', 'qa-scanner': 'סורק-האיכות', 'yoman-habina': 'יומן-הבינה', '14kk': '14kk', mmmm: 'MMMM', core: 'הליבה', 'core-b': 'ליבות-הפעלים', 'core-c': 'ליבות-החומר' };
 const srcRank = (s) => { const k = SOURCE_ORDER.indexOf(s); return k < 0 ? 99 : k; };
 const byKey = (f) => (a, b) => { const x = f(a); const y = f(b); return x < y ? -1 : x > y ? 1 : 0; };
 const kindFam = (k) => (k.startsWith('record:') ? 'record:*' : k);

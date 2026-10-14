@@ -1,0 +1,34 @@
+{
+ "id": "combo-rotate-sound",
+ "word": "rotate · sound",
+ "title": "אומר מי התור במספר כמה — על צלילים",
+ "combo": {
+  "verb": "rotate",
+  "material": "sound",
+  "form": "on",
+  "slot": 0,
+  "many": true,
+  "steps": [
+   "orbit:src/lib/atoms/parts/rotate.ts#turnOf"
+  ],
+  "roles": [
+   "rotate"
+  ],
+  "holds": "36/36",
+  "laws": [
+   "rotate.member",
+   "rotate.period",
+   "rotate.fair"
+  ]
+ },
+ "needs": [
+  {
+   "need": "combo",
+   "verb": "rotate",
+   "material": "sound",
+   "chain": [
+    "orbit:src/lib/atoms/parts/rotate.ts#turnOf"
+   ]
+  }
+ ]
+}

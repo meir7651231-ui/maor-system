@@ -123,8 +123,9 @@
       "needs": [
         {
           "behavior": "מחכה לחום ולמים",
-          "verb": "require-source",
-          "material": "waiting"
+          "verb": "validate",
+          "material": "record:seed",
+          "note": "MACHINE-V4: היה require-source·waiting. \"מחכה לחום ולמים\" = שער: נובט רק כשגם חם וגם יש מים — שאלה של כן/לא על מצב הזרע (במילון הישן: gate ⇒ validate). «דורש מקור» בודק ציטוט/קישור."
         },
         {
           "behavior": "נובט רק אחרי ימים חמים ברצף",

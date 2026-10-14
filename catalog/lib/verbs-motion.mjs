@@ -10,7 +10,7 @@
  * "דועך מתקרב לרצפה" נבדק על המסלול כולו, לא על נקודה אחת.
  * מימוש-הייחוס של כל פועל = הליבה עצמה (catalog/core). טהור: בלי שעון, בלי Math.random.
  */
-import { isArr, isNum, isStr, isObj, isNil, same, isSubseq } from './shape.mjs';
+import { isArr, isNum, isStr, isObj, isNil, same, isSubseq, canon } from './shape.mjs';
 import { decay } from '../core/decay.mjs';
 import { countdown } from '../core/countdown.mjs';
 import { accumulate } from '../core/accumulate.mjs';
@@ -26,6 +26,7 @@ import { echo } from '../core/echo.mjs';
 import { follow } from '../core/follow.mjs';
 import { bounce } from '../core/bounce.mjs';
 import { sunPosition } from '../core/sun-position.mjs';
+import { nearNet } from '../core/near-net.mjs';
 
 /* ═══════════════ עזרים ═══════════════ */
 
@@ -62,12 +63,36 @@ function bruteCost(edges, from, to) {
   go(from, new Set([from]), 0);
   return best;
 }
+/**
+ * הרשת שההגדרה מתארת (MACHINE-V4): קשתות מפורשות (`edges`), או — נקודות + `near` ⇒ הרשת שליבת «מחבר לשכנים»
+ * (catalog/core/near-net.mjs — רשת-הסינפסות של three-scene) בונה מהן. כך חוקי «דרך קצרה» ו«מתפשט» רצים גם על **נקודות**:
+ * הדרך/הגל נבדקים ברשת שהנקודות האלה יוצרות, והחוק עצמו לא משתנה. אין רשת ⇒ null (הפועל לא חל).
+ */
+export const netEdges = (x) => (isArr(x?.edges) ? x.edges : isObj(x) && isArr(x.points) && x.points.length > 0 && x.points.every(pt) && 'near' in x ? nearNet(x).edges : null);
+/** הקואורדינטות של רשימה: מספרים כמו שהם; נקודות ⇒ x,y,x,y… (MACHINE-V4 — «מגריל» על נקודות). אחרת null. */
+const coordsOf = (xs) => (!isArr(xs) ? null : xs.every(isNum) ? xs : xs.length && xs.every(pt) ? xs.flatMap((p) => [p.x, p.y]) : null);
+/** מספר או נקודה כווקטור (MACHINE-V4 — «הולך אחרי» על נקודות): 5 ⇒ [5] · {x, y} ⇒ [x, y]. אחרת null. */
+const vecOf = (v) => (isNum(v) ? [v] : pt(v) ? [v.x, v.y] : null);
+const sameVec = (a, b) => { const p = vecOf(a); const q = vecOf(b); return !!p && !!q && p.length === q.length; };
+const fromVec = (v, like) => (isNum(like) ? v[0] : { x: v[0], y: v[1] });
+const sub = (a, b) => a.map((v, k) => v - b[k]);
+const dot = (a, b) => a.reduce((s0, v, k) => s0 + v * b[k], 0);
+const norm = (a) => Math.sqrt(dot(a, a));
+/** איזה חלק מהדרך y⇒t עברו כשהגיעו ל-o — רק אם o על הקו הישר (אחרת null). */
+function fracOf(y, o, t) {
+  const d = sub(t, y); const L = dot(d, d);
+  if (!(L > 0) || !o || o.length !== y.length) return null;
+  const fr = dot(sub(o, y), d) / L;
+  const off = norm(sub(o, y.map((v, k) => v + fr * d[k])));
+  return off <= 1e-6 * Math.max(1, Math.sqrt(L), norm(y)) ? fr : null;
+}
 const neighborsOf = (edges, u) => edges.flatMap((e) => (e.a === u ? [e.b] : e.b === u ? [e.a] : []));
 const pctOk = (v) => isNum(v) && v >= 0 && v <= 100;
 
 /* ═══════════════ מוטנטים — מימושים מקולקלים (כל אחד שובר חוק אחד) ═══════════════ */
 
 const fin = (x) => (Number.isFinite(Number(x)) ? Number(x) : 0);
+const pairs = (r) => { const o = []; for (let k = 0; k + 1 < r.length; k += 2) o.push({ x: r[k], y: r[k + 1] }); return o; };
 function decayLoop(spec, step, sign, minKeep, snap) {
   const from = fin(spec?.from); const floor = fin(spec?.floor);
   const keep = Math.max(minKeep, Math.min(99, Math.abs(fin(spec?.keepPct))) / 100);
@@ -270,11 +295,11 @@ export const MOTION_VERBS = [
     id: 'random', he: 'מגריל', mined: true, bind: 'spec',
     means: 'רצף מספרים בין 0 ל-1 שנראה אקראי ומפוזר שווה — אבל אותו זרע נותן אותו רצף בדיוק',
     takes: ['record', 'number'], gives: 'sequence',
-    fit: (e) => has(e.x, ['seed']) && isNum(e.y) && isArr(e.out) && e.out.every(isNum),
-    witness: (e) => e.out.length >= 3 && new Set(e.out).size === e.out.length,
+    fit: (e) => has(e.x, ['seed']) && isNum(e.y) && !!coordsOf(e.out),
+    witness: (e) => e.out.length >= 3 && new Set(e.out.map(canon)).size === e.out.length,
     laws: [
       { id: 'random.replay', says: 'אותו זרע ⇒ אותו רצף; לבקש עוד מספרים לא משנה את הראשונים', catches: 'הרצף תלוי בכמה ביקשו', check: (e) => { const more = at(e, e.out.length + 5); return isArr(more) && same(more.slice(0, e.out.length), e.out) ? true : FAIL('הרצף השתנה כשביקשו יותר'); } },
-      { id: 'random.range', says: 'כל מספר בין 0 (כולל) ל-1 (לא כולל)', catches: 'מספרים עד 1.25', check: (e) => (e.out.every((v) => v >= 0 && v < 1) ? true : FAIL('מחוץ ל-[0,1): ' + e.out.find((v) => !(v >= 0 && v < 1)))) },
+      { id: 'random.range', says: 'כל מספר בין 0 (כולל) ל-1 (לא כולל)', catches: 'מספרים עד 1.25', check: (e) => { const c = coordsOf(e.out) ?? []; return c.every((v) => v >= 0 && v < 1) ? true : FAIL('מחוץ ל-[0,1): ' + c.find((v) => !(v >= 0 && v < 1))); } },
       {
         id: 'random.seeded', says: 'זרע אחר ⇒ רצף אחר', catches: 'מתעלם מהזרע',
         check: (e) => {
@@ -286,16 +311,25 @@ export const MOTION_VERBS = [
       {
         id: 'random.even', says: 'מפוזר שווה: ב-400 הגרלות הממוצע קרוב לחצי ובכל רבע יש לפחות 60', catches: 'מוטה לאפס (x²)',
         check: (e) => {
-          const xs = at(e, 400);
-          if (!isArr(xs) || xs.length !== 400) return FAIL('ביקשו 400, קיבלו ' + (isArr(xs) ? xs.length : typeof xs));
-          const mean = xs.reduce((a, b) => a + b, 0) / 400;
+          const got = at(e, 400);
+          const xs = coordsOf(got);
+          if (!isArr(got) || got.length !== 400 || !xs) return FAIL('ביקשו 400, קיבלו ' + (isArr(got) ? got.length : typeof got));
+          // נקודות: כל ציר נבדק — 800 קואורדינטות, אותו סף יחסי
+          const mean = xs.reduce((a, b) => a + b, 0) / xs.length;
           const q = [0, 0, 0, 0];
           for (const v of xs) q[Math.min(3, Math.max(0, Math.floor(v * 4)))]++;
-          return mean > 0.42 && mean < 0.58 && q.every((c) => c >= 60) ? true : FAIL('ממוצע ' + mean.toFixed(3) + ' · רבעים ' + q.join('/'));
+          return mean > 0.42 && mean < 0.58 && q.every((c) => c >= (60 * xs.length) / 400) ? true : FAIL('ממוצע ' + mean.toFixed(3) + ' · רבעים ' + q.join('/'));
         },
       },
     ],
     ref: { sig: [{ name: 'spec', d: O('seed') }, { name: 'count', d: { t: 'num', h: 'count' } }], fn: () => random },
+    refGeo: { sig: [{ name: 'spec', d: O('seed') }, { name: 'count', d: { t: 'num', h: 'count' } }], fn: () => (s, n) => pairs(random(s, 2 * Math.floor(Math.abs(fin(n))))) },
+    mutantsGeo: {
+      'random.replay': () => (s, n) => pairs(random({ seed: (fin(s?.seed) ^ Math.floor(fin(n))) >>> 0 }, 2 * Math.floor(Math.abs(fin(n))))),
+      'random.range': () => (s, n) => pairs(random(s, 2 * Math.floor(Math.abs(fin(n)))).map((v) => v * 1.25)),
+      'random.seeded': () => (s, n) => pairs(random({ seed: 7 }, 2 * Math.floor(Math.abs(fin(n))))),
+      'random.even': () => (s, n) => pairs(random(s, 2 * Math.floor(Math.abs(fin(n)))).map((v) => v * v)),
+    },
     mutants: {
       'random.replay': () => (s, n) => random({ seed: (fin(s?.seed) ^ Math.floor(fin(n))) >>> 0 }, n),
       'random.range': () => (s, n) => random(s, n).map((v) => v * 1.25),
@@ -430,14 +464,14 @@ export const MOTION_VERBS = [
     id: 'shortest-path', he: 'מוצא דרך קצרה', mined: true, bind: 'spec',
     means: 'ברשת של נקודות וקשתות עם מחיר — הדרך הזולה ביותר מנקודה לנקודה, ואם אין דרך אומר שאין',
     takes: ['record', 'choice'], gives: 'sequence',
-    fit: (e) => has(e.x, ['edges']) && isArr(e.x.edges) && e.args.length === 3 && !isNil(e.y) && (isNil(e.out) || (isObj(e.out) && isArr(e.out.path))),
+    fit: (e) => !!netEdges(e.x) && e.args.length === 3 && !isNil(e.y) && (isNil(e.out) || (isObj(e.out) && isArr(e.out.path))),
     witness: (e) => isObj(e.out) && e.out.path.length >= 3,
     laws: [
       {
         id: 'shortest-path.valid', says: 'הדרך אמיתית: מתחילה במוצא, נגמרת ביעד, כל שתי נקודות צמודות מחוברות בקשת, והמחיר = סכום הקשתות', catches: 'מחיר מדווח שלא תואם את הדרך',
         check: (e) => {
           if (isNil(e.out)) return true;
-          const E = e.x.edges; const p = e.out.path; const to = e.args[3 - e.i - e.j];
+          const E = netEdges(e.x); const p = e.out.path; const to = e.args[3 - e.i - e.j];
           if (!same(p[0], e.y) || !same(p[p.length - 1], to)) return FAIL('הדרך לא מהמוצא ליעד');
           let c = 0;
           for (let k = 1; k < p.length; k++) { const w = minW(E, p[k - 1], p[k]); if (w === Infinity) return FAIL('אין קשת ' + p[k - 1] + '–' + p[k]); c += w; }
@@ -447,7 +481,7 @@ export const MOTION_VERBS = [
       {
         id: 'shortest-path.shortest', says: 'אין דרך זולה יותר לאף יעד (בדיקה בכוח-גס על כל הדרכים), ו"אין דרך" רק כשבאמת אין', catches: 'לוקח את הדרך הראשונה שמצא (חיפוש-לעומק)',
         check: (e) => {
-          const E = e.x.edges;
+          const E = netEdges(e.x);
           if (E.some((x) => !isObj(x) || !isNum(x.w) || isNil(x.a) || isNil(x.b))) return null;
           const k = 3 - e.i - e.j;
           const targets = [...new Set([e.args[k], ...E.flatMap((x) => [x.a, x.b])])];
@@ -462,6 +496,12 @@ export const MOTION_VERBS = [
       },
     ],
     ref: { sig: [{ name: 'spec', d: { t: 'obj', p: [['edges', { t: 'arr', of: { t: 'obj', p: [['a', LIT6, false], ['b', LIT6, false], ['w', N, false]] } }, false]] } }, { name: 'from', d: LIT6 }, { name: 'to', d: LIT6 }], fn: () => shortestPath },
+    // MACHINE-V4: אותם חוקים על נקודות — ההגדרה היא נקודות + near, והרשת = רשת-הסינפסות (netEdges)
+    refGeo: { sig: [{ name: 'net', d: { t: 'obj', p: [['points', { t: 'arr', of: O('x', 'y'), max: 6 }, false], ['near', { t: 'lit', v: [1, 2, 3] }, false]] } }, { name: 'from', d: LIT6 }, { name: 'to', d: LIT6 }], fn: () => (s, a, b) => shortestPath(nearNet(s), a, b) },
+    mutantsGeo: {
+      'shortest-path.valid': () => (s, a, b) => { const o = shortestPath(nearNet(s), a, b); return o && o.path.length > 1 ? { cost: o.cost * 0.9 + 0.5, path: o.path } : o; },
+      'shortest-path.shortest': () => (s, a, b) => dfsFirst(nearNet(s), a, b),
+    },
     mutants: {
       'shortest-path.valid': () => (s, a, b) => { const o = shortestPath(s, a, b); return o && o.path.length > 1 ? { cost: o.cost * 0.9 + 0.5, path: o.path } : o; },
       'shortest-path.shortest': () => (s, a, b) => dfsFirst(s, a, b),
@@ -472,7 +512,7 @@ export const MOTION_VERBS = [
     id: 'spread', he: 'מתפשט', mined: true, bind: 'spec',
     means: 'בכל צעד מה שנגע עובר לכל השכנים הישירים — גל שמתרחב טבעת אחרי טבעת, ומה שנגע נשאר',
     takes: ['record', 'number'], gives: 'list',
-    fit: (e) => has(e.x, ['edges', 'sources']) && isArr(e.x.edges) && isArr(e.x.sources) && isNum(e.y) && isArr(e.out),
+    fit: (e) => has(e.x, ['sources']) && !!netEdges(e.x) && isArr(e.x.sources) && isNum(e.y) && isArr(e.out),
     witness: (e) => e.out.length > new Set(e.x.sources).size,
     laws: [
       {
@@ -489,7 +529,7 @@ export const MOTION_VERBS = [
         check: (e) => {
           for (let s = 0; s < 4; s++) {
             const a = new Set(at(e, s)); const b = at(e, s + 1);
-            for (const v of b) if (!a.has(v) && !neighborsOf(e.x.edges, v).some((u) => a.has(u))) return FAIL(v + ' נוסף בצעד ' + (s + 1) + ' בלי שכן שנגעו בו');
+            for (const v of b) if (!a.has(v) && !neighborsOf(netEdges(e.x), v).some((u) => a.has(u))) return FAIL(v + ' נוסף בצעד ' + (s + 1) + ' בלי שכן שנגעו בו');
           }
           return true;
         },
@@ -498,12 +538,18 @@ export const MOTION_VERBS = [
         id: 'spread.reach', says: 'עובר לכל השכנים: כל שכן של מי שנגעו בו — נגעו בו בצעד הבא', catches: 'עובר רק לחצי מהשכנים',
         check: (e) => {
           const s = e.r.int(0, 5); const a = at(e, s); const b = new Set(at(e, s + 1));
-          for (const u of a) for (const v of neighborsOf(e.x.edges, u)) if (!b.has(v)) return FAIL(v + ' שכן של ' + u + ' ולא נגעו בו');
+          for (const u of a) for (const v of neighborsOf(netEdges(e.x), u)) if (!b.has(v)) return FAIL(v + ' שכן של ' + u + ' ולא נגעו בו');
           return true;
         },
       },
     ],
     ref: { sig: [{ name: 'spec', d: { t: 'obj', p: [['edges', { t: 'arr', of: { t: 'obj', p: [['a', LIT8, false], ['b', LIT8, false]] } }, false], ['sources', { t: 'arr', of: LIT8 }, false]] } }, { name: 'steps', d: { t: 'num', h: 'count' } }], fn: () => spread },
+    refGeo: { sig: [{ name: 'net', d: { t: 'obj', p: [['points', { t: 'arr', of: O('x', 'y'), max: 6 }, false], ['near', { t: 'lit', v: [1, 2] }, false], ['sources', { t: 'arr', of: LIT6, max: 2 }, false]] } }, { name: 'steps', d: { t: 'num', h: 'count' } }], fn: () => (s, n) => spread(nearNet(s), n) },
+    mutantsGeo: {
+      'spread.grows': () => (s, n) => { const g = nearNet(s); const k = Math.floor(Math.abs(fin(n))); if (!k) return spread(g, 0); const prev = new Set(spread(g, k - 1)); return spread(g, k).filter((v) => !prev.has(v)); },
+      'spread.neighbors': () => (s, n) => spread(nearNet(s), Math.floor(Math.abs(fin(n))) * 2),
+      'spread.reach': () => (s, n) => { const g = nearNet(s); return spread({ ...g, edges: g.edges.filter((_, q) => q % 2 === 0) }, Math.floor(Math.abs(fin(n)))); },
+    },
     mutants: {
       'spread.grows': () => (s, n) => { const k = Math.floor(Math.abs(fin(n))); if (!k) return spread(s, 0); const prev = new Set(spread(s, k - 1)); return spread(s, k).filter((v) => !prev.has(v)); },
       'spread.neighbors': () => (s, n) => spread(s, Math.floor(Math.abs(fin(n))) * 2),
@@ -567,31 +613,42 @@ export const MOTION_VERBS = [
     id: 'follow', he: 'הולך אחרי', mined: true, bind: 'spec',
     means: 'בכל צעד מתקרב חלק קבוע מהדרך אל המטרה — לא עובר אותה, וכשהגיע נשאר (החלקה, מצלמה שנגררת, להקה)',
     takes: ['record', 'number'], gives: 'number',
-    fit: (e) => has(e.x, ['target', 'pullPct']) && isNum(e.y) && isNum(e.out),
-    witness: (e) => !close(e.out, e.y) && nums(e.x, ['target']) && !close(e.out, e.x.target),
+    // מספר — או נקודה {x, y} (MACHINE-V4): אותם חוקים, בחשבון של וקטורים (מספר = וקטור באורך 1)
+    fit: (e) => has(e.x, ['target', 'pullPct']) && sameVec(e.x.target, e.y) && sameVec(e.y, e.out),
+    witness: (e) => { const t = vecOf(e.x.target); const y = vecOf(e.y); const o = vecOf(e.out); return !!t && norm(sub(o, y)) > 1e-9 * Math.max(1, norm(y)) && norm(sub(o, t)) > 1e-9 * Math.max(1, norm(t)); },
     laws: [
       {
         id: 'follow.closer', says: 'מתקרב ולא עובר: המרחק למטרה לא גדל, והצד לא מתחלף', catches: 'קופץ לצד השני של המטרה',
         check: (e) => {
-          if (!nums(e.x, ['target', 'pullPct']) || !pctOk(e.x.pullPct)) return null;
-          const t = e.x.target;
-          if ((e.out - t) * (e.y - t) < -1e-12 * Math.max(1, Math.abs(t))) return FAIL('עבר את המטרה');
-          return Math.abs(e.out - t) <= Math.abs(e.y - t) * (1 + 1e-12) + 1e-12 ? true : FAIL('התרחק');
+          const t = vecOf(e.x.target);
+          if (!t || !pctOk(e.x.pullPct)) return null;
+          const y = vecOf(e.y); const o = vecOf(e.out); const sc = Math.max(1, norm(t));
+          if (dot(sub(o, t), sub(y, t)) < -1e-12 * sc * sc) return FAIL('עבר את המטרה');
+          return norm(sub(o, t)) <= norm(sub(y, t)) * (1 + 1e-12) + 1e-12 ? true : FAIL('התרחק');
         },
       },
-      { id: 'follow.still', says: 'כשכבר במטרה — נשאר בה', catches: 'זז גם כשכבר במטרה', check: (e) => (!nums(e.x, ['target']) ? null : close(at(e, e.x.target), e.x.target, 0, 1e-12) ? true : FAIL('במטרה ' + e.x.target + ' זז ל-' + at(e, e.x.target))) },
+      { id: 'follow.still', says: 'כשכבר במטרה — נשאר בה', catches: 'זז גם כשכבר במטרה', check: (e) => { const t = vecOf(e.x.target); if (!t) return null; const o = vecOf(at(e, e.x.target)); return !!o && o.length === t.length && o.every((v, k) => close(v, t[k], 0, 1e-12)) ? true : FAIL('במטרה ' + JSON.stringify(e.x.target) + ' זז ל-' + JSON.stringify(at(e, e.x.target))); } },
       {
         id: 'follow.fraction', says: 'החלק שעובר קבוע: מכל מרחק מתקרב באותו אחוז מהדרך', catches: 'מהירות קבועה במקום חלק מהדרך',
         check: (e) => {
-          if (!nums(e.x, ['target', 'pullPct']) || !pctOk(e.x.pullPct)) return null;
-          const t = e.x.target; const c2 = t + (e.y - t) * 3 + 7;
-          if (Math.abs(e.y - t) < 1e-6) return null;
-          const fr1 = (e.out - e.y) / (t - e.y); const o2 = at(e, c2); const fr2 = (o2 - c2) / (t - c2);
+          const t = vecOf(e.x.target);
+          if (!t || !pctOk(e.x.pullPct)) return null;
+          const y = vecOf(e.y);
+          if (norm(sub(y, t)) < 1e-6) return null;
+          const c2 = t.map((v, k) => v + (y[k] - v) * 3 + 7);
+          const fr1 = fracOf(y, vecOf(e.out), t); const o2 = vecOf(at(e, fromVec(c2, e.y))); const fr2 = o2 && fracOf(c2, o2, t);
+          if (fr1 === null || fr2 === null || fr2 === undefined) return FAIL('לא בקו ישר אל המטרה');
           return close(fr1, fr2, 1, 1e-6) ? true : FAIL('מרחק אחד ' + fr1.toFixed(4) + ', אחר ' + fr2.toFixed(4));
         },
       },
     ],
     ref: { sig: [{ name: 'spec', d: { t: 'obj', p: [['target', N, false], ['pullPct', { t: 'num', h: 'pct' }, false]] } }, { name: 'current', d: N }], fn: () => follow },
+    refGeo: { sig: [{ name: 'spec', d: { t: 'obj', p: [['target', O('x', 'y'), false], ['pullPct', { t: 'num', h: 'pct' }, false]] } }, { name: 'current', d: O('x', 'y') }], fn: () => (s, c) => ({ x: follow({ target: s?.target?.x, pullPct: s?.pullPct }, c?.x), y: follow({ target: s?.target?.y, pullPct: s?.pullPct }, c?.y) }) },
+    mutantsGeo: {
+      'follow.closer': () => (s, c) => { const k = Math.min(100, Math.abs(fin(s?.pullPct))) / 100; const t = s?.target ?? {}; return { x: fin(t.x) + (fin(t.x) - fin(c?.x)) * k, y: fin(t.y) + (fin(t.y) - fin(c?.y)) * k }; },
+      'follow.still': () => (s, c) => ({ x: follow({ target: s?.target?.x, pullPct: s?.pullPct }, c?.x) + 0.5, y: follow({ target: s?.target?.y, pullPct: s?.pullPct }, c?.y) }),
+      'follow.fraction': () => (s, c) => { const t = s?.target ?? {}; const dx = fin(t.x) - fin(c?.x); const dy = fin(t.y) - fin(c?.y); const L = Math.hypot(dx, dy); const st = L ? Math.min(L, 1) / L : 0; return { x: fin(c?.x) + dx * st, y: fin(c?.y) + dy * st }; },
+    },
     mutants: {
       'follow.closer': () => (s, c) => fin(s?.target) + (fin(s?.target) - fin(c)) * (Math.min(100, Math.abs(fin(s?.pullPct))) / 100),
       'follow.still': () => (s, c) => follow(s, c) + 0.5,

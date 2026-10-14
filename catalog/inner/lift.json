@@ -53,17 +53,17 @@
  },
  "behaviors": {
   "total": 940,
-  "base-only": 198,
-  "both": 211,
-  "inner-only": 168,
-  "none": 363
+  "base-only": 222,
+  "both": 217,
+  "inner-only": 173,
+  "none": 328
  },
  "pairs": {
-  "total": 189,
-  "base-only": 18,
-  "both": 33,
-  "inner-only": 28,
-  "none": 110
+  "total": 176,
+  "base-only": 27,
+  "both": 34,
+  "inner-only": 29,
+  "none": 86
  },
  "examples": [
   {
@@ -131,6 +131,22 @@
    }
   },
   {
+   "verb": "extreme",
+   "material": "geo",
+   "behaviors": 6,
+   "sample": [
+    "כבאות: תחנה קרובה",
+    "תופסת: הקרוב ביותר",
+    "קיר-טיפוס: האחיזה הבאה בהישג יד"
+   ],
+   "innerParts": 2,
+   "part": {
+    "id": "inner-orbit:src/components/parnasa/envelope.ts#envLayout.forEach.forEach.bd:after-loop",
+    "name": "בוחר את הפריט עם הערך הגדול ביותר",
+    "parent": "orbit:src/components/parnasa/envelope.ts#envLayout"
+   }
+  },
+  {
    "verb": "merge",
    "material": "list",
    "behaviors": 6,
@@ -160,22 +176,6 @@
     "id": "inner-orbit:src/components/timer/CashRegister.tsx#CashRegister.exact.n",
     "name": "מעגל מספר כלפי מטה",
     "parent": "orbit:src/components/timer/CashRegister.tsx#CashRegister"
-   }
-  },
-  {
-   "verb": "extreme",
-   "material": "geo",
-   "behaviors": 5,
-   "sample": [
-    "כבאות: תחנה קרובה",
-    "תופסת: הקרוב ביותר",
-    "אמבולנס: האמבולנס הקרוב"
-   ],
-   "innerParts": 2,
-   "part": {
-    "id": "inner-orbit:src/components/parnasa/envelope.ts#envLayout.forEach.forEach.bd:after-loop",
-    "name": "בוחר את הפריט עם הערך הגדול ביותר",
-    "parent": "orbit:src/components/parnasa/envelope.ts#envLayout"
    }
   },
   {
@@ -227,6 +227,22 @@
    }
   },
   {
+   "verb": "lookup",
+   "material": "waiting",
+   "behaviors": 3,
+   "sample": [
+    "ספרייה: תור לספר מבוקש",
+    "דיג׳יי: בקשות מהקהל",
+    "קופה-רושמת: תור לקופה הפנויה"
+   ],
+   "innerParts": 8,
+   "part": {
+    "id": "inner-orbit:src/components/families/ReenrollFamilyPanel.tsx#ReenrollFamilyPanel.regEnroll",
+    "name": "בוחר ערך לפי תנאי",
+    "parent": "orbit:src/components/families/ReenrollFamilyPanel.tsx#ReenrollFamilyPanel"
+   }
+  },
+  {
    "verb": "compare",
    "material": "list",
    "behaviors": 2,
@@ -239,6 +255,21 @@
     "id": "inner-orbit:src/components/families/JoinModal.tsx#JoinModal.hiddenCount",
     "name": "מחשב הפרש בין ערכים",
     "parent": "orbit:src/components/families/JoinModal.tsx#JoinModal"
+   }
+  },
+  {
+   "verb": "escalate",
+   "material": "times",
+   "behaviors": 2,
+   "sample": [
+    "מנעול-קוד: זמן נעילה שגדל",
+    "שעון-מעורר: הצלצול מתגבר"
+   ],
+   "innerParts": 13,
+   "part": {
+    "id": "inner-orbit:src/components/courses/lib.ts#ageOf.a",
+    "name": "מחשב הפרש בין ערכים",
+    "parent": "orbit:src/components/courses/lib.ts#ageOf"
    }
   },
   {
@@ -386,20 +417,6 @@
     "id": "inner-orbit:src/components/courses/CourseDetail.tsx#CourseDetail.fn.n",
     "name": "סופר פריטים",
     "parent": "orbit:src/components/courses/CourseDetail.tsx#CourseDetail"
-   }
-  },
-  {
-   "verb": "escalate",
-   "material": "times",
-   "behaviors": 1,
-   "sample": [
-    "מנעול-קוד: זמן נעילה שגדל"
-   ],
-   "innerParts": 13,
-   "part": {
-    "id": "inner-orbit:src/components/courses/lib.ts#ageOf.a",
-    "name": "מחשב הפרש בין ערכים",
-    "parent": "orbit:src/components/courses/lib.ts#ageOf"
    }
   },
   {

@@ -37,7 +37,7 @@ const CARD = {
   orbit: { name: 'מחשב נקודה שמקיפה מרכז במעגל', takes: [['spec', 'record:orbitSpec', '{cx, cy, radius, period}'], ['step', 'number', 'number']], gives: ['geo', '{x, y}'] },
   'shortest-path': { name: 'מוצא את הדרך הזולה ברשת נקודות', takes: [['spec', 'record:graphSpec', '{edges: {a, b, w}[]}'], ['from', 'choice', '0..5'], ['to', 'choice', '0..5']], gives: ['sequence', '{cost, path} | null'] },
   spread: { name: 'מרחיב גל לכל השכנים בכל צעד', takes: [['spec', 'record:spreadSpec', '{edges: {a, b}[], sources}'], ['steps', 'number', 'number']], gives: ['list', 'number[]'] },
-  sample: { name: 'קורא מהסביבה כל קריאה במרווח קבוע', takes: [['spec', 'record:sampleSpec', '{every}'], ['readings', 'sequence', 'number[]']], gives: ['sequence', 'number[]'] },
+  sample: { name: 'קורא מהסביבה כל קריאה במרווח קבוע', takes: [['spec', 'record:sampleSpec', '{every}'], ['readings', 'sequence', 'T[]']], gives: ['sequence', 'T[]'] }, // הקריאות — כל סוג (`xs[i]` בלי לגעת בקריאה): פיקסלים, פריימים, צלילים — MACHINE-V4
   echo: { name: 'מודד מרחק מזמן החזרה של ההד', takes: [['spec', 'record:echoSpec', '{speed}'], ['roundTrip', 'number', 'number']], gives: ['number', 'number'] },
   follow: { name: 'מזיז ערך חלק קבוע מהדרך למטרה', takes: [['spec', 'record:followSpec', '{target, pullPct}'], ['current', 'number', 'number']], gives: ['number', 'number'] },
   bounce: { name: 'מחזיר גוף מהרצפה במקדם קפיצה', takes: [['spec', 'record:bounceSpec', '{floor, bouncePct}'], ['body', 'record:body', '{pos, vel}']], gives: ['record:body', '{pos, vel}'] },

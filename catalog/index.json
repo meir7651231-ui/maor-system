@@ -59,7 +59,7 @@
   {
    "source": "core",
    "repo": "meir7651231-ui/maor-system",
-   "ref": "claude/final-261014@db0cbcda6171c0883fb4e04a78f7ba84e1867395",
+   "ref": "claude/machine-v4-261014@d220238c9bf9b774621aa544a267fe27b4088750",
    "parts": 15
   },
   {
@@ -67,6 +67,12 @@
    "repo": "meir7651231-ui/maor-system",
    "ref": "catalog/core@7f2d8d92",
    "parts": 7
+  },
+  {
+   "source": "core-c",
+   "repo": "meir7651231-ui/maor-system",
+   "ref": "catalog/core@0030ade2",
+   "parts": 9
   },
   {
    "source": "inner-14kk",
@@ -112,7 +118,7 @@
   }
  ],
  "totals": {
-  "parts": 23225,
+  "parts": 23234,
   "what": {
    "inner": 17360,
    "function": 2227,
@@ -120,10 +126,10 @@
    "component": 1010,
    "engine": 598,
    "rule": 577,
-   "brick": 295
+   "brick": 304
   },
   "lang": {
-   "js": 9901,
+   "js": 9910,
    "ts": 9229,
    "dart": 2785,
    "py": 1096,
@@ -131,10 +137,10 @@
   },
   "gives": {
    "unknown": 5043,
-   "list": 4159,
+   "list": 4160,
    "text": 3628,
    "number": 3234,
-   "record:*": 2588,
+   "record:*": 2589,
    "bool": 1566,
    "ui": 1023,
    "choice": 816,
@@ -143,11 +149,11 @@
    "date": 206,
    "waiting": 135,
    "sequence": 81,
-   "geo": 15,
+   "geo": 21,
    "file": 10,
    "span": 7,
    "image": 6,
-   "sound": 2
+   "sound": 3
   },
   "verbs": {
    "format:run": 1092,
@@ -166,19 +172,19 @@
    "split:static": 168,
    "convert:static": 155,
    "provide:run": 145,
-   "filter:run": 133,
+   "filter:run": 135,
    "count:static": 130,
    "settle:static": 124,
    "map:static": 117,
-   "map:run": 109,
+   "map:run": 110,
    "extreme:run": 108,
    "normalize:static": 108,
    "split:run": 105,
    "sum:run": 97,
-   "offset:run": 83,
+   "offset:run": 84,
    "bucket:run": 82,
    "lookup:run": 75,
-   "settle:run": 74,
+   "settle:run": 75,
    "combine:run": 73,
    "join:run": 72,
    "escalate:run": 66,
@@ -219,10 +225,10 @@
    "tier:static": 14,
    "group:static": 13,
    "personalize:static": 13,
+   "sort:run": 12,
    "tally:static": 12,
    "compare:static": 11,
    "filter:twin": 11,
-   "sort:run": 11,
    "clamp:static": 10,
    "convert:twin": 10,
    "countdown:static": 10,
@@ -233,11 +239,11 @@
    "average:run": 9,
    "lookup:static": 9,
    "relay:static": 9,
+   "group:run": 8,
    "next:static": 8,
    "reverse:run": 8,
-   "group:run": 7,
+   "dedupe:run": 7,
    "random:static": 7,
-   "dedupe:run": 6,
    "fingerprint:run": 5,
    "offset:static": 5,
    "settle:twin": 5,
@@ -252,10 +258,12 @@
    "tier:twin": 3,
    "bounce:static": 2,
    "echo:static": 2,
+   "follow:run": 2,
    "gap:twin": 2,
    "gravity:static": 2,
    "lookup:twin": 2,
    "merge:run": 2,
+   "random:run": 2,
    "reverse:static": 2,
    "sun-heading:static": 2,
    "accumulate:run": 1,
@@ -264,13 +272,13 @@
    "bounce:run": 1,
    "clamp:twin": 1,
    "compare:twin": 1,
+   "connect:run": 1,
    "count:twin": 1,
    "countdown:run": 1,
    "decay:run": 1,
    "decay:static": 1,
    "echo:run": 1,
    "fingerprint:twin": 1,
-   "follow:run": 1,
    "freeze:run": 1,
    "fuzzy:run": 1,
    "gravity:run": 1,
@@ -282,7 +290,6 @@
    "oscillate:run": 1,
    "oscillate:static": 1,
    "pace:run": 1,
-   "random:run": 1,
    "relay:run": 1,
    "require-source:run": 1,
    "sample:run": 1,
@@ -708,6 +715,32 @@
    },
    "withVerb": 7
   },
+  "core-c": {
+   "parts": 9,
+   "pure": 9,
+   "what": {
+    "brick": 9
+   },
+   "lang": {
+    "js": 9
+   },
+   "gives": {
+    "geo": 6,
+    "list": 1,
+    "record:*": 1,
+    "sound": 1
+   },
+   "takes": {
+    "geo": 6,
+    "number": 4,
+    "record:*": 3,
+    "sound": 1
+   },
+   "labeledBy": {
+    "run": 9
+   },
+   "withVerb": 9
+  },
   "inner-14kk": {
    "parts": 377,
    "pure": 377,
@@ -1072,6 +1105,7 @@
    "geo": {
     "gives": {
      "inner-orbit": 11,
+     "core-c": 6,
      "core": 2,
      "inner-generator": 1,
      "orbit": 1
@@ -1079,9 +1113,10 @@
     "takes": {
      "inner-orbit": 30,
      "orbit": 7,
+     "core-c": 6,
      "buildsmart": 1
     },
-    "pairs": 570
+    "pairs": 924
    },
    "image": {
     "gives": {
@@ -1112,6 +1147,7 @@
      "core-b": 4,
      "inner-yoman-habina": 3,
      "core": 1,
+     "core-c": 1,
      "inner-yeshiva": 1,
      "yoman-habina": 1
     },
@@ -1133,7 +1169,7 @@
      "inner-yoman-habina": 1,
      "yoman-habina": 1
     },
-    "pairs": 20416531
+    "pairs": 20421440
    },
    "number": {
     "gives": {
@@ -1162,12 +1198,13 @@
      "inner-14kk": 40,
      "inner-buildsmart": 27,
      "core": 9,
+     "core-c": 4,
      "qa-scanner": 4,
      "mmmm": 3,
      "core-b": 2,
      "inner-mmmm": 2
     },
-    "pairs": 8967882
+    "pairs": 8980818
    },
    "record:a": {
     "gives": {
@@ -4733,6 +4770,13 @@
     },
     "pairs": 0
    },
+   "record:followPointSpec": {
+    "gives": {},
+    "takes": {
+     "core-c": 1
+    },
+    "pairs": 0
+   },
    "record:followSpec": {
     "gives": {},
     "takes": {
@@ -6898,6 +6942,20 @@
     "takes": {},
     "pairs": 0
    },
+   "record:net": {
+    "gives": {
+     "core-c": 1
+    },
+    "takes": {},
+    "pairs": 0
+   },
+   "record:netSpec": {
+    "gives": {},
+    "takes": {
+     "core-c": 1
+    },
+    "pairs": 0
+   },
    "record:newItem": {
     "gives": {},
     "takes": {
@@ -8908,7 +8966,8 @@
    "record:randomSpec": {
     "gives": {},
     "takes": {
-     "core": 1
+     "core": 1,
+     "core-c": 1
     },
     "pairs": 0
    },
@@ -12093,12 +12152,14 @@
    },
    "sound": {
     "gives": {
-     "mmmm": 2
+     "mmmm": 2,
+     "core-c": 1
     },
     "takes": {
-     "mmmm": 6
+     "mmmm": 6,
+     "core-c": 1
     },
-    "pairs": 12
+    "pairs": 21
    },
    "span": {
     "gives": {
@@ -12195,6 +12256,7 @@
     "mmmm": 8603,
     "core": 800,
     "core-b": 1816,
+    "core-c": 266,
     "inner-14kk": 19346,
     "inner-buildsmart": 24995,
     "inner-generator": 439647,
@@ -12215,6 +12277,7 @@
     "mmmm": 9056,
     "core": 376,
     "core-b": 2146,
+    "core-c": 156,
     "inner-14kk": 18998,
     "inner-buildsmart": 27711,
     "inner-generator": 490149,
@@ -12235,6 +12298,7 @@
     "mmmm": 11100,
     "core": 836,
     "core-b": 2096,
+    "core-c": 364,
     "inner-14kk": 24705,
     "inner-buildsmart": 30559,
     "inner-generator": 535342,
@@ -12255,6 +12319,7 @@
     "mmmm": 501,
     "core": 1316,
     "core-b": 341,
+    "core-c": 584,
     "inner-14kk": 5966,
     "inner-buildsmart": 4369,
     "inner-generator": 123000,
@@ -12275,6 +12340,7 @@
     "mmmm": 3491,
     "core": 471,
     "core-b": 1386,
+    "core-c": 56,
     "inner-14kk": 7360,
     "inner-buildsmart": 16670,
     "inner-generator": 247697,
@@ -12295,6 +12361,7 @@
     "mmmm": 37,
     "core": 38,
     "core-b": 40,
+    "core-c": 0,
     "inner-14kk": 73,
     "inner-buildsmart": 1000,
     "inner-generator": 15399,
@@ -12315,6 +12382,7 @@
     "mmmm": 83,
     "core": 3,
     "core-b": 14,
+    "core-c": 0,
     "inner-14kk": 160,
     "inner-buildsmart": 228,
     "inner-generator": 3094,
@@ -12335,6 +12403,7 @@
     "mmmm": 313,
     "core": 293,
     "core-b": 239,
+    "core-c": 116,
     "inner-14kk": 1609,
     "inner-buildsmart": 2590,
     "inner-generator": 53534,
@@ -12355,6 +12424,7 @@
     "mmmm": 792,
     "core": 10,
     "core-b": 102,
+    "core-c": 6,
     "inner-14kk": 1480,
     "inner-buildsmart": 1745,
     "inner-generator": 27252,
@@ -12375,6 +12445,7 @@
     "mmmm": 21,
     "core": 47,
     "core-b": 15,
+    "core-c": 28,
     "inner-14kk": 212,
     "inner-buildsmart": 175,
     "inner-generator": 4534,
@@ -12395,6 +12466,7 @@
     "mmmm": 36,
     "core": 1,
     "core-b": 29,
+    "core-c": 0,
     "inner-14kk": 72,
     "inner-buildsmart": 257,
     "inner-generator": 5186,
@@ -12402,6 +12474,27 @@
     "inner-orbit": 9183,
     "inner-yeshiva": 0,
     "inner-yoman-habina": 4
+   },
+   "core-c": {
+    "orbit": 327,
+    "buildsmart": 203,
+    "generator": 645,
+    "rings": 45,
+    "yeshiva": 86,
+    "qa-scanner": 7,
+    "yoman-habina": 1,
+    "14kk": 7,
+    "mmmm": 15,
+    "core": 0,
+    "core-b": 7,
+    "core-c": 37,
+    "inner-14kk": 18,
+    "inner-buildsmart": 61,
+    "inner-generator": 1282,
+    "inner-mmmm": 32,
+    "inner-orbit": 2406,
+    "inner-yeshiva": 0,
+    "inner-yoman-habina": 1
    },
    "inner-14kk": {
     "orbit": 21057,
@@ -12415,6 +12508,7 @@
     "mmmm": 1248,
     "core": 380,
     "core-b": 293,
+    "core-c": 152,
     "inner-14kk": 4120,
     "inner-buildsmart": 4168,
     "inner-generator": 79690,
@@ -12435,6 +12529,7 @@
     "mmmm": 3975,
     "core": 345,
     "core-b": 841,
+    "core-c": 148,
     "inner-14kk": 8993,
     "inner-buildsmart": 11632,
     "inner-generator": 204648,
@@ -12455,6 +12550,7 @@
     "mmmm": 55851,
     "core": 7811,
     "core-b": 13192,
+    "core-c": 3370,
     "inner-14kk": 138570,
     "inner-buildsmart": 175116,
     "inner-generator": 3237678,
@@ -12475,6 +12571,7 @@
     "mmmm": 3955,
     "core": 168,
     "core-b": 387,
+    "core-c": 72,
     "inner-14kk": 8127,
     "inner-buildsmart": 7995,
     "inner-generator": 117259,
@@ -12495,6 +12592,7 @@
     "mmmm": 82225,
     "core": 17793,
     "core-b": 20678,
+    "core-c": 7710,
     "inner-14kk": 229886,
     "inner-buildsmart": 274306,
     "inner-generator": 5301213,
@@ -12515,6 +12613,7 @@
     "mmmm": 46,
     "core": 0,
     "core-b": 9,
+    "core-c": 0,
     "inner-14kk": 89,
     "inner-buildsmart": 127,
     "inner-generator": 2181,
@@ -12535,6 +12634,7 @@
     "mmmm": 175,
     "core": 0,
     "core-b": 29,
+    "core-c": 0,
     "inner-14kk": 338,
     "inner-buildsmart": 431,
     "inner-generator": 6898,
@@ -15529,6 +15629,15 @@
   {"id":"core-b:catalog/core/require-source.mjs#requireSource","source":"core-b","name":"מקבל רק פריטים עם מקור","what":"brick","lang":"js","takes":["list"],"gives":"record:sourceCheck","pure":true,"labeledBy":"run","verbs":["require-source"],"primary":"require-source","material":"record:item"},
   {"id":"core-b:catalog/core/route.mjs#route","source":"core-b","name":"שולח כל דבר לערוץ אחד","what":"brick","lang":"js","takes":["text","list","text"],"gives":"choice","pure":true,"labeledBy":"run","verbs":["normalize","format","route"],"primary":"route","material":"text"},
   {"id":"core-b:catalog/core/tolerate.mjs#tolerateParse","source":"core-b","name":"קורא כל פריט וסובל פריט שבור","what":"brick","lang":"js","takes":["list","unknown"],"gives":"list","pure":true,"labeledBy":"run","verbs":["map","normalize","tolerate"],"primary":"tolerate","material":"text"},
+  {"id":"core-c:catalog/core/by-distance.mjs#byDistance","source":"core-c","name":"ממיין נקודות לפי המרחק מהמוצא","what":"brick","lang":"js","takes":["geo","geo"],"gives":"geo","pure":true,"labeledBy":"run","verbs":["sort"],"primary":"sort","material":"geo"},
+  {"id":"core-c:catalog/core/dedupe-points.mjs#dedupePoints","source":"core-c","name":"מסנן כפולים: כל נקודה פעם אחת","what":"brick","lang":"js","takes":["geo"],"gives":"geo","pure":true,"labeledBy":"run","verbs":["filter","dedupe"],"primary":"dedupe","material":"geo"},
+  {"id":"core-c:catalog/core/drift.mjs#drift","source":"core-c","name":"מזיז נקודה במהירות שלה כמה צעדים","what":"brick","lang":"js","takes":["geo","number","geo"],"gives":"geo","pure":true,"labeledBy":"run","verbs":["offset"],"primary":"offset","material":"geo"},
+  {"id":"core-c:catalog/core/follow-point.mjs#followPoint","source":"core-c","name":"מזיז נקודה חלק קבוע מהדרך למטרה","what":"brick","lang":"js","takes":["record:followPointSpec","geo"],"gives":"geo","pure":true,"labeledBy":"run","verbs":["follow"],"primary":"follow","material":"record:followPointSpec"},
+  {"id":"core-c:catalog/core/group-by-side.mjs#groupBySide","source":"core-c","name":"מקבץ נקודות לפי הצד של המרכז","what":"brick","lang":"js","takes":["geo","geo"],"gives":"list","pure":true,"labeledBy":"run","verbs":["group"],"primary":"group","material":"geo"},
+  {"id":"core-c:catalog/core/near-net.mjs#nearNet","source":"core-c","name":"מחבר כל נקודה לשכנות הקרובות אליה","what":"brick","lang":"js","takes":["record:netSpec"],"gives":"record:net","pure":true,"labeledBy":"run","verbs":["settle","connect"],"primary":"connect","material":"record:netSpec"},
+  {"id":"core-c:catalog/core/points-within.mjs#pointsWithin","source":"core-c","name":"מסנן את הנקודות שבתוך העיגול","what":"brick","lang":"js","takes":["geo","geo","number"],"gives":"geo","pure":true,"labeledBy":"run","verbs":["filter"],"primary":"filter","material":"geo"},
+  {"id":"core-c:catalog/core/random-points.mjs#randomPoints","source":"core-c","name":"מחשב נקודות במקומות אקראיים מזרע","what":"brick","lang":"js","takes":["record:randomSpec","number"],"gives":"geo","pure":true,"labeledBy":"run","verbs":["random"],"primary":"random","material":"record:randomSpec"},
+  {"id":"core-c:catalog/core/transpose-notes.mjs#transposeNotes","source":"core-c","name":"מעביר צליל לגובה אחר ביחס קבוע","what":"brick","lang":"js","takes":["sound","number"],"gives":"sound","pure":true,"labeledBy":"run","verbs":["map"],"primary":"map","material":"sound"},
   {"id":"core:catalog/core/accumulate.mjs#accumulate","source":"core","name":"אוסף לקופה עד שהיא מתמלאת ומרוקנת","what":"brick","lang":"js","takes":["record:accumulateSpec","sequence"],"gives":"sequence","pure":true,"labeledBy":"run","verbs":["accumulate"],"primary":"accumulate","material":"record:accumulateSpec"},
   {"id":"core:catalog/core/bounce.mjs#bounce","source":"core","name":"מחזיר גוף מהרצפה במקדם קפיצה","what":"brick","lang":"js","takes":["record:bounceSpec","record:body"],"gives":"record:body","pure":true,"labeledBy":"run","verbs":["bounce"],"primary":"bounce","material":"record:bounceSpec"},
   {"id":"core:catalog/core/countdown.mjs#countdown","source":"core","name":"סופר לאחור עד אפס בדיוק","what":"brick","lang":"js","takes":["record:countdownSpec","times"],"gives":"times","pure":true,"dup":"countdown","labeledBy":"run","verbs":["countdown"],"primary":"countdown","material":"record:countdownSpec"},

@@ -1,7 +1,7 @@
 {
  "source": "core",
  "repo": "meir7651231-ui/maor-system",
- "ref": "claude/final-261014@db0cbcda6171c0883fb4e04a78f7ba84e1867395",
+ "ref": "claude/machine-v4-261014@d220238c9bf9b774621aa544a267fe27b4088750",
  "generatedAt": null,
  "parts": [
   {
@@ -490,12 +490,12 @@
     {
      "name": "readings",
      "kind": "sequence",
-     "type": "number[]"
+     "type": "T[]"
     }
    ],
    "gives": {
     "kind": "sequence",
-    "type": "number[]"
+    "type": "T[]"
    },
    "pure": true,
    "example": null,

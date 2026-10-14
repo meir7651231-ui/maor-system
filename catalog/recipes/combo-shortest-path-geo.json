@@ -1,0 +1,35 @@
+{
+ "id": "combo-shortest-path-geo",
+ "word": "shortest-path · geo",
+ "title": "שילוב: מחבר כל נקודה לשכנות הקרובות אליה ⇒ מוצא את הדרך הזולה ברשת נקודות",
+ "combo": {
+  "verb": "shortest-path",
+  "material": "geo",
+  "form": "chain",
+  "steps": [
+   "core-c:catalog/core/near-net.mjs#nearNet",
+   "core:catalog/core/shortest-path.mjs#shortestPath"
+  ],
+  "roles": [
+   "connect",
+   "shortest-path"
+  ],
+  "holds": "24/24",
+  "laws": [
+   "shortest-path.valid",
+   "shortest-path.shortest"
+  ],
+  "hint": "הדרך המהירה בין מקומות = קודם רשת: כל מקום מתחבר לקרובים אליו (רשת-הסינפסות של כדור-המוח בדף ההרשמה, three-scene.ts:114), ואז הדרך הזולה ברשת (דייקסטרה — מוצא-הדרך של בנייה-חכמה, install_engine.dart:759)"
+ },
+ "needs": [
+  {
+   "need": "combo",
+   "verb": "shortest-path",
+   "material": "geo",
+   "chain": [
+    "core-c:catalog/core/near-net.mjs#nearNet",
+    "core:catalog/core/shortest-path.mjs#shortestPath"
+   ]
+  }
+ ]
+}

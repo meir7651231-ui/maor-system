@@ -54,6 +54,7 @@ export const PROJECTS = {
   // הליבות שחולצו מהקוד (catalog/core): לא "פרויקט" — הפרויקטים שלהן הם ה-origins
   core: { he: 'הליבה', color: '#495057', core: true },
   'core-b': { he: 'ליבות-הפעלים', color: '#495057', core: true },
+  'core-c': { he: 'ליבות-החומר', color: '#495057', core: true },
 };
 /** שם-ריפו (כמו ב-origins של core-b) ⇒ מזהה-הפרויקט. */
 const REPO_SOURCE = { 'maor-system': 'orbit', buildsmart: 'buildsmart', 'yeshiva-engine': 'yeshiva', '14kk': '14kk', mmmm: 'mmmm', MMMM: 'mmmm', 'yoman-habina': 'yoman-habina', 'qa-scanner': 'qa-scanner', '-ai-chat-server': 'generator' };
@@ -415,6 +416,10 @@ export function lawMat(verb, mat) {
   const spec = v?.takes?.length === 2 && v.takes[0] === 'record';
   return [...kindsOf(v?.gives), ...(spec ? [] : kindsOf(v?.takes?.[0]))].includes('record');
 }
+/** חומרי-צורה שחלק שמקבל אותם כקלט ראשי עובד רק עליהם (MACHINE-V4). תור לא — תור הוא רשימה. */
+const SHAPE_IN = new Set(['geo', 'sound', 'image']);
+/** החומר של ליבת-חומר (core-c): הסוג-הצורה הראשון בקלטים או בפלט. חלק אחר ⇒ null. */
+const coreMaterial = (p) => (p.homes?.some((h) => h.source === 'core-c') ? [...p.takes, p.gives].find((k) => SHAPE_IN.has(k)) ?? null : null);
 const CAP_CORE = 60;
 const CAP_LINK = 40;
 const KEEP = 5;
@@ -479,16 +484,21 @@ function ringsFor(need, ix, cores) {
   // …או החומר שהקורא מדד; או — החומר הוא בדיוק סוג שהפועל עצמו מקבל/נותן (האלפבית), והחלק מוכח לפועל:
   // אז החוקים כבר מבטיחים שהוא עובד על החומר הזה ("הבקשה מביאה את העולם; החלק מביא רק את הפעולה")
   const byLaw = lawMat(need.verb, mat);
-  const onMat = (p) => fitPart(p.gives, mat) > 0 || accepts(p, mat) || (p.takes.length > 0 && fitPart(p.takes[0], mat) > 0) || (!!p.material && fitPart(p.material, mat) > 0) || (byLaw && provenAs(p, need.verb));
+  // MACHINE-V4: ליבת-חומר (מקום/קול/תמונה) עובדת **רק** על החומר שלה — נקודות אינן "רשימה כללית"
+  // (בלי זה מסיר-הכפולים של הנקודות היה עונה גם ל"ספר טלפונים: כפולים", והמגריל-של-נקודות ל"מגריל·מספר").
+  // רק לליבות-החומר (core-c — כל אחת חולצה לחומר אחד): חלק אחר שמקבל מקום ונותן מספר (מרחק) עונה גם לצורך-מספר, כמו קודם.
+  const shapeOnly = (p) => { const k = coreMaterial(p); return !!k && fitPart(k, mat) === 0; };
+  const onMat = (p) => !shapeOnly(p) && (fitPart(p.gives, mat) > 0 || accepts(p, mat) || (p.takes.length > 0 && fitPart(p.takes[0], mat) > 0) || (!!p.material && fitPart(p.material, mat) > 0) || (byLaw && provenAs(p, need.verb)));
   const chains = [];
   const push = (steps, ring, core) => {
     const ids = steps.map((s) => s.id);
     if (new Set(ids).size !== ids.length) return;
     const roles = steps.map((s, i) => (i === core ? need.verb : glue(s)));
-    chains.push({ ring, verb: need.verb, overlap: overlap(need.behavior, steps), steps, roles, core, fit: Math.max(fit(steps[steps.length - 1].gives, mat), steps[0].takes.length ? fit(mat, steps[0].takes[0]) : 0) });
+    chains.push({ ring, verb: need.verb, mat, overlap: overlap(need.behavior, steps), steps, roles, core, fit: Math.max(fit(steps[steps.length - 1].gives, mat), steps[0].takes.length ? fit(mat, steps[0].takes[0]) : 0) });
   };
   // כמו מנוע-הטבעות: מתרחבים לטבעת הבאה רק כשהפנימית ריקה
   // טבעת 1 — חלק בודד: **כל** החלקים שמוכחים לפועל (MACHINE-V3 — בלי תקרה; הסדר = הדירוג של האינדקס, דטרמיניסטי)
+  cores = cores.filter((c) => !shapeOnly(c));
   for (const c of cores) if (onMat(c) && startOk(c)) push([c], 1, 0);
   if (chains.length) return chains;
   // טבעות 2–3 — זוג/שלישייה: על CAP_CORE הליבות הראשונות (המתאמים כבר חסומים ב-CAP_LINK)
@@ -517,7 +527,8 @@ export function rankChains(chains, used = new Set()) {
   const key = (c) => {
     const srcs = [...new Set(c.steps.map((s) => s.source))];
     const core = c.steps[Math.max(0, c.core)];
-    return [TIER_RANK[chainTier(c)], c.steps.length, -c.overlap, core.strength?.[c.verb] ?? 3, 2 - c.fit, srcs.some((s) => !used.has(s)) ? 0 : 1, -srcs.length, c.steps.map((s) => s.id).join('>')];
+    // MACHINE-V4: במקום/קול/תמונה, אחרי עוצמת-ההוכחה — חלק שהפועל הזה הוא הראשי שלו קודם לחלק שרק מקיים אותו גם (מסנן-בעיגול לפני מסיר-כפולים, ב"בית = מקום מוגן")
+    return [TIER_RANK[chainTier(c)], c.steps.length, -c.overlap, core.strength?.[c.verb] ?? 3, SHAPE_IN.has(c.mat) && core.primary !== c.verb ? 1 : 0, 2 - c.fit, srcs.some((s) => !used.has(s)) ? 0 : 1, -srcs.length, c.steps.map((s) => s.id).join('>')];
   };
   const cmp = (a, b) => {
     const ka = key(a);

@@ -316,8 +316,9 @@
         },
         {
           "behavior": "תור לקופה הפנויה",
-          "verb": "next",
-          "material": "waiting"
+          "verb": "lookup",
+          "material": "waiting",
+          "note": "MACHINE-V4: היה next·waiting. מי נכנס לקופה = הראשון בתור שעוד מחכה: «מחפש לפי מפתח» על התור."
         },
         {
           "behavior": "סגירת יום",

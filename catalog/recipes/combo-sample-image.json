@@ -1,0 +1,33 @@
+{
+ "id": "combo-sample-image",
+ "word": "sample · image",
+ "title": "קורא מהסביבה כל קריאה במרווח קבוע — על תמונות",
+ "combo": {
+  "verb": "sample",
+  "material": "image",
+  "form": "on",
+  "slot": 1,
+  "many": true,
+  "steps": [
+   "core:catalog/core/sample.mjs#sample"
+  ],
+  "roles": [
+   "sample"
+  ],
+  "holds": "14/14",
+  "laws": [
+   "sample.picks",
+   "sample.count"
+  ]
+ },
+ "needs": [
+  {
+   "need": "combo",
+   "verb": "sample",
+   "material": "image",
+   "chain": [
+    "core:catalog/core/sample.mjs#sample"
+   ]
+  }
+ ]
+}

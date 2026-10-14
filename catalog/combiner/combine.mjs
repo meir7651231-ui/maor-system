@@ -38,7 +38,7 @@ export const SEED = 0x0c0b1e;
 const K = 24;
 /** עומק 3 (MACHINE-V2): עד K3 שרשראות של שלושה חלקים לזוג — רק כשאף זוג של שניים לא עבר. */
 const K3 = 24;
-const RUN_SOURCES = new Set(['orbit', 'core', 'core-b']);
+const RUN_SOURCES = new Set(['orbit', 'core', 'core-b', 'core-c']);
 const runnableHere = (raw) => raw && (raw.source.startsWith('inner-') ? (raw.tags || []).some((t) => t.startsWith('gen:')) : RUN_SOURCES.has(raw.source) && isRunnable(raw));
 
 const HINTS = JSON.parse(fs.readFileSync(path.join(HERE, 'verb-recipes.json'), 'utf8')).recipes;
@@ -208,7 +208,19 @@ export function candidatesOnFor(need, ix, raw) {
     if (!(r.takes || []).some((t) => OPEN_TYPE.test(String(t.type || '').trim()))) continue;
     out.push({ form: 'on', steps: [p], roles: [need.verb] });
   }
+  // MACHINE-V4: חלק גנרי שמחזיר **פריט מהקלט** (`turnOf<T>(list: readonly T[], n): T | null`) — הסוג של הפלט הוא החומר עצמו,
+  // ולכן ה-"unknown" שלו אינו חסר-סוג: על נקודות הוא נותן נקודה, על צלילים — צליל. נכנס רק כשהטיפוס בקוד אומר זאת במפורש.
+  for (const p of (ix.byVerb.get(need.verb) || []).filter((q) => provenAs(q, need.verb) && q.takes.length > 0 && q.gives === 'unknown' && homeOf(q, raw))) {
+    if (out.length >= K_ON) break;
+    const r = homeOf(p, raw);
+    if (genericReturn(r)) out.push({ form: 'on', steps: [p], roles: [need.verb] });
+  }
   return out;
+}
+/** הפלט הוא משתנה-הטיפוס של קלט פתוח: `T | null` כש-`readonly T[]`/`T` בקלטים. */
+export function genericReturn(r) {
+  const g = String(r?.gives?.type || '').trim().match(/^([A-Z]\w{0,3})(\s*\|\s*(null|undefined))*$/);
+  return !!g && (r.takes || []).some((t) => new RegExp('^(readonly\\s+)?' + g[1] + '(\\[\\])?$|^(Readonly)?Array<' + g[1] + '>$').test(String(t.type || '').trim()));
 }
 const LIST_BINDS = new Set(['list>list', 'list>any', 'list+key', 'list+any>list', 'flags', 'text+list', 'divide']);
 const openD = (d) => !d || d.t === 'any' || (d.t === 'tp' && (!d.of || d.of.t === 'any')) || (d.t === 'obj' && !(d.p || []).length);

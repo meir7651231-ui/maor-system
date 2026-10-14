@@ -285,8 +285,9 @@
         },
         {
           "behavior": "אורות נדלקים ביחד",
-          "verb": "merge",
-          "material": "times"
+          "verb": "relay",
+          "material": "list",
+          "note": "MACHINE-V4: היה merge·times. אות אחד מהמרכז מגיע לכל האורות, פעם אחת לכל אחד — «מעביר דרך מרכז» (כמו \"אחד מעדכן את כולם\", MACHINE-V3)."
         }
       ]
     },

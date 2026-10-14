@@ -1,0 +1,47 @@
+{
+ "_note": "MACHINE-V4 (14.10.2026): איפה כל אחת מ-9 ליבות-החומר נמצאה בקוד שלנו. השורה הראשונה = המקור שממנו חולצה (best). כל file:line נקרא ואומת; שורות אורביט נבדקות ב-origins-cite.test.",
+ "nearNet": [
+  { "repo": "maor-system", "file": "src/lib/three-scene.ts", "line": 114, "what": "synapse web — לכל צומת מועמדים לפי distanceToSquared, ממוינים, שלושת הקרובים נקשרים (nearest neighbours)", "best": true },
+  { "repo": "maor-system", "file": "src/lib/three-scene.ts", "line": 127, "what": "מפתח min_max ב-seen — כל קשת פעם אחת" },
+  { "repo": "buildsmart", "file": "app_flutter/lib/features/card_keyboard/hop_graph.dart", "line": 155, "what": "_addCompatEdges(adj) — קודם בונים את הקשתות, אחר כך מחפשים בגרף (BFS בתוך maxHops)" },
+  { "repo": "buildsmart", "file": "app_flutter/lib/logic/install_engine.dart", "line": 759, "what": "Least-cost search (Dijkstra) על הגרף שנבנה — הצרכן של הרשת" }
+ ],
+ "followPoint": [
+  { "repo": "maor-system", "file": "src/lib/three-scene.ts", "line": 257, "what": "tg.x += (mo.x - tg.x) * 0.05; tg.y += (mo.y - tg.y) * 0.05 — הכדור נגרר אחרי העכבר, אותו צעד על x ועל y", "best": true },
+  { "repo": "-ai-chat-server", "file": "design/orbit-final.html", "line": 599, "what": "p.cc[0]+=(AC[0]-p.cc[0])*.03; p.cc[1]+=…; p.cc[2]+=… — אותו צעד-הליכה-אחרי לכל רכיב בנפרד" },
+  { "repo": "-ai-chat-server", "file": "design/orbit-message.html", "line": 211, "what": "rx+=((-0.3+my*.5)-rx)*.03 — זווית המצלמה הולכת אחרי העכבר" }
+ ],
+ "randomPoints": [
+  { "repo": "maor-system", "file": "src/components/parnasa/Ambient.tsx", "line": 63, "what": "{ x: Math.random() * w, y: Math.random() * h } — כל חלקיק אבק-זהב במקום אקראי", "best": true },
+  { "repo": "maor-system", "file": "src/components/parnasa/Ambient.tsx", "line": 100, "what": "p.x = Math.random() * w — חלקיק שיצא נולד מחדש במקום אקראי" },
+  { "repo": "-ai-chat-server", "file": "machtzev/pure/motion-family.html", "line": 150, "what": "st.p.push({x:Math.random(),y:Math.random(),…}) — חלקיקים בריבוע 0..1 בדיוק" }
+ ],
+ "pointsWithin": [
+  { "repo": "maor-system", "file": "src/components/supporters/SupportersGalaxy.tsx", "line": 125, "what": "const d = Math.hypot(p.x - mx, p.y - my); if (d < bd + p.r) — הכוכב שבתוך הרדיוס סביב העכבר", "best": true },
+  { "repo": "maor-system", "file": "src/components/supporters/SupportersUniverse3D.tsx", "line": 111, "what": "אותו Math.hypot(p.x - mx, p.y - my) — ביקום-3D" },
+  { "repo": "-ai-chat-server", "file": "knowledge/assets/screens/sde-hakoach.html", "line": 171, "what": "if(Math.hypot(mx-o.x,my-o.y)<26)return{opt:i} — אפשרות שבתוך העיגול" }
+ ],
+ "groupBySide": [
+  { "repo": "maor-system", "file": "src/lib/three-scene.ts", "line": 121, "what": "Math.sign(nodes[j].x) !== Math.sign(a.x) — כל צומת שייך לאונה לפי הצד של הסדק", "best": true },
+  { "repo": "maor-system", "file": "src/lib/three-scene.ts", "line": 74, "what": "if (Math.abs(vx) < 0.17) continue — הסדק המרכזי: שתי אונות" }
+ ],
+ "dedupePoints": [
+  { "repo": "maor-system", "file": "src/lib/three-scene.ts", "line": 128, "what": "if (seen.has(key)) continue; seen.add(key) — כל קשת פעם אחת", "best": true },
+  { "repo": "maor-system", "file": "src/components/parnasa/envelope.ts", "line": 170, "what": "if (seen.has(k)) r.splice(i, 1); else seen.add(k) — עסק לא מופיע פעמיים במעטפה" },
+  { "repo": "buildsmart", "file": "functions/src/push.ts", "line": 51, "what": "const unique = [...new Set(uids.filter(…))] — כל נמען פעם אחת" }
+ ],
+ "byDistance": [
+  { "repo": "maor-system", "file": "src/lib/three-scene.ts", "line": 122, "what": "cand.push([a.distanceToSquared(nodes[j]), j]); cand.sort((p, q) => p[0] - q[0]) — השכנים לפי מרחק", "best": true },
+  { "repo": "maor-system", "file": "src/components/parnasa/envelope.ts", "line": 187, "what": "Math.min(m, Math.hypot(n.x - px, n.y - py)) — המרחק לנקודה הקרובה" }
+ ],
+ "drift": [
+  { "repo": "maor-system", "file": "src/components/parnasa/Ambient.tsx", "line": 86, "what": "p.x += p.vx * dt; p.y += p.vy * dt — חלקיק נישא במהירות שלו", "best": true },
+  { "repo": "-ai-chat-server", "file": "design/capabilities-showcase.html", "line": 290, "what": "s.x+=s.vx; s.y+=s.vy — כוכב זז במהירות שלו" },
+  { "repo": "maor-system", "file": "src/components/parnasa/bannerFx.ts", "line": 474, "what": "d.x += d.vx — טיפה בבאנר זזה הצידה" }
+ ],
+ "transposeNotes": [
+  { "repo": "maor-system", "file": "src/components/parnasa/sound.ts", "line": 89, "what": "tone(f * j, t, d, g) — כל צלילי המטבע מוכפלים באותו j", "best": true },
+  { "repo": "maor-system", "file": "src/components/parnasa/sound.ts", "line": 84, "what": "[2637, 0.14, 0.34] … — הצליל כנתון: תדר, עוצמה, משך" },
+  { "repo": "-ai-chat-server", "file": "design/orbit-supernova.html", "line": 191, "what": "o1.frequency.value=55; o2.frequency.value=82.4 — אותו צליל ביחס קבוע (קווינטה)" }
+ ]
+}

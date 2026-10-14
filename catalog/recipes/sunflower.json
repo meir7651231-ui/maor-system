@@ -8,7 +8,7 @@
    "verb": "sun-position",
    "material": "times",
    "chain": [
-    "orbit:telephony/lib/zmanim.mjs#sunrise"
+    "core:catalog/core/sun-position.mjs#sunPosition"
    ]
   },
   {
@@ -36,6 +36,24 @@
    ]
   },
   {
+   "need": "azimuth",
+   "verb": "sun-heading",
+   "material": "number",
+   "chain": [
+    "core:catalog/core/sun-position.mjs#sunPosition",
+    "inner-orbit:src/components/wheel/CourseWheel.tsx#CourseWheel.spin.delta:step",
+    "inner-orbit:src/components/parnasa/zmanimBoard.ts#noaaUtcMin.decl",
+    "core:catalog/core/orbit.mjs#orbit",
+    "inner-orbit:src/components/supporters/universe3d.ts#project.x1:step",
+    "inner-orbit:src/components/supporters/universe3d.ts#project.z1:step",
+    "inner-orbit:src/components/supporters/universe3d.ts#project.y1:step",
+    "inner-orbit:src/components/parnasa/coinFx.ts#wireCoinGrid.paint.forEach.dist:step",
+    "inner-orbit:src/lib/atoms/parts/divide.ts#divideSpan.unit:step",
+    "inner-orbit:telephony/lib/zmanim.mjs#solarEventUTCmin.HA:step",
+    "inner-orbit:telephony/lib/zmanim.mjs#solarEventUTCmin.trueLong:step"
+   ]
+  },
+  {
    "need": "golden",
    "verb": "divide",
    "material": "sequence",
@@ -53,10 +71,10 @@
   },
   {
    "need": "snapshot",
-   "verb": "daily-snapshot",
-   "material": "list",
+   "verb": "bucket",
+   "material": "text",
    "chain": [
-    "orbit:src/components/courses/lib.ts#sheetRoster"
+    "buildsmart:functions/src/analytics.ts#dayKey"
    ]
   },
   {
@@ -69,23 +87,23 @@
   },
   {
    "need": "stages",
-   "verb": "rank-tiers",
-   "material": "record",
+   "verb": "tier",
+   "material": "choice",
    "chain": [
-    "orbit:src/components/parnasa/zmanimBoard.ts#dayInfo"
+    "orbit:src/components/supporters/tierMigration.ts#tierAsOf"
    ]
   },
   {
    "need": "bloom-gate",
-   "verb": "gate",
+   "verb": "validate",
    "material": "bool",
    "chain": [
-    "buildsmart:app_flutter/lib/logic/input_validators.dart#validEmail"
+    "mmmm:lib/api-client-react/src/custom-fetch.ts#hasNoBody"
    ]
   },
   {
    "need": "bees-ask",
-   "verb": "round-robin",
+   "verb": "rotate",
    "material": "sequence",
    "chain": [
     "orbit:src/lib/atoms/parts/rotate.ts#fairAssign"
@@ -94,9 +112,9 @@
   {
    "need": "bees-pace",
    "verb": "pace",
-   "material": "bool",
+   "material": "times",
    "chain": [
-    "buildsmart:functions/src/studio.ts#rateLimitExceeded"
+    "core-b:catalog/core/pace.mjs#pace"
    ]
   },
   {
@@ -108,19 +126,27 @@
    ]
   },
   {
+   "need": "field-hub",
+   "verb": "relay",
+   "material": "record",
+   "chain": [
+    "core-b:catalog/core/relay.mjs#relay"
+   ]
+  },
+  {
    "need": "field-shade",
-   "verb": "tolerate-failure",
+   "verb": "tolerate",
    "material": "list",
    "chain": [
-    "mmmm:artifacts/api-server/src/swarm/agents.ts#fallbackSuggestions"
+    "core-b:catalog/core/tolerate.mjs#tolerateParse"
    ]
   },
   {
    "need": "diary",
    "verb": "transcript",
-   "material": "text",
+   "material": "list",
    "chain": [
-    "orbit:src/components/courses/lib.ts#planLabelOf"
+    "orbit:src/components/parnasa/luach.ts#luachZmanim"
    ]
   }
  ]

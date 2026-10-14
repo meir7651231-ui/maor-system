@@ -43,6 +43,8 @@
   { "verb": "bounce", "form": "chain", "steps": [{ "verb": "oscillate" }, { "verb": "decay" }], "why": "קופץ = מתנדנד שמתקפל מהרצפה × דועך (הליבה עצמה כבר בנויה כך — catalog/core/bounce.mjs)" },
   { "verb": "oscillate", "material": "sound", "form": "chain", "steps": [{ "verb": "countdown" }, { "verb": "oscillate" }], "why": "מנגינה = גל-קול שמתנדנד לאורך הסיבוב" },
   { "verb": "oscillate", "material": "sound", "form": "chain", "steps": [{ "verb": "rotate" }, { "verb": "oscillate" }], "why": "מנגינה = צלילים בתורות, כל אחד גל שמתנדנד" },
-  { "verb": "tier", "material": "list", "form": "chain", "steps": [{ "verb": "sort" }, { "verb": "tier" }], "why": "מדרג רשימה = ממיין ואז שם כל אחד על הסולם" }
+  { "verb": "tier", "material": "list", "form": "chain", "steps": [{ "verb": "sort" }, { "verb": "tier" }], "why": "מדרג רשימה = ממיין ואז שם כל אחד על הסולם" },
+  { "verb": "shortest-path", "material": "geo", "form": "chain", "steps": [{ "part": "core-c:catalog/core/near-net.mjs#nearNet", "verb": "connect" }, { "verb": "shortest-path" }], "why": "הדרך המהירה בין מקומות = קודם רשת: כל מקום מתחבר לקרובים אליו (רשת-הסינפסות של כדור-המוח בדף ההרשמה, three-scene.ts:114), ואז הדרך הזולה ברשת (דייקסטרה — מוצא-הדרך של בנייה-חכמה, install_engine.dart:759)" },
+  { "verb": "spread", "material": "geo", "form": "chain", "steps": [{ "part": "core-c:catalog/core/near-net.mjs#nearNet", "verb": "connect" }, { "verb": "spread" }], "why": "מתפשט בין מקומות = קודם רשת: כל מקום מתחבר לקרובים אליו (רשת-הסינפסות, three-scene.ts:114), ואז הגל עובר לשכנים צעד אחרי צעד (reachWithin של בנייה-חכמה)" }
  ]
 }

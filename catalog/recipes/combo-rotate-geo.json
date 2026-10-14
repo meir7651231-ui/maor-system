@@ -1,0 +1,34 @@
+{
+ "id": "combo-rotate-geo",
+ "word": "rotate · geo",
+ "title": "אומר מי התור במספר כמה — על נקודות",
+ "combo": {
+  "verb": "rotate",
+  "material": "geo",
+  "form": "on",
+  "slot": 0,
+  "many": true,
+  "steps": [
+   "orbit:src/lib/atoms/parts/rotate.ts#turnOf"
+  ],
+  "roles": [
+   "rotate"
+  ],
+  "holds": "36/36",
+  "laws": [
+   "rotate.member",
+   "rotate.period",
+   "rotate.fair"
+  ]
+ },
+ "needs": [
+  {
+   "need": "combo",
+   "verb": "rotate",
+   "material": "geo",
+   "chain": [
+    "orbit:src/lib/atoms/parts/rotate.ts#turnOf"
+   ]
+  }
+ ]
+}

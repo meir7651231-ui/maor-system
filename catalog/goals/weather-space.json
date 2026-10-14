@@ -148,7 +148,8 @@
         {
           "behavior": "תמונה כל לילה",
           "verb": "bucket",
-          "material": "image"
+          "material": "times",
+          "note": "MACHINE-V4: היה bucket·image. \"תמונה כל לילה\" = צילום-יומי: לכל רגע — מפתח-הלילה שלו (כל רגעי אותו לילה ⇒ אותו מפתח). זה בדיוק «מקבץ לפי יום»; החוקים שלו בודקים רגעים, והתמונה היא התוכן שנשמר תחת המפתח."
         },
         {
           "behavior": "הכוכבים הבהירים קודם",
@@ -255,8 +256,9 @@
         },
         {
           "behavior": "צילום כל סיבוב",
-          "verb": "bucket",
-          "material": "image"
+          "verb": "sample",
+          "material": "image",
+          "note": "MACHINE-V4: היה bucket·image. \"צילום כל סיבוב\" = פריים אחד מכל k (סיבוב שלם) — «דוגם» על תמונות."
         }
       ]
     },
@@ -378,8 +380,9 @@
         },
         {
           "behavior": "כל פתית שונה",
-          "verb": "fuzzy",
-          "material": "image"
+          "verb": "random",
+          "material": "sequence",
+          "note": "MACHINE-V4: היה fuzzy·image. \"כל פתית שונה\" = לכל פתית הגרלה משלו מהזרע. «מוצא גם עם טעות» מחפש מילה עם טעות-הקלדה."
         },
         {
           "behavior": "נמס כשחם",

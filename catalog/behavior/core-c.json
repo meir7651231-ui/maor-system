@@ -1,0 +1,181 @@
+{
+ "source": "core-c",
+ "ref": "catalog/core@0030ade2",
+ "probe": {
+  "version": 1,
+  "seed": 13269520,
+  "generatedAt": null
+ },
+ "totals": {
+  "run": 9,
+  "runWithVerb": 9,
+  "twin": 0,
+  "static": 0,
+  "staticWithVerb": 0,
+  "why": {}
+ },
+ "parts": [
+  {
+   "id": "core-c:catalog/core/by-distance.mjs#byDistance",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "sort",
+     "on": "points",
+     "holds": "32/32"
+    },
+    {
+     "id": "normalize",
+     "on": "points",
+     "holds": "12/12",
+     "implied": true
+    }
+   ],
+   "primary": "sort",
+   "material": "geo",
+   "cases": 24,
+   "hash": "703cd1af-f63c4d71"
+  },
+  {
+   "id": "core-c:catalog/core/dedupe-points.mjs#dedupePoints",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "filter",
+     "on": "points",
+     "holds": "24/24"
+    },
+    {
+     "id": "dedupe",
+     "on": "points",
+     "holds": "43/43"
+    },
+    {
+     "id": "normalize",
+     "on": "points",
+     "holds": "12/12",
+     "implied": true
+    }
+   ],
+   "primary": "dedupe",
+   "material": "geo",
+   "cases": 24
+  },
+  {
+   "id": "core-c:catalog/core/drift.mjs#drift",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "offset",
+     "on": "point+steps",
+     "holds": "24/24"
+    }
+   ],
+   "primary": "offset",
+   "material": "geo",
+   "cases": 24,
+   "hash": "93f94d3e-18dc3fb0"
+  },
+  {
+   "id": "core-c:catalog/core/follow-point.mjs#followPoint",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "follow",
+     "on": "spec+current",
+     "holds": "36/36"
+    }
+   ],
+   "primary": "follow",
+   "material": "record:followPointSpec",
+   "cases": 24,
+   "hash": "61aa1f80-90e9afb9"
+  },
+  {
+   "id": "core-c:catalog/core/group-by-side.mjs#groupBySide",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "group",
+     "on": "points",
+     "holds": "21/21"
+    }
+   ],
+   "primary": "group",
+   "material": "geo",
+   "cases": 24,
+   "hash": "703cd1af-e1e75bae"
+  },
+  {
+   "id": "core-c:catalog/core/near-net.mjs#nearNet",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "settle",
+     "on": "spec",
+     "holds": "24/24"
+    },
+    {
+     "id": "connect",
+     "on": "spec",
+     "holds": "48/48"
+    }
+   ],
+   "primary": "connect",
+   "material": "record:netSpec",
+   "cases": 24,
+   "hash": "ac0ca42a-520c946c"
+  },
+  {
+   "id": "core-c:catalog/core/points-within.mjs#pointsWithin",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "filter",
+     "on": "points",
+     "holds": "24/24"
+    },
+    {
+     "id": "normalize",
+     "on": "points",
+     "holds": "12/12",
+     "implied": true
+    }
+   ],
+   "primary": "filter",
+   "material": "geo",
+   "cases": 24,
+   "hash": "95cca387-400ad581"
+  },
+  {
+   "id": "core-c:catalog/core/random-points.mjs#randomPoints",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "random",
+     "on": "spec+count",
+     "holds": "41/41"
+    }
+   ],
+   "primary": "random",
+   "material": "record:randomSpec",
+   "cases": 24,
+   "hash": "db928278-98710537"
+  },
+  {
+   "id": "core-c:catalog/core/transpose-notes.mjs#transposeNotes",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "map",
+     "on": "notes",
+     "holds": "24/24"
+    }
+   ],
+   "primary": "map",
+   "material": "sound",
+   "cases": 24,
+   "hash": "728894a-e695f185"
+  }
+ ]
+}

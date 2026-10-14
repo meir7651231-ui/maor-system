@@ -1,0 +1,764 @@
+{
+ "source": "core-c",
+ "repo": "meir7651231-ui/maor-system",
+ "ref": "catalog/core@0030ade2",
+ "generatedAt": null,
+ "parts": [
+  {
+   "id": "core-c:catalog/core/by-distance.mjs#byDistance",
+   "source": "core-c",
+   "path": "catalog/core/by-distance.mjs",
+   "symbol": "byDistance",
+   "lang": "js",
+   "what": "brick",
+   "name": "ממיין נקודות לפי המרחק מהמוצא",
+   "does": "הקרובה למוצא קודם; אותו מרחק ⇒ לפי x ואז y — הסדר לא תלוי באיך שהגיעו.",
+   "takes": [
+    {
+     "name": "points",
+     "kind": "geo",
+     "type": "{x, y}[]"
+    },
+    {
+     "name": "from",
+     "kind": "geo",
+     "type": "{x, y}"
+    }
+   ],
+   "gives": {
+    "kind": "geo",
+    "type": "{x, y}[]"
+   },
+   "pure": true,
+   "example": {
+    "in": {
+     "points": [
+      {
+       "x": 5,
+       "y": 0
+      },
+      {
+       "x": 1,
+       "y": 1
+      },
+      {
+       "x": 0,
+       "y": 3
+      }
+     ],
+     "from": {
+      "x": 0,
+      "y": 0
+     }
+    },
+    "out": [
+     {
+      "x": 1,
+      "y": 1
+     },
+     {
+      "x": 0,
+      "y": 3
+     },
+     {
+      "x": 5,
+      "y": 0
+     }
+    ]
+   },
+   "tags": [
+    "core",
+    "verb:sort",
+    "world-free"
+   ],
+   "origins": [
+    {
+     "repo": "maor-system",
+     "file": "src/lib/three-scene.ts",
+     "line": 122,
+     "what": "cand.push([a.distanceToSquared(nodes[j]), j]); cand.sort((p, q) => p[0] - q[0]) — השכנים לפי מרחק"
+    },
+    {
+     "repo": "maor-system",
+     "file": "src/components/parnasa/envelope.ts",
+     "line": 187,
+     "what": "Math.min(m, Math.hypot(n.x - px, n.y - py)) — המרחק לנקודה הקרובה"
+    }
+   ]
+  },
+  {
+   "id": "core-c:catalog/core/dedupe-points.mjs#dedupePoints",
+   "source": "core-c",
+   "path": "catalog/core/dedupe-points.mjs",
+   "symbol": "dedupePoints",
+   "lang": "js",
+   "what": "brick",
+   "name": "מסנן כפולים: כל נקודה פעם אחת",
+   "does": "כל מקום (x,y) נשאר פעם אחת — הראשון שהגיע, בסדר המקורי.",
+   "takes": [
+    {
+     "name": "points",
+     "kind": "geo",
+     "type": "{x, y}[]"
+    }
+   ],
+   "gives": {
+    "kind": "geo",
+    "type": "{x, y}[]"
+   },
+   "pure": true,
+   "example": {
+    "in": {
+     "points": [
+      {
+       "x": 1,
+       "y": 1
+      },
+      {
+       "x": 2,
+       "y": 0
+      },
+      {
+       "x": 1,
+       "y": 1
+      }
+     ]
+    },
+    "out": [
+     {
+      "x": 1,
+      "y": 1
+     },
+     {
+      "x": 2,
+      "y": 0
+     }
+    ]
+   },
+   "tags": [
+    "core",
+    "verb:dedupe",
+    "world-free"
+   ],
+   "origins": [
+    {
+     "repo": "maor-system",
+     "file": "src/lib/three-scene.ts",
+     "line": 128,
+     "what": "if (seen.has(key)) continue; seen.add(key) — כל קשת פעם אחת"
+    },
+    {
+     "repo": "maor-system",
+     "file": "src/components/parnasa/envelope.ts",
+     "line": 170,
+     "what": "if (seen.has(k)) r.splice(i, 1); else seen.add(k) — עסק לא מופיע פעמיים במעטפה"
+    },
+    {
+     "repo": "buildsmart",
+     "file": "functions/src/push.ts",
+     "line": 51,
+     "what": "const unique = [...new Set(uids.filter(…))] — כל נמען פעם אחת"
+    }
+   ]
+  },
+  {
+   "id": "core-c:catalog/core/drift.mjs#drift",
+   "source": "core-c",
+   "path": "catalog/core/drift.mjs",
+   "symbol": "drift",
+   "lang": "js",
+   "what": "brick",
+   "name": "מזיז נקודה במהירות שלה כמה צעדים",
+   "does": "אחרי steps צעדים: x ועוד vx כפול הצעדים, y ועוד vy כפול הצעדים. הזזה ב-0 לא עושה כלום.",
+   "takes": [
+    {
+     "name": "point",
+     "kind": "geo",
+     "type": "{x, y}"
+    },
+    {
+     "name": "steps",
+     "kind": "number",
+     "type": "number"
+    },
+    {
+     "name": "vel",
+     "kind": "geo",
+     "type": "{x, y}"
+    }
+   ],
+   "gives": {
+    "kind": "geo",
+    "type": "{x, y}"
+   },
+   "pure": true,
+   "example": {
+    "in": {
+     "point": {
+      "x": 1,
+      "y": 2
+     },
+     "steps": 3,
+     "vel": {
+      "x": 2,
+      "y": -1
+     }
+    },
+    "out": {
+     "x": 7,
+     "y": -1
+    }
+   },
+   "tags": [
+    "core",
+    "verb:offset",
+    "world-free"
+   ],
+   "origins": [
+    {
+     "repo": "maor-system",
+     "file": "src/components/parnasa/Ambient.tsx",
+     "line": 86,
+     "what": "p.x += p.vx * dt; p.y += p.vy * dt — חלקיק נישא במהירות שלו"
+    },
+    {
+     "repo": "-ai-chat-server",
+     "file": "design/capabilities-showcase.html",
+     "line": 290,
+     "what": "s.x+=s.vx; s.y+=s.vy — כוכב זז במהירות שלו"
+    },
+    {
+     "repo": "maor-system",
+     "file": "src/components/parnasa/bannerFx.ts",
+     "line": 474,
+     "what": "d.x += d.vx — טיפה בבאנר זזה הצידה"
+    }
+   ]
+  },
+  {
+   "id": "core-c:catalog/core/follow-point.mjs#followPoint",
+   "source": "core-c",
+   "path": "catalog/core/follow-point.mjs",
+   "symbol": "followPoint",
+   "lang": "js",
+   "what": "brick",
+   "name": "מזיז נקודה חלק קבוע מהדרך למטרה",
+   "does": "בכל צעד הנקודה עוברת חלק קבוע מהדרך אל המטרה — ב-x וב-y באותו צעד; לא עוברת אותה, וכשהגיעה נשארת.",
+   "takes": [
+    {
+     "name": "spec",
+     "kind": "record:followPointSpec",
+     "type": "{target: {x, y}, pullPct}"
+    },
+    {
+     "name": "current",
+     "kind": "geo",
+     "type": "{x, y}"
+    }
+   ],
+   "gives": {
+    "kind": "geo",
+    "type": "{x, y}"
+   },
+   "pure": true,
+   "example": {
+    "in": {
+     "spec": {
+      "target": {
+       "x": 10,
+       "y": 20
+      },
+      "pullPct": 50
+     },
+     "current": {
+      "x": 0,
+      "y": 0
+     }
+    },
+    "out": {
+     "x": 5,
+     "y": 10
+    }
+   },
+   "tags": [
+    "core",
+    "verb:follow",
+    "world-free"
+   ],
+   "origins": [
+    {
+     "repo": "maor-system",
+     "file": "src/lib/three-scene.ts",
+     "line": 257,
+     "what": "tg.x += (mo.x - tg.x) * 0.05; tg.y += (mo.y - tg.y) * 0.05 — הכדור נגרר אחרי העכבר, אותו צעד על x ועל y"
+    },
+    {
+     "repo": "-ai-chat-server",
+     "file": "design/orbit-final.html",
+     "line": 599,
+     "what": "p.cc[0]+=(AC[0]-p.cc[0])*.03; p.cc[1]+=…; p.cc[2]+=… — אותו צעד-הליכה-אחרי לכל רכיב בנפרד"
+    },
+    {
+     "repo": "-ai-chat-server",
+     "file": "design/orbit-message.html",
+     "line": 211,
+     "what": "rx+=((-0.3+my*.5)-rx)*.03 — זווית המצלמה הולכת אחרי העכבר"
+    }
+   ]
+  },
+  {
+   "id": "core-c:catalog/core/group-by-side.mjs#groupBySide",
+   "source": "core-c",
+   "path": "catalog/core/group-by-side.mjs",
+   "symbol": "groupBySide",
+   "lang": "js",
+   "what": "brick",
+   "name": "מקבץ נקודות לפי הצד של המרכז",
+   "does": "כל נקודה הולכת לאזור שלה לפי הצד של המרכז (סימן של x ושל y): ארבעה אזורים, ועל הקו — אזור 0.",
+   "takes": [
+    {
+     "name": "points",
+     "kind": "geo",
+     "type": "{x, y}[]"
+    },
+    {
+     "name": "center",
+     "kind": "geo",
+     "type": "{x, y}"
+    }
+   ],
+   "gives": {
+    "kind": "list",
+    "type": "Record<string, {x, y}[]>"
+   },
+   "pure": true,
+   "example": {
+    "in": {
+     "points": [
+      {
+       "x": 1,
+       "y": 1
+      },
+      {
+       "x": -1,
+       "y": 2
+      },
+      {
+       "x": 3,
+       "y": 5
+      }
+     ],
+     "center": {
+      "x": 0,
+      "y": 0
+     }
+    },
+    "out": {
+     "++": [
+      {
+       "x": 1,
+       "y": 1
+      },
+      {
+       "x": 3,
+       "y": 5
+      }
+     ],
+     "-+": [
+      {
+       "x": -1,
+       "y": 2
+      }
+     ]
+    }
+   },
+   "tags": [
+    "core",
+    "verb:group",
+    "world-free"
+   ],
+   "origins": [
+    {
+     "repo": "maor-system",
+     "file": "src/lib/three-scene.ts",
+     "line": 121,
+     "what": "Math.sign(nodes[j].x) !== Math.sign(a.x) — כל צומת שייך לאונה לפי הצד של הסדק"
+    },
+    {
+     "repo": "maor-system",
+     "file": "src/lib/three-scene.ts",
+     "line": 74,
+     "what": "if (Math.abs(vx) < 0.17) continue — הסדק המרכזי: שתי אונות"
+    }
+   ]
+  },
+  {
+   "id": "core-c:catalog/core/near-net.mjs#nearNet",
+   "source": "core-c",
+   "path": "catalog/core/near-net.mjs",
+   "symbol": "nearNet",
+   "lang": "js",
+   "what": "brick",
+   "name": "מחבר כל נקודה לשכנות הקרובות אליה",
+   "does": "נקודות ⇒ רשת: כל נקודה נקשרת ל-near הנקודות הקרובות אליה, כל קשת פעם אחת, המחיר = המרחק. הנקודות נשמרות, מתווספות רק הקשתות.",
+   "takes": [
+    {
+     "name": "spec",
+     "kind": "record:netSpec",
+     "type": "{points: {x, y}[], near, sources?}"
+    }
+   ],
+   "gives": {
+    "kind": "record:net",
+    "type": "{points, near, sources?, edges: {a, b, w}[]}"
+   },
+   "pure": true,
+   "example": {
+    "in": {
+     "spec": {
+      "points": [
+       {
+        "x": 0,
+        "y": 0
+       },
+       {
+        "x": 3,
+        "y": 0
+       },
+       {
+        "x": 3,
+        "y": 4
+       }
+      ],
+      "near": 1
+     }
+    },
+    "out": {
+     "points": [
+      {
+       "x": 0,
+       "y": 0
+      },
+      {
+       "x": 3,
+       "y": 0
+      },
+      {
+       "x": 3,
+       "y": 4
+      }
+     ],
+     "near": 1,
+     "edges": [
+      {
+       "a": 0,
+       "b": 1,
+       "w": 3
+      },
+      {
+       "a": 1,
+       "b": 2,
+       "w": 4
+      }
+     ]
+    }
+   },
+   "tags": [
+    "core",
+    "verb:connect",
+    "world-free"
+   ],
+   "origins": [
+    {
+     "repo": "maor-system",
+     "file": "src/lib/three-scene.ts",
+     "line": 114,
+     "what": "synapse web — לכל צומת מועמדים לפי distanceToSquared, ממוינים, שלושת הקרובים נקשרים (nearest neighbours)"
+    },
+    {
+     "repo": "maor-system",
+     "file": "src/lib/three-scene.ts",
+     "line": 127,
+     "what": "מפתח min_max ב-seen — כל קשת פעם אחת"
+    },
+    {
+     "repo": "buildsmart",
+     "file": "app_flutter/lib/features/card_keyboard/hop_graph.dart",
+     "line": 155,
+     "what": "_addCompatEdges(adj) — קודם בונים את הקשתות, אחר כך מחפשים בגרף (BFS בתוך maxHops)"
+    },
+    {
+     "repo": "buildsmart",
+     "file": "app_flutter/lib/logic/install_engine.dart",
+     "line": 759,
+     "what": "Least-cost search (Dijkstra) על הגרף שנבנה — הצרכן של הרשת"
+    }
+   ]
+  },
+  {
+   "id": "core-c:catalog/core/points-within.mjs#pointsWithin",
+   "source": "core-c",
+   "path": "catalog/core/points-within.mjs",
+   "symbol": "pointsWithin",
+   "lang": "js",
+   "what": "brick",
+   "name": "מסנן את הנקודות שבתוך העיגול",
+   "does": "משאיר רק נקודות שהמרחק שלהן מהמרכז לא עולה על הרדיוס, בסדר המקורי — כל נקודה נבחנת לבד.",
+   "takes": [
+    {
+     "name": "points",
+     "kind": "geo",
+     "type": "{x, y}[]"
+    },
+    {
+     "name": "center",
+     "kind": "geo",
+     "type": "{x, y}"
+    },
+    {
+     "name": "radius",
+     "kind": "number",
+     "type": "number"
+    }
+   ],
+   "gives": {
+    "kind": "geo",
+    "type": "{x, y}[]"
+   },
+   "pure": true,
+   "example": {
+    "in": {
+     "points": [
+      {
+       "x": 1,
+       "y": 1
+      },
+      {
+       "x": 9,
+       "y": 9
+      },
+      {
+       "x": -2,
+       "y": 0
+      }
+     ],
+     "center": {
+      "x": 0,
+      "y": 0
+     },
+     "radius": 3
+    },
+    "out": [
+     {
+      "x": 1,
+      "y": 1
+     },
+     {
+      "x": -2,
+      "y": 0
+     }
+    ]
+   },
+   "tags": [
+    "core",
+    "verb:filter",
+    "world-free"
+   ],
+   "origins": [
+    {
+     "repo": "maor-system",
+     "file": "src/components/supporters/SupportersGalaxy.tsx",
+     "line": 125,
+     "what": "const d = Math.hypot(p.x - mx, p.y - my); if (d < bd + p.r) — הכוכב שבתוך הרדיוס סביב העכבר"
+    },
+    {
+     "repo": "maor-system",
+     "file": "src/components/supporters/SupportersUniverse3D.tsx",
+     "line": 111,
+     "what": "אותו Math.hypot(p.x - mx, p.y - my) — ביקום-3D"
+    },
+    {
+     "repo": "-ai-chat-server",
+     "file": "knowledge/assets/screens/sde-hakoach.html",
+     "line": 171,
+     "what": "if(Math.hypot(mx-o.x,my-o.y)<26)return{opt:i} — אפשרות שבתוך העיגול"
+    }
+   ]
+  },
+  {
+   "id": "core-c:catalog/core/random-points.mjs#randomPoints",
+   "source": "core-c",
+   "path": "catalog/core/random-points.mjs",
+   "symbol": "randomPoints",
+   "lang": "js",
+   "what": "brick",
+   "name": "מחשב נקודות במקומות אקראיים מזרע",
+   "does": "count נקודות בריבוע 0..1 — שתי הגרלות לכל נקודה (x ואז y) מהמגריל עם זרע: אותו זרע ⇒ אותן נקודות.",
+   "takes": [
+    {
+     "name": "spec",
+     "kind": "record:randomSpec",
+     "type": "{seed}"
+    },
+    {
+     "name": "count",
+     "kind": "number",
+     "type": "number"
+    }
+   ],
+   "gives": {
+    "kind": "geo",
+    "type": "{x, y}[]"
+   },
+   "pure": true,
+   "example": {
+    "in": {
+     "spec": {
+      "seed": 7
+     },
+     "count": 1
+    },
+    "out": [
+     {
+      "x": 0.011704753153026104,
+      "y": 0.06195825757458806
+     }
+    ]
+   },
+   "tags": [
+    "core",
+    "verb:random",
+    "world-free"
+   ],
+   "origins": [
+    {
+     "repo": "maor-system",
+     "file": "src/components/parnasa/Ambient.tsx",
+     "line": 63,
+     "what": "{ x: Math.random() * w, y: Math.random() * h } — כל חלקיק אבק-זהב במקום אקראי"
+    },
+    {
+     "repo": "maor-system",
+     "file": "src/components/parnasa/Ambient.tsx",
+     "line": 100,
+     "what": "p.x = Math.random() * w — חלקיק שיצא נולד מחדש במקום אקראי"
+    },
+    {
+     "repo": "-ai-chat-server",
+     "file": "machtzev/pure/motion-family.html",
+     "line": 150,
+     "what": "st.p.push({x:Math.random(),y:Math.random(),…}) — חלקיקים בריבוע 0..1 בדיוק"
+    }
+   ]
+  },
+  {
+   "id": "core-c:catalog/core/transpose-notes.mjs#transposeNotes",
+   "source": "core-c",
+   "path": "catalog/core/transpose-notes.mjs",
+   "symbol": "transposeNotes",
+   "lang": "js",
+   "what": "brick",
+   "name": "מעביר צליל לגובה אחר ביחס קבוע",
+   "does": "אותו דבר לכל תו בצליל {f, t, d, g}: רק התדר מוכפל ביחס, השאר נשאר — אותו צליל, גבוה או נמוך יותר.",
+   "takes": [
+    {
+     "name": "notes",
+     "kind": "sound",
+     "type": "{f, t, d, g}[]"
+    },
+    {
+     "name": "ratio",
+     "kind": "number",
+     "type": "number"
+    }
+   ],
+   "gives": {
+    "kind": "sound",
+    "type": "{f, t, d, g}[]"
+   },
+   "pure": true,
+   "example": {
+    "in": {
+     "notes": [
+      {
+       "f": 2637,
+       "t": 0,
+       "d": 0.34,
+       "g": 0.14
+      },
+      {
+       "f": 3960,
+       "t": 0,
+       "d": 0.24,
+       "g": 0.08
+      },
+      {
+       "f": 5280,
+       "t": 0,
+       "d": 0.17,
+       "g": 0.05
+      },
+      {
+       "f": 7120,
+       "t": 0,
+       "d": 0.1,
+       "g": 0.025
+      }
+     ],
+     "ratio": 0.5
+    },
+    "out": [
+     {
+      "f": 1318.5,
+      "t": 0,
+      "d": 0.34,
+      "g": 0.14
+     },
+     {
+      "f": 1980,
+      "t": 0,
+      "d": 0.24,
+      "g": 0.08
+     },
+     {
+      "f": 2640,
+      "t": 0,
+      "d": 0.17,
+      "g": 0.05
+     },
+     {
+      "f": 3560,
+      "t": 0,
+      "d": 0.1,
+      "g": 0.025
+     }
+    ]
+   },
+   "tags": [
+    "core",
+    "verb:map",
+    "world-free"
+   ],
+   "origins": [
+    {
+     "repo": "maor-system",
+     "file": "src/components/parnasa/sound.ts",
+     "line": 89,
+     "what": "tone(f * j, t, d, g) — כל צלילי המטבע מוכפלים באותו j"
+    },
+    {
+     "repo": "maor-system",
+     "file": "src/components/parnasa/sound.ts",
+     "line": 84,
+     "what": "[2637, 0.14, 0.34] … — הצליל כנתון: תדר, עוצמה, משך"
+    },
+    {
+     "repo": "-ai-chat-server",
+     "file": "design/orbit-supernova.html",
+     "line": 191,
+     "what": "o1.frequency.value=55; o2.frequency.value=82.4 — אותו צליל ביחס קבוע (קווינטה)"
+    }
+   ]
+  }
+ ]
+}

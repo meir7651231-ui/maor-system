@@ -39,6 +39,9 @@ function localCites(): Cite[] {
     }
   };
   walk(read('catalog/core/origins-b.json'), '');
+  // MACHINE-V4: ליבות-החומר (core-c) — אותו מבנה (פרויקט ⇒ [{repo, file, line, what}])
+  const c = read('catalog/core/origins-c.json') as Record<string, unknown>;
+  for (const [k, v] of Object.entries(c)) if (k !== '_note') for (const o of v as { repo: string; file: string; line: number; what: string }[]) if (o.repo === 'maor-system') out.push({ file: o.file, line: o.line, claim: o.what, at: 'origins-c.json · ' + k });
   return out;
 }
 

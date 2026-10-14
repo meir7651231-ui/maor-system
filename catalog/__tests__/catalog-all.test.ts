@@ -31,6 +31,7 @@ const KNOWN: Record<string, Record<string, number>> = {
   orbit: {},
   core: {},
   'core-b': {},
+  'core-c': {},
   'qa-scanner': { '$.parts[].takes[].type': 204, '$.parts[].gives.type': 170, '$.parts[].name': 70, '$.parts[].id': 32 },
   rings: { '$.parts[].id': 143, '$.parts[].name': 1 },
   yeshiva: { '$.parts[].gives.kind': 68, '$.parts[].name': 20, '$.parts[].takes[].kind': 27, '$.parts[].takes[].type': 30, '$.parts[].gives.type': 45, '$.parts[].id': 198 },
@@ -59,7 +60,7 @@ describe('הקטלוג המאוחד', () => {
     it(`הסכמה: ${s} — ${Object.keys(KNOWN[s]).length ? 'לא יותר חריגות מהרשימה הקפואה' : 'בלי חריגות'}`, () => {
       const got = violationsByField(sources[s]);
       for (const [k, n] of Object.entries(got)) expect(n, s + ' ' + k + ' (חריגה חדשה או שגדלה)').toBeLessThanOrEqual(KNOWN[s][k] ?? 0);
-      if (s === 'orbit' || s === 'core' || s === 'core-b') expect(validateSource(sources[s], { strict: true })).toEqual([]);
+      if (s === 'orbit' || s === 'core' || s === 'core-b' || s === 'core-c') expect(validateSource(sources[s], { strict: true })).toEqual([]);
     });
   }
 
