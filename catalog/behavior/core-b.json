@@ -1,0 +1,158 @@
+{
+ "source": "core-b",
+ "ref": "claude/static-verbs-261014@e7f2ce1",
+ "probe": {
+  "version": 1,
+  "seed": 13269520,
+  "generatedAt": null
+ },
+ "totals": {
+  "run": 7,
+  "runWithVerb": 7,
+  "twin": 0,
+  "static": 0,
+  "staticWithVerb": 0,
+  "why": {}
+ },
+ "parts": [
+  {
+   "id": "core-b:catalog/core/assign-role.mjs#assignRoles",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "assign-role",
+     "on": "members+plan",
+     "holds": "36/36"
+    }
+   ],
+   "primary": "assign-role",
+   "material": "text",
+   "cases": 24,
+   "hash": "f431aecc-22d7951d"
+  },
+  {
+   "id": "core-b:catalog/core/freeze.mjs#applyFrozen",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "freeze",
+     "on": "ops",
+     "holds": "36/36"
+    }
+   ],
+   "primary": "freeze",
+   "material": "record:op",
+   "cases": 24,
+   "hash": "b6edf5b9-7c561ecf"
+  },
+  {
+   "id": "core-b:catalog/core/pace.mjs#pace",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "sort",
+     "on": "times",
+     "holds": "32/32",
+     "config": "defaults"
+    },
+    {
+     "id": "normalize",
+     "on": "times",
+     "holds": "12/12",
+     "config": "defaults",
+     "implied": true
+    },
+    {
+     "id": "pace",
+     "on": "times+gap",
+     "holds": "48/48"
+    }
+   ],
+   "primary": "pace",
+   "material": "number",
+   "cases": 24,
+   "hash": "aa72a917-92f8087c"
+  },
+  {
+   "id": "core-b:catalog/core/relay.mjs#relay",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "relay",
+     "on": "messages+members",
+     "holds": "36/36"
+    }
+   ],
+   "primary": "relay",
+   "material": "record:message",
+   "cases": 24,
+   "hash": "e2f1fa89-12bf4649"
+  },
+  {
+   "id": "core-b:catalog/core/require-source.mjs#requireSource",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "require-source",
+     "on": "items",
+     "holds": "36/36"
+    }
+   ],
+   "primary": "require-source",
+   "material": "record:item",
+   "cases": 24,
+   "hash": "84a20f3f-ee694f12"
+  },
+  {
+   "id": "core-b:catalog/core/route.mjs#route",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "normalize",
+     "on": "fallback",
+     "holds": "8/8"
+    },
+    {
+     "id": "format",
+     "on": "fallback",
+     "holds": "11/11"
+    },
+    {
+     "id": "route",
+     "on": "channel",
+     "holds": "48/48"
+    }
+   ],
+   "primary": "route",
+   "material": "text",
+   "cases": 24,
+   "hash": "c6df91e7-2a59fd86"
+  },
+  {
+   "id": "core-b:catalog/core/tolerate.mjs#tolerateParse",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "map",
+     "on": "texts",
+     "holds": "24/24"
+    },
+    {
+     "id": "normalize",
+     "on": "texts",
+     "holds": "12/12",
+     "config": "defaults"
+    },
+    {
+     "id": "tolerate",
+     "on": "texts",
+     "holds": "36/36"
+    }
+   ],
+   "primary": "tolerate",
+   "material": "text",
+   "cases": 24,
+   "hash": "15151cf3-6225f1b9"
+  }
+ ]
+}

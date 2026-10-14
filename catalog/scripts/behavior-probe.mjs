@@ -39,6 +39,7 @@ export const PROBE_VERSION = 1;
 /** איפה כל מקור נמצא ומה מריצים בו. */
 const SOURCES = {
   orbit: { dir: ROOT, run: 'code' },
+  'core-b': { dir: ROOT, run: 'code' }, // 7 הליבות של הפעלים שהיו static-only (catalog/core) — STATIC-VERBS
   buildsmart: { dir: 'buildsmart', run: 'code' },
   mmmm: { dir: 'mmmm', run: 'code' },
   '14kk': { dir: '14kk', run: 'code' },
@@ -48,7 +49,7 @@ const SOURCES = {
   generator: { dir: null, run: 'twin' },
   'qa-scanner': { dir: null, run: 'none' },
 };
-const ORDER = ['orbit', 'buildsmart', 'mmmm', '14kk', 'yoman-habina', 'yeshiva', 'rings', 'qa-scanner', 'generator'];
+const ORDER = ['orbit', 'core-b', 'buildsmart', 'mmmm', '14kk', 'yoman-habina', 'yeshiva', 'rings', 'qa-scanner', 'generator'];
 const want = opt('--source', '') ? opt('--source', '').split(',') : ORDER;
 
 const readSource = (s) => JSON.parse(fs.readFileSync(path.join(ROOT, 'catalog/sources', s + '.json'), 'utf8'));

@@ -58,7 +58,22 @@
             { "type": "object", "required": ["in", "out"], "additionalProperties": false, "properties": { "in": {}, "out": {} } }
           ]
         },
-        "tags": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+        "tags": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "origins": {
+          "description": "פעלים-בלי-עולם (catalog/core, אופציונלי): איפה הפעולה נמצאה בקוד שלנו. line=null ⇒ לא אומת.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["repo", "file", "line", "what"],
+            "properties": {
+              "repo": { "type": "string", "minLength": 1 },
+              "file": { "type": "string", "minLength": 1 },
+              "line": { "oneOf": [{ "type": "integer" }, { "type": "null" }] },
+              "what": { "type": "string", "minLength": 2 }
+            }
+          }
+        }
       }
     }
   }

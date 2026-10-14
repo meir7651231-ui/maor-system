@@ -9,12 +9,12 @@
  "totals": {
   "run": 0,
   "runWithVerb": 0,
-  "twin": 106,
-  "static": 2294,
-  "staticWithVerb": 441,
+  "twin": 109,
+  "static": 2291,
+  "staticWithVerb": 420,
   "why": {
-   "dart": 1601,
-   "impure": 693
+   "dart": 1599,
+   "impure": 692
   }
  },
  "parts": [
@@ -1849,8 +1849,13 @@
   {
    "id": "generator:knowledge/connect/2026-09-19/probe/scan2.mjs#scan2",
    "labeledBy": "static",
-   "verbs": [],
-   "primary": null,
+   "verbs": [
+    {
+     "id": "freeze",
+     "by": "name"
+    }
+   ],
+   "primary": "freeze",
    "material": "unknown",
    "reason": "impure"
   },
@@ -4289,11 +4294,15 @@
   },
   {
    "id": "generator:new/dart-boxes/distribution.dart#statusLabel",
-   "labeledBy": "static",
-   "verbs": [],
-   "primary": null,
-   "material": "unknown",
-   "reason": "impure"
+   "labeledBy": "twin",
+   "twinOf": "orbit:src/components/shop7/lib.ts#statusLabel",
+   "verbs": [
+    {
+     "id": "route"
+    }
+   ],
+   "primary": "route",
+   "material": "choice"
   },
   {
    "id": "generator:new/dart-boxes/export-gate.dart#createExportGate",
@@ -4713,10 +4722,6 @@
     {
      "id": "validate",
      "by": "first"
-    },
-    {
-     "id": "assign-role",
-     "by": "symbol"
     },
     {
      "id": "combine",
@@ -5273,13 +5278,8 @@
   {
    "id": "generator:new/dart-forge-bs/action/site_hub_card_btn.dart#ForgeSiteHubCardBtn",
    "labeledBy": "static",
-   "verbs": [
-    {
-     "id": "relay",
-     "by": "symbol"
-    }
-   ],
-   "primary": "relay",
+   "verbs": [],
+   "primary": null,
    "material": "list",
    "reason": "dart — אין SDK בסביבה"
   },
@@ -5451,13 +5451,8 @@
   {
    "id": "generator:new/dart-forge-bs/card/grid_hub_card.dart#ForgeGridHubCard",
    "labeledBy": "static",
-   "verbs": [
-    {
-     "id": "relay",
-     "by": "symbol"
-    }
-   ],
-   "primary": "relay",
+   "verbs": [],
+   "primary": null,
    "material": "list",
    "reason": "dart — אין SDK בסביבה"
   },
@@ -5472,13 +5467,8 @@
   {
    "id": "generator:new/dart-forge-bs/card/hub_tile.dart#ForgeHubTile",
    "labeledBy": "static",
-   "verbs": [
-    {
-     "id": "relay",
-     "by": "symbol"
-    }
-   ],
-   "primary": "relay",
+   "verbs": [],
+   "primary": null,
    "material": "list",
    "reason": "dart — אין SDK בסביבה"
   },
@@ -7932,11 +7922,15 @@
   },
   {
    "id": "generator:new/dart-maor/advance-status.dart#advanceStatus",
-   "labeledBy": "static",
-   "verbs": [],
-   "primary": null,
-   "material": "text",
-   "reason": "dart — אין SDK בסביבה"
+   "labeledBy": "twin",
+   "twinOf": "orbit:src/components/shop7/lib.ts#advanceStatus",
+   "verbs": [
+    {
+     "id": "route"
+    }
+   ],
+   "primary": "route",
+   "material": "choice"
   },
   {
    "id": "generator:new/dart-maor/age-of.dart#ageOf",
@@ -7977,10 +7971,13 @@
    "verbs": [
     {
      "id": "format"
+    },
+    {
+     "id": "route"
     }
    ],
-   "primary": "format",
-   "material": "amount"
+   "primary": "route",
+   "material": "choice"
   },
   {
    "id": "generator:new/dart-maor/annual-all-lines.dart#annualAllLines",
@@ -8827,10 +8824,6 @@
     {
      "id": "tolerate",
      "by": "name"
-    },
-    {
-     "id": "pace",
-     "by": "symbol"
     }
    ],
    "primary": "tolerate",
@@ -8948,15 +8941,11 @@
    "labeledBy": "static",
    "verbs": [
     {
-     "id": "require-source",
-     "by": "name"
-    },
-    {
      "id": "join",
      "by": "symbol"
     }
    ],
-   "primary": "require-source",
+   "primary": "join",
    "material": "unknown",
    "reason": "dart — אין SDK בסביבה"
   },
@@ -9619,13 +9608,8 @@
   {
    "id": "generator:new/dart-maor/favicon-data-uri.dart#faviconDataUri",
    "labeledBy": "static",
-   "verbs": [
-    {
-     "id": "assign-role",
-     "by": "name"
-    }
-   ],
-   "primary": "assign-role",
+   "verbs": [],
+   "primary": null,
    "material": "text",
    "reason": "dart — אין SDK בסביבה"
   },
@@ -10117,13 +10101,8 @@
   {
    "id": "generator:new/dart-maor/guide-foot.dart#swap",
    "labeledBy": "static",
-   "verbs": [
-    {
-     "id": "freeze",
-     "by": "symbol"
-    }
-   ],
-   "primary": "freeze",
+   "verbs": [],
+   "primary": null,
    "material": "text",
    "reason": "dart — אין SDK בסביבה"
   },
@@ -10514,10 +10493,6 @@
     {
      "id": "validate",
      "by": "first"
-    },
-    {
-     "id": "assign-role",
-     "by": "symbol"
     }
    ],
    "primary": "validate",
@@ -10531,10 +10506,6 @@
     {
      "id": "validate",
      "by": "first"
-    },
-    {
-     "id": "assign-role",
-     "by": "symbol"
     }
    ],
    "primary": "validate",
@@ -10931,13 +10902,8 @@
   {
    "id": "generator:new/dart-maor/manual-driver.dart#makeManualDriver",
    "labeledBy": "static",
-   "verbs": [
-    {
-     "id": "route",
-     "by": "symbol"
-    }
-   ],
-   "primary": "route",
+   "verbs": [],
+   "primary": null,
    "material": "record:any",
    "reason": "dart — אין SDK בסביבה"
   },
@@ -10956,13 +10922,8 @@
   {
    "id": "generator:new/dart-maor/maps-route-url.dart#mapsRouteUrl",
    "labeledBy": "static",
-   "verbs": [
-    {
-     "id": "route",
-     "by": "symbol"
-    }
-   ],
-   "primary": "route",
+   "verbs": [],
+   "primary": null,
    "material": "list",
    "reason": "dart — אין SDK בסביבה"
   },
@@ -12602,11 +12563,15 @@
   },
   {
    "id": "generator:new/dart-maor/plan-word.dart#planWord",
-   "labeledBy": "static",
-   "verbs": [],
-   "primary": null,
-   "material": "text",
-   "reason": "dart — אין SDK בסביבה"
+   "labeledBy": "twin",
+   "twinOf": "orbit:src/components/courses/lib.ts#planWord",
+   "verbs": [
+    {
+     "id": "route"
+    }
+   ],
+   "primary": "route",
+   "material": "choice"
   },
   {
    "id": "generator:new/dart-maor/pop-call.dart#popCall",
@@ -12711,8 +12676,13 @@
   {
    "id": "generator:new/dart-maor/provider-clearer.dart#providerClearer",
    "labeledBy": "static",
-   "verbs": [],
-   "primary": null,
+   "verbs": [
+    {
+     "id": "route",
+     "by": "symbol"
+    }
+   ],
+   "primary": "route",
    "material": "text",
    "reason": "dart — אין SDK בסביבה"
   },
@@ -12732,13 +12702,8 @@
   {
    "id": "generator:new/dart-maor/publish-ics-feed.dart#publishIcsFeed",
    "labeledBy": "static",
-   "verbs": [
-    {
-     "id": "assign-role",
-     "by": "name"
-    }
-   ],
-   "primary": "assign-role",
+   "verbs": [],
+   "primary": null,
    "material": "text",
    "reason": "impure"
   },
@@ -14406,13 +14371,8 @@
   {
    "id": "generator:new/dart-maor/volunteer-route-stops.dart#volunteerRouteStops",
    "labeledBy": "static",
-   "verbs": [
-    {
-     "id": "route",
-     "by": "symbol"
-    }
-   ],
-   "primary": "route",
+   "verbs": [],
+   "primary": null,
    "material": "record:any",
    "reason": "dart — אין SDK בסביבה"
   },
@@ -14804,15 +14764,11 @@
    "labeledBy": "static",
    "verbs": [
     {
-     "id": "assign-role",
-     "by": "name"
-    },
-    {
      "id": "combine",
      "by": "symbol"
     }
    ],
-   "primary": "assign-role",
+   "primary": "combine",
    "material": "text",
    "reason": "dart — אין SDK בסביבה"
   },
@@ -15443,13 +15399,8 @@
   {
    "id": "generator:new/dart-ui-bs/auto/hub_tile.dart#HubTile",
    "labeledBy": "static",
-   "verbs": [
-    {
-     "id": "relay",
-     "by": "symbol"
-    }
-   ],
-   "primary": "relay",
+   "verbs": [],
+   "primary": null,
    "material": "text",
    "reason": "dart — אין SDK בסביבה"
   },
@@ -16061,26 +16012,16 @@
   {
    "id": "generator:new/dart-ui-bs/auto/rewards_hub_fin_row.dart#RewardsHubFinRow",
    "labeledBy": "static",
-   "verbs": [
-    {
-     "id": "relay",
-     "by": "symbol"
-    }
-   ],
-   "primary": "relay",
+   "verbs": [],
+   "primary": null,
    "material": "text",
    "reason": "dart — אין SDK בסביבה"
   },
   {
    "id": "generator:new/dart-ui-bs/auto/rewards_hub_pill.dart#RewardsHubPill",
    "labeledBy": "static",
-   "verbs": [
-    {
-     "id": "relay",
-     "by": "symbol"
-    }
-   ],
-   "primary": "relay",
+   "verbs": [],
+   "primary": null,
    "material": "text",
    "reason": "dart — אין SDK בסביבה"
   },
@@ -16089,15 +16030,11 @@
    "labeledBy": "static",
    "verbs": [
     {
-     "id": "assign-role",
-     "by": "name"
-    },
-    {
      "id": "provide",
      "by": "name"
     }
    ],
-   "primary": "assign-role",
+   "primary": "provide",
    "material": "ui",
    "reason": "dart — אין SDK בסביבה"
   },
@@ -16256,13 +16193,8 @@
   {
    "id": "generator:new/dart-ui-bs/auto/site_hub_ca_card.dart#SiteHubCaCard",
    "labeledBy": "static",
-   "verbs": [
-    {
-     "id": "relay",
-     "by": "symbol"
-    }
-   ],
-   "primary": "relay",
+   "verbs": [],
+   "primary": null,
    "material": "ui",
    "reason": "dart — אין SDK בסביבה"
   },
@@ -16273,10 +16205,6 @@
     {
      "id": "provide",
      "by": "name"
-    },
-    {
-     "id": "relay",
-     "by": "symbol"
     }
    ],
    "primary": "provide",
@@ -16286,39 +16214,24 @@
   {
    "id": "generator:new/dart-ui-bs/auto/site_hub_ca_primary.dart#SiteHubCaPrimary",
    "labeledBy": "static",
-   "verbs": [
-    {
-     "id": "relay",
-     "by": "symbol"
-    }
-   ],
-   "primary": "relay",
+   "verbs": [],
+   "primary": null,
    "material": "text",
    "reason": "dart — אין SDK בסביבה"
   },
   {
    "id": "generator:new/dart-ui-bs/auto/site_hub_card_btn.dart#SiteHubCardBtn",
    "labeledBy": "static",
-   "verbs": [
-    {
-     "id": "relay",
-     "by": "symbol"
-    }
-   ],
-   "primary": "relay",
+   "verbs": [],
+   "primary": null,
    "material": "text",
    "reason": "dart — אין SDK בסביבה"
   },
   {
    "id": "generator:new/dart-ui-bs/auto/site_hub_md_head.dart#SiteHubMdHead",
    "labeledBy": "static",
-   "verbs": [
-    {
-     "id": "relay",
-     "by": "symbol"
-    }
-   ],
-   "primary": "relay",
+   "verbs": [],
+   "primary": null,
    "material": "text",
    "reason": "dart — אין SDK בסביבה"
   },
@@ -16594,13 +16507,8 @@
   {
    "id": "generator:new/dart-ui-bs/auto/target_subject.dart#TargetSubject",
    "labeledBy": "static",
-   "verbs": [
-    {
-     "id": "assign-role",
-     "by": "name"
-    }
-   ],
-   "primary": "assign-role",
+   "verbs": [],
+   "primary": null,
    "material": "text",
    "reason": "dart — אין SDK בסביבה"
   },
@@ -18276,13 +18184,8 @@
   {
    "id": "generator:new/dart-ui-bs/screens__home_shell/help_freeze_overlay.dart#HelpFreezeOverlay",
    "labeledBy": "static",
-   "verbs": [
-    {
-     "id": "freeze",
-     "by": "symbol"
-    }
-   ],
-   "primary": "freeze",
+   "verbs": [],
+   "primary": null,
    "material": "text",
    "reason": "dart — אין SDK בסביבה"
   },
@@ -18857,13 +18760,8 @@
   {
    "id": "generator:new/dart-ui-bs/screens__store_screen/grid_hub_card.dart#GridHubCard",
    "labeledBy": "static",
-   "verbs": [
-    {
-     "id": "relay",
-     "by": "symbol"
-    }
-   ],
-   "primary": "relay",
+   "verbs": [],
+   "primary": null,
    "material": "text",
    "reason": "dart — אין SDK בסביבה"
   },
@@ -19006,13 +18904,8 @@
   {
    "id": "generator:new/dart-ui-bs/screens__store_screen/store_hub_row.dart#StoreHubRow",
    "labeledBy": "static",
-   "verbs": [
-    {
-     "id": "relay",
-     "by": "symbol"
-    }
-   ],
-   "primary": "relay",
+   "verbs": [],
+   "primary": null,
    "material": "text",
    "reason": "dart — אין SDK בסביבה"
   },
@@ -19179,13 +19072,8 @@
   {
    "id": "generator:new/dart-ui-bs/testimonial_card.dart#TestimonialCard",
    "labeledBy": "static",
-   "verbs": [
-    {
-     "id": "require-source",
-     "by": "name"
-    }
-   ],
-   "primary": "require-source",
+   "verbs": [],
+   "primary": null,
    "material": "text",
    "reason": "dart — אין SDK בסביבה"
   },
@@ -20092,13 +19980,8 @@
   {
    "id": "generator:new/dart/flow_role.dart#flowRole",
    "labeledBy": "static",
-   "verbs": [
-    {
-     "id": "assign-role",
-     "by": "symbol"
-    }
-   ],
-   "primary": "assign-role",
+   "verbs": [],
+   "primary": null,
    "material": "text",
    "reason": "dart — אין SDK בסביבה"
   },
@@ -20468,10 +20351,6 @@
     {
      "id": "validate",
      "by": "first"
-    },
-    {
-     "id": "assign-role",
-     "by": "symbol"
     }
    ],
    "primary": "validate",
@@ -21108,13 +20987,8 @@
   {
    "id": "generator:new/dart/pow025.dart#pow025",
    "labeledBy": "static",
-   "verbs": [
-    {
-     "id": "assign-role",
-     "by": "name"
-    }
-   ],
-   "primary": "assign-role",
+   "verbs": [],
+   "primary": null,
    "material": "number",
    "reason": "dart — אין SDK בסביבה"
   },

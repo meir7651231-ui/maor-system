@@ -11,7 +11,7 @@
   "runWithVerb": 73,
   "twin": 0,
   "static": 94,
-  "staticWithVerb": 5,
+  "staticWithVerb": 4,
   "why": {
    "impure": 33,
    "no-fitting-input": 33,
@@ -56,13 +56,8 @@
   {
    "id": "14kk:api/server_advanced.js#AdvancedAssetManagerAPI.getUserPermissions",
    "labeledBy": "static",
-   "verbs": [
-    {
-     "id": "assign-role",
-     "by": "symbol"
-    }
-   ],
-   "primary": "assign-role",
+   "verbs": [],
+   "primary": null,
    "material": "record:role",
    "reason": "load-failed — PARSE_ERROR: Expected `,` or `}` but found `;`"
   },

@@ -11,7 +11,7 @@
   "runWithVerb": 14,
   "twin": 0,
   "static": 861,
-  "staticWithVerb": 187,
+  "staticWithVerb": 172,
   "why": {
    "dart": 792,
    "impure": 66,
@@ -686,10 +686,6 @@
     {
      "id": "validate",
      "by": "first"
-    },
-    {
-     "id": "assign-role",
-     "by": "symbol"
     }
    ],
    "primary": "validate",
@@ -1646,13 +1642,8 @@
   {
    "id": "buildsmart:app_flutter/lib/data/related_info.dart#quoteTextFor",
    "labeledBy": "static",
-   "verbs": [
-    {
-     "id": "require-source",
-     "by": "first"
-    }
-   ],
-   "primary": "require-source",
+   "verbs": [],
+   "primary": null,
    "material": "record:smart-product",
    "reason": "dart — אין SDK בסביבה"
   },
@@ -1747,13 +1738,8 @@
   {
    "id": "buildsmart:app_flutter/lib/data/repositories/orders_local.dart#orderVisibleToRole",
    "labeledBy": "static",
-   "verbs": [
-    {
-     "id": "assign-role",
-     "by": "symbol"
-    }
-   ],
-   "primary": "assign-role",
+   "verbs": [],
+   "primary": null,
    "material": "record:order",
    "reason": "dart — אין SDK בסביבה"
   },
@@ -1890,13 +1876,8 @@
   {
    "id": "buildsmart:app_flutter/lib/data/repositories/users_repository.dart#withOwnerApproval",
    "labeledBy": "static",
-   "verbs": [
-    {
-     "id": "assign-role",
-     "by": "symbol"
-    }
-   ],
-   "primary": "assign-role",
+   "verbs": [],
+   "primary": null,
    "material": "record:bs-user",
    "reason": "dart — אין SDK בסביבה"
   },
@@ -1907,10 +1888,6 @@
     {
      "id": "lookup",
      "by": "first"
-    },
-    {
-     "id": "assign-role",
-     "by": "name"
     }
    ],
    "primary": "lookup",
@@ -2345,13 +2322,8 @@
   {
    "id": "buildsmart:app_flutter/lib/features/card_keyboard/card_signals.dart#sourcesFor",
    "labeledBy": "static",
-   "verbs": [
-    {
-     "id": "require-source",
-     "by": "name"
-    }
-   ],
-   "primary": "require-source",
+   "verbs": [],
+   "primary": null,
    "material": "text",
    "reason": "dart — אין SDK בסביבה"
   },
@@ -3034,26 +3006,16 @@
   {
    "id": "buildsmart:app_flutter/lib/features/fittings/geometry/route_assembly.dart#assembleRoute",
    "labeledBy": "static",
-   "verbs": [
-    {
-     "id": "route",
-     "by": "symbol"
-    }
-   ],
-   "primary": "route",
+   "verbs": [],
+   "primary": null,
    "material": "list",
    "reason": "dart — אין SDK בסביבה"
   },
   {
    "id": "buildsmart:app_flutter/lib/features/fittings/geometry/route_meshes.dart#buildRoutePreviewMeshes",
    "labeledBy": "static",
-   "verbs": [
-    {
-     "id": "route",
-     "by": "symbol"
-    }
-   ],
-   "primary": "route",
+   "verbs": [],
+   "primary": null,
    "material": "list",
    "reason": "dart — אין SDK בסביבה"
   },
@@ -3137,13 +3099,8 @@
   {
    "id": "buildsmart:app_flutter/lib/features/fittings/intel/line_planner.dart#routeFromProducts",
    "labeledBy": "static",
-   "verbs": [
-    {
-     "id": "route",
-     "by": "first"
-    }
-   ],
-   "primary": "route",
+   "verbs": [],
+   "primary": null,
    "material": "list",
    "reason": "dart — אין SDK בסביבה"
   },
@@ -3158,13 +3115,8 @@
   {
    "id": "buildsmart:app_flutter/lib/features/fittings/layout/route_layout.dart#layoutRoute",
    "labeledBy": "static",
-   "verbs": [
-    {
-     "id": "route",
-     "by": "symbol"
-    }
-   ],
-   "primary": "route",
+   "verbs": [],
+   "primary": null,
    "material": "list",
    "reason": "dart — אין SDK בסביבה"
   },
@@ -4218,13 +4170,8 @@
   {
    "id": "buildsmart:app_flutter/lib/logic/fuzzy_match.dart#damerauLevenshtein",
    "labeledBy": "static",
-   "verbs": [
-    {
-     "id": "require-source",
-     "by": "name"
-    }
-   ],
-   "primary": "require-source",
+   "verbs": [],
+   "primary": null,
    "material": "text",
    "reason": "dart — אין SDK בסביבה"
   },
@@ -4255,13 +4202,8 @@
   {
    "id": "buildsmart:app_flutter/lib/logic/fuzzy_match.dart#fuzzyTolerance",
    "labeledBy": "static",
-   "verbs": [
-    {
-     "id": "require-source",
-     "by": "name"
-    }
-   ],
-   "primary": "require-source",
+   "verbs": [],
+   "primary": null,
    "material": "number",
    "reason": "dart — אין SDK בסביבה"
   },
@@ -6325,13 +6267,8 @@
   {
    "id": "buildsmart:app_flutter/lib/screens/quote_polish_screen.dart#quotePolishPrompt",
    "labeledBy": "static",
-   "verbs": [
-    {
-     "id": "require-source",
-     "by": "first"
-    }
-   ],
-   "primary": "require-source",
+   "verbs": [],
+   "primary": null,
    "material": "text",
    "reason": "dart — אין SDK בסביבה"
   },
@@ -6652,21 +6589,21 @@
   {
    "id": "buildsmart:app_flutter/lib/state/board_auth.dart#boardRoleByName",
    "labeledBy": "static",
-   "verbs": [
-    {
-     "id": "assign-role",
-     "by": "name"
-    }
-   ],
-   "primary": "assign-role",
+   "verbs": [],
+   "primary": null,
    "material": "text",
    "reason": "dart — אין SDK בסביבה"
   },
   {
    "id": "buildsmart:app_flutter/lib/state/board_auth.dart#boardSessionFromAuthSnapshot",
    "labeledBy": "static",
-   "verbs": [],
-   "primary": null,
+   "verbs": [
+    {
+     "id": "freeze",
+     "by": "symbol"
+    }
+   ],
+   "primary": "freeze",
    "material": "record:auth-snapshot",
    "reason": "dart — אין SDK בסביבה"
   },
@@ -6915,10 +6852,6 @@
     {
      "id": "validate",
      "by": "first"
-    },
-    {
-     "id": "relay",
-     "by": "symbol"
     }
    ],
    "primary": "validate",
@@ -6945,10 +6878,6 @@
     {
      "id": "validate",
      "by": "first"
-    },
-    {
-     "id": "assign-role",
-     "by": "name"
     }
    ],
    "primary": "validate",
@@ -6975,10 +6904,6 @@
     {
      "id": "validate",
      "by": "first"
-    },
-    {
-     "id": "relay",
-     "by": "symbol"
     }
    ],
    "primary": "validate",
@@ -7131,13 +7056,8 @@
   {
    "id": "buildsmart:app_flutter/lib/state/push_state.dart#pushChannelIdFor",
    "labeledBy": "static",
-   "verbs": [
-    {
-     "id": "route",
-     "by": "symbol"
-    }
-   ],
-   "primary": "route",
+   "verbs": [],
+   "primary": null,
    "material": "record:push-message",
    "reason": "dart — אין SDK בסביבה"
   },
@@ -7190,10 +7110,6 @@
     {
      "id": "validate",
      "by": "first"
-    },
-    {
-     "id": "assign-role",
-     "by": "name"
     }
    ],
    "primary": "validate",
@@ -7216,13 +7132,8 @@
   {
    "id": "buildsmart:app_flutter/lib/state/rbac.dart#roleFromClaim",
    "labeledBy": "static",
-   "verbs": [
-    {
-     "id": "assign-role",
-     "by": "name"
-    }
-   ],
-   "primary": "assign-role",
+   "verbs": [],
+   "primary": null,
    "material": "text",
    "reason": "dart — אין SDK בסביבה"
   },
@@ -7268,13 +7179,8 @@
   {
    "id": "buildsmart:app_flutter/lib/state/role_requests.dart#roleChipStateFor",
    "labeledBy": "static",
-   "verbs": [
-    {
-     "id": "assign-role",
-     "by": "name"
-    }
-   ],
-   "primary": "assign-role",
+   "verbs": [],
+   "primary": null,
    "material": "bool",
    "reason": "dart — אין SDK בסביבה"
   },
@@ -7415,13 +7321,8 @@
   {
    "id": "buildsmart:app_flutter/lib/state/studio/config_merge.dart#roleKeyOf",
    "labeledBy": "static",
-   "verbs": [
-    {
-     "id": "assign-role",
-     "by": "name"
-    }
-   ],
-   "primary": "assign-role",
+   "verbs": [],
+   "primary": null,
    "material": "text",
    "reason": "dart — אין SDK בסביבה"
   },

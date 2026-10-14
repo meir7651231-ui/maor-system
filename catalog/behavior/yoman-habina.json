@@ -11,7 +11,7 @@
   "runWithVerb": 0,
   "twin": 0,
   "static": 33,
-  "staticWithVerb": 6,
+  "staticWithVerb": 5,
   "why": {
    "impure": 31,
    "engine": 1,
@@ -165,13 +165,8 @@
   {
    "id": "yoman-habina:engine.js#srcLine",
    "labeledBy": "static",
-   "verbs": [
-    {
-     "id": "require-source",
-     "by": "name"
-    }
-   ],
-   "primary": "require-source",
+   "verbs": [],
+   "primary": null,
    "material": "text",
    "reason": "impure"
   },

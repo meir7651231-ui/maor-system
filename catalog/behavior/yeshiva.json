@@ -11,7 +11,7 @@
   "runWithVerb": 0,
   "twin": 0,
   "static": 902,
-  "staticWithVerb": 74,
+  "staticWithVerb": 65,
   "why": {
    "python": 690,
    "impure": 200,
@@ -4042,13 +4042,8 @@
   {
    "id": "yeshiva:yeshiva/engine.py#_marker",
    "labeledBy": "static",
-   "verbs": [
-    {
-     "id": "require-source",
-     "by": "name"
-    }
-   ],
-   "primary": "require-source",
+   "verbs": [],
+   "primary": null,
    "material": "record:claim",
    "reason": "python — לא מורץ כאן (לפי ההנחיה)"
   },
@@ -5130,13 +5125,8 @@
   {
    "id": "yeshiva:yeshiva/maimatai.py#World.cite",
    "labeledBy": "static",
-   "verbs": [
-    {
-     "id": "require-source",
-     "by": "name"
-    }
-   ],
-   "primary": "require-source",
+   "verbs": [],
+   "primary": null,
    "material": "text",
    "reason": "python — לא מורץ כאן (לפי ההנחיה)"
   },
@@ -5196,26 +5186,16 @@
   {
    "id": "yeshiva:yeshiva/maimatai.py#World.sources_sharing",
    "labeledBy": "static",
-   "verbs": [
-    {
-     "id": "require-source",
-     "by": "name"
-    }
-   ],
-   "primary": "require-source",
+   "verbs": [],
+   "primary": null,
    "material": "text",
    "reason": "python — לא מורץ כאן (לפי ההנחיה)"
   },
   {
    "id": "yeshiva:yeshiva/maimatai.py#World.src",
    "labeledBy": "static",
-   "verbs": [
-    {
-     "id": "require-source",
-     "by": "name"
-    }
-   ],
-   "primary": "require-source",
+   "verbs": [],
+   "primary": null,
    "material": "text",
    "reason": "python — לא מורץ כאן (לפי ההנחיה)"
   },
@@ -5411,13 +5391,8 @@
   {
    "id": "yeshiva:yeshiva/maimatai.py#cited_verse",
    "labeledBy": "static",
-   "verbs": [
-    {
-     "id": "require-source",
-     "by": "name"
-    }
-   ],
-   "primary": "require-source",
+   "verbs": [],
+   "primary": null,
    "material": "text",
    "reason": "python — לא מורץ כאן (לפי ההנחיה)"
   },
@@ -6004,13 +5979,8 @@
   {
    "id": "yeshiva:yeshiva/moves.py#Dichuy.render",
    "labeledBy": "static",
-   "verbs": [
-    {
-     "id": "require-source",
-     "by": "name"
-    }
-   ],
-   "primary": "require-source",
+   "verbs": [],
+   "primary": null,
    "material": "text",
    "reason": "python — לא מורץ כאן (לפי ההנחיה)"
   },
@@ -6078,13 +6048,8 @@
   {
    "id": "yeshiva:yeshiva/moves.py#Raya.render",
    "labeledBy": "static",
-   "verbs": [
-    {
-     "id": "require-source",
-     "by": "name"
-    }
-   ],
-   "primary": "require-source",
+   "verbs": [],
+   "primary": null,
    "material": "text",
    "reason": "python — לא מורץ כאן (לפי ההנחיה)"
   },
@@ -7590,13 +7555,8 @@
   {
    "id": "yeshiva:yeshiva/terms.py#Source",
    "labeledBy": "static",
-   "verbs": [
-    {
-     "id": "require-source",
-     "by": "name"
-    }
-   ],
-   "primary": "require-source",
+   "verbs": [],
+   "primary": null,
    "material": "number",
    "reason": "impure"
   },
@@ -7611,13 +7571,8 @@
   {
    "id": "yeshiva:yeshiva/terms.py#source",
    "labeledBy": "static",
-   "verbs": [
-    {
-     "id": "require-source",
-     "by": "name"
-    }
-   ],
-   "primary": "require-source",
+   "verbs": [],
+   "primary": null,
    "material": "text",
    "reason": "python — לא מורץ כאן (לפי ההנחיה)"
   },
