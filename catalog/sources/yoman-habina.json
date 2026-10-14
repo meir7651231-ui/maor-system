@@ -1,0 +1,877 @@
+{
+  "source": "yoman-habina",
+  "repo": "meir7651231-ui/yoman-habina",
+  "ref": "claude/setup@ea2030d9233dbd11872448fb09206ba89c894b90",
+  "generatedAt": null,
+  "parts": [
+    {
+      "id": "yoman-habina:engine.js#add",
+      "source": "yoman-habina",
+      "path": "engine.js",
+      "symbol": "add",
+      "lang": "js",
+      "what": "particle",
+      "name": "להוסיף ילד לאלמנט אם קיים",
+      "does": "להוסיף ילד לאלמנט אם קיים — מקבל רשומת parent, רשומת child, ומחזיר תצוגה.",
+      "takes": [
+        {
+          "name": "parent",
+          "kind": "record:parent",
+          "type": null
+        },
+        {
+          "name": "child",
+          "kind": "record:child",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "ui",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "engine"
+      ]
+    },
+    {
+      "id": "yoman-habina:engine.js#boot",
+      "source": "yoman-habina",
+      "path": "engine.js",
+      "symbol": "boot",
+      "lang": "js",
+      "what": "engine",
+      "name": "לטעון גיליון ולהציג אותו",
+      "does": "לטעון גיליון ולהציג אותו — בלי קלט, ומחזיר משהו.",
+      "takes": [],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "engine"
+      ]
+    },
+    {
+      "id": "yoman-habina:engine.js#el",
+      "source": "yoman-habina",
+      "path": "engine.js",
+      "symbol": "el",
+      "lang": "js",
+      "what": "particle",
+      "name": "ליצור אלמנט HTML עם מחלקה ותוכן",
+      "does": "ליצור אלמנט HTML עם מחלקה ותוכן — מקבל טקסט, ומחזיר תצוגה.",
+      "takes": [
+        {
+          "name": "tag",
+          "kind": "text",
+          "type": null
+        },
+        {
+          "name": "cls",
+          "kind": "text",
+          "type": null
+        },
+        {
+          "name": "html",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "ui",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "engine"
+      ]
+    },
+    {
+      "id": "yoman-habina:engine.js#fail",
+      "source": "yoman-habina",
+      "path": "engine.js",
+      "symbol": "fail",
+      "lang": "js",
+      "what": "component",
+      "name": "להציג הודעת כשל במקום העיתון",
+      "does": "להציג הודעת כשל במקום העיתון — מקבל רשומת error, ומחזיר תצוגה.",
+      "takes": [
+        {
+          "name": "e",
+          "kind": "record:error",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "ui",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "engine"
+      ]
+    },
+    {
+      "id": "yoman-habina:engine.js#paras",
+      "source": "yoman-habina",
+      "path": "engine.js",
+      "symbol": "paras",
+      "lang": "js",
+      "what": "component",
+      "name": "להפוך רשימת טקסטים לפסקאות",
+      "does": "להפוך רשימת טקסטים לפסקאות — מקבל רשימה, טקסט, ומחזיר תצוגה.",
+      "takes": [
+        {
+          "name": "arr",
+          "kind": "list",
+          "type": null
+        },
+        {
+          "name": "cls",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "ui",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "engine"
+      ]
+    },
+    {
+      "id": "yoman-habina:engine.js#render",
+      "source": "yoman-habina",
+      "path": "engine.js",
+      "symbol": "render",
+      "lang": "js",
+      "what": "engine",
+      "name": "להציג גיליון עיתון שלם מקובץ JSON",
+      "does": "בונה את כל העיתון: כותרת, ואז כל מדור לפי סוגו (עמוד ראשי, כרטיסים, מבזקים, מוסף, דעה, תחזית).",
+      "takes": [
+        {
+          "name": "ISSUE",
+          "kind": "record:issue",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "text",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "engine"
+      ]
+    },
+    {
+      "id": "yoman-habina:engine.js#renderBriefs",
+      "source": "yoman-habina",
+      "path": "engine.js",
+      "symbol": "renderBriefs",
+      "lang": "js",
+      "what": "component",
+      "name": "להציג מדור מבזקים קצרים",
+      "does": "להציג מדור מבזקים קצרים — מקבל טקסט, ומחזיר תצוגה.",
+      "takes": [
+        {
+          "name": "s",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "ui",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "engine"
+      ]
+    },
+    {
+      "id": "yoman-habina:engine.js#renderCards",
+      "source": "yoman-habina",
+      "path": "engine.js",
+      "symbol": "renderCards",
+      "lang": "js",
+      "what": "component",
+      "name": "להציג מדור כרטיסי ידיעות",
+      "does": "להציג מדור כרטיסי ידיעות — מקבל טקסט, ומחזיר תצוגה.",
+      "takes": [
+        {
+          "name": "s",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "ui",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "engine"
+      ]
+    },
+    {
+      "id": "yoman-habina:engine.js#renderColophon",
+      "source": "yoman-habina",
+      "path": "engine.js",
+      "symbol": "renderColophon",
+      "lang": "js",
+      "what": "component",
+      "name": "להציג את הקולופון בתחתית",
+      "does": "להציג את הקולופון בתחתית — מקבל טקסט, ומחזיר תצוגה.",
+      "takes": [
+        {
+          "name": "c",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "ui",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "engine"
+      ]
+    },
+    {
+      "id": "yoman-habina:engine.js#renderForecast",
+      "source": "yoman-habina",
+      "path": "engine.js",
+      "symbol": "renderForecast",
+      "lang": "js",
+      "what": "component",
+      "name": "להציג מדור תחזית",
+      "does": "להציג מדור תחזית — מקבל טקסט, ומחזיר תצוגה.",
+      "takes": [
+        {
+          "name": "s",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "ui",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "engine"
+      ]
+    },
+    {
+      "id": "yoman-habina:engine.js#renderFront",
+      "source": "yoman-habina",
+      "path": "engine.js",
+      "symbol": "renderFront",
+      "lang": "js",
+      "what": "component",
+      "name": "להציג את העמוד הראשי",
+      "does": "להציג את העמוד הראשי — מקבל טקסט, ומחזיר תצוגה.",
+      "takes": [
+        {
+          "name": "s",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "ui",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "engine"
+      ]
+    },
+    {
+      "id": "yoman-habina:engine.js#renderMasthead",
+      "source": "yoman-habina",
+      "path": "engine.js",
+      "symbol": "renderMasthead",
+      "lang": "js",
+      "what": "component",
+      "name": "להציג את כותרת העיתון והתאריך",
+      "does": "להציג את כותרת העיתון והתאריך — מקבל משהו, ומחזיר תצוגה.",
+      "takes": [
+        {
+          "name": "m",
+          "kind": "unknown",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "ui",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "engine"
+      ]
+    },
+    {
+      "id": "yoman-habina:engine.js#renderOpinion",
+      "source": "yoman-habina",
+      "path": "engine.js",
+      "symbol": "renderOpinion",
+      "lang": "js",
+      "what": "component",
+      "name": "להציג מדור דעה",
+      "does": "להציג מדור דעה — מקבל טקסט, ומחזיר תצוגה.",
+      "takes": [
+        {
+          "name": "s",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "ui",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "engine"
+      ]
+    },
+    {
+      "id": "yoman-habina:engine.js#renderSupplement",
+      "source": "yoman-habina",
+      "path": "engine.js",
+      "symbol": "renderSupplement",
+      "lang": "js",
+      "what": "component",
+      "name": "להציג את המוסף האישי",
+      "does": "להציג את המוסף האישי — מקבל טקסט, ומחזיר תצוגה.",
+      "takes": [
+        {
+          "name": "s",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "ui",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "engine"
+      ]
+    },
+    {
+      "id": "yoman-habina:engine.js#renderTwoup",
+      "source": "yoman-habina",
+      "path": "engine.js",
+      "symbol": "renderTwoup",
+      "lang": "js",
+      "what": "component",
+      "name": "להציג מדור בשני טורים",
+      "does": "להציג מדור בשני טורים — מקבל טקסט, ומחזיר תצוגה.",
+      "takes": [
+        {
+          "name": "s",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "ui",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "engine"
+      ]
+    },
+    {
+      "id": "yoman-habina:engine.js#runhead",
+      "source": "yoman-habina",
+      "path": "engine.js",
+      "symbol": "runhead",
+      "lang": "js",
+      "what": "component",
+      "name": "להציג כותרת רצה של מדור",
+      "does": "להציג כותרת רצה של מדור — מקבל טקסט, ומחזיר תצוגה.",
+      "takes": [
+        {
+          "name": "s",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "ui",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "engine"
+      ]
+    },
+    {
+      "id": "yoman-habina:engine.js#srcLine",
+      "source": "yoman-habina",
+      "path": "engine.js",
+      "symbol": "srcLine",
+      "lang": "js",
+      "what": "component",
+      "name": "להציג שורת מקור עם קישור",
+      "does": "להציג שורת מקור עם קישור — מקבל טקסט, ומחזיר תצוגה.",
+      "takes": [
+        {
+          "name": "src",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "ui",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "engine"
+      ]
+    },
+    {
+      "id": "yoman-habina:engine.js#tag",
+      "source": "yoman-habina",
+      "path": "engine.js",
+      "symbol": "tag",
+      "lang": "js",
+      "what": "component",
+      "name": "להציג תגית נושא קטנה",
+      "does": "להציג תגית נושא קטנה — מקבל טקסט, ומחזיר תצוגה.",
+      "takes": [
+        {
+          "name": "t",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "ui",
+        "type": null
+      },
+      "pure": false,
+      "example": {
+        "in": {
+          "t": {
+            "text": "כלים"
+          }
+        },
+        "out": "<span class=\"tag\">כלים</span>"
+      },
+      "tags": [
+        "engine"
+      ]
+    },
+    {
+      "id": "yoman-habina:engine.js#whyBox",
+      "source": "yoman-habina",
+      "path": "engine.js",
+      "symbol": "whyBox",
+      "lang": "js",
+      "what": "component",
+      "name": "להציג תיבת \"למה זה חשוב\"",
+      "does": "להציג תיבת \"למה זה חשוב\" — מקבל רשומת why, ומחזיר תצוגה.",
+      "takes": [
+        {
+          "name": "why",
+          "kind": "record:why",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "ui",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "engine"
+      ]
+    },
+    {
+      "id": "yoman-habina:verify.mjs#allContent",
+      "source": "yoman-habina",
+      "path": "verify.mjs",
+      "symbol": "allContent",
+      "lang": "js",
+      "what": "function",
+      "name": "לרשום את כל קובצי הגיליונות לבדיקה",
+      "does": "לרשום את כל קובצי הגיליונות לבדיקה — בלי קלט, ומחזיר משהו.",
+      "takes": [],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "verify"
+      ]
+    },
+    {
+      "id": "yoman-habina:verify.mjs#bad",
+      "source": "yoman-habina",
+      "path": "verify.mjs",
+      "symbol": "bad",
+      "lang": "js",
+      "what": "function",
+      "name": "להפיק כישלון",
+      "does": "להפיק כישלון — מקבל טקסט, ומחזיר משהו.",
+      "takes": [
+        {
+          "name": "msg",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "name:auto",
+        "verify"
+      ]
+    },
+    {
+      "id": "yoman-habina:verify.mjs#collectUrls",
+      "source": "yoman-habina",
+      "path": "verify.mjs",
+      "symbol": "collectUrls",
+      "lang": "js",
+      "what": "function",
+      "name": "לאסוף את כל הכתובות מגיליון",
+      "does": "לאסוף את כל הכתובות מגיליון — מקבל טקסט, רשומת out, ומחזיר רשימה.",
+      "takes": [
+        {
+          "name": "v",
+          "kind": "text",
+          "type": null
+        },
+        {
+          "name": "out",
+          "kind": "record:out",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "list",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "verify"
+      ]
+    },
+    {
+      "id": "yoman-habina:verify.mjs#head",
+      "source": "yoman-habina",
+      "path": "verify.mjs",
+      "symbol": "head",
+      "lang": "js",
+      "what": "function",
+      "name": "לנסח כותרת",
+      "does": "לנסח כותרת — מקבל טקסט, ומחזיר טקסט.",
+      "takes": [
+        {
+          "name": "t",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "text",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "name:auto",
+        "verify"
+      ]
+    },
+    {
+      "id": "yoman-habina:verify.mjs#islandHtml",
+      "source": "yoman-habina",
+      "path": "verify.mjs",
+      "symbol": "islandHtml",
+      "lang": "js",
+      "what": "function",
+      "name": "לשתול גיליון בתוך דף HTML כאי נתונים",
+      "does": "לשתול גיליון בתוך דף HTML כאי נתונים — מקבל טקסט, ומחזיר משהו.",
+      "takes": [
+        {
+          "name": "edition",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "verify"
+      ]
+    },
+    {
+      "id": "yoman-habina:verify.mjs#makeValidator",
+      "source": "yoman-habina",
+      "path": "verify.mjs",
+      "symbol": "makeValidator",
+      "lang": "js",
+      "what": "engine",
+      "name": "לבנות בודק סכמה עצמאי מ-JSON Schema",
+      "does": "בונה בודק שמוודא שגיליון תואם לסכמה: שדות חובה, סוגים, ערכים מותרים ושדות לא מוכרים.",
+      "takes": [
+        {
+          "name": "schema",
+          "kind": "record:schema",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "record:validator",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "verify"
+      ]
+    },
+    {
+      "id": "yoman-habina:verify.mjs#ok",
+      "source": "yoman-habina",
+      "path": "verify.mjs",
+      "symbol": "ok",
+      "lang": "js",
+      "what": "function",
+      "name": "לבדוק הצלחה",
+      "does": "לבדוק הצלחה — מקבל טקסט, ומחזיר כן/לא.",
+      "takes": [
+        {
+          "name": "msg",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "name:auto",
+        "verify"
+      ]
+    },
+    {
+      "id": "yoman-habina:verify.mjs#partInjection",
+      "source": "yoman-habina",
+      "path": "verify.mjs",
+      "symbol": "partInjection",
+      "lang": "js",
+      "what": "rule",
+      "name": "לחפש הזרקות קוד וקישורים לא מאובטחים",
+      "does": "לחפש הזרקות קוד וקישורים לא מאובטחים — בלי קלט, ומחזיר הכרעה.",
+      "takes": [],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "verify"
+      ]
+    },
+    {
+      "id": "yoman-habina:verify.mjs#partSchema",
+      "source": "yoman-habina",
+      "path": "verify.mjs",
+      "symbol": "partSchema",
+      "lang": "js",
+      "what": "rule",
+      "name": "לבדוק כל גיליון מול הסכמה",
+      "does": "לבדוק כל גיליון מול הסכמה — בלי קלט, ומחזיר הכרעה.",
+      "takes": [],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "verify"
+      ]
+    },
+    {
+      "id": "yoman-habina:verify.mjs#partSmoke",
+      "source": "yoman-habina",
+      "path": "verify.mjs",
+      "symbol": "partSmoke",
+      "lang": "js",
+      "what": "rule",
+      "name": "לפתוח את העיתון בדפדפן ולבדוק שהכול נטען",
+      "does": "לפתוח את העיתון בדפדפן ולבדוק שהכול נטען — בלי קלט, ומחזיר הכרעה.",
+      "takes": [],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "async",
+        "verify"
+      ]
+    },
+    {
+      "id": "yoman-habina:verify.mjs#read",
+      "source": "yoman-habina",
+      "path": "verify.mjs",
+      "symbol": "read",
+      "lang": "js",
+      "what": "function",
+      "name": "לקרוא",
+      "does": "לקרוא — מקבל טקסט, ומחזיר משהו.",
+      "takes": [
+        {
+          "name": "f",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "name:auto",
+        "verify"
+      ]
+    },
+    {
+      "id": "yoman-habina:verify.mjs#readJSON",
+      "source": "yoman-habina",
+      "path": "verify.mjs",
+      "symbol": "readJSON",
+      "lang": "js",
+      "what": "function",
+      "name": "לקרוא קובץ JSON",
+      "does": "לקרוא קובץ JSON — מקבל טקסט, ומחזיר משהו.",
+      "takes": [
+        {
+          "name": "f",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "verify"
+      ]
+    },
+    {
+      "id": "yoman-habina:verify.mjs#startServer",
+      "source": "yoman-habina",
+      "path": "verify.mjs",
+      "symbol": "startServer",
+      "lang": "js",
+      "what": "function",
+      "name": "להרים שרת קבצים מקומי לבדיקה",
+      "does": "להרים שרת קבצים מקומי לבדיקה — בלי קלט, ומחזיר משהו.",
+      "takes": [],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "verify"
+      ]
+    },
+    {
+      "id": "yoman-habina:verify.mjs#walkStrings",
+      "source": "yoman-habina",
+      "path": "verify.mjs",
+      "symbol": "walkStrings",
+      "lang": "js",
+      "what": "particle",
+      "name": "לעבור על כל המחרוזות בתוך מבנה נתונים",
+      "does": "לעבור על כל המחרוזות בתוך מבנה נתונים — מקבל טקסט, משהו, ומחזיר משהו.",
+      "takes": [
+        {
+          "name": "v",
+          "kind": "text",
+          "type": null
+        },
+        {
+          "name": "cb",
+          "kind": "unknown",
+          "type": null
+        },
+        {
+          "name": "pathStr",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "verify"
+      ]
+    }
+  ]
+}

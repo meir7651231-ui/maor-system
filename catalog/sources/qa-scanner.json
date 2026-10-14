@@ -1,0 +1,4988 @@
+{
+  "source": "qa-scanner",
+  "repo": "meir7651231-ui/qa-scanner",
+  "ref": "main@3d7fb62bb3ec9ea12140361670d4b32513614b6d",
+  "generatedAt": null,
+  "parts": [
+    {
+      "id": "qa-scanner:exposure_audit.py#Audit",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "Audit",
+      "lang": "py",
+      "what": "engine",
+      "name": "לבדוק אתר ב-116 בדיקות חשיפה",
+      "does": "מריץ על אתר בדיקות מקובצות: משפטי, נגישות, דוא\"ל, אבטחה, קידום, ביצועים, אמינות ועוד.",
+      "takes": [],
+      "gives": {
+        "kind": "record:audit",
+        "type": "Audit"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "exposure_audit",
+        "methods:16"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#Audit.has",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "Audit.has",
+      "lang": "py",
+      "what": "particle",
+      "name": "לבדוק אם יש",
+      "does": "לבדוק אם יש — מקבל רשימה, ומחזיר כן/לא.",
+      "takes": [
+        {
+          "name": "*subs",
+          "kind": "list",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure_audit",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#Audit.meta",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "Audit.meta",
+      "lang": "py",
+      "what": "function",
+      "name": "להפיק מטא",
+      "does": "להפיק מטא — מקבל רשימה, ומחזיר משהו.",
+      "takes": [
+        {
+          "name": "**attrs",
+          "kind": "list",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure_audit",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#a11y[20]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "a11y[20]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: טקסט חלופי לכל התמונות",
+      "does": "בדיקת חשיפה בתחום נגישות: \"טקסט חלופי לכל התמונות\" (חומרה: גבוה).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:a11y",
+        "severity:גבוה"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#a11y[21]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "a11y[21]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: הגדרת שפה (lang)",
+      "does": "בדיקת חשיפה בתחום נגישות: \"הגדרת שפה (lang)\" (חומרה: גבוה).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:a11y",
+        "severity:גבוה"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#a11y[22]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "a11y[22]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: כותרת ראשית H1",
+      "does": "בדיקת חשיפה בתחום נגישות: \"כותרת ראשית H1\" (חומרה: בינוני).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:a11y",
+        "severity:בינוני"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#a11y[23]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "a11y[23]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: יותר מ-H1 אחד (בעיה)",
+      "does": "בדיקת חשיפה בתחום נגישות: \"יותר מ-H1 אחד (בעיה)\" (חומרה: נמוך).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:a11y",
+        "severity:נמוך"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#a11y[24]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "a11y[24]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: סדר כותרות היררכי",
+      "does": "בדיקת חשיפה בתחום נגישות: \"סדר כותרות היררכי\" (חומרה: נמוך).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:a11y",
+        "severity:נמוך"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#a11y[25]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "a11y[25]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: תווית נגישה לכל שדה טופס",
+      "does": "בדיקת חשיפה בתחום נגישות: \"תווית נגישה לכל שדה טופס\" (חומרה: גבוה).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:a11y",
+        "severity:גבוה"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#a11y[26]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "a11y[26]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: לכל קישור טקסט נגיש",
+      "does": "בדיקת חשיפה בתחום נגישות: \"לכל קישור טקסט נגיש\" (חומרה: בינוני).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:a11y",
+        "severity:בינוני"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#a11y[27]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "a11y[27]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: לכל כפתור טקסט נגיש",
+      "does": "בדיקת חשיפה בתחום נגישות: \"לכל כפתור טקסט נגיש\" (חומרה: בינוני).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:a11y",
+        "severity:בינוני"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#a11y[28]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "a11y[28]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: קישור 'דלג לתוכן'",
+      "does": "בדיקת חשיפה בתחום נגישות: \"קישור 'דלג לתוכן'\" (חומרה: נמוך).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:a11y",
+        "severity:נמוך"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#a11y[29]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "a11y[29]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: ציוני דרך (landmarks/ARIA)",
+      "does": "בדיקת חשיפה בתחום נגישות: \"ציוני דרך (landmarks/ARIA)\" (חומרה: נמוך).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:a11y",
+        "severity:נמוך"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#a11y[30]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "a11y[30]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: כותרת (title) ל-iframe",
+      "does": "בדיקת חשיפה בתחום נגישות: \"כותרת (title) ל-iframe\" (חומרה: נמוך).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:a11y",
+        "severity:נמוך"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#a11y[31]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "a11y[31]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: ל-video כתוביות (track)",
+      "does": "בדיקת חשיפה בתחום נגישות: \"ל-video כתוביות (track)\" (חומרה: נמוך).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:a11y",
+        "severity:נמוך"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#a11y[32]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "a11y[32]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: לטבלאות כותרות (th)",
+      "does": "בדיקת חשיפה בתחום נגישות: \"לטבלאות כותרות (th)\" (חומרה: נמוך).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:a11y",
+        "severity:נמוך"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#a11y[33]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "a11y[33]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: אין ids כפולים",
+      "does": "בדיקת חשיפה בתחום נגישות: \"אין ids כפולים\" (חומרה: נמוך).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:a11y",
+        "severity:נמוך"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#a11y[34]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "a11y[34]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: כותרת לעמוד (title)",
+      "does": "בדיקת חשיפה בתחום נגישות: \"כותרת לעמוד (title)\" (חומרה: בינוני).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:a11y",
+        "severity:בינוני"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#a11y[35]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "a11y[35]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: viewport למובייל",
+      "does": "בדיקת חשיפה בתחום נגישות: \"viewport למובייל\" (חומרה: בינוני).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:a11y",
+        "severity:בינוני"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#a11y[36]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "a11y[36]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: אין text בתמונה בלבד (לוגו alt)",
+      "does": "בדיקת חשיפה בתחום נגישות: \"אין text בתמונה בלבד (לוגו alt)\" (חומרה: נמוך).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:a11y",
+        "severity:נמוך"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#a11y[37]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "a11y[37]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: ניגודיות צבעים",
+      "does": "בדיקת חשיפה בתחום נגישות: \"ניגודיות צבעים\" (חומרה: נמוך).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:a11y",
+        "severity:נמוך"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#a11y[38]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "a11y[38]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: אפשרות הגדלת טקסט",
+      "does": "בדיקת חשיפה בתחום נגישות: \"אפשרות הגדלת טקסט\" (חומרה: בינוני).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:a11y",
+        "severity:בינוני"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#a11y[39]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "a11y[39]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: autoplay מושתק/מבוטל",
+      "does": "בדיקת חשיפה בתחום נגישות: \"autoplay מושתק/מבוטל\" (חומרה: נמוך).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:a11y",
+        "severity:נמוך"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#catalog[140]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "catalog[140]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: לכל המוצרים יש תיאור",
+      "does": "בדיקת חשיפה בתחום קטלוג: \"לכל המוצרים יש תיאור\" (חומרה: בינוני).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:catalog",
+        "severity:בינוני"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#catalog[141]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "catalog[141]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: לכל המוצרים יש תמונה",
+      "does": "בדיקת חשיפה בתחום קטלוג: \"לכל המוצרים יש תמונה\" (חומרה: גבוה).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:catalog",
+        "severity:גבוה"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#catalog[142]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "catalog[142]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: למוצרים יש תגיות (סינון/קידום)",
+      "does": "בדיקת חשיפה בתחום קטלוג: \"למוצרים יש תגיות (סינון/קידום)\" (חומרה: נמוך).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:catalog",
+        "severity:נמוך"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#catalog[143]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "catalog[143]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: אין מוצר במחיר אפס",
+      "does": "בדיקת חשיפה בתחום קטלוג: \"אין מוצר במחיר אפס\" (חומרה: גבוה).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:catalog",
+        "severity:גבוה"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#doh",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "doh",
+      "lang": "py",
+      "what": "function",
+      "name": "לשאול רשומת DNS דרך HTTPS",
+      "does": "לשאול רשומת DNS דרך HTTPS — מקבל טקסט, ומחזיר משהו.",
+      "takes": [
+        {
+          "name": "name",
+          "kind": "text",
+          "type": null
+        },
+        {
+          "name": "typ",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "exposure_audit"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#email[50]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "email[50]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: SPF (מניעת זיוף)",
+      "does": "בדיקת חשיפה בתחום דוא\"ל: \"SPF (מניעת זיוף)\" (חומרה: גבוה).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:email",
+        "severity:גבוה"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#email[51]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "email[51]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: DMARC קיים",
+      "does": "בדיקת חשיפה בתחום דוא\"ל: \"DMARC קיים\" (חומרה: גבוה).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:email",
+        "severity:גבוה"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#email[52]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "email[52]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: DMARC באכיפה (לא p=none)",
+      "does": "בדיקת חשיפה בתחום דוא\"ל: \"DMARC באכיפה (לא p=none)\" (חומרה: בינוני).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:email",
+        "severity:בינוני"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#email[53]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "email[53]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: רשומת MX (קבלת מייל)",
+      "does": "בדיקת חשיפה בתחום דוא\"ל: \"רשומת MX (קבלת מייל)\" (חומרה: בינוני).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:email",
+        "severity:בינוני"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#email[54]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "email[54]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: DKIM (חתימת מייל)",
+      "does": "בדיקת חשיפה בתחום דוא\"ל: \"DKIM (חתימת מייל)\" (חומרה: נמוך).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:email",
+        "severity:נמוך"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#email[55]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "email[55]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: DNSSEC",
+      "does": "בדיקת חשיפה בתחום דוא\"ל: \"DNSSEC\" (חומרה: נמוך).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:email",
+        "severity:נמוך"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#email[56]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "email[56]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: CAA (הגנה על תעודות)",
+      "does": "בדיקת חשיפה בתחום דוא\"ל: \"CAA (הגנה על תעודות)\" (חומרה: נמוך).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:email",
+        "severity:נמוך"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#email[57]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "email[57]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: אימייל לא חשוף לסורקי ספאם",
+      "does": "בדיקת חשיפה בתחום דוא\"ל: \"אימייל לא חשוף לסורקי ספאם\" (חומרה: נמוך).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:email",
+        "severity:נמוך"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#email[58]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "email[58]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: אין www+root מפוצלים ב-DNS",
+      "does": "בדיקת חשיפה בתחום דוא\"ל: \"אין www+root מפוצלים ב-DNS\" (חומרה: נמוך).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:email",
+        "severity:נמוך"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#email[59]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "email[59]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: TTL סביר",
+      "does": "בדיקת חשיפה בתחום דוא\"ל: \"TTL סביר\" (חומרה: נמוך).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:email",
+        "severity:נמוך"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#email_deep[150]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "email_deep[150]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: דומיין שליחה ייעודי מאומת",
+      "does": "בדיקת חשיפה בתחום דוא\"ל לעומק: \"דומיין שליחה ייעודי מאומת\" (חומרה: נמוך).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:email_deep",
+        "severity:נמוך"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#get",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "get",
+      "lang": "py",
+      "what": "function",
+      "name": "להוריד עמוד אינטרנט עם מטמון",
+      "does": "להוריד עמוד אינטרנט עם מטמון — מקבל טקסט, רשימה, ומחזיר רשומת result.",
+      "takes": [
+        {
+          "name": "u",
+          "kind": "text",
+          "type": null
+        },
+        {
+          "name": "**k",
+          "kind": "list",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "record:result",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "exposure_audit"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#images_weight[123]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "images_weight[123]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: תמונות דף הבית לא כבדות מדי",
+      "does": "בדיקת חשיפה בתחום משקל תמונות: \"תמונות דף הבית לא כבדות מדי\" (חומרה: נמוך).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:images_weight",
+        "severity:נמוך"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#legal[10]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "legal[10]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: כתובת / פרטי עוסק",
+      "does": "בדיקת חשיפה בתחום משפטי: \"כתובת / פרטי עוסק\" (חומרה: נמוך).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:legal",
+        "severity:נמוך"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#legal[11]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "legal[11]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: דף 'אודות'",
+      "does": "בדיקת חשיפה בתחום משפטי: \"דף 'אודות'\" (חומרה: נמוך).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:legal",
+        "severity:נמוך"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#legal[12]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "legal[12]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: דף יצירת קשר",
+      "does": "בדיקת חשיפה בתחום משפטי: \"דף יצירת קשר\" (חומרה: נמוך).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:legal",
+        "severity:נמוך"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#legal[13]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "legal[13]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: קישור להסרה מרשימת תפוצה",
+      "does": "בדיקת חשיפה בתחום משפטי: \"קישור להסרה מרשימת תפוצה\" (חומרה: נמוך).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:legal",
+        "severity:נמוך"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#legal[14]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "legal[14]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: אזהרת גיל / תוכן (אם רלוונטי)",
+      "does": "בדיקת חשיפה בתחום משפטי: \"אזהרת גיל / תוכן (אם רלוונטי)\" (חומרה: נמוך).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:legal",
+        "severity:נמוך"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#legal[15]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "legal[15]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: סימון מחיר כולל מע\"מ",
+      "does": "בדיקת חשיפה בתחום משפטי: \"סימון מחיר כולל מע\"מ\" (חומרה: נמוך).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:legal",
+        "severity:נמוך"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#legal[1]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "legal[1]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: הצהרת נגישות (תקן 5568)",
+      "does": "בדיקת חשיפה בתחום משפטי: \"הצהרת נגישות (תקן 5568)\" (חומרה: גבוה).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:legal",
+        "severity:גבוה"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#legal[2]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "legal[2]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: ווידג'ט נגישות מותקן",
+      "does": "בדיקת חשיפה בתחום משפטי: \"ווידג'ט נגישות מותקן\" (חומרה: גבוה).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:legal",
+        "severity:גבוה"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#legal[3]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "legal[3]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: קישור למדיניות פרטיות",
+      "does": "בדיקת חשיפה בתחום משפטי: \"קישור למדיניות פרטיות\" (חומרה: גבוה).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:legal",
+        "severity:גבוה"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#legal[4]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "legal[4]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: תקנון / תנאי שימוש",
+      "does": "בדיקת חשיפה בתחום משפטי: \"תקנון / תנאי שימוש\" (חומרה: בינוני).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:legal",
+        "severity:בינוני"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#legal[5]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "legal[5]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: מדיניות החזרות / ביטול",
+      "does": "בדיקת חשיפה בתחום משפטי: \"מדיניות החזרות / ביטול\" (חומרה: בינוני).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:legal",
+        "severity:בינוני"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#legal[6]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "legal[6]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: מדיניות עוגיות",
+      "does": "בדיקת חשיפה בתחום משפטי: \"מדיניות עוגיות\" (חומרה: בינוני).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:legal",
+        "severity:בינוני"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#legal[7]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "legal[7]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: באנר הסכמת עוגיות",
+      "does": "בדיקת חשיפה בתחום משפטי: \"באנר הסכמת עוגיות\" (חומרה: בינוני).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:legal",
+        "severity:בינוני"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#legal[8]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "legal[8]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: מעקב רק אחרי הסכמה",
+      "does": "בדיקת חשיפה בתחום משפטי: \"מעקב רק אחרי הסכמה\" (חומרה: גבוה).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:legal",
+        "severity:גבוה"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#legal[9]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "legal[9]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: פרטי יצירת קשר (טלפון)",
+      "does": "בדיקת חשיפה בתחום משפטי: \"פרטי יצירת קשר (טלפון)\" (חומרה: נמוך).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:legal",
+        "severity:נמוך"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#links[144]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "links[144]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: אין קישורים פנימיים שבורים",
+      "does": "בדיקת חשיפה בתחום קישורים: \"אין קישורים פנימיים שבורים\" (חומרה: בינוני).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:links",
+        "severity:בינוני"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#perf[110]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "perf[110]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: משקל HTML סביר (<150KB)",
+      "does": "בדיקת חשיפה בתחום ביצועים: \"משקל HTML סביר (<150KB)\" (חומרה: בינוני).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:perf",
+        "severity:בינוני"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#perf[111]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "perf[111]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: דחיסה (gzip/br)",
+      "does": "בדיקת חשיפה בתחום ביצועים: \"דחיסה (gzip/br)\" (חומרה: בינוני).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:perf",
+        "severity:בינוני"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#perf[112]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "perf[112]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: טעינה עצלה לתמונות (lazy)",
+      "does": "בדיקת חשיפה בתחום ביצועים: \"טעינה עצלה לתמונות (lazy)\" (חומרה: נמוך).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:perf",
+        "severity:נמוך"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#perf[113]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "perf[113]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: תמונות בפורמט מודרני (WebP/AVIF)",
+      "does": "בדיקת חשיפה בתחום ביצועים: \"תמונות בפורמט מודרני (WebP/AVIF)\" (חומרה: נמוך).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:perf",
+        "severity:נמוך"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#perf[114]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "perf[114]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: קאשינג (Cache-Control)",
+      "does": "בדיקת חשיפה בתחום ביצועים: \"קאשינג (Cache-Control)\" (חומרה: נמוך).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:perf",
+        "severity:נמוך"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#perf[115]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "perf[115]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: מעט קבצי JS (<20)",
+      "does": "בדיקת חשיפה בתחום ביצועים: \"מעט קבצי JS (<20)\" (חומרה: נמוך).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:perf",
+        "severity:נמוך"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#perf[116]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "perf[116]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: מעט קבצי CSS (<10)",
+      "does": "בדיקת חשיפה בתחום ביצועים: \"מעט קבצי CSS (<10)\" (חומרה: נמוך).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:perf",
+        "severity:נמוך"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#perf[117]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "perf[117]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: JS עם async/defer",
+      "does": "בדיקת חשיפה בתחום ביצועים: \"JS עם async/defer\" (חומרה: נמוך).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:perf",
+        "severity:נמוך"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#perf[118]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "perf[118]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: אין @import ב-CSS",
+      "does": "בדיקת חשיפה בתחום ביצועים: \"אין @import ב-CSS\" (חומרה: נמוך).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:perf",
+        "severity:נמוך"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#perf[119]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "perf[119]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: preconnect/dns-prefetch",
+      "does": "בדיקת חשיפה בתחום ביצועים: \"preconnect/dns-prefetch\" (חומרה: נמוך).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:perf",
+        "severity:נמוך"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#perf[120]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "perf[120]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: לתמונות מידות (מונע קפיצות)",
+      "does": "בדיקת חשיפה בתחום ביצועים: \"לתמונות מידות (מונע קפיצות)\" (חומרה: נמוך).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:perf",
+        "severity:נמוך"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#perf[121]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "perf[121]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: HTTP/2 או HTTP/3",
+      "does": "בדיקת חשיפה בתחום ביצועים: \"HTTP/2 או HTTP/3\" (חומרה: נמוך).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:perf",
+        "severity:נמוך"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#perf[122]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "perf[122]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: אין redirect chains",
+      "does": "בדיקת חשיפה בתחום ביצועים: \"אין redirect chains\" (חומרה: נמוך).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:perf",
+        "severity:נמוך"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#policies_deep[16]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "policies_deep[16]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: מדיניות ללא שם עסק זר (תבנית מועתקת)",
+      "does": "בדיקת חשיפה בתחום מדיניות לעומק: \"מדיניות ללא שם עסק זר (תבנית מועתקת)\" (חומרה: גבוה).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:policies_deep",
+        "severity:גבוה"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#policies_deep[17]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "policies_deep[17]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: מדיניות בעברית",
+      "does": "בדיקת חשיפה בתחום מדיניות לעומק: \"מדיניות בעברית\" (חומרה: גבוה).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:policies_deep",
+        "severity:גבוה"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#policies_deep[18]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "policies_deep[18]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: מדיניות מפנה לחוק הישראלי",
+      "does": "בדיקת חשיפה בתחום מדיניות לעומק: \"מדיניות מפנה לחוק הישראלי\" (חומרה: בינוני).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:policies_deep",
+        "severity:בינוני"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#render_html",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "render_html",
+      "lang": "py",
+      "what": "function",
+      "name": "לטעון דף בדפדפן אמיתי ולהחזיר את ה-DOM",
+      "does": "מחזיר את ה-DOM אחרי שה-JavaScript רץ (מה שגולש אמיתי רואה).",
+      "takes": [
+        {
+          "name": "url",
+          "kind": "text",
+          "type": null
+        },
+        {
+          "name": "wait_ms",
+          "kind": "number",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "text",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "exposure_audit"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#report",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "report",
+      "lang": "py",
+      "what": "function",
+      "name": "להדפיס דוח חשיפה מקובץ לפי תחום",
+      "does": "להדפיס דוח חשיפה מקובץ לפי תחום — מקבל טקסט, רשימה, ומחזיר משהו.",
+      "takes": [
+        {
+          "name": "url",
+          "kind": "text",
+          "type": null
+        },
+        {
+          "name": "findings",
+          "kind": "list",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "exposure_audit"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#security[66]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "security[66]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: HTTPS (לא HTTP)",
+      "does": "בדיקת חשיפה בתחום אבטחה: \"HTTPS (לא HTTP)\" (חומרה: גבוה).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:security",
+        "severity:גבוה"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#security[67]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "security[67]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: אין תוכן מעורב (http)",
+      "does": "בדיקת חשיפה בתחום אבטחה: \"אין תוכן מעורב (http)\" (חומרה: בינוני).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:security",
+        "severity:בינוני"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#security[68]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "security[68]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: עוגיות עם Secure",
+      "does": "בדיקת חשיפה בתחום אבטחה: \"עוגיות עם Secure\" (חומרה: בינוני).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:security",
+        "severity:בינוני"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#security[69]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "security[69]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: עוגיות עם HttpOnly",
+      "does": "בדיקת חשיפה בתחום אבטחה: \"עוגיות עם HttpOnly\" (חומרה: בינוני).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:security",
+        "severity:בינוני"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#security[70]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "security[70]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: לא חושף גרסת שרת",
+      "does": "בדיקת חשיפה בתחום אבטחה: \"לא חושף גרסת שרת\" (חומרה: נמוך).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:security",
+        "severity:נמוך"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#security[71]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "security[71]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: אין X-Powered-By",
+      "does": "בדיקת חשיפה בתחום אבטחה: \"אין X-Powered-By\" (חומרה: נמוך).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:security",
+        "severity:נמוך"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#security[72]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "security[72]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: jQuery לא פגיע",
+      "does": "בדיקת חשיפה בתחום אבטחה: \"jQuery לא פגיע\" (חומרה: גבוה).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:security",
+        "severity:גבוה"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#security[73]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "security[73]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: תעודת SSL בתוקף (>14 יום)",
+      "does": "בדיקת חשיפה בתחום אבטחה: \"תעודת SSL בתוקף (>14 יום)\" (חומרה: גבוה).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:security",
+        "severity:גבוה"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#security[74]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "security[74]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: אין קבצים רגישים חשופים",
+      "does": "בדיקת חשיפה בתחום אבטחה: \"אין קבצים רגישים חשופים\" (חומרה: גבוה).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:security",
+        "severity:גבוה"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#security[כותרת]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "security[כותרת]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: כותרת",
+      "does": "בדיקת חשיפה בתחום אבטחה: \"כותרת\".",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:security"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#security[פאנל  לא פתוח]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "security[פאנל  לא פתוח]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: פאנל לא פתוח",
+      "does": "בדיקת חשיפה בתחום אבטחה: \"פאנל  לא פתוח\" (חומרה: בינוני).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:security",
+        "severity:בינוני"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#seo[80]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "seo[80]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: לא חסום מגוגל (noindex)",
+      "does": "בדיקת חשיפה בתחום קידום בגוגל: \"לא חסום מגוגל (noindex)\" (חומרה: גבוה).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:seo",
+        "severity:גבוה"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#seo[81]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "seo[81]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: כותרת title קיימת",
+      "does": "בדיקת חשיפה בתחום קידום בגוגל: \"כותרת title קיימת\" (חומרה: בינוני).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:seo",
+        "severity:בינוני"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#seo[82]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "seo[82]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: אורך title תקין (10-65)",
+      "does": "בדיקת חשיפה בתחום קידום בגוגל: \"אורך title תקין (10-65)\" (חומרה: נמוך).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:seo",
+        "severity:נמוך"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#seo[83]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "seo[83]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: meta description קיים",
+      "does": "בדיקת חשיפה בתחום קידום בגוגל: \"meta description קיים\" (חומרה: בינוני).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:seo",
+        "severity:בינוני"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#seo[84]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "seo[84]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: אורך description תקין (50-160)",
+      "does": "בדיקת חשיפה בתחום קידום בגוגל: \"אורך description תקין (50-160)\" (חומרה: נמוך).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:seo",
+        "severity:נמוך"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#seo[85]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "seo[85]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: תגית canonical",
+      "does": "בדיקת חשיפה בתחום קידום בגוגל: \"תגית canonical\" (חומרה: בינוני).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:seo",
+        "severity:בינוני"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#seo[86]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "seo[86]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: Open Graph (og:title)",
+      "does": "בדיקת חשיפה בתחום קידום בגוגל: \"Open Graph (og:title)\" (חומרה: נמוך).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:seo",
+        "severity:נמוך"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#seo[87]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "seo[87]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: og:image",
+      "does": "בדיקת חשיפה בתחום קידום בגוגל: \"og:image\" (חומרה: נמוך).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:seo",
+        "severity:נמוך"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#seo[88]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "seo[88]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: Twitter Card",
+      "does": "בדיקת חשיפה בתחום קידום בגוגל: \"Twitter Card\" (חומרה: נמוך).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:seo",
+        "severity:נמוך"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#seo[89]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "seo[89]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: Structured Data (schema)",
+      "does": "בדיקת חשיפה בתחום קידום בגוגל: \"Structured Data (schema)\" (חומרה: בינוני).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:seo",
+        "severity:בינוני"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#seo[90]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "seo[90]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: sitemap.xml קיים",
+      "does": "בדיקת חשיפה בתחום קידום בגוגל: \"sitemap.xml קיים\" (חומרה: בינוני).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:seo",
+        "severity:בינוני"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#seo[91]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "seo[91]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: robots.txt קיים",
+      "does": "בדיקת חשיפה בתחום קידום בגוגל: \"robots.txt קיים\" (חומרה: נמוך).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:seo",
+        "severity:נמוך"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#seo[92]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "seo[92]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: Sitemap מוזכר ב-robots",
+      "does": "בדיקת חשיפה בתחום קידום בגוגל: \"Sitemap מוזכר ב-robots\" (חומרה: נמוך).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:seo",
+        "severity:נמוך"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#seo[93]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "seo[93]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: robots לא חוסם את כל האתר מגוגל",
+      "does": "בדיקת חשיפה בתחום קידום בגוגל: \"robots לא חוסם את כל האתר מגוגל\" (חומרה: גבוה).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:seo",
+        "severity:גבוה"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#seo[94]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "seo[94]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: hreflang (רב-לשוני)",
+      "does": "בדיקת חשיפה בתחום קידום בגוגל: \"hreflang (רב-לשוני)\" (חומרה: נמוך).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:seo",
+        "severity:נמוך"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#seo[95]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "seo[95]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: favicon",
+      "does": "בדיקת חשיפה בתחום קידום בגוגל: \"favicon\" (חומרה: נמוך).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:seo",
+        "severity:נמוך"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#seo[96]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "seo[96]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: הפניה עקבית www/root",
+      "does": "בדיקת חשיפה בתחום קידום בגוגל: \"הפניה עקבית www/root\" (חומרה: נמוך).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:seo",
+        "severity:נמוך"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#seo[97]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "seo[97]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: עמוד 404 תקין (לא soft-404)",
+      "does": "בדיקת חשיפה בתחום קידום בגוגל: \"עמוד 404 תקין (לא soft-404)\" (חומרה: בינוני).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:seo",
+        "severity:בינוני"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#seo[98]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "seo[98]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: breadcrumbs",
+      "does": "בדיקת חשיפה בתחום קידום בגוגל: \"breadcrumbs\" (חומרה: נמוך).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:seo",
+        "severity:נמוך"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#seo[99]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "seo[99]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: אין פרמטרים כפולים ב-URL",
+      "does": "בדיקת חשיפה בתחום קידום בגוגל: \"אין פרמטרים כפולים ב-URL\" (חומרה: נמוך).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:seo",
+        "severity:נמוך"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#trust[130]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "trust[130]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: שנה עדכנית בפוטר",
+      "does": "בדיקת חשיפה בתחום אמינות: \"שנה עדכנית בפוטר\" (חומרה: נמוך).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:trust",
+        "severity:נמוך"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#trust[131]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "trust[131]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: קישורי רשתות חברתיות",
+      "does": "בדיקת חשיפה בתחום אמינות: \"קישורי רשתות חברתיות\" (חומרה: נמוך).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:trust",
+        "severity:נמוך"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#trust[132]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "trust[132]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: חותם אבטחה/תשלום",
+      "does": "בדיקת חשיפה בתחום אמינות: \"חותם אבטחה/תשלום\" (חומרה: נמוך).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:trust",
+        "severity:נמוך"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#trust[133]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "trust[133]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: ביקורות/דירוגים",
+      "does": "בדיקת חשיפה בתחום אמינות: \"ביקורות/דירוגים\" (חומרה: נמוך).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:trust",
+        "severity:נמוך"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#trust[134]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "trust[134]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: חיפוש באתר",
+      "does": "בדיקת חשיפה בתחום אמינות: \"חיפוש באתר\" (חומרה: נמוך).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:trust",
+        "severity:נמוך"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#trust[135]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "trust[135]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: טקסט זמני שלא נמחק",
+      "does": "בדיקת חשיפה בתחום אמינות: \"טקסט זמני שלא נמחק\" (חומרה: בינוני).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:trust",
+        "severity:בינוני"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#trust[136]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "trust[136]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: אין קוד תבנית שדלף ({{ }})",
+      "does": "בדיקת חשיפה בתחום אמינות: \"אין קוד תבנית שדלף ({{ }})\" (חומרה: גבוה).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:trust",
+        "severity:גבוה"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#trust[137]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "trust[137]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: דף הבית נטען מהר (<3s)",
+      "does": "בדיקת חשיפה בתחום אמינות: \"דף הבית נטען מהר (<3s)\" (חומרה: בינוני).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:trust",
+        "severity:בינוני"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#trust[138]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "trust[138]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: אין שגיאות PHP/stack גלויות",
+      "does": "בדיקת חשיפה בתחום אמינות: \"אין שגיאות PHP/stack גלויות\" (חומרה: גבוה).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:trust",
+        "severity:גבוה"
+      ]
+    },
+    {
+      "id": "qa-scanner:exposure_audit.py#trust[139]",
+      "source": "qa-scanner",
+      "path": "exposure_audit.py",
+      "symbol": "trust[139]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק באתר: קריאה לפעולה (CTA) בולטת",
+      "does": "בדיקת חשיפה בתחום אמינות: \"קריאה לפעולה (CTA) בולטת\" (חומרה: נמוך).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "exposure-check",
+        "group:trust",
+        "severity:נמוך"
+      ]
+    },
+    {
+      "id": "qa-scanner:make_report.py#_issue_card",
+      "source": "qa-scanner",
+      "path": "make_report.py",
+      "symbol": "_issue_card",
+      "lang": "py",
+      "what": "component",
+      "name": "לבנות כרטיס HTML לממצא אחד",
+      "does": "לבנות כרטיס HTML לממצא אחד — מקבל טקסט, ומחזיר תצוגה.",
+      "takes": [
+        {
+          "name": "name",
+          "kind": "text",
+          "type": null
+        },
+        {
+          "name": "sev",
+          "kind": "text",
+          "type": null
+        },
+        {
+          "name": "note",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "ui",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "make_report",
+        "private"
+      ]
+    },
+    {
+      "id": "qa-scanner:make_report.py#build_report",
+      "source": "qa-scanner",
+      "path": "make_report.py",
+      "symbol": "build_report",
+      "lang": "py",
+      "what": "engine",
+      "name": "לבנות דוח PDF מעוצב לאתר",
+      "does": "לבנות דוח PDF מעוצב לאתר — מקבל טקסט, רשימה, קובץ, ומחזיר רשומת report.",
+      "takes": [
+        {
+          "name": "url",
+          "kind": "text",
+          "type": null
+        },
+        {
+          "name": "findings",
+          "kind": "list",
+          "type": null
+        },
+        {
+          "name": "screenshot_path",
+          "kind": "file",
+          "type": null
+        },
+        {
+          "name": "out_pdf",
+          "kind": "file",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "record:report",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "make_report"
+      ]
+    },
+    {
+      "id": "qa-scanner:make_report.py#screenshot",
+      "source": "qa-scanner",
+      "path": "make_report.py",
+      "symbol": "screenshot",
+      "lang": "py",
+      "what": "function",
+      "name": "לצלם את דף הבית של אתר",
+      "does": "צילום מסך של דף הבית.",
+      "takes": [
+        {
+          "name": "url",
+          "kind": "text",
+          "type": null
+        },
+        {
+          "name": "out_png",
+          "kind": "file",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "make_report"
+      ]
+    },
+    {
+      "id": "qa-scanner:scanner.py#Issue",
+      "source": "qa-scanner",
+      "path": "scanner.py",
+      "symbol": "Issue",
+      "lang": "py",
+      "what": "brick",
+      "name": "לייצג תקלה שנמצאה באתר",
+      "does": "לייצג תקלה שנמצאה באתר — בלי קלט, ומחזיר רשומת issue.",
+      "takes": [],
+      "gives": {
+        "kind": "record:issue",
+        "type": "Issue"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "methods:0",
+        "scanner"
+      ]
+    },
+    {
+      "id": "qa-scanner:scanner.py#_prices",
+      "source": "qa-scanner",
+      "path": "scanner.py",
+      "symbol": "_prices",
+      "lang": "py",
+      "what": "particle",
+      "name": "לחלץ מחירים מתוך טקסט",
+      "does": "לחלץ מחירים מתוך טקסט — מקבל טקסט, ומחזיר משהו.",
+      "takes": [
+        {
+          "name": "text",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "text": "מחיר: ₪49.90, במבצע ₪0"
+        },
+        "out": [
+          49.9,
+          0
+        ]
+      },
+      "tags": [
+        "private",
+        "scanner"
+      ]
+    },
+    {
+      "id": "qa-scanner:scanner.py#check_url_alive",
+      "source": "qa-scanner",
+      "path": "scanner.py",
+      "symbol": "check_url_alive",
+      "lang": "py",
+      "what": "rule",
+      "name": "לבדוק אם קישור עדיין עובד",
+      "does": "לבדוק אם קישור עדיין עובד — מקבל טקסט, ומחזיר כן/לא.",
+      "takes": [
+        {
+          "name": "url",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "scanner"
+      ]
+    },
+    {
+      "id": "qa-scanner:scanner.py#crawl",
+      "source": "qa-scanner",
+      "path": "scanner.py",
+      "symbol": "crawl",
+      "lang": "py",
+      "what": "engine",
+      "name": "לסרוק אתר עמוד אחר עמוד",
+      "does": "לסרוק אתר עמוד אחר עמוד — מקבל טקסט, מספר, כן/לא, ומחזיר משהו.",
+      "takes": [
+        {
+          "name": "start_url",
+          "kind": "text",
+          "type": null
+        },
+        {
+          "name": "max_pages",
+          "kind": "number",
+          "type": null
+        },
+        {
+          "name": "check_links",
+          "kind": "bool",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "scanner"
+      ]
+    },
+    {
+      "id": "qa-scanner:scanner.py#crawl:issue[עמוד לא נטען]",
+      "source": "qa-scanner",
+      "path": "scanner.py",
+      "symbol": "crawl:issue[עמוד לא נטען]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לזהות באתר: עמוד לא נטען",
+      "does": "תקלה שהסורק מסמן: \"עמוד לא נטען\" (חומרה: גבוה).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "group:crawl",
+        "scan-issue",
+        "severity:גבוה"
+      ]
+    },
+    {
+      "id": "qa-scanner:scanner.py#crawl:issue[קישור שבור]",
+      "source": "qa-scanner",
+      "path": "scanner.py",
+      "symbol": "crawl:issue[קישור שבור]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לזהות באתר: קישור שבור",
+      "does": "תקלה שהסורק מסמן: \"קישור שבור\" (חומרה: בינוני).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "group:crawl",
+        "scan-issue",
+        "severity:בינוני"
+      ]
+    },
+    {
+      "id": "qa-scanner:scanner.py#crawl:issue[שגיאה]",
+      "source": "qa-scanner",
+      "path": "scanner.py",
+      "symbol": "crawl:issue[שגיאה]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לזהות באתר: שגיאה",
+      "does": "תקלה שהסורק מסמן: \"שגיאה\" (חומרה: גבוה).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "group:crawl",
+        "scan-issue",
+        "severity:גבוה"
+      ]
+    },
+    {
+      "id": "qa-scanner:scanner.py#report",
+      "source": "qa-scanner",
+      "path": "scanner.py",
+      "symbol": "report",
+      "lang": "py",
+      "what": "function",
+      "name": "להדפיס דוח תקלות לפי חומרה",
+      "does": "להדפיס דוח תקלות לפי חומרה — מקבל כן/לא, רשומת page, טקסט, ומחזיר משהו.",
+      "takes": [
+        {
+          "name": "issues",
+          "kind": "bool",
+          "type": null
+        },
+        {
+          "name": "pages",
+          "kind": "record:page",
+          "type": null
+        },
+        {
+          "name": "url",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "scanner"
+      ]
+    },
+    {
+      "id": "qa-scanner:scanner.py#scan_page",
+      "source": "qa-scanner",
+      "path": "scanner.py",
+      "symbol": "scan_page",
+      "lang": "py",
+      "what": "engine",
+      "name": "לבדוק עמוד אחד לטעויות לפני פרסום",
+      "does": "לבדוק עמוד אחד לטעויות לפני פרסום — מקבל טקסט, כן/לא, ומחזיר משהו.",
+      "takes": [
+        {
+          "name": "url",
+          "kind": "text",
+          "type": null
+        },
+        {
+          "name": "html",
+          "kind": "text",
+          "type": null
+        },
+        {
+          "name": "issues",
+          "kind": "bool",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "scanner"
+      ]
+    },
+    {
+      "id": "qa-scanner:scanner.py#scan_page:issue[הנחה קיצונית]",
+      "source": "qa-scanner",
+      "path": "scanner.py",
+      "symbol": "scan_page:issue[הנחה קיצונית]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לזהות באתר: הנחה קיצונית",
+      "does": "תקלה שהסורק מסמן: \"הנחה קיצונית\" (חומרה: גבוה).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "group:scan_page",
+        "scan-issue",
+        "severity:גבוה"
+      ]
+    },
+    {
+      "id": "qa-scanner:scanner.py#scan_page:issue[טקסט זמני שנשאר]",
+      "source": "qa-scanner",
+      "path": "scanner.py",
+      "symbol": "scan_page:issue[טקסט זמני שנשאר]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לזהות באתר: טקסט זמני שנשאר",
+      "does": "תקלה שהסורק מסמן: \"טקסט זמני שנשאר\" (חומרה: גבוה).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "group:scan_page",
+        "scan-issue",
+        "severity:גבוה"
+      ]
+    },
+    {
+      "id": "qa-scanner:scanner.py#scan_page:issue[כותרת ארוכה]",
+      "source": "qa-scanner",
+      "path": "scanner.py",
+      "symbol": "scan_page:issue[כותרת ארוכה]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לזהות באתר: כותרת ארוכה",
+      "does": "תקלה שהסורק מסמן: \"כותרת ארוכה\" (חומרה: נמוך).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "group:scan_page",
+        "scan-issue",
+        "severity:נמוך"
+      ]
+    },
+    {
+      "id": "qa-scanner:scanner.py#scan_page:issue[כותרת חסרה]",
+      "source": "qa-scanner",
+      "path": "scanner.py",
+      "symbol": "scan_page:issue[כותרת חסרה]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לזהות באתר: כותרת חסרה",
+      "does": "תקלה שהסורק מסמן: \"כותרת חסרה\" (חומרה: בינוני).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "group:scan_page",
+        "scan-issue",
+        "severity:בינוני"
+      ]
+    },
+    {
+      "id": "qa-scanner:scanner.py#scan_page:issue[מחיר 0]",
+      "source": "qa-scanner",
+      "path": "scanner.py",
+      "symbol": "scan_page:issue[מחיר 0]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לזהות באתר: מחיר 0",
+      "does": "תקלה שהסורק מסמן: \"מחיר 0\" (חומרה: גבוה).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "group:scan_page",
+        "scan-issue",
+        "severity:גבוה"
+      ]
+    },
+    {
+      "id": "qa-scanner:scanner.py#scan_page:issue[מחיר נמוך חשוד]",
+      "source": "qa-scanner",
+      "path": "scanner.py",
+      "symbol": "scan_page:issue[מחיר נמוך חשוד]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לזהות באתר: מחיר נמוך חשוד",
+      "does": "תקלה שהסורק מסמן: \"מחיר נמוך חשוד\" (חומרה: גבוה).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "group:scan_page",
+        "scan-issue",
+        "severity:גבוה"
+      ]
+    },
+    {
+      "id": "qa-scanner:scanner.py#scan_page:issue[תיאור חסר]",
+      "source": "qa-scanner",
+      "path": "scanner.py",
+      "symbol": "scan_page:issue[תיאור חסר]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לזהות באתר: תיאור חסר",
+      "does": "תקלה שהסורק מסמן: \"תיאור חסר\" (חומרה: נמוך).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "group:scan_page",
+        "scan-issue",
+        "severity:נמוך"
+      ]
+    },
+    {
+      "id": "qa-scanner:scanner.py#scan_page:issue[תמונה בלי alt]",
+      "source": "qa-scanner",
+      "path": "scanner.py",
+      "symbol": "scan_page:issue[תמונה בלי alt]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לזהות באתר: תמונה בלי alt",
+      "does": "תקלה שהסורק מסמן: \"תמונה בלי alt\" (חומרה: נמוך).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "group:scan_page",
+        "scan-issue",
+        "severity:נמוך"
+      ]
+    },
+    {
+      "id": "qa-scanner:scanner.py#scan_page:issue[תמונה בלי מקור]",
+      "source": "qa-scanner",
+      "path": "scanner.py",
+      "symbol": "scan_page:issue[תמונה בלי מקור]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לזהות באתר: תמונה בלי מקור",
+      "does": "תקלה שהסורק מסמן: \"תמונה בלי מקור\" (חומרה: בינוני).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "group:scan_page",
+        "scan-issue",
+        "severity:בינוני"
+      ]
+    },
+    {
+      "id": "qa-scanner:scanner2.py#Issue",
+      "source": "qa-scanner",
+      "path": "scanner2.py",
+      "symbol": "Issue",
+      "lang": "py",
+      "what": "brick",
+      "name": "לייצג תקלה שנמצאה באתר",
+      "does": "לייצג תקלה שנמצאה באתר — בלי קלט, ומחזיר רשומת issue.",
+      "takes": [],
+      "gives": {
+        "kind": "record:issue",
+        "type": "Issue"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "methods:0",
+        "scanner2"
+      ]
+    },
+    {
+      "id": "qa-scanner:scanner2.py#_nums",
+      "source": "qa-scanner",
+      "path": "scanner2.py",
+      "symbol": "_nums",
+      "lang": "py",
+      "what": "particle",
+      "name": "לחלץ מספרים מתוך טקסט",
+      "does": "לחלץ מספרים מתוך טקסט — מקבל טקסט, ומחזיר משהו.",
+      "takes": [
+        {
+          "name": "text",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "private",
+        "scanner2"
+      ]
+    },
+    {
+      "id": "qa-scanner:scanner2.py#analyze_product",
+      "source": "qa-scanner",
+      "path": "scanner2.py",
+      "symbol": "analyze_product",
+      "lang": "py",
+      "what": "engine",
+      "name": "לבדוק מוצר בודד בחנות לטעויות",
+      "does": "בדיקות ברמת מוצר בודד - בלי זליגה בין מוצרים.",
+      "takes": [
+        {
+          "name": "name",
+          "kind": "text",
+          "type": null
+        },
+        {
+          "name": "text",
+          "kind": "text",
+          "type": null
+        },
+        {
+          "name": "has_buy",
+          "kind": "bool",
+          "type": null
+        },
+        {
+          "name": "url",
+          "kind": "text",
+          "type": null
+        },
+        {
+          "name": "issues",
+          "kind": "bool",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "scanner2"
+      ]
+    },
+    {
+      "id": "qa-scanner:scanner2.py#analyze_product:issue[הנחה קיצונית]",
+      "source": "qa-scanner",
+      "path": "scanner2.py",
+      "symbol": "analyze_product:issue[הנחה קיצונית]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לזהות באתר: הנחה קיצונית",
+      "does": "תקלה שהסורק מסמן: \"הנחה קיצונית\" (חומרה: גבוה).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "group:analyze_product",
+        "scan-issue",
+        "severity:גבוה"
+      ]
+    },
+    {
+      "id": "qa-scanner:scanner2.py#analyze_product:issue[מוצר בלי מחיר]",
+      "source": "qa-scanner",
+      "path": "scanner2.py",
+      "symbol": "analyze_product:issue[מוצר בלי מחיר]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לזהות באתר: מוצר בלי מחיר",
+      "does": "תקלה שהסורק מסמן: \"מוצר בלי מחיר\" (חומרה: גבוה).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "group:analyze_product",
+        "scan-issue",
+        "severity:גבוה"
+      ]
+    },
+    {
+      "id": "qa-scanner:scanner2.py#analyze_product:issue[מחיר 0]",
+      "source": "qa-scanner",
+      "path": "scanner2.py",
+      "symbol": "analyze_product:issue[מחיר 0]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לזהות באתר: מחיר 0",
+      "does": "תקלה שהסורק מסמן: \"מחיר 0\" (חומרה: גבוה).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "group:analyze_product",
+        "scan-issue",
+        "severity:גבוה"
+      ]
+    },
+    {
+      "id": "qa-scanner:scanner2.py#analyze_product:issue[מחיר נמוך חשוד]",
+      "source": "qa-scanner",
+      "path": "scanner2.py",
+      "symbol": "analyze_product:issue[מחיר נמוך חשוד]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לזהות באתר: מחיר נמוך חשוד",
+      "does": "תקלה שהסורק מסמן: \"מחיר נמוך חשוד\" (חומרה: בינוני).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "group:analyze_product",
+        "scan-issue",
+        "severity:בינוני"
+      ]
+    },
+    {
+      "id": "qa-scanner:scanner2.py#analyze_product:issue[תבנית שלא עובדה]",
+      "source": "qa-scanner",
+      "path": "scanner2.py",
+      "symbol": "analyze_product:issue[תבנית שלא עובדה]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לזהות באתר: תבנית שלא עובדה",
+      "does": "תקלה שהסורק מסמן: \"תבנית שלא עובדה\" (חומרה: גבוה).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "group:analyze_product",
+        "scan-issue",
+        "severity:גבוה"
+      ]
+    },
+    {
+      "id": "qa-scanner:scanner2.py#crawl",
+      "source": "qa-scanner",
+      "path": "scanner2.py",
+      "symbol": "crawl",
+      "lang": "py",
+      "what": "engine",
+      "name": "לסרוק אתר בדפדפן אמיתי",
+      "does": "לסרוק אתר בדפדפן אמיתי — מקבל טקסט, מספר, ומחזיר משהו.",
+      "takes": [
+        {
+          "name": "start_url",
+          "kind": "text",
+          "type": null
+        },
+        {
+          "name": "max_pages",
+          "kind": "number",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "scanner2"
+      ]
+    },
+    {
+      "id": "qa-scanner:scanner2.py#crawl:issue[עמוד לא נטען]",
+      "source": "qa-scanner",
+      "path": "scanner2.py",
+      "symbol": "crawl:issue[עמוד לא נטען]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לזהות באתר: עמוד לא נטען",
+      "does": "תקלה שהסורק מסמן: \"עמוד לא נטען\" (חומרה: גבוה).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "group:crawl",
+        "scan-issue",
+        "severity:גבוה"
+      ]
+    },
+    {
+      "id": "qa-scanner:scanner2.py#crawl:issue[קישור עם קוד תבנית]",
+      "source": "qa-scanner",
+      "path": "scanner2.py",
+      "symbol": "crawl:issue[קישור עם קוד תבנית]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לזהות באתר: קישור עם קוד תבנית",
+      "does": "תקלה שהסורק מסמן: \"קישור עם קוד תבנית\" (חומרה: גבוה).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "group:crawl",
+        "scan-issue",
+        "severity:גבוה"
+      ]
+    },
+    {
+      "id": "qa-scanner:scanner2.py#crawl:issue[שגיאה]",
+      "source": "qa-scanner",
+      "path": "scanner2.py",
+      "symbol": "crawl:issue[שגיאה]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לזהות באתר: שגיאה",
+      "does": "תקלה שהסורק מסמן: \"שגיאה\" (חומרה: גבוה).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "group:crawl",
+        "scan-issue",
+        "severity:גבוה"
+      ]
+    },
+    {
+      "id": "qa-scanner:scanner2.py#report",
+      "source": "qa-scanner",
+      "path": "scanner2.py",
+      "symbol": "report",
+      "lang": "py",
+      "what": "function",
+      "name": "להדפיס דוח תקלות לפי חומרה",
+      "does": "להדפיס דוח תקלות לפי חומרה — מקבל כן/לא, רשומת page, טקסט, ומחזיר משהו.",
+      "takes": [
+        {
+          "name": "issues",
+          "kind": "bool",
+          "type": null
+        },
+        {
+          "name": "pages",
+          "kind": "record:page",
+          "type": null
+        },
+        {
+          "name": "url",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "scanner2"
+      ]
+    },
+    {
+      "id": "qa-scanner:scanner2.py#scan_rendered",
+      "source": "qa-scanner",
+      "path": "scanner2.py",
+      "symbol": "scan_rendered",
+      "lang": "py",
+      "what": "engine",
+      "name": "לבדוק עמוד אחרי שהדפדפן הריץ אותו",
+      "does": "לבדוק עמוד אחרי שהדפדפן הריץ אותו — מקבל טקסט, כן/לא, ומחזיר משהו.",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "text",
+          "type": null
+        },
+        {
+          "name": "url",
+          "kind": "text",
+          "type": null
+        },
+        {
+          "name": "issues",
+          "kind": "bool",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "scanner2"
+      ]
+    },
+    {
+      "id": "qa-scanner:scanner2.py#scan_rendered:issue[כותרת חסרה]",
+      "source": "qa-scanner",
+      "path": "scanner2.py",
+      "symbol": "scan_rendered:issue[כותרת חסרה]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לזהות באתר: כותרת חסרה",
+      "does": "תקלה שהסורק מסמן: \"כותרת חסרה\" (חומרה: בינוני).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "group:scan_rendered",
+        "scan-issue",
+        "severity:בינוני"
+      ]
+    },
+    {
+      "id": "qa-scanner:scanner2.py#scan_rendered:issue[תבנית שלא עובדה]",
+      "source": "qa-scanner",
+      "path": "scanner2.py",
+      "symbol": "scan_rendered:issue[תבנית שלא עובדה]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לזהות באתר: תבנית שלא עובדה",
+      "does": "תקלה שהסורק מסמן: \"תבנית שלא עובדה\" (חומרה: גבוה).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "group:scan_rendered",
+        "scan-issue",
+        "severity:גבוה"
+      ]
+    },
+    {
+      "id": "qa-scanner:scanner2.py#scan_rendered:issue[תיאור חסר]",
+      "source": "qa-scanner",
+      "path": "scanner2.py",
+      "symbol": "scan_rendered:issue[תיאור חסר]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לזהות באתר: תיאור חסר",
+      "does": "תקלה שהסורק מסמן: \"תיאור חסר\" (חומרה: נמוך).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "group:scan_rendered",
+        "scan-issue",
+        "severity:נמוך"
+      ]
+    },
+    {
+      "id": "qa-scanner:scanner3.py#Finding",
+      "source": "qa-scanner",
+      "path": "scanner3.py",
+      "symbol": "Finding",
+      "lang": "py",
+      "what": "brick",
+      "name": "לייצג ממצא שנמצא באתר",
+      "does": "לייצג ממצא שנמצא באתר — בלי קלט, ומחזיר רשומת finding.",
+      "takes": [],
+      "gives": {
+        "kind": "record:finding",
+        "type": "Finding"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "methods:0",
+        "scanner3"
+      ]
+    },
+    {
+      "id": "qa-scanner:scanner3.py#check_products",
+      "source": "qa-scanner",
+      "path": "scanner3.py",
+      "symbol": "check_products",
+      "lang": "py",
+      "what": "engine",
+      "name": "לבדוק רשימת מוצרים לטעויות מחיר ומלאי",
+      "does": "לבדוק רשימת מוצרים לטעויות מחיר ומלאי — מקבל טקסט, רשימה, כן/לא, ומחזיר הכרעה.",
+      "takes": [
+        {
+          "name": "label",
+          "kind": "text",
+          "type": null
+        },
+        {
+          "name": "products",
+          "kind": "list",
+          "type": null
+        },
+        {
+          "name": "issues",
+          "kind": "bool",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "scanner3"
+      ]
+    },
+    {
+      "id": "qa-scanner:scanner3.py#check_products:issue[הנחה קיצונית]",
+      "source": "qa-scanner",
+      "path": "scanner3.py",
+      "symbol": "check_products:issue[הנחה קיצונית]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לזהות באתר: הנחה קיצונית",
+      "does": "תקלה שהסורק מסמן: \"הנחה קיצונית\" (חומרה: גבוה).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "group:check_products",
+        "scan-issue",
+        "severity:גבוה"
+      ]
+    },
+    {
+      "id": "qa-scanner:scanner3.py#check_products:issue[מוצר בלי מחיר]",
+      "source": "qa-scanner",
+      "path": "scanner3.py",
+      "symbol": "check_products:issue[מוצר בלי מחיר]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לזהות באתר: מוצר בלי מחיר",
+      "does": "תקלה שהסורק מסמן: \"מוצר בלי מחיר\" (חומרה: גבוה).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "group:check_products",
+        "scan-issue",
+        "severity:גבוה"
+      ]
+    },
+    {
+      "id": "qa-scanner:scanner3.py#check_products:issue[מחיר אפס]",
+      "source": "qa-scanner",
+      "path": "scanner3.py",
+      "symbol": "check_products:issue[מחיר אפס]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לזהות באתר: מחיר אפס",
+      "does": "תקלה שהסורק מסמן: \"מחיר אפס\" (חומרה: גבוה).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "group:check_products",
+        "scan-issue",
+        "severity:גבוה"
+      ]
+    },
+    {
+      "id": "qa-scanner:scanner3.py#check_products:issue[מחיר נמוך חשוד]",
+      "source": "qa-scanner",
+      "path": "scanner3.py",
+      "symbol": "check_products:issue[מחיר נמוך חשוד]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לזהות באתר: מחיר נמוך חשוד",
+      "does": "תקלה שהסורק מסמן: \"מחיר נמוך חשוד\" (חומרה: בינוני).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "group:check_products",
+        "scan-issue",
+        "severity:בינוני"
+      ]
+    },
+    {
+      "id": "qa-scanner:scanner3.py#check_universal",
+      "source": "qa-scanner",
+      "path": "scanner3.py",
+      "symbol": "check_universal",
+      "lang": "py",
+      "what": "engine",
+      "name": "לבדוק עמוד בבדיקות שלא תלויות בפלטפורמה",
+      "does": "בדיקות שלא תלויות בפלטפורמה - תמיד אמינות.",
+      "takes": [
+        {
+          "name": "url",
+          "kind": "text",
+          "type": null
+        },
+        {
+          "name": "html",
+          "kind": "text",
+          "type": null
+        },
+        {
+          "name": "issues",
+          "kind": "bool",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "scanner3"
+      ]
+    },
+    {
+      "id": "qa-scanner:scanner3.py#check_universal:issue[כותרת חסרה]",
+      "source": "qa-scanner",
+      "path": "scanner3.py",
+      "symbol": "check_universal:issue[כותרת חסרה]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לזהות באתר: כותרת חסרה",
+      "does": "תקלה שהסורק מסמן: \"כותרת חסרה\" (חומרה: בינוני).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "group:check_universal",
+        "scan-issue",
+        "severity:בינוני"
+      ]
+    },
+    {
+      "id": "qa-scanner:scanner3.py#check_universal:issue[קוד שלא עובד]",
+      "source": "qa-scanner",
+      "path": "scanner3.py",
+      "symbol": "check_universal:issue[קוד שלא עובד]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לזהות באתר: קוד שלא עובד",
+      "does": "תקלה שהסורק מסמן: \"קוד שלא עובד\" (חומרה: גבוה).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "group:check_universal",
+        "scan-issue",
+        "severity:גבוה"
+      ]
+    },
+    {
+      "id": "qa-scanner:scanner3.py#check_universal:issue[קישור שבור]",
+      "source": "qa-scanner",
+      "path": "scanner3.py",
+      "symbol": "check_universal:issue[קישור שבור]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לזהות באתר: קישור שבור",
+      "does": "תקלה שהסורק מסמן: \"קישור שבור\" (חומרה: גבוה).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "group:check_universal",
+        "scan-issue",
+        "severity:גבוה"
+      ]
+    },
+    {
+      "id": "qa-scanner:scanner3.py#check_universal:issue[תיאור חסר]",
+      "source": "qa-scanner",
+      "path": "scanner3.py",
+      "symbol": "check_universal:issue[תיאור חסר]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לזהות באתר: תיאור חסר",
+      "does": "תקלה שהסורק מסמן: \"תיאור חסר\" (חומרה: נמוך).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "group:check_universal",
+        "scan-issue",
+        "severity:נמוך"
+      ]
+    },
+    {
+      "id": "qa-scanner:scanner3.py#detect_platform",
+      "source": "qa-scanner",
+      "path": "scanner3.py",
+      "symbol": "detect_platform",
+      "lang": "py",
+      "what": "rule",
+      "name": "לזהות על איזו פלטפורמה בנויה החנות",
+      "does": "לזהות על איזו פלטפורמה בנויה החנות — מקבל טקסט, ומחזיר הכרעה.",
+      "takes": [
+        {
+          "name": "url",
+          "kind": "text",
+          "type": null
+        },
+        {
+          "name": "html",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": true,
+      "example": {
+        "in": {
+          "url": "https://shop.example",
+          "html": "<script src=\"cdn.shopify.com/x.js\">"
+        },
+        "out": "shopify"
+      },
+      "tags": [
+        "scanner3"
+      ]
+    },
+    {
+      "id": "qa-scanner:scanner3.py#get",
+      "source": "qa-scanner",
+      "path": "scanner3.py",
+      "symbol": "get",
+      "lang": "py",
+      "what": "function",
+      "name": "להוריד עמוד אינטרנט",
+      "does": "להוריד עמוד אינטרנט — מקבל טקסט, רשימה, ומחזיר רשומת result.",
+      "takes": [
+        {
+          "name": "url",
+          "kind": "text",
+          "type": null
+        },
+        {
+          "name": "**kw",
+          "kind": "list",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "record:result",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "scanner3"
+      ]
+    },
+    {
+      "id": "qa-scanner:scanner3.py#products_from_jsonld",
+      "source": "qa-scanner",
+      "path": "scanner3.py",
+      "symbol": "products_from_jsonld",
+      "lang": "py",
+      "what": "function",
+      "name": "לחלץ מוצרים מנתוני Schema.org בדף",
+      "does": "מוצרים מתוך Schema.org/JSON-LD - מה שגוגל קורא.",
+      "takes": [
+        {
+          "name": "html",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "scanner3"
+      ]
+    },
+    {
+      "id": "qa-scanner:scanner3.py#products_from_shopify",
+      "source": "qa-scanner",
+      "path": "scanner3.py",
+      "symbol": "products_from_shopify",
+      "lang": "py",
+      "what": "function",
+      "name": "להביא רשימת מוצרים רשמית מ-Shopify",
+      "does": "רשימת מוצרים רשמית של Shopify - שם, מחיר, זמינות, לכל וריאציה.",
+      "takes": [
+        {
+          "name": "base",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "scanner3"
+      ]
+    },
+    {
+      "id": "qa-scanner:scanner3.py#report",
+      "source": "qa-scanner",
+      "path": "scanner3.py",
+      "symbol": "report",
+      "lang": "py",
+      "what": "function",
+      "name": "להדפיס דוח ממצאים לפי חומרה",
+      "does": "להדפיס דוח ממצאים לפי חומרה — מקבל טקסט, כן/לא, רשומת platform, ומחזיר משהו.",
+      "takes": [
+        {
+          "name": "url",
+          "kind": "text",
+          "type": null
+        },
+        {
+          "name": "issues",
+          "kind": "bool",
+          "type": null
+        },
+        {
+          "name": "platform",
+          "kind": "record:platform",
+          "type": null
+        },
+        {
+          "name": "n",
+          "kind": "number",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "scanner3"
+      ]
+    },
+    {
+      "id": "qa-scanner:scanner3.py#scan",
+      "source": "qa-scanner",
+      "path": "scanner3.py",
+      "symbol": "scan",
+      "lang": "py",
+      "what": "engine",
+      "name": "לסרוק חנות לפי מקור האמת שלה",
+      "does": "לסרוק חנות לפי מקור האמת שלה — מקבל טקסט, ומחזיר משהו.",
+      "takes": [
+        {
+          "name": "url",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "scanner3"
+      ]
+    },
+    {
+      "id": "qa-scanner:scanner3.py#scan:issue[אין נתוני מוצר]",
+      "source": "qa-scanner",
+      "path": "scanner3.py",
+      "symbol": "scan:issue[אין נתוני מוצר]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לזהות באתר: אין נתוני מוצר",
+      "does": "תקלה שהסורק מסמן: \"אין נתוני מוצר\" (חומרה: מידע).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "group:scan",
+        "scan-issue",
+        "severity:מידע"
+      ]
+    },
+    {
+      "id": "qa-scanner:scanner3.py#scan:issue[עמוד לא נטען]",
+      "source": "qa-scanner",
+      "path": "scanner3.py",
+      "symbol": "scan:issue[עמוד לא נטען]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לזהות באתר: עמוד לא נטען",
+      "does": "תקלה שהסורק מסמן: \"עמוד לא נטען\" (חומרה: גבוה).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "group:scan",
+        "scan-issue",
+        "severity:גבוה"
+      ]
+    },
+    {
+      "id": "qa-scanner:scanner3.py#scan:issue[שגיאה]",
+      "source": "qa-scanner",
+      "path": "scanner3.py",
+      "symbol": "scan:issue[שגיאה]",
+      "lang": "py",
+      "what": "rule",
+      "name": "לזהות באתר: שגיאה",
+      "does": "תקלה שהסורק מסמן: \"שגיאה\" (חומרה: גבוה).",
+      "takes": [
+        {
+          "name": "page",
+          "kind": "record:page",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "group:scan",
+        "scan-issue",
+        "severity:גבוה"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,5380 @@
+{
+  "source": "14kk",
+  "repo": "meir7651231-ui/14kk",
+  "ref": "master@4425d10f5a30c777478f77b1730e29e0494d4913",
+  "generatedAt": null,
+  "parts": [
+    {
+      "id": "14kk:api/server_advanced.js#AdvancedAssetManagerAPI",
+      "source": "14kk",
+      "path": "api/server_advanced.js",
+      "symbol": "AdvancedAssetManagerAPI",
+      "lang": "js",
+      "what": "engine",
+      "name": "להפעיל API מנהל נכס מתקדם",
+      "does": "להפעיל API מנהל נכס מתקדם — בלי קלט, ומחזיר רשומת advanced_asset_manager_api.",
+      "takes": [],
+      "gives": {
+        "kind": "record:advanced_asset_manager_api",
+        "type": "AdvancedAssetManagerAPI"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "api",
+        "methods:30",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:api/server_advanced.js#AdvancedAssetManagerAPI.generateToken",
+      "source": "14kk",
+      "path": "api/server_advanced.js",
+      "symbol": "AdvancedAssetManagerAPI.generateToken",
+      "lang": "js",
+      "what": "function",
+      "name": "להפיק אסימון",
+      "does": "להפיק אסימון — מקבל רשומת user, ומחזיר רשומת token.",
+      "takes": [
+        {
+          "name": "user",
+          "kind": "record:user",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "record:token",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "api",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:api/server_advanced.js#AdvancedAssetManagerAPI.getTaskCompletionRate",
+      "source": "14kk",
+      "path": "api/server_advanced.js",
+      "symbol": "AdvancedAssetManagerAPI.getTaskCompletionRate",
+      "lang": "js",
+      "what": "function",
+      "name": "להביא שיעור השלמה משימה",
+      "does": "להביא שיעור השלמה משימה — בלי קלט, ומחזיר רשומת task_completion_rate.",
+      "takes": [],
+      "gives": {
+        "kind": "record:task_completion_rate",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "api",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:api/server_advanced.js#AdvancedAssetManagerAPI.getTopAssetTypes",
+      "source": "14kk",
+      "path": "api/server_advanced.js",
+      "symbol": "AdvancedAssetManagerAPI.getTopAssetTypes",
+      "lang": "js",
+      "what": "function",
+      "name": "להביא סוגים נכס מובילים",
+      "does": "להביא סוגים נכס מובילים — בלי קלט, ומחזיר רשומת top_asset_type.",
+      "takes": [],
+      "gives": {
+        "kind": "record:top_asset_type",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "api",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:api/server_advanced.js#AdvancedAssetManagerAPI.getUserPermissions",
+      "source": "14kk",
+      "path": "api/server_advanced.js",
+      "symbol": "AdvancedAssetManagerAPI.getUserPermissions",
+      "lang": "js",
+      "what": "function",
+      "name": "להביא הרשאות משתמש",
+      "does": "להביא הרשאות משתמש — מקבל רשומת role, ומחזיר רשומת user_permission.",
+      "takes": [
+        {
+          "name": "role",
+          "kind": "record:role",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "record:user_permission",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "api",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:api/server_minimal.js#SimpleAssetManagerAPI",
+      "source": "14kk",
+      "path": "api/server_minimal.js",
+      "symbol": "SimpleAssetManagerAPI",
+      "lang": "js",
+      "what": "engine",
+      "name": "להפעיל API מנהל נכס פשוט",
+      "does": "להפעיל API מנהל נכס פשוט — בלי קלט, ומחזיר רשומת simple_asset_manager_api.",
+      "takes": [],
+      "gives": {
+        "kind": "record:simple_asset_manager_api",
+        "type": "SimpleAssetManagerAPI"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "api",
+        "methods:5",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:api/server_optimized.js#OptimizedAPIServer",
+      "source": "14kk",
+      "path": "api/server_optimized.js",
+      "symbol": "OptimizedAPIServer",
+      "lang": "js",
+      "what": "engine",
+      "name": "להפעיל שרת API מיטבי",
+      "does": "להפעיל שרת API מיטבי — בלי קלט, ומחזיר רשומת optimized_apiserver.",
+      "takes": [],
+      "gives": {
+        "kind": "record:optimized_apiserver",
+        "type": "OptimizedAPIServer"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "api",
+        "methods:29",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:api/server_optimized.js#OptimizedAPIServer.checkAI",
+      "source": "14kk",
+      "path": "api/server_optimized.js",
+      "symbol": "OptimizedAPIServer.checkAI",
+      "lang": "js",
+      "what": "rule",
+      "name": "לבדוק AI",
+      "does": "בדיקת חיבור ל-AI. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "api",
+        "async",
+        "method",
+        "name:auto",
+        "stub"
+      ]
+    },
+    {
+      "id": "14kk:api/server_optimized.js#OptimizedAPIServer.checkCache",
+      "source": "14kk",
+      "path": "api/server_optimized.js",
+      "symbol": "OptimizedAPIServer.checkCache",
+      "lang": "js",
+      "what": "rule",
+      "name": "לבדוק מטמון",
+      "does": "בדיקת חיבור ל-cache.",
+      "takes": [],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "api",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:api/server_optimized.js#OptimizedAPIServer.checkDatabase",
+      "source": "14kk",
+      "path": "api/server_optimized.js",
+      "symbol": "OptimizedAPIServer.checkDatabase",
+      "lang": "js",
+      "what": "rule",
+      "name": "לבדוק מסד נתונים",
+      "does": "בדיקת חיבור לדטהבייס. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "api",
+        "async",
+        "method",
+        "name:auto",
+        "stub"
+      ]
+    },
+    {
+      "id": "14kk:api/server_optimized.js#OptimizedAPIServer.getAIInsights",
+      "source": "14kk",
+      "path": "api/server_optimized.js",
+      "symbol": "OptimizedAPIServer.getAIInsights",
+      "lang": "js",
+      "what": "function",
+      "name": "להביא תובנות AI",
+      "does": "קבלת תובנות AI. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "record:ai_insight",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "api",
+        "async",
+        "method",
+        "name:auto",
+        "stub"
+      ]
+    },
+    {
+      "id": "14kk:api/server_optimized.js#OptimizedAPIServer.getEndpointsList",
+      "source": "14kk",
+      "path": "api/server_optimized.js",
+      "symbol": "OptimizedAPIServer.getEndpointsList",
+      "lang": "js",
+      "what": "function",
+      "name": "להביא רשימה נקודות קצה",
+      "does": "קבלת רשימת endpoints. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "record:endpoints_list",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "api",
+        "method",
+        "name:auto",
+        "stub"
+      ]
+    },
+    {
+      "id": "14kk:api/server_optimized.js#OptimizedAPIServer.getPerformanceMetrics",
+      "source": "14kk",
+      "path": "api/server_optimized.js",
+      "symbol": "OptimizedAPIServer.getPerformanceMetrics",
+      "lang": "js",
+      "what": "function",
+      "name": "להביא מדדים ביצועים",
+      "does": "קבלת מדדי ביצוע. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "record:performance_metric",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "api",
+        "async",
+        "method",
+        "name:auto",
+        "stub"
+      ]
+    },
+    {
+      "id": "14kk:code_optimization_protocol.js#CodeOptimizationProtocol",
+      "source": "14kk",
+      "path": "code_optimization_protocol.js",
+      "symbol": "CodeOptimizationProtocol",
+      "lang": "js",
+      "what": "engine",
+      "name": "להפעיל פרוטוקול אופטימיזציה קוד",
+      "does": "להפעיל פרוטוקול אופטימיזציה קוד — בלי קלט, ומחזיר רשומת code_optimization_protocol.",
+      "takes": [],
+      "gives": {
+        "kind": "record:code_optimization_protocol",
+        "type": "CodeOptimizationProtocol"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "code_optimization_protocol",
+        "methods:14",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:communication_protocol.js#SmartCommunicationProtocol",
+      "source": "14kk",
+      "path": "communication_protocol.js",
+      "symbol": "SmartCommunicationProtocol",
+      "lang": "js",
+      "what": "engine",
+      "name": "להפעיל פרוטוקול תקשורת חכם",
+      "does": "להפעיל פרוטוקול תקשורת חכם — בלי קלט, ומחזיר רשומת smart_communication_protocol.",
+      "takes": [],
+      "gives": {
+        "kind": "record:smart_communication_protocol",
+        "type": "SmartCommunicationProtocol"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "communication_protocol",
+        "methods:13",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:communication_protocol.js#SmartCommunicationProtocol.calculateChangeScore",
+      "source": "14kk",
+      "path": "communication_protocol.js",
+      "symbol": "SmartCommunicationProtocol.calculateChangeScore",
+      "lang": "js",
+      "what": "function",
+      "name": "לחשב ציון שינוי",
+      "does": "חישוב ניקוד שינוי.",
+      "takes": [
+        {
+          "name": "changes",
+          "kind": "list",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "communication_protocol",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:comprehensive_testing_suite.js#ComprehensiveTestingSuite",
+      "source": "14kk",
+      "path": "comprehensive_testing_suite.js",
+      "symbol": "ComprehensiveTestingSuite",
+      "lang": "js",
+      "what": "engine",
+      "name": "להפעיל חבילה בדיקות מקיף",
+      "does": "להפעיל חבילה בדיקות מקיף — בלי קלט, ומחזיר רשומת comprehensive_testing_suite.",
+      "takes": [],
+      "gives": {
+        "kind": "record:comprehensive_testing_suite",
+        "type": "ComprehensiveTestingSuite"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "comprehensive_testing_suite",
+        "methods:12",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:comprehensive_testing_suite.js#ComprehensiveTestingSuite.calculateOverallScore",
+      "source": "14kk",
+      "path": "comprehensive_testing_suite.js",
+      "symbol": "ComprehensiveTestingSuite.calculateOverallScore",
+      "lang": "js",
+      "what": "function",
+      "name": "לחשב ציון כולל",
+      "does": "חישוב ציון כולל.",
+      "takes": [],
+      "gives": {
+        "kind": "number",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "comprehensive_testing_suite",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:comprehensive_testing_suite.js#ComprehensiveTestingSuite.generateNextSteps",
+      "source": "14kk",
+      "path": "comprehensive_testing_suite.js",
+      "symbol": "ComprehensiveTestingSuite.generateNextSteps",
+      "lang": "js",
+      "what": "function",
+      "name": "להפיק צעדים הבא",
+      "does": "צעדים הבאים.",
+      "takes": [],
+      "gives": {
+        "kind": "list",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "comprehensive_testing_suite",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:comprehensive_testing_suite.js#ComprehensiveTestingSuite.generateRecommendations",
+      "source": "14kk",
+      "path": "comprehensive_testing_suite.js",
+      "symbol": "ComprehensiveTestingSuite.generateRecommendations",
+      "lang": "js",
+      "what": "function",
+      "name": "להפיק המלצות",
+      "does": "המלצות.",
+      "takes": [],
+      "gives": {
+        "kind": "record:recommendation",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "comprehensive_testing_suite",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:construction_supervisor_protocol.js#ConstructionSupervisor",
+      "source": "14kk",
+      "path": "construction_supervisor_protocol.js",
+      "symbol": "ConstructionSupervisor",
+      "lang": "js",
+      "what": "engine",
+      "name": "להפעיל מפקח בנייה",
+      "does": "להפעיל מפקח בנייה — בלי קלט, ומחזיר רשומת construction_supervisor.",
+      "takes": [],
+      "gives": {
+        "kind": "record:construction_supervisor",
+        "type": "ConstructionSupervisor"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "construction_supervisor_protocol",
+        "methods:49",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:construction_supervisor_protocol.js#ConstructionSupervisor.calculateBudgetUtilization",
+      "source": "14kk",
+      "path": "construction_supervisor_protocol.js",
+      "symbol": "ConstructionSupervisor.calculateBudgetUtilization",
+      "lang": "js",
+      "what": "function",
+      "name": "לחשב ניצול תקציב",
+      "does": "לחשב ניצול תקציב — בלי קלט, ומחזיר מספר.",
+      "takes": [],
+      "gives": {
+        "kind": "number",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "construction_supervisor_protocol",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:construction_supervisor_protocol.js#ConstructionSupervisor.calculateHealthScore",
+      "source": "14kk",
+      "path": "construction_supervisor_protocol.js",
+      "symbol": "ConstructionSupervisor.calculateHealthScore",
+      "lang": "js",
+      "what": "function",
+      "name": "לחשב ציון בריאות",
+      "does": "לחשב ציון בריאות — בלי קלט, ומחזיר מספר.",
+      "takes": [],
+      "gives": {
+        "kind": "number",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "construction_supervisor_protocol",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:construction_supervisor_protocol.js#ConstructionSupervisor.calculateQualityScore",
+      "source": "14kk",
+      "path": "construction_supervisor_protocol.js",
+      "symbol": "ConstructionSupervisor.calculateQualityScore",
+      "lang": "js",
+      "what": "function",
+      "name": "לחשב ציון איכות",
+      "does": "לחשב ציון איכות — בלי קלט, ומחזיר מספר.",
+      "takes": [],
+      "gives": {
+        "kind": "number",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "construction_supervisor_protocol",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:construction_supervisor_protocol.js#ConstructionSupervisor.generateSummary",
+      "source": "14kk",
+      "path": "construction_supervisor_protocol.js",
+      "symbol": "ConstructionSupervisor.generateSummary",
+      "lang": "js",
+      "what": "function",
+      "name": "להפיק סיכום",
+      "does": "להפיק סיכום — בלי קלט, ומחזיר רשומת summary.",
+      "takes": [],
+      "gives": {
+        "kind": "record:summary",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "construction_supervisor_protocol",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:construction_supervisor_protocol.js#ConstructionSupervisor.loadTodoList",
+      "source": "14kk",
+      "path": "construction_supervisor_protocol.js",
+      "symbol": "ConstructionSupervisor.loadTodoList",
+      "lang": "js",
+      "what": "function",
+      "name": "לטעון רשימה משימות",
+      "does": "לטעון רשימה משימות — בלי קלט, ומחזיר רשומת todo_list. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "record:todo_list",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "async",
+        "construction_supervisor_protocol",
+        "method",
+        "name:auto",
+        "stub"
+      ]
+    },
+    {
+      "id": "14kk:diagnostic_protocol.js#DiagnosticProtocol",
+      "source": "14kk",
+      "path": "diagnostic_protocol.js",
+      "symbol": "DiagnosticProtocol",
+      "lang": "js",
+      "what": "brick",
+      "name": "לייצג פרוטוקול אבחון",
+      "does": "לייצג פרוטוקול אבחון — בלי קלט, ומחזיר רשומת diagnostic_protocol.",
+      "takes": [],
+      "gives": {
+        "kind": "record:diagnostic_protocol",
+        "type": "DiagnosticProtocol"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "diagnostic_protocol",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:final_supervisor_protocol.js#FinalSupervisorProtocol",
+      "source": "14kk",
+      "path": "final_supervisor_protocol.js",
+      "symbol": "FinalSupervisorProtocol",
+      "lang": "js",
+      "what": "engine",
+      "name": "להפעיל פרוטוקול מפקח סופי",
+      "does": "להפעיל פרוטוקול מפקח סופי — בלי קלט, ומחזיר רשומת final_supervisor_protocol.",
+      "takes": [],
+      "gives": {
+        "kind": "record:final_supervisor_protocol",
+        "type": "FinalSupervisorProtocol"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "final_supervisor_protocol",
+        "methods:20",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:final_supervisor_protocol.js#FinalSupervisorProtocol.calculateFileQuality",
+      "source": "14kk",
+      "path": "final_supervisor_protocol.js",
+      "symbol": "FinalSupervisorProtocol.calculateFileQuality",
+      "lang": "js",
+      "what": "function",
+      "name": "לחשב איכות קובץ",
+      "does": "חישוב איכות קובץ.",
+      "takes": [
+        {
+          "name": "content",
+          "kind": "text",
+          "type": null
+        },
+        {
+          "name": "filename",
+          "kind": "file",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "final_supervisor_protocol",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:final_supervisor_protocol.js#FinalSupervisorProtocol.generateFinalRecommendations",
+      "source": "14kk",
+      "path": "final_supervisor_protocol.js",
+      "symbol": "FinalSupervisorProtocol.generateFinalRecommendations",
+      "lang": "js",
+      "what": "function",
+      "name": "להפיק המלצות סופי",
+      "does": "יצירת המלצות סופיות.",
+      "takes": [],
+      "gives": {
+        "kind": "list",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "final_supervisor_protocol",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:final_supervisor_protocol.js#FinalSupervisorProtocol.generateNextSteps",
+      "source": "14kk",
+      "path": "final_supervisor_protocol.js",
+      "symbol": "FinalSupervisorProtocol.generateNextSteps",
+      "lang": "js",
+      "what": "function",
+      "name": "להפיק צעדים הבא",
+      "does": "יצירת צעדים הבאים.",
+      "takes": [],
+      "gives": {
+        "kind": "list",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "final_supervisor_protocol",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:knowledge_protocol.js#AssetAnalyzer",
+      "source": "14kk",
+      "path": "knowledge_protocol.js",
+      "symbol": "AssetAnalyzer",
+      "lang": "js",
+      "what": "engine",
+      "name": "להפעיל מנתח נכס",
+      "does": "להפעיל מנתח נכס — בלי קלט, ומחזיר רשומת asset_analyzer.",
+      "takes": [],
+      "gives": {
+        "kind": "record:asset_analyzer",
+        "type": "AssetAnalyzer"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "knowledge_protocol",
+        "methods:152",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:knowledge_protocol.js#AssetAnalyzer.analyzeAccessControl",
+      "source": "14kk",
+      "path": "knowledge_protocol.js",
+      "symbol": "AssetAnalyzer.analyzeAccessControl",
+      "lang": "js",
+      "what": "function",
+      "name": "לנתח בקרה גישה",
+      "does": "לנתח בקרה גישה — מקבל טקסט, ומחזיר הכרעה.",
+      "takes": [
+        {
+          "name": "content",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "knowledge_protocol",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:knowledge_protocol.js#AssetAnalyzer.analyzeAuditTrail",
+      "source": "14kk",
+      "path": "knowledge_protocol.js",
+      "symbol": "AssetAnalyzer.analyzeAuditTrail",
+      "lang": "js",
+      "what": "function",
+      "name": "לנתח שובל ביקורת",
+      "does": "לנתח שובל ביקורת — מקבל טקסט, ומחזיר הכרעה.",
+      "takes": [
+        {
+          "name": "content",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "knowledge_protocol",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:knowledge_protocol.js#AssetAnalyzer.analyzeAuthentication",
+      "source": "14kk",
+      "path": "knowledge_protocol.js",
+      "symbol": "AssetAnalyzer.analyzeAuthentication",
+      "lang": "js",
+      "what": "function",
+      "name": "לנתח הזדהות",
+      "does": "לנתח הזדהות — מקבל טקסט, ומחזיר הכרעה.",
+      "takes": [
+        {
+          "name": "content",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "knowledge_protocol",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:knowledge_protocol.js#AssetAnalyzer.analyzeBusinessValue",
+      "source": "14kk",
+      "path": "knowledge_protocol.js",
+      "symbol": "AssetAnalyzer.analyzeBusinessValue",
+      "lang": "js",
+      "what": "function",
+      "name": "לנתח ערך עסק",
+      "does": "לנתח ערך עסק — בלי קלט, ומחזיר הכרעה.",
+      "takes": [],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "knowledge_protocol",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:knowledge_protocol.js#AssetAnalyzer.analyzeCodeQuality",
+      "source": "14kk",
+      "path": "knowledge_protocol.js",
+      "symbol": "AssetAnalyzer.analyzeCodeQuality",
+      "lang": "js",
+      "what": "function",
+      "name": "לנתח איכות קוד",
+      "does": "לנתח איכות קוד — מקבל טקסט, רשומת ext, ומחזיר הכרעה.",
+      "takes": [
+        {
+          "name": "content",
+          "kind": "text",
+          "type": null
+        },
+        {
+          "name": "ext",
+          "kind": "record:ext",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "knowledge_protocol",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:knowledge_protocol.js#AssetAnalyzer.analyzeDependencySecurity",
+      "source": "14kk",
+      "path": "knowledge_protocol.js",
+      "symbol": "AssetAnalyzer.analyzeDependencySecurity",
+      "lang": "js",
+      "what": "function",
+      "name": "לנתח אבטחה תלות",
+      "does": "לנתח אבטחה תלות — מקבל טקסט, ומחזיר הכרעה.",
+      "takes": [
+        {
+          "name": "content",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "knowledge_protocol",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:knowledge_protocol.js#AssetAnalyzer.analyzeEncryption",
+      "source": "14kk",
+      "path": "knowledge_protocol.js",
+      "symbol": "AssetAnalyzer.analyzeEncryption",
+      "lang": "js",
+      "what": "function",
+      "name": "לנתח הצפנה",
+      "does": "לנתח הצפנה — מקבל טקסט, ומחזיר הכרעה.",
+      "takes": [
+        {
+          "name": "content",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "knowledge_protocol",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:knowledge_protocol.js#AssetAnalyzer.analyzeInputValidation",
+      "source": "14kk",
+      "path": "knowledge_protocol.js",
+      "symbol": "AssetAnalyzer.analyzeInputValidation",
+      "lang": "js",
+      "what": "function",
+      "name": "לנתח אימות קלט",
+      "does": "לנתח אימות קלט — מקבל טקסט, ומחזיר הכרעה.",
+      "takes": [
+        {
+          "name": "content",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "knowledge_protocol",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:knowledge_protocol.js#AssetAnalyzer.analyzeMarketTrends",
+      "source": "14kk",
+      "path": "knowledge_protocol.js",
+      "symbol": "AssetAnalyzer.analyzeMarketTrends",
+      "lang": "js",
+      "what": "function",
+      "name": "לנתח מגמות שוק",
+      "does": "לנתח מגמות שוק — בלי קלט, ומחזיר הכרעה. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "knowledge_protocol",
+        "method",
+        "name:auto",
+        "stub"
+      ]
+    },
+    {
+      "id": "14kk:knowledge_protocol.js#AssetAnalyzer.analyzePerformance",
+      "source": "14kk",
+      "path": "knowledge_protocol.js",
+      "symbol": "AssetAnalyzer.analyzePerformance",
+      "lang": "js",
+      "what": "function",
+      "name": "לנתח ביצועים",
+      "does": "לנתח ביצועים — מקבל טקסט, רשומת ext, ומחזיר הכרעה.",
+      "takes": [
+        {
+          "name": "content",
+          "kind": "text",
+          "type": null
+        },
+        {
+          "name": "ext",
+          "kind": "record:ext",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "knowledge_protocol",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:knowledge_protocol.js#AssetAnalyzer.analyzeSecurity",
+      "source": "14kk",
+      "path": "knowledge_protocol.js",
+      "symbol": "AssetAnalyzer.analyzeSecurity",
+      "lang": "js",
+      "what": "function",
+      "name": "לנתח אבטחה",
+      "does": "לנתח אבטחה — מקבל טקסט, רשומת ext, ומחזיר הכרעה.",
+      "takes": [
+        {
+          "name": "content",
+          "kind": "text",
+          "type": null
+        },
+        {
+          "name": "ext",
+          "kind": "record:ext",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "knowledge_protocol",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:knowledge_protocol.js#AssetAnalyzer.analyzeTechnologyTrends",
+      "source": "14kk",
+      "path": "knowledge_protocol.js",
+      "symbol": "AssetAnalyzer.analyzeTechnologyTrends",
+      "lang": "js",
+      "what": "function",
+      "name": "לנתח מגמות טכנולוגיה",
+      "does": "לנתח מגמות טכנולוגיה — בלי קלט, ומחזיר הכרעה. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "knowledge_protocol",
+        "method",
+        "name:auto",
+        "stub"
+      ]
+    },
+    {
+      "id": "14kk:knowledge_protocol.js#AssetAnalyzer.assessBreakthroughPotential",
+      "source": "14kk",
+      "path": "knowledge_protocol.js",
+      "symbol": "AssetAnalyzer.assessBreakthroughPotential",
+      "lang": "js",
+      "what": "function",
+      "name": "להעריך פוטנציאל פריצת דרך",
+      "does": "להעריך פוטנציאל פריצת דרך — מקבל טקסט, ומחזיר רשומת breakthrough_potential.",
+      "takes": [
+        {
+          "name": "content",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "record:breakthrough_potential",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "knowledge_protocol",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:knowledge_protocol.js#AssetAnalyzer.assessCompetitiveAdvantage",
+      "source": "14kk",
+      "path": "knowledge_protocol.js",
+      "symbol": "AssetAnalyzer.assessCompetitiveAdvantage",
+      "lang": "js",
+      "what": "function",
+      "name": "להעריך יתרון תחרותי",
+      "does": "להעריך יתרון תחרותי — מקבל טקסט, ומחזיר רשומת competitive_advantage.",
+      "takes": [
+        {
+          "name": "content",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "record:competitive_advantage",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "knowledge_protocol",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:knowledge_protocol.js#AssetAnalyzer.assessCreativity",
+      "source": "14kk",
+      "path": "knowledge_protocol.js",
+      "symbol": "AssetAnalyzer.assessCreativity",
+      "lang": "js",
+      "what": "function",
+      "name": "להעריך יצירתיות",
+      "does": "להעריך יצירתיות — מקבל טקסט, ומחזיר רשומת creativity.",
+      "takes": [
+        {
+          "name": "content",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "record:creativity",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "knowledge_protocol",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:knowledge_protocol.js#AssetAnalyzer.assessDisruptionPotential",
+      "source": "14kk",
+      "path": "knowledge_protocol.js",
+      "symbol": "AssetAnalyzer.assessDisruptionPotential",
+      "lang": "js",
+      "what": "function",
+      "name": "להעריך פוטנציאל שיבוש",
+      "does": "להעריך פוטנציאל שיבוש — מקבל טקסט, ומחזיר רשומת disruption_potential.",
+      "takes": [
+        {
+          "name": "content",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "record:disruption_potential",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "knowledge_protocol",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:knowledge_protocol.js#AssetAnalyzer.assessMarketFit",
+      "source": "14kk",
+      "path": "knowledge_protocol.js",
+      "symbol": "AssetAnalyzer.assessMarketFit",
+      "lang": "js",
+      "what": "function",
+      "name": "להעריך התאמה שוק",
+      "does": "להעריך התאמה שוק — מקבל טקסט, ומחזיר רשומת market_fit.",
+      "takes": [
+        {
+          "name": "content",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "record:market_fit",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "knowledge_protocol",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:knowledge_protocol.js#AssetAnalyzer.assessMarketScalability",
+      "source": "14kk",
+      "path": "knowledge_protocol.js",
+      "symbol": "AssetAnalyzer.assessMarketScalability",
+      "lang": "js",
+      "what": "function",
+      "name": "להעריך יכולת גדילה שוק",
+      "does": "להעריך יכולת גדילה שוק — מקבל טקסט, ומחזיר רשומת market_scalability.",
+      "takes": [
+        {
+          "name": "content",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "record:market_scalability",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "knowledge_protocol",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:knowledge_protocol.js#AssetAnalyzer.assessNovelty",
+      "source": "14kk",
+      "path": "knowledge_protocol.js",
+      "symbol": "AssetAnalyzer.assessNovelty",
+      "lang": "js",
+      "what": "function",
+      "name": "להעריך חידוש",
+      "does": "להעריך חידוש — מקבל טקסט, ומחזיר רשומת novelty.",
+      "takes": [
+        {
+          "name": "content",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "record:novelty",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "knowledge_protocol",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:knowledge_protocol.js#AssetAnalyzer.assessSustainability",
+      "source": "14kk",
+      "path": "knowledge_protocol.js",
+      "symbol": "AssetAnalyzer.assessSustainability",
+      "lang": "js",
+      "what": "function",
+      "name": "להעריך קיימות",
+      "does": "להעריך קיימות — מקבל טקסט, ומחזיר רשומת sustainability.",
+      "takes": [
+        {
+          "name": "content",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "record:sustainability",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "knowledge_protocol",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:knowledge_protocol.js#AssetAnalyzer.assessTechnologicalAdvancement",
+      "source": "14kk",
+      "path": "knowledge_protocol.js",
+      "symbol": "AssetAnalyzer.assessTechnologicalAdvancement",
+      "lang": "js",
+      "what": "function",
+      "name": "להעריך התקדמות טכנולוגית",
+      "does": "להעריך התקדמות טכנולוגית — מקבל טקסט, ומחזיר רשומת technological_advancement.",
+      "takes": [
+        {
+          "name": "content",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "record:technological_advancement",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "knowledge_protocol",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:knowledge_protocol.js#AssetAnalyzer.calculateCognitiveComplexity",
+      "source": "14kk",
+      "path": "knowledge_protocol.js",
+      "symbol": "AssetAnalyzer.calculateCognitiveComplexity",
+      "lang": "js",
+      "what": "function",
+      "name": "לחשב מורכבות קוגניטיבית",
+      "does": "לחשב מורכבות קוגניטיבית — מקבל טקסט, ומחזיר מספר.",
+      "takes": [
+        {
+          "name": "content",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "knowledge_protocol",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:knowledge_protocol.js#AssetAnalyzer.calculateCoupling",
+      "source": "14kk",
+      "path": "knowledge_protocol.js",
+      "symbol": "AssetAnalyzer.calculateCoupling",
+      "lang": "js",
+      "what": "function",
+      "name": "לחשב צימוד",
+      "does": "לחשב צימוד — מקבל טקסט, ומחזיר מספר.",
+      "takes": [
+        {
+          "name": "content",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "knowledge_protocol",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:knowledge_protocol.js#AssetAnalyzer.calculateCyclomaticComplexity",
+      "source": "14kk",
+      "path": "knowledge_protocol.js",
+      "symbol": "AssetAnalyzer.calculateCyclomaticComplexity",
+      "lang": "js",
+      "what": "function",
+      "name": "לחשב מורכבות ציקלומטית",
+      "does": "פונקציות עזר מתקדמות.",
+      "takes": [
+        {
+          "name": "content",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "knowledge_protocol",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:knowledge_protocol.js#AssetAnalyzer.calculateDocumentation",
+      "source": "14kk",
+      "path": "knowledge_protocol.js",
+      "symbol": "AssetAnalyzer.calculateDocumentation",
+      "lang": "js",
+      "what": "function",
+      "name": "לחשב תיעוד",
+      "does": "לחשב תיעוד — מקבל טקסט, ומחזיר מספר.",
+      "takes": [
+        {
+          "name": "content",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "knowledge_protocol",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:knowledge_protocol.js#AssetAnalyzer.calculateEfficiency",
+      "source": "14kk",
+      "path": "knowledge_protocol.js",
+      "symbol": "AssetAnalyzer.calculateEfficiency",
+      "lang": "js",
+      "what": "function",
+      "name": "לחשב יעילות",
+      "does": "לחשב יעילות — מקבל טקסט, ומחזיר מספר.",
+      "takes": [
+        {
+          "name": "content",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "knowledge_protocol",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:knowledge_protocol.js#AssetAnalyzer.calculateErrorHandling",
+      "source": "14kk",
+      "path": "knowledge_protocol.js",
+      "symbol": "AssetAnalyzer.calculateErrorHandling",
+      "lang": "js",
+      "what": "function",
+      "name": "לחשב טיפול שגיאה",
+      "does": "לחשב טיפול שגיאה — מקבל טקסט, ומחזיר מספר.",
+      "takes": [
+        {
+          "name": "content",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "knowledge_protocol",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:knowledge_protocol.js#AssetAnalyzer.calculateMaintainabilityIndex",
+      "source": "14kk",
+      "path": "knowledge_protocol.js",
+      "symbol": "AssetAnalyzer.calculateMaintainabilityIndex",
+      "lang": "js",
+      "what": "function",
+      "name": "לחשב אינדקס תחזוקתיות",
+      "does": "לחשב אינדקס תחזוקתיות — מקבל טקסט, ומחזיר מספר.",
+      "takes": [
+        {
+          "name": "content",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "knowledge_protocol",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:knowledge_protocol.js#AssetAnalyzer.calculateModularity",
+      "source": "14kk",
+      "path": "knowledge_protocol.js",
+      "symbol": "AssetAnalyzer.calculateModularity",
+      "lang": "js",
+      "what": "function",
+      "name": "לחשב מודולריות",
+      "does": "לחשב מודולריות — מקבל טקסט, ומחזיר מספר.",
+      "takes": [
+        {
+          "name": "content",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "knowledge_protocol",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:knowledge_protocol.js#AssetAnalyzer.calculateNamingQuality",
+      "source": "14kk",
+      "path": "knowledge_protocol.js",
+      "symbol": "AssetAnalyzer.calculateNamingQuality",
+      "lang": "js",
+      "what": "function",
+      "name": "לחשב איכות שמות",
+      "does": "לחשב איכות שמות — מקבל טקסט, ומחזיר מספר.",
+      "takes": [
+        {
+          "name": "content",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "knowledge_protocol",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:knowledge_protocol.js#AssetAnalyzer.calculateReadability",
+      "source": "14kk",
+      "path": "knowledge_protocol.js",
+      "symbol": "AssetAnalyzer.calculateReadability",
+      "lang": "js",
+      "what": "function",
+      "name": "לחשב קריאות",
+      "does": "לחשב קריאות — מקבל טקסט, ומחזיר מספר.",
+      "takes": [
+        {
+          "name": "content",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "knowledge_protocol",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:knowledge_protocol.js#AssetAnalyzer.calculateReusability",
+      "source": "14kk",
+      "path": "knowledge_protocol.js",
+      "symbol": "AssetAnalyzer.calculateReusability",
+      "lang": "js",
+      "what": "function",
+      "name": "לחשב שימוש חוזר",
+      "does": "לחשב שימוש חוזר — מקבל טקסט, ומחזיר מספר.",
+      "takes": [
+        {
+          "name": "content",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "knowledge_protocol",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:knowledge_protocol.js#AssetAnalyzer.calculateScalability",
+      "source": "14kk",
+      "path": "knowledge_protocol.js",
+      "symbol": "AssetAnalyzer.calculateScalability",
+      "lang": "js",
+      "what": "function",
+      "name": "לחשב יכולת גדילה",
+      "does": "לחשב יכולת גדילה — מקבל טקסט, ומחזיר מספר.",
+      "takes": [
+        {
+          "name": "content",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "knowledge_protocol",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:knowledge_protocol.js#AssetAnalyzer.calculateStructureQuality",
+      "source": "14kk",
+      "path": "knowledge_protocol.js",
+      "symbol": "AssetAnalyzer.calculateStructureQuality",
+      "lang": "js",
+      "what": "function",
+      "name": "לחשב איכות מבנה",
+      "does": "לחשב איכות מבנה — מקבל טקסט, ומחזיר מספר.",
+      "takes": [
+        {
+          "name": "content",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "knowledge_protocol",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:knowledge_protocol.js#AssetAnalyzer.calculateTechnicalDebt",
+      "source": "14kk",
+      "path": "knowledge_protocol.js",
+      "symbol": "AssetAnalyzer.calculateTechnicalDebt",
+      "lang": "js",
+      "what": "function",
+      "name": "לחשב חוב טכני",
+      "does": "לחשב חוב טכני — מקבל טקסט, ומחזיר מספר.",
+      "takes": [
+        {
+          "name": "content",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "knowledge_protocol",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:knowledge_protocol.js#AssetAnalyzer.calculateTestability",
+      "source": "14kk",
+      "path": "knowledge_protocol.js",
+      "symbol": "AssetAnalyzer.calculateTestability",
+      "lang": "js",
+      "what": "function",
+      "name": "לחשב בדיקתיות",
+      "does": "לחשב בדיקתיות — מקבל טקסט, ומחזיר מספר.",
+      "takes": [
+        {
+          "name": "content",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "knowledge_protocol",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:knowledge_protocol.js#AssetAnalyzer.createInnovationTimeline",
+      "source": "14kk",
+      "path": "knowledge_protocol.js",
+      "symbol": "AssetAnalyzer.createInnovationTimeline",
+      "lang": "js",
+      "what": "function",
+      "name": "ליצור ציר זמן חדשנות",
+      "does": "ליצור ציר זמן חדשנות — בלי קלט, ומחזיר רשומת innovation_timeline. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "record:innovation_timeline",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "knowledge_protocol",
+        "method",
+        "name:auto",
+        "stub"
+      ]
+    },
+    {
+      "id": "14kk:knowledge_protocol.js#AssetAnalyzer.detectSecrets",
+      "source": "14kk",
+      "path": "knowledge_protocol.js",
+      "symbol": "AssetAnalyzer.detectSecrets",
+      "lang": "js",
+      "what": "rule",
+      "name": "לזהות סודות",
+      "does": "לזהות סודות — מקבל טקסט, ומחזיר הכרעה.",
+      "takes": [
+        {
+          "name": "content",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "knowledge_protocol",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:knowledge_protocol.js#AssetAnalyzer.detectSecrets~2",
+      "source": "14kk",
+      "path": "knowledge_protocol.js",
+      "symbol": "AssetAnalyzer.detectSecrets",
+      "lang": "js",
+      "what": "rule",
+      "name": "לזהות סודות",
+      "does": "לזהות סודות — מקבל טקסט, ומחזיר הכרעה.",
+      "takes": [
+        {
+          "name": "content",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "knowledge_protocol",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:knowledge_protocol.js#AssetAnalyzer.detectVulnerabilities",
+      "source": "14kk",
+      "path": "knowledge_protocol.js",
+      "symbol": "AssetAnalyzer.detectVulnerabilities",
+      "lang": "js",
+      "what": "rule",
+      "name": "לזהות פגיעויות",
+      "does": "לזהות פגיעויות — מקבל טקסט, ומחזיר הכרעה.",
+      "takes": [
+        {
+          "name": "content",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "knowledge_protocol",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:knowledge_protocol.js#AssetAnalyzer.estimateCpuUsage",
+      "source": "14kk",
+      "path": "knowledge_protocol.js",
+      "symbol": "AssetAnalyzer.estimateCpuUsage",
+      "lang": "js",
+      "what": "function",
+      "name": "להעריך שימוש מעבד",
+      "does": "להעריך שימוש מעבד — מקבל טקסט, ומחזיר מספר.",
+      "takes": [
+        {
+          "name": "content",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "knowledge_protocol",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:knowledge_protocol.js#AssetAnalyzer.estimateLatency",
+      "source": "14kk",
+      "path": "knowledge_protocol.js",
+      "symbol": "AssetAnalyzer.estimateLatency",
+      "lang": "js",
+      "what": "function",
+      "name": "להעריך השהיה",
+      "does": "להעריך השהיה — מקבל טקסט, ומחזיר מספר.",
+      "takes": [
+        {
+          "name": "content",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "knowledge_protocol",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:knowledge_protocol.js#AssetAnalyzer.estimateMemoryUsage",
+      "source": "14kk",
+      "path": "knowledge_protocol.js",
+      "symbol": "AssetAnalyzer.estimateMemoryUsage",
+      "lang": "js",
+      "what": "function",
+      "name": "להעריך שימוש זיכרון",
+      "does": "להעריך שימוש זיכרון — מקבל טקסט, ומחזיר מספר.",
+      "takes": [
+        {
+          "name": "content",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "knowledge_protocol",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:knowledge_protocol.js#AssetAnalyzer.estimateThroughput",
+      "source": "14kk",
+      "path": "knowledge_protocol.js",
+      "symbol": "AssetAnalyzer.estimateThroughput",
+      "lang": "js",
+      "what": "function",
+      "name": "להעריך תפוקה",
+      "does": "להעריך תפוקה — מקבל טקסט, ומחזיר מספר.",
+      "takes": [
+        {
+          "name": "content",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "knowledge_protocol",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:knowledge_protocol.js#AssetAnalyzer.extractFunctions",
+      "source": "14kk",
+      "path": "knowledge_protocol.js",
+      "symbol": "AssetAnalyzer.extractFunctions",
+      "lang": "js",
+      "what": "function",
+      "name": "לחלץ פונקציות",
+      "does": "לחלץ פונקציות — מקבל טקסט, רשומת ext, ומחזיר רשימה.",
+      "takes": [
+        {
+          "name": "content",
+          "kind": "text",
+          "type": null
+        },
+        {
+          "name": "ext",
+          "kind": "record:ext",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "list",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "knowledge_protocol",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:knowledge_protocol.js#AssetAnalyzer.extractImports",
+      "source": "14kk",
+      "path": "knowledge_protocol.js",
+      "symbol": "AssetAnalyzer.extractImports",
+      "lang": "js",
+      "what": "function",
+      "name": "לחלץ ייבואים",
+      "does": "לחלץ ייבואים — מקבל טקסט, רשומת ext, ומחזיר רשימה.",
+      "takes": [
+        {
+          "name": "content",
+          "kind": "text",
+          "type": null
+        },
+        {
+          "name": "ext",
+          "kind": "record:ext",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "list",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "knowledge_protocol",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:knowledge_protocol.js#AssetAnalyzer.generateImplementationPlan",
+      "source": "14kk",
+      "path": "knowledge_protocol.js",
+      "symbol": "AssetAnalyzer.generateImplementationPlan",
+      "lang": "js",
+      "what": "function",
+      "name": "להפיק תוכנית יישום",
+      "does": "להפיק תוכנית יישום — בלי קלט, ומחזיר רשומת implementation_plan. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "record:implementation_plan",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "knowledge_protocol",
+        "method",
+        "name:auto",
+        "stub"
+      ]
+    },
+    {
+      "id": "14kk:knowledge_protocol.js#AssetAnalyzer.generateInsights",
+      "source": "14kk",
+      "path": "knowledge_protocol.js",
+      "symbol": "AssetAnalyzer.generateInsights",
+      "lang": "js",
+      "what": "function",
+      "name": "להפיק תובנות",
+      "does": "להפיק תובנות — בלי קלט, ומחזיר רשומת insight.",
+      "takes": [],
+      "gives": {
+        "kind": "record:insight",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "knowledge_protocol",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:knowledge_protocol.js#AssetAnalyzer.generateRecommendations",
+      "source": "14kk",
+      "path": "knowledge_protocol.js",
+      "symbol": "AssetAnalyzer.generateRecommendations",
+      "lang": "js",
+      "what": "function",
+      "name": "להפיק המלצות",
+      "does": "להפיק המלצות — בלי קלט, ומחזיר רשומת recommendation.",
+      "takes": [],
+      "gives": {
+        "kind": "record:recommendation",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "knowledge_protocol",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:knowledge_protocol.js#AssetAnalyzer.identifyBottlenecks",
+      "source": "14kk",
+      "path": "knowledge_protocol.js",
+      "symbol": "AssetAnalyzer.identifyBottlenecks",
+      "lang": "js",
+      "what": "function",
+      "name": "לזהות צווארי בקבוק",
+      "does": "לזהות צווארי בקבוק — מקבל טקסט, ומחזיר רשימה.",
+      "takes": [
+        {
+          "name": "content",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "list",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "knowledge_protocol",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:knowledge_protocol.js#AssetAnalyzer.identifyFutureOpportunities",
+      "source": "14kk",
+      "path": "knowledge_protocol.js",
+      "symbol": "AssetAnalyzer.identifyFutureOpportunities",
+      "lang": "js",
+      "what": "function",
+      "name": "לזהות הזדמנויות עתיד",
+      "does": "לזהות הזדמנויות עתיד — בלי קלט, ומחזיר רשימה. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "list",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "knowledge_protocol",
+        "method",
+        "name:auto",
+        "stub"
+      ]
+    },
+    {
+      "id": "14kk:knowledge_protocol.js#AssetAnalyzer.identifyFutureRisks",
+      "source": "14kk",
+      "path": "knowledge_protocol.js",
+      "symbol": "AssetAnalyzer.identifyFutureRisks",
+      "lang": "js",
+      "what": "function",
+      "name": "לזהות סיכונים עתיד",
+      "does": "לזהות סיכונים עתיד — בלי קלט, ומחזיר רשימה. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "list",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "knowledge_protocol",
+        "method",
+        "name:auto",
+        "stub"
+      ]
+    },
+    {
+      "id": "14kk:knowledge_protocol.js#AssetAnalyzer.identifyOptimizations",
+      "source": "14kk",
+      "path": "knowledge_protocol.js",
+      "symbol": "AssetAnalyzer.identifyOptimizations",
+      "lang": "js",
+      "what": "function",
+      "name": "לזהות שיפורים",
+      "does": "לזהות שיפורים — מקבל טקסט, ומחזיר רשימה.",
+      "takes": [
+        {
+          "name": "content",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "list",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "knowledge_protocol",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:knowledge_protocol.js#AssetAnalyzer.identifyPatentableContent",
+      "source": "14kk",
+      "path": "knowledge_protocol.js",
+      "symbol": "AssetAnalyzer.identifyPatentableContent",
+      "lang": "js",
+      "what": "function",
+      "name": "לזהות תוכן בר-פטנט",
+      "does": "לזהות תוכן בר-פטנט — מקבל טקסט, ומחזיר רשימה.",
+      "takes": [
+        {
+          "name": "content",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "list",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "knowledge_protocol",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:knowledge_protocol.js#AssetAnalyzer.identifyResearchOpportunities",
+      "source": "14kk",
+      "path": "knowledge_protocol.js",
+      "symbol": "AssetAnalyzer.identifyResearchOpportunities",
+      "lang": "js",
+      "what": "function",
+      "name": "לזהות הזדמנויות מחקר",
+      "does": "לזהות הזדמנויות מחקר — מקבל טקסט, ומחזיר רשימה.",
+      "takes": [
+        {
+          "name": "content",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "list",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "knowledge_protocol",
+        "method",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:mvp/asset-manager-mvp.js#AssetManagerMVP",
+      "source": "14kk",
+      "path": "mvp/asset-manager-mvp.js",
+      "symbol": "AssetManagerMVP",
+      "lang": "js",
+      "what": "engine",
+      "name": "להפעיל MVP מנהל נכס",
+      "does": "להפעיל MVP מנהל נכס — בלי קלט, ומחזיר רשומת asset_manager_mvp.",
+      "takes": [],
+      "gives": {
+        "kind": "record:asset_manager_mvp",
+        "type": "AssetManagerMVP"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "methods:14",
+        "mvp",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:mvp/asset-manager-mvp.js#AssetManagerMVP.getAssetsByType",
+      "source": "14kk",
+      "path": "mvp/asset-manager-mvp.js",
+      "symbol": "AssetManagerMVP.getAssetsByType",
+      "lang": "js",
+      "what": "function",
+      "name": "להביא נכסים לפי סוג",
+      "does": "קבלת נכסים לפי סוג.",
+      "takes": [],
+      "gives": {
+        "kind": "record:assets_by_type",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "mvp",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:mvp/asset-manager-mvp.js#AssetManagerMVP.setupMiddleware",
+      "source": "14kk",
+      "path": "mvp/asset-manager-mvp.js",
+      "symbol": "AssetManagerMVP.setupMiddleware",
+      "lang": "js",
+      "what": "function",
+      "name": "להכין שכבת ביניים",
+      "does": "הגדרת מידלוואר.",
+      "takes": [],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "mvp",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:mvp/asset-manager-mvp.js#AssetManagerMVP.setupRoutes",
+      "source": "14kk",
+      "path": "mvp/asset-manager-mvp.js",
+      "symbol": "AssetManagerMVP.setupRoutes",
+      "lang": "js",
+      "what": "function",
+      "name": "להכין נתיבים",
+      "does": "הגדרת נתיבים.",
+      "takes": [],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "mvp",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:mvp/simple-mvp.js#SimpleAssetManagerMVP",
+      "source": "14kk",
+      "path": "mvp/simple-mvp.js",
+      "symbol": "SimpleAssetManagerMVP",
+      "lang": "js",
+      "what": "engine",
+      "name": "להפעיל MVP מנהל נכס פשוט",
+      "does": "להפעיל MVP מנהל נכס פשוט — בלי קלט, ומחזיר רשומת simple_asset_manager_mvp.",
+      "takes": [],
+      "gives": {
+        "kind": "record:simple_asset_manager_mvp",
+        "type": "SimpleAssetManagerMVP"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "methods:28",
+        "mvp",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:mvp/simple-mvp.js#SimpleAssetManagerMVP.analyzeIntent",
+      "source": "14kk",
+      "path": "mvp/simple-mvp.js",
+      "symbol": "SimpleAssetManagerMVP.analyzeIntent",
+      "lang": "js",
+      "what": "function",
+      "name": "לנתח כוונה",
+      "does": "ניתוח כוונות.",
+      "takes": [
+        {
+          "name": "message",
+          "kind": "text",
+          "type": null
+        },
+        {
+          "name": "contextMemory",
+          "kind": "record:contextmemory",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "mvp",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:mvp/simple-mvp.js#SimpleAssetManagerMVP.calculateConfidence",
+      "source": "14kk",
+      "path": "mvp/simple-mvp.js",
+      "symbol": "SimpleAssetManagerMVP.calculateConfidence",
+      "lang": "js",
+      "what": "function",
+      "name": "לחשב ביטחון",
+      "does": "חישוב ביטחון כוונה.",
+      "takes": [
+        {
+          "name": "message",
+          "kind": "text",
+          "type": null
+        },
+        {
+          "name": "keywords",
+          "kind": "list",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "number",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "mvp",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:mvp/simple-mvp.js#SimpleAssetManagerMVP.extractEntities",
+      "source": "14kk",
+      "path": "mvp/simple-mvp.js",
+      "symbol": "SimpleAssetManagerMVP.extractEntities",
+      "lang": "js",
+      "what": "function",
+      "name": "לחלץ ישויות",
+      "does": "חילוץ ישויות.",
+      "takes": [
+        {
+          "name": "message",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "list",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "mvp",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:mvp/simple-mvp.js#SimpleAssetManagerMVP.generateAssetResponse",
+      "source": "14kk",
+      "path": "mvp/simple-mvp.js",
+      "symbol": "SimpleAssetManagerMVP.generateAssetResponse",
+      "lang": "js",
+      "what": "function",
+      "name": "להפיק תגובה נכס",
+      "does": "תגובת נכסים מתקדמת.",
+      "takes": [
+        {
+          "name": "intent",
+          "kind": "record:intent",
+          "type": null
+        },
+        {
+          "name": "contextMemory",
+          "kind": "record:contextmemory",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "record:asset_response",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "mvp",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:mvp/simple-mvp.js#SimpleAssetManagerMVP.generateHelpResponse",
+      "source": "14kk",
+      "path": "mvp/simple-mvp.js",
+      "symbol": "SimpleAssetManagerMVP.generateHelpResponse",
+      "lang": "js",
+      "what": "function",
+      "name": "להפיק תגובה עזרה",
+      "does": "תגובת עזרה מתקדמת.",
+      "takes": [
+        {
+          "name": "intent",
+          "kind": "record:intent",
+          "type": null
+        },
+        {
+          "name": "contextMemory",
+          "kind": "record:contextmemory",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "record:help_response",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "mvp",
+        "name:auto"
+      ]
+    },
+    {
+      "id": "14kk:mvp/simple-mvp.js#SimpleAssetManagerMVP.generateTelegramResponse",
+      "source": "14kk",
+      "path": "mvp/simple-mvp.js",
+      "symbol": "SimpleAssetManagerMVP.generateTelegramResponse",
+      "lang": "js",
+      "what": "function",
+      "name": "להפיק תגובה טלגרם",
+      "does": "תגובת טלגרם מתקדמת. (שלד: מחזיר ערך קבוע)",
+      "takes": [
+        {
+          "name": "intent",
+          "kind": "record:intent",
+          "type": null
+        },
+        {
+          "name": "contextMemory",
+          "kind": "record:contextmemory",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "record:telegram_response",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "mvp",
+        "name:auto",
+        "stub"
+      ]
+    },
+    {
+      "id": "14kk:self_reviewing_code.js#SelfReviewingCode",
+      "source": "14kk",
+      "path": "self_reviewing_code.js",
+      "symbol": "SelfReviewingCode",
+      "lang": "js",
+      "what": "engine",
+      "name": "להפעיל קוד ביקורת עצמי",
+      "does": "להפעיל קוד ביקורת עצמי — בלי קלט, ומחזיר רשומת self_reviewing_code.",
+      "takes": [],
+      "gives": {
+        "kind": "record:self_reviewing_code",
+        "type": "SelfReviewingCode"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "methods:14",
+        "name:auto",
+        "self_reviewing_code"
+      ]
+    },
+    {
+      "id": "14kk:self_reviewing_code.js#SelfReviewingCode.analyzeSegment",
+      "source": "14kk",
+      "path": "self_reviewing_code.js",
+      "symbol": "SelfReviewingCode.analyzeSegment",
+      "lang": "js",
+      "what": "function",
+      "name": "לנתח מקטע",
+      "does": "שלב 2: בדיקת כל מקטע בנפרד עם סוף הקוד.",
+      "takes": [
+        {
+          "name": "segment",
+          "kind": "record:segment",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "self_reviewing_code"
+      ]
+    },
+    {
+      "id": "14kk:self_reviewing_code.js#SelfReviewingCode.checkLogic",
+      "source": "14kk",
+      "path": "self_reviewing_code.js",
+      "symbol": "SelfReviewingCode.checkLogic",
+      "lang": "js",
+      "what": "rule",
+      "name": "לבדוק לוגיקה",
+      "does": "לבדוק לוגיקה — מקבל רשימה, ומחזיר הכרעה.",
+      "takes": [
+        {
+          "name": "lines",
+          "kind": "list",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "self_reviewing_code"
+      ]
+    },
+    {
+      "id": "14kk:self_reviewing_code.js#SelfReviewingCode.checkPerformance",
+      "source": "14kk",
+      "path": "self_reviewing_code.js",
+      "symbol": "SelfReviewingCode.checkPerformance",
+      "lang": "js",
+      "what": "rule",
+      "name": "לבדוק ביצועים",
+      "does": "לבדוק ביצועים — מקבל רשימה, ומחזיר הכרעה.",
+      "takes": [
+        {
+          "name": "lines",
+          "kind": "list",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "self_reviewing_code"
+      ]
+    },
+    {
+      "id": "14kk:self_reviewing_code.js#SelfReviewingCode.checkSecurity",
+      "source": "14kk",
+      "path": "self_reviewing_code.js",
+      "symbol": "SelfReviewingCode.checkSecurity",
+      "lang": "js",
+      "what": "rule",
+      "name": "לבדוק אבטחה",
+      "does": "לבדוק אבטחה — מקבל רשימה, ומחזיר הכרעה.",
+      "takes": [
+        {
+          "name": "lines",
+          "kind": "list",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "self_reviewing_code"
+      ]
+    },
+    {
+      "id": "14kk:self_reviewing_code.js#SelfReviewingCode.checkStandards",
+      "source": "14kk",
+      "path": "self_reviewing_code.js",
+      "symbol": "SelfReviewingCode.checkStandards",
+      "lang": "js",
+      "what": "rule",
+      "name": "לבדוק תקנים",
+      "does": "לבדוק תקנים — מקבל רשימה, ומחזיר הכרעה.",
+      "takes": [
+        {
+          "name": "lines",
+          "kind": "list",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "self_reviewing_code"
+      ]
+    },
+    {
+      "id": "14kk:self_reviewing_code.js#SelfReviewingCode.checkSyntax",
+      "source": "14kk",
+      "path": "self_reviewing_code.js",
+      "symbol": "SelfReviewingCode.checkSyntax",
+      "lang": "js",
+      "what": "rule",
+      "name": "לבדוק תחביר",
+      "does": "בדיקות ספציפיות.",
+      "takes": [
+        {
+          "name": "lines",
+          "kind": "list",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "self_reviewing_code"
+      ]
+    },
+    {
+      "id": "14kk:self_reviewing_code.js#SelfReviewingCode.documentLearning",
+      "source": "14kk",
+      "path": "self_reviewing_code.js",
+      "symbol": "SelfReviewingCode.documentLearning",
+      "lang": "js",
+      "what": "function",
+      "name": "לתעד למידה",
+      "does": "שלב 7: סיכום הלמדה ומה למדנו. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "self_reviewing_code",
+        "stub"
+      ]
+    },
+    {
+      "id": "14kk:self_reviewing_code.js#SelfReviewingCode.proposeSolutions",
+      "source": "14kk",
+      "path": "self_reviewing_code.js",
+      "symbol": "SelfReviewingCode.proposeSolutions",
+      "lang": "js",
+      "what": "function",
+      "name": "להציע פתרונות",
+      "does": "שלב 4: רישום בעיה ופתרונות אפשריים.",
+      "takes": [
+        {
+          "name": "issues",
+          "kind": "bool",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "list",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "self_reviewing_code"
+      ]
+    },
+    {
+      "id": "14kk:self_reviewing_code.js#SelfReviewingCode.segmentCode",
+      "source": "14kk",
+      "path": "self_reviewing_code.js",
+      "symbol": "SelfReviewingCode.segmentCode",
+      "lang": "js",
+      "what": "function",
+      "name": "לפלח קוד",
+      "does": "שלב 1: חלוקת קוד למקטעים של 50 שורות.",
+      "takes": [],
+      "gives": {
+        "kind": "list",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "self_reviewing_code"
+      ]
+    },
+    {
+      "id": "14kk:self_reviewing_code.js#SelfReviewingCode.summarizeResults",
+      "source": "14kk",
+      "path": "self_reviewing_code.js",
+      "symbol": "SelfReviewingCode.summarizeResults",
+      "lang": "js",
+      "what": "function",
+      "name": "לסכם תוצאות",
+      "does": "שלב 6: סיכום הבעיה והפתרון.",
+      "takes": [],
+      "gives": {
+        "kind": "text",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "self_reviewing_code"
+      ]
+    },
+    {
+      "id": "14kk:services/ai-telegram-integration.js#AITelegramIntegration",
+      "source": "14kk",
+      "path": "services/ai-telegram-integration.js",
+      "symbol": "AITelegramIntegration",
+      "lang": "js",
+      "what": "engine",
+      "name": "להפעיל אינטגרציה טלגרם AI",
+      "does": "להפעיל אינטגרציה טלגרם AI — בלי קלט, ומחזיר רשומת aitelegram_integration.",
+      "takes": [],
+      "gives": {
+        "kind": "record:aitelegram_integration",
+        "type": "AITelegramIntegration"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "methods:24",
+        "name:auto",
+        "services"
+      ]
+    },
+    {
+      "id": "14kk:services/ai-telegram-integration.js#AITelegramIntegration.analyzeIntent",
+      "source": "14kk",
+      "path": "services/ai-telegram-integration.js",
+      "symbol": "AITelegramIntegration.analyzeIntent",
+      "lang": "js",
+      "what": "function",
+      "name": "לנתח כוונה",
+      "does": "ניתוח כוונה (Intent Analysis).",
+      "takes": [
+        {
+          "name": "message",
+          "kind": "text",
+          "type": null
+        },
+        {
+          "name": "context",
+          "kind": "record:context",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "async",
+        "method",
+        "name:auto",
+        "services"
+      ]
+    },
+    {
+      "id": "14kk:services/ai-telegram-integration.js#AITelegramIntegration.getHelpMessage",
+      "source": "14kk",
+      "path": "services/ai-telegram-integration.js",
+      "symbol": "AITelegramIntegration.getHelpMessage",
+      "lang": "js",
+      "what": "function",
+      "name": "להביא הודעה עזרה",
+      "does": "הודעת עזרה.",
+      "takes": [],
+      "gives": {
+        "kind": "record:help_message",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "async",
+        "method",
+        "name:auto",
+        "services"
+      ]
+    },
+    {
+      "id": "14kk:services/ai-telegram-integration.js#AITelegramIntegration.handleAutomation",
+      "source": "14kk",
+      "path": "services/ai-telegram-integration.js",
+      "symbol": "AITelegramIntegration.handleAutomation",
+      "lang": "js",
+      "what": "function",
+      "name": "לטפל באוטומציה",
+      "does": "טיפול באוטומציה.",
+      "takes": [],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "async",
+        "method",
+        "name:auto",
+        "services"
+      ]
+    },
+    {
+      "id": "14kk:services/api-gateway/server.js#checkServiceHealth",
+      "source": "14kk",
+      "path": "services/api-gateway/server.js",
+      "symbol": "checkServiceHealth",
+      "lang": "js",
+      "what": "function",
+      "name": "לבדוק בריאות שירות",
+      "does": "לבדוק בריאות שירות — מקבל טקסט, ומחזיר הכרעה.",
+      "takes": [
+        {
+          "name": "serviceUrl",
+          "kind": "text",
+          "type": null
+        },
+        {
+          "name": "serviceName",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "async",
+        "name:auto",
+        "services/api-gateway"
+      ]
+    },
+    {
+      "id": "14kk:services/api-gateway/server.js#optionalAuth",
+      "source": "14kk",
+      "path": "services/api-gateway/server.js",
+      "symbol": "optionalAuth",
+      "lang": "js",
+      "what": "function",
+      "name": "להפיק הזדהות אופציונלי",
+      "does": "להפיק הזדהות אופציונלי — מקבל רשומת http, משהו, ומחזיר משהו.",
+      "takes": [
+        {
+          "name": "req",
+          "kind": "record:http",
+          "type": null
+        },
+        {
+          "name": "res",
+          "kind": "record:http",
+          "type": null
+        },
+        {
+          "name": "next",
+          "kind": "unknown",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "async",
+        "name:auto",
+        "services/api-gateway"
+      ]
+    },
+    {
+      "id": "14kk:services/api-gateway/server.js#startServer",
+      "source": "14kk",
+      "path": "services/api-gateway/server.js",
+      "symbol": "startServer",
+      "lang": "js",
+      "what": "function",
+      "name": "להפעיל שרת",
+      "does": "להפעיל שרת — בלי קלט, ומחזיר משהו.",
+      "takes": [],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "async",
+        "name:auto",
+        "services/api-gateway"
+      ]
+    },
+    {
+      "id": "14kk:services/api-gateway/server.js#verifyToken",
+      "source": "14kk",
+      "path": "services/api-gateway/server.js",
+      "symbol": "verifyToken",
+      "lang": "js",
+      "what": "function",
+      "name": "לאמת אסימון",
+      "does": "לאמת אסימון — מקבל רשומת http, משהו, ומחזיר הכרעה.",
+      "takes": [
+        {
+          "name": "req",
+          "kind": "record:http",
+          "type": null
+        },
+        {
+          "name": "res",
+          "kind": "record:http",
+          "type": null
+        },
+        {
+          "name": "next",
+          "kind": "unknown",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "async",
+        "name:auto",
+        "services/api-gateway"
+      ]
+    },
+    {
+      "id": "14kk:services/auth-service/server.js#authenticateToken",
+      "source": "14kk",
+      "path": "services/auth-service/server.js",
+      "symbol": "authenticateToken",
+      "lang": "js",
+      "what": "function",
+      "name": "לאמת אסימון",
+      "does": "לאמת אסימון — מקבל רשומת http, משהו, ומחזיר משהו.",
+      "takes": [
+        {
+          "name": "req",
+          "kind": "record:http",
+          "type": null
+        },
+        {
+          "name": "res",
+          "kind": "record:http",
+          "type": null
+        },
+        {
+          "name": "next",
+          "kind": "unknown",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "async",
+        "name:auto",
+        "services/auth-service"
+      ]
+    },
+    {
+      "id": "14kk:services/auth-service/server.js#generateTokens",
+      "source": "14kk",
+      "path": "services/auth-service/server.js",
+      "symbol": "generateTokens",
+      "lang": "js",
+      "what": "function",
+      "name": "להפיק אסימונים",
+      "does": "להפיק אסימונים — מקבל טקסט, ומחזיר רשומת token.",
+      "takes": [
+        {
+          "name": "userId",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "record:token",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "async",
+        "name:auto",
+        "services/auth-service"
+      ]
+    },
+    {
+      "id": "14kk:services/auth-service/server.js#hashPassword",
+      "source": "14kk",
+      "path": "services/auth-service/server.js",
+      "symbol": "hashPassword",
+      "lang": "js",
+      "what": "function",
+      "name": "לגבב סיסמה",
+      "does": "לגבב סיסמה — מקבל רשומת password, ומחזיר משהו.",
+      "takes": [
+        {
+          "name": "password",
+          "kind": "record:password",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "async",
+        "name:auto",
+        "services/auth-service"
+      ]
+    },
+    {
+      "id": "14kk:services/auth-service/server.js#validateRequest",
+      "source": "14kk",
+      "path": "services/auth-service/server.js",
+      "symbol": "validateRequest",
+      "lang": "js",
+      "what": "function",
+      "name": "לאמת בקשה",
+      "does": "לאמת בקשה — מקבל רשומת http, משהו, ומחזיר הכרעה.",
+      "takes": [
+        {
+          "name": "req",
+          "kind": "record:http",
+          "type": null
+        },
+        {
+          "name": "res",
+          "kind": "record:http",
+          "type": null
+        },
+        {
+          "name": "next",
+          "kind": "unknown",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "name:auto",
+        "services/auth-service"
+      ]
+    },
+    {
+      "id": "14kk:services/auth-service/server.js#verifyPassword",
+      "source": "14kk",
+      "path": "services/auth-service/server.js",
+      "symbol": "verifyPassword",
+      "lang": "js",
+      "what": "function",
+      "name": "לאמת סיסמה",
+      "does": "לאמת סיסמה — מקבל רשומת password, כן/לא, ומחזיר הכרעה.",
+      "takes": [
+        {
+          "name": "password",
+          "kind": "record:password",
+          "type": null
+        },
+        {
+          "name": "hash",
+          "kind": "bool",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "async",
+        "name:auto",
+        "services/auth-service"
+      ]
+    },
+    {
+      "id": "14kk:services/business-integrations.js#AnalyticsIntegration",
+      "source": "14kk",
+      "path": "services/business-integrations.js",
+      "symbol": "AnalyticsIntegration",
+      "lang": "js",
+      "what": "engine",
+      "name": "להפעיל אינטגרציה אנליטיקה",
+      "does": "Analytics Integration - ניתוח.",
+      "takes": [],
+      "gives": {
+        "kind": "record:analytics_integration",
+        "type": "AnalyticsIntegration"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "methods:9",
+        "name:auto",
+        "services"
+      ]
+    },
+    {
+      "id": "14kk:services/business-integrations.js#AnalyticsIntegration.getFeatures",
+      "source": "14kk",
+      "path": "services/business-integrations.js",
+      "symbol": "AnalyticsIntegration.getFeatures",
+      "lang": "js",
+      "what": "function",
+      "name": "להביא יכולות",
+      "does": "להביא יכולות — בלי קלט, ומחזיר רשומת feature. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "record:feature",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "services",
+        "stub"
+      ]
+    },
+    {
+      "id": "14kk:services/business-integrations.js#BusinessIntegrations",
+      "source": "14kk",
+      "path": "services/business-integrations.js",
+      "symbol": "BusinessIntegrations",
+      "lang": "js",
+      "what": "engine",
+      "name": "להפעיל אינטגרציות עסק",
+      "does": "להפעיל אינטגרציות עסק — בלי קלט, ומחזיר רשומת business_integrations.",
+      "takes": [],
+      "gives": {
+        "kind": "record:business_integrations",
+        "type": "BusinessIntegrations"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "methods:4",
+        "name:auto",
+        "services"
+      ]
+    },
+    {
+      "id": "14kk:services/business-integrations.js#BusinessIntegrations.getStatus",
+      "source": "14kk",
+      "path": "services/business-integrations.js",
+      "symbol": "BusinessIntegrations.getStatus",
+      "lang": "js",
+      "what": "function",
+      "name": "להביא מצב",
+      "does": "קבלת סטטוס כל האינטגרציות.",
+      "takes": [],
+      "gives": {
+        "kind": "record:statu",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "services"
+      ]
+    },
+    {
+      "id": "14kk:services/business-integrations.js#GitHubIntegration",
+      "source": "14kk",
+      "path": "services/business-integrations.js",
+      "symbol": "GitHubIntegration",
+      "lang": "js",
+      "what": "engine",
+      "name": "להפעיל אינטגרציה GitHub",
+      "does": "GitHub Integration - פיתוח.",
+      "takes": [],
+      "gives": {
+        "kind": "record:git_hub_integration",
+        "type": "GitHubIntegration"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "methods:8",
+        "name:auto",
+        "services"
+      ]
+    },
+    {
+      "id": "14kk:services/business-integrations.js#GitHubIntegration.getFeatures",
+      "source": "14kk",
+      "path": "services/business-integrations.js",
+      "symbol": "GitHubIntegration.getFeatures",
+      "lang": "js",
+      "what": "function",
+      "name": "להביא יכולות",
+      "does": "להביא יכולות — בלי קלט, ומחזיר רשומת feature. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "record:feature",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "services",
+        "stub"
+      ]
+    },
+    {
+      "id": "14kk:services/business-integrations.js#SlackIntegration",
+      "source": "14kk",
+      "path": "services/business-integrations.js",
+      "symbol": "SlackIntegration",
+      "lang": "js",
+      "what": "engine",
+      "name": "להפעיל אינטגרציה Slack",
+      "does": "Slack Integration - תקשורת.",
+      "takes": [],
+      "gives": {
+        "kind": "record:slack_integration",
+        "type": "SlackIntegration"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "methods:7",
+        "name:auto",
+        "services"
+      ]
+    },
+    {
+      "id": "14kk:services/business-integrations.js#SlackIntegration.getFeatures",
+      "source": "14kk",
+      "path": "services/business-integrations.js",
+      "symbol": "SlackIntegration.getFeatures",
+      "lang": "js",
+      "what": "function",
+      "name": "להביא יכולות",
+      "does": "להביא יכולות — בלי קלט, ומחזיר רשומת feature. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "record:feature",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "services",
+        "stub"
+      ]
+    },
+    {
+      "id": "14kk:services/business-integrations.js#StripeIntegration",
+      "source": "14kk",
+      "path": "services/business-integrations.js",
+      "symbol": "StripeIntegration",
+      "lang": "js",
+      "what": "engine",
+      "name": "להפעיל אינטגרציה Stripe",
+      "does": "Stripe Integration - תשלומים.",
+      "takes": [],
+      "gives": {
+        "kind": "record:stripe_integration",
+        "type": "StripeIntegration"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "methods:6",
+        "name:auto",
+        "services"
+      ]
+    },
+    {
+      "id": "14kk:services/business-integrations.js#StripeIntegration.getFeatures",
+      "source": "14kk",
+      "path": "services/business-integrations.js",
+      "symbol": "StripeIntegration.getFeatures",
+      "lang": "js",
+      "what": "function",
+      "name": "להביא יכולות",
+      "does": "להביא יכולות — בלי קלט, ומחזיר רשומת feature. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "record:feature",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "services",
+        "stub"
+      ]
+    },
+    {
+      "id": "14kk:services/business-integrations.js#StripeIntegration.isConnected",
+      "source": "14kk",
+      "path": "services/business-integrations.js",
+      "symbol": "StripeIntegration.isConnected",
+      "lang": "js",
+      "what": "particle",
+      "name": "לבדוק אם מחובר",
+      "does": "לבדוק אם מחובר — בלי קלט, ומחזיר כן/לא.",
+      "takes": [],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "services"
+      ]
+    },
+    {
+      "id": "14kk:services/business-integrations.js#ZapierIntegration",
+      "source": "14kk",
+      "path": "services/business-integrations.js",
+      "symbol": "ZapierIntegration",
+      "lang": "js",
+      "what": "engine",
+      "name": "להפעיל אינטגרציה Zapier",
+      "does": "Zapier Integration - אוטומציה.",
+      "takes": [],
+      "gives": {
+        "kind": "record:zapier_integration",
+        "type": "ZapierIntegration"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "methods:7",
+        "name:auto",
+        "services"
+      ]
+    },
+    {
+      "id": "14kk:services/business-integrations.js#ZapierIntegration.getFeatures",
+      "source": "14kk",
+      "path": "services/business-integrations.js",
+      "symbol": "ZapierIntegration.getFeatures",
+      "lang": "js",
+      "what": "function",
+      "name": "להביא יכולות",
+      "does": "להביא יכולות — בלי קלט, ומחזיר רשומת feature. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "record:feature",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "services",
+        "stub"
+      ]
+    },
+    {
+      "id": "14kk:services/telegram-bot-service.js#TelegramBotService",
+      "source": "14kk",
+      "path": "services/telegram-bot-service.js",
+      "symbol": "TelegramBotService",
+      "lang": "js",
+      "what": "engine",
+      "name": "להפעיל שירות בוט טלגרם",
+      "does": "להפעיל שירות בוט טלגרם — בלי קלט, ומחזיר רשומת telegram_bot_service.",
+      "takes": [],
+      "gives": {
+        "kind": "record:telegram_bot_service",
+        "type": "TelegramBotService"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "methods:28",
+        "name:auto",
+        "services"
+      ]
+    },
+    {
+      "id": "14kk:services/telegram-bot-service.js#TelegramBotService.getAssetTypeEmoji",
+      "source": "14kk",
+      "path": "services/telegram-bot-service.js",
+      "symbol": "TelegramBotService.getAssetTypeEmoji",
+      "lang": "js",
+      "what": "function",
+      "name": "להביא אימוג׳י סוג נכס",
+      "does": "קבלת אימוג'י לסוג נכס.",
+      "takes": [
+        {
+          "name": "type",
+          "kind": "record:type",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "record:asset_type_emoji",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "services"
+      ]
+    },
+    {
+      "id": "14kk:services/telegram-bot-service.js#TelegramBotService.searchAssets",
+      "source": "14kk",
+      "path": "services/telegram-bot-service.js",
+      "symbol": "TelegramBotService.searchAssets",
+      "lang": "js",
+      "what": "function",
+      "name": "לחפש נכסים",
+      "does": "חיפוש נכסים לשאילתת אינליין.",
+      "takes": [
+        {
+          "name": "query",
+          "kind": "text",
+          "type": null
+        },
+        {
+          "name": "userId",
+          "kind": "text",
+          "type": null
+        }
+      ],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "async",
+        "method",
+        "name:auto",
+        "services"
+      ]
+    },
+    {
+      "id": "14kk:strategic_protocol.js#StrategicAnalyzer",
+      "source": "14kk",
+      "path": "strategic_protocol.js",
+      "symbol": "StrategicAnalyzer",
+      "lang": "js",
+      "what": "engine",
+      "name": "להפעיל מנתח אסטרטגי",
+      "does": "להפעיל מנתח אסטרטגי — בלי קלט, ומחזיר רשומת strategic_analyzer.",
+      "takes": [],
+      "gives": {
+        "kind": "record:strategic_analyzer",
+        "type": "StrategicAnalyzer"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "methods:49",
+        "name:auto",
+        "strategic_protocol"
+      ]
+    },
+    {
+      "id": "14kk:strategic_protocol.js#StrategicAnalyzer.analyzeCompetition",
+      "source": "14kk",
+      "path": "strategic_protocol.js",
+      "symbol": "StrategicAnalyzer.analyzeCompetition",
+      "lang": "js",
+      "what": "function",
+      "name": "לנתח תחרות",
+      "does": "לנתח תחרות — בלי קלט, ומחזיר הכרעה.",
+      "takes": [],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "strategic_protocol"
+      ]
+    },
+    {
+      "id": "14kk:strategic_protocol.js#StrategicAnalyzer.analyzeRevenueStreams",
+      "source": "14kk",
+      "path": "strategic_protocol.js",
+      "symbol": "StrategicAnalyzer.analyzeRevenueStreams",
+      "lang": "js",
+      "what": "function",
+      "name": "לנתח זרמים הכנסות",
+      "does": "לנתח זרמים הכנסות — בלי קלט, ומחזיר הכרעה.",
+      "takes": [],
+      "gives": {
+        "kind": "choice",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "strategic_protocol"
+      ]
+    },
+    {
+      "id": "14kk:strategic_protocol.js#StrategicAnalyzer.assessGrowthRisks",
+      "source": "14kk",
+      "path": "strategic_protocol.js",
+      "symbol": "StrategicAnalyzer.assessGrowthRisks",
+      "lang": "js",
+      "what": "function",
+      "name": "להעריך סיכונים צמיחה",
+      "does": "להעריך סיכונים צמיחה — בלי קלט, ומחזיר רשומת growth_risk. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "record:growth_risk",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "strategic_protocol",
+        "stub"
+      ]
+    },
+    {
+      "id": "14kk:strategic_protocol.js#StrategicAnalyzer.assessMarketSize",
+      "source": "14kk",
+      "path": "strategic_protocol.js",
+      "symbol": "StrategicAnalyzer.assessMarketSize",
+      "lang": "js",
+      "what": "function",
+      "name": "להעריך גודל שוק",
+      "does": "להעריך גודל שוק — בלי קלט, ומחזיר רשומת market_size.",
+      "takes": [],
+      "gives": {
+        "kind": "record:market_size",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "strategic_protocol"
+      ]
+    },
+    {
+      "id": "14kk:strategic_protocol.js#StrategicAnalyzer.assessProfitability",
+      "source": "14kk",
+      "path": "strategic_protocol.js",
+      "symbol": "StrategicAnalyzer.assessProfitability",
+      "lang": "js",
+      "what": "function",
+      "name": "להעריך רווחיות",
+      "does": "להעריך רווחיות — בלי קלט, ומחזיר רשומת profitability. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "record:profitability",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "strategic_protocol",
+        "stub"
+      ]
+    },
+    {
+      "id": "14kk:strategic_protocol.js#StrategicAnalyzer.assessTechArchitecture",
+      "source": "14kk",
+      "path": "strategic_protocol.js",
+      "symbol": "StrategicAnalyzer.assessTechArchitecture",
+      "lang": "js",
+      "what": "function",
+      "name": "להעריך ארכיטקטורה טכנולוגיה",
+      "does": "להעריך ארכיטקטורה טכנולוגיה — בלי קלט, ומחזיר רשומת tech_architecture. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "record:tech_architecture",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "strategic_protocol",
+        "stub"
+      ]
+    },
+    {
+      "id": "14kk:strategic_protocol.js#StrategicAnalyzer.assessTechRisks",
+      "source": "14kk",
+      "path": "strategic_protocol.js",
+      "symbol": "StrategicAnalyzer.assessTechRisks",
+      "lang": "js",
+      "what": "function",
+      "name": "להעריך סיכונים טכנולוגיה",
+      "does": "להעריך סיכונים טכנולוגיה — בלי קלט, ומחזיר רשומת tech_risk. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "record:tech_risk",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "strategic_protocol",
+        "stub"
+      ]
+    },
+    {
+      "id": "14kk:strategic_protocol.js#StrategicAnalyzer.assessValueProposition",
+      "source": "14kk",
+      "path": "strategic_protocol.js",
+      "symbol": "StrategicAnalyzer.assessValueProposition",
+      "lang": "js",
+      "what": "function",
+      "name": "להעריך הצעה ערך",
+      "does": "להעריך הצעה ערך — בלי קלט, ומחזיר רשומת value_proposition.",
+      "takes": [],
+      "gives": {
+        "kind": "record:value_proposition",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "strategic_protocol"
+      ]
+    },
+    {
+      "id": "14kk:strategic_protocol.js#StrategicAnalyzer.createTechRoadmap",
+      "source": "14kk",
+      "path": "strategic_protocol.js",
+      "symbol": "StrategicAnalyzer.createTechRoadmap",
+      "lang": "js",
+      "what": "function",
+      "name": "ליצור מפת דרכים טכנולוגיה",
+      "does": "ליצור מפת דרכים טכנולוגיה — בלי קלט, ומחזיר רשומת tech_roadmap. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "record:tech_roadmap",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "strategic_protocol",
+        "stub"
+      ]
+    },
+    {
+      "id": "14kk:strategic_protocol.js#StrategicAnalyzer.defineGrowthMetrics",
+      "source": "14kk",
+      "path": "strategic_protocol.js",
+      "symbol": "StrategicAnalyzer.defineGrowthMetrics",
+      "lang": "js",
+      "what": "function",
+      "name": "להגדיר מדדים צמיחה",
+      "does": "להגדיר מדדים צמיחה — בלי קלט, ומחזיר משהו. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "strategic_protocol",
+        "stub"
+      ]
+    },
+    {
+      "id": "14kk:strategic_protocol.js#StrategicAnalyzer.defineGrowthPhases",
+      "source": "14kk",
+      "path": "strategic_protocol.js",
+      "symbol": "StrategicAnalyzer.defineGrowthPhases",
+      "lang": "js",
+      "what": "function",
+      "name": "להגדיר שלבים צמיחה",
+      "does": "להגדיר שלבים צמיחה — בלי קלט, ומחזיר משהו. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "strategic_protocol",
+        "stub"
+      ]
+    },
+    {
+      "id": "14kk:strategic_protocol.js#StrategicAnalyzer.defineMarketPositioning",
+      "source": "14kk",
+      "path": "strategic_protocol.js",
+      "symbol": "StrategicAnalyzer.defineMarketPositioning",
+      "lang": "js",
+      "what": "function",
+      "name": "להגדיר מיצוב שוק",
+      "does": "להגדיר מיצוב שוק — בלי קלט, ומחזיר משהו. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "strategic_protocol",
+        "stub"
+      ]
+    },
+    {
+      "id": "14kk:strategic_protocol.js#StrategicAnalyzer.defineSuccessMetrics",
+      "source": "14kk",
+      "path": "strategic_protocol.js",
+      "symbol": "StrategicAnalyzer.defineSuccessMetrics",
+      "lang": "js",
+      "what": "function",
+      "name": "להגדיר מדדים הצלחה",
+      "does": "להגדיר מדדים הצלחה — בלי קלט, ומחזיר משהו. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "strategic_protocol",
+        "stub"
+      ]
+    },
+    {
+      "id": "14kk:strategic_protocol.js#StrategicAnalyzer.defineTeamCulture",
+      "source": "14kk",
+      "path": "strategic_protocol.js",
+      "symbol": "StrategicAnalyzer.defineTeamCulture",
+      "lang": "js",
+      "what": "function",
+      "name": "להגדיר תרבות צוות",
+      "does": "להגדיר תרבות צוות — בלי קלט, ומחזיר משהו. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "strategic_protocol",
+        "stub"
+      ]
+    },
+    {
+      "id": "14kk:strategic_protocol.js#StrategicAnalyzer.defineTeamStructure",
+      "source": "14kk",
+      "path": "strategic_protocol.js",
+      "symbol": "StrategicAnalyzer.defineTeamStructure",
+      "lang": "js",
+      "what": "function",
+      "name": "להגדיר מבנה צוות",
+      "does": "להגדיר מבנה צוות — בלי קלט, ומחזיר משהו. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "strategic_protocol",
+        "stub"
+      ]
+    },
+    {
+      "id": "14kk:strategic_protocol.js#StrategicAnalyzer.estimateCosts",
+      "source": "14kk",
+      "path": "strategic_protocol.js",
+      "symbol": "StrategicAnalyzer.estimateCosts",
+      "lang": "js",
+      "what": "function",
+      "name": "להעריך עלויות",
+      "does": "להעריך עלויות — בלי קלט, ומחזיר מספר. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "number",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "strategic_protocol",
+        "stub"
+      ]
+    },
+    {
+      "id": "14kk:strategic_protocol.js#StrategicAnalyzer.generateActionPlan",
+      "source": "14kk",
+      "path": "strategic_protocol.js",
+      "symbol": "StrategicAnalyzer.generateActionPlan",
+      "lang": "js",
+      "what": "function",
+      "name": "להפיק תוכנית פעולה",
+      "does": "להפיק תוכנית פעולה — בלי קלט, ומחזיר רשומת action_plan. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "record:action_plan",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "strategic_protocol",
+        "stub"
+      ]
+    },
+    {
+      "id": "14kk:strategic_protocol.js#StrategicAnalyzer.generateExecutiveSummary",
+      "source": "14kk",
+      "path": "strategic_protocol.js",
+      "symbol": "StrategicAnalyzer.generateExecutiveSummary",
+      "lang": "js",
+      "what": "function",
+      "name": "להפיק סיכום מנהלים",
+      "does": "להפיק סיכום מנהלים — בלי קלט, ומחזיר רשומת executive_summary. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "record:executive_summary",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "strategic_protocol",
+        "stub"
+      ]
+    },
+    {
+      "id": "14kk:strategic_protocol.js#StrategicAnalyzer.generateRiskAssessment",
+      "source": "14kk",
+      "path": "strategic_protocol.js",
+      "symbol": "StrategicAnalyzer.generateRiskAssessment",
+      "lang": "js",
+      "what": "function",
+      "name": "להפיק הערכה סיכון",
+      "does": "להפיק הערכה סיכון — בלי קלט, ומחזיר רשומת risk_assessment. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "record:risk_assessment",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "strategic_protocol",
+        "stub"
+      ]
+    },
+    {
+      "id": "14kk:strategic_protocol.js#StrategicAnalyzer.generateStrategicRecommendations",
+      "source": "14kk",
+      "path": "strategic_protocol.js",
+      "symbol": "StrategicAnalyzer.generateStrategicRecommendations",
+      "lang": "js",
+      "what": "function",
+      "name": "להפיק המלצות אסטרטגי",
+      "does": "להפיק המלצות אסטרטגי — בלי קלט, ומחזיר רשימה. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "list",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "strategic_protocol",
+        "stub"
+      ]
+    },
+    {
+      "id": "14kk:strategic_protocol.js#StrategicAnalyzer.hasAIIntegration",
+      "source": "14kk",
+      "path": "strategic_protocol.js",
+      "symbol": "StrategicAnalyzer.hasAIIntegration",
+      "lang": "js",
+      "what": "particle",
+      "name": "לבדוק אם יש אינטגרציה AI",
+      "does": "לבדוק אם יש אינטגרציה AI — בלי קלט, ומחזיר כן/לא.",
+      "takes": [],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "strategic_protocol"
+      ]
+    },
+    {
+      "id": "14kk:strategic_protocol.js#StrategicAnalyzer.hasAPIEndpoints",
+      "source": "14kk",
+      "path": "strategic_protocol.js",
+      "symbol": "StrategicAnalyzer.hasAPIEndpoints",
+      "lang": "js",
+      "what": "particle",
+      "name": "לבדוק אם יש נקודות קצה API",
+      "does": "לבדוק אם יש נקודות קצה API — בלי קלט, ומחזיר כן/לא.",
+      "takes": [],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "strategic_protocol"
+      ]
+    },
+    {
+      "id": "14kk:strategic_protocol.js#StrategicAnalyzer.hasBusinessFeatures",
+      "source": "14kk",
+      "path": "strategic_protocol.js",
+      "symbol": "StrategicAnalyzer.hasBusinessFeatures",
+      "lang": "js",
+      "what": "particle",
+      "name": "לבדוק אם יש יכולות עסק",
+      "does": "לבדוק אם יש יכולות עסק — בלי קלט, ומחזיר כן/לא.",
+      "takes": [],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "strategic_protocol"
+      ]
+    },
+    {
+      "id": "14kk:strategic_protocol.js#StrategicAnalyzer.hasDeveloperTools",
+      "source": "14kk",
+      "path": "strategic_protocol.js",
+      "symbol": "StrategicAnalyzer.hasDeveloperTools",
+      "lang": "js",
+      "what": "particle",
+      "name": "לבדוק אם יש כלים מפתח",
+      "does": "לבדוק אם יש כלים מפתח — בלי קלט, ומחזיר כן/לא.",
+      "takes": [],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "strategic_protocol"
+      ]
+    },
+    {
+      "id": "14kk:strategic_protocol.js#StrategicAnalyzer.hasEnterpriseFeatures",
+      "source": "14kk",
+      "path": "strategic_protocol.js",
+      "symbol": "StrategicAnalyzer.hasEnterpriseFeatures",
+      "lang": "js",
+      "what": "particle",
+      "name": "לבדוק אם יש יכולות ארגונים",
+      "does": "לבדוק אם יש יכולות ארגונים — בלי קלט, ומחזיר כן/לא.",
+      "takes": [],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "strategic_protocol"
+      ]
+    },
+    {
+      "id": "14kk:strategic_protocol.js#StrategicAnalyzer.hasMarketplaceFeatures",
+      "source": "14kk",
+      "path": "strategic_protocol.js",
+      "symbol": "StrategicAnalyzer.hasMarketplaceFeatures",
+      "lang": "js",
+      "what": "particle",
+      "name": "לבדוק אם יש יכולות שוק",
+      "does": "לבדוק אם יש יכולות שוק — בלי קלט, ומחזיר כן/לא.",
+      "takes": [],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "strategic_protocol"
+      ]
+    },
+    {
+      "id": "14kk:strategic_protocol.js#StrategicAnalyzer.hasMicroservices",
+      "source": "14kk",
+      "path": "strategic_protocol.js",
+      "symbol": "StrategicAnalyzer.hasMicroservices",
+      "lang": "js",
+      "what": "particle",
+      "name": "לבדוק אם יש מיקרו-שירותים",
+      "does": "לבדוק אם יש מיקרו-שירותים — בלי קלט, ומחזיר כן/לא.",
+      "takes": [],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "strategic_protocol"
+      ]
+    },
+    {
+      "id": "14kk:strategic_protocol.js#StrategicAnalyzer.hasPricingConfig",
+      "source": "14kk",
+      "path": "strategic_protocol.js",
+      "symbol": "StrategicAnalyzer.hasPricingConfig",
+      "lang": "js",
+      "what": "particle",
+      "name": "לבדוק אם יש תצורה תמחור",
+      "does": "לבדוק אם יש תצורה תמחור — בלי קלט, ומחזיר כן/לא.",
+      "takes": [],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "strategic_protocol"
+      ]
+    },
+    {
+      "id": "14kk:strategic_protocol.js#StrategicAnalyzer.hasStyleAnalysis",
+      "source": "14kk",
+      "path": "strategic_protocol.js",
+      "symbol": "StrategicAnalyzer.hasStyleAnalysis",
+      "lang": "js",
+      "what": "particle",
+      "name": "לבדוק אם יש ניתוח סגנון",
+      "does": "לבדוק אם יש ניתוח סגנון — בלי קלט, ומחזיר כן/לא.",
+      "takes": [],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "strategic_protocol"
+      ]
+    },
+    {
+      "id": "14kk:strategic_protocol.js#StrategicAnalyzer.hasSubscriptionLogic",
+      "source": "14kk",
+      "path": "strategic_protocol.js",
+      "symbol": "StrategicAnalyzer.hasSubscriptionLogic",
+      "lang": "js",
+      "what": "particle",
+      "name": "לבדוק אם יש לוגיקה מנוי",
+      "does": "לבדוק אם יש לוגיקה מנוי — בלי קלט, ומחזיר כן/לא.",
+      "takes": [],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "strategic_protocol"
+      ]
+    },
+    {
+      "id": "14kk:strategic_protocol.js#StrategicAnalyzer.hasTelegramIntegration",
+      "source": "14kk",
+      "path": "strategic_protocol.js",
+      "symbol": "StrategicAnalyzer.hasTelegramIntegration",
+      "lang": "js",
+      "what": "particle",
+      "name": "לבדוק אם יש אינטגרציה טלגרם",
+      "does": "לבדוק אם יש אינטגרציה טלגרם — בלי קלט, ומחזיר כן/לא.",
+      "takes": [],
+      "gives": {
+        "kind": "bool",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "strategic_protocol"
+      ]
+    },
+    {
+      "id": "14kk:strategic_protocol.js#StrategicAnalyzer.identifyBusinessModel",
+      "source": "14kk",
+      "path": "strategic_protocol.js",
+      "symbol": "StrategicAnalyzer.identifyBusinessModel",
+      "lang": "js",
+      "what": "function",
+      "name": "לזהות מודל עסק",
+      "does": "לזהות מודל עסק — בלי קלט, ומחזיר רשימה.",
+      "takes": [],
+      "gives": {
+        "kind": "list",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "strategic_protocol"
+      ]
+    },
+    {
+      "id": "14kk:strategic_protocol.js#StrategicAnalyzer.identifyCustomerSegments",
+      "source": "14kk",
+      "path": "strategic_protocol.js",
+      "symbol": "StrategicAnalyzer.identifyCustomerSegments",
+      "lang": "js",
+      "what": "function",
+      "name": "לזהות פלחים לקוח",
+      "does": "לזהות פלחים לקוח — בלי קלט, ומחזיר רשימה.",
+      "takes": [],
+      "gives": {
+        "kind": "list",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "strategic_protocol"
+      ]
+    },
+    {
+      "id": "14kk:strategic_protocol.js#StrategicAnalyzer.identifyRequiredSkills",
+      "source": "14kk",
+      "path": "strategic_protocol.js",
+      "symbol": "StrategicAnalyzer.identifyRequiredSkills",
+      "lang": "js",
+      "what": "function",
+      "name": "לזהות כישורים נדרש",
+      "does": "לזהות כישורים נדרש — בלי קלט, ומחזיר רשימה. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "list",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "strategic_protocol",
+        "stub"
+      ]
+    },
+    {
+      "id": "14kk:strategic_protocol.js#StrategicAnalyzer.planFundingStrategy",
+      "source": "14kk",
+      "path": "strategic_protocol.js",
+      "symbol": "StrategicAnalyzer.planFundingStrategy",
+      "lang": "js",
+      "what": "function",
+      "name": "לתכנן אסטרטגיה מימון",
+      "does": "לתכנן אסטרטגיה מימון — בלי קלט, ומחזיר משהו. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "strategic_protocol",
+        "stub"
+      ]
+    },
+    {
+      "id": "14kk:strategic_protocol.js#StrategicAnalyzer.planHiring",
+      "source": "14kk",
+      "path": "strategic_protocol.js",
+      "symbol": "StrategicAnalyzer.planHiring",
+      "lang": "js",
+      "what": "function",
+      "name": "לתכנן גיוס",
+      "does": "לתכנן גיוס — בלי קלט, ומחזיר משהו. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "strategic_protocol",
+        "stub"
+      ]
+    },
+    {
+      "id": "14kk:strategic_protocol.js#StrategicAnalyzer.planInnovation",
+      "source": "14kk",
+      "path": "strategic_protocol.js",
+      "symbol": "StrategicAnalyzer.planInnovation",
+      "lang": "js",
+      "what": "function",
+      "name": "לתכנן חדשנות",
+      "does": "לתכנן חדשנות — בלי קלט, ומחזיר משהו. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "strategic_protocol",
+        "stub"
+      ]
+    },
+    {
+      "id": "14kk:strategic_protocol.js#StrategicAnalyzer.planMarketEntry",
+      "source": "14kk",
+      "path": "strategic_protocol.js",
+      "symbol": "StrategicAnalyzer.planMarketEntry",
+      "lang": "js",
+      "what": "function",
+      "name": "לתכנן כניסה שוק",
+      "does": "לתכנן כניסה שוק — בלי קלט, ומחזיר משהו. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "strategic_protocol",
+        "stub"
+      ]
+    },
+    {
+      "id": "14kk:strategic_protocol.js#StrategicAnalyzer.planScaling",
+      "source": "14kk",
+      "path": "strategic_protocol.js",
+      "symbol": "StrategicAnalyzer.planScaling",
+      "lang": "js",
+      "what": "function",
+      "name": "לתכנן הגדלה",
+      "does": "לתכנן הגדלה — בלי קלט, ומחזיר משהו. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "strategic_protocol",
+        "stub"
+      ]
+    },
+    {
+      "id": "14kk:strategic_protocol.js#StrategicAnalyzer.projectRevenue",
+      "source": "14kk",
+      "path": "strategic_protocol.js",
+      "symbol": "StrategicAnalyzer.projectRevenue",
+      "lang": "js",
+      "what": "function",
+      "name": "להפיק הכנסות פרויקט",
+      "does": "להפיק הכנסות פרויקט — בלי קלט, ומחזיר משהו. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "strategic_protocol",
+        "stub"
+      ]
+    },
+    {
+      "id": "14kk:utils/code_optimizer.js#CodeOptimizer",
+      "source": "14kk",
+      "path": "utils/code_optimizer.js",
+      "symbol": "CodeOptimizer",
+      "lang": "js",
+      "what": "engine",
+      "name": "להפעיל מייעל קוד",
+      "does": "להפעיל מייעל קוד — בלי קלט, ומחזיר רשומת code_optimizer.",
+      "takes": [],
+      "gives": {
+        "kind": "record:code_optimizer",
+        "type": "CodeOptimizer"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "methods:4",
+        "name:auto",
+        "utils"
+      ]
+    },
+    {
+      "id": "14kk:work_manager_protocol.js#WorkManagerArchitect",
+      "source": "14kk",
+      "path": "work_manager_protocol.js",
+      "symbol": "WorkManagerArchitect",
+      "lang": "js",
+      "what": "engine",
+      "name": "להפעיל ארכיטקט מנהל עבודה",
+      "does": "להפעיל ארכיטקט מנהל עבודה — בלי קלט, ומחזיר רשומת work_manager_architect.",
+      "takes": [],
+      "gives": {
+        "kind": "record:work_manager_architect",
+        "type": "WorkManagerArchitect"
+      },
+      "pure": false,
+      "example": null,
+      "tags": [
+        "methods:42",
+        "name:auto",
+        "work_manager_protocol"
+      ]
+    },
+    {
+      "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.assessBusinessRisks",
+      "source": "14kk",
+      "path": "work_manager_protocol.js",
+      "symbol": "WorkManagerArchitect.assessBusinessRisks",
+      "lang": "js",
+      "what": "function",
+      "name": "להעריך סיכונים עסק",
+      "does": "להעריך סיכונים עסק — בלי קלט, ומחזיר רשומת business_risk. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "record:business_risk",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "stub",
+        "work_manager_protocol"
+      ]
+    },
+    {
+      "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.assessProjectRisks",
+      "source": "14kk",
+      "path": "work_manager_protocol.js",
+      "symbol": "WorkManagerArchitect.assessProjectRisks",
+      "lang": "js",
+      "what": "function",
+      "name": "להעריך סיכונים פרויקט",
+      "does": "להעריך סיכונים פרויקט — בלי קלט, ומחזיר רשומת project_risk. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "record:project_risk",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "stub",
+        "work_manager_protocol"
+      ]
+    },
+    {
+      "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.assessTechnicalRisks",
+      "source": "14kk",
+      "path": "work_manager_protocol.js",
+      "symbol": "WorkManagerArchitect.assessTechnicalRisks",
+      "lang": "js",
+      "what": "function",
+      "name": "להעריך סיכונים טכני",
+      "does": "להעריך סיכונים טכני — בלי קלט, ומחזיר רשומת technical_risk. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "record:technical_risk",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "stub",
+        "work_manager_protocol"
+      ]
+    },
+    {
+      "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.calculateBuffers",
+      "source": "14kk",
+      "path": "work_manager_protocol.js",
+      "symbol": "WorkManagerArchitect.calculateBuffers",
+      "lang": "js",
+      "what": "function",
+      "name": "לחשב חוצצים",
+      "does": "לחשב חוצצים — בלי קלט, ומחזיר מספר. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "number",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "stub",
+        "work_manager_protocol"
+      ]
+    },
+    {
+      "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.createMitigationPlans",
+      "source": "14kk",
+      "path": "work_manager_protocol.js",
+      "symbol": "WorkManagerArchitect.createMitigationPlans",
+      "lang": "js",
+      "what": "function",
+      "name": "ליצור תוכניות מיתון",
+      "does": "ליצור תוכניות מיתון — בלי קלט, ומחזיר רשומת mitigation_plan. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "record:mitigation_plan",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "stub",
+        "work_manager_protocol"
+      ]
+    },
+    {
+      "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.defineArchitecture",
+      "source": "14kk",
+      "path": "work_manager_protocol.js",
+      "symbol": "WorkManagerArchitect.defineArchitecture",
+      "lang": "js",
+      "what": "function",
+      "name": "להגדיר ארכיטקטורה",
+      "does": "להגדיר ארכיטקטורה — בלי קלט, ומחזיר משהו. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "stub",
+        "work_manager_protocol"
+      ]
+    },
+    {
+      "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.defineCodeQuality",
+      "source": "14kk",
+      "path": "work_manager_protocol.js",
+      "symbol": "WorkManagerArchitect.defineCodeQuality",
+      "lang": "js",
+      "what": "function",
+      "name": "להגדיר איכות קוד",
+      "does": "להגדיר איכות קוד — בלי קלט, ומחזיר משהו. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "stub",
+        "work_manager_protocol"
+      ]
+    },
+    {
+      "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.defineCommunicationProtocols",
+      "source": "14kk",
+      "path": "work_manager_protocol.js",
+      "symbol": "WorkManagerArchitect.defineCommunicationProtocols",
+      "lang": "js",
+      "what": "function",
+      "name": "להגדיר פרוטוקולים תקשורת",
+      "does": "להגדיר פרוטוקולים תקשורת — בלי קלט, ומחזיר משהו. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "stub",
+        "work_manager_protocol"
+      ]
+    },
+    {
+      "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.defineDocumentationStandards",
+      "source": "14kk",
+      "path": "work_manager_protocol.js",
+      "symbol": "WorkManagerArchitect.defineDocumentationStandards",
+      "lang": "js",
+      "what": "function",
+      "name": "להגדיר תקנים תיעוד",
+      "does": "להגדיר תקנים תיעוד — בלי קלט, ומחזיר משהו. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "stub",
+        "work_manager_protocol"
+      ]
+    },
+    {
+      "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.defineInterfaces",
+      "source": "14kk",
+      "path": "work_manager_protocol.js",
+      "symbol": "WorkManagerArchitect.defineInterfaces",
+      "lang": "js",
+      "what": "function",
+      "name": "להגדיר ממשקים",
+      "does": "להגדיר ממשקים — בלי קלט, ומחזיר משהו. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "stub",
+        "work_manager_protocol"
+      ]
+    },
+    {
+      "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.defineMeetings",
+      "source": "14kk",
+      "path": "work_manager_protocol.js",
+      "symbol": "WorkManagerArchitect.defineMeetings",
+      "lang": "js",
+      "what": "function",
+      "name": "להגדיר פגישות",
+      "does": "להגדיר פגישות — בלי קלט, ומחזיר משהו. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "stub",
+        "work_manager_protocol"
+      ]
+    },
+    {
+      "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.defineMilestones",
+      "source": "14kk",
+      "path": "work_manager_protocol.js",
+      "symbol": "WorkManagerArchitect.defineMilestones",
+      "lang": "js",
+      "what": "function",
+      "name": "להגדיר אבני דרך",
+      "does": "להגדיר אבני דרך — בלי קלט, ומחזיר משהו. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "stub",
+        "work_manager_protocol"
+      ]
+    },
+    {
+      "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.defineNextSteps",
+      "source": "14kk",
+      "path": "work_manager_protocol.js",
+      "symbol": "WorkManagerArchitect.defineNextSteps",
+      "lang": "js",
+      "what": "function",
+      "name": "להגדיר צעדים הבא",
+      "does": "להגדיר צעדים הבא — בלי קלט, ומחזיר משהו. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "stub",
+        "work_manager_protocol"
+      ]
+    },
+    {
+      "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.definePerformanceStandards",
+      "source": "14kk",
+      "path": "work_manager_protocol.js",
+      "symbol": "WorkManagerArchitect.definePerformanceStandards",
+      "lang": "js",
+      "what": "function",
+      "name": "להגדיר תקנים ביצועים",
+      "does": "להגדיר תקנים ביצועים — בלי קלט, ומחזיר משהו. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "stub",
+        "work_manager_protocol"
+      ]
+    },
+    {
+      "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.definePhases",
+      "source": "14kk",
+      "path": "work_manager_protocol.js",
+      "symbol": "WorkManagerArchitect.definePhases",
+      "lang": "js",
+      "what": "function",
+      "name": "להגדיר שלבים",
+      "does": "להגדיר שלבים — בלי קלט, ומחזיר משהו. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "stub",
+        "work_manager_protocol"
+      ]
+    },
+    {
+      "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.defineQualityMonitoring",
+      "source": "14kk",
+      "path": "work_manager_protocol.js",
+      "symbol": "WorkManagerArchitect.defineQualityMonitoring",
+      "lang": "js",
+      "what": "function",
+      "name": "להגדיר ניטור איכות",
+      "does": "להגדיר ניטור איכות — בלי קלט, ומחזיר משהו. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "stub",
+        "work_manager_protocol"
+      ]
+    },
+    {
+      "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.defineReporting",
+      "source": "14kk",
+      "path": "work_manager_protocol.js",
+      "symbol": "WorkManagerArchitect.defineReporting",
+      "lang": "js",
+      "what": "function",
+      "name": "להגדיר דיווח",
+      "does": "להגדיר דיווח — בלי קלט, ומחזיר משהו. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "stub",
+        "work_manager_protocol"
+      ]
+    },
+    {
+      "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.defineRiskMonitoring",
+      "source": "14kk",
+      "path": "work_manager_protocol.js",
+      "symbol": "WorkManagerArchitect.defineRiskMonitoring",
+      "lang": "js",
+      "what": "function",
+      "name": "להגדיר ניטור סיכון",
+      "does": "להגדיר ניטור סיכון — בלי קלט, ומחזיר משהו. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "stub",
+        "work_manager_protocol"
+      ]
+    },
+    {
+      "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.defineSecurityStandards",
+      "source": "14kk",
+      "path": "work_manager_protocol.js",
+      "symbol": "WorkManagerArchitect.defineSecurityStandards",
+      "lang": "js",
+      "what": "function",
+      "name": "להגדיר תקנים אבטחה",
+      "does": "להגדיר תקנים אבטחה — בלי קלט, ומחזיר משהו. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "stub",
+        "work_manager_protocol"
+      ]
+    },
+    {
+      "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.defineSuccessMetrics",
+      "source": "14kk",
+      "path": "work_manager_protocol.js",
+      "symbol": "WorkManagerArchitect.defineSuccessMetrics",
+      "lang": "js",
+      "what": "function",
+      "name": "להגדיר מדדים הצלחה",
+      "does": "להגדיר מדדים הצלחה — בלי קלט, ומחזיר משהו. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "stub",
+        "work_manager_protocol"
+      ]
+    },
+    {
+      "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.defineTeamStructure",
+      "source": "14kk",
+      "path": "work_manager_protocol.js",
+      "symbol": "WorkManagerArchitect.defineTeamStructure",
+      "lang": "js",
+      "what": "function",
+      "name": "להגדיר מבנה צוות",
+      "does": "להגדיר מבנה צוות — בלי קלט, ומחזיר משהו. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "stub",
+        "work_manager_protocol"
+      ]
+    },
+    {
+      "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.defineTestingStandards",
+      "source": "14kk",
+      "path": "work_manager_protocol.js",
+      "symbol": "WorkManagerArchitect.defineTestingStandards",
+      "lang": "js",
+      "what": "function",
+      "name": "להגדיר תקנים בדיקות",
+      "does": "להגדיר תקנים בדיקות — בלי קלט, ומחזיר משהו. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "stub",
+        "work_manager_protocol"
+      ]
+    },
+    {
+      "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.estimateBudget",
+      "source": "14kk",
+      "path": "work_manager_protocol.js",
+      "symbol": "WorkManagerArchitect.estimateBudget",
+      "lang": "js",
+      "what": "function",
+      "name": "להעריך תקציב",
+      "does": "להעריך תקציב — בלי קלט, ומחזיר מספר. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "number",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "stub",
+        "work_manager_protocol"
+      ]
+    },
+    {
+      "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.generateExecutiveSummary",
+      "source": "14kk",
+      "path": "work_manager_protocol.js",
+      "symbol": "WorkManagerArchitect.generateExecutiveSummary",
+      "lang": "js",
+      "what": "function",
+      "name": "להפיק סיכום מנהלים",
+      "does": "להפיק סיכום מנהלים — בלי קלט, ומחזיר רשומת executive_summary. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "record:executive_summary",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "stub",
+        "work_manager_protocol"
+      ]
+    },
+    {
+      "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.generateImplementationPlan",
+      "source": "14kk",
+      "path": "work_manager_protocol.js",
+      "symbol": "WorkManagerArchitect.generateImplementationPlan",
+      "lang": "js",
+      "what": "function",
+      "name": "להפיק תוכנית יישום",
+      "does": "להפיק תוכנית יישום — בלי קלט, ומחזיר רשומת implementation_plan. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "record:implementation_plan",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "stub",
+        "work_manager_protocol"
+      ]
+    },
+    {
+      "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.identifyComponents",
+      "source": "14kk",
+      "path": "work_manager_protocol.js",
+      "symbol": "WorkManagerArchitect.identifyComponents",
+      "lang": "js",
+      "what": "function",
+      "name": "לזהות רכיבים",
+      "does": "לזהות רכיבים — בלי קלט, ומחזיר רשימה. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "list",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "stub",
+        "work_manager_protocol"
+      ]
+    },
+    {
+      "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.identifyCriticalPath",
+      "source": "14kk",
+      "path": "work_manager_protocol.js",
+      "symbol": "WorkManagerArchitect.identifyCriticalPath",
+      "lang": "js",
+      "what": "function",
+      "name": "לזהות נתיב קריטי",
+      "does": "לזהות נתיב קריטי — בלי קלט, ומחזיר רשימה. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "list",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "stub",
+        "work_manager_protocol"
+      ]
+    },
+    {
+      "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.identifyTrainingNeeds",
+      "source": "14kk",
+      "path": "work_manager_protocol.js",
+      "symbol": "WorkManagerArchitect.identifyTrainingNeeds",
+      "lang": "js",
+      "what": "function",
+      "name": "לזהות צרכים הדרכה",
+      "does": "לזהות צרכים הדרכה — בלי קלט, ומחזיר רשימה. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "list",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "stub",
+        "work_manager_protocol"
+      ]
+    },
+    {
+      "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.mapDataFlow",
+      "source": "14kk",
+      "path": "work_manager_protocol.js",
+      "symbol": "WorkManagerArchitect.mapDataFlow",
+      "lang": "js",
+      "what": "function",
+      "name": "למפות זרימה נתונים",
+      "does": "למפות זרימה נתונים — בלי קלט, ומחזיר משהו. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "stub",
+        "work_manager_protocol"
+      ]
+    },
+    {
+      "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.mapDependencies",
+      "source": "14kk",
+      "path": "work_manager_protocol.js",
+      "symbol": "WorkManagerArchitect.mapDependencies",
+      "lang": "js",
+      "what": "function",
+      "name": "למפות תלויות",
+      "does": "למפות תלויות — בלי קלט, ומחזיר משהו. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "stub",
+        "work_manager_protocol"
+      ]
+    },
+    {
+      "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.mapTimelineDependencies",
+      "source": "14kk",
+      "path": "work_manager_protocol.js",
+      "symbol": "WorkManagerArchitect.mapTimelineDependencies",
+      "lang": "js",
+      "what": "function",
+      "name": "למפות תלויות ציר זמן",
+      "does": "למפות תלויות ציר זמן — בלי קלט, ומחזיר משהו. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "stub",
+        "work_manager_protocol"
+      ]
+    },
+    {
+      "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.planInfrastructure",
+      "source": "14kk",
+      "path": "work_manager_protocol.js",
+      "symbol": "WorkManagerArchitect.planInfrastructure",
+      "lang": "js",
+      "what": "function",
+      "name": "לתכנן תשתית",
+      "does": "לתכנן תשתית — בלי קלט, ומחזיר משהו. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "stub",
+        "work_manager_protocol"
+      ]
+    },
+    {
+      "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.selectCommunicationTools",
+      "source": "14kk",
+      "path": "work_manager_protocol.js",
+      "symbol": "WorkManagerArchitect.selectCommunicationTools",
+      "lang": "js",
+      "what": "function",
+      "name": "לבחור כלים תקשורת",
+      "does": "לבחור כלים תקשורת — בלי קלט, ומחזיר משהו. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "stub",
+        "work_manager_protocol"
+      ]
+    },
+    {
+      "id": "14kk:work_manager_protocol.js#WorkManagerArchitect.selectTools",
+      "source": "14kk",
+      "path": "work_manager_protocol.js",
+      "symbol": "WorkManagerArchitect.selectTools",
+      "lang": "js",
+      "what": "function",
+      "name": "לבחור כלים",
+      "does": "לבחור כלים — בלי קלט, ומחזיר משהו. (שלד: מחזיר ערך קבוע)",
+      "takes": [],
+      "gives": {
+        "kind": "unknown",
+        "type": null
+      },
+      "pure": true,
+      "example": null,
+      "tags": [
+        "method",
+        "name:auto",
+        "stub",
+        "work_manager_protocol"
+      ]
+    }
+  ]
+}
