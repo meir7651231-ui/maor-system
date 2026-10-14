@@ -8,6 +8,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import ts from 'typescript';
+import { blankingHost } from '../../lib/blank.mjs';
 
 const BASE_OPTIONS = {
   target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext, moduleResolution: ts.ModuleResolutionKind.Bundler,
@@ -37,7 +38,7 @@ function pathsOf(file, seen = new Set()) {
 /** תוכנית לקבצי-הריפו; root = שורש-הריפו (לא מחפשים הגדרות מעליו). */
 export function makeRepoProgram(files, root) {
   const options = { ...BASE_OPTIONS };
-  const host = ts.createCompilerHost(options);
+  const host = blankingHost(options); // 🧽 SELF-V2: TS בלי הערות — הפותח תלוי רק במה שהטביעה מכסה
   const rootAbs = path.resolve(root);
   const cfgMemo = new Map(); // תיקייה ⇒ {paths, base} | null
   const cfgFor = (dir) => {

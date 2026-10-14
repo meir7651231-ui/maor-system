@@ -1,0 +1,432 @@
+{
+ "version": 1,
+ "seed": 13269520,
+ "jobs": {
+  "catalog/inner/gen/14kk/api/server_advanced.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/api/server_advanced.js.mjs"
+   ],
+   "key": "17767453072a4b34"
+  },
+  "catalog/inner/gen/14kk/api/server_minimal.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/api/server_minimal.js.mjs"
+   ],
+   "key": "6b1ac96f2624ab02"
+  },
+  "catalog/inner/gen/14kk/api/server_optimized.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/api/server_optimized.js.mjs"
+   ],
+   "key": "d9f2099cdb3743b7"
+  },
+  "catalog/inner/gen/14kk/archive/architect-bridge.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/archive/architect-bridge.js.mjs"
+   ],
+   "key": "d0173cebe385a46a"
+  },
+  "catalog/inner/gen/14kk/archive/architect-core-final.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/archive/architect-core-final.js.mjs"
+   ],
+   "key": "2de845401e338084"
+  },
+  "catalog/inner/gen/14kk/archive/architect-core-v2.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/archive/architect-core-v2.js.mjs"
+   ],
+   "key": "241f6b4cb0e79aef"
+  },
+  "catalog/inner/gen/14kk/archive/architect-core.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/archive/architect-core.js.mjs"
+   ],
+   "key": "3d9a710083c3e81f"
+  },
+  "catalog/inner/gen/14kk/archive/final-bridge-v1.3.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/archive/final-bridge-v1.3.js.mjs"
+   ],
+   "key": "07e173bcc3eb410d"
+  },
+  "catalog/inner/gen/14kk/archive/final-bridge.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/archive/final-bridge.js.mjs"
+   ],
+   "key": "bf25abf6a14ea7ff"
+  },
+  "catalog/inner/gen/14kk/check_protocol_activity.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/check_protocol_activity.js.mjs"
+   ],
+   "key": "ce43773499b42e8a"
+  },
+  "catalog/inner/gen/14kk/code_optimization_protocol.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/code_optimization_protocol.js.mjs"
+   ],
+   "key": "85b3ccee26a62164"
+  },
+  "catalog/inner/gen/14kk/communication_protocol.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/communication_protocol.js.mjs"
+   ],
+   "key": "699604f9b20784c1"
+  },
+  "catalog/inner/gen/14kk/comprehensive_testing_suite.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/comprehensive_testing_suite.js.mjs"
+   ],
+   "key": "d76333f89cc70e85"
+  },
+  "catalog/inner/gen/14kk/construction_supervisor_protocol.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/construction_supervisor_protocol.js.mjs"
+   ],
+   "key": "074968f45462aee8"
+  },
+  "catalog/inner/gen/14kk/debug-telegram.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/debug-telegram.js.mjs"
+   ],
+   "key": "08cad3e7e2adacb5"
+  },
+  "catalog/inner/gen/14kk/debug_telegram_message.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/debug_telegram_message.js.mjs"
+   ],
+   "key": "5031282f43dd6b85"
+  },
+  "catalog/inner/gen/14kk/development_progress_plan.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/development_progress_plan.js.mjs"
+   ],
+   "key": "fe9ab270d2c61da9"
+  },
+  "catalog/inner/gen/14kk/final_supervisor_protocol.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/final_supervisor_protocol.js.mjs"
+   ],
+   "key": "d8a4858b2aaac212"
+  },
+  "catalog/inner/gen/14kk/fix_api_endpoints.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/fix_api_endpoints.js.mjs"
+   ],
+   "key": "1660fc7ae665b135"
+  },
+  "catalog/inner/gen/14kk/fix_protocol_syntax.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/fix_protocol_syntax.js.mjs"
+   ],
+   "key": "3b121eacbfff4150"
+  },
+  "catalog/inner/gen/14kk/fix_protocol_syntax_v2.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/fix_protocol_syntax_v2.js.mjs"
+   ],
+   "key": "a4a5b7cf9face797"
+  },
+  "catalog/inner/gen/14kk/fix_ssl_and_start_server.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/fix_ssl_and_start_server.js.mjs"
+   ],
+   "key": "3fe2eacf83343514"
+  },
+  "catalog/inner/gen/14kk/fix_ssl_and_start_server_fixed.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/fix_ssl_and_start_server_fixed.js.mjs"
+   ],
+   "key": "5caad3f9ac285472"
+  },
+  "catalog/inner/gen/14kk/frontend/src/app_advanced.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/frontend/src/app_advanced.js.mjs"
+   ],
+   "key": "c0171ba9c305305c"
+  },
+  "catalog/inner/gen/14kk/frontend/src/app_fixed.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/frontend/src/app_fixed.js.mjs"
+   ],
+   "key": "401177ed7a01bc11"
+  },
+  "catalog/inner/gen/14kk/frontend/src/pages/AIChat.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/frontend/src/pages/AIChat.js.mjs"
+   ],
+   "key": "8bec95218a697c34"
+  },
+  "catalog/inner/gen/14kk/frontend/src/pages/Assets.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/frontend/src/pages/Assets.js.mjs"
+   ],
+   "key": "39026e80b444624a"
+  },
+  "catalog/inner/gen/14kk/full_aegis_scan.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/full_aegis_scan.js.mjs"
+   ],
+   "key": "4899c6eedac5cd8b"
+  },
+  "catalog/inner/gen/14kk/get_chat_id.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/get_chat_id.js.mjs"
+   ],
+   "key": "2009899b602d990e"
+  },
+  "catalog/inner/gen/14kk/get_chat_id_fixed.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/get_chat_id_fixed.js.mjs"
+   ],
+   "key": "fd3f0de307ddc6c4"
+  },
+  "catalog/inner/gen/14kk/knowledge_protocol.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/knowledge_protocol.js.mjs"
+   ],
+   "key": "5ec87bcff37fd7c3"
+  },
+  "catalog/inner/gen/14kk/mvp/asset-manager-mvp.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/mvp/asset-manager-mvp.js.mjs"
+   ],
+   "key": "28638af22e362859"
+  },
+  "catalog/inner/gen/14kk/mvp/simple-mvp.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/mvp/simple-mvp.js.mjs"
+   ],
+   "key": "820f09834b97a23e"
+  },
+  "catalog/inner/gen/14kk/platform_status_report.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/platform_status_report.js.mjs"
+   ],
+   "key": "bcb0a1e56e94fb32"
+  },
+  "catalog/inner/gen/14kk/quick_test.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/quick_test.js.mjs"
+   ],
+   "key": "46b5d69a56d0b845"
+  },
+  "catalog/inner/gen/14kk/self_reviewing_code.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/self_reviewing_code.js.mjs"
+   ],
+   "key": "7abd608aa00d44a4"
+  },
+  "catalog/inner/gen/14kk/services/ai-telegram-integration.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/services/ai-telegram-integration.js.mjs"
+   ],
+   "key": "1a6aead3ab43c76c"
+  },
+  "catalog/inner/gen/14kk/services/api-gateway/server.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/services/api-gateway/server.js.mjs"
+   ],
+   "key": "0d56ca99c2f8b8f3"
+  },
+  "catalog/inner/gen/14kk/services/auth-service/server.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/services/auth-service/server.js.mjs"
+   ],
+   "key": "add096a4964f1e9b"
+  },
+  "catalog/inner/gen/14kk/services/business-integrations.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/services/business-integrations.js.mjs"
+   ],
+   "key": "73580f895ac0f808"
+  },
+  "catalog/inner/gen/14kk/services/telegram-bot-service.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/services/telegram-bot-service.js.mjs"
+   ],
+   "key": "40e27237e962ef10"
+  },
+  "catalog/inner/gen/14kk/strategic_protocol.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/strategic_protocol.js.mjs"
+   ],
+   "key": "85b2778cd974f281"
+  },
+  "catalog/inner/gen/14kk/test_api_endpoints.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/test_api_endpoints.js.mjs"
+   ],
+   "key": "02d2bd4c8d3e5463"
+  },
+  "catalog/inner/gen/14kk/test_auth.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/test_auth.js.mjs"
+   ],
+   "key": "99f04b009f1c27df"
+  },
+  "catalog/inner/gen/14kk/test_debug_encoding.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/test_debug_encoding.js.mjs"
+   ],
+   "key": "012b4356fcbe0829"
+  },
+  "catalog/inner/gen/14kk/test_frontend_api_connection.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/test_frontend_api_connection.js.mjs"
+   ],
+   "key": "ac130507eeb8cdc3"
+  },
+  "catalog/inner/gen/14kk/test_simple_hebrew.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/test_simple_hebrew.js.mjs"
+   ],
+   "key": "651bb6c0894c4f8f"
+  },
+  "catalog/inner/gen/14kk/test_simple_message.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/test_simple_message.js.mjs"
+   ],
+   "key": "265e2d8adb91748f"
+  },
+  "catalog/inner/gen/14kk/test_telegram.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/test_telegram.js.mjs"
+   ],
+   "key": "6535eba8a6c3d8f8"
+  },
+  "catalog/inner/gen/14kk/test_telegram_no_emoji.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/test_telegram_no_emoji.js.mjs"
+   ],
+   "key": "9c335febd88b19b1"
+  },
+  "catalog/inner/gen/14kk/test_telegram_simple.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/test_telegram_simple.js.mjs"
+   ],
+   "key": "cd029a13fd7c4c3e"
+  },
+  "catalog/inner/gen/14kk/test_telegram_ssl_fix.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/test_telegram_ssl_fix.js.mjs"
+   ],
+   "key": "0a020620034fe5fc"
+  },
+  "catalog/inner/gen/14kk/test_very_simple.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/test_very_simple.js.mjs"
+   ],
+   "key": "e0f6745dfd5ae42b"
+  },
+  "catalog/inner/gen/14kk/ultimate_aegis_scan.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/ultimate_aegis_scan.js.mjs"
+   ],
+   "key": "9454eb232f242c5e"
+  },
+  "catalog/inner/gen/14kk/unused_files_backup/demo.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/unused_files_backup/demo.js.mjs"
+   ],
+   "key": "daaa43f6a350063f"
+  },
+  "catalog/inner/gen/14kk/unused_files_backup/machine-bridge.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/unused_files_backup/machine-bridge.js.mjs"
+   ],
+   "key": "963f6f168ca73857"
+  },
+  "catalog/inner/gen/14kk/unused_files_backup/persistent-listener.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/unused_files_backup/persistent-listener.js.mjs"
+   ],
+   "key": "a3e945349d83554a"
+  },
+  "catalog/inner/gen/14kk/unused_files_backup/silent-architect-bridge.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/unused_files_backup/silent-architect-bridge.js.mjs"
+   ],
+   "key": "31d6b1b85431715b"
+  },
+  "catalog/inner/gen/14kk/unused_files_backup/simple-listener.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/unused_files_backup/simple-listener.js.mjs"
+   ],
+   "key": "9fe9c31ed8ed6c9b"
+  },
+  "catalog/inner/gen/14kk/unused_files_backup/telegram-bot-connected.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/unused_files_backup/telegram-bot-connected.js.mjs"
+   ],
+   "key": "64ae9cc40c434862"
+  },
+  "catalog/inner/gen/14kk/unused_files_backup/telegram-bot-debug.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/unused_files_backup/telegram-bot-debug.js.mjs"
+   ],
+   "key": "616ac5128bdb1f2a"
+  },
+  "catalog/inner/gen/14kk/unused_files_backup/telegram-bot-fixed.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/unused_files_backup/telegram-bot-fixed.js.mjs"
+   ],
+   "key": "eaadd7bbc9c47f8e"
+  },
+  "catalog/inner/gen/14kk/unused_files_backup/telegram-bot-pipeline.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/unused_files_backup/telegram-bot-pipeline.js.mjs"
+   ],
+   "key": "50e0b2542d36167f"
+  },
+  "catalog/inner/gen/14kk/unused_files_backup/telegram-bot-silent.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/unused_files_backup/telegram-bot-silent.js.mjs"
+   ],
+   "key": "ad284b1b931b6172"
+  },
+  "catalog/inner/gen/14kk/unused_files_backup/telegram-bot.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/unused_files_backup/telegram-bot.js.mjs"
+   ],
+   "key": "f779366f59fc199c"
+  },
+  "catalog/inner/gen/14kk/unused_files_backup/test-telegram.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/unused_files_backup/test-telegram.js.mjs"
+   ],
+   "key": "cb5b061d83015c38"
+  },
+  "catalog/inner/gen/14kk/unused_files_backup/unified-bridge.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/unused_files_backup/unified-bridge.js.mjs"
+   ],
+   "key": "c06d1777dcf84e92"
+  },
+  "catalog/inner/gen/14kk/unused_files_backup/watchdog.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/unused_files_backup/watchdog.js.mjs"
+   ],
+   "key": "968dc895ab7ce0c2"
+  },
+  "catalog/inner/gen/14kk/unused_files_backup/windows-service.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/unused_files_backup/windows-service.js.mjs"
+   ],
+   "key": "faf48394da53a478"
+  },
+  "catalog/inner/gen/14kk/unused_files_backup/working-bridge.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/unused_files_backup/working-bridge.js.mjs"
+   ],
+   "key": "249d925ab03b2705"
+  },
+  "catalog/inner/gen/14kk/utils/code_optimizer.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/14kk/utils/code_optimizer.js.mjs"
+   ],
+   "key": "324f75e2afb8de7c"
+  }
+ }
+}

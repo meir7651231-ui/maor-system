@@ -11,9 +11,10 @@ import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { pathToFileURL, fileURLToPath } from 'node:url';
+import { byId } from '../self/parts.mjs'; // 🧩 SELF-V2: «ממיין» — חלק-המכונה המוכח (במקום העתק מקומי)
 
-const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '../..');
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const OUT = path.join(ROOT, 'catalog/sources/rings.json');
 const SHELF = 'lab-rings/lab13/shelf3.json';
 const RUNNER = 'lab-rings/lab13/machine3s.mjs';
@@ -29,8 +30,9 @@ function resolveRef(ref) {
   for (const r of [`origin/${ref}`, ref]) { try { return git('rev-parse', '--verify', `${r}^{commit}`).trim(); } catch { /* הבא */ } }
   throw new Error(`ref לא נמצא: ${ref}`);
 }
-const SHA = resolveRef(REF);
-const show = (p) => git('show', `${SHA}:${p}`);
+// 🧪 SELF-V2: ה-sha נקרא מ-git בפעם הראשונה שצריך (לא בטעינה) — טהור-בטעינה
+let SHA_; const SHA = () => (SHA_ ??= resolveRef(REF));
+const show = (p) => git('show', `${SHA()}:${p}`);
 
 // ── המכונה: מחלצים את machine3s.mjs ואת מה שהוא קורא (import יחסי + קבצי-טקסט) לתיקייה זמנית ──
 async function loadMachine() {
@@ -165,16 +167,20 @@ async function build() {
       });
     }
   } finally { cleanup(); }
-  parts.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
-  return { source: 'rings', repo: 'meir7651231-ui/-ai-chat-server', ref: `${REF.replace(/^origin\//, '')}@${SHA}`, generatedAt: null, parts };
+  parts.sort(byId);
+  return { source: 'rings', repo: 'meir7651231-ui/-ai-chat-server', ref: `${REF.replace(/^origin\//, '')}@${SHA()}`, generatedAt: null, parts };
 }
 
-const text = JSON.stringify(await build(), null, 2) + '\n';
-if (CHECK) {
-  const cur = fs.existsSync(OUT) ? fs.readFileSync(OUT, 'utf8') : '';
-  if (cur !== text) { console.error(`✗ ${path.relative(ROOT, OUT)} לא מעודכן — הרץ: node catalog/scripts/rings-census.mjs`); process.exit(1); }
-  console.log(`✓ ${path.relative(ROOT, OUT)} מעודכן`);
-} else {
-  fs.mkdirSync(path.dirname(OUT), { recursive: true }); fs.writeFileSync(OUT, text);
-  const p = JSON.parse(text).parts; console.log(`✓ ${p.length} לבנים · ${p.filter((x) => x.example).length} עם דוגמה ⇒ ${path.relative(ROOT, OUT)}`);
+async function main() {
+  const text = JSON.stringify(await build(), null, 2) + '\n';
+  if (CHECK) {
+    const cur = fs.existsSync(OUT) ? fs.readFileSync(OUT, 'utf8') : '';
+    if (cur !== text) { console.error(`✗ ${path.relative(ROOT, OUT)} לא מעודכן — הרץ: node catalog/scripts/rings-census.mjs`); process.exit(1); }
+    console.log(`✓ ${path.relative(ROOT, OUT)} מעודכן`);
+  } else {
+    fs.mkdirSync(path.dirname(OUT), { recursive: true }); fs.writeFileSync(OUT, text);
+    const p = JSON.parse(text).parts; console.log(`✓ ${p.length} לבנים · ${p.filter((x) => x.example).length} עם דוגמה ⇒ ${path.relative(ROOT, OUT)}`);
+  }
 }
+
+if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) await main();

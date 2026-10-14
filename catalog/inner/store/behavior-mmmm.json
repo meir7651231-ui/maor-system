@@ -1,7 +1,7 @@
 {
 "v": 1,
 "kind": "behavior",
-"head": {"source":"inner-mmmm","ref":"main@4bec20ae13aab7abe6dc9b9ae63caa3ebfcefc3b","probe":{"version":1,"seed":13269520,"generatedAt":null},"totals":{"run":222,"runWithVerb":69,"twin":0,"static":72,"staticWithVerb":48,"why":{"no-fitting-input":72},"withMotion":0}},
+"head": {"source":"inner-mmmm","ref":"main@4bec20ae13aab7abe6dc9b9ae63caa3ebfcefc3b","probe":{"version":1,"seed":13269520,"generatedAt":null},"totals":{"run":222,"runWithVerb":67,"twin":0,"static":72,"staticWithVerb":48,"why":{"no-fitting-input":72},"withMotion":0}},
 "aligned": true,
 "traits": ["in[]>str const","in[arr]>str","in[obj]>nil|obj rec:mix","in[bool|num|str]>str const","in[str]>num int+","in[]>num const int+","in[str]>nil|obj","in[]>nil|obj","in[str]>str","in[str]>nil const","in[bool|num|str]>nil|obj","in[bool|num|str]>nil const","in[]>nil const","in[num|str]>str const","in[bool|num|str]>arr const","in[str]>arr","in[bool|num|str]>bool const","in[obj]>arr","in[bool|num|str]>nil|str","in[bool|num|str]>str","in[]>arr","in[]>arr const","in[bool|num|str,bool|num|str]>nil|str","in[bool|num|str,bool|num|str]>str","in[str]>obj const","in[arr,num|str]>nil|str","in[time]>time","in[str]>num const int","in[]>obj const","in[]>nil|str","in[bool|str]>str"],
 "rows": [
@@ -268,10 +268,10 @@
 ["r",[{"id":"normalize","on":"data","holds":"12/12"},{"id":"format","on":"data","holds":"15/15"}],"normalize","unknown",14,-1,0,"fef26ceb-783e4de2"],
 ["r",[],null,"unknown",24,12],
 ["r",[],null,"unknown",8,26,0,"2cb535ce-806e05f0"],
-["r",[{"id":"normalize","on":"text","holds":"12/12"},{"id":"format","on":"text","holds":"15/15"}],"normalize","text",24],
+["r",[],null,"text",24,8],
 ["r",[],null,"text",24,8],
 ["r",[{"id":"normalize","on":"raw","holds":"12/12"},{"id":"format","on":"raw","holds":"15/15"}],"normalize","text",24],
-["r",[{"id":"normalize","on":"normalized","holds":"12/12"},{"id":"format","on":"normalized","holds":"15/15"}],"normalize","text",24],
+["r",[],null,"text",24,8],
 ["r",[],null,"text",24,8],
 ["r",[],null,"text",24,15,0,"bd1d2d90-52ec9fb1"],
 ["r",[],null,"text",16,15,0,"bd1d2d90-2e1539c7"],

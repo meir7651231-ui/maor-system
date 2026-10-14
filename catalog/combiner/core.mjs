@@ -503,7 +503,14 @@ function ringsFor(need, ix, cores) {
     return r && r !== need.verb ? r : null;
   };
   // מסיים = מתאם שמקבל את הפלט כקלט הראשי שלו (byTake מכיל גם חלקים שהסוג הוא קלט משני אצלם)
-  const finishers = (kind) => (matFitsVerb(need.verb, mat) ? (ix.byTake.get(kind) || []).filter((g) => accepts(g, kind) && glue(g)).slice(0, CAP_LINK) : []);
+  // ⚡ SELF-V2: «מחפש לפי מפתח» — אותו סוג חוזר אלפי פעמים בטבעת 3 (60 ליבות × 40 מתאמים); הרשימה היא פונקציה של הסוג בלבד
+  // (בתוך אותו צורך) ⇒ מחושבת פעם אחת לכל סוג. אותן שרשראות בדיוק, באותו סדר.
+  const finMemo = new Map();
+  const finishers = (kind) => {
+    let got = finMemo.get(kind);
+    if (!got) { got = matFitsVerb(need.verb, mat) ? (ix.byTake.get(kind) || []).filter((g) => accepts(g, kind) && glue(g)).slice(0, CAP_LINK) : []; finMemo.set(kind, got); }
+    return got;
+  };
   const feeders = (into) => (from ? (ix.byTake.get(from) || []).filter((f) => accepts(f, from) && glue(f) && linked(f, into)).slice(0, CAP_LINK) : []);
   const startOk = (p) => !from || accepts(p, from);
   // "חומר" = על מה הפועל עובד (מילון-המטרות): החלק נותן אותו, או מקבל אותו כקלט הראשי

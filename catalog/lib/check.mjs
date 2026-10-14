@@ -8,14 +8,15 @@ import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const SCHEMA = JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)), '..', 'schema.json'), 'utf8'));
+// 🧪 SELF-V2: נקרא בפעם הראשונה שצריך (לא בטעינה) — טהור-בטעינה ⇒ המכונה יכולה להריץ ולהוכיח את הקובץ הזה
+let SCHEMA_; const SCHEMA = () => (SCHEMA_ ??= JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)), '..', 'schema.json'), 'utf8')));
 
 const typeOf = (v) => (v === null ? 'null' : Array.isArray(v) ? 'array' : typeof v === 'number' ? (Number.isInteger(v) ? 'integer' : 'number') : typeof v);
 
 function resolve(s) {
   if (s && s.$ref) {
     const path = s.$ref.replace(/^#\//, '').split('/');
-    let cur = SCHEMA;
+    let cur = SCHEMA();
     for (const k of path) cur = cur[k];
     return cur;
   }
@@ -23,7 +24,7 @@ function resolve(s) {
 }
 
 /** אימות ערך מול סכמה. מחזיר רשימת שגיאות (ריקה = תקין). */
-export function validateSchema(value, schema = SCHEMA, at = '$') {
+export function validateSchema(value, schema = SCHEMA(), at = '$') {
   const s = resolve(schema);
   const errs = [];
   if (s.oneOf) {
@@ -66,7 +67,7 @@ export const NAME_VERBS = new Set(
 
 /** כללי-החוזה לחלק אחד, מעבר לסכמה. `strict` ⇒ גם "השם מתחיל בפועל מהרשימה". */
 export function validatePart(p, { strict = true } = {}) {
-  const errs = validateSchema(p, SCHEMA.$defs.part, 'part');
+  const errs = validateSchema(p, SCHEMA().$defs.part, 'part');
   if (p.id !== `${p.source}:${p.path}#${p.symbol}`) errs.push('id ≠ <source>:<path>#<symbol>');
   const words = String(p.name ?? '').trim().split(/\s+/).filter(Boolean).map((w, i) => (i === 0 ? w.replace(/[,.;:]+$/, '') : w));
   if (!/[א-ת]/.test(p.name ?? '')) errs.push('name: אין עברית');

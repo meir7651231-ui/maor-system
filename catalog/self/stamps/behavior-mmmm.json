@@ -1,0 +1,89 @@
+{
+ "version": 1,
+ "seed": 13269520,
+ "files": {
+  "artifacts/agents-chat/src/lib/utils.ts": [
+   "artifacts/agents-chat/src/lib/utils.ts"
+  ],
+  "artifacts/api-server/src/routes/notes.ts": [
+   "artifacts/api-server/src/routes/notes.ts"
+  ],
+  "artifacts/api-server/src/swarm/agents.ts": [
+   "artifacts/api-server/src/swarm/agents.ts"
+  ],
+  "ask-director-keys.js": [
+   "ask-director-keys.js"
+  ],
+  "chat_manager/server.js": [
+   "chat_manager/server.js"
+  ],
+  "final_meeting.js": [
+   "final_meeting.js"
+  ],
+  "lib/api-client-react/src/custom-fetch.ts": [
+   "lib/api-client-react/src/custom-fetch.ts"
+  ],
+  "lib/integrations-openai-ai-react/src/audio/audio-playback-worklet.js": [
+   "lib/integrations-openai-ai-react/src/audio/audio-playback-worklet.js"
+  ],
+  "lib/integrations-openai-ai-react/src/audio/audio-utils.ts": [
+   "lib/integrations-openai-ai-react/src/audio/audio-utils.ts"
+  ],
+  "lib/integrations-openai-ai-react/src/audio/useVoiceRecorder.ts": [
+   "lib/integrations-openai-ai-react/src/audio/useVoiceRecorder.ts"
+  ],
+  "lib/integrations-openai-ai-react/src/audio/useVoiceStream.ts": [
+   "lib/integrations-openai-ai-react/src/audio/audio-utils.ts",
+   "lib/integrations-openai-ai-react/src/audio/useAudioPlayback.ts",
+   "lib/integrations-openai-ai-react/src/audio/useVoiceStream.ts"
+  ],
+  "lib/integrations-openai-ai-server/src/audio/client.ts": [
+   "lib/integrations-openai-ai-server/src/audio/client.ts"
+  ],
+  "lib/integrations-openai-ai-server/src/batch/utils.ts": [
+   "lib/integrations-openai-ai-server/src/batch/utils.ts"
+  ],
+  "meeting.js": [
+   "meeting.js"
+  ]
+ },
+ "parts": {
+  "mmmm:artifacts/agents-chat/src/lib/utils.ts#cn": "8db1dd9e68dec887",
+  "mmmm:artifacts/api-server/src/routes/notes.ts#buildSummary": "0805e2453544b21c",
+  "mmmm:artifacts/api-server/src/routes/notes.ts#extractFromText": "8d6fee4d7f167ece",
+  "mmmm:artifacts/api-server/src/swarm/agents.ts#fallbackSuggestions": "9f9512150a6dceb6",
+  "mmmm:ask-director-keys.js#extractKeyRequirements": "66e1e2e9d8abf6c9",
+  "mmmm:chat_manager/server.js#communicateWithAgent": "fa1d55bb945e8fbd",
+  "mmmm:final_meeting.js#getRequestDetails": "b3dedca606fe2f6a",
+  "mmmm:lib/api-client-react/src/custom-fetch.ts#applyBaseUrl": "447085657451c26e",
+  "mmmm:lib/api-client-react/src/custom-fetch.ts#buildErrorMessage": "8fc479123edc55e1",
+  "mmmm:lib/api-client-react/src/custom-fetch.ts#getMediaType": "75570498fd70cdfe",
+  "mmmm:lib/api-client-react/src/custom-fetch.ts#getStringField": "52f3c1dfa7d016fc",
+  "mmmm:lib/api-client-react/src/custom-fetch.ts#hasNoBody": "c85dbbd2e846f71d",
+  "mmmm:lib/api-client-react/src/custom-fetch.ts#inferResponseType": "5f814f907708b007",
+  "mmmm:lib/api-client-react/src/custom-fetch.ts#isJsonMediaType": "0f1e04f8cb903e6e",
+  "mmmm:lib/api-client-react/src/custom-fetch.ts#isRequest": "46d1b74a9b9dadfa",
+  "mmmm:lib/api-client-react/src/custom-fetch.ts#isTextMediaType": "31d2883fe3439c65",
+  "mmmm:lib/api-client-react/src/custom-fetch.ts#isUrl": "8cba1569abdfadea",
+  "mmmm:lib/api-client-react/src/custom-fetch.ts#looksLikeJson": "314253c3964e1bad",
+  "mmmm:lib/api-client-react/src/custom-fetch.ts#mergeHeaders": "63612ab3b2742663",
+  "mmmm:lib/api-client-react/src/custom-fetch.ts#resolveMethod": "41523123c1e20dae",
+  "mmmm:lib/api-client-react/src/custom-fetch.ts#resolveUrl": "0a0467e06c7fbe67",
+  "mmmm:lib/api-client-react/src/custom-fetch.ts#stripBom": "fdcc682fa0868d4d",
+  "mmmm:lib/api-client-react/src/custom-fetch.ts#truncate": "95d9a429ac11e333",
+  "mmmm:lib/integrations-openai-ai-react/src/audio/audio-playback-worklet.js#RingBuffer.available": "c9bb99709f63b7f7",
+  "mmmm:lib/integrations-openai-ai-react/src/audio/audio-utils.ts#decodePCM16ToFloat32": "235447e78e998eda",
+  "mmmm:lib/integrations-openai-ai-react/src/audio/useVoiceRecorder.ts#getSupportedMimeType": "bfa69626c807a3e1",
+  "mmmm:lib/integrations-openai-ai-react/src/audio/useVoiceStream.ts#createAbortError": "51b4601dbfc892a8",
+  "mmmm:lib/integrations-openai-ai-react/src/audio/useVoiceStream.ts#isDoneEvent": "86d8dd0c1b1037d0",
+  "mmmm:lib/integrations-openai-ai-react/src/audio/useVoiceStream.ts#isVoiceStreamEvent": "64763a9b131d6fec",
+  "mmmm:lib/integrations-openai-ai-react/src/audio/useVoiceStream.ts#notifyError": "0c949a7771ada634",
+  "mmmm:lib/integrations-openai-ai-react/src/audio/useVoiceStream.ts#parseVoiceStreamEvent": "857f2aeefca162c4",
+  "mmmm:lib/integrations-openai-ai-react/src/audio/useVoiceStream.ts#readSseDataFromBlock": "dbb322c508be116f",
+  "mmmm:lib/integrations-openai-ai-react/src/audio/useVoiceStream.ts#toError": "1b791a82acca8889",
+  "mmmm:lib/integrations-openai-ai-server/src/audio/client.ts#detectAudioFormat": "b42da6538632222b",
+  "mmmm:lib/integrations-openai-ai-server/src/batch/utils.ts#isRateLimitError": "13a8a4675f1bb373",
+  "mmmm:meeting.js#getApiKeyForProvider": "9d6a60cdb89a6064",
+  "mmmm:meeting.js#getRequestDetails": "95699fdde9e84a4a"
+ }
+}

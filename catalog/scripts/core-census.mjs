@@ -10,21 +10,21 @@
  * הרשימה המלאה (מה זה עושה בעולם שלו, המתמטיקה, וריאנטים) — catalog/core/origins.json.
  *
  *   node catalog/scripts/core-census.mjs           # כותב
- *   node catalog/scripts/core-census.mjs --check   # יציאה 1 אם הקובץ לא מעודכן (בלי ה-ref)
- * דטרמיניסטי: generatedAt: null, חלקים ממוינים לפי id; ref = ענף@sha רק בכתיבה.
+ *   node catalog/scripts/core-census.mjs --check   # יציאה 1 אם הקובץ לא מעודכן (כולל ה-ref)
+ * דטרמיניסטי: generatedAt: null, חלקים ממוינים לפי id; ref = content@<טביעת-החלקים> (SELF-V2 — בלי ענף/sha).
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { MOTION_VERBS, CORE_OF } from '../lib/verbs-motion.mjs';
 import { validateSource } from '../lib/check.mjs';
-import { byId } from '../self/parts.mjs';
+import { byId, fnvHex } from '../self/parts.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const OUT = path.join(ROOT, 'catalog/sources/core.json');
 const CHECK = process.argv.includes('--check');
-const ORIGINS = JSON.parse(fs.readFileSync(path.join(ROOT, 'catalog/core/origins.json'), 'utf8')).verbs;
+// 🧪 SELF-V2: נקרא בפעם הראשונה שצריך (לא בטעינה) — טהור-בטעינה ⇒ המכונה יכולה להריץ ולהוכיח את הקובץ הזה
+let ORIGINS_; const ORIGINS = () => (ORIGINS_ ??= JSON.parse(fs.readFileSync(path.join(ROOT, 'catalog/core/origins.json'), 'utf8')).verbs);
 
 /** שם (פועל בהווה, עד 9 מילים, בלי לטינית) · מה נכנס · מה יוצא. */
 const CARD = {
@@ -45,17 +45,12 @@ const CARD = {
   'sun-position': { name: 'מחשב מתי השמש בזווית מתחת לאופק', takes: [['spec', 'record:sunSpec', '{lat, lon, depression}'], ['day', 'date', 'IsoDate']], gives: ['times', '{rise, noon, set} | null'] },
 };
 
-function refOf() {
-  try {
-    const br = execFileSync('git', ['-C', ROOT, 'rev-parse', '--abbrev-ref', 'HEAD'], { encoding: 'utf8' }).trim();
-    const sha = execFileSync('git', ['-C', ROOT, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
-    return br + '@' + sha;
-  } catch { return 'unknown@unknown'; }
-}
+/** 🧾 D1 (SELF-V2): ref = טביעת-התוכן של החלקים («מטביע חותם», fnvHex) — לא ענף@sha (תלוי במצב-git). */
+export const refOf = (parts) => 'content@' + fnvHex(JSON.stringify(parts));
 
 export function coreParts() {
   return MOTION_VERBS.map((v) => {
-    const c = CARD[v.id]; const { file, symbol } = CORE_OF[v.id]; const og = ORIGINS[v.id];
+    const c = CARD[v.id]; const { file, symbol } = CORE_OF[v.id]; const og = ORIGINS()[v.id];
     if (!c || !og) throw new Error('חסר כרטיס/מקורות ל-' + v.id);
     const best = og.origins.filter((o) => o.best);
     const ordered = [...best, ...og.origins.filter((o) => !o.best)];
@@ -81,11 +76,11 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.a
   const parts = coreParts();
   if (CHECK) {
     const cur = fs.existsSync(OUT) ? JSON.parse(fs.readFileSync(OUT, 'utf8')) : null;
-    const want = serialize(parts, cur?.ref ?? 'unknown@unknown');
+    const want = serialize(parts, refOf(parts));
     if (!cur || JSON.stringify(cur, null, 1) + '\n' !== want) { console.error('✗ catalog/sources/core.json לא מעודכן — הרץ: node catalog/scripts/core-census.mjs'); process.exit(1); }
     console.log('✓ catalog/sources/core.json מעודכן (' + parts.length + ' חלקים)');
   } else {
-    fs.writeFileSync(OUT, serialize(parts, refOf()));
+    fs.writeFileSync(OUT, serialize(parts, refOf(parts)));
     console.log('✓ catalog/sources/core.json — ' + parts.length + ' חלקים');
   }
 }

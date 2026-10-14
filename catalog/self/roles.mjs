@@ -10,7 +10,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
 import { fileURLToPath } from 'node:url';
-import { bundleFile, loadInSandbox, callerFor, resolvePart } from '../lib/sandbox.mjs';
+import { bundleFile, loadInSandbox, callerFor, resolvePart, resetBudget } from '../lib/sandbox.mjs';
 import { probePart, evalVerb, bindingsOf, baseCases, fOf, fnvHash } from '../lib/probe.mjs';
 import { VERB_BY_ID } from '../lib/verbs.mjs';
 export { ORIGINS } from './parts.mjs';
@@ -53,6 +53,12 @@ export const ROLES = [
   { path: 'catalog/lib/verbs.mjs', symbol: 'isoPlus', verb: 'offset', role: 'תאריך + ימים (חוקי-הזמן)', takes: [{ name: 'iso', d: { t: 'str', h: 'iso' } }, { name: 'days', d: { t: 'int', lo: -400, hi: 400 } }] },
   // ── מגביל
   { path: 'catalog/lib/verbs-net.mjs', symbol: 'kOf', verb: 'clamp', role: 'כמה שכנים (1..8)', takes: [{ name: 'near', d: { t: 'int', lo: -20, hi: 30 } }], adapt: '(fn) => (near) => fn({ near })' },
+  // ── SELF-V2: החלקים החדשים של המכונה — אותם חוקים (הסריקה-העצמית השנייה)
+  // (blankComments — צריך את המהדר, שאין בארגז-החול; מוכח במקום זה ב-self-v2.test: transpile בלי-הערות = transpile של הגרסה המנורמלת)
+  // «מנרמל» · relDep: נתיב-תלות ⇒ יחסי, ו-node_modules תמיד node_modules/… (גם דרך קישור) — חותמות שעוברות בין worktrees
+  { path: 'catalog/lib/probe-file.mjs', symbol: 'relDep', verb: 'normalize', role: 'נתיב-תלות בחותמות (worktree/שכפול)', takes: [{ name: 'f', d: lit('/r/src/a.ts', '/r/node_modules/x/i.js', '/w/node_modules/@s/y/i.js', '/r/catalog/core/a.mjs', 'node_modules/z.js') }], adapt: '(fn) => (f) => fn("/r", f)' },
+  // «מטביע חותם» · ref מבוסס-תוכן (D1): אותו אורך תמיד · חלקים שונים ⇒ ref שונה
+  { path: 'catalog/scripts/core-census.mjs', symbol: 'refOf', verb: 'fingerprint', role: 'ref של המפקדים — content@<טביעה> (בלי ענף)', takes: [{ name: 's', d: STR }], adapt: '(fn) => (s) => fn([{ id: s }])' },
   // ── ממיין
   { path: 'catalog/self/parts.mjs', symbol: 'byId', verb: 'sort', role: 'כל הממיינים-לפי-id (מפקדים · אינדקס · קורא · פותח)', takes: [{ name: 'ids', d: { t: 'arr', of: lit('orbit:a#x', 'orbit:b#y', 'core:c#z', 'inner-orbit:a#x.v', 'buildsmart:q#w', 'core-b:p#t') } }], adapt: '(fn) => (ids) => ids.map((id) => ({ id })).sort(fn).map((o) => o.id)' },
   { path: 'catalog/self/parts.mjs', symbol: 'rankCounts', verb: 'sort', role: 'מונים בסדר יורד (index.json · open-*.json · totals.why)', takes: [{ name: 'keys', d: { t: 'arr', u: true, of: lit('text', 'list', 'date', 'number', 'bool', 'geo', 'sound', 'form:slice', 'privacy') } }], adapt: '(fn) => (keys) => Object.keys(fn(Object.fromEntries(keys.map((k) => [k, k.length % 3]))))' },
@@ -79,6 +85,7 @@ export async function runRoles({ B, seed }) {
       const sig = { takes: r.takes };
       const s = (fnvHash(part + '|' + r.verb) ^ seed) >>> 0;
       const verb = VERB_BY_ID.get(r.verb);
+      resetBudget(mod.ctx); // ⏱️ SELF-V2: תקציב-צעדים לתפקיד
       const res = probePart({ sig, call: callerFor(mod.ctx, fn, s), seed: s, B, verbs: [verb] });
       const h = res.status === 'ran' ? res.verbs.find((v) => v.id === r.verb) : null;
       if (h) { out.push({ ...row, held: true, holds: h.holds }); continue; }

@@ -22,6 +22,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { shapeKindOfType } from '../lib/kind-shape.mjs';
+import { byId } from '../self/parts.mjs'; // 🧩 SELF-V2: «ממיין» — חלק-המכונה המוכח (במקום העתק מקומי)
 
 const require = createRequire(import.meta.url);
 const ts = require('typescript');
@@ -1002,12 +1003,11 @@ function mkPart({ path: p, symbol, lang, what, takes, gives, pure, tags, name, d
   };
 }
 
+/** 🧾 SELF-V2: הענף קבוע (main — כמו שהיה ב-fallback); רק ה-sha (כתובת-התוכן של השכפול) נקרא מ-git. */
 function repoRef() {
   try {
     const sha = execFileSync('git', ['-C', REPO, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
-    let br = execFileSync('git', ['-C', REPO, 'rev-parse', '--abbrev-ref', 'HEAD'], { encoding: 'utf8' }).trim();
-    if (br === 'HEAD') br = 'main';
-    return `${br}@${sha}`;
+    return `main@${sha}`;
   } catch {
     return 'main@unknown';
   }
@@ -1032,7 +1032,7 @@ export function census() {
   // מזהים כפולים (למשל overloads) — משאירים את הראשון
   const seen = new Set();
   const uniq = [];
-  for (const p of parts.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))) {
+  for (const p of parts.sort(byId)) {
     if (seen.has(p.id)) { stats.dupIds = (stats.dupIds || 0) + 1; continue; }
     seen.add(p.id);
     uniq.push(p);

@@ -1,0 +1,12 @@
+{
+ "version": 1,
+ "seed": 13269520,
+ "files": {
+  "verify.mjs": [
+   "../catsrc/yoman/verify.mjs"
+  ]
+ },
+ "parts": {
+  "yoman-habina:verify.mjs#walkStrings": "fab399b8c6f43a84"
+ }
+}

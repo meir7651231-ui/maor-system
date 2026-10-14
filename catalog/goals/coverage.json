@@ -22,7 +22,7 @@
       "needs": 92,
       "before": 92,
       "after": 92,
-      "parts": 716
+      "parts": 715
     },
     {
       "verb": "rotate",
@@ -86,7 +86,7 @@
       "needs": 30,
       "before": 30,
       "after": 30,
-      "parts": 187
+      "parts": 188
     },
     {
       "verb": "decay",
@@ -142,7 +142,7 @@
       "needs": 21,
       "before": 21,
       "after": 21,
-      "parts": 128
+      "parts": 129
     },
     {
       "verb": "oscillate",
@@ -302,7 +302,7 @@
       "needs": 7,
       "before": 7,
       "after": 7,
-      "parts": 1137
+      "parts": 1134
     },
     {
       "verb": "round",
@@ -310,7 +310,7 @@
       "needs": 7,
       "before": 7,
       "after": 7,
-      "parts": 429
+      "parts": 430
     },
     {
       "verb": "route",
@@ -318,7 +318,7 @@
       "needs": 7,
       "before": 7,
       "after": 7,
-      "parts": 74
+      "parts": 76
     },
     {
       "verb": "follow",

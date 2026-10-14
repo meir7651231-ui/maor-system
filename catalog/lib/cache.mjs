@@ -66,7 +66,8 @@ export function machineSalt() {
   if (saltMemo) return saltMemo;
   const files = [...filesUnder(['catalog/lib', 'catalog/core', 'catalog/inner/lib', 'catalog/combiner', 'src/lib/atoms/verify', 'src/lib/atoms/parts'], /\.(mjs|ts)$/), 'catalog/self/parts.mjs'];
   const ver = (pkg) => { try { return JSON.parse(fs.readFileSync(path.join(ROOT, 'node_modules', pkg, 'package.json'), 'utf8')).version; } catch { return '?'; } };
-  saltMemo = fingerprint(process.version, ver('typescript'), ver('rolldown'), ...files.flatMap((f) => [f, fs.readFileSync(path.join(ROOT, f))]));
+  // SELF-V2: גרסה ראשית של node בלבד (22) — החותמות שבריפו עוברות בין מחשבים (CI על 22.x אחר) בלי להיפסל
+  saltMemo = fingerprint('node' + process.versions.node.split('.')[0], ver('typescript'), ver('rolldown'), ...files.flatMap((f) => [f, fs.readFileSync(path.join(ROOT, f))]));
   return saltMemo;
 }
 
@@ -98,6 +99,7 @@ export function stampOf(files) {
  */
 export function inputsKey(tag, { isOutput = () => false, dirs = [] } = {}) {
   const files = filesUnder(['catalog', 'src/lib/atoms', ...dirs], /\.(mjs|js|cjs|ts|tsx|json|md|html|br)$/)
-    .filter((f) => !isOutput(f) && (!f.startsWith('catalog/self/') || f === 'catalog/self/parts.mjs' || f === 'catalog/self/roles.mjs'));
+    // SELF-V2: גם החותמות (catalog/self/stamps — הזהות של כל חלק, קלט של מכונת-השילוב); בלעדיהן מטמון-הריצה החזיר חותמות ישנות
+    .filter((f) => !isOutput(f) && (!f.startsWith('catalog/self/') || f === 'catalog/self/parts.mjs' || f === 'catalog/self/roles.mjs' || f.startsWith('catalog/self/stamps/')));
   return fingerprint(machineSalt(), tag, ...files.flatMap((f) => [f, fs.readFileSync(path.join(ROOT, f))]));
 }

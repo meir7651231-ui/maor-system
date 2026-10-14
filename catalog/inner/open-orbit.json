@@ -3,20 +3,20 @@
  "version": 2,
  "files": 503,
  "candidates": 16613,
- "sliced": 6600,
- "parts": 8426,
+ "sliced": 6622,
+ "parts": 8448,
  "modules": 424,
  "forms": {
-  "form:slice": 6600,
+  "form:slice": 6622,
   "form:step": 1826
  },
  "kinds": {
-  "inner:value": 7926,
-  "inner:accumulator": 498,
+  "inner:value": 7941,
+  "inner:accumulator": 505,
   "inner:envelope": 2
  },
  "parents": {
-  "parent:uncataloged": 6149,
+  "parent:uncataloged": 6171,
   "parent:cataloged": 2277
  },
  "skipped": {
@@ -34,10 +34,10 @@
   "loop-method-call": 90,
   "io": 83,
   "module-state": 79,
-  "privacy": 62,
   "dom": 60,
   "loop-unknown-call": 55,
   "new": 42,
+  "privacy": 40,
   "jsx": 32,
   "random": 31,
   "timer": 30,
@@ -57,8 +57,8 @@
   "global-call": 1
  },
  "via": {
-  "via:import": 2418,
-  "via:closure": 334
+  "via:import": 2440,
+  "via:closure": 336
  },
  "topFiles": [
   [
@@ -94,6 +94,10 @@
    104
   ],
   [
+   "src/lib/nedarimSync.ts",
+   101
+  ],
+  [
    "src/components/hosting/actions.ts",
    99
   ],
@@ -116,10 +120,6 @@
   [
    "src/components/parnasa/lib.ts",
    92
-  ],
-  [
-   "src/lib/config.ts",
-   91
   ]
  ]
 }

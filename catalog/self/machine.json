@@ -1,7 +1,7 @@
 {
  "source": "machine",
  "repo": "meir7651231-ui/maor-system",
- "ref": "catalog@0f7611c17a5d",
+ "ref": "catalog@a59e68bcd0ea",
  "generatedAt": null,
  "parts": [
   {
@@ -3381,6 +3381,34 @@
    ]
   },
   {
+   "id": "machine:catalog/inner/lib/ensure-gen.mjs#STAT_FILE",
+   "source": "machine",
+   "path": "catalog/inner/lib/ensure-gen.mjs",
+   "symbol": "STAT_FILE",
+   "lang": "js",
+   "what": "function",
+   "name": "להפיק קובץ",
+   "does": "להפיק קובץ stat — מקבל קובץ, ומחזיר משהו.",
+   "takes": [
+    {
+     "name": "root",
+     "kind": "file",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/inner/lib",
+    "name:auto",
+    "name:english-residue"
+   ]
+  },
+  {
    "id": "machine:catalog/inner/lib/ensure-gen.mjs#genDir",
    "source": "machine",
    "path": "catalog/inner/lib/ensure-gen.mjs",
@@ -5027,18 +5055,61 @@
    ]
   },
   {
-   "id": "machine:catalog/inner/lib/purity.mjs#FN_LIKE",
+   "id": "machine:catalog/inner/lib/prove-job.mjs#jobKeyOf",
    "source": "machine",
-   "path": "catalog/inner/lib/purity.mjs",
-   "symbol": "FN_LIKE",
+   "path": "catalog/inner/lib/prove-job.mjs",
+   "symbol": "jobKeyOf",
    "lang": "js",
    "what": "function",
-   "name": "להפיק פונקציה",
-   "does": "להפיק LIKE פונקציה — מקבל מספר, ומחזיר משהו.",
+   "name": "להפיק מפתח",
+   "does": "«מטביע חותם» לעבודה (מודול, חתימות, מילון-הקוד, זרע, המלח) — הנתיב יחסי לשורש (`job.rel`), כך שאותו מפתח בכל.",
    "takes": [
     {
-     "name": "n",
-     "kind": "number",
+     "name": "job",
+     "kind": "record:job",
+     "type": "unknown"
+    },
+    {
+     "name": "seed",
+     "kind": "record:seed",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/inner/lib",
+    "name:auto",
+    "name:english-residue"
+   ]
+  },
+  {
+   "id": "machine:catalog/inner/lib/prove-job.mjs#resultKeyOf",
+   "source": "machine",
+   "path": "catalog/inner/lib/prove-job.mjs",
+   "symbol": "resultKeyOf",
+   "lang": "js",
+   "what": "function",
+   "name": "להפיק מפתח תוצאה",
+   "does": "להפיק מפתח תוצאה — מקבל רשומת jobkey, רשומת dep, טקסט, ומחזיר משהו.",
+   "takes": [
+    {
+     "name": "jobKey",
+     "kind": "record:jobkey",
+     "type": "unknown"
+    },
+    {
+     "name": "deps",
+     "kind": "record:dep",
+     "type": "unknown"
+    },
+    {
+     "name": "base",
+     "kind": "text",
      "type": "unknown"
     }
    ],
@@ -5054,28 +5125,18 @@
    ]
   },
   {
-   "id": "machine:catalog/inner/lib/purity.mjs#callWhy",
+   "id": "machine:catalog/inner/lib/purity.mjs#FN_LIKE",
    "source": "machine",
    "path": "catalog/inner/lib/purity.mjs",
-   "symbol": "callWhy",
+   "symbol": "FN_LIKE",
    "lang": "js",
    "what": "function",
-   "name": "להפיק למה קריאה",
-   "does": "סיבה שקריאה אינה טהורה (או null).",
+   "name": "להפיק פונקציה",
+   "does": "להפיק LIKE פונקציה — מקבל מספר, ומחזיר משהו.",
    "takes": [
     {
      "name": "n",
      "kind": "number",
-     "type": "unknown"
-    },
-    {
-     "name": "ctx",
-     "kind": "record:ctx",
-     "type": "unknown"
-    },
-    {
-     "name": "canMutate",
-     "kind": "record:canmutate",
      "type": "unknown"
     }
    ],
@@ -5151,39 +5212,6 @@
     {
      "name": "n",
      "kind": "number",
-     "type": "unknown"
-    }
-   ],
-   "gives": {
-    "kind": "unknown",
-    "type": "unknown"
-   },
-   "pure": true,
-   "example": null,
-   "tags": [
-    "catalog/inner/lib",
-    "name:auto",
-    "name:english-residue"
-   ]
-  },
-  {
-   "id": "machine:catalog/inner/lib/purity.mjs#impurity",
-   "source": "machine",
-   "path": "catalog/inner/lib/purity.mjs",
-   "symbol": "impurity",
-   "lang": "js",
-   "what": "function",
-   "name": "להפיק ערך",
-   "does": "בודק-הטוהר. root = הצומת שנבדק (ביטוי, לולאה או גוף-עוזר).",
-   "takes": [
-    {
-     "name": "root",
-     "kind": "file",
-     "type": "unknown"
-    },
-    {
-     "name": "ctx",
-     "kind": "record:ctx",
      "type": "unknown"
     }
    ],
@@ -5404,14 +5432,14 @@
    ]
   },
   {
-   "id": "machine:catalog/inner/lib/purity.mjs#recvKind",
+   "id": "machine:catalog/inner/lib/purity.mjs#recvKindRaw",
    "source": "machine",
    "path": "catalog/inner/lib/purity.mjs",
-   "symbol": "recvKind",
+   "symbol": "recvKindRaw",
    "lang": "js",
    "what": "function",
    "name": "להפיק סוג",
-   "does": "סוג המקבל של קריאת-מתודה: str · num · arr · mapset · date · regex · any · obj.",
+   "does": "להפיק raw סוג recv — מקבל רשומת checker, רשומת error, ומחזיר משהו.",
    "takes": [
     {
      "name": "checker",
@@ -6121,6 +6149,132 @@
    ]
   },
   {
+   "id": "machine:catalog/lib/blank.mjs#blankComments",
+   "source": "machine",
+   "path": "catalog/lib/blank.mjs",
+   "symbol": "blankComments",
+   "lang": "js",
+   "what": "function",
+   "name": "להפיק ערך",
+   "does": "הטקסט בלי הערות (רווח אחד במקום כל הערה; סופי-שורה נשמרים).",
+   "takes": [
+    {
+     "name": "text",
+     "kind": "text",
+     "type": "unknown"
+    },
+    {
+     "name": "fileName",
+     "kind": "file",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/lib",
+    "name:auto",
+    "name:english-residue"
+   ]
+  },
+  {
+   "id": "machine:catalog/lib/blank.mjs#commentRanges",
+   "source": "machine",
+   "path": "catalog/lib/blank.mjs",
+   "symbol": "commentRanges",
+   "lang": "js",
+   "what": "function",
+   "name": "להפיק ערך",
+   "does": "טווחי-ההערות [start, end] של קובץ (ממוינים, בלי כפולים).",
+   "takes": [
+    {
+     "name": "text",
+     "kind": "text",
+     "type": "unknown"
+    },
+    {
+     "name": "fileName",
+     "kind": "file",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/lib",
+    "name:auto",
+    "name:english-residue"
+   ]
+  },
+  {
+   "id": "machine:catalog/lib/blank.mjs#isBlankable",
+   "source": "machine",
+   "path": "catalog/lib/blank.mjs",
+   "symbol": "isBlankable",
+   "lang": "js",
+   "what": "particle",
+   "name": "לבדוק אם",
+   "does": "לבדוק אם blankable — מקבל קובץ, ומחזיר כן/לא.",
+   "takes": [
+    {
+     "name": "file",
+     "kind": "file",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "bool",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/lib",
+    "name:auto",
+    "name:english-residue"
+   ]
+  },
+  {
+   "id": "machine:catalog/lib/blank.mjs#sourceView",
+   "source": "machine",
+   "path": "catalog/lib/blank.mjs",
+   "symbol": "sourceView",
+   "lang": "js",
+   "what": "function",
+   "name": "להפיק צפייה מקור",
+   "does": "מה שהמכונה קוראת מקובץ-מקור: TS ⇒ בלי הערות; כל השאר ⇒ כמו שהוא.",
+   "takes": [
+    {
+     "name": "file",
+     "kind": "file",
+     "type": "unknown"
+    },
+    {
+     "name": "text",
+     "kind": "text",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/lib",
+    "name:auto"
+   ]
+  },
+  {
    "id": "machine:catalog/lib/build-index.mjs#TRAIT_HE",
    "source": "machine",
    "path": "catalog/lib/build-index.mjs",
@@ -6487,33 +6641,6 @@
    ]
   },
   {
-   "id": "machine:catalog/lib/check.mjs#resolve",
-   "source": "machine",
-   "path": "catalog/lib/check.mjs",
-   "symbol": "resolve",
-   "lang": "js",
-   "what": "function",
-   "name": "לפתור ערך",
-   "does": "לפתור — מקבל טקסט, ומחזיר משהו.",
-   "takes": [
-    {
-     "name": "s",
-     "kind": "text",
-     "type": "unknown"
-    }
-   ],
-   "gives": {
-    "kind": "unknown",
-    "type": "unknown"
-   },
-   "pure": true,
-   "example": null,
-   "tags": [
-    "catalog/lib",
-    "name:auto"
-   ]
-  },
-  {
    "id": "machine:catalog/lib/check.mjs#typeOf",
    "source": "machine",
    "path": "catalog/lib/check.mjs",
@@ -6531,107 +6658,6 @@
    ],
    "gives": {
     "kind": "unknown",
-    "type": "unknown"
-   },
-   "pure": true,
-   "example": null,
-   "tags": [
-    "catalog/lib",
-    "name:auto"
-   ]
-  },
-  {
-   "id": "machine:catalog/lib/check.mjs#validatePart",
-   "source": "machine",
-   "path": "catalog/lib/check.mjs",
-   "symbol": "validatePart",
-   "lang": "js",
-   "what": "rule",
-   "name": "לאמת חלק",
-   "does": "כללי-החוזה לחלק אחד, מעבר לסכמה.",
-   "takes": [
-    {
-     "name": "p",
-     "kind": "unknown",
-     "type": "unknown"
-    },
-    {
-     "name": "{strict}",
-     "kind": "record:strict",
-     "type": "unknown"
-    }
-   ],
-   "gives": {
-    "kind": "choice",
-    "type": "unknown"
-   },
-   "pure": true,
-   "example": null,
-   "tags": [
-    "catalog/lib",
-    "name:auto"
-   ]
-  },
-  {
-   "id": "machine:catalog/lib/check.mjs#validateSchema",
-   "source": "machine",
-   "path": "catalog/lib/check.mjs",
-   "symbol": "validateSchema",
-   "lang": "js",
-   "what": "rule",
-   "name": "לאמת סכמה",
-   "does": "אימות ערך מול סכמה. מחזיר רשימת שגיאות (ריקה = תקין).",
-   "takes": [
-    {
-     "name": "value",
-     "kind": "record:value",
-     "type": "unknown"
-    },
-    {
-     "name": "schema",
-     "kind": "record:schema",
-     "type": "unknown"
-    },
-    {
-     "name": "at",
-     "kind": "record:at",
-     "type": "unknown"
-    }
-   ],
-   "gives": {
-    "kind": "choice",
-    "type": "unknown"
-   },
-   "pure": true,
-   "example": null,
-   "tags": [
-    "catalog/lib",
-    "name:auto"
-   ]
-  },
-  {
-   "id": "machine:catalog/lib/check.mjs#validateSource",
-   "source": "machine",
-   "path": "catalog/lib/check.mjs",
-   "symbol": "validateSource",
-   "lang": "js",
-   "what": "rule",
-   "name": "לאמת מקור",
-   "does": "כללי-החוזה לקובץ-מקור שלם: סכמה · כל id מתחיל ב-source · ממוין ויחיד.",
-   "takes": [
-    {
-     "name": "doc",
-     "kind": "record:doc",
-     "type": "unknown"
-    },
-    {
-     "name": "{strict}",
-     "kind": "record:strict",
-     "type": "unknown"
-    }
-   ],
-   "gives": {
-    "kind": "choice",
     "type": "unknown"
    },
    "pure": true,
@@ -7597,6 +7623,33 @@
    ]
   },
   {
+   "id": "machine:catalog/lib/probe-file.mjs#fileKeyOf",
+   "source": "machine",
+   "path": "catalog/lib/probe-file.mjs",
+   "symbol": "fileKeyOf",
+   "lang": "js",
+   "what": "function",
+   "name": "להפיק מפתח קובץ",
+   "does": "מפתח-קובץ: הקובץ (יחסי לשורש-הריפו שלו — בלי נתיב מוחלט ⇒ אותו מפתח בכל worktree/שכפול), הייצוא, המצב, המלח.",
+   "takes": [
+    {
+     "name": "job",
+     "kind": "record:job",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/lib",
+    "name:auto"
+   ]
+  },
+  {
    "id": "machine:catalog/lib/probe-file.mjs#isRunnable",
    "source": "machine",
    "path": "catalog/lib/probe-file.mjs",
@@ -7614,6 +7667,86 @@
    ],
    "gives": {
     "kind": "bool",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/lib",
+    "name:auto",
+    "name:english-residue"
+   ]
+  },
+  {
+   "id": "machine:catalog/lib/probe-file.mjs#partKeyOf",
+   "source": "machine",
+   "path": "catalog/lib/probe-file.mjs",
+   "symbol": "partKeyOf",
+   "lang": "js",
+   "what": "function",
+   "name": "להפיק מפתח חלק",
+   "does": "מפתח-חלק: הקובץ + מה שנארז + הזרע + מילון-הקוד + החלק (חתימה, סמל).",
+   "takes": [
+    {
+     "name": "fileKey",
+     "kind": "record:filekey",
+     "type": "unknown"
+    },
+    {
+     "name": "stamp",
+     "kind": "record:stamp",
+     "type": "unknown"
+    },
+    {
+     "name": "seed",
+     "kind": "record:seed",
+     "type": "unknown"
+    },
+    {
+     "name": "pool",
+     "kind": "record:pool",
+     "type": "unknown"
+    },
+    {
+     "name": "p",
+     "kind": "unknown",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/lib",
+    "name:auto"
+   ]
+  },
+  {
+   "id": "machine:catalog/lib/probe-file.mjs#relDep",
+   "source": "machine",
+   "path": "catalog/lib/probe-file.mjs",
+   "symbol": "relDep",
+   "lang": "js",
+   "what": "function",
+   "name": "להפיק ערך",
+   "does": "נתיב-תלות יחסי — ותלות מתוך node_modules נרשמת כ-node_modules/… (גם כשהתיקייה היא קישור, כמו ב-worktree).",
+   "takes": [
+    {
+     "name": "base",
+     "kind": "text",
+     "type": "unknown"
+    },
+    {
+     "name": "f",
+     "kind": "text",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
     "type": "unknown"
    },
    "pure": true,
@@ -8443,23 +8576,18 @@
    ]
   },
   {
-   "id": "machine:catalog/lib/sandbox.mjs#loadInSandbox",
+   "id": "machine:catalog/lib/sandbox.mjs#overOf",
    "source": "machine",
    "path": "catalog/lib/sandbox.mjs",
-   "symbol": "loadInSandbox",
+   "symbol": "overOf",
    "lang": "js",
    "what": "function",
-   "name": "לטעון ב",
-   "does": "טוען קוד מאורז לתוך הקשר ריק.",
+   "name": "להפיק ערך",
+   "does": "להפיק over — מקבל רשומת ctx, ומחזיר משהו.",
    "takes": [
     {
-     "name": "code",
-     "kind": "text",
-     "type": "unknown"
-    },
-    {
-     "name": "{timeoutMs}",
-     "kind": "record:timeoutm",
+     "name": "ctx",
+     "kind": "record:ctx",
      "type": "unknown"
     }
    ],
@@ -8473,6 +8601,43 @@
     "catalog/lib",
     "name:auto",
     "name:english-residue"
+   ]
+  },
+  {
+   "id": "machine:catalog/lib/sandbox.mjs#resetBudget",
+   "source": "machine",
+   "path": "catalog/lib/sandbox.mjs",
+   "symbol": "resetBudget",
+   "lang": "js",
+   "what": "function",
+   "name": "לאפס תקציב",
+   "does": "תקציב חדש להקשר (ברירת-מחדל: חלק אחד).",
+   "takes": [
+    {
+     "name": "ctx",
+     "kind": "record:ctx",
+     "type": "unknown"
+    },
+    {
+     "name": "n",
+     "kind": "number",
+     "type": "unknown"
+    },
+    {
+     "name": "perCall",
+     "kind": "record:percall",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/lib",
+    "name:auto"
    ]
   },
   {
@@ -8510,6 +8675,61 @@
    "tags": [
     "catalog/lib",
     "name:auto"
+   ]
+  },
+  {
+   "id": "machine:catalog/lib/sandbox.mjs#stepsOf",
+   "source": "machine",
+   "path": "catalog/lib/sandbox.mjs",
+   "symbol": "stepsOf",
+   "lang": "js",
+   "what": "function",
+   "name": "להפיק צעדים",
+   "does": "להפיק צעדים — מקבל רשומת ctx, ומחזיר משהו.",
+   "takes": [
+    {
+     "name": "ctx",
+     "kind": "record:ctx",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/lib",
+    "name:auto"
+   ]
+  },
+  {
+   "id": "machine:catalog/lib/sandbox.mjs#stepsUsed",
+   "source": "machine",
+   "path": "catalog/lib/sandbox.mjs",
+   "symbol": "stepsUsed",
+   "lang": "js",
+   "what": "function",
+   "name": "להפיק צעדים",
+   "does": "להפיק used צעדים — מקבל רשומת ctx, ומחזיר משהו.",
+   "takes": [
+    {
+     "name": "ctx",
+     "kind": "record:ctx",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/lib",
+    "name:auto",
+    "name:english-residue"
    ]
   },
   {
@@ -9483,6 +9703,61 @@
     {
      "name": "part",
      "kind": "record:part",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/lib",
+    "name:auto",
+    "name:english-residue"
+   ]
+  },
+  {
+   "id": "machine:catalog/lib/steps.mjs#blockAt",
+   "source": "machine",
+   "path": "catalog/lib/steps.mjs",
+   "symbol": "blockAt",
+   "lang": "js",
+   "what": "function",
+   "name": "להפיק גוש",
+   "does": "מקום ההכנסה בגוף בלוק: אחרי ה-`{` ואחרי ההנחיות ('use strict') — אחרת ההנחיה מפסיקה להיות הנחיה.",
+   "takes": [
+    {
+     "name": "body",
+     "kind": "text",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/lib",
+    "name:auto"
+   ]
+  },
+  {
+   "id": "machine:catalog/lib/steps.mjs#instrument",
+   "source": "machine",
+   "path": "catalog/lib/steps.mjs",
+   "symbol": "instrument",
+   "lang": "js",
+   "what": "function",
+   "name": "להפיק ערך",
+   "does": "קוד ⇒ קוד עם מונה-צעדים.",
+   "takes": [
+    {
+     "name": "code",
+     "kind": "text",
      "type": "unknown"
     }
    ],
@@ -11956,6 +12231,38 @@
    ]
   },
   {
+   "id": "machine:catalog/scripts/behavior-probe.mjs#commitKey",
+   "source": "machine",
+   "path": "catalog/scripts/behavior-probe.mjs",
+   "symbol": "commitKey",
+   "lang": "js",
+   "what": "function",
+   "name": "לאשר סופית מפתח",
+   "does": "לאשר סופית מפתח — מקבל רשומת partkey, רשומת rec, ומחזיר משהו.",
+   "takes": [
+    {
+     "name": "partKey",
+     "kind": "record:partkey",
+     "type": "unknown"
+    },
+    {
+     "name": "rec",
+     "kind": "record:rec",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/scripts",
+    "name:auto"
+   ]
+  },
+  {
    "id": "machine:catalog/scripts/behavior-probe.mjs#docPath",
    "source": "machine",
    "path": "catalog/scripts/behavior-probe.mjs",
@@ -12066,6 +12373,34 @@
     {
      "name": "part",
      "kind": "record:part",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/scripts",
+    "name:auto",
+    "name:english-residue"
+   ]
+  },
+  {
+   "id": "machine:catalog/scripts/behavior-probe.mjs#stampPath",
+   "source": "machine",
+   "path": "catalog/scripts/behavior-probe.mjs",
+   "symbol": "stampPath",
+   "lang": "js",
+   "what": "function",
+   "name": "להפיק נתיב",
+   "does": "⚡ SELF-V2: החותמות שבריפו לכל חלק (לא למכונה עצמה — שם כל שינוי-קוד הוא שינוי-מלח ממילא).",
+   "takes": [
+    {
+     "name": "name",
+     "kind": "text",
      "type": "unknown"
     }
    ],
@@ -12535,7 +12870,7 @@
    "lang": "js",
    "what": "function",
    "name": "להפיק הפניה",
-   "does": "להפיק הפניה repo — בלי קלט, ומחזיר משהו.",
+   "does": "🧾 SELF-V2: הענף קבוע (main — כמו שהיה ב-fallback); רק ה-sha (כתובת-התוכן של השכפול) נקרא מ-git.",
    "takes": [],
    "gives": {
     "kind": "unknown",
@@ -12777,8 +13112,14 @@
    "lang": "js",
    "what": "function",
    "name": "להפיק הפניה",
-   "does": "להפיק הפניה — בלי קלט, ומחזיר משהו.",
-   "takes": [],
+   "does": "🧾 D1 (SELF-V2): ref = טביעת-התוכן של החלקים («מטביע חותם», fnvHex) — לא ענף@sha (תלוי במצב-git).",
+   "takes": [
+    {
+     "name": "parts",
+     "kind": "record:part",
+     "type": "unknown"
+    }
+   ],
    "gives": {
     "kind": "unknown",
     "type": "unknown"
@@ -12808,33 +13149,6 @@
     {
      "name": "ref",
      "kind": "record:ref",
-     "type": "unknown"
-    }
-   ],
-   "gives": {
-    "kind": "unknown",
-    "type": "unknown"
-   },
-   "pure": true,
-   "example": null,
-   "tags": [
-    "catalog/scripts",
-    "name:auto"
-   ]
-  },
-  {
-   "id": "machine:catalog/scripts/core-demo.mjs#card",
-   "source": "machine",
-   "path": "catalog/scripts/core-demo.mjs",
-   "symbol": "card",
-   "lang": "js",
-   "what": "function",
-   "name": "להפיק כרטיס",
-   "does": "להפיק כרטיס — מקבל טקסט, ומחזיר משהו.",
-   "takes": [
-    {
-     "name": "v",
-     "kind": "text",
      "type": "unknown"
     }
    ],
@@ -13363,93 +13677,6 @@
     "catalog/scripts",
     "name:auto",
     "name:english-residue"
-   ]
-  },
-  {
-   "id": "machine:catalog/scripts/generator-census.mjs#show",
-   "source": "machine",
-   "path": "catalog/scripts/generator-census.mjs",
-   "symbol": "show",
-   "lang": "js",
-   "what": "particle",
-   "name": "להציג ערך",
-   "does": "להציג — מקבל משהו, ומחזיר משהו.",
-   "takes": [
-    {
-     "name": "p",
-     "kind": "unknown",
-     "type": "unknown"
-    }
-   ],
-   "gives": {
-    "kind": "unknown",
-    "type": "unknown"
-   },
-   "pure": true,
-   "example": null,
-   "tags": [
-    "catalog/scripts",
-    "name:auto"
-   ]
-  },
-  {
-   "id": "machine:catalog/scripts/generator-census.mjs#showMany",
-   "source": "machine",
-   "path": "catalog/scripts/generator-census.mjs",
-   "symbol": "showMany",
-   "lang": "js",
-   "what": "function",
-   "name": "להציג ערך",
-   "does": "להציג many — מקבל רשומת path, ומחזיר משהו.",
-   "takes": [
-    {
-     "name": "paths",
-     "kind": "record:path",
-     "type": "unknown"
-    }
-   ],
-   "gives": {
-    "kind": "unknown",
-    "type": "unknown"
-   },
-   "pure": true,
-   "example": null,
-   "tags": [
-    "catalog/scripts",
-    "name:auto",
-    "name:english-residue"
-   ]
-  },
-  {
-   "id": "machine:catalog/scripts/generator-census.mjs#sortById",
-   "source": "machine",
-   "path": "catalog/scripts/generator-census.mjs",
-   "symbol": "sortById",
-   "lang": "js",
-   "what": "function",
-   "name": "למיין לפי מזהה",
-   "does": "למיין לפי מזהה — מקבל משהו, ומחזיר משהו.",
-   "takes": [
-    {
-     "name": "a",
-     "kind": "unknown",
-     "type": "unknown"
-    },
-    {
-     "name": "b",
-     "kind": "unknown",
-     "type": "unknown"
-    }
-   ],
-   "gives": {
-    "kind": "unknown",
-    "type": "unknown"
-   },
-   "pure": true,
-   "example": null,
-   "tags": [
-    "catalog/scripts",
-    "name:auto"
    ]
   },
   {
@@ -14088,8 +14315,14 @@
    "lang": "js",
    "what": "function",
    "name": "להפיק הפניה",
-   "does": "להפיק הפניה — בלי קלט, ומחזיר משהו.",
-   "takes": [],
+   "does": "🧾 D1 (SELF-V2): ref = טביעת-התוכן של החלקים עצמם («מטביע חותם» — fnvHex, חלק-מכונה מוכח), בלי ענף ובלי sha של git.",
+   "takes": [
+    {
+     "name": "parts",
+     "kind": "record:part",
+     "type": "unknown"
+    }
+   ],
    "gives": {
     "kind": "unknown",
     "type": "unknown"
@@ -14449,6 +14682,11 @@
    "takes": [
     {
      "name": "base",
+     "kind": "text",
+     "type": "unknown"
+    },
+    {
+     "name": "branch",
      "kind": "text",
      "type": "unknown"
     }
@@ -14943,14 +15181,64 @@
    ]
   },
   {
-   "id": "machine:catalog/scripts/rebuild.mjs#isOut",
+   "id": "machine:catalog/scripts/rebuild.mjs#globRe",
    "source": "machine",
    "path": "catalog/scripts/rebuild.mjs",
-   "symbol": "isOut",
+   "symbol": "globRe",
+   "lang": "js",
+   "what": "function",
+   "name": "להפיק ביטוי רגולרי",
+   "does": "להפיק ביטוי רגולרי glob — מקבל משהו, ומחזיר משהו.",
+   "takes": [
+    {
+     "name": "p",
+     "kind": "unknown",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/scripts",
+    "name:auto",
+    "name:english-residue"
+   ]
+  },
+  {
+   "id": "machine:catalog/scripts/rebuild.mjs#graph",
+   "source": "machine",
+   "path": "catalog/scripts/rebuild.mjs",
+   "symbol": "graph",
+   "lang": "js",
+   "what": "function",
+   "name": "להפיק ערך",
+   "does": "stage ⇒ שמות-השלבים שהוא תלוי בהם (פלט של שלב אחר שנקרא כקלט).",
+   "takes": [],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/scripts",
+    "name:auto",
+    "name:english-residue"
+   ]
+  },
+  {
+   "id": "machine:catalog/scripts/rebuild.mjs#isOutOf",
+   "source": "machine",
+   "path": "catalog/scripts/rebuild.mjs",
+   "symbol": "isOutOf",
    "lang": "js",
    "what": "particle",
    "name": "לבדוק אם",
-   "does": "לבדוק אם out — מקבל רשומת stage, רשומת rel, ומחזיר כן/לא.",
+   "does": "פלט ⇒ האם הקובץ הזה הוא פלט של השלב (קובץ · תיקייה/ · תחילית-שם).",
    "takes": [
     {
      "name": "stage",
@@ -14973,6 +15261,155 @@
     "catalog/scripts",
     "name:auto",
     "name:english-residue"
+   ]
+  },
+  {
+   "id": "machine:catalog/scripts/rebuild.mjs#norm",
+   "source": "machine",
+   "path": "catalog/scripts/rebuild.mjs",
+   "symbol": "norm",
+   "lang": "js",
+   "what": "function",
+   "name": "לנסח ערך",
+   "does": "לנסח norm — מקבל רשומת spec, ומחזיר טקסט.",
+   "takes": [
+    {
+     "name": "spec",
+     "kind": "record:spec",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "text",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/scripts",
+    "name:auto",
+    "name:english-residue"
+   ]
+  },
+  {
+   "id": "machine:catalog/scripts/rebuild.mjs#sameOut",
+   "source": "machine",
+   "path": "catalog/scripts/rebuild.mjs",
+   "symbol": "sameOut",
+   "lang": "js",
+   "what": "function",
+   "name": "לבדוק ערך",
+   "does": "לבדוק out same — מקבל משהו, ומחזיר כן/לא.",
+   "takes": [
+    {
+     "name": "a",
+     "kind": "unknown",
+     "type": "unknown"
+    },
+    {
+     "name": "b",
+     "kind": "unknown",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "bool",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/scripts",
+    "name:auto",
+    "name:english-residue"
+   ]
+  },
+  {
+   "id": "machine:catalog/scripts/rebuild.mjs#specMatches",
+   "source": "machine",
+   "path": "catalog/scripts/rebuild.mjs",
+   "symbol": "specMatches",
+   "lang": "js",
+   "what": "function",
+   "name": "להפיק ערך",
+   "does": "האם קובץ (יחסי) בתוך מפרט-קלט.",
+   "takes": [
+    {
+     "name": "spec",
+     "kind": "record:spec",
+     "type": "unknown"
+    },
+    {
+     "name": "rel",
+     "kind": "record:rel",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/scripts",
+    "name:auto",
+    "name:english-residue"
+   ]
+  },
+  {
+   "id": "machine:catalog/scripts/rebuild.mjs#stampsText",
+   "source": "machine",
+   "path": "catalog/scripts/rebuild.mjs",
+   "symbol": "stampsText",
+   "lang": "js",
+   "what": "function",
+   "name": "להפיק טקסט",
+   "does": "להפיק טקסט stamps — מקבל רשומת st, ומחזיר משהו.",
+   "takes": [
+    {
+     "name": "st",
+     "kind": "record:st",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/scripts",
+    "name:auto",
+    "name:english-residue"
+   ]
+  },
+  {
+   "id": "machine:catalog/scripts/rebuild.mjs#view",
+   "source": "machine",
+   "path": "catalog/scripts/rebuild.mjs",
+   "symbol": "view",
+   "lang": "js",
+   "what": "function",
+   "name": "להפיק צפייה",
+   "does": "להפיק צפייה — מקבל רשימה, ומחזיר משהו.",
+   "takes": [
+    {
+     "name": "...ps",
+     "kind": "list",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/scripts",
+    "name:auto"
    ]
   },
   {
@@ -15155,33 +15592,6 @@
    ]
   },
   {
-   "id": "machine:catalog/scripts/rings-census.mjs#show",
-   "source": "machine",
-   "path": "catalog/scripts/rings-census.mjs",
-   "symbol": "show",
-   "lang": "js",
-   "what": "particle",
-   "name": "להציג ערך",
-   "does": "להציג — מקבל משהו, ומחזיר משהו.",
-   "takes": [
-    {
-     "name": "p",
-     "kind": "unknown",
-     "type": "unknown"
-    }
-   ],
-   "gives": {
-    "kind": "unknown",
-    "type": "unknown"
-   },
-   "pure": true,
-   "example": null,
-   "tags": [
-    "catalog/scripts",
-    "name:auto"
-   ]
-  },
-  {
    "id": "machine:catalog/scripts/rings-census.mjs#verbName",
    "source": "machine",
    "path": "catalog/scripts/rings-census.mjs",
@@ -15266,34 +15676,6 @@
    "tags": [
     "catalog/scripts",
     "name:auto"
-   ]
-  },
-  {
-   "id": "machine:catalog/scripts/self-check.mjs#verbCount",
-   "source": "machine",
-   "path": "catalog/scripts/self-check.mjs",
-   "symbol": "verbCount",
-   "lang": "js",
-   "what": "function",
-   "name": "להפיק ערך",
-   "does": "דוח.",
-   "takes": [
-    {
-     "name": "entries",
-     "kind": "record:entrie",
-     "type": "unknown"
-    }
-   ],
-   "gives": {
-    "kind": "unknown",
-    "type": "unknown"
-   },
-   "pure": true,
-   "example": null,
-   "tags": [
-    "catalog/scripts",
-    "name:auto",
-    "name:english-residue"
    ]
   },
   {

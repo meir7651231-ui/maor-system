@@ -1,0 +1,336 @@
+{
+ "version": 1,
+ "seed": 13269520,
+ "jobs": {
+  "catalog/inner/gen/mmmm/agents-17-all-working.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/mmmm/agents-17-all-working.js.mjs"
+   ],
+   "key": "a07f6ac9c7f1f23e"
+  },
+  "catalog/inner/gen/mmmm/agents-17-complete.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/mmmm/agents-17-complete.js.mjs"
+   ],
+   "key": "57d7e0da52d489a5"
+  },
+  "catalog/inner/gen/mmmm/agents-17-full-duplex.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/mmmm/agents-17-full-duplex.js.mjs"
+   ],
+   "key": "f4d3bd64378ce6ed"
+  },
+  "catalog/inner/gen/mmmm/agents-17-real.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/mmmm/agents-17-real.js.mjs"
+   ],
+   "key": "77ddee03edfc3629"
+  },
+  "catalog/inner/gen/mmmm/agents-17-simple.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/mmmm/agents-17-simple.js.mjs"
+   ],
+   "key": "90c51faf81a80a6e"
+  },
+  "catalog/inner/gen/mmmm/agents-17-ultimate.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/mmmm/agents-17-ultimate.js.mjs"
+   ],
+   "key": "ce5a9e14e2c95d85"
+  },
+  "catalog/inner/gen/mmmm/agents-200-percent-working.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/mmmm/agents-200-percent-working.js.mjs"
+   ],
+   "key": "129d847e92872f45"
+  },
+  "catalog/inner/gen/mmmm/agents-chat-server-5agents.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/mmmm/agents-chat-server-5agents.js.mjs"
+   ],
+   "key": "09b827e909e571bd"
+  },
+  "catalog/inner/gen/mmmm/agents-chat-server-direct.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/mmmm/agents-chat-server-direct.js.mjs"
+   ],
+   "key": "f7870ca966af59bf"
+  },
+  "catalog/inner/gen/mmmm/agents-chat-server-hebrew-final.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/mmmm/agents-chat-server-hebrew-final.js.mjs"
+   ],
+   "key": "05b3bc8960780acf"
+  },
+  "catalog/inner/gen/mmmm/agents-chat-server-hebrew-fixed.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/mmmm/agents-chat-server-hebrew-fixed.js.mjs"
+   ],
+   "key": "2093bfc7efea68f9"
+  },
+  "catalog/inner/gen/mmmm/agents-chat-server-hebrew.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/mmmm/agents-chat-server-hebrew.js.mjs"
+   ],
+   "key": "77e221e134f7f0b7"
+  },
+  "catalog/inner/gen/mmmm/agents-chat-server-simple.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/mmmm/agents-chat-server-simple.js.mjs"
+   ],
+   "key": "bea5e8fe976e1a22"
+  },
+  "catalog/inner/gen/mmmm/agents-chat-server.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/mmmm/agents-chat-server.js.mjs"
+   ],
+   "key": "4325fc8c581baa6a"
+  },
+  "catalog/inner/gen/mmmm/agents-final-solution.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/mmmm/agents-final-solution.js.mjs"
+   ],
+   "key": "944a4d2a108ec0d6"
+  },
+  "catalog/inner/gen/mmmm/artifacts/agents-chat/src/App.tsx.mjs": {
+   "deps": [
+    "catalog/inner/gen/mmmm/artifacts/agents-chat/src/App.tsx.mjs"
+   ],
+   "key": "c5c9093b6082a9ae"
+  },
+  "catalog/inner/gen/mmmm/artifacts/agents-chat/src/components/ui/breadcrumb.tsx.mjs": {
+   "deps": [
+    "catalog/inner/gen/mmmm/artifacts/agents-chat/src/components/ui/breadcrumb.tsx.mjs"
+   ],
+   "key": "41dc1afdd8dc1775"
+  },
+  "catalog/inner/gen/mmmm/artifacts/agents-chat/src/components/ui/button-group.tsx.mjs": {
+   "deps": [
+    "catalog/inner/gen/mmmm/artifacts/agents-chat/src/components/ui/button-group.tsx.mjs"
+   ],
+   "key": "f74bb20531e659ed"
+  },
+  "catalog/inner/gen/mmmm/artifacts/agents-chat/src/components/ui/button.tsx.mjs": {
+   "deps": [
+    "catalog/inner/gen/mmmm/artifacts/agents-chat/src/components/ui/button.tsx.mjs"
+   ],
+   "key": "d93794b2e0e544b7"
+  },
+  "catalog/inner/gen/mmmm/artifacts/agents-chat/src/components/ui/chart.tsx.mjs": {
+   "deps": [
+    "catalog/inner/gen/mmmm/artifacts/agents-chat/src/components/ui/chart.tsx.mjs"
+   ],
+   "key": "297f4790793c3fe5"
+  },
+  "catalog/inner/gen/mmmm/artifacts/agents-chat/src/components/ui/form.tsx.mjs": {
+   "deps": [
+    "catalog/inner/gen/mmmm/artifacts/agents-chat/src/components/ui/form.tsx.mjs"
+   ],
+   "key": "52ec1ba4f2ac0e00"
+  },
+  "catalog/inner/gen/mmmm/artifacts/agents-chat/src/components/ui/item.tsx.mjs": {
+   "deps": [
+    "catalog/inner/gen/mmmm/artifacts/agents-chat/src/components/ui/item.tsx.mjs"
+   ],
+   "key": "11b7e9d97874ef39"
+  },
+  "catalog/inner/gen/mmmm/artifacts/agents-chat/src/components/ui/sidebar.tsx.mjs": {
+   "deps": [
+    "catalog/inner/gen/mmmm/artifacts/agents-chat/src/components/ui/sidebar.tsx.mjs"
+   ],
+   "key": "08c0e61b2d00b1e7"
+  },
+  "catalog/inner/gen/mmmm/artifacts/agents-chat/src/hooks/use-toast.ts.mjs": {
+   "deps": [
+    "catalog/inner/gen/mmmm/artifacts/agents-chat/src/hooks/use-toast.ts.mjs"
+   ],
+   "key": "02c9903587176c5e"
+  },
+  "catalog/inner/gen/mmmm/artifacts/api-server/src/routes/chat.ts.mjs": {
+   "deps": [
+    "catalog/inner/gen/mmmm/artifacts/api-server/src/routes/chat.ts.mjs"
+   ],
+   "key": "bbfb4aaef0e0d049"
+  },
+  "catalog/inner/gen/mmmm/artifacts/api-server/src/routes/items.ts.mjs": {
+   "deps": [
+    "catalog/inner/gen/mmmm/artifacts/api-server/src/routes/items.ts.mjs"
+   ],
+   "key": "e49d81fcbdff3c77"
+  },
+  "catalog/inner/gen/mmmm/artifacts/api-server/src/routes/notes.ts.mjs": {
+   "deps": [
+    "catalog/inner/gen/mmmm/artifacts/api-server/src/routes/notes.ts.mjs"
+   ],
+   "key": "3ec75c8b1370e8ed"
+  },
+  "catalog/inner/gen/mmmm/artifacts/api-server/src/routes/outfits.ts.mjs": {
+   "deps": [
+    "catalog/inner/gen/mmmm/artifacts/api-server/src/routes/outfits.ts.mjs"
+   ],
+   "key": "3d9e35c901d701b5"
+  },
+  "catalog/inner/gen/mmmm/artifacts/api-server/src/routes/profiles.ts.mjs": {
+   "deps": [
+    "catalog/inner/gen/mmmm/artifacts/api-server/src/routes/profiles.ts.mjs"
+   ],
+   "key": "d9806e13c02a3e3b"
+  },
+  "catalog/inner/gen/mmmm/artifacts/api-server/src/routes/swarm.ts.mjs": {
+   "deps": [
+    "catalog/inner/gen/mmmm/artifacts/api-server/src/routes/swarm.ts.mjs"
+   ],
+   "key": "ff068a7c7ba06b8f"
+  },
+  "catalog/inner/gen/mmmm/artifacts/api-server/src/swarm/agents.ts.mjs": {
+   "deps": [
+    "catalog/inner/gen/mmmm/artifacts/api-server/src/swarm/agents.ts.mjs"
+   ],
+   "key": "438d221ce45e2ead"
+  },
+  "catalog/inner/gen/mmmm/artifacts/mockup-sandbox/mockupPreviewPlugin.ts.mjs": {
+   "deps": [
+    "catalog/inner/gen/mmmm/artifacts/mockup-sandbox/mockupPreviewPlugin.ts.mjs"
+   ],
+   "key": "6fbcb0be0747af0d"
+  },
+  "catalog/inner/gen/mmmm/artifacts/mockup-sandbox/src/App.tsx.mjs": {
+   "deps": [
+    "catalog/inner/gen/mmmm/artifacts/mockup-sandbox/src/App.tsx.mjs"
+   ],
+   "key": "13c1536a00ae02bf"
+  },
+  "catalog/inner/gen/mmmm/artifacts/mockup-sandbox/src/components/ui/breadcrumb.tsx.mjs": {
+   "deps": [
+    "catalog/inner/gen/mmmm/artifacts/mockup-sandbox/src/components/ui/breadcrumb.tsx.mjs"
+   ],
+   "key": "9ba0b28d0eff45cd"
+  },
+  "catalog/inner/gen/mmmm/artifacts/mockup-sandbox/src/components/ui/button-group.tsx.mjs": {
+   "deps": [
+    "catalog/inner/gen/mmmm/artifacts/mockup-sandbox/src/components/ui/button-group.tsx.mjs"
+   ],
+   "key": "cdcd27dda4b5cd8a"
+  },
+  "catalog/inner/gen/mmmm/artifacts/mockup-sandbox/src/components/ui/button.tsx.mjs": {
+   "deps": [
+    "catalog/inner/gen/mmmm/artifacts/mockup-sandbox/src/components/ui/button.tsx.mjs"
+   ],
+   "key": "e746a2de1dced46a"
+  },
+  "catalog/inner/gen/mmmm/artifacts/mockup-sandbox/src/components/ui/chart.tsx.mjs": {
+   "deps": [
+    "catalog/inner/gen/mmmm/artifacts/mockup-sandbox/src/components/ui/chart.tsx.mjs"
+   ],
+   "key": "53665f038f6c7cf4"
+  },
+  "catalog/inner/gen/mmmm/artifacts/mockup-sandbox/src/components/ui/form.tsx.mjs": {
+   "deps": [
+    "catalog/inner/gen/mmmm/artifacts/mockup-sandbox/src/components/ui/form.tsx.mjs"
+   ],
+   "key": "dfc99c94026f9d3b"
+  },
+  "catalog/inner/gen/mmmm/artifacts/mockup-sandbox/src/components/ui/item.tsx.mjs": {
+   "deps": [
+    "catalog/inner/gen/mmmm/artifacts/mockup-sandbox/src/components/ui/item.tsx.mjs"
+   ],
+   "key": "cfdbe4b69dfbcb47"
+  },
+  "catalog/inner/gen/mmmm/artifacts/mockup-sandbox/src/components/ui/sidebar.tsx.mjs": {
+   "deps": [
+    "catalog/inner/gen/mmmm/artifacts/mockup-sandbox/src/components/ui/sidebar.tsx.mjs"
+   ],
+   "key": "9fd0d1db104c0a8f"
+  },
+  "catalog/inner/gen/mmmm/artifacts/mockup-sandbox/src/hooks/use-toast.ts.mjs": {
+   "deps": [
+    "catalog/inner/gen/mmmm/artifacts/mockup-sandbox/src/hooks/use-toast.ts.mjs"
+   ],
+   "key": "c88680cdd40a3f76"
+  },
+  "catalog/inner/gen/mmmm/ask-active-agents-fix.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/mmmm/ask-active-agents-fix.js.mjs"
+   ],
+   "key": "78ee277f68cc80df"
+  },
+  "catalog/inner/gen/mmmm/ask-agents-keys.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/mmmm/ask-agents-keys.js.mjs"
+   ],
+   "key": "77427001535ac671"
+  },
+  "catalog/inner/gen/mmmm/ask-director-keys.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/mmmm/ask-director-keys.js.mjs"
+   ],
+   "key": "f299ae2ee6082dd5"
+  },
+  "catalog/inner/gen/mmmm/connecthub-master.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/mmmm/connecthub-master.js.mjs"
+   ],
+   "key": "486c652e57c3ffb6"
+  },
+  "catalog/inner/gen/mmmm/final_meeting.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/mmmm/final_meeting.js.mjs"
+   ],
+   "key": "fef47a6ed3e1dc9d"
+  },
+  "catalog/inner/gen/mmmm/lib/api-client-react/src/custom-fetch.ts.mjs": {
+   "deps": [
+    "catalog/inner/gen/mmmm/lib/api-client-react/src/custom-fetch.ts.mjs"
+   ],
+   "key": "7732eb6f5f24c1c7"
+  },
+  "catalog/inner/gen/mmmm/lib/integrations-openai-ai-react/src/audio/audio-utils.ts.mjs": {
+   "deps": [
+    "catalog/inner/gen/mmmm/lib/integrations-openai-ai-react/src/audio/audio-utils.ts.mjs"
+   ],
+   "key": "62ec361574e0778e"
+  },
+  "catalog/inner/gen/mmmm/lib/integrations-openai-ai-react/src/audio/useVoiceStream.ts.mjs": {
+   "deps": [
+    "catalog/inner/gen/mmmm/lib/integrations-openai-ai-react/src/audio/useVoiceStream.ts.mjs"
+   ],
+   "key": "c9785bb46d3e5ee3"
+  },
+  "catalog/inner/gen/mmmm/lib/integrations-openai-ai-server/src/audio/client.ts.mjs": {
+   "deps": [
+    "catalog/inner/gen/mmmm/lib/integrations-openai-ai-server/src/audio/client.ts.mjs"
+   ],
+   "key": "a71c1b0b37d49155"
+  },
+  "catalog/inner/gen/mmmm/lib/integrations-openai-ai-server/src/batch/utils.ts.mjs": {
+   "deps": [
+    "catalog/inner/gen/mmmm/lib/integrations-openai-ai-server/src/batch/utils.ts.mjs"
+   ],
+   "key": "2f9cb34cfc169ca0"
+  },
+  "catalog/inner/gen/mmmm/lib/integrations/openai_ai_integrations/src/client/audio/audio-utils.ts.mjs": {
+   "deps": [
+    "catalog/inner/gen/mmmm/lib/integrations/openai_ai_integrations/src/client/audio/audio-utils.ts.mjs"
+   ],
+   "key": "a03fb6d9d2192c9d"
+  },
+  "catalog/inner/gen/mmmm/lib/integrations/openai_ai_integrations/src/server/audio/client.ts.mjs": {
+   "deps": [
+    "catalog/inner/gen/mmmm/lib/integrations/openai_ai_integrations/src/server/audio/client.ts.mjs"
+   ],
+   "key": "3202a06526820860"
+  },
+  "catalog/inner/gen/mmmm/lib/integrations/openai_ai_integrations/src/server/batch/utils.ts.mjs": {
+   "deps": [
+    "catalog/inner/gen/mmmm/lib/integrations/openai_ai_integrations/src/server/batch/utils.ts.mjs"
+   ],
+   "key": "a90978a594d296f5"
+  },
+  "catalog/inner/gen/mmmm/meeting.js.mjs": {
+   "deps": [
+    "catalog/inner/gen/mmmm/meeting.js.mjs"
+   ],
+   "key": "5e5995ec3893c1ac"
+  }
+ }
+}

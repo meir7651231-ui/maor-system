@@ -1,0 +1,36 @@
+{
+ "version": 1,
+ "seed": 13269520,
+ "files": {
+  "catalog/core/assign-role.mjs": [
+   "catalog/core/assign-role.mjs"
+  ],
+  "catalog/core/freeze.mjs": [
+   "catalog/core/freeze.mjs"
+  ],
+  "catalog/core/pace.mjs": [
+   "catalog/core/pace.mjs"
+  ],
+  "catalog/core/relay.mjs": [
+   "catalog/core/relay.mjs"
+  ],
+  "catalog/core/require-source.mjs": [
+   "catalog/core/require-source.mjs"
+  ],
+  "catalog/core/route.mjs": [
+   "catalog/core/route.mjs"
+  ],
+  "catalog/core/tolerate.mjs": [
+   "catalog/core/tolerate.mjs"
+  ]
+ },
+ "parts": {
+  "core-b:catalog/core/assign-role.mjs#assignRoles": "3c5e2868c7e3bd73",
+  "core-b:catalog/core/freeze.mjs#applyFrozen": "69c610308f1f87e4",
+  "core-b:catalog/core/pace.mjs#pace": "5558c32c372000fe",
+  "core-b:catalog/core/relay.mjs#relay": "701cb602134a5ff9",
+  "core-b:catalog/core/require-source.mjs#requireSource": "2fd6cb60afc6c554",
+  "core-b:catalog/core/route.mjs#route": "ac7f73c22206007c",
+  "core-b:catalog/core/tolerate.mjs#tolerateParse": "4891da0193af2ebf"
+ }
+}

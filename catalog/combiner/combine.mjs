@@ -23,7 +23,7 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { bundleBridge } from '../lib/load-bridge.mjs';
 import { prepareJobs, isRunnable } from '../lib/probe-file.mjs';
-import { bundleFile, loadInSandbox, callerFor, resolvePart } from '../lib/sandbox.mjs';
+import { bundleFile, loadInSandbox, callerFor, resolvePart, resetBudget } from '../lib/sandbox.mjs';
 import { probePart, evalVerb, bindingsOf, baseCases, fOf, fnvHash } from '../lib/probe.mjs';
 import { readSigs } from '../inner/lib/sigs.mjs';
 import { VERB_BY_ID as LAW_VERBS } from '../lib/verbs.mjs';
@@ -31,8 +31,7 @@ import { assemble, fit, provenAs, adapterRole, ADAPTER_VERBS } from './core.mjs'
 import { SHAPE_KINDS, materialDesc } from '../lib/kind-shape.mjs';
 import { HERE, CATALOG, loadGoals, loadIndex, loadParts, loadRecipes } from './load.mjs';
 import { runGraph, graphProblem, graphParts } from './graph.mjs';
-import { inputsKey, cacheGet, cachePut, CACHE_OFF } from '../lib/cache.mjs';
-await (await import('../inner/lib/ensure-gen.mjs')).ensureGen({ quiet: true }); // INNER v2: gen/ והקבצים הפנימיים הפרושים נוצרים לפי דרישה
+import { inputsKey, cacheGet, cachePut, fingerprint, machineSalt, CACHE_OFF } from '../lib/cache.mjs';
 
 const ROOT = path.resolve(CATALOG, '..');
 export const SEED = 0x0c0b1e;
@@ -42,7 +41,8 @@ const K3 = 24;
 const RUN_SOURCES = new Set(['orbit', 'core', 'core-b', 'core-c']);
 const runnableHere = (raw) => raw && (raw.source.startsWith('inner-') ? (raw.tags || []).some((t) => t.startsWith('gen:')) : RUN_SOURCES.has(raw.source) && isRunnable(raw));
 
-const HINTS = JSON.parse(fs.readFileSync(path.join(HERE, 'verb-recipes.json'), 'utf8')).recipes;
+// 🧪 SELF-V2: נקרא בפעם הראשונה שצריך (לא בטעינה) — טהור-בטעינה ⇒ המכונה יכולה להריץ ולהוכיח את הקובץ הזה
+let HINTS_; const HINTS = () => (HINTS_ ??= JSON.parse(fs.readFileSync(path.join(HERE, 'verb-recipes.json'), 'utf8')).recipes);
 
 /* ═══════════════ 1. מפרק — המועמדים ═══════════════ */
 
@@ -116,7 +116,7 @@ export function candidatesFor(need, ix, raw) {
   RAW = raw;
   const V = need.verb; const M = need.material;
   const out = []; const seen = new Set();
-  for (const h of HINTS.filter((x) => x.form === 'graph' && x.verb === V && (!x.material || x.material === M))) out.push(graphCandidate(h, ix, raw));
+  for (const h of HINTS().filter((x) => x.form === 'graph' && x.verb === V && (!x.material || x.material === M))) out.push(graphCandidate(h, ix, raw));
   const all = ix.parts.filter((p) => p.primary && provenAs(p, p.primary) && p.takes.length > 0 && p.gives !== 'unknown' && homeOf(p, raw));
   const push = (form, a, b, ra, rb, hint, at) => {
     const key = form + '|' + a.id + '>' + b.id;
@@ -125,7 +125,7 @@ export function candidatesFor(need, ix, raw) {
     out.push({ form, ...(form === 'pair' ? { at } : {}), steps: [a, b], roles: [ra, rb], ...(hint ? { hint } : {}) });
   };
   // רמזי-מתכון: הפעלים (או הסוגים) שבתוכם — כל זוג מוכח-בהרצה; רק החוקים של V מחליטים
-  for (const h of HINTS.filter((x) => x.verb === V && (!x.material || x.material === M) && x.steps?.length === 2)) {
+  for (const h of HINTS().filter((x) => x.verb === V && (!x.material || x.material === M) && x.steps?.length === 2)) {
     const A = stepPool(ix, raw, h.steps[0], all).slice(0, 8);
     const Bs = stepPool(ix, raw, h.steps[1], all).slice(0, 12);
     for (const a of A) for (const b of Bs) {
@@ -168,7 +168,7 @@ export function candidates3For(need, ix, raw) {
     out.push({ form: 'chain', steps, roles, ...(hint ? { hint } : {}) });
   };
   const all = ix.parts.filter((p) => p.primary && provenAs(p, p.primary) && p.takes.length > 0 && p.gives !== 'unknown' && homeOf(p, raw));
-  for (const h of HINTS.filter((x) => x.verb === V && (!x.material || x.material === M) && x.steps?.length === 3)) {
+  for (const h of HINTS().filter((x) => x.verb === V && (!x.material || x.material === M) && x.steps?.length === 3)) {
     const [A, Bs, Cs] = h.steps.map((st, k) => stepPool(ix, raw, st, all).slice(0, k ? 6 : 8));
     for (const a of A) for (const b of Bs) for (const c of Cs) if (accepts(b, a.gives) && accepts(c, b.gives)) push([a, b, c], h.steps.map((st, k) => st.verb || [a, b, c][k].primary), h.why);
   }
@@ -245,6 +245,38 @@ export function composeOn(R, slot, M, seed) {
   const c = callerFor(R.ctx, R.fn, seed, R.self);
   const takes = R.sig.takes.map((t, k) => (k === slot.k ? { ...t, d: materialDesc(M, slot.many), kind: M } : t));
   return { sig: { takes }, call: (args) => c(args) };
+}
+
+/* ═══════════════ זהות-חלק (SELF-V2) ═══════════════ */
+
+const readJsonRel = (rel) => { try { return JSON.parse(fs.readFileSync(path.join(ROOT, rel), 'utf8')); } catch { return null; } };
+
+/**
+ * חלק באינדקס ⇒ הזהות של מה שירוץ בשבילו: החותמת של הבית שלו אצל הקורא (behavior-<מקור>) או אצל המוכיח
+ * (inner-<מקור>, לפי מודול-ה-gen). חלק בלי חותמת (לא הורץ / קרס) ⇒ אין זהות ⇒ התוכנית שלו לא נשמרת.
+ */
+export function partIdentities(ix, raw) {
+  const beh = new Map(); const inner = new Map();
+  const st = (rel) => readJsonRel(rel);
+  const out = new Map();
+  for (const p of ix.parts) {
+    const r = homeOf(p, raw);
+    if (!r) continue;
+    let id = null;
+    if (r.source.startsWith('inner-')) {
+      const src = r.source.slice(6);
+      if (!inner.has(src)) inner.set(src, st(`catalog/self/stamps/inner-${src}.json`)?.jobs ?? {});
+      const gen = (r.tags || []).find((t) => t.startsWith('gen:'))?.slice(4).split('#')[0];
+      const j = gen && inner.get(src)[gen];
+      if (j) id = 'inner:' + j.key + ':' + fingerprint(JSON.stringify(r));
+    } else {
+      if (!beh.has(r.source)) beh.set(r.source, st(`catalog/self/stamps/behavior-${r.source}.json`)?.parts ?? {});
+      const k = beh.get(r.source)[r.id];
+      if (k) id = 'part:' + k;
+    }
+    if (id) out.set(p.id, r.id + '=' + id);
+  }
+  return out;
 }
 
 /* ═══════════════ 2. מחבר — פונקציה מורכבת אחת ═══════════════ */
@@ -381,7 +413,9 @@ const slug = (s) => String(s).replace(/[^a-z0-9-]/gi, '-');
  * מכונת-השילוב דטרמיניסטית (זרע קבוע) — לכן שליפה = הרצה, ביט-זהה. CATALOG_CACHE=off ⇒ תמיד מריצה.
  */
 export async function combineAll() {
-  const key = CACHE_OFF ? null : inputsKey('combine-v1', { isOutput: (f) => f === 'catalog/combiner/combos.json' || /^catalog\/recipes\/combo-/.test(f) || f === 'catalog/combiner/lab-data.json' || f.startsWith('catalog/combiner/dig/'), dirs: ['src', 'telephony', 'functions'] });
+  // INNER v2: gen/ והקבצים הפנימיים הפרושים נוצרים לפי דרישה (🧪 SELF-V2: כאן ולא בטעינת-המודול — טהור-בטעינה)
+  await (await import('../inner/lib/ensure-gen.mjs')).ensureGen({ quiet: true });
+  const key = CACHE_OFF ? null : inputsKey('combine-v2', { isOutput: (f) => f === 'catalog/self/stamps/combine.json' || f === 'catalog/combiner/combos.json' || /^catalog\/recipes\/combo-/.test(f) || f === 'catalog/combiner/lab-data.json' || f.startsWith('catalog/combiner/dig/'), dirs: ['src', 'telephony', 'functions'] });
   const hit = key && cacheGet('combine', key);
   if (hit) return hit;
   const res = await combineAllRaw();
@@ -390,6 +424,7 @@ export async function combineAll() {
 }
 
 async function combineAllRaw() {
+  const T0 = Date.now();
   const raw = new Map(loadParts().map((p) => [p.id, p]));
   const ix = loadIndex({ recipes: loadRecipes().filter((r) => !r.combo) });
   const goals = loadGoals();
@@ -402,11 +437,40 @@ async function combineAllRaw() {
       want.get(k).behaviors.push(g.word + ': ' + n.need.behavior);
     }
   const plans = [...want.values()].sort((a, b) => (a.verb + a.material < b.verb + b.material ? -1 : 1)).map((w) => ({ ...w, cands: candidatesFor(w, ix, raw), candsOn: candidatesOnFor(w, ix, raw), cands3: candidates3For(w, ix, raw) }));
-  const runners = await loadRunners([...new Set(plans.flatMap((p) => [...p.cands, ...p.candsOn, ...p.cands3].flatMap((c) => c.steps)))], raw);
-  const B = await import(pathToFileURL(await bundleBridge()).href);
+  /*
+   * ⚡ SELF-V2: «מטביע חותם» לכל תוכנית (פועל·חומר): המועמדים שלה + **הזהות של כל חלק שמשתתף** — החותמת של הקורא/המוכיח
+   * (catalog/self/stamps/*: הקוד שנארז, TS בלי הערות · החתימה · רשומת-המפקד) — ובלי שום קוד שנטען. אותה טביעה ⇒ אותה
+   * תוצאה: מהמטמון המקומי, או מהחותמת שבריפו (catalog/self/stamps/combine.json + השורה שכבר ב-combos.json). רק תוכניות
+   * שחלק שלהן השתנה רצות — ורק החלקים שלהן נטענים. CATALOG_CACHE=off ⇒ הכול רץ.
+   */
+  const ident = partIdentities(ix, raw);
+  const SP = 'catalog/self/stamps/combine.json';
+  const committed = (!CACHE_OFF && readJsonRel(SP)) || { plans: {} };
+  const prev = new Map(!CACHE_OFF ? (readJsonRel('catalog/combiner/combos.json')?.results ?? []).map((r) => [r.verb + '|' + r.material, r]) : []);
+  const planKey = (pl) => {
+    const cs = [...pl.cands, ...pl.candsOn, ...pl.cands3];
+    const parts = [...new Set(cs.flatMap((c) => (c.form === 'graph' ? c.graph.nodes.map((n) => partByHome(ix, n.part)?.id ?? '?' + n.part) : c.steps.map((st) => st.id))))].sort();
+    const ids2 = parts.map((id) => ident.get(id));
+    if (ids2.some((x) => !x)) return null;
+    return fingerprint(machineSalt(), 'combine-plan-v1', String(SEED), String(K), String(K3), JSON.stringify([pl.verb, pl.material, pl.behaviors]), JSON.stringify([pl.cands, pl.candsOn, pl.cands3]), ...parts.flatMap((id, k) => [id, ids2[k]]));
+  };
+  const keys = new Map(plans.map((pl) => [pl, planKey(pl)]));
+  const ready = new Map();
+  for (const pl of plans) {
+    const k = keys.get(pl); const pk = pl.verb + '|' + pl.material;
+    if (!k || CACHE_OFF) continue;
+    const hit = cacheGet('combine-plan', k);
+    if (hit) ready.set(pl, hit);
+    else if (committed.plans[pk] === k.slice(0, 16) && prev.has(pk)) ready.set(pl, prev.get(pk));
+  }
+  const todo = plans.filter((pl) => !ready.has(pl));
+  if (process.env.CATALOG_PROFILE) console.error('[combine] plans ready', ((Date.now() - T0) / 1000).toFixed(1), 'todo', todo.map((p) => p.verb + '|' + p.material).join(' '));
+  const runners = todo.length ? await loadRunners([...new Set(todo.flatMap((p) => [...p.cands, ...p.candsOn, ...p.cands3].flatMap((c) => c.steps)))], raw) : new Map();
+  const B = todo.length ? await import(pathToFileURL(await bundleBridge()).href) : null;
   const results = [];
   const ids = (c) => (c.form === 'graph' ? graphParts(c.graph) : c.steps.map((s) => s.id));
   for (const pl of plans) {
+    if (ready.has(pl)) { results.push(ready.get(pl)); continue; }
     const tried = [];
     let found = null;
     let n3 = 0;
@@ -417,6 +481,7 @@ async function combineAllRaw() {
       if (c.form === 'pair' && pl.material === 'geo' && !pointDesc(Rs[0].sig.takes[c.at]?.d) && Rs[0].sig.takes[c.at]?.kind !== 'geo') { tried.push({ steps: ids(c), form: c.form, why: 'הקלט אינו מקום (אין x,y)' }); return null; }
       const seed = (fnvHash(c.form + ids(c).join('>')) ^ SEED) >>> 0;
       let v;
+      for (const R of new Set(Rs.map((x) => x.ctx))) resetBudget(R); // ⏱️ SELF-V2: תקציב-צעדים לכל ניסיון (לא תלוי בסדר הניסיונות)
       try {
         let composed;
         if (c.form === 'graph') {
@@ -462,7 +527,10 @@ async function combineAllRaw() {
       } : null,
       tried: tried.slice(0, 8),
     });
+    if (keys.get(pl)) cachePut('combine-plan', keys.get(pl), results[results.length - 1]);
   }
+  // החותמות: לכל תוכנית — המפתח שממנו נוצרה השורה (תוכנית בלי זהות לכל חלקיה ⇒ בלי חותמת, תרוץ תמיד)
+  const stamps = { rel: SP, text: JSON.stringify({ version: 1, plans: Object.fromEntries(plans.filter((pl) => keys.get(pl)).map((pl) => [pl.verb + '|' + pl.material, keys.get(pl).slice(0, 16)])) }, null, 1) + '\n' };
   const recipes = {};
   for (const r of results.filter((x) => x.found)) {
     const id = 'combo-' + slug(r.verb) + '-' + slug(r.material);
@@ -479,11 +547,12 @@ async function combineAllRaw() {
   }
   const byDepth = (d) => results.filter((r) => r.found && (d === 'graph' ? r.found.form === 'graph' : r.found.form !== 'graph' && r.found.form !== 'on' && r.found.depth === d)).length;
   const summary = { about: 'נבנה ע״י catalog/combiner/combine.mjs — לא לערוך ביד', seed: SEED, k: K, k3: K3, pairs: results.length, proven: results.filter((r) => r.found).length, depth: { on: results.filter((r) => r.found?.form === 'on').length, 2: byDepth(2), 3: byDepth(3), graph: byDepth('graph') }, results };
-  return { summary: JSON.stringify(summary, null, 1) + '\n', recipes };
+  return { summary: JSON.stringify(summary, null, 1) + '\n', recipes, stamps, ran: todo.length, reused: ready.size };
 }
 
 if (process.argv[1] && process.argv[1].endsWith('combine.mjs')) {
-  const { summary, recipes } = await combineAll();
+  const t0 = Date.now();
+  const { summary, recipes, stamps: stp, ran, reused } = await combineAll();
   const RDIR = path.join(CATALOG, 'recipes');
   const OUT = path.join(HERE, 'combos.json');
   const cur = fs.existsSync(RDIR) ? fs.readdirSync(RDIR).filter((f) => f.startsWith('combo-') && f.endsWith('.json')).sort() : [];
@@ -493,9 +562,10 @@ if (process.argv[1] && process.argv[1].endsWith('combine.mjs')) {
     process.exit(0);
   }
   fs.mkdirSync(RDIR, { recursive: true });
+  if (stp) { fs.mkdirSync(path.dirname(path.join(ROOT, stp.rel)), { recursive: true }); fs.writeFileSync(path.join(ROOT, stp.rel), stp.text); }
   for (const f of cur) if (!recipes[f]) fs.unlinkSync(path.join(RDIR, f));
   for (const [f, t] of Object.entries(recipes)) fs.writeFileSync(path.join(RDIR, f), t);
   fs.writeFileSync(OUT, summary);
   const s = JSON.parse(summary);
-  console.log('🧩 ' + s.proven + '/' + s.pairs + ' זוגות (פועל·חומר) נמצאו כשילוב מוכח · ' + Object.keys(recipes).length + ' מתכוני-שילוב');
+  console.log('🧩 ' + s.proven + '/' + s.pairs + ' זוגות (פועל·חומר) נמצאו כשילוב מוכח · ' + Object.keys(recipes).length + ' מתכוני-שילוב' + (ran !== undefined ? ` · ${ran} תוכניות רצו, ${reused} מהמטמון/החותמת` : '') + ` · ${((Date.now() - t0) / 1000).toFixed(1)}s`);
 }

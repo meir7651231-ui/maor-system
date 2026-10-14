@@ -84,8 +84,31 @@ export const manifestText = (m) => {
 /* ═══════════════ ensureGen ═══════════════ */
 
 /**
+ * ⚡ SELF-V2: «מחפש לפי מפתח» — חתימת מודול-gen לפי (גודל · זמן-שינוי · inode) שלו: קובץ שלא נגעו בו לא נקרא שוב.
+ * הזיכרון ב-node_modules/.cache (לא בריפו); כל צרכן (prove · combine · הבדיקות) חוסך את קריאת ~1,200 הקבצים.
+ */
+let statMemo = null; let statDirty = false;
+const STAT_FILE = (root) => path.join(root, 'node_modules/.cache/catalog-genstat.json');
+function genHash(root, rel) {
+  if (!statMemo) { try { statMemo = process.env.CATALOG_CACHE === 'off' ? {} : JSON.parse(fs.readFileSync(STAT_FILE(root), 'utf8')); } catch { statMemo = {}; } }
+  let st; try { st = fs.statSync(path.join(root, rel)); } catch { return null; }
+  const sig = st.size + ':' + st.mtimeMs + ':' + st.ino;
+  const m = statMemo[rel];
+  if (m && m[0] === sig) return m[1];
+  const t = read(root, rel);
+  if (t === null) return null;
+  const h = hashOf(t);
+  statMemo[rel] = [sig, h]; statDirty = true;
+  return h;
+}
+function saveStatMemo(root) {
+  if (!statDirty || process.env.CATALOG_CACHE === 'off') return;
+  try { fs.mkdirSync(path.dirname(STAT_FILE(root)), { recursive: true }); const tmp = STAT_FILE(root) + '.' + process.pid; fs.writeFileSync(tmp, JSON.stringify(statMemo)); fs.renameSync(tmp, STAT_FILE(root)); statDirty = false; } catch { /* זיכרון בלבד */ }
+}
+
+/**
  * מוודא שהקבצים הנוצרים קיימים ותואמים: פרישת המחסן ⇒ sources/behavior; המודולים ⇒ לפי המניפסט (חבילה / יצירה מחדש).
- * opts: { root, src (שכפולים — לא נדרש), sources: [...], check: רק לבדוק, quiet, log }
+ * opts: { root, src (שכפולים — לא נדרש), sources: [...], check: רק לבדוק, quiet, log, modules: false = בלי המודולים (SELF-V2) }
  * מחזיר { wrote, regenerated: [source], stale: [{source, file, why}] }.
  */
 export async function ensureGen(opts = {}) {
@@ -103,11 +126,12 @@ export async function ensureGen(opts = {}) {
     const bt = read(root, storePath('behavior', source));
     if (bt) put(`catalog/behavior/inner-${source}.json`, docText(unpackBehavior(JSON.parse(bt), doc.parts.map((p) => p.id))));
     const entry = man.sources[source];
-    if (!entry) continue;
+    // ⚡ SELF-V2: modules:false — רק הקבצים הפרושים (זול); המודולים (gen/) רק למי שמריץ אותם (prove · combine · build · בדיקות)
+    if (!entry || opts.modules === false) continue;
     // מודולים: מה שכבר על הדיסק ותואם — נשאר
     const want = new Map(Object.entries(entry.files).map(([k, h]) => [genPath(source, k), h]));
     const have = listFiles(root, genDir(source));
-    const bad = [...want].filter(([rel, h]) => { const t = read(root, rel); return t === null || hashOf(t) !== h; });
+    const bad = [...want].filter(([rel, h]) => genHash(root, rel) !== h);
     const extra = have.filter((rel) => !want.has(rel));
     if (!bad.length && !extra.length) continue;
     if (opts.check) { for (const [rel] of bad) out.stale.push({ source, file: rel, why: 'gen' }); continue; }
@@ -140,6 +164,7 @@ export async function ensureGen(opts = {}) {
       log(`🧰 ensure-gen: ${source} — נוצר מחדש מהקוד (${((Date.now() - t0) / 1000).toFixed(1)}s)${diff.length ? ` · ⚠️ ${diff.length} מודולים שונים מהמניפסט — הקוד השתנה; הרץ node catalog/inner/scripts/open.mjs --source ${source}` : ''}`);
     }
   }
+  saveStatMemo(root);
   return out;
 }
 

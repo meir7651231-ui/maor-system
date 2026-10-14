@@ -132,7 +132,14 @@ export function homeOf(n) {
 export const within = (n, root) => n.pos >= root.pos && n.end <= root.end && n.getSourceFile() === root.getSourceFile();
 
 /** סוג המקבל של קריאת-מתודה: str · num · arr · mapset · date · regex · any · obj. */
+const recvMemo = new WeakMap(); // ⚡ SELF-V2: אותו מקבל נבדק שוב ושוב (בדיקת-טוהר לכל ערך-בדרך על חפיפות) — פעם אחת לצומת
 function recvKind(checker, e) {
+  if (recvMemo.has(e)) return recvMemo.get(e);
+  const k = recvKindRaw(checker, e);
+  recvMemo.set(e, k);
+  return k;
+}
+function recvKindRaw(checker, e) {
   let t;
   try { t = checker.getTypeAtLocation(e); } catch { return 'any'; }
   if (!t) return 'any';

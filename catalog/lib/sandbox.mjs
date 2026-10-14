@@ -5,11 +5,16 @@
  *   · אין process, require, fetch, setTimeout, fs, env — רק מה שבא עם V8 (Math, JSON, Intl, Date…) + TextEncoder/URL.
  *   · eval/new Function כבויים (codeGeneration: strings:false, wasm:false).
  *   · שעון קבוע (14.10.2026 09:00Z) ו-Math.random עם זרע — כדי שאותו קלט ייתן אותו פלט.
- *   · טעינת-המודול עם הגבלת-זמן; כל קריאה לחלק — בתוך worker עם שומר-זמן (probe-worker.mjs), env ריק.
+ *   · ⏱️ SELF-V2: תקציב-צעדים דטרמיניסטי (lib/steps.mjs) במקום שעון — לטעינת-המודול (LOAD_STEPS) ולכל חלק (PART_STEPS,
+ *     resetBudget לפני כל חלק); חריגה ⇒ BudgetError במארח. כל קריאה לחלק — בתוך worker, env ריק (שומר-הקיר רק נגד קריסה).
  * רק חלקים שהמפקד סימן `pure: true` נשלחים לכאן.
  */
 import vm from 'node:vm';
+import fs from 'node:fs';
 import { SANDBOX_PRELUDE } from './shape.mjs';
+import { fingerprint, machineSalt, cacheGet, cachePut } from './cache.mjs';
+import { instrument, STEPS_PRELUDE, LOAD_STEPS, PART_STEPS, CALL_STEPS, BudgetError } from './steps.mjs';
+export { BudgetError, PART_STEPS } from './steps.mjs';
 
 const EXT = ['.ts', '.tsx', '.mts', '.mjs', '.js', '.jsx', '.json'];
 
@@ -44,7 +49,13 @@ export async function bundleWithDeps(abs, { alias = {}, expose = [], esm = true,
   const { builtinModules } = await import('node:module');
   // פונקציה/מחלקה פנימית (לא מיוצאת) ⇒ מוסיפים לה ייצוא בזיכרון, כדי שאפשר יהיה לקרוא לה (הקובץ בדיסק לא משתנה)
   const tail = !expose.length ? '' : esm ? '\nexport { ' + expose.join(', ') + ' };\n' : '\n;try { module.exports.__catalog = Object.assign(module.exports.__catalog || {}, { ' + expose.join(', ') + ' }); } catch (e) {}\n';
-  const plugins = tail ? [{ name: 'catalog-expose', transform(code, id) { return id === abs ? code + tail : null; } }] : [];
+  // 🪞 SELF-V2: האורז מדווח על הנתיב האמיתי (realpath) — שכפול/worktree דרך קישור-סמלי (../catsrc/x ⇒ …) לא קיבל את הייצוא
+  // והחלקים הפנימיים יצאו 'not-callable' (147 ב-14kk, 30 ב-MMMM). משווים לשני הנתיבים.
+  let real = abs; try { real = fs.realpathSync(abs); } catch { /* */ }
+  const plugins = tail ? [{ name: 'catalog-expose', transform(code, id) { return id === abs || id === real ? code + tail : null; } }] : [];
+  // 🧽 SELF-V2: קובצי TS נטענים בלי הערות (lib/blank.mjs) — אותו טקסט שהקורא/הפותח רואים, ושהטביעה מכסה
+  const { isBlankable, sourceViewCached } = await import('./blank.mjs');
+  plugins.unshift({ name: 'catalog-blank', load(id) { return isBlankable(id) && fs.existsSync(id) ? sourceViewCached(id, fs.readFileSync(id, 'utf8')) : null; } });
   // 🪞 SELF: סקריפט של המכונה — נקודת-הכניסה של שורת-הפקודה (`if (process.argv…) {…}`, `await main()`) היא לא חלק; בזיכרון בלבד
   if (cli) { const { stripCli } = await import('./strip-cli.mjs'); plugins.unshift({ name: 'catalog-strip-cli', transform(code, id) { return /\.m?js$/.test(id) ? stripCli(code) : null; } }); }
   const b = await rolldown({
@@ -65,34 +76,68 @@ export async function bundleWithDeps(abs, { alias = {}, expose = [], esm = true,
   }
 }
 
-/** טוען קוד מאורז לתוך הקשר ריק. מחזיר את הייצוא (אובייקט בתוך ההקשר) ואת ההקשר. */
-export function loadInSandbox(code, { timeoutMs = 3000 } = {}) {
+/**
+ * טוען קוד מאורז לתוך הקשר ריק. מחזיר את הייצוא (אובייקט בתוך ההקשר) ואת ההקשר.
+ * ⏱️ SELF-V2: הקוד מקבל מונה-צעדים (instrument); הטעינה עצמה תחומה ב-LOAD_STEPS — בלי שעון-קיר (היה: 3 שניות).
+ */
+export function loadInSandbox(code) {
   const noop = () => {};
   const ctx = vm.createContext(
     { console: { log: noop, warn: noop, error: noop, info: noop, debug: noop, trace: noop }, TextEncoder, TextDecoder, URL, URLSearchParams },
     // microtaskMode: הבטחות שנוצרו בתוך ההקשר רצות רק בתוך הקריאה עצמה — קוד אסינכרוני לא ממשיך לרוץ "ברקע"
     { codeGeneration: { strings: false, wasm: false }, name: 'catalog-probe', microtaskMode: 'afterEvaluate' },
   );
-  vm.runInContext(SANDBOX_PRELUDE, ctx, { timeout: timeoutMs });
+  vm.runInContext(STEPS_PRELUDE, ctx);
+  vm.runInContext(SANDBOX_PRELUDE, ctx);
   vm.runInContext('globalThis.module = { exports: {} }; globalThis.exports = module.exports;', ctx);
-  vm.runInContext(code, ctx, { timeout: timeoutMs, filename: 'part.cjs' });
+  const counted = instrumentCached(code);
+  if (counted === null) throw new Error('INSTRUMENT: הקוד לא נפרסר למונה-הצעדים');
+  resetBudget(ctx, LOAD_STEPS, LOAD_STEPS);
+  try { vm.runInContext(counted, ctx, { filename: 'part.cjs' }); } catch (err) { if (overOf(ctx)) throw new BudgetError(stepsOf(ctx)); throw err; }
+  if (overOf(ctx)) throw new BudgetError(stepsOf(ctx));
+  if (process.env.CATALOG_STEPS_LOG) stepsLog(stepsOf(ctx) + ' -', 'load');
+  resetBudget(ctx, PART_STEPS);
   return { ctx, exports: vm.runInContext('module.exports', ctx) };
 }
 
-/** קריאה לפונקציה שבתוך ההקשר: args מקודדים ⇒ {v} · {err} · {async:true}. */
+/** ⚡ «מחפש לפי מפתח»: הקוד-עם-המונה הוא פונקציה טהורה של הקוד (בזיכרון + lib/cache.mjs לפי הטביעה). */
+const instrMemo = new Map();
+function instrumentCached(code) {
+  const k = fingerprint(machineSalt(), 'steps-v2', code); // המלח מכסה את lib/steps.mjs — מונה חדש ⇒ שום קוד ישן לא נשלף
+  let v = instrMemo.get(k);
+  if (v === undefined) { v = cacheGet('instr', k); if (typeof v !== 'string') { v = instrument(code); if (v !== null) cachePut('instr', k, v); } instrMemo.set(k, v); }
+  return v;
+}
+
+/** תקציב חדש להקשר (ברירת-מחדל: חלק אחד). קוראים לפני כל חלק — כך התקציב לא תלוי בסדר החלקים בקובץ. */
+export function resetBudget(ctx, n = PART_STEPS, perCall = CALL_STEPS) { vm.runInContext('__catalogBudget', ctx)(n, perCall); }
+const overOf = (ctx) => vm.runInContext('__catalogOver', ctx)();
+const stepsOf = (ctx) => vm.runInContext('__catalogSteps', ctx)();
+export const stepsUsed = (ctx) => stepsOf(ctx) + ' ' + vm.runInContext('__catalogMaxCall', ctx)();
+/** כיול (CATALOG_STEPS_LOG=<קובץ>): כמה צעדים כל חלק צרך — כדי לבחור תקציב עם מרווח מעל החלק הכבד ביותר שנגמר. */
+export function stepsLog(steps, id) { try { fs.appendFileSync(process.env.CATALOG_STEPS_LOG, steps + ' ' + id + '\n'); } catch { /* כיול בלבד */ } }
+
+/** קריאה לפונקציה שבתוך ההקשר: args מקודדים ⇒ {v} · {err} · {async:true}. חריגה מהתקציב ⇒ BudgetError (במארח). */
 export function callerFor(ctx, fn, seedBase = 0, self = undefined) {
   let n = 0;
   const invoke = vm.runInContext('__invoke', ctx);
+  const over = vm.runInContext('__catalogOver', ctx);
+  const newCall = vm.runInContext('__catalogCall', ctx);
   return (args) => {
+    let r;
+    newCall();
     try {
       const s = invoke(fn, JSON.stringify(args), (seedBase + n++) >>> 0, self);
-      if (s.length > 2_000_000) return { err: 'output too large' };
-      const v = JSON.parse(s);
-      if (v && v.$$ === 'promise') return { async: true };
-      return { v };
+      if (s.length > 2_000_000) r = { err: 'output too large' };
+      else {
+        const v = JSON.parse(s);
+        r = v && v.$$ === 'promise' ? { async: true } : { v };
+      }
     } catch (err) {
-      return { err: String((err && err.message) || err).slice(0, 160) };
+      r = { err: String((err && err.message) || err).slice(0, 160) };
     }
+    if (over()) throw new BudgetError(stepsOf(ctx));
+    return r;
   };
 }
 

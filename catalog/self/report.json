@@ -1,38 +1,37 @@
 {
  "source": "machine",
- "ref": "catalog@0f7611c17a5d",
+ "ref": "catalog@a59e68bcd0ea",
  "seed": 13269520,
  "generatedAt": null,
  "census": {
-  "files": 56,
-  "parts": 500
+  "files": 61,
+  "parts": 512
  },
  "parts": {
   "totals": {
-   "run": 263,
-   "runWithVerb": 46,
+   "run": 323,
+   "runWithVerb": 61,
    "twin": 0,
-   "static": 237,
-   "staticWithVerb": 26,
+   "static": 189,
+   "staticWithVerb": 18,
    "why": {
-    "no-fitting-input": 146,
-    "load-failed": 91
+    "no-fitting-input": 164,
+    "load-failed": 25
    }
   },
   "verbs": {
-   "format": 15,
-   "round": 9,
-   "validate": 9,
+   "format": 24,
+   "round": 11,
+   "normalize": 10,
+   "validate": 10,
    "clamp": 6,
-   "normalize": 6,
    "convert": 5,
+   "provide": 4,
    "fingerprint": 3,
-   "provide": 3,
+   "tier": 3,
    "compare": 2,
    "personalize": 2,
-   "route": 1,
-   "split": 1,
-   "tier": 1
+   "split": 2
   },
   "held": [
    {
@@ -78,6 +77,12 @@
     "verbs": [
      "format 15/15",
      "fingerprint 16/16"
+    ]
+   },
+   {
+    "id": "machine:catalog/inner/lib/ensure-gen.mjs#STAT_FILE",
+    "verbs": [
+     "format 15/15"
     ]
    },
    {
@@ -249,6 +254,12 @@
     ]
    },
    {
+    "id": "machine:catalog/scripts/behavior-probe.mjs#stampPath",
+    "verbs": [
+     "format 15/15"
+    ]
+   },
+   {
     "id": "machine:catalog/scripts/buildsmart-census.mjs#arrowEnd",
     "verbs": [
      "round 16/16",
@@ -261,12 +272,6 @@
      "tier 6/6",
      "normalize 12/12",
      "format 15/15"
-    ]
-   },
-   {
-    "id": "machine:catalog/scripts/buildsmart-census.mjs#kindHe",
-    "verbs": [
-     "route 48/48"
     ]
    },
    {
@@ -289,6 +294,57 @@
     ]
    },
    {
+    "id": "machine:catalog/scripts/core-census.mjs#refOf",
+    "verbs": [
+     "format 15/15"
+    ]
+   },
+   {
+    "id": "machine:catalog/scripts/generator-census.mjs#clipWords",
+    "verbs": [
+     "normalize 12/12",
+     "format 15/15"
+    ]
+   },
+   {
+    "id": "machine:catalog/scripts/generator-census.mjs#firstSegment",
+    "verbs": [
+     "tier 6/6"
+    ]
+   },
+   {
+    "id": "machine:catalog/scripts/generator-census.mjs#opt",
+    "verbs": [
+     "round 11/11"
+    ]
+   },
+   {
+    "id": "machine:catalog/scripts/generator-census.mjs#sentence",
+    "verbs": [
+     "normalize 12/12",
+     "format 15/15"
+    ]
+   },
+   {
+    "id": "machine:catalog/scripts/generator-census.mjs#split",
+    "verbs": [
+     "split 24/24"
+    ]
+   },
+   {
+    "id": "machine:catalog/scripts/orbit-census.mjs#doesOf",
+    "verbs": [
+     "normalize 12/12",
+     "format 15/15"
+    ]
+   },
+   {
+    "id": "machine:catalog/scripts/orbit-census.mjs#rel",
+    "verbs": [
+     "format 15/15"
+    ]
+   },
+   {
     "id": "machine:catalog/scripts/others-census.mjs#arg",
     "verbs": [
      "round 16/16",
@@ -296,9 +352,46 @@
     ]
    },
    {
+    "id": "machine:catalog/scripts/rebuild.mjs#graph",
+    "verbs": [
+     "provide 3/3"
+    ]
+   },
+   {
+    "id": "machine:catalog/scripts/rebuild.mjs#sameOut",
+    "verbs": [
+     "validate 24/24"
+    ]
+   },
+   {
+    "id": "machine:catalog/scripts/rings-census.mjs#clip",
+    "verbs": [
+     "tier 6/6",
+     "normalize 12/12"
+    ]
+   },
+   {
+    "id": "machine:catalog/scripts/rings-census.mjs#opt",
+    "verbs": [
+     "round 17/17"
+    ]
+   },
+   {
+    "id": "machine:catalog/scripts/rings-census.mjs#verbName",
+    "verbs": [
+     "format 15/15"
+    ]
+   },
+   {
+    "id": "machine:catalog/scripts/self-check.mjs#text",
+    "verbs": [
+     "format 15/15"
+    ]
+   },
+   {
     "id": "machine:catalog/self/parts.mjs#byId",
     "verbs": [
-     "round 13/13",
+     "round 12/12",
      "clamp 3/3"
     ]
    },
@@ -332,32 +425,32 @@
  },
  "inner": {
   "totals": {
-   "candidates": 2828,
-   "parts": 1226,
-   "run": 807,
-   "runWithVerb": 255,
+   "candidates": 3015,
+   "parts": 1277,
+   "run": 841,
+   "runWithVerb": 266,
    "twin": 0,
-   "static": 419,
-   "staticWithVerb": 218,
+   "static": 436,
+   "staticWithVerb": 223,
    "why": {
-    "no-fitting-input": 419
+    "no-fitting-input": 436
    }
   },
   "verbs": {
-   "format": 82,
-   "round": 61,
-   "normalize": 45,
+   "format": 88,
+   "round": 60,
+   "normalize": 49,
    "convert": 35,
    "clamp": 28,
-   "split": 18,
+   "split": 19,
    "tier": 13,
-   "personalize": 8,
-   "provide": 8,
+   "provide": 10,
+   "personalize": 9,
    "validate": 7,
+   "filter": 4,
    "gap": 4,
+   "map": 4,
    "combine": 3,
-   "filter": 3,
-   "map": 3,
    "extreme": 2,
    "join": 2,
    "offset": 2,
@@ -370,8 +463,8 @@
   }
  },
  "roles": {
-  "total": 15,
-  "held": 15,
+  "total": 17,
+  "held": 17,
   "list": [
    {
     "part": "machine:catalog/combiner/core.mjs#buildIndex·homes",
@@ -430,6 +523,13 @@
     "holds": "24/24"
    },
    {
+    "part": "machine:catalog/lib/probe-file.mjs#relDep",
+    "verb": "normalize",
+    "role": "נתיב-תלות בחותמות (worktree/שכפול)",
+    "held": true,
+    "holds": "12/12"
+   },
+   {
     "part": "machine:catalog/lib/verbs-net.mjs#kOf",
     "verb": "clamp",
     "role": "כמה שכנים (1..8)",
@@ -449,6 +549,13 @@
     "role": "תאריך + ימים (חוקי-הזמן)",
     "held": true,
     "holds": "24/24"
+   },
+   {
+    "part": "machine:catalog/scripts/core-census.mjs#refOf",
+    "verb": "fingerprint",
+    "role": "ref של המפקדים — content@<טביעה> (בלי ענף)",
+    "held": true,
+    "holds": "17/17"
    },
    {
     "part": "machine:catalog/self/parts.mjs#byId",

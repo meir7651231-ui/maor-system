@@ -12,6 +12,7 @@ import { kindOfDesc as rawKind } from '../../lib/entry.mjs';
 import { conformKind } from '../../lib/build-index.mjs';
 import { openFile, moduleText, toJs, PII, makeRepoCtx, useToJsMemo, takeToJsMemo } from './opener.mjs';
 import { fingerprint, machineSalt, cacheGet, cachePut, CACHE_OFF } from '../../lib/cache.mjs';
+import { sourceViewCached } from '../../lib/blank.mjs';
 import { nameOf, doesOf } from './name.mjs';
 import { REPOS, sourceFiles } from './repos.mjs';
 import { packParts, storeText } from './store.mjs';
@@ -100,7 +101,9 @@ function buildInputs(ROOT, SRC, source, self) {
   const catPath = path.join(ROOT, self ? self.docPath : path.join('catalog/sources', R.catalog + '.json'));
   const cfgs = ['tsconfig.json', 'tsconfig.app.json', 'tsconfig.node.json', 'jsconfig.json', 'package-lock.json'].map((f) => path.join(base, f)).filter((f) => fs.existsSync(f));
   const files = [catPath, ...cfgs, ...rels.map((r) => path.join(base, r))];
-  return { key: fingerprint(machineSalt(), 'open-v1', source, JSON.stringify(self ?? null), ...files.flatMap((f) => [f, fs.readFileSync(f)])) };
+  // 🧽 SELF-V2: הפותח קורא TS בלי הערות (lib/blank.mjs) ⇒ הטביעה על אותה גרסה; נתיבים יחסיים ⇒ אותו מפתח בכל worktree
+  const view = (f) => { const t = fs.readFileSync(f, 'utf8'); return f.startsWith(base + path.sep) ? sourceViewCached(f, t) : t; };
+  return { key: fingerprint(machineSalt(), 'open-v2', source, JSON.stringify(self ?? null), ...files.flatMap((f) => [path.relative(ROOT, f), view(f)])) };
 }
 
 function buildSourceRaw(ROOT, SRC, source, self = null) {
@@ -124,6 +127,9 @@ function buildSourceRaw(ROOT, SRC, source, self = null) {
   const descMemo = new Map(); const textMemo = new Map();
   const descOf = (c, t) => { if (!t) return descOfRaw(c, t); let d = descMemo.get(t); if (d === undefined) { d = descOfRaw(c, t); descMemo.set(t, d); } return d; };
   const typeText = (c, t) => { let x = textMemo.get(t); if (x === undefined) { x = typeTextRaw(c, t); textMemo.set(t, x); } return x; };
+  const ptMemo = new Map(); const djMemo = new Map();
+  const paramTypeOf = (p) => { if (!ptMemo.has(p)) ptMemo.set(p, paramType(checker, p)); return ptMemo.get(p); };
+  const descJson = (d) => { let j = djMemo.get(d); if (j === undefined) { j = JSON.stringify(d); djMemo.set(d, j); } return j; };
   // v2: עוזרים מקבצים אחרים — רק מקבצי-המקור של הריפו עצמו (אותה רשימה שהפותח קורא)
   const repoSfs = new Set(rels.map((r) => program.getSourceFile(path.join(base, r))).filter(Boolean));
   const repo = makeRepoCtx(program, (x) => repoSfs.has(x));
@@ -146,8 +152,10 @@ function buildSourceRaw(ROOT, SRC, source, self = null) {
     const header = `// 🔓 נוצר אוטומטית ע"י catalog/inner/scripts/open.mjs מתוך ${source}:${rel} — לא לערוך ביד.\n// כל פונקציה כאן = ערך-בדרך שהורם מתוך פונקציה גדולה יותר; טהורה, בלי I/O. SIGS = צורת הקלטים לקורא-ההתנהגות.`;
     let mod = moduleText(r.lifts, sf, header);
     // פרטיות גם בצורות-הקלט: טיפוס-ליטרלי ('x@y.com') נכנס ל-SIGS ול-type — חלק כזה לא נכתב
-    const sigOf = (L) => L.params.map((p) => { const t = paramType(checker, p); return { p, t, d: descOf(checker, t), type: t ? typeText(checker, t) : 'unknown' }; });
-    const leaky = mod.kept.filter((L) => PII.some((re) => re.test(JSON.stringify(sigOf(L).map((x) => [x.d, x.type])))));
+    // ⚡ SELF-V2: «מחפש לפי מפתח» — הטיפוס של קלט נשאל פעם אחת (paramTypeOf), ו-JSON של צורה פעם אחת לכל צורה (descJson);
+    // המחרוזת שנבדקת זהה תו-בתו ל-JSON.stringify של הרשימה (אותה פרטיות בדיוק)
+    const sigOf = (L) => L.params.map((p) => { const t = paramTypeOf(p); return { p, t, d: descOf(checker, t), type: t ? typeText(checker, t) : 'unknown' }; });
+    const leaky = mod.kept.filter((L) => { const txt = '[' + sigOf(L).map((x) => '[' + descJson(x.d) + ',' + JSON.stringify(x.type) + ']').join(',') + ']'; return PII.some((re) => re.test(txt)); });
     if (leaky.length) {
       const bad = new Set(leaky.map((L) => L.symbol));
       skips['privacy'] = (skips['privacy'] ?? 0) + leaky.length;
@@ -161,7 +169,7 @@ function buildSourceRaw(ROOT, SRC, source, self = null) {
     const sigs = {};
     for (const L of mod.kept) {
       const takes = L.params.map((p) => {
-        const t = paramType(checker, p);
+        const t = paramTypeOf(p);
         let d = descOf(checker, t);
         if (d.t === 'any' && usedAsNumber(L, p, checker)) d = { t: 'num' };
         return { name: p.name, d, opt: false, type: t ? typeText(checker, t) : 'unknown' };

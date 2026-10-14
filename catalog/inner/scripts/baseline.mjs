@@ -11,7 +11,7 @@ import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { bundleBridge } from '../../lib/load-bridge.mjs';
 import { prepareJobs, isRunnable } from '../../lib/probe-file.mjs';
-import { runBucket } from './prove.mjs';
+import { runPool } from '../../lib/pool.mjs';
 import { REPOS } from '../lib/repos.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
@@ -32,10 +32,7 @@ for (const [source, R] of Object.entries(REPOS)) {
   const runnable = doc.parts.filter(isRunnable);
   const { jobs } = prepareJobs(dir, runnable);
   const mjobs = jobs.map((j) => ({ ...j, motionOnly: true, parts: j.parts.map((p) => ({ ...p, motionKey: p.id })) }));
-  const results = new Map();
-  const buckets = [[], [], [], []];
-  mjobs.forEach((j, k) => buckets[k % 4].push(j));
-  await Promise.all(buckets.map((b) => runBucket(b, bridgePath, results, [])));
+  const results = await runPool({ file: path.join(ROOT, 'catalog/inner/scripts/prove-worker.mjs'), jobs: mjobs, workers: 4, data: { bridgePath, seed: 0x0ca7a10 } });
   const got = {};
   for (const id of [...results.keys()].sort()) { const r = results.get(id); if (r && r.motion && r.motion.length) got[id] = r.motion; }
   out.sources[R.catalog] = { runnable: runnable.length, withMotion: Object.keys(got).length, parts: got };

@@ -204,7 +204,7 @@
 ["s",[{"id":"assign-role","by":"symbol"}],"assign-role","unknown",-1,-1,"no-fitting-input"],
 ["s",[{"id":"assign-role","by":"symbol"}],"assign-role","unknown",-1,-1,"no-fitting-input"],
 ["r",[],null,"unknown",19,46],
-["r",[{"id":"personalize","on":"data","holds":"16/16"}],"personalize","record:data",24,-1,0,"460d5278-aed8fb41"],
+["r",[{"id":"personalize","on":"data","holds":"15/15"}],"personalize","record:data",24,-1,0,"460d5278-aed8fb41"],
 ["r",[{"id":"transcript","on":"anonKeys+uid","holds":"33/33"},{"id":"normalize","on":"anonKeys","holds":"12/12"}],"transcript","text",24,-1,0,"3beef624-12b8d2a3"],
 ["r",[],null,"text",24,52,0,"fcaea94f-078cb896"],
 ["r",[],null,"list",24,53,0,"aaa9d3e5-f35c743f"],

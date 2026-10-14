@@ -36,6 +36,8 @@ export const ORIGINS = {
     'catalog/combiner/core.mjs:185', 'catalog/combiner/core.mjs:245', 'catalog/inner/lib/build.mjs:166', 'catalog/scripts/behavior-probe.mjs:58',
     'catalog/scripts/core-census.mjs:69', 'catalog/scripts/orbit-census.mjs:728', 'catalog/scripts/core-b-census.mjs:84', 'catalog/scripts/core-c-census.mjs:98',
     'catalog/inner/scripts/prove.mjs:119',
+    // SELF-V2 (בקומיט 69f710a; הוכחה: --check של ארבעת המפקדים מול השכפולים הנעוצים — ביט-זהה)
+    'catalog/scripts/buildsmart-census.mjs:1035', 'catalog/scripts/generator-census.mjs:392', 'catalog/scripts/others-census.mjs:1460', 'catalog/scripts/rings-census.mjs:168',
   ],
   rankCounts: ['catalog/lib/build-index.mjs:28', 'catalog/inner/lib/build.mjs:25', 'catalog/lib/entry.mjs:70'],
   fnv1a: ['catalog/lib/probe.mjs:19', 'catalog/lib/verbs-sun.mjs:74'],

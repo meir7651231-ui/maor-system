@@ -6,9 +6,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { makeProgram, signatureOf, fillFromKinds, literalPool } from './tsdesc.mjs';
-import { bundleWithDeps, loadInSandbox, callerFor, resolvePart } from './sandbox.mjs';
+import { bundleWithDeps, loadInSandbox, callerFor, resolvePart, resetBudget, stepsUsed, BudgetError, stepsLog } from './sandbox.mjs';
 import { probePart, behaviorHash, fnvHash } from './probe.mjs';
-import { fingerprint, machineSalt, cacheGet, cachePut, stampOf, CACHE_OFF } from './cache.mjs';
+import { fingerprint, machineSalt, cacheGet, cachePut, CACHE_OFF } from './cache.mjs';
+import { sourceViewCached } from './blank.mjs';
 
 const RUN_WHAT = new Set(['function', 'brick', 'particle', 'rule']);
 const IDENT = /^[A-Za-z_$][\w$]*(\.[A-Za-z_$][\w$]*)?$/;
@@ -23,6 +24,9 @@ function exampleArgs(p, takes) {
   if (!Object.keys(ex).every((k) => names.includes(k))) return null;
   return [names.map((n) => (n in ex ? ex[n] : { $$: 'undef' }))];
 }
+
+/** שורש-הריפו כנתיב אמיתי — האורז מחזיר תלויות בנתיב האמיתי, והחותמות יחסיות אליו (גם כשהשכפול הוא קישור-סמלי). */
+export const realBase = (dir) => { try { return fs.realpathSync(dir); } catch { return dir; } };
 
 /** חלקים ⇒ עבודות לפי קובץ (ממוינות) + תוצאות-מוקדמות לחלקים שלא הגיעו להרצה + החתימות. */
 export function prepareJobs(dir, runnable, { cli = false } = {}) {
@@ -43,7 +47,7 @@ export function prepareJobs(dir, runnable, { cli = false } = {}) {
     jobs.get(abs).push({ id: p.id, symbol: p.symbol, method: s.method ?? undefined, internal: s.internal, sig: seeds ? { takes, seeds } : { takes } });
   }
   const list = [...jobs.entries()].sort((a, b) => (a[0] < b[0] ? -1 : 1)).map(([abs, parts]) => ({
-    abs, parts, pool: literalPool(abs), esm: esmOf.get(abs), ...(cli ? { cli: true } : {}),
+    abs, rel: path.relative(dir, abs).split(path.sep).join('/'), base: realBase(dir), parts, pool: literalPool(abs), esm: esmOf.get(abs), ...(cli ? { cli: true } : {}),
     expose: [...new Set(parts.filter((p) => p.internal).map((p) => (p.method ? p.method.cls : p.symbol)))].sort(),
   }));
   const sigs = new Map(list.flatMap((j) => j.parts.map((p) => [p.id, p.sig])));
@@ -57,41 +61,69 @@ function buildWhy(err) {
   return (m ? m[1] + ': ' + m[2] : msg.split('\n')[0]).slice(0, 140);
 }
 
-/** מריץ עבודה אחת (קובץ אחד). onStart(id) לפני כל חלק (לשומר-הזמן), onDone(id, result) אחריו. מחזיר [{id, result}]. */
-export async function probeJob(job, { B, seed, onStart = () => {}, onDone = () => {} }) {
+/* ═══════════════ «מטביע חותם» — המפתחות (משותפים לעובד, לתהליך הראשי ולחותמות שבריפו) ═══════════════ */
+
+/** מפתח-קובץ: הקובץ (יחסי לשורש-הריפו שלו — בלי נתיב מוחלט ⇒ אותו מפתח בכל worktree/שכפול), הייצוא, המצב, המלח. */
+export const fileKeyOf = (job) => fingerprint(machineSalt(), 'probe-v3', job.rel ?? job.abs, JSON.stringify(job.expose ?? []), String(job.esm), String(!!job.cli));
+/** טביעת הקבצים שנארזו (יחסיים לשורש; TS — בלי הערות, כמו שהאורז קורא אותם). קובץ חסר ⇒ '!'. */
+export function depsStampOf(deps, base) {
+  return fingerprint('deps-v1', ...deps.flatMap((f) => {
+    let b; try { b = fs.readFileSync(f, 'utf8'); } catch { return [rel(base, f), '!']; }
+    return [rel(base, f), fingerprint(sourceViewCached(f, b))];
+  }));
+}
+/** נתיב-תלות יחסי — ותלות מתוך node_modules נרשמת כ-node_modules/… (גם כשהתיקייה היא קישור, כמו ב-worktree). */
+export function relDep(base, f) {
+  const i = f.indexOf(path.sep + 'node_modules' + path.sep);
+  if (i >= 0) return f.slice(i + 1).split(path.sep).join('/');
+  // 🪞 SELF-V2 (הסריקה-העצמית השנייה, «מנרמל» · normalize.idem): נתיב שכבר יחסי נשאר כמו שהוא — path.relative היה פותר
+  // אותו מול תיקיית-העבודה של התהליך ⇒ חותמת שתלויה במקום שממנו הרצת. ratchet: self-v2.test
+  return path.isAbsolute(f) ? path.relative(base, f).split(path.sep).join('/') : f.split(path.sep).join('/');
+}
+const rel = relDep;
+/** מפתח-חלק: הקובץ + מה שנארז + הזרע + מילון-הקוד + החלק (חתימה, סמל). */
+export const partKeyOf = (fileKey, stamp, seed, pool, p) => fingerprint(fileKey, stamp, String(seed), JSON.stringify(pool ?? null), JSON.stringify(p));
+
+/**
+ * מריץ עבודה אחת (קובץ אחד). onStart(id) לפני כל חלק (לשומר-הקריסה), onDone(id, result) אחריו, onDeps(deps) — הקבצים
+ * שנארזו (מוחלטים). מחזיר [{id, result}].
+ * ⚡ SELF: «מחפש לפי מפתח» — אף קובץ שנארז לא השתנה (לפי הטביעה, TS בלי הערות) ⇒ אותה תוצאה, בלי לארוז ובלי להריץ.
+ */
+export async function probeJob(job, { B, seed, onStart = () => {}, onDone = () => {}, onDeps = () => {} }) {
   let mod = null;
   let why = null;
-  // ⚡ SELF: «מטביע חותם» + «מחפש לפי מפתח». מפתח-קובץ (הקובץ, הייצוא, המלח של המכונה) ⇒ רשימת הקבצים שנארזו בפעם הקודמת;
-  // הטביעה של התוכן הנוכחי שלהם + הזרע + מילון-הקוד + החלק ⇒ מפתח-חלק. אף קובץ לא השתנה ⇒ אותה תוצאה (הקורא טהור
-  // ודטרמיניסטי) — בלי לארוז ובלי להריץ. גם "timeout" נזכר (התהליך הראשי כותב אותו), כדי שהרצה חמה לא תחכה שוב 20 שניות.
-  const fileKey = CACHE_OFF ? null : fingerprint(machineSalt(), 'probe-v2', job.abs, JSON.stringify(job.expose ?? []), String(job.esm), String(!!job.cli));
-  const partKey = (stamp, p) => fingerprint(fileKey, stamp, String(seed), JSON.stringify(job.pool ?? null), JSON.stringify(p));
-  if (fileKey) {
+  const fileKey = fileKeyOf(job);
+  const base = job.base ?? path.dirname(job.abs);
+  if (!CACHE_OFF) {
     const list = cacheGet('probe-deps', fileKey);
     if (Array.isArray(list) && list.length) {
-      const st = stampOf(list);
-      const got = job.parts.map((p) => cacheGet('probe-part', partKey(st, p)));
+      const st = depsStampOf(list, base);
+      const got = job.parts.map((p) => cacheGet('probe-part', partKeyOf(fileKey, st, seed, job.pool, p)));
       if (got.every((r) => r !== undefined)) {
-        return job.parts.map((p, k) => { onStart(p.id, null); onDone(p.id, got[k]); return { id: p.id, result: got[k] }; });
+        onDeps(list);
+        return job.parts.map((p, k) => { onStart(p.id); onDone(p.id, got[k]); return { id: p.id, result: got[k] }; });
       }
     }
   }
-  let code = null; let stamp = null;
+  let code = null; let deps = [job.abs];
   try {
     const b = await bundleWithDeps(job.abs, { expose: job.expose ?? [], esm: job.esm !== false, cli: !!job.cli });
     code = b.code;
-    if (fileKey && b.deps.length) { cachePut('probe-deps', fileKey, b.deps); stamp = stampOf(b.deps); }
+    if (b.deps.length) deps = b.deps;
     mod = loadInSandbox(code);
   } catch (err) {
     why = buildWhy(err);
   }
+  if (!CACHE_OFF) cachePut('probe-deps', fileKey, deps);
+  onDeps(deps);
+  const stamp = depsStampOf(deps, base);
   const out = [];
   for (const p of job.parts) {
-    const key = stamp && partKey(stamp, p);
-    const hit = key && cacheGet('probe-part', key);
-    if (hit !== undefined && hit !== null && key) { onStart(p.id, null); out.push({ id: p.id, result: hit }); onDone(p.id, hit); continue; }
-    onStart(p.id, key);
-    if (!mod) { const r = { status: 'load-failed', why }; if (key) cachePut('probe-part', key, r); out.push({ id: p.id, result: r }); onDone(p.id, r); continue; }
+    const key = partKeyOf(fileKey, stamp, seed, job.pool, p);
+    const hit = CACHE_OFF ? undefined : cacheGet('probe-part', key);
+    if (hit !== undefined && hit !== null) { onStart(p.id); out.push({ id: p.id, result: hit }); onDone(p.id, hit); continue; }
+    onStart(p.id);
+    if (!mod) { const r = { status: 'load-failed', why }; cachePut('probe-part', key, r); out.push({ id: p.id, result: r }); onDone(p.id, r); continue; }
     let result;
     try {
       const got = resolvePart(mod.exports, p.symbol, p.method);
@@ -99,13 +131,16 @@ export async function probeJob(job, { B, seed, onStart = () => {}, onDone = () =
       else {
         const s = (fnvHash(p.id) ^ seed) >>> 0;
         const Bp = { ...B, pool: job.pool };
+        resetBudget(mod.ctx); // ⏱️ SELF-V2: תקציב-צעדים לחלק (לא שעון)
         result = probePart({ sig: p.sig, call: callerFor(mod.ctx, got.fn, s, got.self), seed: s, B: Bp });
         if (result.status === 'ran') result.hash = behaviorHash(p.sig, callerFor(mod.ctx, got.fn, 7, got.self), B);
+        if (process.env.CATALOG_STEPS_LOG) stepsLog(stepsUsed(mod.ctx), p.id);
       }
     } catch (err) {
-      result = { status: 'probe-error', why: String((err && err.message) || err).slice(0, 160) };
+      result = err instanceof BudgetError ? { status: 'budget' } : { status: 'probe-error', why: String((err && err.message) || err).slice(0, 160) };
+      if (process.env.CATALOG_STEPS_LOG) stepsLog(err instanceof BudgetError ? 'BUDGET' : 'err', p.id);
     }
-    if (key) cachePut('probe-part', key, result);
+    cachePut('probe-part', key, result);
     out.push({ id: p.id, result });
     onDone(p.id, result);
   }

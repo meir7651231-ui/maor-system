@@ -1,0 +1,26 @@
+{
+ "version": 1,
+ "seed": 13269520,
+ "files": {
+  "harness/guard.mjs": [
+   "harness/guard.mjs"
+  ],
+  "harness/police.mjs": [
+   "harness/police.mjs"
+  ]
+ },
+ "parts": {
+  "yeshiva:harness/guard.mjs#has": "470381f5e05a70d9",
+  "yeshiva:harness/guard.mjs#opt": "09e67d8848a50f8c",
+  "yeshiva:harness/guard.mjs#sh": "56fb72dc59b70a0c",
+  "yeshiva:harness/guard.mjs#stub": "961700d657c2b75c",
+  "yeshiva:harness/guard.mjs#uniq": "b51f9b2ad248fe87",
+  "yeshiva:harness/police.mjs#has": "bc03d7aed4eeec71",
+  "yeshiva:harness/police.mjs#hashes": "c6f2940bcf712100",
+  "yeshiva:harness/police.mjs#icon": "111fe0eec5bfdd37",
+  "yeshiva:harness/police.mjs#isSelf": "79c0dee60bb4134c",
+  "yeshiva:harness/police.mjs#opt": "f3c84e9eb7ba93c3",
+  "yeshiva:harness/police.mjs#sh": "85e1e057484ce35d",
+  "yeshiva:harness/police.mjs#tail": "3ea522586295cf81"
+ }
+}

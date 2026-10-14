@@ -6,16 +6,19 @@
 import fs from 'node:fs';
 import ts from 'typescript';
 import { descFromKind } from './shape.mjs';
+import { blankingHost, sourceViewCached } from './blank.mjs';
 
 const MAX_PROPS = 40;
 const MAX_DEPTH = 6;
 
 export function makeProgram(files, extra = {}) {
-  return ts.createProgram(files, {
+  const options = {
     target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext, moduleResolution: ts.ModuleResolutionKind.Bundler,
     allowJs: true, checkJs: false, jsx: ts.JsxEmit.Preserve, strict: true, skipLibCheck: true, noEmit: true, resolveJsonModule: true, allowImportingTsExtensions: true,
     ...extra,
-  });
+  };
+  // 🧽 SELF-V2: קובצי TS נקראים בלי הערות (lib/blank.mjs) — הקורא תלוי רק במה שהטביעה של השלב מכסה
+  return ts.createProgram(files, options, blankingHost(options));
 }
 
 function typeName(t) {
@@ -156,7 +159,7 @@ export function fillFromKinds(takes, partTakes) {
 }
 /** מילון-הקוד של קובץ: מחרוזות ומספרים שכתובים בו (סורק של TypeScript, בלי להריץ). ממוין — דטרמיניסטי. */
 export function literalPool(abs) {
-  const text = fs.readFileSync(abs, 'utf8');
+  const text = sourceViewCached(abs, fs.readFileSync(abs, 'utf8')); // 🧽 SELF-V2: בלי הערות (הסורק מדלג עליהן ממילא)
   const sc = ts.createScanner(ts.ScriptTarget.Latest, true, ts.LanguageVariant.Standard, text);
   const str = new Set(); const num = new Set();
   for (let k = sc.scan(); k !== ts.SyntaxKind.EndOfFileToken; k = sc.scan()) {

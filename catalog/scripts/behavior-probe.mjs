@@ -11,10 +11,10 @@
  *   node catalog/scripts/behavior-probe.mjs                     # כל המקורות
  *   node catalog/scripts/behavior-probe.mjs --source orbit,rings
  *   --src <dir>   שכפולי-הקריאה של שאר הריפואים (ברירת-מחדל: $CATALOG_SRC או ../catsrc): buildsmart · rings · 14kk · mmmm · yoman · yeshiva
- *   --workers N   (ברירת-מחדל 4) · --only <מחרוזת> (רק חלקים שה-id שלהם מכיל) · --timeout ms (לחלק; ברירת-מחדל 20000)
+ *   --workers N   (ברירת-מחדל 4) · --only <מחרוזת> (רק חלקים שה-id שלהם מכיל)
+ *   ⏱️ SELF-V2: חלק שלא נגמר נעצר בתקציב-צעדים דטרמיניסטי (lib/steps.mjs ⇒ 'budget'), לא בשעון-קיר של 20 שניות כמו קודם
  * דטרמיניסטי: זרע קבוע, תוצאות ממוינות לפי id; מספר העובדים לא משנה את הפלט.
  */
-import { Worker } from 'node:worker_threads';
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -22,10 +22,12 @@ import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { bundleBridge } from '../lib/load-bridge.mjs';
 import { probePart, behaviorHash, fnvHash } from '../lib/probe.mjs';
-import { prepareJobs, isRunnable } from '../lib/probe-file.mjs';
+import { prepareJobs, isRunnable, fileKeyOf, depsStampOf, partKeyOf, relDep, realBase } from '../lib/probe-file.mjs';
+import { fingerprint, cacheGet, CACHE_OFF } from '../lib/cache.mjs';
 import { entryFor, tally } from '../lib/entry.mjs';
 import { crossSourceDups } from '../lib/links.mjs';
-import { cachePut } from '../lib/cache.mjs';
+import { runPool } from '../lib/pool.mjs';
+import { writeIfChanged } from '../lib/write.mjs';
 import { byId } from '../self/parts.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
@@ -34,7 +36,6 @@ const opt = (k, d) => { const i = args.indexOf(k); return i >= 0 ? args[i + 1] :
 const SRC = path.resolve(ROOT, opt('--src', process.env.CATALOG_SRC || '../catsrc'));
 const WORKERS = Number(opt('--workers', Math.min(4, os.cpus().length)));
 const ONLY = opt('--only', '');
-const TIMEOUT = Number(opt('--timeout', 20000));
 export const SEED = 0x0ca7a10;
 export const PROBE_VERSION = 1;
 
@@ -74,43 +75,65 @@ function cloneDir(name, doc) {
   return { dir };
 }
 
+/** ⚡ SELF-V2: החותמות שבריפו לכל חלק (לא למכונה עצמה — שם כל שינוי-קוד הוא שינוי-מלח ממילא). */
+export const stampPath = (name) => (name === 'machine' ? null : `catalog/self/stamps/behavior-${name}.json`);
+const commitKey = (partKey, rec) => fingerprint('commit-v1', partKey, rec).slice(0, 16);
+
 async function runCode(name, doc, bridgePath) {
   const { dir, why } = cloneDir(name, doc);
   const runnable = doc.parts.filter((p) => isRunnable(p) && (!ONLY || p.id.includes(ONLY)));
   const results = new Map();
   if (!dir) { for (const p of runnable) results.set(p.id, { status: 'no-clone', why }); return { results, runnable: runnable.length }; }
   const { jobs: list, results: pre, sigs } = prepareJobs(dir, runnable, { cli: name === 'machine' });
+  const base = realBase(dir); // התלויות מהאורז — בנתיבים אמיתיים
   for (const [k, v] of pre) results.set(k, v);
-  // חלוקה לעובדים (קבוע; הפלט ממוין בסוף ולכן לא תלוי בחלוקה)
-  const buckets = Array.from({ length: Math.max(1, WORKERS) }, () => []);
-  list.forEach((j, k) => buckets[k % buckets.length].push(j));
-  await Promise.all(buckets.map((b) => runBucket(b, bridgePath, results)));
-  return { results, runnable: runnable.length, sigs };
+  /*
+   * ⚡ SELF-V2: «מחפש לפי מפתח» כבר כאן, בתהליך הראשי — לכל חלק המפתח שלו (הקובץ · מה שנארז, TS בלי הערות · הזרע ·
+   * מילון-הקוד · החתימה), ואז: מטמון מקומי (תוצאה) ⇒ או **החותמת שבריפו** (המפתח שממנו נוצרה השורה שכבר בקובץ, + טביעת
+   * רשומת-המפקד) ⇒ או הרצה. רק החלקים שהמפתח שלהם השתנה נשלחים לעובדים — גם בשכפול טרי בלי שום מטמון.
+   * CATALOG_CACHE=off ⇒ הכול רץ (זו הריצה שאליה משווים); החותמות עצמן מחושבות אותו דבר בשני המצבים.
+   */
+  const SP = !ONLY && stampPath(name);
+  const committed = (!CACHE_OFF && process.env.CATALOG_STAMPS !== 'off' && SP && readJson(SP)) || { files: {}, parts: {} };
+  const outFile = path.join(ROOT, SOURCES[name].out ?? path.join('catalog/behavior', name + '.json'));
+  const prev = new Map(!CACHE_OFF && fs.existsSync(outFile) ? JSON.parse(fs.readFileSync(outFile, 'utf8')).parts.map((e) => [e.id, e]) : []);
+  const recOf = new Map(doc.parts.map((p) => [p.id, fingerprint(JSON.stringify(p))]));
+  const reused = new Map(); const depsOf = new Map(); const todo = [];
+  for (const job of list) {
+    const fk = fileKeyOf(job);
+    const known = (CACHE_OFF ? null : cacheGet('probe-deps', fk)) ?? committed.files[job.rel]?.map((r) => path.join(base, r));
+    if (!known) { todo.push(job); continue; }
+    const st = depsStampOf(known, base);
+    const need = [];
+    for (const p of job.parts) {
+      const k = partKeyOf(fk, st, SEED, job.pool, p);
+      const hit = CACHE_OFF ? undefined : cacheGet('probe-part', k);
+      if (hit !== undefined && hit !== null) { results.set(p.id, hit); continue; }
+      if (committed.parts[p.id] === commitKey(k, recOf.get(p.id)) && prev.has(p.id)) { reused.set(p.id, prev.get(p.id)); continue; }
+      need.push(p);
+    }
+    depsOf.set(job.abs, known);
+    if (need.length) todo.push({ ...job, parts: need });
+  }
+  // «מחלק» + «בתורות» — מאגר-העובדים המשותף (lib/pool.mjs); הפלט ממוין בסוף ולכן לא תלוי בחלוקה
+  await runPool({ file: path.join(ROOT, 'catalog/scripts/probe-worker.mjs'), jobs: todo, workers: WORKERS, data: { bridgePath, seed: SEED }, results, onMessage: (m) => { if (m.type === 'deps') depsOf.set(m.abs, m.deps); } });
+  // החותמות החדשות: לכל קובץ — מה נארז (יחסי); לכל חלק — המפתח שממנו השורה נוצרה (קריסה ⇒ בלי חותמת, תרוץ שוב)
+  const stamps = { version: 1, seed: SEED, files: {}, parts: {} };
+  for (const job of list) {
+    const deps = depsOf.get(job.abs) ?? [job.abs];
+    stamps.files[job.rel] = deps.map((f) => relDep(base, f));
+    const fk = fileKeyOf(job); const st = depsStampOf(deps, base);
+    for (const p of job.parts) {
+      const r = results.get(p.id);
+      if (!reused.has(p.id) && (!r || r.status === 'crashed' || r.status === 'watchdog')) continue;
+      stamps.parts[p.id] = commitKey(partKeyOf(fk, st, SEED, job.pool, p), recOf.get(p.id));
+    }
+  }
+  stamps.files = Object.fromEntries(Object.entries(stamps.files).sort((a, b) => (a[0] < b[0] ? -1 : 1)));
+  stamps.parts = Object.fromEntries(Object.entries(stamps.parts).sort((a, b) => (a[0] < b[0] ? -1 : 1)));
+  return { results, runnable: runnable.length, sigs, reused, stamps: SP ? { path: SP, data: stamps } : null, ran: todo.reduce((n, j) => n + j.parts.length, 0) };
 }
-
-/** מריץ רשימת-עבודות בעובד אחד; חלק שנתקע ⇒ timeout, העובד מוחלף וממשיכים מהחלק הבא. */
-function runBucket(jobs, bridgePath, results) {
-  return new Promise((resolve) => {
-    let rest = jobs.map((j) => ({ ...j, parts: j.parts.slice() }));
-    const spawn = () => {
-      rest = rest.map((j) => ({ ...j, parts: j.parts.filter((p) => !results.has(p.id)) })).filter((j) => j.parts.length);
-      if (!rest.length) return resolve();
-      const w = new Worker(path.join(ROOT, 'catalog/scripts/probe-worker.mjs'), { workerData: { bridgePath, jobs: rest, seed: SEED }, env: process.env.CATALOG_CACHE ? { CATALOG_CACHE: process.env.CATALOG_CACHE } : {}, resourceLimits: { maxOldGenerationSizeMb: 1536 }, stdout: true, stderr: true });
-      let cur = null; let curKey = null; let timer = null;
-      // ⚡ SELF: חלק שנתקע נזכר במטמון (לפי המפתח שהעובד שלח) — הרצה חמה לא מחכה לו שוב
-      const arm = () => { clearTimeout(timer); timer = setTimeout(() => { if (cur) { results.set(cur, { status: 'timeout' }); if (curKey) cachePut('probe-part', curKey, { status: 'timeout' }); } w.terminate(); }, TIMEOUT); };
-      w.on('message', (m) => {
-        if (process.env.PROBE_DEBUG) console.error('[probe]', m.type, m.id ?? '');
-        if (m.type === 'start') { cur = m.id; curKey = m.key ?? null; arm(); }
-        else if (m.type === 'done') { results.set(m.id, m.result); cur = null; clearTimeout(timer); }
-        else if (m.type === 'end') clearTimeout(timer);
-      });
-      w.on('error', () => { if (cur) results.set(cur, { status: 'crashed' }); });
-      w.on('exit', () => { clearTimeout(timer); if (cur && !results.has(cur)) results.set(cur, { status: 'crashed' }); spawn(); });
-    };
-    spawn();
-  });
-}
+const readJson = (rel) => { try { return JSON.parse(fs.readFileSync(path.join(ROOT, rel), 'utf8')); } catch { return null; } };
 
 /* ═══════════════ מנוע-הטבעות: המריץ של המכונה ═══════════════ */
 
@@ -207,12 +230,12 @@ async function main() {
     if (!fs.existsSync(path.join(ROOT, docPath(name)))) continue;
     const t0 = Date.now();
     const doc = readSource(name);
-    let results = new Map(); let sigs = new Map(); let runnable = 0;
+    let results = new Map(); let sigs = new Map(); let runnable = 0; let reused = new Map(); let stamps = null; let ran = null;
     // 🪞 SELF: בלי שכפול כל החלקים היו נכתבים 'no-clone' (static) — הקובץ שבריפו נדרס בשקט. עכשיו: נשמר כמו שהוא.
     if ((SOURCES[name].run === 'code' || SOURCES[name].run === 'rings') && !cloneDir(name, doc).dir) { console.log(`· ${name}: ${cloneDir(name, doc).why} — הקובץ נשמר כמו שהוא`); continue; }
-    if (SOURCES[name].run === 'code') ({ results, sigs = new Map(), runnable } = await runCode(name, doc, bridgePath));
+    if (SOURCES[name].run === 'code') ({ results, sigs = new Map(), runnable, reused = new Map(), stamps = null, ran = null } = await runCode(name, doc, bridgePath));
     else if (SOURCES[name].run === 'rings') ({ results, sigs, runnable } = await runRings(doc, B));
-    const entries = doc.parts.map((p) => entryFor(p, results.get(p.id), sigs.get(p.id)));
+    const entries = doc.parts.map((p) => reused.get(p.id) ?? entryFor(p, results.get(p.id), sigs.get(p.id)));
     if (SOURCES[name].run === 'twin') twinLabels(doc, entries);
     if (ONLY) { console.log(JSON.stringify(entries.filter((e) => e.id.includes(ONLY)), null, 1)); continue; }
     const out = {
@@ -220,8 +243,9 @@ async function main() {
       totals: tally(entries),
       parts: entries.sort(byId),
     };
-    fs.writeFileSync(path.join(ROOT, SOURCES[name].out ?? path.join('catalog/behavior', name + '.json')), JSON.stringify(out, null, 1) + '\n');
-    summary.push(`${name}: ${doc.parts.length} חלקים · ניתנים-להרצה ${runnable} · run ${out.totals.run} (עם פועל ${out.totals.runWithVerb}) · twin ${out.totals.twin} · static ${out.totals.static} · ${((Date.now() - t0) / 1000).toFixed(1)}s`);
+    writeIfChanged(path.join(ROOT, SOURCES[name].out ?? path.join('catalog/behavior', name + '.json')), JSON.stringify(out, null, 1) + '\n');
+    if (stamps) writeIfChanged(path.join(ROOT, stamps.path), JSON.stringify(stamps.data, null, 1) + '\n');
+    summary.push(`${name}: ${doc.parts.length} חלקים · ניתנים-להרצה ${runnable} · run ${out.totals.run} (עם פועל ${out.totals.runWithVerb}) · twin ${out.totals.twin} · static ${out.totals.static}${ran !== null ? ` · ${ran} רצו עכשיו, ${reused.size} מהחותמת` : ''} · ${((Date.now() - t0) / 1000).toFixed(1)}s`);
     console.log(summary[summary.length - 1]);
   }
 }

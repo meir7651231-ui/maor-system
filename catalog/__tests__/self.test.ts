@@ -169,14 +169,22 @@ describe('SELF — ⚡ המטמון: שליפה = הרצה, ביט-זהה', () =
   it('קורא-ההתנהגות (core-c) עם מטמון ריק ואז מלא ⇒ אותו קובץ בדיוק כמו שבריפו', () => {
     const dir = mkdtempSync(join(tmpdir(), 'catalog-cache-'));
     const f = join(ROOT, 'catalog/behavior/core-c.json');
-    const before = readFileSync(f, 'utf8');
+    // SELF-V2: בלי החותמות שבריפו (CATALOG_STAMPS=off) — אחרת הקורא לוקח את השורות מהחותמת ולא רץ בכלל
+    const sf = join(ROOT, 'catalog/self/stamps/behavior-core-c.json');
+    const before = readFileSync(f, 'utf8'); const stampsBefore = readFileSync(sf, 'utf8');
     try {
       for (let k = 0; k < 2; k++) {
-        execFileSync(process.execPath, [join(ROOT, 'catalog/scripts/behavior-probe.mjs'), '--source', 'core-c'], { env: { ...process.env, CATALOG_CACHE: dir }, stdio: 'pipe' });
+        execFileSync(process.execPath, [join(ROOT, 'catalog/scripts/behavior-probe.mjs'), '--source', 'core-c'], { env: { ...process.env, CATALOG_CACHE: dir, CATALOG_STAMPS: 'off' }, stdio: 'pipe' });
         expect(readFileSync(f, 'utf8'), 'הרצה ' + (k + 1)).toBe(before);
+        expect(readFileSync(sf, 'utf8'), 'החותמת · הרצה ' + (k + 1)).toBe(stampsBefore);
       }
       expect(readdirSync(join(dir, 'catalog-probe-part')).length).toBeGreaterThan(0);
-    } finally { writeFileSync(f, before); rmSync(dir, { recursive: true, force: true }); }
+    } finally {
+      // רק אם השתנה — כתיבה של אותו תוכן הייתה מראה חצי-קובץ לבדיקה שרצה במקביל (SELF-V2)
+      if (readFileSync(f, 'utf8') !== before) writeFileSync(f, before);
+      if (readFileSync(sf, 'utf8') !== stampsBefore) writeFileSync(sf, stampsBefore);
+      rmSync(dir, { recursive: true, force: true });
+    }
   }, 60_000);
 
   it('בלי מטמון בכלל (CATALOG_CACHE=off) — lab-data.json ו-dig/ יוצאים זהים (build --check)', () => {

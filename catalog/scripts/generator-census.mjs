@@ -11,8 +11,10 @@
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
+import { byId } from '../self/parts.mjs'; // 🧩 SELF-V2: «ממיין» — חלק-המכונה המוכח (היה sortById מקומי)
+import { fileURLToPath } from 'node:url';
 
-const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '../..');
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const OUT = path.join(ROOT, 'catalog/sources/generator.json');
 const ATOMS = 'machtzev/generator/atom-index-full.json';
 const ENGINES = 'machtzev/generator/engine-index.json';
@@ -28,10 +30,11 @@ function resolveRef(ref) {
   for (const r of [`origin/${ref}`, ref]) { try { return git(['rev-parse', '--verify', `${r}^{commit}`]).trim(); } catch { /* הבא */ } }
   throw new Error(`ref לא נמצא: ${ref}`);
 }
-const SHA = resolveRef(REF);
-const show = (p) => git(['show', `${SHA}:${p}`]);
+// 🧪 SELF-V2: ה-sha נקרא מ-git בפעם הראשונה שצריך (לא בטעינה) — טהור-בטעינה
+let SHA_; const SHA = () => (SHA_ ??= resolveRef(REF));
+const show = (p) => git(['show', `${SHA()}:${p}`]);
 function showMany(paths) {   // git cat-file --batch: קריאה אחת לכל הקבצים
-  const buf = git(['cat-file', '--batch'], paths.map((p) => `${SHA}:${p}`).join('\n') + '\n');
+  const buf = git(['cat-file', '--batch'], paths.map((p) => `${SHA()}:${p}`).join('\n') + '\n');
   const out = new Map(); let pos = 0;
   for (const p of paths) {
     const nl = buf.indexOf(10, pos); const hdr = buf.subarray(pos, nl).toString();
@@ -389,7 +392,6 @@ const OPS = {
 
 // ═══ בניית החלקים ═══
 const SRC = 'generator';
-const sortById = (a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
 const clipWords = (s, k) => s.trim().split(/\s+/).slice(0, k).join(' ').replace(/[\s,:;·(\-–⇒]+$/, '');
 const sentence = (s) => (/[.!?]$/.test(s) ? s : `${s}.`);
 const originOf = (text, file) => {
@@ -503,21 +505,25 @@ function build() {
   }
   for (const e of engines) { const p = enginePart(e, stats); if (p) parts.push(p); }
   const seen = new Set(); for (const p of parts) { if (seen.has(p.id)) throw new Error(`id כפול: ${p.id}`); seen.add(p.id); }
-  parts.sort(sortById);
-  return { doc: { source: SRC, repo: 'meir7651231-ui/-ai-chat-server', ref: `${REF.replace(/^origin\//, '')}@${SHA}`, generatedAt: null, parts }, stats };
+  parts.sort(byId);
+  return { doc: { source: SRC, repo: 'meir7651231-ui/-ai-chat-server', ref: `${REF.replace(/^origin\//, '')}@${SHA()}`, generatedAt: null, parts }, stats };
 }
 
-const { doc, stats } = build();
-const text = JSON.stringify(doc, null, 2) + '\n';
-if (CHECK) {
-  const cur = fs.existsSync(OUT) ? fs.readFileSync(OUT, 'utf8') : '';
-  if (cur !== text) { console.error(`✗ ${path.relative(ROOT, OUT)} לא מעודכן — הרץ: node catalog/scripts/generator-census.mjs`); process.exit(1); }
-  console.log(`✓ ${path.relative(ROOT, OUT)} מעודכן`);
-} else {
-  fs.mkdirSync(path.dirname(OUT), { recursive: true }); fs.writeFileSync(OUT, text);
-  const by = (k) => doc.parts.reduce((m, p) => ((m[p[k]] = (m[p[k]] || 0) + 1), m), {});
-  console.log(`✓ ${doc.parts.length} חלקים ⇒ ${path.relative(ROOT, OUT)}`);
-  console.log('  what:', JSON.stringify(by('what')), ' lang:', JSON.stringify(by('lang')));
-  console.log('  name-from:', JSON.stringify(stats.name), ' sig-from-index:', stats.sigFromIndex, ' missing-file:', stats.missingFile);
-  console.log(`  לא מופו (${stats.skipped.length}):`, stats.skipped.join(', '));
+async function main() {
+  const { doc, stats } = build();
+  const text = JSON.stringify(doc, null, 2) + '\n';
+  if (CHECK) {
+    const cur = fs.existsSync(OUT) ? fs.readFileSync(OUT, 'utf8') : '';
+    if (cur !== text) { console.error(`✗ ${path.relative(ROOT, OUT)} לא מעודכן — הרץ: node catalog/scripts/generator-census.mjs`); process.exit(1); }
+    console.log(`✓ ${path.relative(ROOT, OUT)} מעודכן`);
+  } else {
+    fs.mkdirSync(path.dirname(OUT), { recursive: true }); fs.writeFileSync(OUT, text);
+    const by = (k) => doc.parts.reduce((m, p) => ((m[p[k]] = (m[p[k]] || 0) + 1), m), {});
+    console.log(`✓ ${doc.parts.length} חלקים ⇒ ${path.relative(ROOT, OUT)}`);
+    console.log('  what:', JSON.stringify(by('what')), ' lang:', JSON.stringify(by('lang')));
+    console.log('  name-from:', JSON.stringify(stats.name), ' sig-from-index:', stats.sigFromIndex, ' missing-file:', stats.missingFile);
+    console.log(`  לא מופו (${stats.skipped.length}):`, stats.skipped.join(', '));
+  }
 }
+
+if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) await main();

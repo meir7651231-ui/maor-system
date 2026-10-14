@@ -14,7 +14,8 @@ import { byId, fnvHexPoints } from '../self/parts.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const CHECK = process.argv.includes('--check');
-const ORIGINS = JSON.parse(fs.readFileSync(path.join(ROOT, 'catalog/core/origins-b.json'), 'utf8'));
+// 🧪 SELF-V2: נקרא בפעם הראשונה שצריך (לא בטעינה) — טהור-בטעינה ⇒ המכונה יכולה להריץ ולהוכיח את הקובץ הזה
+let ORIGINS_; const ORIGINS = () => (ORIGINS_ ??= JSON.parse(fs.readFileSync(path.join(ROOT, 'catalog/core/origins-b.json'), 'utf8')));
 /**
  * ה-ref: טביעת-תוכן (fnv-1a) של 7 קובצי-הליבה + origins-b — יציב בין הרצות ובין קומיטים.
  * (קודם: הקומיט האחרון שנגע ב-catalog/core — כל קומיט שנגע בליבה אחרת, למשל קופץ, הפך את הקובץ ל"לא מעודכן"
@@ -78,7 +79,7 @@ const doc = {
     return {
       id: 'core-b:' + rel + '#' + p.symbol, source: 'core-b', path: rel, symbol: p.symbol, lang: 'js', what: 'brick',
       name: p.name, does: p.does, takes: p.takes, gives: p.gives, pure: true, example: p.example,
-      tags: ['core', 'verb:' + p.verb, 'world-free'], origins: ORIGINS[p.verb],
+      tags: ['core', 'verb:' + p.verb, 'world-free'], origins: ORIGINS()[p.verb],
     };
   }).sort(byId),
 };

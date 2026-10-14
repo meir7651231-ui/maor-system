@@ -1,0 +1,69 @@
+{
+ "version": 1,
+ "seed": 13269520,
+ "files": {
+  "catalog/core/accumulate.mjs": [
+   "catalog/core/accumulate.mjs"
+  ],
+  "catalog/core/bounce.mjs": [
+   "catalog/core/bounce.mjs",
+   "catalog/core/decay.mjs"
+  ],
+  "catalog/core/countdown.mjs": [
+   "catalog/core/countdown.mjs"
+  ],
+  "catalog/core/decay.mjs": [
+   "catalog/core/decay.mjs"
+  ],
+  "catalog/core/echo.mjs": [
+   "catalog/core/echo.mjs"
+  ],
+  "catalog/core/follow.mjs": [
+   "catalog/core/follow.mjs"
+  ],
+  "catalog/core/gravity.mjs": [
+   "catalog/core/gravity.mjs"
+  ],
+  "catalog/core/move-along-path.mjs": [
+   "catalog/core/move-along-path.mjs"
+  ],
+  "catalog/core/orbit.mjs": [
+   "catalog/core/orbit.mjs"
+  ],
+  "catalog/core/oscillate.mjs": [
+   "catalog/core/oscillate.mjs"
+  ],
+  "catalog/core/random.mjs": [
+   "catalog/core/random.mjs"
+  ],
+  "catalog/core/sample.mjs": [
+   "catalog/core/sample.mjs"
+  ],
+  "catalog/core/shortest-path.mjs": [
+   "catalog/core/shortest-path.mjs"
+  ],
+  "catalog/core/spread.mjs": [
+   "catalog/core/spread.mjs"
+  ],
+  "catalog/core/sun-position.mjs": [
+   "catalog/core/sun-position.mjs"
+  ]
+ },
+ "parts": {
+  "core:catalog/core/accumulate.mjs#accumulate": "2deb3fb48f6accab",
+  "core:catalog/core/bounce.mjs#bounce": "81cffcefb310aa9d",
+  "core:catalog/core/countdown.mjs#countdown": "ab0ee0afcd813852",
+  "core:catalog/core/decay.mjs#decay": "8037cfabaabfeab2",
+  "core:catalog/core/echo.mjs#echo": "b005d3aa5d36df11",
+  "core:catalog/core/follow.mjs#follow": "8e3ca5f8054bf4eb",
+  "core:catalog/core/gravity.mjs#gravity": "658e8e561e9d7499",
+  "core:catalog/core/move-along-path.mjs#moveAlongPath": "80cbfdc15c55e50b",
+  "core:catalog/core/orbit.mjs#orbit": "4efeaa2fdaf86e2c",
+  "core:catalog/core/oscillate.mjs#oscillate": "26f603cdfeffc8b6",
+  "core:catalog/core/random.mjs#random": "4f26d99c6799178c",
+  "core:catalog/core/sample.mjs#sample": "20c39e75ba7bfe9e",
+  "core:catalog/core/shortest-path.mjs#shortestPath": "9dc1e096bc30e69f",
+  "core:catalog/core/spread.mjs#spread": "225017400bf8d27a",
+  "core:catalog/core/sun-position.mjs#sunPosition": "68a0ae3a8bf3b846"
+ }
+}

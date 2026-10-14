@@ -1,6 +1,6 @@
 {
  "source": "orbit",
- "ref": "claude/self-261014@2c990a64b439",
+ "ref": "content@3f71c5d3",
  "probe": {
   "version": 1,
   "seed": 13269520,
@@ -8,7 +8,7 @@
  },
  "totals": {
   "run": 889,
-  "runWithVerb": 318,
+  "runWithVerb": 319,
   "twin": 0,
   "static": 90,
   "staticWithVerb": 33,
@@ -16,7 +16,7 @@
    "machine": 60,
    "no-fitting-input": 16,
    "impure": 13,
-   "timeout": 1
+   "budget": 1
   }
  },
  "parts": [
@@ -7630,11 +7630,21 @@
   {
    "id": "orbit:src/components/supporters/lib.ts#phoneRegion",
    "labeledBy": "run",
-   "verbs": [],
-   "primary": null,
+   "verbs": [
+    {
+     "id": "normalize",
+     "on": "raw",
+     "holds": "12/12"
+    },
+    {
+     "id": "route",
+     "on": "raw",
+     "holds": "48/48"
+    }
+   ],
+   "primary": "route",
    "material": "text",
    "cases": 24,
-   "traits": "in[str]>str",
    "hash": "bd1d2d90-e5a0ed01"
   },
   {
@@ -8643,7 +8653,7 @@
    "verbs": [],
    "primary": null,
    "material": "list",
-   "reason": "timeout"
+   "reason": "budget"
   },
   {
    "id": "orbit:src/components/tzedaka/lib.ts#campaignProgress",

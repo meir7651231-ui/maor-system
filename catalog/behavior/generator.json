@@ -9,11 +9,11 @@
  "totals": {
   "run": 0,
   "runWithVerb": 0,
-  "twin": 109,
-  "static": 2291,
+  "twin": 110,
+  "static": 2290,
   "staticWithVerb": 456,
   "why": {
-   "dart": 1599,
+   "dart": 1598,
    "impure": 692
   }
  },
@@ -12677,11 +12677,18 @@
   },
   {
    "id": "generator:new/dart-maor/phone-region.dart#phoneRegion",
-   "labeledBy": "static",
-   "verbs": [],
-   "primary": null,
-   "material": "text",
-   "reason": "dart — אין SDK בסביבה"
+   "labeledBy": "twin",
+   "twinOf": "orbit:src/components/supporters/lib.ts#phoneRegion",
+   "verbs": [
+    {
+     "id": "normalize"
+    },
+    {
+     "id": "route"
+    }
+   ],
+   "primary": "route",
+   "material": "text"
   },
   {
    "id": "generator:new/dart-maor/pick-name.dart#pickName",

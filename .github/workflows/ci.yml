@@ -35,6 +35,11 @@ jobs:
       - name: Tests
         run: npm run test
 
+      # 🪞 SELF-V2: הבדיקות המהירות משתמשות בחותמות ובמטמון; כאן — פעם אחת בנייה מלאה של הקטלוג בלי שום מטמון/חותמת
+      # (CATALOG_CACHE=off) והשוואה ביט-אחר-ביט לקבצים שבריפו
+      - name: Catalog — full no-cache rebuild (bit-identical)
+        run: CATALOG_FULL=1 npx vitest run catalog/__tests__/self-v2.test.ts
+
       # 🏭 המפעל (14.10): מפרק ⇒ מחבר ⇒ מאמת. נכשל אם הקבצים שנוצרו לא מעודכנים או חיבור מאומת נכשל
       - name: Atoms factory (--check)
         run: npm run atoms:factory -- --check

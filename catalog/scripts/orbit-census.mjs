@@ -16,10 +16,9 @@
  *   node catalog/scripts/orbit-census.mjs --report  # מדפיס שמות שעדיין לא עברו את כללי-השם
  * דטרמיניסטי: אותו קוד ⇒ אותו קובץ (generatedAt: null; ref = ענף@sha של ה-HEAD רק בכתיבה, ולא נבדק ב---check).
  */
-import { readFileSync, readdirSync, writeFileSync, existsSync, statSync } from 'node:fs';
+import { readFileSync, readdirSync, writeFileSync, existsSync, statSync, renameSync } from 'node:fs';
 import { join, dirname, relative, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { execFileSync } from 'node:child_process';
 import ts from 'typescript';
 import * as K from '../../src/lib/atoms/decompose/kinds.ts';
 import * as W from '../../src/lib/atoms/decompose/words.ts';
@@ -31,7 +30,7 @@ import { WHAT_NEED_CARD } from '../../src/lib/atoms/engines/whatNeed.ts';
 import { BOOKINGS_CARD } from '../../src/lib/atoms/engines/bookings.ts';
 import { validatePart, validateSource, NAME_VERBS } from '../lib/check.mjs';
 import { shapeKindOfType } from '../lib/kind-shape.mjs';
-import { byId } from '../self/parts.mjs';
+import { byId, fnvHex } from '../self/parts.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const OUT = join(ROOT, 'catalog/sources/orbit.json');
@@ -735,14 +734,13 @@ export function build() {
   return parts;
 }
 
-function refOf() {
-  try {
-    const branch = execFileSync('git', ['rev-parse', '--abbrev-ref', 'HEAD'], { cwd: ROOT }).toString().trim();
-    const sha = execFileSync('git', ['rev-parse', '--short=12', 'HEAD'], { cwd: ROOT }).toString().trim();
-    return `${branch}@${sha}`;
-  } catch {
-    return 'unknown@unknown';
-  }
+/**
+ * 🧾 D1 (SELF-V2): ref = טביעת-התוכן של החלקים עצמם («מטביע חותם» — fnvHex, חלק-מכונה מוכח), בלי ענף ובלי sha של git.
+ * עד SELF-V2: `ענף@sha` ⇒ אותו קוד בענף אחר / ב-worktree מנותק (HEAD@…) נתן קובץ אחר, וכל קומיט חדש "שינה" את המפקד
+ * ואת כל מה שאחריו (התנהגות, מחסן, אינדקס). עכשיו: אותם חלקים ⇒ אותו ref, בכל ענף ובכל מצב-git. ratchet: self-v2.test.
+ */
+export function refOf(parts) {
+  return 'content@' + fnvHex(JSON.stringify(parts.map(({ _auto, ...p }) => p)));
 }
 
 function serialize(parts, ref) {
@@ -768,7 +766,7 @@ function main() {
       process.exit(1);
     }
     const cur = JSON.parse(readFileSync(OUT, 'utf8'));
-    const want = serialize(parts, cur.ref);
+    const want = serialize(parts, refOf(parts));
     const srcErr = validateSource(cur);
     if (readFileSync(OUT, 'utf8') !== want || srcErr.length || errors.length) {
       console.error('הקטלוג: orbit.json לא מעודכן או לא עומד בחוזה.', [...srcErr, ...errors].slice(0, 20).join('\n'));
@@ -783,7 +781,10 @@ function main() {
     console.error(`הקטלוג: ${errors.length} הפרות-חוזה — לא נכתב. (--report לשמות)`);
     process.exit(1);
   }
-  writeFileSync(OUT, serialize(parts, refOf()));
+  // ⚡ SELF-V2: נכתב רק כשהתוכן השתנה, ואטומית (קובץ-זמני ⇒ rename) — שלב שהתחיל מוקדם על הקובץ הקיים (rebuild › early)
+  // לא יקרא חצי-קובץ, ו"לא נגעו בו" (אותו mtime) מוכיח שהוא קרא את הגרסה הסופית
+  const text = serialize(parts, refOf(parts));
+  if (!existsSync(OUT) || readFileSync(OUT, 'utf8') !== text) { writeFileSync(OUT + '.tmp', text); renameSync(OUT + '.tmp', OUT); }
   console.log(`הקטלוג: נכתבו ${parts.length} חלקים ל-${rel(OUT)}.`);
 }
 

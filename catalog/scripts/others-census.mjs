@@ -21,6 +21,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { shapeKindOfType } from '../lib/kind-shape.mjs'
+import { byId } from '../self/parts.mjs' // 🧩 SELF-V2: «ממיין» — חלק-המכונה המוכח (במקום העתק מקומי)
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 const REPO_ROOT = resolve(HERE, '..', '..')
@@ -43,6 +44,7 @@ const RAW = arg('--raw', null)
 const REPOS = [
   {
     source: 'yeshiva',
+    branch: 'main', // 🧾 SELF-V2: שם-הענף של ה-ref מהתצורה — לא מהשכפול (worktree מנותק נתן HEAD@…)
     repo: 'meir7651231-ui/yeshiva-engine',
     dirs: ['yeshiva-engine'],
     include: [/^yeshiva\/.*\.py$/, /^arena\/shop\/.*\.py$/, /^random\/minisql\/minisql\/.*\.py$/, /^bench\/(score|report|tasks)\.py$/, /^harness\/(guard|police)\.mjs$/],
@@ -51,6 +53,7 @@ const REPOS = [
   },
   {
     source: 'qa-scanner',
+    branch: 'main', // 🧾 SELF-V2: שם-הענף של ה-ref מהתצורה — לא מהשכפול (worktree מנותק נתן HEAD@…)
     repo: 'meir7651231-ui/qa-scanner',
     dirs: ['meir7651231-ui/qa-scanner', 'qa-scanner'],
     include: [/^[^/]+\.py$/],
@@ -59,6 +62,7 @@ const REPOS = [
   },
   {
     source: 'yoman-habina',
+    branch: 'claude/setup', // 🧾 SELF-V2: שם-הענף של ה-ref מהתצורה — לא מהשכפול (worktree מנותק נתן HEAD@…)
     repo: 'meir7651231-ui/yoman-habina',
     dirs: ['yoman-habina'],
     include: [/^engine\.js$/, /^verify\.mjs$/],
@@ -67,6 +71,7 @@ const REPOS = [
   },
   {
     source: '14kk',
+    branch: 'master', // 🧾 SELF-V2: שם-הענף של ה-ref מהתצורה — לא מהשכפול (worktree מנותק נתן HEAD@…)
     repo: 'meir7651231-ui/14kk',
     dirs: ['14kk'],
     // הליבה: שרתי-ה-API, השירותים, ה-MVP והפרוטוקולים. בחוץ: גרסאות-גיבוי, ארכיון, בדיקות/דיבאג/תיקונים חד-פעמיים, מסכי-UI.
@@ -80,6 +85,7 @@ const REPOS = [
   },
   {
     source: 'mmmm',
+    branch: 'main', // 🧾 SELF-V2: שם-הענף של ה-ref מהתצורה — לא מהשכפול (worktree מנותק נתן HEAD@…)
     repo: 'meir7651231-ui/MMMM',
     dirs: ['mmmm', 'MMMM'],
     // ספריות + שרת-ה-API. בחוץ: shadcn/ui (ספריית-צד-שלישי מועתקת), קוד-מחולל (orval), מסכים, תצורות.
@@ -434,15 +440,15 @@ export function jsExtract(base, files) {
 }
 
 // ================================================================ סריקה
-function gitInfo(base) {
+function gitInfo(base, branch) {
   const g = (...a) => execFileSync('git', ['-C', base, ...a], { encoding: 'utf8' }).trim()
-  return { ref: `${g('rev-parse', '--abbrev-ref', 'HEAD')}@${g('rev-parse', 'HEAD')}`, files: g('ls-files').split('\n').filter(Boolean) }
+  return { ref: `${branch}@${g('rev-parse', 'HEAD')}`, files: g('ls-files').split('\n').filter(Boolean) }
 }
 
 function scanRepo(cfg) {
   const dir = cfg.dirs.map((d) => join(ROOT, d)).find((d) => existsSync(join(d, '.git')))
   if (!dir) return { cfg, missing: true, ref: null, mods: [], allFiles: [] }
-  const { ref, files } = gitInfo(dir)
+  const { ref, files } = gitInfo(dir, cfg.branch)
   const chosen = files.filter((f) => cfg.include.some((r) => r.test(f)) && !cfg.exclude.some((r) => r.test(f))).sort()
   const py = chosen.filter((f) => f.endsWith('.py'))
   const js = chosen.filter((f) => /\.(m?js|cjs|tsx?)$/.test(f))
@@ -1457,7 +1463,7 @@ export function buildParts(scan) {
     seen.set(p.id, n + 1)
     if (n) p.id = `${p.id}~${n + 1}`
   }
-  parts.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
+  parts.sort(byId)
   return { parts, stats, unknownWords: [...unknownWords].sort() }
 }
 

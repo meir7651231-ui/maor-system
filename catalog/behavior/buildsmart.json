@@ -8,7 +8,7 @@
  },
  "totals": {
   "run": 41,
-  "runWithVerb": 14,
+  "runWithVerb": 13,
   "twin": 0,
   "static": 861,
   "staticWithVerb": 179,
@@ -8212,16 +8212,11 @@
   {
    "id": "buildsmart:functions/src/orderFlow.ts#isOrderStage",
    "labeledBy": "run",
-   "verbs": [
-    {
-     "id": "validate",
-     "on": "*",
-     "holds": "24/24"
-    }
-   ],
-   "primary": "validate",
+   "verbs": [],
+   "primary": null,
    "material": "unknown",
-   "cases": 24
+   "cases": 24,
+   "traits": "in[]>bool const"
   },
   {
    "id": "buildsmart:functions/src/orderFlow.ts#nextStage",

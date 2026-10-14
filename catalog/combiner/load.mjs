@@ -66,6 +66,8 @@ export function loadAlphabet() {
   useAlphabet(list);
   return list;
 }
+// 🧪 SELF-V2: נשאר בטעינה במכוון — זה התפקיד של המודול (רישום האלפבית), ומייבאים סומכים עליו (kind-shape.test נכשל כשזה
+// נדחה). לכן combine/build/load נשארים "load-failed" בבדיקה-העצמית (25 חלקים) — חוסר-טוהר מכוון, נאמר בדוח.
 loadAlphabet();
 export function loadIndex(opts = {}) {
   return buildIndex(loadParts(), { proofs: loadProofs(), behavior: loadBehavior(), recipes: opts.recipes ?? loadRecipes(), leads: loadLeads() });

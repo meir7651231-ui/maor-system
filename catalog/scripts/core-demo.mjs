@@ -14,7 +14,8 @@ import { MOTION_VERBS, CORE_OF } from '../lib/verbs-motion.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const OUT = path.join(ROOT, 'catalog/core/demo.html');
-const ORIGINS = JSON.parse(fs.readFileSync(path.join(ROOT, 'catalog/core/origins.json'), 'utf8')).verbs;
+// 🧪 SELF-V2: נקרא בפעם הראשונה שצריך (לא בטעינה) — טהור-בטעינה ⇒ המכונה יכולה להריץ ולהוכיח את הקובץ הזה
+let ORIGINS_; const ORIGINS = () => (ORIGINS_ ??= JSON.parse(fs.readFileSync(path.join(ROOT, 'catalog/core/origins.json'), 'utf8')).verbs);
 const SRC_HE = { orbit: 'אורביט', buildsmart: 'בנייה-חכמה', generator: 'המחולל', rings: 'מעבדת-הטבעות', yeshiva: 'הישיבה', 'qa-scanner': 'סורק-האיכות', 'yoman-habina': 'יומן-הבינה', '14kk': '14kk', mmmm: 'MMMM' };
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
@@ -29,7 +30,7 @@ function coreCode() {
 }
 
 function card(v) {
-  const og = ORIGINS[v.id];
+  const og = ORIGINS()[v.id];
   const best = og.origins.find((o) => o.best);
   const combo = og.foundAs === 'combination' ? `<p class="where combo">🧩 נמצא כשילוב: ${og.of.map((id) => '<b>' + esc(MOTION_VERBS.find((x) => x.id === id)?.he ?? id) + '</b>').join(' × ')}</p>` : '';
   const where = `${combo}<p class="where">נמצא ב: <b>${esc(SRC_HE[best.source])}</b> · <code dir="ltr">${esc(best.file.split('/').pop())}:${best.line}</code></p><p class="what">${esc(best.what)}</p>`;
@@ -39,7 +40,7 @@ function card(v) {
 
 export function demoHtml() {
   const n = MOTION_VERBS.length;
-  const places = MOTION_VERBS.reduce((a, v) => a + ORIGINS[v.id].origins.length, 0);
+  const places = MOTION_VERBS.reduce((a, v) => a + ORIGINS()[v.id].origins.length, 0);
   return `<!doctype html>
 <html lang="he" dir="rtl">
 <head>

@@ -1,0 +1,114 @@
+{
+ "version": 1,
+ "seed": 13269520,
+ "files": {
+  "app/src/components/menu/submenu-settings.tsx": [
+   "app/src/components/menu/submenu-settings.tsx",
+   "app/src/data/catalog.ts",
+   "app/src/data/identity.ts",
+   "app/src/data/projects.ts",
+   "app/src/store/app-settings.ts",
+   "app/src/store/app-store.ts",
+   "app/src/store/toast-store.ts",
+   "app/src/store/user-profile.ts"
+  ],
+  "app/src/data/catalog.ts": [
+   "app/src/data/catalog.ts"
+  ],
+  "app/src/data/identity.ts": [
+   "app/src/data/identity.ts",
+   "app/src/data/projects.ts"
+  ],
+  "app/src/data/suppliers.ts": [
+   "app/src/data/suppliers.ts"
+  ],
+  "app/src/data/tools.ts": [
+   "app/src/data/tools.ts"
+  ],
+  "app/src/data/variants.ts": [
+   "app/src/data/variants.ts"
+  ],
+  "functions/src/analytics.ts": [
+   "functions/src/analytics.ts",
+   "functions/src/common.ts"
+  ],
+  "functions/src/approveUsers.ts": [
+   "functions/src/approveUsers.ts",
+   "functions/src/audit.ts",
+   "functions/src/common.ts",
+   "functions/src/directory.ts"
+  ],
+  "functions/src/common.ts": [
+   "functions/src/common.ts"
+  ],
+  "functions/src/creditCore.ts": [
+   "functions/src/creditCore.ts"
+  ],
+  "functions/src/orderEmail.ts": [
+   "functions/src/common.ts",
+   "functions/src/orderEmail.ts"
+  ],
+  "functions/src/orderFlow.ts": [
+   "functions/src/orderFlow.ts"
+  ],
+  "functions/src/reviewRoleRequest.ts": [
+   "functions/src/audit.ts",
+   "functions/src/common.ts",
+   "functions/src/directory.ts",
+   "functions/src/orderFlow.ts",
+   "functions/src/push.ts",
+   "functions/src/reviewRoleRequest.ts"
+  ],
+  "functions/src/setEmployerCore.ts": [
+   "functions/src/setEmployerCore.ts"
+  ],
+  "functions/src/studio.ts": [
+   "functions/src/audit.ts",
+   "functions/src/common.ts",
+   "functions/src/studio.ts"
+  ]
+ },
+ "parts": {
+  "buildsmart:app/src/components/menu/submenu-settings.tsx#walkSettings": "b7ee8eeb01c6880e",
+  "buildsmart:app/src/data/catalog.ts#categoryById": "de91a44d0ba714bb",
+  "buildsmart:app/src/data/catalog.ts#childrenOf": "5c66b8130bb843bd",
+  "buildsmart:app/src/data/catalog.ts#productById": "3303c107fb503847",
+  "buildsmart:app/src/data/catalog.ts#productsForPath": "a74de07c77c75323",
+  "buildsmart:app/src/data/identity.ts#currentRank": "0978df505d5f2a88",
+  "buildsmart:app/src/data/identity.ts#formatIls": "f16d6aa31e909855",
+  "buildsmart:app/src/data/identity.ts#identityAchievements": "ec2065d7b2545265",
+  "buildsmart:app/src/data/identity.ts#identityStats": "eb133d0a46ba3791",
+  "buildsmart:app/src/data/identity.ts#nextRank": "8b1716098e14b3ce",
+  "buildsmart:app/src/data/suppliers.ts#cheapestSupplier": "cc405f41d526ed98",
+  "buildsmart:app/src/data/suppliers.ts#priceFor": "a5aec6799606226b",
+  "buildsmart:app/src/data/tools.ts#toolsFor": "8a9063f1a1cee38b",
+  "buildsmart:app/src/data/variants.ts#variantsOf": "64a0e94ba39c533b",
+  "buildsmart:functions/src/analytics.ts#dayKey": "39a067bb35e13f8c",
+  "buildsmart:functions/src/analytics.ts#pickShard": "bdbf00071b4f11e8",
+  "buildsmart:functions/src/analytics.ts#sumShards": "be249cdf51d07aee",
+  "buildsmart:functions/src/analytics.ts#summarizePresence": "6fb4c9d855a0f180",
+  "buildsmart:functions/src/approveUsers.ts#cleanApproveUids": "3c98aaa506dd0545",
+  "buildsmart:functions/src/approveUsers.ts#mayApproveUsers": "03b3bd0932bc4974",
+  "buildsmart:functions/src/common.ts#asString": "8569f31efde87b89",
+  "buildsmart:functions/src/common.ts#callerRoles": "f9d905bba57d588d",
+  "buildsmart:functions/src/common.ts#isOwnerEmail": "0b95eab1f21e83dc",
+  "buildsmart:functions/src/creditCore.ts#contractorCredit": "77595fe019346127",
+  "buildsmart:functions/src/creditCore.ts#creditScopeFor": "344f82640ef521b6",
+  "buildsmart:functions/src/creditCore.ts#dartStringHashCode": "062cf50ed5c596aa",
+  "buildsmart:functions/src/creditCore.ts#orderSum": "b9ba834da63076b9",
+  "buildsmart:functions/src/creditCore.ts#readCreditLimit": "2a22e13b118d7027",
+  "buildsmart:functions/src/orderEmail.ts#buildOrderEmailHtml": "8a33a2865538b66d",
+  "buildsmart:functions/src/orderFlow.ts#isLegalStep": "95b9d144df5ededb",
+  "buildsmart:functions/src/orderFlow.ts#isOrderStage": "de16fdbb0c456eec",
+  "buildsmart:functions/src/orderFlow.ts#nextStage": "93c1297dd761578f",
+  "buildsmart:functions/src/orderFlow.ts#roleMayStep": "252409359ec52c45",
+  "buildsmart:functions/src/orderFlow.ts#rolesAllowedFor": "e7f7089e0ebce86f",
+  "buildsmart:functions/src/orderFlow.ts#stageIndex": "5c2ab6b942b36edc",
+  "buildsmart:functions/src/reviewRoleRequest.ts#mayReviewRoleRequest": "a05b4811e99edf7b",
+  "buildsmart:functions/src/setEmployerCore.ts#parseSetEmployerInput": "bd3f32ba2e37dd24",
+  "buildsmart:functions/src/studio.ts#decidePublish": "c924ce035ece82ba",
+  "buildsmart:functions/src/studio.ts#decideRevert": "61b6cd3674463c32",
+  "buildsmart:functions/src/studio.ts#rateLimitExceeded": "28b264b4e4a1b65f",
+  "buildsmart:functions/src/studio.ts#revertStillApplies": "0b0d07924c1031f2"
+ }
+}

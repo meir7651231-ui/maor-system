@@ -1,20 +1,20 @@
 {
  "source": "machine",
- "ref": "catalog@0f7611c17a5d",
+ "ref": "catalog@a59e68bcd0ea",
  "probe": {
   "version": 1,
   "seed": 13269520,
   "generatedAt": null
  },
  "totals": {
-  "run": 263,
-  "runWithVerb": 46,
+  "run": 323,
+  "runWithVerb": 61,
   "twin": 0,
-  "static": 237,
-  "staticWithVerb": 26,
+  "static": 189,
+  "staticWithVerb": 18,
   "why": {
-   "no-fitting-input": 146,
-   "load-failed": 91
+   "no-fitting-input": 164,
+   "load-failed": 25
   }
  },
  "parts": [
@@ -1036,6 +1036,21 @@
    "reason": "no-fitting-input"
   },
   {
+   "id": "machine:catalog/inner/lib/ensure-gen.mjs#STAT_FILE",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "format",
+     "on": "root",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "format",
+   "material": "file",
+   "cases": 24,
+   "hash": "5e5eaa09-c1a6a67a"
+  },
+  {
    "id": "machine:catalog/inner/lib/ensure-gen.mjs#genDir",
    "labeledBy": "run",
    "verbs": [],
@@ -1528,6 +1543,22 @@
    "reason": "no-fitting-input"
   },
   {
+   "id": "machine:catalog/inner/lib/prove-job.mjs#jobKeyOf",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:job",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "machine:catalog/inner/lib/prove-job.mjs#resultKeyOf",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:jobkey",
+   "reason": "no-fitting-input"
+  },
+  {
    "id": "machine:catalog/inner/lib/purity.mjs#FN_LIKE",
    "labeledBy": "run",
    "verbs": [],
@@ -1535,14 +1566,6 @@
    "material": "number",
    "cases": 24,
    "traits": "in[]>fn const"
-  },
-  {
-   "id": "machine:catalog/inner/lib/purity.mjs#callWhy",
-   "labeledBy": "static",
-   "verbs": [],
-   "primary": null,
-   "material": "number",
-   "reason": "no-fitting-input"
   },
   {
    "id": "machine:catalog/inner/lib/purity.mjs#classify",
@@ -1562,14 +1585,6 @@
    "material": "number",
    "cases": 24,
    "traits": "in[]>nil const"
-  },
-  {
-   "id": "machine:catalog/inner/lib/purity.mjs#impurity",
-   "labeledBy": "static",
-   "verbs": [],
-   "primary": null,
-   "material": "file",
-   "reason": "no-fitting-input"
   },
   {
    "id": "machine:catalog/inner/lib/purity.mjs#isAssignOp",
@@ -1634,7 +1649,7 @@
    "traits": "in[bool|num|str]>bool|nil|str"
   },
   {
-   "id": "machine:catalog/inner/lib/purity.mjs#recvKind",
+   "id": "machine:catalog/inner/lib/purity.mjs#recvKindRaw",
    "labeledBy": "run",
    "verbs": [],
    "primary": null,
@@ -1835,6 +1850,43 @@
    "reason": "no-fitting-input"
   },
   {
+   "id": "machine:catalog/lib/blank.mjs#blankComments",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[str]>str"
+  },
+  {
+   "id": "machine:catalog/lib/blank.mjs#commentRanges",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[]>arr const"
+  },
+  {
+   "id": "machine:catalog/lib/blank.mjs#isBlankable",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "file",
+   "cases": 24,
+   "traits": "in[]>bool const"
+  },
+  {
+   "id": "machine:catalog/lib/blank.mjs#sourceView",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "file",
+   "cases": 24,
+   "traits": "in[str]>str",
+   "hash": "c34bad3a-bb3432df"
+  },
+  {
    "id": "machine:catalog/lib/build-index.mjs#TRAIT_HE",
    "labeledBy": "run",
    "verbs": [],
@@ -1953,44 +2005,13 @@
    "traits": "in[]>fn const"
   },
   {
-   "id": "machine:catalog/lib/check.mjs#resolve",
-   "labeledBy": "static",
-   "verbs": [],
-   "primary": null,
-   "material": "text",
-   "reason": "load-failed — Unexpected end of JSON input"
-  },
-  {
    "id": "machine:catalog/lib/check.mjs#typeOf",
-   "labeledBy": "static",
+   "labeledBy": "run",
    "verbs": [],
    "primary": null,
    "material": "text",
-   "reason": "load-failed — Unexpected end of JSON input"
-  },
-  {
-   "id": "machine:catalog/lib/check.mjs#validatePart",
-   "labeledBy": "static",
-   "verbs": [],
-   "primary": null,
-   "material": "unknown",
-   "reason": "load-failed — Unexpected end of JSON input"
-  },
-  {
-   "id": "machine:catalog/lib/check.mjs#validateSchema",
-   "labeledBy": "static",
-   "verbs": [],
-   "primary": null,
-   "material": "record:value",
-   "reason": "load-failed — Unexpected end of JSON input"
-  },
-  {
-   "id": "machine:catalog/lib/check.mjs#validateSource",
-   "labeledBy": "static",
-   "verbs": [],
-   "primary": null,
-   "material": "record:doc",
-   "reason": "load-failed — Unexpected end of JSON input"
+   "cases": 24,
+   "traits": "in[]>str const"
   },
   {
    "id": "machine:catalog/lib/entry.mjs#entryFor",
@@ -2290,6 +2311,14 @@
    "traits": "in[bool|num|str]>nil const"
   },
   {
+   "id": "machine:catalog/lib/probe-file.mjs#fileKeyOf",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:job",
+   "reason": "no-fitting-input"
+  },
+  {
    "id": "machine:catalog/lib/probe-file.mjs#isRunnable",
    "labeledBy": "run",
    "verbs": [],
@@ -2297,6 +2326,24 @@
    "material": "unknown",
    "cases": 23,
    "traits": "in[]>nil const"
+  },
+  {
+   "id": "machine:catalog/lib/probe-file.mjs#partKeyOf",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:filekey",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "machine:catalog/lib/probe-file.mjs#relDep",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[str]>str",
+   "hash": "37b32609-976a3dd9"
   },
   {
    "id": "machine:catalog/lib/probe.mjs#CLS",
@@ -2505,13 +2552,22 @@
    "traits": "in[]>fn const"
   },
   {
-   "id": "machine:catalog/lib/sandbox.mjs#loadInSandbox",
+   "id": "machine:catalog/lib/sandbox.mjs#overOf",
    "labeledBy": "run",
    "verbs": [],
    "primary": null,
-   "material": "text",
+   "material": "record:ctx",
    "cases": 24,
-   "traits": "in[]>obj const rec:mix"
+   "traits": "in[]>fn const"
+  },
+  {
+   "id": "machine:catalog/lib/sandbox.mjs#resetBudget",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "record:ctx",
+   "cases": 24,
+   "traits": "in[]>nil const"
   },
   {
    "id": "machine:catalog/lib/sandbox.mjs#resolvePart",
@@ -2521,6 +2577,24 @@
    "material": "record:export",
    "cases": 24,
    "traits": "in[]>nil const"
+  },
+  {
+   "id": "machine:catalog/lib/sandbox.mjs#stepsOf",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "record:ctx",
+   "cases": 24,
+   "traits": "in[]>fn const"
+  },
+  {
+   "id": "machine:catalog/lib/sandbox.mjs#stepsUsed",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "record:ctx",
+   "cases": 24,
+   "traits": "in[]>str const"
   },
   {
    "id": "machine:catalog/lib/shape.mjs#ANY_CHOICES",
@@ -2832,6 +2906,24 @@
    "cases": 24,
    "traits": "in[]>obj const rec:new",
    "hash": "8ff41fcd-4b7b2bd9"
+  },
+  {
+   "id": "machine:catalog/lib/steps.mjs#blockAt",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[]>nan const"
+  },
+  {
+   "id": "machine:catalog/lib/steps.mjs#instrument",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[]>nil const"
   },
   {
    "id": "machine:catalog/lib/strip-cli.mjs#stripCli",
@@ -3638,6 +3730,14 @@
    "reason": "no-fitting-input"
   },
   {
+   "id": "machine:catalog/scripts/behavior-probe.mjs#commitKey",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:partkey",
+   "reason": "no-fitting-input"
+  },
+  {
    "id": "machine:catalog/scripts/behavior-probe.mjs#docPath",
    "labeledBy": "run",
    "verbs": [
@@ -3682,6 +3782,21 @@
    "primary": null,
    "material": "record:part",
    "reason": "no-fitting-input"
+  },
+  {
+   "id": "machine:catalog/scripts/behavior-probe.mjs#stampPath",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "format",
+     "on": "name",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "format",
+   "material": "text",
+   "cases": 24,
+   "hash": "f67a98f6-85e58d61"
   },
   {
    "id": "machine:catalog/scripts/buildsmart-census.mjs#arrowEnd",
@@ -3773,16 +3888,11 @@
   {
    "id": "machine:catalog/scripts/buildsmart-census.mjs#kindHe",
    "labeledBy": "run",
-   "verbs": [
-    {
-     "id": "route",
-     "on": "kind",
-     "holds": "48/48"
-    }
-   ],
-   "primary": "route",
+   "verbs": [],
+   "primary": null,
    "material": "text",
-   "cases": 24
+   "cases": 24,
+   "traits": "in[str]>str const"
   },
   {
    "id": "machine:catalog/scripts/buildsmart-census.mjs#kindOf",
@@ -3930,11 +4040,18 @@
   },
   {
    "id": "machine:catalog/scripts/core-census.mjs#refOf",
-   "labeledBy": "static",
-   "verbs": [],
-   "primary": null,
-   "material": "unknown",
-   "reason": "load-failed — (0 , node_fs.readFileSync) is not a function"
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "format",
+     "on": "parts",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "format",
+   "material": "record:part",
+   "cases": 24,
+   "hash": "7d28fe76-13264507"
   },
   {
    "id": "machine:catalog/scripts/core-census.mjs#serialize",
@@ -3942,52 +4059,54 @@
    "verbs": [],
    "primary": null,
    "material": "record:part",
-   "reason": "load-failed — (0 , node_fs.readFileSync) is not a function"
-  },
-  {
-   "id": "machine:catalog/scripts/core-demo.mjs#card",
-   "labeledBy": "static",
-   "verbs": [],
-   "primary": null,
-   "material": "text",
-   "reason": "load-failed — Unexpected end of JSON input"
+   "reason": "no-fitting-input"
   },
   {
    "id": "machine:catalog/scripts/core-demo.mjs#esc",
-   "labeledBy": "static",
+   "labeledBy": "run",
    "verbs": [],
    "primary": null,
    "material": "text",
-   "reason": "load-failed — Unexpected end of JSON input"
+   "cases": 24,
+   "traits": "in[str]>str"
   },
   {
    "id": "machine:catalog/scripts/generator-census.mjs#cleanSentence",
-   "labeledBy": "static",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[str]>str"
+  },
+  {
+   "id": "machine:catalog/scripts/generator-census.mjs#clipWords",
+   "labeledBy": "run",
    "verbs": [
     {
      "id": "normalize",
-     "by": "symbol"
+     "on": "s",
+     "holds": "12/12"
+    },
+    {
+     "id": "format",
+     "on": "s",
+     "holds": "15/15"
     }
    ],
    "primary": "normalize",
    "material": "text",
-   "reason": "load-failed — Invalid URL"
-  },
-  {
-   "id": "machine:catalog/scripts/generator-census.mjs#clipWords",
-   "labeledBy": "static",
-   "verbs": [],
-   "primary": null,
-   "material": "text",
-   "reason": "load-failed — Invalid URL"
+   "cases": 24,
+   "hash": "f4fa44f1-741f00dd"
   },
   {
    "id": "machine:catalog/scripts/generator-census.mjs#commentLines",
-   "labeledBy": "static",
+   "labeledBy": "run",
    "verbs": [],
    "primary": null,
    "material": "text",
-   "reason": "load-failed — Invalid URL"
+   "cases": 24,
+   "traits": "in[]>arr const"
   },
   {
    "id": "machine:catalog/scripts/generator-census.mjs#descOf",
@@ -3995,52 +4114,60 @@
    "verbs": [],
    "primary": null,
    "material": "text",
-   "reason": "load-failed — Invalid URL"
+   "reason": "no-fitting-input"
   },
   {
    "id": "machine:catalog/scripts/generator-census.mjs#firstSegment",
-   "labeledBy": "static",
+   "labeledBy": "run",
    "verbs": [
     {
-     "id": "divide",
-     "by": "symbol"
+     "id": "tier",
+     "on": "maxWords",
+     "holds": "6/6"
     }
    ],
-   "primary": "divide",
-   "material": "text",
-   "reason": "load-failed — Invalid URL"
+   "primary": "tier",
+   "material": "number",
+   "cases": 24,
+   "hash": "0028f4a1-0f6586e8"
   },
   {
    "id": "machine:catalog/scripts/generator-census.mjs#fnParams",
-   "labeledBy": "static",
+   "labeledBy": "run",
    "verbs": [],
    "primary": null,
    "material": "text",
-   "reason": "load-failed — Invalid URL"
+   "cases": 24,
+   "traits": "in[]>nil const"
   },
   {
    "id": "machine:catalog/scripts/generator-census.mjs#git",
-   "labeledBy": "static",
+   "labeledBy": "run",
    "verbs": [],
    "primary": null,
    "material": "unknown",
-   "reason": "load-failed — Invalid URL"
+   "cases": 10,
+   "traits": "in[str]>fn const"
   },
   {
    "id": "machine:catalog/scripts/generator-census.mjs#heCount",
-   "labeledBy": "static",
+   "labeledBy": "run",
    "verbs": [],
    "primary": null,
    "material": "text",
-   "reason": "load-failed — Invalid URL"
+   "cases": 24,
+   "traits": "in[str]>num int+",
+   "hash": "e18e0653-a751b535"
   },
   {
    "id": "machine:catalog/scripts/generator-census.mjs#heWords",
-   "labeledBy": "static",
+   "labeledBy": "run",
    "verbs": [],
    "primary": null,
    "material": "unknown",
-   "reason": "load-failed — Invalid URL"
+   "cases": 14,
+   "traits": "in[str]>num int+",
+   "hash": "5e5eaa09-40d3747c"
   },
   {
    "id": "machine:catalog/scripts/generator-census.mjs#kindOf",
@@ -4048,7 +4175,7 @@
    "verbs": [],
    "primary": null,
    "material": "record:type",
-   "reason": "load-failed — Invalid URL"
+   "reason": "no-fitting-input"
   },
   {
    "id": "machine:catalog/scripts/generator-census.mjs#nameFrom",
@@ -4056,102 +4183,94 @@
    "verbs": [],
    "primary": null,
    "material": "record:desc",
-   "reason": "load-failed — Invalid URL"
+   "reason": "no-fitting-input"
   },
   {
    "id": "machine:catalog/scripts/generator-census.mjs#opt",
-   "labeledBy": "static",
-   "verbs": [],
-   "primary": null,
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "round",
+     "on": "k",
+     "holds": "11/11"
+    }
+   ],
+   "primary": "round",
    "material": "number",
-   "reason": "load-failed — Invalid URL"
+   "cases": 24,
+   "hash": "cc15eb4f-c5a5035d"
   },
   {
    "id": "machine:catalog/scripts/generator-census.mjs#originOf",
-   "labeledBy": "static",
+   "labeledBy": "run",
    "verbs": [],
    "primary": null,
    "material": "text",
-   "reason": "load-failed — Invalid URL"
+   "cases": 24,
+   "traits": "in[]>nil const"
   },
   {
    "id": "machine:catalog/scripts/generator-census.mjs#parseParam",
-   "labeledBy": "static",
+   "labeledBy": "run",
    "verbs": [],
    "primary": null,
    "material": "unknown",
-   "reason": "load-failed — Invalid URL"
+   "cases": 10,
+   "traits": "in[str]>obj",
+   "hash": "5e5eaa09-f6c5bac7"
   },
   {
    "id": "machine:catalog/scripts/generator-census.mjs#resolveRef",
-   "labeledBy": "static",
+   "labeledBy": "run",
    "verbs": [],
    "primary": null,
    "material": "record:ref",
-   "reason": "load-failed — Invalid URL"
+   "cases": 24,
+   "traits": "in[]>fn const"
   },
   {
    "id": "machine:catalog/scripts/generator-census.mjs#sentence",
-   "labeledBy": "static",
-   "verbs": [],
-   "primary": null,
-   "material": "text",
-   "reason": "load-failed — Invalid URL"
-  },
-  {
-   "id": "machine:catalog/scripts/generator-census.mjs#show",
-   "labeledBy": "static",
-   "verbs": [],
-   "primary": null,
-   "material": "unknown",
-   "reason": "load-failed — Invalid URL"
-  },
-  {
-   "id": "machine:catalog/scripts/generator-census.mjs#showMany",
-   "labeledBy": "static",
-   "verbs": [],
-   "primary": null,
-   "material": "record:path",
-   "reason": "load-failed — Invalid URL"
-  },
-  {
-   "id": "machine:catalog/scripts/generator-census.mjs#sortById",
-   "labeledBy": "static",
+   "labeledBy": "run",
    "verbs": [
     {
-     "id": "sort",
-     "by": "symbol"
+     "id": "normalize",
+     "on": "s",
+     "holds": "12/12"
+    },
+    {
+     "id": "format",
+     "on": "s",
+     "holds": "15/15"
     }
    ],
-   "primary": "sort",
-   "material": "unknown",
-   "reason": "load-failed — Invalid URL"
+   "primary": "normalize",
+   "material": "text",
+   "cases": 24,
+   "hash": "e18e0653-334f9cc3"
   },
   {
    "id": "machine:catalog/scripts/generator-census.mjs#split",
-   "labeledBy": "static",
+   "labeledBy": "run",
    "verbs": [
     {
      "id": "split",
-     "by": "symbol"
+     "on": "s",
+     "holds": "24/24"
     }
    ],
    "primary": "split",
    "material": "text",
-   "reason": "load-failed — Invalid URL"
+   "cases": 24
   },
   {
    "id": "machine:catalog/scripts/generator-census.mjs#splitTop",
-   "labeledBy": "static",
-   "verbs": [
-    {
-     "id": "split",
-     "by": "symbol"
-    }
-   ],
-   "primary": "split",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
    "material": "text",
-   "reason": "load-failed — Invalid URL"
+   "cases": 24,
+   "traits": "in[str]>arr",
+   "hash": "e18e0653-a5c43a2b"
   },
   {
    "id": "machine:catalog/scripts/generator-census.mjs#tokensToHebrew",
@@ -4159,28 +4278,25 @@
    "verbs": [],
    "primary": null,
    "material": "record:token",
-   "reason": "load-failed — Invalid URL"
+   "reason": "no-fitting-input"
   },
   {
    "id": "machine:catalog/scripts/generator-census.mjs#verbFor",
-   "labeledBy": "static",
+   "labeledBy": "run",
    "verbs": [],
    "primary": null,
    "material": "record:firsttoken",
-   "reason": "load-failed — Invalid URL"
+   "cases": 24,
+   "traits": "in[]>str const"
   },
   {
    "id": "machine:catalog/scripts/generator-census.mjs#widgetFields",
-   "labeledBy": "static",
-   "verbs": [
-    {
-     "id": "split",
-     "by": "symbol"
-    }
-   ],
-   "primary": "split",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
    "material": "text",
-   "reason": "load-failed — Invalid URL"
+   "cases": 23,
+   "traits": "in[]>arr const"
   },
   {
    "id": "machine:catalog/scripts/goals-coverage.mjs#coverageMd",
@@ -4192,27 +4308,41 @@
   },
   {
    "id": "machine:catalog/scripts/orbit-census.mjs#aliasOf",
-   "labeledBy": "static",
+   "labeledBy": "run",
    "verbs": [],
    "primary": null,
    "material": "text",
-   "reason": "load-failed — Unexpected end of JSON input"
+   "cases": 24,
+   "traits": "in[]>nil const"
   },
   {
    "id": "machine:catalog/scripts/orbit-census.mjs#docOf",
-   "labeledBy": "static",
+   "labeledBy": "run",
    "verbs": [],
    "primary": null,
    "material": "record:node",
-   "reason": "load-failed — Unexpected end of JSON input"
+   "cases": 24,
+   "traits": "in[]>str const"
   },
   {
    "id": "machine:catalog/scripts/orbit-census.mjs#doesOf",
-   "labeledBy": "static",
-   "verbs": [],
-   "primary": null,
-   "material": "record:compute",
-   "reason": "load-failed — Unexpected end of JSON input"
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "normalize",
+     "on": "name",
+     "holds": "12/12"
+    },
+    {
+     "id": "format",
+     "on": "name",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "normalize",
+   "material": "text",
+   "cases": 24,
+   "hash": "acbcdc32-8477da96"
   },
   {
    "id": "machine:catalog/scripts/orbit-census.mjs#exampleFor",
@@ -4220,15 +4350,17 @@
    "verbs": [],
    "primary": null,
    "material": "record:example",
-   "reason": "load-failed — Unexpected end of JSON input"
+   "reason": "no-fitting-input"
   },
   {
    "id": "machine:catalog/scripts/orbit-census.mjs#fromOrbitKind",
-   "labeledBy": "static",
+   "labeledBy": "run",
    "verbs": [],
    "primary": null,
    "material": "number",
-   "reason": "load-failed — Unexpected end of JSON input"
+   "cases": 24,
+   "traits": "in[num]>nil|num int+",
+   "hash": "c7599847-cc6c69d1"
   },
   {
    "id": "machine:catalog/scripts/orbit-census.mjs#headVerb",
@@ -4236,15 +4368,16 @@
    "verbs": [],
    "primary": null,
    "material": "record:give",
-   "reason": "load-failed — Unexpected end of JSON input"
+   "reason": "no-fitting-input"
   },
   {
    "id": "machine:catalog/scripts/orbit-census.mjs#inferredReturn",
-   "labeledBy": "static",
+   "labeledBy": "run",
    "verbs": [],
    "primary": null,
    "material": "unknown",
-   "reason": "load-failed — Unexpected end of JSON input"
+   "cases": 24,
+   "traits": "in[]>str const"
   },
   {
    "id": "machine:catalog/scripts/orbit-census.mjs#isPureFile",
@@ -4252,60 +4385,61 @@
    "verbs": [],
    "primary": null,
    "material": "record:sf",
-   "reason": "load-failed — Unexpected end of JSON input"
+   "reason": "no-fitting-input"
   },
   {
    "id": "machine:catalog/scripts/orbit-census.mjs#kindByName",
-   "labeledBy": "static",
+   "labeledBy": "run",
    "verbs": [],
    "primary": null,
    "material": "text",
-   "reason": "load-failed — Unexpected end of JSON input"
+   "cases": 24,
+   "traits": "in[]>str const"
   },
   {
    "id": "machine:catalog/scripts/orbit-census.mjs#kindOf",
-   "labeledBy": "static",
+   "labeledBy": "run",
    "verbs": [],
    "primary": null,
    "material": "record:rawtype",
-   "reason": "load-failed — Unexpected end of JSON input"
+   "cases": 24,
+   "traits": "in[]>str const"
   },
   {
    "id": "machine:catalog/scripts/orbit-census.mjs#literalType",
-   "labeledBy": "static",
+   "labeledBy": "run",
    "verbs": [],
    "primary": null,
    "material": "record:init",
-   "reason": "load-failed — Unexpected end of JSON input"
+   "cases": 24,
+   "traits": "in[]>str const"
   },
   {
    "id": "machine:catalog/scripts/orbit-census.mjs#literalValue",
-   "labeledBy": "static",
+   "labeledBy": "run",
    "verbs": [],
    "primary": null,
    "material": "record:error",
-   "reason": "load-failed — Unexpected end of JSON input"
+   "cases": 24,
+   "traits": "in[]>nil const"
   },
   {
    "id": "machine:catalog/scripts/orbit-census.mjs#lowerFirst",
-   "labeledBy": "static",
+   "labeledBy": "run",
    "verbs": [],
    "primary": null,
    "material": "text",
-   "reason": "load-failed — Unexpected end of JSON input"
+   "cases": 24,
+   "traits": "in[str]>str"
   },
   {
    "id": "machine:catalog/scripts/orbit-census.mjs#norm",
-   "labeledBy": "static",
-   "verbs": [
-    {
-     "id": "normalize",
-     "by": "symbol"
-    }
-   ],
-   "primary": "normalize",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
    "material": "text",
-   "reason": "load-failed — Unexpected end of JSON input"
+   "cases": 24,
+   "traits": "in[str]>str"
   },
   {
    "id": "machine:catalog/scripts/orbit-census.mjs#readGenerated",
@@ -4318,39 +4452,48 @@
    ],
    "primary": "sample",
    "material": "unknown",
-   "reason": "load-failed — Unexpected end of JSON input"
+   "reason": "no-fitting-input"
   },
   {
    "id": "machine:catalog/scripts/orbit-census.mjs#refOf",
    "labeledBy": "static",
    "verbs": [],
    "primary": null,
-   "material": "unknown",
-   "reason": "load-failed — Unexpected end of JSON input"
+   "material": "record:part",
+   "reason": "no-fitting-input"
   },
   {
    "id": "machine:catalog/scripts/orbit-census.mjs#rel",
-   "labeledBy": "static",
-   "verbs": [],
-   "primary": null,
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "format",
+     "on": "p",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "format",
    "material": "unknown",
-   "reason": "load-failed — Unexpected end of JSON input"
+   "cases": 17,
+   "hash": "5e5eaa09-5c43f0af"
   },
   {
    "id": "machine:catalog/scripts/orbit-census.mjs#retByName",
-   "labeledBy": "static",
+   "labeledBy": "run",
    "verbs": [],
    "primary": null,
    "material": "number",
-   "reason": "load-failed — Unexpected end of JSON input"
+   "cases": 24,
+   "traits": "in[]>str const"
   },
   {
    "id": "machine:catalog/scripts/orbit-census.mjs#safeValue",
-   "labeledBy": "static",
+   "labeledBy": "run",
    "verbs": [],
    "primary": null,
    "material": "text",
-   "reason": "load-failed — Unexpected end of JSON input"
+   "cases": 24,
+   "traits": "in[]>bool const"
   },
   {
    "id": "machine:catalog/scripts/orbit-census.mjs#serialize",
@@ -4358,23 +4501,25 @@
    "verbs": [],
    "primary": null,
    "material": "record:part",
-   "reason": "load-failed — Unexpected end of JSON input"
+   "reason": "no-fitting-input"
   },
   {
    "id": "machine:catalog/scripts/orbit-census.mjs#stringKind",
-   "labeledBy": "static",
+   "labeledBy": "run",
    "verbs": [],
    "primary": null,
    "material": "text",
-   "reason": "load-failed — Unexpected end of JSON input"
+   "cases": 24,
+   "traits": "in[]>str const"
   },
   {
    "id": "machine:catalog/scripts/orbit-census.mjs#verbify",
-   "labeledBy": "static",
+   "labeledBy": "run",
    "verbs": [],
    "primary": null,
    "material": "text",
-   "reason": "load-failed — Unexpected end of JSON input"
+   "cases": 4,
+   "traits": "in[str]>str"
   },
   {
    "id": "machine:catalog/scripts/others-census.mjs#ENTITY_FROM_TYPE",
@@ -4437,7 +4582,8 @@
    "primary": null,
    "material": "text",
    "cases": 24,
-   "traits": "in[]>obj const"
+   "traits": "in[str]>obj",
+   "hash": "37b32609-d55e7873"
   },
   {
    "id": "machine:catalog/scripts/others-census.mjs#heDoc",
@@ -4579,34 +4725,114 @@
    "reason": "no-fitting-input"
   },
   {
-   "id": "machine:catalog/scripts/rebuild.mjs#isOut",
+   "id": "machine:catalog/scripts/rebuild.mjs#globRe",
    "labeledBy": "run",
    "verbs": [],
    "primary": null,
-   "material": "record:stage",
-   "cases": 24,
-   "traits": "in[]>bool const"
+   "material": "unknown",
+   "cases": 13,
+   "traits": "in[str]>obj const"
   },
   {
-   "id": "machine:catalog/scripts/rings-census.mjs#classify",
-   "labeledBy": "static",
+   "id": "machine:catalog/scripts/rebuild.mjs#graph",
+   "labeledBy": "run",
    "verbs": [
     {
-     "id": "tier",
-     "by": "symbol"
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
     }
    ],
-   "primary": "tier",
+   "primary": "provide",
    "material": "unknown",
-   "reason": "load-failed — UNSUPPORTED_FEATURE: Top-level await is currently not supported with the 'cjs' output format"
+   "cases": 3
   },
   {
-   "id": "machine:catalog/scripts/rings-census.mjs#clip",
+   "id": "machine:catalog/scripts/rebuild.mjs#isOutOf",
    "labeledBy": "static",
    "verbs": [],
    "primary": null,
-   "material": "text",
-   "reason": "load-failed — UNSUPPORTED_FEATURE: Top-level await is currently not supported with the 'cjs' output format"
+   "material": "record:stage",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "machine:catalog/scripts/rebuild.mjs#norm",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "record:spec",
+   "cases": 24,
+   "traits": "in[obj]>obj rec:same"
+  },
+  {
+   "id": "machine:catalog/scripts/rebuild.mjs#sameOut",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "validate",
+     "on": "*",
+     "holds": "24/24"
+    }
+   ],
+   "primary": "validate",
+   "material": "unknown",
+   "cases": 24,
+   "hash": "7a33080d-13fdf600"
+  },
+  {
+   "id": "machine:catalog/scripts/rebuild.mjs#specMatches",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:spec",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "machine:catalog/scripts/rebuild.mjs#stampsText",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "record:st",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "machine:catalog/scripts/rebuild.mjs#view",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[arr]>arr len~",
+   "hash": "29c0c071-49eb9f87"
+  },
+  {
+   "id": "machine:catalog/scripts/rings-census.mjs#classify",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 24,
+   "traits": "in[bool|num|str]>obj const"
+  },
+  {
+   "id": "machine:catalog/scripts/rings-census.mjs#clip",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "tier",
+     "on": "k",
+     "holds": "6/6"
+    },
+    {
+     "id": "normalize",
+     "on": "s",
+     "holds": "12/12"
+    }
+   ],
+   "primary": "tier",
+   "material": "number",
+   "cases": 24,
+   "hash": "f4fa44f1-741f00dd"
   },
   {
    "id": "machine:catalog/scripts/rings-census.mjs#does",
@@ -4614,71 +4840,80 @@
    "verbs": [],
    "primary": null,
    "material": "unknown",
-   "reason": "load-failed — UNSUPPORTED_FEATURE: Top-level await is currently not supported with the 'cjs' output format"
+   "reason": "no-fitting-input"
   },
   {
    "id": "machine:catalog/scripts/rings-census.mjs#git",
-   "labeledBy": "static",
+   "labeledBy": "run",
    "verbs": [],
    "primary": null,
    "material": "list",
-   "reason": "load-failed — UNSUPPORTED_FEATURE: Top-level await is currently not supported with the 'cjs' output format"
+   "cases": 24,
+   "traits": "in[]>fn const"
   },
   {
    "id": "machine:catalog/scripts/rings-census.mjs#opt",
-   "labeledBy": "static",
-   "verbs": [],
-   "primary": null,
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "round",
+     "on": "k",
+     "holds": "17/17"
+    }
+   ],
+   "primary": "round",
    "material": "number",
-   "reason": "load-failed — UNSUPPORTED_FEATURE: Top-level await is currently not supported with the 'cjs' output format"
+   "cases": 24,
+   "hash": "cc15eb4f-c5a5035d"
   },
   {
    "id": "machine:catalog/scripts/rings-census.mjs#resolveRef",
-   "labeledBy": "static",
+   "labeledBy": "run",
    "verbs": [],
    "primary": null,
    "material": "record:ref",
-   "reason": "load-failed — UNSUPPORTED_FEATURE: Top-level await is currently not supported with the 'cjs' output format"
-  },
-  {
-   "id": "machine:catalog/scripts/rings-census.mjs#show",
-   "labeledBy": "static",
-   "verbs": [],
-   "primary": null,
-   "material": "unknown",
-   "reason": "load-failed — UNSUPPORTED_FEATURE: Top-level await is currently not supported with the 'cjs' output format"
+   "cases": 24,
+   "traits": "in[]>fn const"
   },
   {
    "id": "machine:catalog/scripts/rings-census.mjs#verbName",
-   "labeledBy": "static",
-   "verbs": [],
-   "primary": null,
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "format",
+     "on": "raw",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "format",
    "material": "text",
-   "reason": "load-failed — UNSUPPORTED_FEATURE: Top-level await is currently not supported with the 'cjs' output format"
+   "cases": 24,
+   "hash": "e18e0653-3fcac49d"
   },
   {
    "id": "machine:catalog/scripts/rings-census.mjs#walk",
-   "labeledBy": "static",
+   "labeledBy": "run",
    "verbs": [],
    "primary": null,
    "material": "record:mem",
-   "reason": "load-failed — UNSUPPORTED_FEATURE: Top-level await is currently not supported with the 'cjs' output format"
+   "cases": 24,
+   "traits": "in[obj]>arr",
+   "hash": "b509399c-e09fadfc"
   },
   {
    "id": "machine:catalog/scripts/self-check.mjs#text",
-   "labeledBy": "static",
-   "verbs": [],
-   "primary": null,
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "format",
+     "on": "o",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "format",
    "material": "unknown",
-   "reason": "load-failed — UNSUPPORTED_FEATURE: Top-level await is currently not supported with the 'cjs' output format"
-  },
-  {
-   "id": "machine:catalog/scripts/self-check.mjs#verbCount",
-   "labeledBy": "static",
-   "verbs": [],
-   "primary": null,
-   "material": "record:entrie",
-   "reason": "load-failed — UNSUPPORTED_FEATURE: Top-level await is currently not supported with the 'cjs' output format"
+   "cases": 24,
+   "hash": "5e5eaa09-2f86f734"
   },
   {
    "id": "machine:catalog/self/parts.mjs#byId",
@@ -4687,7 +4922,7 @@
     {
      "id": "round",
      "on": "a",
-     "holds": "13/13"
+     "holds": "12/12"
     },
     {
      "id": "clamp",

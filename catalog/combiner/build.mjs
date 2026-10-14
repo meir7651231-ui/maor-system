@@ -11,7 +11,6 @@ import { assemble, KINDS, PROJECTS } from './core.mjs';
 import { VERBS, RECIPE_VERB } from './verbs.mjs';
 import { HERE, loadGoals, loadIndex, loadProofs, loadRecipes, loadBehavior, loadLeads } from './load.mjs';
 import { inputsKey, cacheGet, cachePut, CACHE_OFF } from '../lib/cache.mjs';
-await (await import('../inner/lib/ensure-gen.mjs')).ensureGen({ quiet: true }); // INNER v2: gen/ והקבצים הפנימיים הפרושים נוצרים לפי דרישה
 
 /** ⚡ SELF: אותו דבר כמו combineAll — טביעת הקלטים ⇒ אותו דף ואותן בקשות-חפירה (build דטרמיניסטי). */
 export function buildAll() {
@@ -57,6 +56,8 @@ const DIG_DIR = join(HERE, 'dig');
 const LAB = join(HERE, 'lab-data.json');
 
 if (process.argv[1] && process.argv[1].endsWith('build.mjs')) {
+  // INNER v2: הקבצים הפנימיים הפרושים נוצרים לפי דרישה (SELF-V2: בלי המודולים — כאן לא מריצים קוד; ובהרצה, לא בטעינה)
+  await (await import('../inner/lib/ensure-gen.mjs')).ensureGen({ quiet: true, modules: false });
   const { lab, dig } = buildAll();
   const cur = existsSync(DIG_DIR) ? readdirSync(DIG_DIR).filter((f) => f.endsWith('.json')).sort() : [];
   if (process.argv.includes('--check')) {

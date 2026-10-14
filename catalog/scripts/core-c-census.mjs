@@ -16,7 +16,8 @@ import { byId, fnvHexPoints } from '../self/parts.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const CHECK = process.argv.includes('--check');
-const ORIGINS = JSON.parse(fs.readFileSync(path.join(ROOT, 'catalog/core/origins-c.json'), 'utf8'));
+// 🧪 SELF-V2: נקרא בפעם הראשונה שצריך (לא בטעינה) — טהור-בטעינה ⇒ המכונה יכולה להריץ ולהוכיח את הקובץ הזה
+let ORIGINS_; const ORIGINS = () => (ORIGINS_ ??= JSON.parse(fs.readFileSync(path.join(ROOT, 'catalog/core/origins-c.json'), 'utf8')));
 
 const S = (name, kind, type) => ({ name, kind, type });
 const P = '{x, y}';
@@ -88,11 +89,11 @@ export function coreCDoc() {
     source: 'core-c', repo: 'meir7651231-ui/maor-system', ref: refOf(), generatedAt: null,
     parts: PARTS.map((p) => {
       const rel = 'catalog/core/' + p.file;
-      if (!ORIGINS[p.symbol]?.length) throw new Error('אין origins ל-' + p.symbol);
+      if (!ORIGINS()[p.symbol]?.length) throw new Error('אין origins ל-' + p.symbol);
       return {
         id: 'core-c:' + rel + '#' + p.symbol, source: 'core-c', path: rel, symbol: p.symbol, lang: 'js', what: 'brick',
         name: p.name, does: p.does, takes: p.takes, gives: p.gives, pure: true, example: p.example,
-        tags: ['core', 'verb:' + p.verb, 'world-free'], origins: ORIGINS[p.symbol].map(({ best: _b, ...o }) => o),
+        tags: ['core', 'verb:' + p.verb, 'world-free'], origins: ORIGINS()[p.symbol].map(({ best: _b, ...o }) => o),
       };
     }).sort(byId),
   };

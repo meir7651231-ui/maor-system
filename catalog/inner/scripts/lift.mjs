@@ -25,7 +25,8 @@ export const VERB_MAP = {
   'NEW:decay': ['~decay'], 'NEW:countdown': ['~countdown'], 'NEW:accumulate': ['~accumulate'], 'NEW:oscillate': ['~oscillate'], 'NEW:orbit': ['~orbit'],
 };
 
-const readDir = (d) => Object.fromEntries(fs.readdirSync(d).filter((f) => f.endsWith('.json') && f !== 'schema.json').sort().map((f) => [f.replace(/\.json$/, ''), JSON.parse(fs.readFileSync(path.join(d, f), 'utf8'))]));
+// 🧪 SELF-V2: coverage.json (פלט של goals-coverage, לא קובץ-מטרות) לא נקרא בכלל — כך הקלטים המוצהרים של השלב = מה שהוא קורא
+const readDir = (d) => Object.fromEntries(fs.readdirSync(d).filter((f) => f.endsWith('.json') && f !== 'schema.json' && f !== 'coverage.json').sort().map((f) => [f.replace(/\.json$/, ''), JSON.parse(fs.readFileSync(path.join(d, f), 'utf8'))]));
 
 export function computeLift(root = ROOT) {
   const goals = readDir(path.join(root, 'catalog/goals'));
@@ -108,7 +109,7 @@ function motionMats(p, mo) {
 
 const isMain = process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1]);
 if (isMain) {
-  await (await import('../lib/ensure-gen.mjs')).ensureGen({ quiet: true }); // v2: הקבצים הפרושים לא בריפו
+  await (await import('../lib/ensure-gen.mjs')).ensureGen({ quiet: true, modules: false }); // v2: הקבצים הפרושים לא בריפו
   const text = JSON.stringify(computeLift(), null, 1) + '\n';
   const file = path.join(ROOT, 'catalog/inner/lift.json');
   if (CHECK) { if (!fs.existsSync(file) || fs.readFileSync(file, 'utf8') !== text) { console.error('✗ catalog/inner/lift.json לא מעודכן — הרץ: node catalog/inner/scripts/lift.mjs'); process.exit(1); } console.log('✓ lift.json מעודכן'); }
