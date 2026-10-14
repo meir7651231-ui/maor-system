@@ -140,3 +140,22 @@
   .at-grid.at-grid-wide { grid-template-columns: 1fr; }
   .at-engine .at-examples { padding-inline-start: 12px; }
 }
+
+/* ATOMS-GOAL · "🎯 מה אתה רוצה לקבל?" — כרטיס עליון: תיבה + צ'יפי-דוגמה + עד 3 הרכבות או שאלות סגורות */
+.at-goal { border: 2px solid var(--accent); border-radius: 12px; padding: 12px; background: var(--card-bg, var(--panel)); display: flex; flex-direction: column; gap: 10px; }
+.at-goal .at-title, .at-goal .at-hint { margin: 0; }
+.at-goal-form { display: flex; gap: 8px; align-items: stretch; }
+.at-goal-input { flex: 1 1 auto; width: auto; min-width: 0; font-size: 16px; }
+.at-goal-form .btn { min-height: 44px; min-width: 88px; justify-content: center; }
+.at-goal-examples .at-choice { font-size: 13px; text-align: right; }
+.at-goal-answer { display: flex; flex-direction: column; gap: 10px; }
+.at-goal-res { display: flex; flex-direction: column; gap: 6px; padding: 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); }
+.at-goal-sentence { font-size: 16px; font-weight: 700; color: var(--ink); line-height: 1.5; overflow-wrap: anywhere; }
+.at-goal-res .at-actions { margin-top: 4px; }
+.at-goal-q { display: flex; flex-direction: column; gap: 6px; }
+.at-goal-q-text { font-size: 20px; font-weight: 800; color: var(--ink); }
+.at-goal-none { font-size: 15px; }
+@media (max-width: 420px) {
+  .at-goal-form { flex-wrap: wrap; }
+  .at-goal-form .btn { flex: 1 1 100%; }
+}

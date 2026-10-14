@@ -18,6 +18,26 @@ export interface AtomChain {
   /** CHAIN 14.10 (תוספתי): כבר נשמרה — המזהה של המנוע. */
   savedId?: string;
 }
+/** GOAL 14.10 (תוספתי): "🎯 מה אתה רוצה לקבל?" — מה שהמסך מקבל מהמנוע (lib/atoms/goal.ts), בלי לייבא אותו. */
+export interface GoalPickView { atom?: string; place?: string }
+export interface GoalResultView {
+  /** המזהה של המנוע האחרון בהרכבה. */
+  id: string;
+  /** ההרכבה במילים ("✂️ מחלק לחלקים שווים את חלון הניקיון, כל חלק 40 דקות ← 6 תורים"). */
+  sentence: string;
+  title: string;
+  lines: string[];
+  /** כמה חלקים בהרכבה. */
+  steps: number;
+  /** כבר שמור בדיוק כך. */
+  saved: boolean;
+}
+export interface GoalView {
+  status: 'ok' | 'ask' | 'none' | 'empty';
+  results: GoalResultView[];
+  questions: { text: string; chips: { label: string; pick: GoalPickView }[] }[];
+}
+
 /** CHAIN 14.10 (תוספתי): מנוע שנוצר כמנוע שאפשר לבנות עליו. */
 export type CapState = 'ok' | 'orphan' | 'bad';
 export interface AtomsSource {
@@ -39,4 +59,8 @@ export interface AtomsSource {
   blockedBy?(capId: string): string[];
   /** CHAIN 14.10 (תוספתי): "שמור כמנוע" לשרשרת מוצעת — יוצר (אם צריך) את הראשון ואז את המנוע הבנוי. מחזיר את המזהה. */
   saveChain?(engineId: string, index: number): string | null;
+  /** GOAL 14.10 (תוספתי): המשפט (+ הבחירות מהשאלות הסגורות) ⇒ עד 3 הרכבות מוכחות, או שאלות. */
+  goal?(text: string, picks: readonly GoalPickView[]): GoalView;
+  /** GOAL 14.10 (תוספתי): "חבר" להרכבה — יוצר את המנועים בדרך לפי הסדר (ההורה לפני מה שבנוי עליו). מחזיר את המזהה, או null. */
+  connectGoal?(text: string, picks: readonly GoalPickView[], resultId: string): string | null;
 }

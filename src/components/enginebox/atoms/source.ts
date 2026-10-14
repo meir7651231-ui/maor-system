@@ -16,7 +16,8 @@ import { sanitizeCapabilities, suggestedChildName, suggestedName } from '../../.
 import { chainsFor, previewOf, type Chain } from '../../../lib/atoms/preview';
 import { capHostCard, capStatus, childCapability, childId, childrenOf, outputPlaceFor } from '../../../lib/atoms/chain';
 import { chainChildParams } from '../../../lib/atoms/chainPreview';
-import type { AtomChain, AtomsSource } from './seam';
+import { answerGoal, type GoalPick } from '../../../lib/atoms/goal';
+import type { AtomChain, AtomsSource, GoalPickView, GoalView } from './seam';
 
 export interface AtomsDeps {
   db: Partial<Db> | null | undefined;
@@ -46,6 +47,10 @@ export function atomsSource(deps: AtomsDeps): AtomsSource {
     if (!place) return null;
     return { parent, child: childCapability(parent, place.id, b.atom, chainChildParams(ch.id, caps), suggestedChildName(parent, b.atom)) };
   };
+  // GOAL 14.10: הבחירות מהצ'יפים — רק חלק/מקום כטקסט (המנוע בודק מול הכרטיסים)
+  const picksOf = (picks: readonly GoalPickView[]): GoalPick[] =>
+    (Array.isArray(picks) ? picks : []).map((p) => ({ atom: typeof p?.atom === 'string' ? (p.atom as GoalPick['atom']) : undefined, place: typeof p?.place === 'string' ? p.place : undefined }));
+  const answer = (text: string, picks: readonly GoalPickView[]) => answerGoal(text, picksOf(picks), ENGINE_CARDS, ctx, caps);
   return {
     engines: (): EngineCard[] => [...ENGINE_CARDS],
     atoms: (): AtomCard[] => [...ATOM_CARDS],
@@ -81,6 +86,24 @@ export function atomsSource(deps: AtomsDeps): AtomsSource {
       const first = byId(p.parent.id) ? undefined : deps.create(p.parent);
       void Promise.resolve(first).then(() => deps.create(p.child));
       return p.child.id;
+    },
+    goal: (text, picks): GoalView => {
+      const a = answer(text, picks);
+      return {
+        status: a.status,
+        results: a.results.map((r) => ({ id: r.id, sentence: r.sentence, title: r.title, lines: r.lines, steps: r.steps.length, saved: r.saved })),
+        questions: a.questions.map((q) => ({ text: q.text, chips: q.chips.map((c) => ({ label: c.label, pick: { ...c.pick } })) })),
+      };
+    },
+    connectGoal: (text, picks, resultId) => {
+      if (!deps.canEdit) return null;
+      const r = answer(text, picks).results.find((x) => x.id === resultId);
+      if (!r) return null;
+      // לפי הסדר: כל מנוע נוצר רק אחרי שמה שהוא בנוי עליו נשמר (אותו מסלול כמו "שמור כמנוע"); השמות כבר נקבעו בהרכבה
+      let done: Promise<unknown> = Promise.resolve();
+      for (const c of r.create) done = done.then(() => deps.create(c));
+      void done;
+      return r.id;
     },
   };
 }
