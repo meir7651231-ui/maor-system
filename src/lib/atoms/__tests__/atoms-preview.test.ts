@@ -137,19 +137,21 @@ describe('🧬 previewOf — התצוגות הנדרשות', () => {
     expect(P('bookings.untilArrival', 'divide', { parts: 3 })!.lines).toEqual(['צימר הגפן · הגעה 16/10 ⇒ 15/10', 'בית ההארחה · הגעה 20/10 ⇒ 16/10, 18/10', 'צימר הגפן · הגעה 25/10 ⇒ 18/10, 21/10']);
   });
 
-  it('אין תצוגה כנה ⇒ null: מקומות בלי קורא, מנועים אחרים, טקסט עם שמות-אורחים', () => {
-    for (const [place, atom] of [['bookings.day', 'divide'], ['bookings.guests', 'fuzzy'], ['bookings.unitStays', 'next'], ['bookings.sacredDays', 'merge']] as const) {
+  // עודכן במכוון (ATOMS-PREVIEWS 14.10): unitStays:next · sacredDays:merge · zmanim.day:divide קיבלו תצוגה אמיתית
+  // (atoms-preview-bookings-more / -zmanim). נשארו null רק החיבורים שב-HONEST_NULLS.
+  it('אין תצוגה כנה ⇒ null: יום עבודה (אין נתון), טקסט עם שמות-אורחים, חיבור שלא קיים', () => {
+    for (const [place, atom] of [['bookings.day', 'divide'], ['bookings.guests', 'fuzzy'], ['bookings.nights', 'divide']] as const) {
       expect(hasPreview(place, atom)).toBe(false);
       expect(P(place, atom)).toBeNull();
     }
-    expect(previewOf({ place: 'zmanim.day', atom: 'divide', params: {} }, ctx())).toBeNull();
   });
 
-  it('כל מפתח-תצוגה הוא מקום+חלק אמיתי מכרטיס ההזמנות', () => {
-    const card = ENGINE_CARDS.find((e) => e.id === 'bookings')!;
+  it('כל מפתח-תצוגה הוא מקום+חלק אמיתי מכרטיסי המנועים', () => {
+    // עודכן במכוון (ATOMS-PREVIEWS 14.10): גם מקומות הזמנים ו"מבין בקשות"
     for (const k of PREVIEW_KEYS) {
       const [place, atom] = k.split(':') as [string, AtomId];
-      expect(card.places.find((p) => p.id === place)?.results[atom], k).toBeTruthy();
+      const card = ENGINE_CARDS.find((e) => e.places.some((p) => p.id === place));
+      expect(card?.places.find((p) => p.id === place)?.results[atom], k).toBeTruthy();
     }
     for (const req of ['bookings.turnover:divide', 'bookings.nights:merge', 'bookings.nights:next', 'bookings.balance:divide', 'bookings.cleaning:escalate', 'bookings.cleaning:rotate', 'bookings.arrivals:offset', 'bookings.arrivals:next', 'bookings.balance:round', 'bookings.total:round']) {
       expect(PREVIEW_KEYS, req).toContain(req);
@@ -171,7 +173,8 @@ describe('🧬 previewOf — התצוגות הנדרשות', () => {
   });
 
   it('DB ריק / פגום / רגע לא-סופי ⇒ null, לא זורק', () => {
-    for (const k of PREVIEW_KEYS) {
+    // הזמנים לא תלויים בנתוני-הארגון (רק במיקום, וברירת-המחדל בני ברק) ⇒ נבדקים ב-atoms-preview-zmanim (ATOMS-PREVIEWS 14.10)
+    for (const k of PREVIEW_KEYS.filter((x) => !x.startsWith('zmanim.'))) {
       const [place, atom] = k.split(':') as [string, AtomId];
       expect(P(place, atom, {}, ctx(null)), k).toBeNull();
       expect(P(place, atom, {}, ctx({ hostBookings: 'x', hostRecords: [null], hostUnits: [7] } as unknown as Db)), k).toBeNull();
