@@ -329,8 +329,10 @@ export function recipePart(r, known = []) {
 function comboPart(r, known) {
   const c = r.combo;
   const byId = new Map(known.map((p) => [p.id, p]));
-  const [a, b] = c.steps.map((id) => byId.get(id));
-  const takes = c.form === 'pair' ? [c.material] : a ? [a.takes[0], ...a.takes.slice(1)] : [];
+  const ps = c.steps.map((id) => byId.get(id));
+  const a = ps[0]; const b = ps[ps.length - 1];
+  // גרף: הקלטים והפלט = של הפועל עצמו (נשמרו במתכון); שרשרת: הקלטים של הראשון, הפלט של האחרון
+  const takes = c.takes ? c.takes : c.form === 'pair' ? [c.material] : a ? [a.takes[0], ...a.takes.slice(1)] : [];
   return {
     id: 'recipe:' + r.id,
     source: 'recipe',
@@ -341,7 +343,7 @@ function comboPart(r, known) {
     lang: 'machine',
     pure: true,
     takes,
-    gives: c.form === 'pair' ? (b?.gives || 'number') : b?.gives || 'unknown',
+    gives: c.gives ? c.gives : c.form === 'pair' ? (b?.gives || 'number') : b?.gives || 'unknown',
     material: c.material,
     verbs: [c.verb],
     strength: { [c.verb]: 0 },
@@ -350,7 +352,7 @@ function comboPart(r, known) {
     path: 'catalog/recipes/' + r.id + '.json',
     primary: c.verb,
     proofs: { [c.verb]: { status: 'proven', by: 'combo', cases: Number(String(c.holds).split('/')[0]) || 0, laws: c.laws || [], tier: 'proven' } },
-    combo: { verb: c.verb, form: c.form, steps: c.steps, roles: c.roles, holds: c.holds, laws: c.laws || [], ...(c.hint ? { hint: c.hint } : {}) },
+    combo: { verb: c.verb, form: c.form, steps: c.steps, roles: c.roles, holds: c.holds, laws: c.laws || [], ...(c.hint ? { hint: c.hint } : {}), ...(c.graph ? { graph: c.graph } : {}) },
   };
 }
 
@@ -686,15 +688,15 @@ export function assemble(goal, ix) {
 function chainView(c, ix) {
   const cp = c.steps.length === 1 && c.steps[0].combo ? c.steps[0] : null;
   if (cp) {
-    const parts = cp.combo.steps.map((id) => ix.byId.get(id)).filter(Boolean);
-    if (parts.length === 2) {
+    const parts = cp.combo.steps.map((id) => ix.byId.get(id) || ix.parts.find((p) => p.homes.some((h) => h.id === id))).filter(Boolean);
+    if (parts.length >= 2 && parts.length === cp.combo.steps.length) {
       const n = Number(String(cp.combo.holds).split('/')[0]) || 0;
       return {
-        ring: 2,
+        ring: Math.min(3, parts.length),
         tier: 'proven',
         sentence: chainSentence(parts),
         steps: parts.map((s, i) => stepView(s, parts[i - 1], ix.flows, cp.combo.roles?.[i] || s.primary)),
-        combo: { verb: cp.combo.verb, verbHe: VERB_HE(cp.combo.verb), form: cp.combo.form, holds: cp.combo.holds, cases: n, laws: cp.combo.laws, line: 'עבר ' + cp.combo.holds + ' חוקים של ' + VERB_HE(cp.combo.verb), ...(cp.combo.hint ? { hint: cp.combo.hint } : {}) },
+        combo: { verb: cp.combo.verb, verbHe: VERB_HE(cp.combo.verb), form: cp.combo.form, parts: parts.length, holds: cp.combo.holds, cases: n, laws: cp.combo.laws, line: (parts.length > 2 ? parts.length + ' חלקים · ' : '') + 'עבר ' + cp.combo.holds + ' חוקים של ' + VERB_HE(cp.combo.verb), ...(cp.combo.hint ? { hint: cp.combo.hint } : {}) },
       };
     }
   }

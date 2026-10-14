@@ -29,10 +29,13 @@ import { readSigs } from '../inner/lib/sigs.mjs';
 import { VERB_BY_ID as LAW_VERBS } from '../lib/verbs.mjs';
 import { assemble, fit, provenAs, adapterRole } from './core.mjs';
 import { HERE, CATALOG, loadGoals, loadIndex, loadParts, loadRecipes } from './load.mjs';
+import { runGraph, graphProblem, graphParts } from './graph.mjs';
 
 const ROOT = path.resolve(CATALOG, '..');
 export const SEED = 0x0c0b1e;
 const K = 24;
+/** עומק 3 (MACHINE-V2): עד K3 שרשראות של שלושה חלקים לזוג — רק כשאף זוג של שניים לא עבר. */
+const K3 = 24;
 const RUN_SOURCES = new Set(['orbit', 'core', 'core-b']);
 const runnableHere = (raw) => raw && (raw.source.startsWith('inner-') ? (raw.tags || []).some((t) => t.startsWith('gen:')) : RUN_SOURCES.has(raw.source) && isRunnable(raw));
 
@@ -69,11 +72,39 @@ function stepPool(ix, raw, st, all) {
   return all.filter((p) => pairAt(p, st.takes) >= 0 && plainKind(p.gives));
 }
 
-/** מועמדים לצורך: [{form, at?, steps:[P1,P2], roles:[v1,v2], hint?}] — רמזים קודם, אחר-כך כלליים; עד K, בלי כפילויות. */
+/** חלק לפי מזהה-בית (כולל בתים שאוחדו לחלק אחד באינדקס). */
+export function partByHome(ix, id) {
+  if (ix.byId.has(id)) return ix.byId.get(id);
+  if (!ix.byHome) { ix.byHome = new Map(); for (const p of ix.parts) for (const h of p.homes) if (!ix.byHome.has(h.id)) ix.byHome.set(h.id, p); }
+  return ix.byHome.get(id) || null;
+}
+
+/**
+ * מתכון-גרף (צורת `graph`) ⇒ מועמד: כל צומת נקרא בשם החלק המלא, והחלק חייב להיות מוכח-בהרצה לתפקיד שהמתכון נותן לו (`role`).
+ * חלק שחסר / לא מוכח / לא רץ כאן ⇒ המועמד נושא את הסיבה (`bad`) ונרשם ב-tried — בלי לנחש תחליף.
+ */
+function graphCandidate(h, ix, raw) {
+  const prob = graphProblem(h);
+  const parts = graphParts(h).map((id) => partByHome(ix, id));
+  let bad = prob;
+  if (!bad) {
+    for (const n of h.nodes) {
+      const p = partByHome(ix, n.part);
+      if (!p) { bad = n.id + ': החלק לא באינדקס (' + n.part + ')'; break; }
+      if (!provenAs(p, n.role)) { bad = n.id + ': ' + n.part + ' לא מוכח כ-' + n.role; break; }
+      if (!homeOf(p, raw)) { bad = n.id + ': ' + n.part + ' לא רץ כאן'; break; }
+    }
+  }
+  const roles = graphParts(h).map((id) => h.nodes.find((n) => n.part === id).role);
+  return { form: 'graph', graph: h, steps: parts.filter(Boolean), roles, hint: h.why, ...(bad ? { bad } : {}) };
+}
+
+/** מועמדים לצורך: [{form, at?, steps:[P1,P2(,P3)] | graph, roles, hint?}] — רמזים קודם, אחר-כך כלליים; עד K, בלי כפילויות. */
 export function candidatesFor(need, ix, raw) {
   RAW = raw;
   const V = need.verb; const M = need.material;
   const out = []; const seen = new Set();
+  for (const h of HINTS.filter((x) => x.form === 'graph' && x.verb === V && (!x.material || x.material === M))) out.push(graphCandidate(h, ix, raw));
   const all = ix.parts.filter((p) => p.primary && provenAs(p, p.primary) && p.takes.length > 0 && p.gives !== 'unknown' && homeOf(p, raw));
   const push = (form, a, b, ra, rb, hint, at) => {
     const key = form + '|' + a.id + '>' + b.id;
@@ -82,7 +113,7 @@ export function candidatesFor(need, ix, raw) {
     out.push({ form, ...(form === 'pair' ? { at } : {}), steps: [a, b], roles: [ra, rb], ...(hint ? { hint } : {}) });
   };
   // רמזי-מתכון: הפעלים (או הסוגים) שבתוכם — כל זוג מוכח-בהרצה; רק החוקים של V מחליטים
-  for (const h of HINTS.filter((x) => x.verb === V && (!x.material || x.material === M))) {
+  for (const h of HINTS.filter((x) => x.verb === V && (!x.material || x.material === M) && x.steps?.length === 2)) {
     const A = stepPool(ix, raw, h.steps[0], all).slice(0, 8);
     const Bs = stepPool(ix, raw, h.steps[1], all).slice(0, 12);
     for (const a of A) for (const b of Bs) {
@@ -104,6 +135,47 @@ export function candidatesFor(need, ix, raw) {
   for (const c of cores) {
     for (const g of glue.filter((g) => g.id !== c.id && accepts(g, c.gives) && fit(g.gives, M) > 0).sort(cmp).slice(0, 4)) push('chain', c, g, V, g.primary);
     for (const f of glue.filter((f) => f.id !== c.id && accepts(f, M) && accepts(c, f.gives)).sort(cmp).slice(0, 4)) push('chain', f, c, f.primary, V);
+  }
+  return out;
+}
+
+/**
+ * עומק 3 (MACHINE-V2): שלושה חלקים בשרשרת — חלק אחד מחזיק את הפועל (ליבה מוכחת ל-V), והשניים האחרים **מתאמי-סוג מוכחים**
+ * (adapterRole — אותו כלל עולם-ריק), או לפי רמז-מתכון בן שלושה צעדים. שלוש צורות:
+ *   ליבה ⇒ מתאם ⇒ מתאם (הפלט מגיע לחומר בשני צעדים) · מתאם ⇒ מתאם ⇒ ליבה (החומר נכנס בשני צעדים) · מתאם ⇒ ליבה ⇒ מתאם.
+ * חסום (עד K3, 3 מתאמים לכל משבצת, 8 ליבות) ודטרמיניסטי (אותו סדר כמו בעומק 2). רק החוקים של V מחליטים.
+ */
+export function candidates3For(need, ix, raw) {
+  RAW = raw;
+  const V = need.verb; const M = need.material;
+  const out = []; const seen = new Set();
+  const push = (steps, roles, hint) => {
+    const key = steps.map((p) => p.id).join('>');
+    if (out.length >= K3 || seen.has(key) || new Set(steps.map((p) => p.id)).size !== steps.length) return;
+    seen.add(key);
+    out.push({ form: 'chain', steps, roles, ...(hint ? { hint } : {}) });
+  };
+  const all = ix.parts.filter((p) => p.primary && provenAs(p, p.primary) && p.takes.length > 0 && p.gives !== 'unknown' && homeOf(p, raw));
+  for (const h of HINTS.filter((x) => x.verb === V && (!x.material || x.material === M) && x.steps?.length === 3)) {
+    const [A, Bs, Cs] = h.steps.map((st, k) => stepPool(ix, raw, st, all).slice(0, k ? 6 : 8));
+    for (const a of A) for (const b of Bs) for (const c of Cs) if (accepts(b, a.gives) && accepts(c, b.gives)) push([a, b, c], h.steps.map((st, k) => st.verb || [a, b, c][k].primary), h.why);
+  }
+  const rank = (p) => { const k = SELECTORS.indexOf(p.primary); return [k < 0 ? 99 : k, p.takes.length, p.id]; };
+  const cmp = (x, y) => { const a = rank(x); const b = rank(y); for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return a[i] < b[i] ? -1 : 1; return 0; };
+  const glue = all.filter(worldFree).sort(cmp);
+  const cores = provenRunnable(ix, raw, V).slice(0, 8);
+  const take = (xs) => xs.slice(0, 3);
+  for (const c of cores) {
+    const G = glue.filter((g) => g.id !== c.id);
+    // ליבה ⇒ מתאם ⇒ מתאם
+    for (const g1 of take(G.filter((g) => accepts(g, c.gives) && fit(g.gives, M) === 0)))
+      for (const g2 of take(G.filter((g) => g.id !== g1.id && accepts(g, g1.gives) && fit(g.gives, M) > 0))) push([c, g1, g2], [V, g1.primary, g2.primary]);
+    // מתאם ⇒ מתאם ⇒ ליבה
+    for (const f1 of take(G.filter((f) => accepts(f, M) && !accepts(c, f.gives))))
+      for (const f2 of take(G.filter((f) => f.id !== f1.id && accepts(f, f1.gives) && accepts(c, f.gives)))) push([f1, f2, c], [f1.primary, f2.primary, V]);
+    // מתאם ⇒ ליבה ⇒ מתאם
+    for (const f of take(G.filter((f) => accepts(f, M) && accepts(c, f.gives))))
+      for (const g of take(G.filter((g) => g.id !== f.id && accepts(g, c.gives) && fit(g.gives, M) > 0))) push([f, c, g], [f.primary, V, g.primary]);
   }
   return out;
 }
@@ -172,6 +244,33 @@ export function compose(form, R1, R2, seed, at = 0) {
   return { sig: { takes }, call };
 }
 
+/** שרשרת של N חלקים: C(a…, b…, c…) = P3(P2(P1(a…), b…), c…). הקלטים הנוספים של כל שלב הם קלטים חופשיים של השילוב. */
+export function composeChain(Rs, seed) {
+  if (Rs.length === 2) return compose('chain', Rs[0], Rs[1], seed);
+  const cs = Rs.map((R, k) => callerFor(R.ctx, R.fn, seed ^ Math.imul(k, 0x55), R.self));
+  const takes = [...Rs[0].sig.takes, ...Rs.slice(1).flatMap((R) => R.sig.takes.slice(1))];
+  const call = (args) => {
+    let at = Rs[0].sig.takes.length;
+    let r = cs[0](args.slice(0, at)); if ('err' in r || r.async) return r;
+    for (let k = 1; k < Rs.length; k++) {
+      const extra = Rs[k].sig.takes.length - 1;
+      r = cs[k]([r.v, ...args.slice(at, at + extra)]); at += extra;
+      if ('err' in r || r.async) return r;
+    }
+    return r;
+  };
+  return { sig: { takes }, call };
+}
+
+/**
+ * גרף (צורת `graph`): כל צומת = חלק מוכח אחד בארגז-החול; החוטים רק מעבירים/בוחרים שדה (graph.mjs).
+ * החתימה = החתימה של הפועל עצמו (הבקשה מביאה את העולם — המקום, היום, הרגע).
+ */
+export function composeGraph(g, Rs, seed, sig) {
+  const cs = Rs.map((R, k) => callerFor(R.ctx, R.fn, seed ^ Math.imul(k + 1, 0x9e3779b1), R.self));
+  return { sig: { takes: sig }, call: (args) => runGraph(g, args, (k, a) => cs[k](a)) };
+}
+
 /** מקום = רשומה עם x ו-y מספריים (או geo מפורש). */
 export const pointDesc = (d) => !!d && d.t === 'obj' && ['x', 'y'].every((k) => (d.p || []).some(([n, dd]) => n === k && (dd.t === 'num' || dd.t === 'int')));
 
@@ -221,36 +320,63 @@ export async function combineAll() {
       if (!want.has(k)) want.set(k, { verb: n.need.verb, material: n.need.material, behaviors: [] });
       want.get(k).behaviors.push(g.word + ': ' + n.need.behavior);
     }
-  const plans = [...want.values()].sort((a, b) => (a.verb + a.material < b.verb + b.material ? -1 : 1)).map((w) => ({ ...w, cands: candidatesFor(w, ix, raw) }));
-  const runners = await loadRunners([...new Set(plans.flatMap((p) => p.cands.flatMap((c) => c.steps)))], raw);
+  const plans = [...want.values()].sort((a, b) => (a.verb + a.material < b.verb + b.material ? -1 : 1)).map((w) => ({ ...w, cands: candidatesFor(w, ix, raw), cands3: candidates3For(w, ix, raw) }));
+  const runners = await loadRunners([...new Set(plans.flatMap((p) => [...p.cands, ...p.cands3].flatMap((c) => c.steps)))], raw);
   const B = await import(pathToFileURL(await bundleBridge()).href);
   const results = [];
+  const ids = (c) => (c.form === 'graph' ? graphParts(c.graph) : c.steps.map((s) => s.id));
   for (const pl of plans) {
     const tried = [];
     let found = null;
-    for (const c of pl.cands) {
-      const R1 = runners.get(c.steps[0].id); const R2 = runners.get(c.steps[1].id);
-      if (!R1 || !R2) { tried.push({ steps: c.steps.map((s) => s.id), why: 'לא נטען להרצה' }); continue; }
-      if (c.form === 'pair' && pl.material === 'geo' && !pointDesc(R1.sig.takes[c.at]?.d) && R1.sig.takes[c.at]?.kind !== 'geo') { tried.push({ steps: c.steps.map((s) => s.id), form: c.form, why: 'הקלט אינו מקום (אין x,y)' }); continue; }
-      const seed = (fnvHash(c.form + c.steps.map((s) => s.id).join('>')) ^ SEED) >>> 0;
+    let n3 = 0;
+    const attempt = (c) => {
+      if (c.bad) { tried.push({ steps: ids(c), form: c.form, why: c.bad }); return null; }
+      const Rs = c.form === 'graph' ? c.graph.nodes.map((n) => runners.get(partByHome(ix, n.part).id)) : c.steps.map((s) => runners.get(s.id));
+      if (Rs.some((R) => !R)) { tried.push({ steps: ids(c), form: c.form, why: 'לא נטען להרצה' }); return null; }
+      if (c.form === 'pair' && pl.material === 'geo' && !pointDesc(Rs[0].sig.takes[c.at]?.d) && Rs[0].sig.takes[c.at]?.kind !== 'geo') { tried.push({ steps: ids(c), form: c.form, why: 'הקלט אינו מקום (אין x,y)' }); return null; }
+      const seed = (fnvHash(c.form + ids(c).join('>')) ^ SEED) >>> 0;
       let v;
-      try { v = verify(pl.verb, compose(c.form, R1, R2, seed, c.at ?? 0), seed, B); } catch (e) { v = { ok: false, why: 'שגיאה: ' + String(e?.message || e).slice(0, 100) }; }
-      if (v.ok) { found = { ...c, ...v }; break; }
-      tried.push({ steps: c.steps.map((s) => s.id), form: c.form, ...(v.law ? { law: v.law } : {}), why: v.why });
-    }
-    results.push({ verb: pl.verb, material: pl.material, behaviors: pl.behaviors.slice(0, 6), nBehaviors: pl.behaviors.length, candidates: pl.cands.length, found: found ? { form: found.form, ...(found.form === 'pair' ? { at: found.at } : {}), steps: found.steps.map((s) => s.id), roles: found.roles, holds: found.holds, on: found.on, laws: found.laws, ...(found.hint ? { hint: found.hint } : {}) } : null, tried: tried.slice(0, 8) });
+      try {
+        let composed;
+        if (c.form === 'graph') {
+          const ref = LAW_VERBS.get(pl.verb)?.ref?.sig;
+          if (!ref || ref.length !== c.graph.inputs.length) throw new Error('הקלטים של הגרף לא תואמים את הפועל');
+          composed = composeGraph(c.graph, Rs, seed, ref.map((t, k) => ({ ...t, name: c.graph.inputs[k] })));
+        } else composed = c.form === 'pair' ? compose('pair', Rs[0], Rs[1], seed, c.at ?? 0) : composeChain(Rs, seed);
+        v = verify(pl.verb, composed, seed, B);
+      } catch (e) { v = { ok: false, why: 'שגיאה: ' + String(e?.message || e).slice(0, 100) }; }
+      if (v.ok) return { ...c, ...v };
+      tried.push({ steps: ids(c), form: c.form, ...(c.steps.length === 3 && c.form === 'chain' ? { depth: 3 } : {}), ...(v.law ? { law: v.law } : {}), why: v.why });
+      return null;
+    };
+    for (const c of pl.cands) if ((found = attempt(c))) break;
+    if (!found) for (const c of pl.cands3) { n3++; if ((found = attempt(c))) break; }
+    const fsteps = found ? ids(found) : null;
+    results.push({
+      verb: pl.verb, material: pl.material, behaviors: pl.behaviors.slice(0, 6), nBehaviors: pl.behaviors.length, candidates: pl.cands.length, candidates3: n3,
+      found: found ? {
+        form: found.form, depth: fsteps.length, ...(found.form === 'pair' ? { at: found.at } : {}), steps: fsteps, roles: found.roles, holds: found.holds, on: found.on, laws: found.laws, ...(found.hint ? { hint: found.hint } : {}),
+        ...(found.form === 'graph' ? { graph: { inputs: found.graph.inputs, consts: found.graph.consts, nodes: found.graph.nodes, out: found.graph.out } } : {}),
+      } : null,
+      tried: tried.slice(0, 8),
+    });
   }
   const recipes = {};
   for (const r of results.filter((x) => x.found)) {
     const id = 'combo-' + slug(r.verb) + '-' + slug(r.material);
-    const [a, b] = r.found.steps.map((s) => ix.byId.get(s));
+    const ps = r.found.steps.map((s) => partByHome(ix, s));
+    const v = LAW_VERBS.get(r.verb);
+    const io = r.found.form === 'graph' ? { takes: v.takes.map((k) => String(k).split('|')[0]), gives: String(v.gives).split('|')[0] } : {};
     recipes[id + '.json'] = JSON.stringify({
-      id, word: r.verb + ' · ' + r.material, title: 'שילוב: ' + a.name + ' ⇒ ' + b.name,
-      combo: { verb: r.verb, material: r.material, form: r.found.form, ...(r.found.form === 'pair' ? { at: r.found.at } : {}), steps: r.found.steps, roles: r.found.roles, holds: r.found.holds, laws: r.found.laws, ...(r.found.hint ? { hint: r.found.hint } : {}) },
+      id, word: r.verb + ' · ' + r.material,
+      // גרף: השם נושא את הפועל ואת מילות-הרמז שלו (כיוון · אזימוט…) — כך צורך עם keys של הבעלים מוצא אותו
+      title: r.found.form === 'graph' ? 'שילוב «' + v.he + '» (' + (v.cues?.he || []).join(' · ') + ', ' + (v.cues?.en || []).slice(0, 2).join(' · ') + '): ' + ps.length + ' חלקים — ' + ps[0].name + ' ⇒ … ⇒ ' + ps[ps.length - 1].name : 'שילוב: ' + ps.map((p) => p.name).join(' ⇒ '),
+      combo: { verb: r.verb, material: r.material, form: r.found.form, ...(r.found.form === 'pair' ? { at: r.found.at } : {}), steps: r.found.steps, roles: r.found.roles, holds: r.found.holds, laws: r.found.laws, ...(r.found.hint ? { hint: r.found.hint } : {}), ...io, ...(r.found.graph ? { graph: r.found.graph } : {}) },
       needs: [{ need: 'combo', verb: r.verb, material: r.material, chain: r.found.steps }],
     }, null, 1) + '\n';
   }
-  const summary = { about: 'נבנה ע״י catalog/combiner/combine.mjs — לא לערוך ביד', seed: SEED, k: K, pairs: results.length, proven: results.filter((r) => r.found).length, results };
+  const byDepth = (d) => results.filter((r) => r.found && (d === 'graph' ? r.found.form === 'graph' : r.found.form !== 'graph' && r.found.depth === d)).length;
+  const summary = { about: 'נבנה ע״י catalog/combiner/combine.mjs — לא לערוך ביד', seed: SEED, k: K, k3: K3, pairs: results.length, proven: results.filter((r) => r.found).length, depth: { 2: byDepth(2), 3: byDepth(3), graph: byDepth('graph') }, results };
   return { summary: JSON.stringify(summary, null, 1) + '\n', recipes };
 }
 

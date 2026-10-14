@@ -1,14 +1,16 @@
 #!/usr/bin/env node
 /**
  * ☀️ הדגמה (INNER, 14.10.2026): כיוון השמש בשמיים — מורכב **רק** מחלקים פנימיים שהורמו מתוך חישוב-הזריחה של אורביט
- * (telephony/lib/zmanim.mjs · solarEventUTCmin): `eqTime` (משוואת-הזמן), `decl` (נטיית-השמש) ו-`utc:step` (הנוסחה
+ * (telephony/lib/zmanim.mjs · solarEventUTCmin): `eqTime` (משוואת-הזמן) ו-`utc:step` (הנוסחה
  * "באיזו דקה השמש בזווית-שעה HA"). עם HA=0 היא נותנת את חצות-היום; זווית-השעה בכל רגע = (רגע − חצות-היום)/4 מעלות.
- * הכיוון (אזימוט) = שורה גאומטרית אחת מ-decl, קו-הרוחב וזווית-השעה. מריץ את מודול-ה-gen בארגז-החול של הקטלוג.
+ * הכיוון (אזימוט) — בלי שורה גאומטרית חדשה (MACHINE-V2): השילוב המוכח `catalog/recipes/combo-sun-heading-number.json`
+ * (זמני-היום ⇒ הכדור והסיבוב של היקום-3D ⇒ מרחק-המטבע ⇒ זווית-מיחס; עבר את כל חוקי «מכוון לפי השמש»). מריץ בארגז-החול של הקטלוג.
  *   node catalog/inner/scripts/sun-demo.mjs [YYYY-MM-DD]
  */
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { bundleFile, loadInSandbox } from '../../lib/sandbox.mjs';
+import { comboFunction } from '../../combiner/run-combo.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 const GEN = path.join(ROOT, 'catalog/inner/gen/orbit/telephony/lib/zmanim.mjs.mjs');
@@ -19,13 +21,12 @@ export async function sunDirections(iso = '2026-10-14', clocks = ['08:00', '12:0
   const { exports: z } = loadInSandbox(await bundleFile(GEN, { esm: true }));
   const [y, m, d] = iso.split('-').map(Number);
   const eqTime = z.inner$solarEventUTCmin$eqTime(y, m, d);
-  const decl = z.inner$solarEventUTCmin$decl(y, m, d);
   const noonUtc = z.inner$solarEventUTCmin$utc$$step(at.lon, false, eqTime, 0); // HA = 0 ⇒ חצות-היום (UTC-דקות)
-  const rad = Math.PI / 180;
+  const heading = await comboFunction('combo-sun-heading-number.json');
   return clocks.map((clock) => {
     const [hh, mm] = clock.split(':').map(Number);
     const ha = (hh * 60 + mm - at.utcOffsetMin - noonUtc) / 4; // מעלות: שלילי = לפני חצות-היום (מזרח), חיובי = אחרי (מערב)
-    const az = (Math.atan2(Math.sin(ha * rad), Math.cos(ha * rad) * Math.sin(at.lat * rad) - Math.tan(decl * rad) * Math.cos(at.lat * rad)) / rad + 180 + 360) % 360;
+    const az = heading({ lat: at.lat, lon: at.lon }, hh * 60 + mm - at.utcOffsetMin, iso); // השילוב — כל צעד הוא חלק מוכח
     const dir = az < 135 ? 'מזרח' : az <= 225 ? 'דרום' : 'מערב';
     return { clock, ha: Math.round(ha * 10) / 10, az: Math.round(az), dir };
   });

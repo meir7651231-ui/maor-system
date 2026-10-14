@@ -11,6 +11,7 @@
   "escalate",
   "shortest-path",
   "spread",
+  "sun-heading",
   "sun-position",
   "move-along-path",
   "orbit",
@@ -2780,6 +2781,65 @@
      "twilight",
      "declination",
      "zenith"
+    ]
+   }
+  },
+  {
+   "id": "sun-heading",
+   "he": "מכוון לפי השמש",
+   "means": "לאיזה כיוון בשמיים השמש ברגע נתון (אזימוט: מעלות מהצפון בכיוון השעון) — בבוקר במזרח, בצהריים בדרום, בערב במערב",
+   "takes": [
+    "geo|record",
+    "number",
+    "date"
+   ],
+   "gives": "number",
+   "laws": [
+    {
+     "id": "sun-heading.range",
+     "says": "תמיד כיוון על המצפן: 0° ≤ אזימוט < 360°",
+     "catches": "מוסיף 90° בלי לגלגל"
+    },
+    {
+     "id": "sun-heading.morning-east",
+     "says": "בבוקר (בין הזריחה לחצות-היום, קו-רוחב צפוני 20°–60°) השמש במזרח: 0° < אזימוט < 180°",
+     "catches": "מזרח ומערב הפוכים"
+    },
+    {
+     "id": "sun-heading.evening-west",
+     "says": "אחר-הצהריים (בין חצות-היום לשקיעה) השמש במערב: 180° < אזימוט < 360°",
+     "catches": "תקוע בכיוון אחד"
+    },
+    {
+     "id": "sun-heading.noon-south",
+     "says": "בחצות-היום, כשקו-הרוחב גבוה מנטיית-השמש ב-5° לפחות, השמש בדרום: |אזימוט − 180°| < 3°",
+     "catches": "מוסט ב-90°"
+    },
+    {
+     "id": "sun-heading.monotone",
+     "says": "מהזריחה עד השקיעה הכיוון רק עולה (מזרח ⇒ דרום ⇒ מערב)",
+     "catches": "כיוון אקראי"
+    },
+    {
+     "id": "sun-heading.symmetric",
+     "says": "סימטרי סביב חצות-היום: אזימוט(חצות − Δ) + אזימוט(חצות + Δ) = 360° (±0.5°)",
+     "catches": "שעון מאחר ב-20 דקות"
+    }
+   ],
+   "composed": "catalog/recipes/combo-sun-heading-number.json",
+   "cues": {
+    "he": [
+     "כיוון",
+     "אזימוט",
+     "מצפן",
+     "פונה"
+    ],
+    "en": [
+     "azimuth",
+     "bearing",
+     "heading",
+     "compass",
+     "direction"
     ]
    }
   }

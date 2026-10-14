@@ -1,0 +1,266 @@
+{
+ "id": "combo-sun-heading-number",
+ "word": "sun-heading · number",
+ "title": "שילוב «מכוון לפי השמש» (כיוון · אזימוט · מצפן · פונה, azimuth · bearing): 11 חלקים — מחשב מתי השמש בזווית מתחת לאופק ⇒ … ⇒ מחבר ערכים",
+ "combo": {
+  "verb": "sun-heading",
+  "material": "number",
+  "form": "graph",
+  "steps": [
+   "core:catalog/core/sun-position.mjs#sunPosition",
+   "inner-orbit:src/components/wheel/CourseWheel.tsx#CourseWheel.spin.delta:step",
+   "inner-orbit:src/components/parnasa/zmanimBoard.ts#noaaUtcMin.decl",
+   "core:catalog/core/orbit.mjs#orbit",
+   "inner-orbit:src/components/supporters/universe3d.ts#project.x1:step",
+   "inner-orbit:src/components/supporters/universe3d.ts#project.z1:step",
+   "inner-orbit:src/components/supporters/universe3d.ts#project.y1:step",
+   "inner-orbit:src/components/parnasa/coinFx.ts#wireCoinGrid.paint.forEach.dist:step",
+   "inner-orbit:src/lib/atoms/parts/divide.ts#divideSpan.unit:step",
+   "inner-orbit:telephony/lib/zmanim.mjs#solarEventUTCmin.HA:step",
+   "inner-orbit:telephony/lib/zmanim.mjs#solarEventUTCmin.trueLong:step"
+  ],
+  "roles": [
+   "sun-position",
+   "gap",
+   "convert",
+   "orbit",
+   "convert",
+   "convert",
+   "convert",
+   "combine",
+   "ratio",
+   "tier",
+   "combine"
+  ],
+  "holds": "72/72",
+  "laws": [
+   "sun-heading.range",
+   "sun-heading.morning-east",
+   "sun-heading.evening-west",
+   "sun-heading.noon-south",
+   "sun-heading.monotone",
+   "sun-heading.symmetric"
+  ],
+  "hint": "כיוון השמש = זמני-היום (חצות-היום + נטיית-השמש) ⇒ נקודה על כדור-השמיים (הנקודה-על-מעגל של הגלקסיה, פעמיים — כמו הכדור של היקום-3D) ⇒ הסיבוב של היקום-3D (מסובב את הכדור לפי קו-הרוחב, אל האופק) ⇒ מרחק-המצביע של המטבע ⇒ זווית-מיחס של זמני-היום",
+  "takes": [
+   "geo",
+   "number",
+   "date"
+  ],
+  "gives": "number",
+  "graph": {
+   "inputs": [
+    "spec",
+    "minutes",
+    "day"
+   ],
+   "consts": {
+    "circle360": "{cx:0, cy:0, radius:1, period:360} — מעגל-יחידה שמחזור שלו 360: הצעד הוא זווית במעלות (הנקודה = cos, sin)",
+    "period1440": "1440 = דקות ביממה: השמש מקיפה פעם אחת ביום, ולכן דקות-מחצות-היום הן זווית-השעה",
+    "quarter": "cy=0, sy=1 — רבע סיבוב (yaw=90°) של היקום-3D: מחליף את ציר-העומק בציר מזרח-מערב"
+   },
+   "nodes": [
+    {
+     "id": "sun",
+     "part": "core:catalog/core/sun-position.mjs#sunPosition",
+     "role": "sun-position",
+     "args": [
+      "$spec",
+      "$day"
+     ],
+     "says": "מתי חצות-היום ביום ובמקום האלה"
+    },
+    {
+     "id": "h",
+     "part": "inner-orbit:src/components/wheel/CourseWheel.tsx#CourseWheel.spin.delta:step",
+     "role": "gap",
+     "args": [
+      "@sun.noon",
+      "$minutes"
+     ],
+     "says": "כמה דקות עברו מחצות-היום (הפרש)"
+    },
+    {
+     "id": "dec",
+     "part": "inner-orbit:src/components/parnasa/zmanimBoard.ts#noaaUtcMin.decl",
+     "role": "convert",
+     "args": [
+      "$day"
+     ],
+     "says": "נטיית-השמש ביום הזה (מעלות)"
+    },
+    {
+     "id": "decl",
+     "part": "core:catalog/core/orbit.mjs#orbit",
+     "role": "orbit",
+     "args": [
+      {
+       "cx": 0,
+       "cy": 0,
+       "radius": 1,
+       "period": 360
+      },
+      "@dec"
+     ],
+     "says": "הנטייה ⇒ גובה על הכדור (cos, sin)"
+    },
+    {
+     "id": "ring",
+     "part": "core:catalog/core/orbit.mjs#orbit",
+     "role": "orbit",
+     "args": [
+      {
+       "cx": 0,
+       "cy": 0,
+       "radius": "@decl.x",
+       "period": 1440
+      },
+      "@h"
+     ],
+     "says": "השמש מקיפה את ציר-העולם פעם ביממה — המקום שלה על המעגל עכשיו"
+    },
+    {
+     "id": "lat",
+     "part": "core:catalog/core/orbit.mjs#orbit",
+     "role": "orbit",
+     "args": [
+      {
+       "cx": 0,
+       "cy": 0,
+       "radius": 1,
+       "period": 360
+      },
+      "$spec.lat"
+     ],
+     "says": "קו-הרוחב ⇒ cos, sin (כמה להטות את הכדור)"
+    },
+    {
+     "id": "east",
+     "part": "inner-orbit:src/components/supporters/universe3d.ts#project.x1:step",
+     "role": "convert",
+     "args": [
+      {
+       "x": "@ring.x",
+       "y": "@decl.y",
+       "z": "@ring.y"
+      },
+      0,
+      1
+     ],
+     "says": "רבע-סיבוב של היקום-3D ⇒ הרכיב מזרח-מערב"
+    },
+    {
+     "id": "z1",
+     "part": "inner-orbit:src/components/supporters/universe3d.ts#project.z1:step",
+     "role": "convert",
+     "args": [
+      {
+       "x": "@ring.x",
+       "y": "@decl.y",
+       "z": "@ring.y"
+      },
+      0,
+      1
+     ],
+     "says": "אותו רבע-סיבוב ⇒ הרכיב לאורך המרידיאן"
+    },
+    {
+     "id": "north",
+     "part": "inner-orbit:src/components/supporters/universe3d.ts#project.y1:step",
+     "role": "convert",
+     "args": [
+      {
+       "x": "@ring.x",
+       "y": "@decl.y",
+       "z": "@ring.y"
+      },
+      "@z1",
+      "@lat.x",
+      "@lat.y"
+     ],
+     "says": "הטיה לפי קו-הרוחב (pitch) ⇒ הרכיב צפון-דרום על האופק"
+    },
+    {
+     "id": "rho",
+     "part": "inner-orbit:src/components/parnasa/coinFx.ts#wireCoinGrid.paint.forEach.dist:step",
+     "role": "combine",
+     "args": [
+      "@east",
+      "@north"
+     ],
+     "says": "אורך הצל על האופק (מרחק, כמו המצביע של המטבע)"
+    },
+    {
+     "id": "w",
+     "part": "inner-orbit:src/components/wheel/CourseWheel.tsx#CourseWheel.spin.delta:step",
+     "role": "gap",
+     "args": [
+      "@rho",
+      "@north"
+     ],
+     "says": "צפון פחות האורך — חצי-הזווית מתחיל מהדרום"
+    },
+    {
+     "id": "wl",
+     "part": "inner-orbit:src/components/parnasa/coinFx.ts#wireCoinGrid.paint.forEach.dist:step",
+     "role": "combine",
+     "args": [
+      "@w",
+      "@east"
+     ],
+     "says": "אורך חוצה-הזווית"
+    },
+    {
+     "id": "cos",
+     "part": "inner-orbit:src/lib/atoms/parts/divide.ts#divideSpan.unit:step",
+     "role": "ratio",
+     "args": [
+      "@east",
+      "@wl"
+     ],
+     "says": "מזרח חלקי האורך = הקוסינוס של חצי-הכיוון"
+    },
+    {
+     "id": "half",
+     "part": "inner-orbit:telephony/lib/zmanim.mjs#solarEventUTCmin.HA:step",
+     "role": "tier",
+     "args": [
+      "@cos"
+     ],
+     "says": "זווית מיחס (arccos, במעלות; מוכח בהרצה כ«מדרג» — מונוטוני על [−1,1]) — חצי מהכיוון"
+    },
+    {
+     "id": "az",
+     "part": "inner-orbit:telephony/lib/zmanim.mjs#solarEventUTCmin.trueLong:step",
+     "role": "combine",
+     "args": [
+      "@half",
+      "@half"
+     ],
+     "says": "חצי + חצי = הכיוון מהצפון"
+    }
+   ],
+   "out": "az"
+  }
+ },
+ "needs": [
+  {
+   "need": "combo",
+   "verb": "sun-heading",
+   "material": "number",
+   "chain": [
+    "core:catalog/core/sun-position.mjs#sunPosition",
+    "inner-orbit:src/components/wheel/CourseWheel.tsx#CourseWheel.spin.delta:step",
+    "inner-orbit:src/components/parnasa/zmanimBoard.ts#noaaUtcMin.decl",
+    "core:catalog/core/orbit.mjs#orbit",
+    "inner-orbit:src/components/supporters/universe3d.ts#project.x1:step",
+    "inner-orbit:src/components/supporters/universe3d.ts#project.z1:step",
+    "inner-orbit:src/components/supporters/universe3d.ts#project.y1:step",
+    "inner-orbit:src/components/parnasa/coinFx.ts#wireCoinGrid.paint.forEach.dist:step",
+    "inner-orbit:src/lib/atoms/parts/divide.ts#divideSpan.unit:step",
+    "inner-orbit:telephony/lib/zmanim.mjs#solarEventUTCmin.HA:step",
+    "inner-orbit:telephony/lib/zmanim.mjs#solarEventUTCmin.trueLong:step"
+   ]
+  }
+ ]
+}

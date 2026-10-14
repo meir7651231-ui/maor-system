@@ -17,6 +17,7 @@
  */
 import { canon, same, isArr, isNum, isStr, isObj, isNil, classOf, toNum, axisClass, numEq, isSubseq, isPerm, shuffle, cat, entriesOf } from './shape.mjs';
 import { MOTION_VERBS } from './verbs-motion.mjs';
+import { SUN_VERBS } from './verbs-sun.mjs';
 import * as C_SOURCE from '../core/require-source.mjs';
 import * as C_FREEZE from '../core/freeze.mjs';
 import * as C_ROLE from '../core/assign-role.mjs';
@@ -1224,6 +1225,8 @@ export const VERBS = [
   },
   /* ─────────── 15 פעלי-הזמן-והתנועה — נכרו מהקוד שכתבנו (verbs-motion.mjs · catalog/core) ─────────── */
   ...MOTION_VERBS,
+  /* ─────────── הפועל ה-61 — מכוון לפי השמש (verbs-sun.mjs): בלי ליבה, נמצא רק כשילוב ─────────── */
+  ...SUN_VERBS,
 ];
 
 /* ═══════════════ עזרים ל-7 הפעלים שהיו static-only ═══════════════ */
@@ -1389,6 +1392,6 @@ function fuzzyCase(e, kind) {
 
 export const VERB_BY_ID = new Map(VERBS.map((v) => [v.id, v]));
 /** סדר-הספציפיות: הפועל הראשון שמתקיים = "הפועל הראשי" של החלק. */
-export const PRIMARY_ORDER = ['divide', 'merge', 'next', 'rotate', 'fuzzy', 'escalate', 'shortest-path', 'spread', 'sun-position', 'move-along-path', 'orbit', 'gravity', 'bounce', 'decay', 'oscillate', 'countdown', 'accumulate', 'follow', 'echo', 'random', 'sample', 'tier', 'round', 'offset', 'bucket', 'fingerprint', 'clamp', 'pace', 'freeze', 'relay', 'assign-role', 'require-source', 'tolerate', 'route', 'sort', 'reverse', 'dedupe', 'filter', 'transcript', 'group', 'tally', 'count', 'sum', 'average', 'extreme', 'lookup', 'gap', 'compare', 'ratio', 'combine', 'split', 'join', 'personalize', 'map', 'settle', 'normalize', 'convert', 'format', 'validate', 'provide'];
+export const PRIMARY_ORDER = ['divide', 'merge', 'next', 'rotate', 'fuzzy', 'escalate', 'shortest-path', 'spread', 'sun-heading', 'sun-position', 'move-along-path', 'orbit', 'gravity', 'bounce', 'decay', 'oscillate', 'countdown', 'accumulate', 'follow', 'echo', 'random', 'sample', 'tier', 'round', 'offset', 'bucket', 'fingerprint', 'clamp', 'pace', 'freeze', 'relay', 'assign-role', 'require-source', 'tolerate', 'route', 'sort', 'reverse', 'dedupe', 'filter', 'transcript', 'group', 'tally', 'count', 'sum', 'average', 'extreme', 'lookup', 'gap', 'compare', 'ratio', 'combine', 'split', 'join', 'personalize', 'map', 'settle', 'normalize', 'convert', 'format', 'validate', 'provide'];
 /** פועל ספציפי שמכסה פועל כללי — כשהספציפי מתקיים, הכללי לא נספר בנפרד. */
 export const IMPLIES = { count: ['sum'], gap: ['compare'], escalate: ['tier'], fuzzy: ['lookup'], round: ['normalize', 'convert'], clamp: ['normalize'], filter: ['normalize'], dedupe: ['normalize'], sort: ['normalize'], settle: ['normalize'] };

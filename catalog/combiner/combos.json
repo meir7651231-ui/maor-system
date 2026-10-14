@@ -2,8 +2,14 @@
  "about": "נבנה ע״י catalog/combiner/combine.mjs — לא לערוך ביד",
  "seed": 789278,
  "k": 24,
+ "k3": 24,
  "pairs": 74,
- "proven": 4,
+ "proven": 7,
+ "depth": {
+  "2": 4,
+  "3": 2,
+  "graph": 1
+ },
  "results": [
   {
    "verb": "accumulate",
@@ -13,6 +19,7 @@
    ],
    "nBehaviors": 1,
    "candidates": 1,
+   "candidates3": 9,
    "found": null,
    "tried": [
     {
@@ -21,6 +28,76 @@
       "inner-generator:new/boxes/pareto.mjs#paretoReport.total"
      ],
      "form": "chain",
+     "why": "הפלט לא בצורה שהחוקים של «צובר» בודקים (אין קישור מתאים)"
+    },
+    {
+     "steps": [
+      "core:catalog/core/accumulate.mjs#accumulate",
+      "inner-generator:machtzev/purity/purify-engine.mjs#purifyBox.litObj:step",
+      "inner-buildsmart:functions/src/creditCore.ts#contractorCredit.h"
+     ],
+     "form": "chain",
+     "depth": 3,
+     "why": "לא רץ: no-fitting-input"
+    },
+    {
+     "steps": [
+      "core:catalog/core/accumulate.mjs#accumulate",
+      "inner-generator:machtzev/purity/purify-engine.mjs#purifyBox.litObj:step",
+      "inner-buildsmart:functions/src/creditCore.ts#contractorCredit.raw"
+     ],
+     "form": "chain",
+     "depth": 3,
+     "why": "לא רץ: no-fitting-input"
+    },
+    {
+     "steps": [
+      "core:catalog/core/accumulate.mjs#accumulate",
+      "inner-generator:machtzev/purity/purify-engine.mjs#purifyBox.litObj:step",
+      "inner-orbit:src/components/platform/lib.ts#genJoinCode.h:after-loop"
+     ],
+     "form": "chain",
+     "depth": 3,
+     "why": "הפלט לא בצורה שהחוקים של «צובר» בודקים (אין קישור מתאים)"
+    },
+    {
+     "steps": [
+      "core:catalog/core/accumulate.mjs#accumulate",
+      "inner-generator:machtzev/purity/purify-engine.mjs#purifyStrings.litObj:step",
+      "inner-buildsmart:functions/src/creditCore.ts#contractorCredit.h"
+     ],
+     "form": "chain",
+     "depth": 3,
+     "why": "לא רץ: no-fitting-input"
+    },
+    {
+     "steps": [
+      "core:catalog/core/accumulate.mjs#accumulate",
+      "inner-generator:machtzev/purity/purify-engine.mjs#purifyStrings.litObj:step",
+      "inner-buildsmart:functions/src/creditCore.ts#contractorCredit.raw"
+     ],
+     "form": "chain",
+     "depth": 3,
+     "why": "הפלט לא בצורה שהחוקים של «צובר» בודקים (אין קישור מתאים)"
+    },
+    {
+     "steps": [
+      "core:catalog/core/accumulate.mjs#accumulate",
+      "inner-generator:machtzev/purity/purify-engine.mjs#purifyStrings.litObj:step",
+      "inner-orbit:src/components/platform/lib.ts#genJoinCode.h:after-loop"
+     ],
+     "form": "chain",
+     "depth": 3,
+     "why": "הפלט לא בצורה שהחוקים של «צובר» בודקים (אין קישור מתאים)"
+    },
+    {
+     "steps": [
+      "core:catalog/core/accumulate.mjs#accumulate",
+      "inner-generator:machtzev/generator/capability.mjs#emitAppFrom.imps",
+      "inner-buildsmart:functions/src/creditCore.ts#contractorCredit.h"
+     ],
+     "form": "chain",
+     "depth": 3,
      "why": "הפלט לא בצורה שהחוקים של «צובר» בודקים (אין קישור מתאים)"
     }
    ]
@@ -38,6 +115,7 @@
    ],
    "nBehaviors": 19,
    "candidates": 1,
+   "candidates3": 9,
    "found": null,
    "tried": [
     {
@@ -46,6 +124,76 @@
       "inner-generator:new/boxes/pareto.mjs#paretoReport.total"
      ],
      "form": "chain",
+     "why": "הפלט לא בצורה שהחוקים של «צובר» בודקים (אין קישור מתאים)"
+    },
+    {
+     "steps": [
+      "core:catalog/core/accumulate.mjs#accumulate",
+      "inner-generator:machtzev/purity/purify-engine.mjs#purifyBox.litObj:step",
+      "inner-buildsmart:functions/src/creditCore.ts#contractorCredit.h"
+     ],
+     "form": "chain",
+     "depth": 3,
+     "why": "לא רץ: no-fitting-input"
+    },
+    {
+     "steps": [
+      "core:catalog/core/accumulate.mjs#accumulate",
+      "inner-generator:machtzev/purity/purify-engine.mjs#purifyBox.litObj:step",
+      "inner-buildsmart:functions/src/creditCore.ts#contractorCredit.raw"
+     ],
+     "form": "chain",
+     "depth": 3,
+     "why": "לא רץ: no-fitting-input"
+    },
+    {
+     "steps": [
+      "core:catalog/core/accumulate.mjs#accumulate",
+      "inner-generator:machtzev/purity/purify-engine.mjs#purifyBox.litObj:step",
+      "inner-orbit:src/components/platform/lib.ts#genJoinCode.h:after-loop"
+     ],
+     "form": "chain",
+     "depth": 3,
+     "why": "הפלט לא בצורה שהחוקים של «צובר» בודקים (אין קישור מתאים)"
+    },
+    {
+     "steps": [
+      "core:catalog/core/accumulate.mjs#accumulate",
+      "inner-generator:machtzev/purity/purify-engine.mjs#purifyStrings.litObj:step",
+      "inner-buildsmart:functions/src/creditCore.ts#contractorCredit.h"
+     ],
+     "form": "chain",
+     "depth": 3,
+     "why": "לא רץ: no-fitting-input"
+    },
+    {
+     "steps": [
+      "core:catalog/core/accumulate.mjs#accumulate",
+      "inner-generator:machtzev/purity/purify-engine.mjs#purifyStrings.litObj:step",
+      "inner-buildsmart:functions/src/creditCore.ts#contractorCredit.raw"
+     ],
+     "form": "chain",
+     "depth": 3,
+     "why": "הפלט לא בצורה שהחוקים של «צובר» בודקים (אין קישור מתאים)"
+    },
+    {
+     "steps": [
+      "core:catalog/core/accumulate.mjs#accumulate",
+      "inner-generator:machtzev/purity/purify-engine.mjs#purifyStrings.litObj:step",
+      "inner-orbit:src/components/platform/lib.ts#genJoinCode.h:after-loop"
+     ],
+     "form": "chain",
+     "depth": 3,
+     "why": "הפלט לא בצורה שהחוקים של «צובר» בודקים (אין קישור מתאים)"
+    },
+    {
+     "steps": [
+      "core:catalog/core/accumulate.mjs#accumulate",
+      "inner-generator:machtzev/generator/capability.mjs#emitAppFrom.imps",
+      "inner-buildsmart:functions/src/creditCore.ts#contractorCredit.h"
+     ],
+     "form": "chain",
+     "depth": 3,
      "why": "הפלט לא בצורה שהחוקים של «צובר» בודקים (אין קישור מתאים)"
     }
    ]
@@ -58,6 +206,7 @@
    ],
    "nBehaviors": 1,
    "candidates": 0,
+   "candidates3": 0,
    "found": null,
    "tried": []
   },
@@ -69,6 +218,7 @@
    ],
    "nBehaviors": 1,
    "candidates": 0,
+   "candidates3": 0,
    "found": null,
    "tried": []
   },
@@ -80,6 +230,7 @@
    ],
    "nBehaviors": 1,
    "candidates": 0,
+   "candidates3": 0,
    "found": null,
    "tried": []
   },
@@ -91,6 +242,7 @@
    ],
    "nBehaviors": 1,
    "candidates": 0,
+   "candidates3": 0,
    "found": null,
    "tried": []
   },
@@ -103,6 +255,7 @@
    ],
    "nBehaviors": 2,
    "candidates": 0,
+   "candidates3": 0,
    "found": null,
    "tried": []
   },
@@ -114,6 +267,7 @@
    ],
    "nBehaviors": 1,
    "candidates": 0,
+   "candidates3": 0,
    "found": null,
    "tried": []
   },
@@ -125,6 +279,7 @@
    ],
    "nBehaviors": 1,
    "candidates": 0,
+   "candidates3": 0,
    "found": null,
    "tried": []
   },
@@ -138,6 +293,7 @@
    ],
    "nBehaviors": 3,
    "candidates": 0,
+   "candidates3": 0,
    "found": null,
    "tried": []
   },
@@ -149,6 +305,7 @@
    ],
    "nBehaviors": 1,
    "candidates": 0,
+   "candidates3": 0,
    "found": null,
    "tried": []
   },
@@ -162,8 +319,10 @@
    ],
    "nBehaviors": 3,
    "candidates": 24,
+   "candidates3": 0,
    "found": {
     "form": "pair",
+    "depth": 2,
     "at": 2,
     "steps": [
      "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
@@ -192,6 +351,7 @@
    ],
    "nBehaviors": 1,
    "candidates": 0,
+   "candidates3": 0,
    "found": null,
    "tried": []
   },
@@ -203,6 +363,7 @@
    ],
    "nBehaviors": 1,
    "candidates": 0,
+   "candidates3": 0,
    "found": null,
    "tried": []
   },
@@ -217,8 +378,10 @@
    ],
    "nBehaviors": 4,
    "candidates": 10,
+   "candidates3": 0,
    "found": {
     "form": "chain",
+    "depth": 2,
     "steps": [
      "inner-orbit:src/components/timer/CashRegister.tsx#CashRegister.exact.cents",
      "orbit:src/components/diary/lib.ts#minToHM"
@@ -246,6 +409,7 @@
    ],
    "nBehaviors": 3,
    "candidates": 0,
+   "candidates3": 0,
    "found": null,
    "tried": []
   },
@@ -257,6 +421,7 @@
    ],
    "nBehaviors": 1,
    "candidates": 0,
+   "candidates3": 0,
    "found": null,
    "tried": []
   },
@@ -268,6 +433,7 @@
    ],
    "nBehaviors": 1,
    "candidates": 0,
+   "candidates3": 0,
    "found": null,
    "tried": []
   },
@@ -279,6 +445,7 @@
    ],
    "nBehaviors": 1,
    "candidates": 0,
+   "candidates3": 0,
    "found": null,
    "tried": []
   },
@@ -290,6 +457,7 @@
    ],
    "nBehaviors": 1,
    "candidates": 0,
+   "candidates3": 0,
    "found": null,
    "tried": []
   },
@@ -302,6 +470,7 @@
    ],
    "nBehaviors": 2,
    "candidates": 0,
+   "candidates3": 0,
    "found": null,
    "tried": []
   },
@@ -314,6 +483,7 @@
    ],
    "nBehaviors": 2,
    "candidates": 0,
+   "candidates3": 0,
    "found": null,
    "tried": []
   },
@@ -325,6 +495,7 @@
    ],
    "nBehaviors": 1,
    "candidates": 0,
+   "candidates3": 0,
    "found": null,
    "tried": []
   },
@@ -340,6 +511,7 @@
    ],
    "nBehaviors": 5,
    "candidates": 0,
+   "candidates3": 0,
    "found": null,
    "tried": []
   },
@@ -355,6 +527,7 @@
    ],
    "nBehaviors": 5,
    "candidates": 8,
+   "candidates3": 24,
    "found": null,
    "tried": [
     {
@@ -433,6 +606,7 @@
    ],
    "nBehaviors": 3,
    "candidates": 0,
+   "candidates3": 0,
    "found": null,
    "tried": []
   },
@@ -445,6 +619,7 @@
    ],
    "nBehaviors": 2,
    "candidates": 0,
+   "candidates3": 0,
    "found": null,
    "tried": []
   },
@@ -458,6 +633,7 @@
    ],
    "nBehaviors": 3,
    "candidates": 0,
+   "candidates3": 0,
    "found": null,
    "tried": []
   },
@@ -469,6 +645,7 @@
    ],
    "nBehaviors": 1,
    "candidates": 4,
+   "candidates3": 3,
    "found": null,
    "tried": [
     {
@@ -505,6 +682,36 @@
      "form": "chain",
      "law": "follow.closer",
      "why": "עבר את המטרה"
+    },
+    {
+     "steps": [
+      "core:catalog/core/follow.mjs#follow",
+      "inner-orbit:src/lib/atoms/verify/laws.ts#check.gotIso:step",
+      "inner-orbit:src/components/calendar/calLib.ts#buildDayGrid.anchor"
+     ],
+     "form": "chain",
+     "depth": 3,
+     "why": "הפלט לא בצורה שהחוקים של «הולך אחרי» בודקים (אין קישור מתאים)"
+    },
+    {
+     "steps": [
+      "core:catalog/core/follow.mjs#follow",
+      "inner-orbit:src/lib/atoms/verify/laws.ts#check.gotIso:step",
+      "inner-orbit:src/components/calendar/calLib.ts#buildHebrewGrid.anchor"
+     ],
+     "form": "chain",
+     "depth": 3,
+     "why": "הפלט לא בצורה שהחוקים של «הולך אחרי» בודקים (אין קישור מתאים)"
+    },
+    {
+     "steps": [
+      "core:catalog/core/follow.mjs#follow",
+      "inner-orbit:src/lib/atoms/verify/laws.ts#check.gotIso:step",
+      "inner-orbit:src/components/calendar/calLib.ts#buildWeekGrid.anchor"
+     ],
+     "form": "chain",
+     "depth": 3,
+     "why": "הפלט לא בצורה שהחוקים של «הולך אחרי» בודקים (אין קישור מתאים)"
     }
    ]
   },
@@ -516,6 +723,7 @@
    ],
    "nBehaviors": 1,
    "candidates": 0,
+   "candidates3": 0,
    "found": null,
    "tried": []
   },
@@ -527,7 +735,27 @@
    ],
    "nBehaviors": 1,
    "candidates": 24,
-   "found": null,
+   "candidates3": 19,
+   "found": {
+    "form": "chain",
+    "depth": 3,
+    "steps": [
+     "inner-generator:machtzev/purity/purify-engine.mjs#purifyBox.litObj:step",
+     "inner-buildsmart:functions/src/creditCore.ts#contractorCredit.h",
+     "orbit:src/components/diary/lib.ts#pad2"
+    ],
+    "roles": [
+     "format",
+     "convert",
+     "format"
+    ],
+    "holds": "15/15",
+    "on": "keys",
+    "laws": [
+     "format.injective",
+     "format.det"
+    ]
+   },
    "tried": [
     {
      "steps": [
@@ -603,7 +831,27 @@
    ],
    "nBehaviors": 1,
    "candidates": 24,
-   "found": null,
+   "candidates3": 19,
+   "found": {
+    "form": "chain",
+    "depth": 3,
+    "steps": [
+     "inner-generator:machtzev/purity/purify-engine.mjs#purifyBox.litObj:step",
+     "inner-buildsmart:functions/src/creditCore.ts#contractorCredit.h",
+     "orbit:src/components/diary/lib.ts#pad2"
+    ],
+    "roles": [
+     "format",
+     "convert",
+     "format"
+    ],
+    "holds": "15/15",
+    "on": "keys",
+    "laws": [
+     "format.injective",
+     "format.det"
+    ]
+   },
    "tried": [
     {
      "steps": [
@@ -679,6 +927,7 @@
    ],
    "nBehaviors": 1,
    "candidates": 0,
+   "candidates3": 0,
    "found": null,
    "tried": []
   },
@@ -690,6 +939,7 @@
    ],
    "nBehaviors": 1,
    "candidates": 22,
+   "candidates3": 24,
    "found": null,
    "tried": [
     {
@@ -766,6 +1016,7 @@
    ],
    "nBehaviors": 1,
    "candidates": 0,
+   "candidates3": 0,
    "found": null,
    "tried": []
   },
@@ -778,6 +1029,7 @@
    ],
    "nBehaviors": 2,
    "candidates": 16,
+   "candidates3": 24,
    "found": null,
    "tried": [
     {
@@ -855,6 +1107,7 @@
    ],
    "nBehaviors": 2,
    "candidates": 0,
+   "candidates3": 0,
    "found": null,
    "tried": []
   },
@@ -868,6 +1121,7 @@
    ],
    "nBehaviors": 3,
    "candidates": 0,
+   "candidates3": 0,
    "found": null,
    "tried": []
   },
@@ -879,6 +1133,7 @@
    ],
    "nBehaviors": 1,
    "candidates": 0,
+   "candidates3": 0,
    "found": null,
    "tried": []
   },
@@ -893,6 +1148,7 @@
    ],
    "nBehaviors": 4,
    "candidates": 0,
+   "candidates3": 0,
    "found": null,
    "tried": []
   },
@@ -904,6 +1160,7 @@
    ],
    "nBehaviors": 1,
    "candidates": 16,
+   "candidates3": 24,
    "found": null,
    "tried": [
     {
@@ -981,6 +1238,7 @@
    ],
    "nBehaviors": 2,
    "candidates": 0,
+   "candidates3": 0,
    "found": null,
    "tried": []
   },
@@ -997,6 +1255,7 @@
    ],
    "nBehaviors": 10,
    "candidates": 5,
+   "candidates3": 12,
    "found": null,
    "tried": [
     {
@@ -1038,6 +1297,36 @@
      ],
      "form": "chain",
      "why": "הפלט לא בצורה שהחוקים של «מוצא את הבא בתור» בודקים (אין קישור מתאים)"
+    },
+    {
+     "steps": [
+      "orbit:src/lib/atoms/parts/next.ts#nextAfter",
+      "inner-generator:gen/looks/full5/art.mjs#rnd.fn.x",
+      "inner-orbit:src/lib/atoms/verify/laws.ts#check.gotIso:step"
+     ],
+     "form": "chain",
+     "depth": 3,
+     "why": "הפלט לא בצורה שהחוקים של «מוצא את הבא בתור» בודקים (אין קישור מתאים)"
+    },
+    {
+     "steps": [
+      "orbit:src/lib/atoms/parts/next.ts#nextAfter",
+      "inner-generator:gen/looks/full5/art.mjs#rnd.fn.x",
+      "orbit:src/components/supporters/lib.ts#excelSerialToIso"
+     ],
+     "form": "chain",
+     "depth": 3,
+     "why": "הפלט לא בצורה שהחוקים של «מוצא את הבא בתור» בודקים (אין קישור מתאים)"
+    },
+    {
+     "steps": [
+      "orbit:src/lib/atoms/parts/next.ts#nextAfter",
+      "inner-orbit:src/components/hosting/kitchen.ts#countdown.s",
+      "inner-orbit:src/lib/atoms/verify/laws.ts#check.gotIso:step"
+     ],
+     "form": "chain",
+     "depth": 3,
+     "why": "הפלט לא בצורה שהחוקים של «מוצא את הבא בתור» בודקים (אין קישור מתאים)"
     }
    ]
   },
@@ -1049,6 +1338,7 @@
    ],
    "nBehaviors": 1,
    "candidates": 0,
+   "candidates3": 0,
    "found": null,
    "tried": []
   },
@@ -1063,6 +1353,7 @@
    ],
    "nBehaviors": 4,
    "candidates": 0,
+   "candidates3": 0,
    "found": null,
    "tried": []
   },
@@ -1074,6 +1365,7 @@
    ],
    "nBehaviors": 1,
    "candidates": 0,
+   "candidates3": 0,
    "found": null,
    "tried": []
   },
@@ -1085,6 +1377,7 @@
    ],
    "nBehaviors": 1,
    "candidates": 0,
+   "candidates3": 0,
    "found": null,
    "tried": []
   },
@@ -1096,6 +1389,7 @@
    ],
    "nBehaviors": 1,
    "candidates": 0,
+   "candidates3": 0,
    "found": null,
    "tried": []
   },
@@ -1107,8 +1401,40 @@
    ],
    "nBehaviors": 1,
    "candidates": 0,
+   "candidates3": 3,
    "found": null,
-   "tried": []
+   "tried": [
+    {
+     "steps": [
+      "core:catalog/core/random.mjs#random",
+      "inner-generator:machtzev/purity/purify-engine.mjs#purifyBox.litObj:step",
+      "inner-orbit:src/lib/csvx.ts#parseCsv.delim:step"
+     ],
+     "form": "chain",
+     "depth": 3,
+     "why": "הפלט לא בצורה שהחוקים של «מגריל» בודקים (אין קישור מתאים)"
+    },
+    {
+     "steps": [
+      "core:catalog/core/random.mjs#random",
+      "inner-generator:machtzev/purity/purify-engine.mjs#purifyStrings.litObj:step",
+      "inner-orbit:src/lib/csvx.ts#parseCsv.delim:step"
+     ],
+     "form": "chain",
+     "depth": 3,
+     "why": "הפלט לא בצורה שהחוקים של «מגריל» בודקים (אין קישור מתאים)"
+    },
+    {
+     "steps": [
+      "core:catalog/core/random.mjs#random",
+      "inner-generator:machtzev/generator/capability.mjs#emitAppFrom.imps",
+      "inner-orbit:src/lib/csvx.ts#parseCsv.delim:step"
+     ],
+     "form": "chain",
+     "depth": 3,
+     "why": "הפלט לא בצורה שהחוקים של «מגריל» בודקים (אין קישור מתאים)"
+    }
+   ]
   },
   {
    "verb": "random",
@@ -1119,6 +1445,7 @@
    ],
    "nBehaviors": 2,
    "candidates": 0,
+   "candidates3": 0,
    "found": null,
    "tried": []
   },
@@ -1131,6 +1458,7 @@
    ],
    "nBehaviors": 2,
    "candidates": 0,
+   "candidates3": 0,
    "found": null,
    "tried": []
   },
@@ -1142,6 +1470,7 @@
    ],
    "nBehaviors": 1,
    "candidates": 0,
+   "candidates3": 0,
    "found": null,
    "tried": []
   },
@@ -1155,6 +1484,7 @@
    ],
    "nBehaviors": 3,
    "candidates": 8,
+   "candidates3": 12,
    "found": null,
    "tried": [
     {
@@ -1231,6 +1561,7 @@
    ],
    "nBehaviors": 1,
    "candidates": 0,
+   "candidates3": 0,
    "found": null,
    "tried": []
   },
@@ -1242,6 +1573,7 @@
    ],
    "nBehaviors": 1,
    "candidates": 0,
+   "candidates3": 0,
    "found": null,
    "tried": []
   },
@@ -1254,8 +1586,90 @@
    ],
    "nBehaviors": 2,
    "candidates": 0,
+   "candidates3": 21,
    "found": null,
-   "tried": []
+   "tried": [
+    {
+     "steps": [
+      "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#CartSubmenu.reversed:step",
+      "inner-generator:machtzev/purity/purify-engine.mjs#purifyBox.litObj:step",
+      "inner-orbit:src/lib/csvx.ts#parseCsv.delim:step"
+     ],
+     "form": "chain",
+     "depth": 3,
+     "why": "הפלט לא בצורה שהחוקים של «הופך סדר» בודקים (אין קישור מתאים)"
+    },
+    {
+     "steps": [
+      "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#CartSubmenu.reversed:step",
+      "inner-generator:machtzev/purity/purify-engine.mjs#purifyStrings.litObj:step",
+      "inner-orbit:src/lib/csvx.ts#parseCsv.delim:step"
+     ],
+     "form": "chain",
+     "depth": 3,
+     "why": "הפלט לא בצורה שהחוקים של «הופך סדר» בודקים (אין קישור מתאים)"
+    },
+    {
+     "steps": [
+      "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#CartSubmenu.reversed:step",
+      "inner-generator:machtzev/generator/capability.mjs#emitAppFrom.imps",
+      "inner-orbit:src/lib/csvx.ts#parseCsv.delim:step"
+     ],
+     "form": "chain",
+     "depth": 3,
+     "why": "הפלט לא בצורה שהחוקים של «הופך סדר» בודקים (אין קישור מתאים)"
+    },
+    {
+     "steps": [
+      "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#HomeSubmenu.reversed:step",
+      "inner-generator:machtzev/purity/purify-engine.mjs#purifyBox.litObj:step",
+      "inner-orbit:src/lib/csvx.ts#parseCsv.delim:step"
+     ],
+     "form": "chain",
+     "depth": 3,
+     "why": "הפלט לא בצורה שהחוקים של «הופך סדר» בודקים (אין קישור מתאים)"
+    },
+    {
+     "steps": [
+      "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#HomeSubmenu.reversed:step",
+      "inner-generator:machtzev/purity/purify-engine.mjs#purifyStrings.litObj:step",
+      "inner-orbit:src/lib/csvx.ts#parseCsv.delim:step"
+     ],
+     "form": "chain",
+     "depth": 3,
+     "why": "לא רץ: no-fitting-input"
+    },
+    {
+     "steps": [
+      "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#HomeSubmenu.reversed:step",
+      "inner-generator:machtzev/generator/capability.mjs#emitAppFrom.imps",
+      "inner-orbit:src/lib/csvx.ts#parseCsv.delim:step"
+     ],
+     "form": "chain",
+     "depth": 3,
+     "why": "הפלט לא בצורה שהחוקים של «הופך סדר» בודקים (אין קישור מתאים)"
+    },
+    {
+     "steps": [
+      "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#ProfileTreeSubmenu.reversed:step",
+      "inner-generator:machtzev/purity/purify-engine.mjs#purifyBox.litObj:step",
+      "inner-orbit:src/lib/csvx.ts#parseCsv.delim:step"
+     ],
+     "form": "chain",
+     "depth": 3,
+     "why": "הפלט לא בצורה שהחוקים של «הופך סדר» בודקים (אין קישור מתאים)"
+    },
+    {
+     "steps": [
+      "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#ProfileTreeSubmenu.reversed:step",
+      "inner-generator:machtzev/purity/purify-engine.mjs#purifyStrings.litObj:step",
+      "inner-orbit:src/lib/csvx.ts#parseCsv.delim:step"
+     ],
+     "form": "chain",
+     "depth": 3,
+     "why": "הפלט לא בצורה שהחוקים של «הופך סדר» בודקים (אין קישור מתאים)"
+    }
+   ]
   },
   {
    "verb": "reverse",
@@ -1266,6 +1680,7 @@
    ],
    "nBehaviors": 2,
    "candidates": 0,
+   "candidates3": 0,
    "found": null,
    "tried": []
   },
@@ -1277,6 +1692,7 @@
    ],
    "nBehaviors": 1,
    "candidates": 0,
+   "candidates3": 0,
    "found": null,
    "tried": []
   },
@@ -1289,6 +1705,7 @@
    ],
    "nBehaviors": 2,
    "candidates": 0,
+   "candidates3": 0,
    "found": null,
    "tried": []
   },
@@ -1300,6 +1717,7 @@
    ],
    "nBehaviors": 1,
    "candidates": 0,
+   "candidates3": 0,
    "found": null,
    "tried": []
   },
@@ -1311,6 +1729,7 @@
    ],
    "nBehaviors": 1,
    "candidates": 0,
+   "candidates3": 0,
    "found": null,
    "tried": []
   },
@@ -1322,6 +1741,7 @@
    ],
    "nBehaviors": 1,
    "candidates": 0,
+   "candidates3": 0,
    "found": null,
    "tried": []
   },
@@ -1334,6 +1754,7 @@
    ],
    "nBehaviors": 2,
    "candidates": 0,
+   "candidates3": 0,
    "found": null,
    "tried": []
   },
@@ -1345,6 +1766,7 @@
    ],
    "nBehaviors": 1,
    "candidates": 0,
+   "candidates3": 0,
    "found": null,
    "tried": []
   },
@@ -1360,6 +1782,7 @@
    ],
    "nBehaviors": 5,
    "candidates": 0,
+   "candidates3": 0,
    "found": null,
    "tried": []
   },
@@ -1371,6 +1794,7 @@
    ],
    "nBehaviors": 1,
    "candidates": 0,
+   "candidates3": 0,
    "found": null,
    "tried": []
   },
@@ -1386,6 +1810,7 @@
    ],
    "nBehaviors": 5,
    "candidates": 0,
+   "candidates3": 0,
    "found": null,
    "tried": []
   },
@@ -1397,8 +1822,10 @@
    ],
    "nBehaviors": 1,
    "candidates": 24,
+   "candidates3": 0,
    "found": {
     "form": "chain",
+    "depth": 2,
     "steps": [
      "orbit:src/components/courses/collection.ts#collectionTotal",
      "inner-orbit:src/components/parnasa/coinFx.ts#cnFly.t"
@@ -1435,80 +1862,250 @@
    ]
   },
   {
-   "verb": "sun-position",
+   "verb": "sun-heading",
    "material": "number",
    "behaviors": [
     "חמנייה: יודעת לאיזה כיוון השמש (אזימוט)"
    ],
    "nBehaviors": 1,
-   "candidates": 16,
-   "found": null,
-   "tried": [
-    {
-     "steps": [
-      "core:catalog/core/sun-position.mjs#sunPosition",
-      "inner-generator:gen/looks/full5/art.mjs#rnd.fn.x"
+   "candidates": 1,
+   "candidates3": 0,
+   "found": {
+    "form": "graph",
+    "depth": 11,
+    "steps": [
+     "core:catalog/core/sun-position.mjs#sunPosition",
+     "inner-orbit:src/components/wheel/CourseWheel.tsx#CourseWheel.spin.delta:step",
+     "inner-orbit:src/components/parnasa/zmanimBoard.ts#noaaUtcMin.decl",
+     "core:catalog/core/orbit.mjs#orbit",
+     "inner-orbit:src/components/supporters/universe3d.ts#project.x1:step",
+     "inner-orbit:src/components/supporters/universe3d.ts#project.z1:step",
+     "inner-orbit:src/components/supporters/universe3d.ts#project.y1:step",
+     "inner-orbit:src/components/parnasa/coinFx.ts#wireCoinGrid.paint.forEach.dist:step",
+     "inner-orbit:src/lib/atoms/parts/divide.ts#divideSpan.unit:step",
+     "inner-orbit:telephony/lib/zmanim.mjs#solarEventUTCmin.HA:step",
+     "inner-orbit:telephony/lib/zmanim.mjs#solarEventUTCmin.trueLong:step"
+    ],
+    "roles": [
+     "sun-position",
+     "gap",
+     "convert",
+     "orbit",
+     "convert",
+     "convert",
+     "convert",
+     "combine",
+     "ratio",
+     "tier",
+     "combine"
+    ],
+    "holds": "72/72",
+    "on": "spec+minutes",
+    "laws": [
+     "sun-heading.range",
+     "sun-heading.morning-east",
+     "sun-heading.evening-west",
+     "sun-heading.noon-south",
+     "sun-heading.monotone",
+     "sun-heading.symmetric"
+    ],
+    "hint": "כיוון השמש = זמני-היום (חצות-היום + נטיית-השמש) ⇒ נקודה על כדור-השמיים (הנקודה-על-מעגל של הגלקסיה, פעמיים — כמו הכדור של היקום-3D) ⇒ הסיבוב של היקום-3D (מסובב את הכדור לפי קו-הרוחב, אל האופק) ⇒ מרחק-המצביע של המטבע ⇒ זווית-מיחס של זמני-היום",
+    "graph": {
+     "inputs": [
+      "spec",
+      "minutes",
+      "day"
      ],
-     "form": "chain",
-     "why": "הפלט לא בצורה שהחוקים של «מוצא את מקום השמש» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "core:catalog/core/sun-position.mjs#sunPosition",
-      "inner-orbit:src/components/hosting/kitchen.ts#countdown.s"
+     "consts": {
+      "circle360": "{cx:0, cy:0, radius:1, period:360} — מעגל-יחידה שמחזור שלו 360: הצעד הוא זווית במעלות (הנקודה = cos, sin)",
+      "period1440": "1440 = דקות ביממה: השמש מקיפה פעם אחת ביום, ולכן דקות-מחצות-היום הן זווית-השעה",
+      "quarter": "cy=0, sy=1 — רבע סיבוב (yaw=90°) של היקום-3D: מחליף את ציר-העומק בציר מזרח-מערב"
+     },
+     "nodes": [
+      {
+       "id": "sun",
+       "part": "core:catalog/core/sun-position.mjs#sunPosition",
+       "role": "sun-position",
+       "args": [
+        "$spec",
+        "$day"
+       ],
+       "says": "מתי חצות-היום ביום ובמקום האלה"
+      },
+      {
+       "id": "h",
+       "part": "inner-orbit:src/components/wheel/CourseWheel.tsx#CourseWheel.spin.delta:step",
+       "role": "gap",
+       "args": [
+        "@sun.noon",
+        "$minutes"
+       ],
+       "says": "כמה דקות עברו מחצות-היום (הפרש)"
+      },
+      {
+       "id": "dec",
+       "part": "inner-orbit:src/components/parnasa/zmanimBoard.ts#noaaUtcMin.decl",
+       "role": "convert",
+       "args": [
+        "$day"
+       ],
+       "says": "נטיית-השמש ביום הזה (מעלות)"
+      },
+      {
+       "id": "decl",
+       "part": "core:catalog/core/orbit.mjs#orbit",
+       "role": "orbit",
+       "args": [
+        {
+         "cx": 0,
+         "cy": 0,
+         "radius": 1,
+         "period": 360
+        },
+        "@dec"
+       ],
+       "says": "הנטייה ⇒ גובה על הכדור (cos, sin)"
+      },
+      {
+       "id": "ring",
+       "part": "core:catalog/core/orbit.mjs#orbit",
+       "role": "orbit",
+       "args": [
+        {
+         "cx": 0,
+         "cy": 0,
+         "radius": "@decl.x",
+         "period": 1440
+        },
+        "@h"
+       ],
+       "says": "השמש מקיפה את ציר-העולם פעם ביממה — המקום שלה על המעגל עכשיו"
+      },
+      {
+       "id": "lat",
+       "part": "core:catalog/core/orbit.mjs#orbit",
+       "role": "orbit",
+       "args": [
+        {
+         "cx": 0,
+         "cy": 0,
+         "radius": 1,
+         "period": 360
+        },
+        "$spec.lat"
+       ],
+       "says": "קו-הרוחב ⇒ cos, sin (כמה להטות את הכדור)"
+      },
+      {
+       "id": "east",
+       "part": "inner-orbit:src/components/supporters/universe3d.ts#project.x1:step",
+       "role": "convert",
+       "args": [
+        {
+         "x": "@ring.x",
+         "y": "@decl.y",
+         "z": "@ring.y"
+        },
+        0,
+        1
+       ],
+       "says": "רבע-סיבוב של היקום-3D ⇒ הרכיב מזרח-מערב"
+      },
+      {
+       "id": "z1",
+       "part": "inner-orbit:src/components/supporters/universe3d.ts#project.z1:step",
+       "role": "convert",
+       "args": [
+        {
+         "x": "@ring.x",
+         "y": "@decl.y",
+         "z": "@ring.y"
+        },
+        0,
+        1
+       ],
+       "says": "אותו רבע-סיבוב ⇒ הרכיב לאורך המרידיאן"
+      },
+      {
+       "id": "north",
+       "part": "inner-orbit:src/components/supporters/universe3d.ts#project.y1:step",
+       "role": "convert",
+       "args": [
+        {
+         "x": "@ring.x",
+         "y": "@decl.y",
+         "z": "@ring.y"
+        },
+        "@z1",
+        "@lat.x",
+        "@lat.y"
+       ],
+       "says": "הטיה לפי קו-הרוחב (pitch) ⇒ הרכיב צפון-דרום על האופק"
+      },
+      {
+       "id": "rho",
+       "part": "inner-orbit:src/components/parnasa/coinFx.ts#wireCoinGrid.paint.forEach.dist:step",
+       "role": "combine",
+       "args": [
+        "@east",
+        "@north"
+       ],
+       "says": "אורך הצל על האופק (מרחק, כמו המצביע של המטבע)"
+      },
+      {
+       "id": "w",
+       "part": "inner-orbit:src/components/wheel/CourseWheel.tsx#CourseWheel.spin.delta:step",
+       "role": "gap",
+       "args": [
+        "@rho",
+        "@north"
+       ],
+       "says": "צפון פחות האורך — חצי-הזווית מתחיל מהדרום"
+      },
+      {
+       "id": "wl",
+       "part": "inner-orbit:src/components/parnasa/coinFx.ts#wireCoinGrid.paint.forEach.dist:step",
+       "role": "combine",
+       "args": [
+        "@w",
+        "@east"
+       ],
+       "says": "אורך חוצה-הזווית"
+      },
+      {
+       "id": "cos",
+       "part": "inner-orbit:src/lib/atoms/parts/divide.ts#divideSpan.unit:step",
+       "role": "ratio",
+       "args": [
+        "@east",
+        "@wl"
+       ],
+       "says": "מזרח חלקי האורך = הקוסינוס של חצי-הכיוון"
+      },
+      {
+       "id": "half",
+       "part": "inner-orbit:telephony/lib/zmanim.mjs#solarEventUTCmin.HA:step",
+       "role": "tier",
+       "args": [
+        "@cos"
+       ],
+       "says": "זווית מיחס (arccos, במעלות; מוכח בהרצה כ«מדרג» — מונוטוני על [−1,1]) — חצי מהכיוון"
+      },
+      {
+       "id": "az",
+       "part": "inner-orbit:telephony/lib/zmanim.mjs#solarEventUTCmin.trueLong:step",
+       "role": "combine",
+       "args": [
+        "@half",
+        "@half"
+       ],
+       "says": "חצי + חצי = הכיוון מהצפון"
+      }
      ],
-     "form": "chain",
-     "why": "הפלט לא בצורה שהחוקים של «מוצא את מקום השמש» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "core:catalog/core/sun-position.mjs#sunPosition",
-      "inner-orbit:src/components/hosting/kitchen.ts#countdown.s@93"
-     ],
-     "form": "chain",
-     "why": "הפלט לא בצורה שהחוקים של «מוצא את מקום השמש» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "core:catalog/core/sun-position.mjs#sunPosition",
-      "inner-orbit:src/components/parnasa/coinFx.ts#cnFly.u:step"
-     ],
-     "form": "chain",
-     "why": "הפלט לא בצורה שהחוקים של «מוצא את מקום השמש» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "orbit:telephony/lib/zmanim.mjs#sunrise",
-      "inner-generator:gen/looks/full5/art.mjs#rnd.fn.x"
-     ],
-     "form": "chain",
-     "why": "הפלט לא בצורה שהחוקים של «מוצא את מקום השמש» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "orbit:telephony/lib/zmanim.mjs#sunrise",
-      "inner-orbit:src/components/hosting/kitchen.ts#countdown.s"
-     ],
-     "form": "chain",
-     "why": "הפלט לא בצורה שהחוקים של «מוצא את מקום השמש» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "orbit:telephony/lib/zmanim.mjs#sunrise",
-      "inner-orbit:src/components/hosting/kitchen.ts#countdown.s@93"
-     ],
-     "form": "chain",
-     "why": "הפלט לא בצורה שהחוקים של «מוצא את מקום השמש» בודקים (אין קישור מתאים)"
-    },
-    {
-     "steps": [
-      "orbit:telephony/lib/zmanim.mjs#sunrise",
-      "inner-orbit:src/components/parnasa/coinFx.ts#cnFly.u:step"
-     ],
-     "form": "chain",
-     "why": "הפלט לא בצורה שהחוקים של «מוצא את מקום השמש» בודקים (אין קישור מתאים)"
+     "out": "az"
     }
-   ]
+   },
+   "tried": []
   },
   {
    "verb": "tier",
@@ -1523,6 +2120,7 @@
    ],
    "nBehaviors": 20,
    "candidates": 17,
+   "candidates3": 24,
    "found": null,
    "tried": [
     {
@@ -1599,6 +2197,7 @@
    ],
    "nBehaviors": 1,
    "candidates": 0,
+   "candidates3": 0,
    "found": null,
    "tried": []
   },
@@ -1613,6 +2212,7 @@
    ],
    "nBehaviors": 4,
    "candidates": 0,
+   "candidates3": 0,
    "found": null,
    "tried": []
   },
@@ -1624,8 +2224,10 @@
    ],
    "nBehaviors": 1,
    "candidates": 4,
+   "candidates3": 0,
    "found": {
     "form": "chain",
+    "depth": 2,
     "steps": [
      "inner-generator:gen/looks/full5/art.mjs#rnd.fn.x",
      "orbit:src/components/hosting/transitions.ts#faultBlocksUnit"
@@ -1652,6 +2254,7 @@
    ],
    "nBehaviors": 2,
    "candidates": 0,
+   "candidates3": 0,
    "found": null,
    "tried": []
   }

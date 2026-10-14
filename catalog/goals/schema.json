@@ -62,7 +62,7 @@
                 },
                 "verb": {
                   "type": "string",
-                  "pattern": "^(divide|merge|next|round|offset|escalate|rotate|fuzzy|sort|filter|dedupe|reverse|map|transcript|group|tally|count|sum|average|extreme|lookup|tier|clamp|normalize|settle|convert|format|fingerprint|bucket|personalize|validate|compare|gap|ratio|combine|split|join|provide|require-source|freeze|assign-role|route|tolerate|pace|relay|decay|countdown|accumulate|oscillate|random|gravity|move-along-path|orbit|shortest-path|spread|sample|echo|follow|bounce|sun-position|NEW:[a-z][a-z0-9-]*)$",
+                  "pattern": "^(divide|merge|next|round|offset|escalate|rotate|fuzzy|sort|filter|dedupe|reverse|map|transcript|group|tally|count|sum|average|extreme|lookup|tier|clamp|normalize|settle|convert|format|fingerprint|bucket|personalize|validate|compare|gap|ratio|combine|split|join|provide|require-source|freeze|assign-role|route|tolerate|pace|relay|decay|countdown|accumulate|oscillate|random|gravity|move-along-path|orbit|shortest-path|spread|sample|echo|follow|bounce|sun-position|sun-heading|NEW:[a-z][a-z0-9-]*)$",
                   "description": "מזהה מ-catalog/verbs.json (60 פעלים, כולל 15 פעלי-הזמן-והתנועה שנכרו — catalog/core), או NEW:<id> לפועל שעוד אין בשום מקום."
                 },
                 "material": {

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /**
- * 📸 צילומי המעבדה (COMBINER, 14.10.2026): 390×844 ו-1280×800 ל"חמנייה", "דרקון", "קרוסלה" ולמילה אקראית (זרע קבוע).
+ * 📸 צילומי המעבדה (COMBINER, 14.10.2026): 390×844 ו-1280×800 ל"חמנייה", "דרקון", "קרוסלה" ולשתי מילים אקראיות (זרע קבוע).
+ * (MACHINE-V2) החמנייה חייבת להראות 17/17.
  * "לא חסר כלום": בודק שהמילה "חסר" לא מופיעה בדף המרונדר (חוץ מתוכן המילון עצמו — מילה שהמילון שלה כותב "חסרה קובייה" לא נבחרת).
  *   node catalog/combiner/shots.mjs [--out <תיקייה>]   ⇒ knowledge/shots/combiner-2026-10-14/ (ברירת-מחדל)
  * וגם דף-הליבות (catalog/core/demo.html): בלי שגיאות, בלי "חסר"/"נבנה חדש", וכותרת 15/15.
@@ -34,12 +35,13 @@ const base = 'http://127.0.0.1:' + server.address().port + '/catalog/lab.html';
 
 const goals = loadGoals();
 const FIXED = ['חמנייה', 'דרקון', 'קרוסלה'];
-let random = null;
-for (let seed = 7; !random; seed++) {
+// שתי מילים אקראיות (זרע קבוע ⇒ אותן מילים בכל ריצה)
+const randoms = [];
+for (let seed = 7; randoms.length < 2; seed++) {
   const g = pickWord(goals, seed);
-  if (!FIXED.includes(g.word) && !JSON.stringify(g).includes('חסר')) random = g.word;
+  if (!FIXED.includes(g.word) && !randoms.includes(g.word) && !JSON.stringify(g).includes('חסר')) randoms.push(g.word);
 }
-const words = [['sunflower', 'חמנייה'], ['dragon', 'דרקון'], ['carousel', 'קרוסלה'], ['random', random], ['unknown', 'בננה']];
+const words = [['sunflower', 'חמנייה'], ['dragon', 'דרקון'], ['carousel', 'קרוסלה'], ['random', randoms[0]], ['random2', randoms[1]], ['unknown', 'בננה']];
 const said = [];
 await mkdir(OUT, { recursive: true });
 const CHROME = process.env.PW_CHROMIUM || '/opt/pw-browsers/chromium';
@@ -59,7 +61,10 @@ for (const [w, h, tag] of [[390, 844, 'mobile'], [1280, 800, 'desktop']]) {
       await page.click('[data-v="sun-position"]');
       await page.click('[data-m="number"]');
     }
-    if (/חסר|שלח לבנייה/.test(await page.innerText('body'))) said.push(slug + ' ' + tag);
+    const body = await page.innerText('body');
+    if (/חסר|שלח לבנייה/.test(body)) said.push(slug + ' ' + tag);
+    // (MACHINE-V2) החמנייה של הבעלים: 17/17 — האזימוט הוא 🧩 שילוב
+    if (slug === 'sunflower' && !/17\/17/.test(body)) said.push('sunflower ' + tag + ' (בלי 17/17)');
     await page.screenshot({ path: join(OUT, slug + '-' + tag + '.png') });
     await page.screenshot({ path: join(OUT, slug + '-' + tag + '-full.png'), fullPage: true });
     console.log('📸 ' + slug + ' (' + word + ') ' + tag);
@@ -79,7 +84,7 @@ for (const [w, h, tag] of [[390, 844, 'mobile'], [1280, 800, 'desktop']]) {
 await browser.close();
 server.close();
 if (said.length) {
-  console.error('המילה "חסר" / "נבנה חדש" בדף: ' + said.join(', '));
+  console.error('המילה "חסר" / "נבנה חדש" בדף (או חמנייה בלי 17/17): ' + said.join(', '));
   process.exit(1);
 }
 if (errors.length) {

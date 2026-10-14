@@ -2,7 +2,7 @@
  * 🧲 המצרף (COMBINER, 14.10.2026) — ratchet.
  * 1. לפחות 10 מטרות מהמילון מורכבות, וכל שרשרת עוברת בדיקת-סוגים (הפלט של אחד = הקלט של הבא; החומר בקצה).
  * 2. החמנייה של הבעלים: מוצאת את החלקים שהוא מנה (מקום-השמש · הבא · מזיז · מעגל · מחלק · בתורות · מחבר · מסלים…),
- *    והאזימוט ("לאיזה כיוון השמש") — 🔎 עוד לא נחפר, עם המקום הידוע בתוך חישוב-הזריחה.
+ *    והאזימוט ("לאיזה כיוון השמש") — (MACHINE-V2) 🧩 שילוב מוכח של «מכוון לפי השמש»; הצורך מופה מ-sun-position (עם הערה), הטקסט נשאר.
  * 7. "לא חסר כלום" (הכרעת-בעלים 14.10): רק מוכח-בהרצה נחשב · ליבה אחת + מתאמי-סוג בלבד · הפעולה קודם, העולם אחר-כך ·
  *    ארבעה סטטוסים, בלי המילה "חסר" · מקורות חדשים (core/inner) נכנסים בלי שינוי-קוד.
  * 3. דטרמיניזם: אותו קלט ⇒ אותה הרכבה; סדר-החלקים לא משנה; הדף (lab-data) מרכיב בדיוק כמו ה-CLI.
@@ -32,9 +32,9 @@ const dictWords = new Set(
 
 type Where = { name: string; file: string; origins: { source: string; project: string; file: string }[]; parent: { name: string; file: string } | null };
 type Step = { id: string; name: string; takes: string[]; gives: string; proof: string; by: string; role: string; cases: number; action: { he: string; plain: string }; where: Where; inner: boolean };
-type Chain = { steps: Step[]; ring: number; tier: string };
+type Chain = { steps: Step[]; ring: number; tier: string; combo?: unknown };
 type Place = { project: string; name: string; file: string; lines?: string; lead?: boolean };
-type Need = { need: { id: string; verb: string; material: string; from?: string; behavior: string }; status: string; chain: Chain | null; alternatives: Chain[]; places?: Place[]; groupFlow?: { status: string } };
+type Need = { need: { id: string; verb: string; material: string; from?: string; behavior: string; note?: string }; status: string; chain: Chain | null; alternatives: Chain[]; places?: Place[]; groupFlow?: { status: string } };
 type Dig = { need: string; verb: string; material: string; takes: string[]; gives: string; example: unknown; status: string; places: Place[] };
 type Asm = { goal: { word: string }; needs: Need[]; dig: Dig[]; counts: Record<string, number>; outcome: string };
 
@@ -126,17 +126,13 @@ describe('המצרף · החמנייה של הבעלים', () => {
     for (const id of ['next-sunrise', 'turn-back', 'small-steps']) expect(by(id).groupFlow?.status, id).toBe('proven');
   });
 
-  it('האזימוט — 🔎 עוד לא נחפר, והמקום הראשון לחפור הוא כיוון-השמש בתוך חישוב-הזריחה', () => {
-    expect(by('azimuth').chain).toBeNull();
-    expect(by('azimuth').status).toBe('dig');
-    const m = a.dig.find((x) => x.need === 'azimuth')!;
-    expect(m).toMatchObject({ verb: 'sun-position', material: 'number', takes: ['geo'], gives: 'number', status: 'dig' });
-    expect(m.example).toBeTruthy();
-    expect(m.places[0]).toMatchObject({ lead: true, file: 'telephony/lib/zmanim.mjs', lines: '72-85' });
-    expect(m.places.filter((p) => !p.lead).length).toBe(3);
-    const file = join(HERE, 'dig', 'sunflower.azimuth.json');
-    expect(existsSync(file)).toBe(true);
-    expect(JSON.parse(readFileSync(file, 'utf8'))).toEqual(JSON.parse(JSON.stringify(m)));
+  it('האזימוט — 🧩 שילוב מוכח של «מכוון לפי השמש» (היה 🔎); הצורך מופה בהערה, הטקסט לא השתנה, ואין לו בקשת-חפירה', () => {
+    expect(by('azimuth').status).toBe('combo');
+    expect(by('azimuth').need.verb).toBe('sun-heading');
+    expect(by('azimuth').need.note).toMatch(/sun-position/);
+    expect(by('azimuth').chain!.combo).toBeTruthy();
+    expect(a.dig.find((x) => x.need === 'azimuth')).toBeUndefined();
+    expect(existsSync(join(HERE, 'dig', 'sunflower.azimuth.json'))).toBe(false);
   });
 
   it('ערבוב פרויקטים — לפחות 3 פרויקטים בהרכבה (רק מוכחים בהרצה; לפני "לא חסר כלום" — 5 עם תוויות-שם)', () => {
