@@ -16,13 +16,13 @@ export const CAP_NAME_MAX = 60;
 /** שם קצר לחלק — לשורת-הלוג ולכרטיס. */
 export const ATOM_SHORT: Readonly<Record<AtomId, string>> = {
   divide: 'חלוקה',
-  merge: 'מיזוג',
-  next: 'מה הבא',
+  merge: 'חיבור צמודים',
+  next: 'הבא בתור',
   round: 'עיגול',
-  offset: 'זמן יחסי',
-  escalate: 'הסלמה',
-  rotate: 'סבב',
-  fuzzy: 'חיפוש סלחני',
+  offset: 'הזזת זמן',
+  escalate: 'העברה הלאה',
+  rotate: 'תורות',
+  fuzzy: 'חיפוש עם טעויות',
 };
 
 /** שם קצר למקום (שם-המקום בכרטיס ארוך ומסביר; כאן — שתיים-שלוש מילים). חסר ⇒ שם-המקום בלי הסוגריים. */
@@ -55,14 +55,14 @@ const SUGGESTED: Readonly<Record<string, string>> = {
   'bookings.total:divide': 'מנוע מחיר לאדם',
   'bookings.total:round': 'מנוע מחיר עגול',
   'bookings.untilArrival:divide': 'מנוע תזכורות עד ההגעה',
-  'bookings.nights:merge': 'מנוע רצפים פנויים',
+  'bookings.nights:merge': 'מנוע לילות פנויים צמודים',
   'bookings.nights:next': 'מנוע הלילה הפנוי הבא',
   'bookings.arrivals:next': 'מנוע ההגעה הבאה',
   'bookings.arrivals:offset': 'מנוע תזכורות הגעה',
   'bookings.arrivals:round': 'מנוע שעת הגעה עגולה',
-  'bookings.cleaning:escalate': 'מנוע ניתוב ניקיון',
+  'bookings.cleaning:escalate': 'מנוע העברת ניקיון',
   'bookings.cleaning:rotate': 'מנוע תורנות ניקיון',
-  'bookings.faults:escalate': 'מנוע ניתוב תקלות',
+  'bookings.faults:escalate': 'מנוע העברת תקלות',
   'bookings.faults:rotate': 'מנוע תורנות תחזוקה',
   'bookings.unpaid:escalate': 'מנוע מעקב גבייה',
   'bookings.unpaid:rotate': 'מנוע תורנות גבייה',
@@ -79,7 +79,7 @@ export function suggestedName(place: string, atom: AtomId | string): string {
   return SUGGESTED[place + ':' + atom] ?? 'מנוע ' + (ATOM_SHORT[atom as AtomId] ?? atom) + ' · ' + placeShort(place);
 }
 
-/** "מנוע תורים (מנוע ההזמנות · חלון הניקיון · ✂️ חלוקה)" — לשורת-הלוג. */
+/** "מנוע תורים (מנהל ההזמנות · חלון הניקיון · ✂️ חלוקה)" — לשורת-הלוג. */
 export function capabilityLabel(c: Pick<Capability, 'engine' | 'place' | 'atom' | 'name'>): string {
   const e = engineCard(c.engine);
   const a = atomCard(c.atom);

@@ -5,6 +5,7 @@
  *      את התוצאה עם הפרטים; "✨ נוצר מנוע חדש" עם התורים האמיתיים; שרשראות עם שורה מחושבת; בלי שמות-אורחים.
  *  (ג) הכניסה טוענת את המקור ב-import() (לא סטטי) ולשונית-הפתיחה היא "מנועים וחלקים".
  */
+import { ATOM_EXPLAIN, ENGINE_EXPLAIN } from '../../../lib/atoms/explain';
 import { describe, expect, it, vi } from 'vitest';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
@@ -108,7 +109,21 @@ describe('🧬 (ב) המסך עם המקור האמיתי', () => {
     expect(atomStep).toContain('החלון הפנוי הבא של 3 לילות');
     expect(atomStep).toContain('3 לילות פנויים ברצף מ-18/10 עד 21/10');
     const all = [atomStep, html({ host: 'bookings', atom: 'divide' }), html({ host: 'bookings', atom: 'merge' }), html({ host: 'bookings', atom: 'escalate' }), html({ host: 'bookings', atom: 'rotate' })].join('');
-    for (const g of GUESTS) expect(all, g).not.toContain(g);
+    // ATOMS-NAMES: הדוגמאות הקבועות שאושרו ("ההגעה הבאה: משפחת לוי, 15:00") אינן נתוני-ארגון — מורידים אותן,
+    // והבדיקה נשארת על כל מה שמחושב מהנתונים (תצוגות, שרשראות, תוצאות)
+    const EX = /<div class="at-examples" data-examples="\w+">[\s\S]*?<\/details><\/div>/g;
+    const blocks = all.match(EX) ?? [];
+    expect(blocks.length).toBeGreaterThan(0);
+    // מה שהורד = רק הטקסט הקבוע שאושר (אחרי הסרת התגיות, החץ והרווחים)
+    const flat = (t: string) => t.replace(/<[^>]+>/g, '').replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/[\s←]/g, '');
+    const approved = [...Object.values(ATOM_EXPLAIN), ...Object.values(ENGINE_EXPLAIN)].flatMap((x) => x.examples).map(flat);
+    for (const b of blocks) expect(approved.some((x) => flat(b).includes(x))).toBe(true);
+    // html() מחזיר גם את הסימון וגם את הטקסט בלי תגיות — מורידים את הבלוקים מהסימון ואת הדוגמאות עצמן מהטקסט
+    const esc = (t: string) => t.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+    const examples = [...Object.values(ATOM_EXPLAIN), ...Object.values(ENGINE_EXPLAIN)].flatMap((x) => x.examples).map(esc);
+    const data = examples.reduce((acc, x) => acc.split(x).join(''), all.replace(EX, ''));
+    expect(data).not.toContain('at-ex-arrow');
+    for (const g of GUESTS) expect(data, g).not.toContain(g);
   });
 });
 

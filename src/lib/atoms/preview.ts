@@ -150,9 +150,9 @@ function runLine(name: string, nights: { iso: string }[], r: Run): string {
 
 const WAIT_KIND: Readonly<Record<string, WaitingKind>> = { 'bookings.cleaning': 'cleaning', 'bookings.faults': 'faults', 'bookings.unpaid': 'unpaid' };
 const NOBODY: Readonly<Record<WaitingKind, string>> = {
-  cleaning: 'אין עדיין אנשי צוות בתפקיד ניקיון — הוסיפו אותם בצוות, והניתוב יתחיל לעבוד',
-  faults: 'אין עדיין אנשי צוות בתפקיד תחזוקה — הוסיפו אותם בצוות, והניתוב יתחיל לעבוד',
-  unpaid: 'אין עדיין אנשי צוות בתפקיד גבייה או ניהול — הוסיפו אותם בצוות, והניתוב יתחיל לעבוד',
+  cleaning: 'אין עדיין אנשי צוות בתפקיד ניקיון — הוסיפו אותם בצוות, וההעברה הלאה תתחיל לעבוד',
+  faults: 'אין עדיין אנשי צוות בתפקיד תחזוקה — הוסיפו אותם בצוות, וההעברה הלאה תתחיל לעבוד',
+  unpaid: 'אין עדיין אנשי צוות בתפקיד גבייה או ניהול — הוסיפו אותם בצוות, וההעברה הלאה תתחיל לעבוד',
 };
 const WAIT_TITLE: Readonly<Record<WaitingKind, string>> = { cleaning: 'משימת ניקיון', faults: 'תקלה', unpaid: 'יתרה' };
 
@@ -191,7 +191,7 @@ function whenLine(ms: number, nowIso: string): string {
 function escalatePreview(ctx: PreviewCtx, kind: WaitingKind, p: Record<string, number | string>): Preview | null {
   const { items, recipients } = waitingSafe(ctx.db, kind);
   if (!items.length) return null;
-  const title = 'ניתוב עם הסלמה · ' + (items.length === 1 ? 'ממתין אחד' : items.length + ' ממתינים');
+  const title = 'מעביר הלאה · ' + (items.length === 1 ? 'ממתין אחד' : items.length + ' ממתינים');
   if (!recipients.length) return { title, lines: [NOBODY[kind]] };
   const waitMin = num(p, 'waitMin', 180);
   const steps: EscStep[] = recipients.map((r) => ({ to: [r.id], waitMin }));
@@ -216,18 +216,18 @@ function escalatePreview(ctx: PreviewCtx, kind: WaitingKind, p: Record<string, n
 
 function rotatePreview(ctx: PreviewCtx, kind: WaitingKind, p: Record<string, number | string>): Preview | null {
   const { items, recipients } = waitingSafe(ctx.db, kind);
-  if (!recipients.length) return items.length ? { title: 'סבב הוגן', lines: [NOBODY[kind]] } : null;
+  if (!recipients.length) return items.length ? { title: 'בתורות', lines: [NOBODY[kind]] } : null;
   const now = israelNow(ctx.nowMs);
   const names = recipients.map((r) => r.name || r.role);
   if (str(p, 'by', 'day') === 'day') {
     const d = dayIndex(now.iso);
     const lines = [0, 1, 2].map((k) => (k === 0 ? 'היום' : k === 1 ? 'מחר' : dm(isoOfDay(d + k))) + ' ⇒ ' + turnOf(names, d + k));
-    return { title: 'סבב הוגן לפי יום · ' + names.length + ' בתור', lines };
+    return { title: 'בתורות לפי יום · ' + names.length + ' בתור', lines };
   }
   const assigned = fairAssign(items, names, 0);
   const lines = assigned.map((a) => WAIT_TITLE[kind] + ' · ' + a.item.label + ' ⇒ ' + a.person);
   lines.push('המשימה החדשה הבאה ⇒ ' + turnOf(names, items.length));
-  return { title: 'סבב הוגן לפי פריט · ' + names.length + ' בתור', lines: capped(lines) };
+  return { title: 'בתורות לפי פריט · ' + names.length + ' בתור', lines: capped(lines) };
 }
 
 /* ───────── התצוגות לפי מקום ───────── */
@@ -307,7 +307,7 @@ function nightsMerge(ctx: PreviewCtx, p: Record<string, number | string>): Previ
     const { nights, runs } = freeRuns(ctx.db, u.id, today, { maxGap: num(p, 'maxGap', 0), minLength: num(p, 'minLength', 1) });
     for (const r of runs.slice(0, 2)) lines.push(runLine(u.name, nights, r));
   }
-  return lines.length ? { title: 'רצפים פנויים ב-' + NIGHTS_WINDOW + ' הלילות הקרובים', lines: capped(lines) } : null;
+  return lines.length ? { title: 'לילות פנויים צמודים ב-' + NIGHTS_WINDOW + ' הלילות הקרובים', lines: capped(lines) } : null;
 }
 
 function nightsNext(ctx: PreviewCtx, p: Record<string, number | string>): Preview | null {
@@ -509,7 +509,7 @@ export function chainsFor(engineId: EngineId | string, ctx?: PreviewCtx | null, 
         { atom: 'merge', place: 'bookings.turnover' },
       ],
       name: 'תורים באורך משתנה',
-      explain: 'החלוקה נותנת משבצות קטנות ושוות; המיזוג מאחד משבצות צמודות לתור אחד ארוך יותר — יחידה גדולה מקבלת תור כפול.',
+      explain: '✂️ מחלק לחלקים שווים: משבצות קטנות ושוות; 🔗 מחבר דברים צמודים: שתי משבצות צמודות ⇒ תור אחד ארוך — יחידה גדולה מקבלת תור כפול.',
       lines: safe(() => divideMergeLines(ctx!, caps)),
     },
     {
@@ -520,7 +520,7 @@ export function chainsFor(engineId: EngineId | string, ctx?: PreviewCtx | null, 
         { atom: 'next', place: 'bookings.nights' },
       ],
       name: 'החלון הפנוי הבא של ' + n + ' לילות',
-      explain: 'המיזוג מאחד לילות פנויים צמודים לרצפים; "מה הבא?" מוצא את הרצף הראשון שארוך מספיק.',
+      explain: '🔗 מחבר דברים צמודים: לילות פנויים צמודים ⇒ חלון אחד; ⏭️ מוצא את הבא בתור: החלון הראשון שארוך מספיק.',
       lines: safe(() => mergeNextLines(ctx!, n)),
     },
     {
@@ -531,7 +531,7 @@ export function chainsFor(engineId: EngineId | string, ctx?: PreviewCtx | null, 
         { atom: 'divide', place: 'bookings.nights' },
       ],
       name: 'חלוקה הוגנת של הזמן הפנוי',
-      explain: 'המיזוג מוצא את הרצף הפנוי; החלוקה מחלקת אותו לחלקים שווים בין אנשי הצוות (תחזוקה, ניקיון יסודי).',
+      explain: '🔗 מחבר דברים צמודים: מוצא את הלילות הפנויים שצמודים; ✂️ מחלק לחלקים שווים: בין אנשי הצוות (תחזוקה, ניקיון יסודי).',
       lines: safe(() => mergeDivideLines(ctx!)),
     },
   ];

@@ -16,7 +16,7 @@
  *       "מה לחלק?" (רק המקומות המתאימים, כל אחד עם התוצאה האמיתית) ⇒ חלון הניקיון ⇒ גודל 40 · הפסקה 0 ⇒ "חבר" ⇒ "✨ נוצר מנוע
  *       חדש" עם התורים האמיתיים ⇒ 🔗 "מה לאחד?" ⇒ הלילות ⇒ "פנוי N לילות ברצף" ⇒ 📣 ⇒ משימות הניקיון ⇒ תוכנית-ההסלמה ⇒
  *       השרשראות ⇒ "הסר" בשתי לחיצות. (צעדים 1–5 לוחצים קודם על "🔌 לחבר מנוע" — לשונית-הפתיחה השתנתה.)
- *   אפס שגיאות קונסולה. צילום PNG לכל צעד ⇒ knowledge/shots/enginebox-2026-10-13/ (1–5) · knowledge/shots/atoms-2026-10-14/ (6) (‏≤150KB).
+ *   אפס שגיאות קונסולה. צילום PNG לכל צעד ⇒ knowledge/shots/enginebox-2026-10-13/ (1–5) · knowledge/shots/atoms-names-2026-10-14/ (6) (‏≤150KB).
  *
  *   npm run build && node e2e/enginebox-smoke.mjs
  */
@@ -29,7 +29,8 @@ import { fileURLToPath } from 'node:url';
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', 'dist');
 const OUT = join(HERE, '..', 'knowledge', 'shots', 'enginebox-2026-10-13');
-const OUT_ATOMS = join(HERE, '..', 'knowledge', 'shots', 'atoms-2026-10-14');
+// ATOMS-NAMES 14.10: צילומי המסע עם השמות החדשים (צילומי atoms-2026-10-14 של S4 נשארים כהיסטוריה)
+const OUT_ATOMS = join(HERE, '..', 'knowledge', 'shots', 'atoms-names-2026-10-14');
 await mkdir(OUT, { recursive: true });
 await mkdir(OUT_ATOMS, { recursive: true });
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png', '.webmanifest': 'application/manifest+json', '.woff2': 'font/woff2' };
@@ -76,7 +77,7 @@ const SEED_DB = {
     guest({ id: 'hg3', name: 'משפחת כהן', phone: '053-1111111' }),
     { id: 'hf1', kind: 'fault', unitId: 'hu1', assetId: '', category: 'אינסטלציה', priority: 2, desc: 'נזילה בכיור', status: 'open', safety: false, blocked: false, createdAt: AT, updatedAt: AT },
     { id: 'hc1', kind: 'clean', unitId: 'hu2', type: 'ניקיון אחרי עזיבה', status: 'open', date: '2026-10-14', createdAt: AT, updatedAt: AT },
-    // (ATOMS) הצוות — שתי מנקות: הניתוב-עם-הסלמה והסבב נשענים עליהן
+    // (ATOMS) הצוות — שתי מנקות: "מעביר הלאה כשאין תשובה" ו"מחלק בתורות" נשענים עליהן
     { id: 'hs1', kind: 'staff', name: 'דנה', role: 'ניקיון', phone: '', createdAt: AT, updatedAt: AT },
     { id: 'hs2', kind: 'staff', name: 'רבקה', role: 'ניקיון', phone: '', createdAt: AT, updatedAt: AT },
   ],
@@ -389,12 +390,18 @@ console.log('🧩 ארגז המנועים — מסע אמיתי');
   await A('[data-atoms="engines"]').waitFor({ timeout: 6000 }).catch(() => {});
   T('🧬 לשונית-הפתיחה = "מנועים וחלקים", עם המנועים האמיתיים (לא "בהרכבה")', (await A('[data-tab="atoms"][aria-selected="true"]').count()) === 1 && (await A('[data-engine]').count()) === 3 && !(await boxText()).includes('בהרכבה'));
   T('🧬 אין גלילה אופקית ב-390px', !(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1)));
+  // ATOMS-NAMES · השם אומר מה המנוע עושה, משפט אחד, ודוגמה "קלט ← תוצאה" — בלי מילים טכניות
+  const engNames = await A('[data-engine] .at-name').allTextContents();
+  T('🔤 שמות המנועים: מחשבון הזמנים · מבין בקשות · מנהל ההזמנות', engNames.join('|') === 'מחשבון הזמנים|מבין בקשות|מנהל ההזמנות', engNames.join('|'));
+  T('🔤 לכל מנוע דוגמה גלויה עם "←" ו"עוד דוגמאות"', (await A('[data-engine] + [data-examples] .at-ex-arrow').count()) >= 3 && (await A('[data-engine] + [data-examples] summary').count()) === 3);
   await ashot('01-engines.png');
 
-  // 6.2 · 🛏️ מנוע ההזמנות ⇒ 13 החלקים
+  // 6.2 · 🛏️ מנהל ההזמנות ⇒ 13 החלקים
   await A('[data-engine="bookings"]').click();
   await wait(300);
-  T('🛏️ מנוע ההזמנות נפתח ⇒ 13 חלקים ממוספרים', (await A('[data-parts="bookings"] li').count()) === 13);
+  T('🛏️ מנהל ההזמנות נפתח ⇒ 13 חלקים ממוספרים', (await A('[data-parts="bookings"] li').count()) === 13);
+  const partNames = await A('[data-parts="bookings"] .at-part-name').allTextContents();
+  T('🔤 החלקים הפנימיים בשפה פשוטה: "סופר לילות בין שני תאריכים", "בודק מה פנוי"', partNames.some((t) => t.includes('סופר לילות בין שני תאריכים')) && partNames.some((t) => t.includes('בודק מה פנוי')), partNames.slice(0, 3).join('|'));
   await A('[data-parts="bookings"]').scrollIntoViewIfNeeded();
   await ashot('02-bookings-parts.png');
   await A('[data-engine="bookings"]').click();
@@ -403,8 +410,20 @@ console.log('🧩 ארגז המנועים — מסע אמיתי');
   // 6.3 · "יש לך מנוע" ⇒ ההזמנות ⇒ גריד החלקים + השרשראות
   await A('[data-host="bookings"]').click();
   await wait(300);
-  T('"איזה חלק לחבר אל 🛏️ מנוע ההזמנות?" — 8 חלקים', (await boxText()).includes('איזה חלק לחבר אל') && (await A('[data-atom]').count()) === 8);
+  T('"איזה חלק לחבר אל 🛏️ מנהל ההזמנות?" — 8 חלקים', (await boxText()).includes('איזה חלק לחבר אל 🛏️ מנהל ההזמנות') && (await A('[data-atom]').count()) === 8);
+  const atomNames = await A('[data-atom] .at-name').allTextContents();
+  const BANNED = ['מיזוג', 'ניתוב', 'הסלמה', 'סלחני', 'יחסי', 'אטום', 'רצף', 'טווח'];
+  T('🔤 שמות החלקים בלי מילים טכניות', atomNames.length === 8 && atomNames.every((n) => !BANNED.some((w) => n.includes(w))), atomNames.join('|'));
+  T('🔤 "✂️ מחלק לחלקים שווים" — "8:00 עד 16:00, ל-8 חלקים ← 8 תורים של שעה"', atomNames[0] === 'מחלק לחלקים שווים' && ((await A('[data-examples="divide"]').textContent()) ?? '').includes('8 תורים של שעה'));
   await ashot('03-pick-atom.png');
+  // "עוד דוגמאות" נפתח במקום — שלוש הדוגמאות של "מוצא גם עם טעות כתיב"
+  await A('[data-examples="fuzzy"] summary').scrollIntoViewIfNeeded();
+  await A('[data-examples="fuzzy"] summary').click();
+  await wait(200);
+  T('🔤 "עוד דוגמאות" ⇒ 3 דוגמאות גלויות', (await A('[data-examples="fuzzy"] .at-ex:visible').count()) === 3);
+  T('🧬 אין גלילה אופקית עם הדוגמאות פתוחות', !(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1)));
+  await ashot('03b-more-examples.png');
+  await A('[data-examples="fuzzy"] summary').click();
 
   // 6.4 · ✂️ ⇒ "מה לחלק?" — רק המקומות מהסוג, כל אחד עם התוצאה האמיתית
   await A('[data-atom="divide"]').click();
@@ -413,7 +432,9 @@ console.log('🧩 ארגז המנועים — מסע אמיתי');
   const q = (await A('.at-question').textContent().catch(() => '')) ?? '';
   const places = await A('[data-place]').evaluateAll((els) => els.map((e) => e.getAttribute('data-place')));
   T('השאלה הגדולה: "מה לחלק?"', q.trim() === 'מה לחלק?', q);
-  T('רק המקומות המתאימים (טווח/סכום): 6, בלי הלילות', places.length === 6 && places.includes('bookings.turnover') && places.includes('bookings.balance') && !places.includes('bookings.nights'), places.join(','));
+  const asks = (await A('.at-asks').textContent().catch(() => '')) ?? '';
+  T('🔤 "✂️ מחלק לחלקים שווים שואל:"', asks.trim() === '✂️ מחלק לחלקים שווים שואל:', asks);
+  T('רק המקומות המתאימים (מ… עד… / סכום): 6, בלי הלילות', places.length === 6 && places.includes('bookings.turnover') && places.includes('bookings.balance') && !places.includes('bookings.nights'), places.join(','));
   const turnRow = (await A('[data-place="bookings.turnover"]').textContent()) ?? '';
   const balRow = (await A('[data-place="bookings.balance"]').textContent()) ?? '';
   T('ליד חלון הניקיון — התוצאה האמיתית: "חלון הניקיון 11:00–15:00 · 12 תורים" עם המנקות', turnRow.includes('חלון הניקיון 11:00–15:00 · 12 תורים') && turnRow.includes('11:00–11:20 · דנה'), turnRow);
@@ -440,7 +461,7 @@ console.log('🧩 ארגז המנועים — מסע אמיתי');
   await flushToasts();
   await ashot('06-new-engine-turns.png');
 
-  // 6.6 · 🔗 מיזוג ⇒ "מה לאחד?" ⇒ הלילות ⇒ "חבר" ⇒ "פנוי N לילות ברצף"
+  // 6.6 · 🔗 מחבר דברים צמודים ⇒ "מה לאחד?" ⇒ הלילות ⇒ "חבר" ⇒ "פנוי N לילות ברצף"
   await A('.at-head button').first().click(); // → עוד חלק
   await wait(300);
   await A('[data-atom="merge"]').click();
@@ -452,11 +473,11 @@ console.log('🧩 ארגז המנועים — מסע אמיתי');
   await A('.at-actions button').filter({ hasText: 'חבר' }).first().click();
   await waitMade();
   const made2 = (await A('[data-made]').textContent().catch(() => '')) ?? '';
-  T('"✨ נוצר מנוע חדש: מנוע רצפים פנויים" — "צימר הגפן · פנוי 2 לילות ברצף מ-14/10"', made2.includes('מנוע רצפים פנויים') && made2.includes('צימר הגפן · פנוי 2 לילות ברצף מ-14/10') && /פנוי \d+ לילות ברצף/.test(made2), made2);
+  T('"✨ נוצר מנוע חדש: מנוע לילות פנויים צמודים" — "צימר הגפן · פנוי 2 לילות ברצף מ-14/10"', made2.includes('מנוע לילות פנויים צמודים') && made2.includes('צימר הגפן · פנוי 2 לילות ברצף מ-14/10') && /פנוי \d+ לילות ברצף/.test(made2), made2);
   await flushToasts();
   await ashot('07-new-engine-free-nights.png');
 
-  // 6.7 · 📣 ניתוב עם הסלמה ⇒ משימות הניקיון ⇒ תוכנית ההסלמה האמיתית
+  // 6.7 · 📣 מעביר הלאה כשאין תשובה ⇒ משימות הניקיון ⇒ תוכנית ההסלמה האמיתית
   await A('.at-head button').first().click();
   await wait(300);
   await A('[data-atom="escalate"]').click();
@@ -468,7 +489,7 @@ console.log('🧩 ארגז המנועים — מסע אמיתי');
   await A('.at-actions button').filter({ hasText: 'חבר' }).first().click();
   await waitMade();
   const made3 = (await A('[data-made]').textContent().catch(() => '')) ?? '';
-  T('תוכנית ההסלמה: "משימת ניקיון · דירת הנחל — עכשיו אצל דנה · אם אין אישור עד 14:00 ⇒ רבקה"', made3.includes('משימת ניקיון · דירת הנחל — עכשיו אצל דנה · אם אין אישור עד 14:00 ⇒ רבקה'), made3);
+  T('תוכנית ההעברה הלאה: "משימת ניקיון · דירת הנחל — עכשיו אצל דנה · אם אין אישור עד 14:00 ⇒ רבקה"', made3.includes('משימת ניקיון · דירת הנחל — עכשיו אצל דנה · אם אין אישור עד 14:00 ⇒ רבקה'), made3);
   await flushToasts();
   await ashot('08-new-engine-escalation.png');
 
@@ -496,8 +517,8 @@ console.log('🧩 ארגז המנועים — מסע אמיתי');
   const capsAfter = await capsOf();
   T('לחיצה שנייה ⇒ הוסר (3 ⇒ 2 ב-db.ui.capabilities)', capsBefore.length === 3 && capsAfter.length === 2 && !capsAfter.some((c) => c.atom === 'escalate'), capsBefore.length + '⇒' + capsAfter.length);
   const audit = await auditOf();
-  T('לוג-הפעולות: "מנוע חדש: מנוע תורים (מנוע ההזמנות · חלון הניקיון · ✂️ חלוקה)"', audit.includes('מנוע חדש: מנוע תורים (מנוע ההזמנות · חלון הניקיון · ✂️ חלוקה)'), audit.join(' | '));
-  T('לוג-הפעולות: 3 × "מנוע חדש" + "הסרת מנוע"', audit.filter((a) => a.startsWith('מנוע חדש')).length === 3 && audit.filter((a) => a.startsWith('הסרת מנוע: מנוע ניתוב ניקיון')).length === 1, audit.join(' | '));
+  T('לוג-הפעולות: "מנוע חדש: מנוע תורים (מנהל ההזמנות · חלון הניקיון · ✂️ חלוקה)"', audit.includes('מנוע חדש: מנוע תורים (מנהל ההזמנות · חלון הניקיון · ✂️ חלוקה)'), audit.join(' | '));
+  T('לוג-הפעולות: 3 × "מנוע חדש" + "הסרת מנוע"', audit.filter((a) => a.startsWith('מנוע חדש')).length === 3 && audit.filter((a) => a.startsWith('הסרת מנוע: מנוע העברת ניקיון')).length === 1, audit.join(' | '));
 
   // 6.10 · נשמר: סוגרים ופותחים — המנועים שנוצרו עדיין שם
   await closeBox(page);

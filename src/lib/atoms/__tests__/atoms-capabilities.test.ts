@@ -107,10 +107,10 @@ describe('🧬 (ב) capabilities — אימות מול הכרטיסים האמי
 
   it('שמות: מזהה-המקום האמיתי ⇒ "מנוע תורים"; שם ריק ⇒ המוצע; תווית-לוג', () => {
     expect(suggestedName('bookings.turnover', 'divide')).toBe('מנוע תורים');
-    expect(suggestedName('bookings.guests', 'fuzzy')).toBe('מנוע חיפוש סלחני · שמות האורחים');
+    expect(suggestedName('bookings.guests', 'fuzzy')).toBe('מנוע חיפוש עם טעויות · שמות האורחים');
     expect(placeShort('zmanim.day')).toBe('היום מהנץ עד השקיעה');
     expect(validCapability({ ...TURNS, name: '   ' })!.name).toBe('מנוע תורים');
-    expect(capabilityLabel(TURNS)).toBe('מנוע תורים (מנוע ההזמנות · חלון הניקיון · ✂️ חלוקה)');
+    expect(capabilityLabel(TURNS)).toBe('מנוע תורים (מנהל ההזמנות · חלון הניקיון · ✂️ חלוקה)');
   });
 
   it('with/without: הוספה · עדכון (אותו id) · זהה ⇒ null · כפילויות ברשימה השמורה ⇒ הראשונה נשארת', () => {
@@ -138,14 +138,14 @@ describe('🧬 (ג) createCapability / removeCapability', () => {
     setupStore(cfgWith({ hosting: true }), fixtureDb({ audit: [] }));
     expect(await st().createCapability(TURNS)).toBe(true);
     expect(st().db.ui.capabilities).toEqual([validCapability(TURNS)]);
-    expect(audit().map((a) => [a.act, a.what])).toEqual([['מנוע חדש', 'מנוע תורים (מנוע ההזמנות · חלון הניקיון · ✂️ חלוקה)']]);
+    expect(audit().map((a) => [a.act, a.what])).toEqual([['מנוע חדש', 'מנוע תורים (מנהל ההזמנות · חלון הניקיון · ✂️ חלוקה)']]);
     expect(await st().createCapability(TURNS)).toBe(false);
     expect(await st().createCapability({ ...TURNS, params: { ...TURNS.params, size: 30 } })).toBe(true);
     expect(audit().filter((a) => a.act === 'עדכון מנוע')).toHaveLength(1);
     expect(await st().removeCapability(TURNS.id)).toBe(true);
     expect(st().db.ui.capabilities).toEqual([]);
     expect(await st().removeCapability(TURNS.id)).toBe(false);
-    expect(audit().filter((a) => a.act === 'הסרת מנוע').map((a) => a.what)).toEqual(['מנוע תורים (מנוע ההזמנות · חלון הניקיון · ✂️ חלוקה)']);
+    expect(audit().filter((a) => a.act === 'הסרת מנוע').map((a) => a.what)).toEqual(['מנוע תורים (מנהל ההזמנות · חלון הניקיון · ✂️ חלוקה)']);
   });
 
   it('לא-תקינה ⇒ false, ה-DB לא זז', async () => {
