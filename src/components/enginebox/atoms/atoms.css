@@ -1,142 +1,307 @@
-/* 🧬 ארגז המנועים · מנועים וחלקים — רק tokens (ערכות-נושא + מצב-כהה + ניגודיות-גבוהה מגיעים חינם),
-   mobile-first ל-390px, RTL, יעדי-מגע ≥ 44px. נטען רק עם ה-chunk העצל של הארגז. */
-.at-body { display: flex; flex-direction: column; gap: 14px; }
+/* 🧬 ארגז המנועים · מנועים וחלקים — DESIGN 14.10 (knowledge/DESIGN-ENGINEBOX-2026-10-14.md).
+   רק tokens של הערכה (4 ערכות · היכל הכהה · ניגודיות-גבוהה מגיעים חינם): אקסנט אחד (--accent לרקע-עדין, --accent-deep לטקסט
+   ולמסגרת), --primary-* לכפתור הראשי, --green רק לתוצאה אמיתית. mobile-first ל-390px, RTL, יעדי-מגע ≥ 44px.
+   התנועה (transform/opacity בלבד) כבויה ב-prefers-reduced-motion ובמצב "ביטול אנימציות". נטען רק עם ה-chunk העצל. */
+.eb-body, .at-body {
+  --eb-r: 16px;
+  --eb-tint: color-mix(in srgb, var(--accent) 14%, var(--panel));
+  --eb-tint-strong: color-mix(in srgb, var(--accent) 30%, var(--panel));
+  --eb-ok-tint: color-mix(in srgb, var(--green) 9%, var(--panel));
+  --eb-ok-line: color-mix(in srgb, var(--green) 45%, var(--line));
+  --eb-warn: var(--orange);
+}
+.at-body { display: flex; flex-direction: column; gap: 16px; }
 .at-empty { font-size: 16px; }
-.at-title { font-size: 18px; font-weight: 700; margin: 0 0 8px; color: var(--ink); }
+.at-title { font-size: 20px; font-weight: 800; margin: 0 0 4px; color: var(--ink); line-height: 1.3; letter-spacing: -0.01em; }
 .at-title:focus, .at-question:focus { outline: none; }
-.at-title:focus-visible, .at-question:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.at-sub { font-size: 15px; font-weight: 700; margin: 8px 0 8px; color: var(--ink-soft); }
-.at-hint { font-size: 13.5px; color: var(--ink-soft); margin: 0 0 10px; line-height: 1.5; }
-.at-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
-.at-emoji { font-size: 26px; line-height: 1; }
-.at-name { font-weight: 700; font-size: 15px; color: var(--ink); }
-.at-what { font-size: 13px; color: var(--ink-soft); line-height: 1.4; }
+.at-title:focus-visible, .at-question:focus-visible { outline: 2px solid var(--accent-deep); outline-offset: 3px; border-radius: 6px; }
+.at-sub { font-size: 16px; font-weight: 800; margin: 0 0 4px; color: var(--ink); }
+.at-hint { font-size: 14px; color: var(--ink-soft); margin: 0 0 12px; line-height: 1.55; }
+.at-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.at-group { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; }
+.at-name { font-weight: 800; font-size: 16px; color: var(--ink); line-height: 1.35; }
+.at-what { font-size: 14px; color: var(--ink-soft); line-height: 1.5; }
 .at-chip {
-  display: inline-block; font-size: 11.5px; font-weight: 600; padding: 1px 8px; border-radius: 999px;
-  border: 1px solid var(--line); color: var(--ink-soft); background: var(--panel); width: fit-content;
+  display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; padding: 2px 9px; border-radius: 999px;
+  border: 1px solid var(--line); color: var(--ink-soft); background: var(--bg); width: fit-content; line-height: 1.5;
 }
-.at-inbox { border-color: var(--accent); color: var(--ink); margin-inline-start: 6px; }
+.at-inbox { border-color: var(--accent-deep); color: var(--ink); background: var(--eb-tint); margin-inline-start: 6px; }
 .at-kind { border-style: dashed; }
+.at-saved { border-color: var(--eb-ok-line); color: var(--green); background: var(--eb-ok-tint); font-weight: 700; }
+.at-verified {
+  display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 700; padding: 2px 9px; border-radius: 999px;
+  color: var(--green); background: var(--eb-ok-tint); border: 1px solid var(--eb-ok-line); white-space: nowrap;
+}
+.at-go {
+  display: inline-flex; align-items: center; gap: 6px; font-size: 13.5px; font-weight: 800; color: var(--accent-deep);
+  padding: 6px 12px; border-radius: 999px; background: var(--eb-tint); white-space: nowrap;
+}
 
-/* 1 · המנועים + הפירוק */
-.at-engine { border: 1px solid var(--line); border-radius: 12px; background: var(--card-bg, var(--panel)); overflow: hidden; }
-.at-engine.at-open { border-color: var(--accent); }
-.at-engine-head {
-  display: flex; gap: 12px; align-items: flex-start; width: 100%; min-height: 64px; padding: 12px;
-  border: 0; background: transparent; color: var(--ink); text-align: right; cursor: pointer; font: inherit;
+/* ── מונה השלבים 1-2-3 ── */
+.at-steps { list-style: none; margin: 0; padding: 0; display: flex; gap: 6px; }
+.at-step {
+  flex: 1 1 0; min-width: 0; display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 12px;
+  background: var(--bg); color: var(--ink-soft); font-size: 13px; font-weight: 700; line-height: 1.25;
 }
-.at-engine-text { display: flex; flex-direction: column; gap: 4px; }
-.at-engine-head:focus-visible, .at-card:focus-visible, .at-option:focus-visible, .at-choice:focus-visible {
-  outline: 2px solid var(--accent); outline-offset: 2px;
+.at-step-n {
+  flex: none; width: 26px; height: 26px; border-radius: 999px; display: inline-grid; place-items: center;
+  font-size: 13px; font-weight: 800; border: 1.5px solid var(--line); background: var(--panel); color: var(--ink-soft);
 }
-.at-parts { list-style: none; margin: 0; padding: 0 12px 12px; display: flex; flex-direction: column; gap: 6px; }
-.at-part { display: flex; gap: 10px; align-items: flex-start; padding: 8px 10px; border-radius: 10px; background: var(--bg); }
+.at-step-now { background: var(--eb-tint); color: var(--ink); box-shadow: inset 0 0 0 1.5px var(--accent-deep); }
+.at-step-now .at-step-n { background: var(--primary-bg); border-color: var(--primary-bg); color: var(--primary-ink); }
+.at-step-done { color: var(--ink); }
+.at-step-done .at-step-n { background: var(--eb-ok-tint); border-color: var(--green); color: var(--green); }
+
+/* ── הפס העליון הדביק: "חזור" + המנוע ── */
+.at-head {
+  position: sticky; top: 6px; z-index: 4; display: flex; align-items: center; gap: 12px;
+  padding: 8px; border-radius: 14px; border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--panel) 94%, transparent); box-shadow: var(--shadow);
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+}
+.at-head-host { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.at-head-host .at-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.at-head .btn, .at-mine .btn, .at-chains .btn, .at-made-next .btn { min-height: 44px; justify-content: center; border-radius: 12px; }
+
+/* ── אריחים: מכונה (מוצק) · תקע (עם פינים) · שקע (מקווקוו) ── */
+.at-tile {
+  flex: none; width: 52px; height: 52px; border-radius: 15px; display: grid; place-items: center; font-size: 28px; line-height: 1;
+  background: var(--eb-tint); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-deep) 22%, transparent);
+}
+.at-tile-sm { width: 36px; height: 36px; border-radius: 11px; font-size: 20px; }
+.at-tile-made {
+  width: 44px; height: 44px; font-size: 22px;
+  background: linear-gradient(135deg, var(--eb-tint-strong), var(--eb-ok-tint));
+}
+.at-plug {
+  position: relative; flex: none; width: 50px; height: 46px; border-radius: 13px; display: grid; place-items: center;
+  background: var(--eb-tint-strong); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent-deep) 30%, transparent);
+  margin-inline-end: 8px;
+}
+.at-plug::before, .at-plug::after {
+  content: ''; position: absolute; inset-inline-end: -9px; width: 10px; height: 5px; border-radius: 2px;
+  background: var(--accent-deep);
+}
+.at-plug::before { top: 12px; }
+.at-plug::after { bottom: 12px; }
+.at-plug-face { font-size: 24px; line-height: 1; }
+.at-socket {
+  position: relative; flex: none; width: 22px; height: 18px; border-radius: 6px;
+  border: 2px dashed var(--accent-deep); background: var(--eb-tint);
+}
+
+/* ── צעד 1 · המכונות ── */
+.at-machines { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; }
+.at-machine {
+  display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: 18px; background: var(--card-bg, var(--panel));
+  box-shadow: var(--shadow); overflow: hidden; border-bottom: 3px solid color-mix(in srgb, var(--accent) 55%, var(--line));
+  transition: box-shadow 0.18s, transform 0.18s, border-color 0.18s;
+}
+.at-machine:hover { box-shadow: var(--shadow-lift); transform: translateY(-1px); }
+.at-machine.at-open { border-color: var(--accent-deep); }
+.at-machine-found { border-style: dashed; border-bottom-style: solid; }
+.at-machine-main {
+  display: grid; grid-template-columns: 52px 1fr; gap: 6px 14px; align-items: start; width: 100%; padding: 16px 16px 10px;
+  border: 0; background: transparent; color: var(--ink); text-align: start; cursor: pointer; font: inherit;
+}
+.at-machine-main .at-go { grid-column: 2; justify-self: end; margin-top: 4px; }
+.at-machine-text { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.at-machine-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.at-machine-main:focus-visible, .at-card:focus-visible, .at-option:focus-visible, .at-choice:focus-visible,
+.at-parts-toggle:focus-visible, .at-mine-face:focus-visible {
+  outline: 2px solid var(--accent-deep); outline-offset: -2px; border-radius: 16px;
+}
+.at-parts-toggle {
+  display: flex; align-items: center; gap: 8px; width: 100%; min-height: 44px; padding: 10px 16px; margin-top: 4px;
+  border: 0; border-top: 1px solid var(--line-soft, var(--line)); background: transparent; color: var(--ink-soft);
+  font: inherit; font-size: 13.5px; font-weight: 700; cursor: pointer; text-align: start;
+}
+.at-parts-toggle:hover { background: var(--bg); color: var(--ink); }
+.at-caret { margin-inline-start: auto; transition: transform 0.18s; }
+.at-parts-toggle[aria-expanded="true"] .at-caret { transform: rotate(180deg); }
+.at-parts { list-style: none; margin: 0; padding: 4px 12px 14px; display: flex; flex-direction: column; gap: 6px; }
+.at-part { display: flex; gap: 10px; align-items: flex-start; padding: 8px 10px; border-radius: 12px; background: var(--bg); }
+.at-part-inbox { background: var(--eb-tint); }
 .at-num {
   flex: 0 0 auto; min-width: 26px; height: 26px; border-radius: 999px; display: inline-flex; align-items: center;
-  justify-content: center; font-size: 13px; font-weight: 700; border: 1px solid var(--line); color: var(--ink-soft);
+  justify-content: center; font-size: 12.5px; font-weight: 800; border: 1px solid var(--line); color: var(--ink-soft); background: var(--panel);
 }
 .at-part-text { display: flex; flex-direction: column; gap: 2px; }
-.at-part-name { font-weight: 600; font-size: 14px; color: var(--ink); }
+.at-part-name { font-weight: 700; font-size: 14px; color: var(--ink); }
 
-/* 2 · גריד המנועים/החלקים */
-.at-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+/* ── הדוגמאות "קלט ← תוצאה" ── */
+.at-examples { padding: 0 16px 12px; display: flex; flex-direction: column; gap: 2px; }
+.at-q-card .at-examples { padding: 6px 0 0; }
+.at-ex-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.at-ex {
+  font-size: 13px; line-height: 1.5; color: var(--ink-soft); padding: 6px 10px; border-radius: 10px; background: var(--bg);
+}
+.at-q-card .at-ex { background: color-mix(in srgb, var(--panel) 70%, transparent); }
+.at-ex-arrow { color: var(--accent-deep); font-weight: 800; padding: 0 5px; }
+.at-more > summary {
+  cursor: pointer; font-size: 13px; font-weight: 700; color: var(--ink-soft); min-height: 36px; width: fit-content;
+  display: flex; align-items: center; list-style-position: inside; border-radius: 8px; padding: 0 4px;
+}
+.at-more > summary:hover { color: var(--ink); }
+.at-more > summary:focus-visible { outline: 2px solid var(--accent-deep); outline-offset: 2px; }
+.at-more[open] > summary { min-height: 30px; }
+
+/* ── "המנועים שיצרת" ── */
+.at-mine-lead { padding: 14px; border-radius: 20px; background: linear-gradient(180deg, var(--eb-tint), transparent 85%); }
+.at-mine {
+  display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; border-radius: 16px;
+  border: 1px solid var(--line); background: var(--card-bg, var(--panel)); box-shadow: var(--shadow);
+}
+.at-mine.at-armed { border-color: var(--red); }
+.at-mine-face {
+  display: flex; gap: 12px; align-items: flex-start; width: 100%; padding: 0; border: 0; background: transparent;
+  color: var(--ink); font: inherit; text-align: start;
+}
+button.at-mine-face { cursor: pointer; }
+.at-mine-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.at-mine-actions { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+/* "בנה עליו" = הצעד הבא (אקסנט); "הסר" שקט — חמוש ⇒ אדום */
+.at-mine-actions .btn[title^="בנה עליו"] { background: var(--eb-tint); border-color: var(--accent-deep); color: var(--ink); font-weight: 800; }
+.at-mine-actions .btn[title^="הסר"]:not(.danger) { background: transparent; border-color: transparent; color: var(--ink-soft); }
+.at-mine-actions .btn[title^="הסר"]:not(.danger):hover { border-color: var(--line); color: var(--ink); }
+.at-orphan { color: var(--ink-soft); font-style: italic; }
+.at-blocked {
+  display: block; padding: 10px 12px; border-radius: 12px; font-weight: 700; color: var(--ink);
+  background: color-mix(in srgb, var(--eb-warn) 10%, var(--panel)); border-inline-start: 4px solid var(--eb-warn);
+}
+
+/* ── צעד 2 · התקעים ── */
+.at-plugs { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; }
+.at-plug-card {
+  display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: 16px;
+  background: var(--card-bg, var(--panel)); box-shadow: var(--shadow); transition: box-shadow 0.18s, transform 0.18s;
+}
+.at-plug-card:hover { box-shadow: var(--shadow-lift); transform: translateY(-1px); }
 .at-card {
-  display: flex; flex-direction: column; align-items: flex-start; gap: 4px; text-align: right; font: inherit;
-  min-height: 88px; padding: 12px; border-radius: 12px; cursor: pointer;
-  border: 1px solid var(--line); background: var(--card-bg, var(--panel)); color: var(--ink);
+  display: flex; gap: 12px; align-items: flex-start; text-align: start; font: inherit; width: 100%;
+  min-height: 72px; padding: 16px; border: 0; border-radius: 16px; cursor: pointer; background: transparent; color: var(--ink);
 }
-.at-card:hover, .at-option:hover { border-color: var(--accent); background: var(--bg); }
-.at-head {
-  display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
-  padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg);
+.at-card-text { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.at-chains { margin-top: 12px; }
+.at-chain {
+  display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px; border-radius: 16px;
+  border: 1px solid var(--line); background: var(--card-bg, var(--panel)); box-shadow: var(--shadow);
 }
-.at-head-host { display: flex; align-items: center; gap: 10px; }
-.at-head .btn, .at-actions .btn, .at-mine .btn { min-height: 44px; justify-content: center; }
-.at-chain { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: 12px; border: 1px dashed var(--line); }
-.at-chain-emo { font-size: 20px; white-space: nowrap; }
-.at-chain-text { display: flex; flex-direction: column; gap: 2px; }
+.at-chain-emo {
+  flex: none; font-size: 18px; white-space: nowrap; padding: 8px 10px; border-radius: 12px; background: var(--eb-tint-strong);
+}
+.at-chain-text { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 
-/* 3 · השאלה האחת */
-.at-asks { font-size: 14px; color: var(--ink-soft); font-weight: 600; }
-.at-question { font-size: 28px; font-weight: 800; margin: 0 0 6px; color: var(--ink); line-height: 1.25; }
-.at-option {
-  display: flex; flex-direction: column; gap: 6px; width: 100%; min-height: 64px; padding: 12px; text-align: right; font: inherit;
-  border: 1px solid var(--line); border-radius: 12px; background: var(--card-bg, var(--panel)); color: var(--ink); cursor: pointer;
+/* ── צעד 3 · השאלה האחת והשקעים ── */
+.at-q-card {
+  padding: 18px 20px; border-radius: 22px; background: linear-gradient(160deg, var(--eb-tint-strong), var(--eb-tint) 70%);
+  margin-bottom: 14px;
 }
+.at-asks { font-size: 14px; color: var(--ink-soft); font-weight: 700; }
+.at-question { font-size: 32px; font-weight: 800; margin: 2px 0 6px; color: var(--ink); line-height: 1.2; letter-spacing: -0.015em; }
+.at-q-explain { margin: 0; }
+.at-option {
+  display: flex; flex-direction: column; gap: 8px; width: 100%; min-height: 64px; padding: 16px; text-align: start; font: inherit;
+  border: 1px solid var(--line); border-radius: 16px; background: var(--card-bg, var(--panel)); color: var(--ink); cursor: pointer;
+  box-shadow: var(--shadow); transition: box-shadow 0.18s, transform 0.18s, border-color 0.18s;
+}
+.at-option:hover { box-shadow: var(--shadow-lift); transform: translateY(-1px); border-color: var(--accent-deep); }
+.at-option .at-go { align-self: flex-end; }
 .at-option-head { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-.at-place { font-size: 13.5px; color: var(--ink-soft); font-weight: 600; }
+.at-place { font-size: 14px; color: var(--ink-soft); font-weight: 700; flex: 1 1 140px; min-width: 0; }
 .at-result { font-size: 18px; font-weight: 800; color: var(--ink); line-height: 1.4; }
 
-/* 4 · הפרטים */
-.at-picked { padding: 10px 12px; border-radius: 12px; border-inline-start: 3px solid var(--accent); background: var(--bg); }
-.at-form { display: flex; flex-direction: column; gap: 12px; margin-top: 12px; }
+/* ── התוצאה האמיתית: בקטן ליד כל אפשרות, וכגיבור בפרטים ובמנוע החדש ── */
+.at-preview { display: flex; flex-direction: column; gap: 4px; }
+.at-preview-title { font-size: 14px; font-weight: 800; color: var(--ink); }
+.at-preview-lines { margin: 0; padding-inline-start: 20px; font-size: 15px; color: var(--ink); line-height: 1.65; }
+.at-soon { font-size: 14px; color: var(--ink-soft); }
+.at-preview-mini {
+  margin-top: 2px; padding: 10px 12px; border-radius: 12px; border-inline-start: 3px solid var(--green);
+  background: var(--eb-ok-tint); text-align: start;
+}
+.at-preview-line { font-size: 14px; color: var(--ink); line-height: 1.55; overflow-wrap: anywhere; }
+.at-hero {
+  display: flex; flex-direction: column; gap: 8px; padding: 16px 18px; border-radius: 18px;
+  border: 1.5px solid var(--eb-ok-line); background: var(--eb-ok-tint);
+}
+.at-hero-label { font-size: 12.5px; font-weight: 800; color: var(--green); letter-spacing: 0.01em; }
+.at-hero .at-preview-mini { margin: 0; padding: 0; border: 0; background: transparent; }
+.at-hero .at-preview-title { font-size: 16px; }
+.at-hero .at-preview-line { font-size: 15.5px; line-height: 1.65; }
+
+/* ── הפרטים: התקע נכנס לשקע ── */
+.at-snap {
+  display: flex; align-items: center; gap: 6px; padding: 10px 14px; border-radius: 16px; margin: 4px 0 10px;
+  border: 2px dashed var(--accent-deep); background: var(--eb-tint);
+}
+.at-snap-text { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.at-snap-into { font-size: 12.5px; font-weight: 700; color: var(--ink-soft); }
+.at-snap-place { font-size: 15px; font-weight: 800; color: var(--ink); }
+.at-plug-in { animation: at-snap 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.25) both; }
+@keyframes at-snap { from { transform: translateX(16px); opacity: 0.4; } to { transform: none; opacity: 1; } }
+.at-picked { padding: 12px 14px; border-radius: 14px; border-inline-start: 4px solid var(--accent-deep); background: var(--bg); margin-bottom: 12px; }
+.at-form {
+  display: flex; flex-direction: column; gap: 14px; margin-top: 12px; padding: 16px; border-radius: 16px;
+  border: 1px solid var(--line); background: var(--card-bg, var(--panel));
+}
+.at-form-title { font-size: 13px; font-weight: 800; color: var(--ink-soft); }
 .at-field { display: flex; flex-direction: column; gap: 6px; }
 .at-label { font-size: 15px; font-weight: 700; color: var(--ink); }
 .at-input-row { display: flex; align-items: center; gap: 8px; }
 .at-input {
-  width: 120px; min-height: 44px; padding: 8px 10px; border-radius: 10px; font: inherit; font-size: 17px;
-  border: 1px solid var(--line); background: var(--card-bg, var(--panel)); color: var(--ink);
+  width: 128px; min-height: 48px; padding: 8px 12px; border-radius: 12px; font: inherit; font-size: 18px; font-weight: 700;
+  border: 1px solid var(--line); background: var(--panel); color: var(--ink);
 }
-.at-input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.at-input:focus-visible { outline: 2px solid var(--accent-deep); outline-offset: 2px; }
 .at-unit { font-size: 14px; color: var(--ink-soft); }
 .at-choices { display: flex; flex-wrap: wrap; gap: 8px; }
 .at-choice {
-  min-height: 44px; padding: 8px 14px; border-radius: 999px; cursor: pointer; font: inherit; font-size: 14px;
-  border: 1px solid var(--line); background: var(--bg); color: var(--ink);
+  min-height: 44px; padding: 8px 16px; border-radius: 999px; cursor: pointer; font: inherit; font-size: 14.5px; font-weight: 600;
+  border: 1px solid var(--line); background: var(--panel); color: var(--ink);
 }
-.at-choice.at-on { border-color: var(--accent); border-width: 2px; font-weight: 700; }
+.at-choice.at-on { background: var(--primary-bg); border-color: var(--primary-bg); color: var(--primary-ink); font-weight: 800; }
 .at-choice:disabled { cursor: default; }
-.at-actions { display: flex; gap: 10px; margin-top: 12px; }
-.at-actions .btn { min-width: 120px; }
-
-/* 5 · המנוע החדש */
-.at-made { border: 2px solid var(--green); border-radius: 12px; padding: 12px; background: var(--card-bg, var(--panel)); }
-.at-preview { display: flex; flex-direction: column; gap: 4px; }
-.at-preview-title { font-size: 14px; font-weight: 700; color: var(--ink-soft); }
-.at-preview-lines { margin: 0; padding-inline-start: 18px; font-size: 14px; color: var(--ink); line-height: 1.5; }
-.at-soon { font-size: 14px; color: var(--ink-soft); }
-/* ATOMS 14.10 — התוצאה האמיתית ליד כל אפשרות, בטופס ובשרשראות */
-.at-preview-mini {
-  margin-top: 6px; padding: 8px 10px; border-radius: 10px; border-inline-start: 3px solid var(--green);
-  background: var(--bg); text-align: start;
+.at-actions { display: flex; gap: 10px; margin-top: 12px; align-items: center; flex-wrap: wrap; }
+.at-actions .btn { min-width: 120px; min-height: 44px; justify-content: center; }
+/* "חבר" — פס תחתון דביק (תמיד בהישג-יד) */
+.at-sticky {
+  position: sticky; bottom: 0; z-index: 4; margin: 16px -12px 0; padding: 12px;
+  background: var(--panel); border-top: 1px solid var(--line); box-shadow: 0 -10px 18px -16px rgba(0, 0, 0, 0.45);
+  border-radius: 16px 16px 0 0;
 }
-.at-preview-line { font-size: 14px; color: var(--ink); line-height: 1.5; overflow-wrap: anywhere; }
-.at-mine {
-  display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
-  padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--card-bg, var(--panel));
-}
-.at-mine-text { display: flex; flex-direction: column; gap: 2px; }
+.at-sticky .btn.primary { min-height: 52px; padding: 0 26px; font-size: 16px; font-weight: 800; border-radius: 14px; }
+.at-sticky-hint { font-size: 13px; color: var(--ink-soft); }
 
-@media (max-width: 420px) {
-  .at-grid { grid-template-columns: 1fr 1fr; }
-  .at-question { font-size: 24px; }
+/* ── ✨ המנוע החדש ── */
+.at-made {
+  display: flex; flex-direction: column; gap: 10px; padding: 20px; border-radius: 22px;
+  border: 2px solid var(--eb-ok-line); background: linear-gradient(180deg, var(--eb-ok-tint), var(--card-bg, var(--panel)) 65%);
+  box-shadow: var(--shadow-lift); animation: at-pop 0.38s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+.at-made .at-title { font-size: 21px; margin: 0; }
+.at-made-hint { margin: 0; }
+.at-made .at-hero { background: var(--card-bg, var(--panel)); }
+.at-made-next { display: flex; gap: 10px; flex-wrap: wrap; }
+.at-made-next .btn.primary { font-weight: 800; }
+@keyframes at-pop { from { transform: scale(0.97); opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* ── כניסה עדינה לכל צעד ── */
+.at-step-body { animation: at-in 0.22s ease-out both; }
+@keyframes at-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .at-body *, .eb-body * { animation: none !important; transition: none !important; }
+}
+
+@media (max-width: 480px) {
+  .at-machines, .at-plugs { grid-template-columns: 1fr; }
+  .at-question { font-size: 27px; }
   .at-result { font-size: 17px; }
-  .at-actions .btn { width: 100%; }
-}
-
-/* ATOMS-NAMES · שלוש הדוגמאות "קלט ← תוצאה": טקסט קטן, הראשונה גלויה, השאר מאחורי "עוד דוגמאות" */
-.at-grid-wide { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
-.at-card-wrap {
-  display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: 12px;
-  background: var(--card-bg, var(--panel)); overflow: hidden;
-}
-.at-card-wrap .at-card { border: 0; border-radius: 0; min-height: 64px; width: 100%; background: transparent; }
-.at-card-wrap:hover { border-color: var(--accent); }
-.at-examples { padding: 0 12px 8px; display: flex; flex-direction: column; gap: 2px; }
-.at-engine .at-examples { padding-inline-start: 50px; }
-.at-q-explain { margin: 0 0 6px; }
-.at-ex-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
-.at-ex {
-  font-size: 12.5px; line-height: 1.45; color: var(--ink-soft); padding: 4px 8px; border-radius: 8px; background: var(--bg);
-}
-.at-ex-arrow { color: var(--accent); font-weight: 800; padding: 0 4px; }
-.at-more > summary {
-  cursor: pointer; font-size: 12.5px; font-weight: 600; color: var(--ink-soft); min-height: 36px;
-  display: flex; align-items: center; list-style-position: inside;
-}
-.at-more > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.at-more[open] > summary { min-height: 30px; }
-@media (max-width: 420px) {
-  .at-grid.at-grid-wide { grid-template-columns: 1fr; }
-  .at-engine .at-examples { padding-inline-start: 12px; }
+  .at-step { flex-direction: column; align-items: flex-start; gap: 4px; padding: 7px 8px; font-size: 12px; }
+  .at-step-n { width: 24px; height: 24px; font-size: 12px; }
+  .at-q-card { padding: 16px; border-radius: 18px; }
+  .at-sticky { margin-inline: -8px; padding: 10px 8px; }
+  .at-sticky .btn.primary { width: 100%; }
+  .at-sticky-hint { width: 100%; text-align: center; }
+  .at-mine-actions .btn[title^="בנה עליו"] { flex: 1 1 0; }
 }

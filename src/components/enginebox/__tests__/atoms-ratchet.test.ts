@@ -3,6 +3,9 @@
  *  (א) הזרימה הישנה ביט-זהה: בלי `atoms` — המסך זהה בדיוק לתצלום שנלקח לפני השינוי (old-flow-markup.json).
  *  (ב) עם `atoms` — לשונית ראשונה "🧬 מנועים וחלקים", והיא **לשונית-הפתיחה** (שינוי-נעילה מכוון, ATOMS 14.10 — הסשן המשלב:
  *      "🧬 מנועים וחלקים" ברירת-המחדל); אחרי לחיצה על "🔌 לחבר מנוע" תוכן הלשוניות הקיימות זהה לתצלום (רק פס-הלשוניות שונה).
+ *      DESIGN 14.10 (שינוי-נעילה מכוון): עם `atoms` פס-הלשוניות הוא שלוש הדלתות (`<nav class="eb-doors">`, בסדר של הבעלים
+ *      🎯 · 🧬 · 🔌), ושורת-ההסבר הישנה (`eb-intro`) עוברת לשורה שמעל הדלתות — ולכן גם היא מוסרת לפני ההשוואה. כל השאר
+ *      (תוכן 🔌 ו-🎯) עדיין **ביט-זהה** לתצלום. בלי `atoms` — הכול ביט-זהה כמו קודם, כולל הלשוניות וההסבר (א).
  *  (ג) קוד-ייצור לעולם לא מייבא את נתוני-הדוגמה של החלקים.
  *  (ד) החוזה המשותף לא נגע: md5 קבוע, שורה-חדשה אחת בסוף.
  *  (ה) ההתאמה לא משוכפלת: המסך קורא ל-optionsFor של החוזה.
@@ -41,7 +44,9 @@ const states = (atoms: Atoms, plugTab = false): Record<string, string> => {
     ),
   };
 };
-const stripTabs = (s: string) => s.replace(/<div class="eb-tabs"[\s\S]*?<\/div>/, '');
+const stripTabs = (s: string) => s.replace(/<div class="eb-tabs"[\s\S]*?<\/div>/, '').replace(/<nav class="eb-doors"[\s\S]*?<\/nav>/, '');
+/** DESIGN 14.10: עם atoms ההסבר הישן לא מוצג (הוא עבר לשורה מעל הדלתות) — מוסר גם מהתצלום לפני ההשוואה. */
+const stripIntro = (s: string) => s.replace(/<p class="eb-intro">[^<]*<\/p>/, '');
 
 const RAW: Record<string, string> = import.meta.glob(['/src/**/*.{ts,tsx}'], { query: '?raw', import: 'default', eager: true }) as Record<string, string>;
 const prod = Object.entries(RAW).filter(([p]) => !p.includes('__tests__') && !p.includes('.test.'));
@@ -61,9 +66,12 @@ describe('🧬 מנועים וחלקים — הגנות', () => {
       }
       const now = states(atoms, true);
       for (const k of ['goal-start', 'goal-plug', 'goal-plug-ro', 'goal-tab', 'screen-goal'] as const) {
-        expect(stripTabs(now[k]), k).toBe(stripTabs((OLD as Record<string, string>)[k]));
-        const tabs = [...now[k].matchAll(/data-tab="(\w+)"[^>]*>([^<]+)</g)].map((m) => m[1]);
-        expect(tabs, k).toEqual(['atoms', 'plug', 'goal']);
+        expect(stripTabs(now[k]), k).toBe(stripIntro(stripTabs((OLD as Record<string, string>)[k])));
+        expect(now[k], k).not.toContain('eb-intro');
+        // DESIGN 14.10: הדלתות — role=tab, בסדר של הבעלים (היה ['atoms', 'plug', 'goal'] בלשוניות)
+        const tabs = [...now[k].matchAll(/role="tab"[^>]*data-tab="(\w+)"/g)].map((m) => m[1]);
+        expect(tabs, k).toEqual(['goal', 'atoms', 'plug']);
+        expect(now[k], k).toContain('<nav class="eb-doors"');
       }
       expect(now['goal-plug']).toMatch(/aria-selected="true"[^>]*data-tab="plug"/);
       expect(now['screen-goal']).toMatch(/aria-selected="true"[^>]*data-tab="plug"/);

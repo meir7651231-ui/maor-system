@@ -22,7 +22,7 @@ import {
   CreatedList,
   DetailsStep,
   EnginesStep,
-  HostStep,
+  HOST_TITLE,
   NO_PLACE_TEXT,
   PREVIEW_SOON_TEXT,
   QuestionStep,
@@ -65,7 +65,15 @@ describe('(א) המנועים והפירוק', () => {
       expect(out).toContain(e.computes);
     }
     expect(out).toContain('אירוח משפחתי');
-    expect(out).toContain('יש לך מנוע · איזה חלק לחבר אליו?');
+    // DESIGN 14.10 (מכוון): הכותרת של צעד 1 — "איזה מנוע יש לך?" (היה 'יש לך מנוע · איזה חלק לחבר אליו?'), והמסך הראשון
+    // מאוחד — כל מנוע פעם אחת (היה: רשימת "המנועים" + גריד "יש לך מנוע" עם אותם מנועים פעמיים)
+    expect(out).toContain(HOST_TITLE);
+    for (const e of [E_ZMANIM, E_NEED, E_BOOK]) {
+      expect(out.split(`data-host="${e.id}"`).length - 1, e.id).toBe(1);
+      expect(out.split(`data-engine="${e.id}"`).length - 1, e.id).toBe(1);
+    }
+    // מונה 1-2-3, צעד 1 נוכחי
+    expect(out).toMatch(/class="at-step at-step-now" aria-current="step"><span class="at-step-n" aria-hidden="true">1</);
     expect(out).not.toContain('data-parts'); // סגור עד שלוחצים
   });
 
@@ -90,7 +98,8 @@ describe('(א) המנועים והפירוק', () => {
 describe('(ב) מנוע-בית ⇒ חלק ⇒ השאלה האחת', () => {
   it('בוחרים מנוע-בית ⇒ גריד כל החלקים מכל המנועים עם "מתוך מנוע הזמנים · 7"', () => {
     const hosts: string[] = [];
-    clickAttr(HostStep({ engines: [E_ZMANIM, E_BOOK], onHost: (id) => hosts.push(id) }), 'data-host', 'bookings');
+    // DESIGN 14.10 (מכוון): "יש לך מנוע" אוחד לתוך EnginesStep — אותו כרטיס, "בחר" (data-host) ⇒ onHost (היה HostStep נפרד)
+    clickAttr(EnginesStep({ engines: [E_ZMANIM, E_BOOK], atoms: [], open: null, onToggle: () => {}, onHost: (id) => hosts.push(id) }), 'data-host', 'bookings');
     expect(hosts).toEqual(['bookings']);
     const out = body(atomsFixture(), { host: 'bookings' });
     expect(out).toContain('data-atoms="atom"');

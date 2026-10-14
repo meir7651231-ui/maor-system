@@ -39,4 +39,8 @@ export interface AtomsSource {
   blockedBy?(capId: string): string[];
   /** CHAIN 14.10 (תוספתי): "שמור כמנוע" לשרשרת מוצעת — יוצר (אם צריך) את הראשון ואז את המנוע הבנוי. מחזיר את המזהה. */
   saveChain?(engineId: string, index: number): string | null;
+  /** DESIGN 14.10 (חריץ, תוספתי — המפעל ימלא): מנועים שנמצאו אוטומטית. חסר ⇒ בלי הקבוצה. */
+  found?(): { id: string; card: EngineCard; verified?: { checks: number } }[];
+  /** DESIGN 14.10 (חריץ, תוספתי — המפעל ימלא): חותמת "✅ מאומת" למנוע (מזהה יכולת). undefined ⇒ בלי חותמת. */
+  verified?(capId: string): { checks: number } | undefined;
 }

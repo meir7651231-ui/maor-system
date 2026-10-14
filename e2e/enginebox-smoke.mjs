@@ -394,9 +394,14 @@ console.log('🧩 ארגז המנועים — מסע אמיתי');
   T('🧬 לשונית-הפתיחה = "מנועים וחלקים", עם המנועים האמיתיים (לא "בהרכבה")', (await A('[data-tab="atoms"][aria-selected="true"]').count()) === 1 && (await A('[data-engine]').count()) === 3 && !(await boxText()).includes('בהרכבה'));
   T('🧬 אין גלילה אופקית ב-390px', !(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1)));
   // ATOMS-NAMES · השם אומר מה המנוע עושה, משפט אחד, ודוגמה "קלט ← תוצאה" — בלי מילים טכניות
-  const engNames = await A('[data-engine] .at-name').allTextContents();
+  // DESIGN 14.10 (שינוי-סלקטור מכוון, לא החלשה): המסך הראשון מאוחד — כל מנוע הוא כרטיס-מכונה אחד (`data-machine`) שבו
+  // הפנים = "בחר" (`data-host`), הדוגמה, ומגירת "ממה הוא בנוי" (`data-engine`). היה: `[data-engine] .at-name` ו-`[data-engine] + [data-examples]`.
+  const engNames = await A('[data-machine] [data-host] .at-name').allTextContents();
   T('🔤 שמות המנועים: מחשבון הזמנים · מבין בקשות · מנהל ההזמנות', engNames.join('|') === 'מחשבון הזמנים|מבין בקשות|מנהל ההזמנות', engNames.join('|'));
-  T('🔤 לכל מנוע דוגמה גלויה עם "←" ו"עוד דוגמאות"', (await A('[data-engine] + [data-examples] .at-ex-arrow').count()) >= 3 && (await A('[data-engine] + [data-examples] summary').count()) === 3);
+  T('🔤 לכל מנוע דוגמה גלויה עם "←" ו"עוד דוגמאות"', (await A('[data-machine] > [data-examples] .at-ex-arrow').count()) >= 3 && (await A('[data-machine] > [data-examples] summary').count()) === 3);
+  T('🎨 כל מנוע פעם אחת: 3 כרטיסי-מכונה, 3 "בחר", 3 "ממה הוא בנוי"', (await A('[data-machine]').count()) === 3 && (await A('[data-host]').count()) === 3 && (await A('[data-engine]').count()) === 3);
+  T('🎨 שלוש הדלתות בסדר של הבעלים — 🎯 · 🧬 · 🔌, "בנה בעצמך" פתוחה', (await A('[role=tab]').evaluateAll((els) => els.map((e) => e.getAttribute('data-tab')))).join(',') === 'goal,atoms,plug' && (await A('[data-tab="atoms"][aria-selected="true"]').count()) === 1);
+  T('🎨 מונה 1-2-3 — שלב 1 נוכחי', (await A('.at-steps [aria-current="step"]').textContent().catch(() => '')).includes('בחר מנוע'));
   await ashot('01-engines.png');
 
   // 6.2 · 🛏️ מנהל ההזמנות ⇒ 13 החלקים
