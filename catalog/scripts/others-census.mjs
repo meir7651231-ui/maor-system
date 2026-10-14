@@ -20,6 +20,7 @@ import { createRequire } from 'node:module'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { shapeKindOfType } from '../lib/kind-shape.mjs'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 const REPO_ROOT = resolve(HERE, '..', '..')
@@ -683,6 +684,9 @@ const PRIM = new Set(['str', 'string', 'int', 'float', 'number', 'bool', 'boolea
 
 function kindOfType(t, name = '', forReturn = false) {
   if (!t) return null
+  // מקום · קול · תמונה · תור — לפי הצורה (המיפוי המשותף, catalog/lib/kind-shape.mjs; טקסט-טיפוס של TS)
+  const sk = shapeKindOfType(t, name)
+  if (sk) return sk
   let s = t.trim().replace(/^'([A-Z][\w.]*)'$/, '$1').replace(/^"([A-Z][\w.]*)"$/, '$1')
   if (/^[A-Z]$/.test(s)) return 'unknown'
   if (/^Promise<(.+)>$/.test(s)) s = s.replace(/^Promise<(.+)>$/, '$1')

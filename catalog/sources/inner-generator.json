@@ -14503,7 +14503,7 @@
     }
    ],
    "gives": {
-    "kind": "record:clip",
+    "kind": "geo",
     "type": "{ x: number; y: number; width: any; height: any; }"
    },
    "pure": true,
@@ -175942,7 +175942,7 @@
     }
    ],
    "gives": {
-    "kind": "text",
+    "kind": "image",
     "type": "string"
    },
    "pure": true,
@@ -175985,7 +175985,7 @@
     }
    ],
    "gives": {
-    "kind": "text",
+    "kind": "image",
     "type": "string"
    },
    "pure": true,

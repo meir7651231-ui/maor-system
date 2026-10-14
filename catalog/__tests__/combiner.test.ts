@@ -15,7 +15,7 @@ import { describe, it, expect, vi } from 'vitest';
 vi.setConfig({ testTimeout: 180_000 });
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
-import { assemble, buildIndex, indexOf, findGoal, askChips, goalFromChips, recipeFrom, piiLeak, fit, normGoal, ADAPTER_VERBS, STATUS_ORDER, whereLine, ownKinds } from '../combiner/core.mjs';
+import { assemble, buildIndex, indexOf, findGoal, askChips, goalFromChips, recipeFrom, piiLeak, fit, normGoal, ADAPTER_VERBS, STATUS_ORDER, whereLine, ownKinds, fitPart, lawMat } from '../combiner/core.mjs';
 import { loadGoals, loadIndex, loadParts, loadProofs, loadBehavior, loadAlphabet, loadLeads, CATALOG } from '../combiner/load.mjs';
 import { VERB_BY_ID, useAlphabet } from '../combiner/verbs.mjs';
 import { buildAll } from '../combiner/build.mjs';
@@ -70,7 +70,7 @@ describe('המצרף · מילון-המטרות', () => {
         // החומר: בקצה (נותן) או בכניסה (מקבל)
         // …או החומר הוא בדיוק סוג שהפועל עצמו מקבל/נותן (האלפבית) — החוקים מבטיחים אותו; או החומר שהקורא מדד
         const core = st.find((x) => x.role === n.need.verb)!;
-        const onMat = fit(st[st.length - 1].gives, n.need.material) > 0 || (st[0].takes.length > 0 && fit(n.need.material, st[0].takes[0]) > 0) || ownKinds(n.need.verb).includes(n.need.material) || fit(ix.byId.get(core.id)?.material ?? '', n.need.material) > 0;
+        const onMat = fitPart(st[st.length - 1].gives, n.need.material) > 0 || (st[0].takes.length > 0 && (fit(n.need.material, st[0].takes[0]) > 0 || fitPart(st[0].takes[0], n.need.material) > 0)) || lawMat(n.need.verb, n.need.material) || fitPart(ix.byId.get(core.id)?.material ?? '', n.need.material) > 0;
         expect(onMat, n.need.id).toBe(true);
         // בדיוק אחד מהצעדים עושה את הפועל של הצורך
         expect(st.some((s) => s.role === n.need.verb)).toBe(true);

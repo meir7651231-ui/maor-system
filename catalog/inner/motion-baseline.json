@@ -72,9 +72,7 @@
    "parts": {}
   },
   "yeshiva": {
-   "runnable": 12,
-   "withMotion": 0,
-   "parts": {}
+   "skipped": "no-clone"
   }
  }
 }

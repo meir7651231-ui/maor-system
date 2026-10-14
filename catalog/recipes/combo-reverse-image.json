@@ -1,0 +1,33 @@
+{
+ "id": "combo-reverse-image",
+ "word": "reverse · image",
+ "title": "מחשב ערך מערכים — על תמונות",
+ "combo": {
+  "verb": "reverse",
+  "material": "image",
+  "form": "on",
+  "slot": 0,
+  "many": true,
+  "steps": [
+   "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#ProfileTreeSubmenu.reversed:step"
+  ],
+  "roles": [
+   "reverse"
+  ],
+  "holds": "24/24",
+  "laws": [
+   "reverse.involution",
+   "reverse.split"
+  ]
+ },
+ "needs": [
+  {
+   "need": "combo",
+   "verb": "reverse",
+   "material": "image",
+   "chain": [
+    "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#ProfileTreeSubmenu.reversed:step"
+   ]
+  }
+ ]
+}

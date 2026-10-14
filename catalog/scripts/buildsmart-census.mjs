@@ -21,6 +21,7 @@ import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { shapeKindOfType } from '../lib/kind-shape.mjs';
 
 const require = createRequire(import.meta.url);
 const ts = require('typescript');
@@ -100,6 +101,8 @@ function kebab(s) {
 function kindOf(rawType, name, ctx) {
   let t = (rawType || '').replace(/\s+/g, ' ').trim().replace(/\?$/, '').replace(/\s*\|\s*(undefined|null)\b/g, '').replace(/^(undefined|null)\s*\|\s*/, '').trim();
   const n = (name || '').toLowerCase();
+  // מקום · קול · תמונה · תור — לפי הצורה (המיפוי המשותף, catalog/lib/kind-shape.mjs)
+  if (ctx?.lang !== 'dart') { const sk = shapeKindOfType(t, name); if (sk) return sk; }
   if (!t || t === 'dynamic' || t === 'any' || t === 'unknown' || t === 'Object' || t === 'var' || t === 'final') {
     // בלי טיפוס — מנחשים לפי השם בלבד
     if (MONEY_HINT.test(n)) return 'amount';

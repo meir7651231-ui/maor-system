@@ -90,6 +90,14 @@ export const kindHe = (k) => KIND_HE[k] || (String(k).startsWith('record:') ? '�
 
 /** זוגות קרובים (התאמה חלשה): מספר↔סכום (מעגל של אורביט נכתב על "סכום" אבל הוא כללי), רשימה↔רשימה מסודרת. */
 const WEAK = new Set(['number|amount', 'amount|number', 'list|sequence', 'sequence|list']);
+/**
+ * סוג מעודן ⇒ הסוג הכללי שהוא (MACHINE-V3): תור (waiting) הוא רשימה, מנגינה (sound — רשימת צלילים) היא רשימה מסודרת.
+ * חד-כיווני ורק בצד החלק: חלק שעובד על תור עונה גם לצורך על רשימה (הצורך ביקש פחות). ההפך — לא: חלק של רשימה כללית
+ * לא "עובד על תור" עד שהוא הורץ על תור (מכונת-השילוב, צורת `on`). מקום (geo) לא — נקודה אינה רשימה.
+ */
+export const SUB_KIND = { waiting: 'list', sound: 'sequence' };
+/** התאמה של סוג-בחלק לחומר-הצורך: fit, או — הסוג של החלק מעודן מהחומר (חלש). */
+export const fitPart = (partKind, needKind) => fit(partKind, needKind) || (SUB_KIND[partKind] && fit(SUB_KIND[partKind], needKind) ? 1 : 0);
 
 /** 2 = מתאים בדיוק · 1 = קרוב · 0 = לא. */
 export function fit(kind, want) {
@@ -332,7 +340,8 @@ function comboPart(r, known) {
   const ps = c.steps.map((id) => byId.get(id));
   const a = ps[0]; const b = ps[ps.length - 1];
   // גרף: הקלטים והפלט = של הפועל עצמו (נשמרו במתכון); שרשרת: הקלטים של הראשון, הפלט של האחרון
-  const takes = c.takes ? c.takes : c.form === 'pair' ? [c.material] : a ? [a.takes[0], ...a.takes.slice(1)] : [];
+  // on: אותו חלק — הקלט שהוחלף הוא החומר
+  const takes = c.takes ? c.takes : c.form === 'on' && a ? a.takes.map((k, i) => (i === c.slot ? c.material : k)) : c.form === 'pair' ? [c.material] : a ? [a.takes[0], ...a.takes.slice(1)] : [];
   return {
     id: 'recipe:' + r.id,
     source: 'recipe',
@@ -352,7 +361,7 @@ function comboPart(r, known) {
     path: 'catalog/recipes/' + r.id + '.json',
     primary: c.verb,
     proofs: { [c.verb]: { status: 'proven', by: 'combo', cases: Number(String(c.holds).split('/')[0]) || 0, laws: c.laws || [], tier: 'proven' } },
-    combo: { verb: c.verb, form: c.form, steps: c.steps, roles: c.roles, holds: c.holds, laws: c.laws || [], ...(c.hint ? { hint: c.hint } : {}), ...(c.graph ? { graph: c.graph } : {}) },
+    combo: { verb: c.verb, form: c.form, material: c.material, steps: c.steps, roles: c.roles, holds: c.holds, laws: c.laws || [], ...(c.hint ? { hint: c.hint } : {}), ...(c.graph ? { graph: c.graph } : {}) },
   };
 }
 
@@ -397,8 +406,14 @@ export function ownKinds(verb) {
   const spec = v.takes?.length === 2 && v.takes[0] === 'record';
   return [...kindsOf(v.gives), ...kindsOf(v.takes?.[0]), ...(spec ? kindsOf(v.takes[1]) : [])];
 }
-function lawMat(verb, mat) {
-  return ownKinds(verb).includes(mat);
+export function lawMat(verb, mat) {
+  const own = ownKinds(verb);
+  if (own.includes(mat)) return true;
+  // רשומה מסוג ידוע (record:ant) היא רשומה: פועל שמקבל "רשומה" כקלט-ראשי (לא מפרט של פועל-תנועה) או נותן רשומה — מתאים (MACHINE-V3)
+  if (!String(mat).startsWith('record:')) return false;
+  const v = VERB_BY_ID[verb];
+  const spec = v?.takes?.length === 2 && v.takes[0] === 'record';
+  return [...kindsOf(v?.gives), ...(spec ? [] : kindsOf(v?.takes?.[0]))].includes('record');
 }
 const CAP_CORE = 60;
 const CAP_LINK = 40;
@@ -443,7 +458,7 @@ export function chainsFor(need, ix) {
   const all = (ix.byVerb.get(need.verb) || []).filter((p) => provenAs(p, need.verb) && matchesKeys(p, need.keys) && !(p.takes.length === 0 && p.gives === 'unknown'));
   // סדר-העדיפות (הכרעת-בעלים): חלק מוכח אחד > חלק פנימי > שילוב מוכח — כל קבוצה עוברת את כל הטבעות לפני הבאה
   for (const group of [all.filter((p) => !p.parent && !p.combo), all.filter((p) => p.parent && !p.combo), all.filter((p) => p.combo)]) {
-    const got = ringsFor(need, ix, group.slice(0, CAP_CORE));
+    const got = ringsFor(need, ix, group);
     if (got.length) return got;
   }
   return [];
@@ -464,7 +479,7 @@ function ringsFor(need, ix, cores) {
   // …או החומר שהקורא מדד; או — החומר הוא בדיוק סוג שהפועל עצמו מקבל/נותן (האלפבית), והחלק מוכח לפועל:
   // אז החוקים כבר מבטיחים שהוא עובד על החומר הזה ("הבקשה מביאה את העולם; החלק מביא רק את הפעולה")
   const byLaw = lawMat(need.verb, mat);
-  const onMat = (p) => fit(p.gives, mat) > 0 || accepts(p, mat) || (!!p.material && fit(p.material, mat) > 0) || (byLaw && provenAs(p, need.verb));
+  const onMat = (p) => fitPart(p.gives, mat) > 0 || accepts(p, mat) || (p.takes.length > 0 && fitPart(p.takes[0], mat) > 0) || (!!p.material && fitPart(p.material, mat) > 0) || (byLaw && provenAs(p, need.verb));
   const chains = [];
   const push = (steps, ring, core) => {
     const ids = steps.map((s) => s.id);
@@ -473,9 +488,11 @@ function ringsFor(need, ix, cores) {
     chains.push({ ring, verb: need.verb, overlap: overlap(need.behavior, steps), steps, roles, core, fit: Math.max(fit(steps[steps.length - 1].gives, mat), steps[0].takes.length ? fit(mat, steps[0].takes[0]) : 0) });
   };
   // כמו מנוע-הטבעות: מתרחבים לטבעת הבאה רק כשהפנימית ריקה
-  // טבעת 1 — חלק בודד
+  // טבעת 1 — חלק בודד: **כל** החלקים שמוכחים לפועל (MACHINE-V3 — בלי תקרה; הסדר = הדירוג של האינדקס, דטרמיניסטי)
   for (const c of cores) if (onMat(c) && startOk(c)) push([c], 1, 0);
   if (chains.length) return chains;
+  // טבעות 2–3 — זוג/שלישייה: על CAP_CORE הליבות הראשונות (המתאמים כבר חסומים ב-CAP_LINK)
+  cores = cores.slice(0, CAP_CORE);
   // טבעת 2 — זוג: מתאם לפני הליבה, או מתאם אחריה
   for (const c of cores) {
     const ends = onMat(c);
@@ -689,14 +706,14 @@ function chainView(c, ix) {
   const cp = c.steps.length === 1 && c.steps[0].combo ? c.steps[0] : null;
   if (cp) {
     const parts = cp.combo.steps.map((id) => ix.byId.get(id) || ix.parts.find((p) => p.homes.some((h) => h.id === id))).filter(Boolean);
-    if (parts.length >= 2 && parts.length === cp.combo.steps.length) {
+    if (parts.length >= 1 && parts.length === cp.combo.steps.length) {
       const n = Number(String(cp.combo.holds).split('/')[0]) || 0;
       return {
         ring: Math.min(3, parts.length),
         tier: 'proven',
         sentence: chainSentence(parts),
         steps: parts.map((s, i) => stepView(s, parts[i - 1], ix.flows, cp.combo.roles?.[i] || s.primary)),
-        combo: { verb: cp.combo.verb, verbHe: VERB_HE(cp.combo.verb), form: cp.combo.form, parts: parts.length, holds: cp.combo.holds, cases: n, laws: cp.combo.laws, line: (parts.length > 2 ? parts.length + ' חלקים · ' : '') + 'עבר ' + cp.combo.holds + ' חוקים של ' + VERB_HE(cp.combo.verb), ...(cp.combo.hint ? { hint: cp.combo.hint } : {}) },
+        combo: { verb: cp.combo.verb, verbHe: VERB_HE(cp.combo.verb), form: cp.combo.form, parts: parts.length, holds: cp.combo.holds, cases: n, laws: cp.combo.laws, line: cp.combo.form === 'on' ? 'חלק אחד, על ' + kindHe(cp.combo.material) + ' · עבר ' + cp.combo.holds + ' חוקים של ' + VERB_HE(cp.combo.verb) : (parts.length > 2 ? parts.length + ' חלקים · ' : '') + 'עבר ' + cp.combo.holds + ' חוקים של ' + VERB_HE(cp.combo.verb), ...(cp.combo.hint ? { hint: cp.combo.hint } : {}) },
       };
     }
   }

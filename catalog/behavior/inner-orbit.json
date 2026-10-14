@@ -1,6 +1,6 @@
 {
  "source": "inner-orbit",
- "ref": "claude/catalog-orbit-261014@dc399c75693a",
+ "ref": "claude/machine-v3-261014@abc82e807700",
  "probe": {
   "version": 1,
   "seed": 13269520,
@@ -11,7 +11,7 @@
   "runWithVerb": 1929,
   "twin": 0,
   "static": 315,
-  "staticWithVerb": 111,
+  "staticWithVerb": 109,
   "why": {
    "no-fitting-input": 315
   },
@@ -3636,7 +3636,7 @@
     }
    ],
    "primary": "validate",
-   "material": "list",
+   "material": "waiting",
    "cases": 24,
    "hash": "843fe94b-1d83ca0d"
   },
@@ -3645,7 +3645,7 @@
    "labeledBy": "run",
    "verbs": [],
    "primary": null,
-   "material": "list",
+   "material": "waiting",
    "cases": 24,
    "traits": "in[arr]>arr len~",
    "hash": "53e497b0-ee91c676"
@@ -5918,7 +5918,7 @@
    "labeledBy": "run",
    "verbs": [],
    "primary": null,
-   "material": "list",
+   "material": "waiting",
    "cases": 24,
    "traits": "in[]>num const int+",
    "hash": "6b3a49ad-3c35a752"
@@ -8193,7 +8193,7 @@
    "labeledBy": "run",
    "verbs": [],
    "primary": null,
-   "material": "list",
+   "material": "waiting",
    "cases": 24,
    "traits": "in[arr]>arr len= ⊆"
   },
@@ -8262,7 +8262,7 @@
    "labeledBy": "run",
    "verbs": [],
    "primary": null,
-   "material": "list",
+   "material": "waiting",
    "cases": 24,
    "traits": "in[arr]>arr len~",
    "hash": "26595bc3-26577322"
@@ -8370,7 +8370,7 @@
    "labeledBy": "run",
    "verbs": [],
    "primary": null,
-   "material": "list",
+   "material": "waiting",
    "cases": 21,
    "traits": "in[]>nil const",
    "hash": "d4cda2a9-a0500f9"
@@ -9497,7 +9497,7 @@
    "labeledBy": "run",
    "verbs": [],
    "primary": null,
-   "material": "list",
+   "material": "waiting",
    "cases": 19,
    "traits": "in[arr]>obj",
    "hash": "26595bc3-3b71b1e1"
@@ -10812,7 +10812,7 @@
    "labeledBy": "run",
    "verbs": [],
    "primary": null,
-   "material": "list",
+   "material": "waiting",
    "cases": 24,
    "traits": "in[arr]>arr const len~",
    "hash": "d3c94dea-e4e8f1f8"
@@ -12827,7 +12827,7 @@
    "labeledBy": "run",
    "verbs": [],
    "primary": null,
-   "material": "list",
+   "material": "waiting",
    "cases": 24,
    "traits": "in[arr]>map",
    "hash": "b05ac42-bc3bd684"
@@ -13785,7 +13785,7 @@
    "labeledBy": "run",
    "verbs": [],
    "primary": null,
-   "material": "list",
+   "material": "waiting",
    "cases": 24,
    "traits": "in[arr]>obj",
    "hash": "b05ac42-536148d7"
@@ -13795,7 +13795,7 @@
    "labeledBy": "run",
    "verbs": [],
    "primary": null,
-   "material": "list",
+   "material": "waiting",
    "cases": 24,
    "traits": "in[arr]>arr len= ⊆"
   },
@@ -14334,7 +14334,7 @@
    "labeledBy": "run",
    "verbs": [],
    "primary": null,
-   "material": "list",
+   "material": "waiting",
    "cases": 24,
    "traits": "in[arr]>num int+",
    "hash": "b05ac42-afd9ec53"
@@ -15696,7 +15696,7 @@
    "labeledBy": "run",
    "verbs": [],
    "primary": null,
-   "material": "list",
+   "material": "waiting",
    "cases": 24,
    "traits": "in[obj]>set const"
   },
@@ -15869,7 +15869,7 @@
    "labeledBy": "run",
    "verbs": [],
    "primary": null,
-   "material": "list",
+   "material": "waiting",
    "cases": 24,
    "traits": "in[]>set const"
   },
@@ -16070,7 +16070,7 @@
    "labeledBy": "static",
    "verbs": [],
    "primary": null,
-   "material": "list",
+   "material": "waiting",
    "reason": "no-fitting-input"
   },
   {
@@ -17340,7 +17340,7 @@
     }
    ],
    "primary": "validate",
-   "material": "list",
+   "material": "waiting",
    "cases": 24,
    "hash": "a8d08552-45dc0772"
   },
@@ -21596,7 +21596,7 @@
     }
    ],
    "primary": "extreme",
-   "material": "record:pnEnvNode",
+   "material": "geo",
    "cases": 24,
    "hash": "f40dec7f-a66392de"
   },
@@ -21803,7 +21803,7 @@
    "labeledBy": "run",
    "verbs": [],
    "primary": null,
-   "material": "list",
+   "material": "waiting",
    "cases": 24,
    "traits": "in[arr]>arr len= ⊆"
   },
@@ -22077,7 +22077,7 @@
    "labeledBy": "run",
    "verbs": [],
    "primary": null,
-   "material": "list",
+   "material": "waiting",
    "cases": 24,
    "traits": "in[]>num const int+"
   },
@@ -22086,7 +22086,7 @@
    "labeledBy": "run",
    "verbs": [],
    "primary": null,
-   "material": "list",
+   "material": "waiting",
    "cases": 24,
    "traits": "in[arr]>map",
    "hash": "a8d08552-334b1596"
@@ -24537,7 +24537,7 @@
    "labeledBy": "run",
    "verbs": [],
    "primary": null,
-   "material": "list",
+   "material": "waiting",
    "cases": 9,
    "traits": "in[arr]>arr const len~"
   },
@@ -24546,7 +24546,7 @@
    "labeledBy": "run",
    "verbs": [],
    "primary": null,
-   "material": "list",
+   "material": "waiting",
    "cases": 4,
    "traits": "in[arr]>arr const len="
   },
@@ -24904,7 +24904,7 @@
    "labeledBy": "run",
    "verbs": [],
    "primary": null,
-   "material": "list",
+   "material": "waiting",
    "cases": 24,
    "traits": "in[arr]>set",
    "hash": "a8d08552-22553e43"
@@ -28938,7 +28938,7 @@
    "labeledBy": "run",
    "verbs": [],
    "primary": null,
-   "material": "list",
+   "material": "waiting",
    "cases": 24,
    "traits": "in[]>arr const len~"
   },
@@ -28956,7 +28956,7 @@
    "labeledBy": "run",
    "verbs": [],
    "primary": null,
-   "material": "list",
+   "material": "waiting",
    "cases": 24,
    "traits": "in[]>arr const len~"
   },
@@ -33655,7 +33655,7 @@
    "labeledBy": "run",
    "verbs": [],
    "primary": null,
-   "material": "list",
+   "material": "geo",
    "cases": 24,
    "traits": "in[arr,num,num]>num real+",
    "hash": "adfc3293-89b6a0",
@@ -33674,7 +33674,7 @@
    "labeledBy": "run",
    "verbs": [],
    "primary": null,
-   "material": "list",
+   "material": "geo",
    "cases": 24,
    "traits": "in[arr]>nil|obj",
    "hash": "adfc3293-86d0caa8"
@@ -34531,7 +34531,7 @@
     }
    ],
    "primary": "average",
-   "material": "record:po",
+   "material": "geo",
    "cases": 24,
    "hash": "c430458e-94cca348",
    "motion": [
@@ -34549,7 +34549,7 @@
    "labeledBy": "run",
    "verbs": [],
    "primary": null,
-   "material": "list",
+   "material": "geo",
    "cases": 24,
    "traits": "in[arr,num]>nil|obj",
    "hash": "c430458e-9ac74ec0"
@@ -39834,7 +39834,7 @@
    "labeledBy": "run",
    "verbs": [],
    "primary": null,
-   "material": "record:p",
+   "material": "geo",
    "cases": 24,
    "traits": "in[obj,num]>num real",
    "hash": "425af9e6-e80798f2",
@@ -40134,7 +40134,7 @@
    "labeledBy": "run",
    "verbs": [],
    "primary": null,
-   "material": "list",
+   "material": "waiting",
    "cases": 24,
    "traits": "in[str]>str"
   },
@@ -40143,7 +40143,7 @@
    "labeledBy": "run",
    "verbs": [],
    "primary": null,
-   "material": "list",
+   "material": "waiting",
    "cases": 24,
    "traits": "in[arr]>arr len>",
    "hash": "26595bc3-8897a25f"
@@ -41880,7 +41880,7 @@
    "labeledBy": "run",
    "verbs": [],
    "primary": null,
-   "material": "list",
+   "material": "geo",
    "cases": 24,
    "traits": "in[arr]>arr len~",
    "hash": "eb6dba75-ce791b7b"
@@ -41900,7 +41900,7 @@
    "labeledBy": "run",
    "verbs": [],
    "primary": null,
-   "material": "list",
+   "material": "geo",
    "cases": 24,
    "traits": "in[arr]>str",
    "hash": "eb6dba75-a631c9d0"
@@ -50380,7 +50380,7 @@
    "labeledBy": "run",
    "verbs": [],
    "primary": null,
-   "material": "list",
+   "material": "waiting",
    "cases": 24,
    "traits": "in[arr,obj]>nil|obj rec:part",
    "hash": "63bc2474-660903f6"
@@ -51521,13 +51521,8 @@
   {
    "id": "inner-orbit:src/lib/atoms/verify/laws.ts#check.want",
    "labeledBy": "static",
-   "verbs": [
-    {
-     "id": "filter",
-     "by": "first"
-    }
-   ],
-   "primary": "filter",
+   "verbs": [],
+   "primary": null,
    "material": "unknown",
    "reason": "no-fitting-input"
   },
@@ -51543,13 +51538,8 @@
   {
    "id": "inner-orbit:src/lib/atoms/verify/laws.ts#check.want:step",
    "labeledBy": "static",
-   "verbs": [
-    {
-     "id": "filter",
-     "by": "first"
-    }
-   ],
-   "primary": "filter",
+   "verbs": [],
+   "primary": null,
    "material": "unknown",
    "reason": "no-fitting-input"
   },
@@ -51630,7 +51620,7 @@
    "labeledBy": "run",
    "verbs": [],
    "primary": null,
-   "material": "list",
+   "material": "geo",
    "cases": 24,
    "traits": "in[arr]>arr|nil",
    "hash": "eb6dba75-3ffc9619"
@@ -53397,7 +53387,7 @@
    "labeledBy": "run",
    "verbs": [],
    "primary": null,
-   "material": "list",
+   "material": "waiting",
    "cases": 24,
    "traits": "in[arr]>str",
    "hash": "26595bc3-9a8add61"
@@ -56203,7 +56193,7 @@
    "labeledBy": "run",
    "verbs": [],
    "primary": null,
-   "material": "list",
+   "material": "waiting",
    "cases": 24,
    "traits": "in[arr]>arr len~",
    "hash": "26595bc3-4ff50832"
@@ -56213,7 +56203,7 @@
    "labeledBy": "run",
    "verbs": [],
    "primary": null,
-   "material": "list",
+   "material": "waiting",
    "cases": 24,
    "traits": "in[arr]>str",
    "hash": "26595bc3-5513b30d"
@@ -56233,7 +56223,7 @@
    "labeledBy": "run",
    "verbs": [],
    "primary": null,
-   "material": "list",
+   "material": "waiting",
    "cases": 24,
    "traits": "in[arr]>arr len~",
    "hash": "26595bc3-16339651"
@@ -56278,7 +56268,7 @@
    "labeledBy": "run",
    "verbs": [],
    "primary": null,
-   "material": "list",
+   "material": "waiting",
    "cases": 24,
    "traits": "in[arr]>arr len~",
    "hash": "26595bc3-72cd5608"
@@ -59677,7 +59667,7 @@
    "labeledBy": "run",
    "verbs": [],
    "primary": null,
-   "material": "record:hTMLImageElement",
+   "material": "image",
    "cases": 24,
    "traits": "in[obj]>num int+",
    "hash": "c02194c5-28b3ab4a"
@@ -59702,7 +59692,7 @@
    "labeledBy": "run",
    "verbs": [],
    "primary": null,
-   "material": "record:hTMLImageElement",
+   "material": "image",
    "cases": 24,
    "traits": "in[obj]>num real+",
    "hash": "c02194c5-f8682af8"
@@ -59712,7 +59702,7 @@
    "labeledBy": "run",
    "verbs": [],
    "primary": null,
-   "material": "record:hTMLImageElement",
+   "material": "image",
    "cases": 24,
    "traits": "in[obj]>num int+",
    "hash": "c02194c5-588cd4b9"

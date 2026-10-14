@@ -27,7 +27,8 @@ import { bundleFile, loadInSandbox, callerFor, resolvePart } from '../lib/sandbo
 import { probePart, evalVerb, bindingsOf, baseCases, fOf, fnvHash } from '../lib/probe.mjs';
 import { readSigs } from '../inner/lib/sigs.mjs';
 import { VERB_BY_ID as LAW_VERBS } from '../lib/verbs.mjs';
-import { assemble, fit, provenAs, adapterRole } from './core.mjs';
+import { assemble, fit, provenAs, adapterRole, ADAPTER_VERBS } from './core.mjs';
+import { SHAPE_KINDS, materialDesc } from '../lib/kind-shape.mjs';
 import { HERE, CATALOG, loadGoals, loadIndex, loadParts, loadRecipes } from './load.mjs';
 import { runGraph, graphProblem, graphParts } from './graph.mjs';
 
@@ -63,11 +64,20 @@ const pairAt = (a, M) => {
   return a.takes.findIndex((k, i) => fit(k, M) > 0 || (M === 'geo' && String(k).startsWith('record:') && POINT_TYPE.test(String(r?.takes?.[i]?.type || ''))));
 };
 const plainKind = (k) => !!k && k !== 'unknown' && !String(k).startsWith('record');
-/** דבק כללי מותר רק כשהוא עולם-ריק: מתאם-סוג מוכח (adapterRole — אותו חוק כמו בטבעות). בוררים ייכנסו רק דרך רמז-מתכון. */
-const worldFree = (p) => !!adapterRole(p);
+/**
+ * מתאם של מקום/קול/תמונה/תור (MACHINE-V3): מתאם-סוג מוכח (הפועל הראשי ממיר/מעצב/…, מוכח בהרצה) שהקלט הראשי או הפלט
+ * שלו הוא אחד מארבעת הסוגים, והקלטים הנוספים הם **מספרים בלבד** (זווית, קנה-מידה, רדיוס — פרמטרים, לא עולם).
+ * בלי זה אין שום מתאם: הנקודות והצלילים בקוד תמיד באים עם פרמטר (project(p, yaw, pitch)). עד 4 קלטים.
+ */
+export const shapeAdapter = (p) =>
+  ADAPTER_VERBS.has(p.primary) && provenAs(p, p.primary) && p.takes.length >= 1 && p.takes.length <= 4 && plainKind(p.takes[0]) && p.takes.slice(1).every((k) => k === 'number') &&
+  plainKind(p.gives) && fit(p.gives, p.takes[0]) === 0 && (SHAPE_KINDS.includes(p.takes[0]) || SHAPE_KINDS.includes(p.gives));
+/** דבק כללי מותר רק כשהוא עולם-ריק: מתאם-סוג מוכח (adapterRole — אותו חוק כמו בטבעות), או מתאם-צורה. בוררים ייכנסו רק דרך רמז-מתכון. */
+const worldFree = (p) => !!adapterRole(p) || shapeAdapter(p);
 
-/** שלב ברמז: {verb} — חלק מוכח לפועל הזה; {takes} — כל חלק מוכח שאחד הקלטים שלו מהסוג הזה. */
+/** שלב ברמז: {part} — החלק הזה בשמו המלא (ו-{verb} = התפקיד שהוא מוכח לו); {verb} — חלק מוכח לפועל הזה; {takes} — כל חלק מוכח שאחד הקלטים שלו מהסוג הזה. */
 function stepPool(ix, raw, st, all) {
+  if (st.part) { const p = partByHome(ix, st.part); return p && homeOf(p, raw) && (!st.verb || provenAs(p, st.verb)) ? [p] : []; }
   if (st.verb) return provenRunnable(ix, raw, st.verb);
   return all.filter((p) => pairAt(p, st.takes) >= 0 && plainKind(p.gives));
 }
@@ -178,6 +188,42 @@ export function candidates3For(need, ix, raw) {
       for (const g of take(G.filter((g) => g.id !== f.id && accepts(g, c.gives) && fit(g.gives, M) > 0))) push([f, c, g], [f.primary, V, g.primary]);
   }
   return out;
+}
+
+/**
+ * צורת `on` (MACHINE-V3): **אותו חלק, על החומר.** חלק מוכח ל-V שהקלט שלו פתוח (any / T / T[] / אובייקט כללי) — מריצים אותו
+ * שוב כשבמקום הקלט הפתוח נכנס החומר עצמו (נקודות · צלילים · תמונות · תור — `MATERIAL_DESC`), ומקבלים רק אם **החוקים של V**
+ * עוברים n/n **והקישור שעבר הוא הקלט שהוחלף**. בלי דבק ובלי עולם: "הקוד הכללי כבר עושה את זה על נקודות" — מוכח בהרצה.
+ * רק לארבעת הסוגים. עד K_ON חלקים, לפי הסדר של האינדקס.
+ */
+const K_ON = 24;
+const OPEN_TYPE = /^(readonly\s+)?([A-Z]\w{0,3}|any|unknown|object)(\[\])?$|^(Readonly)?Array<([A-Z]\w{0,3}|any|unknown)>$/;
+export function candidatesOnFor(need, ix, raw) {
+  if (!SHAPE_KINDS.includes(need.material)) return [];
+  const out = [];
+  for (const p of provenRunnable(ix, raw, need.verb)) {
+    if (out.length >= K_ON) break;
+    const r = homeOf(p, raw);
+    if (!(r.takes || []).some((t) => OPEN_TYPE.test(String(t.type || '').trim()))) continue;
+    out.push({ form: 'on', steps: [p], roles: [need.verb] });
+  }
+  return out;
+}
+const LIST_BINDS = new Set(['list>list', 'list>any', 'list+key', 'list+any>list', 'flags', 'text+list', 'divide']);
+const openD = (d) => !d || d.t === 'any' || (d.t === 'tp' && (!d.of || d.of.t === 'any')) || (d.t === 'obj' && !(d.p || []).length);
+/** הקלט הפתוח שאליו נכנס החומר: ברשימה (פועל של רשימות) — מערך של פתוח; אחרת — פתוח. */
+export function onSlot(R, V, M) {
+  const many = LIST_BINDS.has(LAW_VERBS.get(V)?.bind) || M === 'waiting';
+  const ts = R.sig.takes;
+  for (let k = 0; k < ts.length; k++) { const d = ts[k].d; if (many && d && (d.t === 'arr' || d.t === 'set') && openD(d.of)) return { k, many: true }; }
+  for (let k = 0; k < ts.length; k++) if (openD(ts[k].d)) return { k, many };
+  return null;
+}
+/** אותו חלק, כשבקלט הפתוח נכנס החומר. */
+export function composeOn(R, slot, M, seed) {
+  const c = callerFor(R.ctx, R.fn, seed, R.self);
+  const takes = R.sig.takes.map((t, k) => (k === slot.k ? { ...t, d: materialDesc(M, slot.many), kind: M } : t));
+  return { sig: { takes }, call: (args) => c(args) };
 }
 
 /* ═══════════════ 2. מחבר — פונקציה מורכבת אחת ═══════════════ */
@@ -305,6 +351,7 @@ export function verify(V, composed, seed, B) {
 
 /* ═══════════════ הכול ═══════════════ */
 
+const KIND_HE_ON = { geo: 'נקודות', sound: 'צלילים', image: 'תמונות', waiting: 'תור' };
 const slug = (s) => String(s).replace(/[^a-z0-9-]/gi, '-');
 
 /** כל הצרכים בלי חלק מוכח ⇒ ניסיון-שילוב לכל זוג (פועל, חומר). */
@@ -320,8 +367,8 @@ export async function combineAll() {
       if (!want.has(k)) want.set(k, { verb: n.need.verb, material: n.need.material, behaviors: [] });
       want.get(k).behaviors.push(g.word + ': ' + n.need.behavior);
     }
-  const plans = [...want.values()].sort((a, b) => (a.verb + a.material < b.verb + b.material ? -1 : 1)).map((w) => ({ ...w, cands: candidatesFor(w, ix, raw), cands3: candidates3For(w, ix, raw) }));
-  const runners = await loadRunners([...new Set(plans.flatMap((p) => [...p.cands, ...p.cands3].flatMap((c) => c.steps)))], raw);
+  const plans = [...want.values()].sort((a, b) => (a.verb + a.material < b.verb + b.material ? -1 : 1)).map((w) => ({ ...w, cands: candidatesFor(w, ix, raw), candsOn: candidatesOnFor(w, ix, raw), cands3: candidates3For(w, ix, raw) }));
+  const runners = await loadRunners([...new Set(plans.flatMap((p) => [...p.cands, ...p.candsOn, ...p.cands3].flatMap((c) => c.steps)))], raw);
   const B = await import(pathToFileURL(await bundleBridge()).href);
   const results = [];
   const ids = (c) => (c.form === 'graph' ? graphParts(c.graph) : c.steps.map((s) => s.id));
@@ -342,20 +389,41 @@ export async function combineAll() {
           const ref = LAW_VERBS.get(pl.verb)?.ref?.sig;
           if (!ref || ref.length !== c.graph.inputs.length) throw new Error('הקלטים של הגרף לא תואמים את הפועל');
           composed = composeGraph(c.graph, Rs, seed, ref.map((t, k) => ({ ...t, name: c.graph.inputs[k] })));
+        } else if (c.form === 'on') {
+          const slot = onSlot(Rs[0], pl.verb, pl.material);
+          if (!slot) throw new Error('אין קלט פתוח שאפשר להכניס אליו ' + pl.material);
+          composed = composeOn(Rs[0], slot, pl.material, seed);
+          v = verify(pl.verb, composed, seed, B);
+          // עבר — אבל רק אם הקישור שעבר הוא הקלט שהוחלף (אחרת החלק עבד על משהו אחר, לא על החומר)
+          const nm = composed.sig.takes[slot.k].name;
+          if (v.ok && !String(v.on || '').split('+').includes(nm)) v = { ok: false, why: 'החוקים עברו על קלט אחר (' + v.on + '), לא על ' + pl.material };
+          if (v.ok) v = { ...v, slot: slot.k, many: slot.many };
         } else composed = c.form === 'pair' ? compose('pair', Rs[0], Rs[1], seed, c.at ?? 0) : composeChain(Rs, seed);
-        v = verify(pl.verb, composed, seed, B);
+        if (c.form !== 'on') v = verify(pl.verb, composed, seed, B);
+        // מקום/קול/תמונה/תור: החוקים חייבים לעבור **על החומר** — הקלט הראשון של השרשרת (בזוג: שני העותקים), לא על פרמטר צדדי
+        if (v.ok && c.form !== 'graph' && c.form !== 'on' && SHAPE_KINDS.includes(pl.material)) {
+          const want = c.form === 'pair' ? composed.sig.takes.slice(0, 2).map((t) => t.name) : [composed.sig.takes[0].name];
+          const on = String(v.on || '').split('+');
+          if (!want.every((n) => on.includes(n))) v = { ok: false, why: 'החוקים עברו על ' + v.on + ', לא על ' + pl.material + ' (' + want.join('+') + ')' };
+        }
       } catch (e) { v = { ok: false, why: 'שגיאה: ' + String(e?.message || e).slice(0, 100) }; }
       if (v.ok) return { ...c, ...v };
       tried.push({ steps: ids(c), form: c.form, ...(c.steps.length === 3 && c.form === 'chain' ? { depth: 3 } : {}), ...(v.law ? { law: v.law } : {}), why: v.why });
       return null;
     };
-    for (const c of pl.cands) if ((found = attempt(c))) break;
+    // רמזי-מתכון (גרף/זוג/שרשרת) ⇒ אותו חלק על החומר ⇒ ליבה + מתאם ⇒ עומק 3
+    const hinted = pl.cands.filter((c) => c.form === 'graph' || c.hint);
+    const general = pl.cands.filter((c) => !(c.form === 'graph' || c.hint));
+    let nOn = 0;
+    for (const c of hinted) if ((found = attempt(c))) break;
+    if (!found) for (const c of pl.candsOn) { nOn++; if ((found = attempt(c))) break; }
+    if (!found) for (const c of general) if ((found = attempt(c))) break;
     if (!found) for (const c of pl.cands3) { n3++; if ((found = attempt(c))) break; }
     const fsteps = found ? ids(found) : null;
     results.push({
-      verb: pl.verb, material: pl.material, behaviors: pl.behaviors.slice(0, 6), nBehaviors: pl.behaviors.length, candidates: pl.cands.length, candidates3: n3,
+      verb: pl.verb, material: pl.material, behaviors: pl.behaviors.slice(0, 6), nBehaviors: pl.behaviors.length, candidates: pl.cands.length, ...(nOn ? { candidatesOn: nOn } : {}), candidates3: n3,
       found: found ? {
-        form: found.form, depth: fsteps.length, ...(found.form === 'pair' ? { at: found.at } : {}), steps: fsteps, roles: found.roles, holds: found.holds, on: found.on, laws: found.laws, ...(found.hint ? { hint: found.hint } : {}),
+        form: found.form, depth: fsteps.length, ...(found.form === 'pair' ? { at: found.at } : {}), ...(found.form === 'on' ? { slot: found.slot, many: found.many } : {}), steps: fsteps, roles: found.roles, holds: found.holds, on: found.on, laws: found.laws, ...(found.hint ? { hint: found.hint } : {}),
         ...(found.form === 'graph' ? { graph: { inputs: found.graph.inputs, consts: found.graph.consts, nodes: found.graph.nodes, out: found.graph.out } } : {}),
       } : null,
       tried: tried.slice(0, 8),
@@ -370,13 +438,13 @@ export async function combineAll() {
     recipes[id + '.json'] = JSON.stringify({
       id, word: r.verb + ' · ' + r.material,
       // גרף: השם נושא את הפועל ואת מילות-הרמז שלו (כיוון · אזימוט…) — כך צורך עם keys של הבעלים מוצא אותו
-      title: r.found.form === 'graph' ? 'שילוב «' + v.he + '» (' + (v.cues?.he || []).join(' · ') + ', ' + (v.cues?.en || []).slice(0, 2).join(' · ') + '): ' + ps.length + ' חלקים — ' + ps[0].name + ' ⇒ … ⇒ ' + ps[ps.length - 1].name : 'שילוב: ' + ps.map((p) => p.name).join(' ⇒ '),
-      combo: { verb: r.verb, material: r.material, form: r.found.form, ...(r.found.form === 'pair' ? { at: r.found.at } : {}), steps: r.found.steps, roles: r.found.roles, holds: r.found.holds, laws: r.found.laws, ...(r.found.hint ? { hint: r.found.hint } : {}), ...io, ...(r.found.graph ? { graph: r.found.graph } : {}) },
+      title: r.found.form === 'on' ? ps[0].name + ' — על ' + KIND_HE_ON[r.material] : r.found.form === 'graph' ? 'שילוב «' + v.he + '» (' + (v.cues?.he || []).join(' · ') + ', ' + (v.cues?.en || []).slice(0, 2).join(' · ') + '): ' + ps.length + ' חלקים — ' + ps[0].name + ' ⇒ … ⇒ ' + ps[ps.length - 1].name : 'שילוב: ' + ps.map((p) => p.name).join(' ⇒ '),
+      combo: { verb: r.verb, material: r.material, form: r.found.form, ...(r.found.form === 'pair' ? { at: r.found.at } : {}), ...(r.found.form === 'on' ? { slot: r.found.slot, many: r.found.many } : {}), steps: r.found.steps, roles: r.found.roles, holds: r.found.holds, laws: r.found.laws, ...(r.found.hint ? { hint: r.found.hint } : {}), ...io, ...(r.found.graph ? { graph: r.found.graph } : {}) },
       needs: [{ need: 'combo', verb: r.verb, material: r.material, chain: r.found.steps }],
     }, null, 1) + '\n';
   }
-  const byDepth = (d) => results.filter((r) => r.found && (d === 'graph' ? r.found.form === 'graph' : r.found.form !== 'graph' && r.found.depth === d)).length;
-  const summary = { about: 'נבנה ע״י catalog/combiner/combine.mjs — לא לערוך ביד', seed: SEED, k: K, k3: K3, pairs: results.length, proven: results.filter((r) => r.found).length, depth: { 2: byDepth(2), 3: byDepth(3), graph: byDepth('graph') }, results };
+  const byDepth = (d) => results.filter((r) => r.found && (d === 'graph' ? r.found.form === 'graph' : r.found.form !== 'graph' && r.found.form !== 'on' && r.found.depth === d)).length;
+  const summary = { about: 'נבנה ע״י catalog/combiner/combine.mjs — לא לערוך ביד', seed: SEED, k: K, k3: K3, pairs: results.length, proven: results.filter((r) => r.found).length, depth: { on: results.filter((r) => r.found?.form === 'on').length, 2: byDepth(2), 3: byDepth(3), graph: byDepth('graph') }, results };
   return { summary: JSON.stringify(summary, null, 1) + '\n', recipes };
 }
 

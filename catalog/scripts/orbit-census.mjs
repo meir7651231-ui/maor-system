@@ -30,6 +30,7 @@ import { ZMANIM_CARD } from '../../src/lib/atoms/engines/zmanim.ts';
 import { WHAT_NEED_CARD } from '../../src/lib/atoms/engines/whatNeed.ts';
 import { BOOKINGS_CARD } from '../../src/lib/atoms/engines/bookings.ts';
 import { validatePart, validateSource, NAME_VERBS } from '../lib/check.mjs';
+import { shapeKindOfType } from '../lib/kind-shape.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const OUT = join(ROOT, 'catalog/sources/orbit.json');
@@ -224,6 +225,9 @@ export function kindOf(rawType, name = '', depth = 0, objName = '') {
   let t = norm(rawType).replace(/^readonly /, '');
   const solo = K.unionParts(t);
   if (solo.length === 1 && solo[0] !== t) t = solo[0];
+  // מקום · קול · תמונה · תור — לפי הצורה (המיפוי המשותף, catalog/lib/kind-shape.mjs); כינוי-טיפוס נבדק כשנפתח
+  const sk = shapeKindOfType(t, name);
+  if (sk) return sk;
   if (!t || t === 'unknown' || t === 'object' || t === 'any') return kindByName(name);
   const al = depth < 4 ? aliasOf(t) : null;
   if (al && !al.startsWith('{')) {

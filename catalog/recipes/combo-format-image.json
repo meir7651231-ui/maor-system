@@ -1,0 +1,33 @@
+{
+ "id": "combo-format-image",
+ "word": "format · image",
+ "title": "ממיר ערך לטקסט — על תמונות",
+ "combo": {
+  "verb": "format",
+  "material": "image",
+  "form": "on",
+  "slot": 0,
+  "many": false,
+  "steps": [
+   "inner-14kk:communication_protocol.js#SmartCommunicationProtocol.sendTelegramMessage.Promise.data"
+  ],
+  "roles": [
+   "format"
+  ],
+  "holds": "15/15",
+  "laws": [
+   "format.injective",
+   "format.det"
+  ]
+ },
+ "needs": [
+  {
+   "need": "combo",
+   "verb": "format",
+   "material": "image",
+   "chain": [
+    "inner-14kk:communication_protocol.js#SmartCommunicationProtocol.sendTelegramMessage.Promise.data"
+   ]
+  }
+ ]
+}

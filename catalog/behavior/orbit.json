@@ -1,6 +1,6 @@
 {
  "source": "orbit",
- "ref": "claude/catalog-orbit-261014@dc399c75693a",
+ "ref": "claude/machine-v3-261014@abc82e807700",
  "probe": {
   "version": 1,
   "seed": 13269520,
@@ -11,7 +11,7 @@
   "runWithVerb": 318,
   "twin": 0,
   "static": 90,
-  "staticWithVerb": 31,
+  "staticWithVerb": 33,
   "why": {
    "machine": 60,
    "no-fitting-input": 16,
@@ -8415,7 +8415,7 @@
    "labeledBy": "run",
    "verbs": [],
    "primary": null,
-   "material": "unknown",
+   "material": "geo",
    "cases": 24,
    "traits": "in[obj,num,num,num,num]>obj rec:new",
    "hash": "b3960535-3695a932"
@@ -9443,16 +9443,26 @@
   {
    "id": "orbit:src/lib/atoms/engines/zmanim.ts#ZMANIM_CARD.3",
    "labeledBy": "static",
-   "verbs": [],
-   "primary": null,
+   "verbs": [
+    {
+     "id": "sun-position",
+     "by": "name"
+    }
+   ],
+   "primary": "sun-position",
    "material": "geo",
    "reason": "machine — אין מריץ"
   },
   {
    "id": "orbit:src/lib/atoms/engines/zmanim.ts#ZMANIM_CARD.4",
    "labeledBy": "static",
-   "verbs": [],
-   "primary": null,
+   "verbs": [
+    {
+     "id": "sun-position",
+     "by": "symbol"
+    }
+   ],
+   "primary": "sun-position",
    "material": "geo",
    "reason": "machine — אין מריץ"
   },

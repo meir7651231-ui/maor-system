@@ -14,8 +14,9 @@
         },
         {
           "behavior": "כיוון הפוך בכל מעבר",
-          "verb": "reverse",
-          "material": "choice"
+          "verb": "convert",
+          "material": "number",
+          "note": "MACHINE-V3: היה reverse·choice. «הופך סדר» הופך רשימה; כאן הכיוון (+1/−1) מתהפך — ממיר ערך מספרי (הפוך-של-הפוך = המקור)."
         },
         {
           "behavior": "שרשרת של גלגלים",
@@ -364,7 +365,8 @@
         {
           "behavior": "מוצרים שפג תוקפם",
           "verb": "filter",
-          "material": "date"
+          "material": "list",
+          "note": "MACHINE-V3: היה filter·date. מסננים את רשימת המוצרים לפי תאריך-התפוגה — «מסנן» על רשימה (החוקים שלו בודקים רשימה)."
         }
       ]
     },
@@ -467,8 +469,9 @@
         },
         {
           "behavior": "רק בימי חול",
-          "verb": "filter",
-          "material": "date"
+          "verb": "validate",
+          "material": "date",
+          "note": "MACHINE-V3: היה filter·date. «רק בימי חול» = בודק על יום אחד אם הוא יום חול — «בודק» על תאריך."
         },
         {
           "behavior": "מתחיל בשקט ומתחזק",

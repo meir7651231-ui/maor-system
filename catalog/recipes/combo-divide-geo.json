@@ -1,0 +1,33 @@
+{
+ "id": "combo-divide-geo",
+ "word": "divide · geo",
+ "title": "אוסף פריטים לרשימה חדשה — על נקודות",
+ "combo": {
+  "verb": "divide",
+  "material": "geo",
+  "form": "on",
+  "slot": 0,
+  "many": true,
+  "steps": [
+   "inner-generator:machtzev/generator/genesis-gen.mjs#writeGoalSpecs.rooms:after-loop"
+  ],
+  "roles": [
+   "divide"
+  ],
+  "holds": "20/20",
+  "laws": [
+   "divide.cover",
+   "divide.equal"
+  ]
+ },
+ "needs": [
+  {
+   "need": "combo",
+   "verb": "divide",
+   "material": "geo",
+   "chain": [
+    "inner-generator:machtzev/generator/genesis-gen.mjs#writeGoalSpecs.rooms:after-loop"
+   ]
+  }
+ ]
+}

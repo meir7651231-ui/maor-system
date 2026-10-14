@@ -1,0 +1,34 @@
+{
+ "id": "combo-tolerate-waiting",
+ "word": "tolerate · waiting",
+ "title": "בוחר ערך לפי תנאי — על תור",
+ "combo": {
+  "verb": "tolerate",
+  "material": "waiting",
+  "form": "on",
+  "slot": 0,
+  "many": true,
+  "steps": [
+   "inner-generator:box-drafts/buildsmart-seed/search-exact@app_src_lib_search_ts.mjs#searchExact.bucket"
+  ],
+  "roles": [
+   "tolerate"
+  ],
+  "holds": "18/18",
+  "laws": [
+   "tolerate.total",
+   "tolerate.slot",
+   "tolerate.keep"
+  ]
+ },
+ "needs": [
+  {
+   "need": "combo",
+   "verb": "tolerate",
+   "material": "waiting",
+   "chain": [
+    "inner-generator:box-drafts/buildsmart-seed/search-exact@app_src_lib_search_ts.mjs#searchExact.bucket"
+   ]
+  }
+ ]
+}

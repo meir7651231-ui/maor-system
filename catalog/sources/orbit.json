@@ -1,7 +1,7 @@
 {
  "source": "orbit",
  "repo": "meir7651231-ui/maor-system",
- "ref": "claude/catalog-orbit-261014@dc399c75693a",
+ "ref": "claude/machine-v3-261014@abc82e807700",
  "generatedAt": null,
  "parts": [
   {
@@ -7262,7 +7262,7 @@
    "symbol": "seatPositions",
    "lang": "ts",
    "what": "function",
-   "name": "מוצא מיקומי הכיסאות סביב השולחן",
+   "name": "מחזיר מיקומי הכיסאות סביב השולחן",
    "does": "מיקומי-הכיסאות סביב השולחן.",
    "takes": [
     {
@@ -7287,7 +7287,7 @@
     }
    ],
    "gives": {
-    "kind": "list",
+    "kind": "geo",
     "type": "{ x: number; y: number }[]"
    },
    "pure": true,
@@ -23031,7 +23031,7 @@
    "takes": [
     {
      "name": "p",
-     "kind": "unknown",
+     "kind": "geo",
      "type": "{ x: number; y: number; z: number }"
     },
     {

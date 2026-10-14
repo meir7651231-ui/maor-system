@@ -35,6 +35,7 @@
    ],
    "out": "az"
   },
+  { "verb": "compare", "material": "geo", "form": "pair", "steps": [{ "part": "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d", "verb": "convert" }, { "verb": "compare" }], "why": "מתקרב = מודד-המרחק של הגלקסיה (hypot בין העכבר לכוכב) לכל אחד, ואז משווה מי קרוב יותר. בשמו המלא (MACHINE-V3) — כדי שמתאם-מקום חדש שאינו מרחק לא יחליף אותו" },
   { "verb": "compare", "material": "geo", "form": "pair", "steps": [{ "verb": "gap" }, { "verb": "compare" }], "why": "מתקרב = מודד מרחק לכל אחד, ואז משווה מי קרוב יותר" },
   { "verb": "compare", "material": "geo", "form": "pair", "steps": [{ "takes": "geo" }, { "verb": "compare" }], "why": "מתקרב = מודד מרחק לכל אחד (כל חלק מוכח שמקבל מקום ונותן מספר), ואז משווה מי קרוב יותר" },
   { "verb": "escalate", "material": "choice", "form": "chain", "steps": [{ "verb": "escalate" }, { "verb": "extreme" }], "why": "מתרגז בשלבים = מסלים בזמן, ואז בוחר את השלב הנוכחי (הכי-גבוה שהגיע)" },

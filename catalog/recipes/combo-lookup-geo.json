@@ -1,0 +1,33 @@
+{
+ "id": "combo-lookup-geo",
+ "word": "lookup · geo",
+ "title": "מצמצם רשימה לערך אחד — על נקודות",
+ "combo": {
+  "verb": "lookup",
+  "material": "geo",
+  "form": "on",
+  "slot": 0,
+  "many": true,
+  "steps": [
+   "inner-generator:yeshiva/atom-psak.mjs#judge.best"
+  ],
+  "roles": [
+   "lookup"
+  ],
+  "holds": "24/24",
+  "laws": [
+   "lookup.member",
+   "lookup.first"
+  ]
+ },
+ "needs": [
+  {
+   "need": "combo",
+   "verb": "lookup",
+   "material": "geo",
+   "chain": [
+    "inner-generator:yeshiva/atom-psak.mjs#judge.best"
+   ]
+  }
+ ]
+}

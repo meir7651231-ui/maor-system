@@ -5,13 +5,13 @@
   "behaviors": 940,
   "newVerbsLeft": 0,
   "before": {
-    "byVerb": 763,
-    "byVerbAndMaterial": 539,
-    "pct": 81.2
+    "byVerb": 760,
+    "byVerbAndMaterial": 552,
+    "pct": 80.9
   },
   "after": {
     "byVerb": 940,
-    "byVerbAndMaterial": 678,
+    "byVerbAndMaterial": 703,
     "pct": 100
   },
   "uncoveredAfter": [],
@@ -19,9 +19,9 @@
     {
       "verb": "validate",
       "mined": false,
-      "needs": 88,
-      "before": 88,
-      "after": 88,
+      "needs": 90,
+      "before": 90,
+      "after": 90,
       "parts": 636
     },
     {
@@ -35,9 +35,9 @@
     {
       "verb": "convert",
       "mined": false,
-      "needs": 52,
-      "before": 52,
-      "after": 52,
+      "needs": 53,
+      "before": 53,
+      "after": 53,
       "parts": 906
     },
     {
@@ -59,10 +59,18 @@
     {
       "verb": "offset",
       "mined": false,
-      "needs": 41,
-      "before": 41,
-      "after": 41,
+      "needs": 42,
+      "before": 42,
+      "after": 42,
       "parts": 78
+    },
+    {
+      "verb": "sort",
+      "mined": false,
+      "needs": 38,
+      "before": 38,
+      "after": 38,
+      "parts": 42
     },
     {
       "verb": "escalate",
@@ -83,10 +91,10 @@
     {
       "verb": "filter",
       "mined": false,
-      "needs": 30,
-      "before": 30,
-      "after": 30,
-      "parts": 367
+      "needs": 28,
+      "before": 28,
+      "after": 28,
+      "parts": 365
     },
     {
       "verb": "decay",
@@ -103,22 +111,6 @@
       "before": 27,
       "after": 27,
       "parts": 3
-    },
-    {
-      "verb": "sort",
-      "mined": false,
-      "needs": 27,
-      "before": 27,
-      "after": 27,
-      "parts": 42
-    },
-    {
-      "verb": "tier",
-      "mined": false,
-      "needs": 27,
-      "before": 27,
-      "after": 27,
-      "parts": 298
     },
     {
       "verb": "compare",
@@ -145,12 +137,20 @@
       "parts": 45
     },
     {
+      "verb": "oscillate",
+      "mined": true,
+      "needs": 21,
+      "before": 0,
+      "after": 21,
+      "parts": 2
+    },
+    {
       "verb": "sun-position",
       "mined": true,
       "needs": 21,
       "before": 0,
       "after": 21,
-      "parts": 14
+      "parts": 16
     },
     {
       "verb": "clamp",
@@ -161,19 +161,11 @@
       "parts": 199
     },
     {
-      "verb": "oscillate",
-      "mined": true,
-      "needs": 20,
-      "before": 0,
-      "after": 20,
-      "parts": 2
-    },
-    {
       "verb": "extreme",
       "mined": false,
-      "needs": 19,
-      "before": 19,
-      "after": 19,
+      "needs": 20,
+      "before": 20,
+      "after": 20,
       "parts": 114
     },
     {
@@ -201,6 +193,14 @@
       "parts": 115
     },
     {
+      "verb": "tier",
+      "mined": false,
+      "needs": 15,
+      "before": 15,
+      "after": 15,
+      "parts": 298
+    },
+    {
       "verb": "dedupe",
       "mined": false,
       "needs": 14,
@@ -217,12 +217,12 @@
       "parts": 20
     },
     {
-      "verb": "reverse",
-      "mined": false,
+      "verb": "random",
+      "mined": true,
       "needs": 14,
-      "before": 14,
+      "before": 0,
       "after": 14,
-      "parts": 10
+      "parts": 8
     },
     {
       "verb": "bucket",
@@ -235,18 +235,18 @@
     {
       "verb": "merge",
       "mined": false,
-      "needs": 13,
-      "before": 13,
-      "after": 13,
+      "needs": 12,
+      "before": 12,
+      "after": 12,
       "parts": 39
     },
     {
-      "verb": "random",
-      "mined": true,
+      "verb": "reverse",
+      "mined": false,
       "needs": 12,
-      "before": 0,
+      "before": 12,
       "after": 12,
-      "parts": 8
+      "parts": 10
     },
     {
       "verb": "tolerate",
@@ -321,14 +321,6 @@
       "parts": 72
     },
     {
-      "verb": "fuzzy",
-      "mined": false,
-      "needs": 6,
-      "before": 6,
-      "after": 6,
-      "parts": 361
-    },
-    {
       "verb": "shortest-path",
       "mined": true,
       "needs": 5,
@@ -361,6 +353,14 @@
       "parts": 18
     },
     {
+      "verb": "fuzzy",
+      "mined": false,
+      "needs": 3,
+      "before": 3,
+      "after": 3,
+      "parts": 361
+    },
+    {
       "verb": "sample",
       "mined": true,
       "needs": 3,
@@ -391,6 +391,14 @@
       "before": 2,
       "after": 2,
       "parts": 31
+    },
+    {
+      "verb": "join",
+      "mined": false,
+      "needs": 1,
+      "before": 1,
+      "after": 1,
+      "parts": 402
     }
   ]
 }

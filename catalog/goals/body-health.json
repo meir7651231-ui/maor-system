@@ -8,8 +8,9 @@
       "needs": [
         {
           "behavior": "מיון לפי דחיפות",
-          "verb": "tier",
-          "material": "list"
+          "verb": "sort",
+          "material": "list",
+          "note": "MACHINE-V3: היה tier·list. «מדרג לשלבים» שם ערך אחד על סולם (מספר ⇒ מדרגה); כאן מסדרים את כל הרשימה לפי הדרגה — זה «ממיין» על רשימה."
         },
         {
           "behavior": "בתוך אותה דרגה לפי הגעה",
@@ -79,7 +80,8 @@
         {
           "behavior": "המנה הבאה",
           "verb": "next",
-          "material": "date"
+          "material": "times",
+          "note": "MACHINE-V3: היה next·date. החוקים של «מוצא את הבא בתור» משווים רגעים (מה שהוחזר מהרשימה, לא לפני עכשיו, הכי קרוב); יום בלוח הוא רגע — לכן החומר הוא רגעים."
         },
         {
           "behavior": "רק בגיל מתאים",
@@ -182,8 +184,9 @@
         },
         {
           "behavior": "קצת אקראי",
-          "verb": "fuzzy",
-          "material": "times"
+          "verb": "random",
+          "material": "sequence",
+          "note": "MACHINE-V3: היה fuzzy·times. «קצת אקראי» = זמני-מצמוץ מוגרלים עם זרע — «מגריל» נותן רצף, וזה מה שהחוקים שלו בודקים."
         },
         {
           "behavior": "נסגרת כשמשהו קרוב",
@@ -318,8 +321,9 @@
         },
         {
           "behavior": "דחוף עוקף",
-          "verb": "tier",
-          "material": "list"
+          "verb": "sort",
+          "material": "list",
+          "note": "MACHINE-V3: היה tier·list. «מדרג לשלבים» שם ערך אחד על סולם (מספר ⇒ מדרגה); כאן מסדרים את כל הרשימה לפי הדרגה — זה «ממיין» על רשימה."
         },
         {
           "behavior": "הבא בתור",

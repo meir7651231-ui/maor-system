@@ -11,7 +11,7 @@
   "runWithVerb": 10,
   "twin": 0,
   "static": 55,
-  "staticWithVerb": 5,
+  "staticWithVerb": 7,
   "why": {
    "impure": 47,
    "no-fitting-input": 6,
@@ -104,8 +104,13 @@
   {
    "id": "mmmm:artifacts/api-server/src/swarm/agents.ts#runMarketAgent",
    "labeledBy": "static",
-   "verbs": [],
-   "primary": null,
+   "verbs": [
+    {
+     "id": "sun-heading",
+     "by": "name"
+    }
+   ],
+   "primary": "sun-heading",
    "material": "record:profile",
    "reason": "impure"
   },
@@ -120,8 +125,13 @@
   {
    "id": "mmmm:artifacts/api-server/src/swarm/agents.ts#runStyleAnalystAgent",
    "labeledBy": "static",
-   "verbs": [],
-   "primary": null,
+   "verbs": [
+    {
+     "id": "sun-heading",
+     "by": "name"
+    }
+   ],
+   "primary": "sun-heading",
    "material": "record:profile",
    "reason": "impure"
   },

@@ -53,17 +53,17 @@
  },
  "behaviors": {
   "total": 940,
-  "base-only": 162,
-  "both": 185,
-  "inner-only": 152,
-  "none": 441
+  "base-only": 197,
+  "both": 211,
+  "inner-only": 162,
+  "none": 370
  },
  "pairs": {
-  "total": 198,
-  "base-only": 15,
-  "both": 31,
-  "inner-only": 21,
-  "none": 131
+  "total": 191,
+  "base-only": 17,
+  "both": 33,
+  "inner-only": 25,
+  "none": 116
  },
  "examples": [
   {
@@ -163,6 +163,22 @@
    }
   },
   {
+   "verb": "extreme",
+   "material": "geo",
+   "behaviors": 5,
+   "sample": [
+    "כבאות: תחנה קרובה",
+    "תופסת: הקרוב ביותר",
+    "אמבולנס: האמבולנס הקרוב"
+   ],
+   "innerParts": 2,
+   "part": {
+    "id": "inner-orbit:src/components/parnasa/envelope.ts#envLayout.forEach.forEach.bd:after-loop",
+    "name": "בוחר את הפריט עם הערך הגדול ביותר",
+    "parent": "orbit:src/components/parnasa/envelope.ts#envLayout"
+   }
+  },
+  {
    "verb": "convert",
    "material": "choice",
    "behaviors": 4,
@@ -256,6 +272,36 @@
    }
   },
   {
+   "verb": "validate",
+   "material": "date",
+   "behaviors": 2,
+   "sample": [
+    "שוק: סגור בשבת",
+    "שעון-מעורר: רק בימי חול"
+   ],
+   "innerParts": 9,
+   "part": {
+    "id": "inner-orbit:src/components/courses/CoursesView.tsx#CoursesList.useMemo.filter.isHistory",
+    "name": "בודק כמה תנאים יחד",
+    "parent": "orbit:src/components/courses/CoursesView.tsx#CoursesList"
+   }
+  },
+  {
+   "verb": "validate",
+   "material": "waiting",
+   "behaviors": 2,
+   "sample": [
+    "מסיבת-הפתעה: מחכים לרגע",
+    "גשר-נפתח: נשאר פתוח עד שעברה"
+   ],
+   "innerParts": 2,
+   "part": {
+    "id": "inner-orbit:src/components/parnasa/DirectoryTab.tsx#DirectoryTab.anyApproved",
+    "name": "בודק אם יש פריט מתאים",
+    "parent": "orbit:src/components/parnasa/DirectoryTab.tsx#DirectoryTab"
+   }
+  },
+  {
    "verb": "clamp",
    "material": "amount",
    "behaviors": 1,
@@ -281,6 +327,20 @@
     "id": "inner-orbit:src/components/supporters/tierMigration.ts#tierMigration.diff",
     "name": "מחשב הפרש בין ערכים",
     "parent": "orbit:src/components/supporters/tierMigration.ts#tierMigration"
+   }
+  },
+  {
+   "verb": "count",
+   "material": "waiting",
+   "behaviors": 1,
+   "sample": [
+    "חתונה: אישורי הגעה"
+   ],
+   "innerParts": 5,
+   "part": {
+    "id": "inner-orbit:src/components/courses/CourseDetail.tsx#CourseDetail.fn.n",
+    "name": "סופר פריטים",
+    "parent": "orbit:src/components/courses/CourseDetail.tsx#CourseDetail"
    }
   },
   {

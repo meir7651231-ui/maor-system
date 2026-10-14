@@ -5,10 +5,14 @@
 import { hintOf } from './shape.mjs';
 import { traitKey } from './probe.mjs';
 import { staticLabel } from './static-label.mjs';
+import { shapeKindOfDesc } from './kind-shape.mjs';
 
 const lowerCamel = (s) => String(s).replace(/^[A-Z]/, (c) => c.toLowerCase());
 export function kindOfDesc(d, name = '') {
   if (!d) return 'unknown';
+  // מקום · קול · תמונה · תור — לפי הצורה (kind-shape.mjs), לפני המיפוי הכללי (רשומה/רשימה)
+  const sk = shapeKindOfDesc(d, name);
+  if (sk) return sk;
   const h = d.h || hintOf(name);
   switch (d.t) {
     case 'obj': return 'record:' + lowerCamel(d.n || name.replace(/s$/, '') || 'item');
