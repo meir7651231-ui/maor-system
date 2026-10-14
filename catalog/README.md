@@ -9,6 +9,31 @@
 - המקורות: `sources/<source>.json` — אורביט: [`sources/orbit.json`](./sources/orbit.json). את `generator`, `rings`, `buildsmart`, `yeshiva`, `qa-scanner`, `yoman-habina`, `14kk`, `mmmm` כותבים סשנים אחרים.
 - התיקייה לא נכנסת לאפליקציה (אין ייבוא מ-`src/`), והיא לא משנה שום דבר באתר החי.
 
+## 🔤 כל המקורות יחד · אלפבית-הפעלים · קורא-ההתנהגות
+
+**לבעלים, בשלוש שורות:**
+1. כל 9 המקורות (5,843 חלקים) נכנסו לאינדקס אחד — [`index.json`](./index.json), עם כפולים בין-פרויקטים וטבלת "מי מתחבר למי".
+2. **אלפבית של 45 פעולות בלי עולם** ("מחלק", "מסכם", "מזיז"…) — [`verbs.md`](./verbs.md). לכל פעולה חוקים שאפשר להריץ, וכל חוק מוכח שהוא "נושך" (תופס מימוש מקולקל).
+3. **קורא-ההתנהגות** מריץ כל חלק טהור בארגז-חול ובודק אילו פעולות הוא באמת עושה — לא לפי השם. התוצאה: [`alphabet.md`](./alphabet.md) — "אותה פעולה, שמות אחרים". לדפדוף: [`browse.html`](./browse.html).
+
+| קובץ | מה |
+|---|---|
+| `index.json` | כל החלקים (שורה לכל חלק) · סטטיסטיקה לפי מקור/סוג/שפה/what · `dups` — אותו חלק בכמה מקורות · `plugs` — כמה זוגות נותן⇒לוקח לכל סוג ולכל זוג מקורות |
+| `verbs.json` · `verbs.md` | האלפבית: מזהה · פועל עברי · משמעות · צורה · חוקים (+ 30 חוקי-המאמת ל-8 פעלי-הארגז) |
+| `behavior/<source>.json` | לכל חלק: `labeledBy` (`run` נמדד · `twin` העתק של חלק שהורץ · `static` ניחוש משם + סיבה) · `verbs` (עם `holds: n/n`) · `primary` · `material` |
+| `alphabet.md` | לכל פועל כמה חלקים בכל מקור + דוגמאות מעולמות שונים · מועמדים לפעלים חדשים · תאומים מדויקים |
+| `browse.html` | דף-דפדוף (עברית, בלי תלויות): חיפוש לפי שם/פועל/סוג/מקור · "אותה פעולה, שמות שונים" |
+
+```bash
+# שכפולי-קריאה של שאר הריפואים ב-../catsrc/{buildsmart,rings,14kk,mmmm,yoman,yeshiva} (ב-ref של המפקד)
+node catalog/scripts/behavior-probe.mjs                 # כל המקורות ⇒ catalog/behavior/*.json (~1 דקה)
+node catalog/scripts/behavior-probe.mjs --source orbit  # רק אורביט (לא צריך שכפולים)
+node catalog/scripts/catalog-build.mjs                  # index.json · verbs.json · verbs.md · alphabet.md
+node catalog/scripts/catalog-build.mjs --check          # יציאה 1 אם לא מעודכן (רץ גם ב-npm test)
+```
+
+**ארגז-החול:** רק חלקים `pure: true` ב-TS/JS (ולבני-הטבעות דרך המריץ שלהן). כל קובץ נארז בזיכרון (rolldown) ורץ ב-`vm` ריק: בלי `process` אמיתי, בלי `require`/רשת/דיסק (מודולים חיצוניים ⇒ "מודול אדיש"), `eval` כבוי, שעון קבוע ו-`Math.random` עם זרע; כל מקור בתהליך משלו, כל קובץ ב-worker עם `env` ריק ושומר-זמן לחלק. דוח: [`knowledge/CLOSED-CATALOG-2026-10-14.md`](../knowledge/CLOSED-CATALOG-2026-10-14.md).
+
 ## אורביט במספרים
 
 **979 חלקים** · 966 טהורים · 118 עם דוגמה מבדיקה (מסוננת) · 243 סוגי רשומות.

@@ -1,0 +1,2211 @@
+{
+ "source": "rings",
+ "ref": "claude/lab-rings@5805b7f53752c1d1dc8b84c1891a10c8b2512d63",
+ "probe": {
+  "version": 1,
+  "seed": 13269520,
+  "generatedAt": null
+ },
+ "totals": {
+  "run": 154,
+  "runWithVerb": 75,
+  "twin": 0,
+  "static": 0,
+  "staticWithVerb": 0,
+  "why": {}
+ },
+ "parts": [
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#או (מספרים)",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "normalize",
+     "on": "א",
+     "holds": "12/12"
+    },
+    {
+     "id": "combine",
+     "on": "א+ב",
+     "holds": "24/24"
+    }
+   ],
+   "primary": "combine",
+   "material": "number",
+   "cases": 24,
+   "hash": "84d9a7c9-70aa5eec"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#אורך רשימה (לולאה + ספירה)",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "count",
+     "on": "רשימה",
+     "holds": "36/36"
+    }
+   ],
+   "primary": "count",
+   "material": "number",
+   "cases": 24,
+   "hash": "3a8cb4c1-bf962a70"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#אם (תא0 לא-אפס ⇒ תא1, אחרת תא3)",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "offset",
+     "on": "ג+א",
+     "holds": "24/24"
+    },
+    {
+     "id": "tier",
+     "on": "א",
+     "holds": "6/6"
+    },
+    {
+     "id": "clamp",
+     "on": "ב",
+     "holds": "3/3"
+    },
+    {
+     "id": "normalize",
+     "on": "ב",
+     "holds": "12/12",
+     "implied": true
+    }
+   ],
+   "primary": "tier",
+   "material": "number",
+   "cases": 24,
+   "hash": "a5775e06-1fc4ad87"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#אפס?",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "tier",
+     "on": "א",
+     "holds": "6/6"
+    }
+   ],
+   "primary": "tier",
+   "material": "number",
+   "cases": 24
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#בחר לפי זוגי",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "clamp",
+     "on": "ב",
+     "holds": "3/3"
+    },
+    {
+     "id": "normalize",
+     "on": "ב",
+     "holds": "12/12",
+     "implied": true
+    }
+   ],
+   "primary": "clamp",
+   "material": "number",
+   "cases": 24,
+   "hash": "a5775e06-1589d268"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#בלי הגדולים מ-12",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "filter",
+     "on": "רשימה",
+     "holds": "24/24"
+    },
+    {
+     "id": "normalize",
+     "on": "רשימה",
+     "holds": "12/12",
+     "implied": true
+    }
+   ],
+   "primary": "filter",
+   "material": "number",
+   "cases": 24,
+   "hash": "3a8cb4c1-1b86fcd8"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#בלי הזוגיים",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "filter",
+     "on": "רשימה",
+     "holds": "24/24"
+    },
+    {
+     "id": "normalize",
+     "on": "רשימה",
+     "holds": "12/12",
+     "implied": true
+    }
+   ],
+   "primary": "filter",
+   "material": "number",
+   "cases": 24,
+   "hash": "3a8cb4c1-f6c1ffc4"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#בלי הראשון",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[arr]>arr len~ ⊆",
+   "hash": "3a8cb4c1-ad422753"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#גדול או שווה",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "round",
+     "on": "א",
+     "holds": "18/18"
+    },
+    {
+     "id": "tier",
+     "on": "א",
+     "holds": "6/6"
+    },
+    {
+     "id": "normalize",
+     "on": "א",
+     "holds": "12/12",
+     "implied": true
+    }
+   ],
+   "primary": "tier",
+   "material": "number",
+   "cases": 24,
+   "hash": "84d9a7c9-ea3a43e5"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#גדול וקטן",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[arr]>arr len~",
+   "hash": "3a8cb4c1-f27276aa"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#גדול מ-",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "round",
+     "on": "א",
+     "holds": "18/18"
+    },
+    {
+     "id": "tier",
+     "on": "א",
+     "holds": "6/6"
+    },
+    {
+     "id": "normalize",
+     "on": "א",
+     "holds": "12/12",
+     "implied": true
+    }
+   ],
+   "primary": "tier",
+   "material": "number",
+   "cases": 24,
+   "hash": "84d9a7c9-704c1289"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#גדול מ-12?",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "round",
+     "on": "א",
+     "holds": "18/18"
+    },
+    {
+     "id": "tier",
+     "on": "א",
+     "holds": "6/6"
+    }
+   ],
+   "primary": "tier",
+   "material": "number",
+   "cases": 24,
+   "hash": "82617b9a-e96c5715"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#דלג אם לא-אפס (תא0 אפס ⇒ העתק תא1)",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "round",
+     "on": "ב",
+     "holds": "18/18"
+    },
+    {
+     "id": "tier",
+     "on": "א",
+     "holds": "6/6"
+    },
+    {
+     "id": "clamp",
+     "on": "ב",
+     "holds": "3/3"
+    },
+    {
+     "id": "gap",
+     "on": "א+ב",
+     "holds": "36/36"
+    }
+   ],
+   "primary": "tier",
+   "material": "number",
+   "cases": 24
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#האם ממוינת?",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[arr]>num int+",
+   "hash": "3a8cb4c1-1170d565"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#הגבל לתחום",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "tier",
+     "on": "א",
+     "holds": "6/6"
+    },
+    {
+     "id": "clamp",
+     "on": "א",
+     "holds": "3/3"
+    },
+    {
+     "id": "normalize",
+     "on": "א",
+     "holds": "12/12",
+     "implied": true
+    },
+    {
+     "id": "combine",
+     "on": "א+ב",
+     "holds": "24/24"
+    }
+   ],
+   "primary": "tier",
+   "material": "number",
+   "cases": 24,
+   "hash": "a5775e06-e29fd68a"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#הגדול ברשימה",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "extreme",
+     "on": "רשימה",
+     "holds": "17/17"
+    }
+   ],
+   "primary": "extreme",
+   "material": "number",
+   "cases": 24,
+   "hash": "3a8cb4c1-27ecb821"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#הגדול כפול 2",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "cases": 24,
+   "traits": "in[num,num]>num int+",
+   "hash": "84d9a7c9-2f68459c"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#הגדול כפול הקטן",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[arr]>num int+",
+   "hash": "3a8cb4c1-e1d1e636"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#הגדול מבין שלושה",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "clamp",
+     "on": "א",
+     "holds": "3/3"
+    },
+    {
+     "id": "normalize",
+     "on": "א",
+     "holds": "12/12",
+     "implied": true
+    },
+    {
+     "id": "combine",
+     "on": "א+ב",
+     "holds": "24/24"
+    }
+   ],
+   "primary": "clamp",
+   "material": "number",
+   "cases": 24,
+   "hash": "a5775e06-c6bf6ab1"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#העתק",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "cases": 24,
+   "traits": "in[num]>num int+"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#הפוך רשימה",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "reverse",
+     "on": "רשימה",
+     "holds": "24/24"
+    }
+   ],
+   "primary": "reverse",
+   "material": "number",
+   "cases": 24,
+   "hash": "3a8cb4c1-2f660289"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#הפרש מוחלט",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "gap",
+     "on": "א+ב",
+     "holds": "36/36"
+    }
+   ],
+   "primary": "gap",
+   "material": "number",
+   "cases": 24,
+   "hash": "84d9a7c9-fbb37ec4"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#הקטן ברשימה",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "extreme",
+     "on": "רשימה",
+     "holds": "18/18"
+    }
+   ],
+   "primary": "extreme",
+   "material": "number",
+   "cases": 24,
+   "hash": "3a8cb4c1-fb95a126"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#הקטן מבין שלושה",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "clamp",
+     "on": "א",
+     "holds": "3/3"
+    },
+    {
+     "id": "normalize",
+     "on": "א",
+     "holds": "12/12",
+     "implied": true
+    },
+    {
+     "id": "combine",
+     "on": "א+ב",
+     "holds": "24/24"
+    }
+   ],
+   "primary": "clamp",
+   "material": "number",
+   "cases": 24,
+   "hash": "a5775e06-68f6d32b"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#השני בגודלו",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[arr]>num int+",
+   "hash": "3a8cb4c1-e86ea99a"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#השני ברשימה",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[arr]>num int+",
+   "hash": "3a8cb4c1-36889f35"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#וגם (מספרים)",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "normalize",
+     "on": "א",
+     "holds": "12/12"
+    },
+    {
+     "id": "combine",
+     "on": "א+ב",
+     "holds": "24/24"
+    }
+   ],
+   "primary": "combine",
+   "material": "number",
+   "cases": 24,
+   "hash": "84d9a7c9-d8c0253b"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#ועוד 1",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "convert",
+     "on": "א",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "convert",
+   "material": "number",
+   "cases": 24,
+   "hash": "82617b9a-8e0df5ed"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#ועוד 1 באותו תא",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "convert",
+     "on": "תא 2",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "convert",
+   "material": "number",
+   "cases": 24,
+   "hash": "82617b9a-8e0df5ed"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#ועוד 2",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "convert",
+     "on": "א",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "convert",
+   "material": "number",
+   "cases": 24,
+   "hash": "82617b9a-110b4921"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#ועוד 3",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "convert",
+     "on": "א",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "convert",
+   "material": "number",
+   "cases": 24,
+   "hash": "82617b9a-5b3289b2"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#זוגי?",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "cases": 24,
+   "traits": "in[num]>num int+",
+   "hash": "82617b9a-c2312e59"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#חזקת 2 (תא0 בריבוע)",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "cases": 24,
+   "traits": "in[num]>num int+",
+   "hash": "82617b9a-3e196021"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#חיבור מספרים",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "offset",
+     "on": "א+ב",
+     "holds": "24/24"
+    },
+    {
+     "id": "convert",
+     "on": "א",
+     "holds": "15/15"
+    },
+    {
+     "id": "combine",
+     "on": "א+ב",
+     "holds": "24/24"
+    }
+   ],
+   "primary": "offset",
+   "material": "number",
+   "cases": 24,
+   "hash": "84d9a7c9-c49b3256"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#חילוק",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "tier",
+     "on": "א",
+     "holds": "6/6"
+    }
+   ],
+   "primary": "tier",
+   "material": "number",
+   "cases": 24,
+   "hash": "84d9a7c9-788228a0"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#חיסור",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "offset",
+     "on": "א+ב",
+     "holds": "24/24"
+    },
+    {
+     "id": "convert",
+     "on": "א",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "offset",
+   "material": "number",
+   "cases": 24,
+   "hash": "84d9a7c9-a8268f1b"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#חיסור רווי",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "cases": 24,
+   "traits": "in[num,num]>num int+",
+   "hash": "84d9a7c9-b1d08fb5"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#חפש ברשימה",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "extreme",
+     "on": "רשימה",
+     "holds": "21/21"
+    }
+   ],
+   "primary": "extreme",
+   "material": "number",
+   "cases": 24,
+   "hash": "f6f28b72-f038a595"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#חצי",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "cases": 24,
+   "traits": "in[num]>num int+",
+   "hash": "82617b9a-8d2e0d0f"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#חציון של שלושה",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "tier",
+     "on": "ב",
+     "holds": "6/6"
+    },
+    {
+     "id": "clamp",
+     "on": "א",
+     "holds": "3/3"
+    },
+    {
+     "id": "normalize",
+     "on": "א",
+     "holds": "12/12",
+     "implied": true
+    },
+    {
+     "id": "combine",
+     "on": "א+ב",
+     "holds": "24/24"
+    }
+   ],
+   "primary": "tier",
+   "material": "number",
+   "cases": 24,
+   "hash": "a5775e06-564b762a"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#טווח הרשימה",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[arr]>num int+",
+   "hash": "3a8cb4c1-2bdd06cc"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#כמה מעל האמצע",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[arr]>num int+",
+   "hash": "3a8cb4c1-1906fd81"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#כפול 2",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "cases": 24,
+   "traits": "in[num]>num int+",
+   "hash": "82617b9a-9caa2f8b"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#כפל",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "combine",
+     "on": "א+ב",
+     "holds": "24/24"
+    }
+   ],
+   "primary": "combine",
+   "material": "number",
+   "cases": 24,
+   "hash": "84d9a7c9-5f72f7"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#כתוב לכתובת שבתא",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "round",
+     "on": "כתובת",
+     "holds": "18/18"
+    },
+    {
+     "id": "clamp",
+     "on": "כתובת",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "round",
+   "material": "number",
+   "cases": 24,
+   "hash": "f789e5d1-d2f6a5ff"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#לא (מספר)",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "convert",
+     "on": "א",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "convert",
+   "material": "number",
+   "cases": 24,
+   "hash": "82617b9a-fbd15954"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#מ1 שלוש פעמים",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "convert",
+     "on": "א",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "convert",
+   "material": "number",
+   "cases": 24,
+   "hash": "82617b9a-8b9c68e2"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#מ10 טווח של שלושה",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "cases": 24,
+   "traits": "in[num,num,num]>num int+",
+   "hash": "a5775e06-5dba1496"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#מ2 כפול 4",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "cases": 24,
+   "traits": "in[num]>num int+",
+   "hash": "82617b9a-c4535431"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#מ3 הפרש ריבועים",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "cases": 24,
+   "traits": "in[num,num]>num int+",
+   "hash": "84d9a7c9-60d90aef"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#מ4 חיבור אם זוגי אחרת חיסור",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "convert",
+     "on": "א",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "convert",
+   "material": "number",
+   "cases": 24,
+   "hash": "84d9a7c9-72f8ea80"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#מ5 הקטן מבין א ו-ב+1",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "clamp",
+     "on": "א",
+     "holds": "3/3"
+    },
+    {
+     "id": "normalize",
+     "on": "א",
+     "holds": "12/12",
+     "implied": true
+    }
+   ],
+   "primary": "clamp",
+   "material": "number",
+   "cases": 24,
+   "hash": "84d9a7c9-1804e09d"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#מ6 אפס או שלוש?",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "cases": 24,
+   "traits": "in[]>num int+",
+   "hash": "82617b9a-ddb38dc9"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#מ7 חזקת 3",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "cases": 24,
+   "traits": "in[num]>num int+",
+   "hash": "82617b9a-b1646133"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#מ8 שארית ב-3",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "normalize",
+     "on": "א",
+     "holds": "12/12"
+    }
+   ],
+   "primary": "normalize",
+   "material": "number",
+   "cases": 24,
+   "hash": "82617b9a-b363a9ca"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#מ9 חצי מעוגל למעלה",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "cases": 24,
+   "traits": "in[num]>num int+",
+   "hash": "82617b9a-ef93c557"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#מיין רשימה",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "sort",
+     "on": "רשימה",
+     "holds": "30/30"
+    },
+    {
+     "id": "normalize",
+     "on": "רשימה",
+     "holds": "12/12",
+     "implied": true
+    }
+   ],
+   "primary": "sort",
+   "material": "number",
+   "cases": 24,
+   "hash": "3a8cb4c1-2df59beb"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#מינימום",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "clamp",
+     "on": "א",
+     "holds": "3/3"
+    },
+    {
+     "id": "normalize",
+     "on": "א",
+     "holds": "12/12",
+     "implied": true
+    },
+    {
+     "id": "combine",
+     "on": "א+ב",
+     "holds": "24/24"
+    }
+   ],
+   "primary": "clamp",
+   "material": "number",
+   "cases": 24,
+   "hash": "84d9a7c9-56b3e8c9"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#ממוצע",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "cases": 24,
+   "traits": "in[num,num]>num int+",
+   "hash": "84d9a7c9-7b08c5ee"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#מקסימום",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "clamp",
+     "on": "א",
+     "holds": "3/3"
+    },
+    {
+     "id": "normalize",
+     "on": "א",
+     "holds": "12/12",
+     "implied": true
+    },
+    {
+     "id": "combine",
+     "on": "א+ב",
+     "holds": "24/24"
+    }
+   ],
+   "primary": "clamp",
+   "material": "number",
+   "cases": 24,
+   "hash": "84d9a7c9-f7dafbb"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#מקסימום נייד",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "clamp",
+     "on": "ד",
+     "holds": "3/3"
+    },
+    {
+     "id": "normalize",
+     "on": "ד",
+     "holds": "12/12",
+     "implied": true
+    },
+    {
+     "id": "combine",
+     "on": "ד+ג",
+     "holds": "24/24"
+    }
+   ],
+   "primary": "clamp",
+   "material": "number",
+   "cases": 24,
+   "hash": "84d9a7c9-f7dafbb"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#מרחק מ-8",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "cases": 24,
+   "traits": "in[num]>num int+",
+   "hash": "82617b9a-a73aae67"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#נאנד (מספרים)",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "cases": 24,
+   "traits": "in[num,num]>num int+",
+   "hash": "84d9a7c9-5c627728"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#סוף רשימה (לולאה, עד 6)",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[arr]>num int+",
+   "hash": "3a8cb4c1-e505ae62"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#סוף רשימה באורך עד 2",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[arr]>num int+",
+   "hash": "40c5d4ed-9ac40e39"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#סכום בלי הגדול",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[arr]>num int+",
+   "hash": "3a8cb4c1-85649372"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#סכום רווי",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "combine",
+     "on": "א+ב",
+     "holds": "24/24"
+    }
+   ],
+   "primary": "combine",
+   "material": "number",
+   "cases": 24,
+   "hash": "84d9a7c9-2482d1e8"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#סכום רשימה",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "sum",
+     "on": "רשימה",
+     "holds": "24/24"
+    }
+   ],
+   "primary": "sum",
+   "material": "number",
+   "cases": 24,
+   "hash": "3a8cb4c1-d55ba658"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#סכום שלושה",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "convert",
+     "on": "א",
+     "holds": "15/15"
+    },
+    {
+     "id": "combine",
+     "on": "א+ב",
+     "holds": "24/24"
+    }
+   ],
+   "primary": "combine",
+   "material": "number",
+   "cases": 24,
+   "hash": "a5775e06-8e3c1c6c"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#ספור גדולים מ-X",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "cases": 24,
+   "traits": "in[num,arr]>num int+",
+   "hash": "f6f28b72-13321e36"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#ספור זוגיים ברשימה",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "count",
+     "on": "רשימה",
+     "holds": "36/36"
+    }
+   ],
+   "primary": "count",
+   "material": "number",
+   "cases": 24,
+   "hash": "3a8cb4c1-1ead70ff"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#ספור ירידות",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[arr]>num int+",
+   "hash": "3a8cb4c1-d4aa9d69"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#ספור עליות",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[arr]>num int+",
+   "hash": "3a8cb4c1-bd4f21d5"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#עזר: הגדול כפול הקטן",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "convert",
+     "on": "ב",
+     "holds": "15/15"
+    },
+    {
+     "id": "combine",
+     "on": "א+ב",
+     "holds": "24/24"
+    }
+   ],
+   "primary": "combine",
+   "material": "number",
+   "cases": 24,
+   "hash": "84d9a7c9-5f72f7"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#פחות 1",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "convert",
+     "on": "א",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "convert",
+   "material": "number",
+   "cases": 24,
+   "hash": "82617b9a-969d778b"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#צעד ברשימה (הראשון, או 0)",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[arr]>num int+",
+   "hash": "3a8cb4c1-dacb3645"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#קבוע 1",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "round",
+     "on": "א",
+     "holds": "18/18"
+    },
+    {
+     "id": "clamp",
+     "on": "א",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "round",
+   "material": "number",
+   "cases": 24
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#קבוע 14 (15 ועוד 15)",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "round",
+     "on": "א",
+     "holds": "18/18"
+    },
+    {
+     "id": "clamp",
+     "on": "א",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "round",
+   "material": "number",
+   "cases": 24
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#קבוע 15",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "round",
+     "on": "א",
+     "holds": "18/18"
+    },
+    {
+     "id": "clamp",
+     "on": "א",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "round",
+   "material": "number",
+   "cases": 24
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#קח מהכתובת שבתא",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "cases": 24,
+   "traits": "in[num]>num int+",
+   "hash": "82617b9a-ce4e7936"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#קטן מ-",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "round",
+     "on": "ב",
+     "holds": "18/18"
+    },
+    {
+     "id": "tier",
+     "on": "א",
+     "holds": "6/6"
+    },
+    {
+     "id": "normalize",
+     "on": "ב",
+     "holds": "12/12",
+     "implied": true
+    }
+   ],
+   "primary": "tier",
+   "material": "number",
+   "cases": 24,
+   "hash": "84d9a7c9-cbb258d5"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#ר1 סכום הזוגיים",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "sum",
+     "on": "רשימה",
+     "holds": "24/24"
+    }
+   ],
+   "primary": "sum",
+   "material": "number",
+   "cases": 24,
+   "hash": "3a8cb4c1-35589184"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#ר10 האם יורדת?",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[arr]>num int+",
+   "hash": "3a8cb4c1-29e5ccad"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#ר2 ספור גדולים מ-12",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "count",
+     "on": "רשימה",
+     "holds": "36/36"
+    }
+   ],
+   "primary": "count",
+   "material": "number",
+   "cases": 24,
+   "hash": "3a8cb4c1-e6067ce3"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#ר3 האחרון פחות הראשון",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[arr]>num int+",
+   "hash": "3a8cb4c1-5c33974a"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#ר4 הקטן פחות 8",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "extreme",
+     "on": "רשימה",
+     "holds": "18/18"
+    }
+   ],
+   "primary": "extreme",
+   "material": "number",
+   "cases": 24,
+   "hash": "3a8cb4c1-bc00c1ac"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#ר5 האם כולם אי-זוגיים?",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "extreme",
+     "on": "רשימה",
+     "holds": "17/17"
+    }
+   ],
+   "primary": "extreme",
+   "material": "number",
+   "cases": 24,
+   "hash": "3a8cb4c1-58242c01"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#ר6 כמה גדולים מהראשון",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[arr]>num int+",
+   "hash": "3a8cb4c1-bb177641"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#ר7 סכום כפול 2",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "sum",
+     "on": "רשימה",
+     "holds": "24/24"
+    }
+   ],
+   "primary": "sum",
+   "material": "number",
+   "cases": 24,
+   "hash": "3a8cb4c1-dc3669ee"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#ר8 הגדול פחות האורך",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[arr]>num int+",
+   "hash": "3a8cb4c1-1fda362b"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#ר9 האם יש שניים עוקבים?",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "sum",
+     "on": "רשימה",
+     "holds": "24/24"
+    }
+   ],
+   "primary": "sum",
+   "material": "number",
+   "cases": 24,
+   "hash": "3a8cb4c1-972691bd"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#רק הגדולים מ-12",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "filter",
+     "on": "רשימה",
+     "holds": "24/24"
+    },
+    {
+     "id": "normalize",
+     "on": "רשימה",
+     "holds": "12/12",
+     "implied": true
+    }
+   ],
+   "primary": "filter",
+   "material": "number",
+   "cases": 24,
+   "hash": "3a8cb4c1-d6291062"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#רק הזוגיים",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "filter",
+     "on": "רשימה",
+     "holds": "24/24"
+    },
+    {
+     "id": "normalize",
+     "on": "רשימה",
+     "holds": "12/12",
+     "implied": true
+    }
+   ],
+   "primary": "filter",
+   "material": "number",
+   "cases": 24,
+   "hash": "3a8cb4c1-f89efc6"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#רר1 סכום הזוגיים פחות ספור גדולים מ-12",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "sum",
+     "on": "רשימה",
+     "holds": "24/24"
+    }
+   ],
+   "primary": "sum",
+   "material": "number",
+   "cases": 24,
+   "hash": "3a8cb4c1-f5711c53"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#רר2 הגדול פחות הקטן",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[arr]>num int+",
+   "hash": "3a8cb4c1-e6c9e11b"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#רר3 סכום כפול 2 ועוד האורך",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "sum",
+     "on": "רשימה",
+     "holds": "24/24"
+    }
+   ],
+   "primary": "sum",
+   "material": "number",
+   "cases": 24,
+   "hash": "3a8cb4c1-a9ed397"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#רר4 הגדול מבין סכום-הזוגיים והגדול",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "extreme",
+     "on": "רשימה",
+     "holds": "21/21"
+    }
+   ],
+   "primary": "extreme",
+   "material": "number",
+   "cases": 24,
+   "hash": "3a8cb4c1-27ecb821"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#רר5 יורדת וגם כולם אי-זוגיים",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[arr]>num int+",
+   "hash": "3a8cb4c1-58242c01"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#רר6 כמה גדולים מהראשון ועוד ספור ירידות",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[arr]>num int+",
+   "hash": "3a8cb4c1-66756b51"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#רר7 האחרון פחות הראשון, כפול 2",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[arr]>num int+",
+   "hash": "3a8cb4c1-1d13428a"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#רר8 סכום פחות (הגדול פחות האורך)",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[arr]>num int+",
+   "hash": "3a8cb4c1-faaa1458"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#ש1 א כפול ב ועוד א",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "cases": 24,
+   "traits": "in[num,num]>num int+",
+   "hash": "84d9a7c9-8e22a826"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#ש1 האם ג בין א ל-ב",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "tier",
+     "on": "א",
+     "holds": "6/6"
+    }
+   ],
+   "primary": "tier",
+   "material": "number",
+   "cases": 24,
+   "hash": "a5775e06-a66685f5"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#ש1 הגדול מבין א+ב ו-ג",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "tier",
+     "on": "ג",
+     "holds": "6/6"
+    },
+    {
+     "id": "clamp",
+     "on": "ג",
+     "holds": "3/3"
+    },
+    {
+     "id": "normalize",
+     "on": "ג",
+     "holds": "12/12",
+     "implied": true
+    }
+   ],
+   "primary": "tier",
+   "material": "number",
+   "cases": 24,
+   "hash": "a5775e06-456da7b2"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#ש1 הפרש מוחלט ועוד ג",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "convert",
+     "on": "ג",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "convert",
+   "material": "number",
+   "cases": 24,
+   "hash": "a5775e06-73909fb9"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#ש1 הקטן בריבוע",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "cases": 24,
+   "traits": "in[num,num]>num int+",
+   "hash": "84d9a7c9-62786c99"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#ש1 חצי ההפרש",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "cases": 24,
+   "traits": "in[num,num]>num int+",
+   "hash": "84d9a7c9-da15f4d3"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#ש1 ממוצע הגדול והקטן",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "cases": 24,
+   "traits": "in[num,num,num]>num int+",
+   "hash": "a5775e06-e1b0ba4a"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#ש1 ממוצע כפול 2",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "cases": 24,
+   "traits": "in[num,num]>num int+",
+   "hash": "84d9a7c9-e1bc5b58"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#ש1 סכום רווי פחות 1",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "cases": 24,
+   "traits": "in[num,num]>num int+",
+   "hash": "84d9a7c9-12901ace"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#ש1 שארית א+ב ב-3",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "combine",
+     "on": "א+ב",
+     "holds": "24/24"
+    }
+   ],
+   "primary": "combine",
+   "material": "number",
+   "cases": 24,
+   "hash": "84d9a7c9-4b43c785"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#ש2 (א כפול ב ועוד א) שארית 3",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "cases": 24,
+   "traits": "in[num,num]>num int+",
+   "hash": "84d9a7c9-f966ea78"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#ש2 אם ג בין א ל-ב: הפרש ועוד ג, אחרת 0",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "cases": 24,
+   "traits": "in[num,num,num]>num int+",
+   "hash": "a5775e06-97f87b92"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#ש2 הגדול מבין א+ב ו-ג, פחות ממוצע הגדול והקטן",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "cases": 24,
+   "traits": "in[num,num,num]>num int+",
+   "hash": "a5775e06-f9f49106"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#ש2 הקטן בריבוע ועוד ממוצע כפול 2",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "cases": 24,
+   "traits": "in[num,num]>num int+",
+   "hash": "84d9a7c9-2eaf56c9"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#ש2 חצי ההפרש בריבוע",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "cases": 24,
+   "traits": "in[num,num]>num int+",
+   "hash": "84d9a7c9-37bfd0dd"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#ש2 סכום רווי פחות 1, כפול 2",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "cases": 24,
+   "traits": "in[num,num]>num int+",
+   "hash": "84d9a7c9-2090503f"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#ש3 (שארית-3) כפול (סכום-רווי-כפול-2)",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "cases": 24,
+   "traits": "in[num,num]>num int+",
+   "hash": "84d9a7c9-54cab907"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#ש3 אם-בין פחות הגדול-פחות-ממוצע",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "cases": 24,
+   "traits": "in[num,num,num]>num int+",
+   "hash": "a5775e06-c7a7cfa"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#ש3 הגדול מבין חצי-ההפרש-בריבוע וסכום-רווי-כפול-2",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "cases": 24,
+   "traits": "in[num,num]>num int+",
+   "hash": "84d9a7c9-978242c2"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#ש3 חצי-ההפרש-בריבוע ועוד הקטן-בריבוע-וממוצע",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "cases": 24,
+   "traits": "in[num,num]>num int+",
+   "hash": "84d9a7c9-6e8ea011"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#ש4 הקטן מבין השלישי והראשון של שלב 3",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "cases": 24,
+   "traits": "in[num,num]>num int+",
+   "hash": "84d9a7c9-6fe2ad21"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#ש4 הרביעי של שלב 3, כפול 2, ועוד ג",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "cases": 24,
+   "traits": "in[num,num,num]>num int+",
+   "hash": "a5775e06-b5b70f14"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#ש4 סכום שני הראשונים של שלב 3",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "cases": 24,
+   "traits": "in[num,num]>num int+",
+   "hash": "84d9a7c9-2fab1cab"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#ש5 הגדול מבין שני הראשונים של שלב 4",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "cases": 24,
+   "traits": "in[num,num]>num int+",
+   "hash": "84d9a7c9-fd69a7b9"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#ש5 הראשון של שלב 4 פחות השני",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "cases": 24,
+   "traits": "in[num,num]>num int+",
+   "hash": "84d9a7c9-52bdc3d9"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#ש5 השלישי של שלב 4 ועוד א",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "cases": 24,
+   "traits": "in[num,num,num]>num int+",
+   "hash": "a5775e06-8650a0dd"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#ש6 הקטן מבין הראשון והשלישי של שלב 5",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "cases": 24,
+   "traits": "in[num,num,num]>num int+",
+   "hash": "a5775e06-968c2aba"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#ש6 הראשון של שלב 5 ועוד השני",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "cases": 24,
+   "traits": "in[num,num]>num int+",
+   "hash": "84d9a7c9-8c4006f2"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#ש6 השני של שלב 5 כפול 2",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "cases": 24,
+   "traits": "in[num,num]>num int+",
+   "hash": "84d9a7c9-c48657fd"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#שארית",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "normalize",
+     "on": "א",
+     "holds": "12/12"
+    }
+   ],
+   "primary": "normalize",
+   "material": "number",
+   "cases": 20,
+   "hash": "84d9a7c9-64cd932d"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#שווה (מספרים)",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "cases": 24,
+   "traits": "in[]>num int+",
+   "hash": "84d9a7c9-eb0bb1e9"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#שונה (מספרים)",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "convert",
+     "on": "א",
+     "holds": "15/15"
+    },
+    {
+     "id": "gap",
+     "on": "א+ב",
+     "holds": "36/36"
+    },
+    {
+     "id": "combine",
+     "on": "א+ב",
+     "holds": "24/24"
+    }
+   ],
+   "primary": "gap",
+   "material": "number",
+   "cases": 24,
+   "hash": "84d9a7c9-c7a1692e"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#שלושה שווים?",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "round",
+     "on": "א",
+     "holds": "18/18"
+    },
+    {
+     "id": "tier",
+     "on": "ג",
+     "holds": "6/6"
+    },
+    {
+     "id": "clamp",
+     "on": "א",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "tier",
+   "material": "number",
+   "cases": 24
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#תנאי: 10,11,14,15",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "normalize",
+     "on": "א",
+     "holds": "12/12"
+    }
+   ],
+   "primary": "normalize",
+   "material": "number",
+   "cases": 24,
+   "hash": "82617b9a-e96d48ad"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#תנאי: 10,15",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "normalize",
+     "on": "א",
+     "holds": "12/12"
+    }
+   ],
+   "primary": "normalize",
+   "material": "number",
+   "cases": 24,
+   "hash": "82617b9a-c9e25bd"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#תנאי: 11,12,14",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "cases": 24,
+   "traits": "in[num]>num int+",
+   "hash": "82617b9a-4284e3b9"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#תנאי: 8,10,13",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "cases": 24,
+   "traits": "in[num]>num int+",
+   "hash": "82617b9a-56d38e91"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#תנאי: 8,11,12,14",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "cases": 24,
+   "traits": "in[num]>num int+",
+   "hash": "82617b9a-b63eba25"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#תנאי: 8,11,12,14,15",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "normalize",
+     "on": "א",
+     "holds": "12/12"
+    }
+   ],
+   "primary": "normalize",
+   "material": "number",
+   "cases": 24,
+   "hash": "82617b9a-cfac7765"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#תנאי: 8,11,13",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "cases": 24,
+   "traits": "in[num]>num int+",
+   "hash": "82617b9a-c332591"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#תנאי: 8,11,13,14",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "cases": 24,
+   "traits": "in[num]>num int+",
+   "hash": "82617b9a-f4d53c11"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#תנאי: 8,12",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "cases": 24,
+   "traits": "in[num]>num int+",
+   "hash": "82617b9a-d7a64625"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#תנאי: 8,12,13,14,15",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "normalize",
+     "on": "א",
+     "holds": "12/12"
+    }
+   ],
+   "primary": "normalize",
+   "material": "number",
+   "cases": 24,
+   "hash": "82617b9a-b7ccdb5d"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#תנאי: 8,15",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "normalize",
+     "on": "א",
+     "holds": "12/12"
+    }
+   ],
+   "primary": "normalize",
+   "material": "number",
+   "cases": 24,
+   "hash": "82617b9a-ff15b799"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#תנאי: 8,9,10",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "cases": 24,
+   "traits": "in[num]>num int+",
+   "hash": "82617b9a-3a407c81"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#תנאי: 8,9,10,11",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "cases": 24,
+   "traits": "in[]>num int+",
+   "hash": "82617b9a-cde8e6d1"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#תנאי: 8,9,10,11,12,13",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "cases": 24,
+   "traits": "in[num]>num int+",
+   "hash": "82617b9a-7bb525"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#תנאי: 8,9,11,13,14,15",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "normalize",
+     "on": "א",
+     "holds": "12/12"
+    }
+   ],
+   "primary": "normalize",
+   "material": "number",
+   "cases": 24,
+   "hash": "82617b9a-4c6e9419"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#תנאי: 9,10,11,12,14",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "cases": 24,
+   "traits": "in[num]>num int+",
+   "hash": "82617b9a-7da63701"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#תנאי: 9,10,11,12,14,15",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "normalize",
+     "on": "א",
+     "holds": "12/12"
+    }
+   ],
+   "primary": "normalize",
+   "material": "number",
+   "cases": 24,
+   "hash": "82617b9a-cbe4c341"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#תנאי: 9,11,12,15",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "normalize",
+     "on": "א",
+     "holds": "12/12"
+    }
+   ],
+   "primary": "normalize",
+   "material": "number",
+   "cases": 24,
+   "hash": "82617b9a-7efb2be1"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#תנאי: 9,12,14",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "cases": 24,
+   "traits": "in[num]>num int+",
+   "hash": "82617b9a-af2a7ec1"
+  },
+  {
+   "id": "rings:lab-rings/lab13/shelf3.json#תנאי: 9,14",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "number",
+   "cases": 24,
+   "traits": "in[num]>num int+",
+   "hash": "82617b9a-8c7ab885"
+  }
+ ]
+}

@@ -1,0 +1,1917 @@
+{
+ "version": 1,
+ "generatedAt": null,
+ "note": "החוקים רצים מ-catalog/lib/verbs.mjs (check). boxLaws = 30 החוקים של המאמת (src/lib/atoms/verify/laws.ts) שרצים על 8 החלקים עצמם.",
+ "primaryOrder": [
+  "divide",
+  "merge",
+  "next",
+  "rotate",
+  "fuzzy",
+  "escalate",
+  "tier",
+  "round",
+  "offset",
+  "bucket",
+  "fingerprint",
+  "clamp",
+  "sort",
+  "reverse",
+  "dedupe",
+  "filter",
+  "transcript",
+  "group",
+  "tally",
+  "count",
+  "sum",
+  "average",
+  "extreme",
+  "lookup",
+  "gap",
+  "compare",
+  "ratio",
+  "combine",
+  "split",
+  "join",
+  "personalize",
+  "map",
+  "settle",
+  "normalize",
+  "convert",
+  "format",
+  "validate",
+  "provide"
+ ],
+ "verbs": [
+  {
+   "id": "divide",
+   "he": "מחלק",
+   "means": "מחלק שלם לחלקים שווים: טווח לחתיכות, סכום לתשלומים, רשימה לדפים — ושום דבר לא הולך לאיבוד",
+   "takes": [
+    "span|amount|list",
+    "number"
+   ],
+   "gives": "sequence",
+   "box": true,
+   "laws": [
+    {
+     "id": "divide.cover",
+     "says": "החלקים מרכיבים בחזרה את השלם: הרשימה המשורשרת = המקור · סכום-התשלומים = הסכום · החתיכות מכסות את הטווח מתחילתו ועד סופו בלי חפיפה"
+    },
+    {
+     "id": "divide.equal",
+     "says": "החלקים שווים ככל האפשר: בסכום — עד שלושה גדלים והפער ביניהם קטן מחלק אחד (השארית מתפזרת), ברשימה/בטווח — כולם באותו גודל ורק האחרון קצר יותר"
+    }
+   ],
+   "boxLaws": [
+    {
+     "id": "divide.parts.count-cover",
+     "says": "לפי מספר: בדיוק כמה שביקשו, הראשון מתחיל בהתחלה והאחרון נגמר בסוף, צמודים ולפי הסדר"
+    },
+    {
+     "id": "divide.parts.equal",
+     "says": "לפי מספר: כל החלקים שווים (עד רעש נקודה-צפה) והסכום = האורך כולו"
+    },
+    {
+     "id": "divide.size.exact",
+     "says": "לפי גודל: כל חלק בדיוק בגודל, ההפסקה בדיוק בין חלק לחלק, ורק האחרון (בבחירת \"קצר יותר\") קצר יותר"
+    },
+    {
+     "id": "divide.size.maximal",
+     "says": "לפי גודל: לא נשאר מקום לעוד חלק — \"לוותר\" ⇒ חלק שלם נוסף לא נכנס; \"קצר יותר\" ⇒ הכול מכוסה עד הסוף"
+    },
+    {
+     "id": "divide.amount.sum",
+     "says": "סכום: מספר התשלומים כמו שביקשו, והסכום שלהם בדיוק הסכום המקורי (עד האגורה)"
+    },
+    {
+     "id": "divide.amount.equal",
+     "says": "סכום: כל תשלום כפולה של היחידה (חוץ מהשבר שלא מתחלק, בתשלום הראשון), ההפרש בין הגדול לקטן ≤ יחידה אחת, והגדולים קודם"
+    },
+    {
+     "id": "divide.points.formula",
+     "says": "נקודות: הנקודה ה-a = התחלה + a·(אורך/מספר), לפי הסדר של a"
+    }
+   ],
+   "cues": {
+    "he": [
+     "מחלק",
+     "מפצל",
+     "מקצה"
+    ],
+    "en": [
+     "divide",
+     "split",
+     "chunk",
+     "paginate",
+     "installments",
+     "slots",
+     "portion",
+     "share",
+     "segment",
+     "partition"
+    ]
+   }
+  },
+  {
+   "id": "merge",
+   "he": "מחבר רצפים",
+   "means": "מוצא רצפים של פריטים \"כן\" צמודים ומחזיר כל רצף כקטע אחד (שבת ליד חג = חלון אחד; לילות פנויים ברצף)",
+   "takes": [
+    "sequence"
+   ],
+   "gives": "sequence",
+   "box": true,
+   "laws": [
+    {
+     "id": "merge.ordered",
+     "says": "הקטעים לפי הסדר ולא חופפים"
+    },
+    {
+     "id": "merge.ends",
+     "says": "כל קטע מתחיל ונגמר בפריט \"כן\""
+    },
+    {
+     "id": "merge.maximal",
+     "says": "אי אפשר להאריך קטע: הפריט שלפניו והפריט שאחריו הם \"לא\" (או סוף)"
+    }
+   ],
+   "boxLaws": [
+    {
+     "id": "merge.shape",
+     "says": "כל קבוצה מתחילה ונגמרת ב\"כן\", האורך = סוף−התחלה+1, הקבוצות לפי הסדר ולא חופפות"
+    },
+    {
+     "id": "merge.gaps",
+     "says": "בתוך קבוצה אין רווח גדול מהמותר; בין שתי קבוצות הרווח גדול מהמותר (אי אפשר לחבר אותן — מקסימליות)"
+    },
+    {
+     "id": "merge.cover",
+     "says": "כל \"כן\" נמצא בדיוק בקבוצה אחת — חוץ מקבוצה קצרה מהאורך המינימלי, שכולה נשמטת; וכל קבוצה ≥ האורך המינימלי"
+    }
+   ],
+   "cues": {
+    "he": [
+     "מאחד",
+     "ממזג",
+     "רצף",
+     "מחבר"
+    ],
+    "en": [
+     "merge",
+     "runs",
+     "coalesce",
+     "contiguous",
+     "streak",
+     "consecutive",
+     "blocks",
+     "windows"
+    ]
+   }
+  },
+  {
+   "id": "next",
+   "he": "מוצא את הבא בתור",
+   "means": "מתוך רשימת רגעים/ערכים — מה הבא אחרי \"עכשיו\" (התפילה הבאה, התשלום הבא, הלילה הפנוי הבא)",
+   "takes": [
+    "times|list",
+    "times"
+   ],
+   "gives": "times",
+   "box": true,
+   "laws": [
+    {
+     "id": "next.member",
+     "says": "מה שהוחזר נמצא ברשימה"
+    },
+    {
+     "id": "next.after",
+     "says": "מה שהוחזר לא לפני \"עכשיו\""
+    },
+    {
+     "id": "next.nearest",
+     "says": "אין ברשימה רגע שבא אחרי \"עכשיו\" ולפני מה שהוחזר (ובכמה — לפי הסדר)"
+    }
+   ],
+   "boxLaws": [
+    {
+     "id": "next.future",
+     "says": "מה שחוזר תמיד אחרי \"עכשיו\" (אף פעם לא בעבר ולא ברגע עצמו), מהקרוב לרחוק"
+    },
+    {
+     "id": "next.earliest",
+     "says": "מה שחוזר = בדיוק הכי-מוקדמים שעוד לא קרו (כמה שביקשו); אין כאלה ⇒ כלום"
+    },
+    {
+     "id": "next.firstRun",
+     "says": "הרצף הבא: הראשון שמתחיל מהמקום הנוכחי והלאה ואורכו ≥ המינימום; רצף שכבר התחיל נחתך מהמקום הנוכחי; אין ⇒ null"
+    }
+   ],
+   "cues": {
+    "he": [
+     "הבא",
+     "הקרוב",
+     "הבאה"
+    ],
+    "en": [
+     "next",
+     "upcoming",
+     "following",
+     "after",
+     "soonest",
+     "nearest",
+     "first"
+    ]
+   }
+  },
+  {
+   "id": "round",
+   "he": "מעגל",
+   "means": "מקרב ערך לשנתה הקרובה (לרבע שקל, לחמש דקות, לעשרה) — ושוב-עיגול לא משנה",
+   "takes": [
+    "number|amount|times"
+   ],
+   "gives": "number",
+   "box": true,
+   "laws": [
+    {
+     "id": "round.idem",
+     "says": "לעגל פעמיים = לעגל פעם אחת"
+    },
+    {
+     "id": "round.monotone",
+     "says": "ערך גדול יותר לא מתעגל לקטן יותר",
+     "sweep": true
+    },
+    {
+     "id": "round.grid",
+     "says": "התוצאות יושבות על שנתות: שני ערכים צמודים מאוד יוצאים אותו דבר, והמרווח בין תוצאות הוא כפולה של שנתה אחת",
+     "sweep": true
+    }
+   ],
+   "boxLaws": [
+    {
+     "id": "round.multiple",
+     "says": "התוצאה תמיד כפולה של היחידה"
+    },
+    {
+     "id": "round.direction",
+     "says": "לחומרא למטה ⇒ לא עולה, ופחות מיחידה אחת מתחת · לחומרא למעלה ⇒ לא יורד, ופחות מיחידה מעל · לקרוב ⇒ לכל היותר חצי יחידה"
+    },
+    {
+     "id": "round.idempotent",
+     "says": "מספר שכבר עגול נשאר כמו שהוא (עיגול פעמיים = עיגול פעם אחת), בכל כיוון"
+    }
+   ],
+   "cues": {
+    "he": [
+     "מעגל",
+     "מקרב"
+    ],
+    "en": [
+     "round",
+     "snap",
+     "floor",
+     "ceil",
+     "quantize",
+     "nearest"
+    ]
+   }
+  },
+  {
+   "id": "offset",
+   "he": "מזיז",
+   "means": "מזיז ערך על הציר שלו בכמות נתונה (תאריך + ימים, שעה + דקות, מספר + הפרש) — הזזה ב-0 לא עושה כלום",
+   "takes": [
+    "times|date|number",
+    "number"
+   ],
+   "gives": "times",
+   "box": true,
+   "laws": [
+    {
+     "id": "offset.zero",
+     "says": "הזזה באפס מחזירה את אותו ערך"
+    },
+    {
+     "id": "offset.compose",
+     "says": "להזיז ב-א ואז ב-ב = להזיז בבת אחת ב-א+ב"
+    }
+   ],
+   "boxLaws": [
+    {
+     "id": "offset.exact",
+     "says": "כל רגע זז בדיוק בכמות שביקשו — לא יותר ולא פחות, ולפי אותו סדר"
+    },
+    {
+     "id": "offset.calendar",
+     "says": "הזזה בדקות ובימים חוצה חצות, סוף חודש וסוף שנה ונוחתת בדיוק על התאריך והשעה הנכונים"
+    },
+    {
+     "id": "offset.relative",
+     "says": "\"שם±N\" = העוגן + N דקות בדיוק; עוגן חסר או שם לא-מוכר ⇒ null (לא ממציאים)"
+    }
+   ],
+   "cues": {
+    "he": [
+     "מזיז",
+     "מוסיף",
+     "מקדים",
+     "דוחה"
+    ],
+    "en": [
+     "add",
+     "shift",
+     "offset",
+     "plus",
+     "minus",
+     "move",
+     "advance",
+     "delay",
+     "addDays",
+     "addMonths",
+     "addMinutes"
+    ]
+   }
+  },
+  {
+   "id": "escalate",
+   "he": "מסלים בזמן",
+   "means": "ככל שעובר זמן — עולה בשלבים (קודם לבעלי-מקצוע, אחרי 3 שעות לכולם) ולא חוזר אחורה. \"מדרג\" שהציר שלו הוא זמן",
+   "takes": [
+    "times"
+   ],
+   "gives": "choice",
+   "box": true,
+   "laws": [
+    {
+     "id": "escalate.blocks",
+     "says": "כל שלב תופס קטע-זמן רציף אחד (לא קופץ הלוך-חזור)",
+     "sweep": true
+    },
+    {
+     "id": "escalate.few",
+     "says": "מעט שלבים — לא שלב חדש בכל רגע",
+     "sweep": true
+    },
+    {
+     "id": "escalate.forward",
+     "says": "עם הזמן השלב רק עולה",
+     "sweep": true
+    }
+   ],
+   "boxLaws": [
+    {
+     "id": "escalate.plan",
+     "says": "לוח-הזמנים: השלבים לפי הסדר, כל שלב מתחיל בדיוק כשההמתנה של הקודם נגמרה (דחוף ⇒ ההמתנה הקצרה), הזמנים רק עולים"
+    },
+    {
+     "id": "escalate.state",
+     "says": "בכל רגע (מהיצירה והלאה): השלב הנוכחי כבר התחיל, ההמתנה שלו עוד לא נגמרה, \"למי\" = המקבלים של השלב, ומעבר הבא = סוף ההמתנה"
+    },
+    {
+     "id": "escalate.nobody-skipped",
+     "says": "אף אחד לא מדולג: כל שלב עם מקבלים והמתנה > 0 הוא \"הנוכחי\" בדיוק מרגע ההתחלה שלו; והשלב רק מתקדם עם הזמן"
+    },
+    {
+     "id": "escalate.answered",
+     "says": "תשובה מקפיאה: מרגע התשובה והלאה המצב = המצב ברגע התשובה, ואין יותר מעבר"
+    }
+   ],
+   "cues": {
+    "he": [
+     "מסלים",
+     "הסלמה",
+     "מזכיר",
+     "דחוף"
+    ],
+    "en": [
+     "escalate",
+     "escalation",
+     "overdue",
+     "stage",
+     "urgency",
+     "sla",
+     "reminder",
+     "late"
+    ]
+   }
+  },
+  {
+   "id": "rotate",
+   "he": "מחלק בתורות",
+   "means": "עובר על רשימה בתורות קבועות (מי בתורנות היום, את מי שואלים עכשיו) — אחרי סיבוב שלם חוזרים להתחלה וכולם קיבלו תור",
+   "takes": [
+    "list",
+    "number|date"
+   ],
+   "gives": "choice",
+   "box": true,
+   "laws": [
+    {
+     "id": "rotate.member",
+     "says": "התור תמיד נופל על מישהו מהרשימה"
+    },
+    {
+     "id": "rotate.period",
+     "says": "אחרי סיבוב שלם (כמספר האנשים) חוזרים לאותו אחד"
+    },
+    {
+     "id": "rotate.fair",
+     "says": "בסיבוב שלם כל אחד מקבל בדיוק תור אחד"
+    }
+   ],
+   "boxLaws": [
+    {
+     "id": "rotate.fair",
+     "says": "הוגן: בכל חלון של ימים/סבבים רצופים, ההפרש בין מי שקיבל הכי הרבה למי שקיבל הכי מעט ≤ 1"
+    },
+    {
+     "id": "rotate.order",
+     "says": "לפי הסדר: אחרי כל אחד בא הבא ברשימה (ואחרי האחרון — הראשון); אותו מספר ⇒ אותו אדם תמיד"
+    },
+    {
+     "id": "rotate.assign",
+     "says": "שיבוץ פריטים: כל פריט מקבל אדם אחד, לפי הסדר מנקודת ההתחלה, וההפרש בין האנשים ≤ 1"
+    },
+    {
+     "id": "rotate.days",
+     "says": "לפי יום: יום אחרי יום = מספר-יום עוקב, גם בסוף חודש, סוף שנה ומעבר שעון קיץ/חורף"
+    }
+   ],
+   "cues": {
+    "he": [
+     "תורות",
+     "בתורות",
+     "תורנות",
+     "בתורו",
+     "מסובב"
+    ],
+    "en": [
+     "rotate",
+     "turn",
+     "roundrobin",
+     "round-robin",
+     "duty",
+     "shift",
+     "cycle",
+     "fair",
+     "rotation",
+     "who"
+    ]
+   }
+  },
+  {
+   "id": "fuzzy",
+   "he": "מוצא גם עם טעות",
+   "means": "מחפש מילה ברשימה וסולח על טעות-הקלדה אחת (\"אינסטלתור\" ⇒ אינסטלטור), אבל לא ממציא התאמה למילה רחוקה",
+   "takes": [
+    "text",
+    "list"
+   ],
+   "gives": "list",
+   "box": true,
+   "laws": [
+    {
+     "id": "fuzzy.exact",
+     "says": "מילה שכתובה בדיוק — נמצאת"
+    },
+    {
+     "id": "fuzzy.typo",
+     "says": "טעות-הקלדה אחת במילה ארוכה — עדיין נמצאת"
+    },
+    {
+     "id": "fuzzy.far",
+     "says": "מילה בלי שום אות משותפת — לא נמצאת"
+    }
+   ],
+   "boxLaws": [
+    {
+     "id": "fuzzy.finds",
+     "says": "מוצא את המילה המדויקת, כל טעות-הקלדה אחת (במילה של 4 אותיות ומעלה — הכלל המתועד), ותחיליות ו/ה/ב/ל/מ/ש/כ"
+    },
+    {
+     "id": "fuzzy.far",
+     "says": "מילה רחוקה (אף אות משותפת, בלי תחילית) — לא נמצאת"
+    },
+    {
+     "id": "fuzzy.rank",
+     "says": "מי שמכיל את המילה המדויקת מדורג לפני מי שנמצא רק בזכות טעות; אותו קלט ⇒ אותו סדר"
+    }
+   ],
+   "cues": {
+    "he": [
+     "מחפש",
+     "מוצא",
+     "חיפוש"
+    ],
+    "en": [
+     "fuzzy",
+     "search",
+     "match",
+     "typo",
+     "levenshtein",
+     "similar",
+     "suggest",
+     "autocomplete"
+    ]
+   }
+  },
+  {
+   "id": "sort",
+   "he": "ממיין",
+   "means": "מסדר את אותם פריטים לפי סדר קבוע — אותם פריטים, רק בסדר אחר, והסדר לא תלוי באיך שהגיעו",
+   "takes": [
+    "list"
+   ],
+   "gives": "sequence",
+   "laws": [
+    {
+     "id": "sort.perm",
+     "says": "אותם פריטים בדיוק — שום דבר לא נוסף ולא נעלם"
+    },
+    {
+     "id": "sort.order-free",
+     "says": "ערבוב הקלט לא משנה את התוצאה"
+    },
+    {
+     "id": "sort.consistent",
+     "says": "הסדר עקבי: אחרי הוספת פריטים, הישנים נשארים באותו סדר ביניהם"
+    }
+   ],
+   "cues": {
+    "he": [
+     "ממיין",
+     "מסדר",
+     "מדרג"
+    ],
+    "en": [
+     "sort",
+     "sorted",
+     "order",
+     "orderby",
+     "rank",
+     "ranked",
+     "byDate",
+     "by"
+    ]
+   }
+  },
+  {
+   "id": "filter",
+   "he": "מסנן",
+   "means": "משאיר רק את מה שעובר תנאי — כל פריט נבחן לבד, והסדר נשמר",
+   "takes": [
+    "list"
+   ],
+   "gives": "list",
+   "laws": [
+    {
+     "id": "filter.subseq",
+     "says": "כל מה שיצא היה בקלט, באותו סדר"
+    },
+    {
+     "id": "filter.split",
+     "says": "לסנן שתי רשימות ביחד = לסנן כל אחת לבד ולחבר (כל פריט נבחן לבד)"
+    }
+   ],
+   "cues": {
+    "he": [
+     "מסנן",
+     "משאיר",
+     "מוציא"
+    ],
+    "en": [
+     "filter",
+     "only",
+     "where",
+     "select",
+     "active",
+     "visible",
+     "eligible",
+     "pending",
+     "open",
+     "without",
+     "exclude",
+     "keep"
+    ]
+   }
+  },
+  {
+   "id": "dedupe",
+   "he": "מסיר כפולים",
+   "means": "משאיר כל דבר פעם אחת — שכפול הקלט לא משנה כלום",
+   "takes": [
+    "list"
+   ],
+   "gives": "list",
+   "laws": [
+    {
+     "id": "dedupe.subseq",
+     "says": "מה שיצא היה בקלט, באותו סדר"
+    },
+    {
+     "id": "dedupe.double",
+     "says": "לשכפל את הקלט (כל פריט פעמיים) — אותה תוצאה"
+    },
+    {
+     "id": "dedupe.idem",
+     "says": "להסיר כפולים פעמיים = פעם אחת"
+    },
+    {
+     "id": "dedupe.keeps",
+     "says": "כשאין כפולים — הכול נשאר"
+    }
+   ],
+   "cues": {
+    "he": [
+     "כפולים",
+     "כפילויות",
+     "ייחודיים"
+    ],
+    "en": [
+     "dedupe",
+     "dedup",
+     "unique",
+     "uniq",
+     "distinct",
+     "duplicates",
+     "dups"
+    ]
+   }
+  },
+  {
+   "id": "reverse",
+   "he": "הופך סדר",
+   "means": "מהסוף להתחלה — הפוך של הפוך = המקור",
+   "takes": [
+    "list"
+   ],
+   "gives": "sequence",
+   "laws": [
+    {
+     "id": "reverse.involution",
+     "says": "להפוך פעמיים מחזיר את המקור"
+    },
+    {
+     "id": "reverse.split",
+     "says": "הפוך של (א ואז ב) = (הפוך ב) ואז (הפוך א)"
+    }
+   ],
+   "cues": {
+    "he": [
+     "הפוך",
+     "הופך"
+    ],
+    "en": [
+     "reverse",
+     "reversed",
+     "backwards",
+     "newestFirst"
+    ]
+   }
+  },
+  {
+   "id": "map",
+   "he": "ממיר כל פריט",
+   "means": "עושה את אותו דבר לכל פריט לחוד — אותו אורך, ופריט לא מושפע מהשכנים",
+   "takes": [
+    "list"
+   ],
+   "gives": "list",
+   "laws": [
+    {
+     "id": "map.len",
+     "says": "פריט אחד נכנס — פריט אחד יוצא"
+    },
+    {
+     "id": "map.split",
+     "says": "להמיר שתי רשימות ביחד = להמיר כל אחת ולחבר"
+    }
+   ],
+   "cues": {
+    "he": [
+     "כל",
+     "לכל"
+    ],
+    "en": [
+     "map",
+     "each",
+     "all",
+     "toRows",
+     "rows",
+     "convertAll",
+     "normalizeAll",
+     "enrich",
+     "with"
+    ]
+   }
+  },
+  {
+   "id": "transcript",
+   "he": "רושם ביומן",
+   "means": "מוסיף רשומה אחת ליומן וכל מה שנרשם קודם נשאר כמו שהיה",
+   "takes": [
+    "list",
+    "record"
+   ],
+   "gives": "list",
+   "laws": [
+    {
+     "id": "transcript.keeps",
+     "says": "היומן הישן נשאר שלם — בתחילת היומן החדש או בסופו"
+    },
+    {
+     "id": "transcript.one",
+     "says": "נוספה בדיוק רשומה אחת"
+    },
+    {
+     "id": "transcript.side",
+     "says": "רישום שני מוסיף באותו צד כמו הראשון"
+    }
+   ],
+   "cues": {
+    "he": [
+     "רושם",
+     "יומן",
+     "מתעד"
+    ],
+    "en": [
+     "log",
+     "append",
+     "push",
+     "record",
+     "audit",
+     "history",
+     "transcript",
+     "journal",
+     "trail"
+    ]
+   }
+  },
+  {
+   "id": "group",
+   "he": "מקבץ",
+   "means": "מחלק פריטים לקבוצות לפי מה שהם (לפי יום, לפי סוג) — כל פריט בקבוצה אחת, והחלוקה לא תלויה בסדר",
+   "takes": [
+    "list"
+   ],
+   "gives": "list",
+   "laws": [
+    {
+     "id": "group.partition",
+     "says": "כל פריט נמצא בדיוק בקבוצה אחת (מותרות קבוצות ריקות — \"תחום בלי עסקים\")"
+    },
+    {
+     "id": "group.order-free",
+     "says": "ערבוב הקלט לא משנה מי עם מי"
+    }
+   ],
+   "cues": {
+    "he": [
+     "מקבץ",
+     "מקבצת",
+     "קבוצות",
+     "מחלק לפי"
+    ],
+    "en": [
+     "group",
+     "groupBy",
+     "bucket",
+     "byDay",
+     "byMonth",
+     "byKind",
+     "byType",
+     "categorize",
+     "index",
+     "keyBy",
+     "partition",
+     "cluster"
+    ]
+   }
+  },
+  {
+   "id": "tally",
+   "he": "סופר לפי קבוצה",
+   "means": "כמה מכל סוג — סכום כל המונים = כמה פריטים היו",
+   "takes": [
+    "list"
+   ],
+   "gives": "list",
+   "laws": [
+    {
+     "id": "tally.total",
+     "says": "סכום כל המונים = מספר הפריטים"
+    },
+    {
+     "id": "tally.add",
+     "says": "לספור שתי רשימות ביחד = לספור כל אחת ולחבר מונים"
+    }
+   ],
+   "cues": {
+    "he": [
+     "פילוח",
+     "כמה מכל",
+     "מונה לפי"
+    ],
+    "en": [
+     "countBy",
+     "tally",
+     "histogram",
+     "counts",
+     "breakdown",
+     "distribution",
+     "stats",
+     "perKind"
+    ]
+   }
+  },
+  {
+   "id": "count",
+   "he": "סופר",
+   "means": "כמה פריטים עונים על משהו — רשימה ריקה = 0, ושתי רשימות = סכום הספירות",
+   "takes": [
+    "list"
+   ],
+   "gives": "number",
+   "laws": [
+    {
+     "id": "count.empty",
+     "says": "ברשימה ריקה — 0"
+    },
+    {
+     "id": "count.add",
+     "says": "ספירה של שתי רשימות ביחד = סכום הספירות"
+    },
+    {
+     "id": "count.bound",
+     "says": "מספר שלם בין 0 לאורך הרשימה"
+    }
+   ],
+   "cues": {
+    "he": [
+     "סופר",
+     "מונה",
+     "כמה"
+    ],
+    "en": [
+     "count",
+     "num",
+     "total",
+     "how",
+     "many",
+     "size",
+     "length",
+     "number"
+    ]
+   }
+  },
+  {
+   "id": "sum",
+   "he": "מסכם",
+   "means": "מחבר ערכים לסכום אחד — רשימה ריקה = 0, ושתי רשימות = סכום הסכומים",
+   "takes": [
+    "list"
+   ],
+   "gives": "amount",
+   "laws": [
+    {
+     "id": "sum.empty",
+     "says": "ברשימה ריקה — 0"
+    },
+    {
+     "id": "sum.add",
+     "says": "סכום של שתי רשימות ביחד = סכום הסכומים"
+    }
+   ],
+   "cues": {
+    "he": [
+     "מסכם",
+     "מחשב סכום",
+     "סך"
+    ],
+    "en": [
+     "sum",
+     "total",
+     "totals",
+     "balance",
+     "paid",
+     "revenue",
+     "income",
+     "aggregate",
+     "ils",
+     "amount"
+    ]
+   }
+  },
+  {
+   "id": "average",
+   "he": "ממצע",
+   "means": "הערך האמצעי של רשימה — שכפול הקלט לא משנה, והממוצע של שתי רשימות נמצא ביניהן",
+   "takes": [
+    "list"
+   ],
+   "gives": "number",
+   "laws": [
+    {
+     "id": "average.double",
+     "says": "שכפול הקלט לא משנה את הממוצע"
+    },
+    {
+     "id": "average.between",
+     "says": "הממוצע של שתי רשימות ביחד נמצא בין שני הממוצעים"
+    }
+   ],
+   "cues": {
+    "he": [
+     "ממוצע",
+     "ממצע"
+    ],
+    "en": [
+     "avg",
+     "average",
+     "mean",
+     "median"
+    ]
+   }
+  },
+  {
+   "id": "extreme",
+   "he": "בוחר את הקיצוני",
+   "means": "בוחר את הכי (גדול, מוקדם, יקר, חדש) — התשובה של שתי רשימות היא אחת משתי התשובות, והסדר לא משנה",
+   "takes": [
+    "list"
+   ],
+   "gives": "choice",
+   "laws": [
+    {
+     "id": "extreme.split",
+     "says": "הכי-של שתי רשימות ביחד = הכי-של אחת מהן"
+    },
+    {
+     "id": "extreme.order-free",
+     "says": "ערבוב הקלט לא משנה את הבחירה"
+    }
+   ],
+   "cues": {
+    "he": [
+     "הכי",
+     "המקסימום",
+     "המינימום",
+     "האחרון",
+     "הראשון"
+    ],
+    "en": [
+     "max",
+     "min",
+     "latest",
+     "earliest",
+     "best",
+     "top",
+     "last",
+     "first",
+     "oldest",
+     "newest",
+     "biggest",
+     "highest",
+     "lowest",
+     "peak"
+    ]
+   }
+  },
+  {
+   "id": "lookup",
+   "he": "מחפש לפי מפתח",
+   "means": "מוצא ברשימה את הפריט הראשון שמתאים — ואם אין, כלום",
+   "takes": [
+    "list",
+    "text"
+   ],
+   "gives": "record",
+   "laws": [
+    {
+     "id": "lookup.member",
+     "says": "מה שנמצא הוא פריט מהרשימה (או כלום)"
+    },
+    {
+     "id": "lookup.first",
+     "says": "ברשימה מחוברת — הראשון שמתאים: אם נמצא בחלק הראשון, הוא; אחרת מהחלק השני"
+    }
+   ],
+   "cues": {
+    "he": [
+     "מוצא",
+     "מחזיר",
+     "מאתר"
+    ],
+    "en": [
+     "find",
+     "get",
+     "byId",
+     "lookup",
+     "of",
+     "for",
+     "resolve",
+     "pick",
+     "which"
+    ]
+   }
+  },
+  {
+   "id": "tier",
+   "he": "מדרג לשלבים",
+   "means": "שם ערך על סולם של כמה מדרגות (קטן/בינוני/גדול, ירוק/צהוב/אדום) — כל מדרגה היא קטע רציף אחד",
+   "takes": [
+    "number|amount"
+   ],
+   "gives": "choice",
+   "laws": [
+    {
+     "id": "tier.blocks",
+     "says": "כל מדרגה תופסת קטע רציף אחד על הציר",
+     "sweep": true
+    },
+    {
+     "id": "tier.few",
+     "says": "מעט מדרגות — לא ערך חדש לכל קלט",
+     "sweep": true
+    }
+   ],
+   "cues": {
+    "he": [
+     "מדרג",
+     "דרגה",
+     "רמה",
+     "מסווג"
+    ],
+    "en": [
+     "tier",
+     "level",
+     "grade",
+     "band",
+     "bucket",
+     "status",
+     "severity",
+     "rank",
+     "class",
+     "classify",
+     "color",
+     "risk",
+     "traffic"
+    ]
+   }
+  },
+  {
+   "id": "clamp",
+   "he": "מגביל לטווח",
+   "means": "מכניס ערך לגבולות: מתחת לרצפה ⇒ הרצפה, מעל לתקרה ⇒ התקרה, באמצע ⇒ כמו שהוא",
+   "takes": [
+    "number"
+   ],
+   "gives": "number",
+   "laws": [
+    {
+     "id": "clamp.formula",
+     "says": "התוצאה = הערך, חתוך בין הנמוך לגבוה מבין התוצאות",
+     "sweep": true
+    }
+   ],
+   "cues": {
+    "he": [
+     "מגביל",
+     "חותך",
+     "תוחם"
+    ],
+    "en": [
+     "clamp",
+     "bound",
+     "limit",
+     "cap",
+     "between",
+     "atLeast",
+     "atMost",
+     "minmax"
+    ]
+   }
+  },
+  {
+   "id": "normalize",
+   "he": "מנרמל",
+   "means": "מביא ערך לצורה אחת קבועה (רווחים, אותיות סופיות, קידומת טלפון) — נרמול שני לא משנה",
+   "takes": [
+    "text"
+   ],
+   "gives": "text",
+   "laws": [
+    {
+     "id": "normalize.idem",
+     "says": "לנרמל פעמיים = לנרמל פעם אחת"
+    }
+   ],
+   "cues": {
+    "he": [
+     "מנרמל",
+     "מנקה",
+     "מתקן",
+     "מרפא"
+    ],
+    "en": [
+     "norm",
+     "normalize",
+     "normalise",
+     "clean",
+     "canonical",
+     "trim",
+     "sanitize",
+     "heal",
+     "fix",
+     "strip"
+    ]
+   }
+  },
+  {
+   "id": "settle",
+   "he": "מעדכן למצב",
+   "means": "מעביר רשומה למצב מסוים (נסגר, אושר, שונה-שם) — רוב השדות נשארים, ולעשות את זה שוב לא משנה כלום",
+   "takes": [
+    "record"
+   ],
+   "gives": "record",
+   "laws": [
+    {
+     "id": "settle.idem",
+     "says": "לעדכן פעמיים = לעדכן פעם אחת"
+    },
+    {
+     "id": "settle.keeps",
+     "says": "רוב השדות של הרשומה נשארים כמו שהיו (עדכון, לא בנייה מחדש)"
+    }
+   ],
+   "cues": {
+    "he": [
+     "מעדכן",
+     "סוגר",
+     "מאשר",
+     "מסמן",
+     "מבטל",
+     "משנה"
+    ],
+    "en": [
+     "close",
+     "approve",
+     "set",
+     "mark",
+     "rename",
+     "toggle",
+     "cancel",
+     "archive",
+     "activate",
+     "update",
+     "patch",
+     "apply",
+     "confirm",
+     "complete",
+     "done"
+    ]
+   }
+  },
+  {
+   "id": "convert",
+   "he": "ממיר ערך",
+   "means": "הופך ערך לייצוג אחר (שקלים⇄אגורות, תאריך⇄מספר-יום) — בלי לאבד מידע: ערכים שונים נשארים שונים",
+   "takes": [
+    "number|date|times"
+   ],
+   "gives": "number|date",
+   "laws": [
+    {
+     "id": "convert.injective",
+     "says": "ערכים שונים ⇒ תוצאות שונות (אין איבוד מידע)",
+     "sweep": true
+    },
+    {
+     "id": "convert.det",
+     "says": "אותו ערך ⇒ אותה תוצאה"
+    }
+   ],
+   "cues": {
+    "he": [
+     "ממיר",
+     "הופך",
+     "מתרגם"
+    ],
+    "en": [
+     "to",
+     "from",
+     "toCents",
+     "parse",
+     "convert",
+     "as",
+     "minutes",
+     "toMinutes",
+     "toIso",
+     "toDate",
+     "hhmmTo",
+     "index",
+     "serial"
+    ]
+   }
+  },
+  {
+   "id": "format",
+   "he": "מעצב לטקסט",
+   "means": "כותב ערך כטקסט לקריאה (₪1,234 · \"י״ד בתשרי\" · \"3 לילות\") — ערכים שונים נכתבים שונה",
+   "takes": [
+    "number|date|amount"
+   ],
+   "gives": "text",
+   "laws": [
+    {
+     "id": "format.injective",
+     "says": "ערכים שונים ⇒ טקסטים שונים",
+     "sweep": true
+    },
+    {
+     "id": "format.det",
+     "says": "אותו ערך ⇒ אותו טקסט"
+    }
+   ],
+   "cues": {
+    "he": [
+     "מעצב",
+     "כותב",
+     "מציג",
+     "מתאר"
+    ],
+    "en": [
+     "format",
+     "fmt",
+     "label",
+     "text",
+     "str",
+     "toString",
+     "display",
+     "render",
+     "describe",
+     "title",
+     "caption",
+     "pretty",
+     "he",
+     "words",
+     "heb"
+    ]
+   }
+  },
+  {
+   "id": "fingerprint",
+   "he": "מטביע חותם",
+   "means": "מפיק \"טביעת אצבע\" קצרה ובאורך קבוע מתוכן — שינוי של אות אחת משנה את רוב החותם",
+   "takes": [
+    "text"
+   ],
+   "gives": "text",
+   "laws": [
+    {
+     "id": "fingerprint.fixed",
+     "says": "החותם תמיד באותו אורך, לא משנה כמה ארוך הקלט",
+     "sweep": true
+    },
+    {
+     "id": "fingerprint.injective",
+     "says": "תכנים שונים ⇒ חותמות שונים",
+     "sweep": true
+    },
+    {
+     "id": "fingerprint.spread",
+     "says": "טעות של אות אחת משנה לפחות רבע מהחותם"
+    }
+   ],
+   "cues": {
+    "he": [
+     "חותם",
+     "קוד-אימות",
+     "מטביע"
+    ],
+    "en": [
+     "hash",
+     "fnv",
+     "checksum",
+     "digest",
+     "fingerprint",
+     "code",
+     "verify",
+     "signature",
+     "key"
+    ]
+   }
+  },
+  {
+   "id": "bucket",
+   "he": "מקבץ לפי יום",
+   "means": "נותן לכל רגע את \"היום שלו\" (צילום-יומי, מפתח-יום) — כל רגעי אותו יום מקבלים אותו מפתח, ויום אחר — מפתח אחר",
+   "takes": [
+    "times"
+   ],
+   "gives": "text",
+   "laws": [
+    {
+     "id": "bucket.same-day",
+     "says": "שני רגעים באותו יום ⇒ אותו מפתח"
+    },
+    {
+     "id": "bucket.next-day",
+     "says": "רגע ביום אחר ⇒ מפתח אחר"
+    }
+   ],
+   "cues": {
+    "he": [
+     "צילום",
+     "יומי",
+     "היום"
+    ],
+    "en": [
+     "daily",
+     "snapshot",
+     "dayKey",
+     "day",
+     "today",
+     "dateKey",
+     "isoDay",
+     "todayIso",
+     "stamp"
+    ]
+   }
+  },
+  {
+   "id": "personalize",
+   "he": "ממלא טקסט מרשומה",
+   "means": "בונה טקסט מתוך הפרטים של מישהו (שם, עיר, סכום) — מה שכתוב ברשומה מגיע לטקסט",
+   "takes": [
+    "record"
+   ],
+   "gives": "text",
+   "laws": [
+    {
+     "id": "personalize.trace",
+     "says": "שדה-טקסט של הרשומה מופיע בטקסט שיוצא (משנים אותו — רואים את השינוי)"
+    },
+    {
+     "id": "personalize.det",
+     "says": "אותה רשומה ⇒ אותו טקסט"
+    }
+   ],
+   "cues": {
+    "he": [
+     "מכתב",
+     "הודעה",
+     "ברכה",
+     "תודה",
+     "אישי"
+    ],
+    "en": [
+     "personal",
+     "greeting",
+     "message",
+     "msg",
+     "letter",
+     "template",
+     "thank",
+     "thanks",
+     "reminder",
+     "whatsapp",
+     "wa",
+     "sms",
+     "body",
+     "text"
+    ]
+   }
+  },
+  {
+   "id": "validate",
+   "he": "בודק",
+   "means": "עונה כן/לא על שאלה (פתוח? תקין? זכאי? בסכנה?) — אותו קלט, אותה תשובה",
+   "takes": [
+    "any"
+   ],
+   "gives": "bool",
+   "laws": [
+    {
+     "id": "validate.bool",
+     "says": "התשובה תמיד כן או לא"
+    },
+    {
+     "id": "validate.det",
+     "says": "אותו קלט ⇒ אותה תשובה"
+    }
+   ],
+   "cues": {
+    "he": [
+     "בודק",
+     "האם",
+     "מאמת",
+     "יודע"
+    ],
+    "en": [
+     "is",
+     "has",
+     "can",
+     "should",
+     "valid",
+     "validate",
+     "check",
+     "allow",
+     "allowed",
+     "eligible",
+     "needs",
+     "gate",
+     "ok",
+     "open",
+     "closed",
+     "within",
+     "matches"
+    ]
+   }
+  },
+  {
+   "id": "compare",
+   "he": "משווה",
+   "means": "אומר מי לפני מי בין שניים — כל אחד שווה לעצמו, להפוך את הסדר הופך את התשובה, והסדר עקבי",
+   "takes": [
+    "any",
+    "any"
+   ],
+   "gives": "number",
+   "laws": [
+    {
+     "id": "compare.self",
+     "says": "כל דבר שווה לעצמו"
+    },
+    {
+     "id": "compare.anti",
+     "says": "להחליף את הסדר — מתהפכת התשובה"
+    },
+    {
+     "id": "compare.trans",
+     "says": "אם א לפני ב וב לפני ג — אז א לפני ג"
+    }
+   ],
+   "cues": {
+    "he": [
+     "משווה",
+     "לפני",
+     "אחרי"
+    ],
+    "en": [
+     "compare",
+     "cmp",
+     "before",
+     "after",
+     "earlier",
+     "later",
+     "less",
+     "greater",
+     "newer",
+     "older",
+     "sorter",
+     "order"
+    ]
+   }
+  },
+  {
+   "id": "gap",
+   "he": "מודד מרחק",
+   "means": "כמה בין שניים (ימים בין תאריכים, דקות בין שעות, הפרש סכומים) — מעצמו 0, והמרחקים מתחברים",
+   "takes": [
+    "any",
+    "any"
+   ],
+   "gives": "number",
+   "laws": [
+    {
+     "id": "gap.self",
+     "says": "המרחק מדבר לעצמו — 0"
+    },
+    {
+     "id": "gap.anti",
+     "says": "להפוך את הסדר — אותו מרחק במינוס (או אותו מרחק בדיוק, כשהמרחק תמיד חיובי)"
+    },
+    {
+     "id": "gap.chain",
+     "says": "מא׳ לב׳ ועוד מב׳ לג׳ = מא׳ לג׳ (ובמרחק חיובי — לא יותר מזה)"
+    }
+   ],
+   "cues": {
+    "he": [
+     "כמה ימים",
+     "מרחק",
+     "הפרש",
+     "גיל"
+    ],
+    "en": [
+     "diff",
+     "between",
+     "days",
+     "daysBetween",
+     "elapsed",
+     "age",
+     "distance",
+     "delta",
+     "since",
+     "until",
+     "duration",
+     "nights",
+     "minutesBetween"
+    ]
+   }
+  },
+  {
+   "id": "ratio",
+   "he": "מחשב יחס",
+   "means": "כמה חלק מתוך שלם (אחוז ניצול, אחוז נוכחות) — להכפיל את שניהם באותו מספר לא משנה את היחס",
+   "takes": [
+    "number",
+    "number"
+   ],
+   "gives": "number",
+   "laws": [
+    {
+     "id": "ratio.scale",
+     "says": "להכפיל את החלק ואת השלם באותו מספר — אותו יחס"
+    }
+   ],
+   "cues": {
+    "he": [
+     "אחוז",
+     "יחס",
+     "ניצול",
+     "תפוסה"
+    ],
+    "en": [
+     "pct",
+     "percent",
+     "ratio",
+     "rate",
+     "share",
+     "fraction",
+     "utilization",
+     "occupancy",
+     "progress"
+    ]
+   }
+  },
+  {
+   "id": "combine",
+   "he": "מצרף שניים",
+   "means": "מצרף שני ערכים מאותו סוג לאחד (חיבור, איחוד, הגדול מהשניים) — הסדר והקיבוץ לא משנים",
+   "takes": [
+    "any",
+    "any"
+   ],
+   "gives": "any",
+   "laws": [
+    {
+     "id": "combine.comm",
+     "says": "א עם ב = ב עם א"
+    },
+    {
+     "id": "combine.assoc",
+     "says": "(א עם ב) עם ג = א עם (ב עם ג)"
+    }
+   ],
+   "cues": {
+    "he": [
+     "מצרף",
+     "מאחד",
+     "ממזג"
+    ],
+    "en": [
+     "merge",
+     "combine",
+     "union",
+     "join",
+     "plus",
+     "add",
+     "max",
+     "min",
+     "and",
+     "or",
+     "mergeWith",
+     "assign"
+    ]
+   }
+  },
+  {
+   "id": "split",
+   "he": "מפצל טקסט",
+   "means": "שובר טקסט לחתיכות (מילים, שורות, שדות) — כל חתיכה נלקחה מהטקסט, לפי הסדר",
+   "takes": [
+    "text"
+   ],
+   "gives": "list",
+   "laws": [
+    {
+     "id": "split.pieces",
+     "says": "כל חתיכה מופיעה בטקסט"
+    },
+    {
+     "id": "split.order",
+     "says": "החתיכות לפי הסדר שבטקסט"
+    }
+   ],
+   "cues": {
+    "he": [
+     "מפצל",
+     "מפרק",
+     "מפענח"
+    ],
+    "en": [
+     "split",
+     "tokens",
+     "tokenize",
+     "words",
+     "lines",
+     "parse",
+     "parseCsv",
+     "csv",
+     "fields",
+     "explode"
+    ]
+   }
+  },
+  {
+   "id": "join",
+   "he": "מצרף לטקסט",
+   "means": "מחבר רשימה לטקסט אחד (\"א, ב ו-ג\") — כל פריט מופיע, לפי הסדר",
+   "takes": [
+    "list"
+   ],
+   "gives": "text",
+   "laws": [
+    {
+     "id": "join.contains",
+     "says": "כל פריט מופיע בטקסט, לפי הסדר"
+    }
+   ],
+   "cues": {
+    "he": [
+     "מחבר",
+     "מצרף",
+     "רשימה"
+    ],
+    "en": [
+     "join",
+     "list",
+     "listText",
+     "summary",
+     "line",
+     "lines",
+     "csv",
+     "concat",
+     "names"
+    ]
+   }
+  },
+  {
+   "id": "provide",
+   "he": "נותן ערך קבוע",
+   "means": "חלק בלי קלטים שתמיד מחזיר את אותו דבר (ברירת-מחדל, רשימת-אפשרויות, תבנית ריקה)",
+   "takes": [],
+   "gives": "any",
+   "laws": [
+    {
+     "id": "provide.same",
+     "says": "כל הקריאות מחזירות אותו ערך"
+    }
+   ],
+   "cues": {
+    "he": [
+     "ריק",
+     "ברירת",
+     "מחזיר את"
+    ],
+    "en": [
+     "default",
+     "defaults",
+     "empty",
+     "blank",
+     "initial",
+     "options",
+     "presets",
+     "list",
+     "all",
+     "catalog",
+     "schema",
+     "make",
+     "new",
+     "create"
+    ]
+   }
+  },
+  {
+   "id": "require-source",
+   "he": "דורש מקור",
+   "means": "לא מקבל טענה/נתון בלי מקור מצוין (ציטוט, מזהה, קישור)",
+   "takes": [
+    "record"
+   ],
+   "gives": "bool",
+   "staticOnly": true,
+   "laws": [],
+   "cues": {
+    "he": [
+     "מקור",
+     "מצטט",
+     "ציטוט",
+     "ראיה"
+    ],
+    "en": [
+     "source",
+     "provenance",
+     "cite",
+     "citation",
+     "requireSource",
+     "sourced",
+     "evidence",
+     "ref"
+    ]
+   }
+  },
+  {
+   "id": "freeze",
+   "he": "מקפיא ומחליף תוכן",
+   "means": "מקבע תמונה ומחליף את התוכן שבתוכה בלי לשבור את המסגרת",
+   "takes": [
+    "record"
+   ],
+   "gives": "record",
+   "staticOnly": true,
+   "laws": [],
+   "cues": {
+    "he": [
+     "מקפיא",
+     "קפוא",
+     "מחליף"
+    ],
+    "en": [
+     "freeze",
+     "frozen",
+     "immutable",
+     "swap",
+     "replaceContent",
+     "keyframe",
+     "still"
+    ]
+   }
+  },
+  {
+   "id": "assign-role",
+   "he": "מקצה תפקיד",
+   "means": "קובע מי עושה מה (מנהל/מורה/מתנדב) ומה מותר לו",
+   "takes": [
+    "record"
+   ],
+   "gives": "choice",
+   "staticOnly": true,
+   "laws": [],
+   "cues": {
+    "he": [
+     "תפקיד",
+     "מקצה",
+     "משייך",
+     "הרשאה"
+    ],
+    "en": [
+     "role",
+     "roles",
+     "assign",
+     "owner",
+     "permission",
+     "permissions",
+     "grant",
+     "acl",
+     "isManager",
+     "isAdmin"
+    ]
+   }
+  },
+  {
+   "id": "route",
+   "he": "מנתב לפי ערוץ",
+   "means": "שולח את אותו דבר בדרך שמתאימה לערוץ (וואטסאפ/SMS/מייל/טלפון)",
+   "takes": [
+    "choice",
+    "record"
+   ],
+   "gives": "record",
+   "staticOnly": true,
+   "laws": [],
+   "cues": {
+    "he": [
+     "מנתב",
+     "ערוץ",
+     "שולח"
+    ],
+    "en": [
+     "route",
+     "routing",
+     "channel",
+     "channels",
+     "dispatch",
+     "driver",
+     "via",
+     "transport",
+     "deliver"
+    ]
+   }
+  },
+  {
+   "id": "tolerate",
+   "he": "סובל כשל",
+   "means": "כשמשהו נכשל — ממשיך בנחת עם תשובה בטוחה במקום ליפול",
+   "takes": [
+    "any"
+   ],
+   "gives": "any",
+   "staticOnly": true,
+   "laws": [],
+   "cues": {
+    "he": [
+     "בטוח",
+     "נופל-רך",
+     "כשל"
+    ],
+    "en": [
+     "safe",
+     "try",
+     "fallback",
+     "retry",
+     "tolerant",
+     "soft",
+     "graceful",
+     "guard",
+     "catch",
+     "orDefault"
+    ]
+   }
+  },
+  {
+   "id": "pace",
+   "he": "מווסת קצב",
+   "means": "לא נותן לעשות יותר מדי מהר (השהיה, הגבלת-קצב, ניסיון-חוזר עם המתנה)",
+   "takes": [
+    "times"
+   ],
+   "gives": "times",
+   "staticOnly": true,
+   "laws": [],
+   "cues": {
+    "he": [
+     "קצב",
+     "השהיה",
+     "מנוחה"
+    ],
+    "en": [
+     "throttle",
+     "debounce",
+     "pace",
+     "backoff",
+     "rateLimit",
+     "cooldown",
+     "quiet",
+     "quietHours",
+     "wait"
+    ]
+   }
+  },
+  {
+   "id": "relay",
+   "he": "מעביר דרך מרכז",
+   "means": "לא מדבר ישר — מעביר דרך תחנה באמצע (מרכזייה, מתווך, שרת)",
+   "takes": [
+    "record"
+   ],
+   "gives": "record",
+   "staticOnly": true,
+   "laws": [],
+   "cues": {
+    "he": [
+     "מעביר",
+     "מתווך",
+     "מרכזייה",
+     "ממסר"
+    ],
+    "en": [
+     "relay",
+     "proxy",
+     "hub",
+     "forward",
+     "bridge",
+     "switchboard",
+     "broker",
+     "outbox",
+     "queue"
+    ]
+   }
+  }
+ ]
+}
