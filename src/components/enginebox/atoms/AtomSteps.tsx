@@ -407,6 +407,7 @@ export function CreatedList(props: {
   onRemoveTap: (id: string) => void;
   /** CHAIN 14.10 (תוספתי): פתיחת מנוע שנוצר כדי לבנות עליו · מצב בתוך הרשימה · שורת-חסימה להסרה. */
   onOpen?: (id: string) => void;
+  canOpen?: (id: string) => boolean;
   stateOf?: (id: string) => 'ok' | 'orphan' | 'bad';
   blocked?: { id: string; text: string } | null;
 }) {
@@ -430,7 +431,7 @@ export function CreatedList(props: {
                 {state !== 'ok' && <span className="at-what at-orphan" data-orphan="1">{ORPHAN_TEXT}</span>}
                 {props.blocked?.id === c.id && <span className="at-what at-blocked" role="status" data-blocked={c.id}>{props.blocked.text}</span>}
               </span>
-              {state === 'ok' && props.onOpen && (
+              {state === 'ok' && props.onOpen && (!props.canOpen || props.canOpen(c.id)) && (
                 <Btn onClick={() => props.onOpen!(c.id)} title={BUILD_ON_TEXT + ': ' + c.name}>
                   <span data-open-cap={c.id}>{BUILD_ON_TEXT}</span>
                 </Btn>

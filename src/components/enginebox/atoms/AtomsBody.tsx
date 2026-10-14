@@ -68,9 +68,11 @@ export function AtomsBody(props: { source: AtomsSource | null; initial?: AtomsIn
   const createdHosts = source?.capHost
     ? caps.flatMap((c) => {
         const card = source.capHost!(c.id);
-        return card ? [{ id: c.id, card }] : [];
+        // רק מנוע שיש על מה לבנות (פלט עם חלקים שמתחברים) — אחרת אין כפתור ואין כרטיס ✨
+        return card && card.places.length ? [{ id: c.id, card }] : [];
       })
     : [];
+  const openable = new Set(createdHosts.map((h) => h.id));
   const made = madeId ? caps.find((c) => c.id === madeId) ?? null : null;
   const step: AtomsStep = made ? 'made' : !host ? 'engines' : !atom ? 'atom' : !option ? 'question' : 'details';
 
@@ -170,6 +172,7 @@ export function AtomsBody(props: { source: AtomsSource | null; initial?: AtomsIn
         armed={armed}
         onRemoveTap={onRemoveTap}
         onOpen={source.capHost ? openHost : undefined}
+        canOpen={(id) => openable.has(id)}
         stateOf={stateOf}
         blocked={blocked}
       />
