@@ -1,0 +1,1716 @@
+{
+ "id": "bp-tour-geo",
+ "word": "tour · geo",
+ "by": "מנוע-השרטוטים (catalog/blueprints/search.mjs)",
+ "title": "שילוב «מסדר מסלול» לפי השרטוט «שפר עד שאין שיפור (בלי בנייה)»: 5 חלקים",
+ "blueprint": {
+  "shape": "improve-only",
+  "variant": "clean+improve"
+ },
+ "combo": {
+  "verb": "tour",
+  "material": "geo",
+  "form": "graph",
+  "steps": [
+   "core-c:catalog/core/dedupe-points.mjs#dedupePoints",
+   "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+   "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+   "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#CartSubmenu.reversed:step",
+   "core-c:catalog/core/nearest-point.mjs#nearestPoint"
+  ],
+  "roles": [
+   "dedupe",
+   "convert",
+   "sum",
+   "reverse",
+   "extreme"
+  ],
+  "holds": "60/60",
+  "laws": [
+   "tour.visits",
+   "tour.start",
+   "tour.shorter",
+   "tour.local",
+   "tour.det"
+  ],
+  "graph": {
+   "inputs": [
+    "from",
+    "stops"
+   ],
+   "consts": {
+    "origin": "{x:0, y:0} — מספר כנקודה על ציר"
+   },
+   "nodes": [
+    {
+     "id": "u",
+     "part": "core-c:catalog/core/dedupe-points.mjs#dedupePoints",
+     "role": "dedupe",
+     "args": [
+      "$stops"
+     ],
+     "says": "CLEAN"
+    },
+    {
+     "id": "lb",
+     "loop": {
+      "over": {
+       "$slice": [
+        {
+         "$cat": [
+          [
+           "$from"
+          ],
+          "@u"
+         ]
+        },
+        1
+       ]
+      },
+      "init": {
+       "prev": "$from"
+      },
+      "item": "qb",
+      "state": "tb",
+      "nodes": [
+       {
+        "id": "db",
+        "part": "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+        "role": "convert",
+        "args": [
+         "$tb.prev.x",
+         "$tb.prev.y",
+         "$qb"
+        ],
+        "says": "MEASURE"
+       }
+      ],
+      "next": {
+       "prev": "$qb"
+      },
+      "emit": "@db"
+     }
+    },
+    {
+     "id": "cb",
+     "part": "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+     "role": "sum",
+     "args": [
+      "@lb.emits"
+     ],
+     "says": "SUM"
+    },
+    {
+     "id": "opt",
+     "loop": {
+      "over": {
+       "$slice": [
+        "$o.r",
+        1
+       ]
+      },
+      "init": {
+       "r": {
+        "$cat": [
+         [
+          "$from"
+         ],
+         "@u"
+        ]
+       },
+       "len": "@cb"
+      },
+      "item": "a",
+      "index": "k",
+      "state": "o",
+      "until": "stable",
+      "max": 60,
+      "nodes": [
+       {
+        "id": "i",
+        "part": "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+        "role": "sum",
+        "args": [
+         [
+          "$k",
+          1
+         ]
+        ],
+        "says": "SUM"
+       },
+       {
+        "id": "i2",
+        "part": "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+        "role": "sum",
+        "args": [
+         [
+          "$k",
+          2
+         ]
+        ],
+        "says": "SUM"
+       },
+       {
+        "id": "two",
+        "loop": {
+         "over": {
+          "$slice": [
+           "$o.r",
+           "@i2"
+          ]
+         },
+         "init": "$o",
+         "item": "b",
+         "index": "m",
+         "state": "c",
+         "nodes": [
+          {
+           "id": "e",
+           "part": "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+           "role": "sum",
+           "args": [
+            [
+             "@i2",
+             "$m",
+             1
+            ]
+           ],
+           "says": "SUM"
+          },
+          {
+           "id": "mv",
+           "part": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#CartSubmenu.reversed:step",
+           "role": "reverse",
+           "args": [
+            {
+             "$slice": [
+              "$c.r",
+              "@i",
+              "@e"
+             ]
+            }
+           ],
+           "says": "MOVE"
+          },
+          {
+           "id": "lc",
+           "loop": {
+            "over": {
+             "$slice": [
+              {
+               "$cat": [
+                {
+                 "$slice": [
+                  "$c.r",
+                  0,
+                  "@i"
+                 ]
+                },
+                "@mv",
+                {
+                 "$slice": [
+                  "$c.r",
+                  "@e"
+                 ]
+                }
+               ]
+              },
+              1
+             ]
+            },
+            "init": {
+             "prev": "$c.r.0"
+            },
+            "item": "qc",
+            "state": "tc",
+            "nodes": [
+             {
+              "id": "dc",
+              "part": "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+              "role": "convert",
+              "args": [
+               "$tc.prev.x",
+               "$tc.prev.y",
+               "$qc"
+              ],
+              "says": "MEASURE"
+             }
+            ],
+            "next": {
+             "prev": "$qc"
+            },
+            "emit": "@dc"
+           }
+          },
+          {
+           "id": "cc",
+           "part": "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+           "role": "sum",
+           "args": [
+            "@lc.emits"
+           ],
+           "says": "SUM"
+          },
+          {
+           "id": "pk",
+           "part": "core-c:catalog/core/nearest-point.mjs#nearestPoint",
+           "role": "extreme",
+           "args": [
+            [
+             {
+              "x": "$c.len",
+              "y": 0,
+              "r": "$c.r"
+             },
+             {
+              "x": "@cc",
+              "y": 0,
+              "r": {
+               "$cat": [
+                {
+                 "$slice": [
+                  "$c.r",
+                  0,
+                  "@i"
+                 ]
+                },
+                "@mv",
+                {
+                 "$slice": [
+                  "$c.r",
+                  "@e"
+                 ]
+                }
+               ]
+              }
+             }
+            ],
+            {
+             "x": 0,
+             "y": 0
+            }
+           ],
+           "says": "PICK"
+          }
+         ],
+         "next": {
+          "r": "@pk.r",
+          "len": "@pk.x"
+         }
+        }
+       }
+      ],
+      "next": "@two.state"
+     }
+    }
+   ],
+   "out": "@opt.state.r"
+  }
+ },
+ "alternatives": [
+  {
+   "shape": "improve-until-stable",
+   "variant": "clean+construct+improve",
+   "parts": 6,
+   "steps": 2677,
+   "holds": "60/60",
+   "graph": {
+    "inputs": [
+     "from",
+     "stops"
+    ],
+    "nodes": [
+     {
+      "id": "u",
+      "part": "core-c:catalog/core/dedupe-points.mjs#dedupePoints",
+      "role": "dedupe",
+      "args": [
+       "$stops"
+      ],
+      "says": "CLEAN"
+     },
+     {
+      "id": "nn",
+      "loop": {
+       "over": "@u",
+       "init": {
+        "at": "$from",
+        "left": "@u"
+       },
+       "item": "p",
+       "state": "s",
+       "nodes": [
+        {
+         "id": "by",
+         "part": "core-c:catalog/core/by-distance.mjs#byDistance",
+         "role": "sort",
+         "args": [
+          "$s.left",
+          "$s.at"
+         ],
+         "says": "ORDER"
+        }
+       ],
+       "next": {
+        "at": "@by.0",
+        "left": {
+         "$slice": [
+          "@by",
+          1
+         ]
+        }
+       },
+       "emit": "@by.0"
+      }
+     },
+     {
+      "id": "la",
+      "loop": {
+       "over": {
+        "$slice": [
+         {
+          "$cat": [
+           [
+            "$from"
+           ],
+           "@nn.emits"
+          ]
+         },
+         1
+        ]
+       },
+       "init": {
+        "prev": "$from"
+       },
+       "item": "qa",
+       "state": "ta",
+       "nodes": [
+        {
+         "id": "da",
+         "part": "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+         "role": "convert",
+         "args": [
+          "$ta.prev.x",
+          "$ta.prev.y",
+          "$qa"
+         ],
+         "says": "MEASURE"
+        }
+       ],
+       "next": {
+        "prev": "$qa"
+       },
+       "emit": "@da"
+      }
+     },
+     {
+      "id": "ca",
+      "part": "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+      "role": "sum",
+      "args": [
+       "@la.emits"
+      ],
+      "says": "SUM"
+     },
+     {
+      "id": "opt",
+      "loop": {
+       "over": {
+        "$slice": [
+         "$o.r",
+         1
+        ]
+       },
+       "init": {
+        "r": {
+         "$cat": [
+          [
+           "$from"
+          ],
+          "@nn.emits"
+         ]
+        },
+        "len": "@ca"
+       },
+       "item": "a",
+       "index": "k",
+       "state": "o",
+       "until": "stable",
+       "max": 60,
+       "nodes": [
+        {
+         "id": "i",
+         "part": "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+         "role": "sum",
+         "args": [
+          [
+           "$k",
+           1
+          ]
+         ],
+         "says": "SUM"
+        },
+        {
+         "id": "i2",
+         "part": "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+         "role": "sum",
+         "args": [
+          [
+           "$k",
+           2
+          ]
+         ],
+         "says": "SUM"
+        },
+        {
+         "id": "two",
+         "loop": {
+          "over": {
+           "$slice": [
+            "$o.r",
+            "@i2"
+           ]
+          },
+          "init": "$o",
+          "item": "b",
+          "index": "m",
+          "state": "c",
+          "nodes": [
+           {
+            "id": "e",
+            "part": "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+            "role": "sum",
+            "args": [
+             [
+              "@i2",
+              "$m",
+              1
+             ]
+            ],
+            "says": "SUM"
+           },
+           {
+            "id": "mv",
+            "part": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#CartSubmenu.reversed:step",
+            "role": "reverse",
+            "args": [
+             {
+              "$slice": [
+               "$c.r",
+               "@i",
+               "@e"
+              ]
+             }
+            ],
+            "says": "MOVE"
+           },
+           {
+            "id": "lc",
+            "loop": {
+             "over": {
+              "$slice": [
+               {
+                "$cat": [
+                 {
+                  "$slice": [
+                   "$c.r",
+                   0,
+                   "@i"
+                  ]
+                 },
+                 "@mv",
+                 {
+                  "$slice": [
+                   "$c.r",
+                   "@e"
+                  ]
+                 }
+                ]
+               },
+               1
+              ]
+             },
+             "init": {
+              "prev": "$c.r.0"
+             },
+             "item": "qc",
+             "state": "tc",
+             "nodes": [
+              {
+               "id": "dc",
+               "part": "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+               "role": "convert",
+               "args": [
+                "$tc.prev.x",
+                "$tc.prev.y",
+                "$qc"
+               ],
+               "says": "MEASURE"
+              }
+             ],
+             "next": {
+              "prev": "$qc"
+             },
+             "emit": "@dc"
+            }
+           },
+           {
+            "id": "cc",
+            "part": "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+            "role": "sum",
+            "args": [
+             "@lc.emits"
+            ],
+            "says": "SUM"
+           },
+           {
+            "id": "pk",
+            "part": "core-c:catalog/core/nearest-point.mjs#nearestPoint",
+            "role": "extreme",
+            "args": [
+             [
+              {
+               "x": "$c.len",
+               "y": 0,
+               "r": "$c.r"
+              },
+              {
+               "x": "@cc",
+               "y": 0,
+               "r": {
+                "$cat": [
+                 {
+                  "$slice": [
+                   "$c.r",
+                   0,
+                   "@i"
+                  ]
+                 },
+                 "@mv",
+                 {
+                  "$slice": [
+                   "$c.r",
+                   "@e"
+                  ]
+                 }
+                ]
+               }
+              }
+             ],
+             {
+              "x": 0,
+              "y": 0
+             }
+            ],
+            "says": "PICK"
+           }
+          ],
+          "next": {
+           "r": "@pk.r",
+           "len": "@pk.x"
+          }
+         }
+        }
+       ],
+       "next": "@two.state"
+      }
+     }
+    ],
+    "out": "@opt.state.r"
+   }
+  },
+  {
+   "shape": "improve-until-stable",
+   "variant": "clean+construct+best+improve",
+   "parts": 6,
+   "steps": 2779,
+   "holds": "60/60",
+   "graph": {
+    "inputs": [
+     "from",
+     "stops"
+    ],
+    "nodes": [
+     {
+      "id": "u",
+      "part": "core-c:catalog/core/dedupe-points.mjs#dedupePoints",
+      "role": "dedupe",
+      "args": [
+       "$stops"
+      ],
+      "says": "CLEAN"
+     },
+     {
+      "id": "nn",
+      "loop": {
+       "over": "@u",
+       "init": {
+        "at": "$from",
+        "left": "@u"
+       },
+       "item": "p",
+       "state": "s",
+       "nodes": [
+        {
+         "id": "by",
+         "part": "core-c:catalog/core/by-distance.mjs#byDistance",
+         "role": "sort",
+         "args": [
+          "$s.left",
+          "$s.at"
+         ],
+         "says": "ORDER"
+        }
+       ],
+       "next": {
+        "at": "@by.0",
+        "left": {
+         "$slice": [
+          "@by",
+          1
+         ]
+        }
+       },
+       "emit": "@by.0"
+      }
+     },
+     {
+      "id": "la",
+      "loop": {
+       "over": {
+        "$slice": [
+         {
+          "$cat": [
+           [
+            "$from"
+           ],
+           "@nn.emits"
+          ]
+         },
+         1
+        ]
+       },
+       "init": {
+        "prev": "$from"
+       },
+       "item": "qa",
+       "state": "ta",
+       "nodes": [
+        {
+         "id": "da",
+         "part": "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+         "role": "convert",
+         "args": [
+          "$ta.prev.x",
+          "$ta.prev.y",
+          "$qa"
+         ],
+         "says": "MEASURE"
+        }
+       ],
+       "next": {
+        "prev": "$qa"
+       },
+       "emit": "@da"
+      }
+     },
+     {
+      "id": "ca",
+      "part": "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+      "role": "sum",
+      "args": [
+       "@la.emits"
+      ],
+      "says": "SUM"
+     },
+     {
+      "id": "lb",
+      "loop": {
+       "over": {
+        "$slice": [
+         {
+          "$cat": [
+           [
+            "$from"
+           ],
+           "@u"
+          ]
+         },
+         1
+        ]
+       },
+       "init": {
+        "prev": "$from"
+       },
+       "item": "qb",
+       "state": "tb",
+       "nodes": [
+        {
+         "id": "db",
+         "part": "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+         "role": "convert",
+         "args": [
+          "$tb.prev.x",
+          "$tb.prev.y",
+          "$qb"
+         ],
+         "says": "MEASURE"
+        }
+       ],
+       "next": {
+        "prev": "$qb"
+       },
+       "emit": "@db"
+      }
+     },
+     {
+      "id": "cb",
+      "part": "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+      "role": "sum",
+      "args": [
+       "@lb.emits"
+      ],
+      "says": "SUM"
+     },
+     {
+      "id": "st",
+      "part": "core-c:catalog/core/nearest-point.mjs#nearestPoint",
+      "role": "extreme",
+      "args": [
+       [
+        {
+         "x": "@ca",
+         "y": 0,
+         "r": {
+          "$cat": [
+           [
+            "$from"
+           ],
+           "@nn.emits"
+          ]
+         }
+        },
+        {
+         "x": "@cb",
+         "y": 0,
+         "r": {
+          "$cat": [
+           [
+            "$from"
+           ],
+           "@u"
+          ]
+         }
+        }
+       ],
+       {
+        "x": 0,
+        "y": 0
+       }
+      ],
+      "says": "PICK"
+     },
+     {
+      "id": "opt",
+      "loop": {
+       "over": {
+        "$slice": [
+         "$o.r",
+         1
+        ]
+       },
+       "init": {
+        "r": "@st.r",
+        "len": "@st.x"
+       },
+       "item": "a",
+       "index": "k",
+       "state": "o",
+       "until": "stable",
+       "max": 60,
+       "nodes": [
+        {
+         "id": "i",
+         "part": "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+         "role": "sum",
+         "args": [
+          [
+           "$k",
+           1
+          ]
+         ],
+         "says": "SUM"
+        },
+        {
+         "id": "i2",
+         "part": "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+         "role": "sum",
+         "args": [
+          [
+           "$k",
+           2
+          ]
+         ],
+         "says": "SUM"
+        },
+        {
+         "id": "two",
+         "loop": {
+          "over": {
+           "$slice": [
+            "$o.r",
+            "@i2"
+           ]
+          },
+          "init": "$o",
+          "item": "b",
+          "index": "m",
+          "state": "c",
+          "nodes": [
+           {
+            "id": "e",
+            "part": "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+            "role": "sum",
+            "args": [
+             [
+              "@i2",
+              "$m",
+              1
+             ]
+            ],
+            "says": "SUM"
+           },
+           {
+            "id": "mv",
+            "part": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#CartSubmenu.reversed:step",
+            "role": "reverse",
+            "args": [
+             {
+              "$slice": [
+               "$c.r",
+               "@i",
+               "@e"
+              ]
+             }
+            ],
+            "says": "MOVE"
+           },
+           {
+            "id": "lc",
+            "loop": {
+             "over": {
+              "$slice": [
+               {
+                "$cat": [
+                 {
+                  "$slice": [
+                   "$c.r",
+                   0,
+                   "@i"
+                  ]
+                 },
+                 "@mv",
+                 {
+                  "$slice": [
+                   "$c.r",
+                   "@e"
+                  ]
+                 }
+                ]
+               },
+               1
+              ]
+             },
+             "init": {
+              "prev": "$c.r.0"
+             },
+             "item": "qc",
+             "state": "tc",
+             "nodes": [
+              {
+               "id": "dc",
+               "part": "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+               "role": "convert",
+               "args": [
+                "$tc.prev.x",
+                "$tc.prev.y",
+                "$qc"
+               ],
+               "says": "MEASURE"
+              }
+             ],
+             "next": {
+              "prev": "$qc"
+             },
+             "emit": "@dc"
+            }
+           },
+           {
+            "id": "cc",
+            "part": "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+            "role": "sum",
+            "args": [
+             "@lc.emits"
+            ],
+            "says": "SUM"
+           },
+           {
+            "id": "pk",
+            "part": "core-c:catalog/core/nearest-point.mjs#nearestPoint",
+            "role": "extreme",
+            "args": [
+             [
+              {
+               "x": "$c.len",
+               "y": 0,
+               "r": "$c.r"
+              },
+              {
+               "x": "@cc",
+               "y": 0,
+               "r": {
+                "$cat": [
+                 {
+                  "$slice": [
+                   "$c.r",
+                   0,
+                   "@i"
+                  ]
+                 },
+                 "@mv",
+                 {
+                  "$slice": [
+                   "$c.r",
+                   "@e"
+                  ]
+                 }
+                ]
+               }
+              }
+             ],
+             {
+              "x": 0,
+              "y": 0
+             }
+            ],
+            "says": "PICK"
+           }
+          ],
+          "next": {
+           "r": "@pk.r",
+           "len": "@pk.x"
+          }
+         }
+        }
+       ],
+       "next": "@two.state"
+      }
+     }
+    ],
+    "out": "@opt.state.r"
+   }
+  },
+  {
+   "shape": "improve-until-stable",
+   "variant": "clean+construct+improve",
+   "parts": 6,
+   "steps": 5227,
+   "holds": "60/60",
+   "graph": {
+    "inputs": [
+     "from",
+     "stops"
+    ],
+    "nodes": [
+     {
+      "id": "u",
+      "part": "core-c:catalog/core/dedupe-points.mjs#dedupePoints",
+      "role": "dedupe",
+      "args": [
+       "$stops"
+      ],
+      "says": "CLEAN"
+     },
+     {
+      "id": "nn",
+      "loop": {
+       "over": "@u",
+       "init": {
+        "at": "$from",
+        "left": "@u"
+       },
+       "item": "p",
+       "state": "s",
+       "nodes": [
+        {
+         "id": "by",
+         "part": "orbit:src/components/platform/lib.ts#orgEnabledFeatures",
+         "role": "filter",
+         "args": [
+          "$s.at",
+          "$s.left"
+         ],
+         "says": "ORDER"
+        }
+       ],
+       "next": {
+        "at": "@by.0",
+        "left": {
+         "$slice": [
+          "@by",
+          1
+         ]
+        }
+       },
+       "emit": "@by.0"
+      }
+     },
+     {
+      "id": "la",
+      "loop": {
+       "over": {
+        "$slice": [
+         {
+          "$cat": [
+           [
+            "$from"
+           ],
+           "@nn.emits"
+          ]
+         },
+         1
+        ]
+       },
+       "init": {
+        "prev": "$from"
+       },
+       "item": "qa",
+       "state": "ta",
+       "nodes": [
+        {
+         "id": "da",
+         "part": "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+         "role": "convert",
+         "args": [
+          "$ta.prev.x",
+          "$ta.prev.y",
+          "$qa"
+         ],
+         "says": "MEASURE"
+        }
+       ],
+       "next": {
+        "prev": "$qa"
+       },
+       "emit": "@da"
+      }
+     },
+     {
+      "id": "ca",
+      "part": "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+      "role": "sum",
+      "args": [
+       "@la.emits"
+      ],
+      "says": "SUM"
+     },
+     {
+      "id": "opt",
+      "loop": {
+       "over": {
+        "$slice": [
+         "$o.r",
+         1
+        ]
+       },
+       "init": {
+        "r": {
+         "$cat": [
+          [
+           "$from"
+          ],
+          "@nn.emits"
+         ]
+        },
+        "len": "@ca"
+       },
+       "item": "a",
+       "index": "k",
+       "state": "o",
+       "until": "stable",
+       "max": 60,
+       "nodes": [
+        {
+         "id": "i",
+         "part": "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+         "role": "sum",
+         "args": [
+          [
+           "$k",
+           1
+          ]
+         ],
+         "says": "SUM"
+        },
+        {
+         "id": "i2",
+         "part": "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+         "role": "sum",
+         "args": [
+          [
+           "$k",
+           2
+          ]
+         ],
+         "says": "SUM"
+        },
+        {
+         "id": "two",
+         "loop": {
+          "over": {
+           "$slice": [
+            "$o.r",
+            "@i2"
+           ]
+          },
+          "init": "$o",
+          "item": "b",
+          "index": "m",
+          "state": "c",
+          "nodes": [
+           {
+            "id": "e",
+            "part": "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+            "role": "sum",
+            "args": [
+             [
+              "@i2",
+              "$m",
+              1
+             ]
+            ],
+            "says": "SUM"
+           },
+           {
+            "id": "mv",
+            "part": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#CartSubmenu.reversed:step",
+            "role": "reverse",
+            "args": [
+             {
+              "$slice": [
+               "$c.r",
+               "@i",
+               "@e"
+              ]
+             }
+            ],
+            "says": "MOVE"
+           },
+           {
+            "id": "lc",
+            "loop": {
+             "over": {
+              "$slice": [
+               {
+                "$cat": [
+                 {
+                  "$slice": [
+                   "$c.r",
+                   0,
+                   "@i"
+                  ]
+                 },
+                 "@mv",
+                 {
+                  "$slice": [
+                   "$c.r",
+                   "@e"
+                  ]
+                 }
+                ]
+               },
+               1
+              ]
+             },
+             "init": {
+              "prev": "$c.r.0"
+             },
+             "item": "qc",
+             "state": "tc",
+             "nodes": [
+              {
+               "id": "dc",
+               "part": "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+               "role": "convert",
+               "args": [
+                "$tc.prev.x",
+                "$tc.prev.y",
+                "$qc"
+               ],
+               "says": "MEASURE"
+              }
+             ],
+             "next": {
+              "prev": "$qc"
+             },
+             "emit": "@dc"
+            }
+           },
+           {
+            "id": "cc",
+            "part": "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+            "role": "sum",
+            "args": [
+             "@lc.emits"
+            ],
+            "says": "SUM"
+           },
+           {
+            "id": "pk",
+            "part": "core-c:catalog/core/nearest-point.mjs#nearestPoint",
+            "role": "extreme",
+            "args": [
+             [
+              {
+               "x": "$c.len",
+               "y": 0,
+               "r": "$c.r"
+              },
+              {
+               "x": "@cc",
+               "y": 0,
+               "r": {
+                "$cat": [
+                 {
+                  "$slice": [
+                   "$c.r",
+                   0,
+                   "@i"
+                  ]
+                 },
+                 "@mv",
+                 {
+                  "$slice": [
+                   "$c.r",
+                   "@e"
+                  ]
+                 }
+                ]
+               }
+              }
+             ],
+             {
+              "x": 0,
+              "y": 0
+             }
+            ],
+            "says": "PICK"
+           }
+          ],
+          "next": {
+           "r": "@pk.r",
+           "len": "@pk.x"
+          }
+         }
+        }
+       ],
+       "next": "@two.state"
+      }
+     }
+    ],
+    "out": "@opt.state.r"
+   }
+  },
+  {
+   "shape": "improve-until-stable",
+   "variant": "clean+construct+best+improve",
+   "parts": 6,
+   "steps": 5329,
+   "holds": "60/60",
+   "graph": {
+    "inputs": [
+     "from",
+     "stops"
+    ],
+    "nodes": [
+     {
+      "id": "u",
+      "part": "core-c:catalog/core/dedupe-points.mjs#dedupePoints",
+      "role": "dedupe",
+      "args": [
+       "$stops"
+      ],
+      "says": "CLEAN"
+     },
+     {
+      "id": "nn",
+      "loop": {
+       "over": "@u",
+       "init": {
+        "at": "$from",
+        "left": "@u"
+       },
+       "item": "p",
+       "state": "s",
+       "nodes": [
+        {
+         "id": "by",
+         "part": "orbit:src/components/platform/lib.ts#orgEnabledFeatures",
+         "role": "filter",
+         "args": [
+          "$s.at",
+          "$s.left"
+         ],
+         "says": "ORDER"
+        }
+       ],
+       "next": {
+        "at": "@by.0",
+        "left": {
+         "$slice": [
+          "@by",
+          1
+         ]
+        }
+       },
+       "emit": "@by.0"
+      }
+     },
+     {
+      "id": "la",
+      "loop": {
+       "over": {
+        "$slice": [
+         {
+          "$cat": [
+           [
+            "$from"
+           ],
+           "@nn.emits"
+          ]
+         },
+         1
+        ]
+       },
+       "init": {
+        "prev": "$from"
+       },
+       "item": "qa",
+       "state": "ta",
+       "nodes": [
+        {
+         "id": "da",
+         "part": "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+         "role": "convert",
+         "args": [
+          "$ta.prev.x",
+          "$ta.prev.y",
+          "$qa"
+         ],
+         "says": "MEASURE"
+        }
+       ],
+       "next": {
+        "prev": "$qa"
+       },
+       "emit": "@da"
+      }
+     },
+     {
+      "id": "ca",
+      "part": "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+      "role": "sum",
+      "args": [
+       "@la.emits"
+      ],
+      "says": "SUM"
+     },
+     {
+      "id": "lb",
+      "loop": {
+       "over": {
+        "$slice": [
+         {
+          "$cat": [
+           [
+            "$from"
+           ],
+           "@u"
+          ]
+         },
+         1
+        ]
+       },
+       "init": {
+        "prev": "$from"
+       },
+       "item": "qb",
+       "state": "tb",
+       "nodes": [
+        {
+         "id": "db",
+         "part": "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+         "role": "convert",
+         "args": [
+          "$tb.prev.x",
+          "$tb.prev.y",
+          "$qb"
+         ],
+         "says": "MEASURE"
+        }
+       ],
+       "next": {
+        "prev": "$qb"
+       },
+       "emit": "@db"
+      }
+     },
+     {
+      "id": "cb",
+      "part": "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+      "role": "sum",
+      "args": [
+       "@lb.emits"
+      ],
+      "says": "SUM"
+     },
+     {
+      "id": "st",
+      "part": "core-c:catalog/core/nearest-point.mjs#nearestPoint",
+      "role": "extreme",
+      "args": [
+       [
+        {
+         "x": "@ca",
+         "y": 0,
+         "r": {
+          "$cat": [
+           [
+            "$from"
+           ],
+           "@nn.emits"
+          ]
+         }
+        },
+        {
+         "x": "@cb",
+         "y": 0,
+         "r": {
+          "$cat": [
+           [
+            "$from"
+           ],
+           "@u"
+          ]
+         }
+        }
+       ],
+       {
+        "x": 0,
+        "y": 0
+       }
+      ],
+      "says": "PICK"
+     },
+     {
+      "id": "opt",
+      "loop": {
+       "over": {
+        "$slice": [
+         "$o.r",
+         1
+        ]
+       },
+       "init": {
+        "r": "@st.r",
+        "len": "@st.x"
+       },
+       "item": "a",
+       "index": "k",
+       "state": "o",
+       "until": "stable",
+       "max": 60,
+       "nodes": [
+        {
+         "id": "i",
+         "part": "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+         "role": "sum",
+         "args": [
+          [
+           "$k",
+           1
+          ]
+         ],
+         "says": "SUM"
+        },
+        {
+         "id": "i2",
+         "part": "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+         "role": "sum",
+         "args": [
+          [
+           "$k",
+           2
+          ]
+         ],
+         "says": "SUM"
+        },
+        {
+         "id": "two",
+         "loop": {
+          "over": {
+           "$slice": [
+            "$o.r",
+            "@i2"
+           ]
+          },
+          "init": "$o",
+          "item": "b",
+          "index": "m",
+          "state": "c",
+          "nodes": [
+           {
+            "id": "e",
+            "part": "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+            "role": "sum",
+            "args": [
+             [
+              "@i2",
+              "$m",
+              1
+             ]
+            ],
+            "says": "SUM"
+           },
+           {
+            "id": "mv",
+            "part": "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#CartSubmenu.reversed:step",
+            "role": "reverse",
+            "args": [
+             {
+              "$slice": [
+               "$c.r",
+               "@i",
+               "@e"
+              ]
+             }
+            ],
+            "says": "MOVE"
+           },
+           {
+            "id": "lc",
+            "loop": {
+             "over": {
+              "$slice": [
+               {
+                "$cat": [
+                 {
+                  "$slice": [
+                   "$c.r",
+                   0,
+                   "@i"
+                  ]
+                 },
+                 "@mv",
+                 {
+                  "$slice": [
+                   "$c.r",
+                   "@e"
+                  ]
+                 }
+                ]
+               },
+               1
+              ]
+             },
+             "init": {
+              "prev": "$c.r.0"
+             },
+             "item": "qc",
+             "state": "tc",
+             "nodes": [
+              {
+               "id": "dc",
+               "part": "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+               "role": "convert",
+               "args": [
+                "$tc.prev.x",
+                "$tc.prev.y",
+                "$qc"
+               ],
+               "says": "MEASURE"
+              }
+             ],
+             "next": {
+              "prev": "$qc"
+             },
+             "emit": "@dc"
+            }
+           },
+           {
+            "id": "cc",
+            "part": "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+            "role": "sum",
+            "args": [
+             "@lc.emits"
+            ],
+            "says": "SUM"
+           },
+           {
+            "id": "pk",
+            "part": "core-c:catalog/core/nearest-point.mjs#nearestPoint",
+            "role": "extreme",
+            "args": [
+             [
+              {
+               "x": "$c.len",
+               "y": 0,
+               "r": "$c.r"
+              },
+              {
+               "x": "@cc",
+               "y": 0,
+               "r": {
+                "$cat": [
+                 {
+                  "$slice": [
+                   "$c.r",
+                   0,
+                   "@i"
+                  ]
+                 },
+                 "@mv",
+                 {
+                  "$slice": [
+                   "$c.r",
+                   "@e"
+                  ]
+                 }
+                ]
+               }
+              }
+             ],
+             {
+              "x": 0,
+              "y": 0
+             }
+            ],
+            "says": "PICK"
+           }
+          ],
+          "next": {
+           "r": "@pk.r",
+           "len": "@pk.x"
+          }
+         }
+        }
+       ],
+       "next": "@two.state"
+      }
+     }
+    ],
+    "out": "@opt.state.r"
+   }
+  }
+ ]
+}

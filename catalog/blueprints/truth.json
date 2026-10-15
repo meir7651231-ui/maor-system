@@ -1,0 +1,403 @@
+{
+ "about": "נבנה ע״י catalog/blueprints/truth.mjs — בדיקת-אמת בדיעבד (לא חלק מהחיפוש): האם מה שעבר את חוקי הפועל עושה את מה שהפועל אומר",
+ "n": 200,
+ "rows": [
+  {
+   "verb": "allot",
+   "file": "bp-allot-geo.json",
+   "chosenOk": true,
+   "anyOk": true,
+   "firstOk": 0,
+   "evals": [
+    {
+     "shape": "capacitated-greedy",
+     "variant": "capacity",
+     "parts": 1,
+     "chosen": true,
+     "ok": true,
+     "n": 200,
+     "bad": 0,
+     "quality": {
+      "assignedKm": 17153.357,
+      "refAssignedKm": 14941.863,
+      "vsRef": 1.148,
+      "waiting": 459,
+      "refWaiting": 459
+     },
+     "says": "כל פריט פעם אחת · אף סל מעל התקרה · בחוץ רק כשהכול מלא — על קלטים גדולים; ואיכות: סך-המרחק מול מימוש-הייחוס (הקרוב-לסל ראשון)"
+    },
+    {
+     "shape": "capacitated-greedy",
+     "variant": "capacity+bykey",
+     "parts": 3,
+     "chosen": false,
+     "ok": true,
+     "n": 200,
+     "bad": 0,
+     "quality": {
+      "assignedKm": 14938.141,
+      "refAssignedKm": 14941.863,
+      "vsRef": 1,
+      "waiting": 459,
+      "refWaiting": 459
+     },
+     "says": "כל פריט פעם אחת · אף סל מעל התקרה · בחוץ רק כשהכול מלא — על קלטים גדולים; ואיכות: סך-המרחק מול מימוש-הייחוס (הקרוב-לסל ראשון)"
+    }
+   ]
+  },
+  {
+   "verb": "average",
+   "file": "bp-average-list.json",
+   "chosenOk": false,
+   "anyOk": false,
+   "firstOk": -1,
+   "evals": [
+    {
+     "shape": "fan-in",
+     "variant": "base",
+     "parts": 3,
+     "chosen": true,
+     "ok": false,
+     "n": 200,
+     "bad": 200,
+     "example": {
+      "in": [
+       -14,
+       30,
+       -27
+      ],
+      "out": 16.5,
+      "want": -3.6666666666666665
+     },
+     "says": "שווה להממוצע (על 200 רשימות, גם שליליים)"
+    },
+    {
+     "shape": "fan-in",
+     "variant": "base",
+     "parts": 3,
+     "chosen": false,
+     "ok": false,
+     "n": 200,
+     "bad": 200,
+     "example": {
+      "in": [
+       -14,
+       30,
+       -27
+      ],
+      "out": 16.5,
+      "want": -3.6666666666666665
+     },
+     "says": "שווה להממוצע (על 200 רשימות, גם שליליים)"
+    }
+   ]
+  },
+  {
+   "verb": "compare",
+   "file": "bp-compare-geo.json",
+   "chosenOk": true,
+   "anyOk": true,
+   "firstOk": 0,
+   "evals": [
+    {
+     "shape": "pair-measure-from",
+     "variant": "base",
+     "parts": 2,
+     "chosen": true,
+     "ok": true,
+     "n": 200,
+     "bad": 0,
+     "says": "הסימן תמיד כמו (או תמיד הפוך מ-) המרחק מהמוצא: |a| − |b|",
+     "note": "כיוון הפוך"
+    },
+    {
+     "shape": "pair-measure-from",
+     "variant": "base",
+     "parts": 2,
+     "chosen": false,
+     "ok": true,
+     "n": 200,
+     "bad": 0,
+     "says": "הסימן תמיד כמו (או תמיד הפוך מ-) המרחק מהמוצא: |a| − |b|",
+     "note": "כיוון הפוך"
+    },
+    {
+     "shape": "pair-measure",
+     "variant": "base",
+     "parts": 2,
+     "chosen": false,
+     "ok": false,
+     "n": 200,
+     "bad": 109,
+     "says": "הסימן תמיד כמו (או תמיד הפוך מ-) המרחק מהמוצא: |a| − |b|",
+     "note": "כיוון הפוך"
+    },
+    {
+     "shape": "pair-measure",
+     "variant": "base",
+     "parts": 2,
+     "chosen": false,
+     "ok": false,
+     "n": 200,
+     "bad": 26,
+     "says": "הסימן תמיד כמו (או תמיד הפוך מ-) המרחק מהמוצא: |a| − |b|",
+     "note": "כיוון הפוך"
+    },
+    {
+     "shape": "pair-measure",
+     "variant": "base",
+     "parts": 2,
+     "chosen": false,
+     "ok": false,
+     "n": 200,
+     "bad": 14,
+     "says": "הסימן תמיד כמו (או תמיד הפוך מ-) המרחק מהמוצא: |a| − |b|",
+     "note": "כיוון הפוך"
+    }
+   ]
+  },
+  {
+   "verb": "count",
+   "file": "bp-count-list.json",
+   "chosenOk": true,
+   "anyOk": true,
+   "firstOk": 0,
+   "evals": [
+    {
+     "shape": "count-by-ones",
+     "variant": "base",
+     "parts": 1,
+     "chosen": true,
+     "ok": true,
+     "n": 200,
+     "bad": 0,
+     "says": "שלם בין 0 לאורך, ושתי רשימות = סכום הספירות"
+    }
+   ]
+  },
+  {
+   "verb": "extreme",
+   "file": "bp-extreme-list.json",
+   "chosenOk": false,
+   "anyOk": true,
+   "firstOk": 1,
+   "evals": [
+    {
+     "shape": "sort-first",
+     "variant": "base",
+     "parts": 1,
+     "chosen": true,
+     "ok": false,
+     "n": 200,
+     "bad": 84,
+     "says": "אחד מהפריטים, ותמיד הגדול (או תמיד הקטן)"
+    },
+    {
+     "shape": "sort-first",
+     "variant": "base",
+     "parts": 1,
+     "chosen": false,
+     "ok": true,
+     "n": 200,
+     "bad": 0,
+     "says": "אחד מהפריטים, ותמיד הגדול (או תמיד הקטן)"
+    },
+    {
+     "shape": "sort-first",
+     "variant": "base",
+     "parts": 1,
+     "chosen": false,
+     "ok": true,
+     "n": 200,
+     "bad": 0,
+     "says": "אחד מהפריטים, ותמיד הגדול (או תמיד הקטן)"
+    },
+    {
+     "shape": "chain3",
+     "variant": "base",
+     "parts": 3,
+     "chosen": false,
+     "ok": false,
+     "n": 200,
+     "bad": 84,
+     "says": "אחד מהפריטים, ותמיד הגדול (או תמיד הקטן)"
+    },
+    {
+     "shape": "chain3",
+     "variant": "base",
+     "parts": 3,
+     "chosen": false,
+     "ok": true,
+     "n": 200,
+     "bad": 0,
+     "says": "אחד מהפריטים, ותמיד הגדול (או תמיד הקטן)"
+    },
+    {
+     "shape": "chain3",
+     "variant": "base",
+     "parts": 3,
+     "chosen": false,
+     "ok": true,
+     "n": 200,
+     "bad": 0,
+     "says": "אחד מהפריטים, ותמיד הגדול (או תמיד הקטן)"
+    }
+   ]
+  },
+  {
+   "verb": "sum",
+   "file": "bp-sum-times.json",
+   "chosenOk": false,
+   "anyOk": true,
+   "firstOk": 1,
+   "evals": [
+    {
+     "shape": "fold",
+     "variant": "binary",
+     "parts": 1,
+     "chosen": true,
+     "ok": false,
+     "n": 200,
+     "bad": 181,
+     "example": {
+      "in": [
+       -14,
+       30
+      ],
+      "out": -16,
+      "want": 16
+     },
+     "says": "שווה להסכום (על 200 רשימות, גם שליליים)"
+    },
+    {
+     "shape": "fold",
+     "variant": "binary",
+     "parts": 1,
+     "chosen": false,
+     "ok": true,
+     "n": 200,
+     "bad": 0,
+     "says": "שווה להסכום (על 200 רשימות, גם שליליים)"
+    },
+    {
+     "shape": "fan-in",
+     "variant": "base",
+     "parts": 2,
+     "chosen": false,
+     "ok": false,
+     "n": 200,
+     "bad": 181,
+     "example": {
+      "in": [
+       -14,
+       30
+      ],
+      "out": 4,
+      "want": 16
+     },
+     "says": "שווה להסכום (על 200 רשימות, גם שליליים)"
+    },
+    {
+     "shape": "fan-in",
+     "variant": "base",
+     "parts": 3,
+     "chosen": false,
+     "ok": false,
+     "n": 200,
+     "bad": 181,
+     "example": {
+      "in": [
+       -14,
+       30
+      ],
+      "out": -2,
+      "want": 16
+     },
+     "says": "שווה להסכום (על 200 רשימות, גם שליליים)"
+    },
+    {
+     "shape": "fan-in",
+     "variant": "base",
+     "parts": 3,
+     "chosen": false,
+     "ok": false,
+     "n": 200,
+     "bad": 181,
+     "example": {
+      "in": [
+       -14,
+       30
+      ],
+      "out": 6.283185307179586,
+      "want": 16
+     },
+     "says": "שווה להסכום (על 200 רשימות, גם שליליים)"
+    }
+   ]
+  },
+  {
+   "verb": "tour",
+   "file": "bp-tour-geo.json",
+   "chosenOk": true,
+   "anyOk": true,
+   "firstOk": 0,
+   "evals": [
+    {
+     "shape": "improve-only",
+     "variant": "clean+improve",
+     "parts": 5,
+     "chosen": true,
+     "ok": true,
+     "n": 200,
+     "bad": 0,
+     "dupBad": 0,
+     "says": "כל תחנה ייחודית פעם אחת · מתחיל במוצא · לא ארוך מהסדר שהגיע · אף היפוך-קטע לא מקצר — גם עם תחנות כפולות ועד 11 תחנות"
+    },
+    {
+     "shape": "improve-until-stable",
+     "variant": "clean+construct+improve",
+     "parts": 6,
+     "chosen": false,
+     "ok": true,
+     "n": 200,
+     "bad": 0,
+     "dupBad": 0,
+     "says": "כל תחנה ייחודית פעם אחת · מתחיל במוצא · לא ארוך מהסדר שהגיע · אף היפוך-קטע לא מקצר — גם עם תחנות כפולות ועד 11 תחנות"
+    },
+    {
+     "shape": "improve-until-stable",
+     "variant": "clean+construct+best+improve",
+     "parts": 6,
+     "chosen": false,
+     "ok": true,
+     "n": 200,
+     "bad": 0,
+     "dupBad": 0,
+     "says": "כל תחנה ייחודית פעם אחת · מתחיל במוצא · לא ארוך מהסדר שהגיע · אף היפוך-קטע לא מקצר — גם עם תחנות כפולות ועד 11 תחנות"
+    },
+    {
+     "shape": "improve-until-stable",
+     "variant": "clean+construct+improve",
+     "parts": 6,
+     "chosen": false,
+     "ok": true,
+     "n": 200,
+     "bad": 0,
+     "dupBad": 0,
+     "says": "כל תחנה ייחודית פעם אחת · מתחיל במוצא · לא ארוך מהסדר שהגיע · אף היפוך-קטע לא מקצר — גם עם תחנות כפולות ועד 11 תחנות"
+    },
+    {
+     "shape": "improve-until-stable",
+     "variant": "clean+construct+best+improve",
+     "parts": 6,
+     "chosen": false,
+     "ok": true,
+     "n": 200,
+     "bad": 0,
+     "dupBad": 0,
+     "says": "כל תחנה ייחודית פעם אחת · מתחיל במוצא · לא ארוך מהסדר שהגיע · אף היפוך-קטע לא מקצר — גם עם תחנות כפולות ועד 11 תחנות"
+    }
+   ]
+  }
+ ]
+}

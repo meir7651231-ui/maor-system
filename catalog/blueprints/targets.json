@@ -1,0 +1,20 @@
+{
+ "about": "פעלי-היעד של מנוע-השרטוטים (search.mjs) — המבחן העיוור. לכל אחד: מה מוסתר ממנו. 'hand' = מתכון שנכתב ביד ב-verb-recipes.json (הקובץ לא נקרא בכלל — ratchet); 'combo' = שילוב שמכונת-השילוב מצאה (combos.json / recipes/combo-* — לא נקראים); 'parts' = כל חלק שמוכח לפועל עצמו יוצא מכל המאגרים. sig: 'ref' = חתימת-הייחוס של הפועל; 'material' = נבנית מהחומר (נקודות) כמו בצורת pair של מכונת-השילוב",
+ "budget": { "attemptsPerVerb": 6000, "attemptsPerTemplate": 1500, "keepPerTemplate": 3, "staticCap": 48, "poolKeep": 12, "stepsPerAttempt": 5000000 },
+ "targets": [
+  { "verb": "tour", "material": "geo", "sig": "ref", "hide": ["hand", "parts"], "today": "גרף ביד (verb-recipes.json) — 6 חלקים + לולאות, 60/60" },
+  { "verb": "allot", "material": "geo", "sig": "ref", "hide": ["hand", "parts"], "today": "גרף ביד — 3 חלקים + לולאות, 53/53" },
+  { "verb": "schedule", "material": "times", "sig": "ref", "hide": ["hand", "parts"], "today": "גרף ביד — 6 חלקים + לולאה, 60/60" },
+  { "verb": "compare", "material": "geo", "sig": "material", "sems": ["pt", "pt"], "hide": ["hand", "combo", "parts"], "today": "זוג (pair): מודד-המרחק של הגלקסיה ⇒ משווה, 35/35 — לפי רמז ביד" },
+  { "verb": "shortest-path", "material": "geo", "sig": "ref", "hide": ["hand", "combo", "parts"], "today": "שרשרת לפי רמז: רשת-שכנים ⇒ דייקסטרה של בנייה-חכמה (חלק נדיר — 1 מוכח)" },
+  { "verb": "spread", "material": "geo", "sig": "ref", "hide": ["hand", "combo", "parts"], "today": "שרשרת לפי רמז: רשת-שכנים ⇒ reachWithin (חלק נדיר — 1 מוכח)" },
+  { "verb": "sum", "material": "times", "sig": "ref", "hide": ["combo", "parts"], "today": "שרשרת שמכונת-השילוב מצאה (24/24) + 97 חלקים מוכחים" },
+  { "verb": "average", "material": "list", "sig": "ref", "hide": ["parts"], "today": "9 חלקים מוכחים" },
+  { "verb": "count", "material": "list", "sig": "ref", "hide": ["parts"], "today": "57 חלקים מוכחים" },
+  { "verb": "extreme", "material": "list", "sig": "ref", "hide": ["parts"], "today": "109 חלקים מוכחים" },
+  { "verb": "dedupe", "material": "list", "sig": "ref", "hide": ["parts"], "today": "7 חלקים מוכחים (נדיר)" },
+  { "verb": "reverse", "material": "list", "sig": "ref", "hide": ["parts"], "today": "8 חלקים מוכחים (נדיר)" },
+  { "verb": "sort", "material": "list", "sig": "ref", "hide": ["parts"], "today": "12 חלקים מוכחים (נדיר)" },
+  { "verb": "sun-heading", "material": "number", "sig": "ref", "hide": ["hand", "combo", "parts"], "today": "גרף ביד — 11 חלקים (כיוון השמש), 72/72" }
+ ]
+}

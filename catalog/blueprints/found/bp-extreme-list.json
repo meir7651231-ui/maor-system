@@ -1,0 +1,220 @@
+{
+ "id": "bp-extreme-list",
+ "word": "extreme · list",
+ "by": "מנוע-השרטוטים (catalog/blueprints/search.mjs)",
+ "title": "שילוב «בוחר את הקיצוני» לפי השרטוט «מיין ואז קח ראשון»: 1 חלקים",
+ "blueprint": {
+  "shape": "sort-first",
+  "variant": "base"
+ },
+ "combo": {
+  "verb": "extreme",
+  "material": "list",
+  "form": "graph",
+  "steps": [
+   "inner-orbit:src/lib/enginebox/goal/routeAdapter.ts#shapeRoute.sorted"
+  ],
+  "roles": [
+   "sort"
+  ],
+  "holds": "23/23",
+  "laws": [
+   "extreme.split",
+   "extreme.order-free"
+  ],
+  "graph": {
+   "inputs": [
+    "xs"
+   ],
+   "consts": {},
+   "nodes": [
+    {
+     "id": "a",
+     "part": "inner-orbit:src/lib/enginebox/goal/routeAdapter.ts#shapeRoute.sorted",
+     "role": "sort",
+     "args": [
+      "$xs"
+     ],
+     "says": "A"
+    }
+   ],
+   "out": "@a.0"
+  }
+ },
+ "alternatives": [
+  {
+   "shape": "sort-first",
+   "variant": "base",
+   "parts": 1,
+   "steps": 48,
+   "holds": "19/19",
+   "graph": {
+    "inputs": [
+     "xs"
+    ],
+    "nodes": [
+     {
+      "id": "a",
+      "part": "inner-generator:new/boxes/pareto.mjs#paretoReport.desc",
+      "role": "sort",
+      "args": [
+       "$xs"
+      ],
+      "says": "A"
+     }
+    ],
+    "out": "@a.0"
+   }
+  },
+  {
+   "shape": "sort-first",
+   "variant": "base",
+   "parts": 1,
+   "steps": 50,
+   "holds": "21/21",
+   "graph": {
+    "inputs": [
+     "xs"
+    ],
+    "nodes": [
+     {
+      "id": "a",
+      "part": "inner-generator:new/boxes/pareto.mjs#paretoReport.asc",
+      "role": "sort",
+      "args": [
+       "$xs"
+      ],
+      "says": "A"
+     }
+    ],
+    "out": "@a.0"
+   }
+  },
+  {
+   "shape": "chain3",
+   "variant": "base",
+   "parts": 3,
+   "steps": 62,
+   "holds": "24/24",
+   "graph": {
+    "inputs": [
+     "x"
+    ],
+    "nodes": [
+     {
+      "id": "a",
+      "part": "inner-orbit:src/lib/enginebox/goal/routeAdapter.ts#shapeRoute.sorted",
+      "role": "sort",
+      "args": [
+       "$x"
+      ],
+      "says": "A"
+     },
+     {
+      "id": "b",
+      "part": "inner-orbit:src/lib/enginebox/goal/routeAdapter.ts#goalRoutes.missingAll",
+      "role": "sort",
+      "args": [
+       "@a"
+      ],
+      "says": "B"
+     },
+     {
+      "id": "c",
+      "part": "inner-generator:machtzev/ds-forge.mjs#emit.map.pr:step",
+      "role": "average",
+      "args": [
+       "@b"
+      ],
+      "says": "C"
+     }
+    ],
+    "out": "c"
+   }
+  },
+  {
+   "shape": "chain3",
+   "variant": "base",
+   "parts": 3,
+   "steps": 102,
+   "holds": "20/20",
+   "graph": {
+    "inputs": [
+     "x"
+    ],
+    "nodes": [
+     {
+      "id": "a",
+      "part": "inner-generator:new/boxes/pareto.mjs#paretoReport.desc",
+      "role": "sort",
+      "args": [
+       "$x"
+      ],
+      "says": "A"
+     },
+     {
+      "id": "b",
+      "part": "inner-orbit:src/lib/enginebox/goal/routeAdapter.ts#goalRoutes.missingAll",
+      "role": "sort",
+      "args": [
+       "@a"
+      ],
+      "says": "B"
+     },
+     {
+      "id": "c",
+      "part": "inner-generator:machtzev/ds-forge.mjs#emit.map.pr:step",
+      "role": "average",
+      "args": [
+       "@b"
+      ],
+      "says": "C"
+     }
+    ],
+    "out": "c"
+   }
+  },
+  {
+   "shape": "chain3",
+   "variant": "base",
+   "parts": 3,
+   "steps": 104,
+   "holds": "21/21",
+   "graph": {
+    "inputs": [
+     "x"
+    ],
+    "nodes": [
+     {
+      "id": "a",
+      "part": "inner-generator:new/boxes/pareto.mjs#paretoReport.asc",
+      "role": "sort",
+      "args": [
+       "$x"
+      ],
+      "says": "A"
+     },
+     {
+      "id": "b",
+      "part": "inner-orbit:src/lib/enginebox/goal/routeAdapter.ts#goalRoutes.missingAll",
+      "role": "sort",
+      "args": [
+       "@a"
+      ],
+      "says": "B"
+     },
+     {
+      "id": "c",
+      "part": "inner-generator:machtzev/ds-forge.mjs#emit.map.pr:step",
+      "role": "average",
+      "args": [
+       "@b"
+      ],
+      "says": "C"
+     }
+    ],
+    "out": "c"
+   }
+  }
+ ]
+}

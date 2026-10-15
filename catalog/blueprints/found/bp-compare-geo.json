@@ -1,0 +1,329 @@
+{
+ "id": "bp-compare-geo",
+ "word": "compare · geo",
+ "by": "מנוע-השרטוטים (catalog/blueprints/search.mjs)",
+ "title": "שילוב «משווה» לפי השרטוט «מדוד כל אחד מנקודה ואז השווה»: 2 חלקים",
+ "blueprint": {
+  "shape": "pair-measure-from",
+  "variant": "base"
+ },
+ "combo": {
+  "verb": "compare",
+  "material": "geo",
+  "form": "graph",
+  "steps": [
+   "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+   "inner-generator:new/boxes/team-intel.mjs#withinDays.diff:step"
+  ],
+  "roles": [
+   "convert",
+   "gap"
+  ],
+  "holds": "32/32",
+  "laws": [
+   "compare.self",
+   "compare.anti",
+   "compare.trans"
+  ],
+  "sig": [
+   {
+    "name": "a",
+    "d": {
+     "t": "obj",
+     "n": "Point",
+     "p": [
+      [
+       "x",
+       {
+        "t": "int",
+        "lo": 0,
+        "hi": 40
+       },
+       false
+      ],
+      [
+       "y",
+       {
+        "t": "int",
+        "lo": 0,
+        "hi": 40
+       },
+       false
+      ]
+     ]
+    }
+   },
+   {
+    "name": "b",
+    "d": {
+     "t": "obj",
+     "n": "Point",
+     "p": [
+      [
+       "x",
+       {
+        "t": "int",
+        "lo": 0,
+        "hi": 40
+       },
+       false
+      ],
+      [
+       "y",
+       {
+        "t": "int",
+        "lo": 0,
+        "hi": 40
+       },
+       false
+      ]
+     ]
+    }
+   }
+  ],
+  "graph": {
+   "inputs": [
+    "x",
+    "y"
+   ],
+   "consts": {
+    "origin": "{x:0, y:0} — נקודת-הייחוס"
+   },
+   "nodes": [
+    {
+     "id": "a",
+     "part": "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+     "role": "convert",
+     "args": [
+      "$x.x",
+      "$x.y",
+      {
+       "x": 0,
+       "y": 0
+      }
+     ],
+     "says": "MEASURE"
+    },
+    {
+     "id": "b",
+     "part": "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+     "role": "convert",
+     "args": [
+      "$y.x",
+      "$y.y",
+      {
+       "x": 0,
+       "y": 0
+      }
+     ],
+     "says": "MEASURE"
+    },
+    {
+     "id": "c",
+     "part": "inner-generator:new/boxes/team-intel.mjs#withinDays.diff:step",
+     "role": "gap",
+     "args": [
+      "@a",
+      "@b"
+     ],
+     "says": "C"
+    }
+   ],
+   "out": "c"
+  }
+ },
+ "alternatives": [
+  {
+   "shape": "pair-measure-from",
+   "variant": "base",
+   "parts": 2,
+   "steps": 24,
+   "holds": "32/32",
+   "graph": {
+    "inputs": [
+     "x",
+     "y"
+    ],
+    "nodes": [
+     {
+      "id": "a",
+      "part": "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+      "role": "convert",
+      "args": [
+       "$x.x",
+       "$x.y",
+       {
+        "x": 0,
+        "y": 0
+       }
+      ],
+      "says": "MEASURE"
+     },
+     {
+      "id": "b",
+      "part": "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+      "role": "convert",
+      "args": [
+       "$y.x",
+       "$y.y",
+       {
+        "x": 0,
+        "y": 0
+       }
+      ],
+      "says": "MEASURE"
+     },
+     {
+      "id": "c",
+      "part": "inner-orbit:src/components/parnasa/bannerFx.ts#pbRipple.step.q",
+      "role": "gap",
+      "args": [
+       "@a",
+       "@b"
+      ],
+      "says": "C"
+     }
+    ],
+    "out": "c"
+   }
+  },
+  {
+   "shape": "pair-measure",
+   "variant": "base",
+   "parts": 2,
+   "steps": 24,
+   "holds": "28/28",
+   "graph": {
+    "inputs": [
+     "x",
+     "y"
+    ],
+    "nodes": [
+     {
+      "id": "a",
+      "part": "inner-buildsmart:functions/src/credit.ts#onCall.pct:step",
+      "role": "round",
+      "args": [
+       "$x.x",
+       "$x.y"
+      ],
+      "says": "A"
+     },
+     {
+      "id": "b",
+      "part": "inner-buildsmart:functions/src/credit.ts#onCall.pct:step",
+      "role": "round",
+      "args": [
+       "$y.x",
+       "$y.y"
+      ],
+      "says": "A"
+     },
+     {
+      "id": "c",
+      "part": "inner-generator:new/boxes/team-intel.mjs#withinDays.diff:step",
+      "role": "gap",
+      "args": [
+       "@a",
+       "@b"
+      ],
+      "says": "C"
+     }
+    ],
+    "out": "c"
+   }
+  },
+  {
+   "shape": "pair-measure",
+   "variant": "base",
+   "parts": 2,
+   "steps": 24,
+   "holds": "31/31",
+   "graph": {
+    "inputs": [
+     "x",
+     "y"
+    ],
+    "nodes": [
+     {
+      "id": "a",
+      "part": "inner-generator:gen/looks/grafa/build.mjs#map.w",
+      "role": "clamp",
+      "args": [
+       "$x.x",
+       "$x.y"
+      ],
+      "says": "A"
+     },
+     {
+      "id": "b",
+      "part": "inner-generator:gen/looks/grafa/build.mjs#map.w",
+      "role": "clamp",
+      "args": [
+       "$y.x",
+       "$y.y"
+      ],
+      "says": "A"
+     },
+     {
+      "id": "c",
+      "part": "inner-generator:new/boxes/team-intel.mjs#withinDays.diff:step",
+      "role": "gap",
+      "args": [
+       "@a",
+       "@b"
+      ],
+      "says": "C"
+     }
+    ],
+    "out": "c"
+   }
+  },
+  {
+   "shape": "pair-measure",
+   "variant": "base",
+   "parts": 2,
+   "steps": 24,
+   "holds": "34/34",
+   "graph": {
+    "inputs": [
+     "x",
+     "y"
+    ],
+    "nodes": [
+     {
+      "id": "a",
+      "part": "orbit:src/components/timer/cashLib.ts#expectedDrawer",
+      "role": "convert",
+      "args": [
+       "$x.x",
+       "$x.y"
+      ],
+      "says": "A"
+     },
+     {
+      "id": "b",
+      "part": "orbit:src/components/timer/cashLib.ts#expectedDrawer",
+      "role": "convert",
+      "args": [
+       "$y.x",
+       "$y.y"
+      ],
+      "says": "A"
+     },
+     {
+      "id": "c",
+      "part": "inner-generator:new/boxes/team-intel.mjs#withinDays.diff:step",
+      "role": "gap",
+      "args": [
+       "@a",
+       "@b"
+      ],
+      "says": "C"
+     }
+    ],
+    "out": "c"
+   }
+  }
+ ]
+}

@@ -1,0 +1,7590 @@
+{
+ "about": "נבנה ע״י catalog/blueprints/search.mjs — לא לערוך ביד. \"זמן\" = ניסיונות + צעדי-ארגז-החול (דטרמיניסטי); שעון-קיר מודפס בהרצה ומדווח בדוח",
+ "budget": {
+  "attemptsPerVerb": 6000,
+  "attemptsPerTemplate": 1500,
+  "keepPerTemplate": 3,
+  "staticCap": 48,
+  "poolKeep": 12,
+  "stepsPerAttempt": 5000000
+ },
+ "shapes": 25,
+ "executableShapes": 22,
+ "templates": 33,
+ "minedTemplates": 0,
+ "solved": 7,
+ "targets": 14,
+ "results": [
+  {
+   "verb": "tour",
+   "he": "מסדר מסלול",
+   "material": "geo",
+   "sems": [
+    "pt",
+    "pts"
+   ],
+   "today": "גרף ביד (verb-recipes.json) — 6 חלקים + לולאות, 60/60",
+   "hidden": {
+    "hand": true,
+    "combo": true,
+    "parts": 0
+   },
+   "templates": [
+    {
+     "shape": "greedy-chain",
+     "variant": "construct",
+     "slots": {
+      "ORDER": {
+       "roles": 5,
+       "static": 48,
+       "pool": 2,
+       "rejected": {
+        "load": 0,
+        "error": 20,
+        "type": 18,
+        "contract": 6,
+        "twin": 2
+       },
+       "contract": "permute"
+      }
+     },
+     "space": 2,
+     "tried": 2,
+     "passed": 0,
+     "fails": {
+      "tour.local": 1,
+      "tour.shorter": 1
+     },
+     "examples": [
+      {
+       "fill": [
+        "core-c:catalog/core/by-distance.mjs#byDistance"
+       ],
+       "law": "tour.shorter",
+       "why": "50.508 ארוך מהסדר המקורי 47.061"
+      },
+      {
+       "fill": [
+        "orbit:src/components/platform/lib.ts#orgEnabledFeatures"
+       ],
+       "law": "tour.local",
+       "why": "היפוך 2–4 מקצר: 78.4905 < 87.3534"
+      }
+     ]
+    },
+    {
+     "shape": "greedy-chain",
+     "variant": "clean+construct",
+     "slots": {
+      "CLEAN": {
+       "roles": 4,
+       "static": 48,
+       "pool": 4,
+       "rejected": {
+        "load": 0,
+        "error": 1,
+        "type": 16,
+        "contract": 1,
+        "twin": 26
+       },
+       "contract": "subset"
+      },
+      "ORDER": {
+       "roles": 5,
+       "static": 48,
+       "pool": 2,
+       "rejected": {
+        "load": 0,
+        "error": 20,
+        "type": 18,
+        "contract": 6,
+        "twin": 2
+       },
+       "contract": "permute"
+      }
+     },
+     "space": 8,
+     "tried": 8,
+     "passed": 0,
+     "fails": {
+      "tour.local": 4,
+      "tour.visits": 4
+     },
+     "examples": [
+      {
+       "fill": [
+        "core-c:catalog/core/dedupe-points.mjs#dedupePoints",
+        "core-c:catalog/core/by-distance.mjs#byDistance"
+       ],
+       "law": "tour.local",
+       "why": "היפוך 1–2 מקצר: 46.4362 < 49.7321"
+      },
+      {
+       "fill": [
+        "core-c:catalog/core/dedupe-points.mjs#dedupePoints",
+        "orbit:src/components/platform/lib.ts#orgEnabledFeatures"
+       ],
+       "law": "tour.local",
+       "why": "היפוך 2–4 מקצר: 48.8000 < 57.0219"
+      },
+      {
+       "fill": [
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets",
+        "core-c:catalog/core/by-distance.mjs#byDistance"
+       ],
+       "law": "tour.visits",
+       "why": "התחנות במסלול ≠ התחנות שהתבקשו"
+      }
+     ]
+    },
+    {
+     "shape": "improve-only",
+     "variant": "improve",
+     "slots": {
+      "MEASURE": {
+       "roles": 6,
+       "static": 48,
+       "pool": 1,
+       "rejected": {
+        "load": 0,
+        "error": 8,
+        "type": 19,
+        "contract": 17,
+        "twin": 3
+       },
+       "contract": "metric"
+      },
+      "SUM": {
+       "roles": 6,
+       "static": 48,
+       "pool": 1,
+       "rejected": {
+        "load": 0,
+        "error": 7,
+        "type": 13,
+        "contract": 26,
+        "twin": 1
+       },
+       "contract": "additive"
+      },
+      "MOVE": {
+       "roles": 6,
+       "static": 48,
+       "pool": 2,
+       "rejected": {
+        "load": 0,
+        "error": 1,
+        "type": 14,
+        "contract": 13,
+        "twin": 18
+       },
+       "contract": "permute"
+      },
+      "PICK": {
+       "roles": 5,
+       "static": 48,
+       "pool": 2,
+       "rejected": {
+        "load": 0,
+        "error": 16,
+        "type": 21,
+        "contract": 0,
+        "twin": 9
+       },
+       "contract": "pick"
+      }
+     },
+     "space": 4,
+     "tried": 4,
+     "passed": 0,
+     "fails": {
+      "tour.local": 3,
+      "tour.visits": 1
+     },
+     "examples": [
+      {
+       "fill": [
+        "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+        "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+        "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#CartSubmenu.reversed:step",
+        "core-c:catalog/core/nearest-point.mjs#nearestPoint"
+       ],
+       "law": "tour.visits",
+       "why": "עבר 3 זרעים, נכשל בקלטי-לחץ: התחנות במסלול ≠ התחנות שהתבקשו"
+      },
+      {
+       "fill": [
+        "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+        "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+        "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#CartSubmenu.reversed:step",
+        "inner-generator:machtzev/generator/gen-verify.mjs#map.r"
+       ],
+       "law": "tour.local",
+       "why": "היפוך 1–2 מקצר: 99.2571 < 111.1461"
+      },
+      {
+       "fill": [
+        "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+        "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc",
+        "core-c:catalog/core/nearest-point.mjs#nearestPoint"
+       ],
+       "law": "tour.local",
+       "why": "היפוך 1–3 מקצר: 94.4636 < 102.7442"
+      }
+     ],
+     "stress": 1
+    },
+    {
+     "shape": "best-of-two",
+     "variant": "nn-vs-given",
+     "slots": {
+      "ORDER": {
+       "roles": 5,
+       "static": 48,
+       "pool": 2,
+       "rejected": {
+        "load": 0,
+        "error": 20,
+        "type": 18,
+        "contract": 6,
+        "twin": 2
+       },
+       "contract": "permute"
+      },
+      "MEASURE": {
+       "roles": 6,
+       "static": 48,
+       "pool": 1,
+       "rejected": {
+        "load": 0,
+        "error": 8,
+        "type": 19,
+        "contract": 17,
+        "twin": 3
+       },
+       "contract": "metric"
+      },
+      "SUM": {
+       "roles": 6,
+       "static": 48,
+       "pool": 1,
+       "rejected": {
+        "load": 0,
+        "error": 7,
+        "type": 13,
+        "contract": 26,
+        "twin": 1
+       },
+       "contract": "additive"
+      },
+      "PICK": {
+       "roles": 5,
+       "static": 48,
+       "pool": 2,
+       "rejected": {
+        "load": 0,
+        "error": 16,
+        "type": 21,
+        "contract": 0,
+        "twin": 9
+       },
+       "contract": "pick"
+      }
+     },
+     "space": 4,
+     "tried": 4,
+     "passed": 0,
+     "fails": {
+      "tour.local": 2,
+      "tour.shorter": 1,
+      "tour.visits": 1
+     },
+     "examples": [
+      {
+       "fill": [
+        "core-c:catalog/core/by-distance.mjs#byDistance",
+        "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+        "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+        "core-c:catalog/core/nearest-point.mjs#nearestPoint"
+       ],
+       "law": "tour.visits",
+       "why": "התחנות במסלול ≠ התחנות שהתבקשו"
+      },
+      {
+       "fill": [
+        "core-c:catalog/core/by-distance.mjs#byDistance",
+        "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+        "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+        "inner-generator:machtzev/generator/gen-verify.mjs#map.r"
+       ],
+       "law": "tour.shorter",
+       "why": "56.918 ארוך מהסדר המקורי 52.470"
+      },
+      {
+       "fill": [
+        "orbit:src/components/platform/lib.ts#orgEnabledFeatures",
+        "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+        "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+        "core-c:catalog/core/nearest-point.mjs#nearestPoint"
+       ],
+       "law": "tour.local",
+       "why": "היפוך 1–2 מקצר: 200.8475 < 221.5324"
+      }
+     ]
+    },
+    {
+     "shape": "improve-until-stable",
+     "variant": "construct+improve",
+     "slots": {
+      "ORDER": {
+       "roles": 5,
+       "static": 48,
+       "pool": 2,
+       "rejected": {
+        "load": 0,
+        "error": 20,
+        "type": 18,
+        "contract": 6,
+        "twin": 2
+       },
+       "contract": "permute"
+      },
+      "MEASURE": {
+       "roles": 6,
+       "static": 48,
+       "pool": 1,
+       "rejected": {
+        "load": 0,
+        "error": 8,
+        "type": 19,
+        "contract": 17,
+        "twin": 3
+       },
+       "contract": "metric"
+      },
+      "SUM": {
+       "roles": 6,
+       "static": 48,
+       "pool": 1,
+       "rejected": {
+        "load": 0,
+        "error": 7,
+        "type": 13,
+        "contract": 26,
+        "twin": 1
+       },
+       "contract": "additive"
+      },
+      "MOVE": {
+       "roles": 6,
+       "static": 48,
+       "pool": 2,
+       "rejected": {
+        "load": 0,
+        "error": 1,
+        "type": 14,
+        "contract": 13,
+        "twin": 18
+       },
+       "contract": "permute"
+      },
+      "PICK": {
+       "roles": 5,
+       "static": 48,
+       "pool": 2,
+       "rejected": {
+        "load": 0,
+        "error": 16,
+        "type": 21,
+        "contract": 0,
+        "twin": 9
+       },
+       "contract": "pick"
+      }
+     },
+     "space": 8,
+     "tried": 8,
+     "passed": 0,
+     "fails": {
+      "tour.local": 6,
+      "tour.visits": 2
+     },
+     "examples": [
+      {
+       "fill": [
+        "core-c:catalog/core/by-distance.mjs#byDistance",
+        "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+        "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+        "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#CartSubmenu.reversed:step",
+        "core-c:catalog/core/nearest-point.mjs#nearestPoint"
+       ],
+       "law": "tour.visits",
+       "why": "עבר 3 זרעים, נכשל בקלטי-לחץ: התחנות במסלול ≠ התחנות שהתבקשו"
+      },
+      {
+       "fill": [
+        "core-c:catalog/core/by-distance.mjs#byDistance",
+        "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+        "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+        "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#CartSubmenu.reversed:step",
+        "inner-generator:machtzev/generator/gen-verify.mjs#map.r"
+       ],
+       "law": "tour.local",
+       "why": "היפוך 1–3 מקצר: 63.1615 < 64.4687"
+      },
+      {
+       "fill": [
+        "core-c:catalog/core/by-distance.mjs#byDistance",
+        "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+        "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc",
+        "core-c:catalog/core/nearest-point.mjs#nearestPoint"
+       ],
+       "law": "tour.local",
+       "why": "היפוך 2–3 מקצר: 65.1472 < 66.1231"
+      }
+     ],
+     "stress": 2
+    },
+    {
+     "shape": "improve-until-stable",
+     "variant": "construct+best+improve",
+     "slots": {
+      "ORDER": {
+       "roles": 5,
+       "static": 48,
+       "pool": 2,
+       "rejected": {
+        "load": 0,
+        "error": 20,
+        "type": 18,
+        "contract": 6,
+        "twin": 2
+       },
+       "contract": "permute"
+      },
+      "MEASURE": {
+       "roles": 6,
+       "static": 48,
+       "pool": 1,
+       "rejected": {
+        "load": 0,
+        "error": 8,
+        "type": 19,
+        "contract": 17,
+        "twin": 3
+       },
+       "contract": "metric"
+      },
+      "SUM": {
+       "roles": 6,
+       "static": 48,
+       "pool": 1,
+       "rejected": {
+        "load": 0,
+        "error": 7,
+        "type": 13,
+        "contract": 26,
+        "twin": 1
+       },
+       "contract": "additive"
+      },
+      "PICK": {
+       "roles": 5,
+       "static": 48,
+       "pool": 2,
+       "rejected": {
+        "load": 0,
+        "error": 16,
+        "type": 21,
+        "contract": 0,
+        "twin": 9
+       },
+       "contract": "pick"
+      },
+      "MOVE": {
+       "roles": 6,
+       "static": 48,
+       "pool": 2,
+       "rejected": {
+        "load": 0,
+        "error": 1,
+        "type": 14,
+        "contract": 13,
+        "twin": 18
+       },
+       "contract": "permute"
+      }
+     },
+     "space": 8,
+     "tried": 8,
+     "passed": 0,
+     "fails": {
+      "tour.local": 6,
+      "tour.visits": 2
+     },
+     "examples": [
+      {
+       "fill": [
+        "core-c:catalog/core/by-distance.mjs#byDistance",
+        "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+        "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+        "core-c:catalog/core/nearest-point.mjs#nearestPoint",
+        "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#CartSubmenu.reversed:step"
+       ],
+       "law": "tour.visits",
+       "why": "עבר 3 זרעים, נכשל בקלטי-לחץ: התחנות במסלול ≠ התחנות שהתבקשו"
+      },
+      {
+       "fill": [
+        "core-c:catalog/core/by-distance.mjs#byDistance",
+        "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+        "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+        "core-c:catalog/core/nearest-point.mjs#nearestPoint",
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc"
+       ],
+       "law": "tour.local",
+       "why": "היפוך 2–3 מקצר: 45.9705 < 47.8423"
+      },
+      {
+       "fill": [
+        "core-c:catalog/core/by-distance.mjs#byDistance",
+        "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+        "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+        "inner-generator:machtzev/generator/gen-verify.mjs#map.r",
+        "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#CartSubmenu.reversed:step"
+       ],
+       "law": "tour.local",
+       "why": "היפוך 1–3 מקצר: 72.1537 < 86.4469"
+      }
+     ],
+     "stress": 2
+    },
+    {
+     "shape": "improve-only",
+     "variant": "clean+improve",
+     "slots": {
+      "CLEAN": {
+       "roles": 4,
+       "static": 48,
+       "pool": 4,
+       "rejected": {
+        "load": 0,
+        "error": 1,
+        "type": 16,
+        "contract": 1,
+        "twin": 26
+       },
+       "contract": "subset"
+      },
+      "MEASURE": {
+       "roles": 6,
+       "static": 48,
+       "pool": 1,
+       "rejected": {
+        "load": 0,
+        "error": 8,
+        "type": 19,
+        "contract": 17,
+        "twin": 3
+       },
+       "contract": "metric"
+      },
+      "SUM": {
+       "roles": 6,
+       "static": 48,
+       "pool": 1,
+       "rejected": {
+        "load": 0,
+        "error": 7,
+        "type": 13,
+        "contract": 26,
+        "twin": 1
+       },
+       "contract": "additive"
+      },
+      "MOVE": {
+       "roles": 6,
+       "static": 48,
+       "pool": 2,
+       "rejected": {
+        "load": 0,
+        "error": 1,
+        "type": 14,
+        "contract": 13,
+        "twin": 18
+       },
+       "contract": "permute"
+      },
+      "PICK": {
+       "roles": 5,
+       "static": 48,
+       "pool": 2,
+       "rejected": {
+        "load": 0,
+        "error": 16,
+        "type": 21,
+        "contract": 0,
+        "twin": 9
+       },
+       "contract": "pick"
+      }
+     },
+     "space": 16,
+     "tried": 16,
+     "passed": 1,
+     "fails": {
+      "tour.visits": 9,
+      "tour.local": 6
+     },
+     "examples": [
+      {
+       "fill": [
+        "core-c:catalog/core/dedupe-points.mjs#dedupePoints",
+        "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+        "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+        "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#CartSubmenu.reversed:step",
+        "inner-generator:machtzev/generator/gen-verify.mjs#map.r"
+       ],
+       "law": "tour.local",
+       "why": "היפוך 1–2 מקצר: 63.3913 < 68.5862"
+      },
+      {
+       "fill": [
+        "core-c:catalog/core/dedupe-points.mjs#dedupePoints",
+        "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+        "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc",
+        "core-c:catalog/core/nearest-point.mjs#nearestPoint"
+       ],
+       "law": "tour.local",
+       "why": "היפוך 1–2 מקצר: 112.8870 < 115.5998"
+      },
+      {
+       "fill": [
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets",
+        "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+        "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+        "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#CartSubmenu.reversed:step",
+        "core-c:catalog/core/nearest-point.mjs#nearestPoint"
+       ],
+       "law": "tour.visits",
+       "why": "התחנות במסלול ≠ התחנות שהתבקשו"
+      }
+     ],
+     "stress": 1
+    },
+    {
+     "shape": "greedy-chain",
+     "variant": "clean+construct+best",
+     "slots": {
+      "CLEAN": {
+       "roles": 4,
+       "static": 48,
+       "pool": 4,
+       "rejected": {
+        "load": 0,
+        "error": 1,
+        "type": 16,
+        "contract": 1,
+        "twin": 26
+       },
+       "contract": "subset"
+      },
+      "ORDER": {
+       "roles": 5,
+       "static": 48,
+       "pool": 2,
+       "rejected": {
+        "load": 0,
+        "error": 20,
+        "type": 18,
+        "contract": 6,
+        "twin": 2
+       },
+       "contract": "permute"
+      },
+      "MEASURE": {
+       "roles": 6,
+       "static": 48,
+       "pool": 1,
+       "rejected": {
+        "load": 0,
+        "error": 8,
+        "type": 19,
+        "contract": 17,
+        "twin": 3
+       },
+       "contract": "metric"
+      },
+      "SUM": {
+       "roles": 6,
+       "static": 48,
+       "pool": 1,
+       "rejected": {
+        "load": 0,
+        "error": 7,
+        "type": 13,
+        "contract": 26,
+        "twin": 1
+       },
+       "contract": "additive"
+      },
+      "PICK": {
+       "roles": 5,
+       "static": 48,
+       "pool": 2,
+       "rejected": {
+        "load": 0,
+        "error": 16,
+        "type": 21,
+        "contract": 0,
+        "twin": 9
+       },
+       "contract": "pick"
+      }
+     },
+     "space": 16,
+     "tried": 16,
+     "passed": 0,
+     "fails": {
+      "tour.local": 8,
+      "tour.visits": 8
+     },
+     "examples": [
+      {
+       "fill": [
+        "core-c:catalog/core/dedupe-points.mjs#dedupePoints",
+        "core-c:catalog/core/by-distance.mjs#byDistance",
+        "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+        "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+        "core-c:catalog/core/nearest-point.mjs#nearestPoint"
+       ],
+       "law": "tour.local",
+       "why": "היפוך 4–5 מקצר: 67.3107 < 70.5056"
+      },
+      {
+       "fill": [
+        "core-c:catalog/core/dedupe-points.mjs#dedupePoints",
+        "core-c:catalog/core/by-distance.mjs#byDistance",
+        "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+        "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+        "inner-generator:machtzev/generator/gen-verify.mjs#map.r"
+       ],
+       "law": "tour.local",
+       "why": "היפוך 3–4 מקצר: 73.4756 < 81.7274"
+      },
+      {
+       "fill": [
+        "core-c:catalog/core/dedupe-points.mjs#dedupePoints",
+        "orbit:src/components/platform/lib.ts#orgEnabledFeatures",
+        "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+        "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+        "core-c:catalog/core/nearest-point.mjs#nearestPoint"
+       ],
+       "law": "tour.local",
+       "why": "היפוך 1–2 מקצר: 167.5952 < 197.8466"
+      }
+     ]
+    },
+    {
+     "shape": "improve-until-stable",
+     "variant": "clean+construct+improve",
+     "slots": {
+      "CLEAN": {
+       "roles": 4,
+       "static": 48,
+       "pool": 4,
+       "rejected": {
+        "load": 0,
+        "error": 1,
+        "type": 16,
+        "contract": 1,
+        "twin": 26
+       },
+       "contract": "subset"
+      },
+      "ORDER": {
+       "roles": 5,
+       "static": 48,
+       "pool": 2,
+       "rejected": {
+        "load": 0,
+        "error": 20,
+        "type": 18,
+        "contract": 6,
+        "twin": 2
+       },
+       "contract": "permute"
+      },
+      "MEASURE": {
+       "roles": 6,
+       "static": 48,
+       "pool": 1,
+       "rejected": {
+        "load": 0,
+        "error": 8,
+        "type": 19,
+        "contract": 17,
+        "twin": 3
+       },
+       "contract": "metric"
+      },
+      "SUM": {
+       "roles": 6,
+       "static": 48,
+       "pool": 1,
+       "rejected": {
+        "load": 0,
+        "error": 7,
+        "type": 13,
+        "contract": 26,
+        "twin": 1
+       },
+       "contract": "additive"
+      },
+      "MOVE": {
+       "roles": 6,
+       "static": 48,
+       "pool": 2,
+       "rejected": {
+        "load": 0,
+        "error": 1,
+        "type": 14,
+        "contract": 13,
+        "twin": 18
+       },
+       "contract": "permute"
+      },
+      "PICK": {
+       "roles": 5,
+       "static": 48,
+       "pool": 2,
+       "rejected": {
+        "load": 0,
+        "error": 16,
+        "type": 21,
+        "contract": 0,
+        "twin": 9
+       },
+       "contract": "pick"
+      }
+     },
+     "space": 32,
+     "tried": 32,
+     "passed": 2,
+     "fails": {
+      "tour.visits": 18,
+      "tour.local": 10,
+      "tour.shorter": 2
+     },
+     "examples": [
+      {
+       "fill": [
+        "core-c:catalog/core/dedupe-points.mjs#dedupePoints",
+        "core-c:catalog/core/by-distance.mjs#byDistance",
+        "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+        "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+        "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#CartSubmenu.reversed:step",
+        "inner-generator:machtzev/generator/gen-verify.mjs#map.r"
+       ],
+       "law": "tour.shorter",
+       "why": "53.182 ארוך מהסדר המקורי 47.214"
+      },
+      {
+       "fill": [
+        "core-c:catalog/core/dedupe-points.mjs#dedupePoints",
+        "core-c:catalog/core/by-distance.mjs#byDistance",
+        "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+        "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc",
+        "core-c:catalog/core/nearest-point.mjs#nearestPoint"
+       ],
+       "law": "tour.local",
+       "why": "היפוך 4–5 מקצר: 97.5101 < 97.7721"
+      },
+      {
+       "fill": [
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets",
+        "core-c:catalog/core/by-distance.mjs#byDistance",
+        "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+        "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+        "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#CartSubmenu.reversed:step",
+        "core-c:catalog/core/nearest-point.mjs#nearestPoint"
+       ],
+       "law": "tour.visits",
+       "why": "התחנות במסלול ≠ התחנות שהתבקשו"
+      }
+     ],
+     "stress": 2,
+     "lucky": 1
+    },
+    {
+     "shape": "improve-until-stable",
+     "variant": "clean+construct+best+improve",
+     "slots": {
+      "CLEAN": {
+       "roles": 4,
+       "static": 48,
+       "pool": 4,
+       "rejected": {
+        "load": 0,
+        "error": 1,
+        "type": 16,
+        "contract": 1,
+        "twin": 26
+       },
+       "contract": "subset"
+      },
+      "ORDER": {
+       "roles": 5,
+       "static": 48,
+       "pool": 2,
+       "rejected": {
+        "load": 0,
+        "error": 20,
+        "type": 18,
+        "contract": 6,
+        "twin": 2
+       },
+       "contract": "permute"
+      },
+      "MEASURE": {
+       "roles": 6,
+       "static": 48,
+       "pool": 1,
+       "rejected": {
+        "load": 0,
+        "error": 8,
+        "type": 19,
+        "contract": 17,
+        "twin": 3
+       },
+       "contract": "metric"
+      },
+      "SUM": {
+       "roles": 6,
+       "static": 48,
+       "pool": 1,
+       "rejected": {
+        "load": 0,
+        "error": 7,
+        "type": 13,
+        "contract": 26,
+        "twin": 1
+       },
+       "contract": "additive"
+      },
+      "PICK": {
+       "roles": 5,
+       "static": 48,
+       "pool": 2,
+       "rejected": {
+        "load": 0,
+        "error": 16,
+        "type": 21,
+        "contract": 0,
+        "twin": 9
+       },
+       "contract": "pick"
+      },
+      "MOVE": {
+       "roles": 6,
+       "static": 48,
+       "pool": 2,
+       "rejected": {
+        "load": 0,
+        "error": 1,
+        "type": 14,
+        "contract": 13,
+        "twin": 18
+       },
+       "contract": "permute"
+      }
+     },
+     "space": 32,
+     "tried": 32,
+     "passed": 2,
+     "fails": {
+      "tour.visits": 19,
+      "tour.local": 11
+     },
+     "examples": [
+      {
+       "fill": [
+        "core-c:catalog/core/dedupe-points.mjs#dedupePoints",
+        "core-c:catalog/core/by-distance.mjs#byDistance",
+        "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+        "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+        "core-c:catalog/core/nearest-point.mjs#nearestPoint",
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc"
+       ],
+       "law": "tour.local",
+       "why": "היפוך 2–5 מקצר: 65.8717 < 66.5914"
+      },
+      {
+       "fill": [
+        "core-c:catalog/core/dedupe-points.mjs#dedupePoints",
+        "core-c:catalog/core/by-distance.mjs#byDistance",
+        "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+        "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+        "inner-generator:machtzev/generator/gen-verify.mjs#map.r",
+        "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#CartSubmenu.reversed:step"
+       ],
+       "law": "tour.local",
+       "why": "היפוך 2–4 מקצר: 63.4469 < 65.0802"
+      },
+      {
+       "fill": [
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets",
+        "core-c:catalog/core/by-distance.mjs#byDistance",
+        "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+        "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+        "core-c:catalog/core/nearest-point.mjs#nearestPoint",
+        "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#CartSubmenu.reversed:step"
+       ],
+       "law": "tour.visits",
+       "why": "התחנות במסלול ≠ התחנות שהתבקשו"
+      }
+     ],
+     "lucky": 1,
+     "stress": 1
+    }
+   ],
+   "attempts": 130,
+   "steps": 20204,
+   "found": {
+    "shape": "improve-only",
+    "variant": "clean+improve",
+    "parts": 5,
+    "steps": 4192,
+    "holds": "60/60",
+    "fill": [
+     "core-c:catalog/core/dedupe-points.mjs#dedupePoints",
+     "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+     "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+     "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#CartSubmenu.reversed:step",
+     "core-c:catalog/core/nearest-point.mjs#nearestPoint"
+    ],
+    "alternatives": 4
+   },
+   "unmatchedShapes": 23,
+   "passes": [
+    {
+     "shape": "improve-only",
+     "variant": "clean+improve",
+     "parts": 5,
+     "steps": 4192,
+     "holds": "60/60",
+     "fill": [
+      "core-c:catalog/core/dedupe-points.mjs#dedupePoints",
+      "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+      "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+      "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#CartSubmenu.reversed:step",
+      "core-c:catalog/core/nearest-point.mjs#nearestPoint"
+     ]
+    },
+    {
+     "shape": "improve-until-stable",
+     "variant": "clean+construct+improve",
+     "parts": 6,
+     "steps": 2677,
+     "holds": "60/60",
+     "fill": [
+      "core-c:catalog/core/dedupe-points.mjs#dedupePoints",
+      "core-c:catalog/core/by-distance.mjs#byDistance",
+      "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+      "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+      "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#CartSubmenu.reversed:step",
+      "core-c:catalog/core/nearest-point.mjs#nearestPoint"
+     ]
+    },
+    {
+     "shape": "improve-until-stable",
+     "variant": "clean+construct+best+improve",
+     "parts": 6,
+     "steps": 2779,
+     "holds": "60/60",
+     "fill": [
+      "core-c:catalog/core/dedupe-points.mjs#dedupePoints",
+      "core-c:catalog/core/by-distance.mjs#byDistance",
+      "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+      "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+      "core-c:catalog/core/nearest-point.mjs#nearestPoint",
+      "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#CartSubmenu.reversed:step"
+     ]
+    },
+    {
+     "shape": "improve-until-stable",
+     "variant": "clean+construct+improve",
+     "parts": 6,
+     "steps": 5227,
+     "holds": "60/60",
+     "fill": [
+      "core-c:catalog/core/dedupe-points.mjs#dedupePoints",
+      "orbit:src/components/platform/lib.ts#orgEnabledFeatures",
+      "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+      "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+      "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#CartSubmenu.reversed:step",
+      "core-c:catalog/core/nearest-point.mjs#nearestPoint"
+     ]
+    },
+    {
+     "shape": "improve-until-stable",
+     "variant": "clean+construct+best+improve",
+     "parts": 6,
+     "steps": 5329,
+     "holds": "60/60",
+     "fill": [
+      "core-c:catalog/core/dedupe-points.mjs#dedupePoints",
+      "orbit:src/components/platform/lib.ts#orgEnabledFeatures",
+      "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+      "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+      "core-c:catalog/core/nearest-point.mjs#nearestPoint",
+      "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#CartSubmenu.reversed:step"
+     ]
+    }
+   ]
+  },
+  {
+   "verb": "allot",
+   "he": "משבץ עד התקרה",
+   "material": "geo",
+   "sems": [
+    "pts",
+    "pts",
+    "num"
+   ],
+   "today": "גרף ביד — 3 חלקים + לולאות, 53/53",
+   "hidden": {
+    "hand": true,
+    "combo": true,
+    "parts": 0
+   },
+   "templates": [
+    {
+     "shape": "capacitated-greedy",
+     "variant": "capacity",
+     "slots": {
+      "ORDER": {
+       "roles": 5,
+       "static": 48,
+       "pool": 2,
+       "rejected": {
+        "load": 0,
+        "error": 20,
+        "type": 18,
+        "contract": 6,
+        "twin": 2
+       },
+       "contract": "permute"
+      }
+     },
+     "space": 2,
+     "tried": 2,
+     "passed": 1,
+     "fails": {
+      "allot.ample": 1
+     },
+     "examples": [
+      {
+       "fill": [
+        "orbit:src/components/platform/lib.ts#orgEnabledFeatures"
+       ],
+       "law": "allot.ample",
+       "why": "החוק כמעט לא חל (1 מקרים)"
+      }
+     ]
+    },
+    {
+     "shape": "nearest-each",
+     "variant": "plain",
+     "slots": {
+      "ORDER": {
+       "roles": 5,
+       "static": 48,
+       "pool": 2,
+       "rejected": {
+        "load": 0,
+        "error": 20,
+        "type": 18,
+        "contract": 6,
+        "twin": 2
+       },
+       "contract": "permute"
+      }
+     },
+     "space": 2,
+     "tried": 2,
+     "passed": 0,
+     "fails": {
+      "allot.cap": 2
+     },
+     "examples": [
+      {
+       "fill": [
+        "core-c:catalog/core/by-distance.mjs#byDistance"
+       ],
+       "law": "allot.cap",
+       "why": "תא 1 קיבל 4 > 1"
+      },
+      {
+       "fill": [
+        "orbit:src/components/platform/lib.ts#orgEnabledFeatures"
+       ],
+       "law": "allot.cap",
+       "why": "תא 0 קיבל 7 > 4"
+      }
+     ]
+    },
+    {
+     "shape": "capacitated-greedy",
+     "variant": "capacity+bykey",
+     "slots": {
+      "PICK": {
+       "roles": 5,
+       "static": 48,
+       "pool": 2,
+       "rejected": {
+        "load": 0,
+        "error": 16,
+        "type": 21,
+        "contract": 0,
+        "twin": 9
+       },
+       "contract": "pick"
+      },
+      "MEASURE": {
+       "roles": 6,
+       "static": 48,
+       "pool": 1,
+       "rejected": {
+        "load": 0,
+        "error": 8,
+        "type": 19,
+        "contract": 17,
+        "twin": 3
+       },
+       "contract": "metric"
+      },
+      "ORDER": {
+       "roles": 5,
+       "static": 48,
+       "pool": 2,
+       "rejected": {
+        "load": 0,
+        "error": 20,
+        "type": 18,
+        "contract": 6,
+        "twin": 2
+       },
+       "contract": "permute"
+      }
+     },
+     "space": 4,
+     "tried": 4,
+     "passed": 1,
+     "fails": {
+      "allot.ample": 3
+     },
+     "examples": [
+      {
+       "fill": [
+        "core-c:catalog/core/nearest-point.mjs#nearestPoint",
+        "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+        "orbit:src/components/platform/lib.ts#orgEnabledFeatures"
+       ],
+       "law": "allot.ample",
+       "why": "לא לקרוב"
+      },
+      {
+       "fill": [
+        "inner-generator:machtzev/generator/gen-verify.mjs#map.r",
+        "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+        "core-c:catalog/core/by-distance.mjs#byDistance"
+       ],
+       "law": "allot.ample",
+       "why": "עבר בזרע הראשון, נכשל בזרע 2: החוק כמעט לא חל (0 מקרים)"
+      },
+      {
+       "fill": [
+        "inner-generator:machtzev/generator/gen-verify.mjs#map.r",
+        "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+        "orbit:src/components/platform/lib.ts#orgEnabledFeatures"
+       ],
+       "law": "allot.ample",
+       "why": "לא לקרוב"
+      }
+     ],
+     "lucky": 1
+    }
+   ],
+   "attempts": 8,
+   "steps": 1407,
+   "found": {
+    "shape": "capacitated-greedy",
+    "variant": "capacity",
+    "parts": 1,
+    "steps": 663,
+    "holds": "52/52",
+    "fill": [
+     "core-c:catalog/core/by-distance.mjs#byDistance"
+    ],
+    "alternatives": 1
+   },
+   "unmatchedShapes": 30,
+   "passes": [
+    {
+     "shape": "capacitated-greedy",
+     "variant": "capacity",
+     "parts": 1,
+     "steps": 663,
+     "holds": "52/52",
+     "fill": [
+      "core-c:catalog/core/by-distance.mjs#byDistance"
+     ]
+    },
+    {
+     "shape": "capacitated-greedy",
+     "variant": "capacity+bykey",
+     "parts": 3,
+     "steps": 744,
+     "holds": "53/53",
+     "fill": [
+      "core-c:catalog/core/nearest-point.mjs#nearestPoint",
+      "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+      "core-c:catalog/core/by-distance.mjs#byDistance"
+     ]
+    }
+   ]
+  },
+  {
+   "verb": "schedule",
+   "he": "מתזמן בחלונות",
+   "material": "times",
+   "sems": [
+    "pts",
+    "rec"
+   ],
+   "today": "גרף ביד — 6 חלקים + לולאה, 60/60",
+   "hidden": {
+    "hand": true,
+    "combo": true,
+    "parts": 0
+   },
+   "templates": [
+    {
+     "shape": "scan-route",
+     "variant": "base",
+     "slots": {},
+     "space": 0,
+     "tried": 0,
+     "passed": 0,
+     "fails": {},
+     "examples": [],
+     "skipped": "סוג-הפלט של הפועל לא תואם את השדות של השרטוט (NUM)"
+    }
+   ],
+   "attempts": 0,
+   "steps": 0,
+   "found": null,
+   "unmatchedShapes": 32,
+   "why": "כל השרטוטים המתאימים נעצרו לפני ניסיון: סוג-הפלט של הפועל לא תואם את השדות של השרטוט (NUM)"
+  },
+  {
+   "verb": "compare",
+   "he": "משווה",
+   "material": "geo",
+   "sems": [
+    "pt",
+    "pt"
+   ],
+   "today": "זוג (pair): מודד-המרחק של הגלקסיה ⇒ משווה, 35/35 — לפי רמז ביד",
+   "hidden": {
+    "hand": true,
+    "combo": true,
+    "parts": 63
+   },
+   "templates": [
+    {
+     "shape": "pair-measure",
+     "variant": "base",
+     "slots": {
+      "A": {
+       "roles": 14,
+       "static": 48,
+       "pool": 12,
+       "rejected": {
+        "load": 0,
+        "error": 9,
+        "type": 8,
+        "contract": 0,
+        "twin": 5
+       },
+       "contract": "none"
+      },
+      "C": {
+       "roles": 4,
+       "static": 48,
+       "pool": 12,
+       "rejected": {
+        "load": 0,
+        "error": 2,
+        "type": 0,
+        "contract": 0,
+        "twin": 6
+       },
+       "contract": "none"
+      }
+     },
+     "space": 144,
+     "tried": 18,
+     "passed": 3,
+     "fails": {
+      "compare.self": 10,
+      "compare.anti": 5
+     },
+     "examples": [
+      {
+       "fill": [
+        "inner-buildsmart:functions/src/credit.ts#onCall.pct:step",
+        "inner-generator:machtzev/ds-wear.mjs#roleExpr.da:step"
+       ],
+       "law": "compare.anti",
+       "why": "לא התהפך"
+      },
+      {
+       "fill": [
+        "inner-buildsmart:functions/src/credit.ts#onCall.pct:step",
+        "inner-14kk:knowledge_protocol.js#AssetAnalyzer.calculateReadability.avgWordsPerSentence:step"
+       ],
+       "law": "compare.self",
+       "why": "השוואה לעצמו ≠ 0"
+      },
+      {
+       "fill": [
+        "inner-generator:gen/looks/grafa/build.mjs#map.w",
+        "inner-generator:machtzev/ds-wear.mjs#roleExpr.da:step"
+       ],
+       "law": "compare.anti",
+       "why": "לא התהפך"
+      }
+     ]
+    },
+    {
+     "shape": "pair-measure-from",
+     "variant": "base",
+     "slots": {
+      "MEASURE": {
+       "roles": 6,
+       "static": 48,
+       "pool": 1,
+       "rejected": {
+        "load": 0,
+        "error": 8,
+        "type": 19,
+        "contract": 17,
+        "twin": 3
+       },
+       "contract": "metric"
+      },
+      "C": {
+       "roles": 4,
+       "static": 48,
+       "pool": 12,
+       "rejected": {
+        "load": 0,
+        "error": 2,
+        "type": 0,
+        "contract": 0,
+        "twin": 6
+       },
+       "contract": "none"
+      }
+     },
+     "space": 12,
+     "tried": 12,
+     "passed": 2,
+     "fails": {
+      "compare.self": 8,
+      "compare.anti": 2
+     },
+     "examples": [
+      {
+       "fill": [
+        "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+        "inner-generator:machtzev/ds-wear.mjs#roleExpr.da:step"
+       ],
+       "law": "compare.anti",
+       "why": "לא התהפך"
+      },
+      {
+       "fill": [
+        "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+        "inner-14kk:knowledge_protocol.js#AssetAnalyzer.calculateReadability.avgWordsPerSentence:step"
+       ],
+       "law": "compare.self",
+       "why": "השוואה לעצמו ≠ 0"
+      },
+      {
+       "fill": [
+        "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+        "orbit:src/components/timer/cashLib.ts#expectedDrawer"
+       ],
+       "law": "compare.self",
+       "why": "השוואה לעצמו ≠ 0"
+      }
+     ],
+     "stress": 1
+    }
+   ],
+   "attempts": 30,
+   "steps": 120,
+   "found": {
+    "shape": "pair-measure-from",
+    "variant": "base",
+    "parts": 2,
+    "steps": 24,
+    "holds": "32/32",
+    "fill": [
+     "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+     "inner-generator:new/boxes/team-intel.mjs#withinDays.diff:step"
+    ],
+    "alternatives": 4
+   },
+   "unmatchedShapes": 31,
+   "passes": [
+    {
+     "shape": "pair-measure-from",
+     "variant": "base",
+     "parts": 2,
+     "steps": 24,
+     "holds": "32/32",
+     "fill": [
+      "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+      "inner-generator:new/boxes/team-intel.mjs#withinDays.diff:step"
+     ]
+    },
+    {
+     "shape": "pair-measure-from",
+     "variant": "base",
+     "parts": 2,
+     "steps": 24,
+     "holds": "32/32",
+     "fill": [
+      "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.d",
+      "inner-orbit:src/components/parnasa/bannerFx.ts#pbRipple.step.q"
+     ]
+    },
+    {
+     "shape": "pair-measure",
+     "variant": "base",
+     "parts": 2,
+     "steps": 24,
+     "holds": "28/28",
+     "fill": [
+      "inner-buildsmart:functions/src/credit.ts#onCall.pct:step",
+      "inner-generator:new/boxes/team-intel.mjs#withinDays.diff:step"
+     ]
+    },
+    {
+     "shape": "pair-measure",
+     "variant": "base",
+     "parts": 2,
+     "steps": 24,
+     "holds": "31/31",
+     "fill": [
+      "inner-generator:gen/looks/grafa/build.mjs#map.w",
+      "inner-generator:new/boxes/team-intel.mjs#withinDays.diff:step"
+     ]
+    },
+    {
+     "shape": "pair-measure",
+     "variant": "base",
+     "parts": 2,
+     "steps": 24,
+     "holds": "34/34",
+     "fill": [
+      "orbit:src/components/timer/cashLib.ts#expectedDrawer",
+      "inner-generator:new/boxes/team-intel.mjs#withinDays.diff:step"
+     ]
+    }
+   ]
+  },
+  {
+   "verb": "shortest-path",
+   "he": "מוצא דרך קצרה",
+   "material": "geo",
+   "sems": [
+    "rec",
+    "any",
+    "any"
+   ],
+   "today": "שרשרת לפי רמז: רשת-שכנים ⇒ דייקסטרה של בנייה-חכמה (חלק נדיר — 1 מוכח)",
+   "hidden": {
+    "hand": true,
+    "combo": true,
+    "parts": 1
+   },
+   "templates": [],
+   "attempts": 0,
+   "steps": 0,
+   "found": null,
+   "unmatchedShapes": 33,
+   "why": "אין שרטוט שהחתימה שלו מתאימה (rec, any, any)"
+  },
+  {
+   "verb": "spread",
+   "he": "מתפשט",
+   "material": "geo",
+   "sems": [
+    "rec",
+    "num"
+   ],
+   "today": "שרשרת לפי רמז: רשת-שכנים ⇒ reachWithin (חלק נדיר — 1 מוכח)",
+   "hidden": {
+    "hand": true,
+    "combo": true,
+    "parts": 1
+   },
+   "templates": [],
+   "attempts": 0,
+   "steps": 0,
+   "found": null,
+   "unmatchedShapes": 33,
+   "why": "אין שרטוט שהחתימה שלו מתאימה (rec, num)"
+  },
+  {
+   "verb": "sum",
+   "he": "מסכם",
+   "material": "times",
+   "sems": [
+    "nums"
+   ],
+   "today": "שרשרת שמכונת-השילוב מצאה (24/24) + 97 חלקים מוכחים",
+   "hidden": {
+    "hand": false,
+    "combo": true,
+    "parts": 97
+   },
+   "templates": [
+    {
+     "shape": "map-each",
+     "variant": "base",
+     "slots": {
+      "A": {
+       "roles": 9,
+       "static": 48,
+       "pool": 12,
+       "rejected": {
+        "load": 0,
+        "error": 1,
+        "type": 0,
+        "contract": 0,
+        "twin": 3
+       },
+       "contract": "none"
+      }
+     },
+     "space": 12,
+     "tried": 12,
+     "passed": 0,
+     "fails": {
+      "other": 12
+     },
+     "examples": [
+      {
+       "fill": [
+        "inner-generator:gen/looks/buybox/build.mjs#split.c"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «מסכם» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "inner-generator:gen/looks/agora/build.mjs#fn.per"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «מסכם» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "inner-generator:new/atoms/lessons-in-term.mjs#lessonsInTerm.n"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «מסכם» בודקים (אין קישור מתאים)"
+      }
+     ]
+    },
+    {
+     "shape": "sort-first",
+     "variant": "base",
+     "slots": {
+      "A": {
+       "roles": 6,
+       "static": 48,
+       "pool": 9,
+       "rejected": {
+        "load": 0,
+        "error": 1,
+        "type": 14,
+        "contract": 0,
+        "twin": 24
+       },
+       "contract": "none"
+      }
+     },
+     "space": 9,
+     "tried": 9,
+     "passed": 0,
+     "fails": {
+      "sum.empty": 8,
+      "other": 1
+     },
+     "examples": [
+      {
+       "fill": [
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc"
+       ],
+       "law": "sum.empty",
+       "why": "זרק: out: אין שדה 0 ב-@a.0"
+      },
+      {
+       "fill": [
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets"
+       ],
+       "law": "other",
+       "why": "לא רץ: no-fitting-input"
+      },
+      {
+       "fill": [
+        "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#CartSubmenu.reversed:step"
+       ],
+       "law": "sum.empty",
+       "why": "זרק: out: אין שדה 0 ב-@a.0"
+      }
+     ]
+    },
+    {
+     "shape": "scan",
+     "variant": "binary",
+     "slots": {
+      "A": {
+       "roles": 4,
+       "static": 48,
+       "pool": 12,
+       "rejected": {
+        "load": 0,
+        "error": 0,
+        "type": 0,
+        "contract": 0,
+        "twin": 0
+       },
+       "contract": "none"
+      }
+     },
+     "space": 12,
+     "tried": 12,
+     "passed": 0,
+     "fails": {
+      "other": 12
+     },
+     "examples": [
+      {
+       "fill": [
+        "orbit:src/components/timer/cashLib.ts#drawerDiff"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «מסכם» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "inner-generator:machtzev/ds-wear.mjs#roleExpr.da:step"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «מסכם» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "inner-14kk:knowledge_protocol.js#AssetAnalyzer.calculateReadability.avgWordsPerSentence:step"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «מסכם» בודקים (אין קישור מתאים)"
+      }
+     ]
+    },
+    {
+     "shape": "scan",
+     "variant": "list-of-two",
+     "slots": {
+      "A": {
+       "roles": 10,
+       "static": 48,
+       "pool": 8,
+       "rejected": {
+        "load": 0,
+        "error": 4,
+        "type": 28,
+        "contract": 0,
+        "twin": 8
+       },
+       "contract": "none"
+      }
+     },
+     "space": 8,
+     "tried": 8,
+     "passed": 0,
+     "fails": {
+      "other": 8
+     },
+     "examples": [
+      {
+       "fill": [
+        "orbit:src/components/supporters/prayer.ts#prayerOpenCount"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «מסכם» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "inner-generator:machtzev/ds-forge.mjs#emit.map.pr:step"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «מסכם» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "inner-generator:gen/looks/app/src/20-views-a.js#class.render.maxc:step"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «מסכם» בודקים (אין קישור מתאים)"
+      }
+     ]
+    },
+    {
+     "shape": "fold",
+     "variant": "binary",
+     "slots": {
+      "A": {
+       "roles": 4,
+       "static": 48,
+       "pool": 12,
+       "rejected": {
+        "load": 0,
+        "error": 0,
+        "type": 0,
+        "contract": 0,
+        "twin": 0
+       },
+       "contract": "none"
+      }
+     },
+     "space": 12,
+     "tried": 12,
+     "passed": 2,
+     "fails": {
+      "sum.add": 8,
+      "other": 2
+     },
+     "examples": [
+      {
+       "fill": [
+        "inner-generator:machtzev/ds-wear.mjs#roleExpr.da:step"
+       ],
+       "law": "sum.add",
+       "why": "ביחד 19 ≠ 45 + 26"
+      },
+      {
+       "fill": [
+        "inner-14kk:knowledge_protocol.js#AssetAnalyzer.calculateReadability.avgWordsPerSentence:step"
+       ],
+       "law": "sum.add",
+       "why": "ביחד [object Object] ≠ 0 + [object Object]"
+      },
+      {
+       "fill": [
+        "inner-generator:gen/looks/app/src/10-ui.js#ring.c"
+       ],
+       "law": "sum.add",
+       "why": "ביחד -53121.14939606973 ≠ -1689.7979589679833 + -726.8063465025339"
+      }
+     ]
+    },
+    {
+     "shape": "fold",
+     "variant": "list-of-two",
+     "slots": {
+      "A": {
+       "roles": 10,
+       "static": 48,
+       "pool": 8,
+       "rejected": {
+        "load": 0,
+        "error": 4,
+        "type": 28,
+        "contract": 0,
+        "twin": 8
+       },
+       "contract": "none"
+      }
+     },
+     "space": 8,
+     "tried": 8,
+     "passed": 0,
+     "fails": {
+      "sum.add": 6,
+      "other": 2
+     },
+     "examples": [
+      {
+       "fill": [
+        "orbit:src/components/supporters/prayer.ts#prayerOpenCount"
+       ],
+       "law": "sum.add",
+       "why": "ביחד 2 ≠ 2 + 2"
+      },
+      {
+       "fill": [
+        "inner-generator:machtzev/ds-forge.mjs#emit.map.pr:step"
+       ],
+       "law": "sum.add",
+       "why": "ביחד 41 ≠ 16 + 41"
+      },
+      {
+       "fill": [
+        "inner-generator:gen/looks/app/src/20-views-a.js#class.render.maxc:step"
+       ],
+       "law": "sum.add",
+       "why": "ביחד 54 ≠ 50 + 54"
+      }
+     ]
+    },
+    {
+     "shape": "count-by-ones",
+     "variant": "base",
+     "slots": {
+      "S": {
+       "roles": 3,
+       "static": 0,
+       "pool": 0,
+       "rejected": {
+        "load": 0,
+        "error": 0,
+        "type": 0,
+        "contract": 0,
+        "twin": 0
+       },
+       "contract": "additive"
+      }
+     },
+     "space": 0,
+     "tried": 0,
+     "passed": 0,
+     "fails": {},
+     "examples": [],
+     "skipped": "משבצת בלי אף חלק מתאים: S"
+    },
+    {
+     "shape": "fixpoint",
+     "variant": "base",
+     "slots": {
+      "A": {
+       "roles": 11,
+       "static": 48,
+       "pool": 9,
+       "rejected": {
+        "load": 0,
+        "error": 3,
+        "type": 15,
+        "contract": 0,
+        "twin": 21
+       },
+       "contract": "none"
+      }
+     },
+     "space": 9,
+     "tried": 9,
+     "passed": 0,
+     "fails": {
+      "other": 9
+     },
+     "examples": [
+      {
+       "fill": [
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «מסכם» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «מסכם» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#CartSubmenu.reversed:step"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «מסכם» בודקים (אין קישור מתאים)"
+      }
+     ]
+    },
+    {
+     "shape": "chain2",
+     "variant": "mid-nums",
+     "slots": {
+      "A": {
+       "roles": 23,
+       "static": 48,
+       "pool": 6,
+       "rejected": {
+        "load": 0,
+        "error": 7,
+        "type": 29,
+        "contract": 0,
+        "twin": 6
+       },
+       "contract": "none"
+      },
+      "B": {
+       "roles": 23,
+       "static": 48,
+       "pool": 12,
+       "rejected": {
+        "load": 0,
+        "error": 3,
+        "type": 1,
+        "contract": 0,
+        "twin": 1
+       },
+       "contract": "none"
+      }
+     },
+     "space": 72,
+     "tried": 72,
+     "passed": 0,
+     "fails": {
+      "other": 66,
+      "sum.empty": 5,
+      "sum.add": 1
+     },
+     "examples": [
+      {
+       "fill": [
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc",
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «מסכם» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc",
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «מסכם» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets",
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «מסכם» בודקים (אין קישור מתאים)"
+      }
+     ]
+    },
+    {
+     "shape": "chain2",
+     "variant": "mid-num",
+     "slots": {
+      "A": {
+       "roles": 23,
+       "static": 48,
+       "pool": 7,
+       "rejected": {
+        "load": 0,
+        "error": 7,
+        "type": 31,
+        "contract": 0,
+        "twin": 3
+       },
+       "contract": "none"
+      },
+      "B": {
+       "roles": 23,
+       "static": 48,
+       "pool": 12,
+       "rejected": {
+        "load": 0,
+        "error": 4,
+        "type": 0,
+        "contract": 0,
+        "twin": 10
+       },
+       "contract": "none"
+      }
+     },
+     "space": 84,
+     "tried": 84,
+     "passed": 0,
+     "fails": {
+      "other": 52,
+      "sum.empty": 32
+     },
+     "examples": [
+      {
+       "fill": [
+        "orbit:src/components/supporters/prayer.ts#prayerOpenCount",
+        "inner-generator:gen/looks/buybox/build.mjs#split.c"
+       ],
+       "law": "other",
+       "why": "אין מקרה-עד לא-טריוויאלי"
+      },
+      {
+       "fill": [
+        "orbit:src/components/supporters/prayer.ts#prayerOpenCount",
+        "inner-generator:new/atoms/lessons-in-term.mjs#lessonsInTerm.n"
+       ],
+       "law": "sum.empty",
+       "why": "ריק ≠ 0"
+      },
+      {
+       "fill": [
+        "inner-generator:machtzev/ds-forge.mjs#emit.map.pr:step",
+        "inner-generator:gen/looks/buybox/build.mjs#split.c"
+       ],
+       "law": "sum.empty",
+       "why": "ריק ≠ 0"
+      }
+     ]
+    },
+    {
+     "shape": "chain2",
+     "variant": "mid-pts",
+     "slots": {
+      "A": {
+       "roles": 23,
+       "static": 48,
+       "pool": 1,
+       "rejected": {
+        "load": 0,
+        "error": 7,
+        "type": 37,
+        "contract": 0,
+        "twin": 3
+       },
+       "contract": "none"
+      },
+      "B": {
+       "roles": 23,
+       "static": 48,
+       "pool": 12,
+       "rejected": {
+        "load": 0,
+        "error": 4,
+        "type": 1,
+        "contract": 0,
+        "twin": 0
+       },
+       "contract": "none"
+      }
+     },
+     "space": 12,
+     "tried": 12,
+     "passed": 0,
+     "fails": {
+      "other": 12
+     },
+     "examples": [
+      {
+       "fill": [
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets",
+        "core-c:catalog/core/dedupe-points.mjs#dedupePoints"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «מסכם» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets",
+        "inner-buildsmart:functions/src/claude.ts#enforceRateLimit.runTransaction.count"
+       ],
+       "law": "other",
+       "why": "אין מקרה-עד לא-טריוויאלי"
+      },
+      {
+       "fill": [
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets",
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «מסכם» בודקים (אין קישור מתאים)"
+      }
+     ]
+    },
+    {
+     "shape": "group-count",
+     "variant": "base",
+     "slots": {
+      "G": {
+       "roles": 4,
+       "static": 48,
+       "pool": 8,
+       "rejected": {
+        "load": 0,
+        "error": 27,
+        "type": 12,
+        "contract": 0,
+        "twin": 1
+       },
+       "contract": "none"
+      },
+      "C": {
+       "roles": 10,
+       "static": 48,
+       "pool": 12,
+       "rejected": {
+        "load": 0,
+        "error": 2,
+        "type": 1,
+        "contract": 0,
+        "twin": 0
+       },
+       "contract": "none"
+      }
+     },
+     "space": 96,
+     "tried": 96,
+     "passed": 0,
+     "fails": {
+      "other": 96
+     },
+     "examples": [
+      {
+       "fill": [
+        "inner-orbit:src/components/shop/AssignmentsTab.tsx#AssignmentsTab.groups:after-loop",
+        "inner-orbit:src/components/shop/AssignmentsTab.tsx#AssignmentsTab.groups:after-loop"
+       ],
+       "law": "other",
+       "why": "לא רץ: no-fitting-input"
+      },
+      {
+       "fill": [
+        "inner-orbit:src/components/shop/AssignmentsTab.tsx#AssignmentsTab.groups:after-loop",
+        "inner-generator:machtzev/generator/retarget.mjs#pickModule.ep"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «מסכם» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "inner-generator:gen/sentence.mjs#sentenceToSpec.parseClause.hw:step",
+        "inner-orbit:src/components/shop/AssignmentsTab.tsx#AssignmentsTab.groups:after-loop"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «מסכם» בודקים (אין קישור מתאים)"
+      }
+     ]
+    },
+    {
+     "shape": "fan-in",
+     "variant": "base",
+     "slots": {
+      "A": {
+       "roles": 10,
+       "static": 48,
+       "pool": 8,
+       "rejected": {
+        "load": 0,
+        "error": 4,
+        "type": 28,
+        "contract": 0,
+        "twin": 8
+       },
+       "contract": "none"
+      },
+      "B": {
+       "roles": 10,
+       "static": 48,
+       "pool": 8,
+       "rejected": {
+        "load": 0,
+        "error": 4,
+        "type": 28,
+        "contract": 0,
+        "twin": 8
+       },
+       "contract": "none"
+      },
+      "C": {
+       "roles": 4,
+       "static": 48,
+       "pool": 12,
+       "rejected": {
+        "load": 0,
+        "error": 0,
+        "type": 0,
+        "contract": 0,
+        "twin": 0
+       },
+       "contract": "none"
+      }
+     },
+     "space": 768,
+     "tried": 125,
+     "passed": 3,
+     "fails": {
+      "sum.empty": 81,
+      "sum.add": 27,
+      "other": 14
+     },
+     "examples": [
+      {
+       "fill": [
+        "orbit:src/components/supporters/prayer.ts#prayerOpenCount",
+        "orbit:src/components/supporters/prayer.ts#prayerOpenCount",
+        "orbit:src/components/timer/cashLib.ts#drawerDiff"
+       ],
+       "law": "other",
+       "why": "אין מקרה-עד לא-טריוויאלי"
+      },
+      {
+       "fill": [
+        "orbit:src/components/supporters/prayer.ts#prayerOpenCount",
+        "orbit:src/components/supporters/prayer.ts#prayerOpenCount",
+        "inner-generator:machtzev/ds-wear.mjs#roleExpr.da:step"
+       ],
+       "law": "other",
+       "why": "אין מקרה-עד לא-טריוויאלי"
+      },
+      {
+       "fill": [
+        "orbit:src/components/supporters/prayer.ts#prayerOpenCount",
+        "inner-generator:machtzev/ds-forge.mjs#emit.map.pr:step",
+        "orbit:src/components/timer/cashLib.ts#drawerDiff"
+       ],
+       "law": "sum.add",
+       "why": "ביחד 24 ≠ -16 + -54"
+      }
+     ]
+    },
+    {
+     "shape": "chain3",
+     "variant": "base",
+     "slots": {
+      "A": {
+       "roles": 6,
+       "static": 48,
+       "pool": 9,
+       "rejected": {
+        "load": 0,
+        "error": 1,
+        "type": 14,
+        "contract": 0,
+        "twin": 24
+       },
+       "contract": "none"
+      },
+      "B": {
+       "roles": 6,
+       "static": 48,
+       "pool": 9,
+       "rejected": {
+        "load": 0,
+        "error": 1,
+        "type": 14,
+        "contract": 0,
+        "twin": 24
+       },
+       "contract": "none"
+      },
+      "C": {
+       "roles": 16,
+       "static": 48,
+       "pool": 12,
+       "rejected": {
+        "load": 0,
+        "error": 1,
+        "type": 1,
+        "contract": 0,
+        "twin": 1
+       },
+       "contract": "none"
+      }
+     },
+     "space": 972,
+     "tried": 972,
+     "passed": 0,
+     "fails": {
+      "other": 881,
+      "sum.empty": 64,
+      "sum.add": 27
+     },
+     "examples": [
+      {
+       "fill": [
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc",
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc",
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «מסכם» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc",
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc",
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «מסכם» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc",
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets",
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «מסכם» בודקים (אין קישור מתאים)"
+      }
+     ]
+    }
+   ],
+   "attempts": 1431,
+   "steps": 312,
+   "found": {
+    "shape": "fold",
+    "variant": "binary",
+    "parts": 1,
+    "steps": 30,
+    "holds": "24/24",
+    "fill": [
+     "orbit:src/components/timer/cashLib.ts#drawerDiff"
+    ],
+    "alternatives": 4
+   },
+   "unmatchedShapes": 19,
+   "passes": [
+    {
+     "shape": "fold",
+     "variant": "binary",
+     "parts": 1,
+     "steps": 30,
+     "holds": "24/24",
+     "fill": [
+      "orbit:src/components/timer/cashLib.ts#drawerDiff"
+     ]
+    },
+    {
+     "shape": "fold",
+     "variant": "binary",
+     "parts": 1,
+     "steps": 30,
+     "holds": "24/24",
+     "fill": [
+      "orbit:src/components/timer/cashLib.ts#expectedDrawer"
+     ]
+    },
+    {
+     "shape": "fan-in",
+     "variant": "base",
+     "parts": 2,
+     "steps": 84,
+     "holds": "24/24",
+     "fill": [
+      "orbit:src/components/supporters/prayer.ts#prayerOpenCount",
+      "orbit:src/components/supporters/prayer.ts#prayerOpenCount",
+      "orbit:src/components/timer/cashLib.ts#expectedDrawer"
+     ]
+    },
+    {
+     "shape": "fan-in",
+     "variant": "base",
+     "parts": 3,
+     "steps": 84,
+     "holds": "24/24",
+     "fill": [
+      "inner-generator:gen/inventory.mjs#inventory.consts",
+      "orbit:src/components/supporters/prayer.ts#prayerOpenCount",
+      "orbit:src/components/timer/cashLib.ts#drawerDiff"
+     ]
+    },
+    {
+     "shape": "fan-in",
+     "variant": "base",
+     "parts": 3,
+     "steps": 84,
+     "holds": "24/24",
+     "fill": [
+      "orbit:src/components/supporters/prayer.ts#prayerOpenCount",
+      "inner-generator:gen/inventory.mjs#inventory.consts",
+      "inner-generator:gen/looks/app/src/10-ui.js#ring.c"
+     ]
+    }
+   ]
+  },
+  {
+   "verb": "average",
+   "he": "ממצע",
+   "material": "list",
+   "sems": [
+    "nums"
+   ],
+   "today": "9 חלקים מוכחים",
+   "hidden": {
+    "hand": false,
+    "combo": false,
+    "parts": 9
+   },
+   "templates": [
+    {
+     "shape": "map-each",
+     "variant": "base",
+     "slots": {
+      "A": {
+       "roles": 9,
+       "static": 48,
+       "pool": 12,
+       "rejected": {
+        "load": 0,
+        "error": 1,
+        "type": 0,
+        "contract": 0,
+        "twin": 3
+       },
+       "contract": "none"
+      }
+     },
+     "space": 12,
+     "tried": 12,
+     "passed": 0,
+     "fails": {
+      "other": 12
+     },
+     "examples": [
+      {
+       "fill": [
+        "inner-generator:gen/looks/buybox/build.mjs#split.c"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «ממצע» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "inner-generator:gen/looks/agora/build.mjs#fn.per"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «ממצע» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "inner-generator:new/atoms/lessons-in-term.mjs#lessonsInTerm.n"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «ממצע» בודקים (אין קישור מתאים)"
+      }
+     ]
+    },
+    {
+     "shape": "sort-first",
+     "variant": "base",
+     "slots": {
+      "A": {
+       "roles": 6,
+       "static": 48,
+       "pool": 9,
+       "rejected": {
+        "load": 0,
+        "error": 1,
+        "type": 14,
+        "contract": 0,
+        "twin": 24
+       },
+       "contract": "none"
+      }
+     },
+     "space": 9,
+     "tried": 9,
+     "passed": 0,
+     "fails": {
+      "other": 9
+     },
+     "examples": [
+      {
+       "fill": [
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc"
+       ],
+       "law": "other",
+       "why": "אין מקרה-עד לא-טריוויאלי"
+      },
+      {
+       "fill": [
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets"
+       ],
+       "law": "other",
+       "why": "לא רץ: no-fitting-input"
+      },
+      {
+       "fill": [
+        "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#CartSubmenu.reversed:step"
+       ],
+       "law": "other",
+       "why": "אין מקרה-עד לא-טריוויאלי"
+      }
+     ]
+    },
+    {
+     "shape": "scan",
+     "variant": "binary",
+     "slots": {
+      "A": {
+       "roles": 4,
+       "static": 48,
+       "pool": 12,
+       "rejected": {
+        "load": 0,
+        "error": 0,
+        "type": 0,
+        "contract": 0,
+        "twin": 0
+       },
+       "contract": "none"
+      }
+     },
+     "space": 12,
+     "tried": 12,
+     "passed": 0,
+     "fails": {
+      "other": 12
+     },
+     "examples": [
+      {
+       "fill": [
+        "orbit:src/components/timer/cashLib.ts#drawerDiff"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «ממצע» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "inner-generator:machtzev/ds-wear.mjs#roleExpr.da:step"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «ממצע» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "inner-14kk:knowledge_protocol.js#AssetAnalyzer.calculateReadability.avgWordsPerSentence:step"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «ממצע» בודקים (אין קישור מתאים)"
+      }
+     ]
+    },
+    {
+     "shape": "scan",
+     "variant": "list-of-two",
+     "slots": {
+      "A": {
+       "roles": 10,
+       "static": 48,
+       "pool": 5,
+       "rejected": {
+        "load": 0,
+        "error": 8,
+        "type": 25,
+        "contract": 0,
+        "twin": 10
+       },
+       "contract": "none"
+      }
+     },
+     "space": 5,
+     "tried": 5,
+     "passed": 0,
+     "fails": {
+      "other": 5
+     },
+     "examples": [
+      {
+       "fill": [
+        "orbit:src/components/supporters/prayer.ts#prayerOpenCount"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «ממצע» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "orbit:src/components/hosting/kitchen.ts#activeDinerTotal"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «ממצע» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "inner-generator:gen/looks/app/src/20-views-a.js#class.render.maxc:step"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «ממצע» בודקים (אין קישור מתאים)"
+      }
+     ]
+    },
+    {
+     "shape": "fold",
+     "variant": "binary",
+     "slots": {
+      "A": {
+       "roles": 4,
+       "static": 48,
+       "pool": 12,
+       "rejected": {
+        "load": 0,
+        "error": 0,
+        "type": 0,
+        "contract": 0,
+        "twin": 0
+       },
+       "contract": "none"
+      }
+     },
+     "space": 12,
+     "tried": 12,
+     "passed": 0,
+     "fails": {
+      "average.double": 6,
+      "other": 6
+     },
+     "examples": [
+      {
+       "fill": [
+        "orbit:src/components/timer/cashLib.ts#drawerDiff"
+       ],
+       "law": "average.double",
+       "why": "השכפול שינה"
+      },
+      {
+       "fill": [
+        "inner-generator:machtzev/ds-wear.mjs#roleExpr.da:step"
+       ],
+       "law": "average.double",
+       "why": "השכפול שינה"
+      },
+      {
+       "fill": [
+        "inner-14kk:knowledge_protocol.js#AssetAnalyzer.calculateReadability.avgWordsPerSentence:step"
+       ],
+       "law": "other",
+       "why": "אין מקרה-עד לא-טריוויאלי"
+      }
+     ]
+    },
+    {
+     "shape": "fold",
+     "variant": "list-of-two",
+     "slots": {
+      "A": {
+       "roles": 10,
+       "static": 48,
+       "pool": 5,
+       "rejected": {
+        "load": 0,
+        "error": 8,
+        "type": 25,
+        "contract": 0,
+        "twin": 10
+       },
+       "contract": "none"
+      }
+     },
+     "space": 5,
+     "tried": 5,
+     "passed": 0,
+     "fails": {
+      "other": 5
+     },
+     "examples": [
+      {
+       "fill": [
+        "orbit:src/components/supporters/prayer.ts#prayerOpenCount"
+       ],
+       "law": "other",
+       "why": "אין מקרה-עד לא-טריוויאלי"
+      },
+      {
+       "fill": [
+        "orbit:src/components/hosting/kitchen.ts#activeDinerTotal"
+       ],
+       "law": "other",
+       "why": "אין מקרה-עד לא-טריוויאלי"
+      },
+      {
+       "fill": [
+        "inner-generator:gen/looks/app/src/20-views-a.js#class.render.maxc:step"
+       ],
+       "law": "other",
+       "why": "אין מקרה-עד לא-טריוויאלי"
+      }
+     ],
+     "stress": 1
+    },
+    {
+     "shape": "count-by-ones",
+     "variant": "base",
+     "slots": {
+      "S": {
+       "roles": 3,
+       "static": 48,
+       "pool": 1,
+       "rejected": {
+        "load": 0,
+        "error": 10,
+        "type": 12,
+        "contract": 23,
+        "twin": 2
+       },
+       "contract": "additive"
+      }
+     },
+     "space": 1,
+     "tried": 1,
+     "passed": 0,
+     "fails": {
+      "average.double": 1
+     },
+     "examples": [
+      {
+       "fill": [
+        "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop"
+       ],
+       "law": "average.double",
+       "why": "השכפול שינה"
+      }
+     ]
+    },
+    {
+     "shape": "fixpoint",
+     "variant": "base",
+     "slots": {
+      "A": {
+       "roles": 11,
+       "static": 48,
+       "pool": 9,
+       "rejected": {
+        "load": 0,
+        "error": 3,
+        "type": 15,
+        "contract": 0,
+        "twin": 21
+       },
+       "contract": "none"
+      }
+     },
+     "space": 9,
+     "tried": 9,
+     "passed": 0,
+     "fails": {
+      "other": 9
+     },
+     "examples": [
+      {
+       "fill": [
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «ממצע» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «ממצע» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#CartSubmenu.reversed:step"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «ממצע» בודקים (אין קישור מתאים)"
+      }
+     ]
+    },
+    {
+     "shape": "chain2",
+     "variant": "mid-nums",
+     "slots": {
+      "A": {
+       "roles": 23,
+       "static": 48,
+       "pool": 6,
+       "rejected": {
+        "load": 0,
+        "error": 7,
+        "type": 29,
+        "contract": 0,
+        "twin": 6
+       },
+       "contract": "none"
+      },
+      "B": {
+       "roles": 23,
+       "static": 48,
+       "pool": 12,
+       "rejected": {
+        "load": 0,
+        "error": 3,
+        "type": 1,
+        "contract": 0,
+        "twin": 1
+       },
+       "contract": "none"
+      }
+     },
+     "space": 72,
+     "tried": 72,
+     "passed": 0,
+     "fails": {
+      "other": 67,
+      "average.double": 4,
+      "average.between": 1
+     },
+     "examples": [
+      {
+       "fill": [
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc",
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «ממצע» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc",
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «ממצע» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets",
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «ממצע» בודקים (אין קישור מתאים)"
+      }
+     ]
+    },
+    {
+     "shape": "chain2",
+     "variant": "mid-num",
+     "slots": {
+      "A": {
+       "roles": 23,
+       "static": 48,
+       "pool": 5,
+       "rejected": {
+        "load": 0,
+        "error": 7,
+        "type": 31,
+        "contract": 0,
+        "twin": 5
+       },
+       "contract": "none"
+      },
+      "B": {
+       "roles": 23,
+       "static": 48,
+       "pool": 12,
+       "rejected": {
+        "load": 0,
+        "error": 4,
+        "type": 0,
+        "contract": 0,
+        "twin": 10
+       },
+       "contract": "none"
+      }
+     },
+     "space": 60,
+     "tried": 60,
+     "passed": 0,
+     "fails": {
+      "other": 58,
+      "average.double": 2
+     },
+     "examples": [
+      {
+       "fill": [
+        "orbit:src/components/supporters/prayer.ts#prayerOpenCount",
+        "inner-generator:gen/looks/buybox/build.mjs#split.c"
+       ],
+       "law": "other",
+       "why": "אין מקרה-עד לא-טריוויאלי"
+      },
+      {
+       "fill": [
+        "orbit:src/components/supporters/prayer.ts#prayerOpenCount",
+        "inner-generator:new/atoms/lessons-in-term.mjs#lessonsInTerm.n"
+       ],
+       "law": "average.double",
+       "why": "השכפול שינה"
+      },
+      {
+       "fill": [
+        "inner-buildsmart:functions/src/claude.ts#enforceRateLimit.runTransaction.count",
+        "inner-generator:gen/looks/buybox/build.mjs#split.c"
+       ],
+       "law": "other",
+       "why": "אין מקרה-עד לא-טריוויאלי"
+      }
+     ]
+    },
+    {
+     "shape": "chain2",
+     "variant": "mid-pts",
+     "slots": {
+      "A": {
+       "roles": 23,
+       "static": 48,
+       "pool": 1,
+       "rejected": {
+        "load": 0,
+        "error": 7,
+        "type": 37,
+        "contract": 0,
+        "twin": 3
+       },
+       "contract": "none"
+      },
+      "B": {
+       "roles": 23,
+       "static": 48,
+       "pool": 12,
+       "rejected": {
+        "load": 0,
+        "error": 4,
+        "type": 1,
+        "contract": 0,
+        "twin": 0
+       },
+       "contract": "none"
+      }
+     },
+     "space": 12,
+     "tried": 12,
+     "passed": 0,
+     "fails": {
+      "other": 12
+     },
+     "examples": [
+      {
+       "fill": [
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets",
+        "core-c:catalog/core/dedupe-points.mjs#dedupePoints"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «ממצע» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets",
+        "inner-buildsmart:functions/src/claude.ts#enforceRateLimit.runTransaction.count"
+       ],
+       "law": "other",
+       "why": "אין מקרה-עד לא-טריוויאלי"
+      },
+      {
+       "fill": [
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets",
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «ממצע» בודקים (אין קישור מתאים)"
+      }
+     ]
+    },
+    {
+     "shape": "group-count",
+     "variant": "base",
+     "slots": {
+      "G": {
+       "roles": 4,
+       "static": 48,
+       "pool": 8,
+       "rejected": {
+        "load": 0,
+        "error": 27,
+        "type": 12,
+        "contract": 0,
+        "twin": 1
+       },
+       "contract": "none"
+      },
+      "C": {
+       "roles": 10,
+       "static": 48,
+       "pool": 12,
+       "rejected": {
+        "load": 0,
+        "error": 2,
+        "type": 1,
+        "contract": 0,
+        "twin": 0
+       },
+       "contract": "none"
+      }
+     },
+     "space": 96,
+     "tried": 96,
+     "passed": 0,
+     "fails": {
+      "other": 96
+     },
+     "examples": [
+      {
+       "fill": [
+        "inner-orbit:src/components/shop/AssignmentsTab.tsx#AssignmentsTab.groups:after-loop",
+        "inner-orbit:src/components/shop/AssignmentsTab.tsx#AssignmentsTab.groups:after-loop"
+       ],
+       "law": "other",
+       "why": "לא רץ: no-fitting-input"
+      },
+      {
+       "fill": [
+        "inner-orbit:src/components/shop/AssignmentsTab.tsx#AssignmentsTab.groups:after-loop",
+        "inner-generator:machtzev/generator/retarget.mjs#pickModule.ep"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «ממצע» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "inner-generator:gen/sentence.mjs#sentenceToSpec.parseClause.hw:step",
+        "inner-orbit:src/components/shop/AssignmentsTab.tsx#AssignmentsTab.groups:after-loop"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «ממצע» בודקים (אין קישור מתאים)"
+      }
+     ]
+    },
+    {
+     "shape": "fan-in",
+     "variant": "base",
+     "slots": {
+      "A": {
+       "roles": 10,
+       "static": 48,
+       "pool": 5,
+       "rejected": {
+        "load": 0,
+        "error": 8,
+        "type": 25,
+        "contract": 0,
+        "twin": 10
+       },
+       "contract": "none"
+      },
+      "B": {
+       "roles": 10,
+       "static": 48,
+       "pool": 5,
+       "rejected": {
+        "load": 0,
+        "error": 8,
+        "type": 25,
+        "contract": 0,
+        "twin": 10
+       },
+       "contract": "none"
+      },
+      "C": {
+       "roles": 4,
+       "static": 48,
+       "pool": 12,
+       "rejected": {
+        "load": 0,
+        "error": 0,
+        "type": 0,
+        "contract": 0,
+        "twin": 0
+       },
+       "contract": "none"
+      }
+     },
+     "space": 300,
+     "tried": 300,
+     "passed": 2,
+     "fails": {
+      "other": 147,
+      "average.double": 89,
+      "average.between": 62
+     },
+     "examples": [
+      {
+       "fill": [
+        "orbit:src/components/supporters/prayer.ts#prayerOpenCount",
+        "orbit:src/components/supporters/prayer.ts#prayerOpenCount",
+        "orbit:src/components/timer/cashLib.ts#drawerDiff"
+       ],
+       "law": "other",
+       "why": "אין מקרה-עד לא-טריוויאלי"
+      },
+      {
+       "fill": [
+        "orbit:src/components/supporters/prayer.ts#prayerOpenCount",
+        "orbit:src/components/supporters/prayer.ts#prayerOpenCount",
+        "inner-generator:machtzev/ds-wear.mjs#roleExpr.da:step"
+       ],
+       "law": "other",
+       "why": "אין מקרה-עד לא-טריוויאלי"
+      },
+      {
+       "fill": [
+        "orbit:src/components/supporters/prayer.ts#prayerOpenCount",
+        "orbit:src/components/hosting/kitchen.ts#activeDinerTotal",
+        "orbit:src/components/timer/cashLib.ts#drawerDiff"
+       ],
+       "law": "average.double",
+       "why": "השכפול שינה"
+      }
+     ],
+     "lucky": 1
+    },
+    {
+     "shape": "chain3",
+     "variant": "base",
+     "slots": {
+      "A": {
+       "roles": 6,
+       "static": 48,
+       "pool": 9,
+       "rejected": {
+        "load": 0,
+        "error": 1,
+        "type": 14,
+        "contract": 0,
+        "twin": 24
+       },
+       "contract": "none"
+      },
+      "B": {
+       "roles": 6,
+       "static": 48,
+       "pool": 9,
+       "rejected": {
+        "load": 0,
+        "error": 1,
+        "type": 14,
+        "contract": 0,
+        "twin": 24
+       },
+       "contract": "none"
+      },
+      "C": {
+       "roles": 16,
+       "static": 48,
+       "pool": 12,
+       "rejected": {
+        "load": 0,
+        "error": 1,
+        "type": 1,
+        "contract": 0,
+        "twin": 1
+       },
+       "contract": "none"
+      }
+     },
+     "space": 972,
+     "tried": 972,
+     "passed": 0,
+     "fails": {
+      "other": 924,
+      "average.double": 36,
+      "average.between": 12
+     },
+     "examples": [
+      {
+       "fill": [
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc",
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc",
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «ממצע» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc",
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc",
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «ממצע» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc",
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets",
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «ממצע» בודקים (אין קישור מתאים)"
+      }
+     ]
+    }
+   ],
+   "attempts": 1577,
+   "steps": 48,
+   "found": {
+    "shape": "fan-in",
+    "variant": "base",
+    "parts": 3,
+    "steps": 24,
+    "holds": "23/23",
+    "fill": [
+     "inner-generator:gen/looks/app/src/20-views-a.js#class.render.maxc:step",
+     "inner-generator:machtzev/generator/balagan.mjs#buildBalagan.weak:step",
+     "orbit:src/components/timer/cashLib.ts#expectedDrawer"
+    ],
+    "alternatives": 1
+   },
+   "unmatchedShapes": 19,
+   "passes": [
+    {
+     "shape": "fan-in",
+     "variant": "base",
+     "parts": 3,
+     "steps": 24,
+     "holds": "23/23",
+     "fill": [
+      "inner-generator:gen/looks/app/src/20-views-a.js#class.render.maxc:step",
+      "inner-generator:machtzev/generator/balagan.mjs#buildBalagan.weak:step",
+      "orbit:src/components/timer/cashLib.ts#expectedDrawer"
+     ]
+    },
+    {
+     "shape": "fan-in",
+     "variant": "base",
+     "parts": 3,
+     "steps": 24,
+     "holds": "22/22",
+     "fill": [
+      "inner-generator:machtzev/generator/balagan.mjs#buildBalagan.weak:step",
+      "inner-generator:gen/looks/app/src/20-views-a.js#class.render.maxc:step",
+      "orbit:src/components/timer/cashLib.ts#expectedDrawer"
+     ]
+    }
+   ]
+  },
+  {
+   "verb": "count",
+   "he": "סופר",
+   "material": "list",
+   "sems": [
+    "nums"
+   ],
+   "today": "57 חלקים מוכחים",
+   "hidden": {
+    "hand": false,
+    "combo": false,
+    "parts": 57
+   },
+   "templates": [
+    {
+     "shape": "map-each",
+     "variant": "base",
+     "slots": {
+      "A": {
+       "roles": 9,
+       "static": 48,
+       "pool": 12,
+       "rejected": {
+        "load": 0,
+        "error": 1,
+        "type": 0,
+        "contract": 0,
+        "twin": 3
+       },
+       "contract": "none"
+      }
+     },
+     "space": 12,
+     "tried": 12,
+     "passed": 0,
+     "fails": {
+      "other": 12
+     },
+     "examples": [
+      {
+       "fill": [
+        "inner-generator:gen/looks/buybox/build.mjs#split.c"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «סופר» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "inner-generator:gen/looks/agora/build.mjs#fn.per"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «סופר» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "inner-generator:new/atoms/lessons-in-term.mjs#lessonsInTerm.n"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «סופר» בודקים (אין קישור מתאים)"
+      }
+     ]
+    },
+    {
+     "shape": "sort-first",
+     "variant": "base",
+     "slots": {
+      "A": {
+       "roles": 6,
+       "static": 48,
+       "pool": 9,
+       "rejected": {
+        "load": 0,
+        "error": 1,
+        "type": 14,
+        "contract": 0,
+        "twin": 24
+       },
+       "contract": "none"
+      }
+     },
+     "space": 9,
+     "tried": 9,
+     "passed": 0,
+     "fails": {
+      "count.empty": 8,
+      "other": 1
+     },
+     "examples": [
+      {
+       "fill": [
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc"
+       ],
+       "law": "count.empty",
+       "why": "זרק: out: אין שדה 0 ב-@a.0"
+      },
+      {
+       "fill": [
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets"
+       ],
+       "law": "other",
+       "why": "לא רץ: no-fitting-input"
+      },
+      {
+       "fill": [
+        "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#CartSubmenu.reversed:step"
+       ],
+       "law": "count.empty",
+       "why": "זרק: out: אין שדה 0 ב-@a.0"
+      }
+     ]
+    },
+    {
+     "shape": "scan",
+     "variant": "binary",
+     "slots": {
+      "A": {
+       "roles": 4,
+       "static": 48,
+       "pool": 12,
+       "rejected": {
+        "load": 0,
+        "error": 0,
+        "type": 0,
+        "contract": 0,
+        "twin": 0
+       },
+       "contract": "none"
+      }
+     },
+     "space": 12,
+     "tried": 12,
+     "passed": 0,
+     "fails": {
+      "other": 12
+     },
+     "examples": [
+      {
+       "fill": [
+        "orbit:src/components/timer/cashLib.ts#drawerDiff"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «סופר» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "inner-generator:machtzev/ds-wear.mjs#roleExpr.da:step"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «סופר» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "inner-14kk:knowledge_protocol.js#AssetAnalyzer.calculateReadability.avgWordsPerSentence:step"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «סופר» בודקים (אין קישור מתאים)"
+      }
+     ]
+    },
+    {
+     "shape": "scan",
+     "variant": "list-of-two",
+     "slots": {
+      "A": {
+       "roles": 10,
+       "static": 48,
+       "pool": 7,
+       "rejected": {
+        "load": 0,
+        "error": 7,
+        "type": 29,
+        "contract": 0,
+        "twin": 5
+       },
+       "contract": "none"
+      }
+     },
+     "space": 7,
+     "tried": 7,
+     "passed": 0,
+     "fails": {
+      "other": 7
+     },
+     "examples": [
+      {
+       "fill": [
+        "inner-generator:machtzev/ds-forge.mjs#emit.map.pr:step"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «סופר» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "orbit:src/components/hosting/kitchen.ts#activeDinerTotal"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «סופר» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "inner-generator:gen/looks/app/src/20-views-a.js#class.render.maxc:step"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «סופר» בודקים (אין קישור מתאים)"
+      }
+     ]
+    },
+    {
+     "shape": "fold",
+     "variant": "binary",
+     "slots": {
+      "A": {
+       "roles": 4,
+       "static": 48,
+       "pool": 12,
+       "rejected": {
+        "load": 0,
+        "error": 0,
+        "type": 0,
+        "contract": 0,
+        "twin": 0
+       },
+       "contract": "none"
+      }
+     },
+     "space": 12,
+     "tried": 12,
+     "passed": 0,
+     "fails": {
+      "count.add": 8,
+      "count.bound": 2,
+      "other": 2
+     },
+     "examples": [
+      {
+       "fill": [
+        "orbit:src/components/timer/cashLib.ts#drawerDiff"
+       ],
+       "law": "count.bound",
+       "why": "-132 לא בין 0 ל-4"
+      },
+      {
+       "fill": [
+        "inner-generator:machtzev/ds-wear.mjs#roleExpr.da:step"
+       ],
+       "law": "count.add",
+       "why": "ביחד 58 ≠ 25 + 83"
+      },
+      {
+       "fill": [
+        "inner-14kk:knowledge_protocol.js#AssetAnalyzer.calculateReadability.avgWordsPerSentence:step"
+       ],
+       "law": "count.add",
+       "why": "ביחד [object Object] ≠ 0 + [object Object]"
+      }
+     ]
+    },
+    {
+     "shape": "fold",
+     "variant": "list-of-two",
+     "slots": {
+      "A": {
+       "roles": 10,
+       "static": 48,
+       "pool": 7,
+       "rejected": {
+        "load": 0,
+        "error": 7,
+        "type": 29,
+        "contract": 0,
+        "twin": 5
+       },
+       "contract": "none"
+      }
+     },
+     "space": 7,
+     "tried": 7,
+     "passed": 0,
+     "fails": {
+      "count.add": 5,
+      "other": 2
+     },
+     "examples": [
+      {
+       "fill": [
+        "inner-generator:machtzev/ds-forge.mjs#emit.map.pr:step"
+       ],
+       "law": "count.add",
+       "why": "ביחד -13 ≠ 17 + -13"
+      },
+      {
+       "fill": [
+        "orbit:src/components/hosting/kitchen.ts#activeDinerTotal"
+       ],
+       "law": "other",
+       "why": "אין מקרה-עד לא-טריוויאלי"
+      },
+      {
+       "fill": [
+        "inner-generator:gen/looks/app/src/20-views-a.js#class.render.maxc:step"
+       ],
+       "law": "count.add",
+       "why": "ביחד 60 ≠ 15 + 60"
+      }
+     ]
+    },
+    {
+     "shape": "count-by-ones",
+     "variant": "base",
+     "slots": {
+      "S": {
+       "roles": 3,
+       "static": 48,
+       "pool": 1,
+       "rejected": {
+        "load": 0,
+        "error": 10,
+        "type": 12,
+        "contract": 23,
+        "twin": 2
+       },
+       "contract": "additive"
+      }
+     },
+     "space": 1,
+     "tried": 1,
+     "passed": 1,
+     "fails": {},
+     "examples": []
+    },
+    {
+     "shape": "fixpoint",
+     "variant": "base",
+     "slots": {
+      "A": {
+       "roles": 11,
+       "static": 48,
+       "pool": 9,
+       "rejected": {
+        "load": 0,
+        "error": 3,
+        "type": 15,
+        "contract": 0,
+        "twin": 21
+       },
+       "contract": "none"
+      }
+     },
+     "space": 9,
+     "tried": 9,
+     "passed": 0,
+     "fails": {
+      "other": 9
+     },
+     "examples": [
+      {
+       "fill": [
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «סופר» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «סופר» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#CartSubmenu.reversed:step"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «סופר» בודקים (אין קישור מתאים)"
+      }
+     ]
+    },
+    {
+     "shape": "chain2",
+     "variant": "mid-nums",
+     "slots": {
+      "A": {
+       "roles": 23,
+       "static": 48,
+       "pool": 6,
+       "rejected": {
+        "load": 0,
+        "error": 6,
+        "type": 30,
+        "contract": 0,
+        "twin": 6
+       },
+       "contract": "none"
+      },
+      "B": {
+       "roles": 23,
+       "static": 48,
+       "pool": 12,
+       "rejected": {
+        "load": 0,
+        "error": 3,
+        "type": 1,
+        "contract": 0,
+        "twin": 1
+       },
+       "contract": "none"
+      }
+     },
+     "space": 72,
+     "tried": 72,
+     "passed": 0,
+     "fails": {
+      "other": 65,
+      "count.empty": 5,
+      "count.add": 2
+     },
+     "examples": [
+      {
+       "fill": [
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc",
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «סופר» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc",
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «סופר» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets",
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «סופר» בודקים (אין קישור מתאים)"
+      }
+     ]
+    },
+    {
+     "shape": "chain2",
+     "variant": "mid-num",
+     "slots": {
+      "A": {
+       "roles": 23,
+       "static": 48,
+       "pool": 6,
+       "rejected": {
+        "load": 0,
+        "error": 6,
+        "type": 32,
+        "contract": 0,
+        "twin": 4
+       },
+       "contract": "none"
+      },
+      "B": {
+       "roles": 23,
+       "static": 48,
+       "pool": 12,
+       "rejected": {
+        "load": 0,
+        "error": 4,
+        "type": 0,
+        "contract": 0,
+        "twin": 10
+       },
+       "contract": "none"
+      }
+     },
+     "space": 72,
+     "tried": 72,
+     "passed": 0,
+     "fails": {
+      "other": 44,
+      "count.empty": 28
+     },
+     "examples": [
+      {
+       "fill": [
+        "inner-generator:machtzev/ds-forge.mjs#emit.map.pr:step",
+        "inner-generator:gen/looks/buybox/build.mjs#split.c"
+       ],
+       "law": "count.empty",
+       "why": "ריק ≠ 0"
+      },
+      {
+       "fill": [
+        "inner-generator:machtzev/ds-forge.mjs#emit.map.pr:step",
+        "inner-generator:new/atoms/lessons-in-term.mjs#lessonsInTerm.n"
+       ],
+       "law": "count.empty",
+       "why": "ריק ≠ 0"
+      },
+      {
+       "fill": [
+        "inner-buildsmart:functions/src/claude.ts#enforceRateLimit.runTransaction.count",
+        "inner-generator:gen/looks/buybox/build.mjs#split.c"
+       ],
+       "law": "other",
+       "why": "אין מקרה-עד לא-טריוויאלי"
+      }
+     ]
+    },
+    {
+     "shape": "chain2",
+     "variant": "mid-pts",
+     "slots": {
+      "A": {
+       "roles": 23,
+       "static": 48,
+       "pool": 1,
+       "rejected": {
+        "load": 0,
+        "error": 6,
+        "type": 38,
+        "contract": 0,
+        "twin": 3
+       },
+       "contract": "none"
+      },
+      "B": {
+       "roles": 23,
+       "static": 48,
+       "pool": 12,
+       "rejected": {
+        "load": 0,
+        "error": 4,
+        "type": 1,
+        "contract": 0,
+        "twin": 0
+       },
+       "contract": "none"
+      }
+     },
+     "space": 12,
+     "tried": 12,
+     "passed": 0,
+     "fails": {
+      "other": 12
+     },
+     "examples": [
+      {
+       "fill": [
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets",
+        "core-c:catalog/core/dedupe-points.mjs#dedupePoints"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «סופר» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets",
+        "inner-buildsmart:functions/src/claude.ts#enforceRateLimit.runTransaction.count"
+       ],
+       "law": "other",
+       "why": "אין מקרה-עד לא-טריוויאלי"
+      },
+      {
+       "fill": [
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets",
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «סופר» בודקים (אין קישור מתאים)"
+      }
+     ]
+    },
+    {
+     "shape": "group-count",
+     "variant": "base",
+     "slots": {
+      "G": {
+       "roles": 4,
+       "static": 48,
+       "pool": 8,
+       "rejected": {
+        "load": 0,
+        "error": 27,
+        "type": 12,
+        "contract": 0,
+        "twin": 1
+       },
+       "contract": "none"
+      },
+      "C": {
+       "roles": 10,
+       "static": 48,
+       "pool": 12,
+       "rejected": {
+        "load": 0,
+        "error": 1,
+        "type": 1,
+        "contract": 0,
+        "twin": 1
+       },
+       "contract": "none"
+      }
+     },
+     "space": 96,
+     "tried": 96,
+     "passed": 0,
+     "fails": {
+      "other": 96
+     },
+     "examples": [
+      {
+       "fill": [
+        "inner-orbit:src/components/shop/AssignmentsTab.tsx#AssignmentsTab.groups:after-loop",
+        "inner-orbit:src/components/shop/AssignmentsTab.tsx#AssignmentsTab.groups:after-loop"
+       ],
+       "law": "other",
+       "why": "לא רץ: no-fitting-input"
+      },
+      {
+       "fill": [
+        "inner-orbit:src/components/shop/AssignmentsTab.tsx#AssignmentsTab.groups:after-loop",
+        "inner-generator:machtzev/generator/retarget.mjs#pickModule.ep"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «סופר» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "inner-generator:gen/sentence.mjs#sentenceToSpec.parseClause.hw:step",
+        "inner-orbit:src/components/shop/AssignmentsTab.tsx#AssignmentsTab.groups:after-loop"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «סופר» בודקים (אין קישור מתאים)"
+      }
+     ]
+    },
+    {
+     "shape": "fan-in",
+     "variant": "base",
+     "slots": {
+      "A": {
+       "roles": 10,
+       "static": 48,
+       "pool": 7,
+       "rejected": {
+        "load": 0,
+        "error": 7,
+        "type": 29,
+        "contract": 0,
+        "twin": 5
+       },
+       "contract": "none"
+      },
+      "B": {
+       "roles": 10,
+       "static": 48,
+       "pool": 7,
+       "rejected": {
+        "load": 0,
+        "error": 7,
+        "type": 29,
+        "contract": 0,
+        "twin": 5
+       },
+       "contract": "none"
+      },
+      "C": {
+       "roles": 4,
+       "static": 48,
+       "pool": 12,
+       "rejected": {
+        "load": 0,
+        "error": 0,
+        "type": 0,
+        "contract": 0,
+        "twin": 0
+       },
+       "contract": "none"
+      }
+     },
+     "space": 588,
+     "tried": 588,
+     "passed": 0,
+     "fails": {
+      "count.empty": 469,
+      "count.add": 62,
+      "other": 57
+     },
+     "examples": [
+      {
+       "fill": [
+        "inner-generator:machtzev/ds-forge.mjs#emit.map.pr:step",
+        "inner-generator:machtzev/ds-forge.mjs#emit.map.pr:step",
+        "orbit:src/components/timer/cashLib.ts#drawerDiff"
+       ],
+       "law": "other",
+       "why": "אין מקרה-עד לא-טריוויאלי"
+      },
+      {
+       "fill": [
+        "inner-generator:machtzev/ds-forge.mjs#emit.map.pr:step",
+        "inner-generator:machtzev/ds-forge.mjs#emit.map.pr:step",
+        "inner-generator:machtzev/ds-wear.mjs#roleExpr.da:step"
+       ],
+       "law": "count.empty",
+       "why": "ריק ≠ 0"
+      },
+      {
+       "fill": [
+        "inner-generator:machtzev/ds-forge.mjs#emit.map.pr:step",
+        "orbit:src/components/hosting/kitchen.ts#activeDinerTotal",
+        "orbit:src/components/timer/cashLib.ts#drawerDiff"
+       ],
+       "law": "count.add",
+       "why": "ביחד -10 ≠ -10 + 21"
+      }
+     ]
+    },
+    {
+     "shape": "chain3",
+     "variant": "base",
+     "slots": {
+      "A": {
+       "roles": 6,
+       "static": 48,
+       "pool": 9,
+       "rejected": {
+        "load": 0,
+        "error": 1,
+        "type": 14,
+        "contract": 0,
+        "twin": 24
+       },
+       "contract": "none"
+      },
+      "B": {
+       "roles": 6,
+       "static": 48,
+       "pool": 9,
+       "rejected": {
+        "load": 0,
+        "error": 1,
+        "type": 14,
+        "contract": 0,
+        "twin": 24
+       },
+       "contract": "none"
+      },
+      "C": {
+       "roles": 16,
+       "static": 48,
+       "pool": 12,
+       "rejected": {
+        "load": 0,
+        "error": 1,
+        "type": 1,
+        "contract": 0,
+        "twin": 1
+       },
+       "contract": "none"
+      }
+     },
+     "space": 972,
+     "tried": 972,
+     "passed": 0,
+     "fails": {
+      "other": 880,
+      "count.empty": 64,
+      "count.add": 28
+     },
+     "examples": [
+      {
+       "fill": [
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc",
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc",
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «סופר» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc",
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc",
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «סופר» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc",
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets",
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «סופר» בודקים (אין קישור מתאים)"
+      }
+     ]
+    }
+   ],
+   "attempts": 1881,
+   "steps": 38,
+   "found": {
+    "shape": "count-by-ones",
+    "variant": "base",
+    "parts": 1,
+    "steps": 38,
+    "holds": "36/36",
+    "fill": [
+     "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop"
+    ],
+    "alternatives": 0
+   },
+   "unmatchedShapes": 19,
+   "passes": [
+    {
+     "shape": "count-by-ones",
+     "variant": "base",
+     "parts": 1,
+     "steps": 38,
+     "holds": "36/36",
+     "fill": [
+      "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop"
+     ]
+    }
+   ]
+  },
+  {
+   "verb": "extreme",
+   "he": "בוחר את הקיצוני",
+   "material": "list",
+   "sems": [
+    "nums"
+   ],
+   "today": "109 חלקים מוכחים",
+   "hidden": {
+    "hand": false,
+    "combo": false,
+    "parts": 109
+   },
+   "templates": [
+    {
+     "shape": "map-each",
+     "variant": "base",
+     "slots": {
+      "A": {
+       "roles": 9,
+       "static": 48,
+       "pool": 12,
+       "rejected": {
+        "load": 0,
+        "error": 1,
+        "type": 0,
+        "contract": 0,
+        "twin": 3
+       },
+       "contract": "none"
+      }
+     },
+     "space": 12,
+     "tried": 12,
+     "passed": 0,
+     "fails": {
+      "other": 12
+     },
+     "examples": [
+      {
+       "fill": [
+        "inner-generator:gen/looks/buybox/build.mjs#split.c"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «בוחר את הקיצוני» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "inner-generator:gen/looks/agora/build.mjs#fn.per"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «בוחר את הקיצוני» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "inner-generator:new/atoms/lessons-in-term.mjs#lessonsInTerm.n"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «בוחר את הקיצוני» בודקים (אין קישור מתאים)"
+      }
+     ]
+    },
+    {
+     "shape": "sort-first",
+     "variant": "base",
+     "slots": {
+      "A": {
+       "roles": 6,
+       "static": 48,
+       "pool": 9,
+       "rejected": {
+        "load": 0,
+        "error": 1,
+        "type": 14,
+        "contract": 0,
+        "twin": 24
+       },
+       "contract": "none"
+      }
+     },
+     "space": 9,
+     "tried": 8,
+     "passed": 3,
+     "fails": {
+      "extreme.order-free": 4,
+      "other": 1
+     },
+     "examples": [
+      {
+       "fill": [
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets"
+       ],
+       "law": "other",
+       "why": "לא רץ: no-fitting-input"
+      },
+      {
+       "fill": [
+        "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#CartSubmenu.reversed:step"
+       ],
+       "law": "extreme.order-free",
+       "why": "ערבוב שינה"
+      },
+      {
+       "fill": [
+        "inner-orbit:src/components/supporters/SupportersUniverse3D.tsx#SupportersUniverse3D.useMemo.arr"
+       ],
+       "law": "extreme.order-free",
+       "why": "ערבוב שינה"
+      }
+     ]
+    },
+    {
+     "shape": "scan",
+     "variant": "binary",
+     "slots": {
+      "A": {
+       "roles": 4,
+       "static": 48,
+       "pool": 12,
+       "rejected": {
+        "load": 0,
+        "error": 0,
+        "type": 0,
+        "contract": 0,
+        "twin": 0
+       },
+       "contract": "none"
+      }
+     },
+     "space": 12,
+     "tried": 12,
+     "passed": 0,
+     "fails": {
+      "other": 12
+     },
+     "examples": [
+      {
+       "fill": [
+        "orbit:src/components/timer/cashLib.ts#drawerDiff"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «בוחר את הקיצוני» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "inner-generator:machtzev/ds-wear.mjs#roleExpr.da:step"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «בוחר את הקיצוני» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "inner-14kk:knowledge_protocol.js#AssetAnalyzer.calculateReadability.avgWordsPerSentence:step"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «בוחר את הקיצוני» בודקים (אין קישור מתאים)"
+      }
+     ]
+    },
+    {
+     "shape": "scan",
+     "variant": "list-of-two",
+     "slots": {
+      "A": {
+       "roles": 10,
+       "static": 48,
+       "pool": 6,
+       "rejected": {
+        "load": 0,
+        "error": 8,
+        "type": 25,
+        "contract": 0,
+        "twin": 9
+       },
+       "contract": "none"
+      }
+     },
+     "space": 6,
+     "tried": 6,
+     "passed": 0,
+     "fails": {
+      "other": 6
+     },
+     "examples": [
+      {
+       "fill": [
+        "orbit:src/components/supporters/prayer.ts#prayerOpenCount"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «בוחר את הקיצוני» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "inner-generator:machtzev/ds-forge.mjs#emit.map.pr:step"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «בוחר את הקיצוני» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "orbit:src/components/hosting/kitchen.ts#activeDinerTotal"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «בוחר את הקיצוני» בודקים (אין קישור מתאים)"
+      }
+     ]
+    },
+    {
+     "shape": "fold",
+     "variant": "binary",
+     "slots": {
+      "A": {
+       "roles": 4,
+       "static": 48,
+       "pool": 12,
+       "rejected": {
+        "load": 0,
+        "error": 0,
+        "type": 0,
+        "contract": 0,
+        "twin": 0
+       },
+       "contract": "none"
+      }
+     },
+     "space": 12,
+     "tried": 12,
+     "passed": 0,
+     "fails": {
+      "extreme.split": 7,
+      "other": 4,
+      "extreme.order-free": 1
+     },
+     "examples": [
+      {
+       "fill": [
+        "orbit:src/components/timer/cashLib.ts#drawerDiff"
+       ],
+       "law": "extreme.split",
+       "why": "התשובה של המחובר לא אחת מהשתיים"
+      },
+      {
+       "fill": [
+        "inner-generator:machtzev/ds-wear.mjs#roleExpr.da:step"
+       ],
+       "law": "extreme.split",
+       "why": "התשובה של המחובר לא אחת מהשתיים"
+      },
+      {
+       "fill": [
+        "inner-14kk:knowledge_protocol.js#AssetAnalyzer.calculateReadability.avgWordsPerSentence:step"
+       ],
+       "law": "other",
+       "why": "הפלט לא תלוי בקלט"
+      }
+     ],
+     "stress": 1
+    },
+    {
+     "shape": "fold",
+     "variant": "list-of-two",
+     "slots": {
+      "A": {
+       "roles": 10,
+       "static": 48,
+       "pool": 6,
+       "rejected": {
+        "load": 0,
+        "error": 8,
+        "type": 25,
+        "contract": 0,
+        "twin": 9
+       },
+       "contract": "none"
+      }
+     },
+     "space": 6,
+     "tried": 6,
+     "passed": 0,
+     "fails": {
+      "other": 4,
+      "extreme.order-free": 1,
+      "extreme.split": 1
+     },
+     "examples": [
+      {
+       "fill": [
+        "orbit:src/components/supporters/prayer.ts#prayerOpenCount"
+       ],
+       "law": "other",
+       "why": "הפלט לא תלוי בקלט"
+      },
+      {
+       "fill": [
+        "inner-generator:machtzev/ds-forge.mjs#emit.map.pr:step"
+       ],
+       "law": "extreme.order-free",
+       "why": "ערבוב שינה"
+      },
+      {
+       "fill": [
+        "orbit:src/components/hosting/kitchen.ts#activeDinerTotal"
+       ],
+       "law": "other",
+       "why": "הפלט לא תלוי בקלט"
+      }
+     ]
+    },
+    {
+     "shape": "count-by-ones",
+     "variant": "base",
+     "slots": {
+      "S": {
+       "roles": 3,
+       "static": 48,
+       "pool": 1,
+       "rejected": {
+        "load": 0,
+        "error": 10,
+        "type": 12,
+        "contract": 23,
+        "twin": 2
+       },
+       "contract": "additive"
+      }
+     },
+     "space": 1,
+     "tried": 1,
+     "passed": 0,
+     "fails": {
+      "extreme.split": 1
+     },
+     "examples": [
+      {
+       "fill": [
+        "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop"
+       ],
+       "law": "extreme.split",
+       "why": "התשובה של המחובר לא אחת מהשתיים"
+      }
+     ]
+    },
+    {
+     "shape": "fixpoint",
+     "variant": "base",
+     "slots": {
+      "A": {
+       "roles": 11,
+       "static": 48,
+       "pool": 9,
+       "rejected": {
+        "load": 0,
+        "error": 3,
+        "type": 15,
+        "contract": 0,
+        "twin": 21
+       },
+       "contract": "none"
+      }
+     },
+     "space": 9,
+     "tried": 9,
+     "passed": 0,
+     "fails": {
+      "other": 9
+     },
+     "examples": [
+      {
+       "fill": [
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «בוחר את הקיצוני» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «בוחר את הקיצוני» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#CartSubmenu.reversed:step"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «בוחר את הקיצוני» בודקים (אין קישור מתאים)"
+      }
+     ]
+    },
+    {
+     "shape": "chain2",
+     "variant": "mid-nums",
+     "slots": {
+      "A": {
+       "roles": 23,
+       "static": 48,
+       "pool": 6,
+       "rejected": {
+        "load": 0,
+        "error": 6,
+        "type": 30,
+        "contract": 0,
+        "twin": 6
+       },
+       "contract": "none"
+      },
+      "B": {
+       "roles": 23,
+       "static": 48,
+       "pool": 12,
+       "rejected": {
+        "load": 0,
+        "error": 3,
+        "type": 1,
+        "contract": 0,
+        "twin": 1
+       },
+       "contract": "none"
+      }
+     },
+     "space": 72,
+     "tried": 72,
+     "passed": 0,
+     "fails": {
+      "other": 62,
+      "extreme.split": 9,
+      "extreme.order-free": 1
+     },
+     "examples": [
+      {
+       "fill": [
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc",
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «בוחר את הקיצוני» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc",
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «בוחר את הקיצוני» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets",
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «בוחר את הקיצוני» בודקים (אין קישור מתאים)"
+      }
+     ]
+    },
+    {
+     "shape": "chain2",
+     "variant": "mid-num",
+     "slots": {
+      "A": {
+       "roles": 23,
+       "static": 48,
+       "pool": 5,
+       "rejected": {
+        "load": 0,
+        "error": 6,
+        "type": 31,
+        "contract": 0,
+        "twin": 6
+       },
+       "contract": "none"
+      },
+      "B": {
+       "roles": 23,
+       "static": 48,
+       "pool": 12,
+       "rejected": {
+        "load": 0,
+        "error": 3,
+        "type": 0,
+        "contract": 0,
+        "twin": 10
+       },
+       "contract": "none"
+      }
+     },
+     "space": 60,
+     "tried": 60,
+     "passed": 0,
+     "fails": {
+      "extreme.split": 28,
+      "other": 20,
+      "extreme.order-free": 12
+     },
+     "examples": [
+      {
+       "fill": [
+        "orbit:src/components/supporters/prayer.ts#prayerOpenCount",
+        "inner-generator:gen/looks/buybox/build.mjs#split.c"
+       ],
+       "law": "other",
+       "why": "הפלט לא תלוי בקלט"
+      },
+      {
+       "fill": [
+        "orbit:src/components/supporters/prayer.ts#prayerOpenCount",
+        "inner-generator:new/atoms/lessons-in-term.mjs#lessonsInTerm.n"
+       ],
+       "law": "extreme.split",
+       "why": "התשובה של המחובר לא אחת מהשתיים"
+      },
+      {
+       "fill": [
+        "inner-generator:machtzev/ds-forge.mjs#emit.map.pr:step",
+        "inner-generator:gen/looks/buybox/build.mjs#split.c"
+       ],
+       "law": "other",
+       "why": "הפלט לא תלוי בקלט"
+      }
+     ],
+     "lucky": 2
+    },
+    {
+     "shape": "chain2",
+     "variant": "mid-pts",
+     "slots": {
+      "A": {
+       "roles": 23,
+       "static": 48,
+       "pool": 1,
+       "rejected": {
+        "load": 0,
+        "error": 6,
+        "type": 38,
+        "contract": 0,
+        "twin": 3
+       },
+       "contract": "none"
+      },
+      "B": {
+       "roles": 23,
+       "static": 48,
+       "pool": 12,
+       "rejected": {
+        "load": 0,
+        "error": 4,
+        "type": 1,
+        "contract": 0,
+        "twin": 0
+       },
+       "contract": "none"
+      }
+     },
+     "space": 12,
+     "tried": 12,
+     "passed": 0,
+     "fails": {
+      "other": 12
+     },
+     "examples": [
+      {
+       "fill": [
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets",
+        "core-c:catalog/core/dedupe-points.mjs#dedupePoints"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «בוחר את הקיצוני» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets",
+        "inner-buildsmart:functions/src/claude.ts#enforceRateLimit.runTransaction.count"
+       ],
+       "law": "other",
+       "why": "הפלט לא תלוי בקלט"
+      },
+      {
+       "fill": [
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets",
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «בוחר את הקיצוני» בודקים (אין קישור מתאים)"
+      }
+     ]
+    },
+    {
+     "shape": "group-count",
+     "variant": "base",
+     "slots": {
+      "G": {
+       "roles": 4,
+       "static": 48,
+       "pool": 8,
+       "rejected": {
+        "load": 0,
+        "error": 27,
+        "type": 12,
+        "contract": 0,
+        "twin": 1
+       },
+       "contract": "none"
+      },
+      "C": {
+       "roles": 10,
+       "static": 48,
+       "pool": 12,
+       "rejected": {
+        "load": 0,
+        "error": 1,
+        "type": 1,
+        "contract": 0,
+        "twin": 2
+       },
+       "contract": "none"
+      }
+     },
+     "space": 96,
+     "tried": 96,
+     "passed": 0,
+     "fails": {
+      "other": 96
+     },
+     "examples": [
+      {
+       "fill": [
+        "inner-orbit:src/components/shop/AssignmentsTab.tsx#AssignmentsTab.groups:after-loop",
+        "inner-orbit:src/components/shop/AssignmentsTab.tsx#AssignmentsTab.groups:after-loop"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «בוחר את הקיצוני» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "inner-orbit:src/components/shop/AssignmentsTab.tsx#AssignmentsTab.groups:after-loop",
+        "inner-generator:machtzev/generator/retarget.mjs#pickModule.ep"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «בוחר את הקיצוני» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "inner-generator:gen/sentence.mjs#sentenceToSpec.parseClause.hw:step",
+        "inner-orbit:src/components/shop/AssignmentsTab.tsx#AssignmentsTab.groups:after-loop"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «בוחר את הקיצוני» בודקים (אין קישור מתאים)"
+      }
+     ]
+    },
+    {
+     "shape": "fan-in",
+     "variant": "base",
+     "slots": {
+      "A": {
+       "roles": 10,
+       "static": 48,
+       "pool": 6,
+       "rejected": {
+        "load": 0,
+        "error": 8,
+        "type": 25,
+        "contract": 0,
+        "twin": 9
+       },
+       "contract": "none"
+      },
+      "B": {
+       "roles": 10,
+       "static": 48,
+       "pool": 6,
+       "rejected": {
+        "load": 0,
+        "error": 8,
+        "type": 25,
+        "contract": 0,
+        "twin": 9
+       },
+       "contract": "none"
+      },
+      "C": {
+       "roles": 4,
+       "static": 48,
+       "pool": 12,
+       "rejected": {
+        "load": 0,
+        "error": 0,
+        "type": 0,
+        "contract": 0,
+        "twin": 0
+       },
+       "contract": "none"
+      }
+     },
+     "space": 432,
+     "tried": 432,
+     "passed": 0,
+     "fails": {
+      "extreme.split": 248,
+      "other": 120,
+      "extreme.order-free": 64
+     },
+     "examples": [
+      {
+       "fill": [
+        "orbit:src/components/supporters/prayer.ts#prayerOpenCount",
+        "orbit:src/components/supporters/prayer.ts#prayerOpenCount",
+        "orbit:src/components/timer/cashLib.ts#drawerDiff"
+       ],
+       "law": "other",
+       "why": "הפלט לא תלוי בקלט"
+      },
+      {
+       "fill": [
+        "orbit:src/components/supporters/prayer.ts#prayerOpenCount",
+        "orbit:src/components/supporters/prayer.ts#prayerOpenCount",
+        "inner-generator:machtzev/ds-wear.mjs#roleExpr.da:step"
+       ],
+       "law": "other",
+       "why": "הפלט לא תלוי בקלט"
+      },
+      {
+       "fill": [
+        "orbit:src/components/supporters/prayer.ts#prayerOpenCount",
+        "inner-generator:machtzev/ds-forge.mjs#emit.map.pr:step",
+        "orbit:src/components/timer/cashLib.ts#drawerDiff"
+       ],
+       "law": "extreme.split",
+       "why": "התשובה של המחובר לא אחת מהשתיים"
+      }
+     ]
+    },
+    {
+     "shape": "chain3",
+     "variant": "base",
+     "slots": {
+      "A": {
+       "roles": 6,
+       "static": 48,
+       "pool": 9,
+       "rejected": {
+        "load": 0,
+        "error": 1,
+        "type": 14,
+        "contract": 0,
+        "twin": 24
+       },
+       "contract": "none"
+      },
+      "B": {
+       "roles": 6,
+       "static": 48,
+       "pool": 9,
+       "rejected": {
+        "load": 0,
+        "error": 1,
+        "type": 14,
+        "contract": 0,
+        "twin": 24
+       },
+       "contract": "none"
+      },
+      "C": {
+       "roles": 16,
+       "static": 48,
+       "pool": 12,
+       "rejected": {
+        "load": 0,
+        "error": 1,
+        "type": 1,
+        "contract": 0,
+        "twin": 1
+       },
+       "contract": "none"
+      }
+     },
+     "space": 972,
+     "tried": 907,
+     "passed": 3,
+     "fails": {
+      "other": 814,
+      "extreme.split": 80,
+      "extreme.order-free": 10
+     },
+     "examples": [
+      {
+       "fill": [
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc",
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc",
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «בוחר את הקיצוני» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc",
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc",
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «בוחר את הקיצוני» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc",
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets",
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «בוחר את הקיצוני» בודקים (אין קישור מתאים)"
+      }
+     ],
+     "lucky": 1
+    }
+   ],
+   "attempts": 1645,
+   "steps": 374,
+   "found": {
+    "shape": "sort-first",
+    "variant": "base",
+    "parts": 1,
+    "steps": 8,
+    "holds": "23/23",
+    "fill": [
+     "inner-orbit:src/lib/enginebox/goal/routeAdapter.ts#shapeRoute.sorted"
+    ],
+    "alternatives": 5
+   },
+   "unmatchedShapes": 19,
+   "passes": [
+    {
+     "shape": "sort-first",
+     "variant": "base",
+     "parts": 1,
+     "steps": 8,
+     "holds": "23/23",
+     "fill": [
+      "inner-orbit:src/lib/enginebox/goal/routeAdapter.ts#shapeRoute.sorted"
+     ]
+    },
+    {
+     "shape": "sort-first",
+     "variant": "base",
+     "parts": 1,
+     "steps": 48,
+     "holds": "19/19",
+     "fill": [
+      "inner-generator:new/boxes/pareto.mjs#paretoReport.desc"
+     ]
+    },
+    {
+     "shape": "sort-first",
+     "variant": "base",
+     "parts": 1,
+     "steps": 50,
+     "holds": "21/21",
+     "fill": [
+      "inner-generator:new/boxes/pareto.mjs#paretoReport.asc"
+     ]
+    },
+    {
+     "shape": "chain3",
+     "variant": "base",
+     "parts": 3,
+     "steps": 62,
+     "holds": "24/24",
+     "fill": [
+      "inner-orbit:src/lib/enginebox/goal/routeAdapter.ts#shapeRoute.sorted",
+      "inner-orbit:src/lib/enginebox/goal/routeAdapter.ts#goalRoutes.missingAll",
+      "inner-generator:machtzev/ds-forge.mjs#emit.map.pr:step"
+     ]
+    },
+    {
+     "shape": "chain3",
+     "variant": "base",
+     "parts": 3,
+     "steps": 102,
+     "holds": "20/20",
+     "fill": [
+      "inner-generator:new/boxes/pareto.mjs#paretoReport.desc",
+      "inner-orbit:src/lib/enginebox/goal/routeAdapter.ts#goalRoutes.missingAll",
+      "inner-generator:machtzev/ds-forge.mjs#emit.map.pr:step"
+     ]
+    },
+    {
+     "shape": "chain3",
+     "variant": "base",
+     "parts": 3,
+     "steps": 104,
+     "holds": "21/21",
+     "fill": [
+      "inner-generator:new/boxes/pareto.mjs#paretoReport.asc",
+      "inner-orbit:src/lib/enginebox/goal/routeAdapter.ts#goalRoutes.missingAll",
+      "inner-generator:machtzev/ds-forge.mjs#emit.map.pr:step"
+     ]
+    }
+   ]
+  },
+  {
+   "verb": "dedupe",
+   "he": "מסיר כפולים",
+   "material": "list",
+   "sems": [
+    "nums"
+   ],
+   "today": "7 חלקים מוכחים (נדיר)",
+   "hidden": {
+    "hand": false,
+    "combo": false,
+    "parts": 7
+   },
+   "templates": [
+    {
+     "shape": "map-each",
+     "variant": "base",
+     "slots": {
+      "A": {
+       "roles": 9,
+       "static": 48,
+       "pool": 12,
+       "rejected": {
+        "load": 0,
+        "error": 1,
+        "type": 0,
+        "contract": 0,
+        "twin": 3
+       },
+       "contract": "none"
+      }
+     },
+     "space": 12,
+     "tried": 12,
+     "passed": 0,
+     "fails": {
+      "dedupe.subseq": 11,
+      "dedupe.double": 1
+     },
+     "examples": [
+      {
+       "fill": [
+        "inner-generator:gen/looks/buybox/build.mjs#split.c"
+       ],
+       "law": "dedupe.subseq",
+       "why": "יצא פריט שלא היה, או בסדר אחר"
+      },
+      {
+       "fill": [
+        "inner-generator:gen/looks/agora/build.mjs#fn.per"
+       ],
+       "law": "dedupe.subseq",
+       "why": "יצא פריט שלא היה, או בסדר אחר"
+      },
+      {
+       "fill": [
+        "inner-generator:new/atoms/lessons-in-term.mjs#lessonsInTerm.n"
+       ],
+       "law": "dedupe.subseq",
+       "why": "יצא פריט שלא היה, או בסדר אחר"
+      }
+     ]
+    },
+    {
+     "shape": "sort-first",
+     "variant": "base",
+     "slots": {
+      "A": {
+       "roles": 6,
+       "static": 48,
+       "pool": 8,
+       "rejected": {
+        "load": 0,
+        "error": 1,
+        "type": 15,
+        "contract": 0,
+        "twin": 24
+       },
+       "contract": "none"
+      }
+     },
+     "space": 8,
+     "tried": 8,
+     "passed": 0,
+     "fails": {
+      "other": 8
+     },
+     "examples": [
+      {
+       "fill": [
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «מסיר כפולים» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets"
+       ],
+       "law": "other",
+       "why": "לא רץ: no-fitting-input"
+      },
+      {
+       "fill": [
+        "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#CartSubmenu.reversed:step"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «מסיר כפולים» בודקים (אין קישור מתאים)"
+      }
+     ]
+    },
+    {
+     "shape": "scan",
+     "variant": "binary",
+     "slots": {
+      "A": {
+       "roles": 4,
+       "static": 48,
+       "pool": 12,
+       "rejected": {
+        "load": 0,
+        "error": 0,
+        "type": 0,
+        "contract": 0,
+        "twin": 0
+       },
+       "contract": "none"
+      }
+     },
+     "space": 12,
+     "tried": 12,
+     "passed": 0,
+     "fails": {
+      "dedupe.subseq": 12
+     },
+     "examples": [
+      {
+       "fill": [
+        "orbit:src/components/timer/cashLib.ts#drawerDiff"
+       ],
+       "law": "dedupe.subseq",
+       "why": "יצא פריט שלא היה, או בסדר אחר"
+      },
+      {
+       "fill": [
+        "inner-generator:machtzev/ds-wear.mjs#roleExpr.da:step"
+       ],
+       "law": "dedupe.subseq",
+       "why": "יצא פריט שלא היה, או בסדר אחר"
+      },
+      {
+       "fill": [
+        "inner-14kk:knowledge_protocol.js#AssetAnalyzer.calculateReadability.avgWordsPerSentence:step"
+       ],
+       "law": "dedupe.subseq",
+       "why": "יצא פריט שלא היה, או בסדר אחר"
+      }
+     ]
+    },
+    {
+     "shape": "scan",
+     "variant": "list-of-two",
+     "slots": {
+      "A": {
+       "roles": 10,
+       "static": 48,
+       "pool": 8,
+       "rejected": {
+        "load": 0,
+        "error": 6,
+        "type": 25,
+        "contract": 0,
+        "twin": 9
+       },
+       "contract": "none"
+      }
+     },
+     "space": 8,
+     "tried": 8,
+     "passed": 0,
+     "fails": {
+      "dedupe.subseq": 7,
+      "dedupe.double": 1
+     },
+     "examples": [
+      {
+       "fill": [
+        "orbit:src/components/supporters/prayer.ts#prayerOpenCount"
+       ],
+       "law": "dedupe.subseq",
+       "why": "יצא פריט שלא היה, או בסדר אחר"
+      },
+      {
+       "fill": [
+        "inner-generator:machtzev/ds-forge.mjs#emit.map.pr:step"
+       ],
+       "law": "dedupe.double",
+       "why": "השכפול שינה"
+      },
+      {
+       "fill": [
+        "orbit:src/components/hosting/kitchen.ts#activeDinerTotal"
+       ],
+       "law": "dedupe.subseq",
+       "why": "יצא פריט שלא היה, או בסדר אחר"
+      }
+     ]
+    },
+    {
+     "shape": "fold",
+     "variant": "binary",
+     "slots": {
+      "A": {
+       "roles": 4,
+       "static": 48,
+       "pool": 12,
+       "rejected": {
+        "load": 0,
+        "error": 0,
+        "type": 0,
+        "contract": 0,
+        "twin": 0
+       },
+       "contract": "none"
+      }
+     },
+     "space": 12,
+     "tried": 12,
+     "passed": 0,
+     "fails": {
+      "other": 12
+     },
+     "examples": [
+      {
+       "fill": [
+        "orbit:src/components/timer/cashLib.ts#drawerDiff"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «מסיר כפולים» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "inner-generator:machtzev/ds-wear.mjs#roleExpr.da:step"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «מסיר כפולים» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "inner-14kk:knowledge_protocol.js#AssetAnalyzer.calculateReadability.avgWordsPerSentence:step"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «מסיר כפולים» בודקים (אין קישור מתאים)"
+      }
+     ]
+    },
+    {
+     "shape": "fold",
+     "variant": "list-of-two",
+     "slots": {
+      "A": {
+       "roles": 10,
+       "static": 48,
+       "pool": 8,
+       "rejected": {
+        "load": 0,
+        "error": 6,
+        "type": 25,
+        "contract": 0,
+        "twin": 9
+       },
+       "contract": "none"
+      }
+     },
+     "space": 8,
+     "tried": 8,
+     "passed": 0,
+     "fails": {
+      "other": 8
+     },
+     "examples": [
+      {
+       "fill": [
+        "orbit:src/components/supporters/prayer.ts#prayerOpenCount"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «מסיר כפולים» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "inner-generator:machtzev/ds-forge.mjs#emit.map.pr:step"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «מסיר כפולים» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "orbit:src/components/hosting/kitchen.ts#activeDinerTotal"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «מסיר כפולים» בודקים (אין קישור מתאים)"
+      }
+     ]
+    },
+    {
+     "shape": "count-by-ones",
+     "variant": "base",
+     "slots": {
+      "S": {
+       "roles": 3,
+       "static": 48,
+       "pool": 1,
+       "rejected": {
+        "load": 0,
+        "error": 10,
+        "type": 12,
+        "contract": 23,
+        "twin": 2
+       },
+       "contract": "additive"
+      }
+     },
+     "space": 1,
+     "tried": 1,
+     "passed": 0,
+     "fails": {
+      "other": 1
+     },
+     "examples": [
+      {
+       "fill": [
+        "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «מסיר כפולים» בודקים (אין קישור מתאים)"
+      }
+     ]
+    },
+    {
+     "shape": "fixpoint",
+     "variant": "base",
+     "slots": {
+      "A": {
+       "roles": 11,
+       "static": 48,
+       "pool": 8,
+       "rejected": {
+        "load": 0,
+        "error": 3,
+        "type": 16,
+        "contract": 0,
+        "twin": 21
+       },
+       "contract": "none"
+      }
+     },
+     "space": 8,
+     "tried": 8,
+     "passed": 0,
+     "fails": {
+      "dedupe.subseq": 4,
+      "dedupe.double": 2,
+      "dedupe.keeps": 2
+     },
+     "examples": [
+      {
+       "fill": [
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc"
+       ],
+       "law": "dedupe.subseq",
+       "why": "יצא פריט שלא היה, או בסדר אחר"
+      },
+      {
+       "fill": [
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets"
+       ],
+       "law": "dedupe.keeps",
+       "why": "הוסר פריט שאינו כפול"
+      },
+      {
+       "fill": [
+        "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#CartSubmenu.reversed:step"
+       ],
+       "law": "dedupe.double",
+       "why": "השכפול שינה"
+      }
+     ]
+    },
+    {
+     "shape": "chain2",
+     "variant": "mid-nums",
+     "slots": {
+      "A": {
+       "roles": 23,
+       "static": 48,
+       "pool": 5,
+       "rejected": {
+        "load": 0,
+        "error": 7,
+        "type": 31,
+        "contract": 0,
+        "twin": 5
+       },
+       "contract": "none"
+      },
+      "B": {
+       "roles": 23,
+       "static": 48,
+       "pool": 12,
+       "rejected": {
+        "load": 0,
+        "error": 3,
+        "type": 1,
+        "contract": 0,
+        "twin": 0
+       },
+       "contract": "none"
+      }
+     },
+     "space": 60,
+     "tried": 60,
+     "passed": 0,
+     "fails": {
+      "other": 35,
+      "dedupe.subseq": 15,
+      "dedupe.keeps": 9,
+      "dedupe.double": 1
+     },
+     "examples": [
+      {
+       "fill": [
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc",
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc"
+       ],
+       "law": "dedupe.subseq",
+       "why": "יצא פריט שלא היה, או בסדר אחר"
+      },
+      {
+       "fill": [
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc",
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets"
+       ],
+       "law": "dedupe.keeps",
+       "why": "הוסר פריט שאינו כפול"
+      },
+      {
+       "fill": [
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets",
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc"
+       ],
+       "law": "dedupe.keeps",
+       "why": "הוסר פריט שאינו כפול"
+      }
+     ]
+    },
+    {
+     "shape": "chain2",
+     "variant": "mid-num",
+     "slots": {
+      "A": {
+       "roles": 23,
+       "static": 48,
+       "pool": 7,
+       "rejected": {
+        "load": 0,
+        "error": 7,
+        "type": 29,
+        "contract": 0,
+        "twin": 5
+       },
+       "contract": "none"
+      },
+      "B": {
+       "roles": 23,
+       "static": 48,
+       "pool": 12,
+       "rejected": {
+        "load": 0,
+        "error": 4,
+        "type": 0,
+        "contract": 0,
+        "twin": 10
+       },
+       "contract": "none"
+      }
+     },
+     "space": 84,
+     "tried": 84,
+     "passed": 0,
+     "fails": {
+      "other": 84
+     },
+     "examples": [
+      {
+       "fill": [
+        "orbit:src/components/supporters/prayer.ts#prayerOpenCount",
+        "inner-generator:gen/looks/buybox/build.mjs#split.c"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «מסיר כפולים» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "orbit:src/components/supporters/prayer.ts#prayerOpenCount",
+        "inner-generator:new/atoms/lessons-in-term.mjs#lessonsInTerm.n"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «מסיר כפולים» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "inner-generator:machtzev/ds-forge.mjs#emit.map.pr:step",
+        "inner-generator:gen/looks/buybox/build.mjs#split.c"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «מסיר כפולים» בודקים (אין קישור מתאים)"
+      }
+     ]
+    },
+    {
+     "shape": "chain2",
+     "variant": "mid-pts",
+     "slots": {
+      "A": {
+       "roles": 23,
+       "static": 48,
+       "pool": 1,
+       "rejected": {
+        "load": 0,
+        "error": 7,
+        "type": 38,
+        "contract": 0,
+        "twin": 2
+       },
+       "contract": "none"
+      },
+      "B": {
+       "roles": 23,
+       "static": 48,
+       "pool": 12,
+       "rejected": {
+        "load": 0,
+        "error": 4,
+        "type": 1,
+        "contract": 0,
+        "twin": 0
+       },
+       "contract": "none"
+      }
+     },
+     "space": 12,
+     "tried": 12,
+     "passed": 0,
+     "fails": {
+      "other": 7,
+      "dedupe.keeps": 5
+     },
+     "examples": [
+      {
+       "fill": [
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets",
+        "inner-buildsmart:functions/src/claude.ts#enforceRateLimit.runTransaction.count"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «מסיר כפולים» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets",
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc"
+       ],
+       "law": "dedupe.keeps",
+       "why": "הוסר פריט שאינו כפול"
+      },
+      {
+       "fill": [
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets",
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets"
+       ],
+       "law": "dedupe.keeps",
+       "why": "הוסר פריט שאינו כפול"
+      }
+     ]
+    },
+    {
+     "shape": "group-count",
+     "variant": "base",
+     "slots": {
+      "G": {
+       "roles": 4,
+       "static": 48,
+       "pool": 8,
+       "rejected": {
+        "load": 0,
+        "error": 27,
+        "type": 12,
+        "contract": 0,
+        "twin": 1
+       },
+       "contract": "none"
+      },
+      "C": {
+       "roles": 10,
+       "static": 48,
+       "pool": 12,
+       "rejected": {
+        "load": 0,
+        "error": 2,
+        "type": 1,
+        "contract": 0,
+        "twin": 1
+       },
+       "contract": "none"
+      }
+     },
+     "space": 96,
+     "tried": 96,
+     "passed": 0,
+     "fails": {
+      "dedupe.keeps": 36,
+      "dedupe.subseq": 27,
+      "other": 19,
+      "dedupe.double": 14
+     },
+     "examples": [
+      {
+       "fill": [
+        "inner-orbit:src/components/shop/AssignmentsTab.tsx#AssignmentsTab.groups:after-loop",
+        "inner-orbit:src/components/shop/AssignmentsTab.tsx#AssignmentsTab.groups:after-loop"
+       ],
+       "law": "other",
+       "why": "לא רץ: no-fitting-input"
+      },
+      {
+       "fill": [
+        "inner-orbit:src/components/shop/AssignmentsTab.tsx#AssignmentsTab.groups:after-loop",
+        "inner-generator:machtzev/generator/retarget.mjs#pickModule.ep"
+       ],
+       "law": "other",
+       "why": "לא רץ: no-fitting-input"
+      },
+      {
+       "fill": [
+        "inner-generator:gen/sentence.mjs#sentenceToSpec.parseClause.hw:step",
+        "inner-orbit:src/components/shop/AssignmentsTab.tsx#AssignmentsTab.groups:after-loop"
+       ],
+       "law": "dedupe.subseq",
+       "why": "יצא פריט שלא היה, או בסדר אחר"
+      }
+     ]
+    },
+    {
+     "shape": "fan-in",
+     "variant": "base",
+     "slots": {
+      "A": {
+       "roles": 10,
+       "static": 48,
+       "pool": 8,
+       "rejected": {
+        "load": 0,
+        "error": 6,
+        "type": 25,
+        "contract": 0,
+        "twin": 9
+       },
+       "contract": "none"
+      },
+      "B": {
+       "roles": 10,
+       "static": 48,
+       "pool": 8,
+       "rejected": {
+        "load": 0,
+        "error": 6,
+        "type": 25,
+        "contract": 0,
+        "twin": 9
+       },
+       "contract": "none"
+      },
+      "C": {
+       "roles": 4,
+       "static": 48,
+       "pool": 12,
+       "rejected": {
+        "load": 0,
+        "error": 0,
+        "type": 0,
+        "contract": 0,
+        "twin": 0
+       },
+       "contract": "none"
+      }
+     },
+     "space": 768,
+     "tried": 768,
+     "passed": 0,
+     "fails": {
+      "other": 768
+     },
+     "examples": [
+      {
+       "fill": [
+        "orbit:src/components/supporters/prayer.ts#prayerOpenCount",
+        "orbit:src/components/supporters/prayer.ts#prayerOpenCount",
+        "orbit:src/components/timer/cashLib.ts#drawerDiff"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «מסיר כפולים» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "orbit:src/components/supporters/prayer.ts#prayerOpenCount",
+        "orbit:src/components/supporters/prayer.ts#prayerOpenCount",
+        "inner-generator:machtzev/ds-wear.mjs#roleExpr.da:step"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «מסיר כפולים» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "orbit:src/components/supporters/prayer.ts#prayerOpenCount",
+        "inner-generator:machtzev/ds-forge.mjs#emit.map.pr:step",
+        "orbit:src/components/timer/cashLib.ts#drawerDiff"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «מסיר כפולים» בודקים (אין קישור מתאים)"
+      }
+     ]
+    },
+    {
+     "shape": "chain3",
+     "variant": "base",
+     "slots": {
+      "A": {
+       "roles": 6,
+       "static": 48,
+       "pool": 8,
+       "rejected": {
+        "load": 0,
+        "error": 1,
+        "type": 15,
+        "contract": 0,
+        "twin": 24
+       },
+       "contract": "none"
+      },
+      "B": {
+       "roles": 6,
+       "static": 48,
+       "pool": 8,
+       "rejected": {
+        "load": 0,
+        "error": 1,
+        "type": 15,
+        "contract": 0,
+        "twin": 24
+       },
+       "contract": "none"
+      },
+      "C": {
+       "roles": 16,
+       "static": 48,
+       "pool": 12,
+       "rejected": {
+        "load": 0,
+        "error": 1,
+        "type": 1,
+        "contract": 0,
+        "twin": 0
+       },
+       "contract": "none"
+      }
+     },
+     "space": 768,
+     "tried": 768,
+     "passed": 0,
+     "fails": {
+      "other": 448,
+      "dedupe.subseq": 172,
+      "dedupe.keeps": 146,
+      "dedupe.double": 2
+     },
+     "examples": [
+      {
+       "fill": [
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc",
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc",
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc"
+       ],
+       "law": "dedupe.subseq",
+       "why": "יצא פריט שלא היה, או בסדר אחר"
+      },
+      {
+       "fill": [
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc",
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc",
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets"
+       ],
+       "law": "dedupe.keeps",
+       "why": "הוסר פריט שאינו כפול"
+      },
+      {
+       "fill": [
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc",
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets",
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc"
+       ],
+       "law": "dedupe.keeps",
+       "why": "הוסר פריט שאינו כפול"
+      }
+     ]
+    }
+   ],
+   "attempts": 1857,
+   "steps": 0,
+   "found": null,
+   "unmatchedShapes": 19,
+   "why": "אף מילוי לא עבר את כל החוקים (1857 ניסיונות)"
+  },
+  {
+   "verb": "reverse",
+   "he": "הופך סדר",
+   "material": "list",
+   "sems": [
+    "nums"
+   ],
+   "today": "8 חלקים מוכחים (נדיר)",
+   "hidden": {
+    "hand": false,
+    "combo": false,
+    "parts": 8
+   },
+   "templates": [
+    {
+     "shape": "map-each",
+     "variant": "base",
+     "slots": {
+      "A": {
+       "roles": 9,
+       "static": 48,
+       "pool": 12,
+       "rejected": {
+        "load": 0,
+        "error": 1,
+        "type": 0,
+        "contract": 0,
+        "twin": 3
+       },
+       "contract": "none"
+      }
+     },
+     "space": 12,
+     "tried": 12,
+     "passed": 0,
+     "fails": {
+      "reverse.involution": 12
+     },
+     "examples": [
+      {
+       "fill": [
+        "inner-generator:gen/looks/buybox/build.mjs#split.c"
+       ],
+       "law": "reverse.involution",
+       "why": "הפוך-של-הפוך ≠ מקור"
+      },
+      {
+       "fill": [
+        "inner-generator:gen/looks/agora/build.mjs#fn.per"
+       ],
+       "law": "reverse.involution",
+       "why": "הפוך-של-הפוך ≠ מקור"
+      },
+      {
+       "fill": [
+        "inner-generator:new/atoms/lessons-in-term.mjs#lessonsInTerm.n"
+       ],
+       "law": "reverse.involution",
+       "why": "הפוך-של-הפוך ≠ מקור"
+      }
+     ]
+    },
+    {
+     "shape": "sort-first",
+     "variant": "base",
+     "slots": {
+      "A": {
+       "roles": 6,
+       "static": 48,
+       "pool": 8,
+       "rejected": {
+        "load": 0,
+        "error": 1,
+        "type": 18,
+        "contract": 0,
+        "twin": 21
+       },
+       "contract": "none"
+      }
+     },
+     "space": 8,
+     "tried": 8,
+     "passed": 0,
+     "fails": {
+      "other": 8
+     },
+     "examples": [
+      {
+       "fill": [
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «הופך סדר» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets"
+       ],
+       "law": "other",
+       "why": "לא רץ: no-fitting-input"
+      },
+      {
+       "fill": [
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.desc"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «הופך סדר» בודקים (אין קישור מתאים)"
+      }
+     ]
+    },
+    {
+     "shape": "scan",
+     "variant": "binary",
+     "slots": {
+      "A": {
+       "roles": 4,
+       "static": 48,
+       "pool": 12,
+       "rejected": {
+        "load": 0,
+        "error": 0,
+        "type": 0,
+        "contract": 0,
+        "twin": 0
+       },
+       "contract": "none"
+      }
+     },
+     "space": 12,
+     "tried": 12,
+     "passed": 0,
+     "fails": {
+      "reverse.involution": 12
+     },
+     "examples": [
+      {
+       "fill": [
+        "orbit:src/components/timer/cashLib.ts#drawerDiff"
+       ],
+       "law": "reverse.involution",
+       "why": "הפוך-של-הפוך ≠ מקור"
+      },
+      {
+       "fill": [
+        "inner-generator:machtzev/ds-wear.mjs#roleExpr.da:step"
+       ],
+       "law": "reverse.involution",
+       "why": "הפוך-של-הפוך ≠ מקור"
+      },
+      {
+       "fill": [
+        "inner-14kk:knowledge_protocol.js#AssetAnalyzer.calculateReadability.avgWordsPerSentence:step"
+       ],
+       "law": "reverse.involution",
+       "why": "הפוך-של-הפוך ≠ מקור"
+      }
+     ]
+    },
+    {
+     "shape": "scan",
+     "variant": "list-of-two",
+     "slots": {
+      "A": {
+       "roles": 10,
+       "static": 48,
+       "pool": 8,
+       "rejected": {
+        "load": 0,
+        "error": 6,
+        "type": 25,
+        "contract": 0,
+        "twin": 9
+       },
+       "contract": "none"
+      }
+     },
+     "space": 8,
+     "tried": 8,
+     "passed": 0,
+     "fails": {
+      "reverse.involution": 7,
+      "reverse.split": 1
+     },
+     "examples": [
+      {
+       "fill": [
+        "orbit:src/components/supporters/prayer.ts#prayerOpenCount"
+       ],
+       "law": "reverse.involution",
+       "why": "הפוך-של-הפוך ≠ מקור"
+      },
+      {
+       "fill": [
+        "inner-generator:machtzev/ds-forge.mjs#emit.map.pr:step"
+       ],
+       "law": "reverse.split",
+       "why": "החיבור לא התהפך"
+      },
+      {
+       "fill": [
+        "orbit:src/components/hosting/kitchen.ts#activeDinerTotal"
+       ],
+       "law": "reverse.involution",
+       "why": "הפוך-של-הפוך ≠ מקור"
+      }
+     ]
+    },
+    {
+     "shape": "fold",
+     "variant": "binary",
+     "slots": {
+      "A": {
+       "roles": 4,
+       "static": 48,
+       "pool": 12,
+       "rejected": {
+        "load": 0,
+        "error": 0,
+        "type": 0,
+        "contract": 0,
+        "twin": 0
+       },
+       "contract": "none"
+      }
+     },
+     "space": 12,
+     "tried": 12,
+     "passed": 0,
+     "fails": {
+      "other": 12
+     },
+     "examples": [
+      {
+       "fill": [
+        "orbit:src/components/timer/cashLib.ts#drawerDiff"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «הופך סדר» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "inner-generator:machtzev/ds-wear.mjs#roleExpr.da:step"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «הופך סדר» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "inner-14kk:knowledge_protocol.js#AssetAnalyzer.calculateReadability.avgWordsPerSentence:step"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «הופך סדר» בודקים (אין קישור מתאים)"
+      }
+     ]
+    },
+    {
+     "shape": "fold",
+     "variant": "list-of-two",
+     "slots": {
+      "A": {
+       "roles": 10,
+       "static": 48,
+       "pool": 8,
+       "rejected": {
+        "load": 0,
+        "error": 6,
+        "type": 25,
+        "contract": 0,
+        "twin": 9
+       },
+       "contract": "none"
+      }
+     },
+     "space": 8,
+     "tried": 8,
+     "passed": 0,
+     "fails": {
+      "other": 8
+     },
+     "examples": [
+      {
+       "fill": [
+        "orbit:src/components/supporters/prayer.ts#prayerOpenCount"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «הופך סדר» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "inner-generator:machtzev/ds-forge.mjs#emit.map.pr:step"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «הופך סדר» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "orbit:src/components/hosting/kitchen.ts#activeDinerTotal"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «הופך סדר» בודקים (אין קישור מתאים)"
+      }
+     ]
+    },
+    {
+     "shape": "count-by-ones",
+     "variant": "base",
+     "slots": {
+      "S": {
+       "roles": 3,
+       "static": 48,
+       "pool": 1,
+       "rejected": {
+        "load": 0,
+        "error": 10,
+        "type": 12,
+        "contract": 23,
+        "twin": 2
+       },
+       "contract": "additive"
+      }
+     },
+     "space": 1,
+     "tried": 1,
+     "passed": 0,
+     "fails": {
+      "other": 1
+     },
+     "examples": [
+      {
+       "fill": [
+        "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «הופך סדר» בודקים (אין קישור מתאים)"
+      }
+     ]
+    },
+    {
+     "shape": "fixpoint",
+     "variant": "base",
+     "slots": {
+      "A": {
+       "roles": 11,
+       "static": 48,
+       "pool": 8,
+       "rejected": {
+        "load": 0,
+        "error": 4,
+        "type": 19,
+        "contract": 0,
+        "twin": 17
+       },
+       "contract": "none"
+      }
+     },
+     "space": 8,
+     "tried": 8,
+     "passed": 0,
+     "fails": {
+      "reverse.involution": 7,
+      "reverse.split": 1
+     },
+     "examples": [
+      {
+       "fill": [
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc"
+       ],
+       "law": "reverse.involution",
+       "why": "הפוך-של-הפוך ≠ מקור"
+      },
+      {
+       "fill": [
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets"
+       ],
+       "law": "reverse.involution",
+       "why": "הפוך-של-הפוך ≠ מקור"
+      },
+      {
+       "fill": [
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.desc"
+       ],
+       "law": "reverse.involution",
+       "why": "הפוך-של-הפוך ≠ מקור"
+      }
+     ]
+    },
+    {
+     "shape": "chain2",
+     "variant": "mid-nums",
+     "slots": {
+      "A": {
+       "roles": 23,
+       "static": 48,
+       "pool": 5,
+       "rejected": {
+        "load": 0,
+        "error": 7,
+        "type": 32,
+        "contract": 0,
+        "twin": 4
+       },
+       "contract": "none"
+      },
+      "B": {
+       "roles": 23,
+       "static": 48,
+       "pool": 12,
+       "rejected": {
+        "load": 0,
+        "error": 3,
+        "type": 1,
+        "contract": 0,
+        "twin": 1
+       },
+       "contract": "none"
+      }
+     },
+     "space": 60,
+     "tried": 60,
+     "passed": 0,
+     "fails": {
+      "other": 40,
+      "reverse.involution": 20
+     },
+     "examples": [
+      {
+       "fill": [
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc",
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc"
+       ],
+       "law": "reverse.involution",
+       "why": "הפוך-של-הפוך ≠ מקור"
+      },
+      {
+       "fill": [
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc",
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets"
+       ],
+       "law": "reverse.involution",
+       "why": "הפוך-של-הפוך ≠ מקור"
+      },
+      {
+       "fill": [
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets",
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc"
+       ],
+       "law": "reverse.involution",
+       "why": "הפוך-של-הפוך ≠ מקור"
+      }
+     ]
+    },
+    {
+     "shape": "chain2",
+     "variant": "mid-num",
+     "slots": {
+      "A": {
+       "roles": 23,
+       "static": 48,
+       "pool": 7,
+       "rejected": {
+        "load": 0,
+        "error": 7,
+        "type": 29,
+        "contract": 0,
+        "twin": 5
+       },
+       "contract": "none"
+      },
+      "B": {
+       "roles": 23,
+       "static": 48,
+       "pool": 12,
+       "rejected": {
+        "load": 0,
+        "error": 4,
+        "type": 0,
+        "contract": 0,
+        "twin": 10
+       },
+       "contract": "none"
+      }
+     },
+     "space": 84,
+     "tried": 84,
+     "passed": 0,
+     "fails": {
+      "other": 84
+     },
+     "examples": [
+      {
+       "fill": [
+        "orbit:src/components/supporters/prayer.ts#prayerOpenCount",
+        "inner-generator:gen/looks/buybox/build.mjs#split.c"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «הופך סדר» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "orbit:src/components/supporters/prayer.ts#prayerOpenCount",
+        "inner-generator:new/atoms/lessons-in-term.mjs#lessonsInTerm.n"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «הופך סדר» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "inner-generator:machtzev/ds-forge.mjs#emit.map.pr:step",
+        "inner-generator:gen/looks/buybox/build.mjs#split.c"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «הופך סדר» בודקים (אין קישור מתאים)"
+      }
+     ]
+    },
+    {
+     "shape": "chain2",
+     "variant": "mid-pts",
+     "slots": {
+      "A": {
+       "roles": 23,
+       "static": 48,
+       "pool": 1,
+       "rejected": {
+        "load": 0,
+        "error": 7,
+        "type": 37,
+        "contract": 0,
+        "twin": 3
+       },
+       "contract": "none"
+      },
+      "B": {
+       "roles": 23,
+       "static": 48,
+       "pool": 12,
+       "rejected": {
+        "load": 0,
+        "error": 4,
+        "type": 1,
+        "contract": 0,
+        "twin": 0
+       },
+       "contract": "none"
+      }
+     },
+     "space": 12,
+     "tried": 12,
+     "passed": 0,
+     "fails": {
+      "other": 7,
+      "reverse.involution": 5
+     },
+     "examples": [
+      {
+       "fill": [
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets",
+        "core-c:catalog/core/dedupe-points.mjs#dedupePoints"
+       ],
+       "law": "reverse.involution",
+       "why": "הפוך-של-הפוך ≠ מקור"
+      },
+      {
+       "fill": [
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets",
+        "inner-buildsmart:functions/src/claude.ts#enforceRateLimit.runTransaction.count"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «הופך סדר» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets",
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc"
+       ],
+       "law": "reverse.involution",
+       "why": "הפוך-של-הפוך ≠ מקור"
+      }
+     ]
+    },
+    {
+     "shape": "group-count",
+     "variant": "base",
+     "slots": {
+      "G": {
+       "roles": 4,
+       "static": 48,
+       "pool": 8,
+       "rejected": {
+        "load": 0,
+        "error": 27,
+        "type": 12,
+        "contract": 0,
+        "twin": 1
+       },
+       "contract": "none"
+      },
+      "C": {
+       "roles": 10,
+       "static": 48,
+       "pool": 12,
+       "rejected": {
+        "load": 0,
+        "error": 2,
+        "type": 1,
+        "contract": 0,
+        "twin": 1
+       },
+       "contract": "none"
+      }
+     },
+     "space": 96,
+     "tried": 96,
+     "passed": 0,
+     "fails": {
+      "reverse.involution": 59,
+      "other": 24,
+      "reverse.split": 13
+     },
+     "examples": [
+      {
+       "fill": [
+        "inner-orbit:src/components/shop/AssignmentsTab.tsx#AssignmentsTab.groups:after-loop",
+        "inner-orbit:src/components/shop/AssignmentsTab.tsx#AssignmentsTab.groups:after-loop"
+       ],
+       "law": "other",
+       "why": "לא רץ: no-fitting-input"
+      },
+      {
+       "fill": [
+        "inner-orbit:src/components/shop/AssignmentsTab.tsx#AssignmentsTab.groups:after-loop",
+        "inner-generator:machtzev/generator/retarget.mjs#pickModule.ep"
+       ],
+       "law": "other",
+       "why": "לא רץ: no-fitting-input"
+      },
+      {
+       "fill": [
+        "inner-generator:gen/sentence.mjs#sentenceToSpec.parseClause.hw:step",
+        "inner-orbit:src/components/shop/AssignmentsTab.tsx#AssignmentsTab.groups:after-loop"
+       ],
+       "law": "reverse.involution",
+       "why": "הפוך-של-הפוך ≠ מקור"
+      }
+     ]
+    },
+    {
+     "shape": "fan-in",
+     "variant": "base",
+     "slots": {
+      "A": {
+       "roles": 10,
+       "static": 48,
+       "pool": 8,
+       "rejected": {
+        "load": 0,
+        "error": 6,
+        "type": 25,
+        "contract": 0,
+        "twin": 9
+       },
+       "contract": "none"
+      },
+      "B": {
+       "roles": 10,
+       "static": 48,
+       "pool": 8,
+       "rejected": {
+        "load": 0,
+        "error": 6,
+        "type": 25,
+        "contract": 0,
+        "twin": 9
+       },
+       "contract": "none"
+      },
+      "C": {
+       "roles": 4,
+       "static": 48,
+       "pool": 12,
+       "rejected": {
+        "load": 0,
+        "error": 0,
+        "type": 0,
+        "contract": 0,
+        "twin": 0
+       },
+       "contract": "none"
+      }
+     },
+     "space": 768,
+     "tried": 768,
+     "passed": 0,
+     "fails": {
+      "other": 768
+     },
+     "examples": [
+      {
+       "fill": [
+        "orbit:src/components/supporters/prayer.ts#prayerOpenCount",
+        "orbit:src/components/supporters/prayer.ts#prayerOpenCount",
+        "orbit:src/components/timer/cashLib.ts#drawerDiff"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «הופך סדר» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "orbit:src/components/supporters/prayer.ts#prayerOpenCount",
+        "orbit:src/components/supporters/prayer.ts#prayerOpenCount",
+        "inner-generator:machtzev/ds-wear.mjs#roleExpr.da:step"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «הופך סדר» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "orbit:src/components/supporters/prayer.ts#prayerOpenCount",
+        "inner-generator:machtzev/ds-forge.mjs#emit.map.pr:step",
+        "orbit:src/components/timer/cashLib.ts#drawerDiff"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «הופך סדר» בודקים (אין קישור מתאים)"
+      }
+     ]
+    },
+    {
+     "shape": "chain3",
+     "variant": "base",
+     "slots": {
+      "A": {
+       "roles": 6,
+       "static": 48,
+       "pool": 8,
+       "rejected": {
+        "load": 0,
+        "error": 1,
+        "type": 18,
+        "contract": 0,
+        "twin": 21
+       },
+       "contract": "none"
+      },
+      "B": {
+       "roles": 6,
+       "static": 48,
+       "pool": 8,
+       "rejected": {
+        "load": 0,
+        "error": 1,
+        "type": 18,
+        "contract": 0,
+        "twin": 21
+       },
+       "contract": "none"
+      },
+      "C": {
+       "roles": 16,
+       "static": 48,
+       "pool": 12,
+       "rejected": {
+        "load": 0,
+        "error": 1,
+        "type": 1,
+        "contract": 0,
+        "twin": 1
+       },
+       "contract": "none"
+      }
+     },
+     "space": 768,
+     "tried": 768,
+     "passed": 0,
+     "fails": {
+      "other": 448,
+      "reverse.involution": 320
+     },
+     "examples": [
+      {
+       "fill": [
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc",
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc",
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc"
+       ],
+       "law": "reverse.involution",
+       "why": "הפוך-של-הפוך ≠ מקור"
+      },
+      {
+       "fill": [
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc",
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc",
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets"
+       ],
+       "law": "reverse.involution",
+       "why": "הפוך-של-הפוך ≠ מקור"
+      },
+      {
+       "fill": [
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc",
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets",
+        "inner-generator:new/boxes/pareto.mjs#paretoReport.asc"
+       ],
+       "law": "reverse.involution",
+       "why": "הפוך-של-הפוך ≠ מקור"
+      }
+     ]
+    }
+   ],
+   "attempts": 1857,
+   "steps": 0,
+   "found": null,
+   "unmatchedShapes": 19,
+   "why": "אף מילוי לא עבר את כל החוקים (1857 ניסיונות)"
+  },
+  {
+   "verb": "sort",
+   "he": "ממיין",
+   "material": "list",
+   "sems": [
+    "nums"
+   ],
+   "today": "12 חלקים מוכחים (נדיר)",
+   "hidden": {
+    "hand": false,
+    "combo": false,
+    "parts": 12
+   },
+   "templates": [
+    {
+     "shape": "map-each",
+     "variant": "base",
+     "slots": {
+      "A": {
+       "roles": 9,
+       "static": 48,
+       "pool": 12,
+       "rejected": {
+        "load": 0,
+        "error": 1,
+        "type": 0,
+        "contract": 0,
+        "twin": 3
+       },
+       "contract": "none"
+      }
+     },
+     "space": 12,
+     "tried": 12,
+     "passed": 0,
+     "fails": {
+      "sort.perm": 12
+     },
+     "examples": [
+      {
+       "fill": [
+        "inner-generator:gen/looks/buybox/build.mjs#split.c"
+       ],
+       "law": "sort.perm",
+       "why": "לא אותם פריטים"
+      },
+      {
+       "fill": [
+        "inner-generator:gen/looks/agora/build.mjs#fn.per"
+       ],
+       "law": "sort.perm",
+       "why": "לא אותם פריטים"
+      },
+      {
+       "fill": [
+        "inner-generator:new/atoms/lessons-in-term.mjs#lessonsInTerm.n"
+       ],
+       "law": "sort.perm",
+       "why": "לא אותם פריטים"
+      }
+     ]
+    },
+    {
+     "shape": "sort-first",
+     "variant": "base",
+     "slots": {
+      "A": {
+       "roles": 6,
+       "static": 48,
+       "pool": 5,
+       "rejected": {
+        "load": 0,
+        "error": 0,
+        "type": 18,
+        "contract": 0,
+        "twin": 25
+       },
+       "contract": "none"
+      }
+     },
+     "space": 5,
+     "tried": 5,
+     "passed": 0,
+     "fails": {
+      "other": 5
+     },
+     "examples": [
+      {
+       "fill": [
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets"
+       ],
+       "law": "other",
+       "why": "לא רץ: no-fitting-input"
+      },
+      {
+       "fill": [
+        "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#CartSubmenu.reversed:step"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «ממיין» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "inner-buildsmart:functions/src/push.ts#sendToUsers.targets"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «ממיין» בודקים (אין קישור מתאים)"
+      }
+     ]
+    },
+    {
+     "shape": "scan",
+     "variant": "binary",
+     "slots": {
+      "A": {
+       "roles": 4,
+       "static": 48,
+       "pool": 12,
+       "rejected": {
+        "load": 0,
+        "error": 0,
+        "type": 0,
+        "contract": 0,
+        "twin": 0
+       },
+       "contract": "none"
+      }
+     },
+     "space": 12,
+     "tried": 12,
+     "passed": 0,
+     "fails": {
+      "sort.perm": 12
+     },
+     "examples": [
+      {
+       "fill": [
+        "orbit:src/components/timer/cashLib.ts#drawerDiff"
+       ],
+       "law": "sort.perm",
+       "why": "לא אותם פריטים"
+      },
+      {
+       "fill": [
+        "inner-generator:machtzev/ds-wear.mjs#roleExpr.da:step"
+       ],
+       "law": "sort.perm",
+       "why": "לא אותם פריטים"
+      },
+      {
+       "fill": [
+        "inner-14kk:knowledge_protocol.js#AssetAnalyzer.calculateReadability.avgWordsPerSentence:step"
+       ],
+       "law": "sort.perm",
+       "why": "לא אותם פריטים"
+      }
+     ]
+    },
+    {
+     "shape": "scan",
+     "variant": "list-of-two",
+     "slots": {
+      "A": {
+       "roles": 10,
+       "static": 48,
+       "pool": 8,
+       "rejected": {
+        "load": 0,
+        "error": 6,
+        "type": 25,
+        "contract": 0,
+        "twin": 9
+       },
+       "contract": "none"
+      }
+     },
+     "space": 8,
+     "tried": 8,
+     "passed": 0,
+     "fails": {
+      "sort.perm": 7,
+      "sort.order-free": 1
+     },
+     "examples": [
+      {
+       "fill": [
+        "orbit:src/components/supporters/prayer.ts#prayerOpenCount"
+       ],
+       "law": "sort.perm",
+       "why": "לא אותם פריטים"
+      },
+      {
+       "fill": [
+        "inner-generator:machtzev/ds-forge.mjs#emit.map.pr:step"
+       ],
+       "law": "sort.order-free",
+       "why": "ערבוב שינה את הסדר"
+      },
+      {
+       "fill": [
+        "orbit:src/components/hosting/kitchen.ts#activeDinerTotal"
+       ],
+       "law": "sort.perm",
+       "why": "לא אותם פריטים"
+      }
+     ]
+    },
+    {
+     "shape": "fold",
+     "variant": "binary",
+     "slots": {
+      "A": {
+       "roles": 4,
+       "static": 48,
+       "pool": 12,
+       "rejected": {
+        "load": 0,
+        "error": 0,
+        "type": 0,
+        "contract": 0,
+        "twin": 0
+       },
+       "contract": "none"
+      }
+     },
+     "space": 12,
+     "tried": 12,
+     "passed": 0,
+     "fails": {
+      "other": 12
+     },
+     "examples": [
+      {
+       "fill": [
+        "orbit:src/components/timer/cashLib.ts#drawerDiff"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «ממיין» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "inner-generator:machtzev/ds-wear.mjs#roleExpr.da:step"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «ממיין» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "inner-14kk:knowledge_protocol.js#AssetAnalyzer.calculateReadability.avgWordsPerSentence:step"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «ממיין» בודקים (אין קישור מתאים)"
+      }
+     ]
+    },
+    {
+     "shape": "fold",
+     "variant": "list-of-two",
+     "slots": {
+      "A": {
+       "roles": 10,
+       "static": 48,
+       "pool": 8,
+       "rejected": {
+        "load": 0,
+        "error": 6,
+        "type": 25,
+        "contract": 0,
+        "twin": 9
+       },
+       "contract": "none"
+      }
+     },
+     "space": 8,
+     "tried": 8,
+     "passed": 0,
+     "fails": {
+      "other": 8
+     },
+     "examples": [
+      {
+       "fill": [
+        "orbit:src/components/supporters/prayer.ts#prayerOpenCount"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «ממיין» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "inner-generator:machtzev/ds-forge.mjs#emit.map.pr:step"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «ממיין» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "orbit:src/components/hosting/kitchen.ts#activeDinerTotal"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «ממיין» בודקים (אין קישור מתאים)"
+      }
+     ]
+    },
+    {
+     "shape": "count-by-ones",
+     "variant": "base",
+     "slots": {
+      "S": {
+       "roles": 3,
+       "static": 48,
+       "pool": 1,
+       "rejected": {
+        "load": 0,
+        "error": 10,
+        "type": 12,
+        "contract": 23,
+        "twin": 2
+       },
+       "contract": "additive"
+      }
+     },
+     "space": 1,
+     "tried": 1,
+     "passed": 0,
+     "fails": {
+      "other": 1
+     },
+     "examples": [
+      {
+       "fill": [
+        "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «ממיין» בודקים (אין קישור מתאים)"
+      }
+     ]
+    },
+    {
+     "shape": "fixpoint",
+     "variant": "base",
+     "slots": {
+      "A": {
+       "roles": 11,
+       "static": 48,
+       "pool": 5,
+       "rejected": {
+        "load": 0,
+        "error": 3,
+        "type": 19,
+        "contract": 0,
+        "twin": 21
+       },
+       "contract": "none"
+      }
+     },
+     "space": 5,
+     "tried": 5,
+     "passed": 0,
+     "fails": {
+      "sort.perm": 3,
+      "sort.order-free": 2
+     },
+     "examples": [
+      {
+       "fill": [
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets"
+       ],
+       "law": "sort.perm",
+       "why": "לא אותם פריטים"
+      },
+      {
+       "fill": [
+        "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#CartSubmenu.reversed:step"
+       ],
+       "law": "sort.order-free",
+       "why": "ערבוב שינה את הסדר"
+      },
+      {
+       "fill": [
+        "inner-buildsmart:functions/src/push.ts#sendToUsers.targets"
+       ],
+       "law": "sort.order-free",
+       "why": "ערבוב שינה את הסדר"
+      }
+     ]
+    },
+    {
+     "shape": "chain2",
+     "variant": "mid-nums",
+     "slots": {
+      "A": {
+       "roles": 23,
+       "static": 48,
+       "pool": 4,
+       "rejected": {
+        "load": 0,
+        "error": 7,
+        "type": 32,
+        "contract": 0,
+        "twin": 5
+       },
+       "contract": "none"
+      },
+      "B": {
+       "roles": 23,
+       "static": 48,
+       "pool": 12,
+       "rejected": {
+        "load": 0,
+        "error": 3,
+        "type": 1,
+        "contract": 0,
+        "twin": 1
+       },
+       "contract": "none"
+      }
+     },
+     "space": 48,
+     "tried": 48,
+     "passed": 0,
+     "fails": {
+      "other": 32,
+      "sort.perm": 14,
+      "sort.order-free": 2
+     },
+     "examples": [
+      {
+       "fill": [
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets",
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets"
+       ],
+       "law": "sort.perm",
+       "why": "לא אותם פריטים"
+      },
+      {
+       "fill": [
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets",
+        "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#CartSubmenu.reversed:step"
+       ],
+       "law": "sort.perm",
+       "why": "לא אותם פריטים"
+      },
+      {
+       "fill": [
+        "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#CartSubmenu.reversed:step",
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets"
+       ],
+       "law": "sort.perm",
+       "why": "לא אותם פריטים"
+      }
+     ]
+    },
+    {
+     "shape": "chain2",
+     "variant": "mid-num",
+     "slots": {
+      "A": {
+       "roles": 23,
+       "static": 48,
+       "pool": 7,
+       "rejected": {
+        "load": 0,
+        "error": 7,
+        "type": 29,
+        "contract": 0,
+        "twin": 5
+       },
+       "contract": "none"
+      },
+      "B": {
+       "roles": 23,
+       "static": 48,
+       "pool": 12,
+       "rejected": {
+        "load": 0,
+        "error": 4,
+        "type": 0,
+        "contract": 0,
+        "twin": 10
+       },
+       "contract": "none"
+      }
+     },
+     "space": 84,
+     "tried": 84,
+     "passed": 0,
+     "fails": {
+      "other": 84
+     },
+     "examples": [
+      {
+       "fill": [
+        "orbit:src/components/supporters/prayer.ts#prayerOpenCount",
+        "inner-generator:gen/looks/buybox/build.mjs#split.c"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «ממיין» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "orbit:src/components/supporters/prayer.ts#prayerOpenCount",
+        "inner-generator:new/atoms/lessons-in-term.mjs#lessonsInTerm.n"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «ממיין» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "inner-generator:machtzev/ds-forge.mjs#emit.map.pr:step",
+        "inner-generator:gen/looks/buybox/build.mjs#split.c"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «ממיין» בודקים (אין קישור מתאים)"
+      }
+     ]
+    },
+    {
+     "shape": "chain2",
+     "variant": "mid-pts",
+     "slots": {
+      "A": {
+       "roles": 23,
+       "static": 48,
+       "pool": 1,
+       "rejected": {
+        "load": 0,
+        "error": 7,
+        "type": 37,
+        "contract": 0,
+        "twin": 3
+       },
+       "contract": "none"
+      },
+      "B": {
+       "roles": 23,
+       "static": 48,
+       "pool": 12,
+       "rejected": {
+        "load": 0,
+        "error": 4,
+        "type": 1,
+        "contract": 0,
+        "twin": 0
+       },
+       "contract": "none"
+      }
+     },
+     "space": 12,
+     "tried": 12,
+     "passed": 0,
+     "fails": {
+      "other": 7,
+      "sort.perm": 5
+     },
+     "examples": [
+      {
+       "fill": [
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets",
+        "core-c:catalog/core/dedupe-points.mjs#dedupePoints"
+       ],
+       "law": "sort.perm",
+       "why": "לא אותם פריטים"
+      },
+      {
+       "fill": [
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets",
+        "inner-buildsmart:functions/src/claude.ts#enforceRateLimit.runTransaction.count"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «ממיין» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets",
+        "inner-buildsmart:functions/src/push.ts#sendToUsers.unique"
+       ],
+       "law": "sort.perm",
+       "why": "לא אותם פריטים"
+      }
+     ]
+    },
+    {
+     "shape": "group-count",
+     "variant": "base",
+     "slots": {
+      "G": {
+       "roles": 4,
+       "static": 48,
+       "pool": 8,
+       "rejected": {
+        "load": 0,
+        "error": 27,
+        "type": 12,
+        "contract": 0,
+        "twin": 1
+       },
+       "contract": "none"
+      },
+      "C": {
+       "roles": 10,
+       "static": 48,
+       "pool": 12,
+       "rejected": {
+        "load": 0,
+        "error": 2,
+        "type": 1,
+        "contract": 0,
+        "twin": 1
+       },
+       "contract": "none"
+      }
+     },
+     "space": 96,
+     "tried": 96,
+     "passed": 0,
+     "fails": {
+      "sort.perm": 60,
+      "other": 19,
+      "sort.consistent": 17
+     },
+     "examples": [
+      {
+       "fill": [
+        "inner-orbit:src/components/shop/AssignmentsTab.tsx#AssignmentsTab.groups:after-loop",
+        "inner-orbit:src/components/shop/AssignmentsTab.tsx#AssignmentsTab.groups:after-loop"
+       ],
+       "law": "sort.consistent",
+       "why": "זרק: m: c: filtered is not iterable"
+      },
+      {
+       "fill": [
+        "inner-orbit:src/components/shop/AssignmentsTab.tsx#AssignmentsTab.groups:after-loop",
+        "inner-generator:machtzev/generator/retarget.mjs#pickModule.ep"
+       ],
+       "law": "other",
+       "why": "לא רץ: no-fitting-input"
+      },
+      {
+       "fill": [
+        "inner-generator:gen/sentence.mjs#sentenceToSpec.parseClause.hw:step",
+        "inner-orbit:src/components/shop/AssignmentsTab.tsx#AssignmentsTab.groups:after-loop"
+       ],
+       "law": "sort.perm",
+       "why": "לא אותם פריטים"
+      }
+     ]
+    },
+    {
+     "shape": "fan-in",
+     "variant": "base",
+     "slots": {
+      "A": {
+       "roles": 10,
+       "static": 48,
+       "pool": 8,
+       "rejected": {
+        "load": 0,
+        "error": 6,
+        "type": 25,
+        "contract": 0,
+        "twin": 9
+       },
+       "contract": "none"
+      },
+      "B": {
+       "roles": 10,
+       "static": 48,
+       "pool": 8,
+       "rejected": {
+        "load": 0,
+        "error": 6,
+        "type": 25,
+        "contract": 0,
+        "twin": 9
+       },
+       "contract": "none"
+      },
+      "C": {
+       "roles": 4,
+       "static": 48,
+       "pool": 12,
+       "rejected": {
+        "load": 0,
+        "error": 0,
+        "type": 0,
+        "contract": 0,
+        "twin": 0
+       },
+       "contract": "none"
+      }
+     },
+     "space": 768,
+     "tried": 768,
+     "passed": 0,
+     "fails": {
+      "other": 768
+     },
+     "examples": [
+      {
+       "fill": [
+        "orbit:src/components/supporters/prayer.ts#prayerOpenCount",
+        "orbit:src/components/supporters/prayer.ts#prayerOpenCount",
+        "orbit:src/components/timer/cashLib.ts#drawerDiff"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «ממיין» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "orbit:src/components/supporters/prayer.ts#prayerOpenCount",
+        "orbit:src/components/supporters/prayer.ts#prayerOpenCount",
+        "inner-generator:machtzev/ds-wear.mjs#roleExpr.da:step"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «ממיין» בודקים (אין קישור מתאים)"
+      },
+      {
+       "fill": [
+        "orbit:src/components/supporters/prayer.ts#prayerOpenCount",
+        "inner-generator:machtzev/ds-forge.mjs#emit.map.pr:step",
+        "orbit:src/components/timer/cashLib.ts#drawerDiff"
+       ],
+       "law": "other",
+       "why": "הפלט לא בצורה שהחוקים של «ממיין» בודקים (אין קישור מתאים)"
+      }
+     ]
+    },
+    {
+     "shape": "chain3",
+     "variant": "base",
+     "slots": {
+      "A": {
+       "roles": 6,
+       "static": 48,
+       "pool": 5,
+       "rejected": {
+        "load": 0,
+        "error": 0,
+        "type": 18,
+        "contract": 0,
+        "twin": 25
+       },
+       "contract": "none"
+      },
+      "B": {
+       "roles": 6,
+       "static": 48,
+       "pool": 5,
+       "rejected": {
+        "load": 0,
+        "error": 0,
+        "type": 18,
+        "contract": 0,
+        "twin": 25
+       },
+       "contract": "none"
+      },
+      "C": {
+       "roles": 16,
+       "static": 48,
+       "pool": 12,
+       "rejected": {
+        "load": 0,
+        "error": 1,
+        "type": 1,
+        "contract": 0,
+        "twin": 2
+       },
+       "contract": "none"
+      }
+     },
+     "space": 300,
+     "tried": 300,
+     "passed": 0,
+     "fails": {
+      "other": 175,
+      "sort.perm": 121,
+      "sort.order-free": 4
+     },
+     "examples": [
+      {
+       "fill": [
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets",
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets",
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets"
+       ],
+       "law": "sort.perm",
+       "why": "לא אותם פריטים"
+      },
+      {
+       "fill": [
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets",
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets",
+        "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#CartSubmenu.reversed:step"
+       ],
+       "law": "sort.perm",
+       "why": "לא אותם פריטים"
+      },
+      {
+       "fill": [
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets",
+        "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#CartSubmenu.reversed:step",
+        "orbit:src/components/courses/reenroll-lib.ts#renewTargets"
+       ],
+       "law": "sort.perm",
+       "why": "לא אותם פריטים"
+      }
+     ]
+    }
+   ],
+   "attempts": 1371,
+   "steps": 0,
+   "found": null,
+   "unmatchedShapes": 19,
+   "why": "אף מילוי לא עבר את כל החוקים (1371 ניסיונות)"
+  },
+  {
+   "verb": "sun-heading",
+   "he": "מכוון לפי השמש",
+   "material": "number",
+   "sems": [
+    "rec",
+    "num",
+    "str"
+   ],
+   "today": "גרף ביד — 11 חלקים (כיוון השמש), 72/72",
+   "hidden": {
+    "hand": true,
+    "combo": true,
+    "parts": 0
+   },
+   "templates": [],
+   "attempts": 0,
+   "steps": 0,
+   "found": null,
+   "unmatchedShapes": 33,
+   "why": "אין שרטוט שהחתימה שלו מתאימה (rec, num, str)"
+  }
+ ]
+}

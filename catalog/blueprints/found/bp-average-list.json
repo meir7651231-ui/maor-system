@@ -1,0 +1,112 @@
+{
+ "id": "bp-average-list",
+ "word": "average · list",
+ "by": "מנוע-השרטוטים (catalog/blueprints/search.mjs)",
+ "title": "שילוב «ממצע» לפי השרטוט «שניים על אותו קלט ואז צירוף»: 3 חלקים",
+ "blueprint": {
+  "shape": "fan-in",
+  "variant": "base"
+ },
+ "combo": {
+  "verb": "average",
+  "material": "list",
+  "form": "graph",
+  "steps": [
+   "inner-generator:gen/looks/app/src/20-views-a.js#class.render.maxc:step",
+   "inner-generator:machtzev/generator/balagan.mjs#buildBalagan.weak:step",
+   "orbit:src/components/timer/cashLib.ts#expectedDrawer"
+  ],
+  "roles": [
+   "extreme",
+   "extreme",
+   "combine"
+  ],
+  "holds": "23/23",
+  "laws": [
+   "average.double",
+   "average.between"
+  ],
+  "graph": {
+   "inputs": [
+    "x"
+   ],
+   "consts": {},
+   "nodes": [
+    {
+     "id": "a",
+     "part": "inner-generator:gen/looks/app/src/20-views-a.js#class.render.maxc:step",
+     "role": "extreme",
+     "args": [
+      "$x"
+     ],
+     "says": "A"
+    },
+    {
+     "id": "b",
+     "part": "inner-generator:machtzev/generator/balagan.mjs#buildBalagan.weak:step",
+     "role": "extreme",
+     "args": [
+      "$x"
+     ],
+     "says": "B"
+    },
+    {
+     "id": "c",
+     "part": "orbit:src/components/timer/cashLib.ts#expectedDrawer",
+     "role": "combine",
+     "args": [
+      "@a",
+      "@b"
+     ],
+     "says": "C"
+    }
+   ],
+   "out": "c"
+  }
+ },
+ "alternatives": [
+  {
+   "shape": "fan-in",
+   "variant": "base",
+   "parts": 3,
+   "steps": 24,
+   "holds": "22/22",
+   "graph": {
+    "inputs": [
+     "x"
+    ],
+    "nodes": [
+     {
+      "id": "a",
+      "part": "inner-generator:machtzev/generator/balagan.mjs#buildBalagan.weak:step",
+      "role": "extreme",
+      "args": [
+       "$x"
+      ],
+      "says": "A"
+     },
+     {
+      "id": "b",
+      "part": "inner-generator:gen/looks/app/src/20-views-a.js#class.render.maxc:step",
+      "role": "extreme",
+      "args": [
+       "$x"
+      ],
+      "says": "B"
+     },
+     {
+      "id": "c",
+      "part": "orbit:src/components/timer/cashLib.ts#expectedDrawer",
+      "role": "combine",
+      "args": [
+       "@a",
+       "@b"
+      ],
+      "says": "C"
+     }
+    ],
+    "out": "c"
+   }
+  }
+ ]
+}

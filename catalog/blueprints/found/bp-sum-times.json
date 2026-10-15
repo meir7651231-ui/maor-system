@@ -1,0 +1,227 @@
+{
+ "id": "bp-sum-times",
+ "word": "sum · times",
+ "by": "מנוע-השרטוטים (catalog/blueprints/search.mjs)",
+ "title": "שילוב «מסכם» לפי השרטוט «צבור לערך אחד»: 1 חלקים",
+ "blueprint": {
+  "shape": "fold",
+  "variant": "binary"
+ },
+ "combo": {
+  "verb": "sum",
+  "material": "times",
+  "form": "graph",
+  "steps": [
+   "orbit:src/components/timer/cashLib.ts#drawerDiff"
+  ],
+  "roles": [
+   "compare"
+  ],
+  "holds": "24/24",
+  "laws": [
+   "sum.empty",
+   "sum.add"
+  ],
+  "graph": {
+   "inputs": [
+    "xs"
+   ],
+   "consts": {
+    "zero": "0 — המצב ההתחלתי"
+   },
+   "nodes": [
+    {
+     "id": "s",
+     "loop": {
+      "over": "$xs",
+      "init": 0,
+      "item": "v",
+      "state": "z",
+      "nodes": [
+       {
+        "id": "a",
+        "part": "orbit:src/components/timer/cashLib.ts#drawerDiff",
+        "role": "compare",
+        "args": [
+         "$z",
+         "$v"
+        ],
+        "says": "A"
+       }
+      ],
+      "next": "@a"
+     }
+    }
+   ],
+   "out": "@s.state"
+  }
+ },
+ "alternatives": [
+  {
+   "shape": "fold",
+   "variant": "binary",
+   "parts": 1,
+   "steps": 30,
+   "holds": "24/24",
+   "graph": {
+    "inputs": [
+     "xs"
+    ],
+    "nodes": [
+     {
+      "id": "s",
+      "loop": {
+       "over": "$xs",
+       "init": 0,
+       "item": "v",
+       "state": "z",
+       "nodes": [
+        {
+         "id": "a",
+         "part": "orbit:src/components/timer/cashLib.ts#expectedDrawer",
+         "role": "combine",
+         "args": [
+          "$z",
+          "$v"
+         ],
+         "says": "A"
+        }
+       ],
+       "next": "@a"
+      }
+     }
+    ],
+    "out": "@s.state"
+   }
+  },
+  {
+   "shape": "fan-in",
+   "variant": "base",
+   "parts": 2,
+   "steps": 84,
+   "holds": "24/24",
+   "graph": {
+    "inputs": [
+     "x"
+    ],
+    "nodes": [
+     {
+      "id": "a",
+      "part": "orbit:src/components/supporters/prayer.ts#prayerOpenCount",
+      "role": "count",
+      "args": [
+       "$x"
+      ],
+      "says": "A"
+     },
+     {
+      "id": "b",
+      "part": "orbit:src/components/supporters/prayer.ts#prayerOpenCount",
+      "role": "count",
+      "args": [
+       "$x"
+      ],
+      "says": "B"
+     },
+     {
+      "id": "c",
+      "part": "orbit:src/components/timer/cashLib.ts#expectedDrawer",
+      "role": "combine",
+      "args": [
+       "@a",
+       "@b"
+      ],
+      "says": "C"
+     }
+    ],
+    "out": "c"
+   }
+  },
+  {
+   "shape": "fan-in",
+   "variant": "base",
+   "parts": 3,
+   "steps": 84,
+   "holds": "24/24",
+   "graph": {
+    "inputs": [
+     "x"
+    ],
+    "nodes": [
+     {
+      "id": "a",
+      "part": "inner-generator:gen/inventory.mjs#inventory.consts",
+      "role": "count",
+      "args": [
+       "$x"
+      ],
+      "says": "A"
+     },
+     {
+      "id": "b",
+      "part": "orbit:src/components/supporters/prayer.ts#prayerOpenCount",
+      "role": "count",
+      "args": [
+       "$x"
+      ],
+      "says": "B"
+     },
+     {
+      "id": "c",
+      "part": "orbit:src/components/timer/cashLib.ts#drawerDiff",
+      "role": "compare",
+      "args": [
+       "@a",
+       "@b"
+      ],
+      "says": "C"
+     }
+    ],
+    "out": "c"
+   }
+  },
+  {
+   "shape": "fan-in",
+   "variant": "base",
+   "parts": 3,
+   "steps": 84,
+   "holds": "24/24",
+   "graph": {
+    "inputs": [
+     "x"
+    ],
+    "nodes": [
+     {
+      "id": "a",
+      "part": "orbit:src/components/supporters/prayer.ts#prayerOpenCount",
+      "role": "count",
+      "args": [
+       "$x"
+      ],
+      "says": "A"
+     },
+     {
+      "id": "b",
+      "part": "inner-generator:gen/inventory.mjs#inventory.consts",
+      "role": "count",
+      "args": [
+       "$x"
+      ],
+      "says": "B"
+     },
+     {
+      "id": "c",
+      "part": "inner-generator:gen/looks/app/src/10-ui.js#ring.c",
+      "role": "compare",
+      "args": [
+       "@a",
+       "@b"
+      ],
+      "says": "C"
+     }
+    ],
+    "out": "c"
+   }
+  }
+ ]
+}

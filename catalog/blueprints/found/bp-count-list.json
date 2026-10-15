@@ -1,0 +1,60 @@
+{
+ "id": "bp-count-list",
+ "word": "count · list",
+ "by": "מנוע-השרטוטים (catalog/blueprints/search.mjs)",
+ "title": "שילוב «סופר» לפי השרטוט «ספור = סכום של אחדים»: 1 חלקים",
+ "blueprint": {
+  "shape": "count-by-ones",
+  "variant": "base"
+ },
+ "combo": {
+  "verb": "count",
+  "material": "list",
+  "form": "graph",
+  "steps": [
+   "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop"
+  ],
+  "roles": [
+   "sum"
+  ],
+  "holds": "36/36",
+  "laws": [
+   "count.empty",
+   "count.add",
+   "count.bound"
+  ],
+  "graph": {
+   "inputs": [
+    "xs"
+   ],
+   "consts": {
+    "one": "1 — כל פריט נספר פעם אחת"
+   },
+   "nodes": [
+    {
+     "id": "m",
+     "loop": {
+      "over": "$xs",
+      "init": 0,
+      "item": "v",
+      "state": "z",
+      "nodes": [],
+      "next": "$z",
+      "emit": 1
+     }
+    },
+    {
+     "id": "s",
+     "part": "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+     "role": "sum",
+     "args": [
+      "@m.emits"
+     ],
+     "says": "S"
+    }
+   ],
+   "out": "s"
+  }
+ },
+ "alternatives": []
+}
