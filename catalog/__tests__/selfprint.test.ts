@@ -116,10 +116,14 @@ describe('🔴 SELFPRINT · התוצאה שבריפו', () => {
   const cmp = JSON.parse(readFileSync(join(SP, 'compare.json'), 'utf8'));
   const found = JSON.parse(readFileSync(join(SP, 'found.json'), 'utf8'));
   const bps = JSON.parse(readFileSync(join(SP, 'blueprints.json'), 'utf8'));
+  // MINER2 (15.10): הפלטים בריפו הם עכשיו של הספרייה המורחבת — שם, באותו תקציב, הממצע **לא** נבנה (התקציב התפזר על 103
+  // שלדים במקום 24; CLOSED-MINER2 §3). התוצאה של SELFPRINT ננעלת על הביקורת שנכתבת באותה ריצה: אותו מנוע, אותו תקציב,
+  // רק השלדים של הכורה הראשון ⇒ control-v1.json.
+  const ctl = JSON.parse(readFileSync(join(SP, 'control-v1.json'), 'utf8'));
   it('ממצע נבנה מחדש בדיוק משרטוט שהמכונה בנתה לעצמה, ונספר רק אם המקור לא מממש ממצע', () => {
-    expect(cmp.selfprint.exactRebuilt.average.byBlueprintFair).toBeGreaterThanOrEqual(1);
+    expect(ctl.selfprint.exactRebuilt.average.byBlueprintFair).toBeGreaterThanOrEqual(1);
     expect(cmp.baseline.exactRebuilt.average).toBeUndefined();
-    const avg = found.find((x: any) => x.verbs.includes('average'));
+    const avg = ctl.found.find((x: any) => x.verbs.includes('average'));
     expect(avg.blueprint.excl).not.toContain('average');
     expect(avg.blueprint.origin.names).not.toEqual(expect.arrayContaining([expect.stringMatching(/avg|mean|average/i)]));
   });
@@ -127,9 +131,10 @@ describe('🔴 SELFPRINT · התוצאה שבריפו', () => {
     for (const x of found) for (const v of x.excludedByLeaveOneOut) expect(x.blueprint.excl).toContain(v);
     for (const [v, e] of Object.entries<any>(cmp.selfprint.exactRebuilt)) expect(e.byBlueprintFair, v).toBeLessThanOrEqual(e.byBlueprint);
     expect(cmp.wrongImprovements).toBe(0);
+    expect(ctl.wrongImprovements).toBe(0);
   });
   it('הממצע — חלקים אמיתיים בארגז-החול, 300 רשימות אקראיות', async () => {
-    const avg = found.find((x: any) => x.verbs.includes('average'));
+    const avg = ctl.found.find((x: any) => x.verbs.includes('average'));
     const bp = bps.find((b: any) => b.id === avg.blueprint.id);
     const g = fillGraph(bp.graph, avg.fill.map((f: any, v: number) => partGraph(f.part, bp.graph.nodes.find((n: any) => n.part === '□' + v).args.length)));
     const { makeRuntime } = await import('../grow/runtime.mjs');

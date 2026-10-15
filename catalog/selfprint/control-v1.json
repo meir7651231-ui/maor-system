@@ -1,0 +1,1853 @@
+{
+ "about": "MINER2 · ביקורת: אותו מנוע ואותו תקציב, רק השלדים של הכורה הראשון (by ∋ v1). נבנה ע״י selfprint.mjs — לא לערוך ביד",
+ "codeBlueprints": 24,
+ "selfprint": {
+  "shelf": 3541,
+  "namedSpecial": 213,
+  "namedSpecialGrown": 181,
+  "specialBy": {
+   "compare": 68,
+   "filter": 42,
+   "count": 22,
+   "sort": 18,
+   "rotate": 17,
+   "dedupe": 8,
+   "reverse": 4,
+   "average": 1,
+   "extreme": 1
+  },
+  "exactRebuilt": {
+   "average": {
+    "exact": 1,
+    "fromOthers": 1,
+    "byBlueprint": 1,
+    "byBlueprintFair": 1,
+    "best": {
+     "id": "94e164fa6f9ccb2e",
+     "floor": "bp3",
+     "form": "bp",
+     "blueprint": "bp-c-4590428b",
+     "sig": "nums>num",
+     "steps": 90,
+     "nodes": 3,
+     "example": {
+      "in": [
+       [
+        3,
+        1,
+        2
+       ]
+      ],
+      "out": 2
+     },
+     "of": [
+      {
+       "id": "0ce602d9666a323d",
+       "form": "part",
+       "part": "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+       "verbs": [
+        "sum"
+       ]
+      },
+      {
+       "id": "b49ffdff62ca585b",
+       "form": "part",
+       "part": "inner-generator:machtzev/generator/behavior-plan.mjs#runGoal.total",
+       "verbs": [
+        "count"
+       ]
+      },
+      {
+       "id": "ad809c4c4acdb0f0",
+       "form": "part",
+       "part": "inner-generator:machtzev/generator/live-expr.mjs#trendAt.b:step",
+       "verbs": []
+      }
+     ]
+    }
+   }
+  },
+  "exactFromOthers": 1,
+  "exactByBlueprintFair": 1,
+  "bestGrown": {
+   "average": {
+    "pct": 100,
+    "id": "94e164fa6f9ccb2e",
+    "blueprint": "bp-c-4590428b",
+    "sig": "nums>num"
+   },
+   "sort": {
+    "pct": 73,
+    "id": "5199635b0c66a447",
+    "form": "chain",
+    "sig": "nums>nums"
+   },
+   "tour": {
+    "pct": null
+   },
+   "extreme": {
+    "pct": 91,
+    "id": "28e57b12ddb786f6",
+    "form": "chain",
+    "sig": "nums>num"
+   },
+   "sum": {
+    "pct": 82,
+    "id": "32279fa1c7965575",
+    "blueprint": "bp-c-0c5b8625",
+    "sig": "nums>num"
+   },
+   "count": {
+    "pct": 82,
+    "id": "0e6cd6d6cde48a3a",
+    "form": "chain",
+    "sig": "nums>num"
+   },
+   "dedupe": {
+    "pct": 73,
+    "id": "09bd1a1252a9a6ee",
+    "blueprint": "bp-s-d52c7307",
+    "sig": "nums>nums"
+   },
+   "compare": {
+    "pct": 50,
+    "id": "be8530b92421bf4d",
+    "blueprint": "bp-c-475393d2",
+    "sig": "num,num>num"
+   },
+   "median": {
+    "pct": 55,
+    "id": "94e164fa6f9ccb2e",
+    "blueprint": "bp-c-4590428b",
+    "sig": "nums>num",
+    "metricOnly": true
+   },
+   "max": {
+    "pct": 91,
+    "id": "28e57b12ddb786f6",
+    "form": "chain",
+    "sig": "nums>num",
+    "metricOnly": true
+   }
+  }
+ },
+ "wrongImprovements": 0,
+ "found": [
+  {
+   "id": "4319d224fe1452f0",
+   "round": 1,
+   "verbs": [
+    "compare"
+   ],
+   "sig": "num,num>num",
+   "example": {
+    "in": [
+     0,
+     2
+    ],
+    "out": 0.001
+   },
+   "blueprint": {
+    "id": "bp-c-475393d2",
+    "source": "code",
+    "origin": {
+     "code": "code-0032",
+     "n": 4,
+     "at": [
+      "catalog/inner/gen/generator/gen/looks/app/src/10-ui.js.mjs:3",
+      "catalog/inner/gen/generator/new/atoms/coral-palette.mjs.mjs:35",
+      "catalog/inner/gen/generator/new/atoms/orbit-theme.mjs.mjs:26"
+     ],
+     "names": [
+      "inner$ring$r",
+      "inner$rgbToHsl$l$$step",
+      "inner$orbitTheme$rgbToHsl$l$$step",
+      "inner$sitePalette$rgbToHsl$l$$step"
+     ],
+     "taint": [
+      "catalog/lib/verbs-motion.mjs:608",
+      "catalog/lib/verbs.mjs:927"
+     ]
+    },
+    "excl": []
+   },
+   "fill": [
+    {
+     "id": "7101c75895095d1c",
+     "form": "part",
+     "part": "inner-orbit:src/components/parnasa/Ambient.tsx#GoldDust.useEffect.loop.dt",
+     "verbs": [
+      "compare"
+     ]
+    },
+    {
+     "id": "ad809c4c4acdb0f0",
+     "form": "part",
+     "part": "inner-generator:machtzev/generator/live-expr.mjs#trendAt.b:step",
+     "verbs": []
+    }
+   ],
+   "excludedByLeaveOneOut": []
+  },
+  {
+   "id": "d8be7a191b72cd4d",
+   "round": 1,
+   "verbs": [
+    "compare"
+   ],
+   "sig": "num,num>num",
+   "example": {
+    "in": [
+     0,
+     2
+    ],
+    "out": 0.001
+   },
+   "blueprint": {
+    "id": "bp-c-475393d2",
+    "source": "code",
+    "origin": {
+     "code": "code-0032",
+     "n": 4,
+     "at": [
+      "catalog/inner/gen/generator/gen/looks/app/src/10-ui.js.mjs:3",
+      "catalog/inner/gen/generator/new/atoms/coral-palette.mjs.mjs:35",
+      "catalog/inner/gen/generator/new/atoms/orbit-theme.mjs.mjs:26"
+     ],
+     "names": [
+      "inner$ring$r",
+      "inner$rgbToHsl$l$$step",
+      "inner$orbitTheme$rgbToHsl$l$$step",
+      "inner$sitePalette$rgbToHsl$l$$step"
+     ],
+     "taint": [
+      "catalog/lib/verbs-motion.mjs:608",
+      "catalog/lib/verbs.mjs:927"
+     ]
+    },
+    "excl": []
+   },
+   "fill": [
+    {
+     "id": "c58687ee707c604a",
+     "form": "part",
+     "part": "inner-orbit:src/components/parnasa/sheetFx.ts#mountSheet.anim.f.dt",
+     "verbs": [
+      "compare"
+     ]
+    },
+    {
+     "id": "ad809c4c4acdb0f0",
+     "form": "part",
+     "part": "inner-generator:machtzev/generator/live-expr.mjs#trendAt.b:step",
+     "verbs": []
+    }
+   ],
+   "excludedByLeaveOneOut": []
+  },
+  {
+   "id": "6363effe0f2894ca",
+   "round": 1,
+   "verbs": [
+    "filter"
+   ],
+   "sig": "nums,num>nums",
+   "example": {
+    "in": [
+     [
+      3,
+      1,
+      2
+     ],
+     4
+    ],
+    "out": [
+     3,
+     1,
+     2
+    ]
+   },
+   "blueprint": {
+    "id": "bp-c-e02e5231",
+    "source": "code",
+    "origin": {
+     "code": "code-0074",
+     "n": 2,
+     "at": [
+      "catalog/inner/gen/generator/machtzev/generator/particles.mjs.mjs:188",
+      "catalog/inner/gen/generator/new/atoms/parse-join-full-code.mjs.mjs:32"
+     ],
+     "names": [
+      "inner$parseReportLines$rest$$step",
+      "inner$parseJoinFullCode$code$$step"
+     ]
+    },
+    "excl": []
+   },
+   "fill": [
+    {
+     "id": "bd4ca48962ae455d",
+     "form": "part",
+     "part": "inner-generator:new/atoms/tour-advance.mjs#tourAdvance.next",
+     "verbs": []
+    },
+    {
+     "id": "065bf2adaa581429",
+     "form": "part",
+     "part": "inner-generator:machtzev/ds-wear.mjs#constScope.line",
+     "verbs": [
+      "filter"
+     ]
+    },
+    {
+     "id": "5b22897ba5e17257",
+     "form": "part",
+     "part": "inner-orbit:src/lib/hebrewNumber.ts#joinHeb.w",
+     "verbs": [
+      "filter"
+     ]
+    }
+   ],
+   "excludedByLeaveOneOut": []
+  },
+  {
+   "id": "ed5ca9838eb51a8f",
+   "round": 1,
+   "verbs": [
+    "filter"
+   ],
+   "sig": "nums,num>nums",
+   "example": {
+    "in": [
+     [
+      3,
+      1,
+      2
+     ],
+     4
+    ],
+    "out": []
+   },
+   "blueprint": {
+    "id": "bp-c-e02e5231",
+    "source": "code",
+    "origin": {
+     "code": "code-0074",
+     "n": 2,
+     "at": [
+      "catalog/inner/gen/generator/machtzev/generator/particles.mjs.mjs:188",
+      "catalog/inner/gen/generator/new/atoms/parse-join-full-code.mjs.mjs:32"
+     ],
+     "names": [
+      "inner$parseReportLines$rest$$step",
+      "inner$parseJoinFullCode$code$$step"
+     ]
+    },
+    "excl": []
+   },
+   "fill": [
+    {
+     "id": "bd4ca48962ae455d",
+     "form": "part",
+     "part": "inner-generator:new/atoms/tour-advance.mjs#tourAdvance.next",
+     "verbs": []
+    },
+    {
+     "id": "763fdee569272621",
+     "form": "part",
+     "part": "inner-generator:machtzev/purify-dart.mjs#purifyFile.defAndAfter:step",
+     "verbs": [
+      "filter"
+     ]
+    },
+    {
+     "id": "5b22897ba5e17257",
+     "form": "part",
+     "part": "inner-orbit:src/lib/hebrewNumber.ts#joinHeb.w",
+     "verbs": [
+      "filter"
+     ]
+    }
+   ],
+   "excludedByLeaveOneOut": []
+  },
+  {
+   "id": "442432c54e7fab91",
+   "round": 1,
+   "verbs": [
+    "filter"
+   ],
+   "sig": "nums,num>nums",
+   "example": {
+    "in": [
+     [
+      3,
+      1,
+      2
+     ],
+     4
+    ],
+    "out": [
+     3,
+     1,
+     2
+    ]
+   },
+   "blueprint": {
+    "id": "bp-c-e02e5231",
+    "source": "code",
+    "origin": {
+     "code": "code-0074",
+     "n": 2,
+     "at": [
+      "catalog/inner/gen/generator/machtzev/generator/particles.mjs.mjs:188",
+      "catalog/inner/gen/generator/new/atoms/parse-join-full-code.mjs.mjs:32"
+     ],
+     "names": [
+      "inner$parseReportLines$rest$$step",
+      "inner$parseJoinFullCode$code$$step"
+     ]
+    },
+    "excl": []
+   },
+   "fill": [
+    {
+     "id": "26afe5fa272f8c46",
+     "form": "part",
+     "part": "inner-generator:machtzev/generator/behavior-plan.mjs#valueSearch.left",
+     "verbs": []
+    },
+    {
+     "id": "065bf2adaa581429",
+     "form": "part",
+     "part": "inner-generator:machtzev/ds-wear.mjs#constScope.line",
+     "verbs": [
+      "filter"
+     ]
+    },
+    {
+     "id": "5b22897ba5e17257",
+     "form": "part",
+     "part": "inner-orbit:src/lib/hebrewNumber.ts#joinHeb.w",
+     "verbs": [
+      "filter"
+     ]
+    }
+   ],
+   "excludedByLeaveOneOut": []
+  },
+  {
+   "id": "04afc8ec042da758",
+   "round": 1,
+   "verbs": [
+    "filter"
+   ],
+   "sig": "nums,num>nums",
+   "example": {
+    "in": [
+     [
+      3,
+      1,
+      2
+     ],
+     4
+    ],
+    "out": []
+   },
+   "blueprint": {
+    "id": "bp-c-e02e5231",
+    "source": "code",
+    "origin": {
+     "code": "code-0074",
+     "n": 2,
+     "at": [
+      "catalog/inner/gen/generator/machtzev/generator/particles.mjs.mjs:188",
+      "catalog/inner/gen/generator/new/atoms/parse-join-full-code.mjs.mjs:32"
+     ],
+     "names": [
+      "inner$parseReportLines$rest$$step",
+      "inner$parseJoinFullCode$code$$step"
+     ]
+    },
+    "excl": []
+   },
+   "fill": [
+    {
+     "id": "26afe5fa272f8c46",
+     "form": "part",
+     "part": "inner-generator:machtzev/generator/behavior-plan.mjs#valueSearch.left",
+     "verbs": []
+    },
+    {
+     "id": "763fdee569272621",
+     "form": "part",
+     "part": "inner-generator:machtzev/purify-dart.mjs#purifyFile.defAndAfter:step",
+     "verbs": [
+      "filter"
+     ]
+    },
+    {
+     "id": "5b22897ba5e17257",
+     "form": "part",
+     "part": "inner-orbit:src/lib/hebrewNumber.ts#joinHeb.w",
+     "verbs": [
+      "filter"
+     ]
+    }
+   ],
+   "excludedByLeaveOneOut": []
+  },
+  {
+   "id": "ab41454fe3cc367b",
+   "round": 1,
+   "verbs": [
+    "rotate"
+   ],
+   "sig": "nums,num>num",
+   "example": {
+    "in": [
+     [
+      3,
+      1,
+      2
+     ],
+     4
+    ],
+    "out": 3
+   },
+   "blueprint": {
+    "id": "bp-c-baed8b73",
+    "source": "code",
+    "origin": {
+     "code": "code-0035",
+     "n": 4,
+     "at": [
+      "catalog/inner/gen/generator/machtzev/generator/dart-twins.mjs.mjs:226",
+      "catalog/inner/gen/generator/machtzev/mutation-dart-check.mjs.mjs:170",
+      "catalog/inner/gen/generator/new/atoms/decode-quoted-printable.mjs.mjs:25"
+     ],
+     "names": [
+      "inner$runDartBatch$v$$step",
+      "inner$hollow$bodyEnd$$step",
+      "inner$decodeQuotedPrintable$splitProperty$value$$step",
+      "inner$splitProperty$value$$step"
+     ]
+    },
+    "excl": []
+   },
+   "fill": [
+    {
+     "id": "26afe5fa272f8c46",
+     "form": "part",
+     "part": "inner-generator:machtzev/generator/behavior-plan.mjs#valueSearch.left",
+     "verbs": []
+    },
+    {
+     "id": "3435f79dbc6ea549",
+     "form": "part",
+     "part": "orbit:src/lib/atoms/parts/rotate.ts#turnOf",
+     "verbs": [
+      "rotate"
+     ]
+    }
+   ],
+   "excludedByLeaveOneOut": []
+  },
+  {
+   "id": "a8af9e8486c0a458",
+   "round": 1,
+   "verbs": [
+    "rotate"
+   ],
+   "sig": "nums,num>num",
+   "example": {
+    "in": [
+     [
+      3,
+      1,
+      2
+     ],
+     4
+    ],
+    "out": 3
+   },
+   "blueprint": {
+    "id": "bp-c-baed8b73",
+    "source": "code",
+    "origin": {
+     "code": "code-0035",
+     "n": 4,
+     "at": [
+      "catalog/inner/gen/generator/machtzev/generator/dart-twins.mjs.mjs:226",
+      "catalog/inner/gen/generator/machtzev/mutation-dart-check.mjs.mjs:170",
+      "catalog/inner/gen/generator/new/atoms/decode-quoted-printable.mjs.mjs:25"
+     ],
+     "names": [
+      "inner$runDartBatch$v$$step",
+      "inner$hollow$bodyEnd$$step",
+      "inner$decodeQuotedPrintable$splitProperty$value$$step",
+      "inner$splitProperty$value$$step"
+     ]
+    },
+    "excl": []
+   },
+   "fill": [
+    {
+     "id": "26afe5fa272f8c46",
+     "form": "part",
+     "part": "inner-generator:machtzev/generator/behavior-plan.mjs#valueSearch.left",
+     "verbs": []
+    },
+    {
+     "id": "b169dd7f37491bfb",
+     "form": "chain",
+     "verbs": [
+      "rotate"
+     ]
+    }
+   ],
+   "excludedByLeaveOneOut": []
+  },
+  {
+   "id": "76cb0bb1aff491a5",
+   "round": 1,
+   "verbs": [
+    "rotate"
+   ],
+   "sig": "nums,num>num",
+   "example": {
+    "in": [
+     [
+      3,
+      1,
+      2
+     ],
+     4
+    ],
+    "out": 2
+   },
+   "blueprint": {
+    "id": "bp-c-baed8b73",
+    "source": "code",
+    "origin": {
+     "code": "code-0035",
+     "n": 4,
+     "at": [
+      "catalog/inner/gen/generator/machtzev/generator/dart-twins.mjs.mjs:226",
+      "catalog/inner/gen/generator/machtzev/mutation-dart-check.mjs.mjs:170",
+      "catalog/inner/gen/generator/new/atoms/decode-quoted-printable.mjs.mjs:25"
+     ],
+     "names": [
+      "inner$runDartBatch$v$$step",
+      "inner$hollow$bodyEnd$$step",
+      "inner$decodeQuotedPrintable$splitProperty$value$$step",
+      "inner$splitProperty$value$$step"
+     ]
+    },
+    "excl": []
+   },
+   "fill": [
+    {
+     "id": "26afe5fa272f8c46",
+     "form": "part",
+     "part": "inner-generator:machtzev/generator/behavior-plan.mjs#valueSearch.left",
+     "verbs": []
+    },
+    {
+     "id": "f2aea35d756247e1",
+     "form": "chain",
+     "verbs": [
+      "rotate"
+     ]
+    }
+   ],
+   "excludedByLeaveOneOut": []
+  },
+  {
+   "id": "eacccbafb0c940e3",
+   "round": 1,
+   "verbs": [
+    "count"
+   ],
+   "sig": "nums,num>num",
+   "example": {
+    "in": [
+     [
+      3,
+      1,
+      2
+     ],
+     4
+    ],
+    "out": 3
+   },
+   "blueprint": {
+    "id": "bp-c-baed8b73",
+    "source": "code",
+    "origin": {
+     "code": "code-0035",
+     "n": 4,
+     "at": [
+      "catalog/inner/gen/generator/machtzev/generator/dart-twins.mjs.mjs:226",
+      "catalog/inner/gen/generator/machtzev/mutation-dart-check.mjs.mjs:170",
+      "catalog/inner/gen/generator/new/atoms/decode-quoted-printable.mjs.mjs:25"
+     ],
+     "names": [
+      "inner$runDartBatch$v$$step",
+      "inner$hollow$bodyEnd$$step",
+      "inner$decodeQuotedPrintable$splitProperty$value$$step",
+      "inner$splitProperty$value$$step"
+     ]
+    },
+    "excl": []
+   },
+   "fill": [
+    {
+     "id": "26afe5fa272f8c46",
+     "form": "part",
+     "part": "inner-generator:machtzev/generator/behavior-plan.mjs#valueSearch.left",
+     "verbs": []
+    },
+    {
+     "id": "f617e44bcf833e47",
+     "form": "part",
+     "part": "inner-orbit:src/components/home/homeData.ts#attentionItems.fn.past:step",
+     "verbs": [
+      "count"
+     ]
+    }
+   ],
+   "excludedByLeaveOneOut": []
+  },
+  {
+   "id": "e953253c0800a7f0",
+   "round": 1,
+   "verbs": [
+    "count"
+   ],
+   "sig": "nums,num>num",
+   "example": {
+    "in": [
+     [
+      3,
+      1,
+      2
+     ],
+     4
+    ],
+    "out": 3
+   },
+   "blueprint": {
+    "id": "bp-c-e02e5231",
+    "source": "code",
+    "origin": {
+     "code": "code-0074",
+     "n": 2,
+     "at": [
+      "catalog/inner/gen/generator/machtzev/generator/particles.mjs.mjs:188",
+      "catalog/inner/gen/generator/new/atoms/parse-join-full-code.mjs.mjs:32"
+     ],
+     "names": [
+      "inner$parseReportLines$rest$$step",
+      "inner$parseJoinFullCode$code$$step"
+     ]
+    },
+    "excl": []
+   },
+   "fill": [
+    {
+     "id": "bd4ca48962ae455d",
+     "form": "part",
+     "part": "inner-generator:new/atoms/tour-advance.mjs#tourAdvance.next",
+     "verbs": []
+    },
+    {
+     "id": "051cd608bd02dbe4",
+     "form": "chain",
+     "verbs": [
+      "filter"
+     ]
+    },
+    {
+     "id": "b49ffdff62ca585b",
+     "form": "part",
+     "part": "inner-generator:machtzev/generator/behavior-plan.mjs#runGoal.total",
+     "verbs": [
+      "count"
+     ]
+    }
+   ],
+   "excludedByLeaveOneOut": []
+  },
+  {
+   "id": "351c515f8f9faa43",
+   "round": 1,
+   "verbs": [
+    "filter"
+   ],
+   "sig": "nums,num>nums",
+   "example": {
+    "in": [
+     [
+      3,
+      1,
+      2
+     ],
+     4
+    ],
+    "out": [
+     3,
+     1,
+     2
+    ]
+   },
+   "blueprint": {
+    "id": "bp-c-e02e5231",
+    "source": "code",
+    "origin": {
+     "code": "code-0074",
+     "n": 2,
+     "at": [
+      "catalog/inner/gen/generator/machtzev/generator/particles.mjs.mjs:188",
+      "catalog/inner/gen/generator/new/atoms/parse-join-full-code.mjs.mjs:32"
+     ],
+     "names": [
+      "inner$parseReportLines$rest$$step",
+      "inner$parseJoinFullCode$code$$step"
+     ]
+    },
+    "excl": []
+   },
+   "fill": [
+    {
+     "id": "bd4ca48962ae455d",
+     "form": "part",
+     "part": "inner-generator:new/atoms/tour-advance.mjs#tourAdvance.next",
+     "verbs": []
+    },
+    {
+     "id": "051cd608bd02dbe4",
+     "form": "chain",
+     "verbs": [
+      "filter"
+     ]
+    },
+    {
+     "id": "5b22897ba5e17257",
+     "form": "part",
+     "part": "inner-orbit:src/lib/hebrewNumber.ts#joinHeb.w",
+     "verbs": [
+      "filter"
+     ]
+    }
+   ],
+   "excludedByLeaveOneOut": []
+  },
+  {
+   "id": "97fe00fa60c90b16",
+   "round": 2,
+   "verbs": [
+    "compare"
+   ],
+   "sig": "num,num>num",
+   "example": {
+    "in": [
+     0,
+     2
+    ],
+    "out": 0.0005
+   },
+   "blueprint": {
+    "id": "bp-c-475393d2",
+    "source": "code",
+    "origin": {
+     "code": "code-0032",
+     "n": 4,
+     "at": [
+      "catalog/inner/gen/generator/gen/looks/app/src/10-ui.js.mjs:3",
+      "catalog/inner/gen/generator/new/atoms/coral-palette.mjs.mjs:35",
+      "catalog/inner/gen/generator/new/atoms/orbit-theme.mjs.mjs:26"
+     ],
+     "names": [
+      "inner$ring$r",
+      "inner$rgbToHsl$l$$step",
+      "inner$orbitTheme$rgbToHsl$l$$step",
+      "inner$sitePalette$rgbToHsl$l$$step"
+     ],
+     "taint": [
+      "catalog/lib/verbs-motion.mjs:608",
+      "catalog/lib/verbs.mjs:927"
+     ]
+    },
+    "excl": []
+   },
+   "fill": [
+    {
+     "id": "4319d224fe1452f0",
+     "form": "bp",
+     "verbs": [
+      "compare"
+     ]
+    },
+    {
+     "id": "ad809c4c4acdb0f0",
+     "form": "part",
+     "part": "inner-generator:machtzev/generator/live-expr.mjs#trendAt.b:step",
+     "verbs": []
+    }
+   ],
+   "excludedByLeaveOneOut": []
+  },
+  {
+   "id": "9ab7e20619e56ada",
+   "round": 2,
+   "verbs": [
+    "compare"
+   ],
+   "sig": "num,num>num",
+   "example": {
+    "in": [
+     0,
+     2
+    ],
+    "out": 0.0005
+   },
+   "blueprint": {
+    "id": "bp-c-475393d2",
+    "source": "code",
+    "origin": {
+     "code": "code-0032",
+     "n": 4,
+     "at": [
+      "catalog/inner/gen/generator/gen/looks/app/src/10-ui.js.mjs:3",
+      "catalog/inner/gen/generator/new/atoms/coral-palette.mjs.mjs:35",
+      "catalog/inner/gen/generator/new/atoms/orbit-theme.mjs.mjs:26"
+     ],
+     "names": [
+      "inner$ring$r",
+      "inner$rgbToHsl$l$$step",
+      "inner$orbitTheme$rgbToHsl$l$$step",
+      "inner$sitePalette$rgbToHsl$l$$step"
+     ],
+     "taint": [
+      "catalog/lib/verbs-motion.mjs:608",
+      "catalog/lib/verbs.mjs:927"
+     ]
+    },
+    "excl": []
+   },
+   "fill": [
+    {
+     "id": "d8be7a191b72cd4d",
+     "form": "bp",
+     "verbs": [
+      "compare"
+     ]
+    },
+    {
+     "id": "ad809c4c4acdb0f0",
+     "form": "part",
+     "part": "inner-generator:machtzev/generator/live-expr.mjs#trendAt.b:step",
+     "verbs": []
+    }
+   ],
+   "excludedByLeaveOneOut": []
+  },
+  {
+   "id": "9b0edf90f532ebe4",
+   "round": 2,
+   "verbs": [
+    "filter"
+   ],
+   "sig": "nums,num>nums",
+   "example": {
+    "in": [
+     [
+      3,
+      1,
+      2
+     ],
+     4
+    ],
+    "out": [
+     3,
+     1,
+     2
+    ]
+   },
+   "blueprint": {
+    "id": "bp-c-e02e5231",
+    "source": "code",
+    "origin": {
+     "code": "code-0074",
+     "n": 2,
+     "at": [
+      "catalog/inner/gen/generator/machtzev/generator/particles.mjs.mjs:188",
+      "catalog/inner/gen/generator/new/atoms/parse-join-full-code.mjs.mjs:32"
+     ],
+     "names": [
+      "inner$parseReportLines$rest$$step",
+      "inner$parseJoinFullCode$code$$step"
+     ]
+    },
+    "excl": []
+   },
+   "fill": [
+    {
+     "id": "26afe5fa272f8c46",
+     "form": "part",
+     "part": "inner-generator:machtzev/generator/behavior-plan.mjs#valueSearch.left",
+     "verbs": []
+    },
+    {
+     "id": "051cd608bd02dbe4",
+     "form": "chain",
+     "verbs": [
+      "filter"
+     ]
+    },
+    {
+     "id": "5b22897ba5e17257",
+     "form": "part",
+     "part": "inner-orbit:src/lib/hebrewNumber.ts#joinHeb.w",
+     "verbs": [
+      "filter"
+     ]
+    }
+   ],
+   "excludedByLeaveOneOut": []
+  },
+  {
+   "id": "80fb599386a28d27",
+   "round": 2,
+   "verbs": [
+    "count"
+   ],
+   "sig": "nums,num>num",
+   "example": {
+    "in": [
+     [
+      3,
+      1,
+      2
+     ],
+     4
+    ],
+    "out": 3
+   },
+   "blueprint": {
+    "id": "bp-c-e02e5231",
+    "source": "code",
+    "origin": {
+     "code": "code-0074",
+     "n": 2,
+     "at": [
+      "catalog/inner/gen/generator/machtzev/generator/particles.mjs.mjs:188",
+      "catalog/inner/gen/generator/new/atoms/parse-join-full-code.mjs.mjs:32"
+     ],
+     "names": [
+      "inner$parseReportLines$rest$$step",
+      "inner$parseJoinFullCode$code$$step"
+     ]
+    },
+    "excl": []
+   },
+   "fill": [
+    {
+     "id": "26afe5fa272f8c46",
+     "form": "part",
+     "part": "inner-generator:machtzev/generator/behavior-plan.mjs#valueSearch.left",
+     "verbs": []
+    },
+    {
+     "id": "051cd608bd02dbe4",
+     "form": "chain",
+     "verbs": [
+      "filter"
+     ]
+    },
+    {
+     "id": "b49ffdff62ca585b",
+     "form": "part",
+     "part": "inner-generator:machtzev/generator/behavior-plan.mjs#runGoal.total",
+     "verbs": [
+      "count"
+     ]
+    }
+   ],
+   "excludedByLeaveOneOut": []
+  },
+  {
+   "id": "284e1150ada36974",
+   "round": 3,
+   "verbs": [
+    "compare"
+   ],
+   "sig": "num,num>num",
+   "example": {
+    "in": [
+     0,
+     2
+    ],
+    "out": 0
+   },
+   "blueprint": {
+    "id": "bp-c-ebcfedd8",
+    "source": "code",
+    "origin": {
+     "code": "code-0015",
+     "n": 6,
+     "at": [
+      "catalog/inner/gen/14kk/check_protocol_activity.js.mjs:8",
+      "catalog/inner/gen/14kk/check_protocol_activity.js.mjs:25",
+      "catalog/inner/gen/14kk/check_protocol_activity.js.mjs:34"
+     ],
+     "names": [
+      "inner$ProtocolActivityChecker$checkCommunicationProtocol$timeDiff$$step",
+      "inner$ProtocolActivityChecker$checkTelegramActivity$timeDiff$$step",
+      "inner$ProtocolActivityChecker$checkKnowledgeProtocol$timeDiff$$step",
+      "inner$ProtocolActivityChecker$checkConstructionProtocol$timeDiff$$step"
+     ]
+    },
+    "excl": [
+     "compare"
+    ]
+   },
+   "fill": [
+    {
+     "id": "7101c75895095d1c",
+     "form": "part",
+     "part": "inner-orbit:src/components/parnasa/Ambient.tsx#GoldDust.useEffect.loop.dt",
+     "verbs": [
+      "compare"
+     ]
+    },
+    {
+     "id": "ad809c4c4acdb0f0",
+     "form": "part",
+     "part": "inner-generator:machtzev/generator/live-expr.mjs#trendAt.b:step",
+     "verbs": []
+    }
+   ],
+   "excludedByLeaveOneOut": [
+    "compare"
+   ]
+  },
+  {
+   "id": "c86b83f3ffa803df",
+   "round": 3,
+   "verbs": [
+    "compare"
+   ],
+   "sig": "num,num>num",
+   "example": {
+    "in": [
+     0,
+     2
+    ],
+    "out": 0.00025
+   },
+   "blueprint": {
+    "id": "bp-c-475393d2",
+    "source": "code",
+    "origin": {
+     "code": "code-0032",
+     "n": 4,
+     "at": [
+      "catalog/inner/gen/generator/gen/looks/app/src/10-ui.js.mjs:3",
+      "catalog/inner/gen/generator/new/atoms/coral-palette.mjs.mjs:35",
+      "catalog/inner/gen/generator/new/atoms/orbit-theme.mjs.mjs:26"
+     ],
+     "names": [
+      "inner$ring$r",
+      "inner$rgbToHsl$l$$step",
+      "inner$orbitTheme$rgbToHsl$l$$step",
+      "inner$sitePalette$rgbToHsl$l$$step"
+     ],
+     "taint": [
+      "catalog/lib/verbs-motion.mjs:608",
+      "catalog/lib/verbs.mjs:927"
+     ]
+    },
+    "excl": []
+   },
+   "fill": [
+    {
+     "id": "97fe00fa60c90b16",
+     "form": "bp",
+     "verbs": [
+      "compare"
+     ]
+    },
+    {
+     "id": "ad809c4c4acdb0f0",
+     "form": "part",
+     "part": "inner-generator:machtzev/generator/live-expr.mjs#trendAt.b:step",
+     "verbs": []
+    }
+   ],
+   "excludedByLeaveOneOut": []
+  },
+  {
+   "id": "794247ae734a0aca",
+   "round": 3,
+   "verbs": [
+    "count"
+   ],
+   "sig": "nums,num>num",
+   "example": {
+    "in": [
+     [
+      3,
+      1,
+      2
+     ],
+     4
+    ],
+    "out": 3
+   },
+   "blueprint": {
+    "id": "bp-c-e02e5231",
+    "source": "code",
+    "origin": {
+     "code": "code-0074",
+     "n": 2,
+     "at": [
+      "catalog/inner/gen/generator/machtzev/generator/particles.mjs.mjs:188",
+      "catalog/inner/gen/generator/new/atoms/parse-join-full-code.mjs.mjs:32"
+     ],
+     "names": [
+      "inner$parseReportLines$rest$$step",
+      "inner$parseJoinFullCode$code$$step"
+     ]
+    },
+    "excl": []
+   },
+   "fill": [
+    {
+     "id": "0f43ca87cafa01b3",
+     "form": "part",
+     "part": "inner-buildsmart:functions/src/analytics.ts#pickShard.i",
+     "verbs": []
+    },
+    {
+     "id": "051cd608bd02dbe4",
+     "form": "chain",
+     "verbs": [
+      "filter"
+     ]
+    },
+    {
+     "id": "b49ffdff62ca585b",
+     "form": "part",
+     "part": "inner-generator:machtzev/generator/behavior-plan.mjs#runGoal.total",
+     "verbs": [
+      "count"
+     ]
+    }
+   ],
+   "excludedByLeaveOneOut": []
+  },
+  {
+   "id": "e91cc5e96dc9ca75",
+   "round": 3,
+   "verbs": [
+    "compare"
+   ],
+   "sig": "num,num>num",
+   "example": {
+    "in": [
+     0,
+     2
+    ],
+    "out": 120
+   },
+   "blueprint": {
+    "id": "bp-c-ebcfedd8",
+    "source": "code",
+    "origin": {
+     "code": "code-0015",
+     "n": 6,
+     "at": [
+      "catalog/inner/gen/14kk/check_protocol_activity.js.mjs:8",
+      "catalog/inner/gen/14kk/check_protocol_activity.js.mjs:25",
+      "catalog/inner/gen/14kk/check_protocol_activity.js.mjs:34"
+     ],
+     "names": [
+      "inner$ProtocolActivityChecker$checkCommunicationProtocol$timeDiff$$step",
+      "inner$ProtocolActivityChecker$checkTelegramActivity$timeDiff$$step",
+      "inner$ProtocolActivityChecker$checkKnowledgeProtocol$timeDiff$$step",
+      "inner$ProtocolActivityChecker$checkConstructionProtocol$timeDiff$$step"
+     ]
+    },
+    "excl": [
+     "compare"
+    ]
+   },
+   "fill": [
+    {
+     "id": "7101c75895095d1c",
+     "form": "part",
+     "part": "inner-orbit:src/components/parnasa/Ambient.tsx#GoldDust.useEffect.loop.dt",
+     "verbs": [
+      "compare"
+     ]
+    },
+    {
+     "id": "0f43ca87cafa01b3",
+     "form": "part",
+     "part": "inner-buildsmart:functions/src/analytics.ts#pickShard.i",
+     "verbs": []
+    }
+   ],
+   "excludedByLeaveOneOut": [
+    "compare"
+   ]
+  },
+  {
+   "id": "659ffa0c9db24040",
+   "round": 3,
+   "verbs": [
+    "filter"
+   ],
+   "sig": "nums,num>nums",
+   "example": {
+    "in": [
+     [
+      3,
+      1,
+      2
+     ],
+     4
+    ],
+    "out": [
+     3,
+     1,
+     2
+    ]
+   },
+   "blueprint": {
+    "id": "bp-c-e02e5231",
+    "source": "code",
+    "origin": {
+     "code": "code-0074",
+     "n": 2,
+     "at": [
+      "catalog/inner/gen/generator/machtzev/generator/particles.mjs.mjs:188",
+      "catalog/inner/gen/generator/new/atoms/parse-join-full-code.mjs.mjs:32"
+     ],
+     "names": [
+      "inner$parseReportLines$rest$$step",
+      "inner$parseJoinFullCode$code$$step"
+     ]
+    },
+    "excl": []
+   },
+   "fill": [
+    {
+     "id": "bd4ca48962ae455d",
+     "form": "part",
+     "part": "inner-generator:new/atoms/tour-advance.mjs#tourAdvance.next",
+     "verbs": []
+    },
+    {
+     "id": "065bf2adaa581429",
+     "form": "part",
+     "part": "inner-generator:machtzev/ds-wear.mjs#constScope.line",
+     "verbs": [
+      "filter"
+     ]
+    },
+    {
+     "id": "bf63481f1eca01eb",
+     "form": "part",
+     "part": "inner-orbit:src/lib/atoms/decompose/genericPreview.ts#amountPreview.pos",
+     "verbs": [
+      "filter"
+     ]
+    }
+   ],
+   "excludedByLeaveOneOut": []
+  },
+  {
+   "id": "0719a196cfc510ca",
+   "round": 3,
+   "verbs": [
+    "compare"
+   ],
+   "sig": "num,num>num",
+   "example": {
+    "in": [
+     0,
+     2
+    ],
+    "out": 0.00025
+   },
+   "blueprint": {
+    "id": "bp-c-475393d2",
+    "source": "code",
+    "origin": {
+     "code": "code-0032",
+     "n": 4,
+     "at": [
+      "catalog/inner/gen/generator/gen/looks/app/src/10-ui.js.mjs:3",
+      "catalog/inner/gen/generator/new/atoms/coral-palette.mjs.mjs:35",
+      "catalog/inner/gen/generator/new/atoms/orbit-theme.mjs.mjs:26"
+     ],
+     "names": [
+      "inner$ring$r",
+      "inner$rgbToHsl$l$$step",
+      "inner$orbitTheme$rgbToHsl$l$$step",
+      "inner$sitePalette$rgbToHsl$l$$step"
+     ],
+     "taint": [
+      "catalog/lib/verbs-motion.mjs:608",
+      "catalog/lib/verbs.mjs:927"
+     ]
+    },
+    "excl": []
+   },
+   "fill": [
+    {
+     "id": "9ab7e20619e56ada",
+     "form": "bp",
+     "verbs": [
+      "compare"
+     ]
+    },
+    {
+     "id": "ad809c4c4acdb0f0",
+     "form": "part",
+     "part": "inner-generator:machtzev/generator/live-expr.mjs#trendAt.b:step",
+     "verbs": []
+    }
+   ],
+   "excludedByLeaveOneOut": []
+  },
+  {
+   "id": "4b4930f9c481c63d",
+   "round": 3,
+   "verbs": [
+    "filter"
+   ],
+   "sig": "nums,num>nums",
+   "example": {
+    "in": [
+     [
+      3,
+      1,
+      2
+     ],
+     4
+    ],
+    "out": []
+   },
+   "blueprint": {
+    "id": "bp-c-e02e5231",
+    "source": "code",
+    "origin": {
+     "code": "code-0074",
+     "n": 2,
+     "at": [
+      "catalog/inner/gen/generator/machtzev/generator/particles.mjs.mjs:188",
+      "catalog/inner/gen/generator/new/atoms/parse-join-full-code.mjs.mjs:32"
+     ],
+     "names": [
+      "inner$parseReportLines$rest$$step",
+      "inner$parseJoinFullCode$code$$step"
+     ]
+    },
+    "excl": []
+   },
+   "fill": [
+    {
+     "id": "bd4ca48962ae455d",
+     "form": "part",
+     "part": "inner-generator:new/atoms/tour-advance.mjs#tourAdvance.next",
+     "verbs": []
+    },
+    {
+     "id": "763fdee569272621",
+     "form": "part",
+     "part": "inner-generator:machtzev/purify-dart.mjs#purifyFile.defAndAfter:step",
+     "verbs": [
+      "filter"
+     ]
+    },
+    {
+     "id": "bf63481f1eca01eb",
+     "form": "part",
+     "part": "inner-orbit:src/lib/atoms/decompose/genericPreview.ts#amountPreview.pos",
+     "verbs": [
+      "filter"
+     ]
+    }
+   ],
+   "excludedByLeaveOneOut": []
+  },
+  {
+   "id": "5286540de36a62b9",
+   "round": 3,
+   "verbs": [
+    "filter"
+   ],
+   "sig": "nums,num>nums",
+   "example": {
+    "in": [
+     [
+      3,
+      1,
+      2
+     ],
+     4
+    ],
+    "out": [
+     3,
+     1,
+     2
+    ]
+   },
+   "blueprint": {
+    "id": "bp-c-e02e5231",
+    "source": "code",
+    "origin": {
+     "code": "code-0074",
+     "n": 2,
+     "at": [
+      "catalog/inner/gen/generator/machtzev/generator/particles.mjs.mjs:188",
+      "catalog/inner/gen/generator/new/atoms/parse-join-full-code.mjs.mjs:32"
+     ],
+     "names": [
+      "inner$parseReportLines$rest$$step",
+      "inner$parseJoinFullCode$code$$step"
+     ]
+    },
+    "excl": []
+   },
+   "fill": [
+    {
+     "id": "bd4ca48962ae455d",
+     "form": "part",
+     "part": "inner-generator:new/atoms/tour-advance.mjs#tourAdvance.next",
+     "verbs": []
+    },
+    {
+     "id": "051cd608bd02dbe4",
+     "form": "chain",
+     "verbs": [
+      "filter"
+     ]
+    },
+    {
+     "id": "bf63481f1eca01eb",
+     "form": "part",
+     "part": "inner-orbit:src/lib/atoms/decompose/genericPreview.ts#amountPreview.pos",
+     "verbs": [
+      "filter"
+     ]
+    }
+   ],
+   "excludedByLeaveOneOut": []
+  },
+  {
+   "id": "94e164fa6f9ccb2e",
+   "round": 3,
+   "verbs": [
+    "average"
+   ],
+   "sig": "nums>num",
+   "example": {
+    "in": [
+     [
+      3,
+      1,
+      2
+     ]
+    ],
+    "out": 2
+   },
+   "blueprint": {
+    "id": "bp-c-4590428b",
+    "source": "code",
+    "origin": {
+     "code": "code-0097",
+     "n": 2,
+     "at": [
+      "src/components/hosting/transitions.ts:131",
+      "src/components/shop/lib.ts:447"
+     ],
+     "names": [
+      "bookingBalance",
+      "subsidyTotal"
+     ]
+    },
+    "excl": [
+     "sum"
+    ]
+   },
+   "fill": [
+    {
+     "id": "0ce602d9666a323d",
+     "form": "part",
+     "part": "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+     "verbs": [
+      "sum"
+     ]
+    },
+    {
+     "id": "b49ffdff62ca585b",
+     "form": "part",
+     "part": "inner-generator:machtzev/generator/behavior-plan.mjs#runGoal.total",
+     "verbs": [
+      "count"
+     ]
+    },
+    {
+     "id": "ad809c4c4acdb0f0",
+     "form": "part",
+     "part": "inner-generator:machtzev/generator/live-expr.mjs#trendAt.b:step",
+     "verbs": []
+    }
+   ],
+   "excludedByLeaveOneOut": []
+  },
+  {
+   "id": "c4835ead6e2d05a9",
+   "round": 3,
+   "verbs": [
+    "compare"
+   ],
+   "sig": "num,num>num",
+   "example": {
+    "in": [
+     0,
+     2
+    ],
+    "out": 0
+   },
+   "blueprint": {
+    "id": "bp-c-ebcfedd8",
+    "source": "code",
+    "origin": {
+     "code": "code-0015",
+     "n": 6,
+     "at": [
+      "catalog/inner/gen/14kk/check_protocol_activity.js.mjs:8",
+      "catalog/inner/gen/14kk/check_protocol_activity.js.mjs:25",
+      "catalog/inner/gen/14kk/check_protocol_activity.js.mjs:34"
+     ],
+     "names": [
+      "inner$ProtocolActivityChecker$checkCommunicationProtocol$timeDiff$$step",
+      "inner$ProtocolActivityChecker$checkTelegramActivity$timeDiff$$step",
+      "inner$ProtocolActivityChecker$checkKnowledgeProtocol$timeDiff$$step",
+      "inner$ProtocolActivityChecker$checkConstructionProtocol$timeDiff$$step"
+     ]
+    },
+    "excl": [
+     "compare"
+    ]
+   },
+   "fill": [
+    {
+     "id": "c58687ee707c604a",
+     "form": "part",
+     "part": "inner-orbit:src/components/parnasa/sheetFx.ts#mountSheet.anim.f.dt",
+     "verbs": [
+      "compare"
+     ]
+    },
+    {
+     "id": "ad809c4c4acdb0f0",
+     "form": "part",
+     "part": "inner-generator:machtzev/generator/live-expr.mjs#trendAt.b:step",
+     "verbs": []
+    }
+   ],
+   "excludedByLeaveOneOut": [
+    "compare"
+   ]
+  },
+  {
+   "id": "6a735364b26277b8",
+   "round": 3,
+   "verbs": [
+    "compare"
+   ],
+   "sig": "num,num>num",
+   "example": {
+    "in": [
+     0,
+     2
+    ],
+    "out": 120
+   },
+   "blueprint": {
+    "id": "bp-c-ebcfedd8",
+    "source": "code",
+    "origin": {
+     "code": "code-0015",
+     "n": 6,
+     "at": [
+      "catalog/inner/gen/14kk/check_protocol_activity.js.mjs:8",
+      "catalog/inner/gen/14kk/check_protocol_activity.js.mjs:25",
+      "catalog/inner/gen/14kk/check_protocol_activity.js.mjs:34"
+     ],
+     "names": [
+      "inner$ProtocolActivityChecker$checkCommunicationProtocol$timeDiff$$step",
+      "inner$ProtocolActivityChecker$checkTelegramActivity$timeDiff$$step",
+      "inner$ProtocolActivityChecker$checkKnowledgeProtocol$timeDiff$$step",
+      "inner$ProtocolActivityChecker$checkConstructionProtocol$timeDiff$$step"
+     ]
+    },
+    "excl": [
+     "compare"
+    ]
+   },
+   "fill": [
+    {
+     "id": "c58687ee707c604a",
+     "form": "part",
+     "part": "inner-orbit:src/components/parnasa/sheetFx.ts#mountSheet.anim.f.dt",
+     "verbs": [
+      "compare"
+     ]
+    },
+    {
+     "id": "0f43ca87cafa01b3",
+     "form": "part",
+     "part": "inner-buildsmart:functions/src/analytics.ts#pickShard.i",
+     "verbs": []
+    }
+   ],
+   "excludedByLeaveOneOut": [
+    "compare"
+   ]
+  },
+  {
+   "id": "afe6ece7e9c26dcb",
+   "round": 3,
+   "verbs": [
+    "filter"
+   ],
+   "sig": "nums,num>nums",
+   "example": {
+    "in": [
+     [
+      3,
+      1,
+      2
+     ],
+     4
+    ],
+    "out": [
+     3,
+     1,
+     2
+    ]
+   },
+   "blueprint": {
+    "id": "bp-c-e02e5231",
+    "source": "code",
+    "origin": {
+     "code": "code-0074",
+     "n": 2,
+     "at": [
+      "catalog/inner/gen/generator/machtzev/generator/particles.mjs.mjs:188",
+      "catalog/inner/gen/generator/new/atoms/parse-join-full-code.mjs.mjs:32"
+     ],
+     "names": [
+      "inner$parseReportLines$rest$$step",
+      "inner$parseJoinFullCode$code$$step"
+     ]
+    },
+    "excl": []
+   },
+   "fill": [
+    {
+     "id": "26afe5fa272f8c46",
+     "form": "part",
+     "part": "inner-generator:machtzev/generator/behavior-plan.mjs#valueSearch.left",
+     "verbs": []
+    },
+    {
+     "id": "065bf2adaa581429",
+     "form": "part",
+     "part": "inner-generator:machtzev/ds-wear.mjs#constScope.line",
+     "verbs": [
+      "filter"
+     ]
+    },
+    {
+     "id": "bf63481f1eca01eb",
+     "form": "part",
+     "part": "inner-orbit:src/lib/atoms/decompose/genericPreview.ts#amountPreview.pos",
+     "verbs": [
+      "filter"
+     ]
+    }
+   ],
+   "excludedByLeaveOneOut": []
+  },
+  {
+   "id": "1e4d486ec5413fb2",
+   "round": 3,
+   "verbs": [
+    "filter"
+   ],
+   "sig": "nums,num>nums",
+   "example": {
+    "in": [
+     [
+      3,
+      1,
+      2
+     ],
+     4
+    ],
+    "out": []
+   },
+   "blueprint": {
+    "id": "bp-c-e02e5231",
+    "source": "code",
+    "origin": {
+     "code": "code-0074",
+     "n": 2,
+     "at": [
+      "catalog/inner/gen/generator/machtzev/generator/particles.mjs.mjs:188",
+      "catalog/inner/gen/generator/new/atoms/parse-join-full-code.mjs.mjs:32"
+     ],
+     "names": [
+      "inner$parseReportLines$rest$$step",
+      "inner$parseJoinFullCode$code$$step"
+     ]
+    },
+    "excl": []
+   },
+   "fill": [
+    {
+     "id": "26afe5fa272f8c46",
+     "form": "part",
+     "part": "inner-generator:machtzev/generator/behavior-plan.mjs#valueSearch.left",
+     "verbs": []
+    },
+    {
+     "id": "763fdee569272621",
+     "form": "part",
+     "part": "inner-generator:machtzev/purify-dart.mjs#purifyFile.defAndAfter:step",
+     "verbs": [
+      "filter"
+     ]
+    },
+    {
+     "id": "bf63481f1eca01eb",
+     "form": "part",
+     "part": "inner-orbit:src/lib/atoms/decompose/genericPreview.ts#amountPreview.pos",
+     "verbs": [
+      "filter"
+     ]
+    }
+   ],
+   "excludedByLeaveOneOut": []
+  }
+ ]
+}

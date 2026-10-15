@@ -27,7 +27,17 @@ function rw(w, ins, loc, P) {
     const m = REF.exec(w);
     if (!m) return w;
     if (m[1] === '@') return '@' + P + m[2] + m[3];
-    if (m[2] in ins) { const t = ins[m[2]]; if (typeof t === 'number') { if (m[3]) throw new Error('שדה של קבוע: ' + w); return t; } return t + m[3]; }
+    if (m[2] in ins) {
+      const t = ins[m[2]];
+      if (typeof t === 'number' || t === null) { if (m[3]) throw new Error('שדה של קבוע: ' + w); return t; }
+      // MINER2: קלט שמחובר לחוט-אובייקט (נקודה ‎{x,y}‎ / ‎$cat‎ / רשימה) — החוט עצמו; שדה ‎.x/.y‎ של נקודה — החוט של השדה
+      if (typeof t === 'object') {
+        let v = t;
+        for (const k of m[3].split('.').filter(Boolean)) { if (v && typeof v === 'object' && !Array.isArray(v) && Object.keys(v).sort().join() === 'x,y' && k in v) v = v[k]; else throw new Error('שדה של חוט-אובייקט: ' + w); }
+        return v;
+      }
+      return t + m[3];
+    }
     if (loc.has(m[2])) return '$' + P + m[2] + m[3];
     throw new Error('חוט לא מוכר בהטמעה: ' + w);
   }

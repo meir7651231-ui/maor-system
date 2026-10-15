@@ -107,78 +107,73 @@
   }
  },
  "selfprint": {
-  "shelf": 3578,
-  "namedSpecial": 221,
-  "namedSpecialGrown": 189,
+  "shelf": 3301,
+  "namedSpecial": 180,
+  "namedSpecialGrown": 148,
   "specialBy": {
-   "compare": 73,
-   "filter": 44,
-   "count": 23,
-   "sort": 18,
-   "rotate": 17,
-   "dedupe": 8,
+   "filter": 61,
+   "compare": 43,
+   "count": 14,
+   "dedupe": 9,
+   "rotate": 8,
+   "sort": 7,
    "reverse": 4,
-   "average": 1,
-   "extreme": 1
+   "extreme": 2
   },
   "exactRebuilt": {
-   "average": {
+   "compare": {
     "exact": 1,
     "fromOthers": 1,
     "byBlueprint": 1,
-    "byBlueprintFair": 1,
+    "byBlueprintFair": 0,
     "best": {
-     "id": "94e164fa6f9ccb2e",
+     "id": "7e2485bc08b1e838",
      "floor": "bp3",
      "form": "bp",
-     "blueprint": "bp-c-4590428b",
-     "sig": "nums>num",
-     "steps": 90,
-     "nodes": 3,
+     "blueprint": "bp-c-15575858",
+     "sig": "num,num>num",
+     "steps": 64,
+     "nodes": 4,
      "example": {
       "in": [
-       [
-        3,
-        1,
-        2
-       ]
+       0,
+       2
       ],
-      "out": 2
+      "out": -1
      },
      "of": [
       {
-       "id": "0ce602d9666a323d",
-       "form": "part",
-       "part": "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
-       "verbs": [
-        "sum"
-       ]
-      },
-      {
-       "id": "b49ffdff62ca585b",
-       "form": "part",
-       "part": "inner-generator:machtzev/generator/behavior-plan.mjs#runGoal.total",
-       "verbs": [
-        "count"
-       ]
-      },
-      {
-       "id": "ad809c4c4acdb0f0",
-       "form": "part",
-       "part": "inner-generator:machtzev/generator/live-expr.mjs#trendAt.b:step",
+       "id": "base:<",
+       "form": "base",
+       "part": "⟨cmp<⟩",
        "verbs": []
+      },
+      {
+       "id": "7101c75895095d1c",
+       "form": "part",
+       "part": "inner-orbit:src/components/parnasa/Ambient.tsx#GoldDust.useEffect.loop.dt",
+       "verbs": [
+        "compare"
+       ]
       }
      ]
     }
+   },
+   "sum": {
+    "exact": 1,
+    "fromOthers": 0,
+    "byBlueprint": 0,
+    "byBlueprintFair": 0,
+    "best": null
    }
   },
   "exactFromOthers": 1,
-  "exactByBlueprintFair": 1,
+  "exactByBlueprintFair": 0,
   "bestGrown": {
    "average": {
-    "pct": 100,
-    "id": "94e164fa6f9ccb2e",
-    "blueprint": "bp-c-4590428b",
+    "pct": 27,
+    "id": "1b71337837db4494",
+    "form": "chain",
     "sig": "nums>num"
    },
    "sort": {
@@ -197,15 +192,15 @@
     "sig": "nums>num"
    },
    "sum": {
-    "pct": 36,
-    "id": "db8662cff4ffa8eb",
-    "blueprint": "bp-c-4590428b",
+    "pct": 100,
+    "id": "ed22cd9c4926fe70",
+    "blueprint": "bp-c-df5e6e2d",
     "sig": "nums>num"
    },
    "count": {
-    "pct": 82,
-    "id": "0e6cd6d6cde48a3a",
-    "form": "chain",
+    "pct": 91,
+    "id": "451b98b42b81e530",
+    "blueprint": "bp-c-05cba93f",
     "sig": "nums>num"
    },
    "dedupe": {
@@ -215,15 +210,15 @@
     "sig": "nums>nums"
    },
    "compare": {
-    "pct": 50,
-    "id": "be8530b92421bf4d",
-    "blueprint": "bp-c-475393d2",
+    "pct": 100,
+    "id": "7e2485bc08b1e838",
+    "blueprint": "bp-c-15575858",
     "sig": "num,num>num"
    },
    "median": {
-    "pct": 55,
-    "id": "94e164fa6f9ccb2e",
-    "blueprint": "bp-c-4590428b",
+    "pct": 45,
+    "id": "1b71337837db4494",
+    "form": "chain",
     "sig": "nums>num",
     "metricOnly": true
    },
@@ -237,25 +232,109 @@
   }
  },
  "blueprints": {
-  "total": 63,
+  "total": 148,
   "bySource": {
+   "code": 103,
    "success": 36,
-   "code": 23,
-   "success-of-blueprint": 4
+   "success-of-blueprint": 9
   },
-  "used": 63,
-  "birthedSuccess": 35,
+  "used": 137,
+  "birthedSuccess": 36,
   "birthedBySource": {
-   "success": 28,
-   "code": 5,
-   "success-of-blueprint": 2
+   "success": 22,
+   "code": 13,
+   "success-of-blueprint": 1
   },
   "maxDepth": 2,
   "maxDepthUsed": 2,
-  "maxDepthSuccess": 2
+  "maxDepthSuccess": 2,
+  "code": {
+   "all": {
+    "blueprints": 103,
+    "typed": 92,
+    "built": 92,
+    "ran": 83,
+    "fresh": 82,
+    "success": 13
+   },
+   "v1": {
+    "blueprints": 24,
+    "typed": 24,
+    "built": 24,
+    "ran": 24,
+    "fresh": 24,
+    "success": 2
+   },
+   "v2Only": {
+    "blueprints": 79,
+    "typed": 68,
+    "built": 68,
+    "ran": 59,
+    "fresh": 58,
+    "success": 11
+   },
+   "byFeat": {
+    "compare": {
+     "blueprints": 29,
+     "typed": 26,
+     "built": 26,
+     "ran": 22,
+     "fresh": 22,
+     "success": 3
+    },
+    "filter": {
+     "blueprints": 6,
+     "typed": 5,
+     "built": 5,
+     "ran": 5,
+     "fresh": 5,
+     "success": 5
+    },
+    "guard": {
+     "blueprints": 1,
+     "typed": 0,
+     "built": 0,
+     "ran": 0,
+     "fresh": 0,
+     "success": 0
+    },
+    "if": {
+     "blueprints": 22,
+     "typed": 19,
+     "built": 19,
+     "ran": 18,
+     "fresh": 17,
+     "success": 3
+    },
+    "index-loop": {
+     "blueprints": 2,
+     "typed": 2,
+     "built": 2,
+     "ran": 2,
+     "fresh": 2,
+     "success": 0
+    },
+    "math": {
+     "blueprints": 6,
+     "typed": 6,
+     "built": 6,
+     "ran": 6,
+     "fresh": 6,
+     "success": 0
+    },
+    "ternary": {
+     "blueprints": 23,
+     "typed": 17,
+     "built": 17,
+     "ran": 15,
+     "fresh": 15,
+     "success": 3
+    }
+   }
+  }
  },
  "wrongImprovements": 0,
- "replacements": 99,
+ "replacements": 71,
  "fpMismatchOnLoad": {
   "baseline": 0,
   "half": 0

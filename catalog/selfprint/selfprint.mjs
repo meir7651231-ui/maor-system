@@ -33,9 +33,10 @@ const L = await import('../grow/lib.mjs');
 const S = await import('./lib.mjs');
 const { WEAK, hasTruth, truthOf } = await import('../grow/truth.mjs');
 
-export const OUT = { ledger: path.join(HERE, 'ledger.json'), compare: path.join(HERE, 'compare.json'), blueprints: path.join(HERE, 'blueprints.json'), found: path.join(HERE, 'found.json') };
+export const OUT = { control: path.join(HERE, 'control-v1.json'), ledger: path.join(HERE, 'ledger.json'), compare: path.join(HERE, 'compare.json'), blueprints: path.join(HERE, 'blueprints.json'), found: path.join(HERE, 'found.json') };
 const BUD = JSON.parse(fs.readFileSync(path.join(HERE, 'budget.json'), 'utf8'));
 const CODE = JSON.parse(fs.readFileSync(path.join(HERE, 'library-code.json'), 'utf8'));
+/* MINER2 · ‎SELFPRINT_OUT=<תיקייה>‎ ⇒ הפלט לשם (לניסויים מחוץ לריפו) */
 const CACHE = path.join(ROOT, 'node_modules/.cache/selfprint');
 
 /* העתקים מ-catalog/grow/grow.mjs (לא מיוצאים שם) — אותה מדיניות בדיוק */
@@ -240,7 +241,7 @@ function originVerbs(R, shape, o) {
 
 /* ═══════════════ שלב 2: השרטוטים ═══════════════ */
 
-async function selfprint({ R, things, shelf, log }) {
+async function selfprint({ R, things, shelf, log, shapes = CODE.shapes }) {
   const bps = []; const bpByKey = new Map();
   let nextIdx = Math.max(0, ...[...things.values()].map((t) => t.idx || 0)) + 1;
   const addBp = (bp) => {
@@ -260,7 +261,7 @@ async function selfprint({ R, things, shelf, log }) {
     return t;
   });
   /* מקור 2 — הקוד */
-  for (const sh of CODE.shapes.filter((x) => x.n >= BUD.minSupport)) { // "מבנים שחוזרים" — שלד שנמצא בפונקציה אחת בלבד לא נכנס
+  for (const sh of shapes.filter((x) => x.n >= BUD.minSupport)) { // "מבנים שחוזרים" — שלד שנמצא בפונקציה אחת בלבד לא נכנס
     const per = sh.origins.map((o) => originVerbs(R, sh, o));
     const taint = (sh.taint || []).map((o) => originVerbs(R, sh, o));
     // MINER2 · השאר-אחד-בחוץ **חמור** (הבעלים: "כל פונקציה שהתנהגותה = מסלול… לא תורמת שלד לגילוי מסלול; אותו דבר לכל
@@ -364,7 +365,8 @@ async function selfprint({ R, things, shelf, log }) {
       if (prob) { const k = 'חיווט: ' + prob.split(':')[0]; F.junk[k] = (F.junk[k] || 0) + 1; continue; }
       const sig = tree.sig || g.ty.ins;
       const t = { key, id: idOf(key), floor: 'bp' + rd, round: rd, form: 'bp', bp: b.id, fill: fill.map((x) => x.id), keep: b.source === 'code' ? [] : S.concrete(b.tree), of: [...fill.map((x) => x.id), ...(b.source === 'code' ? [] : S.concrete(b.tree))], sig, graph, tree, nParts: graphNodes(graph).length };
-      const m = measure(R, t);
+      let m;
+      try { m = measure(R, t); } catch (e) { m = { junk: 'חיווט: ' + String(e?.message || e).slice(0, 30) }; } // MINER2: חוט שהגרף לא מבין — זבל, לא קריסה
       if (m.junk) { F.junk[m.junk] = (F.junk[m.junk] || 0) + 1; continue; }
       b.ran++;
       Object.assign(t, { out: m.out, fp: m.fp, steps: m.steps, outs: m.outs, ex: exampleOf(R.samplesOf(sig), m.outs) });
@@ -433,7 +435,7 @@ function metricsOf(R, things, shelf, bpById = new Map()) {
     }
   }
   const brief = (t) => ({ id: t.id, floor: t.floor, form: t.form, ...(t.bp ? { blueprint: t.bp } : {}), sig: sigKeyOf(t), steps: t.steps, nodes: t.nParts, example: t.ex || null, of: kids(t).map((c) => ({ id: c.id, form: c.form, ...(c.part ? { part: c.part } : {}), verbs: specialVerbs(c) })) });
-  for (const e of Object.values(exact)) e.best = brief(e.best);
+  for (const e of Object.values(exact)) e.best = e.best ? brief(e.best) : null; // MINER2: פועל שנבנה רק "מחלק שכבר היה הוא" — אין "הכי טוב"
   const closeBest = (outsRef, sk) => { let b = null; for (const t of final) { if (!grown(t) || sigKeyOf(t) !== sk) continue; const c = L.closeness(R.samplesOf(t.sig), t.outs, outsRef); if (!b || c > b.c || (c === b.c && (t.idx ?? 0) < (b.t.idx ?? 0))) b = { c, t }; } return b; };
   const bestGrown = {};
   for (const v of WATCH) {
@@ -511,7 +513,18 @@ export async function run({ log = () => {}, fresh = false } = {}) {
     fpMismatchOnLoad: { baseline: B0.fpMismatch, half: H0.fpMismatch },
   };
   const ledger = { about: 'הפנקס של מנוע-השרטוטים-העצמי — סבבים, שרטוטים, החלפות. נבנה ע״י selfprint.mjs', rounds, blueprints: blueprintsSummary, replacements, growMetrics: { baseline: pick(base.metrics), half: pick(half.metrics) } };
+  /* MINER2 · ביקורת (נכתבת לריפו, נבדקת ב---check): אותו מנוע, אותו תקציב, אותה צמיחה — רק עם השלדים שהכורה הראשון
+     (SELFPRINT) קרא. מפריד בין "המנוע השתנה" לבין "הספרייה גדלה והתקציב התפזר". */
+  const H1 = loadShelf(R, half.shelfFiles);
+  const ctl = await selfprint({ R, things: H1.things, shelf: H1.shelf, log: (x) => log('ביקורת-v1 · ' + x), shapes: CODE.shapes.filter((x) => x.by.includes('v1')) });
+  const ctlById = new Map(ctl.bps.map((b) => [b.id, b]));
+  const ctlFound = [...H1.shelf.values()].filter((t) => t.bp && isSpecial(t)).sort((a, b) => a.round - b.round || (a.idx ?? 0) - (b.idx ?? 0)).map((t) => {
+    const b = ctlById.get(t.bp);
+    return { id: t.id, round: t.round, verbs: specialVerbs(t), sig: sigKeyOf(t), example: t.ex, blueprint: { id: b.id, source: b.source, origin: b.origin, excl: b.excl }, fill: t.fill.map((id) => { const c = H1.things.get(id); return { id, form: c.form, ...(c.part ? { part: c.part } : {}), verbs: specialVerbs(c) }; }), excludedByLeaveOneOut: specialVerbs(t).filter((v) => b.excl.includes(v)) };
+  });
+  const control = { about: 'MINER2 · ביקורת: אותו מנוע ואותו תקציב, רק השלדים של הכורה הראשון (by ∋ v1). נבנה ע״י selfprint.mjs — לא לערוך ביד', codeBlueprints: ctl.bps.filter((b) => b.source === 'code').length, selfprint: metricsOf(R, H1.things, H1.shelf, ctlById), wrongImprovements: wrongImprovements(R, H1.things, ctl.replacements), found: ctlFound.filter((x) => x.blueprint.source === 'code') };
   return {
+    control: JSON.stringify(control, null, 1) + '\n',
     ledger: J(ledger) && JSON.stringify(ledger, null, 1) + '\n',
     compare: JSON.stringify(compare, null, 1) + '\n',
     blueprints: '[\n' + bpOut.map(J).join(',\n') + '\n]\n',
@@ -529,6 +542,6 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.a
     if (stale.length) { console.error('catalog/selfprint: לא זהה להרצה חוזרת: ' + stale.join(', ')); process.exit(1); }
     console.log('✓ catalog/selfprint: הרצה חוזרת (גם הצמיחה, בלי מטמון) ⇒ אותם בתים'); process.exit(0);
   }
-  for (const [k, p] of Object.entries(OUT)) fs.writeFileSync(p, res[k]);
+  for (const [k, p] of Object.entries(OUT)) fs.writeFileSync(process.env.SELFPRINT_OUT ? path.join(process.env.SELFPRINT_OUT, path.basename(p)) : p, res[k]);
   console.log('🧭 נכתב · ' + ((Date.now() - t0) / 1000).toFixed(1) + 's');
 }
