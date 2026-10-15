@@ -323,6 +323,8 @@ export function mineAll(index) {
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) {
   const t0 = Date.now();
+  // המודולים המורמים של הריפואים החיצוניים (gitignored) — נוצרים לפי דרישה, ביט-זהים; בלעדיהם הכרייה רואה פחות קבצים
+  await (await import('../inner/lib/ensure-gen.mjs')).ensureGen({ quiet: true });
   // האינדקס של המכונה (תוויות מוכחות-בהרצה) — בלי מתכונים: הכורה לא צריך אותם
   const res = mineAll(buildIndex(loadParts(), { proofs: loadProofs(), behavior: loadBehavior(), recipes: [], leads: [] }));
   const text = JSON.stringify(res, null, 1) + '\n';
