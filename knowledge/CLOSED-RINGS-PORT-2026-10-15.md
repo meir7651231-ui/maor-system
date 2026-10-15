@@ -95,7 +95,7 @@ npx vitest run catalog/__tests__/selfprint-rings.test.ts catalog/__tests__/spfai
 | `selfprint.mjs --check` (גם הצמיחה, בלי מטמון) | ✓ אותם בתים (11.5 דק׳) |
 | `fair.mjs --check rp` | ✓ אותם בתים (כולל `hidden/runs/rp.json`) |
 | `selfprint/mine.mjs --check` | ✓ |
-| `fresh-gate` (rebuild --check + git נקי) | ראו הקומיט |
+| `fresh-gate` (rebuild --check + git נקי) | ✓ |
 | `npm run verify` | נאכף ב-hooks |
 
 `spfair.test`: בדיקות "המנוע קפוא" של SP-FAIR (אינווריאנט של הבסיס שלו, da2db65) הוחלפו בנעילת חותמת המבחן הנסתר —
