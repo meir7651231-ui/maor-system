@@ -16,6 +16,7 @@ const { isRunnable } = await import('../lib/probe-file.mjs');
 const { callerFor, resetBudget, stepsUsed, BudgetError } = await import('../lib/sandbox.mjs');
 const { bundleBridge } = await import('../lib/load-bridge.mjs');
 const L = await import('../grow/lib.mjs');
+const S = await import('./lib.mjs');
 
 const RUN_SOURCES = new Set(['orbit', 'core', 'core-b', 'core-c']);
 const runnableHere = (r) => r && (r.source.startsWith('inner-') ? (r.tags || []).some((t) => t.startsWith('gen:')) : RUN_SOURCES.has(r.source) && isRunnable(r));
@@ -56,12 +57,15 @@ export async function makeRuntime({ callSteps, only = null } = {}) {
     return m;
   };
   const nodesOf = new WeakMap();
+  /* MINER2: חלקי-הבסיס (‎⟨choose⟩ ⟨range⟩ ⟨at⟩ ⟨cmp…⟩‎) רצים כאן, צעד אחד כל אחד; בגרף-עם-choose — "רעל" (lib.mjs › baseCaller).
+     גרף בלי חלקי-בסיס — אותה ריצה בדיוק כמו קודם. */
   const runOne = (t, args, cap = Infinity) => {
     let ps = nodesOf.get(t.graph);
-    if (!ps) { ps = graphNodes(t.graph).map((n) => n.part); nodesOf.set(t.graph, ps); }
+    if (!ps) { ps = graphNodes(t.graph).map((n) => n.part); ps.poison = S.hasChoose(t.graph); ps.base = ps.some(S.isBase); nodesOf.set(t.graph, ps); }
     let s = 0;
-    const r = runGraph(t.graph, args, (k, a) => { if (s > cap) return { err: 'budget' }; const m = callPart(ps[k], a); s += m.s; return m.r; });
-    const v = !r || r.async || 'err' in r || s > cap ? null : r.v;
+    const call = (k, a) => { if (s > cap) return { err: 'budget' }; const m = callPart(ps[k], a); s += m.s; return m.r; };
+    const r = runGraph(t.graph, args, ps.base ? S.baseCaller(ps, call, ps.poison, () => { s += 1; }) : call);
+    const v = !r || r.async || 'err' in r || s > cap || r.v === S.POISON ? null : r.v;
     return { v: v === null || L.semOfValue(v) === null ? null : v, s };
   };
   return { B, ix, raw, homeOf, proven, runners, callPart, runOne };

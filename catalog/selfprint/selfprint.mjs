@@ -50,7 +50,9 @@ const EXTRA_REF = {
   max: (xs) => (xs.length ? Math.max(...xs) : null),
 };
 /** פעלים שמילים בשם-הפונקציה מסגירות שהיא מממשת אותם (השאר-אחד-בחוץ, לפונקציות שאינן חלק מוכח). */
-const NAME_WORDS = { average: /avg|mean|average/i, sum: /sum|total/i, count: /count|len|size/i, extreme: /max|min|largest|smallest|best/i, sort: /sort|order/i, compare: /compare|cmp|diff/i, tour: /tour|route/i, dedupe: /dedupe|uniq/i, reverse: /reverse/i };
+const NAME_WORDS = { average: /avg|mean|average/i, sum: /sum|total/i, count: /count|len|size/i, extreme: /max|min|largest|smallest|best/i, sort: /sort|order|rank/i, compare: /compare|cmp|diff/i, tour: /tour|route|nearest|neighbo|2-?opt|twoopt|tsp|stops/i, dedupe: /dedupe|uniq/i, reverse: /reverse/i };
+/** MINER2 · המשווים של המנוע (חלקי-בסיס) — המועמדים הראשונים בחור-השוואה; הם לא עולים למדף ולא נספרים. */
+const CMP_FAMILY = ['<', '<=', '>', '>=', '===', '!=='];
 
 /** אופרטורים בסיסיים (משפחה אחת לכל מידה) — לסדר-המילוי של חור-אופרטור: אחרי האופרטור המקורי, האחים שלו. */
 const FAMILY = ['+', '-', '*', '/', '%', 'Math.max', 'Math.min', 'neg', 'Math.abs'];
@@ -224,12 +226,12 @@ function exactVerbs(R, t) {
 function originVerbs(R, shape, o) {
   const vs = new Set();
   for (const [v, re] of Object.entries(NAME_WORDS)) if (re.test(o.name || '')) vs.add(v);
+  if (o.verb) vs.add(o.verb); // ייחוס של פועל (catalog/lib/verbs*.mjs › ref)
   if (o.labels.every((l) => S.OPS[l])) {
-    for (const ty of S.typings({ graph: shape.graph }, [o.labels], () => true)) {
+    for (const ty of S.typings({ graph: shape.graph }, [o.labels], () => true) || []) {
       const sk = ty.ins.join(',') + '>' + ty.out;
       const Sx = R.samplesOf(ty.ins);
-      const parts = graphNodes(shape.graph).map((n) => n.part);
-      const outs = Sx.map((a) => { try { const r = runGraph(shape.graph, a, (k, args) => { const f = S.OPS[o.labels[S.holeVar(parts[k])]]; const v = f(...args); return Number.isFinite(v) ? { v } : { err: 'nan' }; }); return 'err' in r ? null : r.v; } catch { return null; } });
+      const outs = Sx.map((a) => { try { const v = S.runOpsGraph(shape.graph, o.labels, a, runGraph, graphNodes); return v === null || L.semOfValue(v) === null ? null : v; } catch { return null; } });
       for (const r of R.refs.get(sk) || []) if (L.closeness(Sx, outs, r.outs) === 1) vs.add(r.verb);
     }
   }
@@ -245,14 +247,27 @@ async function selfprint({ R, things, shelf, log }) {
     const graph = bp.graph || S.treeGraph(bp.tree, things);
     const key = J(graph);
     if (bpByKey.has(key)) { const o = bpByKey.get(key); o.alsoFrom = (o.alsoFrom || 0) + 1; return null; }
-    const b = { id: (bp.source === 'code' ? 'bp-c-' : 'bp-s-') + L.fnv(key).slice(0, 8), ...bp, graph, key, built: 0, fresh: 0, successes: 0 };
+    const b = { id: (bp.source === 'code' ? 'bp-c-' : 'bp-s-') + L.fnv(key).slice(0, 8), ...bp, graph, key, built: 0, ran: 0, fresh: 0, successes: 0, typed: null };
     bps.push(b); bpByKey.set(key, b); return b;
   };
+  /* MINER2 · המשווים של המנוע (‎< <= > >= === !==‎ ⇒ 1/0) — דברים בסיסיים שלא על המדף; רק מועמדים לחור-השוואה */
+  const BASE_CMP = CMP_FAMILY.map((l) => {
+    const part = '⟨cmp' + l + '⟩';
+    const t = { id: 'base:' + l, key: 'B(' + l + ')', floor: 0, form: 'base', part, of: [], sig: ['num', 'num'], out: 'num', graph: L.partGraph(part, 2), nParts: 1, names: [] };
+    const m = measure(R, t);
+    Object.assign(t, { fp: m.fp || 'base:' + l, steps: m.steps || 0, outs: m.outs || R.samplesOf(t.sig).map(() => null) });
+    things.set(t.id, t);
+    return t;
+  });
   /* מקור 2 — הקוד */
   for (const sh of CODE.shapes.filter((x) => x.n >= BUD.minSupport)) { // "מבנים שחוזרים" — שלד שנמצא בפונקציה אחת בלבד לא נכנס
     const per = sh.origins.map((o) => originVerbs(R, sh, o));
-    const excl = [...new Set(per.flat())].filter((v) => per.every((x) => x.includes(v))).sort(); // כל המקורות מממשים ⇒ לא נספר
-    addBp({ source: 'code', origin: { code: sh.id, n: sh.n, at: sh.origins.slice(0, 3).map((o) => o.at), names: [...new Set(sh.origins.map((o) => o.name).filter(Boolean))].slice(0, 4) }, labels: sh.origins.map((o) => o.labels), graph: sh.graph, depth: 1, excl, perOrigin: per });
+    const taint = (sh.taint || []).map((o) => originVerbs(R, sh, o));
+    // MINER2 · השאר-אחד-בחוץ **חמור** (הבעלים: "כל פונקציה שהתנהגותה = מסלול… לא תורמת שלד לגילוי מסלול; אותו דבר לכל
+    // פועל-מטרה"): פועל נחסם אם **אחד** מהמקורות מממש אותו (ב-SELFPRINT: רק אם כולם), וגם אם פונקציה טמאה (ייחוס-פועל /
+    // מוצר-החלוקה) בעלת אותו שלד מממשת אותו.
+    const excl = [...new Set([...per.flat(), ...taint.flat()])].sort();
+    addBp({ source: 'code', by: sh.by, feats: sh.feats, origin: { code: sh.id, n: sh.n, at: sh.origins.slice(0, 3).map((o) => o.at), names: [...new Set(sh.origins.map((o) => o.name).filter(Boolean))].slice(0, 4), ...(sh.taint ? { taint: sh.taint.slice(0, 3).map((o) => o.at) } : {}) }, labels: sh.origins.map((o) => o.labels), graph: sh.graph, depth: 1, excl, perOrigin: per });
   }
   /* מקור 1 — ההצלחות של הצמיחה */
   /* חידוש: הצלחה הופכת לשרטוט רק אם היא ידע חדש — אחד הפעלים המיוחדים שלה עוד לא הוליד novelty שרטוטים-מהצלחה.
@@ -285,7 +300,7 @@ async function selfprint({ R, things, shelf, log }) {
     for (const l of bySig.values()) l.sort(ord);
     const opCache = new Map(); const opLike = new Set();
     const poolOf = (sk, label) => {
-      const base = bySig.get(sk) || [];
+      const base = CMP_FAMILY.includes(label) && sk === 'num,num>num' ? [...BASE_CMP, ...(bySig.get(sk) || [])] : bySig.get(sk) || [];
       const f = label && S.OPS[label];
       if (!f) return base.slice(0, BUD.poolCap);
       const ck = sk + '|' + label;
@@ -295,7 +310,7 @@ async function selfprint({ R, things, shelf, log }) {
         const like = (g) => { const w = Sx.map((args) => { const v = g(...args); return Number.isFinite(v) ? v : null; }); return base.filter((t) => Sx.every((x, k) => w[k] === null || L.sameOut(t.outs[k], w[k]))); };
         // קודם מה שמתנהג כמו האופרטור שהיה שם בקוד; אחריו "אחיו" — שאר האופרטורים הבסיסיים מאותה מידה (סדר קבוע)
         const hit = like(f);
-        const sib = FAMILY.filter((o) => o !== label && S.OPS[o].length === f.length).flatMap((o) => like(S.OPS[o]));
+        const sib = (CMP_FAMILY.includes(label) ? CMP_FAMILY : FAMILY).filter((o) => o !== label && S.OPS[o].length === f.length).flatMap((o) => like(S.OPS[o]));
         const seen = new Set(); const ordered = [...hit, ...sib, ...base].filter((t) => !seen.has(t.id) && seen.add(t.id));
         const pool = ordered.slice(0, BUD.poolCap);
         for (const t of [...hit, ...sib]) opLike.add(sk + '|' + t.id);
@@ -308,7 +323,8 @@ async function selfprint({ R, things, shelf, log }) {
     for (const b of bps) {
       if (b.built >= 8 && L.yieldOf(b) < 0.1) continue; // שרטוט שנותן רק כפולים/זבל — יוצא
       if (b.source === 'code') {
-        const tys = S.typings({ graph: b.graph }, b.labels, (sk) => bySig.has(sk));
+        const tys = S.typings({ graph: b.graph }, b.labels, (sk) => bySig.has(sk) || sk === 'num,num>num') || [];
+        if (b.typed === null) b.typed = tys.length;
         const lab = (v) => { const ls = b.labels.map((x) => x[v]); return ls.every((l) => l === ls[0]) ? ls[0] : null; };
         const scored = tys.map((ty) => ({ ty, sp: ty.holes.reduce((a, h, v) => a + ((bySig.get(S.sigKey(h.sig, h.out)) || []).some(isSpecial) ? 1 : 0), 0) })).sort((x, y) => y.sp - x.sp || (x.ty.key < y.ty.key ? -1 : 1)).slice(0, BUD.typings);
         F.typingsTried += scored.length;
@@ -350,6 +366,7 @@ async function selfprint({ R, things, shelf, log }) {
       const t = { key, id: idOf(key), floor: 'bp' + rd, round: rd, form: 'bp', bp: b.id, fill: fill.map((x) => x.id), keep: b.source === 'code' ? [] : S.concrete(b.tree), of: [...fill.map((x) => x.id), ...(b.source === 'code' ? [] : S.concrete(b.tree))], sig, graph, tree, nParts: graphNodes(graph).length };
       const m = measure(R, t);
       if (m.junk) { F.junk[m.junk] = (F.junk[m.junk] || 0) + 1; continue; }
+      b.ran++;
       Object.assign(t, { out: m.out, fp: m.fp, steps: m.steps, outs: m.outs, ex: exampleOf(R.samplesOf(sig), m.outs) });
       if (t.out !== (tree.out || g.ty.out)) { F.junk['פלט בסוג אחר'] = (F.junk['פלט בסוג אחר'] || 0) + 1; continue; }
       const cur = shelf.get(t.fp);
@@ -463,8 +480,12 @@ export async function run({ log = () => {}, fresh = false } = {}) {
   const mSelf = metricsOf(R, H0.things, H0.shelf, bpById);
   const wrong = wrongImprovements(R, H0.things, replacements);
   const builtTotal = { baseline: base.metrics.built, selfprint: half.metrics.built + rounds.reduce((a, F) => a + F.built, 0) };
-  const bpOut = bps.map((b) => ({ id: b.id, source: b.source, depth: b.depth, origin: b.origin, ...(b.alsoFrom ? { alsoFrom: b.alsoFrom } : {}), holes: S.holeVars(b.graph).length, excl: b.excl, built: b.built, fresh: b.fresh, successes: b.successes, graph: b.graph }));
+  const bpOut = bps.map((b) => ({ id: b.id, source: b.source, ...(b.by ? { by: b.by, feats: b.feats, typed: b.typed } : {}), depth: b.depth, origin: b.origin, ...(b.alsoFrom ? { alsoFrom: b.alsoFrom } : {}), holes: S.holeVars(b.graph).length, excl: b.excl, built: b.built, ran: b.ran, fresh: b.fresh, successes: b.successes, graph: b.graph }));
   const birthed = bps.filter((b) => b.successes);
+  /* MINER2 · השלדים מהקוד: כמה נכנסו (≥minSupport), כמה מקבלים סוג, כמה נבנו, כמה רצו (נמדד, לא זבל), כמה הביאו חדש/שם */
+  const codeStats = (xs) => ({ blueprints: xs.length, typed: xs.filter((b) => b.typed).length, built: xs.filter((b) => b.built).length, ran: xs.filter((b) => b.ran).length, fresh: xs.filter((b) => b.fresh).length, success: xs.filter((b) => b.successes).length });
+  const codeBps = bps.filter((b) => b.source === 'code');
+  const codeSummary = { all: codeStats(codeBps), v1: codeStats(codeBps.filter((b) => b.by.includes('v1'))), v2Only: codeStats(codeBps.filter((b) => !b.by.includes('v1'))), byFeat: Object.fromEntries([...new Set(codeBps.flatMap((b) => b.feats))].sort().map((f) => [f, codeStats(codeBps.filter((b) => b.feats.includes(f)))])) };
   const blueprintsSummary = {
     total: bps.length,
     bySource: countBy(bps.map((b) => b.source)),
@@ -474,6 +495,7 @@ export async function run({ log = () => {}, fresh = false } = {}) {
     maxDepth: Math.max(...bps.map((b) => b.depth)),
     maxDepthUsed: Math.max(0, ...bps.filter((b) => b.built).map((b) => b.depth)),
     maxDepthSuccess: Math.max(0, ...birthed.map((b) => b.depth)),
+    code: codeSummary,
   };
   const fromBp = [...H0.shelf.values()].filter((t) => t.bp);
   const found = fromBp.filter(isSpecial).sort((a, b) => a.round - b.round || (a.idx ?? 0) - (b.idx ?? 0)).map((t) => {

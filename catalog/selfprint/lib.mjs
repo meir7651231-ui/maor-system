@@ -177,8 +177,173 @@ export function derive(thing, things, { depth = 2, maxHoles = 1 } = {}) {
 
 /* ═══════════════ סוגים ═══════════════ */
 
-/** תוויות-אופרטור מהקוד ⇒ הסוג שהן מחייבות (null = פתוח). */
+/** תוויות-אופרטור מהקוד ⇒ הסוג שהן מחייבות (null = פתוח). MINER2: גם השוואות (‎< <= > >= === !==‎ ⇒ מספר,מספר ⇒ 0/1). */
+export const CMP_LABELS = ['<', '<=', '>', '>=', '===', '!=='];
 export const OP_SIG = (label, n) => {
+  if (/^([-+*/%]|\*\*|neg|Math\.\w+|<|<=|>|>=|===|!==)$/.test(label)) return { args: Array(n).fill(['num']), out: ['num'] };
+  if (label === '.length') return { args: [['nums', 'pts']], out: ['num'] };
+  return null;
+};
+
+/*
+ * MINER2 — סוגים כלליים: גם חלקי-הבסיס (choose/range/at), חוטים ‎$cat/$slice/[…]/{x,y}‎, מצב-לולאה שהוא רשומה
+ * ‎{a,b,…}‎, לולאה בתוך לולאה, ‎null‎ (תואם הכול) ו-‎[]‎ (רשימה ריקה — תואמת כל רשימה). מצב-לולאה שההתחלה שלו לא ידועה
+ * (‎null‎/‎[]‎) — כל ההשלמות לפי הסדר, הראשונה שהגוף מחזיר אותה. על שלדי-הכורה-הראשון: אותן תוצאות בדיוק (נבדק).
+ */
+const isRec = (s) => typeof s === 'string' && s[0] === 'R';
+const recOf = (s) => JSON.parse(s.slice(1));
+const mkRec = (o) => 'R' + JSON.stringify(o);
+export function unify(a, b) {
+  if (!a || !b) return null;
+  if (a === b) return a;
+  if (a === '?') return b;
+  if (b === '?') return a;
+  if (a === '[]' && (b === 'nums' || b === 'pts')) return b;
+  if (b === '[]' && (a === 'nums' || a === 'pts')) return a;
+  if (isRec(a) && isRec(b)) {
+    const A = recOf(a); const B = recOf(b); const ks = Object.keys(A);
+    if (ks.join() !== Object.keys(B).join()) return null;
+    const o = {}; for (const k of ks) { const u = unify(A[k], B[k]); if (!u) return null; o[k] = u; }
+    return mkRec(o);
+  }
+  return null;
+}
+function expand(s) {
+  if (s === '?') return SEMS;
+  if (s === '[]') return ['nums', 'pts'];
+  if (isRec(s)) {
+    const o = recOf(s); let acc = [{}];
+    for (const k of Object.keys(o)) { const cs = expand(o[k]); acc = acc.flatMap((a) => cs.map((c) => ({ ...a, [k]: c }))); if (acc.length > 64) return acc.slice(0, 64).map(mkRec); }
+    return acc.map(mkRec);
+  }
+  return [s];
+}
+const BASIC = new Set(SEMS);
+/**
+ * כל ההשמות של סוגים לשלד (קלטים + פלט של כל משתנה-חור) שעקביות. אותו חוזה כמו קודם:
+ * מחזיר [{ins, holes: [{sig, out}], out, key}] בסדר קבוע. maxCombos — שלד עם יותר צירופים-פתוחים מזה — מדולג (null).
+ */
+export function typings(skel, labelsList, available, { maxCombos = 4096 } = {}) {
+  const g = skel.graph; const nIn = g.inputs.length;
+  const vs = holeVars(g); const nV = vs.length ? Math.max(...vs) + 1 : 0;
+  // משתנה-חור עם תווית-אופרטור (באחד המקורות) ⇒ הפלט שלו נקבע (מספר); השאר — כל ארבעת הסוגים
+  const choices = [...Array(nIn).fill(SEMS), ...Array.from({ length: nV }, (_, v) => {
+    const ls = labelsList ? labelsList.map((x) => x[v]) : [];
+    const o = ls.map((l) => l && OP_SIG(l, 1)).find(Boolean);
+    return o ? SEMS.filter((s) => o.out.includes(s)) : SEMS;
+  })];
+  if (choices.reduce((a, c) => a * c.length, 1) > maxCombos) return null;
+  const res = [];
+  const idx = Array(choices.length).fill(0);
+  for (;;) {
+    const pick = idx.map((k, i) => choices[i][k]);
+    const t = check(g, pick.slice(0, nIn), pick.slice(nIn), labelsList, available);
+    if (t) res.push(t);
+    let i = choices.length - 1; while (i >= 0 && ++idx[i] === choices[i].length) { idx[i] = 0; i--; }
+    if (i < 0) break;
+  }
+  return res;
+}
+function check(g, ins, vout, labelsList, available) {
+  let env = new Map(g.inputs.map((n, k) => [n, ins[k]]));
+  let sigs = [];
+  const semOf = (w, loc) => {
+    if (typeof w === 'number' || typeof w === 'boolean') return 'num';
+    if (w === null || w === undefined) return '?';
+    if (typeof w === 'string') {
+      const m = REF.exec(w); if (!m) return null;
+      const path = m[3].split('.').filter(Boolean);
+      let s;
+      if (m[1] === '$') s = loc.has(m[2]) ? loc.get(m[2]) : env.get(m[2]);
+      else if (path.length && (path[0] === 'state' || path[0] === 'emits')) { s = env.get('@' + m[2] + '.' + path[0]); path.shift(); }
+      else s = env.get('@' + m[2]);
+      for (const p of path) {
+        if (s === 'pt' && (p === 'x' || p === 'y')) s = 'num';
+        else if (isRec(s) && p in recOf(s)) s = recOf(s)[p];
+        else return null;
+      }
+      return s || null;
+    }
+    if (Array.isArray(w)) {
+      if (!w.length) return '[]';
+      let e = '?'; for (const x of w) { e = unify(e, semOf(x, loc)); if (!e) return null; }
+      return G.LIST_OF[e] || null;
+    }
+    if (typeof w === 'object') {
+      const ks = Object.keys(w);
+      if (ks.length === 1 && ks[0] === '$cat') {
+        if (!Array.isArray(w.$cat)) return null;
+        let e = '[]'; for (const x of w.$cat) { const s = semOf(x, loc); if (s !== '[]' && !G.ELEM[s]) return null; e = unify(e, s); if (!e) return null; }
+        return e;
+      }
+      if (ks.length === 1 && ks[0] === '$slice') {
+        const [l, ...ab] = w.$slice; const s = semOf(l, loc);
+        if (s !== '[]' && !G.ELEM[s]) return null;
+        return ab.every((x) => semOf(x, loc) === 'num') ? s : null;
+      }
+      if (ks.sort().join() === 'x,y') return semOf(w.x, loc) === 'num' && semOf(w.y, loc) === 'num' ? 'pt' : null;
+      const o = {}; for (const k of Object.keys(w)) { const s = semOf(w[k], loc); if (!s) return null; o[k] = s; }
+      return mkRec(o);
+    }
+    return null;
+  };
+  const walk = (nodes, loc) => {
+    for (const n of nodes) {
+      if (n.loop) {
+        const L = n.loop; const over = semOf(L.over, loc); const el = G.ELEM[over];
+        if (!el) return false;
+        const base = new Map(loc); base.set(L.item, el); if (L.index) base.set(L.index, 'num');
+        if (L.emit !== undefined) {
+          base.set(L.state, 'num');
+          if (!walk(L.nodes, base)) return false;
+          const e = semOf(L.emit, base); if (!BASIC.has(e) || !G.LIST_OF[e]) return false;
+          env.set('@' + n.id + '.emits', G.LIST_OF[e]);
+          continue;
+        }
+        const init = semOf(L.init, loc); if (!init) return false;
+        let ok = false;
+        for (const cand of expand(init)) {
+          const saveEnv = new Map(env); const saveSigs = sigs.slice();
+          const inner = new Map(base); inner.set(L.state, cand);
+          if (walk(L.nodes, inner) && unify(semOf(L.next, inner), cand) === cand) { env.set('@' + n.id + '.state', cand); ok = true; break; }
+          env = saveEnv; sigs = saveSigs;
+        }
+        if (!ok) return false;
+        continue;
+      }
+      const a = n.args.map((w) => semOf(w, loc));
+      if (a.some((x) => !x)) return false;
+      if (!isHole(n.part)) {
+        let o = null;
+        if (n.part === '⟨choose⟩') o = a[0] === 'num' ? unify(a[1], a[2]) : null;
+        else if (n.part === '⟨range⟩') o = a.every((x) => x === 'num') ? 'nums' : null;
+        else if (n.part === '⟨at⟩') o = G.ELEM[a[0]] && a[1] === 'num' ? G.ELEM[a[0]] : null;
+        if (!o) return false;
+        env.set('@' + n.id, o);
+        continue;
+      }
+      if (a.some((x) => !BASIC.has(x))) return false;
+      const v = holeVar(n.part);
+      const lab = labelsList ? labelsList.map((ls) => ls[v]) : [];
+      for (const l of lab) { const o = l && OP_SIG(l, a.length); if (o && (a.some((x, k) => !o.args[k].includes(x)) || !o.out.includes(vout[v]))) return false; }
+      const sk = sigKey(a, vout[v]);
+      if (sigs[v] && sigs[v] !== sk) return false;
+      sigs[v] = sk;
+      env.set('@' + n.id, vout[v]);
+    }
+    return true;
+  };
+  if (!walk(g.nodes, new Map())) return null;
+  const out = semOf(g.out.startsWith('@') ? g.out : '@' + g.out, new Map());
+  if (!BASIC.has(out)) return null;
+  if (sigs.some((s) => !s || !available(s))) return null;
+  if (sigs.length !== vout.length) return null;
+  return { ins, holes: sigs.map((s) => { const [a, o] = s.split('>'); return { sig: a.split(','), out: o }; }), out, key: ins.join(',') + '|' + sigs.join(';') };
+}
+
+/** הכורה הראשון (SELFPRINT) — לבדיקת-השימור בלבד: על השלדים הישנים typings ≡ typingsV1. */
+/** תוויות-אופרטור מהקוד ⇒ הסוג שהן מחייבות (null = פתוח). */
+const OP_SIG_V1 = (label, n) => {
   if (/^([-+*/%]|\*\*|neg|Math\.\w+)$/.test(label)) return { args: Array(n).fill(['num']), out: ['num'] };
   if (label === '.length') return { args: [['nums', 'pts']], out: ['num'] };
   return null;
@@ -188,7 +353,7 @@ export const OP_SIG = (label, n) => {
  * לולאה ⇒ על רשימה, הפריט = האיבר, המצב = ההתחלה = הבא. available(sigKey) ⇒ יש דברים בחתימה הזו.
  * מחזיר [{ins:[...], holes: [{sig, out}], out}] בסדר קבוע.
  */
-export function typings(skel, labelsList, available) {
+export function typingsV1(skel, labelsList, available) {
   const g = skel.graph; const nIn = g.inputs.length;
   const vs = holeVars(g); const nV = vs.length ? Math.max(...vs) + 1 : 0;
   const res = [];
@@ -196,14 +361,14 @@ export function typings(skel, labelsList, available) {
   const idx = Array(total).fill(0);
   for (;;) {
     const ins = idx.slice(0, nIn).map((k) => SEMS[k]); const vout = idx.slice(nIn).map((k) => SEMS[k]);
-    const t = check(g, ins, vout, labelsList, available);
+    const t = checkV1(g, ins, vout, labelsList, available);
     if (t) res.push(t);
     let i = total - 1; while (i >= 0 && ++idx[i] === SEMS.length) { idx[i] = 0; i--; }
     if (i < 0) break;
   }
   return res;
 }
-function check(g, ins, vout, labelsList, available) {
+function checkV1(g, ins, vout, labelsList, available) {
   const env = new Map(g.inputs.map((n, k) => [n, ins[k]]));
   const sigs = [];
   const semOf = (w, loc) => {
@@ -232,7 +397,7 @@ function check(g, ins, vout, labelsList, available) {
       const v = holeVar(n.part); const a = n.args.map((w) => semOf(w, loc));
       if (a.some((x) => !x)) return false;
       const lab = labelsList ? labelsList.map((ls) => ls[v]) : [];
-      for (const l of lab) { const o = l && OP_SIG(l, a.length); if (o && (a.some((x, k) => !o.args[k].includes(x)) || !o.out.includes(vout[v]))) return false; }
+      for (const l of lab) { const o = l && OP_SIG_V1(l, a.length); if (o && (a.some((x, k) => !o.args[k].includes(x)) || !o.out.includes(vout[v]))) return false; }
       const sk = sigKey(a, vout[v]);
       if (sigs[v] && sigs[v] !== sk) return false;
       sigs[v] = sk;
@@ -284,8 +449,61 @@ export function* conceptsFirst(pools, understood, ok = () => true) {
 
 /** סמנטיקה של אופרטורי-JS (לסדר-המילוי של חור-אופרטור, ולבדיקת "המקור עצמו מממש את הפועל"). */
 export const OPS = {
+  '<': (a, b) => (a < b ? 1 : 0), '<=': (a, b) => (a <= b ? 1 : 0), '>': (a, b) => (a > b ? 1 : 0), '>=': (a, b) => (a >= b ? 1 : 0), '===': (a, b) => (a === b ? 1 : 0), '!==': (a, b) => (a !== b ? 1 : 0),
   '+': (a, b) => a + b, '-': (a, b) => a - b, '*': (a, b) => a * b, '/': (a, b) => a / b, '%': (a, b) => a % b, '**': (a, b) => a ** b,
   neg: (a) => -a, '.length': (a) => (Array.isArray(a) ? a.length : undefined),
   'Math.max': (...a) => Math.max(...a), 'Math.min': (...a) => Math.min(...a), 'Math.abs': Math.abs, 'Math.round': Math.round, 'Math.floor': Math.floor,
   'Math.ceil': Math.ceil, 'Math.sqrt': Math.sqrt, 'Math.hypot': Math.hypot, 'Math.pow': Math.pow, 'Math.sign': Math.sign, 'Math.trunc': Math.trunc, 'Math.log': Math.log, 'Math.exp': Math.exp,
 };
+
+/* ═══════════════ MINER2 · חלקי-הבסיס של המנוע ═══════════════ */
+
+/**
+ * "רעל" — הערך של חישוב שנכשל (חלק שזרק / חילוק באפס) **בגרף שיש בו choose**: לא מפיל מיד, אלא עובר הלאה; choose שבוחר
+ * בענף השני זורק אותו. כך "‎if (!xs.length) return 0; return sum / xs.length‎" מתנהג כמו בקוד (הענפים מחושבים שניהם,
+ * אבל שגיאה בענף שלא נבחר לא נחשבת). בגרף בלי choose — שום דבר לא משתנה (אותה ריצה בדיוק).
+ */
+export const POISON = Object.freeze({ '⊥': 1 });
+export const hasPoison = (a) => a === POISON || (Array.isArray(a) ? a.some((x) => x === POISON) : !!a && typeof a === 'object' && Object.values(a).some((x) => x === POISON));
+const RANGE_MAX = 10000;
+/** ‎⟨choose⟩ · ⟨range⟩ · ⟨at⟩‎ + המשווים ‎⟨cmp<⟩…‎ ⇒ ‎{v} | {err}‎. צעד אחד לכל קריאה. */
+export const BASE_FN = {
+  '⟨choose⟩': ([c, a, b]) => { if (c === POISON) return { v: POISON }; if (typeof c !== 'number' || !Number.isFinite(c)) return { err: 'תנאי לא מספר' }; const v = c !== 0 ? a : b; return v === null || v === undefined ? { err: 'ענף ריק' } : { v }; },
+  '⟨range⟩': ([a, b, inc]) => {
+    if (![a, b].every((x) => typeof x === 'number' && Number.isFinite(x))) return { err: 'range' };
+    const n = Math.max(0, Math.ceil(b - a) + (inc && Number.isInteger(b - a) ? 1 : 0));
+    if (n > RANGE_MAX) return { err: 'range גדול' };
+    return { v: Array.from({ length: n }, (_, k) => a + k) };
+  },
+  '⟨at⟩': ([xs, i]) => (Array.isArray(xs) && Number.isInteger(i) && i >= 0 && i < xs.length ? { v: xs[i] } : { err: 'מחוץ לרשימה' }),
+};
+for (const l of CMP_LABELS) BASE_FN['⟨cmp' + l + '⟩'] = ([a, b]) => (typeof a === 'number' && typeof b === 'number' ? { v: OPS[l](a, b) } : { err: 'השוואה' });
+export const isBase = (part) => typeof part === 'string' && part.startsWith('⟨');
+export const hasChoose = (g) => { let r = false; const walk = (ns) => { for (const n of ns) if (n.loop) walk(n.loop.nodes); else if (n.part === '⟨choose⟩') r = true; }; walk(g.nodes); return r; };
+/**
+ * עוטף callNode: חלקי-בסיס רצים כאן; בגרף-עם-choose (poison) — שגיאה ⇒ רעל, קלט-רעל ⇒ רעל (בלי לקרוא לחלק).
+ * מחזיר גם מונה-צעדים לחלקי-הבסיס.
+ */
+export function baseCaller(parts, callNode, poison, onBase = null) {
+  return (k, a) => {
+    const p = parts[k];
+    if (isBase(p)) {
+      if (onBase) onBase();
+      if (p !== '⟨choose⟩' && poison && a.some(hasPoison)) return { v: POISON };
+      const r = BASE_FN[p](a);
+      return poison && 'err' in r ? { v: POISON } : r;
+    }
+    if (poison && a.some(hasPoison)) return { v: POISON };
+    const r = callNode(k, a);
+    if (poison && r && !r.async && ('err' in r || r.v === null || r.v === undefined || (typeof r.v === 'number' && !Number.isFinite(r.v)))) return { v: POISON };
+    return r;
+  };
+}
+/** הרצה של שלד שכל החורים בו אופרטורים (OPS לפי התווית) — ל"המקור עצמו מממש את הפועל?". null = נכשל. */
+export function runOpsGraph(graph, labels, args, runGraph, graphNodes) {
+  const parts = graphNodes(graph).map((n) => n.part);
+  const call = (k, a) => { const f = OPS[labels[holeVar(parts[k])]]; const v = f(...a); return Number.isFinite(v) ? { v } : { err: 'nan' }; };
+  const r = runGraph(graph, args, baseCaller(parts, call, hasChoose(graph)));
+  if (!r || 'err' in r || r.v === POISON || hasPoison(r.v)) return null;
+  return r.v;
+}

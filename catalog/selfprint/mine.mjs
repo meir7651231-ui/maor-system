@@ -22,6 +22,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import ts from 'typescript';
+import { readFn } from './read.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '../..');
@@ -202,8 +203,43 @@ export function growCanBuild(sk) {
 /** מפתח-קנוני: הגרף (המשתנים כבר לפי סדר-הופעה), בלי התוויות. */
 export const shapeKey = (sk) => JSON.stringify(sk.graph);
 
+/**
+ * MINER2 — מקורות "טמאים" לגילוי (השאר-אחד-בחוץ חמור): פונקציות שמממשות פועל-מטרה בכל הפרויקטים — הייחוסים של הפעלים
+ * (‎catalog/lib/verbs*.mjs‎ › ‎ref‎ — הפועל = ה-id של האובייקט) ומוצר-החלוקה (‎catalog/products‎ — מסלול/שכן-קרוב/2-opt).
+ * הן לא נכנסות לספרייה ולא נספרות; אם השלד שלהן זהה לשלד בספרייה — השלד מסומן ‎taint‎, והמנוע לא סופר כל מה שנבנה
+ * ממנו כגילוי של הפועל הזה (selfprint.mjs › excl).
+ */
+export const TAINT_SOURCES = [
+  ['verbs', 'catalog/lib', /^verbs.*\.mjs$/],
+  ['products', 'catalog/products', /\.(mjs|js)$/],
+];
+/** ‎ref: { fn: () => (xs) => … }‎ בתוך ‎{ id: 'tour', … }‎ ⇒ 'tour'. */
+function refVerbOf(n) {
+  let inRef = false;
+  for (let p = n.parent; p; p = p.parent) {
+    if (ts.isPropertyAssignment(p) && ts.isIdentifier(p.name) && p.name.text === 'ref') inRef = true;
+    if (inRef && ts.isObjectLiteralExpression(p)) {
+      const id = p.properties.find((q) => ts.isPropertyAssignment(q) && ts.isIdentifier(q.name) && q.name.text === 'id' && ts.isStringLiteral(q.initializer));
+      if (id) return id.initializer.text;
+    }
+  }
+  return null;
+}
+
+/** שלד אחד או שניים לכל פונקציה: הכורה הראשון (v1) והקורא החדש (v2, read.mjs). אותו מפתח ⇒ אחד. */
+function skeletonsOf(n, stats) {
+  const out = [];
+  const v1 = skeletonOf(n);
+  const v2 = readFn(n, { onNo: stats ? (why) => { const k = why.replace(/ .*/, ''); stats.why[k] = (stats.why[k] || 0) + 1; } : null });
+  if (v1) out.push({ ...v1, by: 'v1', feats: [] });
+  if (v2 && (!v1 || shapeKey(v1) !== shapeKey(v2))) out.push({ ...v2, by: 'v2' });
+  else if (v2 && out[0]) out[0].by = 'v1+v2';
+  return { out, v1: !!v1, v2: !!v2, feats: v2 ? v2.feats : [] };
+}
+
 export function mineFiles(files) {
   const lib = new Map(); let fns = 0; let skel = 0; const skippedGrow = { chain: 0, pair: 0, map: 0, fold: 0 };
+  const st = { why: {}, v1: 0, v2: 0, any: 0, feats: {}, v1Grow: 0 };
   for (const [src, rel] of files) {
     const text = fs.readFileSync(path.join(ROOT, rel), 'utf8');
     const kind = rel.endsWith('.tsx') ? ts.ScriptKind.TSX : rel.endsWith('.ts') ? ts.ScriptKind.TS : ts.ScriptKind.JS;
@@ -211,36 +247,73 @@ export function mineFiles(files) {
     const visit = (n) => {
       if (isFn(n) && n.body) {
         fns++;
-        const sk = skeletonOf(n);
-        if (sk) {
-          skel++;
+        const r = skeletonsOf(n, st);
+        if (r.v1) st.v1++;
+        if (r.v2) { st.v2++; for (const f of r.feats) st.feats[f] = (st.feats[f] || 0) + 1; }
+        if (r.out.length) { st.any++; skel++; }
+        for (const sk of r.out) {
           const g = growCanBuild(sk);
-          if (g) skippedGrow[g]++;
-          else {
-            const key = shapeKey(sk);
-            let e = lib.get(key);
-            if (!e) lib.set(key, (e = { key, inputs: sk.inputs, holes: sk.holes, graph: sk.graph, n: 0, sources: new Set(), origins: [] }));
-            e.n++; e.sources.add(src);
-            e.origins.push({ at: rel + ':' + (sf.getLineAndCharacterOfPosition(n.getStart(sf)).line + 1), name: fnName(n), labels: sk.labels });
-          }
+          if (g) { skippedGrow[g]++; if (sk.by !== 'v2') st.v1Grow++; continue; }
+          const key = shapeKey(sk);
+          let e = lib.get(key);
+          if (!e) lib.set(key, (e = { key, inputs: sk.inputs, holes: sk.holes, graph: sk.graph, n: 0, sources: new Set(), origins: [], by: new Set(), feats: new Set() }));
+          e.n++; e.sources.add(src); for (const b of sk.by.split('+')) e.by.add(b); for (const f of sk.feats) e.feats.add(f);
+          e.origins.push({ at: rel + ':' + (sf.getLineAndCharacterOfPosition(n.getStart(sf)).line + 1), name: fnName(n), labels: sk.labels });
         }
       }
       ts.forEachChild(n, visit);
     };
     visit(sf);
   }
-  return { lib, fns, skel, skippedGrow };
+  return { lib, fns, skel, skippedGrow, stats: st };
+}
+
+/** הפונקציות הטמאות ⇒ ‎shapeKey ⇒ [{at, name, labels, verb?}]‎. */
+export function taintOf(files) {
+  const t = new Map();
+  for (const [src, rel] of files) {
+    const text = fs.readFileSync(path.join(ROOT, rel), 'utf8');
+    const sf = ts.createSourceFile(rel, text, ts.ScriptTarget.Latest, true, ts.ScriptKind.JS);
+    const visit = (n) => {
+      if (isFn(n) && n.body) {
+        for (const sk of skeletonsOf(n, null).out) {
+          const key = shapeKey(sk);
+          if (!t.has(key)) t.set(key, []);
+          const verb = src === 'verbs' ? refVerbOf(n) : null;
+          t.get(key).push({ at: rel + ':' + (sf.getLineAndCharacterOfPosition(n.getStart(sf)).line + 1), name: fnName(n), labels: sk.labels, ...(verb ? { verb } : {}) });
+        }
+      }
+      ts.forEachChild(n, visit);
+    };
+    visit(sf);
+  }
+  return t;
 }
 
 export function mineAll() {
   const files = SOURCES.flatMap(([src, dir, re]) => walk(dir, re).map((rel) => [src, rel]));
-  const { lib, fns, skel, skippedGrow } = mineFiles(files);
-  const shapes = [...lib.values()].map((e) => ({ inputs: e.inputs, holes: e.holes, graph: e.graph, n: e.n, sources: [...e.sources].sort(), origins: e.origins }))
+  const tfiles = TAINT_SOURCES.flatMap(([src, dir, re]) => walk(dir, re).map((rel) => [src, rel]));
+  const { lib, fns, skel, skippedGrow, stats } = mineFiles(files);
+  const taint = taintOf(tfiles);
+  const all = [...lib.values()];
+  const shapes = all.map((e) => ({ inputs: e.inputs, holes: e.holes, by: [...e.by].sort(), feats: [...e.feats].sort(), graph: e.graph, n: e.n, sources: [...e.sources].sort(), origins: e.origins, ...(taint.has(e.key) ? { taint: taint.get(e.key) } : {}) }))
     .sort((a, b) => b.n - a.n || (JSON.stringify(a.graph) < JSON.stringify(b.graph) ? -1 : 1))
     .map((e, k) => ({ id: 'code-' + String(k + 1).padStart(4, '0'), ...e }));
+  const v1Shapes = shapes.filter((s) => s.by.includes('v1'));
+  const count = (xs) => ({ distinct: xs.length, recurring: xs.filter((s) => s.n >= 2).length });
+  const why = Object.fromEntries(Object.entries(stats.why).sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1)).slice(0, 20));
   return {
-    about: 'נבנה ע״י catalog/selfprint/mine.mjs — לא לערוך ביד. שלדים מהקוד שלנו: כל אופרטור / ‎.length‎ / ‎Math.*‎ / מתודה / קריאה ⇒ חור (גרף בצורת combiner/graph.mjs; צומת-חור part=□<v>; אותה תווית ⇒ אותו v). origins = כל הפונקציות שהשלד נמצא בהן (שם + תוויות-החורים) — לבדיקת "השאר-אחד-בחוץ"',
-    files: files.length, functions: fns, skeletons: skel, skippedGrowCanBuild: skippedGrow, distinct: shapes.length, shapes,
+    about: 'נבנה ע״י catalog/selfprint/mine.mjs — לא לערוך ביד. שלדים מהקוד שלנו: כל אופרטור / השוואה / ‎.length‎ / ‎Math.*‎ / מתודה / קריאה ⇒ חור (גרף בצורת combiner/graph.mjs; צומת-חור part=□<v>; אותה תווית ⇒ אותו v); ‎if/?:/return-מוקדם ⇒ ⟨choose⟩‎ · ‎for (let i…) ⇒ ⟨range⟩‎ · ‎xs[i] ⇒ ⟨at⟩‎ · לולאות (גם עם תנאי, "בחר את הטוב", "חזור עד שאין שינוי") ⇒ צומת-לולאה (read.mjs). by: v1 = הכורה של SELFPRINT · v2 = הקורא של MINER2. origins = כל הפונקציות שהשלד נמצא בהן (שם + תוויות-החורים); taint = פונקציות שמממשות פועל-מטרה (ייחוסי-הפעלים, מוצר-החלוקה) עם אותו שלד — לבדיקת "השאר-אחד-בחוץ"',
+    files: files.length, functions: fns, skeletons: skel, skippedGrowCanBuild: skippedGrow,
+    readers: {
+      v1: { functions: stats.v1, ...count(v1Shapes), growCanBuild: stats.v1Grow },
+      v2: { functions: stats.v2, feats: Object.fromEntries(Object.entries(stats.feats).sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1))) },
+      any: { functions: stats.any, ...count(shapes) },
+      v2Only: count(shapes.filter((s) => !s.by.includes('v1'))),
+      notReadTop: why,
+    },
+    taintFiles: tfiles.length, tainted: shapes.filter((s) => s.taint).length,
+    distinct: shapes.length, shapes,
   };
 }
 
@@ -255,5 +328,5 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.a
     console.log('✓ library-code.json מעודכן'); process.exit(0);
   }
   fs.writeFileSync(OUT, text);
-  console.log(`⛏️ ${res.files} קבצים · ${res.functions} פונקציות · ${res.skeletons} שלדים · ${Object.values(res.skippedGrowCanBuild).reduce((a, b) => a + b, 0)} כבר-בצורות-הצמיחה ⇒ ${res.distinct} שלדים שונים · ${((Date.now() - t0) / 1000).toFixed(1)}s`);
+  console.log(`⛏️ ${res.files} קבצים · ${res.functions} פונקציות · לפני: ${res.readers.v1.functions} ⇒ ${res.readers.v1.distinct} שלדים (${res.readers.v1.recurring} חוזרים) · אחרי: ${res.readers.any.functions} ⇒ ${res.readers.any.distinct} (${res.readers.any.recurring} חוזרים) · טמאים ${res.tainted} · ${((Date.now() - t0) / 1000).toFixed(1)}s`);
 }
