@@ -71,18 +71,94 @@ describe('SPEED1000 · 2 — הבונה-מחדש: אותן חותמות בכל �
   it('טביעות-ה-view השמורות מכסות בדיוק את קובצי-הקוד שנקראים כ-view (אין עודף, אין חסר)', async () => {
     const st = JSON.parse(readFileSync(join(ROOT, 'catalog/self/stamps.json'), 'utf8'));
     expect(st.views?.algo).toMatch(/^[0-9a-f]{32}$/);
-    const { STAGES, inputFiles } = await import('../scripts/rebuild.mjs');
+    const { STAGES, inputFiles, hasView, viewKey } = await import('../scripts/rebuild.mjs');
     const idx = gitIndex(ROOT);
     const want = new Set<string>();
-    for (const s of STAGES) for (const [f, v] of inputFiles(s)) if (v && /\.(ts|tsx|mts|cts)$/.test(f)) want.add((f.endsWith('x') ? 'x' : 't') + fileSha(ROOT, idx, f));
+    for (const s of STAGES) for (const [f, v] of inputFiles(s, { reads: st.stages[s.name]?.reads })) if (hasView(f, v)) want.add(viewKey(f, fileSha(ROOT, idx, f), v));
+    expect([...want].some((k) => k.startsWith('c'))).toBe(true); // גם טביעות-המפקד (census-view)
     expect(new Set(Object.keys(st.views.map))).toEqual(want);
   });
   it('בלי שינוי ⇒ אף שלב לא רץ ואף קובץ לא נכתב (החותמות לא נוגעות)', () => {
     const before = git('status', '--porcelain', '--', 'catalog');
+    // קודם --check (לא כותב) — כדי שבדיקה זו לעולם לא תריץ שלב/תכתוב חותמות כשמשהו לא מעודכן (בדיקות רצות במקביל)
+    expect(node(['catalog/scripts/rebuild.mjs', '--check'])).toMatch(/כל השלבים תואמים/);
     const out = node(['catalog/scripts/rebuild.mjs', '--times']);
     expect(out).not.toMatch(/\brun\b|cache \(/);
     expect(git('status', '--porcelain', '--', 'catalog')).toBe(before);
   }, 60_000);
+});
+
+describe('SPEED1000 · 2ב — «מנרמל» למפקד + מה שהאורז באמת ארז', () => {
+  it('המפקד שקורא רק את census-view מוציא בדיוק את catalog/sources/orbit.json; המוטנט (בלי שום הערה) — שונה', () => {
+    expect(node(['catalog/scripts/orbit-census.mjs', '--check'], { CENSUS_VIEW: '1' })).toMatch(/מעודכן/);
+    let failed = false;
+    try { node(['catalog/scripts/orbit-census.mjs', '--check'], { CENSUS_VIEW: 'mutant-all' }); } catch { failed = true; }
+    expect(failed).toBe(true);
+  }, 120_000);
+  it('census-view: הערה פנימית נמחקת, JSDoc / הערה מובילה של מיוצא / בתוך גוף מיוצא / בכינוי-טיפוס — נשארות; השורות נשמרות', async () => {
+    const { censusView, isCensusViewable } = await import('../lib/census-view.mjs');
+    const src = [
+      '// ראש-הקובץ', "import { x } from './x';", 'const A = 1; // פנימי',
+      '// מוביל-פנימי', 'const B = [1, /* בתוך */ 2];',
+      '// מוביל-מיוצא', 'export function f(a: number) { // בגוף', '  return a + A + B[0]; // Date.now(', '}',
+      '/** דוק */', 'const g = () => 1;', "type T = 'a' | /* ב-טיפוס */ 'b';", 'export const h = (s: string) => s; // סוף',
+    ].join('\n');
+    const v = censusView(src, 'src/lib/z.ts');
+    expect(v.split('\n').length).toBe(src.split('\n').length);
+    for (const gone of ['ראש-הקובץ', 'פנימי', 'מוביל-פנימי', 'בתוך', 'סוף' /* אחרי ההצהרה האחרונה — טריוויה של סוף-הקובץ, המפקד לא קורא */]) expect(v, gone).not.toContain(gone);
+    for (const kept of ['מוביל-מיוצא', 'בגוף', 'Date.now(', 'דוק', 'ב-טיפוס']) expect(v, kept).toContain(kept);
+    expect(isCensusViewable('src/lib/a.test.ts')).toBe(false);
+    expect(isCensusViewable('src/lib/atoms/engines/generated/x.ts')).toBe(false);
+    expect(isCensusViewable('telephony/lib/zmanim.mjs')).toBe(true);
+  });
+  it('האורז רושם מה שארז: החותמת של bundle מחזיקה רשימה, וכל קובץ בה קיים ובתוך הקוד', () => {
+    const st = JSON.parse(readFileSync(join(ROOT, 'catalog/self/stamps.json'), 'utf8')).stages.bundle;
+    expect(Array.isArray(st.reads)).toBe(true);
+    expect(st.reads.length).toBeGreaterThan(3);
+    for (const f of st.reads) { expect(existsSync(join(ROOT, f)), f).toBe(true); expect(f).toMatch(/^(src|telephony|functions)\//); }
+    expect(st.reads).not.toContain('src/lib/hebrewNumber.ts'); // לא נארז ⇒ הערה בו לא מריצה את האורז
+  });
+});
+
+describe('SPEED1000 · 2ג — מנוע תמיד-דלוק (rebuild --watch)', () => {
+  it('watch על עותק: שינוי-הערה ⇒ אפס שלבים ואפס כתיבה; שינוי בקלט ⇒ רק השלב שלו רץ, והעץ = בנייה רגילה על אותו שינוי', async () => {
+    const { spawn } = await import('node:child_process');
+    const base = mkdtempSync(join(tmpdir(), 'speed-watch-'));
+    // העותק מהריפו החי עלול לתפוס קובץ באמצע כתיבה של בדיקה מקבילה ⇒ קודם בנייה רגילה בעותק (בדרך-כלל 0 שלבים),
+    // והעותק השני — מהעותק הראשון (לא מהריפו החי): שניהם יוצאים מאותה נקודה בדיוק
+    const W = makeCopy(ROOT, join(base, 'w'));
+    execFileSync(process.execPath, [join(W, 'catalog/scripts/rebuild.mjs')], { cwd: W, stdio: 'pipe' });
+    const W2 = makeCopy(W, join(base, 'w2'));
+    const child = spawn(process.execPath, [join(W, 'catalog/scripts/rebuild.mjs'), '--watch'], { cwd: W, stdio: ['ignore', 'pipe', 'pipe'] });
+    let out = '';
+    child.stdout.on('data', (d) => { out += d; });
+    child.stderr.on('data', (d) => { out += d; });
+    const waitFor = (re: RegExp, ms = 300_000) => new Promise<string>((res, rej) => { const t0 = Date.now(); const tick = () => { const m = re.exec(out); if (m) return res(m[0]); if (Date.now() - t0 > ms) return rej(new Error('timeout: ' + re + '\n' + out)); setTimeout(tick, 50); }; tick(); });
+    try {
+      await waitFor(/⚡ מוכן/);
+      const stamps0 = readFileSync(join(W, 'catalog/self/stamps.json'), 'utf8');
+      // (1) שינוי-הערה פנימית (שורה 16 — כמו מדידת-המנהל)
+      const f = join(W, 'src/lib/hebrewNumber.ts');
+      const lines = readFileSync(f, 'utf8').split('\n'); lines[15] = lines[15].replace('במין', 'במין-ובמספר'); writeFileSync(f, lines.join('\n'));
+      const c1 = await waitFor(/⚡ סבב 1: [^\n]*/);
+      expect(c1).toMatch(/אפס שלבים/);
+      expect(readFileSync(join(W, 'catalog/self/stamps.json'), 'utf8')).toBe(stamps0);
+      // (2) שינוי בקלט של שלב (רווח ב-JSON) — המפקד רץ, הפלט זהה ⇒ עצירה מוקדמת
+      const o = join(W, 'catalog/core/origins-c.json'); writeFileSync(o, readFileSync(o, 'utf8') + '\n');
+      const c2 = await waitFor(/⚡ סבב 2: [^\n]*/);
+      expect(c2).toMatch(/רצו: core-c-census/);
+      await new Promise((r) => setTimeout(r, 500)); // הסבב שנגרם מכתיבת החותמות (אפס שלבים)
+      // אותו שינוי בעותק השני ⇒ בנייה רגילה ⇒ אותם קבצים
+      const o2 = join(W2, 'catalog/core/origins-c.json'); writeFileSync(o2, readFileSync(o2, 'utf8') + '\n');
+      const f2 = join(W2, 'src/lib/hebrewNumber.ts'); writeFileSync(f2, readFileSync(f, 'utf8'));
+      execFileSync(process.execPath, [join(W2, 'catalog/scripts/rebuild.mjs')], { cwd: W2, stdio: 'pipe' });
+      const diff = execFileSync('sh', ['-c', `diff -rq --exclude=gen --exclude='inner-*.json' ${join(W, 'catalog')} ${join(W2, 'catalog')} || true`], { encoding: 'utf8' });
+      expect(diff).toBe('');
+    } finally {
+      child.kill();
+      rmSync(base, { recursive: true, force: true });
+    }
+  }, 600_000);
 });
 
 describe('SPEED1000 · 3 — הלולאה עם זיכרון', () => {

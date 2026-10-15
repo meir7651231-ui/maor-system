@@ -10,6 +10,7 @@
     "postbuild": "node scripts/bundle-budget.mjs",
     "lint": "oxlint",
     "test": "vitest run",
+    "test:catalog:changed": "node catalog/scripts/test-changed.mjs",
     "typecheck": "tsc -b --noEmit",
     "preview": "vite preview",
     "e2e": "node e2e/toggle-matrix.mjs",

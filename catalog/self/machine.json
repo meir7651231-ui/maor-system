@@ -1,7 +1,7 @@
 {
  "source": "machine",
  "repo": "meir7651231-ui/maor-system",
- "ref": "catalog@339f510fd143",
+ "ref": "catalog@fd97c11fa838",
  "generatedAt": null,
  "parts": [
   {
@@ -6201,6 +6201,11 @@
      "name": "fileName",
      "kind": "file",
      "type": "unknown"
+    },
+    {
+     "name": "keep",
+     "kind": "record:keep",
+     "type": "unknown"
     }
    ],
    "gives": {
@@ -6708,6 +6713,133 @@
    ]
   },
   {
+   "id": "machine:catalog/lib/census-view.mjs#blankAll",
+   "source": "machine",
+   "path": "catalog/lib/census-view.mjs",
+   "symbol": "blankAll",
+   "lang": "js",
+   "what": "function",
+   "name": "להפיק כל",
+   "does": "המוטנט של הבדיקה: כל ההערות (גם JSDoc וגם המובילות) — המפקד במצב הזה חייב לצאת שונה.",
+   "takes": [
+    {
+     "name": "text",
+     "kind": "text",
+     "type": "unknown"
+    },
+    {
+     "name": "fileName",
+     "kind": "file",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/lib",
+    "name:auto",
+    "name:english-residue"
+   ]
+  },
+  {
+   "id": "machine:catalog/lib/census-view.mjs#censusView",
+   "source": "machine",
+   "path": "catalog/lib/census-view.mjs",
+   "symbol": "censusView",
+   "lang": "js",
+   "what": "function",
+   "name": "להפיק צפייה",
+   "does": "הטקסט שהמפקד \"רואה\": כמו המקור, בלי ההערות שלא משנות לו.",
+   "takes": [
+    {
+     "name": "text",
+     "kind": "text",
+     "type": "unknown"
+    },
+    {
+     "name": "fileName",
+     "kind": "file",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/lib",
+    "name:auto",
+    "name:english-residue"
+   ]
+  },
+  {
+   "id": "machine:catalog/lib/census-view.mjs#isCensusViewable",
+   "source": "machine",
+   "path": "catalog/lib/census-view.mjs",
+   "symbol": "isCensusViewable",
+   "lang": "js",
+   "what": "particle",
+   "name": "לבדוק אם",
+   "does": "לבדוק אם viewable census — מקבל קובץ, ומחזיר כן/לא.",
+   "takes": [
+    {
+     "name": "file",
+     "kind": "file",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "bool",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/lib",
+    "name:auto",
+    "name:english-residue"
+   ]
+  },
+  {
+   "id": "machine:catalog/lib/census-view.mjs#keptSpans",
+   "source": "machine",
+   "path": "catalog/lib/census-view.mjs",
+   "symbol": "keptSpans",
+   "lang": "js",
+   "what": "function",
+   "name": "להפיק ערך",
+   "does": "הטווחים [pos, end] של ההצהרות העליונות שהמפקד קורא את ההערות שלהן (מיוצאות · כינוי-טיפוס · ממשק).",
+   "takes": [
+    {
+     "name": "text",
+     "kind": "text",
+     "type": "unknown"
+    },
+    {
+     "name": "fileName",
+     "kind": "file",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/lib",
+    "name:auto",
+    "name:english-residue"
+   ]
+  },
+  {
    "id": "machine:catalog/lib/check.mjs#typeOf",
    "source": "machine",
    "path": "catalog/lib/check.mjs",
@@ -6939,60 +7071,6 @@
     {
      "name": "buf",
      "kind": "record:buf",
-     "type": "unknown"
-    }
-   ],
-   "gives": {
-    "kind": "unknown",
-    "type": "unknown"
-   },
-   "pure": true,
-   "example": null,
-   "tags": [
-    "catalog/lib",
-    "name:auto"
-   ]
-  },
-  {
-   "id": "machine:catalog/lib/gitfp.mjs#gitEnv",
-   "source": "machine",
-   "path": "catalog/lib/gitfp.mjs",
-   "symbol": "gitEnv",
-   "lang": "js",
-   "what": "function",
-   "name": "להפיק ערך",
-   "does": "סביבה נקייה ל-git: בלי משתני-GIT_* שמפנים לריפו/אינדקס אחר.",
-   "takes": [],
-   "gives": {
-    "kind": "unknown",
-    "type": "unknown"
-   },
-   "pure": true,
-   "example": null,
-   "tags": [
-    "catalog/lib",
-    "name:auto",
-    "name:english-residue"
-   ]
-  },
-  {
-   "id": "machine:catalog/lib/gitfp.mjs#run",
-   "source": "machine",
-   "path": "catalog/lib/gitfp.mjs",
-   "symbol": "run",
-   "lang": "js",
-   "what": "function",
-   "name": "להריץ ערך",
-   "does": "להריץ — מקבל קובץ, רשימה, ומחזיר משהו.",
-   "takes": [
-    {
-     "name": "root",
-     "kind": "file",
-     "type": "unknown"
-    },
-    {
-     "name": "args",
-     "kind": "list",
      "type": "unknown"
     }
    ],
@@ -14768,6 +14846,33 @@
    ]
   },
   {
+   "id": "machine:catalog/scripts/orbit-census.mjs#readSource",
+   "source": "machine",
+   "path": "catalog/scripts/orbit-census.mjs",
+   "symbol": "readSource",
+   "lang": "js",
+   "what": "function",
+   "name": "לקרוא מקור",
+   "does": "לקרוא מקור — מקבל משהו, ומחזיר משהו.",
+   "takes": [
+    {
+     "name": "p",
+     "kind": "unknown",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/scripts",
+    "name:auto"
+   ]
+  },
+  {
    "id": "machine:catalog/scripts/orbit-census.mjs#refOf",
    "source": "machine",
    "path": "catalog/scripts/orbit-census.mjs",
@@ -15641,6 +15746,89 @@
    ]
   },
   {
+   "id": "machine:catalog/scripts/rebuild.mjs#CENSUS_VIEWABLE",
+   "source": "machine",
+   "path": "catalog/scripts/rebuild.mjs",
+   "symbol": "CENSUS_VIEWABLE",
+   "lang": "js",
+   "what": "function",
+   "name": "להפיק ערך",
+   "does": "להפיק viewable census — מקבל רשומת rel, ומחזיר משהו.",
+   "takes": [
+    {
+     "name": "rel",
+     "kind": "record:rel",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/scripts",
+    "name:auto",
+    "name:english-residue"
+   ]
+  },
+  {
+   "id": "machine:catalog/scripts/rebuild.mjs#RANK",
+   "source": "machine",
+   "path": "catalog/scripts/rebuild.mjs",
+   "symbol": "RANK",
+   "lang": "js",
+   "what": "function",
+   "name": "לדרג ערך",
+   "does": "הקבצים שהשלב קורא (בלי הפלטים שלו): [קובץ, איך] — false = כמו שהוא · true = TS בלי הערות · 'census' = כמו שהמפקד רואה.",
+   "takes": [
+    {
+     "name": "v",
+     "kind": "text",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/scripts",
+    "name:auto"
+   ]
+  },
+  {
+   "id": "machine:catalog/scripts/rebuild.mjs#censusView",
+   "source": "machine",
+   "path": "catalog/scripts/rebuild.mjs",
+   "symbol": "censusView",
+   "lang": "js",
+   "what": "function",
+   "name": "להפיק צפייה",
+   "does": "SPEED1000: קוד כמו שהמפקד רואה אותו — בלי ההערות שהוא לא קורא (lib/census-view.mjs; הוכחה: CENSUS_VIEW=1 --check).",
+   "takes": [
+    {
+     "name": "...ps",
+     "kind": "list",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/scripts",
+    "name:auto",
+    "name:english-residue"
+   ]
+  },
+  {
    "id": "machine:catalog/scripts/rebuild.mjs#globRe",
    "source": "machine",
    "path": "catalog/scripts/rebuild.mjs",
@@ -15688,6 +15876,38 @@
     "catalog/scripts",
     "name:auto",
     "name:english-residue"
+   ]
+  },
+  {
+   "id": "machine:catalog/scripts/rebuild.mjs#hasView",
+   "source": "machine",
+   "path": "catalog/scripts/rebuild.mjs",
+   "symbol": "hasView",
+   "lang": "js",
+   "what": "particle",
+   "name": "לבדוק אם יש צפייה",
+   "does": "האם לקובץ הזה יש גרסת-view מהסוג הזה (אחרת — הטביעה היא ה-sha כמו שהוא).",
+   "takes": [
+    {
+     "name": "rel",
+     "kind": "record:rel",
+     "type": "unknown"
+    },
+    {
+     "name": "kind",
+     "kind": "text",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "bool",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/scripts",
+    "name:auto"
    ]
   },
   {
@@ -15741,6 +15961,57 @@
    ],
    "gives": {
     "kind": "text",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/scripts",
+    "name:auto",
+    "name:english-residue"
+   ]
+  },
+  {
+   "id": "machine:catalog/scripts/rebuild.mjs#onWrote",
+   "source": "machine",
+   "path": "catalog/scripts/rebuild.mjs",
+   "symbol": "onWrote",
+   "lang": "js",
+   "what": "function",
+   "name": "להפיק על",
+   "does": "קבצים שנכתבו (פלטי-שלב) — במצב --watch הטביעות שלהם בזיכרון כבר לא בתוקף. (שלד: מחזיר ערך קבוע)",
+   "takes": [],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/scripts",
+    "name:auto",
+    "name:english-residue",
+    "stub"
+   ]
+  },
+  {
+   "id": "machine:catalog/scripts/rebuild.mjs#readDirs",
+   "source": "machine",
+   "path": "catalog/scripts/rebuild.mjs",
+   "symbol": "readDirs",
+   "lang": "js",
+   "what": "function",
+   "name": "לקרוא ערך",
+   "does": "תיקיות-האם של הקבצים שנרשמו (רשימת-השמות שלהן נכנסת לטביעה — פתרון-ייבוא תלוי בה).",
+   "takes": [
+    {
+     "name": "reads",
+     "kind": "record:read",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
     "type": "unknown"
    },
    "pure": true,
@@ -15908,7 +16179,7 @@
    "lang": "js",
    "what": "function",
    "name": "להפיק מפתח צפייה",
-   "does": "להפיק מפתח צפייה — מקבל רשומת rel, רשומת sha, ומחזיר משהו.",
+   "does": "להפיק מפתח צפייה — מקבל רשומת rel, רשומת sha, טקסט, ומחזיר משהו.",
    "takes": [
     {
      "name": "rel",
@@ -15918,6 +16189,11 @@
     {
      "name": "sha",
      "kind": "record:sha",
+     "type": "unknown"
+    },
+    {
+     "name": "kind",
+     "kind": "text",
      "type": "unknown"
     }
    ],
@@ -16189,6 +16465,82 @@
    ],
    "gives": {
     "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/scripts",
+    "name:auto"
+   ]
+  },
+  {
+   "id": "machine:catalog/scripts/test-changed.mjs#fileOf",
+   "source": "machine",
+   "path": "catalog/scripts/test-changed.mjs",
+   "symbol": "fileOf",
+   "lang": "js",
+   "what": "function",
+   "name": "להפיק קובץ",
+   "does": "להפיק קובץ — מקבל טקסט, ומחזיר משהו.",
+   "takes": [
+    {
+     "name": "key",
+     "kind": "text",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/scripts",
+    "name:auto"
+   ]
+  },
+  {
+   "id": "machine:catalog/scripts/test-changed.mjs#fp",
+   "source": "machine",
+   "path": "catalog/scripts/test-changed.mjs",
+   "symbol": "fp",
+   "lang": "js",
+   "what": "function",
+   "name": "להפיק ערך",
+   "does": "להפיק fp — מקבל רשימה, ומחזיר משהו.",
+   "takes": [
+    {
+     "name": "...ps",
+     "kind": "list",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/scripts",
+    "name:auto",
+    "name:english-residue"
+   ]
+  },
+  {
+   "id": "machine:catalog/scripts/test-changed.mjs#head",
+   "source": "machine",
+   "path": "catalog/scripts/test-changed.mjs",
+   "symbol": "head",
+   "lang": "js",
+   "what": "function",
+   "name": "לנסח כותרת",
+   "does": "לנסח כותרת — בלי קלט, ומחזיר טקסט.",
+   "takes": [],
+   "gives": {
+    "kind": "text",
     "type": "unknown"
    },
    "pure": true,

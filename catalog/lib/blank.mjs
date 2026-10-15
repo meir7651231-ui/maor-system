@@ -22,7 +22,8 @@ const KEEP = /^\/\/\/|^\/\/\s*@ts-|@jsx/;
 
 /** טווחי-ההערות [start, end] של קובץ (ממוינים, בלי כפולים). */
 export function commentRanges(text, fileName = 'x.ts') {
-  const kind = /\.tsx$/.test(fileName) ? ts.ScriptKind.TSX : ts.ScriptKind.TS;
+  // SPEED1000: קובץ JS נקרא כ-JS (המפקד מנרמל גם .mjs — lib/census-view.mjs); TS כמו קודם
+  const kind = /\.tsx$/.test(fileName) ? ts.ScriptKind.TSX : /\.[mc]?jsx?$/.test(fileName) ? ts.ScriptKind.JS : ts.ScriptKind.TS;
   const sf = ts.createSourceFile(fileName, text, ts.ScriptTarget.Latest, false, kind);
   const sc = ts.createScanner(ts.ScriptTarget.Latest, false, ts.LanguageVariant.Standard, text);
   const out = new Map();
@@ -65,14 +66,14 @@ const needsGap = (l, r) => (WORD.test(l) && WORD.test(r)) || (OP.test(l) && OP.t
  *   · סופי-השורה שבתוכה — כשהיא רב-שורתית (השורות נשמרות).
  * היה: רווח קבוע במקום ההערה ⇒ `x; // x` נתן `x;  ` ≠ `x;` ⇒ הוספת הערה בסוף שורה שינתה את הטביעה וכל הצינור רץ (38.7 שנ׳).
  */
-export function blankComments(text, fileName = 'x.ts') {
+export function blankComments(text, fileName = 'x.ts', keep = null) {
   const rs = commentRanges(text, fileName);
   if (!rs.length) return text;
   let out = ''; let at = 0;
   for (const [s, e] of rs) {
     if (s < at) continue;
     const c = text.slice(s, e);
-    if (KEEP.test(c)) continue;
+    if (KEEP.test(c) || (keep && keep(s, e, c))) continue; // keep — הערות שמי שקורא את הגרסה הזו כן משתמש בהן (census-view)
     let a = s; while (a > at && HSPACE.test(text[a - 1])) a--;
     let b = e; while (b < text.length && HSPACE.test(text[b])) b++;
     const l = a > 0 ? text[a - 1] : '\n'; const r = b < text.length ? text[b] : '\n';

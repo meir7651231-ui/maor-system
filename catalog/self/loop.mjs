@@ -40,7 +40,7 @@ import { execFileSync, spawnSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { syncBuiltinESMExports } from 'node:module';
 import crypto from 'node:crypto';
-import { gitIndex, fileSha } from '../lib/gitfp.mjs';
+import { gitIndex, gitIndexAsync, fileSha, readHead } from '../lib/gitfp.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '../..');
@@ -503,8 +503,17 @@ function scopeFiles(root) {
 export function wholeKey(root, opts, idx = gitIndex(root)) {
   return fpOf(MEMO_V, JSON.stringify(opts), ...envKey(root), ...scopeFiles(root).flatMap((f) => [f, fileSha(root, idx, f)]));
 }
-/** HEAD + האם רדוד — כמו historySource (אותו מקור-git). */
+/** HEAD + האם רדוד — כמו historySource (אותו מקור-git). מהיר: קריאה ישירה מ-.git (readHead + קובץ shallow), בלי תהליך. */
 function headOf(root) {
+  if (!process.env.SELF_LOOP_GIT) {
+    const head = readHead(root);
+    if (head) {
+      let gd = path.join(root, '.git');
+      try { if (fs.statSync(gd).isFile()) gd = path.resolve(root, /^gitdir: (.+)$/m.exec(fs.readFileSync(gd, 'utf8'))[1].trim()); let c = gd; try { c = path.resolve(gd, fs.readFileSync(path.join(gd, 'commondir'), 'utf8').trim()); } catch { /* */ } gd = c; } catch { /* */ }
+      const state = fs.existsSync(path.join(gd, 'shallow')) ? 'שכפול רדוד — רק הקומיטים שהורדו' : 'מלאה'; // = historySource
+      return { head, state, get H() { return historySource(root); } };
+    }
+  }
   const H = historySource(root);
   if (!H.G) return { head: null, state: H.state, H };
   return { head: String(git(H.G, ['rev-parse', 'HEAD']).stdout).trim(), state: H.state, H };
@@ -512,10 +521,12 @@ function headOf(root) {
 /** ההיסטוריה של כל קובץ-נבדק זהה לזו שב-P: P אב של HEAD, בלי מיזוג בדרך, ואף קומיט P..HEAD לא נגע בקבצים. */
 export function historySame(root, memo, history) {
   if (!history) return true;
-  const { head, state, H } = headOf(root);
+  const hh = headOf(root);
+  const { head, state } = hh;
   if (state !== memo.hstate) return false;
+  if (head && head === memo.head) return true; // אותו HEAD ⇒ אותה היסטוריה (בלי תהליך git)
+  const H = hh.H;
   if (!H.G) return memo.head == null;
-  if (head === memo.head) return true;
   if (!memo.head || git(H.G, ['merge-base', '--is-ancestor', memo.head, head]).status !== 0) return false;
   const log = git(H.G, ['log', '--format=%x01%P', '--name-only', '-m', memo.head + '..' + head]);
   if (log.status !== 0) return false;
@@ -528,9 +539,9 @@ export function historySame(root, memo, history) {
   return true;
 }
 /** שכבה 1 — שליפה. מחזיר {rows, hstate} או null. */
-export function wholeGet(root, opts) {
+export async function wholeGet(root, opts) {
   if (MEMO_OFF()) return null;
-  const idx = gitIndex(root);
+  const idx = await gitIndexAsync(root);
   const key = wholeKey(root, opts, idx);
   // (א) הזיכרון שבריפו — מצביע על הפנקס שבריפו (רק כשאין שורה שמחכה לבדיקה ⇒ הפנקס = שורות-התוכנית)
   try {
@@ -588,15 +599,16 @@ function makeRecorder(root) {
     return null;
   };
   const note = (p, dir) => { if (!stack.length) return; const r = relOf(p); if (r == null) return; for (const set of stack) set.add(dir ? r + '/' : r); };
-  const orig = {};
+  const orig = {}; let prevHook;
   const NAMES = [['readFileSync', false], ['existsSync', false], ['statSync', false], ['lstatSync', false], ['readdirSync', true]];
   return {
     start() {
       for (const [n, dir] of NAMES) { orig[n] = fs[n]; const f = orig[n]; fs[n] = function (p, ...rest) { note(p, dir); return f.call(this, p, ...rest); }; }
       syncBuiltinESMExports();
-      globalThis.__catalogBundleDeps = (deps) => { for (const d of deps) note(d, false); };
+      prevHook = globalThis.__catalogBundleDeps; // (מעקב-קריאות של בדיקות — lib/trace-reads.mjs — ממשיך לקבל)
+      globalThis.__catalogBundleDeps = (deps) => { for (const d of deps) note(d, false); prevHook?.(deps); };
     },
-    stop() { for (const [n] of NAMES) fs[n] = orig[n]; syncBuiltinESMExports(); delete globalThis.__catalogBundleDeps; },
+    stop() { for (const [n] of NAMES) fs[n] = orig[n]; syncBuiltinESMExports(); if (prevHook) globalThis.__catalogBundleDeps = prevHook; else delete globalThis.__catalogBundleDeps; },
     /** מריץ fn כשהקבוצה פתוחה (מקוננת: כל קבוצה פתוחה מקבלת). */
     async within(set, fn) { stack.push(set); try { return await fn(); } finally { stack.splice(stack.lastIndexOf(set), 1); } },
     /** תלויות של זיכרון-פנימי (נשלף בלי לקרוא שוב) ⇒ לכל הקבוצות הפתוחות. */
@@ -919,7 +931,7 @@ async function attempt(base, W, item, w, { quick }) {
 export async function loop({ root = ROOT, apply = false, quick = false, only = null, work = null, history = true } = {}) {
   const opts = { only, history };
   // ⚡ שכבה 1: כל ההיקף זהה ⇒ השורות מהזיכרון (רק כשאין שורה שמחכה לבדיקה על עותק — אחרת צריך את התור)
-  const w = wholeGet(root, opts);
+  const w = await wholeGet(root, opts);
   if (w && !w.rows.some((r) => r.decision === 'לבדיקה')) {
     const ledger = ledgerOf(w.rows, { quick, history: w.hstate });
     if (apply) { writeIfChanged(path.join(root, LEDGER), JSON.stringify(ledger, null, 1) + '\n'); }
@@ -1012,7 +1024,7 @@ async function main() {
   const only = val('--only') ? val('--only').split(',') : null;
   if (check) {
     const opts = { only, history: !argv.includes('--no-history') };
-    let rows = wholeGet(ROOT, opts)?.rows;
+    let rows = (await wholeGet(ROOT, opts))?.rows;
     if (!rows) { const p = await plan(ROOT, opts); rows = p.rows; wholePut(ROOT, opts, rows, p.H.state, p.subjectFiles); }
     const pending = rows.filter((r) => r.decision === 'לבדיקה');
     for (const r of pending) console.log('• ' + r.subject + ' — ' + r.found.join(' · '));

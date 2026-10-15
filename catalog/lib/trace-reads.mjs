@@ -25,6 +25,8 @@ if (DIR) {
     const f = fs[name];
     fs[name] = function (p, ...rest) { note(kind, p); return f.call(this, p, ...rest); };
   }
+  // ⚡ SPEED1000: האורז (rolldown) קורא בקוד מקורי — לא נראה כאן; מה שארז מדווח דרך הרשם (sandbox · bundle.mjs)
+  globalThis.__catalogBundleDeps = (deps) => { for (const d of deps) note('r', d); };
   const pr = fs.promises.readFile;
   fs.promises.readFile = function (p, ...rest) { note('r', p); return pr.call(this, p, ...rest); };
   syncBuiltinESMExports(); // `import { readFileSync } from 'node:fs'` מקבל את הגרסה העוקבת

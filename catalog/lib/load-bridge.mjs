@@ -13,6 +13,8 @@ export async function bundleBridge(entry = join(ROOT, 'catalog/lib/bridge.ts')) 
   const { rolldown } = await import('rolldown');
   const b = await rolldown({ input: entry, platform: 'node', logLevel: 'silent', resolve: { extensions: ['.ts', '.tsx', '.mjs', '.js', '.json'] } });
   const { output } = await b.generate({ format: 'esm' });
+  // ⚡ SPEED1000: מה שנארז — לרשם (מעקב-קריאות של בדיקות; rolldown קורא בקוד מקורי)
+  globalThis.__catalogBundleDeps?.((output[0].moduleIds ?? []).filter((id) => typeof id === 'string' && id.startsWith('/')));
   await b.close();
   const out = join(ROOT, 'node_modules/.cache/catalog/bridge.mjs');
   mkdirSync(dirname(out), { recursive: true });

@@ -42,6 +42,9 @@ export async function assemblyText(word, extras = []) {
   return JSON.stringify(productManifest(word, extras), null, 1) + '\n';
 }
 
+/** הקבצים שנארזו בהרצה הזו (מוחלטים). */
+export const BUNDLED = new Set();
+
 /** אורז: נקודת-כניסה וירטואלית שמייבאת כל חלק בשמו, ומייצאת PARTS + ASSEMBLY + זמן-הריצה. */
 export async function bundleText(assembly) {
   const { rolldown } = await import('rolldown');
@@ -62,6 +65,9 @@ export async function bundleText(assembly) {
   });
   try {
     const { output } = await b.generate({ format: 'esm', codeSplitting: false });
+    // ⚡ SPEED1000: מה שנארז — הבונה-מחדש טובע רק אותם (CATALOG_READS_OUT; לא משנה את הפלט)
+    for (const id of output[0].moduleIds ?? []) if (typeof id === 'string' && path.isAbsolute(id)) BUNDLED.add(id);
+    globalThis.__catalogBundleDeps?.([...BUNDLED]);
     const head = '// 📦 נוצר אוטומטית ע"י catalog/runtime/bundle.mjs מתוך ההרכבה של «' + assembly.word + '» — לא לערוך ביד.\n'
       + '// כל פונקציה כאן היא החלק המוכח עצמו, מהקוד המקורי (הליבות · אורביט · החלקים הפנימיים); זמן-הריצה רק מחבר.\n';
     return head + output[0].code;
@@ -89,5 +95,6 @@ if (process.argv[1] && process.argv[1].endsWith('bundle.mjs')) {
     const a = JSON.parse(aText);
     console.log('📦 ' + p.id + ' «' + p.word + '» · ' + a.counts.needs + ' צרכים (✅ ' + a.counts.proven + ' · פנימי ' + a.counts.inner + ' · 🧩 ' + a.counts.combo + ' · פתוח ' + a.counts.open + ') · ' + Math.round(bText.length / 1024) + 'KB');
   }
+  if (process.env.CATALOG_READS_OUT) fs.writeFileSync(process.env.CATALOG_READS_OUT, JSON.stringify([...BUNDLED].sort()));
   if (stale) process.exit(1);
 }

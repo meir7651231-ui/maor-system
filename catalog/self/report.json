@@ -1,30 +1,30 @@
 {
  "source": "machine",
- "ref": "catalog@339f510fd143",
+ "ref": "catalog@fd97c11fa838",
  "seed": 13269520,
  "generatedAt": null,
  "census": {
-  "files": 66,
-  "parts": 551
+  "files": 68,
+  "parts": 563
  },
  "parts": {
   "totals": {
-   "run": 347,
-   "runWithVerb": 70,
+   "run": 356,
+   "runWithVerb": 73,
    "twin": 0,
-   "static": 204,
-   "staticWithVerb": 18,
+   "static": 207,
+   "staticWithVerb": 19,
    "why": {
-    "no-fitting-input": 179,
+    "no-fitting-input": 182,
     "load-failed": 25
    }
   },
   "verbs": {
-   "format": 27,
+   "format": 28,
    "round": 12,
-   "validate": 11,
+   "validate": 12,
    "normalize": 10,
-   "provide": 7,
+   "provide": 8,
    "clamp": 6,
    "convert": 6,
    "fingerprint": 3,
@@ -129,9 +129,9 @@
     ]
    },
    {
-    "id": "machine:catalog/lib/gitfp.mjs#gitEnv",
+    "id": "machine:catalog/lib/census-view.mjs#isCensusViewable",
     "verbs": [
-     "provide 3/3"
+     "validate 24/24"
     ]
    },
    {
@@ -382,6 +382,12 @@
     ]
    },
    {
+    "id": "machine:catalog/scripts/rebuild.mjs#onWrote",
+    "verbs": [
+     "provide 3/3"
+    ]
+   },
+   {
     "id": "machine:catalog/scripts/rebuild.mjs#sameOut",
     "verbs": [
      "validate 24/24"
@@ -410,6 +416,18 @@
     "id": "machine:catalog/scripts/self-check.mjs#text",
     "verbs": [
      "format 15/15"
+    ]
+   },
+   {
+    "id": "machine:catalog/scripts/test-changed.mjs#fileOf",
+    "verbs": [
+     "format 15/15"
+    ]
+   },
+   {
+    "id": "machine:catalog/scripts/test-changed.mjs#head",
+    "verbs": [
+     "provide 3/3"
     ]
    },
    {
@@ -479,36 +497,36 @@
  },
  "inner": {
   "totals": {
-   "candidates": 3526,
-   "parts": 1465,
-   "run": 967,
-   "runWithVerb": 296,
+   "candidates": 3632,
+   "parts": 1485,
+   "run": 982,
+   "runWithVerb": 302,
    "twin": 0,
-   "static": 498,
+   "static": 503,
    "staticWithVerb": 254,
    "why": {
-    "no-fitting-input": 498
+    "no-fitting-input": 503
    }
   },
   "verbs": {
-   "format": 97,
+   "format": 102,
    "round": 71,
    "normalize": 48,
-   "convert": 37,
+   "convert": 38,
    "clamp": 32,
    "split": 19,
    "tier": 14,
    "validate": 14,
-   "personalize": 10,
-   "provide": 10,
+   "personalize": 11,
+   "provide": 11,
    "filter": 4,
    "gap": 4,
    "map": 4,
    "combine": 3,
+   "offset": 3,
    "compare": 2,
    "extreme": 2,
    "join": 2,
-   "offset": 2,
    "average": 1,
    "bucket": 1,
    "lookup": 1,

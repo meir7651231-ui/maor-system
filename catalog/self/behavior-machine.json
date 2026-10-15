@@ -1,19 +1,19 @@
 {
  "source": "machine",
- "ref": "catalog@339f510fd143",
+ "ref": "catalog@fd97c11fa838",
  "probe": {
   "version": 1,
   "seed": 13269520,
   "generatedAt": null
  },
  "totals": {
-  "run": 347,
-  "runWithVerb": 70,
+  "run": 356,
+  "runWithVerb": 73,
   "twin": 0,
-  "static": 204,
-  "staticWithVerb": 18,
+  "static": 207,
+  "staticWithVerb": 19,
   "why": {
-   "no-fitting-input": 179,
+   "no-fitting-input": 182,
    "load-failed": 25
   }
  },
@@ -2031,6 +2031,47 @@
    "traits": "in[]>fn const"
   },
   {
+   "id": "machine:catalog/lib/census-view.mjs#blankAll",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[str]>str"
+  },
+  {
+   "id": "machine:catalog/lib/census-view.mjs#censusView",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[str]>str"
+  },
+  {
+   "id": "machine:catalog/lib/census-view.mjs#isCensusViewable",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "validate",
+     "on": "*",
+     "holds": "24/24"
+    }
+   ],
+   "primary": "validate",
+   "material": "file",
+   "cases": 24
+  },
+  {
+   "id": "machine:catalog/lib/census-view.mjs#keptSpans",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[]>arr const"
+  },
+  {
    "id": "machine:catalog/lib/check.mjs#typeOf",
    "labeledBy": "run",
    "verbs": [],
@@ -2103,29 +2144,6 @@
    "verbs": [],
    "primary": null,
    "material": "record:buf",
-   "cases": 24,
-   "traits": "in[]>fn const"
-  },
-  {
-   "id": "machine:catalog/lib/gitfp.mjs#gitEnv",
-   "labeledBy": "run",
-   "verbs": [
-    {
-     "id": "provide",
-     "on": "*",
-     "holds": "3/3"
-    }
-   ],
-   "primary": "provide",
-   "material": "unknown",
-   "cases": 3
-  },
-  {
-   "id": "machine:catalog/lib/gitfp.mjs#run",
-   "labeledBy": "run",
-   "verbs": [],
-   "primary": null,
-   "material": "file",
    "cases": 24,
    "traits": "in[]>fn const"
   },
@@ -4624,6 +4642,15 @@
    "reason": "no-fitting-input"
   },
   {
+   "id": "machine:catalog/scripts/orbit-census.mjs#readSource",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "unknown",
+   "cases": 24,
+   "traits": "in[]>fn const"
+  },
+  {
    "id": "machine:catalog/scripts/orbit-census.mjs#refOf",
    "labeledBy": "static",
    "verbs": [],
@@ -4683,12 +4710,11 @@
   },
   {
    "id": "machine:catalog/scripts/orbit-census.mjs#verbify",
-   "labeledBy": "run",
+   "labeledBy": "static",
    "verbs": [],
    "primary": null,
    "material": "text",
-   "cases": 4,
-   "traits": "in[str]>str"
+   "reason": "no-fitting-input"
   },
   {
    "id": "machine:catalog/scripts/others-census.mjs#ENTITY_FROM_TYPE",
@@ -4894,6 +4920,35 @@
    "reason": "no-fitting-input"
   },
   {
+   "id": "machine:catalog/scripts/rebuild.mjs#CENSUS_VIEWABLE",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "record:rel",
+   "cases": 24,
+   "traits": "in[]>bool const"
+  },
+  {
+   "id": "machine:catalog/scripts/rebuild.mjs#RANK",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "text",
+   "cases": 24,
+   "traits": "in[str]>num int+",
+   "hash": "e18e0653-432066a5"
+  },
+  {
+   "id": "machine:catalog/scripts/rebuild.mjs#censusView",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[arr]>arr len~",
+   "hash": "29c0c071-c8ddb799"
+  },
+  {
    "id": "machine:catalog/scripts/rebuild.mjs#globRe",
    "labeledBy": "run",
    "verbs": [],
@@ -4917,6 +4972,15 @@
    "cases": 3
   },
   {
+   "id": "machine:catalog/scripts/rebuild.mjs#hasView",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "record:rel",
+   "cases": 24,
+   "traits": "in[]>bool const"
+  },
+  {
    "id": "machine:catalog/scripts/rebuild.mjs#isOutOf",
    "labeledBy": "static",
    "verbs": [],
@@ -4932,6 +4996,33 @@
    "material": "record:spec",
    "cases": 24,
    "traits": "in[obj]>obj rec:same"
+  },
+  {
+   "id": "machine:catalog/scripts/rebuild.mjs#onWrote",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "unknown",
+   "cases": 3
+  },
+  {
+   "id": "machine:catalog/scripts/rebuild.mjs#readDirs",
+   "labeledBy": "static",
+   "verbs": [
+    {
+     "id": "sample",
+     "by": "symbol"
+    }
+   ],
+   "primary": "sample",
+   "material": "record:read",
+   "reason": "no-fitting-input"
   },
   {
    "id": "machine:catalog/scripts/rebuild.mjs#sameOut",
@@ -5099,6 +5190,43 @@
    "material": "unknown",
    "cases": 24,
    "hash": "5e5eaa09-2f86f734"
+  },
+  {
+   "id": "machine:catalog/scripts/test-changed.mjs#fileOf",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "format",
+     "on": "key",
+     "holds": "15/15"
+    }
+   ],
+   "primary": "format",
+   "material": "text",
+   "cases": 24,
+   "hash": "ab856fba-5eeac9d7"
+  },
+  {
+   "id": "machine:catalog/scripts/test-changed.mjs#fp",
+   "labeledBy": "static",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "reason": "no-fitting-input"
+  },
+  {
+   "id": "machine:catalog/scripts/test-changed.mjs#head",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "text",
+   "cases": 3
   },
   {
    "id": "machine:catalog/self/loop-demo.mjs#rootGit",

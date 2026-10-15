@@ -82,15 +82,33 @@ const CARDS = [
 
 /* ═══════════════ קריאת קוד ═══════════════ */
 
+/**
+ * ⚡ SPEED1000: CENSUS_VIEW=1 ⇒ המפקד קורא את קובצי-הקוד **רק** דרך lib/census-view.mjs (בלי ההערות שלא משנות לו) — גם
+ * המהדר. הבונה-מחדש טובע את הקלט שלו כך; ההוכחה שזה מותר: במצב הזה `--check` יוצא זהה (ratchet: speed1000.test).
+ */
+// נטען רק מנקודת-הכניסה (שורת-הפקודה), לפני build() — שמנקה את מטמון-הקבצים. בלי ייבוא בראש-הקובץ: המפקד נטען גם בארגז-החול
+// של המפקד-העצמי (self-v2.test › E), וייבוא של blank.mjs משנה שם את עטיפת node:fs. DOMAIN (בטעינה) — רק שמות, לא הערות.
+let VIEW = null;
+async function loadView(mode) {
+  if (!mode) return;
+  const CV = await import(new URL('../lib/census-view.mjs', import.meta.url).href); // כתובת מחושבת — האורז לא מכניס את המודול לארגז-החול
+  VIEW = mode === '1' ? CV
+    // המוטנט (לבדיקה): בלי **שום** הערה — חייב לצאת שונה (המפקד באמת קורא הערות; census-view לא ריק מתוכן)
+    : mode === 'mutant-all' ? { censusView: (t, f) => (CV.isCensusViewable(f) ? CV.blankAll(t, f) : t) } : null;
+}
+const readSource = (p) => { const t = readFileSync(p, 'utf8'); return VIEW ? VIEW.censusView(t, p) : t; };
 const sfCache = new Map();
 /** תוכנית-מהדר אחת על כל הקבצים — רק כדי להסיק טיפוס-חזרה כשלא נכתב (הקוד לא רץ). */
 let program = null;
 let checker = null;
 function startProgram(files) {
-  program = ts.createProgram(files, {
+  const options = {
     target: ts.ScriptTarget.ES2023, module: ts.ModuleKind.ESNext, moduleResolution: ts.ModuleResolutionKind.Bundler, allowJs: true, checkJs: false,
     strict: true, noEmit: true, skipLibCheck: true, allowImportingTsExtensions: true, jsx: ts.JsxEmit.ReactJSX, types: [], lib: ['lib.es2023.d.ts', 'lib.dom.d.ts'],
-  });
+  };
+  let host;
+  if (VIEW) { host = ts.createCompilerHost(options); const read = host.readFile.bind(host); host.readFile = (f) => { const t = read(f); return t == null ? t : VIEW.censusView(t, f); }; }
+  program = ts.createProgram(files, options, host);
   checker = program.getTypeChecker();
 }
 function sourceOf(path) {
@@ -98,7 +116,7 @@ function sourceOf(path) {
   if (fromProgram) return fromProgram;
   if (!sfCache.has(path)) {
     const kind = path.endsWith('.mjs') || path.endsWith('.js') ? ts.ScriptKind.JS : ts.ScriptKind.TS;
-    sfCache.set(path, ts.createSourceFile(path, readFileSync(path, 'utf8'), ts.ScriptTarget.Latest, true, kind));
+    sfCache.set(path, ts.createSourceFile(path, readSource(path), ts.ScriptTarget.Latest, true, kind));
   }
   return sfCache.get(path);
 }
@@ -788,5 +806,5 @@ function main() {
   console.log(`הקטלוג: נכתבו ${parts.length} חלקים ל-${rel(OUT)}.`);
 }
 
-if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) main();
+if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) loadView(process.env.CENSUS_VIEW).then(main);
 export { NAME_VERBS };
