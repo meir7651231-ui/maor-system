@@ -337,3 +337,74 @@ export function pickGuided(jobs, cap) {
   }
   return out;
 }
+
+/* ═══════════════ GROW3 · תשואה, גיוון לפי פועל, סולם בלי עטיפות ═══════════════ */
+
+/**
+ * GROW3 · תשואה של עוגן = (חדשים+1)/(נבנו+2) — כמה מהחיבורים עליו נתנו התנהגות שלא הייתה על המדף. עוגן שנותן
+ * בעיקר כפולים יורד; עוגן שעוד לא נוסה = ½. דטרמיניסטי (רק מונים).
+ */
+export const yieldOf = (st) => ((st?.fresh || 0) + 1) / ((st?.built || 0) + 2);
+/** GROW3 · "כבר נוסה": אותה צורה + אותן טביעות של א וב (גם אם א או ב הוחלפו בתאום זול יותר) ⇒ אותה תוצאה. */
+export const fpPairKey = (name, A, B) => name + '(' + A.fp + (B ? ',' + B.fp : '') + ')';
+
+/**
+ * GROW3 · עוגנים לפי פועל (במקום 40 הטובים בעולם): לכל פועל — perVerb הדברים עם הערך הגבוה ביותר לפועל הזה
+ * (שם מיוחד = 2, אחרת קרבה לייחוס שלו), כפול התשואה. דבר שכבר נבחר לפועל אחר — מדלגים לבא בתור.
+ * cands: [{id, idx, vs:{verb:value}, st}] · מחזיר [{t, verb, eff}] בסדר קבוע (פועל ⇒ דירוג).
+ */
+export function anchorsByVerb(cands, { perVerb, min }) {
+  const byVerb = new Map();
+  for (const t of cands) for (const [v, x] of Object.entries(t.vs || {})) {
+    if (x < min) continue;
+    if (!byVerb.has(v)) byVerb.set(v, []);
+    byVerb.get(v).push({ t, eff: x * 2 * yieldOf(t.st) });
+  }
+  const out = []; const taken = new Set();
+  for (const v of [...byVerb.keys()].sort()) {
+    const l = byVerb.get(v).sort((a, b) => b.eff - a.eff || a.t.idx - b.t.idx);
+    let n = 0;
+    for (const a of l) { if (n >= perVerb) break; if (taken.has(a.t.id)) continue; taken.add(a.t.id); out.push({ t: a.t, verb: v, eff: a.eff }); n++; }
+  }
+  return out;
+}
+/**
+ * GROW3 · סבב-סבבים על עוגנים, כל אחד עם מחולל-עבודות עצל (next() ⇒ עבודה או null): בכל סבב עוגן לוקח 1–4 לפי
+ * eff היחסי שלו. עד cap. דטרמיניסטי.
+ */
+export function roundRobin(anchors, cap) {
+  const out = []; const done = anchors.map(() => false);
+  const top = Math.max(1e-9, ...anchors.map((a) => a.eff));
+  while (out.length < cap) {
+    let moved = false;
+    for (let i = 0; i < anchors.length && out.length < cap; i++) {
+      if (done[i]) continue;
+      const take = Math.max(1, Math.min(4, Math.round(4 * (anchors[i].eff / top))));
+      for (let t = 0; t < take && out.length < cap; t++) {
+        const j = anchors[i].next();
+        if (!j) { done[i] = true; break; }
+        out.push(j); moved = true;
+      }
+    }
+    if (!moved) break;
+  }
+  return out;
+}
+/**
+ * GROW3 · הסולם בלי עטיפות: קומה בסולם רק כשהדבר עושה פועל מיוחד שאין למרכיב-עם-השם שלו. "מסיר כפולים" מעל
+ * "מסיר כפולים" (הקלט הנוסף משפיע רק לפעמים) = אותה קומה. verbsOf(t) ⇒ הפעלים המיוחדים; childrenOf(t) ⇒ המרכיבים.
+ */
+export function ladderNoWrap(t, verbsOf, childrenOf, memo = new Map()) {
+  const mine = verbsOf(t);
+  if (!t || !mine.length) return 0;
+  if (memo.has(t.id)) return memo.get(t.id);
+  let h = 1;
+  for (const c of childrenOf(t)) {
+    const cv = verbsOf(c);
+    if (!cv.length) continue;
+    const hc = ladderNoWrap(c, verbsOf, childrenOf, memo);
+    h = Math.max(h, hc + (mine.every((v) => cv.includes(v)) ? 0 : 1));
+  }
+  memo.set(t.id, h);
+  return h;
+}

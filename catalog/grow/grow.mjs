@@ -14,6 +14,12 @@
  *   3. זבל לפני המדף: "רשימה של פריט אחד שחוזר" (lib.mjs › judge) — לא נכנס ולא בונים עליו.
  *   4. בדיקת-לחץ (lib.mjs › stressSamples: רשימות 40–500, מספרים עד 10^15, שליליים, כפולים): שיפור מחליף רק אם
  *      זהה גם שם; שם ניתן רק אם האמת עוברת גם בלחץ (או, בלי אמת, אם הדבר רץ בלחץ וזהה לייחוס כשהוא זהה לו בסט).
+ * GROW3 (15.10.2026) — אחרי GROW2 ("מבזבז על כפולים", "משווה לא קיבל בנייה מעליו"):
+ *   1. תשואה: עוגן שהחיבורים עליו נותנים בעיקר כפולים יורד (lib.mjs › yieldOf, מתעדכן בין גלים בתוך הקומה);
+ *      ולא בונים שוב זוג שכבר נוסה — אותה צורה + אותן טביעות של א וב (lib.mjs › fpPairKey, בשתי הריצות).
+ *   2. גיוון לפי פועל: במקום 40 הטובים בעולם — עד perVerb עוגנים לכל פועל (lib.mjs › anchorsByVerb), גם למועמדי
+ *      החוקים המלאים (סבב-סבבים לפי פועל). סולם בלי עטיפות של אותו פועל (lib.mjs › ladderNoWrap).
+ *   3. מדדים: פעלים שנבנו מחדש בדיוק (100% + לחץ) מחלקים אחרים · כפולים לכל קומה · הסולם בלי עטיפות.
  * ההרצה = שתי ריצות באותו תקציב: "random" (הבחירה של GROW) ו-"score" (החדשה) ⇒ compare.json; המדף והפנקס = score.
  *
  * קומה 0 — החלקים המוכחים שרצים כאן ⇒ טביעת-התנהגות על סט-קלטים קבוע. אותה טביעה = אותו "דבר" ⇒ נשאר רק הטוב.
@@ -43,7 +49,7 @@ const { WEAK, hasTruth, truthOf } = await import('./truth.mjs');
 export const LEDGER = path.join(HERE, 'ledger.json');
 export const COMPARE = path.join(HERE, 'compare.json');
 export const SHELF = path.join(HERE, 'shelf');
-const BUD = JSON.parse(fs.readFileSync(path.join(HERE, 'budget.json'), 'utf8'));
+const BUD = JSON.parse(fs.readFileSync(process.env.GROW_BUDGET || path.join(HERE, 'budget.json'), 'utf8')); // GROW_BUDGET = בדיקת-עשן בלבד
 
 /** סוג מוצהר של קלט-חלק ⇒ הסוגים בעולם שננסה. */
 const TRY = { num: ['num'], nums: ['nums'], pt: ['pt'], pts: ['pts'], list: ['nums', 'pts'], any: L.SEMS };
@@ -56,7 +62,7 @@ const BIG = ['tour', 'allot', 'schedule', 'shortest-path', 'spread', 'sun-headin
 export const WATCH = ['sort', 'extreme', 'count', 'dedupe', 'sum', 'average', 'tour', 'compare'];
 export const GENERIC = new Set(['convert', 'normalize', 'map', 'format', 'round', 'tier', 'clamp', 'ratio', 'gap', 'combine', 'offset', 'split', 'join']);
 /** ניקוד: שם מיוחד · זכות למרכיב ישיר / לנכד · "טוב" = לפחות זה · לבדוק חוקים מלאים מקרבה זו. */
-export const SCORE = { named: 2, creditChild: 1.2, creditGrand: 0.9, good: 0.5, nameAt: 0.5, top: 40, guided: 0.8, nameCap: 150 };
+export const SCORE = { named: 2, creditChild: 1.2, creditGrand: 0.9, verbMin: 0.4, perVerb: 4, partnerMin: 0.2, waves: 32, minWaves: 4, dupMax: 0.3, guided: 0.8, nameCap: 150 };
 
 const J = (v) => JSON.stringify(v);
 const idOf = (key) => L.fnv(key) + L.fnv('~' + key);
@@ -104,6 +110,12 @@ function closest(R, t, outs) {
     if (!best || c > best.c || (c === best.c && r.verb < best.verb)) best = { verb: r.verb, c };
   }
   return best;
+}
+/** GROW3 · הקרבה לכל פועל-ייחוס באותה חתימה: {verb: c}. */
+function closeAll(R, t, outs) {
+  const o = {};
+  for (const r of R.refs.get(sigKeyOf(t)) || []) { const c = L.closeness(R.samplesOf(t.sig), outs, r.outs); if (!(r.verb in o) || c > o[r.verb]) o[r.verb] = c; }
+  return o;
 }
 /** הפלטים של דבר על קלטי-הלחץ (מטמון לפי מפתח). */
 function stressOuts(R, t) {
@@ -192,6 +204,9 @@ export async function grow({ log = () => {}, mode = 'score' } = {}) {
   const replacements = [];
   const stressRejected = [];
   const builtKeys = new Set();
+  const triedFp = new Set(); // GROW3 · צורה + טביעות א,ב שכבר נוסו
+  const stats = new Map(); // GROW3 · עוגן ⇒ {built, fresh}
+  const pstats = new Map(); // GROW3 · שותף (לפי טביעה) ⇒ {built, fresh}
   let nextIdx = 0;
   const offer = (t, F, changed) => {
     const cur = shelf.get(t.fp);
@@ -209,15 +224,26 @@ export async function grow({ log = () => {}, mode = 'score' } = {}) {
   const junkOf = (F, why) => { F.junk[why] = (F.junk[why] || 0) + 1; };
   /** ניקוד (תיקון 1): קרבה ⇒ שם מיוחד ⇒ זכות למרכיבים. */
   const credit = (t, v) => { if (t && (t.score ?? 0) < v) t.score = v; };
+  /** GROW3 · ערך לפועל: t.vs[verb] = קרבה / שם מיוחד (2) / זכות כמרכיב. */
+  const creditV = (t, v, x) => { if (!t) return; t.vs ||= {}; if ((t.vs[v] ?? 0) < x) t.vs[v] = x; credit(t, x); };
   const scoreFloor = (fresh, F) => {
-    for (const t of fresh) { t.close = closest(R, t, t.outs); t.score = t.close ? t.close.c : 0; }
+    for (const t of fresh) { t.close = closest(R, t, t.outs); t.score = t.close ? t.close.c : 0; t.vs = closeAll(R, t, t.outs); }
     if (mode !== 'score') return;
-    const cand = fresh.filter((t) => t.close && t.close.c >= SCORE.nameAt).sort((a, b) => b.close.c - a.close.c || a.idx - b.idx).slice(0, SCORE.nameCap);
+    // GROW3 · מועמדים לחוקים המלאים — סבב-סבבים לפי פועל (לא רק הקרובים ביותר בעולם), כל פועל: הקרובים אליו קודם
+    const byVerb = new Map();
+    for (const t of fresh) for (const [v, c] of Object.entries(t.vs)) if (c >= SCORE.verbMin) { if (!byVerb.has(v)) byVerb.set(v, []); byVerb.get(v).push(t); }
+    const lists = [...byVerb.keys()].sort().map((v) => byVerb.get(v).sort((a, b) => b.vs[v] - a.vs[v] || a.idx - b.idx));
+    const cand = []; const seen = new Set();
+    for (let k = 0; cand.length < SCORE.nameCap && lists.some((l) => k < l.length); k++) for (const l of lists) if (k < l.length && !seen.has(l[k].id) && cand.length < SCORE.nameCap) { seen.add(l[k].id); cand.push(l[k]); }
     for (const t of cand) {
       Object.assign(t, nameThing(R, t)); F.namedDuring = (F.namedDuring || 0) + 1;
       if (!isSpecial(t)) continue;
       t.score = SCORE.named;
-      for (const c of t.of.map((id) => byKey.get(id))) { credit(c, SCORE.creditChild); for (const g of c?.of || []) credit(byKey.get(g), SCORE.creditGrand); }
+      for (const n of t.names) {
+        if (GENERIC.has(n.verb)) continue;
+        t.vs[n.verb] = SCORE.named;
+        for (const c of t.of.map((id) => byKey.get(id))) { creditV(c, n.verb, SCORE.creditChild); for (const g of c?.of || []) creditV(byKey.get(g), n.verb, SCORE.creditGrand); }
+      }
     }
   };
 
@@ -261,63 +287,100 @@ export async function grow({ log = () => {}, mode = 'score' } = {}) {
   for (let fl = 1; fl <= BUD.maxFloors; fl++) {
     const fresh = changed.filter((t) => shelf.get(t.fp) === t);
     const isNew = new Set(fresh.map((t) => t.idx));
-    const F = { floor: fl, seeds: fresh.length, candidates: 0, built: 0, guided: 0, budgetCut: 0, new: 0, replaced: 0, dup: 0, stressRejected: 0, junk: {} };
+    const F = { floor: fl, seeds: fresh.length, candidates: 0, built: 0, guided: 0, budgetCut: 0, new: 0, replaced: 0, dup: 0, dupBy: {}, sameTried: 0, stressRejected: 0, junk: {} };
     const cur = [...shelf.values()].sort((a, b) => a.idx - b.idx);
     const buckets = new Map();
     for (const t of cur) { const k = L.bucketKey(t.sig[0], t.sig.length, t.sig[1], isNew.has(t.idx)); if (!buckets.has(k)) buckets.set(k, []); buckets.get(k).push(t); }
     const { blocks, total: pairs } = L.pairBlocks(cur, (i) => isNew.has(i), buckets);
     const unary = [];
     for (const A of fresh) for (const [name, f] of ONE) { const ty = f.type(A); if (ty) unary.push([name, f, A, null, ty]); }
-    const jobs = [];
     const jobKey = (name, A, Bt) => name + '(' + A.id + (Bt ? ',' + Bt.id : '') + ')';
-    // תיקון 2 · לפי ניקוד: GUIDED מהתקציב לחיבורים שאחד מהם בין ה-TOP הטובים (גם ישנים — כדי לבנות מעל "משווה")
-    if (mode === 'score') {
-      const good = cur.filter((t) => (t.score ?? 0) >= SCORE.good).sort((a, b) => b.score - a.score || a.idx - b.idx).slice(0, SCORE.top);
-      const gj = [];
-      const push = (name, A, Bt, anchor, partner) => {
-        const f = L.FORMS[name]; const ty = Bt ? f.type(A, Bt) : f.type(A);
-        if (!ty) return;
-        const key = jobKey(name, A, Bt);
-        if (!builtKeys.has(key)) gj.push({ key, anchor: anchor.id, anchorScore: anchor.score, partnerScore: partner ? partner.score ?? 0 : anchor.score, job: [name, f, A, Bt, ty] });
-      };
-      for (const G of good) {
-        for (const [name] of ONE) push(name, G, null, G, null);
-        for (const X of cur) {
-          if (X === G) continue;
-          push('chain', G, X, G, X); push('chain', X, G, G, X);
-          push('pair', G, X, G, X); push('pair', X, G, G, X);
-        }
-      }
-      const picked = L.pickGuided(gj, Math.round(SCORE.guided * TOTAL));
-      for (const j of picked) jobs.push(j.job);
-      F.guided = picked.length;
-      F.candidates += gj.length;
-    }
-    const rest = TOTAL - jobs.length;
-    const pairCap = Math.round((rest * BUD.buildsPerFloor) / TOTAL);
-    for (const i of L.sampleIdx(pairs, pairCap, 0x6703 + fl)) {
-      const { block, B: Bt } = L.pairAt(blocks, i);
-      const f = L.FORMS[block.form]; const ty = f.type(block.A, Bt);
-      if (ty) jobs.push([block.form, f, block.A, Bt, ty]);
-    }
-    for (const i of L.sampleIdx(unary.length, rest - pairCap, 0x7531 + fl)) jobs.push(unary[i]);
-    F.candidates += pairs + unary.length;
     changed = [];
-    for (const [name, f, A, Bt, ty] of jobs) {
+    /** בונה עבודה אחת. GROW3: אותה צורה + אותן טביעות כבר נוסו ⇒ לא בונים שוב (בשתי הריצות); מונה-תשואה לעוגן. */
+    const buildOne = ([name, f, A, Bt, ty], anchor) => {
       const key = jobKey(name, A, Bt);
-      if (builtKeys.has(key)) continue;
-      builtKeys.add(key);
+      if (builtKeys.has(key)) return;
+      const fk = L.fpPairKey(name, A, Bt);
+      if (triedFp.has(fk)) { F.sameTried++; return; }
+      builtKeys.add(key); triedFp.add(fk);
+      const st = anchor ? (stats.get(anchor) || stats.set(anchor, { built: 0, fresh: 0 }).get(anchor)) : null;
+      // שותף (הצד שאינו העוגן) — גם לו מונה-תשואה: שותף שנותן רק כפולים עם כל עוגן ("סכום אחרי מיון = סכום") יוצא
+      const pt = anchor && Bt ? (A.id === anchor ? Bt : A) : null;
+      const ps = pt ? (pstats.get(pt.fp) || pstats.set(pt.fp, { built: 0, fresh: 0 }).get(pt.fp)) : null;
+      if (st) st.built++;
+      if (ps) ps.built++;
       const g = Bt ? f.graph(A, Bt) : f.graph(A);
       F.built++;
       const prob = graphProblem(g);
-      if (prob) { junkOf(F, 'חיווט: ' + prob.split(':')[0]); continue; }
+      if (prob) { junkOf(F, 'חיווט: ' + prob.split(':')[0]); return; }
       const t = { key, id: idOf(key), floor: fl, form: name, of: Bt ? [A.id, Bt.id] : [A.id], sig: ty.sig, graph: g, nParts: graphNodes(g).length };
       const m = measure(t);
-      if (m.junk) { junkOf(F, m.junk); continue; }
-      if (m.out !== ty.out) { junkOf(F, 'פלט בסוג אחר מהצפוי'); continue; }
+      if (m.junk) { junkOf(F, m.junk); return; }
+      if (m.out !== ty.out) { junkOf(F, 'פלט בסוג אחר מהצפוי'); return; }
       Object.assign(t, { out: m.out, fp: m.fp, steps: m.steps, outs: m.outs, ex: exampleOf(samplesOf(t.sig), m.outs) });
+      const before = F.new + F.replaced; const dup0 = F.dup;
       offer(t, F, changed);
+      if (st && F.new + F.replaced > before) st.fresh++;
+      if (ps && F.new + F.replaced > before) ps.fresh++;
+      if (F.dup > dup0) { const k = (anchor ? 'guided:' : 'random:') + name + (anchor && Bt ? (A.id === anchor ? '·א' : '·ב') : ''); F.dupBy[k] = (F.dupBy[k] || 0) + 1; }
+    };
+    // GROW3 · לפי ניקוד: עוגנים לפי פועל (מכסה לכל פועל) × תשואה, בגלים — אחרי כל גל התשואה מתעדכנת
+    if (mode === 'score') {
+      const G = Math.round(SCORE.guided * TOTAL);
+      // שותפים בסדר מפוזר (גיבוב לפי הקומה): "טוב עם טוב" נתן בעיקר כפולים (ממיין∘ממיין = ממיין)
+      const hs = new Map(cur.map((t) => [t.id, L.fnv(t.id + '|' + fl)]));
+      const order = [...cur].sort((a, b) => (hs.get(a.id) < hs.get(b.id) ? -1 : hs.get(a.id) > hs.get(b.id) ? 1 : a.idx - b.idx));
+      const used = new Set(); const usedVerbs = new Set();
+      for (let w = 0, done = 0; w < SCORE.waves && done < G; w++) {
+        const cap = Math.ceil((G - done) / (SCORE.waves - w));
+        for (const t of cur) t.st = stats.get(t.id);
+        const anchors = L.anchorsByVerb(cur, { perVerb: SCORE.perVerb, min: SCORE.verbMin });
+        const reserved = new Set();
+        const gens = anchors.map((a) => {
+          const A = a.t; let u = 0; let p = 0; let k = 0; const forms = ['chain', 'chain', 'pair', 'pair'];
+          const fresh = (name, x, y) => {
+            const f = L.FORMS[name]; const ty = y ? f.type(x, y) : f.type(x);
+            if (!ty) return null;
+            const key = jobKey(name, x, y); const fk = L.fpPairKey(name, x, y);
+            if (builtKeys.has(key) || triedFp.has(fk) || reserved.has(fk)) return null;
+            reserved.add(fk);
+            return { anchor: A.id, verb: a.verb, job: [name, f, x, y, ty] };
+          };
+          // קודם החד-מקומיים על העוגן, אחר-כך שותפים לפי הסדר (טובים ומפוזרים לסירוגין), בכל שותף: א∘ב · ב∘א · זוג · זוג-הפוך
+          return { eff: a.eff, next: () => {
+            while (u < ONE.length) { const j = fresh(ONE[u++][0], A, null); if (j) return j; }
+            while (p < order.length) {
+              const X = order[p]; const kk = k;
+              if (++k === 4) { k = 0; p++; }
+              if (X === A) continue;
+              const q = pstats.get(X.fp); if (q && L.yieldOf(q) < SCORE.partnerMin) continue;
+              const j = kk % 2 ? fresh(forms[kk], X, A) : fresh(forms[kk], A, X);
+              if (j) return j;
+            }
+            return null;
+          } };
+        });
+        const picked = L.roundRobin(gens, cap);
+        if (!picked.length) break;
+        const b0 = F.built; const d0 = F.dup;
+        for (const j of picked) { used.add(j.anchor); usedVerbs.add(j.verb); buildOne(j.job, j.anchor); }
+        done += picked.length; F.guided += picked.length;
+        // שומר-כפולים: גל שרובו כפולים ⇒ העוגנים מוצו בקומה הזו; יתרת התקציב חוזרת לבחירה האקראית
+        if (w >= SCORE.minWaves && F.built > b0 && (F.dup - d0) / (F.built - b0) > SCORE.dupMax) { F.guidedStop = 'גל ' + (w + 1) + ': ' + (F.dup - d0) + '/' + (F.built - b0) + ' כפולים'; break; }
+      }
+      F.anchors = used.size; F.anchorVerbs = usedVerbs.size;
     }
+    const rest = TOTAL - F.guided;
+    const pairCap = Math.round((rest * BUD.buildsPerFloor) / TOTAL);
+    const rjobs = [];
+    for (const i of L.sampleIdx(pairs, pairCap, 0x6703 + fl)) {
+      const { block, B: Bt } = L.pairAt(blocks, i);
+      const f = L.FORMS[block.form]; const ty = f.type(block.A, Bt);
+      if (ty) rjobs.push([block.form, f, block.A, Bt, ty]);
+    }
+    for (const i of L.sampleIdx(unary.length, rest - pairCap, 0x7531 + fl)) rjobs.push(unary[i]);
+    F.candidates += pairs + unary.length;
+    for (const j of rjobs) buildOne(j, null);
     F.budgetCut = F.candidates - F.built;
     scoreFloor(changed.filter((t) => shelf.get(t.fp) === t), F);
     F.shelf = shelf.size;
@@ -484,6 +547,32 @@ function metricsOf({ R, final, all, byKey, floors, improvements, stressRejected,
     grown[v] = g ? { pct: Math.round(100 * g.c), id: g.t.id, floor: g.t.floor, form: g.t.form, sig: sigKeyOf(g.t), example: g.t.ex } : { pct: null };
     best[v] = b ? { pct: Math.round(100 * b.c), id: b.t.id, floor: b.t.floor, form: b.t.form, sig: b.sig, named: verbsOf(b.t).includes(v), example: b.t.ex } : { pct: null, why: 'אין על המדף דבר בחתימה של הייחוס' };
   }
+  /* GROW3 · סולם בלי עטיפות של אותו פועל */
+  const spV = (t) => (t ? verbsOf(t).filter((v) => !GENERIC.has(v)).sort() : []);
+  const kids = (t) => t.of.map((id) => byKey.get(id));
+  const memo = new Map(); let topNW = null;
+  for (const t of final) { const d = L.ladderNoWrap(t, spV, kids, memo); if (!topNW || d > topNW.d || (d === topNW.d && t.idx < topNW.t.idx)) topNW = { d, t }; }
+  const chainNW = (t) => { const out = []; let x = t; while (x) { const h = memo.get(x.id); out.push({ id: x.id, floor: x.floor, form: x.form, verbs: spV(x), rung: h, example: x.ex }); x = kids(x).filter((c) => spV(c).length).sort((a, b) => (memo.get(b.id) ?? L.ladderNoWrap(b, spV, kids, memo)) - (memo.get(a.id) ?? 0) || a.idx - b.idx)[0]; } return out; };
+  /* GROW3 · פעלים שנבנו מחדש בדיוק: קומה ≥1, 100% מול הייחוס בסט, זהה לו גם בקלטי-הלחץ; "מחלקים אחרים" = אף מרכיב
+     (בכל העומק) אינו בעצמו 100% אותו פועל */
+  const exactTo = (t, v) => (R.refs.get(sigKeyOf(t)) || []).some((r) => r.verb === v && L.closeness(R.samplesOf(t.sig), t.outs, r.outs) === 1);
+  const descendants = (t, acc = []) => { for (const c of kids(t)) { acc.push(c); descendants(c, acc); } return acc; };
+  const exact = {};
+  for (const t of final) {
+    if (!t.floor) continue;
+    for (const r of R.refs.get(sigKeyOf(t)) || []) {
+      if (GENERIC.has(r.verb) || L.closeness(R.samplesOf(t.sig), t.outs, r.outs) !== 1) continue;
+      const st = L.stressCompare(R.stressOf(t.sig), stressOuts(R, t), r.stress);
+      if (!st.same) continue;
+      const e = (exact[r.verb] ||= { exact: 0, fromOthers: 0, best: null });
+      e.exact++;
+      if (descendants(t).some((d) => exactTo(d, r.verb))) continue;
+      e.fromOthers++;
+      if (!e.best || L.better(t, e.best.t) < 0) e.best = { t };
+    }
+  }
+  for (const e of Object.values(exact)) if (e.best) { const t = e.best.t; e.best = { id: t.id, floor: t.floor, form: t.form, sig: sigKeyOf(t), steps: t.steps, nodes: t.nParts, of: kids(t).map((c) => ({ id: c.id, floor: c.floor, form: c.form, ...(c.part ? { part: c.part } : {}), close: c.close ? c.close.verb + ':' + Math.round(100 * c.close.c) : null, verbs: spV(c) })), example: t.ex }; }
+  const exactSorted = Object.fromEntries(Object.keys(exact).sort().map((k) => [k, exact[k]]));
   const junk = {};
   for (const F of floors) for (const [k, n] of Object.entries(F.junk)) junk[k] = (junk[k] || 0) + n;
   const examples = onNamed.filter(isSpecial).slice(0, 12).map(entry);
@@ -500,6 +589,12 @@ function metricsOf({ R, final, all, byKey, floors, improvements, stressRejected,
     shelfOnCompare: onCompare.length,
     shelfOnCompareSpecial: onCompare.filter(isSpecial).length,
     ladder: top ? { height: top.d, chain: chainOf(top.t) } : { height: special.length ? 1 : 0 },
+    ladderNoWrap: topNW && topNW.d > 1 ? { height: topNW.d, chain: chainNW(topNW.t) } : { height: topNW ? topNW.d : 0 },
+    exactRebuilt: exactSorted,
+    exactFromOthers: Object.values(exact).filter((e) => e.fromOthers).length,
+    compareExactGrew: !!exact.compare?.exact,
+    dupByFloor: floors.filter((F) => F.floor > 0).map((F) => ({ floor: F.floor, built: F.built, new: F.new, replaced: F.replaced, dup: F.dup, pct: F.built ? Math.round((100 * F.dup) / F.built) : 0, sameTried: F.sameTried, junk: sumJunk(F) })),
+    dupRate: (() => { const b = floors.reduce((a, F) => a + (F.floor ? F.built : 0), 0); const d = floors.reduce((a, F) => a + (F.floor ? F.dup : 0), 0); return b ? Math.round((1000 * d) / b) / 10 : 0; })(),
     bestMatch: best,
     bestGrown: grown,
     junk, junkTotal: Object.values(junk).reduce((a, b) => a + b, 0),
@@ -531,7 +626,7 @@ export async function growBoth({ log = () => {} } = {}) {
   const rnd = await grow({ log, mode: 'random' });
   const sc = await grow({ log, mode: 'score' });
   const compare = {
-    about: 'GROW2 — אותו תקציב (budget.json), אותם תיקונים 3+4 (זבל לפני המדף, בדיקת-לחץ); ההבדל היחיד = הבחירה: random (דגימה אקראית מהמועמדים, כמו GROW) מול score (הטובים קודם, ' + Math.round(100 * SCORE.guided) + '% מהתקציב). נבנה ע״י grow.mjs — לא לערוך ביד',
+    about: 'GROW3 — אותו תקציב (budget.json), אותם תיקונים (זבל לפני המדף, בדיקת-לחץ, לא-בונים-פעמיים-אותן-טביעות); ההבדל היחיד = הבחירה: random (דגימה אקראית מהמועמדים, כמו GROW) מול score (עוגנים לפי פועל × תשואה, בגלים, ' + Math.round(100 * SCORE.guided) + '% מהתקציב). נבנה ע״י grow.mjs — לא לערוך ביד',
     budget: BUD, score: SCORE, watch: WATCH,
     random: rnd.metrics, scored: sc.metrics,
   };
