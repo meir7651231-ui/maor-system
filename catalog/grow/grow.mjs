@@ -214,7 +214,7 @@ export async function grow({ log = () => {}, mode = 'score' } = {}) {
     if (L.better(t, cur) < 0) {
       // GROW2 · לחץ: "אותה טביעה" על הסט הקבוע לא מספיקה — חייב להיות זהה גם על קלטי-הלחץ
       const c = L.stressCompare(R.stressOf(t.sig), stressOuts(R, t), stressOuts(R, cur));
-      if (!c.same) { F.stressRejected++; stressRejected.push({ floor: t.floor, fp: t.fp, sig: sigKeyOf(t), old: { id: cur.id, floor: cur.floor, steps: cur.steps }, now: { id: t.id, form: t.form, steps: t.steps }, ran: c.ran + '/' + c.n, ...(c.differ ? { differ: c.differ } : {}) }); return; }
+      if (!c.same) { F.stressRejected++; stressRejected.push({ floor: t.floor, fp: t.fp, sig: sigKeyOf(t), old: { id: cur.id, floor: cur.floor, steps: cur.steps }, now: { id: t.id, form: t.form, steps: t.steps }, ran: c.ran + '/' + c.n, ...(c.differ ? { differ: frac6(c.differ) } : {}) }); return; } // לתצוגה: שברים ב-6 ספרות (עשרוני ארוך נראה כמו מספר-זהות)
       t.idx = nextIdx++; shelf.set(t.fp, t); all.push(t); byKey.set(t.id, t); changed.push(t); F.replaced++;
       replacements.push({ floor: t.floor, fp: t.fp, sig: sigKeyOf(t), old: { id: cur.id, floor: cur.floor, form: cur.form, steps: cur.steps, nodes: cur.nParts }, now: { id: t.id, floor: t.floor, form: t.form, steps: t.steps, nodes: t.nParts }, why: cur.steps > t.steps ? 'פחות צעדים: ' + cur.steps + ' ⇒ ' + t.steps : 'אותם צעדים, פחות צמתים: ' + cur.nParts + ' ⇒ ' + t.nParts });
       return;
@@ -612,6 +612,13 @@ function exampleOf(S, outs) {
   let k = S.findIndex((a, i) => outs[i] !== null && a.every((x) => !Array.isArray(x) || x.length >= 3));
   if (k < 0) k = outs.findIndex((o) => o !== null);
   return { in: show(S[k]), out: show(outs[k]) };
+}
+/** GROW3 · לתצוגה בדוגמאות-הדחייה: שברים ⇒ 6 ספרות (1.05966649745 ⇒ piiLeak); שלם ≥ 10^8 ⇒ כתיב-מעריך (274877906 ⇒ piiLeak). */
+function frac6(v) {
+  if (typeof v === 'number') return !Number.isInteger(v) ? show(v) : Math.abs(v) >= 1e8 ? v.toExponential(6) : v; // שלם ארוך ⇒ '2.748779e+8'
+  if (Array.isArray(v)) return v.map(frac6);
+  if (v && typeof v === 'object') return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, frac6(x)]));
+  return v;
 }
 /** לתצוגה בלבד: 6 ספרות משמעותיות ועד 6 אחרי הנקודה (טביעה = 12 — lib.mjs › canon). */
 function show(v) {

@@ -1,10 +1,10 @@
 {
- "about": "GROW2 — אותו תקציב (budget.json), אותם תיקונים 3+4 (זבל לפני המדף, בדיקת-לחץ); ההבדל היחיד = הבחירה: random (דגימה אקראית מהמועמדים, כמו GROW) מול score (הטובים קודם, 80% מהתקציב). נבנה ע״י grow.mjs — לא לערוך ביד",
+ "about": "GROW3 — אותו תקציב (budget.json), אותם תיקונים (זבל לפני המדף, בדיקת-לחץ, לא-בונים-פעמיים-אותן-טביעות); ההבדל היחיד = הבחירה: random (דגימה אקראית מהמועמדים, כמו GROW) מול score (עוגנים לפי פועל × תשואה, בגלים, 80% מהתקציב). נבנה ע״י grow.mjs — לא לערוך ביד",
  "budget": {
-  "about": "התקציב המוצהר של מנוע-הצמיחה (catalog/grow/grow.mjs). GROW2: ריצה קטנה — אותו תקציב לשתי הריצות (random מול score). maxFloors = כמה קומות מעל קומה 0 לכל היותר · buildsPerFloor + unaryPerFloor = כמה חיבורים נבנים בקומה (זוגות chain/pair + חד-מקומיים map/mapc/fold/fix; ב-score ‏80% מהסך הולכים לחיבורים מעל הטובים והשאר מתחלק באותו יחס) · callSteps = תקרת-צעדים לקריאה אחת לחלק (lib/steps.mjs) · thingSteps = תקרת-צעדים לדבר אחד על כל סט-הקלטים (מעבר ⇒ זבל 'כבד מדי'; וגם לקלט-לחץ אחד) · nameSteps = תקרת-צעדים לבדיקת-החוקים של דבר אחד",
-  "maxFloors": 3,
-  "buildsPerFloor": 1500,
-  "unaryPerFloor": 500,
+  "about": "התקציב המוצהר של מנוע-הצמיחה (catalog/grow/grow.mjs). GROW3: התקציב של GROW הראשון (4 × 6,000 + 2,000) — אותו תקציב לשתי הריצות (random מול score). maxFloors = כמה קומות מעל קומה 0 לכל היותר · buildsPerFloor + unaryPerFloor = כמה חיבורים נבנים בקומה (זוגות chain/pair + חד-מקומיים map/mapc/fold/fix; ב-score ‏80% מהסך הולכים לחיבורים מעל עוגנים לפי פועל (בגלים, לפי תשואה) והשאר מתחלק באותו יחס) · callSteps = תקרת-צעדים לקריאה אחת לחלק (lib/steps.mjs) · thingSteps = תקרת-צעדים לדבר אחד על כל סט-הקלטים (מעבר ⇒ זבל 'כבד מדי'; וגם לקלט-לחץ אחד) · nameSteps = תקרת-צעדים לבדיקת-החוקים של דבר אחד",
+  "maxFloors": 4,
+  "buildsPerFloor": 6000,
+  "unaryPerFloor": 2000,
   "callSteps": 500000,
   "thingSteps": 2000000,
   "nameSteps": 2000000
@@ -13,9 +13,12 @@
   "named": 2,
   "creditChild": 1.2,
   "creditGrand": 0.9,
-  "good": 0.5,
-  "nameAt": 0.5,
-  "top": 40,
+  "verbMin": 0.4,
+  "perVerb": 4,
+  "partnerMin": 0.2,
+  "waves": 32,
+  "minWaves": 4,
+  "dupMax": 0.3,
   "guided": 0.8,
   "nameCap": 150
  },
@@ -30,14 +33,14 @@
   "compare"
  ],
  "random": {
-  "built": 16295,
-  "shelf": 5067,
-  "namedSpecial": 53,
-  "namedSpecialGrown": 21,
+  "built": 40795,
+  "shelf": 23157,
+  "namedSpecial": 122,
+  "namedSpecialGrown": 90,
   "specialBy": {
-   "compare": 19,
-   "filter": 14,
-   "count": 5,
+   "compare": 64,
+   "filter": 28,
+   "count": 15,
    "rotate": 4,
    "sort": 3,
    "dedupe": 2,
@@ -46,20 +49,20 @@
    "extreme": 1,
    "sum": 1
   },
-  "everOnNamed": 132,
-  "shelfOnNamed": 132,
-  "shelfOnNamedSpecial": 10,
-  "shelfOnCompare": 31,
-  "shelfOnCompareSpecial": 2,
+  "everOnNamed": 480,
+  "shelfOnNamed": 478,
+  "shelfOnNamedSpecial": 37,
+  "shelfOnCompare": 152,
+  "shelfOnCompareSpecial": 18,
   "ladder": {
-   "height": 2,
+   "height": 4,
    "chain": [
     {
-     "id": "e03c89fdd0121189",
-     "floor": 1,
-     "form": "chain",
+     "id": "ab8ce60ea5f86cea",
+     "floor": 4,
+     "form": "pair",
      "verbs": [
-      "compare"
+      "filter"
      ],
      "example": {
       "in": [
@@ -76,15 +79,15 @@
         5
        ]
       ],
-      "out": -0.125
+      "out": []
      }
     },
     {
-     "id": "36cae3451ec4b581",
-     "floor": 0,
-     "form": "part",
+     "id": "ee25a740f37da8c4",
+     "floor": 3,
+     "form": "chain",
      "verbs": [
-      "compare"
+      "filter"
      ],
      "example": {
       "in": [
@@ -101,11 +104,195 @@
         5
        ]
       ],
-      "out": -2
+      "out": []
+     }
+    },
+    {
+     "id": "ac42b26b6275b70f",
+     "floor": 1,
+     "form": "chain",
+     "verbs": [
+      "filter"
+     ],
+     "example": {
+      "in": [
+       [
+        3,
+        3,
+        3
+       ],
+       [
+        10,
+        -2,
+        8,
+        -2,
+        5
+       ]
+      ],
+      "out": []
+     }
+    },
+    {
+     "id": "a82e6418c82ba944",
+     "floor": 0,
+     "form": "part",
+     "verbs": [
+      "filter"
+     ],
+     "example": {
+      "in": [
+       [
+        3,
+        3,
+        3
+       ],
+       [
+        10,
+        -2,
+        8,
+        -2,
+        5
+       ]
+      ],
+      "out": []
      }
     }
    ]
   },
+  "ladderNoWrap": {
+   "height": 2,
+   "chain": [
+    {
+     "id": "fd548bc0a7620d14",
+     "floor": 1,
+     "form": "pair",
+     "verbs": [
+      "compare"
+     ],
+     "rung": 2,
+     "example": {
+      "in": [
+       [
+        3,
+        3,
+        3
+       ],
+       [
+        10,
+        -2,
+        8,
+        -2,
+        5
+       ]
+      ],
+      "out": 0.01
+     }
+    },
+    {
+     "id": "0ce602d9666a323d",
+     "floor": 0,
+     "form": "part",
+     "verbs": [
+      "sum"
+     ],
+     "rung": 1,
+     "example": {
+      "in": [
+       [
+        3,
+        1,
+        2
+       ]
+      ],
+      "out": 6
+     }
+    }
+   ]
+  },
+  "exactRebuilt": {
+   "compare": {
+    "exact": 1,
+    "fromOthers": 1,
+    "best": {
+     "id": "611447520a649fbe",
+     "floor": 1,
+     "form": "chain",
+     "sig": "num,num>num",
+     "steps": 32,
+     "nodes": 2,
+     "of": [
+      {
+       "id": "01503fa79ed128b3",
+       "floor": 0,
+       "form": "part",
+       "part": "inner-generator:gen/looks/app/src/10-ui.js#ring.r",
+       "close": "compare:19",
+       "verbs": []
+      },
+      {
+       "id": "b523e4cd9d4c9739",
+       "floor": 0,
+       "form": "part",
+       "part": "inner-orbit:src/lib/atoms/parts/divide.ts#divideAmount.sign:step",
+       "close": null,
+       "verbs": []
+      }
+     ],
+     "example": {
+      "in": [
+       0,
+       2
+      ],
+      "out": -1
+     }
+    }
+   }
+  },
+  "exactFromOthers": 1,
+  "compareExactGrew": true,
+  "dupByFloor": [
+   {
+    "floor": 1,
+    "built": 6483,
+    "new": 5407,
+    "replaced": 32,
+    "dup": 383,
+    "pct": 6,
+    "sameTried": 0,
+    "junk": 645
+   },
+   {
+    "floor": 2,
+    "built": 8000,
+    "new": 6263,
+    "replaced": 3,
+    "dup": 169,
+    "pct": 2,
+    "sameTried": 0,
+    "junk": 1558
+   },
+   {
+    "floor": 3,
+    "built": 8000,
+    "new": 5677,
+    "replaced": 2,
+    "dup": 101,
+    "pct": 1,
+    "sameTried": 0,
+    "junk": 2218
+   },
+   {
+    "floor": 4,
+    "built": 8000,
+    "new": 5418,
+    "replaced": 2,
+    "dup": 140,
+    "pct": 2,
+    "sameTried": 0,
+    "junk": 2440
+   }
+  ],
+  "dupRate": 2.6,
   "bestMatch": {
    "sort": {
     "pct": 100,
@@ -206,10 +393,10 @@
     }
    },
    "average": {
-    "pct": 27,
-    "id": "ead6e72176152ea5",
-    "floor": 0,
-    "form": "part",
+    "pct": 36,
+    "id": "393afd0035e8ebfc",
+    "floor": 1,
+    "form": "chain",
     "sig": "nums>num",
     "named": false,
     "example": {
@@ -228,12 +415,12 @@
     "why": "אין על המדף דבר בחתימה של הייחוס"
    },
    "compare": {
-    "pct": 63,
-    "id": "7cafa139f556cdcd",
+    "pct": 100,
+    "id": "611447520a649fbe",
     "floor": 1,
     "form": "chain",
     "sig": "num,num>num",
-    "named": false,
+    "named": true,
     "example": {
      "in": [
       0,
@@ -245,10 +432,10 @@
   },
   "bestGrown": {
    "sort": {
-    "pct": 36,
-    "id": "a0c0066d289a2421",
+    "pct": 73,
+    "id": "eaa5c9879a8271d3",
     "floor": 1,
-    "form": "map",
+    "form": "chain",
     "sig": "nums>nums",
     "example": {
      "in": [
@@ -259,16 +446,16 @@
       ]
      ],
      "out": [
-      3,
       1,
-      2
+      2,
+      3
      ]
     }
    },
    "extreme": {
-    "pct": 64,
-    "id": "ee9c42b706348603",
-    "floor": 3,
+    "pct": 45,
+    "id": "7594226a0c2ccb7e",
+    "floor": 1,
     "form": "chain",
     "sig": "nums>num",
     "example": {
@@ -279,12 +466,12 @@
        2
       ]
      ],
-     "out": 3
+     "out": 2
     }
    },
    "count": {
-    "pct": 73,
-    "id": "740ceac7bc690303",
+    "pct": 82,
+    "id": "d98762f952b9455d",
     "floor": 1,
     "form": "chain",
     "sig": "nums>num",
@@ -321,8 +508,8 @@
     }
    },
    "sum": {
-    "pct": 45,
-    "id": "ae5f7da80904b12c",
+    "pct": 91,
+    "id": "7bf1d2a5682ac4b9",
     "floor": 1,
     "form": "chain",
     "sig": "nums>num",
@@ -338,8 +525,8 @@
     }
    },
    "average": {
-    "pct": 27,
-    "id": "1b71337837db4494",
+    "pct": 36,
+    "id": "393afd0035e8ebfc",
     "floor": 1,
     "form": "chain",
     "sig": "nums>num",
@@ -358,8 +545,8 @@
     "pct": null
    },
    "compare": {
-    "pct": 63,
-    "id": "7cafa139f556cdcd",
+    "pct": 100,
+    "id": "611447520a649fbe",
     "floor": 1,
     "form": "chain",
     "sig": "num,num>num",
@@ -373,20 +560,137 @@
    }
   },
   "junk": {
-   "לא רץ על רוב הקלטים": 7244,
-   "תמיד רשימה ריקה": 341,
-   "רשימה של פריט אחד שחוזר": 87,
-   "מתעלם מקלט": 690,
-   "מחזיר את הקלט כמו שהוא": 402,
-   "תמיד אותו פלט": 1843,
+   "לא רץ על רוב הקלטים": 7681,
+   "תמיד רשימה ריקה": 365,
+   "רשימה של פריט אחד שחוזר": 396,
+   "מתעלם מקלט": 3064,
+   "מחזיר את הקלט כמו שהוא": 429,
+   "תמיד אותו פלט": 4478,
    "פלט מעורב": 11
   },
-  "junkTotal": 10618,
-  "junkUniform": 87,
-  "stressRejected": 6,
+  "junkTotal": 16424,
+  "junkUniform": 396,
+  "stressRejected": 25,
   "improvements": 2,
   "wrongImprovements": 0,
   "examplesOnNamed": [
+   {
+    "id": "fd548bc0a7620d14",
+    "floor": 1,
+    "form": "pair",
+    "formHe": "זוג ב(א(x),א(y))",
+    "of": [
+     "0ce602d9666a323d",
+     "7101c75895095d1c"
+    ],
+    "sig": "nums,nums>num",
+    "steps": 160,
+    "nodes": 3,
+    "parts": [
+     "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+     "inner-orbit:src/components/parnasa/Ambient.tsx#GoldDust.useEffect.loop.dt"
+    ],
+    "does": "משווה",
+    "verbs": [
+     "compare"
+    ],
+    "fp": "0077ea6b",
+    "example": {
+     "in": [
+      [
+       3,
+       3,
+       3
+      ],
+      [
+       10,
+       -2,
+       8,
+       -2,
+       5
+      ]
+     ],
+     "out": 0.01
+    }
+   },
+   {
+    "id": "bbb975f8e4c63344",
+    "floor": 1,
+    "form": "pair",
+    "formHe": "זוג ב(א(x),א(y))",
+    "of": [
+     "0ce602d9666a323d",
+     "e624c59bf3883077"
+    ],
+    "sig": "nums,nums>num",
+    "steps": 160,
+    "nodes": 3,
+    "parts": [
+     "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+     "inner-orbit:src/components/parnasa/bannerFx.ts#pbRipple.step.q"
+    ],
+    "does": "משווה",
+    "verbs": [
+     "compare"
+    ],
+    "fp": "a12f12e0",
+    "example": {
+     "in": [
+      [
+       3,
+       3,
+       3
+      ],
+      [
+       10,
+       -2,
+       8,
+       -2,
+       5
+      ]
+     ],
+     "out": 0.007143
+    }
+   },
+   {
+    "id": "813b0ac7a84284d3",
+    "floor": 1,
+    "form": "pair",
+    "formHe": "זוג ב(א(x),א(y))",
+    "of": [
+     "0ce602d9666a323d",
+     "c58687ee707c604a"
+    ],
+    "sig": "nums,nums>num",
+    "steps": 160,
+    "nodes": 3,
+    "parts": [
+     "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+     "inner-orbit:src/components/parnasa/sheetFx.ts#mountSheet.anim.f.dt"
+    ],
+    "does": "משווה",
+    "verbs": [
+     "compare"
+    ],
+    "fp": "87a427af",
+    "example": {
+     "in": [
+      [
+       3,
+       3,
+       3
+      ],
+      [
+       10,
+       -2,
+       8,
+       -2,
+       5
+      ]
+     ],
+     "out": 0.01
+    }
+   },
    {
     "id": "e03c89fdd0121189",
     "floor": 1,
@@ -491,6 +795,114 @@
       ]
      ],
      "out": -1.5
+    }
+   },
+   {
+    "id": "ed1bdcb871fbdde4",
+    "floor": 1,
+    "form": "chain",
+    "formHe": "שרשרת ב(א)",
+    "of": [
+     "4212e0ebef551547",
+     "04b0fbbdf46adce9"
+    ],
+    "sig": "pts,pts>num",
+    "steps": 32,
+    "nodes": 2,
+    "parts": [
+     "inner-generator:machtzev/census/engine-index.mjs#find.blind:step",
+     "inner-orbit:src/components/parnasa/coinFx.ts#cnRim.a"
+    ],
+    "does": "משווה",
+    "verbs": [
+     "compare"
+    ],
+    "fp": "f27eb22f",
+    "example": {
+     "in": [
+      [
+       {
+        "x": 1,
+        "y": 1
+       },
+       {
+        "x": 1,
+        "y": 1
+       },
+       {
+        "x": 5,
+        "y": 5
+       }
+      ],
+      [
+       {
+        "x": 12,
+        "y": 3
+       },
+       {
+        "x": 2,
+        "y": 14
+       },
+       {
+        "x": 7,
+        "y": 7
+       },
+       {
+        "x": 30,
+        "y": 1
+       },
+       {
+        "x": 0,
+        "y": 22
+       },
+       {
+        "x": 18,
+        "y": 18
+       }
+      ]
+     ],
+     "out": -36
+    }
+   },
+   {
+    "id": "68e0353ef0f2d29a",
+    "floor": 1,
+    "form": "chain",
+    "formHe": "שרשרת ב(א)",
+    "of": [
+     "065bf2adaa581429",
+     "1b90c2139af9046f"
+    ],
+    "sig": "nums,num>nums",
+    "steps": 95,
+    "nodes": 2,
+    "parts": [
+     "inner-generator:machtzev/ds-wear.mjs#constScope.line",
+     "inner-orbit:src/lib/config.ts#normalizeTelephony.officeDays:step"
+    ],
+    "does": "מסנן",
+    "verbs": [
+     "filter"
+    ],
+    "close": {
+     "verb": "transcript",
+     "pct": 0
+    },
+    "fp": "d30ce679",
+    "example": {
+     "in": [
+      [
+       3,
+       1,
+       2
+      ],
+      4
+     ],
+     "out": [
+      1,
+      2,
+      3
+     ]
     }
    },
    {
@@ -600,6 +1012,82 @@
     }
    },
    {
+    "id": "3bd1c8bffa8d36cb",
+    "floor": 1,
+    "form": "chain",
+    "formHe": "שרשרת ב(א)",
+    "of": [
+     "763fdee569272621",
+     "1b90c2139af9046f"
+    ],
+    "sig": "nums,num>nums",
+    "steps": 48,
+    "nodes": 2,
+    "parts": [
+     "inner-generator:machtzev/purify-dart.mjs#purifyFile.defAndAfter:step",
+     "inner-orbit:src/lib/config.ts#normalizeTelephony.officeDays:step"
+    ],
+    "does": "מסנן",
+    "verbs": [
+     "filter"
+    ],
+    "close": {
+     "verb": "transcript",
+     "pct": 0
+    },
+    "fp": "c1b93ab8",
+    "example": {
+     "in": [
+      [
+       3,
+       1,
+       2
+      ],
+      4
+     ],
+     "out": []
+    }
+   },
+   {
+    "id": "875d768403e79fc8",
+    "floor": 1,
+    "form": "pair",
+    "formHe": "זוג ב(א(x),א(y))",
+    "of": [
+     "4aa9a068d5e7b3b4",
+     "7101c75895095d1c"
+    ],
+    "sig": "nums,nums>num",
+    "steps": 160,
+    "nodes": 3,
+    "parts": [
+     "inner-generator:new/boxes/lib-nedarim-sync.mjs#modeStr.best:after-loop",
+     "inner-orbit:src/components/parnasa/Ambient.tsx#GoldDust.useEffect.loop.dt"
+    ],
+    "does": "משווה",
+    "verbs": [
+     "compare"
+    ],
+    "fp": "9921fdbd",
+    "example": {
+     "in": [
+      [
+       3,
+       3,
+       3
+      ],
+      [
+       10,
+       -2,
+       8,
+       -2,
+       5
+      ]
+     ],
+     "out": -0.005
+    }
+   },
+   {
     "id": "ea0d166cd8fc3018",
     "floor": 1,
     "form": "pair",
@@ -637,241 +1125,41 @@
      ],
      "out": []
     }
-   },
-   {
-    "id": "ba4b9f68527a7ec4",
-    "floor": 1,
-    "form": "chain",
-    "formHe": "שרשרת ב(א)",
-    "of": [
-     "50494193aa8a430f",
-     "a82e6418c82ba944"
-    ],
-    "sig": "nums,nums>nums",
-    "steps": 73,
-    "nodes": 2,
-    "parts": [
-     "inner-generator:new/boxes/vcard-import.mjs#phoneLabel.inner",
-     "inner-orbit:src/lib/widgetLayout.ts#sanitizeIds.out:after-loop"
-    ],
-    "does": "מסנן",
-    "verbs": [
-     "filter"
-    ],
-    "fp": "9a60214d",
-    "example": {
-     "in": [
-      [
-       3,
-       3,
-       3
-      ],
-      [
-       10,
-       -2,
-       8,
-       -2,
-       5
-      ]
-     ],
-     "out": []
-    }
-   },
-   {
-    "id": "78b60467c3ee7513",
-    "floor": 1,
-    "form": "chain",
-    "formHe": "שרשרת ב(א)",
-    "of": [
-     "5b22897ba5e17257",
-     "b14c345931b59ca5"
-    ],
-    "sig": "nums,num>nums",
-    "steps": 32,
-    "nodes": 2,
-    "parts": [
-     "inner-generator:new/boxes/vcard-import.mjs#splitProperty.value:step",
-     "inner-orbit:src/lib/hebrewNumber.ts#joinHeb.w"
-    ],
-    "does": "מסנן",
-    "verbs": [
-     "filter"
-    ],
-    "close": {
-     "verb": "transcript",
-     "pct": 0
-    },
-    "fp": "3a5f0c4b",
-    "example": {
-     "in": [
-      [
-       3,
-       1,
-       2
-      ],
-      4
-     ],
-     "out": []
-    }
-   },
-   {
-    "id": "ac42b26b6275b70f",
-    "floor": 1,
-    "form": "chain",
-    "formHe": "שרשרת ב(א)",
-    "of": [
-     "a82e6418c82ba944",
-     "dcf2e63236fcacfe"
-    ],
-    "sig": "nums,nums>nums",
-    "steps": 101,
-    "nodes": 2,
-    "parts": [
-     "inner-orbit:src/lib/dedup.ts#dedupById.out:after-loop",
-     "inner-orbit:src/lib/widgetLayout.ts#sanitizeIds.out:after-loop"
-    ],
-    "does": "מסנן",
-    "verbs": [
-     "filter"
-    ],
-    "fp": "c3920531",
-    "example": {
-     "in": [
-      [
-       3,
-       3,
-       3
-      ],
-      [
-       10,
-       -2,
-       8,
-       -2,
-       5
-      ]
-     ],
-     "out": []
-    }
-   },
-   {
-    "id": "d042e336a4062ee2",
-    "floor": 1,
-    "form": "fold",
-    "formHe": "צבירה",
-    "of": [
-     "e6b8c0e6431e8812"
-    ],
-    "sig": "nums,nums>nums",
-    "steps": 254,
-    "nodes": 1,
-    "parts": [
-     "inner-orbit:src/components/home/BoardEdit.tsx#BoardEditor.moveTo.next"
-    ],
-    "does": "מסנן · ממיר כל פריט",
-    "verbs": [
-     "filter",
-     "map"
-    ],
-    "fp": "9f712f04",
-    "example": {
-     "in": [
-      [
-       3,
-       3,
-       3
-      ],
-      [
-       10,
-       -2,
-       8,
-       -2,
-       5
-      ]
-     ],
-     "out": [
-      10,
-      -2,
-      8,
-      -2,
-      5
-     ]
-    }
-   },
-   {
-    "id": "eb8cbddf4c37902b",
-    "floor": 1,
-    "form": "fold",
-    "formHe": "צבירה",
-    "of": [
-     "449253fb048ef33f"
-    ],
-    "sig": "nums,nums>nums",
-    "steps": 271,
-    "nodes": 1,
-    "parts": [
-     "inner-orbit:src/lib/atoms/parts/next.ts#nextAfter.after"
-    ],
-    "does": "מסנן",
-    "verbs": [
-     "filter"
-    ],
-    "fp": "02275b03",
-    "example": {
-     "in": [
-      [
-       3,
-       3,
-       3
-      ],
-      [
-       10,
-       -2,
-       8,
-       -2,
-       5
-      ]
-     ],
-     "out": [
-      10,
-      8,
-      5
-     ]
-    }
    }
   ]
  },
  "scored": {
-  "built": 16306,
-  "shelf": 3168,
-  "namedSpecial": 83,
-  "namedSpecialGrown": 51,
+  "built": 41333,
+  "shelf": 22608,
+  "namedSpecial": 265,
+  "namedSpecialGrown": 233,
   "specialBy": {
-   "compare": 27,
-   "filter": 17,
-   "count": 8,
-   "dedupe": 7,
-   "sort": 7,
-   "rotate": 6,
+   "compare": 130,
+   "filter": 50,
+   "count": 32,
+   "sort": 22,
+   "rotate": 9,
+   "dedupe": 8,
    "reverse": 5,
+   "tolerate": 4,
    "extreme": 2,
    "settle": 2,
-   "sum": 1,
-   "tolerate": 1
+   "sum": 1
   },
-  "everOnNamed": 1113,
-  "shelfOnNamed": 1030,
-  "shelfOnNamedSpecial": 37,
-  "shelfOnCompare": 22,
-  "shelfOnCompareSpecial": 8,
+  "everOnNamed": 4169,
+  "shelfOnNamed": 3971,
+  "shelfOnNamedSpecial": 137,
+  "shelfOnCompare": 139,
+  "shelfOnCompareSpecial": 34,
   "ladder": {
-   "height": 3,
+   "height": 5,
    "chain": [
     {
-     "id": "3f4b667c6ca8aff0",
-     "floor": 2,
+     "id": "600adfef1e363183",
+     "floor": 4,
      "form": "chain",
      "verbs": [
-      "dedupe"
+      "count"
      ],
      "example": {
       "in": [
@@ -888,20 +1176,53 @@
         5
        ]
       ],
-      "out": [
-       10,
-       -2,
-       8,
-       5
-      ]
+      "out": 5
      }
     },
     {
-     "id": "84759cb09ef06284",
+     "id": "6db7b4548d0890e0",
+     "floor": 3,
+     "form": "chain",
+     "verbs": [
+      "count"
+     ],
+     "example": {
+      "in": [
+       0,
+       [
+        3,
+        3,
+        3
+       ]
+      ],
+      "out": 3
+     }
+    },
+    {
+     "id": "33d1e2e4b9e61678",
+     "floor": 2,
+     "form": "chain",
+     "verbs": [
+      "count"
+     ],
+     "example": {
+      "in": [
+       0,
+       [
+        3,
+        3,
+        3
+       ]
+      ],
+      "out": 3
+     }
+    },
+    {
+     "id": "a1fbb5fe9606f412",
      "floor": 1,
      "form": "chain",
      "verbs": [
-      "dedupe"
+      "reverse"
      ],
      "example": {
       "in": [
@@ -913,16 +1234,18 @@
        ]
       ],
       "out": [
+       3,
+       3,
        3
       ]
      }
     },
     {
-     "id": "7184f07463958170",
+     "id": "8160dd2fa8e3026b",
      "floor": 0,
      "form": "part",
      "verbs": [
-      "dedupe"
+      "reverse"
      ],
      "example": {
       "in": [
@@ -933,14 +1256,108 @@
        ]
       ],
       "out": [
-       3,
+       2,
        1,
-       2
+       3
       ]
      }
     }
    ]
   },
+  "ladderNoWrap": {
+   "height": 2,
+   "chain": [
+    {
+     "id": "f2aea35d756247e1",
+     "floor": 1,
+     "form": "chain",
+     "verbs": [
+      "rotate"
+     ],
+     "rung": 2,
+     "example": {
+      "in": [
+       [
+        3,
+        1,
+        2
+       ],
+       4
+      ],
+      "out": 1
+     }
+    },
+    {
+     "id": "8160dd2fa8e3026b",
+     "floor": 0,
+     "form": "part",
+     "verbs": [
+      "reverse"
+     ],
+     "rung": 1,
+     "example": {
+      "in": [
+       [
+        3,
+        1,
+        2
+       ]
+      ],
+      "out": [
+       2,
+       1,
+       3
+      ]
+     }
+    }
+   ]
+  },
+  "exactRebuilt": {},
+  "exactFromOthers": 0,
+  "compareExactGrew": false,
+  "dupByFloor": [
+   {
+    "floor": 1,
+    "built": 7214,
+    "new": 5725,
+    "replaced": 131,
+    "dup": 763,
+    "pct": 11,
+    "sameTried": 0,
+    "junk": 558
+   },
+   {
+    "floor": 2,
+    "built": 7991,
+    "new": 5517,
+    "replaced": 76,
+    "dup": 1314,
+    "pct": 16,
+    "sameTried": 2,
+    "junk": 1040
+   },
+   {
+    "floor": 3,
+    "built": 7998,
+    "new": 5399,
+    "replaced": 84,
+    "dup": 1167,
+    "pct": 15,
+    "sameTried": 0,
+    "junk": 1290
+   },
+   {
+    "floor": 4,
+    "built": 7818,
+    "new": 5575,
+    "replaced": 32,
+    "dup": 461,
+    "pct": 6,
+    "sameTried": 0,
+    "junk": 1736
+   }
+  ],
+  "dupRate": 11.9,
   "bestMatch": {
    "sort": {
     "pct": 100,
@@ -983,10 +1400,10 @@
     }
    },
    "count": {
-    "pct": 82,
-    "id": "6c330c2eef52bc8a",
-    "floor": 0,
-    "form": "part",
+    "pct": 91,
+    "id": "2afb7114f4bd9c08",
+    "floor": 2,
+    "form": "chain",
     "sig": "nums>num",
     "named": false,
     "example": {
@@ -1041,10 +1458,10 @@
     }
    },
    "average": {
-    "pct": 27,
-    "id": "ead6e72176152ea5",
-    "floor": 0,
-    "form": "part",
+    "pct": 36,
+    "id": "fe40426a6213314e",
+    "floor": 1,
+    "form": "chain",
     "sig": "nums>num",
     "named": false,
     "example": {
@@ -1063,10 +1480,10 @@
     "why": "אין על המדף דבר בחתימה של הייחוס"
    },
    "compare": {
-    "pct": 50,
-    "id": "d00acb69d94fc575",
-    "floor": 1,
-    "form": "chain",
+    "pct": 81,
+    "id": "b81883e4489ada08",
+    "floor": 2,
+    "form": "pair",
     "sig": "num,num>num",
     "named": false,
     "example": {
@@ -1102,7 +1519,7 @@
    },
    "extreme": {
     "pct": 91,
-    "id": "779c277f14169ff3",
+    "id": "ad39a0b008d4a73c",
     "floor": 1,
     "form": "chain",
     "sig": "nums>num",
@@ -1118,9 +1535,9 @@
     }
    },
    "count": {
-    "pct": 82,
-    "id": "02002ab9ba9543a5",
-    "floor": 1,
+    "pct": 91,
+    "id": "2afb7114f4bd9c08",
+    "floor": 2,
     "form": "chain",
     "sig": "nums>num",
     "example": {
@@ -1157,7 +1574,7 @@
    },
    "sum": {
     "pct": 91,
-    "id": "7bf1d2a5682ac4b9",
+    "id": "ad8ac712fa905d2e",
     "floor": 1,
     "form": "chain",
     "sig": "nums>num",
@@ -1173,8 +1590,8 @@
     }
    },
    "average": {
-    "pct": 27,
-    "id": "2b297a983257ad54",
+    "pct": 36,
+    "id": "fe40426a6213314e",
     "floor": 1,
     "form": "chain",
     "sig": "nums>num",
@@ -1193,10 +1610,10 @@
     "pct": null
    },
    "compare": {
-    "pct": 50,
-    "id": "d00acb69d94fc575",
-    "floor": 1,
-    "form": "chain",
+    "pct": 81,
+    "id": "b81883e4489ada08",
+    "floor": 2,
+    "form": "pair",
     "sig": "num,num>num",
     "example": {
      "in": [
@@ -1208,97 +1625,51 @@
    }
   },
   "junk": {
-   "לא רץ על רוב הקלטים": 7183,
-   "תמיד רשימה ריקה": 333,
-   "רשימה של פריט אחד שחוזר": 34,
-   "מתעלם מקלט": 447,
-   "מחזיר את הקלט כמו שהוא": 396,
-   "תמיד אותו פלט": 1434,
+   "לא רץ על רוב הקלטים": 7846,
+   "תמיד רשימה ריקה": 428,
+   "רשימה של פריט אחד שחוזר": 321,
+   "מתעלם מקלט": 2193,
+   "מחזיר את הקלט כמו שהוא": 415,
+   "תמיד אותו פלט": 2973,
    "פלט מעורב": 11
   },
-  "junkTotal": 9838,
-  "junkUniform": 34,
-  "stressRejected": 44,
-  "improvements": 1,
+  "junkTotal": 14187,
+  "junkUniform": 321,
+  "stressRejected": 153,
+  "improvements": 3,
   "wrongImprovements": 0,
   "examplesOnNamed": [
    {
-    "id": "49c1702d20bc66a9",
-    "floor": 1,
-    "form": "pair",
-    "formHe": "זוג ב(א(x),א(y))",
-    "of": [
-     "0ce602d9666a323d",
-     "01503fa79ed128b3"
-    ],
-    "sig": "nums,nums>num",
-    "steps": 160,
-    "nodes": 3,
-    "parts": [
-     "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
-     "inner-generator:gen/looks/app/src/10-ui.js#ring.r"
-    ],
-    "does": "משווה",
-    "verbs": [
-     "compare"
-    ],
-    "fp": "e1ed98af",
-    "example": {
-     "in": [
-      [
-       3,
-       3,
-       3
-      ],
-      [
-       10,
-       -2,
-       8,
-       -2,
-       5
-      ]
-     ],
-     "out": -5
-    }
-   },
-   {
-    "id": "0ae8107b65ed5b47",
+    "id": "f2aea35d756247e1",
     "floor": 1,
     "form": "chain",
     "formHe": "שרשרת ב(א)",
     "of": [
-     "7184f07463958170",
-     "bf63481f1eca01eb"
+     "8160dd2fa8e3026b",
+     "3435f79dbc6ea549"
     ],
-    "sig": "nums>nums",
-    "steps": 83,
+    "sig": "nums,num>num",
+    "steps": 48,
     "nodes": 2,
     "parts": [
-     "inner-orbit:src/lib/atoms/decompose/genericPreview.ts#amountPreview.pos",
-     "inner-orbit:src/lib/atoms/decompose/genericPreview.ts#textPreview.vals"
+     "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#CartSubmenu.reversed:step",
+     "orbit:src/lib/atoms/parts/rotate.ts#turnOf"
     ],
-    "does": "מסנן",
+    "does": "מחלק בתורות",
     "verbs": [
-     "filter"
+     "rotate"
     ],
-    "close": {
-     "verb": "dedupe",
-     "pct": 55
-    },
-    "fp": "a1faf292",
+    "fp": "ffc3aa3e",
     "example": {
      "in": [
       [
        3,
        1,
        2
-      ]
+      ],
+      4
      ],
-     "out": [
-      3,
-      1,
-      2
-     ]
+     "out": 1
     }
    },
    {
@@ -1338,42 +1709,292 @@
     }
    },
    {
-    "id": "2250d15b2e4c5d47",
+    "id": "76d7ae19bdc175c5",
     "floor": 1,
     "form": "chain",
     "formHe": "שרשרת ב(א)",
     "of": [
-     "1b90c2139af9046f",
-     "8160dd2fa8e3026b"
+     "94abcb62cd88d67e",
+     "3435f79dbc6ea549"
     ],
-    "sig": "nums>nums",
-    "steps": 100,
+    "sig": "nums,num>num",
+    "steps": 119,
     "nodes": 2,
     "parts": [
-     "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#CartSubmenu.reversed:step",
-     "inner-orbit:src/lib/config.ts#normalizeTelephony.officeDays:step"
+     "inner-generator:new/boxes/pareto.mjs#paretoReport.asc",
+     "orbit:src/lib/atoms/parts/rotate.ts#turnOf"
     ],
-    "does": "מסנן",
+    "does": "מחלק בתורות",
     "verbs": [
-     "filter"
+     "rotate"
     ],
-    "close": {
-     "verb": "dedupe",
-     "pct": 9
-    },
-    "fp": "9c6c1d77",
+    "fp": "fbb07728",
     "example": {
      "in": [
       [
        3,
        1,
        2
+      ],
+      4
+     ],
+     "out": 2
+    }
+   },
+   {
+    "id": "01210bb4c10155e8",
+    "floor": 1,
+    "form": "pair",
+    "formHe": "זוג ב(א(x),א(y))",
+    "of": [
+     "0ce602d9666a323d",
+     "41e6ace85d44ecec"
+    ],
+    "sig": "nums,nums>num",
+    "steps": 160,
+    "nodes": 3,
+    "parts": [
+     "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+     "inner-orbit:src/components/wheel/CourseWheel.tsx#CourseWheel.spin.frame.p"
+    ],
+    "does": "משווה",
+    "verbs": [
+     "compare"
+    ],
+    "fp": "c3557f83",
+    "example": {
+     "in": [
+      [
+       3,
+       3,
+       3
+      ],
+      [
+       10,
+       -2,
+       8,
+       -2,
+       5
       ]
+     ],
+     "out": 0.002381
+    }
+   },
+   {
+    "id": "c15b78f55c8fd0a1",
+    "floor": 1,
+    "form": "pair",
+    "formHe": "זוג ב(א(x),א(y))",
+    "of": [
+     "0ce602d9666a323d",
+     "b5cee7fafdeb0666"
+    ],
+    "sig": "nums,nums>num",
+    "steps": 160,
+    "nodes": 3,
+    "parts": [
+     "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+     "inner-orbit:src/components/hosting/hui.tsx#CountUp.useEffect.step.p"
+    ],
+    "does": "משווה",
+    "verbs": [
+     "compare"
+    ],
+    "fp": "dc5c9e14",
+    "example": {
+     "in": [
+      [
+       3,
+       3,
+       3
+      ],
+      [
+       10,
+       -2,
+       8,
+       -2,
+       5
+      ]
+     ],
+     "out": 0.011111
+    }
+   },
+   {
+    "id": "b169dd7f37491bfb",
+    "floor": 1,
+    "form": "chain",
+    "formHe": "שרשרת ב(א)",
+    "of": [
+     "5b22897ba5e17257",
+     "3435f79dbc6ea549"
+    ],
+    "sig": "nums,num>num",
+    "steps": 48,
+    "nodes": 2,
+    "parts": [
+     "inner-orbit:src/lib/hebrewNumber.ts#joinHeb.w",
+     "orbit:src/lib/atoms/parts/rotate.ts#turnOf"
+    ],
+    "does": "מחלק בתורות",
+    "verbs": [
+     "rotate"
+    ],
+    "fp": "1b0a90bb",
+    "example": {
+     "in": [
+      [
+       3,
+       1,
+       2
+      ],
+      4
+     ],
+     "out": 1
+    }
+   },
+   {
+    "id": "c5cabf4fd1379a5b",
+    "floor": 1,
+    "form": "chain",
+    "formHe": "שרשרת ב(א)",
+    "of": [
+     "00887f585f4f3bac",
+     "3435f79dbc6ea549"
+    ],
+    "sig": "nums,num>num",
+    "steps": 123,
+    "nodes": 2,
+    "parts": [
+     "inner-generator:new/boxes/pareto.mjs#paretoReport.desc",
+     "orbit:src/lib/atoms/parts/rotate.ts#turnOf"
+    ],
+    "does": "מחלק בתורות",
+    "verbs": [
+     "rotate"
+    ],
+    "fp": "85f53761",
+    "example": {
+     "in": [
+      [
+       3,
+       1,
+       2
+      ],
+      4
+     ],
+     "out": 2
+    }
+   },
+   {
+    "id": "d69a861804df3624",
+    "floor": 1,
+    "form": "chain",
+    "formHe": "שרשרת ב(א)",
+    "of": [
+     "815d3f0e544ff4d2",
+     "3435f79dbc6ea549"
+    ],
+    "sig": "nums,num>num",
+    "steps": 48,
+    "nodes": 2,
+    "parts": [
+     "inner-orbit:src/lib/enginebox/goal/routeAdapter.ts#shapeRoute.sorted",
+     "orbit:src/lib/atoms/parts/rotate.ts#turnOf"
+    ],
+    "does": "מחלק בתורות",
+    "verbs": [
+     "rotate"
+    ],
+    "fp": "8fcedd6f",
+    "example": {
+     "in": [
+      [
+       3,
+       1,
+       2
+      ],
+      4
+     ],
+     "out": 2
+    }
+   },
+   {
+    "id": "4f7e723f268f86c3",
+    "floor": 1,
+    "form": "pair",
+    "formHe": "זוג ב(א(x),א(y))",
+    "of": [
+     "0ce602d9666a323d",
+     "e756c83325b5a3ef"
+    ],
+    "sig": "nums,nums>num",
+    "steps": 160,
+    "nodes": 3,
+    "parts": [
+     "inner-14kk:check_protocol_activity.js#ProtocolActivityChecker.checkCommunicationProtocol.timeDiff:step",
+     "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop"
+    ],
+    "does": "משווה",
+    "verbs": [
+     "compare"
+    ],
+    "fp": "cf4210f2",
+    "example": {
+     "in": [
+      [
+       3,
+       3,
+       3
+      ],
+      [
+       10,
+       -2,
+       8,
+       -2,
+       5
+      ]
+     ],
+     "out": 0.000167
+    }
+   },
+   {
+    "id": "c297c52e66887ab2",
+    "floor": 1,
+    "form": "chain",
+    "formHe": "שרשרת ב(א)",
+    "of": [
+     "7184f07463958170",
+     "02db4535f6617dc9"
+    ],
+    "sig": "nums,num>nums",
+    "steps": 48,
+    "nodes": 2,
+    "parts": [
+     "inner-generator:machtzev/generator/retarget.mjs#retarget.map.head:step",
+     "inner-orbit:src/lib/atoms/decompose/genericPreview.ts#textPreview.vals"
+    ],
+    "does": "מסיר כפולים",
+    "verbs": [
+     "dedupe"
+    ],
+    "close": {
+     "verb": "transcript",
+     "pct": 0
+    },
+    "fp": "4880ea5a",
+    "example": {
+     "in": [
+      [
+       3,
+       1,
+       2
+      ],
+      4
      ],
      "out": [
       3,
-      2,
-      1
+      1,
+      2
      ]
     }
    },
@@ -1402,168 +2023,6 @@
      "pct": 0
     },
     "fp": "86532b21",
-    "example": {
-     "in": [
-      [
-       3,
-       1,
-       2
-      ],
-      4
-     ],
-     "out": [
-      3,
-      1,
-      2
-     ]
-    }
-   },
-   {
-    "id": "8ff1b34e799e1a22",
-    "floor": 1,
-    "form": "chain",
-    "formHe": "שרשרת ב(א)",
-    "of": [
-     "02db4535f6617dc9",
-     "8160dd2fa8e3026b"
-    ],
-    "sig": "nums,num>nums",
-    "steps": 32,
-    "nodes": 2,
-    "parts": [
-     "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#CartSubmenu.reversed:step",
-     "inner-generator:machtzev/generator/retarget.mjs#retarget.map.head:step"
-    ],
-    "does": "הופך סדר",
-    "verbs": [
-     "reverse"
-    ],
-    "close": {
-     "verb": "transcript",
-     "pct": 0
-    },
-    "fp": "6fd4a69e",
-    "example": {
-     "in": [
-      [
-       3,
-       1,
-       2
-      ],
-      4
-     ],
-     "out": [
-      2,
-      1,
-      3
-     ]
-    }
-   },
-   {
-    "id": "21e8d99ab4eb9ac6",
-    "floor": 1,
-    "form": "chain",
-    "formHe": "שרשרת ב(א)",
-    "of": [
-     "02db4535f6617dc9",
-     "94abcb62cd88d67e"
-    ],
-    "sig": "nums,num>nums",
-    "steps": 82,
-    "nodes": 2,
-    "parts": [
-     "inner-generator:machtzev/generator/retarget.mjs#retarget.map.head:step",
-     "inner-generator:new/boxes/pareto.mjs#paretoReport.asc"
-    ],
-    "does": "ממיין",
-    "verbs": [
-     "sort"
-    ],
-    "close": {
-     "verb": "transcript",
-     "pct": 0
-    },
-    "fp": "f3260b4e",
-    "example": {
-     "in": [
-      [
-       3,
-       1,
-       2
-      ],
-      4
-     ],
-     "out": [
-      1,
-      2,
-      3
-     ]
-    }
-   },
-   {
-    "id": "005e3630a8bd5acc",
-    "floor": 1,
-    "form": "pair",
-    "formHe": "זוג ב(א(x),א(y))",
-    "of": [
-     "0ce602d9666a323d",
-     "26afe5fa272f8c46"
-    ],
-    "sig": "nums,nums>num",
-    "steps": 160,
-    "nodes": 3,
-    "parts": [
-     "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
-     "inner-generator:machtzev/generator/behavior-plan.mjs#valueSearch.left"
-    ],
-    "does": "משווה",
-    "verbs": [
-     "compare"
-    ],
-    "fp": "781c8114",
-    "example": {
-     "in": [
-      [
-       3,
-       3,
-       3
-      ],
-      [
-       10,
-       -2,
-       8,
-       -2,
-       5
-      ]
-     ],
-     "out": -10
-    }
-   },
-   {
-    "id": "c297c52e66887ab2",
-    "floor": 1,
-    "form": "chain",
-    "formHe": "שרשרת ב(א)",
-    "of": [
-     "7184f07463958170",
-     "02db4535f6617dc9"
-    ],
-    "sig": "nums,num>nums",
-    "steps": 48,
-    "nodes": 2,
-    "parts": [
-     "inner-generator:machtzev/generator/retarget.mjs#retarget.map.head:step",
-     "inner-orbit:src/lib/atoms/decompose/genericPreview.ts#textPreview.vals"
-    ],
-    "does": "מסיר כפולים",
-    "verbs": [
-     "dedupe"
-    ],
-    "close": {
-     "verb": "transcript",
-     "pct": 0
-    },
-    "fp": "4880ea5a",
     "example": {
      "in": [
       [
@@ -1619,86 +2078,6 @@
       1,
       3
      ]
-    }
-   },
-   {
-    "id": "3d024c749768ec70",
-    "floor": 1,
-    "form": "chain",
-    "formHe": "שרשרת ב(א)",
-    "of": [
-     "94abcb62cd88d67e",
-     "02db4535f6617dc9"
-    ],
-    "sig": "nums,num>nums",
-    "steps": 103,
-    "nodes": 2,
-    "parts": [
-     "inner-generator:machtzev/generator/retarget.mjs#retarget.map.head:step",
-     "inner-generator:new/boxes/pareto.mjs#paretoReport.asc"
-    ],
-    "does": "ממיין",
-    "verbs": [
-     "sort"
-    ],
-    "close": {
-     "verb": "transcript",
-     "pct": 0
-    },
-    "fp": "3155dcc4",
-    "example": {
-     "in": [
-      [
-       3,
-       1,
-       2
-      ],
-      4
-     ],
-     "out": [
-      1,
-      2,
-      3
-     ]
-    }
-   },
-   {
-    "id": "1553584e64c16be2",
-    "floor": 1,
-    "form": "chain",
-    "formHe": "שרשרת ב(א)",
-    "of": [
-     "7184f07463958170",
-     "36cae3451ec4b581"
-    ],
-    "sig": "nums,nums>num",
-    "steps": 48,
-    "nodes": 2,
-    "parts": [
-     "inner-generator:machtzev/census/engine-index.mjs#find.blind:step",
-     "inner-orbit:src/lib/atoms/decompose/genericPreview.ts#textPreview.vals"
-    ],
-    "does": "משווה",
-    "verbs": [
-     "compare"
-    ],
-    "fp": "a57a82f0",
-    "example": {
-     "in": [
-      [
-       3,
-       3,
-       3
-      ],
-      [
-       10,
-       -2,
-       8,
-       -2,
-       5
-      ]
-     ],
-     "out": -4
     }
    }
   ]
