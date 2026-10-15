@@ -1,0 +1,3627 @@
+{
+ "about": "SP-FAIR — הרצה אחת של המנוע הקפוא (catalog/selfprint) + מדידה (catalog/spfair/measure.mjs). נבנה ע״י catalog/spfair/fair.mjs — לא לערוך ביד",
+ "name": "m2",
+ "salt": 0,
+ "rounds": 3,
+ "sameBytesAsBranch": {
+  "control": true,
+  "ledger": true,
+  "compare": true,
+  "blueprints": true,
+  "found": true
+ },
+ "built": {
+  "baseline": 17068,
+  "selfprint": 17086
+ },
+ "wrongImprovements": 0,
+ "replacements": 179,
+ "blueprints": {
+  "total": 154,
+  "bySource": {
+   "code": 109,
+   "success": 36,
+   "success-of-blueprint": 9
+  },
+  "used": 143,
+  "birthedSuccess": 46,
+  "birthedBySource": {
+   "success": 29,
+   "code": 16,
+   "success-of-blueprint": 1
+  },
+  "maxDepth": 2,
+  "maxDepthUsed": 2,
+  "maxDepthSuccess": 2,
+  "code": {
+   "all": {
+    "blueprints": 109,
+    "typed": 98,
+    "built": 98,
+    "ran": 86,
+    "fresh": 85,
+    "success": 16
+   },
+   "v1": {
+    "blueprints": 24,
+    "typed": 24,
+    "built": 24,
+    "ran": 24,
+    "fresh": 24,
+    "success": 3
+   },
+   "v2Only": {
+    "blueprints": 85,
+    "typed": 74,
+    "built": 74,
+    "ran": 62,
+    "fresh": 61,
+    "success": 13
+   },
+   "structural": {
+    "blueprints": 6,
+    "typed": 6,
+    "built": 6,
+    "ran": 3,
+    "fresh": 3,
+    "success": 1
+   },
+   "structuralSingle": {
+    "blueprints": 6,
+    "typed": 6,
+    "built": 6,
+    "ran": 3,
+    "fresh": 3,
+    "success": 1
+   },
+   "byFeat": {
+    "best": {
+     "blueprints": 3,
+     "typed": 3,
+     "built": 3,
+     "ran": 0,
+     "fresh": 0,
+     "success": 0
+    },
+    "compare": {
+     "blueprints": 33,
+     "typed": 30,
+     "built": 30,
+     "ran": 23,
+     "fresh": 23,
+     "success": 3
+    },
+    "filter": {
+     "blueprints": 7,
+     "typed": 6,
+     "built": 6,
+     "ran": 6,
+     "fresh": 6,
+     "success": 6
+    },
+    "guard": {
+     "blueprints": 1,
+     "typed": 0,
+     "built": 0,
+     "ran": 0,
+     "fresh": 0,
+     "success": 0
+    },
+    "if": {
+     "blueprints": 23,
+     "typed": 20,
+     "built": 20,
+     "ran": 19,
+     "fresh": 18,
+     "success": 3
+    },
+    "index-loop": {
+     "blueprints": 5,
+     "typed": 5,
+     "built": 5,
+     "ran": 2,
+     "fresh": 2,
+     "success": 0
+    },
+    "loop-if": {
+     "blueprints": 3,
+     "typed": 3,
+     "built": 3,
+     "ran": 0,
+     "fresh": 0,
+     "success": 0
+    },
+    "math": {
+     "blueprints": 6,
+     "typed": 6,
+     "built": 6,
+     "ran": 6,
+     "fresh": 6,
+     "success": 0
+    },
+    "ternary": {
+     "blueprints": 24,
+     "typed": 18,
+     "built": 18,
+     "ran": 15,
+     "fresh": 15,
+     "success": 3
+    }
+   }
+  }
+ },
+ "rounds_": [
+  {
+   "round": 1,
+   "blueprints": 145,
+   "built": 1583,
+   "new": 795,
+   "replaced": 86,
+   "dup": 384,
+   "named": 110,
+   "born": 5
+  },
+  {
+   "round": 2,
+   "blueprints": 150,
+   "built": 1598,
+   "new": 771,
+   "replaced": 59,
+   "dup": 483,
+   "named": 95,
+   "born": 4
+  },
+  {
+   "round": 3,
+   "blueprints": 154,
+   "built": 1200,
+   "new": 468,
+   "replaced": 34,
+   "dup": 452,
+   "named": 44,
+   "born": 0
+  }
+ ],
+ "exact": {
+  "baseline": {},
+  "selfprint": {
+   "compare": {
+    "exact": 1,
+    "fromOthers": 1,
+    "byBlueprint": 1,
+    "byBlueprintFair": 0,
+    "best": {
+     "id": "7e2485bc08b1e838",
+     "floor": "bp2",
+     "form": "bp",
+     "blueprint": "bp-c-15575858",
+     "sig": "num,num>num",
+     "steps": 64,
+     "nodes": 4,
+     "example": {
+      "in": [
+       0,
+       2
+      ],
+      "out": -1
+     },
+     "of": [
+      {
+       "id": "base:<",
+       "form": "base",
+       "part": "⟨cmp<⟩",
+       "verbs": []
+      },
+      {
+       "id": "7101c75895095d1c",
+       "form": "part",
+       "part": "inner-orbit:src/components/parnasa/Ambient.tsx#GoldDust.useEffect.loop.dt",
+       "verbs": [
+        "compare"
+       ]
+      }
+     ]
+    }
+   },
+   "sum": {
+    "exact": 1,
+    "fromOthers": 0,
+    "byBlueprint": 0,
+    "byBlueprintFair": 0,
+    "best": null
+   }
+  }
+ },
+ "exactByBlueprintFair": [],
+ "bestGrown": {
+  "baseline": {
+   "average": {
+    "pct": 27,
+    "id": "1b71337837db4494",
+    "form": "chain",
+    "sig": "nums>num"
+   },
+   "sort": {
+    "pct": 73,
+    "id": "5199635b0c66a447",
+    "form": "chain",
+    "sig": "nums>nums"
+   },
+   "tour": {
+    "pct": null
+   },
+   "extreme": {
+    "pct": 91,
+    "id": "14a68f7dbd128db1",
+    "form": "chain",
+    "sig": "nums>num"
+   },
+   "sum": {
+    "pct": 91,
+    "id": "157194f50217d219",
+    "form": "chain",
+    "sig": "nums>num"
+   },
+   "count": {
+    "pct": 82,
+    "id": "0e6cd6d6cde48a3a",
+    "form": "chain",
+    "sig": "nums>num"
+   },
+   "dedupe": {
+    "pct": 73,
+    "id": "19764b13237ff40f",
+    "form": "fix",
+    "sig": "nums>nums"
+   },
+   "compare": {
+    "pct": 63,
+    "id": "5f5d04dd54363559",
+    "form": "chain",
+    "sig": "num,num>num"
+   },
+   "median": {
+    "pct": 45,
+    "id": "1b71337837db4494",
+    "form": "chain",
+    "sig": "nums>num",
+    "metricOnly": true
+   },
+   "max": {
+    "pct": 91,
+    "id": "14a68f7dbd128db1",
+    "form": "chain",
+    "sig": "nums>num",
+    "metricOnly": true
+   }
+  },
+  "selfprint": {
+   "average": {
+    "pct": 27,
+    "id": "1b71337837db4494",
+    "form": "chain",
+    "sig": "nums>num"
+   },
+   "sort": {
+    "pct": 73,
+    "id": "5199635b0c66a447",
+    "form": "chain",
+    "sig": "nums>nums"
+   },
+   "tour": {
+    "pct": null
+   },
+   "extreme": {
+    "pct": 91,
+    "id": "28e57b12ddb786f6",
+    "form": "chain",
+    "sig": "nums>num"
+   },
+   "sum": {
+    "pct": 100,
+    "id": "ed22cd9c4926fe70",
+    "blueprint": "bp-c-df5e6e2d",
+    "sig": "nums>num"
+   },
+   "count": {
+    "pct": 91,
+    "id": "451b98b42b81e530",
+    "blueprint": "bp-c-05cba93f",
+    "sig": "nums>num"
+   },
+   "dedupe": {
+    "pct": 73,
+    "id": "09bd1a1252a9a6ee",
+    "blueprint": "bp-s-d52c7307",
+    "sig": "nums>nums"
+   },
+   "compare": {
+    "pct": 100,
+    "id": "7e2485bc08b1e838",
+    "blueprint": "bp-c-15575858",
+    "sig": "num,num>num"
+   },
+   "median": {
+    "pct": 45,
+    "id": "1b71337837db4494",
+    "form": "chain",
+    "sig": "nums>num",
+    "metricOnly": true
+   },
+   "max": {
+    "pct": 91,
+    "id": "28e57b12ddb786f6",
+    "form": "chain",
+    "sig": "nums>num",
+    "metricOnly": true
+   }
+  }
+ },
+ "namedSpecialGrown": {
+  "baseline": 128,
+  "selfprint": 260
+ },
+ "foundByVerb": {
+  "filter": 79,
+  "compare": 72,
+  "count": 33,
+  "sort": 19,
+  "dedupe": 11,
+  "rotate": 11,
+  "reverse": 6,
+  "extreme": 1
+ },
+ "onTopOfBlueprints": [
+  {
+   "id": "b4cb4efe4d8aca1a",
+   "round": 2,
+   "verbs": [
+    "count"
+   ],
+   "excludedByLeaveOneOut": [
+    "count"
+   ],
+   "example": {
+    "in": [
+     0,
+     [
+      {
+       "x": 1,
+       "y": 1
+      },
+      {
+       "x": 1,
+       "y": 1
+      },
+      {
+       "x": 5,
+       "y": 5
+      }
+     ]
+    ],
+    "out": 0
+   },
+   "blueprint": {
+    "id": "bp-s-28901c53",
+    "source": "success-of-blueprint",
+    "depth": 2,
+    "origin": {
+     "thing": "e1b6fae7738af16b",
+     "verbs": [
+      "count"
+     ],
+     "blueprint": "bp-s-4aa59ae4"
+    },
+    "excl": [
+     "count"
+    ]
+   },
+   "fill": [
+    {
+     "id": "04b0fbbdf46adce9",
+     "form": "part",
+     "part": "inner-orbit:src/components/parnasa/coinFx.ts#cnRim.a",
+     "verbs": [],
+     "example": null
+    }
+   ]
+  },
+  {
+   "id": "3c1529029b7fc1f6",
+   "round": 2,
+   "verbs": [
+    "count"
+   ],
+   "excludedByLeaveOneOut": [
+    "count"
+   ],
+   "example": {
+    "in": [
+     0,
+     [
+      {
+       "x": 1,
+       "y": 1
+      },
+      {
+       "x": 1,
+       "y": 1
+      },
+      {
+       "x": 5,
+       "y": 5
+      }
+     ]
+    ],
+    "out": 1
+   },
+   "blueprint": {
+    "id": "bp-s-28901c53",
+    "source": "success-of-blueprint",
+    "depth": 2,
+    "origin": {
+     "thing": "e1b6fae7738af16b",
+     "verbs": [
+      "count"
+     ],
+     "blueprint": "bp-s-4aa59ae4"
+    },
+    "excl": [
+     "count"
+    ]
+   },
+   "fill": [
+    {
+     "id": "0e22e381aa5a2785",
+     "form": "part",
+     "part": "inner-generator:machtzev/ds-tokens.mjs#map.y2",
+     "verbs": [],
+     "example": null
+    }
+   ]
+  },
+  {
+   "id": "3ecaabf6a379c832",
+   "round": 2,
+   "verbs": [
+    "count"
+   ],
+   "excludedByLeaveOneOut": [
+    "count"
+   ],
+   "example": {
+    "in": [
+     0,
+     [
+      {
+       "x": 1,
+       "y": 1
+      },
+      {
+       "x": 1,
+       "y": 1
+      },
+      {
+       "x": 5,
+       "y": 5
+      }
+     ]
+    ],
+    "out": 3
+   },
+   "blueprint": {
+    "id": "bp-s-28901c53",
+    "source": "success-of-blueprint",
+    "depth": 2,
+    "origin": {
+     "thing": "e1b6fae7738af16b",
+     "verbs": [
+      "count"
+     ],
+     "blueprint": "bp-s-4aa59ae4"
+    },
+    "excl": [
+     "count"
+    ]
+   },
+   "fill": [
+    {
+     "id": "13317e2146b483c5",
+     "form": "part",
+     "part": "inner-orbit:src/components/parnasa/home.ts#ms.t",
+     "verbs": [],
+     "example": null
+    }
+   ]
+  },
+  {
+   "id": "cbe35e16342d1872",
+   "round": 2,
+   "verbs": [
+    "count"
+   ],
+   "excludedByLeaveOneOut": [
+    "count"
+   ],
+   "example": {
+    "in": [
+     0,
+     [
+      {
+       "x": 1,
+       "y": 1
+      },
+      {
+       "x": 1,
+       "y": 1
+      },
+      {
+       "x": 5,
+       "y": 5
+      }
+     ]
+    ],
+    "out": 0
+   },
+   "blueprint": {
+    "id": "bp-s-28901c53",
+    "source": "success-of-blueprint",
+    "depth": 2,
+    "origin": {
+     "thing": "e1b6fae7738af16b",
+     "verbs": [
+      "count"
+     ],
+     "blueprint": "bp-s-4aa59ae4"
+    },
+    "excl": [
+     "count"
+    ]
+   },
+   "fill": [
+    {
+     "id": "13ab29bbaec0f14f",
+     "form": "part",
+     "part": "inner-generator:new/atoms/parse-ayin-sheet.mjs#parseAyinSheet.eyes:step",
+     "verbs": [],
+     "example": null
+    }
+   ]
+  },
+  {
+   "id": "bd5f7fb7c6647b9b",
+   "round": 2,
+   "verbs": [
+    "count"
+   ],
+   "excludedByLeaveOneOut": [
+    "count"
+   ],
+   "example": {
+    "in": [
+     0,
+     [
+      {
+       "x": 1,
+       "y": 1
+      },
+      {
+       "x": 1,
+       "y": 1
+      },
+      {
+       "x": 5,
+       "y": 5
+      }
+     ]
+    ],
+    "out": 0
+   },
+   "blueprint": {
+    "id": "bp-s-28901c53",
+    "source": "success-of-blueprint",
+    "depth": 2,
+    "origin": {
+     "thing": "e1b6fae7738af16b",
+     "verbs": [
+      "count"
+     ],
+     "blueprint": "bp-s-4aa59ae4"
+    },
+    "excl": [
+     "count"
+    ]
+   },
+   "fill": [
+    {
+     "id": "19058be543b315a9",
+     "form": "part",
+     "part": "inner-orbit:src/lib/atoms/previewZmanim.ts#hms.x",
+     "verbs": [],
+     "example": null
+    }
+   ]
+  },
+  {
+   "id": "f13c3430e750b9bc",
+   "round": 2,
+   "verbs": [
+    "count"
+   ],
+   "excludedByLeaveOneOut": [
+    "count"
+   ],
+   "example": {
+    "in": [
+     0,
+     [
+      {
+       "x": 1,
+       "y": 1
+      },
+      {
+       "x": 1,
+       "y": 1
+      },
+      {
+       "x": 5,
+       "y": 5
+      }
+     ]
+    ],
+    "out": 0
+   },
+   "blueprint": {
+    "id": "bp-s-28901c53",
+    "source": "success-of-blueprint",
+    "depth": 2,
+    "origin": {
+     "thing": "e1b6fae7738af16b",
+     "verbs": [
+      "count"
+     ],
+     "blueprint": "bp-s-4aa59ae4"
+    },
+    "excl": [
+     "count"
+    ]
+   },
+   "fill": [
+    {
+     "id": "1e6565a94ee3162d",
+     "form": "part",
+     "part": "inner-orbit:src/components/hosting/kitchen.ts#minTo.v",
+     "verbs": [],
+     "example": null
+    }
+   ]
+  },
+  {
+   "id": "524e6396ea135682",
+   "round": 3,
+   "verbs": [
+    "count"
+   ],
+   "excludedByLeaveOneOut": [
+    "count"
+   ],
+   "example": {
+    "in": [
+     0,
+     [
+      {
+       "x": 1,
+       "y": 1
+      },
+      {
+       "x": 1,
+       "y": 1
+      },
+      {
+       "x": 5,
+       "y": 5
+      }
+     ]
+    ],
+    "out": 0
+   },
+   "blueprint": {
+    "id": "bp-s-28901c53",
+    "source": "success-of-blueprint",
+    "depth": 2,
+    "origin": {
+     "thing": "e1b6fae7738af16b",
+     "verbs": [
+      "count"
+     ],
+     "blueprint": "bp-s-4aa59ae4"
+    },
+    "excl": [
+     "count"
+    ]
+   },
+   "fill": [
+    {
+     "id": "25fb72601b6176a4",
+     "form": "part",
+     "part": "inner-orbit:src/lib/three-scene.ts#mountBrainScene.th",
+     "verbs": [],
+     "example": null
+    }
+   ]
+  },
+  {
+   "id": "3673871bf1512ed7",
+   "round": 3,
+   "verbs": [
+    "count"
+   ],
+   "excludedByLeaveOneOut": [
+    "count"
+   ],
+   "example": {
+    "in": [
+     0,
+     [
+      {
+       "x": 1,
+       "y": 1
+      },
+      {
+       "x": 1,
+       "y": 1
+      },
+      {
+       "x": 5,
+       "y": 5
+      }
+     ]
+    ],
+    "out": 1
+   },
+   "blueprint": {
+    "id": "bp-s-28901c53",
+    "source": "success-of-blueprint",
+    "depth": 2,
+    "origin": {
+     "thing": "e1b6fae7738af16b",
+     "verbs": [
+      "count"
+     ],
+     "blueprint": "bp-s-4aa59ae4"
+    },
+    "excl": [
+     "count"
+    ]
+   },
+   "fill": [
+    {
+     "id": "27e56468346effec",
+     "form": "part",
+     "part": "inner-orbit:src/components/parnasa/coinFx.ts#cnFly.u:step",
+     "verbs": [],
+     "example": null
+    }
+   ]
+  },
+  {
+   "id": "6f17889a33644ac6",
+   "round": 3,
+   "verbs": [
+    "count"
+   ],
+   "excludedByLeaveOneOut": [
+    "count"
+   ],
+   "example": {
+    "in": [
+     0,
+     [
+      {
+       "x": 1,
+       "y": 1
+      },
+      {
+       "x": 1,
+       "y": 1
+      },
+      {
+       "x": 5,
+       "y": 5
+      }
+     ]
+    ],
+    "out": 2
+   },
+   "blueprint": {
+    "id": "bp-s-28901c53",
+    "source": "success-of-blueprint",
+    "depth": 2,
+    "origin": {
+     "thing": "e1b6fae7738af16b",
+     "verbs": [
+      "count"
+     ],
+     "blueprint": "bp-s-4aa59ae4"
+    },
+    "excl": [
+     "count"
+    ]
+   },
+   "fill": [
+    {
+     "id": "2bdfe40d2548f549",
+     "form": "part",
+     "part": "inner-14kk:archive/architect-bridge.js#getUpdates.offset",
+     "verbs": [],
+     "example": null
+    }
+   ]
+  },
+  {
+   "id": "80043d6d6114cb41",
+   "round": 3,
+   "verbs": [
+    "count"
+   ],
+   "excludedByLeaveOneOut": [
+    "count"
+   ],
+   "example": {
+    "in": [
+     0,
+     [
+      {
+       "x": 1,
+       "y": 1
+      },
+      {
+       "x": 1,
+       "y": 1
+      },
+      {
+       "x": 5,
+       "y": 5
+      }
+     ]
+    ],
+    "out": 3
+   },
+   "blueprint": {
+    "id": "bp-s-28901c53",
+    "source": "success-of-blueprint",
+    "depth": 2,
+    "origin": {
+     "thing": "e1b6fae7738af16b",
+     "verbs": [
+      "count"
+     ],
+     "blueprint": "bp-s-4aa59ae4"
+    },
+    "excl": [
+     "count"
+    ]
+   },
+   "fill": [
+    {
+     "id": "2c8d7bf6d0ee367a",
+     "form": "part",
+     "part": "inner-14kk:construction_supervisor_protocol.js#ConstructionSupervisor.checkTestResults.failedTests",
+     "verbs": [],
+     "example": null
+    }
+   ]
+  }
+ ],
+ "bornFromBlueprintSuccess": [
+  {
+   "id": "bp-s-a3f9fbb7",
+   "depth": 2,
+   "from": {
+    "thing": "e37d15d599ed8a91",
+    "verbs": [
+     "sort"
+    ],
+    "blueprint": "bp-c-10535be4",
+    "example": {
+     "in": [
+      1,
+      [
+       0,
+       0,
+       1
+      ]
+     ],
+     "out": [
+      0,
+      0,
+      1
+     ]
+    }
+   },
+   "excl": [
+    "sort"
+   ],
+   "built": 24,
+   "onShelf": 14,
+   "successes": 0,
+   "made": [
+    {
+     "id": "08ee86ff7fa55fbb",
+     "round": 3,
+     "sig": "num,nums>nums",
+     "verbs": [
+      "normalize"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,nums>nums"
+      }
+     ]
+    },
+    {
+     "id": "54c41a7020c8158c",
+     "round": 3,
+     "sig": "num,nums>nums",
+     "verbs": [],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,nums>nums"
+      }
+     ]
+    },
+    {
+     "id": "6b718183dd59d1cf",
+     "round": 2,
+     "sig": "num,nums>nums",
+     "verbs": [
+      "normalize"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,nums>nums"
+      }
+     ]
+    },
+    {
+     "id": "6fb0bc5efa3ba652",
+     "round": 3,
+     "sig": "num,nums>nums",
+     "verbs": [],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,nums>nums"
+      }
+     ]
+    },
+    {
+     "id": "70770a7f9f40dc33",
+     "round": 2,
+     "sig": "num,nums>nums",
+     "verbs": [
+      "normalize"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,nums>nums"
+      }
+     ]
+    },
+    {
+     "id": "83850849c0055b95",
+     "round": 2,
+     "sig": "num,nums>nums",
+     "verbs": [],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,nums>nums"
+      }
+     ]
+    },
+    {
+     "id": "85608f8c972b72b0",
+     "round": 3,
+     "sig": "num,nums>nums",
+     "verbs": [
+      "normalize"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,nums>nums"
+      }
+     ]
+    },
+    {
+     "id": "b149b943d53d0bef",
+     "round": 3,
+     "sig": "num,nums>nums",
+     "verbs": [],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,nums>nums"
+      }
+     ]
+    },
+    {
+     "id": "cf1647af57bb91bb",
+     "round": 2,
+     "sig": "num,nums>nums",
+     "verbs": [
+      "normalize"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,nums>nums"
+      }
+     ]
+    },
+    {
+     "id": "d6c9436801a254d4",
+     "round": 3,
+     "sig": "num,nums>nums",
+     "verbs": [],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,nums>nums"
+      }
+     ]
+    },
+    {
+     "id": "da5a13af3f4570db",
+     "round": 2,
+     "sig": "num,nums>nums",
+     "verbs": [
+      "normalize"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,nums>nums"
+      }
+     ]
+    },
+    {
+     "id": "e6996dce85306c8a",
+     "round": 3,
+     "sig": "num,nums>nums",
+     "verbs": [],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,nums>nums"
+      }
+     ]
+    },
+    {
+     "id": "eb3b4755848d6b21",
+     "round": 2,
+     "sig": "num,nums>nums",
+     "verbs": [
+      "normalize"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,nums>nums"
+      }
+     ]
+    },
+    {
+     "id": "f064abcb5bdb54b7",
+     "round": 2,
+     "sig": "num,nums>nums",
+     "verbs": [
+      "normalize"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,nums>nums"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "bp-s-51c27ca5",
+   "depth": 2,
+   "from": {
+    "thing": "e37d15d599ed8a91",
+    "verbs": [
+     "sort"
+    ],
+    "blueprint": "bp-c-10535be4",
+    "example": {
+     "in": [
+      1,
+      [
+       0,
+       0,
+       1
+      ]
+     ],
+     "out": [
+      0,
+      0,
+      1
+     ]
+    }
+   },
+   "excl": [
+    "sort"
+   ],
+   "built": 26,
+   "onShelf": 14,
+   "successes": 0,
+   "made": [
+    {
+     "id": "0418733e6f736a1a",
+     "round": 3,
+     "sig": "num,nums>nums",
+     "verbs": [],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,nums>nums"
+      }
+     ]
+    },
+    {
+     "id": "1c444c4fb78f6213",
+     "round": 2,
+     "sig": "num,nums>nums",
+     "verbs": [],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,nums>nums"
+      }
+     ]
+    },
+    {
+     "id": "1d012aa173e0484d",
+     "round": 3,
+     "sig": "num,nums>nums",
+     "verbs": [],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,nums>nums"
+      }
+     ]
+    },
+    {
+     "id": "358c0c1cae5cb878",
+     "round": 2,
+     "sig": "num,nums>nums",
+     "verbs": [
+      "normalize"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,nums>nums"
+      }
+     ]
+    },
+    {
+     "id": "4fd7e824127b2110",
+     "round": 2,
+     "sig": "num,nums>nums",
+     "verbs": [
+      "normalize"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,nums>nums"
+      }
+     ]
+    },
+    {
+     "id": "6206d4db522b9847",
+     "round": 3,
+     "sig": "num,nums>nums",
+     "verbs": [],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,nums>nums"
+      }
+     ]
+    },
+    {
+     "id": "9fd7c9fa3e8b30ee",
+     "round": 2,
+     "sig": "num,nums>nums",
+     "verbs": [],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,nums>nums"
+      }
+     ]
+    },
+    {
+     "id": "a33c1d371b36a2f3",
+     "round": 3,
+     "sig": "num,nums>nums",
+     "verbs": [],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,nums>nums"
+      }
+     ]
+    },
+    {
+     "id": "a980dc17109e8a0b",
+     "round": 3,
+     "sig": "num,nums>nums",
+     "verbs": [],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,nums>nums"
+      }
+     ]
+    },
+    {
+     "id": "d1b946612943abb5",
+     "round": 3,
+     "sig": "num,nums>nums",
+     "verbs": [
+      "normalize"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,nums>nums"
+      }
+     ]
+    },
+    {
+     "id": "d4162041f2d96145",
+     "round": 3,
+     "sig": "num,nums>nums",
+     "verbs": [],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,nums>nums"
+      }
+     ]
+    },
+    {
+     "id": "e93fdf81aa325315",
+     "round": 2,
+     "sig": "num,nums>nums",
+     "verbs": [],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,nums>nums"
+      }
+     ]
+    },
+    {
+     "id": "f625debfd23ea9db",
+     "round": 3,
+     "sig": "num,nums>nums",
+     "verbs": [],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,nums>nums"
+      }
+     ]
+    },
+    {
+     "id": "fa57fec675845bc2",
+     "round": 2,
+     "sig": "num,nums>nums",
+     "verbs": [],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,nums>nums"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "bp-s-5ef8f04c",
+   "depth": 2,
+   "from": {
+    "thing": "02644a9d3e051709",
+    "verbs": [
+     "count"
+    ],
+    "blueprint": "bp-s-38d34db8",
+    "example": {
+     "in": [
+      0,
+      [
+       {
+        "x": 1,
+        "y": 1
+       },
+       {
+        "x": 1,
+        "y": 1
+       },
+       {
+        "x": 5,
+        "y": 5
+       }
+      ]
+     ],
+     "out": 0
+    }
+   },
+   "excl": [
+    "count"
+   ],
+   "built": 24,
+   "onShelf": 11,
+   "successes": 0,
+   "made": [
+    {
+     "id": "0079398965a6fa1d",
+     "round": 2,
+     "sig": "num,pts>num",
+     "verbs": [],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,pts>num"
+      }
+     ]
+    },
+    {
+     "id": "02cc8c9d460cd939",
+     "round": 2,
+     "sig": "num,pts>num",
+     "verbs": [
+      "tier"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,pts>num"
+      }
+     ]
+    },
+    {
+     "id": "15c9b8dbb7f1e7e7",
+     "round": 2,
+     "sig": "num,pts>num",
+     "verbs": [
+      "round"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,pts>num"
+      }
+     ]
+    },
+    {
+     "id": "3a90e5c372435b6f",
+     "round": 2,
+     "sig": "num,pts>num",
+     "verbs": [],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,pts>num"
+      }
+     ]
+    },
+    {
+     "id": "6f3064b5d318a1d9",
+     "round": 2,
+     "sig": "num,pts>num",
+     "verbs": [
+      "round",
+      "tier"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,pts>num"
+      }
+     ]
+    },
+    {
+     "id": "721ab6cd9c5f2b79",
+     "round": 2,
+     "sig": "num,pts>num",
+     "verbs": [
+      "tier"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,pts>num"
+      }
+     ]
+    },
+    {
+     "id": "7fe7e2e7fce7a60b",
+     "round": 2,
+     "sig": "num,pts>num",
+     "verbs": [
+      "tier"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,pts>num"
+      }
+     ]
+    },
+    {
+     "id": "83f6a41c6e36e5e8",
+     "round": 2,
+     "sig": "num,pts>num",
+     "verbs": [
+      "round",
+      "clamp"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,pts>num"
+      }
+     ]
+    },
+    {
+     "id": "9f25b5687af56804",
+     "round": 2,
+     "sig": "num,pts>num",
+     "verbs": [
+      "tier"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,pts>num"
+      }
+     ]
+    },
+    {
+     "id": "c379cad25f402f96",
+     "round": 2,
+     "sig": "num,pts>num",
+     "verbs": [
+      "tier"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,pts>num"
+      }
+     ]
+    },
+    {
+     "id": "dc1f937c3fea94c0",
+     "round": 2,
+     "sig": "num,pts>num",
+     "verbs": [
+      "round",
+      "clamp"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,pts>num"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "bp-s-28901c53",
+   "depth": 2,
+   "from": {
+    "thing": "e1b6fae7738af16b",
+    "verbs": [
+     "count"
+    ],
+    "blueprint": "bp-s-4aa59ae4",
+    "example": {
+     "in": [
+      0,
+      [
+       {
+        "x": 1,
+        "y": 1
+       },
+       {
+        "x": 1,
+        "y": 1
+       },
+       {
+        "x": 5,
+        "y": 5
+       }
+      ]
+     ],
+     "out": 0
+    }
+   },
+   "excl": [
+    "count"
+   ],
+   "built": 24,
+   "onShelf": 14,
+   "successes": 10,
+   "made": [
+    {
+     "id": "08ebd32e963f15fa",
+     "round": 3,
+     "sig": "num,pts>num",
+     "verbs": [
+      "tier"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,pts>num"
+      }
+     ]
+    },
+    {
+     "id": "2d3073c9da2b6f95",
+     "round": 3,
+     "sig": "num,pts>num",
+     "verbs": [
+      "tier"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,pts>num"
+      }
+     ]
+    },
+    {
+     "id": "3673871bf1512ed7",
+     "round": 3,
+     "sig": "num,pts>num",
+     "verbs": [
+      "count",
+      "tier"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,pts>num"
+      }
+     ]
+    },
+    {
+     "id": "3c1529029b7fc1f6",
+     "round": 2,
+     "sig": "num,pts>num",
+     "verbs": [
+      "count",
+      "tier",
+      "clamp"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,pts>num"
+      }
+     ]
+    },
+    {
+     "id": "3ecaabf6a379c832",
+     "round": 2,
+     "sig": "num,pts>num",
+     "verbs": [
+      "count"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,pts>num"
+      }
+     ]
+    },
+    {
+     "id": "524e6396ea135682",
+     "round": 3,
+     "sig": "num,pts>num",
+     "verbs": [
+      "round",
+      "count",
+      "tier",
+      "clamp"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,pts>num"
+      }
+     ]
+    },
+    {
+     "id": "6f17889a33644ac6",
+     "round": 3,
+     "sig": "num,pts>num",
+     "verbs": [
+      "count",
+      "tier",
+      "clamp"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,pts>num"
+      }
+     ]
+    },
+    {
+     "id": "71cc3d2d6e30d379",
+     "round": 3,
+     "sig": "num,pts>num",
+     "verbs": [
+      "normalize"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,pts>num"
+      }
+     ]
+    },
+    {
+     "id": "80043d6d6114cb41",
+     "round": 3,
+     "sig": "num,pts>num",
+     "verbs": [
+      "count",
+      "tier"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,pts>num"
+      }
+     ]
+    },
+    {
+     "id": "aae614e50dffc2b9",
+     "round": 3,
+     "sig": "num,pts>num",
+     "verbs": [],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,pts>num"
+      }
+     ]
+    },
+    {
+     "id": "b4cb4efe4d8aca1a",
+     "round": 2,
+     "sig": "num,pts>num",
+     "verbs": [
+      "round",
+      "count",
+      "tier",
+      "clamp"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,pts>num"
+      }
+     ]
+    },
+    {
+     "id": "bd5f7fb7c6647b9b",
+     "round": 2,
+     "sig": "num,pts>num",
+     "verbs": [
+      "round",
+      "count",
+      "clamp"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,pts>num"
+      }
+     ]
+    },
+    {
+     "id": "cbe35e16342d1872",
+     "round": 2,
+     "sig": "num,pts>num",
+     "verbs": [
+      "round",
+      "count",
+      "clamp"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,pts>num"
+      }
+     ]
+    },
+    {
+     "id": "f13c3430e750b9bc",
+     "round": 2,
+     "sig": "num,pts>num",
+     "verbs": [
+      "round",
+      "count",
+      "clamp"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,pts>num"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "bp-s-c72d961e",
+   "depth": 2,
+   "from": {
+    "thing": "e1b6fae7738af16b",
+    "verbs": [
+     "count"
+    ],
+    "blueprint": "bp-s-4aa59ae4",
+    "example": {
+     "in": [
+      0,
+      [
+       {
+        "x": 1,
+        "y": 1
+       },
+       {
+        "x": 1,
+        "y": 1
+       },
+       {
+        "x": 5,
+        "y": 5
+       }
+      ]
+     ],
+     "out": 0
+    }
+   },
+   "excl": [
+    "count"
+   ],
+   "built": 24,
+   "onShelf": 5,
+   "successes": 0,
+   "made": [
+    {
+     "id": "03fa470d80661a79",
+     "round": 2,
+     "sig": "num,pts>num",
+     "verbs": [
+      "tier",
+      "normalize"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,pts>num"
+      }
+     ]
+    },
+    {
+     "id": "042141ffe1249fc3",
+     "round": 2,
+     "sig": "num,pts>num",
+     "verbs": [
+      "tier"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,pts>num"
+      }
+     ]
+    },
+    {
+     "id": "1c12cd33e5da9b0f",
+     "round": 2,
+     "sig": "num,pts>num",
+     "verbs": [
+      "tier"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,pts>num"
+      }
+     ]
+    },
+    {
+     "id": "726268f430ef5860",
+     "round": 2,
+     "sig": "num,pts>num",
+     "verbs": [
+      "tier",
+      "normalize"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,pts>num"
+      }
+     ]
+    },
+    {
+     "id": "c1508ee3d5251987",
+     "round": 2,
+     "sig": "num,pts>num",
+     "verbs": [
+      "tier",
+      "normalize"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,pts>num"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "bp-s-459094a2",
+   "depth": 2,
+   "from": {
+    "thing": "5ac3aad2611f9146",
+    "verbs": [
+     "extreme"
+    ],
+    "blueprint": "bp-c-ff93bc92",
+    "example": {
+     "in": [
+      [
+       3,
+       1,
+       2
+      ]
+     ],
+     "out": 1
+    }
+   },
+   "excl": [
+    "extreme"
+   ],
+   "built": 13,
+   "onShelf": 3,
+   "successes": 0,
+   "made": [
+    {
+     "id": "1fc651b062228fe4",
+     "round": 3,
+     "sig": "nums>num",
+     "verbs": [],
+     "target": "min",
+     "pct": 55,
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": 1
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": 10
+      }
+     ]
+    },
+    {
+     "id": "a8196bf9bf7ff215",
+     "round": 3,
+     "sig": "nums>num",
+     "verbs": [],
+     "target": "product",
+     "pct": 9,
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": 32
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": 4
+      }
+     ]
+    },
+    {
+     "id": "f7c310ca4edf827e",
+     "round": 3,
+     "sig": "nums>num",
+     "verbs": [],
+     "target": "min",
+     "pct": 55,
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": 1
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": 10
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "bp-s-8d7bd467",
+   "depth": 2,
+   "from": {
+    "thing": "5ac3aad2611f9146",
+    "verbs": [
+     "extreme"
+    ],
+    "blueprint": "bp-c-ff93bc92",
+    "example": {
+     "in": [
+      [
+       3,
+       1,
+       2
+      ]
+     ],
+     "out": 1
+    }
+   },
+   "excl": [
+    "extreme"
+   ],
+   "built": 13,
+   "onShelf": 4,
+   "successes": 0,
+   "made": [
+    {
+     "id": "2c36be705bcb058c",
+     "round": 3,
+     "sig": "nums>num",
+     "verbs": [],
+     "target": "last",
+     "pct": 55,
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": 6
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": null
+      }
+     ]
+    },
+    {
+     "id": "30e59a16798c8652",
+     "round": 3,
+     "sig": "nums>num",
+     "verbs": [],
+     "target": "min",
+     "pct": 73,
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": 1
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": -4
+      }
+     ]
+    },
+    {
+     "id": "7d86bb1ead94383a",
+     "round": 3,
+     "sig": "nums>num",
+     "verbs": [],
+     "target": "first",
+     "pct": 91,
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": 6
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": -4
+      }
+     ]
+    },
+    {
+     "id": "bb44b25527d3c969",
+     "round": 3,
+     "sig": "nums>num",
+     "verbs": [],
+     "target": "first",
+     "pct": 45,
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": 1
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": -4
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "bp-s-b5e94ff7",
+   "depth": 2,
+   "from": {
+    "thing": "5ac3aad2611f9146",
+    "verbs": [
+     "extreme"
+    ],
+    "blueprint": "bp-c-ff93bc92",
+    "example": {
+     "in": [
+      [
+       3,
+       1,
+       2
+      ]
+     ],
+     "out": 1
+    }
+   },
+   "excl": [
+    "extreme"
+   ],
+   "built": 13,
+   "onShelf": 2,
+   "successes": 0,
+   "made": [
+    {
+     "id": "860eea2fe1adff13",
+     "round": 3,
+     "sig": "nums>num",
+     "verbs": [],
+     "target": "range",
+     "pct": 9,
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": 8
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": -11
+      }
+     ]
+    },
+    {
+     "id": "a2b40b0881deb944",
+     "round": 3,
+     "sig": "nums>num",
+     "verbs": [],
+     "target": "last",
+     "pct": 45,
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": 1
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": -4
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "bp-s-237eed09",
+   "depth": 2,
+   "from": {
+    "thing": "5ac3aad2611f9146",
+    "verbs": [
+     "extreme"
+    ],
+    "blueprint": "bp-c-ff93bc92",
+    "example": {
+     "in": [
+      [
+       3,
+       1,
+       2
+      ]
+     ],
+     "out": 1
+    }
+   },
+   "excl": [
+    "extreme"
+   ],
+   "built": 13,
+   "onShelf": 2,
+   "successes": 0,
+   "made": [
+    {
+     "id": "0d14c07eedb7106a",
+     "round": 3,
+     "sig": "nums>num",
+     "verbs": [],
+     "target": "min",
+     "pct": 91,
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": 1
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": -4
+      }
+     ]
+    },
+    {
+     "id": "36126408fe48a0ac",
+     "round": 3,
+     "sig": "nums>num",
+     "verbs": [],
+     "target": "min",
+     "pct": 91,
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": 1
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": -4
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "targets": {
+  "selfprint": {
+   "hits": [
+    {
+     "target": "secondLargest",
+     "he": "השני-בגודלו",
+     "known": false,
+     "id": "1b71337837db4494",
+     "floor": 1,
+     "form": "chain",
+     "steps": 97,
+     "nodes": 2,
+     "of": [
+      {
+       "id": "00887f585f4f3bac",
+       "form": "part",
+       "part": "inner-generator:new/boxes/pareto.mjs#paretoReport.desc",
+       "verbs": [
+        "sort"
+       ]
+      },
+      {
+       "id": "abcaac627b0f655e",
+       "form": "part",
+       "part": "inner-orbit:src/components/hosting/hui.tsx#FSelect.map.lab"
+      }
+     ],
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": 7,
+       "want": 7
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": 2.5,
+       "want": 2.5
+      }
+     ]
+    },
+    {
+     "target": "first",
+     "he": "הראשון",
+     "known": false,
+     "id": "b0731498ef2fba84",
+     "floor": 0,
+     "form": "part",
+     "steps": 13,
+     "nodes": 1,
+     "part": "inner-generator:machtzev/ds-forge.mjs#edge.cl.n",
+     "of": [],
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": 6,
+       "want": 6
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": -4,
+       "want": -4
+      }
+     ]
+    },
+    {
+     "target": "last",
+     "he": "האחרון",
+     "known": false,
+     "id": "c5a13fc06078aaec",
+     "floor": 0,
+     "form": "part",
+     "steps": 13,
+     "nodes": 1,
+     "part": "inner-buildsmart:app/src/store/app-store.ts#computed.parent",
+     "of": [],
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": 2,
+       "want": 2
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": 2.5,
+       "want": 2.5
+      }
+     ]
+    },
+    {
+     "target": "min",
+     "he": "מינימום",
+     "known": true,
+     "id": "85972efd13f234a1",
+     "floor": 1,
+     "form": "chain",
+     "steps": 93,
+     "nodes": 2,
+     "of": [
+      {
+       "id": "94abcb62cd88d67e",
+       "form": "part",
+       "part": "inner-generator:new/boxes/pareto.mjs#paretoReport.asc",
+       "verbs": [
+        "sort"
+       ]
+      },
+      {
+       "id": "b0731498ef2fba84",
+       "form": "part",
+       "part": "inner-generator:machtzev/ds-forge.mjs#edge.cl.n"
+      }
+     ],
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": 1,
+       "want": 1
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": -4,
+       "want": -4
+      }
+     ]
+    },
+    {
+     "target": "max",
+     "he": "מקסימום",
+     "known": true,
+     "id": "130e55561cfa0722",
+     "floor": 0,
+     "form": "part",
+     "steps": 13,
+     "nodes": 1,
+     "part": "inner-generator:gen/looks/app/src/20-views-a.js#class.render.maxc:step",
+     "of": [],
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": 9,
+       "want": 9
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": 10,
+       "want": 10
+      }
+     ]
+    },
+    {
+     "target": "sortDesc",
+     "he": "מיון יורד",
+     "known": false,
+     "id": "00887f585f4f3bac",
+     "floor": 0,
+     "form": "part",
+     "steps": 84,
+     "nodes": 1,
+     "part": "inner-generator:new/boxes/pareto.mjs#paretoReport.desc",
+     "of": [],
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": [
+        9,
+        7,
+        6,
+        3,
+        2,
+        1,
+        1
+       ],
+       "want": [
+        9,
+        7,
+        6,
+        3,
+        2,
+        1,
+        1
+       ]
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": [
+        10,
+        2.5,
+        -4,
+        -4
+       ],
+       "want": [
+        10,
+        2.5,
+        -4,
+        -4
+       ]
+      }
+     ]
+    },
+    {
+     "target": "sortAsc",
+     "he": "מיון עולה",
+     "known": true,
+     "id": "94abcb62cd88d67e",
+     "floor": 0,
+     "form": "part",
+     "steps": 80,
+     "nodes": 1,
+     "part": "inner-generator:new/boxes/pareto.mjs#paretoReport.asc",
+     "of": [],
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": [
+        1,
+        1,
+        2,
+        3,
+        6,
+        7,
+        9
+       ],
+       "want": [
+        1,
+        1,
+        2,
+        3,
+        6,
+        7,
+        9
+       ]
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": [
+        -4,
+        -4,
+        2.5,
+        10
+       ],
+       "want": [
+        -4,
+        -4,
+        2.5,
+        10
+       ]
+      }
+     ]
+    }
+   ],
+   "near": [
+    {
+     "target": "distinctCount",
+     "he": "כמה ערכים שונים",
+     "known": false,
+     "id": "02520317a8228373",
+     "floor": "bp2",
+     "form": "bp",
+     "steps": 64,
+     "nodes": 4,
+     "blueprint": {
+      "id": "bp-c-df5e6e2d",
+      "source": "code",
+      "depth": 1,
+      "origin": {
+       "code": "code-0096",
+       "n": 2,
+       "at": [
+        "src/lib/cloudConfig.ts:131",
+        "src/lib/cloudConfig.ts:444"
+       ],
+       "names": []
+      },
+      "excl": []
+     },
+     "fill": [
+      {
+       "id": "130e55561cfa0722",
+       "form": "part",
+       "part": "inner-generator:gen/looks/app/src/20-views-a.js#class.render.maxc:step",
+       "verbs": [
+        "extreme"
+       ]
+      },
+      {
+       "id": "7184f07463958170",
+       "form": "part",
+       "part": "inner-orbit:src/lib/atoms/decompose/genericPreview.ts#textPreview.vals",
+       "verbs": [
+        "dedupe"
+       ]
+      },
+      {
+       "id": "b49ffdff62ca585b",
+       "form": "part",
+       "part": "inner-generator:machtzev/generator/behavior-plan.mjs#runGoal.total",
+       "verbs": [
+        "count"
+       ]
+      }
+     ],
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": 6,
+       "want": 6
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": 3,
+       "want": 3
+      }
+     ],
+     "stressFail": {
+      "at": 31,
+      "why": "לא רץ",
+      "len": 0
+     },
+     "stressRan": 206
+    },
+    {
+     "target": "first",
+     "he": "הראשון",
+     "known": false,
+     "id": "1eaa8497492c0ad3",
+     "floor": "bp1",
+     "form": "bp",
+     "steps": 26,
+     "nodes": 2,
+     "blueprint": {
+      "id": "bp-s-d7d8baeb",
+      "source": "success",
+      "depth": 1,
+      "origin": {
+       "thing": "85972efd13f234a1",
+       "verbs": [
+        "extreme"
+       ]
+      },
+      "excl": [
+       "extreme"
+      ]
+     },
+     "fill": [
+      {
+       "id": "50494193aa8a430f",
+       "form": "part",
+       "part": "inner-generator:new/boxes/vcard-import.mjs#phoneLabel.inner"
+      }
+     ],
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": 6,
+       "want": 6
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": -4,
+       "want": -4
+      }
+     ],
+     "wrapperOf": [
+      "b0731498ef2fba84"
+     ],
+     "stressFail": {
+      "at": 48,
+      "why": "לא רץ",
+      "len": 1
+     },
+     "stressRan": 192
+    },
+    {
+     "target": "last",
+     "he": "האחרון",
+     "known": false,
+     "id": "08906a6211b79c86",
+     "floor": "bp2",
+     "form": "bp",
+     "steps": 39,
+     "nodes": 3,
+     "blueprint": {
+      "id": "bp-s-d7d8baeb",
+      "source": "success",
+      "depth": 1,
+      "origin": {
+       "thing": "85972efd13f234a1",
+       "verbs": [
+        "extreme"
+       ]
+      },
+      "excl": [
+       "extreme"
+      ]
+     },
+     "fill": [
+      {
+       "id": "b888831e29c624e2",
+       "form": "chain"
+      }
+     ],
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": 2,
+       "want": 2
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": 2.5,
+       "want": 2.5
+      }
+     ],
+     "stressFail": {
+      "at": 48,
+      "why": "לא רץ",
+      "len": 1
+     },
+     "stressRan": 192
+    }
+   ],
+   "best": {
+    "median": {
+     "pct": 45,
+     "id": "1b71337837db4494"
+    },
+    "range": {
+     "pct": 64,
+     "id": "e7b41217930df2f3"
+    },
+    "variance": {
+     "pct": 18,
+     "id": "11f3b01a0eb568fe"
+    },
+    "stdev": {
+     "pct": 18,
+     "id": "11f3b01a0eb568fe"
+    },
+    "product": {
+     "pct": 27,
+     "id": "0424779bf581eed7"
+    },
+    "secondLargest": {
+     "pct": 100,
+     "id": "1b71337837db4494"
+    },
+    "argmax": {
+     "pct": 45,
+     "id": "39d99837d82b02cb"
+    },
+    "argmin": {
+     "pct": 64,
+     "id": "0d3bd1b20b4d7996"
+    },
+    "countAboveMean": {
+     "pct": 45,
+     "id": "ac80cf1c4d997b30"
+    },
+    "sumSquares": {
+     "pct": 18,
+     "id": "6fd48c488f7d7df4"
+    },
+    "meanAbsDev": {
+     "pct": 18,
+     "id": "11f3b01a0eb568fe"
+    },
+    "sumAbs": {
+     "pct": 73,
+     "id": "fc05fa1b724e23d7"
+    },
+    "distinctCount": {
+     "pct": 100,
+     "id": "02520317a8228373"
+    },
+    "first": {
+     "pct": 100,
+     "id": "1eaa8497492c0ad3"
+    },
+    "last": {
+     "pct": 100,
+     "id": "08906a6211b79c86"
+    },
+    "min": {
+     "pct": 100,
+     "id": "85972efd13f234a1"
+    },
+    "max": {
+     "pct": 100,
+     "id": "130e55561cfa0722"
+    },
+    "mean": {
+     "pct": 27,
+     "id": "1b71337837db4494"
+    },
+    "deviations": {
+     "pct": 9,
+     "id": "0eba1c7b32e6e7bf"
+    },
+    "shares": {
+     "pct": 9,
+     "id": "003c5fa420bb1e28"
+    },
+    "cumsum": {
+     "pct": 9,
+     "id": "5cc2292e90033dca"
+    },
+    "sortDesc": {
+     "pct": 100,
+     "id": "00887f585f4f3bac"
+    },
+    "squares": {
+     "pct": 9,
+     "id": "5cc2292e90033dca"
+    },
+    "aboveMean": {
+     "pct": 27,
+     "id": "0ae8107b65ed5b47"
+    },
+    "minMaxScale": {
+     "pct": 9,
+     "id": "18b2bcca13d45386"
+    },
+    "sortAsc": {
+     "pct": 100,
+     "id": "94abcb62cd88d67e"
+    }
+   }
+  },
+  "baseline": {
+   "hits": [
+    {
+     "target": "secondLargest",
+     "he": "השני-בגודלו",
+     "known": false,
+     "id": "1b71337837db4494",
+     "floor": 1,
+     "form": "chain",
+     "steps": 97,
+     "nodes": 2,
+     "of": [
+      {
+       "id": "00887f585f4f3bac",
+       "form": "part",
+       "part": "inner-generator:new/boxes/pareto.mjs#paretoReport.desc",
+       "verbs": [
+        "sort"
+       ]
+      },
+      {
+       "id": "abcaac627b0f655e",
+       "form": "part",
+       "part": "inner-orbit:src/components/hosting/hui.tsx#FSelect.map.lab"
+      }
+     ],
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": 7,
+       "want": 7
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": 2.5,
+       "want": 2.5
+      }
+     ]
+    },
+    {
+     "target": "distinctCount",
+     "he": "כמה ערכים שונים",
+     "known": false,
+     "id": "399f777275f34706",
+     "floor": 1,
+     "form": "chain",
+     "steps": 39,
+     "nodes": 2,
+     "of": [
+      {
+       "id": "7184f07463958170",
+       "form": "part",
+       "part": "inner-orbit:src/lib/atoms/decompose/genericPreview.ts#textPreview.vals",
+       "verbs": [
+        "dedupe"
+       ]
+      },
+      {
+       "id": "b49ffdff62ca585b",
+       "form": "part",
+       "part": "inner-generator:machtzev/generator/behavior-plan.mjs#runGoal.total",
+       "verbs": [
+        "count"
+       ]
+      }
+     ],
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": 6,
+       "want": 6
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": 3,
+       "want": 3
+      }
+     ]
+    },
+    {
+     "target": "first",
+     "he": "הראשון",
+     "known": false,
+     "id": "34257345f0547079",
+     "floor": 1,
+     "form": "chain",
+     "steps": 89,
+     "nodes": 2,
+     "of": [
+      {
+       "id": "dcf2e63236fcacfe",
+       "form": "part",
+       "part": "inner-orbit:src/lib/dedup.ts#dedupById.out:after-loop",
+       "verbs": [
+        "normalize"
+       ]
+      },
+      {
+       "id": "0ce602d9666a323d",
+       "form": "part",
+       "part": "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+       "verbs": [
+        "sum"
+       ]
+      }
+     ],
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": 6,
+       "want": 6
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": -4,
+       "want": -4
+      }
+     ]
+    },
+    {
+     "target": "first",
+     "he": "הראשון",
+     "known": false,
+     "id": "b0731498ef2fba84",
+     "floor": 0,
+     "form": "part",
+     "steps": 13,
+     "nodes": 1,
+     "part": "inner-generator:machtzev/ds-forge.mjs#edge.cl.n",
+     "of": [],
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": 6,
+       "want": 6
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": -4,
+       "want": -4
+      }
+     ]
+    },
+    {
+     "target": "last",
+     "he": "האחרון",
+     "known": false,
+     "id": "c5a13fc06078aaec",
+     "floor": 0,
+     "form": "part",
+     "steps": 13,
+     "nodes": 1,
+     "part": "inner-buildsmart:app/src/store/app-store.ts#computed.parent",
+     "of": [],
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": 2,
+       "want": 2
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": 2.5,
+       "want": 2.5
+      }
+     ]
+    },
+    {
+     "target": "min",
+     "he": "מינימום",
+     "known": true,
+     "id": "85972efd13f234a1",
+     "floor": 1,
+     "form": "chain",
+     "steps": 93,
+     "nodes": 2,
+     "of": [
+      {
+       "id": "94abcb62cd88d67e",
+       "form": "part",
+       "part": "inner-generator:new/boxes/pareto.mjs#paretoReport.asc",
+       "verbs": [
+        "sort"
+       ]
+      },
+      {
+       "id": "b0731498ef2fba84",
+       "form": "part",
+       "part": "inner-generator:machtzev/ds-forge.mjs#edge.cl.n"
+      }
+     ],
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": 1,
+       "want": 1
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": -4,
+       "want": -4
+      }
+     ]
+    },
+    {
+     "target": "max",
+     "he": "מקסימום",
+     "known": true,
+     "id": "130e55561cfa0722",
+     "floor": 0,
+     "form": "part",
+     "steps": 13,
+     "nodes": 1,
+     "part": "inner-generator:gen/looks/app/src/20-views-a.js#class.render.maxc:step",
+     "of": [],
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": 9,
+       "want": 9
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": 10,
+       "want": 10
+      }
+     ]
+    },
+    {
+     "target": "sortDesc",
+     "he": "מיון יורד",
+     "known": false,
+     "id": "00887f585f4f3bac",
+     "floor": 0,
+     "form": "part",
+     "steps": 84,
+     "nodes": 1,
+     "part": "inner-generator:new/boxes/pareto.mjs#paretoReport.desc",
+     "of": [],
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": [
+        9,
+        7,
+        6,
+        3,
+        2,
+        1,
+        1
+       ],
+       "want": [
+        9,
+        7,
+        6,
+        3,
+        2,
+        1,
+        1
+       ]
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": [
+        10,
+        2.5,
+        -4,
+        -4
+       ],
+       "want": [
+        10,
+        2.5,
+        -4,
+        -4
+       ]
+      }
+     ]
+    },
+    {
+     "target": "sortAsc",
+     "he": "מיון עולה",
+     "known": true,
+     "id": "94abcb62cd88d67e",
+     "floor": 0,
+     "form": "part",
+     "steps": 80,
+     "nodes": 1,
+     "part": "inner-generator:new/boxes/pareto.mjs#paretoReport.asc",
+     "of": [],
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": [
+        1,
+        1,
+        2,
+        3,
+        6,
+        7,
+        9
+       ],
+       "want": [
+        1,
+        1,
+        2,
+        3,
+        6,
+        7,
+        9
+       ]
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": [
+        -4,
+        -4,
+        2.5,
+        10
+       ],
+       "want": [
+        -4,
+        -4,
+        2.5,
+        10
+       ]
+      }
+     ]
+    }
+   ],
+   "near": [],
+   "best": {
+    "median": {
+     "pct": 45,
+     "id": "1b71337837db4494"
+    },
+    "range": {
+     "pct": 36,
+     "id": "205ed6b7a32a6bc3"
+    },
+    "variance": {
+     "pct": 9,
+     "id": "00f12fcacb69a866"
+    },
+    "stdev": {
+     "pct": 9,
+     "id": "00f12fcacb69a866"
+    },
+    "product": {
+     "pct": 27,
+     "id": "0318ac55287e21c1"
+    },
+    "secondLargest": {
+     "pct": 100,
+     "id": "1b71337837db4494"
+    },
+    "argmax": {
+     "pct": 45,
+     "id": "167160a5e1491a51"
+    },
+    "argmin": {
+     "pct": 64,
+     "id": "90de654996c70e45"
+    },
+    "countAboveMean": {
+     "pct": 55,
+     "id": "7b2b5d0c3e4b4a48"
+    },
+    "sumSquares": {
+     "pct": 9,
+     "id": "00b65cff03cffbb3"
+    },
+    "meanAbsDev": {
+     "pct": 9,
+     "id": "00f12fcacb69a866"
+    },
+    "sumAbs": {
+     "pct": 64,
+     "id": "0ce602d9666a323d"
+    },
+    "distinctCount": {
+     "pct": 100,
+     "id": "399f777275f34706"
+    },
+    "first": {
+     "pct": 100,
+     "id": "34257345f0547079"
+    },
+    "last": {
+     "pct": 100,
+     "id": "c5a13fc06078aaec"
+    },
+    "min": {
+     "pct": 100,
+     "id": "85972efd13f234a1"
+    },
+    "max": {
+     "pct": 100,
+     "id": "130e55561cfa0722"
+    },
+    "mean": {
+     "pct": 27,
+     "id": "1b71337837db4494"
+    },
+    "deviations": {
+     "pct": 9,
+     "id": "06b389d15ad8e9a5"
+    },
+    "shares": {
+     "pct": 9,
+     "id": "06b389d15ad8e9a5"
+    },
+    "cumsum": {
+     "pct": 9,
+     "id": "06b389d15ad8e9a5"
+    },
+    "sortDesc": {
+     "pct": 100,
+     "id": "00887f585f4f3bac"
+    },
+    "squares": {
+     "pct": 9,
+     "id": "06b389d15ad8e9a5"
+    },
+    "aboveMean": {
+     "pct": 27,
+     "id": "0ae8107b65ed5b47"
+    },
+    "minMaxScale": {
+     "pct": 9,
+     "id": "06b389d15ad8e9a5"
+    },
+    "sortAsc": {
+     "pct": 100,
+     "id": "94abcb62cd88d67e"
+    }
+   }
+  }
+ }
+}

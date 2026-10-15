@@ -1,0 +1,888 @@
+{
+ "about": "RINGS-PORT · המבחן הנסתר (sha256 ב-hidden/SHA256) על אותה הרצה. נבנה ע״י fair.mjs",
+ "name": "m2",
+ "targets": 31,
+ "selfprint": {
+  "hits": [
+   {
+    "target": "secondSmallest",
+    "he": "השני-בקטנותו",
+    "known": false,
+    "id": "4c87fabbceb8fc87",
+    "floor": "bp1",
+    "form": "bp",
+    "steps": 93,
+    "nodes": 2,
+    "blueprint": {
+     "id": "bp-s-c010ff5d",
+     "source": "success",
+     "depth": 1,
+     "origin": {
+      "thing": "85972efd13f234a1",
+      "verbs": [
+       "extreme"
+      ]
+     },
+     "excl": [
+      "extreme"
+     ]
+    },
+    "fill": [
+     {
+      "id": "abcaac627b0f655e",
+      "form": "part",
+      "part": "inner-orbit:src/components/hosting/hui.tsx#FSelect.map.lab"
+     }
+    ],
+    "example": [
+     {
+      "in": [
+       6,
+       1,
+       9,
+       1,
+       3,
+       7,
+       2
+      ],
+      "out": 1,
+      "want": 1
+     },
+     {
+      "in": [
+       -4,
+       10,
+       -4,
+       2.5
+      ],
+      "out": -4,
+      "want": -4
+     }
+    ]
+   },
+   {
+    "target": "secondSmallest",
+    "he": "השני-בקטנותו",
+    "known": false,
+    "id": "bb42c231b4811a7d",
+    "floor": "bp1",
+    "form": "bp",
+    "steps": 93,
+    "nodes": 2,
+    "blueprint": {
+     "id": "bp-s-c010ff5d",
+     "source": "success",
+     "depth": 1,
+     "origin": {
+      "thing": "85972efd13f234a1",
+      "verbs": [
+       "extreme"
+      ]
+     },
+     "excl": [
+      "extreme"
+     ]
+    },
+    "fill": [
+     {
+      "id": "a4f929d160ed3005",
+      "form": "part",
+      "part": "inner-generator:machtzev/ds-forge.mjs#emit.map.pr:step"
+     }
+    ],
+    "example": [
+     {
+      "in": [
+       6,
+       1,
+       9,
+       1,
+       3,
+       7,
+       2
+      ],
+      "out": 1,
+      "want": 1
+     },
+     {
+      "in": [
+       -4,
+       10,
+       -4,
+       2.5
+      ],
+      "out": -4,
+      "want": -4
+     }
+    ]
+   },
+   {
+    "target": "keepPositives",
+    "he": "רק החיוביים",
+    "known": false,
+    "id": "bf63481f1eca01eb",
+    "floor": 0,
+    "form": "part",
+    "steps": 64,
+    "nodes": 1,
+    "part": "inner-orbit:src/lib/atoms/decompose/genericPreview.ts#amountPreview.pos",
+    "of": [],
+    "example": [
+     {
+      "in": [
+       6,
+       1,
+       9,
+       1,
+       3,
+       7,
+       2
+      ],
+      "out": [
+       6,
+       1,
+       9,
+       1,
+       3,
+       7,
+       2
+      ],
+      "want": [
+       6,
+       1,
+       9,
+       1,
+       3,
+       7,
+       2
+      ]
+     },
+     {
+      "in": [
+       -4,
+       10,
+       -4,
+       2.5
+      ],
+      "out": [
+       10,
+       2.5
+      ],
+      "want": [
+       10,
+       2.5
+      ]
+     }
+    ]
+   },
+   {
+    "target": "uniqueOrder",
+    "he": "בלי כפולים, לפי הסדר",
+    "known": false,
+    "id": "7184f07463958170",
+    "floor": 0,
+    "form": "part",
+    "steps": 26,
+    "nodes": 1,
+    "part": "inner-orbit:src/lib/atoms/decompose/genericPreview.ts#textPreview.vals",
+    "of": [],
+    "example": [
+     {
+      "in": [
+       6,
+       1,
+       9,
+       1,
+       3,
+       7,
+       2
+      ],
+      "out": [
+       6,
+       1,
+       9,
+       3,
+       7,
+       2
+      ],
+      "want": [
+       6,
+       1,
+       9,
+       3,
+       7,
+       2
+      ]
+     },
+     {
+      "in": [
+       -4,
+       10,
+       -4,
+       2.5
+      ],
+      "out": [
+       -4,
+       10,
+       2.5
+      ],
+      "want": [
+       -4,
+       10,
+       2.5
+      ]
+     }
+    ]
+   },
+   {
+    "target": "minOf2",
+    "he": "הקטן מבין שניים",
+    "known": false,
+    "id": "e71486ae19ef04ca",
+    "floor": 0,
+    "form": "part",
+    "steps": 16,
+    "nodes": 1,
+    "part": "inner-generator:machtzev/pure/pure-lint.mjs#contrast.lo:step",
+    "of": [],
+    "example": [
+     {
+      "in": [
+       0,
+       2
+      ],
+      "out": 0,
+      "want": 0
+     },
+     {
+      "in": [
+       1,
+       13
+      ],
+      "out": 1,
+      "want": 1
+     }
+    ]
+   },
+   {
+    "target": "absDiff",
+    "he": "הפרש מוחלט",
+    "known": false,
+    "id": "aad8bcc5ec5fc749",
+    "floor": 0,
+    "form": "part",
+    "steps": 16,
+    "nodes": 1,
+    "part": "inner-generator:machtzev/ds-wear.mjs#roleExpr.da:step",
+    "of": [],
+    "example": [
+     {
+      "in": [
+       0,
+       2
+      ],
+      "out": 2,
+      "want": 2
+     },
+     {
+      "in": [
+       1,
+       13
+      ],
+      "out": 12,
+      "want": 12
+     }
+    ]
+   }
+  ],
+  "near": [],
+  "best": {
+   "sumPositives": {
+    "pct": 73,
+    "id": "c6c061b37fa6ed17"
+   },
+   "countEvens": {
+    "pct": 55,
+    "id": "965f3198a2f51f5c"
+   },
+   "secondSmallest": {
+    "pct": 100,
+    "id": "4c87fabbceb8fc87"
+   },
+   "maxMinusFirst": {
+    "pct": 45,
+    "id": "3741fd2c33cda708"
+   },
+   "adjacentChanges": {
+    "pct": 36,
+    "id": "92c82401266a35f5"
+   },
+   "localMaxima": {
+    "pct": 73,
+    "id": "0e6cd6d6cde48a3a"
+   },
+   "meanFirstHalf": {
+    "pct": 55,
+    "id": "1eaa8497492c0ad3"
+   },
+   "dotReversed": {
+    "pct": 18,
+    "id": "310903b57e6b5c69"
+   },
+   "sumAboveMean": {
+    "pct": 36,
+    "id": "00b65cff03cffbb3"
+   },
+   "closestToMean": {
+    "pct": 55,
+    "id": "1b71337837db4494"
+   },
+   "argmaxAbs": {
+    "pct": 64,
+    "id": "486d15026aad3106"
+   },
+   "longestRise": {
+    "pct": 45,
+    "id": "02520317a8228373"
+   },
+   "maxDrop": {
+    "pct": 45,
+    "id": "0e6cd6d6cde48a3a"
+   },
+   "doubleEach": {
+    "pct": 0,
+    "id": "00014dcf11b43b8b"
+   },
+   "keepPositives": {
+    "pct": 100,
+    "id": "bf63481f1eca01eb"
+   },
+   "pairDiffs": {
+    "pct": 9,
+    "id": "0eba1c7b32e6e7bf"
+   },
+   "runningMax": {
+    "pct": 45,
+    "id": "815d3f0e544ff4d2"
+   },
+   "uniqueOrder": {
+    "pct": 100,
+    "id": "7184f07463958170"
+   },
+   "clampToMean": {
+    "pct": 9,
+    "id": "00887f585f4f3bac"
+   },
+   "argsort": {
+    "pct": 0,
+    "id": "00014dcf11b43b8b"
+   },
+   "sqDeviations": {
+    "pct": 9,
+    "id": "fa0e489faf22beb3"
+   },
+   "signVsMean": {
+    "pct": 9,
+    "id": "fa0e489faf22beb3"
+   },
+   "prefixMin": {
+    "pct": 18,
+    "id": "00887f585f4f3bac"
+   },
+   "digitSum": {
+    "pct": 64,
+    "id": "13ab29bbaec0f14f"
+   },
+   "isqrt": {
+    "pct": 29,
+    "id": "128ee7ef6742e543"
+   },
+   "collatzSteps": {
+    "pct": 29,
+    "id": "2912c469ad6fca9d"
+   },
+   "triangular": {
+    "pct": 29,
+    "id": "13ab29bbaec0f14f"
+   },
+   "halvingSteps": {
+    "pct": 36,
+    "id": "13ab29bbaec0f14f"
+   },
+   "gcdSub": {
+    "pct": 31,
+    "id": "9c67fa30c1546874"
+   },
+   "minOf2": {
+    "pct": 100,
+    "id": "e71486ae19ef04ca"
+   },
+   "absDiff": {
+    "pct": 100,
+    "id": "aad8bcc5ec5fc749"
+   }
+  }
+ },
+ "baseline": {
+  "hits": [
+   {
+    "target": "sumPositives",
+    "he": "סכום החיוביים",
+    "known": false,
+    "id": "d20219cbccb3c6ff",
+    "floor": 1,
+    "form": "chain",
+    "steps": 116,
+    "nodes": 2,
+    "of": [
+     {
+      "id": "bf63481f1eca01eb",
+      "form": "part",
+      "part": "inner-orbit:src/lib/atoms/decompose/genericPreview.ts#amountPreview.pos",
+      "verbs": [
+       "filter"
+      ]
+     },
+     {
+      "id": "0ce602d9666a323d",
+      "form": "part",
+      "part": "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+      "verbs": [
+       "sum"
+      ]
+     }
+    ],
+    "example": [
+     {
+      "in": [
+       6,
+       1,
+       9,
+       1,
+       3,
+       7,
+       2
+      ],
+      "out": 29,
+      "want": 29
+     },
+     {
+      "in": [
+       -4,
+       10,
+       -4,
+       2.5
+      ],
+      "out": 12.5,
+      "want": 12.5
+     }
+    ]
+   },
+   {
+    "target": "secondSmallest",
+    "he": "השני-בקטנותו",
+    "known": false,
+    "id": "2b297a983257ad54",
+    "floor": 1,
+    "form": "chain",
+    "steps": 93,
+    "nodes": 2,
+    "of": [
+     {
+      "id": "94abcb62cd88d67e",
+      "form": "part",
+      "part": "inner-generator:new/boxes/pareto.mjs#paretoReport.asc",
+      "verbs": [
+       "sort"
+      ]
+     },
+     {
+      "id": "a4f929d160ed3005",
+      "form": "part",
+      "part": "inner-generator:machtzev/ds-forge.mjs#emit.map.pr:step"
+     }
+    ],
+    "example": [
+     {
+      "in": [
+       6,
+       1,
+       9,
+       1,
+       3,
+       7,
+       2
+      ],
+      "out": 1,
+      "want": 1
+     },
+     {
+      "in": [
+       -4,
+       10,
+       -4,
+       2.5
+      ],
+      "out": -4,
+      "want": -4
+     }
+    ]
+   },
+   {
+    "target": "secondSmallest",
+    "he": "השני-בקטנותו",
+    "known": false,
+    "id": "78c255526cf39e6e",
+    "floor": 1,
+    "form": "chain",
+    "steps": 93,
+    "nodes": 2,
+    "of": [
+     {
+      "id": "94abcb62cd88d67e",
+      "form": "part",
+      "part": "inner-generator:new/boxes/pareto.mjs#paretoReport.asc",
+      "verbs": [
+       "sort"
+      ]
+     },
+     {
+      "id": "abcaac627b0f655e",
+      "form": "part",
+      "part": "inner-orbit:src/components/hosting/hui.tsx#FSelect.map.lab"
+     }
+    ],
+    "example": [
+     {
+      "in": [
+       6,
+       1,
+       9,
+       1,
+       3,
+       7,
+       2
+      ],
+      "out": 1,
+      "want": 1
+     },
+     {
+      "in": [
+       -4,
+       10,
+       -4,
+       2.5
+      ],
+      "out": -4,
+      "want": -4
+     }
+    ]
+   },
+   {
+    "target": "keepPositives",
+    "he": "רק החיוביים",
+    "known": false,
+    "id": "bf63481f1eca01eb",
+    "floor": 0,
+    "form": "part",
+    "steps": 64,
+    "nodes": 1,
+    "part": "inner-orbit:src/lib/atoms/decompose/genericPreview.ts#amountPreview.pos",
+    "of": [],
+    "example": [
+     {
+      "in": [
+       6,
+       1,
+       9,
+       1,
+       3,
+       7,
+       2
+      ],
+      "out": [
+       6,
+       1,
+       9,
+       1,
+       3,
+       7,
+       2
+      ],
+      "want": [
+       6,
+       1,
+       9,
+       1,
+       3,
+       7,
+       2
+      ]
+     },
+     {
+      "in": [
+       -4,
+       10,
+       -4,
+       2.5
+      ],
+      "out": [
+       10,
+       2.5
+      ],
+      "want": [
+       10,
+       2.5
+      ]
+     }
+    ]
+   },
+   {
+    "target": "uniqueOrder",
+    "he": "בלי כפולים, לפי הסדר",
+    "known": false,
+    "id": "7184f07463958170",
+    "floor": 0,
+    "form": "part",
+    "steps": 26,
+    "nodes": 1,
+    "part": "inner-orbit:src/lib/atoms/decompose/genericPreview.ts#textPreview.vals",
+    "of": [],
+    "example": [
+     {
+      "in": [
+       6,
+       1,
+       9,
+       1,
+       3,
+       7,
+       2
+      ],
+      "out": [
+       6,
+       1,
+       9,
+       3,
+       7,
+       2
+      ],
+      "want": [
+       6,
+       1,
+       9,
+       3,
+       7,
+       2
+      ]
+     },
+     {
+      "in": [
+       -4,
+       10,
+       -4,
+       2.5
+      ],
+      "out": [
+       -4,
+       10,
+       2.5
+      ],
+      "want": [
+       -4,
+       10,
+       2.5
+      ]
+     }
+    ]
+   },
+   {
+    "target": "minOf2",
+    "he": "הקטן מבין שניים",
+    "known": false,
+    "id": "e71486ae19ef04ca",
+    "floor": 0,
+    "form": "part",
+    "steps": 16,
+    "nodes": 1,
+    "part": "inner-generator:machtzev/pure/pure-lint.mjs#contrast.lo:step",
+    "of": [],
+    "example": [
+     {
+      "in": [
+       0,
+       2
+      ],
+      "out": 0,
+      "want": 0
+     },
+     {
+      "in": [
+       1,
+       13
+      ],
+      "out": 1,
+      "want": 1
+     }
+    ]
+   },
+   {
+    "target": "absDiff",
+    "he": "הפרש מוחלט",
+    "known": false,
+    "id": "aad8bcc5ec5fc749",
+    "floor": 0,
+    "form": "part",
+    "steps": 16,
+    "nodes": 1,
+    "part": "inner-generator:machtzev/ds-wear.mjs#roleExpr.da:step",
+    "of": [],
+    "example": [
+     {
+      "in": [
+       0,
+       2
+      ],
+      "out": 2,
+      "want": 2
+     },
+     {
+      "in": [
+       1,
+       13
+      ],
+      "out": 12,
+      "want": 12
+     }
+    ]
+   }
+  ],
+  "near": [],
+  "best": {
+   "sumPositives": {
+    "pct": 100,
+    "id": "d20219cbccb3c6ff"
+   },
+   "countEvens": {
+    "pct": 55,
+    "id": "6f6e778150d896b5"
+   },
+   "secondSmallest": {
+    "pct": 100,
+    "id": "2b297a983257ad54"
+   },
+   "maxMinusFirst": {
+    "pct": 45,
+    "id": "4f68f0840bdd2838"
+   },
+   "adjacentChanges": {
+    "pct": 27,
+    "id": "20301e678c3b4a83"
+   },
+   "localMaxima": {
+    "pct": 73,
+    "id": "0e6cd6d6cde48a3a"
+   },
+   "meanFirstHalf": {
+    "pct": 55,
+    "id": "34257345f0547079"
+   },
+   "dotReversed": {
+    "pct": 9,
+    "id": "00f12fcacb69a866"
+   },
+   "sumAboveMean": {
+    "pct": 36,
+    "id": "00b65cff03cffbb3"
+   },
+   "closestToMean": {
+    "pct": 55,
+    "id": "1b71337837db4494"
+   },
+   "argmaxAbs": {
+    "pct": 55,
+    "id": "167160a5e1491a51"
+   },
+   "longestRise": {
+    "pct": 45,
+    "id": "31469f6364ea74cf"
+   },
+   "maxDrop": {
+    "pct": 45,
+    "id": "0e6cd6d6cde48a3a"
+   },
+   "doubleEach": {
+    "pct": 0,
+    "id": "00887f585f4f3bac"
+   },
+   "keepPositives": {
+    "pct": 100,
+    "id": "bf63481f1eca01eb"
+   },
+   "pairDiffs": {
+    "pct": 9,
+    "id": "06fb799a3f3916d6"
+   },
+   "runningMax": {
+    "pct": 45,
+    "id": "815d3f0e544ff4d2"
+   },
+   "uniqueOrder": {
+    "pct": 100,
+    "id": "7184f07463958170"
+   },
+   "clampToMean": {
+    "pct": 9,
+    "id": "00887f585f4f3bac"
+   },
+   "argsort": {
+    "pct": 0,
+    "id": "00887f585f4f3bac"
+   },
+   "sqDeviations": {
+    "pct": 9,
+    "id": "48f84970e92b60ac"
+   },
+   "signVsMean": {
+    "pct": 9,
+    "id": "48f84970e92b60ac"
+   },
+   "prefixMin": {
+    "pct": 18,
+    "id": "00887f585f4f3bac"
+   },
+   "digitSum": {
+    "pct": 64,
+    "id": "13ab29bbaec0f14f"
+   },
+   "isqrt": {
+    "pct": 29,
+    "id": "13ab29bbaec0f14f"
+   },
+   "collatzSteps": {
+    "pct": 21,
+    "id": "13ab29bbaec0f14f"
+   },
+   "triangular": {
+    "pct": 29,
+    "id": "13ab29bbaec0f14f"
+   },
+   "halvingSteps": {
+    "pct": 36,
+    "id": "13ab29bbaec0f14f"
+   },
+   "gcdSub": {
+    "pct": 38,
+    "id": "33da357eff5e707a"
+   },
+   "minOf2": {
+    "pct": 100,
+    "id": "e71486ae19ef04ca"
+   },
+   "absDiff": {
+    "pct": 100,
+    "id": "aad8bcc5ec5fc749"
+   }
+  }
+ }
+}

@@ -85,6 +85,38 @@
    "success": 37,
    "maxDepthSuccess": 2,
    "wrongImprovements": 0
+  },
+  "m2": {
+   "salt": 0,
+   "rounds": 3,
+   "sameBytesAsBranch": true,
+   "exactFair": [],
+   "exactBaseline": [],
+   "averagePct": {
+    "baseline": 27,
+    "selfprint": 27
+   },
+   "blueprints": 154,
+   "success": 46,
+   "maxDepthSuccess": 2,
+   "wrongImprovements": 0
+  },
+  "rp": {
+   "salt": 0,
+   "rounds": 3,
+   "sameBytesAsBranch": true,
+   "exactFair": [
+    "average"
+   ],
+   "exactBaseline": [],
+   "averagePct": {
+    "baseline": 27,
+    "selfprint": 100
+   },
+   "blueprints": 224,
+   "success": 57,
+   "maxDepthSuccess": 2,
+   "wrongImprovements": 0
   }
  },
  "exactFairBy": {
@@ -93,7 +125,8 @@
    "seed1",
    "seed2",
    "seed3",
-   "r6"
+   "r6",
+   "rp"
   ]
  },
  "targetsHitBy": {
@@ -106,7 +139,9 @@
     "seed1",
     "seed2",
     "seed3",
-    "r6"
+    "r6",
+    "m2",
+    "rp"
    ],
    "byBlueprint": [],
    "alreadyPart": []
@@ -115,14 +150,19 @@
    "he": "הראשון",
    "known": false,
    "selfprint": [],
-   "baseline": [],
+   "baseline": [
+    "m2",
+    "rp"
+   ],
    "byBlueprint": [],
    "alreadyPart": [
     "s0",
     "seed1",
     "seed2",
     "seed3",
-    "r6"
+    "r6",
+    "m2",
+    "rp"
    ]
   },
   "last": {
@@ -136,7 +176,9 @@
     "seed1",
     "seed2",
     "seed3",
-    "r6"
+    "r6",
+    "m2",
+    "rp"
    ]
   },
   "max": {
@@ -150,7 +192,9 @@
     "seed1",
     "seed2",
     "seed3",
-    "r6"
+    "r6",
+    "m2",
+    "rp"
    ]
   },
   "mean": {
@@ -161,7 +205,8 @@
     "seed1",
     "seed2",
     "seed3",
-    "r6"
+    "r6",
+    "rp"
    ],
    "baseline": [],
    "byBlueprint": [
@@ -169,7 +214,8 @@
     "seed1:code:bp-c-4590428b:d1",
     "seed2:code:bp-c-4590428b:d1",
     "seed3:code:bp-c-4590428b:d1",
-    "r6:code:bp-c-4590428b:d1"
+    "r6:code:bp-c-4590428b:d1",
+    "rp:code:bp-c-4590428b:d1"
    ],
    "alreadyPart": []
   },
@@ -181,14 +227,18 @@
     "seed1",
     "seed2",
     "seed3",
-    "r6"
+    "r6",
+    "m2",
+    "rp"
    ],
    "baseline": [
     "s0",
     "seed1",
     "seed2",
     "seed3",
-    "r6"
+    "r6",
+    "m2",
+    "rp"
    ],
    "byBlueprint": [],
    "alreadyPart": []
@@ -201,7 +251,8 @@
     "seed1",
     "seed2",
     "seed3",
-    "r6"
+    "r6",
+    "rp"
    ],
    "baseline": [],
    "byBlueprint": [
@@ -209,7 +260,8 @@
     "seed1:code:bp-c-4590428b:d1",
     "seed2:code:bp-c-4590428b:d1",
     "seed3:code:bp-c-4590428b:d1",
-    "r6:code:bp-c-4590428b:d1"
+    "r6:code:bp-c-4590428b:d1",
+    "rp:code:bp-c-4590428b:d1"
    ],
    "alreadyPart": []
   },
@@ -221,14 +273,18 @@
     "seed1",
     "seed2",
     "seed3",
-    "r6"
+    "r6",
+    "m2",
+    "rp"
    ],
    "baseline": [
     "s0",
     "seed1",
     "seed2",
     "seed3",
-    "r6"
+    "r6",
+    "m2",
+    "rp"
    ],
    "byBlueprint": [],
    "alreadyPart": []
@@ -244,7 +300,9 @@
     "seed1",
     "seed2",
     "seed3",
-    "r6"
+    "r6",
+    "m2",
+    "rp"
    ]
   },
   "sortDesc": {
@@ -258,7 +316,9 @@
     "seed1",
     "seed2",
     "seed3",
-    "r6"
+    "r6",
+    "m2",
+    "rp"
    ]
   }
  }

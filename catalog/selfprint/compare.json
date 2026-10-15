@@ -1,7 +1,7 @@
 {
  "about": "SELFPRINT — אותו תקציב-חיבורים: baseline = צמיחת GROW3 (score) ב-budget.baseline; selfprint = אותה צמיחה ב-budget.half + השרטוטים-העצמיים (rounds × perRound). המדדים — אותה הגדרה לשתיהן (selfprint.mjs › metricsOf). נבנה ע״י selfprint.mjs — לא לערוך ביד",
  "budget": {
-  "about": "התקציב המוצהר של מנוע-השרטוטים-העצמי (catalog/selfprint/selfprint.mjs) — הרצה קטנה ('תריץ בקטנה לראות באמת שזה עובד'). baseline = הצמיחה של GROW3 (mode score, בלי שרטוטים) בתקציב המלא: floors × (pairs + unary). selfprint = אותה צמיחה בחצי התקציב (half) + השרטוטים בחצי השני: rounds סבבים × perRound חיבורים. סך החיבורים זהה בשתי הריצות. callSteps/thingSteps/nameSteps — כמו catalog/grow/budget.json · poolCap = כמה מועמדים לכל חור לכל היותר (קודם עם-שם-מיוחד, אחר-כך הכי פשוט — פחות צעדים; בחור-אופרטור מהקוד: קודם מה שמתנהג כמו האופרטור) · typings = כמה השמות-סוג לכל שלד-מהקוד (קודם אלה שבחורים שלהם יש דברים עם שם מיוחד) · novelty = הצלחה הופכת לשרטוט רק אם לאחד הפעלים המיוחדים שלה היו פחות מ-novelty שרטוטים-מהצלחה · minSupport = שלד-מהקוד נכנס רק אם חוזר בלפחות כך פונקציות ('מבנים שחוזרים') · MINER2 סבב 2 (החלטת-מנהל, נקבעה לפני הריצה): perBlueprint = חיבורים לכל שרטוט בסך-הכול (≈2,400/63 של SELFPRINT), מחולקים שווה בין rounds, סדר = שרטוטים שחוזרים בהכי הרבה פונקציות קודם (perRound חל רק על הביקורת-v1) · structuralMinSupport = צורות מבניות (לולאה-בלולאה · until · בחר-את-הטוב) נכנסות כבר מפונקציה אחת · baseline נגזר בריצה: אותו תקציב-כולל כמו half + חיבורי-השרטוטים (baseline כאן = הקומות בלבד)",
+  "about": "התקציב המוצהר של מנוע-השרטוטים-העצמי (catalog/selfprint/selfprint.mjs) — הרצה קטנה ('תריץ בקטנה לראות באמת שזה עובד'). baseline = הצמיחה של GROW3 (mode score, בלי שרטוטים) בתקציב המלא: floors × (pairs + unary). selfprint = אותה צמיחה בחצי התקציב (half) + השרטוטים בחצי השני: rounds סבבים × perRound חיבורים. סך החיבורים זהה בשתי הריצות. callSteps/thingSteps/nameSteps — כמו catalog/grow/budget.json · poolCap = כמה מועמדים לכל חור לכל היותר (קודם עם-שם-מיוחד, אחר-כך הכי פשוט — פחות צעדים; בחור-אופרטור מהקוד: קודם מה שמתנהג כמו האופרטור) · typings = כמה השמות-סוג לכל שלד-מהקוד (קודם אלה שבחורים שלהם יש דברים עם שם מיוחד) · novelty = הצלחה הופכת לשרטוט רק אם לאחד הפעלים המיוחדים שלה היו פחות מ-novelty שרטוטים-מהצלחה · minSupport = שלד-מהקוד נכנס רק אם חוזר בלפחות כך פונקציות ('מבנים שחוזרים') · MINER2 סבב 2 (החלטת-מנהל, נקבעה לפני הריצה): perBlueprint = חיבורים לכל שרטוט בסך-הכול (≈2,400/63 של SELFPRINT), מחולקים שווה בין rounds, סדר = שרטוטים שחוזרים בהכי הרבה פונקציות קודם (perRound חל רק על הביקורת-v1) · structuralMinSupport = צורות מבניות (לולאה-בלולאה · until · בחר-את-הטוב) נכנסות כבר מפונקציה אחת · baseline נגזר בריצה: אותו תקציב-כולל כמו half + חיבורי-השרטוטים (baseline כאן = הקומות בלבד) · RINGS-PORT: rings.total = סך החיבורים לשרטוטים (= מה ש-MINER2 בנה בפועל, 4,381 — אותו תקציב-כולל), stageA = החלק של כל סבב שהולך קודם לספרייה הישנה (v1 + שרטוטים-מהצלחה; scanfold-staged). בלי rings ⇒ MINER2 כמו שהוא. history.json = ההיסטוריה הקפואה של המכונה (history.mjs).",
   "baseline": {
    "maxFloors": 3,
    "buildsPerFloor": 1200,
@@ -23,6 +23,10 @@
   "minSupport": 2,
   "perBlueprint": 38,
   "structuralMinSupport": 1,
+  "rings": {
+   "total": 4381,
+   "stageA": 0.5
+  },
   "baselineDerived": {
    "maxFloors": 3,
    "buildsPerFloor": 1695,
@@ -115,28 +119,78 @@
   }
  },
  "selfprint": {
-  "shelf": 4157,
-  "namedSpecial": 292,
-  "namedSpecialGrown": 260,
+  "shelf": 3973,
+  "namedSpecial": 397,
+  "namedSpecialGrown": 365,
   "specialBy": {
-   "filter": 89,
-   "compare": 85,
-   "count": 34,
-   "sort": 20,
+   "filter": 161,
+   "compare": 108,
+   "count": 38,
+   "rotate": 19,
+   "sort": 19,
    "dedupe": 12,
-   "rotate": 12,
    "reverse": 6,
-   "extreme": 2
+   "average": 1,
+   "extreme": 1
   },
   "exactRebuilt": {
+   "average": {
+    "exact": 2,
+    "fromOthers": 1,
+    "byBlueprint": 1,
+    "byBlueprintFair": 1,
+    "best": {
+     "id": "94e164fa6f9ccb2e",
+     "floor": "bp2",
+     "form": "bp",
+     "blueprint": "bp-c-4590428b",
+     "sig": "nums>num",
+     "steps": 90,
+     "nodes": 3,
+     "example": {
+      "in": [
+       [
+        3,
+        1,
+        2
+       ]
+      ],
+      "out": 2
+     },
+     "of": [
+      {
+       "id": "0ce602d9666a323d",
+       "form": "part",
+       "part": "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+       "verbs": [
+        "sum"
+       ]
+      },
+      {
+       "id": "b49ffdff62ca585b",
+       "form": "part",
+       "part": "inner-generator:machtzev/generator/behavior-plan.mjs#runGoal.total",
+       "verbs": [
+        "count"
+       ]
+      },
+      {
+       "id": "ad809c4c4acdb0f0",
+       "form": "part",
+       "part": "inner-generator:machtzev/generator/live-expr.mjs#trendAt.b:step",
+       "verbs": []
+      }
+     ]
+    }
+   },
    "compare": {
     "exact": 1,
     "fromOthers": 1,
     "byBlueprint": 1,
     "byBlueprintFair": 0,
     "best": {
-     "id": "7e2485bc08b1e838",
-     "floor": "bp2",
+     "id": "048ad7e364e7277f",
+     "floor": "bp1",
      "form": "bp",
      "blueprint": "bp-c-15575858",
      "sig": "num,num>num",
@@ -157,31 +211,36 @@
        "verbs": []
       },
       {
-       "id": "7101c75895095d1c",
-       "form": "part",
-       "part": "inner-orbit:src/components/parnasa/Ambient.tsx#GoldDust.useEffect.loop.dt",
-       "verbs": [
-        "compare"
-       ]
+       "id": "base:>",
+       "form": "base",
+       "part": "⟨cmp>⟩",
+       "verbs": []
       }
      ]
     }
    },
-   "sum": {
+   "extreme": {
     "exact": 1,
+    "fromOthers": 0,
+    "byBlueprint": 0,
+    "byBlueprintFair": 0,
+    "best": null
+   },
+   "sum": {
+    "exact": 2,
     "fromOthers": 0,
     "byBlueprint": 0,
     "byBlueprintFair": 0,
     "best": null
    }
   },
-  "exactFromOthers": 1,
-  "exactByBlueprintFair": 0,
+  "exactFromOthers": 2,
+  "exactByBlueprintFair": 1,
   "bestGrown": {
    "average": {
-    "pct": 27,
-    "id": "1b71337837db4494",
-    "form": "chain",
+    "pct": 100,
+    "id": "94e164fa6f9ccb2e",
+    "blueprint": "bp-c-4590428b",
     "sig": "nums>num"
    },
    "sort": {
@@ -194,9 +253,9 @@
     "pct": null
    },
    "extreme": {
-    "pct": 91,
-    "id": "28e57b12ddb786f6",
-    "form": "chain",
+    "pct": 100,
+    "id": "d6b827b21f2507be",
+    "blueprint": "bp-c-15fb3689",
     "sig": "nums>num"
    },
    "sum": {
@@ -212,94 +271,94 @@
     "sig": "nums>num"
    },
    "dedupe": {
-    "pct": 73,
-    "id": "09bd1a1252a9a6ee",
-    "blueprint": "bp-s-d52c7307",
+    "pct": 91,
+    "id": "24911fc50f2906f1",
+    "blueprint": "bp-c-6138649d",
     "sig": "nums>nums"
    },
    "compare": {
     "pct": 100,
-    "id": "7e2485bc08b1e838",
+    "id": "048ad7e364e7277f",
     "blueprint": "bp-c-15575858",
     "sig": "num,num>num"
    },
    "median": {
-    "pct": 45,
-    "id": "1b71337837db4494",
-    "form": "chain",
+    "pct": 55,
+    "id": "94e164fa6f9ccb2e",
+    "blueprint": "bp-c-4590428b",
     "sig": "nums>num",
     "metricOnly": true
    },
    "max": {
-    "pct": 91,
-    "id": "28e57b12ddb786f6",
-    "form": "chain",
+    "pct": 100,
+    "id": "d6b827b21f2507be",
+    "blueprint": "bp-c-15fb3689",
     "sig": "nums>num",
     "metricOnly": true
    }
   }
  },
  "blueprints": {
-  "total": 154,
+  "total": 224,
   "bySource": {
-   "code": 109,
+   "code": 181,
    "success": 36,
-   "success-of-blueprint": 9
+   "success-of-blueprint": 7
   },
-  "used": 143,
-  "birthedSuccess": 46,
+  "used": 187,
+  "birthedSuccess": 57,
   "birthedBySource": {
-   "success": 29,
-   "code": 16,
-   "success-of-blueprint": 1
+   "success": 31,
+   "code": 24,
+   "success-of-blueprint": 2
   },
   "maxDepth": 2,
   "maxDepthUsed": 2,
   "maxDepthSuccess": 2,
   "code": {
    "all": {
-    "blueprints": 109,
-    "typed": 98,
-    "built": 98,
-    "ran": 86,
-    "fresh": 85,
-    "success": 16
+    "blueprints": 181,
+    "typed": 144,
+    "built": 144,
+    "ran": 127,
+    "fresh": 121,
+    "success": 24
    },
    "v1": {
-    "blueprints": 24,
-    "typed": 24,
-    "built": 24,
-    "ran": 24,
-    "fresh": 24,
-    "success": 3
+    "blueprints": 38,
+    "typed": 35,
+    "built": 35,
+    "ran": 33,
+    "fresh": 33,
+    "success": 5
    },
    "v2Only": {
-    "blueprints": 85,
-    "typed": 74,
-    "built": 74,
-    "ran": 62,
-    "fresh": 61,
-    "success": 13
+    "blueprints": 143,
+    "typed": 109,
+    "built": 109,
+    "ran": 94,
+    "fresh": 88,
+    "success": 19
    },
    "structural": {
-    "blueprints": 6,
-    "typed": 6,
-    "built": 6,
-    "ran": 3,
-    "fresh": 3,
-    "success": 1
+    "blueprints": 12,
+    "typed": 10,
+    "built": 10,
+    "ran": 7,
+    "fresh": 4,
+    "success": 2
    },
    "structuralSingle": {
-    "blueprints": 6,
-    "typed": 6,
-    "built": 6,
-    "ran": 3,
-    "fresh": 3,
-    "success": 1
+    "blueprints": 12,
+    "typed": 10,
+    "built": 10,
+    "ran": 7,
+    "fresh": 4,
+    "success": 2
    },
    "byFeat": {
     "best": {
-     "blueprints": 3,
+     "blueprints": 4,
      "typed": 3,
      "built": 3,
      "ran": 0,
@@ -307,23 +366,23 @@
      "success": 0
     },
     "compare": {
-     "blueprints": 33,
-     "typed": 30,
-     "built": 30,
-     "ran": 23,
-     "fresh": 23,
-     "success": 3
+     "blueprints": 50,
+     "typed": 41,
+     "built": 41,
+     "ran": 32,
+     "fresh": 32,
+     "success": 5
     },
     "filter": {
-     "blueprints": 7,
-     "typed": 6,
-     "built": 6,
-     "ran": 6,
-     "fresh": 6,
-     "success": 6
+     "blueprints": 21,
+     "typed": 16,
+     "built": 16,
+     "ran": 16,
+     "fresh": 15,
+     "success": 13
     },
     "guard": {
-     "blueprints": 1,
+     "blueprints": 2,
      "typed": 0,
      "built": 0,
      "ran": 0,
@@ -331,15 +390,15 @@
      "success": 0
     },
     "if": {
-     "blueprints": 23,
-     "typed": 20,
-     "built": 20,
-     "ran": 19,
-     "fresh": 18,
-     "success": 3
+     "blueprints": 39,
+     "typed": 31,
+     "built": 31,
+     "ran": 28,
+     "fresh": 26,
+     "success": 5
     },
     "index-loop": {
-     "blueprints": 5,
+     "blueprints": 8,
      "typed": 5,
      "built": 5,
      "ran": 2,
@@ -347,7 +406,7 @@
      "success": 0
     },
     "loop-if": {
-     "blueprints": 3,
+     "blueprints": 4,
      "typed": 3,
      "built": 3,
      "ran": 0,
@@ -355,26 +414,107 @@
      "success": 0
     },
     "math": {
-     "blueprints": 6,
-     "typed": 6,
-     "built": 6,
-     "ran": 6,
-     "fresh": 6,
+     "blueprints": 9,
+     "typed": 9,
+     "built": 9,
+     "ran": 9,
+     "fresh": 9,
      "success": 0
     },
     "ternary": {
-     "blueprints": 24,
-     "typed": 18,
-     "built": 18,
-     "ran": 15,
-     "fresh": 15,
+     "blueprints": 37,
+     "typed": 25,
+     "built": 25,
+     "ran": 21,
+     "fresh": 21,
      "success": 3
     }
    }
   }
  },
  "wrongImprovements": 0,
- "replacements": 179,
+ "replacements": 167,
+ "rings": {
+  "perRound": [
+   {
+    "round": 1,
+    "stageA": 730,
+    "stageB": 730,
+    "leftover": 0,
+    "twins": 6,
+    "tools": 144,
+    "usedTools": 0
+   },
+   {
+    "round": 2,
+    "stageA": 730,
+    "stageB": 730,
+    "leftover": 0,
+    "twins": 7,
+    "tools": 255,
+    "usedTools": 90
+   },
+   {
+    "round": 3,
+    "stageA": 730,
+    "stageB": 731,
+    "leftover": 0,
+    "twins": 9,
+    "tools": 335,
+    "usedTools": 77
+   }
+  ],
+  "stageA": {
+   "blueprints": 67,
+   "built": 2190,
+   "success": 38,
+   "successes": 253
+  },
+  "stageB": {
+   "blueprints": 157,
+   "built": 2191,
+   "success": 19,
+   "successes": 91
+  },
+  "tie": {
+   "blueprints": 53,
+   "built": 460,
+   "success": 2,
+   "successes": 4
+  },
+  "bind": {
+   "blueprints": 19,
+   "built": 520,
+   "success": 5,
+   "successes": 7
+  },
+  "twins": 9,
+  "perItemTools": {
+   "built": 270,
+   "inSuccesses": 5
+  },
+  "evidence": {
+   "fold": [
+    "count",
+    "sum",
+    "extreme"
+   ],
+   "order": [
+    "sort"
+   ],
+   "filter": [
+    "filter",
+    "dedupe"
+   ],
+   "conds": [
+    {
+     "verb": "filter",
+     "cmp": ">",
+     "stat": "130e55561cfa0722"
+    }
+   ]
+  }
+ },
  "fpMismatchOnLoad": {
   "baseline": 0,
   "half": 0

@@ -44,7 +44,8 @@ export function scanTargets({ R, L, things, shelf, bpById = new Map(), targets, 
     const core = S.map((a, k) => k).filter((k) => S[k].every((x) => !Array.isArray(x) || x.length >= 2));
     const want = S.map((a) => T.f(...a));
     const coreOf = (t) => { let hit = 0; for (const k of core) if (t.outs[k] !== null && want[k] !== null && L.sameOut(t.outs[k], want[k])) hit++; else if (want[k] === null && t.outs[k] === null) hit++; return hit / core.length; };
-    if (!stressCache.has(T.sig)) stressCache.set(T.sig, [...R.stressOf(sig), ...ownStress(), ...L.extraSamples(sig)]);
+    const listIn = sig.length === 1 && sig[0] === 'nums'; // RINGS-PORT: גם חתימות-מספר (המבחן הנסתר) — בלי הלחץ-של-רשימות ובלי דוגמאות-רשימה
+    if (!stressCache.has(T.sig)) stressCache.set(T.sig, [...R.stressOf(sig), ...(listIn ? ownStress() : []), ...L.extraSamples(sig)]);
     const ST = stressCache.get(T.sig);
     const wantST = ST.map((a) => T.f(...a));
     const desc = (t, acc = new Set()) => { for (const id of t.of || []) { const c = things.get(id); if (c && !acc.has(c.id)) { acc.add(c.id); desc(c, acc); } } return acc; };
@@ -55,14 +56,14 @@ export function scanTargets({ R, L, things, shelf, bpById = new Map(), targets, 
       if (c < 1) continue;
       let fail = null; let ran = 0;
       for (let k = 0; k < ST.length; k++) {
-        if (wantST[k] === null) continue;
+        if (wantST[k] === null || wantST[k] === undefined) continue;
         const o = R.runOne(t, ST[k], thingSteps).v;
         if (o === null) { fail = fail || { at: k, why: 'לא רץ', len: ST[k][0].length }; continue; }
         ran++;
         if (!L.sameOut(o, wantST[k])) { fail = fail || { at: k, why: 'פלט שונה', len: ST[k][0].length, got: brief(o), want: brief(wantST[k]) }; }
       }
       const wrap = [...desc(t)].map((id) => things.get(id)).filter((c) => c.sig.join(',') === ins && c.out === T.sig.split('>')[1] && coreOf(c) === 1).map((c) => c.id);
-      const rec = { target: T.id, he: T.he, known: !!T.known, ...describe(t, things, bpById), example: EXAMPLES.map((xs) => ({ in: xs, out: R.runOne(t, [xs], thingSteps).v, want: T.f(xs) })), ...(wrap.length ? { wrapperOf: wrap.slice(0, 3) } : {}) };
+      const rec = { target: T.id, he: T.he, known: !!T.known, ...describe(t, things, bpById), example: listIn ? EXAMPLES.map((xs) => ({ in: xs, out: R.runOne(t, [xs], thingSteps).v, want: T.f(xs) })) : S.filter((a, k) => core.includes(k)).slice(0, 2).map((a) => ({ in: a, out: R.runOne(t, a, thingSteps).v, want: T.f(...a) })), ...(wrap.length ? { wrapperOf: wrap.slice(0, 3) } : {}) };
       if (fail) near.push({ ...rec, stressFail: fail, stressRan: ran });
       else if (!wrap.length) hits.push(rec);
       else near.push({ ...rec, why: 'עטיפה' });

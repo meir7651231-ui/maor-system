@@ -32,10 +32,13 @@ const { semOfD } = await import('../blueprints/engine.mjs');
 const L = await import('../grow/lib.mjs');
 const S = await import('./lib.mjs');
 const { WEAK, hasTruth, truthOf } = await import('../grow/truth.mjs');
+const RG = await import('./rings.mjs');
 
 export const OUT = { control: path.join(HERE, 'control-v1.json'), ledger: path.join(HERE, 'ledger.json'), compare: path.join(HERE, 'compare.json'), blueprints: path.join(HERE, 'blueprints.json'), found: path.join(HERE, 'found.json') };
 const BUD = JSON.parse(fs.readFileSync(path.join(HERE, 'budget.json'), 'utf8'));
 const CODE = JSON.parse(fs.readFileSync(path.join(HERE, 'library-code.json'), 'utf8'));
+/* RINGS-PORT · ההיסטוריה הקפואה של המכונה (history.mjs) — רק כש-budget.rings */
+const HIST = BUD.rings ? JSON.parse(fs.readFileSync(path.join(HERE, 'history.json'), 'utf8')) : null;
 /* MINER2 · ‎SELFPRINT_OUT=<תיקייה>‎ ⇒ הפלט לשם (לניסויים מחוץ לריפו) */
 const CACHE = path.join(ROOT, 'node_modules/.cache/selfprint');
 
@@ -65,7 +68,7 @@ const specialVerbs = (t) => (t.names || []).map((n) => n.verb).filter((v) => !GE
 
 /* ═══════════════ הצמיחה (תהליך-בן) ═══════════════ */
 
-function growSources() { let s = J(BUD); for (const f of ['grow.mjs', 'lib.mjs', 'runtime.mjs', 'truth.mjs']) s += fs.readFileSync(path.join(ROOT, 'catalog/grow', f), 'utf8'); return L.fnv(s); }
+function growSources() { let s = J({ callSteps: BUD.callSteps, thingSteps: BUD.thingSteps, nameSteps: BUD.nameSteps }); /* RINGS-PORT: רק מה שהצמיחה קוראת (התת-תקציב b נכנס למפתח בנפרד) — שדות-השרטוטים לא מבטלים את מטמון-הצמיחה */ for (const f of ['grow.mjs', 'lib.mjs', 'runtime.mjs', 'truth.mjs']) s += fs.readFileSync(path.join(ROOT, 'catalog/grow', f), 'utf8'); return L.fnv(s); }
 async function growRun(name, b, fresh) {
   fs.mkdirSync(CACHE, { recursive: true });
   const key = growSources();
@@ -90,7 +93,7 @@ async function shared() {
   const samplesBySig = new Map(); const stressBySig = new Map();
   const samplesOf = (sig) => { const k = sig.join(','); if (!samplesBySig.has(k)) samplesBySig.set(k, L.samplesOf(sig)); return samplesBySig.get(k); };
   const stressOf = (sig) => { const k = sig.join(','); if (!stressBySig.has(k)) stressBySig.set(k, L.stressSamples(sig)); return stressBySig.get(k); };
-  const refs = new Map();
+  const refs = new Map(); const refFns = []; // RINGS-PORT: גם הפונקציות (לבדיקות-מדוגמאות)
   const addRef = (verb, sig, f) => {
     const S0 = samplesOf(sig); const outs = S0.map(f); const j = L.judge(sig, S0, outs);
     if (j.junk) return;
@@ -105,11 +108,11 @@ async function shared() {
     const sigs = decl.length === 1 ? TRY[decl[0]].map((x) => [x]) : TRY[decl[0]].flatMap((a) => TRY[decl[1]].map((b) => [a, b]));
     let fn; try { fn = directCall(V.ref.fn()); } catch { continue; }
     const f = (a) => { try { const r = fn(a); return 'err' in r || L.semOfValue(r.v) === null ? null : r.v; } catch { return null; } };
-    for (const sig of sigs) addRef(V.id, sig, f);
+    for (const sig of sigs) { addRef(V.id, sig, f); refFns.push({ verb: V.id, sig, f }); }
   }
   const extra = new Map();
   for (const [k, fn] of Object.entries(EXTRA_REF)) { const S0 = samplesOf(['nums']); extra.set(k, { outs: S0.map(([xs]) => { const v = fn(xs); return v === null || !Number.isFinite(v) ? null : v; }), stress: stressOf(['nums']).map(([xs]) => fn(xs)) }); }
-  RT = { ...rt, samplesOf, stressOf, refs, extra, nameCache: new Map(), stressCache: new Map() };
+  RT = { ...rt, samplesOf, stressOf, refs, refFns, extra, nameCache: new Map(), stressCache: new Map() };
   return RT;
 }
 function stressOuts(R, t) {
@@ -243,7 +246,7 @@ function originVerbs(R, shape, o) {
 
 /** MINER2 סבב 2 (החלטת-מנהל, נקבעה לפני הריצה): צורה "מבנית" — לולאה-בתוך-לולאה · until ("חזור עד שאין שינוי") · "בחר את הטוב". */
 export const isStructural = (sh) => (sh.feats || []).includes('best') || JSON.stringify(sh.graph).includes('"until":"stable"') || sh.graph.nodes.some((n) => n.loop && n.loop.nodes.some((m) => m.loop));
-async function selfprint({ R, things, shelf, log, shapes = CODE.shapes, perBp = null }) {
+async function selfprint({ R, things, shelf, log, shapes = CODE.shapes, perBp = null, rings = null }) {
   const bps = []; const bpByKey = new Map();
   let nextIdx = Math.max(0, ...[...things.values()].map((t) => t.idx || 0)) + 1;
   const addBp = (bp) => {
@@ -251,6 +254,7 @@ async function selfprint({ R, things, shelf, log, shapes = CODE.shapes, perBp = 
     const key = J(graph);
     if (bpByKey.has(key)) { const o = bpByKey.get(key); o.alsoFrom = (o.alsoFrom || 0) + 1; return null; }
     const b = { id: (bp.source === 'code' ? 'bp-c-' : 'bp-s-') + L.fnv(key).slice(0, 8), ...bp, graph, key, built: 0, ran: 0, fresh: 0, successes: 0, typed: null };
+    if (rings) b.marks = RG.shapeMarks(graph); // RINGS-PORT: סימני-מבנה (לבדיקות-מדוגמאות)
     bps.push(b); bpByKey.set(key, b); return b;
   };
   /* MINER2 · המשווים של המנוע (‎< <= > >= === !==‎ ⇒ 1/0) — דברים בסיסיים שלא על המדף; רק מועמדים לחור-השוואה */
@@ -262,6 +266,42 @@ async function selfprint({ R, things, shelf, log, shapes = CODE.shapes, perBp = 
     things.set(t.id, t);
     return t;
   });
+  /* ═══ RINGS-PORT · ladder-order: שימוש = בכמה הצלחות של המכונה (דבר-עם-שם-מיוחד על המדף) הדבר הזה הוא רכיב ═══ */
+  const usage = new Map();
+  const noteUse = (t) => { const seen = new Set(); const walk = (x) => { for (const id of x.of || []) if (!seen.has(id)) { seen.add(id); const c = things.get(id); if (c) walk(c); } }; walk(t); seen.add(t.id); for (const id of seen) usage.set(id, (usage.get(id) || 0) + 1); };
+  /** סדר-תועלת (שלב ב׳): עם-שם-מיוחד ⇒ פתרון-שהפך-לכלי ⇒ שימוש בהצלחות ⇒ פשוט. */
+  const ord2 = (a, b) => (isSpecial(b) - isSpecial(a)) || ((b.tool ? 1 : 0) - (a.tool ? 1 : 0)) || ((usage.get(b.id) || 0) - (usage.get(a.id) || 0)) || a.steps - b.steps || a.nParts - b.nParts || (a.id < b.id ? -1 : 1);
+  /* ═══ RINGS-PORT · בדיקות-מדוגמאות — על פעלי-הייחוס של המנוע (לא על מטרות-מדידה) ═══ */
+  const ev = { fold: [], order: [], filter: [], conds: [] };
+  if (rings) {
+    for (const t of [...shelf.values()].filter((x) => x.floor > 0 && isSpecial(x)).sort((a, b) => (a.id < b.id ? -1 : 1))) noteUse(t);
+    const EVL = RG.evidenceLists();
+    const statsTop = [...shelf.values()].filter((t) => sigKeyOf(t) === 'nums>num').sort(ord2).slice(0, 8).map((t) => ({ id: t.id, f: (xs) => R.runOne(t, [xs], BUD.thingSteps).v }));
+    const cmps = CMP_FAMILY.map((l) => ({ id: l, f: S.OPS[l] }));
+    for (const { verb, sig, f } of R.refFns) {
+      if (sig.length !== 1 || sig[0] !== 'nums') continue;
+      const one = (xs) => f([xs]);
+      const outs = EVL.map(one).filter((o) => o !== null);
+      if (!outs.length) continue;
+      if (outs.every((o) => typeof o === 'number')) { if (RG.regressionTest(one, EVL).ok) ev.fold.push(verb); continue; }
+      if (!outs.every((o) => Array.isArray(o) && o.every((x) => typeof x === 'number'))) continue;
+      if (RG.keyOrderTest(one, EVL).ok) ev.order.push(verb);
+      const tt = RG.truthTable(one, EVL);
+      if (tt.ok) { ev.filter.push(verb); const c = RG.filterCondition(tt.rows, cmps, statsTop); if (c) ev.conds.push({ verb, ...c }); }
+    }
+    log('בדיקות-מדוגמאות: נסיגה ⇒ ' + (ev.fold.join(',') || '—') + ' · מפתח ⇒ ' + (ev.order.join(',') || '—') + ' · שמור/נזרק ⇒ ' + (ev.filter.join(',') || '—') + ' · תנאי מחלקים ⇒ ' + (ev.conds.map((c) => c.verb + ':' + c.cmp + '(x,' + c.stat.slice(0, 6) + ')').join(',') || '—'));
+  }
+  /** כפולי-התנהגות של שרטוטים (ladder-order › twins): 6 הפלטים הראשונים שלו כבר יצאו כולם משרטוט אחר אחד (או מהצמיחה) ⇒ תאום. */
+  const fpOwner = new Map(); if (rings) for (const t of shelf.values()) fpOwner.set(t.fp, 'growth');
+  const twinNote = (b, fp) => {
+    if (!rings || b.twin || (b.fps ||= []).length >= 6) return;
+    b.fps.push(fp); if (!fpOwner.has(fp)) fpOwner.set(fp, b.id);
+    if (b.fps.length === 6) { const ow = new Set(b.fps.map((x) => fpOwner.get(x))); if (ow.size === 1 && !ow.has(b.id)) b.twin = [...ow][0]; }
+  };
+  /** מכפיל-ראיות: צורה שבדיקה-מדוגמאות מצדיקה מקבלת פי 2 תקציב (lab: "המכונה מחליטה מהנתונים מתי לנסות"). */
+  const evMult = (b) => 1 + (ev.fold.length && (b.marks?.fold || b.marks?.until) ? 1 : 0) + (ev.order.length && (b.marks?.best || b.marks?.until || (b.feats || []).includes('best')) ? 1 : 0) + (ev.filter.length && (b.marks?.filter || (b.feats || []).includes('filter')) ? 1 : 0);
+  const priorB = (b) => { if (!rings) return 0; const h = HIST.code[b.origin?.code] || (b.source === 'code' ? null : HIST.fromSuccess); return ((h ? h.successes : 0) + b.successes + 1) / ((h ? h.built : 0) + b.built + 2); };
+  const scoreB = (b) => RG.scoreOf(priorB(b), S.holeVars(b.graph).length) * evMult(b);
   /* מקור 2 — הקוד */
   for (const sh of shapes.filter((x) => x.n >= BUD.minSupport || (perBp && isStructural(x) && x.n >= BUD.structuralMinSupport))) { // "מבנים שחוזרים" — שלד שנמצא בפונקציה אחת בלבד לא נכנס
     const per = sh.origins.map((o) => originVerbs(R, sh, o));
@@ -270,7 +310,25 @@ async function selfprint({ R, things, shelf, log, shapes = CODE.shapes, perBp = 
     // פועל-מטרה"): פועל נחסם אם **אחד** מהמקורות מממש אותו (ב-SELFPRINT: רק אם כולם), וגם אם פונקציה טמאה (ייחוס-פועל /
     // מוצר-החלוקה) בעלת אותו שלד מממשת אותו.
     const excl = [...new Set([...per.flat(), ...taint.flat()])].sort();
-    addBp({ source: 'code', by: sh.by, feats: sh.feats, origin: { code: sh.id, n: sh.n, at: sh.origins.slice(0, 3).map((o) => o.at), names: [...new Set(sh.origins.map((o) => o.name).filter(Boolean))].slice(0, 4), ...(sh.taint ? { taint: sh.taint.slice(0, 3).map((o) => o.at) } : {}) }, labels: sh.origins.map((o) => o.labels), graph: sh.graph, depth: 1, excl, perOrigin: per });
+    addBp({ source: 'code', by: sh.by, feats: sh.feats, origin: { code: sh.id, n: sh.n, at: sh.origins.slice(0, 3).map((o) => o.at), names: [...new Set(sh.origins.map((o) => o.name).filter(Boolean))].slice(0, 4), ...(sh.taint ? { taint: sh.taint.slice(0, 3).map((o) => o.at) } : {}) }, labels: sh.origins.map((o) => o.labels), graph: sh.graph, depth: 1, excl, perOrigin: per, ...(rings ? { stage: sh.by.includes('v1') ? 'A' : 'B' } : {}) });
+  }
+  /* RINGS-PORT · "חשב פעם אחת, השתמש לכל פריט" — טרנספורמציות על שלדים **שהכורה מצא** (rings.mjs): קשירת הקלט השני
+     לקלט הראשון (tie, לשלדים שנכנסו), או לחור-חדש שמחושב פעם אחת מהרשימה שהלולאה עוברת עליה (bind, לכל שלד עם גוף-לכל-פריט).
+     השאר-אחד-בחוץ: הפעלים של המקורות (גם של השלד-ההורה) + מה שהגרף-הנגזר עצמו מממש כשכל החורים אופרטורים. */
+  if (rings) for (const sh of shapes) {
+    if (sh.graph.inputs.length !== 2) continue;
+    const admitted = sh.n >= BUD.minSupport || (isStructural(sh) && sh.n >= BUD.structuralMinSupport);
+    const vs = S.holeVars(sh.graph); const nV = vs.length ? Math.max(...vs) + 1 : 0;
+    const variants = [];
+    const tg = admitted ? RG.tieInputs(sh.graph) : null;
+    if (tg) variants.push({ v: 'tie', graph: tg, labels: sh.origins.map((o) => o.labels) });
+    for (const bd of RG.bindInput(sh.graph, nV)) variants.push({ v: 'bind', graph: bd.graph, labels: sh.origins.map((o) => [...o.labels, null]) });
+    const parentEx = [...sh.origins, ...(sh.taint || [])].map((o) => originVerbs(R, sh, o)).flat();
+    for (const x of variants) {
+      const per = sh.origins.map((o, i) => originVerbs(R, { graph: x.graph }, { ...o, labels: x.labels[i] }));
+      const excl = [...new Set([...parentEx, ...per.flat()])].sort();
+      addBp({ source: 'code', by: sh.by, feats: sh.feats, variant: x.v, origin: { code: sh.id, n: sh.n, variant: x.v, at: sh.origins.slice(0, 3).map((o) => o.at), names: [...new Set(sh.origins.map((o) => o.name).filter(Boolean))].slice(0, 4) }, labels: x.labels, graph: x.graph, depth: 1, excl, perOrigin: per, stage: 'B' });
+    }
   }
   /* מקור 1 — ההצלחות של הצמיחה */
   /* חידוש: הצלחה הופכת לשרטוט רק אם היא ידע חדש — אחד הפעלים המיוחדים שלה עוד לא הוליד novelty שרטוטים-מהצלחה.
@@ -283,7 +341,7 @@ async function selfprint({ R, things, shelf, log, shapes = CODE.shapes, perBp = 
     const excl = [...new Set([...(parent?.excl || []), ...specialVerbs(t), ...exactVerbs(R, t)])].sort();
     let n = 0;
     for (const d of S.derive(t, things, { depth: 2, maxHoles: 1 })) {
-      const b = addBp({ source: parent ? 'success-of-blueprint' : 'success', origin: { thing: t.id, verbs: specialVerbs(t), ...(parent ? { blueprint: parent.id } : {}) }, tree: d.tree, holed: d.holed, depth: (parent?.depth || 0) + 1, excl, labels: null });
+      const b = addBp({ source: parent ? 'success-of-blueprint' : 'success', origin: { thing: t.id, verbs: specialVerbs(t), ...(parent ? { blueprint: parent.id } : {}) }, tree: d.tree, holed: d.holed, depth: (parent?.depth || 0) + 1, excl, labels: null, ...(rings ? { stage: parent ? parent.stage : 'A' } : {}) });
       if (b) n++;
     }
     return n;
@@ -294,6 +352,86 @@ async function selfprint({ R, things, shelf, log, shapes = CODE.shapes, perBp = 
 
   const rounds = []; const replacements = [];
   const builtKeys = new Set();
+  /* ═══ RINGS-PORT · כלי "חשב פעם אחת, השתמש לכל פריט" — מצורות-הצמיחה הקיימות (grow/lib › FORMS: mapc + chain),
+     על חלקי-המדף בסדר-התועלת: על-כל-פריט(B)(xs, s) · צבירה(על-כל-פריט(B)) · על-כל-פריט(B∘U). s (המספר) מגיע מהחור
+     שלידו בשלד שהכורה מצא (tie/bind/diag). כפול-התנהגות של דבר-מדף ⇒ דבר-המדף עצמו. ═══ */
+  const toolCache = new Map();
+  const mkTool = (form, kids) => {
+    if (kids.some((k) => !k)) return null;
+    const f = L.FORMS[form]; const ty = f.two ? f.type(kids[0], kids[1]) : f.type(kids[0]); if (!ty) return null;
+    const key = form + '(' + kids.map((k) => k.id).join(',') + ')';
+    if (toolCache.has(key)) return toolCache.get(key);
+    const graph = f.two ? f.graph(kids[0], kids[1]) : f.graph(kids[0]);
+    const t = { key, id: idOf('tool|' + key), floor: 'tool', form, of: kids.map((k) => k.id), sig: ty.sig, out: ty.out, graph, nParts: graphNodes(graph).length, names: [] };
+    let m; try { m = measure(R, t); } catch { m = { junk: 'חיווט' }; }
+    let res = null;
+    if (!m.junk && m.out === ty.out) { Object.assign(t, { fp: m.fp, steps: m.steps, outs: m.outs }); res = shelf.get(t.fp) || t; if (res === t) things.set(t.id, t); }
+    toolCache.set(key, res); return res;
+  };
+  const perItemTools = (src) => {
+    const top = (sk, n) => (src.get(sk) || []).slice(0, n);
+    /* "קודם מה שמבינים" (אותו עיקרון כמו חור-אופרטור של MINER2): לגוף-לכל-פריט — המשווה שבדיקת-טבלת-האמת בנתה (ev.conds),
+       אחריו הדבר הראשון על המדף שמתנהג כמו כל אופרטור-בסיס (FAMILY, באותו סדר קבוע), אחריו שאר המשווים; לפעולה-על-התוצאה —
+       מה שמתנהג כמו neg/abs, ואחריו הטובים בסדר-התועלת. */
+    const like = (sk, f) => { const Sx = R.samplesOf(sk.split('>')[0].split(',')); const w = Sx.map((a) => { const v = f(...a); return Number.isFinite(v) ? v : null; }); return (src.get(sk) || []).find((t) => Sx.every((x, k) => w[k] === null || L.sameOut(t.outs[k], w[k]))) || null; };
+    const cmpT = (l) => BASE_CMP.find((t) => t.id === 'base:' + l);
+    const uniq = (xs) => xs.filter((t, i) => t && xs.indexOf(t) === i);
+    const Bs = uniq([...ev.conds.map((c) => cmpT(c.cmp)), ...FAMILY.filter((o) => S.OPS[o].length === 2 || o.startsWith('Math.m')).map((o) => like('num,num>num', S.OPS[o])), ...['>', '<', '>=', '<='].map(cmpT), ...top('num,num>num', 4)]);
+    const Us = uniq([like('num>num', S.OPS.neg), like('num>num', S.OPS['Math.abs']), ...top('num>num', 2)]);
+    const As = top('nums>num', 6);
+    const out = new Map(); const add = (t) => { if (!t) return; const k = sigKeyOf(t); if (!out.has(k)) out.set(k, []); const l = out.get(k); if (!l.includes(t)) l.push(t); };
+    /* בשכבות (כמו layered): קודם כל הזוגות עם אינדקסים קטנים — כך הצירופים הראשונים מגוונים ולא "אותו גוף עם כל הצוברים" */
+    const ms = Bs.map((B) => mkTool('mapc', [B]));
+    for (const m of ms) add(m);
+    for (const [i, j] of [...layered2(ms.length, As.length)]) if (ms[i]) add(mkTool('chain', [ms[i], As[j]]));
+    const BU = []; for (const [i, j] of [...layered2(Math.min(6, Bs.length), Us.length)]) BU.push(mkTool('mapc', [mkTool('chain', [Bs[i], Us[j]])]));
+    for (const m of BU) add(m);
+    for (const [i, j] of [...layered2(BU.length, Math.min(4, As.length))]) if (BU[i]) add(mkTool('chain', [BU[i], As[j]]));
+    return out;
+  };
+  /* ═══ RINGS-PORT · בחירת-העבודות לסבב: שלב א׳ (חצי) = הספרייה הישנה (v1 + שרטוטים-מהצלחה) בסבב-חוזר כמו SELFPRINT,
+     בסדר-תועלת ובתקציב-לפי-היסטוריה; שלב ב׳ = כל השאר במנות (learnedQuota × ראיות); שארית — לכולם. ═══ */
+  const ringsSelect = ({ gens, done, jobs, builtKeys: BK, rd, F }) => {
+    const RB = Math.floor((rings.total * rd) / BUD.rounds) - Math.floor((rings.total * (rd - 1)) / BUD.rounds);
+    const pull = (i) => {
+      const g = gens[i];
+      for (;;) {
+        const n = g.it.next(); if (n.done) { done[i] = true; return false; }
+        const fill = g.unwrap ? n.value.map((x) => x.t) : n.value;
+        const key = g.b.id + '(' + fill.map((t) => t.id).join(',') + ')';
+        if (BK.has(key)) continue;
+        BK.add(key); jobs.push({ g, fill, key }); return true;
+      }
+    };
+    const byScore = (x, y) => scoreB(gens[y].b) - scoreB(gens[x].b) || x - y;
+    const idx = gens.map((g, i) => i);
+    const A = idx.filter((i) => gens[i].b.stage === 'A').sort(byScore);
+    const Bi = idx.filter((i) => gens[i].b.stage !== 'A').sort(byScore);
+    const hist = (i) => HIST.code[gens[i].b.origin?.code];
+    const never = (i) => { const e = hist(i); return e && e.successes === 0 && e.built >= 15; };
+    const takeOf = (i) => (never(i) ? 1 : hist(i)?.successes >= 5 ? gens[i].take * 2 : gens[i].take);
+    const capA = Math.floor(RB * rings.stageA); const cnt = new Map();
+    for (let prog = true; prog && jobs.length < capA; ) {
+      prog = false;
+      for (const i of A) {
+        if (jobs.length >= capA) break; if (done[i] || (never(i) && (cnt.get(i) || 0) >= 2)) continue;
+        for (let k = 0; k < takeOf(i) && jobs.length < capA; k++) { if (!pull(i)) break; cnt.set(i, (cnt.get(i) || 0) + 1); prog = true; }
+      }
+    }
+    F.stageA = jobs.length;
+    const baseB = Math.max(2, Math.floor((RB - jobs.length) / Math.max(1, Bi.length)));
+    const q = new Map(Bi.map((i) => [i, RG.learnedQuota(HIST, gens[i].b.origin?.code, baseB) * evMult(gens[i].b)]));
+    for (let prog = true; prog && jobs.length < RB; ) {
+      prog = false;
+      for (const i of Bi) { if (jobs.length >= RB) break; if (done[i] || q.get(i) <= 0) continue; if (pull(i)) { q.set(i, q.get(i) - 1); prog = true; } }
+    }
+    F.stageB = jobs.length - F.stageA;
+    for (let prog = true; prog && jobs.length < RB; ) {
+      prog = false;
+      for (const i of [...A, ...Bi]) { if (jobs.length >= RB) break; if (done[i]) continue; if (pull(i)) prog = true; }
+    }
+    F.leftover = jobs.length - F.stageA - F.stageB;
+  };
   for (let rd = 1; rd <= BUD.rounds; rd++) {
     const F = { round: rd, blueprints: bps.length, built: 0, new: 0, replaced: 0, dup: 0, junk: {}, typingsTried: 0 };
     /* מאגרים לפי חתימה (מהמדף הנוכחי): קודם עם-שם-מיוחד, אחר-כך הכי פשוט (צעדים) */
@@ -301,12 +439,19 @@ async function selfprint({ R, things, shelf, log, shapes = CODE.shapes, perBp = 
     for (const t of shelf.values()) { const k = sigKeyOf(t); if (!bySig.has(k)) bySig.set(k, []); bySig.get(k).push(t); }
     const ord = (a, b) => (isSpecial(b) - isSpecial(a)) || a.steps - b.steps || a.nParts - b.nParts || (a.id < b.id ? -1 : 1);
     for (const l of bySig.values()) l.sort(ord);
+    /* RINGS-PORT · שלב ב׳: אותו מדף בסדר-התועלת (ord2), וכלי "חשב-פעם-אחת" לחורים שמקבלים רשימה ועוד מספר */
+    const bySig2 = new Map(); if (rings) for (const [k, l] of bySig) bySig2.set(k, [...l].sort(ord2));
+    const tools = rings ? perItemTools(bySig2) : new Map();
     const opCache = new Map(); const opLike = new Set();
-    const poolOf = (sk, label) => {
-      const base = CMP_FAMILY.includes(label) && sk === 'num,num>num' ? [...BASE_CMP, ...(bySig.get(sk) || [])] : bySig.get(sk) || [];
+    const poolOf = (sk, label, B = null) => {
+      const src = B ? bySig2 : bySig; const capN = B ? RG.capAt(BUD.poolCap, B.depth) : BUD.poolCap;
+      let base0 = src.get(sk) || [];
+      if (B) { const c = ev.conds.map((x) => things.get(x.stat)).filter((t) => t && sigKeyOf(t) === sk); if (c.length) base0 = [...c, ...base0.filter((t) => !c.includes(t))]; }
+      if (B && tools.has(sk)) { const tl = tools.get(sk); base0 = [...tl.slice(0, Math.ceil(capN / 2)), ...base0]; }
+      const base = CMP_FAMILY.includes(label) && sk === 'num,num>num' ? [...BASE_CMP, ...base0] : base0;
       const f = label && S.OPS[label];
-      if (!f) return base.slice(0, BUD.poolCap);
-      const ck = sk + '|' + label;
+      if (!f) return base.slice(0, capN);
+      const ck = sk + '|' + label + (B ? '|B' + capN : '');
       if (!opCache.has(ck)) {
         const [a] = sk.split('>'); const Sx = R.samplesOf(a.split(','));
         const want = Sx.map((args) => { const v = f(...args); return Number.isFinite(v) ? v : null; });
@@ -315,7 +460,7 @@ async function selfprint({ R, things, shelf, log, shapes = CODE.shapes, perBp = 
         const hit = like(f);
         const sib = (CMP_FAMILY.includes(label) ? CMP_FAMILY : FAMILY).filter((o) => o !== label && S.OPS[o].length === f.length).flatMap((o) => like(S.OPS[o]));
         const seen = new Set(); const ordered = [...hit, ...sib, ...base].filter((t) => !seen.has(t.id) && seen.add(t.id));
-        const pool = ordered.slice(0, BUD.poolCap);
+        const pool = ordered.slice(0, capN);
         for (const t of [...hit, ...sib]) opLike.add(sk + '|' + t.id);
         opCache.set(ck, pool);
       }
@@ -325,6 +470,7 @@ async function selfprint({ R, things, shelf, log, shapes = CODE.shapes, perBp = 
     const gens = [];
     for (const b of bps) {
       if (b.built >= 8 && L.yieldOf(b) < 0.1) continue; // שרטוט שנותן רק כפולים/זבל — יוצא
+      if (b.twin) continue; // RINGS-PORT: תאום-התנהגות של שרטוט קודם (או של הצמיחה) — יוצא
       if (b.source === 'code') {
         const tys = S.typings({ graph: b.graph }, b.labels, (sk) => bySig.has(sk) || sk === 'num,num>num') || [];
         if (b.typed === null) b.typed = tys.length;
@@ -332,13 +478,14 @@ async function selfprint({ R, things, shelf, log, shapes = CODE.shapes, perBp = 
         const scored = tys.map((ty) => ({ ty, sp: ty.holes.reduce((a, h, v) => a + ((bySig.get(S.sigKey(h.sig, h.out)) || []).some(isSpecial) ? 1 : 0), 0) })).sort((x, y) => y.sp - x.sp || (x.ty.key < y.ty.key ? -1 : 1)).slice(0, BUD.typings);
         F.typingsTried += scored.length;
         for (const { ty } of scored) {
-          const pools = ty.holes.map((h, v) => poolOf(S.sigKey(h.sig, h.out), lab(v)));
+          const pools = ty.holes.map((h, v) => poolOf(S.sigKey(h.sig, h.out), lab(v), rings && b.stage === 'B' ? b : null));
           const und = (v) => (t) => isSpecial(t) || opLike.has(S.sigKey(ty.holes[v].sig, ty.holes[v].out) + '|' + t.id);
           gens.push({ b, ty, it: S.conceptsFirst(pools.map((p, v) => p.map((t) => ({ t, v }))), (x) => und(x.v)(x.t), (c) => new Set(c.map((x) => x.t.fp)).size === c.length), unwrap: true, take: 1 + Math.floor(Math.log2(b.origin.n)) });
         }
       } else {
         const hs = S.treeHoles(b.tree);
-        const pools = hs.map((h) => (bySig.get(S.sigKey(h.sig, h.out)) || []).filter((t) => !b.holed.includes(t.id)).slice(0, BUD.poolCap));
+        const inB = rings && b.stage === 'B';
+        const pools = hs.map((h) => ((inB ? bySig2 : bySig).get(S.sigKey(h.sig, h.out)) || []).filter((t) => !b.holed.includes(t.id)).slice(0, inB ? RG.capAt(BUD.poolCap, b.depth) : BUD.poolCap));
         gens.push({ b, ty: { holes: hs, ins: b.tree.sig, out: b.tree.out }, it: S.conceptsFirst(pools, isSpecial, (c) => new Set(c.map((t) => t.fp)).size === c.length), take: 1 });
       }
     }
@@ -355,7 +502,8 @@ async function selfprint({ R, things, shelf, log, shapes = CODE.shapes, perBp = 
       const sorted = order.map((i) => gens[i]); gens.length = 0; gens.push(...sorted);
     }
     const hasQuota = (g) => !perBp || quota.get(g.b) > 0;
-    while (jobs.length < cap && done.some((d, i) => !d && hasQuota(gens[i]))) {
+    if (rings) ringsSelect({ gens, done, jobs, builtKeys, rd, F });
+    else while (jobs.length < cap && done.some((d, i) => !d && hasQuota(gens[i]))) {
       for (let i = 0; i < gens.length && jobs.length < cap; i++) {
         if (done[i] || !hasQuota(gens[i])) continue;
         for (let k = 0; k < gens[i].take && jobs.length < cap && hasQuota(gens[i]); ) {
@@ -385,6 +533,7 @@ async function selfprint({ R, things, shelf, log, shapes = CODE.shapes, perBp = 
       if (m.junk) { F.junk[m.junk] = (F.junk[m.junk] || 0) + 1; continue; }
       b.ran++;
       Object.assign(t, { out: m.out, fp: m.fp, steps: m.steps, outs: m.outs, ex: exampleOf(R.samplesOf(sig), m.outs) });
+      twinNote(b, t.fp);
       if (t.out !== (tree.out || g.ty.out)) { F.junk['פלט בסוג אחר'] = (F.junk['פלט בסוג אחר'] || 0) + 1; continue; }
       const cur = shelf.get(t.fp);
       if (!cur) { t.idx = nextIdx++; shelf.set(t.fp, t); things.set(t.id, t); fresh.push(t); F.new++; b.fresh++; continue; }
@@ -406,11 +555,15 @@ async function selfprint({ R, things, shelf, log, shapes = CODE.shapes, perBp = 
     /* הצלחה ⇒ שרטוט חדש (שרטוט בתוך שרטוט) */
     let born = 0;
     for (const t of succ) { const b = bps.find((x) => x.id === t.bp); b.successes++; if (rd < BUD.rounds) born += fromSuccess(t, b); else F.lastRoundSuccess = (F.lastRoundSuccess || 0) + 1; }
+    /* RINGS-PORT · shelvebench: הצלחה מאומתת (שם מיוחד = חוקים + אמת + לחץ) כבר על המדף — מסמנים אותה ככלי (ראשונה
+       בסדר-התועלת של הסבב הבא), וסופרים הצלחות שבנויות על כלי כזה. */
+    if (rings) { F.usedTools = succ.filter((t) => (t.fill || []).some((id) => things.get(id)?.tool)).length; for (const t of succ) { t.tool = true; noteUse(t); } F.tools = [...shelf.values()].filter((t) => t.tool).length; }
     F.bornBlueprints = born;
+    if (rings) { F.twins = bps.filter((b) => b.twin).length; F.tools = F.tools || 0; }
     rounds.push(F);
     log(`סבב ${rd}: ${F.built} נבנו · ${F.new} חדשים · ${F.replaced} החליפו · ${F.dup} כפולים · ${Object.values(F.junk).reduce((a, x) => a + x, 0)} זבל · ${F.named} קיבלו שם מיוחד ⇒ ${born} שרטוטים חדשים (סה״כ ${bps.length})`);
   }
-  return { bps, rounds, replacements };
+  return { bps, rounds, replacements, ev: rings ? ev : null };
 }
 
 function exampleOf(Sx, outs) {
@@ -491,7 +644,7 @@ export async function run({ log = () => {}, fresh = false } = {}) {
   const R = await shared();
   const H0 = loadShelf(R, half.shelfFiles);
   log(`מדף half ${H0.shelf.size} (טביעה שונה בטעינה: ${H0.fpMismatch})`);
-  const { bps, rounds, replacements } = await selfprint({ R, things: H0.things, shelf: H0.shelf, log, perBp: BUD.perBlueprint });
+  const { bps, rounds, replacements, ev } = await selfprint({ R, things: H0.things, shelf: H0.shelf, log, perBp: BUD.perBlueprint, rings: BUD.rings || null });
   const halfBudget = BUD.half.maxFloors * (BUD.half.buildsPerFloor + BUD.half.unaryPerFloor);
   const bpBuilt = rounds.reduce((a, F) => a + F.built, 0);
   const perFloor = Math.round((halfBudget + bpBuilt) / BUD.baseline.maxFloors);
@@ -534,6 +687,7 @@ export async function run({ log = () => {}, fresh = false } = {}) {
     baseline: mBase, selfprint: mSelf,
     blueprints: blueprintsSummary,
     wrongImprovements: wrong, replacements: replacements.length,
+    ...(BUD.rings ? { rings: ringsSummary(bps, rounds, ev, H0) } : {}),
     fpMismatchOnLoad: { baseline: B0.fpMismatch, half: H0.fpMismatch },
   };
   const ledger = { about: 'הפנקס של מנוע-השרטוטים-העצמי — סבבים, שרטוטים, החלפות. נבנה ע״י selfprint.mjs', rounds, blueprints: blueprintsSummary, replacements, growMetrics: { baseline: pick(base.metrics), half: pick(half.metrics) } };
@@ -553,6 +707,22 @@ export async function run({ log = () => {}, fresh = false } = {}) {
     compare: JSON.stringify(compare, null, 1) + '\n',
     blueprints: '[\n' + bpOut.map(J).join(',\n') + '\n]\n',
     found: '[\n' + found.map(J).join(',\n') + '\n]\n',
+  };
+}
+/** זוגות-אינדקסים בשכבות: (0,0) · (0,1),(1,0),(1,1) · … — דטרמיניסטי. */
+function* layered2(n, m) { for (let k = 0; k < Math.max(n, m); k++) for (let i = 0; i <= Math.min(k, n - 1); i++) for (let j = 0; j <= Math.min(k, m - 1); j++) if (i === k || j === k) yield [i, j]; }
+/** RINGS-PORT · סיכום: שלבים, תאומים, נגזרות (tie/bind), כלי-חשב-פעם-אחת, פתרונות-שהפכו-לכלי, בדיקות-מדוגמאות. */
+function ringsSummary(bps, rounds, ev, H0) {
+  const v = (x) => bps.filter((b) => b.variant === x);
+  const st = (xs) => ({ blueprints: xs.length, built: xs.reduce((a, b) => a + b.built, 0), success: xs.filter((b) => b.successes).length, successes: xs.reduce((a, b) => a + b.successes, 0) });
+  const toolThings = [...H0.things.values()].filter((t) => t.floor === 'tool');
+  const usedAsFill = new Set([...H0.shelf.values()].filter((t) => t.bp && isSpecial(t)).flatMap((t) => t.fill || []));
+  return {
+    perRound: rounds.map((F) => ({ round: F.round, stageA: F.stageA, stageB: F.stageB, leftover: F.leftover, twins: F.twins, tools: F.tools, usedTools: F.usedTools || 0 })),
+    stageA: st(bps.filter((b) => b.stage === 'A')), stageB: st(bps.filter((b) => b.stage === 'B')),
+    tie: st(v('tie')), bind: st(v('bind')), twins: bps.filter((b) => b.twin).length,
+    perItemTools: { built: toolThings.length, inSuccesses: toolThings.filter((t) => usedAsFill.has(t.id)).length },
+    evidence: ev,
   };
 }
 const pick = (m) => ({ built: m.built, shelf: m.shelf, namedSpecialGrown: m.namedSpecialGrown, exactFromOthers: m.exactFromOthers });

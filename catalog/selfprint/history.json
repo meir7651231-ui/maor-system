@@ -1,0 +1,568 @@
+{
+ "about": "RINGS-PORT · ההיסטוריה של המכונה (קפוא — קלט). נכתב ע״י history.mjs מפלטי המנוע בקומיט 380625d (blueprints.json + control-v1.json). code = לכל שלד-מהקוד: נבנו/הצלחות (ובביקורת-v1 גם אילו פעלים); fromSuccess = סך שרטוטים-מהצלחה.",
+ "from": "380625d",
+ "code": {
+  "code-0001": {
+   "built": 38,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0002": {
+   "built": 38,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0003": {
+   "built": 25,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0004": {
+   "built": 38,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0005": {
+   "built": 38,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0006": {
+   "built": 38,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0007": {
+   "built": 12,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0008": {
+   "built": 38,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0009": {
+   "built": 25,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0010": {
+   "built": 25,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0011": {
+   "built": 38,
+   "successes": 5,
+   "verbs": {}
+  },
+  "code-0012": {
+   "built": 38,
+   "successes": 4,
+   "verbs": {}
+  },
+  "code-0013": {
+   "built": 25,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0014": {
+   "built": 38,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0015": {
+   "built": 38,
+   "successes": 5,
+   "verbs": {
+    "compare": 4
+   }
+  },
+  "code-0016": {
+   "built": 38,
+   "successes": 1,
+   "verbs": {}
+  },
+  "code-0017": {
+   "built": 38,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0018": {
+   "built": 0,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0019": {
+   "built": 38,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0020": {
+   "built": 38,
+   "successes": 1,
+   "verbs": {}
+  },
+  "code-0021": {
+   "built": 30,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0022": {
+   "built": 38,
+   "successes": 6,
+   "verbs": {}
+  },
+  "code-0023": {
+   "built": 0,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0024": {
+   "built": 38,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0025": {
+   "built": 12,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0026": {
+   "built": 38,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0027": {
+   "built": 12,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0028": {
+   "built": 38,
+   "successes": 3,
+   "verbs": {}
+  },
+  "code-0029": {
+   "built": 29,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0030": {
+   "built": 29,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0031": {
+   "built": 38,
+   "successes": 14,
+   "verbs": {}
+  },
+  "code-0032": {
+   "built": 38,
+   "successes": 13,
+   "verbs": {
+    "compare": 6
+   }
+  },
+  "code-0033": {
+   "built": 0,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0034": {
+   "built": 12,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0035": {
+   "built": 38,
+   "successes": 4,
+   "verbs": {
+    "rotate": 3,
+    "count": 1
+   }
+  },
+  "code-0036": {
+   "built": 30,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0037": {
+   "built": 38,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0038": {
+   "built": 30,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0039": {
+   "built": 25,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0040": {
+   "built": 12,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0041": {
+   "built": 30,
+   "successes": 4,
+   "verbs": {}
+  },
+  "code-0042": {
+   "built": 30,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0043": {
+   "built": 38,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0044": {
+   "built": 38,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0045": {
+   "built": 12,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0046": {
+   "built": 38,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0047": {
+   "built": 38,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0048": {
+   "built": 38,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0049": {
+   "built": 38,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0050": {
+   "built": 38,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0051": {
+   "built": 38,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0052": {
+   "built": 30,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0053": {
+   "built": 24,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0054": {
+   "built": 38,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0055": {
+   "built": 38,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0056": {
+   "built": 38,
+   "successes": 8,
+   "verbs": {}
+  },
+  "code-0057": {
+   "built": 38,
+   "successes": 8,
+   "verbs": {}
+  },
+  "code-0058": {
+   "built": 0,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0059": {
+   "built": 0,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0060": {
+   "built": 38,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0061": {
+   "built": 0,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0062": {
+   "built": 0,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0063": {
+   "built": 38,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0064": {
+   "built": 38,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0065": {
+   "built": 38,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0066": {
+   "built": 38,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0067": {
+   "built": 38,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0068": {
+   "built": 38,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0069": {
+   "built": 38,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0070": {
+   "built": 12,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0071": {
+   "built": 30,
+   "successes": 5,
+   "verbs": {}
+  },
+  "code-0072": {
+   "built": 12,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0073": {
+   "built": 12,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0074": {
+   "built": 38,
+   "successes": 20,
+   "verbs": {
+    "filter": 11,
+    "count": 3
+   }
+  },
+  "code-0075": {
+   "built": 38,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0076": {
+   "built": 38,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0077": {
+   "built": 25,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0078": {
+   "built": 38,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0079": {
+   "built": 38,
+   "successes": 7,
+   "verbs": {}
+  },
+  "code-0080": {
+   "built": 38,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0081": {
+   "built": 38,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0082": {
+   "built": 38,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0083": {
+   "built": 38,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0084": {
+   "built": 0,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0085": {
+   "built": 0,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0086": {
+   "built": 38,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0087": {
+   "built": 38,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0088": {
+   "built": 30,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0089": {
+   "built": 38,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0090": {
+   "built": 38,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0091": {
+   "built": 38,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0092": {
+   "built": 38,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0093": {
+   "built": 38,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0094": {
+   "built": 38,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0095": {
+   "built": 0,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0096": {
+   "built": 38,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0097": {
+   "built": 38,
+   "successes": 1,
+   "verbs": {
+    "average": 1
+   }
+  },
+  "code-0098": {
+   "built": 12,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0099": {
+   "built": 38,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0100": {
+   "built": 38,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0101": {
+   "built": 38,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0102": {
+   "built": 38,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0103": {
+   "built": 0,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0110": {
+   "built": 38,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0114": {
+   "built": 38,
+   "successes": 2,
+   "verbs": {}
+  },
+  "code-0139": {
+   "built": 12,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0190": {
+   "built": 38,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0257": {
+   "built": 12,
+   "successes": 0,
+   "verbs": {}
+  },
+  "code-0258": {
+   "built": 12,
+   "successes": 0,
+   "verbs": {}
+  }
+ },
+ "fromSuccess": {
+  "blueprints": 45,
+  "built": 1169,
+  "successes": 167
+ }
+}

@@ -50,6 +50,18 @@ const found = JSON.parse(res.found);
 const bpById = new Map(tap.bps.map((b) => [b.id, b]));
 const sp = scanTargets({ R: tap.R, L, things: tap.H0.things, shelf: tap.H0.shelf, bpById, targets: TARGETS, thingSteps: BUD.thingSteps });
 const bl = scanTargets({ R: tap.R, L, things: tap.B0.things, shelf: tap.B0.shelf, targets: TARGETS, thingSteps: BUD.thingSteps });
+/* RINGS-PORT · המבחן הנסתר (catalog/spfair/hidden, חתום sha256): נמדד באותה הרצה, נכתב לקובץ נפרד שלא פותחים עד הסוף */
+const HID = path.join(HERE, 'hidden/targets-hidden.mjs');
+let hidden = null;
+if (fs.existsSync(HID)) {
+  // שומר-העיוורון של המנוע (selfprint/guard.mjs) נשאר מותקן בתהליך גם אחרי שהמנוע סיים — כלי-המדידה קורא את הקובץ
+  // דרך הקורא שמתחת לשומר (__orig) ומייבא מ-data: — רק אחרי שהמנוע סיים (__spfairEngine=false; שומר-המטרות עדיין בודק).
+  const rd = fs.readFileSync.__orig || fs.readFileSync;
+  const { TARGETS: HT } = await import('data:text/javascript;base64,' + Buffer.from(String(rd(HID, 'utf8'))).toString('base64'));
+  const hsp = scanTargets({ R: tap.R, L, things: tap.H0.things, shelf: tap.H0.shelf, bpById: new Map(tap.bps.map((b) => [b.id, b])), targets: HT, thingSteps: JSON.parse(origBudget).thingSteps });
+  const hbl = scanTargets({ R: tap.R, L, things: tap.B0.things, shelf: tap.B0.shelf, targets: HT, thingSteps: JSON.parse(origBudget).thingSteps });
+  hidden = { about: 'RINGS-PORT · המבחן הנסתר (sha256 ב-hidden/SHA256) על אותה הרצה. נבנה ע״י fair.mjs', name, targets: HT.length, selfprint: hsp, baseline: hbl };
+}
 log('מדידה: ' + sp.hits.length + ' פגיעות (שרטוטים) · ' + bl.hits.length + ' (צמיחה בלבד)');
 
 /** פעלים שנבנו מחדש בדיוק — מ-compare של המנוע; לכל אחד: הטוב, ומאיזה שרטוט. */
@@ -62,6 +74,7 @@ const out = {
   sameBytesAsBranch: same,
   built: compare.built,
   wrongImprovements: compare.wrongImprovements, replacements: compare.replacements,
+  ...(compare.rings ? { rings: compare.rings } : {}), // RINGS-PORT: שלבים/תאומים/tie-bind/כלים/ראיות
   blueprints: compare.blueprints,
   rounds_: JSON.parse(res.ledger).rounds.map((F) => ({ round: F.round, blueprints: F.blueprints, built: F.built, new: F.new, replaced: F.replaced, dup: F.dup, named: F.named, born: F.bornBlueprints ?? 0 })),
   exact: { baseline: exactOf(compare.baseline), selfprint: exactOf(compare.selfprint) },
@@ -85,5 +98,6 @@ const out = {
 };
 fs.mkdirSync(path.join(HERE, 'runs'), { recursive: true });
 fs.writeFileSync(path.join(HERE, 'runs', name + '.json'), JSON.stringify(out, null, 1) + '\n');
+if (hidden) { fs.mkdirSync(path.join(HERE, 'hidden/runs'), { recursive: true }); fs.writeFileSync(path.join(HERE, 'hidden/runs', name + '.json'), JSON.stringify(hidden, null, 1) + '\n'); }
 log('נכתב runs/' + name + '.json');
 function countBy(xs) { const o = {}; for (const k of xs) o[k] = (o[k] || 0) + 1; return Object.fromEntries(Object.entries(o).sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1))); }
