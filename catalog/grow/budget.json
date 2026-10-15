@@ -1,0 +1,9 @@
+{
+ "about": "התקציב המוצהר של מנוע-הצמיחה (catalog/grow/grow.mjs). maxFloors = כמה קומות מעל קומה 0 לכל היותר · buildsPerFloor = כמה חיבורי-זוג (chain/pair) נבנים בקומה לכל היותר · unaryPerFloor = כמה חיבורים חד-מקומיים (map/mapc/fold/fix) — כשיש יותר מועמדים נבחרת דגימה דטרמיניסטית והשאר נספרים כ'נחסמו בתקציב' · callSteps = תקרת-צעדים לקריאה אחת לחלק (lib/steps.mjs) · thingSteps = תקרת-צעדים לדבר אחד על כל סט-הקלטים (מעבר ⇒ זבל 'כבד מדי') · nameSteps = תקרת-צעדים לבדיקת-החוקים של דבר אחד",
+ "maxFloors": 4,
+ "buildsPerFloor": 6000,
+ "unaryPerFloor": 2000,
+ "callSteps": 500000,
+ "thingSteps": 2000000,
+ "nameSteps": 2000000
+}

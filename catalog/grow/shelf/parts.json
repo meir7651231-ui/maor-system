@@ -1,0 +1,2651 @@
+{
+ "core-b:catalog/core/tolerate.mjs#tolerateParse": {
+  "where": "maor-system:src/App.tsx:146",
+  "name": "קורא כל פריט וסובל פריט שבור",
+  "proven": [
+   "map",
+   "normalize",
+   "tolerate"
+  ]
+ },
+ "core-c:catalog/core/by-distance.mjs#byDistance": {
+  "where": "maor-system:src/lib/three-scene.ts:122",
+  "name": "ממיין נקודות לפי המרחק מהמוצא",
+  "proven": [
+   "normalize",
+   "sort"
+  ]
+ },
+ "core-c:catalog/core/dedupe-points.mjs#dedupePoints": {
+  "where": "maor-system:src/lib/three-scene.ts:128",
+  "name": "מסנן כפולים: כל נקודה פעם אחת",
+  "proven": [
+   "dedupe",
+   "filter",
+   "normalize"
+  ]
+ },
+ "core-c:catalog/core/nearest-point.mjs#nearestPoint": {
+  "where": "maor-system:src/components/supporters/SupportersGalaxy.tsx:125",
+  "name": "בוחר את הנקודה הקרובה ביותר למוצא",
+  "proven": [
+   "extreme"
+  ]
+ },
+ "core-c:catalog/core/transpose-notes.mjs#transposeNotes": {
+  "where": "maor-system:src/components/parnasa/sound.ts:89",
+  "name": "מעביר צליל לגובה אחר ביחס קבוע",
+  "proven": [
+   "map"
+  ]
+ },
+ "inner-14kk:archive/architect-bridge.js#getUpdates.offset": {
+  "where": "14kk:archive/architect-bridge.js:31",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-14kk:archive/final-bridge.js#AegisSentinel.intelligentSegment.end:step": {
+  "where": "14kk:archive/final-bridge.js:222",
+  "name": "בוחר את הקטן מבין ערכים",
+  "proven": [
+   "clamp",
+   "round"
+  ]
+ },
+ "inner-14kk:archive/final-bridge.js#AegisSentinel.intelligentSegment.start": {
+  "where": "14kk:archive/final-bridge.js:221",
+  "name": "מחבר ערכים",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-14kk:check_protocol_activity.js#ProtocolActivityChecker.checkCommunicationProtocol.timeDiff:step": {
+  "where": "14kk:check_protocol_activity.js:26",
+  "name": "מחשב יחס בין ערכים",
+  "proven": [
+   "compare",
+   "gap"
+  ]
+ },
+ "inner-14kk:communication_protocol.js#SmartCommunicationProtocol.checkProtocolStatus.healthScore": {
+  "where": "14kk:communication_protocol.js:184",
+  "name": "מעגל מספר",
+  "proven": [
+   "ratio"
+  ]
+ },
+ "inner-14kk:construction_supervisor_protocol.js#ConstructionSupervisor.checkTestResults.failedTests": {
+  "where": "14kk:construction_supervisor_protocol.js:513",
+  "name": "מחשב הפרש בין ערכים",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-14kk:frontend/src/pages/Assets.js#Assets.calculateReturn.returnPercentage": {
+  "where": "14kk:frontend/src/pages/Assets.js:120",
+  "name": "מכפיל ערך ביחס",
+  "proven": [
+   "convert",
+   "ratio"
+  ]
+ },
+ "inner-14kk:knowledge_protocol.js#AssetAnalyzer.calculateReadability.avgWordsPerSentence:step": {
+  "where": "14kk:knowledge_protocol.js:704",
+  "name": "מחשב יחס בין ערכים",
+  "proven": [
+   "convert",
+   "ratio"
+  ]
+ },
+ "inner-14kk:mvp/simple-mvp.js#SimpleAssetManagerMVP.generateStatusResponse.minutes": {
+  "where": "14kk:mvp/simple-mvp.js:477",
+  "name": "מחשב שארית במחזור",
+  "proven": [
+   "normalize"
+  ]
+ },
+ "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#CartSubmenu.reversed:step": {
+  "where": "buildsmart:app/src/components/menu/submenu-settings.tsx:1291",
+  "name": "מחשב ערך מערכים",
+  "proven": [
+   "reverse"
+  ]
+ },
+ "inner-buildsmart:app/src/store/app-store.ts#computed.parent": {
+  "where": "buildsmart:app/src/store/app-store.ts:50",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "normalize"
+  ]
+ },
+ "inner-buildsmart:functions/src/analytics.ts#pickShard.i": {
+  "where": "buildsmart:functions/src/analytics.ts:128",
+  "name": "מעגל מספר כלפי מטה",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop": {
+  "where": "buildsmart:functions/src/analytics.ts:141",
+  "name": "מסכם ערכים לאורך רשימה",
+  "proven": [
+   "sum"
+  ]
+ },
+ "inner-buildsmart:functions/src/credit.ts#onCall.pct:step": {
+  "where": "buildsmart:functions/src/credit.ts:125",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "normalize",
+   "ratio",
+   "round",
+   "tier"
+  ]
+ },
+ "inner-buildsmart:functions/src/push.ts#onDocumentCreated.recipients:step": {
+  "where": "buildsmart:functions/src/push.ts:163",
+  "name": "מסנן רשימה לפי תנאי",
+  "proven": [
+   "filter",
+   "normalize"
+  ]
+ },
+ "inner-generator:box-drafts/io-wiring/score-term@src_lib_search_ts.mjs#scoreTerm.max": {
+  "where": "-ai-chat-server:box-drafts/io-wiring/score-term@src_lib_search_ts.mjs:29",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "clamp",
+   "round"
+  ]
+ },
+ "inner-generator:engine/atlas.mjs#buildAtlas.seg:step": {
+  "where": "-ai-chat-server:engine/atlas.mjs:87",
+  "name": "מחלץ חלק מרצף",
+  "proven": [
+   "normalize",
+   "tier"
+  ]
+ },
+ "inner-generator:gen/looks/agora/build.mjs#fn.per": {
+  "where": "-ai-chat-server:gen/looks/agora/build.mjs:227",
+  "name": "מעגל מספר כלפי מטה",
+  "proven": [
+   "tier"
+  ]
+ },
+ "inner-generator:gen/looks/app/audit.mjs#A11Y.mix.a": {
+  "where": "-ai-chat-server:gen/looks/app/audit.mjs:21",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "round"
+  ]
+ },
+ "inner-generator:gen/looks/app/build.mjs#scope.end:step": {
+  "where": "-ai-chat-server:gen/looks/app/build.mjs:36",
+  "name": "מחשב ערך בעזרת חישוב עזר",
+  "proven": [
+   "round"
+  ]
+ },
+ "inner-generator:gen/looks/app/src/10-ui.js#ring.c": {
+  "where": "-ai-chat-server:gen/looks/app/src/10-ui.js:31",
+  "name": "מכפיל ערכים",
+  "proven": [
+   "compare",
+   "convert",
+   "gap"
+  ]
+ },
+ "inner-generator:gen/looks/app/src/10-ui.js#ring.c:step": {
+  "where": "-ai-chat-server:gen/looks/app/src/10-ui.js:31",
+  "name": "מכפיל ערכים",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-generator:gen/looks/app/src/10-ui.js#ring.on:step": {
+  "where": "-ai-chat-server:gen/looks/app/src/10-ui.js:31",
+  "name": "מכפיל ערך ביחס",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-generator:gen/looks/app/src/10-ui.js#ring.r": {
+  "where": "-ai-chat-server:gen/looks/app/src/10-ui.js:31",
+  "name": "מחשב יחס בין ערכים",
+  "proven": [
+   "compare",
+   "convert",
+   "gap"
+  ]
+ },
+ "inner-generator:gen/looks/app/src/20-views-a.js#class.render.from.c": {
+  "where": "-ai-chat-server:gen/looks/app/src/20-views-a.js:324",
+  "name": "מחבר ערכים",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-generator:gen/looks/app/src/20-views-a.js#class.render.maxc:step": {
+  "where": "-ai-chat-server:gen/looks/app/src/20-views-a.js:328",
+  "name": "בוחר את הגדול מבין ערכים",
+  "proven": [
+   "extreme"
+  ]
+ },
+ "inner-generator:gen/looks/app/src/21-views-b.js#class.render.map.hp": {
+  "where": "-ai-chat-server:gen/looks/app/src/21-views-b.js:255",
+  "name": "מכפיל ערך ביחס",
+  "proven": [
+   "convert",
+   "ratio"
+  ]
+ },
+ "inner-generator:gen/looks/app/src/21-views-b.js#class.render.map.x": {
+  "where": "-ai-chat-server:gen/looks/app/src/21-views-b.js:255",
+  "name": "מחשב הפרש בין ערכים",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-generator:gen/looks/buybox/build.mjs#split.c:step": {
+  "where": "-ai-chat-server:gen/looks/buybox/build.mjs:29",
+  "name": "מעגל מספר",
+  "proven": [
+   "compare",
+   "convert",
+   "gap"
+  ]
+ },
+ "inner-generator:gen/looks/diyun/build.mjs#nextSib.i": {
+  "where": "-ai-chat-server:gen/looks/diyun/build.mjs:96",
+  "name": "מוצא את המקום של ערך",
+  "proven": [
+   "round"
+  ]
+ },
+ "inner-generator:gen/looks/erech/build.mjs#ref.i": {
+  "where": "-ai-chat-server:gen/looks/erech/build.mjs:49",
+  "name": "מוצא את המקום של ערך",
+  "proven": [
+   "round"
+  ]
+ },
+ "inner-generator:gen/looks/full5/art.mjs#rnd.fn.x": {
+  "where": "-ai-chat-server:gen/looks/full5/art.mjs:10",
+  "name": "מחשב ערך מערכים",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-generator:gen/looks/full5/art.mjs#rnd.t": {
+  "where": "-ai-chat-server:gen/looks/full5/art.mjs:10",
+  "name": "מחשב ביטים של מספר",
+  "proven": [
+   "normalize",
+   "round"
+  ]
+ },
+ "inner-generator:gen/looks/grafa/build.mjs#map.w": {
+  "where": "-ai-chat-server:gen/looks/grafa/build.mjs:106",
+  "name": "בוחר ערך ראשון שקיים",
+  "proven": [
+   "clamp",
+   "combine",
+   "normalize"
+  ]
+ },
+ "inner-generator:gen/sentence.mjs#sentenceToSpec.IMPLIED:step": {
+  "where": "-ai-chat-server:gen/sentence.mjs:23",
+  "name": "בונה רשימה מערכים",
+  "proven": [
+   "split"
+  ]
+ },
+ "inner-generator:machtzev/assemble/data-lift.mjs#purposeOf.k": {
+  "where": "-ai-chat-server:machtzev/assemble/data-lift.mjs:188",
+  "name": "מחשב הפרש בין ערכים",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-generator:machtzev/assemble/data-lift.mjs#untangle.prop:step": {
+  "where": "-ai-chat-server:machtzev/assemble/data-lift.mjs:265",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "convert",
+   "format"
+  ]
+ },
+ "inner-generator:machtzev/assemble/data-lift.mjs#untangle.vlen:step": {
+  "where": "-ai-chat-server:machtzev/assemble/data-lift.mjs:256",
+  "name": "מחשב הפרש בין ערכים",
+  "proven": [
+   "compare",
+   "convert",
+   "gap",
+   "offset"
+  ]
+ },
+ "inner-generator:machtzev/carve/widget-dedup.mjs#bodyOf.j:after-loop": {
+  "where": "-ai-chat-server:machtzev/carve/widget-dedup.mjs:16",
+  "name": "מעדכן ערך לאורך רשימה",
+  "proven": [
+   "clamp",
+   "round"
+  ]
+ },
+ "inner-generator:machtzev/census/engine-index.mjs#find.blind:step": {
+  "where": "-ai-chat-server:machtzev/census/engine-index.mjs:352",
+  "name": "מחשב הפרש בין ערכים",
+  "proven": [
+   "compare"
+  ]
+ },
+ "inner-generator:machtzev/deep-purity-scan.mjs#isLaw6.q:step": {
+  "where": "-ai-chat-server:machtzev/deep-purity-scan.mjs:55",
+  "name": "מגביל לאפס ומעלה",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-generator:machtzev/ds-forge.mjs#edge.cl.n": {
+  "where": "-ai-chat-server:machtzev/ds-forge.mjs:493",
+  "name": "ממיר ערך למספר",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-generator:machtzev/ds-forge.mjs#emit.collapsedCol.g": {
+  "where": "-ai-chat-server:machtzev/ds-forge.mjs:952",
+  "name": "בוחר את הגדול מבין ערכים",
+  "proven": [
+   "tier"
+  ]
+ },
+ "inner-generator:machtzev/ds-forge.mjs#emit.map.pr:step": {
+  "where": "-ai-chat-server:machtzev/ds-forge.mjs:1029",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "average"
+  ]
+ },
+ "inner-generator:machtzev/ds-forge.mjs#forgeCell.numEmph:step": {
+  "where": "-ai-chat-server:machtzev/ds-forge.mjs:1404",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "extreme"
+  ]
+ },
+ "inner-generator:machtzev/ds-forge.mjs#forgeCell.txtFs:step": {
+  "where": "-ai-chat-server:machtzev/ds-forge.mjs:1403",
+  "name": "ממיר כל פריט ברשימה",
+  "proven": [
+   "normalize"
+  ]
+ },
+ "inner-generator:machtzev/ds-forge.mjs#tokenLit.h": {
+  "where": "-ai-chat-server:machtzev/ds-forge.mjs:31",
+  "name": "מחבר ערכים",
+  "proven": [
+   "format"
+  ]
+ },
+ "inner-generator:machtzev/ds-tokens.mjs#map.blur1": {
+  "where": "-ai-chat-server:machtzev/ds-tokens.mjs:50",
+  "name": "מכפיל ערכים",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-generator:machtzev/ds-tokens.mjs#map.y1": {
+  "where": "-ai-chat-server:machtzev/ds-tokens.mjs:50",
+  "name": "מכפיל ערכים",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-generator:machtzev/ds-tokens.mjs#map.y2": {
+  "where": "-ai-chat-server:machtzev/ds-tokens.mjs:50",
+  "name": "בוחר את הגדול מבין ערכים",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-generator:machtzev/ds-wear.mjs#constScope.line": {
+  "where": "-ai-chat-server:machtzev/ds-wear.mjs:67",
+  "name": "מחלץ חלק מרצף",
+  "proven": [
+   "normalize"
+  ]
+ },
+ "inner-generator:machtzev/ds-wear.mjs#constScope.pre": {
+  "where": "-ai-chat-server:machtzev/ds-wear.mjs:62",
+  "name": "מחלץ חלק מרצף",
+  "proven": [
+   "format",
+   "normalize"
+  ]
+ },
+ "inner-generator:machtzev/ds-wear.mjs#roleExpr.da:step": {
+  "where": "-ai-chat-server:machtzev/ds-wear.mjs:41",
+  "name": "מחשב ערך מוחלט",
+  "proven": [
+   "convert",
+   "gap"
+  ]
+ },
+ "inner-generator:machtzev/emit/ast-js-to-dart.mjs#typesFromEvidence.gen.c:step": {
+  "where": "-ai-chat-server:machtzev/emit/ast-js-to-dart.mjs:478",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "format"
+  ]
+ },
+ "inner-generator:machtzev/generator/app-ds.mjs#buildApp.liveOf0.ai:step": {
+  "where": "-ai-chat-server:machtzev/generator/app-ds.mjs:412",
+  "name": "מוצא את המקום של פריט",
+  "proven": [
+   "round"
+  ]
+ },
+ "inner-generator:machtzev/generator/app-ds.mjs#buildApp.spec": {
+  "where": "-ai-chat-server:machtzev/generator/app-ds.mjs:246",
+  "name": "מחשב ערך מערכים",
+  "proven": [
+   "normalize"
+  ]
+ },
+ "inner-generator:machtzev/generator/app-ds.mjs#parseRole.afterName:step": {
+  "where": "-ai-chat-server:machtzev/generator/app-ds.mjs:38",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "tier"
+  ]
+ },
+ "inner-generator:machtzev/generator/atom-sig.mjs#sigOfDart.build:step": {
+  "where": "-ai-chat-server:machtzev/generator/atom-sig.mjs:48",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "tier"
+  ]
+ },
+ "inner-generator:machtzev/generator/auto-logic.mjs#runTests.f:step": {
+  "where": "-ai-chat-server:machtzev/generator/auto-logic.mjs:168",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "clamp",
+   "round"
+  ]
+ },
+ "inner-generator:machtzev/generator/balagan-look.mjs#homeSlots.k:step": {
+  "where": "-ai-chat-server:machtzev/generator/balagan-look.mjs:45",
+  "name": "מרכיב טקסט מערכים",
+  "proven": [
+   "format"
+  ]
+ },
+ "inner-generator:machtzev/generator/balagan.mjs#buildBalagan.selfScores": {
+  "where": "-ai-chat-server:machtzev/generator/balagan.mjs:96",
+  "name": "ממיר כל פריט ברשימה",
+  "proven": [
+   "map",
+   "normalize"
+  ]
+ },
+ "inner-generator:machtzev/generator/balagan.mjs#buildBalagan.weak:step": {
+  "where": "-ai-chat-server:machtzev/generator/balagan.mjs:98",
+  "name": "מחשב יחס בין ערכים",
+  "proven": [
+   "extreme"
+  ]
+ },
+ "inner-generator:machtzev/generator/behavior-plan.mjs#runGoal.total": {
+  "where": "-ai-chat-server:machtzev/generator/behavior-plan.mjs:932",
+  "name": "סופר פריטים",
+  "proven": [
+   "round"
+  ]
+ },
+ "inner-generator:machtzev/generator/behavior-plan.mjs#streamTrees.combos.a2": {
+  "where": "-ai-chat-server:machtzev/generator/behavior-plan.mjs:146",
+  "name": "מרכיב טקסט מערכים",
+  "proven": [
+   "convert",
+   "format"
+  ]
+ },
+ "inner-generator:machtzev/generator/behavior-plan.mjs#take.lim": {
+  "where": "-ai-chat-server:machtzev/generator/behavior-plan.mjs:194",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-generator:machtzev/generator/behavior-plan.mjs#valueSearch.glevel": {
+  "where": "-ai-chat-server:machtzev/generator/behavior-plan.mjs:324",
+  "name": "מחלץ חלק מרצף",
+  "proven": [
+   "normalize"
+  ]
+ },
+ "inner-generator:machtzev/generator/behavior-plan.mjs#valueSearch.left": {
+  "where": "-ai-chat-server:machtzev/generator/behavior-plan.mjs:274",
+  "name": "מחשב הפרש בין ערכים",
+  "proven": [
+   "compare",
+   "convert",
+   "gap",
+   "offset"
+  ]
+ },
+ "inner-generator:machtzev/generator/entity.mjs#interpret.fieldsPart:step": {
+  "where": "-ai-chat-server:machtzev/generator/entity.mjs:69",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "normalize"
+  ]
+ },
+ "inner-generator:machtzev/generator/gen-verify.mjs#map.r": {
+  "where": "-ai-chat-server:machtzev/generator/gen-verify.mjs:96",
+  "name": "מוצא פריט ברשימה",
+  "proven": [
+   "lookup"
+  ]
+ },
+ "inner-generator:machtzev/generator/generate.mjs#generateAll.map.map.i": {
+  "where": "-ai-chat-server:machtzev/generator/generate.mjs:248",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "round"
+  ]
+ },
+ "inner-generator:machtzev/generator/genesis-gen.mjs#writeShowcaseSpec.pct": {
+  "where": "-ai-chat-server:machtzev/generator/genesis-gen.mjs:508",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "ratio"
+  ]
+ },
+ "inner-generator:machtzev/generator/live-expr.mjs#trendAt.b:step": {
+  "where": "-ai-chat-server:machtzev/generator/live-expr.mjs:95",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "convert",
+   "ratio"
+  ]
+ },
+ "inner-generator:machtzev/generator/logic-proof.mjs#proveFile.nCells": {
+  "where": "-ai-chat-server:machtzev/generator/logic-proof.mjs:72",
+  "name": "מכפיל ערכים",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-generator:machtzev/generator/op-bridge.mjs#cos.na:after-loop": {
+  "where": "-ai-chat-server:machtzev/generator/op-bridge.mjs:40",
+  "name": "מסכם ערכים לאורך רשימה",
+  "proven": [
+   "round"
+  ]
+ },
+ "inner-generator:machtzev/generator/op-bridge.mjs#cos.nb:after-loop": {
+  "where": "-ai-chat-server:machtzev/generator/op-bridge.mjs:40",
+  "name": "מסכם ערכים לאורך רשימה",
+  "proven": [
+   "clamp",
+   "round"
+  ]
+ },
+ "inner-generator:machtzev/generator/op-census.mjs#classifyForge.all:step": {
+  "where": "-ai-chat-server:machtzev/generator/op-census.mjs:110",
+  "name": "בונה רשימה מערכים",
+  "proven": [
+   "normalize"
+  ]
+ },
+ "inner-generator:machtzev/generator/op-twins.mjs#dmod.r": {
+  "where": "-ai-chat-server:machtzev/generator/op-twins.mjs:29",
+  "name": "מחשב שארית במחזור",
+  "proven": [
+   "normalize"
+  ]
+ },
+ "inner-generator:machtzev/generator/op-twins.mjs#twinOf.i@50:step": {
+  "where": "-ai-chat-server:machtzev/generator/op-twins.mjs:50",
+  "name": "מחשב ערך בעזרת חישוב עזר",
+  "proven": [
+   "round"
+  ]
+ },
+ "inner-generator:machtzev/generator/op-twins.mjs#twinOf.j:step": {
+  "where": "-ai-chat-server:machtzev/generator/op-twins.mjs:49",
+  "name": "מחשב ערך בעזרת חישוב עזר",
+  "proven": [
+   "round"
+  ]
+ },
+ "inner-generator:machtzev/generator/particles.mjs#shapeOf.body:step": {
+  "where": "-ai-chat-server:machtzev/generator/particles.mjs:102",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "normalize"
+  ]
+ },
+ "inner-generator:machtzev/generator/render-ds.mjs#renderHub.effRoles": {
+  "where": "-ai-chat-server:machtzev/generator/render-ds.mjs:912",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "normalize"
+  ]
+ },
+ "inner-generator:machtzev/generator/retarget.mjs#cosine.d:after-loop": {
+  "where": "-ai-chat-server:machtzev/generator/retarget.mjs:612",
+  "name": "מסכם ערכים לאורך רשימה",
+  "proven": [
+   "clamp",
+   "round"
+  ]
+ },
+ "inner-generator:machtzev/generator/retarget.mjs#retarget.map.head:step": {
+  "where": "-ai-chat-server:machtzev/generator/retarget.mjs:362",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "normalize"
+  ]
+ },
+ "inner-generator:machtzev/generator/retarget.mjs#retarget.map.tail:step": {
+  "where": "-ai-chat-server:machtzev/generator/retarget.mjs:362",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "format"
+  ]
+ },
+ "inner-generator:machtzev/generator/sentence.mjs#resolve.score:step": {
+  "where": "-ai-chat-server:machtzev/generator/sentence.mjs:49",
+  "name": "מעגל לספרות קבועות",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-generator:machtzev/generator/tighten-hook.mjs#shape.vals": {
+  "where": "-ai-chat-server:machtzev/generator/tighten-hook.mjs:22",
+  "name": "מפרק רשומה לרשימה",
+  "proven": [
+   "split"
+  ]
+ },
+ "inner-generator:machtzev/generator/tighten-types.mjs#dartSig.depth:after-loop": {
+  "where": "-ai-chat-server:machtzev/generator/tighten-types.mjs:45",
+  "name": "סופר פריטים מתאימים ברשימה",
+  "proven": [
+   "clamp",
+   "round"
+  ]
+ },
+ "inner-generator:machtzev/mutation-dart-check.mjs#skipLiteral.j:step": {
+  "where": "-ai-chat-server:machtzev/mutation-dart-check.mjs:43",
+  "name": "מחבר ערכים",
+  "proven": [
+   "format"
+  ]
+ },
+ "inner-generator:machtzev/pure/pure-lint.mjs#contrast.lo:step": {
+  "where": "-ai-chat-server:machtzev/pure/pure-lint.mjs:56",
+  "name": "בוחר את הקטן מבין ערכים",
+  "proven": [
+   "clamp",
+   "combine",
+   "normalize"
+  ]
+ },
+ "inner-generator:machtzev/purify-dart-native.mjs#repair.spliceNamed.inner": {
+  "where": "-ai-chat-server:machtzev/purify-dart-native.mjs:241",
+  "name": "מחלץ חלק מרצף",
+  "proven": [
+   "format"
+  ]
+ },
+ "inner-generator:machtzev/purify-dart.mjs#dartStrings.k:after-loop": {
+  "where": "-ai-chat-server:machtzev/purify-dart.mjs:109",
+  "name": "מעדכן ערך לאורך רשימה",
+  "proven": [
+   "normalize",
+   "round"
+  ]
+ },
+ "inner-generator:machtzev/purify-dart.mjs#jsSockets.names": {
+  "where": "-ai-chat-server:machtzev/purify-dart.mjs:77",
+  "name": "מחלץ חלק מרצף",
+  "proven": [
+   "normalize"
+  ]
+ },
+ "inner-generator:machtzev/purify-dart.mjs#purifyFile.defAndAfter:step": {
+  "where": "-ai-chat-server:machtzev/purify-dart.mjs:441",
+  "name": "מחלץ חלק מרצף",
+  "proven": [
+   "normalize",
+   "tier"
+  ]
+ },
+ "inner-generator:machtzev/purify-dart.mjs#purifyFile.defLine:step": {
+  "where": "-ai-chat-server:machtzev/purify-dart.mjs:442",
+  "name": "מחלץ חלק מרצף",
+  "proven": [
+   "normalize"
+  ]
+ },
+ "inner-generator:machtzev/purify-dart.mjs#spliceCalls.pos": {
+  "where": "-ai-chat-server:machtzev/purify-dart.mjs:228",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "clamp",
+   "normalize",
+   "tier"
+  ]
+ },
+ "inner-generator:machtzev/purity/ast-purify.mjs#purify.j4:after-loop": {
+  "where": "-ai-chat-server:machtzev/purity/ast-purify.mjs:107",
+  "name": "סופר פריטים מתאימים ברשימה",
+  "proven": [
+   "round"
+  ]
+ },
+ "inner-generator:machtzev/purity/purify-engine.mjs#appendArgAtCalls.inner": {
+  "where": "-ai-chat-server:machtzev/purity/purify-engine.mjs:139",
+  "name": "מחלץ חלק מרצף",
+  "proven": [
+   "tier"
+  ]
+ },
+ "inner-generator:machtzev/purity/purify-engine.mjs#replaceInlineSnap.end:step": {
+  "where": "-ai-chat-server:machtzev/purity/purify-engine.mjs:364",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "convert",
+   "round"
+  ]
+ },
+ "inner-generator:machtzev/rethread-boxes.mjs#repairBox.j:step": {
+  "where": "-ai-chat-server:machtzev/rethread-boxes.mjs:182",
+  "name": "מחבר ערכים",
+  "proven": [
+   "format"
+  ]
+ },
+ "inner-generator:new/atoms/build-custom-export.mjs#buildCustomExport.d1:step": {
+  "where": "-ai-chat-server:new/atoms/build-custom-export.mjs:121",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "combine",
+   "normalize"
+  ]
+ },
+ "inner-generator:new/atoms/coral-palette.mjs#hslToRgb.c": {
+  "where": "-ai-chat-server:new/atoms/coral-palette.mjs:38",
+  "name": "מכפיל ערכים",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-generator:new/atoms/coral-palette.mjs#hslToRgb.m": {
+  "where": "-ai-chat-server:new/atoms/coral-palette.mjs:40",
+  "name": "מחשב הפרש בין ערכים",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-generator:new/atoms/coral-palette.mjs#hslToRgb.m:step": {
+  "where": "-ai-chat-server:new/atoms/coral-palette.mjs:40",
+  "name": "מחשב הפרש בין ערכים",
+  "proven": [
+   "convert",
+   "offset"
+  ]
+ },
+ "inner-generator:new/atoms/coral-palette.mjs#rgbToHsl.l:step": {
+  "where": "-ai-chat-server:new/atoms/coral-palette.mjs:22",
+  "name": "מחשב יחס בין ערכים",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-generator:new/atoms/default-course-dates.mjs#defaultCourseDates.startYear": {
+  "where": "-ai-chat-server:new/atoms/default-course-dates.mjs:10",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "convert",
+   "tier"
+  ]
+ },
+ "inner-generator:new/atoms/intel-forecast-from-scan.mjs#forecastFromScan.overdue:step": {
+  "where": "-ai-chat-server:new/atoms/intel-forecast-from-scan.mjs:15",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "clamp",
+   "ratio"
+  ]
+ },
+ "inner-generator:new/atoms/intel-trend-from-scan.mjs#trendFromScan.older:after-loop": {
+  "where": "-ai-chat-server:new/atoms/intel-trend-from-scan.mjs:7",
+  "name": "מסכם ערכים לאורך רשימה",
+  "proven": [
+   "round"
+  ]
+ },
+ "inner-generator:new/atoms/lessons-in-term.mjs#lessonsInTerm.f": {
+  "where": "-ai-chat-server:new/atoms/lessons-in-term.mjs:9",
+  "name": "מגביל לאפס ומעלה",
+  "proven": [
+   "convert",
+   "normalize"
+  ]
+ },
+ "inner-generator:new/atoms/lessons-in-term.mjs#lessonsInTerm.n": {
+  "where": "-ai-chat-server:new/atoms/lessons-in-term.mjs:12",
+  "name": "בוחר את הגדול מבין ערכים",
+  "proven": [
+   "clamp",
+   "convert",
+   "normalize"
+  ]
+ },
+ "inner-generator:new/atoms/orbit-theme.mjs#orbitTheme.hslToRgb.p:step": {
+  "where": "-ai-chat-server:new/atoms/orbit-theme.mjs:42",
+  "name": "מחשב הפרש בין ערכים",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-generator:new/atoms/orbit-theme.mjs#orbitTheme.hslToRgb.q": {
+  "where": "-ai-chat-server:new/atoms/orbit-theme.mjs:41",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-generator:new/atoms/orbit-theme.mjs#orbitTheme.sat:step": {
+  "where": "-ai-chat-server:new/atoms/orbit-theme.mjs:60",
+  "name": "מגביל לטווח",
+  "proven": [
+   "normalize",
+   "round",
+   "tier"
+  ]
+ },
+ "inner-generator:new/atoms/parse-ayin-sheet.mjs#parseAyinSheet.eyes:step": {
+  "where": "-ai-chat-server:new/atoms/parse-ayin-sheet.mjs:28",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-generator:new/atoms/parse-supporter-grid.mjs#parseSupporterGrid.pays:step": {
+  "where": "-ai-chat-server:new/atoms/parse-supporter-grid.mjs:68",
+  "name": "ממיר ערך למספר",
+  "proven": [
+   "round"
+  ]
+ },
+ "inner-generator:new/atoms/parse-supporter-grid.mjs#parseSupporterGrid.start:step": {
+  "where": "-ai-chat-server:new/atoms/parse-supporter-grid.mjs:34",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-generator:new/atoms/portfolio-portfolio-intel.mjs#portfolioIntel.top:after-loop": {
+  "where": "-ai-chat-server:new/atoms/portfolio-portfolio-intel.mjs:37",
+  "name": "מסכם ערכים לאורך רשימה",
+  "proven": [
+   "join",
+   "tier"
+  ]
+ },
+ "inner-generator:new/atoms/site-palette.mjs#sitePalette.s:step": {
+  "where": "-ai-chat-server:new/atoms/site-palette.mjs:70",
+  "name": "מגביל לטווח",
+  "proven": [
+   "normalize",
+   "round",
+   "tier"
+  ]
+ },
+ "inner-generator:new/atoms/to-tenant-id.mjs#toTenantId.padded:step": {
+  "where": "-ai-chat-server:new/atoms/to-tenant-id.mjs:8",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "format",
+   "normalize"
+  ]
+ },
+ "inner-generator:new/atoms/tour-advance.mjs#tourAdvance.next": {
+  "where": "-ai-chat-server:new/atoms/tour-advance.mjs:4",
+  "name": "מחבר ערכים",
+  "proven": [
+   "convert",
+   "format"
+  ]
+ },
+ "inner-generator:new/atoms/warehouse-overview.mjs#warehouseOverview.map.remaining:step": {
+  "where": "-ai-chat-server:new/atoms/warehouse-overview.mjs:26",
+  "name": "מחשב הפרש בין ערכים",
+  "proven": [
+   "clamp",
+   "convert",
+   "round"
+  ]
+ },
+ "inner-generator:new/boxes/heb-cal-box.mjs#toFixed.fixed": {
+  "where": "-ai-chat-server:new/boxes/heb-cal-box.mjs:31",
+  "name": "מחשב הפרש בין ערכים",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-generator:new/boxes/intel.mjs#trendFromScan.pct:step": {
+  "where": "-ai-chat-server:new/boxes/intel.mjs:158",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "convert",
+   "ratio"
+  ]
+ },
+ "inner-generator:new/boxes/lib-nedarim-sync.mjs#modeStr.best:after-loop": {
+  "where": "-ai-chat-server:new/boxes/lib-nedarim-sync.mjs:131",
+  "name": "בוחר את הפריט עם הערך הגדול ביותר",
+  "proven": [
+   "normalize"
+  ]
+ },
+ "inner-generator:new/boxes/pareto.mjs#paretoReport.asc": {
+  "where": "-ai-chat-server:new/boxes/pareto.mjs:41",
+  "name": "ממיין רשימה",
+  "proven": [
+   "normalize",
+   "sort"
+  ]
+ },
+ "inner-generator:new/boxes/pareto.mjs#paretoReport.desc": {
+  "where": "-ai-chat-server:new/boxes/pareto.mjs:22",
+  "name": "ממיין רשימה",
+  "proven": [
+   "normalize",
+   "sort"
+  ]
+ },
+ "inner-generator:new/boxes/pareto.mjs#paretoReport.donorPct": {
+  "where": "-ai-chat-server:new/boxes/pareto.mjs:28",
+  "name": "מכפיל ערך ביחס",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-generator:new/boxes/pareto.mjs#paretoReport.moneyPct": {
+  "where": "-ai-chat-server:new/boxes/pareto.mjs:30",
+  "name": "מכפיל ערך ביחס",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-generator:new/boxes/pareto.mjs#paretoReport.moneyPct:step": {
+  "where": "-ai-chat-server:new/boxes/pareto.mjs:30",
+  "name": "מכפיל ערך ביחס",
+  "proven": [
+   "convert",
+   "ratio"
+  ]
+ },
+ "inner-generator:new/boxes/quiet-hours.mjs#contactWindow.local:step": {
+  "where": "-ai-chat-server:new/boxes/quiet-hours.mjs:40",
+  "name": "מחשב שארית במחזור",
+  "proven": [
+   "combine"
+  ]
+ },
+ "inner-generator:new/boxes/seasonality.mjs#donorRhythm.concentration:step": {
+  "where": "-ai-chat-server:new/boxes/seasonality.mjs:111",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "clamp",
+   "ratio"
+  ]
+ },
+ "inner-generator:new/boxes/team-intel.mjs#withinDays.diff:step": {
+  "where": "-ai-chat-server:new/boxes/team-intel.mjs:24",
+  "name": "מחשב יחס בין ערכים",
+  "proven": [
+   "convert",
+   "gap"
+  ]
+ },
+ "inner-generator:new/boxes/vcard-import.mjs#phoneLabel.inner": {
+  "where": "-ai-chat-server:new/boxes/vcard-import.mjs:98",
+  "name": "מחלץ חלק מרצף",
+  "proven": [
+   "format"
+  ]
+ },
+ "inner-generator:new/boxes/vcard-import.mjs#splitProperty.value:step": {
+  "where": "-ai-chat-server:new/boxes/vcard-import.mjs:68",
+  "name": "מחלץ חלק מרצף",
+  "proven": [
+   "normalize",
+   "tier"
+  ]
+ },
+ "inner-generator:runtime/engine_api.js#dartProgram.ex.t": {
+  "where": "-ai-chat-server:runtime/engine_api.js:1402",
+  "name": "מחשב ערך מוחלט",
+  "proven": [
+   "convert",
+   "normalize"
+  ]
+ },
+ "inner-generator:runtime/engine_api.js#dartProgram.f8.r": {
+  "where": "-ai-chat-server:runtime/engine_api.js:1091",
+  "name": "מחשב הפרש בין ערכים",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-generator:yeshiva/apply.mjs#addStar.at:step": {
+  "where": "-ai-chat-server:yeshiva/apply.mjs:42",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "round"
+  ]
+ },
+ "inner-generator:yeshiva/apply.mjs#fieldSeg.off:step": {
+  "where": "-ai-chat-server:yeshiva/apply.mjs:34",
+  "name": "סופר פריטים",
+  "proven": [
+   "clamp",
+   "round"
+  ]
+ },
+ "inner-generator:yeshiva/chaser-sources.mjs#registerAll.register.win:step": {
+  "where": "-ai-chat-server:yeshiva/chaser-sources.mjs:99",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "round",
+   "tier"
+  ]
+ },
+ "inner-generator:yeshiva/ein.mjs#learnForms.pat:step": {
+  "where": "-ai-chat-server:yeshiva/ein.mjs:144",
+  "name": "מחלץ חלק מרצף",
+  "proven": [
+   "normalize"
+  ]
+ },
+ "inner-mmmm:agents-200-percent-working.js#test200PercentCapabilities.failCount:step": {
+  "where": "MMMM:agents-200-percent-working.js:545",
+  "name": "מחשב הפרש בין ערכים",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-mmmm:artifacts/agents-chat/src/components/ui/breadcrumb.tsx#forwardRef.Comp": {
+  "where": "MMMM:artifacts/agents-chat/src/components/ui/breadcrumb.tsx:48",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "format",
+   "normalize"
+  ]
+ },
+ "inner-orbit:src/App.tsx#App.useEffect.setInterval.endMin": {
+  "where": "maor-system:src/App.tsx:509",
+  "name": "מחבר ערכים",
+  "proven": [
+   "convert",
+   "offset"
+  ]
+ },
+ "inner-orbit:src/components/HebDateInput.tsx#HebDateInput.from.yy": {
+  "where": "maor-system:src/components/HebDateInput.tsx:84",
+  "name": "מחשב הפרש בין ערכים",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/components/courses/CourseDetail.tsx#CourseDetail.enrolled:step": {
+  "where": "maor-system:src/components/courses/CourseDetail.tsx:166",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "normalize"
+  ]
+ },
+ "inner-orbit:src/components/courses/lib.ts#lessonsInTerm.perMonth": {
+  "where": "maor-system:src/components/courses/lib.ts:239",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/components/courses/lib.ts#lessonsInTerm.perMonth:step": {
+  "where": "maor-system:src/components/courses/lib.ts:239",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/components/courses/lib.ts#lessonsInTerm.perWeek": {
+  "where": "maor-system:src/components/courses/lib.ts:238",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/components/courses/lib.ts#lessonsInTerm.perWeek:step": {
+  "where": "maor-system:src/components/courses/lib.ts:238",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/components/courses/lib.ts#wheelIndexUnderPointer.off": {
+  "where": "maor-system:src/components/courses/lib.ts:605",
+  "name": "מחשב שארית במחזור",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/components/courses/lib.ts#wheelIndexUnderPointer.step": {
+  "where": "maor-system:src/components/courses/lib.ts:604",
+  "name": "מחשב יחס בין ערכים",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/components/courses/ops.ts#opsKpis.avgOccupancy:step": {
+  "where": "maor-system:src/components/courses/ops.ts:56",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "average"
+  ]
+ },
+ "inner-orbit:src/components/courses/retention.ts#dropoutInsights.map.score:step": {
+  "where": "maor-system:src/components/courses/retention.ts:32",
+  "name": "בוחר את הקטן מבין ערכים",
+  "proven": [
+   "tier"
+  ]
+ },
+ "inner-orbit:src/components/families/FamilyFinder.tsx#FamilyFinder.map.ang": {
+  "where": "maor-system:src/components/families/FamilyFinder.tsx:149",
+  "name": "מעגל מספר",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/components/families/FamilyPanels.tsx#EnrollPanel.fn.c:step": {
+  "where": "maor-system:src/components/families/FamilyPanels.tsx:426",
+  "name": "בודק כמה תנאים יחד",
+  "proven": [
+   "lookup"
+  ]
+ },
+ "inner-orbit:src/components/home/BoardEdit.tsx#BoardEditor.moveTo.at": {
+  "where": "maor-system:src/components/home/BoardEdit.tsx:103",
+  "name": "מגביל לטווח",
+  "proven": [
+   "clamp",
+   "normalize",
+   "tier"
+  ]
+ },
+ "inner-orbit:src/components/home/BoardEdit.tsx#BoardEditor.moveTo.next": {
+  "where": "maor-system:src/components/home/BoardEdit.tsx:104",
+  "name": "מסנן רשימה לפי תנאי",
+  "proven": [
+   "filter",
+   "normalize"
+  ]
+ },
+ "inner-orbit:src/components/home/homeData.ts#attentionItems.fn.past:step": {
+  "where": "maor-system:src/components/home/homeData.ts:432",
+  "name": "סופר פריטים",
+  "proven": [
+   "count",
+   "tier"
+  ]
+ },
+ "inner-orbit:src/components/home/widgets.tsx#AttentionWidget.shownAttn:step": {
+  "where": "maor-system:src/components/home/widgets.tsx:973",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "normalize"
+  ]
+ },
+ "inner-orbit:src/components/home/widgets.tsx#Carousel.cur": {
+  "where": "maor-system:src/components/home/widgets.tsx:285",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "rotate"
+  ]
+ },
+ "inner-orbit:src/components/home/widgets.tsx#CredMetricsWidget.maxBin": {
+  "where": "maor-system:src/components/home/widgets.tsx:1523",
+  "name": "בוחר את הגדול מבין ערכים",
+  "proven": [
+   "extreme"
+  ]
+ },
+ "inner-orbit:src/components/hosting/ShoppingModal.tsx#TablesetDialog.map.a": {
+  "where": "maor-system:src/components/hosting/ShoppingModal.tsx:272",
+  "name": "מחשב יחס בין ערכים",
+  "proven": [
+   "convert",
+   "ratio"
+  ]
+ },
+ "inner-orbit:src/components/hosting/actions.ts#hostingActions.addHostFault.priority:step": {
+  "where": "maor-system:src/components/hosting/actions.ts:661",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "normalize",
+   "round"
+  ]
+ },
+ "inner-orbit:src/components/hosting/hui.tsx#CountUp.useEffect.step.p": {
+  "where": "maor-system:src/components/hosting/hui.tsx:404",
+  "name": "בוחר את הקטן מבין ערכים",
+  "proven": [
+   "round"
+  ]
+ },
+ "inner-orbit:src/components/hosting/hui.tsx#FSelect.map.lab": {
+  "where": "maor-system:src/components/hosting/hui.tsx:315",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "lookup"
+  ]
+ },
+ "inner-orbit:src/components/hosting/hui.tsx#FSelect.map.val": {
+  "where": "maor-system:src/components/hosting/hui.tsx:315",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "lookup"
+  ]
+ },
+ "inner-orbit:src/components/hosting/kitchen.ts#countdown.h:step": {
+  "where": "maor-system:src/components/hosting/kitchen.ts:89",
+  "name": "מעגל מספר כלפי מטה",
+  "proven": [
+   "normalize",
+   "round",
+   "tier"
+  ]
+ },
+ "inner-orbit:src/components/hosting/kitchen.ts#countdown.s": {
+  "where": "maor-system:src/components/hosting/kitchen.ts:88",
+  "name": "מעגל מספר כלפי מטה",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/components/hosting/kitchen.ts#minTo.v": {
+  "where": "maor-system:src/components/hosting/kitchen.ts:35",
+  "name": "מחשב שארית במחזור",
+  "proven": [
+   "convert",
+   "normalize"
+  ]
+ },
+ "inner-orbit:src/components/hosting/lib.ts#monthBounds.last:step": {
+  "where": "maor-system:src/components/hosting/lib.ts:73",
+  "name": "מחלץ חלק מתאריך",
+  "proven": [
+   "normalize",
+   "round"
+  ]
+ },
+ "inner-orbit:src/components/hosting/reports.ts#buildReport.occAll:step": {
+  "where": "maor-system:src/components/hosting/reports.ts:148",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "convert",
+   "ratio"
+  ]
+ },
+ "inner-orbit:src/components/hosting/seating.ts#seatPositions.cx": {
+  "where": "maor-system:src/components/hosting/seating.ts:298",
+  "name": "מחשב יחס בין ערכים",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/components/hosting/seating.ts#seatPositions.line.tt": {
+  "where": "maor-system:src/components/hosting/seating.ts:289",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/components/lock/LockScreen.tsx#LockScreen.remainMs": {
+  "where": "maor-system:src/components/lock/LockScreen.tsx:40",
+  "name": "מגביל לאפס ומעלה",
+  "proven": [
+   "round"
+  ]
+ },
+ "inner-orbit:src/components/palette/CommandPalette.tsx#CommandPalette.useMemo.exp": {
+  "where": "maor-system:src/components/palette/CommandPalette.tsx:786",
+  "name": "ממיר כל פריט ברשימה",
+  "proven": [
+   "normalize"
+  ]
+ },
+ "inner-orbit:src/components/parnasa/AdsTab.tsx#CountUp.useEffect.step.k": {
+  "where": "maor-system:src/components/parnasa/AdsTab.tsx:53",
+  "name": "בוחר את הקטן מבין ערכים",
+  "proven": [
+   "round"
+  ]
+ },
+ "inner-orbit:src/components/parnasa/Ambient.tsx#GoldDust.useEffect.loop.dt": {
+  "where": "maor-system:src/components/parnasa/Ambient.tsx:79",
+  "name": "בוחר את הקטן מבין ערכים",
+  "proven": [
+   "round"
+  ]
+ },
+ "inner-orbit:src/components/parnasa/Editor.tsx#Editor.save.live": {
+  "where": "maor-system:src/components/parnasa/Editor.tsx:287",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "lookup"
+  ]
+ },
+ "inner-orbit:src/components/parnasa/admin.ts#revenueOf.featSum:step": {
+  "where": "maor-system:src/components/parnasa/admin.ts:74",
+  "name": "מצמצם רשימה לערך אחד",
+  "proven": [
+   "sum"
+  ]
+ },
+ "inner-orbit:src/components/parnasa/bannerFx.ts#pbFrame.forEach.x0": {
+  "where": "maor-system:src/components/parnasa/bannerFx.ts:519",
+  "name": "מחבר ערכים",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/components/parnasa/bannerFx.ts#pbFrame.forEach.x1": {
+  "where": "maor-system:src/components/parnasa/bannerFx.ts:521",
+  "name": "מחבר ערכים",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/components/parnasa/bannerFx.ts#pbFrame.forEach.x1:step": {
+  "where": "maor-system:src/components/parnasa/bannerFx.ts:521",
+  "name": "מחבר ערכים",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/components/parnasa/bannerFx.ts#pbFrame.forEach.y1:step": {
+  "where": "maor-system:src/components/parnasa/bannerFx.ts:508",
+  "name": "מחשב הפרש בין ערכים",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/components/parnasa/bannerFx.ts#pbFrame.forEach.y1@522:step": {
+  "where": "maor-system:src/components/parnasa/bannerFx.ts:522",
+  "name": "מחבר ערכים",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/components/parnasa/bannerFx.ts#pbFrame.fp": {
+  "where": "maor-system:src/components/parnasa/bannerFx.ts:498",
+  "name": "מחשב יחס בין ערכים",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/components/parnasa/bannerFx.ts#pbRipple.step.forEach.k": {
+  "where": "maor-system:src/components/parnasa/bannerFx.ts:560",
+  "name": "מגביל לאפס ומעלה",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/components/parnasa/bannerFx.ts#pbRipple.step.q": {
+  "where": "maor-system:src/components/parnasa/bannerFx.ts:554",
+  "name": "מחשב יחס בין ערכים",
+  "proven": [
+   "convert",
+   "gap"
+  ]
+ },
+ "inner-orbit:src/components/parnasa/bannerFx.ts#rMove.th:step": {
+  "where": "maor-system:src/components/parnasa/bannerFx.ts:700",
+  "name": "בוחר את הקטן מבין ערכים",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/components/parnasa/banners.ts#nameFit.m:step": {
+  "where": "maor-system:src/components/parnasa/banners.ts:90",
+  "name": "מגביל לאפס ומעלה",
+  "proven": [
+   "extreme"
+  ]
+ },
+ "inner-orbit:src/components/parnasa/biz.ts#kupaArt.t": {
+  "where": "maor-system:src/components/parnasa/biz.ts:146",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "normalize",
+   "round"
+  ]
+ },
+ "inner-orbit:src/components/parnasa/coinFx.ts#cnConfetti.dx": {
+  "where": "maor-system:src/components/parnasa/coinFx.ts:98",
+  "name": "מחשב גל שעולה ויורד",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/components/parnasa/coinFx.ts#cnConfetti.dy": {
+  "where": "maor-system:src/components/parnasa/coinFx.ts:99",
+  "name": "מחשב גל שעולה ויורד",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/components/parnasa/coinFx.ts#cnFly.cT:step": {
+  "where": "maor-system:src/components/parnasa/coinFx.ts:243",
+  "name": "מחשב הפרש בין ערכים",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/components/parnasa/coinFx.ts#cnFly.cx:step": {
+  "where": "maor-system:src/components/parnasa/coinFx.ts:214",
+  "name": "מחבר ערכים",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/components/parnasa/coinFx.ts#cnFly.s:step": {
+  "where": "maor-system:src/components/parnasa/coinFx.ts:222",
+  "name": "מחבר ערכים",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/components/parnasa/coinFx.ts#cnFly.t": {
+  "where": "maor-system:src/components/parnasa/coinFx.ts:218",
+  "name": "מחשב יחס בין ערכים",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/components/parnasa/coinFx.ts#cnFly.u": {
+  "where": "maor-system:src/components/parnasa/coinFx.ts:219",
+  "name": "מחשב הפרש בין ערכים",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/components/parnasa/coinFx.ts#cnFly.u:step": {
+  "where": "maor-system:src/components/parnasa/coinFx.ts:219",
+  "name": "מחשב הפרש בין ערכים",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/components/parnasa/coinFx.ts#cnRim.L:step": {
+  "where": "maor-system:src/components/parnasa/coinFx.ts:54",
+  "name": "מחשב נקודה על מעגל",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/components/parnasa/coinFx.ts#cnRim.a": {
+  "where": "maor-system:src/components/parnasa/coinFx.ts:51",
+  "name": "מחשב יחס בין ערכים",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/components/parnasa/coinFx.ts#cnRim.w": {
+  "where": "maor-system:src/components/parnasa/coinFx.ts:48",
+  "name": "מחבר ערכים",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/components/parnasa/coinFx.ts#cnRim.w:step": {
+  "where": "maor-system:src/components/parnasa/coinFx.ts:48",
+  "name": "מחבר ערכים",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/components/parnasa/coinFx.ts#foundCoins.setTimeout.cx:step": {
+  "where": "maor-system:src/components/parnasa/coinFx.ts:290",
+  "name": "מחבר ערכים",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/components/parnasa/coinFx.ts#foundCoins.setTimeout.t": {
+  "where": "maor-system:src/components/parnasa/coinFx.ts:294",
+  "name": "מחשב יחס בין ערכים",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/components/parnasa/coinFx.ts#foundCoins.setTimeout.u": {
+  "where": "maor-system:src/components/parnasa/coinFx.ts:295",
+  "name": "מחשב הפרש בין ערכים",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/components/parnasa/coinFx.ts#wireCoinGrid.paint.forEach.dist:step": {
+  "where": "maor-system:src/components/parnasa/coinFx.ts:367",
+  "name": "בוחר ערך ראשון שקיים",
+  "proven": [
+   "combine",
+   "convert"
+  ]
+ },
+ "inner-orbit:src/components/parnasa/home.ts#featuredRotation.d:step": {
+  "where": "maor-system:src/components/parnasa/home.ts:227",
+  "name": "מחשב שארית במחזור",
+  "proven": [
+   "normalize"
+  ]
+ },
+ "inner-orbit:src/components/parnasa/home.ts#greetingOf.h:step": {
+  "where": "maor-system:src/components/parnasa/home.ts:173",
+  "name": "מעגל מספר כלפי מטה",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/components/parnasa/home.ts#ms.t": {
+  "where": "maor-system:src/components/parnasa/home.ts:202",
+  "name": "מפענח טקסט לערך",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/components/parnasa/home.ts#pulseOf.since": {
+  "where": "maor-system:src/components/parnasa/home.ts:208",
+  "name": "מחשב הפרש בין ערכים",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/components/parnasa/sheetFx.ts#mountSheet.anim.C": {
+  "where": "maor-system:src/components/parnasa/sheetFx.ts:57",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "tier"
+  ]
+ },
+ "inner-orbit:src/components/parnasa/sheetFx.ts#mountSheet.anim.f.dt": {
+  "where": "maor-system:src/components/parnasa/sheetFx.ts:59",
+  "name": "בוחר את הקטן מבין ערכים",
+  "proven": [
+   "round"
+  ]
+ },
+ "inner-orbit:src/components/parnasa/shell.ts#periodOf.n": {
+  "where": "maor-system:src/components/parnasa/shell.ts:53",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "convert",
+   "normalize"
+  ]
+ },
+ "inner-orbit:src/components/parnasa/shell.ts#pushkeFill.f": {
+  "where": "maor-system:src/components/parnasa/shell.ts:99",
+  "name": "בוחר את הקטן מבין ערכים",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/components/parnasa/shell.ts#pushkeFill.f:step": {
+  "where": "maor-system:src/components/parnasa/shell.ts:99",
+  "name": "בוחר את הקטן מבין ערכים",
+  "proven": [
+   "ratio"
+  ]
+ },
+ "inner-orbit:src/components/parnasa/shell.ts#pushkeFill.goal": {
+  "where": "maor-system:src/components/parnasa/shell.ts:98",
+  "name": "בוחר את הגדול מבין ערכים",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/components/parnasa/zmanimBoard.ts#noaaUtcMin.C:step": {
+  "where": "maor-system:src/components/parnasa/zmanimBoard.ts:259",
+  "name": "מחשב נקודה על מעגל",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/components/parnasa/zmanimBoard.ts#noaaUtcMin.L0:step": {
+  "where": "maor-system:src/components/parnasa/zmanimBoard.ts:256",
+  "name": "מחשב שארית במחזור",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/components/parnasa/zmanimBoard.ts#noaaUtcMin.M:step": {
+  "where": "maor-system:src/components/parnasa/zmanimBoard.ts:257",
+  "name": "מחבר ערכים",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/components/parnasa/zmanimBoard.ts#noaaUtcMin.T:step": {
+  "where": "maor-system:src/components/parnasa/zmanimBoard.ts:255",
+  "name": "מחשב יחס בין ערכים",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/components/parnasa/zmanimBoard.ts#noaaUtcMin.decl:step": {
+  "where": "maor-system:src/components/parnasa/zmanimBoard.ts:263",
+  "name": "מחשב יחס בין ערכים",
+  "proven": [
+   "combine",
+   "convert"
+  ]
+ },
+ "inner-orbit:src/components/parnasa/zmanimBoard.ts#noaaUtcMin.e:step": {
+  "where": "maor-system:src/components/parnasa/zmanimBoard.ts:258",
+  "name": "מחשב הפרש בין ערכים",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/components/parnasa/zmanimBoard.ts#noaaUtcMin.eps0:step": {
+  "where": "maor-system:src/components/parnasa/zmanimBoard.ts:261",
+  "name": "מחבר ערכים",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/components/parnasa/zmanimBoard.ts#noaaUtcMin.eps:step": {
+  "where": "maor-system:src/components/parnasa/zmanimBoard.ts:262",
+  "name": "מחשב גל שעולה ויורד",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/components/parnasa/zmanimBoard.ts#noaaUtcMin.m:step": {
+  "where": "maor-system:src/components/parnasa/zmanimBoard.ts:252",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "convert",
+   "normalize"
+  ]
+ },
+ "inner-orbit:src/components/parnasa/zmanimBoard.ts#noaaUtcMin.y:step": {
+  "where": "maor-system:src/components/parnasa/zmanimBoard.ts:251",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "clamp",
+   "convert",
+   "tier"
+  ]
+ },
+ "inner-orbit:src/components/parnasa/zmanimBoard.ts#noaaUtcMin.yv:step": {
+  "where": "maor-system:src/components/parnasa/zmanimBoard.ts:264",
+  "name": "מחשב גדילה בחזקה",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/components/reports/management.tsx#managementMetrics.famReached": {
+  "where": "maor-system:src/components/reports/management.tsx:32",
+  "name": "מחשב ערך מערכים",
+  "proven": [
+   "count"
+  ]
+ },
+ "inner-orbit:src/components/settings/AccessSection.tsx#AccessSection.changeScale.clamped": {
+  "where": "maor-system:src/components/settings/AccessSection.tsx:20",
+  "name": "מחשב ערך בעזרת חישוב עזר",
+  "proven": [
+   "normalize",
+   "round",
+   "tier"
+  ]
+ },
+ "inner-orbit:src/components/settings/TeachersSection.tsx#TeacherForm.myStudents:step": {
+  "where": "maor-system:src/components/settings/TeachersSection.tsx:189",
+  "name": "מצמצם רשימה לערך אחד",
+  "proven": [
+   "count",
+   "extreme"
+  ]
+ },
+ "inner-orbit:src/components/supporters/CommandPalette.tsx#CommandPalette.idx": {
+  "where": "maor-system:src/components/supporters/CommandPalette.tsx:25",
+  "name": "מגביל לטווח",
+  "proven": [
+   "clamp",
+   "normalize"
+  ]
+ },
+ "inner-orbit:src/components/supporters/OneFlow.tsx#OneFlow.pct:step": {
+  "where": "maor-system:src/components/supporters/OneFlow.tsx:70",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/components/supporters/SupporterDetail.tsx#SupporterDetail.recurSelCount": {
+  "where": "maor-system:src/components/supporters/SupporterDetail.tsx:198",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "convert",
+   "normalize"
+  ]
+ },
+ "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.newlyAtRisk": {
+  "where": "maor-system:src/components/supporters/SupportersGalaxy.tsx:168",
+  "name": "מגביל לאפס ומעלה",
+  "proven": [
+   "tier"
+  ]
+ },
+ "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.newlyAtRisk:step": {
+  "where": "maor-system:src/components/supporters/SupportersGalaxy.tsx:168",
+  "name": "מגביל לאפס ומעלה",
+  "proven": [
+   "tier"
+  ]
+ },
+ "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.depth:step": {
+  "where": "maor-system:src/components/supporters/SupportersGalaxy.tsx:107",
+  "name": "מחשב נקודה על מעגל",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/components/supporters/SupportersGalaxy.tsx#SupportersGalaxy.useEffect.frame.pulse": {
+  "where": "maor-system:src/components/supporters/SupportersGalaxy.tsx:95",
+  "name": "מחשב גל שעולה ויורד",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/components/supporters/SupportersIntel.tsx#CohortBand.map.h": {
+  "where": "maor-system:src/components/supporters/SupportersIntel.tsx:227",
+  "name": "מכפיל ערך ביחס",
+  "proven": [
+   "convert",
+   "ratio"
+  ]
+ },
+ "inner-orbit:src/components/supporters/SupportersUniverse3D.tsx#SupportersUniverse3D.useEffect.frame.fl": {
+  "where": "maor-system:src/components/supporters/SupportersUniverse3D.tsx:96",
+  "name": "מחשב גל שעולה ויורד",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/components/supporters/SupportersView.tsx#SupportersView.sort.c": {
+  "where": "maor-system:src/components/supporters/SupportersView.tsx:659",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "compare",
+   "offset"
+  ]
+ },
+ "inner-orbit:src/components/supporters/constellation.ts#radiusFor.base": {
+  "where": "maor-system:src/components/supporters/constellation.ts:41",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "tier"
+  ]
+ },
+ "inner-orbit:src/components/supporters/lib.ts#recurDates.n": {
+  "where": "maor-system:src/components/supporters/lib.ts:490",
+  "name": "מגביל לטווח",
+  "proven": [
+   "clamp",
+   "normalize",
+   "round"
+  ]
+ },
+ "inner-orbit:src/components/supporters/lib.ts#segulaReminders.map.y": {
+  "where": "maor-system:src/components/supporters/lib.ts:356",
+  "name": "מחלץ חלק מתאריך",
+  "proven": [
+   "escalate",
+   "tier"
+  ]
+ },
+ "inner-orbit:src/components/supporters/lib.ts#supScore.F:step": {
+  "where": "maor-system:src/components/supporters/lib.ts:205",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "tier"
+  ]
+ },
+ "inner-orbit:src/components/supporters/lib.ts#supScore.R": {
+  "where": "maor-system:src/components/supporters/lib.ts:204",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "tier"
+  ]
+ },
+ "inner-orbit:src/components/supporters/pareto.ts#paretoReport.halfDonorPct:after-loop": {
+  "where": "maor-system:src/components/supporters/pareto.ts:54",
+  "name": "מעדכן ערך לאורך רשימה",
+  "proven": [
+   "extreme"
+  ]
+ },
+ "inner-orbit:src/components/supporters/planned.ts#addMonthsClamped.m0:step": {
+  "where": "maor-system:src/components/supporters/planned.ts:72",
+  "name": "מחשב הפרש בין ערכים",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/components/supporters/timemachine.ts#hokAccrual.months": {
+  "where": "maor-system:src/components/supporters/timemachine.ts:37",
+  "name": "מעגל מספר כלפי מטה",
+  "proven": [
+   "round",
+   "tier"
+  ]
+ },
+ "inner-orbit:src/components/supporters/timemachine.ts#timeMachine.offs": {
+  "where": "maor-system:src/components/supporters/timemachine.ts:83",
+  "name": "ממיין רשימה",
+  "proven": [
+   "normalize"
+  ]
+ },
+ "inner-orbit:src/components/supporters/universe3d.ts#donorUniverse.map.sinP:step": {
+  "where": "maor-system:src/components/supporters/universe3d.ts:48",
+  "name": "מחשב גל שעולה ויורד",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/components/supporters/universe3d.ts#project.cx": {
+  "where": "maor-system:src/components/supporters/universe3d.ts:76",
+  "name": "מחשב גל שעולה ויורד",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/components/supporters/universe3d.ts#project.rad": {
+  "where": "maor-system:src/components/supporters/universe3d.ts:82",
+  "name": "מכפיל ערכים",
+  "proven": [
+   "tier"
+  ]
+ },
+ "inner-orbit:src/components/supporters/universe3d.ts#project.scale:step": {
+  "where": "maor-system:src/components/supporters/universe3d.ts:81",
+  "name": "מחשב יחס בין ערכים",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/components/timer/CashRegister.tsx#CashRegister.exact.cents": {
+  "where": "maor-system:src/components/timer/CashRegister.tsx:421",
+  "name": "מעגל מספר",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/components/timer/CashRegister.tsx#CashRegister.exact.n": {
+  "where": "maor-system:src/components/timer/CashRegister.tsx:422",
+  "name": "מעגל מספר כלפי מטה",
+  "proven": [
+   "clamp",
+   "tier"
+  ]
+ },
+ "inner-orbit:src/components/timer/CashRegister.tsx#CashRegister.exact.n:step": {
+  "where": "maor-system:src/components/timer/CashRegister.tsx:422",
+  "name": "מעגל מספר כלפי מטה",
+  "proven": [
+   "ratio",
+   "tier"
+  ]
+ },
+ "inner-orbit:src/components/timer/CashRegister.tsx#DenomPad.map.map.n": {
+  "where": "maor-system:src/components/timer/CashRegister.tsx:230",
+  "name": "בוחר ערך ראשון שקיים",
+  "proven": [
+   "round"
+  ]
+ },
+ "inner-orbit:src/components/timer/MoneyTimer.tsx#MoneyTimer.amount:step": {
+  "where": "maor-system:src/components/timer/MoneyTimer.tsx:119",
+  "name": "מכפיל ערך ביחס",
+  "proven": [
+   "combine"
+  ]
+ },
+ "inner-orbit:src/components/timer/MoneyTimer.tsx#MoneyTimer.collect.amt": {
+  "where": "maor-system:src/components/timer/MoneyTimer.tsx:159",
+  "name": "מחשב יחס בין ערכים",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/components/timer/MoneyTimer.tsx#fmtDur.ss": {
+  "where": "maor-system:src/components/timer/MoneyTimer.tsx:52",
+  "name": "מחשב שארית במחזור",
+  "proven": [
+   "normalize"
+  ]
+ },
+ "inner-orbit:src/components/tzedaka/lib.ts#campaignProgress.pct:step": {
+  "where": "maor-system:src/components/tzedaka/lib.ts:152",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "normalize",
+   "tier"
+  ]
+ },
+ "inner-orbit:src/components/wall/wallData.ts#buildWallData.pct:step": {
+  "where": "maor-system:src/components/wall/wallData.ts:320",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "ratio"
+  ]
+ },
+ "inner-orbit:src/components/wheel/CourseWheel.tsx#CourseWheel.map.a": {
+  "where": "maor-system:src/components/wheel/CourseWheel.tsx:413",
+  "name": "מחבר ערכים",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/components/wheel/CourseWheel.tsx#CourseWheel.map.a0": {
+  "where": "maor-system:src/components/wheel/CourseWheel.tsx:384",
+  "name": "מחבר ערכים",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/components/wheel/CourseWheel.tsx#CourseWheel.map.mid": {
+  "where": "maor-system:src/components/wheel/CourseWheel.tsx:385",
+  "name": "מחבר ערכים",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/components/wheel/CourseWheel.tsx#CourseWheel.map.mid:step": {
+  "where": "maor-system:src/components/wheel/CourseWheel.tsx:385",
+  "name": "מחבר ערכים",
+  "proven": [
+   "convert",
+   "offset"
+  ]
+ },
+ "inner-orbit:src/components/wheel/CourseWheel.tsx#CourseWheel.maxChars": {
+  "where": "maor-system:src/components/wheel/CourseWheel.tsx:285",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "tier"
+  ]
+ },
+ "inner-orbit:src/components/wheel/CourseWheel.tsx#CourseWheel.spin.frame.p": {
+  "where": "maor-system:src/components/wheel/CourseWheel.tsx:215",
+  "name": "בוחר את הקטן מבין ערכים",
+  "proven": [
+   "clamp",
+   "round"
+  ]
+ },
+ "inner-orbit:src/components/wheel/CourseWheel.tsx#arcPath.x0": {
+  "where": "maor-system:src/components/wheel/CourseWheel.tsx:64",
+  "name": "מחשב נקודה על מעגל",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/components/wheel/CourseWheel.tsx#arcPath.y0": {
+  "where": "maor-system:src/components/wheel/CourseWheel.tsx:65",
+  "name": "מחשב נקודה על מעגל",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/lib/atoms/decompose/genericPreview.ts#amountPreview.picks": {
+  "where": "maor-system:src/lib/atoms/decompose/genericPreview.ts:110",
+  "name": "מחשב ערך בעזרת חישוב עזר",
+  "proven": [
+   "normalize"
+  ]
+ },
+ "inner-orbit:src/lib/atoms/decompose/genericPreview.ts#amountPreview.pos": {
+  "where": "maor-system:src/lib/atoms/decompose/genericPreview.ts:104",
+  "name": "מסנן רשימה לפי תנאי",
+  "proven": [
+   "filter",
+   "normalize"
+  ]
+ },
+ "inner-orbit:src/lib/atoms/decompose/genericPreview.ts#grainOf.pos:step": {
+  "where": "maor-system:src/lib/atoms/decompose/genericPreview.ts:216",
+  "name": "ממיין רשימה",
+  "proven": [
+   "normalize"
+  ]
+ },
+ "inner-orbit:src/lib/atoms/decompose/genericPreview.ts#textPreview.vals": {
+  "where": "maor-system:src/lib/atoms/decompose/genericPreview.ts:315",
+  "name": "מחלץ חלק מרצף",
+  "proven": [
+   "dedupe",
+   "filter",
+   "normalize"
+  ]
+ },
+ "inner-orbit:src/lib/atoms/decompose/genericPreview.ts#timesPreview.moments:step": {
+  "where": "maor-system:src/lib/atoms/decompose/genericPreview.ts:176",
+  "name": "מחשב ערך בעזרת חישוב עזר",
+  "proven": [
+   "map"
+  ]
+ },
+ "inner-orbit:src/lib/atoms/decompose/genericPreview.ts#timesPreview.use:step": {
+  "where": "maor-system:src/lib/atoms/decompose/genericPreview.ts:152",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "normalize"
+  ]
+ },
+ "inner-orbit:src/lib/atoms/parts/divide.ts#divideAmount.base:step": {
+  "where": "maor-system:src/lib/atoms/parts/divide.ts:117",
+  "name": "מעגל מספר לשלם",
+  "proven": [
+   "convert",
+   "ratio"
+  ]
+ },
+ "inner-orbit:src/lib/atoms/parts/divide.ts#divideAmount.rest": {
+  "where": "maor-system:src/lib/atoms/parts/divide.ts:116",
+  "name": "מחשב הפרש בין ערכים",
+  "proven": [
+   "normalize"
+  ]
+ },
+ "inner-orbit:src/lib/atoms/parts/divide.ts#divideAmount.sign:step": {
+  "where": "maor-system:src/lib/atoms/parts/divide.ts:119",
+  "name": "מחשב סימן של מספר",
+  "proven": [
+   "clamp",
+   "normalize",
+   "round"
+  ]
+ },
+ "inner-orbit:src/lib/atoms/parts/divide.ts#divideAmount.units": {
+  "where": "maor-system:src/lib/atoms/parts/divide.ts:115",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "ratio"
+  ]
+ },
+ "inner-orbit:src/lib/atoms/parts/fuzzy.ts#wordScore.typos": {
+  "where": "maor-system:src/lib/atoms/parts/fuzzy.ts:48",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "tier"
+  ]
+ },
+ "inner-orbit:src/lib/atoms/parts/next.ts#nextAfter.after": {
+  "where": "maor-system:src/lib/atoms/parts/next.ts:22",
+  "name": "מסנן רשימה לפי תנאי",
+  "proven": [
+   "filter",
+   "normalize",
+   "offset"
+  ]
+ },
+ "inner-orbit:src/lib/atoms/parts/offset.ts#offsetAll.out:after-loop": {
+  "where": "maor-system:src/lib/atoms/parts/offset.ts:11",
+  "name": "אוסף פריטים לרשימה חדשה",
+  "proven": [
+   "map",
+   "offset"
+  ]
+ },
+ "inner-orbit:src/lib/atoms/parts/rotate.ts#turnOf.i": {
+  "where": "maor-system:src/lib/atoms/parts/rotate.ts:17",
+  "name": "מחשב ערך בעזרת חישוב עזר",
+  "proven": [
+   "extreme",
+   "normalize"
+  ]
+ },
+ "inner-orbit:src/lib/atoms/parts/round.ts#roundTo.q0": {
+  "where": "maor-system:src/lib/atoms/parts/round.ts:18",
+  "name": "מחשב יחס בין ערכים",
+  "proven": [
+   "convert",
+   "ratio"
+  ]
+ },
+ "inner-orbit:src/lib/atoms/parts/round.ts#roundTo.qi": {
+  "where": "maor-system:src/lib/atoms/parts/round.ts:21",
+  "name": "מעגל מספר",
+  "proven": [
+   "ratio"
+  ]
+ },
+ "inner-orbit:src/lib/atoms/previewZmanim.ts#durationText.sec": {
+  "where": "maor-system:src/lib/atoms/previewZmanim.ts:74",
+  "name": "מעגל מספר",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/lib/atoms/previewZmanim.ts#hms.x": {
+  "where": "maor-system:src/lib/atoms/previewZmanim.ts:147",
+  "name": "מחשב שארית במחזור",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/lib/atoms/previewZmanim.ts#hms.x:step": {
+  "where": "maor-system:src/lib/atoms/previewZmanim.ts:147",
+  "name": "מחשב שארית במחזור",
+  "proven": [
+   "convert",
+   "normalize"
+  ]
+ },
+ "inner-orbit:src/lib/atoms/previewZmanim.ts#rawZmanim.gra:step": {
+  "where": "maor-system:src/lib/atoms/previewZmanim.ts:286",
+  "name": "מחשב יחס בין ערכים",
+  "proven": [
+   "compare",
+   "convert",
+   "gap"
+  ]
+ },
+ "inner-orbit:src/lib/atoms/previewZmanim.ts#timesOffset.base": {
+  "where": "maor-system:src/lib/atoms/previewZmanim.ts:267",
+  "name": "ממיר כל פריט ברשימה",
+  "proven": [
+   "map"
+  ]
+ },
+ "inner-orbit:src/lib/atoms/previewZmanim.ts#timesOffset.moved": {
+  "where": "maor-system:src/lib/atoms/previewZmanim.ts:268",
+  "name": "מחשב ערך בעזרת חישוב עזר",
+  "proven": [
+   "map"
+  ]
+ },
+ "inner-orbit:src/lib/atoms/previewZmanim.ts#timesOffset.moved:step": {
+  "where": "maor-system:src/lib/atoms/previewZmanim.ts:268",
+  "name": "מחשב ערך בעזרת חישוב עזר",
+  "proven": [
+   "map",
+   "offset"
+  ]
+ },
+ "inner-orbit:src/lib/atoms/verify/gen.ts#rng.a": {
+  "where": "maor-system:src/lib/atoms/verify/gen.ts:30",
+  "name": "בוחר ערך ראשון שקיים",
+  "proven": [
+   "convert",
+   "normalize"
+  ]
+ },
+ "inner-orbit:src/lib/atoms/verify/gen.ts#subSeed.h": {
+  "where": "maor-system:src/lib/atoms/verify/gen.ts:48",
+  "name": "מחשב ביטים של מספר",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/lib/atoms/verify/laws.ts#check.b": {
+  "where": "maor-system:src/lib/atoms/verify/laws.ts:562",
+  "name": "מחשב ערך בעזרת חישוב עזר",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/lib/atoms/verify/laws.ts#check.cnt@581:step": {
+  "where": "maor-system:src/lib/atoms/verify/laws.ts:581",
+  "name": "מחשב ערך מערכים",
+  "proven": [
+   "map",
+   "normalize"
+  ]
+ },
+ "inner-orbit:src/lib/atoms/verify/laws.ts#check.core:step": {
+  "where": "maor-system:src/lib/atoms/verify/laws.ts:179",
+  "name": "בונה רשימה מערכים",
+  "proven": [
+   "offset"
+  ]
+ },
+ "inner-orbit:src/lib/atoms/verify/laws.ts#check.minute:step": {
+  "where": "maor-system:src/lib/atoms/verify/laws.ts:401",
+  "name": "מחשב הפרש בין ערכים",
+  "proven": [
+   "convert",
+   "offset"
+  ]
+ },
+ "inner-orbit:src/lib/atoms/verify/run.ts#verifyConnections.checks": {
+  "where": "maor-system:src/lib/atoms/verify/run.ts:796",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "tier"
+  ]
+ },
+ "inner-orbit:src/lib/cloud-merge.ts#sanitizeIncoming.out:after-loop": {
+  "where": "maor-system:src/lib/cloud-merge.ts:84",
+  "name": "מעדכן ערך לאורך רשימה",
+  "proven": [
+   "settle"
+  ]
+ },
+ "inner-orbit:src/lib/config.ts#normalizeTelephony.officeDays:step": {
+  "where": "maor-system:src/lib/config.ts:193",
+  "name": "ממיין רשימה",
+  "proven": [
+   "filter",
+   "normalize"
+  ]
+ },
+ "inner-orbit:src/lib/dedup.ts#dedupById.out:after-loop": {
+  "where": "maor-system:src/lib/dedup.ts:91",
+  "name": "אוסף פריטים לרשימה חדשה",
+  "proven": [
+   "dedupe",
+   "filter",
+   "normalize"
+  ]
+ },
+ "inner-orbit:src/lib/dialer.ts#startCampaign.queue:after-loop": {
+  "where": "maor-system:src/lib/dialer.ts:28",
+  "name": "אוסף פריטים לרשימה חדשה",
+  "proven": [
+   "dedupe",
+   "map",
+   "normalize"
+  ]
+ },
+ "inner-orbit:src/lib/enginebox/goal/routeAdapter.ts#goalRoutes.shownMatched:step": {
+  "where": "maor-system:src/lib/enginebox/goal/routeAdapter.ts:247",
+  "name": "ממיר כל פריט ברשימה",
+  "proven": [
+   "map",
+   "normalize"
+  ]
+ },
+ "inner-orbit:src/lib/enginebox/goal/routeAdapter.ts#shapeRoute.sorted": {
+  "where": "maor-system:src/lib/enginebox/goal/routeAdapter.ts:220",
+  "name": "ממיין רשימה",
+  "proven": [
+   "normalize",
+   "sort"
+  ]
+ },
+ "inner-orbit:src/lib/enginebox/impact/index.ts#careFromHosting.i:step": {
+  "where": "maor-system:src/lib/enginebox/impact/index.ts:545",
+  "name": "מגביל לאפס ומעלה",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/lib/engineroute/route.ts#findRoutes.evaluate.i": {
+  "where": "maor-system:src/lib/engineroute/route.ts:269",
+  "name": "מחשב הפרש בין ערכים",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/lib/engineroute/route.ts#findRoutes.evaluate.i:step": {
+  "where": "maor-system:src/lib/engineroute/route.ts:269",
+  "name": "מחשב הפרש בין ערכים",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/lib/engineroute/route.ts#findRoutes.evaluate.low": {
+  "where": "maor-system:src/lib/engineroute/route.ts:268",
+  "name": "מחשב ביטים של מספר",
+  "proven": [
+   "normalize"
+  ]
+ },
+ "inner-orbit:src/lib/engineroute/route.ts#findRoutes.left:step": {
+  "where": "maor-system:src/lib/engineroute/route.ts:305",
+  "name": "מחשב הפרש בין ערכים",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/lib/hebdate.ts#hebToIsoEn.gy": {
+  "where": "maor-system:src/lib/hebdate.ts:68",
+  "name": "מחשב הפרש בין ערכים",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/lib/hebrewNumber.ts#agorotWords.u": {
+  "where": "maor-system:src/lib/hebrewNumber.ts:59",
+  "name": "מחשב שארית במחזור",
+  "proven": [
+   "normalize"
+  ]
+ },
+ "inner-orbit:src/lib/hebrewNumber.ts#joinHeb.w": {
+  "where": "maor-system:src/lib/hebrewNumber.ts:72",
+  "name": "מסנן רשימה לפי תנאי",
+  "proven": [
+   "filter",
+   "normalize"
+  ]
+ },
+ "inner-orbit:src/lib/hebrewNumber.ts#words0_999.t": {
+  "where": "maor-system:src/lib/hebrewNumber.ts:35",
+  "name": "מעגל מספר כלפי מטה",
+  "proven": [
+   "tier"
+  ]
+ },
+ "inner-orbit:src/lib/nedarimSync.ts#planNedarimSync.out": {
+  "where": "maor-system:src/lib/nedarimSync.ts:547",
+  "name": "ממיר כל פריט ברשימה",
+  "proven": [
+   "map",
+   "normalize"
+  ]
+ },
+ "inner-orbit:src/lib/orbitTheme.ts#hslToRgb.v": {
+  "where": "maor-system:src/lib/orbitTheme.ts:67",
+  "name": "מעגל מספר",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/lib/plannedMatch.ts#matchIncomingToPlanned.conf:step": {
+  "where": "maor-system:src/lib/plannedMatch.ts:118",
+  "name": "בוחר את הגדול מבין ערכים",
+  "proven": [
+   "tier"
+  ]
+ },
+ "inner-orbit:src/lib/publicSite.ts#campaignProgress.diff:step": {
+  "where": "maor-system:src/lib/publicSite.ts:231",
+  "name": "מעגל מספר כלפי מעלה",
+  "proven": [
+   "bucket"
+  ]
+ },
+ "inner-orbit:src/lib/publicSite.ts#hslToRgb.x:step": {
+  "where": "maor-system:src/lib/publicSite.ts:100",
+  "name": "מכפיל ערך ביחס",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/lib/publicSite.ts#sitePalette.s0:step": {
+  "where": "maor-system:src/lib/publicSite.ts:124",
+  "name": "מחשב ערך בעזרת חישוב עזר",
+  "proven": [
+   "extreme"
+  ]
+ },
+ "inner-orbit:src/lib/three-scene.ts#mountBrainScene.a": {
+  "where": "maor-system:src/lib/three-scene.ts:159",
+  "name": "מכפיל ערכים",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/lib/three-scene.ts#mountBrainScene.loop.ph": {
+  "where": "maor-system:src/lib/three-scene.ts:252",
+  "name": "מחשב יחס בין ערכים",
+  "proven": [
+   "round"
+  ]
+ },
+ "inner-orbit:src/lib/three-scene.ts#mountBrainScene.loop.pulse:step": {
+  "where": "maor-system:src/lib/three-scene.ts:253",
+  "name": "מכפיל ערכים",
+  "proven": [
+   "clamp",
+   "offset",
+   "tier"
+  ]
+ },
+ "inner-orbit:src/lib/three-scene.ts#mountBrainScene.rad": {
+  "where": "maor-system:src/lib/three-scene.ts:66",
+  "name": "מודד מרחק בין שתי נקודות",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/lib/three-scene.ts#mountBrainScene.rad:step": {
+  "where": "maor-system:src/lib/three-scene.ts:66",
+  "name": "מודד מרחק בין שתי נקודות",
+  "proven": [
+   "tier"
+  ]
+ },
+ "inner-orbit:src/lib/three-scene.ts#mountBrainScene.rr": {
+  "where": "maor-system:src/lib/three-scene.ts:70",
+  "name": "מחשב גל שעולה ויורד",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/lib/three-scene.ts#mountBrainScene.th": {
+  "where": "maor-system:src/lib/three-scene.ts:67",
+  "name": "מכפיל ערכים",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/lib/three-scene.ts#mountBrainScene.vx": {
+  "where": "maor-system:src/lib/three-scene.ts:71",
+  "name": "מכפיל ערכים",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/lib/three-scene.ts#mountBrainScene.vy": {
+  "where": "maor-system:src/lib/three-scene.ts:72",
+  "name": "מכפיל ערכים",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/lib/three-scene.ts#mountBrainScene.vy:step": {
+  "where": "maor-system:src/lib/three-scene.ts:72",
+  "name": "מכפיל ערכים",
+  "proven": [
+   "combine",
+   "convert"
+  ]
+ },
+ "inner-orbit:src/lib/three-scene.ts#mountBrainScene.vz": {
+  "where": "maor-system:src/lib/three-scene.ts:73",
+  "name": "מכפיל ערכים",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/lib/three-scene.ts#mountBrainScene.x": {
+  "where": "maor-system:src/lib/three-scene.ts:68",
+  "name": "מחשב גל שעולה ויורד",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/lib/three-scene.ts#mountBrainScene.x:step": {
+  "where": "maor-system:src/lib/three-scene.ts:68",
+  "name": "מחשב גל שעולה ויורד",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/lib/three-scene.ts#mountBrainScene.y": {
+  "where": "maor-system:src/lib/three-scene.ts:65",
+  "name": "מחשב הפרש בין ערכים",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/lib/three-scene.ts#mountBrainScene.z": {
+  "where": "maor-system:src/lib/three-scene.ts:69",
+  "name": "מחשב גל שעולה ויורד",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/lib/three-scene.ts#mountBrainScene.z:step": {
+  "where": "maor-system:src/lib/three-scene.ts:69",
+  "name": "מחשב גל שעולה ויורד",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:src/lib/widgetLayout.ts#sanitizeIds.out:after-loop": {
+  "where": "maor-system:src/lib/widgetLayout.ts:16",
+  "name": "אוסף פריטים לרשימה חדשה",
+  "proven": [
+   "filter",
+   "normalize"
+  ]
+ },
+ "inner-orbit:src/lib/worktasks.ts#taskStatsFor.diff:step": {
+  "where": "maor-system:src/lib/worktasks.ts:57",
+  "name": "מחשב יחס בין ערכים",
+  "proven": [
+   "compare",
+   "convert",
+   "gap"
+  ]
+ },
+ "inner-orbit:src/lib/xlsx.ts#parseXlsxSheet.idx:step": {
+  "where": "maor-system:src/lib/xlsx.ts:83",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "normalize"
+  ]
+ },
+ "inner-orbit:src/store/useApp.ts#call.addCred.tf:step": {
+  "where": "maor-system:src/store/useApp.ts:2005",
+  "name": "מחשב ערך בעזרת חישוב עזר",
+  "proven": [
+   "average"
+  ]
+ },
+ "inner-orbit:src/store/useApp.ts#reconcileNedarimApply.born": {
+  "where": "maor-system:src/store/useApp.ts:1004",
+  "name": "מסנן רשימה לפי תנאי",
+  "proven": [
+   "filter",
+   "normalize"
+  ]
+ },
+ "inner-orbit:src/store/useApp.ts#trendFactor.last3": {
+  "where": "maor-system:src/store/useApp.ts:977",
+  "name": "מחלץ חלק מרצף",
+  "proven": [
+   "normalize"
+  ]
+ },
+ "inner-orbit:src/types/domain.ts#pushDelLog.out:after-loop": {
+  "where": "maor-system:src/types/domain.ts:1929",
+  "name": "אוסף פריטים לרשימה חדשה",
+  "proven": [
+   "normalize"
+  ]
+ },
+ "inner-orbit:telephony/lib/cti.mjs#maskNumber.tail": {
+  "where": "maor-system:telephony/lib/cti.mjs:212",
+  "name": "מחלץ חלק מרצף",
+  "proven": [
+   "format",
+   "normalize"
+  ]
+ },
+ "inner-orbit:telephony/lib/report.mjs#trustReport.score:step": {
+  "where": "maor-system:telephony/lib/report.mjs:77",
+  "name": "בוחר ערך לפי תנאי",
+  "proven": [
+   "ratio"
+  ]
+ },
+ "inner-orbit:telephony/lib/zmanim.mjs#solarEventUTCmin.cosHA:step": {
+  "where": "maor-system:telephony/lib/zmanim.mjs:83",
+  "name": "מחשב הפרש בין ערכים",
+  "proven": [
+   "convert"
+  ]
+ },
+ "inner-orbit:telephony/lib/zmanim.mjs#solarEventUTCmin.lambda:step": {
+  "where": "maor-system:telephony/lib/zmanim.mjs:69",
+  "name": "מחשב גל שעולה ויורד",
+  "proven": [
+   "convert"
+  ]
+ },
+ "orbit:src/components/courses/lib.ts#wheelIndexUnderPointer": {
+  "where": "src/components/courses/lib.ts",
+  "name": "מחשב גלגל החוגים",
+  "proven": [
+   "tier"
+  ]
+ },
+ "orbit:src/components/hosting/kitchen.ts#stepPerGuest": {
+  "where": "src/components/hosting/kitchen.ts",
+  "name": "מחשב חצי לאורח",
+  "proven": [
+   "convert",
+   "offset"
+  ]
+ },
+ "orbit:src/lib/atoms/parts/rotate.ts#turnIndex": {
+  "where": "src/lib/atoms/parts/rotate.ts",
+  "name": "מחשב אינדקס התור בכמה",
+  "proven": [
+   "normalize",
+   "rotate"
+  ]
+ },
+ "orbit:src/lib/atoms/parts/rotate.ts#turnOf": {
+  "where": "src/lib/atoms/parts/rotate.ts",
+  "name": "אומר מי התור במספר כמה",
+  "proven": [
+   "rotate"
+  ]
+ },
+ "orbit:telephony/lib/channels.mjs#conversationTimeline": {
+  "where": "telephony/lib/channels.mjs",
+  "name": "מסדר שיחות והודעות על ציר זמן",
+  "proven": [
+   "map",
+   "normalize"
+  ]
+ }
+}

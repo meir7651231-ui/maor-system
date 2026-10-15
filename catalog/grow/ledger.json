@@ -1,0 +1,629 @@
+{
+ "about": "נבנה ע״י catalog/grow/grow.mjs — לא לערוך ביד. \"צעדים\" = lib/steps.mjs על סט-הקלטים הקבוע (lib.mjs › VALUES); בלי שעון. שמות כלליים (GENERIC) נספרים אבל לא נחשבים \"שם מיוחד\"",
+ "budget": {
+  "about": "התקציב המוצהר של מנוע-הצמיחה (catalog/grow/grow.mjs). maxFloors = כמה קומות מעל קומה 0 לכל היותר · buildsPerFloor = כמה חיבורי-זוג (chain/pair) נבנים בקומה לכל היותר · unaryPerFloor = כמה חיבורים חד-מקומיים (map/mapc/fold/fix) — כשיש יותר מועמדים נבחרת דגימה דטרמיניסטית והשאר נספרים כ'נחסמו בתקציב' · callSteps = תקרת-צעדים לקריאה אחת לחלק (lib/steps.mjs) · thingSteps = תקרת-צעדים לדבר אחד על כל סט-הקלטים (מעבר ⇒ זבל 'כבד מדי') · nameSteps = תקרת-צעדים לבדיקת-החוקים של דבר אחד",
+  "maxFloors": 4,
+  "buildsPerFloor": 6000,
+  "unaryPerFloor": 2000,
+  "callSteps": 500000,
+  "thingSteps": 2000000,
+  "nameSteps": 2000000
+ },
+ "world": [
+  "num",
+  "nums",
+  "pt",
+  "pts"
+ ],
+ "forms": [
+  "chain",
+  "pair",
+  "map",
+  "mapc",
+  "fold",
+  "fix"
+ ],
+ "generic": [
+  "convert",
+  "normalize",
+  "map",
+  "format",
+  "round",
+  "tier",
+  "clamp",
+  "ratio",
+  "gap",
+  "combine",
+  "offset",
+  "split",
+  "join"
+ ],
+ "floors": [
+  {
+   "floor": 0,
+   "built": 10312,
+   "new": 592,
+   "replaced": 14,
+   "dup": 490,
+   "junk": {
+    "לא רץ על רוב הקלטים": 7144,
+    "תמיד רשימה ריקה": 327,
+    "מחזיר את הקלט כמו שהוא": 391,
+    "תמיד אותו פלט": 1343,
+    "פלט מעורב": 11
+   },
+   "outside": 2047,
+   "realCalls": 143516,
+   "shelf": 592,
+   "named": 382,
+   "namedSpecial": 54
+  },
+  {
+   "floor": 1,
+   "seeds": 592,
+   "candidates": 91197,
+   "built": 6580,
+   "budgetCut": 84617,
+   "new": 5409,
+   "replaced": 41,
+   "dup": 676,
+   "junk": {
+    "תמיד אותו פלט": 330,
+    "לא רץ על רוב הקלטים": 76,
+    "תמיד רשימה ריקה": 18,
+    "מחזיר את הקלט כמו שהוא": 30
+   },
+   "shelf": 6001,
+   "realCalls": 209726,
+   "named": 3308,
+   "namedSpecial": 62
+  },
+  {
+   "floor": 2,
+   "seeds": 5415,
+   "candidates": 8724826,
+   "built": 8000,
+   "budgetCut": 8716826,
+   "new": 6599,
+   "replaced": 24,
+   "dup": 392,
+   "junk": {
+    "תמיד אותו פלט": 829,
+    "לא רץ על רוב הקלטים": 141,
+    "מחזיר את הקלט כמו שהוא": 11,
+    "תמיד רשימה ריקה": 4
+   },
+   "shelf": 12600,
+   "realCalls": 384600,
+   "named": 4335,
+   "namedSpecial": 10
+  },
+  {
+   "floor": 3,
+   "seeds": 6603,
+   "candidates": 19678024,
+   "built": 8000,
+   "budgetCut": 19670024,
+   "new": 6318,
+   "replaced": 21,
+   "dup": 458,
+   "junk": {
+    "תמיד אותו פלט": 995,
+    "לא רץ על רוב הקלטים": 196,
+    "תמיד רשימה ריקה": 6,
+    "מחזיר את הקלט כמו שהוא": 6
+   },
+   "shelf": 18918,
+   "realCalls": 732634,
+   "named": 4261,
+   "namedSpecial": 4
+  },
+  {
+   "floor": 4,
+   "seeds": 6328,
+   "candidates": 21932118,
+   "built": 8000,
+   "budgetCut": 21924118,
+   "new": 6140,
+   "replaced": 14,
+   "dup": 546,
+   "junk": {
+    "תמיד אותו פלט": 1093,
+    "לא רץ על רוב הקלטים": 204,
+    "מחזיר את הקלט כמו שהוא": 1,
+    "תמיד רשימה ריקה": 2
+   },
+   "shelf": 25058,
+   "realCalls": 1411370,
+   "stop": "נגמר התקציב: 4 קומות",
+   "named": 4130,
+   "namedSpecial": 5
+  }
+ ],
+ "reachedFloor": 4,
+ "shelf": 25058,
+ "named": 16416,
+ "namedSpecial": 135,
+ "totalBuilt": 40892,
+ "realCalls": 10344535,
+ "namedBy": {
+  "convert": 4890,
+  "map": 4251,
+  "round": 4058,
+  "tier": 3190,
+  "normalize": 1602,
+  "ratio": 480,
+  "clamp": 439,
+  "combine": 207,
+  "gap": 202,
+  "compare": 50,
+  "count": 27,
+  "offset": 25,
+  "filter": 23,
+  "dedupe": 8,
+  "sort": 7,
+  "reverse": 6,
+  "rotate": 6,
+  "tolerate": 5,
+  "settle": 2,
+  "extreme": 1,
+  "sum": 1
+ },
+ "deniedBy": {
+  "extreme · חוקים חלשים ואין בדיקת-אמת לחתימה הזו": 1118,
+  "average · חוקים חלשים ואין בדיקת-אמת לחתימה הזו": 161,
+  "sum · חוקים חלשים ואין בדיקת-אמת לחתימה הזו": 107,
+  "extreme · עבר את החוקים": 71,
+  "average · עבר את החוקים": 16,
+  "compare · עבר את החוקים": 13,
+  "sort · עבר את החוקים": 2,
+  "sum · עבר את החוקים": 1
+ },
+ "twinsFloor0": 14,
+ "replacedInGrowth": 100,
+ "improvements": [
+  {
+   "fp": "73062590",
+   "sig": "nums>nums",
+   "old": {
+    "id": "4dd959980a03a08c",
+    "part": "inner-generator:machtzev/generator/balagan.mjs#buildBalagan.selfScores",
+    "where": "-ai-chat-server:machtzev/generator/balagan.mjs:96",
+    "steps": 953
+   },
+   "now": {
+    "id": "e477319d60d1c601",
+    "floor": 3,
+    "form": "fix",
+    "steps": 208,
+    "nodes": 2,
+    "does": "ממיר כל פריט · מנרמל"
+   },
+   "saved": 745,
+   "pct": 78,
+   "extra": {
+    "n": 200,
+    "same": 200
+   }
+  },
+  {
+   "fp": "02a18e59",
+   "sig": "num,nums>num",
+   "old": {
+    "id": "1c2836b2c508cdf6",
+    "part": "inner-generator:machtzev/carve/widget-dedup.mjs#bodyOf.j:after-loop",
+    "where": "-ai-chat-server:machtzev/carve/widget-dedup.mjs:16",
+    "steps": 89
+   },
+   "now": {
+    "id": "1bd3ebdb015f2f1f",
+    "floor": 1,
+    "form": "chain",
+    "steps": 32,
+    "nodes": 2,
+    "does": "מעגל · סופר · מגביל לטווח"
+   },
+   "saved": 57,
+   "pct": 64,
+   "extra": {
+    "n": 200,
+    "same": 200
+   }
+  },
+  {
+   "fp": "56c78cf0",
+   "sig": "nums>nums",
+   "old": {
+    "id": "9ff9b9c2a96e66b6",
+    "part": "inner-orbit:src/lib/dialer.ts#startCampaign.queue:after-loop",
+    "where": "maor-system:src/lib/dialer.ts:28",
+    "steps": 64
+   },
+   "now": {
+    "id": "efd896410bf75725",
+    "floor": 1,
+    "form": "chain",
+    "steps": 39,
+    "nodes": 2,
+    "does": "מנרמל"
+   },
+   "saved": 25,
+   "pct": 39,
+   "extra": {
+    "n": 200,
+    "same": 200
+   }
+  },
+  {
+   "fp": "36d7a239",
+   "sig": "nums,pt>num",
+   "old": {
+    "id": "436dced214c9152e",
+    "part": "inner-generator:machtzev/generator/op-bridge.mjs#cos.nb:after-loop",
+    "where": "-ai-chat-server:machtzev/generator/op-bridge.mjs:40",
+    "steps": 103
+   },
+   "now": {
+    "id": "31c1b4b092cfcec4",
+    "floor": 1,
+    "form": "chain",
+    "steps": 64,
+    "nodes": 2,
+    "does": "בלי שם עדיין"
+   },
+   "saved": 39,
+   "pct": 38,
+   "extra": {
+    "n": 200,
+    "same": 200
+   }
+  },
+  {
+   "fp": "f1d5d1cc",
+   "sig": "nums,num>nums",
+   "old": {
+    "id": "5b15a2dd5d93b2d9",
+    "part": "inner-orbit:src/lib/atoms/parts/offset.ts#offsetAll.out:after-loop",
+    "where": "maor-system:src/lib/atoms/parts/offset.ts:11",
+    "steps": 71
+   },
+   "now": {
+    "id": "d26aa8ca5387b886",
+    "floor": 1,
+    "form": "mapc",
+    "steps": 55,
+    "nodes": 1,
+    "does": "מזיז · ממיר כל פריט"
+   },
+   "saved": 16,
+   "pct": 23,
+   "extra": {
+    "n": 200,
+    "same": 200
+   }
+  },
+  {
+   "fp": "9d422209",
+   "sig": "pt,nums>num",
+   "old": {
+    "id": "d8ef125c8b6ecd48",
+    "part": "inner-generator:machtzev/generator/op-bridge.mjs#cos.nb:after-loop",
+    "where": "-ai-chat-server:machtzev/generator/op-bridge.mjs:40",
+    "steps": 105
+   },
+   "now": {
+    "id": "6ad9b87e25defeda",
+    "floor": 1,
+    "form": "chain",
+    "steps": 94,
+    "nodes": 2,
+    "does": "בלי שם עדיין"
+   },
+   "saved": 11,
+   "pct": 10,
+   "extra": {
+    "n": 200,
+    "same": 200
+   }
+  },
+  {
+   "fp": "c7c2b6c8",
+   "sig": "pts,nums>num",
+   "old": {
+    "id": "5662a201e120e185",
+    "part": "inner-generator:machtzev/generator/op-bridge.mjs#cos.nb:after-loop",
+    "where": "-ai-chat-server:machtzev/generator/op-bridge.mjs:40",
+    "steps": 95
+   },
+   "now": {
+    "id": "9af86d467ec7bd82",
+    "floor": 1,
+    "form": "chain",
+    "steps": 89,
+    "nodes": 2,
+    "does": "בלי שם עדיין"
+   },
+   "saved": 6,
+   "pct": 6,
+   "extra": {
+    "n": 200,
+    "same": 200
+   }
+  }
+ ],
+ "discover": [
+  {
+   "verb": "tour",
+   "he": "מסדר מסלול",
+   "refSig": "pt,pts",
+   "named": 0,
+   "deniedByTruth": 0,
+   "reach": "לא נמצא באותה טביעה"
+  },
+  {
+   "verb": "allot",
+   "he": "משבץ עד התקרה",
+   "refSig": "pts,pts,num",
+   "named": 0,
+   "deniedByTruth": 0,
+   "reach": "מחוץ לעולם של הצמיחה (pts, pts, num)"
+  },
+  {
+   "verb": "schedule",
+   "he": "מתזמן בחלונות",
+   "refSig": "pts,rec",
+   "named": 0,
+   "deniedByTruth": 0,
+   "reach": "מחוץ לעולם של הצמיחה (pts, rec)"
+  },
+  {
+   "verb": "shortest-path",
+   "he": "מוצא דרך קצרה",
+   "refSig": "rec,any,any",
+   "named": 0,
+   "deniedByTruth": 0,
+   "reach": "מחוץ לעולם של הצמיחה (rec, any, any)"
+  },
+  {
+   "verb": "spread",
+   "he": "מתפשט",
+   "refSig": "rec,num",
+   "named": 0,
+   "deniedByTruth": 0,
+   "reach": "מחוץ לעולם של הצמיחה (rec, num)"
+  },
+  {
+   "verb": "sun-heading",
+   "he": "מכוון לפי השמש",
+   "refSig": "rec,num,str",
+   "named": 0,
+   "deniedByTruth": 0,
+   "reach": "מחוץ לעולם של הצמיחה (rec, num, str)"
+  },
+  {
+   "verb": "sort",
+   "he": "ממיין",
+   "refSig": "nums",
+   "named": 7,
+   "best": {
+    "id": "94abcb62cd88d67e",
+    "floor": 0,
+    "form": "part",
+    "steps": 80,
+    "nodes": 1,
+    "sig": "nums>nums"
+   },
+   "byFloor": {
+    "0": 3,
+    "1": 4
+   },
+   "deniedByTruth": 2,
+   "reach": "נמצא — אותה טביעה בדיוק",
+   "twin": {
+    "id": "94abcb62cd88d67e",
+    "floor": 0,
+    "form": "part",
+    "steps": 80,
+    "nodes": 1,
+    "extra": {
+     "n": 200,
+     "same": 200
+    }
+   }
+  },
+  {
+   "verb": "reverse",
+   "he": "הופך סדר",
+   "refSig": "nums",
+   "named": 6,
+   "best": {
+    "id": "86e2a7d96c2c75ad",
+    "floor": 0,
+    "form": "part",
+    "steps": 11,
+    "nodes": 1,
+    "sig": "pts>pts"
+   },
+   "byFloor": {
+    "0": 2,
+    "1": 4
+   },
+   "deniedByTruth": 0,
+   "reach": "נמצא — אותה טביעה בדיוק",
+   "twin": {
+    "id": "8160dd2fa8e3026b",
+    "floor": 0,
+    "form": "part",
+    "steps": 13,
+    "nodes": 1,
+    "extra": {
+     "n": 200,
+     "same": 200
+    }
+   }
+  },
+  {
+   "verb": "dedupe",
+   "he": "מסיר כפולים",
+   "refSig": "nums",
+   "named": 8,
+   "best": {
+    "id": "11e151d73a9aea63",
+    "floor": 0,
+    "form": "part",
+    "steps": 16,
+    "nodes": 1,
+    "sig": "num,nums>nums"
+   },
+   "byFloor": {
+    "0": 5,
+    "1": 3
+   },
+   "deniedByTruth": 0,
+   "reach": "נמצא — אותה טביעה בדיוק",
+   "twin": {
+    "id": "7184f07463958170",
+    "floor": 0,
+    "form": "part",
+    "steps": 26,
+    "nodes": 1,
+    "extra": {
+     "n": 200,
+     "same": 200
+    }
+   }
+  },
+  {
+   "verb": "sum",
+   "he": "מסכם",
+   "refSig": "nums",
+   "named": 1,
+   "best": {
+    "id": "0ce602d9666a323d",
+    "floor": 0,
+    "form": "part",
+    "steps": 64,
+    "nodes": 1,
+    "sig": "nums>num"
+   },
+   "byFloor": {
+    "0": 1
+   },
+   "deniedByTruth": 108,
+   "reach": "נמצא — אותה טביעה בדיוק",
+   "twin": {
+    "id": "0ce602d9666a323d",
+    "floor": 0,
+    "form": "part",
+    "steps": 64,
+    "nodes": 1,
+    "extra": {
+     "n": 200,
+     "same": 200
+    }
+   }
+  },
+  {
+   "verb": "average",
+   "he": "ממצע",
+   "refSig": "nums",
+   "named": 0,
+   "deniedByTruth": 177,
+   "reach": "לא נמצא באותה טביעה"
+  },
+  {
+   "verb": "extreme",
+   "he": "בוחר את הקיצוני",
+   "refSig": "nums",
+   "named": 1,
+   "best": {
+    "id": "130e55561cfa0722",
+    "floor": 0,
+    "form": "part",
+    "steps": 13,
+    "nodes": 1,
+    "sig": "nums>num"
+   },
+   "byFloor": {
+    "0": 1
+   },
+   "deniedByTruth": 1189,
+   "reach": "נמצא — אותה טביעה בדיוק",
+   "twin": {
+    "id": "130e55561cfa0722",
+    "floor": 0,
+    "form": "part",
+    "steps": 13,
+    "nodes": 1,
+    "extra": {
+     "n": 200,
+     "same": 200
+    }
+   }
+  },
+  {
+   "verb": "count",
+   "he": "סופר",
+   "refSig": "nums",
+   "named": 27,
+   "best": {
+    "id": "04895f29757b245d",
+    "floor": 0,
+    "form": "part",
+    "steps": 11,
+    "nodes": 1,
+    "sig": "pts>num"
+   },
+   "byFloor": {
+    "0": 19,
+    "1": 6,
+    "2": 1,
+    "4": 1
+   },
+   "deniedByTruth": 0,
+   "reach": "לא נמצא באותה טביעה"
+  },
+  {
+   "verb": "compare",
+   "he": "משווה",
+   "refSig": "num,num",
+   "named": 50,
+   "best": {
+    "id": "36cae3451ec4b581",
+    "floor": 0,
+    "form": "part",
+    "steps": 16,
+    "nodes": 1,
+    "sig": "nums,nums>num"
+   },
+   "byFloor": {
+    "0": 6,
+    "1": 32,
+    "2": 7,
+    "3": 2,
+    "4": 3
+   },
+   "deniedByTruth": 13,
+   "reach": "נמצא — אותה טביעה בדיוק",
+   "twin": {
+    "id": "611447520a649fbe",
+    "floor": 1,
+    "form": "chain",
+    "steps": 32,
+    "nodes": 2,
+    "extra": {
+     "n": 200,
+     "same": 200
+    }
+   }
+  },
+  {
+   "verb": "next",
+   "he": "מוצא את הבא בתור",
+   "refSig": "nums,num",
+   "named": 0,
+   "deniedByTruth": 0,
+   "reach": "הייחוס עצמו לא נמדד על סט-הקלטים: לא רץ על רוב הקלטים"
+  }
+ ]
+}
