@@ -779,6 +779,722 @@
    ]
   }
  ],
+ "bornFromBlueprintSuccess": [
+  {
+   "id": "bp-s-5ef8f04c",
+   "depth": 2,
+   "from": {
+    "thing": "02644a9d3e051709",
+    "verbs": [
+     "count"
+    ],
+    "blueprint": "bp-s-38d34db8",
+    "example": {
+     "in": [
+      0,
+      [
+       {
+        "x": 1,
+        "y": 1
+       },
+       {
+        "x": 1,
+        "y": 1
+       },
+       {
+        "x": 5,
+        "y": 5
+       }
+      ]
+     ],
+     "out": 0
+    }
+   },
+   "excl": [
+    "count"
+   ],
+   "built": 12,
+   "onShelf": 12,
+   "successes": 0,
+   "made": [
+    {
+     "id": "0079398965a6fa1d",
+     "round": 2,
+     "sig": "num,pts>num",
+     "verbs": [],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,pts>num"
+      }
+     ]
+    },
+    {
+     "id": "02cc8c9d460cd939",
+     "round": 3,
+     "sig": "num,pts>num",
+     "verbs": [
+      "tier"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,pts>num"
+      }
+     ]
+    },
+    {
+     "id": "3a90e5c372435b6f",
+     "round": 2,
+     "sig": "num,pts>num",
+     "verbs": [],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,pts>num"
+      }
+     ]
+    },
+    {
+     "id": "58ba17e15c221395",
+     "round": 3,
+     "sig": "num,pts>num",
+     "verbs": [],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,pts>num"
+      }
+     ]
+    },
+    {
+     "id": "6583bafa0df395ce",
+     "round": 3,
+     "sig": "num,pts>num",
+     "verbs": [
+      "tier"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,pts>num"
+      }
+     ]
+    },
+    {
+     "id": "6b5d7d22e598dfee",
+     "round": 3,
+     "sig": "num,pts>num",
+     "verbs": [
+      "tier"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,pts>num"
+      }
+     ]
+    },
+    {
+     "id": "721ab6cd9c5f2b79",
+     "round": 2,
+     "sig": "num,pts>num",
+     "verbs": [
+      "tier"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,pts>num"
+      }
+     ]
+    },
+    {
+     "id": "8e0769ef3b72a883",
+     "round": 3,
+     "sig": "num,pts>num",
+     "verbs": [
+      "tier"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,pts>num"
+      }
+     ]
+    },
+    {
+     "id": "a9c39589dfdc258d",
+     "round": 2,
+     "sig": "num,pts>num",
+     "verbs": [
+      "tier"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,pts>num"
+      }
+     ]
+    },
+    {
+     "id": "cc9943c109c082a5",
+     "round": 2,
+     "sig": "num,pts>num",
+     "verbs": [
+      "tier"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,pts>num"
+      }
+     ]
+    },
+    {
+     "id": "ee836fefc34b7563",
+     "round": 2,
+     "sig": "num,pts>num",
+     "verbs": [
+      "tier"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,pts>num"
+      }
+     ]
+    },
+    {
+     "id": "ffa038c354b28217",
+     "round": 3,
+     "sig": "num,pts>num",
+     "verbs": [
+      "tier",
+      "normalize"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,pts>num"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "bp-s-28901c53",
+   "depth": 2,
+   "from": {
+    "thing": "e1b6fae7738af16b",
+    "verbs": [
+     "count"
+    ],
+    "blueprint": "bp-s-4aa59ae4",
+    "example": {
+     "in": [
+      0,
+      [
+       {
+        "x": 1,
+        "y": 1
+       },
+       {
+        "x": 1,
+        "y": 1
+       },
+       {
+        "x": 5,
+        "y": 5
+       }
+      ]
+     ],
+     "out": 0
+    }
+   },
+   "excl": [
+    "count"
+   ],
+   "built": 12,
+   "onShelf": 6,
+   "successes": 6,
+   "made": [
+    {
+     "id": "3c1529029b7fc1f6",
+     "round": 2,
+     "sig": "num,pts>num",
+     "verbs": [
+      "count",
+      "tier",
+      "clamp"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,pts>num"
+      }
+     ]
+    },
+    {
+     "id": "3ecaabf6a379c832",
+     "round": 2,
+     "sig": "num,pts>num",
+     "verbs": [
+      "count"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,pts>num"
+      }
+     ]
+    },
+    {
+     "id": "b4cb4efe4d8aca1a",
+     "round": 2,
+     "sig": "num,pts>num",
+     "verbs": [
+      "round",
+      "count",
+      "tier",
+      "clamp"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,pts>num"
+      }
+     ]
+    },
+    {
+     "id": "bd5f7fb7c6647b9b",
+     "round": 3,
+     "sig": "num,pts>num",
+     "verbs": [
+      "round",
+      "count",
+      "clamp"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,pts>num"
+      }
+     ]
+    },
+    {
+     "id": "cbe35e16342d1872",
+     "round": 2,
+     "sig": "num,pts>num",
+     "verbs": [
+      "round",
+      "count",
+      "clamp"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,pts>num"
+      }
+     ]
+    },
+    {
+     "id": "f13c3430e750b9bc",
+     "round": 3,
+     "sig": "num,pts>num",
+     "verbs": [
+      "round",
+      "count",
+      "clamp"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,pts>num"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "bp-s-c72d961e",
+   "depth": 2,
+   "from": {
+    "thing": "e1b6fae7738af16b",
+    "verbs": [
+     "count"
+    ],
+    "blueprint": "bp-s-4aa59ae4",
+    "example": {
+     "in": [
+      0,
+      [
+       {
+        "x": 1,
+        "y": 1
+       },
+       {
+        "x": 1,
+        "y": 1
+       },
+       {
+        "x": 5,
+        "y": 5
+       }
+      ]
+     ],
+     "out": 0
+    }
+   },
+   "excl": [
+    "count"
+   ],
+   "built": 12,
+   "onShelf": 9,
+   "successes": 0,
+   "made": [
+    {
+     "id": "0420ecec959dc6e8",
+     "round": 3,
+     "sig": "num,pts>num",
+     "verbs": [
+      "tier"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,pts>num"
+      }
+     ]
+    },
+    {
+     "id": "042141ffe1249fc3",
+     "round": 2,
+     "sig": "num,pts>num",
+     "verbs": [
+      "tier"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,pts>num"
+      }
+     ]
+    },
+    {
+     "id": "786b8105908cd1e1",
+     "round": 3,
+     "sig": "num,pts>num",
+     "verbs": [
+      "tier"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,pts>num"
+      }
+     ]
+    },
+    {
+     "id": "97ee6f9ff857868b",
+     "round": 2,
+     "sig": "num,pts>num",
+     "verbs": [
+      "tier"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,pts>num"
+      }
+     ]
+    },
+    {
+     "id": "b55379dc5950c170",
+     "round": 3,
+     "sig": "num,pts>num",
+     "verbs": [
+      "tier"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,pts>num"
+      }
+     ]
+    },
+    {
+     "id": "c1508ee3d5251987",
+     "round": 3,
+     "sig": "num,pts>num",
+     "verbs": [
+      "tier",
+      "normalize"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,pts>num"
+      }
+     ]
+    },
+    {
+     "id": "e0427b8fe1a2692b",
+     "round": 2,
+     "sig": "num,pts>num",
+     "verbs": [
+      "tier"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,pts>num"
+      }
+     ]
+    },
+    {
+     "id": "e0b36abdc6191299",
+     "round": 3,
+     "sig": "num,pts>num",
+     "verbs": [
+      "tier"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,pts>num"
+      }
+     ]
+    },
+    {
+     "id": "e5d614898e7dbff5",
+     "round": 2,
+     "sig": "num,pts>num",
+     "verbs": [
+      "tier"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה num,pts>num"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "bp-s-38e8577f",
+   "depth": 2,
+   "from": {
+    "thing": "9ba314ee30783cd2",
+    "verbs": [
+     "sort"
+    ],
+    "blueprint": "bp-s-54eaf242",
+    "example": {
+     "in": [
+      [
+       3,
+       1,
+       2
+      ],
+      4
+     ],
+     "out": [
+      1,
+      2,
+      3
+     ]
+    }
+   },
+   "excl": [
+    "filter",
+    "sort"
+   ],
+   "built": 12,
+   "onShelf": 10,
+   "successes": 2,
+   "made": [
+    {
+     "id": "08b5b83535ba3191",
+     "round": 2,
+     "sig": "nums,num>nums",
+     "verbs": [
+      "normalize"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה nums,num>nums"
+      }
+     ]
+    },
+    {
+     "id": "0d508ef0fa657814",
+     "round": 2,
+     "sig": "nums,num>nums",
+     "verbs": [
+      "normalize"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה nums,num>nums"
+      }
+     ]
+    },
+    {
+     "id": "299f6f300ca44d6c",
+     "round": 2,
+     "sig": "nums,num>nums",
+     "verbs": [
+      "normalize"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה nums,num>nums"
+      }
+     ]
+    },
+    {
+     "id": "4c774c5132478635",
+     "round": 3,
+     "sig": "nums,num>nums",
+     "verbs": [
+      "normalize"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה nums,num>nums"
+      }
+     ]
+    },
+    {
+     "id": "770ac20c17ce6168",
+     "round": 3,
+     "sig": "nums,num>nums",
+     "verbs": [
+      "sort"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה nums,num>nums"
+      }
+     ]
+    },
+    {
+     "id": "8485efa8a1526c64",
+     "round": 3,
+     "sig": "nums,num>nums",
+     "verbs": [
+      "normalize"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה nums,num>nums"
+      }
+     ]
+    },
+    {
+     "id": "9b6b5821646b9da5",
+     "round": 2,
+     "sig": "nums,num>nums",
+     "verbs": [
+      "sort"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה nums,num>nums"
+      }
+     ]
+    },
+    {
+     "id": "aec917d0b95abc74",
+     "round": 3,
+     "sig": "nums,num>nums",
+     "verbs": [
+      "normalize"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה nums,num>nums"
+      }
+     ]
+    },
+    {
+     "id": "c93c162b24560b57",
+     "round": 2,
+     "sig": "nums,num>nums",
+     "verbs": [
+      "normalize"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה nums,num>nums"
+      }
+     ]
+    },
+    {
+     "id": "f86ecf3706baf3b3",
+     "round": 2,
+     "sig": "nums,num>nums",
+     "verbs": [
+      "normalize"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה nums,num>nums"
+      }
+     ]
+    }
+   ]
+  }
+ ],
  "targets": {
   "selfprint": {
    "hits": [
@@ -835,6 +1551,31 @@
         "gap"
        ]
       }
+     ],
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": 8,
+       "want": 8
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": 14,
+       "want": 14
+      }
      ]
     },
     {
@@ -860,6 +1601,31 @@
        "form": "part",
        "part": "inner-orbit:src/components/hosting/hui.tsx#FSelect.map.lab"
       }
+     ],
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": 7,
+       "want": 7
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": 2.5,
+       "want": 2.5
+      }
      ]
     },
     {
@@ -872,7 +1638,32 @@
      "steps": 13,
      "nodes": 1,
      "part": "inner-generator:machtzev/ds-forge.mjs#edge.cl.n",
-     "of": []
+     "of": [],
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": 6,
+       "want": 6
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": -4,
+       "want": -4
+      }
+     ]
     },
     {
      "target": "last",
@@ -884,7 +1675,32 @@
      "steps": 13,
      "nodes": 1,
      "part": "inner-buildsmart:app/src/store/app-store.ts#computed.parent",
-     "of": []
+     "of": [],
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": 2,
+       "want": 2
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": 2.5,
+       "want": 2.5
+      }
+     ]
     },
     {
      "target": "min",
@@ -909,6 +1725,31 @@
        "form": "part",
        "part": "inner-generator:machtzev/ds-forge.mjs#edge.cl.n"
       }
+     ],
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": 1,
+       "want": 1
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": -4,
+       "want": -4
+      }
      ]
     },
     {
@@ -921,7 +1762,32 @@
      "steps": 13,
      "nodes": 1,
      "part": "inner-generator:gen/looks/app/src/20-views-a.js#class.render.maxc:step",
-     "of": []
+     "of": [],
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": 9,
+       "want": 9
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": 10,
+       "want": 10
+      }
+     ]
     },
     {
      "target": "mean",
@@ -976,6 +1842,31 @@
         "ratio"
        ]
       }
+     ],
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": 4.142857142857143,
+       "want": 4.142857142857143
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": 1.125,
+       "want": 1.125
+      }
      ]
     },
     {
@@ -988,7 +1879,58 @@
      "steps": 84,
      "nodes": 1,
      "part": "inner-generator:new/boxes/pareto.mjs#paretoReport.desc",
-     "of": []
+     "of": [],
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": [
+        9,
+        7,
+        6,
+        3,
+        2,
+        1,
+        1
+       ],
+       "want": [
+        9,
+        7,
+        6,
+        3,
+        2,
+        1,
+        1
+       ]
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": [
+        10,
+        2.5,
+        -4,
+        -4
+       ],
+       "want": [
+        10,
+        2.5,
+        -4,
+        -4
+       ]
+      }
+     ]
     },
     {
      "target": "sortAsc",
@@ -1000,7 +1942,58 @@
      "steps": 80,
      "nodes": 1,
      "part": "inner-generator:new/boxes/pareto.mjs#paretoReport.asc",
-     "of": []
+     "of": [],
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": [
+        1,
+        1,
+        2,
+        3,
+        6,
+        7,
+        9
+       ],
+       "want": [
+        1,
+        1,
+        2,
+        3,
+        6,
+        7,
+        9
+       ]
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": [
+        -4,
+        -4,
+        2.5,
+        10
+       ],
+       "want": [
+        -4,
+        -4,
+        2.5,
+        10
+       ]
+      }
+     ]
     }
    ],
    "near": [
@@ -1032,6 +2025,31 @@
        "id": "50494193aa8a430f",
        "form": "part",
        "part": "inner-generator:new/boxes/vcard-import.mjs#phoneLabel.inner"
+      }
+     ],
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": 6,
+       "want": 6
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": -4,
+       "want": -4
       }
      ],
      "wrapperOf": [
@@ -1071,6 +2089,31 @@
       {
        "id": "b888831e29c624e2",
        "form": "chain"
+      }
+     ],
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": 2,
+       "want": 2
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": 2.5,
+       "want": 2.5
       }
      ],
      "stressFail": {
@@ -1213,6 +2256,31 @@
        "form": "part",
        "part": "inner-orbit:src/components/hosting/hui.tsx#FSelect.map.lab"
       }
+     ],
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": 7,
+       "want": 7
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": 2.5,
+       "want": 2.5
+      }
      ]
     },
     {
@@ -1241,6 +2309,31 @@
         "count"
        ]
       }
+     ],
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": 6,
+       "want": 6
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": 3,
+       "want": 3
+      }
      ]
     },
     {
@@ -1253,7 +2346,32 @@
      "steps": 13,
      "nodes": 1,
      "part": "inner-generator:machtzev/ds-forge.mjs#edge.cl.n",
-     "of": []
+     "of": [],
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": 6,
+       "want": 6
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": -4,
+       "want": -4
+      }
+     ]
     },
     {
      "target": "last",
@@ -1265,7 +2383,32 @@
      "steps": 13,
      "nodes": 1,
      "part": "inner-buildsmart:app/src/store/app-store.ts#computed.parent",
-     "of": []
+     "of": [],
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": 2,
+       "want": 2
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": 2.5,
+       "want": 2.5
+      }
+     ]
     },
     {
      "target": "min",
@@ -1290,6 +2433,31 @@
        "form": "part",
        "part": "inner-generator:machtzev/ds-forge.mjs#edge.cl.n"
       }
+     ],
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": 1,
+       "want": 1
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": -4,
+       "want": -4
+      }
      ]
     },
     {
@@ -1302,7 +2470,32 @@
      "steps": 13,
      "nodes": 1,
      "part": "inner-generator:gen/looks/app/src/20-views-a.js#class.render.maxc:step",
-     "of": []
+     "of": [],
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": 9,
+       "want": 9
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": 10,
+       "want": 10
+      }
+     ]
     },
     {
      "target": "sortDesc",
@@ -1314,7 +2507,58 @@
      "steps": 84,
      "nodes": 1,
      "part": "inner-generator:new/boxes/pareto.mjs#paretoReport.desc",
-     "of": []
+     "of": [],
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": [
+        9,
+        7,
+        6,
+        3,
+        2,
+        1,
+        1
+       ],
+       "want": [
+        9,
+        7,
+        6,
+        3,
+        2,
+        1,
+        1
+       ]
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": [
+        10,
+        2.5,
+        -4,
+        -4
+       ],
+       "want": [
+        10,
+        2.5,
+        -4,
+        -4
+       ]
+      }
+     ]
     },
     {
      "target": "sortAsc",
@@ -1326,7 +2570,58 @@
      "steps": 80,
      "nodes": 1,
      "part": "inner-generator:new/boxes/pareto.mjs#paretoReport.asc",
-     "of": []
+     "of": [],
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": [
+        1,
+        1,
+        2,
+        3,
+        6,
+        7,
+        9
+       ],
+       "want": [
+        1,
+        1,
+        2,
+        3,
+        6,
+        7,
+        9
+       ]
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": [
+        -4,
+        -4,
+        2.5,
+        10
+       ],
+       "want": [
+        -4,
+        -4,
+        2.5,
+        10
+       ]
+      }
+     ]
     }
    ],
    "near": [],

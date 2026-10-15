@@ -24,6 +24,8 @@ export function ownStress() {
   return out.map((xs) => [xs]);
 }
 
+/** דוגמאות קלט⇒פלט לדוח (פלט הדבר מול המטרה). */
+export const EXAMPLES = [[6, 1, 9, 1, 3, 7, 2], [-4, 10, -4, 2.5]];
 const KEY = (t) => t.sig.join(',') + '>' + t.out;
 
 /**
@@ -60,7 +62,7 @@ export function scanTargets({ R, L, things, shelf, bpById = new Map(), targets, 
         if (!L.sameOut(o, wantST[k])) { fail = fail || { at: k, why: 'פלט שונה', len: ST[k][0].length, got: brief(o), want: brief(wantST[k]) }; }
       }
       const wrap = [...desc(t)].map((id) => things.get(id)).filter((c) => c.sig.join(',') === ins && c.out === T.sig.split('>')[1] && coreOf(c) === 1).map((c) => c.id);
-      const rec = { target: T.id, he: T.he, known: !!T.known, ...describe(t, things, bpById), ...(wrap.length ? { wrapperOf: wrap.slice(0, 3) } : {}) };
+      const rec = { target: T.id, he: T.he, known: !!T.known, ...describe(t, things, bpById), example: EXAMPLES.map((xs) => ({ in: xs, out: R.runOne(t, [xs], thingSteps).v, want: T.f(xs) })), ...(wrap.length ? { wrapperOf: wrap.slice(0, 3) } : {}) };
       if (fail) near.push({ ...rec, stressFail: fail, stressRan: ran });
       else if (!wrap.length) hits.push(rec);
       else near.push({ ...rec, why: 'עטיפה' });
@@ -83,4 +85,19 @@ export function describe(t, things, bpById) {
     out.fill = (t.fill || []).map(kid);
   } else out.of = (t.of || []).map(kid);
   return out;
+}
+
+/** הדבר הזה — לאיזו מטרה הוא הכי קרוב (אחוז בסט-הליבה), ומה הוא מחזיר על הדוגמאות. לדוח של "בונה מעל מה שבנה". */
+export function closestTarget({ R, L, t, targets, thingSteps }) {
+  let best = null;
+  for (const T of targets) {
+    if (T.sig !== KEY(t)) continue;
+    const S = R.samplesOf(t.sig);
+    const core = S.map((a, k) => k).filter((k) => S[k].every((x) => !Array.isArray(x) || x.length >= 2));
+    let hit = 0; for (const k of core) { const w = T.f(...S[k]); if ((w === null && t.outs[k] === null) || (w !== null && t.outs[k] !== null && L.sameOut(t.outs[k], w))) hit++; }
+    const pct = Math.round((100 * hit) / core.length);
+    if (!best || pct > best.pct) best = { target: T.id, pct };
+  }
+  const ex = t.sig.length === 1 && t.sig[0] === 'nums' ? EXAMPLES.map((xs) => ({ in: xs, out: R.runOne(t, [xs], thingSteps).v })) : [{ in: null, out: null, note: 'חתימה ' + KEY(t) }];
+  return { ...(best || {}), example: ex };
 }

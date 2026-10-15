@@ -1,0 +1,2985 @@
+{
+ "about": "SP-FAIR — הרצה אחת של המנוע הקפוא (catalog/selfprint) + מדידה (catalog/spfair/measure.mjs). נבנה ע״י catalog/spfair/fair.mjs — לא לערוך ביד",
+ "name": "seed2",
+ "salt": 2,
+ "rounds": 3,
+ "sameBytesAsBranch": {
+  "ledger": false,
+  "compare": false,
+  "blueprints": false,
+  "found": false
+ },
+ "built": {
+  "baseline": 15094,
+  "selfprint": 15106
+ },
+ "wrongImprovements": 0,
+ "replacements": 111,
+ "blueprints": {
+  "total": 52,
+  "bySource": {
+   "success": 25,
+   "code": 23,
+   "success-of-blueprint": 4
+  },
+  "used": 52,
+  "birthedSuccess": 28,
+  "birthedBySource": {
+   "success": 19,
+   "code": 5,
+   "success-of-blueprint": 4
+  },
+  "maxDepth": 2,
+  "maxDepthUsed": 2,
+  "maxDepthSuccess": 2
+ },
+ "rounds_": [
+  {
+   "round": 1,
+   "blueprints": 48,
+   "built": 800,
+   "new": 524,
+   "replaced": 39,
+   "dup": 188,
+   "named": 52,
+   "born": 4
+  },
+  {
+   "round": 2,
+   "blueprints": 52,
+   "built": 800,
+   "new": 459,
+   "replaced": 50,
+   "dup": 227,
+   "named": 39,
+   "born": 0
+  },
+  {
+   "round": 3,
+   "blueprints": 52,
+   "built": 800,
+   "new": 459,
+   "replaced": 22,
+   "dup": 234,
+   "named": 51,
+   "born": 0
+  }
+ ],
+ "exact": {
+  "baseline": {},
+  "selfprint": {
+   "average": {
+    "exact": 1,
+    "fromOthers": 1,
+    "byBlueprint": 1,
+    "byBlueprintFair": 1,
+    "best": {
+     "id": "94e164fa6f9ccb2e",
+     "floor": "bp3",
+     "form": "bp",
+     "blueprint": "bp-c-4590428b",
+     "sig": "nums>num",
+     "steps": 90,
+     "nodes": 3,
+     "example": {
+      "in": [
+       [
+        3,
+        1,
+        2
+       ]
+      ],
+      "out": 2
+     },
+     "of": [
+      {
+       "id": "0ce602d9666a323d",
+       "form": "part",
+       "part": "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+       "verbs": [
+        "sum"
+       ]
+      },
+      {
+       "id": "b49ffdff62ca585b",
+       "form": "part",
+       "part": "inner-generator:machtzev/generator/behavior-plan.mjs#runGoal.total",
+       "verbs": [
+        "count"
+       ]
+      },
+      {
+       "id": "ad809c4c4acdb0f0",
+       "form": "part",
+       "part": "inner-generator:machtzev/generator/live-expr.mjs#trendAt.b:step",
+       "verbs": []
+      }
+     ]
+    }
+   }
+  }
+ },
+ "exactByBlueprintFair": [
+  {
+   "verb": "average",
+   "blueprint": {
+    "id": "bp-c-4590428b",
+    "source": "code",
+    "depth": 1,
+    "origin": {
+     "code": "code-0020",
+     "n": 2,
+     "at": [
+      "src/components/hosting/transitions.ts:131",
+      "src/components/shop/lib.ts:447"
+     ],
+     "names": [
+      "bookingBalance",
+      "subsidyTotal"
+     ]
+    },
+    "excl": []
+   },
+   "best": {
+    "id": "94e164fa6f9ccb2e",
+    "floor": "bp3",
+    "form": "bp",
+    "blueprint": "bp-c-4590428b",
+    "sig": "nums>num",
+    "steps": 90,
+    "nodes": 3,
+    "example": {
+     "in": [
+      [
+       3,
+       1,
+       2
+      ]
+     ],
+     "out": 2
+    },
+    "of": [
+     {
+      "id": "0ce602d9666a323d",
+      "form": "part",
+      "part": "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+      "verbs": [
+       "sum"
+      ]
+     },
+     {
+      "id": "b49ffdff62ca585b",
+      "form": "part",
+      "part": "inner-generator:machtzev/generator/behavior-plan.mjs#runGoal.total",
+      "verbs": [
+       "count"
+      ]
+     },
+     {
+      "id": "ad809c4c4acdb0f0",
+      "form": "part",
+      "part": "inner-generator:machtzev/generator/live-expr.mjs#trendAt.b:step",
+      "verbs": []
+     }
+    ]
+   }
+  }
+ ],
+ "bestGrown": {
+  "baseline": {
+   "average": {
+    "pct": 27,
+    "id": "1b71337837db4494",
+    "form": "chain",
+    "sig": "nums>num"
+   },
+   "sort": {
+    "pct": 73,
+    "id": "5199635b0c66a447",
+    "form": "chain",
+    "sig": "nums>nums"
+   },
+   "tour": {
+    "pct": null
+   },
+   "extreme": {
+    "pct": 91,
+    "id": "14a68f7dbd128db1",
+    "form": "chain",
+    "sig": "nums>num"
+   },
+   "sum": {
+    "pct": 91,
+    "id": "ad8ac712fa905d2e",
+    "form": "chain",
+    "sig": "nums>num"
+   },
+   "count": {
+    "pct": 82,
+    "id": "0e6cd6d6cde48a3a",
+    "form": "chain",
+    "sig": "nums>num"
+   },
+   "dedupe": {
+    "pct": 73,
+    "id": "19764b13237ff40f",
+    "form": "fix",
+    "sig": "nums>nums"
+   },
+   "compare": {
+    "pct": 69,
+    "id": "8bc43fb70453fbe3",
+    "form": "chain",
+    "sig": "num,num>num"
+   },
+   "median": {
+    "pct": 45,
+    "id": "1b71337837db4494",
+    "form": "chain",
+    "sig": "nums>num",
+    "metricOnly": true
+   },
+   "max": {
+    "pct": 91,
+    "id": "14a68f7dbd128db1",
+    "form": "chain",
+    "sig": "nums>num",
+    "metricOnly": true
+   }
+  },
+  "selfprint": {
+   "average": {
+    "pct": 100,
+    "id": "94e164fa6f9ccb2e",
+    "blueprint": "bp-c-4590428b",
+    "sig": "nums>num"
+   },
+   "sort": {
+    "pct": 73,
+    "id": "5199635b0c66a447",
+    "form": "chain",
+    "sig": "nums>nums"
+   },
+   "tour": {
+    "pct": null
+   },
+   "extreme": {
+    "pct": 91,
+    "id": "28e57b12ddb786f6",
+    "form": "chain",
+    "sig": "nums>num"
+   },
+   "sum": {
+    "pct": 82,
+    "id": "41b8b8b1919d537d",
+    "blueprint": "bp-c-83e340ff",
+    "sig": "nums>num"
+   },
+   "count": {
+    "pct": 82,
+    "id": "0e6cd6d6cde48a3a",
+    "form": "chain",
+    "sig": "nums>num"
+   },
+   "dedupe": {
+    "pct": 73,
+    "id": "09bd1a1252a9a6ee",
+    "blueprint": "bp-s-d52c7307",
+    "sig": "nums>nums"
+   },
+   "compare": {
+    "pct": 50,
+    "id": "be8530b92421bf4d",
+    "blueprint": "bp-c-475393d2",
+    "sig": "num,num>num"
+   },
+   "median": {
+    "pct": 55,
+    "id": "94e164fa6f9ccb2e",
+    "blueprint": "bp-c-4590428b",
+    "sig": "nums>num",
+    "metricOnly": true
+   },
+   "max": {
+    "pct": 91,
+    "id": "28e57b12ddb786f6",
+    "form": "chain",
+    "sig": "nums>num",
+    "metricOnly": true
+   }
+  }
+ },
+ "namedSpecialGrown": {
+  "baseline": 97,
+  "selfprint": 169
+ },
+ "foundByVerb": {
+  "compare": 53,
+  "rotate": 27,
+  "filter": 22,
+  "count": 19,
+  "sort": 12,
+  "reverse": 2,
+  "average": 1,
+  "dedupe": 1
+ },
+ "onTopOfBlueprints": [
+  {
+   "id": "1a2636d54458d981",
+   "round": 2,
+   "verbs": [
+    "count"
+   ],
+   "excludedByLeaveOneOut": [
+    "count"
+   ],
+   "example": {
+    "in": [
+     [
+      3,
+      1,
+      2
+     ],
+     4
+    ],
+    "out": 3
+   },
+   "blueprint": {
+    "id": "bp-s-275cf9ac",
+    "source": "success-of-blueprint",
+    "depth": 2,
+    "origin": {
+     "thing": "6e1f0ba9f8ee529d",
+     "verbs": [
+      "count"
+     ],
+     "blueprint": "bp-s-51121bd0"
+    },
+    "excl": [
+     "count",
+     "rotate"
+    ]
+   },
+   "fill": [
+    {
+     "id": "bf63481f1eca01eb",
+     "form": "part",
+     "part": "inner-orbit:src/lib/atoms/decompose/genericPreview.ts#amountPreview.pos",
+     "verbs": [
+      "filter"
+     ],
+     "example": null
+    }
+   ]
+  },
+  {
+   "id": "6890f46822d12a24",
+   "round": 2,
+   "verbs": [
+    "rotate"
+   ],
+   "excludedByLeaveOneOut": [],
+   "example": {
+    "in": [
+     [
+      3,
+      1,
+      2
+     ],
+     4
+    ],
+    "out": 2
+   },
+   "blueprint": {
+    "id": "bp-s-32ac72ff",
+    "source": "success-of-blueprint",
+    "depth": 2,
+    "origin": {
+     "thing": "eacccbafb0c940e3",
+     "verbs": [
+      "count"
+     ],
+     "blueprint": "bp-c-baed8b73"
+    },
+    "excl": [
+     "count"
+    ]
+   },
+   "fill": [
+    {
+     "id": "ab41454fe3cc367b",
+     "form": "bp",
+     "verbs": [
+      "rotate"
+     ],
+     "example": {
+      "in": [
+       [
+        3,
+        1,
+        2
+       ],
+       4
+      ],
+      "out": 3
+     }
+    }
+   ]
+  },
+  {
+   "id": "aa6e2b9a395066b6",
+   "round": 2,
+   "verbs": [
+    "count"
+   ],
+   "excludedByLeaveOneOut": [
+    "count"
+   ],
+   "example": {
+    "in": [
+     [
+      3,
+      1,
+      2
+     ],
+     4
+    ],
+    "out": 3
+   },
+   "blueprint": {
+    "id": "bp-s-4a1cb70b",
+    "source": "success-of-blueprint",
+    "depth": 2,
+    "origin": {
+     "thing": "eacccbafb0c940e3",
+     "verbs": [
+      "count"
+     ],
+     "blueprint": "bp-c-baed8b73"
+    },
+    "excl": [
+     "count"
+    ]
+   },
+   "fill": [
+    {
+     "id": "01503fa79ed128b3",
+     "form": "part",
+     "part": "inner-generator:gen/looks/app/src/10-ui.js#ring.r",
+     "verbs": [],
+     "example": null
+    }
+   ]
+  },
+  {
+   "id": "837e0eb7bde0a603",
+   "round": 2,
+   "verbs": [
+    "rotate"
+   ],
+   "excludedByLeaveOneOut": [],
+   "example": {
+    "in": [
+     [
+      3,
+      1,
+      2
+     ],
+     4
+    ],
+    "out": 3
+   },
+   "blueprint": {
+    "id": "bp-s-32ac72ff",
+    "source": "success-of-blueprint",
+    "depth": 2,
+    "origin": {
+     "thing": "eacccbafb0c940e3",
+     "verbs": [
+      "count"
+     ],
+     "blueprint": "bp-c-baed8b73"
+    },
+    "excl": [
+     "count"
+    ]
+   },
+   "fill": [
+    {
+     "id": "76cb0bb1aff491a5",
+     "form": "bp",
+     "verbs": [
+      "rotate"
+     ],
+     "example": {
+      "in": [
+       [
+        3,
+        1,
+        2
+       ],
+       4
+      ],
+      "out": 2
+     }
+    }
+   ]
+  },
+  {
+   "id": "9b6b5821646b9da5",
+   "round": 2,
+   "verbs": [
+    "sort"
+   ],
+   "excludedByLeaveOneOut": [
+    "sort"
+   ],
+   "example": {
+    "in": [
+     [
+      3,
+      1,
+      2
+     ],
+     4
+    ],
+    "out": [
+     1,
+     2,
+     3
+    ]
+   },
+   "blueprint": {
+    "id": "bp-s-38e8577f",
+    "source": "success-of-blueprint",
+    "depth": 2,
+    "origin": {
+     "thing": "9ba314ee30783cd2",
+     "verbs": [
+      "sort"
+     ],
+     "blueprint": "bp-s-54eaf242"
+    },
+    "excl": [
+     "filter",
+     "sort"
+    ]
+   },
+   "fill": [
+    {
+     "id": "548edc72dd029956",
+     "form": "bp",
+     "verbs": [
+      "reverse"
+     ],
+     "example": {
+      "in": [
+       [
+        3,
+        1,
+        2
+       ],
+       4
+      ],
+      "out": [
+       2,
+       1,
+       3
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "645b0a0c3a65b960",
+   "round": 2,
+   "verbs": [
+    "count"
+   ],
+   "excludedByLeaveOneOut": [
+    "count"
+   ],
+   "example": {
+    "in": [
+     [
+      3,
+      1,
+      2
+     ],
+     4
+    ],
+    "out": 3
+   },
+   "blueprint": {
+    "id": "bp-s-4a1cb70b",
+    "source": "success-of-blueprint",
+    "depth": 2,
+    "origin": {
+     "thing": "eacccbafb0c940e3",
+     "verbs": [
+      "count"
+     ],
+     "blueprint": "bp-c-baed8b73"
+    },
+    "excl": [
+     "count"
+    ]
+   },
+   "fill": [
+    {
+     "id": "01e29921b6905f75",
+     "form": "part",
+     "part": "inner-orbit:src/components/HebDateInput.tsx#HebDateInput.from.yy",
+     "verbs": [],
+     "example": null
+    }
+   ]
+  },
+  {
+   "id": "bf37fa607cff3d84",
+   "round": 2,
+   "verbs": [
+    "count"
+   ],
+   "excludedByLeaveOneOut": [
+    "count"
+   ],
+   "example": {
+    "in": [
+     [
+      3,
+      1,
+      2
+     ],
+     4
+    ],
+    "out": 3
+   },
+   "blueprint": {
+    "id": "bp-s-4a1cb70b",
+    "source": "success-of-blueprint",
+    "depth": 2,
+    "origin": {
+     "thing": "eacccbafb0c940e3",
+     "verbs": [
+      "count"
+     ],
+     "blueprint": "bp-c-baed8b73"
+    },
+    "excl": [
+     "count"
+    ]
+   },
+   "fill": [
+    {
+     "id": "07a3eb59257225dd",
+     "form": "part",
+     "part": "inner-generator:new/boxes/pareto.mjs#paretoReport.donorPct",
+     "verbs": [],
+     "example": null
+    }
+   ]
+  },
+  {
+   "id": "6e0f6e9ac89ea506",
+   "round": 2,
+   "verbs": [
+    "rotate"
+   ],
+   "excludedByLeaveOneOut": [],
+   "example": {
+    "in": [
+     [
+      3,
+      1,
+      2
+     ],
+     4
+    ],
+    "out": 2
+   },
+   "blueprint": {
+    "id": "bp-s-32ac72ff",
+    "source": "success-of-blueprint",
+    "depth": 2,
+    "origin": {
+     "thing": "eacccbafb0c940e3",
+     "verbs": [
+      "count"
+     ],
+     "blueprint": "bp-c-baed8b73"
+    },
+    "excl": [
+     "count"
+    ]
+   },
+   "fill": [
+    {
+     "id": "a8af9e8486c0a458",
+     "form": "bp",
+     "verbs": [
+      "rotate"
+     ],
+     "example": {
+      "in": [
+       [
+        3,
+        1,
+        2
+       ],
+       4
+      ],
+      "out": 3
+     }
+    }
+   ]
+  },
+  {
+   "id": "14cfaa76f0330932",
+   "round": 3,
+   "verbs": [
+    "rotate"
+   ],
+   "excludedByLeaveOneOut": [],
+   "example": {
+    "in": [
+     [
+      3,
+      1,
+      2
+     ],
+     4
+    ],
+    "out": 1
+   },
+   "blueprint": {
+    "id": "bp-s-32ac72ff",
+    "source": "success-of-blueprint",
+    "depth": 2,
+    "origin": {
+     "thing": "eacccbafb0c940e3",
+     "verbs": [
+      "count"
+     ],
+     "blueprint": "bp-c-baed8b73"
+    },
+    "excl": [
+     "count"
+    ]
+   },
+   "fill": [
+    {
+     "id": "41baf467040db9f3",
+     "form": "bp",
+     "verbs": [
+      "rotate"
+     ],
+     "example": {
+      "in": [
+       [
+        3,
+        1,
+        2
+       ],
+       4
+      ],
+      "out": 2
+     }
+    }
+   ]
+  },
+  {
+   "id": "1f96387f40f7074b",
+   "round": 3,
+   "verbs": [
+    "rotate"
+   ],
+   "excludedByLeaveOneOut": [],
+   "example": {
+    "in": [
+     [
+      3,
+      1,
+      2
+     ],
+     4
+    ],
+    "out": 2
+   },
+   "blueprint": {
+    "id": "bp-s-32ac72ff",
+    "source": "success-of-blueprint",
+    "depth": 2,
+    "origin": {
+     "thing": "eacccbafb0c940e3",
+     "verbs": [
+      "count"
+     ],
+     "blueprint": "bp-c-baed8b73"
+    },
+    "excl": [
+     "count"
+    ]
+   },
+   "fill": [
+    {
+     "id": "5b895868e032808c",
+     "form": "bp",
+     "verbs": [
+      "rotate"
+     ],
+     "example": {
+      "in": [
+       [
+        3,
+        1,
+        2
+       ],
+       4
+      ],
+      "out": 1
+     }
+    }
+   ]
+  },
+  {
+   "id": "770ac20c17ce6168",
+   "round": 3,
+   "verbs": [
+    "sort"
+   ],
+   "excludedByLeaveOneOut": [
+    "sort"
+   ],
+   "example": {
+    "in": [
+     [
+      3,
+      1,
+      2
+     ],
+     4
+    ],
+    "out": [
+     1,
+     2,
+     3
+    ]
+   },
+   "blueprint": {
+    "id": "bp-s-38e8577f",
+    "source": "success-of-blueprint",
+    "depth": 2,
+    "origin": {
+     "thing": "9ba314ee30783cd2",
+     "verbs": [
+      "sort"
+     ],
+     "blueprint": "bp-s-54eaf242"
+    },
+    "excl": [
+     "filter",
+     "sort"
+    ]
+   },
+   "fill": [
+    {
+     "id": "80ed552ddfbeec79",
+     "form": "bp",
+     "verbs": [
+      "sort"
+     ],
+     "example": {
+      "in": [
+       [
+        3,
+        1,
+        2
+       ],
+       4
+      ],
+      "out": [
+       1,
+       2,
+       3
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "83927e5cba85a738",
+   "round": 3,
+   "verbs": [
+    "rotate"
+   ],
+   "excludedByLeaveOneOut": [],
+   "example": {
+    "in": [
+     [
+      3,
+      1,
+      2
+     ],
+     4
+    ],
+    "out": 1
+   },
+   "blueprint": {
+    "id": "bp-s-32ac72ff",
+    "source": "success-of-blueprint",
+    "depth": 2,
+    "origin": {
+     "thing": "eacccbafb0c940e3",
+     "verbs": [
+      "count"
+     ],
+     "blueprint": "bp-c-baed8b73"
+    },
+    "excl": [
+     "count"
+    ]
+   },
+   "fill": [
+    {
+     "id": "6890f46822d12a24",
+     "form": "bp",
+     "verbs": [
+      "rotate"
+     ],
+     "example": {
+      "in": [
+       [
+        3,
+        1,
+        2
+       ],
+       4
+      ],
+      "out": 2
+     }
+    }
+   ]
+  },
+  {
+   "id": "0743724521e332c1",
+   "round": 3,
+   "verbs": [
+    "count"
+   ],
+   "excludedByLeaveOneOut": [
+    "count"
+   ],
+   "example": {
+    "in": [
+     [
+      3,
+      1,
+      2
+     ],
+     4
+    ],
+    "out": 0
+   },
+   "blueprint": {
+    "id": "bp-s-4a1cb70b",
+    "source": "success-of-blueprint",
+    "depth": 2,
+    "origin": {
+     "thing": "eacccbafb0c940e3",
+     "verbs": [
+      "count"
+     ],
+     "blueprint": "bp-c-baed8b73"
+    },
+    "excl": [
+     "count"
+    ]
+   },
+   "fill": [
+    {
+     "id": "e91cc5e96dc9ca75",
+     "form": "bp",
+     "verbs": [
+      "compare"
+     ],
+     "example": {
+      "in": [
+       0,
+       2
+      ],
+      "out": 120
+     }
+    }
+   ]
+  },
+  {
+   "id": "45f6e481d7973c45",
+   "round": 3,
+   "verbs": [
+    "count"
+   ],
+   "excludedByLeaveOneOut": [
+    "count"
+   ],
+   "example": {
+    "in": [
+     [
+      3,
+      1,
+      2
+     ],
+     4
+    ],
+    "out": 2
+   },
+   "blueprint": {
+    "id": "bp-s-32ac72ff",
+    "source": "success-of-blueprint",
+    "depth": 2,
+    "origin": {
+     "thing": "eacccbafb0c940e3",
+     "verbs": [
+      "count"
+     ],
+     "blueprint": "bp-c-baed8b73"
+    },
+    "excl": [
+     "count"
+    ]
+   },
+   "fill": [
+    {
+     "id": "80fb599386a28d27",
+     "form": "bp",
+     "verbs": [
+      "count"
+     ],
+     "example": {
+      "in": [
+       [
+        3,
+        1,
+        2
+       ],
+       4
+      ],
+      "out": 3
+     }
+    }
+   ]
+  },
+  {
+   "id": "0d3fe76ee5e0b64a",
+   "round": 3,
+   "verbs": [
+    "rotate"
+   ],
+   "excludedByLeaveOneOut": [],
+   "example": {
+    "in": [
+     [
+      3,
+      1,
+      2
+     ],
+     4
+    ],
+    "out": 1
+   },
+   "blueprint": {
+    "id": "bp-s-32ac72ff",
+    "source": "success-of-blueprint",
+    "depth": 2,
+    "origin": {
+     "thing": "eacccbafb0c940e3",
+     "verbs": [
+      "count"
+     ],
+     "blueprint": "bp-c-baed8b73"
+    },
+    "excl": [
+     "count"
+    ]
+   },
+   "fill": [
+    {
+     "id": "6e0f6e9ac89ea506",
+     "form": "bp",
+     "verbs": [
+      "rotate"
+     ],
+     "example": {
+      "in": [
+       [
+        3,
+        1,
+        2
+       ],
+       4
+      ],
+      "out": 2
+     }
+    }
+   ]
+  }
+ ],
+ "bornFromBlueprintSuccess": [
+  {
+   "id": "bp-s-275cf9ac",
+   "depth": 2,
+   "from": {
+    "thing": "6e1f0ba9f8ee529d",
+    "verbs": [
+     "count"
+    ],
+    "blueprint": "bp-s-51121bd0",
+    "example": {
+     "in": [
+      [
+       3,
+       1,
+       2
+      ],
+      4
+     ],
+     "out": 3
+    }
+   },
+   "excl": [
+    "count",
+    "rotate"
+   ],
+   "built": 14,
+   "onShelf": 8,
+   "successes": 1,
+   "made": [
+    {
+     "id": "1a2636d54458d981",
+     "round": 2,
+     "sig": "nums,num>num",
+     "verbs": [
+      "count",
+      "tier",
+      "normalize"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה nums,num>num"
+      }
+     ]
+    },
+    {
+     "id": "275d92c57cff1329",
+     "round": 3,
+     "sig": "nums,num>num",
+     "verbs": [
+      "round",
+      "tier"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה nums,num>num"
+      }
+     ]
+    },
+    {
+     "id": "5e1dc3e992eef245",
+     "round": 3,
+     "sig": "nums,num>num",
+     "verbs": [
+      "round",
+      "tier"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה nums,num>num"
+      }
+     ]
+    },
+    {
+     "id": "67d3d1e72729d483",
+     "round": 2,
+     "sig": "nums,num>num",
+     "verbs": [
+      "round",
+      "tier"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה nums,num>num"
+      }
+     ]
+    },
+    {
+     "id": "9215000ca3d53840",
+     "round": 2,
+     "sig": "nums,num>num",
+     "verbs": [
+      "round"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה nums,num>num"
+      }
+     ]
+    },
+    {
+     "id": "9288882bf297072f",
+     "round": 2,
+     "sig": "nums,num>num",
+     "verbs": [
+      "tier",
+      "normalize"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה nums,num>num"
+      }
+     ]
+    },
+    {
+     "id": "e026bacb83b8832f",
+     "round": 3,
+     "sig": "nums,num>num",
+     "verbs": [
+      "round"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה nums,num>num"
+      }
+     ]
+    },
+    {
+     "id": "e3de32ba1cb8324e",
+     "round": 3,
+     "sig": "nums,num>num",
+     "verbs": [
+      "tier",
+      "normalize"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה nums,num>num"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "bp-s-38e8577f",
+   "depth": 2,
+   "from": {
+    "thing": "9ba314ee30783cd2",
+    "verbs": [
+     "sort"
+    ],
+    "blueprint": "bp-s-54eaf242",
+    "example": {
+     "in": [
+      [
+       3,
+       1,
+       2
+      ],
+      4
+     ],
+     "out": [
+      1,
+      2,
+      3
+     ]
+    }
+   },
+   "excl": [
+    "filter",
+    "sort"
+   ],
+   "built": 14,
+   "onShelf": 12,
+   "successes": 2,
+   "made": [
+    {
+     "id": "08b5b83535ba3191",
+     "round": 2,
+     "sig": "nums,num>nums",
+     "verbs": [
+      "normalize"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה nums,num>nums"
+      }
+     ]
+    },
+    {
+     "id": "0d508ef0fa657814",
+     "round": 2,
+     "sig": "nums,num>nums",
+     "verbs": [
+      "normalize"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה nums,num>nums"
+      }
+     ]
+    },
+    {
+     "id": "299f6f300ca44d6c",
+     "round": 2,
+     "sig": "nums,num>nums",
+     "verbs": [
+      "normalize"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה nums,num>nums"
+      }
+     ]
+    },
+    {
+     "id": "4c774c5132478635",
+     "round": 3,
+     "sig": "nums,num>nums",
+     "verbs": [
+      "normalize"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה nums,num>nums"
+      }
+     ]
+    },
+    {
+     "id": "60698cc2ddf393ae",
+     "round": 3,
+     "sig": "nums,num>nums",
+     "verbs": [
+      "normalize"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה nums,num>nums"
+      }
+     ]
+    },
+    {
+     "id": "770ac20c17ce6168",
+     "round": 3,
+     "sig": "nums,num>nums",
+     "verbs": [
+      "sort"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה nums,num>nums"
+      }
+     ]
+    },
+    {
+     "id": "8485efa8a1526c64",
+     "round": 3,
+     "sig": "nums,num>nums",
+     "verbs": [
+      "normalize"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה nums,num>nums"
+      }
+     ]
+    },
+    {
+     "id": "8a7b6a5f0c7ce013",
+     "round": 3,
+     "sig": "nums,num>nums",
+     "verbs": [
+      "normalize"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה nums,num>nums"
+      }
+     ]
+    },
+    {
+     "id": "9b6b5821646b9da5",
+     "round": 2,
+     "sig": "nums,num>nums",
+     "verbs": [
+      "sort"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה nums,num>nums"
+      }
+     ]
+    },
+    {
+     "id": "aec917d0b95abc74",
+     "round": 2,
+     "sig": "nums,num>nums",
+     "verbs": [
+      "normalize"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה nums,num>nums"
+      }
+     ]
+    },
+    {
+     "id": "c93c162b24560b57",
+     "round": 2,
+     "sig": "nums,num>nums",
+     "verbs": [
+      "normalize"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה nums,num>nums"
+      }
+     ]
+    },
+    {
+     "id": "f86ecf3706baf3b3",
+     "round": 2,
+     "sig": "nums,num>nums",
+     "verbs": [
+      "normalize"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה nums,num>nums"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "bp-s-4a1cb70b",
+   "depth": 2,
+   "from": {
+    "thing": "eacccbafb0c940e3",
+    "verbs": [
+     "count"
+    ],
+    "blueprint": "bp-c-baed8b73",
+    "example": {
+     "in": [
+      [
+       3,
+       1,
+       2
+      ],
+      4
+     ],
+     "out": 3
+    }
+   },
+   "excl": [
+    "count"
+   ],
+   "built": 14,
+   "onShelf": 4,
+   "successes": 4,
+   "made": [
+    {
+     "id": "0743724521e332c1",
+     "round": 3,
+     "sig": "nums,num>num",
+     "verbs": [
+      "count",
+      "tier"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה nums,num>num"
+      }
+     ]
+    },
+    {
+     "id": "645b0a0c3a65b960",
+     "round": 2,
+     "sig": "nums,num>num",
+     "verbs": [
+      "count",
+      "tier"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה nums,num>num"
+      }
+     ]
+    },
+    {
+     "id": "aa6e2b9a395066b6",
+     "round": 2,
+     "sig": "nums,num>num",
+     "verbs": [
+      "round",
+      "count",
+      "tier"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה nums,num>num"
+      }
+     ]
+    },
+    {
+     "id": "bf37fa607cff3d84",
+     "round": 2,
+     "sig": "nums,num>num",
+     "verbs": [
+      "count",
+      "tier"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה nums,num>num"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "bp-s-32ac72ff",
+   "depth": 2,
+   "from": {
+    "thing": "eacccbafb0c940e3",
+    "verbs": [
+     "count"
+    ],
+    "blueprint": "bp-c-baed8b73",
+    "example": {
+     "in": [
+      [
+       3,
+       1,
+       2
+      ],
+      4
+     ],
+     "out": 3
+    }
+   },
+   "excl": [
+    "count"
+   ],
+   "built": 14,
+   "onShelf": 8,
+   "successes": 9,
+   "made": [
+    {
+     "id": "0d3fe76ee5e0b64a",
+     "round": 3,
+     "sig": "nums,num>num",
+     "verbs": [
+      "rotate"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה nums,num>num"
+      }
+     ]
+    },
+    {
+     "id": "14cfaa76f0330932",
+     "round": 3,
+     "sig": "nums,num>num",
+     "verbs": [
+      "rotate"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה nums,num>num"
+      }
+     ]
+    },
+    {
+     "id": "1f96387f40f7074b",
+     "round": 3,
+     "sig": "nums,num>num",
+     "verbs": [
+      "rotate"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה nums,num>num"
+      }
+     ]
+    },
+    {
+     "id": "45f6e481d7973c45",
+     "round": 3,
+     "sig": "nums,num>num",
+     "verbs": [
+      "count"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה nums,num>num"
+      }
+     ]
+    },
+    {
+     "id": "6890f46822d12a24",
+     "round": 2,
+     "sig": "nums,num>num",
+     "verbs": [
+      "rotate"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה nums,num>num"
+      }
+     ]
+    },
+    {
+     "id": "6e0f6e9ac89ea506",
+     "round": 2,
+     "sig": "nums,num>num",
+     "verbs": [
+      "rotate"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה nums,num>num"
+      }
+     ]
+    },
+    {
+     "id": "837e0eb7bde0a603",
+     "round": 2,
+     "sig": "nums,num>num",
+     "verbs": [
+      "rotate"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה nums,num>num"
+      }
+     ]
+    },
+    {
+     "id": "83927e5cba85a738",
+     "round": 3,
+     "sig": "nums,num>num",
+     "verbs": [
+      "rotate"
+     ],
+     "example": [
+      {
+       "in": null,
+       "out": null,
+       "note": "חתימה nums,num>num"
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "targets": {
+  "selfprint": {
+   "hits": [
+    {
+     "target": "range",
+     "he": "טווח (מקסימום − מינימום)",
+     "known": false,
+     "id": "c0d556e0c217c2c4",
+     "floor": "bp2",
+     "form": "bp",
+     "steps": 119,
+     "nodes": 4,
+     "blueprint": {
+      "id": "bp-c-4590428b",
+      "source": "code",
+      "depth": 1,
+      "origin": {
+       "code": "code-0020",
+       "n": 2,
+       "at": [
+        "src/components/hosting/transitions.ts:131",
+        "src/components/shop/lib.ts:447"
+       ],
+       "names": [
+        "bookingBalance",
+        "subsidyTotal"
+       ]
+      },
+      "excl": []
+     },
+     "fill": [
+      {
+       "id": "130e55561cfa0722",
+       "form": "part",
+       "part": "inner-generator:gen/looks/app/src/20-views-a.js#class.render.maxc:step",
+       "verbs": [
+        "extreme"
+       ]
+      },
+      {
+       "id": "85972efd13f234a1",
+       "form": "chain",
+       "verbs": [
+        "extreme"
+       ]
+      },
+      {
+       "id": "26afe5fa272f8c46",
+       "form": "part",
+       "part": "inner-generator:machtzev/generator/behavior-plan.mjs#valueSearch.left",
+       "verbs": [
+        "offset",
+        "convert",
+        "gap"
+       ]
+      }
+     ],
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": 8,
+       "want": 8
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": 14,
+       "want": 14
+      }
+     ]
+    },
+    {
+     "target": "secondLargest",
+     "he": "השני-בגודלו",
+     "known": false,
+     "id": "1b71337837db4494",
+     "floor": 1,
+     "form": "chain",
+     "steps": 97,
+     "nodes": 2,
+     "of": [
+      {
+       "id": "00887f585f4f3bac",
+       "form": "part",
+       "part": "inner-generator:new/boxes/pareto.mjs#paretoReport.desc",
+       "verbs": [
+        "sort"
+       ]
+      },
+      {
+       "id": "abcaac627b0f655e",
+       "form": "part",
+       "part": "inner-orbit:src/components/hosting/hui.tsx#FSelect.map.lab"
+      }
+     ],
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": 7,
+       "want": 7
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": 2.5,
+       "want": 2.5
+      }
+     ]
+    },
+    {
+     "target": "first",
+     "he": "הראשון",
+     "known": false,
+     "id": "b0731498ef2fba84",
+     "floor": 0,
+     "form": "part",
+     "steps": 13,
+     "nodes": 1,
+     "part": "inner-generator:machtzev/ds-forge.mjs#edge.cl.n",
+     "of": [],
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": 6,
+       "want": 6
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": -4,
+       "want": -4
+      }
+     ]
+    },
+    {
+     "target": "last",
+     "he": "האחרון",
+     "known": false,
+     "id": "c5a13fc06078aaec",
+     "floor": 0,
+     "form": "part",
+     "steps": 13,
+     "nodes": 1,
+     "part": "inner-buildsmart:app/src/store/app-store.ts#computed.parent",
+     "of": [],
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": 2,
+       "want": 2
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": 2.5,
+       "want": 2.5
+      }
+     ]
+    },
+    {
+     "target": "min",
+     "he": "מינימום",
+     "known": true,
+     "id": "85972efd13f234a1",
+     "floor": 1,
+     "form": "chain",
+     "steps": 93,
+     "nodes": 2,
+     "of": [
+      {
+       "id": "94abcb62cd88d67e",
+       "form": "part",
+       "part": "inner-generator:new/boxes/pareto.mjs#paretoReport.asc",
+       "verbs": [
+        "sort"
+       ]
+      },
+      {
+       "id": "b0731498ef2fba84",
+       "form": "part",
+       "part": "inner-generator:machtzev/ds-forge.mjs#edge.cl.n"
+      }
+     ],
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": 1,
+       "want": 1
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": -4,
+       "want": -4
+      }
+     ]
+    },
+    {
+     "target": "max",
+     "he": "מקסימום",
+     "known": true,
+     "id": "130e55561cfa0722",
+     "floor": 0,
+     "form": "part",
+     "steps": 13,
+     "nodes": 1,
+     "part": "inner-generator:gen/looks/app/src/20-views-a.js#class.render.maxc:step",
+     "of": [],
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": 9,
+       "want": 9
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": 10,
+       "want": 10
+      }
+     ]
+    },
+    {
+     "target": "mean",
+     "he": "ממוצע",
+     "known": true,
+     "id": "94e164fa6f9ccb2e",
+     "floor": "bp3",
+     "form": "bp",
+     "steps": 90,
+     "nodes": 3,
+     "blueprint": {
+      "id": "bp-c-4590428b",
+      "source": "code",
+      "depth": 1,
+      "origin": {
+       "code": "code-0020",
+       "n": 2,
+       "at": [
+        "src/components/hosting/transitions.ts:131",
+        "src/components/shop/lib.ts:447"
+       ],
+       "names": [
+        "bookingBalance",
+        "subsidyTotal"
+       ]
+      },
+      "excl": []
+     },
+     "fill": [
+      {
+       "id": "0ce602d9666a323d",
+       "form": "part",
+       "part": "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+       "verbs": [
+        "sum"
+       ]
+      },
+      {
+       "id": "b49ffdff62ca585b",
+       "form": "part",
+       "part": "inner-generator:machtzev/generator/behavior-plan.mjs#runGoal.total",
+       "verbs": [
+        "count"
+       ]
+      },
+      {
+       "id": "ad809c4c4acdb0f0",
+       "form": "part",
+       "part": "inner-generator:machtzev/generator/live-expr.mjs#trendAt.b:step",
+       "verbs": [
+        "convert",
+        "ratio"
+       ]
+      }
+     ],
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": 4.142857142857143,
+       "want": 4.142857142857143
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": 1.125,
+       "want": 1.125
+      }
+     ]
+    },
+    {
+     "target": "sortDesc",
+     "he": "מיון יורד",
+     "known": false,
+     "id": "00887f585f4f3bac",
+     "floor": 0,
+     "form": "part",
+     "steps": 84,
+     "nodes": 1,
+     "part": "inner-generator:new/boxes/pareto.mjs#paretoReport.desc",
+     "of": [],
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": [
+        9,
+        7,
+        6,
+        3,
+        2,
+        1,
+        1
+       ],
+       "want": [
+        9,
+        7,
+        6,
+        3,
+        2,
+        1,
+        1
+       ]
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": [
+        10,
+        2.5,
+        -4,
+        -4
+       ],
+       "want": [
+        10,
+        2.5,
+        -4,
+        -4
+       ]
+      }
+     ]
+    },
+    {
+     "target": "sortAsc",
+     "he": "מיון עולה",
+     "known": true,
+     "id": "94abcb62cd88d67e",
+     "floor": 0,
+     "form": "part",
+     "steps": 80,
+     "nodes": 1,
+     "part": "inner-generator:new/boxes/pareto.mjs#paretoReport.asc",
+     "of": [],
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": [
+        1,
+        1,
+        2,
+        3,
+        6,
+        7,
+        9
+       ],
+       "want": [
+        1,
+        1,
+        2,
+        3,
+        6,
+        7,
+        9
+       ]
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": [
+        -4,
+        -4,
+        2.5,
+        10
+       ],
+       "want": [
+        -4,
+        -4,
+        2.5,
+        10
+       ]
+      }
+     ]
+    }
+   ],
+   "near": [
+    {
+     "target": "first",
+     "he": "הראשון",
+     "known": false,
+     "id": "1eaa8497492c0ad3",
+     "floor": "bp2",
+     "form": "bp",
+     "steps": 26,
+     "nodes": 2,
+     "blueprint": {
+      "id": "bp-s-d7d8baeb",
+      "source": "success",
+      "depth": 1,
+      "origin": {
+       "thing": "85972efd13f234a1",
+       "verbs": [
+        "extreme"
+       ]
+      },
+      "excl": [
+       "extreme"
+      ]
+     },
+     "fill": [
+      {
+       "id": "50494193aa8a430f",
+       "form": "part",
+       "part": "inner-generator:new/boxes/vcard-import.mjs#phoneLabel.inner"
+      }
+     ],
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": 6,
+       "want": 6
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": -4,
+       "want": -4
+      }
+     ],
+     "wrapperOf": [
+      "b0731498ef2fba84"
+     ],
+     "stressFail": {
+      "at": 48,
+      "why": "לא רץ",
+      "len": 1
+     },
+     "stressRan": 192
+    },
+    {
+     "target": "last",
+     "he": "האחרון",
+     "known": false,
+     "id": "08906a6211b79c86",
+     "floor": "bp3",
+     "form": "bp",
+     "steps": 39,
+     "nodes": 3,
+     "blueprint": {
+      "id": "bp-s-d7d8baeb",
+      "source": "success",
+      "depth": 1,
+      "origin": {
+       "thing": "85972efd13f234a1",
+       "verbs": [
+        "extreme"
+       ]
+      },
+      "excl": [
+       "extreme"
+      ]
+     },
+     "fill": [
+      {
+       "id": "b888831e29c624e2",
+       "form": "chain"
+      }
+     ],
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": 2,
+       "want": 2
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": 2.5,
+       "want": 2.5
+      }
+     ],
+     "stressFail": {
+      "at": 48,
+      "why": "לא רץ",
+      "len": 1
+     },
+     "stressRan": 192
+    }
+   ],
+   "best": {
+    "median": {
+     "pct": 55,
+     "id": "94e164fa6f9ccb2e"
+    },
+    "range": {
+     "pct": 100,
+     "id": "c0d556e0c217c2c4"
+    },
+    "variance": {
+     "pct": 18,
+     "id": "11f3b01a0eb568fe"
+    },
+    "stdev": {
+     "pct": 18,
+     "id": "11f3b01a0eb568fe"
+    },
+    "product": {
+     "pct": 36,
+     "id": "db8662cff4ffa8eb"
+    },
+    "secondLargest": {
+     "pct": 100,
+     "id": "1b71337837db4494"
+    },
+    "argmax": {
+     "pct": 55,
+     "id": "df18977987eb1e05"
+    },
+    "argmin": {
+     "pct": 64,
+     "id": "4a59fd1ec7a43502"
+    },
+    "countAboveMean": {
+     "pct": 45,
+     "id": "72caaadefcb3d36a"
+    },
+    "sumSquares": {
+     "pct": 18,
+     "id": "6fd48c488f7d7df4"
+    },
+    "meanAbsDev": {
+     "pct": 18,
+     "id": "11f3b01a0eb568fe"
+    },
+    "sumAbs": {
+     "pct": 64,
+     "id": "0ce602d9666a323d"
+    },
+    "distinctCount": {
+     "pct": 55,
+     "id": "97c47342793b6bae"
+    },
+    "first": {
+     "pct": 100,
+     "id": "1eaa8497492c0ad3"
+    },
+    "last": {
+     "pct": 100,
+     "id": "08906a6211b79c86"
+    },
+    "min": {
+     "pct": 100,
+     "id": "85972efd13f234a1"
+    },
+    "max": {
+     "pct": 100,
+     "id": "130e55561cfa0722"
+    },
+    "mean": {
+     "pct": 100,
+     "id": "94e164fa6f9ccb2e"
+    },
+    "deviations": {
+     "pct": 9,
+     "id": "0eba1c7b32e6e7bf"
+    },
+    "shares": {
+     "pct": 9,
+     "id": "101ded5e3f5d6402"
+    },
+    "cumsum": {
+     "pct": 9,
+     "id": "101ded5e3f5d6402"
+    },
+    "sortDesc": {
+     "pct": 100,
+     "id": "00887f585f4f3bac"
+    },
+    "squares": {
+     "pct": 9,
+     "id": "101ded5e3f5d6402"
+    },
+    "aboveMean": {
+     "pct": 27,
+     "id": "0ae8107b65ed5b47"
+    },
+    "minMaxScale": {
+     "pct": 9,
+     "id": "101ded5e3f5d6402"
+    },
+    "sortAsc": {
+     "pct": 100,
+     "id": "94abcb62cd88d67e"
+    }
+   }
+  },
+  "baseline": {
+   "hits": [
+    {
+     "target": "secondLargest",
+     "he": "השני-בגודלו",
+     "known": false,
+     "id": "1b71337837db4494",
+     "floor": 1,
+     "form": "chain",
+     "steps": 97,
+     "nodes": 2,
+     "of": [
+      {
+       "id": "00887f585f4f3bac",
+       "form": "part",
+       "part": "inner-generator:new/boxes/pareto.mjs#paretoReport.desc",
+       "verbs": [
+        "sort"
+       ]
+      },
+      {
+       "id": "abcaac627b0f655e",
+       "form": "part",
+       "part": "inner-orbit:src/components/hosting/hui.tsx#FSelect.map.lab"
+      }
+     ],
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": 7,
+       "want": 7
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": 2.5,
+       "want": 2.5
+      }
+     ]
+    },
+    {
+     "target": "distinctCount",
+     "he": "כמה ערכים שונים",
+     "known": false,
+     "id": "399f777275f34706",
+     "floor": 1,
+     "form": "chain",
+     "steps": 39,
+     "nodes": 2,
+     "of": [
+      {
+       "id": "7184f07463958170",
+       "form": "part",
+       "part": "inner-orbit:src/lib/atoms/decompose/genericPreview.ts#textPreview.vals",
+       "verbs": [
+        "dedupe"
+       ]
+      },
+      {
+       "id": "b49ffdff62ca585b",
+       "form": "part",
+       "part": "inner-generator:machtzev/generator/behavior-plan.mjs#runGoal.total",
+       "verbs": [
+        "count"
+       ]
+      }
+     ],
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": 6,
+       "want": 6
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": 3,
+       "want": 3
+      }
+     ]
+    },
+    {
+     "target": "first",
+     "he": "הראשון",
+     "known": false,
+     "id": "b0731498ef2fba84",
+     "floor": 0,
+     "form": "part",
+     "steps": 13,
+     "nodes": 1,
+     "part": "inner-generator:machtzev/ds-forge.mjs#edge.cl.n",
+     "of": [],
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": 6,
+       "want": 6
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": -4,
+       "want": -4
+      }
+     ]
+    },
+    {
+     "target": "last",
+     "he": "האחרון",
+     "known": false,
+     "id": "c5a13fc06078aaec",
+     "floor": 0,
+     "form": "part",
+     "steps": 13,
+     "nodes": 1,
+     "part": "inner-buildsmart:app/src/store/app-store.ts#computed.parent",
+     "of": [],
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": 2,
+       "want": 2
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": 2.5,
+       "want": 2.5
+      }
+     ]
+    },
+    {
+     "target": "min",
+     "he": "מינימום",
+     "known": true,
+     "id": "85972efd13f234a1",
+     "floor": 1,
+     "form": "chain",
+     "steps": 93,
+     "nodes": 2,
+     "of": [
+      {
+       "id": "94abcb62cd88d67e",
+       "form": "part",
+       "part": "inner-generator:new/boxes/pareto.mjs#paretoReport.asc",
+       "verbs": [
+        "sort"
+       ]
+      },
+      {
+       "id": "b0731498ef2fba84",
+       "form": "part",
+       "part": "inner-generator:machtzev/ds-forge.mjs#edge.cl.n"
+      }
+     ],
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": 1,
+       "want": 1
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": -4,
+       "want": -4
+      }
+     ]
+    },
+    {
+     "target": "max",
+     "he": "מקסימום",
+     "known": true,
+     "id": "130e55561cfa0722",
+     "floor": 0,
+     "form": "part",
+     "steps": 13,
+     "nodes": 1,
+     "part": "inner-generator:gen/looks/app/src/20-views-a.js#class.render.maxc:step",
+     "of": [],
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": 9,
+       "want": 9
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": 10,
+       "want": 10
+      }
+     ]
+    },
+    {
+     "target": "sortDesc",
+     "he": "מיון יורד",
+     "known": false,
+     "id": "00887f585f4f3bac",
+     "floor": 0,
+     "form": "part",
+     "steps": 84,
+     "nodes": 1,
+     "part": "inner-generator:new/boxes/pareto.mjs#paretoReport.desc",
+     "of": [],
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": [
+        9,
+        7,
+        6,
+        3,
+        2,
+        1,
+        1
+       ],
+       "want": [
+        9,
+        7,
+        6,
+        3,
+        2,
+        1,
+        1
+       ]
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": [
+        10,
+        2.5,
+        -4,
+        -4
+       ],
+       "want": [
+        10,
+        2.5,
+        -4,
+        -4
+       ]
+      }
+     ]
+    },
+    {
+     "target": "sortAsc",
+     "he": "מיון עולה",
+     "known": true,
+     "id": "94abcb62cd88d67e",
+     "floor": 0,
+     "form": "part",
+     "steps": 80,
+     "nodes": 1,
+     "part": "inner-generator:new/boxes/pareto.mjs#paretoReport.asc",
+     "of": [],
+     "example": [
+      {
+       "in": [
+        6,
+        1,
+        9,
+        1,
+        3,
+        7,
+        2
+       ],
+       "out": [
+        1,
+        1,
+        2,
+        3,
+        6,
+        7,
+        9
+       ],
+       "want": [
+        1,
+        1,
+        2,
+        3,
+        6,
+        7,
+        9
+       ]
+      },
+      {
+       "in": [
+        -4,
+        10,
+        -4,
+        2.5
+       ],
+       "out": [
+        -4,
+        -4,
+        2.5,
+        10
+       ],
+       "want": [
+        -4,
+        -4,
+        2.5,
+        10
+       ]
+      }
+     ]
+    }
+   ],
+   "near": [],
+   "best": {
+    "median": {
+     "pct": 45,
+     "id": "1b71337837db4494"
+    },
+    "range": {
+     "pct": 36,
+     "id": "205ed6b7a32a6bc3"
+    },
+    "variance": {
+     "pct": 9,
+     "id": "00f12fcacb69a866"
+    },
+    "stdev": {
+     "pct": 9,
+     "id": "00f12fcacb69a866"
+    },
+    "product": {
+     "pct": 27,
+     "id": "0e6cd6d6cde48a3a"
+    },
+    "secondLargest": {
+     "pct": 100,
+     "id": "1b71337837db4494"
+    },
+    "argmax": {
+     "pct": 45,
+     "id": "a4ba02388e95ca1c"
+    },
+    "argmin": {
+     "pct": 55,
+     "id": "1ac786fd4599cbf1"
+    },
+    "countAboveMean": {
+     "pct": 45,
+     "id": "22cc37054cd60879"
+    },
+    "sumSquares": {
+     "pct": 9,
+     "id": "00b65cff03cffbb3"
+    },
+    "meanAbsDev": {
+     "pct": 9,
+     "id": "00f12fcacb69a866"
+    },
+    "sumAbs": {
+     "pct": 64,
+     "id": "0ce602d9666a323d"
+    },
+    "distinctCount": {
+     "pct": 100,
+     "id": "399f777275f34706"
+    },
+    "first": {
+     "pct": 100,
+     "id": "b0731498ef2fba84"
+    },
+    "last": {
+     "pct": 100,
+     "id": "c5a13fc06078aaec"
+    },
+    "min": {
+     "pct": 100,
+     "id": "85972efd13f234a1"
+    },
+    "max": {
+     "pct": 100,
+     "id": "130e55561cfa0722"
+    },
+    "mean": {
+     "pct": 27,
+     "id": "1b71337837db4494"
+    },
+    "deviations": {
+     "pct": 9,
+     "id": "078a1008dd071c74"
+    },
+    "shares": {
+     "pct": 9,
+     "id": "07fa973c1183d878"
+    },
+    "cumsum": {
+     "pct": 9,
+     "id": "07fa973c1183d878"
+    },
+    "sortDesc": {
+     "pct": 100,
+     "id": "00887f585f4f3bac"
+    },
+    "squares": {
+     "pct": 9,
+     "id": "07fa973c1183d878"
+    },
+    "aboveMean": {
+     "pct": 27,
+     "id": "0ae8107b65ed5b47"
+    },
+    "minMaxScale": {
+     "pct": 9,
+     "id": "07fa973c1183d878"
+    },
+    "sortAsc": {
+     "pct": 100,
+     "id": "94abcb62cd88d67e"
+    }
+   }
+  }
+ }
+}

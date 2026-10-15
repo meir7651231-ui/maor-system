@@ -416,7 +416,7 @@ function metricsOf(R, things, shelf, bpById = new Map()) {
     }
   }
   const brief = (t) => ({ id: t.id, floor: t.floor, form: t.form, ...(t.bp ? { blueprint: t.bp } : {}), sig: sigKeyOf(t), steps: t.steps, nodes: t.nParts, example: t.ex || null, of: kids(t).map((c) => ({ id: c.id, form: c.form, ...(c.part ? { part: c.part } : {}), verbs: specialVerbs(c) })) });
-  for (const e of Object.values(exact)) e.best = brief(e.best);
+  for (const e of Object.values(exact)) e.best = e.best ? brief(e.best) : null; // SP-FAIR: פועל שכל ההתאמות המדויקות שלו עטיפות ⇒ best נשאר null ⇒ קרס (זרע 1)
   const closeBest = (outsRef, sk) => { let b = null; for (const t of final) { if (!grown(t) || sigKeyOf(t) !== sk) continue; const c = L.closeness(R.samplesOf(t.sig), t.outs, outsRef); if (!b || c > b.c || (c === b.c && (t.idx ?? 0) < (b.t.idx ?? 0))) b = { c, t }; } return b; };
   const bestGrown = {};
   for (const v of WATCH) {

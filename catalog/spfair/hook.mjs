@@ -46,7 +46,7 @@ if (!globalThis.__spfairHook) {
       if (r?.url?.startsWith('file:')) {
         const fp = fileURLToPath(r.url);
         if (blockedTargets(fp)) throw new Error('🚫 SP-FAIR: המנוע לא מייבא את מטרות-המדידה');
-        if (SALT && fp === P.growLib && ctx.parentURL && fileURLToPath(ctx.parentURL) === P.growMain) return { url: SHIM + ':grow-lib', shortCircuit: true };
+        if (SALT && fp === P.growLib && ctx.parentURL?.startsWith('file:') && fileURLToPath(ctx.parentURL) === P.growMain) return { url: SHIM + ':grow-lib', shortCircuit: true };
       }
       return r;
     },

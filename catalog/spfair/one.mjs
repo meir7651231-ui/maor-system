@@ -43,7 +43,7 @@ if (!tap) throw new Error('הברז לא נקרא');
 
 const same = Object.fromEntries(Object.entries(SP.OUT).map(([k, p]) => [k, fs.existsSync(p) && fs.readFileSync(p, 'utf8') === res[k]]));
 const { TARGETS } = await import('./targets.mjs');
-const { scanTargets } = await import('./measure.mjs');
+const { scanTargets, closestTarget } = await import('./measure.mjs');
 const BUD = JSON.parse(origBudget);
 const compare = JSON.parse(res.compare);
 const found = JSON.parse(res.found);
@@ -71,6 +71,16 @@ const out = {
   foundByVerb: countBy(found.flatMap((f) => f.verbs)),
   /* בונה מעל מה שבנה: הצלחות ששרטוט-המקור שלהן נולד מדבר-משרטוט (שרשרת), עם הפעלים לאורך השרשרת */
   onTopOfBlueprints: found.filter((f) => f.blueprint.source === 'success-of-blueprint').map((f) => ({ id: f.id, round: f.round, verbs: f.verbs, excludedByLeaveOneOut: f.excludedByLeaveOneOut, example: f.example, blueprint: f.blueprint, fill: f.fill })),
+  /* שרטוטים שנולדו מהצלחה של שרטוט (בונה מעל מה שבנה): ממי נולדו, כמה בנו, ומה יצא — כל דבר חדש שעלה מהם למדף */
+  bornFromBlueprintSuccess: tap.bps.filter((b) => b.source === 'success-of-blueprint').map((b) => {
+    const parent = tap.H0.things.get(b.origin.thing);
+    const made = [...tap.H0.shelf.values()].filter((t) => t.bp === b.id).sort((x, y) => (x.id < y.id ? -1 : 1));
+    return {
+      id: b.id, depth: b.depth, from: { thing: b.origin.thing, verbs: b.origin.verbs, blueprint: b.origin.blueprint, example: parent?.ex || null }, excl: b.excl,
+      built: b.built, onShelf: made.length, successes: b.successes,
+      made: made.map((t) => ({ id: t.id, round: t.round, sig: t.sig.join(',') + '>' + t.out, verbs: (t.names || []).map((n) => n.verb), ...closestTarget({ R: tap.R, L, t, targets: TARGETS, thingSteps: BUD.thingSteps }) })),
+    };
+  }),
   targets: { selfprint: sp, baseline: bl },
 };
 fs.mkdirSync(path.join(HERE, 'runs'), { recursive: true });
