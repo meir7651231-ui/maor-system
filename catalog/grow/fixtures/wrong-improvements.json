@@ -1,0 +1,104 @@
+[
+ {
+  "id": "e477319d60d1c601",
+  "why": "השיפור השגוי מ-GROW (קומה 3, 78%): זהה על הסט הקבוע ועל 200 אקראיים, שונה על קלטי-לחץ",
+  "sig": [
+   "nums"
+  ],
+  "out": "nums",
+  "graph": {
+   "inputs": [
+    "i0"
+   ],
+   "nodes": [
+    {
+     "id": "L",
+     "loop": {
+      "over": [
+       0
+      ],
+      "init": "$i0",
+      "item": "it",
+      "state": "st",
+      "nodes": [
+       {
+        "id": "x_L",
+        "loop": {
+         "over": "$st",
+         "init": 0,
+         "item": "x_it",
+         "state": "x_st",
+         "nodes": [
+          {
+           "id": "x_m_a_n",
+           "part": "inner-orbit:src/components/parnasa/shell.ts#pushkeFill.goal",
+           "args": [
+            "$x_it"
+           ]
+          },
+          {
+           "id": "x_m_b_n",
+           "part": "inner-orbit:src/components/supporters/timemachine.ts#hokAccrual.months",
+           "args": [
+            "@x_m_a_n"
+           ]
+          }
+         ],
+         "next": "$x_st",
+         "emit": "@x_m_b_n"
+        }
+       }
+      ],
+      "next": "@x_L.emits",
+      "until": "stable",
+      "max": 12
+     }
+    }
+   ],
+   "out": "@L.state"
+  },
+  "old": {
+   "id": "4dd959980a03a08c",
+   "part": "inner-generator:machtzev/generator/balagan.mjs#buildBalagan.selfScores",
+   "where": "-ai-chat-server:machtzev/generator/balagan.mjs:96"
+  }
+ },
+ {
+  "id": "1bd3ebdb015f2f1f",
+  "why": "השיפור השגוי מ-GROW (קומה 1, 64%): זהה על הסט הקבוע ועל 200 אקראיים, שונה על קלטי-לחץ",
+  "sig": [
+   "num",
+   "nums"
+  ],
+  "out": "num",
+  "graph": {
+   "inputs": [
+    "i0",
+    "i1"
+   ],
+   "nodes": [
+    {
+     "id": "a_n",
+     "part": "inner-orbit:src/components/supporters/lib.ts#supScore.R",
+     "args": [
+      "$i0"
+     ]
+    },
+    {
+     "id": "b_n",
+     "part": "inner-generator:machtzev/purify-dart.mjs#spliceCalls.pos",
+     "args": [
+      "@a_n",
+      "$i1"
+     ]
+    }
+   ],
+   "out": "@b_n"
+  },
+  "old": {
+   "id": "1c2836b2c508cdf6",
+   "part": "inner-generator:machtzev/carve/widget-dedup.mjs#bodyOf.j:after-loop",
+   "where": "-ai-chat-server:machtzev/carve/widget-dedup.mjs:16"
+  }
+ }
+]

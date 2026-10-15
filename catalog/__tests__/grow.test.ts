@@ -8,6 +8,9 @@
  * 3. בדיקת-האמת לא נותנת שם שגוי: ‎−סכום‎ / אמצע-הטווח / "לא תמיד אותו קצה" נדחים (הממצא של BLUEPRINTS §5).
  * 4. הפנקס והמדף שבריפו עקביים: כל "ממה הוא בנוי" קיים, כל שיפור = פחות צעדים (או אותם ופחות צמתים) מאותה טביעה,
  *    כל שם של פועל חלש מגובה בבדיקת-אמת, ובלי פרטים אישיים.
+ * 5. GROW2: זבל "רשימה של פריט אחד שחוזר" ([3,1,2]⇒[1,1,1]) לא נכנס — אבל ממיין/מסיר-כפולים/אורך כן · קרבה לפעלים ·
+ *    בחירה לפי ניקוד (הטובים קודם, בלי שהטוב-ביותר יבלע הכול) · **שני השיפורים השגויים של GROW** (e477319d… ‏10^15⇒7;
+ *    1bd3ebdb… ‏100 פריטים⇒40) — זהים על הסט הקבוע ונדחים על קלטי-הלחץ (חלקים אמיתיים בארגז-החול).
  *    הדטרמיניזם המלא (הרצה שנייה ⇒ אותם בתים) = `node catalog/grow/grow.mjs --check` (כמה דקות — שער, לא בדיקה כאן).
  */
 import { describe, it, expect } from 'vitest';
@@ -15,7 +18,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { CATALOG } from '../combiner/load.mjs';
 import { graphProblem, runGraph, graphNodes } from '../combiner/graph.mjs';
-import { FORMS, partGraph, judge, samplesOf, better, semOfValue } from '../grow/lib.mjs';
+import { FORMS, partGraph, judge, samplesOf, better, semOfValue, stressSamples, stressCompare, sameOut, closeness, pickGuided } from '../grow/lib.mjs';
 import { truthOf, WEAK } from '../grow/truth.mjs';
 import { piiLeak } from '../combiner/core.mjs';
 
@@ -106,6 +109,62 @@ describe('⚖️ בדיקת-האמת לא נותנת שם שגוי', () => {
     expect(truthOf('extreme', k, ([xs]: any) => Math.min(...xs))).toBeNull();
     expect([...WEAK].sort()).toEqual(['average', 'extreme', 'sum']);
   });
+});
+
+describe('🌱 GROW2 · זבל לפני המדף, קרבה, בחירה', () => {
+  const S = samplesOf(['nums']);
+  const outsOf = (f: (xs: number[]) => any) => S.map(([xs]) => { try { const v = f(xs); return semOfValue(v) === null ? null : v; } catch { return null; } });
+  it('[3,1,2]⇒[1,1,1] (רשימה של פריט אחד שחוזר) = זבל; ממיין / מסיר-כפולים / אורך / סכום — לא', () => {
+    expect(judge(['nums'], S, outsOf((xs) => xs.map(() => 1))).junk).toBe('רשימה של פריט אחד שחוזר');
+    expect(judge(['nums'], S, outsOf((xs) => xs.map(() => xs.length))).junk).toBe('רשימה של פריט אחד שחוזר');
+    for (const f of [(xs: number[]) => [...xs].sort((a, b) => a - b), (xs: number[]) => [...new Set(xs)], (xs: number[]) => xs.length, (xs: number[]) => xs.reduce((a, b) => a + b, 0)]) expect(judge(['nums'], S, outsOf(f)).junk).toBeUndefined();
+  });
+  it('קרבה = אחוז הקלטים המעניינים (רשימות ≥2) שבהם הפלט = הייחוס', () => {
+    const ref = outsOf((xs) => [...xs].sort((a, b) => a - b));
+    expect(closeness(S, ref, ref)).toBe(1);
+    const half = closeness(S, outsOf((xs) => (xs.length % 2 ? [...xs].sort((a, b) => a - b) : xs)), ref);
+    expect(half).toBeGreaterThan(0); expect(half).toBeLessThan(1);
+    expect(closeness(S, outsOf((xs) => xs.map(() => 0)), ref)).toBe(0);
+  });
+  it('קלטי-לחץ: רשימות 40–500, מספרים עד 10^15, שליליים, כפולים — אותם בכל הרצה', () => {
+    const X = stressSamples(['nums']).map((a: any) => a[0]);
+    expect(Math.min(...X.map((x: number[]) => x.length))).toBeGreaterThanOrEqual(40);
+    expect(Math.max(...X.map((x: number[]) => x.length))).toBe(500);
+    const flat = X.flat();
+    expect(flat.some((v: number) => Math.abs(v) >= 1e15)).toBe(true);
+    expect(flat.some((v: number) => v < 0)).toBe(true);
+    expect(X.some((x: number[]) => new Set(x).size < x.length)).toBe(true);
+    expect(stressSamples(['num']).map((a: any) => a[0])).toContain(1e15);
+    expect(JSON.stringify(stressSamples(['nums', 'num']))).toBe(JSON.stringify(stressSamples(['nums', 'num'])));
+    expect(stressCompare([[1], [2]], [null, null], [null, null]).same).toBe(false); // לא רץ ⇒ אי-אפשר לדעת ⇒ לא מחליפים
+  });
+  it('בחירה לפי ניקוד: הטובים קודם, וכל עוגן מקבל תור (הטוב-ביותר לא בולע הכול)', () => {
+    const jobs = [...Array(50)].map((_, k) => ({ key: 'a' + k, anchor: 'A', anchorScore: 2, partnerScore: k % 3 })).concat([...Array(50)].map((_, k) => ({ key: 'b' + k, anchor: 'B', anchorScore: 0.6, partnerScore: 0 })));
+    const p = pickGuided(jobs, 20);
+    expect(p.length).toBe(20);
+    expect(p[0].anchor).toBe('A'); expect(p[0].partnerScore).toBe(2);
+    const nA = p.filter((j: any) => j.anchor === 'A').length;
+    expect(nA).toBeGreaterThan(10); expect(nA).toBeLessThan(20);
+    expect(JSON.stringify(pickGuided(jobs, 20))).toBe(JSON.stringify(p));
+  });
+});
+
+describe('🔴 GROW2 · שני השיפורים השגויים של GROW נדחים בקלטי-לחץ (חלקים אמיתיים)', () => {
+  const cases = JSON.parse(readFileSync(join(CATALOG, 'grow', 'fixtures', 'wrong-improvements.json'), 'utf8'));
+  it('זהים לחלק המקורי על סט-הטביעה, שונים על קלטי-הלחץ ⇒ stressCompare.same=false', async () => {
+    const { makeRuntime } = await import('../grow/runtime.mjs');
+    const only = [...new Set(cases.flatMap((c: any) => [c.old.part, ...graphNodes(c.graph).map((n: any) => n.part)]))];
+    const R: any = await makeRuntime({ callSteps: 500000, only });
+    for (const c of cases) {
+      const now = { sig: c.sig, graph: c.graph }; const old = { sig: c.sig, graph: partGraph(c.old.part, c.sig.length) };
+      const S = samplesOf(c.sig);
+      for (const a of S) expect(sameOut(R.runOne(now, a).v, R.runOne(old, a).v), c.id + ' על הסט').toBe(true);
+      const T = stressSamples(c.sig);
+      const r = stressCompare(T, T.map((a: any) => R.runOne(now, a, 2e6).v), T.map((a: any) => R.runOne(old, a, 2e6).v));
+      expect(r.same, c.id).toBe(false);
+      expect(r.differ, c.id).toBeTruthy();
+    }
+  }, 120000);
 });
 
 const G = join(CATALOG, 'grow');

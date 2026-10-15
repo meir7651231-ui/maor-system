@@ -76,6 +76,12 @@ export function judge(sig, samples, outs) {
   if (!out) return { junk: 'תמיד רשימה ריקה' };
   const texts = outs.map((o) => JSON.stringify(o === null ? null : canon(o)));
   if (texts.every((t) => t === texts[0])) return { junk: 'תמיד אותו פלט' };
+  if (LIST_OF.num === out || LIST_OF.pt === out) {
+    // GROW2 · זבל לפני המדף: כל רשימת-פלט (≥2 פריטים) עשויה מפריט אחד שחוזר — [3,1,2]⇒[1,1,1]. זו לא פעולה על
+    // הערכים אלא "רשימה של קבוע באורך הקלט". (מסיר-כפולים/ממיין עוברים: על [3,3,3] אחיד, אבל לא על כל הסט.)
+    const long = ok.filter((o) => o.length >= 2);
+    if (long.length >= 3 && long.every((o) => o.every((x) => JSON.stringify(canon(x)) === JSON.stringify(canon(o[0]))))) return { junk: 'רשימה של פריט אחד שחוזר' };
+  }
   for (let a = 0; a < sig.length; a++) {
     if (sig[a] !== out) continue;
     if (samples.every((s, k) => outs[k] !== null && JSON.stringify(canon(s[a])) === texts[k])) return { junk: 'מחזיר את הקלט כמו שהוא' };
@@ -244,4 +250,90 @@ export function sampleIdx(total, cap, seed) {
   const r = lcg(seed); const s = new Set();
   while (s.size < cap) s.add(Math.floor(r() * total));
   return [...s].sort((a, b) => a - b);
+}
+
+/* ═══════════════ GROW2 · קלטי-לחץ ═══════════════ */
+
+/**
+ * קלטי-לחץ (דטרמיניסטי) — מה שהסט הקבוע וה-200 האקראיים לא מכסים: רשימות של 40–500 פריטים, מספרים עד 10^15,
+ * שליליים, כפולים, נקודות רחוקות. שיפור מחליף ושם ניתן רק אם הם עוברים גם כאן (שני ה"שיפורים" השגויים של GROW
+ * נכשלו בדיוק כאן: 10^15 ⇒ 7 במקום 1; רשימה של 100 ⇒ 40 במקום 100).
+ */
+const BIG = [1e15, -1e15, 999999999999, 123456789012, -987654321, 2 ** 40, 1e9 + 7];
+const LENS = [40, 100, 250, 500];
+function stressOf(sem, r, k) {
+  const big = () => (r() < 0.5 ? BIG[rint(r, 0, BIG.length - 1)] : rint(r, -1e6, 1e6));
+  switch (sem) {
+    case 'num': return k < BIG.length ? BIG[k] : big();
+    case 'nums': {
+      const n = LENS[k % LENS.length];
+      const mode = Math.floor(k / LENS.length) % 3; // 0: קטנים עם כפולים · 1: ענקיים ושליליים · 2: מעורב
+      return Array.from({ length: n }, () => (mode === 0 ? rint(r, -9, 9) : mode === 1 ? big() : r() < 0.5 ? rint(r, -50, 50) : big()));
+    }
+    case 'pt': return k < 4 ? P(BIG[k % BIG.length], -BIG[(k + 1) % BIG.length]) : P(rint(r, -1e6, 1e6), rint(r, -1e6, 1e6));
+    default: {
+      const n = LENS[k % LENS.length] / (k % 2 ? 1 : 5);
+      return Array.from({ length: n }, () => (r() < 0.2 ? P(1, 1) : P(rint(r, -1e5, 1e5), rint(r, -1e5, 1e5))));
+    }
+  }
+}
+export const STRESS_N = 12;
+/** STRESS_N קלטי-לחץ לחתימה (אותם בכל הרצה). */
+export function stressSamples(sig, n = STRESS_N, seed = 0x57e55) {
+  const r = lcg(seed ^ parseInt(fnv(sig.join(',')), 16));
+  return Array.from({ length: n }, (_, k) => sig.map((s, a) => stressOf(s, r, (k + a * 5) % n)));
+}
+/** שני פלטים זהים (קנוני)? null = לא רץ. */
+export const sameOut = (x, y) => JSON.stringify(x === null ? null : canon(x)) === JSON.stringify(y === null ? null : canon(y));
+/**
+ * שתי רשימות-פלטים על קלטי-לחץ ⇒ {same, ran, n, differ?}. "זהים" = שווים בכל מקום שאחד מהם רץ; וחובה שלפחות חצי
+ * מהקלטים רצו בשניהם (אחרת אי-אפשר לדעת ⇒ לא זהים — לא מחליפים בעיוור).
+ */
+export function stressCompare(S, xs, ys) {
+  let ran = 0; let differ = null;
+  for (let k = 0; k < S.length; k++) {
+    if (xs[k] !== null && ys[k] !== null) ran++;
+    if (!sameOut(xs[k], ys[k]) && !differ) differ = { at: k, got: brief(xs[k]), want: brief(ys[k]) };
+  }
+  return { same: !differ && ran * 2 >= S.length, ran, n: S.length, ...(differ ? { differ } : {}) };
+}
+const brief = (v) => (Array.isArray(v) ? (v.length > 6 ? { len: v.length, head: canon(v.slice(0, 4)) } : canon(v)) : v === null ? null : canon(v));
+
+/* ═══════════════ GROW2 · קרבה לפעלים ═══════════════ */
+
+/**
+ * קרבה של דבר לפועל = אחוז הקלטים "המעניינים" בסט-הטביעה שבהם הפלט זהה לפלט של מימוש-הייחוס באותה חתימה.
+ * מעניין = כל קלט-רשימה ≥2 פריטים (על [] ועל [5] כמעט כל דבר "צודק" במקרה). זול: הפלטים כבר חושבו בטביעה.
+ * refOuts = פלטי-הייחוס על samplesOf(sig) (null = הייחוס לא רץ ⇒ הקלט לא נספר).
+ */
+export function closeness(S, outs, refOuts) {
+  let n = 0; let hit = 0;
+  for (let k = 0; k < S.length; k++) {
+    if (refOuts[k] === null || S[k].some((x) => Array.isArray(x) && x.length < 2)) continue;
+    n++; if (outs[k] !== null && sameOut(outs[k], refOuts[k])) hit++;
+  }
+  return n ? hit / n : 0;
+}
+/**
+ * GROW2 · בחירה לפי ניקוד: רשימת-עבודות טובות (כל אחת עם ניקוד) ⇒ cap מהן, הטובים קודם אבל בלי שהטוב-ביותר יבלע הכול:
+ * סבב-סבבים לפי "עוגן" (הדבר הטוב שבזוג), כל עוגן לוקח בסבב חלק לפי הניקוד שלו (≥1). דטרמיניסטי.
+ */
+export function pickGuided(jobs, cap) {
+  const byAnchor = new Map();
+  for (const j of jobs) { if (!byAnchor.has(j.anchor)) byAnchor.set(j.anchor, { score: j.anchorScore, list: [] }); byAnchor.get(j.anchor).list.push(j); }
+  const anchors = [...byAnchor.entries()].sort((a, b) => b[1].score - a[1].score || (a[0] < b[0] ? -1 : 1)).map(([, v]) => v);
+  for (const a of anchors) a.list.sort((x, y) => y.partnerScore - x.partnerScore || (x.key < y.key ? -1 : x.key > y.key ? 1 : 0));
+  const out = []; const seen = new Set(); const pos = anchors.map(() => 0);
+  const top = anchors.length ? anchors[0].score || 1 : 1;
+  while (out.length < cap) {
+    let moved = false;
+    for (let i = 0; i < anchors.length && out.length < cap; i++) {
+      const a = anchors[i]; const take = Math.max(1, Math.round(4 * (a.score / top)));
+      for (let t = 0; t < take && pos[i] < a.list.length && out.length < cap; ) {
+        const j = a.list[pos[i]++]; if (seen.has(j.key)) continue; seen.add(j.key); out.push(j); t++; moved = true;
+      }
+    }
+    if (!moved) break;
+  }
+  return out;
 }
