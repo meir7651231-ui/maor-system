@@ -107,13 +107,13 @@
   }
  },
  "selfprint": {
-  "shelf": 3534,
-  "namedSpecial": 222,
-  "namedSpecialGrown": 190,
+  "shelf": 3578,
+  "namedSpecial": 221,
+  "namedSpecialGrown": 189,
   "specialBy": {
    "compare": 73,
    "filter": 44,
-   "count": 24,
+   "count": 23,
    "sort": 18,
    "rotate": 17,
    "dedupe": 8,
@@ -197,9 +197,9 @@
     "sig": "nums>num"
    },
    "sum": {
-    "pct": 82,
-    "id": "41b8b8b1919d537d",
-    "blueprint": "bp-c-83e340ff",
+    "pct": 36,
+    "id": "db8662cff4ffa8eb",
+    "blueprint": "bp-c-4590428b",
     "sig": "nums>num"
    },
    "count": {
@@ -244,9 +244,9 @@
    "success-of-blueprint": 4
   },
   "used": 63,
-  "birthedSuccess": 36,
+  "birthedSuccess": 35,
   "birthedBySource": {
-   "success": 29,
+   "success": 28,
    "code": 5,
    "success-of-blueprint": 2
   },
@@ -255,7 +255,7 @@
   "maxDepthSuccess": 2
  },
  "wrongImprovements": 0,
- "replacements": 111,
+ "replacements": 99,
  "fpMismatchOnLoad": {
   "baseline": 0,
   "half": 0

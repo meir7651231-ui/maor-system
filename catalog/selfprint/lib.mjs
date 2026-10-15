@@ -274,7 +274,9 @@ export function* layered(pools, ok = () => true) {
  */
 export function* conceptsFirst(pools, understood, ok = () => true) {
   const seen = new Set();
-  const key = (c) => c.map((t) => t.id).join(',');
+  // 🔴 SELFPRINT-באג (נתפס בבדיקה): המפתח היה ‎t.id‎ — על מועמדים בלי id (עטופים) כל הצירופים קיבלו אותו מפתח, והמעבר
+  // השני (כל המאגר) לא הוציא כלום. עכשיו: המקום של כל מועמד במאגר שלו.
+  const key = (c) => c.map((t, v) => pools[v].indexOf(t)).join(',');
   const inner = pools.map((p) => p.filter(understood));
   if (inner.every((p) => p.length)) for (const c of layered(inner, ok)) { seen.add(key(c)); yield c; }
   for (const c of layered(pools, ok)) if (!seen.has(key(c))) yield c;
