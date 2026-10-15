@@ -1798,6 +1798,35 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
         </div>
         </>)}
 
+        {/* בדמו — מודעה יפה במקום התמחור/ההורדה החסומים */}
+        {isDemo && (
+          <section
+            aria-label="הדגמה"
+            style={{
+              marginTop: 16, borderRadius: 16, padding: '22px 20px', textAlign: 'center',
+              border: '1px solid var(--line)',
+              background: 'linear-gradient(135deg, color-mix(in srgb, var(--accent) 10%, var(--panel)), var(--panel))',
+            }}
+          >
+            <div style={{ fontSize: 30, lineHeight: 1 }}>✨</div>
+            <h3 style={{ fontSize: 17, fontWeight: 800, margin: '10px 0 4px' }}>זו תצוגת הדגמה</h3>
+            <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', margin: '0 auto', maxWidth: 360, lineHeight: 1.5 }}>
+              הרכיבו וכבו מודולים כאוות נפשכם — ככה המערכת מתלבשת על כל ארגון.
+              הצעת-המחיר, דף-המסירה והורדת-החבילה זמינים בגרסה המלאה.
+            </p>
+            <a
+              href="/"
+              style={{
+                display: 'inline-block', marginTop: 14, fontSize: 14, fontWeight: 700,
+                textDecoration: 'none', color: 'var(--accent-ink, #fff)', background: 'var(--accent)',
+                padding: '11px 24px', borderRadius: 999,
+              }}
+            >
+              רוצים אתר משלכם? דברו איתנו ←
+            </a>
+          </section>
+        )}
+
         {/* רצועת ה-white-label ממוקאפ צֹהַר — הדגמת "המערכת מתלבשת" בפגישה */}
         <section
           aria-label="הדגמת הפלטפורמה"

@@ -135,4 +135,10 @@ describe('הגנת-מקור — בדמו: תמחור והורדת-החבילה �
     // מתגי-ההגדרה (WIZARD_SECTIONS) נשארים מחוץ לבלוק החסום — מוצגים גם בדמו
     expect(wizardSrc.indexOf('WIZARD_SECTIONS.map(renderModuleSection)')).toBeLessThan(start);
   });
+
+  it('בדמו מוצגת מודעה יפה במקום התמחור/ההורדה', () => {
+    expect(wizardSrc).toContain('{isDemo && (');
+    expect(wizardSrc).toContain('זו תצוגת הדגמה');
+    expect(wizardSrc).toContain('רוצים אתר משלכם? דברו איתנו');
+  });
 });
