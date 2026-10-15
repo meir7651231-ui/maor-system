@@ -38,6 +38,14 @@ jobs:
       - name: Build
         run: npm run build
 
+      # 🚦 סגירת-פערים 15.10: בדיקת-הדגלים בדפדפן ("כל כיבוי מכבה — ושום כיבוי לא
+      # שובר": ברירת-מחדל · 101 דגלים כבויים · כיבוי-בודד) רצה עד היום רק ידנית.
+      # Chrome מותקן מראש ב-ubuntu-latest ⇒ אפס הורדה.
+      - name: Flags in a real browser (flagmax-smoke)
+        env:
+          CHROME: /usr/bin/google-chrome
+        run: node e2e/flagmax-smoke.mjs
+
   # 🛡️ ביקורת-האמון 24.8: סוויטת ה-red-team של Firestore Rules הייתה מוגדרת
   # (npm run test:rules) אך לא רצה ב-CI — שינוי-Rules שובר-בידוד היה עובר בשקט.
   # ג'וב נפרד: האמולטור (~1ד') לא מאט את שער-הקוד הראשי.
