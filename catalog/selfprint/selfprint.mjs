@@ -69,7 +69,7 @@ function growSources() { let s = J(BUD); for (const f of ['grow.mjs', 'lib.mjs',
 async function growRun(name, b, fresh) {
   fs.mkdirSync(CACHE, { recursive: true });
   const key = growSources();
-  const out = path.join(CACHE, name + '-' + key + '.json');
+  const out = path.join(CACHE, name + '-' + L.fnv(key + J(b)) + '.json'); // MINER2: גם התקציב במפתח (ה-baseline נגזר מהריצה)
   if (!fresh && fs.existsSync(out)) return JSON.parse(fs.readFileSync(out, 'utf8'));
   const bf = path.join(CACHE, name + '-budget.json');
   fs.writeFileSync(bf, J({ ...b, callSteps: BUD.callSteps, thingSteps: BUD.thingSteps, nameSteps: BUD.nameSteps }));
@@ -241,7 +241,9 @@ function originVerbs(R, shape, o) {
 
 /* ═══════════════ שלב 2: השרטוטים ═══════════════ */
 
-async function selfprint({ R, things, shelf, log, shapes = CODE.shapes }) {
+/** MINER2 סבב 2 (החלטת-מנהל, נקבעה לפני הריצה): צורה "מבנית" — לולאה-בתוך-לולאה · until ("חזור עד שאין שינוי") · "בחר את הטוב". */
+export const isStructural = (sh) => (sh.feats || []).includes('best') || JSON.stringify(sh.graph).includes('"until":"stable"') || sh.graph.nodes.some((n) => n.loop && n.loop.nodes.some((m) => m.loop));
+async function selfprint({ R, things, shelf, log, shapes = CODE.shapes, perBp = null }) {
   const bps = []; const bpByKey = new Map();
   let nextIdx = Math.max(0, ...[...things.values()].map((t) => t.idx || 0)) + 1;
   const addBp = (bp) => {
@@ -261,7 +263,7 @@ async function selfprint({ R, things, shelf, log, shapes = CODE.shapes }) {
     return t;
   });
   /* מקור 2 — הקוד */
-  for (const sh of shapes.filter((x) => x.n >= BUD.minSupport)) { // "מבנים שחוזרים" — שלד שנמצא בפונקציה אחת בלבד לא נכנס
+  for (const sh of shapes.filter((x) => x.n >= BUD.minSupport || (perBp && isStructural(x) && x.n >= BUD.structuralMinSupport))) { // "מבנים שחוזרים" — שלד שנמצא בפונקציה אחת בלבד לא נכנס
     const per = sh.origins.map((o) => originVerbs(R, sh, o));
     const taint = (sh.taint || []).map((o) => originVerbs(R, sh, o));
     // MINER2 · השאר-אחד-בחוץ **חמור** (הבעלים: "כל פונקציה שהתנהגותה = מסלול… לא תורמת שלד לגילוי מסלול; אותו דבר לכל
@@ -341,16 +343,29 @@ async function selfprint({ R, things, shelf, log, shapes = CODE.shapes }) {
       }
     }
     const jobs = []; const done = gens.map(() => false);
-    while (jobs.length < BUD.perRound && done.some((d) => !d)) {
-      for (let i = 0; i < gens.length && jobs.length < BUD.perRound; i++) {
-        if (done[i]) continue;
-        for (let k = 0; k < gens[i].take && jobs.length < BUD.perRound; ) {
+    /* MINER2 סבב 2 · תקציב-לשרטוט קבוע: כל שרטוט ≤ perBp חיבורים בסך-הכול (מחולק שווה בין הסבבים), סדר = קודם מה שחוזר
+       בהכי הרבה פונקציות. בלי perBp — כמו SELFPRINT (perRound לסבב, round-robin). */
+    const cap = perBp ? Infinity : BUD.perRound;
+    const quota = new Map();
+    if (perBp) {
+      const q = Math.floor((perBp * rd) / BUD.rounds) - Math.floor((perBp * (rd - 1)) / BUD.rounds);
+      for (const g of gens) quota.set(g.b, q);
+      const nOf = (b) => b.origin?.n || 1;
+      const order = gens.map((g, i) => i).sort((a, b) => nOf(gens[b].b) - nOf(gens[a].b) || a - b);
+      const sorted = order.map((i) => gens[i]); gens.length = 0; gens.push(...sorted);
+    }
+    const hasQuota = (g) => !perBp || quota.get(g.b) > 0;
+    while (jobs.length < cap && done.some((d, i) => !d && hasQuota(gens[i]))) {
+      for (let i = 0; i < gens.length && jobs.length < cap; i++) {
+        if (done[i] || !hasQuota(gens[i])) continue;
+        for (let k = 0; k < gens[i].take && jobs.length < cap && hasQuota(gens[i]); ) {
           const n = gens[i].it.next();
           if (n.done) { done[i] = true; break; }
           const g = gens[i]; const fill = g.unwrap ? n.value.map((x) => x.t) : n.value;
           const key = g.b.id + '(' + fill.map((t) => t.id).join(',') + ')';
           if (builtKeys.has(key)) continue;
           builtKeys.add(key); jobs.push({ g, fill, key }); k++;
+          if (perBp) quota.set(g.b, quota.get(g.b) - 1);
         }
       }
     }
@@ -470,13 +485,22 @@ function wrongImprovements(R, things, replacements) {
 /* ═══════════════ הריצה ═══════════════ */
 
 export async function run({ log = () => {}, fresh = false } = {}) {
-  const [base, half] = await Promise.all([growRun('baseline', BUD.baseline, fresh), growRun('half', BUD.half, fresh)]);
-  log('הצמיחה: baseline + half מוכנים');
+  /* MINER2 סבב 2 · השוואה הוגנת: קודם half + השרטוטים (תקציב-לשרטוט); ה-baseline (צמיחה בלי שרטוטים) מקבל אחר-כך **אותו
+     תקציב-כולל** — חצי-הצמיחה + כל החיבורים שהשרטוטים בנו בפועל, באותו יחס בנייה:אונרי (3:1) כמו budget.json, על אותן קומות. */
+  const half = await growRun('half', BUD.half, fresh);
   const R = await shared();
-  const B0 = loadShelf(R, base.shelfFiles);
   const H0 = loadShelf(R, half.shelfFiles);
-  log(`מדפים: baseline ${B0.shelf.size} (טביעה שונה בטעינה: ${B0.fpMismatch}) · half ${H0.shelf.size} (${H0.fpMismatch})`);
-  const { bps, rounds, replacements } = await selfprint({ R, things: H0.things, shelf: H0.shelf, log });
+  log(`מדף half ${H0.shelf.size} (טביעה שונה בטעינה: ${H0.fpMismatch})`);
+  const { bps, rounds, replacements } = await selfprint({ R, things: H0.things, shelf: H0.shelf, log, perBp: BUD.perBlueprint });
+  const halfBudget = BUD.half.maxFloors * (BUD.half.buildsPerFloor + BUD.half.unaryPerFloor);
+  const bpBuilt = rounds.reduce((a, F) => a + F.built, 0);
+  const perFloor = Math.round((halfBudget + bpBuilt) / BUD.baseline.maxFloors);
+  const unary = Math.round(perFloor / 4);
+  const baselineBudget = { maxFloors: BUD.baseline.maxFloors, buildsPerFloor: perFloor - unary, unaryPerFloor: unary };
+  log(`baseline נגזר: ${J(baselineBudget)} (half ${halfBudget} + שרטוטים ${bpBuilt})`);
+  const base = await growRun('baseline', baselineBudget, fresh);
+  const B0 = loadShelf(R, base.shelfFiles);
+  log(`מדף baseline ${B0.shelf.size} (${B0.fpMismatch})`);
   const bpById = new Map(bps.map((b) => [b.id, b]));
   const mBase = metricsOf(R, B0.things, B0.shelf);
   const mSelf = metricsOf(R, H0.things, H0.shelf, bpById);
@@ -487,7 +511,7 @@ export async function run({ log = () => {}, fresh = false } = {}) {
   /* MINER2 · השלדים מהקוד: כמה נכנסו (≥minSupport), כמה מקבלים סוג, כמה נבנו, כמה רצו (נמדד, לא זבל), כמה הביאו חדש/שם */
   const codeStats = (xs) => ({ blueprints: xs.length, typed: xs.filter((b) => b.typed).length, built: xs.filter((b) => b.built).length, ran: xs.filter((b) => b.ran).length, fresh: xs.filter((b) => b.fresh).length, success: xs.filter((b) => b.successes).length });
   const codeBps = bps.filter((b) => b.source === 'code');
-  const codeSummary = { all: codeStats(codeBps), v1: codeStats(codeBps.filter((b) => b.by.includes('v1'))), v2Only: codeStats(codeBps.filter((b) => !b.by.includes('v1'))), byFeat: Object.fromEntries([...new Set(codeBps.flatMap((b) => b.feats))].sort().map((f) => [f, codeStats(codeBps.filter((b) => b.feats.includes(f)))])) };
+  const codeSummary = { all: codeStats(codeBps), v1: codeStats(codeBps.filter((b) => b.by.includes('v1'))), v2Only: codeStats(codeBps.filter((b) => !b.by.includes('v1'))), structural: codeStats(codeBps.filter((b) => isStructural(b))), structuralSingle: codeStats(codeBps.filter((b) => isStructural(b) && b.origin.n < BUD.minSupport)), byFeat: Object.fromEntries([...new Set(codeBps.flatMap((b) => b.feats))].sort().map((f) => [f, codeStats(codeBps.filter((b) => b.feats.includes(f)))])) };
   const blueprintsSummary = {
     total: bps.length,
     bySource: countBy(bps.map((b) => b.source)),
@@ -506,7 +530,7 @@ export async function run({ log = () => {}, fresh = false } = {}) {
   });
   const compare = {
     about: 'SELFPRINT — אותו תקציב-חיבורים: baseline = צמיחת GROW3 (score) ב-budget.baseline; selfprint = אותה צמיחה ב-budget.half + השרטוטים-העצמיים (rounds × perRound). המדדים — אותה הגדרה לשתיהן (selfprint.mjs › metricsOf). נבנה ע״י selfprint.mjs — לא לערוך ביד',
-    budget: BUD, built: builtTotal,
+    budget: { ...BUD, baselineDerived: baselineBudget, blueprintBuilds: bpBuilt }, built: builtTotal,
     baseline: mBase, selfprint: mSelf,
     blueprints: blueprintsSummary,
     wrongImprovements: wrong, replacements: replacements.length,

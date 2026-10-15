@@ -1,7 +1,7 @@
 {
  "about": "SELFPRINT — אותו תקציב-חיבורים: baseline = צמיחת GROW3 (score) ב-budget.baseline; selfprint = אותה צמיחה ב-budget.half + השרטוטים-העצמיים (rounds × perRound). המדדים — אותה הגדרה לשתיהן (selfprint.mjs › metricsOf). נבנה ע״י selfprint.mjs — לא לערוך ביד",
  "budget": {
-  "about": "התקציב המוצהר של מנוע-השרטוטים-העצמי (catalog/selfprint/selfprint.mjs) — הרצה קטנה ('תריץ בקטנה לראות באמת שזה עובד'). baseline = הצמיחה של GROW3 (mode score, בלי שרטוטים) בתקציב המלא: floors × (pairs + unary). selfprint = אותה צמיחה בחצי התקציב (half) + השרטוטים בחצי השני: rounds סבבים × perRound חיבורים. סך החיבורים זהה בשתי הריצות. callSteps/thingSteps/nameSteps — כמו catalog/grow/budget.json · poolCap = כמה מועמדים לכל חור לכל היותר (קודם עם-שם-מיוחד, אחר-כך הכי פשוט — פחות צעדים; בחור-אופרטור מהקוד: קודם מה שמתנהג כמו האופרטור) · typings = כמה השמות-סוג לכל שלד-מהקוד (קודם אלה שבחורים שלהם יש דברים עם שם מיוחד) · novelty = הצלחה הופכת לשרטוט רק אם לאחד הפעלים המיוחדים שלה היו פחות מ-novelty שרטוטים-מהצלחה · minSupport = שלד-מהקוד נכנס רק אם חוזר בלפחות כך פונקציות ('מבנים שחוזרים')",
+  "about": "התקציב המוצהר של מנוע-השרטוטים-העצמי (catalog/selfprint/selfprint.mjs) — הרצה קטנה ('תריץ בקטנה לראות באמת שזה עובד'). baseline = הצמיחה של GROW3 (mode score, בלי שרטוטים) בתקציב המלא: floors × (pairs + unary). selfprint = אותה צמיחה בחצי התקציב (half) + השרטוטים בחצי השני: rounds סבבים × perRound חיבורים. סך החיבורים זהה בשתי הריצות. callSteps/thingSteps/nameSteps — כמו catalog/grow/budget.json · poolCap = כמה מועמדים לכל חור לכל היותר (קודם עם-שם-מיוחד, אחר-כך הכי פשוט — פחות צעדים; בחור-אופרטור מהקוד: קודם מה שמתנהג כמו האופרטור) · typings = כמה השמות-סוג לכל שלד-מהקוד (קודם אלה שבחורים שלהם יש דברים עם שם מיוחד) · novelty = הצלחה הופכת לשרטוט רק אם לאחד הפעלים המיוחדים שלה היו פחות מ-novelty שרטוטים-מהצלחה · minSupport = שלד-מהקוד נכנס רק אם חוזר בלפחות כך פונקציות ('מבנים שחוזרים') · MINER2 סבב 2 (החלטת-מנהל, נקבעה לפני הריצה): perBlueprint = חיבורים לכל שרטוט בסך-הכול (≈2,400/63 של SELFPRINT), מחולקים שווה בין rounds, סדר = שרטוטים שחוזרים בהכי הרבה פונקציות קודם (perRound חל רק על הביקורת-v1) · structuralMinSupport = צורות מבניות (לולאה-בלולאה · until · בחר-את-הטוב) נכנסות כבר מפונקציה אחת · baseline נגזר בריצה: אותו תקציב-כולל כמו half + חיבורי-השרטוטים (baseline כאן = הקומות בלבד)",
   "baseline": {
    "maxFloors": 3,
    "buildsPerFloor": 1200,
@@ -20,26 +20,34 @@
   "poolCap": 24,
   "typings": 2,
   "novelty": 3,
-  "minSupport": 2
+  "minSupport": 2,
+  "perBlueprint": 38,
+  "structuralMinSupport": 1,
+  "baselineDerived": {
+   "maxFloors": 3,
+   "buildsPerFloor": 1695,
+   "unaryPerFloor": 565
+  },
+  "blueprintBuilds": 4381
  },
  "built": {
-  "baseline": 15096,
-  "selfprint": 15105
+  "baseline": 17068,
+  "selfprint": 17086
  },
  "baseline": {
-  "shelf": 3901,
-  "namedSpecial": 111,
-  "namedSpecialGrown": 79,
+  "shelf": 5382,
+  "namedSpecial": 160,
+  "namedSpecialGrown": 128,
   "specialBy": {
-   "compare": 31,
-   "filter": 25,
-   "sort": 8,
+   "compare": 62,
+   "filter": 35,
+   "sort": 9,
+   "count": 6,
    "rotate": 5,
    "dedupe": 4,
    "reverse": 3,
-   "count": 1,
-   "extreme": 1,
-   "tolerate": 1
+   "tolerate": 3,
+   "extreme": 1
   },
   "exactRebuilt": {},
   "exactFromOthers": 0,
@@ -68,7 +76,7 @@
    },
    "sum": {
     "pct": 91,
-    "id": "ad8ac712fa905d2e",
+    "id": "157194f50217d219",
     "form": "chain",
     "sig": "nums>num"
    },
@@ -85,9 +93,9 @@
     "sig": "nums>nums"
    },
    "compare": {
-    "pct": 94,
-    "id": "1717db4d4bca8e19",
-    "form": "pair",
+    "pct": 63,
+    "id": "5f5d04dd54363559",
+    "form": "chain",
     "sig": "num,num>num"
    },
    "median": {
@@ -107,17 +115,17 @@
   }
  },
  "selfprint": {
-  "shelf": 3301,
-  "namedSpecial": 180,
-  "namedSpecialGrown": 148,
+  "shelf": 4157,
+  "namedSpecial": 292,
+  "namedSpecialGrown": 260,
   "specialBy": {
-   "filter": 61,
-   "compare": 43,
-   "count": 14,
-   "dedupe": 9,
-   "rotate": 8,
-   "sort": 7,
-   "reverse": 4,
+   "filter": 89,
+   "compare": 85,
+   "count": 34,
+   "sort": 20,
+   "dedupe": 12,
+   "rotate": 12,
+   "reverse": 6,
    "extreme": 2
   },
   "exactRebuilt": {
@@ -128,7 +136,7 @@
     "byBlueprintFair": 0,
     "best": {
      "id": "7e2485bc08b1e838",
-     "floor": "bp3",
+     "floor": "bp2",
      "form": "bp",
      "blueprint": "bp-c-15575858",
      "sig": "num,num>num",
@@ -232,17 +240,17 @@
   }
  },
  "blueprints": {
-  "total": 148,
+  "total": 154,
   "bySource": {
-   "code": 103,
+   "code": 109,
    "success": 36,
    "success-of-blueprint": 9
   },
-  "used": 137,
-  "birthedSuccess": 36,
+  "used": 143,
+  "birthedSuccess": 46,
   "birthedBySource": {
-   "success": 22,
-   "code": 13,
+   "success": 29,
+   "code": 16,
    "success-of-blueprint": 1
   },
   "maxDepth": 2,
@@ -250,12 +258,12 @@
   "maxDepthSuccess": 2,
   "code": {
    "all": {
-    "blueprints": 103,
-    "typed": 92,
-    "built": 92,
-    "ran": 83,
-    "fresh": 82,
-    "success": 13
+    "blueprints": 109,
+    "typed": 98,
+    "built": 98,
+    "ran": 86,
+    "fresh": 85,
+    "success": 16
    },
    "v1": {
     "blueprints": 24,
@@ -263,32 +271,56 @@
     "built": 24,
     "ran": 24,
     "fresh": 24,
-    "success": 2
+    "success": 3
    },
    "v2Only": {
-    "blueprints": 79,
-    "typed": 68,
-    "built": 68,
-    "ran": 59,
-    "fresh": 58,
-    "success": 11
+    "blueprints": 85,
+    "typed": 74,
+    "built": 74,
+    "ran": 62,
+    "fresh": 61,
+    "success": 13
+   },
+   "structural": {
+    "blueprints": 6,
+    "typed": 6,
+    "built": 6,
+    "ran": 3,
+    "fresh": 3,
+    "success": 1
+   },
+   "structuralSingle": {
+    "blueprints": 6,
+    "typed": 6,
+    "built": 6,
+    "ran": 3,
+    "fresh": 3,
+    "success": 1
    },
    "byFeat": {
+    "best": {
+     "blueprints": 3,
+     "typed": 3,
+     "built": 3,
+     "ran": 0,
+     "fresh": 0,
+     "success": 0
+    },
     "compare": {
-     "blueprints": 29,
-     "typed": 26,
-     "built": 26,
-     "ran": 22,
-     "fresh": 22,
+     "blueprints": 33,
+     "typed": 30,
+     "built": 30,
+     "ran": 23,
+     "fresh": 23,
      "success": 3
     },
     "filter": {
-     "blueprints": 6,
-     "typed": 5,
-     "built": 5,
-     "ran": 5,
-     "fresh": 5,
-     "success": 5
+     "blueprints": 7,
+     "typed": 6,
+     "built": 6,
+     "ran": 6,
+     "fresh": 6,
+     "success": 6
     },
     "guard": {
      "blueprints": 1,
@@ -299,19 +331,27 @@
      "success": 0
     },
     "if": {
-     "blueprints": 22,
-     "typed": 19,
-     "built": 19,
-     "ran": 18,
-     "fresh": 17,
+     "blueprints": 23,
+     "typed": 20,
+     "built": 20,
+     "ran": 19,
+     "fresh": 18,
      "success": 3
     },
     "index-loop": {
-     "blueprints": 2,
-     "typed": 2,
-     "built": 2,
+     "blueprints": 5,
+     "typed": 5,
+     "built": 5,
      "ran": 2,
      "fresh": 2,
+     "success": 0
+    },
+    "loop-if": {
+     "blueprints": 3,
+     "typed": 3,
+     "built": 3,
+     "ran": 0,
+     "fresh": 0,
      "success": 0
     },
     "math": {
@@ -323,9 +363,9 @@
      "success": 0
     },
     "ternary": {
-     "blueprints": 23,
-     "typed": 17,
-     "built": 17,
+     "blueprints": 24,
+     "typed": 18,
+     "built": 18,
      "ran": 15,
      "fresh": 15,
      "success": 3
@@ -334,7 +374,7 @@
   }
  },
  "wrongImprovements": 0,
- "replacements": 71,
+ "replacements": 179,
  "fpMismatchOnLoad": {
   "baseline": 0,
   "half": 0
