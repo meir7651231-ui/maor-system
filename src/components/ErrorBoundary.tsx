@@ -1,4 +1,5 @@
 import { Component, type ReactNode } from 'react';
+import { recordError } from '../lib/errorLog';
 
 /**
  * גבול-שגיאה גלובלי — אפליקציה local-first ללא שרת: חריגה לא-תפוסה ב-render
@@ -14,6 +15,7 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, { err: Err
 
   componentDidCatch(err: Error) {
     console.error('ErrorBoundary:', err);
+    recordError(err, 'מסך'); // 🧯 מגיע ללוג-הפעולות של המנהל (לא רק ל-console של הלקוח)
   }
 
   render() {

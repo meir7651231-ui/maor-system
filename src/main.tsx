@@ -2,6 +2,18 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { installErrorCapture, setErrorSink } from './lib/errorLog';
+import { useApp } from './store/useApp';
+
+// 🧯 שגיאות-לקוח ⇒ לוג-הפעולות (מסתנכרן לענן ⇒ מגיע לבעלים). רק אחרי טעינת-המאגר
+// ופענוחו — כתיבה למאגר ריק לפני ה-hydrate הייתה דורסת את הנתונים בשמירה הבאה.
+setErrorSink((act, what) => {
+  const s = useApp.getState();
+  if (!s.ready || s.needDecrypt) return false;
+  s.logAccess(act, what);
+  return true;
+});
+installErrorCapture();
 
 // ⚡ מגן-רענון ל-chunks עצלים (VISION-LIGHT ‏#13): deploy מחליף את קובצי-ה-assets
 // המגובבים ⇒ ייבוא-עצל מלשונית ישנה נופל (404). רענון-עצמי חד-פעמי מרים את
