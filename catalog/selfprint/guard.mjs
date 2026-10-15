@@ -15,6 +15,7 @@ export const HIDDEN = [
   /catalog\/combiner\/lab-data\.json$/, /catalog\/blueprints\/found\//,
   /catalog\/blueprints\/shapes\.mjs$/, /catalog\/blueprints\/library\.json$/, /catalog\/blueprints\/ledger\.json$/,
   /catalog\/blueprints\/search\.mjs$/, // מייבא את shapes.mjs
+  /catalog\/spfair\/hidden\//, // RINGS-PORT: המבחן הנסתר (נעול ב-sha256) — המנוע לא קורא ולא מייבא
 ];
 export const hiddenPath = (p) => { const s = String(p instanceof URL ? fileURLToPath(p) : p).replace(/\\/g, '/'); return HIDDEN.some((r) => r.test(s)); };
 

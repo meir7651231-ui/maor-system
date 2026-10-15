@@ -1,0 +1,265 @@
+{
+ "about": "SP-FAIR — סיכום כל ההרצות (fair.mjs). לא לערוך ביד",
+ "runs": {
+  "s0": {
+   "salt": 0,
+   "rounds": 3,
+   "sameBytesAsBranch": true,
+   "exactFair": [
+    "average"
+   ],
+   "exactBaseline": [],
+   "averagePct": {
+    "baseline": 27,
+    "selfprint": 100
+   },
+   "blueprints": 63,
+   "success": 35,
+   "maxDepthSuccess": 2,
+   "wrongImprovements": 0
+  },
+  "seed1": {
+   "salt": 1,
+   "rounds": 3,
+   "sameBytesAsBranch": false,
+   "exactFair": [
+    "average"
+   ],
+   "exactBaseline": [],
+   "averagePct": {
+    "baseline": 36,
+    "selfprint": 100
+   },
+   "blueprints": 70,
+   "success": 44,
+   "maxDepthSuccess": 2,
+   "wrongImprovements": 0
+  },
+  "seed2": {
+   "salt": 2,
+   "rounds": 3,
+   "sameBytesAsBranch": false,
+   "exactFair": [
+    "average"
+   ],
+   "exactBaseline": [],
+   "averagePct": {
+    "baseline": 27,
+    "selfprint": 100
+   },
+   "blueprints": 52,
+   "success": 28,
+   "maxDepthSuccess": 2,
+   "wrongImprovements": 0
+  },
+  "seed3": {
+   "salt": 3,
+   "rounds": 3,
+   "sameBytesAsBranch": false,
+   "exactFair": [
+    "average"
+   ],
+   "exactBaseline": [],
+   "averagePct": {
+    "baseline": 27,
+    "selfprint": 100
+   },
+   "blueprints": 58,
+   "success": 28,
+   "maxDepthSuccess": 2,
+   "wrongImprovements": 0
+  },
+  "r6": {
+   "salt": 0,
+   "rounds": 6,
+   "sameBytesAsBranch": false,
+   "exactFair": [
+    "average"
+   ],
+   "exactBaseline": [],
+   "averagePct": {
+    "baseline": 27,
+    "selfprint": 100
+   },
+   "blueprints": 66,
+   "success": 37,
+   "maxDepthSuccess": 2,
+   "wrongImprovements": 0
+  }
+ },
+ "exactFairBy": {
+  "average": [
+   "s0",
+   "seed1",
+   "seed2",
+   "seed3",
+   "r6"
+  ]
+ },
+ "targetsHitBy": {
+  "distinctCount": {
+   "he": "כמה ערכים שונים",
+   "known": false,
+   "selfprint": [],
+   "baseline": [
+    "s0",
+    "seed1",
+    "seed2",
+    "seed3",
+    "r6"
+   ],
+   "byBlueprint": [],
+   "alreadyPart": []
+  },
+  "first": {
+   "he": "הראשון",
+   "known": false,
+   "selfprint": [],
+   "baseline": [],
+   "byBlueprint": [],
+   "alreadyPart": [
+    "s0",
+    "seed1",
+    "seed2",
+    "seed3",
+    "r6"
+   ]
+  },
+  "last": {
+   "he": "האחרון",
+   "known": false,
+   "selfprint": [],
+   "baseline": [],
+   "byBlueprint": [],
+   "alreadyPart": [
+    "s0",
+    "seed1",
+    "seed2",
+    "seed3",
+    "r6"
+   ]
+  },
+  "max": {
+   "he": "מקסימום",
+   "known": true,
+   "selfprint": [],
+   "baseline": [],
+   "byBlueprint": [],
+   "alreadyPart": [
+    "s0",
+    "seed1",
+    "seed2",
+    "seed3",
+    "r6"
+   ]
+  },
+  "mean": {
+   "he": "ממוצע",
+   "known": true,
+   "selfprint": [
+    "s0",
+    "seed1",
+    "seed2",
+    "seed3",
+    "r6"
+   ],
+   "baseline": [],
+   "byBlueprint": [
+    "s0:code:bp-c-4590428b:d1",
+    "seed1:code:bp-c-4590428b:d1",
+    "seed2:code:bp-c-4590428b:d1",
+    "seed3:code:bp-c-4590428b:d1",
+    "r6:code:bp-c-4590428b:d1"
+   ],
+   "alreadyPart": []
+  },
+  "min": {
+   "he": "מינימום",
+   "known": true,
+   "selfprint": [
+    "s0",
+    "seed1",
+    "seed2",
+    "seed3",
+    "r6"
+   ],
+   "baseline": [
+    "s0",
+    "seed1",
+    "seed2",
+    "seed3",
+    "r6"
+   ],
+   "byBlueprint": [],
+   "alreadyPart": []
+  },
+  "range": {
+   "he": "טווח (מקסימום − מינימום)",
+   "known": false,
+   "selfprint": [
+    "s0",
+    "seed1",
+    "seed2",
+    "seed3",
+    "r6"
+   ],
+   "baseline": [],
+   "byBlueprint": [
+    "s0:code:bp-c-4590428b:d1",
+    "seed1:code:bp-c-4590428b:d1",
+    "seed2:code:bp-c-4590428b:d1",
+    "seed3:code:bp-c-4590428b:d1",
+    "r6:code:bp-c-4590428b:d1"
+   ],
+   "alreadyPart": []
+  },
+  "secondLargest": {
+   "he": "השני-בגודלו",
+   "known": false,
+   "selfprint": [
+    "s0",
+    "seed1",
+    "seed2",
+    "seed3",
+    "r6"
+   ],
+   "baseline": [
+    "s0",
+    "seed1",
+    "seed2",
+    "seed3",
+    "r6"
+   ],
+   "byBlueprint": [],
+   "alreadyPart": []
+  },
+  "sortAsc": {
+   "he": "מיון עולה",
+   "known": true,
+   "selfprint": [],
+   "baseline": [],
+   "byBlueprint": [],
+   "alreadyPart": [
+    "s0",
+    "seed1",
+    "seed2",
+    "seed3",
+    "r6"
+   ]
+  },
+  "sortDesc": {
+   "he": "מיון יורד",
+   "known": false,
+   "selfprint": [],
+   "baseline": [],
+   "byBlueprint": [],
+   "alreadyPart": [
+    "s0",
+    "seed1",
+    "seed2",
+    "seed3",
+    "r6"
+   ]
+  }
+ }
+}
