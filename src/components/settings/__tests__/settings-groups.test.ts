@@ -99,4 +99,14 @@ describe('⬆ ratchet — UX סבב-ו׳: בורר-מסלול בייבוא (5.8.
     }
     expect(importSrc).toMatch(/supporters\.ayin'\) && featureOn\(config, 'supporters\.ayin\.sheet'\)/);
   });
+
+  it('בדמו: רק קבוצת-ההגדרה — נתונים/אבטחה/מתקדם חסומות (בקשת-בעלים 15.10)', () => {
+    expect(viewSrc).toContain("const isDemo = config.slug === 'demo';");
+    // שלוש הקבוצות שמנהלות/מורידות נתונים עטופות ב-!isDemo
+    expect(viewSrc).toMatch(/data: !isDemo &&/);
+    expect(viewSrc).toMatch(/security: !isDemo &&/);
+    expect(viewSrc).toMatch(/adv: !isDemo &&/);
+    // 'org' (ההגדרה, מקביל-האשף) לעולם לא מושפע
+    expect(viewSrc).toMatch(/org: true,/);
+  });
 });
