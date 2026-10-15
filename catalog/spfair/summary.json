@@ -1,0 +1,137 @@
+{
+ "about": "SP-FAIR — סיכום כל ההרצות (fair.mjs). לא לערוך ביד",
+ "runs": {
+  "s0": {
+   "salt": 0,
+   "rounds": 3,
+   "sameBytesAsBranch": true,
+   "exactFair": [
+    "average"
+   ],
+   "exactBaseline": [],
+   "averagePct": {
+    "baseline": 27,
+    "selfprint": 100
+   },
+   "blueprints": 63,
+   "success": 35,
+   "maxDepthSuccess": 2,
+   "wrongImprovements": 0
+  }
+ },
+ "exactFairBy": {
+  "average": [
+   "s0"
+  ]
+ },
+ "targetsHitBy": {
+  "distinctCount": {
+   "he": "כמה ערכים שונים",
+   "known": false,
+   "selfprint": [],
+   "baseline": [
+    "s0"
+   ],
+   "byBlueprint": [],
+   "alreadyPart": []
+  },
+  "first": {
+   "he": "הראשון",
+   "known": false,
+   "selfprint": [],
+   "baseline": [],
+   "byBlueprint": [],
+   "alreadyPart": [
+    "s0"
+   ]
+  },
+  "last": {
+   "he": "האחרון",
+   "known": false,
+   "selfprint": [],
+   "baseline": [],
+   "byBlueprint": [],
+   "alreadyPart": [
+    "s0"
+   ]
+  },
+  "max": {
+   "he": "מקסימום",
+   "known": true,
+   "selfprint": [],
+   "baseline": [],
+   "byBlueprint": [],
+   "alreadyPart": [
+    "s0"
+   ]
+  },
+  "mean": {
+   "he": "ממוצע",
+   "known": true,
+   "selfprint": [
+    "s0"
+   ],
+   "baseline": [],
+   "byBlueprint": [
+    "s0:code:bp-c-4590428b:d1"
+   ],
+   "alreadyPart": []
+  },
+  "min": {
+   "he": "מינימום",
+   "known": true,
+   "selfprint": [
+    "s0"
+   ],
+   "baseline": [
+    "s0"
+   ],
+   "byBlueprint": [],
+   "alreadyPart": []
+  },
+  "range": {
+   "he": "טווח (מקסימום − מינימום)",
+   "known": false,
+   "selfprint": [
+    "s0"
+   ],
+   "baseline": [],
+   "byBlueprint": [
+    "s0:code:bp-c-4590428b:d1"
+   ],
+   "alreadyPart": []
+  },
+  "secondLargest": {
+   "he": "השני-בגודלו",
+   "known": false,
+   "selfprint": [
+    "s0"
+   ],
+   "baseline": [
+    "s0"
+   ],
+   "byBlueprint": [],
+   "alreadyPart": []
+  },
+  "sortAsc": {
+   "he": "מיון עולה",
+   "known": true,
+   "selfprint": [],
+   "baseline": [],
+   "byBlueprint": [],
+   "alreadyPart": [
+    "s0"
+   ]
+  },
+  "sortDesc": {
+   "he": "מיון יורד",
+   "known": false,
+   "selfprint": [],
+   "baseline": [],
+   "byBlueprint": [],
+   "alreadyPart": [
+    "s0"
+   ]
+  }
+ }
+}
