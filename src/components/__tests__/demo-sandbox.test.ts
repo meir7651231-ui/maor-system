@@ -36,6 +36,10 @@ describe('🧪 ratchet — דמו ציבורי (?org=demo)', () => {
     expect(appSrc).toContain("config.slug === 'demo' && <DemoRibbon />");
   });
 
+  it('בדמו אין הורדת-גיבוי אוטומטית (גיבוי-סוף-יום חסום למבקר)', () => {
+    expect(appSrc).toContain("if (useApp.getState().config.slug === 'demo') return; // בדמו אין הורדת-גיבוי אוטומטית למבקר");
+  });
+
   it('הסרט: CTA לשורש (מסך ההרשמה) + התחל-דמו-מחדש', () => {
     expect(ribbonSrc).toContain('פתחו אתר משלכם');
     expect(ribbonSrc).toContain('import.meta.env.BASE_URL'); // ה-CTA חוזר לשורש

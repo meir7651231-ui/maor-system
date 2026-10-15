@@ -118,3 +118,27 @@ describe('הגנות-מקור — אשף 2.0 מחווט בפועל', () => {
     expect(wizardSrc).toContain('(!searching || intMatches.length > 0) && (');
   });
 });
+
+describe('הגנת-מקור — בדמו: תמחור והורדת-החבילה חסומים (בקשת-בעלים 15.10)', () => {
+  it('isDemo נגזר מ-slug=demo ועוטף את התמחור+ההורדה; מתגי-ההגדרה נשארים', () => {
+    // הגדרת הדגל
+    expect(wizardSrc).toContain("const isDemo = (config.slug || 'default') === 'demo';");
+    // התמחור ואזור-ההורדה עטופים ב-{!isDemo && (<>…</>)}
+    expect(wizardSrc).toContain('{!isDemo && (<>');
+    expect(wizardSrc).toContain('</>)}');
+    // הבלוק החסום כולל את הצעת-המחיר ואת כפתור יצירת-החבילה
+    const start = wizardSrc.indexOf('{!isDemo && (<>');
+    const end = wizardSrc.indexOf('</>)}', start);
+    const blocked = wizardSrc.slice(start, end);
+    expect(blocked).toContain('💰 הצעת מחיר — חי');
+    expect(blocked).toContain('📦 צור חבילה');
+    // מתגי-ההגדרה (WIZARD_SECTIONS) נשארים מחוץ לבלוק החסום — מוצגים גם בדמו
+    expect(wizardSrc.indexOf('WIZARD_SECTIONS.map(renderModuleSection)')).toBeLessThan(start);
+  });
+
+  it('בדמו מוצגת מודעה יפה במקום התמחור/ההורדה', () => {
+    expect(wizardSrc).toContain('{isDemo && (');
+    expect(wizardSrc).toContain('זו תצוגת הדגמה');
+    expect(wizardSrc).toContain('רוצים אתר משלכם? דברו איתנו');
+  });
+});

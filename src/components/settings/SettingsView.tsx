@@ -114,14 +114,17 @@ export function SettingsView() {
 
   // לשונית ריקה מוסתרת — אותם תנאי-גידור של הסעיפים עצמם (שכפול מודע לצורך
   // הסתרת-לשונית בלבד; הסעיף עצמו ממשיך להיגדר בעצמו — מקור-האמת לא זז).
+  // בדמו: מסך-ההגדרות מציג רק את קבוצת-ההגדרה ('הארגון שלי', כמקביל לאשף) —
+  // קבוצות 'נתונים'/'אבטחה'/'מתקדם' (גיבוי, ייצוא, ייבוא, איפוס, מפתחות…) חסומות למבקר.
+  const isDemo = config.slug === 'demo';
   const groupHas: Record<GroupId, boolean> = {
     org: true, // sec-org לעולם אינו מוסתר
-    data: featureOn(config, 'settings.backup') || secOn('sec-export') || secOn('sec-import') || secOn('sec-audit'),
-    security: featureOn(config, 'shell.lock') || featureOn(config, 'settings.encryption') || canPlatform ||
+    data: !isDemo && (featureOn(config, 'settings.backup') || secOn('sec-export') || secOn('sec-import') || secOn('sec-audit')),
+    security: !isDemo && (featureOn(config, 'shell.lock') || featureOn(config, 'settings.encryption') || canPlatform ||
       // כספת-מפתחות (9.8) — אותו שער של OrgSecretsSection עצמו
-      (cloudOn && config.slug !== 'default' && (isManager || canPlatform)),
-    adv: (integrationOn(config, 'ai') && isAdmin) || (featureOn(config, 'settings.audittrail') && isAdmin) ||
-      featureOn(config, 'core.receipt.verifycode') || secOn('sec-reset'),
+      (cloudOn && config.slug !== 'default' && (isManager || canPlatform))),
+    adv: !isDemo && ((integrationOn(config, 'ai') && isAdmin) || (featureOn(config, 'settings.audittrail') && isAdmin) ||
+      featureOn(config, 'core.receipt.verifycode') || secOn('sec-reset')),
   };
   const shownGroup: GroupId = groupHas[group] ? group : 'org';
   // "צ'יפ לכל מה שמרונדר, כלום מת" — גם הסעיפים המגודרים-עצמית (אבטחה/מתקדם)

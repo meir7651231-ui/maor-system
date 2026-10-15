@@ -491,6 +491,7 @@ export default function App() {
     let pending = false; // תוזמן ל-idle וטרם רץ — לא לתזמן שוב מהטיק הבא
     const tick = setInterval(() => {
       try {
+        if (useApp.getState().config.slug === 'demo') return; // בדמו אין הורדת-גיבוי אוטומטית למבקר
         if (!featureOn(useApp.getState().config, 'core.dayendbackup')) return;
         const today = isoToday();
         if (localStorage.getItem(nsLsKey('maor_autoexp')) === today) return;
