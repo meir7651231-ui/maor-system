@@ -1,9 +1,9 @@
 {
  "version": "loop-memo-v1",
  "note": "נוצר ע\"י catalog/self/loop.mjs --apply — הזיכרון של הלולאה: טביעת כל ההיקף (key), הפנקס שנכתב (ledger = sha של git), והקומיט שממנו נגזרה ההיסטוריה (head). שכפול טרי בלי שינוי ⇒ הפנקס נלקח מכאן בלי לבדוק שוב.",
- "key": "2ae25c315f235e42eb4430fa85183cbd",
- "ledger": "1c4ff3409f392136179051e84406ac0bf0ccb35b",
- "head": "ecb3a337bbfd7ebcc88118ad6838463ecf12e75d",
+ "key": "2ad2a0ac594dad53e2a5124a613b9665",
+ "ledger": "10fb4bc2fdceec9ba7f25fbecca60cbc845f456d",
+ "head": "d66c761c9bf500d0225a1e745422673ab17a6d33",
  "hstate": "שכפול רדוד — רק הקומיטים שהורדו",
  "subjectFiles": [
   "catalog/combiner/core.mjs",
