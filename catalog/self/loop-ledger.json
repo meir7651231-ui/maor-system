@@ -16,7 +16,7 @@
  },
  "checks": "מלא: חוקים · פלטים · צעדים · rebuild ביט-זהה · vitest catalog",
  "summary": {
-  "subjects": 100,
+  "subjects": 106,
   "bugs": 0,
   "duplicates": 23,
   "cheaper": 4,
@@ -24,7 +24,7 @@
   "restored": 0,
   "regressions": 0,
   "reverted": 0,
-  "kept": 100
+  "kept": 106
  },
  "rows": [
   {
@@ -101,10 +101,10 @@
     "כפילות: machine:catalog/lib/shape.mjs#canon",
     "כפילות: 84 חלקים במחסן (לדוגמה inner-generator:machtzev/box-assemble.mjs#ser.s)"
    ],
-   "considered": 644,
+   "considered": 646,
    "skipped": {
     "לא נטען להרצה כאן": 5,
-    "לא עובר את חוקי הפועל כאן": 366,
+    "לא עובר את חוקי הפועל כאן": 367,
     "עובר את החוקים — פלט אחר (חלק מהמחסן)": 169,
     "צורה אחרת — דורש מתאם": 7,
     "שילוב — דורש מתאם-ייבוא (זמן-ריצה)": 1
@@ -1021,6 +1021,16 @@
      "verdict": "נדחה — פלט אחר על 32 קלטים (#0)"
     },
     {
+     "cand": "machine:catalog/self/loop.mjs#cacheBase",
+     "project": "machine",
+     "at": "catalog/self/loop.mjs:573",
+     "laws": "15/15",
+     "inputs": 32,
+     "same": "פלט אחר על 32 קלטים (#0)",
+     "steps": "191 מול 32",
+     "verdict": "נדחה — פלט אחר על 32 קלטים (#0)"
+    },
+    {
      "cand": "orbit:src/components/parnasa/booklet.ts#escHtml",
      "project": "orbit",
      "at": "src/components/parnasa/booklet.ts:20",
@@ -1088,7 +1098,7 @@
     "sameText": 13
    },
    "found": [],
-   "considered": 644,
+   "considered": 646,
    "skipped": {
     "לא נטען להרצה כאן": 5,
     "לא עובר את חוקי הפועל כאן": 320,
@@ -1238,9 +1248,29 @@
      "verdict": "נדחה — פלט אחר על 87 קלטים (#0)"
     },
     {
+     "cand": "machine:catalog/scripts/test-changed.mjs#fileOf",
+     "project": "machine",
+     "at": "catalog/scripts/test-changed.mjs:31",
+     "laws": "15/15",
+     "inputs": 87,
+     "same": "פלט אחר על 87 קלטים (#0)",
+     "steps": "809 מול 87",
+     "verdict": "נדחה — פלט אחר על 87 קלטים (#0)"
+    },
+    {
+     "cand": "machine:catalog/self/loop.mjs#cacheBase",
+     "project": "machine",
+     "at": "catalog/self/loop.mjs:573",
+     "laws": "15/15",
+     "inputs": 87,
+     "same": "פלט אחר על 87 קלטים (#0)",
+     "steps": "541 מול 87",
+     "verdict": "נדחה — פלט אחר על 87 קלטים (#0)"
+    },
+    {
      "cand": "machine:catalog/self/loop.mjs#stretched",
      "project": "machine",
-     "at": "catalog/self/loop.mjs:232",
+     "at": "catalog/self/loop.mjs:235",
      "laws": "15/15",
      "inputs": 72,
      "same": "פלט אחר על 71 קלטים (#0)",
@@ -1515,11 +1545,11 @@
     "absent": 2
    },
    "found": [],
-   "considered": 175,
+   "considered": 176,
    "skipped": {
     "אותם פלטים — אבל אין מספיק קלטים מבחינים (פלט אחד שולט)": 7,
     "לא נטען להרצה כאן": 3,
-    "לא עובר את חוקי הפועל כאן": 153,
+    "לא עובר את חוקי הפועל כאן": 154,
     "עובר את החוקים — פלט אחר (חלק מהמחסן)": 4,
     "צורה אחרת — דורש מתאם": 8
    },
@@ -1542,7 +1572,7 @@
     "absent": 5
    },
    "found": [],
-   "considered": 644,
+   "considered": 646,
    "skipped": {
     "לא נטען להרצה כאן": 5,
     "לא עובר את חוקי הפועל כאן": 214,
@@ -1682,9 +1712,29 @@
      "verdict": "נדחה — פלט אחר על 89 קלטים (#0)"
     },
     {
+     "cand": "machine:catalog/scripts/test-changed.mjs#fileOf",
+     "project": "machine",
+     "at": "catalog/scripts/test-changed.mjs:31",
+     "laws": "15/15",
+     "inputs": 89,
+     "same": "פלט אחר על 89 קלטים (#0)",
+     "steps": "806 מול 265",
+     "verdict": "נדחה — פלט אחר על 89 קלטים (#0)"
+    },
+    {
+     "cand": "machine:catalog/self/loop.mjs#cacheBase",
+     "project": "machine",
+     "at": "catalog/self/loop.mjs:573",
+     "laws": "15/15",
+     "inputs": 89,
+     "same": "פלט אחר על 89 קלטים (#0)",
+     "steps": "535 מול 265",
+     "verdict": "נדחה — פלט אחר על 89 קלטים (#0)"
+    },
+    {
      "cand": "machine:catalog/self/loop.mjs#stretched",
      "project": "machine",
-     "at": "catalog/self/loop.mjs:232",
+     "at": "catalog/self/loop.mjs:235",
      "laws": "15/15",
      "inputs": 88,
      "same": "פלט אחר על 87 קלטים (#0)",
@@ -1987,7 +2037,7 @@
     ]
    },
    "found": [],
-   "considered": 644,
+   "considered": 646,
    "skipped": {
     "לא נטען להרצה כאן": 5,
     "לא עובר את חוקי הפועל כאן": 220,
@@ -2137,9 +2187,29 @@
      "verdict": "נדחה — פלט אחר על 96 קלטים (#0)"
     },
     {
+     "cand": "machine:catalog/scripts/test-changed.mjs#fileOf",
+     "project": "machine",
+     "at": "catalog/scripts/test-changed.mjs:31",
+     "laws": "15/15",
+     "inputs": 96,
+     "same": "פלט אחר על 96 קלטים (#0)",
+     "steps": "870 מול 1885",
+     "verdict": "נדחה — פלט אחר על 96 קלטים (#0)"
+    },
+    {
+     "cand": "machine:catalog/self/loop.mjs#cacheBase",
+     "project": "machine",
+     "at": "catalog/self/loop.mjs:573",
+     "laws": "15/15",
+     "inputs": 96,
+     "same": "פלט אחר על 96 קלטים (#0)",
+     "steps": "577 מול 1861",
+     "verdict": "נדחה — פלט אחר על 96 קלטים (#0)"
+    },
+    {
      "cand": "machine:catalog/self/loop.mjs#stretched",
      "project": "machine",
-     "at": "catalog/self/loop.mjs:232",
+     "at": "catalog/self/loop.mjs:235",
      "laws": "15/15",
      "inputs": 95,
      "same": "פלט אחר על 95 קלטים (#0)",
@@ -2249,7 +2319,7 @@
     "absent": 2
    },
    "found": [],
-   "considered": 644,
+   "considered": 646,
    "skipped": {
     "לא נטען להרצה כאן": 5,
     "לא עובר את חוקי הפועל כאן": 156,
@@ -2409,9 +2479,29 @@
      "verdict": "נדחה — פלט אחר על 105 קלטים (#0)"
     },
     {
+     "cand": "machine:catalog/scripts/test-changed.mjs#fileOf",
+     "project": "machine",
+     "at": "catalog/scripts/test-changed.mjs:31",
+     "laws": "13/13",
+     "inputs": 105,
+     "same": "פלט אחר על 105 קלטים (#0)",
+     "steps": "605 מול 742",
+     "verdict": "נדחה — פלט אחר על 105 קלטים (#0)"
+    },
+    {
+     "cand": "machine:catalog/self/loop.mjs#cacheBase",
+     "project": "machine",
+     "at": "catalog/self/loop.mjs:573",
+     "laws": "15/15",
+     "inputs": 105,
+     "same": "פלט אחר על 105 קלטים (#0)",
+     "steps": "634 מול 739",
+     "verdict": "נדחה — פלט אחר על 105 קלטים (#0)"
+    },
+    {
      "cand": "machine:catalog/self/loop.mjs#stretched",
      "project": "machine",
-     "at": "catalog/self/loop.mjs:232",
+     "at": "catalog/self/loop.mjs:235",
      "laws": "13/13",
      "inputs": 141,
      "same": "פלט אחר על 141 קלטים (#0)",
@@ -2480,19 +2570,19 @@
     "sameText": 3
    },
    "found": [],
-   "considered": 296,
+   "considered": 298,
    "skipped": {
     "לא נטען להרצה כאן": 3,
     "לא עובר את חוקי הפועל כאן": 165,
     "עובר את החוקים — פלט אחר (חלק מהמחסן)": 106,
-    "צורה אחרת — דורש מתאם": 20,
+    "צורה אחרת — דורש מתאם": 22,
     "שילוב — דורש מתאם-ייבוא (זמן-ריצה)": 1
    },
    "tried": [
     {
      "cand": "machine:catalog/self/loop.mjs#at",
      "project": "machine",
-     "at": "catalog/self/loop.mjs:334",
+     "at": "catalog/self/loop.mjs:337",
      "laws": "15/15",
      "inputs": 91,
      "same": "פלט אחר על 91 קלטים (#0)",
@@ -2518,7 +2608,7 @@
     "absent": 1
    },
    "found": [],
-   "considered": 149,
+   "considered": 152,
    "skipped": {
     "לא נטען להרצה כאן": 74,
     "עובר את החוקים — פלט אחר (חלק מהמחסן)": 71
@@ -2547,7 +2637,7 @@
     {
      "cand": "machine:catalog/scripts/rebuild.mjs#graph",
      "project": "machine",
-     "at": "catalog/scripts/rebuild.mjs:190",
+     "at": "catalog/scripts/rebuild.mjs:296",
      "laws": "3/3",
      "inputs": 1,
      "same": "פלט אחר על קלט אחד (#0)",
@@ -2555,9 +2645,39 @@
      "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
     },
     {
+     "cand": "machine:catalog/scripts/rebuild.mjs#onWrote",
+     "project": "machine",
+     "at": "catalog/scripts/rebuild.mjs:325",
+     "laws": "3/3",
+     "inputs": 1,
+     "same": "פלט אחר על קלט אחד (#0)",
+     "steps": "1 מול 1",
+     "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
+    },
+    {
+     "cand": "machine:catalog/scripts/test-changed.mjs#head",
+     "project": "machine",
+     "at": "catalog/scripts/test-changed.mjs:47",
+     "laws": "3/3",
+     "inputs": 1,
+     "same": "פלט אחר על קלט אחד (#0)",
+     "steps": "14 מול 1",
+     "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
+    },
+    {
      "cand": "machine:catalog/self/loop-demo.mjs#rootGit",
      "project": "machine",
      "at": "catalog/self/loop-demo.mjs:45",
+     "laws": "3/3",
+     "inputs": 1,
+     "same": "פלט אחר על קלט אחד (#0)",
+     "steps": "1 מול 1",
+     "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
+    },
+    {
+     "cand": "machine:catalog/self/loop.mjs#MEMO_OFF",
+     "project": "machine",
+     "at": "catalog/self/loop.mjs:478",
      "laws": "3/3",
      "inputs": 1,
      "same": "פלט אחר על קלט אחד (#0)",
@@ -2582,7 +2702,7 @@
     "sameText": 1
    },
    "found": [],
-   "considered": 149,
+   "considered": 152,
    "skipped": {
     "לא נטען להרצה כאן": 74,
     "עובר את החוקים — פלט אחר (חלק מהמחסן)": 71
@@ -2611,7 +2731,7 @@
     {
      "cand": "machine:catalog/scripts/rebuild.mjs#graph",
      "project": "machine",
-     "at": "catalog/scripts/rebuild.mjs:190",
+     "at": "catalog/scripts/rebuild.mjs:296",
      "laws": "3/3",
      "inputs": 1,
      "same": "פלט אחר על קלט אחד (#0)",
@@ -2619,9 +2739,39 @@
      "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
     },
     {
+     "cand": "machine:catalog/scripts/rebuild.mjs#onWrote",
+     "project": "machine",
+     "at": "catalog/scripts/rebuild.mjs:325",
+     "laws": "3/3",
+     "inputs": 1,
+     "same": "פלט אחר על קלט אחד (#0)",
+     "steps": "1 מול 1",
+     "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
+    },
+    {
+     "cand": "machine:catalog/scripts/test-changed.mjs#head",
+     "project": "machine",
+     "at": "catalog/scripts/test-changed.mjs:47",
+     "laws": "3/3",
+     "inputs": 1,
+     "same": "פלט אחר על קלט אחד (#0)",
+     "steps": "14 מול 1",
+     "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
+    },
+    {
      "cand": "machine:catalog/self/loop-demo.mjs#rootGit",
      "project": "machine",
      "at": "catalog/self/loop-demo.mjs:45",
+     "laws": "3/3",
+     "inputs": 1,
+     "same": "פלט אחר על קלט אחד (#0)",
+     "steps": "1 מול 1",
+     "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
+    },
+    {
+     "cand": "machine:catalog/self/loop.mjs#MEMO_OFF",
+     "project": "machine",
+     "at": "catalog/self/loop.mjs:478",
      "laws": "3/3",
      "inputs": 1,
      "same": "פלט אחר על קלט אחד (#0)",
@@ -2648,10 +2798,10 @@
    "found": [
     "כפילות: machine:catalog/scripts/self-check.mjs#text"
    ],
-   "considered": 644,
+   "considered": 646,
    "skipped": {
     "לא נטען להרצה כאן": 5,
-    "לא עובר את חוקי הפועל כאן": 612,
+    "לא עובר את חוקי הפועל כאן": 614,
     "עובר את החוקים — פלט אחר (חלק מהמחסן)": 16,
     "צורה אחרת — דורש מתאם": 7,
     "שילוב — דורש מתאם-ייבוא (זמן-ריצה)": 1
@@ -2718,25 +2868,25 @@
   },
   {
    "subject": "machine:catalog/lib/blank.mjs#needsGap·validate",
-   "at": "catalog/lib/blank.mjs:59",
+   "at": "catalog/lib/blank.mjs:60",
    "verb": "validate",
    "from": "הקורא",
    "laws": "24/24",
    "inputs": 46,
    "steps": 46,
    "history": {
-    "scanned": 3,
+    "scanned": 4,
     "versions": 0,
-    "sameText": 2,
+    "sameText": 3,
     "absent": 1
    },
    "found": [],
-   "considered": 135,
+   "considered": 136,
    "skipped": {
     "לא נטען להרצה כאן": 3,
     "לא עובר את חוקי הפועל כאן": 94,
     "עובר את החוקים — פלט אחר (חלק מהמחסן)": 29,
-    "צורה אחרת — דורש מתאם": 5
+    "צורה אחרת — דורש מתאם": 6
    },
    "tried": [
     {
@@ -2772,7 +2922,7 @@
     {
      "cand": "machine:catalog/scripts/rebuild.mjs#sameOut",
      "project": "machine",
-     "at": "catalog/scripts/rebuild.mjs:185",
+     "at": "catalog/scripts/rebuild.mjs:291",
      "laws": "24/24",
      "inputs": 46,
      "same": "פלט אחר על 30 קלטים (#0)",
@@ -2844,12 +2994,12 @@
     "sameText": 2
    },
    "found": [],
-   "considered": 296,
+   "considered": 298,
    "skipped": {
     "לא נטען להרצה כאן": 3,
     "לא עובר את חוקי הפועל כאן": 169,
     "עובר את החוקים — פלט אחר (חלק מהמחסן)": 100,
-    "צורה אחרת — דורש מתאם": 20,
+    "צורה אחרת — דורש מתאם": 22,
     "שילוב — דורש מתאם-ייבוא (זמן-ריצה)": 1
    },
    "tried": [
@@ -2866,7 +3016,7 @@
     {
      "cand": "machine:catalog/scripts/orbit-census.mjs#doesOf",
      "project": "machine",
-     "at": "catalog/scripts/orbit-census.mjs:410",
+     "at": "catalog/scripts/orbit-census.mjs:428",
      "laws": "15/15",
      "inputs": 166,
      "same": "פלט אחר על 166 קלטים (#0)",
@@ -2876,12 +3026,68 @@
     {
      "cand": "machine:catalog/self/loop.mjs#at",
      "project": "machine",
-     "at": "catalog/self/loop.mjs:334",
+     "at": "catalog/self/loop.mjs:337",
      "laws": "15/15",
      "inputs": 142,
      "same": "פלט אחר על 142 קלטים (#0)",
      "steps": "142 מול 2285",
      "verdict": "נדחה — פלט אחר על 142 קלטים (#0)"
+    }
+   ],
+   "decision": "נשאר",
+   "why": "אין חלק עם אותם פלטים"
+  },
+  {
+   "subject": "machine:catalog/lib/census-view.mjs#isCensusViewable·validate",
+   "at": "catalog/lib/census-view.mjs:19",
+   "verb": "validate",
+   "from": "הקורא",
+   "laws": "24/24",
+   "inputs": 28,
+   "steps": 28,
+   "history": {
+    "scanned": 1,
+    "versions": 0,
+    "sameText": 1
+   },
+   "found": [],
+   "considered": 176,
+   "skipped": {
+    "לא נטען להרצה כאן": 3,
+    "לא עובר את חוקי הפועל כאן": 125,
+    "עובר את החוקים — פלט אחר (חלק מהמחסן)": 37,
+    "צורה אחרת — דורש מתאם": 8
+   },
+   "tried": [
+    {
+     "cand": "machine:catalog/combiner/core.mjs#plainKind",
+     "project": "machine",
+     "at": "catalog/combiner/core.mjs:409",
+     "laws": "24/24",
+     "inputs": 28,
+     "same": "פלט אחר על 24 קלטים (#0)",
+     "steps": "28 מול 28",
+     "verdict": "נדחה — פלט אחר על 24 קלטים (#0)"
+    },
+    {
+     "cand": "machine:catalog/lib/verbs.mjs#isEmptyish",
+     "project": "machine",
+     "at": "catalog/lib/verbs.mjs:72",
+     "laws": "24/24",
+     "inputs": 28,
+     "same": "פלט אחר על 3 קלטים (#5)",
+     "steps": "56 מול 28",
+     "verdict": "נדחה — פלט אחר על 3 קלטים (#5)"
+    },
+    {
+     "cand": "machine:catalog/lib/verbs.mjs#isOneChannel",
+     "project": "machine",
+     "at": "catalog/lib/verbs.mjs:1296",
+     "laws": "24/24",
+     "inputs": 28,
+     "same": "פלט אחר על 9 קלטים (#0)",
+     "steps": "56 מול 28",
+     "verdict": "נדחה — פלט אחר על 9 קלטים (#0)"
     }
    ],
    "decision": "נשאר",
@@ -2950,7 +3156,7 @@
     {
      "cand": "machine:catalog/scripts/orbit-census.mjs#doesOf",
      "project": "machine",
-     "at": "catalog/scripts/orbit-census.mjs:410",
+     "at": "catalog/scripts/orbit-census.mjs:428",
      "laws": "12/12",
      "inputs": 25,
      "same": "פלט אחר על 24 קלטים (#0)",
@@ -3010,12 +3216,12 @@
     "sameText": 3
    },
    "found": [],
-   "considered": 135,
+   "considered": 136,
    "skipped": {
     "לא נטען להרצה כאן": 3,
     "לא עובר את חוקי הפועל כאן": 98,
     "עובר את החוקים — פלט אחר (חלק מהמחסן)": 28,
-    "צורה אחרת — דורש מתאם": 5
+    "צורה אחרת — דורש מתאם": 6
    },
    "tried": [
     {
@@ -3048,7 +3254,7 @@
    "found": [
     "כפילות: 8 חלקים במחסן (לדוגמה inner-generator:machtzev/box-assemble.mjs#ser.s)"
    ],
-   "considered": 644,
+   "considered": 646,
    "skipped": {
     "לא נטען להרצה כאן": 5,
     "לא עובר את חוקי הפועל כאן": 338,
@@ -3268,9 +3474,29 @@
      "verdict": "נדחה — פלט אחר על 85 קלטים (#0)"
     },
     {
+     "cand": "machine:catalog/scripts/test-changed.mjs#fileOf",
+     "project": "machine",
+     "at": "catalog/scripts/test-changed.mjs:31",
+     "laws": "15/15",
+     "inputs": 85,
+     "same": "פלט אחר על 85 קלטים (#0)",
+     "steps": "770 מול 85",
+     "verdict": "נדחה — פלט אחר על 85 קלטים (#0)"
+    },
+    {
+     "cand": "machine:catalog/self/loop.mjs#cacheBase",
+     "project": "machine",
+     "at": "catalog/self/loop.mjs:573",
+     "laws": "15/15",
+     "inputs": 85,
+     "same": "פלט אחר על 85 קלטים (#0)",
+     "steps": "511 מול 85",
+     "verdict": "נדחה — פלט אחר על 85 קלטים (#0)"
+    },
+    {
      "cand": "machine:catalog/self/loop.mjs#stretched",
      "project": "machine",
-     "at": "catalog/self/loop.mjs:232",
+     "at": "catalog/self/loop.mjs:235",
      "laws": "15/15",
      "inputs": 84,
      "same": "פלט אחר על 84 קלטים (#0)",
@@ -3315,11 +3541,11 @@
     "sameText": 1
    },
    "found": [],
-   "considered": 138,
+   "considered": 140,
    "skipped": {
     "לא עובר את חוקי הפועל כאן": 62,
     "עובר את החוקים — פלט אחר (חלק מהמחסן)": 50,
-    "צורה אחרת — דורש מתאם": 25,
+    "צורה אחרת — דורש מתאם": 27,
     "שילוב — דורש מתאם-ייבוא (זמן-ריצה)": 1
    },
    "tried": [],
@@ -3386,11 +3612,11 @@
     "sameText": 1
    },
    "found": [],
-   "considered": 53,
+   "considered": 54,
    "skipped": {
     "לא עובר את חוקי הפועל כאן": 32,
     "עובר את החוקים — פלט אחר (חלק מהמחסן)": 11,
-    "צורה אחרת — דורש מתאם": 10
+    "צורה אחרת — דורש מתאם": 11
    },
    "tried": [],
    "decision": "נשאר",
@@ -3412,10 +3638,10 @@
    "found": [
     "כפילות: 2 חלקים במחסן (לדוגמה inner-orbit:src/components/hosting/lib.ts#monthBounds.mm:step)"
    ],
-   "considered": 644,
+   "considered": 646,
    "skipped": {
     "לא נטען להרצה כאן": 5,
-    "לא עובר את חוקי הפועל כאן": 366,
+    "לא עובר את חוקי הפועל כאן": 367,
     "עובר את החוקים — פלט אחר (חלק מהמחסן)": 251,
     "צורה אחרת — דורש מתאם": 7,
     "שילוב — דורש מתאם-ייבוא (זמן-ריצה)": 1
@@ -3552,6 +3778,16 @@
      "verdict": "נדחה — פלט אחר על 30 קלטים (#0)"
     },
     {
+     "cand": "machine:catalog/self/loop.mjs#cacheBase",
+     "project": "machine",
+     "at": "catalog/self/loop.mjs:573",
+     "laws": "15/15",
+     "inputs": 30,
+     "same": "פלט אחר על 30 קלטים (#0)",
+     "steps": "179 מול 30",
+     "verdict": "נדחה — פלט אחר על 30 קלטים (#0)"
+    },
+    {
      "cand": "orbit:src/components/diary/lib.ts#pad2",
      "project": "orbit",
      "at": "src/components/diary/lib.ts:34",
@@ -3579,19 +3815,19 @@
     "sameText": 1
    },
    "found": [],
-   "considered": 135,
+   "considered": 136,
    "skipped": {
     "אותם פלטים — אבל אין מספיק קלטים מבחינים (פלט אחד שולט)": 6,
     "לא נטען להרצה כאן": 3,
     "לא עובר את חוקי הפועל כאן": 85,
     "עובר את החוקים — פלט אחר (חלק מהמחסן)": 32,
-    "צורה אחרת — דורש מתאם": 5
+    "צורה אחרת — דורש מתאם": 6
    },
    "tried": [
     {
      "cand": "machine:catalog/lib/blank.mjs#needsGap",
      "project": "machine",
-     "at": "catalog/lib/blank.mjs:59",
+     "at": "catalog/lib/blank.mjs:60",
      "laws": "24/24",
      "inputs": 54,
      "same": "פלט אחר על 41 קלטים (#0)",
@@ -3646,11 +3882,11 @@
     "sameText": 4
    },
    "found": [],
-   "considered": 21,
+   "considered": 22,
    "skipped": {
     "לא עובר את חוקי הפועל כאן": 9,
     "עובר את החוקים — פלט אחר (חלק מהמחסן)": 2,
-    "צורה אחרת — דורש מתאם": 10
+    "צורה אחרת — דורש מתאם": 11
    },
    "tried": [],
    "decision": "נשאר",
@@ -3745,12 +3981,12 @@
     "absent": 3
    },
    "found": [],
-   "considered": 135,
+   "considered": 136,
    "skipped": {
     "לא נטען להרצה כאן": 3,
     "לא עובר את חוקי הפועל כאן": 95,
     "עובר את החוקים — פלט אחר (חלק מהמחסן)": 28,
-    "צורה אחרת — דורש מתאם": 5
+    "צורה אחרת — דורש מתאם": 6
    },
    "tried": [
     {
@@ -3786,7 +4022,7 @@
     {
      "cand": "machine:catalog/scripts/rebuild.mjs#sameOut",
      "project": "machine",
-     "at": "catalog/scripts/rebuild.mjs:185",
+     "at": "catalog/scripts/rebuild.mjs:291",
      "laws": "24/24",
      "inputs": 77,
      "same": "פלט אחר על 23 קלטים (#3)",
@@ -3811,18 +4047,18 @@
     "sameText": 2
    },
    "found": [],
-   "considered": 135,
+   "considered": 136,
    "skipped": {
     "לא נטען להרצה כאן": 3,
     "לא עובר את חוקי הפועל כאן": 94,
     "עובר את החוקים — פלט אחר (חלק מהמחסן)": 28,
-    "צורה אחרת — דורש מתאם": 5
+    "צורה אחרת — דורש מתאם": 6
    },
    "tried": [
     {
      "cand": "machine:catalog/lib/blank.mjs#needsGap",
      "project": "machine",
-     "at": "catalog/lib/blank.mjs:59",
+     "at": "catalog/lib/blank.mjs:60",
      "laws": "24/24",
      "inputs": 57,
      "same": "פלט אחר על 49 קלטים (#0)",
@@ -3862,7 +4098,7 @@
     {
      "cand": "machine:catalog/scripts/rebuild.mjs#sameOut",
      "project": "machine",
-     "at": "catalog/scripts/rebuild.mjs:185",
+     "at": "catalog/scripts/rebuild.mjs:291",
      "laws": "24/24",
      "inputs": 52,
      "same": "פלט אחר על 7 קלטים (#24)",
@@ -4181,7 +4417,7 @@
     {
      "cand": "machine:catalog/scripts/orbit-census.mjs#doesOf",
      "project": "machine",
-     "at": "catalog/scripts/orbit-census.mjs:410",
+     "at": "catalog/scripts/orbit-census.mjs:428",
      "laws": "7/7",
      "inputs": 433,
      "same": "פלט אחר על 433 קלטים (#0)",
@@ -4286,11 +4522,11 @@
     "sameText": 9
    },
    "found": [],
-   "considered": 175,
+   "considered": 176,
    "skipped": {
     "אותם פלטים — אבל אין מספיק קלטים מבחינים (פלט אחד שולט)": 11,
     "לא נטען להרצה כאן": 3,
-    "לא עובר את חוקי הפועל כאן": 128,
+    "לא עובר את חוקי הפועל כאן": 129,
     "עובר את החוקים — פלט אחר (חלק מהמחסן)": 23,
     "צורה אחרת — דורש מתאם": 8
    },
@@ -4334,11 +4570,11 @@
     "absent": 2
    },
    "found": [],
-   "considered": 175,
+   "considered": 176,
    "skipped": {
     "אותם פלטים — אבל אין מספיק קלטים מבחינים (פלט אחד שולט)": 22,
     "לא נטען להרצה כאן": 3,
-    "לא עובר את חוקי הפועל כאן": 128,
+    "לא עובר את חוקי הפועל כאן": 129,
     "עובר את החוקים — פלט אחר (חלק מהמחסן)": 13,
     "צורה אחרת — דורש מתאם": 8
    },
@@ -4502,7 +4738,7 @@
     "absent": 5
    },
    "found": [],
-   "considered": 644,
+   "considered": 646,
    "skipped": {
     "לא נטען להרצה כאן": 5,
     "לא עובר את חוקי הפועל כאן": 315,
@@ -4642,9 +4878,29 @@
      "verdict": "נדחה — פלט אחר על 80 קלטים (#0)"
     },
     {
+     "cand": "machine:catalog/scripts/test-changed.mjs#fileOf",
+     "project": "machine",
+     "at": "catalog/scripts/test-changed.mjs:31",
+     "laws": "15/15",
+     "inputs": 80,
+     "same": "פלט אחר על 80 קלטים (#0)",
+     "steps": "800 מול 560",
+     "verdict": "נדחה — פלט אחר על 80 קלטים (#0)"
+    },
+    {
+     "cand": "machine:catalog/self/loop.mjs#cacheBase",
+     "project": "machine",
+     "at": "catalog/self/loop.mjs:573",
+     "laws": "15/15",
+     "inputs": 80,
+     "same": "פלט אחר על 80 קלטים (#0)",
+     "steps": "556 מול 557",
+     "verdict": "נדחה — פלט אחר על 80 קלטים (#0)"
+    },
+    {
      "cand": "machine:catalog/self/loop.mjs#stretched",
      "project": "machine",
-     "at": "catalog/self/loop.mjs:232",
+     "at": "catalog/self/loop.mjs:235",
      "laws": "15/15",
      "inputs": 79,
      "same": "פלט אחר על 79 קלטים (#0)",
@@ -4791,7 +5047,7 @@
     "absent": 6
    },
    "found": [],
-   "considered": 644,
+   "considered": 646,
    "skipped": {
     "לא נטען להרצה כאן": 5,
     "לא עובר את חוקי הפועל כאן": 314,
@@ -4931,9 +5187,29 @@
      "verdict": "נדחה — פלט אחר על 79 קלטים (#0)"
     },
     {
+     "cand": "machine:catalog/scripts/test-changed.mjs#fileOf",
+     "project": "machine",
+     "at": "catalog/scripts/test-changed.mjs:31",
+     "laws": "15/15",
+     "inputs": 79,
+     "same": "פלט אחר על 79 קלטים (#0)",
+     "steps": "758 מול 79",
+     "verdict": "נדחה — פלט אחר על 79 קלטים (#0)"
+    },
+    {
+     "cand": "machine:catalog/self/loop.mjs#cacheBase",
+     "project": "machine",
+     "at": "catalog/self/loop.mjs:573",
+     "laws": "15/15",
+     "inputs": 79,
+     "same": "פלט אחר על 79 קלטים (#0)",
+     "steps": "517 מול 79",
+     "verdict": "נדחה — פלט אחר על 79 קלטים (#0)"
+    },
+    {
      "cand": "machine:catalog/self/loop.mjs#stretched",
      "project": "machine",
-     "at": "catalog/self/loop.mjs:232",
+     "at": "catalog/self/loop.mjs:235",
      "laws": "15/15",
      "inputs": 78,
      "same": "פלט אחר על 78 קלטים (#0)",
@@ -5103,12 +5379,12 @@
     "חלופה זולה: machine:catalog/scripts/generator-census.mjs#clipWords",
     "חלופה זולה: inner-generator:machtzev/generator/app-ds.mjs#parseLookLine.key"
    ],
-   "considered": 296,
+   "considered": 298,
    "skipped": {
     "לא נטען להרצה כאן": 3,
     "לא עובר את חוקי הפועל כאן": 127,
     "עובר את החוקים — פלט אחר (חלק מהמחסן)": 140,
-    "צורה אחרת — דורש מתאם": 20,
+    "צורה אחרת — דורש מתאם": 22,
     "שילוב — דורש מתאם-ייבוא (זמן-ריצה)": 1
    },
    "tried": [
@@ -5145,7 +5421,7 @@
     {
      "cand": "machine:catalog/scripts/orbit-census.mjs#doesOf",
      "project": "machine",
-     "at": "catalog/scripts/orbit-census.mjs:410",
+     "at": "catalog/scripts/orbit-census.mjs:428",
      "laws": "15/15",
      "inputs": 148,
      "same": "פלט אחר על 142 קלטים (#0)",
@@ -5155,7 +5431,7 @@
     {
      "cand": "machine:catalog/self/loop.mjs#at",
      "project": "machine",
-     "at": "catalog/self/loop.mjs:334",
+     "at": "catalog/self/loop.mjs:337",
      "laws": "15/15",
      "inputs": 140,
      "same": "פלט אחר על 139 קלטים (#0)",
@@ -5215,7 +5491,7 @@
     {
      "cand": "machine:catalog/scripts/orbit-census.mjs#doesOf",
      "project": "machine",
-     "at": "catalog/scripts/orbit-census.mjs:410",
+     "at": "catalog/scripts/orbit-census.mjs:428",
      "laws": "12/12",
      "inputs": 148,
      "same": "פלט אחר על 142 קלטים (#0)",
@@ -5322,7 +5598,7 @@
     "sameText": 3
    },
    "found": [],
-   "considered": 644,
+   "considered": 646,
    "skipped": {
     "לא נטען להרצה כאן": 5,
     "לא עובר את חוקי הפועל כאן": 250,
@@ -5472,9 +5748,29 @@
      "verdict": "נדחה — פלט אחר על 141 קלטים (#0)"
     },
     {
+     "cand": "machine:catalog/scripts/test-changed.mjs#fileOf",
+     "project": "machine",
+     "at": "catalog/scripts/test-changed.mjs:31",
+     "laws": "15/15",
+     "inputs": 99,
+     "same": "פלט אחר על 90 קלטים (#0)",
+     "steps": "847 מול 1569",
+     "verdict": "נדחה — פלט אחר על 90 קלטים (#0)"
+    },
+    {
+     "cand": "machine:catalog/self/loop.mjs#cacheBase",
+     "project": "machine",
+     "at": "catalog/self/loop.mjs:573",
+     "laws": "15/15",
+     "inputs": 141,
+     "same": "פלט אחר על 141 קלטים (#0)",
+     "steps": "883 מול 1987",
+     "verdict": "נדחה — פלט אחר על 141 קלטים (#0)"
+    },
+    {
      "cand": "machine:catalog/self/loop.mjs#stretched",
      "project": "machine",
-     "at": "catalog/self/loop.mjs:232",
+     "at": "catalog/self/loop.mjs:235",
      "laws": "15/15",
      "inputs": 186,
      "same": "פלט אחר על 186 קלטים (#0)",
@@ -5568,7 +5864,7 @@
     ]
    },
    "found": [],
-   "considered": 149,
+   "considered": 152,
    "skipped": {
     "לא נטען להרצה כאן": 74,
     "עובר את החוקים — פלט אחר (חלק מהמחסן)": 71
@@ -5597,7 +5893,7 @@
     {
      "cand": "machine:catalog/scripts/rebuild.mjs#graph",
      "project": "machine",
-     "at": "catalog/scripts/rebuild.mjs:190",
+     "at": "catalog/scripts/rebuild.mjs:296",
      "laws": "3/3",
      "inputs": 1,
      "same": "פלט אחר על קלט אחד (#0)",
@@ -5605,9 +5901,39 @@
      "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
     },
     {
+     "cand": "machine:catalog/scripts/rebuild.mjs#onWrote",
+     "project": "machine",
+     "at": "catalog/scripts/rebuild.mjs:325",
+     "laws": "3/3",
+     "inputs": 1,
+     "same": "פלט אחר על קלט אחד (#0)",
+     "steps": "1 מול 1",
+     "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
+    },
+    {
+     "cand": "machine:catalog/scripts/test-changed.mjs#head",
+     "project": "machine",
+     "at": "catalog/scripts/test-changed.mjs:47",
+     "laws": "3/3",
+     "inputs": 1,
+     "same": "פלט אחר על קלט אחד (#0)",
+     "steps": "14 מול 1",
+     "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
+    },
+    {
      "cand": "machine:catalog/self/loop-demo.mjs#rootGit",
      "project": "machine",
      "at": "catalog/self/loop-demo.mjs:45",
+     "laws": "3/3",
+     "inputs": 1,
+     "same": "פלט אחר על קלט אחד (#0)",
+     "steps": "1 מול 1",
+     "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
+    },
+    {
+     "cand": "machine:catalog/self/loop.mjs#MEMO_OFF",
+     "project": "machine",
+     "at": "catalog/self/loop.mjs:478",
      "laws": "3/3",
      "inputs": 1,
      "same": "פלט אחר על קלט אחד (#0)",
@@ -5675,10 +6001,10 @@
     ]
    },
    "found": [],
-   "considered": 644,
+   "considered": 646,
    "skipped": {
     "לא נטען להרצה כאן": 5,
-    "לא עובר את חוקי הפועל כאן": 615,
+    "לא עובר את חוקי הפועל כאן": 617,
     "עובר את החוקים — פלט אחר (חלק מהמחסן)": 13,
     "צורה אחרת — דורש מתאם": 7,
     "שילוב — דורש מתאם-ייבוא (זמן-ריצה)": 1
@@ -5734,12 +6060,12 @@
    "found": [
     "כפילות: inner-generator:machtzev/generator/app-ds.mjs#parseLookLine.key"
    ],
-   "considered": 296,
+   "considered": 298,
    "skipped": {
     "לא נטען להרצה כאן": 3,
     "לא עובר את חוקי הפועל כאן": 127,
     "עובר את החוקים — פלט אחר (חלק מהמחסן)": 141,
-    "צורה אחרת — דורש מתאם": 20,
+    "צורה אחרת — דורש מתאם": 22,
     "שילוב — דורש מתאם-ייבוא (זמן-ריצה)": 1
    },
    "tried": [
@@ -5776,7 +6102,7 @@
     {
      "cand": "machine:catalog/self/loop.mjs#at",
      "project": "machine",
-     "at": "catalog/self/loop.mjs:334",
+     "at": "catalog/self/loop.mjs:337",
      "laws": "15/15",
      "inputs": 138,
      "same": "פלט אחר על 137 קלטים (#0)",
@@ -5835,7 +6161,7 @@
     {
      "cand": "machine:catalog/scripts/orbit-census.mjs#doesOf",
      "project": "machine",
-     "at": "catalog/scripts/orbit-census.mjs:410",
+     "at": "catalog/scripts/orbit-census.mjs:428",
      "laws": "12/12",
      "inputs": 157,
      "same": "פלט אחר על 151 קלטים (#0)",
@@ -6016,7 +6342,7 @@
     "sameText": 2
    },
    "found": [],
-   "considered": 644,
+   "considered": 646,
    "skipped": {
     "לא נטען להרצה כאן": 5,
     "לא עובר את חוקי הפועל כאן": 330,
@@ -6156,9 +6482,29 @@
      "verdict": "נדחה — פלט אחר על 101 קלטים (#0)"
     },
     {
+     "cand": "machine:catalog/scripts/test-changed.mjs#fileOf",
+     "project": "machine",
+     "at": "catalog/scripts/test-changed.mjs:31",
+     "laws": "15/15",
+     "inputs": 101,
+     "same": "פלט אחר על 101 קלטים (#0)",
+     "steps": "972 מול 101",
+     "verdict": "נדחה — פלט אחר על 101 קלטים (#0)"
+    },
+    {
+     "cand": "machine:catalog/self/loop.mjs#cacheBase",
+     "project": "machine",
+     "at": "catalog/self/loop.mjs:573",
+     "laws": "15/15",
+     "inputs": 101,
+     "same": "פלט אחר על 101 קלטים (#0)",
+     "steps": "665 מול 101",
+     "verdict": "נדחה — פלט אחר על 101 קלטים (#0)"
+    },
+    {
      "cand": "machine:catalog/self/loop.mjs#stretched",
      "project": "machine",
-     "at": "catalog/self/loop.mjs:232",
+     "at": "catalog/self/loop.mjs:235",
      "laws": "15/15",
      "inputs": 100,
      "same": "פלט אחר על 100 קלטים (#0)",
@@ -6260,24 +6606,24 @@
   },
   {
    "subject": "machine:catalog/scripts/orbit-census.mjs#doesOf·format",
-   "at": "catalog/scripts/orbit-census.mjs:410",
+   "at": "catalog/scripts/orbit-census.mjs:428",
    "verb": "format",
    "from": "הקורא",
    "laws": "15/15",
    "inputs": 167,
    "steps": 5177,
    "history": {
-    "scanned": 4,
+    "scanned": 5,
     "versions": 0,
-    "sameText": 4
+    "sameText": 5
    },
    "found": [],
-   "considered": 296,
+   "considered": 298,
    "skipped": {
     "לא נטען להרצה כאן": 3,
     "לא עובר את חוקי הפועל כאן": 165,
     "עובר את החוקים — פלט אחר (חלק מהמחסן)": 104,
-    "צורה אחרת — דורש מתאם": 20,
+    "צורה אחרת — דורש מתאם": 22,
     "שילוב — דורש מתאם-ייבוא (זמן-ריצה)": 1
    },
    "tried": [
@@ -6298,13 +6644,13 @@
      "laws": "15/15",
      "inputs": 168,
      "same": "פלט אחר על 168 קלטים (#0)",
-     "steps": "2692 מול 5208",
+     "steps": "2695 מול 5208",
      "verdict": "נדחה — פלט אחר על 168 קלטים (#0)"
     },
     {
      "cand": "machine:catalog/self/loop.mjs#at",
      "project": "machine",
-     "at": "catalog/self/loop.mjs:334",
+     "at": "catalog/self/loop.mjs:337",
      "laws": "15/15",
      "inputs": 168,
      "same": "פלט אחר על 168 קלטים (#0)",
@@ -6317,16 +6663,16 @@
   },
   {
    "subject": "machine:catalog/scripts/orbit-census.mjs#doesOf·normalize",
-   "at": "catalog/scripts/orbit-census.mjs:410",
+   "at": "catalog/scripts/orbit-census.mjs:428",
    "verb": "normalize",
    "from": "הקורא",
    "laws": "12/12",
    "inputs": 167,
    "steps": 5177,
    "history": {
-    "scanned": 4,
+    "scanned": 5,
     "versions": 0,
-    "sameText": 4
+    "sameText": 5
    },
    "found": [],
    "considered": 299,
@@ -6349,12 +6695,12 @@
    "inputs": 79,
    "steps": 1138,
    "history": {
-    "scanned": 4,
+    "scanned": 5,
     "versions": 0,
-    "sameText": 4
+    "sameText": 5
    },
    "found": [],
-   "considered": 644,
+   "considered": 646,
    "skipped": {
     "לא נטען להרצה כאן": 5,
     "לא עובר את חוקי הפועל כאן": 150,
@@ -6400,7 +6746,7 @@
      "laws": "15/15",
      "inputs": 123,
      "same": "פלט אחר על 123 קלטים (#0)",
-     "steps": "1222 מול 1638",
+     "steps": "1148 מול 1638",
      "verdict": "נדחה — פלט אחר על 123 קלטים (#0)"
     },
     {
@@ -6480,7 +6826,7 @@
      "laws": "15/15",
      "inputs": 123,
      "same": "פלט אחר על 123 קלטים (#0)",
-     "steps": "1385 מול 1638",
+     "steps": "1311 מול 1638",
      "verdict": "נדחה — פלט אחר על 123 קלטים (#0)"
     },
     {
@@ -6514,9 +6860,29 @@
      "verdict": "נדחה — פלט אחר על 112 קלטים (#0)"
     },
     {
+     "cand": "machine:catalog/scripts/test-changed.mjs#fileOf",
+     "project": "machine",
+     "at": "catalog/scripts/test-changed.mjs:31",
+     "laws": "14/14",
+     "inputs": 80,
+     "same": "פלט אחר על 70 קלטים (#1)",
+     "steps": "628 מול 1156",
+     "verdict": "נדחה — פלט אחר על 70 קלטים (#1)"
+    },
+    {
+     "cand": "machine:catalog/self/loop.mjs#cacheBase",
+     "project": "machine",
+     "at": "catalog/self/loop.mjs:573",
+     "laws": "15/15",
+     "inputs": 112,
+     "same": "פלט אחר על 112 קלטים (#0)",
+     "steps": "677 מול 1475",
+     "verdict": "נדחה — פלט אחר על 112 קלטים (#0)"
+    },
+    {
      "cand": "machine:catalog/self/loop.mjs#stretched",
      "project": "machine",
-     "at": "catalog/self/loop.mjs:232",
+     "at": "catalog/self/loop.mjs:235",
      "laws": "14/14",
      "inputs": 147,
      "same": "פלט אחר על 147 קלטים (#0)",
@@ -6530,7 +6896,7 @@
      "laws": "15/15",
      "inputs": 123,
      "same": "פלט אחר על 123 קלטים (#0)",
-     "steps": "987 מול 1638",
+     "steps": "913 מול 1638",
      "verdict": "נדחה — פלט אחר על 123 קלטים (#0)"
     },
     {
@@ -6540,7 +6906,7 @@
      "laws": "14/14",
      "inputs": 91,
      "same": "פלט אחר על 81 קלטים (#1)",
-     "steps": "923 מול 1318",
+     "steps": "849 מול 1318",
      "verdict": "נדחה — פלט אחר על 81 קלטים (#1)"
     }
    ],
@@ -6698,20 +7064,20 @@
   },
   {
    "subject": "machine:catalog/scripts/rebuild.mjs#graph·provide",
-   "at": "catalog/scripts/rebuild.mjs:190",
+   "at": "catalog/scripts/rebuild.mjs:296",
    "verb": "provide",
    "from": "הקורא",
    "laws": "3/3",
    "inputs": 1,
    "steps": 19242,
    "history": {
-    "scanned": 6,
+    "scanned": 8,
     "versions": 0,
-    "sameText": 5,
+    "sameText": 7,
     "absent": 1
    },
    "found": [],
-   "considered": 149,
+   "considered": 152,
    "skipped": {
     "לא נטען להרצה כאן": 74,
     "עובר את החוקים — פלט אחר (חלק מהמחסן)": 71
@@ -6748,9 +7114,39 @@
      "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
     },
     {
+     "cand": "machine:catalog/scripts/rebuild.mjs#onWrote",
+     "project": "machine",
+     "at": "catalog/scripts/rebuild.mjs:325",
+     "laws": "3/3",
+     "inputs": 1,
+     "same": "פלט אחר על קלט אחד (#0)",
+     "steps": "1 מול 19242",
+     "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
+    },
+    {
+     "cand": "machine:catalog/scripts/test-changed.mjs#head",
+     "project": "machine",
+     "at": "catalog/scripts/test-changed.mjs:47",
+     "laws": "3/3",
+     "inputs": 1,
+     "same": "פלט אחר על קלט אחד (#0)",
+     "steps": "14 מול 19242",
+     "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
+    },
+    {
      "cand": "machine:catalog/self/loop-demo.mjs#rootGit",
      "project": "machine",
      "at": "catalog/self/loop-demo.mjs:45",
+     "laws": "3/3",
+     "inputs": 1,
+     "same": "פלט אחר על קלט אחד (#0)",
+     "steps": "1 מול 19242",
+     "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
+    },
+    {
+     "cand": "machine:catalog/self/loop.mjs#MEMO_OFF",
+     "project": "machine",
+     "at": "catalog/self/loop.mjs:478",
      "laws": "3/3",
      "inputs": 1,
      "same": "פלט אחר על קלט אחד (#0)",
@@ -6762,48 +7158,143 @@
    "why": "אין חלק עם אותם פלטים"
   },
   {
+   "subject": "machine:catalog/scripts/rebuild.mjs#onWrote·provide",
+   "at": "catalog/scripts/rebuild.mjs:325",
+   "verb": "provide",
+   "from": "הקורא",
+   "laws": "3/3",
+   "inputs": 1,
+   "steps": 1,
+   "history": {
+    "scanned": 8,
+    "versions": 0,
+    "sameText": 1,
+    "absent": 7
+   },
+   "found": [],
+   "considered": 152,
+   "skipped": {
+    "לא נטען להרצה כאן": 74,
+    "עובר את החוקים — פלט אחר (חלק מהמחסן)": 71
+   },
+   "tried": [
+    {
+     "cand": "machine:catalog/inner/lib/opener.mjs#EMPTY",
+     "project": "machine",
+     "at": "catalog/inner/lib/opener.mjs:133",
+     "laws": "3/3",
+     "inputs": 1,
+     "same": "פלט אחר על קלט אחד (#0)",
+     "steps": "1 מול 1",
+     "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
+    },
+    {
+     "cand": "machine:catalog/inner/lib/store.mjs#dict",
+     "project": "machine",
+     "at": "catalog/inner/lib/store.mjs:21",
+     "laws": "3/3",
+     "inputs": 1,
+     "same": "פלט אחר על קלט אחד (#0)",
+     "steps": "1 מול 1",
+     "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
+    },
+    {
+     "cand": "machine:catalog/scripts/buildsmart-census.mjs#repoRef",
+     "project": "machine",
+     "at": "catalog/scripts/buildsmart-census.mjs:1007",
+     "laws": "3/3",
+     "inputs": 1,
+     "same": "פלט אחר על קלט אחד (#0)",
+     "steps": "1 מול 1",
+     "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
+    },
+    {
+     "cand": "machine:catalog/scripts/rebuild.mjs#graph",
+     "project": "machine",
+     "at": "catalog/scripts/rebuild.mjs:296",
+     "laws": "3/3",
+     "inputs": 1,
+     "same": "פלט אחר על קלט אחד (#0)",
+     "steps": "19242 מול 1",
+     "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
+    },
+    {
+     "cand": "machine:catalog/scripts/test-changed.mjs#head",
+     "project": "machine",
+     "at": "catalog/scripts/test-changed.mjs:47",
+     "laws": "3/3",
+     "inputs": 1,
+     "same": "פלט אחר על קלט אחד (#0)",
+     "steps": "14 מול 1",
+     "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
+    },
+    {
+     "cand": "machine:catalog/self/loop-demo.mjs#rootGit",
+     "project": "machine",
+     "at": "catalog/self/loop-demo.mjs:45",
+     "laws": "3/3",
+     "inputs": 1,
+     "same": "פלט אחר על קלט אחד (#0)",
+     "steps": "1 מול 1",
+     "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
+    },
+    {
+     "cand": "machine:catalog/self/loop.mjs#MEMO_OFF",
+     "project": "machine",
+     "at": "catalog/self/loop.mjs:478",
+     "laws": "3/3",
+     "inputs": 1,
+     "same": "פלט אחר על קלט אחד (#0)",
+     "steps": "1 מול 1",
+     "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
+    }
+   ],
+   "decision": "נשאר",
+   "why": "אין חלק עם אותם פלטים"
+  },
+  {
    "subject": "machine:catalog/scripts/rebuild.mjs#sameOut·validate",
-   "at": "catalog/scripts/rebuild.mjs:185",
+   "at": "catalog/scripts/rebuild.mjs:291",
    "verb": "validate",
    "from": "הקורא",
    "laws": "24/24",
    "inputs": 50,
    "steps": 50,
    "history": {
-    "scanned": 6,
+    "scanned": 8,
     "versions": 0,
-    "sameText": 5,
+    "sameText": 7,
     "absent": 1
    },
    "found": [],
-   "considered": 135,
+   "considered": 136,
    "skipped": {
     "אותם פלטים — אבל אין מספיק קלטים מבחינים (פלט אחד שולט)": 5,
     "לא נטען להרצה כאן": 3,
-    "לא עובר את חוקי הפועל כאן": 98,
-    "עובר את החוקים — פלט אחר (חלק מהמחסן)": 21,
-    "צורה אחרת — דורש מתאם": 5
+    "לא עובר את חוקי הפועל כאן": 95,
+    "עובר את החוקים — פלט אחר (חלק מהמחסן)": 24,
+    "צורה אחרת — דורש מתאם": 6
    },
    "tried": [
     {
      "cand": "machine:catalog/lib/blank.mjs#needsGap",
      "project": "machine",
-     "at": "catalog/lib/blank.mjs:59",
+     "at": "catalog/lib/blank.mjs:60",
      "laws": "24/24",
-     "inputs": 72,
-     "same": "פלט אחר על 61 קלטים (#0)",
-     "steps": "72 מול 72",
-     "verdict": "נדחה — פלט אחר על 61 קלטים (#0)"
+     "inputs": 74,
+     "same": "פלט אחר על 62 קלטים (#0)",
+     "steps": "74 מול 74",
+     "verdict": "נדחה — פלט אחר על 62 קלטים (#0)"
     },
     {
      "cand": "machine:catalog/lib/probe.mjs#sameDesc",
      "project": "machine",
      "at": "catalog/lib/probe.mjs:29",
      "laws": "24/24",
-     "inputs": 72,
-     "same": "פלט אחר על 52 קלטים (#0)",
-     "steps": "304 מול 72",
-     "verdict": "נדחה — פלט אחר על 52 קלטים (#0)"
+     "inputs": 74,
+     "same": "פלט אחר על 54 קלטים (#0)",
+     "steps": "314 מול 74",
+     "verdict": "נדחה — פלט אחר על 54 קלטים (#0)"
     },
     {
      "cand": "machine:catalog/lib/verbs-net.mjs#close",
@@ -6877,7 +7368,7 @@
     {
      "cand": "machine:catalog/scripts/orbit-census.mjs#doesOf",
      "project": "machine",
-     "at": "catalog/scripts/orbit-census.mjs:410",
+     "at": "catalog/scripts/orbit-census.mjs:428",
      "laws": "12/12",
      "inputs": 157,
      "same": "פלט אחר על 150 קלטים (#0)",
@@ -7060,7 +7551,7 @@
     "sameText": 2
    },
    "found": [],
-   "considered": 644,
+   "considered": 646,
    "skipped": {
     "לא נטען להרצה כאן": 5,
     "לא עובר את חוקי הפועל כאן": 320,
@@ -7180,9 +7671,29 @@
      "verdict": "נדחה — פלט אחר על 84 קלטים (#0)"
     },
     {
+     "cand": "machine:catalog/scripts/test-changed.mjs#fileOf",
+     "project": "machine",
+     "at": "catalog/scripts/test-changed.mjs:31",
+     "laws": "15/15",
+     "inputs": 84,
+     "same": "פלט אחר על 84 קלטים (#0)",
+     "steps": "764 מול 84",
+     "verdict": "נדחה — פלט אחר על 84 קלטים (#0)"
+    },
+    {
+     "cand": "machine:catalog/self/loop.mjs#cacheBase",
+     "project": "machine",
+     "at": "catalog/self/loop.mjs:573",
+     "laws": "15/15",
+     "inputs": 84,
+     "same": "פלט אחר על 84 קלטים (#0)",
+     "steps": "508 מול 84",
+     "verdict": "נדחה — פלט אחר על 84 קלטים (#0)"
+    },
+    {
      "cand": "machine:catalog/self/loop.mjs#stretched",
      "project": "machine",
-     "at": "catalog/self/loop.mjs:232",
+     "at": "catalog/self/loop.mjs:235",
      "laws": "15/15",
      "inputs": 83,
      "same": "פלט אחר על 83 קלטים (#0)",
@@ -7229,7 +7740,7 @@
    "found": [
     "כפילות: machine:catalog/inner/lib/store.mjs#docText"
    ],
-   "considered": 644,
+   "considered": 646,
    "skipped": {
     "לא נטען להרצה כאן": 5,
     "לא עובר את חוקי הפועל כאן": 139,
@@ -7389,9 +7900,29 @@
      "verdict": "נדחה — פלט אחר על 129 קלטים (#0)"
     },
     {
+     "cand": "machine:catalog/scripts/test-changed.mjs#fileOf",
+     "project": "machine",
+     "at": "catalog/scripts/test-changed.mjs:31",
+     "laws": "15/15",
+     "inputs": 129,
+     "same": "פלט אחר על 129 קלטים (#0)",
+     "steps": "791 מול 129",
+     "verdict": "נדחה — פלט אחר על 129 קלטים (#0)"
+    },
+    {
+     "cand": "machine:catalog/self/loop.mjs#cacheBase",
+     "project": "machine",
+     "at": "catalog/self/loop.mjs:573",
+     "laws": "15/15",
+     "inputs": 128,
+     "same": "פלט אחר על 128 קלטים (#0)",
+     "steps": "811 מול 128",
+     "verdict": "נדחה — פלט אחר על 128 קלטים (#0)"
+    },
+    {
      "cand": "machine:catalog/self/loop.mjs#stretched",
      "project": "machine",
-     "at": "catalog/self/loop.mjs:232",
+     "at": "catalog/self/loop.mjs:235",
      "laws": "15/15",
      "inputs": 171,
      "same": "פלט אחר על 171 קלטים (#0)",
@@ -7423,6 +7954,297 @@
    "why": "אין חלופה מהירה יותר שאפשר לייבא"
   },
   {
+   "subject": "machine:catalog/scripts/test-changed.mjs#fileOf·format",
+   "at": "catalog/scripts/test-changed.mjs:31",
+   "verb": "format",
+   "from": "הקורא",
+   "laws": "15/15",
+   "inputs": 84,
+   "steps": 765,
+   "history": {
+    "scanned": 1,
+    "versions": 0,
+    "sameText": 1
+   },
+   "found": [],
+   "considered": 646,
+   "skipped": {
+    "לא נטען להרצה כאן": 5,
+    "לא עובר את חוקי הפועל כאן": 376,
+    "עובר את החוקים — פלט אחר (חלק מהמחסן)": 240,
+    "צורה אחרת — דורש מתאם": 7,
+    "שילוב — דורש מתאם-ייבוא (זמן-ריצה)": 1
+   },
+   "tried": [
+    {
+     "cand": "machine:catalog/combiner/core.mjs#normWord",
+     "project": "machine",
+     "at": "catalog/combiner/core.mjs:791",
+     "laws": "15/15",
+     "inputs": 84,
+     "same": "פלט אחר על 84 קלטים (#0)",
+     "steps": "84 מול 765",
+     "verdict": "נדחה — פלט אחר על 84 קלטים (#0)"
+    },
+    {
+     "cand": "machine:catalog/combiner/core.mjs#wordId",
+     "project": "machine",
+     "at": "catalog/combiner/core.mjs:828",
+     "laws": "15/15",
+     "inputs": 97,
+     "same": "פלט אחר על 97 קלטים (#0)",
+     "steps": "1551 מול 882",
+     "verdict": "נדחה — פלט אחר על 97 קלטים (#0)"
+    },
+    {
+     "cand": "machine:catalog/inner/lib/ensure-gen.mjs#STAT_FILE",
+     "project": "machine",
+     "at": "catalog/inner/lib/ensure-gen.mjs:91",
+     "laws": "15/15",
+     "inputs": 85,
+     "same": "פלט אחר על 85 קלטים (#0)",
+     "steps": "606 מול 777",
+     "verdict": "נדחה — פלט אחר על 85 קלטים (#0)"
+    },
+    {
+     "cand": "machine:catalog/inner/lib/store.mjs#docText",
+     "project": "machine",
+     "at": "catalog/inner/lib/store.mjs:175",
+     "laws": "15/15",
+     "inputs": 85,
+     "same": "פלט אחר על 85 קלטים (#0)",
+     "steps": "85 מול 774",
+     "verdict": "נדחה — פלט אחר על 85 קלטים (#0)"
+    },
+    {
+     "cand": "machine:catalog/lib/shape.mjs#canon",
+     "project": "machine",
+     "at": "catalog/lib/shape.mjs:243",
+     "laws": "15/15",
+     "inputs": 85,
+     "same": "פלט אחר על 85 קלטים (#0)",
+     "steps": "85 מול 774",
+     "verdict": "נדחה — פלט אחר על 85 קלטים (#0)"
+    },
+    {
+     "cand": "machine:catalog/scripts/behavior-probe.mjs#docPath",
+     "project": "machine",
+     "at": "catalog/scripts/behavior-probe.mjs:62",
+     "laws": "15/15",
+     "inputs": 85,
+     "same": "פלט אחר על 85 קלטים (#0)",
+     "steps": "520 מול 776",
+     "verdict": "נדחה — פלט אחר על 85 קלטים (#0)"
+    },
+    {
+     "cand": "machine:catalog/scripts/behavior-probe.mjs#stampPath",
+     "project": "machine",
+     "at": "catalog/scripts/behavior-probe.mjs:79",
+     "laws": "15/15",
+     "inputs": 85,
+     "same": "פלט אחר על 85 קלטים (#0)",
+     "steps": "85 מול 777",
+     "verdict": "נדחה — פלט אחר על 85 קלטים (#0)"
+    },
+    {
+     "cand": "machine:catalog/scripts/buildsmart-census.mjs#rel",
+     "project": "machine",
+     "at": "catalog/scripts/buildsmart-census.mjs:59",
+     "laws": "15/15",
+     "inputs": 94,
+     "same": "פלט אחר על 94 קלטים (#0)",
+     "steps": "1540 מול 885",
+     "verdict": "נדחה — פלט אחר על 94 קלטים (#0)"
+    },
+    {
+     "cand": "machine:catalog/scripts/core-census.mjs#refOf",
+     "project": "machine",
+     "at": "catalog/scripts/core-census.mjs:49",
+     "laws": "15/15",
+     "inputs": 97,
+     "same": "פלט אחר על 97 קלטים (#0)",
+     "steps": "1752 מול 882",
+     "verdict": "נדחה — פלט אחר על 97 קלטים (#0)"
+    },
+    {
+     "cand": "machine:catalog/scripts/generator-census.mjs#sentence",
+     "project": "machine",
+     "at": "catalog/scripts/generator-census.mjs:396",
+     "laws": "15/15",
+     "inputs": 94,
+     "same": "פלט אחר על 94 קלטים (#0)",
+     "steps": "94 מול 855",
+     "verdict": "נדחה — פלט אחר על 94 קלטים (#0)"
+    },
+    {
+     "cand": "machine:catalog/scripts/orbit-census.mjs#rel",
+     "project": "machine",
+     "at": "catalog/scripts/orbit-census.mjs:39",
+     "laws": "15/15",
+     "inputs": 84,
+     "same": "פלט אחר על 84 קלטים (#0)",
+     "steps": "1266 מול 765",
+     "verdict": "נדחה — פלט אחר על 84 קלטים (#0)"
+    },
+    {
+     "cand": "machine:catalog/scripts/rings-census.mjs#verbName",
+     "project": "machine",
+     "at": "catalog/scripts/rings-census.mjs:82",
+     "laws": "15/15",
+     "inputs": 85,
+     "same": "פלט אחר על 85 קלטים (#0)",
+     "steps": "85 מול 774",
+     "verdict": "נדחה — פלט אחר על 85 קלטים (#0)"
+    },
+    {
+     "cand": "machine:catalog/scripts/self-check.mjs#text",
+     "project": "machine",
+     "at": "catalog/scripts/self-check.mjs:37",
+     "laws": "15/15",
+     "inputs": 85,
+     "same": "פלט אחר על 85 קלטים (#0)",
+     "steps": "85 מול 774",
+     "verdict": "נדחה — פלט אחר על 85 קלטים (#0)"
+    },
+    {
+     "cand": "machine:catalog/self/loop.mjs#cacheBase",
+     "project": "machine",
+     "at": "catalog/self/loop.mjs:573",
+     "laws": "15/15",
+     "inputs": 85,
+     "same": "פלט אחר על 85 קלטים (#0)",
+     "steps": "520 מול 776",
+     "verdict": "נדחה — פלט אחר על 85 קלטים (#0)"
+    },
+    {
+     "cand": "machine:catalog/self/loop.mjs#stretched",
+     "project": "machine",
+     "at": "catalog/self/loop.mjs:235",
+     "laws": "15/15",
+     "inputs": 84,
+     "same": "פלט אחר על 84 קלטים (#0)",
+     "steps": "84 מול 765",
+     "verdict": "נדחה — פלט אחר על 84 קלטים (#0)"
+    },
+    {
+     "cand": "machine:catalog/self/parts.mjs#fnvHex",
+     "project": "machine",
+     "at": "catalog/self/parts.mjs:22",
+     "laws": "15/15",
+     "inputs": 97,
+     "same": "פלט אחר על 97 קלטים (#0)",
+     "steps": "1453 מול 882",
+     "verdict": "נדחה — פלט אחר על 97 קלטים (#0)"
+    },
+    {
+     "cand": "machine:catalog/self/parts.mjs#fnvHexPoints",
+     "project": "machine",
+     "at": "catalog/self/parts.mjs:31",
+     "laws": "15/15",
+     "inputs": 97,
+     "same": "פלט אחר על 97 קלטים (#0)",
+     "steps": "1453 מול 882",
+     "verdict": "נדחה — פלט אחר על 97 קלטים (#0)"
+    }
+   ],
+   "decision": "נשאר",
+   "why": "אין חלק עם אותם פלטים"
+  },
+  {
+   "subject": "machine:catalog/scripts/test-changed.mjs#head·provide",
+   "at": "catalog/scripts/test-changed.mjs:47",
+   "verb": "provide",
+   "from": "הקורא",
+   "laws": "3/3",
+   "inputs": 1,
+   "steps": 14,
+   "history": {
+    "scanned": 1,
+    "versions": 0,
+    "sameText": 1
+   },
+   "found": [],
+   "considered": 152,
+   "skipped": {
+    "לא נטען להרצה כאן": 74,
+    "עובר את החוקים — פלט אחר (חלק מהמחסן)": 71
+   },
+   "tried": [
+    {
+     "cand": "machine:catalog/inner/lib/opener.mjs#EMPTY",
+     "project": "machine",
+     "at": "catalog/inner/lib/opener.mjs:133",
+     "laws": "3/3",
+     "inputs": 1,
+     "same": "פלט אחר על קלט אחד (#0)",
+     "steps": "1 מול 14",
+     "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
+    },
+    {
+     "cand": "machine:catalog/inner/lib/store.mjs#dict",
+     "project": "machine",
+     "at": "catalog/inner/lib/store.mjs:21",
+     "laws": "3/3",
+     "inputs": 1,
+     "same": "פלט אחר על קלט אחד (#0)",
+     "steps": "1 מול 14",
+     "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
+    },
+    {
+     "cand": "machine:catalog/scripts/buildsmart-census.mjs#repoRef",
+     "project": "machine",
+     "at": "catalog/scripts/buildsmart-census.mjs:1007",
+     "laws": "3/3",
+     "inputs": 1,
+     "same": "פלט אחר על קלט אחד (#0)",
+     "steps": "1 מול 14",
+     "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
+    },
+    {
+     "cand": "machine:catalog/scripts/rebuild.mjs#graph",
+     "project": "machine",
+     "at": "catalog/scripts/rebuild.mjs:296",
+     "laws": "3/3",
+     "inputs": 1,
+     "same": "פלט אחר על קלט אחד (#0)",
+     "steps": "19242 מול 14",
+     "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
+    },
+    {
+     "cand": "machine:catalog/scripts/rebuild.mjs#onWrote",
+     "project": "machine",
+     "at": "catalog/scripts/rebuild.mjs:325",
+     "laws": "3/3",
+     "inputs": 1,
+     "same": "פלט אחר על קלט אחד (#0)",
+     "steps": "1 מול 14",
+     "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
+    },
+    {
+     "cand": "machine:catalog/self/loop-demo.mjs#rootGit",
+     "project": "machine",
+     "at": "catalog/self/loop-demo.mjs:45",
+     "laws": "3/3",
+     "inputs": 1,
+     "same": "פלט אחר על קלט אחד (#0)",
+     "steps": "1 מול 14",
+     "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
+    },
+    {
+     "cand": "machine:catalog/self/loop.mjs#MEMO_OFF",
+     "project": "machine",
+     "at": "catalog/self/loop.mjs:478",
+     "laws": "3/3",
+     "inputs": 1,
+     "same": "פלט אחר על קלט אחד (#0)",
+     "steps": "1 מול 14",
+     "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
+    }
+   ],
+   "decision": "נשאר",
+   "why": "אין חלק עם אותם פלטים"
+  },
+  {
    "subject": "machine:catalog/self/loop-demo.mjs#rootGit·provide",
    "at": "catalog/self/loop-demo.mjs:45",
    "verb": "provide",
@@ -7437,7 +8259,7 @@
     "absent": 1
    },
    "found": [],
-   "considered": 149,
+   "considered": 152,
    "skipped": {
     "לא נטען להרצה כאן": 74,
     "עובר את החוקים — פלט אחר (חלק מהמחסן)": 71
@@ -7476,11 +8298,136 @@
     {
      "cand": "machine:catalog/scripts/rebuild.mjs#graph",
      "project": "machine",
-     "at": "catalog/scripts/rebuild.mjs:190",
+     "at": "catalog/scripts/rebuild.mjs:296",
      "laws": "3/3",
      "inputs": 1,
      "same": "פלט אחר על קלט אחד (#0)",
      "steps": "19242 מול 1",
+     "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
+    },
+    {
+     "cand": "machine:catalog/scripts/rebuild.mjs#onWrote",
+     "project": "machine",
+     "at": "catalog/scripts/rebuild.mjs:325",
+     "laws": "3/3",
+     "inputs": 1,
+     "same": "פלט אחר על קלט אחד (#0)",
+     "steps": "1 מול 1",
+     "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
+    },
+    {
+     "cand": "machine:catalog/scripts/test-changed.mjs#head",
+     "project": "machine",
+     "at": "catalog/scripts/test-changed.mjs:47",
+     "laws": "3/3",
+     "inputs": 1,
+     "same": "פלט אחר על קלט אחד (#0)",
+     "steps": "14 מול 1",
+     "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
+    },
+    {
+     "cand": "machine:catalog/self/loop.mjs#MEMO_OFF",
+     "project": "machine",
+     "at": "catalog/self/loop.mjs:478",
+     "laws": "3/3",
+     "inputs": 1,
+     "same": "פלט אחר על קלט אחד (#0)",
+     "steps": "1 מול 1",
+     "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
+    }
+   ],
+   "decision": "נשאר",
+   "why": "אין חלק עם אותם פלטים"
+  },
+  {
+   "subject": "machine:catalog/self/loop.mjs#MEMO_OFF·provide",
+   "at": "catalog/self/loop.mjs:478",
+   "verb": "provide",
+   "from": "הקורא",
+   "laws": "3/3",
+   "inputs": 1,
+   "steps": 1,
+   "history": {
+    "scanned": 5,
+    "versions": 0,
+    "sameText": 3,
+    "absent": 2
+   },
+   "found": [],
+   "considered": 152,
+   "skipped": {
+    "לא נטען להרצה כאן": 74,
+    "עובר את החוקים — פלט אחר (חלק מהמחסן)": 71
+   },
+   "tried": [
+    {
+     "cand": "machine:catalog/inner/lib/opener.mjs#EMPTY",
+     "project": "machine",
+     "at": "catalog/inner/lib/opener.mjs:133",
+     "laws": "3/3",
+     "inputs": 1,
+     "same": "פלט אחר על קלט אחד (#0)",
+     "steps": "1 מול 1",
+     "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
+    },
+    {
+     "cand": "machine:catalog/inner/lib/store.mjs#dict",
+     "project": "machine",
+     "at": "catalog/inner/lib/store.mjs:21",
+     "laws": "3/3",
+     "inputs": 1,
+     "same": "פלט אחר על קלט אחד (#0)",
+     "steps": "1 מול 1",
+     "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
+    },
+    {
+     "cand": "machine:catalog/scripts/buildsmart-census.mjs#repoRef",
+     "project": "machine",
+     "at": "catalog/scripts/buildsmart-census.mjs:1007",
+     "laws": "3/3",
+     "inputs": 1,
+     "same": "פלט אחר על קלט אחד (#0)",
+     "steps": "1 מול 1",
+     "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
+    },
+    {
+     "cand": "machine:catalog/scripts/rebuild.mjs#graph",
+     "project": "machine",
+     "at": "catalog/scripts/rebuild.mjs:296",
+     "laws": "3/3",
+     "inputs": 1,
+     "same": "פלט אחר על קלט אחד (#0)",
+     "steps": "19242 מול 1",
+     "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
+    },
+    {
+     "cand": "machine:catalog/scripts/rebuild.mjs#onWrote",
+     "project": "machine",
+     "at": "catalog/scripts/rebuild.mjs:325",
+     "laws": "3/3",
+     "inputs": 1,
+     "same": "פלט אחר על קלט אחד (#0)",
+     "steps": "1 מול 1",
+     "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
+    },
+    {
+     "cand": "machine:catalog/scripts/test-changed.mjs#head",
+     "project": "machine",
+     "at": "catalog/scripts/test-changed.mjs:47",
+     "laws": "3/3",
+     "inputs": 1,
+     "same": "פלט אחר על קלט אחד (#0)",
+     "steps": "14 מול 1",
+     "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
+    },
+    {
+     "cand": "machine:catalog/self/loop-demo.mjs#rootGit",
+     "project": "machine",
+     "at": "catalog/self/loop-demo.mjs:45",
+     "laws": "3/3",
+     "inputs": 1,
+     "same": "פלט אחר על קלט אחד (#0)",
+     "steps": "1 מול 1",
      "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
     }
    ],
@@ -7489,24 +8436,24 @@
   },
   {
    "subject": "machine:catalog/self/loop.mjs#at·format",
-   "at": "catalog/self/loop.mjs:334",
+   "at": "catalog/self/loop.mjs:337",
    "verb": "format",
    "from": "הקורא",
    "laws": "15/15",
-   "inputs": 194,
-   "steps": 194,
+   "inputs": 195,
+   "steps": 195,
    "history": {
-    "scanned": 2,
+    "scanned": 5,
     "versions": 0,
-    "sameText": 2
+    "sameText": 5
    },
    "found": [],
-   "considered": 296,
+   "considered": 298,
    "skipped": {
     "לא נטען להרצה כאן": 3,
     "לא עובר את חוקי הפועל כאן": 82,
     "עובר את החוקים — פלט אחר (חלק מהמחסן)": 187,
-    "צורה אחרת — דורש מתאם": 20,
+    "צורה אחרת — דורש מתאם": 22,
     "שילוב — דורש מתאם-ייבוא (זמן-ריצה)": 1
    },
    "tried": [
@@ -7515,30 +8462,258 @@
      "project": "machine",
      "at": "catalog/inner/lib/ensure-gen.mjs:33",
      "laws": "15/15",
-     "inputs": 196,
-     "same": "פלט אחר על 196 קלטים (#0)",
-     "steps": "196 מול 196",
-     "verdict": "נדחה — פלט אחר על 196 קלטים (#0)"
+     "inputs": 197,
+     "same": "פלט אחר על 197 קלטים (#0)",
+     "steps": "197 מול 197",
+     "verdict": "נדחה — פלט אחר על 197 קלטים (#0)"
     },
     {
      "cand": "machine:catalog/lib/cache.mjs#fileOf",
      "project": "machine",
      "at": "catalog/lib/cache.mjs:26",
      "laws": "15/15",
-     "inputs": 196,
-     "same": "פלט אחר על 196 קלטים (#0)",
-     "steps": "3236 מול 196",
-     "verdict": "נדחה — פלט אחר על 196 קלטים (#0)"
+     "inputs": 197,
+     "same": "פלט אחר על 197 קלטים (#0)",
+     "steps": "3251 מול 197",
+     "verdict": "נדחה — פלט אחר על 197 קלטים (#0)"
     },
     {
      "cand": "machine:catalog/scripts/orbit-census.mjs#doesOf",
      "project": "machine",
-     "at": "catalog/scripts/orbit-census.mjs:410",
+     "at": "catalog/scripts/orbit-census.mjs:428",
      "laws": "15/15",
-     "inputs": 216,
-     "same": "פלט אחר על 215 קלטים (#0)",
-     "steps": "6693 מול 216",
-     "verdict": "נדחה — פלט אחר על 215 קלטים (#0)"
+     "inputs": 217,
+     "same": "פלט אחר על 216 קלטים (#0)",
+     "steps": "6724 מול 217",
+     "verdict": "נדחה — פלט אחר על 216 קלטים (#0)"
+    }
+   ],
+   "decision": "נשאר",
+   "why": "אין חלק עם אותם פלטים"
+  },
+  {
+   "subject": "machine:catalog/self/loop.mjs#cacheBase·format",
+   "at": "catalog/self/loop.mjs:573",
+   "verb": "format",
+   "from": "הקורא",
+   "laws": "15/15",
+   "inputs": 113,
+   "steps": 676,
+   "history": {
+    "scanned": 5,
+    "versions": 0,
+    "sameText": 3,
+    "absent": 2
+   },
+   "found": [],
+   "considered": 646,
+   "skipped": {
+    "לא נטען להרצה כאן": 5,
+    "לא עובר את חוקי הפועל כאן": 150,
+    "עובר את החוקים — פלט אחר (חלק מהמחסן)": 463,
+    "צורה אחרת — דורש מתאם": 7,
+    "שילוב — דורש מתאם-ייבוא (זמן-ריצה)": 1
+   },
+   "tried": [
+    {
+     "cand": "machine:catalog/combiner/core.mjs#kindHe",
+     "project": "machine",
+     "at": "catalog/combiner/core.mjs:91",
+     "laws": "15/15",
+     "inputs": 113,
+     "same": "פלט אחר על 113 קלטים (#0)",
+     "steps": "113 מול 676",
+     "verdict": "נדחה — פלט אחר על 113 קלטים (#0)"
+    },
+    {
+     "cand": "machine:catalog/combiner/core.mjs#normWord",
+     "project": "machine",
+     "at": "catalog/combiner/core.mjs:791",
+     "laws": "15/15",
+     "inputs": 117,
+     "same": "פלט אחר על 117 קלטים (#0)",
+     "steps": "117 מול 700",
+     "verdict": "נדחה — פלט אחר על 117 קלטים (#0)"
+    },
+    {
+     "cand": "machine:catalog/combiner/core.mjs#projHe",
+     "project": "machine",
+     "at": "catalog/combiner/core.mjs:65",
+     "laws": "15/15",
+     "inputs": 113,
+     "same": "פלט אחר על 113 קלטים (#0)",
+     "steps": "339 מול 676",
+     "verdict": "נדחה — פלט אחר על 113 קלטים (#0)"
+    },
+    {
+     "cand": "machine:catalog/combiner/core.mjs#wordId",
+     "project": "machine",
+     "at": "catalog/combiner/core.mjs:828",
+     "laws": "15/15",
+     "inputs": 123,
+     "same": "פלט אחר על 123 קלטים (#0)",
+     "steps": "1710 מול 736",
+     "verdict": "נדחה — פלט אחר על 123 קלטים (#0)"
+    },
+    {
+     "cand": "machine:catalog/inner/lib/ensure-gen.mjs#STAT_FILE",
+     "project": "machine",
+     "at": "catalog/inner/lib/ensure-gen.mjs:91",
+     "laws": "15/15",
+     "inputs": 114,
+     "same": "פלט אחר על 114 קלטים (#0)",
+     "steps": "799 מול 685",
+     "verdict": "נדחה — פלט אחר על 114 קלטים (#0)"
+    },
+    {
+     "cand": "machine:catalog/inner/lib/store.mjs#docText",
+     "project": "machine",
+     "at": "catalog/inner/lib/store.mjs:175",
+     "laws": "15/15",
+     "inputs": 114,
+     "same": "פלט אחר על 114 קלטים (#0)",
+     "steps": "114 מול 682",
+     "verdict": "נדחה — פלט אחר על 114 קלטים (#0)"
+    },
+    {
+     "cand": "machine:catalog/lib/shape.mjs#canon",
+     "project": "machine",
+     "at": "catalog/lib/shape.mjs:243",
+     "laws": "15/15",
+     "inputs": 114,
+     "same": "פלט אחר על 114 קלטים (#0)",
+     "steps": "163 מול 682",
+     "verdict": "נדחה — פלט אחר על 114 קלטים (#0)"
+    },
+    {
+     "cand": "machine:catalog/lib/shape.mjs#pad",
+     "project": "machine",
+     "at": "catalog/lib/shape.mjs:46",
+     "laws": "15/15",
+     "inputs": 114,
+     "same": "פלט אחר על 114 קלטים (#0)",
+     "steps": "114 מול 682",
+     "verdict": "נדחה — פלט אחר על 114 קלטים (#0)"
+    },
+    {
+     "cand": "machine:catalog/scripts/behavior-probe.mjs#docPath",
+     "project": "machine",
+     "at": "catalog/scripts/behavior-probe.mjs:62",
+     "laws": "15/15",
+     "inputs": 114,
+     "same": "פלט אחר על 114 קלטים (#0)",
+     "steps": "688 מול 684",
+     "verdict": "נדחה — פלט אחר על 114 קלטים (#0)"
+    },
+    {
+     "cand": "machine:catalog/scripts/behavior-probe.mjs#stampPath",
+     "project": "machine",
+     "at": "catalog/scripts/behavior-probe.mjs:79",
+     "laws": "15/15",
+     "inputs": 114,
+     "same": "פלט אחר על 114 קלטים (#0)",
+     "steps": "114 מול 685",
+     "verdict": "נדחה — פלט אחר על 114 קלטים (#0)"
+    },
+    {
+     "cand": "machine:catalog/scripts/buildsmart-census.mjs#rel",
+     "project": "machine",
+     "at": "catalog/scripts/buildsmart-census.mjs:59",
+     "laws": "14/14",
+     "inputs": 123,
+     "same": "פלט אחר על 123 קלטים (#0)",
+     "steps": "1701 מול 765",
+     "verdict": "נדחה — פלט אחר על 123 קלטים (#0)"
+    },
+    {
+     "cand": "machine:catalog/scripts/core-census.mjs#refOf",
+     "project": "machine",
+     "at": "catalog/scripts/core-census.mjs:49",
+     "laws": "15/15",
+     "inputs": 123,
+     "same": "פלט אחר על 123 קלטים (#0)",
+     "steps": "1859 מול 736",
+     "verdict": "נדחה — פלט אחר על 123 קלטים (#0)"
+    },
+    {
+     "cand": "machine:catalog/scripts/generator-census.mjs#sentence",
+     "project": "machine",
+     "at": "catalog/scripts/generator-census.mjs:396",
+     "laws": "15/15",
+     "inputs": 123,
+     "same": "פלט אחר על 123 קלטים (#0)",
+     "steps": "123 מול 736",
+     "verdict": "נדחה — פלט אחר על 123 קלטים (#0)"
+    },
+    {
+     "cand": "machine:catalog/scripts/orbit-census.mjs#rel",
+     "project": "machine",
+     "at": "catalog/scripts/orbit-census.mjs:39",
+     "laws": "14/14",
+     "inputs": 113,
+     "same": "פלט אחר על 113 קלטים (#0)",
+     "steps": "1448 מול 676",
+     "verdict": "נדחה — פלט אחר על 113 קלטים (#0)"
+    },
+    {
+     "cand": "machine:catalog/scripts/rings-census.mjs#verbName",
+     "project": "machine",
+     "at": "catalog/scripts/rings-census.mjs:82",
+     "laws": "13/13",
+     "inputs": 114,
+     "same": "פלט אחר על 114 קלטים (#0)",
+     "steps": "114 מול 682",
+     "verdict": "נדחה — פלט אחר על 114 קלטים (#0)"
+    },
+    {
+     "cand": "machine:catalog/scripts/self-check.mjs#text",
+     "project": "machine",
+     "at": "catalog/scripts/self-check.mjs:37",
+     "laws": "15/15",
+     "inputs": 114,
+     "same": "פלט אחר על 114 קלטים (#0)",
+     "steps": "114 מול 682",
+     "verdict": "נדחה — פלט אחר על 114 קלטים (#0)"
+    },
+    {
+     "cand": "machine:catalog/scripts/test-changed.mjs#fileOf",
+     "project": "machine",
+     "at": "catalog/scripts/test-changed.mjs:31",
+     "laws": "13/13",
+     "inputs": 114,
+     "same": "פלט אחר על 114 קלטים (#0)",
+     "steps": "617 מול 687",
+     "verdict": "נדחה — פלט אחר על 114 קלטים (#0)"
+    },
+    {
+     "cand": "machine:catalog/self/loop.mjs#stretched",
+     "project": "machine",
+     "at": "catalog/self/loop.mjs:235",
+     "laws": "13/13",
+     "inputs": 157,
+     "same": "פלט אחר על 157 קלטים (#0)",
+     "steps": "157 מול 940",
+     "verdict": "נדחה — פלט אחר על 157 קלטים (#0)"
+    },
+    {
+     "cand": "machine:catalog/self/parts.mjs#fnvHex",
+     "project": "machine",
+     "at": "catalog/self/parts.mjs:22",
+     "laws": "15/15",
+     "inputs": 123,
+     "same": "פלט אחר על 123 קלטים (#0)",
+     "steps": "1463 מול 736",
+     "verdict": "נדחה — פלט אחר על 123 קלטים (#0)"
+    },
+    {
+     "cand": "machine:catalog/self/parts.mjs#fnvHexPoints",
+     "project": "machine",
+     "at": "catalog/self/parts.mjs:31",
+     "laws": "13/13",
+     "inputs": 123,
+     "same": "פלט אחר על 123 קלטים (#0)",
+     "steps": "1463 מול 736",
+     "verdict": "נדחה — פלט אחר על 123 קלטים (#0)"
     }
    ],
    "decision": "נשאר",
@@ -7546,23 +8721,23 @@
   },
   {
    "subject": "machine:catalog/self/loop.mjs#stretched·format",
-   "at": "catalog/self/loop.mjs:232",
+   "at": "catalog/self/loop.mjs:235",
    "verb": "format",
    "from": "הקורא",
    "laws": "15/15",
-   "inputs": 89,
-   "steps": 89,
+   "inputs": 91,
+   "steps": 91,
    "history": {
-    "scanned": 2,
+    "scanned": 5,
     "versions": 0,
-    "sameText": 2
+    "sameText": 5
    },
    "found": [],
-   "considered": 644,
+   "considered": 646,
    "skipped": {
     "לא נטען להרצה כאן": 5,
-    "לא עובר את חוקי הפועל כאן": 184,
-    "עובר את החוקים — פלט אחר (חלק מהמחסן)": 432,
+    "לא עובר את חוקי הפועל כאן": 187,
+    "עובר את החוקים — פלט אחר (חלק מהמחסן)": 429,
     "צורה אחרת — דורש מתאם": 7,
     "שילוב — דורש מתאם-ייבוא (זמן-ריצה)": 1
    },
@@ -7572,150 +8747,170 @@
      "project": "machine",
      "at": "catalog/combiner/core.mjs:791",
      "laws": "15/15",
-     "inputs": 91,
-     "same": "פלט אחר על 90 קלטים (#0)",
-     "steps": "91 מול 91",
-     "verdict": "נדחה — פלט אחר על 90 קלטים (#0)"
+     "inputs": 92,
+     "same": "פלט אחר על 91 קלטים (#0)",
+     "steps": "92 מול 92",
+     "verdict": "נדחה — פלט אחר על 91 קלטים (#0)"
     },
     {
      "cand": "machine:catalog/combiner/core.mjs#wordId",
      "project": "machine",
      "at": "catalog/combiner/core.mjs:828",
      "laws": "15/15",
-     "inputs": 101,
-     "same": "פלט אחר על 101 קלטים (#0)",
-     "steps": "2184 מול 101",
-     "verdict": "נדחה — פלט אחר על 101 קלטים (#0)"
+     "inputs": 104,
+     "same": "פלט אחר על 104 קלטים (#0)",
+     "steps": "1961 מול 104",
+     "verdict": "נדחה — פלט אחר על 104 קלטים (#0)"
     },
     {
      "cand": "machine:catalog/inner/lib/ensure-gen.mjs#STAT_FILE",
      "project": "machine",
      "at": "catalog/inner/lib/ensure-gen.mjs:91",
      "laws": "15/15",
-     "inputs": 90,
-     "same": "פלט אחר על 90 קלטים (#0)",
-     "steps": "636 מול 90",
-     "verdict": "נדחה — פלט אחר על 90 קלטים (#0)"
+     "inputs": 92,
+     "same": "פלט אחר על 92 קלטים (#0)",
+     "steps": "648 מול 92",
+     "verdict": "נדחה — פלט אחר על 92 קלטים (#0)"
     },
     {
      "cand": "machine:catalog/inner/lib/store.mjs#docText",
      "project": "machine",
      "at": "catalog/inner/lib/store.mjs:175",
      "laws": "15/15",
-     "inputs": 90,
-     "same": "פלט אחר על 90 קלטים (#0)",
-     "steps": "90 מול 90",
-     "verdict": "נדחה — פלט אחר על 90 קלטים (#0)"
+     "inputs": 92,
+     "same": "פלט אחר על 92 קלטים (#0)",
+     "steps": "92 מול 92",
+     "verdict": "נדחה — פלט אחר על 92 קלטים (#0)"
     },
     {
      "cand": "machine:catalog/lib/shape.mjs#canon",
      "project": "machine",
      "at": "catalog/lib/shape.mjs:243",
      "laws": "15/15",
-     "inputs": 90,
-     "same": "פלט אחר על 90 קלטים (#0)",
-     "steps": "90 מול 90",
-     "verdict": "נדחה — פלט אחר על 90 קלטים (#0)"
+     "inputs": 92,
+     "same": "פלט אחר על 92 קלטים (#0)",
+     "steps": "92 מול 92",
+     "verdict": "נדחה — פלט אחר על 92 קלטים (#0)"
     },
     {
      "cand": "machine:catalog/lib/shape.mjs#pad",
      "project": "machine",
      "at": "catalog/lib/shape.mjs:46",
      "laws": "15/15",
-     "inputs": 90,
-     "same": "פלט אחר על 90 קלטים (#0)",
-     "steps": "90 מול 90",
-     "verdict": "נדחה — פלט אחר על 90 קלטים (#0)"
+     "inputs": 91,
+     "same": "פלט אחר על 91 קלטים (#0)",
+     "steps": "91 מול 91",
+     "verdict": "נדחה — פלט אחר על 91 קלטים (#0)"
     },
     {
      "cand": "machine:catalog/scripts/behavior-probe.mjs#docPath",
      "project": "machine",
      "at": "catalog/scripts/behavior-probe.mjs:62",
      "laws": "15/15",
-     "inputs": 90,
-     "same": "פלט אחר על 90 קלטים (#0)",
-     "steps": "546 מול 90",
-     "verdict": "נדחה — פלט אחר על 90 קלטים (#0)"
+     "inputs": 92,
+     "same": "פלט אחר על 92 קלטים (#0)",
+     "steps": "556 מול 92",
+     "verdict": "נדחה — פלט אחר על 92 קלטים (#0)"
     },
     {
      "cand": "machine:catalog/scripts/behavior-probe.mjs#stampPath",
      "project": "machine",
      "at": "catalog/scripts/behavior-probe.mjs:79",
      "laws": "15/15",
-     "inputs": 90,
-     "same": "פלט אחר על 90 קלטים (#0)",
-     "steps": "90 מול 90",
-     "verdict": "נדחה — פלט אחר על 90 קלטים (#0)"
+     "inputs": 92,
+     "same": "פלט אחר על 92 קלטים (#0)",
+     "steps": "92 מול 92",
+     "verdict": "נדחה — פלט אחר על 92 קלטים (#0)"
     },
     {
      "cand": "machine:catalog/scripts/buildsmart-census.mjs#rel",
      "project": "machine",
      "at": "catalog/scripts/buildsmart-census.mjs:59",
      "laws": "15/15",
-     "inputs": 101,
-     "same": "פלט אחר על 101 קלטים (#0)",
-     "steps": "1657 מול 101",
-     "verdict": "נדחה — פלט אחר על 101 קלטים (#0)"
+     "inputs": 103,
+     "same": "פלט אחר על 103 קלטים (#0)",
+     "steps": "1687 מול 103",
+     "verdict": "נדחה — פלט אחר על 103 קלטים (#0)"
     },
     {
      "cand": "machine:catalog/scripts/core-census.mjs#refOf",
      "project": "machine",
      "at": "catalog/scripts/core-census.mjs:49",
      "laws": "15/15",
-     "inputs": 101,
-     "same": "פלט אחר על 101 קלטים (#0)",
-     "steps": "2393 מול 101",
-     "verdict": "נדחה — פלט אחר על 101 קלטים (#0)"
+     "inputs": 104,
+     "same": "פלט אחר על 104 קלטים (#0)",
+     "steps": "2176 מול 104",
+     "verdict": "נדחה — פלט אחר על 104 קלטים (#0)"
     },
     {
      "cand": "machine:catalog/scripts/generator-census.mjs#sentence",
      "project": "machine",
      "at": "catalog/scripts/generator-census.mjs:396",
      "laws": "15/15",
-     "inputs": 101,
-     "same": "פלט אחר על 101 קלטים (#0)",
-     "steps": "101 מול 101",
-     "verdict": "נדחה — פלט אחר על 101 קלטים (#0)"
+     "inputs": 103,
+     "same": "פלט אחר על 103 קלטים (#0)",
+     "steps": "103 מול 103",
+     "verdict": "נדחה — פלט אחר על 103 קלטים (#0)"
     },
     {
      "cand": "machine:catalog/scripts/rings-census.mjs#verbName",
      "project": "machine",
      "at": "catalog/scripts/rings-census.mjs:82",
      "laws": "15/15",
-     "inputs": 90,
-     "same": "פלט אחר על 90 קלטים (#0)",
-     "steps": "90 מול 90",
-     "verdict": "נדחה — פלט אחר על 90 קלטים (#0)"
+     "inputs": 92,
+     "same": "פלט אחר על 92 קלטים (#0)",
+     "steps": "92 מול 92",
+     "verdict": "נדחה — פלט אחר על 92 קלטים (#0)"
     },
     {
      "cand": "machine:catalog/scripts/self-check.mjs#text",
      "project": "machine",
      "at": "catalog/scripts/self-check.mjs:37",
      "laws": "15/15",
-     "inputs": 90,
-     "same": "פלט אחר על 90 קלטים (#0)",
-     "steps": "90 מול 90",
-     "verdict": "נדחה — פלט אחר על 90 קלטים (#0)"
+     "inputs": 92,
+     "same": "פלט אחר על 92 קלטים (#0)",
+     "steps": "92 מול 92",
+     "verdict": "נדחה — פלט אחר על 92 קלטים (#0)"
+    },
+    {
+     "cand": "machine:catalog/scripts/test-changed.mjs#fileOf",
+     "project": "machine",
+     "at": "catalog/scripts/test-changed.mjs:31",
+     "laws": "15/15",
+     "inputs": 92,
+     "same": "פלט אחר על 92 קלטים (#0)",
+     "steps": "835 מול 92",
+     "verdict": "נדחה — פלט אחר על 92 קלטים (#0)"
+    },
+    {
+     "cand": "machine:catalog/self/loop.mjs#cacheBase",
+     "project": "machine",
+     "at": "catalog/self/loop.mjs:573",
+     "laws": "15/15",
+     "inputs": 92,
+     "same": "פלט אחר על 92 קלטים (#0)",
+     "steps": "555 מול 92",
+     "verdict": "נדחה — פלט אחר על 92 קלטים (#0)"
     },
     {
      "cand": "machine:catalog/self/parts.mjs#fnvHex",
      "project": "machine",
      "at": "catalog/self/parts.mjs:22",
      "laws": "15/15",
-     "inputs": 101,
-     "same": "פלט אחר על 101 קלטים (#0)",
-     "steps": "2082 מול 101",
-     "verdict": "נדחה — פלט אחר על 101 קלטים (#0)"
+     "inputs": 104,
+     "same": "פלט אחר על 104 קלטים (#0)",
+     "steps": "1856 מול 104",
+     "verdict": "נדחה — פלט אחר על 104 קלטים (#0)"
     },
     {
      "cand": "machine:catalog/self/parts.mjs#fnvHexPoints",
      "project": "machine",
      "at": "catalog/self/parts.mjs:31",
      "laws": "15/15",
-     "inputs": 101,
-     "same": "פלט אחר על 101 קלטים (#0)",
-     "steps": "2082 מול 101",
-     "verdict": "נדחה — פלט אחר על 101 קלטים (#0)"
+     "inputs": 104,
+     "same": "פלט אחר על 104 קלטים (#0)",
+     "steps": "1856 מול 104",
+     "verdict": "נדחה — פלט אחר על 104 קלטים (#0)"
     }
    ],
    "decision": "נשאר",
@@ -7989,7 +9184,7 @@
    "found": [
     "כפילות: machine:catalog/self/parts.mjs#fnvHex"
    ],
-   "considered": 644,
+   "considered": 646,
    "skipped": {
     "לא נטען להרצה כאן": 5,
     "לא עובר את חוקי הפועל כאן": 317,
@@ -8129,9 +9324,29 @@
      "verdict": "נדחה — פלט אחר על 100 קלטים (#0)"
     },
     {
+     "cand": "machine:catalog/scripts/test-changed.mjs#fileOf",
+     "project": "machine",
+     "at": "catalog/scripts/test-changed.mjs:31",
+     "laws": "15/15",
+     "inputs": 100,
+     "same": "פלט אחר על 100 קלטים (#0)",
+     "steps": "936 מול 2059",
+     "verdict": "נדחה — פלט אחר על 100 קלטים (#0)"
+    },
+    {
+     "cand": "machine:catalog/self/loop.mjs#cacheBase",
+     "project": "machine",
+     "at": "catalog/self/loop.mjs:573",
+     "laws": "15/15",
+     "inputs": 100,
+     "same": "פלט אחר על 100 קלטים (#0)",
+     "steps": "632 מול 2033",
+     "verdict": "נדחה — פלט אחר על 100 קלטים (#0)"
+    },
+    {
      "cand": "machine:catalog/self/loop.mjs#stretched",
      "project": "machine",
-     "at": "catalog/self/loop.mjs:232",
+     "at": "catalog/self/loop.mjs:235",
      "laws": "15/15",
      "inputs": 99,
      "same": "פלט אחר על 99 קלטים (#0)",
@@ -8235,7 +9450,7 @@
    "found": [
     "כפילות: machine:catalog/self/parts.mjs#fnvHexPoints"
    ],
-   "considered": 644,
+   "considered": 646,
    "skipped": {
     "לא נטען להרצה כאן": 5,
     "לא עובר את חוקי הפועל כאן": 334,
@@ -8365,9 +9580,29 @@
      "verdict": "נדחה — פלט אחר על 99 קלטים (#0)"
     },
     {
+     "cand": "machine:catalog/scripts/test-changed.mjs#fileOf",
+     "project": "machine",
+     "at": "catalog/scripts/test-changed.mjs:31",
+     "laws": "15/15",
+     "inputs": 99,
+     "same": "פלט אחר על 99 קלטים (#0)",
+     "steps": "1104 מול 4217",
+     "verdict": "נדחה — פלט אחר על 99 קלטים (#0)"
+    },
+    {
+     "cand": "machine:catalog/self/loop.mjs#cacheBase",
+     "project": "machine",
+     "at": "catalog/self/loop.mjs:573",
+     "laws": "15/15",
+     "inputs": 99,
+     "same": "פלט אחר על 99 קלטים (#0)",
+     "steps": "803 מול 4191",
+     "verdict": "נדחה — פלט אחר על 99 קלטים (#0)"
+    },
+    {
      "cand": "machine:catalog/self/loop.mjs#stretched",
      "project": "machine",
-     "at": "catalog/self/loop.mjs:232",
+     "at": "catalog/self/loop.mjs:235",
      "laws": "15/15",
      "inputs": 98,
      "same": "פלט אחר על 98 קלטים (#0)",
