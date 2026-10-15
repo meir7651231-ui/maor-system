@@ -1,0 +1,4050 @@
+{
+ "about": "נבנה ע״י catalog/selfprint/mine.mjs — לא לערוך ביד. שלדים מהקוד שלנו: כל אופרטור / ‎.length‎ / ‎Math.*‎ / מתודה / קריאה ⇒ חור (גרף בצורת combiner/graph.mjs; צומת-חור part=□<v>; אותה תווית ⇒ אותו v). origins = כל הפונקציות שהשלד נמצא בהן (שם + תוויות-החורים) — לבדיקת \"השאר-אחד-בחוץ\"",
+ "files": 1302,
+ "functions": 30781,
+ "skeletons": 235,
+ "skippedGrowCanBuild": {
+  "chain": 82,
+  "pair": 22,
+  "map": 0,
+  "fold": 0
+ },
+ "distinct": 69,
+ "shapes": [
+  {
+   "id": "code-0001",
+   "inputs": 2,
+   "holes": 2,
+   "graph": {
+    "inputs": [
+     "i0",
+     "i1"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       "$i1"
+      ]
+     },
+     {
+      "id": "h1",
+      "part": "□1",
+      "args": [
+       "$i0",
+       "@h0"
+      ]
+     }
+    ],
+    "out": "@h1"
+   },
+   "n": 24,
+   "sources": [
+    "generator",
+    "orbit"
+   ],
+   "origins": [
+    {
+     "at": "src/components/hosting/lib.ts:144",
+     "name": "",
+     "labels": [
+      "call:bookingPaid",
+      "+"
+     ]
+    },
+    {
+     "at": "src/components/hosting/lib.ts:150",
+     "name": "",
+     "labels": [
+      "call:bookingTotal",
+      "+"
+     ]
+    },
+    {
+     "at": "src/components/hosting/lib.ts:163",
+     "name": "",
+     "labels": [
+      "call:bookingPaid",
+      "+"
+     ]
+    },
+    {
+     "at": "src/components/hosting/lib.ts:206",
+     "name": "",
+     "labels": [
+      "call:bookingBalance",
+      "+"
+     ]
+    },
+    {
+     "at": "src/components/hosting/reports.ts:251",
+     "name": "",
+     "labels": [
+      "call:bookingBalance",
+      "+"
+     ]
+    },
+    {
+     "at": "src/components/hosting/reports.ts:252",
+     "name": "",
+     "labels": [
+      "call:bookingTotal",
+      "+"
+     ]
+    },
+    {
+     "at": "src/components/hosting/reports.ts:253",
+     "name": "",
+     "labels": [
+      "call:bookingPaid",
+      "+"
+     ]
+    },
+    {
+     "at": "src/components/hosting/reports.ts:277",
+     "name": "",
+     "labels": [
+      "call:bookingTotal",
+      "+"
+     ]
+    },
+    {
+     "at": "src/components/hosting/reports.ts:278",
+     "name": "",
+     "labels": [
+      "call:bookingPaid",
+      "+"
+     ]
+    },
+    {
+     "at": "src/components/reports/sections1.tsx:54",
+     "name": "",
+     "labels": [
+      "call:balanceOf",
+      "+"
+     ]
+    },
+    {
+     "at": "src/components/settings/ExportSection.tsx:34",
+     "name": "",
+     "labels": [
+      "call:payBal",
+      "+"
+     ]
+    },
+    {
+     "at": "src/components/settings/ExportSection.tsx:103",
+     "name": "",
+     "labels": [
+      "call:paidOf",
+      "+"
+     ]
+    },
+    {
+     "at": "src/components/supporters/SupportersView.tsx:679",
+     "name": "",
+     "labels": [
+      "call:supIls",
+      "+"
+     ]
+    },
+    {
+     "at": "src/components/supporters/SupportersView.tsx:680",
+     "name": "",
+     "labels": [
+      "call:supUsd",
+      "+"
+     ]
+    },
+    {
+     "at": "src/components/supporters/lib.ts:239",
+     "name": "",
+     "labels": [
+      "call:supCount",
+      "+"
+     ]
+    },
+    {
+     "at": "src/components/tzedaka/lib.ts:61",
+     "name": "",
+     "labels": [
+      "call:boxTotal",
+      "+"
+     ]
+    },
+    {
+     "at": "src/components/tzedaka/lib.ts:65",
+     "name": "",
+     "labels": [
+      "call:boxTotal",
+      "+"
+     ]
+    },
+    {
+     "at": "src/lib/ayin.ts:122",
+     "name": "",
+     "labels": [
+      "call:boqLineAmount",
+      "+"
+     ]
+    },
+    {
+     "at": "src/lib/photoGallery.ts:25",
+     "name": "",
+     "labels": [
+      ".length",
+      "+"
+     ]
+    },
+    {
+     "at": "catalog/inner/gen/generator/machtzev/generator/behavior-plan.mjs.mjs:254",
+     "name": "",
+     "labels": [
+      ".length",
+      "*"
+     ]
+    },
+    {
+     "at": "catalog/inner/gen/generator/machtzev/generator/generate.mjs.mjs:624",
+     "name": "",
+     "labels": [
+      ".length",
+      "+"
+     ]
+    },
+    {
+     "at": "catalog/inner/gen/generator/new/atoms/merge-hist.mjs.mjs:4",
+     "name": "inner$mergeHist$arr",
+     "labels": [
+      "call:key",
+      ".get()"
+     ]
+    },
+    {
+     "at": "catalog/inner/gen/generator/yeshiva/entity-psak.mjs.mjs:26",
+     "name": "inner$foldAnswers$ent$$step",
+     "labels": [
+      "call:lawIsEntity",
+      ".get()"
+     ]
+    },
+    {
+     "at": "catalog/inner/gen/generator/yeshiva/kushya-sources.mjs.mjs:24",
+     "name": "",
+     "labels": [
+      ".length",
+      "+"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0002",
+   "inputs": 2,
+   "holes": 2,
+   "graph": {
+    "inputs": [
+     "i0",
+     "i1"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       "$i0",
+       "$i1"
+      ]
+     },
+     {
+      "id": "h1",
+      "part": "□1",
+      "args": [
+       "@h0",
+       1000
+      ]
+     },
+     {
+      "id": "h2",
+      "part": "□1",
+      "args": [
+       "@h1",
+       60
+      ]
+     }
+    ],
+    "out": "@h2"
+   },
+   "n": 6,
+   "sources": [
+    "14kk"
+   ],
+   "origins": [
+    {
+     "at": "catalog/inner/gen/14kk/check_protocol_activity.js.mjs:8",
+     "name": "inner$ProtocolActivityChecker$checkCommunicationProtocol$timeDiff$$step",
+     "labels": [
+      "-",
+      "/"
+     ]
+    },
+    {
+     "at": "catalog/inner/gen/14kk/check_protocol_activity.js.mjs:25",
+     "name": "inner$ProtocolActivityChecker$checkTelegramActivity$timeDiff$$step",
+     "labels": [
+      "-",
+      "/"
+     ]
+    },
+    {
+     "at": "catalog/inner/gen/14kk/check_protocol_activity.js.mjs:34",
+     "name": "inner$ProtocolActivityChecker$checkKnowledgeProtocol$timeDiff$$step",
+     "labels": [
+      "-",
+      "/"
+     ]
+    },
+    {
+     "at": "catalog/inner/gen/14kk/check_protocol_activity.js.mjs:43",
+     "name": "inner$ProtocolActivityChecker$checkConstructionProtocol$timeDiff$$step",
+     "labels": [
+      "-",
+      "/"
+     ]
+    },
+    {
+     "at": "catalog/inner/gen/14kk/check_protocol_activity.js.mjs:52",
+     "name": "inner$ProtocolActivityChecker$checkWorkManagerProtocol$timeDiff$$step",
+     "labels": [
+      "-",
+      "/"
+     ]
+    },
+    {
+     "at": "catalog/inner/gen/14kk/check_protocol_activity.js.mjs:61",
+     "name": "inner$ProtocolActivityChecker$checkOptimizationProtocol$timeDiff$$step",
+     "labels": [
+      "-",
+      "/"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0003",
+   "inputs": 1,
+   "holes": 4,
+   "graph": {
+    "inputs": [
+     "i0"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       "$i0",
+       0
+      ]
+     },
+     {
+      "id": "h1",
+      "part": "□1",
+      "args": [
+       "@h0"
+      ]
+     },
+     {
+      "id": "h2",
+      "part": "□2",
+      "args": [
+       "$i0",
+       1
+      ]
+     },
+     {
+      "id": "h3",
+      "part": "□3",
+      "args": [
+       "@h1",
+       "@h2"
+      ]
+     }
+    ],
+    "out": "@h3"
+   },
+   "n": 6,
+   "sources": [
+    "generator",
+    "mmmm"
+   ],
+   "origins": [
+    {
+     "at": "catalog/inner/gen/generator/machtzev/generator/core-from-shape.mjs.mjs:4",
+     "name": "cap",
+     "labels": [
+      ".charAt()",
+      ".toUpperCase()",
+      ".slice()",
+      "+"
+     ]
+    },
+    {
+     "at": "catalog/inner/gen/generator/machtzev/generator/entity-terms.mjs.mjs:3",
+     "name": "pascal",
+     "labels": [
+      ".charAt()",
+      ".toUpperCase()",
+      ".slice()",
+      "+"
+     ]
+    },
+    {
+     "at": "catalog/inner/gen/mmmm/artifacts/api-server/src/routes/notes.ts.mjs:22",
+     "name": "",
+     "labels": [
+      ".charAt()",
+      ".toUpperCase()",
+      ".slice()",
+      "+"
+     ]
+    },
+    {
+     "at": "catalog/inner/gen/mmmm/artifacts/api-server/src/routes/notes.ts.mjs:42",
+     "name": "",
+     "labels": [
+      ".charAt()",
+      ".toUpperCase()",
+      ".slice()",
+      "+"
+     ]
+    },
+    {
+     "at": "catalog/inner/gen/mmmm/artifacts/api-server/src/routes/notes.ts.mjs:46",
+     "name": "",
+     "labels": [
+      ".charAt()",
+      ".toUpperCase()",
+      ".slice()",
+      "+"
+     ]
+    },
+    {
+     "at": "catalog/inner/gen/mmmm/artifacts/api-server/src/routes/notes.ts.mjs:61",
+     "name": "",
+     "labels": [
+      ".charAt()",
+      ".toUpperCase()",
+      ".slice()",
+      "+"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0004",
+   "inputs": 2,
+   "holes": 2,
+   "graph": {
+    "inputs": [
+     "i0",
+     "i1"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       "$i0",
+       "$i1"
+      ]
+     },
+     {
+      "id": "h1",
+      "part": "□1",
+      "args": [
+       "@h0",
+       2
+      ]
+     }
+    ],
+    "out": "@h1"
+   },
+   "n": 4,
+   "sources": [
+    "generator"
+   ],
+   "origins": [
+    {
+     "at": "catalog/inner/gen/generator/gen/looks/app/src/10-ui.js.mjs:3",
+     "name": "inner$ring$r",
+     "labels": [
+      "-",
+      "/"
+     ]
+    },
+    {
+     "at": "catalog/inner/gen/generator/new/atoms/coral-palette.mjs.mjs:35",
+     "name": "inner$rgbToHsl$l$$step",
+     "labels": [
+      "+",
+      "/"
+     ]
+    },
+    {
+     "at": "catalog/inner/gen/generator/new/atoms/orbit-theme.mjs.mjs:26",
+     "name": "inner$orbitTheme$rgbToHsl$l$$step",
+     "labels": [
+      "+",
+      "/"
+     ]
+    },
+    {
+     "at": "catalog/inner/gen/generator/new/atoms/site-palette.mjs.mjs:45",
+     "name": "inner$sitePalette$rgbToHsl$l$$step",
+     "labels": [
+      "+",
+      "/"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0005",
+   "inputs": 2,
+   "holes": 2,
+   "graph": {
+    "inputs": [
+     "i0",
+     "i1"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       "$i1",
+       1
+      ]
+     },
+     {
+      "id": "h1",
+      "part": "□1",
+      "args": [
+       "$i0",
+       "@h0"
+      ]
+     }
+    ],
+    "out": "@h1"
+   },
+   "n": 4,
+   "sources": [
+    "generator"
+   ],
+   "origins": [
+    {
+     "at": "catalog/inner/gen/generator/machtzev/generator/dart-twins.mjs.mjs:226",
+     "name": "inner$runDartBatch$v$$step",
+     "labels": [
+      "+",
+      ".slice()"
+     ]
+    },
+    {
+     "at": "catalog/inner/gen/generator/machtzev/mutation-dart-check.mjs.mjs:170",
+     "name": "inner$hollow$bodyEnd$$step",
+     "labels": [
+      "-",
+      "call:matchBrace"
+     ]
+    },
+    {
+     "at": "catalog/inner/gen/generator/new/atoms/decode-quoted-printable.mjs.mjs:25",
+     "name": "inner$decodeQuotedPrintable$splitProperty$value$$step",
+     "labels": [
+      "+",
+      ".slice()"
+     ]
+    },
+    {
+     "at": "catalog/inner/gen/generator/new/boxes/vcard-import.mjs.mjs:30",
+     "name": "inner$splitProperty$value$$step",
+     "labels": [
+      "+",
+      ".slice()"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0006",
+   "inputs": 1,
+   "holes": 2,
+   "graph": {
+    "inputs": [
+     "i0"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       "$i0",
+       2
+      ]
+     },
+     {
+      "id": "h1",
+      "part": "□1",
+      "args": [
+       "@h0"
+      ]
+     }
+    ],
+    "out": "@h1"
+   },
+   "n": 4,
+   "sources": [
+    "generator"
+   ],
+   "origins": [
+    {
+     "at": "catalog/inner/gen/generator/machtzev/assemble/gen-screen.mjs.mjs:3",
+     "name": "inner$expr$e",
+     "labels": [
+      ".slice()",
+      ".trim()"
+     ]
+    },
+    {
+     "at": "catalog/inner/gen/generator/machtzev/assemble/gen-screen.mjs.mjs:15",
+     "name": "inner$expr$n_L58",
+     "labels": [
+      ".slice()",
+      ".trim()"
+     ]
+    },
+    {
+     "at": "catalog/inner/gen/generator/new/atoms/intel-trend-from-scan.mjs.mjs:3",
+     "name": "inner$trendFromScan$h",
+     "labels": [
+      "/",
+      "Math.floor"
+     ]
+    },
+    {
+     "at": "catalog/inner/gen/generator/new/boxes/intel.mjs.mjs:232",
+     "name": "inner$trendFromScan$h",
+     "labels": [
+      "/",
+      "Math.floor"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0007",
+   "inputs": 2,
+   "holes": 3,
+   "graph": {
+    "inputs": [
+     "i0",
+     "i1"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       "$i0",
+       "$i1"
+      ]
+     },
+     {
+      "id": "h1",
+      "part": "□1",
+      "args": [
+       "@h0",
+       100
+      ]
+     },
+     {
+      "id": "h2",
+      "part": "□2",
+      "args": [
+       "@h1"
+      ]
+     }
+    ],
+    "out": "@h2"
+   },
+   "n": 3,
+   "sources": [
+    "14kk",
+    "generator"
+   ],
+   "origins": [
+    {
+     "at": "catalog/inner/gen/14kk/communication_protocol.js.mjs:24",
+     "name": "inner$SmartCommunicationProtocol$checkProtocolStatus$healthScore",
+     "labels": [
+      "/",
+      "*",
+      "Math.round"
+     ]
+    },
+    {
+     "at": "catalog/inner/gen/14kk/communication_protocol.js.mjs:37",
+     "name": "inner$SmartCommunicationProtocol$generateProtocolSummary$healthScore$$step",
+     "labels": [
+      "/",
+      "*",
+      "Math.round"
+     ]
+    },
+    {
+     "at": "catalog/inner/gen/generator/gen/looks/buybox/build.mjs.mjs:12",
+     "name": "inner$split$c$$step",
+     "labels": [
+      "-",
+      "*",
+      "Math.round"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0008",
+   "inputs": 2,
+   "holes": 2,
+   "graph": {
+    "inputs": [
+     "i0",
+     "i1"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       "$i1"
+      ]
+     },
+     {
+      "id": "h1",
+      "part": "□1",
+      "args": [
+       "$i0",
+       "@h0"
+      ]
+     },
+     {
+      "id": "h2",
+      "part": "□1",
+      "args": [
+       "@h1",
+       1
+      ]
+     }
+    ],
+    "out": "@h2"
+   },
+   "n": 3,
+   "sources": [
+    "generator"
+   ],
+   "origins": [
+    {
+     "at": "catalog/inner/gen/generator/machtzev/repair-quarantine.mjs.mjs:37",
+     "name": "",
+     "labels": [
+      ".length",
+      "+"
+     ]
+    },
+    {
+     "at": "catalog/inner/gen/generator/machtzev/repair-quarantine.mjs.mjs:43",
+     "name": "",
+     "labels": [
+      ".length",
+      "+"
+     ]
+    },
+    {
+     "at": "catalog/inner/gen/generator/machtzev/rethread-boxes.mjs.mjs:14",
+     "name": "",
+     "labels": [
+      ".length",
+      "+"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0009",
+   "inputs": 2,
+   "holes": 3,
+   "graph": {
+    "inputs": [
+     "i0",
+     "i1"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       "$i1"
+      ]
+     },
+     {
+      "id": "h1",
+      "part": "□1",
+      "args": [
+       "@h0"
+      ]
+     },
+     {
+      "id": "h2",
+      "part": "□2",
+      "args": [
+       "$i0",
+       "@h1"
+      ]
+     }
+    ],
+    "out": "@h2"
+   },
+   "n": 3,
+   "sources": [
+    "orbit"
+   ],
+   "origins": [
+    {
+     "at": "src/components/diary/lib.ts:240",
+     "name": "",
+     "labels": [
+      "call:sessionsOf",
+      ".length",
+      "+"
+     ]
+    },
+    {
+     "at": "src/components/families/FamiliesView.tsx:262",
+     "name": "",
+     "labels": [
+      "call:kidsOf",
+      ".length",
+      "+"
+     ]
+    },
+    {
+     "at": "src/components/reports/management.tsx:37",
+     "name": "",
+     "labels": [
+      "call:liveRedemptions",
+      ".length",
+      "+"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0010",
+   "inputs": 2,
+   "holes": 4,
+   "graph": {
+    "inputs": [
+     "i0",
+     "i1"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       "$i0"
+      ]
+     },
+     {
+      "id": "h1",
+      "part": "□1",
+      "args": [
+       "$i0"
+      ]
+     },
+     {
+      "id": "h2",
+      "part": "□2",
+      "args": [
+       "@h1",
+       "$i1"
+      ]
+     },
+     {
+      "id": "h3",
+      "part": "□3",
+      "args": [
+       "@h0",
+       "@h2"
+      ]
+     }
+    ],
+    "out": "@h3"
+   },
+   "n": 2,
+   "sources": [
+    "orbit"
+   ],
+   "origins": [
+    {
+     "at": "src/components/supporters/lib.ts:189",
+     "name": "supTotalIls",
+     "labels": [
+      "call:supIls",
+      "call:supUsd",
+      "*",
+      "+"
+     ]
+    },
+    {
+     "at": "src/components/supporters/segments.ts:38",
+     "name": "totalIls",
+     "labels": [
+      "call:supIls",
+      "call:supUsd",
+      "*",
+      "+"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0011",
+   "inputs": 2,
+   "holes": 2,
+   "graph": {
+    "inputs": [
+     "i0",
+     "i1"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       "$i1",
+       0
+      ]
+     },
+     {
+      "id": "h1",
+      "part": "□1",
+      "args": [
+       "$i0",
+       "@h0"
+      ]
+     }
+    ],
+    "out": "@h1"
+   },
+   "n": 2,
+   "sources": [
+    "generator"
+   ],
+   "origins": [
+    {
+     "at": "catalog/inner/gen/generator/gen/looks/app/src/22-views-c.js.mjs:5",
+     "name": "",
+     "labels": [
+      ".charCodeAt()",
+      "+"
+     ]
+    },
+    {
+     "at": "catalog/inner/gen/generator/machtzev/generator/render-ds.mjs.mjs:1923",
+     "name": "",
+     "labels": [
+      ".charCodeAt()",
+      "+"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0012",
+   "inputs": 2,
+   "holes": 3,
+   "graph": {
+    "inputs": [
+     "i0",
+     "i1"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       "$i1",
+       1
+      ]
+     },
+     {
+      "id": "h1",
+      "part": "□1",
+      "args": [
+       "$i0",
+       "@h0"
+      ]
+     },
+     {
+      "id": "h2",
+      "part": "□2",
+      "args": [
+       "@h1"
+      ]
+     }
+    ],
+    "out": "@h2"
+   },
+   "n": 2,
+   "sources": [
+    "generator"
+   ],
+   "origins": [
+    {
+     "at": "catalog/inner/gen/generator/machtzev/generator/particles.mjs.mjs:188",
+     "name": "inner$parseReportLines$rest$$step",
+     "labels": [
+      "+",
+      ".slice()",
+      ".trim()"
+     ]
+    },
+    {
+     "at": "catalog/inner/gen/generator/new/atoms/parse-join-full-code.mjs.mjs:32",
+     "name": "inner$parseJoinFullCode$code$$step",
+     "labels": [
+      "+",
+      ".slice()",
+      ".trim()"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0013",
+   "inputs": 2,
+   "holes": 2,
+   "graph": {
+    "inputs": [
+     "i0",
+     "i1"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       "$i1",
+       2
+      ]
+     },
+     {
+      "id": "h1",
+      "part": "□1",
+      "args": [
+       "$i0",
+       "@h0"
+      ]
+     }
+    ],
+    "out": "@h1"
+   },
+   "n": 2,
+   "sources": [
+    "generator"
+   ],
+   "origins": [
+    {
+     "at": "catalog/inner/gen/generator/new/atoms/coral-palette.mjs.mjs:57",
+     "name": "inner$hslToRgb$m$$step",
+     "labels": [
+      "/",
+      "-"
+     ]
+    },
+    {
+     "at": "catalog/inner/gen/generator/new/atoms/site-palette.mjs.mjs:67",
+     "name": "inner$sitePalette$hslToRgb$m$$step",
+     "labels": [
+      "/",
+      "-"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0014",
+   "inputs": 2,
+   "holes": 3,
+   "graph": {
+    "inputs": [
+     "i0",
+     "i1"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       "$i1"
+      ]
+     },
+     {
+      "id": "h1",
+      "part": "□1",
+      "args": [
+       0,
+       "@h0"
+      ]
+     },
+     {
+      "id": "h2",
+      "part": "□2",
+      "args": [
+       "$i0",
+       "@h1"
+      ]
+     }
+    ],
+    "out": "@h2"
+   },
+   "n": 2,
+   "sources": [
+    "orbit"
+   ],
+   "origins": [
+    {
+     "at": "src/components/hosting/lib.ts:261",
+     "name": "",
+     "labels": [
+      "call:bookingBalance",
+      "Math.max",
+      "+"
+     ]
+    },
+    {
+     "at": "src/components/hosting/reports.ts:287",
+     "name": "",
+     "labels": [
+      "call:bookingBalance",
+      "Math.max",
+      "+"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0015",
+   "inputs": 2,
+   "holes": 4,
+   "graph": {
+    "inputs": [
+     "i0",
+     "i1"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       2,
+       "$i0"
+      ]
+     },
+     {
+      "id": "h1",
+      "part": "□1",
+      "args": [
+       "@h0",
+       1
+      ]
+     },
+     {
+      "id": "h2",
+      "part": "□2",
+      "args": [
+       "@h1"
+      ]
+     },
+     {
+      "id": "h3",
+      "part": "□1",
+      "args": [
+       1,
+       "@h2"
+      ]
+     },
+     {
+      "id": "h4",
+      "part": "□0",
+      "args": [
+       "@h3",
+       "$i1"
+      ]
+     },
+     {
+      "id": "h5",
+      "part": "□3",
+      "args": [
+       "@h4",
+       2
+      ]
+     },
+     {
+      "id": "h6",
+      "part": "□1",
+      "args": [
+       "$i0",
+       "@h5"
+      ]
+     }
+    ],
+    "out": "@h6"
+   },
+   "n": 2,
+   "sources": [
+    "generator"
+   ],
+   "origins": [
+    {
+     "at": "catalog/inner/gen/generator/new/atoms/coral-palette.mjs.mjs:52",
+     "name": "inner$hslToRgb$m",
+     "labels": [
+      "*",
+      "-",
+      "Math.abs",
+      "/"
+     ]
+    },
+    {
+     "at": "catalog/inner/gen/generator/new/atoms/site-palette.mjs.mjs:62",
+     "name": "inner$sitePalette$hslToRgb$m",
+     "labels": [
+      "*",
+      "-",
+      "Math.abs",
+      "/"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0016",
+   "inputs": 2,
+   "holes": 3,
+   "graph": {
+    "inputs": [
+     "i0",
+     "i1"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       2,
+       "$i0"
+      ]
+     },
+     {
+      "id": "h1",
+      "part": "□1",
+      "args": [
+       "@h0",
+       1
+      ]
+     },
+     {
+      "id": "h2",
+      "part": "□2",
+      "args": [
+       "@h1"
+      ]
+     },
+     {
+      "id": "h3",
+      "part": "□1",
+      "args": [
+       1,
+       "@h2"
+      ]
+     },
+     {
+      "id": "h4",
+      "part": "□0",
+      "args": [
+       "@h3",
+       "$i1"
+      ]
+     }
+    ],
+    "out": "@h4"
+   },
+   "n": 2,
+   "sources": [
+    "generator"
+   ],
+   "origins": [
+    {
+     "at": "catalog/inner/gen/generator/new/atoms/coral-palette.mjs.mjs:39",
+     "name": "inner$hslToRgb$c",
+     "labels": [
+      "*",
+      "-",
+      "Math.abs"
+     ]
+    },
+    {
+     "at": "catalog/inner/gen/generator/new/atoms/site-palette.mjs.mjs:49",
+     "name": "inner$sitePalette$hslToRgb$c",
+     "labels": [
+      "*",
+      "-",
+      "Math.abs"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0017",
+   "inputs": 1,
+   "holes": 3,
+   "graph": {
+    "inputs": [
+     "i0"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       "$i0",
+       0.25
+      ]
+     },
+     {
+      "id": "h1",
+      "part": "□1",
+      "args": [
+       "@h0"
+      ]
+     },
+     {
+      "id": "h2",
+      "part": "□2",
+      "args": [
+       1,
+       "@h1"
+      ]
+     }
+    ],
+    "out": "@h2"
+   },
+   "n": 2,
+   "sources": [
+    "generator"
+   ],
+   "origins": [
+    {
+     "at": "catalog/inner/gen/generator/machtzev/audit/diff.mjs.mjs:34",
+     "name": "inner$diffPair$evaluate$sw$$step",
+     "labels": [
+      "*",
+      "Math.round",
+      "Math.max"
+     ]
+    },
+    {
+     "at": "catalog/inner/gen/generator/machtzev/audit/diff.mjs.mjs:43",
+     "name": "inner$diffPair$evaluate$sh$$step",
+     "labels": [
+      "*",
+      "Math.round",
+      "Math.max"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0018",
+   "inputs": 1,
+   "holes": 3,
+   "graph": {
+    "inputs": [
+     "i0"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       "$i0",
+       100
+      ]
+     },
+     {
+      "id": "h1",
+      "part": "□1",
+      "args": [
+       "@h0"
+      ]
+     },
+     {
+      "id": "h2",
+      "part": "□2",
+      "args": [
+       "@h1",
+       100
+      ]
+     }
+    ],
+    "out": "@h2"
+   },
+   "n": 2,
+   "sources": [
+    "orbit"
+   ],
+   "origins": [
+    {
+     "at": "src/components/reports/lib.ts:44",
+     "name": "round2",
+     "labels": [
+      "*",
+      "Math.round",
+      "/"
+     ]
+    },
+    {
+     "at": "src/lib/customExport.ts:160",
+     "name": "r2",
+     "labels": [
+      "*",
+      "Math.round",
+      "/"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0019",
+   "inputs": 1,
+   "holes": 2,
+   "graph": {
+    "inputs": [
+     "i0"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       "$i0",
+       1
+      ]
+     },
+     {
+      "id": "h1",
+      "part": "□1",
+      "args": [
+       "@h0",
+       0
+      ]
+     }
+    ],
+    "out": "@h1"
+   },
+   "n": 2,
+   "sources": [
+    "orbit"
+   ],
+   "origins": [
+    {
+     "at": "src/components/palette/CommandPalette.tsx:862",
+     "name": "",
+     "labels": [
+      "-",
+      "Math.max"
+     ]
+    },
+    {
+     "at": "src/components/supporters/CommandPalette.tsx:39",
+     "name": "",
+     "labels": [
+      "-",
+      "Math.max"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0020",
+   "inputs": 1,
+   "holes": 3,
+   "graph": {
+    "inputs": [
+     "i0"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       "$i0"
+      ]
+     },
+     {
+      "id": "h1",
+      "part": "□1",
+      "args": [
+       "$i0"
+      ]
+     },
+     {
+      "id": "h2",
+      "part": "□2",
+      "args": [
+       "@h0",
+       "@h1"
+      ]
+     }
+    ],
+    "out": "@h2"
+   },
+   "n": 2,
+   "sources": [
+    "orbit"
+   ],
+   "origins": [
+    {
+     "at": "src/components/hosting/transitions.ts:131",
+     "name": "bookingBalance",
+     "labels": [
+      "call:bookingTotal",
+      "call:bookingPaid",
+      "-"
+     ]
+    },
+    {
+     "at": "src/components/shop/lib.ts:447",
+     "name": "subsidyTotal",
+     "labels": [
+      "call:givenValue",
+      "call:collectedPaid",
+      "-"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0021",
+   "inputs": 1,
+   "holes": 3,
+   "graph": {
+    "inputs": [
+     "i0"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       "$i0"
+      ]
+     },
+     {
+      "id": "h1",
+      "part": "□1",
+      "args": [
+       "@h0",
+       1
+      ]
+     },
+     {
+      "id": "h2",
+      "part": "□2",
+      "args": [
+       "@h1"
+      ]
+     }
+    ],
+    "out": "@h2"
+   },
+   "n": 2,
+   "sources": [
+    "orbit"
+   ],
+   "origins": [
+    {
+     "at": "src/lib/atoms/chainPreview.ts:45",
+     "name": "addDay",
+     "labels": [
+      "call:dayIndex",
+      "+",
+      "call:isoOfDay"
+     ]
+    },
+    {
+     "at": "src/lib/atoms/preview.ts:529",
+     "name": "addDay",
+     "labels": [
+      "call:dayIndex",
+      "+",
+      "call:isoOfDay"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0022",
+   "inputs": 1,
+   "holes": 2,
+   "graph": {
+    "inputs": [
+     "i0"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       "$i0"
+      ]
+     },
+     {
+      "id": "h1",
+      "part": "□1",
+      "args": [
+       "@h0",
+       1
+      ]
+     }
+    ],
+    "out": "@h1"
+   },
+   "n": 2,
+   "sources": [
+    "generator"
+   ],
+   "origins": [
+    {
+     "at": "catalog/inner/gen/generator/machtzev/generator/logic-proof.mjs.mjs:45",
+     "name": "inner$proveFile$first$$step",
+     "labels": [
+      ".length",
+      "+"
+     ]
+    },
+    {
+     "at": "catalog/inner/gen/generator/yeshiva/read.mjs.mjs:114",
+     "name": "inner$roundTrip$formsOf$b",
+     "labels": [
+      "call:clean",
+      ".slice()"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0023",
+   "inputs": 1,
+   "holes": 4,
+   "graph": {
+    "inputs": [
+     "i0"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       "$i0"
+      ]
+     },
+     {
+      "id": "h1",
+      "part": "□1",
+      "args": [
+       "@h0",
+       3
+      ]
+     },
+     {
+      "id": "h2",
+      "part": "□2",
+      "args": [
+       "@h1"
+      ]
+     },
+     {
+      "id": "h3",
+      "part": "□3",
+      "args": [
+       "@h2",
+       1
+      ]
+     }
+    ],
+    "out": "@h3"
+   },
+   "n": 2,
+   "sources": [
+    "buildsmart",
+    "generator"
+   ],
+   "origins": [
+    {
+     "at": "catalog/inner/gen/buildsmart/app/src/lib/search.ts.mjs:78",
+     "name": "inner$searchFuzzy$tolerance$$step",
+     "labels": [
+      ".length",
+      "/",
+      "Math.floor",
+      "+"
+     ]
+    },
+    {
+     "at": "catalog/inner/gen/generator/box-drafts/buildsmart-seed/search-fuzzy@app_src_lib_search_ts.mjs.mjs:3",
+     "name": "inner$searchFuzzy$tolerance",
+     "labels": [
+      ".length",
+      "/",
+      "Math.floor",
+      "+"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0024",
+   "inputs": 2,
+   "holes": 3,
+   "graph": {
+    "inputs": [
+     "i0",
+     "i1"
+    ],
+    "nodes": [
+     {
+      "id": "L0",
+      "loop": {
+       "over": "$i0",
+       "init": 0,
+       "item": "it",
+       "state": "st",
+       "nodes": [
+        {
+         "id": "h0",
+         "part": "□0",
+         "args": [
+          "$st",
+          "$it"
+         ]
+        }
+       ],
+       "next": "@h0"
+      }
+     },
+     {
+      "id": "h1",
+      "part": "□1",
+      "args": [
+       "$i1",
+       "@L0.state"
+      ]
+     },
+     {
+      "id": "h2",
+      "part": "□2",
+      "args": [
+       "@h1",
+       100
+      ]
+     }
+    ],
+    "out": "@h2"
+   },
+   "n": 1,
+   "sources": [
+    "generator"
+   ],
+   "origins": [
+    {
+     "at": "catalog/inner/gen/generator/new/boxes/pareto.mjs.mjs:15",
+     "name": "inner$paretoReport$moneyPct",
+     "labels": [
+      "+",
+      "/",
+      "*"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0025",
+   "inputs": 2,
+   "holes": 3,
+   "graph": {
+    "inputs": [
+     "i0",
+     "i1"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       "$i0",
+       "$i1"
+      ]
+     },
+     {
+      "id": "L0",
+      "loop": {
+       "over": "@h0",
+       "init": 0,
+       "item": "it",
+       "state": "st",
+       "nodes": [
+        {
+         "id": "h1",
+         "part": "□1",
+         "args": [
+          "$it"
+         ]
+        },
+        {
+         "id": "h2",
+         "part": "□2",
+         "args": [
+          "$st",
+          "@h1"
+         ]
+        }
+       ],
+       "next": "@h2"
+      }
+     }
+    ],
+    "out": "@L0.state"
+   },
+   "n": 1,
+   "sources": [
+    "orbit"
+   ],
+   "origins": [
+    {
+     "at": "src/components/tzedaka/lib.ts:60",
+     "name": "coordinatorTotal",
+     "labels": [
+      "call:coordinatorBoxes",
+      "call:boxTotal",
+      "+"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0026",
+   "inputs": 2,
+   "holes": 2,
+   "graph": {
+    "inputs": [
+     "i0",
+     "i1"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       "$i0",
+       "$i1"
+      ]
+     },
+     {
+      "id": "L0",
+      "loop": {
+       "over": "@h0",
+       "init": 0,
+       "item": "it",
+       "state": "st",
+       "nodes": [
+        {
+         "id": "h1",
+         "part": "□1",
+         "args": [
+          "$it"
+         ]
+        }
+       ],
+       "next": "$st",
+       "emit": "@h1"
+      }
+     }
+    ],
+    "out": "@L0.emits"
+   },
+   "n": 1,
+   "sources": [
+    "generator"
+   ],
+   "origins": [
+    {
+     "at": "catalog/inner/gen/generator/machtzev/generator/particles.mjs.mjs:319",
+     "name": "inner$shapeOf$ab$$step",
+     "labels": [
+      ".split()",
+      "call:clean"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0027",
+   "inputs": 2,
+   "holes": 3,
+   "graph": {
+    "inputs": [
+     "i0",
+     "i1"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       "$i0",
+       "$i1"
+      ]
+     },
+     {
+      "id": "h1",
+      "part": "□1",
+      "args": [
+       "@h0",
+       "$i1"
+      ]
+     },
+     {
+      "id": "h2",
+      "part": "□2",
+      "args": [
+       "@h1",
+       100
+      ]
+     }
+    ],
+    "out": "@h2"
+   },
+   "n": 1,
+   "sources": [
+    "14kk"
+   ],
+   "origins": [
+    {
+     "at": "catalog/inner/gen/14kk/frontend/src/pages/Assets.js.mjs:7",
+     "name": "inner$Assets$calculateReturn$returnPercentage",
+     "labels": [
+      "-",
+      "/",
+      "*"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0028",
+   "inputs": 2,
+   "holes": 3,
+   "graph": {
+    "inputs": [
+     "i0",
+     "i1"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       "$i0",
+       "$i1"
+      ]
+     },
+     {
+      "id": "h1",
+      "part": "□1",
+      "args": [
+       "@h0",
+       0
+      ]
+     },
+     {
+      "id": "h2",
+      "part": "□2",
+      "args": [
+       "@h1",
+       "$i0"
+      ]
+     }
+    ],
+    "out": "@h2"
+   },
+   "n": 1,
+   "sources": [
+    "buildsmart"
+   ],
+   "origins": [
+    {
+     "at": "catalog/inner/gen/buildsmart/functions/src/credit.ts.mjs:95",
+     "name": "inner$onCall$balance$$step",
+     "labels": [
+      "-",
+      "Math.max",
+      "Math.min"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0029",
+   "inputs": 2,
+   "holes": 2,
+   "graph": {
+    "inputs": [
+     "i0",
+     "i1"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       "$i0",
+       "$i1"
+      ]
+     },
+     {
+      "id": "h1",
+      "part": "□1",
+      "args": [
+       "@h0",
+       100
+      ]
+     }
+    ],
+    "out": "@h1"
+   },
+   "n": 1,
+   "sources": [
+    "generator"
+   ],
+   "origins": [
+    {
+     "at": "catalog/inner/gen/generator/new/boxes/pareto.mjs.mjs:20",
+     "name": "inner$paretoReport$moneyPct$$step",
+     "labels": [
+      "/",
+      "*"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0030",
+   "inputs": 2,
+   "holes": 2,
+   "graph": {
+    "inputs": [
+     "i0",
+     "i1"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       "$i0",
+       "$i1"
+      ]
+     },
+     {
+      "id": "h1",
+      "part": "□1",
+      "args": [
+       "@h0",
+       150
+      ]
+     }
+    ],
+    "out": "@h1"
+   },
+   "n": 1,
+   "sources": [
+    "generator"
+   ],
+   "origins": [
+    {
+     "at": "catalog/inner/gen/generator/gen/looks/app/src/21-views-b.js.mjs:72",
+     "name": "inner$class$render$map$hp",
+     "labels": [
+      "/",
+      "*"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0031",
+   "inputs": 2,
+   "holes": 3,
+   "graph": {
+    "inputs": [
+     "i0",
+     "i1"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       "$i0",
+       "$i1"
+      ]
+     },
+     {
+      "id": "h1",
+      "part": "□1",
+      "args": [
+       "@h0",
+       1
+      ]
+     },
+     {
+      "id": "h2",
+      "part": "□2",
+      "args": [
+       1,
+       "@h1"
+      ]
+     }
+    ],
+    "out": "@h2"
+   },
+   "n": 1,
+   "sources": [
+    "orbit"
+   ],
+   "origins": [
+    {
+     "at": "src/components/hosting/reports.ts:61",
+     "name": "daysInRange",
+     "labels": [
+      "call:nightsBetween",
+      "+",
+      "Math.max"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0032",
+   "inputs": 2,
+   "holes": 3,
+   "graph": {
+    "inputs": [
+     "i0",
+     "i1"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       "$i0",
+       "$i1"
+      ]
+     },
+     {
+      "id": "h1",
+      "part": "□1",
+      "args": [
+       "@h0",
+       86400000
+      ]
+     },
+     {
+      "id": "h2",
+      "part": "□2",
+      "args": [
+       "@h1"
+      ]
+     }
+    ],
+    "out": "@h2"
+   },
+   "n": 1,
+   "sources": [
+    "generator"
+   ],
+   "origins": [
+    {
+     "at": "catalog/inner/gen/generator/new/boxes/team-intel.mjs.mjs:282",
+     "name": "inner$agoLabel$diff$$step",
+     "labels": [
+      "-",
+      "/",
+      "Math.round"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0033",
+   "inputs": 2,
+   "holes": 2,
+   "graph": {
+    "inputs": [
+     "i0",
+     "i1"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       "$i0",
+       "$i1"
+      ]
+     },
+     {
+      "id": "h1",
+      "part": "□1",
+      "args": [
+       "@h0",
+       86400000
+      ]
+     }
+    ],
+    "out": "@h1"
+   },
+   "n": 1,
+   "sources": [
+    "generator"
+   ],
+   "origins": [
+    {
+     "at": "catalog/inner/gen/generator/new/boxes/team-intel.mjs.mjs:65",
+     "name": "inner$withinDays$diff$$step",
+     "labels": [
+      "-",
+      "/"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0034",
+   "inputs": 2,
+   "holes": 2,
+   "graph": {
+    "inputs": [
+     "i0",
+     "i1"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       "$i0",
+       "$i1"
+      ]
+     },
+     {
+      "id": "h1",
+      "part": "□1",
+      "args": [
+       0,
+       "@h0"
+      ]
+     }
+    ],
+    "out": "@h1"
+   },
+   "n": 1,
+   "sources": [
+    "generator"
+   ],
+   "origins": [
+    {
+     "at": "catalog/inner/gen/generator/machtzev/assemble/data-lift.mjs.mjs:152",
+     "name": "inner$purposeOf$idx$$step",
+     "labels": [
+      "-",
+      "Math.max"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0035",
+   "inputs": 2,
+   "holes": 3,
+   "graph": {
+    "inputs": [
+     "i0",
+     "i1"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       "$i0",
+       1
+      ]
+     },
+     {
+      "id": "h1",
+      "part": "□1",
+      "args": [
+       "@h0",
+       "$i1"
+      ]
+     },
+     {
+      "id": "h2",
+      "part": "□2",
+      "args": [
+       "@h1",
+       100
+      ]
+     }
+    ],
+    "out": "@h2"
+   },
+   "n": 1,
+   "sources": [
+    "generator"
+   ],
+   "origins": [
+    {
+     "at": "catalog/inner/gen/generator/new/boxes/pareto.mjs.mjs:11",
+     "name": "inner$paretoReport$donorPct",
+     "labels": [
+      "+",
+      "/",
+      "*"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0036",
+   "inputs": 2,
+   "holes": 2,
+   "graph": {
+    "inputs": [
+     "i0",
+     "i1"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       "$i0",
+       2
+      ]
+     },
+     {
+      "id": "h1",
+      "part": "□1",
+      "args": [
+       "@h0",
+       "$i1"
+      ]
+     }
+    ],
+    "out": "@h1"
+   },
+   "n": 1,
+   "sources": [
+    "generator"
+   ],
+   "origins": [
+    {
+     "at": "catalog/inner/gen/generator/machtzev/ds-wear.mjs.mjs:78",
+     "name": "inner$roleExpr$d",
+     "labels": [
+      ".slice()",
+      "call:dist"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0037",
+   "inputs": 2,
+   "holes": 3,
+   "graph": {
+    "inputs": [
+     "i0",
+     "i1"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       "$i0",
+       50
+      ]
+     },
+     {
+      "id": "h1",
+      "part": "□1",
+      "args": [
+       "$i1"
+      ]
+     },
+     {
+      "id": "h2",
+      "part": "□2",
+      "args": [
+       "@h0",
+       "@h1"
+      ]
+     }
+    ],
+    "out": "@h2"
+   },
+   "n": 1,
+   "sources": [
+    "14kk"
+   ],
+   "origins": [
+    {
+     "at": "catalog/inner/gen/14kk/archive/final-bridge.js.mjs:29",
+     "name": "inner$AegisSentinel$intelligentSegment$end$$step",
+     "labels": [
+      "+",
+      ".length",
+      "Math.min"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0038",
+   "inputs": 2,
+   "holes": 3,
+   "graph": {
+    "inputs": [
+     "i0",
+     "i1"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       "$i0"
+      ]
+     },
+     {
+      "id": "h1",
+      "part": "□0",
+      "args": [
+       "$i1"
+      ]
+     },
+     {
+      "id": "h2",
+      "part": "□1",
+      "args": [
+       "@h0",
+       "@h1"
+      ]
+     },
+     {
+      "id": "h3",
+      "part": "□2",
+      "args": [
+       "$i0",
+       "@h2"
+      ]
+     }
+    ],
+    "out": "@h3"
+   },
+   "n": 1,
+   "sources": [
+    "generator"
+   ],
+   "origins": [
+    {
+     "at": "catalog/inner/gen/generator/machtzev/purify-dart.mjs.mjs:286",
+     "name": "inner$jsSockets$names",
+     "labels": [
+      ".length",
+      "-",
+      ".slice()"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0039",
+   "inputs": 2,
+   "holes": 3,
+   "graph": {
+    "inputs": [
+     "i0",
+     "i1"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       "$i0"
+      ]
+     },
+     {
+      "id": "h1",
+      "part": "□0",
+      "args": [
+       "$i1"
+      ]
+     },
+     {
+      "id": "h2",
+      "part": "□1",
+      "args": [
+       1,
+       "@h1"
+      ]
+     },
+     {
+      "id": "h3",
+      "part": "□2",
+      "args": [
+       "@h0",
+       "@h2"
+      ]
+     }
+    ],
+    "out": "@h3"
+   },
+   "n": 1,
+   "sources": [
+    "14kk"
+   ],
+   "origins": [
+    {
+     "at": "catalog/inner/gen/14kk/knowledge_protocol.js.mjs:123",
+     "name": "inner$AssetAnalyzer$calculateStructureQuality$avgFunctionLength",
+     "labels": [
+      ".length",
+      "Math.max",
+      "/"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0040",
+   "inputs": 2,
+   "holes": 2,
+   "graph": {
+    "inputs": [
+     "i0",
+     "i1"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       "$i0"
+      ]
+     },
+     {
+      "id": "h1",
+      "part": "□1",
+      "args": [
+       "$i1",
+       "@h0"
+      ]
+     }
+    ],
+    "out": "@h1"
+   },
+   "n": 1,
+   "sources": [
+    "generator"
+   ],
+   "origins": [
+    {
+     "at": "catalog/inner/gen/generator/new/atoms/merge-hist.mjs.mjs:12",
+     "name": "inner$mergeHist$map$arr",
+     "labels": [
+      "call:key",
+      ".get()"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0041",
+   "inputs": 2,
+   "holes": 3,
+   "graph": {
+    "inputs": [
+     "i0",
+     "i1"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       "$i0"
+      ]
+     },
+     {
+      "id": "h1",
+      "part": "□1",
+      "args": [
+       "$i1"
+      ]
+     },
+     {
+      "id": "h2",
+      "part": "□2",
+      "args": [
+       "@h1",
+       "@h0"
+      ]
+     }
+    ],
+    "out": "@h2"
+   },
+   "n": 1,
+   "sources": [
+    "generator"
+   ],
+   "origins": [
+    {
+     "at": "catalog/inner/gen/generator/machtzev/generator/hamtzaa.mjs.mjs:90",
+     "name": "inner$tokenSource$inGoal",
+     "labels": [
+      "call:unq",
+      "call:String",
+      ".includes()"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0042",
+   "inputs": 2,
+   "holes": 3,
+   "graph": {
+    "inputs": [
+     "i0",
+     "i1"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       "$i0"
+      ]
+     },
+     {
+      "id": "h1",
+      "part": "□1",
+      "args": [
+       "@h0"
+      ]
+     },
+     {
+      "id": "h2",
+      "part": "□1",
+      "args": [
+       "$i1"
+      ]
+     },
+     {
+      "id": "h3",
+      "part": "□2",
+      "args": [
+       "@h2",
+       "@h1"
+      ]
+     }
+    ],
+    "out": "@h3"
+   },
+   "n": 1,
+   "sources": [
+    "buildsmart"
+   ],
+   "origins": [
+    {
+     "at": "catalog/inner/gen/buildsmart/app/src/lib/search.ts.mjs:33",
+     "name": "inner$searchExact$pos",
+     "labels": [
+      ".trim()",
+      "call:normalize",
+      ".indexOf()"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0043",
+   "inputs": 2,
+   "holes": 2,
+   "graph": {
+    "inputs": [
+     "i0",
+     "i1"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       "$i1",
+       1
+      ]
+     },
+     {
+      "id": "h1",
+      "part": "□1",
+      "args": [
+       "$i0",
+       "@h0"
+      ]
+     },
+     {
+      "id": "h2",
+      "part": "□0",
+      "args": [
+       30000,
+       "@h1"
+      ]
+     }
+    ],
+    "out": "@h2"
+   },
+   "n": 1,
+   "sources": [
+    "buildsmart"
+   ],
+   "origins": [
+    {
+     "at": "catalog/inner/gen/buildsmart/functions/src/creditCore.ts.mjs:34",
+     "name": "inner$contractorCredit$raw$$step",
+     "labels": [
+      "+",
+      "%"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0044",
+   "inputs": 2,
+   "holes": 4,
+   "graph": {
+    "inputs": [
+     "i0",
+     "i1"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       "$i1",
+       1
+      ]
+     },
+     {
+      "id": "h1",
+      "part": "□1",
+      "args": [
+       "$i0",
+       "@h0"
+      ]
+     },
+     {
+      "id": "h2",
+      "part": "□2",
+      "args": [
+       "@h1"
+      ]
+     },
+     {
+      "id": "h3",
+      "part": "□3",
+      "args": [
+       "@h2"
+      ]
+     }
+    ],
+    "out": "@h3"
+   },
+   "n": 1,
+   "sources": [
+    "generator"
+   ],
+   "origins": [
+    {
+     "at": "catalog/inner/gen/generator/new/atoms/smtp-host-for.mjs.mjs:12",
+     "name": "inner$smtpHostFor$domain$$step",
+     "labels": [
+      "+",
+      ".slice()",
+      ".trim()",
+      ".toLowerCase()"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0045",
+   "inputs": 2,
+   "holes": 3,
+   "graph": {
+    "inputs": [
+     "i0",
+     "i1"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       "$i1"
+      ]
+     },
+     {
+      "id": "h1",
+      "part": "□1",
+      "args": [
+       "$i0",
+       "@h0"
+      ]
+     },
+     {
+      "id": "h2",
+      "part": "□2",
+      "args": [
+       "@h1"
+      ]
+     }
+    ],
+    "out": "@h2"
+   },
+   "n": 1,
+   "sources": [
+    "generator"
+   ],
+   "origins": [
+    {
+     "at": "catalog/inner/gen/generator/yeshiva/mavin.mjs.mjs:378",
+     "name": "inner$rulesDeclOf$tail$$step",
+     "labels": [
+      ".length",
+      ".slice()",
+      ".trim()"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0046",
+   "inputs": 2,
+   "holes": 4,
+   "graph": {
+    "inputs": [
+     "i0",
+     "i1"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       "$i1"
+      ]
+     },
+     {
+      "id": "h1",
+      "part": "□1",
+      "args": [
+       "@h0",
+       1
+      ]
+     },
+     {
+      "id": "h2",
+      "part": "□2",
+      "args": [
+       "$i0",
+       "@h1"
+      ]
+     },
+     {
+      "id": "h3",
+      "part": "□3",
+      "args": [
+       "@h2"
+      ]
+     }
+    ],
+    "out": "@h3"
+   },
+   "n": 1,
+   "sources": [
+    "generator"
+   ],
+   "origins": [
+    {
+     "at": "catalog/inner/gen/generator/machtzev/generator/app-ds.mjs.mjs:1594",
+     "name": "inner$buildApp$valueOf$st$$step",
+     "labels": [
+      ".length",
+      "+",
+      ".slice()",
+      ".trim()"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0047",
+   "inputs": 2,
+   "holes": 3,
+   "graph": {
+    "inputs": [
+     "i0",
+     "i1"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       "$i1"
+      ]
+     },
+     {
+      "id": "h1",
+      "part": "□1",
+      "args": [
+       "@h0",
+       1
+      ]
+     },
+     {
+      "id": "h2",
+      "part": "□2",
+      "args": [
+       "$i0",
+       "@h1"
+      ]
+     }
+    ],
+    "out": "@h2"
+   },
+   "n": 1,
+   "sources": [
+    "generator"
+   ],
+   "origins": [
+    {
+     "at": "catalog/inner/gen/generator/machtzev/purify-dart.mjs.mjs:848",
+     "name": "inner$purifyFile$rest$$step",
+     "labels": [
+      ".length",
+      "+",
+      ".slice()"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0048",
+   "inputs": 2,
+   "holes": 4,
+   "graph": {
+    "inputs": [
+     "i0",
+     "i1"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       100,
+       "$i0"
+      ]
+     },
+     {
+      "id": "h1",
+      "part": "□1",
+      "args": [
+       0,
+       "@h0"
+      ]
+     },
+     {
+      "id": "h2",
+      "part": "□2",
+      "args": [
+       "@h1",
+       100
+      ]
+     },
+     {
+      "id": "h3",
+      "part": "□3",
+      "args": [
+       "@h2",
+       "$i1"
+      ]
+     }
+    ],
+    "out": "@h3"
+   },
+   "n": 1,
+   "sources": [
+    "generator"
+   ],
+   "origins": [
+    {
+     "at": "catalog/inner/gen/generator/gen/looks/app/src/10-ui.js.mjs:22",
+     "name": "inner$ring$on$$step",
+     "labels": [
+      "Math.min",
+      "Math.max",
+      "/",
+      "*"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0049",
+   "inputs": 2,
+   "holes": 2,
+   "graph": {
+    "inputs": [
+     "i0",
+     "i1"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       2,
+       "$i0"
+      ]
+     },
+     {
+      "id": "h1",
+      "part": "□1",
+      "args": [
+       "@h0",
+       "$i1"
+      ]
+     }
+    ],
+    "out": "@h1"
+   },
+   "n": 1,
+   "sources": [
+    "generator"
+   ],
+   "origins": [
+    {
+     "at": "catalog/inner/gen/generator/new/atoms/orbit-theme.mjs.mjs:53",
+     "name": "inner$orbitTheme$hslToRgb$p$$step",
+     "labels": [
+      "*",
+      "-"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0050",
+   "inputs": 1,
+   "holes": 2,
+   "graph": {
+    "inputs": [
+     "i0"
+    ],
+    "nodes": [
+     {
+      "id": "L0",
+      "loop": {
+       "over": "$i0",
+       "init": 0,
+       "item": "it",
+       "state": "st",
+       "nodes": [
+        {
+         "id": "h0",
+         "part": "□0",
+         "args": [
+          "$it"
+         ]
+        },
+        {
+         "id": "h1",
+         "part": "□1",
+         "args": [
+          "$st",
+          "@h0"
+         ]
+        }
+       ],
+       "next": "@h1"
+      }
+     }
+    ],
+    "out": "@L0.state"
+   },
+   "n": 1,
+   "sources": [
+    "orbit"
+   ],
+   "origins": [
+    {
+     "at": "src/components/tzedaka/lib.ts:64",
+     "name": "grandTotal",
+     "labels": [
+      "call:boxTotal",
+      "+"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0051",
+   "inputs": 1,
+   "holes": 4,
+   "graph": {
+    "inputs": [
+     "i0"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       "$i0",
+       10
+      ]
+     },
+     {
+      "id": "h1",
+      "part": "□1",
+      "args": [
+       "@h0"
+      ]
+     },
+     {
+      "id": "h2",
+      "part": "□2",
+      "args": [
+       "@h1",
+       10
+      ]
+     },
+     {
+      "id": "h3",
+      "part": "□3",
+      "args": [
+       "@h2"
+      ]
+     }
+    ],
+    "out": "@h3"
+   },
+   "n": 1,
+   "sources": [
+    "generator"
+   ],
+   "origins": [
+    {
+     "at": "catalog/inner/gen/generator/machtzev/generator/generate.mjs.mjs:467",
+     "name": "inner$generateAll$want",
+     "labels": [
+      "*",
+      "Math.round",
+      "/",
+      "call:String"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0052",
+   "inputs": 1,
+   "holes": 2,
+   "graph": {
+    "inputs": [
+     "i0"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       "$i0",
+       12
+      ]
+     },
+     {
+      "id": "h1",
+      "part": "□1",
+      "args": [
+       "@h0",
+       1
+      ]
+     }
+    ],
+    "out": "@h1"
+   },
+   "n": 1,
+   "sources": [
+    "generator"
+   ],
+   "origins": [
+    {
+     "at": "catalog/inner/gen/generator/new/boxes/tier-migration.mjs.mjs:98",
+     "name": "inner$shiftMonths$nm$$step",
+     "labels": [
+      "%",
+      "+"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0053",
+   "inputs": 1,
+   "holes": 2,
+   "graph": {
+    "inputs": [
+     "i0"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       "$i0",
+       12
+      ]
+     },
+     {
+      "id": "h1",
+      "part": "□1",
+      "args": [
+       "@h0"
+      ]
+     }
+    ],
+    "out": "@h1"
+   },
+   "n": 1,
+   "sources": [
+    "generator"
+   ],
+   "origins": [
+    {
+     "at": "catalog/inner/gen/generator/new/boxes/tier-migration.mjs.mjs:87",
+     "name": "inner$shiftMonths$ny$$step",
+     "labels": [
+      "/",
+      "Math.floor"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0054",
+   "inputs": 1,
+   "holes": 2,
+   "graph": {
+    "inputs": [
+     "i0"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       "$i0",
+       1
+      ]
+     },
+     {
+      "id": "h1",
+      "part": "□1",
+      "args": [
+       0,
+       "@h0"
+      ]
+     }
+    ],
+    "out": "@h1"
+   },
+   "n": 1,
+   "sources": [
+    "orbit"
+   ],
+   "origins": [
+    {
+     "at": "src/components/cloud/SignupWizard.tsx:69",
+     "name": "",
+     "labels": [
+      "-",
+      "Math.max"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0055",
+   "inputs": 1,
+   "holes": 2,
+   "graph": {
+    "inputs": [
+     "i0"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       "$i0",
+       1
+      ]
+     },
+     {
+      "id": "h1",
+      "part": "□1",
+      "args": [
+       1,
+       "@h0"
+      ]
+     }
+    ],
+    "out": "@h1"
+   },
+   "n": 1,
+   "sources": [
+    "generator"
+   ],
+   "origins": [
+    {
+     "at": "catalog/inner/gen/generator/machtzev/ds-tokens.mjs.mjs:44",
+     "name": "inner$map$y2",
+     "labels": [
+      "-",
+      "Math.max"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0056",
+   "inputs": 1,
+   "holes": 3,
+   "graph": {
+    "inputs": [
+     "i0"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       "$i0",
+       2
+      ]
+     },
+     {
+      "id": "h1",
+      "part": "□1",
+      "args": [
+       100,
+       "@h0"
+      ]
+     },
+     {
+      "id": "h2",
+      "part": "□2",
+      "args": [
+       0,
+       "@h1"
+      ]
+     }
+    ],
+    "out": "@h2"
+   },
+   "n": 1,
+   "sources": [
+    "14kk"
+   ],
+   "origins": [
+    {
+     "at": "catalog/inner/gen/14kk/knowledge_protocol.js.mjs:96",
+     "name": "inner$AssetAnalyzer$calculateReadability$readability$$step",
+     "labels": [
+      "*",
+      "-",
+      "Math.max"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0057",
+   "inputs": 1,
+   "holes": 2,
+   "graph": {
+    "inputs": [
+     "i0"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       "$i0",
+       2
+      ]
+     },
+     {
+      "id": "h1",
+      "part": "□1",
+      "args": [
+       100,
+       "@h0"
+      ]
+     }
+    ],
+    "out": "@h1"
+   },
+   "n": 1,
+   "sources": [
+    "generator"
+   ],
+   "origins": [
+    {
+     "at": "catalog/inner/gen/generator/machtzev/generator/capability.mjs.mjs:316",
+     "name": "inner$emitAppFrom$map$smax$$step",
+     "labels": [
+      "*",
+      "Math.max"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0058",
+   "inputs": 1,
+   "holes": 2,
+   "graph": {
+    "inputs": [
+     "i0"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       "$i0",
+       60000
+      ]
+     },
+     {
+      "id": "h1",
+      "part": "□1",
+      "args": [
+       "@h0"
+      ]
+     }
+    ],
+    "out": "@h1"
+   },
+   "n": 1,
+   "sources": [
+    "orbit"
+   ],
+   "origins": [
+    {
+     "at": "src/lib/atoms/verify/gen.ts:178",
+     "name": "",
+     "labels": [
+      "/",
+      "Math.floor"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0059",
+   "inputs": 1,
+   "holes": 2,
+   "graph": {
+    "inputs": [
+     "i0"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       "$i0",
+       60
+      ]
+     },
+     {
+      "id": "h1",
+      "part": "□1",
+      "args": [
+       "@h0"
+      ]
+     }
+    ],
+    "out": "@h1"
+   },
+   "n": 1,
+   "sources": [
+    "14kk"
+   ],
+   "origins": [
+    {
+     "at": "catalog/inner/gen/14kk/mvp/simple-mvp.js.mjs:71",
+     "name": "inner$SimpleAssetManagerMVP$generateStatusResponse$hours",
+     "labels": [
+      "/",
+      "Math.floor"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0060",
+   "inputs": 1,
+   "holes": 4,
+   "graph": {
+    "inputs": [
+     "i0"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       "$i0"
+      ]
+     },
+     {
+      "id": "h1",
+      "part": "□1",
+      "args": [
+       "$i0",
+       "@h0"
+      ]
+     },
+     {
+      "id": "h2",
+      "part": "□2",
+      "args": [
+       "@h1",
+       100
+      ]
+     },
+     {
+      "id": "h3",
+      "part": "□3",
+      "args": [
+       "@h2"
+      ]
+     }
+    ],
+    "out": "@h3"
+   },
+   "n": 1,
+   "sources": [
+    "generator"
+   ],
+   "origins": [
+    {
+     "at": "catalog/inner/gen/generator/gen/looks/buybox/build.mjs.mjs:7",
+     "name": "inner$split$c",
+     "labels": [
+      "Math.floor",
+      "-",
+      "*",
+      "Math.round"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0061",
+   "inputs": 1,
+   "holes": 2,
+   "graph": {
+    "inputs": [
+     "i0"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       "$i0"
+      ]
+     },
+     {
+      "id": "h1",
+      "part": "□1",
+      "args": [
+       "$i0",
+       "@h0"
+      ]
+     }
+    ],
+    "out": "@h1"
+   },
+   "n": 1,
+   "sources": [
+    "generator"
+   ],
+   "origins": [
+    {
+     "at": "catalog/inner/gen/generator/machtzev/generator/balagan.mjs.mjs:96",
+     "name": "inner$buildBalagan$bad",
+     "labels": [
+      "call:buildIdentifier",
+      "call:selfTest"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0062",
+   "inputs": 1,
+   "holes": 4,
+   "graph": {
+    "inputs": [
+     "i0"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       "$i0"
+      ]
+     },
+     {
+      "id": "h1",
+      "part": "□1",
+      "args": [
+       "$i0"
+      ]
+     },
+     {
+      "id": "h2",
+      "part": "□2",
+      "args": [
+       "@h1",
+       60
+      ]
+     },
+     {
+      "id": "h3",
+      "part": "□3",
+      "args": [
+       "@h0",
+       "@h2"
+      ]
+     }
+    ],
+    "out": "@h3"
+   },
+   "n": 1,
+   "sources": [
+    "generator"
+   ],
+   "origins": [
+    {
+     "at": "catalog/inner/gen/generator/gen/looks/app/src/20-views-a.js.mjs:168",
+     "name": "inner$class$mount$h",
+     "labels": [
+      ".getHours()",
+      ".getMinutes()",
+      "/",
+      "+"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0063",
+   "inputs": 1,
+   "holes": 3,
+   "graph": {
+    "inputs": [
+     "i0"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       "$i0"
+      ]
+     },
+     {
+      "id": "h1",
+      "part": "□1",
+      "args": [
+       "@h0",
+       1
+      ]
+     },
+     {
+      "id": "h2",
+      "part": "□2",
+      "args": [
+       0,
+       "@h1"
+      ]
+     }
+    ],
+    "out": "@h2"
+   },
+   "n": 1,
+   "sources": [
+    "generator"
+   ],
+   "origins": [
+    {
+     "at": "catalog/inner/gen/generator/machtzev/generator/render-ds.mjs.mjs:1938",
+     "name": "inner$renderCompose$last",
+     "labels": [
+      ".length",
+      "-",
+      "Math.max"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0064",
+   "inputs": 1,
+   "holes": 4,
+   "graph": {
+    "inputs": [
+     "i0"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       "$i0"
+      ]
+     },
+     {
+      "id": "h1",
+      "part": "□1",
+      "args": [
+       "@h0",
+       60
+      ]
+     },
+     {
+      "id": "h2",
+      "part": "□2",
+      "args": [
+       "$i0"
+      ]
+     },
+     {
+      "id": "h3",
+      "part": "□3",
+      "args": [
+       "@h1",
+       "@h2"
+      ]
+     }
+    ],
+    "out": "@h3"
+   },
+   "n": 1,
+   "sources": [
+    "generator"
+   ],
+   "origins": [
+    {
+     "at": "catalog/inner/gen/generator/gen/looks/app/src/20-views-a.js.mjs:102",
+     "name": "inner$class$mount$now",
+     "labels": [
+      ".getHours()",
+      "*",
+      ".getMinutes()",
+      "+"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0065",
+   "inputs": 1,
+   "holes": 2,
+   "graph": {
+    "inputs": [
+     "i0"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       "$i0"
+      ]
+     },
+     {
+      "id": "h1",
+      "part": "□1",
+      "args": [
+       0,
+       "@h0"
+      ]
+     }
+    ],
+    "out": "@h1"
+   },
+   "n": 1,
+   "sources": [
+    "orbit"
+   ],
+   "origins": [
+    {
+     "at": "src/components/supporters/timemachine.ts:83",
+     "name": "",
+     "labels": [
+      "Math.round",
+      "Math.max"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0066",
+   "inputs": 1,
+   "holes": 2,
+   "graph": {
+    "inputs": [
+     "i0"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       0,
+       "$i0"
+      ]
+     },
+     {
+      "id": "h1",
+      "part": "□1",
+      "args": [
+       5,
+       "@h0"
+      ]
+     }
+    ],
+    "out": "@h1"
+   },
+   "n": 1,
+   "sources": [
+    "orbit"
+   ],
+   "origins": [
+    {
+     "at": "src/components/courses/CourseForm.tsx:197",
+     "name": "",
+     "labels": [
+      "Math.max",
+      "Math.min"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0067",
+   "inputs": 1,
+   "holes": 2,
+   "graph": {
+    "inputs": [
+     "i0"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       0.86,
+       "$i0"
+      ]
+     },
+     {
+      "id": "h1",
+      "part": "□1",
+      "args": [
+       0.42,
+       "@h0"
+      ]
+     }
+    ],
+    "out": "@h1"
+   },
+   "n": 1,
+   "sources": [
+    "generator"
+   ],
+   "origins": [
+    {
+     "at": "catalog/inner/gen/generator/new/atoms/site-palette.mjs.mjs:194",
+     "name": "inner$sitePalette$s$$step",
+     "labels": [
+      "Math.min",
+      "Math.max"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0068",
+   "inputs": 1,
+   "holes": 2,
+   "graph": {
+    "inputs": [
+     "i0"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       0.95,
+       "$i0"
+      ]
+     },
+     {
+      "id": "h1",
+      "part": "□1",
+      "args": [
+       0.35,
+       "@h0"
+      ]
+     }
+    ],
+    "out": "@h1"
+   },
+   "n": 1,
+   "sources": [
+    "generator"
+   ],
+   "origins": [
+    {
+     "at": "catalog/inner/gen/generator/new/atoms/orbit-theme.mjs.mjs:241",
+     "name": "inner$orbitTheme$sat$$step",
+     "labels": [
+      "Math.min",
+      "Math.max"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "code-0069",
+   "inputs": 1,
+   "holes": 1,
+   "graph": {
+    "inputs": [
+     "i0"
+    ],
+    "nodes": [
+     {
+      "id": "h0",
+      "part": "□0",
+      "args": [
+       2,
+       "$i0"
+      ]
+     },
+     {
+      "id": "h1",
+      "part": "□0",
+      "args": [
+       "@h0",
+       "$i0"
+      ]
+     }
+    ],
+    "out": "@h1"
+   },
+   "n": 1,
+   "sources": [
+    "generator"
+   ],
+   "origins": [
+    {
+     "at": "catalog/inner/gen/generator/machtzev/ds-tokens.mjs.mjs:32",
+     "name": "inner$map$blur1",
+     "labels": [
+      "*"
+     ]
+    }
+   ]
+  }
+ ]
+}

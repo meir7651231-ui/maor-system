@@ -1,0 +1,22 @@
+{
+ "about": "התקציב המוצהר של מנוע-השרטוטים-העצמי (catalog/selfprint/selfprint.mjs) — הרצה קטנה ('תריץ בקטנה לראות באמת שזה עובד'). baseline = הצמיחה של GROW3 (mode score, בלי שרטוטים) בתקציב המלא: floors × (pairs + unary). selfprint = אותה צמיחה בחצי התקציב (half) + השרטוטים בחצי השני: rounds סבבים × perRound חיבורים. סך החיבורים זהה בשתי הריצות. callSteps/thingSteps/nameSteps — כמו catalog/grow/budget.json · poolCap = כמה מועמדים לכל חור לכל היותר (קודם עם-שם-מיוחד, אחר-כך הכי פשוט — פחות צעדים; בחור-אופרטור מהקוד: קודם מה שמתנהג כמו האופרטור) · typings = כמה השמות-סוג לכל שלד-מהקוד (קודם אלה שבחורים שלהם יש דברים עם שם מיוחד) · novelty = הצלחה הופכת לשרטוט רק אם לאחד הפעלים המיוחדים שלה היו פחות מ-novelty שרטוטים-מהצלחה · minSupport = שלד-מהקוד נכנס רק אם חוזר בלפחות כך פונקציות ('מבנים שחוזרים')",
+ "baseline": {
+  "maxFloors": 3,
+  "buildsPerFloor": 1200,
+  "unaryPerFloor": 400
+ },
+ "half": {
+  "maxFloors": 3,
+  "buildsPerFloor": 600,
+  "unaryPerFloor": 200
+ },
+ "rounds": 3,
+ "perRound": 800,
+ "callSteps": 500000,
+ "thingSteps": 2000000,
+ "nameSteps": 2000000,
+ "poolCap": 24,
+ "typings": 2,
+ "novelty": 3,
+ "minSupport": 2
+}

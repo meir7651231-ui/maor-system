@@ -1,0 +1,263 @@
+{
+ "about": "SELFPRINT — אותו תקציב-חיבורים: baseline = צמיחת GROW3 (score) ב-budget.baseline; selfprint = אותה צמיחה ב-budget.half + השרטוטים-העצמיים (rounds × perRound). המדדים — אותה הגדרה לשתיהן (selfprint.mjs › metricsOf). נבנה ע״י selfprint.mjs — לא לערוך ביד",
+ "budget": {
+  "about": "התקציב המוצהר של מנוע-השרטוטים-העצמי (catalog/selfprint/selfprint.mjs) — הרצה קטנה ('תריץ בקטנה לראות באמת שזה עובד'). baseline = הצמיחה של GROW3 (mode score, בלי שרטוטים) בתקציב המלא: floors × (pairs + unary). selfprint = אותה צמיחה בחצי התקציב (half) + השרטוטים בחצי השני: rounds סבבים × perRound חיבורים. סך החיבורים זהה בשתי הריצות. callSteps/thingSteps/nameSteps — כמו catalog/grow/budget.json · poolCap = כמה מועמדים לכל חור לכל היותר (קודם עם-שם-מיוחד, אחר-כך הכי פשוט — פחות צעדים; בחור-אופרטור מהקוד: קודם מה שמתנהג כמו האופרטור) · typings = כמה השמות-סוג לכל שלד-מהקוד (קודם אלה שבחורים שלהם יש דברים עם שם מיוחד) · novelty = הצלחה הופכת לשרטוט רק אם לאחד הפעלים המיוחדים שלה היו פחות מ-novelty שרטוטים-מהצלחה · minSupport = שלד-מהקוד נכנס רק אם חוזר בלפחות כך פונקציות ('מבנים שחוזרים')",
+  "baseline": {
+   "maxFloors": 3,
+   "buildsPerFloor": 1200,
+   "unaryPerFloor": 400
+  },
+  "half": {
+   "maxFloors": 3,
+   "buildsPerFloor": 600,
+   "unaryPerFloor": 200
+  },
+  "rounds": 3,
+  "perRound": 800,
+  "callSteps": 500000,
+  "thingSteps": 2000000,
+  "nameSteps": 2000000,
+  "poolCap": 24,
+  "typings": 2,
+  "novelty": 3,
+  "minSupport": 2
+ },
+ "built": {
+  "baseline": 15096,
+  "selfprint": 15105
+ },
+ "baseline": {
+  "shelf": 3901,
+  "namedSpecial": 111,
+  "namedSpecialGrown": 79,
+  "specialBy": {
+   "compare": 31,
+   "filter": 25,
+   "sort": 8,
+   "rotate": 5,
+   "dedupe": 4,
+   "reverse": 3,
+   "count": 1,
+   "extreme": 1,
+   "tolerate": 1
+  },
+  "exactRebuilt": {},
+  "exactFromOthers": 0,
+  "exactByBlueprintFair": 0,
+  "bestGrown": {
+   "average": {
+    "pct": 27,
+    "id": "1b71337837db4494",
+    "form": "chain",
+    "sig": "nums>num"
+   },
+   "sort": {
+    "pct": 73,
+    "id": "5199635b0c66a447",
+    "form": "chain",
+    "sig": "nums>nums"
+   },
+   "tour": {
+    "pct": null
+   },
+   "extreme": {
+    "pct": 91,
+    "id": "14a68f7dbd128db1",
+    "form": "chain",
+    "sig": "nums>num"
+   },
+   "sum": {
+    "pct": 91,
+    "id": "ad8ac712fa905d2e",
+    "form": "chain",
+    "sig": "nums>num"
+   },
+   "count": {
+    "pct": 82,
+    "id": "0e6cd6d6cde48a3a",
+    "form": "chain",
+    "sig": "nums>num"
+   },
+   "dedupe": {
+    "pct": 73,
+    "id": "19764b13237ff40f",
+    "form": "fix",
+    "sig": "nums>nums"
+   },
+   "compare": {
+    "pct": 94,
+    "id": "1717db4d4bca8e19",
+    "form": "pair",
+    "sig": "num,num>num"
+   },
+   "median": {
+    "pct": 45,
+    "id": "1b71337837db4494",
+    "form": "chain",
+    "sig": "nums>num",
+    "metricOnly": true
+   },
+   "max": {
+    "pct": 91,
+    "id": "14a68f7dbd128db1",
+    "form": "chain",
+    "sig": "nums>num",
+    "metricOnly": true
+   }
+  }
+ },
+ "selfprint": {
+  "shelf": 3534,
+  "namedSpecial": 222,
+  "namedSpecialGrown": 190,
+  "specialBy": {
+   "compare": 73,
+   "filter": 44,
+   "count": 24,
+   "sort": 18,
+   "rotate": 17,
+   "dedupe": 8,
+   "reverse": 4,
+   "average": 1,
+   "extreme": 1
+  },
+  "exactRebuilt": {
+   "average": {
+    "exact": 1,
+    "fromOthers": 1,
+    "byBlueprint": 1,
+    "byBlueprintFair": 1,
+    "best": {
+     "id": "94e164fa6f9ccb2e",
+     "floor": "bp3",
+     "form": "bp",
+     "blueprint": "bp-c-4590428b",
+     "sig": "nums>num",
+     "steps": 90,
+     "nodes": 3,
+     "example": {
+      "in": [
+       [
+        3,
+        1,
+        2
+       ]
+      ],
+      "out": 2
+     },
+     "of": [
+      {
+       "id": "0ce602d9666a323d",
+       "form": "part",
+       "part": "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+       "verbs": [
+        "sum"
+       ]
+      },
+      {
+       "id": "b49ffdff62ca585b",
+       "form": "part",
+       "part": "inner-generator:machtzev/generator/behavior-plan.mjs#runGoal.total",
+       "verbs": [
+        "count"
+       ]
+      },
+      {
+       "id": "ad809c4c4acdb0f0",
+       "form": "part",
+       "part": "inner-generator:machtzev/generator/live-expr.mjs#trendAt.b:step",
+       "verbs": []
+      }
+     ]
+    }
+   }
+  },
+  "exactFromOthers": 1,
+  "exactByBlueprintFair": 1,
+  "bestGrown": {
+   "average": {
+    "pct": 100,
+    "id": "94e164fa6f9ccb2e",
+    "blueprint": "bp-c-4590428b",
+    "sig": "nums>num"
+   },
+   "sort": {
+    "pct": 73,
+    "id": "5199635b0c66a447",
+    "form": "chain",
+    "sig": "nums>nums"
+   },
+   "tour": {
+    "pct": null
+   },
+   "extreme": {
+    "pct": 91,
+    "id": "28e57b12ddb786f6",
+    "form": "chain",
+    "sig": "nums>num"
+   },
+   "sum": {
+    "pct": 82,
+    "id": "41b8b8b1919d537d",
+    "blueprint": "bp-c-83e340ff",
+    "sig": "nums>num"
+   },
+   "count": {
+    "pct": 82,
+    "id": "0e6cd6d6cde48a3a",
+    "form": "chain",
+    "sig": "nums>num"
+   },
+   "dedupe": {
+    "pct": 73,
+    "id": "09bd1a1252a9a6ee",
+    "blueprint": "bp-s-d52c7307",
+    "sig": "nums>nums"
+   },
+   "compare": {
+    "pct": 50,
+    "id": "be8530b92421bf4d",
+    "blueprint": "bp-c-475393d2",
+    "sig": "num,num>num"
+   },
+   "median": {
+    "pct": 55,
+    "id": "94e164fa6f9ccb2e",
+    "blueprint": "bp-c-4590428b",
+    "sig": "nums>num",
+    "metricOnly": true
+   },
+   "max": {
+    "pct": 91,
+    "id": "28e57b12ddb786f6",
+    "form": "chain",
+    "sig": "nums>num",
+    "metricOnly": true
+   }
+  }
+ },
+ "blueprints": {
+  "total": 63,
+  "bySource": {
+   "success": 36,
+   "code": 23,
+   "success-of-blueprint": 4
+  },
+  "used": 63,
+  "birthedSuccess": 36,
+  "birthedBySource": {
+   "success": 29,
+   "code": 5,
+   "success-of-blueprint": 2
+  },
+  "maxDepth": 2,
+  "maxDepthUsed": 2,
+  "maxDepthSuccess": 2
+ },
+ "wrongImprovements": 0,
+ "replacements": 111,
+ "fpMismatchOnLoad": {
+  "baseline": 0,
+  "half": 0
+ }
+}
