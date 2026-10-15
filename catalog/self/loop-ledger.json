@@ -16,7 +16,7 @@
  },
  "checks": "מלא: חוקים · פלטים · צעדים · rebuild ביט-זהה · vitest catalog",
  "summary": {
-  "subjects": 107,
+  "subjects": 108,
   "bugs": 0,
   "duplicates": 23,
   "cheaper": 4,
@@ -24,7 +24,7 @@
   "restored": 0,
   "regressions": 0,
   "reverted": 0,
-  "kept": 107
+  "kept": 108
  },
  "rows": [
   {
@@ -2608,7 +2608,7 @@
     "absent": 1
    },
    "found": [],
-   "considered": 153,
+   "considered": 154,
    "skipped": {
     "לא נטען להרצה כאן": 74,
     "עובר את החוקים — פלט אחר (חלק מהמחסן)": 71
@@ -2635,9 +2635,19 @@
      "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
     },
     {
+     "cand": "machine:catalog/scripts/rebuild.mjs#gitEnv",
+     "project": "machine",
+     "at": "catalog/scripts/rebuild.mjs:317",
+     "laws": "3/3",
+     "inputs": 1,
+     "same": "פלט אחר על קלט אחד (#0)",
+     "steps": "6 מול 1",
+     "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
+    },
+    {
      "cand": "machine:catalog/scripts/rebuild.mjs#graph",
      "project": "machine",
-     "at": "catalog/scripts/rebuild.mjs:296",
+     "at": "catalog/scripts/rebuild.mjs:297",
      "laws": "3/3",
      "inputs": 1,
      "same": "פלט אחר על קלט אחד (#0)",
@@ -2647,7 +2657,7 @@
     {
      "cand": "machine:catalog/scripts/rebuild.mjs#onWrote",
      "project": "machine",
-     "at": "catalog/scripts/rebuild.mjs:325",
+     "at": "catalog/scripts/rebuild.mjs:389",
      "laws": "3/3",
      "inputs": 1,
      "same": "פלט אחר על קלט אחד (#0)",
@@ -2712,7 +2722,7 @@
     "sameText": 1
    },
    "found": [],
-   "considered": 153,
+   "considered": 154,
    "skipped": {
     "לא נטען להרצה כאן": 74,
     "עובר את החוקים — פלט אחר (חלק מהמחסן)": 71
@@ -2739,9 +2749,19 @@
      "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
     },
     {
+     "cand": "machine:catalog/scripts/rebuild.mjs#gitEnv",
+     "project": "machine",
+     "at": "catalog/scripts/rebuild.mjs:317",
+     "laws": "3/3",
+     "inputs": 1,
+     "same": "פלט אחר על קלט אחד (#0)",
+     "steps": "6 מול 1",
+     "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
+    },
+    {
      "cand": "machine:catalog/scripts/rebuild.mjs#graph",
      "project": "machine",
-     "at": "catalog/scripts/rebuild.mjs:296",
+     "at": "catalog/scripts/rebuild.mjs:297",
      "laws": "3/3",
      "inputs": 1,
      "same": "פלט אחר על קלט אחד (#0)",
@@ -2751,7 +2771,7 @@
     {
      "cand": "machine:catalog/scripts/rebuild.mjs#onWrote",
      "project": "machine",
-     "at": "catalog/scripts/rebuild.mjs:325",
+     "at": "catalog/scripts/rebuild.mjs:389",
      "laws": "3/3",
      "inputs": 1,
      "same": "פלט אחר על קלט אחד (#0)",
@@ -2942,7 +2962,7 @@
     {
      "cand": "machine:catalog/scripts/rebuild.mjs#sameOut",
      "project": "machine",
-     "at": "catalog/scripts/rebuild.mjs:291",
+     "at": "catalog/scripts/rebuild.mjs:292",
      "laws": "24/24",
      "inputs": 46,
      "same": "פלט אחר על 30 קלטים (#0)",
@@ -4042,7 +4062,7 @@
     {
      "cand": "machine:catalog/scripts/rebuild.mjs#sameOut",
      "project": "machine",
-     "at": "catalog/scripts/rebuild.mjs:291",
+     "at": "catalog/scripts/rebuild.mjs:292",
      "laws": "24/24",
      "inputs": 77,
      "same": "פלט אחר על 23 קלטים (#3)",
@@ -4118,7 +4138,7 @@
     {
      "cand": "machine:catalog/scripts/rebuild.mjs#sameOut",
      "project": "machine",
-     "at": "catalog/scripts/rebuild.mjs:291",
+     "at": "catalog/scripts/rebuild.mjs:292",
      "laws": "24/24",
      "inputs": 52,
      "same": "פלט אחר על 7 קלטים (#24)",
@@ -5884,7 +5904,7 @@
     ]
    },
    "found": [],
-   "considered": 153,
+   "considered": 154,
    "skipped": {
     "לא נטען להרצה כאן": 74,
     "עובר את החוקים — פלט אחר (חלק מהמחסן)": 71
@@ -5911,9 +5931,19 @@
      "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
     },
     {
+     "cand": "machine:catalog/scripts/rebuild.mjs#gitEnv",
+     "project": "machine",
+     "at": "catalog/scripts/rebuild.mjs:317",
+     "laws": "3/3",
+     "inputs": 1,
+     "same": "פלט אחר על קלט אחד (#0)",
+     "steps": "6 מול 1",
+     "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
+    },
+    {
      "cand": "machine:catalog/scripts/rebuild.mjs#graph",
      "project": "machine",
-     "at": "catalog/scripts/rebuild.mjs:296",
+     "at": "catalog/scripts/rebuild.mjs:297",
      "laws": "3/3",
      "inputs": 1,
      "same": "פלט אחר על קלט אחד (#0)",
@@ -5923,7 +5953,7 @@
     {
      "cand": "machine:catalog/scripts/rebuild.mjs#onWrote",
      "project": "machine",
-     "at": "catalog/scripts/rebuild.mjs:325",
+     "at": "catalog/scripts/rebuild.mjs:389",
      "laws": "3/3",
      "inputs": 1,
      "same": "פלט אחר על קלט אחד (#0)",
@@ -7093,21 +7123,136 @@
    "why": "אין חלופה מהירה יותר שאפשר לייבא"
   },
   {
+   "subject": "machine:catalog/scripts/rebuild.mjs#gitEnv·provide",
+   "at": "catalog/scripts/rebuild.mjs:317",
+   "verb": "provide",
+   "from": "הקורא",
+   "laws": "3/3",
+   "inputs": 1,
+   "steps": 6,
+   "history": {
+    "scanned": 9,
+    "versions": 0,
+    "sameText": 1,
+    "absent": 8
+   },
+   "found": [],
+   "considered": 154,
+   "skipped": {
+    "לא נטען להרצה כאן": 74,
+    "עובר את החוקים — פלט אחר (חלק מהמחסן)": 71
+   },
+   "tried": [
+    {
+     "cand": "machine:catalog/inner/lib/opener.mjs#EMPTY",
+     "project": "machine",
+     "at": "catalog/inner/lib/opener.mjs:133",
+     "laws": "3/3",
+     "inputs": 1,
+     "same": "פלט אחר על קלט אחד (#0)",
+     "steps": "1 מול 6",
+     "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
+    },
+    {
+     "cand": "machine:catalog/inner/lib/store.mjs#dict",
+     "project": "machine",
+     "at": "catalog/inner/lib/store.mjs:21",
+     "laws": "3/3",
+     "inputs": 1,
+     "same": "פלט אחר על קלט אחד (#0)",
+     "steps": "1 מול 6",
+     "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
+    },
+    {
+     "cand": "machine:catalog/scripts/buildsmart-census.mjs#repoRef",
+     "project": "machine",
+     "at": "catalog/scripts/buildsmart-census.mjs:1007",
+     "laws": "3/3",
+     "inputs": 1,
+     "same": "פלט אחר על קלט אחד (#0)",
+     "steps": "1 מול 6",
+     "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
+    },
+    {
+     "cand": "machine:catalog/scripts/rebuild.mjs#graph",
+     "project": "machine",
+     "at": "catalog/scripts/rebuild.mjs:297",
+     "laws": "3/3",
+     "inputs": 1,
+     "same": "פלט אחר על קלט אחד (#0)",
+     "steps": "19242 מול 6",
+     "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
+    },
+    {
+     "cand": "machine:catalog/scripts/rebuild.mjs#onWrote",
+     "project": "machine",
+     "at": "catalog/scripts/rebuild.mjs:389",
+     "laws": "3/3",
+     "inputs": 1,
+     "same": "פלט אחר על קלט אחד (#0)",
+     "steps": "1 מול 6",
+     "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
+    },
+    {
+     "cand": "machine:catalog/scripts/test-changed.mjs#envVars",
+     "project": "machine",
+     "at": "catalog/scripts/test-changed.mjs:111",
+     "laws": "3/3",
+     "inputs": 1,
+     "same": "פלט אחר על קלט אחד (#0)",
+     "steps": "1 מול 6",
+     "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
+    },
+    {
+     "cand": "machine:catalog/scripts/test-changed.mjs#head",
+     "project": "machine",
+     "at": "catalog/scripts/test-changed.mjs:48",
+     "laws": "3/3",
+     "inputs": 1,
+     "same": "פלט אחר על קלט אחד (#0)",
+     "steps": "15 מול 6",
+     "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
+    },
+    {
+     "cand": "machine:catalog/self/loop-demo.mjs#rootGit",
+     "project": "machine",
+     "at": "catalog/self/loop-demo.mjs:45",
+     "laws": "3/3",
+     "inputs": 1,
+     "same": "פלט אחר על קלט אחד (#0)",
+     "steps": "1 מול 6",
+     "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
+    },
+    {
+     "cand": "machine:catalog/self/loop.mjs#MEMO_OFF",
+     "project": "machine",
+     "at": "catalog/self/loop.mjs:478",
+     "laws": "3/3",
+     "inputs": 1,
+     "same": "פלט אחר על קלט אחד (#0)",
+     "steps": "1 מול 6",
+     "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
+    }
+   ],
+   "decision": "נשאר",
+   "why": "אין חלק עם אותם פלטים"
+  },
+  {
    "subject": "machine:catalog/scripts/rebuild.mjs#graph·provide",
-   "at": "catalog/scripts/rebuild.mjs:296",
+   "at": "catalog/scripts/rebuild.mjs:297",
    "verb": "provide",
    "from": "הקורא",
    "laws": "3/3",
    "inputs": 1,
    "steps": 19242,
    "history": {
-    "scanned": 8,
+    "scanned": 9,
     "versions": 0,
-    "sameText": 7,
+    "sameText": 8,
     "absent": 1
    },
    "found": [],
-   "considered": 153,
+   "considered": 154,
    "skipped": {
     "לא נטען להרצה כאן": 74,
     "עובר את החוקים — פלט אחר (חלק מהמחסן)": 71
@@ -7144,9 +7289,19 @@
      "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
     },
     {
+     "cand": "machine:catalog/scripts/rebuild.mjs#gitEnv",
+     "project": "machine",
+     "at": "catalog/scripts/rebuild.mjs:317",
+     "laws": "3/3",
+     "inputs": 1,
+     "same": "פלט אחר על קלט אחד (#0)",
+     "steps": "6 מול 19242",
+     "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
+    },
+    {
      "cand": "machine:catalog/scripts/rebuild.mjs#onWrote",
      "project": "machine",
-     "at": "catalog/scripts/rebuild.mjs:325",
+     "at": "catalog/scripts/rebuild.mjs:389",
      "laws": "3/3",
      "inputs": 1,
      "same": "פלט אחר על קלט אחד (#0)",
@@ -7199,20 +7354,20 @@
   },
   {
    "subject": "machine:catalog/scripts/rebuild.mjs#onWrote·provide",
-   "at": "catalog/scripts/rebuild.mjs:325",
+   "at": "catalog/scripts/rebuild.mjs:389",
    "verb": "provide",
    "from": "הקורא",
    "laws": "3/3",
    "inputs": 1,
    "steps": 1,
    "history": {
-    "scanned": 8,
+    "scanned": 9,
     "versions": 0,
-    "sameText": 1,
+    "sameText": 2,
     "absent": 7
    },
    "found": [],
-   "considered": 153,
+   "considered": 154,
    "skipped": {
     "לא נטען להרצה כאן": 74,
     "עובר את החוקים — פלט אחר (חלק מהמחסן)": 71
@@ -7249,9 +7404,19 @@
      "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
     },
     {
+     "cand": "machine:catalog/scripts/rebuild.mjs#gitEnv",
+     "project": "machine",
+     "at": "catalog/scripts/rebuild.mjs:317",
+     "laws": "3/3",
+     "inputs": 1,
+     "same": "פלט אחר על קלט אחד (#0)",
+     "steps": "6 מול 1",
+     "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
+    },
+    {
      "cand": "machine:catalog/scripts/rebuild.mjs#graph",
      "project": "machine",
-     "at": "catalog/scripts/rebuild.mjs:296",
+     "at": "catalog/scripts/rebuild.mjs:297",
      "laws": "3/3",
      "inputs": 1,
      "same": "פלט אחר על קלט אחד (#0)",
@@ -7304,16 +7469,16 @@
   },
   {
    "subject": "machine:catalog/scripts/rebuild.mjs#sameOut·validate",
-   "at": "catalog/scripts/rebuild.mjs:291",
+   "at": "catalog/scripts/rebuild.mjs:292",
    "verb": "validate",
    "from": "הקורא",
    "laws": "24/24",
    "inputs": 50,
    "steps": 50,
    "history": {
-    "scanned": 8,
+    "scanned": 9,
     "versions": 0,
-    "sameText": 7,
+    "sameText": 8,
     "absent": 1
    },
    "found": [],
@@ -8018,7 +8183,7 @@
     "absent": 2
    },
    "found": [],
-   "considered": 153,
+   "considered": 154,
    "skipped": {
     "לא נטען להרצה כאן": 74,
     "עובר את החוקים — פלט אחר (חלק מהמחסן)": 71
@@ -8055,9 +8220,19 @@
      "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
     },
     {
+     "cand": "machine:catalog/scripts/rebuild.mjs#gitEnv",
+     "project": "machine",
+     "at": "catalog/scripts/rebuild.mjs:317",
+     "laws": "3/3",
+     "inputs": 1,
+     "same": "פלט אחר על קלט אחד (#0)",
+     "steps": "6 מול 1",
+     "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
+    },
+    {
      "cand": "machine:catalog/scripts/rebuild.mjs#graph",
      "project": "machine",
-     "at": "catalog/scripts/rebuild.mjs:296",
+     "at": "catalog/scripts/rebuild.mjs:297",
      "laws": "3/3",
      "inputs": 1,
      "same": "פלט אחר על קלט אחד (#0)",
@@ -8067,7 +8242,7 @@
     {
      "cand": "machine:catalog/scripts/rebuild.mjs#onWrote",
      "project": "machine",
-     "at": "catalog/scripts/rebuild.mjs:325",
+     "at": "catalog/scripts/rebuild.mjs:389",
      "laws": "3/3",
      "inputs": 1,
      "same": "פלט אחר על קלט אחד (#0)",
@@ -8319,7 +8494,7 @@
     "sameText": 3
    },
    "found": [],
-   "considered": 153,
+   "considered": 154,
    "skipped": {
     "לא נטען להרצה כאן": 74,
     "עובר את החוקים — פלט אחר (חלק מהמחסן)": 71
@@ -8356,9 +8531,19 @@
      "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
     },
     {
+     "cand": "machine:catalog/scripts/rebuild.mjs#gitEnv",
+     "project": "machine",
+     "at": "catalog/scripts/rebuild.mjs:317",
+     "laws": "3/3",
+     "inputs": 1,
+     "same": "פלט אחר על קלט אחד (#0)",
+     "steps": "6 מול 15",
+     "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
+    },
+    {
      "cand": "machine:catalog/scripts/rebuild.mjs#graph",
      "project": "machine",
-     "at": "catalog/scripts/rebuild.mjs:296",
+     "at": "catalog/scripts/rebuild.mjs:297",
      "laws": "3/3",
      "inputs": 1,
      "same": "פלט אחר על קלט אחד (#0)",
@@ -8368,7 +8553,7 @@
     {
      "cand": "machine:catalog/scripts/rebuild.mjs#onWrote",
      "project": "machine",
-     "at": "catalog/scripts/rebuild.mjs:325",
+     "at": "catalog/scripts/rebuild.mjs:389",
      "laws": "3/3",
      "inputs": 1,
      "same": "פלט אחר על קלט אחד (#0)",
@@ -8424,7 +8609,7 @@
     "absent": 1
    },
    "found": [],
-   "considered": 153,
+   "considered": 154,
    "skipped": {
     "לא נטען להרצה כאן": 74,
     "עובר את החוקים — פלט אחר (חלק מהמחסן)": 71
@@ -8461,9 +8646,19 @@
      "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
     },
     {
+     "cand": "machine:catalog/scripts/rebuild.mjs#gitEnv",
+     "project": "machine",
+     "at": "catalog/scripts/rebuild.mjs:317",
+     "laws": "3/3",
+     "inputs": 1,
+     "same": "פלט אחר על קלט אחד (#0)",
+     "steps": "6 מול 1",
+     "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
+    },
+    {
      "cand": "machine:catalog/scripts/rebuild.mjs#graph",
      "project": "machine",
-     "at": "catalog/scripts/rebuild.mjs:296",
+     "at": "catalog/scripts/rebuild.mjs:297",
      "laws": "3/3",
      "inputs": 1,
      "same": "פלט אחר על קלט אחד (#0)",
@@ -8473,7 +8668,7 @@
     {
      "cand": "machine:catalog/scripts/rebuild.mjs#onWrote",
      "project": "machine",
-     "at": "catalog/scripts/rebuild.mjs:325",
+     "at": "catalog/scripts/rebuild.mjs:389",
      "laws": "3/3",
      "inputs": 1,
      "same": "פלט אחר על קלט אחד (#0)",
@@ -8529,7 +8724,7 @@
     "absent": 2
    },
    "found": [],
-   "considered": 153,
+   "considered": 154,
    "skipped": {
     "לא נטען להרצה כאן": 74,
     "עובר את החוקים — פלט אחר (חלק מהמחסן)": 71
@@ -8566,9 +8761,19 @@
      "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
     },
     {
+     "cand": "machine:catalog/scripts/rebuild.mjs#gitEnv",
+     "project": "machine",
+     "at": "catalog/scripts/rebuild.mjs:317",
+     "laws": "3/3",
+     "inputs": 1,
+     "same": "פלט אחר על קלט אחד (#0)",
+     "steps": "6 מול 1",
+     "verdict": "נדחה — פלט אחר על קלט אחד (#0)"
+    },
+    {
      "cand": "machine:catalog/scripts/rebuild.mjs#graph",
      "project": "machine",
-     "at": "catalog/scripts/rebuild.mjs:296",
+     "at": "catalog/scripts/rebuild.mjs:297",
      "laws": "3/3",
      "inputs": 1,
      "same": "פלט אחר על קלט אחד (#0)",
@@ -8578,7 +8783,7 @@
     {
      "cand": "machine:catalog/scripts/rebuild.mjs#onWrote",
      "project": "machine",
-     "at": "catalog/scripts/rebuild.mjs:325",
+     "at": "catalog/scripts/rebuild.mjs:389",
      "laws": "3/3",
      "inputs": 1,
      "same": "פלט אחר על קלט אחד (#0)",
