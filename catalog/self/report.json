@@ -1,16 +1,16 @@
 {
  "source": "machine",
- "ref": "catalog@c433415ca300",
+ "ref": "catalog@9399190f778a",
  "seed": 13269520,
  "generatedAt": null,
  "census": {
   "files": 68,
-  "parts": 563
+  "parts": 564
  },
  "parts": {
   "totals": {
-   "run": 356,
-   "runWithVerb": 73,
+   "run": 357,
+   "runWithVerb": 74,
    "twin": 0,
    "static": 207,
    "staticWithVerb": 19,
@@ -24,7 +24,7 @@
    "round": 12,
    "validate": 12,
    "normalize": 10,
-   "provide": 8,
+   "provide": 9,
    "clamp": 6,
    "convert": 6,
    "fingerprint": 3,
@@ -419,6 +419,12 @@
     ]
    },
    {
+    "id": "machine:catalog/scripts/test-changed.mjs#envVars",
+    "verbs": [
+     "provide 3/3"
+    ]
+   },
+   {
     "id": "machine:catalog/scripts/test-changed.mjs#fileOf",
     "verbs": [
      "format 15/15"
@@ -497,15 +503,15 @@
  },
  "inner": {
   "totals": {
-   "candidates": 3632,
-   "parts": 1485,
+   "candidates": 3650,
+   "parts": 1486,
    "run": 982,
    "runWithVerb": 302,
    "twin": 0,
-   "static": 503,
-   "staticWithVerb": 254,
+   "static": 504,
+   "staticWithVerb": 255,
    "why": {
-    "no-fitting-input": 503
+    "no-fitting-input": 504
    }
   },
   "verbs": {

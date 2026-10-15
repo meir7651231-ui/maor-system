@@ -11,7 +11,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
-import { spawnSync, execFile } from 'node:child_process';
+import { createRequire } from 'node:module';
+// child_process נטען רק כשבאמת קוראים ל-git (readHead קורא את .git ישירות — מסלולים מהירים לא משלמים על הטעינה)
+let cpMemo = null;
+const cp = () => (cpMemo ??= createRequire(import.meta.url)('node:child_process'));
 
 /** sha1 של blob ב-git — הטביעה של תוכן-קובץ. */
 export function blobSha(buf) {
@@ -27,8 +30,8 @@ function gitEnv() {
   for (const k of Object.keys(env)) if (/^GIT_(DIR|WORK_TREE|INDEX_FILE|OBJECT_DIRECTORY|COMMON_DIR|NAMESPACE|CEILING_DIRECTORIES)$/.test(k)) delete env[k];
   return (envMemo = env);
 }
-const run = (root, args) => spawnSync('git', ['-C', root, ...args], { encoding: 'buffer', env: gitEnv(), maxBuffer: 1 << 30 });
-const runAsync = (root, args) => new Promise((resolve) => execFile('git', ['-C', root, ...args], { encoding: 'buffer', env: gitEnv(), maxBuffer: 1 << 30 }, (err, stdout) => resolve({ status: err ? (err.code ?? 1) : 0, stdout })));
+const run = (root, args) => cp().spawnSync('git', ['-C', root, ...args], { encoding: 'buffer', env: gitEnv(), maxBuffer: 1 << 30 });
+const runAsync = (root, args) => new Promise((resolve) => cp().execFile('git', ['-C', root, ...args], { encoding: 'buffer', env: gitEnv(), maxBuffer: 1 << 30 }, (err, stdout) => resolve({ status: err ? (err.code ?? 1) : 0, stdout })));
 
 /**
  * האינדקס: Map(נתיב-יחסי ⇒ sha) של כל קובץ **נקי** במעקב (התוכן בתיקייה = התוכן באינדקס). {ok:false, why} ⇒ נפילה בטוחה.

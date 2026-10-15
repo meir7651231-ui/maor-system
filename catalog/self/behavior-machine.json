@@ -1,14 +1,14 @@
 {
  "source": "machine",
- "ref": "catalog@c433415ca300",
+ "ref": "catalog@9399190f778a",
  "probe": {
   "version": 1,
   "seed": 13269520,
   "generatedAt": null
  },
  "totals": {
-  "run": 356,
-  "runWithVerb": 73,
+  "run": 357,
+  "runWithVerb": 74,
   "twin": 0,
   "static": 207,
   "staticWithVerb": 19,
@@ -5190,6 +5190,20 @@
    "material": "unknown",
    "cases": 24,
    "hash": "5e5eaa09-2f86f734"
+  },
+  {
+   "id": "machine:catalog/scripts/test-changed.mjs#envVars",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "unknown",
+   "cases": 3
   },
   {
    "id": "machine:catalog/scripts/test-changed.mjs#fileOf",

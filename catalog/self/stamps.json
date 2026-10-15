@@ -3,31 +3,31 @@
  "note": "נוצר ע\"י catalog/scripts/rebuild.mjs — לכל שלב: טביעת-הקלטים שממנה נוצרו הפלטים שבריפו, וטביעת כל פלט (sha של git). שכפול טרי שהקלטים שלו זהים ⇒ השלב לא רץ. views: טביעת-view (TS בלי הערות) לכל sha של קובץ-קוד — שכפול טרי לא מנתח אף קובץ.",
  "stages": {
   "orbit-census": {
-   "in": "8435af74ce809c35920259176a38bb3d",
+   "in": "92795ad1e17249606eeff28319e5e424",
    "out": {
     "catalog/sources/orbit.json": "bc0194fe29d58b02d3427b366d84e4989a233b1c"
    }
   },
   "core-census": {
-   "in": "0953fa3360ba2c86bad9963b976be4b1",
+   "in": "64e735e25284a7aea7b739fb4a0d31dc",
    "out": {
     "catalog/sources/core.json": "3b446c053bd8d6ef6d42470e9b6b16b5a8a383e9"
    }
   },
   "core-b-census": {
-   "in": "dac1a90b0a6685031d24765e4ecc1714",
+   "in": "77d853d278b2e11ea059bec3fb115a0b",
    "out": {
     "catalog/sources/core-b.json": "3ab2cb7b70d40e5c0a3d756b28f8db421d51b8bd"
    }
   },
   "core-c-census": {
-   "in": "9d1f6bc9f2e3fc3486c2bf1983b3e024",
+   "in": "6538e6fd51cf775df367b3b589656e3d",
    "out": {
     "catalog/sources/core-c.json": "b546ebd7f94bd9779164ac75dd8c349a8daddf21"
    }
   },
   "open-orbit": {
-   "in": "96cea576b18339006b397b8d0b9d62fe",
+   "in": "31c978623e2b79ccc868b224b194dbf5",
    "out": {
     "catalog/inner/gen.manifest.json": "1e9bffc025a1a9412f4d4b0ec467684f4f54afc9",
     "catalog/inner/open-orbit.json": "eff02d840e27629eb3a48bd51cad34926be2c627",
@@ -35,42 +35,42 @@
    }
   },
   "probe-orbit": {
-   "in": "864743c7c35daa5d796d97b646ee58b9",
+   "in": "42eea0dd463384030ac2310dd6e4b582",
    "out": {
     "catalog/behavior/orbit.json": "1eaf421a4743468454327c0fcc332174f666f485",
-    "catalog/self/stamps/behavior-orbit.json": "61cc20a4b1b7aea1ffc5b1621df2bc1500379cd2"
+    "catalog/self/stamps/behavior-orbit.json": "69619d000a79845aa712258fd5c11635a32fb24c"
    }
   },
   "probe-core": {
-   "in": "4176d2493e1f0ddf71d78ebcabf2174b",
+   "in": "c3348442e74a70fc7fd4124e693ba820",
    "out": {
     "catalog/behavior/core.json": "d6a5032ab047335a21aeb6ecee3a0d480c02e65a",
-    "catalog/self/stamps/behavior-core.json": "206a90938306c0332f93ea3babf0a6326d201bab"
+    "catalog/self/stamps/behavior-core.json": "87d9b514fb9d5f5c7bd94f7dddea94d1f5c96dd8"
    }
   },
   "probe-core-b": {
-   "in": "6bfaebb6f56b6f0dd6aa92770ecb8d0b",
+   "in": "b6fb1c589ba0f7fb3de0dfb20242b8a4",
    "out": {
     "catalog/behavior/core-b.json": "95dbbf2ae57ee1521e7d25187dc3dae3bcd0cc85",
-    "catalog/self/stamps/behavior-core-b.json": "306383bd2831a0d780efb4cb91501af8ef2309a9"
+    "catalog/self/stamps/behavior-core-b.json": "ed4bf246d6ac4b870f93bcbf4a0d7a8c62260a16"
    }
   },
   "probe-core-c": {
-   "in": "c939382952046daa9fad55c869c5c994",
+   "in": "910dabbeb74ef0031ec15d686ada2a06",
    "out": {
     "catalog/behavior/core-c.json": "27687772ae35b5a3833e6dad9cbb37b6af8632a1",
-    "catalog/self/stamps/behavior-core-c.json": "a153ee5df27baf7c51261079f133048feb371e11"
+    "catalog/self/stamps/behavior-core-c.json": "670eadc25ff5362ebc8a6a68262234cae678e20f"
    }
   },
   "prove-orbit": {
-   "in": "b275e88d7f390151e5a317b8ec7d5cbb",
+   "in": "e1dba7272e1e96c77e961d547d36ddb0",
    "out": {
     "catalog/inner/store/behavior-orbit.json": "1c67c040cf2c1dfc2211c5a572bb341987410f72",
-    "catalog/self/stamps/inner-orbit.json": "23a42dffb2bd5efd1e3c95928df07cc543463857"
+    "catalog/self/stamps/inner-orbit.json": "ff4ae645b51a0de938f737f19c292a9ed8d32512"
    }
   },
   "catalog-build": {
-   "in": "43fb2dfd5cc0bbb9c06d9e11ad8d8be6",
+   "in": "85bc67d3294883086fc08860ac78d498",
    "out": {
     "catalog/alphabet.md": "b5bf6597a7699e1da4dbfdd6bb5fe6ddffa82a1b",
     "catalog/index.json": "b39695661037ab6b7d5da9e77427f4e69ce28c2b",
@@ -79,32 +79,32 @@
    }
   },
   "lift": {
-   "in": "8e7523a250fa0002af0f3e512481852a",
+   "in": "e59d84b5d42157f4b5b4cc03416f2e2e",
    "out": {
     "catalog/inner/lift.json": "ad1bff040b5623434faaef67d3c133273fc4e828"
    }
   },
   "goals-coverage": {
-   "in": "03c152a73ae2af936ac2aa93e65faae8",
+   "in": "9f02ec48748b1f595d4247d021d11fbf",
    "out": {
     "catalog/goals/coverage.json": "0dc41906f58d8a34084186bbce6cedaf41170aa4",
     "catalog/goals/coverage.md": "717e378cc71551530dec1a5af30d8a3f5deb05a0"
    }
   },
   "core-demo": {
-   "in": "5a0cac96a7d89a26571a83f885382e36",
+   "in": "3988c09a0aab2f3c41a272137758d31c",
    "out": {
     "catalog/core/demo.html": "658257510df89c3a200debd118eed7603aeda484"
    }
   },
   "combiner-prove": {
-   "in": "36f3dfd2fcf2d62d1453b18bd0384031",
+   "in": "5dca6e53deb863c17258a99bb611db3b",
    "out": {
     "catalog/combiner/proofs.json": "2e63e0300c1a68928116a82373baf766e3f5da6a"
    }
   },
   "combine": {
-   "in": "d92ff5d25443442940ccf259957767c9",
+   "in": "ca972c0e51471a6631fbb78fb55e8751",
    "out": {
     "catalog/combiner/combos.json": "049191fa0088df55a199e03302c6886b807abcc8",
     "catalog/recipes/combo-allot-geo.json": "1a95028db8075e9ac774cacafa6dfdc91380069d",
@@ -128,18 +128,18 @@
     "catalog/recipes/combo-tolerate-geo.json": "560c71a9ff22d605db4b2fc26500141dd893ef9e",
     "catalog/recipes/combo-tolerate-waiting.json": "3ca3acf6d8c4b94631d1e703a29837e221306a55",
     "catalog/recipes/combo-tour-geo.json": "dec88d35b2fae5a930da57394450089d11bb58b4",
-    "catalog/self/stamps/combine.json": "7c5b1924601242d75d7911bb1983750866a41e16"
+    "catalog/self/stamps/combine.json": "4553db8c577e6160d213c5e18325376b2e68d308"
    }
   },
   "build": {
-   "in": "400ca3ed61eaca47a7810266cc7fe152",
+   "in": "4cf69b1e95a96e4f8426fbc6795c1dc4",
    "out": {
     "catalog/combiner/dig/w61ae0275.n4.json": "43c9fe6a830c5c89d115ba60de42f6a1fce78d0d",
     "catalog/combiner/lab-data.json": "3230c853adef4d1f03c69c962071e02be4f0c502"
    }
   },
   "bundle": {
-   "in": "af20d707fddd42afbbc3851dfa1054b0",
+   "in": "59f2f41d0cdc666025befcb3a6b97a99",
    "out": {
     "catalog/products/distribution/assembly.json": "d8f856a0e30d5807d47abc1ad1b7b55a74cac6f8",
     "catalog/products/distribution/parts.bundle.mjs": "9194c79a49ed87a1867333fe0873b6e95e808316"
@@ -158,11 +158,11 @@
    ]
   },
   "self-check": {
-   "in": "40bef051b535be1c6e51652ad7e6ff65",
+   "in": "087b1eaa255933c11d9451fa34bcb5fa",
    "out": {
-    "catalog/self/behavior-machine.json": "32db85c5f6bc8f58c5507a1d75d68e2ae6a9aa9a",
-    "catalog/self/machine.json": "3545e4ac5252820771aec313edab03d6a4000dd1",
-    "catalog/self/report.json": "d561b6463ec03a35886865afe6c0ebd43a3fa5f3"
+    "catalog/self/behavior-machine.json": "b257d8dd57bec35615e39616e08af6cf13136658",
+    "catalog/self/machine.json": "b7d07162b4a798454d767582e59be364e70a04e3",
+    "catalog/self/report.json": "232f4c4003e89020d738c05b6eea8c372da4ec91"
    }
   }
  },

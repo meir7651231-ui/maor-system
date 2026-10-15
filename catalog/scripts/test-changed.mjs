@@ -22,7 +22,6 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import crypto from 'node:crypto';
-import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { gitIndexAsync, fileSha, readHead } from '../lib/gitfp.mjs';
 
@@ -86,7 +85,8 @@ function depsFromTrace(dir) {
 const usesGit = (deps) => deps.some(([rel, k]) => k === 'f' && /\.(m?js|ts)$/.test(rel) && (() => { try { return /spawnSync\(\s*'git'|execFileSync\(\s*'git'|\['git'|"git"|'git',/.test(fs.readFileSync(path.join(ROOT, rel), 'utf8')); } catch { return false; } })());
 
 function runOne(test) {
-  return new Promise((resolve) => {
+  return new Promise(async (resolve) => {
+    const { spawn } = await import('node:child_process');
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'testmemo-'));
     const TR = path.join(ROOT, 'catalog/lib/trace-reads.mjs');
     const env = { ...process.env, CATALOG_TRACE: dir, NODE_OPTIONS: ((process.env.NODE_OPTIONS ?? '') + ' --import=' + TR).trim() };
@@ -101,23 +101,64 @@ function runOne(test) {
   });
 }
 
+/**
+ * ⚡ המסלול המהיר (כמו git עצמו): הפעם הקודמת שבה **כל** הבדיקות נמצאו בתוקף נשמרו, לכל קובץ שהן תלויות בו (+ קובצי-הסביבה),
+ * inode · גודל · ctime (שעון-השינוי של הליבה — מתעדכן בכל כתיבה, אי-אפשר לקבוע אותו מבחוץ). כולם זהים ⇒ אותו תוכן ⇒ אין מה
+ * להריץ — בלי git ובלי לקרוא אף קובץ. קובץ ששונה סמוך לרישום ("גזעי", < 2 שנ׳) ⇒ לא נרשם מהיר. כל הבדל ⇒ המסלול הרגיל (תוכן).
+ */
+const FAST_V = 'testmemo-fast-v1';
+const fastFile = () => path.join(CACHE, 'catalog-testmemo', 'fast-' + fp(fs.realpathSync(ROOT)) + '.json');
+const envVars = () => Object.keys(process.env).filter((k) => /^(CATALOG_|SELF_LOOP|GITFP$|REBUILD_|CENSUS_VIEW$)/.test(k)).sort().map((k) => k + '=' + process.env[k]).join('\n');
+const statOf = (rel) => { const st = fs.statSync(path.join(ROOT, rel), { bigint: true, throwIfNoEntry: false }); return st ? [String(st.ino), String(st.size), String(st.ctimeNs)] : null; };
+function fastValid(tests) {
+  let F; try { F = JSON.parse(fs.readFileSync(fastFile(), 'utf8')); } catch { return false; }
+  if (F.v !== FAST_V || F.vars !== envVars() || F.node !== process.versions.node.split('.')[0] || JSON.stringify(F.tests) !== JSON.stringify(tests)) return false;
+  if (F.versions !== ['vitest', 'vite', 'typescript', 'rolldown'].map(ver).join(',')) return false;
+  if (F.head != null && F.head !== readHead(ROOT)) return false;
+  for (const [rel, s] of F.files) if (JSON.stringify(statOf(rel)) !== JSON.stringify(s)) return false;
+  return true;
+}
+function writeFast(tests, files, statsBefore, headUsed) {
+  if (OFF) return;
+  const now = BigInt(Date.now()) * 1000000n;
+  const out = [];
+  for (const rel of files) {
+    const s = statsBefore.get(rel);
+    if (s && now - BigInt(s[2]) < 2000000000n) return; // "גזעי" — שונה לפני פחות מ-2 שנ׳ ⇒ לא סומכים על הסטטוס; בפעם הבאה
+    out.push([rel, s]);
+  }
+  const f = fastFile();
+  fs.mkdirSync(path.dirname(f), { recursive: true });
+  fs.writeFileSync(f, JSON.stringify({ v: FAST_V, vars: envVars(), node: process.versions.node.split('.')[0], versions: ['vitest', 'vite', 'typescript', 'rolldown'].map(ver).join(','), tests, head: headUsed, files: out }));
+}
+
 async function main() {
   const argv = process.argv.slice(2);
   const t0 = Date.now();
+  const tests0 = catalogTests();
+  if (!OFF && !argv.includes('--all') && fastValid(tests0)) {
+    console.log(`🧪 ${tests0.length} קובצי-בדיקה · ${tests0.length} עברו כבר על אותם קבצים · 0 לריצה (מהיר: inode·גודל·ctime)`);
+    return;
+  }
+  // הסטטוס של כל קובץ-תלות **לפני** הבדיקה לפי תוכן — אם קובץ ישתנה באמצע, ה-ctime שלו יזוז והמסלול המהיר לא יתקבל
+  const ENV_FILES = ['package.json', 'package-lock.json', 'vite.config.ts', 'vitest.config.ts', 'tsconfig.json', 'tsconfig.app.json', 'tsconfig.node.json'];
+  const statsBefore = new Map(ENV_FILES.map((f) => [f, statOf(f)]));
   const idx = await gitIndexAsync(ROOT);
   const env = envKey(idx);
   let HEAD = null;
-  const tests = catalogTests();
+  const tests = tests0;
   const keyOf = (t, git) => fp(env, t, git ? (HEAD ??= head()) : '-');
-  const todo = []; let fromMemo = 0;
+  const todo = []; let fromMemo = 0; let usedGit = false;
   for (const t of tests) {
     let e = null;
     if (!OFF && !argv.includes('--all')) {
       for (const git of [false, true]) { try { e = JSON.parse(fs.readFileSync(fileOf(keyOf(t, git)), 'utf8')); } catch { e = null; } if (e && e.git === git) break; e = null; }
     }
-    if (e && JSON.stringify(printOf(idx, e.deps)) === JSON.stringify(e.prints)) { fromMemo++; continue; }
+    if (e) for (const [rel] of e.deps) if (!statsBefore.has(rel)) statsBefore.set(rel, statOf(rel));
+    if (e && JSON.stringify(printOf(idx, e.deps)) === JSON.stringify(e.prints)) { fromMemo++; usedGit ||= e.git; continue; }
     todo.push(t);
   }
+  if (!todo.length) { writeFast(tests, [...statsBefore.keys()].sort(), statsBefore, usedGit ? (HEAD ?? head()) : null); }
   console.log(`🧪 ${tests.length} קובצי-בדיקה · ${fromMemo} עברו כבר על אותם קבצים · ${todo.length} לריצה${todo.length ? ': ' + todo.map((t) => path.basename(t)).join(' · ') : ''}`);
   if (argv.includes('--list') || !todo.length) return;
   const cores = Math.max(1, Math.min(todo.length, os.availableParallelism?.() ?? os.cpus().length));

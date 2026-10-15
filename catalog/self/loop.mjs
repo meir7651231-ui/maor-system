@@ -664,6 +664,7 @@ async function planInner(root, { only, history }, REC) {
   };
   const VER = await verifiable(root);
   const IDX = gitIndex(root);
+  const scope0 = wholeKey(root, { only: null, history: true }, IDX); // לבדיקת-יציבות בסוף (ראו stable)
   const memoOn = !MEMO_OFF();
   // ערכי השלב הגלובלי שהשורה של נבדק תלויה בהם — כערכים (לא כקבצים), ורק של **הפועל שלו**: המועמדים הם מאותו פועל
   // (שאר הנבדקים · המחסן · השילובים), ומהגרף של הבונה-מחדש — רק האם הקובץ שלו בתוכו. נבדק חדש בפועל אחר לא נוגע בשורה.
@@ -695,6 +696,7 @@ async function planInner(root, { only, history }, REC) {
   const rows = [];
   const queue = [];
   const memoStats = { reused: 0, checked: 0 };
+  const puts = [];
   for (const s of subjects) {
     const mkey = gkeyOf(s);
     // כמה גרסאות אחרונות לכל נבדק (ביטול-שינוי / מעבר-ענף ⇒ עדיין מהזיכרון)
@@ -705,9 +707,12 @@ async function planInner(root, { only, history }, REC) {
     memoStats.checked++;
     const deps = new Set([s.path]);
     const row = await REC.within(deps, () => planOne(s));
-    if (row && memoOn && row.decision !== 'לבדיקה') cachePutLocal(root, 'loop-subj', mkey, { list: [{ hist, deps: depsPrint(root, IDX, [...deps].sort()), row }, ...(slot.list || [])].slice(0, SUBJ_SLOTS) });
+    if (row && memoOn && row.decision !== 'לבדיקה') puts.push(() => cachePutLocal(root, 'loop-subj', mkey, { list: [{ hist, deps: depsPrint(root, IDX, [...deps].sort()), row }, ...(slot.list || [])].slice(0, SUBJ_SLOTS) }));
   }
-  return { rows, queue, M, H, memo: memoStats, subjectFiles: all.map((x) => x.path) };
+  // הזיכרון נכתב רק אם שום קובץ בהיקף לא השתנה במהלך ההרצה (עריכה באמצע ⇒ שורה שחושבה מהקוד הישן לא תישמר תחת הטביעה החדשה)
+  const stable = memoOn && wholeKey(root, { only: null, history: true }) === scope0;
+  if (stable) for (const put of puts) put();
+  return { rows, queue, M, H, memo: { ...memoStats, ...(memoOn && !stable ? { unstable: true } : {}) }, subjectFiles: all.map((x) => x.path), stable };
 
   async function planOne(s) {
     const mod = await loadFile(s.path, [s.symbol]);
@@ -937,7 +942,7 @@ export async function loop({ root = ROOT, apply = false, quick = false, only = n
     if (apply) { writeIfChanged(path.join(root, LEDGER), JSON.stringify(ledger, null, 1) + '\n'); }
     return Object.defineProperty(ledger, 'memo', { value: { from: w.from }, enumerable: false });
   }
-  const { rows, queue, H, memo, subjectFiles } = await plan(root, opts);
+  const { rows, queue, H, memo, subjectFiles, stable } = await plan(root, opts);
   const tmp = work ?? fs.mkdtempSync(path.join(os.tmpdir(), 'self-loop-'));
   const kept = []; let lastGood = null;
   for (const item of queue) {
@@ -975,7 +980,7 @@ export async function loop({ root = ROOT, apply = false, quick = false, only = n
   if (apply) writeIfChanged(path.join(root, LEDGER), JSON.stringify(ledger, null, 1) + '\n');
   if (!work) fs.rmSync(tmp, { recursive: true, force: true });
   // הזיכרון: רק כשלא היה מה לנסות על עותק (אחרת הקוד אולי השתנה, וה-checks של הניסיונות תלויים ב---quick)
-  if (!queue.length) wholePut(root, opts, rows, H.state, subjectFiles, { repo: apply });
+  if (!queue.length && stable) wholePut(root, opts, rows, H.state, subjectFiles, { repo: apply });
   return Object.defineProperty(ledger, 'memo', { value: { from: 'חישוב', ...memo }, enumerable: false });
 }
 const writeIfChanged = (abs, text) => { let cur = null; try { cur = fs.readFileSync(abs, 'utf8'); } catch { /* */ } if (cur !== text) fs.writeFileSync(abs, text); };
@@ -1025,7 +1030,7 @@ async function main() {
   if (check) {
     const opts = { only, history: !argv.includes('--no-history') };
     let rows = (await wholeGet(ROOT, opts))?.rows;
-    if (!rows) { const p = await plan(ROOT, opts); rows = p.rows; wholePut(ROOT, opts, rows, p.H.state, p.subjectFiles); }
+    if (!rows) { const p = await plan(ROOT, opts); rows = p.rows; if (p.stable) wholePut(ROOT, opts, rows, p.H.state, p.subjectFiles); }
     const pending = rows.filter((r) => r.decision === 'לבדיקה');
     for (const r of pending) console.log('• ' + r.subject + ' — ' + r.found.join(' · '));
     console.log(pending.length ? '✗ ' + pending.length + ' שיפורים שלא הוחלו — הרץ: node catalog/self/loop.mjs --apply' : '✓ אין שיפור שלא הוחל');
@@ -1036,7 +1041,7 @@ async function main() {
   if (out) fs.writeFileSync(path.resolve(out), JSON.stringify(ledger, null, 1) + '\n');
   const s = ledger.summary;
   const mm = ledger.memo;
-  if (mm) console.error('⚡ ' + (mm.from === 'חישוב' ? 'חישוב: ' + mm.checked + ' נבדקו · ' + mm.reused + ' מהזיכרון (לפי נבדק)' : 'כל הפנקס מ' + mm.from));
+  if (mm) console.error('⚡ ' + (mm.from === 'חישוב' ? 'חישוב: ' + mm.checked + ' נבדקו · ' + mm.reused + ' מהזיכרון (לפי נבדק)' + (mm.unstable ? ' · ⚠️ קבצים השתנו במהלך ההרצה — הזיכרון לא נכתב' : '') : 'כל הפנקס מ' + mm.from));
   console.log(`🔁 הלולאה: ${s.subjects} נבדקים · באגים ${s.bugs} · כפילויות ${s.duplicates} · חלופות זולות ${s.cheaper} ⇒ הוחלפו ${s.replaced} (מהם שוחזרו מההיסטוריה ${s.restored}) · הוחזרו ${s.reverted} · נשארו ${s.kept}${apply ? ' · הפנקס: ' + LEDGER : ''}`);
   for (const r of ledger.rows.filter((x) => x.decision !== 'נשאר' || x.found.length)) console.log(`  ${r.decision === 'הוחלף' ? '✓' : r.decision === 'הוחזר' ? '↩' : '·'} ${r.subject} — ${r.found.join(' · ') || '—'} ⇒ ${r.decision}${r.by ? ' ב-' + r.by : ''}${r.why ? ' (' + r.why + ')' : ''}`);
 }

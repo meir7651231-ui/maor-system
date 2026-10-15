@@ -21,9 +21,12 @@ const ROOT = join(__dirname, '..', '..');
 const node = (args: string[], env: Record<string, string> = {}) => execFileSync(process.execPath, args.map((a, k) => (k === 0 ? join(ROOT, a) : a)), { cwd: ROOT, env: { ...process.env, ...env }, stdio: 'pipe', encoding: 'utf8' });
 const git = (...a: string[]) => execFileSync('git', ['-C', ROOT, ...a], { encoding: 'utf8' }).trim();
 
+/** בלי מעקב-קריאות (כשהבדיקה רצה תחת test-changed, CATALOG_TRACE מכבה את הקיצור — במכוון; כאן בודקים את הקיצור עצמו). */
+const noTrace = <T,>(fn: () => T): T => { const v = process.env.CATALOG_TRACE; delete process.env.CATALOG_TRACE; try { return fn(); } finally { if (v !== undefined) process.env.CATALOG_TRACE = v; } };
+
 describe('SPEED1000 · 1 — «טביעה בלי קריאה» (האינדקס של git)', () => {
   it('לכל קובץ נקי במעקב: הטביעה מהאינדקס = sha של blob מהתוכן', () => {
-    const idx = gitIndex(ROOT);
+    const idx = noTrace(() => gitIndex(ROOT));
     expect(idx.ok).toBe(true);
     expect(idx.shas.size).toBeGreaterThan(1000);
     let n = 0;
@@ -42,7 +45,7 @@ describe('SPEED1000 · 1 — «טביעה בלי קריאה» (האינדקס ש
       writeFileSync(join(g, 'a.txt'), 'a'); writeFileSync(join(g, 'b.txt'), 'b');
       execFileSync('git', ['-C', g, 'add', '.']); execFileSync('git', ['-C', g, '-c', 'user.email=a@b', '-c', 'user.name=t', 'commit', '-qm', 'x']);
       appendFileSync(join(g, 'b.txt'), 'b');
-      const idx = gitIndex(g);
+      const idx = noTrace(() => gitIndex(g));
       expect(idx.ok).toBe(true);
       expect(idx.shas.has('a.txt')).toBe(true);
       expect(idx.shas.has('b.txt')).toBe(false); // מלוכלך
@@ -51,7 +54,7 @@ describe('SPEED1000 · 1 — «טביעה בלי קריאה» (האינדקס ש
       expect(fileSha(g, idx, 'c.txt')).toBe(blobSha('c'));
       // .gitattributes ⇒ סינון-תוכן אפשרי ⇒ לא סומכים על האינדקס
       writeFileSync(join(g, '.gitattributes'), '* text\n'); execFileSync('git', ['-C', g, 'add', '.gitattributes']);
-      expect(gitIndex(g).ok).toBe(false);
+      expect(noTrace(() => gitIndex(g)).ok).toBe(false);
       rmSync(join(g, '.git'), { recursive: true, force: true });
       expect(gitIndex(g).ok).toBe(false);
       expect(fileSha(g, gitIndex(g), 'a.txt')).toBe(blobSha('a'));
