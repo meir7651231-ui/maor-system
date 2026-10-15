@@ -1,7 +1,7 @@
 {
  "source": "machine",
  "repo": "meir7651231-ui/maor-system",
- "ref": "catalog@9399190f778a",
+ "ref": "catalog@7151467e2138",
  "generatedAt": null,
  "parts": [
   {
@@ -15801,6 +15801,34 @@
    ]
   },
   {
+   "id": "machine:catalog/scripts/rebuild.mjs#catBatch",
+   "source": "machine",
+   "path": "catalog/scripts/rebuild.mjs",
+   "symbol": "catBatch",
+   "lang": "js",
+   "what": "function",
+   "name": "להפיק אצווה",
+   "does": "פירוק פלט של `git cat-file --batch` ⇒ [Buffer | null] לפי הסדר.",
+   "takes": [
+    {
+     "name": "specs",
+     "kind": "record:spec",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/scripts",
+    "name:auto",
+    "name:english-residue"
+   ]
+  },
+  {
    "id": "machine:catalog/scripts/rebuild.mjs#censusView",
    "source": "machine",
    "path": "catalog/scripts/rebuild.mjs",
@@ -15813,6 +15841,61 @@
     {
      "name": "...ps",
      "kind": "list",
+     "type": "unknown"
+    }
+   ],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/scripts",
+    "name:auto",
+    "name:english-residue"
+   ]
+  },
+  {
+   "id": "machine:catalog/scripts/rebuild.mjs#gitEnv",
+   "source": "machine",
+   "path": "catalog/scripts/rebuild.mjs",
+   "symbol": "gitEnv",
+   "lang": "js",
+   "what": "function",
+   "name": "להפיק ערך",
+   "does": "להפיק env git — בלי קלט, ומחזיר משהו.",
+   "takes": [],
+   "gives": {
+    "kind": "unknown",
+    "type": "unknown"
+   },
+   "pure": true,
+   "example": null,
+   "tags": [
+    "catalog/scripts",
+    "name:auto",
+    "name:english-residue"
+   ]
+  },
+  {
+   "id": "machine:catalog/scripts/rebuild.mjs#gitRun",
+   "source": "machine",
+   "path": "catalog/scripts/rebuild.mjs",
+   "symbol": "gitRun",
+   "lang": "js",
+   "what": "function",
+   "name": "להפיק ערך",
+   "does": "להפיק run git — מקבל רשימה, רשומת input, ומחזיר משהו.",
+   "takes": [
+    {
+     "name": "args",
+     "kind": "list",
+     "type": "unknown"
+    },
+    {
+     "name": "input",
+     "kind": "record:input",
      "type": "unknown"
     }
    ],

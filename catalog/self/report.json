@@ -1,16 +1,16 @@
 {
  "source": "machine",
- "ref": "catalog@9399190f778a",
+ "ref": "catalog@7151467e2138",
  "seed": 13269520,
  "generatedAt": null,
  "census": {
   "files": 68,
-  "parts": 564
+  "parts": 567
  },
  "parts": {
   "totals": {
-   "run": 357,
-   "runWithVerb": 74,
+   "run": 360,
+   "runWithVerb": 75,
    "twin": 0,
    "static": 207,
    "staticWithVerb": 19,
@@ -24,7 +24,7 @@
    "round": 12,
    "validate": 12,
    "normalize": 10,
-   "provide": 9,
+   "provide": 10,
    "clamp": 6,
    "convert": 6,
    "fingerprint": 3,
@@ -376,6 +376,12 @@
     ]
    },
    {
+    "id": "machine:catalog/scripts/rebuild.mjs#gitEnv",
+    "verbs": [
+     "provide 3/3"
+    ]
+   },
+   {
     "id": "machine:catalog/scripts/rebuild.mjs#graph",
     "verbs": [
      "provide 3/3"
@@ -503,20 +509,20 @@
  },
  "inner": {
   "totals": {
-   "candidates": 3650,
-   "parts": 1486,
-   "run": 982,
-   "runWithVerb": 302,
+   "candidates": 3674,
+   "parts": 1493,
+   "run": 987,
+   "runWithVerb": 304,
    "twin": 0,
-   "static": 504,
-   "staticWithVerb": 255,
+   "static": 506,
+   "staticWithVerb": 257,
    "why": {
-    "no-fitting-input": 504
+    "no-fitting-input": 506
    }
   },
   "verbs": {
-   "format": 102,
-   "round": 71,
+   "format": 103,
+   "round": 72,
    "normalize": 48,
    "convert": 38,
    "clamp": 32,

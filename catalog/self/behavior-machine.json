@@ -1,14 +1,14 @@
 {
  "source": "machine",
- "ref": "catalog@9399190f778a",
+ "ref": "catalog@7151467e2138",
  "probe": {
   "version": 1,
   "seed": 13269520,
   "generatedAt": null
  },
  "totals": {
-  "run": 357,
-  "runWithVerb": 74,
+  "run": 360,
+  "runWithVerb": 75,
   "twin": 0,
   "static": 207,
   "staticWithVerb": 19,
@@ -4939,6 +4939,15 @@
    "hash": "e18e0653-432066a5"
   },
   {
+   "id": "machine:catalog/scripts/rebuild.mjs#catBatch",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "record:spec",
+   "cases": 24,
+   "traits": "in[]>arr const"
+  },
+  {
    "id": "machine:catalog/scripts/rebuild.mjs#censusView",
    "labeledBy": "run",
    "verbs": [],
@@ -4947,6 +4956,29 @@
    "cases": 24,
    "traits": "in[arr]>arr len~",
    "hash": "29c0c071-c8ddb799"
+  },
+  {
+   "id": "machine:catalog/scripts/rebuild.mjs#gitEnv",
+   "labeledBy": "run",
+   "verbs": [
+    {
+     "id": "provide",
+     "on": "*",
+     "holds": "3/3"
+    }
+   ],
+   "primary": "provide",
+   "material": "unknown",
+   "cases": 3
+  },
+  {
+   "id": "machine:catalog/scripts/rebuild.mjs#gitRun",
+   "labeledBy": "run",
+   "verbs": [],
+   "primary": null,
+   "material": "list",
+   "cases": 24,
+   "traits": "in[]>fn const"
   },
   {
    "id": "machine:catalog/scripts/rebuild.mjs#globRe",

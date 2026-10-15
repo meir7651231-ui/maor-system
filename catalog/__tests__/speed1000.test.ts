@@ -242,3 +242,33 @@ describe('SPEED1000 · 4 — בדיקות רק למה שהשתנה (scripts/test
     expect(list.every((f: string) => /\.test\.[mc]?[jt]sx?$/.test(f) && f.startsWith('catalog/'))).toBe(true);
   });
 });
+
+describe('SPEED1000 · 6 — זיכרון-התוצאות מההיסטוריה: מה שכבר חושב וקומט — לא מחושב שוב', () => {
+  it('תוכן שכבר קומט (על גבי חותמות של קומיט אחר) ⇒ השלב נשלף מ-git = אותו פלט כמו מחושב; בלי ההיסטוריה ⇒ מחושב', () => {
+    const base = mkdtempSync(join(tmpdir(), 'speed-hist-'));
+    const T = makeCopy(ROOT, join(base, 't'));
+    const g = (...a: string[]) => execFileSync('git', ['-C', T, '-c', 'user.email=t@local', '-c', 'user.name=t', ...a], { encoding: 'utf8', env: Object.fromEntries(Object.entries(process.env).filter(([k]) => !/^GIT_(DIR|WORK_TREE|INDEX_FILE)$/.test(k))) }).trim();
+    const rb = (env: Record<string, string>, ...a: string[]) => execFileSync(process.execPath, [join(T, 'catalog/scripts/rebuild.mjs'), ...a], { cwd: T, encoding: 'utf8', env: { ...process.env, ...env } });
+    try {
+      g('init', '-q', '-b', 'main');
+      rb({ CATALOG_CACHE: join(base, 'c0') }); // נרמול (בדרך-כלל 0 שלבים)
+      g('add', '-A'); g('commit', '-qm', 'A');
+      // B: שינוי בקלט של שלב זול (רווח ב-JSON) ⇒ המפקד רץ, החותמת שלו חדשה ⇒ קומיט על ענף b
+      const o = join(T, 'catalog/core/origins-c.json'); writeFileSync(o, readFileSync(o, 'utf8') + '\n');
+      expect(rb({ CATALOG_CACHE: join(base, 'c1') }, '--times')).toMatch(/core-c-census\s+run/);
+      g('checkout', '-q', '-b', 'b'); g('commit', '-qam', 'B');
+      g('checkout', '-q', 'main');
+      // התוכן של B על החותמות של A, מטמון ריק: עם ההיסטוריה ⇒ נשלף; בלי ⇒ מחושב
+      g('checkout', '-q', 'b', '--', 'catalog/core/origins-c.json');
+      expect(rb({ CATALOG_CACHE: join(base, 'c2'), REBUILD_HISTORY: 'off' }, '--times')).toMatch(/core-c-census\s+run/);
+      const computed = g('diff', 'b', '--stat', '--', 'catalog');
+      g('checkout', '-q', 'main', '--', 'catalog'); g('checkout', '-q', 'b', '--', 'catalog/core/origins-c.json');
+      const out = rb({ CATALOG_CACHE: join(base, 'c3') }, '--times');
+      expect(out).toMatch(new RegExp('core-c-census\\s+history ' + g('rev-parse', '--short=7', 'b')));
+      expect(out).not.toMatch(/\brun\b/);
+      // ביט-זהות: הקטלוג אחרי השליפה = הקטלוג של B (שחושב) = מה שחושב עכשיו בלי ההיסטוריה
+      expect(g('diff', 'b', '--stat', '--', 'catalog')).toBe('');
+      expect(computed).toBe('');
+    } finally { rmSync(base, { recursive: true, force: true }); }
+  }, 600_000);
+});

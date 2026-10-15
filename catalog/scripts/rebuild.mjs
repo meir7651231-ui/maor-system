@@ -25,6 +25,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { createRequire } from 'node:module';
 import { fingerprint, cacheGet, cachePut, CACHE_OFF } from '../lib/cache.mjs';
 import { gitIndex, gitIndexAsync, fileSha } from '../lib/gitfp.mjs';
 
@@ -300,6 +301,69 @@ export function graph() {
   return deps;
 }
 
+/* ═══════════════ 📜 זיכרון-התוצאות מההיסטוריה (SPEED1000 · יעד 6) ═══════════════ */
+
+/**
+ * "מה שכבר חושב פעם אחת — לא מחושב שוב". כל קומיט כבר מכיל את החותמות שלו (catalog/self/stamps.json): לכל שלב — טביעת-הקלטים
+ * (`in`) וה-sha של git של כל פלט (`out`). כל קובץ-פלט כזה **כבר שמור ב-git** (כ-blob) מאז שקומט. לכן, לפני שמריצים שלב:
+ *   מפתח השלב ⇒ מחפשים אותו בחותמות של כל הקומיטים (כל הענפים המקומיים: `git log --all -- stamps.json`) ⇒ נמצא ⇒ הפלטים נשלפים
+ *   מ-git לפי ה-sha (`git cat-file --batch`) — בלי לחשב. התוכן נמצא לפי הטביעה שלו, לכן כל קומיט שנותן אותו — נותן אותם בייטים.
+ * בלי שירות, בלי מפתחות, בלי push. סדר-החיפוש: החותמת הנוכחית ⇒ המטמון המקומי ⇒ **ההיסטוריה** ⇒ הרצה.
+ * נפילה בטוחה (⇒ מחשבים כרגיל): אין git · שכפול רדוד (רק מה שהורד) · מפתח שלא נמצא · blob חסר · REBUILD_HISTORY=off.
+ * ratchet: speed1000.test (§6) — שלב שנשלף מההיסטוריה = אותו שלב מחושב בלי שום זיכרון, ביט-אחר-ביט.
+ */
+let HIST = null;
+const SHA40 = /^[0-9a-f]{40}$/;
+const gitEnv = () => { const e = { ...process.env, LC_ALL: 'C' }; for (const k of ['GIT_DIR', 'GIT_WORK_TREE', 'GIT_INDEX_FILE', 'GIT_OBJECT_DIRECTORY', 'GIT_COMMON_DIR']) delete e[k]; return e; };
+const gitRun = (args, input) => createRequire(import.meta.url)('node:child_process').spawnSync('git', ['-C', ROOT, ...args], { input, encoding: 'buffer', maxBuffer: 1 << 30, env: gitEnv() });
+/** פירוק פלט של `git cat-file --batch` ⇒ [Buffer | null] לפי הסדר. */
+function catBatch(specs) {
+  if (!specs.length) return [];
+  const r = gitRun(['cat-file', '--batch'], Buffer.from(specs.join('\n') + '\n'));
+  if (r.status !== 0) return specs.map(() => null);
+  const buf = r.stdout; const out = []; let i = 0;
+  for (let k = 0; k < specs.length; k++) {
+    const nl = buf.indexOf(10, i); const head = buf.subarray(i, nl).toString('utf8'); i = nl + 1;
+    const m = /^\S+ \S+ (\d+)$/.exec(head);
+    if (!m) { out.push(null); continue; }
+    const n = Number(m[1]); out.push(buf.subarray(i, i + n)); i += n + 1;
+  }
+  return out;
+}
+export const HISTORY_CAP = 500; // קומיטים שבהם החותמות השתנו
+/** האינדקס: שם-שלב|מפתח ⇒ {out, reads, commit} — מהחותמות שבכל הקומיטים (החדש ביותר קודם). נבנה רק כשצריך. */
+export function historyResults() {
+  if (HIST) return HIST;
+  HIST = { byKey: new Map(), state: '', commits: 0 };
+  if (process.env.REBUILD_HISTORY === 'off' || CACHE_OFF) { HIST.state = 'כבוי'; return HIST; }
+  if (!fs.existsSync(path.join(ROOT, '.git'))) { HIST.state = 'אין git'; return HIST; }
+  const log = gitRun(['log', '--all', '--format=%H', '-n', String(HISTORY_CAP), '--', STAMPS]);
+  if (log.status !== 0) { HIST.state = 'git log נכשל'; return HIST; }
+  const commits = String(log.stdout).split('\n').filter((l) => SHA40.test(l));
+  const texts = catBatch(commits.map((c) => c + ':' + STAMPS));
+  commits.forEach((c, k) => {
+    let st; try { st = JSON.parse(String(texts[k])); } catch { return; }
+    for (const [name, e] of Object.entries(st?.stages ?? {})) {
+      // רק חותמות בפורמט הנוכחי (פלטים לפי sha של git); הישנות (sha256) — לא ניתנות לשליפה מ-git
+      if (!e?.in || !e.out || !Object.values(e.out).every((h) => SHA40.test(h))) continue;
+      const k2 = name + '|' + e.in;
+      if (!HIST.byKey.has(k2)) HIST.byKey.set(k2, { out: e.out, reads: e.reads, commit: c });
+    }
+  });
+  HIST.commits = commits.length;
+  HIST.state = String(gitRun(['rev-parse', '--is-shallow-repository']).stdout).trim() === 'true' ? 'שכפול רדוד — רק הקומיטים שהורדו' : 'מלאה';
+  return HIST;
+}
+/** השלב עם המפתח הזה כבר חושב וקומט ⇒ הפלטים (Buffer לפי נתיב) מ-git; אחרת null. */
+function fromHistory(stage, key) {
+  const h = historyResults().byKey.get(stage.name + '|' + key);
+  if (!h) return null;
+  const rels = Object.keys(h.out);
+  const bufs = catBatch(rels.map((r) => h.out[r]));
+  if (bufs.some((b) => !b)) return null; // blob חסר (שכפול רדוד/גיזום) ⇒ מחשבים
+  return { files: new Map(rels.map((r, k) => [r, bufs[k]])), reads: h.reads, commit: h.commit };
+}
+
 /* ═══════════════ הרצה ═══════════════ */
 
 function runStage(stage, env = {}) {
@@ -370,6 +434,16 @@ export async function build({ check = false, times = false } = {}) {
           how = n ? `cache (${n} נכתבו)` : 'cache';
           if (hit.reads) reads = hit.reads;
         }
+      }
+      // 📜 ההיסטוריה: אותו מפתח כבר חושב וקומט באיזשהו קומיט ⇒ הפלטים נשלפים מ-git, בלי לחשב
+      const hh = !how && key ? fromHistory(stage, key) : null;
+      if (hh) {
+        for (const rel of outFiles(stage)) if (!hh.files.has(rel)) fs.rmSync(path.join(ROOT, rel));
+        let n = 0;
+        for (const [rel, b] of hh.files) { const abs = path.join(ROOT, rel); if (!fs.existsSync(abs) || !fs.readFileSync(abs).equals(b)) { fs.mkdirSync(path.dirname(abs), { recursive: true }); fs.writeFileSync(abs, b); n++; } }
+        if (n) wrote(stage);
+        how = `history ${hh.commit.slice(0, 7)}` + (n ? ` (${n} נכתבו)` : '');
+        if (hh.reads) reads = hh.reads;
       }
       if (!how) {
         await ensureGen();
