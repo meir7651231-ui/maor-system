@@ -479,6 +479,9 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
     reader.readAsDataURL(file);
   };
 
+  // בדמו האשף מציג רק את מתגי-ההגדרה — התמחור, דף-המסירה והורדת-החבילה (חומר-מכירה פנימי) חסומים.
+  const isDemo = (config.slug || 'default') === 'demo';
+
   const configJson = useMemo(
     () => JSON.stringify({ ...config, slug: config.slug || 'default' }, null, 2),
     [config],
@@ -1668,7 +1671,8 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
           );
         })()}
 
-        {/* 💰 תמחור חי — מתעדכן עם כל מתג. המחירים נשמרים מקומית (מכשיר-המטמיע). */}
+        {/* 💰 תמחור חי — מתעדכן עם כל מתג. המחירים נשמרים מקומית (מכשיר-המטמיע). חסום בדמו. */}
+        {!isDemo && (<>
         <section
           aria-label="תמחור והצעה"
           style={{ marginTop: 16, border: '1px solid var(--line)', borderRadius: 12, padding: '12px 14px', background: 'var(--panel)' }}
@@ -1792,6 +1796,7 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
           </label>
           <Btn onClick={resetToDefault}>איפוס האשף לברירת מחדל</Btn>
         </div>
+        </>)}
 
         {/* רצועת ה-white-label ממוקאפ צֹהַר — הדגמת "המערכת מתלבשת" בפגישה */}
         <section
