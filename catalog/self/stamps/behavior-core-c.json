@@ -37,15 +37,15 @@
   ]
  },
  "parts": {
-  "core-c:catalog/core/by-distance.mjs#byDistance": "d02764f3ac816fdb",
-  "core-c:catalog/core/dedupe-points.mjs#dedupePoints": "f5ce707d63cc037f",
-  "core-c:catalog/core/drift.mjs#drift": "9d42ea8982a9b586",
-  "core-c:catalog/core/follow-point.mjs#followPoint": "9c1401cca2063f03",
-  "core-c:catalog/core/group-by-side.mjs#groupBySide": "00213cad0b4940a4",
-  "core-c:catalog/core/near-net.mjs#nearNet": "a515b84d5a3f070b",
-  "core-c:catalog/core/nearest-point.mjs#nearestPoint": "e930b2e03c17d8f1",
-  "core-c:catalog/core/points-within.mjs#pointsWithin": "2c2628bfe154ad2b",
-  "core-c:catalog/core/random-points.mjs#randomPoints": "03dc33659c37f245",
-  "core-c:catalog/core/transpose-notes.mjs#transposeNotes": "9fabfb19613772d3"
+  "core-c:catalog/core/by-distance.mjs#byDistance": "a3b20df04a29695d",
+  "core-c:catalog/core/dedupe-points.mjs#dedupePoints": "054fe18095d3243b",
+  "core-c:catalog/core/drift.mjs#drift": "378db0f0182a085d",
+  "core-c:catalog/core/follow-point.mjs#followPoint": "9ac68b6d4d777e22",
+  "core-c:catalog/core/group-by-side.mjs#groupBySide": "367eba32e2b508ba",
+  "core-c:catalog/core/near-net.mjs#nearNet": "f1e0010bf2457103",
+  "core-c:catalog/core/nearest-point.mjs#nearestPoint": "6f7761d1f9837298",
+  "core-c:catalog/core/points-within.mjs#pointsWithin": "ed850e543b2f863c",
+  "core-c:catalog/core/random-points.mjs#randomPoints": "5fac1ddb84aa851d",
+  "core-c:catalog/core/transpose-notes.mjs#transposeNotes": "b200ea3c087a021b"
  }
 }

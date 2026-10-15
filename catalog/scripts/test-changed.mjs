@@ -11,6 +11,8 @@
  * vite.config.ts · tsconfig… · משתני ‎CATALOG_… · SELF_LOOP_… · GITFP · REBUILD_… · CENSUS_VIEW · ו-HEAD של git — לבדיקה שהקוד שלה
  * קורא ל-git (ההיסטוריה של הלולאה, מצבי-git של הבונה-מחדש).
  * ה-CI המלא (`npx vitest run catalog`) לא משתנה — זה קיצור לפיתוח, עם נפילה בטוחה: אין רישום ⇒ רצה.
+ * ⚠️ קיצורים שלא קוראים קבצים (האינדקס של git — lib/gitfp.mjs) כבויים בזמן המעקב (CATALOG_TRACE) — אחרת בדיקה שמריצה
+ * `rebuild --check` הייתה נרשמת בלי הקלטים שלו.
  *
  *   node catalog/scripts/test-changed.mjs           # רק מה שהשתנה
  *   node catalog/scripts/test-changed.mjs --list    # רק מה היה רץ, בלי להריץ

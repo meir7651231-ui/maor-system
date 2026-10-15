@@ -55,6 +55,9 @@ const CALLS = [
 ];
 function precheck(root) {
   if (process.env.GITFP === 'off') return { ok: false, why: 'GITFP=off', shas: new Map() };
+  // מעקב-קריאות פעיל (lib/trace-reads.mjs — test-changed, self-v2): הקיצור לא קורא קבצים ⇒ המעקב לא היה רואה את הקלטים.
+  // נופלים לקריאה ⇒ כל קלט נקרא ונרשם (אותן טביעות בדיוק)
+  if (process.env.CATALOG_TRACE) return { ok: false, why: 'מעקב-קריאות', shas: new Map() };
   if (!fs.existsSync(path.join(root, '.git'))) return { ok: false, why: 'אין git בתיקייה', shas: new Map() };
   return null;
 }

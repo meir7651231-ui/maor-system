@@ -219,3 +219,23 @@ describe('SPEED1000 · 3 — הלולאה עם זיכרון', () => {
     expect(m.ledger).toBe(blobSha(readFileSync(join(ROOT, 'catalog/self/loop-ledger.json'))));
   });
 });
+
+describe('SPEED1000 · 4 — בדיקות רק למה שהשתנה (scripts/test-changed.mjs)', () => {
+  it('בזמן מעקב-קריאות הקיצור של git כבוי ⇒ בדיקה שמריצה rebuild --check נרשמת עם הקלטים האמיתיים שלו', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'speed-trace-'));
+    try {
+      const prev = process.env.CATALOG_TRACE; process.env.CATALOG_TRACE = dir;
+      try { expect(gitIndex(ROOT).ok).toBe(false); } finally { if (prev === undefined) delete process.env.CATALOG_TRACE; else process.env.CATALOG_TRACE = prev; }
+      const TR = join(ROOT, 'catalog/lib/trace-reads.mjs');
+      execFileSync(process.execPath, ['--import=' + TR, join(ROOT, 'catalog/scripts/rebuild.mjs'), '--check'], { cwd: ROOT, env: { ...process.env, CATALOG_TRACE: dir }, stdio: 'pipe' });
+      const read = execFileSync('sh', ['-c', `cat ${dir}/*.txt`], { encoding: 'utf8' });
+      for (const f of ['src/lib/hebrewNumber.ts', 'catalog/schema.json', 'catalog/core/origins-c.json']) expect(read, f).toContain('r ' + join(ROOT, f));
+    } finally { rmSync(dir, { recursive: true, force: true }); }
+  }, 120_000);
+  it('קובצי-הבדיקה של הקטלוג = מה ש-`vitest run catalog` מריץ', async () => {
+    const { catalogTests } = await import('../scripts/test-changed.mjs');
+    const list = catalogTests(ROOT);
+    expect(list).toContain('catalog/__tests__/speed1000.test.ts');
+    expect(list.every((f: string) => /\.test\.[mc]?[jt]sx?$/.test(f) && f.startsWith('catalog/'))).toBe(true);
+  });
+});
