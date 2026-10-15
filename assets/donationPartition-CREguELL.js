@@ -1,0 +1,1 @@
+import{i as e}from"./cloud-RCF5Wn5P.js";export{e as donationPartitionDiff};
