@@ -169,6 +169,18 @@ export async function grow({ log = () => {}, mode = 'score' } = {}) {
     for (const a of S) { const o = runOne(t, a); outs.push(o.v); steps += o.s; if (steps > BUD.thingSteps) return { junk: 'חרג מתקציב-הצעדים' }; }
     const j = L.judge(t.sig, S, outs);
     if (j.junk) return j;
+    // GROW2 · זבל: מתעלם מאחד הקלטים (‏(רשימה, 4) ⇒ ממיין(רשימה)) — זה הדבר החד-מקומי בתחפושת, לא חדש
+    if (t.sig.length === 2) for (let a = 0; a < 2; a++) {
+      let n = 0; let same = 0;
+      for (let k = 0; k < S.length; k++) {
+        if (outs[k] === null) continue;
+        const alt = [...S[k]]; alt[a] = S[(k + 7) % S.length][a];
+        if (L.sameOut(alt[a], S[k][a])) continue;
+        const o = runOne(t, alt).v; if (o === null) continue;
+        n++; if (L.sameOut(o, outs[k])) same++;
+      }
+      if (n >= 6 && same === n) return { junk: 'מתעלם מקלט' };
+    }
     return { ...j, steps, outs };
   };
 
@@ -297,7 +309,6 @@ export async function grow({ log = () => {}, mode = 'score' } = {}) {
       builtKeys.add(key);
       const g = Bt ? f.graph(A, Bt) : f.graph(A);
       F.built++;
-      if ([A, Bt].some((x) => x && isSpecial(x))) F.onNamed = (F.onNamed || 0) + 1;
       const prob = graphProblem(g);
       if (prob) { junkOf(F, 'חיווט: ' + prob.split(':')[0]); continue; }
       const t = { key, id: idOf(key), floor: fl, form: name, of: Bt ? [A.id, Bt.id] : [A.id], sig: ty.sig, graph: g, nParts: graphNodes(g).length };
@@ -322,6 +333,8 @@ export async function grow({ log = () => {}, mode = 'score' } = {}) {
     if (k && k % 1000 === 0) log(`[${mode}]   המתאר: ${k}/${final.length}`);
     if (!t.names && !t.naming) Object.assign(t, nameThing(R, t));
   }
+  // גם המרכיבים שהוחלפו בדרך — כדי ש"נבנה מעל דבר-עם-שם" ייספר באותה מדיניות בשתי הריצות
+  for (const t of all) for (const id of t.of) { const c = byKey.get(id); if (!c.names && !c.naming) Object.assign(c, nameThing(R, c)); }
   log(`[${mode}] המתאר: ${final.filter((t) => t.names?.length).length}/${final.length} קיבלו שם · ${final.filter(isSpecial).length} מיוחד`);
   return finish({ R, mode, final, all, byKey, floors, replacements, stressRejected });
 }
@@ -408,7 +421,7 @@ function finish({ R, mode, final, all, byKey, floors, replacements, stressReject
   shelfFiles['replaced.json'] = list(gone.map((t) => (t.floor === 0 ? entry(t) : Object.fromEntries(COLS.map((c, k) => [c, rowOf(t)[k]])))));
 
   /* ─── GROW2 · המדדים ─── */
-  const metrics = metricsOf({ R, final, byKey, floors, improvements, stressRejected, entry });
+  const metrics = metricsOf({ R, final, all, byKey, floors, improvements, stressRejected, entry });
   shelfFiles['parts.json'] = JSON.stringify(Object.fromEntries(Object.keys(partIx).sort().map((k) => [k, partIx[k]])), null, 1) + '\n';
 
   for (const F of floors) F.named = final.filter((t) => t.floor === F.floor && t.names?.length).length;
@@ -432,7 +445,7 @@ function finish({ R, mode, final, all, byKey, floors, replacements, stressReject
 }
 
 /** המדדים שמשווים בין הריצות. */
-function metricsOf({ R, final, byKey, floors, improvements, stressRejected, entry }) {
+function metricsOf({ R, final, all, byKey, floors, improvements, stressRejected, entry }) {
   const special = final.filter(isSpecial);
   const verbsOf = (t) => (t.names || []).map((n) => n.verb);
   const onNamed = final.filter((t) => t.of.some((id) => isSpecial(byKey.get(id))));
@@ -449,7 +462,7 @@ function metricsOf({ R, final, byKey, floors, improvements, stressRejected, entr
   let top = null;
   for (const t of final) { const d = ladderOf(t); if (d > 1 && (!top || d > top.d || (d === top.d && t.idx < top.t.idx))) top = { d, t }; }
   const chainOf = (t) => { const out = []; let x = t; while (x) { out.push({ id: x.id, floor: x.floor, form: x.form, verbs: verbsOf(x).filter((v) => !GENERIC.has(v)), example: x.ex }); x = x.of.map((id) => byKey.get(id)).find((c) => isSpecial(c)); } return out; };
-  const best = {};
+  const best = {}; const grown = {};
   for (const v of WATCH) {
     let b = null;
     for (const t of final) {
@@ -459,6 +472,16 @@ function metricsOf({ R, final, byKey, floors, improvements, stressRejected, entr
         if (!b || c > b.c || (c === b.c && t.idx < b.t.idx)) b = { c, t, sig: sigKeyOf(t) };
       }
     }
+    let g = null;
+    for (const t of final) {
+      if (!t.floor) continue;
+      for (const r of R.refs.get(sigKeyOf(t)) || []) {
+        if (r.verb !== v) continue;
+        const c = L.closeness(R.samplesOf(t.sig), t.outs, r.outs);
+        if (!g || c > g.c || (c === g.c && t.idx < g.t.idx)) g = { c, t };
+      }
+    }
+    grown[v] = g ? { pct: Math.round(100 * g.c), id: g.t.id, floor: g.t.floor, form: g.t.form, sig: sigKeyOf(g.t), example: g.t.ex } : { pct: null };
     best[v] = b ? { pct: Math.round(100 * b.c), id: b.t.id, floor: b.t.floor, form: b.t.form, sig: b.sig, named: verbsOf(b.t).includes(v), example: b.t.ex } : { pct: null, why: 'אין על המדף דבר בחתימה של הייחוס' };
   }
   const junk = {};
@@ -470,13 +493,15 @@ function metricsOf({ R, final, byKey, floors, improvements, stressRejected, entr
     namedSpecial: special.length,
     namedSpecialGrown: special.filter((t) => t.floor > 0).length,
     specialBy: countBy(special.flatMap((t) => verbsOf(t).filter((v) => !GENERIC.has(v))), (v) => v),
-    builtOnNamed: floors.reduce((a, F) => a + (F.onNamed || 0), 0),
+    // כל מה שעלה פעם על המדף (גם מה שהוחלף אחר-כך) ונבנה מעל דבר-עם-שם-מיוחד — אחרי המתאר הסופי, אותה מדיניות לשתי הריצות
+    everOnNamed: all.filter((t) => t.of.some((id) => isSpecial(byKey.get(id)))).length,
     shelfOnNamed: onNamed.length,
     shelfOnNamedSpecial: onNamed.filter(isSpecial).length,
     shelfOnCompare: onCompare.length,
     shelfOnCompareSpecial: onCompare.filter(isSpecial).length,
     ladder: top ? { height: top.d, chain: chainOf(top.t) } : { height: special.length ? 1 : 0 },
     bestMatch: best,
+    bestGrown: grown,
     junk, junkTotal: Object.values(junk).reduce((a, b) => a + b, 0),
     junkUniform: junk['רשימה של פריט אחד שחוזר'] || 0,
     stressRejected: stressRejected.length,

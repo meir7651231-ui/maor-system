@@ -1,13 +1,24 @@
 {
- "about": "נבנה ע״י catalog/grow/grow.mjs — לא לערוך ביד. \"צעדים\" = lib/steps.mjs על סט-הקלטים הקבוע (lib.mjs › VALUES); בלי שעון. שמות כלליים (GENERIC) נספרים אבל לא נחשבים \"שם מיוחד\"",
+ "about": "נבנה ע״י catalog/grow/grow.mjs — לא לערוך ביד. מצב score. \"צעדים\" = lib/steps.mjs על סט-הקלטים הקבוע (lib.mjs › VALUES); בלי שעון. שמות כלליים (GENERIC) נספרים אבל לא נחשבים \"שם מיוחד\"",
+ "mode": "score",
  "budget": {
-  "about": "התקציב המוצהר של מנוע-הצמיחה (catalog/grow/grow.mjs). maxFloors = כמה קומות מעל קומה 0 לכל היותר · buildsPerFloor = כמה חיבורי-זוג (chain/pair) נבנים בקומה לכל היותר · unaryPerFloor = כמה חיבורים חד-מקומיים (map/mapc/fold/fix) — כשיש יותר מועמדים נבחרת דגימה דטרמיניסטית והשאר נספרים כ'נחסמו בתקציב' · callSteps = תקרת-צעדים לקריאה אחת לחלק (lib/steps.mjs) · thingSteps = תקרת-צעדים לדבר אחד על כל סט-הקלטים (מעבר ⇒ זבל 'כבד מדי') · nameSteps = תקרת-צעדים לבדיקת-החוקים של דבר אחד",
-  "maxFloors": 4,
-  "buildsPerFloor": 6000,
-  "unaryPerFloor": 2000,
+  "about": "התקציב המוצהר של מנוע-הצמיחה (catalog/grow/grow.mjs). GROW2: ריצה קטנה — אותו תקציב לשתי הריצות (random מול score). maxFloors = כמה קומות מעל קומה 0 לכל היותר · buildsPerFloor + unaryPerFloor = כמה חיבורים נבנים בקומה (זוגות chain/pair + חד-מקומיים map/mapc/fold/fix; ב-score ‏80% מהסך הולכים לחיבורים מעל הטובים והשאר מתחלק באותו יחס) · callSteps = תקרת-צעדים לקריאה אחת לחלק (lib/steps.mjs) · thingSteps = תקרת-צעדים לדבר אחד על כל סט-הקלטים (מעבר ⇒ זבל 'כבד מדי'; וגם לקלט-לחץ אחד) · nameSteps = תקרת-צעדים לבדיקת-החוקים של דבר אחד",
+  "maxFloors": 3,
+  "buildsPerFloor": 1500,
+  "unaryPerFloor": 500,
   "callSteps": 500000,
   "thingSteps": 2000000,
   "nameSteps": 2000000
+ },
+ "score": {
+  "named": 2,
+  "creditChild": 1.2,
+  "creditGrand": 0.9,
+  "good": 0.5,
+  "nameAt": 0.5,
+  "top": 40,
+  "guided": 0.8,
+  "nameCap": 150
  },
  "world": [
   "num",
@@ -42,194 +53,1097 @@
   {
    "floor": 0,
    "built": 10312,
-   "new": 592,
-   "replaced": 14,
-   "dup": 490,
+   "new": 392,
+   "replaced": 9,
+   "dup": 348,
+   "stressRejected": 0,
    "junk": {
     "לא רץ על רוב הקלטים": 7144,
     "תמיד רשימה ריקה": 327,
+    "רשימה של פריט אחד שחוזר": 25,
+    "מתעלם מקלט": 322,
     "מחזיר את הקלט כמו שהוא": 391,
     "תמיד אותו פלט": 1343,
     "פלט מעורב": 11
    },
    "outside": 2047,
-   "realCalls": 143516,
-   "shelf": 592,
-   "named": 382,
-   "namedSpecial": 54
+   "namedDuring": 13,
+   "shelf": 392,
+   "named": 285,
+   "namedSpecial": 32
   },
   {
    "floor": 1,
-   "seeds": 592,
-   "candidates": 91197,
-   "built": 6580,
-   "budgetCut": 84617,
-   "new": 5409,
-   "replaced": 41,
-   "dup": 676,
+   "seeds": 392,
+   "candidates": 67741,
+   "built": 1995,
+   "guided": 1600,
+   "budgetCut": 65746,
+   "new": 1526,
+   "replaced": 36,
+   "dup": 338,
+   "stressRejected": 4,
    "junk": {
-    "תמיד אותו פלט": 330,
-    "לא רץ על רוב הקלטים": 76,
-    "תמיד רשימה ריקה": 18,
-    "מחזיר את הקלט כמו שהוא": 30
+    "מחזיר את הקלט כמו שהוא": 4,
+    "מתעלם מקלט": 30,
+    "לא רץ על רוב הקלטים": 17,
+    "תמיד אותו פלט": 35,
+    "תמיד רשימה ריקה": 3,
+    "רשימה של פריט אחד שחוזר": 2
    },
-   "shelf": 6001,
-   "realCalls": 209726,
-   "named": 3308,
-   "namedSpecial": 62
+   "namedDuring": 84,
+   "shelf": 1918,
+   "named": 695,
+   "namedSpecial": 37
   },
   {
    "floor": 2,
-   "seeds": 5415,
-   "candidates": 8724826,
-   "built": 8000,
-   "budgetCut": 8716826,
-   "new": 6599,
-   "replaced": 24,
-   "dup": 392,
+   "seeds": 1527,
+   "candidates": 849671,
+   "built": 1999,
+   "guided": 1600,
+   "budgetCut": 847672,
+   "new": 736,
+   "replaced": 88,
+   "dup": 1045,
+   "stressRejected": 24,
    "junk": {
-    "תמיד אותו פלט": 829,
-    "לא רץ על רוב הקלטים": 141,
-    "מחזיר את הקלט כמו שהוא": 11,
-    "תמיד רשימה ריקה": 4
+    "תמיד אותו פלט": 33,
+    "מתעלם מקלט": 59,
+    "לא רץ על רוב הקלטים": 9,
+    "תמיד רשימה ריקה": 1,
+    "רשימה של פריט אחד שחוזר": 3,
+    "מחזיר את הקלט כמו שהוא": 1
    },
-   "shelf": 12600,
-   "realCalls": 384600,
-   "named": 4335,
+   "namedDuring": 150,
+   "shelf": 2654,
+   "named": 187,
    "namedSpecial": 10
   },
   {
    "floor": 3,
-   "seeds": 6603,
-   "candidates": 19678024,
-   "built": 8000,
-   "budgetCut": 19670024,
-   "new": 6318,
-   "replaced": 21,
-   "dup": 458,
+   "seeds": 742,
+   "candidates": 901563,
+   "built": 2000,
+   "guided": 1600,
+   "budgetCut": 899563,
+   "new": 514,
+   "replaced": 53,
+   "dup": 1339,
+   "stressRejected": 16,
    "junk": {
-    "תמיד אותו פלט": 995,
-    "לא רץ על רוב הקלטים": 196,
-    "תמיד רשימה ריקה": 6,
-    "מחזיר את הקלט כמו שהוא": 6
+    "לא רץ על רוב הקלטים": 13,
+    "תמיד אותו פלט": 23,
+    "מתעלם מקלט": 36,
+    "תמיד רשימה ריקה": 2,
+    "רשימה של פריט אחד שחוזר": 4
    },
-   "shelf": 18918,
-   "realCalls": 732634,
-   "named": 4261,
+   "namedDuring": 119,
+   "shelf": 3168,
+   "stop": "נגמר התקציב: 3 קומות",
+   "named": 129,
    "namedSpecial": 4
-  },
-  {
-   "floor": 4,
-   "seeds": 6328,
-   "candidates": 21932118,
-   "built": 8000,
-   "budgetCut": 21924118,
-   "new": 6140,
-   "replaced": 14,
-   "dup": 546,
-   "junk": {
-    "תמיד אותו פלט": 1093,
-    "לא רץ על רוב הקלטים": 204,
-    "מחזיר את הקלט כמו שהוא": 1,
-    "תמיד רשימה ריקה": 2
-   },
-   "shelf": 25058,
-   "realCalls": 1411370,
-   "stop": "נגמר התקציב: 4 קומות",
-   "named": 4130,
-   "namedSpecial": 5
   }
  ],
- "reachedFloor": 4,
- "shelf": 25058,
- "named": 16416,
- "namedSpecial": 135,
- "totalBuilt": 40892,
- "realCalls": 10344535,
+ "reachedFloor": 3,
+ "shelf": 3168,
+ "named": 1296,
+ "namedSpecial": 83,
+ "totalBuilt": 16306,
  "namedBy": {
-  "convert": 4890,
-  "map": 4251,
-  "round": 4058,
-  "tier": 3190,
-  "normalize": 1602,
-  "ratio": 480,
-  "clamp": 439,
-  "combine": 207,
-  "gap": 202,
-  "compare": 50,
-  "count": 27,
-  "offset": 25,
-  "filter": 23,
-  "dedupe": 8,
+  "convert": 495,
+  "normalize": 365,
+  "tier": 175,
+  "map": 123,
+  "round": 81,
+  "clamp": 35,
+  "ratio": 29,
+  "compare": 27,
+  "gap": 23,
+  "filter": 17,
+  "offset": 15,
+  "combine": 10,
+  "count": 8,
+  "dedupe": 7,
   "sort": 7,
-  "reverse": 6,
   "rotate": 6,
-  "tolerate": 5,
+  "reverse": 5,
+  "extreme": 2,
   "settle": 2,
-  "extreme": 1,
-  "sum": 1
+  "sum": 1,
+  "tolerate": 1
  },
  "deniedBy": {
-  "extreme · חוקים חלשים ואין בדיקת-אמת לחתימה הזו": 1118,
-  "average · חוקים חלשים ואין בדיקת-אמת לחתימה הזו": 161,
-  "sum · חוקים חלשים ואין בדיקת-אמת לחתימה הזו": 107,
-  "extreme · עבר את החוקים": 71,
-  "average · עבר את החוקים": 16,
-  "compare · עבר את החוקים": 13,
-  "sort · עבר את החוקים": 2,
-  "sum · עבר את החוקים": 1
+  "extreme · חוקים חלשים ואין בדיקת-אמת לחתימה הזו": 425,
+  "extreme · עבר את החוקים": 202,
+  "average · עבר את החוקים": 54,
+  "sum · חוקים חלשים ואין בדיקת-אמת לחתימה הזו": 37,
+  "sum · עבר את החוקים": 17,
+  "average · חוקים חלשים ואין בדיקת-אמת לחתימה הזו": 13,
+  "count · עבר את החוקים": 6,
+  "compare · עבר את החוקים": 2,
+  "sort · עבר את החוקים": 2
  },
- "twinsFloor0": 14,
- "replacedInGrowth": 100,
- "improvements": [
+ "twinsFloor0": 9,
+ "replacedInGrowth": 177,
+ "stressRejected": [
   {
-   "fp": "73062590",
+   "floor": 1,
+   "fp": "32e7c373",
+   "sig": "nums,nums>num",
+   "old": {
+    "id": "14505953b0861fd7",
+    "floor": 1,
+    "steps": 64
+   },
+   "now": {
+    "id": "e84a4db0128a06f4",
+    "form": "pair",
+    "steps": 48
+   },
+   "ran": "12/12",
+   "differ": {
+    "at": 8,
+    "got": 7,
+    "want": -2
+   }
+  },
+  {
+   "floor": 1,
+   "fp": "9f2e0c1c",
+   "sig": "nums,num>num",
+   "old": {
+    "id": "7318cb26d01f6d6a",
+    "floor": 1,
+    "steps": 32
+   },
+   "now": {
+    "id": "6b0ddabb9a344e8f",
+    "form": "chain",
+    "steps": 30
+   },
+   "ran": "12/12",
+   "differ": {
+    "at": 1,
+    "got": -1,
+    "want": 0
+   }
+  },
+  {
+   "floor": 1,
+   "fp": "f43fcbac",
+   "sig": "nums,nums>num",
+   "old": {
+    "id": "46c64f2d5d763939",
+    "floor": 1,
+    "steps": 54
+   },
+   "now": {
+    "id": "d6b4132681ac1462",
+    "form": "pair",
+    "steps": 42
+   },
+   "ran": "12/12",
+   "differ": {
+    "at": 0,
+    "got": -1,
+    "want": 0
+   }
+  },
+  {
+   "floor": 1,
+   "fp": "71ee1157",
+   "sig": "nums,num>num",
+   "old": {
+    "id": "16940a9ef6a48712",
+    "floor": 1,
+    "steps": 87
+   },
+   "now": {
+    "id": "227e94aa5b6a550e",
+    "form": "fold",
+    "steps": 55
+   },
+   "ran": "12/12",
+   "differ": {
+    "at": 3,
+    "got": 27,
+    "want": 0
+   }
+  },
+  {
+   "floor": 2,
+   "fp": "c0574488",
+   "sig": "nums>num",
+   "old": {
+    "id": "965d256de9c62e69",
+    "floor": 2,
+    "steps": 122
+   },
+   "now": {
+    "id": "076dea8b7502896f",
+    "form": "chain",
+    "steps": 103
+   },
+   "ran": "12/12",
+   "differ": {
+    "at": 0,
+    "got": 5,
+    "want": 8
+   }
+  },
+  {
+   "floor": 2,
+   "fp": "113a4894",
+   "sig": "nums>num",
+   "old": {
+    "id": "842a63b67a415d22",
+    "floor": 2,
+    "steps": 143
+   },
+   "now": {
+    "id": "e79b93beed17b512",
+    "form": "chain",
+    "steps": 96
+   },
+   "ran": "12/12",
+   "differ": {
+    "at": 2,
+    "got": 0,
+    "want": 5
+   }
+  },
+  {
+   "floor": 2,
+   "fp": "59741f96",
+   "sig": "nums>num",
+   "old": {
+    "id": "3f68efa29fbc91f6",
+    "floor": 2,
+    "steps": 143
+   },
+   "now": {
+    "id": "702263aa1c170c06",
+    "form": "chain",
+    "steps": 96
+   },
+   "ran": "12/12",
+   "differ": {
+    "at": 2,
+    "got": 1,
+    "want": 5
+   }
+  },
+  {
+   "floor": 2,
+   "fp": "c0574488",
+   "sig": "nums>num",
+   "old": {
+    "id": "965d256de9c62e69",
+    "floor": 2,
+    "steps": 122
+   },
+   "now": {
+    "id": "65813ee5d8118889",
+    "form": "chain",
+    "steps": 103
+   },
+   "ran": "12/12",
+   "differ": {
+    "at": 0,
+    "got": 5,
+    "want": 8
+   }
+  },
+  {
+   "floor": 2,
+   "fp": "7603dc41",
+   "sig": "nums>num",
+   "old": {
+    "id": "37cc1aa6b2781ce2",
+    "floor": 2,
+    "steps": 52
+   },
+   "now": {
+    "id": "8b54cda6c8956c62",
+    "form": "chain",
+    "steps": 39
+   },
+   "ran": "12/12",
+   "differ": {
+    "at": 4,
+    "got": 999999999999,
+    "want": 1099511627780
+   }
+  },
+  {
+   "floor": 2,
+   "fp": "113a4894",
+   "sig": "nums>num",
+   "old": {
+    "id": "842a63b67a415d22",
+    "floor": 2,
+    "steps": 143
+   },
+   "now": {
+    "id": "773b97f0a8875104",
+    "form": "chain",
+    "steps": 96
+   },
+   "ran": "12/12",
+   "differ": {
+    "at": 2,
+    "got": 0,
+    "want": 5
+   }
+  },
+  {
+   "floor": 2,
+   "fp": "c0574488",
+   "sig": "nums>num",
+   "old": {
+    "id": "965d256de9c62e69",
+    "floor": 2,
+    "steps": 122
+   },
+   "now": {
+    "id": "257fef0146ad7ffd",
+    "form": "chain",
+    "steps": 52
+   },
+   "ran": "12/12",
+   "differ": {
+    "at": 0,
+    "got": 5,
+    "want": 8
+   }
+  },
+  {
+   "floor": 2,
+   "fp": "59741f96",
+   "sig": "nums>num",
+   "old": {
+    "id": "3f68efa29fbc91f6",
+    "floor": 2,
+    "steps": 143
+   },
+   "now": {
+    "id": "fbd8ed3a8096eabe",
+    "form": "chain",
+    "steps": 96
+   },
+   "ran": "12/12",
+   "differ": {
+    "at": 2,
+    "got": 1,
+    "want": 5
+   }
+  },
+  {
+   "floor": 2,
+   "fp": "f3375939",
+   "sig": "nums>num",
+   "old": {
+    "id": "24ba252a28768c26",
+    "floor": 2,
+    "steps": 65
+   },
+   "now": {
+    "id": "f08a2d705cde036c",
+    "form": "chain",
+    "steps": 52
+   },
+   "ran": "10/12",
+   "differ": {
+    "at": 1,
+    "got": -1,
+    "want": 0
+   }
+  },
+  {
+   "floor": 2,
+   "fp": "c0574488",
+   "sig": "nums>num",
+   "old": {
+    "id": "965d256de9c62e69",
+    "floor": 2,
+    "steps": 122
+   },
+   "now": {
+    "id": "12e2e28c49f89718",
+    "form": "chain",
+    "steps": 78
+   },
+   "ran": "12/12",
+   "differ": {
+    "at": 0,
+    "got": 5,
+    "want": 8
+   }
+  },
+  {
+   "floor": 2,
+   "fp": "71baba1f",
+   "sig": "nums,num>num",
+   "old": {
+    "id": "bb107a8eed92d5f2",
+    "floor": 2,
+    "steps": 119
+   },
+   "now": {
+    "id": "11ddfc448eb52028",
+    "form": "chain",
+    "steps": 64
+   },
+   "ran": "12/12",
+   "differ": {
+    "at": 1,
+    "got": 1,
+    "want": 0.488372093023
+   }
+  },
+  {
+   "floor": 2,
+   "fp": "c0574488",
+   "sig": "nums>num",
+   "old": {
+    "id": "965d256de9c62e69",
+    "floor": 2,
+    "steps": 122
+   },
+   "now": {
+    "id": "50527e7e2938e01a",
+    "form": "chain",
+    "steps": 103
+   },
+   "ran": "12/12",
+   "differ": {
+    "at": 0,
+    "got": 5,
+    "want": 8
+   }
+  },
+  {
+   "floor": 2,
+   "fp": "933af64c",
+   "sig": "nums>num",
+   "old": {
+    "id": "7fd1ac56531e5862",
+    "floor": 2,
+    "steps": 129
+   },
+   "now": {
+    "id": "a3384043cc0db39f",
+    "form": "chain",
+    "steps": 109
+   },
+   "ran": "11/12",
+   "differ": {
+    "at": 2,
+    "got": null,
+    "want": 5
+   }
+  },
+  {
+   "floor": 2,
+   "fp": "1675d090",
+   "sig": "nums>num",
+   "old": {
+    "id": "0e9778df4eb0ab33",
+    "floor": 2,
+    "steps": 157
+   },
+   "now": {
+    "id": "dd6a4b119e5e8095",
+    "form": "chain",
+    "steps": 99
+   },
+   "ran": "12/12",
+   "differ": {
+    "at": 0,
+    "got": -1,
+    "want": 9
+   }
+  },
+  {
+   "floor": 2,
+   "fp": "2dbacb11",
+   "sig": "nums>num",
+   "old": {
+    "id": "0ef13f3654bcc74a",
+    "floor": 2,
+    "steps": 143
+   },
+   "now": {
+    "id": "89a08ab0f0dc445c",
+    "form": "chain",
+    "steps": 129
+   },
+   "ran": "12/12",
+   "differ": {
+    "at": 0,
+    "got": 2,
+    "want": 1
+   }
+  },
+  {
+   "floor": 2,
+   "fp": "c0574488",
+   "sig": "nums>num",
+   "old": {
+    "id": "965d256de9c62e69",
+    "floor": 2,
+    "steps": 122
+   },
+   "now": {
+    "id": "a6e1418c9a3abc90",
+    "form": "chain",
+    "steps": 116
+   },
+   "ran": "12/12",
+   "differ": {
+    "at": 0,
+    "got": 6,
+    "want": 8
+   }
+  },
+  {
+   "floor": 2,
+   "fp": "c0574488",
+   "sig": "nums>num",
+   "old": {
+    "id": "965d256de9c62e69",
+    "floor": 2,
+    "steps": 122
+   },
+   "now": {
+    "id": "ab66bc24da95a5a0",
+    "form": "chain",
+    "steps": 83
+   },
+   "ran": "12/12",
+   "differ": {
+    "at": 0,
+    "got": 5,
+    "want": 8
+   }
+  },
+  {
+   "floor": 2,
+   "fp": "9ccd87f8",
    "sig": "nums>nums",
    "old": {
-    "id": "4dd959980a03a08c",
-    "part": "inner-generator:machtzev/generator/balagan.mjs#buildBalagan.selfScores",
-    "where": "-ai-chat-server:machtzev/generator/balagan.mjs:96",
-    "steps": 953
+    "id": "189541f727f91ac3",
+    "floor": 2,
+    "steps": 103
    },
    "now": {
-    "id": "e477319d60d1c601",
-    "floor": 3,
-    "form": "fix",
-    "steps": 208,
-    "nodes": 2,
-    "does": "ממיר כל פריט · מנרמל"
+    "id": "3e7485c7feb4947b",
+    "form": "chain",
+    "steps": 96
    },
-   "saved": 745,
-   "pct": 78,
-   "extra": {
-    "n": 200,
-    "same": 200
+   "ran": "12/12",
+   "differ": {
+    "at": 0,
+    "got": [
+     -4,
+     -1,
+     -8
+    ],
+    "want": [
+     -4,
+     -1
+    ]
    }
   },
   {
-   "fp": "02a18e59",
-   "sig": "num,nums>num",
+   "floor": 2,
+   "fp": "c0574488",
+   "sig": "nums>num",
    "old": {
-    "id": "1c2836b2c508cdf6",
-    "part": "inner-generator:machtzev/carve/widget-dedup.mjs#bodyOf.j:after-loop",
-    "where": "-ai-chat-server:machtzev/carve/widget-dedup.mjs:16",
-    "steps": 89
+    "id": "965d256de9c62e69",
+    "floor": 2,
+    "steps": 122
    },
    "now": {
-    "id": "1bd3ebdb015f2f1f",
-    "floor": 1,
+    "id": "e9754e4220b47026",
     "form": "chain",
-    "steps": 32,
-    "nodes": 2,
-    "does": "מעגל · סופר · מגביל לטווח"
+    "steps": 103
    },
-   "saved": 57,
-   "pct": 64,
-   "extra": {
-    "n": 200,
-    "same": 200
+   "ran": "12/12",
+   "differ": {
+    "at": 0,
+    "got": 5,
+    "want": 8
    }
   },
+  {
+   "floor": 2,
+   "fp": "9c7b3926",
+   "sig": "nums>num",
+   "old": {
+    "id": "40685f6a027f655e",
+    "floor": 2,
+    "steps": 52
+   },
+   "now": {
+    "id": "4c2bb29f6467a4a3",
+    "form": "chain",
+    "steps": 52
+   },
+   "ran": "12/12",
+   "differ": {
+    "at": 4,
+    "got": 1099511627780,
+    "want": 999999999999
+   }
+  },
+  {
+   "floor": 2,
+   "fp": "029b3773",
+   "sig": "nums,num>nums",
+   "old": {
+    "id": "b70abef257abbbde",
+    "floor": 1,
+    "steps": 72
+   },
+   "now": {
+    "id": "71ffabff6b304f0b",
+    "form": "chain",
+    "steps": 48
+   },
+   "ran": "6/12",
+   "differ": {
+    "at": 3,
+    "got": {
+     "len": 499,
+     "head": [
+      4,
+      -4,
+      -4,
+      -5
+     ]
+    },
+    "want": null
+   }
+  },
+  {
+   "floor": 2,
+   "fp": "579f8a67",
+   "sig": "nums,nums>nums",
+   "old": {
+    "id": "fabd60cafbe9fb06",
+    "floor": 1,
+    "steps": 173
+   },
+   "now": {
+    "id": "14d6877dcc448f51",
+    "form": "fold",
+    "steps": 165
+   },
+   "ran": "4/12",
+   "differ": {
+    "at": 4,
+    "got": [],
+    "want": null
+   }
+  },
+  {
+   "floor": 2,
+   "fp": "d2c1b2fe",
+   "sig": "nums,nums>nums",
+   "old": {
+    "id": "7c39daa7449586b3",
+    "floor": 2,
+    "steps": 165
+   },
+   "now": {
+    "id": "1442593873ebf34c",
+    "form": "fold",
+    "steps": 165
+   },
+   "ran": "12/12",
+   "differ": {
+    "at": 0,
+    "got": {
+     "len": 27,
+     "head": [
+      -9876543210,
+      1000000007,
+      340473,
+      948423
+     ]
+    },
+    "want": {
+     "len": 26,
+     "head": [
+      -9876543210,
+      1000000007,
+      340473,
+      948423
+     ]
+    }
+   }
+  },
+  {
+   "floor": 2,
+   "fp": "579f8a67",
+   "sig": "nums,nums>nums",
+   "old": {
+    "id": "fabd60cafbe9fb06",
+    "floor": 1,
+    "steps": 173
+   },
+   "now": {
+    "id": "c910dbb4931209c8",
+    "form": "fold",
+    "steps": 165
+   },
+   "ran": "4/12",
+   "differ": {
+    "at": 4,
+    "got": [],
+    "want": null
+   }
+  },
+  {
+   "floor": 3,
+   "fp": "551c8564",
+   "sig": "nums>num",
+   "old": {
+    "id": "2933d0380f9867bc",
+    "floor": 3,
+    "steps": 146
+   },
+   "now": {
+    "id": "1edd3eb851aba69c",
+    "form": "chain",
+    "steps": 139
+   },
+   "ran": "12/12",
+   "differ": {
+    "at": 0,
+    "got": -3,
+    "want": -5
+   }
+  },
+  {
+   "floor": 3,
+   "fp": "b2c86e4d",
+   "sig": "nums>num",
+   "old": {
+    "id": "67f94d9f9ae3f06b",
+    "floor": 2,
+    "steps": 127
+   },
+   "now": {
+    "id": "f57857fcbda2b010",
+    "form": "chain",
+    "steps": 90
+   },
+   "ran": "12/12",
+   "differ": {
+    "at": 0,
+    "got": -1,
+    "want": -4
+   }
+  },
+  {
+   "floor": 3,
+   "fp": "71baba1f",
+   "sig": "nums,num>num",
+   "old": {
+    "id": "bb107a8eed92d5f2",
+    "floor": 2,
+    "steps": 119
+   },
+   "now": {
+    "id": "f295dfb9ed10c3a5",
+    "form": "chain",
+    "steps": 64
+   },
+   "ran": "12/12",
+   "differ": {
+    "at": 1,
+    "got": 1,
+    "want": 0.488372093023
+   }
+  },
+  {
+   "floor": 3,
+   "fp": "9c7b3926",
+   "sig": "nums>num",
+   "old": {
+    "id": "40685f6a027f655e",
+    "floor": 2,
+    "steps": 52
+   },
+   "now": {
+    "id": "1452e2e728c6dc53",
+    "form": "chain",
+    "steps": 52
+   },
+   "ran": "12/12",
+   "differ": {
+    "at": 4,
+    "got": 1099511627780,
+    "want": 999999999999
+   }
+  },
+  {
+   "floor": 3,
+   "fp": "af98f5a3",
+   "sig": "nums>num",
+   "old": {
+    "id": "2febfd3a93aa3596",
+    "floor": 3,
+    "steps": 135
+   },
+   "now": {
+    "id": "4b409698a0af331c",
+    "form": "chain",
+    "steps": 116
+   },
+   "ran": "12/12",
+   "differ": {
+    "at": 1,
+    "got": 8,
+    "want": 9
+   }
+  },
+  {
+   "floor": 3,
+   "fp": "71baba1f",
+   "sig": "nums,num>num",
+   "old": {
+    "id": "bb107a8eed92d5f2",
+    "floor": 2,
+    "steps": 119
+   },
+   "now": {
+    "id": "2c9c3426bfa43d32",
+    "form": "chain",
+    "steps": 80
+   },
+   "ran": "12/12",
+   "differ": {
+    "at": 1,
+    "got": 1,
+    "want": 0.488372093023
+   }
+  },
+  {
+   "floor": 3,
+   "fp": "71baba1f",
+   "sig": "nums,num>num",
+   "old": {
+    "id": "bb107a8eed92d5f2",
+    "floor": 2,
+    "steps": 119
+   },
+   "now": {
+    "id": "f041cc6d3ae77959",
+    "form": "chain",
+    "steps": 80
+   },
+   "ran": "12/12",
+   "differ": {
+    "at": 1,
+    "got": 1,
+    "want": 0.488372093023
+   }
+  },
+  {
+   "floor": 3,
+   "fp": "1675d090",
+   "sig": "nums>num",
+   "old": {
+    "id": "0e9778df4eb0ab33",
+    "floor": 2,
+    "steps": 157
+   },
+   "now": {
+    "id": "22507317745cc4c3",
+    "form": "chain",
+    "steps": 125
+   },
+   "ran": "12/12",
+   "differ": {
+    "at": 0,
+    "got": -1,
+    "want": 9
+   }
+  },
+  {
+   "floor": 3,
+   "fp": "c0574488",
+   "sig": "nums>num",
+   "old": {
+    "id": "965d256de9c62e69",
+    "floor": 2,
+    "steps": 122
+   },
+   "now": {
+    "id": "7a9098cb5a8c7077",
+    "form": "chain",
+    "steps": 91
+   },
+   "ran": "10/12",
+   "differ": {
+    "at": 0,
+    "got": null,
+    "want": 8
+   }
+  },
+  {
+   "floor": 3,
+   "fp": "c0574488",
+   "sig": "nums>num",
+   "old": {
+    "id": "965d256de9c62e69",
+    "floor": 2,
+    "steps": 122
+   },
+   "now": {
+    "id": "6ad366a24c2c5bce",
+    "form": "chain",
+    "steps": 65
+   },
+   "ran": "12/12",
+   "differ": {
+    "at": 0,
+    "got": 5,
+    "want": 8
+   }
+  },
+  {
+   "floor": 3,
+   "fp": "933af64c",
+   "sig": "nums>num",
+   "old": {
+    "id": "7fd1ac56531e5862",
+    "floor": 2,
+    "steps": 129
+   },
+   "now": {
+    "id": "3987347ce50ef5a0",
+    "form": "chain",
+    "steps": 122
+   },
+   "ran": "11/12",
+   "differ": {
+    "at": 2,
+    "got": null,
+    "want": 5
+   }
+  },
+  {
+   "floor": 3,
+   "fp": "c0574488",
+   "sig": "nums>num",
+   "old": {
+    "id": "965d256de9c62e69",
+    "floor": 2,
+    "steps": 122
+   },
+   "now": {
+    "id": "428dd20a2bc474f6",
+    "form": "chain",
+    "steps": 65
+   },
+   "ran": "12/12",
+   "differ": {
+    "at": 0,
+    "got": 5,
+    "want": 8
+   }
+  },
+  {
+   "floor": 3,
+   "fp": "c0574488",
+   "sig": "nums>num",
+   "old": {
+    "id": "965d256de9c62e69",
+    "floor": 2,
+    "steps": 122
+   },
+   "now": {
+    "id": "3d92c54770f85c8b",
+    "form": "chain",
+    "steps": 101
+   },
+   "ran": "12/12",
+   "differ": {
+    "at": 0,
+    "got": 5,
+    "want": 8
+   }
+  },
+  {
+   "floor": 3,
+   "fp": "af98f5a3",
+   "sig": "nums>num",
+   "old": {
+    "id": "2febfd3a93aa3596",
+    "floor": 3,
+    "steps": 135
+   },
+   "now": {
+    "id": "e8356864649accd8",
+    "form": "chain",
+    "steps": 103
+   },
+   "ran": "12/12",
+   "differ": {
+    "at": 0,
+    "got": 5,
+    "want": 7
+   }
+  },
+  {
+   "floor": 3,
+   "fp": "c0574488",
+   "sig": "nums>num",
+   "old": {
+    "id": "965d256de9c62e69",
+    "floor": 2,
+    "steps": 122
+   },
+   "now": {
+    "id": "abcc286c5f82ca48",
+    "form": "chain",
+    "steps": 65
+   },
+   "ran": "10/12",
+   "differ": {
+    "at": 0,
+    "got": 5,
+    "want": 8
+   }
+  },
+  {
+   "floor": 3,
+   "fp": "4c0abf68",
+   "sig": "nums>num",
+   "old": {
+    "id": "b0646e4b81924a5f",
+    "floor": 2,
+    "steps": 65
+   },
+   "now": {
+    "id": "8ce1638cc675b798",
+    "form": "chain",
+    "steps": 65
+   },
+   "ran": "12/12",
+   "differ": {
+    "at": 5,
+    "got": 1530494976,
+    "want": 0
+   }
+  }
+ ],
+ "improvements": [
   {
    "fp": "56c78cf0",
    "sig": "nums>nums",
@@ -240,7 +1154,7 @@
     "steps": 64
    },
    "now": {
-    "id": "efd896410bf75725",
+    "id": "ff58f9e98143c3fd",
     "floor": 1,
     "form": "chain",
     "steps": 39,
@@ -252,102 +1166,11 @@
    "extra": {
     "n": 200,
     "same": 200
-   }
-  },
-  {
-   "fp": "36d7a239",
-   "sig": "nums,pt>num",
-   "old": {
-    "id": "436dced214c9152e",
-    "part": "inner-generator:machtzev/generator/op-bridge.mjs#cos.nb:after-loop",
-    "where": "-ai-chat-server:machtzev/generator/op-bridge.mjs:40",
-    "steps": 103
    },
-   "now": {
-    "id": "31c1b4b092cfcec4",
-    "floor": 1,
-    "form": "chain",
-    "steps": 64,
-    "nodes": 2,
-    "does": "בלי שם עדיין"
-   },
-   "saved": 39,
-   "pct": 38,
-   "extra": {
-    "n": 200,
-    "same": 200
-   }
-  },
-  {
-   "fp": "f1d5d1cc",
-   "sig": "nums,num>nums",
-   "old": {
-    "id": "5b15a2dd5d93b2d9",
-    "part": "inner-orbit:src/lib/atoms/parts/offset.ts#offsetAll.out:after-loop",
-    "where": "maor-system:src/lib/atoms/parts/offset.ts:11",
-    "steps": 71
-   },
-   "now": {
-    "id": "d26aa8ca5387b886",
-    "floor": 1,
-    "form": "mapc",
-    "steps": 55,
-    "nodes": 1,
-    "does": "מזיז · ממיר כל פריט"
-   },
-   "saved": 16,
-   "pct": 23,
-   "extra": {
-    "n": 200,
-    "same": 200
-   }
-  },
-  {
-   "fp": "9d422209",
-   "sig": "pt,nums>num",
-   "old": {
-    "id": "d8ef125c8b6ecd48",
-    "part": "inner-generator:machtzev/generator/op-bridge.mjs#cos.nb:after-loop",
-    "where": "-ai-chat-server:machtzev/generator/op-bridge.mjs:40",
-    "steps": 105
-   },
-   "now": {
-    "id": "6ad9b87e25defeda",
-    "floor": 1,
-    "form": "chain",
-    "steps": 94,
-    "nodes": 2,
-    "does": "בלי שם עדיין"
-   },
-   "saved": 11,
-   "pct": 10,
-   "extra": {
-    "n": 200,
-    "same": 200
-   }
-  },
-  {
-   "fp": "c7c2b6c8",
-   "sig": "pts,nums>num",
-   "old": {
-    "id": "5662a201e120e185",
-    "part": "inner-generator:machtzev/generator/op-bridge.mjs#cos.nb:after-loop",
-    "where": "-ai-chat-server:machtzev/generator/op-bridge.mjs:40",
-    "steps": 95
-   },
-   "now": {
-    "id": "9af86d467ec7bd82",
-    "floor": 1,
-    "form": "chain",
-    "steps": 89,
-    "nodes": 2,
-    "does": "בלי שם עדיין"
-   },
-   "saved": 6,
-   "pct": 6,
-   "extra": {
-    "n": 200,
-    "same": 200
+   "stress": {
+    "same": true,
+    "ran": 12,
+    "n": 12
    }
   }
  ],
@@ -406,12 +1229,12 @@
    "refSig": "nums",
    "named": 7,
    "best": {
-    "id": "94abcb62cd88d67e",
-    "floor": 0,
-    "form": "part",
-    "steps": 80,
-    "nodes": 1,
-    "sig": "nums>nums"
+    "id": "782473c147eb411d",
+    "floor": 1,
+    "form": "chain",
+    "steps": 32,
+    "nodes": 2,
+    "sig": "nums,num>nums"
    },
    "byFloor": {
     "0": 3,
@@ -435,7 +1258,7 @@
    "verb": "reverse",
    "he": "הופך סדר",
    "refSig": "nums",
-   "named": 6,
+   "named": 5,
    "best": {
     "id": "86e2a7d96c2c75ad",
     "floor": 0,
@@ -446,7 +1269,7 @@
    },
    "byFloor": {
     "0": 2,
-    "1": 4
+    "1": 3
    },
    "deniedByTruth": 0,
    "reach": "נמצא — אותה טביעה בדיוק",
@@ -466,18 +1289,19 @@
    "verb": "dedupe",
    "he": "מסיר כפולים",
    "refSig": "nums",
-   "named": 8,
+   "named": 7,
    "best": {
-    "id": "11e151d73a9aea63",
+    "id": "7184f07463958170",
     "floor": 0,
     "form": "part",
-    "steps": 16,
+    "steps": 26,
     "nodes": 1,
-    "sig": "num,nums>nums"
+    "sig": "nums>nums"
    },
    "byFloor": {
-    "0": 5,
-    "1": 3
+    "0": 2,
+    "1": 3,
+    "2": 2
    },
    "deniedByTruth": 0,
    "reach": "נמצא — אותה טביעה בדיוק",
@@ -509,7 +1333,7 @@
    "byFloor": {
     "0": 1
    },
-   "deniedByTruth": 108,
+   "deniedByTruth": 54,
    "reach": "נמצא — אותה טביעה בדיוק",
    "twin": {
     "id": "0ce602d9666a323d",
@@ -528,14 +1352,14 @@
    "he": "ממצע",
    "refSig": "nums",
    "named": 0,
-   "deniedByTruth": 177,
+   "deniedByTruth": 67,
    "reach": "לא נמצא באותה טביעה"
   },
   {
    "verb": "extreme",
    "he": "בוחר את הקיצוני",
    "refSig": "nums",
-   "named": 1,
+   "named": 2,
    "best": {
     "id": "130e55561cfa0722",
     "floor": 0,
@@ -545,9 +1369,10 @@
     "sig": "nums>num"
    },
    "byFloor": {
-    "0": 1
+    "0": 1,
+    "1": 1
    },
-   "deniedByTruth": 1189,
+   "deniedByTruth": 627,
    "reach": "נמצא — אותה טביעה בדיוק",
    "twin": {
     "id": "130e55561cfa0722",
@@ -565,7 +1390,7 @@
    "verb": "count",
    "he": "סופר",
    "refSig": "nums",
-   "named": 27,
+   "named": 8,
    "best": {
     "id": "04895f29757b245d",
     "floor": 0,
@@ -575,19 +1400,17 @@
     "sig": "pts>num"
    },
    "byFloor": {
-    "0": 19,
-    "1": 6,
-    "2": 1,
-    "4": 1
+    "0": 4,
+    "1": 4
    },
-   "deniedByTruth": 0,
+   "deniedByTruth": 6,
    "reach": "לא נמצא באותה טביעה"
   },
   {
    "verb": "compare",
    "he": "משווה",
    "refSig": "num,num",
-   "named": 50,
+   "named": 27,
    "best": {
     "id": "36cae3451ec4b581",
     "floor": 0,
@@ -598,24 +1421,12 @@
    },
    "byFloor": {
     "0": 6,
-    "1": 32,
+    "1": 12,
     "2": 7,
-    "3": 2,
-    "4": 3
+    "3": 2
    },
-   "deniedByTruth": 13,
-   "reach": "נמצא — אותה טביעה בדיוק",
-   "twin": {
-    "id": "611447520a649fbe",
-    "floor": 1,
-    "form": "chain",
-    "steps": 32,
-    "nodes": 2,
-    "extra": {
-     "n": 200,
-     "same": 200
-    }
-   }
+   "deniedByTruth": 2,
+   "reach": "לא נמצא באותה טביעה"
   },
   {
    "verb": "next",
@@ -625,5 +1436,868 @@
    "deniedByTruth": 0,
    "reach": "הייחוס עצמו לא נמדד על סט-הקלטים: לא רץ על רוב הקלטים"
   }
- ]
+ ],
+ "metrics": {
+  "built": 16306,
+  "shelf": 3168,
+  "namedSpecial": 83,
+  "namedSpecialGrown": 51,
+  "specialBy": {
+   "compare": 27,
+   "filter": 17,
+   "count": 8,
+   "dedupe": 7,
+   "sort": 7,
+   "rotate": 6,
+   "reverse": 5,
+   "extreme": 2,
+   "settle": 2,
+   "sum": 1,
+   "tolerate": 1
+  },
+  "everOnNamed": 1113,
+  "shelfOnNamed": 1030,
+  "shelfOnNamedSpecial": 37,
+  "shelfOnCompare": 22,
+  "shelfOnCompareSpecial": 8,
+  "ladder": {
+   "height": 3,
+   "chain": [
+    {
+     "id": "3f4b667c6ca8aff0",
+     "floor": 2,
+     "form": "chain",
+     "verbs": [
+      "dedupe"
+     ],
+     "example": {
+      "in": [
+       [
+        3,
+        3,
+        3
+       ],
+       [
+        10,
+        -2,
+        8,
+        -2,
+        5
+       ]
+      ],
+      "out": [
+       10,
+       -2,
+       8,
+       5
+      ]
+     }
+    },
+    {
+     "id": "84759cb09ef06284",
+     "floor": 1,
+     "form": "chain",
+     "verbs": [
+      "dedupe"
+     ],
+     "example": {
+      "in": [
+       0,
+       [
+        3,
+        3,
+        3
+       ]
+      ],
+      "out": [
+       3
+      ]
+     }
+    },
+    {
+     "id": "7184f07463958170",
+     "floor": 0,
+     "form": "part",
+     "verbs": [
+      "dedupe"
+     ],
+     "example": {
+      "in": [
+       [
+        3,
+        1,
+        2
+       ]
+      ],
+      "out": [
+       3,
+       1,
+       2
+      ]
+     }
+    }
+   ]
+  },
+  "bestMatch": {
+   "sort": {
+    "pct": 100,
+    "id": "94abcb62cd88d67e",
+    "floor": 0,
+    "form": "part",
+    "sig": "nums>nums",
+    "named": true,
+    "example": {
+     "in": [
+      [
+       3,
+       1,
+       2
+      ]
+     ],
+     "out": [
+      1,
+      2,
+      3
+     ]
+    }
+   },
+   "extreme": {
+    "pct": 100,
+    "id": "130e55561cfa0722",
+    "floor": 0,
+    "form": "part",
+    "sig": "nums>num",
+    "named": true,
+    "example": {
+     "in": [
+      [
+       3,
+       1,
+       2
+      ]
+     ],
+     "out": 3
+    }
+   },
+   "count": {
+    "pct": 82,
+    "id": "6c330c2eef52bc8a",
+    "floor": 0,
+    "form": "part",
+    "sig": "nums>num",
+    "named": false,
+    "example": {
+     "in": [
+      [
+       3,
+       1,
+       2
+      ]
+     ],
+     "out": 0
+    }
+   },
+   "dedupe": {
+    "pct": 100,
+    "id": "7184f07463958170",
+    "floor": 0,
+    "form": "part",
+    "sig": "nums>nums",
+    "named": true,
+    "example": {
+     "in": [
+      [
+       3,
+       1,
+       2
+      ]
+     ],
+     "out": [
+      3,
+      1,
+      2
+     ]
+    }
+   },
+   "sum": {
+    "pct": 100,
+    "id": "0ce602d9666a323d",
+    "floor": 0,
+    "form": "part",
+    "sig": "nums>num",
+    "named": true,
+    "example": {
+     "in": [
+      [
+       3,
+       1,
+       2
+      ]
+     ],
+     "out": 6
+    }
+   },
+   "average": {
+    "pct": 27,
+    "id": "ead6e72176152ea5",
+    "floor": 0,
+    "form": "part",
+    "sig": "nums>num",
+    "named": false,
+    "example": {
+     "in": [
+      [
+       3,
+       1,
+       2
+      ]
+     ],
+     "out": 2
+    }
+   },
+   "tour": {
+    "pct": null,
+    "why": "אין על המדף דבר בחתימה של הייחוס"
+   },
+   "compare": {
+    "pct": 50,
+    "id": "d00acb69d94fc575",
+    "floor": 1,
+    "form": "chain",
+    "sig": "num,num>num",
+    "named": false,
+    "example": {
+     "in": [
+      0,
+      2
+     ],
+     "out": -1
+    }
+   }
+  },
+  "bestGrown": {
+   "sort": {
+    "pct": 73,
+    "id": "5199635b0c66a447",
+    "floor": 1,
+    "form": "chain",
+    "sig": "nums>nums",
+    "example": {
+     "in": [
+      [
+       3,
+       1,
+       2
+      ]
+     ],
+     "out": [
+      1,
+      2,
+      3
+     ]
+    }
+   },
+   "extreme": {
+    "pct": 91,
+    "id": "779c277f14169ff3",
+    "floor": 1,
+    "form": "chain",
+    "sig": "nums>num",
+    "example": {
+     "in": [
+      [
+       3,
+       1,
+       2
+      ]
+     ],
+     "out": 3
+    }
+   },
+   "count": {
+    "pct": 82,
+    "id": "02002ab9ba9543a5",
+    "floor": 1,
+    "form": "chain",
+    "sig": "nums>num",
+    "example": {
+     "in": [
+      [
+       3,
+       1,
+       2
+      ]
+     ],
+     "out": 0
+    }
+   },
+   "dedupe": {
+    "pct": 73,
+    "id": "ff58f9e98143c3fd",
+    "floor": 1,
+    "form": "chain",
+    "sig": "nums>nums",
+    "example": {
+     "in": [
+      [
+       3,
+       1,
+       2
+      ]
+     ],
+     "out": [
+      3,
+      1,
+      2
+     ]
+    }
+   },
+   "sum": {
+    "pct": 91,
+    "id": "7bf1d2a5682ac4b9",
+    "floor": 1,
+    "form": "chain",
+    "sig": "nums>num",
+    "example": {
+     "in": [
+      [
+       3,
+       1,
+       2
+      ]
+     ],
+     "out": 6
+    }
+   },
+   "average": {
+    "pct": 27,
+    "id": "2b297a983257ad54",
+    "floor": 1,
+    "form": "chain",
+    "sig": "nums>num",
+    "example": {
+     "in": [
+      [
+       3,
+       1,
+       2
+      ]
+     ],
+     "out": 2
+    }
+   },
+   "tour": {
+    "pct": null
+   },
+   "compare": {
+    "pct": 50,
+    "id": "d00acb69d94fc575",
+    "floor": 1,
+    "form": "chain",
+    "sig": "num,num>num",
+    "example": {
+     "in": [
+      0,
+      2
+     ],
+     "out": -1
+    }
+   }
+  },
+  "junk": {
+   "לא רץ על רוב הקלטים": 7183,
+   "תמיד רשימה ריקה": 333,
+   "רשימה של פריט אחד שחוזר": 34,
+   "מתעלם מקלט": 447,
+   "מחזיר את הקלט כמו שהוא": 396,
+   "תמיד אותו פלט": 1434,
+   "פלט מעורב": 11
+  },
+  "junkTotal": 9838,
+  "junkUniform": 34,
+  "stressRejected": 44,
+  "improvements": 1,
+  "wrongImprovements": 0,
+  "examplesOnNamed": [
+   {
+    "id": "49c1702d20bc66a9",
+    "floor": 1,
+    "form": "pair",
+    "formHe": "זוג ב(א(x),א(y))",
+    "of": [
+     "0ce602d9666a323d",
+     "01503fa79ed128b3"
+    ],
+    "sig": "nums,nums>num",
+    "steps": 160,
+    "nodes": 3,
+    "parts": [
+     "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+     "inner-generator:gen/looks/app/src/10-ui.js#ring.r"
+    ],
+    "does": "משווה",
+    "verbs": [
+     "compare"
+    ],
+    "fp": "e1ed98af",
+    "example": {
+     "in": [
+      [
+       3,
+       3,
+       3
+      ],
+      [
+       10,
+       -2,
+       8,
+       -2,
+       5
+      ]
+     ],
+     "out": -5
+    }
+   },
+   {
+    "id": "0ae8107b65ed5b47",
+    "floor": 1,
+    "form": "chain",
+    "formHe": "שרשרת ב(א)",
+    "of": [
+     "7184f07463958170",
+     "bf63481f1eca01eb"
+    ],
+    "sig": "nums>nums",
+    "steps": 83,
+    "nodes": 2,
+    "parts": [
+     "inner-orbit:src/lib/atoms/decompose/genericPreview.ts#amountPreview.pos",
+     "inner-orbit:src/lib/atoms/decompose/genericPreview.ts#textPreview.vals"
+    ],
+    "does": "מסנן",
+    "verbs": [
+     "filter"
+    ],
+    "close": {
+     "verb": "dedupe",
+     "pct": 55
+    },
+    "fp": "a1faf292",
+    "example": {
+     "in": [
+      [
+       3,
+       1,
+       2
+      ]
+     ],
+     "out": [
+      3,
+      1,
+      2
+     ]
+    }
+   },
+   {
+    "id": "85972efd13f234a1",
+    "floor": 1,
+    "form": "chain",
+    "formHe": "שרשרת ב(א)",
+    "of": [
+     "94abcb62cd88d67e",
+     "b0731498ef2fba84"
+    ],
+    "sig": "nums>num",
+    "steps": 93,
+    "nodes": 2,
+    "parts": [
+     "inner-generator:machtzev/ds-forge.mjs#edge.cl.n",
+     "inner-generator:new/boxes/pareto.mjs#paretoReport.asc"
+    ],
+    "does": "בוחר את הקיצוני ✓אמת",
+    "verbs": [
+     "extreme"
+    ],
+    "close": {
+     "verb": "average",
+     "pct": 9
+    },
+    "fp": "bb021e0c",
+    "example": {
+     "in": [
+      [
+       3,
+       1,
+       2
+      ]
+     ],
+     "out": 1
+    }
+   },
+   {
+    "id": "2250d15b2e4c5d47",
+    "floor": 1,
+    "form": "chain",
+    "formHe": "שרשרת ב(א)",
+    "of": [
+     "1b90c2139af9046f",
+     "8160dd2fa8e3026b"
+    ],
+    "sig": "nums>nums",
+    "steps": 100,
+    "nodes": 2,
+    "parts": [
+     "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#CartSubmenu.reversed:step",
+     "inner-orbit:src/lib/config.ts#normalizeTelephony.officeDays:step"
+    ],
+    "does": "מסנן",
+    "verbs": [
+     "filter"
+    ],
+    "close": {
+     "verb": "dedupe",
+     "pct": 9
+    },
+    "fp": "9c6c1d77",
+    "example": {
+     "in": [
+      [
+       3,
+       1,
+       2
+      ]
+     ],
+     "out": [
+      3,
+      2,
+      1
+     ]
+    }
+   },
+   {
+    "id": "320c38a08f287934",
+    "floor": 1,
+    "form": "chain",
+    "formHe": "שרשרת ב(א)",
+    "of": [
+     "02db4535f6617dc9",
+     "7184f07463958170"
+    ],
+    "sig": "nums,num>nums",
+    "steps": 48,
+    "nodes": 2,
+    "parts": [
+     "inner-generator:machtzev/generator/retarget.mjs#retarget.map.head:step",
+     "inner-orbit:src/lib/atoms/decompose/genericPreview.ts#textPreview.vals"
+    ],
+    "does": "מסיר כפולים",
+    "verbs": [
+     "dedupe"
+    ],
+    "close": {
+     "verb": "transcript",
+     "pct": 0
+    },
+    "fp": "86532b21",
+    "example": {
+     "in": [
+      [
+       3,
+       1,
+       2
+      ],
+      4
+     ],
+     "out": [
+      3,
+      1,
+      2
+     ]
+    }
+   },
+   {
+    "id": "8ff1b34e799e1a22",
+    "floor": 1,
+    "form": "chain",
+    "formHe": "שרשרת ב(א)",
+    "of": [
+     "02db4535f6617dc9",
+     "8160dd2fa8e3026b"
+    ],
+    "sig": "nums,num>nums",
+    "steps": 32,
+    "nodes": 2,
+    "parts": [
+     "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#CartSubmenu.reversed:step",
+     "inner-generator:machtzev/generator/retarget.mjs#retarget.map.head:step"
+    ],
+    "does": "הופך סדר",
+    "verbs": [
+     "reverse"
+    ],
+    "close": {
+     "verb": "transcript",
+     "pct": 0
+    },
+    "fp": "6fd4a69e",
+    "example": {
+     "in": [
+      [
+       3,
+       1,
+       2
+      ],
+      4
+     ],
+     "out": [
+      2,
+      1,
+      3
+     ]
+    }
+   },
+   {
+    "id": "21e8d99ab4eb9ac6",
+    "floor": 1,
+    "form": "chain",
+    "formHe": "שרשרת ב(א)",
+    "of": [
+     "02db4535f6617dc9",
+     "94abcb62cd88d67e"
+    ],
+    "sig": "nums,num>nums",
+    "steps": 82,
+    "nodes": 2,
+    "parts": [
+     "inner-generator:machtzev/generator/retarget.mjs#retarget.map.head:step",
+     "inner-generator:new/boxes/pareto.mjs#paretoReport.asc"
+    ],
+    "does": "ממיין",
+    "verbs": [
+     "sort"
+    ],
+    "close": {
+     "verb": "transcript",
+     "pct": 0
+    },
+    "fp": "f3260b4e",
+    "example": {
+     "in": [
+      [
+       3,
+       1,
+       2
+      ],
+      4
+     ],
+     "out": [
+      1,
+      2,
+      3
+     ]
+    }
+   },
+   {
+    "id": "005e3630a8bd5acc",
+    "floor": 1,
+    "form": "pair",
+    "formHe": "זוג ב(א(x),א(y))",
+    "of": [
+     "0ce602d9666a323d",
+     "26afe5fa272f8c46"
+    ],
+    "sig": "nums,nums>num",
+    "steps": 160,
+    "nodes": 3,
+    "parts": [
+     "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+     "inner-generator:machtzev/generator/behavior-plan.mjs#valueSearch.left"
+    ],
+    "does": "משווה",
+    "verbs": [
+     "compare"
+    ],
+    "fp": "781c8114",
+    "example": {
+     "in": [
+      [
+       3,
+       3,
+       3
+      ],
+      [
+       10,
+       -2,
+       8,
+       -2,
+       5
+      ]
+     ],
+     "out": -10
+    }
+   },
+   {
+    "id": "c297c52e66887ab2",
+    "floor": 1,
+    "form": "chain",
+    "formHe": "שרשרת ב(א)",
+    "of": [
+     "7184f07463958170",
+     "02db4535f6617dc9"
+    ],
+    "sig": "nums,num>nums",
+    "steps": 48,
+    "nodes": 2,
+    "parts": [
+     "inner-generator:machtzev/generator/retarget.mjs#retarget.map.head:step",
+     "inner-orbit:src/lib/atoms/decompose/genericPreview.ts#textPreview.vals"
+    ],
+    "does": "מסיר כפולים",
+    "verbs": [
+     "dedupe"
+    ],
+    "close": {
+     "verb": "transcript",
+     "pct": 0
+    },
+    "fp": "4880ea5a",
+    "example": {
+     "in": [
+      [
+       3,
+       1,
+       2
+      ],
+      4
+     ],
+     "out": [
+      3,
+      1,
+      2
+     ]
+    }
+   },
+   {
+    "id": "f99b91f8aec5e08c",
+    "floor": 1,
+    "form": "chain",
+    "formHe": "שרשרת ב(א)",
+    "of": [
+     "8160dd2fa8e3026b",
+     "02db4535f6617dc9"
+    ],
+    "sig": "nums,num>nums",
+    "steps": 32,
+    "nodes": 2,
+    "parts": [
+     "inner-buildsmart:app/src/components/menu/submenu-settings.tsx#CartSubmenu.reversed:step",
+     "inner-generator:machtzev/generator/retarget.mjs#retarget.map.head:step"
+    ],
+    "does": "הופך סדר",
+    "verbs": [
+     "reverse"
+    ],
+    "close": {
+     "verb": "transcript",
+     "pct": 0
+    },
+    "fp": "d180e673",
+    "example": {
+     "in": [
+      [
+       3,
+       1,
+       2
+      ],
+      4
+     ],
+     "out": [
+      2,
+      1,
+      3
+     ]
+    }
+   },
+   {
+    "id": "3d024c749768ec70",
+    "floor": 1,
+    "form": "chain",
+    "formHe": "שרשרת ב(א)",
+    "of": [
+     "94abcb62cd88d67e",
+     "02db4535f6617dc9"
+    ],
+    "sig": "nums,num>nums",
+    "steps": 103,
+    "nodes": 2,
+    "parts": [
+     "inner-generator:machtzev/generator/retarget.mjs#retarget.map.head:step",
+     "inner-generator:new/boxes/pareto.mjs#paretoReport.asc"
+    ],
+    "does": "ממיין",
+    "verbs": [
+     "sort"
+    ],
+    "close": {
+     "verb": "transcript",
+     "pct": 0
+    },
+    "fp": "3155dcc4",
+    "example": {
+     "in": [
+      [
+       3,
+       1,
+       2
+      ],
+      4
+     ],
+     "out": [
+      1,
+      2,
+      3
+     ]
+    }
+   },
+   {
+    "id": "1553584e64c16be2",
+    "floor": 1,
+    "form": "chain",
+    "formHe": "שרשרת ב(א)",
+    "of": [
+     "7184f07463958170",
+     "36cae3451ec4b581"
+    ],
+    "sig": "nums,nums>num",
+    "steps": 48,
+    "nodes": 2,
+    "parts": [
+     "inner-generator:machtzev/census/engine-index.mjs#find.blind:step",
+     "inner-orbit:src/lib/atoms/decompose/genericPreview.ts#textPreview.vals"
+    ],
+    "does": "משווה",
+    "verbs": [
+     "compare"
+    ],
+    "fp": "a57a82f0",
+    "example": {
+     "in": [
+      [
+       3,
+       3,
+       3
+      ],
+      [
+       10,
+       -2,
+       8,
+       -2,
+       5
+      ]
+     ],
+     "out": -4
+    }
+   }
+  ]
+ }
 }
