@@ -1,0 +1,100 @@
+// מבחן נסתר ב׳ — מטרות שהמכונה לא ראתה. כל f טהורה; null = לא מוגדר.
+const fin = (v) => (Number.isFinite(v) ? v : null);
+const finAll = (xs) => (xs.every(Number.isFinite) ? xs : null);
+const P = (x, y) => (Number.isFinite(x) && Number.isFinite(y) ? { x, y } : null);
+const sum = (xs) => xs.reduce((a, b) => a + b, 0);
+const eu = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+const mh = (a, b) => Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
+
+export const TARGETS = [
+  // ───── nums>num ─────
+  { id: 'closestToMeanValue', he: 'האיבר הקרוב ביותר לממוצע (שוויון: הראשון)', sig: 'nums>num',
+    f: (xs) => { if (!xs.length) return null; const m = sum(xs) / xs.length; let b = 0; for (let i = 1; i < xs.length; i++) if (Math.abs(xs[i] - m) < Math.abs(xs[b] - m)) b = i; return fin(xs[b]); } },
+  { id: 'bestWindow3Start', he: 'אינדקס תחילת חלון של 3 רצופים עם הסכום הגדול ביותר (שוויון: הראשון)', sig: 'nums>num',
+    f: (xs) => { if (xs.length < 3) return null; let best = -Infinity, bi = 0; for (let i = 0; i + 3 <= xs.length; i++) { const s = xs[i] + xs[i + 1] + xs[i + 2]; if (s > best) { best = s; bi = i; } } return bi; } },
+  { id: 'maxSubarraySum', he: 'סכום מקסימלי של תת-רצף רציף לא ריק', sig: 'nums>num',
+    f: (xs) => { if (!xs.length) return null; let cur = xs[0], best = xs[0]; for (let i = 1; i < xs.length; i++) { cur = Math.max(xs[i], cur + xs[i]); best = Math.max(best, cur); } return fin(best); } },
+  { id: 'longestRisingRun', he: 'אורך הרצף העולה-ממש הארוך ביותר של שכנים', sig: 'nums>num',
+    f: (xs) => { if (!xs.length) return null; let best = 1, cur = 1; for (let i = 1; i < xs.length; i++) { cur = xs[i] > xs[i - 1] ? cur + 1 : 1; if (cur > best) best = cur; } return best; } },
+  { id: 'maxNeighborJump', he: 'ההפרש המוחלט הגדול ביותר בין שני שכנים', sig: 'nums>num',
+    f: (xs) => { if (xs.length < 2) return null; let b = 0; for (let i = 1; i < xs.length; i++) b = Math.max(b, Math.abs(xs[i] - xs[i - 1])); return fin(b); } },
+  { id: 'countAboveMean', he: 'כמה איברים גדולים ממש מהממוצע', sig: 'nums>num',
+    f: (xs) => { if (!xs.length) return null; const m = sum(xs) / xs.length; return xs.filter((v) => v > m).length; } },
+  { id: 'bestBuySellProfit', he: 'רווח מרבי מקנייה בנקודה ומכירה בנקודה מאוחרת יותר (0 אם אין רווח)', sig: 'nums>num',
+    f: (xs) => { if (xs.length < 2) return null; let lo = xs[0], b = 0; for (let i = 1; i < xs.length; i++) { b = Math.max(b, xs[i] - lo); lo = Math.min(lo, xs[i]); } return fin(b); } },
+  { id: 'minGapSorted', he: 'הפער הקטן ביותר בין שני איברים (אחרי מיון)', sig: 'nums>num',
+    f: (xs) => { if (xs.length < 2) return null; const s = [...xs].sort((a, b) => a - b); let b = Infinity; for (let i = 1; i < s.length; i++) b = Math.min(b, s[i] - s[i - 1]); return fin(b); } },
+  { id: 'indexOfLastMin', he: 'אינדקס המופע האחרון של המינימום', sig: 'nums>num',
+    f: (xs) => { if (!xs.length) return null; let b = 0; for (let i = 1; i < xs.length; i++) if (xs[i] <= xs[b]) b = i; return b; } },
+  { id: 'mostFrequentValue', he: 'הערך השכיח ביותר (שוויון: הקטן מביניהם)', sig: 'nums>num',
+    f: (xs) => { if (!xs.length) return null; const c = new Map(); for (const v of xs) c.set(v, (c.get(v) || 0) + 1); let bv = null, bc = 0; for (const [v, k] of c) if (k > bc || (k === bc && v < bv)) { bv = v; bc = k; } return bv; } },
+  { id: 'signChanges', he: 'כמה פעמים מתחלף הסימן בין שכנים (אפסים מדולגים)', sig: 'nums>num',
+    f: (xs) => { const nz = xs.filter((v) => v !== 0); if (!xs.length) return null; let c = 0; for (let i = 1; i < nz.length; i++) if ((nz[i] > 0) !== (nz[i - 1] > 0)) c++; return c; } },
+  { id: 'greedyRunsUnderCap', he: 'כמה קבוצות רצופות נוצרות בחלוקה חמדנית כשסכום ערכים מוחלטים בקבוצה ≤ 10', sig: 'nums>num',
+    f: (xs) => { if (!xs.length) return null; let g = 1, cur = 0; for (const v of xs) { const a = Math.abs(v); if (cur > 0 && cur + a > 10) { g++; cur = a; } else cur += a; } return g; } },
+  { id: 'peakCount', he: 'מספר פסגות פנימיות (גדול ממש משני השכנים)', sig: 'nums>num',
+    f: (xs) => { if (xs.length < 3) return null; let c = 0; for (let i = 1; i + 1 < xs.length; i++) if (xs[i] > xs[i - 1] && xs[i] > xs[i + 1]) c++; return c; } },
+
+  // ───── nums>nums ─────
+  { id: 'runningMax', he: 'מקסימום מצטבר', sig: 'nums>nums', f: (xs) => { let m = -Infinity; return xs.map((v) => (m = Math.max(m, v))); } },
+  { id: 'neighborDiffs', he: 'הפרשים בין שכנים (הבא פחות הקודם)', sig: 'nums>nums', f: (xs) => finAll(xs.slice(1).map((v, i) => v - xs[i])) },
+  { id: 'movingAvg2', he: 'ממוצע נע של זוגות שכנים', sig: 'nums>nums', f: (xs) => finAll(xs.slice(1).map((v, i) => (v + xs[i]) / 2)) },
+  { id: 'centerOnMean', he: 'כל איבר פחות ממוצע הרשימה', sig: 'nums>nums',
+    f: (xs) => { if (!xs.length) return null; const m = sum(xs) / xs.length; return finAll(xs.map((v) => v - m)); } },
+  { id: 'rankOf', he: 'לכל איבר — כמה איברים קטנים ממנו ממש', sig: 'nums>nums',
+    f: (xs) => { const s = [...xs].sort((a, b) => a - b); return xs.map((v) => { let lo = 0, hi = s.length; while (lo < hi) { const m = (lo + hi) >> 1; if (s[m] < v) lo = m + 1; else hi = m; } return lo; }); } },
+  { id: 'sortByAbsThenValue', he: 'מיון לפי ערך מוחלט, שוויון — הקטן קודם', sig: 'nums>nums', f: (xs) => [...xs].sort((a, b) => Math.abs(a) - Math.abs(b) || a - b) },
+  { id: 'keepNewRecords', he: 'רק האיברים שגדולים ממש מכל מה שלפניהם', sig: 'nums>nums',
+    f: (xs) => { let m = -Infinity; const o = []; for (const v of xs) if (v > m) { o.push(v); m = v; } return o; } },
+  { id: 'clampToMeanBand', he: 'חיתוך כל איבר לטווח [ממוצע−3, ממוצע+3]', sig: 'nums>nums',
+    f: (xs) => { if (!xs.length) return null; const m = sum(xs) / xs.length; return finAll(xs.map((v) => Math.min(m + 3, Math.max(m - 3, v)))); } },
+  { id: 'distinctSortedDesc', he: 'ערכים שונים בסדר יורד', sig: 'nums>nums', f: (xs) => [...new Set(xs)].sort((a, b) => b - a) },
+  { id: 'nextGreaterValue', he: 'לכל איבר — הערך הראשון מימינו שגדול ממנו, או האיבר עצמו אם אין', sig: 'nums>nums',
+    f: (xs) => { const o = xs.slice(), st = []; for (let i = 0; i < xs.length; i++) { while (st.length && xs[st[st.length - 1]] < xs[i]) o[st.pop()] = xs[i]; st.push(i); } return o; } },
+  { id: 'prefixMeans', he: 'ממוצע מצטבר', sig: 'nums>nums', f: (xs) => { let s = 0; return finAll(xs.map((v, i) => (s += v) / (i + 1))); } },
+
+  // ───── num>num / num,num>num ─────
+  { id: 'digitSumAbs', he: 'סכום ספרות הערך המוחלט (חלק שלם)', sig: 'num>num',
+    f: (n) => { let a = Math.floor(Math.abs(n)); if (!Number.isSafeInteger(a)) return null; let s = 0; while (a > 0) { s += a % 10; a = Math.floor(a / 10); } return s; } },
+  { id: 'collatzSteps', he: 'מספר צעדי קולץ עד 1 (רק לשלם חיובי, תקרה 1000)', sig: 'num>num',
+    f: (n) => { if (!Number.isInteger(n) || n < 1 || n > 1e9) return null; let c = 0; while (n !== 1 && c < 1000) { n = n % 2 ? 3 * n + 1 : n / 2; c++; } return n === 1 ? c : null; } },
+  { id: 'gcdAbs', he: 'מחלק משותף מרבי של הערכים המוחלטים (שלמים)', sig: 'num,num>num',
+    f: (a, b) => { if (!Number.isSafeInteger(a) || !Number.isSafeInteger(b)) return null; a = Math.abs(a); b = Math.abs(b); if (!a && !b) return null; while (b) [a, b] = [b, a % b]; return a; } },
+  { id: 'roundToMultiple', he: 'עיגול הראשון לכפולה הקרובה של הערך המוחלט של השני', sig: 'num,num>num',
+    f: (a, b) => { const m = Math.abs(b); if (!m) return null; return fin(Math.round(a / m) * m); } },
+
+  // ───── nums,num ─────
+  { id: 'closestValueTo', he: 'האיבר הקרוב ביותר למספר הנתון (שוויון: הקטן)', sig: 'nums,num>num',
+    f: (xs, t) => { if (!xs.length) return null; let b = xs[0]; for (const v of xs) { const d = Math.abs(v - t), e = Math.abs(b - t); if (d < e || (d === e && v < b)) b = v; } return b; } },
+  { id: 'longestRunAtMost', he: 'אורך הרצף הרציף הארוך ביותר שסכומו ≤ המספר (ערכים מוחלטים)', sig: 'nums,num>num',
+    f: (xs, k) => { if (!xs.length) return null; let lo = 0, s = 0, b = 0; for (let i = 0; i < xs.length; i++) { s += Math.abs(xs[i]); while (s > k && lo <= i) s -= Math.abs(xs[lo++]); b = Math.max(b, i - lo + 1); } return b; } },
+  { id: 'windowSums', he: 'סכומי חלונות רצופים באורך |k| (חלק שלם) חסום לטווח 1..n; רשימה ריקה ⇒ לא מוגדר', sig: 'nums,num>nums',
+    f: (xs, k0) => { if (!xs.length || !Number.isFinite(k0)) return null; const k = Math.min(xs.length, Math.max(1, Math.floor(Math.abs(k0)))); const o = []; let s = 0; for (let i = 0; i < xs.length; i++) { s += xs[i]; if (i >= k) s -= xs[i - k]; if (i >= k - 1) o.push(s); } return finAll(o); } },
+  { id: 'kSmallestSorted', he: 'k האיברים הקטנים ביותר בסדר עולה (k חסום ל-0..n)', sig: 'nums,num>nums',
+    f: (xs, k) => { if (!Number.isFinite(k)) return null; const kk = Math.max(0, Math.min(xs.length, Math.floor(k))); return [...xs].sort((a, b) => a - b).slice(0, kk); } },
+
+  // ───── points ─────
+  { id: 'closestPointEuclid', he: 'הנקודה הקרובה ביותר לנקודה הנתונה (אוקלידי; שוויון: הראשונה)', sig: 'pts,pt>pt',
+    f: (ps, q) => { if (!ps.length) return null; let b = ps[0], bd = eu(b, q); for (const p of ps) { const d = eu(p, q); if (d < bd) { b = p; bd = d; } } return P(b.x, b.y); } },
+  { id: 'farthestManhattanDist', he: 'המרחק (מנהטן) לנקודה הרחוקה ביותר מהנקודה הנתונה', sig: 'pts,pt>num',
+    f: (ps, q) => { if (!ps.length) return null; let b = 0; for (const p of ps) b = Math.max(b, mh(p, q)); return fin(b); } },
+  { id: 'centroid', he: 'מרכז הכובד (ממוצע x ו-y)', sig: 'pts>pt',
+    f: (ps) => { if (!ps.length) return null; return P(sum(ps.map((p) => p.x)) / ps.length, sum(ps.map((p) => p.y)) / ps.length); } },
+  { id: 'pathLengthEuclid', he: 'אורך המסלול העובר בנקודות לפי הסדר (אוקלידי)', sig: 'pts>num',
+    f: (ps) => { if (ps.length < 2) return null; let s = 0; for (let i = 1; i < ps.length; i++) s += eu(ps[i], ps[i - 1]); return fin(s); } },
+  { id: 'closestPairDistEuclid', he: 'המרחק (אוקלידי) בין שתי הנקודות הקרובות ביותר זו לזו', sig: 'pts>num',
+    f: (ps) => { if (ps.length < 2) return null; let b = Infinity; for (let i = 0; i < ps.length; i++) for (let j = i + 1; j < ps.length; j++) b = Math.min(b, eu(ps[i], ps[j])); return fin(b); } },
+  { id: 'bboxArea', he: 'שטח המלבן החוסם המקביל לצירים', sig: 'pts>num',
+    f: (ps) => { if (!ps.length) return null; const xs = ps.map((p) => p.x), ys = ps.map((p) => p.y); return fin((Math.max(...xs) - Math.min(...xs)) * (Math.max(...ys) - Math.min(...ys))); } },
+  { id: 'nearestNeighborTourManhattan', he: 'סדר ביקור חמדני: מתחילים בראשונה, כל פעם לנקודה הלא-מבוקרת הקרובה (מנהטן; שוויון: הראשונה)', sig: 'pts>pts',
+    f: (ps) => { if (!ps.length) return null; const used = new Array(ps.length).fill(false); const o = [ps[0]]; used[0] = true; let cur = ps[0]; for (let k = 1; k < ps.length; k++) { let bi = -1, bd = Infinity; for (let i = 0; i < ps.length; i++) if (!used[i]) { const d = mh(cur, ps[i]); if (d < bd) { bd = d; bi = i; } } used[bi] = true; cur = ps[bi]; o.push(cur); } return o.map((p) => ({ x: p.x, y: p.y })); } },
+  { id: 'sortByDistFromCentroid', he: 'מיון הנקודות לפי מרחק (אוקלידי) ממרכז הכובד, הקרובה קודם (יציב)', sig: 'pts>pts',
+    f: (ps) => { if (!ps.length) return null; const cx = sum(ps.map((p) => p.x)) / ps.length, cy = sum(ps.map((p) => p.y)) / ps.length; if (!Number.isFinite(cx) || !Number.isFinite(cy)) return null; return ps.map((p, i) => [Math.hypot(p.x - cx, p.y - cy), i, p]).sort((a, b) => a[0] - b[0] || a[1] - b[1]).map((t) => ({ x: t[2].x, y: t[2].y })); } },
+  { id: 'countWithinManhattan5', he: 'כמה נקודות במרחק מנהטן ≤ 5 מהנקודה הנתונה', sig: 'pts,pt>num',
+    f: (ps, q) => (ps.length ? ps.filter((p) => mh(p, q) <= 5).length : null) },
+  { id: 'midpoint', he: 'נקודת האמצע בין שתי נקודות', sig: 'pt,pt>pt', f: (a, b) => P((a.x + b.x) / 2, (a.y + b.y) / 2) },
+  { id: 'medoidIndex', he: 'אינדקס הנקודה שסכום מרחקיה (מנהטן) לכל השאר מינימלי (שוויון: הראשונה)', sig: 'pts>num',
+    f: (ps) => { if (!ps.length) return null; let bi = 0, bs = Infinity; for (let i = 0; i < ps.length; i++) { let s = 0; for (const q of ps) s += mh(ps[i], q); if (s < bs) { bs = s; bi = i; } } return bi; } },
+  { id: 'polygonAreaShoelace', he: 'שטח המצולע לפי סדר הנקודות (נוסחת השרוך, ערך מוחלט)', sig: 'pts>num',
+    f: (ps) => { if (ps.length < 3) return null; let s = 0; for (let i = 0; i < ps.length; i++) { const a = ps[i], b = ps[(i + 1) % ps.length]; s += a.x * b.y - b.x * a.y; } return fin(Math.abs(s) / 2); } },
+];
