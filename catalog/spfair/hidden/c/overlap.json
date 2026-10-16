@@ -1,0 +1,290 @@
+{
+ "about": "RECIPES2 · חפיפת מבחן ג׳ מול א׳/ב׳/הציבורי — לפי התנהגות (overlap.mjs). לא לערוך ביד",
+ "inputsPerSig": "|samplesOf| + 12 לחץ + 600 אקראיים",
+ "total": 46,
+ "same": 23,
+ "sameButEdges": 2,
+ "fresh": 21,
+ "rows": [
+  {
+   "id": "argmax",
+   "sig": "nums>num",
+   "kind": "זהה",
+   "suite": "ציבורי",
+   "differOn": 0
+  },
+  {
+   "id": "indexOfLastMin",
+   "sig": "nums>num",
+   "kind": "זהה",
+   "suite": "ב׳",
+   "differOn": 0
+  },
+  {
+   "id": "longestRisingRun",
+   "sig": "nums>num",
+   "kind": "זהה",
+   "suite": "ב׳",
+   "differOn": 0
+  },
+  {
+   "id": "longestSameRun",
+   "sig": "nums>num",
+   "kind": "חדשה"
+  },
+  {
+   "id": "peakCount",
+   "sig": "nums>num",
+   "kind": "זהה",
+   "suite": "ב׳",
+   "differOn": 0
+  },
+  {
+   "id": "maxNeighborJump",
+   "sig": "nums>num",
+   "kind": "זהה",
+   "suite": "ב׳",
+   "differOn": 0
+  },
+  {
+   "id": "sumPositives",
+   "sig": "nums>num",
+   "kind": "זהה-חוץ-מקצוות",
+   "suite": "א׳",
+   "differOn": 51
+  },
+  {
+   "id": "midRange",
+   "sig": "nums>num",
+   "kind": "חדשה"
+  },
+  {
+   "id": "signChanges",
+   "sig": "nums>num",
+   "kind": "זהה",
+   "suite": "ב׳",
+   "differOn": 0
+  },
+  {
+   "id": "secondSmallestDistinct",
+   "sig": "nums>num",
+   "kind": "חדשה"
+  },
+  {
+   "id": "mostFrequentValue",
+   "sig": "nums>num",
+   "kind": "זהה",
+   "suite": "ב׳",
+   "differOn": 0
+  },
+  {
+   "id": "countAboveMean",
+   "sig": "nums>num",
+   "kind": "זהה",
+   "suite": "ב׳",
+   "differOn": 0
+  },
+  {
+   "id": "variance",
+   "sig": "nums>num",
+   "kind": "זהה",
+   "suite": "ציבורי",
+   "differOn": 0
+  },
+  {
+   "id": "maxSubarraySum",
+   "sig": "nums>num",
+   "kind": "זהה",
+   "suite": "ב׳",
+   "differOn": 0
+  },
+  {
+   "id": "runningMax",
+   "sig": "nums>nums",
+   "kind": "זהה",
+   "suite": "א׳",
+   "differOn": 0
+  },
+  {
+   "id": "cumsum",
+   "sig": "nums>nums",
+   "kind": "זהה",
+   "suite": "ציבורי",
+   "differOn": 0
+  },
+  {
+   "id": "pairDiffs",
+   "sig": "nums>nums",
+   "kind": "זהה",
+   "suite": "א׳",
+   "differOn": 0
+  },
+  {
+   "id": "rankOf",
+   "sig": "nums>nums",
+   "kind": "זהה",
+   "suite": "ב׳",
+   "differOn": 0
+  },
+  {
+   "id": "nextGreaterValue",
+   "sig": "nums>nums",
+   "kind": "זהה",
+   "suite": "ב׳",
+   "differOn": 0
+  },
+  {
+   "id": "movingAverage3",
+   "sig": "nums>nums",
+   "kind": "חדשה"
+  },
+  {
+   "id": "runLengths",
+   "sig": "nums>nums",
+   "kind": "חדשה"
+  },
+  {
+   "id": "squeezeRepeats",
+   "sig": "nums>nums",
+   "kind": "חדשה"
+  },
+  {
+   "id": "positiveStreakAt",
+   "sig": "nums>nums",
+   "kind": "חדשה"
+  },
+  {
+   "id": "minFromHereOn",
+   "sig": "nums>nums",
+   "kind": "חדשה"
+  },
+  {
+   "id": "neighbourMax",
+   "sig": "nums>nums",
+   "kind": "חדשה"
+  },
+  {
+   "id": "centerOnMean",
+   "sig": "nums>nums",
+   "kind": "זהה",
+   "suite": "ב׳",
+   "differOn": 0
+  },
+  {
+   "id": "digitSum",
+   "sig": "num>num",
+   "kind": "זהה",
+   "suite": "א׳",
+   "differOn": 0
+  },
+  {
+   "id": "digitCount",
+   "sig": "num>num",
+   "kind": "חדשה"
+  },
+  {
+   "id": "reversedDigits",
+   "sig": "num>num",
+   "kind": "חדשה"
+  },
+  {
+   "id": "digitalRoot",
+   "sig": "num>num",
+   "kind": "חדשה"
+  },
+  {
+   "id": "collatzSteps",
+   "sig": "num>num",
+   "kind": "זהה",
+   "suite": "א׳",
+   "differOn": 0
+  },
+  {
+   "id": "gcdAbs",
+   "sig": "num,num>num",
+   "kind": "זהה",
+   "suite": "ב׳",
+   "differOn": 0
+  },
+  {
+   "id": "roundToMultiple",
+   "sig": "num,num>num",
+   "kind": "זהה",
+   "suite": "ב׳",
+   "differOn": 0
+  },
+  {
+   "id": "windowSums",
+   "sig": "nums,num>nums",
+   "kind": "זהה-חוץ-מקצוות",
+   "suite": "ב׳",
+   "differOn": 183
+  },
+  {
+   "id": "bestWindowSum",
+   "sig": "nums,num>num",
+   "kind": "חדשה"
+  },
+  {
+   "id": "indexClosestTo",
+   "sig": "nums,num>num",
+   "kind": "חדשה"
+  },
+  {
+   "id": "countAtLeast",
+   "sig": "nums,num>num",
+   "kind": "חדשה"
+  },
+  {
+   "id": "rotateLeftBy",
+   "sig": "nums,num>nums",
+   "kind": "חדשה"
+  },
+  {
+   "id": "pathLengthEuclid",
+   "sig": "pts>num",
+   "kind": "זהה",
+   "suite": "ב׳",
+   "differOn": 0
+  },
+  {
+   "id": "farthestFromOriginIndex",
+   "sig": "pts>num",
+   "kind": "חדשה"
+  },
+  {
+   "id": "centroid",
+   "sig": "pts>pt",
+   "kind": "זהה",
+   "suite": "ב׳",
+   "differOn": 0
+  },
+  {
+   "id": "cityBlockDistance",
+   "sig": "pt,pt>num",
+   "kind": "חדשה"
+  },
+  {
+   "id": "nearestDistanceTo",
+   "sig": "pts,pt>num",
+   "kind": "חדשה"
+  },
+  {
+   "id": "bboxArea",
+   "sig": "pts>num",
+   "kind": "זהה",
+   "suite": "ב׳",
+   "differOn": 0
+  },
+  {
+   "id": "sortByXThenY",
+   "sig": "pts>pts",
+   "kind": "חדשה"
+  },
+  {
+   "id": "dropRepeatedStops",
+   "sig": "pts>pts",
+   "kind": "חדשה"
+  }
+ ]
+}
