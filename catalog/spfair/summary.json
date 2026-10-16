@@ -121,7 +121,7 @@
   "rc": {
    "salt": 0,
    "rounds": 3,
-   "sameBytesAsBranch": true,
+   "sameBytesAsBranch": false,
    "exactFair": [
     "average",
     "extreme"
@@ -152,6 +152,24 @@
    "success": 63,
    "maxDepthSuccess": 3,
    "wrongImprovements": 0
+  },
+  "rc2-eq": {
+   "salt": 0,
+   "rounds": 3,
+   "sameBytesAsBranch": false,
+   "exactFair": [
+    "average",
+    "extreme"
+   ],
+   "exactBaseline": [],
+   "averagePct": {
+    "baseline": 36,
+    "selfprint": 100
+   },
+   "blueprints": 280,
+   "success": 74,
+   "maxDepthSuccess": 2,
+   "wrongImprovements": 0
   }
  },
  "exactFairBy": {
@@ -163,10 +181,12 @@
    "r6",
    "rp",
    "rc",
-   "rp-eq"
+   "rp-eq",
+   "rc2-eq"
   ],
   "extreme": [
-   "rc"
+   "rc",
+   "rc2-eq"
   ]
  },
  "targetsHitBy": {
@@ -174,11 +194,13 @@
    "he": "רק מה שמעל הממוצע",
    "known": false,
    "selfprint": [
-    "rc"
+    "rc",
+    "rc2-eq"
    ],
    "baseline": [],
    "byBlueprint": [
-    "rc:recipe:bp-s-dca1daea:d1"
+    "rc:recipe:bp-s-dca1daea:d1",
+    "rc2-eq:recipe:bp-s-dca1daea:d1"
    ],
    "alreadyPart": []
   },
@@ -186,11 +208,13 @@
    "he": "מקום-המקסימום (הראשון)",
    "known": false,
    "selfprint": [
-    "rc"
+    "rc",
+    "rc2-eq"
    ],
    "baseline": [],
    "byBlueprint": [
-    "rc:recipe:bp-s-37b79277:d1"
+    "rc:recipe:bp-s-37b79277:d1",
+    "rc2-eq:recipe:bp-s-37b79277:d1"
    ],
    "alreadyPart": []
   },
@@ -198,11 +222,13 @@
    "he": "מקום-המינימום (הראשון)",
    "known": false,
    "selfprint": [
-    "rc"
+    "rc",
+    "rc2-eq"
    ],
    "baseline": [],
    "byBlueprint": [
-    "rc:recipe:bp-s-37b79277:d1"
+    "rc:recipe:bp-s-37b79277:d1",
+    "rc2-eq:recipe:bp-s-37b79277:d1"
    ],
    "alreadyPart": []
   },
@@ -210,11 +236,25 @@
    "he": "סכום-מצטבר",
    "known": false,
    "selfprint": [
-    "rc"
+    "rc",
+    "rc2-eq"
    ],
    "baseline": [],
    "byBlueprint": [
-    "rc:recipe:bp-s-a6e802dd:d1"
+    "rc:recipe:bp-s-a6e802dd:d1",
+    "rc2-eq:recipe:bp-s-a6e802dd:d1"
+   ],
+   "alreadyPart": []
+  },
+  "deviations": {
+   "he": "סטייה מהממוצע (x − ממוצע)",
+   "known": false,
+   "selfprint": [
+    "rc2-eq"
+   ],
+   "baseline": [],
+   "byBlueprint": [
+    "rc2-eq:recipe:bp-s-9cc635ab:d1"
    ],
    "alreadyPart": []
   },
@@ -231,7 +271,8 @@
     "m2",
     "rp",
     "rc",
-    "rp-eq"
+    "rp-eq",
+    "rc2-eq"
    ],
    "byBlueprint": [],
    "alreadyPart": []
@@ -244,7 +285,8 @@
     "m2",
     "rp",
     "rc",
-    "rp-eq"
+    "rp-eq",
+    "rc2-eq"
    ],
    "byBlueprint": [],
    "alreadyPart": [
@@ -256,7 +298,8 @@
     "m2",
     "rp",
     "rc",
-    "rp-eq"
+    "rp-eq",
+    "rc2-eq"
    ]
   },
   "last": {
@@ -274,7 +317,8 @@
     "m2",
     "rp",
     "rc",
-    "rp-eq"
+    "rp-eq",
+    "rc2-eq"
    ]
   },
   "max": {
@@ -292,7 +336,8 @@
     "m2",
     "rp",
     "rc",
-    "rp-eq"
+    "rp-eq",
+    "rc2-eq"
    ]
   },
   "mean": {
@@ -306,7 +351,8 @@
     "r6",
     "rp",
     "rc",
-    "rp-eq"
+    "rp-eq",
+    "rc2-eq"
    ],
    "baseline": [],
    "byBlueprint": [
@@ -317,7 +363,9 @@
     "r6:code:bp-c-4590428b:d1",
     "rp:code:bp-c-4590428b:d1",
     "rc:code:bp-c-4590428b:d1",
-    "rp-eq:code:bp-c-4590428b:d1"
+    "rp-eq:code:bp-c-4590428b:d1",
+    "rc2-eq:recipe:bp-s-a1fd2009:d1",
+    "rc2-eq:code:bp-c-4590428b:d1"
    ],
    "alreadyPart": []
   },
@@ -333,7 +381,8 @@
     "m2",
     "rp",
     "rc",
-    "rp-eq"
+    "rp-eq",
+    "rc2-eq"
    ],
    "baseline": [
     "s0",
@@ -344,7 +393,8 @@
     "m2",
     "rp",
     "rc",
-    "rp-eq"
+    "rp-eq",
+    "rc2-eq"
    ],
    "byBlueprint": [],
    "alreadyPart": []
@@ -360,7 +410,8 @@
     "r6",
     "rp",
     "rc",
-    "rp-eq"
+    "rp-eq",
+    "rc2-eq"
    ],
    "baseline": [],
    "byBlueprint": [
@@ -371,7 +422,8 @@
     "r6:code:bp-c-4590428b:d1",
     "rp:code:bp-c-4590428b:d1",
     "rc:code:bp-c-4590428b:d1",
-    "rp-eq:code:bp-c-4590428b:d1"
+    "rp-eq:code:bp-c-4590428b:d1",
+    "rc2-eq:recipe:bp-s-a1fd2009:d1"
    ],
    "alreadyPart": []
   },
@@ -387,7 +439,8 @@
     "m2",
     "rp",
     "rc",
-    "rp-eq"
+    "rp-eq",
+    "rc2-eq"
    ],
    "baseline": [
     "s0",
@@ -398,7 +451,8 @@
     "m2",
     "rp",
     "rc",
-    "rp-eq"
+    "rp-eq",
+    "rc2-eq"
    ],
    "byBlueprint": [],
    "alreadyPart": []
@@ -418,7 +472,8 @@
     "m2",
     "rp",
     "rc",
-    "rp-eq"
+    "rp-eq",
+    "rc2-eq"
    ]
   },
   "sortDesc": {
@@ -436,7 +491,8 @@
     "m2",
     "rp",
     "rc",
-    "rp-eq"
+    "rp-eq",
+    "rc2-eq"
    ]
   },
   "squares": {
@@ -445,7 +501,8 @@
    "selfprint": [],
    "baseline": [
     "rc",
-    "rp-eq"
+    "rp-eq",
+    "rc2-eq"
    ],
    "byBlueprint": [],
    "alreadyPart": []

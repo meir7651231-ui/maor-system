@@ -6,7 +6,7 @@
  "sameBytesAsBranch": {
   "control": true,
   "ledger": true,
-  "compare": true,
+  "compare": false,
   "blueprints": true,
   "found": true
  },

@@ -54,7 +54,11 @@ describe('🚫 SELFPRINT · עיוורון — בלי שרטוטים שנכתב�
   it('RECIPES (16.10.2026): מקור שלישי מוצהר — שרטוט "recipe" = בדיוק שלד מספר-המתכונים הנעול (recipes/book.mjs, sha256), לא שום דבר אחר', async () => {
     const { RECIPES } = await import('../selfprint/recipes/book.mjs');
     const { recipeShapes } = await import('../selfprint/recipes/load.mjs');
-    const book = new Map(recipeShapes(RECIPES).map((x: { id: string; graph: unknown }) => [x.id, JSON.stringify(x.graph)]));
+    // RECIPES2 (16.10.2026): ועוד כרך ב׳ הנעול (recipes/book2.mjs + load2.mjs, קבועי-הקוד ≥5) — אותו אינווריאנט
+    const { RECIPES: R2 } = await import('../selfprint/recipes/book2.mjs');
+    const { recipeShapes2, minedConsts } = await import('../selfprint/recipes/load2.mjs');
+    const consts = minedConsts(JSON.parse(readFileSync(join(SP, 'library-code.json'), 'utf8')).shapes, 5);
+    const book = new Map([...recipeShapes(RECIPES), ...recipeShapes2(R2, consts)].map((x: { id: string; graph: unknown }) => [x.id, JSON.stringify(x.graph)]));
     const bps = JSON.parse(readFileSync(join(SP, 'blueprints.json'), 'utf8'));
     const rs = bps.filter((b: { source: string }) => b.source === 'recipe');
     expect(rs.length).toBe(book.size);
