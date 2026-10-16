@@ -147,7 +147,7 @@ npx vitest run catalog/__tests__/selfprint-recipes.test.ts catalog/__tests__/spf
 | `fair.mjs --check rc` | ההבדל היחיד: `sameBytesAsBranch` false⇒true (ב-rc הראשון פלטי-המנוע שבענף עוד היו של RINGS-PORT); אחרי קומיט-הפלטים — הרצה חוזרת (`fair.mjs rc`) ⇒ כל השאר זהה בבתים, וגם `hidden/runs` + `hidden/b/runs` זהים; ו-sameBytesAsBranch=true = הרצה נפרדת של `selfprint.mjs` נתנה אותם בתים |
 | `selfprint.mjs --check` (גם הצמיחה, בלי מטמון) | ✓ אותם בתים |
 | `selfprint/mine.mjs --check` | ✓ |
-| `fresh-gate` (rebuild --check + git נקי) | ראו קומיט-הסיום |
+| `fresh-gate` (rebuild --check + git נקי) | ✓ |
 | `control-v1.json` (הביקורת של MINER2) | זהה בבתים אחרי השינויים — המנוע הישן לא זז |
 | `npm run verify` | נאכף ב-hooks בכל קומיט |
 
