@@ -39,6 +39,12 @@ describe('SP-FAIR · המנוע קפוא', () => {
     expect(h).toBe(SEAL);
     expect(readFileSync(join(FAIR, 'hidden/b/SHA256'), 'utf8').trim()).toBe(SEAL);
   });
+  it('המבחן הנסתר ג׳ (RECIPES2, 16.10.2026) חתום: 46 מטרות שכתב סוכן-משנה עיוור — sha256 ננעל בקומיט הראשון של הענף, לפני כל שינוי במנוע', () => {
+    const SEAL = '6e93b14e78928eedffc94c6e46fe8ddd9420666fd0b035e3d6442a764a99b602';
+    const h = createHash('sha256').update(readFileSync(join(FAIR, 'hidden/c/targets-c.mjs'))).digest('hex');
+    expect(h).toBe(SEAL);
+    expect(readFileSync(join(FAIR, 'hidden/c/SHA256'), 'utf8').trim().split(/\s+/)[0]).toBe(SEAL);
+  });
   it('budgetText: רק rounds משתנה; salt מוסיף שדה-סימון בלבד; בלי שניהם ⇒ null (הקובץ כמו שהוא)', () => {
     const raw = readFileSync(join(SP, 'budget.json'), 'utf8');
     expect(budgetText(raw, 0, null)).toBeNull();

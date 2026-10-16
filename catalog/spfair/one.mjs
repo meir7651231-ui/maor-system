@@ -73,6 +73,18 @@ if (fs.existsSync(HIDB)) {
   fs.mkdirSync(path.join(HERE, 'hidden/b/runs'), { recursive: true });
   fs.writeFileSync(path.join(HERE, 'hidden/b/runs', name + '.json'), JSON.stringify({ about: 'RECIPES · המבחן הנסתר ב׳ (sha256 ב-hidden/b/SHA256) על אותה הרצה. נבנה ע״י fair.mjs', name, targets: HB.length, selfprint: hsp, baseline: hbl }, null, 1) + '\n');
 }
+/* RECIPES2 · המבחן הנסתר ג׳ (catalog/spfair/hidden/c, 46 מטרות, סוכן עיוור, חתום sha256 לפני כל שינוי): אותה מדידה בדיוק,
+   קובץ נפרד (hidden/c/runs/<name>.json) שלא פותחים עד הסוף */
+const HIDC = path.join(HERE, 'hidden/c/targets-c.mjs');
+if (fs.existsSync(HIDC)) {
+  const rd = fs.readFileSync.__orig || fs.readFileSync;
+  const { TARGETS: HC } = await import('data:text/javascript;base64,' + Buffer.from(String(rd(HIDC, 'utf8'))).toString('base64'));
+  const bpm = new Map(tap.bps.map((b) => [b.id, b]));
+  const hsp = scanTargets({ R: tap.R, L, things: tap.H0.things, shelf: tap.H0.shelf, bpById: bpm, targets: HC, thingSteps: BUD.thingSteps });
+  const hbl = scanTargets({ R: tap.R, L, things: tap.B0.things, shelf: tap.B0.shelf, targets: HC, thingSteps: BUD.thingSteps });
+  fs.mkdirSync(path.join(HERE, 'hidden/c/runs'), { recursive: true });
+  fs.writeFileSync(path.join(HERE, 'hidden/c/runs', name + '.json'), JSON.stringify({ about: 'RECIPES2 · המבחן הנסתר ג׳ (sha256 ב-hidden/c/SHA256) על אותה הרצה. נבנה ע״י fair.mjs', name, targets: HC.length, selfprint: hsp, baseline: hbl }, null, 1) + '\n');
+}
 log('מדידה: ' + sp.hits.length + ' פגיעות (שרטוטים) · ' + bl.hits.length + ' (צמיחה בלבד)');
 
 /** פעלים שנבנו מחדש בדיוק — מ-compare של המנוע; לכל אחד: הטוב, ומאיזה שרטוט. */
