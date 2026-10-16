@@ -138,7 +138,8 @@ describe('SP-FAIR · התוצאות שבריפו', () => {
   const runs = Object.fromEntries([...planOrder.filter((n) => onDisk.has(n)), ...[...onDisk].filter((n) => !planOrder.includes(n)).sort()].map((n) => [n, JSON.parse(readFileSync(join(FAIR, 'runs', n + '.json'), 'utf8'))]));
   it('יש את כל ההרצות של plan.json', () => {
     const plan = JSON.parse(readFileSync(join(FAIR, 'plan.json'), 'utf8'));
-    expect(Object.keys(runs).sort()).toEqual(Object.keys(plan.runs).sort());
+    // RECIPES2: הרצה שנרשמה בתוכנית לפני שרצה (pending: true — ההרצה המנותקת של r2) עוד לא חייבת קובץ-תוצאה
+    expect(Object.keys(runs).sort()).toEqual(Object.keys(plan.runs).filter((n) => !plan.runs[n].pending).sort());
   });
   it('s0 (בלי שינוי) — פלטי-המנוע זהים בבתים לקבצים שבענף ⇒ הכלי לא משנה כלום', () => {
     expect(Object.values(runs.s0.sameBytesAsBranch).every(Boolean)).toBe(true);
