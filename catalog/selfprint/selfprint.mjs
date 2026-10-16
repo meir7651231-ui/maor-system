@@ -36,6 +36,10 @@ const RG = await import('./rings.mjs');
 /* RECIPES · ספר-המתכונים (recipes/book.mjs — נכתב ע״י AI פעם אחת ונעול) — רק כש-budget.recipes */
 const RECIPE_SHAPES = BUD_RECIPES() ? (await import('./recipes/load.mjs')).recipeShapes((await import('./recipes/book.mjs')).RECIPES) : [];
 function BUD_RECIPES() { return JSON.parse(fs.readFileSync(path.join(HERE, 'budget.json'), 'utf8')).recipes || null; }
+/* RECIPES2 · כרך ב׳ (recipes/book2.mjs — נכתב ע״י AI פעם אחת ונעול) + מילוי-חכם + פתרון-ביניים⇒כלי — רק כש-budget.recipes2.
+   הקבועים של ‎$const‎ — מה שחוזר ≥5 פעמים בשלדים שהכורה קרא מהקוד (load2.mjs › minedConsts), לא מהספר. */
+const BUD_R2 = JSON.parse(fs.readFileSync(path.join(HERE, 'budget.json'), 'utf8')).recipes2 || null;
+const RECIPE_SHAPES2 = BUD_R2 ? await (async () => { const L2 = await import('./recipes/load2.mjs'); const code = JSON.parse(fs.readFileSync(path.join(HERE, 'library-code.json'), 'utf8')); return L2.recipeShapes2((await import('./recipes/book2.mjs')).RECIPES, L2.minedConsts(code.shapes, BUD_R2.constMin)); })() : [];
 
 export const OUT = { control: path.join(HERE, 'control-v1.json'), ledger: path.join(HERE, 'ledger.json'), compare: path.join(HERE, 'compare.json'), blueprints: path.join(HERE, 'blueprints.json'), found: path.join(HERE, 'found.json') };
 const BUD = JSON.parse(fs.readFileSync(path.join(HERE, 'budget.json'), 'utf8'));
@@ -63,6 +67,8 @@ const CMP_FAMILY = ['<', '<=', '>', '>=', '===', '!=='];
 
 /** אופרטורים בסיסיים (משפחה אחת לכל מידה) — לסדר-המילוי של חור-אופרטור: אחרי האופרטור המקורי, האחים שלו. */
 const FAMILY = ['+', '-', '*', '/', '%', 'Math.max', 'Math.min', 'neg', 'Math.abs'];
+/** RECIPES2 · האופרטורים-האונריים שבתוויות של הקוד שלנו (library-code: Math.round/floor/abs/… ) — לראש מאגר num⇒num בשלב R. */
+const UNARY2 = ['neg', 'Math.abs', 'Math.floor', 'Math.round', 'Math.trunc', 'Math.ceil', 'Math.sign', 'Math.sqrt'];
 const J = (v) => JSON.stringify(v);
 const idOf = (key) => L.fnv(key) + L.fnv('~' + key);
 const sigKeyOf = (t) => t.sig.join(',') + '>' + t.out;
@@ -249,7 +255,7 @@ function originVerbs(R, shape, o) {
 
 /** MINER2 סבב 2 (החלטת-מנהל, נקבעה לפני הריצה): צורה "מבנית" — לולאה-בתוך-לולאה · until ("חזור עד שאין שינוי") · "בחר את הטוב". */
 export const isStructural = (sh) => (sh.feats || []).includes('best') || JSON.stringify(sh.graph).includes('"until":"stable"') || sh.graph.nodes.some((n) => n.loop && n.loop.nodes.some((m) => m.loop));
-async function selfprint({ R, things, shelf, log, shapes = CODE.shapes, perBp = null, rings = null, recipes = null }) {
+async function selfprint({ R, things, shelf, log, shapes = CODE.shapes, perBp = null, rings = null, recipes = null, r2 = null }) {
   const bps = []; const bpByKey = new Map();
   let nextIdx = Math.max(0, ...[...things.values()].map((t) => t.idx || 0)) + 1;
   const addBp = (bp) => {
@@ -336,6 +342,7 @@ async function selfprint({ R, things, shelf, log, shapes = CODE.shapes, perBp = 
   /* RECIPES · מקור 3 — ספר-המתכונים: כל מתכון (וכל גרסה שלו בלי חורים-אופציונליים) = שלד שהמנוע ממלא כמו שלד-מהקוד.
      אין להם מקור-בקוד ⇒ אין השאר-אחד-בחוץ (excl ריק); שלב 'R' עם תקציב משלו (budget.recipes.total). */
   if (recipes) for (const r of RECIPE_SHAPES) addBp({ source: 'recipe', by: ['recipe'], feats: [r.chapter], origin: { recipe: r.recipe, shape: r.id, chapter: r.chapter, dropped: r.dropped, n: 1 }, labels: [r.labels], graph: r.graph, depth: 1, excl: [], stage: 'R' });
+  if (recipes && r2) for (const r of RECIPE_SHAPES2) addBp({ source: 'recipe', by: ['recipe', 'vol2'], feats: [r.chapter], origin: { recipe: r.recipe, volume: 2, shape: r.id, chapter: r.chapter, dropped: r.dropped, ...(r.konst !== undefined ? { konst: r.konst } : {}), n: 1 }, labels: [r.labels], graph: r.graph, depth: 1, excl: [], stage: 'R' });
   /* מקור 1 — ההצלחות של הצמיחה */
   /* חידוש: הצלחה הופכת לשרטוט רק אם היא ידע חדש — אחד הפעלים המיוחדים שלה עוד לא הוליד novelty שרטוטים-מהצלחה.
      (בהרצה הראשונה "משווה" — שם זול — הוליד מאות שרטוטים כמעט זהים, והתקציב התפזר עליהם.) */
@@ -414,7 +421,8 @@ async function selfprint({ R, things, shelf, log, shapes = CODE.shapes, perBp = 
     /* RECIPES · שלב R (ספר-המתכונים + שרטוטים שנולדו מהצלחות שלו): תקציב משלו, סבב-חוזר בסדר-ציון; לא נוגע בשלבים A/B */
     const Ri = idx.filter((i) => gens[i].b.stage === 'R').sort(byScore);
     if (recipes && Ri.length) {
-      const RR = Math.floor((recipes.total * rd) / BUD.rounds) - Math.floor((recipes.total * (rd - 1)) / BUD.rounds);
+      const RT0 = recipes.total + (r2 ? r2.total : 0); // RECIPES2: כרך ב׳ מוסיף תקציב לשלב R (הביקורת מקבלת אותו סך)
+      const RR = Math.floor((RT0 * rd) / BUD.rounds) - Math.floor((RT0 * (rd - 1)) / BUD.rounds);
       const start = jobs.length;
       for (let prog = true; prog && jobs.length - start < RR; ) { prog = false; for (const i of Ri) { if (jobs.length - start >= RR) break; if (done[i]) continue; if (pull(i)) prog = true; } }
       F.stageR = jobs.length - start;
@@ -458,11 +466,31 @@ async function selfprint({ R, things, shelf, log, shapes = CODE.shapes, perBp = 
     const bySig2 = new Map(); if (rings) for (const [k, l] of bySig) bySig2.set(k, [...l].sort(ord2));
     const tools = rings ? perItemTools(bySig2) : new Map();
     const opCache = new Map(); const opLike = new Set();
+    /* RECIPES2 · מילוי-חכם (רק לשלב R, רק עם recipes2): "קודם מה שמבינים" לפי סוג ותועלת — לפני חיפוש עיוור. בראש המאגר של
+       כל חור: נציג אחד לכל התנהגות מוכרת — פעלי-הייחוס של המנוע (R.refs, 100% בסט) בחתימה הזו; ובחתימות הבסיסיות גם
+       מה שמתנהג כמו אופרטור-בסיס (num,num⇒num: FAMILY · num⇒num: אופרטורים-אונריים מהקוד · nums⇒num: צבירה של אופרטור
+       או אורך). בלי מטרות-מדידה — רק הייחוסים והאופרטורים של המנוע. השאר — באותו סדר-תועלת כמו קודם. */
+    const frontCache = new Map();
+    const smartFront = (sk, base0) => {
+      const ck = sk + '|' + base0.length + '|' + (base0[0]?.id || '');
+      if (frontCache.has(ck)) return frontCache.get(ck);
+      const Sx = R.samplesOf(sk.split('>')[0].split(','));
+      const likeF = (f) => { const w = Sx.map((a) => { let v; try { v = f(...a); } catch { v = null; } return typeof v === 'number' && Number.isFinite(v) ? v : null; }); if (w.filter((x) => x !== null).length < 4) return null; return base0.find((t) => Sx.every((x, k) => w[k] === null || L.sameOut(t.outs[k], w[k]))) || null; };
+      const reps = [];
+      for (const r of R.refs.get(sk) || []) { const t = base0.find((x) => L.closeness(Sx, x.outs, r.outs) === 1); if (t) reps.push(t); }
+      if (sk === 'num,num>num') for (const o of FAMILY) if (S.OPS[o].length === 2 || o.startsWith('Math.m')) reps.push(likeF(S.OPS[o]));
+      if (sk === 'num>num') for (const o of UNARY2) reps.push(likeF(S.OPS[o]));
+      if (sk === 'nums>num') { for (const o of ['+', 'Math.max', 'Math.min', '*']) reps.push(likeF((xs) => (xs.length ? xs.reduce((a, b) => S.OPS[o](a, b)) : null))); reps.push(likeF((xs) => xs.length)); }
+      const seen = new Set(); const front = reps.filter((t) => t && !seen.has(t.id) && seen.add(t.id));
+      const res = [...front, ...base0.filter((t) => !seen.has(t.id))];
+      frontCache.set(ck, res); return res;
+    };
     const poolOf = (sk, label, B = null) => {
       const src = B ? bySig2 : bySig; const capN = B ? RG.capAt(BUD.poolCap, B.depth) : BUD.poolCap;
       let base0 = src.get(sk) || [];
       if (B) { const c = ev.conds.map((x) => things.get(x.stat)).filter((t) => t && sigKeyOf(t) === sk); if (c.length) base0 = [...c, ...base0.filter((t) => !c.includes(t))]; }
       if (B && tools.has(sk)) { const tl = tools.get(sk); base0 = [...tl.slice(0, Math.ceil(capN / 2)), ...base0]; }
+      if (r2 && B && B.stage === 'R') base0 = smartFront(sk, base0);
       const base = CMP_FAMILY.includes(label) && sk === 'num,num>num' ? [...BASE_CMP, ...base0] : base0;
       const f = label && S.OPS[label];
       if (!f) return base.slice(0, capN);
@@ -573,6 +601,29 @@ async function selfprint({ R, things, shelf, log, shapes = CODE.shapes, perBp = 
     /* RINGS-PORT · shelvebench: הצלחה מאומתת (שם מיוחד = חוקים + אמת + לחץ) כבר על המדף — מסמנים אותה ככלי (ראשונה
        בסדר-התועלת של הסבב הבא), וסופרים הצלחות שבנויות על כלי כזה. */
     if (rings) { F.usedTools = succ.filter((t) => (t.fill || []).some((id) => things.get(id)?.tool)).length; for (const t of succ) { t.tool = true; noteUse(t); } F.tools = [...shelf.values()].filter((t) => t.tool).length; }
+    /* RECIPES2 · פתרון-ביניים ⇒ כלי, גם בלי שם: דבר חדש משלב R (מתכון) שעבר את הבדיקות — טביעה (לא זבל), רץ על רוב קלטי-הלחץ,
+       ו-200 הקלטים האקראיים בלי קריסה ברובם — מסומן ככלי (ראשון אחרי בעלי-השם בסדר-התועלת של הסבב הבא), כדי שמתכון אחר
+       יבנה עליו (מתכון בתוך מתכון). תקרה: r2.toolsPerSig לכל חתימה לכל סבב; קודם מי שכל המילוי שלו "מובן" (שם מיוחד /
+       מתנהג כאופרטור), אחר-כך הכי פשוט (צעדים). */
+    if (r2) {
+      const bpOf = new Map(bps.map((b) => [b.id, b]));
+      const cand = fresh.filter((t) => shelf.get(t.fp) === t && !isSpecial(t) && !t.tool && bpOf.get(t.bp)?.stage === 'R');
+      const und = (t) => (t.fill || []).filter((id) => { const c = things.get(id); return c && (isSpecial(c) || c.form === 'base' || c.tool || [...opLike].some((k) => k.endsWith('|' + id))); }).length / Math.max(1, (t.fill || []).length);
+      const bySk = new Map();
+      for (const t of cand) { const k = sigKeyOf(t); if (!bySk.has(k)) bySk.set(k, []); bySk.get(k).push(t); }
+      let made = 0;
+      for (const k of [...bySk.keys()].sort()) {
+        const l = bySk.get(k).map((t) => ({ t, u: und(t) })).sort((a, b) => b.u - a.u || a.t.steps - b.t.steps || (a.t.id < b.t.id ? -1 : 1));
+        let n = 0;
+        for (const { t } of l) {
+          if (n >= r2.toolsPerSig) break;
+          const so = stressOuts(R, t); if (so.filter((x) => x !== null).length * 2 < so.length) continue;
+          const ex = L.extraSamples(t.sig).slice(0, 50).map((a) => R.runOne(t, a, BUD.thingSteps).v); if (ex.filter((x) => x !== null).length * 2 < ex.length) continue;
+          t.tool = true; t.toolUnnamed = true; n++; made++;
+        }
+      }
+      F.unnamedTools = made;
+    }
     F.bornBlueprints = born;
     if (rings) { F.twins = bps.filter((b) => b.twin).length; F.tools = F.tools || 0; }
     rounds.push(F);
@@ -659,7 +710,7 @@ export async function run({ log = () => {}, fresh = false } = {}) {
   const R = await shared();
   const H0 = loadShelf(R, half.shelfFiles);
   log(`מדף half ${H0.shelf.size} (טביעה שונה בטעינה: ${H0.fpMismatch})`);
-  const { bps, rounds, replacements, ev } = await selfprint({ R, things: H0.things, shelf: H0.shelf, log, perBp: BUD.perBlueprint, rings: BUD.rings || null, recipes: BUD.recipes || null });
+  const { bps, rounds, replacements, ev } = await selfprint({ R, things: H0.things, shelf: H0.shelf, log, perBp: BUD.perBlueprint, rings: BUD.rings || null, recipes: BUD.recipes || null, r2: BUD.recipes2 || null });
   const halfBudget = BUD.half.maxFloors * (BUD.half.buildsPerFloor + BUD.half.unaryPerFloor);
   const bpBuilt = rounds.reduce((a, F) => a + F.built, 0);
   const perFloor = Math.round((halfBudget + bpBuilt) / BUD.baseline.maxFloors);
@@ -752,7 +803,13 @@ function recipesSummary(bps, rounds, H0) {
     e.built += b.built; e.ran += b.ran; e.fresh += b.fresh; e.successes += b.successes;
   }
   for (const t of H0.shelf.values()) { if (!t.bp || !isSpecial(t)) continue; const b = bps.find((x) => x.id === t.bp); const r = b && root(b); if (!r) continue; for (const v of specialVerbs(t)) per[r.origin.recipe].verbs[v] = (per[r.origin.recipe].verbs[v] || 0) + 1; }
-  return { shapes: bps.filter((b) => b.source === 'recipe').length, perRound: rounds.map((F) => F.stageR || 0), byRecipe: Object.fromEntries(Object.keys(per).sort().map((k) => [k, per[k]])) };
+  const out = { shapes: bps.filter((b) => b.source === 'recipe').length, perRound: rounds.map((F) => F.stageR || 0), byRecipe: Object.fromEntries(Object.keys(per).sort().map((k) => [k, per[k]])) };
+  /* RECIPES2 · כלים-בלי-שם לכל סבב, וכמה דברים חדשים (ומהם עם שם מיוחד) נבנו מעל כלי-בלי-שם — "מתכון בתוך מתכון" */
+  if (rounds.some((F) => F.unnamedTools !== undefined)) {
+    const onTop = [...H0.shelf.values()].filter((t) => t.bp && (t.fill || []).some((id) => H0.things.get(id)?.toolUnnamed));
+    Object.assign(out, { volume2Shapes: bps.filter((b) => b.source === 'recipe' && b.origin.volume === 2).length, unnamedTools: rounds.map((F) => F.unnamedTools || 0), onUnnamedTools: { onShelf: onTop.length, named: onTop.filter(isSpecial).length } });
+  }
+  return out;
 }
 const pick = (m) => ({ built: m.built, shelf: m.shelf, namedSpecialGrown: m.namedSpecialGrown, exactFromOthers: m.exactFromOthers });
 
@@ -768,3 +825,5 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.a
   for (const [k, p] of Object.entries(OUT)) fs.writeFileSync(process.env.SELFPRINT_OUT ? path.join(process.env.SELFPRINT_OUT, path.basename(p)) : p, res[k]);
   console.log('🧭 נכתב · ' + ((Date.now() - t0) / 1000).toFixed(1) + 's');
 }
+/** RECIPES2 · לבדיקות-עשן בלבד (הרצה קטנה של שלב-השרטוטים על מדף-חצי שמור) — לא משמש את run(). */
+export const __internals = { growRun, shared, loadShelf, selfprint };
