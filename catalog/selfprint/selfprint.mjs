@@ -33,6 +33,9 @@ const L = await import('../grow/lib.mjs');
 const S = await import('./lib.mjs');
 const { WEAK, hasTruth, truthOf } = await import('../grow/truth.mjs');
 const RG = await import('./rings.mjs');
+/* RECIPES · ספר-המתכונים (recipes/book.mjs — נכתב ע״י AI פעם אחת ונעול) — רק כש-budget.recipes */
+const RECIPE_SHAPES = BUD_RECIPES() ? (await import('./recipes/load.mjs')).recipeShapes((await import('./recipes/book.mjs')).RECIPES) : [];
+function BUD_RECIPES() { return JSON.parse(fs.readFileSync(path.join(HERE, 'budget.json'), 'utf8')).recipes || null; }
 
 export const OUT = { control: path.join(HERE, 'control-v1.json'), ledger: path.join(HERE, 'ledger.json'), compare: path.join(HERE, 'compare.json'), blueprints: path.join(HERE, 'blueprints.json'), found: path.join(HERE, 'found.json') };
 const BUD = JSON.parse(fs.readFileSync(path.join(HERE, 'budget.json'), 'utf8'));
@@ -246,7 +249,7 @@ function originVerbs(R, shape, o) {
 
 /** MINER2 סבב 2 (החלטת-מנהל, נקבעה לפני הריצה): צורה "מבנית" — לולאה-בתוך-לולאה · until ("חזור עד שאין שינוי") · "בחר את הטוב". */
 export const isStructural = (sh) => (sh.feats || []).includes('best') || JSON.stringify(sh.graph).includes('"until":"stable"') || sh.graph.nodes.some((n) => n.loop && n.loop.nodes.some((m) => m.loop));
-async function selfprint({ R, things, shelf, log, shapes = CODE.shapes, perBp = null, rings = null }) {
+async function selfprint({ R, things, shelf, log, shapes = CODE.shapes, perBp = null, rings = null, recipes = null }) {
   const bps = []; const bpByKey = new Map();
   let nextIdx = Math.max(0, ...[...things.values()].map((t) => t.idx || 0)) + 1;
   const addBp = (bp) => {
@@ -300,7 +303,7 @@ async function selfprint({ R, things, shelf, log, shapes = CODE.shapes, perBp = 
   };
   /** מכפיל-ראיות: צורה שבדיקה-מדוגמאות מצדיקה מקבלת פי 2 תקציב (lab: "המכונה מחליטה מהנתונים מתי לנסות"). */
   const evMult = (b) => 1 + (ev.fold.length && (b.marks?.fold || b.marks?.until) ? 1 : 0) + (ev.order.length && (b.marks?.best || b.marks?.until || (b.feats || []).includes('best')) ? 1 : 0) + (ev.filter.length && (b.marks?.filter || (b.feats || []).includes('filter')) ? 1 : 0);
-  const priorB = (b) => { if (!rings) return 0; const h = HIST.code[b.origin?.code] || (b.source === 'code' ? null : HIST.fromSuccess); return ((h ? h.successes : 0) + b.successes + 1) / ((h ? h.built : 0) + b.built + 2); };
+  const priorB = (b) => { if (!rings) return 0; const h = HIST.code[b.origin?.code] || (b.source === 'code' || b.source === 'recipe' ? null : HIST.fromSuccess); return ((h ? h.successes : 0) + b.successes + 1) / ((h ? h.built : 0) + b.built + 2); };
   const scoreB = (b) => RG.scoreOf(priorB(b), S.holeVars(b.graph).length) * evMult(b);
   /* מקור 2 — הקוד */
   for (const sh of shapes.filter((x) => x.n >= BUD.minSupport || (perBp && isStructural(x) && x.n >= BUD.structuralMinSupport))) { // "מבנים שחוזרים" — שלד שנמצא בפונקציה אחת בלבד לא נכנס
@@ -330,6 +333,9 @@ async function selfprint({ R, things, shelf, log, shapes = CODE.shapes, perBp = 
       addBp({ source: 'code', by: sh.by, feats: sh.feats, variant: x.v, origin: { code: sh.id, n: sh.n, variant: x.v, at: sh.origins.slice(0, 3).map((o) => o.at), names: [...new Set(sh.origins.map((o) => o.name).filter(Boolean))].slice(0, 4) }, labels: x.labels, graph: x.graph, depth: 1, excl, perOrigin: per, stage: 'B' });
     }
   }
+  /* RECIPES · מקור 3 — ספר-המתכונים: כל מתכון (וכל גרסה שלו בלי חורים-אופציונליים) = שלד שהמנוע ממלא כמו שלד-מהקוד.
+     אין להם מקור-בקוד ⇒ אין השאר-אחד-בחוץ (excl ריק); שלב 'R' עם תקציב משלו (budget.recipes.total). */
+  if (recipes) for (const r of RECIPE_SHAPES) addBp({ source: 'recipe', by: ['recipe'], feats: [r.chapter], origin: { recipe: r.recipe, shape: r.id, chapter: r.chapter, dropped: r.dropped, n: 1 }, labels: [r.labels], graph: r.graph, depth: 1, excl: [], stage: 'R' });
   /* מקור 1 — ההצלחות של הצמיחה */
   /* חידוש: הצלחה הופכת לשרטוט רק אם היא ידע חדש — אחד הפעלים המיוחדים שלה עוד לא הוליד novelty שרטוטים-מהצלחה.
      (בהרצה הראשונה "משווה" — שם זול — הוליד מאות שרטוטים כמעט זהים, והתקציב התפזר עליהם.) */
@@ -405,12 +411,20 @@ async function selfprint({ R, things, shelf, log, shapes = CODE.shapes, perBp = 
     };
     const byScore = (x, y) => scoreB(gens[y].b) - scoreB(gens[x].b) || x - y;
     const idx = gens.map((g, i) => i);
+    /* RECIPES · שלב R (ספר-המתכונים + שרטוטים שנולדו מהצלחות שלו): תקציב משלו, סבב-חוזר בסדר-ציון; לא נוגע בשלבים A/B */
+    const Ri = idx.filter((i) => gens[i].b.stage === 'R').sort(byScore);
+    if (recipes && Ri.length) {
+      const RR = Math.floor((recipes.total * rd) / BUD.rounds) - Math.floor((recipes.total * (rd - 1)) / BUD.rounds);
+      const start = jobs.length;
+      for (let prog = true; prog && jobs.length - start < RR; ) { prog = false; for (const i of Ri) { if (jobs.length - start >= RR) break; if (done[i]) continue; if (pull(i)) prog = true; } }
+      F.stageR = jobs.length - start;
+    }
     const A = idx.filter((i) => gens[i].b.stage === 'A').sort(byScore);
-    const Bi = idx.filter((i) => gens[i].b.stage !== 'A').sort(byScore);
+    const Bi = idx.filter((i) => gens[i].b.stage !== 'A' && gens[i].b.stage !== 'R').sort(byScore);
     const hist = (i) => HIST.code[gens[i].b.origin?.code];
     const never = (i) => { const e = hist(i); return e && e.successes === 0 && e.built >= 15; };
     const takeOf = (i) => (never(i) ? 1 : hist(i)?.successes >= 5 ? gens[i].take * 2 : gens[i].take);
-    const capA = Math.floor(RB * rings.stageA); const cnt = new Map();
+    const r0 = jobs.length; const capA = r0 + Math.floor(RB * rings.stageA); const cnt = new Map();
     for (let prog = true; prog && jobs.length < capA; ) {
       prog = false;
       for (const i of A) {
@@ -418,19 +432,20 @@ async function selfprint({ R, things, shelf, log, shapes = CODE.shapes, perBp = 
         for (let k = 0; k < takeOf(i) && jobs.length < capA; k++) { if (!pull(i)) break; cnt.set(i, (cnt.get(i) || 0) + 1); prog = true; }
       }
     }
-    F.stageA = jobs.length;
-    const baseB = Math.max(2, Math.floor((RB - jobs.length) / Math.max(1, Bi.length)));
+    F.stageA = jobs.length - r0;
+    const RBe = r0 + RB; // RECIPES: שלבים A/B — אותו תקציב בדיוק, אחרי חלק R
+    const baseB = Math.max(2, Math.floor((RBe - jobs.length) / Math.max(1, Bi.length)));
     const q = new Map(Bi.map((i) => [i, RG.learnedQuota(HIST, gens[i].b.origin?.code, baseB) * evMult(gens[i].b)]));
-    for (let prog = true; prog && jobs.length < RB; ) {
+    for (let prog = true; prog && jobs.length < RBe; ) {
       prog = false;
-      for (const i of Bi) { if (jobs.length >= RB) break; if (done[i] || q.get(i) <= 0) continue; if (pull(i)) { q.set(i, q.get(i) - 1); prog = true; } }
+      for (const i of Bi) { if (jobs.length >= RBe) break; if (done[i] || q.get(i) <= 0) continue; if (pull(i)) { q.set(i, q.get(i) - 1); prog = true; } }
     }
-    F.stageB = jobs.length - F.stageA;
-    for (let prog = true; prog && jobs.length < RB; ) {
+    F.stageB = jobs.length - r0 - F.stageA;
+    for (let prog = true; prog && jobs.length < RBe; ) {
       prog = false;
-      for (const i of [...A, ...Bi]) { if (jobs.length >= RB) break; if (done[i]) continue; if (pull(i)) prog = true; }
+      for (const i of [...A, ...Bi]) { if (jobs.length >= RBe) break; if (done[i]) continue; if (pull(i)) prog = true; }
     }
-    F.leftover = jobs.length - F.stageA - F.stageB;
+    F.leftover = jobs.length - r0 - F.stageA - F.stageB;
   };
   for (let rd = 1; rd <= BUD.rounds; rd++) {
     const F = { round: rd, blueprints: bps.length, built: 0, new: 0, replaced: 0, dup: 0, junk: {}, typingsTried: 0 };
@@ -471,20 +486,20 @@ async function selfprint({ R, things, shelf, log, shapes = CODE.shapes, perBp = 
     for (const b of bps) {
       if (b.built >= 8 && L.yieldOf(b) < 0.1) continue; // שרטוט שנותן רק כפולים/זבל — יוצא
       if (b.twin) continue; // RINGS-PORT: תאום-התנהגות של שרטוט קודם (או של הצמיחה) — יוצא
-      if (b.source === 'code') {
+      if (b.source === 'code' || b.source === 'recipe') {
         const tys = S.typings({ graph: b.graph }, b.labels, (sk) => bySig.has(sk) || sk === 'num,num>num') || [];
         if (b.typed === null) b.typed = tys.length;
         const lab = (v) => { const ls = b.labels.map((x) => x[v]); return ls.every((l) => l === ls[0]) ? ls[0] : null; };
-        const scored = tys.map((ty) => ({ ty, sp: ty.holes.reduce((a, h, v) => a + ((bySig.get(S.sigKey(h.sig, h.out)) || []).some(isSpecial) ? 1 : 0), 0) })).sort((x, y) => y.sp - x.sp || (x.ty.key < y.ty.key ? -1 : 1)).slice(0, BUD.typings);
+        const scored = tys.map((ty) => ({ ty, sp: ty.holes.reduce((a, h, v) => a + ((bySig.get(S.sigKey(h.sig, h.out)) || []).some(isSpecial) ? 1 : 0), 0) })).sort((x, y) => y.sp - x.sp || (x.ty.key < y.ty.key ? -1 : 1)).slice(0, b.source === 'recipe' ? recipes.typings : BUD.typings);
         F.typingsTried += scored.length;
         for (const { ty } of scored) {
-          const pools = ty.holes.map((h, v) => poolOf(S.sigKey(h.sig, h.out), lab(v), rings && b.stage === 'B' ? b : null));
+          const pools = ty.holes.map((h, v) => poolOf(S.sigKey(h.sig, h.out), lab(v), rings && (b.stage === 'B' || b.stage === 'R') ? b : null));
           const und = (v) => (t) => isSpecial(t) || opLike.has(S.sigKey(ty.holes[v].sig, ty.holes[v].out) + '|' + t.id);
           gens.push({ b, ty, it: S.conceptsFirst(pools.map((p, v) => p.map((t) => ({ t, v }))), (x) => und(x.v)(x.t), (c) => new Set(c.map((x) => x.t.fp)).size === c.length), unwrap: true, take: 1 + Math.floor(Math.log2(b.origin.n)) });
         }
       } else {
         const hs = S.treeHoles(b.tree);
-        const inB = rings && b.stage === 'B';
+        const inB = rings && (b.stage === 'B' || b.stage === 'R');
         const pools = hs.map((h) => ((inB ? bySig2 : bySig).get(S.sigKey(h.sig, h.out)) || []).filter((t) => !b.holed.includes(t.id)).slice(0, inB ? RG.capAt(BUD.poolCap, b.depth) : BUD.poolCap));
         gens.push({ b, ty: { holes: hs, ins: b.tree.sig, out: b.tree.out }, it: S.conceptsFirst(pools, isSpecial, (c) => new Set(c.map((t) => t.fp)).size === c.length), take: 1 });
       }
@@ -521,13 +536,13 @@ async function selfprint({ R, things, shelf, log, shapes = CODE.shapes, perBp = 
     for (const { g, fill, key } of jobs) {
       const b = g.b; b.built++; F.built++;
       let graph; let tree;
-      if (b.source === 'code') { tree = { k: 'skel', graph: b.graph, kids: fill.map((t) => ({ k: 'ref', id: t.id, sig: t.sig, out: t.out })), sig: g.ty.ins, out: g.ty.out, bp: b.id }; }
+      if (b.source === 'code' || b.source === 'recipe') { tree = { k: 'skel', graph: b.graph, kids: fill.map((t) => ({ k: 'ref', id: t.id, sig: t.sig, out: t.out })), sig: g.ty.ins, out: g.ty.out, bp: b.id }; }
       else { tree = { ...S.fillTree(b.tree, fill.map((t) => ({ k: 'ref', id: t.id, sig: t.sig, out: t.out }))), bp: b.id }; }
       try { graph = S.treeGraph(tree, things); } catch (e) { F.junk['חיווט: ' + String(e.message).slice(0, 30)] = (F.junk['חיווט: ' + String(e.message).slice(0, 30)] || 0) + 1; continue; }
       const prob = graphProblem(graph);
       if (prob) { const k = 'חיווט: ' + prob.split(':')[0]; F.junk[k] = (F.junk[k] || 0) + 1; continue; }
       const sig = tree.sig || g.ty.ins;
-      const t = { key, id: idOf(key), floor: 'bp' + rd, round: rd, form: 'bp', bp: b.id, fill: fill.map((x) => x.id), keep: b.source === 'code' ? [] : S.concrete(b.tree), of: [...fill.map((x) => x.id), ...(b.source === 'code' ? [] : S.concrete(b.tree))], sig, graph, tree, nParts: graphNodes(graph).length };
+      const t = { key, id: idOf(key), floor: 'bp' + rd, round: rd, form: 'bp', bp: b.id, fill: fill.map((x) => x.id), keep: b.tree ? S.concrete(b.tree) : [], of: [...fill.map((x) => x.id), ...(b.tree ? S.concrete(b.tree) : [])], sig, graph, tree, nParts: graphNodes(graph).length };
       let m;
       try { m = measure(R, t); } catch (e) { m = { junk: 'חיווט: ' + String(e?.message || e).slice(0, 30) }; } // MINER2: חוט שהגרף לא מבין — זבל, לא קריסה
       if (m.junk) { F.junk[m.junk] = (F.junk[m.junk] || 0) + 1; continue; }
@@ -563,7 +578,7 @@ async function selfprint({ R, things, shelf, log, shapes = CODE.shapes, perBp = 
     rounds.push(F);
     log(`סבב ${rd}: ${F.built} נבנו · ${F.new} חדשים · ${F.replaced} החליפו · ${F.dup} כפולים · ${Object.values(F.junk).reduce((a, x) => a + x, 0)} זבל · ${F.named} קיבלו שם מיוחד ⇒ ${born} שרטוטים חדשים (סה״כ ${bps.length})`);
   }
-  return { bps, rounds, replacements, ev: rings ? ev : null };
+  return { bps, rounds, replacements, ev: rings ? ev : null, things };
 }
 
 function exampleOf(Sx, outs) {
@@ -644,7 +659,7 @@ export async function run({ log = () => {}, fresh = false } = {}) {
   const R = await shared();
   const H0 = loadShelf(R, half.shelfFiles);
   log(`מדף half ${H0.shelf.size} (טביעה שונה בטעינה: ${H0.fpMismatch})`);
-  const { bps, rounds, replacements, ev } = await selfprint({ R, things: H0.things, shelf: H0.shelf, log, perBp: BUD.perBlueprint, rings: BUD.rings || null });
+  const { bps, rounds, replacements, ev } = await selfprint({ R, things: H0.things, shelf: H0.shelf, log, perBp: BUD.perBlueprint, rings: BUD.rings || null, recipes: BUD.recipes || null });
   const halfBudget = BUD.half.maxFloors * (BUD.half.buildsPerFloor + BUD.half.unaryPerFloor);
   const bpBuilt = rounds.reduce((a, F) => a + F.built, 0);
   const perFloor = Math.round((halfBudget + bpBuilt) / BUD.baseline.maxFloors);
@@ -688,6 +703,7 @@ export async function run({ log = () => {}, fresh = false } = {}) {
     blueprints: blueprintsSummary,
     wrongImprovements: wrong, replacements: replacements.length,
     ...(BUD.rings ? { rings: ringsSummary(bps, rounds, ev, H0) } : {}),
+    ...(BUD.recipes ? { recipes: recipesSummary(bps, rounds, H0) } : {}),
     fpMismatchOnLoad: { baseline: B0.fpMismatch, half: H0.fpMismatch },
   };
   const ledger = { about: 'הפנקס של מנוע-השרטוטים-העצמי — סבבים, שרטוטים, החלפות. נבנה ע״י selfprint.mjs', rounds, blueprints: blueprintsSummary, replacements, growMetrics: { baseline: pick(base.metrics), half: pick(half.metrics) } };
@@ -724,6 +740,19 @@ function ringsSummary(bps, rounds, ev, H0) {
     perItemTools: { built: toolThings.length, inSuccesses: toolThings.filter((t) => usedAsFill.has(t.id)).length },
     evidence: ev,
   };
+}
+/** RECIPES · לכל מתכון: כמה נבנו/רצו/חדשים/הצלחות, אילו פעלים נמצאו ממנו (ישירות, ודרך שרטוטים שנולדו מהצלחות שלו). */
+function recipesSummary(bps, rounds, H0) {
+  const root = (b) => { let x = b; const byId = new Map(bps.map((y) => [y.id, y])); while (x && x.source !== 'recipe') x = byId.get(H0.things.get(x.origin?.thing)?.bp); return x; };
+  const per = {};
+  for (const b of bps) {
+    const r = root(b); if (!r) continue;
+    const e = (per[r.origin.recipe] ||= { shapes: 0, derived: 0, built: 0, ran: 0, fresh: 0, successes: 0, verbs: {} });
+    if (b.source === 'recipe') e.shapes++; else e.derived++;
+    e.built += b.built; e.ran += b.ran; e.fresh += b.fresh; e.successes += b.successes;
+  }
+  for (const t of H0.shelf.values()) { if (!t.bp || !isSpecial(t)) continue; const b = bps.find((x) => x.id === t.bp); const r = b && root(b); if (!r) continue; for (const v of specialVerbs(t)) per[r.origin.recipe].verbs[v] = (per[r.origin.recipe].verbs[v] || 0) + 1; }
+  return { shapes: bps.filter((b) => b.source === 'recipe').length, perRound: rounds.map((F) => F.stageR || 0), byRecipe: Object.fromEntries(Object.keys(per).sort().map((k) => [k, per[k]])) };
 }
 const pick = (m) => ({ built: m.built, shelf: m.shelf, namedSpecialGrown: m.namedSpecialGrown, exactFromOthers: m.exactFromOthers });
 

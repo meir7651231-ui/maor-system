@@ -192,6 +192,7 @@ export const CMP_LABELS = ['<', '<=', '>', '>=', '===', '!=='];
 export const OP_SIG = (label, n) => {
   if (/^([-+*/%]|\*\*|neg|Math\.\w+|<|<=|>|>=|===|!==)$/.test(label)) return { args: Array(n).fill(['num']), out: ['num'] };
   if (label === '.length') return { args: [['nums', 'pts']], out: ['num'] };
+  if (label === 'stat') return { args: [['nums', 'pts']], out: ['num'] }; // RECIPES: "מספר מהרשימה" — סוג בלבד (אין לו OPS ⇒ לא משנה את סדר-המאגר)
   return null;
 };
 
@@ -328,6 +329,7 @@ function check(g, ins, vout, labelsList, available) {
         if (n.part === '⟨choose⟩') o = a[0] === 'num' ? unify(a[1], a[2]) : null;
         else if (n.part === '⟨range⟩') o = a.every((x) => x === 'num') ? 'nums' : null;
         else if (n.part === '⟨at⟩') o = G.ELEM[a[0]] && a[1] === 'num' ? G.ELEM[a[0]] : null;
+        else if (n.part.startsWith('⟨cmp')) o = a[0] === 'num' && a[1] === 'num' ? 'num' : null; // RECIPES: משווה-בסיס קבוע בשלד (‎⟨cmp!==⟩‎)
         if (!o) return false;
         env.set('@' + n.id, o);
         continue;

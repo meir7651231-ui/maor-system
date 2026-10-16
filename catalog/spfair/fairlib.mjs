@@ -26,10 +26,14 @@ const targetsBlocked = () => IS_GROW_CHILD || globalThis.__spfairEngine === true
 export const blockedTargets = (p) => { const r = path.resolve(asPath(p)); return targetsBlocked() && (r === P.targets || r.startsWith(P.hidden + path.sep)); }; // RINGS-PORT: גם המבחן הנסתר
 
 /** budget.json כפי שהמנוע יקרא אותו בהרצה הזו (null ⇒ בלי שינוי). */
-export function budgetText(orig, salt = SALT, rounds = ROUNDS) {
-  if (!salt && rounds === null) return null;
+/** RECIPES · שינוי-תקציב להרצת-ביקורת (plan.json › patch): מיזוג עמוק, null = מחיקה. */
+export const PATCH = process.env.SPFAIR_PATCH ? JSON.parse(process.env.SPFAIR_PATCH) : null;
+const merge = (a, p) => { for (const [k, v] of Object.entries(p)) { if (v === null) delete a[k]; else if (v && typeof v === 'object' && !Array.isArray(v) && a[k] && typeof a[k] === 'object') merge(a[k], v); else a[k] = v; } return a; };
+export function budgetText(orig, salt = SALT, rounds = ROUNDS, patch = PATCH) {
+  if (!salt && rounds === null && !patch) return null;
   const b = JSON.parse(orig);
   if (rounds !== null) b.rounds = rounds;
   if (salt) b.spfair = { salt };
+  if (patch) merge(b, patch);
   return JSON.stringify(b, null, 1);
 }

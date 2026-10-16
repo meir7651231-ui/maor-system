@@ -28,6 +28,7 @@ for (const n of todo) {
   const before = check && fs.existsSync(runFile(n)) ? fs.readFileSync(runFile(n), 'utf8') : null;
   const env = { ...process.env, SPFAIR_SALT: String(r.salt || 0) };
   delete env.SPFAIR_ROUNDS; if (r.rounds) env.SPFAIR_ROUNDS = String(r.rounds);
+  delete env.SPFAIR_PATCH; if (r.patch) env.SPFAIR_PATCH = JSON.stringify(r.patch); // RECIPES: הרצת-ביקורת בתקציב-כולל שווה
   const p = spawnSync(process.execPath, ['--import', path.join(HERE, 'hook.mjs'), path.join(HERE, 'one.mjs'), n], { env, stdio: 'inherit' });
   if (p.status !== 0) { console.error('✗ ' + n + ' נכשל'); process.exit(1); }
   if (check) { const now = fs.readFileSync(runFile(n), 'utf8'); if (now !== before) { bad.push(n); if (before !== null) fs.writeFileSync(runFile(n), before); } }

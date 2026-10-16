@@ -5,7 +5,7 @@
  * 2. הפונקציה שהדף קורא לה (מהחבילה הסטטית) עוברת את אותם חוקים בקורא-ההתנהגות — n/n — וזהה לשילוב בארגז-החול.
  * 3. כלי-המדידה (סכום · הפרש · אחוז · הגדול-מבין) — כל אחד חלק מוכח לתפקיד שלו, והחבילה = החלק בארגז-החול.
  * 4. הערך על נתוני-ההדגמה: המסלולים קצרים מסדר-הרשימה (כמו shop7 היום) ומ"מהקרובה לרחוקה" (גרסה 1).
- * 5. קנה-מידה: 400 משפחות · 30 מתנדבים — שיבוץ + 30 מסלולים + שעות מתחת ל-300 מ״ש (חציון של 3).
+ * 5. קנה-מידה: 400 משפחות · 30 מתנדבים — שיבוץ + 30 מסלולים + שעות מתחת ל-14M צעדים דטרמיניסטיים (≈300 מ״ש; RECIPES).
  * 6. הלולאה היא חיווט בלבד: graph.mjs לא קורא לשום חישוב מלבד החלקים (callNode), והגרף נבדק מבנית.
  */
 import { describe, it, expect } from 'vitest';
@@ -118,22 +118,37 @@ describe('PRODUCT-V2 · מסלול ממוטב, קיבולת, חלונות — מ
     expect(X.pct(R, X.gap(O, R))).toBe(22);
   });
 
-  it('קנה-מידה: 400 משפחות · 30 מתנדבים — שיבוץ + 30 מסלולים + שעות מתחת ל-300 מ״ש (חציון של 3)', async () => {
-    const M = (await bundleP).runtime();
+  it('קנה-מידה: 400 משפחות · 30 מתנדבים — שיבוץ + 30 מסלולים + שעות: פחות מ-14M צעדים (≈300 מ״ש), דטרמיניסטי', async () => {
+    // RECIPES (16.10.2026) · היה: שעון-קיר, חציון של 3 < 300 מ״ש — נכשל לפעמים בהרצה המקבילית של vitest (304–310 מ״ש).
+    // עכשיו: אותה עבודה בדיוק על עותק של החבילה עם מונה-הצעדים של המכונה (catalog/lib/steps.mjs › instrument — צעד בכל
+    // גוף-פונקציה ובכל סיבוב-לולאה). אותו קוד + אותם קלטים ⇒ אותו מספר בכל מחשב ובכל עומס. הכיול (16.10, מחשב-הסשן, בלי עומס):
+    // 5.58M צעדים ≈ 120 מ״ש ⇒ 300 מ״ש ≈ 14M צעדים. כלומר אותו סף, נמדד במה שלא תלוי בעומס; קפיצה ל-O(n³) (פי 400) נתפסת מיד.
+    const { instrument, STEP_FN, PLUS_FN } = await import('../lib/steps.mjs');
+    const { mkdtempSync, writeFileSync: wf } = await import('node:fs');
+    const { tmpdir } = await import('node:os');
+    const g = globalThis as Record<string, unknown>;
+    let steps = 0;
+    g[STEP_FN] = () => { steps++; };
+    g[PLUS_FN] = (a: unknown, b: unknown) => (a as number) + (b as number);
+    const f = join(mkdtempSync(join(tmpdir(), 'pv2-steps-')), 'parts.bundle.mjs');
+    wf(f, instrument(readFileSync(join(DIR, 'parts.bundle.mjs'), 'utf8'))!);
+    const M = (await import(pathToFileURL(f).href)).runtime();
     const pts = (M.n1({ seed: 45 }, 470) as Pt[]).map((p) => ({ x: p.x * 6, y: p.y * 6 }));
     const vols = pts.slice(0, 30); const fams = pts.slice(40, 440);
     const once = () => {
-      const t0 = performance.now();
+      steps = 0;
       const a = M.n18(vols, fams, 16) as { item: Pt; b: number }[];
       for (let v = 0; v < 30; v++) {
         const r = M.n17(vols[v], a.filter((o) => o.b === v).map((o) => o.item)) as Pt[];
         M.n19(r.map((p) => ({ ...p, open: 0, close: 1440 })), { start: 900, speed: 0.5, stay: 3 });
       }
-      return performance.now() - t0;
+      return steps;
     };
-    once(); // חימום (JIT)
-    const ts = [once(), once(), once()].sort((a, b) => a - b);
-    expect(ts[1]).toBeLessThan(300);
+    once(); // ריצה ראשונה מאתחלת מטמונים פנימיים של החבילה (כמו החימום של פעם) — לא נמדדת
+    const s1 = once(); const s2 = once();
+    expect(s2).toBe(s1); // דטרמיניסטי
+    expect(s1).toBeGreaterThan(1_000_000); // המונה באמת סופר (לא 0 כי משהו לא הוזרק)
+    expect(s1).toBeLessThan(14_000_000);
   }, 60_000);
 
   it('הלולאה היא חיווט: בלי callNode אין ערך — כל מספר בגרף בא מחלק', () => {
