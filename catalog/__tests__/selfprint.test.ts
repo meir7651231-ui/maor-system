@@ -49,7 +49,16 @@ describe('🚫 SELFPRINT · עיוורון — בלי שרטוטים שנכתב�
   it('כל השרטוטים בריפו באים משני המקורות האוטומטיים בלבד', () => {
     const bps = JSON.parse(readFileSync(join(SP, 'blueprints.json'), 'utf8'));
     expect(bps.length).toBeGreaterThan(10);
-    for (const b of bps) expect(['code', 'success', 'success-of-blueprint'], b.id).toContain(b.source);
+    for (const b of bps) expect(['code', 'success', 'success-of-blueprint', 'recipe'], b.id).toContain(b.source);
+  });
+  it('RECIPES (16.10.2026): מקור שלישי מוצהר — שרטוט "recipe" = בדיוק שלד מספר-המתכונים הנעול (recipes/book.mjs, sha256), לא שום דבר אחר', async () => {
+    const { RECIPES } = await import('../selfprint/recipes/book.mjs');
+    const { recipeShapes } = await import('../selfprint/recipes/load.mjs');
+    const book = new Map(recipeShapes(RECIPES).map((x: { id: string; graph: unknown }) => [x.id, JSON.stringify(x.graph)]));
+    const bps = JSON.parse(readFileSync(join(SP, 'blueprints.json'), 'utf8'));
+    const rs = bps.filter((b: { source: string }) => b.source === 'recipe');
+    expect(rs.length).toBe(book.size);
+    for (const b of rs) expect(JSON.stringify(b.graph), b.id).toBe(book.get(b.origin.shape));
   });
 });
 

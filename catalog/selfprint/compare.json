@@ -1,7 +1,7 @@
 {
  "about": "SELFPRINT — אותו תקציב-חיבורים: baseline = צמיחת GROW3 (score) ב-budget.baseline; selfprint = אותה צמיחה ב-budget.half + השרטוטים-העצמיים (rounds × perRound). המדדים — אותה הגדרה לשתיהן (selfprint.mjs › metricsOf). נבנה ע״י selfprint.mjs — לא לערוך ביד",
  "budget": {
-  "about": "התקציב המוצהר של מנוע-השרטוטים-העצמי (catalog/selfprint/selfprint.mjs) — הרצה קטנה ('תריץ בקטנה לראות באמת שזה עובד'). baseline = הצמיחה של GROW3 (mode score, בלי שרטוטים) בתקציב המלא: floors × (pairs + unary). selfprint = אותה צמיחה בחצי התקציב (half) + השרטוטים בחצי השני: rounds סבבים × perRound חיבורים. סך החיבורים זהה בשתי הריצות. callSteps/thingSteps/nameSteps — כמו catalog/grow/budget.json · poolCap = כמה מועמדים לכל חור לכל היותר (קודם עם-שם-מיוחד, אחר-כך הכי פשוט — פחות צעדים; בחור-אופרטור מהקוד: קודם מה שמתנהג כמו האופרטור) · typings = כמה השמות-סוג לכל שלד-מהקוד (קודם אלה שבחורים שלהם יש דברים עם שם מיוחד) · novelty = הצלחה הופכת לשרטוט רק אם לאחד הפעלים המיוחדים שלה היו פחות מ-novelty שרטוטים-מהצלחה · minSupport = שלד-מהקוד נכנס רק אם חוזר בלפחות כך פונקציות ('מבנים שחוזרים') · MINER2 סבב 2 (החלטת-מנהל, נקבעה לפני הריצה): perBlueprint = חיבורים לכל שרטוט בסך-הכול (≈2,400/63 של SELFPRINT), מחולקים שווה בין rounds, סדר = שרטוטים שחוזרים בהכי הרבה פונקציות קודם (perRound חל רק על הביקורת-v1) · structuralMinSupport = צורות מבניות (לולאה-בלולאה · until · בחר-את-הטוב) נכנסות כבר מפונקציה אחת · baseline נגזר בריצה: אותו תקציב-כולל כמו half + חיבורי-השרטוטים (baseline כאן = הקומות בלבד) · RINGS-PORT: rings.total = סך החיבורים לשרטוטים (= מה ש-MINER2 בנה בפועל, 4,381 — אותו תקציב-כולל), stageA = החלק של כל סבב שהולך קודם לספרייה הישנה (v1 + שרטוטים-מהצלחה; scanfold-staged). בלי rings ⇒ MINER2 כמו שהוא. history.json = ההיסטוריה הקפואה של המכונה (history.mjs).",
+  "about": "התקציב המוצהר של מנוע-השרטוטים-העצמי (catalog/selfprint/selfprint.mjs) — הרצה קטנה ('תריץ בקטנה לראות באמת שזה עובד'). baseline = הצמיחה של GROW3 (mode score, בלי שרטוטים) בתקציב המלא: floors × (pairs + unary). selfprint = אותה צמיחה בחצי התקציב (half) + השרטוטים בחצי השני: rounds סבבים × perRound חיבורים. סך החיבורים זהה בשתי הריצות. callSteps/thingSteps/nameSteps — כמו catalog/grow/budget.json · poolCap = כמה מועמדים לכל חור לכל היותר (קודם עם-שם-מיוחד, אחר-כך הכי פשוט — פחות צעדים; בחור-אופרטור מהקוד: קודם מה שמתנהג כמו האופרטור) · typings = כמה השמות-סוג לכל שלד-מהקוד (קודם אלה שבחורים שלהם יש דברים עם שם מיוחד) · novelty = הצלחה הופכת לשרטוט רק אם לאחד הפעלים המיוחדים שלה היו פחות מ-novelty שרטוטים-מהצלחה · minSupport = שלד-מהקוד נכנס רק אם חוזר בלפחות כך פונקציות ('מבנים שחוזרים') · MINER2 סבב 2 (החלטת-מנהל, נקבעה לפני הריצה): perBlueprint = חיבורים לכל שרטוט בסך-הכול (≈2,400/63 של SELFPRINT), מחולקים שווה בין rounds, סדר = שרטוטים שחוזרים בהכי הרבה פונקציות קודם (perRound חל רק על הביקורת-v1) · structuralMinSupport = צורות מבניות (לולאה-בלולאה · until · בחר-את-הטוב) נכנסות כבר מפונקציה אחת · baseline נגזר בריצה: אותו תקציב-כולל כמו half + חיבורי-השרטוטים (baseline כאן = הקומות בלבד) · RINGS-PORT: rings.total = סך החיבורים לשרטוטים (= מה ש-MINER2 בנה בפועל, 4,381 — אותו תקציב-כולל), stageA = החלק של כל סבב שהולך קודם לספרייה הישנה (v1 + שרטוטים-מהצלחה; scanfold-staged). בלי rings ⇒ MINER2 כמו שהוא. history.json = ההיסטוריה הקפואה של המכונה (history.mjs). · RECIPES (16.10.2026): recipes.total = חיבורים לספר-המתכונים (recipes/book.mjs) ולשרטוטים שנולדו מהצלחות שלו — בנוסף ל-rings.total (שלבים A/B זהים); ה-baseline נגזר כרגיל (חצי-הצמיחה + כל חיבורי-השרטוטים) ⇒ אותו תקציב-כולל. recipes.typings = כמה השמות-סוג לכל מתכון. בלי recipes ⇒ RINGS-PORT כמו שהוא.",
   "baseline": {
    "maxFloors": 3,
    "buildsPerFloor": 1200,
@@ -27,30 +27,34 @@
    "total": 4381,
    "stageA": 0.5
   },
+  "recipes": {
+   "total": 6000,
+   "typings": 4
+  },
   "baselineDerived": {
    "maxFloors": 3,
-   "buildsPerFloor": 1695,
-   "unaryPerFloor": 565
+   "buildsPerFloor": 3195,
+   "unaryPerFloor": 1065
   },
-  "blueprintBuilds": 4381
+  "blueprintBuilds": 10381
  },
  "built": {
-  "baseline": 17068,
-  "selfprint": 17086
+  "baseline": 23053,
+  "selfprint": 23086
  },
  "baseline": {
-  "shelf": 5382,
-  "namedSpecial": 160,
-  "namedSpecialGrown": 128,
+  "shelf": 9851,
+  "namedSpecial": 238,
+  "namedSpecialGrown": 206,
   "specialBy": {
-   "compare": 62,
-   "filter": 35,
-   "sort": 9,
-   "count": 6,
+   "compare": 115,
+   "filter": 42,
+   "count": 18,
+   "sort": 14,
+   "dedupe": 6,
    "rotate": 5,
-   "dedupe": 4,
    "reverse": 3,
-   "tolerate": 3,
+   "tolerate": 2,
    "extreme": 1
   },
   "exactRebuilt": {},
@@ -58,8 +62,8 @@
   "exactByBlueprintFair": 0,
   "bestGrown": {
    "average": {
-    "pct": 27,
-    "id": "1b71337837db4494",
+    "pct": 36,
+    "id": "fe40426a6213314e",
     "form": "chain",
     "sig": "nums>num"
    },
@@ -70,11 +74,14 @@
     "sig": "nums>nums"
    },
    "tour": {
-    "pct": null
+    "pct": 0,
+    "id": "d2d02f60f41a1f2c",
+    "form": "chain",
+    "sig": "pt,pts>pts"
    },
    "extreme": {
     "pct": 91,
-    "id": "14a68f7dbd128db1",
+    "id": "05281d27882a3f83",
     "form": "chain",
     "sig": "nums>num"
    },
@@ -86,7 +93,7 @@
    },
    "count": {
     "pct": 82,
-    "id": "0e6cd6d6cde48a3a",
+    "id": "0072afe67afc101a",
     "form": "chain",
     "sig": "nums>num"
    },
@@ -104,14 +111,14 @@
    },
    "median": {
     "pct": 45,
-    "id": "1b71337837db4494",
+    "id": "190d04923f7a946e",
     "form": "chain",
     "sig": "nums>num",
     "metricOnly": true
    },
    "max": {
     "pct": 91,
-    "id": "14a68f7dbd128db1",
+    "id": "05281d27882a3f83",
     "form": "chain",
     "sig": "nums>num",
     "metricOnly": true
@@ -119,23 +126,24 @@
   }
  },
  "selfprint": {
-  "shelf": 3973,
-  "namedSpecial": 397,
-  "namedSpecialGrown": 365,
+  "shelf": 6461,
+  "namedSpecial": 520,
+  "namedSpecialGrown": 489,
   "specialBy": {
-   "filter": 161,
-   "compare": 108,
-   "count": 38,
+   "filter": 255,
+   "compare": 113,
+   "count": 39,
+   "tolerate": 24,
    "rotate": 19,
-   "sort": 19,
-   "dedupe": 12,
-   "reverse": 6,
-   "average": 1,
-   "extreme": 1
+   "sort": 18,
+   "dedupe": 13,
+   "reverse": 4,
+   "average": 2,
+   "extreme": 2
   },
   "exactRebuilt": {
    "average": {
-    "exact": 2,
+    "exact": 1,
     "fromOthers": 1,
     "byBlueprint": 1,
     "byBlueprintFair": 1,
@@ -221,21 +229,55 @@
    },
    "extreme": {
     "exact": 1,
-    "fromOthers": 0,
-    "byBlueprint": 0,
-    "byBlueprintFair": 0,
-    "best": null
+    "fromOthers": 1,
+    "byBlueprint": 1,
+    "byBlueprintFair": 1,
+    "best": {
+     "id": "7ae790084d1f6e74",
+     "floor": "bp1",
+     "form": "bp",
+     "blueprint": "bp-s-5a19dd7e",
+     "sig": "nums>num",
+     "steps": 110,
+     "nodes": 3,
+     "example": {
+      "in": [
+       [
+        3,
+        1,
+        2
+       ]
+      ],
+      "out": 3
+     },
+     "of": [
+      {
+       "id": "6c330c2eef52bc8a",
+       "form": "part",
+       "part": "inner-generator:gen/looks/full5/art.mjs#rnd.t",
+       "verbs": []
+      },
+      {
+       "id": "00887f585f4f3bac",
+       "form": "part",
+       "part": "inner-generator:new/boxes/pareto.mjs#paretoReport.desc",
+       "verbs": [
+        "sort"
+       ]
+      }
+     ]
+    }
    },
    "sum": {
-    "exact": 2,
+    "exact": 1,
     "fromOthers": 0,
     "byBlueprint": 0,
     "byBlueprintFair": 0,
     "best": null
    }
   },
-  "exactFromOthers": 2,
-  "exactByBlueprintFair": 1,
+  "exactFromOthers": 3,
+  "exactByBlueprintFair": 2,
   "bestGrown": {
    "average": {
     "pct": 100,
@@ -254,8 +296,8 @@
    },
    "extreme": {
     "pct": 100,
-    "id": "d6b827b21f2507be",
-    "blueprint": "bp-c-15fb3689",
+    "id": "7ae790084d1f6e74",
+    "blueprint": "bp-s-5a19dd7e",
     "sig": "nums>num"
    },
    "sum": {
@@ -272,8 +314,8 @@
    },
    "dedupe": {
     "pct": 91,
-    "id": "24911fc50f2906f1",
-    "blueprint": "bp-c-6138649d",
+    "id": "4cc8a3f6d3c964aa",
+    "blueprint": "bp-s-d52c7307",
     "sig": "nums>nums"
    },
    "compare": {
@@ -291,26 +333,28 @@
    },
    "max": {
     "pct": 100,
-    "id": "d6b827b21f2507be",
-    "blueprint": "bp-c-15fb3689",
+    "id": "7ae790084d1f6e74",
+    "blueprint": "bp-s-5a19dd7e",
     "sig": "nums>num",
     "metricOnly": true
    }
   }
  },
  "blueprints": {
-  "total": 224,
+  "total": 278,
   "bySource": {
    "code": 181,
+   "recipe": 41,
    "success": 36,
-   "success-of-blueprint": 7
+   "success-of-blueprint": 20
   },
-  "used": 187,
-  "birthedSuccess": 57,
+  "used": 241,
+  "birthedSuccess": 69,
   "birthedBySource": {
    "success": 31,
-   "code": 24,
-   "success-of-blueprint": 2
+   "code": 23,
+   "recipe": 10,
+   "success-of-blueprint": 5
   },
   "maxDepth": 2,
   "maxDepthUsed": 2,
@@ -322,7 +366,7 @@
     "built": 144,
     "ran": 127,
     "fresh": 121,
-    "success": 24
+    "success": 23
    },
    "v1": {
     "blueprints": 38,
@@ -338,7 +382,7 @@
     "built": 109,
     "ran": 94,
     "fresh": 88,
-    "success": 19
+    "success": 18
    },
    "structural": {
     "blueprints": 12,
@@ -379,7 +423,7 @@
      "built": 16,
      "ran": 16,
      "fresh": 15,
-     "success": 13
+     "success": 11
     },
     "guard": {
      "blueprints": 2,
@@ -433,7 +477,7 @@
   }
  },
  "wrongImprovements": 0,
- "replacements": 167,
+ "replacements": 337,
  "rings": {
   "perRound": [
    {
@@ -441,8 +485,8 @@
     "stageA": 730,
     "stageB": 730,
     "leftover": 0,
-    "twins": 6,
-    "tools": 144,
+    "twins": 7,
+    "tools": 179,
     "usedTools": 0
    },
    {
@@ -450,48 +494,48 @@
     "stageA": 730,
     "stageB": 730,
     "leftover": 0,
-    "twins": 7,
-    "tools": 255,
-    "usedTools": 90
+    "twins": 8,
+    "tools": 344,
+    "usedTools": 142
    },
    {
     "round": 3,
     "stageA": 730,
     "stageB": 731,
     "leftover": 0,
-    "twins": 9,
-    "tools": 335,
-    "usedTools": 77
+    "twins": 11,
+    "tools": 460,
+    "usedTools": 97
    }
   ],
   "stageA": {
-   "blueprints": 67,
+   "blueprints": 64,
    "built": 2190,
-   "success": 38,
-   "successes": 253
+   "success": 37,
+   "successes": 250
   },
   "stageB": {
-   "blueprints": 157,
+   "blueprints": 162,
    "built": 2191,
-   "success": 19,
-   "successes": 91
+   "success": 18,
+   "successes": 104
   },
   "tie": {
    "blueprints": 53,
-   "built": 460,
-   "success": 2,
-   "successes": 4
+   "built": 461,
+   "success": 3,
+   "successes": 7
   },
   "bind": {
    "blueprints": 19,
-   "built": 520,
-   "success": 5,
-   "successes": 7
+   "built": 495,
+   "success": 3,
+   "successes": 6
   },
-  "twins": 9,
+  "twins": 11,
   "perItemTools": {
-   "built": 270,
-   "inSuccesses": 5
+   "built": 313,
+   "inSuccesses": 7
   },
   "evidence": {
    "fold": [
@@ -513,6 +557,283 @@
      "stat": "130e55561cfa0722"
     }
    ]
+  }
+ },
+ "recipes": {
+  "shapes": 41,
+  "perRound": [
+   2000,
+   2000,
+   2000
+  ],
+  "byRecipe": {
+   "all-pairs": {
+    "shapes": 2,
+    "derived": 0,
+    "built": 324,
+    "ran": 309,
+    "fresh": 172,
+    "successes": 0,
+    "verbs": {}
+   },
+   "best": {
+    "shapes": 2,
+    "derived": 0,
+    "built": 140,
+    "ran": 140,
+    "fresh": 38,
+    "successes": 0,
+    "verbs": {}
+   },
+   "best-index": {
+    "shapes": 2,
+    "derived": 0,
+    "built": 161,
+    "ran": 161,
+    "fresh": 56,
+    "successes": 0,
+    "verbs": {}
+   },
+   "best-param": {
+    "shapes": 1,
+    "derived": 0,
+    "built": 390,
+    "ran": 175,
+    "fresh": 72,
+    "successes": 0,
+    "verbs": {}
+   },
+   "best-score-param": {
+    "shapes": 1,
+    "derived": 7,
+    "built": 467,
+    "ran": 388,
+    "fresh": 121,
+    "successes": 11,
+    "verbs": {
+     "count": 11
+    }
+   },
+   "coords-each": {
+    "shapes": 1,
+    "derived": 0,
+    "built": 114,
+    "ran": 110,
+    "fresh": 100,
+    "successes": 0,
+    "verbs": {}
+   },
+   "coords-pair": {
+    "shapes": 1,
+    "derived": 0,
+    "built": 42,
+    "ran": 42,
+    "fresh": 33,
+    "successes": 0,
+    "verbs": {}
+   },
+   "coords-stat": {
+    "shapes": 1,
+    "derived": 0,
+    "built": 33,
+    "ran": 33,
+    "fresh": 28,
+    "successes": 0,
+    "verbs": {}
+   },
+   "each-if": {
+    "shapes": 2,
+    "derived": 0,
+    "built": 228,
+    "ran": 216,
+    "fresh": 85,
+    "successes": 0,
+    "verbs": {}
+   },
+   "each-stat": {
+    "shapes": 2,
+    "derived": 0,
+    "built": 397,
+    "ran": 388,
+    "fresh": 290,
+    "successes": 0,
+    "verbs": {}
+   },
+   "filter": {
+    "shapes": 1,
+    "derived": 0,
+    "built": 26,
+    "ran": 16,
+    "fresh": 8,
+    "successes": 4,
+    "verbs": {
+     "filter": 4
+    }
+   },
+   "filter-vs-kept": {
+    "shapes": 1,
+    "derived": 0,
+    "built": 39,
+    "ran": 9,
+    "fresh": 9,
+    "successes": 1,
+    "verbs": {
+     "filter": 1
+    }
+   },
+   "filter-vs-param": {
+    "shapes": 2,
+    "derived": 0,
+    "built": 161,
+    "ran": 110,
+    "fresh": 41,
+    "successes": 24,
+    "verbs": {
+     "filter": 24
+    }
+   },
+   "filter-vs-stat": {
+    "shapes": 2,
+    "derived": 0,
+    "built": 232,
+    "ran": 178,
+    "fresh": 62,
+    "successes": 3,
+    "verbs": {
+     "filter": 3
+    }
+   },
+   "fold-first": {
+    "shapes": 1,
+    "derived": 0,
+    "built": 70,
+    "ran": 66,
+    "fresh": 59,
+    "successes": 0,
+    "verbs": {}
+   },
+   "fold-mapped": {
+    "shapes": 1,
+    "derived": 0,
+    "built": 116,
+    "ran": 86,
+    "fresh": 67,
+    "successes": 0,
+    "verbs": {}
+   },
+   "fold-mapped-param": {
+    "shapes": 1,
+    "derived": 0,
+    "built": 387,
+    "ran": 197,
+    "fresh": 147,
+    "successes": 1,
+    "verbs": {
+     "count": 1
+    }
+   },
+   "fold-mapped-stat": {
+    "shapes": 2,
+    "derived": 0,
+    "built": 458,
+    "ran": 356,
+    "fresh": 265,
+    "successes": 0,
+    "verbs": {}
+   },
+   "greedy-chain": {
+    "shapes": 1,
+    "derived": 0,
+    "built": 196,
+    "ran": 196,
+    "fresh": 31,
+    "successes": 0,
+    "verbs": {}
+   },
+   "neighbors": {
+    "shapes": 2,
+    "derived": 0,
+    "built": 320,
+    "ran": 296,
+    "fresh": 154,
+    "successes": 0,
+    "verbs": {}
+   },
+   "pick-at": {
+    "shapes": 2,
+    "derived": 0,
+    "built": 368,
+    "ran": 79,
+    "fresh": 55,
+    "successes": 0,
+    "verbs": {}
+   },
+   "scan": {
+    "shapes": 1,
+    "derived": 0,
+    "built": 46,
+    "ran": 40,
+    "fresh": 34,
+    "successes": 0,
+    "verbs": {}
+   },
+   "scan-first": {
+    "shapes": 1,
+    "derived": 0,
+    "built": 70,
+    "ran": 66,
+    "fresh": 60,
+    "successes": 0,
+    "verbs": {}
+   },
+   "sort-by-key": {
+    "shapes": 2,
+    "derived": 0,
+    "built": 140,
+    "ran": 140,
+    "fresh": 46,
+    "successes": 0,
+    "verbs": {}
+   },
+   "take-k": {
+    "shapes": 3,
+    "derived": 4,
+    "built": 697,
+    "ran": 558,
+    "fresh": 441,
+    "successes": 67,
+    "verbs": {
+     "filter": 44,
+     "tolerate": 23
+    }
+   },
+   "two-stats": {
+    "shapes": 1,
+    "derived": 0,
+    "built": 226,
+    "ran": 224,
+    "fresh": 165,
+    "successes": 0,
+    "verbs": {}
+   },
+   "until-stable": {
+    "shapes": 1,
+    "derived": 0,
+    "built": 36,
+    "ran": 2,
+    "fresh": 1,
+    "successes": 0,
+    "verbs": {}
+   },
+   "window": {
+    "shapes": 1,
+    "derived": 0,
+    "built": 116,
+    "ran": 46,
+    "fresh": 36,
+    "successes": 0,
+    "verbs": {}
+   }
   }
  },
  "fpMismatchOnLoad": {
