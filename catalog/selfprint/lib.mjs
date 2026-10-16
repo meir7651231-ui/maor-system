@@ -121,7 +121,7 @@ export function treeGraph(t, things) {
 /** העץ של דבר, פרוס עד depth: דבר מהצמיחה ⇒ form של ילדיו; דבר-משרטוט ⇒ העץ השמור שלו. */
 export function treeOf(t, things, depth) {
   const node = (x) => ({ k: 'ref', id: x.id, sig: x.sig, out: x.out });
-  if (depth <= 0 || t.form === 'part') return node(t);
+  if (depth <= 0 || t.form === 'part' || t.form === 'base') return node(t); // RECIPES-תיקון: משווה-בסיס (⟨cmp…⟩) הוא עלה, לא צורה (קרס כשהצלחה עם משווה-בסיס הולידה שרטוט)
   if (t.tree) return expandRefs(t.tree, things, depth);
   return { k: 'form', form: t.form, id: t.id, sig: t.sig, out: t.out, kids: t.of.map((id) => treeOf(things.get(id), things, depth - 1)) };
 }
