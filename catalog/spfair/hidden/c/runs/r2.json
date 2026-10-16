@@ -1,0 +1,1255 @@
+{
+ "about": "RECIPES2 · המבחן הנסתר ג׳ (sha256 ב-hidden/c/SHA256) על אותה הרצה. נבנה ע״י fair.mjs",
+ "name": "r2",
+ "targets": 46,
+ "selfprint": {
+  "hits": [
+   {
+    "target": "firstIndexOfMax",
+    "he": "מקום הגדול ביותר (הראשון בשוויון)",
+    "known": false,
+    "id": "821ffe028ad59106",
+    "floor": "bp1",
+    "form": "bp",
+    "steps": 166,
+    "nodes": 4,
+    "blueprint": {
+     "id": "bp-s-37b79277",
+     "source": "recipe",
+     "depth": 1,
+     "origin": {
+      "recipe": "best-index",
+      "shape": "rcp-best-index~0",
+      "chapter": "בחר-את-הטוב",
+      "dropped": [
+       0
+      ],
+      "n": 1
+     },
+     "excl": []
+    },
+    "fill": [
+     {
+      "id": "base:>",
+      "form": "base",
+      "part": "⟨cmp>⟩"
+     }
+    ],
+    "example": [
+     {
+      "in": [
+       6,
+       1,
+       9,
+       1,
+       3,
+       7,
+       2
+      ],
+      "out": 2,
+      "want": 2
+     },
+     {
+      "in": [
+       -4,
+       10,
+       -4,
+       2.5
+      ],
+      "out": 1,
+      "want": 1
+     }
+    ]
+   },
+   {
+    "target": "lastIndexOfMin",
+    "he": "מקום הקטן ביותר (האחרון בשוויון)",
+    "known": false,
+    "id": "596f69d3126bde37",
+    "floor": "bp1",
+    "form": "bp",
+    "steps": 166,
+    "nodes": 4,
+    "blueprint": {
+     "id": "bp-s-37b79277",
+     "source": "recipe",
+     "depth": 1,
+     "origin": {
+      "recipe": "best-index",
+      "shape": "rcp-best-index~0",
+      "chapter": "בחר-את-הטוב",
+      "dropped": [
+       0
+      ],
+      "n": 1
+     },
+     "excl": []
+    },
+    "fill": [
+     {
+      "id": "base:<=",
+      "form": "base",
+      "part": "⟨cmp<=⟩"
+     }
+    ],
+    "example": [
+     {
+      "in": [
+       6,
+       1,
+       9,
+       1,
+       3,
+       7,
+       2
+      ],
+      "out": 3,
+      "want": 3
+     },
+     {
+      "in": [
+       -4,
+       10,
+       -4,
+       2.5
+      ],
+      "out": 2,
+      "want": 2
+     }
+    ]
+   },
+   {
+    "target": "runningMax",
+    "he": "המקסימום עד כאן",
+    "known": false,
+    "id": "9922afabaa8494bf",
+    "floor": "bp1",
+    "form": "bp",
+    "steps": 102,
+    "nodes": 2,
+    "blueprint": {
+     "id": "bp-s-d5ff8b91",
+     "source": "recipe",
+     "depth": 1,
+     "origin": {
+      "recipe": "prefix-stat",
+      "volume": 2,
+      "shape": "rcp-prefix-stat",
+      "chapter": "ערך-רץ",
+      "dropped": [],
+      "n": 1
+     },
+     "excl": []
+    },
+    "fill": [
+     {
+      "id": "bd4ca48962ae455d",
+      "form": "part",
+      "part": "inner-generator:new/atoms/tour-advance.mjs#tourAdvance.next",
+      "verbs": [
+       "offset",
+       "convert",
+       "combine"
+      ]
+     },
+     {
+      "id": "130e55561cfa0722",
+      "form": "part",
+      "part": "inner-generator:gen/looks/app/src/20-views-a.js#class.render.maxc:step",
+      "verbs": [
+       "extreme"
+      ]
+     }
+    ],
+    "example": [
+     {
+      "in": [
+       6,
+       1,
+       9,
+       1,
+       3,
+       7,
+       2
+      ],
+      "out": [
+       6,
+       6,
+       9,
+       9,
+       9,
+       9,
+       9
+      ],
+      "want": [
+       6,
+       6,
+       9,
+       9,
+       9,
+       9,
+       9
+      ]
+     },
+     {
+      "in": [
+       -4,
+       10,
+       -4,
+       2.5
+      ],
+      "out": [
+       -4,
+       10,
+       10,
+       10
+      ],
+      "want": [
+       -4,
+       10,
+       10,
+       10
+      ]
+     }
+    ]
+   },
+   {
+    "target": "runningTotal",
+    "he": "סכום מצטבר",
+    "known": false,
+    "id": "7870e266e77c7592",
+    "floor": "bp1",
+    "form": "bp",
+    "steps": 51,
+    "nodes": 1,
+    "blueprint": {
+     "id": "bp-s-a6e802dd",
+     "source": "recipe",
+     "depth": 1,
+     "origin": {
+      "recipe": "scan",
+      "shape": "rcp-scan",
+      "chapter": "ערך-רץ",
+      "dropped": [],
+      "n": 1
+     },
+     "excl": []
+    },
+    "fill": [
+     {
+      "id": "bd4ca48962ae455d",
+      "form": "part",
+      "part": "inner-generator:new/atoms/tour-advance.mjs#tourAdvance.next",
+      "verbs": [
+       "offset",
+       "convert",
+       "combine"
+      ]
+     }
+    ],
+    "example": [
+     {
+      "in": [
+       6,
+       1,
+       9,
+       1,
+       3,
+       7,
+       2
+      ],
+      "out": [
+       6,
+       7,
+       16,
+       17,
+       20,
+       27,
+       29
+      ],
+      "want": [
+       6,
+       7,
+       16,
+       17,
+       20,
+       27,
+       29
+      ]
+     },
+     {
+      "in": [
+       -4,
+       10,
+       -4,
+       2.5
+      ],
+      "out": [
+       -4,
+       6,
+       2,
+       4.5
+      ],
+      "want": [
+       -4,
+       6,
+       2,
+       4.5
+      ]
+     }
+    ]
+   },
+   {
+    "target": "countSmallerThanEach",
+    "he": "לכל פריט — כמה פריטים אחרים קטנים ממנו",
+    "known": false,
+    "id": "4312ef33888baed7",
+    "floor": "bp1",
+    "form": "bp",
+    "steps": 621,
+    "nodes": 2,
+    "blueprint": {
+     "id": "bp-s-170ae0b5",
+     "source": "recipe",
+     "depth": 1,
+     "origin": {
+      "recipe": "each-vs-all",
+      "volume": 2,
+      "shape": "rcp-each-vs-all",
+      "chapter": "כל-פריט-מול-כולם",
+      "dropped": [],
+      "n": 1
+     },
+     "excl": []
+    },
+    "fill": [
+     {
+      "id": "base:<",
+      "form": "base",
+      "part": "⟨cmp<⟩"
+     },
+     {
+      "id": "0ce602d9666a323d",
+      "form": "part",
+      "part": "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+      "verbs": [
+       "sum"
+      ]
+     }
+    ],
+    "example": [
+     {
+      "in": [
+       6,
+       1,
+       9,
+       1,
+       3,
+       7,
+       2
+      ],
+      "out": [
+       4,
+       0,
+       6,
+       0,
+       3,
+       5,
+       2
+      ],
+      "want": [
+       4,
+       0,
+       6,
+       0,
+       3,
+       5,
+       2
+      ]
+     },
+     {
+      "in": [
+       -4,
+       10,
+       -4,
+       2.5
+      ],
+      "out": [
+       0,
+       3,
+       0,
+       2
+      ],
+      "want": [
+       0,
+       3,
+       0,
+       2
+      ]
+     }
+    ]
+   },
+   {
+    "target": "neighbourMax",
+    "he": "הגדול מכל זוג שכנים",
+    "known": false,
+    "id": "693d390fa0bc5e03",
+    "floor": "bp1",
+    "form": "bp",
+    "steps": 78,
+    "nodes": 2,
+    "blueprint": {
+     "id": "bp-s-a4ab0601",
+     "source": "recipe",
+     "depth": 1,
+     "origin": {
+      "recipe": "window-const",
+      "volume": 2,
+      "shape": "rcp-window-const~2#2",
+      "chapter": "חלון",
+      "dropped": [
+       2
+      ],
+      "konst": 2,
+      "n": 1
+     },
+     "excl": []
+    },
+    "fill": [
+     {
+      "id": "bd4ca48962ae455d",
+      "form": "part",
+      "part": "inner-generator:new/atoms/tour-advance.mjs#tourAdvance.next",
+      "verbs": [
+       "offset",
+       "convert",
+       "combine"
+      ]
+     },
+     {
+      "id": "130e55561cfa0722",
+      "form": "part",
+      "part": "inner-generator:gen/looks/app/src/20-views-a.js#class.render.maxc:step",
+      "verbs": [
+       "extreme"
+      ]
+     }
+    ],
+    "example": [
+     {
+      "in": [
+       6,
+       1,
+       9,
+       1,
+       3,
+       7,
+       2
+      ],
+      "out": [
+       6,
+       9,
+       9,
+       3,
+       7,
+       7
+      ],
+      "want": [
+       6,
+       9,
+       9,
+       3,
+       7,
+       7
+      ]
+     },
+     {
+      "in": [
+       -4,
+       10,
+       -4,
+       2.5
+      ],
+      "out": [
+       10,
+       10,
+       2.5
+      ],
+      "want": [
+       10,
+       10,
+       2.5
+      ]
+     }
+    ]
+   },
+   {
+    "target": "centroid",
+    "he": "מרכז הכובד",
+    "known": false,
+    "id": "ceca9b14aace2d60",
+    "floor": "bp2",
+    "form": "bp",
+    "steps": 194,
+    "nodes": 6,
+    "blueprint": {
+     "id": "bp-s-e70761be",
+     "source": "recipe",
+     "depth": 1,
+     "origin": {
+      "recipe": "coords-stat",
+      "shape": "rcp-coords-stat",
+      "chapter": "שיעורים",
+      "dropped": [],
+      "n": 1
+     },
+     "excl": []
+    },
+    "fill": [
+     {
+      "id": "ebb7f8d8ae8350ac",
+      "form": "bp",
+      "verbs": [
+       "average"
+      ]
+     }
+    ],
+    "example": [
+     {
+      "in": [
+       [
+        {
+         "x": 0,
+         "y": 0
+        },
+        {
+         "x": 3,
+         "y": 4
+        }
+       ]
+      ],
+      "out": {
+       "x": 1.5,
+       "y": 2
+      },
+      "want": {
+       "x": 1.5,
+       "y": 2
+      }
+     },
+     {
+      "in": [
+       [
+        {
+         "x": 1,
+         "y": 1
+        },
+        {
+         "x": 1,
+         "y": 1
+        },
+        {
+         "x": 5,
+         "y": 5
+        }
+       ]
+      ],
+      "out": {
+       "x": 2.3333333333333335,
+       "y": 2.3333333333333335
+      },
+      "want": {
+       "x": 2.3333333333333335,
+       "y": 2.3333333333333335
+      }
+     }
+    ]
+   }
+  ],
+  "near": [
+   {
+    "target": "runningTotal",
+    "he": "סכום מצטבר",
+    "known": false,
+    "id": "3b4a35b0f667d374",
+    "floor": "bp1",
+    "form": "bp",
+    "steps": 52,
+    "nodes": 2,
+    "blueprint": {
+     "id": "bp-s-f307c4ab",
+     "source": "recipe",
+     "depth": 1,
+     "origin": {
+      "recipe": "scan-first",
+      "shape": "rcp-scan-first",
+      "chapter": "ערך-רץ",
+      "dropped": [],
+      "n": 1
+     },
+     "excl": []
+    },
+    "fill": [
+     {
+      "id": "bd4ca48962ae455d",
+      "form": "part",
+      "part": "inner-generator:new/atoms/tour-advance.mjs#tourAdvance.next",
+      "verbs": [
+       "offset",
+       "convert",
+       "combine"
+      ]
+     }
+    ],
+    "example": [
+     {
+      "in": [
+       6,
+       1,
+       9,
+       1,
+       3,
+       7,
+       2
+      ],
+      "out": [
+       6,
+       7,
+       16,
+       17,
+       20,
+       27,
+       29
+      ],
+      "want": [
+       6,
+       7,
+       16,
+       17,
+       20,
+       27,
+       29
+      ]
+     },
+     {
+      "in": [
+       -4,
+       10,
+       -4,
+       2.5
+      ],
+      "out": [
+       -4,
+       6,
+       2,
+       4.5
+      ],
+      "want": [
+       -4,
+       6,
+       2,
+       4.5
+      ]
+     }
+    ],
+    "stressFail": {
+     "at": 31,
+     "why": "לא רץ",
+     "len": 0
+    },
+    "stressRan": 207
+   },
+   {
+    "target": "nextBiggerOrSelf",
+    "he": "לכל פריט — הערך הגדול ממנו הבא מימינו, או הוא עצמו",
+    "known": false,
+    "id": "2e06d628eb135814",
+    "floor": "bp2",
+    "form": "bp",
+    "steps": 639,
+    "nodes": 7,
+    "blueprint": {
+     "id": "bp-s-e61388f0",
+     "source": "recipe",
+     "depth": 1,
+     "origin": {
+      "recipe": "each-first-later",
+      "volume": 2,
+      "shape": "rcp-each-first-later",
+      "chapter": "כל-פריט-מול-כולם",
+      "dropped": [],
+      "n": 1
+     },
+     "excl": []
+    },
+    "fill": [
+     {
+      "id": "base:>",
+      "form": "base",
+      "part": "⟨cmp>⟩"
+     },
+     {
+      "id": "228bd9b8e5a49794",
+      "form": "bp",
+      "verbs": [
+       "normalize",
+       "convert"
+      ]
+     }
+    ],
+    "example": [
+     {
+      "in": [
+       6,
+       1,
+       9,
+       1,
+       3,
+       7,
+       2
+      ],
+      "out": [
+       9,
+       9,
+       9,
+       3,
+       7,
+       7,
+       2
+      ],
+      "want": [
+       9,
+       9,
+       9,
+       3,
+       7,
+       7,
+       2
+      ]
+     },
+     {
+      "in": [
+       -4,
+       10,
+       -4,
+       2.5
+      ],
+      "out": [
+       10,
+       10,
+       2.5,
+       2.5
+      ],
+      "want": [
+       10,
+       10,
+       2.5,
+       2.5
+      ]
+     }
+    ],
+    "stressFail": {
+     "at": 0,
+     "why": "פלט שונה",
+     "len": 40,
+     "got": {
+      "len": 40,
+      "head": [
+       7,
+       1,
+       1
+      ]
+     },
+     "want": {
+      "len": 40,
+      "head": [
+       7,
+       1,
+       1
+      ]
+     }
+    },
+    "stressRan": 228
+   }
+  ],
+  "best": {
+   "firstIndexOfMax": {
+    "pct": 100,
+    "id": "821ffe028ad59106"
+   },
+   "lastIndexOfMin": {
+    "pct": 100,
+    "id": "596f69d3126bde37"
+   },
+   "longestRisingRun": {
+    "pct": 55,
+    "id": "0ce137571026b443"
+   },
+   "longestSameRun": {
+    "pct": 73,
+    "id": "10b6692fe505447b"
+   },
+   "countPeaks": {
+    "pct": 91,
+    "id": "a1c5a62620f977c2"
+   },
+   "maxNeighbourGap": {
+    "pct": 64,
+    "id": "da318face5aac160"
+   },
+   "sumOfPositives": {
+    "pct": 73,
+    "id": "c6c061b37fa6ed17"
+   },
+   "midRange": {
+    "pct": 64,
+    "id": "7efbac9fdee58a1b"
+   },
+   "signFlips": {
+    "pct": 91,
+    "id": "87fb399517cdb881"
+   },
+   "secondSmallestDistinct": {
+    "pct": 64,
+    "id": "1498fa46ebdb62fa"
+   },
+   "mostFrequent": {
+    "pct": 91,
+    "id": "8ad06921495ff8fd"
+   },
+   "countAboveMean": {
+    "pct": 64,
+    "id": "8e7a34b9917a8db5"
+   },
+   "populationVariance": {
+    "pct": 27,
+    "id": "17814880365cab64"
+   },
+   "bestStretchSum": {
+    "pct": 82,
+    "id": "c6c061b37fa6ed17"
+   },
+   "runningMax": {
+    "pct": 100,
+    "id": "9922afabaa8494bf"
+   },
+   "runningTotal": {
+    "pct": 100,
+    "id": "3b4a35b0f667d374"
+   },
+   "stepChanges": {
+    "pct": 36,
+    "id": "a23df4dfb86d1a6b"
+   },
+   "countSmallerThanEach": {
+    "pct": 100,
+    "id": "4312ef33888baed7"
+   },
+   "nextBiggerOrSelf": {
+    "pct": 100,
+    "id": "2e06d628eb135814"
+   },
+   "movingAverage3": {
+    "pct": 91,
+    "id": "39b8e2c33fd8882f"
+   },
+   "runLengths": {
+    "pct": 64,
+    "id": "351fc25f151387b3"
+   },
+   "squeezeRepeats": {
+    "pct": 91,
+    "id": "6abbac47b359abd3"
+   },
+   "positiveStreakAt": {
+    "pct": 55,
+    "id": "b833772eb27b5aa2"
+   },
+   "minFromHereOn": {
+    "pct": 73,
+    "id": "481d1c5a8e3b702e"
+   },
+   "neighbourMax": {
+    "pct": 100,
+    "id": "693d390fa0bc5e03"
+   },
+   "offsetFromMean": {
+    "pct": 91,
+    "id": "7040a54ba01e2217"
+   },
+   "digitSum": {
+    "pct": 64,
+    "id": "13ab29bbaec0f14f"
+   },
+   "digitCount": {
+    "pct": 64,
+    "id": "83b9f408a4214434"
+   },
+   "reversedDigits": {
+    "pct": 79,
+    "id": "a277d2874c3b7edb"
+   },
+   "digitalRoot": {
+    "pct": 64,
+    "id": "13ab29bbaec0f14f"
+   },
+   "collatzSteps": {
+    "pct": 29,
+    "id": "2912c469ad6fca9d"
+   },
+   "greatestCommonDivisor": {
+    "pct": 88,
+    "id": "92ba860537055449"
+   },
+   "nearestMultiple": {
+    "pct": 56,
+    "id": "332ca4f1939655fd"
+   },
+   "windowSums": {
+    "pct": 33,
+    "id": "b22681cf46a9c19b"
+   },
+   "bestWindowSum": {
+    "pct": 75,
+    "id": "b802e38e1358c902"
+   },
+   "indexClosestTo": {
+    "pct": 67,
+    "id": "648aca715b6ccd1d"
+   },
+   "countAtLeast": {
+    "pct": 67,
+    "id": "1b29a13decd70eb9"
+   },
+   "rotateLeftBy": {
+    "pct": 50,
+    "id": "3f6a308515320e19"
+   },
+   "pathLength": {
+    "pct": 11,
+    "id": "012754c166941625"
+   },
+   "farthestFromOriginIndex": {
+    "pct": 44,
+    "id": "0a9e683339eed5d7"
+   },
+   "centroid": {
+    "pct": 100,
+    "id": "ceca9b14aace2d60"
+   },
+   "cityBlockDistance": {
+    "pct": 0,
+    "id": "9e2a515a71f4821e"
+   },
+   "nearestDistanceTo": {
+    "pct": null
+   },
+   "boundingBoxArea": {
+    "pct": 22,
+    "id": "012754c166941625"
+   },
+   "sortByXThenY": {
+    "pct": 33,
+    "id": "0a21d429e5298da5"
+   },
+   "dropRepeatedStops": {
+    "pct": 89,
+    "id": "13bf724d793a2fa1"
+   }
+  }
+ },
+ "baseline": {
+  "hits": [
+   {
+    "target": "sumOfPositives",
+    "he": "סכום החיוביים בלבד",
+    "known": false,
+    "id": "d20219cbccb3c6ff",
+    "floor": 1,
+    "form": "chain",
+    "steps": 116,
+    "nodes": 2,
+    "of": [
+     {
+      "id": "bf63481f1eca01eb",
+      "form": "part",
+      "part": "inner-orbit:src/lib/atoms/decompose/genericPreview.ts#amountPreview.pos",
+      "verbs": [
+       "filter"
+      ]
+     },
+     {
+      "id": "0ce602d9666a323d",
+      "form": "part",
+      "part": "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+      "verbs": [
+       "sum"
+      ]
+     }
+    ],
+    "example": [
+     {
+      "in": [
+       6,
+       1,
+       9,
+       1,
+       3,
+       7,
+       2
+      ],
+      "out": 29,
+      "want": 29
+     },
+     {
+      "in": [
+       -4,
+       10,
+       -4,
+       2.5
+      ],
+      "out": 12.5,
+      "want": 12.5
+     }
+    ]
+   },
+   {
+    "target": "mostFrequent",
+    "he": "הערך השכיח (בשוויון — הקטן)",
+    "known": false,
+    "id": "2051ebdba314b927",
+    "floor": 1,
+    "form": "chain",
+    "steps": 144,
+    "nodes": 2,
+    "of": [
+     {
+      "id": "94abcb62cd88d67e",
+      "form": "part",
+      "part": "inner-generator:new/boxes/pareto.mjs#paretoReport.asc",
+      "verbs": [
+       "sort"
+      ]
+     },
+     {
+      "id": "4aa9a068d5e7b3b4",
+      "form": "part",
+      "part": "inner-generator:new/boxes/lib-nedarim-sync.mjs#modeStr.best:after-loop"
+     }
+    ],
+    "example": [
+     {
+      "in": [
+       6,
+       1,
+       9,
+       1,
+       3,
+       7,
+       2
+      ],
+      "out": 1,
+      "want": 1
+     },
+     {
+      "in": [
+       -4,
+       10,
+       -4,
+       2.5
+      ],
+      "out": -4,
+      "want": -4
+     }
+    ]
+   }
+  ],
+  "near": [],
+  "best": {
+   "firstIndexOfMax": {
+    "pct": 45,
+    "id": "167160a5e1491a51"
+   },
+   "lastIndexOfMin": {
+    "pct": 45,
+    "id": "0fa696b2c68f6b5e"
+   },
+   "longestRisingRun": {
+    "pct": 55,
+    "id": "cc90ba144e6bc150"
+   },
+   "longestSameRun": {
+    "pct": 82,
+    "id": "44ef0a762f94dc62"
+   },
+   "countPeaks": {
+    "pct": 73,
+    "id": "76e7131439753da8"
+   },
+   "maxNeighbourGap": {
+    "pct": 36,
+    "id": "00f12fcacb69a866"
+   },
+   "sumOfPositives": {
+    "pct": 100,
+    "id": "d20219cbccb3c6ff"
+   },
+   "midRange": {
+    "pct": 36,
+    "id": "16ca7e88fa9a0844"
+   },
+   "signFlips": {
+    "pct": 82,
+    "id": "4bd167babf28e2f6"
+   },
+   "secondSmallestDistinct": {
+    "pct": 82,
+    "id": "de9851f43c117fd0"
+   },
+   "mostFrequent": {
+    "pct": 100,
+    "id": "2051ebdba314b927"
+   },
+   "countAboveMean": {
+    "pct": 55,
+    "id": "7b2b5d0c3e4b4a48"
+   },
+   "populationVariance": {
+    "pct": 9,
+    "id": "00830f8bee4ad8ef"
+   },
+   "bestStretchSum": {
+    "pct": 73,
+    "id": "029ae53bdf534d5f"
+   },
+   "runningMax": {
+    "pct": 45,
+    "id": "815d3f0e544ff4d2"
+   },
+   "runningTotal": {
+    "pct": 9,
+    "id": "041d325c6d3afd98"
+   },
+   "stepChanges": {
+    "pct": 9,
+    "id": "078a1008dd071c74"
+   },
+   "countSmallerThanEach": {
+    "pct": 18,
+    "id": "03520c0166519f2d"
+   },
+   "nextBiggerOrSelf": {
+    "pct": 27,
+    "id": "dd4289d069051d0c"
+   },
+   "movingAverage3": {
+    "pct": 27,
+    "id": "eaedfcaf0e531133"
+   },
+   "runLengths": {
+    "pct": 64,
+    "id": "90dc1f300eaa10e4"
+   },
+   "squeezeRepeats": {
+    "pct": 73,
+    "id": "19764b13237ff40f"
+   },
+   "positiveStreakAt": {
+    "pct": 27,
+    "id": "6a680b22cce814de"
+   },
+   "minFromHereOn": {
+    "pct": 45,
+    "id": "815d3f0e544ff4d2"
+   },
+   "neighbourMax": {
+    "pct": 36,
+    "id": "b592260581154469"
+   },
+   "offsetFromMean": {
+    "pct": 9,
+    "id": "03520c0166519f2d"
+   },
+   "digitSum": {
+    "pct": 64,
+    "id": "13ab29bbaec0f14f"
+   },
+   "digitCount": {
+    "pct": 79,
+    "id": "5c1c56527209618e"
+   },
+   "reversedDigits": {
+    "pct": 64,
+    "id": "3288493008a1b394"
+   },
+   "digitalRoot": {
+    "pct": 64,
+    "id": "13ab29bbaec0f14f"
+   },
+   "collatzSteps": {
+    "pct": 21,
+    "id": "13ab29bbaec0f14f"
+   },
+   "greatestCommonDivisor": {
+    "pct": 63,
+    "id": "e8cd7f6896665bd4"
+   },
+   "nearestMultiple": {
+    "pct": 56,
+    "id": "332ca4f1939655fd"
+   },
+   "windowSums": {
+    "pct": 33,
+    "id": "00a88f3d726665b1"
+   },
+   "bestWindowSum": {
+    "pct": 58,
+    "id": "0aeb81d89ab6829c"
+   },
+   "indexClosestTo": {
+    "pct": 58,
+    "id": "fd217f1ee92af7a2"
+   },
+   "countAtLeast": {
+    "pct": 67,
+    "id": "efd45691cd814905"
+   },
+   "rotateLeftBy": {
+    "pct": 50,
+    "id": "3129f0365041927a"
+   },
+   "pathLength": {
+    "pct": 11,
+    "id": "329c7fe927557685"
+   },
+   "farthestFromOriginIndex": {
+    "pct": 44,
+    "id": "329c7fe927557685"
+   },
+   "centroid": {
+    "pct": 0,
+    "id": "322e96de82be271a"
+   },
+   "cityBlockDistance": {
+    "pct": 13,
+    "id": "7ec4b2aa6e9dff26"
+   },
+   "nearestDistanceTo": {
+    "pct": 17,
+    "id": "2af9947b8019c1df"
+   },
+   "boundingBoxArea": {
+    "pct": 0,
+    "id": "02a39a34545d4408"
+   },
+   "sortByXThenY": {
+    "pct": 33,
+    "id": "0a21d429e5298da5"
+   },
+   "dropRepeatedStops": {
+    "pct": 89,
+    "id": "97e943e4190f93b8"
+   }
+  }
+ }
+}

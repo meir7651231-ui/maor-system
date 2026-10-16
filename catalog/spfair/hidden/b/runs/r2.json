@@ -1,0 +1,1501 @@
+{
+ "about": "RECIPES · המבחן הנסתר ב׳ (sha256 ב-hidden/b/SHA256) על אותה הרצה. נבנה ע״י fair.mjs",
+ "name": "r2",
+ "targets": 44,
+ "selfprint": {
+  "hits": [
+   {
+    "target": "indexOfLastMin",
+    "he": "אינדקס המופע האחרון של המינימום",
+    "known": false,
+    "id": "596f69d3126bde37",
+    "floor": "bp1",
+    "form": "bp",
+    "steps": 166,
+    "nodes": 4,
+    "blueprint": {
+     "id": "bp-s-37b79277",
+     "source": "recipe",
+     "depth": 1,
+     "origin": {
+      "recipe": "best-index",
+      "shape": "rcp-best-index~0",
+      "chapter": "בחר-את-הטוב",
+      "dropped": [
+       0
+      ],
+      "n": 1
+     },
+     "excl": []
+    },
+    "fill": [
+     {
+      "id": "base:<=",
+      "form": "base",
+      "part": "⟨cmp<=⟩"
+     }
+    ],
+    "example": [
+     {
+      "in": [
+       6,
+       1,
+       9,
+       1,
+       3,
+       7,
+       2
+      ],
+      "out": 3,
+      "want": 3
+     },
+     {
+      "in": [
+       -4,
+       10,
+       -4,
+       2.5
+      ],
+      "out": 2,
+      "want": 2
+     }
+    ]
+   },
+   {
+    "target": "runningMax",
+    "he": "מקסימום מצטבר",
+    "known": false,
+    "id": "9922afabaa8494bf",
+    "floor": "bp1",
+    "form": "bp",
+    "steps": 102,
+    "nodes": 2,
+    "blueprint": {
+     "id": "bp-s-d5ff8b91",
+     "source": "recipe",
+     "depth": 1,
+     "origin": {
+      "recipe": "prefix-stat",
+      "volume": 2,
+      "shape": "rcp-prefix-stat",
+      "chapter": "ערך-רץ",
+      "dropped": [],
+      "n": 1
+     },
+     "excl": []
+    },
+    "fill": [
+     {
+      "id": "bd4ca48962ae455d",
+      "form": "part",
+      "part": "inner-generator:new/atoms/tour-advance.mjs#tourAdvance.next",
+      "verbs": [
+       "offset",
+       "convert",
+       "combine"
+      ]
+     },
+     {
+      "id": "130e55561cfa0722",
+      "form": "part",
+      "part": "inner-generator:gen/looks/app/src/20-views-a.js#class.render.maxc:step",
+      "verbs": [
+       "extreme"
+      ]
+     }
+    ],
+    "example": [
+     {
+      "in": [
+       6,
+       1,
+       9,
+       1,
+       3,
+       7,
+       2
+      ],
+      "out": [
+       6,
+       6,
+       9,
+       9,
+       9,
+       9,
+       9
+      ],
+      "want": [
+       6,
+       6,
+       9,
+       9,
+       9,
+       9,
+       9
+      ]
+     },
+     {
+      "in": [
+       -4,
+       10,
+       -4,
+       2.5
+      ],
+      "out": [
+       -4,
+       10,
+       10,
+       10
+      ],
+      "want": [
+       -4,
+       10,
+       10,
+       10
+      ]
+     }
+    ]
+   },
+   {
+    "target": "movingAvg2",
+    "he": "ממוצע נע של זוגות שכנים",
+    "known": false,
+    "id": "670cfe2dbae008a9",
+    "floor": "bp2",
+    "form": "bp",
+    "steps": 234,
+    "nodes": 4,
+    "blueprint": {
+     "id": "bp-s-a4ab0601",
+     "source": "recipe",
+     "depth": 1,
+     "origin": {
+      "recipe": "window-const",
+      "volume": 2,
+      "shape": "rcp-window-const~2#2",
+      "chapter": "חלון",
+      "dropped": [
+       2
+      ],
+      "konst": 2,
+      "n": 1
+     },
+     "excl": []
+    },
+    "fill": [
+     {
+      "id": "bd4ca48962ae455d",
+      "form": "part",
+      "part": "inner-generator:new/atoms/tour-advance.mjs#tourAdvance.next",
+      "verbs": [
+       "offset",
+       "convert",
+       "combine"
+      ]
+     },
+     {
+      "id": "ebb7f8d8ae8350ac",
+      "form": "bp",
+      "verbs": [
+       "average"
+      ]
+     }
+    ],
+    "example": [
+     {
+      "in": [
+       6,
+       1,
+       9,
+       1,
+       3,
+       7,
+       2
+      ],
+      "out": [
+       3.5,
+       5,
+       5,
+       2,
+       5,
+       4.5
+      ],
+      "want": [
+       3.5,
+       5,
+       5,
+       2,
+       5,
+       4.5
+      ]
+     },
+     {
+      "in": [
+       -4,
+       10,
+       -4,
+       2.5
+      ],
+      "out": [
+       3,
+       3,
+       -0.75
+      ],
+      "want": [
+       3,
+       3,
+       -0.75
+      ]
+     }
+    ]
+   },
+   {
+    "target": "rankOf",
+    "he": "לכל איבר — כמה איברים קטנים ממנו ממש",
+    "known": false,
+    "id": "4312ef33888baed7",
+    "floor": "bp1",
+    "form": "bp",
+    "steps": 621,
+    "nodes": 2,
+    "blueprint": {
+     "id": "bp-s-170ae0b5",
+     "source": "recipe",
+     "depth": 1,
+     "origin": {
+      "recipe": "each-vs-all",
+      "volume": 2,
+      "shape": "rcp-each-vs-all",
+      "chapter": "כל-פריט-מול-כולם",
+      "dropped": [],
+      "n": 1
+     },
+     "excl": []
+    },
+    "fill": [
+     {
+      "id": "base:<",
+      "form": "base",
+      "part": "⟨cmp<⟩"
+     },
+     {
+      "id": "0ce602d9666a323d",
+      "form": "part",
+      "part": "inner-buildsmart:functions/src/analytics.ts#sumShards.total:after-loop",
+      "verbs": [
+       "sum"
+      ]
+     }
+    ],
+    "example": [
+     {
+      "in": [
+       6,
+       1,
+       9,
+       1,
+       3,
+       7,
+       2
+      ],
+      "out": [
+       4,
+       0,
+       6,
+       0,
+       3,
+       5,
+       2
+      ],
+      "want": [
+       4,
+       0,
+       6,
+       0,
+       3,
+       5,
+       2
+      ]
+     },
+     {
+      "in": [
+       -4,
+       10,
+       -4,
+       2.5
+      ],
+      "out": [
+       0,
+       3,
+       0,
+       2
+      ],
+      "want": [
+       0,
+       3,
+       0,
+       2
+      ]
+     }
+    ]
+   },
+   {
+    "target": "distinctSortedDesc",
+    "he": "ערכים שונים בסדר יורד",
+    "known": false,
+    "id": "5381f256863fe182",
+    "floor": "bp1",
+    "form": "bp",
+    "steps": 95,
+    "nodes": 2,
+    "blueprint": {
+     "id": "bp-s-d52c7307",
+     "source": "success",
+     "depth": 1,
+     "origin": {
+      "thing": "0ae8107b65ed5b47",
+      "verbs": [
+       "filter"
+      ]
+     },
+     "excl": [
+      "filter"
+     ]
+    },
+    "fill": [
+     {
+      "id": "00887f585f4f3bac",
+      "form": "part",
+      "part": "inner-generator:new/boxes/pareto.mjs#paretoReport.desc",
+      "verbs": [
+       "sort"
+      ]
+     }
+    ],
+    "example": [
+     {
+      "in": [
+       6,
+       1,
+       9,
+       1,
+       3,
+       7,
+       2
+      ],
+      "out": [
+       9,
+       7,
+       6,
+       3,
+       2,
+       1
+      ],
+      "want": [
+       9,
+       7,
+       6,
+       3,
+       2,
+       1
+      ]
+     },
+     {
+      "in": [
+       -4,
+       10,
+       -4,
+       2.5
+      ],
+      "out": [
+       10,
+       2.5,
+       -4
+      ],
+      "want": [
+       10,
+       2.5,
+       -4
+      ]
+     }
+    ]
+   },
+   {
+    "target": "centroid",
+    "he": "מרכז הכובד (ממוצע x ו-y)",
+    "known": false,
+    "id": "ceca9b14aace2d60",
+    "floor": "bp2",
+    "form": "bp",
+    "steps": 194,
+    "nodes": 6,
+    "blueprint": {
+     "id": "bp-s-e70761be",
+     "source": "recipe",
+     "depth": 1,
+     "origin": {
+      "recipe": "coords-stat",
+      "shape": "rcp-coords-stat",
+      "chapter": "שיעורים",
+      "dropped": [],
+      "n": 1
+     },
+     "excl": []
+    },
+    "fill": [
+     {
+      "id": "ebb7f8d8ae8350ac",
+      "form": "bp",
+      "verbs": [
+       "average"
+      ]
+     }
+    ],
+    "example": [
+     {
+      "in": [
+       [
+        {
+         "x": 0,
+         "y": 0
+        },
+        {
+         "x": 3,
+         "y": 4
+        }
+       ]
+      ],
+      "out": {
+       "x": 1.5,
+       "y": 2
+      },
+      "want": {
+       "x": 1.5,
+       "y": 2
+      }
+     },
+     {
+      "in": [
+       [
+        {
+         "x": 1,
+         "y": 1
+        },
+        {
+         "x": 1,
+         "y": 1
+        },
+        {
+         "x": 5,
+         "y": 5
+        }
+       ]
+      ],
+      "out": {
+       "x": 2.3333333333333335,
+       "y": 2.3333333333333335
+      },
+      "want": {
+       "x": 2.3333333333333335,
+       "y": 2.3333333333333335
+      }
+     }
+    ]
+   }
+  ],
+  "near": [
+   {
+    "target": "sortByAbsThenValue",
+    "he": "מיון לפי ערך מוחלט, שוויון — הקטן קודם",
+    "known": false,
+    "id": "694000c570109189",
+    "floor": "bp1",
+    "form": "bp",
+    "steps": 1161,
+    "nodes": 9,
+    "blueprint": {
+     "id": "bp-s-6028b49d",
+     "source": "recipe",
+     "depth": 1,
+     "origin": {
+      "recipe": "sort-by-key",
+      "shape": "rcp-sort-by-key",
+      "chapter": "בנייה-חמדנית",
+      "dropped": [],
+      "n": 1
+     },
+     "excl": []
+    },
+    "fill": [
+     {
+      "id": "6bf177646a109138",
+      "form": "part",
+      "part": "inner-generator:runtime/engine_api.js#dartProgram.ex.t",
+      "verbs": [
+       "normalize",
+       "convert"
+      ]
+     },
+     {
+      "id": "base:<",
+      "form": "base",
+      "part": "⟨cmp<⟩"
+     }
+    ],
+    "example": [
+     {
+      "in": [
+       6,
+       1,
+       9,
+       1,
+       3,
+       7,
+       2
+      ],
+      "out": [
+       1,
+       1,
+       2,
+       3,
+       6,
+       7,
+       9
+      ],
+      "want": [
+       1,
+       1,
+       2,
+       3,
+       6,
+       7,
+       9
+      ]
+     },
+     {
+      "in": [
+       -4,
+       10,
+       -4,
+       2.5
+      ],
+      "out": [
+       2.5,
+       -4,
+       -4,
+       10
+      ],
+      "want": [
+       2.5,
+       -4,
+       -4,
+       10
+      ]
+     }
+    ],
+    "stressFail": {
+     "at": 0,
+     "why": "פלט שונה",
+     "len": 40,
+     "got": {
+      "len": 40,
+      "head": [
+       0,
+       0,
+       -1
+      ]
+     },
+     "want": {
+      "len": 40,
+      "head": [
+       0,
+       0,
+       -1
+      ]
+     }
+    },
+    "stressRan": 228
+   },
+   {
+    "target": "nextGreaterValue",
+    "he": "לכל איבר — הערך הראשון מימינו שגדול ממנו, או האיבר עצמו אם אין",
+    "known": false,
+    "id": "2e06d628eb135814",
+    "floor": "bp2",
+    "form": "bp",
+    "steps": 639,
+    "nodes": 7,
+    "blueprint": {
+     "id": "bp-s-e61388f0",
+     "source": "recipe",
+     "depth": 1,
+     "origin": {
+      "recipe": "each-first-later",
+      "volume": 2,
+      "shape": "rcp-each-first-later",
+      "chapter": "כל-פריט-מול-כולם",
+      "dropped": [],
+      "n": 1
+     },
+     "excl": []
+    },
+    "fill": [
+     {
+      "id": "base:>",
+      "form": "base",
+      "part": "⟨cmp>⟩"
+     },
+     {
+      "id": "228bd9b8e5a49794",
+      "form": "bp",
+      "verbs": [
+       "normalize",
+       "convert"
+      ]
+     }
+    ],
+    "example": [
+     {
+      "in": [
+       6,
+       1,
+       9,
+       1,
+       3,
+       7,
+       2
+      ],
+      "out": [
+       9,
+       9,
+       9,
+       3,
+       7,
+       7,
+       2
+      ],
+      "want": [
+       9,
+       9,
+       9,
+       3,
+       7,
+       7,
+       2
+      ]
+     },
+     {
+      "in": [
+       -4,
+       10,
+       -4,
+       2.5
+      ],
+      "out": [
+       10,
+       10,
+       2.5,
+       2.5
+      ],
+      "want": [
+       10,
+       10,
+       2.5,
+       2.5
+      ]
+     }
+    ],
+    "stressFail": {
+     "at": 0,
+     "why": "פלט שונה",
+     "len": 40,
+     "got": {
+      "len": 40,
+      "head": [
+       7,
+       1,
+       1
+      ]
+     },
+     "want": {
+      "len": 40,
+      "head": [
+       7,
+       1,
+       1
+      ]
+     }
+    },
+    "stressRan": 228
+   },
+   {
+    "target": "prefixMeans",
+    "he": "ממוצע מצטבר",
+    "known": false,
+    "id": "f6b2ad010745373d",
+    "floor": "bp2",
+    "form": "bp",
+    "steps": 438,
+    "nodes": 4,
+    "blueprint": {
+     "id": "bp-s-d5ff8b91",
+     "source": "recipe",
+     "depth": 1,
+     "origin": {
+      "recipe": "prefix-stat",
+      "volume": 2,
+      "shape": "rcp-prefix-stat",
+      "chapter": "ערך-רץ",
+      "dropped": [],
+      "n": 1
+     },
+     "excl": []
+    },
+    "fill": [
+     {
+      "id": "bd4ca48962ae455d",
+      "form": "part",
+      "part": "inner-generator:new/atoms/tour-advance.mjs#tourAdvance.next",
+      "verbs": [
+       "offset",
+       "convert",
+       "combine"
+      ]
+     },
+     {
+      "id": "ebb7f8d8ae8350ac",
+      "form": "bp",
+      "verbs": [
+       "average"
+      ]
+     }
+    ],
+    "example": [
+     {
+      "in": [
+       6,
+       1,
+       9,
+       1,
+       3,
+       7,
+       2
+      ],
+      "out": [
+       6,
+       3.5,
+       5.333333333333334,
+       4.25,
+       4,
+       4.5,
+       4.142857142857142
+      ],
+      "want": [
+       6,
+       3.5,
+       5.333333333333333,
+       4.25,
+       4,
+       4.5,
+       4.142857142857143
+      ]
+     },
+     {
+      "in": [
+       -4,
+       10,
+       -4,
+       2.5
+      ],
+      "out": [
+       -4,
+       3,
+       0.6666666666666667,
+       1.125
+      ],
+      "want": [
+       -4,
+       3,
+       0.6666666666666666,
+       1.125
+      ]
+     }
+    ],
+    "stressFail": {
+     "at": 1,
+     "why": "פלט שונה",
+     "len": 100,
+     "got": {
+      "len": 100,
+      "head": [
+       2,
+       5,
+       1.9999999999999998
+      ]
+     },
+     "want": {
+      "len": 100,
+      "head": [
+       2,
+       5,
+       2
+      ]
+     }
+    },
+    "stressRan": 228
+   },
+   {
+    "target": "closestPointEuclid",
+    "he": "הנקודה הקרובה ביותר לנקודה הנתונה (אוקלידי; שוויון: הראשונה)",
+    "known": false,
+    "id": "6f2fddca5e51b4f6",
+    "floor": 0,
+    "form": "part",
+    "steps": 260,
+    "nodes": 1,
+    "part": "core-c:catalog/core/nearest-point.mjs#nearestPoint",
+    "of": [],
+    "example": [
+     {
+      "in": [
+       [
+        {
+         "x": 0,
+         "y": 0
+        },
+        {
+         "x": 3,
+         "y": 4
+        }
+       ],
+       {
+        "x": 3,
+        "y": 4
+       }
+      ],
+      "out": {
+       "x": 3,
+       "y": 4
+      },
+      "want": {
+       "x": 3,
+       "y": 4
+      }
+     },
+     {
+      "in": [
+       [
+        {
+         "x": 1,
+         "y": 1
+        },
+        {
+         "x": 1,
+         "y": 1
+        },
+        {
+         "x": 5,
+         "y": 5
+        }
+       ],
+       {
+        "x": -5,
+        "y": 6
+       }
+      ],
+      "out": {
+       "x": 1,
+       "y": 1
+      },
+      "want": {
+       "x": 1,
+       "y": 1
+      }
+     }
+    ],
+    "stressFail": {
+     "at": 89,
+     "why": "פלט שונה",
+     "len": 9,
+     "got": {
+      "x": 15,
+      "y": 14
+     },
+     "want": {
+      "x": 28,
+      "y": 27
+     }
+    },
+    "stressRan": 194
+   }
+  ],
+  "best": {
+   "closestToMeanValue": {
+    "pct": 73,
+    "id": "44f7e518cefe00ec"
+   },
+   "bestWindow3Start": {
+    "pct": 82,
+    "id": "05365a37377e7ccb"
+   },
+   "maxSubarraySum": {
+    "pct": 82,
+    "id": "c6c061b37fa6ed17"
+   },
+   "longestRisingRun": {
+    "pct": 55,
+    "id": "0ce137571026b443"
+   },
+   "maxNeighborJump": {
+    "pct": 64,
+    "id": "da318face5aac160"
+   },
+   "countAboveMean": {
+    "pct": 64,
+    "id": "8e7a34b9917a8db5"
+   },
+   "bestBuySellProfit": {
+    "pct": 73,
+    "id": "da318face5aac160"
+   },
+   "minGapSorted": {
+    "pct": 73,
+    "id": "637b3572447fac0e"
+   },
+   "indexOfLastMin": {
+    "pct": 100,
+    "id": "596f69d3126bde37"
+   },
+   "mostFrequentValue": {
+    "pct": 91,
+    "id": "8ad06921495ff8fd"
+   },
+   "signChanges": {
+    "pct": 91,
+    "id": "87fb399517cdb881"
+   },
+   "greedyRunsUnderCap": {
+    "pct": 45,
+    "id": "397eef3e3f11f70a"
+   },
+   "peakCount": {
+    "pct": 91,
+    "id": "a1c5a62620f977c2"
+   },
+   "runningMax": {
+    "pct": 100,
+    "id": "9922afabaa8494bf"
+   },
+   "neighborDiffs": {
+    "pct": 36,
+    "id": "a23df4dfb86d1a6b"
+   },
+   "movingAvg2": {
+    "pct": 100,
+    "id": "670cfe2dbae008a9"
+   },
+   "centerOnMean": {
+    "pct": 91,
+    "id": "7040a54ba01e2217"
+   },
+   "rankOf": {
+    "pct": 100,
+    "id": "4312ef33888baed7"
+   },
+   "sortByAbsThenValue": {
+    "pct": 100,
+    "id": "694000c570109189"
+   },
+   "keepNewRecords": {
+    "pct": 45,
+    "id": "5658278c240e5148"
+   },
+   "clampToMeanBand": {
+    "pct": 45,
+    "id": "0dc9004513a42409"
+   },
+   "distinctSortedDesc": {
+    "pct": 100,
+    "id": "5381f256863fe182"
+   },
+   "nextGreaterValue": {
+    "pct": 100,
+    "id": "2e06d628eb135814"
+   },
+   "prefixMeans": {
+    "pct": 100,
+    "id": "f6b2ad010745373d"
+   },
+   "digitSumAbs": {
+    "pct": 64,
+    "id": "6bf177646a109138"
+   },
+   "collatzSteps": {
+    "pct": 29,
+    "id": "2912c469ad6fca9d"
+   },
+   "gcdAbs": {
+    "pct": 88,
+    "id": "92ba860537055449"
+   },
+   "roundToMultiple": {
+    "pct": 56,
+    "id": "332ca4f1939655fd"
+   },
+   "closestValueTo": {
+    "pct": 92,
+    "id": "280f6a098f043dd5"
+   },
+   "longestRunAtMost": {
+    "pct": 50,
+    "id": "6cb86ff97f9b497d"
+   },
+   "windowSums": {
+    "pct": 33,
+    "id": "b22681cf46a9c19b"
+   },
+   "kSmallestSorted": {
+    "pct": 92,
+    "id": "044bfde3610c9b4f"
+   },
+   "closestPointEuclid": {
+    "pct": 100,
+    "id": "6f2fddca5e51b4f6"
+   },
+   "farthestManhattanDist": {
+    "pct": null
+   },
+   "centroid": {
+    "pct": 100,
+    "id": "ceca9b14aace2d60"
+   },
+   "pathLengthEuclid": {
+    "pct": 11,
+    "id": "012754c166941625"
+   },
+   "closestPairDistEuclid": {
+    "pct": 22,
+    "id": "0a9e683339eed5d7"
+   },
+   "bboxArea": {
+    "pct": 22,
+    "id": "012754c166941625"
+   },
+   "nearestNeighborTourManhattan": {
+    "pct": 33,
+    "id": "0a21d429e5298da5"
+   },
+   "sortByDistFromCentroid": {
+    "pct": 33,
+    "id": "0a21d429e5298da5"
+   },
+   "countWithinManhattan5": {
+    "pct": null
+   },
+   "midpoint": {
+    "pct": 6,
+    "id": "cd6b54faf87875e6"
+   },
+   "medoidIndex": {
+    "pct": 44,
+    "id": "27eb3851595e4745"
+   },
+   "polygonAreaShoelace": {
+    "pct": 33,
+    "id": "03492e51f4231875"
+   }
+  }
+ },
+ "baseline": {
+  "hits": [
+   {
+    "target": "mostFrequentValue",
+    "he": "הערך השכיח ביותר (שוויון: הקטן מביניהם)",
+    "known": false,
+    "id": "2051ebdba314b927",
+    "floor": 1,
+    "form": "chain",
+    "steps": 144,
+    "nodes": 2,
+    "of": [
+     {
+      "id": "94abcb62cd88d67e",
+      "form": "part",
+      "part": "inner-generator:new/boxes/pareto.mjs#paretoReport.asc",
+      "verbs": [
+       "sort"
+      ]
+     },
+     {
+      "id": "4aa9a068d5e7b3b4",
+      "form": "part",
+      "part": "inner-generator:new/boxes/lib-nedarim-sync.mjs#modeStr.best:after-loop"
+     }
+    ],
+    "example": [
+     {
+      "in": [
+       6,
+       1,
+       9,
+       1,
+       3,
+       7,
+       2
+      ],
+      "out": 1,
+      "want": 1
+     },
+     {
+      "in": [
+       -4,
+       10,
+       -4,
+       2.5
+      ],
+      "out": -4,
+      "want": -4
+     }
+    ]
+   },
+   {
+    "target": "distinctSortedDesc",
+    "he": "ערכים שונים בסדר יורד",
+    "known": false,
+    "id": "88381fb192424315",
+    "floor": 1,
+    "form": "chain",
+    "steps": 95,
+    "nodes": 2,
+    "of": [
+     {
+      "id": "7184f07463958170",
+      "form": "part",
+      "part": "inner-orbit:src/lib/atoms/decompose/genericPreview.ts#textPreview.vals",
+      "verbs": [
+       "dedupe"
+      ]
+     },
+     {
+      "id": "00887f585f4f3bac",
+      "form": "part",
+      "part": "inner-generator:new/boxes/pareto.mjs#paretoReport.desc",
+      "verbs": [
+       "sort"
+      ]
+     }
+    ],
+    "example": [
+     {
+      "in": [
+       6,
+       1,
+       9,
+       1,
+       3,
+       7,
+       2
+      ],
+      "out": [
+       9,
+       7,
+       6,
+       3,
+       2,
+       1
+      ],
+      "want": [
+       9,
+       7,
+       6,
+       3,
+       2,
+       1
+      ]
+     },
+     {
+      "in": [
+       -4,
+       10,
+       -4,
+       2.5
+      ],
+      "out": [
+       10,
+       2.5,
+       -4
+      ],
+      "want": [
+       10,
+       2.5,
+       -4
+      ]
+     }
+    ]
+   }
+  ],
+  "near": [
+   {
+    "target": "closestPointEuclid",
+    "he": "הנקודה הקרובה ביותר לנקודה הנתונה (אוקלידי; שוויון: הראשונה)",
+    "known": false,
+    "id": "6f2fddca5e51b4f6",
+    "floor": 0,
+    "form": "part",
+    "steps": 260,
+    "nodes": 1,
+    "part": "core-c:catalog/core/nearest-point.mjs#nearestPoint",
+    "of": [],
+    "example": [
+     {
+      "in": [
+       [
+        {
+         "x": 0,
+         "y": 0
+        },
+        {
+         "x": 3,
+         "y": 4
+        }
+       ],
+       {
+        "x": 3,
+        "y": 4
+       }
+      ],
+      "out": {
+       "x": 3,
+       "y": 4
+      },
+      "want": {
+       "x": 3,
+       "y": 4
+      }
+     },
+     {
+      "in": [
+       [
+        {
+         "x": 1,
+         "y": 1
+        },
+        {
+         "x": 1,
+         "y": 1
+        },
+        {
+         "x": 5,
+         "y": 5
+        }
+       ],
+       {
+        "x": -5,
+        "y": 6
+       }
+      ],
+      "out": {
+       "x": 1,
+       "y": 1
+      },
+      "want": {
+       "x": 1,
+       "y": 1
+      }
+     }
+    ],
+    "stressFail": {
+     "at": 89,
+     "why": "פלט שונה",
+     "len": 9,
+     "got": {
+      "x": 15,
+      "y": 14
+     },
+     "want": {
+      "x": 28,
+      "y": 27
+     }
+    },
+    "stressRan": 194
+   }
+  ],
+  "best": {
+   "closestToMeanValue": {
+    "pct": 55,
+    "id": "190d04923f7a946e"
+   },
+   "bestWindow3Start": {
+    "pct": 73,
+    "id": "00830f8bee4ad8ef"
+   },
+   "maxSubarraySum": {
+    "pct": 73,
+    "id": "029ae53bdf534d5f"
+   },
+   "longestRisingRun": {
+    "pct": 55,
+    "id": "cc90ba144e6bc150"
+   },
+   "maxNeighborJump": {
+    "pct": 36,
+    "id": "00f12fcacb69a866"
+   },
+   "countAboveMean": {
+    "pct": 55,
+    "id": "7b2b5d0c3e4b4a48"
+   },
+   "bestBuySellProfit": {
+    "pct": 27,
+    "id": "0fa696b2c68f6b5e"
+   },
+   "minGapSorted": {
+    "pct": 55,
+    "id": "7d5ee0c61d04d1ea"
+   },
+   "indexOfLastMin": {
+    "pct": 45,
+    "id": "0fa696b2c68f6b5e"
+   },
+   "mostFrequentValue": {
+    "pct": 100,
+    "id": "2051ebdba314b927"
+   },
+   "signChanges": {
+    "pct": 82,
+    "id": "4bd167babf28e2f6"
+   },
+   "greedyRunsUnderCap": {
+    "pct": 55,
+    "id": "0892642f13606c4b"
+   },
+   "peakCount": {
+    "pct": 73,
+    "id": "76e7131439753da8"
+   },
+   "runningMax": {
+    "pct": 45,
+    "id": "815d3f0e544ff4d2"
+   },
+   "neighborDiffs": {
+    "pct": 9,
+    "id": "078a1008dd071c74"
+   },
+   "movingAvg2": {
+    "pct": 9,
+    "id": "020ef57fd994759b"
+   },
+   "centerOnMean": {
+    "pct": 9,
+    "id": "03520c0166519f2d"
+   },
+   "rankOf": {
+    "pct": 18,
+    "id": "03520c0166519f2d"
+   },
+   "sortByAbsThenValue": {
+    "pct": 73,
+    "id": "815d3f0e544ff4d2"
+   },
+   "keepNewRecords": {
+    "pct": 45,
+    "id": "19764b13237ff40f"
+   },
+   "clampToMeanBand": {
+    "pct": 45,
+    "id": "0a019d6e8ae1b06a"
+   },
+   "distinctSortedDesc": {
+    "pct": 100,
+    "id": "88381fb192424315"
+   },
+   "nextGreaterValue": {
+    "pct": 27,
+    "id": "dd4289d069051d0c"
+   },
+   "prefixMeans": {
+    "pct": 9,
+    "id": "00887f585f4f3bac"
+   },
+   "digitSumAbs": {
+    "pct": 64,
+    "id": "6bf177646a109138"
+   },
+   "collatzSteps": {
+    "pct": 21,
+    "id": "13ab29bbaec0f14f"
+   },
+   "gcdAbs": {
+    "pct": 63,
+    "id": "e8cd7f6896665bd4"
+   },
+   "roundToMultiple": {
+    "pct": 56,
+    "id": "332ca4f1939655fd"
+   },
+   "closestValueTo": {
+    "pct": 83,
+    "id": "74369d6fb9bb75c3"
+   },
+   "longestRunAtMost": {
+    "pct": 58,
+    "id": "1f2a11288873849c"
+   },
+   "windowSums": {
+    "pct": 25,
+    "id": "11d9bad89c0ba36c"
+   },
+   "kSmallestSorted": {
+    "pct": 92,
+    "id": "f461c76625f0a99a"
+   },
+   "closestPointEuclid": {
+    "pct": 100,
+    "id": "6f2fddca5e51b4f6"
+   },
+   "farthestManhattanDist": {
+    "pct": 0,
+    "id": "2af9947b8019c1df"
+   },
+   "centroid": {
+    "pct": 0,
+    "id": "322e96de82be271a"
+   },
+   "pathLengthEuclid": {
+    "pct": 11,
+    "id": "329c7fe927557685"
+   },
+   "closestPairDistEuclid": {
+    "pct": 22,
+    "id": "9e00b393191ba097"
+   },
+   "bboxArea": {
+    "pct": 0,
+    "id": "02a39a34545d4408"
+   },
+   "nearestNeighborTourManhattan": {
+    "pct": 33,
+    "id": "0a21d429e5298da5"
+   },
+   "sortByDistFromCentroid": {
+    "pct": 33,
+    "id": "0a21d429e5298da5"
+   },
+   "countWithinManhattan5": {
+    "pct": 58,
+    "id": "2af9947b8019c1df"
+   },
+   "midpoint": {
+    "pct": null
+   },
+   "medoidIndex": {
+    "pct": 22,
+    "id": "329c7fe927557685"
+   },
+   "polygonAreaShoelace": {
+    "pct": 11,
+    "id": "02a39a34545d4408"
+   }
+  }
+ }
+}

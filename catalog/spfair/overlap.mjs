@@ -43,7 +43,7 @@ export function classify(T, others) {
     const kind = same === n ? 'זהה' : same + edge === n && same >= 0.5 * n ? 'זהה-חוץ-מקצוות' : null;
     if (!kind) continue;
     const rank = kind === 'זהה' ? 2 : 1;
-    if (rank > (best.kind === 'זהה' ? 2 : best.kind === 'חדשה' ? 0 : 1)) best = { kind, suite, id: U.id, differOn: n - same };
+    if (rank > (best.kind === 'זהה' ? 2 : best.kind === 'חדשה' ? 0 : 1)) best = { kind, suite, match: U.id, differOn: n - same };
   }
   return best;
 }

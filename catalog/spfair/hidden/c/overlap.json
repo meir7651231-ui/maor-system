@@ -7,17 +7,19 @@
  "fresh": 21,
  "rows": [
   {
-   "id": "argmax",
+   "id": "firstIndexOfMax",
    "sig": "nums>num",
    "kind": "זהה",
    "suite": "ציבורי",
+   "match": "argmax",
    "differOn": 0
   },
   {
-   "id": "indexOfLastMin",
+   "id": "lastIndexOfMin",
    "sig": "nums>num",
    "kind": "זהה",
    "suite": "ב׳",
+   "match": "indexOfLastMin",
    "differOn": 0
   },
   {
@@ -25,6 +27,7 @@
    "sig": "nums>num",
    "kind": "זהה",
    "suite": "ב׳",
+   "match": "longestRisingRun",
    "differOn": 0
   },
   {
@@ -33,24 +36,27 @@
    "kind": "חדשה"
   },
   {
-   "id": "peakCount",
+   "id": "countPeaks",
    "sig": "nums>num",
    "kind": "זהה",
    "suite": "ב׳",
+   "match": "peakCount",
    "differOn": 0
   },
   {
-   "id": "maxNeighborJump",
+   "id": "maxNeighbourGap",
    "sig": "nums>num",
    "kind": "זהה",
    "suite": "ב׳",
+   "match": "maxNeighborJump",
    "differOn": 0
   },
   {
-   "id": "sumPositives",
+   "id": "sumOfPositives",
    "sig": "nums>num",
    "kind": "זהה-חוץ-מקצוות",
    "suite": "א׳",
+   "match": "sumPositives",
    "differOn": 51
   },
   {
@@ -59,10 +65,11 @@
    "kind": "חדשה"
   },
   {
-   "id": "signChanges",
+   "id": "signFlips",
    "sig": "nums>num",
    "kind": "זהה",
    "suite": "ב׳",
+   "match": "signChanges",
    "differOn": 0
   },
   {
@@ -71,10 +78,11 @@
    "kind": "חדשה"
   },
   {
-   "id": "mostFrequentValue",
+   "id": "mostFrequent",
    "sig": "nums>num",
    "kind": "זהה",
    "suite": "ב׳",
+   "match": "mostFrequentValue",
    "differOn": 0
   },
   {
@@ -82,20 +90,23 @@
    "sig": "nums>num",
    "kind": "זהה",
    "suite": "ב׳",
+   "match": "countAboveMean",
    "differOn": 0
   },
   {
-   "id": "variance",
+   "id": "populationVariance",
    "sig": "nums>num",
    "kind": "זהה",
    "suite": "ציבורי",
+   "match": "variance",
    "differOn": 0
   },
   {
-   "id": "maxSubarraySum",
+   "id": "bestStretchSum",
    "sig": "nums>num",
    "kind": "זהה",
    "suite": "ב׳",
+   "match": "maxSubarraySum",
    "differOn": 0
   },
   {
@@ -103,34 +114,39 @@
    "sig": "nums>nums",
    "kind": "זהה",
    "suite": "א׳",
+   "match": "runningMax",
    "differOn": 0
   },
   {
-   "id": "cumsum",
+   "id": "runningTotal",
    "sig": "nums>nums",
    "kind": "זהה",
    "suite": "ציבורי",
+   "match": "cumsum",
    "differOn": 0
   },
   {
-   "id": "pairDiffs",
+   "id": "stepChanges",
    "sig": "nums>nums",
    "kind": "זהה",
    "suite": "א׳",
+   "match": "pairDiffs",
    "differOn": 0
   },
   {
-   "id": "rankOf",
+   "id": "countSmallerThanEach",
    "sig": "nums>nums",
    "kind": "זהה",
    "suite": "ב׳",
+   "match": "rankOf",
    "differOn": 0
   },
   {
-   "id": "nextGreaterValue",
+   "id": "nextBiggerOrSelf",
    "sig": "nums>nums",
    "kind": "זהה",
    "suite": "ב׳",
+   "match": "nextGreaterValue",
    "differOn": 0
   },
   {
@@ -164,10 +180,11 @@
    "kind": "חדשה"
   },
   {
-   "id": "centerOnMean",
+   "id": "offsetFromMean",
    "sig": "nums>nums",
    "kind": "זהה",
    "suite": "ב׳",
+   "match": "centerOnMean",
    "differOn": 0
   },
   {
@@ -175,6 +192,7 @@
    "sig": "num>num",
    "kind": "זהה",
    "suite": "א׳",
+   "match": "digitSum",
    "differOn": 0
   },
   {
@@ -197,20 +215,23 @@
    "sig": "num>num",
    "kind": "זהה",
    "suite": "א׳",
+   "match": "collatzSteps",
    "differOn": 0
   },
   {
-   "id": "gcdAbs",
+   "id": "greatestCommonDivisor",
    "sig": "num,num>num",
    "kind": "זהה",
    "suite": "ב׳",
+   "match": "gcdAbs",
    "differOn": 0
   },
   {
-   "id": "roundToMultiple",
+   "id": "nearestMultiple",
    "sig": "num,num>num",
    "kind": "זהה",
    "suite": "ב׳",
+   "match": "roundToMultiple",
    "differOn": 0
   },
   {
@@ -218,6 +239,7 @@
    "sig": "nums,num>nums",
    "kind": "זהה-חוץ-מקצוות",
    "suite": "ב׳",
+   "match": "windowSums",
    "differOn": 183
   },
   {
@@ -241,10 +263,11 @@
    "kind": "חדשה"
   },
   {
-   "id": "pathLengthEuclid",
+   "id": "pathLength",
    "sig": "pts>num",
    "kind": "זהה",
    "suite": "ב׳",
+   "match": "pathLengthEuclid",
    "differOn": 0
   },
   {
@@ -257,6 +280,7 @@
    "sig": "pts>pt",
    "kind": "זהה",
    "suite": "ב׳",
+   "match": "centroid",
    "differOn": 0
   },
   {
@@ -270,10 +294,11 @@
    "kind": "חדשה"
   },
   {
-   "id": "bboxArea",
+   "id": "boundingBoxArea",
    "sig": "pts>num",
    "kind": "זהה",
    "suite": "ב׳",
+   "match": "bboxArea",
    "differOn": 0
   },
   {

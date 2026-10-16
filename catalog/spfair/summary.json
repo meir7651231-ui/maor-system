@@ -153,6 +153,23 @@
    "maxDepthSuccess": 3,
    "wrongImprovements": 0
   },
+  "r2": {
+   "salt": 0,
+   "rounds": 3,
+   "sameBytesAsBranch": true,
+   "exactFair": [
+    "sum"
+   ],
+   "exactBaseline": [],
+   "averagePct": {
+    "baseline": 36,
+    "selfprint": 100
+   },
+   "blueprints": 380,
+   "success": 75,
+   "maxDepthSuccess": 2,
+   "wrongImprovements": 0
+  },
   "rc2-eq": {
    "salt": 0,
    "rounds": 3,
@@ -187,6 +204,9 @@
   "extreme": [
    "rc",
    "rc2-eq"
+  ],
+  "sum": [
+   "r2"
   ]
  },
  "targetsHitBy": {
@@ -209,11 +229,13 @@
    "known": false,
    "selfprint": [
     "rc",
+    "r2",
     "rc2-eq"
    ],
    "baseline": [],
    "byBlueprint": [
     "rc:recipe:bp-s-37b79277:d1",
+    "r2:recipe:bp-s-37b79277:d1",
     "rc2-eq:recipe:bp-s-37b79277:d1"
    ],
    "alreadyPart": []
@@ -223,11 +245,13 @@
    "known": false,
    "selfprint": [
     "rc",
+    "r2",
     "rc2-eq"
    ],
    "baseline": [],
    "byBlueprint": [
     "rc:recipe:bp-s-37b79277:d1",
+    "r2:recipe:bp-s-37b79277:d1",
     "rc2-eq:recipe:bp-s-37b79277:d1"
    ],
    "alreadyPart": []
@@ -237,11 +261,13 @@
    "known": false,
    "selfprint": [
     "rc",
+    "r2",
     "rc2-eq"
    ],
    "baseline": [],
    "byBlueprint": [
     "rc:recipe:bp-s-a6e802dd:d1",
+    "r2:recipe:bp-s-a6e802dd:d1",
     "rc2-eq:recipe:bp-s-a6e802dd:d1"
    ],
    "alreadyPart": []
@@ -272,6 +298,7 @@
     "rp",
     "rc",
     "rp-eq",
+    "r2",
     "rc2-eq"
    ],
    "byBlueprint": [],
@@ -280,15 +307,20 @@
   "first": {
    "he": "הראשון",
    "known": false,
-   "selfprint": [],
+   "selfprint": [
+    "r2"
+   ],
    "baseline": [
     "m2",
     "rp",
     "rc",
     "rp-eq",
+    "r2",
     "rc2-eq"
    ],
-   "byBlueprint": [],
+   "byBlueprint": [
+    "r2:recipe:bp-s-5b6fc061:d1"
+   ],
    "alreadyPart": [
     "s0",
     "seed1",
@@ -299,15 +331,20 @@
     "rp",
     "rc",
     "rp-eq",
+    "r2",
     "rc2-eq"
    ]
   },
   "last": {
    "he": "האחרון",
    "known": false,
-   "selfprint": [],
+   "selfprint": [
+    "r2"
+   ],
    "baseline": [],
-   "byBlueprint": [],
+   "byBlueprint": [
+    "r2:success-of-blueprint:bp-s-bf8054e7:d2"
+   ],
    "alreadyPart": [
     "s0",
     "seed1",
@@ -318,6 +355,7 @@
     "rp",
     "rc",
     "rp-eq",
+    "r2",
     "rc2-eq"
    ]
   },
@@ -337,6 +375,7 @@
     "rp",
     "rc",
     "rp-eq",
+    "r2",
     "rc2-eq"
    ]
   },
@@ -382,6 +421,7 @@
     "rp",
     "rc",
     "rp-eq",
+    "r2",
     "rc2-eq"
    ],
    "baseline": [
@@ -394,9 +434,12 @@
     "rp",
     "rc",
     "rp-eq",
+    "r2",
     "rc2-eq"
    ],
-   "byBlueprint": [],
+   "byBlueprint": [
+    "r2:recipe:bp-s-5fabe09c:d1"
+   ],
    "alreadyPart": []
   },
   "range": {
@@ -411,6 +454,7 @@
     "rp",
     "rc",
     "rp-eq",
+    "r2",
     "rc2-eq"
    ],
    "baseline": [],
@@ -423,6 +467,7 @@
     "rp:code:bp-c-4590428b:d1",
     "rc:code:bp-c-4590428b:d1",
     "rp-eq:code:bp-c-4590428b:d1",
+    "r2:code:bp-c-4590428b:d1",
     "rc2-eq:recipe:bp-s-a1fd2009:d1"
    ],
    "alreadyPart": []
@@ -440,6 +485,7 @@
     "rp",
     "rc",
     "rp-eq",
+    "r2",
     "rc2-eq"
    ],
    "baseline": [
@@ -452,6 +498,7 @@
     "rp",
     "rc",
     "rp-eq",
+    "r2",
     "rc2-eq"
    ],
    "byBlueprint": [],
@@ -473,6 +520,7 @@
     "rp",
     "rc",
     "rp-eq",
+    "r2",
     "rc2-eq"
    ]
   },
@@ -492,6 +540,7 @@
     "rp",
     "rc",
     "rp-eq",
+    "r2",
     "rc2-eq"
    ]
   },
@@ -502,9 +551,22 @@
    "baseline": [
     "rc",
     "rp-eq",
+    "r2",
     "rc2-eq"
    ],
    "byBlueprint": [],
+   "alreadyPart": []
+  },
+  "sumAbs": {
+   "he": "סכום-ערכים-מוחלטים",
+   "known": false,
+   "selfprint": [
+    "r2"
+   ],
+   "baseline": [],
+   "byBlueprint": [
+    "r2:recipe:bp-s-2b3d8a3c:d1"
+   ],
    "alreadyPart": []
   }
  }
