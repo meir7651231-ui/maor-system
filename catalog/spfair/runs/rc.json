@@ -5,10 +5,10 @@
  "rounds": 3,
  "sameBytesAsBranch": {
   "control": true,
-  "ledger": false,
-  "compare": false,
-  "blueprints": false,
-  "found": false
+  "ledger": true,
+  "compare": true,
+  "blueprints": true,
+  "found": true
  },
  "built": {
   "baseline": 23053,

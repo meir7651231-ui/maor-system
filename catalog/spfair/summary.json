@@ -121,7 +121,7 @@
   "rc": {
    "salt": 0,
    "rounds": 3,
-   "sameBytesAsBranch": false,
+   "sameBytesAsBranch": true,
    "exactFair": [
     "average",
     "extreme"
