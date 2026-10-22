@@ -6,6 +6,7 @@
 import { useMemo } from 'react';
 import { useApp } from '../../store/useApp';
 import { integrationOn, termOf } from '../../lib/config';
+import { guardDemo } from '../../lib/exportGate';
 import { Btn, Empty, Modal } from '../ui';
 import { WaBtn } from '../WaBtn';
 import { parentCard, parentCardText } from './parent';
@@ -16,6 +17,7 @@ function ddmm(iso: string): string {
 
 /** הדפסה מבודדת דרך iframe נסתר (בלי להדפיס את כל הדף), עם escaping מלא. */
 function printSummary(title: string, body: string) {
+  if (!guardDemo()) return; // 🔒 הדפסה=הוצאת-מידע — נחסמת בדמו בלבד (22.10.2026)
   const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   const iframe = document.createElement('iframe');
   iframe.style.position = 'fixed';
@@ -78,6 +80,7 @@ export function ParentCard(props: { memberId: string; onClose: () => void }) {
         <Btn
           sm
           onClick={() => {
+            if (!guardDemo()) return; // 🔒 העתקה=הוצאת-מידע — נחסמת בדמו בלבד (22.10.2026)
             void navigator.clipboard?.writeText(text);
             toast('סיכום ההורה הועתק');
           }}

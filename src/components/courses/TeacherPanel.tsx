@@ -61,7 +61,7 @@ export function TeacherPanel(props: { teacherId: string }) {
 
   const exportMonth = () => {
     const ym = today.slice(0, 7);
-    downloadCsv('teacher-' + ym + '.csv', teacherMonthCsvRows(db, tid, ym, memberName));
+    if (!downloadCsv('teacher-' + ym + '.csv', teacherMonthCsvRows(db, tid, ym, memberName))) return; // 🔒 סירוב-דמו
     toast('הדוח החודשי יוצא');
   };
 

@@ -9,6 +9,7 @@ import { useState } from 'react';
 import type { CourseFile } from '../../types/domain';
 import { safeHttpsUrl } from '../../lib/config';
 import { guardExport } from '../../lib/exportGate';
+import { ExportLink } from '../ExportLink';
 import { pickAndCompressImage, readFileAsDataUrl } from '../../lib/imagePick';
 import { Btn, TextInput } from '../ui';
 
@@ -83,9 +84,10 @@ export function CourseFilesField(props: { value: CourseFile[] | undefined; onCha
               style={{ display: 'flex', alignItems: 'center', gap: 8, border: '1px solid var(--line)', borderRadius: 8, padding: '5px 9px' }}
             >
               <span style={{ fontSize: 16 }}>{iconOf(f)}</span>
-              <a href={f.data} target="_blank" rel="noopener noreferrer" onClick={(e) => { if (!guardExport()) e.preventDefault(); }} style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 13 }}>
+              {/* 🔒 בדמו בלי href (ExportLink); מחוץ לדמו — אותו קישור ואותו שער core.export כמו קודם */}
+              <ExportLink href={f.data} onClick={(e) => { if (!guardExport()) e.preventDefault(); }} style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 13 }}>
                 {f.name}
-              </a>
+              </ExportLink>
               {f.size ? <span style={{ fontSize: 11, color: 'var(--ink-faint)' }}>{fmtBytes(f.size)}</span> : null}
               <Btn sm kind="danger" onClick={() => remove(f.id)}>
                 ✕

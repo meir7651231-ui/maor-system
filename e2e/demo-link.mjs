@@ -59,7 +59,21 @@ T('סרט: CTA "פתחו אתר משלכם"', txt.includes('פתחו אתר מש
 T('אין מודאל פתוח בכניסה הראשונה לדמו', (await page.locator('.modal-back').count()) === 0);
 const cta = page.locator('a', { hasText: 'פתחו אתר משלכם' }).first();
 T('CTA "פתחו אתר משלכם" לחיץ (לא מכוסה)', await cta.click({ trial: true, timeout: 3000 }).then(() => true, () => false));
-T('CTA מוביל לשורש', new URL((await cta.getAttribute('href')) ?? '', page.url()).href === BASE);
+// הכרעת-בעלים 22.10.2026: שורש-האתר בלבד — בלי ?org ובלי פרמטרים (מחובר ⇒ המערכת שלו, לא-מחובר ⇒ ההרשמה)
+const ctaUrl = new URL((await cta.getAttribute('href')) ?? '', page.url());
+T('CTA מוביל לשורש (בלי פרמטרים)', ctaUrl.href === BASE && !ctaUrl.search);
+
+// 2ב. 🔒 נעילת-הדמו: הדף מסומן לגיליון-ההדפסה, ו-Ctrl+P / העתקה נבלעים עם הודעה שמזמינה להירשם
+T('נעילת-הדמו פעילה (data-demo-lock על ה-root)', await page.evaluate(() => document.documentElement.hasAttribute('data-demo-lock')));
+const copyBlocked = await page.evaluate(() => {
+  const ev = new Event('copy', { bubbles: true, cancelable: true });
+  document.body.dispatchEvent(ev);
+  return ev.defaultPrevented;
+});
+T('העתקה ידנית בדמו נבלעת', copyBlocked);
+await page.keyboard.press('Control+p');
+await wait(300);
+T('Ctrl+P בדמו ⇒ הודעת "בדמו אי אפשר להוריד, להדפיס או להעתיק"', (await mainTxt()).includes('בדמו אי אפשר להוריד, להדפיס או להעתיק מידע'));
 
 // 3. נתוני-ההדגמה נזרעו אוטומטית — הניווט קיים והמערכת מאוכלסת
 T('הניווט הראשי מוצג (המערכת נטענה)', (await page.locator('nav').count()) > 0);
@@ -71,6 +85,12 @@ T('מסך המשפחות מאוכלס בנתוני-הדגמה', famTxt.replace(/
 
 // 4. אפס שגיאות JS
 T('אפס שגיאות JS', errors.length === 0);
+
+// 5. 🚪 «פתחו אתר משלכם» ⇒ השורש לא מציג את הדמו (גם אם המבקר שיחק באשף והשאיר דריסת-קונפיג של הדמו)
+await page.evaluate(() => localStorage.setItem('maor_org_config', JSON.stringify({ slug: 'demo', orgName: 'דליפת-דמו', theme: 'kehila', modules: {}, features: {} })));
+await page.goto(BASE, { waitUntil: 'domcontentloaded' });
+await wait(1500);
+T('השורש לא מציג את הדמו (אין סרט "מצב הדגמה")', !(await mainTxt()).includes('מצב הדגמה'));
 
 console.log(log.join('\n'));
 if (errors.length) console.log('JS errors:\n' + errors.join('\n'));

@@ -13,7 +13,8 @@ import { nsLsKey, parseBackupFile } from './store/persist';
 import { applyFavicon, featureOn, integrationOn, isAdminUser, isSuperAdmin, moduleOn, publicSiteOn, roleOf, telephonyOn, termOf } from './lib/config';
 import { applyOrgManifest, isIos, isStandalone, promptInstall, registerPwa } from './lib/pwa';
 import { runOriginGuard } from './lib/originGuard';
-import { setExportBlocked } from './lib/exportGate';
+import { setDemoLocked, setExportBlocked } from './lib/exportGate';
+import { DEMO_EXPORT_BLOCKED_MSG, installDemoLock, isDemoSession } from './lib/demoLock';
 import { hebDateFull } from './lib/hebrew';
 import { isoToday } from './lib/date-util';
 import { freshenDemoDb } from './lib/demoFresh';
@@ -386,11 +387,25 @@ export default function App() {
   // 🔐 שער יציאת-מידע (13.8, בקשת-בעלים): המנהל מכבה `core.export` בכרטיס-העובד ⇒
   // כל נתיב הורדה/הדפסה/העתקה מסרב בנקודת-חנק אחת (lib/exportGate). חסר-דגל=מותר,
   // רק false חוסם — לכן ברירת-המחדל ואף לקוח רגיל אינם מושפעים.
+  // 🔒 דמו (22.10.2026, «בדמו זה צריך חסום ללא כל אפשרות להורדת מידע»): בדמו השער חסום תמיד,
+  // וההודעה מזמינה לפתוח אתר משלכם. מחוץ לדמו — אותו תנאי ואותה הודעה, ביט-זהה.
+  // מנעול-הדמו (setDemoLocked) — לנתיבים שלא היו בשער לפני נעילת-הדמו (העתקות, קבצים-מצורפים, גיבוי):
+  // נחסמים רק בדמו; מחוץ לדמו false ⇒ אצל עובד/ת שהייצוא חסום לה הם בדיוק כמו קודם (lib/exportGate).
   useEffect(() => {
-    setExportBlocked(!featureOn(config, 'core.export'), () =>
-      useApp.getState().toast('⛔ הוצאת מידע חסומה עבורך על-ידי מנהל הארגון'),
+    const demo = isDemoSession(config);
+    setExportBlocked(demo || !featureOn(config, 'core.export'), () =>
+      useApp.getState().toast(demo ? DEMO_EXPORT_BLOCKED_MSG : '⛔ הוצאת מידע חסומה עבורך על-ידי מנהל הארגון'),
     );
+    setDemoLocked(demo);
   }, [config]);
+
+  // 🔒 דמו: מה שלא עובר דרך האפליקציה — Ctrl/Cmd+P, Ctrl/Cmd+S, העתקה/גזירה ידנית והדפסה
+  // מתפריט-הדפדפן (data-demo-lock ⇒ גיליון-ההדפסה מסתיר את הדף). רק בדמו; ניקוי מלא ביציאה.
+  const demoLocked = isDemoSession(config);
+  useEffect(() => {
+    if (!demoLocked) return;
+    return installDemoLock(() => useApp.getState().toast(DEMO_EXPORT_BLOCKED_MSG));
+  }, [demoLocked]);
 
   // שחזור-קריסה של האשף-קשור-הענן (5.8): אם נשאר תצלום-מיתוג מסשן שנקטע
   // (טאב נסגר / דפדפן קרס באמצע עריכת-לקוח) והאשף לא פתוח — מחזירים את
@@ -535,11 +550,21 @@ export default function App() {
 
   if (!ready) return <div className="empty">טוען…</div>;
 
+  const toastsEl = (
+    <div className="toasts" role="status" aria-live="polite">
+      {toasts.map((t) => (
+        <div key={t.id} className="toast">
+          {t.text}
+        </div>
+      ))}
+    </div>
+  );
+
   // 🌐 שער האתר-הציבורי — לפני שער-ההצפנה/הענן/הנעילה: המבקר רואה דף-נחיתה
   // ציבורי בלי שום התחברות. מגודר shell.publicsite + תוכן-site קיים (publicSiteOn).
   // "כניסה למערכת" מנקה את הבקשה (‎?site/#site‎) וממשיך לשרשרת-השערים הרגילה.
   if (siteRequested && publicSiteOn(config)) {
-    return (
+    const publicSite = (
       <Suspense fallback={<div className="empty">טוען…</div>}>
       <PublicSite
         onEnter={() => {
@@ -556,17 +581,17 @@ export default function App() {
       />
       </Suspense>
     );
+    // 🔒 דמו (ביקורת 22.10.2026): מנעול-המסמך פעיל גם כאן (תצוגה-מקדימה של האתר מאשף-הדמו, ?site=1) —
+    // בלי מגש-ההודעות כאן, הסירוב (העתקה/לחיצה-ימנית/Ctrl+P) היה שקט. רק בדמו; מחוץ לדמו אותו עץ בדיוק.
+    return demoLocked ? (
+      <>
+        {publicSite}
+        {toastsEl}
+      </>
+    ) : (
+      publicSite
+    );
   }
-
-  const toastsEl = (
-    <div className="toasts" role="status" aria-live="polite">
-      {toasts.map((t) => (
-        <div key={t.id} className="toast">
-          {t.text}
-        </div>
-      ))}
-    </div>
-  );
 
   // שער הצפנה — שמירה מוצפנת שנטענה מחייבת קוד פענוח לפני כל דבר אחר
   if (needDecrypt) {

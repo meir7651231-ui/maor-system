@@ -5,6 +5,7 @@
 import { useState } from 'react';
 import type { Course } from '../../types/domain';
 import { useApp } from '../../store/useApp';
+import { guardDemo } from '../../lib/exportGate';
 import { Btn, Empty, Field, Modal } from '../ui';
 import { WaBtn } from '../WaBtn';
 import { classContacts, classPhonesText, defaultClassMessage } from './broadcast';
@@ -36,6 +37,7 @@ export function ClassBroadcast(props: { course: Course; onClose: () => void }) {
           sm
           disabled={!withPhone.length}
           onClick={() => {
+            if (!guardDemo()) return; // 🔒 רשימת-הטלפונים של הכיתה = הוצאת-מידע — נחסם בדמו בלבד (22.10.2026)
             void navigator.clipboard?.writeText(classPhonesText(contacts));
             toast('רשימת-הטלפונים הועתקה');
           }}

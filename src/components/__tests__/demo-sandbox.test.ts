@@ -49,7 +49,7 @@ describe('🧪 ratchet — דמו ציבורי (?org=demo)', () => {
 
   it('הסרט: CTA לשורש (מסך ההרשמה) + התחל-דמו-מחדש', () => {
     expect(ribbonSrc).toContain('פתחו אתר משלכם');
-    expect(ribbonSrc).toContain('import.meta.env.BASE_URL'); // ה-CTA חוזר לשורש
+    expect(ribbonSrc).toContain('href={import.meta.env.BASE_URL}'); // ה-CTA חוזר לשורש (הכרעת-בעלים 22.10)
     expect(ribbonSrc).toContain('התחל דמו מחדש');
     expect(ribbonSrc).toContain('demo.json'); // איפוס = משיכה מחדש
   });

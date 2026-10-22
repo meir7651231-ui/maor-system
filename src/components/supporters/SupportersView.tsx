@@ -12,6 +12,8 @@ import { useDbWatch } from '../../store/dbWatch';
 import { featureOn, integrationOn, integrationSetting, isAdminUser, safeHttpsUrl, telephonyOn, termOf } from '../../lib/config';
 import { DialerModal } from '../dialer/DialerModal';
 import { WaBtn } from '../WaBtn';
+import { DialLink } from '../DialLink';
+import { isDemoSession } from '../../lib/demoLock';
 import { IncomingPaymentsModal } from './IncomingPayments';
 import { requestSettingsSection } from '../settings/lib';
 import { annualAllLines, downloadAnnualReport } from '../../lib/annualReport';
@@ -98,6 +100,8 @@ interface RowProps {
   ayinOn: boolean;
   lastNameOn: boolean;
   click2call: boolean;
+  /** 🔒 דמו — קישור-החיוג בלי href (DialLink; מחושב פעם לרינדור, לא פר-שורה). */
+  dialLocked: boolean;
   waOn: boolean;
   config: OrgConfig;
   today: string;
@@ -174,9 +178,9 @@ const SupporterRow = memo(function SupporterRow(props: RowProps) {
           INTEGRATIONS גל א׳ — 💬 וואטסאפ לצדו (הרחבה נמכרת, חסר=כבוי) */}
       <td onClick={(e) => e.stopPropagation()}>
         {sp.phone && props.click2call ? (
-          <a className="tel-link" href={'tel:' + sp.phone.replace(/\D/g, '')} title={'חיוג ל' + sp.name + ' — ' + sp.phone} aria-label={'חיוג ל' + sp.name}>
+          <DialLink locked={props.dialLocked} className="tel-link" href={'tel:' + sp.phone.replace(/\D/g, '')} title={'חיוג ל' + sp.name + ' — ' + sp.phone} ariaLabel={'חיוג ל' + sp.name}>
             📞
-          </a>
+          </DialLink>
         ) : (
           ''
         )}
@@ -187,7 +191,7 @@ const SupporterRow = memo(function SupporterRow(props: RowProps) {
 });
 
 /* תצוגת גריד (5.8) — כרטיסים ידידותיים-למובייל; אותו דפוס כמו המשפחות (ממומואיז, 12.10.2026) */
-const SupporterGridCard = memo(function SupporterGridCard(props: Omit<RowProps, 'ayinOn' | 'click2call' | 'waOn' | 'lastNameOn'>) {
+const SupporterGridCard = memo(function SupporterGridCard(props: Omit<RowProps, 'ayinOn' | 'click2call' | 'dialLocked' | 'waOn' | 'lastNameOn'>) {
   const { sp, st, config, today, selMode, nextOn, rfmOn } = props;
   const tier = st.tier;
   return (
@@ -518,7 +522,7 @@ export function SupportersView() {
       toast('עדיין לא עודכן אף פריט היום — עדכנו בכרטיס והדוח יתמלא');
       return;
     }
-    downloadCsv('ayin-daily-' + isoToday() + '.csv', rows);
+    if (!downloadCsv('ayin-daily-' + isoToday() + '.csv', rows)) return; // 🔒 סירוב-דמו — בלי "ירד" אחרי הודעת-הדמו
     toast('דוח יומי: ' + (rows.length - 1) + ' פריטים שטופלו היום — הקובץ ירד');
   }
 
@@ -529,7 +533,7 @@ export function SupportersView() {
       toast('עדיין לא נוספו ' + ayinItemsLabel + ' בכרטיסי ' + termOf(config, 'nav.ayin', 'מעקב-הטיפול'));
       return;
     }
-    downloadCsv('ayin-names-' + isoToday() + '.csv', rows);
+    if (!downloadCsv('ayin-names-' + isoToday() + '.csv', rows)) return; // 🔒 סירוב-דמו — בלי "ירד" אחרי הודעת-הדמו
     toast('דוח ' + ayinItemsLabel + ': ' + (rows.length - 1) + ' ' + ayinItemsLabel + ' — הקובץ ירד');
   }
 
@@ -822,6 +826,7 @@ export function SupportersView() {
 
   // דגלי-שורה פעם-אחת לרינדור (לא פר-שורה) — props פרימיטיביים ל-memo של השורות
   const click2call = featureOn(config, 'supporters.click2call');
+  const dialLocked = isDemoSession(config); // 🔒 דמו: 📞 בלי tel: (DialLink) — מחוץ לדמו false ⇒ ביט-זהה
   const waOn = integrationOn(config, 'whatsapp');
 
   // "נקה הכל" — איפוס כל מסנני-המסך בקליק אחד (מוצג רק כשיש סינון פעיל).
@@ -885,7 +890,7 @@ export function SupportersView() {
                       donations: termOf(config, 'entity.donations', 'תרומות'),
                       supporter: 'ה' + termOf(config, 'entity.supporter', 'תורם/ת'),
                     });
-                    downloadAnnualReport('annual-all-' + year + '.txt', lines);
+                    if (!downloadAnnualReport('annual-all-' + year + '.txt', lines)) return; // 🔒 סירוב-דמו — בלי "ירד"
                     toast('📄 דוחות שנת ' + year + ' — הקובץ ירד (מקטע לכל ' + termOf(config, 'entity.supporter', 'תורם/ת') + ')');
                   },
                 },
@@ -1439,6 +1444,7 @@ export function SupportersView() {
                   ayinOn={ayinOn}
                   lastNameOn={lastNameOn}
                   click2call={click2call}
+                  dialLocked={dialLocked}
                   waOn={waOn}
                   config={config}
                   today={today}

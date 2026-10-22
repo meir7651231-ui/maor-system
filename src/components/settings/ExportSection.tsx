@@ -39,7 +39,7 @@ export function exportFamiliesCsv(): void {
       f.members.filter((m) => !m.isParent).length, ens.length, bal, fmtDate(f.createdAt), f.notes,
     ]);
   }
-  downloadCsv('maor-families.csv', rows);
+  if (!downloadCsv('maor-families.csv', rows)) return; // 🔒 סירוב-דמו — בלי "ירד" אחרי הודעת-הדמו
   toast('קובץ ה' + termOf(config, 'nav.families', 'משפחות') + ' ירד — ' + db.families.length + ' ' + termOf(config, 'nav.families', 'משפחות'));
 }
 
@@ -80,7 +80,7 @@ export function ExportSection() {
         ]);
       }
     }
-    downloadCsv('maor-members.csv', rows);
+    if (!downloadCsv('maor-members.csv', rows)) return; // 🔒 סירוב-דמו — בלי "ירד" אחרי הודעת-הדמו
     toast('קובץ בני ה' + termOf(config, 'entity.family', 'משפחה') + ' ירד — ' + n + ' רשומות');
   }
 
@@ -116,13 +116,13 @@ export function ExportSection() {
         c.semester, fmtDate(c.start), fmtDate(c.end), c.notes,
       ]);
     }
-    downloadCsv('maor-courses.csv', rows);
+    if (!downloadCsv('maor-courses.csv', rows)) return; // 🔒 סירוב-דמו — בלי "ירד" אחרי הודעת-הדמו
     toast('קובץ ה' + termOf(config, 'nav.courses', 'חוגים') + ' ירד — ' + db.courses.length + ' ' + termOf(config, 'nav.courses', 'חוגים'));
   }
 
   function expEvents() {
     const db = useApp.getState().db;
-    downloadCsv('maor-events.csv', eventsCsvRows(db, config));
+    if (!downloadCsv('maor-events.csv', eventsCsvRows(db, config))) return; // 🔒 סירוב-דמו — בלי "ירד" אחרי הודעת-הדמו
     toast('קובץ האירועים ירד — ' + db.events.length + ' אירועים');
   }
 
@@ -143,7 +143,7 @@ export function ExportSection() {
         sp.notes,
       ]);
     }
-    downloadCsv('maor-supporters.csv', rows);
+    if (!downloadCsv('maor-supporters.csv', rows)) return; // 🔒 סירוב-דמו — בלי "ירד" אחרי הודעת-הדמו
     toast('קובץ ה' + termOf(config, 'nav.supporters', 'תורמים') + ' ירד — ' + db.supporters.length + ' ' + termOf(config, 'nav.supporters', 'תורמים'));
   }
 
@@ -167,19 +167,19 @@ export function ExportSection() {
         ENROLL_STATUS[e.status] ?? e.status, fmtDate(e.enrolledAt), e.note,
       ]);
     }
-    downloadCsv('maor-enrollments.csv', rows);
+    if (!downloadCsv('maor-enrollments.csv', rows)) return; // 🔒 סירוב-דמו — בלי "ירד" אחרי הודעת-הדמו
     toast('קובץ ה' + termOf(config, 'entity.enrollments', 'שיבוצים') + ' ירד — ' + db.enrollments.length + ' ' + termOf(config, 'entity.enrollments', 'שיבוצים'));
   }
 
   // ייצוא בפורמט הייבוא (P3 פריט 4) — round-trip לעריכה באקסל והחזרה
   function expFamiliesImportFmt() {
     const db = useApp.getState().db;
-    downloadCsv('maor-import-families.csv', familiesImportFormatRows(db));
+    if (!downloadCsv('maor-import-families.csv', familiesImportFormatRows(db))) return; // 🔒 סירוב-דמו — בלי "ירד" אחרי הודעת-הדמו
     toast('הקובץ בפורמט הייבוא ירד — ערכו באקסל והחזירו דרך "ייבוא ' + termOf(config, 'nav.families', 'משפחות') + '"');
   }
   function expSupportersImportFmt() {
     const db = useApp.getState().db;
-    downloadCsv('maor-import-supporters.csv', supportersImportFormatRows(db));
+    if (!downloadCsv('maor-import-supporters.csv', supportersImportFormatRows(db))) return; // 🔒 סירוב-דמו — בלי "ירד" אחרי הודעת-הדמו
     toast('הקובץ בפורמט הייבוא ירד — ערכו באקסל והחזירו דרך "ייבוא ' + termOf(config, 'nav.supporters', 'תורמים') + '"');
   }
 

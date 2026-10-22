@@ -603,8 +603,12 @@ function HistoryPanel(props: { fam: Family }) {
   const hist = famHistoryOf(db, props.fam, config);
 
   function exportReport() {
+    // 🧾 רישום-הגישה קודם להורדה — כמו תמיד (TRUST 24.8): גם ניסיון שהשער סירב לו (עובד/ת שהמנהל
+    // חסם לה ייצוא) נשאר בלוג-הפעולות של המנהל. ביקורת 22.10.2026: גרסת-ביניים הקדימה את השער לרישום
+    // ומחקה את העקבה הזו — הוחזר. בדמו הרישום נכתב רק לטבעת-הלוג המקומית של הדמו (לא מזיק).
     logAccess('הורדת דוח-משפחה', props.fam.name);
-    downloadText('family-' + props.fam.name + '.txt', familyReportLines(db, props.fam, config));
+    // 🔒 סירוב-דמו ⇒ בלי "ירד" אחרי הודעת-הדמו (22.10.2026; מחוץ לדמו ביט-זהה)
+    if (!downloadText('family-' + props.fam.name + '.txt', familyReportLines(db, props.fam, config))) return;
     toast('דוח ה' + termOf(config, 'entity.family', 'משפחה') + ' המלא ירד למחשב');
   }
 

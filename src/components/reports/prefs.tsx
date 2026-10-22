@@ -77,7 +77,7 @@ export function ReportPrefsSection() {
           e.purchased,
       );
     }
-    downloadText('maor-report-' + label + '.txt', L);
+    if (!downloadText('maor-report-' + label + '.txt', L)) return; // 🔒 סירוב-דמו — בלי "ירד" אחרי הודעת-הדמו
     toast('הדו"ח ה' + label + ' הופק וירד למחשב');
   }
 

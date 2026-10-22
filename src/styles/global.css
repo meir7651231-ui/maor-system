@@ -1102,6 +1102,44 @@ h1,
   .app-main {
     padding: 0;
   }
+  /* 🔒 נעילת-הדמו (22.10.2026, lib/demoLock): הדפסה מתפריט-הדפדפן אי-אפשר לבטל מ-JS —
+     בדמו (data-demo-lock על ה-root) הדף מודפס ריק, עם שורת-הסבר במקום המידע. */
+  :root[data-demo-lock] body {
+    display: none !important;
+  }
+  :root[data-demo-lock]::after {
+    content: 'בדמו אי אפשר להדפיס מידע. רוצים לעבוד עם המידע שלכם? פתחו אתר משלכם.';
+    display: block;
+    padding: 40px 24px;
+    font: 18px/1.6 system-ui, sans-serif;
+    text-align: center;
+    direction: rtl;
+  }
+}
+
+/* 🔒 נעילת-הדמו (22.10.2026, lib/demoLock): סימון-טקסט הוא יציאת-מידע שלא עוברת באירוע-העתקה —
+   Ctrl+A וגרירה ל-Word/לשונית אחרת, או «שיתוף/חיפוש» בסרגל-הסימון בנייד. בדמו אין סימון מחוץ
+   לשדות-הקלט (שם המבקר מקליד ומתקן), ולחיצה-ארוכה ב-iOS לא פותחת תפריט «העתקה/שמירה». */
+:root[data-demo-lock] body {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+:root[data-demo-lock] :is(input:not([readonly]), textarea:not([readonly]), [contenteditable]:not([contenteditable='false'])) {
+  -webkit-user-select: text;
+  user-select: text;
+}
+/* 🔒 ביקורת 22.10.2026: שדה לקריאה-בלבד (מזהה-הלקוח הנעול באשף-הדמו ודומיו) — אין בו מה להקליד,
+   ולכן גם אין בו סימון: פחות משטח ל«שיתוף/חיפוש» של סרגל-הסימון בנייד. (בשדה עריך הסרגל לא נחסם
+   מ-JS בלי לשבור הקלדה — שארית מתועדת ב-lib/demoLock.) */
+:root[data-demo-lock] :is(input[readonly], textarea[readonly]) {
+  -webkit-user-select: none;
+  user-select: none;
+}
+/* 🔒 ביקורת 22.10.2026: בדמו הודעת-הסירוב חייבת להיראות מעל כל שכבה שהמבקר מגיע אליה — האשף
+   (300; 96vw בנייד), «זרימה-אחת» (260), הגדלת-תמונה (1000). רק עם data-demo-lock — מחוץ לדמו 200 כמו תמיד. */
+:root[data-demo-lock] .toasts {
+  z-index: 1100;
 }
 
 /* ═══════════ 🎡 גלגל החוגים (components/wheel/CourseWheel) ═══════════

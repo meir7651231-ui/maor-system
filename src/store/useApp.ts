@@ -58,6 +58,7 @@ import type { OrgCloudDoc } from '../lib/cloudConfig';
 import { DEFAULT_CONFIG, type FirebaseOrgConfig, type OrgConfig } from '../types/config';
 import { applyTheme, donationSplitOn, employeeSignUpError, featureOn, isAdminAuthority, isSuperAdmin, loadOrgConfig, orgSlugFromUrl, resolveOrgConfig, saveConfigOverride, signUpError, supEnforceOn, termOf, writeCloudConfigCache } from '../lib/config';
 import { formatIsraeliPhone } from '../lib/validate';
+import { guardDemo } from '../lib/exportGate';
 import { deviceTag, makeId } from '../lib/ids';
 import { supporterAggregates } from '../lib/supporterAgg';
 import { planDemoPurge, purgeSummary } from '../lib/demoPurge';
@@ -3972,6 +3973,11 @@ export const useApp = create<AppState>()((set, get) => {
     },
 
     exportBackup() {
+      // 🔒 מנעול-הדמו (lib/exportGate.guardDemo) — כל קוראי-הגיבוי עוברים כאן: הפלטה, ווידג'ט-הבית,
+      // הגדרות←גיבוי, איפוס וסוף-היום. בדמו (22.10.2026) ⇒ הודעת-הדמו, שום קובץ לא יורד, והקורא מקבל
+      // false ⇒ לא נרשם "גובה היום". מחוץ לדמו guardDemo מתיר תמיד ⇒ הבדיקה שמתחת (core.export) היא
+      // היחידה, כמו קודם — ביט-זהה.
+      if (!guardDemo()) return Promise.resolve(false);
       // 🔐 מאסטר-מתג הוצאת-מידע (13.8): עובד שהמנהל חסם לו ייצוא (core.export=false
       // בכרטיס-העובד) לא יכול להוריד גיבוי — חסימה גם ברמת-הפעולה, לא רק ה-UI.
       if (!featureOn(get().config, 'core.export')) {
