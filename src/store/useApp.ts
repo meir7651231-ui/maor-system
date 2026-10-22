@@ -470,6 +470,8 @@ interface AppState {
   deleteTzCampaign: (id: string) => void;
   upsertTzEvent: (e: TzEvent) => void;
   deleteTzEvent: (id: string) => void;
+  /** ✓ בוצע לתזכורת: חד-פעמית ⇒ done; חוזרת ⇒ רק המופע הזה (doneDates), והיא תחזור במופע הבא. */
+  doneTzReminder: (id: string, date: IsoDate) => void;
   /** ריקון קופה — דוחה סכום לא-חוקי בלי לגעת ב-db; delta = ניקוד שנוסף לרכז. */
   addTzCollection: (
     boxId: string,
@@ -2958,6 +2960,17 @@ export const useApp = create<AppState>()((set, get) => {
     },
     deleteTzEvent(id) {
       setDb((db) => ({ tzEvents: db.tzEvents.filter((e) => e.id !== id) }));
+    },
+    doneTzReminder(id, date) {
+      setDb((db) => ({
+        tzEvents: db.tzEvents.map((e) =>
+          e.id !== id
+            ? e
+            : e.recur
+              ? { ...e, doneDates: [...new Set([...(e.doneDates ?? []), date])].sort().slice(-60) }
+              : { ...e, done: true },
+        ),
+      }));
     },
     addTzCollection(boxId, coll) {
       // שער לפני נגיעה ב-db (לקח באג-5): סכום לא-חיובי/לא-סופי נדחה בשקט-רועש

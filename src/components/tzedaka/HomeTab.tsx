@@ -89,6 +89,7 @@ export function HomeTab(props: { onOpenCoordinator: (id: string) => void }) {
   const config = useApp((s) => s.config);
   const upsertTzCampaign = useApp((s) => s.upsertTzCampaign);
   const deleteTzCampaign = useApp((s) => s.deleteTzCampaign);
+  const doneTzReminder = useApp((s) => s.doneTzReminder);
   const toast = useApp((s) => s.toast);
   const campaignsOn = featureOn(config, 'tzedaka.campaigns');
   const { armed, confirmTwice } = useArmed(featureOn(config, 'shell.armdel'));
@@ -111,8 +112,12 @@ export function HomeTab(props: { onOpenCoordinator: (id: string) => void }) {
   const activeCoords = db.tzCoordinators.filter((c) => c.active).length;
   const activeCampaign = db.tzCampaigns.find((c) => c.active);
 
-  const careAction = (kind: string, id: string) => {
-    if (kind === 'stale' || kind === 'lost') {
+  const careAction = (kind: string, id: string, date?: string) => {
+    if (kind === 'reminder') {
+      // ✓ בוצע — בחוזרת רק המופע הזה; היא תחזור בחודש/בשנה הבאים
+      if (date) doneTzReminder(id, date);
+      toast('התזכורת סומנה ✓ בוצע');
+    } else if (kind === 'stale' || kind === 'lost') {
       const b = db.tzBoxes.find((x) => x.id === id);
       if (b) setCollectFor(b);
     } else if (kind === 'inactiveCoord') {
@@ -187,8 +192,8 @@ export function HomeTab(props: { onOpenCoordinator: (id: string) => void }) {
                   <div style={{ fontSize: 13, fontWeight: 700 }}>{item.label}</div>
                   <div style={{ fontSize: 12, color: 'var(--ink-faint)' }}>{item.hint}</div>
                 </div>
-                <Btn sm onClick={() => careAction(item.kind, item.id)}>
-                  {item.kind === 'stale' || item.kind === 'lost' ? '💰 ריקון' : item.kind === 'inactiveCoord' ? 'לכרטיס ←' : '✎ מבצע'}
+                <Btn sm onClick={() => careAction(item.kind, item.id, item.date)}>
+                  {item.kind === 'reminder' ? '✓ בוצע' : item.kind === 'stale' || item.kind === 'lost' ? '💰 ריקון' : item.kind === 'inactiveCoord' ? 'לכרטיס ←' : '✎ מבצע'}
                 </Btn>
               </div>
             ))}

@@ -1,15 +1,18 @@
 /**
  * טופס קופה (קופות 4) — מספר פיזי חובה (אזהרה רכה על כפילות), משפחה
  * מחזיקה (בחירה או inline-create — הכרעת בעלים 6), סיווג, since, סטטוס.
+ * 🔔 תזכורות הקופה (בקשת-בעלים 22.10) — הוספה/עריכה דרך TzReminderModal, רק לקופה שכבר נשמרה.
  */
 import { useState } from 'react';
 import { useApp } from '../../store/useApp';
 import { useDbWatch } from '../../store/dbWatch';
 import { featureOn, termOf } from '../../lib/config';
-import { emptyFamily, type TzBox, type TzBoxStatus } from '../../types/domain';
+import { emptyFamily, type TzBox, type TzBoxStatus, type TzEvent } from '../../types/domain';
 import { Btn, Field, FormError, Modal, Select, TextInput } from '../ui';
 import { HebDateInput } from '../HebDateInput';
 import { isoToday } from '../../lib/date-util';
+import { TzReminderModal } from './TzReminderModal';
+import { boxReminders, TZ_RECUR_LABEL } from './lib';
 
 const STATUS_OPTIONS: { value: TzBoxStatus; label: string }[] = [
   { value: 'home', label: '🏠 אצל משפחה' },
@@ -19,7 +22,7 @@ const STATUS_OPTIONS: { value: TzBoxStatus; label: string }[] = [
 ];
 
 export function BoxForm(props: { box: TzBox | null; coordinatorId: string; onClose: () => void }) {
-  const db = useDbWatch('families', 'tzBoxes');
+  const db = useDbWatch('families', 'tzBoxes', 'tzEvents');
   const config = useApp((s) => s.config);
   const upsertTzBox = useApp((s) => s.upsertTzBox);
   const upsertFamily = useApp((s) => s.upsertFamily);
@@ -39,6 +42,8 @@ export function BoxForm(props: { box: TzBox | null; coordinatorId: string; onClo
   const [error, setError] = useState('');
   const [newFamOpen, setNewFamOpen] = useState(false);
   const [newFam, setNewFam] = useState({ name: '', phone: '', kind: 'donor' as 'donor' | 'supported' });
+  const [reminder, setReminder] = useState<{ ev: TzEvent | null } | null>(null);
+  const reminders = b ? boxReminders(db.tzEvents, b.id, isoToday()) : [];
 
   // אזהרה רכה — מספר קופה שכבר קיים (לא חוסם; קופות ישנות ממוחזרות לפעמים)
   const dupNum =
@@ -148,6 +153,24 @@ export function BoxForm(props: { box: TzBox | null; coordinatorId: string; onClo
       <Field label="הערות">
         <textarea rows={2} value={f.notes} onChange={(e) => setF({ ...f, notes: e.target.value })} />
       </Field>
+      <section style={{ border: '1px solid var(--line)', borderRadius: 10, padding: '8px 12px', marginTop: 8 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 6 }}>
+          <span style={{ fontWeight: 800, fontSize: 14 }}>🔔 תזכורות</span>
+          {b && <Btn sm onClick={() => setReminder({ ev: null })}>➕ הוספת תזכורת</Btn>}
+        </div>
+        {!b && <div style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>שמרו את ה{termOf(config, 'entity.tzBox', 'קופה')} קודם — ואז אפשר להוסיף לה תזכורות</div>}
+        {b && reminders.length === 0 && <div style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>אין תזכורות לקופה הזו</div>}
+        {reminders.map(({ ev, when }) => (
+          <div key={ev.id} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, padding: '4px 0', borderTop: '1px solid var(--line)' }}>
+            <span style={{ flex: 1, minWidth: 0 }}>
+              <b>{ev.title}</b>
+              <span style={{ color: 'var(--ink-faint)' }}>{' · ' + TZ_RECUR_LABEL[ev.recur ?? 'once'] + ' · ' + (!when ? 'בוצעה' : when < isoToday() ? 'הגיע זמנה: ' + when : when === isoToday() ? 'היום' : 'הבאה: ' + when)}</span>
+            </span>
+            <Btn sm onClick={() => setReminder({ ev })} title="עריכת התזכורת">✏️ עריכה</Btn>
+          </div>
+        ))}
+      </section>
+      {reminder && b && <TzReminderModal box={b} ev={reminder.ev} onClose={() => setReminder(null)} />}
       <div className="modal-actions">
         <Btn kind="primary" onClick={save}>שמירה</Btn>
         <Btn onClick={props.onClose}>ביטול</Btn>

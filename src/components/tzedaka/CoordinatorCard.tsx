@@ -9,7 +9,8 @@ import { canGrantedAction, featureOn, moduleOn, termOf } from '../../lib/config'
 import type { TzBox, TzCollection, TzCoordinator } from '../../types/domain';
 import { Btn, Chip, Empty, Field, Modal, Select, TextInput } from '../ui';
 import { useArmed } from '../useArmed';
-import { boxTotal, coordinatorBoxes, coordinatorPrintLines, coordinatorTotal, filterCollections, lastCollectionIso } from './lib';
+import { boxReminders, boxTotal, coordinatorBoxes, coordinatorPrintLines, coordinatorTotal, filterCollections, lastCollectionIso, TZ_RECUR_LABEL } from './lib';
+import { isoToday } from '../../lib/date-util';
 import { downloadText } from '../reports/csv';
 import { BoxForm } from './BoxForm';
 import { CollectModal } from './CollectModal';
@@ -164,6 +165,22 @@ export function CoordinatorCard(props: { coordinator: TzCoordinator; onBack: () 
                 <span style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>
                   {'ריקון אחרון: ' + (lastCollectionIso(b) || '—') + ' · סה"כ ' + boxTotal(b).toLocaleString('he-IL') + ' ₪'}
                 </span>
+                {/* 🔔 התזכורת הקרובה של הקופה (בקשת-בעלים 22.10) — לחיצה פותחת את עריכת-הקופה */}
+                {(() => {
+                  const next = boxReminders(db.tzEvents, b.id, isoToday()).find((r) => r.when);
+                  if (!next) return null;
+                  const due = next.when <= isoToday();
+                  return (
+                    <button
+                      type="button"
+                      onClick={() => setBoxForm({ box: b })}
+                      title={TZ_RECUR_LABEL[next.ev.recur ?? 'once']}
+                      style={{ fontSize: 12, fontWeight: 700, border: '1px solid var(--line)', borderRadius: 99, padding: '2px 9px', cursor: 'pointer', background: due ? '#fef3c7' : 'var(--panel)', color: due ? '#92400e' : 'inherit' }}
+                    >
+                      {'🔔 ' + next.when + ' · ' + next.ev.title}
+                    </button>
+                  );
+                })()}
                 <span style={{ marginInlineStart: 'auto', display: 'flex', gap: 4, flexWrap: 'wrap' }}>
                   <Btn sm onClick={() => setCollectFor(b)} title="רישום ריקון">💰 ריקון</Btn>
                   <Btn sm onClick={() => setBoxForm({ box: b })} title="עריכת הקופה">✏️</Btn>

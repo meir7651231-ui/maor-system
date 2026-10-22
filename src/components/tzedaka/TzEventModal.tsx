@@ -10,6 +10,7 @@ import type { TzEvent } from '../../types/domain';
 import { Btn, Field, FormError, Modal, Select, TextInput } from '../ui';
 import { HebDateInput } from '../HebDateInput';
 import { useArmed } from '../useArmed';
+import { TZ_RECUR_LABEL, type TzRecurKey } from './lib';
 
 const KIND_OPTIONS: { value: TzEvent['kind']; label: string }[] = [
   { value: 'round', label: '🔄 סבב ריקון' },
@@ -36,13 +37,17 @@ export function TzEventModal(props: { ev: TzEvent | null; date: string; onClose:
     boxId: ev?.boxId ?? '',
     notes: ev?.notes ?? '',
     done: ev?.done ?? false,
+    recur: (ev?.recur ?? 'once') as TzRecurKey,
   });
   const [error, setError] = useState('');
 
   function save() {
     if (!f.title.trim()) return setError('כותרת היא שדה חובה');
     if (!f.date) return setError('יש לבחור תאריך');
-    upsertTzEvent({ id: ev?.id ?? '', ...f, title: f.title.trim(), notes: f.notes.trim() });
+    // שדות שהטופס לא מציג (doneDates) נשמרים; חזרה = additive (חד-פעמית ⇒ בלי השדה)
+    const { recur, ...fields } = f;
+    const { recur: _r, ...keep } = ev ?? ({} as Partial<TzEvent>);
+    upsertTzEvent({ ...keep, id: ev?.id ?? '', ...fields, title: f.title.trim(), notes: f.notes.trim(), ...(recur === 'once' ? {} : { recur }) });
     toast(ev ? 'האירוע עודכן' : 'האירוע נוסף ללוח הקופות');
     props.onClose();
   }
@@ -79,7 +84,14 @@ export function TzEventModal(props: { ev: TzEvent | null; date: string; onClose:
             options={[{ value: '', label: 'ללא' }, ...db.tzBoxes.map((b) => ({ value: b.id, label: '#' + b.num }))]}
           />
         </Field>
-        <Field label="בוצע">
+        <Field label="חזרה">
+          <Select
+            value={f.recur}
+            onChange={(v) => setF({ ...f, recur: v as TzRecurKey })}
+            options={(['once', 'monthly', 'yearly'] as const).map((k) => ({ value: k, label: TZ_RECUR_LABEL[k] }))}
+          />
+        </Field>
+        {f.recur === 'once' && <Field label="בוצע">
           <Select
             value={f.done ? '1' : '0'}
             onChange={(v) => setF({ ...f, done: v === '1' })}
@@ -88,7 +100,7 @@ export function TzEventModal(props: { ev: TzEvent | null; date: string; onClose:
               { value: '1', label: '✓ בוצע' },
             ]}
           />
-        </Field>
+        </Field>}
       </div>
       <Field label="הערות">
         <textarea rows={2} value={f.notes} onChange={(e) => setF({ ...f, notes: e.target.value })} />
