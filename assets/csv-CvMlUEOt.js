@@ -1,0 +1,4 @@
+import{Cn as e,wn as t}from"./jsx-runtime-zB3qSzqV.js";function n(e){let t=String(e??``);return/^[=+\-@\t\r]/.test(t)&&(t=`'`+t),t.includes(`,`)||t.includes(`"`)||t.includes(`
+`)||t.includes(`\r`)?`"`+t.replace(/"/g,`""`)+`"`:t}function r(n,r,i){if(!e())return t();let a=document.createElement(`a`);return a.href=URL.createObjectURL(new Blob([`﻿`+i],{type:r})),a.download=n,a.click(),setTimeout(()=>URL.revokeObjectURL(a.href),5e3),!0}function i(e,t){return r(e,`text/csv;charset=utf-8`,t.map(e=>e.map(n).join(`,`)).join(`
+`))}function a(e,t){return r(e,`text/plain;charset=utf-8`,t.join(`
+`))}export{a as n,i as t};
