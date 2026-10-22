@@ -143,6 +143,15 @@
   box-shadow: 0 10px 34px -10px rgba(var(--o-accent-rgb), 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.28);
   text-shadow: none;
 }
+.orbit-brand-mark:has(.orbit-brand-img) {
+  overflow: hidden;
+}
+.orbit-brand-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
 .orbit-brand-name {
   font-family: var(--o-serif);
   font-size: 23px;

@@ -57,7 +57,7 @@ export function LoginScreen() {
   // מקבל את הזהות שלו — "בהמשך זה יגיע מהאתר שלהם". שים לב: לא נופלים ל-db.orgName —
   // בשורש-הפלטפורמה הוא "מאור החסד" מנתוני-הזריעה ולא צריך למתג את אורביט.
   const title = config.orgName || 'אורביט';
-  // הסמל: ארגון עם אימוג'י-מותג ⇒ האימוג'י שלו; אורביט ⇒ הסמל המקורי (מוח+טבעת, public/orbit/orbit-mark.png)
+  // הסמל: ארגון עם אימוג'י-מותג ⇒ האימוג'י שלו; אורביט ⇒ הסמל (כדור-רשת+טבעת, public/orbit/orbit-mark.jpg)
   const brandEmoji = config.emoji || '🪐';
   const theme = useMemo(() => orbitTheme(config.accent), [config.accent]);
 
@@ -106,7 +106,7 @@ export function LoginScreen() {
           {!submitted && (
             <aside className="orbit-lede">
               <div className="orbit-brand">
-                <span className="orbit-brand-mark" aria-hidden>{config.emoji ? brandEmoji : <img src={`${import.meta.env.BASE_URL}orbit/orbit-mark.png`} alt="" width={46} height={46} style={{ display: 'block' }} />}</span>
+                <span className="orbit-brand-mark" aria-hidden>{config.emoji ? brandEmoji : <img className="orbit-brand-img" src={`${import.meta.env.BASE_URL}orbit/orbit-mark.jpg`} alt="" width={56} height={56} />}</span>
                 <span className="orbit-brand-name">
                   {title}
                   <span className="orbit-brand-sub">מערכת הניהול שלכם</span>
