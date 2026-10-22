@@ -65,7 +65,7 @@ await page.waitForTimeout(2500); // המתנה ל-watchAuth (null) ⇒ מסך ה
 
 const body = (await page.locator('body').textContent().catch(() => '')) ?? '';
 t('מסך ההרשמה עלה עם הכותרת החדשה (22.10)', body.includes('כל עסק. כל תחום.') && body.includes('מערכת אחת שעושה הכול.'));
-t('תת-הכותרת הנעולה מופיעה', body.includes('שמחברת את כל הפעילות שלכם למקום אחד'));
+t('תת-הכותרת הנעולה מופיעה', body.includes('ניהול, פתרונות מוכנים ושדרוג למערכת קיימת'));
 t('מיתוג נגזר-ארגון (שם-הארגון בכותרת) — בלי "אורביט"/ORBIT קשיח', body.includes('עמותת מבחן') && !body.includes('© 2026 ORBIT') && !body.includes('אורביט היא מערכת'));
 t('ההרשמה = אשף 5-שלבים, שלב 1 (תחום)', body.includes('שלב 1 מתוך 5') && body.includes('תחום העסק'));
 t('הבאדג׳ האמיתי (בלי WebAuthn) — "הצפנה במנוחה"', body.includes('הצפנה במנוחה') && !body.includes('WebAuthn'));
@@ -91,6 +91,7 @@ t('אשף — שלב 4 (פרטי קשר)', wz.includes('שלב 4 מתוך 5') &&
 await page.locator('.orbit-card button', { hasText: '→ הקודם' }).first().click();
 await page.waitForTimeout(200);
 
+t('♿ כפתור הנגישות מופיע במסך ההרשמה', (await page.locator('button[aria-label="הגדרות נגישות"]').count()) > 0);
 // 🛒 החנות (22.10, במקום עיתון+סרטון) — נפתחת ב-iframe, ו"פתיחת המערכת" שבתוכה
 // מחזירה להרשמה עם התחום מסומן (postMessage מאותו origin)
 t('רצועת-המסכים מוצגת מתחת לכותרת', (await page.locator('.orbit-reel-item').count()) >= 18);

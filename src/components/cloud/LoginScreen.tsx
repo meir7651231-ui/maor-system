@@ -17,6 +17,8 @@ import { EmployeeSignup } from './EmployeeSignup';
 import { CallbackModal } from './CallbackModal';
 import { StoreModal, type StoreStart } from './StoreModal';
 import { ScreensReel } from './ScreensReel';
+import { A11yFab } from '../A11yFab';
+import { featureOn } from '../../lib/config';
 import { OwnerWaButton } from './OwnerWaButton';
 import { ownerWaLink, signupOwnerText, type StoreRef } from '../../lib/signupNotify';
 
@@ -115,7 +117,7 @@ export function LoginScreen() {
               {/* 🎞 המסכים מתגלגלים מיד מתחת לכותרת (22.10) */}
               <ScreensReel onOpen={() => setStoreOpen(true)} />
               <p className="orbit-sub">
-                המערכת שמחברת את כל הפעילות שלכם למקום אחד — בעברית, בפשטות, ושלכם לגמרי. מוקמת במיוחד בשבילכם, בשיחת טלפון אחת.
+                ניהול, פתרונות מוכנים ושדרוג למערכת קיימת — מותאם לכם בהקמה, בשיחת טלפון אחת.
               </p>
 
               {/* 🛒 החנות (22.10, במקום סרטון+עיתון) + "חזרו אליי" */}
@@ -244,6 +246,8 @@ export function LoginScreen() {
         </span>
       </footer>
 
+      {/* ♿ הנגישות שלנו גם במסך ההרשמה (22.10) — אותו FAB ואותו דגל; בתוך המסך כי הוא שכבה z-400 */}
+      {featureOn(config, 'shell.a11yfab') && <A11yFab />}
       {storeOpen && <StoreModal onClose={closeStore} onStart={onStoreStart} />}
       {callbackOpen && <CallbackModal onClose={() => setCallbackOpen(false)} />}
     </div>

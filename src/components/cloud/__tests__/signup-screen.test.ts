@@ -21,7 +21,7 @@ describe('🪐 ratchet — SIGNUP: מסך ההרשמה של אורביט', () =>
   it('הקופי הנעול מדויק + מיתוג נגזר-ארגון (ברירת-מחדל אורביט, בהמשך מהאתר שלהם)', () => {
     // כותרת חדשה (הכרעת-בעלים 22.10 — "משפט עוצמתי"); תת-הכותרת נשמרת
     expect(loginSrc).toContain('כל עסק. כל תחום.<br /><em>מערכת אחת שעושה הכול.</em>');
-    expect(loginSrc).toContain('המערכת שמחברת את כל הפעילות שלכם למקום אחד');
+    expect(loginSrc).toContain('ניהול, פתרונות מוכנים ושדרוג למערכת קיימת');
     // המותג (שם+אייקון) נגזר מ-config; ברירת-מחדל = אורביט (הפלטפורמה)
     expect(loginSrc).toContain('orbit-brand-name');
     expect(loginSrc).toContain('{title}');
