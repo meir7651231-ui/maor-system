@@ -15,7 +15,7 @@ import {
   wizardStepError,
   type WizardState,
 } from '../../lib/signupWizard';
-import { parseStoreParams, type SignupSummary } from '../../lib/signupNotify';
+import { parseStoreParams, type SignupSummary, type StoreRef } from '../../lib/signupNotify';
 
 const STEP_TITLES = ['מה תחום העסק?', 'מה גודל הארגון?', 'מה חשוב לכם?', 'פרטי הקשר', 'חשבון הכניסה'];
 const STEP_SUBS = [
@@ -28,11 +28,12 @@ const STEP_SUBS = [
 
 const choiceCls = (on: boolean) => 'orbit-choice' + (on ? ' on' : '');
 
-export function SignupWizard({ onDone }: { onDone: (email: string, summary: SignupSummary) => void }) {
+export function SignupWizard({ onDone, preset }: { onDone: (email: string, summary: SignupSummary) => void; preset?: StoreRef | null }) {
   const cloudSignUp = useApp((s) => s.cloudSignUp);
   // הגעה מהחנות (?signup=1&v=&picks=) — התחום נבחר מראש (אם מוכר); הבחירות נכנסות להודעת-הוואטסאפ
   // בלבד — Rules של platformRequests = allowlist 8 שדות (שדה נוסף ⇒ נפילה ל-5 בסיס, אובדן פרופיל)
-  const [store] = useState(() => (typeof window === 'undefined' ? null : parseStoreParams(window.location.search)));
+  // preset = בחירה מהחנות שבתוך המסך (StoreModal); אחרת — פרמטרי-ה-URL מהחנות החיצונית
+  const [store] = useState(() => preset ?? (typeof window === 'undefined' ? null : parseStoreParams(window.location.search)));
   const [step, setStep] = useState(0);
   const [s, setS] = useState<WizardState>(() =>
     store?.vertical && WIZARD_INDUSTRIES.some((i) => i.id === store.vertical) ? { ...EMPTY_WIZARD, industry: store.vertical } : EMPTY_WIZARD,

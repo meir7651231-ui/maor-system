@@ -715,3 +715,107 @@
     animation: none !important;
   }
 }
+
+/* ---------- 🛒 כפתור-החנות + 🎞 רצועת-המסכים (22.10) ---------- */
+.orbit-secondary-2 {
+  grid-template-columns: 2fr 1fr;
+}
+.orbit-sbtn-hot {
+  font-size: 14px;
+  font-weight: 800;
+  background: linear-gradient(135deg, rgba(var(--o-accent-rgb), 0.55), rgba(var(--o-accent-rgb), 0.22));
+  border-color: rgba(var(--o-accent-rgb), 0.7);
+  box-shadow: 0 0 0 0 rgba(var(--o-accent-rgb), 0.5);
+  animation: orbPulse 2.6s ease-out infinite;
+}
+@keyframes orbPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(var(--o-accent-rgb), 0.45);
+  }
+  70% {
+    box-shadow: 0 0 0 14px rgba(var(--o-accent-rgb), 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(var(--o-accent-rgb), 0);
+  }
+}
+.orbit-store {
+  width: min(1180px, 96vw);
+}
+.orbit-reel {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 1180px;
+  overflow: hidden;
+  margin-top: 12px;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+.orbit-reel-track {
+  display: flex;
+  gap: 14px;
+  width: max-content;
+  animation: orbReel 60s linear infinite;
+}
+.orbit-reel:hover .orbit-reel-track {
+  animation-play-state: paused;
+}
+@keyframes orbReel {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(50%);
+  }
+}
+.orbit-reel-item {
+  flex: none;
+  width: 240px;
+  padding: 0;
+  border-radius: 14px;
+  overflow: hidden;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font: inherit;
+  transition: 0.22s;
+}
+.orbit-reel-item:hover {
+  border-color: rgba(var(--o-accent-rgb), 0.6);
+  transform: translateY(-3px);
+}
+.orbit-reel-item img {
+  display: block;
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  object-position: top;
+}
+.orbit-reel-item span {
+  display: block;
+  padding: 7px 10px;
+  font-size: 12.5px;
+  font-weight: 700;
+  text-align: start;
+}
+@media (prefers-reduced-motion: reduce) {
+  .orbit-sbtn-hot {
+    animation: none;
+  }
+  .orbit-reel {
+    overflow-x: auto;
+  }
+  .orbit-reel-track {
+    animation: none;
+  }
+}
+@media (max-width: 640px) {
+  .orbit-reel-item {
+    width: 180px;
+  }
+  .orbit-reel-item img {
+    height: 112px;
+  }
+}

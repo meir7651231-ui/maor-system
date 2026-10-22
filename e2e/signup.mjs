@@ -3,7 +3,7 @@
  *
  * מזריק config **עם** firebase (ענן דלוק) ⇒ מסך ההרשמה עולה עם הקופי הנעול
  * (הכדור עולה בדסקטופ, או נפילה סטטית). בודק שהכפתורים המשניים פותחים את
- * המתאים (עיתון / נחזור-אליכם), ושהלשוניות עובדות. סקריפט **נפרד** —
+ * המתאים (חנות / נחזור-אליכם), ושהלשוניות עובדות. סקריפט **נפרד** —
  * toggle-matrix/demo/launch מזריקים בלי firebase ולכן לא רואים את המסך הזה
  * ונשארים ירוקים ללא שינוי.
  *
@@ -64,7 +64,7 @@ await page.reload({ waitUntil: 'networkidle' });
 await page.waitForTimeout(2500); // המתנה ל-watchAuth (null) ⇒ מסך ההרשמה
 
 const body = (await page.locator('body').textContent().catch(() => '')) ?? '';
-t('מסך ההרשמה עלה עם הקופי הנעול (מיתוג מאור)', body.includes('כל הפעילות שלכם') && body.includes('במקום אחד'));
+t('מסך ההרשמה עלה עם הכותרת החדשה (22.10)', body.includes('מערכת אחת.') && body.includes('שליטה מלאה.'));
 t('תת-הכותרת הנעולה מופיעה', body.includes('שמחברת את כל הפעילות שלכם למקום אחד'));
 t('מיתוג נגזר-ארגון (שם-הארגון בכותרת) — בלי "אורביט"/ORBIT קשיח', body.includes('עמותת מבחן') && !body.includes('© 2026 ORBIT') && !body.includes('אורביט היא מערכת'));
 t('ההרשמה = אשף 5-שלבים, שלב 1 (תחום)', body.includes('שלב 1 מתוך 5') && body.includes('תחום העסק'));
@@ -91,20 +91,26 @@ t('אשף — שלב 4 (פרטי קשר)', wz.includes('שלב 4 מתוך 5') &&
 await page.locator('.orbit-card button', { hasText: '→ הקודם' }).first().click();
 await page.waitForTimeout(200);
 
-// עיתון
-await page.locator('button', { hasText: '📰 עיתון' }).click();
+// 🛒 החנות (22.10, במקום עיתון+סרטון) — נפתחת ב-iframe, ו"פתיחת המערכת" שבתוכה
+// מחזירה להרשמה עם התחום מסומן (postMessage מאותו origin)
+t('רצועת-המסכים מוצגת מתחת', (await page.locator('.orbit-reel-item').count()) >= 13);
+await page.locator('button', { hasText: '🛒 החנות שלנו' }).click();
+await page.waitForTimeout(800);
+t('כפתור החנות פותח את החנות (iframe)', (await page.locator('.orbit-store iframe').count()) > 0);
+const sf = page.frameLocator('.orbit-store iframe');
+await sf.locator('[data-ed]').first().waitFor({ timeout: 10000 });
+const edId = await sf.locator('[data-ed]').first().getAttribute('data-ed');
+await sf.locator('[data-ed]').first().click();
+await sf.locator('[data-signup]').first().click();
+await sf.locator('[data-start]').first().click();
 await page.waitForTimeout(500);
-t('כפתור העיתון פותח את הקורא (iframe)', (await page.locator('.orbit-reader iframe').count()) > 0);
-await page.keyboard.press('Escape');
-await page.waitForTimeout(300);
-t('Escape סוגר את העיתון', (await page.locator('.orbit-reader').count()) === 0);
-
-// צפו בסרטון (SIGNUP2) — פותח <video> (on-demand), לא טוסט "בקרוב"
-await page.locator('button', { hasText: '▶ סרטון' }).click();
+t('"פתיחת המערכת" בחנות סוגרת אותה וחוזרת לאשף', (await page.locator('.orbit-store').count()) === 0 && ((await page.locator('.orbit-card').textContent()) ?? '').includes('שלב 1 מתוך 5'));
+t('התחום מהחנות מסומן באשף', !edId || (await page.locator('.orbit-choice.on').count()) === 1);
+await page.locator('button', { hasText: '🛒 החנות שלנו' }).click();
 await page.waitForTimeout(400);
-t('כפתור "צפו בסרטון" פותח אלמנט וידאו', (await page.locator('.orbit-overlay video').count()) > 0);
 await page.keyboard.press('Escape');
 await page.waitForTimeout(300);
+t('Escape סוגר את החנות', (await page.locator('.orbit-store').count()) === 0);
 
 // נחזור אליכם
 await page.locator('button', { hasText: '📞 חזרו אליי' }).click();

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ORBIT_OWNER_WHATSAPP, countNewSince, latestAt, leadNotesWithStore, leadOwnerText, ownerWaLink, parseStoreParams, signupOwnerText } from './signupNotify';
+import { ORBIT_OWNER_WHATSAPP, countNewSince, sanitizeStoreNames, latestAt, leadNotesWithStore, leadOwnerText, ownerWaLink, parseStoreParams, signupOwnerText } from './signupNotify';
 
 describe('signupNotify — הודעת-בעלים בוואטסאפ + הקשר-חנות (22.10)', () => {
   it('פרמטרי-החנות: רק עם signup=1; מזהים לא-בטוחים נזרקים, כפולים מאוחדים', () => {
@@ -42,6 +42,13 @@ describe('signupNotify — הודעת-בעלים בוואטסאפ + הקשר-ח�
 
   it('מספר-הבעלים ברירת-מחדל ⇒ wa.me תקין', () => {
     expect(ownerWaLink('שלום', ORBIT_OWNER_WHATSAPP)).toMatch(/^https:\/\/wa\.me\/972555043749\?text=/);
+  });
+
+  it('שמות מהחנות (postMessage) מחוטאים ונכנסים להודעה', () => {
+    expect(sanitizeStoreNames('x')).toEqual([]);
+    expect(sanitizeStoreNames([' קבלות\n', 5, 'קבלות', 'y'.repeat(80)])).toEqual(['קבלות', 'y'.repeat(60)]);
+    const t = signupOwnerText({ orgName: 'א', contactName: 'ב', phone: '050-0000000', email: 'a@b.co', store: { names: ['תרומות וקבלות'] } });
+    expect(t).toContain('בחרתי בחנות: תרומות וקבלות');
   });
 
   it('ספירת חדשים מאז הצפייה + חותמת אחרונה', () => {

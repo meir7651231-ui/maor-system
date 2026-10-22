@@ -8,17 +8,17 @@
  * גבולות: אימות = אימייל+סיסמה בלבד (בלי ספקי-זהות חיצוניים או מפתחות-גישה —
  * לא מבטיחים מה שאין); הקופי הנעול מדויק; אפס CDN (Hero + גופנים מקומיים).
  */
-import { useMemo, useState, type CSSProperties, type FormEvent } from 'react';
+import { useCallback, useMemo, useState, type CSSProperties, type FormEvent } from 'react';
 import { useApp } from '../../store/useApp';
 import { orbitTheme } from '../../lib/orbitTheme';
 import { SignupHero } from './SignupHero';
 import { SignupWizard } from './SignupWizard';
 import { EmployeeSignup } from './EmployeeSignup';
-import { NewsReader } from './NewsReader';
 import { CallbackModal } from './CallbackModal';
-import { VideoModal } from './VideoModal';
+import { StoreModal, type StoreStart } from './StoreModal';
+import { ScreensReel } from './ScreensReel';
 import { OwnerWaButton } from './OwnerWaButton';
-import { ownerWaLink, signupOwnerText } from '../../lib/signupNotify';
+import { ownerWaLink, signupOwnerText, type StoreRef } from '../../lib/signupNotify';
 
 export function LoginScreen() {
   const config = useApp((s) => s.config);
@@ -36,9 +36,20 @@ export function LoginScreen() {
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   // overlays מהמוקאפ
-  const [readerOpen, setReaderOpen] = useState(false);
+  const [storeOpen, setStoreOpen] = useState(false);
   const [callbackOpen, setCallbackOpen] = useState(false);
-  const [videoOpen, setVideoOpen] = useState(false);
+  // בחירה מהחנות ⇒ האשף נפתח מחדש (key) עם התחום מסומן והבחירות להודעה
+  const [storePreset, setStorePreset] = useState<StoreRef | null>(null);
+  const [wizardKey, setWizardKey] = useState(0);
+  const onStoreStart = useCallback((s: StoreStart) => {
+    setStorePreset({ ...(s.ed ? { vertical: s.ed } : {}), ...(s.names.length ? { names: s.names } : {}) });
+    setWizardKey((k) => k + 1);
+    setMode('up');
+    setSubmitted(false);
+    setError('');
+    setStoreOpen(false);
+  }, []);
+  const closeStore = useCallback(() => setStoreOpen(false), []);
 
   // ברירת-מחדל = אורביט (הפלטפורמה שאליה נרשמים); לקוח עם orgName/emoji/accent
   // מקבל את הזהות שלו — "בהמשך זה יגיע מהאתר שלהם". שים לב: לא נופלים ל-db.orgName —
@@ -99,19 +110,16 @@ export function LoginScreen() {
                 </span>
               </div>
               <h1 className="orbit-h1">
-                כל הפעילות שלכם,<br />זורחת <em>במקום אחד.</em>
+                מערכת אחת.<br /><em>שליטה מלאה.</em>
               </h1>
               <p className="orbit-sub">
                 המערכת שמחברת את כל הפעילות שלכם למקום אחד — בעברית, בפשטות, ושלכם לגמרי. מוקמת במיוחד בשבילכם, בשיחת טלפון אחת.
               </p>
 
-              {/* שלושת הכפתורים המשניים מהמוקאפ */}
-              <div className="orbit-secondary">
-                <button type="button" className="orbit-sbtn" aria-label="צפו בסרטון היכרות" onClick={() => setVideoOpen(true)}>
-                  ▶ סרטון
-                </button>
-                <button type="button" className="orbit-sbtn" aria-label="קראו את העיתון" onClick={() => setReaderOpen(true)}>
-                  📰 עיתון
+              {/* 🛒 החנות (22.10, במקום סרטון+עיתון) + "חזרו אליי" */}
+              <div className="orbit-secondary orbit-secondary-2">
+                <button type="button" className="orbit-sbtn orbit-sbtn-hot" aria-label="החנות שלנו — כל הפתרונות" onClick={() => setStoreOpen(true)}>
+                  🛒 החנות שלנו — כל הפתרונות
                 </button>
                 <button type="button" className="orbit-sbtn" aria-label="נחזור אליכם" onClick={() => setCallbackOpen(true)}>
                   📞 חזרו אליי
@@ -173,7 +181,7 @@ export function LoginScreen() {
               {mode === 'up' ? (
                 /* ההרשמה = אשף 5-שלבים (SIGNUP3): תחום→גודל→צרכים→קשר→חשבון */
                 <>
-                  <SignupWizard onDone={(em, summary) => { setEmail(em); setOwnerWa(ownerWaLink(signupOwnerText(summary))); setSubmitted(true); }} />
+                  <SignupWizard key={wizardKey} preset={storePreset} onDone={(em, summary) => { setEmail(em); setOwnerWa(ownerWaLink(signupOwnerText(summary))); setSubmitted(true); }} />
                   <p className="orbit-fine">
                     לאחר ההרשמה — צרו קשר לאישור פתיחת המערכת. אתם מאשרים את תנאי השימוש ומדיניות הפרטיות.
                   </p>
@@ -231,6 +239,9 @@ export function LoginScreen() {
           </div>
         </div>
 
+        {/* 🎞 המסכים מתגלגלים מתחת (22.10) */}
+        {!submitted && <ScreensReel onOpen={() => setStoreOpen(true)} />}
+
         {/* חתימת-הפלטפורמה במצב-הצלחה — שם-הפלטפורמה (אורביט), או שם-הלקוח white-label */}
         <div style={{ position: 'relative', zIndex: 2, fontSize: 12.5, color: 'rgba(255,240,228,.5)' }}>
           {submitted && `מערכת ${config.orgName || 'אורביט'}`}
@@ -245,9 +256,8 @@ export function LoginScreen() {
         </span>
       </footer>
 
-      {readerOpen && <NewsReader onClose={() => setReaderOpen(false)} />}
+      {storeOpen && <StoreModal onClose={closeStore} onStart={onStoreStart} />}
       {callbackOpen && <CallbackModal onClose={() => setCallbackOpen(false)} />}
-      {videoOpen && <VideoModal onClose={() => setVideoOpen(false)} />}
     </div>
   );
 }

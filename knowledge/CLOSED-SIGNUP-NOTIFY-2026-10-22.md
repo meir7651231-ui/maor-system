@@ -7,3 +7,10 @@
 - **באתר:** `watchPlatformInbox` (onSnapshot על platformRequests+platformLeads) ⇒ `PlatformInboxBell` למיילי-על: טוסט + צליל + התראת-מערכת (אם הותרה) על כל פריט חדש, וגלולה "🔔 N פניות חדשות" ⇒ #platform. "נצפה" = `orbit_inbox_seen` מקומי. `PlatformPanel` מתרענן חי (דיבאונס 400ms).
 - **הקשר-חנות:** `?signup=1&v=&picks=` ⇒ התחום נבחר מראש באשף; הבחירות נכנסות להודעת-הוואטסאפ, ובליד — לשדה notes (`leadNotesWithStore`). **לא נוספו שדות ל-Firestore**: Rules של platformRequests (8 שדות) ו-platformLeads (5 שדות) הם allowlist — שדה חדש היה שובר הרשמה. הוספת שדות = עדכון Rules (חלון-בעלים).
 - ratchet: `src/lib/signupNotify.test.ts`.
+
+## 🛒 החנות צמודה להרשמה (22.10, המשך)
+הכרעת-בעלים: "תוריד סרטון ועיתון, תשים במקומם את החנות; מתחת שיתגלגלו המסכים; הכותרת — משפט עוצמתי".
+- כפתורי סרטון/עיתון הוסרו מהמסך (הרכיבים `VideoModal`/`NewsReader` נשארו בריפו, לא מחוברים). במקומם **🛒 החנות שלנו — כל הפתרונות** (`StoreModal` — iframe ל-`public/orbit/store/`, גופנים מקומיים, אפס CDN) + "חזרו אליי".
+- "פתיחת המערכת" בתוך החנות ⇒ `postMessage('orbit-store-start')` (אותו origin בלבד) ⇒ האשף נפתח מחדש (key) עם התחום מסומן; שמות-הבחירות (`sanitizeStoreNames`) נכנסים להודעת-הוואטסאפ לבעלים.
+- `ScreensReel` — 13 מסכי-מערכת (best-ed-*) מתגלגלים מתחת; עוצר בריחוף; reduced-motion ⇒ גלילה ידנית; לחיצה ⇒ החנות.
+- כותרת: "מערכת אחת. / שליטה מלאה." (תת-הכותרת נשמרה). ratchet `signup-screen.test` + `e2e/signup.mjs` עודכנו.

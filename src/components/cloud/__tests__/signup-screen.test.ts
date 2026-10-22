@@ -8,20 +8,20 @@ import { describe, expect, it } from 'vitest';
 import loginSrc from '../LoginScreen.tsx?raw';
 import wizardSrc from '../SignupWizard.tsx?raw';
 import heroSrc from '../SignupHero.tsx?raw';
-import newsSrc from '../NewsReader.tsx?raw';
+import storeSrc from '../StoreModal.tsx?raw';
+import reelSrc from '../ScreensReel.tsx?raw';
 import cbSrc from '../CallbackModal.tsx?raw';
-import videoSrc from '../VideoModal.tsx?raw';
 import cssSrc from '../../../styles/orbit.css?raw';
 import appSrc from '../../../App.tsx?raw';
 import rulesSrc from '../../../../firestore.rules?raw';
 
-const ALL = [loginSrc, wizardSrc, heroSrc, newsSrc, cbSrc, videoSrc];
+const ALL = [loginSrc, wizardSrc, heroSrc, storeSrc, reelSrc, cbSrc];
 
 describe('🪐 ratchet — SIGNUP: מסך ההרשמה של אורביט', () => {
   it('הקופי הנעול מדויק + מיתוג נגזר-ארגון (ברירת-מחדל אורביט, בהמשך מהאתר שלהם)', () => {
-    expect(loginSrc).toContain('כל הפעילות שלכם');
+    // כותרת חדשה (הכרעת-בעלים 22.10 — "משפט עוצמתי"); תת-הכותרת נשמרת
+    expect(loginSrc).toContain('מערכת אחת.<br /><em>שליטה מלאה.</em>');
     expect(loginSrc).toContain('המערכת שמחברת את כל הפעילות שלכם למקום אחד');
-    expect(loginSrc).toContain('<em>במקום אחד.</em>');
     // המותג (שם+אייקון) נגזר מ-config; ברירת-מחדל = אורביט (הפלטפורמה)
     expect(loginSrc).toContain('orbit-brand-name');
     expect(loginSrc).toContain('{title}');
@@ -68,13 +68,18 @@ describe('🪐 ratchet — SIGNUP: מסך ההרשמה של אורביט', () =>
     }
   });
 
-  it('העיתון + "נחזור אליכם" מחווטים; העיתון self-contained (בלי pdf.js)', () => {
-    expect(loginSrc).toContain('NewsReader');
+  it('🛒 החנות (במקום סרטון+עיתון, 22.10) + "נחזור אליכם" מחווטים; רצועת-מסכים', () => {
+    expect(loginSrc).toContain('StoreModal');
+    expect(loginSrc).toContain('setStoreOpen(true)');
     expect(loginSrc).toContain('CallbackModal');
-    expect(loginSrc).toContain('setReaderOpen(true)');
     expect(loginSrc).toContain('setCallbackOpen(true)');
-    expect(newsSrc).toContain('orbit/orbit-news');
-    expect(newsSrc).not.toContain('pdfjs');
+    expect(loginSrc).not.toContain('▶ סרטון');
+    expect(loginSrc).not.toContain('📰 עיתון');
+    expect(loginSrc).toContain('<ScreensReel');
+    expect(storeSrc).toContain('orbit/store/index.html');
+    // הודעת-החנות מתקבלת רק מאותו origin ומחוטאת
+    expect(storeSrc).toContain('e.origin !== window.location.origin');
+    expect(storeSrc).toContain('sanitizeStoreNames');
     expect(cbSrc).toContain('cloudRequestCallback');
   });
 
@@ -89,14 +94,6 @@ describe('🪐 ratchet — SIGNUP: מסך ההרשמה של אורביט', () =>
     // אין import סטטי-של-ערך של mountBrainScene (רק import type לטיפוס)
     expect(heroSrc).not.toMatch(/import\s*\{[^}]*mountBrainScene/);
     expect(heroSrc).toContain("import type { BrainSceneHandle }");
-  });
-
-  it('🎬 "צפו בסרטון" פותח VideoModal (לא טוסט "בקרוב"); הווידאו on-demand', () => {
-    expect(loginSrc).toContain('VideoModal');
-    expect(loginSrc).toContain('setVideoOpen(true)');
-    expect(loginSrc).not.toContain('בקרוב');
-    expect(videoSrc).toContain('orbit/orbit-tour.webm');
-    expect(videoSrc).toContain('<video');
   });
 
   it('🛡 שער-הענן הקיים לא נשבר — App מרנדר LoginScreen ב-cloud.enabled && !user', () => {

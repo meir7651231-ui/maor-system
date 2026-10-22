@@ -29,6 +29,22 @@ export function ownerWhatsapp(): string {
 export interface StoreRef {
   vertical?: string;
   picks?: string[];
+  /** שמות החבילות/המוצרים שסומנו בחנות שבתוך מסך-ההרשמה (לתצוגה בהודעה). */
+  names?: string[];
+}
+
+/** חיטוי שמות-בחירה שהגיעו מהחנות (postMessage) — מחרוזות בלבד, בלי תווי-בקרה, ≤60 תווים, ≤30 פריטים. */
+export function sanitizeStoreNames(raw: unknown): string[] {
+  if (!Array.isArray(raw)) return [];
+  const out: string[] = [];
+  for (const x of raw) {
+    if (typeof x !== 'string') continue;
+    // eslint-disable-next-line no-control-regex
+    const v = x.replace(/[\u0000-\u001f\u007f]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 60);
+    if (v && !out.includes(v)) out.push(v);
+    if (out.length >= MAX_PICKS) break;
+  }
+  return out;
 }
 
 const MAX_PICKS = 30;
@@ -77,7 +93,8 @@ export function signupOwnerText(s: SignupSummary): string {
   if (s.industry) lines.push('תחום: ' + industryLabel(s.industry));
   if (s.size) lines.push('גודל: ' + sizeLabel(s.size));
   if (s.needs && s.needs.length) lines.push('חשוב לנו: ' + s.needs.map(needLabel).join(', '));
-  if (s.store?.picks?.length) lines.push('נבחר בחנות: ' + s.store.picks.join(', '));
+  if (s.store?.names?.length) lines.push('בחרתי בחנות: ' + s.store.names.join(', '));
+  else if (s.store?.picks?.length) lines.push('נבחר בחנות: ' + s.store.picks.join(', '));
   lines.push('אשמח שתאשרו ותחזרו אליי.');
   return lines.join('\n');
 }
