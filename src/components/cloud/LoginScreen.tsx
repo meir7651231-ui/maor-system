@@ -17,6 +17,7 @@ import { EmployeeSignup } from './EmployeeSignup';
 import { CallbackModal } from './CallbackModal';
 import { StoreModal, type StoreStart } from './StoreModal';
 import { ScreensReel } from './ScreensReel';
+import { OrbitMark } from './OrbitMark';
 import { A11yFab } from '../A11yFab';
 import { featureOn } from '../../lib/config';
 import { OwnerWaButton } from './OwnerWaButton';
@@ -57,6 +58,7 @@ export function LoginScreen() {
   // מקבל את הזהות שלו — "בהמשך זה יגיע מהאתר שלהם". שים לב: לא נופלים ל-db.orgName —
   // בשורש-הפלטפורמה הוא "מאור החסד" מנתוני-הזריעה ולא צריך למתג את אורביט.
   const title = config.orgName || 'אורביט';
+  // הסמל: ארגון עם אימוג'י-מותג ⇒ האימוג'י שלו; אורביט ⇒ הסמל החי (OrbitMark)
   const brandEmoji = config.emoji || '🪐';
   const theme = useMemo(() => orbitTheme(config.accent), [config.accent]);
 
@@ -105,7 +107,7 @@ export function LoginScreen() {
           {!submitted && (
             <aside className="orbit-lede">
               <div className="orbit-brand">
-                <span className="orbit-brand-mark" aria-hidden>{brandEmoji}</span>
+                <span className="orbit-brand-mark" aria-hidden>{config.emoji ? brandEmoji : <OrbitMark size={34} />}</span>
                 <span className="orbit-brand-name">
                   {title}
                   <span className="orbit-brand-sub">מערכת הניהול שלכם</span>
