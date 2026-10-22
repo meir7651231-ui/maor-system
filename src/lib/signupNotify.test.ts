@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { countNewSince, latestAt, leadNotesWithStore, leadOwnerText, ownerWaLink, parseStoreParams, signupOwnerText } from './signupNotify';
+import { ORBIT_OWNER_WHATSAPP, countNewSince, latestAt, leadNotesWithStore, leadOwnerText, ownerWaLink, parseStoreParams, signupOwnerText } from './signupNotify';
 
 describe('signupNotify — הודעת-בעלים בוואטסאפ + הקשר-חנות (22.10)', () => {
   it('פרמטרי-החנות: רק עם signup=1; מזהים לא-בטוחים נזרקים, כפולים מאוחדים', () => {
@@ -38,6 +38,10 @@ describe('signupNotify — הודעת-בעלים בוואטסאפ + הקשר-ח�
     expect(leadNotesWithStore(' שלום ', null)).toBe('שלום');
     expect(leadNotesWithStore('', { picks: ['12'] })).toBe('🛒 מהחנות · נבחר: 12');
     expect(leadNotesWithStore('x'.repeat(600), { picks: ['1'] }).length).toBe(500);
+  });
+
+  it('מספר-הבעלים ברירת-מחדל ⇒ wa.me תקין', () => {
+    expect(ownerWaLink('שלום', ORBIT_OWNER_WHATSAPP)).toMatch(/^https:\/\/wa\.me\/972555043749\?text=/);
   });
 
   it('ספירת חדשים מאז הצפייה + חותמת אחרונה', () => {

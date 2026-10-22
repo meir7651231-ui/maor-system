@@ -13,13 +13,15 @@
 import { waLink } from './wa';
 import { industryLabel, sizeLabel, needLabel } from './signupWizard';
 
-/** מספר-הוואטסאפ של בעלי-הפלטפורמה — מ-env בזמן build (‏VITE_ORBIT_WHATSAPP). ריק ⇒ אין כפתור. */
+/** מספר-הוואטסאפ של בעלי-הפלטפורמה (הכרעת-בעלים 22.10). ניתן לדריסה ב-build דרך VITE_ORBIT_WHATSAPP. */
+export const ORBIT_OWNER_WHATSAPP = '055-5043749';
+
 export function ownerWhatsapp(): string {
   try {
     const v = (import.meta as unknown as { env?: Record<string, string | undefined> }).env?.VITE_ORBIT_WHATSAPP;
-    return (v || '').trim();
+    return (v || '').trim() || ORBIT_OWNER_WHATSAPP;
   } catch {
-    return '';
+    return ORBIT_OWNER_WHATSAPP;
   }
 }
 
