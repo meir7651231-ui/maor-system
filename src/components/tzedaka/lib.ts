@@ -415,3 +415,35 @@ export function buildTzGrid(tzEvents: readonly TzEvent[], anchorIso: IsoDate, he
 }
 
 export { DAY_NAMES };
+
+/* ---------- 🔐 ייעוד לקופה (22.10) — אותו חוזה-ראוּת כמו התורמים ---------- */
+
+/** האם הקופה גלויה לעובד/ת עם ייעודים מותרים. allowed=null/ריק ⇒ הכל; קופה בלי ייעוד ⇒ לא גלויה למוגבל/ת
+ *  (כמו supporterVisibleForDesignations — הכרעת-בעלים 19.8 "רואה רק את הייעוד שלו"). */
+export function tzBoxVisible(box: { designation?: string }, allowed: readonly string[] | null): boolean {
+  if (!allowed || !allowed.length) return true;
+  const d = (box.designation ?? '').trim();
+  return !!d && allowed.some((a) => a.trim() === d);
+}
+
+/**
+ * נקודת-חנק אחת לכל משטחי-הקופות: הקופות הגלויות, הרכזים שיש להם לפחות קופה גלויה אחת, והאירועים
+ * שלא מקושרים לקופה/רכז מוסתרים. allowed=null ⇒ אותם מערכים בדיוק (אותה הפניה — ביט-זהה ללא-מוגבל/ת).
+ */
+export function visibleTzForDesignations(
+  db: Pick<Db, 'tzBoxes' | 'tzCoordinators' | 'tzEvents'>,
+  allowed: readonly string[] | null,
+): Pick<Db, 'tzBoxes' | 'tzCoordinators' | 'tzEvents'> {
+  if (!allowed || !allowed.length) return { tzBoxes: db.tzBoxes, tzCoordinators: db.tzCoordinators, tzEvents: db.tzEvents };
+  const tzBoxes = db.tzBoxes.filter((b) => tzBoxVisible(b, allowed));
+  const boxIds = new Set(tzBoxes.map((b) => b.id));
+  const coordIds = new Set(tzBoxes.map((b) => b.coordinatorId));
+  const tzCoordinators = db.tzCoordinators.filter((c) => coordIds.has(c.id));
+  const tzEvents = db.tzEvents.filter((e) => (e.boxId ? boxIds.has(e.boxId) : e.coordinatorId ? coordIds.has(e.coordinatorId) : true));
+  return { tzBoxes, tzCoordinators, tzEvents };
+}
+
+/** ייעודי-הקופות הקיימים (distinct, ממויין) — להצעה בטופס-הקופה ובכרטיס-העובד. */
+export function tzDesignations(boxes: readonly { designation?: string }[]): string[] {
+  return [...new Set(boxes.map((b) => (b.designation ?? '').trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+}

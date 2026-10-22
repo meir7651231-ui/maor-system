@@ -5,6 +5,8 @@
  */
 import { useState } from 'react';
 import { useApp } from '../../store/useApp';
+import { useTzDb } from './useTzDb';
+import { TzDialButton } from './TzDialButton';
 import { featureOn, integrationOn, moduleOn, telephonyOn, termOf } from '../../lib/config';
 import { WaBtn } from '../WaBtn';
 import { CallBtn } from '../CallBtn';
@@ -22,7 +24,7 @@ const STATUS_LABEL: Record<TzBoxStatus, string> = {
 };
 
 export function CoordinatorsTab(props: { selId: string | null; onSelect: (id: string | null) => void }) {
-  const db = useApp((s) => s.db);
+  const db = useTzDb(); // 🔐 רק קופות בייעוד של העובד/ת
   const config = useApp((s) => s.config);
   const go = useApp((s) => s.go);
   const selectFamily = useApp((s) => s.selectFamily);
@@ -88,7 +90,11 @@ export function CoordinatorsTab(props: { selId: string | null; onSelect: (id: st
               />
             </>
           ))}
-        <span style={{ marginInlineStart: 'auto' }}>
+        <span style={{ marginInlineStart: 'auto', display: 'flex', gap: 6 }}>
+          <TzDialButton
+            boxIds={(boxesViewOn && boxesView ? boxesOverview(db, boxQ, boxStatus, boxSort).map((r) => r.box) : db.tzBoxes.filter((x) => x.status === 'home')).map((x) => x.id)}
+            name={boxesViewOn && boxesView ? 'הרשימה המסוננת' : 'בבתים'}
+          />
           <Btn kind="primary" onClick={() => setFormOpen(true)}>
             ➕ הוספת {termOf(config, 'entity.tzCoordinator', 'רכז')}
           </Btn>

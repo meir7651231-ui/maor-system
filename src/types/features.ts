@@ -225,6 +225,8 @@ export const FEATURES: FeatureDef[] = [
   { key: 'tzedaka.calendar', label: 'לוח ייעודי', desc: 'לוח שנה פנימי לסבבי ריקון, מבצעים ותזכורות (מבודד מהלוח הראשי)', module: 'tzedaka' },
   { key: 'tzedaka.inlinecreate', label: 'הוספת לא-רשומים', desc: 'יצירת משפחה חדשה או ילד/הורה חדש ישירות מתוך העמודה', module: 'tzedaka' },
   { key: 'tzedaka.familypanel', label: 'פאנל בכרטיס המשפחה', desc: 'קופות שהמשפחה מחזיקה ורכזים בני הבית — תצוגה בלבד בכרטיס המשפחה', module: 'tzedaka' },
+  { key: 'tzedaka.dialer', label: 'חייגן קופות 📞', desc: 'חייגן-מונחה למשפחות שהקופה אצלן: 📞/וואטסאפ, תוצאה (תואם ריקון ⇒ תזכורת · לא ענה · לחזור · אבדה · טופל · דילוג), ↩ ביטול, סיכום CSV. דורש טלפוניה דלוקה', module: 'tzedaka' },
+  { key: 'tzedaka.designation', label: 'ייעוד לקופה 🔐', desc: 'שדה ייעוד בקופה; עובד/ת שהוגבל/ה לייעודים (כרטיס-העובד) רואה רק קופות בייעוד שלו/ה — בכל מסכי הקופות, בחייגן, בבית ובדוחות. קופה בלי ייעוד לא גלויה לעובד/ת מוגבל/ת', module: 'tzedaka' },
   { key: 'tzedaka.export', label: 'תדפיס וייצוא', desc: 'תדפיס רכז לסבב שטח + ייצוא CSV של כל הריקונים', module: 'tzedaka' },
   { key: 'tzedaka.boxstatus', label: 'מעברי-סטטוס לקופה', desc: 'כפתורי "⤵ למשרד" / "⚠ אבדה" ישירות מכרטיס הרכז', module: 'tzedaka' },
 

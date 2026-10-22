@@ -19,6 +19,7 @@ import { mergeDelLogs,
   pushDelLog,
   type DelEntry,
   type UiPrefs,
+  type TzDialOutcome,
   type Db,
   type Donation,
   type Enrollment,
@@ -50,6 +51,7 @@ import { mergeDelLogs,
 import { ENTITY_COLLECTIONS } from '../lib/cloud-diff';
 import { mergeDonationsPreserving } from '../lib/cloud-merge';
 import { collectionScoreDelta } from '../components/tzedaka/lib';
+import { tzApplyOutcome, tzBoxPhone, TZ_OUTCOME_LABELS, tzStartCampaign, tzUndoLast } from '../components/tzedaka/dialer';
 import { assignmentRedeemed, beneficiaryLabel, itemOf, itemRemaining } from '../components/shop/lib';
 import { advanceStatus } from '../components/shop7/lib';
 import { roomClashError } from '../components/calendar/calLib';
@@ -470,6 +472,13 @@ interface AppState {
   deleteTzCampaign: (id: string) => void;
   upsertTzEvent: (e: TzEvent) => void;
   deleteTzEvent: (id: string) => void;
+  /** 📞 חייגן-הקופות (22.10): פתיחה מרשימת-קופות — קופה בלי משפחה/טלפון מושמטת עם הודעה. */
+  tzDialerStart: (boxIds: string[], name: string) => number;
+  /** תוצאה לקופה הנוכחית. scheduled/callback דורשים date ⇒ תזכורת בלוח הקופות; lost ⇒ הקופה מסומנת אבודה. */
+  tzDialerOutcome: (outcome: TzDialOutcome, note: string, date?: IsoDate) => void;
+  /** ↩ ביטול האחרון — הקופה חוזרת לתור, התזכורת שנוצרה נמחקת, סטטוס-אבודה מוחזר. */
+  tzDialerUndo: () => void;
+  tzDialerStop: () => void;
   /** ✓ בוצע לתזכורת: חד-פעמית ⇒ done; חוזרת ⇒ רק המופע הזה (doneDates), והיא תחזור במופע הבא. */
   doneTzReminder: (id: string, date: IsoDate) => void;
   /** ריקון קופה — דוחה סכום לא-חוקי בלי לגעת ב-db; delta = ניקוד שנוסף לרכז. */
@@ -2960,6 +2969,83 @@ export const useApp = create<AppState>()((set, get) => {
     },
     deleteTzEvent(id) {
       setDb((db) => ({ tzEvents: db.tzEvents.filter((e) => e.id !== id) }));
+    },
+    tzDialerStart(boxIds, name) {
+      const db = get().db;
+      const callable = boxIds.filter((id) => {
+        const b = db.tzBoxes.find((x) => x.id === id);
+        return !!b && !!tzBoxPhone(db, b);
+      });
+      const omitted = boxIds.length - callable.length;
+      // אף קופה עם טלפון ⇒ לא פותחים חייגן ריק (היה נפתח על "סיימתם")
+      if (!callable.length) {
+        get().toast('📵 לאף קופה ברשימה אין משפחה עם טלפון — אין למי לחייג');
+        return 0;
+      }
+      setDb((d) => ({ ui: { ...d.ui, tzDialer: tzStartCampaign(name, callable, new Date().toISOString()) } }));
+      if (omitted > 0) get().toast('📵 ' + (omitted === 1 ? 'קופה אחת' : omitted + ' קופות') + ' בלי משפחה או בלי טלפון ' + (omitted === 1 ? 'הושמטה' : 'הושמטו') + ' מהחייגן');
+      return callable.length;
+    },
+    tzDialerOutcome(outcome, note, date) {
+      const cur = get().db.ui.tzDialer;
+      const id = cur?.queue[0];
+      const box = id ? get().db.tzBoxes.find((b) => b.id === id) : undefined;
+      if (!cur || !id || !box) return;
+      if ((outcome === 'scheduled' || outcome === 'callback') && !date) {
+        get().toast('בחרו תאריך');
+        return;
+      }
+      const trimmed = (note || '').trim();
+      let eventId: string | undefined;
+      if ((outcome === 'scheduled' || outcome === 'callback') && date) {
+        // תזכורת חד-פעמית בלוח הקופות, מקושרת לקופה — מופיעה בשורת-הקופה ובדורש-טיפול כשמגיע זמנה
+        eventId = get().nextId('tze');
+        get().upsertTzEvent({
+          id: eventId,
+          title: (outcome === 'scheduled' ? 'ריקון מתואם' : 'לחזור למשפחה') + (trimmed ? ' · ' + trimmed : ''),
+          date,
+          time: '',
+          kind: 'reminder',
+          coordinatorId: box.coordinatorId,
+          boxId: box.id,
+          notes: '',
+          done: false,
+        });
+      }
+      const prevStatus = outcome === 'lost' ? box.status : undefined;
+      const line = trimmed ? '📞 ' + isoToday() + ' · ' + TZ_OUTCOME_LABELS[outcome] + ': ' + trimmed : '';
+      setDb((db) => {
+        if (!db.ui.tzDialer) return {};
+        const next: Partial<Db> = {
+          ui: { ...db.ui, tzDialer: tzApplyOutcome(db.ui.tzDialer, { outcome, note: trimmed, at: new Date().toISOString(), ...(eventId ? { eventId } : {}), ...(prevStatus ? { prevStatus } : {}) }) },
+        };
+        if (outcome === 'lost' || line) {
+          next.tzBoxes = db.tzBoxes.map((b) =>
+            b.id !== id ? b : { ...b, ...(outcome === 'lost' ? { status: 'lost' as const } : {}), ...(line ? { notes: b.notes ? b.notes + '\n' + line : line } : {}) },
+          );
+        }
+        return next;
+      });
+    },
+    tzDialerUndo() {
+      const cur = get().db.ui.tzDialer;
+      const last = cur?.log[cur.log.length - 1];
+      if (!cur || !last) return;
+      setDb((db) => {
+        if (!db.ui.tzDialer) return {};
+        const next: Partial<Db> = { ui: { ...db.ui, tzDialer: tzUndoLast(db.ui.tzDialer) } };
+        if (last.eventId) next.tzEvents = db.tzEvents.filter((e) => e.id !== last.eventId);
+        if (last.prevStatus) next.tzBoxes = db.tzBoxes.map((b) => (b.id === last.id ? { ...b, status: last.prevStatus! } : b));
+        return next;
+      });
+      get().toast('↩ הסיווג האחרון בוטל — הקופה חזרה לתור');
+    },
+    tzDialerStop() {
+      setDb((db) => {
+        const ui = { ...db.ui };
+        delete ui.tzDialer;
+        return { ui };
+      });
     },
     doneTzReminder(id, date) {
       setDb((db) => ({

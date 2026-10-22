@@ -781,6 +781,30 @@ export interface DialerCampaign {
   log: DialLogEntry[];
 }
 
+/** תוצאות חייגן-הקופות (22.10): תואם ריקון · לא ענה · לחזור · הקופה אבדה · טופל · דילוג. */
+export type TzDialOutcome = 'scheduled' | 'noanswer' | 'callback' | 'lost' | 'done' | 'skip';
+
+export interface TzDialLogEntry {
+  /** מזהה-הקופה. */
+  id: Id;
+  outcome: TzDialOutcome;
+  note?: string;
+  at: string;
+  /** תזכורת שנוצרה (תואם/לחזור) — ↩ ביטול מוחק אותה. */
+  eventId?: Id;
+  /** הסטטוס הקודם כשסומנה אבודה — ↩ ביטול מחזיר אותו. */
+  prevStatus?: TzBoxStatus;
+}
+
+/** קמפיין חייגן-הקופות — אותה מכונת-מצב כמו DialerCampaign, מבודד (תור של מזהי-קופות). */
+export interface TzDialerCampaign {
+  name: string;
+  startedAt: string;
+  queue: Id[];
+  total: number;
+  log: TzDialLogEntry[];
+}
+
 export interface UiPrefs {
   famView: 'list' | 'grid';
   crsView: 'list' | 'grid';
@@ -800,6 +824,8 @@ export interface UiPrefs {
   accent?: string;
   /** קמפיין חייגן-מונחה פעיל — חסר = אין קמפיין (ביט-זהה להיום). */
   dialer?: DialerCampaign;
+  /** 📞 קמפיין חייגן-הקופות הפעיל (22.10) — חסר = אין קמפיין. נפרד מחייגן-התורמים (בידוד הקופות). */
+  tzDialer?: TzDialerCampaign;
   /**
    * 💵 שיקוף הקופה-הרושמת (ביקורת-האמון 24.8, additive): הרשומות חיו
    * ב-localStorage בלבד — לא בגיבוי, לא בסנכרון, נמחקו עם ניקוי-דפדפן.
@@ -898,6 +924,8 @@ export interface TzBox {
   status: TzBoxStatus;
   notes: string;
   collections: TzCollection[];
+  /** ייעוד (additive, 22.10) — אותה רשימת-ייעודים כמו התורמים; עובד/ת מוגבל/ת רואה רק קופות בייעוד שלו/ה. */
+  designation?: string;
 }
 
 export interface TzCampaign {

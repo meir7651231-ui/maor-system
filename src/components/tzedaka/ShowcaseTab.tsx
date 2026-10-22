@@ -7,6 +7,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useApp } from '../../store/useApp';
 import { useDbWatch } from '../../store/dbWatch';
+import { useTzVisible } from './useTzDb';
 import { featureOn } from '../../lib/config';
 import { Btn } from '../ui';
 import { fmtIls } from '../wall/wallData';
@@ -17,7 +18,7 @@ const RING_C = 2 * Math.PI * RING_R;
 const MEDALS = ['🥇', '🥈', '🥉'] as const;
 
 function ShowcaseContent(props: { wall?: boolean }) {
-  const db = useDbWatch('tzBoxes', 'tzCampaigns', 'tzCoordinators');
+  const db = useTzVisible(useDbWatch('tzBoxes', 'tzCampaigns', 'tzCoordinators')); // 🔐 ייעוד
   const campaign = db.tzCampaigns.find((c) => c.active);
   const prog = campaign ? campaignProgress(campaign, db.tzBoxes) : null;
   const rows = useMemo(() => leaderboard(db.tzCoordinators, db.tzBoxes).slice(0, 7), [db.tzCoordinators, db.tzBoxes]);

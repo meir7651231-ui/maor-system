@@ -4,6 +4,8 @@
  */
 import { useState } from 'react';
 import { useApp } from '../../store/useApp';
+import { useTzDb } from './useTzDb';
+import { TzDialButton } from './TzDialButton';
 import { canGrantedAction, featureOn, termOf } from '../../lib/config';
 import { isoToday } from '../../lib/date-util';
 import type { TzBox, TzCampaign } from '../../types/domain';
@@ -85,7 +87,7 @@ function CampaignForm(props: { campaign: TzCampaign | null; onClose: () => void 
 }
 
 export function HomeTab(props: { onOpenCoordinator: (id: string) => void }) {
-  const db = useApp((s) => s.db);
+  const db = useTzDb(); // 🔐 רק קופות בייעוד של העובד/ת
   const config = useApp((s) => s.config);
   const upsertTzCampaign = useApp((s) => s.upsertTzCampaign);
   const deleteTzCampaign = useApp((s) => s.deleteTzCampaign);
@@ -147,6 +149,7 @@ export function HomeTab(props: { onOpenCoordinator: (id: string) => void }) {
       {/* קיצורי פעולה */}
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         <Btn onClick={() => setCoordFormOpen(true)}>➕ {termOf(config, 'entity.tzCoordinator', 'רכז')}</Btn>
+        <TzDialButton boxIds={db.tzBoxes.filter((b) => b.status === 'home').map((b) => b.id)} name="בבתים" />
         {/* ייצוא הריקונים (CONNECT חיבור 6) — שקיפות מלאה, שורות טהורות מ-lib */}
         {featureOn(config, 'tzedaka.export') && (
           <Btn onClick={() => downloadCsv('tz-collections.csv', collectionsCsvRows(db, config))}>⬇ ייצוא ריקונים (CSV)</Btn>

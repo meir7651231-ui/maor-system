@@ -30,6 +30,7 @@ import { agoLabel, goalProgress, quietWorkers, teamCsvRows, teamIntel, teamSumma
 import { openTasksFor, overdueContactTaskDrafts, PRI_LABELS, taskStatsFor } from '../../lib/worktasks';
 import { downloadCsv } from '../../lib/csvx';
 import { allDonationPurposes } from '../supporters/lib';
+import { tzDesignations } from '../tzedaka/lib';
 import type { ModuleKey, OrgConfig } from '../../types/config';
 import type { EmployeeOverride, OrgCloudDoc, OrgJoinRequestDoc } from '../../lib/cloudConfig';
 
@@ -61,7 +62,8 @@ export function ManagerPanel(props: { onClose: () => void }) {
   const [openCard, setOpenCard] = useState('');
   const [featModule, setFeatModule] = useState('');
   // ג' (13.8) — הקצאת ייעודי-תרומה פר-עובד/ת: הייעודים הקיימים + הוספה חופשית
-  const knownPurposes = allDonationPurposes(useApp.getState().db.supporters);
+  // 22.10: גם ייעודי-הקופות — אותה רשימה מגבילה תורמים וקופות
+  const knownPurposes = [...new Set([...allDonationPurposes(useApp.getState().db.supporters), ...tzDesignations(useApp.getState().db.tzBoxes)])].sort((a, b) => a.localeCompare(b));
   const [desigInput, setDesigInput] = useState('');
 
   async function refresh(m: CloudMod) {

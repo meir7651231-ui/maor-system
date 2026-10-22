@@ -5,6 +5,8 @@
  */
 import { useState } from 'react';
 import { useApp } from '../../store/useApp';
+import { useTzDb } from './useTzDb';
+import { TzDialButton } from './TzDialButton';
 import { canGrantedAction, featureOn, moduleOn, termOf } from '../../lib/config';
 import type { TzBox, TzCollection, TzCoordinator } from '../../types/domain';
 import { Btn, Chip, Empty, Field, Modal, Select, TextInput } from '../ui';
@@ -24,7 +26,7 @@ const STATUS_LABEL: Record<TzBox['status'], string> = {
 };
 
 export function CoordinatorCard(props: { coordinator: TzCoordinator; onBack: () => void }) {
-  const db = useApp((s) => s.db);
+  const db = useTzDb(); // 🔐 רק קופות בייעוד של העובד/ת
   const config = useApp((s) => s.config);
   const upsertTzBox = useApp((s) => s.upsertTzBox);
   const deleteTzBox = useApp((s) => s.deleteTzBox);
@@ -143,9 +145,12 @@ export function CoordinatorCard(props: { coordinator: TzCoordinator; onBack: () 
           <h2 style={{ fontSize: 15, fontWeight: 800 }}>
             {termOf(config, 'entity.tzBox', 'קופה') + 'ות (' + boxes.length + ') · ' + coordinatorTotal(db.tzBoxes, c.id).toLocaleString('he-IL') + ' ₪'}
           </h2>
-          <Btn kind="primary" sm onClick={() => setBoxForm({ box: null })}>
-            ➕ הוספת {termOf(config, 'entity.tzBox', 'קופה')}
-          </Btn>
+          <span style={{ display: 'flex', gap: 6 }}>
+            <TzDialButton sm boxIds={boxes.filter((x) => x.status === 'home').map((x) => x.id)} name={c.name} />
+            <Btn kind="primary" sm onClick={() => setBoxForm({ box: null })}>
+              ➕ הוספת {termOf(config, 'entity.tzBox', 'קופה')}
+            </Btn>
+          </span>
         </div>
         {boxes.length === 0 && <Empty>עדיין אין קופות לרכז/ת — הוסיפו עם "➕ הוספת {termOf(config, 'entity.tzBox', 'קופה')}"</Empty>}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>

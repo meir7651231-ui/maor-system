@@ -11,6 +11,7 @@ import { allMembers, useApp, type View } from '../../store/useApp';
 import { featureOn, moduleOn, roleOf, termOf } from '../../lib/config';
 import { guardExport } from '../../lib/exportGate';
 import { supporterVisibleForDesignations } from '../supporters/lib';
+import { visibleTzForDesignations } from '../tzedaka/lib';
 import { levenshtein, smartFilter } from '../../lib/search';
 import { normSearch } from '../../lib/validate';
 import { DEFAULT_LOCK_ZONES } from '../../lib/lock';
@@ -102,6 +103,8 @@ export function CommandPalette() {
   // מוגבל הקליד שם-תורם של ייעוד אחר ופתח את כרטיסו המלא. גידור זהה ל-SupportersView.
   const allowedDesignations = useApp((s) => s.cloud.allowedDesignations ?? null);
   const desigLimit = featureOn(config, 'supporters.purpose') ? allowedDesignations : null;
+  // 🔐 22.10: קופות ורכזים — רק בייעוד של העובד/ת
+  const tzLimit = desigLimit && featureOn(config, 'tzedaka.designation') ? desigLimit : null;
 
   // גייטים למודולים ופיצ'רים — פריט של מודול/פיצ'ר כבוי לא מאונדקס בפלטה.
   // featureOn מחזיר false גם כשמודול האב כבוי, לכן אין צורך בבדיקה כפולה.
@@ -637,7 +640,12 @@ export function CommandPalette() {
     }
     // קופות צדקה (CONNECT חיבור 1) — רכזים בשם, קופות ב-#num; הפעולה: ניווט לעמודה
     const tzCoordTerm = termOf(config, 'entity.tzCoordinator', 'רכז');
+    // 🔐 22.10: רכזים וקופות מחוץ לייעוד של העובד/ת לא מאונדקסים
+    const tzVis = visibleTzForDesignations(db, tzLimit);
+    const tzVisC = new Set(tzVis.tzCoordinators.map((x) => x.id));
+    const tzVisB = new Set(tzVis.tzBoxes.map((x) => x.id));
     for (const c of tzedakaOn ? db.tzCoordinators : []) {
+      if (!tzVisC.has(c.id)) continue;
       out.push({
         key: 'tzc-' + c.id,
         icon: '🪙',
@@ -652,6 +660,7 @@ export function CommandPalette() {
     }
     const tzBoxTerm = termOf(config, 'entity.tzBox', 'קופה');
     for (const b of tzedakaOn ? db.tzBoxes : []) {
+      if (!tzVisB.has(b.id)) continue;
       const holder = db.families.find((f) => f.id === b.famId);
       out.push({
         key: 'tzb-' + b.id,
@@ -721,6 +730,7 @@ export function CommandPalette() {
     famDocsOn,
     calendarOn,
     tzedakaOn,
+    tzLimit,
     shopOn,
     config,
     lockSecondary,

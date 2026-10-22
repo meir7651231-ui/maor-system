@@ -6,6 +6,7 @@
  */
 
 import { useEffect, useMemo, useState } from 'react';
+import { visibleTzForDesignations } from '../tzedaka/lib';
 import { useApp } from '../../store/useApp';
 import { featureOn, moduleOn, termOf } from '../../lib/config';
 import { guardExport } from '../../lib/exportGate';
@@ -43,8 +44,9 @@ export function ReportsView() {
   const allowedDesignations = useApp((s) => s.cloud.allowedDesignations ?? null);
   const desigLimit = featureOn(config, 'supporters.purpose') ? allowedDesignations : null;
   const vdb = useMemo(
-    () => (desigLimit ? { ...db, supporters: visibleSupportersForDesignations(db.supporters, desigLimit) } : db),
-    [db, desigLimit],
+    // 🔐 22.10: גם הקופות — רק בייעוד של העובד/ת (דגל tzedaka.designation)
+    () => (desigLimit ? { ...db, supporters: visibleSupportersForDesignations(db.supporters, desigLimit), ...(featureOn(config, 'tzedaka.designation') ? visibleTzForDesignations(db, desigLimit) : {}) } : db),
+    [db, desigLimit, config],
   );
   const [range, setRange] = useState<DateRange>({ from: '', to: '' });
   const [printing, setPrinting] = useState<SectionId | 'all' | null>(null);

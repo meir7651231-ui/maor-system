@@ -6,6 +6,7 @@
  */
 import { useMemo, useState } from 'react';
 import { useApp } from '../../store/useApp';
+import { useTzDb, useTzDesigLimit } from './useTzDb';
 import { featureOn } from '../../lib/config';
 import { isoToday } from '../../lib/date-util';
 import type { TzEvent } from '../../types/domain';
@@ -13,7 +14,7 @@ import { Btn, Chip } from '../ui';
 import { isoOf, PRIORITY_COLOR, SESSION_META } from '../calendar/calLib';
 import type { CalViewMode } from '../../lib/monthGrid';
 import { CalViewTabs } from '../calendar/CalViewTabs';
-import { buildTzGrid, DAY_NAMES, expandTzEvents } from './lib';
+import { buildTzGrid, DAY_NAMES, expandTzEvents, visibleTzForDesignations } from './lib';
 import { TzEventModal } from './TzEventModal';
 
 /** צבעי הסוגים — reuse מקבועי הלוח הראשי. */
@@ -32,7 +33,11 @@ const KIND_FILTERS: { key: TzEvent['kind']; label: string }[] = [
 ];
 
 export function CalendarTab() {
-  const tzEvents = useApp((s) => s.db.tzEvents);
+  const rawTzEvents = useApp((s) => s.db.tzEvents);
+  // 🔐 22.10: רק אירועי קופות/רכזים בייעוד של העובד/ת (בלי הגבלה ⇒ אותו מערך)
+  const tzDb = useTzDb();
+  const tzLimit = useTzDesigLimit();
+  const tzEvents = useMemo(() => (tzLimit ? visibleTzForDesignations({ ...tzDb, tzEvents: rawTzEvents }, tzLimit).tzEvents : rawTzEvents), [rawTzEvents, tzDb, tzLimit]);
   const config = useApp((s) => s.config);
   // נפתח בעברי — כמו הלוח הראשי בקובץ החי
   const [heb, setHeb] = useState(true);

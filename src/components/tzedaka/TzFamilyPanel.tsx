@@ -5,12 +5,13 @@
  */
 import { useApp } from '../../store/useApp';
 import { useDbWatch } from '../../store/dbWatch';
+import { useTzVisible } from './useTzDb';
 import { termOf } from '../../lib/config';
 import { Btn } from '../ui';
 import { lastCollectionIso } from './lib';
 
 export function TzFamilyPanel(props: { famId: string }) {
-  const db = useDbWatch('tzBoxes', 'tzCoordinators');
+  const db = useTzVisible(useDbWatch('tzBoxes', 'tzCoordinators')); // 🔐 ייעוד
   const config = useApp((s) => s.config);
   const go = useApp((s) => s.go);
   const boxes = db.tzBoxes.filter((b) => b.famId === props.famId && b.status === 'home');

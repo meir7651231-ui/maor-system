@@ -12,7 +12,8 @@ import { Btn, Field, FormError, Modal, Select, TextInput } from '../ui';
 import { HebDateInput } from '../HebDateInput';
 import { isoToday } from '../../lib/date-util';
 import { TzReminderModal } from './TzReminderModal';
-import { boxReminders, TZ_RECUR_LABEL } from './lib';
+import { boxReminders, TZ_RECUR_LABEL, tzDesignations } from './lib';
+import { allDonationPurposes } from '../supporters/lib';
 
 const STATUS_OPTIONS: { value: TzBoxStatus; label: string }[] = [
   { value: 'home', label: '🏠 אצל משפחה' },
@@ -22,7 +23,7 @@ const STATUS_OPTIONS: { value: TzBoxStatus; label: string }[] = [
 ];
 
 export function BoxForm(props: { box: TzBox | null; coordinatorId: string; onClose: () => void }) {
-  const db = useDbWatch('families', 'tzBoxes', 'tzEvents');
+  const db = useDbWatch('families', 'tzBoxes', 'tzEvents', 'supporters');
   const config = useApp((s) => s.config);
   const upsertTzBox = useApp((s) => s.upsertTzBox);
   const upsertFamily = useApp((s) => s.upsertFamily);
@@ -38,7 +39,11 @@ export function BoxForm(props: { box: TzBox | null; coordinatorId: string; onClo
     since: b?.since ?? isoToday(),
     status: b?.status ?? ('home' as TzBoxStatus),
     notes: b?.notes ?? '',
+    designation: b?.designation ?? '',
   });
+  // 🔐 ייעוד (22.10) — אותה רשימה כמו התורמים, כדי שהסימון בכרטיס-העובד יחול על שניהם
+  const desigOn = featureOn(config, 'tzedaka.designation');
+  const knownDesig = desigOn ? [...new Set([...allDonationPurposes(db.supporters), ...tzDesignations(db.tzBoxes)])].sort((x, y) => x.localeCompare(y)) : [];
   const [error, setError] = useState('');
   const [newFamOpen, setNewFamOpen] = useState(false);
   const [newFam, setNewFam] = useState({ name: '', phone: '', kind: 'donor' as 'donor' | 'supported' });
@@ -77,6 +82,7 @@ export function BoxForm(props: { box: TzBox | null; coordinatorId: string; onClo
       status: f.status,
       notes: f.notes.trim(),
       collections: b?.collections ?? [],
+      ...(f.designation.trim() ? { designation: f.designation.trim() } : {}),
     });
     toast(b ? 'הקופה עודכנה' : termOf(config, 'entity.tzBox', 'קופה') + ' ' + f.num.trim() + ' נוספה');
     props.onClose();
@@ -149,6 +155,17 @@ export function BoxForm(props: { box: TzBox | null; coordinatorId: string; onClo
           </div>
           <Btn sm kind="primary" onClick={createFamily}>יצירה וקישור</Btn>
         </div>
+      )}
+      {desigOn && (
+        <Field label="🔐 ייעוד (רשות)">
+          <input value={f.designation} onChange={(e) => setF({ ...f, designation: e.target.value })} placeholder="לדוגמה: ישיבה / כולל / חסד" list="tz-desig-list" />
+          <datalist id="tz-desig-list">
+            {knownDesig.map((d) => (
+              <option key={d} value={d} />
+            ))}
+          </datalist>
+          <div style={{ fontSize: 11.5, color: 'var(--ink-faint)', marginTop: 3 }}>עובד/ת שהוגבל/ה לייעודים יראה/תראה את הקופה רק אם הייעוד שלה ברשימה שלו/ה</div>
+        </Field>
       )}
       <Field label="הערות">
         <textarea rows={2} value={f.notes} onChange={(e) => setF({ ...f, notes: e.target.value })} />
