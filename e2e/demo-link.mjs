@@ -55,6 +55,11 @@ T('אין מסך התחברות של ענן — השלד נטען ישר', navCo
 // 2. סרט "מצב הדגמה" מוצג
 T('סרט "מצב הדגמה" מוצג', txt.includes('מצב הדגמה'));
 T('סרט: CTA "פתחו אתר משלכם"', txt.includes('פתחו אתר משלכם'));
+// 2א. ה-CTA לחיץ בכניסה הראשונה — אין מודאל (פתיחת-יום) שבולע את ההקשה, והוא מוביל לשורש (מסך ההרשמה)
+T('אין מודאל פתוח בכניסה הראשונה לדמו', (await page.locator('.modal-back').count()) === 0);
+const cta = page.locator('a', { hasText: 'פתחו אתר משלכם' }).first();
+T('CTA "פתחו אתר משלכם" לחיץ (לא מכוסה)', await cta.click({ trial: true, timeout: 3000 }).then(() => true, () => false));
+T('CTA מוביל לשורש', new URL((await cta.getAttribute('href')) ?? '', page.url()).href === BASE);
 
 // 3. נתוני-ההדגמה נזרעו אוטומטית — הניווט קיים והמערכת מאוכלסת
 T('הניווט הראשי מוצג (המערכת נטענה)', (await page.locator('nav').count()) > 0);
