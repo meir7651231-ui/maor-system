@@ -20,7 +20,7 @@ const ALL = [loginSrc, wizardSrc, heroSrc, storeSrc, reelSrc, cbSrc];
 describe('🪐 ratchet — SIGNUP: מסך ההרשמה של אורביט', () => {
   it('הקופי הנעול מדויק + מיתוג נגזר-ארגון (ברירת-מחדל אורביט, בהמשך מהאתר שלהם)', () => {
     // כותרת חדשה (הכרעת-בעלים 22.10 — "משפט עוצמתי"); תת-הכותרת נשמרת
-    expect(loginSrc).toContain('מערכת אחת.<br /><em>שליטה מלאה.</em>');
+    expect(loginSrc).toContain('כל עסק. כל תחום.<br /><em>מערכת אחת שעושה הכול.</em>');
     expect(loginSrc).toContain('המערכת שמחברת את כל הפעילות שלכם למקום אחד');
     // המותג (שם+אייקון) נגזר מ-config; ברירת-מחדל = אורביט (הפלטפורמה)
     expect(loginSrc).toContain('orbit-brand-name');

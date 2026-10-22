@@ -110,8 +110,10 @@ export function LoginScreen() {
                 </span>
               </div>
               <h1 className="orbit-h1">
-                מערכת אחת.<br /><em>שליטה מלאה.</em>
+                כל עסק. כל תחום.<br /><em>מערכת אחת שעושה הכול.</em>
               </h1>
+              {/* 🎞 המסכים מתגלגלים מיד מתחת לכותרת (22.10) */}
+              <ScreensReel onOpen={() => setStoreOpen(true)} />
               <p className="orbit-sub">
                 המערכת שמחברת את כל הפעילות שלכם למקום אחד — בעברית, בפשטות, ושלכם לגמרי. מוקמת במיוחד בשבילכם, בשיחת טלפון אחת.
               </p>
@@ -126,17 +128,6 @@ export function LoginScreen() {
                 </button>
               </div>
 
-              <ul className="orbit-lede-points">
-                <li>
-                  <span aria-hidden>🔒</span> מוצפן מקצה-לקצה · שלוש שכבות גיבוי
-                </li>
-                <li>
-                  <span aria-hidden>⚡</span> מוקמים בשיחת טלפון אחת — בלי התקנה
-                </li>
-                <li>
-                  <span aria-hidden>🎯</span> מותאם בול לתחום שלכם
-                </li>
-              </ul>
             </aside>
           )}
 
@@ -238,9 +229,6 @@ export function LoginScreen() {
             )}
           </div>
         </div>
-
-        {/* 🎞 המסכים מתגלגלים מתחת (22.10) */}
-        {!submitted && <ScreensReel onOpen={() => setStoreOpen(true)} />}
 
         {/* חתימת-הפלטפורמה במצב-הצלחה — שם-הפלטפורמה (אורביט), או שם-הלקוח white-label */}
         <div style={{ position: 'relative', zIndex: 2, fontSize: 12.5, color: 'rgba(255,240,228,.5)' }}>
