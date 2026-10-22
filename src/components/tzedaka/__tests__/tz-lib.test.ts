@@ -189,4 +189,61 @@ describe('🛡 ratchet-בידוד — הכרעת בעלים 30.7.2026', () => {
     expect(useApp.getState().db.tzBoxes).toHaveLength(0);
     expect(useApp.getState().db.tzEvents.some((e) => e.id === 'tze8')).toBe(false);
   });
+
+  // בקשת-בעלים 22.10: ריקון שנרשם בטעות (1200 במקום 120) לא היה ניתן לתיקון או למחיקה
+  it('updateTzCollection מתקן סכום ומחזיר לרכז את הפרש-הניקוד; הריקון זוכר כמה נתן', () => {
+    useApp.getState().addTzCollection('tzb1', { date: '2026-07-30', amount: 1200, campaignId: '', note: '' });
+    const id = useApp.getState().db.tzBoxes[0].collections[0].id;
+    expect(useApp.getState().db.tzBoxes[0].collections[0].scoreDelta).toBe(10 + 24); // 1200/50
+    expect(useApp.getState().db.tzCoordinators[0].score).toBe(34);
+    const res = useApp.getState().updateTzCollection('tzb1', id, { date: '2026-07-30', amount: 120, campaignId: '', note: 'תוקן' });
+    expect(res).toEqual({ ok: true, delta: -22 });
+    const after = useApp.getState().db;
+    expect(after.tzBoxes[0].collections).toHaveLength(1);
+    expect(after.tzBoxes[0].collections[0]).toMatchObject({ id, amount: 120, note: 'תוקן', scoreDelta: 12 });
+    expect(after.tzCoordinators[0].score).toBe(12);
+    expect(after.tzCoordinators[0].scoreLog[0]).toMatchObject({ delta: -22, reason: 'תיקון ריקון קופה 42' });
+  });
+
+  it('updateTzCollection: סכום לא-חוקי/תאריך ריק/ריקון חסר נדחים בלי לגעת ב-db', () => {
+    useApp.getState().addTzCollection('tzb1', { date: '2026-07-30', amount: 120, campaignId: '', note: '' });
+    const id = useApp.getState().db.tzBoxes[0].collections[0].id;
+    const before = useApp.getState().db;
+    expect(useApp.getState().updateTzCollection('tzb1', id, { date: '2026-07-30', amount: 0, campaignId: '', note: '' }).ok).toBe(false);
+    expect(useApp.getState().updateTzCollection('tzb1', id, { date: '', amount: 50, campaignId: '', note: '' }).ok).toBe(false);
+    expect(useApp.getState().updateTzCollection('tzb1', 'nope', { date: '2026-07-30', amount: 50, campaignId: '', note: '' }).ok).toBe(false);
+    expect(useApp.getState().db).toEqual(before);
+  });
+
+  it('deleteTzCollection מוחק רק את הריקון ומחזיר את הניקוד שנתן; ריקון ישן בלי scoreDelta — הניקוד לא זז', () => {
+    useApp.getState().addTzCollection('tzb1', { date: '2026-07-01', amount: 120, campaignId: '', note: '' });
+    useApp.getState().addTzCollection('tzb1', { date: '2026-07-30', amount: 60, campaignId: '', note: '' });
+    const [newer, older] = useApp.getState().db.tzBoxes[0].collections;
+    expect(useApp.getState().db.tzCoordinators[0].score).toBe(12 + 16); // השני: 10+1+רצף 5
+    expect(useApp.getState().deleteTzCollection('tzb1', newer.id)).toEqual({ ok: true, delta: -16 });
+    let db = useApp.getState().db;
+    expect(db.tzBoxes[0].collections.map((c) => c.id)).toEqual([older.id]);
+    expect(db.tzCoordinators[0].score).toBe(12);
+    expect(db.tzCoordinators[0].scoreLog[0]).toMatchObject({ delta: -16, reason: 'ביטול ריקון קופה 42' });
+    // ריקון שנרשם לפני השדה (בלי scoreDelta): נמחק, הניקוד לא נוגע
+    useApp.getState().setDb((d) => ({ tzBoxes: d.tzBoxes.map((b) => ({ ...b, collections: b.collections.map(({ scoreDelta: _, ...c }) => c) })) }));
+    expect(useApp.getState().deleteTzCollection('tzb1', older.id)).toEqual({ ok: true, delta: 0 });
+    db = useApp.getState().db;
+    expect(db.tzBoxes[0].collections).toHaveLength(0);
+    expect(db.tzCoordinators[0].score).toBe(12);
+    // ריקון שלא קיים — לא נוגעים
+    expect(useApp.getState().deleteTzCollection('tzb1', 'nope').ok).toBe(false);
+  });
+
+  it('🛡 בידוד: תיקון/מחיקת ריקון לא נוגעים בתרומות/קבלות', () => {
+    useApp.getState().addTzCollection('tzb1', { date: '2026-07-30', amount: 120, campaignId: '', note: '' });
+    const id = useApp.getState().db.tzBoxes[0].collections[0].id;
+    const before = useApp.getState().db;
+    useApp.getState().updateTzCollection('tzb1', id, { date: '2026-07-30', amount: 100, campaignId: '', note: '' });
+    useApp.getState().deleteTzCollection('tzb1', id);
+    const after = useApp.getState().db;
+    expect(after.donationSeq).toBe(before.donationSeq);
+    expect(after.receiptSeq).toBe(before.receiptSeq);
+    expect(after.supporters).toEqual(before.supporters);
+  });
 });

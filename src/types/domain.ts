@@ -879,6 +879,8 @@ export interface TzCollection {
   amount: number;
   campaignId: Id | '';
   note: string;
+  /** הניקוד שהריקון הזה הוסיף לרכז (additive) — כדי שתיקון/מחיקה יחזירו אותו. חסר = ריקון ישן: הניקוד לא נוגע. */
+  scoreDelta?: number;
 }
 
 /** home=אצל משפחה · office=במשרד · lost=אבדה · retired=הוצאה משימוש. */

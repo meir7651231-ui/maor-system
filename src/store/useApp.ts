@@ -475,6 +475,14 @@ interface AppState {
     boxId: string,
     coll: { date: IsoDate; amount: number; campaignId: string; note: string },
   ) => { ok: boolean; delta: number };
+  /** תיקון ריקון שנרשם (סכום/תאריך/מבצע/הערה) — אותו שער-סכום כמו ברישום; delta = שינוי-הניקוד שהוחל. */
+  updateTzCollection: (
+    boxId: string,
+    collId: string,
+    patch: { date: IsoDate; amount: number; campaignId: string; note: string },
+  ) => { ok: boolean; delta: number };
+  /** מחיקת ריקון — מחזיר לרכז את הניקוד שהריקון נתן (כשנשמר); delta = מה שהוחזר (שלילי). */
+  deleteTzCollection: (boxId: string, collId: string) => { ok: boolean; delta: number };
   /** כוונון ניקוד ידני — reason חובה. */
   addTzScore: (coordinatorId: string, delta: number, reason: string) => void;
 
@@ -2970,7 +2978,7 @@ export const useApp = create<AppState>()((set, get) => {
       // לא ל-receiptSeq/donationSeq/supporters/enrollments/events
       setDb((db) => ({
         tzBoxes: db.tzBoxes.map((b) =>
-          b.id === boxId ? { ...b, collections: [{ id: collId, ...coll }, ...b.collections] } : b,
+          b.id === boxId ? { ...b, collections: [{ id: collId, ...coll, ...(delta ? { scoreDelta: delta } : {}) }, ...b.collections] } : b,
         ),
         tzCoordinators: delta
           ? db.tzCoordinators.map((c) =>
@@ -2985,6 +2993,66 @@ export const useApp = create<AppState>()((set, get) => {
           : db.tzCoordinators,
       }));
       return { ok: true, delta };
+    },
+    updateTzCollection(boxId, collId, patch) {
+      // אותו שער כמו addTzCollection — סכום לא-חיובי/תאריך ריק נדחים בלי לגעת ב-db
+      if (!Number.isFinite(patch.amount) || patch.amount <= 0) {
+        get().toast('סכום הריקון חייב להיות מספר חיובי');
+        return { ok: false, delta: 0 };
+      }
+      if (!patch.date) {
+        get().toast('יש לבחור תאריך');
+        return { ok: false, delta: 0 };
+      }
+      const box = get().db.tzBoxes.find((b) => b.id === boxId);
+      const old = box?.collections.find((c) => c.id === collId);
+      if (!box || !old) {
+        get().toast('הריקון לא נמצא — לא שונה דבר');
+        return { ok: false, delta: 0 };
+      }
+      // הניקוד: רק לריקון שזוכר כמה נתן (scoreDelta) ורק כשהניקוד דלוק — מחשבים מחדש מול
+      // הריקונים שקדמו לתאריך החדש, ומחילים את ההפרש. ריקון ישן בלי scoreDelta — הניקוד לא זז.
+      const scoreOn = featureOn(get().config, 'tzedaka.score');
+      let newDelta = old.scoreDelta;
+      if (scoreOn && old.scoreDelta !== undefined) {
+        const before = { ...box, collections: box.collections.filter((c) => c.id !== collId && c.date <= patch.date) };
+        newDelta = collectionScoreDelta(before, patch.date, patch.amount);
+      }
+      const diff = (newDelta ?? 0) - (old.scoreDelta ?? 0);
+      const next = { ...old, ...patch, ...(newDelta !== undefined ? { scoreDelta: newDelta } : {}) };
+      setDb((db) => ({
+        tzBoxes: db.tzBoxes.map((b) =>
+          b.id === boxId ? { ...b, collections: b.collections.map((c) => (c.id === collId ? next : c)) } : b,
+        ),
+        tzCoordinators: diff
+          ? db.tzCoordinators.map((c) =>
+              c.id === box.coordinatorId
+                ? { ...c, score: c.score + diff, scoreLog: [{ date: isoToday(), delta: diff, reason: 'תיקון ריקון קופה ' + box.num }, ...c.scoreLog] }
+                : c,
+            )
+          : db.tzCoordinators,
+      }));
+      return { ok: true, delta: diff };
+    },
+    deleteTzCollection(boxId, collId) {
+      const box = get().db.tzBoxes.find((b) => b.id === boxId);
+      const old = box?.collections.find((c) => c.id === collId);
+      if (!box || !old) {
+        get().toast('הריקון לא נמצא — לא נמחק דבר');
+        return { ok: false, delta: 0 };
+      }
+      const back = old.scoreDelta ? -old.scoreDelta : 0;
+      setDb((db) => ({
+        tzBoxes: db.tzBoxes.map((b) => (b.id === boxId ? { ...b, collections: b.collections.filter((c) => c.id !== collId) } : b)),
+        tzCoordinators: back
+          ? db.tzCoordinators.map((c) =>
+              c.id === box.coordinatorId
+                ? { ...c, score: c.score + back, scoreLog: [{ date: isoToday(), delta: back, reason: 'ביטול ריקון קופה ' + box.num }, ...c.scoreLog] }
+                : c,
+            )
+          : db.tzCoordinators,
+      }));
+      return { ok: true, delta: back };
     },
     addTzScore(coordinatorId, delta, reason) {
       if (!reason.trim() || !Number.isFinite(delta) || !delta) return;
