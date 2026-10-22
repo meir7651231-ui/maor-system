@@ -107,7 +107,7 @@ export function LoginScreen() {
           {!submitted && (
             <aside className="orbit-lede">
               <div className="orbit-brand">
-                <span className="orbit-brand-mark" aria-hidden>{config.emoji ? brandEmoji : <OrbitMark size={34} />}</span>
+                <span className="orbit-brand-mark" aria-hidden>{config.emoji ? brandEmoji : <OrbitMark size={40} />}</span>
                 <span className="orbit-brand-name">
                   {title}
                   <span className="orbit-brand-sub">מערכת הניהול שלכם</span>
