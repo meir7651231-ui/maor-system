@@ -6,6 +6,9 @@
 
 .orbit-screen {
   --o-serif: 'Frank Ruhl Libre', 'David', 'Noto Serif Hebrew', 'Times New Roman', serif;
+  /* 22.10 — גופן-תצוגה תואם-סמל (גיאומטרי, עגול, טכנולוגי) + צבעי-הטבעת של הסמל */
+  --o-display: 'Rubik', 'Heebo', system-ui, sans-serif;
+  --o-logo-grad: linear-gradient(100deg, #3fd6b8 0%, #4f9dff 50%, #7b5cff 100%);
   --o-text: #eef1fb;
   --o-muted: rgba(238, 241, 251, 0.62);
   /* ברירת-מחדל = אורביט (כחול קוסמי); orbitTheme דורס לפי accent-הארגון */
@@ -153,11 +156,15 @@
   object-fit: cover;
 }
 .orbit-brand-name {
-  font-family: var(--o-serif);
-  font-size: 23px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  font-family: var(--o-display);
+  font-size: 25px;
+  font-weight: 800;
+  letter-spacing: 0.01em;
   color: #fff;
+  background: linear-gradient(100deg, #ffffff 0%, #bfe9ff 45%, #a99bff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 .orbit-brand-sub {
   display: block;
@@ -166,21 +173,22 @@
   font-weight: 500;
   letter-spacing: 0.14em;
   color: rgba(255, 255, 255, 0.6);
+  -webkit-text-fill-color: rgba(255, 255, 255, 0.6);
   margin-top: 2px;
 }
 .orbit-h1 {
   margin: 0 0 14px;
-  font-family: var(--o-serif);
+  font-family: var(--o-display);
   font-size: 30px;
-  line-height: 1.24;
-  font-weight: 700;
-  letter-spacing: -0.008em;
+  line-height: 1.2;
+  font-weight: 800;
+  letter-spacing: -0.012em;
   color: #fff;
 }
 .orbit-h1 em {
   font-style: normal;
   font-weight: 800;
-  background: linear-gradient(100deg, var(--o-accent2), var(--o-accent));
+  background: var(--o-logo-grad);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -707,7 +715,7 @@
     max-width: 486px;
   }
   .orbit-lede .orbit-h1 {
-    font-size: clamp(34px, 3.4vw, 47px);
+    font-size: clamp(30px, 2.9vw, 41px);
     line-height: 1.18;
     margin-bottom: 16px;
   }
