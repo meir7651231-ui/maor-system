@@ -10,10 +10,10 @@ import { featureOn } from '../../lib/config';
 import { isoToday } from '../../lib/date-util';
 import type { TzEvent } from '../../types/domain';
 import { Btn, Chip } from '../ui';
-import { PRIORITY_COLOR, SESSION_META } from '../calendar/calLib';
+import { isoOf, PRIORITY_COLOR, SESSION_META } from '../calendar/calLib';
 import type { CalViewMode } from '../../lib/monthGrid';
 import { CalViewTabs } from '../calendar/CalViewTabs';
-import { buildTzGrid, DAY_NAMES } from './lib';
+import { buildTzGrid, DAY_NAMES, expandTzEvents } from './lib';
 import { TzEventModal } from './TzEventModal';
 
 /** צבעי הסוגים — reuse מקבועי הלוח הראשי. */
@@ -42,7 +42,14 @@ export function CalendarTab() {
   const [modal, setModal] = useState<{ ev: TzEvent | null; date: string } | null>(null);
   // סינון סוגים (UX סינון 1) — ברירת הכול-דלוק; הסינון טהור, לפני buildTzGrid
   const [kindsOff, setKindsOff] = useState<Set<TzEvent['kind']>>(new Set());
-  const shownEvents = useMemo(() => tzEvents.filter((e) => !kindsOff.has(e.kind)), [tzEvents, kindsOff]);
+  // תזכורות חוזרות (חודשי/שנתי עברי) נפרסות למופעים בחלון סביב העוגן — כיסוי מלא לחודש/שבוע/יום
+  const shownEvents = useMemo(() => {
+    const d = new Date(anchor + 'T12:00:00');
+    const from = new Date(d), to = new Date(d);
+    from.setDate(from.getDate() - 45);
+    to.setDate(to.getDate() + 45);
+    return expandTzEvents(tzEvents.filter((e) => !kindsOff.has(e.kind)), isoOf(from), isoOf(to));
+  }, [tzEvents, kindsOff, anchor]);
 
   const grid = useMemo(() => buildTzGrid(shownEvents, anchor, heb, mode), [shownEvents, anchor, heb, mode]);
   const activeDay = mode === 'day' ? anchor : dayIso;
@@ -136,7 +143,7 @@ export function CalendarTab() {
                       textDecoration: ev.done ? 'line-through' : undefined,
                     }}
                   >
-                    {(ev.time ? ev.time + ' · ' : '') + ev.title}
+                    {(ev.time ? ev.time + ' · ' : '') + ev.title + (ev.recur ? (ev.recur === 'monthly' ? ' · 🔁 חודשי' : ' · 🔁 שנתי') : '')}
                   </div>
                 );
               })}
@@ -162,7 +169,7 @@ export function CalendarTab() {
               <button
                 key={ev.id}
                 type="button"
-                onClick={() => setModal({ ev, date: ev.date })}
+                onClick={() => setModal({ ev: tzEvents.find((x) => x.id === ev.id) ?? ev, date: ev.date })}
                 style={{ display: 'flex', gap: 8, alignItems: 'center', width: '100%', textAlign: 'right', padding: '6px 8px', border: '1px solid var(--line)', borderRadius: 8, marginBottom: 4, cursor: 'pointer', background: 'var(--panel)' }}
               >
                 <span style={{ fontSize: 11.5, fontWeight: 700, background: col.bg, color: col.c, borderRadius: 99, padding: '2px 8px' }}>

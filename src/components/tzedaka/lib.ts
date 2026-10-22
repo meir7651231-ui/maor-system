@@ -12,6 +12,7 @@ import { DAY_NAMES, isoOf } from '../calendar/calLib';
 import { buildGrid, type CalViewMode, type MonthGrid, type MonthGridCell } from '../../lib/monthGrid';
 import { smartFilter } from '../../lib/search';
 import { dateInRange } from '../../lib/date-util';
+import { hebAnnualEq, hebPartsOfIso } from '../../lib/hebrew';
 
 /* ---------- ניקוד גיימיפיקציה ---------- */
 
@@ -89,10 +90,12 @@ export function staleBoxes(boxes: readonly TzBox[], todayIso: IsoDate, days = TZ
 }
 
 export interface TzCareItem {
-  kind: 'stale' | 'lost' | 'inactiveCoord' | 'campaignEnding';
+  kind: 'stale' | 'lost' | 'inactiveCoord' | 'campaignEnding' | 'reminder';
   id: string;
   label: string;
   hint: string;
+  /** בתזכורת — המופע שהגיע זמנו (לסימון "✓ בוצע"). */
+  date?: IsoDate;
 }
 
 /** רשימת הטיפול המשרדי — ממוינת לפי סוג (ישנות → אבודות → רכזים → מבצעים).
@@ -127,7 +130,114 @@ export function needsCare(db: Db, todayIso: IsoDate, config?: OrgConfig): TzCare
   const soonIso = isoOf(soon);
   for (const p of db.tzCampaigns.filter((x) => x.active && x.end && x.end >= todayIso && x.end <= soonIso))
     out.push({ kind: 'campaignEnding', id: p.id, label: 'המבצע "' + p.name + '" מסתיים ב-' + p.end, hint: 'לסכם ולסגור' });
+  // תזכורות שהגיע זמנן (בקשת-בעלים 22.10) — אחרי שאר הסוגים, הוותיקה ראשונה
+  for (const { ev, date } of dueTzReminders(db.tzEvents, todayIso)) {
+    const box = db.tzBoxes.find((b) => b.id === ev.boxId);
+    out.push({
+      kind: 'reminder',
+      id: ev.id,
+      date,
+      label: '🔔 ' + ev.title + (box ? ' · ' + boxTerm + ' ' + box.num : ''),
+      hint: date + ' · ' + TZ_RECUR_LABEL[ev.recur ?? 'once'],
+    });
+  }
   return out;
+}
+
+/* ---------- תזכורות חוזרות (לוח עברי · בקשת-בעלים 22.10) ---------- */
+
+export type TzRecurKey = 'once' | 'monthly' | 'yearly';
+export const TZ_RECUR_LABEL: Record<TzRecurKey, string> = {
+  once: 'חד-פעמית',
+  monthly: 'כל חודש (עברי)',
+  yearly: 'כל שנה (עברי)',
+};
+
+const prevIso = (iso: IsoDate): IsoDate => {
+  const d = new Date(iso + 'T12:00:00');
+  d.setDate(d.getDate() - 1);
+  return isoOf(d);
+};
+const nextIso = (iso: IsoDate): IsoDate => {
+  const d = new Date(iso + 'T12:00:00');
+  d.setDate(d.getDate() + 1);
+  return isoOf(d);
+};
+
+/**
+ * האם האירוע חל ביום iso. חד-פעמי = התאריך עצמו. חוזר — מהתאריך שנבחר והלאה, לפי הלוח העברי:
+ * חודשי = אותו יום-בחודש העברי; עוגן ל׳ בחודש שאין בו ל׳ ⇒ א׳ בחודש הבא (כלל ל׳ — כמו recurDates).
+ * שנתי = hebAnnualEq (מקור-האמת: כללי אדר וכלל ל׳).
+ */
+export function tzOccursOn(ev: Pick<TzEvent, 'date' | 'recur'>, iso: IsoDate): boolean {
+  if (!ev.recur) return ev.date === iso;
+  if (iso < ev.date) return false;
+  const a = hebPartsOfIso(ev.date);
+  const q = hebPartsOfIso(iso);
+  if (ev.recur === 'yearly') return hebAnnualEq({ day: a.day, month: a.month }, q);
+  if (q.day === a.day) return true;
+  // ל׳ חסר: היום הוא א׳ והיום שלפניו היה כ״ט ⇒ לחודש הקודם אין ל׳
+  return a.day === 30 && q.day === 1 && hebPartsOfIso(prevIso(iso)).day === 29;
+}
+
+/** האם המופע בתאריך הזה סומן "בוצע". */
+export function tzOccDone(ev: Pick<TzEvent, 'done' | 'recur' | 'doneDates'>, iso: IsoDate): boolean {
+  return ev.recur ? (ev.doneDates ?? []).includes(iso) : ev.done;
+}
+
+/** פריסת האירועים לטווח [from..to] — אירוע חוזר הופך למופע לכל יום שבו הוא חל (אותו id, date=המופע). */
+export function expandTzEvents(events: readonly TzEvent[], fromIso: IsoDate, toIso: IsoDate): TzEvent[] {
+  const out: TzEvent[] = [];
+  for (const ev of events) {
+    if (!ev.recur) {
+      out.push(ev);
+      continue;
+    }
+    for (let iso = ev.date > fromIso ? ev.date : fromIso, guard = 0; iso <= toIso && guard < 4000; iso = nextIso(iso), guard++) {
+      if (tzOccursOn(ev, iso)) out.push({ ...ev, date: iso, done: tzOccDone(ev, iso) });
+    }
+  }
+  return out;
+}
+
+/** המופע הקרוב של תזכורת מהיום והלאה (כולל היום) שעוד לא בוצע — '' כשאין (חד-פעמית שעברה/בוצעה). */
+export function nextTzOccurrence(ev: TzEvent, todayIso: IsoDate): IsoDate | '' {
+  if (!ev.recur) return !ev.done && ev.date >= todayIso ? ev.date : '';
+  for (let iso = ev.date > todayIso ? ev.date : todayIso, guard = 0; guard < 400; iso = nextIso(iso), guard++) {
+    if (tzOccursOn(ev, iso) && !tzOccDone(ev, iso)) return iso;
+  }
+  return '';
+}
+
+/**
+ * תזכורות שהגיע זמנן (kind='reminder'): חד-פעמית שתאריכה עבר ולא בוצעה; חוזרת — המופע האחרון
+ * עד היום (סריקה של עד 400 יום אחורה) כשלא סומן. מופע ישן שלא סומן מתחלף בחדש — לא נערמים.
+ */
+export function dueTzReminders(events: readonly TzEvent[], todayIso: IsoDate): { ev: TzEvent; date: IsoDate }[] {
+  const out: { ev: TzEvent; date: IsoDate }[] = [];
+  for (const ev of events) {
+    if (ev.kind !== 'reminder') continue;
+    if (!ev.recur) {
+      if (!ev.done && ev.date <= todayIso) out.push({ ev, date: ev.date });
+      continue;
+    }
+    for (let iso = todayIso, guard = 0; iso >= ev.date && guard < 400; iso = prevIso(iso), guard++) {
+      if (tzOccursOn(ev, iso)) {
+        if (!tzOccDone(ev, iso)) out.push({ ev, date: iso });
+        break;
+      }
+    }
+  }
+  return out.sort((x, y) => (x.date < y.date ? -1 : x.date > y.date ? 1 : 0));
+}
+
+/** תזכורות הקופה — עם המופע הקרוב (או שהגיע זמנו), הקרובה ראשונה. */
+export function boxReminders(events: readonly TzEvent[], boxId: string, todayIso: IsoDate): { ev: TzEvent; when: IsoDate | '' }[] {
+  const due = new Map(dueTzReminders(events, todayIso).map((d) => [d.ev.id, d.date]));
+  return events
+    .filter((e) => e.kind === 'reminder' && e.boxId === boxId)
+    .map((ev) => ({ ev, when: due.get(ev.id) ?? nextTzOccurrence(ev, todayIso) }))
+    .sort((x, y) => (x.when || '9999') < (y.when || '9999') ? -1 : (x.when || '9999') > (y.when || '9999') ? 1 : 0);
 }
 
 /* ---------- לוח מובילים ומבצעים ---------- */

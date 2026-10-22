@@ -6,6 +6,9 @@
 
 .orbit-screen {
   --o-serif: 'Frank Ruhl Libre', 'David', 'Noto Serif Hebrew', 'Times New Roman', serif;
+  /* 22.10 — גופן-תצוגה תואם-סמל (גיאומטרי, עגול, טכנולוגי) + צבעי-הטבעת של הסמל */
+  --o-display: 'Rubik', 'Heebo', system-ui, sans-serif;
+  --o-logo-grad: linear-gradient(100deg, #3fd6b8 0%, #4f9dff 50%, #7b5cff 100%);
   --o-text: #eef1fb;
   --o-muted: rgba(238, 241, 251, 0.62);
   /* ברירת-מחדל = אורביט (כחול קוסמי); orbitTheme דורס לפי accent-הארגון */
@@ -132,8 +135,8 @@
   margin-bottom: 24px;
 }
 .orbit-brand-mark {
-  width: 48px;
-  height: 48px;
+  width: 56px;
+  height: 56px;
   display: grid;
   place-items: center;
   font-size: 25px;
@@ -143,12 +146,25 @@
   box-shadow: 0 10px 34px -10px rgba(var(--o-accent-rgb), 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.28);
   text-shadow: none;
 }
+.orbit-brand-mark:has(.orbit-brand-img) {
+  overflow: hidden;
+}
+.orbit-brand-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
 .orbit-brand-name {
-  font-family: var(--o-serif);
-  font-size: 23px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  font-family: var(--o-display);
+  font-size: 25px;
+  font-weight: 800;
+  letter-spacing: 0.01em;
   color: #fff;
+  background: linear-gradient(100deg, #ffffff 0%, #bfe9ff 45%, #a99bff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 .orbit-brand-sub {
   display: block;
@@ -157,21 +173,22 @@
   font-weight: 500;
   letter-spacing: 0.14em;
   color: rgba(255, 255, 255, 0.6);
+  -webkit-text-fill-color: rgba(255, 255, 255, 0.6);
   margin-top: 2px;
 }
 .orbit-h1 {
   margin: 0 0 14px;
-  font-family: var(--o-serif);
+  font-family: var(--o-display);
   font-size: 30px;
-  line-height: 1.24;
-  font-weight: 700;
-  letter-spacing: -0.008em;
+  line-height: 1.2;
+  font-weight: 800;
+  letter-spacing: -0.012em;
   color: #fff;
 }
 .orbit-h1 em {
   font-style: normal;
   font-weight: 800;
-  background: linear-gradient(100deg, var(--o-accent2), var(--o-accent));
+  background: var(--o-logo-grad);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -698,7 +715,7 @@
     max-width: 486px;
   }
   .orbit-lede .orbit-h1 {
-    font-size: clamp(34px, 3.4vw, 47px);
+    font-size: clamp(30px, 2.9vw, 41px);
     line-height: 1.18;
     margin-bottom: 16px;
   }
@@ -713,5 +730,108 @@
   .orbit-lede,
   .orbit-card {
     animation: none !important;
+  }
+}
+
+/* ---------- 🛒 כפתור-החנות + 🎞 רצועת-המסכים (22.10) ---------- */
+.orbit-secondary-2 {
+  grid-template-columns: 2fr 1fr;
+}
+.orbit-sbtn-hot {
+  font-size: 14px;
+  font-weight: 800;
+  background: linear-gradient(135deg, rgba(var(--o-accent-rgb), 0.55), rgba(var(--o-accent-rgb), 0.22));
+  border-color: rgba(var(--o-accent-rgb), 0.7);
+  box-shadow: 0 0 0 0 rgba(var(--o-accent-rgb), 0.5);
+  animation: orbPulse 2.6s ease-out infinite;
+}
+@keyframes orbPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(var(--o-accent-rgb), 0.45);
+  }
+  70% {
+    box-shadow: 0 0 0 14px rgba(var(--o-accent-rgb), 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(var(--o-accent-rgb), 0);
+  }
+}
+.orbit-store {
+  width: min(1180px, 96vw);
+}
+.orbit-reel {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  overflow: hidden;
+  margin: 4px 0 18px;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+.orbit-reel-track {
+  display: flex;
+  gap: 14px;
+  width: max-content;
+  animation: orbReel 80s linear infinite;
+}
+.orbit-reel:hover .orbit-reel-track {
+  animation-play-state: paused;
+}
+@keyframes orbReel {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(50%);
+  }
+}
+.orbit-reel-item {
+  flex: none;
+  width: 200px;
+  padding: 0;
+  border-radius: 14px;
+  overflow: hidden;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font: inherit;
+  transition: 0.22s;
+}
+.orbit-reel-item:hover {
+  border-color: rgba(var(--o-accent-rgb), 0.6);
+  transform: translateY(-3px);
+}
+.orbit-reel-item img {
+  display: block;
+  width: 100%;
+  height: 124px;
+  object-fit: cover;
+  object-position: top;
+}
+.orbit-reel-item span {
+  display: block;
+  padding: 7px 10px;
+  font-size: 12.5px;
+  font-weight: 700;
+  text-align: start;
+}
+@media (prefers-reduced-motion: reduce) {
+  .orbit-sbtn-hot {
+    animation: none;
+  }
+  .orbit-reel {
+    overflow-x: auto;
+  }
+  .orbit-reel-track {
+    animation: none;
+  }
+}
+@media (max-width: 640px) {
+  .orbit-reel-item {
+    width: 180px;
+  }
+  .orbit-reel-item img {
+    height: 112px;
   }
 }

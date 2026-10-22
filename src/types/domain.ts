@@ -879,6 +879,8 @@ export interface TzCollection {
   amount: number;
   campaignId: Id | '';
   note: string;
+  /** הניקוד שהריקון הזה הוסיף לרכז (additive) — כדי שתיקון/מחיקה יחזירו אותו. חסר = ריקון ישן: הניקוד לא נוגע. */
+  scoreDelta?: number;
 }
 
 /** home=אצל משפחה · office=במשרד · lost=אבדה · retired=הוצאה משימוש. */
@@ -921,6 +923,10 @@ export interface TzEvent {
   boxId: Id | '';
   notes: string;
   done: boolean;
+  /** תזכורת חוזרת לפי הלוח העברי (additive, בקשת-בעלים 22.10): חסר = חד-פעמית (ההתנהגות הקיימת). */
+  recur?: 'monthly' | 'yearly';
+  /** בתזכורת חוזרת — המופעים שסומנו "✓ בוצע" (done חל רק על חד-פעמית). */
+  doneDates?: IsoDate[];
 }
 
 /* ---------- חנות מוצרי-שירות (מודול shop — מבודד; BUILD-ORDER-SHOP-2026-07-30) ---------- */

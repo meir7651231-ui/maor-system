@@ -2,24 +2,32 @@
  * 💰 ריקון קופה (קופות 4) — תאריך, סכום חובה, שיוך למבצע פעיל (מאחורי
  * tzedaka.campaigns), הערה. הכסף נרשם ב-addTzCollection בלבד — מבודד
  * מקבלות/תרומות (הכרעת בעלים 30.7); אין כאן שום ייבוא מ-supporters/receipt.
+ * עם `coll` — אותו טופס במצב ✏️ תיקון ריקון שנרשם (updateTzCollection).
  */
 import { useState } from 'react';
 import { useApp } from '../../store/useApp';
 import { featureOn, termOf } from '../../lib/config';
-import type { TzBox } from '../../types/domain';
+import type { TzBox, TzCollection } from '../../types/domain';
 import { Btn, Field, FormError, Modal, Select, TextInput } from '../ui';
 import { HebDateInput } from '../HebDateInput';
 import { isoToday } from '../../lib/date-util';
 
-export function CollectModal(props: { box: TzBox; onClose: () => void }) {
+export function CollectModal(props: { box: TzBox; coll?: TzCollection; onClose: () => void }) {
   const config = useApp((s) => s.config);
   const campaigns = useApp((s) => s.db.tzCampaigns);
   const addTzCollection = useApp((s) => s.addTzCollection);
+  const updateTzCollection = useApp((s) => s.updateTzCollection);
+  const editing = props.coll;
   const toast = useApp((s) => s.toast);
   const campaignsOn = featureOn(config, 'tzedaka.campaigns');
-  const active = campaigns.filter((c) => c.active);
+  // בתיקון — גם המבצע שהריקון כבר משויך אליו מוצג, אפילו אם נסגר בינתיים
+  const active = campaigns.filter((c) => c.active || c.id === editing?.campaignId);
 
-  const [f, setF] = useState({ date: isoToday(), amount: '', campaignId: active[0]?.id ?? '', note: '' });
+  const [f, setF] = useState(
+    editing
+      ? { date: editing.date, amount: String(editing.amount), campaignId: editing.campaignId, note: editing.note }
+      : { date: isoToday(), amount: '', campaignId: active[0]?.id ?? '', note: '' },
+  );
   const [error, setError] = useState('');
 
   function save() {
@@ -30,19 +38,22 @@ export function CollectModal(props: { box: TzBox; onClose: () => void }) {
     // לריקון — הקופה מוצגת 'טרם רוקנה' לנצח, staleBoxes ממשיך להתריע והרצף נשבר.
     // חוסמים כמו TzEventModal.
     if (!f.date) return setError('יש לבחור תאריך');
-    const res = addTzCollection(props.box.id, {
-      date: f.date,
-      amount,
-      campaignId: campaignsOn ? f.campaignId : '',
-      note: f.note.trim(),
-    });
+    const fields = { date: f.date, amount, campaignId: campaignsOn ? f.campaignId : editing?.campaignId ?? '', note: f.note.trim() };
+    if (editing) {
+      const res = updateTzCollection(props.box.id, editing.id, fields);
+      if (!res.ok) return; // ה-store כבר הציג טוסט דחייה
+      toast('הריקון תוקן: ' + amount.toLocaleString('he-IL') + ' ₪' + (res.delta ? ' · ' + (res.delta > 0 ? '+' : '') + res.delta + ' נק׳' : ''));
+      props.onClose();
+      return;
+    }
+    const res = addTzCollection(props.box.id, fields);
     if (!res.ok) return; // ה-store כבר הציג טוסט דחייה
     toast('נרשם ריקון ' + amount.toLocaleString('he-IL') + ' ₪' + (res.delta ? ' · +' + res.delta + ' נק׳' : ''));
     props.onClose();
   }
 
   return (
-    <Modal title={'💰 ריקון ' + termOf(config, 'entity.tzBox', 'קופה') + ' ' + props.box.num} onClose={props.onClose}>
+    <Modal title={(editing ? '✏️ תיקון ריקון · ' : '💰 ריקון ') + termOf(config, 'entity.tzBox', 'קופה') + ' ' + props.box.num} onClose={props.onClose}>
       <FormError error={error} />
       <div className="form-grid">
         <Field label="תאריך הריקון">
@@ -65,7 +76,7 @@ export function CollectModal(props: { box: TzBox; onClose: () => void }) {
         <TextInput value={f.note} onChange={(v) => setF({ ...f, note: v })} placeholder="לדוגמה: נאסף בסבב חודשי" />
       </Field>
       <div className="modal-actions">
-        <Btn kind="primary" onClick={save}>רישום הריקון</Btn>
+        <Btn kind="primary" onClick={save}>{editing ? 'שמירת התיקון' : 'רישום הריקון'}</Btn>
         <Btn onClick={props.onClose}>ביטול</Btn>
       </div>
     </Modal>

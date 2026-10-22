@@ -114,13 +114,24 @@ export function PlatformPanel(props: { onClose: () => void }) {
 
   useEffect(() => {
     let alive = true;
+    let off: (() => void) | null = null;
+    let timer: ReturnType<typeof setTimeout> | undefined;
     void import('../../store/cloudSync').then((m) => {
       if (!alive) return;
       setMod(m);
-      void refresh(m);
+      // 🔔 חי (22.10): הרשמה/ליד חדשים מרעננים את הלוח בלי 🔄 — הצילום הראשון
+      // מחליף את הטעינה הראשונה; ריבוי-אירועים מקובץ (דיבאונס).
+      off = m.watchPlatformInbox(() => {
+        clearTimeout(timer);
+        timer = setTimeout(() => {
+          if (alive) void refresh(m);
+        }, 400);
+      });
     });
     return () => {
       alive = false;
+      clearTimeout(timer);
+      off?.();
     };
   }, []);
 

@@ -8,15 +8,19 @@
  * גבולות: אימות = אימייל+סיסמה בלבד (בלי ספקי-זהות חיצוניים או מפתחות-גישה —
  * לא מבטיחים מה שאין); הקופי הנעול מדויק; אפס CDN (Hero + גופנים מקומיים).
  */
-import { useMemo, useState, type CSSProperties, type FormEvent } from 'react';
+import { useCallback, useMemo, useState, type CSSProperties, type FormEvent } from 'react';
 import { useApp } from '../../store/useApp';
 import { orbitTheme } from '../../lib/orbitTheme';
 import { SignupHero } from './SignupHero';
 import { SignupWizard } from './SignupWizard';
 import { EmployeeSignup } from './EmployeeSignup';
-import { NewsReader } from './NewsReader';
 import { CallbackModal } from './CallbackModal';
-import { VideoModal } from './VideoModal';
+import { StoreModal, type StoreStart } from './StoreModal';
+import { ScreensReel } from './ScreensReel';
+import { A11yFab } from '../A11yFab';
+import { featureOn } from '../../lib/config';
+import { OwnerWaButton } from './OwnerWaButton';
+import { ownerWaLink, signupOwnerText, type StoreRef } from '../../lib/signupNotify';
 
 export function LoginScreen() {
   const config = useApp((s) => s.config);
@@ -29,17 +33,31 @@ export function LoginScreen() {
   const [password, setPassword] = useState('');
   const [showPass, setShowPass] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  // 💬 הודעת-וואטסאפ לבעלים אחרי הרשמת-ארגון (null ⇒ אין כפתור: הרשמת-עובד/ת או בלי מספר-בעלים)
+  const [ownerWa, setOwnerWa] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   // overlays מהמוקאפ
-  const [readerOpen, setReaderOpen] = useState(false);
+  const [storeOpen, setStoreOpen] = useState(false);
   const [callbackOpen, setCallbackOpen] = useState(false);
-  const [videoOpen, setVideoOpen] = useState(false);
+  // בחירה מהחנות ⇒ האשף נפתח מחדש (key) עם התחום מסומן והבחירות להודעה
+  const [storePreset, setStorePreset] = useState<StoreRef | null>(null);
+  const [wizardKey, setWizardKey] = useState(0);
+  const onStoreStart = useCallback((s: StoreStart) => {
+    setStorePreset({ ...(s.ed ? { vertical: s.ed } : {}), ...(s.names.length ? { names: s.names } : {}) });
+    setWizardKey((k) => k + 1);
+    setMode('up');
+    setSubmitted(false);
+    setError('');
+    setStoreOpen(false);
+  }, []);
+  const closeStore = useCallback(() => setStoreOpen(false), []);
 
   // ברירת-מחדל = אורביט (הפלטפורמה שאליה נרשמים); לקוח עם orgName/emoji/accent
   // מקבל את הזהות שלו — "בהמשך זה יגיע מהאתר שלהם". שים לב: לא נופלים ל-db.orgName —
   // בשורש-הפלטפורמה הוא "מאור החסד" מנתוני-הזריעה ולא צריך למתג את אורביט.
   const title = config.orgName || 'אורביט';
+  // הסמל: ארגון עם אימוג'י-מותג ⇒ האימוג'י שלו; אורביט ⇒ הסמל (כדור-רשת+טבעת, public/orbit/orbit-mark.jpg)
   const brandEmoji = config.emoji || '🪐';
   const theme = useMemo(() => orbitTheme(config.accent), [config.accent]);
 
@@ -88,43 +106,31 @@ export function LoginScreen() {
           {!submitted && (
             <aside className="orbit-lede">
               <div className="orbit-brand">
-                <span className="orbit-brand-mark" aria-hidden>{brandEmoji}</span>
+                <span className="orbit-brand-mark" aria-hidden>{config.emoji ? brandEmoji : <img className="orbit-brand-img" src={`${import.meta.env.BASE_URL}orbit/orbit-mark.jpg`} alt="" width={56} height={56} />}</span>
                 <span className="orbit-brand-name">
                   {title}
                   <span className="orbit-brand-sub">מערכת הניהול שלכם</span>
                 </span>
               </div>
               <h1 className="orbit-h1">
-                כל הפעילות שלכם,<br />זורחת <em>במקום אחד.</em>
+                כל עסק. כל תחום.<br /><em>מערכת אחת שעושה הכול.</em>
               </h1>
+              {/* 🎞 המסכים מתגלגלים מיד מתחת לכותרת (22.10) */}
+              <ScreensReel onOpen={() => setStoreOpen(true)} />
               <p className="orbit-sub">
-                המערכת שמחברת את כל הפעילות שלכם למקום אחד — בעברית, בפשטות, ושלכם לגמרי. מוקמת במיוחד בשבילכם, בשיחת טלפון אחת.
+                ניהול, פתרונות מוכנים ושדרוג למערכת קיימת — מותאם לכם בהקמה, בשיחת טלפון אחת.
               </p>
 
-              {/* שלושת הכפתורים המשניים מהמוקאפ */}
-              <div className="orbit-secondary">
-                <button type="button" className="orbit-sbtn" aria-label="צפו בסרטון היכרות" onClick={() => setVideoOpen(true)}>
-                  ▶ סרטון
-                </button>
-                <button type="button" className="orbit-sbtn" aria-label="קראו את העיתון" onClick={() => setReaderOpen(true)}>
-                  📰 עיתון
+              {/* 🛒 החנות (22.10, במקום סרטון+עיתון) + "חזרו אליי" */}
+              <div className="orbit-secondary orbit-secondary-2">
+                <button type="button" className="orbit-sbtn orbit-sbtn-hot" aria-label="החנות שלנו — כל הפתרונות" onClick={() => setStoreOpen(true)}>
+                  🛒 החנות שלנו — כל הפתרונות
                 </button>
                 <button type="button" className="orbit-sbtn" aria-label="נחזור אליכם" onClick={() => setCallbackOpen(true)}>
                   📞 חזרו אליי
                 </button>
               </div>
 
-              <ul className="orbit-lede-points">
-                <li>
-                  <span aria-hidden>🔒</span> מוצפן מקצה-לקצה · שלוש שכבות גיבוי
-                </li>
-                <li>
-                  <span aria-hidden>⚡</span> מוקמים בשיחת טלפון אחת — בלי התקנה
-                </li>
-                <li>
-                  <span aria-hidden>🎯</span> מותאם בול לתחום שלכם
-                </li>
-              </ul>
             </aside>
           )}
 
@@ -139,6 +145,7 @@ export function LoginScreen() {
                 <p dir="ltr" style={{ margin: '0 0 22px', fontSize: 15, fontWeight: 600, color: '#fff', wordBreak: 'break-all' }}>
                   {email}
                 </p>
+                {ownerWa && <OwnerWaButton href={ownerWa} label="שלחו לנו הודעה בוואטסאפ — לאישור מהיר" />}
                 <button
                   type="button"
                   className="orbit-sbtn"
@@ -168,14 +175,14 @@ export function LoginScreen() {
               {mode === 'up' ? (
                 /* ההרשמה = אשף 5-שלבים (SIGNUP3): תחום→גודל→צרכים→קשר→חשבון */
                 <>
-                  <SignupWizard onDone={(em) => { setEmail(em); setSubmitted(true); }} />
+                  <SignupWizard key={wizardKey} preset={storePreset} onDone={(em, summary) => { setEmail(em); setOwnerWa(ownerWaLink(signupOwnerText(summary))); setSubmitted(true); }} />
                   <p className="orbit-fine">
                     לאחר ההרשמה — צרו קשר לאישור פתיחת המערכת. אתם מאשרים את תנאי השימוש ומדיניות הפרטיות.
                   </p>
                 </>
               ) : mode === 'emp' ? (
                 /* הרשמת-עובד/ת (ORGADMIN) — מייל+טלפון+סיסמה+קוד-מהמנהל ⇒ בקשה למנהל */
-                <EmployeeSignup onDone={(em) => { setEmail(em); setSubmitted(true); }} />
+                <EmployeeSignup onDone={(em) => { setEmail(em); setOwnerWa(null); setSubmitted(true); }} />
               ) : (
                 <>
                   <div className="orbit-divider">
@@ -240,9 +247,10 @@ export function LoginScreen() {
         </span>
       </footer>
 
-      {readerOpen && <NewsReader onClose={() => setReaderOpen(false)} />}
+      {/* ♿ הנגישות שלנו גם במסך ההרשמה (22.10) — אותו FAB ואותו דגל; בתוך המסך כי הוא שכבה z-400 */}
+      {featureOn(config, 'shell.a11yfab') && <A11yFab />}
+      {storeOpen && <StoreModal onClose={closeStore} onStart={onStoreStart} />}
       {callbackOpen && <CallbackModal onClose={() => setCallbackOpen(false)} />}
-      {videoOpen && <VideoModal onClose={() => setVideoOpen(false)} />}
     </div>
   );
 }

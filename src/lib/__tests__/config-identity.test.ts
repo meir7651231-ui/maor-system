@@ -50,8 +50,7 @@ describe('🖼️ ratchet — faviconDataUri (טהור)', () => {
     expect(uri).toContain(encodeURIComponent('<svg'));
   });
 
-  it('DEFAULT_FAVICON — עיגול הזהב הדיפולטי (זהה ל-index.html)', () => {
-    expect(DEFAULT_FAVICON).toContain('f3c76b');
-    expect(DEFAULT_FAVICON.startsWith('data:image/svg+xml,')).toBe(true);
+  it('DEFAULT_FAVICON — סמל אורביט (זהה ל-index.html, 22.10 במקום עיגול-הזהב)', () => {
+    expect(DEFAULT_FAVICON).toContain('icons/favicon-64.png');
   });
 });

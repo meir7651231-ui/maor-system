@@ -905,9 +905,8 @@ export function applyTheme(theme: string, accent?: string, motion?: string): voi
   else delete el.dataset.motion;
 }
 
-/** ה-favicon הדיפולטי (עיגול זהב) — זהה ל-index.html; משמש לשחזור כשאין אימוג'י. */
-export const DEFAULT_FAVICON =
-  "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='38' fill='%23f3c76b'/><circle cx='50' cy='50' r='20' fill='%23b45309'/></svg>";
+/** ה-favicon הדיפולטי (סמל אורביט — כדור-רשת+טבעת, 22.10) — זהה ל-index.html; משמש לשחזור כשאין אימוג'י. */
+export const DEFAULT_FAVICON = ((import.meta as unknown as { env?: { BASE_URL?: string } }).env?.BASE_URL ?? '/') + 'icons/favicon-64.png?v=2';
 
 /** בניית data-URI ל-favicon מאימוג'י (טהור — נבדק ביחידה). encodeURIComponent מנטרל הזרקה. */
 export function faviconDataUri(emoji: string): string {

@@ -4,7 +4,7 @@
  */
 import { useState } from 'react';
 import { useApp } from '../../store/useApp';
-import { featureOn, termOf } from '../../lib/config';
+import { canGrantedAction, featureOn, termOf } from '../../lib/config';
 import { isoToday } from '../../lib/date-util';
 import type { TzBox, TzCampaign } from '../../types/domain';
 import { Btn, Chip, Empty, Field, FormError, Modal, Select, TextInput } from '../ui';
@@ -14,6 +14,7 @@ import { downloadCsv } from '../reports/csv';
 import { CollectModal } from './CollectModal';
 import { CoordinatorForm } from './CoordinatorForm';
 import { BoxForm } from './BoxForm';
+import { useArmed } from '../useArmed';
 
 function CampaignForm(props: { campaign: TzCampaign | null; onClose: () => void }) {
   const config = useApp((s) => s.config);
@@ -87,8 +88,15 @@ export function HomeTab(props: { onOpenCoordinator: (id: string) => void }) {
   const db = useApp((s) => s.db);
   const config = useApp((s) => s.config);
   const upsertTzCampaign = useApp((s) => s.upsertTzCampaign);
+  const deleteTzCampaign = useApp((s) => s.deleteTzCampaign);
+  const doneTzReminder = useApp((s) => s.doneTzReminder);
   const toast = useApp((s) => s.toast);
   const campaignsOn = featureOn(config, 'tzedaka.campaigns');
+  const { armed, confirmTwice } = useArmed(featureOn(config, 'shell.armdel'));
+  // מחיקת מבצע — אותה הרשאה כמו מחיקת קופה (מנהל/בעלים תמיד; עובד/ת רק אם הודלק/ה)
+  const cloudEmail = useApp((s) => s.cloud.user?.email);
+  const isOrgMgr = useApp((s) => s.cloud.isManager) === true;
+  const canDelete = featureOn(config, 'tzedaka.delete') && canGrantedAction(config, cloudEmail, isOrgMgr, 'tzedaka.delete');
   const today = isoToday();
 
   const [collectFor, setCollectFor] = useState<TzBox | null>(null);
@@ -104,8 +112,12 @@ export function HomeTab(props: { onOpenCoordinator: (id: string) => void }) {
   const activeCoords = db.tzCoordinators.filter((c) => c.active).length;
   const activeCampaign = db.tzCampaigns.find((c) => c.active);
 
-  const careAction = (kind: string, id: string) => {
-    if (kind === 'stale' || kind === 'lost') {
+  const careAction = (kind: string, id: string, date?: string) => {
+    if (kind === 'reminder') {
+      // ✓ בוצע — בחוזרת רק המופע הזה; היא תחזור בחודש/בשנה הבאים
+      if (date) doneTzReminder(id, date);
+      toast('התזכורת סומנה ✓ בוצע');
+    } else if (kind === 'stale' || kind === 'lost') {
       const b = db.tzBoxes.find((x) => x.id === id);
       if (b) setCollectFor(b);
     } else if (kind === 'inactiveCoord') {
@@ -180,8 +192,8 @@ export function HomeTab(props: { onOpenCoordinator: (id: string) => void }) {
                   <div style={{ fontSize: 13, fontWeight: 700 }}>{item.label}</div>
                   <div style={{ fontSize: 12, color: 'var(--ink-faint)' }}>{item.hint}</div>
                 </div>
-                <Btn sm onClick={() => careAction(item.kind, item.id)}>
-                  {item.kind === 'stale' || item.kind === 'lost' ? '💰 ריקון' : item.kind === 'inactiveCoord' ? 'לכרטיס ←' : '✎ מבצע'}
+                <Btn sm onClick={() => careAction(item.kind, item.id, item.date)}>
+                  {item.kind === 'reminder' ? '✓ בוצע' : item.kind === 'stale' || item.kind === 'lost' ? '💰 ריקון' : item.kind === 'inactiveCoord' ? 'לכרטיס ←' : '✎ מבצע'}
                 </Btn>
               </div>
             ))}
@@ -221,6 +233,23 @@ export function HomeTab(props: { onOpenCoordinator: (id: string) => void }) {
                           }}
                         >
                           סגירה
+                        </Btn>
+                      )}
+                      {canDelete && (
+                        <Btn
+                          sm
+                          kind="danger"
+                          title={'מחיקת ה' + termOf(config, 'entity.tzCampaign', 'מבצע')}
+                          onClick={() => {
+                            if (!confirmTwice('tzp-' + p.id, 'למחוק את "' + p.name + '"?')) {
+                              toast('בטוחים? לחיצה נוספת בתוך 3.5 שניות תמחק. הריקונים נשארים — רק השיוך למבצע יימחק');
+                              return;
+                            }
+                            deleteTzCampaign(p.id);
+                            toast('"' + p.name + '" נמחק · הריקונים שלו נשארו בלי שיוך');
+                          }}
+                        >
+                          {armed === 'tzp-' + p.id ? 'בטוח?' : '🗑'}
                         </Btn>
                       )}
                     </span>

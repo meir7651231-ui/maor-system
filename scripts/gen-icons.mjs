@@ -1,4 +1,6 @@
 /**
+ * ⚠ מאז 22.10.2026 האייקונים (וגם icons/favicon-64.png) = סמל אורביט — כדור-רשת+טבעת, נוצרו מתמונת-הבעלים
+ *   (public/orbit/orbit-mark.jpg). אל תריצו מחדש מ-favicon.svg (הברק הישן) — זה יחזיר את הברק.
  * מחולל אייקוני-PWA — מרנדר את public/favicon.svg ב-Chromium ומצלם PNG:
  * icon-192 · icon-512 (שקופים-לבנים) · icon-maskable-512 (רקע מלא + שוליים
  * בטוחים 20% לעיגול-האנדרואיד) · apple-touch-icon (180, רקע מלא — iOS לא

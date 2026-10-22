@@ -1,0 +1,369 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>החנות של אורביט</title>
+<link rel="icon" type="image/png" href="../../icons/favicon-64.png?v=2">
+<link rel="stylesheet" href="../../fonts/fonts.css">
+<style>
+/* layout: Orbit's night sky; three doors up top, then the system builder (field → always included → add-ons → live total), then shelves of ready-made products. Every card answers: what it is, who it is for, what you get, how it is priced. */
+:root {
+  --n1: #1a2340; --n2: #0d1120; --n3: #070a12;
+  --ink-rgb: 238,241,251; --hi-rgb: 255,255,255; --a-rgb: 110,168,254;
+  --ink: rgb(var(--ink-rgb)); --muted: rgba(var(--ink-rgb),.68); --faint: rgba(var(--ink-rgb),.54);
+  --glass: rgba(var(--hi-rgb),.035); --glass2: rgba(var(--hi-rgb),.06); --line: rgba(var(--hi-rgb),.12); --line2: rgba(var(--hi-rgb),.2);
+  --card: linear-gradient(rgba(22,24,38,.86), rgba(11,12,20,.93)); --sheet: linear-gradient(rgba(22,24,38,.98), rgba(11,12,20,.99));
+  --a: #6ea8fe; --a2: #8fa8ff; --soft: rgba(var(--a-rgb),.16); --glow: rgba(var(--a-rgb),.28);
+  --btn: linear-gradient(var(--a2), var(--a)); --on-a: #fff; --ok: #7ee2a6; --soon: #f3c66b;
+  --display: "Frank Ruhl Libre", "Noto Serif Hebrew", David, serif; --body: "Heebo", system-ui, sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { background: var(--n3); scroll-padding-top: 90px; }
+body { margin: 0; color: var(--ink); font: 15.5px/1.55 var(--body); direction: rtl; min-height: 100vh;
+  background: radial-gradient(125% 100% at 72% 6%, var(--n1) 0%, var(--n2) 46%, var(--n3) 100%) fixed; transition: background .5s ease, color .4s ease; }
+button, input { font: inherit; color: inherit; } button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--a); outline-offset: 2px; }
+[hidden] { display: none !important; }
+#sky { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+.pad { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.in { max-width: 1180px; margin: 0 auto; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--n2); }
+header { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); background: rgba(var(--hi-rgb),.03); border-bottom: 1px solid var(--line); }
+header .in { display: flex; gap: 12px; align-items: center; padding-block: 10px; }
+.brand { display: flex; gap: 8px; align-items: center; background: none; border: 0; padding: 0; }
+.brand b { font: 700 21px var(--display); } .brand small { color: var(--faint); font-size: 12px; display: block; line-height: 1; }
+.search { flex: 1; min-width: 0; }
+.search input { width: 100%; border: 1px solid var(--line); background: var(--glass2); border-radius: 13px; padding: 10px 14px; color: var(--ink); }
+.search input::placeholder { color: var(--faint); }
+.mine { border: 1px solid rgba(var(--a-rgb),.5); background: var(--btn); color: var(--on-a); border-radius: 13px; padding: 9px 14px; font-weight: 700; display: flex; gap: 8px; align-items: center; white-space: nowrap; }
+.mine i { font-style: normal; background: rgba(255,255,255,.25); border-radius: 999px; min-width: 22px; text-align: center; font-size: 12px; padding: 1px 6px; }
+@media (max-width: 560px) { .brand small, .mine span { display: none; } }
+main { position: relative; z-index: 1; }
+main .in { display: grid; gap: 54px; padding-block: 30px 120px; }
+main .in > * { min-width: 0; }
+h1, h2, h3 { margin: 0; }
+.eyebrow { font-size: 12px; letter-spacing: .12em; color: var(--faint); font-weight: 600; }
+h2 { font: 700 clamp(24px, 3.2vw, 32px)/1.2 var(--display); text-wrap: balance; }
+.lede { color: var(--muted); margin: 6px 0 0; max-width: 62ch; }
+.intro h1 { font: 800 clamp(32px, 5vw, 52px)/1.08 var(--display); text-wrap: balance; }
+.intro h1 em { font-style: normal; background: linear-gradient(100deg, var(--a2), var(--a)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.doors { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-top: 22px; }
+@media (max-width: 1000px) { .doors { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .doors { grid-template-columns: 1fr; } }
+.ups { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.up .num { z-index: 2; position: absolute; top: 10px; right: 10px; width: 30px; height: 30px; border-radius: 999px; display: grid; place-items: center; font-weight: 800; background: var(--btn); color: var(--on-a); }
+.pc.up { position: relative; }
+.bundle { border: 1px solid rgba(var(--a-rgb),.5); background: var(--card); border-radius: 20px; padding: 18px; display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; justify-content: space-between; box-shadow: 0 0 60px -26px var(--glow); }
+.bundle b { font-size: 18px; } .bundle p { margin: 4px 0 0; color: var(--muted); font-size: 14px; max-width: 60ch; }
+.door { text-align: right; border: 1px solid var(--line); background: var(--card); border-radius: 20px; padding: 18px; display: grid; gap: 6px; box-shadow: inset 0 1px 0 rgba(255,255,255,.07); }
+.door:hover { border-color: rgba(var(--a-rgb),.55); box-shadow: 0 0 60px -26px var(--glow); }
+.door .e { font-size: 28px; } .door b { font-size: 18px; } .door span { color: var(--muted); font-size: 14px; } .door small { color: var(--a2); font-weight: 700; font-size: 13.5px; }
+.step { display: grid; gap: 12px; }
+.sh { display: flex; gap: 12px; align-items: baseline; flex-wrap: wrap; }
+.sh .n { font: 800 15px var(--body); color: var(--on-a); background: var(--btn); border-radius: 999px; width: 28px; height: 28px; display: grid; place-items: center; flex: none; }
+.sh h3 { font: 700 22px var(--display); }
+.sh p { margin: 0; color: var(--muted); font-size: 14px; flex-basis: 100%; padding-right: 40px; }
+.eds { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.ed { position: relative; border: 1px solid var(--line); background: var(--glass); border-radius: 14px; padding: 10px 12px; text-align: right; display: grid; gap: 1px; }
+.ed[aria-pressed="true"] { border-color: rgba(var(--a-rgb),.85); background: var(--soft); box-shadow: 0 0 0 1px rgba(var(--a-rgb),.5), 0 0 30px -12px var(--glow); }
+.ed .e { font-size: 20px; } .ed b { font-size: 14px; } .ed small { color: var(--faint); font-size: 11.5px; }
+.ed .sw { display: flex; gap: 3px; margin-top: 4px; } .ed .sw i { width: 14px; height: 5px; border-radius: 3px; }
+.ed .soon { position: absolute; top: 8px; left: 8px; font-size: 10.5px; font-weight: 700; color: #241a05; background: var(--soon); border-radius: 999px; padding: 0 7px; }
+.edview { display: grid; grid-template-columns: 1.05fr .95fr; gap: 18px; align-items: center; border: 1px solid var(--line); background: var(--card); border-radius: 22px; padding: 16px; }
+@media (max-width: 820px) { .edview { grid-template-columns: 1fr; } }
+.edview > * { min-width: 0; }
+.edview figure { margin: 0; border-radius: 14px; overflow: hidden; border: 1px solid var(--line2); }
+.edview img { display: block; width: 100%; aspect-ratio: 16/10; object-fit: cover; object-position: top; }
+.edview h4 { margin: 0; font: 700 22px var(--display); }
+.edview .tn { color: var(--a2); font-weight: 700; font-size: 13px; }
+.edview p { color: var(--muted); margin: 6px 0 10px; font-size: 14.5px; }
+.basegrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; }
+.bg { border: 1px solid var(--line); background: var(--glass); border-radius: 12px; padding: 10px 12px; display: grid; gap: 2px; }
+.bg b { font-size: 14px; } .bg span { color: var(--faint); font-size: 12.5px; }
+.bg b::before { content: "✓ "; color: var(--ok); }
+.packs { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px; }
+.pk { border: 1px solid var(--line); background: var(--card); border-radius: 16px; padding: 14px; display: grid; gap: 8px; align-content: start; position: relative; }
+.pk[aria-checked="true"] { border-color: rgba(var(--a-rgb),.85); box-shadow: 0 0 0 1px rgba(var(--a-rgb),.5), 0 0 40px -16px var(--glow); }
+.pk .top { display: flex; justify-content: space-between; gap: 10px; align-items: start; }
+.pk b { font-size: 16px; } .pk p { margin: 0; color: var(--muted); font-size: 13.5px; }
+.pk .price { font-weight: 800; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.pk .price small { font-weight: 500; color: var(--faint); font-size: 11.5px; }
+.pk .rec { position: absolute; top: -9px; right: 14px; font-size: 11px; font-weight: 700; background: var(--btn); color: var(--on-a); border-radius: 999px; padding: 1px 9px; }
+.pk .row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.tog { border: 1px solid var(--line2); background: var(--glass2); border-radius: 10px; padding: 6px 12px; font-weight: 700; font-size: 13.5px; }
+.pk[aria-checked="true"] .tog { background: var(--btn); color: var(--on-a); border-color: transparent; }
+.link { border: 0; background: none; padding: 0; color: var(--a2); font-weight: 600; font-size: 13.5px; }
+.total { position: sticky; bottom: calc(env(safe-area-inset-bottom, 0px) + 12px); z-index: 10; border: 1px solid rgba(var(--a-rgb),.5); background: var(--sheet); border-radius: 18px; padding: 12px 16px; display: flex; gap: 12px 18px; align-items: center; justify-content: space-between; flex-wrap: wrap; box-shadow: 0 20px 60px -20px rgba(0,0,0,.7), 0 0 50px -20px var(--glow); }
+.total .what { display: grid; gap: 1px; min-width: 0; } .total .what b { font-size: 15px; } .total .what span { color: var(--faint); font-size: 12.5px; }
+.total .sum { font: 800 24px var(--body); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.total .sum small { font-size: 12px; font-weight: 500; color: var(--faint); }
+.btn { border: 1px solid rgba(var(--a-rgb),.5); background: var(--btn); color: var(--on-a); border-radius: 13px; padding: 10px 18px; font-weight: 700; box-shadow: 0 12px 30px -14px var(--glow); }
+.btn.ghost { background: var(--glass2); color: var(--ink); border-color: var(--line); box-shadow: none; }
+.shelf { display: grid; gap: 12px; }
+.shelf h3 { font: 700 20px var(--display); }
+.prods { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; }
+.pc { text-align: right; border: 1px solid var(--line); background: var(--card); border-radius: 18px; overflow: hidden; display: grid; grid-template-rows: auto 1fr; padding: 0; }
+.pc:hover { border-color: rgba(var(--a-rgb),.5); }
+.pc .im { aspect-ratio: 16/9; background: radial-gradient(120% 90% at 70% 10%, rgba(var(--a-rgb),.22), rgba(0,0,0,.5) 70%); display: grid; place-items: center; font-size: 34px; overflow: hidden; }
+.pc .im img { width: 100%; height: 100%; object-fit: cover; object-position: top; filter: brightness(.88); }
+.pc .bd { padding: 12px 14px 14px; display: grid; gap: 6px; align-content: start; }
+.pc b { font-size: 16px; line-height: 1.3; }
+.pc p { margin: 0; color: var(--muted); font-size: 13.5px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.facts { display: flex; flex-wrap: wrap; gap: 6px; }
+.pill { font-size: 11.5px; border-radius: 999px; padding: 2px 9px; border: 1px solid var(--line); color: var(--muted); }
+.uses { font-size: 12.5px; color: var(--a2); font-weight: 600; }
+.pill.fit { color: var(--a2); border-color: rgba(var(--a-rgb),.35); }
+.fitbox { border: 1px solid rgba(var(--a-rgb),.4); background: var(--soft); border-radius: 14px; padding: 12px 14px; display: grid; gap: 6px; font-size: 14px; }
+.fitbox b { font-size: 14.5px; } .fitbox .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.fitbox .chips span { border: 1px solid rgba(var(--a-rgb),.4); border-radius: 999px; padding: 2px 10px; font-size: 13px; }
+.proof { font-size: 13px; color: var(--faint); }
+.pill.ty { color: var(--ink); border-color: rgba(var(--a-rgb),.45); background: var(--soft); font-weight: 600; }
+.pill.ok { color: var(--ok); border-color: rgba(126,226,166,.35); } .pill.soon { color: var(--soon); border-color: rgba(243,198,107,.35); }
+.results { display: grid; gap: 8px; }
+.res { text-align: right; border: 1px solid var(--line); background: var(--glass); border-radius: 12px; padding: 10px 14px; display: grid; gap: 2px; }
+.res b { font-size: 15px; } .res span { color: var(--muted); font-size: 13px; } .res small { color: var(--a2); font-size: 12.5px; font-weight: 600; }
+.scrim { position: fixed; inset: 0; background: rgba(4,6,12,.62); backdrop-filter: blur(3px); z-index: 40; }
+.sheet { position: fixed; z-index: 41; inset: 0 0 0 auto; width: min(560px, 100%); background: var(--sheet); border-inline-start: 1px solid var(--line); overflow-y: auto; display: grid; gap: 14px; align-content: start; grid-auto-rows: max-content;
+  padding: calc(env(safe-area-inset-top, 0px) + 18px) max(20px, env(safe-area-inset-left, 0px)) calc(env(safe-area-inset-bottom, 0px) + 24px) max(20px, env(safe-area-inset-right, 0px)); }
+.sheet h3 { font: 700 26px/1.2 var(--display); }
+.sheet .x { border: 1px solid var(--line); background: var(--glass2); border-radius: 999px; width: 36px; height: 36px; font-size: 18px; justify-self: end; }
+.sheet figure { margin: 0; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); }
+.sheet figure img { display: block; width: 100%; aspect-ratio: 16/10; object-fit: cover; object-position: top; }
+.qa { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; border: 1px solid var(--line); background: var(--glass); border-radius: 14px; padding: 12px 14px; font-size: 14px; }
+.qa dt { color: var(--faint); } .qa dd { margin: 0; font-weight: 600; }
+.inc { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.inc li { border-bottom: 1px solid var(--line); padding-bottom: 6px; font-size: 14px; }
+.inc li b { display: block; } .inc li span { color: var(--faint); font-size: 12.5px; }
+.basket li { display: flex; justify-content: space-between; gap: 10px; }
+.note { color: var(--faint); font-size: 13px; }
+.demo { border: 1px dashed var(--line2); border-radius: 12px; padding: 8px 12px; font-size: 13.5px; color: var(--muted); }
+</style>
+
+<canvas id="sky" aria-hidden="true"></canvas>
+<header class="pad"><div class="in">
+  <button class="brand" id="top" aria-label="לראש החנות"><img src="../orbit-mark.jpg" alt="" width="34" height="34" style="border-radius:10px;display:block"><span><b>אורביט</b><small>החנות</small></span></button>
+  <label class="search"><input id="q" type="search" placeholder="מה אתם צריכים? למשל: קבלות, תורים, מלאי…" aria-label="חיפוש" autocomplete="off"></label>
+  <button class="mine" id="mine"><span>הבחירה שלי</span><i id="mineN">0</i></button>
+</div></header>
+
+<main class="pad"><div class="in" id="view"></div></main>
+<div id="layer"></div>
+
+<script>
+(async () => {
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+  const fmt = n => "₪" + Math.round(n).toLocaleString("he-IL");
+  let D; try { D = await (await fetch("data.json")).json(); } catch (e) { $("view").innerHTML = '<p>הנתונים לא נטענו. רעננו את הדף.</p>'; return; }
+  const IT = D.items, PK = D.packs, PR = D.products, ED = D.editions;
+  let UP = []; try { UP = await (await fetch("upgrade.json")).json(); } catch (e) {}
+  const UPIMG = { map: "map", convert: "conv", assemble: "asm", design: "des", verify: "ver", clean: "clean" };
+  const UPUSES = ["מערכת ישנה שאין מי שיתחזק", "אתר שגדל ונהיה כבד", "אקסלים שהפכו למערכת", "מעבר מאתר לאפליקציה"];
+  const BASE = 290, SETUP = 1500;
+  const REC = { chesed: ["donors", "receipts", "dist"], clinic: ["rooms", "payments", "msg"], shop: ["shop", "receipts", "payments"], services: ["payments", "receipts", "msg"], rooms: ["rooms", "payments"], fleet: ["rooms", "payments"], garage: ["shop", "receipts", "msg"], hospitality: ["rooms", "payments", "site"], gemach: ["dist", "donors"], tzedakot: ["donors", "payments", "phone"], digital: ["payments", "reports"], build: ["payments", "reports"], field: ["payments", "msg"], supplier: ["shop", "reports"], edu: ["courses", "payments", "msg"], community: ["dist", "phone", "site"] };
+  const BASEG = [["לקוחות ואנשי קשר", "כרטיס לכל לקוח, היסטוריה וחיפוש"], ["יומן ומשימות", "יומן, תזכורות ומשימות לצוות"], ["צוות והרשאות", "כל עובד רואה רק את מה שצריך"], ["אבטחה וגיבוי", "הצפנה, גיבוי אוטומטי ושחזור"], ["ייבוא מאקסל ומהטלפון", "מכניסים את הרשימות הקיימות בדקות"], ["אפליקציה בטלפון ובמחשב", "עובדת גם בלי אינטרנט"]];
+  const st = { ed: "", picks: new Set(), cart: new Set() };
+
+  // ---- ערכת הנושא של התחום
+  const hex = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)).join(",");
+  function theme(th) {
+    const r = document.documentElement.style;
+    if (!th) { ["--n1", "--n2", "--n3", "--a", "--a2", "--a-rgb", "--ink-rgb", "--hi-rgb", "--card", "--sheet", "--ok", "--soon", "color-scheme"].forEach(k => r.removeProperty(k)); r.background = ""; return; }
+    const dark = th.mode === "dark", set = (k, v) => r.setProperty(k, v);
+    set("--n1", th.n1); set("--n2", th.n2); set("--n3", th.n3); set("--a", th.a); set("--a2", th.a2); set("--a-rgb", hex(dark ? th.a2 : th.a));
+    set("--ink-rgb", dark ? "238,241,251" : "28,30,38"); set("--hi-rgb", dark ? "255,255,255" : "24,28,44");
+    set("--card", dark ? "linear-gradient(rgba(22,24,38,.86), rgba(11,12,20,.93))" : "linear-gradient(rgba(255,255,255,.92), rgba(255,255,255,.97))");
+    set("--sheet", dark ? "linear-gradient(rgba(22,24,38,.98), rgba(11,12,20,.99))" : "linear-gradient(#fff, #fff)");
+    set("--ok", dark ? "#7ee2a6" : "#1f8a4c"); set("--soon", dark ? "#f3c66b" : "#9a6a00"); set("color-scheme", dark ? "dark" : "light");
+    r.background = th.n3;
+  }
+  const E = id => ED.find(e => e.id === id);
+  const P = i => PK.find(p => p.key === i);
+  const monthly = () => BASE + [...st.picks].reduce((s, k) => s + P(k).price, 0);
+
+  // ---- מסך ראשי
+  function home() {
+    const e = E(st.ed), rec = REC[st.ed] || [];
+    $("view").innerHTML = `
+    <section class="intro">
+      <span class="eyebrow">החנות של אורביט</span>
+      <h1>מערכת אחת לכל העסק, <em>ומוצרים מוכנים</em> סביבה</h1>
+      <p class="lede">בונים את המערכת שלכם בשלושה צעדים, או בוחרים מוצר מוכן. כל דבר כאן מראה מה הוא, למי הוא ומה מקבלים.</p>
+      <div class="doors">
+        <button class="door" data-go="sys"><span class="e"><img src="../orbit-mark.jpg" alt="" width="40" height="40" style="border-radius:12px;display:block"></span><b>מערכת ניהול לעסק</b><span>לקוחות, יומן, תשלומים, קבלות ודוחות. בשפה ובצבעים של התחום שלכם.</span><small>בונים בשלושה צעדים ›</small></button>
+        <button class="door" data-go="prods"><span class="e">📦</span><b>פתרונות מותאמים</b><span>${PR.length} פתרונות שכבר עובדים, ומותאמים לעסק שלכם בהקמה.</span><small>לכל הפתרונות ›</small></button>
+        <button class="door" data-go="upgrade"><span class="e">🔁</span><b>יש לכם כבר מערכת?</b><span>משדרגים אותה: מיפוי, המרה לטכנולוגיה חדשה, בנייה מחדש ובדיקה, בלי לאבד כלום.</span><small>לשדרוג מערכת ›</small></button>
+        <button class="door" data-go="search"><span class="e">🔎</span><b>לא בטוחים מה צריך?</b><span>כתבו במילים שלכם, ונראה לכם איפה זה נמצא.</span><small>לחיפוש ›</small></button>
+      </div>
+    </section>
+
+    <section id="sys" class="step">
+      <span class="eyebrow">מערכת הניהול</span>
+      <h2>בונים את המערכת שלכם</h2>
+      <div class="step">
+        <div class="sh"><span class="n">1</span><h3>במה העסק עוסק?</h3><p>המערכת מדברת בשפה של התחום ומקבלת את הצבעים שלו.</p></div>
+        <div class="eds">${ED.map(x => `<button class="ed" data-ed="${x.id}" aria-pressed="${st.ed === x.id}">${x.soon ? '<span class="soon">בקרוב</span>' : ""}<span class="e">${x.emoji}</span><b>${esc(x.label)}</b><small>${esc(x.sub)}</small><span class="sw" aria-hidden="true"><i style="background:${x.th.n2}"></i><i style="background:${x.th.a}"></i><i style="background:${x.th.a2}"></i></span></button>`).join("")}</div>
+        ${e ? `<div class="edview"><figure><img src="${esc(e.img)}" alt="${esc(e.alt || "כך נראית המערכת ל" + e.label)}"></figure>
+          <div><span class="tn">ערכת נושא: ${esc(e.th.name)}</span><h4>${e.emoji} אורביט ל${esc(e.label)}</h4>
+          <p>${e.lead ? esc((IT[e.lead] || {}).d || "") : "המערכת לתחום הזה בהכנה. אפשר כבר להירשם, ונחזור אליכם כשהיא מוכנה."}</p>
+          <p class="note">מומלץ לתחום: ${rec.map(k => esc(P(k).n)).join(" · ")}</p></div></div>` : ""}
+      </div>
+      <div class="step">
+        <div class="sh"><span class="n">2</span><h3>מה כלול תמיד</h3><p>הבסיס של כל מערכת, כלול תמיד.</p></div>
+        <div class="basegrid">${BASEG.map(([b, s]) => `<div class="bg"><b>${b}</b><span>${s}</span></div>`).join("")}</div>
+        <button class="link" data-base>כל ${D.base.length} היכולות שבבסיס ›</button>
+      </div>
+      <div class="step">
+        <div class="sh"><span class="n">3</span><h3>מוסיפים מה שצריך</h3><p>כל תוספת היא חבילה שלמה. אפשר להוסיף או להוריד גם אחרי ההרשמה.</p></div>
+        <div class="packs">${PK.map(p => `<div class="pk" role="group" aria-checked="${st.picks.has(p.key)}">${rec.includes(p.key) ? '<span class="rec">מומלץ לתחום</span>' : ""}
+          <div class="top"><b>${esc(p.n)}</b></div><p>${esc(p.d)}</p>${p.uses ? `<div class="uses">למשל: ${p.uses.map(esc).join(" · ")}</div>` : ""}
+          <div class="row"><button class="link" data-pack-info="${p.key}">${p.inc.length} יכולות בחבילה ›</button><button class="tog" data-pack="${p.key}" aria-pressed="${st.picks.has(p.key)}">${st.picks.has(p.key) ? "נוסף ✓" : "+ הוספה"}</button></div></div>`).join("")}</div>
+      </div>
+      <div class="total" aria-live="polite">
+        <div class="what"><b>${e ? `${e.emoji} אורביט ל${esc(e.label)}` : "המערכת שלכם"} · בסיס${st.picks.size ? " + " + st.picks.size + " תוספות" : ""}</b><span>הכול מותאם אצלכם בהקמה · נחזור אליכם עם הצעה אישית</span></div>
+        
+        <button class="btn" data-signup>פתיחת המערכת</button>
+      </div>
+    </section>
+
+    <section id="upgrade" class="step">
+      <span class="eyebrow">שדרוג מערכת קיימת</span>
+      <h2>יש לכם כבר מערכת? לא זורקים, משדרגים</h2>
+      <p class="lede">מערכת ישנה, אתר שגדל או אקסלים שהפכו למערכת: עוברים איתה חמישה שלבים, ובסוף יש לכם מערכת עדכנית שעובדת בדיוק כמו קודם, רק טוב יותר. כל שלב נשען על מנועים שכבר עובדים, ומותאם אצלכם בהקמה.</p>
+      <div class="ups">${UP.filter(u => u.key !== "clean").map((u, i) => upcard(u, i + 1)).join("")}</div>
+      <div class="bundle"><div><b>שדרוג מערכת קיימת · כל חמשת השלבים</b><p>אפשר להתחיל בשלב המיפוי בלבד, ולהחליט אחריו.</p></div><button class="btn" data-cart="up-all">${st.cart.has("up-all") ? "בבחירה שלי ✓" : "הוספה לבחירה שלי"}</button></div>
+      <div class="shelf"><h3>אפשר גם בנפרד</h3><div class="ups">${UP.filter(u => u.key === "clean").map(u => upcard(u, 0)).join("")}</div></div>
+    </section>
+
+    <section id="prods" class="step">
+      <span class="eyebrow">פתרונות מותאמים</span>
+      <h2>פתרונות שמותאמים לעסק שלכם</h2>
+      <p class="lede">כל אחד מאלה הוא עיקרון שכבר עובד. בהקמה מתאימים אותו לעסק שלכם, עד הפרט האחרון.</p>
+      ${D.shelves.map(([k, name]) => `<div class="shelf"><h3>${esc(name)}</h3><div class="prods">${PR.map((p, i) => [p, i]).filter(([p]) => p.shelf === k).map(([p, i]) => pcard(p, i)).join("")}</div></div>`).join("")}
+    </section>`;
+  }
+  const upcard = (u, n) => `<button class="pc up" data-up="${u.key}">${n ? `<span class="num">${n}</span>` : ""}<div class="im"><img src="img/up-${UPIMG[u.key]}.jpg" alt="" loading="lazy"></div>
+    <div class="bd"><b>${esc(u.n)}</b><p>${esc(u.d)}</p><div class="uses">מקבלים: ${esc(u.get)}</div><div class="facts"><span class="pill ty">שירות</span><span class="pill fit">מותאם בהקמה</span><span class="pill ok">${u.count} מנועים</span></div></div></button>`;
+  const status = v => v ? '<span class="pill ok">זמין עכשיו</span>' : '<span class="pill soon">בקרוב</span>';
+  const pcard = (p, i) => `<button class="pc" data-prod="${i}"><div class="im">${p.img ? `<img src="${esc(p.img)}" alt="" loading="lazy">` : "🧾"}</div>
+    <div class="bd"><b>${esc(p.n)}</b><p>${esc(p.d)}</p>${p.uses ? `<div class="uses">למשל: ${p.uses.map(esc).join(" · ")}</div>` : ""}<div class="facts"><span class="pill ty">${esc(p.ty)}</span><span class="pill fit">מותאם בהקמה</span>${p.inc.length ? `<span class="pill">כולל ${p.inc.length} יכולות</span>` : ""}${p.status === "חדש" ? '<span class="pill soon">חדש</span>' : status(p.v)}</div></div></button>`;
+
+  // ---- חיפוש: מראה את המוצר או החבילה, גם כשהמילה נמצאת בתוך יכולת
+  /*SEARCH-CORE*/
+  const norm = s => String(s).toLowerCase().replace(/[״"'׳]/g, "").replace(/[םןץףך]/g, c => ({ "ם": "מ", "ן": "נ", "ץ": "צ", "ף": "פ", "ך": "כ" })[c]).replace(/יי/g, "י").replace(/וו/g, "ו").replace(/[־–-]/g, " ");
+  const PRE = /^(וה|שה|מה|לה|בה|ו|ה|ב|ל|מ|ש|כ)(?=...)/;
+  // מילים נרדפות — מה שאנשים מקלידים ⇒ איך זה כתוב בחנות
+  const SYN = { "crm": ["לקוחות", "אנשי קשר"], "הנהלת": ["קבלות", "חשבונית", "דוחות"], "חשבונות": ["קבלות", "חשבונית"], "הנהח": ["קבלות", "חשבונית"], "משכורות": ["שכר", "עובדים", "משמרות"], "שכר": ["עובדים", "משמרות"],
+    "תמחיר": ["הצעת מחיר", "מחשבון", "עלות"], "boq": ["כתב כמויות", "הצעת מחיר"], "כמויות": ["הצעת מחיר", "מחשבון"], "מטפלים": ["קליניקה", "טיפול", "תורים"], "מטפל": ["קליניקה", "טיפול"], "פסיכולוג": ["קליניקה", "טיפול", "תורים"], "רופא": ["קליניקה", "רפואה", "תורים"],
+    "וטרינר": ["קליניקה", "תורים"], "מספרה": ["קליניקה", "תורים", "קוסמטיקה"], "ספר": ["קליניקה", "תורים"], "ציפורניים": ["קוסמטיקה", "קליניקה"], "שליחויות": ["שליחים", "משלוחים"], "שליח": ["שליחים", "משלוחים"], "ספורט": ["כושר", "אימון"], "חדר כושר": ["כושר", "אימון"],
+    "מתמטיקה": ["לימוד", "שאלות"], "שיעורים": ["לימוד", "חוגים"], "בית כנסת": ["קהילה", "תפילה", "גבאי"], "כנסת": ["קהילה", "תפילה"], "ישיבה": ["מוסד תורני", "חינוך", "תלמידים"], "כולל": ["מוסד תורני", "תלמידים"], "תלמוד": ["מוסד תורני", "חינוך"],
+    "אולם": ["חללים", "אולמות"], "אולמות": ["חללים"], "מרכזיה": ["מרכזיה", "טלפוניה"], "סמס": ["sms", "הודעות"], "sms": ["הודעות"], "ווטסאפ": ["וואטסאפ", "whatsapp"], "וטסאפ": ["וואטסאפ"], "whatsapp": ["וואטסאפ"], "הוראת": ["קבע", "תשלומים"], "קבע": ["הוראת קבע", "תשלומים"],
+    "מזגנים": ["מיזוג"], "מזגן": ["מיזוג"], "טכנאי": ["שטח", "תיקונים"], "טכנאים": ["שטח"], "מלונית": ["אירוח"], "אכסניה": ["אירוח"], "ריהוט": ["השאלת ציוד"], "השאלה": ["השאלות", "גמח"] };
+  const forms = w => { const f = new Set([w]); const m = w.match(PRE); if (m) f.add(w.slice(m[0].length)); for (const x of [...f]) { const b = x.replace(/(ים|ות)$/, ""); if (b.length >= 3) f.add(b); const h = x.replace(/[הת]$/, ""); if (h.length >= 3) f.add(h); } return [...f]; };
+  const toks = t => norm(t).split(/[^0-9a-zא-ת]+/).filter(Boolean).flatMap(w => { const m = w.match(PRE); return m ? [w, w.slice(m[0].length)] : [w]; });
+  // התאמה בתחילת-מילה בלבד (לא באמצע מילה: "גן" לא מוצא "ארגון"); מונח רב-מילתי — כביטוי
+  const tokHit = (tk, f) => f.includes(" ") ? tk.join(" ").includes(f) : tk.some(w => w.startsWith(f));
+  const SYNN = Object.fromEntries(Object.entries(SYN).map(([k, v]) => [norm(k), v.map(norm)]));
+  function matcher(q) {
+    const raw = norm(q).replace(/[^0-9a-zא-ת]+/g, " ").trim(); const words = raw.split(" ").filter(Boolean);
+    const groups = words.map(w => [...new Set([...forms(w), ...(SYNN[w] || [])])]);
+    if (SYNN[raw] && words.length > 1) groups.splice(0, groups.length, [raw, ...SYNN[raw]]);
+    const hit = t => { const tk = toks(t); return groups.every(fs => fs.some(f => tokHit(tk, f))); };
+    const exact = t => { const tk = toks(t); return groups.every(fs => tokHit(tk, fs[0])); };
+    return { hit, exact };
+  }
+  /*END-SEARCH-CORE*/
+  function search(q) {
+    const { hit, exact } = matcher(q);
+    const sc = (n, d, inner) => (exact(n) ? 6 : hit(n) ? 3 : 0) + (exact(d) ? 2 : hit(d) ? 1 : 0) + Math.min(inner, 5) * .3;
+    const out = [];
+    PK.forEach(p => { const inner = p.inc.filter(i => hit(IT[i].n + " " + IT[i].d)); if (hit(p.n + " " + p.d + " " + (p.uses || []).join(" ")) || inner.length) out.push({ kind: "pack", key: p.key, n: p.n, d: p.d, where: "תוספת למערכת הניהול", inner, score: sc(p.n, p.d, inner.length) }); });
+    PR.forEach((p, idx) => { const inner = p.inc.filter(i => hit(IT[i].n + " " + IT[i].d)); const lead = IT[p.lead] ? IT[p.lead].n + " " + IT[p.lead].d : ""; const extra = [(p.uses || []).join(" "), p.proof || "", p.orig_n || "", lead, p.who || ""].join(" ");
+      if (hit(p.n + " " + p.d + " " + extra) || inner.length) out.push({ kind: "prod", idx, n: p.n, d: p.d, where: p.ty + " · מותאם בהקמה", inner, score: sc(p.n, p.d + " " + extra, inner.length) }); });
+    UP.forEach(u => { const inner = u.inc.filter(x => hit(x.n + " " + x.d)).map(x => x.n); if (hit(u.n + " " + u.d + " " + UPUSES.join(" ") + " שדרוג המרה הסבה מיגרציה מערכת ישנה") || inner.length) out.push({ kind: "up", key: u.key, n: u.n, d: u.d, where: "שדרוג מערכת קיימת · שירות", innerN: inner, inner: [], score: sc(u.n, u.d, inner.length) + (hit(u.n) ? 1 : 0) }); });
+    // תחומים (16 המהדורות) — "קוסמטיקה", "מוסך", "בית כנסת" מגיעים למערכת של התחום
+    ED.forEach(e => { if (hit(e.label + " " + e.sub + " " + (e.lead || ""))) out.push({ kind: "ed", key: e.id, n: "מערכת ניהול ל" + e.label, d: e.sub, where: "מערכת ניהול · " + e.sub, inner: [], score: sc(e.label, e.sub, 0) + 2 }); });
+    const inBase = D.base.filter(i => hit(IT[i].n + " " + IT[i].d));
+    if (inBase.length) out.push({ kind: "base", n: "כלול בבסיס של מערכת הניהול", d: "כלול תמיד", where: "מערכת הניהול", inner: inBase, score: 1 + Math.min(inBase.length, 5) * .3 });
+    out.sort((a, b) => b.score - a.score);
+    $("view").innerHTML = `<section class="step"><span class="eyebrow">חיפוש</span><h2>${out.length ? `מה שמצאנו עבור "${esc(q)}"` : `לא מצאנו "${esc(q)}"`}</h2>
+      <p class="lede">${out.length ? "כל תוצאה היא דבר אחד שאפשר לקבל. כשהמילה נמצאת בתוך יכולת, כתוב איפה." : "נסו מילה אחרת, או ספרו לנו מה צריך בבקשה."}</p>
+      <div class="results">${out.map(r => `<button class="res" ${r.kind === "pack" ? `data-pack-info="${r.key}"` : r.kind === "prod" ? `data-prod="${r.idx}"` : r.kind === "up" ? `data-up="${r.key}"` : r.kind === "ed" ? `data-ed="${r.key}"` : "data-base"}><b>${esc(r.n)}</b><span>${esc(r.where)}</span>${r.innerN && r.innerN.length ? `<small>נמצא בתוך: ${r.innerN.slice(0, 3).map(esc).join(" · ")}</small>` : ""}${r.inner.length ? `<small>נמצא בתוך: ${r.inner.slice(0, 3).map(i => esc(IT[i].n)).join(" · ")}${r.inner.length > 3 ? ` ועוד ${r.inner.length - 3}` : ""}</small>` : ""}</button>`).join("")}</div>
+      <button class="link" data-clearq>חזרה לחנות ›</button></section>`;
+  }
+
+  // ---- חלונות
+  const open = html => { $("layer").innerHTML = `<div class="scrim" data-close></div><aside class="sheet" role="dialog" aria-modal="true"><button class="x" data-close aria-label="סגירה">×</button>${html}</aside>`; $("layer").querySelector(".x").focus(); };
+  const incList = ids => `<ul class="inc">${ids.map(i => `<li><b>${esc(IT[i].n)}</b><span>${esc(IT[i].d)}</span></li>`).join("")}</ul>`;
+  function prodSheet(i) {
+    const p = PR[i], on = st.cart.has("p" + i);
+    open(`${p.img ? `<figure><img src="${esc(p.img)}" alt=""></figure>` : ""}<h3>${esc(p.n)}</h3><p>${esc(p.d)}</p>
+      <div class="fitbox"><b>מותאם אצלכם בהקמה</b><span>זה העיקרון. בהקמה בונים אותו לפי העסק שלכם: המונחים, השלבים, הטפסים והדוחות.</span><div class="chips">${(p.uses || []).map(u => `<span>${esc(u)}</span>`).join("")}</div></div>
+      <dl class="qa"><dt>מה זה</dt><dd>${esc(p.ty)}</dd><dt>מה מקבלים</dt><dd>${p.inc.length ? `המוצר ועוד ${p.inc.length} יכולות` : "המוצר עצמו"}</dd><dt>זמינות</dt><dd>${p.status === "חדש" ? "חדש" : p.v ? "זמין עכשיו" : "בקרוב"}</dd></dl>
+      <button class="btn" data-cart="p${i}">${on ? "בבחירה שלי ✓" : "הוספה לבחירה שלי"}</button>
+      ${p.inc.length ? `<h4 style="margin:6px 0 0">מה כלול</h4>${incList(p.inc)}` : ""}`);
+  }
+  let lastUp = "map";
+  function upSheet(k) {
+    lastUp = k; const u = UP.find(x => x.key === k);
+    open(`<figure><img src="img/up-${UPIMG[k]}.jpg" alt=""></figure><h3>${esc(u.n)}</h3><p>${esc(u.d)}</p>
+      <div class="fitbox"><b>מותאם אצלכם בהקמה</b><span>מתחילים מהמערכת שיש לכם היום, בכל טכנולוגיה, ובונים את השלב לפי מה שהיא צריכה.</span><div class="chips">${UPUSES.map(x => `<span>${esc(x)}</span>`).join("")}</div></div>
+      <dl class="qa"><dt>מה זה</dt><dd>שירות</dd><dt>מה מקבלים</dt><dd>${esc(u.get)}</dd><dt>נשען על</dt><dd>${u.count} מנועים, ${u.working} מהם עובדים ונבדקו</dd></dl>
+      <button class="btn" data-cart="up-all">${st.cart.has("up-all") ? "בבחירה שלי ✓" : "הוספה לבחירה שלי"}</button>
+      <h4 style="margin:6px 0 0">מה המנועים עושים</h4><ul class="inc">${u.inc.map(x => `<li><b>${esc(x.n)}</b><span>${esc(x.d)}</span></li>`).join("")}</ul>`);
+  }
+  function packSheet(k) {
+    const p = P(k), on = st.picks.has(k);
+    open(`${p.img ? `<figure><img src="${esc(p.img)}" alt=""></figure>` : ""}<h3>${esc(p.n)}</h3><p>${esc(p.d)}</p>
+      <div class="fitbox"><b>מותאם אצלכם בהקמה</b><span>החבילה מדברת בשפה של העסק שלכם ובנויה לפי איך שאתם עובדים.</span><div class="chips">${(p.uses || []).map(u => `<span>${esc(u)}</span>`).join("")}</div></div>
+      <dl class="qa"><dt>מה זה</dt><dd>תוספת למערכת הניהול</dd><dt>מה מקבלים</dt><dd>${p.inc.length} יכולות</dd></dl>
+      <button class="btn" data-pack="${k}">${on ? "נוסף למערכת ✓" : "הוספה למערכת"}</button><h4 style="margin:6px 0 0">מה כלול</h4>${incList(p.inc)}`);
+  }
+  function mine() {
+    const e = E(st.ed), prods = [...st.cart].map(c => c === "up-all" ? { n: "שדרוג מערכת קיימת" } : PR[+c.slice(1)]);
+    open(`<h3>הבחירה שלי</h3>
+      <dl class="qa"><dt>מערכת ניהול</dt><dd>${e ? `${e.emoji} אורביט ל${esc(e.label)}` : "עוד לא נבחר תחום"}</dd><dt>תוספות</dt><dd>${[...st.picks].map(k => esc(P(k).n)).join(", ") || "אין"}</dd></dl>
+      <button class="btn" data-start>פתיחת המערכת</button>
+      <h4 style="margin:6px 0 0">מוצרים מוכנים</h4>${prods.length ? `<ul class="inc basket">${prods.map(p => `<li><span>${esc(p.n)}</span><span class="note">בהצעה אישית</span></li>`).join("")}</ul><button class="btn ghost">בקשת הצעה למוצרים</button>` : '<p class="note">עוד לא נבחרו מוצרים.</p>'}
+      <p class="note">"פתיחת המערכת" ממשיכה להרשמה כשהתחום והתוספות כבר מסומנים.</p>`);
+  }
+  // מעבר להרשמה: בתוך אורביט (iframe) ⇒ הודעה לחלון-האב; עצמאי ⇒ מסך ההרשמה עם התחום
+  function start() {
+    const names = [...st.picks].map(k => P(k).n).concat([...st.cart].map(c => c === "up-all" ? "שדרוג מערכת קיימת" : PR[+c.slice(1)].n));
+    if (window.parent !== window) { window.parent.postMessage({ type: "orbit-store-start", ed: st.ed || "", picks: names }, location.origin); return; }
+    location.href = "../../?signup=1" + (st.ed ? "&v=" + encodeURIComponent(st.ed) : "");
+  }
+  const count = () => ($("mineN").textContent = (st.ed ? 1 : 0) + st.picks.size + st.cart.size);
+
+  // ---- אירועים
+  document.addEventListener("click", ev => {
+    const t = ev.target, g = s => t.closest(s);
+    if (g("[data-close]")) { $("layer").innerHTML = ""; return; }
+    let b;
+    if ((b = g("[data-go]"))) { const k = b.dataset.go; if (k === "search") $("q").focus(); else document.getElementById(k).scrollIntoView({ behavior: "smooth" }); return; }
+    if ((b = g(".res[data-ed]"))) { st.ed = b.dataset.ed; theme(E(st.ed).th); $("q").value = ""; home(); count(); const sec = document.getElementById("sys"); if (sec) sec.scrollIntoView(); return; }
+    if ((b = g("[data-ed]"))) { st.ed = st.ed === b.dataset.ed ? "" : b.dataset.ed; theme(st.ed ? E(st.ed).th : null); const y = scrollY; home(); scrollTo(0, y); count(); return; }
+    if ((b = g("[data-pack]"))) { const k = b.dataset.pack; st.picks.has(k) ? st.picks.delete(k) : st.picks.add(k); const inSheet = !!g(".sheet"); const y = scrollY; if (!$("q").value) { home(); scrollTo(0, y); } if (inSheet) packSheet(k); count(); return; }
+    if ((b = g("[data-pack-info]"))) { packSheet(b.dataset.packInfo); return; }
+    if ((b = g("[data-prod]"))) { prodSheet(+b.dataset.prod); return; }
+    if ((b = g("[data-up]"))) { upSheet(b.dataset.up); return; }
+    if ((b = g("[data-cart]"))) { const c = b.dataset.cart; st.cart.has(c) ? st.cart.delete(c) : st.cart.add(c); if (c === "up-all") { const inSheet = !!g(".sheet"); if (inSheet) upSheet(lastUp); else { const y = scrollY; home(); scrollTo(0, y); } } else prodSheet(+c.slice(1)); count(); return; }
+    if (g("[data-base]")) { open(`<h3>מה כלול בבסיס</h3><p>כל אלה נמצאים בכל מערכת.</p>${incList(D.base)}`); return; }
+    if (g("[data-signup]")) { mine(); return; }
+    if (g("[data-start]")) { start(); return; }
+    if (g("[data-clearq]") || g("#top")) { $("q").value = ""; home(); scrollTo(0, 0); return; }
+  });
+  $("mine").onclick = mine;
+  document.addEventListener("keydown", e => { if (e.key === "Escape") $("layer").innerHTML = ""; });
+  let qt; $("q").addEventListener("input", () => { clearTimeout(qt); qt = setTimeout(() => { const q = $("q").value.trim(); q ? search(q) : home(); }, 180); });
+  home(); count();
+
+  // ---- כוכבים כמו באורביט
+  const c = $("sky"), x = c.getContext("2d"), still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let W, H, S = [], last = 0;
+  const size = () => { const d = Math.min(devicePixelRatio || 1, 2); W = c.width = innerWidth * d; H = c.height = innerHeight * d; S = Array.from({ length: Math.round(innerWidth * innerHeight / 5200) }, () => ({ x: Math.random() * W, y: Math.random() * H, r: (Math.random() * 1.1 + .25) * d, a: Math.random() * .7 + .2, p: Math.random() * 6.28, s: Math.random() * .02 + .004 })); };
+  const draw = t => { const cs = getComputedStyle(document.documentElement), dark = cs.getPropertyValue("--ink-rgb").trim().startsWith("238"), ar = cs.getPropertyValue("--a-rgb").trim(); x.clearRect(0, 0, W, H); for (const s of S) { const a = still ? s.a : s.a * (.6 + .4 * Math.sin(s.p + t * s.s * .06)); x.fillStyle = dark ? `rgba(255,255,255,${a})` : `rgba(${ar},${a * .3})`; x.beginPath(); x.arc(s.x, s.y, s.r, 0, 6.28); x.fill(); } };
+  const loop = t => { if (document.hidden) return; if (t - last > 33) { last = t; draw(t); } requestAnimationFrame(loop); };
+  size(); draw(0); addEventListener("resize", () => { size(); draw(last); });
+  if (!still) { requestAnimationFrame(loop); document.addEventListener("visibilitychange", () => { if (!document.hidden) requestAnimationFrame(loop); }); }
+})();
+</script>

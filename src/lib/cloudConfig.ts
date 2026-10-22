@@ -386,6 +386,51 @@ export async function fetchOrgLeads(): Promise<Array<OrgLeadDoc & { id: string }
   return snap.docs.map((d) => ({ id: d.id, ...(d.data() as OrgLeadDoc) }));
 }
 
+/**
+ * 🔔 תיבת-הפלטפורמה החיה (22.10) — onSnapshot על בקשות-ההרשמה והלידים, למיילי-על
+ * (אותן הרשאות-קריאה כמו fetchOrgRequests/fetchOrgLeads). כל שינוי ⇒ cb עם שתי
+ * הרשימות העדכניות. כשל-הרשאה/רשת ⇒ השתקה רכה (אין התראה, אין קריסה).
+ */
+export function watchPlatformInbox(
+  cb: (inbox: { requests: Array<OrgRequestDoc & { uid: string }>; leads: Array<OrgLeadDoc & { id: string }> }) => void,
+): () => void {
+  let requests: Array<OrgRequestDoc & { uid: string }> = [];
+  let leads: Array<OrgLeadDoc & { id: string }> = [];
+  let gotReq = false;
+  let gotLead = false;
+  const emit = () => {
+    if (gotReq && gotLead) cb({ requests, leads });
+  };
+  const offReq = onSnapshot(
+    collection(cloudDb(), PLATFORM_REQUESTS),
+    (snap) => {
+      requests = snap.docs.map((d) => ({ uid: d.id, ...(d.data() as OrgRequestDoc) }));
+      gotReq = true;
+      emit();
+    },
+    () => {
+      gotReq = true;
+      emit();
+    },
+  );
+  const offLead = onSnapshot(
+    collection(cloudDb(), PLATFORM_LEADS),
+    (snap) => {
+      leads = snap.docs.map((d) => ({ id: d.id, ...(d.data() as OrgLeadDoc) }));
+      gotLead = true;
+      emit();
+    },
+    () => {
+      gotLead = true;
+      emit();
+    },
+  );
+  return () => {
+    offReq();
+    offLead();
+  };
+}
+
 /* ───────────── 💬 צ׳אט-תמיכה חי (17.8) — supportChats/{uid} + messages ─────────────
  * חי-באמת דרך onSnapshot: הלקוח (auth.uid==uid) והתמיכה (מייל-על) בלבד. הודעות
  * בלתי-משתנות (create בלבד); from נאכף ב-Rules (user↔admin). טקסט בלבד, תחום-גודל. */

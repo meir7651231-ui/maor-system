@@ -6,10 +6,11 @@
 import { useState } from 'react';
 import { useApp } from '../../store/useApp';
 import { canGrantedAction, featureOn, moduleOn, termOf } from '../../lib/config';
-import type { TzBox, TzCoordinator } from '../../types/domain';
+import type { TzBox, TzCollection, TzCoordinator } from '../../types/domain';
 import { Btn, Chip, Empty, Field, Modal, Select, TextInput } from '../ui';
 import { useArmed } from '../useArmed';
-import { boxTotal, coordinatorBoxes, coordinatorPrintLines, coordinatorTotal, filterCollections, lastCollectionIso } from './lib';
+import { boxReminders, boxTotal, coordinatorBoxes, coordinatorPrintLines, coordinatorTotal, filterCollections, lastCollectionIso, TZ_RECUR_LABEL } from './lib';
+import { isoToday } from '../../lib/date-util';
 import { downloadText } from '../reports/csv';
 import { BoxForm } from './BoxForm';
 import { CollectModal } from './CollectModal';
@@ -27,6 +28,8 @@ export function CoordinatorCard(props: { coordinator: TzCoordinator; onBack: () 
   const config = useApp((s) => s.config);
   const upsertTzBox = useApp((s) => s.upsertTzBox);
   const deleteTzBox = useApp((s) => s.deleteTzBox);
+  const deleteTzCoordinator = useApp((s) => s.deleteTzCoordinator);
+  const deleteTzCollection = useApp((s) => s.deleteTzCollection);
   const addTzScore = useApp((s) => s.addTzScore);
   const toast = useApp((s) => s.toast);
   const scoreOn = featureOn(config, 'tzedaka.score');
@@ -45,6 +48,8 @@ export function CoordinatorCard(props: { coordinator: TzCoordinator; onBack: () 
   const [editOpen, setEditOpen] = useState(false);
   const [boxForm, setBoxForm] = useState<{ box: TzBox | null } | null>(null);
   const [collectFor, setCollectFor] = useState<TzBox | null>(null);
+  // ✏️ תיקון ריקון שנרשם — אותו CollectModal במצב עריכה
+  const [fixColl, setFixColl] = useState<{ box: TzBox; coll: TzCollection } | null>(null);
   const [openHist, setOpenHist] = useState<string | null>(null);
   const [tuneOpen, setTuneOpen] = useState(false);
   const [tune, setTune] = useState({ delta: '', reason: '' });
@@ -111,6 +116,24 @@ export function CoordinatorCard(props: { coordinator: TzCoordinator; onBack: () 
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {scoreOn && <Btn onClick={() => setTuneOpen(true)}>± כוונון ניקוד</Btn>}
           <Btn onClick={() => setEditOpen(true)}>✎ עריכה</Btn>
+          {canDeleteBox && (
+            <Btn
+              kind="danger"
+              onClick={() => {
+                if (!confirmTwice('tzc-' + c.id, 'למחוק את ' + c.name + '? אירועי-הלוח שלו יימחקו גם הם.')) {
+                  toast('בטוחים? לחיצה נוספת בתוך 3.5 שניות תמחק לצמיתות');
+                  return;
+                }
+                // ה-store חוסם כשיש לרכז קופות בבית/במשרד ומציג טוסט "יש להעביר קודם את הקופות"
+                if (deleteTzCoordinator(c.id)) {
+                  toast(termOf(config, 'entity.tzCoordinator', 'רכז') + ' ' + c.name + ' נמחק/ה');
+                  props.onBack();
+                }
+              }}
+            >
+              {armed === 'tzc-' + c.id ? 'בטוח?' : '🗑 מחיקת ' + termOf(config, 'entity.tzCoordinator', 'רכז')}
+            </Btn>
+          )}
         </div>
       </div>
 
@@ -142,6 +165,22 @@ export function CoordinatorCard(props: { coordinator: TzCoordinator; onBack: () 
                 <span style={{ fontSize: 12.5, color: 'var(--ink-faint)' }}>
                   {'ריקון אחרון: ' + (lastCollectionIso(b) || '—') + ' · סה"כ ' + boxTotal(b).toLocaleString('he-IL') + ' ₪'}
                 </span>
+                {/* 🔔 התזכורת הקרובה של הקופה (בקשת-בעלים 22.10) — לחיצה פותחת את עריכת-הקופה */}
+                {(() => {
+                  const next = boxReminders(db.tzEvents, b.id, isoToday()).find((r) => r.when);
+                  if (!next) return null;
+                  const due = next.when <= isoToday();
+                  return (
+                    <button
+                      type="button"
+                      onClick={() => setBoxForm({ box: b })}
+                      title={TZ_RECUR_LABEL[next.ev.recur ?? 'once']}
+                      style={{ fontSize: 12, fontWeight: 700, border: '1px solid var(--line)', borderRadius: 99, padding: '2px 9px', cursor: 'pointer', background: due ? '#fef3c7' : 'var(--panel)', color: due ? '#92400e' : 'inherit' }}
+                    >
+                      {'🔔 ' + next.when + ' · ' + next.ev.title}
+                    </button>
+                  );
+                })()}
                 <span style={{ marginInlineStart: 'auto', display: 'flex', gap: 4, flexWrap: 'wrap' }}>
                   <Btn sm onClick={() => setCollectFor(b)} title="רישום ריקון">💰 ריקון</Btn>
                   <Btn sm onClick={() => setBoxForm({ box: b })} title="עריכת הקופה">✏️</Btn>
@@ -222,7 +261,27 @@ export function CoordinatorCard(props: { coordinator: TzCoordinator; onBack: () 
                       {l.campaignId && (
                         <span>{db.tzCampaigns.find((p) => p.id === l.campaignId)?.name ?? ''}</span>
                       )}
-                      <span style={{ color: 'var(--ink-faint)', minWidth: 0 }}>{l.note}</span>
+                      <span style={{ color: 'var(--ink-faint)', minWidth: 0, flex: 1 }}>{l.note}</span>
+                      {canDeleteBox && (
+                        <span style={{ display: 'flex', gap: 4 }}>
+                          <Btn sm onClick={() => setFixColl({ box: b, coll: l })} title="תיקון הריקון">✏️ תיקון</Btn>
+                          <Btn
+                            sm
+                            kind="danger"
+                            title="מחיקת הריקון"
+                            onClick={() => {
+                              if (!confirmTwice('tzl-' + l.id, 'למחוק את הריקון של ' + l.amount + ' ₪?')) {
+                                toast('בטוחים? לחיצה נוספת בתוך 3.5 שניות תמחק את הריקון');
+                                return;
+                              }
+                              const res = deleteTzCollection(b.id, l.id);
+                              if (res.ok) toast('הריקון נמחק' + (res.delta ? ' · ' + res.delta + ' נק׳' : ''));
+                            }}
+                          >
+                            {armed === 'tzl-' + l.id ? 'בטוח?' : '🗑'}
+                          </Btn>
+                        </span>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -257,6 +316,7 @@ export function CoordinatorCard(props: { coordinator: TzCoordinator; onBack: () 
       {editOpen && <CoordinatorForm coordinator={c} onClose={() => setEditOpen(false)} />}
       {boxForm && <BoxForm box={boxForm.box} coordinatorId={c.id} onClose={() => setBoxForm(null)} />}
       {collectFor && <CollectModal box={collectFor} onClose={() => setCollectFor(null)} />}
+      {fixColl && <CollectModal box={fixColl.box} coll={fixColl.coll} onClose={() => setFixColl(null)} />}
       {tuneOpen && (
         <Modal title="± כוונון ניקוד ידני" onClose={() => setTuneOpen(false)}>
           <div className="form-grid">
