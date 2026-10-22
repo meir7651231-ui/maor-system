@@ -239,8 +239,7 @@ h2 { font: 700 clamp(24px, 3.2vw, 32px)/1.2 var(--display); text-wrap: balance; 
       <h2>פתרונות שמותאמים לעסק שלכם</h2>
       <p class="lede">כל אחד מאלה הוא עיקרון שכבר עובד. בהקמה מתאימים אותו לעסק שלכם, עד הפרט האחרון.</p>
       ${D.shelves.map(([k, name]) => `<div class="shelf"><h3>${esc(name)}</h3><div class="prods">${PR.map((p, i) => [p, i]).filter(([p]) => p.shelf === k).map(([p, i]) => pcard(p, i)).join("")}</div></div>`).join("")}
-    </section>
-    <p class="demo">זו הדגמה של מבנה החנות. ${D.total} הפריטים מהקטלוג מסודרים כאן ב־1 מערכת עם ${PK.length} תוספות ו־${PR.length} מוצרים, והחיפוש מוצא כל אחד מהם.</p>`;
+    </section>`;
   }
   const upcard = (u, n) => `<button class="pc up" data-up="${u.key}">${n ? `<span class="num">${n}</span>` : ""}<div class="im"><img src="img/up-${UPIMG[u.key]}.jpg" alt="" loading="lazy"></div>
     <div class="bd"><b>${esc(u.n)}</b><p>${esc(u.d)}</p><div class="uses">מקבלים: ${esc(u.get)}</div><div class="facts"><span class="pill ty">שירות</span><span class="pill fit">מותאם בהקמה</span><span class="pill ok">${u.count} מנועים</span></div></div></button>`;
@@ -249,25 +248,46 @@ h2 { font: 700 clamp(24px, 3.2vw, 32px)/1.2 var(--display); text-wrap: balance; 
     <div class="bd"><b>${esc(p.n)}</b><p>${esc(p.d)}</p>${p.uses ? `<div class="uses">למשל: ${p.uses.map(esc).join(" · ")}</div>` : ""}<div class="facts"><span class="pill ty">${esc(p.ty)}</span><span class="pill fit">מותאם בהקמה</span>${p.inc.length ? `<span class="pill">כולל ${p.inc.length} יכולות</span>` : ""}${p.status === "חדש" ? '<span class="pill soon">חדש</span>' : status(p.v)}</div></div></button>`;
 
   // ---- חיפוש: מראה את המוצר או החבילה, גם כשהמילה נמצאת בתוך יכולת
-  const norm = s => String(s).toLowerCase().replace(/[״"'׳]/g, "").replace(/[םןץףך]/g, c => ({ "ם": "מ", "ן": "נ", "ץ": "צ", "ף": "פ", "ך": "כ" })[c]);
+  /*SEARCH-CORE*/
+  const norm = s => String(s).toLowerCase().replace(/[״"'׳]/g, "").replace(/[םןץףך]/g, c => ({ "ם": "מ", "ן": "נ", "ץ": "צ", "ף": "פ", "ך": "כ" })[c]).replace(/יי/g, "י").replace(/וו/g, "ו").replace(/[־–-]/g, " ");
   const PRE = /^(וה|שה|מה|לה|בה|ו|ה|ב|ל|מ|ש|כ)(?=...)/;
-  const forms = w => { const f = new Set([w]); const m = w.match(PRE); if (m) f.add(w.slice(m[0].length)); for (const x of [...f]) { const b = x.replace(/(ים|ות)$/, ""); if (b.length >= 3) f.add(b); } return [...f]; };
+  // מילים נרדפות — מה שאנשים מקלידים ⇒ איך זה כתוב בחנות
+  const SYN = { "crm": ["לקוחות", "אנשי קשר"], "הנהלת": ["קבלות", "חשבונית", "דוחות"], "חשבונות": ["קבלות", "חשבונית"], "הנהח": ["קבלות", "חשבונית"], "משכורות": ["שכר", "עובדים", "משמרות"], "שכר": ["עובדים", "משמרות"],
+    "תמחיר": ["הצעת מחיר", "מחשבון", "עלות"], "boq": ["כתב כמויות", "הצעת מחיר"], "כמויות": ["הצעת מחיר", "מחשבון"], "מטפלים": ["קליניקה", "טיפול", "תורים"], "מטפל": ["קליניקה", "טיפול"], "פסיכולוג": ["קליניקה", "טיפול", "תורים"], "רופא": ["קליניקה", "רפואה", "תורים"],
+    "וטרינר": ["קליניקה", "תורים"], "מספרה": ["קליניקה", "תורים", "קוסמטיקה"], "ספר": ["קליניקה", "תורים"], "ציפורניים": ["קוסמטיקה", "קליניקה"], "שליחויות": ["שליחים", "משלוחים"], "שליח": ["שליחים", "משלוחים"], "ספורט": ["כושר", "אימון"], "חדר כושר": ["כושר", "אימון"],
+    "מתמטיקה": ["לימוד", "שאלות"], "שיעורים": ["לימוד", "חוגים"], "בית כנסת": ["קהילה", "תפילה", "גבאי"], "כנסת": ["קהילה", "תפילה"], "ישיבה": ["מוסד תורני", "חינוך", "תלמידים"], "כולל": ["מוסד תורני", "תלמידים"], "תלמוד": ["מוסד תורני", "חינוך"],
+    "אולם": ["חללים", "אולמות"], "אולמות": ["חללים"], "מרכזיה": ["מרכזיה", "טלפוניה"], "סמס": ["sms", "הודעות"], "sms": ["הודעות"], "ווטסאפ": ["וואטסאפ", "whatsapp"], "וטסאפ": ["וואטסאפ"], "whatsapp": ["וואטסאפ"], "הוראת": ["קבע", "תשלומים"], "קבע": ["הוראת קבע", "תשלומים"],
+    "מזגנים": ["מיזוג"], "מזגן": ["מיזוג"], "טכנאי": ["שטח", "תיקונים"], "טכנאים": ["שטח"], "מלונית": ["אירוח"], "אכסניה": ["אירוח"], "ריהוט": ["השאלת ציוד"], "השאלה": ["השאלות", "גמח"] };
+  const forms = w => { const f = new Set([w]); const m = w.match(PRE); if (m) f.add(w.slice(m[0].length)); for (const x of [...f]) { const b = x.replace(/(ים|ות)$/, ""); if (b.length >= 3) f.add(b); const h = x.replace(/[הת]$/, ""); if (h.length >= 3) f.add(h); } return [...f]; };
+  const toks = t => norm(t).split(/[^0-9a-zא-ת]+/).filter(Boolean).flatMap(w => { const m = w.match(PRE); return m ? [w, w.slice(m[0].length)] : [w]; });
+  // התאמה בתחילת-מילה בלבד (לא באמצע מילה: "גן" לא מוצא "ארגון"); מונח רב-מילתי — כביטוי
+  const tokHit = (tk, f) => f.includes(" ") ? tk.join(" ").includes(f) : tk.some(w => w.startsWith(f));
+  const SYNN = Object.fromEntries(Object.entries(SYN).map(([k, v]) => [norm(k), v.map(norm)]));
+  function matcher(q) {
+    const raw = norm(q).replace(/[^0-9a-zא-ת]+/g, " ").trim(); const words = raw.split(" ").filter(Boolean);
+    const groups = words.map(w => [...new Set([...forms(w), ...(SYNN[w] || [])])]);
+    if (SYNN[raw] && words.length > 1) groups.splice(0, groups.length, [raw, ...SYNN[raw]]);
+    const hit = t => { const tk = toks(t); return groups.every(fs => fs.some(f => tokHit(tk, f))); };
+    const exact = t => { const tk = toks(t); return groups.every(fs => tokHit(tk, fs[0])); };
+    return { hit, exact };
+  }
+  /*END-SEARCH-CORE*/
   function search(q) {
-    const ws = norm(q).split(/\s+/).filter(Boolean).map(forms);
-    const hit = t => { t = norm(t); return ws.every(fs => fs.some(f => t.includes(f))); };
-    const exact = t => { t = norm(t); return ws.every(fs => t.includes(fs[0])); };
+    const { hit, exact } = matcher(q);
     const sc = (n, d, inner) => (exact(n) ? 6 : hit(n) ? 3 : 0) + (exact(d) ? 2 : hit(d) ? 1 : 0) + Math.min(inner, 5) * .3;
     const out = [];
     PK.forEach(p => { const inner = p.inc.filter(i => hit(IT[i].n + " " + IT[i].d)); if (hit(p.n + " " + p.d + " " + (p.uses || []).join(" ")) || inner.length) out.push({ kind: "pack", key: p.key, n: p.n, d: p.d, where: "תוספת למערכת הניהול", inner, score: sc(p.n, p.d, inner.length) }); });
-    PR.forEach((p, idx) => { const inner = p.inc.filter(i => hit(IT[i].n + " " + IT[i].d)); const extra = [(p.uses || []).join(" "), p.proof || "", p.orig_n || ""].join(" ");
+    PR.forEach((p, idx) => { const inner = p.inc.filter(i => hit(IT[i].n + " " + IT[i].d)); const lead = IT[p.lead] ? IT[p.lead].n + " " + IT[p.lead].d : ""; const extra = [(p.uses || []).join(" "), p.proof || "", p.orig_n || "", lead, p.who || ""].join(" ");
       if (hit(p.n + " " + p.d + " " + extra) || inner.length) out.push({ kind: "prod", idx, n: p.n, d: p.d, where: p.ty + " · מותאם בהקמה", inner, score: sc(p.n, p.d + " " + extra, inner.length) }); });
     UP.forEach(u => { const inner = u.inc.filter(x => hit(x.n + " " + x.d)).map(x => x.n); if (hit(u.n + " " + u.d + " " + UPUSES.join(" ") + " שדרוג המרה הסבה מיגרציה מערכת ישנה") || inner.length) out.push({ kind: "up", key: u.key, n: u.n, d: u.d, where: "שדרוג מערכת קיימת · שירות", innerN: inner, inner: [], score: sc(u.n, u.d, inner.length) + (hit(u.n) ? 1 : 0) }); });
+    // תחומים (16 המהדורות) — "קוסמטיקה", "מוסך", "בית כנסת" מגיעים למערכת של התחום
+    ED.forEach(e => { if (hit(e.label + " " + e.sub + " " + (e.lead || ""))) out.push({ kind: "ed", key: e.id, n: "מערכת ניהול ל" + e.label, d: e.sub, where: "מערכת ניהול · " + e.sub, inner: [], score: sc(e.label, e.sub, 0) + 2 }); });
     const inBase = D.base.filter(i => hit(IT[i].n + " " + IT[i].d));
     if (inBase.length) out.push({ kind: "base", n: "כלול בבסיס של מערכת הניהול", d: "כלול תמיד", where: "מערכת הניהול", inner: inBase, score: 1 + Math.min(inBase.length, 5) * .3 });
     out.sort((a, b) => b.score - a.score);
     $("view").innerHTML = `<section class="step"><span class="eyebrow">חיפוש</span><h2>${out.length ? `מה שמצאנו עבור "${esc(q)}"` : `לא מצאנו "${esc(q)}"`}</h2>
       <p class="lede">${out.length ? "כל תוצאה היא דבר אחד שאפשר לקבל. כשהמילה נמצאת בתוך יכולת, כתוב איפה." : "נסו מילה אחרת, או ספרו לנו מה צריך בבקשה."}</p>
-      <div class="results">${out.map(r => `<button class="res" ${r.kind === "pack" ? `data-pack-info="${r.key}"` : r.kind === "prod" ? `data-prod="${r.idx}"` : r.kind === "up" ? `data-up="${r.key}"` : "data-base"}><b>${esc(r.n)}</b><span>${esc(r.where)}</span>${r.innerN && r.innerN.length ? `<small>נמצא בתוך: ${r.innerN.slice(0, 3).map(esc).join(" · ")}</small>` : ""}${r.inner.length ? `<small>נמצא בתוך: ${r.inner.slice(0, 3).map(i => esc(IT[i].n)).join(" · ")}${r.inner.length > 3 ? ` ועוד ${r.inner.length - 3}` : ""}</small>` : ""}</button>`).join("")}</div>
+      <div class="results">${out.map(r => `<button class="res" ${r.kind === "pack" ? `data-pack-info="${r.key}"` : r.kind === "prod" ? `data-prod="${r.idx}"` : r.kind === "up" ? `data-up="${r.key}"` : r.kind === "ed" ? `data-ed="${r.key}"` : "data-base"}><b>${esc(r.n)}</b><span>${esc(r.where)}</span>${r.innerN && r.innerN.length ? `<small>נמצא בתוך: ${r.innerN.slice(0, 3).map(esc).join(" · ")}</small>` : ""}${r.inner.length ? `<small>נמצא בתוך: ${r.inner.slice(0, 3).map(i => esc(IT[i].n)).join(" · ")}${r.inner.length > 3 ? ` ועוד ${r.inner.length - 3}` : ""}</small>` : ""}</button>`).join("")}</div>
       <button class="link" data-clearq>חזרה לחנות ›</button></section>`;
   }
 
@@ -320,6 +340,7 @@ h2 { font: 700 clamp(24px, 3.2vw, 32px)/1.2 var(--display); text-wrap: balance; 
     if (g("[data-close]")) { $("layer").innerHTML = ""; return; }
     let b;
     if ((b = g("[data-go]"))) { const k = b.dataset.go; if (k === "search") $("q").focus(); else document.getElementById(k).scrollIntoView({ behavior: "smooth" }); return; }
+    if ((b = g(".res[data-ed]"))) { st.ed = b.dataset.ed; theme(E(st.ed).th); $("q").value = ""; home(); count(); const sec = document.getElementById("sys"); if (sec) sec.scrollIntoView(); return; }
     if ((b = g("[data-ed]"))) { st.ed = st.ed === b.dataset.ed ? "" : b.dataset.ed; theme(st.ed ? E(st.ed).th : null); const y = scrollY; home(); scrollTo(0, y); count(); return; }
     if ((b = g("[data-pack]"))) { const k = b.dataset.pack; st.picks.has(k) ? st.picks.delete(k) : st.picks.add(k); const inSheet = !!g(".sheet"); const y = scrollY; if (!$("q").value) { home(); scrollTo(0, y); } if (inSheet) packSheet(k); count(); return; }
     if ((b = g("[data-pack-info]"))) { packSheet(b.dataset.packInfo); return; }
