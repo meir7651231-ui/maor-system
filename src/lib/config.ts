@@ -897,7 +897,7 @@ export function applyTheme(theme: string, accent?: string, motion?: string): voi
 }
 
 /** ה-favicon הדיפולטי (סמל אורביט — כדור-רשת+טבעת, 22.10) — זהה ל-index.html; משמש לשחזור כשאין אימוג'י. */
-export const DEFAULT_FAVICON = ((import.meta as unknown as { env?: { BASE_URL?: string } }).env?.BASE_URL ?? '/') + 'icons/favicon-64.png';
+export const DEFAULT_FAVICON = ((import.meta as unknown as { env?: { BASE_URL?: string } }).env?.BASE_URL ?? '/') + 'icons/favicon-64.png?v=2';
 
 /** בניית data-URI ל-favicon מאימוג'י (טהור — נבדק ביחידה). encodeURIComponent מנטרל הזרקה. */
 export function faviconDataUri(emoji: string): string {

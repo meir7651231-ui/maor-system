@@ -238,6 +238,15 @@ export default function App() {
     applyFavicon(config.emoji);
   }, [config.emoji]);
 
+  // כותרת-הלשונית (22.10 — "למה בכרטיסייה רשום מאור"): מסך-ההרשמה ⇒ שם-הפלטפורמה
+  // (אורביט, או שם הלקוח ב-white-label); בתוך המערכת ⇒ שם-הארגון (מהקונפיג או מהנתונים).
+  const onSignupScreen = cloud.enabled && !cloud.user;
+  useEffect(() => {
+    document.title = onSignupScreen
+      ? (config.orgName || 'אורביט') + ' — מערכת הניהול שלכם'
+      : (config.orgName || dbOrgName || 'אורביט') + ' — מערכת ניהול';
+  }, [onSignupScreen, config.orgName, dbOrgName]);
+
   // דמו ציבורי (?org=demo): זריעה אוטומטית של נתוני-ההדגמה פעם בכל סשן — פרוספקט
   // נוחת במערכת מלאה בלי הרשמה (הקונפיג בלי firebase ⇒ אין שער-ענן). sessionStorage:
   // אם ניקה וטען-מחדש באותו סשן, לא נזרע שוב (מכבד את הפעולה); סשן חדש = דמו רענן.

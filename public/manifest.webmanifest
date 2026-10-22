@@ -1,18 +1,31 @@
 {
-  "name": "מאור החסד — מערכת ניהול",
-  "short_name": "מאור החסד",
-  "description": "מערכת ניהול לעמותה — משפחות, חוגים, תורמים, לוח שנה ועוד",
+  "name": "אורביט — מערכת הניהול שלכם",
+  "short_name": "אורביט",
+  "description": "מערכת ניהול לכל עסק ולכל תחום — לקוחות, יומן, תשלומים, קבלות ודוחות",
   "lang": "he",
   "dir": "rtl",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "theme_color": "#211d17",
+  "theme_color": "#0d1120",
   "background_color": "#faf7f2",
   "icons": [
-    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
-    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
   ]
 }

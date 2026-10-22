@@ -51,6 +51,6 @@ describe('🖼️ ratchet — faviconDataUri (טהור)', () => {
   });
 
   it('DEFAULT_FAVICON — סמל אורביט (זהה ל-index.html, 22.10 במקום עיגול-הזהב)', () => {
-    expect(DEFAULT_FAVICON.endsWith('icons/favicon-64.png')).toBe(true);
+    expect(DEFAULT_FAVICON).toContain('icons/favicon-64.png');
   });
 });
