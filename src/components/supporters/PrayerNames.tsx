@@ -10,6 +10,7 @@ import type { Supporter } from '../../types/domain';
 import { prayerDocHtml, prayerGroups, prayerListText, prayerOpenCount } from './prayer';
 import { fmtDate } from './lib';
 import { printHtmlDoc } from '../../lib/printDoc';
+import { guardDemo } from '../../lib/exportGate';
 import { isoToday } from '../../lib/date-util';
 
 export function PrayerNames(props: { supporter: Supporter }) {
@@ -32,6 +33,7 @@ export function PrayerNames(props: { supporter: Supporter }) {
     }
   }
   function copyAll() {
+    if (!guardDemo()) return; // 🔒 העתקה=הוצאת-מידע — נחסמת בדמו בלבד (22.10.2026)
     const text = prayerListText(list, '🙏 שמות לתפילה — ' + sp.name);
     void navigator.clipboard?.writeText(text).then(
       () => toast('הרשימה הועתקה 📋'),

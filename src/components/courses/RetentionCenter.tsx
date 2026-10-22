@@ -9,6 +9,7 @@ import { useApp } from '../../store/useApp';
 import { useDbWatch } from '../../store/dbWatch';
 import { integrationOn, termOf } from '../../lib/config';
 import { askClaude, readAiKey } from '../../lib/ai';
+import { guardDemo } from '../../lib/exportGate';
 import { Btn, Empty, Modal } from '../ui';
 import { chipStyle } from './lib';
 import { dropoutInsights, interventionPrompt, type DropoutInsight } from './retention';
@@ -79,12 +80,13 @@ export function RetentionCenter(props: { onClose: () => void }) {
               <Btn onClick={() => setAiFor(null)}>← חזרה</Btn>
               <Btn
                 kind="primary"
-                onClick={() =>
+                onClick={() => {
+                  if (!guardDemo()) return; // 🔒 העתקה=הוצאת-מידע — נחסמת בדמו בלבד (22.10.2026)
                   void navigator.clipboard
                     ?.writeText(draft)
                     .then(() => toast('ההצעה הועתקה — הדביקו בוואטסאפ/מייל'))
-                    .catch(() => toast('העתקה נכשלה — סמנו והעתיקו ידנית'))
-                }
+                    .catch(() => toast('העתקה נכשלה — סמנו והעתיקו ידנית'));
+                }}
               >
                 📋 העתקה
               </Btn>

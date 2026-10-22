@@ -9,6 +9,7 @@ import { featureOn, integrationOn, integrationSetting, telephonyOn, termOf } fro
 import { payLink } from '../../lib/payLink';
 import { waPaymentText } from '../../lib/wa';
 import { WaBtn } from '../WaBtn';
+import { isDemoSession } from '../../lib/demoLock';
 import { deliverReceipt, receiptFmtOf } from '../../lib/receipt';
 import { Btn, Field, Modal, Select, TextInput } from '../ui';
 import { HebDateInput } from '../HebDateInput';
@@ -56,7 +57,9 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
   // רצועת פרטי-הקשר + "👤 הצג כרטיס מלא" + הקישור לכרטיס-החוג — כבוי ⇒ מוסתרים
   const contactOn = featureOn(cfg, 'courses.enroll.contact');
   // טלפוניה כבויה ⇒ המספרים מוצגים כטקסט בלבד (בלי קישורי tel:) — כמו FamiliesView
-  const telOn = telephonyOn(cfg);
+  // 🔒 דמו (ביקורת 22.10.2026): גם אם המבקר הדליק טלפוניה באשף — טקסט בלבד (tel: מוציא את
+  // הטלפון של הרשומה לאפליקציה חיצונית). מחוץ לדמו ביט-זהה.
+  const telOn = telephonyOn(cfg) && !isDemoSession(cfg);
 
   const en = db.enrollments.find((e) => e.id === props.enrollmentId);
   const c = props.course;
@@ -147,9 +150,10 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
     const paidNow = Math.round((paid + amt) * 100) / 100;
     const newBal = Math.max(0, Math.round(((en.totalDue || 0) - paidNow) * 100) / 100);
     // קבלות כבויות בקונפיגורציה → התשלום נרשם, אך ללא הורדת קבלה וללא טוסט הקבלה
+    let delivered = false; // 🔒 22.10.2026: false = סירוב-דמו (exportGate.refusalResult) ⇒ בלי טוסט-הורדה; מחוץ לדמו true
     if (receiptsOn) {
       // 5.5d (הכרעה 9.8): מסירה לפי בחירת-הלקוח — קובץ טקסט או PDF/הדפסה
-      deliverReceipt({
+      delivered = deliverReceipt({
         rid,
         verify: featureOn(useApp.getState().config, 'core.receipt.verifycode'),
         orgName: useApp.getState().config.orgName || db.orgName,
@@ -167,7 +171,7 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
     }
     setPayAmt('');
     toast('התקבל ₪' + amt + (en.totalDue ? ' · יתרה: ₪' + newBal : '') + ' — קבלה ' + rid);
-    if (receiptsOn) toast('הקבלה ירדה למחשב ✓');
+    if (receiptsOn && delivered) toast('הקבלה ירדה למחשב ✓');
     const fam = famOf();
     if (fam) addCred(fam.id, 5, 'תשלום התקבל (₪' + amt + ')');
   }
@@ -175,7 +179,7 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
   /** 🧾 הורדה חוזרת של קבלה לתשלום קיים — כמו legacy receipt(en, p) (legacy:2272). */
   function redownloadReceipt(p: Enrollment['payments'][number]) {
     if (!en) return;
-    deliverReceipt({
+    const ok = deliverReceipt({
       rid: p.rid,
       verify: featureOn(useApp.getState().config, 'core.receipt.verifycode'),
       orgName: useApp.getState().config.orgName || db.orgName,
@@ -189,6 +193,7 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
       // בהורדה חוזרת הסיכום משקף את המצב הנוכחי של העסקה (כמו בלגאסי)
       summary: { totalDue: en.totalDue || 0, paidSoFar: paid, balance: bal, nextDate: en.dueDate || undefined },
     }, receiptFmtOf(cfg, useApp.getState().db.ui));
+    if (!ok) return; // 🔒 סירוב-דמו — בלי "ירדה" אחרי הודעת-הדמו
     toast('הקבלה ' + p.rid + (receiptFmtOf(cfg, useApp.getState().db.ui) === 'pdf' ? ' נפתחה להדפסה/PDF ✓' : ' ירדה שוב למחשב ✓'));
   }
 

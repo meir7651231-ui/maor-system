@@ -628,7 +628,7 @@ function AyinSheetImport() {
       toast('אין שמות למסירה במערכת');
       return;
     }
-    downloadCsv('maor-ayin-eyes.csv', rows);
+    if (!downloadCsv('maor-ayin-eyes.csv', rows)) return; // 🔒 סירוב-דמו — בלי "ירד" אחרי הודעת-הדמו
     toast('ירד גיליון העיניים — מלאו את העמודות והחזירו ב-⬆ ייבוא');
   }
 

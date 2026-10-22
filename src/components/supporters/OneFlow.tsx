@@ -16,6 +16,8 @@ import { cockpitQueue, type CockpitTask } from './cockpit';
 import { isoToday } from './lib';
 import { Btn } from '../ui';
 import { WaBtn } from '../WaBtn';
+import { DialLink } from '../DialLink';
+import { isDemoSession } from '../../lib/demoLock';
 
 const SEV_LABEL: Record<CockpitTask['severity'], { label: string; bg: string; c: string }> = {
   risk: { label: 'בסיכון', bg: '#fde8e8', c: '#b42318' },
@@ -110,9 +112,9 @@ export function OneFlow(props: {
           {/* פעולות-ההקשר — אותם כלים כמו בשורת-הקוקפיט */}
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
             {cur.phone.replace(/\D/g, '').length >= 7 && (
-              <a href={'tel:' + cur.phone.replace(/\D/g, '')} className="chip" style={{ textDecoration: 'none' }} title={'חיוג ל' + cur.name}>
+              <DialLink locked={isDemoSession(props.config)} href={'tel:' + cur.phone.replace(/\D/g, '')} className="chip" style={{ textDecoration: 'none' }} title={'חיוג ל' + cur.name}>
                 📞 חיוג
-              </a>
+              </DialLink>
             )}
             {cur.phone && integrationOn(props.config, 'whatsapp') && <WaBtn phone={cur.phone} title={'וואטסאפ ל' + cur.name} />}
             <Btn sm onClick={() => props.onOpen(cur.supId)} title="פתיחת הכרטיס המלא (רישום-תרומה נעשה שם)">

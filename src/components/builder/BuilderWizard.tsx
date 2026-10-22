@@ -42,6 +42,7 @@ import {
 } from './wizardLib';
 import { TEMPLATE_DEFS } from '../../lib/templates';
 import { TelephonyPanel } from '../telephony/TelephonyPanel';
+import { isDemoSession } from '../../lib/demoLock';
 import { emptyTelephonyConfig } from '../telephony/lib';
 
 const DEFAULT_APP_URL = 'https://meir7651231-ui.github.io/maor-system/';
@@ -333,6 +334,12 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
   const setTheme = useApp((s) => s.setTheme);
   const setAccent = useApp((s) => s.setAccent);
   const toast = useApp((s) => s.toast);
+  // 🔒 דמו — נקבע **פעם אחת בפתיחת-האשף** (isDemoSession: slug=demo או ?org=demo), לא מה-slug החי.
+  // 🐛 שנסגר (22.10.2026): הבדיקה החיה נעלה את שדה-המזהה תוך-כדי הקלדה — בשורש, הקלדת 'demo-school'
+  // נעצרה ב-'demo' (patch ⇒ setConfig בכל הקשה), השדה הפך לקריאה-בלבד וכל הסשן נכנס לנעילת-הדמו.
+  // בדמו האשף תמיד נפתח עם slug=demo/‏?org=demo ⇒ הנעילה מחזיקה כל הסשן; בשורש היא לעולם לא נדלקת ⇒
+  // שדה-המזהה ומקטע-ההרחבות בדיוק כמו ב-main.
+  const [demoAtOpen] = useState(() => isDemoSession(config));
   const [appUrl, setAppUrl] = useState(DEFAULT_APP_URL);
   const [installer, setInstaller] = useState('מאיר — הקמת מערכות לעמותות');
   const [slugTouched, setSlugTouched] = useState(config.slug !== 'default');
@@ -505,8 +512,9 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
       toast('חסר שם ארגון — זה הדבר היחיד שחובה');
       return;
     }
-    downloadTextFile(`config-${config.slug}.json`, configJson, 'application/json');
-    downloadTextFile(`handoff-${config.slug}.html`, buildHandoffHtml(config, appUrl, installer, quote));
+    // 🔒 סירוב-דמו ⇒ הודעה אחת, בלי הקובץ השני ובלי "החבילה ירדה" (22.10.2026; מחוץ לדמו ביט-זהה)
+    if (!downloadTextFile(`config-${config.slug}.json`, configJson, 'application/json')) return;
+    if (!downloadTextFile(`handoff-${config.slug}.html`, buildHandoffHtml(config, appUrl, installer, quote))) return;
     toast('📦 החבילה ירדה: config + דף מסירה (כולל הצעת-מחיר). את ה-config מעלים ל-public/c/' + config.slug + '/');
   };
 
@@ -593,7 +601,8 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
     { domId: 'wz-vertical', key: 'vertical', label: '🏢 סוג העסק' },
     { domId: 'wz-branding', key: 'branding', label: '🏷️ מיתוג' },
     ...WIZARD_SECTIONS.map((s) => ({ domId: `wz-${s.id}`, key: s.id, label: `${s.emoji} ${s.title}` })),
-    { domId: 'wz-integrations', key: 'integrations', label: '🔌 הרחבות' },
+    // 🔒 בדמו אין הרחבות (integrationOn=false; כל הרחבה = ערוץ-יציאה של רשומות) — גם לא צ׳יפ-ניווט
+    ...(demoAtOpen ? [] : [{ domId: 'wz-integrations', key: 'integrations', label: '🔌 הרחבות' }]),
     { domId: 'wz-telephony', key: 'telephony', label: '☎️ טלפוניה' },
   ];
 
@@ -933,7 +942,11 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
             <Field label="מזהה לקוח (לועזי, לכתובת)">
               <TextInput
                 value={config.slug}
+                // 🔒 בדמו המזהה נעול: שינוי שלו היה מוציא את הסשן ממצב-הדמו (סרט/חסימות) באמצע.
+                // demoAtOpen (נקבע בפתיחה) — לא isDemo החי: בשורש מקלידים 'demo-school' עד הסוף, כמו ב-main.
+                readOnly={demoAtOpen}
                 onChange={(v) => {
+                  if (demoAtOpen) return;
                   setSlugTouched(true);
                   patch({ slug: v.toLowerCase().replace(/[^a-z0-9-]/g, '-') });
                 }}
@@ -1079,8 +1092,10 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
         {WIZARD_SECTIONS.map(renderModuleSection)}
 
         {/* הרחבות (INTEGRATIONS גל א׳) — טקסונומיית-כנות: live נמכר · included כלול ·
-            roadmap מושבת (אי-אפשר למכור בטעות מה שלא קיים). מוסתר בזמן חיפוש. */}
-        {(!searching || intMatches.length > 0) && (
+            roadmap מושבת (אי-אפשר למכור בטעות מה שלא קיים). מוסתר בזמן חיפוש.
+            🔒 בדמו (22.10.2026) המקטע לא קיים: וואטסאפ/מפות/תשלומים שהמבקר היה מדליק כאן הוציאו
+            רשומות החוצה (סיכום-הורה, חובות, כתובות) — ו-integrationOn ממילא כבוי בדמו. */}
+        {!demoAtOpen && (!searching || intMatches.length > 0) && (
           <SectionShell
             id="wz-integrations"
             emoji="🔌"
@@ -1815,7 +1830,7 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
               הצעת-המחיר, דף-המסירה והורדת-החבילה זמינים בגרסה המלאה.
             </p>
             <a
-              href="/"
+              href={import.meta.env.BASE_URL}
               style={{
                 display: 'inline-block', marginTop: 14, fontSize: 14, fontWeight: 700,
                 textDecoration: 'none', color: 'var(--accent-ink, #fff)', background: 'var(--accent)',

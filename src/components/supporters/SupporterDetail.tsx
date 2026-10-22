@@ -18,6 +18,7 @@ import { Btn, Empty, Field, FormError, Modal, Select, StickyBackBar, TextInput }
 import { HebDateInput } from '../HebDateInput';
 import { allSupPhones, chipStyle, fmtDate, HOK_CAT, hokMethodLabel, hokRecordedThisMonth, isoToday, RECUR_MODES, recurDates, recurDef, recurStatus, SEGULA_OFFSETS, segulaStatus, supCount, type RecurCal, type RecurMode, supDonEvents, supLast, supScore, supTier, totalLabel } from './lib';
 import { deliverReceipt, receiptFmtOf, receiptLines } from '../../lib/receipt';
+import { guardDemo } from '../../lib/exportGate';
 import { SupporterForm } from './SupporterForm';
 import { DonationModal } from './DonationModal';
 import { AyinCard } from './AyinCard';
@@ -288,7 +289,7 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
     const info = receiptInfoFor(rid);
     if (!info) return;
     const fmt = receiptFmtOf(config, useApp.getState().db.ui);
-    deliverReceipt(info, fmt);
+    if (!deliverReceipt(info, fmt)) return; // 🔒 סירוב-דמו — בלי "ירדה" אחרי הודעת-הדמו
     toast(fmt === 'pdf' ? 'קבלה ' + rid + ' נפתחה להדפסה/PDF' : 'קבלה ' + rid + ' ירדה שוב למחשב');
   }
 
@@ -990,7 +991,7 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
             <Btn
               onClick={() => {
                 const year = donationYears(dsp.donations)[0];
-                downloadAnnualReport(
+                const ok = downloadAnnualReport(
                   'annual-' + year + '-' + sp.name.replace(/\s+/g, '_') + '.txt',
                   annualReportLines({
                     orgName: config.orgName || useApp.getState().db.orgName,
@@ -1006,7 +1007,7 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
                     },
                   }),
                 );
-                toast('📄 דוח שנת ' + year + ' ירד');
+                if (ok) toast('📄 דוח שנת ' + year + ' ירד'); // 🔒 false = סירוב-דמו — בלי "ירד" אחרי הודעת-הדמו
               }}
               title="ריכוז כל תרומות השנה האחרונה — לתורם/רו״ח (הקבלות המקוריות מצוינות בכל שורה)"
             >
@@ -1149,12 +1150,13 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
               <div className="modal-actions">
                 <Btn
                   kind="primary"
-                  onClick={() =>
+                  onClick={() => {
+                    if (!guardDemo()) return; // 🔒 העתקה=הוצאת-מידע — נחסמת בדמו בלבד (22.10.2026)
                     void navigator.clipboard
                       ?.writeText(aiDraft)
                       .then(() => toast('המכתב הועתק — הדביקו בוואטסאפ/מייל'))
-                      .catch(() => toast('העתקה נכשלה — סמנו והעתיקו ידנית'))
-                  }
+                      .catch(() => toast('העתקה נכשלה — סמנו והעתיקו ידנית'));
+                  }}
                 >
                   📋 העתקה
                 </Btn>

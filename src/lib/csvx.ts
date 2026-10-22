@@ -4,7 +4,7 @@
  * פסיקים/גרשיים/שורות בתוך שדה ו-CRLF. כולל parseAnyDate לקליטת תאריכים מאקסל.
  */
 
-import { guardExport } from './exportGate';
+import { guardExport, refusalResult } from './exportGate';
 
 export type Cell = string | number;
 
@@ -23,14 +23,18 @@ export function toCsv(rows: Cell[][]): string {
   return '\uFEFF' + rows.map((r) => r.map(csvEscape).join(',')).join('\n');
 }
 
-/** מוריד קובץ CSV — שורת כותרת + שורות נתונים. */
-export function downloadCsv(filename: string, rows: Cell[][]): void {
-  if (!guardExport()) return; // 🔐 שער יציאת-מידע (core.export כבוי בכרטיס-העובד)
+/**
+ * מוריד קובץ CSV — שורת כותרת + שורות נתונים. מחזיר false רק כשהשער סירב בדמו (22.10.2026: הקורא
+ * לא מציג "הקובץ ירד" אחרי הודעת-הדמו); מחוץ לדמו true תמיד ⇒ הקורא ביט-זהה (exportGate.refusalResult).
+ */
+export function downloadCsv(filename: string, rows: Cell[][]): boolean {
+  if (!guardExport()) return refusalResult(); // 🔐 שער יציאת-מידע (core.export כבוי בכרטיס-העובד); false רק בדמו
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([toCsv(rows)], { type: 'text/csv;charset=utf-8' }));
   a.download = filename;
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  return true;
 }
 
 /**

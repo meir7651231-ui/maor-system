@@ -94,7 +94,7 @@ export function CustomExport(props: { target: ExportTarget; onClose: () => void 
       return;
     }
     const out = overrideColumn(built, (built[0] as string[]).indexOf('הערות'), notesEdit);
-    downloadCsv(`custom-${props.target}-${from || 'all'}_${to || 'all'}.csv`, out);
+    if (!downloadCsv(`custom-${props.target}-${from || 'all'}_${to || 'all'}.csv`, out)) return; // 🔒 סירוב-דמו — בלי "ירד"
     toast('הדו"ח המותאם ירד — ' + (out.length - 1) + ' שורות');
     props.onClose();
   }

@@ -45,6 +45,9 @@ export function DayGate() {
 
   // הפיצ'ר core.daygate כבוי — בלי טקס פתיחת יום (אחרי ה-hooks, לפי חוקי React)
   if (!featureOn(config, 'core.daygate')) return null;
+  // בדמו אין טקס פתיחת יום: המודאל כיסה את הסרט, והקשה על «פתחו אתר משלכם» נבלעה ברקע שלו
+  // (גם 'שחזור מגיבוי' ו'קובץ גיבוי יירד' לא שייכים למבקר — הגיבוי האוטומטי כבר חסום בדמו)
+  if (config.slug === 'demo') return null;
   if (phase !== 'open') return null;
 
   const today = isoToday();

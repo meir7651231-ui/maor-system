@@ -11,6 +11,7 @@ import { hebDateFull } from '../../lib/hebrew';
 import { downloadCsv, type Cell } from '../../lib/csvx';
 import { buildCourseDailyRows } from '../../lib/courseDaily';
 import { Btn, Empty, Field, Modal, Select, StickyBackBar, TextInput } from '../ui';
+import { ExportLink } from '../ExportLink';
 import { CourseForm } from './CourseForm';
 import { EnrollModal } from './EnrollModal';
 import { AttendanceSheet } from './AttendanceSheet';
@@ -263,7 +264,7 @@ export function CourseDetail(props: { course: Course }) {
         e.note,
       ]);
     }
-    downloadCsv('course-' + c.name + '.csv', rows);
+    if (!downloadCsv('course-' + c.name + '.csv', rows)) return; // 🔒 סירוב-דמו — בלי "ירדה" אחרי הודעת-הדמו
     toast('רשימת ה' + termOf(cfg, 'entity.students', 'תלמידים') + ' של "' + c.name + '" ירדה' + (healthOn ? ' — כולל רגישויות ל' + termOf(cfg, 'entity.teacher', 'מורה') : ''));
   }
 
@@ -278,7 +279,7 @@ export function CourseDetail(props: { course: Course }) {
       toast('אין מפגשים בטווח התאריכים של ה' + termOf(cfg, 'entity.course', 'חוג'));
       return;
     }
-    downloadCsv('course-daily-' + c.name + '.csv', rows);
+    if (!downloadCsv('course-daily-' + c.name + '.csv', rows)) return; // 🔒 סירוב-דמו — בלי "ירד" אחרי הודעת-הדמו
     toast('דו"ח יומי מפורט של "' + c.name + '" ירד — ' + days + ' ימי פעילות');
   }
 
@@ -992,17 +993,17 @@ export function CourseDetail(props: { course: Course }) {
                   📎 קבצים מצורפים
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                  {/* 🔒 נעילת-הדמו (22.10.2026): בדמו אין href לקובץ השמור (גם לא בלחיצה-אמצעית/«שמירה
+                      בשם») — ExportLink; מחוץ לדמו אותו קישור בדיוק כמו קודם */}
                   {c.files.map((file) => (
-                    <a
+                    <ExportLink
                       key={file.id}
                       href={file.data}
-                      target="_blank"
-                      rel="noopener noreferrer"
                       style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 13, padding: '4px 8px', border: '1px solid var(--line)', borderRadius: 8 }}
                     >
                       <span>{file.kind === 'link' ? '🔗' : file.kind === 'image' ? '🖼️' : '📄'}</span>
                       <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name}</span>
-                    </a>
+                    </ExportLink>
                   ))}
                 </div>
               </div>

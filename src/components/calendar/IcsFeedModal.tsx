@@ -7,6 +7,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useApp } from '../../store/useApp';
 import { buildIcs } from '../../lib/ics';
+import { guardDemo } from '../../lib/exportGate';
 import { Btn, Modal, TextInput } from '../ui';
 import { icsWindowEvents, isoOf } from './calLib';
 
@@ -54,6 +55,7 @@ export function IcsFeedModal({ onClose }: { onClose: () => void }) {
   }, []);
 
   async function copy() {
+    if (!guardDemo()) return; // 🔒 הקישור חושף את כל היומן — נחסם בדמו בלבד (22.10.2026)
     try {
       await navigator.clipboard.writeText(url);
       toast('📋 הקישור הועתק');

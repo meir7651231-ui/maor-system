@@ -12,6 +12,8 @@ import type { OrgConfig } from '../../types/config';
 import type { Supporter } from '../../types/domain';
 import { featureOn, integrationOn, termOf } from '../../lib/config';
 import { WaBtn } from '../WaBtn';
+import { DialLink } from '../DialLink';
+import { isDemoSession } from '../../lib/demoLock';
 import { hebSeasonOf, hebTimingTasks } from './hebTiming';
 import { Btn } from '../ui';
 import {
@@ -135,15 +137,16 @@ function TaskRow(props: {
       </span>
       <div style={{ display: 'flex', gap: 6, flex: 'none' }}>
         {callable ? (
-          <a
+          <DialLink
+            locked={isDemoSession(config)}
             href={'tel:' + task.phone.replace(/\D/g, '')}
             title={'חיוג ל' + task.name}
-            aria-label={'חיוג ל' + task.name}
+            ariaLabel={'חיוג ל' + task.name}
             className="chip"
             style={{ textDecoration: 'none' }}
           >
             📞
-          </a>
+          </DialLink>
         ) : null}
         {task.phone && integrationOn(config, 'whatsapp') ? (
           <WaBtn phone={task.phone} title={'וואטסאפ ל' + task.name} />

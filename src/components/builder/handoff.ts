@@ -7,7 +7,7 @@ import type { ModuleKey, OrgConfig } from '../../types/config';
 import { FEATURES, type FeatureDef } from '../../types/features';
 import { featureEffectiveOn, featureModuleKey, WIZARD_SECTIONS } from './sections';
 import { SIZE_LABELS, shekel, type Quote } from '../../lib/pricing';
-import { guardExport } from '../../lib/exportGate';
+import { guardExport, refusalResult } from '../../lib/exportGate';
 
 export const MODULE_LABELS: Record<string, string> = {
   families: 'משפחות ובני משפחה',
@@ -254,11 +254,12 @@ ${telephonySection(cfg)}
 </body></html>`;
 }
 
-export function downloadTextFile(filename: string, content: string, mime = 'text/html'): void {
-  if (!guardExport()) return; // 🔐 שער יציאת-מידע (core.export כבוי בכרטיס-העובד)
+export function downloadTextFile(filename: string, content: string, mime = 'text/html'): boolean {
+  if (!guardExport()) return refusalResult(); // 🔐 שער יציאת-מידע (core.export כבוי בכרטיס-העובד); false רק בדמו
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([content], { type: `${mime};charset=utf-8` }));
   a.download = filename;
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  return true; // false רק בסירוב-דמו (22.10.2026, refusalResult) — הקורא לא מציג "ירדה"
 }

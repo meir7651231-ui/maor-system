@@ -5,7 +5,7 @@
 import { hebDateFull } from './hebrew';
 import { amountInWords } from './hebrewNumber';
 import { featureOn } from './config';
-import { guardExport } from './exportGate';
+import { guardExport, refusalResult } from './exportGate';
 import type { OrgConfig } from '../types/config';
 
 export interface ReceiptInfo {
@@ -147,8 +147,8 @@ export function receiptLines(o: ReceiptInfo): string[] {
   ];
 }
 
-export function downloadReceipt(o: ReceiptInfo): void {
-  if (!guardExport()) return; // 🔐 שער יציאת-מידע (core.export כבוי בכרטיס-העובד)
+export function downloadReceipt(o: ReceiptInfo): boolean {
+  if (!guardExport()) return refusalResult(); // 🔐 שער יציאת-מידע (core.export כבוי בכרטיס-העובד); false רק בדמו
   const lines = receiptLines(o);
   // כמו באב-טיפוס: שורות ריקות מסוננות, BOM בתחילת הקובץ
   const text = '\uFEFF' + lines.filter((x) => x !== '').join('\n');
@@ -158,6 +158,7 @@ export function downloadReceipt(o: ReceiptInfo): void {
   a.download = `receipt-${o.rid}.txt`;
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  return true;
 }
 
 /* ---------- קבלה כ-PDF (5.5d, הכרעת-בעלים 9.8: "הלקוח בוחר בכפתור") ---------- */
@@ -198,8 +199,8 @@ export function receiptHtml(o: ReceiptInfo): string {
  * שגיאה). ה-iframe מוסר מושהה — חלון-ההדפסה מחזיק את המסמך; הסרה מיידית
  * מרוקנת אותו. ביטול בחלון-ההדפסה = פשוט לא מודפס.
  */
-export function printReceipt(o: ReceiptInfo): void {
-  if (!guardExport()) return; // 🔐 שער יציאת-מידע (core.export כבוי בכרטיס-העובד)
+export function printReceipt(o: ReceiptInfo): boolean {
+  if (!guardExport()) return refusalResult(); // 🔐 שער יציאת-מידע (core.export כבוי בכרטיס-העובד); false רק בדמו
   const frame = document.createElement('iframe');
   frame.style.position = 'fixed';
   frame.style.insetInlineEnd = '-9999px';
@@ -216,15 +217,18 @@ export function printReceipt(o: ReceiptInfo): void {
     }
   };
   document.body.appendChild(frame);
+  return true;
 }
 
 /**
  * מסירת-קבלה לפי בחירת-הלקוח (db.ui.receiptFmt): ‏'pdf' ⇒ חלון-הדפסה
  * (שמירה כ-PDF); חסר/'txt' ⇒ קובץ הטקסט ההיסטורי — ביט-זהה להיום.
+ * מחזיר false רק כששער יציאת-המידע סירב בדמו (22.10.2026, exportGate.refusalResult: הקורא לא
+ * מציג "הקבלה ירדה" אחרי הודעת-הדמו; הרישום עצמו כבר נעשה ונשאר). מחוץ לדמו true — ביט-זהה.
  */
-export function deliverReceipt(o: ReceiptInfo, fmt?: 'txt' | 'pdf'): void {
-  if (fmt === 'pdf') printReceipt(o);
-  else downloadReceipt(o);
+export function deliverReceipt(o: ReceiptInfo, fmt?: 'txt' | 'pdf'): boolean {
+  if (fmt === 'pdf') return printReceipt(o);
+  else return downloadReceipt(o);
 }
 
 /**

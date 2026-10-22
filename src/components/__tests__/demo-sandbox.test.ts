@@ -12,6 +12,7 @@ import { normalizeConfig } from '../../lib/config';
 import demoCfg from '../../../public/c/demo/config.json';
 import appSrc from '../../App.tsx?raw';
 import ribbonSrc from '../DemoRibbon.tsx?raw';
+import dayGateSrc from '../wheel/DayGate.tsx?raw';
 
 describe('🧪 ratchet — דמו ציבורי (?org=demo)', () => {
   it('קונפיג הדמו: slug=demo ו**בלי firebase** ⇒ אין שער-ענן/התחברות', () => {
@@ -40,9 +41,15 @@ describe('🧪 ratchet — דמו ציבורי (?org=demo)', () => {
     expect(appSrc).toContain("if (useApp.getState().config.slug === 'demo') return; // בדמו אין הורדת-גיבוי אוטומטית למבקר");
   });
 
+  it('בדמו אין שער פתיחת-יום — המודאל בלע את ההקשה על «פתחו אתר משלכם» (22.10.2026)', () => {
+    // הבאג: בכניסה ראשונה לדמו נפתח «בוקר טוב! פתיחת יום עבודה»; הכפתור בסרט נראה לחיץ מעל המודאל
+    // אבל הרקע של המודאל תפס את ההקשה ⇒ המבקר לא הגיע למסך ההרשמה.
+    expect(dayGateSrc).toContain("if (config.slug === 'demo') return null;");
+  });
+
   it('הסרט: CTA לשורש (מסך ההרשמה) + התחל-דמו-מחדש', () => {
     expect(ribbonSrc).toContain('פתחו אתר משלכם');
-    expect(ribbonSrc).toContain('import.meta.env.BASE_URL'); // ה-CTA חוזר לשורש
+    expect(ribbonSrc).toContain('href={import.meta.env.BASE_URL}'); // ה-CTA חוזר לשורש (הכרעת-בעלים 22.10)
     expect(ribbonSrc).toContain('התחל דמו מחדש');
     expect(ribbonSrc).toContain('demo.json'); // איפוס = משיכה מחדש
   });

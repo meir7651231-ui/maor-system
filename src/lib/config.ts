@@ -78,8 +78,14 @@ export function supEnforceOn(cfg: OrgConfig): boolean {
  * האם הרחבה (integration) פעילה — **הפוך מחוזה-הדגלים במכוון**: הרחבה היא
  * מוצר-נמכר (opt-in), לכן מפתח חסר = כבוי; רק enabled:true מפורש מדליק.
  * (דגל-פיצ'ר: חסר = דלוק; רק false מכבה. אל תבלבלו — ratchet אוכף.)
+ *
+ * 🔒 דמו (22.10.2026, «בדמו זה צריך חסום ללא כל אפשרות להורדת מידע»): בדמו הציבורי אף
+ * הרחבה לא דלוקה — כל הרחבה היא ערוץ שמוציא רשומות החוצה (וואטסאפ עם סיכום/חוב ממולא,
+ * מסלול-מפות עם כתובות-משפחות, קישור-תשלום עם שם+סכום, יומן, מייל, אנשי-קשר). גם אם הודלקה
+ * באשף-הדמו או במטמון. מחוץ לדמו — ביט-זהה.
  */
 export function integrationOn(cfg: OrgConfig, key: string): boolean {
+  if (cfg.slug === 'demo') return false;
   return cfg.integrations?.[key]?.enabled === true;
 }
 
@@ -854,7 +860,10 @@ export async function loadOrgConfig(): Promise<OrgConfig> {
     }
   }
   const override = readConfigOverride();
-  if (override && (!slug || override.slug === slug)) return override;
+  // 🔒 דמו (22.10.2026): מבקר ששיחק באשף בדמו השאיר דריסה עם slug=demo (בלי ענן). בשורש היא
+  // הציגה את הדמו במקום מסך-ההרשמה — קונפיג-הדמו לעולם לא הופך לקונפיג של השורש.
+  const demoLeak = !slug && override?.slug === 'demo';
+  if (override && !demoLeak && (!slug || override.slug === slug)) return override;
   try {
     const res = await fetch('./config.json', { cache: 'no-cache' });
     if (res.ok) {

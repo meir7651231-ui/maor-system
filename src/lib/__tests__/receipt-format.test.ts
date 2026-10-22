@@ -54,7 +54,8 @@ describe('🧾 ratchet — פורמט-קבלה לבחירת-הלקוח (9.8)', (
   });
 
   it('deliverReceipt: חסר/txt ⇒ המסלול ההיסטורי; pdf ⇒ הדפסה; iframe ולא window.open', () => {
-    expect(receiptSrc).toMatch(/if \(fmt === 'pdf'\) printReceipt\(o\);\s*\n\s*else downloadReceipt\(o\);/);
+    // 22.10.2026: deliverReceipt מחזיר האם נמסרה בפועל (false = שער יציאת-המידע סירב) — אותו ניתוב
+    expect(receiptSrc).toMatch(/if \(fmt === 'pdf'\) return printReceipt\(o\);\s*\n\s*else return downloadReceipt\(o\);/);
     const printFn = receiptSrc.slice(receiptSrc.indexOf('export function printReceipt'));
     expect(printFn).toContain("createElement('iframe')");
     expect(printFn).not.toContain('window.open(');
