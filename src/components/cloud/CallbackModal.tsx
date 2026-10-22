@@ -10,6 +10,8 @@
  */
 import { useEffect, useState, type FormEvent } from 'react';
 import { useApp } from '../../store/useApp';
+import { leadNotesWithStore, leadOwnerText, ownerWaLink, parseStoreParams } from '../../lib/signupNotify';
+import { OwnerWaButton } from './OwnerWaButton';
 
 const TIMES = ['בוקר', 'צהריים', 'ערב'];
 
@@ -39,7 +41,14 @@ export function CallbackModal(props: { onClose: () => void }) {
     setBusy(true);
     setError('');
     try {
-      await cloudRequestCallback({ contactName: name.trim(), phone: phone.trim(), preferredTime: time, notes: notes.trim() });
+      const store = parseStoreParams(window.location.search);
+      await cloudRequestCallback({
+        contactName: name.trim(),
+        phone: phone.trim(),
+        preferredTime: time,
+        // הקשר-החנות נכנס לשדה ההודעה — Rules של platformLeads = 5 שדות בלבד, ≤500 תווים
+        notes: leadNotesWithStore(notes, store),
+      });
       setSent(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'השליחה נכשלה — נסו שוב');
@@ -71,6 +80,10 @@ export function CallbackModal(props: { onClose: () => void }) {
             <p style={{ margin: '0 0 20px', fontSize: 14, color: 'rgba(255,255,255,.6)', lineHeight: 1.55 }}>
               נחזור אליכם לטלפון <strong dir="ltr">{phone}</strong> ב{time}. בלי התחייבות.
             </p>
+            {(() => {
+              const wa = ownerWaLink(leadOwnerText({ contactName: name, phone, preferredTime: time, notes }));
+              return wa ? <OwnerWaButton href={wa} label="ממהרים? שלחו לנו בוואטסאפ" /> : null;
+            })()}
             <button type="button" className="orbit-sbtn" style={{ display: 'inline-flex', padding: '0 22px' }} onClick={props.onClose}>
               סגירה
             </button>

@@ -17,6 +17,8 @@ import { EmployeeSignup } from './EmployeeSignup';
 import { NewsReader } from './NewsReader';
 import { CallbackModal } from './CallbackModal';
 import { VideoModal } from './VideoModal';
+import { OwnerWaButton } from './OwnerWaButton';
+import { ownerWaLink, signupOwnerText } from '../../lib/signupNotify';
 
 export function LoginScreen() {
   const config = useApp((s) => s.config);
@@ -29,6 +31,8 @@ export function LoginScreen() {
   const [password, setPassword] = useState('');
   const [showPass, setShowPass] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  // 💬 הודעת-וואטסאפ לבעלים אחרי הרשמת-ארגון (null ⇒ אין כפתור: הרשמת-עובד/ת או בלי מספר-בעלים)
+  const [ownerWa, setOwnerWa] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   // overlays מהמוקאפ
@@ -139,6 +143,7 @@ export function LoginScreen() {
                 <p dir="ltr" style={{ margin: '0 0 22px', fontSize: 15, fontWeight: 600, color: '#fff', wordBreak: 'break-all' }}>
                   {email}
                 </p>
+                {ownerWa && <OwnerWaButton href={ownerWa} label="שלחו לנו הודעה בוואטסאפ — לאישור מהיר" />}
                 <button
                   type="button"
                   className="orbit-sbtn"
@@ -168,14 +173,14 @@ export function LoginScreen() {
               {mode === 'up' ? (
                 /* ההרשמה = אשף 5-שלבים (SIGNUP3): תחום→גודל→צרכים→קשר→חשבון */
                 <>
-                  <SignupWizard onDone={(em) => { setEmail(em); setSubmitted(true); }} />
+                  <SignupWizard onDone={(em, summary) => { setEmail(em); setOwnerWa(ownerWaLink(signupOwnerText(summary))); setSubmitted(true); }} />
                   <p className="orbit-fine">
                     לאחר ההרשמה — צרו קשר לאישור פתיחת המערכת. אתם מאשרים את תנאי השימוש ומדיניות הפרטיות.
                   </p>
                 </>
               ) : mode === 'emp' ? (
                 /* הרשמת-עובד/ת (ORGADMIN) — מייל+טלפון+סיסמה+קוד-מהמנהל ⇒ בקשה למנהל */
-                <EmployeeSignup onDone={(em) => { setEmail(em); setSubmitted(true); }} />
+                <EmployeeSignup onDone={(em) => { setEmail(em); setOwnerWa(null); setSubmitted(true); }} />
               ) : (
                 <>
                   <div className="orbit-divider">

@@ -77,6 +77,7 @@ const SettingsView = lazy(async () => ({ default: (await VIEW_LOADERS.settings()
 const BuilderWizard = lazy(async () => ({ default: (await import('./components/builder/BuilderWizard')).BuilderWizard }));
 const RemoteWizard = lazy(async () => ({ default: (await import('./components/builder/RemoteWizard')).RemoteWizard }));
 const PlatformPanel = lazy(async () => ({ default: (await import('./components/platform/PlatformPanel')).PlatformPanel }));
+const PlatformInboxBell = lazy(async () => ({ default: (await import('./components/platform/PlatformInboxBell')).PlatformInboxBell }));
 const ManagerPanel = lazy(async () => ({ default: (await import('./components/platform/ManagerPanel')).ManagerPanel }));
 const PublicSite = lazy(async () => ({ default: (await import('./components/public/PublicSite')).PublicSite }));
 const LoginScreen = lazy(async () => ({ default: (await import('./components/cloud/LoginScreen')).LoginScreen }));
@@ -1319,6 +1320,12 @@ export default function App() {
           </Suspense>
         ))}
 
+      {/* 🔔 התראה חיה על הרשמות/לידים — מיילי-על בלבד (22.10) */}
+      {cloud.enabled && !!cloud.user && isSuperAdmin(cloud.user?.email) && (
+        <Suspense fallback={null}>
+          <PlatformInboxBell open={platformOpen} />
+        </Suspense>
+      )}
       {platformOpen &&
         (isAdmin && isSuperAdmin(cloud.user?.email) ? (
           // לוח הבקרה של הפלטפורמה (CLOUD2 ענן 4) — מיילי-על בלבד; משתמש

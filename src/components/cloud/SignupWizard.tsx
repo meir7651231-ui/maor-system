@@ -15,6 +15,7 @@ import {
   wizardStepError,
   type WizardState,
 } from '../../lib/signupWizard';
+import { parseStoreParams, type SignupSummary } from '../../lib/signupNotify';
 
 const STEP_TITLES = ['מה תחום העסק?', 'מה גודל הארגון?', 'מה חשוב לכם?', 'פרטי הקשר', 'חשבון הכניסה'];
 const STEP_SUBS = [
@@ -27,10 +28,15 @@ const STEP_SUBS = [
 
 const choiceCls = (on: boolean) => 'orbit-choice' + (on ? ' on' : '');
 
-export function SignupWizard({ onDone }: { onDone: (email: string) => void }) {
+export function SignupWizard({ onDone }: { onDone: (email: string, summary: SignupSummary) => void }) {
   const cloudSignUp = useApp((s) => s.cloudSignUp);
+  // הגעה מהחנות (?signup=1&v=&picks=) — התחום נבחר מראש (אם מוכר); הבחירות נכנסות להודעת-הוואטסאפ
+  // בלבד — Rules של platformRequests = allowlist 8 שדות (שדה נוסף ⇒ נפילה ל-5 בסיס, אובדן פרופיל)
+  const [store] = useState(() => (typeof window === 'undefined' ? null : parseStoreParams(window.location.search)));
   const [step, setStep] = useState(0);
-  const [s, setS] = useState<WizardState>(EMPTY_WIZARD);
+  const [s, setS] = useState<WizardState>(() =>
+    store?.vertical && WIZARD_INDUSTRIES.some((i) => i.id === store.vertical) ? { ...EMPTY_WIZARD, industry: store.vertical } : EMPTY_WIZARD,
+  );
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [showPass, setShowPass] = useState(false);
@@ -56,7 +62,16 @@ export function SignupWizard({ onDone }: { onDone: (email: string) => void }) {
         size: s.size,
         needs: s.needs,
       });
-      onDone(s.email.trim());
+      onDone(s.email.trim(), {
+        orgName: s.orgName,
+        contactName: s.contactName,
+        phone: s.phone,
+        email: s.email,
+        industry: s.industry,
+        size: s.size,
+        needs: s.needs,
+        store,
+      });
     } catch (e) {
       setError(e instanceof Error ? e.message : 'ההרשמה נכשלה — נסו שוב');
     } finally {
