@@ -64,28 +64,35 @@ $('rawPrint').addEventListener('change', () => document.querySelectorAll('.slip'
 
 // ביצוע תוצאת המנוע. סדר השמירה: קודם הכרטיס (+קבצים), אחר כך הזיכרון הפנימי —
 // הפסקת חשמל ביניהם ⇒ הקופה משלימה את הזיכרון מהכרטיס בהכנסה הבאה (checkCard).
+// שמירה לפני הדפסה: אם הכתיבה לכרטיס נכשלה — המצב חוזר לקודם, לא מודפסת קבלה, ומוצגת שגיאה.
 function apply({ st: next, out }) {
-  st = next;
   if (out.persist) {
-    if (out.files) saveFiles({ ...loadFiles(), ...out.files });
-    saveCard(st.card);
-    saveDevice(st.device);
+    const okCard = saveCard(next.card) && (!out.files || saveFiles({ ...loadFiles(), ...out.files }));
+    if (!okCard) {
+      st = { ...st, msg: { text: '⛔ השמירה לכרטיס נכשלה (מלא/פגום?) — הפעולה לא בוצעה. החליפו כרטיס או גבו ופנו מקום', kind: 'err' } };
+      beep(false);
+      return render();
+    }
+    saveDevice(next.device); // נכשל? הכרטיס כבר נשמר ⇒ בהכנסה הבאה הקופה משלימה מהכרטיס
   }
+  st = next;
   for (const lines of out.prints) print(lines);
+  if (out.drawer) { const d = $('drawer'); d.classList.add('open'); clearTimeout(d.t); d.t = setTimeout(() => d.classList.remove('open'), 2500); }
   if (out.beep !== null) beep(out.beep);
   render();
 }
 
 const key = (k) => apply(R.press(st, k, nowIso()));
 const scan = (code) => apply(R.scan(st, code, nowIso()));
-const readCard = () => apply(R.insertCard(st, loadCard(), loadFiles()));
+const readCard = () => apply(R.insertCard(st, loadCard(), loadFiles(), nowIso()));
 
 // ── מסך ──
 function render() {
   const { card, cart, mode, buf, paidInfo, msg, inserted, cardError } = st;
   const s = $('screen');
   const t = K.cartTotals(cart, card.settings.vatRate);
-  const clock = nowIso().slice(11, 16);
+  const dnow = K.deviceNow(nowIso(), st.device);
+  const clock = `${dnow.slice(8, 10)}/${dnow.slice(5, 7)}/${dnow.slice(2, 4)} ${dnow.slice(11, 16)}`;
   const head = `<div class="s-head"><span>${esc(card.settings.bizName || 'קופה לא מוגדרת')}</span><span>${inserted ? '💾' : '⛔ אין כרטיס'} ${clock}</span></div>`;
   let body = '';
   const big = (label, val, cls = '') => `<div class="s-pay ${cls}"><span>${label}</span><b>₪${K.money(val)}</b></div>`;
@@ -98,6 +105,11 @@ function render() {
       + `<div class="s-pay ask"><span>כמה שילם הלקוח?</span><b>${buf ? '₪' + esc(buf) : '—'}</b></div>`
       + (diff === null ? '<div class="s-hint">הקלידו סכום · אישור בלי סכום = בדיוק</div>'
         : diff >= 0 ? big('עודף', diff, 'change') : big('חסר', -diff, 'short')));
+  } else if (mode === 'setClock') {
+    const d = (buf + '____________').slice(0, 12);
+    body = center(`<div class="s-pay ask"><span>תאריך ושעה</span><b style="direction:ltr">${d.slice(0, 2)}/${d.slice(2, 4)}/${d.slice(4, 8)} ${d.slice(8, 10)}:${d.slice(10, 12)}</b></div><div class="s-hint">יום חודש שנה שעה דקה · C מוחק · אישור</div>`);
+  } else if (mode === 'confirmBig') {
+    body = center('<div style="font-size:16px;color:#ffd27a">סכום / כמות חריגים — לאשר?</div>');
   } else if (mode === 'pin') {
     body = center(`<div class="s-pay ask"><span>קוד מנהל</span><b>${'•'.repeat(buf.length) || '—'}</b></div><div class="s-hint">הקלידו קוד · אישור · C = ביטול</div>`);
   } else if (mode === 'refundOf') {
@@ -105,12 +117,12 @@ function render() {
   } else if (mode === 'confirmCsv') {
     body = center('<div style="font-size:16px;color:#ffd27a">אישור מחיקת מוצרים מהאקסל</div>');
   } else if (mode === 'menu') {
-    body = `<div class="s-lines s-menu"><div><b>תפריט</b></div><div>1 · דוח ביניים (X)</div><div>2 · סגירת יום (Z)</div><div>3 · דוח מלאי</div><div>4 · העתק קבלה אחרונה</div><div style="color:#9fb3d9">C · חזרה</div></div>`;
+    body = `<div class="s-lines s-menu"><div><b>תפריט</b></div><div>1 · דוח ביניים (X)</div><div>2 · סגירת יום (Z)</div><div>3 · דוח מלאי</div><div>4 · העתק קבלה אחרונה</div><div>5 · פתיחת מגירה</div><div>6 · כיוון שעון</div><div style="color:#9fb3d9">C · חזרה</div></div>`;
   } else if (!cart.lines.length && paidInfo) {
     body = center(big('שולם', paidInfo.paid) + big('עודף ללקוח', paidInfo.change, 'change'));
   } else if (!cart.lines.length) {
     const idle = !inserted ? 'הכניסו כרטיס' : cardError ? '⛔ הכרטיס נפסל' : !K.isConfigured(card) ? 'צריך הגדרה במחשב'
-      : K.needsClose(card, nowIso()) ? 'סגרו את היום הקודם · תפריט 2' : cart.refund ? `החזרה לקבלה ${cart.refundOf} — סרקו פריט` : 'מוכן · סרקו מוצר';
+      : K.needsClose(card, dnow) ? 'סגרו את היום הקודם · תפריט 2' : cart.refund ? `החזרה לקבלה ${cart.refundOf} — סרקו פריט` : 'מוכן · סרקו מוצר';
     body = `<div class="s-lines" style="display:flex;align-items:center;justify-content:center;font-size:18px;color:#9fb3d9;text-align:center">${idle}</div>`;
   } else {
     const si = R.selIdx(st);
@@ -122,9 +134,9 @@ function render() {
       return `<div class="s-line${i === si ? ' sel' : ''}"><span>${esc(l.name)}${extra}</span><span>${K.money(K.lineTotal(l))}</span></div>`;
     }).join('') + (t.basket ? `<div class="s-line"><span><small>הנחת סל</small></span><span>-${K.money(t.basket)}</span></div>` : '') + '</div>';
   }
-  const hideTotal = ['menu', 'cash', 'pin', 'refundOf', 'confirmCsv'].includes(mode) || (paidInfo && !cart.lines.length);
+  const hideTotal = ['menu', 'cash', 'pin', 'refundOf', 'confirmCsv', 'setClock', 'confirmBig'].includes(mode) || (paidInfo && !cart.lines.length);
   const total = hideTotal ? '' : `<div class="s-total${cart.refund ? ' refund' : ''}"><span>${cart.refund ? 'להחזר' : 'לתשלום'}${t.items ? ` · ${t.items} פריטים` : ''}</span><span>₪${K.money(t.total)}</span></div>`;
-  const input = ['cash', 'pin', 'refundOf'].includes(mode) ? '' : `<div class="s-input"><span>${buf ? 'הקלדה:' : ''}</span><span>${esc(buf)}</span></div>`;
+  const input = ['cash', 'pin', 'refundOf', 'setClock'].includes(mode) ? '' : `<div class="s-input"><span>${buf ? 'הקלדה:' : ''}</span><span>${esc(buf)}</span></div>`;
   s.innerHTML = head + body + total + input + `<div class="s-msg ${msg.kind}">${esc(msg.text)}</div>`;
 
   const last = cart.lines[cart.lines.length - 1];

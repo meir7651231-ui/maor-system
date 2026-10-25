@@ -1,12 +1,13 @@
 // קבצים פשוטים בכרטיס — נפתחים בכל מחשב (אקסל / פנקס רשימות), בלי דפדפן ובלי התקנה.
 // הקופה כותבת אותם בכל שמירה; בהכנסת כרטיס היא קוראת את מוצרים.csv אם נערך.
 // קבלות וסגירות-יום כאן הן העתק לקריאה בלבד — המקור החתום נשאר ב-KUPA.JSON.
-import { reportLines, money, validEan13, codeKey } from './kupa.mjs';
+import { reportLines, money, validEan13, codeKey, monthlySummary } from './kupa.mjs';
 import { sha256, hex, utf8 } from './sign.mjs';
 
 export const PRODUCTS_FILE = 'מוצרים.csv';
 export const RECEIPTS_FILE = 'קבלות.csv';
 export const README_FILE = 'קרא-אותי.txt';
+export const MONTHLY_FILE = 'סיכום-חודשי.csv';
 export const REPORTS_DIR = 'דוחות';
 const BOM = '﻿';
 const HEADER = ['ברקוד', 'שם', 'מחיר', 'מלאי'];
@@ -34,6 +35,14 @@ export function receiptsCsv(card) {
   return BOM + rows.map(csvLine).join('\r\n') + '\r\n';
 }
 
+export function monthlyCsv(card) {
+  const rows = [['חודש', 'מסמכים', 'מכירות', 'החזרות', 'מזומן בפועל', 'אשראי', 'עיגולים', 'הנחות', 'סה"כ פדיון', 'מע"מ']];
+  for (const m of monthlySummary(card)) {
+    rows.push([m.month, m.count, m.sales, m.refunds, money(m.cash), money(m.credit), money(m.rounding), money(m.discount), money(m.total), money(m.vat)]);
+  }
+  return BOM + rows.map(csvLine).join('\r\n') + '\r\n';
+}
+
 const README = `קופה — מה יש בכרטיס
 ========================
 מוצרים.csv   — רשימת המוצרים, המחירים והמלאי.
@@ -43,6 +52,7 @@ const README = `קופה — מה יש בכרטיס
                הברקוד מתחיל בגרש ' כדי שאקסל לא ישבש אותו. השאירו את הגרש.
                שורה עם שגיאה — הקופה לא תקבל את הקובץ ותגיד באיזו שורה.
 קבלות.csv    — כל הקבלות (לקריאה בלבד).
+סיכום-חודשי.csv — לכל חודש: מכירות, החזרות, מזומן, אשראי, הנחות, סה"כ ומע"מ (לרואה החשבון).
 דוחות\\       — כל סגירת יום כקובץ טקסט (לקריאה ולהדפסה).
 ניהול-הקופה.html — מסך ניהול נוח בדפדפן (כרום / אדג'), אם מותר במחשב.
 KUPA.JSON    — הנתונים החתומים של הקופה. לא לגעת: שינוי ידני יגרום לקופה לפסול את הכרטיס.
@@ -54,6 +64,7 @@ export function exportCardFiles(card) {
     [PRODUCTS_FILE]: productsCsv(card),
     [RECEIPTS_FILE]: receiptsCsv(card),
     [README_FILE]: BOM + README.replace(/\n/g, '\r\n'),
+    [MONTHLY_FILE]: monthlyCsv(card),
   };
   for (const z of card.zReports) {
     files[`${REPORTS_DIR}/סגירת-יום-${String(z.no).padStart(4, '0')}.txt`] = BOM + reportLines(card, z).join('\r\n') + '\r\n';

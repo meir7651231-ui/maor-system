@@ -118,6 +118,25 @@ const check = (ok, msg) => { console.log((ok ? '✓ ' : '✗ ') + msg); if (!ok)
   check(raw.includes('ןמוזמב לבקתה') && raw.includes('ןמוזמ לוגיע'), 'תצוגת מדפסת: העברית בסדר חזותי (כפי שתודפס משמאל לימין)');
   await p.uncheck('#rawPrint');
 
+  // ── שמירה לפני הדפסה: כשל כתיבה לכרטיס ⇒ אין קבלה ואין מכירה ──
+  const slipsBefore = await p.locator('.slip').count();
+  const recsBefore = await p.evaluate(() => JSON.parse(localStorage.getItem('kupa.card')).receipts.length);
+  await p.evaluate(() => { const o = Storage.prototype.setItem; Storage.prototype.setItem = function (k, v) { if (k === 'kupa.card') { Storage.prototype.setItem = o; throw new Error('QuotaExceeded'); } return o.call(this, k, v); }; });
+  await samples.nth(0).click(); await key('CREDIT');
+  check((await scr()).includes('השמירה לכרטיס נכשלה'), 'כשל כתיבה לכרטיס ⇒ "השמירה לכרטיס נכשלה"');
+  check((await p.locator('.slip').count()) === slipsBefore, 'כשל כתיבה ⇒ לא הודפסה קבלה');
+  check(await p.evaluate(() => JSON.parse(localStorage.getItem('kupa.card')).receipts.length) === recsBefore, 'כשל כתיבה ⇒ המכירה לא נרשמה');
+  await key('CREDIT'); // ניסיון חוזר — עכשיו הכתיבה עובדת
+  check((await p.locator('.slip').count()) === slipsBefore + 1, 'ניסיון חוזר אחרי כשל ⇒ הקבלה יוצאת');
+  // ── מגירה, תאריך במסך, כיוון שעון ──
+  await samples.nth(0).click(); await key('CASH', 'OK');
+  check(await p.locator('#drawer.open').count() === 1, 'מכירה במזומן ⇒ "מגירת הכסף נפתחה"');
+  check(/\d\d\/\d\d\/\d\d \d\d:\d\d/.test(await scr()), 'בראש המסך: תאריך ושעה');
+  await key('MENU', '6', '2', '4', '6', '8', 'OK');
+  check((await scr()).includes('תאריך ושעה'), 'תפריט 6 (עם קוד מנהל) ⇒ מסך כיוון שעון');
+  await key('C', 'C');
+  check((await scr()).includes('השעון לא שונה'), 'C ⇒ יציאה בלי לשנות');
+
   // ייצוא הכרטיס לקובץ (לבדיקת דף-הניהול בקובץ יחיד)
   const cardText = await p.evaluate(() => localStorage.getItem('kupa.card'));
   const cardFile = path.join(OUT, 'KUPA.JSON');
@@ -146,6 +165,7 @@ const check = (ok, msg) => { console.log((ok ? '✓ ' : '✗ ') + msg); if (!ok)
   const rep = await p2.locator('#t-rep').innerText();
   check(rep.includes('רציף') && rep.includes('402.90'), 'דף-הניהול מ-file:// קורא את הכרטיס ומציג דוחות');
   check(rep.includes('פעולות חתומות'), 'דף-הניהול מציג את שיוך הכרטיס והחתימות');
+  check(rep.includes('סיכום חודשי') && /20\d\d-\d\d/.test(rep), 'דף-הניהול: סיכום חודשי לרואה החשבון');
   await p2.screenshot({ path: path.join(OUT, 'kupa-manage.png'), fullPage: true });
   check(errs2.length === 0, 'דף-הניהול: אין שגיאות ' + JSON.stringify(errs2));
 

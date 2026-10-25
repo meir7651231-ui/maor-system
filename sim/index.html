@@ -45,6 +45,8 @@
   .s-msg.ok { color: #7ee2a8; } .s-msg.err { color: #ff9a9e; } .s-msg.info { color: #ffd27a; }
   .s-menu div { padding: 3px 0; }
 
+  .drawer { display: none; margin-top: 8px; background: #3b2f00; color: #ffd27a; border-radius: 6px; padding: 4px 10px; font-size: 13px; }
+  .drawer.open { display: block; }
   .cust { margin-top: 8px; background: #061206; color: #7dff9a; border-radius: 6px; padding: 6px 10px; font-family: "Courier New", monospace; border: 2px solid #111; }
   .cust small { color: #4c8a59; font-family: system-ui, sans-serif; font-size: 10px; }
   .cust .big { font-size: 18px; font-weight: 700; }
@@ -96,6 +98,7 @@
       <span class="slot"><span id="led" class="led"></span><span id="slotTxt">כרטיס בפנים</span></span>
     </div>
     <div class="screen" id="screen" aria-live="polite"></div>
+    <div id="drawer" class="drawer" aria-live="polite">🔓 מגירת הכסף נפתחה</div>
     <div class="cust" aria-label="מסך ללקוח"><small>מסך ללקוח (חלון הכרזה)</small><div id="cust"></div></div>
     <div class="keys" id="keys"></div>
     <div class="scanner">
@@ -133,7 +136,9 @@
     <div>• <b>החזרה:</b> <b>החזרה</b> ⇒ מס' הקבלה המקורית ⇒ סורקים את מה שחוזר ⇒ משלמים. רק מה שנקנה בקבלה, במחיר ששולם.</div>
     <div>• <b>קוד מנהל</b> (אם הוגדר במחשב): נדרש להחזרה, להנחות ולסגירת יום.</div>
     <div>• <b>מזומן מעוגל ל-10 אגורות</b> (1–4 למטה, 5–9 למעלה); אשראי — בלי עיגול.</div>
-    <div>• <b>תפריט:</b> 1 דוח ביניים · 2 סגירת יום (Z) · 3 דוח מלאי · 4 העתק קבלה אחרונה.</div>
+    <div>• <b>תפריט:</b> 1 דוח ביניים · 2 סגירת יום (Z) · 3 דוח מלאי · 4 העתק קבלה אחרונה · 5 פתיחת מגירה · 6 כיוון שעון.</div>
+    <div>• <b>שעון:</b> אם השעה לא מכוונת (הפסקת חשמל), קפצה או חזרה אחורה — הקופה מבקשת לכוון לפני מכירה. מהמחשב: שמירה במסך הניהול מעבירה את שעת המחשב כהצעה.</div>
+    <div>• מחיר מעל ₪5,000 או כמות מעל 50 — מבקש אישור (טעות הקלדה).</div>
     <div>• <b>ניהול:</b> ⏏ הוצאת הכרטיס פותחת את המחשב: הגדרות עסק, מוצרים, מחירים, מלאי, מדבקות ברקוד, דוחות וגיבוי. מחזירים את הכרטיס — והקופה עובדת עם הנתונים החדשים.</div>
     <div>• אשראי = רישום בלבד. הסליקה עצמה במסוף אשראי נפרד.</div>
   </section>

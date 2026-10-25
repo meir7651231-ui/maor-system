@@ -113,8 +113,11 @@ export function encodeCp1255(s) {
 
 const CODEPAGES = { cp862: { n: 36, enc: encodeCp862 }, cp1255: { n: 49, enc: encodeCp1255 } };
 
+// פתיחת מגירת כסף שמחוברת למדפסת (שקע DK/RJ11 ב-Epson): ESC p 0 t1 t2
+export const DRAWER_KICK = Uint8Array.of(0x1b, 0x70, 0x00, 0x19, 0xfa);
+
 // מסמך שלם למדפסת: אתחול, בחירת טבלת עברית, השורות (מרופדות לרוחב ובסדר חזותי), הזנה וחיתוך
-export function escposDocument(lines, { width = 48, codepage = 'cp862', cut = true } = {}) {
+export function escposDocument(lines, { width = 48, codepage = 'cp862', cut = true, drawer = false } = {}) {
   const cp = CODEPAGES[codepage];
   if (!cp) throw new Error('codepage: cp862 | cp1255');
   const parts = [Uint8Array.of(0x1b, 0x40), Uint8Array.of(0x1b, 0x74, cp.n)];
@@ -124,6 +127,7 @@ export function escposDocument(lines, { width = 48, codepage = 'cp862', cut = tr
     parts.push(cp.enc(toVisual(padded).slice(0, width)), Uint8Array.of(0x0a));
   }
   parts.push(Uint8Array.of(0x1b, 0x64, 4)); // הזנת 4 שורות
+  if (drawer) parts.push(DRAWER_KICK);
   if (cut) parts.push(Uint8Array.of(0x1d, 0x56, 0x42, 0x00)); // חיתוך חלקי
   const len = parts.reduce((s, p) => s + p.length, 0);
   const out = new Uint8Array(len);

@@ -138,3 +138,80 @@ test('כרטיס שנפסל אחרי תשלום — המסך לא ממשיך ל�
   assert.ok(ins.st.cardError);
   assert.equal(ins.st.paidInfo, null);
 });
+
+// ── שעון, מגירה, סכום חריג ──
+test('שעון לא מכוון (אחרי הפסקת חשמל בלי סוללת שעון) ⇒ מסך כיוון; כיוון נרשם ביומן', () => {
+  let { st } = fresh();
+  let r = keys(st, [`scan:${SHIRT}`, 'CREDIT']); // פעולה אחרונה: 25.10 14:59
+  // החומרה התאפסה ל-1.1.2021
+  const raw = '2021-01-01T00:00:10';
+  let ins = R.insertCard(R.ejectCard(r.st).st, r.st.card, {}, raw);
+  assert.equal(ins.st.mode, 'setClock');
+  assert.match(ins.st.msg.text, /השעון לא מכוון/);
+  let c = R.press(ins.st, 'C', raw); // מוחק את ההצעה
+  for (const d of '251020261500') c = R.press(c.st, d, raw);
+  c = R.press(c.st, 'OK', raw);
+  assert.equal(c.st.mode, 'sale');
+  assert.match(c.st.msg.text, /השעון כוון: 25\/10\/2026 15:00/);
+  assert.ok(c.out.persist);
+  assert.equal(c.st.card.ops.at(-1).op, 'CLOCK');
+  // מכירה אחרי הכיוון — לפי השעה המתוקנת
+  let s2 = R.scan(c.st, SHIRT, raw);
+  s2 = R.press(s2.st, 'CREDIT', '2021-01-01T00:01:10');
+  assert.equal(s2.st.lastReceipt.at, '2026-10-25T15:01:00');
+});
+
+test('כיוון לפני הפעולה האחרונה — נחסם', () => {
+  let { st } = fresh();
+  let r = keys(st, [`scan:${SHIRT}`, 'CREDIT', 'MENU', '6']);
+  assert.equal(r.st.mode, 'setClock');
+  let c = R.press(r.st, 'C', NOW);
+  for (const d of '010120261200') c = R.press(c.st, d, NOW);
+  c = R.press(c.st, 'OK', NOW);
+  assert.match(c.st.msg.text, /לפני הפעולה האחרונה/);
+});
+
+test('קפיצה של יותר מחודש קדימה ⇒ מבקש לאשר את התאריך', () => {
+  let { st } = fresh();
+  let r = keys(st, [`scan:${SHIRT}`, 'CREDIT']);
+  const ins = R.insertCard(R.ejectCard(r.st).st, r.st.card, {}, '2027-03-01T10:00:00');
+  assert.equal(ins.st.mode, 'setClock');
+  assert.match(ins.st.msg.text, /יותר מחודש/);
+  const ok = R.press(ins.st, 'OK', '2027-03-01T10:00:00'); // ההצעה נכונה ⇒ אישור
+  assert.equal(ok.st.mode, 'sale');
+});
+
+test('מזומן פותח מגירה; "פתיחת מגירה" מהתפריט נרשמת ונספרת כפעולה שאינה מכירה', () => {
+  let { st } = fresh();
+  let r = keys(st, [`scan:${SHIRT}`, 'CASH', 'OK']);
+  assert.equal(r.out.drawer, true);
+  r = keys(r.st, [`scan:${SHIRT}`, 'CREDIT']);
+  assert.equal(r.out.drawer, false);
+  r = keys(r.st, ['MENU', '5']);
+  assert.equal(r.out.drawer, true);
+  assert.equal(r.st.card.ops.at(-1).op, 'DRAWER');
+  r = keys(r.st, ['MENU', '2', 'OK']);
+  assert.ok(r.prints[0].some((l) => /פעולות שאינן מכירה\s+1/.test(l)));
+});
+
+test('מחיר ידני מעל ₪5,000 או כמות מעל 50 ⇒ אישור (טעות הקלדה)', () => {
+  let { st } = fresh();
+  let r = keys(st, ['8', '0', '0', '0', '0', 'PRICE']);
+  assert.equal(r.st.mode, 'confirmBig');
+  r = keys(r.st, ['C']);
+  assert.equal(r.st.cart.lines.length, 0);
+  r = keys(r.st, ['8', '0', '0', '0', '0', 'PRICE', 'OK']);
+  assert.equal(r.st.cart.lines[0].price, 8000000);
+  r = keys(r.st, ['1', '0', '0', 'QTY']);
+  assert.equal(r.st.mode, 'confirmBig');
+  r = keys(r.st, ['OK']);
+  assert.equal(r.st.cart.lines[0].qty, 100);
+});
+
+test('כרטיס חדש בקופה שמכרה ⇒ הודעה "ממשיך מקבלה N"', () => {
+  let { st } = fresh();
+  let r = keys(st, [`scan:${SHIRT}`, 'CREDIT', `scan:${SHIRT}`, 'CREDIT']);
+  const blank = K.updateSettings(K.emptyCard(), { bizName: 'ב', osekNo: '000000018' });
+  const ins = R.insertCard(R.ejectCard(r.st).st, blank, {}, NOW);
+  assert.match(ins.st.msg.text, /ממשיך מקבלה 3/);
+});

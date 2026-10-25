@@ -23,10 +23,15 @@ function toast(t) {
 function esc(s) { return String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
 function toAg(v) { const n = Number(String(v).replace(',', '.')); return Number.isFinite(n) ? Math.round(n * 100) : NaN; }
 
+function localNow() {
+  const d = new Date();
+  const p = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+}
 function commit(next, note) {
   const g = K.guardManaged(card, next);
   if (g.error) return toast(g.error);
-  card = next;
+  card = { ...next, pcTime: localNow() }; // שעת המחשב — הצעה לכיוון שעון הקופה
   if (SIM) saveCard(card); else dirty = true;
   renderAll();
   if (note) toast(note);
@@ -203,9 +208,13 @@ function renderReports() {
   $('xStats').innerHTML = st('מסמכים', x.count) + st('מכירות', x.sales) + st('החזרות', x.refunds) + st('מזומן', '₪' + K.money(x.cash)) + st('אשראי', '₪' + K.money(x.credit)) + st('סה"כ', '₪' + K.money(x.total)) + st('מצטבר מיום הפתיחה (GT)', '₪' + K.money(x.gt));
   const seq = K.checkSequence(card);
   $('seqNote').innerHTML = (seq.ok
-    ? `<span class="ok">✓ מספור הקבלות רציף (1–${seq.top})</span>`
+    ? `<span class="ok">✓ מספור הקבלות רציף (${seq.from}–${seq.top})</span>`
     : `<span class="err">⚠ ${seq.missing.length ? 'חסרות קבלות: ' + seq.missing.join(', ') : ''}${seq.dup.length ? ' · כפולות: ' + seq.dup.join(', ') : ''}</span>`)
     + `<br>🔏 ${card.deviceId ? `הכרטיס שייך לקופה ${esc(card.deviceId)} · ${card.seq.op} פעולות חתומות · הקופה מאמתת את החתימות בכל הכנסת כרטיס` : 'הכרטיס עוד לא שויך לקופה'}`;
+  $('mRows').innerHTML = K.monthlySummary(card).slice().reverse().map((m) => `<tr><td>${m.month}</td><td>${m.count}</td><td class="num">${K.money(m.cash)}</td><td class="num">${K.money(m.credit)}</td><td class="num">${K.money(m.rounding)}</td><td class="num">${K.money(m.discount)}</td><td class="num">${K.money(m.total)}</td><td class="num">${K.money(m.vat)}</td></tr>`).join('')
+    || '<tr><td colspan="8" class="note">אין עדיין מכירות</td></tr>';
+  const size = K.cardSize(card);
+  if (size > K.CARD_WARN_BYTES) $('seqNote').innerHTML += `<br><span class="err">⚠ הכרטיס גדול (${(size / 1048576).toFixed(1)}MB) — שמרו גיבוי וקחו כרטיס חדש (הקופה תמשיך את המספור)</span>`;
   $('zRows').innerHTML = card.zReports.slice().reverse().map((z) => `<tr><td>${z.no}</td><td>${esc(z.at.replace('T', ' ').slice(0, 16))}</td><td>${z.fromNo}–${z.toNo}</td>
     <td class="num">${K.money(z.cash)}</td><td class="num">${K.money(z.credit)}</td><td class="num">${K.money(z.total)}</td><td class="num">${K.money(z.vat)}</td></tr>`).join('')
     || '<tr><td colspan="7" class="note">עוד לא נסגר יום</td></tr>';
@@ -218,6 +227,10 @@ function downloadCsv(rows, name) {
   const blob = new Blob(['\uFEFF' + rows.map((r) => r.map(q).join(',')).join('\r\n')], { type: 'text/csv' });
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; a.click();
 }
+$('monthCsv').onclick = () => {
+  const blob = new Blob([F.monthlyCsv(card)], { type: 'text/csv' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'kupa-monthly.csv'; a.click();
+};
 $('csv').onclick = () => {
   const rows = [['מספר', 'תאריך', 'סוג', 'תשלום', 'סה"כ', 'מע"מ', 'פריטים']];
   for (const r of card.receipts) rows.push([r.no, r.at, r.type === 'refund' ? 'החזרה' : 'מכירה', r.method === 'cash' ? 'מזומן' : 'אשראי', K.money(r.total), K.money(r.vat), r.lines.map((l) => `${l.name}×${l.qty}`).join(' | ')]);

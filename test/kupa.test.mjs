@@ -60,7 +60,7 @@ test('מכירה במזומן: עודף, מע"מ כלול, מלאי יורד, מ
   assert.equal(K.findProduct(r1.card, '7290000000028').stock, null);
   const r2 = sell(r1, manual(500), { method: 'credit' });
   assert.equal(r2.receipt.no, 2);
-  assert.deepEqual(K.checkSequence(r2.card), { ok: true, missing: [], dup: [], top: 2 });
+  assert.deepEqual(K.checkSequence(r2.card), { ok: true, missing: [], dup: [], top: 2, from: 1 });
   assert.ok(K.checkCard(r2.card, r2.device).card);
 });
 
@@ -360,4 +360,53 @@ test('קוד מנהל: 4–8 ספרות, נשמר רק כטביעה, ריק = ב
   assert.equal(K.checkPin(c, '2468'), true);
   assert.equal(K.checkPin(c, '1111'), false);
   assert.equal(K.checkPin(K.setPin(c, '').card, '9'), true);
+});
+
+test('כרטיס חדש וריק בקופה שכבר מכרה — ממשיך את מספור הקבלות, ה-Z, השרשרת וה-GT (לא מתחיל מ-1)', () => {
+  let st = sell(setup(), shirt); // קבלה 1
+  st = sell(st, manual(100)); // קבלה 2
+  st = K.closeDay(st.card, NOW, st.device); // Z 1
+  // הכרטיס אבד / הוחלף: כרטיס ריק עם מוצרים בלבד
+  let fresh = K.updateSettings(K.emptyCard(), { bizName: 'בוטיק', osekNo: '512345678' });
+  fresh = K.upsertProduct(fresh, { code: '7290000000011', name: 'חולצה', price: 8990, stock: 5 }).card;
+  const b = K.checkCard(fresh, st.device);
+  assert.ok(b.bound && b.continued);
+  let st2 = { card: b.card, device: st.device };
+  assert.ok(K.checkCard(st2.card, st2.device).card); // נקרא שוב בלי פסילה
+  st2 = sell(st2, manual(500));
+  assert.equal(st2.receipt.no, 3);
+  assert.deepEqual(K.checkSequence(st2.card), { ok: true, missing: [], dup: [], top: 3, from: 3 });
+  const z = K.closeDay(st2.card, NOW, st2.device).report;
+  assert.equal(z.no, 2);
+  assert.equal(z.gt, 8990 + 100 + 500);
+  assert.ok(K.checkCard(K.closeDay(st2.card, NOW, st2.device).card, K.closeDay(st2.card, NOW, st2.device).device).card);
+  // החזרת הכרטיס הישן אחרי שהחדש כבר מכר — נפסל (גרסה ישנה)
+  assert.equal(K.checkCard(st.card, st2.device).kind, 'rollback');
+});
+
+test('כרטיס המשך: הפסקת חשמל בתחילתו — עדיין משלים', () => {
+  let st = sell(setup(), shirt);
+  const fresh = K.checkCard(K.updateSettings(K.emptyCard(), { bizName: 'ב', osekNo: '512345678' }), st.device).card;
+  const after = sell({ card: fresh, device: st.device }, manual(100));
+  const r = K.checkCard(after.card, st.device); // הזיכרון לא נשמר
+  assert.equal(r.recovered, 1);
+  assert.equal(r.device.gt, 8990 + 100);
+});
+
+test('סיכום חודשי: מקבץ לפי חודש; מזומן בפועל כולל עיגול', () => {
+  let st = sell(setup(), manual(1704));
+  st = K.closeDay(st.card, NOW, st.device);
+  st = sell(st, manual(1000), { method: 'credit', now: '2026-11-02T10:00:00' });
+  const m = K.monthlySummary(st.card);
+  assert.deepEqual(m.map((x) => x.month), ['2026-10', '2026-11']);
+  assert.equal(m[0].cash, 1700);
+  assert.equal(m[1].credit, 1000);
+});
+
+test('ESC/POS: פתיחת מגירה נשלחת רק כשמבקשים', async () => {
+  const E = await import('../engine/escpos.mjs');
+  const a = E.escposDocument(['א'], { width: 1, cut: false });
+  const b = E.escposDocument(['א'], { width: 1, cut: false, drawer: true });
+  assert.equal(b.length - a.length, 5);
+  assert.deepEqual([...b.slice(-5)], [0x1b, 0x70, 0x00, 0x19, 0xfa]);
 });

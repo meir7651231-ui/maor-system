@@ -3,11 +3,24 @@
 //   out.prints  — שורות להדפסה
 //   out.beep    — true (צפצוף הצלחה) / false (שגיאה) / null
 //   out.persist — לשמור: קודם כרטיס + קבצים, אחר כך זיכרון פנימי (סדר חשוב — הפסקת חשמל)
+//   out.drawer  — לפתוח את מגירת הכסף (פקודה למדפסת)
+// הזמן שמגיע מבחוץ הוא שעון החומרה; המנוע מוסיף את תיקון השעון (deviceNow).
 import * as K from './kupa.mjs';
 import * as F from './files.mjs';
 
 const DIGIT = /^[0-9]$/;
-const PROTECTED = { REFUND: 'החזרה', DISC: 'הנחה', PCT: 'הנחה', BASKET: 'הנחת סל', BPCT: 'הנחת סל', Z: 'סגירת יום' };
+const PROTECTED = { REFUND: 'החזרה', DISC: 'הנחה', PCT: 'הנחה', BASKET: 'הנחת סל', BPCT: 'הנחת סל', Z: 'סגירת יום', CLOCK: 'כיוון שעון', DRAWER: 'פתיחת מגירה' };
+const BIG_AMOUNT = 500000; // ₪5,000 — מעל זה מחיר ידני דורש אישור (טעות הקלדה)
+const BIG_QTY = 50;
+
+// DDMMYYYYHHMM ⇄ ISO
+export function isoToDigits(iso) {
+  return iso.slice(8, 10) + iso.slice(5, 7) + iso.slice(0, 4) + iso.slice(11, 13) + iso.slice(14, 16);
+}
+export function digitsToIso(d) {
+  if (!/^\d{12}$/.test(d)) return null;
+  return `${d.slice(4, 8)}-${d.slice(2, 4)}-${d.slice(0, 2)}T${d.slice(8, 10)}:${d.slice(10, 12)}`;
+}
 
 export function initState({ card, device, inserted = true }) {
   return {
@@ -21,7 +34,7 @@ export function initState({ card, device, inserted = true }) {
 
 // ── עזר ──
 function begin(st) {
-  return { s: { ...st }, out: { prints: [], beep: null, persist: false, files: null } };
+  return { s: { ...st }, out: { prints: [], beep: null, persist: false, files: null, drawer: false } };
 }
 function say(s, text, kind = 'info') { s.msg = { text, kind }; }
 function fail(s, out, text) { say(s, text, 'err'); out.beep = false; }
@@ -54,7 +67,25 @@ function ready(s, out) {
 
 // ── כרטיס ──
 // files = הקבצים שבכרטיס (לפחות מוצרים.csv אם קיים)
-export function insertCard(st, card, files = {}) {
+export function insertCard(st, card, files = {}, raw) {
+  const r0 = insertCardInner(st, card, files);
+  const { st: s, out } = r0;
+  // שעון חשוד (הפסקת חשמל בלי סוללת שעון, קפיצה, החזרה) ⇒ מסך כיוון שעון לפני הכול
+  if (raw && s.inserted && !s.cardError && s.mode === 'sale') {
+    const now = K.deviceNow(raw, s.device);
+    const why = K.clockSuspect(s.device, now);
+    if (why) {
+      const hint = s.card.pcTime && s.card.pcTime > now ? s.card.pcTime : now;
+      s.mode = 'setClock';
+      s.buf = isoToDigits(hint);
+      say(s, `⏰ ${why} · בדקו/תקנו: יום-חודש-שנה-שעה-דקה · אישור`, 'err');
+      out.beep = false;
+    }
+  }
+  return { st: s, out };
+}
+
+function insertCardInner(st, card, files) {
   const { s, out } = begin(st);
   s.inserted = true;
   s.mode = 'sale';
@@ -66,7 +97,8 @@ export function insertCard(st, card, files = {}) {
   s.cardError = '';
   s.card = r.card;
   if (r.device) s.device = r.device;
-  say(s, r.recovered ? `הכרטיס נקרא · הושלמו ${r.recovered} פעולות אחרי הפסקת חשמל` : 'הכרטיס נקרא', 'ok');
+  say(s, r.recovered ? `הכרטיס נקרא · הושלמו ${r.recovered} פעולות אחרי הפסקת חשמל`
+    : r.continued ? `כרטיס חדש — ממשיך מקבלה ${s.card.seq.receipt + 1} (סגירת יום ${s.card.seq.z + 1})` : 'הכרטיס נקרא', 'ok');
   const csv = files[F.PRODUCTS_FILE];
   if (csv !== undefined && s.card.productsHash && F.textHash(csv) !== s.card.productsHash) {
     const imp = F.importProductsCsv(s.card, typeof csv === 'string' ? new TextEncoder().encode(csv) : csv);
@@ -106,8 +138,9 @@ export function ejectCard(st) {
 }
 
 // ── סריקה ──
-export function scan(st, code, now) {
+export function scan(st, code, raw) {
   const { s, out } = begin(st);
+  const now = raw && K.deviceNow(raw, s.device);
   code = String(code).trim();
   if (!code) return { st: s, out };
   if (s.mode !== 'sale') { fail(s, out, 'סיימו קודם את הפעולה שעל המסך (C = חזרה)'); return { st: s, out }; }
@@ -130,12 +163,23 @@ function pay(s, out, method, now) {
   const r = K.checkout(s.card, s.cart, { method, tendered, now, device: s.device });
   if (r.error) { fail(s, out, r.error); return; }
   persist(s, out, r);
+  if (method === 'cash') out.drawer = true;
   s.lastReceipt = r.receipt;
   out.prints.push(K.receiptLines(s.card, r.receipt));
   s.paidInfo = method === 'cash' && r.receipt.type === 'sale' ? { paid: r.receipt.tendered, change: r.receipt.change } : null;
   s.cart = K.emptyCart(); s.buf = ''; s.sel = -1; s.mode = 'sale';
   say(s, `קבלה ${r.receipt.no} הודפסה`, 'ok');
   out.beep = true;
+}
+
+function setQty(s, out, q) {
+  const r = K.cartSetQty(s.cart, selIdx(s), q);
+  if (r.error) fail(s, out, r.error); else { s.cart = r.cart; s.buf = ''; say(s, `כמות: ${q}`, 'ok'); }
+}
+function addManual(s, out, a) {
+  const r = a === null ? { error: 'הקלידו מחיר' } : K.cartAddManual(s.cart, a, 'פריט כללי', s.card);
+  if (r.error) fail(s, out, r.error);
+  else { s.cart = r.cart; s.sel = -1; s.buf = ''; s.paidInfo = null; say(s, `פריט כללי ₪${K.money(a)}`, 'ok'); out.beep = true; }
 }
 
 // ── פעולות מוגנות בקוד מנהל ──
@@ -157,6 +201,18 @@ function run(s, out, action, now) {
   if (action === 'Z') {
     s.mode = 'confirmZ';
     return say(s, 'סגירת יום? אישור = כן · C = לא', 'info');
+  }
+  if (action === 'CLOCK') {
+    s.mode = 'setClock';
+    s.buf = isoToDigits(now);
+    return say(s, 'כיוון שעון: יום-חודש-שנה-שעה-דקה · C מוחק · אישור', 'info');
+  }
+  if (action === 'DRAWER') {
+    const r = K.logOp(s.card, s.device, now, 'DRAWER');
+    if (r.error) return fail(s, out, r.error);
+    persist(s, out, r);
+    out.drawer = true;
+    return say(s, 'המגירה נפתחה (נרשם)', 'info');
   }
   const idx = selIdx(s);
   if (action === 'DISC') {
@@ -182,8 +238,36 @@ function run(s, out, action, now) {
 }
 
 // ── מקשים ──
-export function press(st, k, now) {
+export function press(st, k, raw) {
   const { s, out } = begin(st);
+  const now = raw && K.deviceNow(raw, s.device);
+
+  if (s.mode === 'setClock') {
+    if (DIGIT.test(k)) { if (s.buf.length < 12) s.buf += k; }
+    else if (k === 'C') { if (s.buf) s.buf = ''; else { s.mode = 'sale'; say(s, 'השעון לא שונה', 'info'); } }
+    else if (k === 'OK') {
+      const target = digitsToIso(s.buf);
+      const r = target ? K.setClock(s.device, raw, target) : { error: 'הקלידו 12 ספרות: יום חודש שנה שעה דקה' };
+      if (r.error) return (fail(s, out, r.error), { st: s, out });
+      const newNow = K.deviceNow(raw, r.device);
+      const log = K.logOp(s.card, r.device, newNow, 'CLOCK', { was: now });
+      if (log.error) return (fail(s, out, log.error), { st: s, out });
+      persist(s, out, log);
+      s.mode = 'sale'; s.buf = '';
+      say(s, `השעון כוון: ${newNow.slice(8, 10)}/${newNow.slice(5, 7)}/${newNow.slice(0, 4)} ${newNow.slice(11, 16)}`, 'ok');
+      out.beep = true;
+    }
+    return { st: s, out };
+  }
+
+  if (s.mode === 'confirmBig') {
+    const p = s.pending;
+    s.mode = 'sale'; s.pending = null;
+    if (k !== 'OK') { s.buf = ''; say(s, 'בוטל', 'info'); return { st: s, out }; }
+    if (p.kind === 'price') addManual(s, out, p.value);
+    else setQty(s, out, p.value);
+    return { st: s, out };
+  }
 
   if (s.mode === 'menu') {
     s.mode = 'sale';
@@ -194,6 +278,8 @@ export function press(st, k, now) {
       else { persist(s, out, r); out.prints.push(K.reportLines(s.card, r.report)); say(s, 'דוח ביניים הודפס', 'ok'); }
     } else if (k === '2') protect(s, out, 'Z', now);
     else if (k === '3') { out.prints.push(K.stockLines(s.card, now)); say(s, 'דוח מלאי הודפס', 'ok'); }
+    else if (k === '5') protect(s, out, 'DRAWER', now);
+    else if (k === '6') protect(s, out, 'CLOCK', now);
     else if (k === '4') {
       if (!s.lastReceipt) fail(s, out, 'אין קבלה אחרונה');
       else {
@@ -280,19 +366,16 @@ export function press(st, k, now) {
   } else if (k === 'QTY') {
     const q = Number(s.buf);
     if (s.cart.refund) fail(s, out, 'בהחזרה סורקים כל פריט בנפרד');
-    else {
-      const r = K.cartSetQty(s.cart, selIdx(s), q);
-      if (r.error) fail(s, out, r.error); else { s.cart = r.cart; s.buf = ''; say(s, `כמות: ${q}`, 'ok'); }
-    }
+    else if (q > BIG_QTY && s.cart.lines.length) { s.mode = 'confirmBig'; s.pending = { kind: 'qty', value: q }; say(s, `כמות ${q} — בטוח? אישור = כן · C = לא`, 'info'); }
+    else setQty(s, out, q);
   } else if (k in PROTECTED) {
     if (k !== 'REFUND' && !s.cart.lines.length) fail(s, out, 'אין פריטים');
     else if (k === 'REFUND' && s.cart.refund) run(s, out, 'REFUND', now); // יציאה ממצב החזרה — בלי קוד
     else protect(s, out, k, now);
   } else if (k === 'PRICE') {
     const a = bufAgorot(s.buf);
-    const r = a === null ? { error: 'הקלידו מחיר' } : K.cartAddManual(s.cart, a, 'פריט כללי', s.card);
-    if (r.error) fail(s, out, r.error);
-    else { s.cart = r.cart; s.sel = -1; s.buf = ''; s.paidInfo = null; say(s, `פריט כללי ₪${K.money(a)}`, 'ok'); out.beep = true; }
+    if (a !== null && a > BIG_AMOUNT && !s.cart.refund) { s.mode = 'confirmBig'; s.pending = { kind: 'price', value: a }; say(s, `מחיר ₪${K.money(a)} — בטוח? אישור = כן · C = לא`, 'info'); }
+    else addManual(s, out, a);
   } else if (k === 'DEL') {
     const r = K.cartVoid(s.cart, selIdx(s));
     if (r.error) fail(s, out, 'אין מה למחוק'); else { s.cart = r.cart; s.sel = -1; say(s, 'השורה נמחקה', 'info'); }

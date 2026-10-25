@@ -12,8 +12,9 @@ export function loadCard() {
   return emptyCard();
 }
 
+// מחזיר true/false — כשל שמירה חייב להיות גלוי (כרטיס מלא / פגום), לא להיבלע
 export function saveCard(card) {
-  try { localStorage.setItem(KEY, serializeCard(card)); } catch { /* ignore */ }
+  try { localStorage.setItem(KEY, serializeCard(card)); return true; } catch { return false; }
 }
 
 export function cardInserted() {
@@ -51,7 +52,7 @@ export function loadDevice() {
   return d;
 }
 export function saveDevice(d) {
-  try { localStorage.setItem(DEV, JSON.stringify(d)); } catch { /* ignore */ }
+  try { localStorage.setItem(DEV, JSON.stringify(d)); return true; } catch { return false; }
 }
 
 // הקבצים הפשוטים בכרטיס (במכשיר: קבצים אמיתיים בכרטיס; בסימולטור: מפה נתיב⇒טקסט)
@@ -60,5 +61,5 @@ export function loadFiles() {
   try { return JSON.parse(localStorage.getItem(FILES) || '{}'); } catch { return {}; }
 }
 export function saveFiles(files) {
-  try { localStorage.setItem(FILES, JSON.stringify(files)); } catch { /* ignore */ }
+  try { localStorage.setItem(FILES, JSON.stringify(files)); return true; } catch { return false; }
 }

@@ -85,7 +85,8 @@ test('הקבצים בכרטיס: מוצרים, קבלות, קרא-אותי, וק
   let st = K.checkout(c, K.cartAdd(K.emptyCart(), c, '7290000000015').cart, { method: 'cash', now: NOW, device });
   st = K.closeDay(st.card, NOW, st.device);
   const files = F.exportCardFiles(st.card);
-  assert.deepEqual(Object.keys(files).sort(), ['דוחות/סגירת-יום-0001.txt', 'מוצרים.csv', 'קבלות.csv', 'קרא-אותי.txt'].sort());
+  assert.deepEqual(Object.keys(files).sort(), ['דוחות/סגירת-יום-0001.txt', 'מוצרים.csv', 'קבלות.csv', 'קרא-אותי.txt', 'סיכום-חודשי.csv'].sort());
+  assert.ok(files['סיכום-חודשי.csv'].includes('2026-10'));
   assert.ok(files['דוחות/סגירת-יום-0001.txt'].includes('89.90'));
   assert.ok(files['קבלות.csv'].includes('מזומן'));
 });

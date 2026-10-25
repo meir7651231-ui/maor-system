@@ -25,6 +25,8 @@ export function emptyCard() {
     },
     products: [], // {code, name, price, stock|null}
     seq: { receipt: 0, z: 0, internal: 0, op: 0 },
+    // נקודת ההתחלה של הכרטיס: כרטיס חדש בקופה שכבר מכרה ממשיך את המספור ואת השרשרת שלה
+    base: { op: 0, head: '', receipt: 0, z: 0, gt: 0 },
     receipts: [], // כל הקבלות שהופקו, לפי סדר
     zReports: [],
     ops: [], // פעולות שאינן מסמך: דוח ביניים, העתק, ביטול עסקה
@@ -138,7 +140,37 @@ export function nextInternalCode(card) {
 // כל רשומה (קבלה / סגירת יום / פעולה) מקבלת מספר-פעולה רץ (n) וחתימה (h) על
 // התוכן + החתימה הקודמת. עריכה, מחיקה או החזרת הכרטיס לגרסה ישנה — מתגלות.
 export function newDevice(id, keyHex) {
-  return { id, key: keyHex, op: 0, head: '', receipt: 0, z: 0, lastAt: '' };
+  return { id, key: keyHex, op: 0, head: '', receipt: 0, z: 0, gt: 0, lastAt: '', clockOffsetMs: 0 };
+}
+
+// ── שעון הקופה ──
+// השעה = שעון החומרה + תיקון שנשמר בזיכרון הפנימי (כיוון מהתפריט או מהמחשב).
+// זמנים הם מחרוזות מקומיות 'YYYY-MM-DDTHH:MM:SS' (בלי אזור-זמן).
+function isoToMs(iso) {
+  const [d, t = '00:00:00'] = String(iso).split('T');
+  const [y, m, dd] = d.split('-').map(Number);
+  const [hh, mm, ss = 0] = t.split(':').map(Number);
+  return Date.UTC(y, m - 1, dd, hh, mm, ss);
+}
+function msToIso(ms) {
+  return new Date(ms).toISOString().slice(0, 19);
+}
+export function deviceNow(rawIso, device) {
+  return device && device.clockOffsetMs ? msToIso(isoToMs(rawIso) + device.clockOffsetMs) : rawIso;
+}
+// כיוון השעון ליעד; אסור לכוון לפני הפעולה האחרונה (זה היה מאפשר קבלות "בעבר")
+export function setClock(device, rawIso, targetIso) {
+  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?$/.test(targetIso) || Number.isNaN(isoToMs(targetIso))) return { device, error: 'תאריך/שעה לא תקינים' };
+  const t = targetIso.length === 16 ? targetIso + ':00' : targetIso;
+  if (device.lastAt && t < device.lastAt) return { device, error: `אי אפשר לכוון לפני הפעולה האחרונה (${device.lastAt.replace('T', ' ').slice(0, 16)})` };
+  return { device: { ...device, clockOffsetMs: isoToMs(t) - isoToMs(rawIso) } };
+}
+// האם השעה חשודה: לא מכוונת (אחרי הפסקת חשמל בלי סוללת שעון), מאחור, או קפצה קדימה בהרבה
+export function clockSuspect(device, nowIso) {
+  if (nowIso.slice(0, 4) < '2025') return 'השעון לא מכוון';
+  if (device.lastAt && nowIso < device.lastAt) return 'שעון הקופה מאחור';
+  if (device.lastAt && isoToMs(nowIso) - isoToMs(device.lastAt) > 31 * 864e5) return `עבר יותר מחודש מאז הפעולה האחרונה (${device.lastAt.slice(0, 10)}) — האם התאריך נכון?`;
+  return null;
 }
 
 // שעון: אסור שפעולה תהיה מוקדמת מהפעולה האחרונה (שעון שהוחזר אחורה)
@@ -173,29 +205,37 @@ export function allRecords(card) {
 export function checkCard(card, device) {
   if (!card.deviceId) {
     if (allRecords(card).length) return { error: 'בכרטיס יש רשומות בלי שיוך לקופה', kind: 'foreign' };
-    return { card: { ...card, deviceId: device.id }, bound: true };
+    // כרטיס ריק: אם הקופה כבר מכרה — הכרטיס ממשיך ממנה (מספור קבלות, Z, שרשרת ו-GT), לא מתחיל מ-1
+    const base = { op: device.op, head: device.head, receipt: device.receipt, z: device.z, gt: device.gt || 0 };
+    return {
+      card: { ...card, deviceId: device.id, base, head: device.head, seq: { ...card.seq, op: base.op, receipt: base.receipt, z: base.z } },
+      bound: true,
+      continued: device.op > 0,
+    };
   }
   if (card.deviceId !== device.id) return { error: 'זה כרטיס של קופה אחרת', kind: 'foreign' };
+  const base = card.base || { op: 0, head: '', receipt: 0, z: 0, gt: 0 };
   const recs = allRecords(card);
-  let prev = '';
+  let prev = base.head;
   for (let i = 0; i < recs.length; i++) {
     const r = recs[i];
-    if (r.n !== i + 1) return { error: `חסרה פעולה מס' ${i + 1} בכרטיס`, kind: 'tamper' };
+    if (r.n !== base.op + i + 1) return { error: `חסרה פעולה מס' ${base.op + i + 1} בכרטיס`, kind: 'tamper' };
     if (r.prev !== prev || mac(device.key, sealBody(r)) !== r.h) return { error: `פעולה מס' ${r.n} בכרטיס שונתה`, kind: 'tamper' };
     prev = r.h;
   }
-  if (prev !== card.head || recs.length !== card.seq.op) return { error: 'ראש השרשרת בכרטיס לא תואם', kind: 'tamper' };
+  if (prev !== card.head || base.op + recs.length !== card.seq.op) return { error: 'ראש השרשרת בכרטיס לא תואם', kind: 'tamper' };
   if (card.seq.op < device.op) return { error: 'הכרטיס הוחזר לגרסה ישנה — חסרות בו פעולות', kind: 'rollback' };
   if (card.seq.op > device.op) {
     // הפסקת חשמל בין כתיבת הכרטיס לכתיבת הזיכרון הפנימי: הכרטיס מקדים.
     // כל הרשומות חתומות במפתח של הקופה הזו (נבדק למעלה), ונקודת הזיכרון האחרונה
     // נמצאת בשרשרת ⇒ אלה פעולות של הקופה עצמה. משלימים את הזיכרון.
-    const anchor = device.op === 0 ? '' : recs[device.op - 1].h;
+    if (device.op < base.op) return { error: 'הכרטיס לא תואם לזיכרון הקופה', kind: 'tamper' };
+    const anchor = device.op === base.op ? base.head : recs[device.op - base.op - 1].h;
     if (anchor !== device.head) return { error: 'הכרטיס לא תואם לזיכרון הקופה', kind: 'tamper' };
     const last = recs[recs.length - 1];
     return {
       card,
-      device: { ...device, op: card.seq.op, head: card.head, receipt: card.seq.receipt, z: card.seq.z, lastAt: last.at > (device.lastAt || '') ? last.at : device.lastAt },
+      device: { ...device, op: card.seq.op, head: card.head, receipt: card.seq.receipt, z: card.seq.z, gt: grandTotal(card), lastAt: last.at > (device.lastAt || '') ? last.at : device.lastAt },
       recovered: card.seq.op - device.op,
     };
   }
@@ -458,7 +498,7 @@ export function checkout(card, cart, { method, tendered = 0, now, device }) {
   const sealed = seal({ ...card, products, seq: { ...card.seq, receipt: no } }, device, draft);
   return {
     card: { ...sealed.card, receipts: [...card.receipts, sealed.rec] },
-    device: { ...sealed.device, receipt: no },
+    device: { ...sealed.device, receipt: no, gt: (device.gt || 0) + draft.total },
     receipt: sealed.rec,
   };
 }
@@ -481,7 +521,7 @@ export function openReceipts(card) {
 
 function openOps(card) {
   const lastZ = card.zReports[card.zReports.length - 1];
-  const fromN = lastZ ? lastZ.n : 0;
+  const fromN = lastZ ? lastZ.n : (card.base?.op || 0);
   return card.ops.filter((o) => o.n > fromN);
 }
 
@@ -503,7 +543,7 @@ export function summarize(receipts) {
 
 // סה"כ מצטבר מיום הפתיחה (GT)
 export function grandTotal(card) {
-  return card.receipts.reduce((s, r) => s + r.total, 0);
+  return (card.base?.gt || 0) + card.receipts.reduce((s, r) => s + r.total, 0);
 }
 
 function nonSaleCount(card) {
@@ -537,6 +577,23 @@ export function closeDay(card, now, device) {
     device: { ...sealed.device, z: no },
     report: sealed.rec,
   };
+}
+
+// סיכום חודשי (לרו"ח / דיווח מע"מ): לכל חודש — מכירות, החזרות, מזומן, אשראי, עיגולים, הנחות, סה"כ, מע"מ
+export function monthlySummary(card) {
+  const by = new Map();
+  for (const r of card.receipts) {
+    const m = r.at.slice(0, 7);
+    if (!by.has(m)) by.set(m, []);
+    by.get(m).push(r);
+  }
+  return [...by.entries()].sort(([a], [b]) => (a < b ? -1 : 1)).map(([month, rs]) => ({ month, ...summarize(rs) }));
+}
+
+// גודל הכרטיס (בתים) ואזהרה כשהוא מתמלא — עד שייבנה ארכיון שנתי במכשיר
+export const CARD_WARN_BYTES = 20 * 1024 * 1024;
+export function cardSize(card) {
+  return new TextEncoder().encode(serializeCard(card)).length;
 }
 
 export function stockReport(card) {
@@ -678,8 +735,10 @@ export function parseCard(text) {
     ops: Array.isArray(raw.ops) ? raw.ops : [],
     head: typeof raw.head === 'string' ? raw.head : '',
     deviceId: raw.deviceId || null,
+    base: { ...base.base, ...(raw.base || {}) },
   };
   if (typeof raw.productsHash === 'string') card.productsHash = raw.productsHash; // טביעת מוצרים.csv שהקופה כתבה
+  if (typeof raw.pcTime === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(raw.pcTime)) card.pcTime = raw.pcTime; // שעת המחשב בשמירה האחרונה
   // המונה לעולם לא מאחורי המסמך האחרון (שומר על רציפות)
   const lastNo = card.receipts.reduce((m, r) => Math.max(m, r.no), 0);
   card.seq.receipt = Math.max(card.seq.receipt, lastNo);
@@ -693,13 +752,14 @@ export function checkSequence(card) {
   const seen = new Map();
   for (const r of card.receipts) seen.set(r.no, (seen.get(r.no) || 0) + 1);
   const top = Math.max(card.seq.receipt, ...card.receipts.map((r) => r.no), 0);
+  const from = (card.base?.receipt || 0) + 1; // כרטיס המשך: מתחיל אחרי הקבלה האחרונה של הכרטיס הקודם
   const missing = [], dup = [];
-  for (let i = 1; i <= top; i++) {
+  for (let i = from; i <= top; i++) {
     const c = seen.get(i) || 0;
     if (!c) missing.push(i);
     if (c > 1) dup.push(i);
   }
-  return { ok: !missing.length && !dup.length, missing, dup, top };
+  return { ok: !missing.length && !dup.length, missing, dup, top, from };
 }
 
 // ── שמירה מצד הניהול (במחשב) ───────────────────────────────────
@@ -710,7 +770,7 @@ export function guardManaged(before, after) {
   if (!same(before.receipts, after.receipts)) return { error: 'אסור לשנות קבלות מהמחשב' };
   if (!same(before.zReports, after.zReports)) return { error: 'אסור לשנות סגירות יום מהמחשב' };
   if (!same(before.ops, after.ops)) return { error: 'אסור לשנות את יומן הפעולות מהמחשב' };
-  if (after.head !== before.head || after.deviceId !== before.deviceId) return { error: 'אסור לשנות את חתימת הכרטיס' };
+  if (after.head !== before.head || after.deviceId !== before.deviceId || !same(before.base, after.base)) return { error: 'אסור לשנות את חתימת הכרטיס' };
   if (after.seq.receipt !== before.seq.receipt || after.seq.z !== before.seq.z || after.seq.op !== before.seq.op) return { error: 'אסור לשנות את המונים' };
   if (after.seq.internal < before.seq.internal) return { error: 'אסור להחזיר את מונה הברקודים אחורה' };
   return { card: after };
