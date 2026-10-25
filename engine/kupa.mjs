@@ -19,7 +19,7 @@ export function emptyCard() {
       phone: '',
       vatRate: DEFAULT_VAT,
       footer: 'תודה ולהתראות!',
-      width: 48, // תווים בשורה: 48 = גליל 80 מ"מ (Epson TM-T20III) · 32 = גליל 58 מ"מ
+      width: 48, // תווים בשורה: 48 = גליל 80 מ"מ (Epson TM-T20IV) · 32 = גליל 58 מ"מ
       cashRound: true, // עיגול תשלום במזומן ל-10 אגורות (בנק ישראל: 1–4 למטה, 5–9 למעלה)
       pinHash: '', // קוד מנהל (טביעה). ריק = בלי קוד
     },

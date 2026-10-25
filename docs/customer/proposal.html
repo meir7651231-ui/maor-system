@@ -33,7 +33,13 @@
   .cover .hero { position: absolute; left: 24mm; bottom: 46mm; display: flex; align-items: flex-end; gap: 0; }
   .cover .hero .dev { width: 56mm; position: relative; z-index: 2; border-radius: 6mm; box-shadow: 0 10mm 22mm rgba(0,0,0,.45); }
   .cover .hero .rcpt { width: 50mm; margin-right: -22mm; margin-bottom: 10mm; transform: rotate(5deg); border-radius: 1.5mm; box-shadow: 0 6mm 16mm rgba(0,0,0,.35); position: relative; z-index: 1; background: #fffdf6; padding: 2mm; }
-  .cover .points { position: absolute; right: 18mm; bottom: 62mm; width: 76mm; list-style: none; margin: 0; padding: 0; }
+  .cover .stage { position: absolute; left: 10mm; bottom: 46mm; width: 112mm; height: 118mm; }
+  .cover .stage img { position: absolute; filter: drop-shadow(0 8mm 10mm rgba(0,0,0,.45)); }
+  .cover .s-dev { width: 55mm; left: 31mm; bottom: 0; z-index: 3; }
+  .cover .s-prn { width: 56mm; left: 60mm; bottom: 4mm; z-index: 1; }
+  .cover .s-scn { width: 48mm; left: 0; bottom: 2mm; z-index: 2; }
+  .cover .stage-cap { position: absolute; left: 10mm; bottom: 35mm; width: 112mm; text-align: center; font-size: 8pt; color: #8fa0c0; }
+  .cover .points { position: absolute; right: 18mm; bottom: 62mm; width: 70mm; list-style: none; margin: 0; padding: 0; }
   .cover .points li { display: flex; gap: 3mm; align-items: flex-start; font-size: 12pt; margin-bottom: 5mm; color: #e6ecf7; line-height: 1.4; }
   .cover .points b { color: #fff; display: block; font-size: 13pt; }
   .cover .points .dot { flex: 0 0 8mm; height: 8mm; border-radius: 50%; background: rgba(20,184,160,.18); border: 1.5px solid var(--teal); display: grid; place-items: center; font-size: 11pt; }
@@ -43,7 +49,7 @@
 
   /* ── רכיבים ── */
   .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 5mm; }
-  .card { border: 1px solid var(--line); border-radius: 4mm; padding: 5mm; background: #fff; }
+  .card { border: 1px solid var(--line); border-radius: 4mm; padding: 4mm 5mm; background: #fff; }
   .card h3 { font-size: 13pt; font-weight: 800; margin-bottom: 1.8mm; display: flex; gap: 2.5mm; align-items: center; }
   .card p { font-size: 10.3pt; margin: 0; }
   .ico { width: 9mm; height: 9mm; border-radius: 2.5mm; background: var(--teal-l); display: grid; place-items: center; font-size: 13pt; flex: 0 0 auto; }
@@ -51,6 +57,12 @@
   .box-list div { background: var(--sand); border-radius: 3mm; padding: 4mm 3mm; text-align: center; font-size: 9.8pt; color: var(--ink2); line-height: 1.35; }
   .box-list div b { display: block; font-size: 10.8pt; color: var(--ink); margin: 1.5mm 0 1mm; }
   .box-list .e { font-size: 18pt; }
+  .gear { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3.5mm; margin-top: 2mm; }
+  .gear div { background: var(--sand); border-radius: 3mm; padding: 3mm 2.5mm 3mm; text-align: center; font-size: 9pt; color: var(--ink2); line-height: 1.35; display: flex; flex-direction: column; align-items: center; }
+  .gear img { height: 25mm; width: auto; max-width: 100%; object-fit: contain; margin-bottom: 2.5mm; filter: drop-shadow(0 2mm 3mm rgba(15,26,46,.18)); }
+  .gear .cards .e { height: 25mm; display: grid; place-items: center; font-size: 26pt; margin-bottom: 2.5mm; }
+  .gear b { display: block; font-size: 10.8pt; color: var(--ink); margin-bottom: 1mm; }
+  .gear-cap { font-size: 8.5pt; color: var(--mute); margin-top: 2mm; }
   .band { background: var(--sand); border-radius: 4mm; padding: 5mm 6mm; margin-top: 6mm; display: flex; gap: 6mm; align-items: center; }
   .band .q { font-size: 11pt; color: var(--ink2); line-height: 1.55; }
   .band .q b { color: var(--ink); }
@@ -129,10 +141,12 @@
     <li><span class="dot">💳</span><span><b>כרטיס זיכרון = כל העסק</b>מוציאים, מכניסים לכל מחשב, ומנהלים מוצרים, מחירים ודוחות.</span></li>
     <li><span class="dot">🔒</span><span><b>קבלות שאי אפשר לזייף</b>כל קבלה חתומה ומספור רציף — מוכן לרואה החשבון.</span></li>
   </ul>
-  <div class="hero">
-    <img class="dev" src="img/device-cash.png" alt="הקופה: לתשלום, כמה שילם הלקוח, עודף">
-    <img class="rcpt" src="img/receipt.png" alt="קבלה מודפסת">
+  <div class="stage">
+    <img class="s-prn" src="img/printer.png" alt="מדפסת קבלות Epson TM-T20IV">
+    <img class="s-scn" src="img/scanner.png" alt="אקדח ברקוד Zebra LS2208">
+    <img class="s-dev" src="img/device-real.png" alt="יחידת הקופה עם מסך התשלום">
   </div>
+  <div class="stage-cap">יחידת הקופה · אקדח ברקוד · מדפסת קבלות — המוצרים האמיתיים (במסך: הדמיה של תוכנת הקופה)</div>
   <div class="meta">
     <div>לכבוד<b>&nbsp;</b></div>
     <div>תאריך<b>25.10.2026</b></div>
@@ -144,7 +158,8 @@
 <section class="page">
   <div class="kicker">המוצר</div>
   <h2 class="sec-title">קופה אחת, בלי מסביב.</h2>
-  <p class="lead">יחידה קומפקטית עם מסך צבעוני קטן ומקלדת בסגנון מחשבון. לא טלפון, לא טאבלט ולא מחשב — מכשיר שעושה דבר אחד, טוב ומהר. כל הנתונים נשמרים בכרטיס זיכרון שנשאר אצלכם.</p>
+  <p class="lead">יחידה קומפקטית בגודל כף יד, עם מסך צבעוני ומקלדת פיזית (עם מדבקות לפעולות הקופה). לא טלפון, לא טאבלט ולא מחשב — מכשיר שעושה דבר אחד, טוב ומהר. כל הנתונים נשמרים בכרטיס זיכרון שנשאר אצלכם.</p>
+  <div class="chips" style="margin:-4mm 0 6mm"><span><b>מתאים ל:</b></span><span>חנויות קטנות</span><span>בוטיקים</span><span>דוכנים וקיוסקים</span><span>מכירות באירועים</span><span>מקומות בלי אינטרנט יציב</span></div>
 
   <div class="grid2">
     <div class="card"><h3><span class="ico">🔦</span>סורקים ומוכרים</h3><p>אקדח ברקוד בכבל. מוצר בלי ברקוד? מקלידים מחיר. כמויות, הנחות לשורה או לכל הקנייה — בכמה לחיצות.</p></div>
@@ -155,19 +170,15 @@
     <div class="card"><h3><span class="ico">📡</span>בלי אינטרנט, בלי מנוי</h3><p>הקופה עובדת לבד. אין שרת, אין ענן, אין תשלום חודשי — הנתונים שלכם, אצלכם.</p></div>
   </div>
 
-  <div class="h4" style="margin-top:9mm">מה מקבלים</div>
-  <div class="box-list">
-    <div><span class="e">🖩</span><b>יחידת הקופה</b>מסך צבעוני, מקלדת, שעון עם סוללה</div>
-    <div><span class="e">🔦</span><b>אקדח ברקוד</b>בכבל — בלי טעינה ובלי ניתוקים</div>
-    <div><span class="e">🖨</span><b>מדפסת קבלות</b>גליל 80 מ"מ, חיתוך אוטומטי</div>
-    <div><span class="e">💾</span><b>2 כרטיסי זיכרון</b>אחד בשימוש ואחד לגיבוי</div>
+  <div class="h4" style="margin-top:7mm">מה מקבלים — הציוד האמיתי</div>
+  <div class="gear">
+    <div><img src="img/device-real.png" alt=""><b>יחידת הקופה</b><span>ClockworkPi PicoCalc · מסך 4″ · מקלדת · שעון עם סוללה</span></div>
+    <div><img src="img/scanner.png" alt=""><b>אקדח ברקוד</b><span>Zebra LS2208 · בכבל — בלי טעינה ובלי ניתוקים</span></div>
+    <div><img src="img/printer.png" alt=""><b>מדפסת קבלות</b><span>Epson TM-T20IV · גליל 80 מ"מ · חיתוך אוטומטי</span></div>
+    <div class="cards"><span class="e">💾 💾</span><b>2 כרטיסי זיכרון</b><span>אחד בשימוש ואחד לגיבוי</span></div>
   </div>
+  <div class="gear-cap">תמונות היצרנים. במסך הקופה — הדמיה של תוכנת הקופה. המעמד של האקדח — לפי בחירה.</div>
 
-  <div class="band">
-    <div class="q"><b>מתאים במיוחד ל:</b>
-      <div class="chips"><span>חנויות קטנות</span><span>בוטיקים</span><span>דוכנים וקיוסקים</span><span>מכירות באירועים</span><span>מקומות בלי אינטרנט יציב</span></div>
-    </div>
-  </div>
   <div class="foot"><span>קופה עצמאית בלי מחשב</span><span>2</span></div>
 </section>
 
@@ -186,9 +197,9 @@
       <div class="step"><div class="n">6</div><div><h3>מנהלים במחשב (מתי שרוצים)</h3><p>מוציאים את הכרטיס, מכניסים למחשב, מעדכנים מוצרים ומחירים, מחזירים לקופה. הקופה מראה מה השתנה.</p></div></div>
     </div>
     <div>
-      <img class="shot" style="width:68mm" src="img/device-cash.png" alt="">
-      <div class="cap">המסך בתשלום במזומן: לתשלום · כמה שילם · עודף</div>
-      <img class="shot" style="width:68mm;margin-top:6mm" src="img/receipt.png" alt="">
+      <img style="width:52mm;display:block;margin:0 auto;filter:drop-shadow(0 3mm 6mm rgba(15,26,46,.25))" src="img/device-real.png" alt="">
+      <div class="cap">המסך בתשלום במזומן: לתשלום · כמה שילם · עודף<br>(הדמיה של התוכנה על המכשיר)</div>
+      <img class="shot" style="width:68mm;margin-top:5mm" src="img/receipt.png" alt="">
       <div class="cap">הקבלה המודפסת</div>
     </div>
   </div>
@@ -241,11 +252,11 @@
 
   <div class="h4">המחיר כולל</div>
   <ul class="incl">
-    <li>יחידת הקופה עם מסך, מקלדת ושעון עם סוללה</li>
-    <li>אקדח ברקוד בכבל</li>
-    <li>מדפסת קבלות 80 מ"מ</li>
+    <li>יחידת הקופה ClockworkPi PicoCalc + שעון עם סוללה</li>
+    <li>אקדח ברקוד Zebra LS2208 בכבל</li>
+    <li>מדפסת קבלות Epson TM-T20IV, 80 מ"מ</li>
     <li>2 כרטיסי זיכרון (עבודה + גיבוי)</li>
-    <li>הגדרת פרטי העסק בקופה</li>
+    <li>הגדרת פרטי העסק + מדבקות מקשים</li>
     <li>הזנת המוצרים והמחירים הראשונית</li>
     <li>התקנה בבית העסק</li>
     <li>הדרכה לבעלים ולקופאיות + דף הוראות</li>
