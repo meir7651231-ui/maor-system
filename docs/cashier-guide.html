@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>מדריך לקופאית</title>
+<style>
+  @page { size: A4; margin: 8mm; }
+  * { box-sizing: border-box; }
+  body { font-family: "Arial", "David", sans-serif; font-size: 9.6pt; line-height: 1.28; color: #111; margin: 0; background: #fff; }
+  .page { page-break-after: always; }
+  .page:last-child { page-break-after: auto; }
+  h1 { font-size: 19pt; margin: 0 0 1mm; }
+  .sub { color: #555; margin: 0 0 4mm; font-size: 9.5pt; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2.4mm; }
+  .box { border: 1.4px solid #222; border-radius: 3mm; padding: 2.4mm 3mm; break-inside: avoid; }
+  .box.wide { grid-column: 1 / -1; }
+  .box h2 { font-size: 12pt; margin: 0 0 1.4mm; padding-bottom: 1mm; border-bottom: 1px solid #bbb; }
+  .box.warn { border-color: #b00; }
+  .box.warn h2 { color: #b00; }
+  ol, ul { margin: 0; padding-inline-start: 5mm; }
+  li { margin: 0.5mm 0; }
+  kbd { display: inline-block; border: 1.2px solid #333; border-bottom-width: 2.4px; border-radius: 1.4mm; padding: 0 1.4mm; font-family: inherit; font-weight: bold; font-size: 9.6pt; background: #f3f3f3; white-space: nowrap; }
+  .note { color: #444; font-size: 9.3pt; }
+  .keys { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1.2mm; max-width: 82mm; margin: 1mm auto 0; }
+  .keys span { border: 1.2px solid #333; border-radius: 1.4mm; text-align: center; padding: 1mm 0; font-size: 8.6pt; font-weight: bold; direction: rtl; }
+  .keys .w2 { grid-column: span 2; }
+  .keys .fn { background: #e8eefc; } .keys .red { background: #fde4e4; } .keys .pay { background: #e1f5e1; }
+  table { border-collapse: collapse; width: 100%; font-size: 9.6pt; }
+  td { border-bottom: 1px solid #ddd; padding: 0.8mm 1mm; vertical-align: top; }
+  td:first-child { font-weight: bold; width: 42%; }
+  .foot { margin-top: 3mm; font-size: 8.8pt; color: #555; text-align: center; }
+</style>
+</head>
+<body>
+
+<div class="page">
+  <h1>🧾 הקופה — מדריך לקופאית</h1>
+  <p class="sub">לתלות ליד הקופה. מקשים כתובים כך: <kbd>אישור</kbd>. מה שמסומן 🔒 מבקש קוד מנהל.</p>
+
+  <div class="grid">
+    <div class="box wide">
+      <h2>המקלדת</h2>
+      <div class="keys">
+        <span class="fn">תפריט</span><span class="fn">▲</span><span class="fn">▼</span><span class="fn">החזרה</span><span class="red">בטל</span>
+        <span>7</span><span>8</span><span>9</span><span class="fn">×</span><span class="red">מחק</span>
+        <span>4</span><span>5</span><span>6</span><span class="fn">הנחה</span><span class="red">C</span>
+        <span>1</span><span>2</span><span>3</span><span class="fn">מחיר</span><span class="pay">אשראי</span>
+        <span>0</span><span>00</span><span>.</span><span class="fn">אישור</span><span class="pay">מזומן</span>
+        <span class="fn w2">% לשורה</span><span class="fn w2">% לסל</span><span class="fn">₪ לסל</span>
+      </div>
+    </div>
+
+    <div class="box">
+      <h2>1. בבוקר</h2>
+      <ol>
+        <li>מוודאים שהכרטיס בתוך הקופה, ומדליקים.</li>
+        <li>מסתכלים על <b>התאריך והשעה בראש המסך</b>. לא נכון? ראו "כיוון שעון".</li>
+        <li>כתוב "צריך לסגור את היום הקודם"? עושים סגירת יום (סעיף 6) ואז מוכרים.</li>
+      </ol>
+    </div>
+
+    <div class="box">
+      <h2>2. מכירה</h2>
+      <ol>
+        <li>סורקים כל מוצר באקדח. אותו מוצר פעמיים = כמות 2.</li>
+        <li><b>כמות:</b> מקלידים מספר ← <kbd>×</kbd> (על השורה האחרונה, או זו שנבחרה ב-<kbd>▲</kbd><kbd>▼</kbd>).</li>
+        <li><b>אין ברקוד?</b> מקלידים את המספר שמתחת לפסים ← <kbd>אישור</kbd>.</li>
+        <li><b>מוצר בלי ברקוד / מחיר חופשי:</b> מקלידים מחיר ← <kbd>מחיר</kbd>.</li>
+        <li><b>טעות בשורה:</b> בוחרים ב-<kbd>▲</kbd><kbd>▼</kbd> ← <kbd>מחק</kbd>.</li>
+        <li><kbd>C</kbd> מוחק רק את מה שהוקלד עכשיו.</li>
+      </ol>
+    </div>
+
+    <div class="box">
+      <h2>3. תשלום במזומן</h2>
+      <ol>
+        <li><kbd>מזומן</kbd></li>
+        <li>מקלידים <b>כמה הלקוח נתן</b> (למשל 200) ← <kbd>אישור</kbd>.</li>
+        <li>המסך מראה את <b>העודף</b>, המגירה נפתחת, הקבלה יוצאת.</li>
+        <li>נתן בדיוק? <kbd>מזומן</kbd> ← <kbd>אישור</kbd> בלי להקליד.</li>
+      </ol>
+      <p class="note">הסכום במזומן מעוגל ל-10 אגורות (כמו בכל חנות). כתוב "חסרים ₪…" — הלקוח לא נתן מספיק, אין קבלה.</p>
+    </div>
+
+    <div class="box">
+      <h2>4. תשלום באשראי</h2>
+      <ol>
+        <li>מעבירים את הכרטיס <b>במסוף האשראי</b> כרגיל.</li>
+        <li>אחרי שעבר — <kbd>אשראי</kbd> בקופה. הקבלה יוצאת.</li>
+      </ol>
+      <p class="note">הקופה רק <b>רושמת</b> שזה שולם באשראי. היא לא מחויבת לחיוב עצמו.</p>
+    </div>
+
+    <div class="box">
+      <h2>5. הנחה 🔒</h2>
+      <ul>
+        <li><b>₪ על שורה:</b> בוחרים שורה ← מקלידים סכום ← <kbd>הנחה</kbd>.</li>
+        <li><b>% על שורה:</b> מקלידים אחוז ← <kbd>% לשורה</kbd>.</li>
+        <li><b>על כל הקנייה:</b> סכום ← <kbd>₪ לסל</kbd>, או אחוז ← <kbd>% לסל</kbd>. אפס = ביטול ההנחה.</li>
+        <li>הקופה מבקשת קוד מנהל ← מקלידים ← <kbd>אישור</kbd>.</li>
+      </ul>
+    </div>
+
+    <div class="box">
+      <h2>6. סגירת יום (Z) 🔒 — בסוף כל יום</h2>
+      <ol>
+        <li><kbd>תפריט</kbd> ← <kbd>2</kbd> ← קוד מנהל ← <kbd>אישור</kbd>.</li>
+        <li>"סגירת יום?" ← <kbd>אישור</kbd>. יוצא דוח — <b>שומרים אותו</b>.</li>
+      </ol>
+      <p class="note">רוצים רק לראות כמה נכנס, בלי לסגור? <kbd>תפריט</kbd> ← <kbd>1</kbd> (דוח ביניים X).</p>
+    </div>
+
+    <div class="box">
+      <h2>7. ביטול עסקה שלמה</h2>
+      <p><kbd>בטל</kbd> ← <kbd>בטל</kbd> שוב לאישור. הביטול נרשם בדוח היום — זה בסדר.</p>
+      <p class="note">אם כבר יצאה קבלה — זה לא ביטול, זו <b>החזרה</b> (בצד השני).</p>
+    </div>
+  </div>
+  <div class="foot">המשך בצד השני ←</div>
+</div>
+
+<div class="page">
+  <div class="grid">
+    <div class="box">
+      <h2>8. החזרה 🔒 — רק עם קבלה</h2>
+      <ol>
+        <li><kbd>החזרה</kbd> ← קוד מנהל ← <kbd>אישור</kbd>.</li>
+        <li>מקלידים את <b>מספר הקבלה</b> שעל הקבלה של הלקוח ← <kbd>אישור</kbd>.</li>
+        <li>סורקים <b>רק</b> את הפריטים שהוא מחזיר.</li>
+        <li><kbd>מזומן</kbd> או <kbd>אשראי</kbd> — לפי איך שמחזירים לו.</li>
+      </ol>
+      <p class="note">הקופה לא תחזיר פריט שלא נקנה בקבלה הזו, או יותר ממה שנקנה, ומחזירה במחיר ששולם בפועל (אחרי הנחות).</p>
+    </div>
+
+    <div class="box">
+      <h2>9. התפריט</h2>
+      <p><kbd>תפריט</kbd> ואז מספר (רק כשאין עסקה פתוחה):</p>
+      <table>
+        <tr><td>1</td><td>דוח ביניים (X) — כמה נכנס עד עכשיו</td></tr>
+        <tr><td>2 🔒</td><td>סגירת יום (Z)</td></tr>
+        <tr><td>3</td><td>דוח מלאי</td></tr>
+        <tr><td>4</td><td>העתק של הקבלה האחרונה (כתוב עליו "העתק")</td></tr>
+        <tr><td>5 🔒</td><td>פתיחת מגירה בלי מכירה (נרשם)</td></tr>
+        <tr><td>6 🔒</td><td>כיוון שעון</td></tr>
+      </table>
+      <p class="note"><kbd>C</kbd> = יציאה מהתפריט.</p>
+    </div>
+
+    <div class="box">
+      <h2>10. כיוון שעון 🔒</h2>
+      <ol>
+        <li><kbd>תפריט</kbd> ← <kbd>6</kbd> ← קוד מנהל ← <kbd>אישור</kbd>.</li>
+        <li><kbd>C</kbd> מוחק, ומקלידים 12 ספרות: <b>יום חודש שנה שעה דקה</b>.<br>
+          דוגמה: 25 באוקטובר 2026, 09:30 ← <b>251020260930</b></li>
+        <li><kbd>אישור</kbd>.</li>
+      </ol>
+      <p class="note">אחרי הפסקת חשמל הקופה עשויה לבקש את זה לבד. אי אפשר לכוון לתאריך שלפני הקבלה האחרונה.</p>
+    </div>
+
+    <div class="box">
+      <h2>11. הכרטיס (כרטיס הזיכרון)</h2>
+      <ul>
+        <li><b>לא מוציאים</b> את הכרטיס באמצע מכירה.</li>
+        <li>לעדכון מוצרים/מחירים: מוציאים ← מכניסים למחשב ← פותחים <b>ניהול-הקופה.html</b> או מעדכנים את <b>מוצרים.csv</b> באקסל ← שומרים ← מחזירים לקופה.</li>
+        <li>הקופה מראה מה השתנה במוצרים ← <kbd>אישור</kbd> לקבל, <kbd>C</kbd> לבטל.</li>
+        <li><b>אחת לשלושה חודשים:</b> מעתיקים את כל הכרטיס לתיקייה במחשב (גיבוי).</li>
+      </ul>
+    </div>
+
+    <div class="box">
+      <h2>12. עדכון תוכנה 🔒</h2>
+      <p>אם קיבלתם קובץ עדכון מהספק: שמים אותו בכרטיס ומכניסים לקופה. הקופה שואלת "להתקין?" ← <kbd>אישור</kbd> ← קוד מנהל. <kbd>C</kbd> = לא עכשיו.</p>
+      <p class="note">הקופה מתקינה רק עדכון חתום מהספק. קובץ אחר — יידחה.</p>
+    </div>
+
+    <div class="box warn wide">
+      <h2>⚠️ כשמשהו לא בסדר</h2>
+      <table>
+        <tr><td>"אין כרטיס בקופה"</td><td>מכניסים את הכרטיס עד הסוף.</td></tr>
+        <tr><td>"⛔ הכרטיס נפסל"</td><td><b>מפסיקים למכור ומתקשרים לספק.</b> לא מוחקים ולא מתקנים כלום בכרטיס. כנראה שינו קובץ במחשב, או שזה כרטיס של קופה אחרת.</td></tr>
+        <tr><td>"⛔ השמירה לכרטיס נכשלה"</td><td>המכירה <b>לא</b> נרשמה ולא יצאה קבלה. מוציאים, מכניסים שוב, ומנסים שוב. ממשיך? כרטיס מלא או פגום — לספק.</td></tr>
+        <tr><td>"צריך לסגור את היום הקודם"</td><td>סגירת יום (סעיף 6), ואז ממשיכים.</td></tr>
+        <tr><td>"קוד מנהל שגוי"</td><td>מנסים שוב. לא זוכרים — לבעל העסק.</td></tr>
+        <tr><td>"מוצר לא נמצא"</td><td>מוכרים כ"מחיר חופשי" (מחיר ← <kbd>מחיר</kbd>), ומבקשים מהבעלים להוסיף את המוצר.</td></tr>
+        <tr><td>"אזהרה: במלאי X בלבד"</td><td>רק אזהרה — המכירה ממשיכה. לעדכן את הבעלים.</td></tr>
+        <tr><td>"… — בטוח?"</td><td>הקלדתם מחיר מעל ₪5,000 או כמות מעל 50. נכון? <kbd>אישור</kbd>. טעות? <kbd>C</kbd>.</td></tr>
+        <tr><td>הקבלה לא יוצאת</td><td>בודקים נייר (גליל 80 מ"מ) ושהמכסה סגור. צריך שוב את הקבלה? <kbd>תפריט</kbd> ← <kbd>4</kbd>.</td></tr>
+      </table>
+    </div>
+  </div>
+  <div class="foot">טלפון הספק: ____________________ &nbsp;·&nbsp; קוד מנהל — <b>לא כותבים כאן</b>.</div>
+</div>
+
+</body>
+</html>
