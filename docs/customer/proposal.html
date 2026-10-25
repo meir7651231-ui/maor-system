@@ -124,6 +124,66 @@
   .paytable td { border-bottom: 1px solid var(--line); padding: 3mm 2.5mm; height: 11mm; }
   .sigs { display: grid; grid-template-columns: 1fr 1fr; gap: 14mm; margin-top: 12mm; }
   .sigs div { border-top: 1.5px solid var(--ink); padding-top: 2mm; font-size: 10pt; color: var(--ink2); }
+
+  /* ── בקצרה: תרשים ── */
+  .flow { display: grid; grid-template-columns: 1fr 22mm 1fr 22mm 1fr; align-items: end; margin: 6mm 0 0; direction: ltr; }
+  .flow .it { text-align: center; direction: rtl; }
+  .flow .it img { height: 46mm; width: auto; max-width: 100%; object-fit: contain; filter: drop-shadow(0 3mm 4mm rgba(15,26,46,.2)); }
+  .flow .it b { display: block; font-size: 12pt; margin-top: 2mm; }
+  .flow .it span { display: block; font-size: 9.3pt; color: var(--mute); line-height: 1.4; }
+  .flow .cable { align-self: center; text-align: center; font-size: 8.5pt; color: var(--teal-d); font-weight: 700; padding-bottom: 14mm; }
+  .flow .cable i { display: block; height: 0; border-top: 2.5px dashed var(--teal); margin: 1.5mm 0; }
+  .num { display: inline-grid; place-items: center; width: 6.5mm; height: 6.5mm; border-radius: 50%; background: var(--navy); color: #fff; font-size: 9.5pt; font-weight: 800; margin-left: 1.5mm; vertical-align: middle; }
+  .cardloop { display: grid; grid-template-columns: auto 1fr auto auto 1fr auto auto 1fr; align-items: center; gap: 2.5mm; background: var(--sand); border-radius: 4mm; padding: 5mm 6mm; margin-top: 5mm; }
+  .cardloop .e { font-size: 20pt; }
+  .cardloop .t { font-size: 10pt; color: var(--ink2); line-height: 1.4; }
+  .cardloop .t b { color: var(--ink); display: block; font-size: 11pt; }
+  .cardloop .ar { color: var(--teal-d); font-size: 14pt; font-weight: 900; }
+  .nots { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3mm; margin-top: 2mm; }
+  .nots div { border: 1.5px solid var(--line); border-radius: 3mm; padding: 3mm; text-align: center; font-size: 10pt; color: var(--ink2); }
+  .nots div b { display: block; font-size: 15pt; color: #c0392b; }
+  .toc { columns: 2; column-gap: 8mm; font-size: 9.6pt; color: var(--ink2); margin: 1mm 0 0; padding-right: 5mm; line-height: 1.55; }
+
+  /* ── המסך ── */
+  .screens { display: grid; grid-template-columns: 1fr 1fr; gap: 6mm 8mm; margin-top: 2mm; }
+  .scr { display: block; }
+  .scr img { width: 62mm; margin: 0 auto 2.5mm; border-radius: 2.5mm; border: 2.5mm solid #1b2326; box-shadow: 0 2mm 5mm rgba(15,26,46,.2); display: block; }
+  .scr h3 { font-size: 12.5pt; font-weight: 800; margin: 0 0 1mm; }
+  .scr p { font-size: 9.8pt; margin: 0; line-height: 1.5; }
+  .tip { background: var(--teal-l); border-radius: 3mm; padding: 3.5mm 5mm; font-size: 10pt; color: var(--ink2); margin-top: 6mm; line-height: 1.55; }
+  .tip b { color: var(--teal-d); }
+
+  /* ── המקלדת ── */
+  .kbimg { width: 118mm; display: block; margin: 0 auto; border-radius: 4mm; box-shadow: 0 3mm 8mm rgba(15,26,46,.2); }
+  .klegend { width: 100%; border-collapse: collapse; margin-top: 5mm; font-size: 10pt; }
+  .klegend td { padding: 2.2mm 2mm; border-bottom: 1px solid var(--line); vertical-align: middle; line-height: 1.5; color: var(--ink2); }
+  .klegend td:first-child { width: 30mm; font-weight: 800; color: var(--ink); white-space: nowrap; }
+  .sw { display: inline-block; width: 4mm; height: 4mm; border-radius: 1mm; vertical-align: -0.6mm; margin-left: 1.5mm; border: 1px solid rgba(0,0,0,.15); }
+  .kk { display: inline-block; border-radius: 1.4mm; padding: .2mm 1.8mm; font-size: 9pt; font-weight: 700; margin: .5mm .3mm; border: 1px solid rgba(0,0,0,.12); }
+  .k-fn { background: #c9d4e8; } .k-act { background: #ffe8a8; } .k-pay { background: #14b8a0; color: #04201d; } .k-red { background: #ffd0d2; } .k-q { background: #4e5659; color: #fff; } .k-n { background: #eef0f2; }
+  .seq { display: flex; align-items: center; justify-content: center; gap: 2mm; flex-wrap: wrap; background: var(--sand); border-radius: 4mm; padding: 4.5mm; margin-top: 5mm; font-size: 10pt; }
+  .seq .kk { font-size: 10.5pt; padding: 1mm 3mm; }
+  .seq .ar { color: var(--teal-d); font-weight: 900; }
+  .seq .res { font-weight: 700; color: var(--ink); }
+
+  /* ── הקבלה ── */
+  .rwrap { display: grid; grid-template-columns: 1fr 92mm; gap: 8mm; align-items: start; }
+  .paper { background: #fffdf6; border-radius: 1.5mm; box-shadow: 0 3mm 8mm rgba(15,26,46,.18); padding: 4mm 3mm 6mm 9mm; position: relative; }
+  .paper::after { content: ""; position: absolute; left: 0; right: 0; bottom: -2mm; height: 2mm; background: linear-gradient(-45deg, transparent 33%, #fffdf6 33% 66%, transparent 66%) 0 0 / 3mm 2mm; }
+  .rl { position: relative; font: 600 7.9pt/1.45 "DejaVu Sans Mono", "Courier New", monospace; color: #222; white-space: pre; direction: ltr; unicode-bidi: bidi-override; }
+  .rl .t { unicode-bidi: bidi-override; direction: ltr; }
+  .rl .m { position: absolute; left: -8mm; top: .3mm; width: 5.2mm; height: 5.2mm; border-radius: 50%; background: var(--teal); color: #fff; font: 800 8pt/5.2mm Heebo, sans-serif; text-align: center; }
+  .rlegend { list-style: none; padding: 0; margin: 0; }
+  .rlegend li { display: grid; grid-template-columns: 8mm 1fr; padding: 2mm 0; border-bottom: 1px solid var(--line); font-size: 10pt; color: var(--ink2); line-height: 1.45; }
+  .rlegend li b { color: var(--ink); }
+  .rlegend .m { width: 6mm; height: 6mm; border-radius: 50%; background: var(--teal); color: #fff; font-weight: 800; font-size: 9pt; display: grid; place-items: center; }
+
+  /* ── שאלות ── */
+  .faq { columns: 2; column-gap: 7mm; }
+  .faq div { break-inside: avoid; margin-bottom: 4.2mm; }
+  .faq b { display: block; font-size: 11pt; color: var(--ink); margin-bottom: .8mm; }
+  .faq b::before { content: "?"; display: inline-grid; place-items: center; width: 5mm; height: 5mm; border-radius: 50%; background: var(--teal-l); color: var(--teal-d); font-size: 9pt; margin-left: 1.5mm; vertical-align: 1px; }
+  .faq span { font-size: 9.8pt; color: var(--ink2); line-height: 1.55; display: block; }
 </style>
 </head>
 <body>
@@ -154,6 +214,40 @@
   </div>
 </section>
 
+<!-- בקצרה -->
+<section class="page">
+  <div class="kicker">בקצרה</div>
+  <h2 class="sec-title">מה זה, בשתי דקות.</h2>
+  <p class="lead">קופה רושמת שעומדת על הדלפק ועובדת לבד. שלושה חלקים מחוברים בכבלים — וכרטיס זיכרון אחד ששומר את כל העסק.</p>
+  <div class="flow">
+    <div class="it"><img src="img/printer.png" alt=""><b><span class="num">3</span>מדפסת קבלות</b><span>Epson TM-T20IV<br>מדפיסה קבלה ודוחות</span></div>
+    <div class="cable">כבל<i></i></div>
+    <div class="it"><img src="img/device-real.png" alt="" style="height:64mm"><b><span class="num">1</span>הקופה</b><span>ClockworkPi PicoCalc<br>מסך + מקשים בעברית</span></div>
+    <div class="cable">כבל<i></i></div>
+    <div class="it"><img src="img/scanner.png" alt=""><b><span class="num">2</span>אקדח ברקוד</b><span>Zebra LS2208<br>סורק את המוצר</span></div>
+  </div>
+  <div class="cardloop">
+    <span class="e">💾</span><span class="t"><b><span class="num">4</span>כרטיס זיכרון</b>בתוך הקופה. כל קבלה נשמרת בו מיד.</span>
+    <span class="ar">←</span>
+    <span class="e">💻</span><span class="t"><b>מוציאים ← כל מחשב</b>מעדכנים מחירים, רואים דוחות.</span>
+    <span class="ar">←</span>
+    <span class="e">↩️</span><span class="t"><b>מחזירים לקופה</b>הקופה קולטת את השינויים.</span>
+  </div>
+  <div class="h4">מה זה <u>לא</u></div>
+  <div class="nots">
+    <div><b>✗</b>לא מחשב בחנות</div>
+    <div><b>✗</b>לא טאבלט או טלפון</div>
+    <div><b>✗</b>לא צריך אינטרנט</div>
+    <div><b>✗</b>אין מנוי חודשי</div>
+  </div>
+  <div class="h4">מה בחוברת</div>
+  <ol class="toc">
+    <li>המוצר — מה הוא עושה</li><li>מה רואים על המסך</li><li>המקלדת — מה כל מקש עושה</li><li>יום עבודה בקופה</li>
+    <li>מה כתוב בקבלה</li><li>הניהול במחשב</li><li>אמינות ובטחון</li><li>שאלות נפוצות</li><li>הצעת המחיר ואישור הזמנה</li><li>נספח: דף הוראות לקופאית</li>
+  </ol>
+  <div class="foot"><span>קופה עצמאית בלי מחשב</span><span>2</span></div>
+</section>
+
 <!-- 2 · המוצר -->
 <section class="page">
   <div class="kicker">המוצר</div>
@@ -170,16 +264,51 @@
     <div class="card"><h3><span class="ico">📡</span>בלי אינטרנט, בלי מנוי</h3><p>הקופה עובדת לבד. אין שרת, אין ענן, אין תשלום חודשי — הנתונים שלכם, אצלכם.</p></div>
   </div>
 
-  <div class="h4" style="margin-top:7mm">מה מקבלים — הציוד האמיתי</div>
-  <div class="gear">
-    <div><img src="img/device-real.png" alt=""><b>יחידת הקופה</b><span>ClockworkPi PicoCalc · מסך 4″ · מקלדת · שעון עם סוללה</span></div>
-    <div><img src="img/scanner.png" alt=""><b>אקדח ברקוד</b><span>Zebra LS2208 · בכבל — בלי טעינה ובלי ניתוקים</span></div>
-    <div><img src="img/printer.png" alt=""><b>מדפסת קבלות</b><span>Epson TM-T20IV · גליל 80 מ"מ · חיתוך אוטומטי</span></div>
-    <div class="cards"><span class="e">💾 💾</span><b>2 כרטיסי זיכרון</b><span>אחד בשימוש ואחד לגיבוי</span></div>
-  </div>
-  <div class="gear-cap">תמונות היצרנים. במסך הקופה — הדמיה של תוכנת הקופה. המעמד של האקדח — לפי בחירה.</div>
+  <div class="gear-cap" style="margin-top:6mm">הציוד עצמו — בעמוד "בקצרה". תמונות היצרנים; המסך והמדבקות — הדמיה.</div>
 
-  <div class="foot"><span>קופה עצמאית בלי מחשב</span><span>2</span></div>
+  <div class="foot"><span>קופה עצמאית בלי מחשב</span><span>3</span></div>
+</section>
+
+<!-- המסך -->
+<section class="page">
+  <div class="kicker">המסך</div>
+  <h2 class="sec-title">מה רואים על המסך.</h2>
+  <p class="lead">מכירה אחת מתחילתה ועד סופה — ארבעה מסכים. תמיד גדול וברור: כמה לשלם, כמה נתנו, מה העודף.</p>
+  <div class="screens">
+    <div class="scr"><img src="img/scr-1-ready.png" alt=""><div><h3><span class="num">1</span>מוכן</h3><p>הקופה מחכה למוצר הראשון. למעלה: שם העסק, התאריך והשעה. הסימן 💾 = הכרטיס בפנים והכול נשמר.</p></div></div>
+    <div class="scr"><img src="img/scr-2-cart.png" alt=""><div><h3><span class="num">2</span>סורקים</h3><p>כל מוצר נכנס לרשימה עם המחיר. למטה בגדול: כמה פריטים וכמה לשלם. השורה המסומנת — זו שאפשר לשנות לה כמות, לתת הנחה או למחוק.</p></div></div>
+    <div class="scr"><img src="img/scr-3-cash.png" alt=""><div><h3><span class="num">3</span>מזומן</h3><p>מקלידים כמה הלקוח נתן — העודף מופיע מיד, בירוק. נתן פחות מדי? כתוב כמה חסר, וקבלה לא יוצאת.</p></div></div>
+    <div class="scr"><img src="img/scr-4-paid.png" alt=""><div><h3><span class="num">4</span>שולם</h3><p>הקבלה מודפסת. על המסך נשאר כמה שולם ומה העודף — עד שסורקים את המוצר של הלקוח הבא.</p></div></div>
+  </div>
+  <div class="tip"><b>באשראי:</b> מעבירים את הכרטיס במסוף האשראי הרגיל של העסק, ואז לוחצים "אשראי" בקופה — הקבלה יוצאת. הקופה רושמת את התשלום; הסליקה עצמה נשארת במסוף.</div>
+  <div class="foot"><span>קופה עצמאית בלי מחשב</span><span>4</span></div>
+</section>
+
+<!-- המקלדת -->
+<section class="page">
+  <div class="kicker">המקלדת</div>
+  <h2 class="sec-title">כל מקש — בעברית ובצבע.</h2>
+  <p class="lead">על כל מקש מדבקה בעברית. הצבע אומר מה סוג המקש — כך הקופאית מוצאת אותו בלי לחפש.</p>
+  <img class="kbimg" src="img/keyboard.png" alt="מקלדת הקופה עם מדבקות בעברית">
+  <div class="cap">הדמיה. מקשי המוצרים (אפור) — בדוגמה של חנות בגדים; כל עסק בוחר את שלו.</div>
+  <table class="klegend">
+    <tr><td><span class="sw k-q"></span>מוצרים</td><td>30 מקשים עם שם מוצר — לחיצה אחת והמוצר בעסקה, בלי לסרוק. למוצרים בלי ברקוד (שקית, אריזת מתנה) ולנמכרים ביותר. בוחרים במחשב ומדפיסים מדבקות.</td></tr>
+    <tr><td><span class="sw k-pay"></span>תשלום</td><td><span class="kk k-pay">מזומן</span> (המקש הרחב) · <span class="kk k-pay">אשראי</span></td></tr>
+    <tr><td><span class="sw k-fn"></span>פעולות</td><td><span class="kk k-fn">תפריט</span><span class="kk k-fn">החזרה</span><span class="kk k-fn">הנחה</span><span class="kk k-fn">% שורה</span><span class="kk k-fn">% סל</span><span class="kk k-fn">₪ סל</span><span class="kk k-fn">× כמות</span><span class="kk k-fn">מחיר</span><span class="kk k-fn">אישור</span> · חצים: <span class="kk k-fn">▲▼</span> בחירת שורה, <span class="kk k-fn">+1 −1</span> כמות</td></tr>
+    <tr><td><span class="sw k-act"></span>בלחיצה אחת</td><td><span class="kk k-act">דוח X</span><span class="kk k-act">סגירת יום</span><span class="kk k-act">מלאי</span><span class="kk k-act">העתק</span><span class="kk k-act">מגירה</span><span class="kk k-act">שעון</span><span class="kk k-act">בדיקת מחיר</span> — בלי לחפש בתפריט</td></tr>
+    <tr><td><span class="sw k-red"></span>ביטול</td><td><span class="kk k-red">בטל</span> כל העסקה · <span class="kk k-red">מחק</span> שורה אחת · <span class="kk k-red">C</span> מה שהוקלד עכשיו</td></tr>
+    <tr><td><span class="sw k-n"></span>מספרים</td><td>0–9, 00 ונקודה — לסכומים, כמויות ומספר קבלה</td></tr>
+  </table>
+  <div class="h4">דוגמה: חולצה + שקית, הלקוח נותן 300 ₪</div>
+  <div class="seq">
+    <span class="kk k-n">🔦 סורקים חולצה</span><span class="ar">←</span>
+    <span class="kk k-q">שקית</span><span class="ar">←</span>
+    <span class="kk k-pay">מזומן</span><span class="ar">←</span>
+    <span class="kk k-n">3</span><span class="kk k-n">0</span><span class="kk k-n">0</span><span class="ar">←</span>
+    <span class="kk k-fn">אישור</span><span class="ar">=</span>
+    <span class="res">העודף על המסך והקבלה בחוץ ✓</span>
+  </div>
+  <div class="foot"><span>קופה עצמאית בלי מחשב</span><span>5</span></div>
 </section>
 
 <!-- 3 · יום עבודה -->
@@ -203,7 +332,30 @@
       <div class="cap">הקבלה המודפסת</div>
     </div>
   </div>
-  <div class="foot"><span>קופה עצמאית בלי מחשב</span><span>3</span></div>
+  <div class="foot"><span>קופה עצמאית בלי מחשב</span><span>6</span></div>
+</section>
+
+<!-- הקבלה -->
+<section class="page">
+  <div class="kicker">הקבלה</div>
+  <h2 class="sec-title">מה כתוב בקבלה.</h2>
+  <p class="lead">כך בדיוק יוצאת הקבלה מהמדפסת, בגליל 80 מ"מ — בעברית, מסודרת, עם כל מה שהלקוח ורואה החשבון צריכים.</p>
+  <div class="rwrap">
+    <ul class="rlegend">
+      <li><span class="m">1</span><span><b>פרטי העסק</b> — שם, כתובת וטלפון, כפי שמגדירים במחשב.</span></li>
+      <li><span class="m">2</span><span><b>עוסק מורשה / פטור</b> ומספר העוסק.</span></li>
+      <li><span class="m">3</span><span><b>מספר קבלה רציף</b> — לא מדלג ולא חוזר, גם כשמחליפים כרטיס.</span></li>
+      <li><span class="m">4</span><span><b>"מקור"</b> — וכל הדפסה נוספת מסומנת "העתק".</span></li>
+      <li><span class="m">5</span><span><b>תאריך, שעה ומספר פעולה</b> — כל פעולה בקופה ממוספרת וחתומה.</span></li>
+      <li><span class="m">6</span><span><b>הפריטים</b> — שם, כמות, מחיר; הנחה מופיעה בשורה משלה.</span></li>
+      <li><span class="m">7</span><span><b>סה"כ ומע"מ</b> — המע"מ הכלול במחיר (בעוסק פטור: "ללא מע"מ").</span></li>
+      <li><span class="m">8</span><span><b>התקבל ועודף</b> — במזומן; באשראי כתוב "אשראי".</span></li>
+      <li><span class="m">9</span><span><b>שורת סיום</b> — לבחירתכם ("תודה ולהתראות!").</span></li>
+    </ul>
+    <div class="paper"><div class="rl"><span class=m>1</span><span class="t">               המגדה - םישנל קיטוב              </span></div><div class="rl"><span class="t">                  1 המגודה בוחר                 </span></div><div class="rl"><span class="t">                   050-0000000                  </span></div><div class="rl"><span class=m>2</span><span class="t">              000000018 השרומ קסוע              </span></div><div class="rl"><span class="t">------------------------------------------------</span></div><div class="rl"><span class=m>3</span><span class="t">                   1 &#x27;סמ הלבק                   </span></div><div class="rl"><span class=m>4</span><span class="t">                  *** רוקמ ***                  </span></div><div class="rl"><span class=m>5</span><span class="t">            2 הלועפ  25/10/2026 18:36           </span></div><div class="rl"><span class="t">------------------------------------------------</span></div><div class="rl"><span class=m>6</span><span class="t">                                     הנתוכ תצלוח</span></div><div class="rl"><span class="t">89.90                                1 x 89.90  </span></div><div class="rl"><span class="t">                                      ידימ תיאצח</span></div><div class="rl"><span class="t">149.00                              1 x 149.00  </span></div><div class="rl"><span class="t">                                            תיקש</span></div><div class="rl"><span class="t">1.00                                  1 x 1.00  </span></div><div class="rl"><span class="t">------------------------------------------------</span></div><div class="rl"><span class=m>7</span><span class="t">239.90                               םולשתל כ&quot;הס</span></div><div class="rl"><span class="t">36.59                             18% מ&quot;עמ וכותמ</span></div><div class="rl"><span class=m>8</span><span class="t">300.00                              ןמוזמב לבקתה</span></div><div class="rl"><span class="t">60.10                                       ףדוע</span></div><div class="rl"><span class="t">------------------------------------------------</span></div><div class="rl"><span class=m>9</span><span class="t">                 !תוארתהלו הדות                 </span></div></div>
+  </div>
+  <div class="tip"><b>החזרה?</b> רק מול קבלה מקורית: מקלידים את מספר הקבלה, סורקים את מה שחוזר — והקופה מחזירה בדיוק את מה ששולם (גם אחרי הנחות), לא יותר. יוצאת "קבלה (החזרה)" משלה.</div>
+  <div class="foot"><span>קופה עצמאית בלי מחשב</span><span>7</span></div>
 </section>
 
 <!-- 4 · ניהול -->
@@ -221,7 +373,7 @@
     <li><span class="c">✓</span><span><b>גיבוי</b> — העתקת הכרטיס למחשב, עם תזכורת כל שלושה חודשים.</span></li>
     <li><span class="c">✓</span><span><b>מה שלא משנים</b> — קבלות וסגירות יום רק נצפות ומיוצאות. אי אפשר למחוק או "לאפס" מהמחשב.</span></li>
   </ul>
-  <div class="foot"><span>קופה עצמאית בלי מחשב</span><span>4</span></div>
+  <div class="foot"><span>קופה עצמאית בלי מחשב</span><span>8</span></div>
 </section>
 
 <!-- 5 · אמינות -->
@@ -239,7 +391,28 @@
     <div class="card"><h3><span class="ico">✋</span>טעויות הקלדה</h3><p>מחיר מעל ₪5,000 או כמות מעל 50 — מבקש אישור. מזומן חסר — "חסרים ₪…", ואין קבלה.</p></div>
     <div class="card"><h3><span class="ico">⬆️</span>עדכוני תוכנה</h3><p>דרך הכרטיס, רק קובץ חתום מהספק ורק עם קוד מנהל. כל עדכון נרשם, והגרסה מודפסת בדוחות.</p></div>
   </div>
-  <div class="foot"><span>קופה עצמאית בלי מחשב</span><span>5</span></div>
+  <div class="foot"><span>קופה עצמאית בלי מחשב</span><span>9</span></div>
+</section>
+
+<!-- שאלות -->
+<section class="page">
+  <div class="kicker">שאלות נפוצות</div>
+  <h2 class="sec-title">מה אם…?</h2>
+  <div class="faq">
+    <div><b>נפל החשמל באמצע מכירה?</b><span>מה שנשמר — נשמר. הקופה שומרת לכרטיס לפני שהיא מדפיסה, ואחרי שהחשמל חוזר היא משלימה וממשיכה. השעון עם סוללה, כך שהתאריך לא מתאפס.</span></div>
+    <div><b>אין אינטרנט בחנות?</b><span>לא צריך. הקופה לא מתחברת לאינטרנט בכלל — לא למכירה, לא לקבלות ולא לדוחות.</span></div>
+    <div><b>איך מעדכנים מחיר או מוסיפים מוצר?</b><span>מוציאים את הכרטיס, מכניסים לכל מחשב, פותחים את דף הניהול שעל הכרטיס (או את קובץ האקסל), מעדכנים ומחזירים. הקופה מראה מה השתנה.</span></div>
+    <div><b>המחשב במשרד נעול / מסונן?</b><span>עובד. דף הניהול נפתח בלחיצה כפולה בלי להתקין כלום, והקבצים בכרטיס הם קבצים רגילים שנפתחים באקסל או בפנקס רשימות.</span></div>
+    <div><b>הכרטיס אבד או נשבר?</b><span>מכניסים כרטיס חדש (יש כרטיס שני בערכה). הקופה ממשיכה מאותו מספר קבלה. לכן חשוב לגבות: העתקת הכרטיס למחשב אחת לשלושה חודשים (יש תזכורת).</span></div>
+    <div><b>המכשיר עצמו התקלקל?</b><span>הקבלות והדוחות נשארים בכרטיס ונקראים בכל מחשב. קופה חלופית מתחילה כרטיס חדש. בשנת השירות — הטיפול עלינו.</span></div>
+    <div><b>מישהו ינסה לשנות קבלה במחשב?</b><span>הקופה תזהה. כל קבלה חתומה, ושינוי, מחיקה או החזרת כרטיס ישן — והקופה מפסיקה למכור ומודיעה. במחשב אפשר רק לצפות בקבלות ולייצא אותן.</span></div>
+    <div><b>מה רואה החשבון מקבל?</b><span>דוח סגירת יום לכל יום, סיכום חודשי (מזומן, אשראי, החזרות, הנחות, מע"מ) וכל הקבלות — מסך וגם קובץ אקסל.</span></div>
+    <div><b>הקופאית יכולה לתת הנחה או החזרה בלי רשות?</b><span>לא. החזרות, הנחות, סגירת יום ופתיחת מגירה — רק עם קוד מנהל. קוד שגוי 5 פעמים — נעילה ל-5 דקות.</span></div>
+    <div><b>כמה זמן לוקח ללמוד?</b><span>מכירה רגילה — דקות. יש דף הוראות של שני עמודים לתלות ליד הקופה (מצורף בסוף), והדרכה כלולה במחיר.</span></div>
+    <div><b>צריך מסוף אשראי?</b><span>אם מקבלים אשראי — כן, את המסוף הקיים שלכם. הקופה רושמת שהתשלום היה באשראי; הסליקה במסוף.</span></div>
+    <div><b>איך מקבלים שיפורים לתוכנה?</b><span>קובץ עדכון שמכניסים בכרטיס. הקופה מתקינה רק עדכון חתום מאיתנו, ורק עם קוד מנהל.</span></div>
+  </div>
+  <div class="foot"><span>קופה עצמאית בלי מחשב</span><span>10</span></div>
 </section>
 
 <!-- 6 · הצעת מחיר -->
@@ -286,7 +459,7 @@
     <li>רישום התוכנה ברשות המסים לפי הוראות ניהול ספרים — באחריות הספק, לפני הפעלה למכירות.</li>
     <li>תוקף ההצעה: 30 יום מתאריך ההצעה.</li>
   </ul>
-  <div class="foot"><span>קופה עצמאית בלי מחשב</span><span>6</span></div>
+  <div class="foot"><span>קופה עצמאית בלי מחשב</span><span>11</span></div>
 </section>
 
 <!-- 7 · אישור הזמנה -->
@@ -308,7 +481,7 @@
   </div>
 
   <div class="sumbox">
-    <b>סיכום ההזמנה:</b> קופה עצמאית — מערכת מלאה, כמפורט בעמוד 6.<br>
+    <b>סיכום ההזמנה:</b> קופה עצמאית — מערכת מלאה, כמפורט בעמוד 11.<br>
     <b>מחיר:</b> 7,000 ₪ + מע"מ · <b>תשלום:</b> 3,500 ₪ + מע"מ בהזמנה · 3,500 ₪ + מע"מ בסיום העבודה.
   </div>
 
@@ -322,7 +495,7 @@
     <div>חתימת הלקוח · תאריך</div>
     <div>חתימת הספק · תאריך</div>
   </div>
-  <div class="foot"><span>קופה עצמאית בלי מחשב</span><span>7</span></div>
+  <div class="foot"><span>קופה עצמאית בלי מחשב</span><span>12</span></div>
 </section>
 
 </body>
