@@ -21,6 +21,10 @@
   li { margin: 0.5mm 0; }
   kbd { display: inline-block; border: 1.2px solid #333; border-bottom-width: 2.4px; border-radius: 1.4mm; padding: 0 1.4mm; font-family: inherit; font-weight: bold; font-size: 9.6pt; background: #f3f3f3; white-space: nowrap; }
   .note { color: #444; font-size: 9.3pt; }
+  .legend { border-collapse: collapse; font-size: 9pt; }
+  .legend td { padding: 1mm 1.5mm; border-bottom: 1px solid #ddd; vertical-align: middle; line-height: 1.9; }
+  .legend td:first-child { font-weight: bold; white-space: nowrap; width: 22mm; }
+  kbd.kf { background: #c9d4e8; } kbd.kp { background: #9fe3d6; } kbd.kr { background: #ffd0d2; }
   .keys { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1.2mm; max-width: 82mm; margin: 1mm auto 0; }
   .keys span { border: 1.2px solid #333; border-radius: 1.4mm; text-align: center; padding: 1mm 0; font-size: 8.6pt; font-weight: bold; direction: rtl; }
   .keys .w2 { grid-column: span 2; }
@@ -40,13 +44,15 @@
   <div class="grid">
     <div class="box wide">
       <h2>המקלדת</h2>
-      <div class="keys">
-        <span class="fn">תפריט</span><span class="fn">▲</span><span class="fn">▼</span><span class="fn">החזרה</span><span class="red">בטל</span>
-        <span>7</span><span>8</span><span>9</span><span class="fn">×</span><span class="red">מחק</span>
-        <span>4</span><span>5</span><span>6</span><span class="fn">הנחה</span><span class="red">C</span>
-        <span>1</span><span>2</span><span>3</span><span class="fn">מחיר</span><span class="pay">אשראי</span>
-        <span>0</span><span>00</span><span>.</span><span class="fn">אישור</span><span class="pay">מזומן</span>
-        <span class="fn w2">% לשורה</span><span class="fn w2">% לסל</span><span class="fn">₪ לסל</span>
+      <div style="display:flex;gap:5mm;align-items:center">
+        <img src="customer/img/keyboard.png" alt="מקלדת הקופה עם מדבקות בעברית" style="width:62mm;border-radius:2mm;flex:0 0 auto">
+        <table class="legend">
+          <tr><td>פעולות (תכלת)</td><td><kbd class="kf">תפריט</kbd> <kbd class="kf">החזרה</kbd> <kbd class="kf">הנחה</kbd> <kbd class="kf">% שורה</kbd> <kbd class="kf">% סל</kbd> <kbd class="kf">₪ סל</kbd> <kbd class="kf">× כמות</kbd> <kbd class="kf">מחיר</kbd> <kbd class="kf">אישור</kbd></td></tr>
+          <tr><td>תשלום (ירוק)</td><td><kbd class="kp">מזומן</kbd> (המקש הרחב) · <kbd class="kp">אשראי</kbd></td></tr>
+          <tr><td>ביטול (ורוד)</td><td><kbd class="kr">בטל</kbd> כל העסקה · <kbd class="kr">מחק</kbd> שורה · <kbd class="kr">C</kbd> מה שהוקלד</td></tr>
+          <tr><td>מספרים</td><td><kbd>0</kbd>–<kbd>9</kbd> · <kbd>00</kbd> · <kbd>.</kbd> · חצים <kbd>▲</kbd><kbd>▼</kbd> לבחירת שורה</td></tr>
+          <tr><td>אותיות</td><td>לא בשימוש בקופה</td></tr>
+        </table>
       </div>
     </div>
 
@@ -63,7 +69,7 @@
       <h2>2. מכירה</h2>
       <ol>
         <li>סורקים כל מוצר באקדח. אותו מוצר פעמיים = כמות 2.</li>
-        <li><b>כמות:</b> מקלידים מספר ← <kbd>×</kbd> (על השורה האחרונה, או זו שנבחרה ב-<kbd>▲</kbd><kbd>▼</kbd>).</li>
+        <li><b>כמות:</b> מקלידים מספר ← <kbd>× כמות</kbd> (על השורה האחרונה, או זו שנבחרה ב-<kbd>▲</kbd><kbd>▼</kbd>).</li>
         <li><b>אין ברקוד?</b> מקלידים את המספר שמתחת לפסים ← <kbd>אישור</kbd>.</li>
         <li><b>מוצר בלי ברקוד / מחיר חופשי:</b> מקלידים מחיר ← <kbd>מחיר</kbd>.</li>
         <li><b>טעות בשורה:</b> בוחרים ב-<kbd>▲</kbd><kbd>▼</kbd> ← <kbd>מחק</kbd>.</li>
@@ -95,8 +101,8 @@
       <h2>5. הנחה 🔒</h2>
       <ul>
         <li><b>₪ על שורה:</b> בוחרים שורה ← מקלידים סכום ← <kbd>הנחה</kbd>.</li>
-        <li><b>% על שורה:</b> מקלידים אחוז ← <kbd>% לשורה</kbd>.</li>
-        <li><b>על כל הקנייה:</b> סכום ← <kbd>₪ לסל</kbd>, או אחוז ← <kbd>% לסל</kbd>. אפס = ביטול ההנחה.</li>
+        <li><b>% על שורה:</b> מקלידים אחוז ← <kbd>% שורה</kbd>.</li>
+        <li><b>על כל הקנייה:</b> סכום ← <kbd>₪ סל</kbd>, או אחוז ← <kbd>% סל</kbd>. אפס = ביטול ההנחה.</li>
         <li>הקופה מבקשת קוד מנהל ← מקלידים ← <kbd>אישור</kbd>.</li>
       </ul>
     </div>
