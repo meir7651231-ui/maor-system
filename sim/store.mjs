@@ -53,3 +53,12 @@ export function loadDevice() {
 export function saveDevice(d) {
   try { localStorage.setItem(DEV, JSON.stringify(d)); } catch { /* ignore */ }
 }
+
+// הקבצים הפשוטים בכרטיס (במכשיר: קבצים אמיתיים בכרטיס; בסימולטור: מפה נתיב⇒טקסט)
+const FILES = 'kupa.files';
+export function loadFiles() {
+  try { return JSON.parse(localStorage.getItem(FILES) || '{}'); } catch { return {}; }
+}
+export function saveFiles(files) {
+  try { localStorage.setItem(FILES, JSON.stringify(files)); } catch { /* ignore */ }
+}

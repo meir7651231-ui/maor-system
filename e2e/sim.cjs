@@ -63,6 +63,29 @@ const check = (ok, msg) => { console.log((ok ? '✓ ' : '✗ ') + msg); if (!ok)
   check(orig.includes('מקור'), 'קבלה מקורית מסומנת "מקור"');
   await p.screenshot({ path: path.join(OUT, 'kupa-sim.png'), fullPage: true });
 
+  // ── אקסל: עריכת מוצרים.csv במחשב ⇒ הקופה קולטת ──
+  const cp1255 = (t) => Buffer.from([...t].map((ch) => { const c = ch.codePointAt(0); return c >= 0x5d0 && c <= 0x5ea ? c - 0x5d0 + 0xe0 : c; }));
+  await p.click('#cardBtn');
+  await f.locator('#tabs button[data-t=files]').click();
+  check(await f.locator('#filesBox').innerText().then((t) => t.includes('מוצרים.csv') && t.includes('קבלות.csv') && t.includes('סגירת-יום-0001')), 'הקופה כתבה לכרטיס: מוצרים.csv, קבלות.csv, דוח סגירת יום');
+  const badCsv = path.join(OUT, 'bad.csv');
+  fs.writeFileSync(badCsv, cp1255('ברקוד,שם,מחיר,מלאי\r\n7.29E+12,חולצה,99.90,4\r\n'));
+  await f.locator('#csvIn').setInputFiles(badCsv);
+  check((await f.locator('#csvCheck').innerText()).includes('השתבש באקסל'), 'קובץ עם ברקוד ששובש באקסל ⇒ "הברקוד השתבש באקסל" ולא נשמר');
+  const prods = await p.evaluate(() => JSON.parse(localStorage.getItem('kupa.card')).products);
+  const lines = ['ברקוד,שם,מחיר,מלאי'];
+  for (const pr of prods) lines.push([pr.code, pr.name, pr.code === prods[0].code ? '99.90' : (pr.price / 100).toFixed(2), pr.stock ?? ''].join(','));
+  lines.push('7290000000077,כובע,59,10');
+  const goodCsv = path.join(OUT, 'good.csv');
+  fs.writeFileSync(goodCsv, cp1255(lines.join('\r\n') + '\r\n')); // כמו "CSV" רגיל מאקסל עברי
+  await f.locator('#csvIn').setInputFiles(goodCsv);
+  check((await f.locator('#csvCheck').innerText()).includes('הקובץ תקין'), 'קובץ שנשמר באקסל (Windows-1255, בלי גרש) ⇒ "הקובץ תקין"');
+  await p.click('#cardBtn');
+  const msgAfter = await scr();
+  check(msgAfter.includes('1 נוספו') && msgAfter.includes('1 עודכנו'), 'הכנסת הכרטיס ⇒ "מוצרים.csv: 1 נוספו · 1 עודכנו"');
+  check(await p.locator('#samples button', { hasText: 'כובע' }).count() === 1, 'המוצר החדש מהאקסל זמין למכירה');
+  check(!(await scr()).includes('נפסל'), 'עריכת מוצרים באקסל לא פוסלת את הכרטיס (רק קבלות חתומות)');
+
   // ייצוא הכרטיס לקובץ (לבדיקת דף-הניהול בקובץ יחיד)
   const cardText = await p.evaluate(() => localStorage.getItem('kupa.card'));
   const cardFile = path.join(OUT, 'KUPA.JSON');

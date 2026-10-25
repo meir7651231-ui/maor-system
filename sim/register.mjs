@@ -1,6 +1,7 @@
 // הקופה: מסך + מקלדת + סורק + מדפסת. כל החישוב במנוע; כאן רק קלט/תצוגה.
 import * as K from '../engine/kupa.mjs';
-import { loadCard, saveCard, cardInserted, setInserted, loadDevice, saveDevice } from './store.mjs';
+import * as F from '../engine/files.mjs';
+import { loadCard, saveCard, cardInserted, setInserted, loadDevice, saveDevice, loadFiles, saveFiles } from './store.mjs';
 
 const $ = (id) => document.getElementById(id);
 
@@ -63,14 +64,41 @@ function print(lines) {
 }
 
 // במכשיר: קודם הכרטיס, אחר כך הזיכרון הפנימי (כתיבה אטומית לכל אחד)
-function commit(r) { card = r.card; saveCard(card); if (r.device) { device = r.device; saveDevice(device); } }
+// כתיבת הקבצים הפשוטים (מוצרים.csv, קבלות.csv, דוחות) + טביעת מוצרים.csv שנכתב
+function writeFiles() {
+  const files = F.exportCardFiles(card);
+  card = { ...card, productsHash: F.textHash(files[F.PRODUCTS_FILE]) };
+  saveFiles({ ...loadFiles(), ...files });
+}
+function commit(r) {
+  card = r.card;
+  if (r.device) { device = r.device; saveDevice(device); }
+  writeFiles();
+  saveCard(card);
+}
 
+// הכנסת כרטיס: בדיקת חתימות ⇒ אם מוצרים.csv נערך במחשב (אקסל) — קליטה ⇒ כתיבת הקבצים מחדש
 function readCard() {
   card = loadCard();
   const r = K.checkCard(card, device);
   if (r.error) { cardError = r.error; say(`⛔ ${r.error}`, 'err'); beep(false); return; }
   cardError = '';
-  if (r.bound) { card = r.card; saveCard(card); }
+  if (r.bound) card = r.card;
+  const csv = loadFiles()[F.PRODUCTS_FILE];
+  if (csv !== undefined && card.productsHash && F.textHash(csv) !== card.productsHash) {
+    const imp = F.importProductsCsv(card, new TextEncoder().encode(csv));
+    if (imp.errors.length) {
+      const e = imp.errors[0];
+      say(`⚠ מוצרים.csv שורה ${e.line}: ${e.msg}${imp.errors.length > 1 ? ` (+${imp.errors.length - 1} נוספות)` : ''} — נשארו המוצרים הקודמים`, 'err');
+      beep(false);
+      saveCard(card);
+      return; // לא דורסים את הקובץ השגוי — שיתקנו אותו
+    }
+    card = imp.card;
+    say(`✓ מוצרים.csv: ${imp.added} נוספו · ${imp.changed} עודכנו · ${imp.removed} נמחקו`, 'ok');
+  }
+  writeFiles();
+  saveCard(card);
 }
 
 function ready() {

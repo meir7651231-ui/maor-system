@@ -16,6 +16,7 @@ function ns(name, code) {
 const sign = read('engine/sign.mjs');
 const kupa = read('engine/kupa.mjs');
 const ean = read('engine/ean13svg.mjs');
+const files = read('engine/files.mjs');
 const store = read('sim/store.mjs');
 const manage = read('sim/manage.mjs');
 
@@ -26,6 +27,7 @@ const bundle = [
   ns('EAN', ean),
   'const { ean13Svg } = EAN;',
   `const { ${exportsOf(kupa).join(', ')} } = K;`,
+  ns('F', files),
   ns('STORE', store),
   `const { ${exportsOf(store).join(', ')} } = STORE;`,
   stripImports(manage),

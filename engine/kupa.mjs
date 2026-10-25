@@ -62,9 +62,15 @@ export function validOsekNo(n) {
 }
 
 // ── מוצרים ────────────────────────────────────────────────────
+// השוואת ברקודים בלי אפסים מובילים: אקסל מוחק אותם (0012… ⇒ 12…), וסורקים רבים
+// שולחים UPC-A ב-12 ספרות במקום EAN-13 עם 0 מוביל — אותו מוצר.
+export function codeKey(code) {
+  return String(code).trim().replace(/^0+(?=\d)/, '');
+}
+
 export function findProduct(card, code) {
-  const c = String(code).trim();
-  return card.products.find((p) => p.code === c) || null;
+  const k = codeKey(code);
+  return card.products.find((p) => codeKey(p.code) === k) || null;
 }
 
 export function upsertProduct(card, prod) {
@@ -74,8 +80,9 @@ export function upsertProduct(card, prod) {
   const price = Math.round(Number(prod.price));
   if (!Number.isFinite(price) || price < 0) return { card, error: 'מחיר לא תקין' };
   const stock = prod.stock === null || prod.stock === undefined || prod.stock === '' ? null : Math.round(Number(prod.stock));
-  const p = { code, name: String(prod.name).trim(), price, stock };
-  const i = card.products.findIndex((x) => x.code === code);
+  const prev = card.products.find((x) => codeKey(x.code) === codeKey(code));
+  const p = { code: prev ? prev.code : code, name: String(prod.name).trim(), price, stock };
+  const i = card.products.findIndex((x) => codeKey(x.code) === codeKey(code));
   const products = card.products.slice();
   if (i >= 0) products[i] = p; else products.push(p);
   return { card: { ...card, products } };
@@ -278,7 +285,7 @@ export function checkout(card, cart, { method, tendered = 0, now, device }) {
   };
   const products = card.products.map((p) => {
     if (p.stock === null) return p;
-    const sold = cart.lines.filter((l) => l.code === p.code).reduce((s, l) => s + l.qty, 0);
+    const sold = cart.lines.filter((l) => l.code && codeKey(l.code) === codeKey(p.code)).reduce((s, l) => s + l.qty, 0);
     return sold ? { ...p, stock: p.stock - sign * sold } : p;
   });
   const sealed = seal({ ...card, products, seq: { ...card.seq, receipt: no } }, device, draft);
@@ -495,6 +502,7 @@ export function parseCard(text) {
     head: typeof raw.head === 'string' ? raw.head : '',
     deviceId: raw.deviceId || null,
   };
+  if (typeof raw.productsHash === 'string') card.productsHash = raw.productsHash; // טביעת מוצרים.csv שהקופה כתבה
   // המונה לעולם לא מאחורי המסמך האחרון (שומר על רציפות)
   const lastNo = card.receipts.reduce((m, r) => Math.max(m, r.no), 0);
   card.seq.receipt = Math.max(card.seq.receipt, lastNo);

@@ -61,6 +61,7 @@
   <button role="tab" data-t="labels">🔖 מדבקות ברקוד</button>
   <button role="tab" data-t="rep">📊 דוחות</button>
   <button role="tab" data-t="backup">🗄 גיבוי</button>
+  <button role="tab" data-t="files">📁 קבצים בכרטיס</button>
 </nav>
 
 <section id="t-biz" class="on">
@@ -119,6 +120,12 @@
   <h3>קבלות אחרונות</h3>
   <button class="btn" id="csv" type="button">⬇ ייצוא כל הקבלות ל-Excel (CSV)</button>
   <div class="wrap"><table><thead><tr><th>מס'</th><th>תאריך</th><th>סוג</th><th>תשלום</th><th>סה"כ</th></tr></thead><tbody id="rRows"></tbody></table></div>
+</section>
+
+<section id="t-files">
+  <div class="note">בכרטיס יש גם <b>קבצים פשוטים</b> שנפתחים בכל מחשב — גם בלי הדפדפן הזה: <b>מוצרים.csv</b> נפתח באקסל (אפשר לערוך ולשמור — הקופה קולטת את השינויים כשמחזירים את הכרטיס), <b>קבלות.csv</b> ותיקיית <b>דוחות</b> לקריאה ולהדפסה.</div>
+  <div id="filesBox"></div>
+  <div id="csvCheck" class="note"></div>
 </section>
 
 <section id="t-backup">

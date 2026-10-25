@@ -3,7 +3,8 @@
 // מצב אמיתי: פותחים את KUPA.JSON מהכרטיס ושומרים חזרה אליו.
 import * as K from '../engine/kupa.mjs';
 import { ean13Svg } from '../engine/ean13svg.mjs';
-import { loadCard, saveCard, downloadCard } from './store.mjs';
+import * as F from '../engine/files.mjs';
+import { loadCard, saveCard, downloadCard, loadFiles, saveFiles } from './store.mjs';
 
 const $ = (id) => document.getElementById(id);
 const SIM = new URLSearchParams(location.search).has('sim');
@@ -256,5 +257,42 @@ function demoCard() {
   return c;
 }
 
-function renderAll() { renderSrc(); renderBiz(); renderProducts(); renderStock(); renderLabelPick(); renderReports(); renderBackup(); }
+// ── קבצים בכרטיס ──
+// בסימולטור: הקבצים שהקופה כתבה (הורדה, ועריכת מוצרים.csv באקסל והעלאה חזרה).
+// בכרטיס אמיתי: הקבצים יושבים בתיקיית הכרטיס עצמה — פותחים אותם ישירות מהמחשב.
+function renderFiles() {
+  if (!SIM) {
+    $('filesBox').innerHTML = '<div class="note">הקבצים נמצאים בתיקיית הכרטיס, ליד הקובץ הזה. פותחים אותם ישירות (לחיצה כפולה). כאן אפשר לבדוק מוצרים.csv ששמרתם באקסל לפני שמחזירים את הכרטיס:</div>'
+      + '<button class="btn" id="csvPick" type="button">🔎 בדיקת מוצרים.csv</button><input type="file" id="csvIn" accept=".csv,text/csv" hidden>';
+  } else {
+    const files = loadFiles();
+    const names = Object.keys(files).sort();
+    $('filesBox').innerHTML = (names.length ? '<table><thead><tr><th>קובץ</th><th></th></tr></thead><tbody>'
+      + names.map((n) => `<tr><td>${esc(n)}</td><td><button class="btn" data-dl="${esc(n)}" type="button">⬇ הורדה</button>${n === F.PRODUCTS_FILE ? ' <button class="btn pri" id="csvPick" type="button">⬆ החלפה בקובץ שנערך באקסל</button><input type="file" id="csvIn" accept=".csv,text/csv" hidden>' : ''}</td></tr>`).join('')
+      + '</tbody></table>' : '<div class="note">הקופה עוד לא כתבה קבצים — הכניסו את הכרטיס לקופה פעם אחת.</div>');
+  }
+  const pick = $('csvPick');
+  if (pick) pick.onclick = () => $('csvIn').click();
+  const inp = $('csvIn');
+  if (inp) inp.onchange = async (e) => {
+    const f = e.target.files[0]; e.target.value = '';
+    if (!f) return;
+    const bytes = new Uint8Array(await f.arrayBuffer());
+    const { products, errors } = F.parseProductsCsv(bytes);
+    if (errors.length) {
+      $('csvCheck').innerHTML = '<span class="err">הקופה לא תקבל את הקובץ:</span><br>' + errors.map((x) => `שורה ${x.line}: ${esc(x.msg)}`).join('<br>');
+      return;
+    }
+    $('csvCheck').innerHTML = `<span class="ok">✓ הקובץ תקין — ${products.length} מוצרים.</span>` + (SIM ? ' הוא נשמר בכרטיס; הקופה תקלוט אותו כשתכניסו את הכרטיס.' : ' אפשר להחזיר את הכרטיס לקופה.');
+    if (SIM) { saveFiles({ ...loadFiles(), [F.PRODUCTS_FILE]: F.decodeText(bytes) }); renderFiles(); }
+  };
+  $('filesBox').querySelectorAll('[data-dl]').forEach((b) => {
+    b.onclick = () => {
+      const blob = new Blob([loadFiles()[b.dataset.dl]], { type: 'text/plain' });
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = b.dataset.dl.split('/').pop(); a.click();
+    };
+  });
+}
+
+function renderAll() { renderSrc(); renderBiz(); renderProducts(); renderStock(); renderLabelPick(); renderReports(); renderBackup(); renderFiles(); }
 renderAll();
