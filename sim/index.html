@@ -54,6 +54,7 @@
   .keys button.fn { background: #c9d4e8; font-size: 13px; }
   .keys button.pay { background: var(--acc); color: #04201d; font-weight: 700; }
   .keys button.red { background: #ffd0d2; }
+  .keys button.wide { grid-column: span 2; }
   .keys button:focus-visible { outline: 3px solid var(--warn); }
 
   .scanner { margin-top: 12px; background: var(--dev2); border-radius: 12px; padding: 10px; }
@@ -71,6 +72,7 @@
   .roll { background: #2b2f38; border-radius: 12px; padding: 10px; max-height: 640px; overflow: auto; }
   .slip { background: var(--paper); color: #111; font-family: "Courier New", monospace; font-size: 13px; white-space: pre; direction: rtl; unicode-bidi: plaintext; padding: 10px 8px; margin-bottom: 10px; border-radius: 2px; overflow-x: auto; }
   .slip .ln { unicode-bidi: plaintext; }
+  .slip.raw, .slip.raw .ln { direction: ltr; unicode-bidi: bidi-override; text-align: left; }
   .empty { color: #aab; font-size: 13px; padding: 10px; }
 
   /* המחשב */
@@ -112,6 +114,7 @@
 
   <section class="panel printer" aria-label="המדפסת">
     <h2>🖨 המדפסת</h2>
+    <label style="display:flex;gap:6px;align-items:center;font-size:13px;margin:-4px 0 8px"><input type="checkbox" id="rawPrint" checked> כמו במדפסת אמיתית (בדיוק מה שנשלח ל-Epson)</label>
     <div class="roll" id="roll"><div class="empty">כל מה שהקופה מדפיסה יופיע כאן — החדש למעלה.</div></div>
   </section>
 
@@ -124,10 +127,12 @@
     <h2>איך עובדים</h2>
     <div>• <b>מכירה:</b> סורקים מוצר (או לוחצים על דוגמה). לוחצים <b>מזומן</b> או <b>אשראי</b> — הקבלה יוצאת במדפסת.</div>
     <div>• <b>מזומן:</b> לוחצים <b>מזומן</b> ⇒ הקופה שואלת "כמה שילם הלקוח?" ⇒ מקלידים (למשל 200) ⇒ רואים <b>עודף</b> או <b>חסר</b> תוך כדי ⇒ <b>אישור</b>. אישור בלי סכום = שילם בדיוק.</div>
-    <div>• <b>כמות:</b> מקלידים מספר ואז <b>×</b>. <b>הנחה:</b> מקלידים סכום ואז <b>הנחה</b>.</div>
+    <div>• <b>כמות:</b> מקלידים מספר ואז <b>×</b>. <b>הנחה:</b> סכום ואז <b>הנחה</b> · אחוז ואז <b>% לשורה</b> · לכל הסל: <b>% לסל</b> / <b>₪ לסל</b> (0 = ביטול).</div>
     <div>• <b>מוצר בלי ברקוד:</b> מקלידים מחיר ואז <b>מחיר</b>.</div>
     <div>• <b>▲ ▼</b> בוחרים שורה; <b>מחק</b> מוחק אותה; <b>בטל</b> פעמיים מבטל את כל העסקה.</div>
-    <div>• <b>החזרה:</b> לוחצים <b>החזרה</b>, סורקים, ומשלמים — יוצאת קבלת החזרה.</div>
+    <div>• <b>החזרה:</b> <b>החזרה</b> ⇒ מס' הקבלה המקורית ⇒ סורקים את מה שחוזר ⇒ משלמים. רק מה שנקנה בקבלה, במחיר ששולם.</div>
+    <div>• <b>קוד מנהל</b> (אם הוגדר במחשב): נדרש להחזרה, להנחות ולסגירת יום.</div>
+    <div>• <b>מזומן מעוגל ל-10 אגורות</b> (1–4 למטה, 5–9 למעלה); אשראי — בלי עיגול.</div>
     <div>• <b>תפריט:</b> 1 דוח ביניים · 2 סגירת יום (Z) · 3 דוח מלאי · 4 העתק קבלה אחרונה.</div>
     <div>• <b>ניהול:</b> ⏏ הוצאת הכרטיס פותחת את המחשב: הגדרות עסק, מוצרים, מחירים, מלאי, מדבקות ברקוד, דוחות וגיבוי. מחזירים את הכרטיס — והקופה עובדת עם הנתונים החדשים.</div>
     <div>• אשראי = רישום בלבד. הסליקה עצמה במסוף אשראי נפרד.</div>

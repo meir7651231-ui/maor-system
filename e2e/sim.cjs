@@ -48,7 +48,12 @@ const check = (ok, msg) => { console.log((ok ? '✓ ' : '✗ ') + msg); if (!ok)
   check(rc.includes('התקבל במזומן') && rc.includes('500.00') && rc.includes('131.20'), 'בקבלה: התקבל 500.00, עודף 131.20');
   await samples.nth(3).click(); await key('CREDIT');
   check(!(await scr()).includes('עודף'), 'סריקה חדשה מנקה את תצוגת העודף');
-  await key('REFUND'); await samples.nth(0).click(); await key('CASH');
+  await key('REFUND');
+  check((await scr()).includes("מס' קבלה מקורית"), 'החזרה ⇒ "מס\' קבלה מקורית"');
+  await key('1', 'OK');
+  await samples.nth(3).click();
+  check((await scr()).includes('לא נמצא בקבלה 1'), 'בהחזרה: מוצר שלא היה בקבלה ⇒ נדחה');
+  await samples.nth(0).click(); await key('CASH');
   await samples.nth(4).click(); await key('CASH', 'OK'); // מזומן בדיוק
   await samples.nth(2).click(); await key('CANCEL', 'CANCEL');
   await key('MENU', '4');
@@ -86,6 +91,26 @@ const check = (ok, msg) => { console.log((ok ? '✓ ' : '✗ ') + msg); if (!ok)
   check(await p.locator('#samples button', { hasText: 'כובע' }).count() === 1, 'המוצר החדש מהאקסל זמין למכירה');
   check(!(await scr()).includes('נפסל'), 'עריכת מוצרים באקסל לא פוסלת את הכרטיס (רק קבלות חתומות)');
 
+  // ── קוד מנהל, הנחות ועיגול ──
+  await p.click('#cardBtn');
+  await f.locator('#tabs button[data-t=biz]').click();
+  await f.locator('#pin').fill('2468');
+  await f.locator('#saveBiz').click();
+  await p.click('#cardBtn');
+  await samples.nth(0).click();
+  await key('1', '0', 'PCT');
+  check((await scr()).includes('קוד מנהל'), 'הנחה כשמוגדר קוד מנהל ⇒ מבקש קוד');
+  await key('1', '1', '1', '1', 'OK');
+  check((await scr()).includes('שגוי'), 'קוד שגוי ⇒ "קוד מנהל שגוי"');
+  await key('PCT', '2', '4', '6', '8', 'OK');
+  check((await scr()).includes('הנחה 10%'), 'קוד נכון ⇒ הנחה 10% על השורה');
+  await key('CANCEL', 'CANCEL');
+  await key('1', '7', '.', '0', '4', 'PRICE', 'CASH');
+  const cashScr = await scr();
+  check(cashScr.includes('17.00') && cashScr.includes('עיגול'), 'מזומן 17.04 ⇒ לתשלום 17.00 (עיגול)');
+  await key('OK');
+  check((await p.locator('.slip').first().innerText()).includes('עיגול מזומן'), 'בקבלה מודפסת שורת "עיגול מזומן"');
+
   // ייצוא הכרטיס לקובץ (לבדיקת דף-הניהול בקובץ יחיד)
   const cardText = await p.evaluate(() => localStorage.getItem('kupa.card'));
   const cardFile = path.join(OUT, 'KUPA.JSON');
@@ -95,7 +120,8 @@ const check = (ok, msg) => { console.log((ok ? '✓ ' : '✗ ') + msg); if (!ok)
   await p.click('#cardBtn');
   await p.evaluate(() => { const c = JSON.parse(localStorage.getItem('kupa.card')); c.receipts[0].total = 100; localStorage.setItem('kupa.card', JSON.stringify(c)); });
   await p.click('#cardBtn');
-  check((await scr()).includes('נפסל'), 'כרטיס שנערך במחשב ⇒ "הכרטיס נפסל"');
+  const tamperScr = await scr();
+  check(tamperScr.includes('נפסל'), 'כרטיס שנערך במחשב ⇒ "הכרטיס נפסל" · ' + tamperScr);
   const before = await p.locator('.slip').count();
   await samples.nth(0).click().catch(() => {});
   await key('CASH');

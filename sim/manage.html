@@ -78,6 +78,10 @@
     <div><label for="paper">גליל המדפסת</label><select id="paper"><option value="48">80 מ"מ (48 תווים)</option><option value="32">58 מ"מ (32 תווים)</option></select></div>
   </div>
   <label for="footer">שורת סיום בקבלה</label><input id="footer">
+  <div class="grid">
+    <div><label for="pin">קוד מנהל — להחזרה, הנחות וסגירת יום (4–8 ספרות)</label><input id="pin" class="ltr" type="password" inputmode="numeric" maxlength="8" autocomplete="new-password"><div class="note" id="pinNote"></div></div>
+    <div><label style="display:flex;gap:8px;align-items:center;color:var(--ink)"><input type="checkbox" id="cashRound" style="width:auto"> עיגול תשלום במזומן ל-10 אגורות</label><div class="note">לפי בנק ישראל: 1–4 אגורות למטה, 5–9 למעלה. אשראי — בלי עיגול.</div></div>
+  </div>
   <div><button class="btn pri" id="saveBiz" type="button">שמירה</button></div>
 </section>
 

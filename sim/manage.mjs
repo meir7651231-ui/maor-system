@@ -82,6 +82,12 @@ function renderBiz() {
   $('address').value = s.address; $('phone').value = s.phone; $('footer').value = s.footer;
   $('vat').value = String(Math.round(s.vatRate * 1000) / 10);
   $('paper').value = String(s.width);
+  $('cashRound').checked = s.cashRound !== false;
+  $('pin').value = '';
+  $('pin').placeholder = s.pinHash ? '•••• (מוגדר — הקלידו קוד חדש להחלפה)' : 'לא מוגדר';
+  $('pinNote').innerHTML = s.pinHash ? 'כדי לבטל את הקוד: <button class="btn" id="pinClear" type="button">ביטול קוד מנהל</button>' : '';
+  const pc = $('pinClear');
+  if (pc) pc.onclick = (e) => armed(e.currentTarget, 'ביטול קוד מנהל', () => commit(K.setPin(card, '').card, 'קוד המנהל בוטל'));
   $('vat').disabled = s.osekType === 'פטור';
   $('setupMsg').innerHTML = K.isConfigured(card)
     ? '<span class="ok">✓ הקופה מוגדרת ויכולה למכור.</span>'
@@ -97,10 +103,17 @@ $('osekType').onchange = () => { $('vat').disabled = $('osekType').value === 'פ
 $('saveBiz').onclick = () => {
   const vat = $('osekType').value === 'פטור' ? 0 : Number($('vat').value) / 100;
   if (!(vat >= 0 && vat < 1)) return toast('אחוז מע"מ לא תקין');
-  commit(K.updateSettings(card, {
+  let next = K.updateSettings(card, {
     bizName: $('bizName').value.trim(), osekType: $('osekType').value, osekNo: $('osekNo').value,
     address: $('address').value.trim(), phone: $('phone').value.trim(), footer: $('footer').value.trim(), vatRate: vat, width: Number($('paper').value),
-  }), 'פרטי העסק נשמרו');
+    cashRound: $('cashRound').checked,
+  });
+  if ($('pin').value.trim()) {
+    const r = K.setPin(next, $('pin').value.trim());
+    if (r.error) return toast(r.error);
+    next = r.card;
+  }
+  commit(next, 'פרטי העסק נשמרו');
 };
 
 // ── מוצרים ──
@@ -278,7 +291,7 @@ function renderFiles() {
     const f = e.target.files[0]; e.target.value = '';
     if (!f) return;
     const bytes = new Uint8Array(await f.arrayBuffer());
-    const { products, errors } = F.parseProductsCsv(bytes);
+    const { products, errors } = F.parseProductsCsv(bytes, card.products.map((p) => p.code));
     if (errors.length) {
       $('csvCheck').innerHTML = '<span class="err">הקופה לא תקבל את הקובץ:</span><br>' + errors.map((x) => `שורה ${x.line}: ${esc(x.msg)}`).join('<br>');
       return;

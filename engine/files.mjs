@@ -113,8 +113,11 @@ function parsePrice(raw) {
   return Math.round(Number(s) * 100);
 }
 
-// מחזיר { products, errors:[{line, msg}] } — בלי לגעת בכרטיס
-export function parseProductsCsv(bytes) {
+// מחזיר { products, errors:[{line, msg}] } — בלי לגעת בכרטיס.
+// known = ברקודים שכבר קיימים בקופה: הם מתקבלים כמו שהם (גם קוד-חנות בלי ספרת ביקורת),
+// ספרת הביקורת נבדקת רק לברקוד חדש בן 13 ספרות (שגיאת הקלדה).
+export function parseProductsCsv(bytes, known = []) {
+  const knownKeys = new Set(known.map(codeKey));
   const rows = parseCsv(decodeText(bytes));
   const errors = [];
   if (!rows.length) return { products: [], errors: [{ line: 1, msg: 'הקובץ ריק' }] };
@@ -131,7 +134,7 @@ export function parseProductsCsv(bytes) {
     const stockRaw = col['מלאי'] >= 0 ? String(r[col['מלאי']] ?? '').trim() : '';
     if (/^\d+(\.\d+)?E\+\d+$/i.test(code)) return errors.push({ line, msg: `הברקוד השתבש באקסל (${code}) — הקלידו אותו מחדש עם ' בהתחלה` });
     if (!/^\d{4,14}$/.test(code)) return errors.push({ line, msg: `ברקוד לא תקין: "${code}"` });
-    if (code.length === 13 && !validEan13(code)) return errors.push({ line, msg: `ספרת הביקורת של הברקוד ${code} שגויה` });
+    if (code.length === 13 && !validEan13(code) && !knownKeys.has(codeKey(code))) return errors.push({ line, msg: `ספרת הביקורת של הברקוד ${code} שגויה — בדקו שהוקלד נכון` });
     if (!name) return errors.push({ line, msg: 'חסר שם מוצר' });
     const price = parsePrice(priceRaw);
     if (price === null) return errors.push({ line, msg: `מחיר לא תקין: "${priceRaw}"` });
@@ -150,7 +153,7 @@ export function parseProductsCsv(bytes) {
 
 // החלה על הכרטיס — הכול או כלום: שגיאה אחת ⇒ שום שינוי
 export function importProductsCsv(card, bytes) {
-  const { products, errors } = parseProductsCsv(bytes);
+  const { products, errors } = parseProductsCsv(bytes, card.products.map((p) => p.code));
   if (errors.length) return { card, errors };
   const before = new Map(card.products.map((p) => [codeKey(p.code), p]));
   for (const p of products) { const o = before.get(codeKey(p.code)); if (o) p.code = o.code; } // אקסל מחק אפסים מובילים ⇒ שומרים את הצורה המקורית

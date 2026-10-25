@@ -103,3 +103,11 @@ test('אקסל מחק אפסים מובילים (0012… ⇒ 12…) — אותו
   assert.equal(K.findProduct(r.card, '012345678905').name, 'אפסים'); // UPC-A מסורק
   assert.equal(K.findProduct(r.card, '0012345678905').name, 'אפסים');
 });
+
+test('ברקוד קיים בלי ספרת ביקורת תקינה (קוד-חנות) — עובר הלוך-חזור באקסל; ברקוד חדש שגוי — נדחה', () => {
+  let c = K.upsertProduct(card(), { code: '7290000000011', name: 'קוד חנות', price: 100, stock: null }).card;
+  const r = F.importProductsCsv(c, enc(F.productsCsv(c)));
+  assert.deepEqual(r.errors, []);
+  const bad = F.importProductsCsv(card(), enc('ברקוד,שם,מחיר\n7290000000011,חדש,1\n'));
+  assert.match(bad.errors[0].msg, /ספרת הביקורת/);
+});

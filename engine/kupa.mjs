@@ -3,7 +3,7 @@
 // "הכרטיס" = אובייקט JSON אחד — זה מה שנשמר בכרטיס הזיכרון ונפתח במחשב.
 // "העגלה" = זיכרון העסקה הפתוחה בקופה בלבד (לא נשמרת בכרטיס).
 
-import { mac, canon } from './sign.mjs';
+import { mac, canon, sha256, hex, utf8 } from './sign.mjs';
 
 export const CARD_VERSION = 2;
 export const DEFAULT_VAT = 0.18;
@@ -20,6 +20,8 @@ export function emptyCard() {
       vatRate: DEFAULT_VAT,
       footer: 'תודה ולהתראות!',
       width: 48, // תווים בשורה: 48 = גליל 80 מ"מ (Epson TM-T20III) · 32 = גליל 58 מ"מ
+      cashRound: true, // עיגול תשלום במזומן ל-10 אגורות (בנק ישראל: 1–4 למטה, 5–9 למעלה)
+      pinHash: '', // קוד מנהל (טביעה). ריק = בלי קוד
     },
     products: [], // {code, name, price, stock|null}
     seq: { receipt: 0, z: 0, internal: 0, op: 0 },
@@ -46,6 +48,19 @@ export function updateSettings(card, patch) {
   if (patch.osekNo !== undefined) s.osekNo = String(patch.osekNo).replace(/\D/g, '');
   if (s.osekType === 'פטור') s.vatRate = 0;
   return { ...card, settings: s };
+}
+
+// קוד מנהל — נשמר רק כטביעה; נדרש להחזרה, הנחה וסגירת יום
+export function pinHashOf(pin) {
+  return hex(sha256(utf8('kupa-pin:' + String(pin))));
+}
+export function setPin(card, pin) {
+  const p = String(pin ?? '').trim();
+  if (p && !/^\d{4,8}$/.test(p)) return { card, error: 'קוד מנהל: 4–8 ספרות' };
+  return { card: { ...card, settings: { ...card.settings, pinHash: p ? pinHashOf(p) : '' } } };
+}
+export function checkPin(card, pin) {
+  return !card.settings.pinHash || pinHashOf(pin) === card.settings.pinHash;
 }
 
 // מספר עוסק/ח"פ — ספרת ביקורת (אותו אלגוריתם כמו ת"ז)
@@ -123,7 +138,15 @@ export function nextInternalCode(card) {
 // כל רשומה (קבלה / סגירת יום / פעולה) מקבלת מספר-פעולה רץ (n) וחתימה (h) על
 // התוכן + החתימה הקודמת. עריכה, מחיקה או החזרת הכרטיס לגרסה ישנה — מתגלות.
 export function newDevice(id, keyHex) {
-  return { id, key: keyHex, op: 0, head: '', receipt: 0, z: 0 };
+  return { id, key: keyHex, op: 0, head: '', receipt: 0, z: 0, lastAt: '' };
+}
+
+// שעון: אסור שפעולה תהיה מוקדמת מהפעולה האחרונה (שעון שהוחזר אחורה)
+export function clockError(device, now) {
+  if (device && device.lastAt && String(now) < device.lastAt) {
+    return `שעון הקופה מאחור (${now.replace('T', ' ').slice(0, 16)}) — הפעולה האחרונה הייתה ב-${device.lastAt.replace('T', ' ').slice(0, 16)}. תקנו את השעון`;
+  }
+  return null;
 }
 
 function sealBody(rec) {
@@ -138,7 +161,7 @@ function seal(card, device, rec) {
   return {
     rec: r,
     card: { ...card, head: r.h, seq: { ...card.seq, op: n } },
-    device: { ...device, op: n, head: r.h },
+    device: { ...device, op: n, head: r.h, lastAt: rec.at > (device.lastAt || '') ? rec.at : device.lastAt },
   };
 }
 
@@ -163,16 +186,34 @@ export function checkCard(card, device) {
   }
   if (prev !== card.head || recs.length !== card.seq.op) return { error: 'ראש השרשרת בכרטיס לא תואם', kind: 'tamper' };
   if (card.seq.op < device.op) return { error: 'הכרטיס הוחזר לגרסה ישנה — חסרות בו פעולות', kind: 'rollback' };
-  if (card.seq.op > device.op || card.head !== device.head) return { error: 'הכרטיס לא תואם לזיכרון הקופה', kind: 'tamper' };
+  if (card.seq.op > device.op) {
+    // הפסקת חשמל בין כתיבת הכרטיס לכתיבת הזיכרון הפנימי: הכרטיס מקדים.
+    // כל הרשומות חתומות במפתח של הקופה הזו (נבדק למעלה), ונקודת הזיכרון האחרונה
+    // נמצאת בשרשרת ⇒ אלה פעולות של הקופה עצמה. משלימים את הזיכרון.
+    const anchor = device.op === 0 ? '' : recs[device.op - 1].h;
+    if (anchor !== device.head) return { error: 'הכרטיס לא תואם לזיכרון הקופה', kind: 'tamper' };
+    const last = recs[recs.length - 1];
+    return {
+      card,
+      device: { ...device, op: card.seq.op, head: card.head, receipt: card.seq.receipt, z: card.seq.z, lastAt: last.at > (device.lastAt || '') ? last.at : device.lastAt },
+      recovered: card.seq.op - device.op,
+    };
+  }
+  if (card.head !== device.head) return { error: 'הכרטיס לא תואם לזיכרון הקופה', kind: 'tamper' };
   return { card };
 }
 
 // ── עגלה (העסקה הפתוחה) ───────────────────────────────────────
 export function emptyCart() {
-  return { lines: [], refund: false };
+  return { lines: [], refund: false, refundOf: null, basket: null };
+}
+
+function qtyInCart(cart, code) {
+  return cart.lines.filter((l) => l.code && codeKey(l.code) === codeKey(code)).reduce((s, l) => s + l.qty, 0);
 }
 
 export function cartAdd(cart, card, code) {
+  if (cart.refund) return cartAddRefund(cart, card, code);
   const p = findProduct(card, code);
   if (!p) return { cart, error: 'מוצר לא נמצא' };
   const lines = cart.lines.slice();
@@ -182,12 +223,23 @@ export function cartAdd(cart, card, code) {
   } else {
     lines.push({ code: p.code, name: p.name, price: p.price, qty: 1, discount: 0 });
   }
-  return { cart: { ...cart, lines } };
+  const next = { ...cart, lines };
+  const inCart = qtyInCart(next, p.code);
+  const warn = p.stock !== null && inCart > p.stock ? `אזהרה: במלאי ${Math.max(p.stock, 0)} בלבד` : undefined;
+  return { cart: next, warn };
 }
 
-export function cartAddManual(cart, price, name = 'פריט כללי') {
+export function cartAddManual(cart, price, name = 'פריט כללי', card = null) {
   const pr = Math.round(price);
   if (!(pr > 0)) return { cart, error: 'מחיר לא תקין' };
+  if (cart.refund) {
+    // בהחזרה: פריט כללי רק אם היה כזה בקבלה המקורית, באותו מחיר (נטו)
+    const left = refundable(card, cart.refundOf);
+    if (left.error) return { cart, error: left.error };
+    const u = left.units.find((x) => x.manual && x.unit === pr && x.left > cart.lines.filter((l) => l.manual && l.price === pr).reduce((s, l) => s + l.qty, 0));
+    if (!u) return { cart, error: `אין בקבלה ${cart.refundOf} פריט כללי ב-₪${money(pr)} שאפשר להחזיר` };
+    return { cart: { ...cart, lines: [...cart.lines, { code: '', name: u.name, price: pr, qty: 1, discount: 0, manual: true }] } };
+  }
   return { cart: { ...cart, lines: [...cart.lines, { code: '', name, price: pr, qty: 1, discount: 0, manual: true }] } };
 }
 
@@ -208,18 +260,98 @@ export function cartVoid(cart, idx) {
 export function cartDiscount(cart, idx, amount) {
   const l = cart.lines[idx];
   if (!l) return { cart, error: 'אין שורה' };
+  if (cart.refund) return { cart, error: 'אין הנחה בהחזרה — המחיר הוא מה ששולם' };
   const a = Math.round(amount);
   if (!(a >= 0) || a > l.price * l.qty) return { cart, error: 'הנחה לא תקינה' };
   const lines = cart.lines.map((x, i) => (i === idx ? { ...x, discount: a } : x));
   return { cart: { ...cart, lines } };
 }
 
-export function cartToggleRefund(cart) {
-  return { ...cart, refund: !cart.refund };
+// הנחה באחוזים על שורה
+export function cartDiscountPct(cart, idx, pct) {
+  const l = cart.lines[idx];
+  if (!l) return { cart, error: 'אין שורה' };
+  if (!(pct > 0 && pct <= 100)) return { cart, error: 'אחוז הנחה: 1–100' };
+  return cartDiscount(cart, idx, Math.round((l.price * l.qty * pct) / 100));
+}
+
+// הנחה על כל הסל: { amount } בשקלים או { pct } באחוזים; 0 = ביטול
+export function cartBasket(cart, { amount, pct } = {}) {
+  if (cart.refund) return { cart, error: 'אין הנחה בהחזרה — המחיר הוא מה ששולם' };
+  if (!cart.lines.length) return { cart, error: 'אין פריטים' };
+  if (pct !== undefined) {
+    if (pct === 0) return { cart: { ...cart, basket: null } };
+    if (!(pct > 0 && pct <= 100)) return { cart, error: 'אחוז הנחה: 1–100' };
+    return { cart: { ...cart, basket: { pct } } };
+  }
+  const a = Math.round(amount);
+  if (a === 0) return { cart: { ...cart, basket: null } };
+  const base = cart.lines.reduce((s, l) => s + lineTotal(l), 0);
+  if (!(a > 0) || a > base) return { cart, error: 'הנחת סל לא תקינה' };
+  return { cart: { ...cart, basket: { amount: a } } };
+}
+
+// מצב החזרה — חייב קבלה מקורית (מספר). בלי מספר = יציאה ממצב החזרה
+export function cartToggleRefund(cart, refundOf) {
+  if (cart.refund || refundOf === undefined) return emptyCart();
+  return { ...emptyCart(), refund: true, refundOf };
 }
 
 export function lineTotal(l) {
   return l.price * l.qty - (l.discount || 0);
+}
+
+function basketAmountOf(cart, base) {
+  if (!cart.basket) return 0;
+  if (cart.basket.pct) return Math.round((base * cart.basket.pct) / 100);
+  return Math.min(cart.basket.amount, base);
+}
+
+// עיגול תשלום במזומן ל-10 אגורות: 1–4 למטה, 5–9 למעלה
+export function roundCash(a) {
+  return Math.floor((a + 5) / 10) * 10;
+}
+
+// מה עוד אפשר להחזיר מקבלה: יחידות לפי מוצר (או פריט כללי לפי מחיר), במחיר ששולם בפועל
+export function refundable(card, no) {
+  const orig = card && card.receipts.find((r) => r.no === Number(no));
+  if (!orig) return { error: `קבלה ${no} לא נמצאה` };
+  if (orig.type !== 'sale') return { error: `קבלה ${no} היא החזרה` };
+  const units = orig.lines.map((l) => ({
+    key: l.manual ? 'm:' + Math.round((l.paid ?? lineTotal(l)) / l.qty) : codeKey(l.code),
+    code: l.code, name: l.name, manual: !!l.manual,
+    unit: Math.round((l.paid ?? lineTotal(l)) / l.qty),
+    left: l.qty,
+  }));
+  for (const r of card.receipts) {
+    if (r.type !== 'refund' || r.refundOf !== orig.no) continue;
+    for (const l of r.lines) {
+      let q = l.qty;
+      for (const u of units) {
+        if (!q) break;
+        const k = l.manual ? 'm:' + l.price : codeKey(l.code);
+        if (u.key === k && u.left > 0) { const take = Math.min(u.left, q); u.left -= take; q -= take; }
+      }
+    }
+  }
+  return { orig, units };
+}
+
+function cartAddRefund(cart, card, code) {
+  const left = refundable(card, cart.refundOf);
+  if (left.error) return { cart, error: left.error };
+  const k = codeKey(code);
+  const already = qtyInCart(cart, code);
+  const u = left.units.filter((x) => !x.manual && x.key === k);
+  const total = u.reduce((s, x) => s + x.left, 0);
+  if (!u.length) return { cart, error: `המוצר לא נמצא בקבלה ${cart.refundOf}` };
+  if (already >= total) return { cart, error: `כל היחידות מקבלה ${cart.refundOf} כבר הוחזרו` };
+  const unit = u.find((x) => x.left > 0)?.unit ?? u[0].unit;
+  const lines = cart.lines.slice();
+  const i = lines.findIndex((l) => l.code && codeKey(l.code) === k && l.price === unit);
+  if (i >= 0) lines[i] = { ...lines[i], qty: lines[i].qty + 1 };
+  else lines.push({ code: u[0].code, name: u[0].name, price: unit, qty: 1, discount: 0 });
+  return { cart: { ...cart, lines } };
 }
 
 // המחירים כוללים מע"מ; המע"מ = החלק הכלול
@@ -229,14 +361,22 @@ export function vatPart(total, rate) {
 }
 
 export function cartTotals(cart, vatRate) {
-  let gross = 0, discount = 0, items = 0;
+  let gross = 0, lineDiscount = 0, items = 0;
   for (const l of cart.lines) {
     gross += l.price * l.qty;
-    discount += l.discount || 0;
+    lineDiscount += l.discount || 0;
     items += l.qty;
   }
+  const basket = basketAmountOf(cart, gross - lineDiscount);
+  const discount = lineDiscount + basket;
   const total = gross - discount;
-  return { gross, discount, total, vat: vatPart(total, vatRate), items };
+  return { gross, discount, basket, total, vat: vatPart(total, vatRate), items };
+}
+
+// כמה משלמים בפועל באמצעי התשלום (במזומן — אחרי עיגול)
+export function payableOf(card, cart, method) {
+  const t = cartTotals(cart, card.settings.vatRate).total;
+  return method === 'cash' && card.settings.cashRound !== false ? roundCash(t) : t;
 }
 
 // ── תשלום = הפקת קבלה ─────────────────────────────────────────
@@ -257,29 +397,56 @@ export function checkout(card, cart, { method, tendered = 0, now, device }) {
   if (!cart.lines.length) return { card, device, error: 'אין פריטים' };
   if (method !== 'cash' && method !== 'credit') return { card, device, error: 'אמצעי תשלום לא ידוע' };
   if (needsClose(card, now)) return { card, device, error: 'צריך לסגור את היום הקודם (תפריט 2) לפני מכירה' };
+  const clk = clockError(device, now);
+  if (clk) return { card, device, error: clk };
+  if (cart.refund) {
+    // החזרה: חייבת קבלה מקורית, ולא יותר ממה שנשאר להחזיר ממנה
+    const left = refundable(card, cart.refundOf);
+    if (left.error) return { card, device, error: left.error };
+    const need = new Map();
+    for (const l of cart.lines) { const k = l.manual ? 'm:' + l.price : codeKey(l.code); need.set(k, (need.get(k) || 0) + l.qty); }
+    for (const [k, q] of need) {
+      const has = left.units.filter((u) => u.key === k).reduce((s, u) => s + u.left, 0);
+      if (q > has) return { card, device, error: `אי אפשר להחזיר יותר ממה שנקנה בקבלה ${cart.refundOf}` };
+    }
+  }
   const t = cartTotals(cart, card.settings.vatRate);
   const sign = cart.refund ? -1 : 1;
+  const payable = payableOf(card, cart, method);
+  const rounding = payable - t.total;
   let change = 0;
   if (method === 'cash' && !cart.refund) {
-    const tend = Math.round(tendered) || t.total; // בלי סכום = סכום מדויק
-    if (tend < t.total) return { card, device, error: `חסרים ₪${money(t.total - tend)}` };
-    change = tend - t.total;
+    const tend = Math.round(tendered) || payable; // בלי סכום = סכום מדויק
+    if (tend < payable) return { card, device, error: `חסרים ₪${money(payable - tend)}` };
+    change = tend - payable;
     tendered = tend;
   } else {
-    tendered = t.total;
+    tendered = payable;
   }
+  // חלוקת הנחת הסל בין השורות ⇒ "שולם" לכל שורה (בסיס להחזרה עתידית)
+  const base = t.total + t.basket;
+  let left = t.basket;
+  const lines = cart.lines.map((l, i) => {
+    const net = lineTotal(l);
+    const share = i === cart.lines.length - 1 ? left : Math.round((t.basket * net) / (base || 1));
+    left -= share;
+    return { ...l, paid: net - share };
+  });
   const no = card.seq.receipt + 1;
   const draft = {
     no,
     at: now,
     type: cart.refund ? 'refund' : 'sale',
-    lines: cart.lines.map((l) => ({ ...l })),
+    ...(cart.refund ? { refundOf: cart.refundOf } : {}),
+    lines,
     gross: sign * t.gross,
     discount: sign * t.discount,
+    basket: sign * t.basket,
     total: sign * t.total,
     vat: sign * t.vat,
     items: sign * t.items,
     method,
+    rounding: sign * rounding,
     tendered: sign * tendered,
     change,
   };
@@ -298,6 +465,8 @@ export function checkout(card, cart, { method, tendered = 0, now, device }) {
 
 // פעולה שאינה מסמך (נרשמת וחתומה): 'X' דוח ביניים · 'COPY' העתק · 'CANCEL' ביטול עסקה
 export function logOp(card, device, now, kind, info = {}) {
+  const clk = clockError(device, now);
+  if (clk) return { card, device, error: clk };
   const sealed = seal(card, device, { op: kind, at: now, ...info });
   return { card: { ...sealed.card, ops: [...card.ops, sealed.rec] }, device: sealed.device, op: sealed.rec };
 }
@@ -317,11 +486,12 @@ function openOps(card) {
 }
 
 export function summarize(receipts) {
-  const s = { count: receipts.length, sales: 0, refunds: 0, items: 0, cash: 0, credit: 0, refundTotal: 0, discount: 0, total: 0, vat: 0, fromNo: null, toNo: null };
+  const s = { count: receipts.length, sales: 0, refunds: 0, items: 0, cash: 0, credit: 0, refundTotal: 0, discount: 0, rounding: 0, total: 0, vat: 0, fromNo: null, toNo: null };
   for (const r of receipts) {
     if (r.type === 'refund') { s.refunds++; s.refundTotal += r.total; } else s.sales++;
     s.items += r.items;
-    s[r.method] += r.total;
+    s[r.method] += r.total + (r.rounding || 0); // מזומן = מה שנכנס/יצא בפועל
+    s.rounding += r.rounding || 0;
     s.discount += r.discount;
     s.total += r.total;
     s.vat += r.vat;
@@ -348,6 +518,7 @@ export function interimReport(card, now) {
 // הדפסת דוח ביניים בקופה — נרשמת כפעולה חתומה
 export function printInterim(card, now, device) {
   const r = logOp(card, device, now, 'X');
+  if (r.error) return r;
   return { card: r.card, device: r.device, report: { ...interimReport(r.card, now), opNo: r.op.n } };
 }
 
@@ -356,6 +527,8 @@ export function closeDay(card, now, device) {
   if (!device) return { card, device, error: 'אין זיכרון קופה' };
   const rs = openReceipts(card);
   if (!rs.length) return { card, device, error: 'אין מסמכים מאז הסגירה האחרונה' };
+  const clk = clockError(device, now);
+  if (clk) return { card, device, error: clk };
   const no = card.seq.z + 1;
   const draft = { kind: 'Z', no, at: now, ...summarize(rs), gt: grandTotal(card), nonSale: nonSaleCount(card) };
   const sealed = seal({ ...card, seq: { ...card.seq, z: no } }, device, draft);
@@ -413,6 +586,7 @@ export function receiptLines(card, r, { copy = false } = {}) {
   out.push(center(r.type === 'refund' ? `קבלה (החזרה) מס' ${r.no}` : `קבלה מס' ${r.no}`, w));
   out.push(center(copy ? '*** העתק ***' : '*** מקור ***', w));
   out.push(center(stamp(r.at) + (r.n ? `  פעולה ${r.n}` : ''), w));
+  if (r.refundOf) out.push(center(`החזרה לקבלה מס' ${r.refundOf}`, w));
   out.push('-'.repeat(w));
   for (const l of r.lines) {
     out.push(l.name.slice(0, w));
@@ -420,11 +594,13 @@ export function receiptLines(card, r, { copy = false } = {}) {
     if (l.discount) out.push(row('  הנחה', money(-l.discount), w));
   }
   out.push('-'.repeat(w));
-  out.push(row('סה"כ לתשלום', money(r.total), w));
-  if (card.settings.vatRate) out.push(row(`מתוכו מע"מ ${Math.round(card.settings.vatRate * 100)}%`, money(r.vat), w));
+  if (r.basket) out.push(row('הנחת סל', money(-Math.abs(r.basket)), w));
+  out.push(row(r.type === 'refund' ? 'סה"כ להחזר' : 'סה"כ לתשלום', money(Math.abs(r.total)), w));
+  if (card.settings.vatRate) out.push(row(`מתוכו מע"מ ${Math.round(card.settings.vatRate * 100)}%`, money(Math.abs(r.vat)), w));
   else out.push('עוסק פטור - ללא מע"מ');
+  if (r.rounding) out.push(row('עיגול מזומן', money(Math.sign(r.total) * r.rounding), w));
   if (r.type === 'refund') {
-    out.push(row(r.method === 'cash' ? 'הוחזר במזומן' : 'זיכוי באשראי', money(-r.total), w));
+    out.push(row(r.method === 'cash' ? 'הוחזר במזומן' : 'זיכוי באשראי', money(-r.total - (r.rounding || 0)), w));
   } else if (r.method === 'cash') {
     out.push(row('התקבל במזומן', money(r.tendered), w));
     out.push(row('עודף', money(r.change), w));
@@ -455,6 +631,7 @@ export function reportLines(card, rep) {
     out.push(row('אשראי', money(rep.credit), w));
     if (rep.refunds) out.push(row('מתוכם החזרות', money(rep.refundTotal), w));
     if (rep.discount) out.push(row('הנחות שניתנו', money(rep.discount), w));
+    if (rep.rounding) out.push(row('עיגולי מזומן', money(rep.rounding), w));
     out.push(row('סה"כ פדיון', money(rep.total), w));
     if (card.settings.vatRate) out.push(row('מתוכו מע"מ', money(rep.vat), w));
   }

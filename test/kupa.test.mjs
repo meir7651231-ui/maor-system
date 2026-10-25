@@ -79,13 +79,16 @@ test('הנחה לא יכולה לעבור את סכום השורה', () => {
   assert.equal(K.cartTotals(K.cartDiscount(cart, 0, 990).cart, 0.18).total, 8000);
 });
 
-test('החזרה: סכומים שליליים, המלאי חוזר', () => {
-  const st = setup();
-  const r = sell(st, (c, card) => K.cartToggleRefund(shirt(c, card)));
+test('החזרה: מקושרת לקבלה מקורית, סכומים שליליים, המלאי חוזר', () => {
+  let st = sell(setup(), shirt);
+  const r = sell(st, (c, card) => K.cartAdd(K.cartToggleRefund(c, 1), card, '7290000000011').cart);
   assert.equal(r.receipt.total, -8990);
   assert.equal(r.receipt.type, 'refund');
-  assert.equal(K.findProduct(r.card, '7290000000011').stock, 6);
-  assert.ok(K.receiptLines(r.card, r.receipt).some((l) => l.includes('הוחזר במזומן') && l.includes('89.90')));
+  assert.equal(r.receipt.refundOf, 1);
+  assert.equal(K.findProduct(r.card, '7290000000011').stock, 5);
+  const lines = K.receiptLines(r.card, r.receipt);
+  assert.ok(lines.some((l) => l.includes('הוחזר במזומן') && l.includes('89.90')));
+  assert.ok(lines.some((l) => l.includes("החזרה לקבלה מס' 1")));
 });
 
 test('דוח ביניים לא סוגר; סגירת יום סוגרת, ממספרת, ומספור הקבלות ממשיך', () => {
@@ -234,4 +237,127 @@ test('רוחב גליל: 80 מ"מ = 48 תווים (ברירת מחדל), 58 מ"�
   }
   assert.equal(K.emptyCard().settings.width, 48);
   assert.equal(K.updateSettings(K.emptyCard(), { width: 40 }).settings.width, 48);
+});
+
+// ── תיקונים 25.10 ──
+test('הפסקת חשמל אחרי כתיבת הכרטיס ולפני הזיכרון הפנימי — הכרטיס לא נפסל, הזיכרון משלים', () => {
+  const st0 = sell(setup(), shirt);
+  const st1 = sell(st0, manual(100)); // הכרטיס נכתב…
+  const r = K.checkCard(st1.card, st0.device); // …אבל הזיכרון הפנימי נשאר מלפני
+  assert.ok(r.card && !r.error);
+  assert.equal(r.recovered, 1);
+  assert.equal(r.device.op, st1.device.op);
+  assert.equal(r.device.head, st1.device.head);
+  assert.ok(K.checkCard(st1.card, r.device).card);
+});
+
+test('כרטיס "מקדים" שלא ממשיך את הזיכרון (שרשרת אחרת) — עדיין נפסל', () => {
+  const a = sell(setup(), shirt);
+  const b = sell(a, manual(100));
+  const other = sell(sell(setup(), manual(500)), manual(700)); // אותו מפתח, היסטוריה אחרת
+  assert.equal(K.checkCard(other.card, a.device).kind, 'tamper');
+  assert.ok(b);
+});
+
+test('שעון שהוחזר אחורה — אין מכירה, אין דוח, אין סגירה', () => {
+  const st = sell(setup(), shirt);
+  const past = '2026-10-25T10:00:00';
+  assert.match(sell(st, manual(100), { now: past }).error, /שעון הקופה מאחור/);
+  assert.match(K.printInterim(st.card, past, st.device).error, /שעון/);
+  assert.match(K.closeDay(st.card, past, st.device).error, /שעון/);
+  assert.ok(sell(st, manual(100)).receipt); // אותה שעה — מותר
+});
+
+test('עיגול מזומן ל-10 אגורות (1–4 למטה, 5–9 למעלה); באשראי אין עיגול; בדוח Z המזומן = בפועל', () => {
+  assert.deepEqual([1704, 1707, 1700, 1705].map(K.roundCash), [1700, 1710, 1700, 1710]);
+  let st = sell(setup(), manual(1704));
+  assert.equal(st.receipt.rounding, -4);
+  assert.equal(st.receipt.tendered, 1700);
+  assert.ok(K.receiptLines(st.card, st.receipt).some((l) => l.includes('עיגול')));
+  st = sell(st, manual(1707), { tendered: 2000 });
+  assert.equal(st.receipt.change, 2000 - 1710);
+  st = sell(st, manual(1707), { method: 'credit' });
+  assert.equal(st.receipt.rounding, 0);
+  const z = K.closeDay(st.card, NOW, st.device).report;
+  assert.equal(z.cash, 1700 + 1710);
+  assert.equal(z.credit, 1707);
+  assert.equal(z.rounding, -4 + 3);
+  assert.equal(z.total, 1704 + 1707 + 1707);
+});
+
+test('אפשר לכבות עיגול מזומן בהגדרות', () => {
+  let st = setup();
+  st = { ...st, card: { ...st.card, settings: { ...st.card.settings, cashRound: false } } };
+  assert.equal(sell(st, manual(1704)).receipt.rounding, 0);
+});
+
+test('הנחה באחוזים לשורה, והנחת סל (שקלים / אחוזים) מתחלקת בין השורות', () => {
+  const { card } = setup();
+  let c = K.cartAdd(K.emptyCart(), card, '7290000000011').cart; // 89.90
+  c = K.cartAdd(c, card, '7290000000028').cart; // 120.00
+  c = K.cartDiscountPct(c, 1, 10).cart; // 12.00
+  assert.equal(c.lines[1].discount, 1200);
+  assert.ok(K.cartDiscountPct(c, 0, 150).error);
+  let t = K.cartTotals(c, 0.18);
+  assert.equal(t.total, 8990 + 10800);
+  c = K.cartBasket(c, { pct: 10 }).cart;
+  t = K.cartTotals(c, 0.18);
+  assert.equal(t.basket, Math.round(19790 * 0.1));
+  assert.ok(K.cartBasket(c, { amount: 999999 }).error);
+  const st = setup();
+  const r = K.checkout(st.card, c, { method: 'credit', now: NOW, device: st.device });
+  const paid = r.receipt.lines.reduce((s, l) => s + l.paid, 0);
+  assert.equal(paid, r.receipt.total); // סכום "שולם" לשורות = סה"כ הקבלה
+  assert.ok(K.receiptLines(r.card, r.receipt).some((l) => l.includes('הנחת סל')));
+});
+
+test('החזרה לקבלה: רק מה שנקנה, לא יותר ממה שנשאר, במחיר ששולם בפועל (אחרי הנחות)', () => {
+  let st = setup();
+  let c = K.cartAdd(K.emptyCart(), st.card, '7290000000011').cart;
+  c = K.cartAdd(c, st.card, '7290000000011').cart; // 2 חולצות
+  c = K.cartBasket(c, { pct: 10 }).cart; // 179.80 - 17.98
+  st = K.checkout(st.card, c, { method: 'credit', now: NOW, device: st.device });
+  const no = st.receipt.no;
+  const unit = Math.round(st.receipt.lines[0].paid / 2);
+  let rc = K.cartToggleRefund(K.emptyCart(), no);
+  assert.equal(K.cartAdd(rc, st.card, '7290000000028').error, `המוצר לא נמצא בקבלה ${no}`);
+  rc = K.cartAdd(rc, st.card, '7290000000011').cart;
+  assert.equal(rc.lines[0].price, unit);
+  assert.ok(K.cartDiscount(rc, 0, 100).error); // אין הנחה בהחזרה
+  st = K.checkout(st.card, rc, { method: 'credit', now: NOW, device: st.device });
+  assert.equal(st.receipt.total, -unit);
+  rc = K.cartAdd(K.cartToggleRefund(K.emptyCart(), no), st.card, '7290000000011').cart; // השנייה
+  assert.ok(rc.lines.length);
+  assert.ok(K.cartAdd(rc, st.card, '7290000000011').error); // שלישית — אין
+  assert.ok(K.cartToggleRefund(K.emptyCart(), 999) && K.cartAdd(K.cartToggleRefund(K.emptyCart(), 999), st.card, '7290000000011').error);
+  // עקיפה ידנית של הסל — נחסמת בתשלום
+  const forged = { ...rc, lines: [{ ...rc.lines[0], qty: 5 }] };
+  assert.match(K.checkout(st.card, forged, { method: 'cash', now: NOW, device: st.device }).error, /יותר ממה שנקנה/);
+});
+
+test('החזרה של פריט כללי — רק אם היה כזה בקבלה, באותו מחיר', () => {
+  let st = sell(setup(), manual(2500));
+  const rc = K.cartToggleRefund(K.emptyCart(), st.receipt.no);
+  assert.ok(K.cartAddManual(rc, 2500, 'פריט כללי', st.card).cart.lines.length);
+  assert.ok(K.cartAddManual(rc, 3000, 'פריט כללי', st.card).error);
+});
+
+test('אזהרת מלאי כשמוכרים יותר ממה שיש', () => {
+  let { card } = setup();
+  card = K.upsertProduct(card, { code: '7290000000035', name: 'אחרון', price: 100, stock: 1 }).card;
+  let r = K.cartAdd(K.emptyCart(), card, '7290000000035');
+  assert.equal(r.warn, undefined);
+  r = K.cartAdd(r.cart, card, '7290000000035');
+  assert.match(r.warn, /במלאי 1 בלבד/);
+});
+
+test('קוד מנהל: 4–8 ספרות, נשמר רק כטביעה, ריק = בלי קוד', () => {
+  const { card } = setup();
+  assert.equal(K.checkPin(card, ''), true); // אין קוד
+  assert.ok(K.setPin(card, '12').error);
+  const c = K.setPin(card, '2468').card;
+  assert.ok(!JSON.stringify(c).includes('2468'));
+  assert.equal(K.checkPin(c, '2468'), true);
+  assert.equal(K.checkPin(c, '1111'), false);
+  assert.equal(K.checkPin(K.setPin(c, '').card, '9'), true);
 });
