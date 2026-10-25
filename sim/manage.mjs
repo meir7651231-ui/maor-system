@@ -80,6 +80,7 @@ function renderBiz() {
   $('bizName').value = s.bizName; $('osekType').value = s.osekType; $('osekNo').value = s.osekNo;
   $('address').value = s.address; $('phone').value = s.phone; $('footer').value = s.footer;
   $('vat').value = String(Math.round(s.vatRate * 1000) / 10);
+  $('paper').value = String(s.width);
   $('vat').disabled = s.osekType === 'פטור';
   $('setupMsg').innerHTML = K.isConfigured(card)
     ? '<span class="ok">✓ הקופה מוגדרת ויכולה למכור.</span>'
@@ -97,7 +98,7 @@ $('saveBiz').onclick = () => {
   if (!(vat >= 0 && vat < 1)) return toast('אחוז מע"מ לא תקין');
   commit(K.updateSettings(card, {
     bizName: $('bizName').value.trim(), osekType: $('osekType').value, osekNo: $('osekNo').value,
-    address: $('address').value.trim(), phone: $('phone').value.trim(), footer: $('footer').value.trim(), vatRate: vat,
+    address: $('address').value.trim(), phone: $('phone').value.trim(), footer: $('footer').value.trim(), vatRate: vat, width: Number($('paper').value),
   }), 'פרטי העסק נשמרו');
 };
 

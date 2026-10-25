@@ -135,12 +135,12 @@ test('מקור על הקבלה, העתק על העתק; דוחות מסתיימ�
   const copy = K.receiptLines(st.card, st.receipt, { copy: true });
   assert.ok(orig.some((l) => l.includes('מקור')) && !orig.some((l) => l.includes('העתק')));
   assert.ok(copy.some((l) => l.includes('העתק')) && !copy.some((l) => l.includes('מקור')));
-  for (const l of orig) assert.ok(l.length <= 32, l);
+  for (const l of orig) assert.ok(l.length <= st.card.settings.width, l);
   const z = K.closeDay(st.card, NOW, st.device);
   const lines = K.reportLines(z.card, z.report);
   assert.ok(lines.some((l) => l.includes('GT') && l.includes('89.90')));
   assert.ok(lines[lines.length - 1].includes('סוף דוח'));
-  for (const l of lines) assert.ok(l.length <= 32, l);
+  for (const l of lines) assert.ok(l.length <= z.card.settings.width, l);
 });
 
 test('ברקוד פנימי: EAN-13 תקין, קידומת 2, רץ', () => {
@@ -220,4 +220,18 @@ test('ניהול מהמחשב: מוצרים מותר; קבלות, סגירות, 
   assert.ok(K.guardManaged(card, { ...card, ops: [{}] }).error);
   assert.ok(K.guardManaged(card, { ...card, head: '' }).error);
   assert.ok(K.guardManaged(card, { ...card, seq: { ...card.seq, receipt: 0 } }).error);
+});
+
+test('רוחב גליל: 80 מ"מ = 48 תווים (ברירת מחדל), 58 מ"מ = 32; ערך אחר נדחה; אף שורה לא חורגת', () => {
+  for (const w of [48, 32]) {
+    let st = setup();
+    st = { ...st, card: K.updateSettings(st.card, { width: w }) };
+    assert.equal(st.card.settings.width, w);
+    st = sell(st, (c, card) => K.cartDiscount(shirt(c, card), 0, 990).cart, { tendered: 10000 });
+    const z = K.closeDay(st.card, NOW, st.device);
+    const lines = [...K.receiptLines(z.card, st.receipt), ...K.receiptLines(z.card, st.receipt, { copy: true }), ...K.reportLines(z.card, z.report), ...K.stockLines(z.card, NOW)];
+    for (const l of lines) assert.ok(l.length <= w, `${w}: ${l}`);
+  }
+  assert.equal(K.emptyCard().settings.width, 48);
+  assert.equal(K.updateSettings(K.emptyCard(), { width: 40 }).settings.width, 48);
 });

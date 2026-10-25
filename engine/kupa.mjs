@@ -19,7 +19,7 @@ export function emptyCard() {
       phone: '',
       vatRate: DEFAULT_VAT,
       footer: 'תודה ולהתראות!',
-      width: 32, // רוחב גליל המדפסת בתווים
+      width: 48, // תווים בשורה: 48 = גליל 80 מ"מ (Epson TM-T20III) · 32 = גליל 58 מ"מ
     },
     products: [], // {code, name, price, stock|null}
     seq: { receipt: 0, z: 0, internal: 0, op: 0 },
@@ -37,8 +37,12 @@ export function isConfigured(card) {
   return !!(s.bizName.trim() && /^\d{9}$/.test(s.osekNo));
 }
 
+export const PAPER_WIDTHS = { 80: 48, 58: 32 };
+
 export function updateSettings(card, patch) {
   const s = { ...card.settings, ...patch };
+  if (patch.width !== undefined && !Object.values(PAPER_WIDTHS).includes(Number(patch.width))) s.width = card.settings.width;
+  else if (patch.width !== undefined) s.width = Number(patch.width);
   if (patch.osekNo !== undefined) s.osekNo = String(patch.osekNo).replace(/\D/g, '');
   if (s.osekType === 'פטור') s.vatRate = 0;
   return { ...card, settings: s };
