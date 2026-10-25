@@ -17,6 +17,7 @@ const check = (ok, msg) => { console.log((ok ? '✓ ' : '✗ ') + msg); if (!ok)
   await p.goto(BASE);
   await p.evaluate(() => localStorage.clear());
   await p.reload();
+  await p.uncheck('#rawPrint'); // הבדיקות קוראות את הטקסט הלוגי; תצוגת-מדפסת נבדקת בנפרד למטה
   const scr = async () => (await p.locator('#screen').innerText()).replace(/\n/g, ' | ');
   const key = async (...ks) => { for (const k of ks) await p.click(`#keys [data-k="${k}"]`); };
 
@@ -110,6 +111,12 @@ const check = (ok, msg) => { console.log((ok ? '✓ ' : '✗ ') + msg); if (!ok)
   check(cashScr.includes('17.00') && cashScr.includes('עיגול'), 'מזומן 17.04 ⇒ לתשלום 17.00 (עיגול)');
   await key('OK');
   check((await p.locator('.slip').first().innerText()).includes('עיגול מזומן'), 'בקבלה מודפסת שורת "עיגול מזומן"');
+
+  // תצוגת "כמו במדפסת אמיתית": אותה קבלה בסדר חזותי (מה שנשלח ל-Epson)
+  await p.check('#rawPrint');
+  const raw = await p.locator('.slip').first().innerText();
+  check(raw.includes('ןמוזמב לבקתה') && raw.includes('ןמוזמ לוגיע'), 'תצוגת מדפסת: העברית בסדר חזותי (כפי שתודפס משמאל לימין)');
+  await p.uncheck('#rawPrint');
 
   // ייצוא הכרטיס לקובץ (לבדיקת דף-הניהול בקובץ יחיד)
   const cardText = await p.evaluate(() => localStorage.getItem('kupa.card'));
