@@ -90,7 +90,8 @@ test('ביטול עסקה נרשם; שעון מאחור ⇒ שגיאה ברור�
   let { st } = fresh();
   let r = keys(st, [`scan:${SHIRT}`, 'CREDIT']);
   r = keys(r.st, [`scan:${SHIRT}`, 'CANCEL', 'CANCEL']);
-  assert.equal(r.st.card.ops.length, 1);
+  assert.equal(r.st.card.ops.at(-1).op, 'CANCEL');
+  assert.equal(r.st.card.ops.length, 2); // שיוך הכרטיס + הביטול
   r = keys(r.st, [`scan:${SHIRT}`, 'CREDIT'], '2026-10-24T09:00:00');
   assert.match(r.st.msg.text, /שעון הקופה מאחור/);
   assert.equal(r.out.persist, false);
@@ -177,7 +178,9 @@ test('קפיצה של יותר מחודש קדימה ⇒ מבקש לאשר את 
   const ins = R.insertCard(R.ejectCard(r.st).st, r.st.card, {}, '2027-03-01T10:00:00');
   assert.equal(ins.st.mode, 'setClock');
   assert.match(ins.st.msg.text, /יותר מחודש/);
-  const ok = R.press(ins.st, 'OK', '2027-03-01T10:00:00'); // ההצעה נכונה ⇒ אישור
+  // אי אפשר לדלג (C) — חובה להקליד תאריך במכוון; התאריך נכון ⇒ מקלידים אותו ומאשרים
+  assert.equal(R.press(ins.st, 'C', '2027-03-01T10:00:00').st.mode, 'setClock');
+  const ok = keys(ins.st, [...'010320271000', 'OK'], '2027-03-01T10:00:00');
   assert.equal(ok.st.mode, 'sale');
 });
 
@@ -191,7 +194,7 @@ test('מזומן פותח מגירה; "פתיחת מגירה" מהתפריט נ�
   assert.equal(r.out.drawer, true);
   assert.equal(r.st.card.ops.at(-1).op, 'DRAWER');
   r = keys(r.st, ['MENU', '2', 'OK']);
-  assert.ok(r.prints[0].some((l) => /פעולות שאינן מכירה\s+1/.test(l)));
+  assert.ok(r.prints[0].some((l) => /פעולות שאינן מכירה\s+2/.test(l)));
 });
 
 test('מחיר ידני מעל ₪5,000 או כמות מעל 50 ⇒ אישור (טעות הקלדה)', () => {
@@ -213,5 +216,9 @@ test('כרטיס חדש בקופה שמכרה ⇒ הודעה "ממשיך מקב�
   let r = keys(st, [`scan:${SHIRT}`, 'CREDIT', `scan:${SHIRT}`, 'CREDIT']);
   const blank = K.updateSettings(K.emptyCard(), { bizName: 'ב', osekNo: '000000018' });
   const ins = R.insertCard(R.ejectCard(r.st).st, blank, {}, NOW);
-  assert.match(ins.st.msg.text, /ממשיך מקבלה 3/);
+  assert.equal(ins.st.mode, 'confirmBind'); // כרטיס ריק בקופה שמכרה — רק באישור
+  assert.match(ins.st.msg.text, /מקבלה 3/);
+  const ok = R.press(ins.st, 'OK', NOW);
+  assert.match(ok.st.msg.text, /ממשיך מקבלה 3/);
+  assert.equal(ok.out.persist, true);
 });

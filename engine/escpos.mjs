@@ -122,9 +122,10 @@ export function escposDocument(lines, { width = 48, codepage = 'cp862', cut = tr
   if (!cp) throw new Error('codepage: cp862 | cp1255');
   const parts = [Uint8Array.of(0x1b, 0x40), Uint8Array.of(0x1b, 0x74, cp.n)];
   for (const l of lines) {
-    const logical = normalize(l);
+    // חיתוך לרוחב בסדר הלוגי (לפני ההיפוך לסדר חזותי) — אחרת נחתכת תחילת המשפט ולא סופו
+    const logical = [...normalize(l)].slice(0, width).join('');
     const padded = logical + ' '.repeat(Math.max(0, width - [...logical].length)); // ריפוד בסוף הלוגי ⇒ מיושר לימין בדפוס
-    parts.push(cp.enc(toVisual(padded).slice(0, width)), Uint8Array.of(0x0a));
+    parts.push(cp.enc(toVisual(padded)), Uint8Array.of(0x0a));
   }
   parts.push(Uint8Array.of(0x1b, 0x64, 4)); // הזנת 4 שורות
   if (drawer) parts.push(DRAWER_KICK);

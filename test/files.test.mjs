@@ -80,8 +80,8 @@ test('מחיקת שורה מוחקת מוצר; ברקוד פנימי שהוקל�
 });
 
 test('הקבצים בכרטיס: מוצרים, קבלות, קרא-אותי, וקובץ לכל סגירת יום', () => {
-  const device = K.newDevice('D', 'a1'.repeat(32));
-  let c = K.checkCard(card(), device).card;
+  const b = K.checkCard(card(), K.newDevice('D', 'a1'.repeat(32)));
+  const c = b.card, device = b.device;
   let st = K.checkout(c, K.cartAdd(K.emptyCart(), c, '7290000000015').cart, { method: 'cash', now: NOW, device });
   st = K.closeDay(st.card, NOW, st.device);
   const files = F.exportCardFiles(st.card);

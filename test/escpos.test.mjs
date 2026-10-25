@@ -37,8 +37,9 @@ test('מסמך ESC/POS: אתחול, עמוד עברית 36 (CP862), שורות, 
 test('כל קבלה ודוח שהקופה מפיקה — בלי אף תו שהמדפסת לא מכירה (?)', () => {
   let card = K.updateSettings(K.emptyCard(), { bizName: 'בוטיק לנשים - הדגמה', osekNo: '000000018', address: 'רחוב הדוגמה 1', phone: '050-0000000' });
   card = K.upsertProduct(card, { code: '7290000000015', name: 'חולצה (כותנה)', price: 8990, stock: 1 }).card;
-  const device = K.newDevice('D', 'a1'.repeat(32));
-  card = K.checkCard(card, device).card;
+  const b = K.checkCard(card, K.newDevice('D', 'a1'.repeat(32)));
+  card = b.card;
+  const device = b.device;
   let c = K.cartAdd(K.emptyCart(), card, '7290000000015').cart;
   c = K.cartBasket(K.cartDiscountPct(c, 0, 10).cart, { amount: 100 }).cart;
   let st = K.checkout(card, c, { method: 'cash', tendered: 10000, now: NOW, device });

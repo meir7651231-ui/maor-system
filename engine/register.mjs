@@ -3,6 +3,7 @@
 //   out.prints  — שורות להדפסה
 //   out.beep    — true (צפצוף הצלחה) / false (שגיאה) / null
 //   out.persist — לשמור: קודם כרטיס + קבצים, אחר כך זיכרון פנימי (סדר חשוב — הפסקת חשמל)
+//   out.persistDevice — לשמור רק את הזיכרון הפנימי (מונה ניסיונות קוד שגויים, קוד מנהל)
 //   out.drawer  — לפתוח את מגירת הכסף (פקודה למדפסת)
 //   out.verifyUpdate — עדכון לאימות חתימה (אסינכרוני, אצל המארח) ⇒ updateResult()
 // הזמן שמגיע מבחוץ הוא שעון החומרה; המנוע מוסיף את תיקון השעון (deviceNow).
@@ -11,7 +12,7 @@ import * as F from './files.mjs';
 import * as U from './update.mjs';
 
 const DIGIT = /^[0-9]$/;
-const PROTECTED = { REFUND: 'החזרה', DISC: 'הנחה', PCT: 'הנחה', BASKET: 'הנחת סל', BPCT: 'הנחת סל', Z: 'סגירת יום', CLOCK: 'כיוון שעון', DRAWER: 'פתיחת מגירה', UPDATE: 'עדכון תוכנה' };
+const PROTECTED = { REFUND: 'החזרה', DISC: 'הנחה', PCT: 'הנחה', BASKET: 'הנחת סל', BPCT: 'הנחת סל', Z: 'סגירת יום', CLOCK: 'כיוון שעון', DRAWER: 'פתיחת מגירה', UPDATE: 'עדכון תוכנה', PIN: 'החלפת קוד מנהל', BIND: 'כרטיס חדש' };
 const BIG_AMOUNT = 500000; // ₪5,000 — מעל זה מחיר ידני דורש אישור (טעות הקלדה)
 const BIG_QTY = 50;
 
@@ -36,7 +37,7 @@ export function initState({ card, device, inserted = true }) {
 
 // ── עזר ──
 function begin(st) {
-  return { s: { ...st }, out: { prints: [], beep: null, persist: false, files: null, drawer: false, verifyUpdate: null } };
+  return { s: { ...st }, out: { prints: [], beep: null, persist: false, persistDevice: false, files: null, drawer: false, verifyUpdate: null } };
 }
 function say(s, text, kind = 'info') { s.msg = { text, kind }; }
 function fail(s, out, text) { say(s, text, 'err'); out.beep = false; }
@@ -55,7 +56,11 @@ function persist(s, out, r) {
   if (r.card) s.card = r.card;
   if (r.device) s.device = r.device;
   const files = F.exportCardFiles(s.card);
-  s.card = { ...s.card, productsHash: F.textHash(files[F.PRODUCTS_FILE]) };
+  const h = F.textHash(files[F.PRODUCTS_FILE]);
+  // הטביעה הקודמת נשמרת: אם החשמל נפל אחרי כתיבת KUPA.JSON ולפני מוצרים.csv, הקובץ הישן
+  // שנשאר בכרטיס מזוהה כ"לא נכתב" ולא כעריכה של הבעלים (אחרת המלאי היה חוזר אחורה)
+  const prev = s.card.productsHash && s.card.productsHash !== h ? s.card.productsHash : s.card.productsHashPrev;
+  s.card = { ...s.card, productsHash: h, ...(prev ? { productsHashPrev: prev } : {}) };
   out.files = files;
   out.persist = true;
 }
@@ -68,19 +73,36 @@ function ready(s, out) {
 }
 
 // ── כרטיס ──
-// files = הקבצים שבכרטיס (לפחות מוצרים.csv אם קיים)
-export function insertCard(st, card, files = {}, raw) {
-  const r0 = insertCardInner(st, card, files);
+// files = הקבצים שבכרטיס (לפחות מוצרים.csv אם קיים).
+// loadError = KUPA.JSON קיים אבל לא נקרא (נכתב חלקית / פגום) ⇒ חוסם, ולעולם לא נכתב עליו כרטיס ריק.
+export function insertCard(st, card, files = {}, raw, loadError) {
+  if (loadError || !card) {
+    const { s, out } = begin(st);
+    s.inserted = true; s.mode = 'sale'; s.pending = null; s.paidInfo = null;
+    s.card = K.emptyCard();
+    s.cardError = `${loadError || 'הקובץ בכרטיס פגום'} — לא כותבים עליו. פנו לספק (הקבלות בקבצים שבכרטיס)`;
+    fail(s, out, `⛔ ${s.cardError}`);
+    return { st: s, out };
+  }
+  const r0 = insertCardInner(st, card, files, raw);
   const { st: s, out } = r0;
-  // שעון חשוד (הפסקת חשמל בלי סוללת שעון, קפיצה, החזרה) ⇒ מסך כיוון שעון לפני הכול
+  if (s.mode === 'sale') afterInsert(s, out, files, raw);
+  return { st: s, out };
+}
+
+// אחרי שהכרטיס נקרא: שעון חשוד ⇒ כיוון חובה; ואז עדכון תוכנה אם יש
+function afterInsert(s, out, files, raw) {
+  // שעון חשוד (הפסקת חשמל בלי סוללת שעון, קפיצה, החזרה) ⇒ מסך כיוון שעון לפני הכול.
+  // אי אפשר לצאת ממנו בלי לאשר תאריך: מקלידים את התאריך והשעה הנכונים (גם אם הם בדיוק מה שמוצג)
   if (raw && s.inserted && !s.cardError && s.mode === 'sale') {
     const now = K.deviceNow(raw, s.device);
     const why = K.clockSuspect(s.device, now);
     if (why) {
       const hint = s.card.pcTime && s.card.pcTime > now ? s.card.pcTime : now;
       s.mode = 'setClock';
-      s.buf = isoToDigits(hint);
-      say(s, `⏰ ${why} · בדקו/תקנו: יום-חודש-שנה-שעה-דקה · אישור`, 'err');
+      s.clockForced = true;
+      s.buf = '';
+      say(s, `⏰ ${why} · הקלידו תאריך ושעה נכונים: יום-חודש-שנה-שעה-דקה (למשל ${isoToDigits(hint)}) · אישור`, 'err');
       out.beep = false;
     }
   }
@@ -97,7 +119,6 @@ export function insertCard(st, card, files = {}, raw) {
       out.beep = false;
     }
   }
-  return { st: s, out };
 }
 
 export function versionOf(s) {
@@ -122,45 +143,63 @@ export function updateResult(st, result, raw) {
   return { st: s, out };
 }
 
-function insertCardInner(st, card, files) {
+function insertCardInner(st, card, files, raw) {
   const { s, out } = begin(st);
   s.inserted = true;
   s.mode = 'sale';
   s.pending = null;
+  s.clockForced = false;
   s.paidInfo = null; // תצוגת "שולם · עודף" לא שורדת החלפת כרטיס
   s.card = card;
-  const r = K.checkCard(card, s.device);
+  const r = K.checkCard(card, s.device, raw ? K.deviceNow(raw, s.device) : '');
   if (r.error) { s.cardError = r.error; fail(s, out, `⛔ ${r.error}`); return { st: s, out }; }
   s.cardError = '';
+  if (r.bound && r.continued) {
+    // כרטיס ריק בקופה שכבר מכרה (כרטיס חלופי — או כרטיס שמחקו ממנו הכול): רק באישור + קוד מנהל
+    s.mode = 'confirmBind';
+    s.pending = { files };
+    say(s, `כרטיס ריק. להמשיך בו את הקופה (מקבלה ${(s.device.receipt || 0) + 1})? אישור + קוד מנהל · C = לא`, 'info');
+    out.beep = false;
+    return { st: s, out };
+  }
+  finishInsert(s, out, r, files);
+  return { st: s, out };
+}
+
+function finishInsert(s, out, r, files) {
   s.card = r.card;
   if (r.device) s.device = r.device;
   say(s, r.recovered ? `הכרטיס נקרא · הושלמו ${r.recovered} פעולות אחרי הפסקת חשמל`
     : r.continued ? `כרטיס חדש — ממשיך מקבלה ${s.card.seq.receipt + 1} (סגירת יום ${s.card.seq.z + 1})` : 'הכרטיס נקרא', 'ok');
   const csv = files[F.PRODUCTS_FILE];
-  if (csv !== undefined && s.card.productsHash && F.textHash(csv) !== s.card.productsHash) {
+  const hash = csv === undefined ? null : F.textHash(csv);
+  // מוצרים.csv שונה ממה שהקופה כתבה (ולא הגרסה הקודמת שלא הוחלפה בגלל הפסקת חשמל) ⇒ עריכה של הבעלים
+  if (hash !== null && hash !== s.card.productsHash && hash !== s.card.productsHashPrev) {
     const imp = F.importProductsCsv(s.card, typeof csv === 'string' ? new TextEncoder().encode(csv) : csv);
     if (imp.errors.length) {
       const e = imp.errors[0];
       fail(s, out, `⚠ מוצרים.csv שורה ${e.line}: ${e.msg}${imp.errors.length > 1 ? ` (+${imp.errors.length - 1} נוספות)` : ''} — נשארו המוצרים הקודמים`);
       if (r.bound || r.device) { out.persist = true; } // שומרים שיוך/השלמה, לא דורסים את הקובץ השגוי
-      return { st: s, out };
+      return;
     }
     const summary = `${imp.added} נוספו · ${imp.changed} עודכנו · ${imp.removed} נמחקו`;
-    if (imp.removed > 0) {
-      // מחיקת מוצרים מהאקסל — רק באישור (שורה שנמחקה בטעות)
+    const changed = imp.added + imp.changed + imp.removed > 0;
+    if (changed && (imp.removed > 0 || !s.card.productsHash)) {
+      // מחיקת מוצרים מהאקסל, או כרטיס שהקופה עוד לא כתבה בו — רק באישור
       const gone = s.card.products.filter((p) => !imp.card.products.some((n) => K.codeKey(n.code) === K.codeKey(p.code))).map((p) => p.name);
       s.mode = 'confirmCsv';
       s.pending = { card: imp.card, summary };
-      say(s, `מוצרים.csv: יימחקו ${imp.removed} (${gone.slice(0, 3).join(', ')}${gone.length > 3 ? '…' : ''}) · אישור = כן · C = לא`, 'info');
+      say(s, imp.removed > 0
+        ? `מוצרים.csv: יימחקו ${imp.removed} (${gone.slice(0, 3).join(', ')}${gone.length > 3 ? '…' : ''}) · אישור = כן · C = לא`
+        : `מוצרים.csv: ${summary} · לקלוט? אישור = כן · C = לא`, 'info');
       if (r.bound || r.device) out.persist = true;
-      return { st: s, out };
+      return;
     }
-    say(s, `✓ מוצרים.csv: ${summary}`, 'ok');
+    if (changed) say(s, `✓ מוצרים.csv: ${summary}${r.recovered ? ` · הושלמו ${r.recovered} פעולות` : ''}`, 'ok');
     s.card = imp.card;
   }
   persist(s, out, {});
   out.beep = true;
-  return { st: s, out };
 }
 
 export function ejectCard(st) {
@@ -221,14 +260,27 @@ function addManual(s, out, a) {
 
 // ── פעולות מוגנות בקוד מנהל ──
 function protect(s, out, action, now) {
-  if (!s.card.settings.pinHash) return run(s, out, action, now);
+  if (!K.pinRequired(s.card, s.device)) return run(s, out, action, now);
   s.mode = 'pin';
-  s.pending = { action, buf: s.buf, update: s.pending?.update };
+  s.pending = { action, buf: s.buf, update: s.pending?.update, files: s.pending?.files };
   s.buf = '';
   say(s, `קוד מנהל ל${PROTECTED[action]} · אישור`, 'info');
 }
 
 function run(s, out, action, now) {
+  if (action === 'BIND') {
+    const r = K.checkCard(s.card, s.device, now || '');
+    const files = s.pending?.files || {};
+    s.mode = 'sale'; s.pending = null;
+    if (r.error) { s.cardError = r.error; return fail(s, out, `⛔ ${r.error}`); }
+    finishInsert(s, out, r, files);
+    if (s.mode === 'sale') afterInsert(s, out, files, s.rawNow);
+    return;
+  }
+  if (action === 'PIN') {
+    s.mode = 'newPin'; s.buf = '';
+    return say(s, 'קוד מנהל חדש (4–8 ספרות) · אישור · C = ביטול', 'info');
+  }
   if (action === 'REFUND') {
     if (s.cart.refund) { s.cart = K.emptyCart(); say(s, 'חזרה למכירה רגילה', 'info'); return; }
     if (s.cart.lines.length) return fail(s, out, 'קודם סיימו או בטלו את העסקה');
@@ -286,8 +338,11 @@ export function press(st, k, raw) {
 
   if (s.mode === 'setClock') {
     if (DIGIT.test(k)) { if (s.buf.length < 12) s.buf += k; }
-    else if (k === 'C') { if (s.buf) s.buf = ''; else { s.mode = 'sale'; say(s, 'השעון לא שונה', 'info'); } }
-    else if (k === 'OK') {
+    else if (k === 'C') {
+      if (s.buf) s.buf = '';
+      else if (s.clockForced) fail(s, out, 'חובה להקליד תאריך ושעה נכונים לפני שממשיכים (12 ספרות · אישור)');
+      else { s.mode = 'sale'; say(s, 'השעון לא שונה', 'info'); }
+    } else if (k === 'OK') {
       const target = digitsToIso(s.buf);
       const r = target ? K.setClock(s.device, raw, target) : { error: 'הקלידו 12 ספרות: יום חודש שנה שעה דקה' };
       if (r.error) return (fail(s, out, r.error), { st: s, out });
@@ -295,8 +350,30 @@ export function press(st, k, raw) {
       const log = K.logOp(s.card, r.device, newNow, 'CLOCK', { was: now });
       if (log.error) return (fail(s, out, log.error), { st: s, out });
       persist(s, out, log);
-      s.mode = 'sale'; s.buf = '';
+      s.mode = 'sale'; s.buf = ''; s.clockForced = false;
       say(s, `השעון כוון: ${newNow.slice(8, 10)}/${newNow.slice(5, 7)}/${newNow.slice(0, 4)} ${newNow.slice(11, 16)}`, 'ok');
+      out.beep = true;
+    }
+    return { st: s, out };
+  }
+
+  if (s.mode === 'confirmBind') {
+    if (k === 'OK') { s.rawNow = raw; protect(s, out, 'BIND', now); }
+    else if (k === 'C') { s.mode = 'sale'; s.pending = null; s.cardError = 'הכרטיס לא שויך לקופה — הוציאו אותו'; say(s, `⛔ ${s.cardError}`, 'err'); }
+    return { st: s, out };
+  }
+
+  if (s.mode === 'newPin') {
+    if (DIGIT.test(k)) { if (s.buf.length < 8) s.buf += k; }
+    else if (k === 'C') { s.mode = 'sale'; s.buf = ''; say(s, 'קוד המנהל לא שונה', 'info'); }
+    else if (k === 'OK') {
+      const r = K.changeDevicePin(s.card, s.device, s.buf);
+      if (r.error) { s.buf = ''; return (fail(s, out, r.error), { st: s, out }); }
+      const log = K.logOp(r.card, r.device, now, 'PIN');
+      if (log.error) return (fail(s, out, log.error), { st: s, out });
+      persist(s, out, log);
+      s.mode = 'sale'; s.buf = '';
+      say(s, '✓ קוד המנהל הוחלף', 'ok');
       out.beep = true;
     }
     return { st: s, out };
@@ -329,6 +406,7 @@ export function press(st, k, raw) {
     else if (k === '3') { out.prints.push(K.stockLines(s.card, now)); say(s, 'דוח מלאי הודפס', 'ok'); }
     else if (k === '5') protect(s, out, 'DRAWER', now);
     else if (k === '6') protect(s, out, 'CLOCK', now);
+    else if (k === '7') protect(s, out, 'PIN', now);
     else if (k === '4') {
       if (!s.lastReceipt) fail(s, out, 'אין קבלה אחרונה');
       else {
@@ -361,12 +439,25 @@ export function press(st, k, raw) {
   if (s.mode === 'pin') {
     if (DIGIT.test(k)) { if (s.buf.length < 8) s.buf += k; return { st: s, out }; }
     const { action, buf } = s.pending;
-    if (k === 'C') { s.mode = 'sale'; s.pending = null; s.buf = buf; say(s, 'בוטל', 'info'); return { st: s, out }; }
+    if (k === 'C') {
+      // ביטול בשיוך כרטיס חוזר לשאלה; בשאר — חזרה למכירה
+      if (action === 'BIND') { s.mode = 'confirmBind'; s.pending = { files: s.pending.files }; s.buf = ''; say(s, 'כרטיס ריק — אישור + קוד מנהל · C = לא', 'info'); return { st: s, out }; }
+      s.mode = 'sale'; s.pending = null; s.buf = buf; say(s, 'בוטל', 'info'); return { st: s, out };
+    }
     if (k === 'OK') {
-      const ok = K.checkPin(s.card, s.buf);
-      const upd = s.pending.update;
-      s.mode = 'sale'; s.pending = upd ? { update: upd } : null; s.buf = buf;
-      if (!ok) { fail(s, out, 'קוד מנהל שגוי'); return { st: s, out }; }
+      const c = K.checkPin(s.card, s.buf, s.device, now);
+      const { update: upd, files } = s.pending;
+      s.mode = action === 'BIND' ? 'confirmBind' : 'sale';
+      s.pending = upd ? { update: upd } : files ? { files } : null;
+      s.buf = action === 'BIND' ? '' : buf;
+      if (!c.ok) {
+        s.device = c.device; // מונה הניסיונות השגויים נשמר בזיכרון הקופה (שורד כיבוי)
+        out.persistDevice = true;
+        if (c.locked) { fail(s, out, `קוד מנהל שגוי ${K.PIN_MAX_FAILS} פעמים — נעול עד ${c.locked.slice(11, 16)}`); }
+        else fail(s, out, 'קוד מנהל שגוי');
+        return { st: s, out };
+      }
+      if (c.device !== s.device || c.card !== s.card) { s.card = c.card; s.device = c.device; if (action !== 'BIND') persist(s, out, {}); else out.persistDevice = true; }
       run(s, out, action, now);
     }
     return { st: s, out };
@@ -428,7 +519,12 @@ export function press(st, k, raw) {
     else addManual(s, out, a);
   } else if (k === 'DEL') {
     const r = K.cartVoid(s.cart, selIdx(s));
-    if (r.error) fail(s, out, 'אין מה למחוק'); else { s.cart = r.cart; s.sel = -1; say(s, 'השורה נמחקה', 'info'); }
+    if (r.error) fail(s, out, 'אין מה למחוק');
+    else {
+      // בהחזרה: מחירי היחידות שנשארו מחושבים מחדש (כל יחידה במחיר ששולם עליה)
+      s.cart = r.cart.refund && r.cart.lines.length ? (K.repriceRefund(r.cart, s.card).cart) : r.cart;
+      s.sel = -1; say(s, 'השורה נמחקה', 'info');
+    }
   } else if (k === 'CANCEL') {
     if (!s.cart.lines.length && !s.cart.refund) say(s, 'אין עסקה פתוחה', 'info');
     else if (!s.cancelArmed) { s.cancelArmed = true; say(s, 'לבטל את כל העסקה? לחצו בטל שוב', 'info'); }

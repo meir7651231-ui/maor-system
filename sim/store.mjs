@@ -1,20 +1,25 @@
 // הכרטיס בסימולטור = localStorage (במכשיר האמיתי: קובץ KUPA.JSON בכרטיס הזיכרון)
-import { emptyCard, parseCard, serializeCard, newDevice } from '../engine/kupa.mjs';
+import { serializeCard, newDevice, pickCardText } from '../engine/kupa.mjs';
 
 const KEY = 'kupa.card';
+const TMP = 'kupa.card.tmp';
 const SLOT = 'kupa.inserted';
 
-export function loadCard() {
-  try {
-    const t = localStorage.getItem(KEY);
-    if (t) { const r = parseCard(t); if (r.card) return r.card; }
-  } catch { /* אחסון חסום ⇒ כרטיס ריק */ }
-  return emptyCard();
+// { card } או { error } — קובץ קיים שלא נקרא לעולם לא מוחלף בכרטיס ריק
+export function loadCardResult() {
+  try { return pickCardText(localStorage.getItem(KEY), localStorage.getItem(TMP)); } catch { return { error: 'אי אפשר לקרוא את הכרטיס' }; }
 }
 
-// מחזיר true/false — כשל שמירה חייב להיות גלוי (כרטיס מלא / פגום), לא להיבלע
+// מחזיר true/false — כשל שמירה חייב להיות גלוי (כרטיס מלא / פגום), לא להיבלע.
+// סדר כמו במכשיר: TMP ⇒ הקובץ הראשי ⇒ מחיקת TMP
 export function saveCard(card) {
-  try { localStorage.setItem(KEY, serializeCard(card)); return true; } catch { return false; }
+  try {
+    const t = serializeCard(card);
+    localStorage.setItem(TMP, t);
+    localStorage.setItem(KEY, t);
+    localStorage.removeItem(TMP);
+    return true;
+  } catch { return false; }
 }
 
 export function cardInserted() {

@@ -62,7 +62,7 @@ const check = (ok, msg) => { console.log((ok ? '✓ ' : '✗ ') + msg); if (!ok)
   await key('MENU', '2', 'OK');
   const z = await p.locator('.slip').first().innerText();
   check(z.includes('סגירת יום') && z.includes('402.90') && z.includes('GT') && z.includes('סוף דוח'), 'דוח Z: פדיון 402.90, GT, סוף דוח');
-  check(/פעולות שאינן מכירה\s+3/.test(z), 'Z סופר 3 פעולות שאינן מכירה (ביטול, העתק, X)');
+  check(/פעולות שאינן מכירה\s+4/.test(z), 'Z סופר 4 פעולות שאינן מכירה (שיוך הכרטיס, ביטול, העתק, X)');
   const copy = await p.locator('.slip').nth(2).innerText();
   check(copy.includes('העתק'), 'העתק מסומן "העתק"');
   const orig = await p.locator('.slip').last().innerText();
@@ -171,6 +171,15 @@ const check = (ok, msg) => { console.log((ok ? '✓ ' : '✗ ') + msg); if (!ok)
   await samples.nth(0).click().catch(() => {});
   await key('CASH');
   check((await p.locator('.slip').count()) === before, 'בכרטיס פסול לא יוצאת קבלה');
+
+  // קובץ שנקטע (הפסקת חשמל באמצע כתיבה) ⇒ חוסם, ולא נכתב עליו כרטיס ריק
+  await p.click('#cardBtn');
+  await p.evaluate((t) => localStorage.setItem('kupa.card', t.slice(0, -40)), cardText);
+  await p.click('#cardBtn');
+  check((await scr()).includes('פגום'), 'כרטיס שנקטע ⇒ "פגום" (חוסם)');
+  await samples.nth(0).click().catch(() => {});
+  await key('CASH');
+  check(await p.evaluate((t) => localStorage.getItem('kupa.card') === t.slice(0, -40), cardText), 'כרטיס שנקטע לא נדרס בכרטיס ריק');
   check(errs.length === 0, 'אין שגיאות בקונסולה: ' + JSON.stringify(errs));
 
   // דף הניהול בקובץ יחיד, נפתח מ-file:// בלי שרת

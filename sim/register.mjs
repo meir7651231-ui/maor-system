@@ -3,12 +3,12 @@ import * as K from '../engine/kupa.mjs';
 import * as R from '../engine/register.mjs';
 import * as E from '../engine/escpos.mjs';
 import * as U from '../engine/update.mjs';
-import { loadCard, saveCard, cardInserted, setInserted, loadDevice, saveDevice, loadFiles, saveFiles } from './store.mjs';
+import { loadCardResult, saveCard, cardInserted, setInserted, loadDevice, saveDevice, loadFiles, saveFiles } from './store.mjs';
 
 const $ = (id) => document.getElementById(id);
 
 // כל ההיגיון במנוע המקשים (engine/register.mjs) — כאן רק תצוגה, צפצוף, הדפסה ושמירה
-let st = R.initState({ card: loadCard(), device: loadDevice(), inserted: cardInserted() });
+let st = R.initState({ card: loadCardResult().card || K.emptyCard(), device: loadDevice(), inserted: cardInserted() });
 
 // ── עזר ──
 function nowIso() {
@@ -75,7 +75,7 @@ function apply({ st: next, out }) {
       return render();
     }
     saveDevice(next.device); // נכשל? הכרטיס כבר נשמר ⇒ בהכנסה הבאה הקופה משלימה מהכרטיס
-  }
+  } else if (out.persistDevice) saveDevice(next.device);
   st = next;
   for (const lines of out.prints) print(lines);
   if (out.drawer) { const d = $('drawer'); d.classList.add('open'); clearTimeout(d.t); d.t = setTimeout(() => d.classList.remove('open'), 2500); }
@@ -91,7 +91,7 @@ function apply({ st: next, out }) {
 
 const key = (k) => apply(R.press(st, k, nowIso()));
 const scan = (code) => apply(R.scan(st, code, nowIso()));
-const readCard = () => apply(R.insertCard(st, loadCard(), loadFiles(), nowIso()));
+const readCard = () => { const c = loadCardResult(); apply(R.insertCard(st, c.card, loadFiles(), nowIso(), c.error)); };
 
 // ── מסך ──
 function render() {

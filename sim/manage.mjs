@@ -4,12 +4,15 @@
 import * as K from '../engine/kupa.mjs';
 import { ean13Svg } from '../engine/ean13svg.mjs';
 import * as F from '../engine/files.mjs';
-import { loadCard, saveCard, downloadCard, loadFiles, saveFiles } from './store.mjs';
+import { loadCardResult, saveCard, downloadCard, loadFiles, saveFiles } from './store.mjs';
 
 const $ = (id) => document.getElementById(id);
 const SIM = new URLSearchParams(location.search).has('sim');
 
-let card = SIM ? loadCard() : K.emptyCard();
+const first = SIM ? loadCardResult() : { card: K.emptyCard() };
+let card = first.card || K.emptyCard();
+// כרטיס שלא נקרא (פגום) — חוסמים כל שמירה, כדי לא לכתוב כרטיס ריק מעל הקבלות
+let badCard = first.error || '';
 let fileHandle = null; // File System Access (כרום/אדג׳) — שמירה ישירות לכרטיס
 let dirty = false;
 
@@ -29,6 +32,7 @@ function localNow() {
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
 }
 function commit(next, note) {
+  if (badCard) return toast(`⛔ ${badCard} — לא שומרים. פנו לספק`);
   const g = K.guardManaged(card, next);
   if (g.error) return toast(g.error);
   card = { ...next, pcTime: localNow() }; // שעת המחשב — הצעה לכיוון שעון הקופה
@@ -52,12 +56,13 @@ async function openFile() {
 }
 function loadText(text) {
   const r = K.parseCard(text);
-  if (r.error) return toast(r.error);
-  card = r.card; dirty = false;
+  if (r.error) { fileHandle = null; badCard = r.error; card = K.emptyCard(); renderAll(); return toast(`⛔ ${r.error} — לא שומרים עליו`); }
+  card = r.card; dirty = false; badCard = '';
   renderAll();
   toast('הכרטיס נקרא');
 }
 async function saveFile() {
+  if (badCard) return toast(`⛔ ${badCard} — לא שומרים. פנו לספק`);
   if (fileHandle && fileHandle.createWritable) {
     const w = await fileHandle.createWritable();
     await w.write(K.serializeCard(card));
@@ -89,8 +94,12 @@ function renderBiz() {
   $('paper').value = String(s.width);
   $('cashRound').checked = s.cashRound !== false;
   $('pin').value = '';
-  $('pin').placeholder = s.pinHash ? '•••• (מוגדר — הקלידו קוד חדש להחלפה)' : 'לא מוגדר';
-  $('pinNote').innerHTML = s.pinHash ? 'כדי לבטל את הקוד: <button class="btn" id="pinClear" type="button">ביטול קוד מנהל</button>' : '';
+  const inDevice = s.pinHash === K.PIN_IN_DEVICE;
+  $('pin').disabled = inDevice;
+  $('pin').placeholder = inDevice ? 'נשמר בקופה' : s.pinHash ? '•••• (מוגדר — הקלידו קוד חדש להחלפה)' : 'לא מוגדר';
+  $('pinNote').innerHTML = inDevice ? 'הקוד נשמר בזיכרון הקופה (לא בכרטיס). החלפה — רק בקופה: תפריט ← 7.'
+    : s.pinHash ? 'כדי לבטל את הקוד: <button class="btn" id="pinClear" type="button">ביטול קוד מנהל</button> · אחרי הקלדה ראשונה בקופה הקוד עובר לקופה ומשנים אותו רק שם'
+    : 'קוד ראשוני. אחרי שמקלידים אותו בקופה פעם אחת הוא עובר לזיכרון הקופה, ומשנים אותו רק שם (תפריט ← 7).';
   const pc = $('pinClear');
   if (pc) pc.onclick = (e) => armed(e.currentTarget, 'ביטול קוד מנהל', () => commit(K.setPin(card, '').card, 'קוד המנהל בוטל'));
   $('vat').disabled = s.osekType === 'פטור';

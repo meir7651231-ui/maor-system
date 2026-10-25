@@ -10,9 +10,8 @@ function setup() {
   let card = K.updateSettings(K.emptyCard(), { bizName: 'בוטיק לנשים', osekNo: '512345678', address: 'רחוב הדוגמה 1', phone: '050-0000000' });
   card = K.upsertProduct(card, { code: '7290000000011', name: 'חולצה', price: 8990, stock: 5 }).card;
   card = K.upsertProduct(card, { code: '7290000000028', name: 'חצאית', price: 12000, stock: null }).card;
-  const device = K.newDevice('KUPA-0001', KEY);
-  card = K.checkCard(card, device).card; // שיוך הכרטיס לקופה
-  return { card, device };
+  const b = K.checkCard(card, K.newDevice('KUPA-0001', KEY)); // שיוך הכרטיס לקופה (רשומת BIND חתומה)
+  return { card: b.card, device: b.device };
 }
 
 // מכירה מהירה: מחזיר {card, device, receipt}
@@ -24,8 +23,7 @@ const shirt = (c, card) => K.cartAdd(c, card, '7290000000011').cart;
 const manual = (amt) => (c) => K.cartAddManual(c, amt).cart;
 
 test('בלי שם עסק ומספר עוסק — אי אפשר למכור', () => {
-  const device = K.newDevice('D', KEY);
-  const card = K.checkCard(K.emptyCard(), device).card;
+  const { card, device } = K.checkCard(K.emptyCard(), K.newDevice('D', KEY));
   const r = K.checkout(card, K.cartAddManual(K.emptyCart(), 1000).cart, { method: 'cash', now: NOW, device });
   assert.equal(r.error, 'הקופה לא הוגדרה');
 });
@@ -51,7 +49,7 @@ test('מכירה במזומן: עודף, מע"מ כלול, מלאי יורד, מ
   cart = K.cartAdd(cart, st.card, '7290000000028').cart;
   const r1 = K.checkout(st.card, cart, { method: 'cash', tendered: 25000, now: NOW, device: st.device });
   assert.equal(r1.receipt.no, 1);
-  assert.equal(r1.receipt.n, 1);
+  assert.equal(r1.receipt.n, 2); // 1 = שיוך הכרטיס
   assert.ok(/^[0-9a-f]{64}$/.test(r1.receipt.h));
   assert.equal(r1.receipt.total, 20990);
   assert.equal(r1.receipt.change, 4010);
@@ -69,7 +67,7 @@ test('מזומן פחות מהסכום — נדחה ולא צורך מספר ק�
   const r = sell(st, shirt, { tendered: 5000 });
   assert.ok(r.error);
   assert.equal(r.card.seq.receipt, 0);
-  assert.equal(r.card.seq.op, 0);
+  assert.equal(r.card.seq.op, 1); // רק רשומת השיוך
 });
 
 test('הנחה לא יכולה לעבור את סכום השורה', () => {
@@ -99,7 +97,7 @@ test('דוח ביניים לא סוגר; סגירת יום סוגרת, ממספ�
   assert.equal(x.report.count, 2);
   assert.equal(x.report.cash, 8990);
   assert.equal(x.report.credit, 12000);
-  assert.equal(x.report.nonSale, 1); // הדוח עצמו
+  assert.equal(x.report.nonSale, 2); // שיוך הכרטיס + הדוח עצמו
   st = x;
   const z = K.closeDay(st.card, NOW, st.device);
   assert.equal(z.report.no, 1);
@@ -196,9 +194,9 @@ test('ביטול עסקה והעתק נרשמים כפעולות חתומות ו
   let st = sell(setup(), shirt);
   st = K.logOp(st.card, st.device, NOW, 'COPY', { ref: 1 });
   st = K.logOp(st.card, st.device, NOW, 'CANCEL', { items: 2, amount: 17980 });
-  assert.equal(st.card.seq.op, 3);
+  assert.equal(st.card.seq.op, 4); // שיוך + מכירה + העתק + ביטול
   assert.ok(K.checkCard(st.card, st.device).card);
-  assert.equal(K.closeDay(st.card, NOW, st.device).report.nonSale, 2);
+  assert.equal(K.closeDay(st.card, NOW, st.device).report.nonSale, 3);
 });
 
 test('בדיקת רציפות מפרטת את כל החסרים והכפולים', () => {
@@ -353,13 +351,13 @@ test('אזהרת מלאי כשמוכרים יותר ממה שיש', () => {
 
 test('קוד מנהל: 4–8 ספרות, נשמר רק כטביעה, ריק = בלי קוד', () => {
   const { card } = setup();
-  assert.equal(K.checkPin(card, ''), true); // אין קוד
+  assert.equal(K.checkPin(card, '').ok, true); // אין קוד
   assert.ok(K.setPin(card, '12').error);
   const c = K.setPin(card, '2468').card;
   assert.ok(!JSON.stringify(c).includes('2468'));
-  assert.equal(K.checkPin(c, '2468'), true);
-  assert.equal(K.checkPin(c, '1111'), false);
-  assert.equal(K.checkPin(K.setPin(c, '').card, '9'), true);
+  assert.equal(K.checkPin(c, '2468').ok, true);
+  assert.equal(K.checkPin(c, '1111').ok, false);
+  assert.equal(K.checkPin(K.setPin(c, '').card, '9').ok, true);
 });
 
 test('כרטיס חדש וריק בקופה שכבר מכרה — ממשיך את מספור הקבלות, ה-Z, השרשרת וה-GT (לא מתחיל מ-1)', () => {
@@ -371,7 +369,7 @@ test('כרטיס חדש וריק בקופה שכבר מכרה — ממשיך א�
   fresh = K.upsertProduct(fresh, { code: '7290000000011', name: 'חולצה', price: 8990, stock: 5 }).card;
   const b = K.checkCard(fresh, st.device);
   assert.ok(b.bound && b.continued);
-  let st2 = { card: b.card, device: st.device };
+  let st2 = { card: b.card, device: b.device };
   assert.ok(K.checkCard(st2.card, st2.device).card); // נקרא שוב בלי פסילה
   st2 = sell(st2, manual(500));
   assert.equal(st2.receipt.no, 3);
@@ -386,10 +384,10 @@ test('כרטיס חדש וריק בקופה שכבר מכרה — ממשיך א�
 
 test('כרטיס המשך: הפסקת חשמל בתחילתו — עדיין משלים', () => {
   let st = sell(setup(), shirt);
-  const fresh = K.checkCard(K.updateSettings(K.emptyCard(), { bizName: 'ב', osekNo: '512345678' }), st.device).card;
-  const after = sell({ card: fresh, device: st.device }, manual(100));
-  const r = K.checkCard(after.card, st.device); // הזיכרון לא נשמר
-  assert.equal(r.recovered, 1);
+  const b = K.checkCard(K.updateSettings(K.emptyCard(), { bizName: 'ב', osekNo: '512345678' }), st.device);
+  const after = sell({ card: b.card, device: b.device }, manual(100));
+  const r = K.checkCard(after.card, st.device); // הזיכרון לא נשמר — לא השיוך ולא המכירה
+  assert.equal(r.recovered, 2);
   assert.equal(r.device.gt, 8990 + 100);
 });
 
