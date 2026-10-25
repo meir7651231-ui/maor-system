@@ -39,6 +39,9 @@
   .s-msg.ok { color: #7ee2a8; } .s-msg.err { color: #ff9a9e; } .s-msg.info { color: #ffd27a; }
   .s-menu div { padding: 3px 0; }
 
+  .cust { margin-top: 8px; background: #061206; color: #7dff9a; border-radius: 6px; padding: 6px 10px; font-family: "Courier New", monospace; border: 2px solid #111; }
+  .cust small { color: #4c8a59; font-family: system-ui, sans-serif; font-size: 10px; }
+  .cust .big { font-size: 18px; font-weight: 700; }
   .keys { display: grid; grid-template-columns: repeat(5, 1fr); gap: 7px; margin-top: 12px; }
   .keys button { font: inherit; font-size: 15px; height: 46px; border-radius: 9px; border: none; background: var(--key); color: var(--keyink); cursor: pointer; box-shadow: 0 2px 0 #9aa; }
   .keys button:active { transform: translateY(2px); box-shadow: none; }
@@ -85,6 +88,7 @@
       <span class="slot"><span id="led" class="led"></span><span id="slotTxt">כרטיס בפנים</span></span>
     </div>
     <div class="screen" id="screen" aria-live="polite"></div>
+    <div class="cust" aria-label="מסך ללקוח"><small>מסך ללקוח (חלון הכרזה)</small><div id="cust"></div></div>
     <div class="keys" id="keys"></div>
     <div class="scanner">
       <label for="scan">סורק ברקודים (מקלידים או מדביקים ברקוד ו-Enter — כמו סורק אמיתי)</label>

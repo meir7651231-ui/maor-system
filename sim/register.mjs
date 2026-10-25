@@ -1,11 +1,13 @@
 // הקופה: מסך + מקלדת + סורק + מדפסת. כל החישוב במנוע; כאן רק קלט/תצוגה.
 import * as K from '../engine/kupa.mjs';
-import { loadCard, saveCard, cardInserted, setInserted } from './store.mjs';
+import { loadCard, saveCard, cardInserted, setInserted, loadDevice, saveDevice } from './store.mjs';
 
 const $ = (id) => document.getElementById(id);
 
+let device = loadDevice();
 let card = loadCard();
 let inserted = cardInserted();
+let cardError = ''; // כרטיס שנפסל (נערך / ישן / של קופה אחרת)
 let cart = K.emptyCart();
 let buf = '';
 let sel = -1; // -1 = השורה האחרונה
@@ -59,10 +61,20 @@ function print(lines) {
   roll.scrollTop = 0;
 }
 
-function commit(next) { card = next; saveCard(card); }
+// במכשיר: קודם הכרטיס, אחר כך הזיכרון הפנימי (כתיבה אטומית לכל אחד)
+function commit(r) { card = r.card; saveCard(card); if (r.device) { device = r.device; saveDevice(device); } }
+
+function readCard() {
+  card = loadCard();
+  const r = K.checkCard(card, device);
+  if (r.error) { cardError = r.error; say(`⛔ ${r.error}`, 'err'); beep(false); return; }
+  cardError = '';
+  if (r.bound) { card = r.card; saveCard(card); }
+}
 
 function ready() {
   if (!inserted) { say('אין כרטיס בקופה', 'err'); beep(false); return false; }
+  if (cardError) { say(`⛔ ${cardError}`, 'err'); beep(false); return false; }
   if (!K.isConfigured(card)) { say('הקופה לא הוגדרה — הוציאו את הכרטיס והגדירו עסק במחשב', 'err'); beep(false); return false; }
   return true;
 }
@@ -82,9 +94,9 @@ function scan(code) {
 function pay(method) {
   if (!ready()) return;
   const tendered = method === 'cash' ? (bufAgorot() ?? 0) : 0;
-  const r = K.checkout(card, cart, { method, tendered, now: nowIso() });
+  const r = K.checkout(card, cart, { method, tendered, now: nowIso(), device });
   if (r.error) { say(r.error, 'err'); beep(false); return; }
-  commit(r.card);
+  commit(r);
   lastReceipt = r.receipt;
   print(K.receiptLines(card, r.receipt));
   cart = K.emptyCart(); buf = ''; sel = -1;
@@ -95,11 +107,11 @@ function pay(method) {
 
 function menuPick(n) {
   mode = 'sale';
-  if (n === '1') { print(K.reportLines(card, K.interimReport(card, nowIso()))); say('דוח ביניים הודפס', 'ok'); }
+  if (n === '1') { const r = K.printInterim(card, nowIso(), device); commit(r); print(K.reportLines(card, r.report)); say('דוח ביניים הודפס', 'ok'); }
   else if (n === '2') { mode = 'confirmZ'; say('סגירת יום? אישור = כן · C = לא', 'info'); }
   else if (n === '3') { print(K.stockLines(card, nowIso())); say('דוח מלאי הודפס', 'ok'); }
   else if (n === '4') {
-    if (lastReceipt) { print(['*** העתק ***', ...K.receiptLines(card, lastReceipt)]); say('העתק הודפס', 'ok'); }
+    if (lastReceipt) { commit(K.logOp(card, device, nowIso(), 'COPY', { ref: lastReceipt.no })); print(K.receiptLines(card, lastReceipt, { copy: true })); say('העתק הודפס', 'ok'); }
     else { say('אין קבלה אחרונה', 'err'); beep(false); }
   } else { say('בחירה לא קיימת', 'err'); beep(false); }
 }
@@ -112,9 +124,9 @@ function key(k) {
   }
   if (mode === 'confirmZ') {
     if (k === 'OK') {
-      const r = K.closeDay(card, nowIso());
+      const r = K.closeDay(card, nowIso(), device);
       if (r.error) { say(r.error, 'err'); beep(false); }
-      else { commit(r.card); print(K.reportLines(card, r.report)); say(`יום ${r.report.no} נסגר`, 'ok'); beep(true); }
+      else { commit(r); print(K.reportLines(card, r.report)); say(`יום ${r.report.no} נסגר`, 'ok'); beep(true); }
     } else say('סגירת היום בוטלה', 'info');
     mode = 'sale';
     return render();
@@ -154,7 +166,11 @@ function key(k) {
   } else if (k === 'CANCEL') {
     if (!cart.lines.length && !cart.refund) say('אין עסקה פתוחה', 'info');
     else if (!cancelArmed) { cancelArmed = true; say('לבטל את כל העסקה? לחצו בטל שוב', 'info'); }
-    else { cart = K.emptyCart(); buf = ''; sel = -1; cancelArmed = false; say('העסקה בוטלה', 'info'); }
+    else {
+      const t = K.cartTotals(cart, card.settings.vatRate);
+      if (cart.lines.length) commit(K.logOp(card, device, nowIso(), 'CANCEL', { items: t.items, amount: t.total }));
+      cart = K.emptyCart(); buf = ''; sel = -1; cancelArmed = false; say('העסקה בוטלה ונרשמה', 'info');
+    }
   } else if (k === 'REFUND') {
     cart = K.cartToggleRefund(cart);
     say(cart.refund ? 'מצב החזרה — סרקו את הפריטים המוחזרים' : 'חזרה למכירה רגילה', 'info');
@@ -176,7 +192,8 @@ function render() {
   if (mode === 'menu') {
     body = `<div class="s-lines s-menu"><div><b>תפריט</b></div><div>1 · דוח ביניים (X)</div><div>2 · סגירת יום (Z)</div><div>3 · דוח מלאי</div><div>4 · העתק קבלה אחרונה</div><div style="color:#9fb3d9">C · חזרה</div></div>`;
   } else if (!cart.lines.length) {
-    const idle = !inserted ? 'הכניסו כרטיס' : !K.isConfigured(card) ? 'צריך הגדרה במחשב' : cart.refund ? 'החזרה — סרקו פריט' : 'מוכן · סרקו מוצר';
+    const idle = !inserted ? 'הכניסו כרטיס' : cardError ? '⛔ הכרטיס נפסל' : !K.isConfigured(card) ? 'צריך הגדרה במחשב'
+      : K.needsClose(card, nowIso()) ? 'סגרו את היום הקודם · תפריט 2' : cart.refund ? 'החזרה — סרקו פריט' : 'מוכן · סרקו מוצר';
     body = `<div class="s-lines" style="display:flex;align-items:center;justify-content:center;font-size:18px;color:#9fb3d9">${idle}</div>`;
   } else {
     const si = selIdx();
@@ -191,6 +208,11 @@ function render() {
   const total = mode === 'menu' ? '' : `<div class="s-total${cart.refund ? ' refund' : ''}"><span>${cart.refund ? 'להחזר' : 'לתשלום'}${t.items ? ` · ${t.items} פריטים` : ''}</span><span>₪${K.money(t.total)}</span></div>`;
   const input = `<div class="s-input"><span>${buf ? 'הקלדה:' : ''}</span><span>${esc(buf)}</span></div>`;
   s.innerHTML = head + body + total + input + `<div class="s-msg ${msg.kind}">${esc(msg.text)}</div>`;
+
+  const last = cart.lines[cart.lines.length - 1];
+  $('cust').innerHTML = cart.lines.length
+    ? `<div>${esc(last.name)} ${K.money(K.lineTotal(last))}</div><div class="big">${cart.refund ? 'להחזר' : 'לתשלום'} ₪${K.money(t.total)}</div>`
+    : msg.kind === 'ok' && /עודף/.test(msg.text) ? `<div class="big">${esc(msg.text)}</div>` : `<div class="big">${esc(card.settings.bizName || 'ברוכים הבאים')}</div>`;
 
   $('samples').innerHTML = inserted && card.products.length
     ? card.products.slice(0, 8).map((p) => `<button type="button" data-code="${esc(p.code)}" title="${esc(p.code)}">${esc(p.name)}</button>`).join('')
@@ -237,12 +259,13 @@ $('cardBtn').addEventListener('click', () => {
   if (inserted && cart.lines.length) { say('אי אפשר להוציא כרטיס באמצע עסקה', 'err'); beep(false); return render(); }
   inserted = !inserted;
   setInserted(inserted);
-  if (inserted) { card = loadCard(); say('הכרטיס נקרא', 'ok'); } else say('');
+  if (inserted) { say('הכרטיס נקרא', 'ok'); readCard(); } else say('');
   renderSlot();
   render();
 });
 
 setInterval(render, 30000);
+if (inserted) readCard();
 renderSlot();
 render();
 $('scan').focus();

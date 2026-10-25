@@ -5,6 +5,8 @@
   "description": "קופה עצמאית בלי מחשב — סורק, מסך צבעוני קטן, מקלדת, מדפסת קבלות וכרטיס זיכרון",
   "scripts": {
     "test": "node --test test/*.test.mjs",
-    "sim": "python3 -m http.server 8765"
+    "build": "node tools/build-card.mjs",
+    "sim": "python3 -m http.server 8765",
+    "e2e": "node tools/build-card.mjs && node e2e/sim.cjs"
   }
 }

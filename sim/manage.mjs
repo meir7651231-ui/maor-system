@@ -185,9 +185,12 @@ $('printLabels').onclick = () => {
 function renderReports() {
   const x = K.interimReport(card, '');
   const st = (l, v) => `<div class="stat"><small>${l}</small><b>${v}</b></div>`;
-  $('xStats').innerHTML = st('מסמכים', x.count) + st('מכירות', x.sales) + st('החזרות', x.refunds) + st('מזומן', '₪' + K.money(x.cash)) + st('אשראי', '₪' + K.money(x.credit)) + st('סה"כ', '₪' + K.money(x.total));
+  $('xStats').innerHTML = st('מסמכים', x.count) + st('מכירות', x.sales) + st('החזרות', x.refunds) + st('מזומן', '₪' + K.money(x.cash)) + st('אשראי', '₪' + K.money(x.credit)) + st('סה"כ', '₪' + K.money(x.total)) + st('מצטבר מיום הפתיחה (GT)', '₪' + K.money(x.gt));
   const seq = K.checkSequence(card);
-  $('seqNote').innerHTML = seq.ok ? `<span class="ok">✓ מספור הקבלות רציף (1–${card.seq.receipt})</span>` : `<span class="err">⚠ חור במספור הקבלות ליד מס' ${seq.at}</span>`;
+  $('seqNote').innerHTML = (seq.ok
+    ? `<span class="ok">✓ מספור הקבלות רציף (1–${seq.top})</span>`
+    : `<span class="err">⚠ ${seq.missing.length ? 'חסרות קבלות: ' + seq.missing.join(', ') : ''}${seq.dup.length ? ' · כפולות: ' + seq.dup.join(', ') : ''}</span>`)
+    + `<br>🔏 ${card.deviceId ? `הכרטיס שייך לקופה ${esc(card.deviceId)} · ${card.seq.op} פעולות חתומות · הקופה מאמתת את החתימות בכל הכנסת כרטיס` : 'הכרטיס עוד לא שויך לקופה'}`;
   $('zRows').innerHTML = card.zReports.slice().reverse().map((z) => `<tr><td>${z.no}</td><td>${esc(z.at.replace('T', ' ').slice(0, 16))}</td><td>${z.fromNo}–${z.toNo}</td>
     <td class="num">${K.money(z.cash)}</td><td class="num">${K.money(z.credit)}</td><td class="num">${K.money(z.total)}</td><td class="num">${K.money(z.vat)}</td></tr>`).join('')
     || '<tr><td colspan="7" class="note">עוד לא נסגר יום</td></tr>';
@@ -240,7 +243,8 @@ function renderBackup() {
 }
 
 function demoCard() {
-  let c = K.updateSettings(K.emptyCard(), {
+  // נבנה על הכרטיס הקיים (שומר שיוך-קופה ומונים) — רק הגדרות ומוצרים
+  let c = K.updateSettings(card, {
     bizName: 'בוטיק לנשים - הדגמה', osekNo: '000000018', address: 'רחוב הדוגמה 1', phone: '050-0000000',
   });
   const items = [['חולצת כותנה', 8990, 12], ['חצאית מידי', 14900, 6], ['שמלת ערב', 34900, 3], ['צעיף', 4500, 20], ['חגורת עור', 7900, 2], ['גרביונים', 2500, null]];
