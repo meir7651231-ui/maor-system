@@ -137,6 +137,25 @@ const check = (ok, msg) => { console.log((ok ? '✓ ' : '✗ ') + msg); if (!ok)
   await key('C', 'C');
   check((await scr()).includes('השעון לא שונה'), 'C ⇒ יציאה בלי לשנות');
 
+  // ── עדכון תוכנה חתום דרך הכרטיס (מפתח-בדיקה שנוצר כאן; Ed25519 בדפדפן) ──
+  const upd = await p.evaluate(async () => {
+    const U = await import('/engine/update.mjs');
+    const k = await crypto.subtle.generateKey({ name: 'Ed25519' }, true, ['sign', 'verify']);
+    localStorage.setItem('kupa.devUpdatePub', U.bytesToB64(new Uint8Array(await crypto.subtle.exportKey('raw', k.publicKey))));
+    const payload = new TextEncoder().encode('fw');
+    const m = U.makeManifest({ version: '1.1.0', notes: 'שיפורים', created: '2026-10-25' }, payload);
+    const sig = new Uint8Array(await crypto.subtle.sign('Ed25519', k.privateKey, U.signedMessage(m)));
+    return JSON.stringify({ manifest: m, payload: U.bytesToB64(payload), sig: U.bytesToB64(sig) });
+  });
+  await p.click('#cardBtn');
+  await p.evaluate((u) => { const f = JSON.parse(localStorage.getItem('kupa.files')); f['KUPA-UPDATE.json'] = u; localStorage.setItem('kupa.files', JSON.stringify(f)); }, upd);
+  await p.click('#cardBtn');
+  check((await scr()).includes('עדכון לגרסה 1.1.0'), 'עדכון בכרטיס ⇒ "עדכון לגרסה 1.1.0 … אישור = התקנה"');
+  await key('OK', '2', '4', '6', '8', 'OK');
+  await p.waitForFunction(() => document.getElementById('screen').innerText.includes('עודכנה') || document.getElementById('screen').innerText.includes('לא תקינה'), null, { timeout: 5000 });
+  check((await scr()).includes('עודכנה לגרסה 1.1.0'), 'אחרי קוד מנהל ואימות חתימה ⇒ "התוכנה עודכנה לגרסה 1.1.0"');
+  check(await p.evaluate(() => JSON.parse(localStorage.getItem('kupa.device')).version) === '1.1.0', 'הגרסה נשמרה בזיכרון הקופה');
+
   // ייצוא הכרטיס לקובץ (לבדיקת דף-הניהול בקובץ יחיד)
   const cardText = await p.evaluate(() => localStorage.getItem('kupa.card'));
   const cardFile = path.join(OUT, 'KUPA.JSON');

@@ -4,12 +4,14 @@
 //   out.beep    — true (צפצוף הצלחה) / false (שגיאה) / null
 //   out.persist — לשמור: קודם כרטיס + קבצים, אחר כך זיכרון פנימי (סדר חשוב — הפסקת חשמל)
 //   out.drawer  — לפתוח את מגירת הכסף (פקודה למדפסת)
+//   out.verifyUpdate — עדכון לאימות חתימה (אסינכרוני, אצל המארח) ⇒ updateResult()
 // הזמן שמגיע מבחוץ הוא שעון החומרה; המנוע מוסיף את תיקון השעון (deviceNow).
 import * as K from './kupa.mjs';
 import * as F from './files.mjs';
+import * as U from './update.mjs';
 
 const DIGIT = /^[0-9]$/;
-const PROTECTED = { REFUND: 'החזרה', DISC: 'הנחה', PCT: 'הנחה', BASKET: 'הנחת סל', BPCT: 'הנחת סל', Z: 'סגירת יום', CLOCK: 'כיוון שעון', DRAWER: 'פתיחת מגירה' };
+const PROTECTED = { REFUND: 'החזרה', DISC: 'הנחה', PCT: 'הנחה', BASKET: 'הנחת סל', BPCT: 'הנחת סל', Z: 'סגירת יום', CLOCK: 'כיוון שעון', DRAWER: 'פתיחת מגירה', UPDATE: 'עדכון תוכנה' };
 const BIG_AMOUNT = 500000; // ₪5,000 — מעל זה מחיר ידני דורש אישור (טעות הקלדה)
 const BIG_QTY = 50;
 
@@ -34,7 +36,7 @@ export function initState({ card, device, inserted = true }) {
 
 // ── עזר ──
 function begin(st) {
-  return { s: { ...st }, out: { prints: [], beep: null, persist: false, files: null, drawer: false } };
+  return { s: { ...st }, out: { prints: [], beep: null, persist: false, files: null, drawer: false, verifyUpdate: null } };
 }
 function say(s, text, kind = 'info') { s.msg = { text, kind }; }
 function fail(s, out, text) { say(s, text, 'err'); out.beep = false; }
@@ -82,6 +84,41 @@ export function insertCard(st, card, files = {}, raw) {
       out.beep = false;
     }
   }
+  // עדכון תוכנה בכרטיס (אחרי שהשעון תקין — הרישום ביומן צריך שעה נכונה)
+  if (s.inserted && !s.cardError && s.mode === 'sale' && files[U.UPDATE_FILE]) {
+    const p = U.parseUpdate(files[U.UPDATE_FILE]);
+    const c = p.error ? p : U.checkUpdate(p.update, versionOf(s));
+    if (c.ok) {
+      s.mode = 'confirmUpdate';
+      s.pending = { update: p.update };
+      say(s, `⬆ עדכון לגרסה ${p.update.manifest.version} בכרטיס${p.update.manifest.notes ? ` (${p.update.manifest.notes})` : ''} · אישור = התקנה · C = לא עכשיו`, 'info');
+    } else if (!c.old) {
+      say(s, `⚠ קובץ העדכון בכרטיס נדחה: ${c.error}`, 'err');
+      out.beep = false;
+    }
+  }
+  return { st: s, out };
+}
+
+export function versionOf(s) {
+  return s.device?.version || U.VERSION;
+}
+
+// תוצאת אימות החתימה מהמארח: התקנה נרשמת ביומן החתום
+export function updateResult(st, result, raw) {
+  const { s, out } = begin(st);
+  const upd = s.pending?.update;
+  s.mode = 'sale'; s.pending = null;
+  if (!upd) return { st: s, out };
+  if (!result?.ok) { fail(s, out, `⛔ ${result?.error || 'העדכון נדחה'}`); return { st: s, out }; }
+  const now = K.deviceNow(raw, s.device);
+  const from = versionOf(s), to = upd.manifest.version;
+  const r = K.logOp(s.card, { ...s.device, version: to }, now, 'UPDATE', { from, to, sha256: upd.manifest.sha256 });
+  if (r.error) { fail(s, out, r.error); return { st: s, out }; }
+  persist(s, out, r);
+  out.install = upd; // המארח כותב את התוכנה החדשה (במכשיר: מחיצה B ואתחול)
+  say(s, `✓ התוכנה עודכנה לגרסה ${to}`, 'ok');
+  out.beep = true;
   return { st: s, out };
 }
 
@@ -186,7 +223,7 @@ function addManual(s, out, a) {
 function protect(s, out, action, now) {
   if (!s.card.settings.pinHash) return run(s, out, action, now);
   s.mode = 'pin';
-  s.pending = { action, buf: s.buf };
+  s.pending = { action, buf: s.buf, update: s.pending?.update };
   s.buf = '';
   say(s, `קוד מנהל ל${PROTECTED[action]} · אישור`, 'info');
 }
@@ -201,6 +238,11 @@ function run(s, out, action, now) {
   if (action === 'Z') {
     s.mode = 'confirmZ';
     return say(s, 'סגירת יום? אישור = כן · C = לא', 'info');
+  }
+  if (action === 'UPDATE') {
+    s.mode = 'updating';
+    out.verifyUpdate = s.pending?.update;
+    return say(s, 'בודק את חתימת העדכון…', 'info');
   }
   if (action === 'CLOCK') {
     s.mode = 'setClock';
@@ -260,6 +302,13 @@ export function press(st, k, raw) {
     return { st: s, out };
   }
 
+  if (s.mode === 'confirmUpdate') {
+    if (k === 'OK') protect(s, out, 'UPDATE', now);
+    else if (k === 'C') { s.mode = 'sale'; s.pending = null; say(s, 'העדכון לא הותקן — אפשר להתקין בהכנסת הכרטיס הבאה', 'info'); }
+    return { st: s, out };
+  }
+  if (s.mode === 'updating') return { st: s, out }; // ממתינים לאימות החתימה
+
   if (s.mode === 'confirmBig') {
     const p = s.pending;
     s.mode = 'sale'; s.pending = null;
@@ -273,7 +322,7 @@ export function press(st, k, raw) {
     s.mode = 'sale';
     if (k === 'C') say(s, '');
     else if (k === '1') {
-      const r = K.printInterim(s.card, now, s.device);
+      const r = K.printInterim(s.card, now, { ...s.device, version: versionOf(s) });
       if (r.error) fail(s, out, r.error);
       else { persist(s, out, r); out.prints.push(K.reportLines(s.card, r.report)); say(s, 'דוח ביניים הודפס', 'ok'); }
     } else if (k === '2') protect(s, out, 'Z', now);
@@ -294,7 +343,7 @@ export function press(st, k, raw) {
   if (s.mode === 'confirmZ') {
     s.mode = 'sale';
     if (k === 'OK') {
-      const r = K.closeDay(s.card, now, s.device);
+      const r = K.closeDay(s.card, now, { ...s.device, version: versionOf(s) });
       if (r.error) fail(s, out, r.error);
       else { persist(s, out, r); out.prints.push(K.reportLines(s.card, r.report)); say(s, `יום ${r.report.no} נסגר`, 'ok'); out.beep = true; }
     } else say(s, 'סגירת היום בוטלה', 'info');
@@ -315,7 +364,8 @@ export function press(st, k, raw) {
     if (k === 'C') { s.mode = 'sale'; s.pending = null; s.buf = buf; say(s, 'בוטל', 'info'); return { st: s, out }; }
     if (k === 'OK') {
       const ok = K.checkPin(s.card, s.buf);
-      s.mode = 'sale'; s.pending = null; s.buf = buf;
+      const upd = s.pending.update;
+      s.mode = 'sale'; s.pending = upd ? { update: upd } : null; s.buf = buf;
       if (!ok) { fail(s, out, 'קוד מנהל שגוי'); return { st: s, out }; }
       run(s, out, action, now);
     }

@@ -2,6 +2,7 @@
 import * as K from '../engine/kupa.mjs';
 import * as R from '../engine/register.mjs';
 import * as E from '../engine/escpos.mjs';
+import * as U from '../engine/update.mjs';
 import { loadCard, saveCard, cardInserted, setInserted, loadDevice, saveDevice, loadFiles, saveFiles } from './store.mjs';
 
 const $ = (id) => document.getElementById(id);
@@ -80,6 +81,12 @@ function apply({ st: next, out }) {
   if (out.drawer) { const d = $('drawer'); d.classList.add('open'); clearTimeout(d.t); d.t = setTimeout(() => d.classList.remove('open'), 2500); }
   if (out.beep !== null) beep(out.beep);
   render();
+  if (out.verifyUpdate) {
+    // אימות חתימה (אסינכרוני). בסימולטור אפשר מפתח-בדיקה ב-localStorage; במכשיר — רק UPDATE_PUBKEY שבתוכנה
+    let pub = U.UPDATE_PUBKEY;
+    try { pub = pub || localStorage.getItem('kupa.devUpdatePub'); } catch { /* ignore */ }
+    U.verifyUpdate(out.verifyUpdate, pub).then((res) => apply(R.updateResult(st, res, nowIso())));
+  }
 }
 
 const key = (k) => apply(R.press(st, k, nowIso()));
@@ -108,6 +115,8 @@ function render() {
   } else if (mode === 'setClock') {
     const d = (buf + '____________').slice(0, 12);
     body = center(`<div class="s-pay ask"><span>תאריך ושעה</span><b style="direction:ltr">${d.slice(0, 2)}/${d.slice(2, 4)}/${d.slice(4, 8)} ${d.slice(8, 10)}:${d.slice(10, 12)}</b></div><div class="s-hint">יום חודש שנה שעה דקה · C מוחק · אישור</div>`);
+  } else if (mode === 'confirmUpdate' || mode === 'updating') {
+    body = center(`<div style="font-size:16px;color:#ffd27a">${mode === 'updating' ? 'בודק חתימה…' : `עדכון תוכנה ⬆ ${esc(st.pending?.update?.manifest?.version || '')}`}</div><div class="s-hint">גרסה נוכחית ${esc(R.versionOf(st))}</div>`);
   } else if (mode === 'confirmBig') {
     body = center('<div style="font-size:16px;color:#ffd27a">סכום / כמות חריגים — לאשר?</div>');
   } else if (mode === 'pin') {
@@ -134,7 +143,7 @@ function render() {
       return `<div class="s-line${i === si ? ' sel' : ''}"><span>${esc(l.name)}${extra}</span><span>${K.money(K.lineTotal(l))}</span></div>`;
     }).join('') + (t.basket ? `<div class="s-line"><span><small>הנחת סל</small></span><span>-${K.money(t.basket)}</span></div>` : '') + '</div>';
   }
-  const hideTotal = ['menu', 'cash', 'pin', 'refundOf', 'confirmCsv', 'setClock', 'confirmBig'].includes(mode) || (paidInfo && !cart.lines.length);
+  const hideTotal = ['menu', 'cash', 'pin', 'refundOf', 'confirmCsv', 'setClock', 'confirmBig', 'confirmUpdate', 'updating'].includes(mode) || (paidInfo && !cart.lines.length);
   const total = hideTotal ? '' : `<div class="s-total${cart.refund ? ' refund' : ''}"><span>${cart.refund ? 'להחזר' : 'לתשלום'}${t.items ? ` · ${t.items} פריטים` : ''}</span><span>₪${K.money(t.total)}</span></div>`;
   const input = ['cash', 'pin', 'refundOf', 'setClock'].includes(mode) ? '' : `<div class="s-input"><span>${buf ? 'הקלדה:' : ''}</span><span>${esc(buf)}</span></div>`;
   s.innerHTML = head + body + total + input + `<div class="s-msg ${msg.kind}">${esc(msg.text)}</div>`;

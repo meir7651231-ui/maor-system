@@ -559,7 +559,7 @@ export function interimReport(card, now) {
 export function printInterim(card, now, device) {
   const r = logOp(card, device, now, 'X');
   if (r.error) return r;
-  return { card: r.card, device: r.device, report: { ...interimReport(r.card, now), opNo: r.op.n } };
+  return { card: r.card, device: r.device, report: { ...interimReport(r.card, now), opNo: r.op.n, version: device.version } };
 }
 
 // סגירת יום (Z) — סוגר, ממספר, חותם ושומר בכרטיס
@@ -570,7 +570,7 @@ export function closeDay(card, now, device) {
   const clk = clockError(device, now);
   if (clk) return { card, device, error: clk };
   const no = card.seq.z + 1;
-  const draft = { kind: 'Z', no, at: now, ...summarize(rs), gt: grandTotal(card), nonSale: nonSaleCount(card) };
+  const draft = { kind: 'Z', no, at: now, ...summarize(rs), gt: grandTotal(card), nonSale: nonSaleCount(card), ...(device.version ? { version: device.version } : {}) };
   const sealed = seal({ ...card, seq: { ...card.seq, z: no } }, device, draft);
   return {
     card: { ...sealed.card, zReports: [...card.zReports, sealed.rec] },
@@ -695,6 +695,7 @@ export function reportLines(card, rep) {
   out.push('-'.repeat(w));
   out.push(row('פעולות שאינן מכירה', String(rep.nonSale ?? 0), w));
   out.push(row('סה"כ מצטבר (GT)', money(rep.gt ?? 0), w));
+  if (rep.version) out.push(row('גרסת תוכנה', rep.version, w));
   out.push('-'.repeat(w));
   if (rep.kind === 'Z') out.push(center('היום נסגר. מחר מתחיל יום חדש.', w));
   out.push(center('*** סוף דוח ***', w));
