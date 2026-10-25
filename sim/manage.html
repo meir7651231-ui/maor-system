@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ניהול הקופה</title>
+<style>
+  :root { --ink:#1d2230; --muted:#667085; --line:#d0d5dd; --acc:#0e9f92; --bad:#d92d20; --soft:#f4f6f9; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: system-ui, "Segoe UI", Arial, sans-serif; color: var(--ink); background: #fff; }
+  header { padding: 12px 16px; border-bottom: 1px solid var(--line); display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  header h1 { margin: 0; font-size: 18px; flex: 1; }
+  .src { font-size: 12px; color: var(--muted); }
+  nav { display: flex; gap: 4px; padding: 8px 16px 0; flex-wrap: wrap; border-bottom: 1px solid var(--line); }
+  nav button { font: inherit; border: 1px solid var(--line); border-bottom: none; background: var(--soft); padding: 8px 14px; border-radius: 8px 8px 0 0; cursor: pointer; }
+  nav button[aria-selected="true"] { background: #fff; font-weight: 700; position: relative; top: 1px; }
+  section { padding: 16px; display: none; }
+  section.on { display: block; }
+  label { display: block; font-size: 13px; color: var(--muted); margin-top: 10px; }
+  input, select { font: inherit; padding: 8px; border: 1px solid var(--line); border-radius: 8px; width: 100%; max-width: 360px; }
+  input.ltr { direction: ltr; text-align: left; font-family: monospace; }
+  .btn { font: inherit; padding: 8px 14px; border-radius: 8px; border: 1px solid var(--line); background: #fff; cursor: pointer; margin-top: 10px; }
+  .btn.pri { background: var(--acc); border-color: var(--acc); color: #fff; font-weight: 600; }
+  .btn.bad { color: var(--bad); border-color: #f3b4ae; }
+  .grid { display: flex; flex-wrap: wrap; gap: 0 16px; align-items: flex-end; }
+  .grid > div { flex: 1 1 160px; }
+  table { border-collapse: collapse; width: 100%; margin-top: 14px; font-size: 14px; }
+  th, td { border-bottom: 1px solid var(--line); padding: 6px; text-align: right; }
+  th { background: var(--soft); font-weight: 600; }
+  td.num { direction: ltr; text-align: left; font-family: monospace; }
+  .note { font-size: 13px; color: var(--muted); margin-top: 6px; }
+  .ok { color: var(--acc); } .err { color: var(--bad); }
+  .toast { position: fixed; bottom: 14px; left: 14px; background: #1d2230; color: #fff; padding: 10px 14px; border-radius: 10px; font-size: 14px; opacity: 0; transition: opacity .2s; pointer-events: none; }
+  .toast.show { opacity: 1; }
+  .labels { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+  .label { border: 1px dashed var(--line); padding: 8px; text-align: center; width: 230px; }
+  .label b { display: block; font-size: 14px; } .label span { font-size: 16px; font-weight: 700; }
+  .stats { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+  .stat { background: var(--soft); border-radius: 10px; padding: 10px 14px; min-width: 120px; }
+  .stat small { display: block; color: var(--muted); font-size: 12px; }
+  .stat b { font-size: 18px; }
+  .wrap { overflow-x: auto; }
+  @media print { header, nav, section:not(#t-labels), .noprint { display: none !important; } #t-labels { display: block; padding: 0; } .label { border: none; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>💾 ניהול הקופה</h1>
+  <span class="src" id="src"></span>
+  <span class="noprint" id="fileBtns">
+    <button class="btn" id="openFile" type="button">📂 פתח KUPA.JSON מהכרטיס</button>
+    <button class="btn pri" id="saveFile" type="button">💾 שמור לכרטיס</button>
+    <input type="file" id="fileIn" accept=".json,application/json" hidden>
+  </span>
+</header>
+<nav role="tablist" id="tabs">
+  <button role="tab" data-t="biz" aria-selected="true">🏪 העסק</button>
+  <button role="tab" data-t="prod">🏷 מוצרים ומחירים</button>
+  <button role="tab" data-t="stock">📦 מלאי</button>
+  <button role="tab" data-t="labels">🔖 מדבקות ברקוד</button>
+  <button role="tab" data-t="rep">📊 דוחות</button>
+  <button role="tab" data-t="backup">🗄 גיבוי</button>
+</nav>
+
+<section id="t-biz" class="on">
+  <div id="setupMsg" class="note"></div>
+  <div class="grid">
+    <div><label for="bizName">שם העסק (מודפס בראש הקבלה)</label><input id="bizName"></div>
+    <div><label for="osekType">סוג עוסק</label><select id="osekType"><option>מורשה</option><option>פטור</option></select></div>
+    <div><label for="osekNo">מספר עוסק (9 ספרות)</label><input id="osekNo" class="ltr" inputmode="numeric" maxlength="9"><div class="note" id="osekNote"></div></div>
+  </div>
+  <div class="grid">
+    <div><label for="address">כתובת</label><input id="address"></div>
+    <div><label for="phone">טלפון</label><input id="phone" class="ltr"></div>
+    <div><label for="vat">מע"מ %</label><input id="vat" class="ltr" inputmode="decimal"></div>
+  </div>
+  <label for="footer">שורת סיום בקבלה</label><input id="footer">
+  <div><button class="btn pri" id="saveBiz" type="button">שמירה</button></div>
+</section>
+
+<section id="t-prod">
+  <div class="grid">
+    <div><label for="pCode">ברקוד</label><input id="pCode" class="ltr" inputmode="numeric" placeholder="סרקו או הקלידו"></div>
+    <div><label for="pName">שם המוצר</label><input id="pName"></div>
+    <div><label for="pPrice">מחיר ₪ (כולל מע"מ)</label><input id="pPrice" class="ltr" inputmode="decimal"></div>
+    <div><label for="pStock">מלאי (ריק = בלי מעקב)</label><input id="pStock" class="ltr" inputmode="numeric"></div>
+  </div>
+  <button class="btn" id="genCode" type="button">🔢 ברקוד פנימי למוצר בלי ברקוד</button>
+  <button class="btn pri" id="saveProd" type="button">➕ שמירת מוצר</button>
+  <input class="btn" id="prodFilter" placeholder="🔎 חיפוש מוצר" style="max-width:240px">
+  <div class="wrap"><table><thead><tr><th>ברקוד</th><th>שם</th><th>מחיר</th><th>מלאי</th><th></th></tr></thead><tbody id="prodRows"></tbody></table></div>
+</section>
+
+<section id="t-stock">
+  <div class="note">קליטת סחורה: סורקים או בוחרים מוצר ומוסיפים כמות שהגיעה.</div>
+  <div class="grid">
+    <div><label for="sCode">ברקוד</label><input id="sCode" class="ltr" inputmode="numeric"></div>
+    <div><label for="sQty">כמות שהגיעה</label><input id="sQty" class="ltr" inputmode="numeric"></div>
+  </div>
+  <button class="btn pri" id="addStock" type="button">📥 קליטה</button>
+  <div class="wrap"><table><thead><tr><th>מוצר</th><th>מלאי</th><th></th></tr></thead><tbody id="stockRows"></tbody></table></div>
+</section>
+
+<section id="t-labels">
+  <div class="note noprint">מסמנים מוצרים, ואז "הדפסה" — מדבקות עם ברקוד, שם ומחיר.</div>
+  <div class="noprint" id="labelPick"></div>
+  <button class="btn pri noprint" id="printLabels" type="button">🖨 הדפסת מדבקות</button>
+  <div class="labels" id="labelOut"></div>
+</section>
+
+<section id="t-rep">
+  <h3 style="margin:0">היום הפתוח (מאז סגירת היום האחרונה)</h3>
+  <div class="stats" id="xStats"></div>
+  <div class="note" id="seqNote"></div>
+  <h3>סגירות יום (Z)</h3>
+  <div class="wrap"><table><thead><tr><th>מס'</th><th>תאריך</th><th>מסמכים</th><th>מזומן</th><th>אשראי</th><th>סה"כ</th><th>מע"מ</th></tr></thead><tbody id="zRows"></tbody></table></div>
+  <h3>קבלות אחרונות</h3>
+  <button class="btn" id="csv" type="button">⬇ ייצוא כל הקבלות ל-Excel (CSV)</button>
+  <div class="wrap"><table><thead><tr><th>מס'</th><th>תאריך</th><th>סוג</th><th>תשלום</th><th>סה"כ</th></tr></thead><tbody id="rRows"></tbody></table></div>
+</section>
+
+<section id="t-backup">
+  <div class="note">הכרטיס הוא המקור. כדאי לשמור עותק במחשב אחרי כל סגירת יום.</div>
+  <button class="btn pri" id="backupDl" type="button">⬇ שמירת עותק גיבוי במחשב</button>
+  <div><button class="btn" id="restore" type="button">♻ שחזור מגיבוי…</button><input type="file" id="restoreIn" accept=".json,application/json" hidden></div>
+  <hr style="margin:20px 0;border:none;border-top:1px solid var(--line)">
+  <div class="note">להדגמה בלבד:</div>
+  <button class="btn" id="demo" type="button">🧪 טעינת נתוני הדגמה (בוטיק לנשים)</button>
+  <button class="btn bad" id="wipe" type="button">🗑 איפוס הכרטיס</button>
+</section>
+
+<div class="toast" id="toast" role="status"></div>
+<script type="module" src="./manage.mjs"></script>
+</body>
+</html>

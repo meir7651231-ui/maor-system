@@ -1,0 +1,240 @@
+// דף הניהול — זה מה שנפתח במחשב כשמכניסים את כרטיס הזיכרון.
+// מצב סימולטור (?sim=1): הכרטיס = localStorage של הסימולטור.
+// מצב אמיתי: פותחים את KUPA.JSON מהכרטיס ושומרים חזרה אליו.
+import * as K from '../engine/kupa.mjs';
+import { ean13Svg } from '../engine/ean13svg.mjs';
+import { loadCard, saveCard, downloadCard } from './store.mjs';
+
+const $ = (id) => document.getElementById(id);
+const SIM = new URLSearchParams(location.search).has('sim');
+
+let card = SIM ? loadCard() : K.emptyCard();
+let fileHandle = null; // File System Access (כרום/אדג׳) — שמירה ישירות לכרטיס
+let dirty = false;
+
+function toast(t) {
+  const el = $('toast');
+  el.textContent = t;
+  el.classList.add('show');
+  clearTimeout(toast.h);
+  toast.h = setTimeout(() => el.classList.remove('show'), 2200);
+}
+function esc(s) { return String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+function toAg(v) { const n = Number(String(v).replace(',', '.')); return Number.isFinite(n) ? Math.round(n * 100) : NaN; }
+
+function commit(next, note) {
+  card = next;
+  if (SIM) saveCard(card); else dirty = true;
+  renderAll();
+  if (note) toast(note);
+}
+
+// ── מקור הכרטיס ──
+function renderSrc() {
+  $('fileBtns').style.display = SIM ? 'none' : '';
+  $('src').textContent = SIM ? 'כרטיס הסימולטור — כל שינוי נשמר מיד' : (dirty ? '● יש שינויים שלא נשמרו לכרטיס' : 'מסונכרן עם הכרטיס');
+}
+async function openFile() {
+  if (window.showOpenFilePicker) {
+    try {
+      [fileHandle] = await window.showOpenFilePicker({ types: [{ description: 'כרטיס קופה', accept: { 'application/json': ['.json', '.JSON'] } }] });
+      loadText(await (await fileHandle.getFile()).text());
+    } catch { /* בוטל */ }
+  } else $('fileIn').click();
+}
+function loadText(text) {
+  const r = K.parseCard(text);
+  if (r.error) return toast(r.error);
+  card = r.card; dirty = false;
+  renderAll();
+  toast('הכרטיס נקרא');
+}
+async function saveFile() {
+  if (fileHandle && fileHandle.createWritable) {
+    const w = await fileHandle.createWritable();
+    await w.write(K.serializeCard(card));
+    await w.close();
+  } else downloadCard(card); // דפדפן בלי גישה ישירה: מורידים ומעתיקים לכרטיס
+  dirty = false;
+  renderSrc();
+  toast('נשמר לכרטיס');
+}
+$('openFile').onclick = openFile;
+$('saveFile').onclick = saveFile;
+$('fileIn').onchange = async (e) => { const f = e.target.files[0]; if (f) loadText(await f.text()); e.target.value = ''; };
+window.addEventListener('beforeunload', (e) => { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
+
+// ── לשוניות ──
+$('tabs').onclick = (e) => {
+  const b = e.target.closest('button[data-t]');
+  if (!b) return;
+  for (const x of $('tabs').children) x.setAttribute('aria-selected', String(x === b));
+  for (const s of document.querySelectorAll('section')) s.classList.toggle('on', s.id === 't-' + b.dataset.t);
+};
+
+// ── העסק ──
+function renderBiz() {
+  const s = card.settings;
+  $('bizName').value = s.bizName; $('osekType').value = s.osekType; $('osekNo').value = s.osekNo;
+  $('address').value = s.address; $('phone').value = s.phone; $('footer').value = s.footer;
+  $('vat').value = String(Math.round(s.vatRate * 1000) / 10);
+  $('vat').disabled = s.osekType === 'פטור';
+  $('setupMsg').innerHTML = K.isConfigured(card)
+    ? '<span class="ok">✓ הקופה מוגדרת ויכולה למכור.</span>'
+    : '<span class="err">הקופה עדיין לא מוגדרת: צריך שם עסק ומספר עוסק בן 9 ספרות.</span>';
+  osekNote();
+}
+function osekNote() {
+  const v = $('osekNo').value;
+  $('osekNote').innerHTML = !v ? '' : K.validOsekNo(v) ? '<span class="ok">✓ ספרת ביקורת תקינה</span>' : '<span class="err">ספרת הביקורת לא תואמת — בדקו את המספר</span>';
+}
+$('osekNo').oninput = osekNote;
+$('osekType').onchange = () => { $('vat').disabled = $('osekType').value === 'פטור'; };
+$('saveBiz').onclick = () => {
+  const vat = $('osekType').value === 'פטור' ? 0 : Number($('vat').value) / 100;
+  if (!(vat >= 0 && vat < 1)) return toast('אחוז מע"מ לא תקין');
+  commit(K.updateSettings(card, {
+    bizName: $('bizName').value.trim(), osekType: $('osekType').value, osekNo: $('osekNo').value,
+    address: $('address').value.trim(), phone: $('phone').value.trim(), footer: $('footer').value.trim(), vatRate: vat,
+  }), 'פרטי העסק נשמרו');
+};
+
+// ── מוצרים ──
+function renderProducts() {
+  const q = $('prodFilter').value.trim();
+  const rows = card.products.filter((p) => !q || p.name.includes(q) || p.code.includes(q));
+  $('prodRows').innerHTML = rows.map((p) => `<tr>
+    <td class="num">${esc(p.code)}</td><td>${esc(p.name)}</td><td class="num">${K.money(p.price)}</td>
+    <td class="num">${p.stock ?? '—'}</td>
+    <td><button class="btn" data-edit="${esc(p.code)}" type="button">✎</button> <button class="btn bad" data-del="${esc(p.code)}" type="button">🗑</button></td></tr>`).join('')
+    || '<tr><td colspan="5" class="note">אין מוצרים עדיין</td></tr>';
+}
+$('prodFilter').oninput = renderProducts;
+$('genCode').onclick = () => {
+  const r = K.nextInternalCode(card);
+  card = r.card; // המונה נשמר יחד עם המוצר
+  $('pCode').value = r.code;
+  $('pName').focus();
+};
+$('saveProd').onclick = () => {
+  const price = toAg($('pPrice').value);
+  const r = K.upsertProduct(card, { code: $('pCode').value, name: $('pName').value, price, stock: $('pStock').value.trim() });
+  if (r.error) return toast(r.error);
+  for (const id of ['pCode', 'pName', 'pPrice', 'pStock']) $(id).value = '';
+  commit(r.card, 'המוצר נשמר');
+  $('pCode').focus();
+};
+$('pCode').onkeydown = (e) => {
+  if (e.key !== 'Enter') return;
+  const p = K.findProduct(card, e.target.value);
+  if (p) { $('pName').value = p.name; $('pPrice').value = K.money(p.price); $('pStock').value = p.stock ?? ''; }
+  $('pName').focus();
+};
+let armedDel = null;
+$('prodRows').onclick = (e) => {
+  const ed = e.target.closest('[data-edit]'), del = e.target.closest('[data-del]');
+  if (ed) {
+    const p = K.findProduct(card, ed.dataset.edit);
+    $('pCode').value = p.code; $('pName').value = p.name; $('pPrice').value = K.money(p.price); $('pStock').value = p.stock ?? '';
+    $('pName').focus();
+  } else if (del) {
+    if (armedDel !== del.dataset.del) { armedDel = del.dataset.del; del.textContent = 'בטוח?'; setTimeout(() => { armedDel = null; renderProducts(); }, 3000); return; }
+    armedDel = null;
+    commit(K.removeProduct(card, del.dataset.del), 'המוצר נמחק');
+  }
+};
+
+// ── מלאי ──
+function renderStock() {
+  const rows = K.stockReport(card);
+  $('stockRows').innerHTML = rows.map((r) => `<tr><td>${esc(r.name)}</td><td class="num">${r.stock}</td><td>${r.low ? '<span class="err">⚠ נמוך</span>' : ''}</td></tr>`).join('')
+    || '<tr><td colspan="3" class="note">אין מוצרים במעקב מלאי (מלאי ריק = בלי מעקב)</td></tr>';
+}
+$('addStock').onclick = () => {
+  const p = K.findProduct(card, $('sCode').value);
+  const q = Number($('sQty').value);
+  if (!p) return toast('מוצר לא נמצא');
+  if (!Number.isInteger(q) || q === 0) return toast('כמות לא תקינה');
+  $('sCode').value = ''; $('sQty').value = '';
+  commit(K.addStock(card, p.code, q), `${p.name}: +${q}`);
+};
+
+// ── מדבקות ──
+function renderLabelPick() {
+  $('labelPick').innerHTML = card.products.map((p) => `<label style="display:inline-flex;gap:6px;align-items:center;margin-left:14px;color:var(--ink)">
+    <input type="checkbox" value="${esc(p.code)}" style="width:auto"> ${esc(p.name)}
+    <input type="number" min="1" value="1" data-n="${esc(p.code)}" style="width:60px" aria-label="כמות מדבקות"></label>`).join('') || '<div class="note">אין מוצרים</div>';
+}
+$('printLabels').onclick = () => {
+  const out = [];
+  for (const cb of $('labelPick').querySelectorAll('input[type=checkbox]:checked')) {
+    const p = K.findProduct(card, cb.value);
+    const n = Math.min(100, Number($('labelPick').querySelector(`[data-n="${CSS.escape(p.code)}"]`).value) || 1);
+    let svg;
+    try { svg = K.validEan13(p.code) ? ean13Svg(p.code) : `<div class="num">${esc(p.code)}</div>`; } catch { svg = esc(p.code); }
+    for (let i = 0; i < n; i++) out.push(`<div class="label"><b>${esc(p.name)}</b>${svg}<span>₪${K.money(p.price)}</span></div>`);
+  }
+  if (!out.length) return toast('סמנו לפחות מוצר אחד');
+  $('labelOut').innerHTML = out.join('');
+  setTimeout(() => window.print(), 50);
+};
+
+// ── דוחות ──
+function renderReports() {
+  const x = K.interimReport(card, '');
+  const st = (l, v) => `<div class="stat"><small>${l}</small><b>${v}</b></div>`;
+  $('xStats').innerHTML = st('מסמכים', x.count) + st('מכירות', x.sales) + st('החזרות', x.refunds) + st('מזומן', '₪' + K.money(x.cash)) + st('אשראי', '₪' + K.money(x.credit)) + st('סה"כ', '₪' + K.money(x.total));
+  const seq = K.checkSequence(card);
+  $('seqNote').innerHTML = seq.ok ? `<span class="ok">✓ מספור הקבלות רציף (1–${card.seq.receipt})</span>` : `<span class="err">⚠ חור במספור הקבלות ליד מס' ${seq.at}</span>`;
+  $('zRows').innerHTML = card.zReports.slice().reverse().map((z) => `<tr><td>${z.no}</td><td>${esc(z.at.replace('T', ' ').slice(0, 16))}</td><td>${z.fromNo}–${z.toNo}</td>
+    <td class="num">${K.money(z.cash)}</td><td class="num">${K.money(z.credit)}</td><td class="num">${K.money(z.total)}</td><td class="num">${K.money(z.vat)}</td></tr>`).join('')
+    || '<tr><td colspan="7" class="note">עוד לא נסגר יום</td></tr>';
+  $('rRows').innerHTML = card.receipts.slice(-50).reverse().map((r) => `<tr><td>${r.no}</td><td>${esc(r.at.replace('T', ' ').slice(0, 16))}</td>
+    <td>${r.type === 'refund' ? 'החזרה' : 'מכירה'}</td><td>${r.method === 'cash' ? 'מזומן' : 'אשראי'}</td><td class="num">${K.money(r.total)}</td></tr>`).join('')
+    || '<tr><td colspan="5" class="note">אין קבלות</td></tr>';
+}
+$('csv').onclick = () => {
+  const q = (v) => { const s = String(v); return /^[=+\-@]/.test(s) && !/^-?\d/.test(s) ? `"'${s}"` : `"${s.replace(/"/g, '""')}"`; };
+  const rows = [['מספר', 'תאריך', 'סוג', 'תשלום', 'סה"כ', 'מע"מ', 'פריטים']];
+  for (const r of card.receipts) rows.push([r.no, r.at, r.type === 'refund' ? 'החזרה' : 'מכירה', r.method === 'cash' ? 'מזומן' : 'אשראי', K.money(r.total), K.money(r.vat), r.lines.map((l) => `${l.name}×${l.qty}`).join(' | ')]);
+  const blob = new Blob(['﻿' + rows.map((r) => r.map(q).join(',')).join('\r\n')], { type: 'text/csv' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'kupa-receipts.csv'; a.click();
+};
+
+// ── גיבוי ──
+$('backupDl').onclick = () => {
+  const blob = new Blob([K.serializeCard(card)], { type: 'application/json' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = `kupa-backup-${new Date().toISOString().slice(0, 10)}.json`; a.click();
+};
+$('restore').onclick = () => $('restoreIn').click();
+$('restoreIn').onchange = async (e) => {
+  const f = e.target.files[0]; e.target.value = '';
+  if (!f) return;
+  const r = K.parseCard(await f.text());
+  if (r.error) return toast(r.error);
+  if (r.card.seq.receipt < card.seq.receipt) return toast('הגיבוי ישן מהכרטיס — שחזור היה שובר את רציפות הקבלות');
+  commit(r.card, 'שוחזר מגיבוי');
+};
+function armed(btn, label, fn) {
+  if (btn.dataset.armed) { delete btn.dataset.armed; btn.textContent = label; return fn(); }
+  btn.dataset.armed = '1'; btn.textContent = 'לחצו שוב לאישור';
+  setTimeout(() => { delete btn.dataset.armed; btn.textContent = label; }, 3000);
+}
+$('demo').onclick = (e) => armed(e.currentTarget, '🧪 טעינת נתוני הדגמה (בוטיק לנשים)', () => commit(demoCard(), 'נתוני ההדגמה נטענו'));
+$('wipe').onclick = (e) => armed(e.currentTarget, '🗑 איפוס הכרטיס', () => commit(K.emptyCard(), 'הכרטיס אופס'));
+
+function demoCard() {
+  let c = K.updateSettings(K.emptyCard(), {
+    bizName: 'בוטיק לנשים - הדגמה', osekNo: '000000018', address: 'רחוב הדוגמה 1', phone: '050-0000000',
+  });
+  const items = [['חולצת כותנה', 8990, 12], ['חצאית מידי', 14900, 6], ['שמלת ערב', 34900, 3], ['צעיף', 4500, 20], ['חגורת עור', 7900, 2], ['גרביונים', 2500, null]];
+  items.forEach(([name, price, stock], i) => {
+    const d12 = '72900000' + String(i + 1).padStart(4, '0');
+    c = K.upsertProduct(c, { code: d12 + K.ean13CheckDigit(d12), name, price, stock }).card;
+  });
+  return c;
+}
+
+function renderAll() { renderSrc(); renderBiz(); renderProducts(); renderStock(); renderLabelPick(); renderReports(); }
+renderAll();
