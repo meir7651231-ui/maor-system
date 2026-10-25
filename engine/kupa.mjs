@@ -22,6 +22,7 @@ export function emptyCard() {
       width: 48, // תווים בשורה: 48 = גליל 80 מ"מ (Epson TM-T20IV) · 32 = גליל 58 מ"מ
       cashRound: true, // עיגול תשלום במזומן ל-10 אגורות (בנק ישראל: 1–4 למטה, 5–9 למעלה)
       pinHash: '', // קוד מנהל (טביעה). ריק = בלי קוד
+      quick: [], // מקשים מהירים: ברקוד לכל מקש (Q1 = [0] … Q30 = [29]); ריק = לא מוגדר
     },
     products: [], // {code, name, price, stock|null}
     seq: { receipt: 0, z: 0, internal: 0, op: 0 },
@@ -93,6 +94,21 @@ export function changeDevicePin(card, device, pin) {
   const p = String(pin ?? '').trim();
   if (!/^\d{4,8}$/.test(p)) return { error: 'קוד מנהל: 4–8 ספרות' };
   return { card: { ...card, settings: { ...card.settings, pinHash: PIN_IN_DEVICE } }, device: { ...device, pinHash: devicePinHash(device, p), pinFails: 0, pinLockUntil: '' } };
+}
+
+// ── מקשים מהירים (מקשי האותיות במכשיר): לחיצה אחת = מוצר, בלי ברקוד ──
+export const QUICK_KEYS = 30;
+export function quickCode(card, n) {
+  const c = (card.settings.quick || [])[n - 1];
+  return c && findProduct(card, c) ? findProduct(card, c).code : '';
+}
+export function setQuick(card, n, code) {
+  if (!(n >= 1 && n <= QUICK_KEYS)) return { card, error: 'מקש לא קיים' };
+  if (code && !findProduct(card, code)) return { card, error: 'מוצר לא נמצא' };
+  const quick = Array.from({ length: QUICK_KEYS }, (_, i) => (card.settings.quick || [])[i] || '');
+  quick[n - 1] = code || '';
+  while (quick.length && !quick[quick.length - 1]) quick.pop();
+  return { card: { ...card, settings: { ...card.settings, quick } } };
 }
 
 // מספר עוסק/ח"פ — ספרת ביקורת (אותו אלגוריתם כמו ת"ז)
@@ -857,6 +873,8 @@ export function parseCard(text) {
     deviceId: raw.deviceId || null,
     base: { ...base.base, ...(raw.base || {}) },
   };
+  if (!Array.isArray(card.settings.quick)) card.settings.quick = []; // מקשים מהירים — רק רשימה
+  else card.settings.quick = card.settings.quick.slice(0, QUICK_KEYS).map((c) => (typeof c === 'string' ? c : ''));
   if (typeof raw.productsHash === 'string') card.productsHash = raw.productsHash; // טביעת מוצרים.csv שהקופה כתבה
   if (typeof raw.productsHashPrev === 'string') card.productsHashPrev = raw.productsHashPrev; // והקודמת (הפסקת חשמל באמצע שמירה)
   if (typeof raw.pcTime === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(raw.pcTime)) card.pcTime = raw.pcTime; // שעת המחשב בשמירה האחרונה

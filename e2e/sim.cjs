@@ -156,6 +156,18 @@ const check = (ok, msg) => { console.log((ok ? '✓ ' : '✗ ') + msg); if (!ok)
   check((await scr()).includes('עודכנה לגרסה 1.1.0'), 'אחרי קוד מנהל ואימות חתימה ⇒ "התוכנה עודכנה לגרסה 1.1.0"');
   check(await p.evaluate(() => JSON.parse(localStorage.getItem('kupa.device')).version) === '1.1.0', 'הגרסה נשמרה בזיכרון הקופה');
 
+  // מקשי המכשיר: מקש מהיר (שם המוצר על המקש), בדיקת מחיר, דוח X ישיר, ±1
+  check((await p.locator('#keys [data-k="Q1"]').innerText()).includes('שקית'), 'מקש מהיר מציג את שם המוצר (שקית)');
+  await key('Q1', 'PLUS');
+  check((await scr()).includes('כמות: 2'), 'מקש מהיר + "+1" ⇒ שקית × 2');
+  await key('CANCEL', 'CANCEL', 'PCHK');
+  await samples.nth(0).click();
+  const pchk = await scr();
+  check(pchk.includes('🔎') && /₪\d+\.\d\d/.test(pchk) && pchk.includes('₪0.00'), 'בדיקת מחיר ⇒ שם ומחיר בלי להוסיף לעסקה · ' + pchk);
+  const slipsBeforeX = await p.locator('.slip').count();
+  await key('X');
+  check((await p.locator('.slip').count()) === slipsBeforeX + 1 && (await p.locator('.slip').first().innerText()).includes('דוח ביניים'), 'מקש "דוח X" מדפיס דוח ביניים בלחיצה אחת');
+
   // ייצוא הכרטיס לקובץ (לבדיקת דף-הניהול בקובץ יחיד)
   const cardText = await p.evaluate(() => localStorage.getItem('kupa.card'));
   const cardFile = path.join(OUT, 'KUPA.JSON');

@@ -3,6 +3,7 @@ import * as K from '../engine/kupa.mjs';
 import * as R from '../engine/register.mjs';
 import * as E from '../engine/escpos.mjs';
 import * as U from '../engine/update.mjs';
+import * as KM from '../engine/keymap.mjs';
 import { loadCardResult, saveCard, cardInserted, setInserted, loadDevice, saveDevice, loadFiles, saveFiles } from './store.mjs';
 
 const $ = (id) => document.getElementById(id);
@@ -158,23 +159,31 @@ function render() {
       : paidInfo ? `<div>שולם ₪${K.money(paidInfo.paid)}</div><div class="big">עודף ₪${K.money(paidInfo.change)}</div>`
         : `<div class="big">${esc(card.settings.bizName || 'ברוכים הבאים')}</div>`;
 
-  $('samples').innerHTML = inserted && card.products.length
-    ? card.products.slice(0, 8).map((p) => `<button type="button" data-code="${esc(p.code)}" title="${esc(p.code)}">${esc(p.name)}</button>`).join('')
+  renderKeys();
+  // "מוצרים לסריקה" בסימולטור: רק עם ברקוד יצרן (קוד פנימי 2… = מוצר בלי ברקוד ⇒ על מקש מהיר)
+  const scannable = card.products.filter((p) => !String(p.code).startsWith('2'));
+  $('samples').innerHTML = inserted && scannable.length
+    ? scannable.slice(0, 8).map((p) => `<button type="button" data-code="${esc(p.code)}" title="${esc(p.code)}">${esc(p.name)}</button>`).join('')
     : '';
 }
 
 function esc(s) { return String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
 
 // ── מקלדת ──
-const KEYS = [
-  ['MENU', 'תפריט', 'fn'], ['UP', '▲', 'fn'], ['DOWN', '▼', 'fn'], ['REFUND', 'החזרה', 'fn'], ['CANCEL', 'בטל', 'red'],
-  ['7'], ['8'], ['9'], ['QTY', '×', 'fn'], ['DEL', 'מחק', 'red'],
-  ['4'], ['5'], ['6'], ['DISC', 'הנחה', 'fn'], ['C', 'C', 'red'],
-  ['1'], ['2'], ['3'], ['PRICE', 'מחיר', 'fn'], ['CREDIT', 'אשראי', 'pay'],
-  ['0'], ['00'], ['.'], ['OK', 'אישור', 'fn'], ['CASH', 'מזומן', 'pay'],
-  ['PCT', '% לשורה', 'fn wide'], ['BPCT', '% לסל', 'fn wide'], ['BASKET', '₪ לסל', 'fn'],
-];
-$('keys').innerHTML = KEYS.map(([k, label, cls]) => `<button type="button" data-k="${k}" class="${cls || ''}">${label || k}</button>`).join('');
+// פריסה כמו במכשיר האמיתי (PicoCalc + מדבקות) — מקור אחד: engine/keymap.mjs
+function renderKeys() {
+  $('keys').innerHTML = KM.ROWS.map((row) => `<div class="krow">${row.map((x) => {
+    if (!x) return '<span class="ksep"></span>';
+    if (!x.k) return `<span class="kgap" style="flex:${x.w}"></span>`;
+    let label = x.label;
+    if (x.cls === 'quick') {
+      const code = K.quickCode(st.card, Number(x.k.slice(1)));
+      label = code ? K.findProduct(st.card, code).name : '';
+    }
+    return `<button type="button" data-k="${x.k}" class="${x.cls}${x.cls === 'quick' && !label ? ' empty' : ''}" style="flex:${x.w}" title="${esc(x.phys)}">${esc(label)}</button>`;
+  }).join('')}</div>`).join('');
+}
+renderKeys();
 $('keys').addEventListener('click', (e) => {
   const b = e.target.closest('button[data-k]');
   if (b) key(b.dataset.k);

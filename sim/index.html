@@ -21,7 +21,7 @@
   h2 { margin: 0 0 10px; font-size: 16px; }
 
   /* המכשיר */
-  .device { background: var(--dev); border-radius: 22px; padding: 16px; width: 360px; max-width: 100%; color: #fff; box-shadow: 0 10px 30px rgba(0,0,0,.25); }
+  .device { background: var(--dev); border-radius: 22px; padding: 16px; width: 400px; max-width: 100%; color: #fff; box-shadow: 0 10px 30px rgba(0,0,0,.25); }
   .devtop { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #aab; margin-bottom: 8px; }
   .slot { display: inline-flex; gap: 6px; align-items: center; }
   .led { width: 9px; height: 9px; border-radius: 50%; background: #4ade80; display: inline-block; }
@@ -50,13 +50,20 @@
   .cust { margin-top: 8px; background: #061206; color: #7dff9a; border-radius: 6px; padding: 6px 10px; font-family: "Courier New", monospace; border: 2px solid #111; }
   .cust small { color: #4c8a59; font-family: system-ui, sans-serif; font-size: 10px; }
   .cust .big { font-size: 18px; font-weight: 700; }
-  .keys { display: grid; grid-template-columns: repeat(5, 1fr); gap: 7px; margin-top: 12px; }
-  .keys button { font: inherit; font-size: 15px; height: 46px; border-radius: 9px; border: none; background: var(--key); color: var(--keyink); cursor: pointer; box-shadow: 0 2px 0 #9aa; }
+  /* מקלדת כמו במכשיר (PicoCalc + מדבקות) — סדר פיזי משמאל לימין */
+  .keys { margin-top: 12px; direction: ltr; display: flex; flex-direction: column; gap: 5px; }
+  .krow { display: flex; gap: 4px; }
+  .ksep { flex: 0 0 6px; }
+  .kgap { display: block; }
+  .keys button { flex: 1; min-width: 0; font: inherit; font-size: 12px; line-height: 1.1; height: 36px; padding: 0 2px; border-radius: 6px; border: none; background: var(--key); color: var(--keyink); cursor: pointer; box-shadow: 0 2px 0 #9aa; direction: rtl; overflow: hidden; }
+  .keys button.num { font-size: 15px; font-weight: 700; }
+  .keys button.act { background: #ffe8a8; font-size: 11px; }
+  .keys button.quick { background: #4e5659; color: #f1f4f4; font-size: 10px; box-shadow: 0 2px 0 #222; }
+  .keys button.quick.empty { background: #3c4245; }
   .keys button:active { transform: translateY(2px); box-shadow: none; }
   .keys button.fn { background: #c9d4e8; font-size: 13px; }
   .keys button.pay { background: var(--acc); color: #04201d; font-weight: 700; }
   .keys button.red { background: #ffd0d2; }
-  .keys button.wide { grid-column: span 2; }
   .keys button:focus-visible { outline: 3px solid var(--warn); }
 
   .scanner { margin-top: 12px; background: var(--dev2); border-radius: 12px; padding: 10px; }

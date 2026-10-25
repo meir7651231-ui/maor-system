@@ -24,7 +24,7 @@
   .legend { border-collapse: collapse; font-size: 9pt; }
   .legend td { padding: 1mm 1.5mm; border-bottom: 1px solid #ddd; vertical-align: middle; line-height: 1.9; }
   .legend td:first-child { font-weight: bold; white-space: nowrap; width: 22mm; }
-  kbd.kf { background: #c9d4e8; } kbd.kp { background: #9fe3d6; } kbd.kr { background: #ffd0d2; }
+  kbd.kf { background: #c9d4e8; } kbd.ka { background: #ffe8a8; } kbd.kp { background: #9fe3d6; } kbd.kr { background: #ffd0d2; }
   .keys { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1.2mm; max-width: 82mm; margin: 1mm auto 0; }
   .keys span { border: 1.2px solid #333; border-radius: 1.4mm; text-align: center; padding: 1mm 0; font-size: 8.6pt; font-weight: bold; direction: rtl; }
   .keys .w2 { grid-column: span 2; }
@@ -47,11 +47,11 @@
       <div style="display:flex;gap:5mm;align-items:center">
         <img src="customer/img/keyboard.png" alt="מקלדת הקופה עם מדבקות בעברית" style="width:62mm;border-radius:2mm;flex:0 0 auto">
         <table class="legend">
-          <tr><td>פעולות (תכלת)</td><td><kbd class="kf">תפריט</kbd> <kbd class="kf">החזרה</kbd> <kbd class="kf">הנחה</kbd> <kbd class="kf">% שורה</kbd> <kbd class="kf">% סל</kbd> <kbd class="kf">₪ סל</kbd> <kbd class="kf">× כמות</kbd> <kbd class="kf">מחיר</kbd> <kbd class="kf">אישור</kbd></td></tr>
+          <tr><td>פעולות (תכלת)</td><td><kbd class="kf">תפריט</kbd> <kbd class="kf">החזרה</kbd> <kbd class="kf">הנחה</kbd> <kbd class="kf">% שורה</kbd> <kbd class="kf">% סל</kbd> <kbd class="kf">₪ סל</kbd> <kbd class="kf">× כמות</kbd> <kbd class="kf">מחיר</kbd> <kbd class="kf">אישור</kbd> · חצים: <kbd class="kf">▲</kbd><kbd class="kf">▼</kbd> בחירת שורה, <kbd class="kf">+1</kbd><kbd class="kf">−1</kbd> כמות</td></tr>
+          <tr><td>בלחיצה אחת (צהוב)</td><td><kbd class="ka">דוח X</kbd> <kbd class="ka">סגירת יום</kbd> <kbd class="ka">מלאי</kbd> <kbd class="ka">העתק</kbd> <kbd class="ka">מגירה</kbd> <kbd class="ka">שעון</kbd> <kbd class="ka">בדיקת מחיר</kbd></td></tr>
           <tr><td>תשלום (ירוק)</td><td><kbd class="kp">מזומן</kbd> (המקש הרחב) · <kbd class="kp">אשראי</kbd></td></tr>
           <tr><td>ביטול (ורוד)</td><td><kbd class="kr">בטל</kbd> כל העסקה · <kbd class="kr">מחק</kbd> שורה · <kbd class="kr">C</kbd> מה שהוקלד</td></tr>
-          <tr><td>מספרים</td><td><kbd>0</kbd>–<kbd>9</kbd> · <kbd>00</kbd> · <kbd>.</kbd> · חצים <kbd>▲</kbd><kbd>▼</kbd> לבחירת שורה</td></tr>
-          <tr><td>אותיות</td><td>לא בשימוש בקופה</td></tr>
+          <tr><td>מוצרים (אפור)</td><td>30 מקשים עם שם מוצר — לחיצה = המוצר נכנס לעסקה, בלי לסרוק</td></tr>
         </table>
       </div>
     </div>
@@ -69,6 +69,9 @@
       <h2>2. מכירה</h2>
       <ol>
         <li>סורקים כל מוצר באקדח. אותו מוצר פעמיים = כמות 2.</li>
+        <li><b>מוצר על מקש</b> (שקית, אריזה…): לוחצים על המקש עם השם שלו.</li>
+        <li><b>+1 / −1:</b> החצים ◀ ▶ משנים את הכמות בשורה.</li>
+        <li><b>כמה זה עולה?</b> <kbd class="ka">בדיקת מחיר</kbd> ← סורקים. לא נכנס לעסקה.</li>
         <li><b>כמות:</b> מקלידים מספר ← <kbd>× כמות</kbd> (על השורה האחרונה, או זו שנבחרה ב-<kbd>▲</kbd><kbd>▼</kbd>).</li>
         <li><b>אין ברקוד?</b> מקלידים את המספר שמתחת לפסים ← <kbd>אישור</kbd>.</li>
         <li><b>מוצר בלי ברקוד / מחיר חופשי:</b> מקלידים מחיר ← <kbd>מחיר</kbd>.</li>
@@ -110,17 +113,12 @@
     <div class="box">
       <h2>6. סגירת יום (Z) 🔒 — בסוף כל יום</h2>
       <ol>
-        <li><kbd>תפריט</kbd> ← <kbd>2</kbd> ← קוד מנהל ← <kbd>אישור</kbd>.</li>
+        <li><kbd class="ka">סגירת יום</kbd> ← קוד מנהל ← <kbd>אישור</kbd>.</li>
         <li>"סגירת יום?" ← <kbd>אישור</kbd>. יוצא דוח — <b>שומרים אותו</b>.</li>
       </ol>
-      <p class="note">רוצים רק לראות כמה נכנס, בלי לסגור? <kbd>תפריט</kbd> ← <kbd>1</kbd> (דוח ביניים X).</p>
+      <p class="note">רוצים רק לראות כמה נכנס, בלי לסגור? <kbd class="ka">דוח X</kbd> (דוח ביניים).</p>
     </div>
 
-    <div class="box">
-      <h2>7. ביטול עסקה שלמה</h2>
-      <p><kbd>בטל</kbd> ← <kbd>בטל</kbd> שוב לאישור. הביטול נרשם בדוח היום — זה בסדר.</p>
-      <p class="note">אם כבר יצאה קבלה — זה לא ביטול, זו <b>החזרה</b> (בצד השני).</p>
-    </div>
   </div>
   <div class="foot">המשך בצד השני ←</div>
 </div>
@@ -139,24 +137,19 @@
     </div>
 
     <div class="box">
+      <h2>7. ביטול עסקה שלמה</h2>
+      <p><kbd>בטל</kbd> ← <kbd>בטל</kbd> שוב לאישור. הביטול נרשם בדוח היום — זה בסדר.</p>
+      <p class="note">אם כבר יצאה קבלה — זה לא ביטול, זו <b>החזרה</b> (בצד השני).</p>
+    </div>
+    <div class="box">
       <h2>9. התפריט</h2>
-      <p><kbd>תפריט</kbd> ואז מספר (רק כשאין עסקה פתוחה):</p>
-      <table>
-        <tr><td>1</td><td>דוח ביניים (X) — כמה נכנס עד עכשיו</td></tr>
-        <tr><td>2 🔒</td><td>סגירת יום (Z)</td></tr>
-        <tr><td>3</td><td>דוח מלאי</td></tr>
-        <tr><td>4</td><td>העתק של הקבלה האחרונה (כתוב עליו "העתק")</td></tr>
-        <tr><td>5 🔒</td><td>פתיחת מגירה בלי מכירה (נרשם)</td></tr>
-        <tr><td>6 🔒</td><td>כיוון שעון</td></tr>
-        <tr><td>7 🔒</td><td>החלפת קוד מנהל</td></tr>
-      </table>
-      <p class="note"><kbd>C</kbd> = יציאה מהתפריט.</p>
+      <p>אותן פעולות גם דרך <kbd>תפריט</kbd> ומספר (רק כשאין עסקה פתוחה): 1 דוח X · 2 סגירת יום 🔒 · 3 מלאי · 4 העתק · 5 מגירה 🔒 · 6 שעון 🔒 · <b>7 החלפת קוד מנהל 🔒</b> (רק מהתפריט). <kbd>C</kbd> = יציאה.</p>
     </div>
 
     <div class="box">
       <h2>10. כיוון שעון 🔒</h2>
       <ol>
-        <li><kbd>תפריט</kbd> ← <kbd>6</kbd> ← קוד מנהל ← <kbd>אישור</kbd>.</li>
+        <li><kbd class="ka">שעון</kbd> ← קוד מנהל ← <kbd>אישור</kbd>.</li>
         <li><kbd>C</kbd> מוחק, ומקלידים 12 ספרות: <b>יום חודש שנה שעה דקה</b>.<br>
           דוגמה: 25 באוקטובר 2026, 09:30 ← <b>251020260930</b></li>
         <li><kbd>אישור</kbd>.</li>
@@ -188,7 +181,7 @@
         <tr><td>"מוצר לא נמצא"</td><td>מוכרים כ"מחיר חופשי" (מחיר ← <kbd>מחיר</kbd>), ומבקשים מהבעלים להוסיף את המוצר.</td></tr>
         <tr><td>"אזהרה: במלאי X בלבד"</td><td>רק אזהרה — המכירה ממשיכה. לעדכן את הבעלים.</td></tr>
         <tr><td>"… — בטוח?"</td><td>הקלדתם מחיר מעל ₪5,000 או כמות מעל 50. נכון? <kbd>אישור</kbd>. טעות? <kbd>C</kbd>.</td></tr>
-        <tr><td>הקבלה לא יוצאת</td><td>בודקים נייר (גליל 80 מ"מ) ושהמכסה סגור. צריך שוב את הקבלה? <kbd>תפריט</kbd> ← <kbd>4</kbd>.</td></tr>
+        <tr><td>הקבלה לא יוצאת</td><td>בודקים נייר (גליל 80 מ"מ) ושהמכסה סגור. צריך שוב את הקבלה? <kbd class="ka">העתק</kbd>.</td></tr>
       </table>
     </div>
   </div>

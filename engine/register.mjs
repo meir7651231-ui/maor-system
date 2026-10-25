@@ -15,6 +15,9 @@ const DIGIT = /^[0-9]$/;
 const PROTECTED = { REFUND: 'החזרה', DISC: 'הנחה', PCT: 'הנחה', BASKET: 'הנחת סל', BPCT: 'הנחת סל', Z: 'סגירת יום', CLOCK: 'כיוון שעון', DRAWER: 'פתיחת מגירה', UPDATE: 'עדכון תוכנה', PIN: 'החלפת קוד מנהל', BIND: 'כרטיס חדש' };
 const BIG_AMOUNT = 500000; // ₪5,000 — מעל זה מחיר ידני דורש אישור (טעות הקלדה)
 const BIG_QTY = 50;
+// מקשים ישירים (בלי לעבור בתפריט) ⇒ מספר הפריט בתפריט
+const DIRECT = { X: '1', Z: '2', STOCK: '3', COPY: '4', DRAWER: '5', CLOCK: '6' };
+const QUICK = /^Q([1-9]|[12][0-9]|30)$/; // מקשים מהירים Q1–Q30 ⇒ מוצר שנבחר בדף הניהול
 
 // DDMMYYYYHHMM ⇄ ISO
 export function isoToDigits(iso) {
@@ -219,6 +222,7 @@ export function scan(st, code, raw) {
   const now = raw && K.deviceNow(raw, s.device);
   code = String(code).trim();
   if (!code) return { st: s, out };
+  if (s.mode === 'priceCheck') { priceCheck(s, out, code); return { st: s, out }; }
   if (s.mode !== 'sale') { fail(s, out, 'סיימו קודם את הפעולה שעל המסך (C = חזרה)'); return { st: s, out }; }
   if (!ready(s, out)) return { st: s, out };
   const r = K.cartAdd(s.cart, s.card, code);
@@ -331,6 +335,37 @@ function run(s, out, action, now) {
   void now;
 }
 
+// פריט בתפריט (גם ממקש ישיר): 1 X · 2 Z · 3 מלאי · 4 העתק · 5 מגירה · 6 שעון · 7 קוד מנהל. false = לא קיים
+function menuPick(s, out, k, now) {
+  if (k === '1') {
+    const r = K.printInterim(s.card, now, { ...s.device, version: versionOf(s) });
+    if (r.error) fail(s, out, r.error);
+    else { persist(s, out, r); out.prints.push(K.reportLines(s.card, r.report)); say(s, 'דוח ביניים הודפס', 'ok'); }
+  } else if (k === '2') protect(s, out, 'Z', now);
+  else if (k === '3') { out.prints.push(K.stockLines(s.card, now)); say(s, 'דוח מלאי הודפס', 'ok'); }
+  else if (k === '5') protect(s, out, 'DRAWER', now);
+  else if (k === '6') protect(s, out, 'CLOCK', now);
+  else if (k === '7') protect(s, out, 'PIN', now);
+  else if (k === '4') {
+    if (!s.lastReceipt) fail(s, out, 'אין קבלה אחרונה');
+    else {
+      const r = K.logOp(s.card, s.device, now, 'COPY', { ref: s.lastReceipt.no });
+      if (r.error) fail(s, out, r.error);
+      else { persist(s, out, r); out.prints.push(K.receiptLines(s.card, s.lastReceipt, { copy: true })); say(s, 'העתק הודפס', 'ok'); }
+    }
+  } else return false;
+  return true;
+}
+
+// בדיקת מחיר: מראה שם, מחיר ומלאי — בלי להוסיף לעסקה
+function priceCheck(s, out, code) {
+  s.mode = 'sale';
+  const p = K.findProduct(s.card, code);
+  if (!p) return fail(s, out, `מוצר לא נמצא: ${code}`);
+  say(s, `🔎 ${p.name} · ₪${K.money(p.price)}${p.stock !== null ? ` · במלאי ${p.stock}` : ''}`, 'ok');
+  out.beep = true;
+}
+
 // ── מקשים ──
 export function press(st, k, raw) {
   const { s, out } = begin(st);
@@ -398,23 +433,15 @@ export function press(st, k, raw) {
   if (s.mode === 'menu') {
     s.mode = 'sale';
     if (k === 'C') say(s, '');
-    else if (k === '1') {
-      const r = K.printInterim(s.card, now, { ...s.device, version: versionOf(s) });
-      if (r.error) fail(s, out, r.error);
-      else { persist(s, out, r); out.prints.push(K.reportLines(s.card, r.report)); say(s, 'דוח ביניים הודפס', 'ok'); }
-    } else if (k === '2') protect(s, out, 'Z', now);
-    else if (k === '3') { out.prints.push(K.stockLines(s.card, now)); say(s, 'דוח מלאי הודפס', 'ok'); }
-    else if (k === '5') protect(s, out, 'DRAWER', now);
-    else if (k === '6') protect(s, out, 'CLOCK', now);
-    else if (k === '7') protect(s, out, 'PIN', now);
-    else if (k === '4') {
-      if (!s.lastReceipt) fail(s, out, 'אין קבלה אחרונה');
-      else {
-        const r = K.logOp(s.card, s.device, now, 'COPY', { ref: s.lastReceipt.no });
-        if (r.error) fail(s, out, r.error);
-        else { persist(s, out, r); out.prints.push(K.receiptLines(s.card, s.lastReceipt, { copy: true })); say(s, 'העתק הודפס', 'ok'); }
-      }
-    } else { s.mode = 'menu'; fail(s, out, 'בחירה לא קיימת'); }
+    else if (!menuPick(s, out, k, now)) { s.mode = 'menu'; fail(s, out, 'בחירה לא קיימת'); }
+    return { st: s, out };
+  }
+
+  if (s.mode === 'priceCheck') {
+    if (k === 'C') { s.mode = 'sale'; s.buf = ''; say(s, ''); }
+    else if (DIGIT.test(k)) typeDigit(s, k);
+    else if (k === 'OK' && s.buf) { const code = s.buf; s.buf = ''; priceCheck(s, out, code); }
+    else if (QUICK.test(k)) { const code = K.quickCode(s.card, Number(k.slice(1))); if (code) priceCheck(s, out, code); else fail(s, out, 'המקש לא הוגדר'); }
     return { st: s, out };
   }
 
@@ -502,8 +529,25 @@ export function press(st, k, raw) {
     else if (ready(s, out)) { s.mode = 'menu'; say(s, ''); }
   } else if (k === 'OK') {
     if (s.buf) { const code = s.buf; s.buf = ''; return scan(s, code, now); } // הקלדת ברקוד ידנית
+    say(s, s.cart.lines.length ? 'לתשלום: מזומן או אשראי' : 'סרקו מוצר, או הקלידו ברקוד ואז אישור', 'info'); // אישור בלי הקלדה — רמז, לא שקט
   } else if (!ready(s, out)) {
     /* ready כבר הציג שגיאה */
+  } else if (QUICK.test(k)) {
+    const code = K.quickCode(s.card, Number(k.slice(1)));
+    if (!code) fail(s, out, 'המקש לא הוגדר — מגדירים במחשב: ⌨ מקשים מהירים');
+    else return scan(s, code, raw);
+  } else if (k in DIRECT) {
+    if (s.cart.lines.length || s.cart.refund) fail(s, out, 'קודם סיימו או בטלו את העסקה');
+    else menuPick(s, out, DIRECT[k], now);
+  } else if (k === 'PCHK') {
+    s.mode = 'priceCheck'; s.buf = '';
+    say(s, '🔎 בדיקת מחיר: סרקו מוצר (או הקלידו ברקוד + אישור) · C = חזרה', 'info');
+  } else if (k === 'PLUS' || k === 'MINUS') {
+    const l = s.cart.lines[selIdx(s)];
+    if (!l) fail(s, out, 'אין פריטים');
+    else if (s.cart.refund) fail(s, out, 'בהחזרה סורקים כל פריט בנפרד');
+    else if (k === 'MINUS' && l.qty <= 1) fail(s, out, 'כמות 1 — כדי להוריד את השורה: מחק');
+    else setQty(s, out, l.qty + (k === 'PLUS' ? 1 : -1));
   } else if (k === 'QTY') {
     const q = Number(s.buf);
     if (s.cart.refund) fail(s, out, 'בהחזרה סורקים כל פריט בנפרד');

@@ -41,7 +41,10 @@
   .stat small { display: block; color: var(--muted); font-size: 12px; }
   .stat b { font-size: 18px; }
   .wrap { overflow-x: auto; }
-  @media print { header, nav, section:not(#t-labels), .noprint { display: none !important; } #t-labels { display: block; padding: 0; } .label { border: none; } }
+  .keystickers { display: flex; flex-wrap: wrap; gap: 2mm; margin-top: 14px; direction: ltr; }
+  .keystickers div { width: 12mm; height: 12mm; border: 0.2mm dashed #999; border-radius: 1.5mm; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; font-size: 6.5pt; line-height: 1.05; direction: rtl; overflow: hidden; padding: 0.5mm; box-sizing: border-box; }
+  .keystickers div small { font-size: 5pt; color: #888; }
+  @media print { header, nav, section:not(.printing), .noprint { display: none !important; } section.printing { display: block; padding: 0; } .label { border: none; } }
 </style>
 </head>
 <body>
@@ -59,6 +62,7 @@
   <button role="tab" data-t="prod">🏷 מוצרים ומחירים</button>
   <button role="tab" data-t="stock">📦 מלאי</button>
   <button role="tab" data-t="labels">🔖 מדבקות ברקוד</button>
+  <button role="tab" data-t="keys">⌨ מקשים מהירים</button>
   <button role="tab" data-t="rep">📊 דוחות</button>
   <button role="tab" data-t="backup">🗄 גיבוי</button>
   <button role="tab" data-t="files">📁 קבצים בכרטיס</button>
@@ -113,6 +117,13 @@
   <div class="noprint" id="labelPick"></div>
   <button class="btn pri noprint" id="printLabels" type="button">🖨 הדפסת מדבקות</button>
   <div class="labels" id="labelOut"></div>
+</section>
+
+<section id="t-keys">
+  <div class="note noprint">30 מקשי האותיות בקופה = מוצרים מהירים: לחיצה אחת מוסיפה את המוצר, בלי לסרוק (שקית, אריזת מתנה, מוצר בלי ברקוד). בוחרים מוצר לכל מקש, שומרים לכרטיס, ומדפיסים מדבקות למקשים.</div>
+  <div class="wrap noprint"><table><thead><tr><th>מקש</th><th>מוצר</th></tr></thead><tbody id="quickRows"></tbody></table></div>
+  <button class="btn pri noprint" id="printKeys" type="button">🖨 מדבקות למקשים (12×12 מ"מ)</button>
+  <div class="keystickers" id="keyOut"></div>
 </section>
 
 <section id="t-rep">

@@ -4,6 +4,7 @@
 import * as K from '../engine/kupa.mjs';
 import { ean13Svg } from '../engine/ean13svg.mjs';
 import * as F from '../engine/files.mjs';
+import * as KM from '../engine/keymap.mjs';
 import { loadCardResult, saveCard, downloadCard, loadFiles, saveFiles } from './store.mjs';
 
 const $ = (id) => document.getElementById(id);
@@ -196,6 +197,33 @@ function renderLabelPick() {
     <input type="checkbox" value="${esc(p.code)}" style="width:auto"> ${esc(p.name)}
     <input type="number" min="1" value="1" data-n="${esc(p.code)}" style="width:60px" aria-label="כמות מדבקות"></label>`).join('') || '<div class="note">אין מוצרים</div>';
 }
+// ── מקשים מהירים ──
+function quickSlots() { return KM.allKeys().filter((x) => x.cls === 'quick'); }
+function renderQuick() {
+  const opts = (sel) => '<option value="">— לא מוגדר —</option>' + card.products.map((p) => `<option value="${esc(p.code)}"${p.code === sel ? ' selected' : ''}>${esc(p.name)} · ₪${K.money(p.price)}</option>`).join('');
+  $('quickRows').innerHTML = quickSlots().map((x, i) => `<tr><td>מקש ${i + 1} <span class="note">(${esc(x.phys)})</span></td><td><select data-q="${i + 1}" aria-label="מוצר למקש ${i + 1}">${opts(K.quickCode(card, i + 1))}</select></td></tr>`).join('');
+}
+$('quickRows').onchange = (e) => {
+  const n = Number(e.target.dataset.q);
+  if (!n) return;
+  const r = K.setQuick(card, n, e.target.value);
+  if (r.error) return toast(r.error);
+  commit(r.card, e.target.value ? `מקש ${n}: ${K.findProduct(card, e.target.value).name}` : `מקש ${n} נוקה`);
+};
+function printSection(id) {
+  $(id).classList.add('printing');
+  window.addEventListener('afterprint', () => $(id).classList.remove('printing'), { once: true });
+  setTimeout(() => window.print(), 50);
+}
+$('printKeys').onclick = () => {
+  // לפי סדר המקשים במכשיר, שורה אחרי שורה (משמאל לימין) — גוזרים ומדביקים לפי הסדר
+  $('keyOut').innerHTML = quickSlots().map((x, i) => {
+    const code = K.quickCode(card, i + 1);
+    return `<div>${code ? esc(K.findProduct(card, code).name) : ''}<small>${esc(x.phys)}</small></div>`;
+  }).join('');
+  printSection('t-keys');
+};
+
 $('printLabels').onclick = () => {
   const out = [];
   for (const cb of $('labelPick').querySelectorAll('input[type=checkbox]:checked')) {
@@ -207,7 +235,7 @@ $('printLabels').onclick = () => {
   }
   if (!out.length) return toast('סמנו לפחות מוצר אחד');
   $('labelOut').innerHTML = out.join('');
-  setTimeout(() => window.print(), 50);
+  printSection('t-labels');
 };
 
 // ── דוחות ──
@@ -289,6 +317,14 @@ function demoCard() {
     const d12 = '72900000' + String(i + 1).padStart(4, '0');
     c = K.upsertProduct(c, { code: d12 + K.ean13CheckDigit(d12), name, price, stock }).card;
   });
+  // מוצרים בלי ברקוד יצרן — על מקשים מהירים (קוד פנימי)
+  [['שקית', 100], ['אריזת מתנה', 500], ['גרביים', 1500], ['סיכת שיער', 1200], ['גומיית שיער', 500], ['תיקון מכפלת', 2000]].forEach(([name, price], i) => {
+    const r = K.nextInternalCode(c);
+    c = K.upsertProduct(r.card, { code: r.code, name, price, stock: null }).card;
+    c = K.setQuick(c, i + 1, r.code).card;
+  });
+  // והמוצרים הנמכרים ביותר — גם על מקשים
+  c.products.slice(0, 6).forEach((p, i) => { c = K.setQuick(c, i + 11, p.code).card; });
   return c;
 }
 
@@ -329,5 +365,5 @@ function renderFiles() {
   });
 }
 
-function renderAll() { renderSrc(); renderBiz(); renderProducts(); renderStock(); renderLabelPick(); renderReports(); renderBackup(); renderFiles(); }
+function renderAll() { renderSrc(); renderBiz(); renderProducts(); renderStock(); renderLabelPick(); renderQuick(); renderReports(); renderBackup(); renderFiles(); }
 renderAll();
