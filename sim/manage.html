@@ -30,6 +30,7 @@
   td.num { direction: ltr; text-align: left; font-family: monospace; }
   .note { font-size: 13px; color: var(--muted); margin-top: 6px; }
   .ok { color: var(--acc); } .err { color: var(--bad); }
+  .hidden { display: none !important; }
   .toast { position: fixed; bottom: 14px; left: 14px; background: #1d2230; color: #fff; padding: 10px 14px; border-radius: 10px; font-size: 14px; opacity: 0; transition: opacity .2s; pointer-events: none; }
   .toast.show { opacity: 1; }
   .labels { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
@@ -120,13 +121,15 @@
 </section>
 
 <section id="t-backup">
-  <div class="note">הכרטיס הוא המקור. כדאי לשמור עותק במחשב אחרי כל סגירת יום.</div>
+  <div class="note">הכרטיס הוא המקור. את הקבלות וסגירות היום אי אפשר למחוק, לאפס או לשחזר — רק לצפות ולהוציא עותק. כדאי לשמור עותק במחשב אחרי כל סגירת יום, ולפחות פעם ברבעון במקום נפרד.</div>
+  <div id="lastBackup" class="note"></div>
   <button class="btn pri" id="backupDl" type="button">⬇ שמירת עותק גיבוי במחשב</button>
-  <div><button class="btn" id="restore" type="button">♻ שחזור מגיבוי…</button><input type="file" id="restoreIn" accept=".json,application/json" hidden></div>
-  <hr style="margin:20px 0;border:none;border-top:1px solid var(--line)">
-  <div class="note">להדגמה בלבד:</div>
-  <button class="btn" id="demo" type="button">🧪 טעינת נתוני הדגמה (בוטיק לנשים)</button>
-  <button class="btn bad" id="wipe" type="button">🗑 איפוס הכרטיס</button>
+  <button class="btn" id="zCsv" type="button">⬇ סגירות יום ל-Excel (CSV)</button>
+  <div id="demoBox" class="hidden">
+    <hr style="margin:20px 0;border:none;border-top:1px solid var(--line)">
+    <div class="note">סימולטור בלבד, וזמין רק כשעוד לא הופקה אף קבלה:</div>
+    <button class="btn" id="demo" type="button">🧪 טעינת נתוני הדגמה (בוטיק לנשים)</button>
+  </div>
 </section>
 
 <div class="toast" id="toast" role="status"></div>

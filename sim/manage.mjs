@@ -23,6 +23,8 @@ function esc(s) { return String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp
 function toAg(v) { const n = Number(String(v).replace(',', '.')); return Number.isFinite(n) ? Math.round(n * 100) : NaN; }
 
 function commit(next, note) {
+  const g = K.guardManaged(card, next);
+  if (g.error) return toast(g.error);
   card = next;
   if (SIM) saveCard(card); else dirty = true;
   renderAll();
@@ -193,8 +195,12 @@ function renderReports() {
     <td>${r.type === 'refund' ? 'החזרה' : 'מכירה'}</td><td>${r.method === 'cash' ? 'מזומן' : 'אשראי'}</td><td class="num">${K.money(r.total)}</td></tr>`).join('')
     || '<tr><td colspan="5" class="note">אין קבלות</td></tr>';
 }
-$('csv').onclick = () => {
+function downloadCsv(rows, name) {
   const q = (v) => { const s = String(v); return /^[=+\-@]/.test(s) && !/^-?\d/.test(s) ? `"'${s}"` : `"${s.replace(/"/g, '""')}"`; };
+  const blob = new Blob(['\uFEFF' + rows.map((r) => r.map(q).join(',')).join('\r\n')], { type: 'text/csv' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; a.click();
+}
+$('csv').onclick = () => {
   const rows = [['מספר', 'תאריך', 'סוג', 'תשלום', 'סה"כ', 'מע"מ', 'פריטים']];
   for (const r of card.receipts) rows.push([r.no, r.at, r.type === 'refund' ? 'החזרה' : 'מכירה', r.method === 'cash' ? 'מזומן' : 'אשראי', K.money(r.total), K.money(r.vat), r.lines.map((l) => `${l.name}×${l.qty}`).join(' | ')]);
   const blob = new Blob(['﻿' + rows.map((r) => r.map(q).join(',')).join('\r\n')], { type: 'text/csv' });
@@ -206,23 +212,32 @@ $('backupDl').onclick = () => {
   const blob = new Blob([K.serializeCard(card)], { type: 'application/json' });
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
   a.download = `kupa-backup-${new Date().toISOString().slice(0, 10)}.json`; a.click();
-};
-$('restore').onclick = () => $('restoreIn').click();
-$('restoreIn').onchange = async (e) => {
-  const f = e.target.files[0]; e.target.value = '';
-  if (!f) return;
-  const r = K.parseCard(await f.text());
-  if (r.error) return toast(r.error);
-  if (r.card.seq.receipt < card.seq.receipt) return toast('הגיבוי ישן מהכרטיס — שחזור היה שובר את רציפות הקבלות');
-  commit(r.card, 'שוחזר מגיבוי');
+  try { localStorage.setItem('kupa.lastBackup', new Date().toISOString()); } catch { /* ignore */ }
+  renderBackup();
 };
 function armed(btn, label, fn) {
   if (btn.dataset.armed) { delete btn.dataset.armed; btn.textContent = label; return fn(); }
   btn.dataset.armed = '1'; btn.textContent = 'לחצו שוב לאישור';
   setTimeout(() => { delete btn.dataset.armed; btn.textContent = label; }, 3000);
 }
-$('demo').onclick = (e) => armed(e.currentTarget, '🧪 טעינת נתוני הדגמה (בוטיק לנשים)', () => commit(demoCard(), 'נתוני ההדגמה נטענו'));
-$('wipe').onclick = (e) => armed(e.currentTarget, '🗑 איפוס הכרטיס', () => commit(K.emptyCard(), 'הכרטיס אופס'));
+// נתוני הדגמה — רק בסימולטור ורק על כרטיס שעוד לא הפיק אף מסמך (לא דורס קבלות)
+$('demo').onclick = (e) => {
+  if (card.receipts.length || card.zReports.length) return toast('בכרטיס כבר יש קבלות — אי אפשר לטעון הדגמה');
+  armed(e.currentTarget, '🧪 טעינת נתוני הדגמה (בוטיק לנשים)', () => commit(demoCard(), 'נתוני ההדגמה נטענו'));
+};
+$('zCsv').onclick = () => {
+  const rows = [['מספר Z', 'תאריך', 'מקבלה', 'עד קבלה', 'מכירות', 'החזרות', 'מזומן', 'אשראי', 'הנחות', 'סה"כ', 'מע"מ']];
+  for (const z of card.zReports) rows.push([z.no, z.at, z.fromNo, z.toNo, z.sales, z.refunds, K.money(z.cash), K.money(z.credit), K.money(z.discount), K.money(z.total), K.money(z.vat)]);
+  downloadCsv(rows, 'kupa-z-reports.csv');
+};
+function renderBackup() {
+  $('demoBox').classList.toggle('hidden', !(SIM && !card.receipts.length && !card.zReports.length));
+  let last = null;
+  try { last = localStorage.getItem('kupa.lastBackup'); } catch { /* ignore */ }
+  const days = last ? Math.floor((Date.now() - Date.parse(last)) / 86400000) : null;
+  $('lastBackup').innerHTML = last == null ? '<span class="err">עוד לא נשמר גיבוי מהמחשב הזה</span>'
+    : days > 90 ? `<span class="err">⚠ הגיבוי האחרון לפני ${days} ימים — עבר רבעון</span>` : `<span class="ok">גיבוי אחרון: לפני ${days} ימים</span>`;
+}
 
 function demoCard() {
   let c = K.updateSettings(K.emptyCard(), {
@@ -236,5 +251,5 @@ function demoCard() {
   return c;
 }
 
-function renderAll() { renderSrc(); renderBiz(); renderProducts(); renderStock(); renderLabelPick(); renderReports(); }
+function renderAll() { renderSrc(); renderBiz(); renderProducts(); renderStock(); renderLabelPick(); renderReports(); renderBackup(); }
 renderAll();

@@ -394,3 +394,15 @@ export function checkSequence(card) {
   for (let i = 0; i < nos.length; i++) if (nos[i] !== i + 1) return { ok: false, at: i + 1 };
   return { ok: true };
 }
+
+// ── שמירה מצד הניהול (במחשב) ───────────────────────────────────
+// הכרעת-בעלים 25.10: בניהול אין איפוס ואין שחזור — רק מידע והוצאת נתונים.
+// הניהול רשאי לשנות הגדרות/מוצרים/מלאי; קבלות, סגירות-יום ומונים — לעולם לא.
+export function guardManaged(before, after) {
+  const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+  if (!same(before.receipts, after.receipts)) return { error: 'אסור לשנות קבלות מהמחשב' };
+  if (!same(before.zReports, after.zReports)) return { error: 'אסור לשנות סגירות יום מהמחשב' };
+  if (after.seq.receipt !== before.seq.receipt || after.seq.z !== before.seq.z) return { error: 'אסור לשנות את המונים' };
+  if (after.seq.internal < before.seq.internal) return { error: 'אסור להחזיר את מונה הברקודים אחורה' };
+  return { card: after };
+}

@@ -130,3 +130,15 @@ test('שורות הקבלה לא חורגות מרוחב הגליל', () => {
   assert.ok(lines.some((l) => l.includes("קבלה מס' 1")));
   assert.ok(lines.some((l) => l.includes('עודף')));
 });
+
+test('ניהול מהמחשב: מוצרים מותר; קבלות, סגירות ומונים — אסור (בלי איפוס ושחזור)', () => {
+  let card = setup();
+  card = K.checkout(card, K.cartAddManual(K.emptyCart(), 100).cart, { method: 'cash', now: NOW }).card;
+  card = K.closeDay(card, NOW).card;
+  const prod = K.upsertProduct(card, { code: '1', name: 'חדש', price: 100 }).card;
+  assert.ok(K.guardManaged(card, prod).card);
+  assert.ok(K.guardManaged(card, K.emptyCard()).error); // איפוס
+  assert.ok(K.guardManaged(card, { ...card, receipts: [] }).error);
+  assert.ok(K.guardManaged(card, { ...card, zReports: [] }).error);
+  assert.ok(K.guardManaged(card, { ...card, seq: { ...card.seq, receipt: 0 } }).error);
+});
