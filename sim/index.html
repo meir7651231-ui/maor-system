@@ -35,6 +35,12 @@
   .s-total { display: flex; justify-content: space-between; font-size: 22px; font-weight: 700; color: var(--acc); }
   .s-total.refund { color: var(--bad); }
   .s-input { display: flex; justify-content: space-between; font-size: 13px; color: #cfe; min-height: 18px; }
+  .s-pay { display: flex; justify-content: space-between; align-items: baseline; font-size: 15px; }
+  .s-pay b { font-size: 24px; }
+  .s-pay.ask b { color: #ffd27a; }
+  .s-pay.change b { color: #7ee2a8; font-size: 30px; }
+  .s-pay.short b { color: #ff9a9e; font-size: 26px; }
+  .s-hint { font-size: 12px; color: #9fb3d9; }
   .s-msg { font-size: 13px; min-height: 18px; }
   .s-msg.ok { color: #7ee2a8; } .s-msg.err { color: #ff9a9e; } .s-msg.info { color: #ffd27a; }
   .s-menu div { padding: 3px 0; }
@@ -117,7 +123,7 @@
   <section class="panel help" style="flex:1 1 300px">
     <h2>איך עובדים</h2>
     <div>• <b>מכירה:</b> סורקים מוצר (או לוחצים על דוגמה). לוחצים <b>מזומן</b> או <b>אשראי</b> — הקבלה יוצאת במדפסת.</div>
-    <div>• <b>מזומן עם עודף:</b> מקלידים את הסכום שהלקוח נתן (למשל 200) ואז <b>מזומן</b>.</div>
+    <div>• <b>מזומן:</b> לוחצים <b>מזומן</b> ⇒ הקופה שואלת "כמה שילם הלקוח?" ⇒ מקלידים (למשל 200) ⇒ רואים <b>עודף</b> או <b>חסר</b> תוך כדי ⇒ <b>אישור</b>. אישור בלי סכום = שילם בדיוק.</div>
     <div>• <b>כמות:</b> מקלידים מספר ואז <b>×</b>. <b>הנחה:</b> מקלידים סכום ואז <b>הנחה</b>.</div>
     <div>• <b>מוצר בלי ברקוד:</b> מקלידים מחיר ואז <b>מחיר</b>.</div>
     <div>• <b>▲ ▼</b> בוחרים שורה; <b>מחק</b> מוחק אותה; <b>בטל</b> פעמיים מבטל את כל העסקה.</div>

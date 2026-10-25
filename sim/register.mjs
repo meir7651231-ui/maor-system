@@ -11,7 +11,8 @@ let cardError = ''; // כרטיס שנפסל (נערך / ישן / של קופה 
 let cart = K.emptyCart();
 let buf = '';
 let sel = -1; // -1 = השורה האחרונה
-let mode = 'sale'; // sale | menu | confirmZ
+let mode = 'sale'; // sale | menu | confirmZ | cash
+let paidInfo = null; // אחרי תשלום במזומן: {paid, change} — מוצג עד הסריקה הבאה
 let cancelArmed = false;
 let msg = { text: '', kind: '' };
 let lastReceipt = null;
@@ -86,7 +87,7 @@ function scan(code) {
   if (!ready()) return render();
   const r = K.cartAdd(cart, card, code);
   if (r.error) { say(`${r.error}: ${code}`, 'err'); beep(false); }
-  else { cart = r.cart; sel = -1; buf = ''; const l = cart.lines[cart.lines.length - 1]; say(`${l.name} · ${K.money(l.price)}`, 'ok'); beep(true); }
+  else { cart = r.cart; sel = -1; buf = ''; paidInfo = null; const l = cart.lines[cart.lines.length - 1]; say(`${l.name} · ${K.money(l.price)}`, 'ok'); beep(true); }
   cancelArmed = false;
   render();
 }
@@ -99,10 +100,27 @@ function pay(method) {
   commit(r);
   lastReceipt = r.receipt;
   print(K.receiptLines(card, r.receipt));
-  cart = K.emptyCart(); buf = ''; sel = -1;
-  if (r.receipt.change) say(`עודף: ₪${K.money(r.receipt.change)}`, 'ok');
-  else say(`קבלה ${r.receipt.no} הודפסה`, 'ok');
+  cart = K.emptyCart(); buf = ''; sel = -1; mode = 'sale';
+  paidInfo = method === 'cash' && r.receipt.type === 'sale' ? { paid: r.receipt.tendered, change: r.receipt.change } : null;
+  say(`קבלה ${r.receipt.no} הודפסה`, 'ok');
   beep(true);
+}
+
+// מצב "כמה שילם הלקוח": מקלידים סכום ⇒ רואים עודף/חסר תוך כדי ⇒ אישור/מזומן
+function cashKey(k) {
+  if (/^[0-9]$/.test(k) || k === '00' || k === '.') {
+    if (buf.length < 9 && !(k === '.' && buf.includes('.'))) buf += k;
+  } else if (k === 'C') {
+    if (buf) buf = ''; else { mode = 'sale'; say('התשלום בוטל — אפשר להמשיך לסרוק', 'info'); }
+  } else if (k === 'OK' || k === 'CASH') {
+    const t = K.cartTotals(cart, card.settings.vatRate).total;
+    const paid = bufAgorot() ?? t; // בלי סכום = שילם בדיוק
+    if (paid < t) { say(`חסרים ₪${K.money(t - paid)}`, 'err'); beep(false); }
+    else pay('cash');
+  } else if (k === 'CREDIT') {
+    buf = ''; pay('credit');
+  }
+  render();
 }
 
 function menuPick(n) {
@@ -122,6 +140,7 @@ function key(k) {
     else if (k === 'C') { mode = 'sale'; say(''); }
     return render();
   }
+  if (mode === 'cash') return cashKey(k);
   if (mode === 'confirmZ') {
     if (k === 'OK') {
       const r = K.closeDay(card, nowIso(), device);
@@ -175,7 +194,9 @@ function key(k) {
     cart = K.cartToggleRefund(cart);
     say(cart.refund ? 'מצב החזרה — סרקו את הפריטים המוחזרים' : 'חזרה למכירה רגילה', 'info');
   } else if (k === 'CASH') {
-    pay('cash');
+    if (cart.refund || buf) pay('cash'); // החזרה, או קיצור: סכום הוקלד מראש
+    else if (!cart.lines.length) { say('אין פריטים', 'err'); beep(false); }
+    else { mode = 'cash'; say(''); }
   } else if (k === 'CREDIT') {
     pay('credit');
   }
@@ -189,8 +210,21 @@ function render() {
   const clock = nowIso().slice(11, 16);
   const head = `<div class="s-head"><span>${esc(card.settings.bizName || 'קופה לא מוגדרת')}</span><span>${inserted ? '💾' : '⛔ אין כרטיס'} ${clock}</span></div>`;
   let body = '';
-  if (mode === 'menu') {
+  const big = (label, val, cls = '') => `<div class="s-pay ${cls}"><span>${label}</span><b>₪${K.money(val)}</b></div>`;
+  if (mode === 'cash') {
+    const paid = bufAgorot();
+    const diff = paid === null ? null : paid - t.total;
+    body = '<div class="s-lines" style="display:flex;flex-direction:column;justify-content:center;gap:6px">'
+      + big('לתשלום', t.total)
+      + `<div class="s-pay ask"><span>כמה שילם הלקוח?</span><b>${buf ? '₪' + esc(buf) : '—'}</b></div>`
+      + (diff === null ? '<div class="s-hint">הקלידו סכום · אישור בלי סכום = בדיוק</div>'
+        : diff >= 0 ? big('עודף', diff, 'change') : big('חסר', -diff, 'short'))
+      + '</div>';
+  } else if (mode === 'menu') {
     body = `<div class="s-lines s-menu"><div><b>תפריט</b></div><div>1 · דוח ביניים (X)</div><div>2 · סגירת יום (Z)</div><div>3 · דוח מלאי</div><div>4 · העתק קבלה אחרונה</div><div style="color:#9fb3d9">C · חזרה</div></div>`;
+  } else if (!cart.lines.length && paidInfo) {
+    body = '<div class="s-lines" style="display:flex;flex-direction:column;justify-content:center;gap:8px">'
+      + big('שולם', paidInfo.paid) + big('עודף ללקוח', paidInfo.change, 'change') + '</div>';
   } else if (!cart.lines.length) {
     const idle = !inserted ? 'הכניסו כרטיס' : cardError ? '⛔ הכרטיס נפסל' : !K.isConfigured(card) ? 'צריך הגדרה במחשב'
       : K.needsClose(card, nowIso()) ? 'סגרו את היום הקודם · תפריט 2' : cart.refund ? 'החזרה — סרקו פריט' : 'מוכן · סרקו מוצר';
@@ -205,14 +239,18 @@ function render() {
       return `<div class="s-line${i === si ? ' sel' : ''}"><span>${esc(l.name)}${extra}</span><span>${K.money(K.lineTotal(l))}</span></div>`;
     }).join('') + '</div>';
   }
-  const total = mode === 'menu' ? '' : `<div class="s-total${cart.refund ? ' refund' : ''}"><span>${cart.refund ? 'להחזר' : 'לתשלום'}${t.items ? ` · ${t.items} פריטים` : ''}</span><span>₪${K.money(t.total)}</span></div>`;
-  const input = `<div class="s-input"><span>${buf ? 'הקלדה:' : ''}</span><span>${esc(buf)}</span></div>`;
+  const total = mode === 'menu' || mode === 'cash' || (paidInfo && !cart.lines.length) ? '' : `<div class="s-total${cart.refund ? ' refund' : ''}"><span>${cart.refund ? 'להחזר' : 'לתשלום'}${t.items ? ` · ${t.items} פריטים` : ''}</span><span>₪${K.money(t.total)}</span></div>`;
+  const input = mode === 'cash' ? '' : `<div class="s-input"><span>${buf ? 'הקלדה:' : ''}</span><span>${esc(buf)}</span></div>`;
   s.innerHTML = head + body + total + input + `<div class="s-msg ${msg.kind}">${esc(msg.text)}</div>`;
 
   const last = cart.lines[cart.lines.length - 1];
-  $('cust').innerHTML = cart.lines.length
-    ? `<div>${esc(last.name)} ${K.money(K.lineTotal(last))}</div><div class="big">${cart.refund ? 'להחזר' : 'לתשלום'} ₪${K.money(t.total)}</div>`
-    : msg.kind === 'ok' && /עודף/.test(msg.text) ? `<div class="big">${esc(msg.text)}</div>` : `<div class="big">${esc(card.settings.bizName || 'ברוכים הבאים')}</div>`;
+  const typed = bufAgorot();
+  $('cust').innerHTML = mode === 'cash'
+    ? `<div>לתשלום ₪${K.money(t.total)}${typed !== null ? ` · שולם ₪${K.money(typed)}` : ''}</div><div class="big">${typed !== null && typed >= t.total ? `עודף ₪${K.money(typed - t.total)}` : `לתשלום ₪${K.money(t.total)}`}</div>`
+    : cart.lines.length
+      ? `<div>${esc(last.name)} ${K.money(K.lineTotal(last))}</div><div class="big">${cart.refund ? 'להחזר' : 'לתשלום'} ₪${K.money(t.total)}</div>`
+      : paidInfo ? `<div>שולם ₪${K.money(paidInfo.paid)}</div><div class="big">עודף ₪${K.money(paidInfo.change)}</div>`
+        : `<div class="big">${esc(card.settings.bizName || 'ברוכים הבאים')}</div>`;
 
   $('samples').innerHTML = inserted && card.products.length
     ? card.products.slice(0, 8).map((p) => `<button type="button" data-code="${esc(p.code)}" title="${esc(p.code)}">${esc(p.name)}</button>`).join('')

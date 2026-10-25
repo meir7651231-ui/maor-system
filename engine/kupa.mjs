@@ -251,7 +251,7 @@ export function checkout(card, cart, { method, tendered = 0, now, device }) {
   let change = 0;
   if (method === 'cash' && !cart.refund) {
     const tend = Math.round(tendered) || t.total; // בלי סכום = סכום מדויק
-    if (tend < t.total) return { card, device, error: 'הסכום ששולם קטן מהסכום לתשלום' };
+    if (tend < t.total) return { card, device, error: `חסרים ₪${money(t.total - tend)}` };
     change = tend - t.total;
     tendered = tend;
   } else {
@@ -415,8 +415,8 @@ export function receiptLines(card, r, { copy = false } = {}) {
   if (r.type === 'refund') {
     out.push(row(r.method === 'cash' ? 'הוחזר במזומן' : 'זיכוי באשראי', money(-r.total), w));
   } else if (r.method === 'cash') {
-    out.push(row('מזומן', money(r.tendered), w));
-    if (r.change) out.push(row('עודף', money(r.change), w));
+    out.push(row('התקבל במזומן', money(r.tendered), w));
+    out.push(row('עודף', money(r.change), w));
   } else {
     out.push(row('אשראי', money(r.total), w));
   }
