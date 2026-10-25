@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>קופה עצמאית — הצעת מחיר</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<style>
+  @page { size: A4; margin: 0; }
+  :root {
+    --ink: #0f1a2e; --ink2: #3a4660; --mute: #6b7690; --line: #dfe4ee;
+    --navy: #121c33; --teal: #14b8a0; --teal-d: #0d8a78; --teal-l: #e3f7f3; --sand: #f6f4ef; --gold: #f4a720;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "Heebo", Arial, sans-serif; color: var(--ink); background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .page { width: 210mm; height: 297mm; position: relative; overflow: hidden; page-break-after: always; padding: 18mm 18mm 16mm; }
+  .page:last-child { page-break-after: auto; }
+  h1, h2, h3 { margin: 0; line-height: 1.15; }
+  p { margin: 0 0 3mm; line-height: 1.6; font-size: 11pt; color: var(--ink2); }
+  .kicker { font-size: 9.5pt; font-weight: 700; letter-spacing: .08em; color: var(--teal-d); margin-bottom: 2mm; }
+  .sec-title { font-size: 25pt; font-weight: 900; margin-bottom: 4mm; }
+  .lead { font-size: 12.5pt; color: var(--ink2); line-height: 1.6; max-width: 150mm; margin-bottom: 8mm; }
+  .foot { position: absolute; bottom: 9mm; right: 18mm; left: 18mm; display: flex; justify-content: space-between; font-size: 8.5pt; color: var(--mute); border-top: 1px solid var(--line); padding-top: 2.5mm; }
+
+  /* ── שער ── */
+  .cover { background: var(--navy); color: #fff; padding: 0; }
+  .cover .glow { position: absolute; inset: 0; background: radial-gradient(120mm 120mm at 20% 72%, rgba(20,184,160,.35), transparent 70%), radial-gradient(90mm 90mm at 95% 10%, rgba(244,167,32,.16), transparent 70%); }
+  .cover .top { position: relative; padding: 20mm 18mm 0; }
+  .cover .tag { display: inline-block; border: 1px solid rgba(255,255,255,.35); border-radius: 99px; padding: 1.5mm 4mm; font-size: 9.5pt; letter-spacing: .06em; color: #cfe; }
+  .cover h1 { font-size: 44pt; font-weight: 900; margin: 7mm 0 4mm; letter-spacing: -.01em; }
+  .cover h1 span { color: var(--teal); }
+  .cover .sub { font-size: 14pt; color: #c9d3e8; line-height: 1.55; max-width: 120mm; }
+  .cover .hero { position: absolute; left: 24mm; bottom: 46mm; display: flex; align-items: flex-end; gap: 0; }
+  .cover .hero .dev { width: 56mm; position: relative; z-index: 2; border-radius: 6mm; box-shadow: 0 10mm 22mm rgba(0,0,0,.45); }
+  .cover .hero .rcpt { width: 50mm; margin-right: -22mm; margin-bottom: 10mm; transform: rotate(5deg); border-radius: 1.5mm; box-shadow: 0 6mm 16mm rgba(0,0,0,.35); position: relative; z-index: 1; background: #fffdf6; padding: 2mm; }
+  .cover .points { position: absolute; right: 18mm; bottom: 62mm; width: 76mm; list-style: none; margin: 0; padding: 0; }
+  .cover .points li { display: flex; gap: 3mm; align-items: flex-start; font-size: 12pt; margin-bottom: 5mm; color: #e6ecf7; line-height: 1.4; }
+  .cover .points b { color: #fff; display: block; font-size: 13pt; }
+  .cover .points .dot { flex: 0 0 8mm; height: 8mm; border-radius: 50%; background: rgba(20,184,160,.18); border: 1.5px solid var(--teal); display: grid; place-items: center; font-size: 11pt; }
+  .cover .meta { position: absolute; bottom: 0; right: 0; left: 0; background: rgba(255,255,255,.06); border-top: 1px solid rgba(255,255,255,.12); padding: 8mm 18mm; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6mm; }
+  .cover .meta div { font-size: 9pt; color: #9fb0cf; }
+  .cover .meta b { display: block; font-size: 12pt; color: #fff; font-weight: 600; margin-top: 1.5mm; min-height: 6mm; border-bottom: 1px dashed rgba(255,255,255,.3); padding-bottom: 1mm; }
+
+  /* ── רכיבים ── */
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 5mm; }
+  .card { border: 1px solid var(--line); border-radius: 4mm; padding: 5mm; background: #fff; }
+  .card h3 { font-size: 13pt; font-weight: 800; margin-bottom: 1.8mm; display: flex; gap: 2.5mm; align-items: center; }
+  .card p { font-size: 10.3pt; margin: 0; }
+  .ico { width: 9mm; height: 9mm; border-radius: 2.5mm; background: var(--teal-l); display: grid; place-items: center; font-size: 13pt; flex: 0 0 auto; }
+  .box-list { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3.5mm; margin-top: 3mm; }
+  .box-list div { background: var(--sand); border-radius: 3mm; padding: 4mm 3mm; text-align: center; font-size: 9.8pt; color: var(--ink2); line-height: 1.35; }
+  .box-list div b { display: block; font-size: 10.8pt; color: var(--ink); margin: 1.5mm 0 1mm; }
+  .box-list .e { font-size: 18pt; }
+  .band { background: var(--sand); border-radius: 4mm; padding: 5mm 6mm; margin-top: 6mm; display: flex; gap: 6mm; align-items: center; }
+  .band .q { font-size: 11pt; color: var(--ink2); line-height: 1.55; }
+  .band .q b { color: var(--ink); }
+  .chips { display: flex; gap: 2mm; flex-wrap: wrap; margin-top: 2mm; }
+  .chips span { background: #fff; border: 1px solid var(--line); border-radius: 99px; padding: 1mm 3.5mm; font-size: 9.5pt; }
+
+  .steps { display: grid; grid-template-columns: 1fr; gap: 4mm; }
+  .step { display: grid; grid-template-columns: 11mm 1fr; gap: 4mm; align-items: start; }
+  .step .n { width: 11mm; height: 11mm; border-radius: 50%; background: var(--navy); color: #fff; display: grid; place-items: center; font-weight: 800; font-size: 13pt; }
+  .step h3 { font-size: 13pt; font-weight: 800; margin: 1mm 0 1mm; }
+  .step p { font-size: 10.3pt; margin: 0; }
+  .shot { border-radius: 4mm; box-shadow: 0 3mm 10mm rgba(15,26,46,.18); display: block; }
+  .cap { font-size: 8.8pt; color: var(--mute); text-align: center; margin-top: 2mm; }
+  .twocol { display: grid; grid-template-columns: 1fr 68mm; gap: 8mm; align-items: start; }
+
+  .feat { list-style: none; padding: 0; margin: 0; }
+  .feat li { padding: 2.6mm 0; border-bottom: 1px solid var(--line); font-size: 10.4pt; color: var(--ink2); line-height: 1.5; display: grid; grid-template-columns: 7mm 1fr; }
+  .feat li:last-child { border-bottom: 0; }
+  .feat li b { color: var(--ink); }
+  .feat .c { color: var(--teal-d); font-weight: 800; }
+
+  /* ── מחיר ── */
+  .price-hero { background: var(--navy); color: #fff; border-radius: 5mm; padding: 8mm 9mm; display: flex; justify-content: space-between; align-items: center; position: relative; overflow: hidden; }
+  .price-hero::after { content: ""; position: absolute; left: -20mm; top: -20mm; width: 70mm; height: 70mm; border-radius: 50%; background: radial-gradient(circle, rgba(20,184,160,.35), transparent 70%); }
+  .price-hero .lbl { font-size: 11pt; color: #b9c6e0; }
+  .price-hero .lbl b { display: block; font-size: 16pt; color: #fff; margin-top: 1mm; }
+  .price-hero .amt { font-size: 40pt; font-weight: 900; letter-spacing: -.01em; position: relative; z-index: 1; }
+  .price-hero .amt small { font-size: 12pt; font-weight: 500; color: #b9c6e0; margin-right: 2mm; }
+  .pay { display: grid; grid-template-columns: 1fr 1fr; gap: 5mm; margin-top: 5mm; }
+  .pay .p { border: 1.5px solid var(--teal); border-radius: 4mm; padding: 5mm; position: relative; }
+  .pay .p .pct { position: absolute; top: -3.5mm; right: 5mm; background: var(--teal); color: #fff; font-weight: 800; font-size: 9.5pt; border-radius: 99px; padding: .8mm 3mm; }
+  .pay .p .v { font-size: 22pt; font-weight: 900; margin: 1mm 0; }
+  .pay .p .v small { font-size: 10pt; font-weight: 500; color: var(--mute); }
+  .pay .p div.t { font-size: 10pt; color: var(--ink2); line-height: 1.45; }
+  .incl { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5mm 6mm; list-style: none; padding: 0; margin: 3mm 0 0; }
+  .incl li { font-size: 10.3pt; color: var(--ink2); padding-right: 6mm; position: relative; line-height: 1.45; }
+  .incl li::before { content: "✓"; position: absolute; right: 0; color: var(--teal-d); font-weight: 900; }
+  .h4 { font-size: 12.5pt; font-weight: 800; margin: 6mm 0 1mm; }
+  .terms { font-size: 9.6pt; color: var(--ink2); line-height: 1.55; padding-right: 5mm; margin: 2mm 0 0; }
+  .terms li { margin-bottom: 1mm; }
+
+  .timeline { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; margin-top: 3mm; position: relative; }
+  .timeline::before { content: ""; position: absolute; top: 5mm; right: 8%; left: 8%; height: 2px; background: var(--line); }
+  .timeline div { text-align: center; position: relative; padding: 0 2mm; }
+  .timeline .b { width: 10mm; height: 10mm; border-radius: 50%; background: #fff; border: 2px solid var(--teal); margin: 0 auto 2mm; display: grid; place-items: center; font-weight: 800; color: var(--teal-d); position: relative; z-index: 1; }
+  .timeline h3 { font-size: 11pt; font-weight: 800; }
+  .timeline p { font-size: 9.4pt; margin: 1mm 0 0; line-height: 1.4; }
+  .timeline .money { display: inline-block; margin-top: 1.5mm; background: var(--teal-l); color: var(--teal-d); font-weight: 700; border-radius: 99px; padding: .5mm 3mm; font-size: 9pt; }
+
+  /* ── הזמנה ── */
+  .form { display: grid; grid-template-columns: 1fr 1fr; gap: 6mm 8mm; margin-top: 4mm; }
+  .form .f { font-size: 9.5pt; color: var(--mute); }
+  .form .f div { border-bottom: 1px solid var(--ink2); height: 8mm; }
+  .form .wide { grid-column: 1 / -1; }
+  .sumbox { background: var(--sand); border-radius: 4mm; padding: 5mm 6mm; margin-top: 7mm; font-size: 10.5pt; color: var(--ink2); line-height: 1.7; }
+  .sumbox b { color: var(--ink); }
+  .paytable { width: 100%; border-collapse: collapse; margin-top: 4mm; font-size: 10pt; }
+  .paytable th { background: var(--navy); color: #fff; font-weight: 600; padding: 2.5mm; text-align: right; }
+  .paytable td { border-bottom: 1px solid var(--line); padding: 3mm 2.5mm; height: 11mm; }
+  .sigs { display: grid; grid-template-columns: 1fr 1fr; gap: 14mm; margin-top: 12mm; }
+  .sigs div { border-top: 1.5px solid var(--ink); padding-top: 2mm; font-size: 10pt; color: var(--ink2); }
+</style>
+</head>
+<body>
+
+<!-- 1 · שער -->
+<section class="page cover">
+  <div class="glow"></div>
+  <div class="top">
+    <span class="tag">הצעת מחיר · מסמכי המוצר</span>
+    <h1>קופה עצמאית<br><span>בלי מחשב.</span></h1>
+    <div class="sub">סורק, מסך קטן, מקלדת ומדפסת קבלות — מכירה, קבלות, מלאי ודוחות. בלי מחשב בחנות, בלי אינטרנט ובלי מנוי חודשי.</div>
+  </div>
+  <ul class="points">
+    <li><span class="dot">⚡</span><span><b>מוכרים מהשנייה הראשונה</b>סורקים, לוחצים "מזומן" — הקופה מראה עודף ומדפיסה קבלה.</span></li>
+    <li><span class="dot">💳</span><span><b>כרטיס זיכרון = כל העסק</b>מוציאים, מכניסים לכל מחשב, ומנהלים מוצרים, מחירים ודוחות.</span></li>
+    <li><span class="dot">🔒</span><span><b>קבלות שאי אפשר לזייף</b>כל קבלה חתומה ומספור רציף — מוכן לרואה החשבון.</span></li>
+  </ul>
+  <div class="hero">
+    <img class="dev" src="img/device-cash.png" alt="הקופה: לתשלום, כמה שילם הלקוח, עודף">
+    <img class="rcpt" src="img/receipt.png" alt="קבלה מודפסת">
+  </div>
+  <div class="meta">
+    <div>לכבוד<b>&nbsp;</b></div>
+    <div>תאריך<b>25.10.2026</b></div>
+    <div>מגיש ההצעה<b>&nbsp;</b></div>
+  </div>
+</section>
+
+<!-- 2 · המוצר -->
+<section class="page">
+  <div class="kicker">המוצר</div>
+  <h2 class="sec-title">קופה אחת, בלי מסביב.</h2>
+  <p class="lead">יחידה קומפקטית עם מסך צבעוני קטן ומקלדת בסגנון מחשבון. לא טלפון, לא טאבלט ולא מחשב — מכשיר שעושה דבר אחד, טוב ומהר. כל הנתונים נשמרים בכרטיס זיכרון שנשאר אצלכם.</p>
+
+  <div class="grid2">
+    <div class="card"><h3><span class="ico">🔦</span>סורקים ומוכרים</h3><p>אקדח ברקוד בכבל. מוצר בלי ברקוד? מקלידים מחיר. כמויות, הנחות לשורה או לכל הקנייה — בכמה לחיצות.</p></div>
+    <div class="card"><h3><span class="ico">💵</span>מזומן ועודף</h3><p>מקלידים כמה הלקוח נתן — המסך מראה את העודף בגדול והקבלה יוצאת (ומגירת כסף, אם חוברה, נפתחת). עיגול ל-10 אגורות לפי בנק ישראל.</p></div>
+    <div class="card"><h3><span class="ico">🧾</span>קבלה מודפסת</h3><p>קבלה עם פרטי העסק, מע"מ, מספור רציף וסימון מקור/העתק. החזרות — רק מול קבלה מקורית ובמחיר ששולם.</p></div>
+    <div class="card"><h3><span class="ico">📊</span>סוף יום בלחיצה</h3><p>דוח סגירת יום (Z) מודפס ונשמר בכרטיס: מזומן, אשראי, החזרות, הנחות, מע"מ וסה"כ מצטבר.</p></div>
+    <div class="card"><h3><span class="ico">📦</span>מלאי שמתעדכן לבד</h3><p>כל מכירה מורידה מהמלאי. דוח מלאי בקופה, אזהרה כשמוצר עומד להיגמר.</p></div>
+    <div class="card"><h3><span class="ico">📡</span>בלי אינטרנט, בלי מנוי</h3><p>הקופה עובדת לבד. אין שרת, אין ענן, אין תשלום חודשי — הנתונים שלכם, אצלכם.</p></div>
+  </div>
+
+  <div class="h4" style="margin-top:9mm">מה מקבלים</div>
+  <div class="box-list">
+    <div><span class="e">🖩</span><b>יחידת הקופה</b>מסך צבעוני, מקלדת, שעון עם סוללה</div>
+    <div><span class="e">🔦</span><b>אקדח ברקוד</b>בכבל — בלי טעינה ובלי ניתוקים</div>
+    <div><span class="e">🖨</span><b>מדפסת קבלות</b>גליל 80 מ"מ, חיתוך אוטומטי</div>
+    <div><span class="e">💾</span><b>2 כרטיסי זיכרון</b>אחד בשימוש ואחד לגיבוי</div>
+  </div>
+
+  <div class="band">
+    <div class="q"><b>מתאים במיוחד ל:</b>
+      <div class="chips"><span>חנויות קטנות</span><span>בוטיקים</span><span>דוכנים וקיוסקים</span><span>מכירות באירועים</span><span>מקומות בלי אינטרנט יציב</span></div>
+    </div>
+  </div>
+  <div class="foot"><span>קופה עצמאית בלי מחשב</span><span>2</span></div>
+</section>
+
+<!-- 3 · יום עבודה -->
+<section class="page">
+  <div class="kicker">איך זה עובד</div>
+  <h2 class="sec-title">יום עבודה בקופה.</h2>
+  <p class="lead">אין מה ללמוד. הקופאית מקבלת דף הוראות אחד ליד הקופה (מצורף בסוף), וזהו.</p>
+  <div class="twocol">
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div><h3>מדליקים</h3><p>התאריך והשעה בראש המסך. השעון עם סוללה — לא מתאפס בהפסקת חשמל.</p></div></div>
+      <div class="step"><div class="n">2</div><div><h3>סורקים</h3><p>כל מוצר באקדח. המסך מראה שם, מחיר וסה"כ. טעות? בוחרים שורה ולוחצים "מחק".</p></div></div>
+      <div class="step"><div class="n">3</div><div><h3>מקבלים תשלום</h3><p><b>מזומן:</b> מקלידים כמה נתן הלקוח ← העודף על המסך.<br><b>אשראי:</b> מעבירים במסוף האשראי הרגיל, ולוחצים "אשראי" בקופה.</p></div></div>
+      <div class="step"><div class="n">4</div><div><h3>הקבלה יוצאת</h3><p>מודפסת מיד, עם מספר רציף. צריך שוב? "העתק" מהתפריט — מסומן "העתק".</p></div></div>
+      <div class="step"><div class="n">5</div><div><h3>סוגרים את היום</h3><p>תפריט ← 2 ← קוד מנהל. דוח Z מודפס ונשמר. למחרת — יום חדש.</p></div></div>
+      <div class="step"><div class="n">6</div><div><h3>מנהלים במחשב (מתי שרוצים)</h3><p>מוציאים את הכרטיס, מכניסים למחשב, מעדכנים מוצרים ומחירים, מחזירים לקופה. הקופה מראה מה השתנה.</p></div></div>
+    </div>
+    <div>
+      <img class="shot" style="width:68mm" src="img/device-cash.png" alt="">
+      <div class="cap">המסך בתשלום במזומן: לתשלום · כמה שילם · עודף</div>
+      <img class="shot" style="width:68mm;margin-top:6mm" src="img/receipt.png" alt="">
+      <div class="cap">הקבלה המודפסת</div>
+    </div>
+  </div>
+  <div class="foot"><span>קופה עצמאית בלי מחשב</span><span>3</span></div>
+</section>
+
+<!-- 4 · ניהול -->
+<section class="page">
+  <div class="kicker">ניהול</div>
+  <h2 class="sec-title">כל העסק — בכרטיס אחד.</h2>
+  <p class="lead">בכרטיס הזיכרון יש דף ניהול שנפתח בכל מחשב, בלי להתקין כלום ובלי אינטרנט. וגם קבצים רגילים שנפתחים באקסל — כך שזה עובד גם במחשבים נעולים או מסוננים.</p>
+  <img class="shot" style="width:100%" src="img/manage-reports.png" alt="">
+  <div class="cap">דף הניהול: דוחות, סגירות יום, סיכום חודשי לרואה החשבון</div>
+  <ul class="feat" style="margin-top:6mm">
+    <li><span class="c">✓</span><span><b>מוצרים ומחירים</b> — הוספה ועריכה במסך, או בקובץ אקסל (מוצרים.csv). שגיאות אקסל נפוצות (ברקוד שהשתבש, אפסים שנמחקו) מזוהות.</span></li>
+    <li><span class="c">✓</span><span><b>מדבקות ברקוד</b> — למוצרים בלי ברקוד, להדפסה ולהדבקה.</span></li>
+    <li><span class="c">✓</span><span><b>דוחות</b> — היום הפתוח, כל סגירות היום, קבלות, וסיכום חודשי לרואה החשבון (גם כקובץ אקסל).</span></li>
+    <li><span class="c">✓</span><span><b>גיבוי</b> — העתקת הכרטיס למחשב, עם תזכורת כל שלושה חודשים.</span></li>
+    <li><span class="c">✓</span><span><b>מה שלא משנים</b> — קבלות וסגירות יום רק נצפות ומיוצאות. אי אפשר למחוק או "לאפס" מהמחשב.</span></li>
+  </ul>
+  <div class="foot"><span>קופה עצמאית בלי מחשב</span><span>4</span></div>
+</section>
+
+<!-- 5 · אמינות -->
+<section class="page">
+  <div class="kicker">אמינות</div>
+  <h2 class="sec-title">בנוי לא להיכשל.</h2>
+  <p class="lead">קופה היא כסף ומסמכים. לכן כל מקרה קצה נבדק — הפסקת חשמל, כרטיס שנפגם, טעות הקלדה, ניסיון לשנות נתונים. מעל 90 בדיקות אוטומטיות רצות על התוכנה לפני כל גרסה.</p>
+  <div class="grid2">
+    <div class="card"><h3><span class="ico">🔏</span>קבלות חתומות</h3><p>כל קבלה ודוח נחתמים בשרשרת. שינוי, מחיקה או החזרת כרטיס ישן — הקופה מזהה ועוצרת.</p></div>
+    <div class="card"><h3><span class="ico">🔢</span>מספור רציף</h3><p>קבלות וסגירות יום במספור רציף, עם בדיקת רציפות. כרטיס חלופי ממשיך מאותו מספר.</p></div>
+    <div class="card"><h3><span class="ico">⚡</span>הפסקת חשמל</h3><p>הנתונים נשמרים לפני שהקבלה מודפסת. אחרי הפסקה — הקופה משלימה את מה שנשמר וממשיכה.</p></div>
+    <div class="card"><h3><span class="ico">💾</span>כרטיס שנפגם</h3><p>הקופה עוצרת ולא כותבת עליו. לעולם לא "מתחילים מחדש" בשקט — הקבלות לא הולכות לאיבוד.</p></div>
+    <div class="card"><h3><span class="ico">🔑</span>קוד מנהל</h3><p>החזרות, הנחות, סגירת יום ופתיחת מגירה — רק עם קוד. הקוד שמור בקופה עצמה, ונעילה אחרי 5 טעויות.</p></div>
+    <div class="card"><h3><span class="ico">🕐</span>תאריך ושעה</h3><p>שעון עם סוללה. שעון שזז — הקופה מבקשת לתקן לפני שממשיכים. אי אפשר להפיק קבלה "בעבר".</p></div>
+    <div class="card"><h3><span class="ico">✋</span>טעויות הקלדה</h3><p>מחיר מעל ₪5,000 או כמות מעל 50 — מבקש אישור. מזומן חסר — "חסרים ₪…", ואין קבלה.</p></div>
+    <div class="card"><h3><span class="ico">⬆️</span>עדכוני תוכנה</h3><p>דרך הכרטיס, רק קובץ חתום מהספק ורק עם קוד מנהל. כל עדכון נרשם, והגרסה מודפסת בדוחות.</p></div>
+  </div>
+  <div class="foot"><span>קופה עצמאית בלי מחשב</span><span>5</span></div>
+</section>
+
+<!-- 6 · הצעת מחיר -->
+<section class="page">
+  <div class="kicker">הצעת מחיר</div>
+  <h2 class="sec-title">מחיר אחד. הכול כלול.</h2>
+  <div class="price-hero">
+    <div class="lbl">קופה עצמאית — מערכת מלאה<b>מותקנת, מוגדרת ומוכנה למכירה</b></div>
+    <div class="amt">7,000 ₪<small>+ מע"מ</small></div>
+  </div>
+
+  <div class="h4">המחיר כולל</div>
+  <ul class="incl">
+    <li>יחידת הקופה עם מסך, מקלדת ושעון עם סוללה</li>
+    <li>אקדח ברקוד בכבל</li>
+    <li>מדפסת קבלות 80 מ"מ</li>
+    <li>2 כרטיסי זיכרון (עבודה + גיבוי)</li>
+    <li>הגדרת פרטי העסק בקופה</li>
+    <li>הזנת המוצרים והמחירים הראשונית</li>
+    <li>התקנה בבית העסק</li>
+    <li>הדרכה לבעלים ולקופאיות + דף הוראות</li>
+    <li>שנת שירות ותמיכה ראשונה</li>
+    <li>עדכוני תוכנה בשנת השירות</li>
+  </ul>
+
+  <div class="h4">תנאי תשלום</div>
+  <div class="pay">
+    <div class="p"><span class="pct">50% מראש</span><div class="v">3,500 ₪ <small>+ מע"מ</small></div><div class="t">בחתימה על ההזמנה. עם התשלום מוזמנים החלקים.</div></div>
+    <div class="p"><span class="pct">50% בסיום</span><div class="v">3,500 ₪ <small>+ מע"מ</small></div><div class="t">בסיום העבודה — בהתקנה ובמסירת הקופה כשהיא עובדת.</div></div>
+  </div>
+
+  <div class="h4">שלבי העבודה</div>
+  <div class="timeline">
+    <div><span class="b">1</span><h3>הזמנה</h3><p>חתימה ותשלום מקדמה.<br>הזמנת החלקים.</p><span class="money">50%</span></div>
+    <div><span class="b">2</span><h3>הרכבה והגדרה</h3><p>הרכבה, בדיקות, הגדרת העסק והזנת מוצרים.</p></div>
+    <div><span class="b">3</span><h3>התקנה ומסירה</h3><p>התקנה בעסק, הדרכה ומסירה.</p><span class="money">50%</span></div>
+  </div>
+
+  <div class="h4">תנאים</div>
+  <ul class="terms">
+    <li>זמן אספקה משוער: ____ שבועות מתשלום המקדמה (חלק מהרכיבים מיובאים).</li>
+    <li>מהשנה השנייה: שירות, תמיכה ועדכונים — 690 ₪ + מע"מ לשנה, לפי בחירה.</li>
+    <li>לא כלול: מסוף סליקת אשראי (הקופה רושמת את התשלום, הסליקה במסוף נפרד), מגירת כסף (אופציונלית), גלילי נייר מעבר לראשונים.</li>
+    <li>רישום התוכנה ברשות המסים לפי הוראות ניהול ספרים — באחריות הספק, לפני הפעלה למכירות.</li>
+    <li>תוקף ההצעה: 30 יום מתאריך ההצעה.</li>
+  </ul>
+  <div class="foot"><span>קופה עצמאית בלי מחשב</span><span>6</span></div>
+</section>
+
+<!-- 7 · אישור הזמנה -->
+<section class="page">
+  <div class="kicker">אישור הזמנה</div>
+  <h2 class="sec-title">מתחילים.</h2>
+  <p class="lead">חתימה על הדף ותשלום המקדמה — ומתחילים להזמין את החלקים.</p>
+
+  <div class="h4">פרטי העסק (יודפסו על הקבלות)</div>
+  <div class="form">
+    <div class="f wide">שם העסק כפי שיופיע בקבלה<div></div></div>
+    <div class="f">עוסק מורשה / עוסק פטור<div></div></div>
+    <div class="f">מספר עוסק / ח"פ<div></div></div>
+    <div class="f wide">כתובת<div></div></div>
+    <div class="f">טלפון<div></div></div>
+    <div class="f">שם איש הקשר<div></div></div>
+    <div class="f">מייל<div></div></div>
+    <div class="f">שורה בתחתית הקבלה (למשל "תודה ולהתראות!")<div></div></div>
+  </div>
+
+  <div class="sumbox">
+    <b>סיכום ההזמנה:</b> קופה עצמאית — מערכת מלאה, כמפורט בעמוד 6.<br>
+    <b>מחיר:</b> 7,000 ₪ + מע"מ · <b>תשלום:</b> 3,500 ₪ + מע"מ בהזמנה · 3,500 ₪ + מע"מ בסיום העבודה.
+  </div>
+
+  <table class="paytable">
+    <tr><th style="width:24%">תשלום</th><th style="width:22%">סכום</th><th style="width:20%">תאריך</th><th>אמצעי / אסמכתא</th></tr>
+    <tr><td>מקדמה (50%)</td><td>3,500 ₪ + מע"מ</td><td></td><td></td></tr>
+    <tr><td>יתרה בסיום (50%)</td><td>3,500 ₪ + מע"מ</td><td></td><td></td></tr>
+  </table>
+
+  <div class="sigs">
+    <div>חתימת הלקוח · תאריך</div>
+    <div>חתימת הספק · תאריך</div>
+  </div>
+  <div class="foot"><span>קופה עצמאית בלי מחשב</span><span>7</span></div>
+</section>
+
+</body>
+</html>
