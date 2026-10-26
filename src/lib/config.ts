@@ -8,6 +8,7 @@
  */
 import { DEFAULT_CONFIG, INTEGRATION_KEYS, INTEGRATION_SETTING_KEYS, MOTION_KEYS, SITE_LANGS, type FirebaseOrgConfig, type LocalizedText, type ModuleKey, type OrgConfig, type PublicSiteContent, type SiteLang, type TelNumber, type TelephonyConfig } from '../types/config';
 import { TEMPLATE_KEYS } from './templates';
+import { currentSiteDomain } from './siteDomains';
 
 const LS_CONFIG_KEY = 'maor_org_config';
 
@@ -840,8 +841,8 @@ export function orgSlugFromUrl(): string | null {
 
 /** טעינת קונפיגורציית הארגון לפי סדר הרזולוציה המתועד למעלה. */
 export async function loadOrgConfig(): Promise<OrgConfig> {
-  // ?org=<slug> גובר על הכול — כתובת של לקוח ספציפי
-  const slug = orgSlugFromUrl();
+  // ?org=<slug> גובר על הכול — כתובת של לקוח ספציפי; אחריו דומיין-ציבורי של ארגון (siteDomains)
+  const slug = orgSlugFromUrl() ?? currentSiteDomain()?.slug ?? null;
   // מטמון קונפיג-ענן לסלאג (CLOUD2 ענן 2) — ענן גובר על הסטטי גם בעלייה
   // מהירה/offline; מתרענן חי אחרי ההתחברות (watchOrgCloudConfig)
   if (slug) {

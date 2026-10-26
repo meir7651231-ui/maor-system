@@ -45,6 +45,7 @@ import { EncUnlockScreen } from './components/lock/EncUnlockScreen';
 import { CloudUnlockScreen } from './components/lock/CloudUnlockScreen';
 import { DEFAULT_LOCK_ZONES } from './lib/lock';
 import { useViewScrollMemory } from './lib/scrollMemory';
+import { currentSiteDomain } from './lib/siteDomains';
 
 /* ⚡ VISION-LIGHT ‏#13 — פיצול-chunks לפי מודולים: כל מסך-מודול נטען עצל
  * ‏(React.lazy) ב-chunk משלו; הבנדל הראשי נשאר בית+שלד. ה-loaders משותפים
@@ -296,9 +297,11 @@ export default function App() {
 
   // 🌐 אתר ציבורי (shell.publicsite) — נפתח בכתובת ‎?site‎ או ‎#site‎, לפני שער-
   // הענן (המבקר לא צריך חשבון). "כניסה למערכת" מנקה את הבקשה וממשיך לאפליקציה.
+  const siteDomain = currentSiteDomain();
   const [siteRequested, setSiteRequested] = useState(() => {
     try {
-      return new URLSearchParams(window.location.search).has('site') || window.location.hash === '#site';
+      // דומיין-ציבורי של ארגון (siteDomains, 26.10) ⇒ האתר-הציבורי הוא דף-הבית של הדומיין
+      return new URLSearchParams(window.location.search).has('site') || window.location.hash === '#site' || !!siteDomain;
     } catch {
       return false;
     }
@@ -578,6 +581,11 @@ export default function App() {
       <Suspense fallback={<div className="empty">טוען…</div>}>
       <PublicSite
         onEnter={() => {
+          // בדומיין-הציבורי: המשרד אצלנו (הנתונים המקומיים + אישור-הענן קשורים למארח שלנו)
+          if (siteDomain) {
+            window.location.href = siteDomain.officeUrl;
+            return;
+          }
           try {
             const url = new URL(window.location.href);
             url.searchParams.delete('site');
