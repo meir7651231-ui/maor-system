@@ -45,7 +45,7 @@ import { EncUnlockScreen } from './components/lock/EncUnlockScreen';
 import { CloudUnlockScreen } from './components/lock/CloudUnlockScreen';
 import { DEFAULT_LOCK_ZONES } from './lib/lock';
 import { useViewScrollMemory } from './lib/scrollMemory';
-import { currentSiteDomain } from './lib/siteDomains';
+import { applySiteIcons, currentSiteDomain } from './lib/siteDomains';
 
 /* ⚡ VISION-LIGHT ‏#13 — פיצול-chunks לפי מודולים: כל מסך-מודול נטען עצל
  * ‏(React.lazy) ב-chunk משלו; הבנדל הראשי נשאר בית+שלד. ה-loaders משותפים
@@ -237,6 +237,7 @@ export default function App() {
   // אייקון-הארגון (זהות-ורטיקל) — favicon מאימוג'י כשמוגדר; חסר ⇒ הדיפולט (זהב).
   // ה-store כבר קורא applyTheme (ערכה+צבע+תנועה); ה-favicon אינו על ה-root, לכן כאן.
   useEffect(() => {
+    if (applySiteIcons(currentSiteDomain(), import.meta.env.BASE_URL)) return; // דומיין-ציבורי ⇒ לוגו-הארגון
     applyFavicon(config.emoji);
   }, [config.emoji]);
 
@@ -315,8 +316,8 @@ export default function App() {
     const he = (v: unknown) => (typeof v === 'string' ? v : (v as { he?: string } | undefined)?.he ?? '');
     const line = he(s?.brandLine) || he(s?.tagline);
     document.title = (config.orgName || dbOrgName || '') + (line ? ' — ' + line : '');
-    applyFavicon(s?.icon || config.emoji);
-  }, [siteRequested, config, dbOrgName, onSignupScreen]);
+    if (!applySiteIcons(siteDomain, import.meta.env.BASE_URL)) applyFavicon(s?.icon || config.emoji);
+  }, [siteRequested, config, dbOrgName, onSignupScreen, siteDomain]);
 
   // אשף ההרכבה — למטמיע בלבד, נפתח עם #builder בכתובת
   // ‏#builder = אשף מקומי · ‏#builder=slug = אשף קשור-ענן ללקוח (RemoteWizard, 5.8)

@@ -5,6 +5,8 @@
  * 1. proxy שקוף ל-github.io (מתעדכן מיד במיזוג ל-main — לא תלוי ב-cron של orbit-il); Location מתוקן.
  * 2. (26.10.2026) מטא-שיתוף: וואטסאפ/פייסבוק לא מריצים JS ⇒ הכותרת/תיאור/תמונה חייבים להיות ב-HTML עצמו.
  *    HTMLRewriter מחליף את <title> ומזריק description + og:* + twitter:* — רק בדף-ה-HTML.
+ * 3. (26.10.2026) אייקונים: ה-HTML הבסיסי נושא את אייקוני-אורביט ⇒ מוחלפים בלוגו של מאור
+ *    (גם לפני שה-JS רץ — אייפון/מסך-הבית/תצוגות-קישור).
  */
 const ORIGIN = 'https://meir7651231-ui.github.io/maor-system';
 const META = {
@@ -13,6 +15,7 @@ const META = {
   image: 'https://meorhachessed.com/c/maor-hachesed/og.jpg',
   url: 'https://meorhachessed.com/',
 };
+const ICONS = '/c/maor-hachesed/icons/';
 const esc = (s) => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
 
 export default {
@@ -41,6 +44,8 @@ export default {
     return new HTMLRewriter()
       .on('title', { element(e) { e.setInnerContent(META.title); } })
       .on('meta[name="description"]', { element(e) { e.remove(); } })
+      .on('link[rel="icon"]', { element(e) { e.removeAttribute('type'); e.setAttribute('href', ICONS + 'favicon-64.png'); } })
+      .on('link[rel="apple-touch-icon"]', { element(e) { e.setAttribute('href', ICONS + 'apple-touch-icon.png'); } })
       .on('head', { element(e) { e.append(tags, { html: true }); } })
       .transform(out);
   },

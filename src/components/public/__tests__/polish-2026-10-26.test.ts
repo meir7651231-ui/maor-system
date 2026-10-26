@@ -39,7 +39,7 @@ describe('✨ ליטוש האתר-הציבורי', () => {
   });
 
   it('לשונית+סמל של האתר-הציבורי; "מופעל על-ידי אורביט"', () => {
-    expect(appSrc).toMatch(/if \(!siteRequested \|\| !publicSiteOn\(config\)\) return;[\s\S]{0,400}document\.title = [\s\S]{0,120}applyFavicon\(s\?\.icon \|\| config\.emoji\)/);
+    expect(appSrc).toMatch(/if \(!siteRequested \|\| !publicSiteOn\(config\)\) return;[\s\S]{0,400}document\.title = [\s\S]{0,300}applyFavicon\(s\?\.icon \|\| config\.emoji\)/);
     for (const l of ['he', 'en', 'yi'] as const) expect(siteUi(l, 'poweredBy')).not.toMatch(/מאור|Maor/);
   });
 

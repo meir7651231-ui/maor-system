@@ -52,9 +52,11 @@ describe('📱 ratchet — PWA שלב 1', () => {
   });
 
   it('מניפסט פר-ארגון: כתובות אבסולוטיות + start_url משמר ?org= + שורש לא נגוע', () => {
-    expect(pwaSrc).toContain("start_url: base + '?org=' + encodeURIComponent(slug)");
+    // 26.10.2026: בדומיין-ציבורי (siteDomains) start_url = האתר-הציבורי; בכל מקום אחר ?org= נשמר (הכוונה, לא הנוסח)
+    expect(pwaSrc).toContain("start_url: dom ? base : base + '?org=' + encodeURIComponent(slug)");
     expect(pwaSrc).toMatch(/if \(slug === 'default' \|\| !name\) return/);
-    expect(pwaSrc).toContain("base + 'icons/icon-192.png'");
+    expect(pwaSrc).toContain("const ic = base + (dom?.iconDir ?? 'icons/');"); // בלי דומיין ⇒ icons/ של הבסיס כמו קודם
+    expect(pwaSrc).toContain("ic + 'icon-192.png'");
   });
 
   it('כפתור-התקנה מפורש: beforeinstallprompt נלכד, מוסתר כשמותקן, הוראות-iOS', () => {

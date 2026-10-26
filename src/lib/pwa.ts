@@ -9,6 +9,7 @@
  * (slug≠default) מקבל מניפסט-Blob דינמי עם השם שלו ו-start_url שמשמר את
  * ‎?org=<slug>‎ — כתובות אבסולוטיות בלבד (בסיס-blob אטום לא פותר יחסיות).
  */
+import { currentSiteDomain } from './siteDomains';
 import type { OrgConfig } from '../types/config';
 import { featureOn } from './config';
 
@@ -85,21 +86,24 @@ export function applyOrgManifest(config: OrgConfig): void {
   const name = (config.orgName || '').trim();
   if (slug === 'default' || !name) return; // אתר-השורש — המניפסט הסטטי כמות-שהוא
   const base = new URL(import.meta.env.BASE_URL, window.location.href).href;
+  // דומיין-ציבורי (26.10.2026): קיצור-מסך-הבית פותח את האתר-הציבורי (לא משרד ריק על הדומיין) עם לוגו-הארגון
+  const dom = currentSiteDomain();
+  const ic = base + (dom?.iconDir ?? 'icons/');
   const manifest = {
     name,
     short_name: name.length > 12 ? name.slice(0, 12) : name,
     lang: 'he',
     dir: 'rtl',
-    start_url: base + '?org=' + encodeURIComponent(slug),
+    start_url: dom ? base : base + '?org=' + encodeURIComponent(slug),
     scope: base,
     display: 'standalone',
     orientation: 'portrait-primary',
     theme_color: '#211d17',
     background_color: '#faf7f2',
     icons: [
-      { src: base + 'icons/icon-192.png', sizes: '192x192', type: 'image/png' },
-      { src: base + 'icons/icon-512.png', sizes: '512x512', type: 'image/png' },
-      { src: base + 'icons/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+      { src: ic + 'icon-192.png', sizes: '192x192', type: 'image/png' },
+      { src: ic + 'icon-512.png', sizes: '512x512', type: 'image/png' },
+      ...(dom?.iconDir ? [] : [{ src: base + 'icons/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }]),
     ],
   };
   if (orgManifestUrl) URL.revokeObjectURL(orgManifestUrl);
