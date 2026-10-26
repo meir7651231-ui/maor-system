@@ -207,7 +207,9 @@ export interface CampaignProgress {
   currency: string;
   /** ימים עד היעד (≥0) או null אם אין תאריך/עבר. */
   daysLeft: number | null;
-  /** יש קמפיין להצגה (יעד חיובי). */
+  /** תאריך-היעד עבר (26.10.2026: קמפיין שנגמר לא מוצג כ"נסגר בעוד 0 ימים"). */
+  ended: boolean;
+  /** יש קמפיין להצגה (יעד חיובי ולא הסתיים). */
   show: boolean;
 }
 
@@ -223,6 +225,7 @@ export function campaignProgress(
   const raised = typeof c?.raised === 'number' && c.raised > 0 ? c.raised : 0;
   const pct = goal > 0 ? Math.max(0, Math.min(100, Math.round((raised / goal) * 100))) : 0;
   let daysLeft: number | null = null;
+  let ended = false;
   if (c?.end) {
     // חצות-מקומי של יום-היעד (חלק-התאריך בלבד) — ספירת ימים קלנדרית: מ-1.9 ל-11.9
     // = 10 (ולא 11 שנוצר מחישוב סוף-יום). עבר ⇒ 0.
@@ -230,9 +233,10 @@ export function campaignProgress(
     if (Number.isFinite(t)) {
       const diff = Math.ceil((t - nowMs) / 86_400_000);
       daysLeft = diff > 0 ? diff : 0;
+      ended = nowMs >= t + 86_400_000; // היום-האחרון עצמו עדיין פתוח
     }
   }
-  return { goal, raised, pct, currency: c?.currency || '₪', daysLeft, show: goal > 0 };
+  return { goal, raised, pct, currency: c?.currency || '₪', daysLeft, ended, show: goal > 0 && !ended };
 }
 
 /**

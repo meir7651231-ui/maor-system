@@ -376,6 +376,11 @@ export function normalizeSite(raw: unknown): PublicSiteContent | undefined {
   setLT('storyTitleAccent', s.storyTitleAccent, 80);
   setLT('storyBadge', s.storyBadge, 80);
   setLT('donateNote', s.donateNote, 240);
+  setLT('heroCaption', s.heroCaption, 60);
+  if (Array.isArray(s.amounts)) {
+    const am = s.amounts.map((a) => sitePosNum(a)).filter((a): a is number => a !== undefined).slice(0, 6);
+    if (am.length) out.amounts = am;
+  }
   if (Array.isArray(s.marquee)) {
     const mq = s.marquee.map((m) => normLocalized(m, 80)).filter((m): m is LocalizedText => !!m).slice(0, 16);
     if (mq.length) out.marquee = mq;
@@ -386,6 +391,8 @@ export function normalizeSite(raw: unknown): PublicSiteContent | undefined {
     const amt = sitePosNum(c.unitAmount); if (amt !== undefined) calc.unitAmount = amt;
     const unit = normLocalized(c.unit, 60); if (unit) calc.unit = unit;
     const note = normLocalized(c.note, 120); if (note) calc.note = note;
+    const amt2 = sitePosNum(c.unit2Amount); if (amt2 !== undefined) calc.unit2Amount = amt2;
+    const unit2 = normLocalized(c.unit2, 60); if (unit2) calc.unit2 = unit2;
     if (Object.keys(calc).length) out.calc = calc;
   }
   if (Array.isArray(s.tiers)) {
@@ -504,6 +511,8 @@ export function normalizeSite(raw: unknown): PublicSiteContent | undefined {
       if (!label || !detail) return null;
       const pm: NonNullable<PublicSiteContent['paymentMethods']>[number] = { label, detail };
       if (o.ltr === true) pm.ltr = true;
+      const url = typeof o.url === 'string' ? safeHttpsUrl(o.url) : null; if (url) pm.url = url;
+      const icon = siteStr(o.icon, 8); if (icon) pm.icon = icon;
       return pm;
     }).filter((x): x is NonNullable<PublicSiteContent['paymentMethods']>[number] => !!x).slice(0, 6);
     if (items.length) out.paymentMethods = items;

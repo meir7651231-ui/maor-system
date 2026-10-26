@@ -1355,6 +1355,9 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
                 <TextInput value={siteHe(wsite.heroBadge)} onChange={(v) => setSiteText('heroBadge', v)} placeholder="2,800 משפחות איתנו היום" />
               </Field>
             </div>
+            <Field label="תווית על הווידאו (רשות)">
+              <TextInput value={siteHe(wsite.heroCaption)} onChange={(v) => setSiteText('heroCaption', v)} placeholder="מהשטח, השבוע" />
+            </Field>
 
             {/* ✍️ טקסטים ראשיים (עברית; en/yi קיימים נשמרים) */}
             <SubHead>✍️ טקסטים ראשיים</SubHead>
@@ -1476,8 +1479,23 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
                 <TextInput value={siteHe(wsite.calc?.unit)} onChange={(v) => setCalcF({ unit: putHe(wsite.calc?.unit, v) })} placeholder="ארוחות חמות" />
               </Field>
             </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '90px 1fr', gap: 8 }}>
+              <Field label="₪ ליחידה 2">
+                <input type="number" min={1} dir="ltr" value={wsite.calc?.unit2Amount ?? ''} onChange={(e) => setCalcF({ unit2Amount: e.target.value ? Math.max(1, Math.round(+e.target.value)) : undefined })} style={NUM_STYLE} />
+              </Field>
+              <Field label="שם יחידה 2 (רשות)">
+                <TextInput value={siteHe(wsite.calc?.unit2)} onChange={(v) => setCalcF({ unit2: putHe(wsite.calc?.unit2, v) })} placeholder="חודשי אימוץ יתום" />
+              </Field>
+            </div>
             <Field label="הערת המחשבון">
               <TextInput value={siteHe(wsite.calc?.note)} onChange={(v) => setCalcF({ note: putHe(wsite.calc?.note, v) })} placeholder="כל ₪9 = ארוחה חמה לילד ♡" />
+            </Field>
+            <div style={{ fontSize: 11.5, color: 'var(--ink-faint)' }}>
+              בלי «₪ ליחידה» — המחשבון לא מוצג באתר (לא ממציאים יחידות).
+            </div>
+            <Field label="סכומי-בחירה בתרומה (₪, מופרדים בפסיק)">
+              {/* לא-נשלט + onBlur: בשדה נשלט הפסיק נבלע מיד ואי אפשר להקליד סכום שני */}
+              <input key={(wsite.amounts ?? []).join(',')} dir="ltr" defaultValue={(wsite.amounts ?? []).join(', ')} onBlur={(e) => { const am = e.target.value.split(/[,\s]+/).map((x) => Math.round(+x)).filter((x) => x > 0).slice(0, 6); setSite({ amounts: am.length ? am : undefined }); }} placeholder="50, 180, 360, 720" style={{ ...NUM_STYLE, width: '100%' }} />
             </Field>
 
             {/* 📊 קמפיין */}
@@ -1516,10 +1534,12 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
               addLabel="אמצעי-תשלום"
               row={(it, set) => (
                 <>
-                  <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: 6 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '56px 120px 1fr', gap: 6 }}>
+                    <Field label="סמל"><TextInput value={it.icon ?? ''} onChange={(v) => set({ icon: v || undefined })} placeholder="💳" /></Field>
                     <Field label="שם"><TextInput value={siteHe(it.label)} onChange={(v) => set({ label: putHe(it.label, v) ?? '' })} placeholder="אונליין" /></Field>
                     <Field label="פרטים"><TextInput value={siteHe(it.detail)} onChange={(v) => set({ detail: putHe(it.detail, v) ?? '' })} placeholder="אשראי / ביט / PayPal" /></Field>
                   </div>
+                  <Field label="קישור-תשלום (https, רשות) — מוסיף כפתור «לתרומה»"><TextInput dir="ltr" value={it.url ?? ''} onChange={(v) => set({ url: v || undefined })} placeholder="https://secure.cardknox.com/…" /></Field>
                   <Chip on={!!it.ltr} onClick={() => set({ ltr: !it.ltr })}>{it.ltr ? '↤ שמאל (LTR)' : 'יישור אוטומטי'}</Chip>
                 </>
               )}

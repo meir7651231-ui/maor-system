@@ -21,106 +21,451 @@
   "cloudRoot": true,
   "site": {
     "enabled": true,
-    "langs": ["he", "en"],
-    "icon": "🕯️",
-    "ticker": { "he": "קמפיין החגים · ₪342,180 נאספו · מתעדכן חי", "en": "Holiday drive · ₪342,180 raised · live" },
-    "heroBadge": { "he": "2,800 משפחות איתנו היום", "en": "2,800 families with us today" },
-    "heroTitle": { "he": "הבית של", "en": "A home for" },
-    "titleAccent": { "he": "האלמנות.", "en": "widows & orphans." },
-    "brandLine": { "he": "אור לאלמנה וליתום", "en": "Light for widow & orphan" },
-    "tagline": { "he": "כבר 24 שנה אנחנו הבית של האלמנות והיתומים: סלי מזון, מלגות, שמחות בכבוד וליווי אישי ל־2,800 משפחות — בלי בירוקרטיה ובלי לוותר על הכבוד של אף אחד.", "en": "For 24 years, a home for widows and orphans: food, scholarships, dignified celebrations and personal care for 2,800 families." },
-    "microCopy": { "he": "כל ₪9 = ארוחה חמה לילד ♡", "en": "Every ₪9 = a warm meal ♡" },
-    "marquee": [
-      { "he": "1,204 סלים יצאו השבוע" },
-      { "he": "סל למשפחה = ₪90" },
-      { "he": "92% מכל שקל — ישירות למשפחות" },
-      { "he": "2,800 משפחות · 24 שנות נתינה" },
-      { "he": "קבלה מוכרת · סעיף 46" },
-      { "he": "340 מתנדבות ומתנדבים" }
+    "langs": [
+      "he",
+      "en"
     ],
-    "servicesHeading": { "he": "שישה דרכים לחבק משפחה", "en": "Six ways to hold a family" },
+    "icon": "🕯️",
+    "donateUrl": "https://www.matara.pro/nedarimplus/online/?mosad=7001532",
+    "heroBadge": {
+      "he": "600 אלמנות · 2,000 יתומים · מאז 1994",
+      "en": "600 widows · 2,000 orphans · since 1994"
+    },
+    "heroTitle": {
+      "he": "הבית ליתומים",
+      "en": "A home for orphans"
+    },
+    "titleAccent": {
+      "he": "ואלמנות.",
+      "en": "& widows."
+    },
+    "brandLine": {
+      "he": "הבית ליתומים ואלמנות",
+      "en": "The Home For Orphans and Widows"
+    },
+    "tagline": {
+      "he": "אנחנו פותחים את הדלת לילדי השם ומספקים מפלט חם ומזמין ליתומים ואלמנות. פעילויות חברתיות, תמיכה, הדרכה אישית, חיזוק רוחני ורגשי.",
+      "en": "We open our door to orphans and widows — a warm, welcoming refuge with social activities, support, personal guidance and spiritual and emotional strength."
+    },
+    "microCopy": {
+      "he": "כל תרומה, בכל סכום — מביאה אור לחיים של יתום או אלמנה ♡",
+      "en": "Every gift, of any size, brings light to an orphan or widow ♡"
+    },
+    "marquee": [
+      {
+        "he": "600 אלמנות נתמכות"
+      },
+      {
+        "he": "2,000 יתומים"
+      },
+      {
+        "he": "הבית פתוח 24/7"
+      },
+      {
+        "he": "מאז 1994 — בברכת גדולי ישראל"
+      },
+      {
+        "he": "עמותה רשומה · ע״ר 580651719"
+      },
+      {
+        "he": "קבלה מוכרת · סעיף 46"
+      }
+    ],
+    "servicesHeading": {
+      "he": "השירותים שלנו",
+      "en": "Our services"
+    },
     "services": [
-      { "icon": "🍞", "title": { "he": "סל מזון שבועי" }, "text": { "he": "סל מלא לכל משפחה, כל שבוע, עד הבית" } },
-      { "icon": "🤝", "title": { "he": "ליווי אישי קבוע" }, "text": { "he": "רכזת אישית שמכירה כל משפחה בשמה" } },
-      { "icon": "🚨", "title": { "he": "חירום ופריסה ארצית" }, "text": { "he": "מענה מהיר בכל שעה, בכל מקום בארץ" } },
-      { "icon": "🎓", "title": { "he": "מלגות וחוגים ליתומים" }, "text": { "he": "חינוך, העשרה ועתיד לילדי המשפחות" } },
-      { "icon": "💍", "title": { "he": "שמחות בכבוד" }, "text": { "he": "הכנסת כלה וחתונות — עד הפרט האחרון" } },
-      { "icon": "🕯️", "title": { "he": "חגים עם אור" }, "text": { "he": "סלי חג ושמחת חג לכל בית" } }
+      {
+        "icon": "🏠",
+        "title": {
+          "he": "בית פתוח",
+          "en": "An open home"
+        },
+        "text": {
+          "he": "הבית של 'מאור החסד לוצקין' פתוח לאלמנות ויתומים מסביב לשעון, בכל פעם שהם מחפשים תמיכה, שמחה, או פשוט מילה טובה."
+        }
+      },
+      {
+        "icon": "👰",
+        "title": {
+          "he": "הכנסת כלה",
+          "en": "Brides"
+        },
+        "text": {
+          "he": "אנו מלווים כלות יתומות ואלמנות ומסבסדים רכישת שמלת כלה, תכשיטים ואביזרים בחנויות המובילות, כדי שיום חתונתן יהיה מושלם."
+        }
+      },
+      {
+        "icon": "🎉",
+        "title": {
+          "he": "ארגון שמחות",
+          "en": "Celebrations"
+        },
+        "text": {
+          "he": "אנו מסייעים בארגון אירוסין, בר מצוות, חתונות ושאר אירועים משפחתיים – החל מתכנון, דרך מימון חלקי ועד ליווי אישי."
+        }
+      },
+      {
+        "icon": "🚌",
+        "title": {
+          "he": "טיולים ופעילויות",
+          "en": "Trips & activities"
+        },
+        "text": {
+          "he": "אנחנו מארגנים טיולים מרהיבים, ימי כיף ופעילויות מיוחדות לנשים וליתומות, שמאפשרים מנוחה, התרעננות והנאה משותפת."
+        }
+      },
+      {
+        "icon": "💆‍♀️",
+        "title": {
+          "he": "טיפולי גוף ונפש",
+          "en": "Body & soul care"
+        },
+        "text": {
+          "he": "חדר טיפולים מקצועי המציע טיפולי קוסמטיקה, עיסויים מרגיעים וטיפולים רפלקסולוגיים להתחדשות גוף ונפש."
+        }
+      },
+      {
+        "icon": "🎙️",
+        "title": {
+          "he": "אולפן הקלטות",
+          "en": "Recording studio"
+        },
+        "text": {
+          "he": "חדר אולפן הקלטות מקצועי להקלטת שירים, הרצאות, פודקאסטים או יצירות אישיות – הזדמנות ייחודית לביטוי עצמי."
+        }
+      }
     ],
     "stats": [
-      { "value": "2,800", "label": { "he": "משפחות בליווי" } },
-      { "value": "340", "label": { "he": "מתנדבות ומתנדבים" } },
-      { "value": "24", "label": { "he": "שנות נתינה" } },
-      { "value": "92%", "label": { "he": "מכל שקל — ישירות למשפחות" } }
+      {
+        "value": "600",
+        "label": {
+          "he": "אלמנות נתמכות",
+          "en": "widows supported"
+        }
+      },
+      {
+        "value": "2,000",
+        "label": {
+          "he": "יתומים",
+          "en": "orphans"
+        }
+      },
+      {
+        "value": "30+",
+        "label": {
+          "he": "שנות פעילות",
+          "en": "years of activity"
+        }
+      },
+      {
+        "value": "24/7",
+        "label": {
+          "he": "הבית פתוח",
+          "en": "open home"
+        }
+      }
     ],
     "transparency": {
-      "heading": { "he": "כל שקל מתועד. כל הדו״חות פתוחים.", "en": "Every shekel tracked. All reports open." },
-      "text": { "he": "אנחנו מאמינים ששקיפות היא כבוד. כל תרומה מתועדת, וכל שקל מגיע למי שצריך — 92% ישירות למשפחות.", "en": "Transparency is dignity. Every donation is documented — 92% goes directly to families." },
+      "heading": {
+        "he": "עמותה רשומה. תרומה מוכרת.",
+        "en": "Registered charity. Recognized gifts."
+      },
+      "text": {
+        "he": "מאור החסד לוצקין היא עמותה רשומה (ע״ר 580651719). תרומות בישראל מוכרות לפי סעיף 46; בארה״ב — Meor Hachesed Lutzkin Inc, Tax ID 99-0780369.",
+        "en": "Meor Hachesed Lutzkin is a registered Israeli nonprofit (580651719). In the US: Meor Hachesed Lutzkin Inc, Tax ID 99-0780369."
+      },
       "badges": [
-        { "he": "ניהול תקין 2026" },
-        { "he": "אישור סעיף 46 למס" },
-        { "he": "דו״ח שנתי פתוח" },
-        { "he": "92% ישירות למשפחות" }
+        {
+          "he": "עמותה רשומה (ע״ר)"
+        },
+        {
+          "he": "סעיף 46 — זיכוי מס"
+        },
+        {
+          "he": "US Tax ID 99-0780369"
+        }
       ]
     },
-    "story": { "he": "לפני 24 שנה, אחרי אובדן שקרע את הלב, קמה מרים לוצקין והחליטה שאף אלמנה לא תישאר לבד עם הכאב — ושכל יתום ירגיש שיש לו בית. מה שהתחיל בסל אחד לשכנה, הפך לבית חם ל־2,800 משפחות: סלי מזון, מלגות, שמחות בכבוד וכתף אמיתית.", "en": "24 years ago, after a heartbreaking loss, Miriam Lutzkin resolved that no widow would carry the pain alone — and that every orphan would feel they have a home. One basket for a neighbor grew into a warm home for 2,800 families." },
-    "storyTitle": { "he": "24 שנה של בית חם.", "en": "24 years of a warm home." },
-    "storyTitleAccent": { "he": "וזה רק מתחיל.", "en": "And it's only beginning." },
-    "storyBadge": { "he": "בברכת גדולי ישראל ♡", "en": "Blessed by Torah leaders ♡" },
+    "storyTitle": {
+      "he": "כשילד מאבד הורה,",
+      "en": "When a child loses a parent,"
+    },
+    "storyTitleAccent": {
+      "he": "העולם שלו קורס.",
+      "en": "their world collapses."
+    },
+    "story": {
+      "he": "דמיינו ילדה בת שמונה שחוזרת הביתה מבית הספר. היא פותחת את הדלת ומחפשת את החיבוק שממתין לה כל יום — אבל הפעם, ובכל הפעמים שאחרי, החיבוק הזה כבר לא יהיה שם. זהו המציאות היומיומית של מאות יתומים ויתומות. העמותה נוסדה בשנת 1994 על ידי הרבנית הינדא שפרינצא לוצקין ע״ה, מתוך חזון פשוט אך עוצמתי: שאף יתום לא ירגיש לבד. היום, אנחנו ממשיכים את דרכה — פותחים את הדלת, מחבקים, תומכים ומלווים מאות משפחות בכל יום."
+    },
+    "storyBadge": {
+      "he": "מאז 1994 — בברכת גדולי ישראל ♡",
+      "en": "Since 1994 — blessed by Torah leaders ♡"
+    },
     "founder": {
-      "name": { "he": "מרים לוצקין · מייסדת", "en": "Miriam Lutzkin · Founder" },
-      "quote": { "he": "\"חסד אמיתי זה לא לתת — זה להיות שם.\"", "en": "\"True kindness isn't giving — it's being there.\"" }
+      "name": {
+        "he": "הרבנית הינדא שפרינצא לוצקין ע״ה · מייסדת",
+        "en": "Rebbetzin Hinda Shprintza Lutzkin OBM · Founder"
+      },
+      "quote": {
+        "he": "״שאף יתום לא ירגיש לבד.״",
+        "en": "\"That no orphan should ever feel alone.\""
+      }
     },
     "timeline": [
-      { "year": "2002", "title": { "he": "ההתחלה" }, "note": { "he": "סל ראשון לשכנה שהתאלמנה" } },
-      { "year": "2009", "title": { "he": "מרכז החלוקה הראשון" }, "note": { "he": "ירושלים" } },
-      { "year": "2015", "title": { "he": "1,000 משפחות מלוות" }, "note": { "he": "ופריסה ארצית" } },
-      { "year": "2021", "title": { "he": "קו חם ארצי 24/6" }, "note": { "he": "מענה תמיד" } },
-      { "year": "2026", "title": { "he": "2,800 משפחות" }, "note": { "he": "ושלוש שפות" } }
+      {
+        "year": "1994",
+        "title": {
+          "he": "נוסדה העמותה"
+        },
+        "note": {
+          "he": "על ידי הרבנית הינדא שפרינצא לוצקין ע״ה"
+        }
+      },
+      {
+        "year": "היום",
+        "title": {
+          "he": "600 אלמנות · 2,000 יתומים"
+        },
+        "note": {
+          "he": "בניהול מירי קירשנבאום (לוצקין)"
+        }
+      }
     ],
-    "growth": {
-      "label": { "he": "סלים שבועיים · 12 חודשים אחרונים", "en": "Weekly baskets · last 12 months" },
-      "delta": "+38% מהשנה שעברה",
-      "points": [0.15, 0.23, 0.2, 0.36, 0.44, 0.4, 0.58, 0.68, 0.64, 0.83, 0.9, 1]
-    },
     "paymentMethods": [
-      { "label": { "he": "אונליין" }, "detail": { "he": "אשראי / ביט / PayPal — קבלה מיידית למייל" } },
-      { "label": { "he": "העברה בנקאית" }, "detail": { "he": "מזרחי־טפחות · סניף 000 · ח־ן 000000 · ע״ש מאור החסד לוצקין (ע״ר)" } },
-      { "label": { "he": "Checks" }, "detail": { "he": "\"Maor Hachesed\" · P.O.B 000, Monsey NY" }, "ltr": true }
+      {
+        "icon": "💳",
+        "label": {
+          "he": "כרטיס אשראי (ישראל)"
+        },
+        "detail": {
+          "he": "תרומה מאובטחת דרך נדרים פלוס"
+        },
+        "url": "https://www.matara.pro/nedarimplus/online/?mosad=7001532"
+      },
+      {
+        "icon": "🌍",
+        "label": {
+          "he": "Credit Card (International)"
+        },
+        "detail": {
+          "he": "Secure online donation via Cardknox"
+        },
+        "ltr": true,
+        "url": "https://secure.cardknox.com/meorhachessedlutzkininc"
+      },
+      {
+        "icon": "🏦",
+        "label": {
+          "he": "Zelle"
+        },
+        "detail": {
+          "he": "929-563-1794 · Meor Hachesed Lutzkin Inc · Tax ID 99-0780369"
+        },
+        "ltr": true
+      },
+      {
+        "icon": "✉️",
+        "label": {
+          "he": "המחאות (ישראל)"
+        },
+        "detail": {
+          "he": "לפקודת: מאור החסד לוצקין (ע\"ר) · אדוניהו הכהן 23, ירושלים, מיקוד 9534311"
+        }
+      },
+      {
+        "icon": "✉️",
+        "label": {
+          "he": "Checks (USA)"
+        },
+        "detail": {
+          "he": "Meor Hachessed Lutzkin Inc · 14 Olympia Lane, Monsey, NY 10952"
+        },
+        "ltr": true
+      },
+      {
+        "icon": "🚗",
+        "label": {
+          "he": "איסוף מהבית"
+        },
+        "detail": {
+          "he": "נגיע לאסוף את התרומה! 054-853-8794 · US 929-563-1794"
+        }
+      }
     ],
-    "donateNote": { "he": "תרומות מוכרות למס לפי סעיף 46 · ביטול הוראת קבע בכל רגע, בלי שאלות", "en": "Tax-deductible under §46 · cancel a standing order anytime, no questions." },
-    "calc": { "unitAmount": 9, "unit": { "he": "ארוחות חמות" }, "note": { "he": "כל ₪9 = ארוחה חמה לילד ♡" } },
-    "campaign": { "title": { "he": "בחרו את התרומה שלכם" }, "goal": 500000, "raised": 342311, "end": "2026-09-14", "currency": "₪" },
-    "testimonials": [
-      { "quote": { "he": "בפעם הראשונה מזה שנים, מישהי דפקה בדלת בשביל לתת — לא בשביל לקחת." }, "author": "ר׳", "role": { "he": "אם לשלושה · ירושלים" } },
-      { "quote": { "he": "אני תורם להרבה מקומות. כאן זה היחיד שבו אני רואה בדיוק לאן הכסף הלך." }, "author": "אבי כ׳", "role": { "he": "תורם חודשי משנת 2019" } },
-      { "quote": { "he": "להתנדב פה זה הדבר הכי קרוב לראות נס קורה בזמן אמת. כל שבוע מחדש." }, "author": "נועה ל׳", "role": { "he": "מתנדבת · מוקד מרכז" } }
+    "donateNote": {
+      "he": "בישראל — קבלה מוכרת לפי סעיף 46 (ע״ר 580651719) · בארה״ב — Tax ID 99-0780369",
+      "en": "Israel — §46 receipt (NPO 580651719) · USA — Tax ID 99-0780369"
+    },
+    "calc": {
+      "unitAmount": 500,
+      "unit": {
+        "he": "חודשי אימוץ יתום",
+        "en": "months of orphan sponsorship"
+      },
+      "unit2Amount": 1000,
+      "unit2": {
+        "he": "חודשי החזקת אלמנה",
+        "en": "months of widow support"
+      },
+      "note": {
+        "he": "₪500 = חודש של אימוץ יתום · ₪1,000 = חודש של החזקת אלמנה",
+        "en": "₪500 = a month for an orphan · ₪1,000 = a month for a widow"
+      }
+    },
+    "amounts": [
+      180,
+      500,
+      1000,
+      2000
     ],
+    "campaign": {
+      "title": {
+        "he": "היו שותפים בשמחה",
+        "en": "Be a partner in joy"
+      }
+    },
     "tiers": [
-      { "name": { "he": "ידיד ♡" }, "amount": 50, "period": { "he": "/ חודש" }, "perks": [{ "he": "5 ארוחות חמות בכל חודש" }, { "he": "עדכון רבעוני מהשטח" }, { "he": "קבלה שנתית מרוכזת" }] },
-      { "name": { "he": "שותפה ♡" }, "amount": 180, "period": { "he": "/ חודש" }, "featured": true, "perks": [{ "he": "2 סלים שבועיים למשפחה" }, { "he": "שם על לוח השותפים השנתי" }, { "he": "סיור שנתי במרכז שלנו" }] },
-      { "name": { "he": "מחוללת שינוי ♡" }, "amount": 500, "period": { "he": "/ חודש" }, "perks": [{ "he": "אימוץ מלא של משפחה" }, { "he": "דו״ח השפעה אישי" }, { "he": "קשר ישיר עם צוות הליווי" }] }
+      {
+        "name": {
+          "he": "אימוץ יתום"
+        },
+        "amount": 500,
+        "period": {
+          "he": "/ חודש"
+        },
+        "perks": [
+          {
+            "he": "תזונה יומית מלאה"
+          },
+          {
+            "he": "ביגוד והנעלה"
+          },
+          {
+            "he": "חומרי לימוד וחינוך"
+          },
+          {
+            "he": "פעילויות חברתיות"
+          }
+        ]
+      },
+      {
+        "name": {
+          "he": "החזקת אלמנה"
+        },
+        "amount": 1000,
+        "period": {
+          "he": "/ חודש"
+        },
+        "featured": true,
+        "perks": [
+          {
+            "he": "סיוע בשכר דירה"
+          },
+          {
+            "he": "חשבונות חשמל ומים"
+          },
+          {
+            "he": "מזון ומוצרים בסיסיים"
+          },
+          {
+            "he": "ליווי וטיפולים רגשיים"
+          },
+          {
+            "he": "חוגים לילדים"
+          }
+        ]
+      },
+      {
+        "name": {
+          "he": "החזקת בית יתומים"
+        },
+        "amount": 2000,
+        "period": {
+          "he": "/ חודש"
+        },
+        "perks": [
+          {
+            "he": "כל הצרכים הבסיסיים"
+          },
+          {
+            "he": "חינוך מלא לכל הילדים"
+          },
+          {
+            "he": "ארגון שמחות ואירועים"
+          },
+          {
+            "he": "ליווי אישי צמוד"
+          },
+          {
+            "he": "טיפולים והעצמה"
+          }
+        ]
+      }
     ],
-    "events": [
-      { "date": "14\nספט'", "title": { "he": "מגבית ערב ראש השנה" }, "meta": { "he": "שידור חי + מוקד טלפוני · כל הארץ" } },
-      { "date": "20\nספט'", "title": { "he": "חלוקת סלי חג למשפחות" }, "meta": { "he": "כל מוקדי החלוקה · בואו להתנדב" } }
-    ],
-    "news": { "he": "נפתחה ההרשמה למלגות תשפ״ז ליתומים ויתומות — מהרו להירשם!" },
     "faq": [
-      { "q": { "he": "לאן בדיוק הולך הכסף שלי?" }, "a": { "he": "92% מכל שקל מגיע ישירות למשפחות — מזון, מלגות וליווי. השאר מכסה תפעול מינימלי. כל הדו״חות פתוחים." } },
-      { "q": { "he": "האם התרומה מוכרת לצורכי מס?" }, "a": { "he": "כן — קבלה מוכרת לפי סעיף 46. הקבלה נשלחת אוטומטית לאחר התרומה." } },
-      { "q": { "he": "איך מצטרפים כמשפחה שזקוקה לעזרה?" }, "a": { "he": "פנו אלינו דרך טופס יצירת הקשר או בטלפון — בדיסקרטיות מלאה, ורכזת אישית תחזור אליכם." } },
-      { "q": { "he": "אפשר להתנדב במקום לתרום?" }, "a": { "he": "בשמחה! יש לנו 340 מתנדבים ותמיד מקום לעוד לב טוב. כתבו לנו והצטרפו." } },
-      { "q": { "he": "איך מבטלים הוראת קבע?" }, "a": { "he": "בכל רגע, בלי שאלות — פנייה אחת אלינו וזה בוטל." } }
+      {
+        "q": {
+          "he": "למי העמותה עוזרת?"
+        },
+        "a": {
+          "he": "ליתומים ולאלמנות — בית פתוח 24/7, הכנסת כלה, ארגון שמחות, טיולים, טיפולי גוף ונפש, אולפן הקלטות ו-10 חוגים."
+        }
+      },
+      {
+        "q": {
+          "he": "האם התרומה מוכרת לצורכי מס?"
+        },
+        "a": {
+          "he": "כן. בישראל — לפי סעיף 46 (עמותה רשומה 580651719). בארה״ב — Meor Hachesed Lutzkin Inc, Tax ID 99-0780369."
+        }
+      },
+      {
+        "q": {
+          "he": "איך תורמים מחו״ל?"
+        },
+        "a": {
+          "he": "בכרטיס אשראי (Cardknox), ב-Zelle למספר 929-563-1794, או בהמחאה ל-Meor Hachessed Lutzkin Inc, 14 Olympia Lane, Monsey, NY 10952."
+        }
+      },
+      {
+        "q": {
+          "he": "אפשר שיאספו את התרומה מהבית?"
+        },
+        "a": {
+          "he": "בשמחה! התקשרו 054-853-8794 (ישראל) או 929-563-1794 (ארה״ב), או כתבו ל-m9295631794@gmail.com."
+        }
+      }
     ],
-    "contactForm": { "enabled": true, "note": { "he": "מענה תוך יום עסקים · דיסקרטיות מלאה" } },
+    "contactForm": {
+      "enabled": true,
+      "note": {
+        "he": "נחזור אליכם בהקדם בע״ה",
+        "en": "We will get back to you soon"
+      }
+    },
     "contact": {
-      "phones": [],
-      "whatsapp": "",
-      "email": "",
-      "hours": { "he": "א׳–ה׳ 9:00–17:00 · ו׳ עד 12:00", "en": "Sun–Thu 9:00–17:00 · Fri until 12:00" },
-      "address": { "he": "אדוניהו הכהן 23, ירושלים · 14 Olympia Lane, Monsey NY", "en": "Adoniyahu HaCohen 23, Jerusalem · 14 Olympia Lane, Monsey NY" },
-      "taxNote": { "he": "ע.ר. 580XXXXXX · אישור ניהול תקין 2026 · הפרטים יוחלפו בנתונים האמיתיים שלכם", "en": "NPO 580XXXXXX · Proper Management 2026 · details to be replaced with your real data" }
+      "phones": [
+        "054-853-8794",
+        "929-563-1794",
+        "+52-559-652-9955",
+        "+44-7441-906875"
+      ],
+      "whatsapp": "0548538794",
+      "email": "m9295631794@gmail.com",
+      "hours": {
+        "he": "הבית פתוח 24/7",
+        "en": "Our home is open 24/7"
+      },
+      "address": {
+        "he": "אדוניהו הכהן 23, ירושלים, מיקוד 9534311 · 14 Olympia Lane, Monsey, NY 10952",
+        "en": "Adoniyahu HaCohen 23, Jerusalem 9534311 · 14 Olympia Lane, Monsey, NY 10952"
+      },
+      "taxNote": {
+        "he": "עמותה רשומה (ע״ר) 580651719 · סעיף 46 · US Tax ID 99-0780369 · בניהול מירי קירשנבאום (לוצקין) · פועלת בברכת גדולי ישראל",
+        "en": "Registered nonprofit 580651719 · US Tax ID 99-0780369"
+      }
     }
   }
 }

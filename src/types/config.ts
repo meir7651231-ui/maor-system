@@ -117,6 +117,9 @@ export interface PublicSiteCalc {
   unitAmount?: number;
   unit?: LocalizedText;
   note?: LocalizedText;
+  /** קופסה שנייה במחשבון (26.10.2026): ₪ ליחידה + שם-היחידה. חסר ⇒ הקופסה מוסתרת (במקום "₪90 לסל" קשיח). */
+  unit2Amount?: number;
+  unit2?: LocalizedText;
 }
 export interface PublicSiteTestimonial {
   quote: LocalizedText;
@@ -170,6 +173,10 @@ export interface PublicSitePayMethod {
   detail: LocalizedText;
   /** true ⇒ הפרטים מיושרים-שמאל (LTR, לצ׳קים בחו״ל). */
   ltr?: boolean;
+  /** קישור-תשלום לאמצעי הזה (https) — למשל סליקה לחו״ל (26.10.2026). חסר ⇒ טקסט בלבד. */
+  url?: string;
+  /** אימוג'י לאמצעי (26.10.2026). חסר ⇒ לפי המיקום (💳/🏦/✉️) כמו קודם. */
+  icon?: string;
 }
 
 /**
@@ -224,6 +231,10 @@ export interface PublicSiteContent {
   /* ── עיצוב-דף-התרומות (design 16.8) ── */
   /** תמונת/וידאו ה-hero (https). */
   heroImage?: string;
+  /** תווית על וידאו-ה-hero ("מהשטח, השבוע"). חסר ⇒ אין תווית (26.10.2026 — לא טענה קשיחה). */
+  heroCaption?: LocalizedText;
+  /** סכומי-הבחירה בבוחר-התרומה (₪). חסר ⇒ 50/180/360/720. */
+  amounts?: number[];
   /** כותרת ה-hero ("הבית של"). חסר ⇒ שם-הארגון. */
   heroTitle?: LocalizedText;
   /** תג מעל הכותרת ("2,800 משפחות איתנו היום"). */

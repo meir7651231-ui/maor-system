@@ -10,6 +10,9 @@
  */
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { useApp } from '../../store/useApp';
+import { DialLink } from '../DialLink';
+import { isDemoSession } from '../../lib/demoLock';
+import { telHref } from '../../lib/tel';
 import { campaignProgress, isRtlLang, resolveLocalized, siteDonateUrl, siteLangs, sitePalette, siteUi, siteVocab } from '../../lib/publicSite';
 import { featureOn } from '../../lib/config';
 import { PortalEntry } from './PortalEntry';
@@ -57,7 +60,7 @@ export function PublicSite({ onEnter }: { onEnter: () => void }) {
   const donateHref = donate || '#donate';
   const donateAttrs = donate ? { target: '_blank', rel: 'noopener noreferrer' as const } : {};
   const camp = useMemo(() => campaignProgress(site.campaign, Date.now()), [site.campaign]);
-  const goal = camp.goal || 500000;
+  const goal = camp.goal; // 26.10.2026: בלי יעד-ברירת-מחדל מומצא — אין יעד ⇒ אין פס-התקדמות
   /* ── זהות-צבע פר-ורטיקל: הפלטה נגזרת מ-config.accent (חסר ⇒ קורל מקורי, chesed ביט-זהה);
      שפה תלוית-סוג-ארגון: מסחרי (בלי §46) ⇒ "צרו קשר" במקום "לתרומה". ── */
   const pal = useMemo(() => sitePalette(config.accent), [config.accent]);
@@ -85,7 +88,6 @@ export function PublicSite({ onEnter }: { onEnter: () => void }) {
   const rootRef = useRef<HTMLDivElement>(null);
   const [sp, setSp] = useState(0); // scroll progress 0..1
   const [menuOpen, setMenuOpen] = useState(false); // ☰ ניווט-מובייל (≤860px; בדסקטופ מוסתר)
-  const [bump, setBump] = useState(0); // ticker
   const words = useMemo(() => {
     const w = (site.heroWords ?? []).map((x) => t(x)).filter(Boolean);
     if (w.length) return w;
@@ -108,10 +110,6 @@ export function PublicSite({ onEnter }: { onEnter: () => void }) {
     return () => { window.removeEventListener('scroll', onScroll); cont?.removeEventListener('scroll', onC); cancelAnimationFrame(raf); };
   }, []);
 
-  useEffect(() => {
-    const id = window.setInterval(() => setBump((b) => b + Math.floor(18 + Math.random() * 102)), 3200);
-    return () => window.clearInterval(id);
-  }, []);
   useEffect(() => {
     if (words.length < 2 || reduce()) return;
     const id = window.setInterval(() => setWi((i) => (i + 1) % words.length), 2600);
@@ -152,27 +150,46 @@ export function PublicSite({ onEnter }: { onEnter: () => void }) {
     return () => { cancelAnimationFrame(raf); window.removeEventListener('mousemove', onMove); };
   }, []);
 
-  const raised = (camp.raised || 342180) + bump;
-  const pct = Math.min(100, (raised / goal) * 100);
+  // 🔴 26.10.2026: היה כאן מונה שעלה לבד כל 3 שניות ("מתעדכן חי") + 342,180 ברירת-מחדל — מספר מזויף מול תורמים.
+  // עכשיו: רק הסכום שהוזן באשף; קמפיין בלי יעד/שהסתיים ⇒ לא מוצג (camp.show).
+  const raised = camp.raised;
+  const pct = goal > 0 ? Math.min(100, (raised / goal) * 100) : 0;
 
   /* ── מחשבון + בוחר-תרומה ── */
-  const unit = site.calc?.unitAmount && site.calc.unitAmount > 0 ? site.calc.unitAmount : 9;
-  const [calc, setCalc] = useState(180);
-  const meals = Math.round(calc / unit);
-  const baskets = Math.max(1, Math.round(calc / 90));
+  // 26.10.2026: המחשבון מבוסס רק על יחידות שהוזנו באשף (היה "₪9 לארוחה / ₪90 לסל" קשיח לכל ארגון).
+  const unit = site.calc?.unitAmount && site.calc.unitAmount > 0 ? site.calc.unitAmount : 0;
+  const unit2 = site.calc?.unit2Amount && site.calc.unit2Amount > 0 ? site.calc.unit2Amount : 0;
+  const calcOn = unit > 0;
+  const amounts = site.amounts?.length ? site.amounts : [50, 180, 360, 720];
+  const [calc, setCalc] = useState(() => amounts[1] ?? amounts[0]);
+  const calcMin = Math.max(1, Math.min(18, ...amounts));
+  const calcMax = Math.max(1000, ...amounts);
+  // כמות אמיתית — בלי לעגל כלפי מעלה ל-1 (₪500 מול יחידה של ₪1,000 = 0.5, לא "1")
+  const qty = (x: number) => (x >= 10 ? fmt(Math.round(x)) : String(Math.round(x * 10) / 10));
+  const meals = unit ? calc / unit : 0;
+  const baskets = unit2 ? calc / unit2 : 0;
   const [mode, setMode] = useState<'monthly' | 'once'>('monthly');
-  const [amt, setAmt] = useState(180);
+  const [amt, setAmt] = useState(() => amounts[1] ?? amounts[0]);
   const [form, setForm] = useState({ name: '', phone: '', email: '', msg: '' });
-  const [sent, setSent] = useState(false);
+  const [sent, setSent] = useState<'' | 'wa' | 'mail'>('');
   const [nl, setNl] = useState('');
-  const [nlSent, setNlSent] = useState(false);
+  const [nlSent, setNlSent] = useState<'' | 'wa' | 'mail'>('');
 
+  // 🔴 26.10.2026: הטופס הציג "התקבל! נחזור אליכם" גם כשלא היה לאן לשלוח (אין וואטסאפ/מייל) — הפנייה אבדה.
+  // עכשיו: הטופס (והניוזלטר) מוצגים רק כשיש ערוץ אמיתי, וההודעה אומרת מה באמת קרה.
+  const dialLocked = isDemoSession(config); // אותו מנעול-דמו כמו כל משטחי-החיוג (DialLink)
+  const waChannel = site.contact?.whatsapp ? waHref(site.contact.whatsapp) : null;
+  const mailChannel = site.contact?.email || '';
+  const hasChannel = !!(waChannel || mailChannel);
+  const formOn = site.contactForm?.enabled !== false && hasChannel;
+  const sendVia = (subject: string, body: string): '' | 'wa' | 'mail' => {
+    if (waChannel) { window.open(`${waChannel}?text=${encodeURIComponent(`${subject}\n${body}`)}`, '_blank', 'noopener'); return 'wa'; }
+    if (mailChannel) { window.location.href = `mailto:${mailChannel}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`; return 'mail'; }
+    return '';
+  };
   const submitForm = () => {
     const body = [form.msg, form.name && `שם: ${form.name}`, form.phone && `טלפון: ${form.phone}`, form.email && `אימייל: ${form.email}`].filter(Boolean).join('\n');
-    const wa = site.contact?.whatsapp ? waHref(site.contact.whatsapp) : null;
-    if (wa) window.open(`${wa}?text=${encodeURIComponent(`פנייה מהאתר של ${orgName}\n${body}`)}`, '_blank', 'noopener');
-    else if (site.contact?.email) window.location.href = `mailto:${site.contact.email}?body=${encodeURIComponent(body)}`;
-    setSent(true);
+    setSent(sendVia(`פנייה מהאתר של ${orgName}`, body));
   };
 
   // reveal-on-scroll (fallback ל-animation-timeline של העיצוב)
@@ -226,10 +243,9 @@ export function PublicSite({ onEnter }: { onEnter: () => void }) {
   const storyText = t(site.storyTitle) ? t(site.story) : '';
   const founder = site.founder;
   const contact = site.contact ?? {};
-  const impact = he(
-    `${fmt(Math.max(1, Math.round(amt / 90)))} סלים שבועיים למשפחה${mode === 'monthly' ? ', כל חודש' : ''}`,
-    `${fmt(Math.max(1, Math.round(amt / 90)))} weekly baskets${mode === 'monthly' ? ', every month' : ''}`,
-  );
+  const impact = calcOn
+    ? `${qty(amt / unit)} × ${t(site.calc?.unit)}${mode === 'monthly' ? he(', כל חודש', ', every month') : ''}`
+    : '';
 
   /* ── סגנונות משותפים (מהעיצוב) ── */
   const navLink: CSSProperties = { textDecoration: 'none', color: 'rgba(var(--ri),.72)', fontSize: 15, fontWeight: 600 };
@@ -248,7 +264,9 @@ export function PublicSite({ onEnter }: { onEnter: () => void }) {
 
   // גרף-הצמיחה — נקודות 0..1 → viewBox 1200×240
   const growth = site.growth;
-  const gPts = (growth?.points ?? []).length >= 2 ? growth!.points! : [0.15, 0.23, 0.2, 0.36, 0.44, 0.4, 0.58, 0.68, 0.64, 0.83, 0.9, 1];
+  // 26.10.2026: גרף רק מנקודות שהוזנו באשף (היה עקומה-לדוגמה קבועה לכל ארגון)
+  const hasGrowth = (growth?.points ?? []).length >= 2;
+  const gPts = hasGrowth ? growth!.points! : [0, 0];
   const gCoords = gPts.map((p, i) => { const x = 20 + (1160 * i) / (gPts.length - 1); const y = 230 - Math.max(0, Math.min(1, p)) * 222; return [Math.round(x), Math.round(y)]; });
   const gLine = gCoords.map(([x, y]) => `${x},${y}`).join(' ');
   const gArea = `${gLine} ${gCoords[gCoords.length - 1][0]},230 20,230`;
@@ -289,7 +307,7 @@ export function PublicSite({ onEnter }: { onEnter: () => void }) {
         <a href="#pillars" className="ps-navlink ps-nav-full" style={navLink}>{he('מה אנחנו עושות', 'What we do')}</a>
         <a href="#story" className="ps-navlink ps-nav-full" style={navLink}>{he('הסיפור', 'Story')}</a>
         <a href="#numbers" className="ps-navlink ps-nav-full" style={navLink}>{he('מספרים', 'Numbers')}</a>
-        <a href="#calc" className="ps-navlink ps-nav-full" style={navLink}>{he('מחשבון', 'Calculator')}</a>
+        {calcOn && <a href="#calc" className="ps-navlink ps-nav-full" style={navLink}>{he('מחשבון', 'Calculator')}</a>}
         <a href="#faq" className="ps-navlink ps-nav-full" style={navLink}>{he('שאלות', 'FAQ')}</a>
         <button type="button" className="ps-nav-full" onClick={onEnter} style={{ ...navLink, background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>{ui('enter')}</button>
         {langs.length > 1 && (
@@ -302,7 +320,7 @@ export function PublicSite({ onEnter }: { onEnter: () => void }) {
         <button type="button" className="ps-burger" aria-label={he('תפריט', 'Menu')} aria-expanded={menuOpen} aria-controls="ps-mobile-menu" onClick={() => setMenuOpen((o) => !o)} style={{ background: 'none', border: '1.5px solid rgba(var(--r1),.45)', borderRadius: 12, width: 44, height: 44, fontSize: 22, lineHeight: 1, color: 'var(--c3)', cursor: 'pointer', fontFamily: 'inherit' }}>{menuOpen ? '✕' : '☰'}</button>
         {menuOpen && (
           <div id="ps-mobile-menu" className="ps-mobile-menu" onClick={(e) => { if ((e.target as HTMLElement).closest('a')) setMenuOpen(false); }} style={{ position: 'absolute', top: 78, insetInline: 0, display: 'flex', flexDirection: 'column', gap: 4, padding: '10px clamp(20px,4vw,64px) 18px', background: '#fffcfa', borderBottom: '1px solid rgba(var(--r1),.25)', boxShadow: '0 18px 32px rgba(var(--r2),.12)' }}>
-            {([['#pillars', he('מה אנחנו עושות', 'What we do')], ['#story', he('הסיפור', 'Story')], ['#numbers', he('מספרים', 'Numbers')], ['#calc', he('מחשבון', 'Calculator')], ['#faq', he('שאלות', 'FAQ')]] as const).map(([href, label]) => (
+            {([['#pillars', he('מה אנחנו עושות', 'What we do')], ['#story', he('הסיפור', 'Story')], ['#numbers', he('מספרים', 'Numbers')], ...(calcOn ? [['#calc', he('מחשבון', 'Calculator')]] : []), ['#faq', he('שאלות', 'FAQ')]] as [string, string][]).map(([href, label]) => (
               <a key={href} href={href} className="ps-navlink" style={{ ...navLink, fontSize: 17, padding: '12px 4px', borderBottom: '1px solid rgba(var(--r1),.18)' }}>{label}</a>
             ))}
             <button type="button" onClick={() => { setMenuOpen(false); onEnter(); }} style={{ ...navLink, fontSize: 17, padding: '12px 4px', textAlign: 'start', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>{ui('enter')}</button>
@@ -320,10 +338,12 @@ export function PublicSite({ onEnter }: { onEnter: () => void }) {
         <div className="ps-hero-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0,6.3fr) minmax(0,5.7fr)', gap: 'clamp(32px,5vw,80px)', alignItems: 'center' }}>
           <div>
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+              {t(site.ticker) && (
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, padding: '9px 20px', borderRadius: 999, border: '1.5px solid rgba(var(--r1),.5)', background: '#fff', boxShadow: '0 6px 18px rgba(var(--r2),.14)' }}>
                 <span style={{ width: 9, height: 9, borderRadius: '50%', background: '#7FC8A9', boxShadow: '0 0 0 4px rgba(127,200,169,.2)' }} />
-                <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--c3)', ...TNUM }}>{t(site.ticker) || `קמפיין החגים · ₪${fmt(raised)} נאספו · מתעדכן חי`}</span>
+                <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--c3)', ...TNUM }}>{t(site.ticker)}</span>
               </div>
+              )}
               {t(site.heroBadge) && (
                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: 9, padding: '9px 20px', borderRadius: 999, background: 'var(--ck)' }}>
                   <span style={{ fontSize: 16 }}>{site.icon || '🕯️'}</span>
@@ -365,20 +385,24 @@ export function PublicSite({ onEnter }: { onEnter: () => void }) {
             </div>
             <div style={{ position: 'relative', borderRadius: '36px 120px 36px 36px', overflow: 'hidden', boxShadow: '0 30px 70px rgba(var(--r2),.35), 0 8px 24px rgba(var(--ri),.12)', border: '6px solid #fff' }}>
               <video src={site.heroImage && /\.(mp4|webm)(\?|$)/i.test(site.heroImage) ? site.heroImage : heroVideo} autoPlay muted loop playsInline style={{ display: 'block', width: '100%', height: 'clamp(320px,44vw,560px)', objectFit: 'cover' }} />
+              {(commercial || t(site.heroCaption)) && (
               <div style={{ position: 'absolute', insetInlineEnd: 14, bottom: 14, display: 'flex', alignItems: 'center', gap: 9, padding: '9px 18px', borderRadius: 999, background: 'rgba(255,252,250,.9)', backdropFilter: 'blur(8px)', boxShadow: '0 6px 16px rgba(var(--ri),.15)' }}>
                 <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--c2)' }} />
-                <span style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--ci)' }}>{commercial ? he('עכשיו', 'Live') : he('מהשטח, השבוע', 'From the field')}</span>
+                <span style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--ci)' }}>{t(site.heroCaption) || he('עכשיו', 'Live')}</span>
               </div>
+              )}
             </div>
+            {stats[0] && (
             <div style={{ position: 'absolute', insetInlineStart: -14, bottom: -20, background: '#fff', borderRadius: 24, padding: '16px 22px', boxShadow: '0 16px 40px rgba(var(--r2),.3)', display: 'flex', alignItems: 'center', gap: 14, animation: 'ps-float 6s 1s infinite' }}>
               <span style={{ width: 46, height: 46, borderRadius: '50%', background: 'var(--ck)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={pal.c2} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 11h18" /><path d="M5 11a7 7 0 0 1 14 0" /><path d="M4 11l1.5 8a2 2 0 0 0 2 1.7h9a2 2 0 0 0 2-1.7L20 11" /></svg>
               </span>
               <span style={{ display: 'flex', flexDirection: 'column' }}>
-                <span style={{ fontFamily: "'Rubik'", fontWeight: 800, fontSize: 22, color: 'var(--ci)', ...TNUM }}>{fmt(stats[0]?.value ? parseInt(stats[0].value.replace(/[^\d]/g, ''), 10) || 1204 : 1204)}</span>
-                <span style={{ fontSize: 13, fontWeight: 600, color: 'rgba(var(--ri),.6)' }}>{commercial ? (t(stats[0]?.label) || he('פעילים', 'active')) : he('סלים יצאו השבוע', 'baskets this week')}</span>
+                <span style={{ fontFamily: "'Rubik'", fontWeight: 800, fontSize: 22, color: 'var(--ci)', ...TNUM }}>{stats[0].value}</span>
+                <span style={{ fontSize: 13, fontWeight: 600, color: 'rgba(var(--ri),.6)' }}>{t(stats[0].label)}</span>
               </span>
             </div>
+            )}
           </div>
         </div>
       </header>
@@ -410,7 +434,7 @@ export function PublicSite({ onEnter }: { onEnter: () => void }) {
       {stats.length > 0 && (
         <section id="numbers" className="ps-rev" style={{ position: 'relative', zIndex: 2, marginTop: 'clamp(70px,11vh,130px)', background: 'linear-gradient(135deg,var(--c1),#DE8888)', padding: 'clamp(60px,9vh,100px) 0' }}>
           <div style={{ maxWidth: 1360, margin: '0 auto', padding: '0 clamp(20px,4vw,64px)', boxSizing: 'border-box', textAlign: 'center' }}>
-            <SecHead light k={he('שנה אחת, במספרים', 'One year, in numbers')} h={he('האהבה הזאת נספרת', 'This love is counted')} />
+            <SecHead light k={he('במספרים', 'In numbers')} h={he('האהבה הזאת נספרת', 'This love is counted')} />
             <div ref={numsRef} style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(4, stats.length)},1fr)`, gap: 'clamp(14px,2vw,26px)', marginTop: 'clamp(34px,5vh,52px)' }}>
               {stats.slice(0, 4).map((s, i) => {
                 const hasNum = /\d/.test(s.value);
@@ -422,9 +446,10 @@ export function PublicSite({ onEnter }: { onEnter: () => void }) {
                 );
               })}
             </div>
+            {hasGrowth && (
             <div style={{ borderRadius: 26, background: 'rgba(255,252,250,.94)', marginTop: 'clamp(20px,3vh,30px)', padding: 'clamp(22px,3vw,36px)', textAlign: 'start', boxShadow: '0 20px 50px rgba(150,70,70,.25)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 16, flexWrap: 'wrap' }}>
-                <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--c3)', margin: 0 }}>{t(growth?.label) || he('סלים שבועיים · 12 חודשים אחרונים', 'Weekly baskets · last 12 months')}</p>
+                <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--c3)', margin: 0 }}>{t(growth?.label)}</p>
                 {growth?.delta && <span style={{ fontFamily: "'Rubik'", fontSize: 14, fontWeight: 700, color: '#7FA98F' }}>{growth.delta}</span>}
               </div>
               <svg viewBox="0 0 1200 240" aria-hidden style={{ width: '100%', height: 'auto', display: 'block', marginTop: 16 }}>
@@ -439,6 +464,7 @@ export function PublicSite({ onEnter }: { onEnter: () => void }) {
                 <circle cx={gEnd[0]} cy={gEnd[1]} r="7" fill={pal.c2}><animate attributeName="r" values="7;9;7" dur="1.6s" repeatCount="indefinite" /></circle>
               </svg>
             </div>
+            )}
           </div>
         </section>
       )}
@@ -505,27 +531,31 @@ export function PublicSite({ onEnter }: { onEnter: () => void }) {
 
       {/* ── מחשבון + בוחר-תרומה — עמותתי בלבד (מסחרי ⇒ אין תרומה; ה-CTA הוא "צרו קשר") ── */}
       {!commercial && (<>
+      {calcOn && (
       <section id="calc" className="ps-rev" style={sec}>
         <div className="ps-calc-grid" style={{ ...cardS, border: '1.5px solid rgba(var(--r1),.35)', boxShadow: '0 26px 60px rgba(var(--r2),.18)', borderRadius: 32, padding: 'clamp(28px,4vw,54px)', display: 'grid', gridTemplateColumns: 'minmax(0,6fr) minmax(0,6fr)', gap: 'clamp(28px,4vw,64px)', alignItems: 'center' }}>
           <div>
             <p style={kicker}>{he('בואו נשחק רגע ↓', "Let's play ↓")}</p>
             <h2 style={{ fontFamily: "'Varela Round'", fontSize: 'clamp(28px,3.2vw,46px)', letterSpacing: '-0.01em', lineHeight: 1.2, margin: '12px 0 0', color: 'var(--ci)' }}>{he('כמה חסד יוצא משקל אחד?', 'What one shekel does?')}</h2>
             <p style={{ fontFamily: "'Rubik'", fontWeight: 800, fontSize: 'clamp(46px,4.6vw,76px)', lineHeight: 1, margin: '26px 0 0', color: 'var(--cw)', ...TNUM }}>₪{fmt(calc)}</p>
-            <input type="range" min={18} max={1000} step={1} value={calc} onChange={(e) => setCalc(+e.target.value)} aria-label={he('סכום תרומה', 'Donation amount')} style={{ width: '100%', accentColor: 'var(--c2)', height: 36, cursor: 'pointer', marginTop: 16 }} />
-            <p style={{ fontSize: 13.5, color: 'rgba(var(--ri),.5)', margin: '8px 0 0' }}>{t(site.calc?.note) || he('גררו את הלב · לפי ₪9 לארוחה חמה ו־₪90 לסל שבועי מלא', 'Drag the heart · ₪9 per meal, ₪90 per weekly basket')}</p>
+            <input type="range" min={calcMin} max={calcMax} step={1} value={calc} onChange={(e) => setCalc(+e.target.value)} aria-label={he('סכום תרומה', 'Donation amount')} style={{ width: '100%', accentColor: 'var(--c2)', height: 36, cursor: 'pointer', marginTop: 16 }} />
+            <p style={{ fontSize: 13.5, color: 'rgba(var(--ri),.5)', margin: '8px 0 0' }}>{t(site.calc?.note) || he(`גררו את הלב · ₪${fmt(unit)} = ${t(site.calc?.unit)}`, `Drag · ₪${fmt(unit)} each`)}</p>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'clamp(16px,2vw,26px)' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: unit2 ? '1fr 1fr' : '1fr', gap: 'clamp(16px,2vw,26px)' }}>
             <div style={{ borderRadius: 26, background: 'var(--ck)', padding: 'clamp(22px,2.6vw,34px)', textAlign: 'center' }}>
-              <p style={{ fontFamily: "'Rubik'", fontWeight: 800, fontSize: 'clamp(42px,4.4vw,72px)', lineHeight: 1, margin: 0, color: 'var(--ci)', ...TNUM }}>{fmt(meals)}</p>
-              <p style={{ fontSize: 14.5, fontWeight: 700, margin: '12px 0 0', color: 'var(--c3)' }}>{t(site.calc?.unit) || he('ארוחות חמות', 'warm meals')}</p>
+              <p style={{ fontFamily: "'Rubik'", fontWeight: 800, fontSize: 'clamp(42px,4.4vw,72px)', lineHeight: 1, margin: 0, color: 'var(--ci)', ...TNUM }}>{qty(meals)}</p>
+              <p style={{ fontSize: 14.5, fontWeight: 700, margin: '12px 0 0', color: 'var(--c3)' }}>{t(site.calc?.unit)}</p>
             </div>
+            {unit2 > 0 && (
             <div style={{ borderRadius: 26, background: 'linear-gradient(160deg,var(--c1),var(--c2))', padding: 'clamp(22px,2.6vw,34px)', textAlign: 'center', boxShadow: '0 16px 36px rgba(var(--r2),.35)' }}>
-              <p style={{ fontFamily: "'Rubik'", fontWeight: 800, fontSize: 'clamp(42px,4.4vw,72px)', lineHeight: 1, margin: 0, color: 'var(--cp)', ...TNUM }}>{fmt(baskets)}</p>
-              <p style={{ fontSize: 14.5, fontWeight: 700, margin: '12px 0 0', color: 'rgba(255,252,250,.9)' }}>{he('סלים שבועיים למשפחה', 'weekly baskets')}</p>
+              <p style={{ fontFamily: "'Rubik'", fontWeight: 800, fontSize: 'clamp(42px,4.4vw,72px)', lineHeight: 1, margin: 0, color: 'var(--cp)', ...TNUM }}>{qty(baskets)}</p>
+              <p style={{ fontSize: 14.5, fontWeight: 700, margin: '12px 0 0', color: 'rgba(255,252,250,.9)' }}>{t(site.calc?.unit2)}</p>
             </div>
+            )}
           </div>
         </div>
       </section>
+      )}
 
       {/* ── בוחר-תרומה ── */}
       <section id="donate" className="ps-rev" style={sec}>
@@ -539,8 +569,8 @@ export function PublicSite({ onEnter }: { onEnter: () => void }) {
               <button type="button" onClick={() => setMode('monthly')} style={pill(mode === 'monthly')}>{he('הוראת קבע חודשית', 'Monthly')}</button>
               <button type="button" onClick={() => setMode('once')} style={pill(mode === 'once')}>{he('תרומה חד־פעמית', 'One-time')}</button>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginTop: 24 }}>
-              {[50, 180, 360, 720].map((a) => <button key={a} type="button" onClick={() => setAmt(a)} style={amtBtn(amt === a)}>₪{a}</button>)}
+            <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(4, amounts.length)},1fr)`, gap: 12, marginTop: 24 }}>
+              {amounts.map((a) => <button key={a} type="button" onClick={() => setAmt(a)} style={amtBtn(amt === a)}>₪{a}</button>)}
             </div>
             <label style={{ display: 'block', marginTop: 20 }}>
               <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--c3)' }}>{he('סכום אחר', 'Other amount')}</span>
@@ -550,8 +580,9 @@ export function PublicSite({ onEnter }: { onEnter: () => void }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 24 }}>
                 {payMethods.map((p, i) => (
                   <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '13px 16px', borderRadius: 16, background: 'var(--ck)' }}>
-                    <span style={{ flexShrink: 0, marginTop: 2, color: 'var(--c2)', fontSize: 18 }} aria-hidden>{i === 0 ? '💳' : i === 1 ? '🏦' : '✉️'}</span>
-                    <span dir={p.ltr ? 'ltr' : undefined} style={{ fontSize: 14, lineHeight: 1.6, color: 'rgba(var(--ri),.75)', textAlign: p.ltr ? 'left' : 'start' }}><b style={{ color: 'var(--c3)' }}>{t(p.label)}</b> · {t(p.detail)}</span>
+                    <span style={{ flexShrink: 0, marginTop: 2, color: 'var(--c2)', fontSize: 18 }} aria-hidden>{p.icon || (i === 0 ? '💳' : i === 1 ? '🏦' : '✉️')}</span>
+                    <span dir={p.ltr ? 'ltr' : undefined} style={{ fontSize: 14, lineHeight: 1.6, color: 'rgba(var(--ri),.75)', textAlign: p.ltr ? 'left' : 'start', flex: 1 }}><b style={{ color: 'var(--c3)' }}>{t(p.label)}</b> · {t(p.detail)}</span>
+                    {p.url && <a href={p.url} target="_blank" rel="noopener noreferrer" style={{ flexShrink: 0, alignSelf: 'center', fontFamily: "'Varela Round'", fontSize: 14, color: 'var(--cp)', textDecoration: 'none', padding: '9px 18px', borderRadius: 999, background: GRAD }}>{he('לתרומה ←', 'Donate →')}</a>}
                   </div>
                 ))}
               </div>
@@ -559,10 +590,13 @@ export function PublicSite({ onEnter }: { onEnter: () => void }) {
             {t(site.donateNote) && <p style={{ fontSize: 13, color: 'rgba(var(--ri),.5)', margin: '18px 0 0' }}>{t(site.donateNote)}</p>}
           </div>
           <div style={{ padding: 'clamp(26px,3.4vw,46px)', display: 'flex', flexDirection: 'column', gap: 'clamp(20px,3vh,32px)', background: 'var(--ck)' }}>
+            {impact && (
             <div>
               <p style={{ fontFamily: "'Playpen Sans Hebrew'", fontSize: 16, color: 'var(--c3)', margin: 0 }}>{voc.giveLabel} =</p>
               <p style={{ fontFamily: "'Varela Round'", fontSize: 'clamp(24px,2.3vw,38px)', lineHeight: 1.2, margin: '10px 0 0', color: 'var(--ci)' }}>{impact} ♡</p>
             </div>
+            )}
+            {camp.show && (
             <div style={{ marginTop: 'auto' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', fontSize: 13.5, ...TNUM }}>
                 <span style={{ fontWeight: 700, color: 'var(--ci)' }}>{he('נאספו', 'Raised')} ₪{fmt(raised)}</span>
@@ -571,9 +605,10 @@ export function PublicSite({ onEnter }: { onEnter: () => void }) {
               <div style={{ height: 16, borderRadius: 999, background: '#fff', border: '1.5px solid rgba(var(--r1),.4)', marginTop: 10, overflow: 'hidden' }}>
                 <div style={{ height: '100%', borderRadius: 999, background: 'linear-gradient(90deg,var(--c1),var(--c2))', width: `${pct.toFixed(1)}%`, transition: 'width .6s' }} />
               </div>
-              <p style={{ fontSize: 13, margin: '10px 0 0', color: 'var(--c3)', fontWeight: 700, ...TNUM }}>{pct.toFixed(1)}% {he('מהיעד · מתעדכן חי', 'of goal · live')}</p>
+              <p style={{ fontSize: 13, margin: '10px 0 0', color: 'var(--c3)', fontWeight: 700, ...TNUM }}>{pct.toFixed(1)}% {he('מהיעד', 'of goal')}</p>
               {camp.daysLeft !== null && <p style={{ fontSize: 12.5, margin: '6px 0 0', color: 'rgba(var(--ri),.5)' }}>{he(`הקמפיין נסגר בעוד ${camp.daysLeft} ימים`, `${camp.daysLeft} days left`)}</p>}
             </div>
+            )}
             <a href={donateHref} {...donateAttrs} style={{ display: 'block', textAlign: 'center', fontFamily: "'Varela Round'", fontSize: 17, color: 'var(--cp)', textDecoration: 'none', padding: '18px 24px', borderRadius: 999, background: GRAD, boxShadow: '0 14px 34px rgba(var(--r2),.45)' }}>{he(`לתרומה של ₪${fmt(amt)} ${mode === 'monthly' ? 'בכל חודש' : ''}`, `Donate ₪${fmt(amt)}`)} ←</a>
           </div>
         </div>
@@ -690,8 +725,10 @@ export function PublicSite({ onEnter }: { onEnter: () => void }) {
           <div style={{ padding: 'clamp(26px,3.4vw,46px)' }}>
             <h2 style={{ fontFamily: "'Varela Round'", fontSize: 'clamp(26px,2.6vw,40px)', letterSpacing: '-0.01em', margin: '0 0 4px', color: 'var(--ci)' }}>{he('דברו איתנו ♡', 'Talk to us ♡')}</h2>
             <p style={{ fontSize: 14, margin: '0 0 18px', color: 'rgba(var(--ri),.55)' }}>{t(site.contactForm?.note) || he('מענה תוך יום עסקים · דיסקרטיות מלאה', 'Reply within a business day')}</p>
-            {sent ? (
-              <p style={{ fontFamily: "'Varela Round'", fontSize: 17, color: '#7FA98F', margin: 0 }}>♡ {he('התקבל! נחזור אליכם תוך יום עסקים.', 'Received! We will reply within a business day.')}</p>
+            {!formOn ? (
+              <p style={{ fontSize: 15, lineHeight: 1.7, color: 'rgba(var(--ri),.7)', margin: 0 }}>{he('אנחנו זמינים בטלפון ובפרטים שכאן ♡', 'Reach us using the details here ♡')}</p>
+            ) : sent ? (
+              <p style={{ fontFamily: "'Varela Round'", fontSize: 17, color: '#7FA98F', margin: 0 }}>♡ {sent === 'wa' ? he('נפתח וואטסאפ עם ההודעה — לחצו «שליחה» כדי שתגיע אלינו', 'WhatsApp opened — press Send') : he('נפתח המייל עם ההודעה — לחצו «שליחה» כדי שתגיע אלינו', 'Email opened — press Send')}</p>
             ) : (
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }}>
                 <label><span style={{ fontSize: 13, fontWeight: 700, color: 'var(--c3)' }}>{he('שם מלא', 'Full name')}</span><input className="ps-in2" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder={he('ישראל ישראלי', 'Full name')} /></label>
@@ -705,7 +742,8 @@ export function PublicSite({ onEnter }: { onEnter: () => void }) {
           <div style={{ padding: 'clamp(26px,3.4vw,46px)', display: 'flex', flexDirection: 'column', gap: 22, background: 'var(--ck)' }}>
             {(contact.phones ?? []).length > 0 && (
               <div><p style={{ fontFamily: "'Playpen Sans Hebrew'", fontSize: 14.5, color: 'var(--c3)', margin: 0 }}>{he('טלפונים', 'Phones')}</p>
-                {(contact.phones ?? []).map((p, i) => <p key={i} dir="ltr" style={{ fontFamily: "'Rubik'", fontWeight: i === 0 ? 800 : 600, fontSize: i === 0 ? 24 : 15, margin: i === 0 ? '6px 0 0' : '4px 0 0', textAlign: 'start', color: i === 0 ? 'var(--ci)' : 'rgba(var(--ri),.7)', ...TNUM }}>{p}</p>)}
+                {/* 26.10.2026: לחיצה מחייגת (היה טקסט בלבד) */}
+                {(contact.phones ?? []).map((p, i) => <p key={i} dir="ltr" style={{ fontFamily: "'Rubik'", fontWeight: i === 0 ? 800 : 600, fontSize: i === 0 ? 24 : 15, margin: i === 0 ? '6px 0 0' : '4px 0 0', textAlign: 'start', color: i === 0 ? 'var(--ci)' : 'rgba(var(--ri),.7)', ...TNUM }}>{telHref(p) ? <DialLink href={telHref(p)!} locked={dialLocked} style={{ color: 'inherit', textDecoration: 'none' }}>{p}</DialLink> : p}</p>)}
               </div>
             )}
             {contact.whatsapp && waHref(contact.whatsapp) && (
@@ -733,26 +771,28 @@ export function PublicSite({ onEnter }: { onEnter: () => void }) {
           <p style={{ position: 'relative', fontFamily: "'Playpen Sans Hebrew'", fontSize: 'clamp(16px,1.6vw,21px)', margin: '18px 0 0', color: 'var(--cb)' }}>{t(site.microCopy) || he('בואו להאיר יחד איתנו ♡', 'Bring light with us ♡')}</p>
           <div style={{ position: 'relative', display: 'flex', gap: 16, justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap', marginTop: 32 }}>
             <a href={primaryHref} {...primaryAttrs} style={{ fontFamily: "'Varela Round'", fontSize: 17, color: 'var(--c3)', textDecoration: 'none', padding: '17px 44px', borderRadius: 999, background: 'var(--cp)', boxShadow: '0 14px 34px rgba(150,70,70,.35)' }}>{voc.heroCta}</a>
-            <span style={{ fontFamily: "'Rubik'", fontWeight: 700, fontSize: 14.5, color: 'var(--cb)', ...TNUM }}>₪{fmt(raised)} / ₪{fmt(goal)} · {pct.toFixed(0)}%</span>
+            {camp.show && <span style={{ fontFamily: "'Rubik'", fontWeight: 700, fontSize: 14.5, color: 'var(--cb)', ...TNUM }}>₪{fmt(raised)} / ₪{fmt(goal)} · {pct.toFixed(0)}%</span>}
           </div>
         </div>
       </section>
 
-      {/* ── ניוזלטר ── */}
+      {/* ── ניוזלטר — רק כשיש ערוץ אמיתי (26.10.2026; היה "נרשמת!" בלי לשמור דבר) ── */}
+      {hasChannel && (
       <section className="ps-rev" style={{ position: 'relative', zIndex: 2, maxWidth: 940, margin: '0 auto', padding: '0 clamp(20px,4vw,64px) clamp(60px,9vh,100px)', boxSizing: 'border-box' }}>
         <div style={{ ...cardS, border: '1.5px solid rgba(var(--r1),.35)', boxShadow: '0 18px 44px rgba(var(--r2),.16)', padding: 'clamp(22px,3vw,34px)', display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
           <span style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 220, flex: 1 }}>
             <span style={{ fontFamily: "'Varela Round'", fontSize: 19, color: 'var(--ci)' }}>{he('נשארים מחוברים ♡', 'Stay connected ♡')}</span>
             <span style={{ fontSize: 13.5, color: 'rgba(var(--ri),.55)' }}>{he('עדכון חודשי קצר מהשטח — בלי ספאם, מבטיחות', 'A short monthly update — no spam')}</span>
           </span>
-          {nlSent ? <span style={{ fontFamily: "'Varela Round'", color: '#7FA98F', fontSize: 16 }}>♡ {he('נרשמת! נתראה במייל.', 'Subscribed!')}</span> : (
+          {nlSent ? <span style={{ fontFamily: "'Varela Round'", color: '#7FA98F', fontSize: 16 }}>♡ {nlSent === 'wa' ? he('נפתח וואטסאפ עם הבקשה — לחצו «שליחה» לסיום', 'WhatsApp opened — press Send') : he('נפתח המייל עם הבקשה — לחצו «שליחה» לסיום', 'Email opened — press Send')}</span> : (
             <span style={{ display: 'flex', gap: 10, flexWrap: 'wrap', flex: 1, minWidth: 280 }}>
               <input className="ps-in2" type="email" value={nl} onChange={(e) => setNl(e.target.value)} placeholder={he('האימייל שלך', 'Your email')} style={{ flex: 1, minWidth: 180, borderRadius: 999 }} />
-              <button type="button" onClick={() => nl && setNlSent(true)} style={{ fontFamily: "'Varela Round'", fontSize: 15, color: 'var(--cp)', padding: '13px 30px', borderRadius: 999, border: 'none', background: GRAD, cursor: 'pointer', boxShadow: '0 10px 26px rgba(var(--r2),.4)' }}>{he('הרשמה', 'Subscribe')}</button>
+              <button type="button" onClick={() => nl && setNlSent(sendVia(`בקשה להצטרף לעדכונים מ${orgName}`, `אימייל: ${nl}`))} style={{ fontFamily: "'Varela Round'", fontSize: 15, color: 'var(--cp)', padding: '13px 30px', borderRadius: 999, border: 'none', background: GRAD, cursor: 'pointer', boxShadow: '0 10px 26px rgba(var(--r2),.4)' }}>{he('הרשמה', 'Subscribe')}</button>
             </span>
           )}
         </div>
       </section>
+      )}
 
       {/* ── פוטר ── */}
       <footer style={{ position: 'relative', zIndex: 2, background: 'var(--ck)', borderTop: '1.5px solid rgba(var(--r1),.3)' }}>
