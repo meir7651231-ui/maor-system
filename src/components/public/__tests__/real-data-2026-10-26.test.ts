@@ -118,7 +118,7 @@ describe('🧾 מאור החסד — התוכן האמיתי (מ-fsisters.com)',
 
   it('יש ערוץ-קשר אמיתי (הטופס לא נבלע) + ע״ר אמיתי', () => {
     const c = site.contact as { email?: string; whatsapp?: string };
-    expect(c.email).toBe('m9295631794@gmail.com');
+    expect(c.email).toBe('m0548538794@gmail.com');
     expect(txt).toContain('580651719');
   });
 
