@@ -84,6 +84,7 @@ export function PublicSite({ onEnter }: { onEnter: () => void }) {
   const glowRef = useRef<HTMLDivElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const [sp, setSp] = useState(0); // scroll progress 0..1
+  const [menuOpen, setMenuOpen] = useState(false); // ☰ ניווט-מובייל (≤860px; בדסקטופ מוסתר)
   const [bump, setBump] = useState(0); // ticker
   const words = useMemo(() => {
     const w = (site.heroWords ?? []).map((x) => t(x)).filter(Boolean);
@@ -271,7 +272,7 @@ export function PublicSite({ onEnter }: { onEnter: () => void }) {
       <div aria-hidden style={{ position: 'fixed', top: 0, right: 0, height: 4, background: GRAD, borderRadius: '0 0 0 6px', zIndex: 100, width: `${(sp * 100).toFixed(2)}%` }} />
 
       {/* ── ניווט ── */}
-      <nav style={{ position: 'sticky', top: 0, zIndex: 60, display: 'flex', alignItems: 'center', gap: 'clamp(12px,1.8vw,26px)', padding: '0 clamp(20px,4vw,64px)', height: 78, background: 'rgba(255,252,250,.82)', backdropFilter: 'blur(16px)', borderBottom: '1px solid rgba(var(--r1),.25)' }}>
+      <nav className="ps-nav" style={{ position: 'sticky', top: 0, zIndex: 60, display: 'flex', alignItems: 'center', gap: 'clamp(12px,1.8vw,26px)', padding: '0 clamp(20px,4vw,64px)', height: 78, background: 'rgba(255,252,250,.82)', backdropFilter: 'blur(16px)', borderBottom: '1px solid rgba(var(--r1),.25)' }}>
         <a href="#top" style={{ display: 'flex', alignItems: 'center', gap: 12, marginInlineEnd: 'auto', textDecoration: 'none' }}>
           {config.logoDataUri ? <img src={config.logoDataUri} alt="" style={{ height: 40, borderRadius: 10 }} /> : (
             <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
@@ -285,18 +286,33 @@ export function PublicSite({ onEnter }: { onEnter: () => void }) {
             {t(site.brandLine) && <span style={{ fontFamily: "'Playpen Sans Hebrew'", fontSize: 11.5, color: 'var(--ci)', marginTop: 3 }}>{t(site.brandLine)}</span>}
           </span>
         </a>
-        <a href="#pillars" className="ps-navlink" style={navLink}>{he('מה אנחנו עושות', 'What we do')}</a>
-        <a href="#story" className="ps-navlink" style={navLink}>{he('הסיפור', 'Story')}</a>
-        <a href="#numbers" className="ps-navlink" style={navLink}>{he('מספרים', 'Numbers')}</a>
-        <a href="#calc" className="ps-navlink" style={navLink}>{he('מחשבון', 'Calculator')}</a>
-        <a href="#faq" className="ps-navlink" style={navLink}>{he('שאלות', 'FAQ')}</a>
-        <button type="button" onClick={onEnter} style={{ ...navLink, background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>{ui('enter')}</button>
+        <a href="#pillars" className="ps-navlink ps-nav-full" style={navLink}>{he('מה אנחנו עושות', 'What we do')}</a>
+        <a href="#story" className="ps-navlink ps-nav-full" style={navLink}>{he('הסיפור', 'Story')}</a>
+        <a href="#numbers" className="ps-navlink ps-nav-full" style={navLink}>{he('מספרים', 'Numbers')}</a>
+        <a href="#calc" className="ps-navlink ps-nav-full" style={navLink}>{he('מחשבון', 'Calculator')}</a>
+        <a href="#faq" className="ps-navlink ps-nav-full" style={navLink}>{he('שאלות', 'FAQ')}</a>
+        <button type="button" className="ps-nav-full" onClick={onEnter} style={{ ...navLink, background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>{ui('enter')}</button>
         {langs.length > 1 && (
-          <span dir="ltr" style={{ display: 'inline-flex', alignItems: 'center', border: '1.5px solid rgba(var(--r1),.45)', borderRadius: 999, overflow: 'hidden', fontSize: 12, fontWeight: 700 }}>
+          <span dir="ltr" className="ps-nav-full" style={{ display: 'inline-flex', alignItems: 'center', border: '1.5px solid rgba(var(--r1),.45)', borderRadius: 999, overflow: 'hidden', fontSize: 12, fontWeight: 700 }}>
             {langs.map((l) => <button key={l} type="button" onClick={() => setLang(l)} style={{ padding: '7px 12px', background: l === lang ? 'var(--c1)' : 'transparent', color: l === lang ? 'var(--cp)' : 'var(--c3)', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 700 }}>{LANG_LABEL[l]}</button>)}
           </span>
         )}
-        <a href={primaryHref} {...primaryAttrs} style={{ fontFamily: "'Varela Round'", fontSize: 15, color: 'var(--cp)', textDecoration: 'none', padding: '12px 28px', borderRadius: 999, background: GRAD, boxShadow: '0 8px 22px rgba(var(--r2),.35)' }}>{voc.navCta}</a>
+        <a href={primaryHref} {...primaryAttrs} className="ps-nav-cta" style={{ fontFamily: "'Varela Round'", fontSize: 15, color: 'var(--cp)', textDecoration: 'none', padding: '12px 28px', borderRadius: 999, background: GRAD, boxShadow: '0 8px 22px rgba(var(--r2),.35)', whiteSpace: 'nowrap' }}>{voc.navCta}</a>
+        {/* ☰ מובייל (26.10.2026): ברוחב צר הקישורים נחתכו מחוץ למסך — מתקפלים לתפריט; התרומה נשארת גלויה */}
+        <button type="button" className="ps-burger" aria-label={he('תפריט', 'Menu')} aria-expanded={menuOpen} aria-controls="ps-mobile-menu" onClick={() => setMenuOpen((o) => !o)} style={{ background: 'none', border: '1.5px solid rgba(var(--r1),.45)', borderRadius: 12, width: 44, height: 44, fontSize: 22, lineHeight: 1, color: 'var(--c3)', cursor: 'pointer', fontFamily: 'inherit' }}>{menuOpen ? '✕' : '☰'}</button>
+        {menuOpen && (
+          <div id="ps-mobile-menu" className="ps-mobile-menu" onClick={(e) => { if ((e.target as HTMLElement).closest('a')) setMenuOpen(false); }} style={{ position: 'absolute', top: 78, insetInline: 0, display: 'flex', flexDirection: 'column', gap: 4, padding: '10px clamp(20px,4vw,64px) 18px', background: '#fffcfa', borderBottom: '1px solid rgba(var(--r1),.25)', boxShadow: '0 18px 32px rgba(var(--r2),.12)' }}>
+            {([['#pillars', he('מה אנחנו עושות', 'What we do')], ['#story', he('הסיפור', 'Story')], ['#numbers', he('מספרים', 'Numbers')], ['#calc', he('מחשבון', 'Calculator')], ['#faq', he('שאלות', 'FAQ')]] as const).map(([href, label]) => (
+              <a key={href} href={href} className="ps-navlink" style={{ ...navLink, fontSize: 17, padding: '12px 4px', borderBottom: '1px solid rgba(var(--r1),.18)' }}>{label}</a>
+            ))}
+            <button type="button" onClick={() => { setMenuOpen(false); onEnter(); }} style={{ ...navLink, fontSize: 17, padding: '12px 4px', textAlign: 'start', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>{ui('enter')}</button>
+            {langs.length > 1 && (
+              <span dir="ltr" style={{ alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', border: '1.5px solid rgba(var(--r1),.45)', borderRadius: 999, overflow: 'hidden', fontSize: 13, fontWeight: 700, marginTop: 8 }}>
+                {langs.map((l) => <button key={l} type="button" onClick={() => setLang(l)} style={{ padding: '9px 14px', background: l === lang ? 'var(--c1)' : 'transparent', color: l === lang ? 'var(--cp)' : 'var(--c3)', border: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 700 }}>{LANG_LABEL[l]}</button>)}
+              </span>
+            )}
+          </div>
+        )}
       </nav>
 
       {/* ── HERO ── */}

@@ -255,6 +255,19 @@ a.ps-chip:hover { border-color: var(--c-coral); color: var(--c-coral); }
 .ps-marq { animation: ps-marq 30s linear infinite; will-change: transform; }
 .ps-navlink { transition: color 0.18s; }
 .ps-navlink:hover { color: #d97f7f; }
+/* ☰ ניווט-מובייל (26.10.2026) — בדסקטופ ביט-זהה (ההמבורגר והתפריט מוסתרים) */
+.ps-burger, .ps-mobile-menu { display: none !important; }
+@media (max-width: 860px) {
+  .ps-nav-full { display: none !important; }
+  .ps-burger { display: inline-flex !important; align-items: center; justify-content: center; flex: none; }
+  .ps-mobile-menu { display: flex !important; }
+  .ps-nav-cta { padding: 10px 18px !important; font-size: 14px !important; flex: none; }
+}
+@media (max-width: 420px) {
+  .ps-nav { gap: 8px !important; padding: 0 12px !important; }
+  .ps-nav-cta { padding: 9px 13px !important; font-size: 13px !important; }
+  .ps-burger { width: 40px !important; height: 40px !important; }
+}
 .ps-event-b { min-width: 0; }
 
 /* כרטיס-הרמה (עמודי-תווך) */
