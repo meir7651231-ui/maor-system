@@ -299,7 +299,12 @@ a.ps-chip:hover { border-color: var(--c-coral); color: var(--c-coral); }
   .ps-tst3 { grid-template-columns: 1fr 1fr !important; }
   .ps-gal6 { grid-auto-rows: clamp(120px, 26vw, 200px) !important; }
 }
+@media (max-width: 860px) {
+  /* 26.10.2026: השירותים (3 טורים) והמספרים (4) לא קרסו במובייל — טקסט מילה-לשורה ונחתך */
+  .ps-svc3, .ps-stats4 { grid-template-columns: 1fr 1fr !important; }
+}
 @media (max-width: 560px) {
+  .ps-svc3 { grid-template-columns: 1fr !important; }
   .ps-tst3 { grid-template-columns: 1fr !important; }
   .ps-gal6 > figure { grid-column: span 3 !important; grid-row: span 1 !important; }
 }

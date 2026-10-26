@@ -53,22 +53,28 @@
     },
     "marquee": [
       {
-        "he": "600 אלמנות נתמכות"
+        "he": "600 אלמנות נתמכות",
+        "en": "600 widows supported"
       },
       {
-        "he": "2,000 יתומים"
+        "he": "2,000 יתומים",
+        "en": "2,000 orphans"
       },
       {
-        "he": "הבית פתוח 24/7"
+        "he": "הבית פתוח 24/7",
+        "en": "Our home is open 24/7"
       },
       {
-        "he": "מאז 1994 — בברכת גדולי ישראל"
+        "he": "מאז 1994 — בברכת גדולי ישראל",
+        "en": "Since 1994 — blessed by Torah leaders"
       },
       {
-        "he": "עמותה רשומה · ע״ר 580651719"
+        "he": "עמותה רשומה · ע״ר 580651719",
+        "en": "Registered nonprofit · 580651719"
       },
       {
-        "he": "קבלה מוכרת · סעיף 46"
+        "he": "קבלה מוכרת · סעיף 46",
+        "en": "Tax-recognized receipt · §46"
       }
     ],
     "servicesHeading": {
@@ -83,7 +89,8 @@
           "en": "An open home"
         },
         "text": {
-          "he": "הבית של 'מאור החסד לוצקין' פתוח לאלמנות ויתומים מסביב לשעון, בכל פעם שהם מחפשים תמיכה, שמחה, או פשוט מילה טובה."
+          "he": "הבית של 'מאור החסד לוצקין' פתוח לאלמנות ויתומים מסביב לשעון, בכל פעם שהם מחפשים תמיכה, שמחה, או פשוט מילה טובה.",
+          "en": "Meor Hachesed Lutzkin's home is open to widows and orphans around the clock — whenever they need support, joy, or simply a kind word."
         }
       },
       {
@@ -93,7 +100,8 @@
           "en": "Brides"
         },
         "text": {
-          "he": "אנו מלווים כלות יתומות ואלמנות ומסבסדים רכישת שמלת כלה, תכשיטים ואביזרים בחנויות המובילות, כדי שיום חתונתן יהיה מושלם."
+          "he": "אנו מלווים כלות יתומות ואלמנות ומסבסדים רכישת שמלת כלה, תכשיטים ואביזרים בחנויות המובילות, כדי שיום חתונתן יהיה מושלם.",
+          "en": "We accompany orphaned and widowed brides and subsidize wedding gowns, jewelry and accessories at leading stores, so their wedding day is perfect."
         }
       },
       {
@@ -103,7 +111,8 @@
           "en": "Celebrations"
         },
         "text": {
-          "he": "אנו מסייעים בארגון אירוסין, בר מצוות, חתונות ושאר אירועים משפחתיים – החל מתכנון, דרך מימון חלקי ועד ליווי אישי."
+          "he": "אנו מסייעים בארגון אירוסין, בר מצוות, חתונות ושאר אירועים משפחתיים – החל מתכנון, דרך מימון חלקי ועד ליווי אישי.",
+          "en": "We help organize engagements, bar mitzvahs, weddings and other family celebrations — from planning, through partial funding, to personal guidance."
         }
       },
       {
@@ -113,7 +122,8 @@
           "en": "Trips & activities"
         },
         "text": {
-          "he": "אנחנו מארגנים טיולים מרהיבים, ימי כיף ופעילויות מיוחדות לנשים וליתומות, שמאפשרים מנוחה, התרעננות והנאה משותפת."
+          "he": "אנחנו מארגנים טיולים מרהיבים, ימי כיף ופעילויות מיוחדות לנשים וליתומות, שמאפשרים מנוחה, התרעננות והנאה משותפת.",
+          "en": "We organize wonderful trips, fun days and special activities for women and orphaned girls, for rest, renewal and shared joy."
         }
       },
       {
@@ -123,7 +133,8 @@
           "en": "Body & soul care"
         },
         "text": {
-          "he": "חדר טיפולים מקצועי המציע טיפולי קוסמטיקה, עיסויים מרגיעים וטיפולים רפלקסולוגיים להתחדשות גוף ונפש."
+          "he": "חדר טיפולים מקצועי המציע טיפולי קוסמטיקה, עיסויים מרגיעים וטיפולים רפלקסולוגיים להתחדשות גוף ונפש.",
+          "en": "A professional treatment room offering beauty treatments, relaxing massages and reflexology for body and soul."
         }
       },
       {
@@ -133,7 +144,8 @@
           "en": "Recording studio"
         },
         "text": {
-          "he": "חדר אולפן הקלטות מקצועי להקלטת שירים, הרצאות, פודקאסטים או יצירות אישיות – הזדמנות ייחודית לביטוי עצמי."
+          "he": "חדר אולפן הקלטות מקצועי להקלטת שירים, הרצאות, פודקאסטים או יצירות אישיות – הזדמנות ייחודית לביטוי עצמי.",
+          "en": "A professional recording studio for songs, lectures, podcasts or personal creations — a unique chance for self-expression."
         }
       }
     ],
@@ -178,13 +190,16 @@
       },
       "badges": [
         {
-          "he": "עמותה רשומה (ע״ר)"
+          "he": "עמותה רשומה (ע״ר)",
+          "en": "Registered nonprofit"
         },
         {
-          "he": "סעיף 46 — זיכוי מס"
+          "he": "סעיף 46 — זיכוי מס",
+          "en": "§46 tax credit"
         },
         {
-          "he": "US Tax ID 99-0780369"
+          "he": "US Tax ID 99-0780369",
+          "en": "US Tax ID 99-0780369"
         }
       ]
     },
@@ -197,7 +212,8 @@
       "en": "their world collapses."
     },
     "story": {
-      "he": "דמיינו ילדה בת שמונה שחוזרת הביתה מבית הספר. היא פותחת את הדלת ומחפשת את החיבוק שממתין לה כל יום — אבל הפעם, ובכל הפעמים שאחרי, החיבוק הזה כבר לא יהיה שם. זהו המציאות היומיומית של מאות יתומים ויתומות. העמותה נוסדה בשנת 1994 על ידי הרבנית הינדא שפרינצא לוצקין ע״ה, מתוך חזון פשוט אך עוצמתי: שאף יתום לא ירגיש לבד. היום, אנחנו ממשיכים את דרכה — פותחים את הדלת, מחבקים, תומכים ומלווים מאות משפחות בכל יום."
+      "he": "דמיינו ילדה בת שמונה שחוזרת הביתה מבית הספר. היא פותחת את הדלת ומחפשת את החיבוק שממתין לה כל יום — אבל הפעם, ובכל הפעמים שאחרי, החיבוק הזה כבר לא יהיה שם. זהו המציאות היומיומית של מאות יתומים ויתומות. העמותה נוסדה בשנת 1994 על ידי הרבנית הינדא שפרינצא לוצקין ע״ה, מתוך חזון פשוט אך עוצמתי: שאף יתום לא ירגיש לבד. היום, אנחנו ממשיכים את דרכה — פותחים את הדלת, מחבקים, תומכים ומלווים מאות משפחות בכל יום.",
+      "en": "Imagine an eight-year-old girl coming home from school. She opens the door looking for the hug that waits for her every day — but this time, and every time after, that hug will no longer be there. This is the daily reality of hundreds of orphans. Our organization was founded in 1994 by Rebbetzin Hinda Shprintza Lutzkin OBM with a simple yet powerful vision: that no orphan should ever feel alone. Today we continue her path — opening the door, embracing, supporting and accompanying hundreds of families every day."
     },
     "storyBadge": {
       "he": "מאז 1994 — בברכת גדולי ישראל ♡",
@@ -217,19 +233,23 @@
       {
         "year": "1994",
         "title": {
-          "he": "נוסדה העמותה"
+          "he": "נוסדה העמותה",
+          "en": "Founded"
         },
         "note": {
-          "he": "על ידי הרבנית הינדא שפרינצא לוצקין ע״ה"
+          "he": "על ידי הרבנית הינדא שפרינצא לוצקין ע״ה",
+          "en": "by Rebbetzin Hinda Shprintza Lutzkin OBM"
         }
       },
       {
-        "year": "היום",
+        "year": "2026",
         "title": {
-          "he": "600 אלמנות · 2,000 יתומים"
+          "he": "600 אלמנות · 2,000 יתומים",
+          "en": "600 widows · 2,000 orphans"
         },
         "note": {
-          "he": "בניהול מירי קירשנבאום (לוצקין)"
+          "he": "בניהול מירי קירשנבאום (לוצקין)",
+          "en": "Directed by Miri Kirschenbaum (Lutzkin)"
         }
       }
     ],
@@ -237,60 +257,70 @@
       {
         "icon": "💳",
         "label": {
-          "he": "כרטיס אשראי (ישראל)"
+          "he": "כרטיס אשראי (ישראל)",
+          "en": "Credit card (Israel)"
         },
         "detail": {
-          "he": "תרומה מאובטחת דרך נדרים פלוס"
+          "he": "תרומה מאובטחת דרך נדרים פלוס",
+          "en": "Secure donation via Nedarim Plus"
         },
         "url": "https://www.matara.pro/nedarimplus/online/?mosad=7001532"
       },
       {
         "icon": "🌍",
         "label": {
-          "he": "Credit Card (International)"
+          "he": "כרטיס אשראי (חו״ל)",
+          "en": "Credit card (International)"
         },
         "detail": {
-          "he": "Secure online donation via Cardknox"
+          "he": "תרומה מאובטחת דרך Cardknox",
+          "en": "Secure online donation via Cardknox"
         },
-        "ltr": true,
         "url": "https://secure.cardknox.com/meorhachessedlutzkininc"
       },
       {
         "icon": "🏦",
         "label": {
-          "he": "Zelle"
+          "he": "Zelle (ארה״ב)",
+          "en": "Zelle (USA)"
         },
         "detail": {
-          "he": "929-563-1794 · Meor Hachesed Lutzkin Inc · Tax ID 99-0780369"
+          "he": "929-563-1794 · Meor Hachesed Lutzkin Inc · Tax ID 99-0780369",
+          "en": "929-563-1794 · Meor Hachesed Lutzkin Inc · Tax ID 99-0780369"
         },
         "ltr": true
       },
       {
         "icon": "✉️",
         "label": {
-          "he": "המחאות (ישראל)"
+          "he": "המחאות (ישראל)",
+          "en": "Checks (Israel)"
         },
         "detail": {
-          "he": "לפקודת: מאור החסד לוצקין (ע\"ר) · אדוניהו הכהן 23, ירושלים, מיקוד 9534311"
+          "he": "לפקודת: מאור החסד לוצקין (ע\"ר) · אדוניהו הכהן 23, ירושלים, מיקוד 9534311",
+          "en": "Payable to: Maor Hachesed Lutzkin (NPO) · Adoniyahu HaCohen 23, Jerusalem 9534311"
         }
       },
       {
         "icon": "✉️",
         "label": {
-          "he": "Checks (USA)"
+          "he": "המחאות (ארה״ב)",
+          "en": "Checks (USA)"
         },
         "detail": {
-          "he": "Meor Hachessed Lutzkin Inc · 14 Olympia Lane, Monsey, NY 10952"
-        },
-        "ltr": true
+          "he": "לפקודת Meor Hachessed Lutzkin Inc · 14 Olympia Lane, Monsey, NY 10952",
+          "en": "Payable to Meor Hachessed Lutzkin Inc · 14 Olympia Lane, Monsey, NY 10952"
+        }
       },
       {
         "icon": "🚗",
         "label": {
-          "he": "איסוף מהבית"
+          "he": "איסוף מהבית",
+          "en": "Home pickup"
         },
         "detail": {
-          "he": "נגיע לאסוף את התרומה! 054-853-8794 · US 929-563-1794"
+          "he": "נגיע לאסוף את התרומה! 054-853-8794 · US 929-563-1794",
+          "en": "We will come to pick up your donation! 054-853-8794 · US 929-563-1794"
         }
       }
     ],
@@ -302,12 +332,12 @@
       "unitAmount": 500,
       "unit": {
         "he": "חודשי אימוץ יתום",
-        "en": "months of orphan sponsorship"
+        "en": "Months of orphan sponsorship"
       },
       "unit2Amount": 1000,
       "unit2": {
         "he": "חודשי החזקת אלמנה",
-        "en": "months of widow support"
+        "en": "Months of widow support"
       },
       "note": {
         "he": "₪500 = חודש של אימוץ יתום · ₪1,000 = חודש של החזקת אלמנה",
@@ -329,77 +359,97 @@
     "tiers": [
       {
         "name": {
-          "he": "אימוץ יתום"
+          "he": "אימוץ יתום",
+          "en": "Sponsor an orphan"
         },
         "amount": 500,
         "period": {
-          "he": "/ חודש"
+          "he": "/ חודש",
+          "en": "/ month"
         },
         "perks": [
           {
-            "he": "תזונה יומית מלאה"
+            "he": "תזונה יומית מלאה",
+            "en": "Full daily nutrition"
           },
           {
-            "he": "ביגוד והנעלה"
+            "he": "ביגוד והנעלה",
+            "en": "Clothing and shoes"
           },
           {
-            "he": "חומרי לימוד וחינוך"
+            "he": "חומרי לימוד וחינוך",
+            "en": "Learning and school supplies"
           },
           {
-            "he": "פעילויות חברתיות"
+            "he": "פעילויות חברתיות",
+            "en": "Social activities"
           }
         ]
       },
       {
         "name": {
-          "he": "החזקת אלמנה"
+          "he": "החזקת אלמנה",
+          "en": "Support a widow"
         },
         "amount": 1000,
         "period": {
-          "he": "/ חודש"
+          "he": "/ חודש",
+          "en": "/ month"
         },
         "featured": true,
         "perks": [
           {
-            "he": "סיוע בשכר דירה"
+            "he": "סיוע בשכר דירה",
+            "en": "Help with rent"
           },
           {
-            "he": "חשבונות חשמל ומים"
+            "he": "חשבונות חשמל ומים",
+            "en": "Electricity and water bills"
           },
           {
-            "he": "מזון ומוצרים בסיסיים"
+            "he": "מזון ומוצרים בסיסיים",
+            "en": "Food and basic goods"
           },
           {
-            "he": "ליווי וטיפולים רגשיים"
+            "he": "ליווי וטיפולים רגשיים",
+            "en": "Emotional support and therapy"
           },
           {
-            "he": "חוגים לילדים"
+            "he": "חוגים לילדים",
+            "en": "Activities for the children"
           }
         ]
       },
       {
         "name": {
-          "he": "החזקת בית יתומים"
+          "he": "החזקת בית יתומים",
+          "en": "Sustain an orphans' home"
         },
         "amount": 2000,
         "period": {
-          "he": "/ חודש"
+          "he": "/ חודש",
+          "en": "/ month"
         },
         "perks": [
           {
-            "he": "כל הצרכים הבסיסיים"
+            "he": "כל הצרכים הבסיסיים",
+            "en": "All basic needs"
           },
           {
-            "he": "חינוך מלא לכל הילדים"
+            "he": "חינוך מלא לכל הילדים",
+            "en": "Full education for every child"
           },
           {
-            "he": "ארגון שמחות ואירועים"
+            "he": "ארגון שמחות ואירועים",
+            "en": "Celebrations and events"
           },
           {
-            "he": "ליווי אישי צמוד"
+            "he": "ליווי אישי צמוד",
+            "en": "Close personal guidance"
           },
           {
-            "he": "טיפולים והעצמה"
+            "he": "טיפולים והעצמה",
+            "en": "Therapy and empowerment"
           }
         ]
       }
@@ -407,34 +457,42 @@
     "faq": [
       {
         "q": {
-          "he": "למי העמותה עוזרת?"
+          "he": "למי העמותה עוזרת?",
+          "en": "Who does the organization help?"
         },
         "a": {
-          "he": "ליתומים ולאלמנות — בית פתוח 24/7, הכנסת כלה, ארגון שמחות, טיולים, טיפולי גוף ונפש, אולפן הקלטות ו-10 חוגים."
+          "he": "ליתומים ולאלמנות — בית פתוח 24/7, הכנסת כלה, ארגון שמחות, טיולים, טיפולי גוף ונפש, אולפן הקלטות ו-10 חוגים.",
+          "en": "Orphans and widows — an open home 24/7, bridal support, celebrations, trips, body-and-soul treatments, a recording studio and 10 classes."
         }
       },
       {
         "q": {
-          "he": "האם התרומה מוכרת לצורכי מס?"
+          "he": "האם התרומה מוכרת לצורכי מס?",
+          "en": "Is my donation tax-deductible?"
         },
         "a": {
-          "he": "כן. בישראל — לפי סעיף 46 (עמותה רשומה 580651719). בארה״ב — Meor Hachesed Lutzkin Inc, Tax ID 99-0780369."
+          "he": "כן. בישראל — לפי סעיף 46 (עמותה רשומה 580651719). בארה״ב — Meor Hachesed Lutzkin Inc, Tax ID 99-0780369.",
+          "en": "Yes. In Israel — under section 46 (registered nonprofit 580651719). In the US — Meor Hachesed Lutzkin Inc, Tax ID 99-0780369."
         }
       },
       {
         "q": {
-          "he": "איך תורמים מחו״ל?"
+          "he": "איך תורמים מחו״ל?",
+          "en": "How can I donate from abroad?"
         },
         "a": {
-          "he": "בכרטיס אשראי (Cardknox), ב-Zelle למספר 929-563-1794, או בהמחאה ל-Meor Hachessed Lutzkin Inc, 14 Olympia Lane, Monsey, NY 10952."
+          "he": "בכרטיס אשראי (Cardknox), ב-Zelle למספר 929-563-1794, או בהמחאה ל-Meor Hachessed Lutzkin Inc, 14 Olympia Lane, Monsey, NY 10952.",
+          "en": "By credit card (Cardknox), via Zelle to 929-563-1794, or by check to Meor Hachessed Lutzkin Inc, 14 Olympia Lane, Monsey, NY 10952."
         }
       },
       {
         "q": {
-          "he": "אפשר שיאספו את התרומה מהבית?"
+          "he": "אפשר שיאספו את התרומה מהבית?",
+          "en": "Can you pick up my donation?"
         },
         "a": {
-          "he": "בשמחה! התקשרו 054-853-8794 (ישראל) או 929-563-1794 (ארה״ב), או כתבו ל-m0548538794@gmail.com."
+          "he": "בשמחה! התקשרו 054-853-8794 (ישראל) או 929-563-1794 (ארה״ב), או כתבו ל-m0548538794@gmail.com.",
+          "en": "Gladly! Call 054-853-8794 (Israel) or 929-563-1794 (USA), or write to m0548538794@gmail.com."
         }
       }
     ],
@@ -464,8 +522,26 @@
       },
       "taxNote": {
         "he": "עמותה רשומה (ע״ר) 580651719 · סעיף 46 · US Tax ID 99-0780369 · בניהול מירי קירשנבאום (לוצקין) · פועלת בברכת גדולי ישראל",
-        "en": "Registered nonprofit 580651719 · US Tax ID 99-0780369"
-      }
+        "en": "Registered nonprofit 580651719 · §46 · US Tax ID 99-0780369 · Directed by Miri Kirschenbaum (Lutzkin) · Blessed by Torah leaders"
+      },
+      "phoneLabels": [
+        {
+          "he": "ישראל",
+          "en": "Israel"
+        },
+        {
+          "he": "ארה״ב",
+          "en": "USA"
+        },
+        {
+          "he": "מקסיקו",
+          "en": "Mexico"
+        },
+        {
+          "he": "לונדון",
+          "en": "London"
+        }
+      ]
     }
   }
 }

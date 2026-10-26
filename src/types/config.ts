@@ -94,6 +94,8 @@ export interface PublicSiteCampaign {
 }
 export interface PublicSiteContact {
   phones?: string[];
+  /** תווית לכל טלפון לפי סדר ("ישראל", "ארה״ב", "מקסיקו") — 26.10.2026. חסר ⇒ המספר בלבד. */
+  phoneLabels?: LocalizedText[];
   whatsapp?: string;
   email?: string;
   address?: LocalizedText;

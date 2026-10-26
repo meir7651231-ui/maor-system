@@ -244,13 +244,13 @@ export function PublicSite({ onEnter }: { onEnter: () => void }) {
   const founder = site.founder;
   const contact = site.contact ?? {};
   const impact = calcOn
-    ? `${qty(amt / unit)} × ${t(site.calc?.unit)}${mode === 'monthly' ? he(', כל חודש', ', every month') : ''}`
+    ? `${t(site.calc?.unit)}: ${qty(amt / unit)}${mode === 'monthly' ? he(' · כל חודש', ' · every month') : ''}`
     : '';
 
   /* ── סגנונות משותפים (מהעיצוב) ── */
   const navLink: CSSProperties = { textDecoration: 'none', color: 'rgba(var(--ri),.72)', fontSize: 15, fontWeight: 600 };
   const sec: CSSProperties = { position: 'relative', zIndex: 2, maxWidth: 1360, margin: '0 auto', padding: 'clamp(70px,11vh,130px) clamp(20px,4vw,64px) 0', boxSizing: 'border-box' };
-  const kicker: CSSProperties = { fontFamily: "'Playpen Sans Hebrew'", fontSize: 17, color: 'var(--c3)', margin: 0 };
+  const kicker: CSSProperties = { fontFamily: "'Playpen Sans Hebrew', 'Assistant', system-ui, sans-serif", fontSize: 17, color: 'var(--c3)', margin: 0 };
   const h2S: CSSProperties = { fontFamily: "'Varela Round'", fontSize: 'clamp(32px,3.8vw,54px)', letterSpacing: '-0.01em', lineHeight: 1.15, margin: '12px 0 0', color: 'var(--ci)' };
   const cardS: CSSProperties = { borderRadius: 28, background: '#fff', border: '1.5px solid rgba(var(--r1),.3)', boxShadow: '0 16px 40px rgba(var(--r2),.13)' };
   const pill = (on: boolean): CSSProperties => ({ fontFamily: "'Varela Round'", fontSize: 15, padding: '12px 22px', borderRadius: 999, cursor: 'pointer', border: on ? '1.5px solid var(--ci)' : '1.5px solid rgba(var(--r1),.45)', background: on ? 'var(--ci)' : '#fff', color: on ? 'var(--cp)' : 'var(--c3)' });
@@ -301,10 +301,10 @@ export function PublicSite({ onEnter }: { onEnter: () => void }) {
           )}
           <span style={{ display: 'flex', flexDirection: 'column', lineHeight: 1 }}>
             <span style={{ fontFamily: "'Varela Round'", fontSize: 21, color: 'var(--cw)', letterSpacing: '-0.01em', whiteSpace: 'nowrap' }}>{orgName}</span>
-            {t(site.brandLine) && <span style={{ fontFamily: "'Playpen Sans Hebrew'", fontSize: 11.5, color: 'var(--ci)', marginTop: 3 }}>{t(site.brandLine)}</span>}
+            {t(site.brandLine) && <span style={{ fontFamily: "'Playpen Sans Hebrew', 'Assistant', system-ui, sans-serif", fontSize: 11.5, color: 'var(--ci)', marginTop: 3 }}>{t(site.brandLine)}</span>}
           </span>
         </a>
-        <a href="#pillars" className="ps-navlink ps-nav-full" style={navLink}>{he('מה אנחנו עושות', 'What we do')}</a>
+        <a href="#pillars" className="ps-navlink ps-nav-full" style={navLink}>{he('מה אנחנו עושים', 'What we do')}</a>
         <a href="#story" className="ps-navlink ps-nav-full" style={navLink}>{he('הסיפור', 'Story')}</a>
         <a href="#numbers" className="ps-navlink ps-nav-full" style={navLink}>{he('מספרים', 'Numbers')}</a>
         {calcOn && <a href="#calc" className="ps-navlink ps-nav-full" style={navLink}>{he('מחשבון', 'Calculator')}</a>}
@@ -320,7 +320,7 @@ export function PublicSite({ onEnter }: { onEnter: () => void }) {
         <button type="button" className="ps-burger" aria-label={he('תפריט', 'Menu')} aria-expanded={menuOpen} aria-controls="ps-mobile-menu" onClick={() => setMenuOpen((o) => !o)} style={{ background: 'none', border: '1.5px solid rgba(var(--r1),.45)', borderRadius: 12, width: 44, height: 44, fontSize: 22, lineHeight: 1, color: 'var(--c3)', cursor: 'pointer', fontFamily: 'inherit' }}>{menuOpen ? '✕' : '☰'}</button>
         {menuOpen && (
           <div id="ps-mobile-menu" className="ps-mobile-menu" onClick={(e) => { if ((e.target as HTMLElement).closest('a')) setMenuOpen(false); }} style={{ position: 'absolute', top: 78, insetInline: 0, display: 'flex', flexDirection: 'column', gap: 4, padding: '10px clamp(20px,4vw,64px) 18px', background: '#fffcfa', borderBottom: '1px solid rgba(var(--r1),.25)', boxShadow: '0 18px 32px rgba(var(--r2),.12)' }}>
-            {([['#pillars', he('מה אנחנו עושות', 'What we do')], ['#story', he('הסיפור', 'Story')], ['#numbers', he('מספרים', 'Numbers')], ...(calcOn ? [['#calc', he('מחשבון', 'Calculator')]] : []), ['#faq', he('שאלות', 'FAQ')]] as [string, string][]).map(([href, label]) => (
+            {([['#pillars', he('מה אנחנו עושים', 'What we do')], ['#story', he('הסיפור', 'Story')], ['#numbers', he('מספרים', 'Numbers')], ...(calcOn ? [['#calc', he('מחשבון', 'Calculator')]] : []), ['#faq', he('שאלות', 'FAQ')]] as [string, string][]).map(([href, label]) => (
               <a key={href} href={href} className="ps-navlink" style={{ ...navLink, fontSize: 17, padding: '12px 4px', borderBottom: '1px solid rgba(var(--r1),.18)' }}>{label}</a>
             ))}
             <button type="button" onClick={() => { setMenuOpen(false); onEnter(); }} style={{ ...navLink, fontSize: 17, padding: '12px 4px', textAlign: 'start', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>{ui('enter')}</button>
@@ -369,7 +369,7 @@ export function PublicSite({ onEnter }: { onEnter: () => void }) {
             </div>
             {t(site.microCopy) && (
               <div style={{ position: 'relative', display: 'inline-block', marginTop: 26 }}>
-                <span style={{ fontFamily: "'Playpen Sans Hebrew'", fontSize: 16.5, color: 'var(--ci)' }}>{t(site.microCopy)}</span>
+                <span style={{ fontFamily: "'Playpen Sans Hebrew', 'Assistant', system-ui, sans-serif", fontSize: 16.5, color: 'var(--ci)' }}>{t(site.microCopy)}</span>
                 <svg viewBox="0 0 90 46" aria-hidden style={{ position: 'absolute', right: -96, top: -8, width: 82, height: 'auto', transform: 'scaleX(-1)' }}>
                   <path d="M6 40 C 26 36, 56 28, 74 10" fill="none" stroke={pal.ink} strokeWidth="2" strokeLinecap="round" />
                   <path d="M62 10 L 76 8 L 72 22" fill="none" stroke={pal.ink} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -414,11 +414,11 @@ export function PublicSite({ onEnter }: { onEnter: () => void }) {
       </div>
       )}
 
-      {/* ── מה אנחנו עושות (עמודי-תווך) ── */}
+      {/* ── מה אנחנו עושים (עמודי-תווך) ── */}
       {services.length > 0 && (
         <section id="pillars" className="ps-rev" style={{ ...sec, textAlign: 'center' }}>
-          <SecHead k={he('מה אנחנו עושות ♡', 'What we do ♡')} h={t(site.servicesHeading) || he('שישה דרכים לחבק משפחה', 'Six ways to hold a family')} />
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 'clamp(16px,2vw,28px)', marginTop: 'clamp(34px,5vh,52px)' }}>
+          <SecHead k={he('מה אנחנו עושים ♡', 'What we do ♡')} h={t(site.servicesHeading) || he('שישה דרכים לחבק משפחה', 'Six ways to hold a family')} />
+          <div className="ps-svc3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 'clamp(16px,2vw,28px)', marginTop: 'clamp(34px,5vh,52px)' }}>
             {services.map((s, i) => (
               <div className="ps-lift" key={i} style={{ ...cardS, borderColor: 'rgba(var(--r1),.3)', boxShadow: '0 18px 44px rgba(var(--r2),.14)', padding: 'clamp(28px,3vw,40px) clamp(22px,2.4vw,32px)' }}>
                 <div style={{ width: 84, height: 84, margin: '0 auto', borderRadius: '50%', background: 'var(--ck)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 38, animation: `ps-float ${5 + (i % 3) * 0.4}s ${(i % 3) * 0.3}s infinite` }} aria-hidden>{s.icon || '♡'}</div>
@@ -435,12 +435,13 @@ export function PublicSite({ onEnter }: { onEnter: () => void }) {
         <section id="numbers" className="ps-rev" style={{ position: 'relative', zIndex: 2, marginTop: 'clamp(70px,11vh,130px)', background: 'linear-gradient(135deg,var(--c1),#DE8888)', padding: 'clamp(60px,9vh,100px) 0' }}>
           <div style={{ maxWidth: 1360, margin: '0 auto', padding: '0 clamp(20px,4vw,64px)', boxSizing: 'border-box', textAlign: 'center' }}>
             <SecHead light k={he('במספרים', 'In numbers')} h={he('האהבה הזאת נספרת', 'This love is counted')} />
-            <div ref={numsRef} style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(4, stats.length)},1fr)`, gap: 'clamp(14px,2vw,26px)', marginTop: 'clamp(34px,5vh,52px)' }}>
+            <div ref={numsRef} className="ps-stats4" style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(4, stats.length)},1fr)`, gap: 'clamp(14px,2vw,26px)', marginTop: 'clamp(34px,5vh,52px)' }}>
               {stats.slice(0, 4).map((s, i) => {
-                const hasNum = /\d/.test(s.value);
+                // 26.10.2026: רק מספר "נקי" (2,000 · 30+ · 92%) מונפש; "24/7" הוצג "247/" ⇒ מוצג כמות-שהוא
+                const hasNum = /^[\d,]+[+%]?$/.test(s.value.trim());
                 return (
                   <div key={i} style={{ borderRadius: 26, background: 'rgba(255,252,250,.16)', border: '1.5px solid rgba(255,252,250,.35)', backdropFilter: 'blur(6px)', padding: '30px 16px' }}>
-                    <p style={{ fontFamily: "'Rubik'", fontWeight: 800, fontSize: 'clamp(38px,3.8vw,62px)', lineHeight: 1, margin: 0, color: 'var(--cp)', ...TNUM }}>{hasNum ? fmt(nums[i] ?? 0) + s.value.replace(/[\d,]/g, '') : s.value}</p>
+                    <p style={{ fontFamily: "'Rubik'", fontWeight: 800, fontSize: 'clamp(38px,3.8vw,62px)', lineHeight: 1, margin: 0, color: 'var(--cp)', unicodeBidi: 'isolate', direction: 'ltr', ...TNUM }}>{hasNum ? fmt(nums[i] ?? 0) + s.value.replace(/[\d,]/g, '') : s.value}</p>
                     <p style={{ fontSize: 14, fontWeight: 600, margin: '12px 0 0', color: 'rgba(255,252,250,.85)' }}>{t(s.label)}</p>
                   </div>
                 );
@@ -499,7 +500,7 @@ export function PublicSite({ onEnter }: { onEnter: () => void }) {
               </figure>
               {founder?.quote && (
                 <div style={{ position: 'absolute', insetInlineStart: -12, bottom: -18, maxWidth: '78%', background: '#fff', borderRadius: 22, padding: '14px 20px', boxShadow: '0 14px 34px rgba(var(--r2),.3)' }}>
-                  <p style={{ fontFamily: "'Playpen Sans Hebrew'", fontSize: 15, margin: 0, color: 'var(--ci)' }}>{t(founder.quote)}</p>
+                  <p style={{ fontFamily: "'Playpen Sans Hebrew', 'Assistant', system-ui, sans-serif", fontSize: 15, margin: 0, color: 'var(--ci)' }}>{t(founder.quote)}</p>
                   {t(founder.name) && <p style={{ fontSize: 12.5, fontWeight: 700, margin: '6px 0 0', color: 'var(--c3)' }}>{t(founder.name)}</p>}
                 </div>
               )}
@@ -570,7 +571,7 @@ export function PublicSite({ onEnter }: { onEnter: () => void }) {
               <button type="button" onClick={() => setMode('once')} style={pill(mode === 'once')}>{he('תרומה חד־פעמית', 'One-time')}</button>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(4, amounts.length)},1fr)`, gap: 12, marginTop: 24 }}>
-              {amounts.map((a) => <button key={a} type="button" onClick={() => setAmt(a)} style={amtBtn(amt === a)}>₪{a}</button>)}
+              {amounts.map((a) => <button key={a} type="button" onClick={() => setAmt(a)} style={amtBtn(amt === a)}>₪{fmt(a)}</button>)}
             </div>
             <label style={{ display: 'block', marginTop: 20 }}>
               <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--c3)' }}>{he('סכום אחר', 'Other amount')}</span>
@@ -592,7 +593,7 @@ export function PublicSite({ onEnter }: { onEnter: () => void }) {
           <div style={{ padding: 'clamp(26px,3.4vw,46px)', display: 'flex', flexDirection: 'column', gap: 'clamp(20px,3vh,32px)', background: 'var(--ck)' }}>
             {impact && (
             <div>
-              <p style={{ fontFamily: "'Playpen Sans Hebrew'", fontSize: 16, color: 'var(--c3)', margin: 0 }}>{voc.giveLabel} =</p>
+              <p style={{ fontFamily: "'Playpen Sans Hebrew', 'Assistant', system-ui, sans-serif", fontSize: 16, color: 'var(--c3)', margin: 0 }}>{voc.giveLabel} =</p>
               <p style={{ fontFamily: "'Varela Round'", fontSize: 'clamp(24px,2.3vw,38px)', lineHeight: 1.2, margin: '10px 0 0', color: 'var(--ci)' }}>{impact} ♡</p>
             </div>
             )}
@@ -609,7 +610,7 @@ export function PublicSite({ onEnter }: { onEnter: () => void }) {
               {camp.daysLeft !== null && <p style={{ fontSize: 12.5, margin: '6px 0 0', color: 'rgba(var(--ri),.5)' }}>{he(`הקמפיין נסגר בעוד ${camp.daysLeft} ימים`, `${camp.daysLeft} days left`)}</p>}
             </div>
             )}
-            <a href={donateLinkFor(donate, amt, mode === 'monthly') ?? donateHref} {...donateAttrs} style={{ display: 'block', textAlign: 'center', fontFamily: "'Varela Round'", fontSize: 17, color: 'var(--cp)', textDecoration: 'none', padding: '18px 24px', borderRadius: 999, background: GRAD, boxShadow: '0 14px 34px rgba(var(--r2),.45)' }}>{he(`לתרומה של ₪${fmt(amt)} ${mode === 'monthly' ? 'בכל חודש' : ''}`, `Donate ₪${fmt(amt)}`)} ←</a>
+            <a href={donateLinkFor(donate, amt, mode === 'monthly') ?? donateHref} {...donateAttrs} style={{ display: 'block', textAlign: 'center', fontFamily: "'Varela Round'", fontSize: 17, color: 'var(--cp)', textDecoration: 'none', padding: '18px 24px', borderRadius: 999, background: GRAD, boxShadow: '0 14px 34px rgba(var(--r2),.45)' }}>{he(`לתרומה של ₪${fmt(amt)} ${mode === 'monthly' ? 'בכל חודש' : ''} ←`, `Donate ₪${fmt(amt)}${mode === 'monthly' ? ' monthly' : ''} →`)}</a>
           </div>
         </div>
       </section>
@@ -637,11 +638,11 @@ export function PublicSite({ onEnter }: { onEnter: () => void }) {
         <section className="ps-rev" style={sec}>
           <div className="ps-news-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0,5fr) minmax(0,7fr)', gap: 'clamp(16px,2vw,28px)' }}>
             <div style={{ borderRadius: 28, background: 'var(--ck)', padding: 'clamp(24px,2.8vw,36px)' }}>
-              <p style={{ fontFamily: "'Playpen Sans Hebrew'", fontSize: 16, color: 'var(--c3)', margin: 0 }}>{he('מה חדש ✎', "What's new ✎")}</p>
+              <p style={{ fontFamily: "'Playpen Sans Hebrew', 'Assistant', system-ui, sans-serif", fontSize: 16, color: 'var(--c3)', margin: 0 }}>{he('מה חדש ✎', "What's new ✎")}</p>
               <p style={{ fontFamily: "'Varela Round'", fontSize: 'clamp(19px,1.8vw,24px)', lineHeight: 1.5, margin: '14px 0 0', color: 'var(--ci)' }}>{t(site.news)}</p>
             </div>
             <div style={{ ...cardS, padding: 'clamp(24px,2.8vw,36px)' }}>
-              <p style={{ fontFamily: "'Playpen Sans Hebrew'", fontSize: 16, color: 'var(--c3)', margin: 0 }}>{he('אירועים קרובים ♡', 'Upcoming ♡')}</p>
+              <p style={{ fontFamily: "'Playpen Sans Hebrew', 'Assistant', system-ui, sans-serif", fontSize: 16, color: 'var(--c3)', margin: 0 }}>{he('אירועים קרובים ♡', 'Upcoming ♡')}</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 16 }}>
                 {events.map((e, i) => (
                   <div key={i}>
@@ -668,7 +669,7 @@ export function PublicSite({ onEnter }: { onEnter: () => void }) {
           <div className="ps-tst3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 'clamp(16px,2vw,28px)', marginTop: 'clamp(32px,5vh,48px)' }}>
             {testimonials.map((tt, i) => (
               <blockquote key={i} style={{ margin: 0, borderRadius: 28, background: i % 2 === 1 ? 'var(--ck)' : '#fff', border: i % 2 === 1 ? 'none' : '1.5px solid rgba(var(--r1),.3)', padding: 'clamp(24px,2.6vw,36px)', boxShadow: '0 16px 40px rgba(var(--r2),.13)' }}>
-                <span aria-hidden style={{ fontFamily: "'Playpen Sans Hebrew'", fontSize: 44, lineHeight: 0.7, color: i % 2 === 1 ? 'var(--c2)' : 'var(--c1)', display: 'block' }}>&ldquo;</span>
+                <span aria-hidden style={{ fontFamily: "'Playpen Sans Hebrew', 'Assistant', system-ui, sans-serif", fontSize: 44, lineHeight: 0.7, color: i % 2 === 1 ? 'var(--c2)' : 'var(--c1)', display: 'block' }}>&ldquo;</span>
                 <p style={{ fontSize: 16.5, lineHeight: 1.75, margin: '8px 0 16px', color: 'var(--ci)' }}>{t(tt.quote)}</p>
                 {tt.author && <footer style={{ fontSize: 13.5, fontWeight: 800, color: 'var(--c3)' }}>{tt.author}{t(tt.role) && <span style={{ color: 'rgba(var(--ri),.5)', fontWeight: 600 }}> · {t(tt.role)}</span>}</footer>}
               </blockquote>
@@ -741,17 +742,17 @@ export function PublicSite({ onEnter }: { onEnter: () => void }) {
           </div>
           <div style={{ padding: 'clamp(26px,3.4vw,46px)', display: 'flex', flexDirection: 'column', gap: 22, background: 'var(--ck)' }}>
             {(contact.phones ?? []).length > 0 && (
-              <div><p style={{ fontFamily: "'Playpen Sans Hebrew'", fontSize: 14.5, color: 'var(--c3)', margin: 0 }}>{he('טלפונים', 'Phones')}</p>
+              <div><p style={{ fontFamily: "'Playpen Sans Hebrew', 'Assistant', system-ui, sans-serif", fontSize: 14.5, color: 'var(--c3)', margin: 0 }}>{he('טלפונים', 'Phones')}</p>
                 {/* 26.10.2026: לחיצה מחייגת (היה טקסט בלבד) */}
-                {(contact.phones ?? []).map((p, i) => <p key={i} dir="ltr" style={{ fontFamily: "'Rubik'", fontWeight: i === 0 ? 800 : 600, fontSize: i === 0 ? 24 : 15, margin: i === 0 ? '6px 0 0' : '4px 0 0', textAlign: 'start', color: i === 0 ? 'var(--ci)' : 'rgba(var(--ri),.7)', ...TNUM }}>{telHref(p) ? <DialLink href={telHref(p)!} locked={dialLocked} style={{ color: 'inherit', textDecoration: 'none' }}>{p}</DialLink> : p}</p>)}
+                {(contact.phones ?? []).map((p, i) => <p key={i} dir="ltr" style={{ fontFamily: "'Rubik'", fontWeight: i === 0 ? 800 : 600, fontSize: i === 0 ? 24 : 15, margin: i === 0 ? '6px 0 0' : '4px 0 0', textAlign: 'start', color: i === 0 ? 'var(--ci)' : 'rgba(var(--ri),.7)', ...TNUM }}>{telHref(p) ? <DialLink href={telHref(p)!} locked={dialLocked} style={{ color: 'inherit', textDecoration: 'none' }}>{p}</DialLink> : p}{t(contact.phoneLabels?.[i]) && <span dir={rtl ? 'rtl' : 'ltr'} style={{ fontFamily: "'Assistant', system-ui, sans-serif", fontWeight: 600, fontSize: 13, color: 'var(--c3)', marginLeft: 10, marginRight: 10 }}>{t(contact.phoneLabels?.[i])}</span>}</p>)}
               </div>
             )}
             {contact.whatsapp && waHref(contact.whatsapp) && (
               <a href={waHref(contact.whatsapp)!} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 10, alignSelf: 'flex-start', padding: '11px 22px', borderRadius: 999, background: '#fff', border: '1.5px solid rgba(127,169,143,.5)', textDecoration: 'none', color: '#5E8F72', fontWeight: 700, fontSize: 14.5 }}>💬 {ui('whatsapp')}</a>
             )}
-            {t(contact.hours) && <div><p style={{ fontFamily: "'Playpen Sans Hebrew'", fontSize: 14.5, color: 'var(--c3)', margin: 0 }}>{he('שעות פעילות', 'Hours')}</p><p style={{ fontWeight: 600, fontSize: 15, margin: '6px 0 0', color: 'rgba(var(--ri),.75)' }}>{t(contact.hours)}</p></div>}
-            {contact.email && <div><p style={{ fontFamily: "'Playpen Sans Hebrew'", fontSize: 14.5, color: 'var(--c3)', margin: 0 }}>{he('אימייל', 'Email')}</p><a href={'mailto:' + contact.email} style={{ fontWeight: 700, fontSize: 18, margin: '6px 0 0', color: 'var(--ci)', display: 'block' }}>{contact.email}</a></div>}
-            {t(contact.address) && <div><p style={{ fontFamily: "'Playpen Sans Hebrew'", fontSize: 14.5, color: 'var(--c3)', margin: 0 }}>{he('כתובת', 'Address')}</p><p style={{ fontWeight: 400, fontSize: 15.5, margin: '6px 0 0', color: 'rgba(var(--ri),.8)' }}>{t(contact.address)}</p></div>}
+            {t(contact.hours) && <div><p style={{ fontFamily: "'Playpen Sans Hebrew', 'Assistant', system-ui, sans-serif", fontSize: 14.5, color: 'var(--c3)', margin: 0 }}>{he('שעות פעילות', 'Hours')}</p><p style={{ fontWeight: 600, fontSize: 15, margin: '6px 0 0', color: 'rgba(var(--ri),.75)' }}>{t(contact.hours)}</p></div>}
+            {contact.email && <div><p style={{ fontFamily: "'Playpen Sans Hebrew', 'Assistant', system-ui, sans-serif", fontSize: 14.5, color: 'var(--c3)', margin: 0 }}>{he('אימייל', 'Email')}</p><a href={'mailto:' + contact.email} style={{ fontWeight: 700, fontSize: 18, margin: '6px 0 0', color: 'var(--ci)', display: 'block' }}>{contact.email}</a></div>}
+            {t(contact.address) && <div><p style={{ fontFamily: "'Playpen Sans Hebrew', 'Assistant', system-ui, sans-serif", fontSize: 14.5, color: 'var(--c3)', margin: 0 }}>{he('כתובת', 'Address')}</p><p style={{ fontWeight: 400, fontSize: 15.5, margin: '6px 0 0', color: 'rgba(var(--ri),.8)' }}>{t(contact.address)}</p></div>}
             {t(contact.taxNote) && <div style={{ borderTop: '1.5px solid rgba(var(--r1),.35)', paddingTop: 16, marginTop: 'auto' }}><p style={{ fontSize: 12.5, lineHeight: 1.7, color: 'rgba(var(--ri),.45)', margin: 0 }}>{t(contact.taxNote)}</p></div>}
           </div>
         </div>
@@ -768,7 +769,7 @@ export function PublicSite({ onEnter }: { onEnter: () => void }) {
             <span style={{ width: 16, height: 16, borderRadius: '50%', background: 'rgba(255,252,250,.85)' }} />
           </div>
           <h2 style={{ position: 'relative', fontFamily: "'Varela Round'", fontSize: 'clamp(34px,4.8vw,72px)', lineHeight: 1.15, letterSpacing: '-0.015em', margin: 0, color: 'var(--cp)' }}>{he('כל שקל. כל שבוע. כל משפחה.', 'Every shekel. Every week. Every family.')}</h2>
-          <p style={{ position: 'relative', fontFamily: "'Playpen Sans Hebrew'", fontSize: 'clamp(16px,1.6vw,21px)', margin: '18px 0 0', color: 'var(--cb)' }}>{t(site.microCopy) || he('בואו להאיר יחד איתנו ♡', 'Bring light with us ♡')}</p>
+          <p style={{ position: 'relative', fontFamily: "'Playpen Sans Hebrew', 'Assistant', system-ui, sans-serif", fontSize: 'clamp(16px,1.6vw,21px)', margin: '18px 0 0', color: 'var(--cb)' }}>{t(site.microCopy) || he('בואו להאיר יחד איתנו ♡', 'Bring light with us ♡')}</p>
           <div style={{ position: 'relative', display: 'flex', gap: 16, justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap', marginTop: 32 }}>
             <a href={primaryHref} {...primaryAttrs} style={{ fontFamily: "'Varela Round'", fontSize: 17, color: 'var(--c3)', textDecoration: 'none', padding: '17px 44px', borderRadius: 999, background: 'var(--cp)', boxShadow: '0 14px 34px rgba(150,70,70,.35)' }}>{voc.heroCta}</a>
             {camp.show && <span style={{ fontFamily: "'Rubik'", fontWeight: 700, fontSize: 14.5, color: 'var(--cb)', ...TNUM }}>₪{fmt(raised)} / ₪{fmt(goal)} · {pct.toFixed(0)}%</span>}
@@ -782,11 +783,11 @@ export function PublicSite({ onEnter }: { onEnter: () => void }) {
         <div style={{ ...cardS, border: '1.5px solid rgba(var(--r1),.35)', boxShadow: '0 18px 44px rgba(var(--r2),.16)', padding: 'clamp(22px,3vw,34px)', display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
           <span style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 220, flex: 1 }}>
             <span style={{ fontFamily: "'Varela Round'", fontSize: 19, color: 'var(--ci)' }}>{he('נשארים מחוברים ♡', 'Stay connected ♡')}</span>
-            <span style={{ fontSize: 13.5, color: 'rgba(var(--ri),.55)' }}>{he('עדכון חודשי קצר מהשטח — בלי ספאם, מבטיחות', 'A short monthly update — no spam')}</span>
+            <span style={{ fontSize: 13.5, color: 'rgba(var(--ri),.55)' }}>{he('השאירו מייל ונשמח לעדכן אתכם', 'Leave your email and we will keep you posted')}</span>
           </span>
           {nlSent ? <span style={{ fontFamily: "'Varela Round'", color: '#7FA98F', fontSize: 16 }}>♡ {nlSent === 'wa' ? he('נפתח וואטסאפ עם הבקשה — לחצו «שליחה» לסיום', 'WhatsApp opened — press Send') : he('נפתח המייל עם הבקשה — לחצו «שליחה» לסיום', 'Email opened — press Send')}</span> : (
             <span style={{ display: 'flex', gap: 10, flexWrap: 'wrap', flex: 1, minWidth: 280 }}>
-              <input className="ps-in2" type="email" value={nl} onChange={(e) => setNl(e.target.value)} placeholder={he('האימייל שלך', 'Your email')} style={{ flex: 1, minWidth: 180, borderRadius: 999 }} />
+              <input className="ps-in2" type="email" aria-label={he('האימייל שלך', 'Your email')} value={nl} onChange={(e) => setNl(e.target.value)} placeholder={he('האימייל שלך', 'Your email')} style={{ flex: 1, minWidth: 180, borderRadius: 999 }} />
               <button type="button" onClick={() => nl && setNlSent(sendVia(`בקשה להצטרף לעדכונים מ${orgName}`, `אימייל: ${nl}`))} style={{ fontFamily: "'Varela Round'", fontSize: 15, color: 'var(--cp)', padding: '13px 30px', borderRadius: 999, border: 'none', background: GRAD, cursor: 'pointer', boxShadow: '0 10px 26px rgba(var(--r2),.4)' }}>{he('הרשמה', 'Subscribe')}</button>
             </span>
           )}
@@ -805,7 +806,7 @@ export function PublicSite({ onEnter }: { onEnter: () => void }) {
             </span>
             {orgName}
           </span>
-          <a href="#pillars" className="ps-navlink" style={{ textDecoration: 'none', color: 'rgba(var(--ri),.6)', fontWeight: 600 }}>{he('מה אנחנו עושות', 'What we do')}</a>
+          <a href="#pillars" className="ps-navlink" style={{ textDecoration: 'none', color: 'rgba(var(--ri),.6)', fontWeight: 600 }}>{he('מה אנחנו עושים', 'What we do')}</a>
           <a href="#donate" className="ps-navlink" style={{ textDecoration: 'none', color: 'rgba(var(--ri),.6)', fontWeight: 600 }}>{he('תרומה', 'Donate')}</a>
           <a href="#faq" className="ps-navlink" style={{ textDecoration: 'none', color: 'rgba(var(--ri),.6)', fontWeight: 600 }}>{he('שאלות נפוצות', 'FAQ')}</a>
           <a href="#contact" className="ps-navlink" style={{ textDecoration: 'none', color: 'rgba(var(--ri),.6)', fontWeight: 600 }}>{he('צרו קשר', 'Contact')}</a>

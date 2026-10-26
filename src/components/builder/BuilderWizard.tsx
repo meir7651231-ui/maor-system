@@ -1636,7 +1636,11 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
             {/* 📞 פרטי קשר */}
             <SubHead>📞 פרטי קשר</SubHead>
             <Field label="טלפונים (מופרדים בפסיק)">
-              <TextInput dir="ltr" value={phonesText} onChange={(v) => setSiteContact({ phones: v.split(/[,\n]/).map((s) => s.trim()).filter(Boolean) })} placeholder="02-000-0000, 058-000-0000" />
+              {/* לא-נשלט + onBlur (26.10.2026): בשדה נשלט הפסיק נבלע מיד ואי אפשר היה להקליד טלפון שני */}
+              <input key={phonesText} dir="ltr" defaultValue={phonesText} onBlur={(e) => setSiteContact({ phones: e.target.value.split(/[,\n]/).map((s) => s.trim()).filter(Boolean) })} placeholder="02-000-0000, 058-000-0000" style={NUM_STYLE} />
+            </Field>
+            <Field label="תוויות לטלפונים, לפי הסדר (רשות, מופרדות בפסיק)">
+              <input key={'l' + (wsite.contact?.phoneLabels ?? []).map((l) => siteHe(l)).join(',')} defaultValue={(wsite.contact?.phoneLabels ?? []).map((l) => siteHe(l)).join(', ')} onBlur={(e) => { const ls = e.target.value.split(',').map((s) => s.trim()); setSiteContact({ phoneLabels: ls.some(Boolean) ? ls.map((s, i) => putHe(wsite.contact?.phoneLabels?.[i], s) ?? '') : undefined }); }} placeholder="ישראל, ארה״ב, מקסיקו" style={NUM_STYLE} />
             </Field>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
               <Field label="וואטסאפ"><TextInput dir="ltr" value={wsite.contact?.whatsapp ?? ''} onChange={(v) => setSiteContact({ whatsapp: v })} placeholder="058-000-0000" /></Field>

@@ -338,6 +338,10 @@ export function normalizeSite(raw: unknown): PublicSiteContent | undefined {
       const phones = c.phones.map(sitePhone).filter((p) => p).slice(0, 8);
       if (phones.length) contact.phones = phones;
     }
+    if (Array.isArray(c.phoneLabels)) {
+      const labels = c.phoneLabels.slice(0, 8).map((l) => normLocalized(l, 30) ?? '');
+      if (labels.some((l) => l)) contact.phoneLabels = labels;
+    }
     const wa = sitePhone(c.whatsapp);
     if (wa) contact.whatsapp = wa;
     const email = siteStr(c.email, 120);

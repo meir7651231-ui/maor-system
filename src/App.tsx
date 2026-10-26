@@ -307,6 +307,17 @@ export default function App() {
     }
   });
 
+  // 🌐 האתר-הציבורי (26.10.2026): הלשונית הציגה "<ארגון> — מערכת הניהול שלכם" + סמל-אורביט.
+  // באתר-הציבורי: שם-הארגון + שורת-המותג, וסמל-האתר (site.icon). אחרי האפקטים שלמעלה ⇒ גובר.
+  useEffect(() => {
+    if (!siteRequested || !publicSiteOn(config)) return;
+    const s = config.site;
+    const he = (v: unknown) => (typeof v === 'string' ? v : (v as { he?: string } | undefined)?.he ?? '');
+    const line = he(s?.brandLine) || he(s?.tagline);
+    document.title = (config.orgName || dbOrgName || '') + (line ? ' — ' + line : '');
+    applyFavicon(s?.icon || config.emoji);
+  }, [siteRequested, config, dbOrgName, onSignupScreen]);
+
   // אשף ההרכבה — למטמיע בלבד, נפתח עם #builder בכתובת
   // ‏#builder = אשף מקומי · ‏#builder=slug = אשף קשור-ענן ללקוח (RemoteWizard, 5.8)
   const [builderOpen, setBuilderOpen] = useState(() => window.location.hash.startsWith('#builder'));
