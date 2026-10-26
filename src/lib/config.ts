@@ -381,6 +381,21 @@ export function normalizeSite(raw: unknown): PublicSiteContent | undefined {
   setLT('storyBadge', s.storyBadge, 80);
   setLT('donateNote', s.donateNote, 240);
   setLT('heroCaption', s.heroCaption, 60);
+  // טקסט-ארוך עם שורות (הצהרת-נגישות/פרטיות): כמו normLocalized אבל שומר \n (siteStr מוחק כל Cc)
+  const longText = (v: unknown): LocalizedText | undefined => {
+    const one = (x: unknown) => (typeof x === 'string' ? x.replace(/\r\n?/g, '\n').replace(/[^\P{Cc}\n]/gu, '').trim().slice(0, 6000) : '');
+    if (typeof v === 'string') return one(v) || undefined;
+    if (v && typeof v === 'object' && !Array.isArray(v)) {
+      const o: Partial<Record<SiteLang, string>> = {};
+      for (const l of SITE_LANGS) { const t = one((v as Record<string, unknown>)[l]); if (t) o[l] = t; }
+      return Object.keys(o).length ? o : undefined;
+    }
+    return undefined;
+  };
+  const a11yTxt = longText(s.accessibility); if (a11yTxt) out.accessibility = a11yTxt;
+  const privTxt = longText(s.privacy); if (privTxt) out.privacy = privTxt;
+  const intl = typeof s.donateUrlIntl === 'string' ? safeHttpsUrl(s.donateUrlIntl) : null;
+  if (intl) out.donateUrlIntl = intl;
   if (Array.isArray(s.amounts)) {
     const am = s.amounts.map((a) => sitePosNum(a)).filter((a): a is number => a !== undefined).slice(0, 6);
     if (am.length) out.amounts = am;
@@ -469,6 +484,7 @@ export function normalizeSite(raw: unknown): PublicSiteContent | undefined {
     const heading = normLocalized(o.heading, 120); if (heading) tr.heading = heading;
     const text = normLocalized(o.text, 600); if (text) tr.text = text;
     const url = imgUrl(o.reportsUrl); if (url) tr.reportsUrl = url;
+    const rl = normLocalized(o.reportsLabel, 60); if (rl) tr.reportsLabel = rl;
     if (Array.isArray(o.badges)) {
       const badges = o.badges.map((b) => normLocalized(b, 60)).filter((b): b is LocalizedText => !!b).slice(0, 6);
       if (badges.length) tr.badges = badges;

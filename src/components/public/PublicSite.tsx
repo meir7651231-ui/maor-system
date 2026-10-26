@@ -56,7 +56,9 @@ export function PublicSite({ onEnter }: { onEnter: () => void }) {
   const ui = (k: string) => siteUi(lang, k);
   const he = (heTxt: string, enTxt: string) => (rtl ? heTxt : enTxt); // מיקרו-קופי-שלד דו-לשוני
   const orgName = config.orgName || 'מאור';
-  const donate = siteDonateUrl(config);
+  // 🌍 (26.10.2026) תורם מחו״ל (אנגלית/יידיש-לא-עברית) ⇒ סליקה בינלאומית אם הוגדרה (donateUrlIntl); עברית ⇒ כמו קודם
+  const intlUrl = lang !== 'he' && site.donateUrlIntl ? site.donateUrlIntl : null;
+  const donate = intlUrl || siteDonateUrl(config);
   const donateHref = donate || '#donate';
   const donateAttrs = donate ? { target: '_blank', rel: 'noopener noreferrer' as const } : {};
   const camp = useMemo(() => campaignProgress(site.campaign, Date.now()), [site.campaign]);
@@ -87,7 +89,9 @@ export function PublicSite({ onEnter }: { onEnter: () => void }) {
   const glowRef = useRef<HTMLDivElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const [sp, setSp] = useState(0); // scroll progress 0..1
-  const [menuOpen, setMenuOpen] = useState(false); // ☰ ניווט-מובייל (≤860px; בדסקטופ מוסתר)
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [ded, setDed] = useState(''); // הקדשה לנדרים (avour)
+  const [legal, setLegal] = useState<null | 'a11y' | 'privacy'>(null); // ☰ ניווט-מובייל (≤860px; בדסקטופ מוסתר)
   const words = useMemo(() => {
     const w = (site.heroWords ?? []).map((x) => t(x)).filter(Boolean);
     if (w.length) return w;
@@ -475,6 +479,9 @@ export function PublicSite({ onEnter }: { onEnter: () => void }) {
         <section className="ps-rev" style={{ ...sec, textAlign: 'center' }}>
           <SecHead k={he('שקוף כמו אור ♡', 'Transparent as light ♡')} h={t(site.transparency?.heading) || he('כל שקל מתועד. כל הדו״חות פתוחים.', 'Every shekel tracked.')} />
           {t(site.transparency?.text) && <p style={{ fontSize: 16, lineHeight: 1.8, maxWidth: '62ch', margin: '18px auto 0', color: 'rgba(var(--ri),.65)' }}>{t(site.transparency?.text)}</p>}
+          {site.transparency?.reportsUrl && (
+            <a href={site.transparency.reportsUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginTop: 20, padding: '11px 22px', borderRadius: 999, border: '1.5px solid rgba(var(--r1),.55)', background: '#fff', color: 'var(--c3)', fontWeight: 700, fontSize: 14.5, textDecoration: 'none' }}>📄 {t(site.transparency.reportsLabel) || he('לאישורים הרשמיים', 'Official certificates')}</a>
+          )}
           {badges.length > 0 && (
             <div style={{ display: 'flex', justifyContent: 'center', gap: 'clamp(18px,3.4vw,48px)', flexWrap: 'wrap', marginTop: 'clamp(32px,5vh,48px)' }}>
               {badges.map((b, i) => (
@@ -577,6 +584,18 @@ export function PublicSite({ onEnter }: { onEnter: () => void }) {
               <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--c3)' }}>{he('סכום אחר', 'Other amount')}</span>
               <input type="number" min={1} placeholder="₪" onChange={(e) => setAmt(Math.max(1, +e.target.value || 0))} style={{ display: 'block', width: '100%', boxSizing: 'border-box', marginTop: 8, padding: '14px 18px', borderRadius: 16, border: '1.5px solid rgba(var(--r1),.45)', background: 'var(--cp)', color: 'var(--ci)', fontFamily: "'Rubik'", fontWeight: 700, fontSize: 18, outline: 'none' }} />
             </label>
+            {/* 🕯 הקדשה (26.10.2026) — עוברת לשדה-ההקדשה של נדרים-פלוס (avour); בסליקה אחרת לא נשלחת */}
+            {!intlUrl && (
+              <label style={{ display: 'block', marginTop: 16 }}>
+                <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--c3)' }}>{he('הקדשה (רשות)', 'Dedication (optional)')}</span>
+                <span style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 8 }}>
+                  {[he('לעילוי נשמת ', 'In memory of '), he('לרפואת ', 'For the recovery of '), he('להצלחת ', 'For the success of ')].map((p) => (
+                    <button key={p} type="button" onClick={() => setDed(p)} style={{ padding: '7px 14px', borderRadius: 999, border: '1.5px solid rgba(var(--r1),.45)', background: ded.startsWith(p) ? 'var(--ck)' : 'transparent', color: 'var(--c3)', fontFamily: 'inherit', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>{p.trim()}</button>
+                  ))}
+                </span>
+                <input value={ded} maxLength={100} onChange={(e) => setDed(e.target.value)} placeholder={he('לעילוי נשמת…', 'In memory of…')} aria-label={he('הקדשה', 'Dedication')} style={{ display: 'block', width: '100%', boxSizing: 'border-box', marginTop: 8, padding: '12px 16px', borderRadius: 16, border: '1.5px solid rgba(var(--r1),.45)', background: 'var(--cp)', color: 'var(--ci)', fontFamily: 'inherit', fontSize: 15 }} />
+              </label>
+            )}
             {payMethods.length > 0 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 24 }}>
                 {payMethods.map((p, i) => (
@@ -610,7 +629,7 @@ export function PublicSite({ onEnter }: { onEnter: () => void }) {
               {camp.daysLeft !== null && <p style={{ fontSize: 12.5, margin: '6px 0 0', color: 'rgba(var(--ri),.5)' }}>{he(`הקמפיין נסגר בעוד ${camp.daysLeft} ימים`, `${camp.daysLeft} days left`)}</p>}
             </div>
             )}
-            <a href={donateLinkFor(donate, amt, mode === 'monthly') ?? donateHref} {...donateAttrs} style={{ display: 'block', textAlign: 'center', fontFamily: "'Varela Round'", fontSize: 17, color: 'var(--cp)', textDecoration: 'none', padding: '18px 24px', borderRadius: 999, background: GRAD, boxShadow: '0 14px 34px rgba(var(--r2),.45)' }}>{he(`לתרומה של ₪${fmt(amt)} ${mode === 'monthly' ? 'בכל חודש' : ''} ←`, `Donate ₪${fmt(amt)}${mode === 'monthly' ? ' monthly' : ''} →`)}</a>
+            <a href={donateLinkFor(donate, amt, mode === 'monthly', ded) ?? donateHref} {...donateAttrs} style={{ display: 'block', textAlign: 'center', fontFamily: "'Varela Round'", fontSize: 17, color: 'var(--cp)', textDecoration: 'none', padding: '18px 24px', borderRadius: 999, background: GRAD, boxShadow: '0 14px 34px rgba(var(--r2),.45)' }}>{intlUrl ? 'Donate online →' /* Cardknox לא מקבל סכום — לא מבטיחים סכום שלא יעבור */ : he(`לתרומה של ₪${fmt(amt)} ${mode === 'monthly' ? 'בכל חודש' : ''} ←`, `Donate ₪${fmt(amt)}${mode === 'monthly' ? ' monthly' : ''} →`)}</a>
           </div>
         </div>
       </section>
@@ -810,9 +829,24 @@ export function PublicSite({ onEnter }: { onEnter: () => void }) {
           <a href="#donate" className="ps-navlink" style={{ textDecoration: 'none', color: 'rgba(var(--ri),.6)', fontWeight: 600 }}>{he('תרומה', 'Donate')}</a>
           <a href="#faq" className="ps-navlink" style={{ textDecoration: 'none', color: 'rgba(var(--ri),.6)', fontWeight: 600 }}>{he('שאלות נפוצות', 'FAQ')}</a>
           <a href="#contact" className="ps-navlink" style={{ textDecoration: 'none', color: 'rgba(var(--ri),.6)', fontWeight: 600 }}>{he('צרו קשר', 'Contact')}</a>
+          {t(site.accessibility) && <button type="button" onClick={() => setLegal('a11y')} className="ps-navlink" style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit', color: 'rgba(var(--ri),.6)', fontWeight: 600 }}>{he('הצהרת נגישות', 'Accessibility')}</button>}
+          {t(site.privacy) && <button type="button" onClick={() => setLegal('privacy')} className="ps-navlink" style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit', color: 'rgba(var(--ri),.6)', fontWeight: 600 }}>{he('מדיניות פרטיות', 'Privacy')}</button>}
           <span style={{ marginInlineStart: 'auto', color: 'rgba(var(--ri),.5)', fontSize: 12.5 }}>{he('נבנה באהבה', 'Built with love')} · {ui('poweredBy')} ♡</span>
         </div>
       </footer>
+
+      {/* ⚖️ הצהרת-נגישות / מדיניות-פרטיות (26.10.2026) — טקסט מהאשף, חלון נגיש (Esc/רקע סוגרים) */}
+      {legal && (
+        <div role="dialog" aria-modal="true" aria-label={legal === 'a11y' ? he('הצהרת נגישות', 'Accessibility statement') : he('מדיניות פרטיות', 'Privacy policy')} onClick={() => setLegal(null)} onKeyDown={(e) => { if (e.key === 'Escape') setLegal(null); }} style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(30,20,22,.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ background: '#fffcfa', borderRadius: 24, maxWidth: 720, width: '100%', maxHeight: '86vh', overflow: 'auto', padding: 'clamp(20px,4vw,36px)', boxShadow: '0 30px 80px rgba(0,0,0,.25)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+              <h2 style={{ fontFamily: "'Varela Round'", fontSize: 26, margin: 0, color: 'var(--ci)' }}>{legal === 'a11y' ? he('הצהרת נגישות', 'Accessibility statement') : he('מדיניות פרטיות', 'Privacy policy')}</h2>
+              <button type="button" autoFocus onClick={() => setLegal(null)} aria-label={he('סגירה', 'Close')} style={{ width: 40, height: 40, borderRadius: 12, border: '1.5px solid rgba(var(--r1),.45)', background: 'none', fontSize: 18, cursor: 'pointer', color: 'var(--c3)' }}>✕</button>
+            </div>
+            <div style={{ whiteSpace: 'pre-line', fontSize: 15.5, lineHeight: 1.8, color: 'rgba(var(--ri),.8)', marginTop: 16 }}>{t(legal === 'a11y' ? site.accessibility : site.privacy)}</div>
+          </div>
+        </div>
+      )}
 
       {portalOn && <PortalEntry onEnter={onEnter} />}
     </div>

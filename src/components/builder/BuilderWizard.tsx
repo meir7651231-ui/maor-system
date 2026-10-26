@@ -463,6 +463,9 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
   /** רשימות-מחרוזת (מרקיזה/מדליונים/הטבות/גלריה): "שורה לכל פריט". */
   const heLines = (arr?: LocalizedText[]): string => (arr ?? []).map((v) => siteHe(v)).join('\n');
   const toLines = (text: string): string[] => text.split('\n').map((s) => s.trim()).filter(Boolean);
+  /** 26.10.2026: שורות ⇒ LocalizedText ששומר את התרגום (en/yi) של אותה שורה — היה נדרס למחרוזת-עברית. */
+  const linesKeep = (old: LocalizedText[] | undefined, text: string): LocalizedText[] =>
+    toLines(text).map((l, i) => putHe(old?.[i], l) ?? l);
   const previewSite = () => {
     try {
       const u = new URL(window.location.href);
@@ -1430,8 +1433,12 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
               <TextInput value={siteHe(wsite.transparency?.text)} onChange={(v) => setTransp({ text: putHe(wsite.transparency?.text, v) })} />
             </Field>
             <Field label="מדליוני-אמון (שורה לכל אחד)">
-              <textarea style={TA_STYLE} value={heLines(wsite.transparency?.badges)} onChange={(e) => setTransp({ badges: toLines(e.target.value) })} placeholder={'ניהול תקין 2026\nאישור סעיף 46\nדו״ח שנתי פתוח'} />
+              <textarea key={'b' + heLines(wsite.transparency?.badges)} style={TA_STYLE} defaultValue={heLines(wsite.transparency?.badges)} onBlur={(e) => setTransp({ badges: linesKeep(wsite.transparency?.badges, e.target.value) })} placeholder={'ניהול תקין 2026\nאישור סעיף 46\nדו״ח שנתי פתוח'} />
             </Field>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+              <Field label="קישור לאישורים הרשמיים (https, למשל גיידסטאר)"><TextInput dir="ltr" value={wsite.transparency?.reportsUrl ?? ''} onChange={(v) => setTransp({ reportsUrl: v || undefined })} placeholder="https://www.guidestar.org.il/organization/580…" /></Field>
+              <Field label="טקסט הכפתור"><TextInput value={siteHe(wsite.transparency?.reportsLabel)} onChange={(v) => setTransp({ reportsLabel: putHe(wsite.transparency?.reportsLabel, v) })} placeholder="לאישורים הרשמיים בגיידסטאר" /></Field>
+            </div>
 
             {/* 📖 סיפור + מייסד + ציר-זמן */}
             <SubHead>📖 סיפור</SubHead>
@@ -1523,6 +1530,9 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
             <div style={{ fontSize: 11.5, color: 'var(--ink-faint)' }}>
               ריק — הכפתור נופל אוטומטית לקישור-התשלום מ«הרחבות ← 💳 תשלומים» אם הוגדר.
             </div>
+            <Field label="🌍 קישור-תרומה לחו״ל (https, רשות) — באתר באנגלית הכפתורים מובילים אליו">
+              <TextInput dir="ltr" value={wsite.donateUrlIntl ?? ''} onChange={(v) => setSite({ donateUrlIntl: v || undefined })} placeholder="https://secure.cardknox.com/…" />
+            </Field>
             <Field label="הערת-תחתית">
               <TextInput value={siteHe(wsite.donateNote)} onChange={(v) => setSiteText('donateNote', v)} placeholder="תרומות מוכרות למס לפי סעיף 46 · ביטול בכל רגע" />
             </Field>
@@ -1578,7 +1588,7 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
                     <Field label="לתקופה"><TextInput value={siteHe(it.period)} onChange={(v) => set({ period: putHe(it.period, v) })} placeholder="/ חודש" /></Field>
                   </div>
                   <Field label="הטבות (שורה לכל אחת)">
-                    <textarea style={TA_STYLE} value={heLines(it.perks)} onChange={(e) => set({ perks: toLines(e.target.value) })} placeholder={'2 סלים שבועיים\nשם על לוח השותפים'} />
+                    <textarea key={'p' + heLines(it.perks)} style={TA_STYLE} defaultValue={heLines(it.perks)} onBlur={(e) => set({ perks: linesKeep(it.perks, e.target.value) })} placeholder={'2 סלים שבועיים\nשם על לוח השותפים'} />
                   </Field>
                   <Chip on={!!it.featured} onClick={() => set({ featured: !it.featured })}>{it.featured ? '★ מודגש (הכי אהוב)' : 'רגיל'}</Chip>
                 </>
@@ -1621,10 +1631,10 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
             {/* 🖼️ גלריה + מרקיזה */}
             <SubHead>🖼️ גלריה ומרקיזה</SubHead>
             <Field label="תמונות גלריה (כתובת https · שורה לכל תמונה)">
-              <textarea style={TA_STYLE} dir="ltr" value={(wsite.gallery ?? []).join('\n')} onChange={(e) => setSite({ gallery: toLines(e.target.value) })} placeholder={'https://…/1.jpg\nhttps://…/2.jpg'} />
+              <textarea key={'g' + (wsite.gallery ?? []).join('|')} style={TA_STYLE} dir="ltr" defaultValue={(wsite.gallery ?? []).join('\n')} onBlur={(e) => setSite({ gallery: toLines(e.target.value) })} placeholder={'https://…/1.jpg\nhttps://…/2.jpg'} />
             </Field>
             <Field label="מרקיזה נגללת (שורה לכל פריט)">
-              <textarea style={TA_STYLE} value={heLines(wsite.marquee)} onChange={(e) => setSite({ marquee: toLines(e.target.value) })} placeholder={'סל למשפחה = ₪90\n92% מכל שקל — ישירות למשפחות'} />
+              <textarea key={'m' + heLines(wsite.marquee)} style={TA_STYLE} defaultValue={heLines(wsite.marquee)} onBlur={(e) => setSite({ marquee: linesKeep(wsite.marquee, e.target.value) })} placeholder={'סל למשפחה = ₪90\n92% מכל שקל — ישירות למשפחות'} />
             </Field>
 
             {/* 📰 חדשות */}
@@ -1649,6 +1659,12 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
             <Field label="שעות פעילות"><TextInput value={siteHe(wsite.contact?.hours)} onChange={(v) => setSiteContact({ hours: putHe(wsite.contact?.hours, v) })} placeholder="א׳–ה׳ 9:00–17:00 · ו׳ עד 12:00" /></Field>
             <Field label="כתובת"><TextInput value={siteHe(wsite.contact?.address)} onChange={(v) => setSiteContact({ address: putHe(wsite.contact?.address, v) })} placeholder="רחוב… , עיר" /></Field>
             <Field label="הערת-תחתית משפטית"><TextInput value={siteHe(wsite.contact?.taxNote)} onChange={(v) => setSiteContact({ taxNote: putHe(wsite.contact?.taxNote, v) })} placeholder="ע.ר. 580… · אישור ניהול תקין" /></Field>
+            <Field label="⚖️ הצהרת נגישות (מופיעה בתחתית האתר; שורה לכל פסקה)">
+              <textarea key={'a' + siteHe(wsite.accessibility)} style={{ ...TA_STYLE, minHeight: 120 }} defaultValue={siteHe(wsite.accessibility)} onBlur={(e) => setSite({ accessibility: putHe(wsite.accessibility, e.target.value) })} />
+            </Field>
+            <Field label="🔒 מדיניות פרטיות (מופיעה בתחתית האתר; שורה לכל פסקה)">
+              <textarea key={'v' + siteHe(wsite.privacy)} style={{ ...TA_STYLE, minHeight: 120 }} defaultValue={siteHe(wsite.privacy)} onBlur={(e) => setSite({ privacy: putHe(wsite.privacy, e.target.value) })} />
+            </Field>
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 4 }}>
               <Chip on={wsite.contactForm?.enabled !== false} onClick={() => setSiteForm({ enabled: wsite.contactForm?.enabled === false })}>
                 {wsite.contactForm?.enabled !== false ? '✅ טופס-קשר מוצג' : 'טופס-קשר מוסתר'}

@@ -446,7 +446,7 @@ export default function App() {
   // ⚡ חימום-ב-idle (VISION-LIGHT ‏#13): אחרי שהבית חי, מסכי המודולים הדלוקים
   // בלבד נטענים ברקע — ניווט מיידי בלי להכביד על הפתיחה; מודול כבוי לא יורד.
   useEffect(() => {
-    if (!ready) return;
+    if (!ready || currentSiteDomain()) return; // דומיין-ציבורי: אין משרד ⇒ אין חימום-מסכים (26.10.2026)
     const warm = () => {
       const mods = useApp.getState().config.modules as Partial<Record<string, boolean>>;
       for (const k of Object.keys(VIEW_LOADERS) as (keyof typeof VIEW_LOADERS)[]) {
@@ -588,6 +588,11 @@ export default function App() {
   // 🌐 שער האתר-הציבורי — לפני שער-ההצפנה/הענן/הנעילה: המבקר רואה דף-נחיתה
   // ציבורי בלי שום התחברות. מגודר shell.publicsite + תוכן-site קיים (publicSiteOn).
   // "כניסה למערכת" מנקה את הבקשה (‎?site/#site‎) וממשיך לשרשרת-השערים הרגילה.
+  // דומיין-ציבורי בלי אתר-ציבורי פעיל (כובה באשף) ⇒ למשרד אצלנו, לא משרד-ריק על המארח הזר (26.10.2026)
+  if (siteDomain && !publicSiteOn(config)) {
+    window.location.replace(siteDomain.officeUrl);
+    return <div className="empty">מעביר…</div>;
+  }
   if (siteRequested && publicSiteOn(config)) {
     const publicSite = (
       <Suspense fallback={<div className="empty">טוען…</div>}>

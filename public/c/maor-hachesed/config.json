@@ -190,18 +190,27 @@
       },
       "badges": [
         {
-          "he": "עמותה רשומה (ע״ר)",
-          "en": "Registered nonprofit"
+          "he": "עמותה רשומה (ע״ר 580651719)",
+          "en": "Registered nonprofit (580651719)"
         },
         {
-          "he": "סעיף 46 — זיכוי מס",
-          "en": "§46 tax credit"
+          "he": "ניהול תקין 2026",
+          "en": "Proper management 2026"
+        },
+        {
+          "he": "סעיף 46 — בתוקף עד 31.12.2027",
+          "en": "§46 tax credit — valid until 31.12.2027"
         },
         {
           "he": "US Tax ID 99-0780369",
           "en": "US Tax ID 99-0780369"
         }
-      ]
+      ],
+      "reportsUrl": "https://www.guidestar.org.il/organization/580651719",
+      "reportsLabel": {
+        "he": "לאישורים הרשמיים בגיידסטאר",
+        "en": "Official certificates (GuideStar Israel)"
+      }
     },
     "storyTitle": {
       "he": "כשילד מאבד הורה,",
@@ -542,6 +551,15 @@
           "en": "London"
         }
       ]
+    },
+    "donateUrlIntl": "https://secure.cardknox.com/meorhachessedlutzkininc",
+    "accessibility": {
+      "he": "אנו ב«מאור החסד» רואים חשיבות רבה בהנגשת האתר לכלל הציבור, ובכלל זה לאנשים עם מוגבלות.\nהאתר נבנה בשאיפה לעמוד בתקנות שוויון זכויות לאנשים עם מוגבלות (התאמות נגישות לשירות), התשע״ג–2013, ובתקן הישראלי ת״י 5568 (המבוסס על הנחיות WCAG 2.0 ברמה AA).\n\nמה עשינו באתר:\n• האתר מותאם לצפייה בטלפון, בטאבלט ובמחשב.\n• ניתן לנווט באתר באמצעות המקלדת, וחלונות נסגרים במקש Esc.\n• כפתורים ושדות הטופס מסומנים בתוויות עבור קוראי מסך.\n• האתר מכבד את הגדרת «הפחתת תנועה» במכשיר.\n• שפת הדף וכיוון הכתיבה מוגדרים, והכותרות בנויות במבנה היררכי.\n\nנתקלתם בקושי?\nלמרות מאמצינו, ייתכן שחלקים באתר עדיין אינם נגישים במלואם. נשמח לשמוע ולתקן:\nטלפון: 054-853-8794 · מייל: m0548538794@gmail.com\n\nעדכון אחרון של ההצהרה: אוקטובר 2026",
+      "en": "At Maor Hachesed we want our website to be accessible to everyone, including people with disabilities.\nThe site was built aiming to meet the Israeli accessibility regulations (2013) and Israeli Standard 5568, based on WCAG 2.0 level AA.\n\nWhat we did:\n• The site adapts to phones, tablets and computers.\n• The site can be navigated by keyboard; dialogs close with the Esc key.\n• Buttons and form fields are labeled for screen readers.\n• The site respects the device's \"reduce motion\" setting.\n• Page language and direction are declared, and headings are hierarchical.\n\nHaving trouble?\nDespite our efforts, some parts may not yet be fully accessible. Please let us know and we will fix it:\nPhone: +972-54-853-8794 · Email: m0548538794@gmail.com\n\nLast updated: October 2026"
+    },
+    "privacy": {
+      "he": "מה קורה עם המידע שלכם באתר «מאור החסד»:\n\n• טופס «דברו איתנו» וההרשמה לעדכונים אינם שומרים מידע באתר. בלחיצה על «שליחה» נפתחת אצלכם הודעת וואטסאפ (או מייל) אלינו, ואתם בוחרים אם לשלוח אותה. הפרטים שתשלחו (שם, טלפון, מייל ותוכן הפנייה) ישמשו אותנו רק כדי לחזור אליכם ולטפל בפנייה.\n• התרומות מתבצעות בעמודי הסליקה המאובטחים של נדרים פלוס ושל Cardknox, ולא באתר זה. פרטי כרטיס האשראי מוזנים אצלם בלבד. פרטי התרומה (שם וסכום) מגיעים אלינו לצורך רישום התרומה והנפקת קבלה.\n• מדידת כניסות: אנו משתמשים ב-Cloudflare Web Analytics, שסופר כניסות לאתר בלי עוגיות (cookies) ובלי לעקוב אחרי מבקרים בודדים.\n• איננו מוכרים מידע אישי ואיננו מעבירים אותו לאחרים, למעט כשהחוק מחייב זאת.\n\nלעיון, לתיקון או למחיקה של מידע עליכם: 054-853-8794 · m0548538794@gmail.com\n\nעדכון אחרון: אוקטובר 2026",
+      "en": "How we handle your information at Maor Hachesed:\n\n• The \"Talk to us\" form and the updates sign-up do not store anything on this site. Pressing \"Send\" opens a WhatsApp message (or email) to us on your device, and you decide whether to send it. What you send (name, phone, email, message) is used only to reply to you.\n• Donations are made on the secure payment pages of Nedarim Plus and Cardknox, not on this site. Card details are entered there only. Donation details (name and amount) reach us so we can record the gift and issue a receipt.\n• Visit counting: we use Cloudflare Web Analytics, which counts visits without cookies and without tracking individual visitors.\n• We do not sell personal information or share it with others, except where required by law.\n\nTo view, correct or delete your information: +972-54-853-8794 · m0548538794@gmail.com\n\nLast updated: October 2026"
     }
   }
 }

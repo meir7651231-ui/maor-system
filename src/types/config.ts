@@ -260,7 +260,13 @@ export interface PublicSiteContent {
   events?: PublicSiteEvent[];
   partners?: PublicSitePartner[];
   /** בלוק-שקיפות ("כל שקל מתועד") + מדליוני-אמון. */
-  transparency?: { heading?: LocalizedText; text?: LocalizedText; reportsUrl?: string; badges?: LocalizedText[] };
+  transparency?: { heading?: LocalizedText; text?: LocalizedText; reportsUrl?: string; reportsLabel?: LocalizedText; badges?: LocalizedText[] };
+  /** סליקה לתורמים מחו״ל (https) — באתר באנגלית כפתורי-התרומה מובילים אליה (26.10.2026). */
+  donateUrlIntl?: string;
+  /** הצהרת-נגישות (טקסט חופשי, שורות) — קישור בתחתית + חלון (26.10.2026). */
+  accessibility?: LocalizedText;
+  /** מדיניות-פרטיות (טקסט חופשי, שורות) — קישור בתחתית + חלון (26.10.2026). */
+  privacy?: LocalizedText;
   /** טופס-קשר (לידים). */
   contactForm?: { enabled?: boolean; note?: LocalizedText };
 }

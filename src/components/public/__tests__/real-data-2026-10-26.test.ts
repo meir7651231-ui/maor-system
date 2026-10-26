@@ -69,7 +69,7 @@ describe('💳 הסכום עובר לנדרים-פלוס ("למה הסכום ל�
     expect(donateLinkFor('https://evil-matara.pro.example/nedarimplus', 5, true)).toBe('https://evil-matara.pro.example/nedarimplus');
   });
   it('חיווט: כפתור-הסיום והמסלולים משתמשים בסכום שנבחר', () => {
-    expect(siteSrc).toContain("donateLinkFor(donate, amt, mode === 'monthly')");
+    expect(siteSrc).toContain("donateLinkFor(donate, amt, mode === 'monthly', ded)");
     expect(siteSrc).toMatch(/donateLinkFor\(donate, tr\.amount, /);
   });
 });

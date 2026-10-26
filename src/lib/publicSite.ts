@@ -244,9 +244,10 @@ export function campaignProgress(
  * נדרים-פלוס (matara.pro/nedarimplus) קורא מהכתובת: `Amount` (ממלא את שדה-הסכום),
  * `KevaDefault=1` (הוראת-קבע) / `NormalDefault=1` (חד-פעמי) — אומת בקוד העמוד שלהם
  * (Files/JavaScript5.js: GetURLParameter('Amount'/'KevaDefault'/'NormalDefault')).
+ * הקדשה (26.10.2026) ⇒ `avour` (אומת: `DecodeParam('avour')` ⇒ #AvourTxt).
  * ספק אחר ⇒ הקישור כמות-שהוא (לא ממציאים פרמטרים שלא אומתו). לא-https / ריק ⇒ null.
  */
-export function donateLinkFor(url: string | null, amount: number, monthly: boolean): string | null {
+export function donateLinkFor(url: string | null, amount: number, monthly: boolean, dedication = ''): string | null {
   if (!url) return null;
   let u: URL;
   try { u = new URL(url); } catch { return null; }
@@ -256,7 +257,12 @@ export function donateLinkFor(url: string | null, amount: number, monthly: boole
   if (amt > 0) u.searchParams.set('Amount', String(amt));
   u.searchParams.delete(monthly ? 'NormalDefault' : 'KevaDefault');
   u.searchParams.set(monthly ? 'KevaDefault' : 'NormalDefault', '1');
-  return u.toString();
+  // הקדשה ⇒ `avour` (שדה-ההקדשה, ניתן לעריכה, עד 100 תווים). נדרים מפענח ב-decodeURIComponent —
+  // לא ממיר '+' לרווח, ולכן מקודדים ידנית (%20) ולא דרך searchParams.
+  const ded = dedication.replace(/\p{Cc}/gu, '').trim().slice(0, 100);
+  u.searchParams.delete('avour');
+  const out = u.toString();
+  return ded ? out + (u.search ? '&' : '?') + 'avour=' + encodeURIComponent(ded) : out;
 }
 
 /**

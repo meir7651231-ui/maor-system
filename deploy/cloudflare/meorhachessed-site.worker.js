@@ -7,6 +7,8 @@
  *    HTMLRewriter מחליף את <title> ומזריק description + og:* + twitter:* — רק בדף-ה-HTML.
  * 3. (26.10.2026) אייקונים: ה-HTML הבסיסי נושא את אייקוני-אורביט ⇒ מוחלפים בלוגו של מאור
  *    (גם לפני שה-JS רץ — אייפון/מסך-הבית/תצוגות-קישור).
+ * 4. (26.10.2026) גוגל ומדידה: /sitemap.xml · נתונים-מובנים (schema.org NGO, JSON-LD) · Cloudflare Web Analytics
+ *    (בלי עוגיות; site_token ציבורי מטבעו — מוטמע בכל דף).
  */
 const ORIGIN = 'https://meir7651231-ui.github.io/maor-system';
 const META = {
@@ -16,11 +18,31 @@ const META = {
   url: 'https://meorhachessed.com/',
 };
 const ICONS = '/c/maor-hachesed/icons/';
+const CF_BEACON_TOKEN = '65ac9d3e461d477e83a9a190e37bb891';
+const SITEMAP_LASTMOD = '2026-10-26';
+const LD = {
+  '@context': 'https://schema.org',
+  '@type': 'NGO',
+  name: 'מאור החסד',
+  alternateName: ['מאור החסד מיסודה של הרבנית לוצקין ע״ה', 'Meor Hachesed Lutzkin'],
+  url: 'https://meorhachessed.com/',
+  logo: 'https://meorhachessed.com/c/maor-hachesed/icons/icon-512.png',
+  image: 'https://meorhachessed.com/c/maor-hachesed/og.jpg',
+  description: 'בית פתוח 24/7 ליתומים ולאלמנות — ליווי אישי, הכנסת כלה, שמחות, טיולים וטיפולים. בברכת גדולי ישראל.',
+  telephone: '+972-54-853-8794',
+  email: 'm0548538794@gmail.com',
+  taxID: '580651719',
+  address: { '@type': 'PostalAddress', streetAddress: 'אדוניהו הכהן 23', addressLocality: 'ירושלים', postalCode: '9534311', addressCountry: 'IL' },
+  sameAs: ['https://www.guidestar.org.il/organization/580651719'],
+};
 const esc = (s) => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
 
 export default {
   async fetch(req) {
     const u = new URL(req.url);
+    if (u.pathname === '/sitemap.xml') {
+      return new Response(`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>${META.url}</loc><lastmod>${SITEMAP_LASTMOD}</lastmod><changefreq>weekly</changefreq><priority>1.0</priority></url></urlset>\n`, { headers: { 'content-type': 'application/xml; charset=utf-8', 'cache-control': 'public, max-age=3600' } });
+    }
     const target = ORIGIN + (u.pathname === '/' ? '/' : u.pathname) + u.search;
     const res = await fetch(target, { method: req.method, headers: req.headers, body: ['GET', 'HEAD'].includes(req.method) ? undefined : req.body, redirect: 'manual' });
     const h = new Headers(res.headers);
@@ -40,6 +62,9 @@ export default {
       `<meta property="og:image:width" content="1200">`,
       `<meta property="og:image:height" content="630">`,
       `<meta name="twitter:card" content="summary_large_image">`,
+      `<link rel="sitemap" type="application/xml" href="/sitemap.xml">`,
+      `<script type="application/ld+json">${JSON.stringify(LD).replace(/</g, '\\u003c')}</script>`,
+      `<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "${CF_BEACON_TOKEN}"}'></script>`,
     ].join('');
     return new HTMLRewriter()
       .on('title', { element(e) { e.setInnerContent(META.title); } })
