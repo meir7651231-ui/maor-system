@@ -13,7 +13,9 @@
 
 ## Cloudflare (חשבון הבעלים)
 - הדומיין `meorhachessed.com` רשום ב-Cloudflare Registrar (עד 26.10.2027, חידוש-אוטומטי), zone פעיל Free, ‏0 רשומות DNS ב-26.10.
-- תוכנית: Worker על meorhachessed.com + www שמגיש מ-`meir7651231-ui.github.io/maor-system/` (מתעדכן מיד במיזוג ל-main; orbit-il.com לא נוגע). **ממתין:** מיזוג הענף ל-main (אישור-בעלים) — לפני כן הדומיין היה מציג את שורש-אורביט.
+- **באוויר 26.10.2026** (אישור-בעלים «כן תעלה ותחבר»): main ‏`a1b438d` ⇒ github.io. ‏Worker ‏`meorhachessed-site` (proxy שקוף ל-`meir7651231-ui.github.io/maor-system/`, מתקן Location) + Custom Domains ל-meorhachessed.com ול-www (DNS+SSL אוטומטיים של Cloudflare). מתעדכן מיד במיזוג ל-main — **לא** תלוי ב-cron היומי של orbit-il. orbit-il.com לא נגע.
+- אומת חי: 24/24 בקשות 200 (שורש+www), דפדפן דסקטופ+מובייל ⇒ האתר של מאור, «כניסה למערכת» ⇒ https://orbit-il.com/?org=maor-hachesed, 0 שגיאות. (522 חד-פעמי בדקה הראשונה = הפצת-הדומיין.)
+- ⚠️ נצפה במובייל (קיים-מלפני, לא מהשינוי): קישורי-הניווט העליון נחתכים ברוחב 390px.
 
 ## עריכת-התוכן
 כמו היום: אשף ⇒ `config.json` ⇒ `public/c/maor-hachesed/config.json` ⇒ main.
