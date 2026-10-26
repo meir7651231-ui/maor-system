@@ -13,7 +13,7 @@ import { useApp } from '../../store/useApp';
 import { DialLink } from '../DialLink';
 import { isDemoSession } from '../../lib/demoLock';
 import { telHref } from '../../lib/tel';
-import { campaignProgress, isRtlLang, resolveLocalized, siteDonateUrl, siteLangs, sitePalette, siteUi, siteVocab } from '../../lib/publicSite';
+import { campaignProgress, donateLinkFor, isRtlLang, resolveLocalized, siteDonateUrl, siteLangs, sitePalette, siteUi, siteVocab } from '../../lib/publicSite';
 import { featureOn } from '../../lib/config';
 import { PortalEntry } from './PortalEntry';
 import type { LocalizedText, SiteLang } from '../../types/config';
@@ -609,7 +609,7 @@ export function PublicSite({ onEnter }: { onEnter: () => void }) {
               {camp.daysLeft !== null && <p style={{ fontSize: 12.5, margin: '6px 0 0', color: 'rgba(var(--ri),.5)' }}>{he(`הקמפיין נסגר בעוד ${camp.daysLeft} ימים`, `${camp.daysLeft} days left`)}</p>}
             </div>
             )}
-            <a href={donateHref} {...donateAttrs} style={{ display: 'block', textAlign: 'center', fontFamily: "'Varela Round'", fontSize: 17, color: 'var(--cp)', textDecoration: 'none', padding: '18px 24px', borderRadius: 999, background: GRAD, boxShadow: '0 14px 34px rgba(var(--r2),.45)' }}>{he(`לתרומה של ₪${fmt(amt)} ${mode === 'monthly' ? 'בכל חודש' : ''}`, `Donate ₪${fmt(amt)}`)} ←</a>
+            <a href={donateLinkFor(donate, amt, mode === 'monthly') ?? donateHref} {...donateAttrs} style={{ display: 'block', textAlign: 'center', fontFamily: "'Varela Round'", fontSize: 17, color: 'var(--cp)', textDecoration: 'none', padding: '18px 24px', borderRadius: 999, background: GRAD, boxShadow: '0 14px 34px rgba(var(--r2),.45)' }}>{he(`לתרומה של ₪${fmt(amt)} ${mode === 'monthly' ? 'בכל חודש' : ''}`, `Donate ₪${fmt(amt)}`)} ←</a>
           </div>
         </div>
       </section>
@@ -691,7 +691,7 @@ export function PublicSite({ onEnter }: { onEnter: () => void }) {
                 <h3 style={{ fontFamily: "'Varela Round'", fontSize: 20, margin: '0 0 8px', color: 'var(--ci)' }}>{t(tr.name)}</h3>
                 {tr.amount !== undefined && <div style={{ fontFamily: "'Rubik'", fontWeight: 800, fontSize: 38, color: 'var(--cw)', marginBottom: 16, ...TNUM }}>₪{fmt(tr.amount)}<small style={{ fontSize: 15, color: 'rgba(var(--ri),.45)', fontWeight: 700 }}>{t(tr.period) || he('/ חודש', '/ mo')}</small></div>}
                 {tr.perks && <ul style={{ listStyle: 'none', margin: '0 0 22px', padding: 0, textAlign: 'start', fontSize: 14, color: 'rgba(var(--ri),.72)', display: 'flex', flexDirection: 'column', gap: 9, flex: 1 }}>{tr.perks.map((p, j) => <li key={j}>♡ {t(p)}</li>)}</ul>}
-                <a href={tr.url || donateHref} {...(tr.url || donate ? { target: '_blank', rel: 'noopener noreferrer' } : {})} style={{ fontFamily: "'Varela Round'", fontSize: 15, textDecoration: 'none', padding: '13px 24px', borderRadius: 999, background: tr.featured ? GRAD : 'transparent', color: tr.featured ? 'var(--cp)' : 'var(--c3)', border: tr.featured ? 'none' : '1.6px solid rgba(var(--r1),.6)' }}>{he('להצטרפות', 'Join')}</a>
+                <a href={tr.url || (tr.amount ? donateLinkFor(donate, tr.amount, /חודש|month/i.test(t(tr.period))) : null) || donateHref} {...(tr.url || donate ? { target: '_blank', rel: 'noopener noreferrer' } : {})} style={{ fontFamily: "'Varela Round'", fontSize: 15, textDecoration: 'none', padding: '13px 24px', borderRadius: 999, background: tr.featured ? GRAD : 'transparent', color: tr.featured ? 'var(--cp)' : 'var(--c3)', border: tr.featured ? 'none' : '1.6px solid rgba(var(--r1),.6)' }}>{he('להצטרפות', 'Join')}</a>
               </div>
             ))}
           </div>

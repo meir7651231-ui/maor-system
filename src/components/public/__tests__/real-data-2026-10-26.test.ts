@@ -11,7 +11,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import { normalizeConfig } from '../../../lib/config';
-import { campaignProgress } from '../../../lib/publicSite';
+import { campaignProgress, donateLinkFor } from '../../../lib/publicSite';
 import siteSrc from '../PublicSite.tsx?raw';
 import wizardSrc from '../../builder/BuilderWizard.tsx?raw';
 import maor from '../../../../public/c/maor-hachesed/config.json';
@@ -47,6 +47,30 @@ describe('🧾 אמת באתר-הציבורי — מנוע', () => {
     expect(s?.paymentMethods?.[0]).toMatchObject({ url: 'https://secure.cardknox.com/x', icon: '🌍' });
     expect(s?.paymentMethods?.[1].url).toBeUndefined();
     expect(s?.paymentMethods?.[2].url).toBeUndefined();
+  });
+});
+
+describe('💳 הסכום עובר לנדרים-פלוס ("למה הסכום לא עובר", 26.10.2026)', () => {
+  const NED = 'https://www.matara.pro/nedarimplus/online/?mosad=7001532';
+  it('נדרים: Amount + הוראת-קבע/חד-פעמי, mosad נשמר', () => {
+    const m = new URL(donateLinkFor(NED, 1000, true)!);
+    expect(m.searchParams.get('mosad')).toBe('7001532');
+    expect(m.searchParams.get('Amount')).toBe('1000');
+    expect(m.searchParams.get('KevaDefault')).toBe('1');
+    expect(m.searchParams.get('NormalDefault')).toBeNull();
+    const o = new URL(donateLinkFor(NED + '&KevaDefault=1', 180, false)!);
+    expect(o.searchParams.get('NormalDefault')).toBe('1');
+    expect(o.searchParams.get('KevaDefault')).toBeNull();
+  });
+  it('ספק אחר ⇒ כמות-שהוא (לא ממציאים פרמטרים); לא-https/ריק ⇒ null', () => {
+    expect(donateLinkFor('https://secure.cardknox.com/x', 500, true)).toBe('https://secure.cardknox.com/x');
+    expect(donateLinkFor('http://www.matara.pro/nedarimplus/online/', 5, true)).toBeNull();
+    expect(donateLinkFor(null, 5, true)).toBeNull();
+    expect(donateLinkFor('https://evil-matara.pro.example/nedarimplus', 5, true)).toBe('https://evil-matara.pro.example/nedarimplus');
+  });
+  it('חיווט: כפתור-הסיום והמסלולים משתמשים בסכום שנבחר', () => {
+    expect(siteSrc).toContain("donateLinkFor(donate, amt, mode === 'monthly')");
+    expect(siteSrc).toMatch(/donateLinkFor\(donate, tr\.amount, /);
   });
 });
 

@@ -240,6 +240,26 @@ export function campaignProgress(
 }
 
 /**
+ * קישור-תרומה עם הסכום שנבחר באתר (26.10.2026, "למה הסכום לא עובר").
+ * נדרים-פלוס (matara.pro/nedarimplus) קורא מהכתובת: `Amount` (ממלא את שדה-הסכום),
+ * `KevaDefault=1` (הוראת-קבע) / `NormalDefault=1` (חד-פעמי) — אומת בקוד העמוד שלהם
+ * (Files/JavaScript5.js: GetURLParameter('Amount'/'KevaDefault'/'NormalDefault')).
+ * ספק אחר ⇒ הקישור כמות-שהוא (לא ממציאים פרמטרים שלא אומתו). לא-https / ריק ⇒ null.
+ */
+export function donateLinkFor(url: string | null, amount: number, monthly: boolean): string | null {
+  if (!url) return null;
+  let u: URL;
+  try { u = new URL(url); } catch { return null; }
+  if (u.protocol !== 'https:') return null;
+  if (!(/(^|\.)matara\.pro$/i.test(u.hostname) && /nedarimplus/i.test(u.pathname))) return url;
+  const amt = Math.round(amount * 100) / 100;
+  if (amt > 0) u.searchParams.set('Amount', String(amt));
+  u.searchParams.delete(monthly ? 'NormalDefault' : 'KevaDefault');
+  u.searchParams.set(monthly ? 'KevaDefault' : 'NormalDefault', '1');
+  return u.toString();
+}
+
+/**
  * האם להציג את האתר-הציבורי: יש תוכן-site ולא-כובה במפורש (enabled!==false).
  * הגידור על הדגל (shell.publicsite) ועל בקשת-הכתובת (‎?site‎) נעשה ב-App.
  */
