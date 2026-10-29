@@ -91,3 +91,10 @@ describe('📐 סדר-הסקשנים (בקשת-בעלים 29.10.2026)', () => {
     expect(trust).toBeLessThan(services);
   });
 });
+
+describe('⚡ טעינה מקבילה בדומיין (29.10.2026)', () => {
+  it('קוד-האתר מתחיל לרדת מיד בדומיין; Worker טוען-מראש את קונפיג-הארגון', () => {
+    expect(appSrc).toMatch(/const loadPublicSite = \(\) => import\('\.\/components\/public\/PublicSite'\);\nif \(currentSiteDomain\(\)\) void loadPublicSite\(\);/);
+    expect(worker).toContain('<link rel="preload" href="/c/maor-hachesed/config.json" as="fetch" crossorigin="anonymous">');
+  });
+});

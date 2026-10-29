@@ -63,6 +63,8 @@ export default {
       `<meta property="og:image:height" content="630">`,
       `<meta name="twitter:card" content="summary_large_image">`,
       `<link rel="sitemap" type="application/xml" href="/sitemap.xml">`,
+      // ⚡ (29.10.2026) קונפיג-הארגון נדרש לציור הראשון — מורד במקביל ל-JS (נתיב קבוע; ה-fetch באפליקציה: no-cache ⇒ crossorigin+as=fetch)
+      `<link rel="preload" href="/c/maor-hachesed/config.json" as="fetch" crossorigin="anonymous">`,
       `<script type="application/ld+json">${JSON.stringify(LD).replace(/</g, '\\u003c')}</script>`,
       `<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "${CF_BEACON_TOKEN}"}'></script>`,
     ].join('');

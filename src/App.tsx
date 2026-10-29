@@ -81,7 +81,11 @@ const RemoteWizard = lazy(async () => ({ default: (await import('./components/bu
 const PlatformPanel = lazy(async () => ({ default: (await import('./components/platform/PlatformPanel')).PlatformPanel }));
 const PlatformInboxBell = lazy(async () => ({ default: (await import('./components/platform/PlatformInboxBell')).PlatformInboxBell }));
 const ManagerPanel = lazy(async () => ({ default: (await import('./components/platform/ManagerPanel')).ManagerPanel }));
-const PublicSite = lazy(async () => ({ default: (await import('./components/public/PublicSite')).PublicSite }));
+// ⚡ (29.10.2026) בדומיין-הציבורי מתחילים להוריד את קוד-האתר **מיד** (במקביל לקונפיג), לא אחרי שהקונפיג
+// הגיע והשער נפתח — נמדד: הקונפיג הגיע ב-2.0ש׳ ורק אז התחיל הצ׳אנק (‎2.3ש׳) ⇒ LCP ‏2.5–3.2ש׳ ב-4G.
+const loadPublicSite = () => import('./components/public/PublicSite');
+if (currentSiteDomain()) void loadPublicSite();
+const PublicSite = lazy(async () => ({ default: (await loadPublicSite()).PublicSite }));
 const LoginScreen = lazy(async () => ({ default: (await import('./components/cloud/LoginScreen')).LoginScreen }));
 const PendingApprovalScreen = lazy(async () => ({ default: (await import('./components/cloud/LoginScreen')).PendingApprovalScreen }));
 // 🤖 "שאל את מאור" (VISION-LIGHT #30) — עצל: נטען רק בפתיחה ממרכז-העזרה
