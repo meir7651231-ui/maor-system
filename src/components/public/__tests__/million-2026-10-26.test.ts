@@ -82,3 +82,12 @@ describe('💎 מיליון-דולר — האתר-הציבורי', () => {
     for (const k of ['accessibility', 'privacy'] as const) { expect(s[k].he).toContain('m0548538794@gmail.com'); expect(s[k].en.length).toBeGreaterThan(200); }
   });
 });
+
+describe('📐 סדר-הסקשנים (בקשת-בעלים 29.10.2026)', () => {
+  it('«שקוף כמו אור» (אמון) לפני «השירותים שלנו»', () => {
+    const trust = siteSrc.indexOf('{/* ── אמון ושקיפות');
+    const services = siteSrc.indexOf('{/* ── מה אנחנו עושים');
+    expect(trust).toBeGreaterThan(0);
+    expect(trust).toBeLessThan(services);
+  });
+});

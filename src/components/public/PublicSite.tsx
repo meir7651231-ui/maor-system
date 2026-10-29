@@ -418,6 +418,27 @@ export function PublicSite({ onEnter }: { onEnter: () => void }) {
       </div>
       )}
 
+      {/* ── אמון ושקיפות (מדליונים) — לפני השירותים (בקשת-בעלים 29.10.2026: «שקוף כמו אור — מעל השירותים») ── */}
+      {(t(site.transparency?.heading) || badges.length > 0) && (
+        <section className="ps-rev" style={{ ...sec, textAlign: 'center' }}>
+          <SecHead k={he('שקוף כמו אור ♡', 'Transparent as light ♡')} h={t(site.transparency?.heading) || he('כל שקל מתועד. כל הדו״חות פתוחים.', 'Every shekel tracked.')} />
+          {t(site.transparency?.text) && <p style={{ fontSize: 16, lineHeight: 1.8, maxWidth: '62ch', margin: '18px auto 0', color: 'rgba(var(--ri),.65)' }}>{t(site.transparency?.text)}</p>}
+          {site.transparency?.reportsUrl && (
+            <a href={site.transparency.reportsUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginTop: 20, padding: '11px 22px', borderRadius: 999, border: '1.5px solid rgba(var(--r1),.55)', background: '#fff', color: 'var(--c3)', fontWeight: 700, fontSize: 14.5, textDecoration: 'none' }}>📄 {t(site.transparency.reportsLabel) || he('לאישורים הרשמיים', 'Official certificates')}</a>
+          )}
+          {badges.length > 0 && (
+            <div style={{ display: 'flex', justifyContent: 'center', gap: 'clamp(18px,3.4vw,48px)', flexWrap: 'wrap', marginTop: 'clamp(32px,5vh,48px)' }}>
+              {badges.map((b, i) => (
+                <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, width: 150 }}>
+                  <div style={{ width: 92, height: 92, borderRadius: '50%', background: '#fff', border: '1.5px solid rgba(var(--r1),.4)', boxShadow: '0 12px 30px rgba(var(--r2),.18)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><TrustIcon i={i} color={pal.c2} /></div>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: 'rgba(var(--ri),.75)' }}>{t(b)}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
+
       {/* ── מה אנחנו עושים (עמודי-תווך) ── */}
       {services.length > 0 && (
         <section id="pillars" className="ps-rev" style={{ ...sec, textAlign: 'center' }}>
@@ -471,27 +492,6 @@ export function PublicSite({ onEnter }: { onEnter: () => void }) {
             </div>
             )}
           </div>
-        </section>
-      )}
-
-      {/* ── אמון ושקיפות (מדליונים) ── */}
-      {(t(site.transparency?.heading) || badges.length > 0) && (
-        <section className="ps-rev" style={{ ...sec, textAlign: 'center' }}>
-          <SecHead k={he('שקוף כמו אור ♡', 'Transparent as light ♡')} h={t(site.transparency?.heading) || he('כל שקל מתועד. כל הדו״חות פתוחים.', 'Every shekel tracked.')} />
-          {t(site.transparency?.text) && <p style={{ fontSize: 16, lineHeight: 1.8, maxWidth: '62ch', margin: '18px auto 0', color: 'rgba(var(--ri),.65)' }}>{t(site.transparency?.text)}</p>}
-          {site.transparency?.reportsUrl && (
-            <a href={site.transparency.reportsUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginTop: 20, padding: '11px 22px', borderRadius: 999, border: '1.5px solid rgba(var(--r1),.55)', background: '#fff', color: 'var(--c3)', fontWeight: 700, fontSize: 14.5, textDecoration: 'none' }}>📄 {t(site.transparency.reportsLabel) || he('לאישורים הרשמיים', 'Official certificates')}</a>
-          )}
-          {badges.length > 0 && (
-            <div style={{ display: 'flex', justifyContent: 'center', gap: 'clamp(18px,3.4vw,48px)', flexWrap: 'wrap', marginTop: 'clamp(32px,5vh,48px)' }}>
-              {badges.map((b, i) => (
-                <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, width: 150 }}>
-                  <div style={{ width: 92, height: 92, borderRadius: '50%', background: '#fff', border: '1.5px solid rgba(var(--r1),.4)', boxShadow: '0 12px 30px rgba(var(--r2),.18)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><TrustIcon i={i} color={pal.c2} /></div>
-                  <span style={{ fontSize: 14, fontWeight: 700, color: 'rgba(var(--ri),.75)' }}>{t(b)}</span>
-                </div>
-              ))}
-            </div>
-          )}
         </section>
       )}
 
