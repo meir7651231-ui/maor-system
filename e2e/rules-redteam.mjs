@@ -223,6 +223,30 @@ await T('(התיקון) A מדליק segula (deleteField) · B מתצלום יש
 const patchyBoss = env.authenticatedContext('patchyboss', { email: 'boss@patchy.com' }).firestore();
 await T('🔴 מנהל-ארגון לא כותב config נקודתית', assertFails(updateDoc(doc(patchyBoss, 'platformOrgs/patchy'), new FieldPath('config', 'features', 'supporters.hok'), deleteField())));
 
+console.log('\n═══ י״ג · 🌐 עריכת האתר-הציבורי ע״י מנהל-הארגון (publicSites, 29.10.2026) ═══');
+await env.withSecurityRulesDisabled(async (ctx) => {
+  await setDoc(doc(ctx.firestore(), 'publicSites/maor'), { site: { tagline: 'מקורי' }, editors: ['mgr@maor.org'], updatedAt: 'x', updatedBy: SUPER });
+  await setDoc(doc(ctx.firestore(), 'publicSites/other'), { site: { tagline: 'של אחר' }, editors: ['x@other.com'] });
+});
+const anon = env.unauthenticatedContext().firestore();
+const mgr = env.authenticatedContext('mgr', { email: 'MGR@maor.org', email_verified: true }).firestore(); // אותיות-גדולות — מנורמל
+const mgrUnverified = env.authenticatedContext('mgr2', { email: 'mgr@maor.org', email_verified: false }).firestore();
+await T('אנונימי קורא את תוכן-האתר (ציבורי)', assertSucceeds(getDoc(doc(anon, 'publicSites/maor'))));
+await T('🔴 אנונימי לא ממנה את כל האתרים (list)', assertFails(getDocs(collection(anon, 'publicSites'))));
+await T('🔴 אנונימי לא כותב', assertFails(updateDoc(doc(anon, 'publicSites/maor'), { site: { tagline: 'השחתה' } })));
+await T('🔴 זר מאומת לא כותב', assertFails(updateDoc(doc(stranger, 'publicSites/maor'), { site: { tagline: 'השחתה' }, updatedBy: 'evil@nowhere.com', updatedAt: 'y' })));
+await T('🔴 חבר-ארגון אחר לא כותב', assertFails(updateDoc(doc(emp, 'publicSites/maor'), { site: { tagline: 'x' }, updatedBy: 'emp@acme.com', updatedAt: 'y' })));
+await T('🔴 חשבון עם מייל-העורך שלא אומת לא כותב (חטיפת-זהות-מוקדמת)', assertFails(updateDoc(doc(mgrUnverified, 'publicSites/maor'), { site: { tagline: 'x' }, updatedAt: 'y', updatedBy: 'mgr@maor.org' })));
+await T('עורך מעדכן site + חותמת עם המייל שלו', assertSucceeds(updateDoc(doc(mgr, 'publicSites/maor'), { site: { tagline: 'חדש' }, updatedAt: 'y', updatedBy: 'mgr@maor.org' })));
+await T('🔴 עורך לא מוסיף את עצמו/אחרים ל-editors', assertFails(updateDoc(doc(mgr, 'publicSites/maor'), { editors: ['mgr@maor.org', 'friend@x.com'] })));
+await T('🔴 עורך לא מזייף updatedBy', assertFails(updateDoc(doc(mgr, 'publicSites/maor'), { site: { tagline: 'x' }, updatedAt: 'z', updatedBy: SUPER })));
+await T('🔴 עורך לא כותב site שאינו map', assertFails(updateDoc(doc(mgr, 'publicSites/maor'), { site: 'string', updatedAt: 'z', updatedBy: 'mgr@maor.org' })));
+await T('🔴 עורך לא מוחק את המסמך', assertFails(deleteDoc(doc(mgr, 'publicSites/maor'))));
+await T('🔴 עורך לא יוצר אתר חדש', assertFails(setDoc(doc(mgr, 'publicSites/new'), { site: {}, editors: ['mgr@maor.org'] })));
+await T('🔴 עורך של מאור לא כותב באתר של ארגון אחר', assertFails(updateDoc(doc(mgr, 'publicSites/other'), { site: { tagline: 'x' }, updatedAt: 'z', updatedBy: 'mgr@maor.org' })));
+await T('🔴 עורך-אתר לא מקבל גישה לנתוני-המשרד (אוספי-שורש)', assertFails(getDoc(doc(mgr, 'families/f1'))));
+await T('מייל-על יוצר/מעדכן editors', assertSucceeds(setDoc(doc(su, 'publicSites/new'), { site: {}, editors: ['a@b.co'] })));
+
 await env.cleanup();
 console.log(`\n── סיכום red-team ── ${pass} עברו · ${fail} נכשלו`);
 if (fail > 0) { console.log('❌ יש חור-אבטחה — Rules לא חוסמים תרחיש-תקיפה!'); process.exit(1); }

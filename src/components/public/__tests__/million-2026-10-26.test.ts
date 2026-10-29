@@ -13,7 +13,9 @@ import { donateLinkFor } from '../../../lib/publicSite';
 import siteSrc from '../PublicSite.tsx?raw';
 import appSrc from '../../../App.tsx?raw';
 import storeSrc from '../../../store/useApp.ts?raw';
-import wizardSrc from '../../builder/BuilderWizard.tsx?raw';
+import wizardOnly from '../../builder/BuilderWizard.tsx?raw';
+import siteEditorSrc from '../../builder/SiteContentEditor.tsx?raw';
+const wizardSrc = wizardOnly + '\n' + siteEditorSrc; // 29.10: עורך-האתר חולץ לרכיב משותף
 import maor from '../../../../public/c/maor-hachesed/config.json';
 import type { OrgConfig } from '../../../types/config';
 
@@ -23,7 +25,7 @@ const norm = (site: unknown) => (normalizeConfig({ slug: 'x', orgName: 'א', the
 
 describe('💎 מיליון-דולר — האתר-הציבורי', () => {
   it('⚡ דומיין-ציבורי: init בלי DB/ענן; אין חימום-מסכים; אתר-כבוי ⇒ למשרד', () => {
-    expect(storeSrc).toMatch(/if \(currentSiteDomain\(\)\) \{\n\s*set\(\{ config, ready: true,[^\n]*enabled: false[^\n]*\}\);\n\s*applyTheme\([^\n]*\);\n\s*return;/);
+    expect(storeSrc).toMatch(/if \(currentSiteDomain\(\)\) \{[\s\S]{0,400}?config = withCloudSite\(config, await fetchCloudSite\(config\)\);\n\s*set\(\{ config, ready: true,[^\n]*enabled: false[^\n]*\}\);\n\s*applyTheme\([^\n]*\);\n\s*return;/);
     const i = storeSrc.indexOf('if (currentSiteDomain()) {');
     expect(i).toBeGreaterThan(0);
     expect(i).toBeLessThan(storeSrc.indexOf('const res = await loadDb();'));

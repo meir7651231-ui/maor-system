@@ -531,3 +531,44 @@ export function watchTeamMessages(slug: string, cb: (msgs: TeamMsg[]) => void): 
     () => { /* אין הרשאה/רשת — נבלע */ },
   );
 }
+
+// ── 🌐 האתר-הציבורי העריך (29.10.2026, Rules v5) ─────────────────────────────
+/** אוסף תוכן-האתרים-הציבוריים — קריאה ציבורית; עדכון site ע״י editors; יצירה/editors — מייל-על. */
+export const PUBLIC_SITES = 'publicSites';
+export interface PublicSiteDoc {
+  site?: Record<string, unknown>;
+  editors?: string[];
+  updatedAt?: string;
+  updatedBy?: string;
+}
+/** קריאת מסמך-האתר (null כשאין). */
+export async function fetchPublicSiteDoc(slug: string): Promise<PublicSiteDoc | null> {
+  try {
+    const snap = await getDoc(doc(cloudDb(), PUBLIC_SITES, slug));
+    return snap.exists() ? (snap.data() as PublicSiteDoc) : null;
+  } catch {
+    return null;
+  }
+}
+/** שמירת תוכן-האתר ע״י עורך: updateDoc של site/updatedAt/updatedBy בלבד (כמו ש-Rules דורשים).
+ *  site מוחלף בשלמותו (לא מיזוג-עומק — אחרת שדה שנמחק בעורך היה נשאר בענן לנצח, לקח 5.10). */
+export async function savePublicSite(slug: string, site: unknown, email: string): Promise<void> {
+  await updateDoc(doc(cloudDb(), PUBLIC_SITES, slug), {
+    site: JSON.parse(JSON.stringify(site ?? {})),
+    updatedAt: new Date().toISOString(),
+    updatedBy: email.trim().toLowerCase(),
+  });
+}
+/** הפעלה ראשונה (מייל-על): יצירת המסמך מהתוכן הנוכחי + רשימת-העורכים. */
+export async function createPublicSite(slug: string, site: unknown, editors: string[], email: string): Promise<void> {
+  await setDoc(doc(cloudDb(), PUBLIC_SITES, slug), {
+    site: JSON.parse(JSON.stringify(site ?? {})),
+    editors: editors.map((e) => e.trim().toLowerCase()).filter(Boolean),
+    updatedAt: new Date().toISOString(),
+    updatedBy: email.trim().toLowerCase(),
+  });
+}
+/** עדכון רשימת-העורכים (מייל-על בלבד לפי Rules). */
+export async function setPublicSiteEditors(slug: string, editors: string[]): Promise<void> {
+  await updateDoc(doc(cloudDb(), PUBLIC_SITES, slug), { editors: editors.map((e) => e.trim().toLowerCase()).filter(Boolean) });
+}

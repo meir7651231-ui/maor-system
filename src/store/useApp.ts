@@ -57,6 +57,7 @@ import { allowedDesignationsFor, canIssueReceipt, effectiveConfigFor, isOrgManag
 import type { OrgCloudDoc } from '../lib/cloudConfig';
 import { DEFAULT_CONFIG, type FirebaseOrgConfig, type OrgConfig } from '../types/config';
 import { currentSiteDomain } from '../lib/siteDomains';
+import { fetchCloudSite, withCloudSite } from '../lib/publicSiteCloud';
 import { applyTheme, donationSplitOn, employeeSignUpError, featureOn, isAdminAuthority, isSuperAdmin, loadOrgConfig, orgSlugFromUrl, resolveOrgConfig, saveConfigOverride, signUpError, supEnforceOn, termOf, writeCloudConfigCache } from '../lib/config';
 import { formatIsraeliPhone } from '../lib/validate';
 import { guardDemo } from '../lib/exportGate';
@@ -1416,11 +1417,13 @@ export const useApp = create<AppState>()((set, get) => {
     cloud: { enabled: false, authReady: true, user: null, status: 'idle', membership: 'na' },
 
     async init() {
-      const config = await loadOrgConfig();
+      let config = await loadOrgConfig();
       // ⚡ דומיין-ציבורי (26.10.2026): המבקר רואה רק את האתר-הציבורי — "כניסה למערכת" יוצאת למשרד
-      // בכתובת שלנו. לכן אין כאן טעינת-DB, ענן (Firebase ‏~190KB), נעילה או שער-טאבים: LCP ‏3ש׳ ⇒ ~1ש׳ ב-4G,
+      // בכתובת שלנו. לכן אין כאן טעינת-DB, ענן (Firebase ‏~190KB), נעילה או שער-טאבים (נמדד: הורדה 1,012⇒540KB),
       // ואף בייט של נתוני-משרד לא נוצר על מארח זר. ה-db נשאר ריק (emptyDb) ולא נשמר.
       if (currentSiteDomain()) {
+        // 🌐 (29.10.2026) תוכן שמנהל-הארגון ערך במשרד (publicSites/{slug}) גובר על הקובץ; כשל/איטי ⇒ הקובץ.
+        config = withCloudSite(config, await fetchCloudSite(config));
         set({ config, ready: true, encrypted: false, needDecrypt: false, cloud: { enabled: false, authReady: true, user: null, status: 'idle', membership: 'na' } });
         applyTheme(config.theme, config.accent, config.motion);
         return;

@@ -64,6 +64,8 @@ export type { ConfigWriteMeta, EmployeeOverride, OrgCloudDoc, OrgJoinRequestDoc,
 export { sendSupportMessage, sendSupportReply, watchSupportMessages, watchSupportThreadMeta, watchAllSupportThreads, markSupportRead } from '../lib/cloudConfig';
 // 💬 צ׳אט-צוות תוך-ארגוני (17.8)
 export { sendTeamMessage, watchTeamMessages } from '../lib/cloudConfig';
+export { refreshEmailVerified, resendEmailVerification } from '../lib/cloud';
+export { createPublicSite, fetchPublicSiteDoc, savePublicSite, setPublicSiteEditors, type PublicSiteDoc } from '../lib/cloudConfig';
 
 export type CloudStatus = 'idle' | 'connecting' | 'pending' | 'synced' | 'error';
 

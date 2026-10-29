@@ -46,6 +46,7 @@ import { CloudUnlockScreen } from './components/lock/CloudUnlockScreen';
 import { DEFAULT_LOCK_ZONES } from './lib/lock';
 import { useViewScrollMemory } from './lib/scrollMemory';
 import { applySiteIcons, currentSiteDomain } from './lib/siteDomains';
+import { fetchCloudSite, withCloudSite } from './lib/publicSiteCloud';
 
 /* ⚡ VISION-LIGHT ‏#13 — פיצול-chunks לפי מודולים: כל מסך-מודול נטען עצל
  * ‏(React.lazy) ב-chunk משלו; הבנדל הראשי נשאר בית+שלד. ה-loaders משותפים
@@ -87,6 +88,8 @@ const loadPublicSite = () => import('./components/public/PublicSite');
 if (currentSiteDomain()) void loadPublicSite();
 const PublicSite = lazy(async () => ({ default: (await loadPublicSite()).PublicSite }));
 const LoginScreen = lazy(async () => ({ default: (await import('./components/cloud/LoginScreen')).LoginScreen }));
+const SiteEditorPage = lazy(async () => ({ default: (await import('./components/site/SiteEditorPage')).SiteEditorPage }));
+const SiteEditorLogin = lazy(async () => ({ default: (await import('./components/site/SiteEditorPage')).SiteEditorLogin }));
 const PendingApprovalScreen = lazy(async () => ({ default: (await import('./components/cloud/LoginScreen')).PendingApprovalScreen }));
 // 🤖 "שאל את מאור" (VISION-LIGHT #30) — עצל: נטען רק בפתיחה ממרכז-העזרה
 const AskMaorModal = lazy(async () => ({ default: (await import('./components/AskMaor')).AskMaorModal }));
@@ -303,6 +306,14 @@ export default function App() {
   // 🌐 אתר ציבורי (shell.publicsite) — נפתח בכתובת ‎?site‎ או ‎#site‎, לפני שער-
   // הענן (המבקר לא צריך חשבון). "כניסה למערכת" מנקה את הבקשה וממשיך לאפליקציה.
   const siteDomain = currentSiteDomain();
+  const [siteEditRequested, setSiteEditRequested] = useState(() => {
+    try { return window.location.hash === '#site-edit'; } catch { return false; }
+  });
+  useEffect(() => {
+    const onHash = () => { if (window.location.hash === '#site-edit') setSiteEditRequested(true); };
+    window.addEventListener('hashchange', onHash);
+    return () => window.removeEventListener('hashchange', onHash);
+  }, []);
   const [siteRequested, setSiteRequested] = useState(() => {
     try {
       // דומיין-ציבורי של ארגון (siteDomains, 26.10) ⇒ האתר-הציבורי הוא דף-הבית של הדומיין
@@ -311,6 +322,19 @@ export default function App() {
       return false;
     }
   });
+
+  // 🌐 (29.10.2026) תצוגת האתר-הציבורי גם מחוץ לדומיין (‎?site‎ ב-orbit) — אותו תוכן-ענן שהמנהל ערך.
+  // בדומיין זה כבר נטען ב-init (לפני הציור הראשון); כאן — פעם אחת, אחרי הטעינה.
+  useEffect(() => {
+    if (!siteRequested || siteDomain || !ready || !config.firebase) return;
+    let alive = true;
+    void fetchCloudSite(config).then((raw) => {
+      if (!alive || !raw) return;
+      useApp.setState((st) => ({ config: withCloudSite(st.config, raw) }));
+    });
+    return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- פעם אחת לפתיחת-האתר (config.site מתעדכן כאן עצמו)
+  }, [siteRequested, siteDomain, ready, config.slug]);
 
   // 🌐 האתר-הציבורי (26.10.2026): הלשונית הציגה "<ארגון> — מערכת הניהול שלכם" + סמל-אורביט.
   // באתר-הציבורי: שם-הארגון + שורת-המותג, וסמל-האתר (site.icon). אחרי האפקטים שלמעלה ⇒ גובר.
@@ -644,11 +668,34 @@ export default function App() {
 
   // שער הענן: ארגון עם config.firebase מחייב התחברות לפני הכניסה לאפליקציה
   if (cloud.enabled && !cloud.authReady) return <div className="empty">מתחבר…</div>;
+  if (cloud.enabled && !cloud.user && siteEditRequested) {
+    return (
+      <>
+        <Suspense fallback={<div className="empty">טוען…</div>}>
+          <SiteEditorLogin />
+        </Suspense>
+        {toastsEl}
+      </>
+    );
+  }
   if (cloud.enabled && !cloud.user) {
     return (
       <>
         <Suspense fallback={<div className="empty">טוען…</div>}>
           <LoginScreen />
+        </Suspense>
+        {toastsEl}
+      </>
+    );
+  }
+  // 🌐 עריכת האתר-הציבורי (29.10.2026, «מערכת לשליטה למנהל הארגון לעריכת האתר»): ‏#site-edit נפתח מיד
+  // אחרי ההתחברות ו**לפני** שער-החברות — עורך-אתר (publicSites.editors) אינו חייב להיות חבר-משרד, ולא מקבל
+  // גישה לנתוני-המשרד (Rules v5). ההרשאה נבדקת במסך עצמו מול מסמך-האתר + נאכפת ב-Rules.
+  if (cloud.enabled && cloud.user && siteEditRequested) {
+    return (
+      <>
+        <Suspense fallback={<div className="empty">טוען…</div>}>
+          <SiteEditorPage onClose={() => { setSiteEditRequested(false); try { history.replaceState(null, '', location.pathname + location.search); } catch { /* */ } }} />
         </Suspense>
         {toastsEl}
       </>

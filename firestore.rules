@@ -5,6 +5,7 @@ rules_version = '2';
 // v3 (ORGADMIN 3.8.2026): מנהל-ארגון מואצל — orgManager(slug) יכול לעדכן רק את
 // שדות ניהול-העובדות של הארגון שלו (members/memberConfigs/joinOpen/joinCode)
 // ולנהל את joinRequests שלו; מייל-העל מעל כולם. config/manager = מייל-על בלבד.
+// v5 (29.10.2026): publicSites/{slug} — אתר-ציבורי עריך ע״י מנהל-הארגון (ראו הכלל).
 // v4 (נחיל-עמוק 14.8, פאזה-0): הקשחת platformLeads — מחרוזות תחומות-גודל מול
 // spam/עלות (create ציבורי). אכיפת-ייעוד/ייצוא פר-חבר בשכבת-הנתונים = פרויקט
 // נפרד (local-first לא ניתן-לסינון ב-Rules) — build-order ב-knowledge/.
@@ -70,6 +71,26 @@ service cloud.firestore {
     // לידים "נחזור אליכם" (SIGNUP) — לכידת-ליד ציבורית **בלי חשבון**:
     // create בלבד (בלי אימות), שדות מוגבלים; קריאה/מחיקה — מיילי-על. אין
     // read ⇒ אי-אפשר למנות/לדלות לידים; בטוח מספיק לטופס-יצירת-קשר.
+    // v5 (29.10.2026, «מערכת לשליטה למנהל הארגון לעריכת האתר»): האתר-הציבורי העריך.
+    // publicSites/{slug} = { site: map, editors: [מיילים, אותיות-קטנות], updatedAt, updatedBy }.
+    // קריאה — ציבורית (זה תוכן האתר-לציבור; המבקר אנונימי, נקרא ב-REST בלי SDK). list — אסור.
+    // יצירה/מחיקה/editors — מייל-על בלבד. עורך (מייל ב-editors) — עדכון **רק** של site/updatedAt/updatedBy,
+    // site חייב להיות map ו-updatedBy = המייל שלו (עקבה). לא נוגע בנתוני-המשרד בשום צורה.
+    // email_verified חובה לעורך: אחרת מי שפותח חשבון ראשון עם מייל-העורך (לפני שהעורך עצמו נרשם) היה עורך.
+    match /publicSites/{slug} {
+      allow get: if true;
+      allow list: if false;
+      allow create, delete: if superAdmin();
+      allow update: if superAdmin() || (
+        request.auth != null
+        && request.auth.token.email_verified == true
+        && request.auth.token.email.lower() in resource.data.get('editors', [])
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['site', 'updatedAt', 'updatedBy'])
+        && request.resource.data.site is map
+        && request.resource.data.updatedBy == request.auth.token.email.lower()
+      );
+    }
+
     match /platformLeads/{leadId} {
       // create ציבורי (בלי חשבון) — מוקשח מפני spam/עלות (נחיל-עמוק 14.8, פאזה-0):
       // רק 5 שדות, מחרוזות תחומות-גודל ⇒ payload חסום (מסמך-ענק לא ייכתב). שם+טלפון
@@ -372,7 +393,7 @@ service cloud.firestore {
     // (Firestore = OR של כללים; read:false בכלל הייעודי לא גובר על התרה כאן).
     match /{rootCol}/{document=**} {
       allow read, write: if (allowedRoot() || superAdmin())
-        && !(rootCol in ['platformOrgs', 'platformRequests', 'platformLeads', 'orgs', 'orgSecrets', 'orgSecretsMeta', 'icsFeeds', 'supportChats', 'teamChats']);
+        && !(rootCol in ['platformOrgs', 'platformRequests', 'platformLeads', 'orgs', 'orgSecrets', 'orgSecretsMeta', 'icsFeeds', 'supportChats', 'teamChats', 'publicSites']);
     }
   }
 }

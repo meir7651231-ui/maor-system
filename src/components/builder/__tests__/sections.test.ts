@@ -10,7 +10,10 @@ import { describe, expect, it } from 'vitest';
 import { WIZARD_SECTIONS } from '../sections';
 import { ALL_MODULES } from '../../platform/lib';
 import { FEATURES, TERM_DEFS } from '../../../types/features';
-import wizSrc from '../BuilderWizard.tsx?raw';
+import wizOnly from '../BuilderWizard.tsx?raw';
+import siteEditorSrc from '../SiteContentEditor.tsx?raw';
+// 29.10.2026: עורך-האתר חולץ לרכיב משותף (SiteContentEditor) — האשף = הקובץ + העורך שהוא מרנדר
+const wizSrc = wizOnly + '\n' + siteEditorSrc;
 
 describe('🧩 ratchet — אשף ההרכבה מכסה כל מודול', () => {
   it('לכל מודול-ניווט (ALL_MODULES) יש מקטע מתאים באשף', () => {
@@ -60,7 +63,9 @@ describe('🌐 ratchet — מקטע האתר-הציבורי באשף (עריכת
     expect(wizSrc).toContain('id="wz-site"');
     expect(wizSrc).toContain('האתר הציבורי');
     // עריכה חיה דרך אותו patch של כל האשף
-    expect(wizSrc).toContain('const setSite = (p: Partial<PublicSiteContent>) => patch({ site:');
+    // 29.10.2026: העורך חולץ ל-SiteContentEditor — האשף מעביר את השינוי ל-patch על config.site
+    expect(wizOnly).toContain('<SiteContentEditor site={config.site} onChange={(site) => patch({ site })} />');
+    expect(siteEditorSrc).toContain('const setSite = (p: Partial<PublicSiteContent>) => onChange({ ...site, ...p });');
     // תצוגה-מקדימה פותחת את ‎?site‎
     expect(wizSrc).toContain('previewSite');
     expect(wizSrc).toContain("searchParams.set('site'");

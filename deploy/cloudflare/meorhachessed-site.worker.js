@@ -18,6 +18,8 @@ const META = {
   url: 'https://meorhachessed.com/',
 };
 const ICONS = '/c/maor-hachesed/icons/';
+// מפתח ה-API הציבורי של Firebase (כבר מופיע בקונפיג-הלקוח הציבורי) — זהה ל-publicSiteDocUrl באפליקציה
+const CLOUD_SITE_URL = 'https://firestore.googleapis.com/v1/projects/maor-system/databases/(default)/documents/publicSites/maor-hachesed?key=AIzaSyCVvJvJAnTEWSzdtmONXcZyRijHdrvPeIo';
 const CF_BEACON_TOKEN = '65ac9d3e461d477e83a9a190e37bb891';
 const SITEMAP_LASTMOD = '2026-10-26';
 const LD = {
@@ -65,6 +67,8 @@ export default {
       `<link rel="sitemap" type="application/xml" href="/sitemap.xml">`,
       // ⚡ (29.10.2026) קונפיג-הארגון נדרש לציור הראשון — מורד במקביל ל-JS (נתיב קבוע; ה-fetch באפליקציה: no-cache ⇒ crossorigin+as=fetch)
       `<link rel="preload" href="/c/maor-hachesed/config.json" as="fetch" crossorigin="anonymous">`,
+      // 🌐 (29.10.2026) תוכן-האתר שנערך במשרד (Firestore REST, קריאה ציבורית) — במקביל, כדי שלא יוסיף זמן-טעינה
+      `<link rel="preload" href="${CLOUD_SITE_URL}" as="fetch" crossorigin="anonymous">`,
       `<script type="application/ld+json">${JSON.stringify(LD).replace(/</g, '\\u003c')}</script>`,
       `<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "${CF_BEACON_TOKEN}"}'></script>`,
     ].join('');

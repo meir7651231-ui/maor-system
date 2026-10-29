@@ -14,7 +14,9 @@ import { normalizeConfig } from '../../../lib/config';
 import { siteUi } from '../../../lib/publicSite';
 import siteSrc from '../PublicSite.tsx?raw';
 import appSrc from '../../../App.tsx?raw';
-import wizardSrc from '../../builder/BuilderWizard.tsx?raw';
+import wizardOnly from '../../builder/BuilderWizard.tsx?raw';
+import siteEditorSrc from '../../builder/SiteContentEditor.tsx?raw';
+const wizardSrc = wizardOnly + '\n' + siteEditorSrc; // 29.10: עורך-האתר חולץ לרכיב משותף
 import maor from '../../../../public/c/maor-hachesed/config.json';
 import type { OrgConfig } from '../../../types/config';
 

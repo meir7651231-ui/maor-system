@@ -303,6 +303,21 @@ export function watchAuth(cb: (user: CloudUser | null) => void): () => void {
   });
 }
 
+/** 🌐 עורך-אתר (29.10.2026): האם המייל של המחובר/ת אומת — מרענן מהשרת (אחרי לחיצה על קישור-האימות). */
+export async function refreshEmailVerified(): Promise<boolean> {
+  const u = auth?.currentUser;
+  if (!u) return false;
+  try { await u.reload(); } catch { /* אופליין — המצב האחרון הידוע */ }
+  try { await u.getIdToken(true); } catch { /* הטוקן יתרענן בהמשך */ } // Rules קוראים email_verified מהטוקן
+  return !!auth?.currentUser?.emailVerified;
+}
+/** שליחה-חוזרת של מייל-האימות. */
+export async function resendEmailVerification(): Promise<void> {
+  const u = auth?.currentUser;
+  if (!u) throw new Error('לא מחובר/ת');
+  await sendEmailVerification(u);
+}
+
 /** כניסה באימייל+סיסמה — זורק Error עם הודעה בעברית. אין הרשמה עצמית. */
 export async function signIn(email: string, password: string): Promise<void> {
   try {
