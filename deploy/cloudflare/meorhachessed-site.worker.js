@@ -7,6 +7,7 @@
  *    HTMLRewriter מחליף את <title> ומזריק description + og:* + twitter:* — רק בדף-ה-HTML.
  * 3. (26.10.2026) אייקונים: ה-HTML הבסיסי נושא את אייקוני-אורביט ⇒ מוחלפים בלוגו של מאור
  *    (גם לפני שה-JS רץ — אייפון/מסך-הבית/תצוגות-קישור).
+ * 5. (29.10.2026) ‏<meta name="visitor-country"> — מדינת-הגולש (Cloudflare) ⇒ תרומה מחו״ל לסולה.
  * 4. (26.10.2026) גוגל ומדידה: /sitemap.xml · נתונים-מובנים (schema.org NGO, JSON-LD) · Cloudflare Web Analytics
  *    (בלי עוגיות; site_token ציבורי מטבעו — מוטמע בכל דף).
  */
@@ -52,7 +53,10 @@ export default {
     if (loc && loc.startsWith(ORIGIN)) h.set('location', loc.slice(ORIGIN.length) || '/');
     const out = new Response(res.body, { status: res.status, statusText: res.statusText, headers: h });
     if (!(h.get('content-type') || '').includes('text/html')) return out;
+    // 🌍 (29.10.2026, «ברגע שזה חו״ל אז הכפתור יהיה לסולה») — המדינה ש-Cloudflare זיהה; האתר מנתב חו״ל לסליקת-סולה.
+    const country = /^[A-Z]{2}$/.test(String(req.cf?.country || '')) ? req.cf.country : '';
     const tags = [
+      ...(country ? [`<meta name="visitor-country" content="${country}">`] : []),
       `<meta name="description" content="${esc(META.description)}">`,
       `<meta property="og:type" content="website">`,
       `<meta property="og:site_name" content="מאור החסד">`,

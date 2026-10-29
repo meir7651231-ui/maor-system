@@ -8,19 +8,20 @@
  * טיקר-תרומות · מילה-מתחלפת · count-up · סליידר-מחשבון · בוחר-תרומה). מוזן מ-config.site,
  * מכבד prefers-reduced-motion. כל טקסט/מספר מגיע מהקונפיג — אין תוכן קשיח.
  */
+import { SKELETON_I18N } from '../../lib/publicSiteI18n';
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { useApp } from '../../store/useApp';
 import { DialLink } from '../DialLink';
 import { isDemoSession } from '../../lib/demoLock';
 import { telHref } from '../../lib/tel';
-import { campaignProgress, donateLinkFor, isRtlLang, resolveLocalized, siteDonateUrl, siteLangs, sitePalette, siteUi, siteVocab } from '../../lib/publicSite';
+import { campaignProgress, currentVisitorAbroad, donateLinkFor, isRtlLang, resolveLocalized, siteDonateUrl, siteLangs, sitePalette, siteUi, siteVocab } from '../../lib/publicSite';
 import { featureOn } from '../../lib/config';
 import { PortalEntry } from './PortalEntry';
 import type { LocalizedText, SiteLang } from '../../types/config';
 import './public-site.css';
 import heroVideo from './assets/hero.mp4';
 
-const LANG_LABEL: Record<SiteLang, string> = { he: 'עב', en: 'EN', yi: 'ייִדיש' };
+const LANG_LABEL: Record<SiteLang, string> = { he: 'עב', en: 'EN', yi: 'ייִדיש', es: 'ES', fr: 'FR' };
 const reduce = () => typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 const fmt = (n: number) => n.toLocaleString('he-IL');
 function waHref(phone: string): string | null {
@@ -54,10 +55,14 @@ export function PublicSite({ onEnter }: { onEnter: () => void }) {
   const rtl = isRtlLang(lang);
   const t = (v: LocalizedText | undefined) => resolveLocalized(v, lang);
   const ui = (k: string) => siteUi(lang, k);
-  const he = (heTxt: string, enTxt: string) => (rtl ? heTxt : enTxt); // מיקרו-קופי-שלד דו-לשוני
+  // מיקרו-קופי-שלד: he/yi ⇒ עברית · en ⇒ אנגלית · es/fr ⇒ מילון-השלד לפי הנוסח האנגלי (או ארגומנט מפורש לטקסט-תבנית), נפילה לאנגלית
+  const he = (heTxt: string, enTxt: string, esTxt?: string, frTxt?: string) =>
+    rtl ? heTxt : lang === 'es' ? (esTxt ?? SKELETON_I18N[enTxt]?.es ?? enTxt) : lang === 'fr' ? (frTxt ?? SKELETON_I18N[enTxt]?.fr ?? enTxt) : enTxt;
   const orgName = config.orgName || 'מאור';
-  // 🌍 (26.10.2026) תורם מחו״ל (אנגלית/יידיש-לא-עברית) ⇒ סליקה בינלאומית אם הוגדרה (donateUrlIntl); עברית ⇒ כמו קודם
-  const intlUrl = lang !== 'he' && site.donateUrlIntl ? site.donateUrlIntl : null;
+  // 🌍 (26.10.2026) תורם מחו״ל ⇒ סליקה בינלאומית (סולה, donateUrlIntl) אם הוגדרה; ישראל+עברית ⇒ כמו קודם.
+  // 29.10.2026 («ברגע שזה חו״ל אז הכפתור יהיה לסולה»): חו״ל = שפה שאינה עברית **או** גולש מחוץ לישראל (מיקום)
+  const abroad = useMemo(() => currentVisitorAbroad(), []);
+  const intlUrl = (lang !== 'he' || abroad) && site.donateUrlIntl ? site.donateUrlIntl : null;
   const donate = intlUrl || siteDonateUrl(config);
   const donateHref = donate || '#donate';
   const donateAttrs = donate ? { target: '_blank', rel: 'noopener noreferrer' as const } : {};
@@ -547,7 +552,7 @@ export function PublicSite({ onEnter }: { onEnter: () => void }) {
             <h2 style={{ fontFamily: "'Varela Round'", fontSize: 'clamp(28px,3.2vw,46px)', letterSpacing: '-0.01em', lineHeight: 1.2, margin: '12px 0 0', color: 'var(--ci)' }}>{he('כמה חסד יוצא משקל אחד?', 'What one shekel does?')}</h2>
             <p style={{ fontFamily: "'Rubik'", fontWeight: 800, fontSize: 'clamp(46px,4.6vw,76px)', lineHeight: 1, margin: '26px 0 0', color: 'var(--cw)', ...TNUM }}>₪{fmt(calc)}</p>
             <input type="range" min={calcMin} max={calcMax} step={1} value={calc} onChange={(e) => setCalc(+e.target.value)} aria-label={he('סכום תרומה', 'Donation amount')} style={{ width: '100%', accentColor: 'var(--c2)', height: 36, cursor: 'pointer', marginTop: 16 }} />
-            <p style={{ fontSize: 13.5, color: 'rgba(var(--ri),.5)', margin: '8px 0 0' }}>{t(site.calc?.note) || he(`גררו את הלב · ₪${fmt(unit)} = ${t(site.calc?.unit)}`, `Drag · ₪${fmt(unit)} each`)}</p>
+            <p style={{ fontSize: 13.5, color: 'rgba(var(--ri),.5)', margin: '8px 0 0' }}>{t(site.calc?.note) || he(`גררו את הלב · ₪${fmt(unit)} = ${t(site.calc?.unit)}`, `Drag · ₪${fmt(unit)} each`, `Arrastre · ₪${fmt(unit)} cada uno`, `Faites glisser · ₪${fmt(unit)} chacun`)}</p>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: unit2 ? '1fr 1fr' : '1fr', gap: 'clamp(16px,2vw,26px)' }}>
             <div style={{ borderRadius: 26, background: 'var(--ck)', padding: 'clamp(22px,2.6vw,34px)', textAlign: 'center' }}>
@@ -626,10 +631,10 @@ export function PublicSite({ onEnter }: { onEnter: () => void }) {
                 <div style={{ height: '100%', borderRadius: 999, background: 'linear-gradient(90deg,var(--c1),var(--c2))', width: `${pct.toFixed(1)}%`, transition: 'width .6s' }} />
               </div>
               <p style={{ fontSize: 13, margin: '10px 0 0', color: 'var(--c3)', fontWeight: 700, ...TNUM }}>{pct.toFixed(1)}% {he('מהיעד', 'of goal')}</p>
-              {camp.daysLeft !== null && <p style={{ fontSize: 12.5, margin: '6px 0 0', color: 'rgba(var(--ri),.5)' }}>{he(`הקמפיין נסגר בעוד ${camp.daysLeft} ימים`, `${camp.daysLeft} days left`)}</p>}
+              {camp.daysLeft !== null && <p style={{ fontSize: 12.5, margin: '6px 0 0', color: 'rgba(var(--ri),.5)' }}>{he(`הקמפיין נסגר בעוד ${camp.daysLeft} ימים`, `${camp.daysLeft} days left`, `Quedan ${camp.daysLeft} días`, `Encore ${camp.daysLeft} jours`)}</p>}
             </div>
             )}
-            <a href={donateLinkFor(donate, amt, mode === 'monthly', ded) ?? donateHref} {...donateAttrs} style={{ display: 'block', textAlign: 'center', fontFamily: "'Varela Round'", fontSize: 17, color: 'var(--cp)', textDecoration: 'none', padding: '18px 24px', borderRadius: 999, background: GRAD, boxShadow: '0 14px 34px rgba(var(--r2),.45)' }}>{intlUrl ? 'Donate online →' /* Cardknox לא מקבל סכום — לא מבטיחים סכום שלא יעבור */ : he(`לתרומה של ₪${fmt(amt)} ${mode === 'monthly' ? 'בכל חודש' : ''} ←`, `Donate ₪${fmt(amt)}${mode === 'monthly' ? ' monthly' : ''} →`)}</a>
+            <a href={donateLinkFor(donate, amt, mode === 'monthly', ded) ?? donateHref} {...donateAttrs} style={{ display: 'block', textAlign: 'center', fontFamily: "'Varela Round'", fontSize: 17, color: 'var(--cp)', textDecoration: 'none', padding: '18px 24px', borderRadius: 999, background: GRAD, boxShadow: '0 14px 34px rgba(var(--r2),.45)' }}>{intlUrl ? he('לתרומה מאובטחת ←', 'Donate online →') /* סולה (Cardknox) לא מקבלת סכום — לא מבטיחים סכום שלא יעבור */ : he(`לתרומה של ₪${fmt(amt)} ${mode === 'monthly' ? 'בכל חודש' : ''} ←`, `Donate ₪${fmt(amt)}${mode === 'monthly' ? ' monthly' : ''} →`, `Donar ₪${fmt(amt)}${mode === 'monthly' ? ' al mes' : ''} →`, `Donner ₪${fmt(amt)}${mode === 'monthly' ? ' par mois' : ''} →`)}</a>
           </div>
         </div>
       </section>

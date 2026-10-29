@@ -9,6 +9,7 @@
  * טהור, חוץ מ-fetchCloudSite (רשת). בלי firebase בקונפיג ⇒ null ⇒ ביט-זהה להיום.
  */
 import { normalizeSite } from './config';
+import { SITE_LANGS } from '../types/config';
 import type { FirebaseOrgConfig, OrgConfig } from '../types/config';
 
 /** כתובת ה-REST של מסמך-האתר (ציבורית; ה-apiKey ממילא בקונפיג-הלקוח). */
@@ -47,10 +48,43 @@ export function siteFromRestDoc(docJson: unknown): unknown {
   return site && typeof site === 'object' && !Array.isArray(site) ? site : null;
 }
 
-/** החלת site מהענן על הקונפיג — רק אם עבר חיטוי ויש בו תוכן; אחרת הקונפיג כמות-שהוא. */
+const isObj = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
+const LANG_KEYS = new Set<string>(SITE_LANGS);
+/** האם הערך הוא טקסט-רב-לשוני (מפה שכל מפתחותיה שפות). */
+const isLocalized = (v: unknown): v is Record<string, unknown> => isObj(v) && Object.keys(v).length > 0 && Object.keys(v).every((k) => LANG_KEYS.has(k));
+
+/**
+ * 🌍 השלמת-תרגומים מהקובץ (29.10.2026, ספרדית+צרפתית): התוכן בענן נזרע לפני שנוספו שפות ⇒ חסרות בו.
+ * לכל טקסט באותו מקום: אם העברית בענן **זהה** לעברית בקובץ (לא נערכה) — שפות שחסרות בענן נלקחות מהקובץ.
+ * עברית שונתה ⇒ לא נוגעים (תרגום ישן של טקסט אחר היה שגוי). ‏langs ⇒ איחוד (שפה חדשה בקובץ נוספת לבורר).
+ * הענן תמיד מנצח על מה שיש בו. טהור.
+ */
+export function fillMissingLangs(cloud: unknown, base: unknown): unknown {
+  if (Array.isArray(cloud)) return Array.isArray(base) ? cloud.map((v, i) => fillMissingLangs(v, base[i])) : cloud;
+  if (isLocalized(base) && typeof base.he === 'string') {
+    const cloudHe = typeof cloud === 'string' ? cloud : isLocalized(cloud) ? cloud.he : undefined;
+    if (cloudHe !== base.he) return cloud;
+    const cur: Record<string, unknown> = typeof cloud === 'string' ? { he: cloud } : { ...(cloud as Record<string, unknown>) };
+    for (const [l, v] of Object.entries(base)) if (cur[l] == null || cur[l] === '') cur[l] = v;
+    return cur;
+  }
+  if (!isObj(cloud) || !isObj(base)) return cloud;
+  const out: Record<string, unknown> = { ...cloud };
+  for (const k of Object.keys(cloud)) {
+    if (k === 'langs' && Array.isArray(cloud.langs) && Array.isArray(base.langs)) {
+      out.langs = [...new Set([...cloud.langs, ...base.langs])];
+    } else if (k in base) {
+      out[k] = fillMissingLangs(cloud[k], base[k]);
+    }
+  }
+  return out;
+}
+
+/** החלת site מהענן על הקונפיג — רק אם עבר חיטוי ויש בו תוכן; אחרת הקונפיג כמות-שהוא.
+ *  תרגומים שחסרים בענן משולמים מתוכן-הקובץ (fillMissingLangs). */
 export function withCloudSite(config: OrgConfig, rawSite: unknown): OrgConfig {
   if (!rawSite) return config;
-  const site = normalizeSite(rawSite);
+  const site = normalizeSite(fillMissingLangs(rawSite, config.site));
   if (!site || Object.keys(site).length === 0) return config;
   return { ...config, site };
 }

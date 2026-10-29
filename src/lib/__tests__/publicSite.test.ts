@@ -48,7 +48,7 @@ describe('🌐 אתר ציבורי — חיטוי normalizeSite', () => {
   });
 
   it('langs: רק allowlist, דדופ; ריק ⇒ מושמט (ברירת-מחדל he ברכיב)', () => {
-    expect(base({ langs: ['he', 'en', 'fr', 'he'] }).site?.langs).toEqual(['he', 'en']);
+    expect(base({ langs: ['he', 'en', 'de', 'he'] }).site?.langs).toEqual(['he', 'en']);
     expect(base({ langs: ['zz'] }).site?.langs).toBeUndefined();
   });
 
@@ -60,7 +60,7 @@ describe('🌐 אתר ציבורי — חיטוי normalizeSite', () => {
   });
 
   it('טקסט רב-לשוני: רק שפות-allowlist עם ערך לא-ריק', () => {
-    const c = base({ tagline: { he: 'עברית', en: 'English', fr: 'x', yi: '  ' } });
+    const c = base({ tagline: { he: 'עברית', en: 'English', de: 'x', yi: '  ' } });
     expect(c.site?.tagline).toEqual({ he: 'עברית', en: 'English' });
   });
 
@@ -74,7 +74,7 @@ describe('🌐 אתר ציבורי — חיטוי normalizeSite', () => {
 describe('🌐 שדות-העיצוב (design 16.8) — חיטוי + מבנה', () => {
   it('brandLine + storyTitle/Accent/Badge + donateNote: רב-לשוני מחוטא', () => {
     const c = base({
-      brandLine: { he: 'אור לאלמנה', en: 'Light', fr: 'x' },
+      brandLine: { he: 'אור לאלמנה', en: 'Light', de: 'x' },
       storyTitle: 'כותרת', storyTitleAccent: 'הדגשה', storyBadge: 'ברכה ♡',
       donateNote: { he: 'מוכר למס' },
     });

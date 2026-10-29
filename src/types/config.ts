@@ -62,7 +62,7 @@ export interface TelephonyConfig {
  * שפות האתר-הציבורי — עברית / אנגלית / אידיש (מהאפיון). ברירת-מחדל ['he'].
  * he+yi = RTL, en = LTR (הרכיב קובע dir לפי השפה הפעילה).
  */
-export const SITE_LANGS = ['he', 'en', 'yi'] as const;
+export const SITE_LANGS = ['he', 'en', 'yi', 'es', 'fr'] as const; // es/fr: 29.10.2026 (בקשת-בעלים)
 export type SiteLang = (typeof SITE_LANGS)[number];
 
 /**

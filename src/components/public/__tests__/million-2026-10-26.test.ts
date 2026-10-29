@@ -45,7 +45,7 @@ describe('💎 מיליון-דולר — האתר-הציבורי', () => {
   });
 
   it('🌍 באנגלית ⇒ סליקה בינלאומית; 📄 קישור-אישורים; ⚖️ חלונות-משפט', () => {
-    expect(siteSrc).toContain("const intlUrl = lang !== 'he' && site.donateUrlIntl ? site.donateUrlIntl : null;");
+    expect(siteSrc).toContain("const intlUrl = (lang !== 'he' || abroad) && site.donateUrlIntl ? site.donateUrlIntl : null;"); // 29.10: גם לפי מיקום
     expect(siteSrc).toContain('const donate = intlUrl || siteDonateUrl(config);');
     expect(siteSrc).toMatch(/site\.transparency\?\.reportsUrl && \(/);
     expect(siteSrc).toMatch(/t\(site\.accessibility\) && <button[^\n]*setLegal\('a11y'\)/);

@@ -10,6 +10,7 @@ import { lazy, Suspense, useEffect, useMemo, useRef, useState, type ReactNode } 
 import { useApp } from '../../store/useApp';
 import { isSuperAdmin, normalizeConfig, normalizeSite } from '../../lib/config';
 import { SITE_DOMAINS, publicSiteSlugFor } from '../../lib/siteDomains';
+import { fillMissingLangs } from '../../lib/publicSiteCloud';
 import { SiteContentEditor } from '../builder/SiteContentEditor';
 import { Btn } from '../ui';
 import type { PublicSiteContent } from '../../types/config';
@@ -75,15 +76,16 @@ export function SiteEditorPage({ onClose }: { onClose: () => void }) {
     try {
       const m = await import('../../store/cloudSync');
       const d = await m.fetchPublicSiteDoc(slug);
-      // נקודת-הזריעה: במשרד שאינו האתר עצמו — התוכן הנוכחי של האתר (קובץ-הקונפיג שלו), לא ה-site של המשרד
-      if (!d && slug !== config.slug) baseSite.current = await fetchStaticSite(slug);
+      // נקודת-הזריעה + בסיס-התרגומים: במשרד שאינו האתר עצמו — התוכן מקובץ-הקונפיג של האתר, לא ה-site של המשרד
+      if (slug !== config.slug) baseSite.current = await fetchStaticSite(slug);
       setDocData(d);
       setEditorsText((d?.editors ?? []).join(', '));
       if (!d) { setPhase(superUser ? 'none' : 'denied'); return; }
       if (!canEditSite(email, d)) { setPhase('denied'); return; }
       // Rules v5 דורשים מייל-מאומת לעורך (חסימת חטיפת-זהות-מוקדמת) — בודקים כאן כדי להסביר, לא רק להיכשל בשמירה
       if (!superUser && !(await m.refreshEmailVerified())) { setPhase('unverified'); return; }
-      const site = normalizeSite(d.site) ?? baseSite.current ?? {};
+      // תרגומים שחסרים בענן (שפה שנוספה אחרי הזריעה) — משולמים מהקובץ, כדי שהשמירה הבאה תכלול אותם
+      const site = normalizeSite(fillMissingLangs(d.site, baseSite.current)) ?? baseSite.current ?? {};
       setDraft(site);
       setSaved(JSON.stringify(site));
       setPhase('edit');

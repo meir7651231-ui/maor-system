@@ -29,11 +29,47 @@ export const SITE_UI: Record<SiteLang, Record<string, string>> = {
     raised: 'געזאַמלט', goal: 'ציל', daysLeft: 'טעג געבליבן', call: 'רופֿט', whatsapp: 'וואַטסאַפּ',
     email: 'בליץ-פּאָסט', poweredBy: 'געטריבן דורך אָרביט', dir: 'rtl',
   },
+  es: {
+    donate: 'Donar', contact: 'Contacto', enter: 'Acceso del equipo', services: 'Qué hacemos',
+    story: 'Nuestra historia', news: 'Este mes', gallery: 'Momentos', campaign: 'Nuestra campaña',
+    raised: 'Recaudado', goal: 'Meta', daysLeft: 'días restantes', call: 'Llamar', whatsapp: 'WhatsApp',
+    email: 'Correo', poweredBy: 'Con la tecnología de Orbit', dir: 'ltr',
+  },
+  fr: {
+    donate: 'Faire un don', contact: 'Contact', enter: 'Espace équipe', services: 'Ce que nous faisons',
+    story: 'Notre histoire', news: 'Ce mois-ci', gallery: 'Moments', campaign: 'Notre campagne',
+    raised: 'Collecté', goal: 'Objectif', daysLeft: 'jours restants', call: 'Appeler', whatsapp: 'WhatsApp',
+    email: 'E-mail', poweredBy: 'Propulsé par Orbit', dir: 'ltr',
+  },
 };
 
 /** האם השפה כותבת מימין-לשמאל. */
 export function isRtlLang(lang: SiteLang): boolean {
-  return lang !== 'en';
+  return lang === 'he' || lang === 'yi';
+}
+
+/**
+ * 🌍 (29.10.2026, «ברגע שזה חו״ל אז הכפתור יהיה לסולה») — האם הגולש מחוץ לישראל.
+ * מקור ראשון: המדינה ש-Cloudflare זיהה (ה-Worker של הדומיין מזריק ‎<meta name="visitor-country">‎);
+ * אין מטא (github.io/תצוגה-מקדימה) ⇒ לפי אזור-הזמן של הדפדפן. לא-ידוע ⇒ false (ישראל — כמו היום). טהור.
+ */
+export function isVisitorAbroad(country: string | null | undefined, timeZone: string | null | undefined): boolean {
+  const c = (country || '').trim().toUpperCase();
+  if (/^[A-Z]{2}$/.test(c) && c !== 'XX' && c !== 'T1') return c !== 'IL';
+  const tz = (timeZone || '').trim();
+  if (!tz) return false;
+  return tz !== 'Asia/Jerusalem' && tz !== 'Asia/Tel_Aviv' && tz !== 'Israel';
+}
+
+/** עטיפת-דפדפן ל-isVisitorAbroad — בטוחה בלי window/Intl. */
+export function currentVisitorAbroad(): boolean {
+  try {
+    const meta = typeof document !== 'undefined' ? document.querySelector('meta[name="visitor-country"]')?.getAttribute('content') : null;
+    const tz = typeof Intl !== 'undefined' ? Intl.DateTimeFormat().resolvedOptions().timeZone : null;
+    return isVisitorAbroad(meta, tz);
+  } catch {
+    return false;
+  }
 }
 
 /* ═══════════ פלטת-האתר פר-ורטיקל (16.8) ═══════════
@@ -151,21 +187,23 @@ export interface SiteVocab {
   commercial: boolean;
 }
 export function siteVocab(commercial: boolean, lang: SiteLang): SiteVocab {
-  const en = lang === 'en';
+  // he/yi ⇒ עברית (כמו היום); en/es/fr ⇒ בשפתם
+  const w = (heTxt: string, en: string, es: string, fr: string) => (lang === 'en' ? en : lang === 'es' ? es : lang === 'fr' ? fr : heTxt);
   if (commercial) {
     return {
-      heroCta: en ? 'Get in touch' : 'צרו קשר',
-      navCta: en ? 'Contact' : 'צרו קשר',
-      give: en ? 'Contact us' : 'צרו קשר',
-      giveLabel: en ? 'Your request' : 'הפנייה שלך',
+      heroCta: w('צרו קשר', 'Get in touch', 'Contáctenos', 'Contactez-nous'),
+      navCta: w('צרו קשר', 'Contact', 'Contacto', 'Contact'),
+      give: w('צרו קשר', 'Contact us', 'Contáctenos', 'Contactez-nous'),
+      giveLabel: w('הפנייה שלך', 'Your request', 'Su consulta', 'Votre demande'),
       commercial: true,
     };
   }
+  const donate = w('לתרומה', 'Donate', 'Donar', 'Faire un don');
   return {
-    heroCta: en ? 'Donate now' : 'לתרומה עכשיו',
-    navCta: (en ? 'Donate' : 'לתרומה') + ' ♡',
-    give: (en ? 'Donate' : 'לתרומה') + ' ♡',
-    giveLabel: en ? 'Your gift' : 'התרומה שלך',
+    heroCta: w('לתרומה עכשיו', 'Donate now', 'Donar ahora', 'Donner maintenant'),
+    navCta: donate + ' ♡',
+    give: donate + ' ♡',
+    giveLabel: w('התרומה שלך', 'Your gift', 'Su donación', 'Votre don'),
     commercial: false,
   };
 }
