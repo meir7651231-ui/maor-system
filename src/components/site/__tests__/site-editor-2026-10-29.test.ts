@@ -11,6 +11,8 @@
 import { describe, expect, it, vi, afterEach } from 'vitest';
 import { fromFirestoreValue, siteFromRestDoc, withCloudSite, fetchCloudSite, publicSiteDocUrl } from '../../../lib/publicSiteCloud';
 import { canEditSite } from '../SiteEditorPage';
+import { publicSiteSlugFor } from '../../../lib/siteDomains';
+import settingsSrc from '../../settings/SettingsView.tsx?raw';
 import type { OrgConfig } from '../../../types/config';
 import appSrc from '../../../App.tsx?raw';
 import storeSrc from '../../../store/useApp.ts?raw';
@@ -119,5 +121,21 @@ describe('🚪 שערי-האפליקציה', () => {
   it('ה-Worker מקדים את בקשת-הענן (preload)', () => {
     expect(worker).toMatch(/rel="preload" href="\$\{CLOUD_SITE_URL\}"|CLOUD_SITE_URL/);
     expect(worker).toContain('documents/publicSites/maor-hachesed');
+  });
+});
+
+describe('🏢 המשרד האמיתי של מאור = mavr-hchsd («עם המייל שלו», 29.10.2026)', () => {
+  it('המשרד mavr-hchsd עורך את האתר maor-hachesed; משרד אחר ⇒ אין אתר', () => {
+    expect(publicSiteSlugFor('mavr-hchsd')).toBe('maor-hachesed');
+    expect(publicSiteSlugFor('maor-hachesed')).toBe('maor-hachesed');
+    expect(publicSiteSlugFor('other-org')).toBeNull();
+    expect(publicSiteSlugFor(undefined)).toBeNull();
+  });
+  it('העורך שומר למסמך-האתר (לא ל-slug של המשרד) וזורע מקובץ-האתר', () => {
+    expect(editorSrc).toContain("const slug = publicSiteSlugFor(config.slug) ?? (config.slug || 'default');");
+    expect(editorSrc).toContain('baseSite.current = await fetchStaticSite(slug)');
+  });
+  it('כפתור «🌐 עריכת האתר» בהגדרות — למנהל/מייל-על, רק במשרד שיש לו אתר', () => {
+    expect(settingsSrc).toMatch(/\(isManager \|\| canPlatform\) && publicSiteSlugFor\(config\.slug\) && \(\s*<Chip onClick=\{\(\) => \{ window\.location\.hash = '#site-edit'; \}\}>🌐 עריכת האתר<\/Chip>/);
   });
 });

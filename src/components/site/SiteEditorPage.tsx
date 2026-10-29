@@ -8,8 +8,8 @@
  */
 import { lazy, Suspense, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useApp } from '../../store/useApp';
-import { isSuperAdmin, normalizeSite } from '../../lib/config';
-import { SITE_DOMAINS } from '../../lib/siteDomains';
+import { isSuperAdmin, normalizeConfig, normalizeSite } from '../../lib/config';
+import { SITE_DOMAINS, publicSiteSlugFor } from '../../lib/siteDomains';
 import { SiteContentEditor } from '../builder/SiteContentEditor';
 import { Btn } from '../ui';
 import type { PublicSiteContent } from '../../types/config';
@@ -34,6 +34,16 @@ export function liveSiteUrl(slug: string): string {
   }
 }
 
+/** תוכן-האתר מקובץ-הקונפיג הסטטי (public/c/<slug>/config.json) — לזריעה הראשונה. כשל ⇒ undefined. */
+async function fetchStaticSite(slug: string): Promise<PublicSiteContent | undefined> {
+  try {
+    const res = await fetch(new URL(`c/${encodeURIComponent(slug)}/config.json`, document.baseURI).toString(), { cache: 'no-cache' });
+    return res.ok ? normalizeConfig(await res.json())?.site : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 /** האם המייל רשאי לערוך (מסמך-האתר + מייל-על). טהור. */
 export function canEditSite(email: string | null | undefined, d: PublicSiteDoc | null): boolean {
   const e = (email || '').trim().toLowerCase();
@@ -46,7 +56,8 @@ export function SiteEditorPage({ onClose }: { onClose: () => void }) {
   const config = useApp((s) => s.config);
   const email = useApp((s) => s.cloud.user?.email ?? '');
   const toast = useApp((s) => s.toast);
-  const slug = config.slug || 'default';
+  // משרד-פלטפורמה (mavr-hchsd) עורך את האתר של הדומיין שלו (maor-hachesed) — officeSlug ב-SITE_DOMAINS
+  const slug = publicSiteSlugFor(config.slug) ?? (config.slug || 'default');
   const superUser = isSuperAdmin(email);
 
   const [phase, setPhase] = useState<Phase>('loading');
@@ -64,6 +75,8 @@ export function SiteEditorPage({ onClose }: { onClose: () => void }) {
     try {
       const m = await import('../../store/cloudSync');
       const d = await m.fetchPublicSiteDoc(slug);
+      // נקודת-הזריעה: במשרד שאינו האתר עצמו — התוכן הנוכחי של האתר (קובץ-הקונפיג שלו), לא ה-site של המשרד
+      if (!d && slug !== config.slug) baseSite.current = await fetchStaticSite(slug);
       setDocData(d);
       setEditorsText((d?.editors ?? []).join(', '));
       if (!d) { setPhase(superUser ? 'none' : 'denied'); return; }

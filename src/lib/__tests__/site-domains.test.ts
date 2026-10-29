@@ -27,7 +27,7 @@ describe('🌐 דומיין-ציבורי — siteDomainOf', () => {
 
   it('meorhachessed.com בכל צורה ⇒ מאור החסד, משרד ב-orbit-il.com', () => {
     for (const h of ['meorhachessed.com', 'www.meorhachessed.com', 'MeorHachessed.COM', 'meorhachessed.com:443', 'meorhachessed.com.']) {
-      expect(siteDomainOf(h)).toMatchObject({ slug: 'maor-hachesed', officeUrl: 'https://orbit-il.com/?org=maor-hachesed' });
+      expect(siteDomainOf(h)).toMatchObject({ slug: 'maor-hachesed', officeUrl: 'https://orbit-il.com/?org=mavr-hchsd' });
     }
   });
 
@@ -36,12 +36,12 @@ describe('🌐 דומיין-ציבורי — siteDomainOf', () => {
     expect(siteDomainOf('__proto__')).toBeNull();
   });
 
-  it('כל רשומה: slug חוקי, יש לו קובץ-קונפיג עם אתר, והמשרד ב-https עם אותו ?org', () => {
+  it('כל רשומה: slug חוקי, יש לו קובץ-קונפיג עם אתר, והמשרד ב-https עם ?org של המשרד (officeSlug, אחרת slug)', () => {
     for (const d of Object.values(SITE_DOMAINS)) {
       expect(d.slug).toMatch(/^[a-z0-9-]{2,40}$/);
       const u = new URL(d.officeUrl);
       expect(u.protocol).toBe('https:');
-      expect(u.searchParams.get('org')).toBe(d.slug);
+      expect(u.searchParams.get('org')).toBe(d.officeSlug ?? d.slug); // 29.10: המשרד של מאור = mavr-hchsd
       expect(siteDomainOf(u.hostname)).toBeNull(); // המשרד לעולם לא על הדומיין-הציבורי עצמו
     }
     expect(maorCfg.slug).toBe('maor-hachesed');

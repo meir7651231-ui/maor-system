@@ -14,11 +14,21 @@ export interface SiteDomain {
   officeUrl: string;
   /** תיקיית אייקוני-הארגון (יחסית לבסיס-האתר) — לשונית/מסך-הבית מציגים את לוגו-הארגון ולא את אורביט (26.10.2026). */
   iconDir?: string;
+  /** ה-slug של המשרד שמנהל את האתר (ארגון-פלטפורמה — orgs/<officeSlug>); שם מופיע הכפתור «🌐 עריכת האתר» (29.10.2026). */
+  officeSlug?: string;
 }
 
 export const SITE_DOMAINS: Readonly<Record<string, SiteDomain>> = {
-  'meorhachessed.com': { slug: 'maor-hachesed', officeUrl: 'https://orbit-il.com/?org=maor-hachesed', iconDir: 'c/maor-hachesed/icons/' },
+  // 29.10.2026: המשרד האמיתי של מאור = ארגון-הפלטפורמה mavr-hchsd (שם המנהל עובד עם המייל שלו) ⇒ «כניסה למערכת» מגיעה אליו
+  'meorhachessed.com': { slug: 'maor-hachesed', officeUrl: 'https://orbit-il.com/?org=mavr-hchsd', iconDir: 'c/maor-hachesed/icons/', officeSlug: 'mavr-hchsd' },
 };
+
+/** ה-slug של האתר-הציבורי שמשרד זה מנהל (לפי officeSlug או slug), או null. טהור. */
+export function publicSiteSlugFor(officeSlug: string | undefined): string | null {
+  if (!officeSlug) return null;
+  const d = Object.values(SITE_DOMAINS).find((x) => x.officeSlug === officeSlug || x.slug === officeSlug);
+  return d ? d.slug : null;
+}
 
 /** נורמליזציה: אותיות-קטנות, בלי www., בלי פורט, בלי נקודה-סופית. */
 function normHost(h: string): string {

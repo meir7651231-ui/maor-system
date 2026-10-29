@@ -33,6 +33,7 @@ import { DonorImportSection } from './DonorImportSection';
 import { GContactsSection } from './GContactsSection';
 import { OrgSecretsSection } from './OrgSecretsSection';
 import { OutboxSection } from './OutboxSection';
+import { publicSiteSlugFor } from '../../lib/siteDomains';
 
 /** build-id (ISO) ⇒ "05/09 23:15" מקומי; קלט לא-ISO ⇒ כמות-שהוא. */
 function fmtBuildId(id: string): string {
@@ -160,6 +161,10 @@ export function SettingsView() {
         {/* ניהול העובדות — מנהל-ארגון בלבד (ORGADMIN; במקום #manage בכתובת) */}
         {isManager && (
           <Chip onClick={() => { window.location.hash = '#manage'; }}>👥 ניהול העובדות</Chip>
+        )}
+        {/* 🌐 עריכת האתר-הציבורי (29.10.2026) — למנהל-הארגון/מייל-על, רק במשרד שיש לו אתר בדומיין משלו */}
+        {(isManager || canPlatform) && publicSiteSlugFor(config.slug) && (
+          <Chip onClick={() => { window.location.hash = '#site-edit'; }}>🌐 עריכת האתר</Chip>
         )}
         {/* 💬 צ׳אט-הצוות — כניסה מפורשת מההגדרות (בקשת-בעלים 30.8: "אין כניסה
             לצ׳אט הפנימי"). גלוי כשהדגל דלוק כדי שתמיד יימצא; החיבור-לענן/התחברות
