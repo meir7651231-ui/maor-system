@@ -7,7 +7,7 @@
  * שחסר נופל בחן (טקסט ריק / סעיף מוסתר), כך שאתר עם מעט-תוכן עדיין תקין.
  */
 import type { LocalizedText, OrgConfig, PublicSiteContent, SiteLang } from '../types/config';
-import { SITE_LANGS } from '../types/config';
+import { SITE_LANGS, SITE_SECTION_KEYS, type SiteSectionKey } from '../types/config';
 
 /** תוויות-ממשק מובנות פר-שפה (כותרות-סעיף, כפתורים) — לא-מהקונפיג, קבועות. */
 export const SITE_UI: Record<SiteLang, Record<string, string>> = {
@@ -319,3 +319,27 @@ export function siteDonateUrl(config: OrgConfig): string | null {
   const payUrl = pay && typeof pay.payUrl === 'string' ? pay.payUrl : '';
   return payUrl || null;
 }
+
+/** 🧱 הסדר האפקטיבי של חלקי-האתר (3.11.2026): הסדר שהמנהל קבע, ומפתח שלא הופיע בו (חדש) — במקומו לפי ברירת-המחדל;
+ *  בניכוי המוסתרים. חסר ⇒ הסדר של היום. טהור. */
+export function siteSectionOrder(site: PublicSiteContent | undefined): SiteSectionKey[] {
+  const chosen = (site?.sections?.order ?? []).filter((k) => (SITE_SECTION_KEYS as readonly string[]).includes(k));
+  const out: SiteSectionKey[] = [];
+  for (const k of chosen) if (!out.includes(k)) out.push(k);
+  // מפתח חסר נכנס אחרי השכן-הקודם שלו בברירת-המחדל (כך חלק חדש לא "קופץ" לסוף)
+  SITE_SECTION_KEYS.forEach((k, i) => {
+    if (out.includes(k)) return;
+    const prev = SITE_SECTION_KEYS.slice(0, i).reverse().find((p) => out.includes(p));
+    out.splice(prev ? out.indexOf(prev) + 1 : 0, 0, k);
+  });
+  const hidden = new Set(site?.sections?.hidden ?? []);
+  return out.filter((k) => !hidden.has(k));
+}
+
+/** שמות-החלקים לעורך (עברית). */
+export const SITE_SECTION_LABELS: Record<SiteSectionKey, string> = {
+  marquee: '🎞 פס נגלל (מרקיזה)', transparency: '🛡️ שקיפות ואמון', services: '🧩 מה אנחנו עושים', numbers: '📈 במספרים',
+  live: '📡 שידור חי', story: '📖 הסיפור', calc: '🧮 מחשבון', donate: '💳 בוחר-תרומה', gallery: '🖼️ גלריה',
+  news: '📰 חדשות ואירועים', testimonials: '💬 עדויות', tiers: '🎯 מסלולי-שותפות', faq: '❓ שאלות נפוצות',
+  contact: '📞 צור קשר', final: '✨ קריאה אחרונה', newsletter: '📬 הרשמה לעדכונים',
+};

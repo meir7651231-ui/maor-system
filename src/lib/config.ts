@@ -6,7 +6,7 @@
  * 2. fetch('./config.json') — קובץ סטטי יחסי ל-base (פר-פריסה של ארגון).
  * 3. DEFAULT_CONFIG — כשאין קובץ / הקובץ פגום (404, JSON שבור).
  */
-import { DEFAULT_CONFIG, INTEGRATION_KEYS, INTEGRATION_SETTING_KEYS, MOTION_KEYS, SITE_LANGS, type FirebaseOrgConfig, type LocalizedText, type ModuleKey, type OrgConfig, type PublicSiteContent, type SiteLang, type TelNumber, type TelephonyConfig } from '../types/config';
+import { DEFAULT_CONFIG, INTEGRATION_KEYS, INTEGRATION_SETTING_KEYS, MOTION_KEYS, SITE_LANGS, SITE_SECTION_KEYS, type SiteSectionKey, type FirebaseOrgConfig, type LocalizedText, type ModuleKey, type OrgConfig, type PublicSiteContent, type SiteLang, type TelNumber, type TelephonyConfig } from '../types/config';
 import { TEMPLATE_KEYS } from './templates';
 import { currentSiteDomain } from './siteDomains';
 
@@ -343,6 +343,15 @@ export function normalizeSite(raw: unknown): PublicSiteContent | undefined {
     const asOf = siteStr(L.asOf, 10);
     if (/^\d{4}-\d{2}-\d{2}$/.test(asOf)) live.asOf = asOf;
     if (Object.keys(live).length) out.live = live;
+  }
+  // 🧱 סדר-החלקים (3.11.2026) — רק מפתחות-מוכרים, בלי כפילויות
+  if (s.sections && typeof s.sections === 'object' && !Array.isArray(s.sections)) {
+    const S = s.sections as Record<string, unknown>;
+    const keys = (v: unknown) =>
+      Array.isArray(v) ? [...new Set(v.filter((k): k is SiteSectionKey => (SITE_SECTION_KEYS as readonly string[]).includes(k as string)))] : [];
+    const order = keys(S.order);
+    const hidden = keys(S.hidden);
+    if (order.length || hidden.length) out.sections = { ...(order.length ? { order } : {}), ...(hidden.length ? { hidden } : {}) };
   }
   if (s.liveFamilies === true) out.liveFamilies = true;
   const lfl = normLocalized(s.liveFamiliesLabel, 60);

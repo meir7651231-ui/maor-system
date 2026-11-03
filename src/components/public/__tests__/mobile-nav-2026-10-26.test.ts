@@ -12,9 +12,9 @@ const css = readFileSync(new URL('../public-site.css', import.meta.url), 'utf8')
 
 describe('☰ ניווט-מובייל — האתר-הציבורי', () => {
   it('כל קישורי-הניווט העליון + כניסה + שפה מסומנים ps-nav-full (מוסתרים במובייל)', () => {
-    for (const id of ['#pillars', '#story', '#numbers', '#calc', '#faq']) {
-      expect(siteSrc).toMatch(new RegExp(`href="${id}" className="ps-navlink ps-nav-full"`));
-    }
+    // 3.11.2026 (סדר-חלקים): הקישורים נבנים מ-navItems (קישור לחלק מוסתר יורד) — אותו className, אותם יעדים
+    expect(siteSrc).toContain('{navItems.map(([href, label]) => <a key={href} href={href} className="ps-navlink ps-nav-full" style={navLink}>{label}</a>)}');
+    for (const id of ['#pillars', '#story', '#numbers', '#calc', '#faq']) expect(siteSrc).toContain(`, '${id}', he(`);
     expect(siteSrc).toMatch(/className="ps-nav-full" onClick=\{onEnter\}/);
     expect(siteSrc).toMatch(/dir="ltr" className="ps-nav-full"/);
   });
@@ -22,7 +22,7 @@ describe('☰ ניווט-מובייל — האתר-הציבורי', () => {
   it('כפתור ☰ נגיש + תפריט עם אותם יעדים + כניסה-למערכת', () => {
     expect(siteSrc).toMatch(/className="ps-burger" aria-label=[^\n]*aria-expanded=\{menuOpen\}[^\n]*aria-controls="ps-mobile-menu"/);
     expect(siteSrc).toMatch(/id="ps-mobile-menu"/);
-    for (const id of ['#pillars', '#story', '#numbers', '#calc', '#faq']) expect(siteSrc).toContain(`['${id}', `);
+    expect((siteSrc.match(/navItems\.map\(\(\[href, label\]\) =>/g) ?? []).length).toBe(2); // דסקטופ + תפריט-מובייל, אותם יעדים
     expect(siteSrc).toMatch(/setMenuOpen\(false\); onEnter\(\);/);
   });
 

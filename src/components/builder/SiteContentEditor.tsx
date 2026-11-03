@@ -6,6 +6,7 @@
  */
 import type { CSSProperties, ReactNode } from 'react';
 import { Btn, Chip, Field, TextInput } from '../ui';
+import { SITE_SECTION_LABELS, siteSectionOrder } from '../../lib/publicSite';
 import type {
   LocalizedText,
   PublicSiteContent,
@@ -20,7 +21,9 @@ import type {
   PublicSiteStat,
   PublicSiteTestimonial,
   PublicSiteTier,
+  SiteSectionKey,
 } from '../../types/config';
+import { SITE_SECTION_KEYS } from '../../types/config';
 
 /* עורך-רשימות גנרי לאתר-הציבורי: שורה לכל פריט + ↑↓ + 🗑 + "➕ הוספה".
    כל פעולה בונה מערך חדש ומעבירה ל-onChange (⇒ setSite ⇒ patch — אותו live-apply). */
@@ -118,6 +121,10 @@ export function SiteContentEditor({ site, onChange, systemLive }: {
   const phonesText = (wsite.contact?.phones ?? []).join(', ');
   return (
     <>
+      {/* 🧱 סדר החלקים באתר (3.11.2026, «לעלות ולהוריד את הסדר») */}
+      <SubHead>🧱 סדר החלקים באתר</SubHead>
+      <SectionOrderEditor site={wsite} onChange={(sections) => setSite({ sections })} />
+
       {/* 🎨 מיתוג */}
       <SubHead>🎨 מיתוג</SubHead>
       <Field label="שורת-מותג (מתחת לשם, בניווט)">
@@ -553,4 +560,45 @@ function refreshLive(cur: PublicSiteLive, fresh: PublicSiteLive): PublicSiteLive
     ticker: fresh.ticker,
     asOf: fresh.asOf,
   };
+}
+
+/** 🧱 סדר-החלקים: ↑/↓ להזזה, 👁/🙈 להסתרה, ↺ חזרה לסדר-המקורי. נשמר ב-site.sections (חסר ⇒ הסדר של היום). */
+function SectionOrderEditor({ site, onChange }: { site: PublicSiteContent; onChange: (s: PublicSiteContent['sections']) => void }) {
+  const hidden = new Set(site.sections?.hidden ?? []);
+  // הסדר המלא (כולל מוסתרים) — siteSectionOrder על אתר בלי מוסתרים
+  const full = siteSectionOrder({ sections: { order: site.sections?.order } });
+  const save = (order: SiteSectionKey[], hid: Set<SiteSectionKey>) => {
+    const isDefault = order.every((k, i) => k === SITE_SECTION_KEYS[i]);
+    const next = { ...(isDefault ? {} : { order }), ...(hid.size ? { hidden: SITE_SECTION_KEYS.filter((k) => hid.has(k)) } : {}) };
+    onChange(Object.keys(next).length ? next : undefined);
+  };
+  const move = (i: number, d: number) => {
+    const j = i + d;
+    if (j < 0 || j >= full.length) return;
+    const o = full.slice();
+    [o[i], o[j]] = [o[j], o[i]];
+    save(o, hidden);
+  };
+  const toggle = (k: SiteSectionKey) => {
+    const h = new Set(hidden);
+    if (h.has(k)) h.delete(k);
+    else h.add(k);
+    save(full, h);
+  };
+  const changed = !!site.sections?.order?.length || hidden.size > 0;
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 4 }}>
+      <div style={{ fontSize: 12, color: 'var(--ink-soft)' }}>מלמעלה למטה — כך יופיעו החלקים באתר (אחרי הפתיחה). חלק ריק לא מוצג גם אם הוא דלוק.</div>
+      {full.map((k, i) => (
+        <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 6, border: '1px solid var(--line-soft)', borderRadius: 8, padding: '5px 8px', opacity: hidden.has(k) ? 0.55 : 1 }}>
+          <span style={{ width: 22, fontSize: 11, color: 'var(--ink-faint)' }}>{i + 1}</span>
+          <span style={{ flex: 1, fontSize: 13.5, textDecoration: hidden.has(k) ? 'line-through' : 'none' }}>{SITE_SECTION_LABELS[k]}</span>
+          <button type="button" onClick={() => move(i, -1)} disabled={i === 0} aria-label={'הזזה למעלה — ' + SITE_SECTION_LABELS[k]} style={MINI_BTN}>↑</button>
+          <button type="button" onClick={() => move(i, 1)} disabled={i === full.length - 1} aria-label={'הזזה למטה — ' + SITE_SECTION_LABELS[k]} style={MINI_BTN}>↓</button>
+          <button type="button" onClick={() => toggle(k)} aria-label={(hidden.has(k) ? 'הצגה — ' : 'הסתרה — ') + SITE_SECTION_LABELS[k]} style={{ ...MINI_BTN, minWidth: 74 }}>{hidden.has(k) ? '🙈 מוסתר' : '👁 מוצג'}</button>
+        </div>
+      ))}
+      {changed && <div><Btn onClick={() => onChange(undefined)}>↺ חזרה לסדר המקורי</Btn></div>}
+    </div>
+  );
 }

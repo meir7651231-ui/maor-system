@@ -10,15 +10,15 @@
  */
 import { SKELETON_I18N } from '../../lib/publicSiteI18n';
 import { PublicLive, liveVisible } from './PublicLive';
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { useApp } from '../../store/useApp';
 import { DialLink } from '../DialLink';
 import { isDemoSession } from '../../lib/demoLock';
 import { telHref } from '../../lib/tel';
-import { campaignProgress, currentVisitorAbroad, donateLinkFor, isRtlLang, resolveLocalized, siteDonateUrl, siteLangs, sitePalette, siteUi, siteVocab } from '../../lib/publicSite';
+import { campaignProgress, currentVisitorAbroad, donateLinkFor, siteSectionOrder, isRtlLang, resolveLocalized, siteDonateUrl, siteLangs, sitePalette, siteUi, siteVocab } from '../../lib/publicSite';
 import { featureOn } from '../../lib/config';
 import { PortalEntry } from './PortalEntry';
-import type { LocalizedText, SiteLang } from '../../types/config';
+import type { LocalizedText, SiteLang, SiteSectionKey } from '../../types/config';
 import './public-site.css';
 import heroVideo from './assets/hero.mp4';
 
@@ -290,6 +290,441 @@ export function PublicSite({ onEnter }: { onEnter: () => void }) {
     </>
   );
 
+  // 🧱 חלקי-האתר כבלוקים (3.11.2026, «לעלות ולהוריד את הסדר»): המנהל קובע סדר/הסתרה ב-site.sections;
+  // חסר ⇒ הסדר של היום בדיוק (siteSectionOrder). התוכן של כל בלוק לא השתנה — רק עבר לכאן.
+  const sectionBlocks: Record<SiteSectionKey, ReactNode> = {
+    marquee: (<>
+      {/* ── מרקיזה ── */}
+      {marqueeText.length > 0 && (
+      <div dir="ltr" style={{ position: 'relative', zIndex: 2, background: 'var(--cm)', borderTop: '1px solid rgba(var(--r1),.35)', borderBottom: '1px solid rgba(var(--r1),.35)', overflow: 'hidden', whiteSpace: 'nowrap', marginTop: 'clamp(20px,4vh,40px)' }}>
+        <div className="ps-marq" style={{ display: 'inline-flex' }}>{marqRow}{marqRow}</div>
+      </div>
+      )}
+    </>),
+    transparency: (<>
+      {/* ── אמון ושקיפות (מדליונים) — לפני השירותים (בקשת-בעלים 29.10.2026: «שקוף כמו אור — מעל השירותים») ── */}
+      {(t(site.transparency?.heading) || badges.length > 0) && (
+        <section className="ps-rev" style={{ ...sec, textAlign: 'center' }}>
+          <SecHead k={he('שקוף כמו אור ♡', 'Transparent as light ♡')} h={t(site.transparency?.heading) || he('כל שקל מתועד. כל הדו״חות פתוחים.', 'Every shekel tracked.')} />
+          {t(site.transparency?.text) && <p style={{ fontSize: 16, lineHeight: 1.8, maxWidth: '62ch', margin: '18px auto 0', color: 'rgba(var(--ri),.65)' }}>{t(site.transparency?.text)}</p>}
+          {site.transparency?.reportsUrl && (
+            <a href={site.transparency.reportsUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginTop: 20, padding: '11px 22px', borderRadius: 999, border: '1.5px solid rgba(var(--r1),.55)', background: '#fff', color: 'var(--c3)', fontWeight: 700, fontSize: 14.5, textDecoration: 'none' }}>📄 {t(site.transparency.reportsLabel) || he('לאישורים הרשמיים', 'Official certificates')}</a>
+          )}
+          {badges.length > 0 && (
+            <div style={{ display: 'flex', justifyContent: 'center', gap: 'clamp(18px,3.4vw,48px)', flexWrap: 'wrap', marginTop: 'clamp(32px,5vh,48px)' }}>
+              {badges.map((b, i) => (
+                <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, width: 150 }}>
+                  <div style={{ width: 92, height: 92, borderRadius: '50%', background: '#fff', border: '1.5px solid rgba(var(--r1),.4)', boxShadow: '0 12px 30px rgba(var(--r2),.18)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><TrustIcon i={i} color={pal.c2} /></div>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: 'rgba(var(--ri),.75)' }}>{t(b)}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
+    </>),
+    services: (<>
+      {/* ── מה אנחנו עושים (עמודי-תווך) ── */}
+      {services.length > 0 && (
+        <section id="pillars" className="ps-rev" style={{ ...sec, textAlign: 'center' }}>
+          <SecHead k={he('מה אנחנו עושים ♡', 'What we do ♡')} h={t(site.servicesHeading) || he('שישה דרכים לחבק משפחה', 'Six ways to hold a family')} />
+          <div className="ps-svc3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 'clamp(16px,2vw,28px)', marginTop: 'clamp(34px,5vh,52px)' }}>
+            {services.map((s, i) => (
+              <div className="ps-lift" key={i} style={{ ...cardS, borderColor: 'rgba(var(--r1),.3)', boxShadow: '0 18px 44px rgba(var(--r2),.14)', padding: 'clamp(28px,3vw,40px) clamp(22px,2.4vw,32px)' }}>
+                <div style={{ width: 84, height: 84, margin: '0 auto', borderRadius: '50%', background: 'var(--ck)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 38, animation: `ps-float ${5 + (i % 3) * 0.4}s ${(i % 3) * 0.3}s infinite` }} aria-hidden>{s.icon || '♡'}</div>
+                <h3 style={{ fontFamily: "'Varela Round'", fontSize: 22, margin: '22px 0 0', color: 'var(--ci)' }}>{t(s.title)}</h3>
+                {t(s.text) && <p style={{ fontSize: 15.5, lineHeight: 1.8, margin: '12px 0 0', color: 'rgba(var(--ri),.62)' }}>{t(s.text)}</p>}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+    </>),
+    numbers: (<>
+      {/* ── מספרים (רצועה) + גרף-צמיחה ── */}
+      {stats.length > 0 && (
+        <section id="numbers" className="ps-rev" style={{ position: 'relative', zIndex: 2, marginTop: 'clamp(70px,11vh,130px)', background: 'linear-gradient(135deg,var(--c1),#DE8888)', padding: 'clamp(60px,9vh,100px) 0' }}>
+          <div style={{ maxWidth: 1360, margin: '0 auto', padding: '0 clamp(20px,4vw,64px)', boxSizing: 'border-box', textAlign: 'center' }}>
+            <SecHead light k={he('במספרים', 'In numbers')} h={he('האהבה הזאת נספרת', 'This love is counted')} />
+            <div ref={numsRef} className="ps-stats4" style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(4, stats.length)},1fr)`, gap: 'clamp(14px,2vw,26px)', marginTop: 'clamp(34px,5vh,52px)' }}>
+              {stats.slice(0, 4).map((s, i) => {
+                // 26.10.2026: רק מספר "נקי" (2,000 · 30+ · 92%) מונפש; "24/7" הוצג "247/" ⇒ מוצג כמות-שהוא
+                const hasNum = /^[\d,]+[+%]?$/.test(s.value.trim());
+                return (
+                  <div key={i} style={{ borderRadius: 26, background: 'rgba(255,252,250,.16)', border: '1.5px solid rgba(255,252,250,.35)', backdropFilter: 'blur(6px)', padding: '30px 16px' }}>
+                    <p style={{ fontFamily: "'Rubik'", fontWeight: 800, fontSize: 'clamp(38px,3.8vw,62px)', lineHeight: 1, margin: 0, color: 'var(--cp)', unicodeBidi: 'isolate', direction: 'ltr', ...TNUM }}>{hasNum ? fmt(nums[i] ?? 0) + s.value.replace(/[\d,]/g, '') : s.value}</p>
+                    <p style={{ fontSize: 14, fontWeight: 600, margin: '12px 0 0', color: 'rgba(255,252,250,.85)' }}>{t(s.label)}</p>
+                  </div>
+                );
+              })}
+            </div>
+            {hasGrowth && (
+            <div style={{ borderRadius: 26, background: 'rgba(255,252,250,.94)', marginTop: 'clamp(20px,3vh,30px)', padding: 'clamp(22px,3vw,36px)', textAlign: 'start', boxShadow: '0 20px 50px rgba(150,70,70,.25)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 16, flexWrap: 'wrap' }}>
+                <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--c3)', margin: 0 }}>{t(growth?.label)}</p>
+                {growth?.delta && <span style={{ fontFamily: "'Rubik'", fontSize: 14, fontWeight: 700, color: '#7FA98F' }}>{growth.delta}</span>}
+              </div>
+              <svg viewBox="0 0 1200 240" aria-hidden style={{ width: '100%', height: 'auto', display: 'block', marginTop: 16 }}>
+                <defs>
+                  <linearGradient id="ps-pl" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stopColor={pal.c1} /><stop offset="1" stopColor={pal.c2} /></linearGradient>
+                  <linearGradient id="ps-pa" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor={`rgba(${pal.rgb1},.3)`} /><stop offset="1" stopColor={`rgba(${pal.rgb1},0)`} /></linearGradient>
+                </defs>
+                <line x1="0" y1="230" x2="1200" y2="230" stroke={`rgba(${pal.rgb2},.35)`} strokeWidth="1.5" />
+                <line x1="0" y1="120" x2="1200" y2="120" stroke={`rgba(${pal.rgb2},.14)`} strokeWidth="1" />
+                <polygon points={gArea} fill="url(#ps-pa)" />
+                <polyline points={gLine} fill="none" stroke="url(#ps-pl)" strokeWidth="4" strokeLinecap="round" pathLength={1} strokeDasharray="1 1" strokeDashoffset={1} style={{ animation: 'ps-draw 1.1s .2s ease-out both' }} />
+                <circle cx={gEnd[0]} cy={gEnd[1]} r="7" fill={pal.c2}><animate attributeName="r" values="7;9;7" dur="1.6s" repeatCount="indefinite" /></circle>
+              </svg>
+            </div>
+            )}
+          </div>
+        </section>
+      )}
+    </>),
+    live: (<>
+      {/* ── 📡 שידור חי (3.11.2026) — רק מה שהמנהל פרסם בעריכת-האתר ── */}
+      {liveVisible(site.live) && (
+        <PublicLive live={site.live!} t={t} he={he} sec={sec} cardS={cardS} grad={GRAD} donateHref={donateHref} donateAttrs={donateAttrs} give={voc.give} commercial={commercial} />
+      )}
+    </>),
+    story: (<>
+      {/* ── הסיפור שלנו ── */}
+      {(storyTitle || founder) && (
+        <section id="story" className="ps-rev" style={sec}>
+          <div className="ps-story-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0,5fr) minmax(0,7fr)', gap: 'clamp(28px,4.5vw,72px)', alignItems: 'center' }}>
+            <div style={{ position: 'relative' }}>
+              <figure style={{ margin: 0, borderRadius: '36px 36px 120px 36px', overflow: 'hidden', border: '6px solid #fff', boxShadow: '0 26px 60px rgba(var(--r2),.28)' }}>
+                {founder?.photo
+                  ? <img src={founder.photo} alt={t(founder.name) || ''} style={{ width: '100%', height: 'clamp(300px,36vw,460px)', objectFit: 'cover', display: 'block' }} />
+                  : <div style={{ width: '100%', height: 'clamp(300px,36vw,460px)', background: 'linear-gradient(160deg,var(--ck),var(--cm))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 90 }} aria-hidden>{site.icon || '🕯️'}</div>}
+              </figure>
+              {founder?.quote && (
+                <div style={{ position: 'absolute', insetInlineStart: -12, bottom: -18, maxWidth: '78%', background: '#fff', borderRadius: 22, padding: '14px 20px', boxShadow: '0 14px 34px rgba(var(--r2),.3)' }}>
+                  <p style={{ fontFamily: "'Playpen Sans Hebrew', 'Assistant', system-ui, sans-serif", fontSize: 15, margin: 0, color: 'var(--ci)' }}>{t(founder.quote)}</p>
+                  {t(founder.name) && <p style={{ fontSize: 12.5, fontWeight: 700, margin: '6px 0 0', color: 'var(--c3)' }}>{t(founder.name)}</p>}
+                </div>
+              )}
+            </div>
+            <div>
+              <p style={kicker}>{he('הסיפור שלנו', 'Our story')} 🕯️</p>
+              <h2 style={{ fontFamily: "'Varela Round'", fontSize: 'clamp(30px,3.6vw,50px)', letterSpacing: '-0.01em', lineHeight: 1.18, margin: '12px 0 0', color: 'var(--ci)' }}>{storyTitle}{storyAccent && <><br /><span style={{ color: 'var(--cw)' }}>{storyAccent}</span></>}</h2>
+              {storyText && <p style={{ fontSize: 16, lineHeight: 1.9, maxWidth: '58ch', margin: '20px 0 0', color: 'rgba(var(--ri),.68)' }}>{storyText}</p>}
+              {t(site.storyBadge) && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginTop: 18, padding: '8px 18px', borderRadius: 999, background: 'var(--ck)', fontSize: 13.5, fontWeight: 700, color: 'var(--c3)' }}>{t(site.storyBadge)}</span>}
+              {timeline.length > 0 && (
+                <div style={{ marginTop: 28, display: 'flex', flexDirection: 'column' }}>
+                  {timeline.map((m, i) => (
+                    <div key={i} style={{ display: 'flex', gap: 16 }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                        <span style={{ width: 12, height: 12, borderRadius: '50%', background: 'var(--c1)', flexShrink: 0, marginTop: 5 }} />
+                        {i < timeline.length - 1 && <span style={{ width: 2, flex: 1, background: 'rgba(var(--r1),.35)' }} />}
+                      </div>
+                      <p style={{ margin: 0, paddingBottom: i < timeline.length - 1 ? 16 : 0, fontSize: 15, color: 'rgba(var(--ri),.7)' }}>
+                        <span style={{ fontFamily: "'Rubik'", fontWeight: 700, color: 'var(--c2)' }}>{m.year}</span> · <b>{t(m.title)}</b>{t(m.note) && <> — {t(m.note)}</>}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
+    </>),
+    calc: (<>{!commercial && (<>
+      {calcOn && (
+      <section id="calc" className="ps-rev" style={sec}>
+        <div className="ps-calc-grid" style={{ ...cardS, border: '1.5px solid rgba(var(--r1),.35)', boxShadow: '0 26px 60px rgba(var(--r2),.18)', borderRadius: 32, padding: 'clamp(28px,4vw,54px)', display: 'grid', gridTemplateColumns: 'minmax(0,6fr) minmax(0,6fr)', gap: 'clamp(28px,4vw,64px)', alignItems: 'center' }}>
+          <div>
+            <p style={kicker}>{he('בואו נשחק רגע ↓', "Let's play ↓")}</p>
+            <h2 style={{ fontFamily: "'Varela Round'", fontSize: 'clamp(28px,3.2vw,46px)', letterSpacing: '-0.01em', lineHeight: 1.2, margin: '12px 0 0', color: 'var(--ci)' }}>{he('כמה חסד יוצא משקל אחד?', 'What one shekel does?')}</h2>
+            <p style={{ fontFamily: "'Rubik'", fontWeight: 800, fontSize: 'clamp(46px,4.6vw,76px)', lineHeight: 1, margin: '26px 0 0', color: 'var(--cw)', ...TNUM }}>₪{fmt(calc)}</p>
+            <input type="range" min={calcMin} max={calcMax} step={1} value={calc} onChange={(e) => setCalc(+e.target.value)} aria-label={he('סכום תרומה', 'Donation amount')} style={{ width: '100%', accentColor: 'var(--c2)', height: 36, cursor: 'pointer', marginTop: 16 }} />
+            <p style={{ fontSize: 13.5, color: 'rgba(var(--ri),.5)', margin: '8px 0 0' }}>{t(site.calc?.note) || he(`גררו את הלב · ₪${fmt(unit)} = ${t(site.calc?.unit)}`, `Drag · ₪${fmt(unit)} each`, `Arrastre · ₪${fmt(unit)} cada uno`, `Faites glisser · ₪${fmt(unit)} chacun`)}</p>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: unit2 ? '1fr 1fr' : '1fr', gap: 'clamp(16px,2vw,26px)' }}>
+            <div style={{ borderRadius: 26, background: 'var(--ck)', padding: 'clamp(22px,2.6vw,34px)', textAlign: 'center' }}>
+              <p style={{ fontFamily: "'Rubik'", fontWeight: 800, fontSize: 'clamp(42px,4.4vw,72px)', lineHeight: 1, margin: 0, color: 'var(--ci)', ...TNUM }}>{qty(meals)}</p>
+              <p style={{ fontSize: 14.5, fontWeight: 700, margin: '12px 0 0', color: 'var(--c3)' }}>{t(site.calc?.unit)}</p>
+            </div>
+            {unit2 > 0 && (
+            <div style={{ borderRadius: 26, background: 'linear-gradient(160deg,var(--c1),var(--c2))', padding: 'clamp(22px,2.6vw,34px)', textAlign: 'center', boxShadow: '0 16px 36px rgba(var(--r2),.35)' }}>
+              <p style={{ fontFamily: "'Rubik'", fontWeight: 800, fontSize: 'clamp(42px,4.4vw,72px)', lineHeight: 1, margin: 0, color: 'var(--cp)', ...TNUM }}>{qty(baskets)}</p>
+              <p style={{ fontSize: 14.5, fontWeight: 700, margin: '12px 0 0', color: 'rgba(255,252,250,.9)' }}>{t(site.calc?.unit2)}</p>
+            </div>
+            )}
+          </div>
+        </div>
+      </section>
+      )}
+    </>)}</>),
+    donate: (<>{!commercial && (<>
+      {/* ── בוחר-תרומה ── */}
+      <section id="donate" className="ps-rev" style={sec}>
+        <div style={{ textAlign: 'center' }}>
+          <p style={kicker}>{he('הרגע הזה ששקל הופך לחיבוק', 'The moment a shekel becomes a hug')}</p>
+          <h2 style={h2S}>{t(site.campaign?.title) || he('בחרו את התרומה שלכם', 'Choose your gift')}</h2>
+        </div>
+        <div className="ps-donate-grid" style={{ ...cardS, border: '1.5px solid rgba(var(--r1),.35)', boxShadow: '0 26px 60px rgba(var(--r2),.2)', borderRadius: 32, marginTop: 'clamp(30px,5vh,46px)', display: 'grid', gridTemplateColumns: 'minmax(0,7fr) minmax(0,5fr)', overflow: 'hidden' }}>
+          <div style={{ padding: 'clamp(26px,3.4vw,46px)' }}>
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+              <button type="button" onClick={() => setMode('monthly')} style={pill(mode === 'monthly')}>{he('הוראת קבע חודשית', 'Monthly')}</button>
+              <button type="button" onClick={() => setMode('once')} style={pill(mode === 'once')}>{he('תרומה חד־פעמית', 'One-time')}</button>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(4, amounts.length)},1fr)`, gap: 12, marginTop: 24 }}>
+              {amounts.map((a) => <button key={a} type="button" onClick={() => setAmt(a)} style={amtBtn(amt === a)}>₪{fmt(a)}</button>)}
+            </div>
+            <label style={{ display: 'block', marginTop: 20 }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--c3)' }}>{he('סכום אחר', 'Other amount')}</span>
+              <input type="number" min={1} placeholder="₪" onChange={(e) => setAmt(Math.max(1, +e.target.value || 0))} style={{ display: 'block', width: '100%', boxSizing: 'border-box', marginTop: 8, padding: '14px 18px', borderRadius: 16, border: '1.5px solid rgba(var(--r1),.45)', background: 'var(--cp)', color: 'var(--ci)', fontFamily: "'Rubik'", fontWeight: 700, fontSize: 18, outline: 'none' }} />
+            </label>
+            {/* 🕯 הקדשה (26.10.2026) — עוברת לשדה-ההקדשה של נדרים-פלוס (avour); בסליקה אחרת לא נשלחת */}
+            {!intlUrl && (
+              <label style={{ display: 'block', marginTop: 16 }}>
+                <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--c3)' }}>{he('הקדשה (רשות)', 'Dedication (optional)')}</span>
+                <span style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 8 }}>
+                  {[he('לעילוי נשמת ', 'In memory of '), he('לרפואת ', 'For the recovery of '), he('להצלחת ', 'For the success of ')].map((p) => (
+                    <button key={p} type="button" onClick={() => setDed(p)} style={{ padding: '7px 14px', borderRadius: 999, border: '1.5px solid rgba(var(--r1),.45)', background: ded.startsWith(p) ? 'var(--ck)' : 'transparent', color: 'var(--c3)', fontFamily: 'inherit', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>{p.trim()}</button>
+                  ))}
+                </span>
+                <input value={ded} maxLength={100} onChange={(e) => setDed(e.target.value)} placeholder={he('לעילוי נשמת…', 'In memory of…')} aria-label={he('הקדשה', 'Dedication')} style={{ display: 'block', width: '100%', boxSizing: 'border-box', marginTop: 8, padding: '12px 16px', borderRadius: 16, border: '1.5px solid rgba(var(--r1),.45)', background: 'var(--cp)', color: 'var(--ci)', fontFamily: 'inherit', fontSize: 15 }} />
+              </label>
+            )}
+            {payMethods.length > 0 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 24 }}>
+                {payMethods.map((p, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '13px 16px', borderRadius: 16, background: 'var(--ck)' }}>
+                    <span style={{ flexShrink: 0, marginTop: 2, color: 'var(--c2)', fontSize: 18 }} aria-hidden>{p.icon || (i === 0 ? '💳' : i === 1 ? '🏦' : '✉️')}</span>
+                    <span dir={p.ltr ? 'ltr' : undefined} style={{ fontSize: 14, lineHeight: 1.6, color: 'rgba(var(--ri),.75)', textAlign: p.ltr ? 'left' : 'start', flex: 1 }}><b style={{ color: 'var(--c3)' }}>{t(p.label)}</b> · {t(p.detail)}</span>
+                    {p.url && <a href={p.url} target="_blank" rel="noopener noreferrer" style={{ flexShrink: 0, alignSelf: 'center', fontFamily: "'Varela Round'", fontSize: 14, color: 'var(--cp)', textDecoration: 'none', padding: '9px 18px', borderRadius: 999, background: GRAD }}>{he('לתרומה ←', 'Donate →')}</a>}
+                  </div>
+                ))}
+              </div>
+            )}
+            {t(site.donateNote) && <p style={{ fontSize: 13, color: 'rgba(var(--ri),.5)', margin: '18px 0 0' }}>{t(site.donateNote)}</p>}
+          </div>
+          <div style={{ padding: 'clamp(26px,3.4vw,46px)', display: 'flex', flexDirection: 'column', gap: 'clamp(20px,3vh,32px)', background: 'var(--ck)' }}>
+            {impact && (
+            <div>
+              <p style={{ fontFamily: "'Playpen Sans Hebrew', 'Assistant', system-ui, sans-serif", fontSize: 16, color: 'var(--c3)', margin: 0 }}>{voc.giveLabel} =</p>
+              <p style={{ fontFamily: "'Varela Round'", fontSize: 'clamp(24px,2.3vw,38px)', lineHeight: 1.2, margin: '10px 0 0', color: 'var(--ci)' }}>{impact} ♡</p>
+            </div>
+            )}
+            {camp.show && (
+            <div style={{ marginTop: 'auto' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', fontSize: 13.5, ...TNUM }}>
+                <span style={{ fontWeight: 700, color: 'var(--ci)' }}>{he('נאספו', 'Raised')} ₪{fmt(raised)}</span>
+                <span style={{ color: 'rgba(var(--ri),.55)' }}>{he('יעד', 'Goal')} ₪{fmt(goal)}</span>
+              </div>
+              <div style={{ height: 16, borderRadius: 999, background: '#fff', border: '1.5px solid rgba(var(--r1),.4)', marginTop: 10, overflow: 'hidden' }}>
+                <div style={{ height: '100%', borderRadius: 999, background: 'linear-gradient(90deg,var(--c1),var(--c2))', width: `${pct.toFixed(1)}%`, transition: 'width .6s' }} />
+              </div>
+              <p style={{ fontSize: 13, margin: '10px 0 0', color: 'var(--c3)', fontWeight: 700, ...TNUM }}>{pct.toFixed(1)}% {he('מהיעד', 'of goal')}</p>
+              {camp.daysLeft !== null && <p style={{ fontSize: 12.5, margin: '6px 0 0', color: 'rgba(var(--ri),.5)' }}>{he(`הקמפיין נסגר בעוד ${camp.daysLeft} ימים`, `${camp.daysLeft} days left`, `Quedan ${camp.daysLeft} días`, `Encore ${camp.daysLeft} jours`)}</p>}
+            </div>
+            )}
+            <a href={donateLinkFor(donate, amt, mode === 'monthly', ded) ?? donateHref} {...donateAttrs} style={{ display: 'block', textAlign: 'center', fontFamily: "'Varela Round'", fontSize: 17, color: 'var(--cp)', textDecoration: 'none', padding: '18px 24px', borderRadius: 999, background: GRAD, boxShadow: '0 14px 34px rgba(var(--r2),.45)' }}>{intlUrl ? he('לתרומה מאובטחת ←', 'Donate online →') /* סולה (Cardknox) לא מקבלת סכום — לא מבטיחים סכום שלא יעבור */ : he(`לתרומה של ₪${fmt(amt)} ${mode === 'monthly' ? 'בכל חודש' : ''} ←`, `Donate ₪${fmt(amt)}${mode === 'monthly' ? ' monthly' : ''} →`, `Donar ₪${fmt(amt)}${mode === 'monthly' ? ' al mes' : ''} →`, `Donner ₪${fmt(amt)}${mode === 'monthly' ? ' par mois' : ''} →`)}</a>
+          </div>
+        </div>
+      </section>
+    </>)}</>),
+    gallery: (<>
+      {/* ── גלריה ── */}
+      {gallery.length > 0 && (
+        <section id="gallery" className="ps-rev" style={{ ...sec, textAlign: 'center' }}>
+          <SecHead k={he('רגעים אמיתיים מהשבוע ♡', 'Real moments ♡')} h={he('מהשטח, בגובה הלב', 'From the field')} />
+          <div className="ps-gal6" style={{ display: 'grid', gridTemplateColumns: 'repeat(6,1fr)', gridAutoRows: 'clamp(105px,14vw,190px)', gap: 'clamp(12px,1.4vw,18px)', marginTop: 'clamp(30px,5vh,48px)' }}>
+            {gallery.slice(0, 6).map((src, i) => {
+              const spans = [[3, 2], [2, 1], [1, 2], [2, 1], [2, 1], [4, 1]][i] || [2, 1];
+              return (
+                <figure key={i} style={{ margin: 0, gridColumn: `span ${spans[0]}`, gridRow: `span ${spans[1]}`, borderRadius: 28, overflow: 'hidden', border: '5px solid #fff', boxShadow: '0 18px 44px rgba(var(--r2),.22)' }}>
+                  <img src={src} alt="" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                </figure>
+              );
+            })}
+          </div>
+        </section>
+      )}
+    </>),
+    news: (<>
+      {/* ── חדשות + אירועים ── */}
+      {(t(site.news) || events.length > 0) && (
+        <section className="ps-rev" style={sec}>
+          <div className="ps-news-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0,5fr) minmax(0,7fr)', gap: 'clamp(16px,2vw,28px)' }}>
+            <div style={{ borderRadius: 28, background: 'var(--ck)', padding: 'clamp(24px,2.8vw,36px)' }}>
+              <p style={{ fontFamily: "'Playpen Sans Hebrew', 'Assistant', system-ui, sans-serif", fontSize: 16, color: 'var(--c3)', margin: 0 }}>{he('מה חדש ✎', "What's new ✎")}</p>
+              <p style={{ fontFamily: "'Varela Round'", fontSize: 'clamp(19px,1.8vw,24px)', lineHeight: 1.5, margin: '14px 0 0', color: 'var(--ci)' }}>{t(site.news)}</p>
+            </div>
+            <div style={{ ...cardS, padding: 'clamp(24px,2.8vw,36px)' }}>
+              <p style={{ fontFamily: "'Playpen Sans Hebrew', 'Assistant', system-ui, sans-serif", fontSize: 16, color: 'var(--c3)', margin: 0 }}>{he('אירועים קרובים ♡', 'Upcoming ♡')}</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 16 }}>
+                {events.map((e, i) => (
+                  <div key={i}>
+                    {i > 0 && <div style={{ height: 1.5, background: 'var(--ck)', marginBottom: 14 }} />}
+                    <a href={e.url || '#contact'} {...(e.url ? { target: '_blank', rel: 'noopener noreferrer' } : {})} style={{ display: 'flex', alignItems: 'center', gap: 16, textDecoration: 'none' }}>
+                      {e.date && <span style={{ width: 58, height: 58, borderRadius: 18, background: i === 0 ? 'linear-gradient(150deg,var(--c1),var(--c2))' : 'var(--ck)', color: i === 0 ? 'var(--cp)' : 'var(--c3)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexShrink: 0, whiteSpace: 'pre-line', fontFamily: "'Rubik'", fontWeight: 800, fontSize: 15, lineHeight: 1.1, textAlign: 'center' }}>{e.date}</span>}
+                      <span><span style={{ display: 'block', fontFamily: "'Varela Round'", fontSize: 17, color: 'var(--ci)' }}>{t(e.title)}</span>{t(e.meta) && <span style={{ display: 'block', fontSize: 13.5, color: 'rgba(var(--ri),.6)', marginTop: 3 }}>{t(e.meta)}</span>}</span>
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+    </>),
+    testimonials: (<>
+      {/* ── עדויות ── */}
+      {testimonials.length > 0 && (
+        <section className="ps-rev" style={sec}>
+          <div style={{ textAlign: 'center' }}>
+            <p style={kicker}>{he('מילים שקיבלנו באמת', 'Words we received')}</p>
+            <h2 style={h2S}>{he('מילים מהלב', 'From the heart')}</h2>
+          </div>
+          <div className="ps-tst3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 'clamp(16px,2vw,28px)', marginTop: 'clamp(32px,5vh,48px)' }}>
+            {testimonials.map((tt, i) => (
+              <blockquote key={i} style={{ margin: 0, borderRadius: 28, background: i % 2 === 1 ? 'var(--ck)' : '#fff', border: i % 2 === 1 ? 'none' : '1.5px solid rgba(var(--r1),.3)', padding: 'clamp(24px,2.6vw,36px)', boxShadow: '0 16px 40px rgba(var(--r2),.13)' }}>
+                <span aria-hidden style={{ fontFamily: "'Playpen Sans Hebrew', 'Assistant', system-ui, sans-serif", fontSize: 44, lineHeight: 0.7, color: i % 2 === 1 ? 'var(--c2)' : 'var(--c1)', display: 'block' }}>&ldquo;</span>
+                <p style={{ fontSize: 16.5, lineHeight: 1.75, margin: '8px 0 16px', color: 'var(--ci)' }}>{t(tt.quote)}</p>
+                {tt.author && <footer style={{ fontSize: 13.5, fontWeight: 800, color: 'var(--c3)' }}>{tt.author}{t(tt.role) && <span style={{ color: 'rgba(var(--ri),.5)', fontWeight: 600 }}> · {t(tt.role)}</span>}</footer>}
+              </blockquote>
+            ))}
+          </div>
+        </section>
+      )}
+    </>),
+    tiers: (<>
+      {/* ── מסלולי-שותפות ── */}
+      {tiers.length > 0 && (
+        <section id="tiers" className="ps-rev" style={sec}>
+          <div style={{ textAlign: 'center' }}>
+            <p style={kicker}>{he('מסלולי שותפות ♡', 'Partnership ♡')}</p>
+            <h2 style={h2S}>{he('בחרו איך להיות בפנים', 'Choose your way in')}</h2>
+          </div>
+          <div className="ps-tst3" style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(3, tiers.length)},1fr)`, gap: 'clamp(16px,2vw,28px)', marginTop: 'clamp(32px,5vh,48px)', alignItems: 'stretch' }}>
+            {tiers.map((tr, i) => (
+              <div key={i} style={{ position: 'relative', borderRadius: 28, background: '#fff', border: tr.featured ? '2px solid var(--c2)' : '1.5px solid rgba(var(--r1),.3)', boxShadow: tr.featured ? '0 26px 60px rgba(var(--r2),.22)' : '0 16px 40px rgba(var(--r2),.13)', padding: 'clamp(28px,3vw,40px) clamp(22px,2.4vw,30px)', display: 'flex', flexDirection: 'column', textAlign: 'center' }}>
+                {tr.featured && <span style={{ position: 'absolute', top: -13, insetInline: 0, margin: 'auto', width: 'fit-content', background: 'var(--c2)', color: '#fff', fontSize: 12, fontWeight: 800, padding: '4px 14px', borderRadius: 999 }}>{he('הכי אהוב ♡', 'Most loved ♡')}</span>}
+                <h3 style={{ fontFamily: "'Varela Round'", fontSize: 20, margin: '0 0 8px', color: 'var(--ci)' }}>{t(tr.name)}</h3>
+                {tr.amount !== undefined && <div style={{ fontFamily: "'Rubik'", fontWeight: 800, fontSize: 38, color: 'var(--cw)', marginBottom: 16, ...TNUM }}>₪{fmt(tr.amount)}<small style={{ fontSize: 15, color: 'rgba(var(--ri),.45)', fontWeight: 700 }}>{t(tr.period) || he('/ חודש', '/ mo')}</small></div>}
+                {tr.perks && <ul style={{ listStyle: 'none', margin: '0 0 22px', padding: 0, textAlign: 'start', fontSize: 14, color: 'rgba(var(--ri),.72)', display: 'flex', flexDirection: 'column', gap: 9, flex: 1 }}>{tr.perks.map((p, j) => <li key={j}>♡ {t(p)}</li>)}</ul>}
+                <a href={tr.url || (tr.amount ? donateLinkFor(donate, tr.amount, /חודש|month/i.test(t(tr.period))) : null) || donateHref} {...(tr.url || donate ? { target: '_blank', rel: 'noopener noreferrer' } : {})} style={{ fontFamily: "'Varela Round'", fontSize: 15, textDecoration: 'none', padding: '13px 24px', borderRadius: 999, background: tr.featured ? GRAD : 'transparent', color: tr.featured ? 'var(--cp)' : 'var(--c3)', border: tr.featured ? 'none' : '1.6px solid rgba(var(--r1),.6)' }}>{he('להצטרפות', 'Join')}</a>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+    </>),
+    faq: (<>
+      {/* ── שאלות נפוצות ── */}
+      {faq.length > 0 && (
+        <section id="faq" className="ps-rev" style={{ ...sec, maxWidth: 920 }}>
+          <div style={{ textAlign: 'center' }}>
+            <p style={kicker}>{he('שאלו אותנו הכול', 'Ask us anything')}</p>
+            <h2 style={h2S}>{he('שאלות נפוצות', 'FAQ')}</h2>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 'clamp(30px,5vh,46px)' }}>
+            {faq.map((f, i) => (
+              <details key={i} className="ps-faqd" style={{ borderRadius: 22, background: '#fff', border: '1.5px solid rgba(var(--r1),.3)', padding: '0 clamp(20px,2.4vw,30px)', boxShadow: '0 10px 26px rgba(var(--r2),.1)' }}>
+                <summary style={{ fontFamily: "'Varela Round'", fontSize: 'clamp(16.5px,1.5vw,20px)', padding: '22px 0', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, color: 'var(--ci)', listStyle: 'none' }}>
+                  <span>{t(f.q)}</span>
+                  <span className="ps-faqmark" style={{ width: 30, height: 30, borderRadius: '50%', background: 'var(--ck)', color: 'var(--c2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 20, lineHeight: 1 }}>+</span>
+                </summary>
+                <p style={{ fontSize: 15, lineHeight: 1.8, color: 'rgba(var(--ri),.7)', margin: '0 0 22px', whiteSpace: 'pre-line' }}>{t(f.a)}</p>
+              </details>
+            ))}
+          </div>
+        </section>
+      )}
+    </>),
+    contact: (<>
+      {/* ── יצירת קשר ── */}
+      <section id="contact" className="ps-rev" style={sec}>
+        <div className="ps-contact-grid" style={{ ...cardS, border: '1.5px solid rgba(var(--r1),.35)', boxShadow: '0 26px 60px rgba(var(--r2),.18)', borderRadius: 32, display: 'grid', gridTemplateColumns: 'minmax(0,7fr) minmax(0,5fr)', overflow: 'hidden' }}>
+          <div style={{ padding: 'clamp(26px,3.4vw,46px)' }}>
+            <h2 style={{ fontFamily: "'Varela Round'", fontSize: 'clamp(26px,2.6vw,40px)', letterSpacing: '-0.01em', margin: '0 0 4px', color: 'var(--ci)' }}>{he('דברו איתנו ♡', 'Talk to us ♡')}</h2>
+            <p style={{ fontSize: 14, margin: '0 0 18px', color: 'rgba(var(--ri),.55)' }}>{t(site.contactForm?.note) || he('מענה תוך יום עסקים · דיסקרטיות מלאה', 'Reply within a business day')}</p>
+            {!formOn ? (
+              <p style={{ fontSize: 15, lineHeight: 1.7, color: 'rgba(var(--ri),.7)', margin: 0 }}>{he('אנחנו זמינים בטלפון ובפרטים שכאן ♡', 'Reach us using the details here ♡')}</p>
+            ) : sent ? (
+              <p style={{ fontFamily: "'Varela Round'", fontSize: 17, color: '#7FA98F', margin: 0 }}>♡ {sent === 'wa' ? he('נפתח וואטסאפ עם ההודעה — לחצו «שליחה» כדי שתגיע אלינו', 'WhatsApp opened — press Send') : he('נפתח המייל עם ההודעה — לחצו «שליחה» כדי שתגיע אלינו', 'Email opened — press Send')}</p>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }}>
+                <label><span style={{ fontSize: 13, fontWeight: 700, color: 'var(--c3)' }}>{he('שם מלא', 'Full name')}</span><input className="ps-in2" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder={he('ישראל ישראלי', 'Full name')} /></label>
+                <label><span style={{ fontSize: 13, fontWeight: 700, color: 'var(--c3)' }}>{he('טלפון', 'Phone')}</span><input className="ps-in2" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="050-0000000" /></label>
+                <label style={{ gridColumn: 'span 2' }}><span style={{ fontSize: 13, fontWeight: 700, color: 'var(--c3)' }}>{he('אימייל', 'Email')}</span><input className="ps-in2" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="you@mail.com" /></label>
+                <label style={{ gridColumn: 'span 2' }}><span style={{ fontSize: 13, fontWeight: 700, color: 'var(--c3)' }}>{he('במה מדובר?', 'How can we help?')}</span><textarea className="ps-in2" rows={4} value={form.msg} onChange={(e) => setForm({ ...form, msg: e.target.value })} placeholder={he('תרומה / התנדבות / בקשת סיוע / אחר', 'Donation / volunteering / help / other')} style={{ resize: 'vertical' }} /></label>
+                <button type="button" onClick={submitForm} style={{ gridColumn: 'span 2', justifySelf: 'start', fontFamily: "'Varela Round'", fontSize: 16, color: 'var(--cp)', padding: '15px 40px', borderRadius: 999, border: 'none', background: GRAD, boxShadow: '0 12px 30px rgba(var(--r2),.4)', cursor: 'pointer' }}>{he('שליחה ♡', 'Send ♡')}</button>
+              </div>
+            )}
+          </div>
+          <div style={{ padding: 'clamp(26px,3.4vw,46px)', display: 'flex', flexDirection: 'column', gap: 22, background: 'var(--ck)' }}>
+            {(contact.phones ?? []).length > 0 && (
+              <div><p style={{ fontFamily: "'Playpen Sans Hebrew', 'Assistant', system-ui, sans-serif", fontSize: 14.5, color: 'var(--c3)', margin: 0 }}>{he('טלפונים', 'Phones')}</p>
+                {/* 26.10.2026: לחיצה מחייגת (היה טקסט בלבד) */}
+                {(contact.phones ?? []).map((p, i) => <p key={i} dir="ltr" style={{ fontFamily: "'Rubik'", fontWeight: i === 0 ? 800 : 600, fontSize: i === 0 ? 24 : 15, margin: i === 0 ? '6px 0 0' : '4px 0 0', textAlign: 'start', color: i === 0 ? 'var(--ci)' : 'rgba(var(--ri),.7)', ...TNUM }}>{telHref(p) ? <DialLink href={telHref(p)!} locked={dialLocked} style={{ color: 'inherit', textDecoration: 'none' }}>{p}</DialLink> : p}{t(contact.phoneLabels?.[i]) && <span dir={rtl ? 'rtl' : 'ltr'} style={{ fontFamily: "'Assistant', system-ui, sans-serif", fontWeight: 600, fontSize: 13, color: 'var(--c3)', marginLeft: 10, marginRight: 10 }}>{t(contact.phoneLabels?.[i])}</span>}</p>)}
+              </div>
+            )}
+            {contact.whatsapp && waHref(contact.whatsapp) && (
+              <a href={waHref(contact.whatsapp)!} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 10, alignSelf: 'flex-start', padding: '11px 22px', borderRadius: 999, background: '#fff', border: '1.5px solid rgba(127,169,143,.5)', textDecoration: 'none', color: '#5E8F72', fontWeight: 700, fontSize: 14.5 }}>💬 {ui('whatsapp')}</a>
+            )}
+            {t(contact.hours) && <div><p style={{ fontFamily: "'Playpen Sans Hebrew', 'Assistant', system-ui, sans-serif", fontSize: 14.5, color: 'var(--c3)', margin: 0 }}>{he('שעות פעילות', 'Hours')}</p><p style={{ fontWeight: 600, fontSize: 15, margin: '6px 0 0', color: 'rgba(var(--ri),.75)' }}>{t(contact.hours)}</p></div>}
+            {contact.email && <div><p style={{ fontFamily: "'Playpen Sans Hebrew', 'Assistant', system-ui, sans-serif", fontSize: 14.5, color: 'var(--c3)', margin: 0 }}>{he('אימייל', 'Email')}</p><a href={'mailto:' + contact.email} style={{ fontWeight: 700, fontSize: 18, margin: '6px 0 0', color: 'var(--ci)', display: 'block' }}>{contact.email}</a></div>}
+            {t(contact.address) && <div><p style={{ fontFamily: "'Playpen Sans Hebrew', 'Assistant', system-ui, sans-serif", fontSize: 14.5, color: 'var(--c3)', margin: 0 }}>{he('כתובת', 'Address')}</p><p style={{ fontWeight: 400, fontSize: 15.5, margin: '6px 0 0', color: 'rgba(var(--ri),.8)' }}>{t(contact.address)}</p></div>}
+            {t(contact.taxNote) && <div style={{ borderTop: '1.5px solid rgba(var(--r1),.35)', paddingTop: 16, marginTop: 'auto' }}><p style={{ fontSize: 12.5, lineHeight: 1.7, color: 'rgba(var(--ri),.45)', margin: 0 }}>{t(contact.taxNote)}</p></div>}
+          </div>
+        </div>
+      </section>
+    </>),
+    final: (<>
+      {/* ── קריאה אחרונה ── */}
+      <section className="ps-rev" style={{ position: 'relative', zIndex: 2, maxWidth: 1360, margin: '0 auto', padding: 'clamp(70px,11vh,140px) clamp(20px,4vw,64px)', boxSizing: 'border-box' }}>
+        <div style={{ position: 'relative', borderRadius: 40, background: 'linear-gradient(150deg,var(--c1),var(--c2))', boxShadow: '0 34px 80px rgba(var(--r2),.45)', padding: 'clamp(44px,8vh,90px) clamp(24px,4vw,64px)', textAlign: 'center', overflow: 'hidden' }}>
+          <div aria-hidden style={{ position: 'absolute', top: -70, left: -70, width: 240, height: 240, borderRadius: '50%', background: 'rgba(255,252,250,.14)' }} />
+          <div aria-hidden style={{ position: 'absolute', bottom: -90, right: -60, width: 300, height: 300, borderRadius: '50%', background: 'rgba(255,252,250,.1)' }} />
+          <div aria-hidden style={{ display: 'flex', justifyContent: 'center', gap: 7, marginBottom: 22 }}>
+            <span style={{ width: 16, height: 16, borderRadius: '50%', background: 'rgba(255,252,250,.85)' }} />
+            <span style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--cp)', display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'ps-beat 2.6s infinite' }}><HeartSvg stroke={pal.c2} /></span>
+            <span style={{ width: 16, height: 16, borderRadius: '50%', background: 'rgba(255,252,250,.85)' }} />
+          </div>
+          <h2 style={{ position: 'relative', fontFamily: "'Varela Round'", fontSize: 'clamp(34px,4.8vw,72px)', lineHeight: 1.15, letterSpacing: '-0.015em', margin: 0, color: 'var(--cp)' }}>{he('כל שקל. כל שבוע. כל משפחה.', 'Every shekel. Every week. Every family.')}</h2>
+          <p style={{ position: 'relative', fontFamily: "'Playpen Sans Hebrew', 'Assistant', system-ui, sans-serif", fontSize: 'clamp(16px,1.6vw,21px)', margin: '18px 0 0', color: 'var(--cb)' }}>{t(site.microCopy) || he('בואו להאיר יחד איתנו ♡', 'Bring light with us ♡')}</p>
+          <div style={{ position: 'relative', display: 'flex', gap: 16, justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap', marginTop: 32 }}>
+            <a href={primaryHref} {...primaryAttrs} style={{ fontFamily: "'Varela Round'", fontSize: 17, color: 'var(--c3)', textDecoration: 'none', padding: '17px 44px', borderRadius: 999, background: 'var(--cp)', boxShadow: '0 14px 34px rgba(150,70,70,.35)' }}>{voc.heroCta}</a>
+            {camp.show && <span style={{ fontFamily: "'Rubik'", fontWeight: 700, fontSize: 14.5, color: 'var(--cb)', ...TNUM }}>₪{fmt(raised)} / ₪{fmt(goal)} · {pct.toFixed(0)}%</span>}
+          </div>
+        </div>
+      </section>
+    </>),
+    newsletter: (<>
+      {/* ── ניוזלטר — רק כשיש ערוץ אמיתי (26.10.2026; היה "נרשמת!" בלי לשמור דבר) ── */}
+      {hasChannel && (
+      <section className="ps-rev" style={{ position: 'relative', zIndex: 2, maxWidth: 940, margin: '0 auto', padding: '0 clamp(20px,4vw,64px) clamp(60px,9vh,100px)', boxSizing: 'border-box' }}>
+        <div style={{ ...cardS, border: '1.5px solid rgba(var(--r1),.35)', boxShadow: '0 18px 44px rgba(var(--r2),.16)', padding: 'clamp(22px,3vw,34px)', display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
+          <span style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 220, flex: 1 }}>
+            <span style={{ fontFamily: "'Varela Round'", fontSize: 19, color: 'var(--ci)' }}>{he('נשארים מחוברים ♡', 'Stay connected ♡')}</span>
+            <span style={{ fontSize: 13.5, color: 'rgba(var(--ri),.55)' }}>{he('השאירו מייל ונשמח לעדכן אתכם', 'Leave your email and we will keep you posted')}</span>
+          </span>
+          {nlSent ? <span style={{ fontFamily: "'Varela Round'", color: '#7FA98F', fontSize: 16 }}>♡ {nlSent === 'wa' ? he('נפתח וואטסאפ עם הבקשה — לחצו «שליחה» לסיום', 'WhatsApp opened — press Send') : he('נפתח המייל עם הבקשה — לחצו «שליחה» לסיום', 'Email opened — press Send')}</span> : (
+            <span style={{ display: 'flex', gap: 10, flexWrap: 'wrap', flex: 1, minWidth: 280 }}>
+              <input className="ps-in2" type="email" aria-label={he('האימייל שלך', 'Your email')} value={nl} onChange={(e) => setNl(e.target.value)} placeholder={he('האימייל שלך', 'Your email')} style={{ flex: 1, minWidth: 180, borderRadius: 999 }} />
+              <button type="button" onClick={() => nl && setNlSent(sendVia(`בקשה להצטרף לעדכונים מ${orgName}`, `אימייל: ${nl}`))} style={{ fontFamily: "'Varela Round'", fontSize: 15, color: 'var(--cp)', padding: '13px 30px', borderRadius: 999, border: 'none', background: GRAD, cursor: 'pointer', boxShadow: '0 10px 26px rgba(var(--r2),.4)' }}>{he('הרשמה', 'Subscribe')}</button>
+            </span>
+          )}
+        </div>
+      </section>
+      )}
+    </>),
+  };
+  const sectionOrder = siteSectionOrder(site);
+  const shown = (k: SiteSectionKey) => sectionOrder.includes(k);
+  const navItems: [string, string][] = ([
+    ['services', '#pillars', he('מה אנחנו עושים', 'What we do')],
+    ['story', '#story', he('הסיפור', 'Story')],
+    ['numbers', '#numbers', he('מספרים', 'Numbers')],
+    ...(calcOn ? ([['calc', '#calc', he('מחשבון', 'Calculator')]] as [SiteSectionKey, string, string][]) : []),
+    ['faq', '#faq', he('שאלות', 'FAQ')],
+  ] as [SiteSectionKey, string, string][]).filter(([k]) => shown(k)).map(([, href, label]) => [href, label]);
+
   return (
     <div ref={rootRef} dir={rtl ? 'rtl' : 'ltr'} lang={lang}
       style={{ ...paletteVars, position: 'fixed', inset: 0, zIndex: 250, overflowY: 'auto', overflowX: 'clip', background: 'var(--cp)', color: 'var(--ci)', fontFamily: "'Assistant',system-ui,sans-serif", minHeight: '100vh' } as CSSProperties}>
@@ -314,11 +749,8 @@ export function PublicSite({ onEnter }: { onEnter: () => void }) {
             {t(site.brandLine) && <span style={{ fontFamily: "'Playpen Sans Hebrew', 'Assistant', system-ui, sans-serif", fontSize: 11.5, color: 'var(--ci)', marginTop: 3 }}>{t(site.brandLine)}</span>}
           </span>
         </a>
-        <a href="#pillars" className="ps-navlink ps-nav-full" style={navLink}>{he('מה אנחנו עושים', 'What we do')}</a>
-        <a href="#story" className="ps-navlink ps-nav-full" style={navLink}>{he('הסיפור', 'Story')}</a>
-        <a href="#numbers" className="ps-navlink ps-nav-full" style={navLink}>{he('מספרים', 'Numbers')}</a>
-        {calcOn && <a href="#calc" className="ps-navlink ps-nav-full" style={navLink}>{he('מחשבון', 'Calculator')}</a>}
-        <a href="#faq" className="ps-navlink ps-nav-full" style={navLink}>{he('שאלות', 'FAQ')}</a>
+        {/* 🧱 קישור לחלק שהמנהל הסתיר — יורד גם מהניווט */}
+        {navItems.map(([href, label]) => <a key={href} href={href} className="ps-navlink ps-nav-full" style={navLink}>{label}</a>)}
         <button type="button" className="ps-nav-full" onClick={onEnter} style={{ ...navLink, background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>{ui('enter')}</button>
         {langs.length > 1 && (
           <span dir="ltr" className="ps-nav-full" style={{ display: 'inline-flex', alignItems: 'center', border: '1.5px solid rgba(var(--r1),.45)', borderRadius: 999, overflow: 'hidden', fontSize: 12, fontWeight: 700 }}>
@@ -330,7 +762,7 @@ export function PublicSite({ onEnter }: { onEnter: () => void }) {
         <button type="button" className="ps-burger" aria-label={he('תפריט', 'Menu')} aria-expanded={menuOpen} aria-controls="ps-mobile-menu" onClick={() => setMenuOpen((o) => !o)} style={{ background: 'none', border: '1.5px solid rgba(var(--r1),.45)', borderRadius: 12, width: 44, height: 44, fontSize: 22, lineHeight: 1, color: 'var(--c3)', cursor: 'pointer', fontFamily: 'inherit' }}>{menuOpen ? '✕' : '☰'}</button>
         {menuOpen && (
           <div id="ps-mobile-menu" className="ps-mobile-menu" onClick={(e) => { if ((e.target as HTMLElement).closest('a')) setMenuOpen(false); }} style={{ position: 'absolute', top: 78, insetInline: 0, display: 'flex', flexDirection: 'column', gap: 4, padding: '10px clamp(20px,4vw,64px) 18px', background: '#fffcfa', borderBottom: '1px solid rgba(var(--r1),.25)', boxShadow: '0 18px 32px rgba(var(--r2),.12)' }}>
-            {([['#pillars', he('מה אנחנו עושים', 'What we do')], ['#story', he('הסיפור', 'Story')], ['#numbers', he('מספרים', 'Numbers')], ...(calcOn ? [['#calc', he('מחשבון', 'Calculator')]] : []), ['#faq', he('שאלות', 'FAQ')]] as [string, string][]).map(([href, label]) => (
+            {navItems.map(([href, label]) => (
               <a key={href} href={href} className="ps-navlink" style={{ ...navLink, fontSize: 17, padding: '12px 4px', borderBottom: '1px solid rgba(var(--r1),.18)' }}>{label}</a>
             ))}
             <button type="button" onClick={() => { setMenuOpen(false); onEnter(); }} style={{ ...navLink, fontSize: 17, padding: '12px 4px', textAlign: 'start', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>{ui('enter')}</button>
@@ -417,413 +849,8 @@ export function PublicSite({ onEnter }: { onEnter: () => void }) {
         </div>
       </header>
 
-      {/* ── מרקיזה ── */}
-      {marqueeText.length > 0 && (
-      <div dir="ltr" style={{ position: 'relative', zIndex: 2, background: 'var(--cm)', borderTop: '1px solid rgba(var(--r1),.35)', borderBottom: '1px solid rgba(var(--r1),.35)', overflow: 'hidden', whiteSpace: 'nowrap', marginTop: 'clamp(20px,4vh,40px)' }}>
-        <div className="ps-marq" style={{ display: 'inline-flex' }}>{marqRow}{marqRow}</div>
-      </div>
-      )}
-
-      {/* ── אמון ושקיפות (מדליונים) — לפני השירותים (בקשת-בעלים 29.10.2026: «שקוף כמו אור — מעל השירותים») ── */}
-      {(t(site.transparency?.heading) || badges.length > 0) && (
-        <section className="ps-rev" style={{ ...sec, textAlign: 'center' }}>
-          <SecHead k={he('שקוף כמו אור ♡', 'Transparent as light ♡')} h={t(site.transparency?.heading) || he('כל שקל מתועד. כל הדו״חות פתוחים.', 'Every shekel tracked.')} />
-          {t(site.transparency?.text) && <p style={{ fontSize: 16, lineHeight: 1.8, maxWidth: '62ch', margin: '18px auto 0', color: 'rgba(var(--ri),.65)' }}>{t(site.transparency?.text)}</p>}
-          {site.transparency?.reportsUrl && (
-            <a href={site.transparency.reportsUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginTop: 20, padding: '11px 22px', borderRadius: 999, border: '1.5px solid rgba(var(--r1),.55)', background: '#fff', color: 'var(--c3)', fontWeight: 700, fontSize: 14.5, textDecoration: 'none' }}>📄 {t(site.transparency.reportsLabel) || he('לאישורים הרשמיים', 'Official certificates')}</a>
-          )}
-          {badges.length > 0 && (
-            <div style={{ display: 'flex', justifyContent: 'center', gap: 'clamp(18px,3.4vw,48px)', flexWrap: 'wrap', marginTop: 'clamp(32px,5vh,48px)' }}>
-              {badges.map((b, i) => (
-                <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, width: 150 }}>
-                  <div style={{ width: 92, height: 92, borderRadius: '50%', background: '#fff', border: '1.5px solid rgba(var(--r1),.4)', boxShadow: '0 12px 30px rgba(var(--r2),.18)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><TrustIcon i={i} color={pal.c2} /></div>
-                  <span style={{ fontSize: 14, fontWeight: 700, color: 'rgba(var(--ri),.75)' }}>{t(b)}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
-      )}
-
-      {/* ── מה אנחנו עושים (עמודי-תווך) ── */}
-      {services.length > 0 && (
-        <section id="pillars" className="ps-rev" style={{ ...sec, textAlign: 'center' }}>
-          <SecHead k={he('מה אנחנו עושים ♡', 'What we do ♡')} h={t(site.servicesHeading) || he('שישה דרכים לחבק משפחה', 'Six ways to hold a family')} />
-          <div className="ps-svc3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 'clamp(16px,2vw,28px)', marginTop: 'clamp(34px,5vh,52px)' }}>
-            {services.map((s, i) => (
-              <div className="ps-lift" key={i} style={{ ...cardS, borderColor: 'rgba(var(--r1),.3)', boxShadow: '0 18px 44px rgba(var(--r2),.14)', padding: 'clamp(28px,3vw,40px) clamp(22px,2.4vw,32px)' }}>
-                <div style={{ width: 84, height: 84, margin: '0 auto', borderRadius: '50%', background: 'var(--ck)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 38, animation: `ps-float ${5 + (i % 3) * 0.4}s ${(i % 3) * 0.3}s infinite` }} aria-hidden>{s.icon || '♡'}</div>
-                <h3 style={{ fontFamily: "'Varela Round'", fontSize: 22, margin: '22px 0 0', color: 'var(--ci)' }}>{t(s.title)}</h3>
-                {t(s.text) && <p style={{ fontSize: 15.5, lineHeight: 1.8, margin: '12px 0 0', color: 'rgba(var(--ri),.62)' }}>{t(s.text)}</p>}
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* ── מספרים (רצועה) + גרף-צמיחה ── */}
-      {stats.length > 0 && (
-        <section id="numbers" className="ps-rev" style={{ position: 'relative', zIndex: 2, marginTop: 'clamp(70px,11vh,130px)', background: 'linear-gradient(135deg,var(--c1),#DE8888)', padding: 'clamp(60px,9vh,100px) 0' }}>
-          <div style={{ maxWidth: 1360, margin: '0 auto', padding: '0 clamp(20px,4vw,64px)', boxSizing: 'border-box', textAlign: 'center' }}>
-            <SecHead light k={he('במספרים', 'In numbers')} h={he('האהבה הזאת נספרת', 'This love is counted')} />
-            <div ref={numsRef} className="ps-stats4" style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(4, stats.length)},1fr)`, gap: 'clamp(14px,2vw,26px)', marginTop: 'clamp(34px,5vh,52px)' }}>
-              {stats.slice(0, 4).map((s, i) => {
-                // 26.10.2026: רק מספר "נקי" (2,000 · 30+ · 92%) מונפש; "24/7" הוצג "247/" ⇒ מוצג כמות-שהוא
-                const hasNum = /^[\d,]+[+%]?$/.test(s.value.trim());
-                return (
-                  <div key={i} style={{ borderRadius: 26, background: 'rgba(255,252,250,.16)', border: '1.5px solid rgba(255,252,250,.35)', backdropFilter: 'blur(6px)', padding: '30px 16px' }}>
-                    <p style={{ fontFamily: "'Rubik'", fontWeight: 800, fontSize: 'clamp(38px,3.8vw,62px)', lineHeight: 1, margin: 0, color: 'var(--cp)', unicodeBidi: 'isolate', direction: 'ltr', ...TNUM }}>{hasNum ? fmt(nums[i] ?? 0) + s.value.replace(/[\d,]/g, '') : s.value}</p>
-                    <p style={{ fontSize: 14, fontWeight: 600, margin: '12px 0 0', color: 'rgba(255,252,250,.85)' }}>{t(s.label)}</p>
-                  </div>
-                );
-              })}
-            </div>
-            {hasGrowth && (
-            <div style={{ borderRadius: 26, background: 'rgba(255,252,250,.94)', marginTop: 'clamp(20px,3vh,30px)', padding: 'clamp(22px,3vw,36px)', textAlign: 'start', boxShadow: '0 20px 50px rgba(150,70,70,.25)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 16, flexWrap: 'wrap' }}>
-                <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--c3)', margin: 0 }}>{t(growth?.label)}</p>
-                {growth?.delta && <span style={{ fontFamily: "'Rubik'", fontSize: 14, fontWeight: 700, color: '#7FA98F' }}>{growth.delta}</span>}
-              </div>
-              <svg viewBox="0 0 1200 240" aria-hidden style={{ width: '100%', height: 'auto', display: 'block', marginTop: 16 }}>
-                <defs>
-                  <linearGradient id="ps-pl" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stopColor={pal.c1} /><stop offset="1" stopColor={pal.c2} /></linearGradient>
-                  <linearGradient id="ps-pa" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor={`rgba(${pal.rgb1},.3)`} /><stop offset="1" stopColor={`rgba(${pal.rgb1},0)`} /></linearGradient>
-                </defs>
-                <line x1="0" y1="230" x2="1200" y2="230" stroke={`rgba(${pal.rgb2},.35)`} strokeWidth="1.5" />
-                <line x1="0" y1="120" x2="1200" y2="120" stroke={`rgba(${pal.rgb2},.14)`} strokeWidth="1" />
-                <polygon points={gArea} fill="url(#ps-pa)" />
-                <polyline points={gLine} fill="none" stroke="url(#ps-pl)" strokeWidth="4" strokeLinecap="round" pathLength={1} strokeDasharray="1 1" strokeDashoffset={1} style={{ animation: 'ps-draw 1.1s .2s ease-out both' }} />
-                <circle cx={gEnd[0]} cy={gEnd[1]} r="7" fill={pal.c2}><animate attributeName="r" values="7;9;7" dur="1.6s" repeatCount="indefinite" /></circle>
-              </svg>
-            </div>
-            )}
-          </div>
-        </section>
-      )}
-
-      {/* ── 📡 שידור חי (3.11.2026) — רק מה שהמנהל פרסם בעריכת-האתר ── */}
-      {liveVisible(site.live) && (
-        <PublicLive live={site.live!} t={t} he={he} sec={sec} cardS={cardS} grad={GRAD} donateHref={donateHref} donateAttrs={donateAttrs} give={voc.give} commercial={commercial} />
-      )}
-
-      {/* ── הסיפור שלנו ── */}
-      {(storyTitle || founder) && (
-        <section id="story" className="ps-rev" style={sec}>
-          <div className="ps-story-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0,5fr) minmax(0,7fr)', gap: 'clamp(28px,4.5vw,72px)', alignItems: 'center' }}>
-            <div style={{ position: 'relative' }}>
-              <figure style={{ margin: 0, borderRadius: '36px 36px 120px 36px', overflow: 'hidden', border: '6px solid #fff', boxShadow: '0 26px 60px rgba(var(--r2),.28)' }}>
-                {founder?.photo
-                  ? <img src={founder.photo} alt={t(founder.name) || ''} style={{ width: '100%', height: 'clamp(300px,36vw,460px)', objectFit: 'cover', display: 'block' }} />
-                  : <div style={{ width: '100%', height: 'clamp(300px,36vw,460px)', background: 'linear-gradient(160deg,var(--ck),var(--cm))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 90 }} aria-hidden>{site.icon || '🕯️'}</div>}
-              </figure>
-              {founder?.quote && (
-                <div style={{ position: 'absolute', insetInlineStart: -12, bottom: -18, maxWidth: '78%', background: '#fff', borderRadius: 22, padding: '14px 20px', boxShadow: '0 14px 34px rgba(var(--r2),.3)' }}>
-                  <p style={{ fontFamily: "'Playpen Sans Hebrew', 'Assistant', system-ui, sans-serif", fontSize: 15, margin: 0, color: 'var(--ci)' }}>{t(founder.quote)}</p>
-                  {t(founder.name) && <p style={{ fontSize: 12.5, fontWeight: 700, margin: '6px 0 0', color: 'var(--c3)' }}>{t(founder.name)}</p>}
-                </div>
-              )}
-            </div>
-            <div>
-              <p style={kicker}>{he('הסיפור שלנו', 'Our story')} 🕯️</p>
-              <h2 style={{ fontFamily: "'Varela Round'", fontSize: 'clamp(30px,3.6vw,50px)', letterSpacing: '-0.01em', lineHeight: 1.18, margin: '12px 0 0', color: 'var(--ci)' }}>{storyTitle}{storyAccent && <><br /><span style={{ color: 'var(--cw)' }}>{storyAccent}</span></>}</h2>
-              {storyText && <p style={{ fontSize: 16, lineHeight: 1.9, maxWidth: '58ch', margin: '20px 0 0', color: 'rgba(var(--ri),.68)' }}>{storyText}</p>}
-              {t(site.storyBadge) && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginTop: 18, padding: '8px 18px', borderRadius: 999, background: 'var(--ck)', fontSize: 13.5, fontWeight: 700, color: 'var(--c3)' }}>{t(site.storyBadge)}</span>}
-              {timeline.length > 0 && (
-                <div style={{ marginTop: 28, display: 'flex', flexDirection: 'column' }}>
-                  {timeline.map((m, i) => (
-                    <div key={i} style={{ display: 'flex', gap: 16 }}>
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                        <span style={{ width: 12, height: 12, borderRadius: '50%', background: 'var(--c1)', flexShrink: 0, marginTop: 5 }} />
-                        {i < timeline.length - 1 && <span style={{ width: 2, flex: 1, background: 'rgba(var(--r1),.35)' }} />}
-                      </div>
-                      <p style={{ margin: 0, paddingBottom: i < timeline.length - 1 ? 16 : 0, fontSize: 15, color: 'rgba(var(--ri),.7)' }}>
-                        <span style={{ fontFamily: "'Rubik'", fontWeight: 700, color: 'var(--c2)' }}>{m.year}</span> · <b>{t(m.title)}</b>{t(m.note) && <> — {t(m.note)}</>}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* ── מחשבון + בוחר-תרומה — עמותתי בלבד (מסחרי ⇒ אין תרומה; ה-CTA הוא "צרו קשר") ── */}
-      {!commercial && (<>
-      {calcOn && (
-      <section id="calc" className="ps-rev" style={sec}>
-        <div className="ps-calc-grid" style={{ ...cardS, border: '1.5px solid rgba(var(--r1),.35)', boxShadow: '0 26px 60px rgba(var(--r2),.18)', borderRadius: 32, padding: 'clamp(28px,4vw,54px)', display: 'grid', gridTemplateColumns: 'minmax(0,6fr) minmax(0,6fr)', gap: 'clamp(28px,4vw,64px)', alignItems: 'center' }}>
-          <div>
-            <p style={kicker}>{he('בואו נשחק רגע ↓', "Let's play ↓")}</p>
-            <h2 style={{ fontFamily: "'Varela Round'", fontSize: 'clamp(28px,3.2vw,46px)', letterSpacing: '-0.01em', lineHeight: 1.2, margin: '12px 0 0', color: 'var(--ci)' }}>{he('כמה חסד יוצא משקל אחד?', 'What one shekel does?')}</h2>
-            <p style={{ fontFamily: "'Rubik'", fontWeight: 800, fontSize: 'clamp(46px,4.6vw,76px)', lineHeight: 1, margin: '26px 0 0', color: 'var(--cw)', ...TNUM }}>₪{fmt(calc)}</p>
-            <input type="range" min={calcMin} max={calcMax} step={1} value={calc} onChange={(e) => setCalc(+e.target.value)} aria-label={he('סכום תרומה', 'Donation amount')} style={{ width: '100%', accentColor: 'var(--c2)', height: 36, cursor: 'pointer', marginTop: 16 }} />
-            <p style={{ fontSize: 13.5, color: 'rgba(var(--ri),.5)', margin: '8px 0 0' }}>{t(site.calc?.note) || he(`גררו את הלב · ₪${fmt(unit)} = ${t(site.calc?.unit)}`, `Drag · ₪${fmt(unit)} each`, `Arrastre · ₪${fmt(unit)} cada uno`, `Faites glisser · ₪${fmt(unit)} chacun`)}</p>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: unit2 ? '1fr 1fr' : '1fr', gap: 'clamp(16px,2vw,26px)' }}>
-            <div style={{ borderRadius: 26, background: 'var(--ck)', padding: 'clamp(22px,2.6vw,34px)', textAlign: 'center' }}>
-              <p style={{ fontFamily: "'Rubik'", fontWeight: 800, fontSize: 'clamp(42px,4.4vw,72px)', lineHeight: 1, margin: 0, color: 'var(--ci)', ...TNUM }}>{qty(meals)}</p>
-              <p style={{ fontSize: 14.5, fontWeight: 700, margin: '12px 0 0', color: 'var(--c3)' }}>{t(site.calc?.unit)}</p>
-            </div>
-            {unit2 > 0 && (
-            <div style={{ borderRadius: 26, background: 'linear-gradient(160deg,var(--c1),var(--c2))', padding: 'clamp(22px,2.6vw,34px)', textAlign: 'center', boxShadow: '0 16px 36px rgba(var(--r2),.35)' }}>
-              <p style={{ fontFamily: "'Rubik'", fontWeight: 800, fontSize: 'clamp(42px,4.4vw,72px)', lineHeight: 1, margin: 0, color: 'var(--cp)', ...TNUM }}>{qty(baskets)}</p>
-              <p style={{ fontSize: 14.5, fontWeight: 700, margin: '12px 0 0', color: 'rgba(255,252,250,.9)' }}>{t(site.calc?.unit2)}</p>
-            </div>
-            )}
-          </div>
-        </div>
-      </section>
-      )}
-
-      {/* ── בוחר-תרומה ── */}
-      <section id="donate" className="ps-rev" style={sec}>
-        <div style={{ textAlign: 'center' }}>
-          <p style={kicker}>{he('הרגע הזה ששקל הופך לחיבוק', 'The moment a shekel becomes a hug')}</p>
-          <h2 style={h2S}>{t(site.campaign?.title) || he('בחרו את התרומה שלכם', 'Choose your gift')}</h2>
-        </div>
-        <div className="ps-donate-grid" style={{ ...cardS, border: '1.5px solid rgba(var(--r1),.35)', boxShadow: '0 26px 60px rgba(var(--r2),.2)', borderRadius: 32, marginTop: 'clamp(30px,5vh,46px)', display: 'grid', gridTemplateColumns: 'minmax(0,7fr) minmax(0,5fr)', overflow: 'hidden' }}>
-          <div style={{ padding: 'clamp(26px,3.4vw,46px)' }}>
-            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-              <button type="button" onClick={() => setMode('monthly')} style={pill(mode === 'monthly')}>{he('הוראת קבע חודשית', 'Monthly')}</button>
-              <button type="button" onClick={() => setMode('once')} style={pill(mode === 'once')}>{he('תרומה חד־פעמית', 'One-time')}</button>
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(4, amounts.length)},1fr)`, gap: 12, marginTop: 24 }}>
-              {amounts.map((a) => <button key={a} type="button" onClick={() => setAmt(a)} style={amtBtn(amt === a)}>₪{fmt(a)}</button>)}
-            </div>
-            <label style={{ display: 'block', marginTop: 20 }}>
-              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--c3)' }}>{he('סכום אחר', 'Other amount')}</span>
-              <input type="number" min={1} placeholder="₪" onChange={(e) => setAmt(Math.max(1, +e.target.value || 0))} style={{ display: 'block', width: '100%', boxSizing: 'border-box', marginTop: 8, padding: '14px 18px', borderRadius: 16, border: '1.5px solid rgba(var(--r1),.45)', background: 'var(--cp)', color: 'var(--ci)', fontFamily: "'Rubik'", fontWeight: 700, fontSize: 18, outline: 'none' }} />
-            </label>
-            {/* 🕯 הקדשה (26.10.2026) — עוברת לשדה-ההקדשה של נדרים-פלוס (avour); בסליקה אחרת לא נשלחת */}
-            {!intlUrl && (
-              <label style={{ display: 'block', marginTop: 16 }}>
-                <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--c3)' }}>{he('הקדשה (רשות)', 'Dedication (optional)')}</span>
-                <span style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 8 }}>
-                  {[he('לעילוי נשמת ', 'In memory of '), he('לרפואת ', 'For the recovery of '), he('להצלחת ', 'For the success of ')].map((p) => (
-                    <button key={p} type="button" onClick={() => setDed(p)} style={{ padding: '7px 14px', borderRadius: 999, border: '1.5px solid rgba(var(--r1),.45)', background: ded.startsWith(p) ? 'var(--ck)' : 'transparent', color: 'var(--c3)', fontFamily: 'inherit', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>{p.trim()}</button>
-                  ))}
-                </span>
-                <input value={ded} maxLength={100} onChange={(e) => setDed(e.target.value)} placeholder={he('לעילוי נשמת…', 'In memory of…')} aria-label={he('הקדשה', 'Dedication')} style={{ display: 'block', width: '100%', boxSizing: 'border-box', marginTop: 8, padding: '12px 16px', borderRadius: 16, border: '1.5px solid rgba(var(--r1),.45)', background: 'var(--cp)', color: 'var(--ci)', fontFamily: 'inherit', fontSize: 15 }} />
-              </label>
-            )}
-            {payMethods.length > 0 && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 24 }}>
-                {payMethods.map((p, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '13px 16px', borderRadius: 16, background: 'var(--ck)' }}>
-                    <span style={{ flexShrink: 0, marginTop: 2, color: 'var(--c2)', fontSize: 18 }} aria-hidden>{p.icon || (i === 0 ? '💳' : i === 1 ? '🏦' : '✉️')}</span>
-                    <span dir={p.ltr ? 'ltr' : undefined} style={{ fontSize: 14, lineHeight: 1.6, color: 'rgba(var(--ri),.75)', textAlign: p.ltr ? 'left' : 'start', flex: 1 }}><b style={{ color: 'var(--c3)' }}>{t(p.label)}</b> · {t(p.detail)}</span>
-                    {p.url && <a href={p.url} target="_blank" rel="noopener noreferrer" style={{ flexShrink: 0, alignSelf: 'center', fontFamily: "'Varela Round'", fontSize: 14, color: 'var(--cp)', textDecoration: 'none', padding: '9px 18px', borderRadius: 999, background: GRAD }}>{he('לתרומה ←', 'Donate →')}</a>}
-                  </div>
-                ))}
-              </div>
-            )}
-            {t(site.donateNote) && <p style={{ fontSize: 13, color: 'rgba(var(--ri),.5)', margin: '18px 0 0' }}>{t(site.donateNote)}</p>}
-          </div>
-          <div style={{ padding: 'clamp(26px,3.4vw,46px)', display: 'flex', flexDirection: 'column', gap: 'clamp(20px,3vh,32px)', background: 'var(--ck)' }}>
-            {impact && (
-            <div>
-              <p style={{ fontFamily: "'Playpen Sans Hebrew', 'Assistant', system-ui, sans-serif", fontSize: 16, color: 'var(--c3)', margin: 0 }}>{voc.giveLabel} =</p>
-              <p style={{ fontFamily: "'Varela Round'", fontSize: 'clamp(24px,2.3vw,38px)', lineHeight: 1.2, margin: '10px 0 0', color: 'var(--ci)' }}>{impact} ♡</p>
-            </div>
-            )}
-            {camp.show && (
-            <div style={{ marginTop: 'auto' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', fontSize: 13.5, ...TNUM }}>
-                <span style={{ fontWeight: 700, color: 'var(--ci)' }}>{he('נאספו', 'Raised')} ₪{fmt(raised)}</span>
-                <span style={{ color: 'rgba(var(--ri),.55)' }}>{he('יעד', 'Goal')} ₪{fmt(goal)}</span>
-              </div>
-              <div style={{ height: 16, borderRadius: 999, background: '#fff', border: '1.5px solid rgba(var(--r1),.4)', marginTop: 10, overflow: 'hidden' }}>
-                <div style={{ height: '100%', borderRadius: 999, background: 'linear-gradient(90deg,var(--c1),var(--c2))', width: `${pct.toFixed(1)}%`, transition: 'width .6s' }} />
-              </div>
-              <p style={{ fontSize: 13, margin: '10px 0 0', color: 'var(--c3)', fontWeight: 700, ...TNUM }}>{pct.toFixed(1)}% {he('מהיעד', 'of goal')}</p>
-              {camp.daysLeft !== null && <p style={{ fontSize: 12.5, margin: '6px 0 0', color: 'rgba(var(--ri),.5)' }}>{he(`הקמפיין נסגר בעוד ${camp.daysLeft} ימים`, `${camp.daysLeft} days left`, `Quedan ${camp.daysLeft} días`, `Encore ${camp.daysLeft} jours`)}</p>}
-            </div>
-            )}
-            <a href={donateLinkFor(donate, amt, mode === 'monthly', ded) ?? donateHref} {...donateAttrs} style={{ display: 'block', textAlign: 'center', fontFamily: "'Varela Round'", fontSize: 17, color: 'var(--cp)', textDecoration: 'none', padding: '18px 24px', borderRadius: 999, background: GRAD, boxShadow: '0 14px 34px rgba(var(--r2),.45)' }}>{intlUrl ? he('לתרומה מאובטחת ←', 'Donate online →') /* סולה (Cardknox) לא מקבלת סכום — לא מבטיחים סכום שלא יעבור */ : he(`לתרומה של ₪${fmt(amt)} ${mode === 'monthly' ? 'בכל חודש' : ''} ←`, `Donate ₪${fmt(amt)}${mode === 'monthly' ? ' monthly' : ''} →`, `Donar ₪${fmt(amt)}${mode === 'monthly' ? ' al mes' : ''} →`, `Donner ₪${fmt(amt)}${mode === 'monthly' ? ' par mois' : ''} →`)}</a>
-          </div>
-        </div>
-      </section>
-      </>)}
-
-      {/* ── גלריה ── */}
-      {gallery.length > 0 && (
-        <section id="gallery" className="ps-rev" style={{ ...sec, textAlign: 'center' }}>
-          <SecHead k={he('רגעים אמיתיים מהשבוע ♡', 'Real moments ♡')} h={he('מהשטח, בגובה הלב', 'From the field')} />
-          <div className="ps-gal6" style={{ display: 'grid', gridTemplateColumns: 'repeat(6,1fr)', gridAutoRows: 'clamp(105px,14vw,190px)', gap: 'clamp(12px,1.4vw,18px)', marginTop: 'clamp(30px,5vh,48px)' }}>
-            {gallery.slice(0, 6).map((src, i) => {
-              const spans = [[3, 2], [2, 1], [1, 2], [2, 1], [2, 1], [4, 1]][i] || [2, 1];
-              return (
-                <figure key={i} style={{ margin: 0, gridColumn: `span ${spans[0]}`, gridRow: `span ${spans[1]}`, borderRadius: 28, overflow: 'hidden', border: '5px solid #fff', boxShadow: '0 18px 44px rgba(var(--r2),.22)' }}>
-                  <img src={src} alt="" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-                </figure>
-              );
-            })}
-          </div>
-        </section>
-      )}
-
-      {/* ── חדשות + אירועים ── */}
-      {(t(site.news) || events.length > 0) && (
-        <section className="ps-rev" style={sec}>
-          <div className="ps-news-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0,5fr) minmax(0,7fr)', gap: 'clamp(16px,2vw,28px)' }}>
-            <div style={{ borderRadius: 28, background: 'var(--ck)', padding: 'clamp(24px,2.8vw,36px)' }}>
-              <p style={{ fontFamily: "'Playpen Sans Hebrew', 'Assistant', system-ui, sans-serif", fontSize: 16, color: 'var(--c3)', margin: 0 }}>{he('מה חדש ✎', "What's new ✎")}</p>
-              <p style={{ fontFamily: "'Varela Round'", fontSize: 'clamp(19px,1.8vw,24px)', lineHeight: 1.5, margin: '14px 0 0', color: 'var(--ci)' }}>{t(site.news)}</p>
-            </div>
-            <div style={{ ...cardS, padding: 'clamp(24px,2.8vw,36px)' }}>
-              <p style={{ fontFamily: "'Playpen Sans Hebrew', 'Assistant', system-ui, sans-serif", fontSize: 16, color: 'var(--c3)', margin: 0 }}>{he('אירועים קרובים ♡', 'Upcoming ♡')}</p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 16 }}>
-                {events.map((e, i) => (
-                  <div key={i}>
-                    {i > 0 && <div style={{ height: 1.5, background: 'var(--ck)', marginBottom: 14 }} />}
-                    <a href={e.url || '#contact'} {...(e.url ? { target: '_blank', rel: 'noopener noreferrer' } : {})} style={{ display: 'flex', alignItems: 'center', gap: 16, textDecoration: 'none' }}>
-                      {e.date && <span style={{ width: 58, height: 58, borderRadius: 18, background: i === 0 ? 'linear-gradient(150deg,var(--c1),var(--c2))' : 'var(--ck)', color: i === 0 ? 'var(--cp)' : 'var(--c3)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexShrink: 0, whiteSpace: 'pre-line', fontFamily: "'Rubik'", fontWeight: 800, fontSize: 15, lineHeight: 1.1, textAlign: 'center' }}>{e.date}</span>}
-                      <span><span style={{ display: 'block', fontFamily: "'Varela Round'", fontSize: 17, color: 'var(--ci)' }}>{t(e.title)}</span>{t(e.meta) && <span style={{ display: 'block', fontSize: 13.5, color: 'rgba(var(--ri),.6)', marginTop: 3 }}>{t(e.meta)}</span>}</span>
-                    </a>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* ── עדויות ── */}
-      {testimonials.length > 0 && (
-        <section className="ps-rev" style={sec}>
-          <div style={{ textAlign: 'center' }}>
-            <p style={kicker}>{he('מילים שקיבלנו באמת', 'Words we received')}</p>
-            <h2 style={h2S}>{he('מילים מהלב', 'From the heart')}</h2>
-          </div>
-          <div className="ps-tst3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 'clamp(16px,2vw,28px)', marginTop: 'clamp(32px,5vh,48px)' }}>
-            {testimonials.map((tt, i) => (
-              <blockquote key={i} style={{ margin: 0, borderRadius: 28, background: i % 2 === 1 ? 'var(--ck)' : '#fff', border: i % 2 === 1 ? 'none' : '1.5px solid rgba(var(--r1),.3)', padding: 'clamp(24px,2.6vw,36px)', boxShadow: '0 16px 40px rgba(var(--r2),.13)' }}>
-                <span aria-hidden style={{ fontFamily: "'Playpen Sans Hebrew', 'Assistant', system-ui, sans-serif", fontSize: 44, lineHeight: 0.7, color: i % 2 === 1 ? 'var(--c2)' : 'var(--c1)', display: 'block' }}>&ldquo;</span>
-                <p style={{ fontSize: 16.5, lineHeight: 1.75, margin: '8px 0 16px', color: 'var(--ci)' }}>{t(tt.quote)}</p>
-                {tt.author && <footer style={{ fontSize: 13.5, fontWeight: 800, color: 'var(--c3)' }}>{tt.author}{t(tt.role) && <span style={{ color: 'rgba(var(--ri),.5)', fontWeight: 600 }}> · {t(tt.role)}</span>}</footer>}
-              </blockquote>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* ── מסלולי-שותפות ── */}
-      {tiers.length > 0 && (
-        <section id="tiers" className="ps-rev" style={sec}>
-          <div style={{ textAlign: 'center' }}>
-            <p style={kicker}>{he('מסלולי שותפות ♡', 'Partnership ♡')}</p>
-            <h2 style={h2S}>{he('בחרו איך להיות בפנים', 'Choose your way in')}</h2>
-          </div>
-          <div className="ps-tst3" style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(3, tiers.length)},1fr)`, gap: 'clamp(16px,2vw,28px)', marginTop: 'clamp(32px,5vh,48px)', alignItems: 'stretch' }}>
-            {tiers.map((tr, i) => (
-              <div key={i} style={{ position: 'relative', borderRadius: 28, background: '#fff', border: tr.featured ? '2px solid var(--c2)' : '1.5px solid rgba(var(--r1),.3)', boxShadow: tr.featured ? '0 26px 60px rgba(var(--r2),.22)' : '0 16px 40px rgba(var(--r2),.13)', padding: 'clamp(28px,3vw,40px) clamp(22px,2.4vw,30px)', display: 'flex', flexDirection: 'column', textAlign: 'center' }}>
-                {tr.featured && <span style={{ position: 'absolute', top: -13, insetInline: 0, margin: 'auto', width: 'fit-content', background: 'var(--c2)', color: '#fff', fontSize: 12, fontWeight: 800, padding: '4px 14px', borderRadius: 999 }}>{he('הכי אהוב ♡', 'Most loved ♡')}</span>}
-                <h3 style={{ fontFamily: "'Varela Round'", fontSize: 20, margin: '0 0 8px', color: 'var(--ci)' }}>{t(tr.name)}</h3>
-                {tr.amount !== undefined && <div style={{ fontFamily: "'Rubik'", fontWeight: 800, fontSize: 38, color: 'var(--cw)', marginBottom: 16, ...TNUM }}>₪{fmt(tr.amount)}<small style={{ fontSize: 15, color: 'rgba(var(--ri),.45)', fontWeight: 700 }}>{t(tr.period) || he('/ חודש', '/ mo')}</small></div>}
-                {tr.perks && <ul style={{ listStyle: 'none', margin: '0 0 22px', padding: 0, textAlign: 'start', fontSize: 14, color: 'rgba(var(--ri),.72)', display: 'flex', flexDirection: 'column', gap: 9, flex: 1 }}>{tr.perks.map((p, j) => <li key={j}>♡ {t(p)}</li>)}</ul>}
-                <a href={tr.url || (tr.amount ? donateLinkFor(donate, tr.amount, /חודש|month/i.test(t(tr.period))) : null) || donateHref} {...(tr.url || donate ? { target: '_blank', rel: 'noopener noreferrer' } : {})} style={{ fontFamily: "'Varela Round'", fontSize: 15, textDecoration: 'none', padding: '13px 24px', borderRadius: 999, background: tr.featured ? GRAD : 'transparent', color: tr.featured ? 'var(--cp)' : 'var(--c3)', border: tr.featured ? 'none' : '1.6px solid rgba(var(--r1),.6)' }}>{he('להצטרפות', 'Join')}</a>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* ── שאלות נפוצות ── */}
-      {faq.length > 0 && (
-        <section id="faq" className="ps-rev" style={{ ...sec, maxWidth: 920 }}>
-          <div style={{ textAlign: 'center' }}>
-            <p style={kicker}>{he('שאלו אותנו הכול', 'Ask us anything')}</p>
-            <h2 style={h2S}>{he('שאלות נפוצות', 'FAQ')}</h2>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 'clamp(30px,5vh,46px)' }}>
-            {faq.map((f, i) => (
-              <details key={i} className="ps-faqd" style={{ borderRadius: 22, background: '#fff', border: '1.5px solid rgba(var(--r1),.3)', padding: '0 clamp(20px,2.4vw,30px)', boxShadow: '0 10px 26px rgba(var(--r2),.1)' }}>
-                <summary style={{ fontFamily: "'Varela Round'", fontSize: 'clamp(16.5px,1.5vw,20px)', padding: '22px 0', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, color: 'var(--ci)', listStyle: 'none' }}>
-                  <span>{t(f.q)}</span>
-                  <span className="ps-faqmark" style={{ width: 30, height: 30, borderRadius: '50%', background: 'var(--ck)', color: 'var(--c2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 20, lineHeight: 1 }}>+</span>
-                </summary>
-                <p style={{ fontSize: 15, lineHeight: 1.8, color: 'rgba(var(--ri),.7)', margin: '0 0 22px', whiteSpace: 'pre-line' }}>{t(f.a)}</p>
-              </details>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* ── יצירת קשר ── */}
-      <section id="contact" className="ps-rev" style={sec}>
-        <div className="ps-contact-grid" style={{ ...cardS, border: '1.5px solid rgba(var(--r1),.35)', boxShadow: '0 26px 60px rgba(var(--r2),.18)', borderRadius: 32, display: 'grid', gridTemplateColumns: 'minmax(0,7fr) minmax(0,5fr)', overflow: 'hidden' }}>
-          <div style={{ padding: 'clamp(26px,3.4vw,46px)' }}>
-            <h2 style={{ fontFamily: "'Varela Round'", fontSize: 'clamp(26px,2.6vw,40px)', letterSpacing: '-0.01em', margin: '0 0 4px', color: 'var(--ci)' }}>{he('דברו איתנו ♡', 'Talk to us ♡')}</h2>
-            <p style={{ fontSize: 14, margin: '0 0 18px', color: 'rgba(var(--ri),.55)' }}>{t(site.contactForm?.note) || he('מענה תוך יום עסקים · דיסקרטיות מלאה', 'Reply within a business day')}</p>
-            {!formOn ? (
-              <p style={{ fontSize: 15, lineHeight: 1.7, color: 'rgba(var(--ri),.7)', margin: 0 }}>{he('אנחנו זמינים בטלפון ובפרטים שכאן ♡', 'Reach us using the details here ♡')}</p>
-            ) : sent ? (
-              <p style={{ fontFamily: "'Varela Round'", fontSize: 17, color: '#7FA98F', margin: 0 }}>♡ {sent === 'wa' ? he('נפתח וואטסאפ עם ההודעה — לחצו «שליחה» כדי שתגיע אלינו', 'WhatsApp opened — press Send') : he('נפתח המייל עם ההודעה — לחצו «שליחה» כדי שתגיע אלינו', 'Email opened — press Send')}</p>
-            ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }}>
-                <label><span style={{ fontSize: 13, fontWeight: 700, color: 'var(--c3)' }}>{he('שם מלא', 'Full name')}</span><input className="ps-in2" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder={he('ישראל ישראלי', 'Full name')} /></label>
-                <label><span style={{ fontSize: 13, fontWeight: 700, color: 'var(--c3)' }}>{he('טלפון', 'Phone')}</span><input className="ps-in2" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="050-0000000" /></label>
-                <label style={{ gridColumn: 'span 2' }}><span style={{ fontSize: 13, fontWeight: 700, color: 'var(--c3)' }}>{he('אימייל', 'Email')}</span><input className="ps-in2" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="you@mail.com" /></label>
-                <label style={{ gridColumn: 'span 2' }}><span style={{ fontSize: 13, fontWeight: 700, color: 'var(--c3)' }}>{he('במה מדובר?', 'How can we help?')}</span><textarea className="ps-in2" rows={4} value={form.msg} onChange={(e) => setForm({ ...form, msg: e.target.value })} placeholder={he('תרומה / התנדבות / בקשת סיוע / אחר', 'Donation / volunteering / help / other')} style={{ resize: 'vertical' }} /></label>
-                <button type="button" onClick={submitForm} style={{ gridColumn: 'span 2', justifySelf: 'start', fontFamily: "'Varela Round'", fontSize: 16, color: 'var(--cp)', padding: '15px 40px', borderRadius: 999, border: 'none', background: GRAD, boxShadow: '0 12px 30px rgba(var(--r2),.4)', cursor: 'pointer' }}>{he('שליחה ♡', 'Send ♡')}</button>
-              </div>
-            )}
-          </div>
-          <div style={{ padding: 'clamp(26px,3.4vw,46px)', display: 'flex', flexDirection: 'column', gap: 22, background: 'var(--ck)' }}>
-            {(contact.phones ?? []).length > 0 && (
-              <div><p style={{ fontFamily: "'Playpen Sans Hebrew', 'Assistant', system-ui, sans-serif", fontSize: 14.5, color: 'var(--c3)', margin: 0 }}>{he('טלפונים', 'Phones')}</p>
-                {/* 26.10.2026: לחיצה מחייגת (היה טקסט בלבד) */}
-                {(contact.phones ?? []).map((p, i) => <p key={i} dir="ltr" style={{ fontFamily: "'Rubik'", fontWeight: i === 0 ? 800 : 600, fontSize: i === 0 ? 24 : 15, margin: i === 0 ? '6px 0 0' : '4px 0 0', textAlign: 'start', color: i === 0 ? 'var(--ci)' : 'rgba(var(--ri),.7)', ...TNUM }}>{telHref(p) ? <DialLink href={telHref(p)!} locked={dialLocked} style={{ color: 'inherit', textDecoration: 'none' }}>{p}</DialLink> : p}{t(contact.phoneLabels?.[i]) && <span dir={rtl ? 'rtl' : 'ltr'} style={{ fontFamily: "'Assistant', system-ui, sans-serif", fontWeight: 600, fontSize: 13, color: 'var(--c3)', marginLeft: 10, marginRight: 10 }}>{t(contact.phoneLabels?.[i])}</span>}</p>)}
-              </div>
-            )}
-            {contact.whatsapp && waHref(contact.whatsapp) && (
-              <a href={waHref(contact.whatsapp)!} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 10, alignSelf: 'flex-start', padding: '11px 22px', borderRadius: 999, background: '#fff', border: '1.5px solid rgba(127,169,143,.5)', textDecoration: 'none', color: '#5E8F72', fontWeight: 700, fontSize: 14.5 }}>💬 {ui('whatsapp')}</a>
-            )}
-            {t(contact.hours) && <div><p style={{ fontFamily: "'Playpen Sans Hebrew', 'Assistant', system-ui, sans-serif", fontSize: 14.5, color: 'var(--c3)', margin: 0 }}>{he('שעות פעילות', 'Hours')}</p><p style={{ fontWeight: 600, fontSize: 15, margin: '6px 0 0', color: 'rgba(var(--ri),.75)' }}>{t(contact.hours)}</p></div>}
-            {contact.email && <div><p style={{ fontFamily: "'Playpen Sans Hebrew', 'Assistant', system-ui, sans-serif", fontSize: 14.5, color: 'var(--c3)', margin: 0 }}>{he('אימייל', 'Email')}</p><a href={'mailto:' + contact.email} style={{ fontWeight: 700, fontSize: 18, margin: '6px 0 0', color: 'var(--ci)', display: 'block' }}>{contact.email}</a></div>}
-            {t(contact.address) && <div><p style={{ fontFamily: "'Playpen Sans Hebrew', 'Assistant', system-ui, sans-serif", fontSize: 14.5, color: 'var(--c3)', margin: 0 }}>{he('כתובת', 'Address')}</p><p style={{ fontWeight: 400, fontSize: 15.5, margin: '6px 0 0', color: 'rgba(var(--ri),.8)' }}>{t(contact.address)}</p></div>}
-            {t(contact.taxNote) && <div style={{ borderTop: '1.5px solid rgba(var(--r1),.35)', paddingTop: 16, marginTop: 'auto' }}><p style={{ fontSize: 12.5, lineHeight: 1.7, color: 'rgba(var(--ri),.45)', margin: 0 }}>{t(contact.taxNote)}</p></div>}
-          </div>
-        </div>
-      </section>
-
-      {/* ── קריאה אחרונה ── */}
-      <section className="ps-rev" style={{ position: 'relative', zIndex: 2, maxWidth: 1360, margin: '0 auto', padding: 'clamp(70px,11vh,140px) clamp(20px,4vw,64px)', boxSizing: 'border-box' }}>
-        <div style={{ position: 'relative', borderRadius: 40, background: 'linear-gradient(150deg,var(--c1),var(--c2))', boxShadow: '0 34px 80px rgba(var(--r2),.45)', padding: 'clamp(44px,8vh,90px) clamp(24px,4vw,64px)', textAlign: 'center', overflow: 'hidden' }}>
-          <div aria-hidden style={{ position: 'absolute', top: -70, left: -70, width: 240, height: 240, borderRadius: '50%', background: 'rgba(255,252,250,.14)' }} />
-          <div aria-hidden style={{ position: 'absolute', bottom: -90, right: -60, width: 300, height: 300, borderRadius: '50%', background: 'rgba(255,252,250,.1)' }} />
-          <div aria-hidden style={{ display: 'flex', justifyContent: 'center', gap: 7, marginBottom: 22 }}>
-            <span style={{ width: 16, height: 16, borderRadius: '50%', background: 'rgba(255,252,250,.85)' }} />
-            <span style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--cp)', display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'ps-beat 2.6s infinite' }}><HeartSvg stroke={pal.c2} /></span>
-            <span style={{ width: 16, height: 16, borderRadius: '50%', background: 'rgba(255,252,250,.85)' }} />
-          </div>
-          <h2 style={{ position: 'relative', fontFamily: "'Varela Round'", fontSize: 'clamp(34px,4.8vw,72px)', lineHeight: 1.15, letterSpacing: '-0.015em', margin: 0, color: 'var(--cp)' }}>{he('כל שקל. כל שבוע. כל משפחה.', 'Every shekel. Every week. Every family.')}</h2>
-          <p style={{ position: 'relative', fontFamily: "'Playpen Sans Hebrew', 'Assistant', system-ui, sans-serif", fontSize: 'clamp(16px,1.6vw,21px)', margin: '18px 0 0', color: 'var(--cb)' }}>{t(site.microCopy) || he('בואו להאיר יחד איתנו ♡', 'Bring light with us ♡')}</p>
-          <div style={{ position: 'relative', display: 'flex', gap: 16, justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap', marginTop: 32 }}>
-            <a href={primaryHref} {...primaryAttrs} style={{ fontFamily: "'Varela Round'", fontSize: 17, color: 'var(--c3)', textDecoration: 'none', padding: '17px 44px', borderRadius: 999, background: 'var(--cp)', boxShadow: '0 14px 34px rgba(150,70,70,.35)' }}>{voc.heroCta}</a>
-            {camp.show && <span style={{ fontFamily: "'Rubik'", fontWeight: 700, fontSize: 14.5, color: 'var(--cb)', ...TNUM }}>₪{fmt(raised)} / ₪{fmt(goal)} · {pct.toFixed(0)}%</span>}
-          </div>
-        </div>
-      </section>
-
-      {/* ── ניוזלטר — רק כשיש ערוץ אמיתי (26.10.2026; היה "נרשמת!" בלי לשמור דבר) ── */}
-      {hasChannel && (
-      <section className="ps-rev" style={{ position: 'relative', zIndex: 2, maxWidth: 940, margin: '0 auto', padding: '0 clamp(20px,4vw,64px) clamp(60px,9vh,100px)', boxSizing: 'border-box' }}>
-        <div style={{ ...cardS, border: '1.5px solid rgba(var(--r1),.35)', boxShadow: '0 18px 44px rgba(var(--r2),.16)', padding: 'clamp(22px,3vw,34px)', display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
-          <span style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 220, flex: 1 }}>
-            <span style={{ fontFamily: "'Varela Round'", fontSize: 19, color: 'var(--ci)' }}>{he('נשארים מחוברים ♡', 'Stay connected ♡')}</span>
-            <span style={{ fontSize: 13.5, color: 'rgba(var(--ri),.55)' }}>{he('השאירו מייל ונשמח לעדכן אתכם', 'Leave your email and we will keep you posted')}</span>
-          </span>
-          {nlSent ? <span style={{ fontFamily: "'Varela Round'", color: '#7FA98F', fontSize: 16 }}>♡ {nlSent === 'wa' ? he('נפתח וואטסאפ עם הבקשה — לחצו «שליחה» לסיום', 'WhatsApp opened — press Send') : he('נפתח המייל עם הבקשה — לחצו «שליחה» לסיום', 'Email opened — press Send')}</span> : (
-            <span style={{ display: 'flex', gap: 10, flexWrap: 'wrap', flex: 1, minWidth: 280 }}>
-              <input className="ps-in2" type="email" aria-label={he('האימייל שלך', 'Your email')} value={nl} onChange={(e) => setNl(e.target.value)} placeholder={he('האימייל שלך', 'Your email')} style={{ flex: 1, minWidth: 180, borderRadius: 999 }} />
-              <button type="button" onClick={() => nl && setNlSent(sendVia(`בקשה להצטרף לעדכונים מ${orgName}`, `אימייל: ${nl}`))} style={{ fontFamily: "'Varela Round'", fontSize: 15, color: 'var(--cp)', padding: '13px 30px', borderRadius: 999, border: 'none', background: GRAD, cursor: 'pointer', boxShadow: '0 10px 26px rgba(var(--r2),.4)' }}>{he('הרשמה', 'Subscribe')}</button>
-            </span>
-          )}
-        </div>
-      </section>
-      )}
+      {/* ── חלקי-האתר, בסדר שהמנהל קבע (סדר/הסתרה ב-site.sections) ── */}
+      {sectionOrder.map((k) => <Fragment key={k}>{sectionBlocks[k]}</Fragment>)}
 
       {/* ── פוטר ── */}
       <footer style={{ position: 'relative', zIndex: 2, background: 'var(--ck)', borderTop: '1.5px solid rgba(var(--r1),.3)' }}>

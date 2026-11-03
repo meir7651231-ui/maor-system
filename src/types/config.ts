@@ -187,6 +187,11 @@ export interface PublicSitePayMethod {
  * חסר ⇒ אין אתר ציבורי (ביט-זהה להיום). מחוטא ב-normalizeConfig (allowlist + תקרות).
  * ‏enabled=false ⇒ מכובה במפורש גם אם הדגל shell.publicsite דלוק.
  */
+/** 🧱 חלקי-האתר שהמנהל מסדר/מסתיר (3.11.2026, «יש אפשרות לעלות ולהוריד את הסדר»). הסדר כאן = הסדר של היום
+ *  (ברירת-מחדל ⇒ ביט-זהה). ניווט/Hero/פוטר קבועים. מפתח חדש שיתווסף בעתיד ייכנס במקומו גם לאתר שכבר סודר. */
+export const SITE_SECTION_KEYS = ['marquee', 'transparency', 'services', 'numbers', 'live', 'story', 'calc', 'donate', 'gallery', 'news', 'testimonials', 'tiers', 'faq', 'contact', 'final', 'newsletter'] as const;
+export type SiteSectionKey = (typeof SITE_SECTION_KEYS)[number];
+
 /** 📡 «שידור חי» (3.11.2026, «תכין לו בעריכת-אתר · בפעם הראשונה שליטה מלאה על המספרים»):
  *  מספרים כוללים בלבד (בלי שמות) — המערכת **מציעה** אותם מנתוני-המשרד, המנהל עורך/מסתיר ומפרסם. */
 export interface PublicSiteLiveCard {
@@ -231,6 +236,8 @@ export interface PublicSiteContent {
   stats?: PublicSiteStat[];
   /** 📡 «שידור חי» — מספרים כוללים מהמשרד, באישור-המנהל. */
   live?: PublicSiteLive;
+  /** 🧱 סדר-החלקים והסתרתם (חסר ⇒ הסדר של היום, הכול מוצג). */
+  sections?: { order?: SiteSectionKey[]; hidden?: SiteSectionKey[] };
   /** true ⇒ מונה-משפחות חי מהנתונים המקומיים (מספר בלבד, בלי PII). */
   liveFamilies?: boolean;
   liveFamiliesLabel?: LocalizedText;

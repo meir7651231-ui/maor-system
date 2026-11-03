@@ -2,7 +2,7 @@
  * סמוק 📡 «שידור חי» (בקשת-בעלים 3.11.2026 — «בפעם הראשונה שליטה מלאה על המספרים»). דורש build קודם.
  * קונפיג מאור בלי firebase/adminEmails ⇒ דמו ⇒ אשף ← «האתר הציבורי» ← «📡 שידור חי»:
  * מילוי-מהמערכת (המספר תואם לנתונים) ⇒ הדלקה ⇒ עריכת-מספר ⇒ הסתרת-כרטיס ⇒ הצגת «גויסו השנה»
- * ⇒ ‎?site=1‎: החלק מוצג עם המספר שנערך, בלי הכרטיס המוסתר, עם הסכום; צרפתית; מובייל. OUT=<dir> לצילומים.
+ * ⇒ 🧱 שידור-חי לראש + מחשבון מוסתר ⇒ ‎?site=1‎: הסדר נשמר, הקישור יורד מהניווט; החלק מוצג עם המספר שנערך, בלי הכרטיס המוסתר, עם הסכום; צרפתית; מובייל. OUT=<dir> לצילומים.
  */
 import { chromium } from 'playwright-core';
 import { createServer } from 'http';
@@ -49,7 +49,7 @@ await pg.waitForTimeout(1500);
 await pg.locator('#wz-site').scrollIntoViewIfNeeded();
 await pg.locator('#wz-site').getByText('האתר הציבורי').first().click();
 await pg.waitForTimeout(800);
-(await pg.locator('text=📡 שידור חי').count()) === 1 ? ok('חלק «📡 שידור חי» באשף') : fail('אין חלק שידור-חי באשף');
+(await pg.locator('text=📡 שידור חי — מה קורה עכשיו בבית').count()) === 1 ? ok('חלק «📡 שידור חי» באשף') : fail('אין חלק שידור-חי באשף');
 
 await pg.getByRole('button', { name: /מילוי המספרים מהמערכת/ }).click();
 await pg.waitForTimeout(500);
@@ -66,10 +66,21 @@ await pg.waitForTimeout(300);
 live = await lsLive();
 live?.enabled && live.cards[0].value === '600+' && live.cards[2].hidden && live.raised?.show ? ok('שליטה: הדלקה · מספר נערך ל-600+ · כרטיס הוסתר · סכום מוצג') : fail('שליטה: ' + JSON.stringify({ e: live?.enabled, v: live?.cards?.[0]?.value, h: live?.cards?.[2]?.hidden, r: live?.raised }));
 
+// 🧱 סדר-החלקים: «שידור חי» לראש (4× ↑), «מחשבון» מוסתר
+for (let i = 0; i < 4; i++) { await pg.getByRole('button', { name: 'הזזה למעלה — 📡 שידור חי' }).click(); await pg.waitForTimeout(120); }
+await pg.getByRole('button', { name: 'הסתרה — 🧮 מחשבון' }).click();
+await pg.waitForTimeout(300);
+const secs = await pg.evaluate(() => JSON.parse(localStorage.getItem('maor_org_config') || '{}').site?.sections);
+secs?.order?.[0] === 'live' && secs?.hidden?.includes('calc') ? ok('סדר-החלקים נשמר: שידור-חי ראשון, מחשבון מוסתר') : fail('sections: ' + JSON.stringify(secs));
+if (OUT) {
+  await pg.locator('text=🧱 סדר החלקים באתר').first().scrollIntoViewIfNeeded();
+  const ob = await pg.locator('text=🧱 סדר החלקים באתר').first().boundingBox();
+  await pg.screenshot({ path: `${OUT}/site-order-editor.png`, clip: { x: 0, y: Math.max(0, ob.y - 10), width: 560, height: 640 } });
+}
 if (OUT) {
   await pg.setViewportSize({ width: 1280, height: 1400 });
-  await pg.locator('text=📡 שידור חי').first().scrollIntoViewIfNeeded();
-  const hb = await pg.locator('text=📡 שידור חי').first().boundingBox();
+  await pg.locator('text=📡 שידור חי — מה קורה עכשיו בבית').first().scrollIntoViewIfNeeded();
+  const hb = await pg.locator('text=📡 שידור חי — מה קורה עכשיו בבית').first().boundingBox();
   await pg.screenshot({ path: `${OUT}/site-live-editor.png`, clip: { x: 0, y: Math.max(0, hb.y - 10), width: 560, height: 1100 } });
 }
 for (const [name, w, h] of [['desktop', 1280, 900], ['mobile', 400, 860]]) {
@@ -87,6 +98,10 @@ for (const [name, w, h] of [['desktop', 1280, 900], ['mobile', 400, 860]]) {
   !txt.includes('מפגשי חסד שהתקיימו') ? ok(name + ': הכרטיס המוסתר לא מוצג') : fail(name + ': כרטיס מוסתר מוצג');
   txt.includes('גויסו השנה') ? ok(name + ': «גויסו השנה» מוצג') : fail(name + ': הסכום חסר');
   if (OUT) await sec.screenshot({ path: `${OUT}/site-live-${name}.png` });
+  const ids = await sp.$$eval('section', (els) => els.map((e) => e.id).filter(Boolean));
+  ids[0] === 'live' ? ok(name + ': «שידור חי» הוא החלק הראשון באתר') : fail(name + ': סדר ' + ids.join(','));
+  !ids.includes('calc') ? ok(name + ': המחשבון המוסתר לא מוצג') : fail(name + ': המחשבון מוצג');
+  if (name === 'desktop') (await sp.locator('a[href="#calc"]').count()) === 0 ? ok('הקישור «מחשבון» ירד מהניווט') : fail('קישור למחשבון נשאר בניווט');
   if (name === 'desktop') {
     await sp.getByRole('button', { name: 'FR', exact: true }).first().click();
     await sp.waitForTimeout(600);
