@@ -33,6 +33,12 @@ const L = await import('../grow/lib.mjs');
 const S = await import('./lib.mjs');
 const { WEAK, hasTruth, truthOf } = await import('../grow/truth.mjs');
 const RG = await import('./rings.mjs');
+const SH = await import('./shelf.mjs');
+/* SHELF-FIX (3.11.2026, החלטת-מנהל) · budget.numTol: הסרגל עם רצפה ליד אפס — שתי תשובות זהות אם הפרש-הצף ביניהן זניח
+   (grow/lib.mjs › canon: ‎|v|<1‎ ⇒ 12 מקומות אחרי הנקודה). מופעל כאן, בטעינת המנוע (מתג-מודול, לא ברירת-מחדל); הצמיחה
+   (תהליכי-בן) נשארת בסרגל הישן — המדף שלה מקבל טביעה מחדש בטעינה (loadShelf). חסר ⇒ ביט-זהה ל-RECIPES2. */
+const NT = !!JSON.parse(fs.readFileSync(path.join(HERE, 'budget.json'), 'utf8')).numTol;
+if (NT) L.setNumTol(true);
 /* RECIPES · ספר-המתכונים (recipes/book.mjs — נכתב ע״י AI פעם אחת ונעול) — רק כש-budget.recipes */
 const RECIPE_SHAPES = BUD_RECIPES() ? (await import('./recipes/load.mjs')).recipeShapes((await import('./recipes/book.mjs')).RECIPES) : [];
 function BUD_RECIPES() { return JSON.parse(fs.readFileSync(path.join(HERE, 'budget.json'), 'utf8')).recipes || null; }
@@ -215,14 +221,20 @@ function loadShelf(R, shelfFiles) {
     things.set(id, t);
     return t;
   };
-  let bad = 0;
+  let bad = 0; let refp = 0;
   for (const id of [...rec.keys()].sort()) build(id);
   for (const t of things.values()) {
     const m = measure(R, t);
+    if (NT && !m.junk && m.fp !== t.fp) { t.fp = m.fp; t.outs = m.outs; refp++; continue; } // SHELF-FIX: הצמיחה טבעה בסרגל הישן ⇒ טביעה מחדש
     if (m.junk || m.fp !== t.fp) { bad++; t.outs = m.outs || R.samplesOf(t.sig).map(() => null); continue; }
     t.outs = m.outs;
   }
   const shelf = new Map(); // fp ⇒ דבר
+  if (NT) { // SHELF-FIX: שני דברים שבסרגל החדש אותה טביעה ⇒ הטוב (L.better), כמו החלפה במדף
+    let merged = 0;
+    for (const id of [...finalIds].sort()) { const t = things.get(id); const cur = shelf.get(t.fp); if (cur) merged++; if (!cur || L.better(t, cur) < 0) shelf.set(t.fp, t); }
+    return { things, shelf, fpMismatch: bad, numTol: { refingerprinted: refp, merged } };
+  }
   for (const id of [...finalIds].sort()) { const t = things.get(id); shelf.set(t.fp, t); }
   return { things, shelf, fpMismatch: bad };
 }
@@ -455,6 +467,18 @@ async function selfprint({ R, things, shelf, log, shapes = CODE.shapes, perBp = 
     }
     F.leftover = jobs.length - r0 - F.stageA - F.stageB;
   };
+  /* SHELF-FIX · מונה בלבד (החלטת-מנהל: "שינוי-המדף — לא עכשיו"): מועמד עם אותה טביעה (בסרגל החדש) שנזרק ככפול או נדחה,
+     כשהוא **שונה באמת** בקלטי-הלחץ (differ — לא רק "לא רץ") — לפי חתימה, ולפי פועל-הייחוס שהדבר-שעל-המדף מממש בסט. */
+  const noteDiffer = (F, kind, t, cur, c, b) => {
+    const D = (F.stressDiffer ||= { dup: 0, stressRejected: 0, lowRun: 0, bySig: {}, byVerb: {}, ex: [] });
+    if (!c.differ) { if (!c.same) D.lowRun++; return; }
+    D[kind]++;
+    const sk = sigKeyOf(t); D.bySig[sk] = (D.bySig[sk] || 0) + 1;
+    for (const v of exactVerbs(R, cur)) D.byVerb[v] = (D.byVerb[v] || 0) + 1;
+    if (D.ex.length < 12) D.ex.push({ kind, sig: sk, shelf: { id: cur.id, floor: cur.floor, verbs: exactVerbs(R, cur) }, now: { id: t.id, bp: b.id }, differ: c.differ, ran: c.ran + '/' + c.n });
+  };
+  /* המדף — כלי-המנוע שמתן-ההחלטה (shelf.mjs › offer) צריך */
+  const shelfCx = { better: L.better, stressSamples: (t) => R.stressOf(t.sig), stressOuts: (t) => stressOuts(R, t), stressCompare: L.stressCompare, extraDiffers: (t, cur) => L.extraSamples(t.sig).some((a) => !L.sameOut(R.runOne(t, a).v, R.runOne(cur, a).v)) };
   for (let rd = 1; rd <= BUD.rounds; rd++) {
     const F = { round: rd, blueprints: bps.length, built: 0, new: 0, replaced: 0, dup: 0, junk: {}, typingsTried: 0 };
     /* מאגרים לפי חתימה (מהמדף הנוכחי): קודם עם-שם-מיוחד, אחר-כך הכי פשוט (צעדים) */
@@ -578,18 +602,20 @@ async function selfprint({ R, things, shelf, log, shapes = CODE.shapes, perBp = 
       Object.assign(t, { out: m.out, fp: m.fp, steps: m.steps, outs: m.outs, ex: exampleOf(R.samplesOf(sig), m.outs) });
       twinNote(b, t.fp);
       if (t.out !== (tree.out || g.ty.out)) { F.junk['פלט בסוג אחר'] = (F.junk['פלט בסוג אחר'] || 0) + 1; continue; }
-      const cur = shelf.get(t.fp);
-      if (!cur) { t.idx = nextIdx++; shelf.set(t.fp, t); things.set(t.id, t); fresh.push(t); F.new++; b.fresh++; continue; }
-      if (L.better(t, cur) < 0) {
-        const c = L.stressCompare(R.stressOf(t.sig), stressOuts(R, t), stressOuts(R, cur));
-        if (!c.same) { F.stressRejected = (F.stressRejected || 0) + 1; continue; }
-        // גם 200 קלטים אקראיים (בהרצה הראשונה "שיפור" אחד עבר את הלחץ ונפל כאן — עכשיו נבדק לפני ההחלפה)
-        if (L.extraSamples(t.sig).some((a) => !L.sameOut(R.runOne(t, a).v, R.runOne(cur, a).v))) { F.extraRejected = (F.extraRejected || 0) + 1; continue; }
-        t.idx = nextIdx++; shelf.set(t.fp, t); things.set(t.id, t); fresh.push(t); F.replaced++; b.fresh++;
+      /* המדף (shelf.mjs): בלי budget.shelfVariants — ההתנהגות של RECIPES2 מילה במילה */
+      const o = SH.offer(shelf, t, shelfCx);
+      if (o.kind === 'new') { t.idx = nextIdx++; things.set(t.id, t); fresh.push(t); F.new++; b.fresh++; continue; }
+      if (o.kind === 'stressRejected') { F.stressRejected = (F.stressRejected || 0) + 1; if (NT) noteDiffer(F, 'stressRejected', t, o.cur, o.c, b); continue; }
+      // גם 200 קלטים אקראיים (בהרצה הראשונה "שיפור" אחד עבר את הלחץ ונפל כאן — עכשיו נבדק לפני ההחלפה)
+      if (o.kind === 'extraRejected') { F.extraRejected = (F.extraRejected || 0) + 1; continue; }
+      if (o.kind === 'replaced') {
+        const cur = o.cur;
+        t.idx = nextIdx++; things.set(t.id, t); fresh.push(t); F.replaced++; b.fresh++;
         replacements.push({ round: rd, fp: t.fp, sig: sigKeyOf(t), old: { id: cur.id, floor: cur.floor, steps: cur.steps, part: cur.part }, now: { id: t.id, bp: b.id, steps: t.steps } });
         continue;
       }
       F.dup++;
+      if (NT) { noteDiffer(F, 'dup', t, o.cur, L.stressCompare(R.stressOf(t.sig), stressOuts(R, t), stressOuts(R, o.cur)), b); R.stressCache.delete(t.key); } // כפול לא נשמר ⇒ גם פלטי-הלחץ שלו לא
     }
     /* המתאר — לכל מה שעלה למדף בסבב */
     for (const t of fresh) Object.assign(t, nameThing(R, t));
@@ -756,6 +782,7 @@ export async function run({ log = () => {}, fresh = false } = {}) {
     ...(BUD.rings ? { rings: ringsSummary(bps, rounds, ev, H0) } : {}),
     ...(BUD.recipes ? { recipes: recipesSummary(bps, rounds, H0) } : {}),
     fpMismatchOnLoad: { baseline: B0.fpMismatch, half: H0.fpMismatch },
+    ...(NT ? { numTolOnLoad: { baseline: B0.numTol, half: H0.numTol } } : {}),
   };
   const ledger = { about: 'הפנקס של מנוע-השרטוטים-העצמי — סבבים, שרטוטים, החלפות. נבנה ע״י selfprint.mjs', rounds, blueprints: blueprintsSummary, replacements, growMetrics: { baseline: pick(base.metrics), half: pick(half.metrics) } };
   /* MINER2 · ביקורת (נכתבת לריפו, נבדקת ב---check): אותו מנוע, אותו תקציב, אותה צמיחה — רק עם השלדים שהכורה הראשון
@@ -826,4 +853,4 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.a
   console.log('🧭 נכתב · ' + ((Date.now() - t0) / 1000).toFixed(1) + 's');
 }
 /** RECIPES2 · לבדיקות-עשן בלבד (הרצה קטנה של שלב-השרטוטים על מדף-חצי שמור) — לא משמש את run(). */
-export const __internals = { growRun, shared, loadShelf, selfprint };
+export const __internals = { growRun, shared, loadShelf, selfprint, metricsOf };

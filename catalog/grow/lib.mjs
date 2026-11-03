@@ -52,9 +52,18 @@ export function semOfValue(v) {
   }
   return isPt(v) ? 'pt' : null;
 }
+/**
+ * SHELF-FIX (3.11.2026) · הסרגל עם רצפה ליד אפס — מתג-מודול, כבוי כברירת-מחדל (⇒ ביט-זהה). מנוע-השרטוטים מדליק אותו
+ * כש-budget.numTol (selfprint.mjs). דלוק: ‎|v| < 1‎ ⇒ עיגול ל-12 מקומות אחרי הנקודה (‎-0 ⇒ 0‎), אחרת 12 ספרות כמו תמיד —
+ * כך ‎−5.55e-17‎ ו-0 הם אותה תשובה (רעש-צף של סכום x/n), אבל ‎1e-3‎ מול 0 ו-‎1.0000001‎ מול 1 נשארים שונים. הטביעה (judge)
+ * והשוואת-הלחץ (sameOut/stressCompare) עוברות כולן דרך canon ⇒ עקביות זו עם זו.
+ */
+let NUM_TOL = false;
+export function setNumTol(on) { NUM_TOL = !!on; }
+export const numTolOn = () => NUM_TOL;
 /** ערך ⇒ צורה קנונית לטביעה: מספרים מעוגלים ל-12 ספרות (‎-0 ⇒ 0‎), מפתחות ממוינים. */
 export function canon(v) {
-  if (typeof v === 'number') { const r = Number(v.toPrecision(12)); return Object.is(r, -0) ? 0 : r; }
+  if (typeof v === 'number') { const r = NUM_TOL && Math.abs(v) < 1 ? Math.round(v * 1e12) / 1e12 : Number(v.toPrecision(12)); return Object.is(r, -0) ? 0 : r; }
   if (Array.isArray(v)) return v.map(canon);
   if (v && typeof v === 'object') return Object.fromEntries(Object.keys(v).sort().map((k) => [k, canon(v[k])]));
   return v;
