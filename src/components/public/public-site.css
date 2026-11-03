@@ -308,3 +308,14 @@ a.ps-chip:hover { border-color: var(--c-coral); color: var(--c-coral); }
   .ps-tst3 { grid-template-columns: 1fr !important; }
   .ps-gal6 > figure { grid-column: span 3 !important; grid-row: span 1 !important; }
 }
+
+/* 📡 שידור חי (3.11.2026) — נקודה פועמת + קריסה למובייל */
+.ps-live-dot { width: 9px; height: 9px; border-radius: 50%; background: #E0524F; box-shadow: 0 0 0 0 rgba(224,82,79,.55); animation: ps-live-pulse 1.6s infinite; }
+@keyframes ps-live-pulse { 0% { box-shadow: 0 0 0 0 rgba(224,82,79,.55); } 70% { box-shadow: 0 0 0 10px rgba(224,82,79,0); } 100% { box-shadow: 0 0 0 0 rgba(224,82,79,0); } }
+@media (prefers-reduced-motion: reduce) { .ps-live-dot { animation: none; } }
+@media (max-width: 860px) {
+  .ps-live-top, .ps-live-row2 { grid-template-columns: 1fr !important; }
+  .ps-live-today { grid-template-columns: 1fr 1fr !important; }
+  .ps-live-today > div { border-inline-start: none !important; border-top: 1px solid rgba(var(--r1),.25); }
+}
+@media (max-width: 420px) { .ps-live-kpis { grid-template-columns: 1fr 1fr !important; gap: 10px !important; } }

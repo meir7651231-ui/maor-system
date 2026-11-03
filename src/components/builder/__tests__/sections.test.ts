@@ -64,7 +64,7 @@ describe('🌐 ratchet — מקטע האתר-הציבורי באשף (עריכת
     expect(wizSrc).toContain('האתר הציבורי');
     // עריכה חיה דרך אותו patch של כל האשף
     // 29.10.2026: העורך חולץ ל-SiteContentEditor — האשף מעביר את השינוי ל-patch על config.site
-    expect(wizOnly).toContain('<SiteContentEditor site={config.site} onChange={(site) => patch({ site })} />');
+    expect(wizOnly).toContain('<SiteContentEditor site={config.site} onChange={(site) => patch({ site })} systemLive={() => sysLive} />'); // 3.11: + systemLive (שידור חי)
     expect(siteEditorSrc).toContain('const setSite = (p: Partial<PublicSiteContent>) => onChange({ ...site, ...p });');
     // תצוגה-מקדימה פותחת את ‎?site‎
     expect(wizSrc).toContain('previewSite');

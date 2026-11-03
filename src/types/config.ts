@@ -187,6 +187,35 @@ export interface PublicSitePayMethod {
  * חסר ⇒ אין אתר ציבורי (ביט-זהה להיום). מחוטא ב-normalizeConfig (allowlist + תקרות).
  * ‏enabled=false ⇒ מכובה במפורש גם אם הדגל shell.publicsite דלוק.
  */
+/** 📡 «שידור חי» (3.11.2026, «תכין לו בעריכת-אתר · בפעם הראשונה שליטה מלאה על המספרים»):
+ *  מספרים כוללים בלבד (בלי שמות) — המערכת **מציעה** אותם מנתוני-המשרד, המנהל עורך/מסתיר ומפרסם. */
+export interface PublicSiteLiveCard {
+  icon?: string;
+  value: string;
+  label: LocalizedText;
+  badge?: LocalizedText;
+  /** true ⇒ לא מוצג באתר (נשמר בעורך). */
+  hidden?: boolean;
+  /** מקור-המערכת (families/kids/…) — לרענון-ערך בלי לדרוס כותרת/הסתרה שהמנהל קבע. */
+  src?: string;
+}
+export interface PublicSiteLiveWeek {
+  when: string;
+  title: LocalizedText;
+  note?: LocalizedText;
+}
+export interface PublicSiteLive {
+  enabled?: boolean;
+  title?: LocalizedText;
+  cards?: PublicSiteLiveCard[];
+  raised?: { show?: boolean; value?: number; goal?: number };
+  today?: PublicSiteLiveCard[];
+  week?: PublicSiteLiveWeek[];
+  ticker?: LocalizedText[];
+  /** תאריך-המספרים (ISO) — "נכון ל-…". */
+  asOf?: string;
+}
+
 export interface PublicSiteContent {
   enabled?: boolean;
   langs?: SiteLang[];
@@ -200,6 +229,8 @@ export interface PublicSiteContent {
   /** מילות-זהב מתחלפות ב-hero. */
   heroWords?: LocalizedText[];
   stats?: PublicSiteStat[];
+  /** 📡 «שידור חי» — מספרים כוללים מהמשרד, באישור-המנהל. */
+  live?: PublicSiteLive;
   /** true ⇒ מונה-משפחות חי מהנתונים המקומיים (מספר בלבד, בלי PII). */
   liveFamilies?: boolean;
   liveFamiliesLabel?: LocalizedText;

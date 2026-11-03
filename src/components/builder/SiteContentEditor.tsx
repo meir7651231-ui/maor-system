@@ -11,6 +11,9 @@ import type {
   PublicSiteContent,
   PublicSiteEvent,
   PublicSiteFaq,
+  PublicSiteLive,
+  PublicSiteLiveCard,
+  PublicSiteLiveWeek,
   PublicSiteMilestone,
   PublicSitePayMethod,
   PublicSiteService,
@@ -64,7 +67,23 @@ function ListEditor<T extends object>({ items, onChange, empty, addLabel, row }:
   );
 }
 
-export function SiteContentEditor({ site, onChange }: { site: PublicSiteContent | undefined; onChange: (site: PublicSiteContent) => void }) {
+/** 📡 «שידור חי» — מספר מהמערכת לעומת מה שבאתר (רמז מתחת לשדה). */
+function SysHint({ sys, cur, onUse }: { sys?: string; cur: string; onUse: () => void }) {
+  if (sys === undefined || sys === cur) return null;
+  return (
+    <div style={{ fontSize: 11.5, color: 'var(--ink-faint)', marginTop: 2 }}>
+      מהמערכת: <b dir="ltr">{sys}</b>{' '}
+      <button type="button" onClick={onUse} style={{ ...MINI_BTN, fontSize: 11 }}>השתמש</button>
+    </div>
+  );
+}
+
+export function SiteContentEditor({ site, onChange, systemLive }: {
+  site: PublicSiteContent | undefined;
+  onChange: (site: PublicSiteContent) => void;
+  /** 📡 הצעת-המספרים מנתוני-המשרד (siteLiveFromDb) — חסר ⇒ אין כפתורי-מילוי (העורך עובד גם בלעדיו). */
+  systemLive?: () => PublicSiteLive;
+}) {
   /* 🌐 האתר-הציבורי — עריכה חיה של config.site דרך אותו צינור patch כמו כל האשף.
      טקסט רב-לשוני נערך בעברית (putHe שומר en/yi קיימים). מספרים/תאריך = ערכים גולמיים;
      החיטוי (allowlist, https, תקרות) קורה ב-normalizeSite בטעינה/ייצוא. */
@@ -177,6 +196,10 @@ export function SiteContentEditor({ site, onChange }: { site: PublicSiteContent 
           <TextInput value={wsite.growth?.delta ?? ''} onChange={(v) => setGrowth({ delta: v || undefined })} placeholder="+38% מהשנה שעברה" />
         </Field>
       </div>
+
+      {/* 📡 שידור חי (3.11.2026) — המערכת מציעה, המנהל שולט ומפרסם */}
+      <SubHead>📡 שידור חי — מה קורה עכשיו בבית</SubHead>
+      <LiveEditor live={wsite.live} onChange={(live) => setSite({ live })} systemLive={systemLive} siteHe={siteHe} putHe={putHe} heLines={heLines} linesKeep={linesKeep} />
 
       {/* 🛡️ שקיפות ואמון */}
       <SubHead>🛡️ שקיפות ואמון</SubHead>
@@ -427,4 +450,107 @@ export function SiteContentEditor({ site, onChange }: { site: PublicSiteContent 
       <Field label="הערת טופס-הקשר"><TextInput value={siteHe(wsite.contactForm?.note)} onChange={(v) => setSiteForm({ note: putHe(wsite.contactForm?.note, v) })} placeholder="מענה תוך יום עסקים · דיסקרטיות מלאה" /></Field>
     </>
   );
+}
+
+/** 📡 עורך «שידור חי»: מילוי-מהמערכת (פעם ראשונה) / רענון-מספרים (שומר כותרות/הסתרה), ושליטה מלאה בכל ערך. */
+function LiveEditor({ live, onChange, systemLive, siteHe, putHe, heLines, linesKeep }: {
+  live: PublicSiteLive | undefined;
+  onChange: (live: PublicSiteLive) => void;
+  systemLive?: () => PublicSiteLive;
+  siteHe: (v?: LocalizedText) => string;
+  putHe: (old: LocalizedText | undefined, v: string) => LocalizedText | undefined;
+  heLines: (arr?: LocalizedText[]) => string;
+  linesKeep: (old: LocalizedText[] | undefined, text: string) => LocalizedText[];
+}) {
+  const L = live ?? {};
+  const set = (p: Partial<PublicSiteLive>) => onChange({ ...L, ...p });
+  const sys = systemLive ? systemLive() : undefined;
+  const empty = !L.cards?.length && !L.today?.length && !L.week?.length && !L.ticker?.length && L.raised?.value === undefined;
+  const fill = () => {
+    if (!sys) return;
+    if (empty) onChange({ ...sys, enabled: L.enabled });
+    else onChange(refreshLive(L, sys));
+  };
+  const sysCard = (list: PublicSiteLiveCard[] | undefined, src?: string) => (src ? list?.find((c) => c.src === src)?.value : undefined);
+  const cardRow = (list: 'cards' | 'today') => (it: PublicSiteLiveCard, setIt: (p: Partial<PublicSiteLiveCard>) => void) => (
+    <div>
+      <div style={{ display: 'grid', gridTemplateColumns: list === 'cards' ? '56px 96px 1fr' : '96px 1fr', gap: 6 }}>
+        {list === 'cards' && <Field label="אייקון"><TextInput value={it.icon ?? ''} onChange={(v) => setIt({ icon: v || undefined })} placeholder="🏠" /></Field>}
+        <Field label="מספר"><TextInput dir="ltr" value={it.value} onChange={(v) => setIt({ value: v })} placeholder="612" /></Field>
+        <Field label="כותרת"><TextInput value={siteHe(it.label)} onChange={(v) => setIt({ label: putHe(it.label, v) ?? '' })} placeholder="משפחות בליווי קבוע" /></Field>
+      </div>
+      <SysHint sys={sysCard(sys?.[list], it.src)} cur={it.value} onUse={() => setIt({ value: sysCard(sys?.[list], it.src) ?? it.value })} />
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 4 }}>
+        {list === 'cards' && (
+          <div style={{ flex: 1 }}><TextInput value={siteHe(it.badge)} onChange={(v) => setIt({ badge: putHe(it.badge, v) })} placeholder="תגית (רשות) — ‎+38 השנה" /></div>
+        )}
+        <Chip on={!it.hidden} onClick={() => setIt({ hidden: !it.hidden || undefined })}>{it.hidden ? '🙈 מוסתר באתר' : '👁 מוצג באתר'}</Chip>
+      </div>
+    </div>
+  );
+  return (
+    <>
+      <div style={{ fontSize: 12, color: 'var(--ink-soft)', lineHeight: 1.6 }}>
+        מספרים כוללים בלבד — בלי שמות. המערכת <b>מציעה</b> מספרים מנתוני-המשרד; אתם בודקים, משנים או מסתירים — ושום דבר לא עולה לאתר עד «שמירה ופרסום».
+      </div>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', margin: '6px 0' }}>
+        <Chip on={!!L.enabled} onClick={() => set({ enabled: !L.enabled || undefined })}>{L.enabled ? '✓ מוצג באתר' : 'כבוי — לא מוצג באתר'}</Chip>
+        {sys && <Btn onClick={fill}>{empty ? '🔄 מילוי המספרים מהמערכת' : '🔄 רענון המספרים מהמערכת'}</Btn>}
+        {L.asOf && <span style={{ fontSize: 11.5, color: 'var(--ink-faint)' }}>המספרים נכונים ל-{L.asOf.split('-').reverse().join('/')}</span>}
+      </div>
+      {!empty && (
+        <>
+          <Field label="כותרת החלק">
+            <TextInput value={siteHe(L.title)} onChange={(v) => set({ title: putHe(L.title, v) })} placeholder="מה קורה עכשיו בבית." />
+          </Field>
+          <div style={{ fontSize: 12.5, fontWeight: 700, marginTop: 6 }}>💰 גויסו השנה</div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: 6, alignItems: 'end' }}>
+            <Field label="סכום (₪)"><input type="number" min={0} style={NUM_STYLE} value={L.raised?.value ?? ''} onChange={(e) => set({ raised: { ...L.raised, value: e.target.value === '' ? undefined : Math.max(0, Number(e.target.value)) } })} /></Field>
+            <Field label="יעד שנתי (₪, רשות)"><input type="number" min={0} style={NUM_STYLE} value={L.raised?.goal ?? ''} onChange={(e) => set({ raised: { ...L.raised, goal: e.target.value === '' ? undefined : Math.max(0, Number(e.target.value)) } })} /></Field>
+            <Chip on={!!L.raised?.show} onClick={() => set({ raised: { ...L.raised, show: !L.raised?.show || undefined } })}>{L.raised?.show ? '👁 מוצג' : '🙈 מוסתר'}</Chip>
+          </div>
+          <SysHint sys={sys?.raised?.value !== undefined ? '₪' + sys.raised.value.toLocaleString('he-IL') : undefined} cur={L.raised?.value !== undefined ? '₪' + L.raised.value.toLocaleString('he-IL') : ''} onUse={() => set({ raised: { ...L.raised, value: sys?.raised?.value } })} />
+          <div style={{ fontSize: 12.5, fontWeight: 700, marginTop: 8 }}>🗂 כרטיסים</div>
+          <ListEditor<PublicSiteLiveCard> items={L.cards ?? []} onChange={(v) => set({ cards: v })} empty={() => ({ value: '', label: '' })} addLabel="כרטיס" row={cardRow('cards')} />
+          <div style={{ fontSize: 12.5, fontWeight: 700, marginTop: 8 }}>☀️ פס «היום»</div>
+          <ListEditor<PublicSiteLiveCard> items={L.today ?? []} onChange={(v) => set({ today: v })} empty={() => ({ value: '', label: '' })} addLabel="נתון" row={cardRow('today')} />
+          <div style={{ fontSize: 12.5, fontWeight: 700, marginTop: 8 }}>📅 השבוע בבית (חגים וחוגים בלבד)</div>
+          <ListEditor<PublicSiteLiveWeek>
+            items={L.week ?? []}
+            onChange={(v) => set({ week: v })}
+            empty={() => ({ when: '', title: '' })}
+            addLabel="שורה"
+            row={(it, setIt) => (
+              <div style={{ display: 'grid', gridTemplateColumns: '90px 1fr 1fr', gap: 6 }}>
+                <Field label="מתי"><TextInput value={it.when} onChange={(v) => setIt({ when: v })} placeholder="כ״א חשוון" /></Field>
+                <Field label="מה"><TextInput value={siteHe(it.title)} onChange={(v) => setIt({ title: putHe(it.title, v) ?? '' })} placeholder="ערב נשים בבית" /></Field>
+                <Field label="פירוט"><TextInput value={siteHe(it.note)} onChange={(v) => setIt({ note: putHe(it.note, v) })} placeholder="20:00" /></Field>
+              </div>
+            )}
+          />
+          <Field label="📣 פס עדכונים (שורה לכל עדכון — בלי שמות!)">
+            <textarea key={'lt' + heLines(L.ticker)} style={TA_STYLE} defaultValue={heLines(L.ticker)} onBlur={(e) => set({ ticker: linesKeep(L.ticker, e.target.value) })} placeholder={'♡ 38 משפחות הצטרפו לבית השנה\n♡ הבית פתוח 24/7'} />
+          </Field>
+        </>
+      )}
+    </>
+  );
+}
+
+/** רענון-ערכים לפי src (שומר כותרות/הסתרה/סדר) — עטיפה מקומית כדי שהעורך לא ימשוך את מנוע-הקיר לבנדל-האשף. */
+function refreshLive(cur: PublicSiteLive, fresh: PublicSiteLive): PublicSiteLive {
+  const upd = (list: PublicSiteLiveCard[] | undefined, src: PublicSiteLiveCard[] | undefined) =>
+    list?.map((c) => {
+      const f = c.src ? src?.find((x) => x.src === c.src) : undefined;
+      return f ? { ...c, value: f.value, ...(f.badge ? { badge: f.badge } : {}) } : c;
+    });
+  return {
+    ...cur,
+    cards: upd(cur.cards, fresh.cards),
+    today: upd(cur.today, fresh.today),
+    raised: { ...(cur.raised ?? {}), value: fresh.raised?.value, goal: cur.raised?.goal ?? fresh.raised?.goal },
+    week: fresh.week,
+    ticker: fresh.ticker,
+    asOf: fresh.asOf,
+  };
 }

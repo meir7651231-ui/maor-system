@@ -9,6 +9,7 @@
  * מכבד prefers-reduced-motion. כל טקסט/מספר מגיע מהקונפיג — אין תוכן קשיח.
  */
 import { SKELETON_I18N } from '../../lib/publicSiteI18n';
+import { PublicLive, liveVisible } from './PublicLive';
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { useApp } from '../../store/useApp';
 import { DialLink } from '../DialLink';
@@ -498,6 +499,11 @@ export function PublicSite({ onEnter }: { onEnter: () => void }) {
             )}
           </div>
         </section>
+      )}
+
+      {/* ── 📡 שידור חי (3.11.2026) — רק מה שהמנהל פרסם בעריכת-האתר ── */}
+      {liveVisible(site.live) && (
+        <PublicLive live={site.live!} t={t} he={he} sec={sec} cardS={cardS} grad={GRAD} donateHref={donateHref} donateAttrs={donateAttrs} give={voc.give} commercial={commercial} />
       )}
 
       {/* ── הסיפור שלנו ── */}

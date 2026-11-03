@@ -31,6 +31,7 @@ import { TEMPLATE_DEFS } from '../../lib/templates';
 import { TelephonyPanel } from '../telephony/TelephonyPanel';
 import { isDemoSession } from '../../lib/demoLock';
 import { emptyTelephonyConfig } from '../telephony/lib';
+import { siteLiveFromDb } from '../../lib/siteLive';
 
 const DEFAULT_APP_URL = 'https://meir7651231-ui.github.io/maor-system/';
 
@@ -283,6 +284,8 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
   // בדמו האשף תמיד נפתח עם slug=demo/‏?org=demo ⇒ הנעילה מחזיקה כל הסשן; בשורש היא לעולם לא נדלקת ⇒
   // שדה-המזהה ומקטע-ההרחבות בדיוק כמו ב-main.
   const [demoAtOpen] = useState(() => isDemoSession(config));
+  // 📡 «שידור חי» — הצעת-המספרים מנתוני-המשרד, פעם אחת בפתיחת-האשף (בלי מנוי-DB)
+  const [sysLive] = useState(() => siteLiveFromDb(useApp.getState().db, new Date(), config));
   const [appUrl, setAppUrl] = useState(DEFAULT_APP_URL);
   const [installer, setInstaller] = useState('מאיר — הקמת מערכות לעמותות');
   const [slugTouched, setSlugTouched] = useState(config.slug !== 'default');
@@ -1256,7 +1259,7 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
               </span>
             </div>
 
-            <SiteContentEditor site={config.site} onChange={(site) => patch({ site })} />
+            <SiteContentEditor site={config.site} onChange={(site) => patch({ site })} systemLive={() => sysLive} />
           </SectionShell>
           );
         })()}
