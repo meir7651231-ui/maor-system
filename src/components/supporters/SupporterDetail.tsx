@@ -7,7 +7,7 @@ import type { Supporter } from '../../types/domain';
 import { useApp } from '../../store/useApp';
 import { canGrantedAction, featureOn, integrationOn, integrationSetting, isSuperAdmin, telephonyOn, termOf } from '../../lib/config';
 import { canIssueReceipt } from '../platform/lib';
-import { payLink } from '../../lib/payLink';
+import { orgSolaPayUrl, payLink, supporterPayPerson } from '../../lib/payLink';
 import { askClaude, readAiKey, thanksPrompt } from '../../lib/ai';
 import { annualReportLines, donationYears, downloadAnnualReport } from '../../lib/annualReport';
 import { callStats } from '../../lib/dialer';
@@ -93,12 +93,12 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
     : sp;
   // גל ג׳ — פעולות-הרחבה בכרטיס: 💳 עמוד-תרומה (payments) · 🤖 מכתב-תודה (ai)
   const donateHref = integrationOn(config, 'payments')
-    ? payLink(integrationSetting(config, 'payments', 'payUrl'), 0, sp.name)
+    ? payLink(integrationSetting(config, 'payments', 'payUrl'), 0, supporterPayPerson(sp))
     : null;
   // 💳 סולה (23.8, "אני לוחץ על אייקון אשראי אני מגיע לנדרים — ומה עם סולה"):
   // עמוד-התשלום של סולה לצד נדרים — אותה בניית-קישור, השם ממולא.
   const solaDonateHref = integrationOn(config, 'payments')
-    ? payLink(integrationSetting(config, 'payments', 'solaPayUrl'), 0, sp.name)
+    ? payLink(orgSolaPayUrl(integrationSetting(config, 'payments', 'solaPayUrl'), config.slug), 0, supporterPayPerson(sp))
     : null;
   const aiReady = integrationOn(config, 'ai') && !!readAiKey();
   // גל ד׳ (sms): תור-שליחה בענן — הכפתור רק לארגון-ענן מחובר עם ההרחבה

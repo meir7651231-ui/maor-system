@@ -6,7 +6,7 @@ import { useState } from 'react';
 import type { Course, Enrollment, OrgEvent } from '../../types/domain';
 import { allMembers, useApp } from '../../store/useApp';
 import { featureOn, integrationOn, integrationSetting, telephonyOn, termOf } from '../../lib/config';
-import { payLink } from '../../lib/payLink';
+import { familyPayPerson, orgSolaPayUrl, payLink } from '../../lib/payLink';
 import { waPaymentText } from '../../lib/wa';
 import { WaBtn } from '../WaBtn';
 import { isDemoSession } from '../../lib/demoLock';
@@ -289,14 +289,17 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
   // גל ג׳ (payments): קישור-תשלום לעמוד-הסליקה של הארגון — הסכום ממולא (עד-המפתח).
   // גל ה׳ (פאזה 12): מגודר גם `courses.paylink` (חסר=דלוק ⇒ אפס-רגרסיה; מתג-כיבוי
   // לחוגים בלבד). אפס-קבלה — הקישור מפנה לסליקה, הקבלה נרשמת ידנית ב-＋קבלת תשלום.
+  // 3.11.2026: כל פרטי-המשלם (טלפון/מייל/כתובת של המשפחה) עוברים לעמוד-התשלום — לא רק השם
+  const payFam = db.families.find((f) => f.id === m?.famId);
+  const payPerson = familyPayPerson((m?.first ?? '') + ' ' + (m?.famName ?? ''), payFam, m ?? undefined);
   const payHref =
     integrationOn(cfg, 'payments') && featureOn(cfg, 'courses.paylink') && bal > 0
-      ? payLink(integrationSetting(cfg, 'payments', 'payUrl'), bal, (m?.first ?? '') + ' ' + (m?.famName ?? ''))
+      ? payLink(integrationSetting(cfg, 'payments', 'payUrl'), bal, payPerson)
       : null;
   // 💳 סולה (23.8) — עמוד-התשלום השני, הסכום ממולא
   const solaPayHref =
     integrationOn(cfg, 'payments') && featureOn(cfg, 'courses.paylink') && bal > 0
-      ? payLink(integrationSetting(cfg, 'payments', 'solaPayUrl'), bal, (m?.first ?? '') + ' ' + (m?.famName ?? ''))
+      ? payLink(orgSolaPayUrl(integrationSetting(cfg, 'payments', 'solaPayUrl'), cfg.slug), bal, payPerson)
       : null;
 
   return (

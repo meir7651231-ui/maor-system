@@ -4,7 +4,7 @@
  */
 import { useApp } from '../../store/useApp';
 import { featureOn, integrationOn, integrationSetting } from '../../lib/config';
-import { payLink } from '../../lib/payLink';
+import { familyPayPerson, orgSolaPayUrl, payLink } from '../../lib/payLink';
 import { Btn, Empty, Modal } from '../ui';
 import { WaBtn } from '../WaBtn';
 import { guardExport } from '../../lib/exportGate';
@@ -23,8 +23,13 @@ export function CollectionCenter(props: { onClose: () => void }) {
   // גל ה׳ (פאזה 12): קישור-הסליקה מגודר גם courses.paylink (חסר=דלוק ⇒ אפס-רגרסיה)
   const solaPayUrl =
     integrationOn(config, 'payments') && featureOn(config, 'courses.paylink')
-      ? integrationSetting(config, 'payments', 'solaPayUrl') || ''
+      ? orgSolaPayUrl(integrationSetting(config, 'payments', 'solaPayUrl'), config.slug)
       : '';
+  // 3.11.2026: פרטי-המשלם המלאים (המשפחה) לכל שורה — לא רק השם
+  const personOf = (memberId: string, name: string) => {
+    const fam = db.families.find((f) => f.members.some((x) => x.id === memberId));
+    return familyPayPerson(name, fam, fam?.members.find((x) => x.id === memberId));
+  };
   const payUrl =
     integrationOn(config, 'payments') && featureOn(config, 'courses.paylink')
       ? integrationSetting(config, 'payments', 'payUrl') || ''
@@ -73,7 +78,7 @@ export function CollectionCenter(props: { onClose: () => void }) {
             {waOn && r.phone && <WaBtn phone={r.phone} text={collectionMessage(r, orgName)} title="תזכורת-תשלום בוואטסאפ" />}
             {payUrl &&
               (() => {
-                const href = payLink(payUrl, r.bal, r.name);
+                const href = payLink(payUrl, r.bal, personOf(r.memberId, r.name));
                 return href ? (
                   // תווית גלויה + aria-label (לא אמוג׳י-בודד — עקבי עם ManageModal/SupporterDetail)
                   <a
@@ -90,7 +95,7 @@ export function CollectionCenter(props: { onClose: () => void }) {
               })()}
             {solaPayUrl &&
               (() => {
-                const href = payLink(solaPayUrl, r.bal, r.name);
+                const href = payLink(solaPayUrl, r.bal, personOf(r.memberId, r.name));
                 return href ? (
                   // תווית גלויה + aria-label (לא אמוג׳י-בודד — עקבי עם ManageModal/SupporterDetail)
                   <a

@@ -16,11 +16,13 @@ export interface SiteDomain {
   iconDir?: string;
   /** ה-slug של המשרד שמנהל את האתר (ארגון-פלטפורמה — orgs/<officeSlug>); שם מופיע הכפתור «🌐 עריכת האתר» (29.10.2026). */
   officeSlug?: string;
+  /** עמוד-התרומה בסולה (חו״ל) — ברירת-מחדל לכפתורי-סולה במשרד כשלא הוזן באשף (3.11.2026). */
+  solaPayUrl?: string;
 }
 
 export const SITE_DOMAINS: Readonly<Record<string, SiteDomain>> = {
   // 29.10.2026: המשרד האמיתי של מאור = ארגון-הפלטפורמה mavr-hchsd (שם המנהל עובד עם המייל שלו) ⇒ «כניסה למערכת» מגיעה אליו
-  'meorhachessed.com': { slug: 'maor-hachesed', officeUrl: 'https://orbit-il.com/?org=mavr-hchsd', iconDir: 'c/maor-hachesed/icons/', officeSlug: 'mavr-hchsd' },
+  'meorhachessed.com': { slug: 'maor-hachesed', officeUrl: 'https://orbit-il.com/?org=mavr-hchsd', iconDir: 'c/maor-hachesed/icons/', officeSlug: 'mavr-hchsd', solaPayUrl: 'https://secure.cardknox.com/meorhachessedlutzkininc' },
 };
 
 /** ה-slug של האתר-הציבורי שמשרד זה מנהל (לפי officeSlug או slug), או null. טהור. */
