@@ -1,8 +1,8 @@
 {
- "about": "התקציב המוצהר של מנוע-הצמיחה (catalog/grow/grow.mjs). GROW2: ריצה קטנה — אותו תקציב לשתי הריצות (random מול score). maxFloors = כמה קומות מעל קומה 0 לכל היותר · buildsPerFloor + unaryPerFloor = כמה חיבורים נבנים בקומה (זוגות chain/pair + חד-מקומיים map/mapc/fold/fix; ב-score ‏80% מהסך הולכים לחיבורים מעל הטובים והשאר מתחלק באותו יחס) · callSteps = תקרת-צעדים לקריאה אחת לחלק (lib/steps.mjs) · thingSteps = תקרת-צעדים לדבר אחד על כל סט-הקלטים (מעבר ⇒ זבל 'כבד מדי'; וגם לקלט-לחץ אחד) · nameSteps = תקרת-צעדים לבדיקת-החוקים של דבר אחד",
- "maxFloors": 3,
- "buildsPerFloor": 1500,
- "unaryPerFloor": 500,
+ "about": "התקציב המוצהר של מנוע-הצמיחה (catalog/grow/grow.mjs). GROW3: התקציב של GROW הראשון (4 × 6,000 + 2,000) — אותו תקציב לשתי הריצות (random מול score). maxFloors = כמה קומות מעל קומה 0 לכל היותר · buildsPerFloor + unaryPerFloor = כמה חיבורים נבנים בקומה (זוגות chain/pair + חד-מקומיים map/mapc/fold/fix; ב-score ‏80% מהסך הולכים לחיבורים מעל עוגנים לפי פועל (בגלים, לפי תשואה) והשאר מתחלק באותו יחס) · callSteps = תקרת-צעדים לקריאה אחת לחלק (lib/steps.mjs) · thingSteps = תקרת-צעדים לדבר אחד על כל סט-הקלטים (מעבר ⇒ זבל 'כבד מדי'; וגם לקלט-לחץ אחד) · nameSteps = תקרת-צעדים לבדיקת-החוקים של דבר אחד",
+ "maxFloors": 4,
+ "buildsPerFloor": 6000,
+ "unaryPerFloor": 2000,
  "callSteps": 500000,
  "thingSteps": 2000000,
  "nameSteps": 2000000
