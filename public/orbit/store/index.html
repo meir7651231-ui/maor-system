@@ -299,7 +299,7 @@ h2 { font: 700 clamp(24px, 3.2vw, 32px)/1.2 var(--display); text-wrap: balance; 
     open(`${p.img ? `<figure><img src="${esc(p.img)}" alt=""></figure>` : ""}<h3>${esc(p.n)}</h3><p>${esc(p.d)}</p>
       <div class="fitbox"><b>מותאם אצלכם בהקמה</b><span>זה העיקרון. בהקמה בונים אותו לפי העסק שלכם: המונחים, השלבים, הטפסים והדוחות.</span><div class="chips">${(p.uses || []).map(u => `<span>${esc(u)}</span>`).join("")}</div></div>
       <dl class="qa"><dt>מה זה</dt><dd>${esc(p.ty)}</dd><dt>מה מקבלים</dt><dd>${p.inc.length ? `המוצר ועוד ${p.inc.length} יכולות` : "המוצר עצמו"}</dd><dt>זמינות</dt><dd>${p.status === "חדש" ? "חדש" : p.v ? "זמין עכשיו" : "בקרוב"}</dd></dl>
-      <button class="btn" data-cart="p${i}">${on ? "בבחירה שלי ✓" : "הוספה לבחירה שלי"}</button>
+      ${p.app ? `<a class="btn" href="${esc(p.app)}" style="text-align:center;text-decoration:none">כניסה לאפליקציה עם קוד גישה ›</a>` : ""}<button class="btn" data-cart="p${i}">${on ? "בבחירה שלי ✓" : "הוספה לבחירה שלי"}</button>
       ${p.inc.length ? `<h4 style="margin:6px 0 0">מה כלול</h4>${incList(p.inc)}` : ""}`);
   }
   let lastUp = "map";

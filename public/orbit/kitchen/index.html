@@ -6,7 +6,25 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="המטבח שלי">
 <link rel="apple-touch-icon" href="icons/apple-180.png">
-<link rel="icon" href="icons/icon-192.png"></head><body><title>מטבח ששווה לשניים</title>
+<link rel="icon" href="icons/icon-192.png"></head><body><div id="gate" style="position:fixed;inset:0;z-index:9999;background:#f3eadb url(img/range.webp) center/cover;display:flex;align-items:center;justify-content:center;padding:20px"><div style="position:absolute;inset:0;background:rgba(255,250,240,.55);backdrop-filter:blur(3px)"></div>
+<form id="gateF" style="position:relative;background:#fffaf0;border-radius:6px 6px 26px 26px;box-shadow:0 2px 0 #efe3cb,0 20px 50px rgba(60,40,20,.3);padding:30px 22px 22px;width:min(360px,100%);text-align:center;font-family:Assistant,Rubik,system-ui,sans-serif;color:#2b3640;direction:rtl">
+<div style="position:absolute;top:-7px;left:50%;width:64px;height:16px;margin-left:-32px;background:rgba(240,138,60,.6);transform:rotate(-2deg)"></div>
+<img src="icons/icon-192.png" alt="" width="72" height="72" style="border-radius:18px;box-shadow:0 4px 12px rgba(0,0,0,.15)">
+<h1 style="font:700 40px/1.05 'Amatic SC',Rubik,sans-serif;margin:12px 0 4px">מטבח ששווה לשניים</h1>
+<p style="margin:0 0 16px;font:600 15px Assistant,sans-serif;color:#7a6a55">כותבים את קוד הגישה שקיבלתם מאורביט</p>
+<input id="gateC" inputmode="numeric" autocomplete="one-time-code" maxlength="12" placeholder="קוד גישה" aria-label="קוד גישה" style="width:100%;box-sizing:border-box;text-align:center;font:800 28px Rubik,sans-serif;letter-spacing:.25em;padding:12px;border:2px solid #eadfca;border-radius:16px;background:#fff;color:#24303a;direction:ltr">
+<p id="gateE" role="alert" style="min-height:20px;margin:8px 0 4px;font:700 14px Assistant,sans-serif;color:#b2321f"></p>
+<button style="width:100%;border:0;background:#f08a3c;color:#fff;border-radius:18px;padding:14px;font:800 18px Rubik,sans-serif;box-shadow:0 6px 16px rgba(240,138,60,.4);cursor:pointer">כניסה למטבח</button>
+<p style="margin:14px 0 0;font:600 13px Assistant,sans-serif;color:#9a8f80">אין לכם קוד? פונים לאורביט</p></form></div>
+<script>(function(){var H='35a47d44e2c96c4e8f695d730391a06a75729dee90b64cc4f25472e8557488de',S='orbit-kitchen-v1:',K='kitchen_access';var g=document.getElementById('gate');
+function noteGate(e){(window.__kitchenErrors=window.__kitchenErrors||[]).push(String(e&&e.message||e));}
+try{if(localStorage.getItem(K)===H){g.remove();return;}}catch(e){noteGate(e);}
+async function sha(t){var b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t));return Array.from(new Uint8Array(b)).map(function(x){return x.toString(16).padStart(2,'0');}).join('');}
+setTimeout(function(){var c=document.getElementById('gateC');if(c)c.focus();},200);
+document.getElementById('gateF').onsubmit=async function(ev){ev.preventDefault();var v=document.getElementById('gateC').value.replace(/\D/g,'');var e=document.getElementById('gateE');
+ if(!v){e.textContent='כותבים את הקוד';return;}
+ try{if(await sha(S+v)===H){try{localStorage.setItem(K,H);}catch(x){noteGate(x);}g.style.transition='opacity .35s';g.style.opacity='0';setTimeout(function(){g.remove();},360);}else{e.textContent='הקוד לא נכון. בודקים ומנסים שוב';}}catch(x){noteGate(x);e.textContent='לא הצלחתי לבדוק את הקוד. מנסים שוב';}};})();</script>
+<title>מטבח ששווה לשניים</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="fonts/fonts.css">
 <style>
