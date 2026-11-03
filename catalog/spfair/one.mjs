@@ -53,10 +53,49 @@ const bpById = new Map(tap.bps.map((b) => [b.id, b]));
    בלי הדגל — אין מדידה שנייה ואין שדות חדשים (ביט-זהה). */
 const NT = !!BUD.numTol;
 const oldStick = (f) => { if (!NT) return undefined; L.setNumTol(false); try { return f(); } finally { L.setNumTol(true); } };
+/* SHELF-FIX · בדיקת-לחץ שלי לכל פגיעה (בשני הסרגלים): קלטים שאין בלחץ של המנוע/של measure.mjs — רשימה ריקה ופריט אחד,
+   0–500 פריטים עם **שברים** (גם זעירים ‎~1e-9‎), ענקיים עם שבר (‎±1e15+¼‎), רשימה אחידה-שברית; מספרים: שברים/ענקיים/זעירים.
+   מול מימוש-הייחוס של המטרה, בסרגל החדש; נרשם גם הפער המספרי המקסימלי (מוחלט). דטרמיניסטי (LCG קבוע). */
+const ownCheck = (() => {
+  if (!NT) return null;
+  const done = new Map(); const rows = [];
+  const lcg = (seed) => { let x = seed >>> 0; return () => ((x = (Math.imul(x, 1664525) + 1013904223) >>> 0) / 4294967296); };
+  const ownOf = (sig) => {
+    const r = lcg(0x5e1f ^ parseInt(L.fnv(sig.join(',')), 16));
+    const frac = () => Math.round((r() * 2000 - 1000) * 1e4) / 1e4;
+    const num = (k) => [0.5, -2.75, 1e-9, -3.3e-10, 1e15 + 0.25, -1e15 - 0.25, 7, -1, 0, 123456.789, frac(), frac()][k % 12];
+    const nums = (k) => {
+      const n = [0, 1, 2, 3, 5, 10, 40, 100, 250, 500][k % 10]; const mode = Math.floor(k / 10) % 4;
+      return Array.from({ length: n }, () => (mode === 0 ? frac() : mode === 1 ? (r() - 0.5) * 2e-9 : mode === 2 ? (r() < 0.5 ? 1 : -1) * (1e15 + 0.25) * (r() < 0.5 ? 1 : 0.5) : 0.1));
+    };
+    const pt = () => ({ x: frac(), y: frac() });
+    const one = (sem, k) => (sem === 'num' ? num(k) : sem === 'nums' ? nums(k) : sem === 'pt' ? pt() : Array.from({ length: [0, 1, 2, 5, 40][k % 5] }, pt));
+    return Array.from({ length: 40 }, (_, k) => sig.map((sem, a) => one(sem, k + a * 7)));
+  };
+  const gapOf = (o, w) => { const a = [].concat(o); const b = [].concat(w); if (a.length !== b.length || !a.every((x) => typeof x === 'number') || !b.every((x) => typeof x === 'number')) return null; return Math.max(0, ...a.map((x, i) => Math.abs(x - b[i]))); };
+  const fn = (suite, T, hit) => {
+    const k = suite + '|' + T.id + '|' + hit.id; if (done.has(k)) return; done.set(k, true);
+    const t = tap.H0.things.get(hit.id); if (!t) return;
+    let ran = 0; let fail = 0; let first = null; let maxGap = 0; let ref = 0;
+    for (const a of ownOf(t.sig)) {
+      const w = T.f(...a); if (w === null || w === undefined) continue; ref++;
+      const o = R1(t, a); if (o === null) { fail++; first ||= { why: 'לא רץ', in: brief(a) }; continue; }
+      ran++; const g = gapOf(o, w); if (g !== null && g > maxGap) maxGap = g;
+      if (!L.sameOut(o, w)) { fail++; first ||= { why: 'פלט שונה', in: brief(a), got: brief(o), want: brief(w) }; }
+    }
+    rows.push({ suite, target: T.id, id: hit.id, inputs: ref, ran, fail, maxGap, ...(first ? { first } : {}) });
+  };
+  fn.rows = rows; return fn;
+  function R1(t, a) { return tap.R.runOne(t, a, BUD.thingSteps).v; }
+  function brief(v) { return Array.isArray(v) ? (v.length > 4 ? { len: v.length, head: v.slice(0, 3) } : v.map(brief)) : v; }
+})();
+const ownOf = (suite) => (ownCheck ? { ownCheck: ownCheck.rows.filter((r) => r.suite === suite) } : {});
+const checkHits = (suite, targets, ...scans) => { if (!ownCheck) return; const byId = new Map(targets.map((T) => [T.id, T])); for (const sc of scans) for (const h of sc?.hits || []) ownCheck(suite, byId.get(h.target), h); };
 const sp = scanTargets({ R: tap.R, L, things: tap.H0.things, shelf: tap.H0.shelf, bpById, targets: TARGETS, thingSteps: BUD.thingSteps });
 const bl = scanTargets({ R: tap.R, L, things: tap.B0.things, shelf: tap.B0.shelf, targets: TARGETS, thingSteps: BUD.thingSteps });
 const spOld = oldStick(() => scanTargets({ R: tap.R, L, things: tap.H0.things, shelf: tap.H0.shelf, bpById, targets: TARGETS, thingSteps: BUD.thingSteps }));
 const blOld = oldStick(() => scanTargets({ R: tap.R, L, things: tap.B0.things, shelf: tap.B0.shelf, targets: TARGETS, thingSteps: BUD.thingSteps }));
+checkHits('SP-FAIR', TARGETS, sp, spOld);
 const exactOld = oldStick(() => ({ baseline: SP.__internals.metricsOf(tap.R, tap.B0.things, tap.B0.shelf).exactRebuilt, selfprint: SP.__internals.metricsOf(tap.R, tap.H0.things, tap.H0.shelf, bpById).exactRebuilt }));
 /* RINGS-PORT · המבחן הנסתר (catalog/spfair/hidden, חתום sha256): נמדד באותה הרצה, נכתב לקובץ נפרד שלא פותחים עד הסוף */
 const HID = path.join(HERE, 'hidden/targets-hidden.mjs');
@@ -70,7 +109,8 @@ if (fs.existsSync(HID)) {
   const hbl = scanTargets({ R: tap.R, L, things: tap.B0.things, shelf: tap.B0.shelf, targets: HT, thingSteps: JSON.parse(origBudget).thingSteps });
   const bpmA = new Map(tap.bps.map((b) => [b.id, b]));
   const hOld = oldStick(() => ({ selfprintOldStick: scanTargets({ R: tap.R, L, things: tap.H0.things, shelf: tap.H0.shelf, bpById: bpmA, targets: HT, thingSteps: BUD.thingSteps }), baselineOldStick: scanTargets({ R: tap.R, L, things: tap.B0.things, shelf: tap.B0.shelf, targets: HT, thingSteps: BUD.thingSteps }) }));
-  hidden = { about: 'RINGS-PORT · המבחן הנסתר (sha256 ב-hidden/SHA256) על אותה הרצה. נבנה ע״י fair.mjs', name, targets: HT.length, selfprint: hsp, baseline: hbl, ...(hOld || {}) };
+  checkHits('א׳', HT, hsp, hOld?.selfprintOldStick);
+  hidden = { about: 'RINGS-PORT · המבחן הנסתר (sha256 ב-hidden/SHA256) על אותה הרצה. נבנה ע״י fair.mjs', name, targets: HT.length, selfprint: hsp, baseline: hbl, ...hOld, ...ownOf('א׳') };
 }
 /* RECIPES · המבחן הנסתר ב׳ (catalog/spfair/hidden/b, 44 מטרות, חתום sha256): אותה מדידה, קובץ נפרד שלא פותחים עד הסוף */
 const HIDB = path.join(HERE, 'hidden/b/targets-b.mjs');
@@ -82,7 +122,8 @@ if (fs.existsSync(HIDB)) {
   const hbl = scanTargets({ R: tap.R, L, things: tap.B0.things, shelf: tap.B0.shelf, targets: HB, thingSteps: BUD.thingSteps });
   fs.mkdirSync(path.join(HERE, 'hidden/b/runs'), { recursive: true });
   const bOld = oldStick(() => ({ selfprintOldStick: scanTargets({ R: tap.R, L, things: tap.H0.things, shelf: tap.H0.shelf, bpById: bpm, targets: HB, thingSteps: BUD.thingSteps }), baselineOldStick: scanTargets({ R: tap.R, L, things: tap.B0.things, shelf: tap.B0.shelf, targets: HB, thingSteps: BUD.thingSteps }) }));
-  fs.writeFileSync(path.join(HERE, 'hidden/b/runs', name + '.json'), JSON.stringify({ about: 'RECIPES · המבחן הנסתר ב׳ (sha256 ב-hidden/b/SHA256) על אותה הרצה. נבנה ע״י fair.mjs', name, targets: HB.length, selfprint: hsp, baseline: hbl, ...(bOld || {}) }, null, 1) + '\n');
+  checkHits('ב׳', HB, hsp, bOld?.selfprintOldStick);
+  fs.writeFileSync(path.join(HERE, 'hidden/b/runs', name + '.json'), JSON.stringify({ about: 'RECIPES · המבחן הנסתר ב׳ (sha256 ב-hidden/b/SHA256) על אותה הרצה. נבנה ע״י fair.mjs', name, targets: HB.length, selfprint: hsp, baseline: hbl, ...bOld, ...ownOf('ב׳') }, null, 1) + '\n');
 }
 /* RECIPES2 · המבחן הנסתר ג׳ (catalog/spfair/hidden/c, 46 מטרות, סוכן עיוור, חתום sha256 לפני כל שינוי): אותה מדידה בדיוק,
    קובץ נפרד (hidden/c/runs/<name>.json) שלא פותחים עד הסוף */
@@ -95,7 +136,8 @@ if (fs.existsSync(HIDC)) {
   const hbl = scanTargets({ R: tap.R, L, things: tap.B0.things, shelf: tap.B0.shelf, targets: HC, thingSteps: BUD.thingSteps });
   fs.mkdirSync(path.join(HERE, 'hidden/c/runs'), { recursive: true });
   const cOld = oldStick(() => ({ selfprintOldStick: scanTargets({ R: tap.R, L, things: tap.H0.things, shelf: tap.H0.shelf, bpById: bpm, targets: HC, thingSteps: BUD.thingSteps }), baselineOldStick: scanTargets({ R: tap.R, L, things: tap.B0.things, shelf: tap.B0.shelf, targets: HC, thingSteps: BUD.thingSteps }) }));
-  fs.writeFileSync(path.join(HERE, 'hidden/c/runs', name + '.json'), JSON.stringify({ about: 'RECIPES2 · המבחן הנסתר ג׳ (sha256 ב-hidden/c/SHA256) על אותה הרצה. נבנה ע״י fair.mjs', name, targets: HC.length, selfprint: hsp, baseline: hbl, ...(cOld || {}) }, null, 1) + '\n');
+  checkHits('ג׳', HC, hsp, cOld?.selfprintOldStick);
+  fs.writeFileSync(path.join(HERE, 'hidden/c/runs', name + '.json'), JSON.stringify({ about: 'RECIPES2 · המבחן הנסתר ג׳ (sha256 ב-hidden/c/SHA256) על אותה הרצה. נבנה ע״י fair.mjs', name, targets: HC.length, selfprint: hsp, baseline: hbl, ...cOld, ...ownOf('ג׳') }, null, 1) + '\n');
 }
 log('מדידה: ' + sp.hits.length + ' פגיעות (שרטוטים) · ' + bl.hits.length + ' (צמיחה בלבד)');
 
@@ -130,7 +172,7 @@ const out = {
     };
   }),
   targets: { selfprint: sp, baseline: bl },
-  ...(NT ? { numTol: { about: 'SHELF-FIX · אותה הרצה בסרגל הישן (בלי רצפה ליד אפס): השפעת-המנוע = r2 מול ‎…OldStick‎; השפעת-הסרגל = ‎…OldStick‎ מול השדות הרגילים', targetsOldStick: { selfprint: spOld, baseline: blOld }, exactOldStick: { baseline: exactOf({ exactRebuilt: exactOld.baseline }), selfprint: exactOf({ exactRebuilt: exactOld.selfprint }) }, onLoad: compare.numTolOnLoad, stressDiffer: JSON.parse(res.ledger).rounds.map((F) => ({ round: F.round, ...(F.stressDiffer || {}) })) } } : {}),
+  ...(NT ? { numTol: { about: 'SHELF-FIX · אותה הרצה בסרגל הישן (בלי רצפה ליד אפס): השפעת-המנוע = r2 מול ‎…OldStick‎; השפעת-הסרגל = ‎…OldStick‎ מול השדות הרגילים', targetsOldStick: { selfprint: spOld, baseline: blOld }, exactOldStick: { baseline: exactOf({ exactRebuilt: exactOld.baseline }), selfprint: exactOf({ exactRebuilt: exactOld.selfprint }) }, onLoad: compare.numTolOnLoad, ...ownOf('SP-FAIR'), stressDiffer: JSON.parse(res.ledger).rounds.map((F) => ({ round: F.round, ...F.stressDiffer })) } } : {}),
 };
 fs.mkdirSync(path.join(HERE, 'runs'), { recursive: true });
 fs.writeFileSync(path.join(HERE, 'runs', name + '.json'), JSON.stringify(out, null, 1) + '\n');
