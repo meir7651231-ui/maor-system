@@ -61,6 +61,9 @@ const ned = hrefs.find((h) => h.includes('matara.pro'));
 const sola = hrefs.find((h) => h.includes('cardknox.com'));
 ned ? ok('כפתור נדרים בכרטיס') : fail('אין כפתור נדרים');
 if (!OTHER) sola ? ok('כפתור סולה בכרטיס — בלי הגדרה באשף (ברירת-המחדל של מאור)') : fail('אין כפתור סולה');
+const btnTexts = await pg.$$eval('a.chip', (as) => as.map((a) => a.textContent.trim()));
+if (OTHER) btnTexts.includes('💳 עמוד תרומה') && !btnTexts.some((t) => t.includes('₪ שקל')) ? ok('לקוח אחר: תווית «💳 עמוד תרומה» — כמו היום') : fail('לקוח אחר: תוויות ' + btnTexts.join(' | '));
+else btnTexts.includes('💳 נדרים · ₪ שקל') && btnTexts.includes('💳 סולה · $ דולר') ? ok('מאור: «💳 נדרים · ₪ שקל» + «💳 סולה · $ דולר»') : fail('מאור: תוויות ' + btnTexts.join(' | '));
 if (OTHER) {
   const nn = new URL(ned || 'https://x.invalid');
   [...nn.searchParams.keys()].sort().join(',') === 'ClientName,mosad' ? ok('לקוח אחר: נדרים מקבל שם בלבד — כמו היום') : fail('לקוח אחר: פרמטרים ' + [...nn.searchParams.keys()]);

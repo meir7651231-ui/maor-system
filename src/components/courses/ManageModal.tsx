@@ -6,7 +6,7 @@ import { useState } from 'react';
 import type { Course, Enrollment, OrgEvent } from '../../types/domain';
 import { allMembers, useApp } from '../../store/useApp';
 import { featureOn, integrationOn, integrationSetting, telephonyOn, termOf } from '../../lib/config';
-import { familyPayPerson, orgPayWho, orgSolaPayUrl, payLink } from '../../lib/payLink';
+import { familyPayPerson, orgPayLabels, orgPayWho, orgSolaPayUrl, payLink } from '../../lib/payLink';
 import { waPaymentText } from '../../lib/wa';
 import { WaBtn } from '../WaBtn';
 import { isDemoSession } from '../../lib/demoLock';
@@ -292,6 +292,8 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
   // 3.11.2026: כל פרטי-המשלם (טלפון/מייל/כתובת של המשפחה) עוברים לעמוד-התשלום — לא רק השם
   const payFam = db.families.find((f) => f.id === m?.famId);
   const payPerson = orgPayWho(cfg.slug, familyPayPerson((m?.first ?? '') + ' ' + (m?.famName ?? ''), payFam, m ?? undefined));
+  // 3.11.2026: במאור — הכפתורים אומרים את המטבע (נדרים ₪ · סולה $)
+  const payLbl = orgPayLabels(cfg.slug);
   const payHref =
     integrationOn(cfg, 'payments') && featureOn(cfg, 'courses.paylink') && bal > 0
       ? payLink(integrationSetting(cfg, 'payments', 'payUrl'), bal, payPerson)
@@ -462,7 +464,7 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
                 title="עמוד-התשלום של הארגון — הסכום ממולא (אינו מנפיק קבלה)"
                 style={{ textDecoration: 'none', fontSize: 12, fontWeight: 700, color: 'var(--accent-deep, var(--accent))', border: '1px solid var(--line)', borderRadius: 8, padding: '2px 8px' }}
               >
-                💳 תשלום מקוון
+                {payLbl?.ned ?? '💳 תשלום מקוון'}
               </a>
             ) : null}
             {solaPayHref ? (
@@ -474,7 +476,7 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
                 title="עמוד-התשלום בסולה — הסכום ממולא (אינו מנפיק קבלה)"
                 style={{ textDecoration: 'none', fontSize: 12, fontWeight: 700, color: 'var(--accent-deep, var(--accent))', border: '1px solid var(--line)', borderRadius: 8, padding: '2px 8px' }}
               >
-                💳 סולה
+                {payLbl?.sola ?? '💳 סולה'}
               </a>
             ) : null}
             {balLine}
