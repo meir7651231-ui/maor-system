@@ -476,7 +476,7 @@ function LiveEditor({ live, onChange, systemLive, siteHe, putHe, heLines, linesK
     <div>
       <div style={{ display: 'grid', gridTemplateColumns: list === 'cards' ? '56px 96px 1fr' : '96px 1fr', gap: 6 }}>
         {list === 'cards' && <Field label="אייקון"><TextInput value={it.icon ?? ''} onChange={(v) => setIt({ icon: v || undefined })} placeholder="🏠" /></Field>}
-        <Field label="מספר"><TextInput dir="ltr" value={it.value} onChange={(v) => setIt({ value: v })} placeholder="612" /></Field>
+        <Field label="מספר"><TextInput dir="ltr" value={it.value} onChange={(v) => setIt({ value: v })} placeholder="למשל 1,234" /></Field>
         <Field label="כותרת"><TextInput value={siteHe(it.label)} onChange={(v) => setIt({ label: putHe(it.label, v) ?? '' })} placeholder="משפחות בליווי קבוע" /></Field>
       </div>
       <SysHint sys={sysCard(sys?.[list], it.src)} cur={it.value} onUse={() => setIt({ value: sysCard(sys?.[list], it.src) ?? it.value })} />

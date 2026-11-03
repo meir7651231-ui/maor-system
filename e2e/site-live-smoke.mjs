@@ -59,13 +59,19 @@ live?.cards?.[0]?.value === String(activeFams) ? ok(`מילוי מהמערכת: 
 !live?.raised?.show ? ok('«גויסו השנה» מוסתר כברירת-מחדל') : fail('הסכום מוצג בלי החלטה');
 
 await pg.getByText('כבוי — לא מוצג באתר').click();
-await pg.locator('input[placeholder="612"]').nth(0).fill('600+');
+await pg.locator('input[placeholder="למשל 1,234"]').nth(0).fill('600+');
 await pg.getByText('👁 מוצג באתר').nth(2).click();
 await pg.getByText('🙈 מוסתר').first().click();
 await pg.waitForTimeout(300);
 live = await lsLive();
 live?.enabled && live.cards[0].value === '600+' && live.cards[2].hidden && live.raised?.show ? ok('שליטה: הדלקה · מספר נערך ל-600+ · כרטיס הוסתר · סכום מוצג') : fail('שליטה: ' + JSON.stringify({ e: live?.enabled, v: live?.cards?.[0]?.value, h: live?.cards?.[2]?.hidden, r: live?.raised }));
 
+if (OUT) {
+  await pg.setViewportSize({ width: 1280, height: 1400 });
+  await pg.locator('text=📡 שידור חי').first().scrollIntoViewIfNeeded();
+  const hb = await pg.locator('text=📡 שידור חי').first().boundingBox();
+  await pg.screenshot({ path: `${OUT}/site-live-editor.png`, clip: { x: 0, y: Math.max(0, hb.y - 10), width: 560, height: 1100 } });
+}
 for (const [name, w, h] of [['desktop', 1280, 900], ['mobile', 400, 860]]) {
   const sp = await ctx.newPage();
   await sp.setViewportSize({ width: w, height: h });
