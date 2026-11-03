@@ -36,9 +36,9 @@ describe('RECIPES · הספר נעול וכללי', () => {
     for (const l of lines) { const [h, f] = l.split(/\s+/); expect(createHash('sha256').update(readFileSync(join(DIR, f))).digest('hex'), f).toBe(h); }
     expect(lines.length).toBe(2);
   });
-  it('28 מתכונים ⇒ 41 שלדים; כל אחד תקין מבנית, עם ≥1 חור, ומקבל סוג', () => {
-    expect(RECIPES.length).toBe(28);
-    expect(shapes.length).toBe(41);
+  it('37 מתכונים ⇒ 53 שלדים (ספר v2, 3.11.2026: +9 בפרקים י״ב–י״ד); כל אחד תקין מבנית, עם ≥1 חור, ומקבל סוג', () => {
+    expect(RECIPES.length).toBe(37);
+    expect(shapes.length).toBe(53);
     for (const s of shapes) {
       expect(graphProblem(s.graph), s.id).toBeNull();
       expect(S.holeVars(s.graph).length, s.id).toBeGreaterThan(0);
@@ -53,7 +53,7 @@ describe('RECIPES · הספר נעול וכללי', () => {
       for (const n of graphNodes(r.graph)) expect(S.isHole(n.part) || ['⟨choose⟩', '⟨at⟩', '⟨cmp!==⟩'].includes(n.part), r.id + ' ' + n.part).toBe(true);
       for (const h of r.holes) expect([undefined, '<', '+', 'stat']).toContain(h.label);
     }
-    expect([...new Set(nums)].sort()).toEqual([0, 1]);
+    expect([...new Set(nums)].sort()).toEqual([0, 1]); // ‎max‎ (600/2000) = תקרת-חזרה, לא נספר
   });
 });
 
@@ -85,5 +85,24 @@ describe('RECIPES · המשמעות (מילוי ביד)', () => {
 describe('RECIPES · עיוורון', () => {
   it('השומר חוסם את המבחן הנסתר ב׳', () => {
     expect(hiddenPath(join(__dirname, '../spfair/hidden/b/targets-b.mjs'))).toBe(true);
+  });
+});
+
+describe('RECIPES v2 · פרקים י״ב–י״ד (מילוי ביד)', () => {
+  it('חזור-על-מספר: כמה פעמים · צבור · לאן הגיע · זוג', () => {
+    expect(run('rcp-repeat-count', [(v: number) => (v !== 1 ? 1 : 0), (v: number) => (v % 2 ? 3 * v + 1 : v / 2), (a: number) => a + 1], [6])).toBe(8);
+    expect(run('rcp-repeat-accumulate', [(v: number) => (v > 0 ? 1 : 0), (v: number) => Math.floor(v / 10), (v: number) => v % 10, add], [1234])).toBe(10);
+    expect(run('rcp-repeat-final', [(v: number) => (v >= 10 ? 1 : 0), (v: number) => String(v).split('').reduce((a, d) => a + +d, 0)], [9875])).toBe(2);
+    expect(run('rcp-repeat-pair~1', [(y: number) => (y !== 0 ? 1 : 0), (x: number, y: number) => x % y], [48, 18])).toBe(6);
+  });
+  it('מונה-עם-איפוס: רצף · להמשיך-או-מחדש · עוקב-והטוב (מהזוג האמיתי הראשון — תיקון-הבודק)', () => {
+    expect(run('rcp-run-reset', [gt, (c: number) => c + 1, Math.max], [[1, 2, 3, 1, 2, 3, 4, 0]])).toBe(4);
+    expect(run('rcp-continue-or-restart', [add, Math.max, Math.max], [[-2, 1, -3, 4, -1, 2, 1, -5, 4]])).toBe(6);
+    expect(run('rcp-track-and-best', [(a: number, b: number) => a - b, Math.min, Math.max], [[7, 1, 5, 3, 6, 4]])).toBe(5);
+    expect(run('rcp-track-and-best', [add, Math.max, Math.max], [[10, 1]])).toBe(11);
+  });
+  it('לכל-פריט-מול-כולם: רשימה · מקום-הטוב', () => {
+    expect(run('rcp-each-vs-all~2', [lt, add], [xs])).toEqual([4, 0, 6, 0, 3, 5, 2]);
+    expect(run('rcp-best-vs-all', [(y: number, x: number) => Math.abs(y - x), add, lt], [xs])).toBe(4);
   });
 });

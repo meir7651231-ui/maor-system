@@ -152,6 +152,23 @@
    "success": 63,
    "maxDepthSuccess": 3,
    "wrongImprovements": 0
+  },
+  "rc2": {
+   "salt": 0,
+   "rounds": 3,
+   "sameBytesAsBranch": false,
+   "exactFair": [
+    "average"
+   ],
+   "exactBaseline": [],
+   "averagePct": {
+    "baseline": 36,
+    "selfprint": 100
+   },
+   "blueprints": 290,
+   "success": 72,
+   "maxDepthSuccess": 2,
+   "wrongImprovements": 0
   }
  },
  "exactFairBy": {
@@ -163,7 +180,8 @@
    "r6",
    "rp",
    "rc",
-   "rp-eq"
+   "rp-eq",
+   "rc2"
   ],
   "extreme": [
    "rc"
@@ -174,11 +192,13 @@
    "he": "רק מה שמעל הממוצע",
    "known": false,
    "selfprint": [
-    "rc"
+    "rc",
+    "rc2"
    ],
    "baseline": [],
    "byBlueprint": [
-    "rc:recipe:bp-s-dca1daea:d1"
+    "rc:recipe:bp-s-dca1daea:d1",
+    "rc2:recipe:bp-s-dca1daea:d1"
    ],
    "alreadyPart": []
   },
@@ -186,11 +206,13 @@
    "he": "מקום-המקסימום (הראשון)",
    "known": false,
    "selfprint": [
-    "rc"
+    "rc",
+    "rc2"
    ],
    "baseline": [],
    "byBlueprint": [
-    "rc:recipe:bp-s-37b79277:d1"
+    "rc:recipe:bp-s-37b79277:d1",
+    "rc2:recipe:bp-s-37b79277:d1"
    ],
    "alreadyPart": []
   },
@@ -198,11 +220,13 @@
    "he": "מקום-המינימום (הראשון)",
    "known": false,
    "selfprint": [
-    "rc"
+    "rc",
+    "rc2"
    ],
    "baseline": [],
    "byBlueprint": [
-    "rc:recipe:bp-s-37b79277:d1"
+    "rc:recipe:bp-s-37b79277:d1",
+    "rc2:recipe:bp-s-37b79277:d1"
    ],
    "alreadyPart": []
   },
@@ -210,11 +234,13 @@
    "he": "סכום-מצטבר",
    "known": false,
    "selfprint": [
-    "rc"
+    "rc",
+    "rc2"
    ],
    "baseline": [],
    "byBlueprint": [
-    "rc:recipe:bp-s-a6e802dd:d1"
+    "rc:recipe:bp-s-a6e802dd:d1",
+    "rc2:recipe:bp-s-a6e802dd:d1"
    ],
    "alreadyPart": []
   },
@@ -231,7 +257,8 @@
     "m2",
     "rp",
     "rc",
-    "rp-eq"
+    "rp-eq",
+    "rc2"
    ],
    "byBlueprint": [],
    "alreadyPart": []
@@ -244,7 +271,8 @@
     "m2",
     "rp",
     "rc",
-    "rp-eq"
+    "rp-eq",
+    "rc2"
    ],
    "byBlueprint": [],
    "alreadyPart": [
@@ -256,7 +284,8 @@
     "m2",
     "rp",
     "rc",
-    "rp-eq"
+    "rp-eq",
+    "rc2"
    ]
   },
   "last": {
@@ -274,7 +303,8 @@
     "m2",
     "rp",
     "rc",
-    "rp-eq"
+    "rp-eq",
+    "rc2"
    ]
   },
   "max": {
@@ -292,7 +322,8 @@
     "m2",
     "rp",
     "rc",
-    "rp-eq"
+    "rp-eq",
+    "rc2"
    ]
   },
   "mean": {
@@ -306,7 +337,8 @@
     "r6",
     "rp",
     "rc",
-    "rp-eq"
+    "rp-eq",
+    "rc2"
    ],
    "baseline": [],
    "byBlueprint": [
@@ -317,7 +349,8 @@
     "r6:code:bp-c-4590428b:d1",
     "rp:code:bp-c-4590428b:d1",
     "rc:code:bp-c-4590428b:d1",
-    "rp-eq:code:bp-c-4590428b:d1"
+    "rp-eq:code:bp-c-4590428b:d1",
+    "rc2:code:bp-c-4590428b:d1"
    ],
    "alreadyPart": []
   },
@@ -333,7 +366,8 @@
     "m2",
     "rp",
     "rc",
-    "rp-eq"
+    "rp-eq",
+    "rc2"
    ],
    "baseline": [
     "s0",
@@ -344,7 +378,8 @@
     "m2",
     "rp",
     "rc",
-    "rp-eq"
+    "rp-eq",
+    "rc2"
    ],
    "byBlueprint": [],
    "alreadyPart": []
@@ -360,7 +395,8 @@
     "r6",
     "rp",
     "rc",
-    "rp-eq"
+    "rp-eq",
+    "rc2"
    ],
    "baseline": [],
    "byBlueprint": [
@@ -371,7 +407,8 @@
     "r6:code:bp-c-4590428b:d1",
     "rp:code:bp-c-4590428b:d1",
     "rc:code:bp-c-4590428b:d1",
-    "rp-eq:code:bp-c-4590428b:d1"
+    "rp-eq:code:bp-c-4590428b:d1",
+    "rc2:code:bp-c-4590428b:d1"
    ],
    "alreadyPart": []
   },
@@ -387,7 +424,8 @@
     "m2",
     "rp",
     "rc",
-    "rp-eq"
+    "rp-eq",
+    "rc2"
    ],
    "baseline": [
     "s0",
@@ -398,7 +436,8 @@
     "m2",
     "rp",
     "rc",
-    "rp-eq"
+    "rp-eq",
+    "rc2"
    ],
    "byBlueprint": [],
    "alreadyPart": []
@@ -418,7 +457,8 @@
     "m2",
     "rp",
     "rc",
-    "rp-eq"
+    "rp-eq",
+    "rc2"
    ]
   },
   "sortDesc": {
@@ -436,7 +476,8 @@
     "m2",
     "rp",
     "rc",
-    "rp-eq"
+    "rp-eq",
+    "rc2"
    ]
   },
   "squares": {
@@ -445,7 +486,8 @@
    "selfprint": [],
    "baseline": [
     "rc",
-    "rp-eq"
+    "rp-eq",
+    "rc2"
    ],
    "byBlueprint": [],
    "alreadyPart": []

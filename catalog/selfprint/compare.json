@@ -126,15 +126,15 @@
   }
  },
  "selfprint": {
-  "shelf": 6461,
-  "namedSpecial": 520,
-  "namedSpecialGrown": 489,
+  "shelf": 6467,
+  "namedSpecial": 529,
+  "namedSpecialGrown": 498,
   "specialBy": {
-   "filter": 255,
-   "compare": 113,
-   "count": 39,
-   "tolerate": 24,
-   "rotate": 19,
+   "filter": 244,
+   "compare": 138,
+   "count": 40,
+   "tolerate": 19,
+   "rotate": 18,
    "sort": 18,
    "dedupe": 13,
    "reverse": 4,
@@ -227,46 +227,19 @@
      ]
     }
    },
-   "extreme": {
+   "dedupe": {
     "exact": 1,
-    "fromOthers": 1,
-    "byBlueprint": 1,
-    "byBlueprintFair": 1,
-    "best": {
-     "id": "7ae790084d1f6e74",
-     "floor": "bp1",
-     "form": "bp",
-     "blueprint": "bp-s-5a19dd7e",
-     "sig": "nums>num",
-     "steps": 110,
-     "nodes": 3,
-     "example": {
-      "in": [
-       [
-        3,
-        1,
-        2
-       ]
-      ],
-      "out": 3
-     },
-     "of": [
-      {
-       "id": "6c330c2eef52bc8a",
-       "form": "part",
-       "part": "inner-generator:gen/looks/full5/art.mjs#rnd.t",
-       "verbs": []
-      },
-      {
-       "id": "00887f585f4f3bac",
-       "form": "part",
-       "part": "inner-generator:new/boxes/pareto.mjs#paretoReport.desc",
-       "verbs": [
-        "sort"
-       ]
-      }
-     ]
-    }
+    "fromOthers": 0,
+    "byBlueprint": 0,
+    "byBlueprintFair": 0,
+    "best": null
+   },
+   "sort": {
+    "exact": 1,
+    "fromOthers": 0,
+    "byBlueprint": 0,
+    "byBlueprintFair": 0,
+    "best": null
    },
    "sum": {
     "exact": 1,
@@ -276,8 +249,8 @@
     "best": null
    }
   },
-  "exactFromOthers": 3,
-  "exactByBlueprintFair": 2,
+  "exactFromOthers": 2,
+  "exactByBlueprintFair": 1,
   "bestGrown": {
    "average": {
     "pct": 100,
@@ -286,18 +259,18 @@
     "sig": "nums>num"
    },
    "sort": {
-    "pct": 73,
-    "id": "5199635b0c66a447",
-    "form": "chain",
+    "pct": 100,
+    "id": "d85509f6fd9a91ba",
+    "blueprint": "bp-s-34b48b91",
     "sig": "nums>nums"
    },
    "tour": {
     "pct": null
    },
    "extreme": {
-    "pct": 100,
-    "id": "7ae790084d1f6e74",
-    "blueprint": "bp-s-5a19dd7e",
+    "pct": 91,
+    "id": "28e57b12ddb786f6",
+    "form": "chain",
     "sig": "nums>num"
    },
    "sum": {
@@ -313,9 +286,9 @@
     "sig": "nums>num"
    },
    "dedupe": {
-    "pct": 91,
-    "id": "4cc8a3f6d3c964aa",
-    "blueprint": "bp-s-d52c7307",
+    "pct": 100,
+    "id": "129c88448ad0b240",
+    "blueprint": "bp-s-34b48b91",
     "sig": "nums>nums"
    },
    "compare": {
@@ -332,29 +305,29 @@
     "metricOnly": true
    },
    "max": {
-    "pct": 100,
-    "id": "7ae790084d1f6e74",
-    "blueprint": "bp-s-5a19dd7e",
+    "pct": 91,
+    "id": "28e57b12ddb786f6",
+    "form": "chain",
     "sig": "nums>num",
     "metricOnly": true
    }
   }
  },
  "blueprints": {
-  "total": 278,
+  "total": 290,
   "bySource": {
    "code": 181,
-   "recipe": 41,
+   "recipe": 53,
    "success": 36,
    "success-of-blueprint": 20
   },
-  "used": 241,
-  "birthedSuccess": 69,
+  "used": 253,
+  "birthedSuccess": 72,
   "birthedBySource": {
    "success": 31,
    "code": 23,
-   "recipe": 10,
-   "success-of-blueprint": 5
+   "recipe": 12,
+   "success-of-blueprint": 6
   },
   "maxDepth": 2,
   "maxDepthUsed": 2,
@@ -477,7 +450,7 @@
   }
  },
  "wrongImprovements": 0,
- "replacements": 337,
+ "replacements": 360,
  "rings": {
   "perRound": [
    {
@@ -495,8 +468,8 @@
     "stageB": 730,
     "leftover": 0,
     "twins": 8,
-    "tools": 344,
-    "usedTools": 142
+    "tools": 354,
+    "usedTools": 156
    },
    {
     "round": 3,
@@ -504,21 +477,21 @@
     "stageB": 731,
     "leftover": 0,
     "twins": 11,
-    "tools": 460,
-    "usedTools": 97
+    "tools": 468,
+    "usedTools": 94
    }
   ],
   "stageA": {
    "blueprints": 64,
    "built": 2190,
    "success": 37,
-   "successes": 250
+   "successes": 254
   },
   "stageB": {
    "blueprints": 162,
    "built": 2191,
    "success": 18,
-   "successes": 104
+   "successes": 102
   },
   "tie": {
    "blueprints": 53,
@@ -528,13 +501,13 @@
   },
   "bind": {
    "blueprints": 19,
-   "built": 495,
+   "built": 490,
    "success": 3,
    "successes": 6
   },
   "twins": 11,
   "perItemTools": {
-   "built": 313,
+   "built": 310,
    "inSuccesses": 7
   },
   "evidence": {
@@ -560,7 +533,7 @@
   }
  },
  "recipes": {
-  "shapes": 41,
+  "shapes": 53,
   "perRound": [
    2000,
    2000,
@@ -570,92 +543,119 @@
    "all-pairs": {
     "shapes": 2,
     "derived": 0,
-    "built": 324,
-    "ran": 309,
-    "fresh": 172,
+    "built": 264,
+    "ran": 256,
+    "fresh": 157,
     "successes": 0,
     "verbs": {}
    },
    "best": {
     "shapes": 2,
     "derived": 0,
-    "built": 140,
-    "ran": 140,
-    "fresh": 38,
+    "built": 100,
+    "ran": 100,
+    "fresh": 28,
     "successes": 0,
     "verbs": {}
    },
    "best-index": {
     "shapes": 2,
     "derived": 0,
-    "built": 161,
-    "ran": 161,
-    "fresh": 56,
+    "built": 122,
+    "ran": 122,
+    "fresh": 42,
     "successes": 0,
     "verbs": {}
    },
    "best-param": {
     "shapes": 1,
     "derived": 0,
-    "built": 390,
-    "ran": 175,
-    "fresh": 72,
+    "built": 271,
+    "ran": 122,
+    "fresh": 59,
     "successes": 0,
     "verbs": {}
    },
    "best-score-param": {
     "shapes": 1,
     "derived": 7,
-    "built": 467,
-    "ran": 388,
-    "fresh": 121,
-    "successes": 11,
+    "built": 345,
+    "ran": 277,
+    "fresh": 102,
+    "successes": 12,
     "verbs": {
-     "count": 11
+     "count": 10
     }
+   },
+   "best-vs-all": {
+    "shapes": 1,
+    "derived": 0,
+    "built": 150,
+    "ran": 103,
+    "fresh": 16,
+    "successes": 0,
+    "verbs": {}
+   },
+   "continue-or-restart": {
+    "shapes": 1,
+    "derived": 0,
+    "built": 75,
+    "ran": 70,
+    "fresh": 62,
+    "successes": 0,
+    "verbs": {}
    },
    "coords-each": {
     "shapes": 1,
     "derived": 0,
-    "built": 114,
-    "ran": 110,
-    "fresh": 100,
+    "built": 74,
+    "ran": 70,
+    "fresh": 62,
     "successes": 0,
     "verbs": {}
    },
    "coords-pair": {
     "shapes": 1,
     "derived": 0,
-    "built": 42,
-    "ran": 42,
-    "fresh": 33,
+    "built": 47,
+    "ran": 47,
+    "fresh": 36,
     "successes": 0,
     "verbs": {}
    },
    "coords-stat": {
     "shapes": 1,
     "derived": 0,
-    "built": 33,
-    "ran": 33,
-    "fresh": 28,
+    "built": 34,
+    "ran": 34,
+    "fresh": 29,
     "successes": 0,
     "verbs": {}
    },
    "each-if": {
     "shapes": 2,
     "derived": 0,
-    "built": 228,
-    "ran": 216,
-    "fresh": 85,
+    "built": 148,
+    "ran": 145,
+    "fresh": 54,
     "successes": 0,
     "verbs": {}
    },
    "each-stat": {
     "shapes": 2,
     "derived": 0,
-    "built": 397,
-    "ran": 388,
-    "fresh": 290,
+    "built": 275,
+    "ran": 268,
+    "fresh": 212,
+    "successes": 0,
+    "verbs": {}
+   },
+   "each-vs-all": {
+    "shapes": 2,
+    "derived": 0,
+    "built": 286,
+    "ran": 210,
+    "fresh": 124,
     "successes": 0,
     "verbs": {}
    },
@@ -684,49 +684,49 @@
    "filter-vs-param": {
     "shapes": 2,
     "derived": 0,
-    "built": 161,
-    "ran": 110,
-    "fresh": 41,
-    "successes": 24,
+    "built": 123,
+    "ran": 92,
+    "fresh": 33,
+    "successes": 20,
     "verbs": {
-     "filter": 24
+     "filter": 20
     }
    },
    "filter-vs-stat": {
     "shapes": 2,
     "derived": 0,
-    "built": 232,
-    "ran": 178,
-    "fresh": 62,
-    "successes": 3,
+    "built": 152,
+    "ran": 116,
+    "fresh": 52,
+    "successes": 2,
     "verbs": {
-     "filter": 3
+     "filter": 2
     }
    },
    "fold-first": {
     "shapes": 1,
     "derived": 0,
-    "built": 70,
-    "ran": 66,
-    "fresh": 59,
+    "built": 79,
+    "ran": 75,
+    "fresh": 64,
     "successes": 0,
     "verbs": {}
    },
    "fold-mapped": {
     "shapes": 1,
     "derived": 0,
-    "built": 116,
-    "ran": 86,
-    "fresh": 67,
+    "built": 75,
+    "ran": 45,
+    "fresh": 39,
     "successes": 0,
     "verbs": {}
    },
    "fold-mapped-param": {
     "shapes": 1,
     "derived": 0,
-    "built": 387,
-    "ran": 197,
-    "fresh": 147,
+    "built": 272,
+    "ran": 132,
+    "fresh": 100,
     "successes": 1,
     "verbs": {
      "count": 1
@@ -735,91 +735,149 @@
    "fold-mapped-stat": {
     "shapes": 2,
     "derived": 0,
-    "built": 458,
-    "ran": 356,
-    "fresh": 265,
+    "built": 300,
+    "ran": 230,
+    "fresh": 178,
     "successes": 0,
     "verbs": {}
    },
    "greedy-chain": {
     "shapes": 1,
     "derived": 0,
-    "built": 196,
-    "ran": 196,
-    "fresh": 31,
+    "built": 134,
+    "ran": 134,
+    "fresh": 23,
     "successes": 0,
     "verbs": {}
    },
    "neighbors": {
     "shapes": 2,
     "derived": 0,
-    "built": 320,
-    "ran": 296,
-    "fresh": 154,
+    "built": 264,
+    "ran": 247,
+    "fresh": 140,
     "successes": 0,
     "verbs": {}
    },
    "pick-at": {
     "shapes": 2,
     "derived": 0,
-    "built": 368,
-    "ran": 79,
-    "fresh": 55,
+    "built": 264,
+    "ran": 48,
+    "fresh": 32,
+    "successes": 0,
+    "verbs": {}
+   },
+   "repeat-accumulate": {
+    "shapes": 2,
+    "derived": 0,
+    "built": 301,
+    "ran": 154,
+    "fresh": 125,
+    "successes": 0,
+    "verbs": {}
+   },
+   "repeat-count": {
+    "shapes": 1,
+    "derived": 0,
+    "built": 225,
+    "ran": 48,
+    "fresh": 20,
+    "successes": 0,
+    "verbs": {}
+   },
+   "repeat-final": {
+    "shapes": 1,
+    "derived": 0,
+    "built": 228,
+    "ran": 185,
+    "fresh": 79,
+    "successes": 6,
+    "verbs": {
+     "filter": 6
+    }
+   },
+   "repeat-pair": {
+    "shapes": 2,
+    "derived": 0,
+    "built": 153,
+    "ran": 142,
+    "fresh": 101,
+    "successes": 19,
+    "verbs": {
+     "compare": 19
+    }
+   },
+   "run-reset": {
+    "shapes": 1,
+    "derived": 0,
+    "built": 76,
+    "ran": 68,
+    "fresh": 37,
     "successes": 0,
     "verbs": {}
    },
    "scan": {
     "shapes": 1,
     "derived": 0,
-    "built": 46,
-    "ran": 40,
-    "fresh": 34,
+    "built": 55,
+    "ran": 49,
+    "fresh": 39,
     "successes": 0,
     "verbs": {}
    },
    "scan-first": {
     "shapes": 1,
     "derived": 0,
-    "built": 70,
-    "ran": 66,
-    "fresh": 60,
+    "built": 79,
+    "ran": 75,
+    "fresh": 65,
     "successes": 0,
     "verbs": {}
    },
    "sort-by-key": {
     "shapes": 2,
     "derived": 0,
-    "built": 140,
-    "ran": 140,
-    "fresh": 46,
+    "built": 100,
+    "ran": 100,
+    "fresh": 33,
     "successes": 0,
     "verbs": {}
    },
    "take-k": {
     "shapes": 3,
     "derived": 4,
-    "built": 697,
-    "ran": 558,
-    "fresh": 441,
-    "successes": 67,
+    "built": 541,
+    "ran": 451,
+    "fresh": 366,
+    "successes": 54,
     "verbs": {
-     "filter": 44,
-     "tolerate": 23
+     "filter": 35,
+     "tolerate": 19
     }
+   },
+   "track-and-best": {
+    "shapes": 1,
+    "derived": 0,
+    "built": 76,
+    "ran": 75,
+    "fresh": 71,
+    "successes": 0,
+    "verbs": {}
    },
    "two-stats": {
     "shapes": 1,
     "derived": 0,
-    "built": 226,
-    "ran": 224,
-    "fresh": 165,
+    "built": 148,
+    "ran": 148,
+    "fresh": 97,
     "successes": 0,
     "verbs": {}
    },
    "until-stable": {
     "shapes": 1,
     "derived": 0,
-    "built": 36,
+    "built": 24,
     "ran": 2,
     "fresh": 1,
     "successes": 0,
@@ -828,9 +886,9 @@
    "window": {
     "shapes": 1,
     "derived": 0,
-    "built": 116,
-    "ran": 46,
-    "fresh": 36,
+    "built": 75,
+    "ran": 21,
+    "fresh": 17,
     "successes": 0,
     "verbs": {}
    }

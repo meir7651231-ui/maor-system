@@ -1,6 +1,7 @@
 /**
  * 📖 ספר-המתכונים (RECIPES, 16.10.2026) — **הדבר היחיד בענף שכתב AI**. נכתב פעם אחת ונעול (sha256 ב-recipes/SHA256);
- * אחרי הנעילה — רק הרצה. ראו knowledge/CLOSED-RECIPES-2026-10-16.md.
+ * אחרי הנעילה — רק הרצה. **ספר v2 (3.11.2026, בקשת-הבעלים):** נוספו פרקים י״ב–י״ד (חזור-על-מספר · מונה-עם-איפוס ·
+ * לכל-פריט-מול-כולם) — נכתבו **אחרי** שמבחנים א׳/ב׳ נפתחו; לכן נמדדים בהוגנות רק על מבחן ג׳ (נעול לפני הפרקים). ראו knowledge/CLOSED-RECIPES-2026-10-16.md.
  *
  * מתכון = שלד בשפת-הגרף של catalog/combiner/graph.mjs שחלק מהצמתים בו **חורים** (‎□v‎), בדיוק כמו השלדים שהכורה מוצא
  * בקוד (library-code.json). כללי בלבד: אין מתכון בשם של משימה, אין קבוע שמקודד תשובה (רק 0 ו"הפריט הראשון").
@@ -233,5 +234,62 @@ export const RECIPES = [
     doc: 'לכל נקודה ברשימה — אותה פעולת-מספרים על ה-x שלה מול x של נקודה אחת שמחושבת פעם אחת מהרשימה כולה, וכך ל-y.',
     holes: [{ what: 'פעולה על שני מספרים', from: 'arith', label: '+' }, { what: 'הנקודה השנייה (מהרשימה)', from: 'shelf' }],
     graph: { inputs: ['i0'], nodes: [N('c', H(1, '$i0')), { id: 'L', loop: { over: '$i0', init: 0, item: 'it', state: 'st', nodes: [N('a', H(0, '$it.x', '@c.x')), N('b', H(0, '$it.y', '@c.y'))], next: '$st', emit: { x: '@a', y: '@b' } } }], out: '@L.emits' },
+  },
+  /* ═══ פרק י״ב · חזור על מספר עד תנאי (נוסף 3.11.2026 — ספר v2) ═══ */
+  {
+    id: 'repeat-count', he: 'חזור על מספר עד תנאי — כמה פעמים', chapter: 'חזור-על-מספר',
+    doc: 'מתחילים מהמספר; כל עוד התנאי עליו אמת — מחליפים אותו בצעד, וסופרים צעד. מחזירים את המונה.',
+    holes: [{ what: 'תנאי: להמשיך?', from: 'shelf' }, { what: 'הצעד על המספר', from: 'shelf' }, { what: 'עדכון המונה', from: 'shelf' }],
+    graph: { inputs: ['i0'], nodes: [{ id: 'U', loop: { over: [0], init: { v: '$i0', a: 0 }, item: 'u', state: 'su', until: 'stable', max: 2000, nodes: [N('c', H(0, '$su.v')), N('nv', H(1, '$su.v')), N('na', H(2, '$su.a')), N('kv', { part: '⟨choose⟩', args: ['@c', '@nv', '$su.v'] }), N('ka', { part: '⟨choose⟩', args: ['@c', '@na', '$su.a'] })], next: { v: '@kv', a: '@ka' } } }], out: '@U.state.a' },
+  },
+  {
+    id: 'repeat-accumulate', he: 'חזור על מספר עד תנאי — צבור בדרך', chapter: 'חזור-על-מספר',
+    doc: 'כמו "כמה פעמים", אבל בכל צעד מצרפים לצובר משהו מהמספר הנוכחי (או אותו עצמו; מתחילים מ-0). מחזירים את הצובר.',
+    holes: [{ what: 'תנאי: להמשיך?', from: 'shelf' }, { what: 'הצעד על המספר', from: 'shelf' }, { what: 'מה לוקחים מהמספר', from: 'shelf', optional: true }, { what: 'צירוף לצובר', from: 'arith', label: '+' }],
+    graph: { inputs: ['i0'], nodes: [{ id: 'U', loop: { over: [0], init: { v: '$i0', a: 0 }, item: 'u', state: 'su', until: 'stable', max: 2000, nodes: [N('c', H(0, '$su.v')), N('nv', H(1, '$su.v')), N('w', H(2, '$su.v')), N('na', H(3, '$su.a', '@w')), N('kv', { part: '⟨choose⟩', args: ['@c', '@nv', '$su.v'] }), N('ka', { part: '⟨choose⟩', args: ['@c', '@na', '$su.a'] })], next: { v: '@kv', a: '@ka' } } }], out: '@U.state.a' },
+  },
+  {
+    id: 'repeat-final', he: 'חזור על מספר עד תנאי — לאן הגיע', chapter: 'חזור-על-מספר',
+    doc: 'כל עוד התנאי אמת — מחליפים את המספר בצעד; מחזירים את המספר שבו נעצרנו.',
+    holes: [{ what: 'תנאי: להמשיך?', from: 'shelf' }, { what: 'הצעד על המספר', from: 'shelf' }],
+    graph: { inputs: ['i0'], nodes: [{ id: 'U', loop: { over: [0], init: '$i0', item: 'u', state: 'su', until: 'stable', max: 2000, nodes: [N('c', H(0, '$su')), N('nv', H(1, '$su')), N('kv', { part: '⟨choose⟩', args: ['@c', '@nv', '$su'] })], next: '@kv' } }], out: '@U.state' },
+  },
+  {
+    id: 'repeat-pair', he: 'חזור על זוג מספרים עד תנאי', chapter: 'חזור-על-מספר',
+    doc: 'זוג (x, y); כל עוד התנאי על y אמת — x מקבל צעד אחד מהזוג ו-y צעד אחר. מחזירים את x.',
+    holes: [{ what: 'תנאי על y: להמשיך?', from: 'shelf' }, { what: 'x החדש (מ-y ו-x)', from: 'shelf', optional: true }, { what: 'y החדש (מ-x ו-y)', from: 'shelf' }],
+    graph: { inputs: ['i0', 'i1'], nodes: [{ id: 'U', loop: { over: [0], init: { x: '$i0', y: '$i1' }, item: 'u', state: 'su', until: 'stable', max: 2000, nodes: [N('c', H(0, '$su.y')), N('nx', H(1, '$su.y', '$su.x')), N('ny', H(2, '$su.x', '$su.y')), N('kx', { part: '⟨choose⟩', args: ['@c', '@nx', '$su.x'] }), N('ky', { part: '⟨choose⟩', args: ['@c', '@ny', '$su.y'] })], next: { x: '@kx', y: '@ky' } } }], out: '@U.state.x' },
+  },
+  /* ═══ פרק י״ג · מונה עם איפוס (נוסף 3.11.2026 — ספר v2) ═══ */
+  {
+    id: 'run-reset', he: 'רצף שמתאפס — הרצף הטוב', chapter: 'מונה-עם-איפוס',
+    doc: 'עוברים על זוגות-שכנים; כל עוד ההשוואה בין הנוכחי לקודם אמת — הרצף גדל בצעד, אחרת מתחיל מחדש מפריט אחד. שומרים את הטוב מבין הרצפים.',
+    holes: [{ what: 'השוואה: הנוכחי מול הקודם', from: 'cmp', label: '<' }, { what: 'הגדלת הרצף', from: 'shelf' }, { what: 'הטוב: שומר מול הרצף', from: 'arith', label: '+' }],
+    graph: { inputs: ['i0'], nodes: [{ id: 'L', loop: { over: { $slice: ['$i0', 1] }, init: { c: 1, m: 1 }, item: 'it', index: 'k', state: 'st', nodes: [N('p', { part: '⟨at⟩', args: ['$i0', '$k'] }), N('q', H(0, '$it', '@p')), N('g', H(1, '$st.c')), N('nc', { part: '⟨choose⟩', args: ['@q', '@g', 1] }), N('nm', H(2, '$st.m', '@nc'))], next: { c: '@nc', m: '@nm' } } }], out: '@L.state.m' },
+  },
+  {
+    id: 'continue-or-restart', he: 'להמשיך או להתחיל מחדש', chapter: 'מונה-עם-איפוס',
+    doc: 'ערך-רץ שבכל פריט בוחר: להמשיך את מה שנצבר עם הפריט, או להתחיל מחדש מהפריט; שומרים את הטוב שנראה.',
+    holes: [{ what: 'המשך: נצבר מול פריט', from: 'arith', label: '+' }, { what: 'בחירה: המשך מול התחלה-מחדש', from: 'arith', label: '+' }, { what: 'הטוב: שומר מול הנוכחי', from: 'arith', label: '+' }],
+    graph: { inputs: ['i0'], nodes: [N('f', { part: '⟨at⟩', args: ['$i0', 0] }), { id: 'L', loop: { over: { $slice: ['$i0', 1] }, init: { c: '@f', m: '@f' }, item: 'it', state: 'st', nodes: [N('t', H(0, '$st.c', '$it')), N('nc', H(1, '@t', '$it')), N('nm', H(2, '$st.m', '@nc'))], next: { c: '@nc', m: '@nm' } } }], out: '@L.state.m' },
+  },
+  {
+    id: 'track-and-best', he: 'עוקב-עד-כאן והטוב מולו', chapter: 'מונה-עם-איפוס',
+    doc: 'שומרים ערך-עוקב מכל מה שעבר; לכל פריט (מהשני) — ציון מול העוקב, ושומרים את הציון הטוב (מתחילים מהציון הראשון); אחר-כך מעדכנים את העוקב.',
+    holes: [{ what: 'ציון: פריט מול העוקב', from: 'arith', label: '+' }, { what: 'עדכון העוקב', from: 'arith', label: '+' }, { what: 'הטוב: שומר מול הציון', from: 'arith', label: '+' }],
+    graph: { inputs: ['i0'], nodes: [N('f', { part: '⟨at⟩', args: ['$i0', 0] }), { id: 'L', loop: { over: { $slice: ['$i0', 1] }, init: { c: '@f', m: 0 }, item: 'it', index: 'k', state: 'st', nodes: [N('v', H(0, '$it', '$st.c')), N('first', { part: '⟨cmp!==⟩', args: ['$k', 0] }), N('b', H(2, '$st.m', '@v')), N('nm', { part: '⟨choose⟩', args: ['@first', '@b', '@v'] }), N('nc', H(1, '$st.c', '$it'))], next: { c: '@nc', m: '@nm' } } }], out: '@L.state.m' },
+  },
+  /* ═══ פרק י״ד · לכל פריט מול כל האחרים (נוסף 3.11.2026 — ספר v2) ═══ */
+  {
+    id: 'each-vs-all', he: 'לכל פריט — מול כל הפריטים', chapter: 'לכל-פריט-מול-כולם',
+    doc: 'לכל פריט: עוברים על כל הפריטים, ערך לכל זוג (הפריט, האחר), מצרפים מ-0 ⇒ מספר לכל פריט; אופציונלית מספר אחד מכל אלה.',
+    holes: [{ what: 'ערך: האחר מול הפריט', from: 'shelf' }, { what: 'צירוף', from: 'arith', label: '+' }, { what: 'מספר מכל הערכים', from: 'stat', label: 'stat', optional: true }],
+    graph: { inputs: ['i0'], nodes: [{ id: 'L', loop: { over: '$i0', init: 0, item: 'x', state: 'st', nodes: [{ id: 'M', loop: { over: '$i0', init: 0, item: 'y', state: 's2', nodes: [N('v', H(0, '$y', '$x')), N('n', H(1, '$s2', '@v'))], next: '@n' } }], next: '$st', emit: '@M.state' } }, N('o', H(2, '@L.emits'))], out: 'o' },
+  },
+  {
+    id: 'best-vs-all', he: 'הפריט הטוב מול כולם — המקום', chapter: 'לכל-פריט-מול-כולם',
+    doc: 'לכל פריט — הצירוף שלו מול כל הפריטים (כמו "לכל פריט מול כולם"); מחזירים את המקום של הפריט שהצירוף שלו מנצח בהשוואה (הראשון נבחר בהתחלה; השוואה חזקה ⇒ בתיקו נשאר הקודם).',
+    holes: [{ what: 'ערך: האחר מול הפריט', from: 'shelf' }, { what: 'צירוף', from: 'arith', label: '+' }, { what: 'השוואה: מנצח?', from: 'cmp', label: '<' }],
+    graph: { inputs: ['i0'], nodes: [{ id: 'L', loop: { over: '$i0', init: { i: 0, s: 0 }, item: 'x', index: 'k', state: 'st', nodes: [{ id: 'M', loop: { over: '$i0', init: 0, item: 'y', state: 's2', nodes: [N('v', H(0, '$y', '$x')), N('n', H(1, '$s2', '@v'))], next: '@n' } }, N('c', H(2, '@M.state', '$st.s')), N('first', { part: '⟨cmp!==⟩', args: ['$k', 0] }), N('w', { part: '⟨choose⟩', args: ['@first', '@c', 1] }), N('ni', { part: '⟨choose⟩', args: ['@w', '$k', '$st.i'] }), N('ns', { part: '⟨choose⟩', args: ['@w', '@M.state', '$st.s'] })], next: { i: '@ni', s: '@ns' } } }], out: '@L.state.i' },
   },
 ];
