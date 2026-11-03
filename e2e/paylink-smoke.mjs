@@ -3,7 +3,7 @@
  * קונפיג-השורש בלי firebase, slug=mavr-hchsd (המשרד של מאור), תשלומים דלוק עם נדרים בלבד (בלי solaPayUrl)
  * ⇒ דמו ⇒ כרטיס-תורם ⇒ (1) שני כפתורים: נדרים + סולה (ברירת-המחדל של מאור) (2) הקישורים נושאים
  * שם/טלפון/מייל/כתובת/עיר של התורם (3) ‏LIVE=1 — פתיחת עמוד-סולה האמיתי מהכפתור ובדיקה שהשדות התמלאו
- * (בלי לשלוח תשלום). נדרים חוסם גישה אוטומטית — נבדקים פרמטרי-הקישור בלבד.
+ * (בלי לשלוח תשלום). ‏SLUG=other-org ⇒ לקוח אחר נשאר כמו היום (שם בלבד). נדרים חוסם גישה אוטומטית — נבדקים פרמטרי-הקישור בלבד.
  */
 import { chromium } from 'playwright-core';
 import { createServer } from 'http';
@@ -26,7 +26,9 @@ await new Promise((r) => server.listen(8261, r));
 const NED = 'https://www.matara.pro/nedarimplus/online/?mosad=7001532';
 const cfg = JSON.parse(readFileSync(join(HERE, '..', 'public', 'config.json'), 'utf8'));
 delete cfg.firebase;
-cfg.slug = 'mavr-hchsd';
+// SLUG=other-org ⇒ לקוח אחר של אורביט: חייב להישאר כמו היום (שם בלבד, בלי כפתור-סולה בלי הגדרה)
+const OTHER = !!process.env.SLUG && process.env.SLUG !== 'mavr-hchsd';
+cfg.slug = process.env.SLUG || 'mavr-hchsd';
 cfg.integrations = { ...(cfg.integrations || {}), payments: { enabled: true, payUrl: NED } };
 const browser = await chromium.launch({ executablePath: CHROME, args: ['--no-sandbox'] });
 const pg = await browser.newPage({ viewport: { width: 1024, height: 1366 } });
@@ -58,7 +60,15 @@ const hrefs = await pg.$$eval('a', (as) => as.map((a) => a.href).filter((h) => /
 const ned = hrefs.find((h) => h.includes('matara.pro'));
 const sola = hrefs.find((h) => h.includes('cardknox.com'));
 ned ? ok('כפתור נדרים בכרטיס') : fail('אין כפתור נדרים');
-sola ? ok('כפתור סולה בכרטיס — בלי הגדרה באשף (ברירת-המחדל של מאור)') : fail('אין כפתור סולה');
+if (!OTHER) sola ? ok('כפתור סולה בכרטיס — בלי הגדרה באשף (ברירת-המחדל של מאור)') : fail('אין כפתור סולה');
+if (OTHER) {
+  const nn = new URL(ned || 'https://x.invalid');
+  [...nn.searchParams.keys()].sort().join(',') === 'ClientName,mosad' ? ok('לקוח אחר: נדרים מקבל שם בלבד — כמו היום') : fail('לקוח אחר: פרמטרים ' + [...nn.searchParams.keys()]);
+  !sola ? ok('לקוח אחר: אין כפתור סולה בלי הגדרה באשף — כמו היום') : fail('לקוח אחר קיבל כפתור סולה');
+  errors.length === 0 ? ok('אפס שגיאות-דף') : fail('שגיאות: ' + errors.join(' | '));
+  console.log(`\n${passed} עברו · ${failed} נכשלו`);
+  await browser.close(); server.close(); process.exit(failed ? 1 : 0);
+}
 const n = new URL(ned || 'https://x.invalid');
 const s = new URL(sola || 'https://x.invalid');
 const want = (label, got, exp) => (!exp ? ok(`${label}: לתורם אין ערך — לא נשלח (${got === null ? 'ריק' : got})`) : got === exp.trim() ? ok(`${label} = ${got}`) : fail(`${label}: ציפיתי ${exp} קיבלתי ${got}`));

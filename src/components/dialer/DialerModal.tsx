@@ -20,7 +20,7 @@ import { contactWindow } from '../supporters/quietHours';
 import { renderTemplate } from '../../lib/templates';
 import { activeDriver } from '../../lib/telephony/driver';
 import { downloadCsv, type Cell } from '../../lib/csvx';
-import { orgSolaPayUrl, payLink, supporterPayPerson } from '../../lib/payLink';
+import { orgPayWho, orgSolaPayUrl, payLink, supporterPayPerson } from '../../lib/payLink';
 import type { DialOutcome } from '../../types/domain';
 import { Modal, Btn, Empty } from '../ui';
 import { WaBtn } from '../WaBtn';
@@ -164,11 +164,11 @@ export function DialerModal({ onClose }: { onClose: () => void }) {
     downloadCsv('dialer-names-' + isoToday() + '.csv', ayinAllRows(config, campaignParticipants()));
   };
   const donateHref = sp && integrationOn(config, 'payments')
-    ? payLink(integrationSetting(config, 'payments', 'payUrl'), 0, supporterPayPerson(sp))
+    ? payLink(integrationSetting(config, 'payments', 'payUrl'), 0, orgPayWho(config.slug, supporterPayPerson(sp)))
     : null;
   // 💳 סולה (23.8) — עמוד-התשלום השני לצד נדרים; אותו מגן-כפילות (onClickCapture)
   const solaDonateHref = sp && integrationOn(config, 'payments')
-    ? payLink(orgSolaPayUrl(integrationSetting(config, 'payments', 'solaPayUrl'), config.slug), 0, supporterPayPerson(sp))
+    ? payLink(orgSolaPayUrl(integrationSetting(config, 'payments', 'solaPayUrl'), config.slug), 0, orgPayWho(config.slug, supporterPayPerson(sp)))
     : null;
   const addCareName = () => {
     if (!sp || !nameVal.trim()) return;

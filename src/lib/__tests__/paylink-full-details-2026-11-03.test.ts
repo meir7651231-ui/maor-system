@@ -2,12 +2,13 @@
  * רצ'ט — «שכל הפרטים של הבן-אדם יעברו ישירות לעמוד התרומה ולא רק השם, כי שוכחים לרשום מייל וטלפון
  * ואז זה לא יכול להיכנס לתוכנה בחזרה» + «להוסיף עמוד תרומה של סולה חו״ל» (3.11.2026, בקשת-בעלים).
  *
+ * «רק מאור» (הכרעת-בעלים 3.11): כל-הפרטים רק לארגון של מאור (payFullDetails); כל ארגון אחר — שם בלבד, ביט-זהה להיום.
  * הבאג: payLink העביר רק שם ⇒ התרומה חזרה בסנכרון (נדרים/סולה) בלי טלפון/מייל ⇒ אי-אפשר לשייך לתורם.
  * שמות-הפרמטרים אומתו: נדרים — מקוד-העמוד (‎DecodeParam('Phone') ⇒ #PhoneTxt‎…); סולה — בדפדפן מול
  * העמוד החי של מאור (xBillLastName/xBillPhone/xEmail/xBillStreet/xBillCity/xBillZip התמלאו).
  */
 import { describe, expect, it } from 'vitest';
-import { familyPayPerson, orgSolaPayUrl, payLink, supporterPayPerson } from '../payLink';
+import { familyPayPerson, orgPayWho, orgSolaPayUrl, payLink, supporterPayPerson } from '../payLink';
 import supDetail from '../../components/supporters/SupporterDetail.tsx?raw';
 import dialer from '../../components/dialer/DialerModal.tsx?raw';
 import ayin from '../../components/supporters/AyinCard.tsx?raw';
@@ -93,10 +94,12 @@ describe('🔌 חיווט — כל הכפתורים מעבירים את כל ה�
   it('אף משטח לא שולח רק שם', () => {
     for (const src of [supDetail, dialer, ayin]) {
       expect(src).not.toMatch(/payLink\([^;]*,\s*sp\.name\)/);
-      expect(src).toContain('supporterPayPerson(sp)');
+      expect(src).toMatch(/orgPayWho\((config|cfg)\.slug, supporterPayPerson\(sp\)\)/);
       expect(src).toContain("orgSolaPayUrl(integrationSetting(");
     }
     expect(manage).toContain('payLink(integrationSetting(cfg, \'payments\', \'payUrl\'), bal, payPerson)');
+    expect(manage).toContain("orgPayWho(cfg.slug, familyPayPerson(");
+    expect(collection).toContain('orgPayWho(config.slug, familyPayPerson(');
     expect(manage).toContain("payLink(orgSolaPayUrl(integrationSetting(cfg, 'payments', 'solaPayUrl'), cfg.slug), bal, payPerson)");
     expect(collection).toContain('payLink(payUrl, r.bal, personOf(r.memberId, r.name))');
     expect(collection).toContain('payLink(solaPayUrl, r.bal, personOf(r.memberId, r.name))');
@@ -104,5 +107,20 @@ describe('🔌 חיווט — כל הכפתורים מעבירים את כל ה�
   it('לוח מעקב-הטיפול: כפתור סולה לצד נדרים', () => {
     expect(ayin).toContain('💳 תשלום בסולה (חו״ל)');
     expect(ayin).toMatch(/\{!a\.paid && ayinSolaHref && \(/);
+  });
+});
+
+describe('🔒 «רק מאור» — שאר הלקוחות ביט-זהים להיום', () => {
+  it('מאור (המשרד mavr-hchsd / האתר maor-hachesed) ⇒ כל הפרטים; ארגון אחר/ללא ⇒ שם בלבד', () => {
+    expect(orgPayWho('mavr-hchsd', P)).toBe(P);
+    expect(orgPayWho('maor-hachesed', P)).toBe(P);
+    expect(orgPayWho('other-org', P)).toBe('משה כהן');
+    expect(orgPayWho('default', P)).toBe('משה כהן');
+    expect(orgPayWho(undefined, P)).toBe('משה כהן');
+  });
+  it('שם בלבד = הקישור הישן בדיוק: נדרים Amount+ClientName; סולה/אחר amount+name', () => {
+    expect(payLink(NED, 180, orgPayWho('other-org', P))).toBe(NED + '&Amount=180&ClientName=%D7%9E%D7%A9%D7%94+%D7%9B%D7%94%D7%9F');
+    const sola = new URL(payLink(SOLA, 500, orgPayWho('other-org', P))!);
+    expect([...sola.searchParams.entries()]).toEqual([['amount', '500'], ['name', 'משה כהן']]);
   });
 });

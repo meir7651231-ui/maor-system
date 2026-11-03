@@ -25,7 +25,7 @@ import {
   unitLabel,
 } from '../../lib/ayin';
 import { featureOn, integrationOn, integrationSetting } from '../../lib/config';
-import { orgSolaPayUrl, payLink, supporterPayPerson } from '../../lib/payLink';
+import { orgPayWho, orgSolaPayUrl, payLink, supporterPayPerson } from '../../lib/payLink';
 import { scheduleTasks } from '../../lib/projectSchedule';
 import { kitProgress, DEFAULT_KIT_LABELS } from '../../lib/installKit';
 import { hebDateFull } from '../../lib/hebrew';
@@ -98,11 +98,11 @@ export function AyinCard(props: { supporter: Supporter }) {
   // תתן כרטיס לתשלום קישור לנדרים"). אותה בניית-קישור כמו בכרטיס-התומך —
   // דורש הרחבת-תשלומים דלוקה + payUrl בקונפיג; אחרת null (אפס-שינוי).
   const ayinPayHref = payGateOn && integrationOn(cfg, 'payments')
-    ? payLink(integrationSetting(cfg, 'payments', 'payUrl'), 0, supporterPayPerson(sp))
+    ? payLink(integrationSetting(cfg, 'payments', 'payUrl'), 0, orgPayWho(cfg.slug, supporterPayPerson(sp)))
     : null;
   // 💳 סולה (חו״ל) לצד נדרים (3.11.2026, «להוסיף עמוד תרומה של סולה חו״ל») — כל פרטי-התורם עוברים
   const ayinSolaHref = payGateOn && integrationOn(cfg, 'payments')
-    ? payLink(orgSolaPayUrl(integrationSetting(cfg, 'payments', 'solaPayUrl'), cfg.slug), 0, supporterPayPerson(sp))
+    ? payLink(orgSolaPayUrl(integrationSetting(cfg, 'payments', 'solaPayUrl'), cfg.slug), 0, orgPayWho(cfg.slug, supporterPayPerson(sp)))
     : null;
   // כתב-כמויות/הצעת-מחיר — רק בהקשר מסחרי (§46 כבוי) + דגל. בעמותה מוסתר לגמרי.
   const boqOn = featureOn(cfg, 'supporters.ayin.boq') && !featureOn(cfg, 'core.taxreceipt');

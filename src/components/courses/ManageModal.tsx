@@ -6,7 +6,7 @@ import { useState } from 'react';
 import type { Course, Enrollment, OrgEvent } from '../../types/domain';
 import { allMembers, useApp } from '../../store/useApp';
 import { featureOn, integrationOn, integrationSetting, telephonyOn, termOf } from '../../lib/config';
-import { familyPayPerson, orgSolaPayUrl, payLink } from '../../lib/payLink';
+import { familyPayPerson, orgPayWho, orgSolaPayUrl, payLink } from '../../lib/payLink';
 import { waPaymentText } from '../../lib/wa';
 import { WaBtn } from '../WaBtn';
 import { isDemoSession } from '../../lib/demoLock';
@@ -291,7 +291,7 @@ export function ManageModal(props: { enrollmentId: string; course: Course; onClo
   // לחוגים בלבד). אפס-קבלה — הקישור מפנה לסליקה, הקבלה נרשמת ידנית ב-＋קבלת תשלום.
   // 3.11.2026: כל פרטי-המשלם (טלפון/מייל/כתובת של המשפחה) עוברים לעמוד-התשלום — לא רק השם
   const payFam = db.families.find((f) => f.id === m?.famId);
-  const payPerson = familyPayPerson((m?.first ?? '') + ' ' + (m?.famName ?? ''), payFam, m ?? undefined);
+  const payPerson = orgPayWho(cfg.slug, familyPayPerson((m?.first ?? '') + ' ' + (m?.famName ?? ''), payFam, m ?? undefined));
   const payHref =
     integrationOn(cfg, 'payments') && featureOn(cfg, 'courses.paylink') && bal > 0
       ? payLink(integrationSetting(cfg, 'payments', 'payUrl'), bal, payPerson)

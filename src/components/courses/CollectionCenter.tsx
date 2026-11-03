@@ -4,7 +4,7 @@
  */
 import { useApp } from '../../store/useApp';
 import { featureOn, integrationOn, integrationSetting } from '../../lib/config';
-import { familyPayPerson, orgSolaPayUrl, payLink } from '../../lib/payLink';
+import { familyPayPerson, orgPayWho, orgSolaPayUrl, payLink } from '../../lib/payLink';
 import { Btn, Empty, Modal } from '../ui';
 import { WaBtn } from '../WaBtn';
 import { guardExport } from '../../lib/exportGate';
@@ -28,7 +28,7 @@ export function CollectionCenter(props: { onClose: () => void }) {
   // 3.11.2026: פרטי-המשלם המלאים (המשפחה) לכל שורה — לא רק השם
   const personOf = (memberId: string, name: string) => {
     const fam = db.families.find((f) => f.members.some((x) => x.id === memberId));
-    return familyPayPerson(name, fam, fam?.members.find((x) => x.id === memberId));
+    return orgPayWho(config.slug, familyPayPerson(name, fam, fam?.members.find((x) => x.id === memberId)));
   };
   const payUrl =
     integrationOn(config, 'payments') && featureOn(config, 'courses.paylink')

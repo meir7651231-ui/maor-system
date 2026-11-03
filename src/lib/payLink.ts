@@ -29,7 +29,7 @@ const isNedarim = (u: URL) => /(^|\.)matara\.pro$/i.test(u.hostname) && /nedarim
 const isSola = (u: URL) => /(^|\.)(cardknox\.com|solapayments\.com)$/i.test(u.hostname);
 
 /** בניית קישור-תשלום: מוסיף סכום + פרטי-המשלם ל-URL של הארגון.
- *  ‏`who` = שם (מחרוזת, כמו פעם) או PayPerson מלא.
+ *  ‏`who` = שם (מחרוזת ⇒ ההתנהגות הישנה, ביט-זהה) או PayPerson מלא (רק לארגון שהופעל — `orgPayWho`).
  *  · נדרים-פלוס: Amount · ClientName · Phone · Email · Street · City · Zeout — שמות-הפרמטרים אומתו מול
  *    קוד-העמוד שלהם (JavaScript5.js: ‎DecodeParam('Phone') ⇒ #PhoneTxt‎ וכו'). ⚠️ נדרים **נועל** שדה שמולא מהקישור.
  *  · סולה (PaymentSITE): xBillLastName (שדה "Name" בעמוד של מאור) · xBillPhone · xEmail · xBillStreet ·
@@ -48,9 +48,20 @@ export function payLink(payUrl: string, amount: number, who: string | PayPerson 
     // סכום 0 ("לא-ידוע", קישור-תרומה-כללי) ⇒ שדה-ריק, עקבי עם מצב-הפרמטרים (לא Amount=0).
     return base
       .replace(/%7Bamount%7D|\{amount\}/g, amt === '0' ? '' : encodeURIComponent(amt))
-      .replace(/%7Bname%7D|\{name\}/g, encodeURIComponent(name));
+      .replace(/%7Bname%7D|\{name\}/g, encodeURIComponent(typeof who === 'string' ? who : name)); // מחרוזת ⇒ כמו פעם (בלי trim)
   }
   const u = new URL(base);
+  // מחרוזת = ההתנהגות הישנה בדיוק (ארגונים שאינם מאור — «רק מאור», 3.11.2026): Amount/ClientName לנדרים, אחרת amount/name
+  if (typeof who === 'string') {
+    if (isNedarim(u)) {
+      if (amt !== '0') u.searchParams.set('Amount', amt);
+      if (name) u.searchParams.set('ClientName', name);
+      return u.toString();
+    }
+    if (amt !== '0') u.searchParams.set('amount', amt);
+    if (name) u.searchParams.set('name', name);
+    return u.toString();
+  }
   const put = (k: string, v: string | undefined) => {
     const t = (v ?? '').trim();
     if (t) u.searchParams.set(k, t);
@@ -104,4 +115,11 @@ export function orgSolaPayUrl(configured: string | undefined, orgSlug: string | 
   if (!orgSlug) return '';
   const d = Object.values(SITE_DOMAINS).find((x) => x.officeSlug === orgSlug || x.slug === orgSlug);
   return d?.solaPayUrl ?? '';
+}
+
+/** «רק מאור» (הכרעת-בעלים 3.11.2026): העברת כל-הפרטים פעילה רק לארגון שמסומן ב-SITE_DOMAINS
+ *  (`payFullDetails`); כל ארגון אחר מקבל את השם בלבד — ההתנהגות של היום, ביט-זהה. טהור. */
+export function orgPayWho(orgSlug: string | undefined, p: PayPerson): string | PayPerson {
+  const on = !!orgSlug && Object.values(SITE_DOMAINS).some((x) => x.payFullDetails && (x.officeSlug === orgSlug || x.slug === orgSlug));
+  return on ? p : (p.name ?? '');
 }
