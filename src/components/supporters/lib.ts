@@ -622,8 +622,8 @@ export function phoneRegion(raw: string): 'il' | 'intl' {
   const s = (raw || '').replace(/[^\d+]/g, '');
   if (!s) return 'il';
   if (/^(\+?972|00972)/.test(s)) return 'il';
-  if (/^\+/.test(s)) return 'intl';
-  if (/^00/.test(s)) return 'intl';
+  if (s.startsWith('+')) return 'intl';
+  if (s.startsWith('00')) return 'intl';
   const d = s.replace(/\D/g, '');
   if (/^0\d{8,9}$/.test(d)) return 'il'; // 0 + 9/10 ספרות
   if (/^5\d{8}$/.test(d)) return 'il'; // נייד ישראלי בלי 0 מוביל

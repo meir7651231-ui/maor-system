@@ -555,7 +555,7 @@ function refreshLive(cur: PublicSiteLive, fresh: PublicSiteLive): PublicSiteLive
     ...cur,
     cards: upd(cur.cards, fresh.cards),
     today: upd(cur.today, fresh.today),
-    raised: { ...(cur.raised ?? {}), value: fresh.raised?.value, goal: cur.raised?.goal ?? fresh.raised?.goal },
+    raised: { ...cur.raised, value: fresh.raised?.value, goal: cur.raised?.goal ?? fresh.raised?.goal },
     week: fresh.week,
     ticker: fresh.ticker,
     asOf: fresh.asOf,
