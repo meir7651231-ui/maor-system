@@ -42,6 +42,13 @@
 | P4 | טוקני הסרה של לקוח שנמחק נשארו | נמחקים במחיקה | נופלת |
 | ✔ | אומת: יום 89 לא מוחק · legal hold דורש סיבה ≥10 תווים, חוסם מחיקה, והשחרור מאפשר אותה · `suppressions` שורד ועדיין חוסם לקוח שחוזר בכרטיס חדש · ר-6: minor/deceased/insolvency עוצרים, סימון לא מוכר נדחה · ר-7: מעל 3 שנים ⇒ אין תזכורת + התראה **אחת** · `/maintenance/purge` ו-`/hold` דורשים בעלים | — | — |
 
+**ד. CI (6.11 לילה)**
+| # | ממצא | תיקון | הוכחה |
+|---|---|---|---|
+| C2 | **כל ריצות ה-CI נכשלו מיידית מאז `ac97abe` (ריצות 75–81).** היו שני ג'ובים בשם `web`. PyYAML לוקח בשקט את האחרון, אבל GitHub דוחה מפתח כפול, ולכן ה-workflow כולו לא תקין | הוסר הג'וב הכפול. `test_workflows_have_no_duplicate_keys` עם loader קפדני על כל קבצי ה-workflow | מוטציה ⇒ נופלת · ריצה 88 ירוקה |
+| C3 | **ג'וב security אדום:** XML של תשובת 019 נפרסר ב-ElementTree בלי הקשחה (B314/B405), ותו RLM מילולי ב-`csv_import.py` (B613) | `Sms019.parse` דוחה DOCTYPE/ENTITY ותשובה מעל 64KB. ה-RLM הוחלף ב-escape. בדיקת Trojan Source הורחבה ל-RLM/LRM/ALM ולתתי-תיקיות | 3 בדיקות XML עוין · ריצות [88](https://github.com/meir7651231-ui/maor-system/actions/runs/42150456090) ו-90 ירוקות (test, web כולל `live.mjs`, security) |
+| C4 | ג'וב ה-e2e התקין את השרת עם `pip install -e '..[dev]'`, מחוץ לנעילה | `--require-hashes` מהנעילה. בדיקת הרגרסיה תופסת כל התקנה לא נעולה | מוטציה ⇒ נופלת |
+
 **עדכון הנעילה:** `cd collect-agent && uv pip compile pyproject.toml --universal --python-version 3.11 --generate-hashes -o requirements.lock` (ואותו דבר עם `--extra dev` ל-`requirements-dev.lock`). בדיקה נכשלת אם שכחתם.
 **סיכון שנשאר (נמוך):** `POST /api/pay/{code}/{action}` ו-`/p/{code}/{action}` מוגנים רק בקוד עצמו (bearer). אין CSRF token, אבל תוקף צריך לדעת את הקוד, והגבלת הקצב חוסמת ניחוש.
 
