@@ -73,7 +73,7 @@
   - **רשימה סגורה של hosts יוצאים** (GI, 019, InforU, Twilio, Resend, iCount). facebook/whatsapp אסורים. הסריקה כוללת את `app/integrations/`.
   - 10 תבניות סודות.
 - **אומת מקומית:** ruff ✅, bandit ✅ (B406 סומן במפורש כ-false positive: `escape` רק בונה XML), pytest 302/302 ✅, evals ✅, `demo.sh --check` ✅, smoke ✅, demo ✅.
-- ⏳ **לא אומת עדיין:** הריצה הראשונה של ה-workflow ב-GitHub. היא תרוץ אחרי ה-push.
+- ✅ **אומת ב-GitHub:** כל 4 הג'ובים (test 3.11, test 3.13, security, web) ירוקים. [ריצה 42139519553](https://github.com/meir7651231-ui/maor-system/actions/runs/42139519553).
 
 ## 5. לפני שליחה אמיתית (שלב 2): רשימה לצוות
 1. **Webhook של 019:** הסוד ב-URL עדיף על כלום, אבל יש לו מגבלות (מופיע בלוגים של proxy ובהיסטוריה). לברר אם 019 תומכים בחתימה או ב-IP allowlist, ואם כן להוסיף. ל-Twilio משתמשים ב-`verify_twilio`.
