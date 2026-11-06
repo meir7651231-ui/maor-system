@@ -52,8 +52,8 @@ def test_first_message_needs_owner_approval(api, svc):
     # הקישור הקצר מוביל לדף התשלום של חשבונית ירוקה
     code = sms["body"].split("/p/")[1].split()[0]
     r = api.get(f"/p/{code}/pay", follow_redirects=False)
-    assert r.status_code == 302 and r.headers["location"] == "https://pay.greeninvoice.co.il/f/doc1"
-    assert "https://pay.greeninvoice.co.il/f/doc1" in mail["body"]
+    assert r.status_code == 302 and r.headers["location"] == "https://www.greeninvoice.co.il/pay/studio?invoice=1001"
+    assert "https://www.greeninvoice.co.il/pay/studio?invoice=1001" in mail["body"]
     # שכבת ספקים אחת (app/integrations): 019 ב-XML (fixture תאימות, חוזה לא מאומת), /api/test, סוד מצונזר
     assert "<source>StudioMeir</source>" in sms["request"]["body"]
     assert sms["request"]["headers"]["authorization"] == "***"
@@ -222,7 +222,8 @@ def test_payment_form_created_once(api, svc, fake_gi, clock):
     api.post("/dispatch")
     clock.now += timedelta(days=7)
     api.post("/plan")
-    assert fake_gi.forms == 2   # אחד לכל חשבונית, לא לכל תזכורת
+    # הכרעת מאיר (6.11) + review חור 3: לא יוצרים דף תשלום שמנפיק קבלה. היה: אחד לכל חשבונית
+    assert fake_gi.forms == 0
 
 
 def test_unsubscribe_link_and_one_click(api, svc):
@@ -250,7 +251,7 @@ def test_how_to_pay_reply_uses_invoice_link(api, svc):
     api.post(f"/reminders/{ids[0]}/approve")
     res = api.post("/inbound", json={"sender": "0501234567", "text": "איך אפשר לשלם?"}).json()
     draft = next(d for d in api.get("/conversation/drafts").json() if d["id"] == res["draft_id"])
-    assert "https://pay.greeninvoice.co.il/f/doc1" in draft["body"]
+    assert "https://www.greeninvoice.co.il/pay/studio?invoice=1001" in draft["body"]
 
 
 def test_ui_page_has_slogan_and_no_whatsapp(api):

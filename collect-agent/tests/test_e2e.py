@@ -84,7 +84,7 @@ def test_full_journey_over_http():
     r = customer_says(api, "+972-50-123-4567", "איך משלמים?")
     assert r["intent"] == "how_to_pay" and r["draft_id"] and not r["auto_sent"]
     draft = next(d for d in api.get("/conversation/drafts").json() if d["id"] == r["draft_id"])
-    assert "https://pay.greeninvoice.co.il/f/doc1" in json.dumps(draft, ensure_ascii=False)
+    assert "https://www.greeninvoice.co.il/pay/studio?invoice=1001" in json.dumps(draft, ensure_ascii=False)
     # לקוח 2 מבקש פריסה ⇒ הצעה ממתינה לבעלים, התזכורות נעצרות
     r = customer_says(api, "0527654321", "אפשר לפרוס לתשלומים?")
     assert r["plan_id"] and r["escalate"]

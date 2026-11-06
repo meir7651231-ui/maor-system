@@ -205,31 +205,26 @@ def test_single_sms_implementation_in_codebase():
     assert "Twilio" not in (APP / "integrations" / "sms.py").read_text("utf-8").split('"""')[2]
 
 
-def test_sync_with_new_amount_drops_stale_payment_form(svc, fake_gi):
-    """טופס התשלום של GI נבנה על סכום ⇒ אחרי תשלום חלקי (סנכרון עם יתרה חדשה) הוא לא בשימוש."""
+def test_partial_payment_creates_no_payment_form(svc, fake_gi):
+    """היה: טופס תשלום של GI נבנה על הסכום ונזרק אחרי תשלום חלקי. מאז הכרעת מאיר (6.11) ו-review
+    חור 3 לא יוצרים טופס/קבלה בכלל: הקישור הוא עמוד התשלום של העסק, ולא משנה מה הסכום."""
     svc.sync()
     svc.plan()
-    url = svc.db.one("SELECT payment_url FROM invoices WHERE external_id='doc1'")[0]
-    assert url and fake_gi.forms >= 1
-    svc.sync()                                            # אותו סכום ⇒ הטופס נשמר
-    assert svc.db.one("SELECT payment_url FROM invoices WHERE external_id='doc1'")[0] == url
     fake_gi.docs[0]["amount"] = "700.00"
     svc.sync()
     row = svc.db.one("SELECT payment_url, amount_agorot FROM invoices WHERE external_id='doc1'")
-    assert row["payment_url"] is None and row["amount_agorot"] == 70000
+    assert not row["payment_url"] and row["amount_agorot"] == 70000 and fake_gi.forms == 0
 
 
-def test_refresh_with_new_amount_builds_new_payment_form(svc, fake_gi):
-    """ר-4 + טופס GI: אחרי תשלום חלקי הנוסח החדש מקבל טופס חדש (על היתרה), לא את הישן."""
+def test_refresh_with_new_amount_requires_reapproval_without_new_form(svc, fake_gi):
+    """ר-4: תשלום חלקי לפני השליחה ⇒ חזרה לאישור עם הסכום החדש; לא נוצר טופס תשלום ב-GI."""
     svc.sync()
     rid = svc.plan()[0]
-    forms_before = fake_gi.forms
     svc.approve(rid)
     fake_gi.docs[0]["amount"] = "700.00"                  # תשלום חלקי — לפני השליחה
     svc.dispatch()
     assert svc.db.one("SELECT block_reason FROM reminders WHERE id=?", (rid,))[0] == "amount_changed"
-    assert fake_gi.forms == forms_before + 1              # נוצר טופס חדש על 700 ₪
-    assert fake_gi.last_form_amount == 700
+    assert fake_gi.forms == 0 and svc.sender.sent == []
 
 
 def test_live_guard_blocks_even_if_transport_guard_is_bypassed(monkeypatch):

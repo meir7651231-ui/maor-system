@@ -374,6 +374,11 @@ class ConversationInbox:
         self.svc._log_out(cust["id"], msg, mid, now)
         self.db.x("UPDATE drafts SET status='sent_dry_run', sent_at=?, message_id=? WHERE id=?",
                   (_iso(now), mid, draft_id))
+        if dr["plan_id"]:
+            # review חור 2: הצעת הפריסה יצאה מתור התשובות ⇒ ההסדר הוכרע. אחרת /plans/approve
+            # שלח ללקוח הצעה שנייה (בנוסח ובתאריכים אחרים).
+            self.db.x("UPDATE plans SET status='approved' WHERE id=? AND status='proposed'",
+                      (dr["plan_id"],))
         self.svc.audit("system", "draft_sent_dry_run", {"draft": draft_id, "message_id": mid})
         return True
 

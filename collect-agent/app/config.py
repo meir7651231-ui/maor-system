@@ -57,7 +57,9 @@ class Settings:
     sms_two_way: bool = False   # True רק כשיש מספר וירטואלי שמקבל תשובות (אחרת: "להפסקה: בקישור")
     sms_webhook_key: str = field(default="", repr=False)     # סוד ב-URL של ה-webhook (?k=...) — חסר ⇒ ה-webhook סגור
     email_webhook_key: str = field(default="", repr=False)   # סוד ל-/webhooks/email?k=... — חסר ⇒ סגור
-    payment_link_mode: str = "greeninvoice_form"    # greeninvoice_form | static
+    # הכרעת מאיר (6.11): לא מחזיקים כסף ולא יוצרים קבלות — רק קישור לעמוד התשלום של העסק.
+    # greeninvoice_form יוצר ב-GI דף תשלום שמנפיק קבלה (type 400) ⇒ אסור (review חור 3)
+    payment_link_mode: str = "static"
     payment_domains: tuple[str, ...] = ("greeninvoice.co.il", "morning.co")
 
     def __post_init__(self) -> None:
@@ -85,7 +87,10 @@ class Settings:
         import re as _re
         if self.sms_sender_id and not _re.fullmatch(r"[A-Za-z0-9]{1,11}", self.sms_sender_id):
             raise ValueError("SMS_SENDER_ID: עד 11 אותיות לטיניות/ספרות")
-        if self.payment_link_mode not in {"greeninvoice_form", "static"}:
+        if self.payment_link_mode == "greeninvoice_form":
+            raise SafetyError("PAYMENT_LINK_MODE=greeninvoice_form אסור: יוצר דף תשלום שמנפיק קבלה "
+                              "בשם העסק. גבי לא יוצר קבלות — רק PAYMENT_LINK לעמוד של העסק")
+        if self.payment_link_mode not in {"static"}:
             raise ValueError(f"PAYMENT_LINK_MODE לא מוכר: {self.payment_link_mode}")
 
     @property
@@ -130,7 +135,7 @@ def load_settings(env: dict[str, str] | None = None) -> Settings:
         email_from=e.get("EMAIL_FROM", "no-reply@example.com"),
         email_reply_to=e.get("EMAIL_REPLY_TO", ""),
         public_base_url=e.get("PUBLIC_BASE_URL", "https://gabi.example").rstrip("/"),
-        payment_link_mode=e.get("PAYMENT_LINK_MODE", "greeninvoice_form"),
+        payment_link_mode=e.get("PAYMENT_LINK_MODE", "static"),
         payment_domains=_csv(e.get("PAYMENT_DOMAINS", "greeninvoice.co.il,morning.co")),
     )
 
