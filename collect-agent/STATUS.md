@@ -18,13 +18,22 @@ cd collect-agent && ./demo.sh          # ואז http://127.0.0.1:8000/ui  (PORT=
 | **באג שנתפס בהדגמה:** אחרי «שילמתי» הסבב הבא שלח ללקוח תזכורת שוב. עכשיו הלקוח מושהה (`paused_reason`) עד `POST /customers/{id}/resume` או עד שהחשבונית נסגרת | `test_paid_claim_pauses…` + **מוטציה:** ביטול ההשהיה ⇒ הבדיקה נופלת |
 | `pip install -e` היה שבור (התיקייה `team/` שברה את ה-flat-layout) ⇒ תוקן ב-`pyproject.toml` (+ `ui.html` ב-package-data) + תצורת ruff מקומית | ההתקנה עוברת, ruff נקי |
 | CI: `.github/workflows/collect-agent.yml` רץ על push ו-PR לענף `collect-agent` בלבד: ruff, pytest, `demo.sh --check`, על Python 3.11 ו-3.13. בלי סודות ובלי deploy | — |
-| **בדיקות: 87/87 ירוק** (84 של סבב 2 + 3 חדשות) | `pytest -q` |
+| **בדיקות: 167/167 פייתון + 7/7 web** (אחרי כל המיזוגים) · ruff נקי · `npm run build` עובר | `pytest -q` · `cd web && npm test` |
+
+## ענפי צוות שמוזגו לסבב הזה
+| ענף | תוכן | הערות מיזוג |
+|---|---|---|
+| `claude/bold-bell-xom3mc` | מכירות: `team/sales.md`, `gtm.md` | נקי |
+| `claude/gallant-brown-ien8fb` | שיווק: `team/marketing.md` (מסרים, דף נחיתה, תסריט דמו, SEO) | נקי |
+| `claude/stoic-mccarthy-23f03p` | מבקר: `team/critic.md` | נקי. ממצא 3 («שילמתי» ⇒ תזכורת נוספת) **תוקן בסבב הזה** |
+| `claude/dazzling-archimedes-66mq2d` | עיצוב: `web/` (React+Tailwind RTL, מיתוג, DESIGN.md) | קונפליקט ב-`pyproject`/`.gitignore`: אוחד. נוסף ג'וב `web` ל-CI |
+| `claude/funny-euler-kfq3b6` | `app/integrations/` (SMS/מייל/iCount/תשלומים, mock) | קונפליקט סמנטי: יובא `app.whatsapp` שנמחק, והופנה ל-`app.channels`. **שתי שכבות SMS במקביל** (`channels.py` ו-`integrations/sms.py`). צריך לאחד, ראו «פיתוח» למטה |
 
 ## ⏭ הצעד הבא לכל תפקיד
 | תפקיד | הצעד הבא |
 |---|---|
-| **פיתוח** | (1) קיצור ה-SMS ל-≤2 חלקים. היום יש 3, ו-`team/market.md` דורש 2 כי זו העלות המשמעותית היחידה. (2) מספר תשלומים מתוך הטקסט («ל-3 תשלומים»). (3) כפתור «חידוש» ללקוח מושהה בדשבורד (ה-API כבר קיים). (4) מייל נכנס |
-| **עיצוב (web/)** | להתיישר עם הדשבורד החדש ב-`app/ui.html` (כרטיסים + טבלה) או להחליף אותו. ענף העיצוב לא נמצא ב-remote בסבב הזה |
+| **פיתוח** | (0) **לאחד את `app/channels.py` עם `app/integrations/`**: היום יש שני adapters ל-019/InforU/Twilio, ו-`service.py` משתמש רק ב-channels. (1) קיצור ה-SMS ל-≤2 חלקים. היום יש 3, ו-`team/market.md` דורש 2 כי זו העלות המשמעותית היחידה. (2) מספר תשלומים מתוך הטקסט («ל-3 תשלומים»). (3) כפתור «חידוש» ללקוח מושהה בדשבורד (ה-API כבר קיים). (4) מייל נכנס |
+| **עיצוב (web/)** | לחבר את `web/` ל-API האמיתי (`/dashboard`, `/reminders`, `/reminders/{id}/preview`) במקום נתוני mock. אחר כך להגיש את ה-build מ-FastAPI, כדי ש-`demo.sh` יציג אותו |
 | **מוצר** | להכריע על הכלל «עצירה אחרי 3 תזכורות בלי מענה» (היום 4) ועל תמחור (ראו חסמים) |
 | **תשתית** | לוודא ריצה ירוקה ראשונה של ה-workflow ב-GitHub. ה-`ci.yml` של מאור מופעל על כל `pull_request`, כולל PR לענף הזה, ולכן כדאי לסנן |
 | **מחקר שוק** | מחירי SMS בנפח מ-019 ו-InforU (קריאה ציבורית בלבד). זה קובע את המכסות |
