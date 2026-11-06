@@ -16,3 +16,23 @@ dev = ["pytest>=8"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+# רק app הוא חבילה (team/ שבר את ה-flat-layout של pip install -e)
+packages = ["app"]
+
+[tool.setuptools.package-data]
+app = ["ui.html"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+extend-exclude = ["demo-output"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]
+ignore = ["UP031", "UP042"]

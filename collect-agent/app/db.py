@@ -16,7 +16,8 @@ CREATE TABLE IF NOT EXISTS customers (
   disputed INTEGER NOT NULL DEFAULT 0,
   approved_first INTEGER NOT NULL DEFAULT 0,
   last_sent_at TEXT,
-  unsub_token TEXT UNIQUE
+  unsub_token TEXT UNIQUE,
+  paused_reason TEXT
 );
 CREATE TABLE IF NOT EXISTS invoices (
   id INTEGER PRIMARY KEY,
@@ -76,6 +77,10 @@ class DB:
         self.conn.row_factory = sqlite3.Row
         self.conn.execute("PRAGMA foreign_keys = ON")
         self.conn.executescript(SCHEMA)
+        cols = {r[1] for r in self.conn.execute("PRAGMA table_info(customers)")}
+        if "paused_reason" not in cols:  # DB קיים מלפני העמודה
+            self.conn.execute("ALTER TABLE customers ADD COLUMN paused_reason TEXT")
+            self.conn.commit()
         self.lock = threading.RLock()
 
     def q(self, sql: str, args: tuple = ()) -> list[sqlite3.Row]:

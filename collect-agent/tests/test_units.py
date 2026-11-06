@@ -2,13 +2,20 @@ from datetime import date, datetime
 
 import pytest
 
-from app import assistant, plans, templates
+from app import assistant, paylinks, plans, templates
 from app.assistant import Intent
+from app.channels import (
+    InforUSms,
+    Message,
+    Sms019,
+    SmtpEmail,
+    TwilioSms,
+    is_il_mobile,
+    normalize_il_phone,
+    sms_segments,
+)
 from app.config import SafetyError, load_settings
 from app.policy import TZ, Policy
-from app.channels import (InforUSms, Message, Sms019, SmtpEmail, TwilioSms, is_il_mobile,
-                          normalize_il_phone, sms_segments)
-from app import paylinks
 
 P = Policy(frozenset({"2026-12-25"}))
 

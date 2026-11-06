@@ -54,13 +54,16 @@ class Policy:
         raise ValueError("לא נמצא חלון שליחה בשבועיים הקרובים")
 
 
-def customer_blocked(*, opted_out: bool, disputed: bool, plan_active: bool) -> str | None:
+def customer_blocked(*, opted_out: bool, disputed: bool, plan_active: bool,
+                     paused: str | None = None) -> str | None:
     if opted_out:
         return "opted_out"
     if disputed:
         return "disputed"
     if plan_active:
         return "plan_active"
+    if paused:
+        return paused  # למשל paid_claim — עד שבעל העסק בודק ומחדש
     return None
 
 

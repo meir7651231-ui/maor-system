@@ -4,6 +4,7 @@
 cd collect-agent
 pip install -e '.[dev]'
 python3 -m pytest -q                      # 84 בדיקות, בלי רשת
+./demo.sh                                 # ⭐ הדגמה מקצה לקצה: שרת + נתוני דמו + דשבורד ב-/ui
 python3 -I scripts/demo_dry_run.py        # הדגמה מלאה אופליין
 uvicorn app.main:_lazy_app --factory      # שרת (dry-run; ממשק אישורים ב-/ui; sync דורש מפתחות sandbox ב-.env)
 ```

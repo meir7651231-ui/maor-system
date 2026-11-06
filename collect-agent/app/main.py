@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 from typing import Literal
 
@@ -28,6 +29,9 @@ class InboundIn(BaseModel):
 
 
 def create_app(service: CollectService | None = None) -> FastAPI:
+    if service is None and os.environ.get("DEMO") == "1":
+        from .demo import demo_service_ready  # נתוני דמו בדויים + sandbox מדומה, בלי רשת
+        service = demo_service_ready()
     if service is None:
         s: Settings = load_settings()
         gi = (GreenInvoiceClient(s.greeninvoice_base_url, s.greeninvoice_api_id,
@@ -92,6 +96,18 @@ def create_app(service: CollectService | None = None) -> FastAPI:
     @app.post("/dispatch")
     def dispatch():
         return {"dry_run": True, "sent": svc.dispatch()}
+
+    @app.get("/dashboard")
+    def dashboard():
+        return svc.dashboard()
+
+    @app.get("/customers")
+    def customers():
+        return [dict(r) for r in svc.db.q("SELECT * FROM customers ORDER BY id")]
+
+    @app.post("/customers/{cid}/resume")
+    def resume(cid: int):
+        return guard(svc.resume_customer, cid)
 
     @app.get("/outbox")
     def outbox():

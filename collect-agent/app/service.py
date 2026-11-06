@@ -3,12 +3,22 @@ from __future__ import annotations
 
 import json
 import secrets
+from collections.abc import Callable
 from datetime import date, datetime, time, timedelta
-from typing import Any, Callable
+from typing import Any
 
 from . import assistant, paylinks, plans, templates
-from .channels import (SMS_ADAPTERS, DryRunSender, Message, SmtpEmail, is_il_mobile,
-                       message_from_json, message_to_json, normalize_il_phone, valid_email)
+from .channels import (
+    SMS_ADAPTERS,
+    DryRunSender,
+    Message,
+    SmtpEmail,
+    is_il_mobile,
+    message_from_json,
+    message_to_json,
+    normalize_il_phone,
+    valid_email,
+)
 from .config import SafetyError, Settings
 from .db import DB
 from .greeninvoice import GreenInvoiceClient, GreenInvoiceError, Invoice
@@ -279,6 +289,11 @@ class CollectService:
             self._opt_out(cust["id"], "reply")
         if d.intent == assistant.Intent.DISPUTE:
             self.db.x("UPDATE customers SET disputed=1 WHERE id=?", (cust["id"],))
+        if d.intent == assistant.Intent.PAID_CLAIM:
+            # "שילמתי" ⇒ השהיה עד שבעל העסק בודק (resume) או שהחשבונית נסגרת בסנכרון.
+            # באג שנתפס בהדגמה: בלי זה הסבב הבא שלח שוב תזכורת ללקוח שאמר ששילם.
+            self.db.x("UPDATE customers SET paused_reason='paid_claim' WHERE id=?",
+                      (cust["id"],))
         if d.stop_reminders:
             for inv in self.db.q("SELECT id FROM invoices WHERE customer_id=?", (cust["id"],)):
                 self._cancel_invoice(inv["id"], d.intent.value)
@@ -349,6 +364,60 @@ class CollectService:
                   "created_at) VALUES(?,?,?,?,?,?,?)",
                   (cid, "out", msg.channel, msg.body, mid, message_to_json(msg), _iso(now)))
 
+    def resume_customer(self, customer_id: int, actor: str = "owner") -> dict:
+        """בעל העסק בדק: התשלום לא התקבל ⇒ חידוש תזכורות ללקוח."""
+        c = self.db.one("SELECT * FROM customers WHERE id=?", (customer_id,))
+        if not c:
+            raise KeyError(customer_id)
+        if not c["paused_reason"]:
+            raise ValueError("הלקוח לא מושהה")
+        self.db.x("UPDATE customers SET paused_reason=NULL WHERE id=?", (customer_id,))
+        self.audit(actor, "resume_customer", {"customer": customer_id, "was": c["paused_reason"]})
+        return dict(self.db.one("SELECT * FROM customers WHERE id=?", (customer_id,)))
+
+    # ---------- dashboard ----------
+    def dashboard(self) -> dict:
+        """תמונת מצב לבעל העסק: כל החובות הפתוחים + סטטוס התזכורת האחרונה לכל אחד."""
+        today = self.clock().date()
+        rows = []
+        for r in self.db.q("SELECT i.*, c.name cname, c.phone cphone, c.email cemail, "
+                           "c.opted_out, c.disputed, c.paused_reason FROM invoices i "
+                           "JOIN customers c ON c.id=i.customer_id ORDER BY i.due, i.id"):
+            last = self.db.one("SELECT * FROM reminders WHERE invoice_id=? ORDER BY step DESC, "
+                               "id DESC LIMIT 1", (r["id"],))
+            sent = self.db.one("SELECT COUNT(*) n FROM reminders WHERE invoice_id=? AND "
+                               "status='sent_dry_run'", (r["id"],))["n"]
+            due = date.fromisoformat(r["due"]) if r["due"] else None
+            block = self._customer_block(r["customer_id"])
+            rows.append({
+                "invoice_id": r["id"], "number": r["number"], "customer": r["cname"],
+                "phone": r["cphone"], "email": r["cemail"], "amount_agorot": r["amount_agorot"],
+                "currency": r["currency"], "due": r["due"], "status": r["status"],
+                "days_overdue": (today - due).days if due and r["status"] == "open" else 0,
+                "reminders_sent": sent,
+                "last_reminder": None if not last else {
+                    "id": last["id"], "step": last["step"], "status": last["status"],
+                    "template_key": last["template_key"], "sent_at": last["sent_at"],
+                    "block_reason": last["block_reason"]},
+                "customer_block": block})
+        open_rows = [x for x in rows if x["status"] == "open"]
+        outbox = self.sender.sent
+        return {
+            "today": today.isoformat(),
+            "totals": {
+                "open_invoices": len(open_rows),
+                "open_agorot": sum(x["amount_agorot"] for x in open_rows),
+                "overdue_agorot": sum(x["amount_agorot"] for x in open_rows
+                                      if x["days_overdue"] > 0),
+                "closed_invoices": len(rows) - len(open_rows),
+                "pending_approval": self.db.one("SELECT COUNT(*) n FROM reminders WHERE "
+                                                "status='pending_approval'")["n"],
+                "sent_sms": sum(m["channel"] == "sms" for m in outbox),
+                "sent_email": sum(m["channel"] == "email" for m in outbox),
+                "owner_inbox": self.db.one("SELECT COUNT(*) n FROM messages WHERE "
+                                           "needs_owner=1")["n"]},
+            "invoices": rows}
+
     # ---------- plans ----------
     def propose_plan(self, customer_id: int, installments: int | None = None) -> int | None:
         inv = self.db.one("SELECT * FROM invoices WHERE customer_id=? AND status='open' "
@@ -393,11 +462,12 @@ class CollectService:
         return self.db.one("SELECT * FROM invoices WHERE id=?", (iid,))
 
     def _customer_block(self, cid: int) -> str | None:
-        c = self.db.one("SELECT opted_out, disputed FROM customers WHERE id=?", (cid,))
+        c = self.db.one("SELECT opted_out, disputed, paused_reason FROM customers WHERE id=?",
+                        (cid,))
         plan = self.db.one("SELECT 1 FROM plans WHERE customer_id=? AND status IN "
                            "('proposed','approved')", (cid,))
         return customer_blocked(opted_out=bool(c["opted_out"]), disputed=bool(c["disputed"]),
-                                plan_active=bool(plan))
+                                plan_active=bool(plan), paused=c["paused_reason"])
 
     def _cancel_invoice(self, iid: int, reason: str) -> None:
         self.db.x("UPDATE reminders SET status='cancelled', block_reason=? "

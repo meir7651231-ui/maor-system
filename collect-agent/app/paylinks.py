@@ -5,7 +5,7 @@
 """
 from __future__ import annotations
 
-from urllib.parse import urlencode, urlparse, urlunparse, parse_qsl
+from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
 DEFAULT_ALLOWED = ("greeninvoice.co.il", "morning.co")
 

@@ -263,3 +263,50 @@ def test_019_webhook_requires_key(api, svc):
         assert api.post(url, content="type=blacklist&phone=0501234567",
                         headers=h).status_code == 403
     assert svc.db.one("SELECT opted_out FROM customers WHERE id=1")["opted_out"] == 0
+
+
+def test_paid_claim_pauses_next_rounds_until_owner_resumes(api, svc, clock):
+    """באג שנתפס בהדגמה: אחרי "שילמתי" הסבב הבא שלח שוב תזכורת ללקוחה."""
+    ids = first_cycle(api)
+    api.post(f"/reminders/{ids[0]}/approve")
+    api.post("/dispatch")
+    api.post("/inbound", json={"sender": "050-1234567", "text": "שילמתי כבר"})
+    clock.now += timedelta(days=7)
+    api.post("/plan")
+    rems = [r for r in api.get("/reminders").json() if r["invoice_id"] == 1]
+    assert [r["status"] for r in rems] == ["sent_dry_run"]  # אין שלב 2 בזמן השהיה
+    cid = next(c["id"] for c in api.get("/customers").json() if c["paused_reason"])
+    assert api.post(f"/customers/{cid}/resume").status_code == 200
+    assert api.post(f"/customers/{cid}/resume").status_code == 409
+    api.post("/plan")
+    rems = [r for r in api.get("/reminders").json() if r["invoice_id"] == 1]
+    assert len(rems) == 2 and rems[-1]["template_key"] == "second"
+
+
+def test_dashboard_totals_and_rows(api, svc, fake_gi):
+    ids = first_cycle(api)
+    api.post(f"/reminders/{ids[0]}/approve")
+    api.post("/dispatch")
+    d = api.get("/dashboard").json()
+    t = d["totals"]
+    assert t["open_invoices"] == 2 and t["pending_approval"] == 1
+    assert t["sent_sms"] == 1 and t["sent_email"] == 1
+    row = next(x for x in d["invoices"] if x["number"] == "1001")
+    assert row["reminders_sent"] == 1 and row["last_reminder"]["status"] == "sent_dry_run"
+    assert row["days_overdue"] == 38  # 1.10 ⇒ 8.11
+    fake_gi.docs = [x for x in fake_gi.docs if x["id"] != "doc1"]
+    api.post("/sync")
+    t = api.get("/dashboard").json()["totals"]
+    assert t["open_invoices"] == 1 and t["closed_invoices"] == 1
+
+
+def test_demo_scenario_end_to_end():
+    """ההדגמה (./demo.sh) — התרחיש המלא רץ ומחזיר את המספרים הצפויים, בלי רשת."""
+    from app.demo import build_demo_service, run_scenario
+    svc2, fake, _ = build_demo_service()
+    lines: list[str] = []
+    t = run_scenario(svc2, fake, out=lines.append)
+    assert t["open_invoices"] == 5 and t["closed_invoices"] == 1
+    assert t["sent_sms"] == 4 and t["sent_email"] == 4 and t["owner_inbox"] == 1
+    assert any("pay.example/gabi-demo" in x for x in lines)
+    assert not any("whatsapp" in x.lower() for x in lines)

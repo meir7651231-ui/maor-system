@@ -1,0 +1,43 @@
+# גבי (collect-agent) — בדיקות על ענף collect-agent בלבד.
+# אין כאן deploy, אין סודות, אין רשת חיצונית בבדיקות (socket חסום ב-conftest).
+name: collect-agent tests
+
+on:
+  push:
+    branches: [collect-agent]
+    paths: ["collect-agent/**", ".github/workflows/collect-agent.yml"]
+  pull_request:
+    branches: [collect-agent]
+    paths: ["collect-agent/**", ".github/workflows/collect-agent.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: collect-agent-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: collect-agent
+    strategy:
+      matrix:
+        python: ["3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: התקנה
+        run: pip install -e '.[dev]' ruff
+      - name: ruff
+        run: ruff check .
+      - name: pytest
+        run: python -m pytest -q
+      - name: הדגמה מקצה לקצה (שרת + נתוני דמו + דשבורד, dry-run)
+        run: ./demo.sh --check
