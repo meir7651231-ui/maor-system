@@ -51,6 +51,13 @@ sandbox של חשבונית ירוקה + חשבון בדיקה ב-019 · עו"ד
 - ✅ `pyproject.toml`: `packages=["app"]` — בלי זה `pip install -e` נשבר (web/ ו-team/ התגלו כחבילות).
 - ↩ השינויים שלי בבקאנד (SMS adapter מקביל) נגנזו ב-`git stash` — הגרסה שלכם (3a79777a) מלאה יותר; לא נגעתי ב-`app/`.
 
+## 🎨 עיצוב + ממשק (סשן מקביל, ענף `claude/dazzling-archimedes-66mq2d` מעל `collect-agent`) — ראו `DESIGN.md`
+- ✅ מיתוג: לוגו SVG (בועה+₪+וי), פלטה, Rubik/Heebo, design-tokens (`web/src/brand/`).
+- ✅ `web/` React+Tailwind RTL: דף נחיתה+מחירון מוצע, הרשמה, דשבורד, טבלת חשבוניות, תצוגה מקדימה SMS/מייל + "אשר ושלח" (דמו), הגדרות עסק (ספק 019/InforU/Twilio). נתוני דמו בלבד.
+- ✅ נוסחי הממשק = מראה של `app/templates.py`; בדיקת סנכרון נכשלת על כל סטייה. 7/7 בדיקות + e2e Playwright (0 שגיאות קונסולה, מובייל 390px).
+- ✅ `pyproject.toml`: `packages=["app"]` — בלי זה `pip install -e` נשבר (web/ ו-team/ התגלו כחבילות).
+- ↩ השינויים שלי בבקאנד (SMS adapter מקביל) נגנזו ב-`git stash` — הגרסה שלכם (3a79777a) מלאה יותר; לא נגעתי ב-`app/`.
+
 ## 🔄 סבב 2 — וואטסאפ יורד, SMS + מייל (החלטת מאיר)
 | מה | סטטוס | הוכחה |
 |---|---|---|
