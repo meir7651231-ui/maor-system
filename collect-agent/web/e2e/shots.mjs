@@ -28,6 +28,9 @@ try {
   await fullShot(p, `${out}/01-landing.png`);
   const price = await p.getByTestId('price-card').textContent();
   if (!/₪119/.test(price) || !/14 יום/.test(price)) throw new Error('כרטיס המחיר לא מציג ₪119 + 14 יום: ' + price);
+  // הכרעת בעלים: גם מחיר שנתי, והמחיר כולל מע״מ (לא 'לפני מע״מ' — בלי הפתעות)
+  if (!/₪1,190/.test(price) || !/כולל מע״מ/.test(price) || /לפני מע״מ/.test(await p.content())) throw new Error('מחיר שנתי/מע״מ שגוי בכרטיס המחיר: ' + price);
+  if (!/הכסף שלך חוזר/.test(await p.getByTestId('hero-title').textContent())) throw new Error('הסלוגן חסר');
   await p.goto(base + '#/dashboard');
   await p.getByTestId('mode').filter({ hasText: 'מצב דמו (מוק)' }).waitFor({ timeout: 5000 }); // בלי שרת ⇒ מוק
   await p.goto(base + '#/dashboard'); await p.waitForTimeout(300);
