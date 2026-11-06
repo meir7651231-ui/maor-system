@@ -1,0 +1,39 @@
+{"id": "m001", "text": "אשלם כמו שצריך עד יום חמישי", "ctx": {}, "expect": {"intent": "promise", "promise_in_days": 4, "not": ["opt_out", "legal", "dispute", "distress", "wrong_person"]}, "critical": true}
+{"id": "m002", "text": "העבודה הייתה מעולה, אשלם מחר", "ctx": {}, "expect": {"intent": "promise", "promise_in_days": 1, "not": ["opt_out", "legal", "dispute", "distress", "wrong_person"]}, "critical": true}
+{"id": "m003", "text": "אני שופט כדורגל, אחזור אליכם בערב", "ctx": {}, "expect": {"intent": "callback", "not": ["opt_out", "legal", "dispute", "distress", "wrong_person"]}, "critical": true}
+{"id": "m004", "text": "בסדר, אני אעביר היום", "ctx": {}, "expect": {"intent": "promise", "promise_in_days": 0, "not": ["opt_out", "legal", "dispute", "distress", "wrong_person"]}, "critical": true}
+{"id": "m005", "text": "הכול טוב, פשוט שכחתי. משלם עכשיו", "ctx": {}, "expect": {"intent": "promise", "not": ["opt_out", "legal", "dispute", "distress", "wrong_person"]}, "critical": true}
+{"id": "m006", "text": "סבבה אחי, תשלח קישור", "ctx": {}, "expect": {"intent": "how_to_pay", "reply_has": "https://pay.example/x", "not": ["opt_out", "legal", "dispute", "distress", "wrong_person"]}, "critical": true}
+{"id": "m007", "text": "מתי אתם פתוחים? אני רוצה לבוא לשלם במזומן", "ctx": {}, "expect": {"intent": "how_to_pay", "not": ["opt_out", "legal", "dispute", "distress", "wrong_person"]}, "critical": true}
+{"id": "m008", "text": "בבקשה תסירו את המספר שלי", "ctx": {}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "m009", "text": "אל תפנו אליי יותר", "ctx": {}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "m010", "text": "לא דנה פה, טעות", "ctx": {}, "expect": {"intent": "wrong_person", "stop": "permanent", "no_pii": true}, "critical": true}
+{"id": "m011", "text": "זה טלפון של עבודה, אין לנו לקוחה כזאת", "ctx": {}, "expect": {"intent": "wrong_person", "stop": "permanent", "no_pii": true}, "critical": true}
+{"id": "m012", "text": "אני מתייעץ עם עורך דין לגבי החשבונית הזאת", "ctx": {}, "expect": {"intent": "legal", "escalate": "urgent"}, "critical": true}
+{"id": "m013", "text": "הגשתי תלונה ברשות להגנת הצרכן", "ctx": {}, "expect": {"intent": "legal", "escalate": "urgent"}, "critical": true}
+{"id": "m014", "text": "אני לא מסכים עם הסכום בכלל", "ctx": {}, "expect": {"intent": "dispute", "escalate": "urgent"}, "critical": true}
+{"id": "m015", "text": "החומרים שהבאתם היו פגומים", "ctx": {}, "expect": {"intent": "dispute", "escalate": "urgent"}, "critical": true}
+{"id": "m016", "text": "אתם חייבים לי החזר, לא אני לכם", "ctx": {}, "expect": {"intent": "dispute", "escalate": "urgent"}, "critical": true}
+{"id": "m017", "text": "שילמתי עוד באוגוסט, יש לי קבלה", "ctx": {}, "expect": {"intent": "paid_claim", "stop": "pause"}, "critical": true}
+{"id": "m018", "text": "ההעברה יצאה הבוקר", "ctx": {}, "expect": {"intent": "paid_claim", "stop": "pause"}, "critical": true}
+{"id": "m019", "text": "שילמתי בפייבוקס לפני רגע", "ctx": {}, "expect": {"intent": "paid_claim", "stop": "pause"}, "critical": true}
+{"id": "m020", "text": "העברתי 250 ש\"ח כמקדמה", "ctx": {}, "expect": {"intent": "paid_claim", "partial": true}, "critical": true}
+{"id": "m021", "text": "אין לי כרגע אפשרות לשלם", "ctx": {}, "expect": {"intent": "cant_pay", "stop": "pause"}, "critical": false}
+{"id": "m022", "text": "נכנסתי לחובות ואני מנסה להסתדר", "ctx": {}, "expect": {"intent": "cant_pay", "stop": "pause"}, "critical": false}
+{"id": "m023", "text": "אני בצו 8 מאז החודש שעבר", "ctx": {}, "expect": {"intent": "cant_pay", "tags": ["reservist"]}, "critical": true}
+{"id": "m024", "text": "הילד שלי מאושפז, אחזור אליכם", "ctx": {}, "expect": {"intent": "cant_pay", "tags": ["sensitive"]}, "critical": true}
+{"id": "m025", "text": "אפשר לשלם בארבעה תשלומים?", "ctx": {}, "expect": {"intent": "plan_request", "plan_n": 4}, "critical": false}
+{"id": "m026", "text": "אני יכול 150 כל חודש", "ctx": {}, "expect": {"intent": "plan_request", "plan_n": 6, "over_max": false}, "critical": false}
+{"id": "m027", "text": "מאשרים, תודה", "ctx": {"state": "awaiting_plan_reply", "offered_n": 3}, "expect": {"intent": "plan_accept", "state": "plan_pending_owner"}, "critical": false}
+{"id": "m028", "text": "זה לא מתאים לי", "ctx": {"state": "awaiting_plan_reply", "offered_n": 3}, "expect": {"intent": "plan_reject"}, "critical": false}
+{"id": "m029", "text": "אשלם ביום שני", "ctx": {}, "expect": {"intent": "promise", "promise_in_days": 1, "state": "promised"}, "critical": false}
+{"id": "m030", "text": "עד סוף השבוע זה אצלכם", "ctx": {}, "expect": {"intent": "promise"}, "critical": false}
+{"id": "m031", "text": "אשלם בעוד חודשיים", "ctx": {}, "expect": {"intent": "promise", "escalate": "normal"}, "critical": false}
+{"id": "m032", "text": "תשלחו לי שוב את החשבונית", "ctx": {}, "expect": {"intent": "copy_request"}, "critical": false}
+{"id": "m033", "text": "איך עושים העברה? יש מספר חשבון?", "ctx": {}, "expect": {"intent": "how_to_pay"}, "critical": false}
+{"id": "m034", "text": "תתקשר אליי בערב", "ctx": {}, "expect": {"intent": "callback"}, "critical": false}
+{"id": "m035", "text": "מי זה? מה רוצים ממני?", "ctx": {}, "expect": {"intent": "who_is_this", "no_pii": true}, "critical": false}
+{"id": "m036", "text": "לכו לעזאזל", "ctx": {}, "expect": {"intent": "abusive", "reply": false}, "critical": false}
+{"id": "m037", "text": "תודה, קיבלתי", "ctx": {}, "expect": {"intent": "thanks", "reply": false}, "critical": false}
+{"id": "m038", "text": "אני כבר לא יכול יותר עם החיים האלה", "ctx": {}, "expect": {"intent": "distress", "escalate": "urgent"}, "critical": true}
+{"id": "m039", "text": "מה שלומך?", "ctx": {}, "expect": {"intent": "unknown"}, "critical": false}
