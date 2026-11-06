@@ -7,7 +7,7 @@ from collections.abc import Callable
 from datetime import date, datetime, time, timedelta
 from typing import Any
 
-from . import assistant, compliance, conversation, paylinks, plans, templates
+from . import compliance, paylinks, plans, templates
 from .channels import (
     SMS_ADAPTERS,
     DryRunSender,
@@ -307,53 +307,23 @@ class CollectService:
         return next((c for c in self.db.q("SELECT * FROM customers")
                      if normalize_il_phone(c["phone"]) == norm), None)
 
+    @property
+    def inbox(self):
+        """מנוע השיחה (app/conversation.py) מחובר ל-DB (app/inbox.py). נוצר בפעם הראשונה."""
+        if getattr(self, "_inbox", None) is None:
+            from .inbox import ConversationInbox
+            self._inbox = ConversationInbox(self)
+        return self._inbox
+
     def inbound(self, channel: str, sender: str, text: str) -> dict:
-        if channel not in ("sms", "email"):
-            raise ValueError("ערוץ לא נתמך")
-        now = self.clock()
-        cust = self._find_customer(channel, sender)
-        if cust is None:
-            self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
-                      "created_at) VALUES(NULL,'in',?,?, 'unknown_sender', 1, ?)",
-                      (channel, text, _iso(now)))
-            return {"intent": "unknown_sender", "escalate": True, "auto_reply": None}
-        return self._handle(cust, channel, text)
+        """תשובת לקוח ⇒ מנוע השיחה: עצירה/השהיה/הסלמה מיד, ותשובה = טיוטה לאישור בעל העסק.
+        (היה: assistant.decide — הסיווג הישן עם הבאגים מ-team/critic.md §3.)"""
+        return self.inbox.handle(channel, sender, text)
 
     def _handle(self, cust, channel: str, text: str) -> dict:
-        """channel='web' = פעולה מעמוד הקישור הקצר: אין מענה בהודעה (העמוד עצמו מאשר)."""
-        now = self.clock()
-        oldest = self.db.one("SELECT * FROM invoices WHERE customer_id=? AND status='open' "
-                             "ORDER BY due LIMIT 1", (cust["id"],))
-        link = (self._payment_link(oldest) if oldest else None) or ""
-        d = assistant.decide(text, business=self.s.business_name, payment_link=link)
-        self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
-                  "created_at) VALUES(?,'in',?,?,?,?,?)",
-                  (cust["id"], channel, text, d.intent.value, int(d.escalate), _iso(now)))
-        if d.intent == assistant.Intent.OPT_OUT:
-            self._opt_out(cust["id"], "reply")
-        if d.intent == assistant.Intent.DISPUTE:
-            self.db.x("UPDATE customers SET disputed=1 WHERE id=?", (cust["id"],))
-        if d.intent == assistant.Intent.PAID_CLAIM:
-            # "שילמתי" ⇒ השהיה עד שבעל העסק בודק (resume) או שהחשבונית נסגרת בסנכרון.
-            # באג שנתפס בהדגמה: בלי זה הסבב הבא שלח שוב תזכורת ללקוח שאמר ששילם.
-            self.db.x("UPDATE customers SET paused_reason='paid_claim' WHERE id=?",
-                      (cust["id"],))
-        if d.stop_reminders:
-            for inv in self.db.q("SELECT id FROM invoices WHERE customer_id=?", (cust["id"],)):
-                self._cancel_invoice(inv["id"], d.intent.value)
-        plan_id = None
-        if d.intent == assistant.Intent.PLAN_REQUEST:
-            # «ל-3 תשלומים» / «בחמישה תשלומים» ⇒ המספר המבוקש (נחתך בתקרות plans.propose)
-            plan_id = self.propose_plan(
-                cust["id"], conversation.extract_installments(conversation.normalize(text)))
-        sent = None
-        # מענה אוטומטי רק אחרי שבעל העסק אישר הודעה ראשונה ללקוח הזה, ובאותו ערוץ
-        if d.auto_reply and cust["approved_first"] and channel in ("sms", "email"):
-            sent = self._reply(cust, channel, d.auto_reply, now)
-        self.audit("customer", "inbound", {"intent": d.intent.value, "customer": cust["id"],
-                                           "channel": channel})
-        return {"intent": d.intent.value, "escalate": d.escalate,
-                "auto_reply": d.auto_reply if sent else None, "plan_id": plan_id}
+        """channel='web' = פעולה מעמוד הקישור הקצר: אין טיוטת תשובה (העמוד עצמו מאשר),
+        אבל כל ההשפעות (השהיה/הסדר/הסלמה) חלות כרגיל."""
+        return self.inbox.handle_customer(cust, channel, text)
 
     # ---------- עמוד הקישור הקצר (/p/{code}) ----------
     def landing(self, code: str) -> dict:

@@ -82,16 +82,25 @@ class ConversationInbox:
         if channel not in ("sms", "email"):
             raise ValueError("ערוץ לא נתמך")
         now = self.svc.clock()
-        self.release_expired_pauses()
         cust = self.svc._find_customer(channel, sender)
         if cust is None:
             # לא חושפים כלום לשולח לא מזוהה; רק לבעל העסק
             self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
                       "created_at) VALUES(NULL,'in',?,?, 'unknown_sender', 1, ?)",
                       (channel, text, _iso(now)))
-            return {"intent": "unknown_sender", "escalate": "normal", "draft_id": None}
-        ctx = self._context(cust, channel)
+            return {"intent": "unknown_sender", "escalate": True, "escalation": "normal",
+                    "draft_id": None, "auto_reply": None, "plan_id": None}
+        return self.handle_customer(cust, channel, text)
+
+    def handle_customer(self, cust, channel: str, text: str) -> dict:
+        """channel: sms / email / web (פעולה בעמוד הקישור הקצר — בלי טיוטת תשובה)."""
+        now = self.svc.clock()
+        self.release_expired_pauses()
+        web = channel == "web"
+        ctx = self._context(cust, "sms" if web else channel)
         d = respond(text, ctx)
+        if web:
+            d = replace(d, reply=None, auto_send=False)
         self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
                   "created_at) VALUES(?,'in',?,?,?,?,?)",
                   (cust["id"], channel, text, d.intent.value,
@@ -109,12 +118,14 @@ class ConversationInbox:
         sent = None
         if draft_id and d.auto_send:
             sent = self.approve_draft(draft_id, actor="system:safe_auto")
+        auto = bool(sent and sent.get("status") == "sent_dry_run")
         return {"intent": d.intent.value, "secondary": [i.value for i in d.secondary],
-                "escalate": d.escalate.value, "stop": d.stop.value,
+                "escalate": d.escalate != Escalation.NONE, "escalation": d.escalate.value,
+                "stop": d.stop.value, "auto_reply": sent["body"] if auto else None,
                 "pause_until": d.pause_until.isoformat() if d.pause_until else None,
                 "draft_id": draft_id, "plan_id": plan_id, "owner_summary": d.owner_summary,
                 "owner_actions": list(d.owner_actions), "tags": list(d.tags),
-                "auto_sent": bool(sent and sent.get("status") == "sent_dry_run")}
+                "auto_sent": auto}
 
     def _context(self, cust, channel: str) -> Context:
         invs = self.db.q("SELECT * FROM invoices WHERE customer_id=? AND status='open' "
@@ -148,7 +159,9 @@ class ConversationInbox:
         if intents & {Intent.DISPUTE.value, Intent.LEGAL.value}:
             self.db.x("UPDATE customers SET disputed=1 WHERE id=?", (cid,))
         if d.stop == Stop.PAUSE:
-            reason = d.intent.value + (f":until={d.pause_until.isoformat()}" if d.pause_until else "")
+            # רק הבטחה משתחררת לבד ⇒ רק לה יש תאריך בסיבה; השאר נקי לדשבורד ("paid_claim")
+            auto_release = d.intent == Intent.PROMISE and d.pause_until
+            reason = d.intent.value + (f":until={d.pause_until.isoformat()}" if auto_release else "")
             self.db.x("UPDATE customers SET paused_reason=? WHERE id=?", (reason, cid))
         if d.stop != Stop.NONE:
             for inv in self.db.q("SELECT id FROM invoices WHERE customer_id=?", (cid,)):

@@ -300,3 +300,10 @@ def test_redact_for_llm():
     out = redact_for_llm("דנה כהן, 050-1234567, dana@x.co.il, ת.ז 012345678, חשבונית 1001", ctx)
     for leak in ("דנה", "כהן", "050", "dana@", "012345678", "1001"):
         assert leak not in out
+
+
+def test_compliance_email_business_in_subject_is_enough():
+    body = "שלום דנה, תזכורת ידידותית לגבי חשבונית 1001. לתשלום: https://pay.example/x"
+    base = dict(business="סטודיו מאיר", payment_link="https://pay.example/x", channel="email")
+    assert "no_business_first" in compliance.violations(body, compliance.Rules(**base))
+    assert compliance.violations(body, compliance.Rules(**base, subject="תזכורת מסטודיו מאיר")) == []

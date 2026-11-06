@@ -44,7 +44,8 @@ cd collect-agent && ./demo.sh          # ואז http://127.0.0.1:8000/ui  (PORT=
 | `claude/gallant-brown-ien8fb` | שיווק: `team/marketing.md` (מסרים, דף נחיתה, תסריט דמו, SEO) | נקי |
 | `claude/stoic-mccarthy-23f03p` | מבקר: `team/critic.md` | נקי. ממצא 3 («שילמתי» ⇒ תזכורת נוספת) **תוקן בסבב הזה** |
 | `claude/dazzling-archimedes-66mq2d` | עיצוב: `web/` (React+Tailwind RTL, מיתוג, DESIGN.md) | קונפליקט ב-`pyproject`/`.gitignore`: אוחד. נוסף ג'וב `web` ל-CI |
-| `origin/collect-agent` (24c6fbf) | מנוע שיחה: `app/conversation.py` (18 כוונות) + `compliance.py` + `evals/` | נקי. evals: **315/315**, 0 טעויות שקטות. נוסף ל-CI. ⚠️ **עדיין לא מחובר ל-`service.py`**, שמשתמש ב-`assistant.py` הישן |
+| `origin/collect-agent` (24c6fbf) | מנוע שיחה: `app/conversation.py` (18 כוונות) + `compliance.py` + `evals/` | נקי. evals: **315/315**, 0 טעויות שקטות. נוסף ל-CI. ✅ **מחובר מאז** (ראו השורה הבאה) |
+| AI · מנוע שיחה מחובר | `app/inbox.py`: ‏`service.inbound` (וגם `/inbound` ו-webhook 019) עוברים למנוע. עצירה/השהיה/מחלוקת מיד; **כל תשובה = טיוטה לאישור** (`/conversation/drafts`), עריכת בעלים עוברת את `compliance`, שער שליחה יחיד (הסרה+שעות/שבת). `assistant.py` כבר לא בשימוש ב-service (נשאר רק לבדיקות שלו — אפשר למחוק) | 254 בדיקות · evals 323 · מוטציות 8/8 · `demo.sh --check` ירוק · תיעוד: `team/ai.md` |
 | `claude/funny-euler-kfq3b6` | `app/integrations/` (SMS/מייל/iCount/תשלומים, mock) | קונפליקט סמנטי: יובא `app.whatsapp` שנמחק, והופנה ל-`app.channels`. **שתי שכבות SMS במקביל** (`channels.py` ו-`integrations/sms.py`). צריך לאחד, ראו «פיתוח» למטה |
 
 ## ⏭ הצעד הבא לכל תפקיד

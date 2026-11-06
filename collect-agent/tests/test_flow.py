@@ -98,7 +98,9 @@ def test_opt_out_stops_everything(api, svc, clock):
     api.post(f"/reminders/{ids[0]}/approve")
     api.post("/dispatch")
     res = api.post("/inbound", json={"sender": "0501234567", "text": "הסר"}).json()
-    assert res["intent"] == "opt_out" and res["auto_reply"]
+    # ההסרה בתוקף מיד; אישור-ההסרה הוא טיוטה שבעל העסק מאשר (critic §4: כל הודעה באישור)
+    assert res["intent"] == "opt_out" and res["auto_reply"] is None and res["draft_id"]
+    api.post(f"/conversation/drafts/{res['draft_id']}/approve")
     clock.now += timedelta(days=10)
     assert api.post("/plan").json()["created"] == []
     api.post("/dispatch")
@@ -233,7 +235,8 @@ def test_how_to_pay_reply_uses_invoice_link(api, svc):
     ids = first_cycle(api)
     api.post(f"/reminders/{ids[0]}/approve")
     res = api.post("/inbound", json={"sender": "0501234567", "text": "איך אפשר לשלם?"}).json()
-    assert "https://pay.greeninvoice.co.il/f/doc1" in res["auto_reply"]
+    draft = next(d for d in api.get("/conversation/drafts").json() if d["id"] == res["draft_id"])
+    assert "https://pay.greeninvoice.co.il/f/doc1" in draft["body"]
 
 
 def test_ui_page_has_slogan_and_no_whatsapp(api):
@@ -338,7 +341,8 @@ def test_demo_scenario_end_to_end():
     lines: list[str] = []
     t = run_scenario(svc2, fake, out=lines.append)
     assert t["open_invoices"] == 5 and t["closed_invoices"] == 1
-    assert t["sent_sms"] == 4 and t["sent_email"] == 4 and t["owner_inbox"] == 1
+    # 5 SMS: גם "שילמתי" מקבל עכשיו תשובה (תודה + בקשת אסמכתא) אחרי אישור בעל העסק
+    assert t["sent_sms"] == 5 and t["sent_email"] == 4 and t["owner_inbox"] == 1
     assert any("pay.example/gabi-demo" in x for x in lines)
     assert not any("whatsapp" in x.lower() for x in lines)
 

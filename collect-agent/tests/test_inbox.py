@@ -46,7 +46,7 @@ def test_paid_claim_pauses_and_blocks_next_reminder(inbox, svc, clock):
 def test_dispute_marks_customer_and_escalates_urgent_first(inbox, svc):
     inbox.handle("sms", DANA, "איך אפשר לשלם?")
     res = inbox.handle("sms", DANA, "רגע, הסכום לא נכון, סיכמנו על 800")
-    assert res["escalate"] == "urgent"
+    assert res["escalation"] == "urgent"
     assert cust(svc)["disputed"] == 1
     assert inbox.drafts()[0]["intent"] == "dispute"   # דחוף ראשון בתור
 

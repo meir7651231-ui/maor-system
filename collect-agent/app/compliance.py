@@ -50,6 +50,7 @@ class Rules:
     allow_debt_word: bool = True     # False בתזכורת 1–2 (§3.1 סעיף 4)
     allow_discount: bool = False     # רק הנחה שבעל העסק אישר על החשבונית עצמה
     max_sms_chars: int = SMS_REPLY_MAX
+    subject: str = ""                # במייל: שם העסק בנושא = "בתחילת ההודעה"
 
 
 def sms_segments(text: str) -> int:
@@ -78,7 +79,8 @@ def violations(text: str, r: Rules) -> list[str]:
         if m.group(0).rstrip(".,)") not in allowed:
             out.append("foreign_link")
             break
-    if r.business and not text.lstrip().startswith(r.business):
+    in_subject = r.channel == "email" and r.business and r.business in r.subject
+    if r.business and not in_subject and not text.lstrip().startswith(r.business):
         out.append("no_business_first")
     if r.channel == "sms" and len(text) > r.max_sms_chars:
         out.append("sms_too_long")

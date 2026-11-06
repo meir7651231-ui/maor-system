@@ -98,6 +98,10 @@ def run_scenario(svc: CollectService, fake, out: Callable[[str], None] = print) 
         out(f"   {who}: «{text}» ⇒ {res['intent']}"
             + (" · הועבר לבעל העסק" if res["escalate"] else "")
             + (" · מענה אוטומטי" if res.get("auto_reply") else ""))
+    # כל תשובה היא טיוטה — בעל העסק מאשר (כאן: את כולן, כדי להראות את הזרימה המלאה)
+    for dr in svc.inbox.drafts("pending_approval"):
+        svc.inbox.approve_draft(dr["id"])
+        out(f"   ✔ בעל העסק אישר תשובה ל{dr['customer']}: «{' '.join(dr['body'].split())[:60]}…»")
     n = _log_outbox(svc, n, out)
     fake.docs = [d for d in fake.docs if d["id"] != "demo5"]
     r = svc.sync()
