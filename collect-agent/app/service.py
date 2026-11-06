@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import secrets
+import sqlite3
 from collections.abc import Callable
 from datetime import date, datetime, time, timedelta
 from typing import Any
@@ -518,11 +519,23 @@ class CollectService:
         text = (f"שלום {cust['name']}, הצעת פריסה לחשבונית {inv['number']} ללא תוספת:\n{lines}\n"
                 "השיבו \"מאשר\" ובעל העסק יאשר סופית.")
         self.db.x("UPDATE plans SET status='approved' WHERE id=?", (plan_id,))
+        self._supersede_plan_drafts(plan_id)
         now = self.clock()
         channel = "sms" if is_il_mobile(normalize_il_phone(cust["phone"])) else "email"
         msg = self._reply(cust, channel, text, now)
         self.audit(actor, "plan_approved", {"plan": plan_id, "message_id": msg})
         return {"plan_id": plan_id, "message_id": msg, "channel": channel, "text": text}
+
+    def _supersede_plan_drafts(self, plan_id: int) -> None:
+        """אישור הפריסה ב-/plans שולח את ההצעה ללקוח, ולכן טיוטת plan_request המקבילה
+        (תור «תשובות לקוחות») נסגרת — אחרת בעל העסק יכול לאשר אותה ולשלוח הצעה פעמיים."""
+        try:
+            self.db.x("UPDATE drafts SET status='superseded', decided_by='system:plan_approved' "
+                      "WHERE plan_id=? AND status IN ('pending_approval','needs_owner')",
+                      (plan_id,))
+        except sqlite3.OperationalError:   # טבלת הטיוטות נוצרת רק עם מנוע השיחה
+            return
+        self.audit("system", "plan_drafts_superseded", {"plan": plan_id})
 
     # ---------- helpers ----------
     def _reminder(self, rid: int):

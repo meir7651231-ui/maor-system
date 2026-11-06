@@ -211,3 +211,17 @@ def test_wrong_number_deletes_phone_but_apology_still_reaches_sender(inbox, svc)
     assert cust(svc)["phone"] is None and cust(svc)["opted_out"] == 1
     out = inbox.approve_draft(d)
     assert out["status"] == "sent_dry_run" and svc.sender.sent[-1]["to"] == "972501234567"
+
+
+def test_plan_approval_via_plans_supersedes_parallel_draft(inbox, svc):
+    """רגרסיה: אישור פריסה ב-/plans/{id}/approve שלח את ההצעה, אבל טיוטת plan_request המקבילה
+    נשארה בתור ⇒ בעל העסק יכול היה לאשר אותה ולשלוח את ההצעה ללקוח פעמיים."""
+    res = inbox.handle("sms", DANA, "אין לי כסף כרגע, אפשר תשלומים?")
+    draft_id, plan_id = res["draft_id"], res["plan_id"]
+    assert inbox.drafts("pending_approval")
+    svc.approve_plan(plan_id)
+    assert len(svc.sender.sent) == 1
+    assert inbox.drafts("pending_approval") == []
+    with pytest.raises(ValueError, match="superseded"):
+        inbox.approve_draft(draft_id)
+    assert len(svc.sender.sent) == 1   # לא נשלח שוב
