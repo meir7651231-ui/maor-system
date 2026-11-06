@@ -6,11 +6,12 @@ import { useApp } from '../store.tsx';
 const NAV: { r: Route; label: string; icon: string }[] = [
   { r: 'dashboard', label: 'סקירה', icon: '◧' },
   { r: 'invoices', label: 'חשבוניות פתוחות', icon: '🧾' },
+  { r: 'inbox', label: 'תשובות לקוחות', icon: '💬' },
   { r: 'settings', label: 'הגדרות עסק', icon: '⚙' },
 ];
 
 export function Shell({ route, children }: { route: Route; children: ReactNode }) {
-  const { business, queue, mode } = useApp();
+  const { business, queue, mode, drafts } = useApp();
   const pending = queue.length;
   return (
     <div className="min-h-screen md:flex">
@@ -23,6 +24,7 @@ export function Shell({ route, children }: { route: Route; children: ReactNode }
               className={`flex items-center gap-3 rounded-xl px-3 py-2.5 font-medium whitespace-nowrap ${route === n.r ? 'bg-white/10 text-white' : 'text-ink-400 hover:text-white hover:bg-white/5'}`}>
               <span aria-hidden className="w-5 text-center">{n.icon}</span>{n.label}
               {n.r === 'invoices' && pending > 0 && <span className="ms-auto bg-brand text-ink-900 text-xs font-bold rounded-full px-2 py-0.5 num">{pending}</span>}
+              {n.r === 'inbox' && drafts.length > 0 && <span className="ms-auto bg-amber-400 text-ink-900 text-xs font-bold rounded-full px-2 py-0.5 num" data-testid="inbox-count">{drafts.length}</span>}
             </a>
           ))}
         </nav>

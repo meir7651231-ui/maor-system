@@ -152,7 +152,7 @@ function ReplySim() {
         <Button size="sm" className="w-full" disabled={!c?.phone || !text.trim()} onClick={async () => {
           try {
             const r = await api.inbound('sms', c!.phone!, text);
-            setRes(`${INTENT_LABEL[r.intent] ?? r.intent}${r.auto_reply ? ` · מענה אוטומטי: "${r.auto_reply}"` : ''}`);
+            setRes(`${r.owner_summary ?? INTENT_LABEL[r.intent] ?? r.intent}${r.auto_reply ? ` · מענה אוטומטי: "${r.auto_reply}"` : ''}${r.draft_id ? ' · טיוטת מענה ממתינה לאישורך ב«תשובות לקוחות»' : ''}`);
             await reload();
           } catch (e) { showToast(`שגיאה: ${(e as Error).message}`); }
         }}>שלח תשובה (סימולציה)</Button>

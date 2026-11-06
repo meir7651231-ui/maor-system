@@ -6,12 +6,13 @@ import { Signup } from './pages/Signup.tsx';
 import { Dashboard } from './pages/Dashboard.tsx';
 import { Invoices } from './pages/Invoices.tsx';
 import { Settings } from './pages/Settings.tsx';
+import { Inbox } from './pages/Inbox.tsx';
 
 function Routed() {
   const r = useRoute();
   const { toast } = useApp();
   const page = r === 'landing' ? <Landing /> : r === 'signup' ? <Signup /> : (
-    <Shell route={r}>{r === 'dashboard' ? <Dashboard /> : r === 'invoices' ? <Invoices /> : <Settings />}</Shell>
+    <Shell route={r}>{r === 'dashboard' ? <Dashboard /> : r === 'invoices' ? <Invoices /> : r === 'inbox' ? <Inbox /> : <Settings />}</Shell>
   );
   return (
     <>

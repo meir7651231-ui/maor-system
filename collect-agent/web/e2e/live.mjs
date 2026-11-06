@@ -21,7 +21,7 @@ const b = await chromium.launch();
 const errors = [];
 try {
   const p = await b.newPage({ viewport: { width: 1366, height: 900 }, deviceScaleFactor: out ? 2 : 1 });
-  p.on('console', m => m.type() === 'error' && !/fonts\.g/.test(m.text()) && errors.push(m.text()));
+  p.on('console', m => m.type() === 'error' && !/fonts\.g|status of 409/.test(m.text()) && errors.push(m.text())); // 409 = דחיית מסנן הניסוח, צפויה
   p.on('pageerror', e => errors.push(String(e)));
   await p.goto(base + '/app/#/dashboard');
   await p.getByTestId('mode').filter({ hasText: 'מחובר לשרת גבי' }).waitFor();
@@ -93,9 +93,30 @@ try {
   ok(ob3 === ob2 + 1, `הצעת הפריסה לא נשלחה ללקוח (${ob2}→${ob3})`);
   if (out) await fullShot(p, `${out}/live-05-needs-you.png`);
 
+  // תשובות לקוחות: הטיוטה של "איך אפשר לשלם?" ⇒ עריכה עם שיווק נחסמת ⇒ נוסח נקי מאושר ונשלח
+  await p.goto(base + '/app/#/inbox');
+  // "איך משלמים" של יוסי הוחלפה (superseded) בבקשת הפריסה שבאה אחריה ⇒ הכרטיס הפעיל = פריסה
+  const card = p.getByTestId('drafts').locator('li', { hasText: 'יוסי' }).first();
+  await card.waitFor();
+  const box = card.locator('textarea');
+  const original = await box.inputValue();
+  ok(original.trim().length > 0, 'טיוטה ריקה');
+  await box.fill('יש לנו מבצע מיוחד החודש! ' + original);
+  await card.getByRole('button', { name: 'אשר ושלח' }).click();
+  await card.getByRole('alert').waitFor();
+  ok(/תוכן שיווקי/.test(await card.getByRole('alert').textContent()), 'הסבר דחיית המסנן לא תורגם לבעל העסק');
+  if (out) await fullShot(p, `${out}/live-06-inbox.png`); // הכרטיס + דחיית מסנן הניסוח
+  const ob4 = (await (await fetch(base + '/outbox')).json()).messages.length;
+  await box.fill(original);
+  await card.getByRole('button', { name: 'אשר ושלח' }).click();
+  await p.getByText('המענה אושר ונשלח').waitFor();
+  const ob5 = (await (await fetch(base + '/outbox')).json()).messages.length;
+  ok(ob5 === ob4 + 1, `המענה לא יצא ליומן (${ob4}→${ob5})`);
+  ok(!(await (await fetch(base + '/conversation/drafts')).json()).some(d => d.customer.startsWith('יוסי')), 'הטיוטה של יוסי עדיין בתור');
+
   await p.goto(base + '/app/#/invoices');
   await p.getByText('דנה לוי').first().waitFor();
   ok(await p.locator('tbody tr').count() === 5, 'ציפיתי ל-5 חשבוניות פתוחות');
   if (errors.length) throw new Error('שגיאות קונסולה:\n' + errors.join('\n'));
-  console.log(`✓ דמו חי מקצה לקצה עבר: תור 2 → אישור יוסי → יומן +2 (${outbox0}→${outbox1}) → תשובת לקוח סווגה → חידוש לקוח מושהה → הצעת פריסה אושרה ונשלחה · 0 שגיאות קונסולה`);
+  console.log(`✓ דמו חי מקצה לקצה עבר: תור 2 → אישור יוסי → יומן +2 (${outbox0}→${outbox1}) → תשובת לקוח סווגה → חידוש לקוח מושהה → הצעת פריסה אושרה ונשלחה → טיוטת מענה: שיווק נחסם, נוסח נקי אושר ונשלח · 0 שגיאות קונסולה`);
 } finally { await b.close(); srv.kill(); }

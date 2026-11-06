@@ -49,6 +49,12 @@ export interface PreviewMsg {
 }
 export interface Preview { reminder_id: number; status: string; block_reason: string | null; template_key: Step; scheduled_for: string; messages: PreviewMsg[] }
 export interface Plan { id: number; customer_id: number; invoice_id: number; status: string; installments: { n: number; due: string; amount_agorot: number }[] }
+export interface Draft {
+  id: number; customer_id: number; customer: string; channel: 'sms' | 'email'; to_addr: string; body: string;
+  intent: string; status: 'pending_approval' | 'needs_owner' | string; escalate: 'urgent' | 'normal' | 'none' | string;
+  owner_summary: string; owner_actions: string[]; plan_id: number | null; created_at: string;
+}
+export interface InboundResult { intent: string; escalate?: boolean; escalation?: string; auto_reply?: string | null; draft_id?: number | null; owner_summary?: string; owner_actions?: string[] }
 export interface OutMsg { id: string; channel: 'sms' | 'email'; to: string; body: string }
 
 export const api = {
@@ -61,8 +67,11 @@ export const api = {
   resume: (cid: number) => j<unknown>(`/customers/${cid}/resume`, { method: 'POST' }),
   plans: () => j<Plan[]>('/plans'),
   approvePlan: (pid: number) => j<{ text: string }>(`/plans/${pid}/approve`, { method: 'POST' }),
+  drafts: () => j<Draft[]>('/conversation/drafts'),
+  approveDraft: (id: number, body?: string) => j<{ status: string }>(`/conversation/drafts/${id}/approve`, { method: 'POST', body: JSON.stringify(body === undefined ? {} : { body }) }),
+  rejectDraft: (id: number) => j<unknown>(`/conversation/drafts/${id}/reject`, { method: 'POST' }),
   inbound: (channel: 'sms' | 'email', sender: string, text: string) =>
-    j<{ intent: string; escalate?: boolean; auto_reply?: string | null }>('/inbound', { method: 'POST', body: JSON.stringify({ channel, sender, text }) }),
+    j<InboundResult>('/inbound', { method: 'POST', body: JSON.stringify({ channel, sender, text }) }),
 };
 
 export const BLOCK_LABEL: Record<string, string> = {

@@ -114,3 +114,4 @@ test('שעה מהשרת מוצגת בשעון ישראל, וסכומים עם א
   assert.match(fmtIls(3450.5), /3,450\.50/);
   assert.doesNotMatch(fmtIls(1200), /\./);
 });
+
