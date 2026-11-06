@@ -433,3 +433,23 @@ def test_no_automatic_approval_anywhere(svc, clock):
         clock.now += timedelta(days=1)
     st = {r["status"] for r in svc.db.q("SELECT status FROM reminders")}
     assert st <= {"pending_approval"}, st  # בלי אישור בעלים אין "approved"
+
+
+def test_workflows_have_no_duplicate_keys():
+    """באג (ac97abe): שני ג'ובים בשם `web` באותו workflow. PyYAML לוקח בשקט את האחרון,
+    אבל GitHub דוחה מפתח כפול ⇒ ה-workflow כולו לא תקין ⇒ כל ריצה "failure" מיידי בלי
+    אף ג'וב (סבבים 75–81). הבדיקה טוענת עם loader שנכשל על מפתח כפול."""
+    import yaml
+
+    class Strict(yaml.SafeLoader):
+        pass
+
+    def construct_mapping(loader, node, deep=False):
+        keys = [loader.construct_object(k, deep=deep) for k, _ in node.value]
+        dup = {k for k in keys if keys.count(k) > 1}
+        assert not dup, f"מפתח כפול ב-YAML: {dup} (שורה {node.start_mark.line + 1})"
+        return yaml.SafeLoader.construct_mapping(loader, node, deep)
+
+    Strict.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, construct_mapping)
+    for wf in (ROOT.parent / ".github" / "workflows").glob("*.yml"):
+        yaml.load(wf.read_text(encoding="utf-8"), Loader=Strict)  # noqa: S506 — SafeLoader
