@@ -672,6 +672,13 @@ class CollectService:
             if approved is None or self.clock() - approved > timedelta(hours=24):
                 self._invalidate(r, "csv_stale")
                 return "failed"
+            # review חור 7 (שארית, שוחזר): ייבוא CSV **אחרי** האישור שלא כלל את החשבונית = סימן
+            # שהיא אולי שולמה. בלי זה נשלחה תזכורת ללקוח שבעל העסק כבר הוריד מהקובץ.
+            last = self.db.one("SELECT MAX(synced_at) m FROM invoices WHERE source='csv'")["m"]
+            if last and inv["synced_at"] and inv["synced_at"] < last and \
+                    _dt(last) > approved:
+                self._invalidate(r, "csv_missing_from_import")
+                return "failed"
             if inv["amount_agorot"] != sent_amount:     # ייבוא חוזר עם יתרה אחרת (מבקר סבב 3)
                 return self._rebuild_for_amount(r, inv, inv["amount_agorot"])
             return "ok"
@@ -867,6 +874,20 @@ class CollectService:
         for inv in self.db.q("SELECT id FROM invoices WHERE customer_id=?", (cid,)):
             self._cancel_invoice(inv["id"], "opted_out")
         self.audit("customer", "opt_out", {"customer": cid, "via": how})
+        # review חור 1 (הכרעת המבקר לפי הכללים, שמרני): לקוח אחר על אותו נייד/מייל הוא כמעט תמיד
+        # אותו אדם או משק בית ⇒ «הסר» עוצר גם את שאר הערוצים שלו (היה: מייל לכתובת שלו נשלח).
+        phone, email = normalize_il_phone(c["phone"]), (c["email"] or "").strip().lower()
+        for o in self.db.q("SELECT id, phone, email FROM customers WHERE opted_out=0 AND id!=?",
+                           (cid,)):
+            if (phone and normalize_il_phone(o["phone"]) == phone) or \
+                    (email and (o["email"] or "").strip().lower() == email):
+                self.db.x("UPDATE customers SET opted_out=1 WHERE id=?", (o["id"],))
+                self.suppress("sms", o["phone"] or "", how)
+                self.suppress("email", o["email"] or "", how)
+                for inv in self.db.q("SELECT id FROM invoices WHERE customer_id=?", (o["id"],)):
+                    self._cancel_invoice(inv["id"], "opted_out")
+                self.audit("customer", "opt_out", {"customer": o["id"], "via": how,
+                                                    "shared_contact_of": cid})
 
     def _reply(self, cust, channel: str, text: str, now: datetime) -> str | None:
         """שליחה ביוזמת בעל העסק (למשל אישור פריסה). עוברת בשער ונושאת קישור הסרה (ממצא 2.3.5).
@@ -945,6 +966,8 @@ class CollectService:
                 "customer_id": r["customer_id"], "paused_reason": r["paused_reason"],
                 "phone": r["cphone"], "email": r["cemail"], "amount_agorot": r["amount_agorot"],
                 "currency": r["currency"], "due": r["due"], "status": r["status"],
+                # web: חשבונית CSV ⇒ תיבת «הסכום עדיין פתוח» לפני אישור (confirm_open)
+                "source": r["source"],
                 "days_overdue": (today - due).days if due and r["status"] == "open" else 0,
                 "reminders_sent": sent,
                 "last_reminder": None if not last else {
@@ -1009,7 +1032,21 @@ class CollectService:
         return out
 
     # ---------- עמוד החייב (/pay/{code}) — ציבורי, מינימום מידע ----------
-    PAY_METHODS = ("bit", "apple_pay", "card")
+    # review חור 4: היו כפתורי Bit/Apple Pay/כרטיס עם לוגואים וצבעי מותג, על הדומיין שלנו, ו«דרך
+    # חשבונית ירוקה» קשיח — שימוש בסימני מסחר בלי הסכם, הבטחה לאמצעים שהעסק אולי לא מקבל, ונראה
+    # כמו דף פישינג. עכשיו: כפתור ניטרלי אחד לעמוד התשלום של העסק + הדומיין המדויק של היעד.
+    PAY_METHODS = ("page",)
+    _PROVIDERS = {"greeninvoice.co.il": "חשבונית ירוקה", "morning.co": "morning",
+                  "meshulam.co.il": "משולם", "grow.link": "Grow (משולם)", "bitpay.co.il": "ביט"}
+
+    @classmethod
+    def pay_destination(cls, url: str) -> tuple[str, str]:
+        """(דומיין, שם ספק לתצוגה) — נגזר מהקישור בפועל, לא קשיח."""
+        from urllib.parse import urlparse
+        host = (urlparse(url).hostname or "").lower()
+        name = next((v for d, v in cls._PROVIDERS.items() if host == d or host.endswith("." + d)),
+                    host)
+        return host, name
 
     def payer_view(self, code: str) -> dict:
         """רק מה שהחייב צריך: שם העסק, מספר, סכום, מועד, מצב. בלי טלפון/מייל/טוקן הסרה."""
@@ -1020,11 +1057,13 @@ class CollectService:
                 "currency": inv["currency"], "due": info["due"], "open": info["open"],
                 "opted_out": info["opted_out"], "can_pay": bool(info["pay_url"]),
                 "methods": list(self.PAY_METHODS) if info["pay_url"] else [],
+                "pay_host": self.pay_destination(info["pay_url"])[0] if info["pay_url"] else "",
+                "pay_provider": self.pay_destination(info["pay_url"])[1] if info["pay_url"] else "",
                 "plan_options": [2, 3, 4, 6], "dry_run": True}
 
     def payer_go(self, code: str, method: str) -> str:
-        """בחירת אמצעי תשלום ⇒ דף התשלום המאובטח (חשבונית ירוקה תומכת ב-Bit/Apple Pay/כרטיס).
-        יעד מאומת מול רשימת הדומיינים; גבי לא נוגע בפרטי תשלום."""
+        """⇒ עמוד התשלום של העסק (אמצעי התשלום נקבעים שם, לא אצלנו). יעד מאומת מול רשימת
+        הדומיינים; גבי לא נוגע בפרטי תשלום."""
         if method not in self.PAY_METHODS:
             raise ValueError("אמצעי תשלום לא מוכר")
         info = self.landing(code)

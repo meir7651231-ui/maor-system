@@ -167,7 +167,9 @@ test('v2: בלי וואטסאפ בדף התשלום ובדף הנחיתה; הכ�
   const pay = readFileSync(new URL('../src/pages/Pay.tsx', import.meta.url), 'utf8');
   const land = readFileSync(new URL('../src/pages/Landing.tsx', import.meta.url), 'utf8');
   assert.ok(land.includes('הכסף שלך חוזר.') && land.includes('בלי שתצטרך לרדוף.'));
-  assert.ok(['bit:', 'apple_pay:', 'card:'].every(k => pay.includes(k)), 'Bit · Apple Pay · כרטיס');
+  // review חור 4: כפתור ניטרלי + דומיין היעד; בלי לוגו/צבע של Bit או Apple ובלי «חשבונית ירוקה» קשיח
+  assert.ok(pay.includes('data-testid="pay-page"') && pay.includes('pay_host'));
+  assert.doesNotMatch(pay, /AppleLogo|Apple Pay|#00B2A9|apple_pay|דרך חשבונית ירוקה/);
   assert.doesNotMatch(pay + land, /וואטסאפ|WhatsApp/i);
 });
 
@@ -230,4 +232,46 @@ test('הודעות מערכת לבעל העסק: רק direction=system, סוף �
   assert.ok(!n.some(x => x.body.includes('טקסט חופשי')));    // תשובת לקוח לא דולפת לכאן
   assert.equal(n[0].title, 'תקופת הניסיון מסתיימת בקרוב');
   assert.equal(n[1].title, 'הודעה מגבי');
+});
+
+import { diffPatch, explainSettingsError, toForm, validate, vatOk, type DesignSettings } from '../src/lib/settings.ts';
+test('הגדרות: PUT חלקי בלבד, ולידציה כמו בשרת, שגיאות בעברית', () => {
+  const s: DesignSettings = {
+    business_name: 'סטודיו דמו', owner_name: '', vat_id: '', reply_email: 'owner@example.com',
+    sms: { primary: '019', backup: 'inforu', sender: 'StudioDemo' }, pay: { provider: 'greeninvoice', page_url: 'https://pay.example/x' },
+    source: { type: 'api', api_connected: true }, cadence_days: [1, 7, 14],
+    rules: { max_reminders: 3, window: '08:00-20:00', approval: 'every_message' },
+  };
+  const a = toForm(s);
+  assert.deepEqual(diffPatch(a, a), {}, 'בלי שינוי ⇒ גוף ריק');
+  assert.deepEqual(diffPatch(a, { ...a, sender: 'NewName' }), { sms: { sender: 'NewName' } });
+  assert.deepEqual(diffPatch(a, { ...a, pay_provider: 'bit' }), { pay: { provider: 'bit', page_url: 'https://pay.example/x' } }, 'החלפת ספק שולחת גם כתובת (נבדקת מול הדומיין החדש)');
+  const p = diffPatch(a, { ...a, owner_name: ' מאיר ' });
+  assert.deepEqual(p, { owner_name: 'מאיר' });
+  for (const k of ['rules', 'cadence_days', 'source', 'pricing']) assert.ok(!(k in diffPatch(a, { ...a, vat_id: '123456782' })), `${k} לעולם לא נשלח`);
+  assert.ok(vatOk('123456782') && vatOk('000000000') && !vatOk('123456789') && !vatOk('12345678'));
+  assert.equal(validate(a).sender, undefined);
+  assert.ok(validate({ ...a, sender: 'Studio Demo' }).sender, 'רווח בשם שולח נדחה (כמו בשרת)');
+  assert.ok(validate({ ...a, sender: 'ABCDEFGHIJKL' }).sender);
+  assert.ok(validate({ ...a, pay_url: 'http://pay.example/x' }).pay_url);
+  assert.ok(validate({ ...a, business_name: 'x' }).business_name);
+  assert.equal(explainSettingsError("sms_sender_id: String should match pattern '^[A-Za-z0-9]{1,11}$'"), 'שם השולח: ערך לא תקין');
+  assert.equal(explainSettingsError('קישור התשלום חייב להיות https בדומיין של bit: pay.example'), 'קישור התשלום חייב להיות https בדומיין של bit: pay.example');
+});
+
+test('מקור החשבונית מהשרת (api/csv) נשמר במודל — בסיס לתיבת «הסכום עדיין פתוח»', () => {
+  const base = { number: '1', customer: 'x', phone: '', email: '', amount_agorot: 100, currency: 'ILS', due: '2026-10-01', status: 'open',
+    days_overdue: 1, reminders_sent: 0, last_reminder: null, customer_block: null };
+  const d = { today: '2026-11-08', totals: {} as never, invoices: [{ ...base, invoice_id: 1, source: 'csv' as const }, { ...base, invoice_id: 2 }] };
+  const m = fromDashboard(d as never, []);
+  assert.deepEqual(m.invoices.map(i => i.source), ['csv', 'api']);
+  const prev = readFileSync(new URL('../src/components/MessagePreview.tsx', import.meta.url), 'utf8');
+  assert.match(prev, /disabled=\{[^}]*isCsv && !confirmOpen/, 'אישור CSV חסום עד סימון התיבה');
+});
+
+test('§30א: הסכמה לפרסומת בהרשמה — נפרדת, אופציונלית, לא מסומנת, עם חותמת זמן (critic סבב 5)', () => {
+  const su = readFileSync(new URL('../src/pages/Signup.tsx', import.meta.url), 'utf8');
+  assert.match(su, /marketing: false, marketingAt: ''/, 'ברירת מחדל: לא מסומן');
+  assert.ok(su.includes('data-testid="marketing-consent"') && su.includes('לא חובה'));
+  assert.doesNotMatch(su, /disabled=\{[^}]*marketing/, 'ההסכמה לא יכולה להיות תנאי להרשמה');
 });

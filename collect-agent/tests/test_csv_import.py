@@ -83,3 +83,11 @@ def test_partial_csv_does_not_close_other_invoices(api, svc):
     api.post("/sync")                                  # 2 חשבוניות מה-API
     api.post("/import/csv", content=b"number,client,phone,amount\n9,X,0501234569,10\n")
     assert svc.db.one("SELECT COUNT(*) n FROM invoices WHERE status='open'")["n"] == 3
+
+
+def test_dashboard_marks_invoice_source_for_confirm_open_ui(api):
+    """הממשק צריך לדעת שחשבונית הגיעה מ-CSV כדי לבקש «הסכום הזה עדיין פתוח» לפני האישור."""
+    api.post("/import/csv", content=CSV_HE.encode())
+    rows = {r["number"]: r for r in api.get("/dashboard").json()["invoices"]}
+    assert rows["2001"]["source"] == "csv" and rows["2002"]["source"] == "csv"
+    assert all(r["source"] in ("api", "csv") for r in rows.values())

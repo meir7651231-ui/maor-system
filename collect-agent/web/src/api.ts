@@ -1,5 +1,6 @@
 // שכבת API מול הבקאנד של גבי (FastAPI, dry-run בלבד). אותו origin כשהממשק מוגש מ-/app/,
 // או ?api=http://127.0.0.1:8000 בפיתוח. אין בקאנד ⇒ הממשק נופל לנתוני מוק (data/demo.ts).
+import type { DesignSettings } from './lib/settings.ts';
 import type { Customer, Invoice, InvoiceStatus, Reminder, Step } from './lib/domain.ts';
 import { STEP_ORDER } from './lib/message.ts';
 import { readToken } from './lib/auth.ts';
@@ -42,6 +43,7 @@ export async function detectBackend(): Promise<Health | null> {
 export interface DashRow {
   invoice_id: number; number: string; customer: string; phone: string; email: string;
   customer_id?: number; paused_reason?: string | null;
+  source?: 'api' | 'csv';
   amount_agorot: number; currency: string; due: string | null; status: 'open' | 'closed' | string;
   days_overdue: number; reminders_sent: number;
   last_reminder: null | { id: number; step: number; status: string; template_key: string; sent_at: string | null; block_reason: string | null };
@@ -51,7 +53,8 @@ export interface Dashboard {
   today: string;
   totals: { open_invoices: number; open_agorot: number; overdue_agorot: number; closed_invoices: number; pending_approval: number; sent_sms: number; sent_email: number; owner_inbox: number;
     collected_agorot?: number; recovery_rate_pct?: number; avg_days_overdue?: number; at_risk_agorot?: number;
-    reminders_sent?: number; customers_messaged?: number; reply_rate_pct?: number };
+    reminders_sent?: number; customers_messaged?: number; reply_rate_pct?: number;
+    /** חשבוניות CSV פתוחות שלא הופיעו בייבוא האחרון — אולי כבר שולמו */ csv_unverified?: number };
   series?: WeekPoint[];
   invoices: DashRow[];
 }
@@ -74,7 +77,8 @@ export const api = {
   dashboard: () => j<Dashboard>('/dashboard'),
   pending: () => j<{ id: number; invoice_id: number; block_reason: string | null }[]>('/reminders?status=pending_approval'),
   preview: (rid: number) => j<Preview>(`/reminders/${rid}/preview`),
-  approve: (rid: number) => j<unknown>(`/reminders/${rid}/approve`, { method: 'POST' }),
+  /** confirmOpen: לחשבונית מ-CSV בעל העסק מאשר במפורש שהסכום עדיין פתוח (השרת מחייב; תוקף 24 ש׳). */
+  approve: (rid: number, confirmOpen = false) => j<unknown>(`/reminders/${rid}/approve`, { method: 'POST', ...(confirmOpen ? { body: JSON.stringify({ confirm_open: true }) } : {}) }),
   dispatch: () => j<{ dry_run: true; sent: unknown[] }>('/dispatch', { method: 'POST' }),
   outbox: () => j<{ dry_run: true; messages: OutMsg[] }>('/outbox'),
   resume: (cid: number) => j<unknown>(`/customers/${cid}/resume`, { method: 'POST' }),
@@ -84,6 +88,10 @@ export const api = {
   drafts: () => j<Draft[]>('/conversation/drafts'),
   approveDraft: (id: number, body?: string) => j<{ status: string }>(`/conversation/drafts/${id}/approve`, { method: 'POST', body: JSON.stringify(body === undefined ? {} : { body }) }),
   rejectDraft: (id: number) => j<unknown>(`/conversation/drafts/${id}/reject`, { method: 'POST' }),
+  settings: () => j<DesignSettings>('/settings'),
+  saveSettings: (patch: Record<string, unknown>) => j<DesignSettings>('/settings', { method: 'PUT', body: JSON.stringify(patch) }),
+  importCsv: (csv: string) => j<{ imported: number; rejected: { row: number; reason: string }[] }>('/settings/source/csv',
+    { method: 'POST', body: csv, headers: { 'Content-Type': 'text/csv; charset=utf-8' } }),
   inbound: (channel: 'sms' | 'email', sender: string, text: string) =>
     j<InboundResult>('/inbound', { method: 'POST', body: JSON.stringify({ channel, sender, text }) }),
 };
@@ -92,8 +100,10 @@ export const api = {
 export interface PayerView {
   code: string; business: string; number: string; amount: string; amount_agorot: number; currency: string;
   due: string | null; open: boolean; opted_out: boolean; can_pay: boolean; methods: PayMethod[]; plan_options: number[]; dry_run: boolean;
+  pay_host?: string; pay_provider?: string;
 }
-export type PayMethod = 'bit' | 'apple_pay' | 'card';
+// review חור 4: כפתור ניטרלי אחד לעמוד התשלום של העסק (בלי Bit/Apple — סימני מסחר)
+export type PayMethod = 'page';
 export const payer = {
   view: (code: string) => j<PayerView>(`/api/pay/${encodeURIComponent(code)}`),
   act: (code: string, action: 'paid' | 'plan' | 'stop', installments?: number) =>
@@ -124,7 +134,7 @@ export function fromDashboard(d: Dashboard, pending: { id: number; invoice_id: n
     const reminders: Reminder[] = Array.from({ length: r.reminders_sent }, (_, i) => ({ at, step: STEP_ORDER[Math.min(i, 3)], channel: 'sms', status: 'sent' }));
     const blockNote = r.customer_block ? BLOCK_LABEL[r.customer_block] ?? r.customer_block : undefined;
     invoices.push({
-      id: String(r.invoice_id), number: r.number, customerId: cid, amount: r.amount_agorot / 100,
+      id: String(r.invoice_id), source: r.source === 'csv' ? 'csv' : 'api', number: r.number, customerId: cid, amount: r.amount_agorot / 100,
       issuedAt: r.due ?? d.today, dueAt: r.due ?? d.today, status, payUrl: '', reminders, note: blockNote,
     });
   }

@@ -15,6 +15,8 @@ export function MessagePreview({ invoice, onClose, now = new Date() }: { invoice
   const pending = pendingOf(invoice.id);
   const [pv, setPv] = useState<Preview | null>(null);
   const [busy, setBusy] = useState(false);
+  const isCsv = invoice.source === 'csv';
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   useEffect(() => {
     if (!live || !pending) return;
@@ -162,10 +164,16 @@ export function MessagePreview({ invoice, onClose, now = new Date() }: { invoice
 
         <footer className="sticky bottom-0 bg-white border-t border-ink-200 p-4 flex flex-wrap items-center gap-3 justify-end">
           {c.optedOut && <span className="text-critical text-sm font-bold me-auto">הלקוח ביקש הסרה — אין שליחה</span>}
+          {live && isCsv && (
+            <label className="me-auto flex items-start gap-2 text-sm rounded-xl bg-amber-50 text-amber-900 px-3 py-2 max-w-md" data-testid="confirm-open">
+              <input type="checkbox" className="h-5 w-5 mt-0.5 accent-[#10B981]" checked={confirmOpen} onChange={e => setConfirmOpen(e.target.checked)} />
+              <span><b>הסכום {fmtIls(invoice.amount)} עדיין פתוח</b> — בדקתי. (חשבונית מקובץ CSV לא מתעדכנת לבד; האישור תקף 24 שעות.)</span>
+            </label>
+          )}
           <Button variant="ghost" onClick={onClose}>ביטול</Button>
-          <Button disabled={!sendable} onClick={async () => {
+          <Button disabled={!sendable || (live && isCsv && !confirmOpen)} onClick={async () => {
             setBusy(true);
-            try { await approveAndSend(invoice.id, step, channels); onClose(); }
+            try { await approveAndSend(invoice.id, step, channels, { confirmOpen }); onClose(); }
             catch (e) { showToast(`לא אושר: ${(e as Error).message}`); setBusy(false); }
           }}>
             ✓ אשר ושלח {channels.length === 2 ? 'ב-SMS ובמייל' : channels[0] === 'sms' ? 'ב-SMS' : channels[0] === 'email' ? 'במייל' : ''}

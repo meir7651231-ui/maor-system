@@ -20,6 +20,8 @@ export interface Invoice {
   reminders: Reminder[];
   promisedAt?: string;
   note?: string;
+  /** מאיפה החשבונית: API (מתרענן לבד) או CSV (בעל העסק מאשר שהסכום עדיין פתוח) */
+  source?: 'api' | 'csv';
 }
 /** 019 ראשי, InforU גיבוי — מאחורי adapter יחיד בשרת (dry-run בלבד). */
 export type SmsProvider = '019' | 'inforu';
