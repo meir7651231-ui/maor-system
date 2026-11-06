@@ -40,6 +40,15 @@ class DraftEdit(BaseModel):
     body: str | None = None
 
 
+class HoldIn(BaseModel):
+    reason: Literal["minor", "deceased", "insolvency"]
+    note: str = Field("", max_length=500)
+
+
+class LegalHoldIn(BaseModel):
+    note: str | None = Field(None, max_length=500)   # None/"" ⇒ ביטול
+
+
 class InboundIn(BaseModel):
     channel: Literal["sms", "email"] = "sms"
     sender: str = Field(max_length=254)
@@ -197,6 +206,18 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
     @app.post("/customers/{cid}/resume", dependencies=auth)
     def resume(cid: int):
         return guard(svc.resume_customer, cid)
+
+    @app.post("/customers/{cid}/hold", dependencies=auth)
+    def customer_hold(cid: int, b: HoldIn):          # ר-6
+        return guard(svc.set_hold, cid, b.reason, b.note)
+
+    @app.post("/customers/{cid}/legal-hold", dependencies=auth)
+    def customer_legal_hold(cid: int, b: LegalHoldIn):   # ר-10
+        return guard(svc.set_legal_hold, cid, b.note)
+
+    @app.post("/maintenance/purge", dependencies=auth)
+    def purge():                                     # ר-10 (רץ גם בכל plan)
+        return svc.purge_closed()
 
     @app.get("/outbox", dependencies=auth)
     def outbox():

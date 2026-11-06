@@ -23,7 +23,16 @@ from .channels import (
 from .config import SafetyError, Settings
 from .db import DB
 from .greeninvoice import GreenInvoiceClient, GreenInvoiceError, Invoice
-from .policy import MAX_REMINDERS_PER_INVOICE, TZ, Policy, customer_blocked, gap_ok
+from .policy import (
+    MANUAL_ONLY_AFTER_DAYS,
+    MAX_REMINDERS_PER_INVOICE,
+    OWNER_HOLDS,
+    RETENTION_DAYS,
+    TZ,
+    Policy,
+    customer_blocked,
+    gap_ok,
+)
 
 # ימים אחרי מועד-התשלום לכל שלב
 STEP_OFFSETS_DAYS = (1, 7, 14)   # 3 תזכורות לכל היותר (הכרעת מאיר) ⇒ עצירה + התראה לבעל העסק
@@ -242,6 +251,7 @@ class CollectService:
             return []
         # באג: release_expired_pauses לא נקרא מאף מקום ⇒ "אשלם בחמישי" שלא שולם השהה לנצח
         self.inbox.release_expired_pauses()
+        self.purge_closed()   # ר-10: זול, פעם בסבב
         created: list[int] = []
         rows = self.db.q("SELECT * FROM invoices WHERE status='open'")
         for r in rows:
@@ -254,6 +264,10 @@ class CollectService:
             if self.db.one("SELECT 1 FROM reminders WHERE invoice_id=? AND status='rejected'",
                            (r["id"],)):
                 continue  # בעל העסק דחה ⇒ אין תזכורות נוספות לחשבונית הזו
+            born = r["issued"] or r["due"]
+            if born and (now.date() - date.fromisoformat(born)).days > MANUAL_ONLY_AFTER_DAYS:
+                self._notify_too_old(r, cust)   # ר-7: אין שום אוטומציה, רק התראה אחת
+                continue
             done = self.db.one("SELECT COUNT(*) n FROM reminders WHERE invoice_id=?",
                                (r["id"],))["n"]
             if done >= MAX_REMINDERS_PER_INVOICE:
@@ -301,6 +315,73 @@ class CollectService:
                    f"{inv_row['number']} ({cust['name']}) והיא עדיין פתוחה. התזכורות האוטומטיות "
                    "נעצרו — מומלץ קשר אישי.", f"inv:{inv_row['id']}", _iso(self.clock())))
         self.audit("system", "max_reminders_reached", {"invoice": inv_row["id"]})
+
+    def _notify_too_old(self, inv_row, cust) -> None:
+        key = f"old:{inv_row['id']}"
+        if self.db.one("SELECT 1 FROM messages WHERE intent='manual_only_old' AND message_id=?",
+                       (key,)):
+            return
+        self._cancel_invoice(inv_row["id"], "manual_only_old")
+        self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
+                  "message_id,created_at) VALUES(?,'system','owner',?,'manual_only_old',1,?,?)",
+                  (cust["id"], f"חשבונית {inv_row['number']} ({cust['name']}) בת יותר מ-3 שנים. "
+                   "גבי לא שולחת עליה תזכורות אוטומטיות — לטיפול ידני בלבד.", key,
+                   _iso(self.clock())))
+        self.audit("system", "manual_only_old", {"invoice": inv_row["id"]})
+
+    # ---------- ר-6: סימון בעל העסק (קטין / נפטר / חדלות פירעון) ----------
+    def set_hold(self, customer_id: int, reason: str, note: str = "", actor: str = "owner") -> dict:
+        """השהיה קשה (כמו זו שמנוע השיחה קובע): עוצרת הכול, רק בעל העסק משחרר (resume)."""
+        if reason not in OWNER_HOLDS:
+            raise ValueError(f"סימון לא מוכר: {reason}")
+        c = self.db.one("SELECT * FROM customers WHERE id=?", (customer_id,))
+        if not c:
+            raise KeyError(customer_id)
+        self.db.x("UPDATE customers SET paused_reason=? WHERE id=?", (reason, customer_id))
+        for inv in self.db.q("SELECT id FROM invoices WHERE customer_id=?", (customer_id,)):
+            self._cancel_invoice(inv["id"], reason)
+        self.audit(actor, "customer_hold", {"customer": customer_id, "reason": reason,
+                                            "note": (note or "")[:500]})
+        return dict(self.db.one("SELECT * FROM customers WHERE id=?", (customer_id,)))
+
+    # ---------- ר-10: legal hold + מחיקה/התממה אחרי 90 יום ----------
+    def set_legal_hold(self, customer_id: int, note: str | None, actor: str = "owner") -> dict:
+        """note מתועד ⇒ פטור ממחיקה; None/"" ⇒ ביטול. שניהם נרשמים ב-audit."""
+        if not self.db.one("SELECT 1 FROM customers WHERE id=?", (customer_id,)):
+            raise KeyError(customer_id)
+        val = (note or "").strip() or None
+        if val is not None and len(val) < 10:
+            raise ValueError("legal hold דורש סיבה מתועדת (תיק, בקשת עו״ד, חובה חוקית)")
+        self.db.x("UPDATE customers SET legal_hold=? WHERE id=?", (val, customer_id))
+        self.audit(actor, "legal_hold", {"customer": customer_id, "note": val})
+        return dict(self.db.one("SELECT * FROM customers WHERE id=?", (customer_id,)))
+
+    def purge_closed(self) -> dict[str, int]:
+        """חוב סגור מעל 90 יום ⇒ ריקון תוכן ההודעות והתממת הלקוח (כשאין לו חוב פתוח),
+        אלא אם יש legal hold מתועד. רשימת ההסרה (suppressions, גיבוב בלבד) ו-audit נשארים."""
+        cutoff = _iso(self.clock() - timedelta(days=RETENTION_DAYS))
+        now = _iso(self.clock())
+        inv_n = cust_n = 0
+        for r in self.db.q("SELECT i.id FROM invoices i JOIN customers c ON c.id=i.customer_id "
+                           "WHERE i.status='closed' AND i.purged_at IS NULL AND i.closed_at "
+                           "IS NOT NULL AND i.closed_at<=? AND c.legal_hold IS NULL", (cutoff,)):
+            self.db.x("UPDATE reminders SET body='', payload='[]' WHERE invoice_id=?", (r["id"],))
+            self.db.x("UPDATE invoices SET purged_at=?, payment_url=NULL WHERE id=?",
+                      (now, r["id"]))
+            inv_n += 1
+        for c in self.db.q("SELECT id FROM customers WHERE purged_at IS NULL AND "
+                           "legal_hold IS NULL"):
+            left = self.db.one("SELECT COUNT(*) n FROM invoices WHERE customer_id=? AND "
+                               "purged_at IS NULL", (c["id"],))["n"]
+            if left or not self.db.one("SELECT 1 FROM invoices WHERE customer_id=?", (c["id"],)):
+                continue
+            self.db.x("UPDATE messages SET body='', payload=NULL WHERE customer_id=?", (c["id"],))
+            self.db.x("UPDATE customers SET name=NULL, phone=NULL, email=NULL, blocked_phone=NULL,"
+                      " blocked_email=NULL, purged_at=? WHERE id=?", (now, c["id"]))
+            cust_n += 1
+        if inv_n or cust_n:
+            self.audit("system", "retention_purge", {"invoices": inv_n, "customers": cust_n})
+        return {"invoices": inv_n, "customers": cust_n}
 
     def preview(self, reminder_id: int) -> dict:
         r = self._reminder(reminder_id)

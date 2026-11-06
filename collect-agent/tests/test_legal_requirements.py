@@ -2,7 +2,8 @@
 
 כל דרישה = בדיקה אחת לפחות, בשם test_r<N>_...
 • בדיקה רגילה  = הדרישה נאכפת היום בקוד.
-• xfail(strict) = פער ידוע. כשמישהו יממש את הדרישה, הבדיקה תתחיל לעבור ⇒ strict יפיל
+• xfail(strict) = פער ידוע (6.11 לילה: אין — 14/14 נאכפות; "נאכף" ≠ "מאושר משפטית").
+  כשמישהו יממש את הדרישה, הבדיקה תתחיל לעבור ⇒ strict יפיל
   את הריצה ⇒ חובה להסיר את הסימון. כך הטבלה ב-legal.md לא יכולה להתיישן בשקט.
 """
 from __future__ import annotations
@@ -258,28 +259,46 @@ def test_r5_live_hardship_pauses_reminders(api, svc):
     assert c["paused_reason"] or c["disputed"] or c["opted_out"]
 
 
-# ───────────── ר-6 · חדלות פירעון / נפטר / קטין ─────────────
-@pytest.mark.xfail(strict=True, reason="ר-6: אין עמודות insolvency/deceased/minor")
-def test_r6_block_flags_exist():
-    from app.db import DB
-    cols = {r["name"] for r in DB(":memory:").q("PRAGMA table_info(customers)")}
-    assert {"insolvency", "deceased", "minor"} <= cols
+# ───────────── ר-6 · חדלות פירעון / נפטר / קטין (סימון בעל העסק) ─────────────
+@pytest.mark.parametrize("reason", ["insolvency", "deceased", "minor"])
+def test_r6_owner_hold_stops_everything(api, svc, clock, reason):
+    api.post("/sync")
+    ids = api.post("/plan").json()["created"]
+    cid = svc.db.one("SELECT id FROM customers WHERE name='דנה כהן'")["id"]
+    r = api.post(f"/customers/{cid}/hold", json={"reason": reason, "note": "דווח בטלפון 6.11"})
+    assert r.status_code == 200 and r.json()["paused_reason"] == reason
+    for i in ids:
+        api.post(f"/reminders/{i}/approve")
+    api.post("/dispatch")
+    clock.now += timedelta(days=10)
+    for i in api.post("/plan").json()["created"]:
+        api.post(f"/reminders/{i}/approve")
+    api.post("/dispatch")
+    assert all(m["to"] not in ("972501234567", "c1@example.com") for m in svc.sender.sent)
+    a = next(x for x in api.get("/audit").json() if x["action"] == "customer_hold")
+    assert reason in a["detail"]
 
 
-# ───────────── ר-7 · חשבונית ישנה (>3 שנים) ⇒ אישור ידני ─────────────
-@pytest.mark.xfail(strict=True, reason="ר-7: אין בדיקת גיל חשבונית ב-plan")
-def test_r7_old_invoice_requires_approval(api, svc, fake_gi):
-    fake_gi.docs[:] = fake_gi.docs[:2]
+def test_r6_hold_rejects_unknown_reason(api, svc):
+    api.post("/sync")
+    cid = svc.db.one("SELECT id FROM customers LIMIT 1")["id"]
+    assert api.post(f"/customers/{cid}/hold", json={"reason": "vip"}).status_code == 422
+    assert api.post("/customers/999/hold", json={"reason": "minor"}).status_code == 404
+
+
+# ───────────── ר-7 · חשבונית ישנה (>3 שנים) ⇒ טיפול ידני בלבד ─────────────
+def test_r7_old_invoice_is_manual_only(api, svc, fake_gi):
     fake_gi.docs[0]["documentDate"] = "2022-01-01"
     fake_gi.docs[0]["dueDate"] = "2022-02-01"
-    _cycle(api, approve_all=True)            # מאשרים ראשונה ⇒ approved_first
-    from datetime import timedelta as td
-    svc.clock.now += td(days=8)
     api.post("/sync")
     api.post("/plan")
-    r = svc.db.one("SELECT status FROM reminders r JOIN invoices i ON i.id=r.invoice_id "
-                   "WHERE i.number='1001' ORDER BY r.id DESC LIMIT 1")
-    assert r["status"] == "pending_approval"
+    api.post("/plan")
+    inv = svc.db.one("SELECT * FROM invoices WHERE number='1001'")
+    assert svc.db.one("SELECT 1 FROM reminders WHERE invoice_id=?", (inv["id"],)) is None
+    alerts = svc.db.q("SELECT * FROM messages WHERE needs_owner=1 AND intent='manual_only_old'")
+    assert len(alerts) == 1 and "1001" in alerts[0]["body"]   # התראה אחת, לא בכל סבב
+    # החשבונית החדשה של יוסי כן נכנסת לתור
+    assert svc.db.one("SELECT COUNT(*) n FROM reminders")["n"] == 1
 
 
 # ───────────── ר-8 · פריסה בלי ריבית ובלי עמלה ─────────────
@@ -323,11 +342,61 @@ def test_r9_llm_cannot_invent_or_downgrade():
     assert d.intent == conversation.Intent.DISPUTE
 
 
-# ───────────── ר-10 · שמירה ומחיקה ─────────────
-@pytest.mark.xfail(strict=True, reason="ר-10: אין מנגנון מחיקה/שמירה (retention) "
-                   "ואין רשימת הסרה מגובבת")
-def test_r10_retention_purge_exists(svc):
-    assert hasattr(svc, "purge_closed_account")
+# ───────────── ר-10 · מחיקה/התממה אחרי 90 יום + legal hold + רשימת הסרה ─────────────
+def _close_dana(api, svc, fake_gi):
+    _cycle(api)
+    fake_gi.docs[:] = [d for d in fake_gi.docs if d["id"] != "doc1"]
+    api.post("/sync")
+
+
+def test_r10_closed_debt_purged_after_90_days(api, svc, fake_gi, clock):
+    _close_dana(api, svc, fake_gi)
+    clock.now += timedelta(days=89)
+    assert svc.purge_closed() == {"invoices": 0, "customers": 0}
+    clock.now += timedelta(days=2)
+    assert api.post("/maintenance/purge").json() == {"invoices": 1, "customers": 1}
+    c = svc.db.one("SELECT * FROM customers WHERE external_id='cl1'")
+    assert c["name"] is None and c["phone"] is None and c["email"] is None and c["purged_at"]
+    assert all(r["body"] == "" for r in svc.db.q(
+        "SELECT body FROM reminders r JOIN invoices i ON i.id=r.invoice_id "
+        "WHERE i.customer_id=?", (c["id"],)))
+    assert all(m["body"] == "" for m in svc.db.q("SELECT body FROM messages WHERE customer_id=?",
+                                                    (c["id"],)))
+    assert svc.db.one("SELECT name FROM customers WHERE external_id='cl2'")["name"] == "יוסי לוי"
+    assert "retention_purge" in [a["action"] for a in api.get("/audit").json()]
+
+
+def test_r10_legal_hold_blocks_purge(api, svc, fake_gi, clock):
+    _close_dana(api, svc, fake_gi)
+    cid = svc.db.one("SELECT id FROM customers WHERE external_id='cl1'")["id"]
+    assert api.post(f"/customers/{cid}/legal-hold", json={"note": "קצר"}).status_code == 409
+    assert api.post(f"/customers/{cid}/legal-hold",
+                    json={"note": "תיק 123 — שמירה לבקשת עו״ד"}).status_code == 200
+    clock.now += timedelta(days=200)
+    assert svc.purge_closed() == {"invoices": 0, "customers": 0}
+    assert svc.db.one("SELECT name FROM customers WHERE id=?", (cid,))["name"] == "דנה כהן"
+    assert all(r["body"] for r in svc.db.q("SELECT body FROM reminders"))
+    api.post(f"/customers/{cid}/legal-hold", json={"note": None})   # ביטול ⇒ נמחק בסבב הבא
+    assert svc.purge_closed()["customers"] == 1
+
+
+def test_r10_suppression_survives_purge_and_is_hash_only(api, svc, fake_gi, clock):
+    from tests.conftest import gi_doc
+    _cycle(api)
+    api.post("/inbound", json={"channel": "sms", "sender": "0501234567", "text": "הסר"})
+    fake_gi.docs[:] = [d for d in fake_gi.docs if d["id"] != "doc1"]
+    api.post("/sync")
+    clock.now += timedelta(days=95)
+    svc.purge_closed()
+    rows = svc.db.q("SELECT * FROM suppressions")
+    assert rows and not any("050" in str(tuple(r)) or "97250" in str(tuple(r)) for r in rows)
+    fake_gi.docs.append(gi_doc(7, client_id="cl-new", due="2026-10-20"))   # אותו טלפון
+    api.post("/sync")
+    before = len(svc.sender.sent)
+    for i in api.post("/plan").json()["created"]:
+        api.post(f"/reminders/{i}/approve")
+    api.post("/dispatch")
+    assert all(m["to"] != "972501234567" for m in svc.sender.sent[before:])
 
 
 # ───────────── ר-11 · סודות לא דולפים ─────────────

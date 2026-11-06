@@ -115,6 +115,14 @@ class DB:
         if "source" not in icols:  # api | csv — ר-4: CSV לא ניתן לרענון ⇒ תוקף 24 שעות מהייבוא
             self.conn.execute("ALTER TABLE invoices ADD COLUMN source TEXT NOT NULL DEFAULT 'api'")
             self.conn.commit()
+        # ר-10: legal hold מתועד + חותמות מחיקה/התממה. SQL קבוע (שער האבטחה)
+        for have, col, ddl in (
+                (cols, "legal_hold", "ALTER TABLE customers ADD COLUMN legal_hold TEXT"),
+                (cols, "purged_at", "ALTER TABLE customers ADD COLUMN purged_at TEXT"),
+                (icols, "purged_at", "ALTER TABLE invoices ADD COLUMN purged_at TEXT")):
+            if col not in have:
+                self.conn.execute(ddl)
+        self.conn.commit()
         # ר-12: גרסת הנוסח וגיבוב הגוף שאושרו. כל שינוי ⇒ האישור בטל
         rcols = {r[1] for r in self.conn.execute("PRAGMA table_info(reminders)")}
         for col, ddl in (
