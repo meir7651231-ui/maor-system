@@ -133,3 +133,21 @@ hc = http.client.HTTPConnection("127.0.0.1", int(sys.argv[1]), timeout=5); hc.re
 loc = hc.getresponse().getheader("location"); assert loc in ("/app/", "/ui"), f"/landing לא מפנה: {loc}"
 print(f"✅ בדיקת ההדגמה עברה: {t}")
 PY
+# גיבוי מוצפן מתוזמן + שחזור (CLI אמיתי על DB קובץ זמני): snapshot ⇒ restore ⇒ אותו תוכן, ואין טקסט גלוי בקובץ
+BK="$(mktemp -d)"
+export COLLECT_MASTER_KEYS="demo:$(python3 -c 'import base64,os;print(base64.b64encode(os.urandom(32)).decode())')"
+python3 - "$BK/src.sqlite3" <<'PY'
+import sqlite3, sys
+c = sqlite3.connect(sys.argv[1]); c.execute("create table t(x text)"); c.execute("insert into t values ('סודי-דמו-123')"); c.commit()
+PY
+python3 -m app.backup snapshot "$BK/src.sqlite3" "$BK/snaps" 3 >/dev/null
+SNAP="$(ls "$BK"/snaps/gabi-*.gbk | head -1)"
+python3 -m app.backup restore "$SNAP" "$BK/restored.sqlite3" >/dev/null
+python3 - "$BK" "$SNAP" <<'PY'
+import sqlite3, sys
+bk, snap = sys.argv[1], sys.argv[2]
+assert sqlite3.connect(f"{bk}/restored.sqlite3").execute("select x from t").fetchone()[0] == "סודי-דמו-123"
+assert "סודי-דמו-123".encode() not in open(snap, "rb").read(), "הגיבוי לא מוצפן"
+print("✅ גיבוי מוצפן + שחזור (CLI): תוכן זהה, אין טקסט גלוי בקובץ")
+PY
+rm -rf "$BK"
