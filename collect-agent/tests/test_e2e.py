@@ -84,7 +84,7 @@ def test_full_journey_over_http():
     r = customer_says(api, "+972-50-123-4567", "איך משלמים?")
     assert r["intent"] == "how_to_pay" and r["draft_id"] and not r["auto_sent"]
     draft = next(d for d in api.get("/conversation/drafts").json() if d["id"] == r["draft_id"])
-    assert "https://pay.greeninvoice.co.il/f/doc1" in json.dumps(draft, ensure_ascii=False)
+    assert "https://www.greeninvoice.co.il/pay/studio?invoice=1001" in json.dumps(draft, ensure_ascii=False)
     # לקוח 2 מבקש פריסה ⇒ הצעה ממתינה לבעלים, התזכורות נעצרות
     r = customer_says(api, "0527654321", "אפשר לפרוס לתשלומים?")
     assert r["plan_id"] and r["escalate"]
@@ -190,9 +190,8 @@ def test_60_day_simulation_invariants(seed):
         # שעות/שבת/חג
         assert policy.can_send_at(when), f"שליחה בזמן אסור: {when}"
         assert when.weekday() != 5
-        # אישור: הודעה ראשונה ללקוח והודעה אחרונה — רק אחרי אישור בעלים מפורש
-        if tkey == "final" or not per_phone.get(phone):
-            assert rid in approved_by_owner, f"תזכורת {rid} ({tkey}) יצאה בלי אישור בעלים"
+        # הכרעת מאיר (6.11): אישור פרטני — **כל** תזכורת רק אחרי אישור בעלים מפורש
+        assert rid in approved_by_owner, f"תזכורת {rid} ({tkey}) יצאה בלי אישור בעלים"
         # עצירה
         if phone in stop_at:
             assert when <= stop_at[phone], f"שליחה ל-{phone} אחרי עצירה"
@@ -205,7 +204,7 @@ def test_60_day_simulation_invariants(seed):
     assert max(per_invoice.values()) <= MAX_REMINDERS_PER_INVOICE
     # לקוח שבעל העסק דחה — לא קיבל כלום; טלפון לא תקין — לא קיבל כלום
     assert phone_of[10] not in per_phone and "abc" not in per_phone
-    # לקוח שותק אמיתי מגיע לסוף הסולם (4 תזכורות) תוך 60 יום
+    # לקוח שותק אמיתי מגיע לסוף הסולם (3 תזכורות — הכרעת מאיר) תוך 60 יום
     assert len(per_phone[phone_of[1]]) == MAX_REMINDERS_PER_INVOICE
     # כל היוצאות dry-run, וכל הודעה שיצאה מתועדת ב-messages
     out = svc.db.q("SELECT message_id, channel FROM messages WHERE direction='out'")

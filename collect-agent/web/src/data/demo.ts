@@ -13,7 +13,7 @@ export const demoBusiness: Business = {
   smsProvider: '019',
   channels: { sms: true, email: true },
   autoApprove: false,
-  sendWindow: { from: '09:00', to: '19:00' },
+  sendWindow: { from: '08:00', to: '20:00' },
   skipShabbat: true,
   cadenceDays: [1, 7, 14, 30],
 };

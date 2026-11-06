@@ -2,12 +2,14 @@ import { Logo, LogoMark } from '../components/Logo.tsx';
 import { Button } from '../components/ui.tsx';
 import { go } from '../router.ts';
 
-// מחיר — השערה לבדיקה (הנחיית מנהל 6.11): חבילה אחת, ₪119 לחודש, 14 ימי ניסיון. מנוי קבוע, לא אחוז מהגבייה.
-export const PRICE = { monthly: 119, trialDays: 14 } as const;
+// מחיר — הכרעת מאיר (6.11): ₪119 לחודש או ₪1,190 לשנה, כולל מע״מ ככל שחל, 14 יום ניסיון ללא כרטיס.
+// אין מחירונים אחרים. מנוי קבוע, לא אחוז מהגבייה.
+export const PRICE = { monthly: 119, yearly: 1190, trialDays: 14 } as const;
+export const VAT_NOTE = 'כולל מע״מ ככל שחל';
 export const PLAN_FEATURES = [
   'חיבור לחשבונית ירוקה (קריאה בלבד)',
   'תזכורות ב-SMS ובמייל, עם קישור תשלום בכל הודעה',
-  'סולם 4 תזכורות מנומסות — אתם מאשרים',
+  'עד 3 תזכורות מנומסות לחשבונית — אתם מאשרים כל אחת',
   'זיהוי תשובות: "שילמתי", "הסר", בקשת פריסה',
   'הצעות פריסה ללא ריבית, באישורכם',
   'שעות שליחה סבירות, לא בשבת ובחג',
@@ -21,19 +23,21 @@ const STEPS = [
 ];
 
 const FAQ = [
-  ['זה לא יפגע ביחסים עם הלקוחות?', 'הנוסחים מנומסים כברירת מחדל, בלי איומים ובלי שיווק. אתם רואים ומאשרים כל הודעה ראשונה וכל הודעה אחרונה.'],
+  ['זה לא יפגע ביחסים עם הלקוחות?', 'הנוסחים מנומסים כברירת מחדל, בלי איומים ובלי שיווק. אתם רואים ומאשרים כל הודעה לפני שהיא יוצאת.'],
   ['באילו ערוצים נשלחות התזכורות?', 'ב-SMS ובמייל. הם מגיעים כמעט לכל לקוח, וההודעה יוצאת בשם העסק שלכם. בכל הודעה יש קישור תשלום ישיר.'],
-  ['מתי ההודעות נשלחות?', 'א׳–ה׳ 9:00–19:00, ו׳ עד 12:00, לעולם לא בשבת ובחג. לכל היותר הודעה אחת ל-72 שעות לאותו לקוח.'],
+  ['מתי ההודעות נשלחות?', 'א׳–ה׳ 08:00–20:00, ו׳ וערב חג עד 12:00, לעולם לא בשבת ובחג. לכל היותר הודעה אחת ל-72 שעות לאותו לקוח, ועד 3 תזכורות לחשבונית — אחר כך גבי עוצר ומעדכן אתכם.'],
   ['זה מכתב התראה משפטי?', 'לא. אלה תזכורות עובדתיות ששולחים ללקוחות שלכם על החשבוניות שלכם, בלי שום תוכן שיווקי. כל הודעה מזהה את העסק וכוללת אפשרות הסרה. אם שוקלים הליך משפטי, כדאי להתייעץ עם עו״ד.'],
-  ['כמה זה עולה?', `₪${PRICE.monthly} לחודש לפני מע״מ, אחרי ${PRICE.trialDays} ימי ניסיון חינם. בלי כרטיס אשראי בהרשמה, ביטול בכל רגע.`],
+  ['כמה זה עולה?', `₪${PRICE.monthly} לחודש או ₪${PRICE.yearly.toLocaleString('he-IL')} לשנה, ${VAT_NOTE}, אחרי ${PRICE.trialDays} ימי ניסיון. בלי כרטיס אשראי בהרשמה, ביטול בכל רגע.`],
+  ['גבי מבטיח שהכסף ייכנס?', 'לא. גבי מזכיר בנימוס ובזמן — את ההחלטה לשלם מקבל הלקוח. אין הבטחה לגבייה, וגם לא בתוך תקופת הניסיון.'],
   ['אתם לוקחים אחוז מהכסף?', 'לא. מנוי חודשי קבוע. הכסף עובר ישירות מהלקוח אליכם דרך קישור התשלום שלכם.'],
 ];
 
 export function Landing() {
   return (
-    <div className="bg-white">
-      <header className="sticky top-0 z-30 bg-white/85 backdrop-blur border-b border-ink-200/70">
-        <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+    <div className="bg-cream">
+      <div className="bg-due/20 text-ink-900 text-center text-xs font-bold py-1.5 px-4" role="note">טיוטה – לבדיקת עו״ד · בטא סגורה ל-10 עסקים · הדגמה במצב בדיקה בלבד, שום הודעה לא נשלחת באמת</div>
+      <header className="sticky top-0 z-30 bg-cream/90 backdrop-blur border-b border-ink-200/70">
+        <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
           <Logo size={34} />
           <nav className="hidden md:flex gap-6 text-sm font-medium text-ink-700">
             <a href="#how" onClick={e => { e.preventDefault(); document.getElementById('how')?.scrollIntoView({ behavior: 'smooth' }); }}>איך זה עובד</a>
@@ -48,15 +52,15 @@ export function Landing() {
         <div className="max-w-6xl mx-auto px-4 py-16 md:py-24 grid md:grid-cols-2 gap-12 items-center">
           <div>
             <span className="inline-block rounded-full bg-brand/15 text-brand px-3 py-1 text-sm font-bold mb-5">לעסקים קטנים בישראל</span>
-            <h1 className="text-4xl md:text-6xl font-extrabold leading-[1.1]">גבי – העוזר<br /><span className="text-brand">לגביית חובות</span></h1>
+            <h1 className="text-4xl md:text-6xl font-extrabold leading-[1.1]">הכסף שלך חוזר.<br /><span className="text-brand">בלי שתצטרך לרדוף.</span></h1>
             <p className="text-lg md:text-xl text-ink-400 mt-6 leading-relaxed max-w-lg">
-              גבי שולח ללקוחות תזכורות תשלום מנומסות ב-SMS ובמייל, עם קישור תשלום ישיר. אתם רק מאשרים — והכסף מגיע.
+              גבי מכין ללקוחות שלכם תזכורות תשלום מנומסות ב-SMS ובמייל, עם קישור לעמוד התשלום שלכם. אתם מאשרים כל הודעה, והיא יוצאת בשם העסק.
             </p>
             <div className="flex flex-wrap gap-3 mt-8">
               <Button size="lg" onClick={() => go('signup')}>התחילו {PRICE.trialDays} ימי ניסיון חינם</Button>
               <Button size="lg" variant="ghost" className="text-white hover:bg-white/10" onClick={() => go('dashboard')}>לצפייה בדמו ←</Button>
             </div>
-            <p className="text-sm text-ink-400 mt-4">₪{PRICE.monthly} לחודש אחרי הניסיון · בלי כרטיס אשראי · ביטול בכל רגע</p>
+            <p className="text-sm text-ink-400 mt-4">₪{PRICE.monthly} לחודש או ₪{PRICE.yearly.toLocaleString('he-IL')} לשנה ({VAT_NOTE}) · בלי כרטיס אשראי · ביטול בכל רגע</p>
           </div>
           <HeroPhone />
         </div>
@@ -97,7 +101,7 @@ export function Landing() {
           </div>
           <div className="rounded-2xl bg-white shadow-card p-6">
             <div className="text-sm text-ink-500 mb-3">הסולם שגבי מפעיל</div>
-            {[['+1 יום', 'תזכורת ידידותית', 'bg-brand'], ['+7 ימים', 'תזכורת שנייה', 'bg-due'], ['+14 ימים', 'הצעת פריסה', 'bg-late'], ['+30 ימים', 'תזכורת אחרונה · תמיד באישורכם', 'bg-ink-900']].map(([d, t, c]) => (
+            {[['+1 יום', 'תזכורת ידידותית', 'bg-brand'], ['+7 ימים', 'תזכורת שנייה + אפשרות פריסה', 'bg-due'], ['+14 ימים', 'תזכורת אחרונה', 'bg-late'], ['אחר כך', 'גבי עוצר ומעדכן אתכם', 'bg-ink-900']].map(([d, t, c]) => (
               <div key={t} className="flex items-center gap-3 py-2.5"><span className={`h-3 w-3 rounded-full ${c}`} /><b className="w-20 num text-right">{d}</b><span>{t}</span></div>
             ))}
           </div>
@@ -112,14 +116,14 @@ export function Landing() {
             <h3 className="text-xl font-extrabold">גבי</h3>
             <span className="text-xs font-bold bg-brand text-ink-900 rounded-full px-2.5 py-1">{PRICE.trialDays} יום חינם</span>
           </div>
-          <div className="mt-5 flex items-baseline gap-1"><span className="text-5xl font-extrabold font-display num">₪{PRICE.monthly}</span><span className="text-ink-400">/חודש · לפני מע״מ</span></div>
-          <p className="text-sm text-ink-400 mt-2">אחרי תקופת הניסיון. ביטול בכל רגע.</p>
+          <div className="mt-5 flex items-baseline gap-1"><span className="text-5xl font-extrabold font-display num">₪{PRICE.monthly}</span><span className="text-ink-400">/חודש · {VAT_NOTE}</span></div>
+          <p className="text-sm text-ink-400 mt-2">או ₪{PRICE.yearly.toLocaleString('he-IL')} לשנה. אחרי {PRICE.trialDays} ימי ניסיון, בלי כרטיס אשראי. ביטול בכל רגע.</p>
           <ul className="mt-6 space-y-2.5 text-sm">
             {PLAN_FEATURES.map(f => <li key={f} className="flex gap-2"><span className="text-brand">✓</span>{f}</li>)}
           </ul>
           <Button className="mt-8 w-full" size="lg" onClick={() => go('signup')}>התחילו {PRICE.trialDays} ימי ניסיון</Button>
         </div>
-        <p className="text-center text-xs text-ink-500 mt-4">מחיר בבדיקה (פיילוט). תזכורות מעבר למכסה — לפי עלות.</p>
+        <p className="text-center text-xs text-ink-500 mt-4">בטא סגורה ל-10 עסקים ראשונים. אין מחירונים נוספים.</p>
       </section>
 
       <section className="bg-ink-50">
@@ -144,7 +148,9 @@ export function Landing() {
       </section>
       <footer className="bg-ink-900 border-t border-white/10 text-ink-400 text-sm">
         <div className="max-w-6xl mx-auto px-4 py-6 flex flex-wrap gap-4 justify-between">
-          <span>© 2026 גבי – העוזר לגביית חובות</span><span>אב-טיפוס · נתוני דמו בלבד</span>
+          <span>© 2026 גבי · [שם החברה בע״מ] · ח.פ. [000000000] · [כתובת] · [מייל ליצירת קשר]</span>
+          <span>תנאי שימוש · מדיניות פרטיות · נגישות — טיוטה – לבדיקת עו״ד</span>
+          <span>אב-טיפוס · נתוני דמו בלבד · SMS ומייל בלבד</span>
         </div>
       </footer>
     </div>

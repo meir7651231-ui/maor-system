@@ -56,6 +56,14 @@ class Invoice:
     payment_url: str = ""   # אם המסמך כבר מחזיר קישור תשלום (לאמת שם-שדה ב-sandbox)
 
 
+DEFAULT_TERMS_DAYS = 30
+
+
+def _plus_days(d, n: int):
+    from datetime import timedelta
+    return d + timedelta(days=n) if d else None
+
+
 def _parse_date(v: Any) -> date | None:
     if not v:
         return None
@@ -82,7 +90,10 @@ def map_document(doc: dict[str, Any]) -> Invoice:
         amount_agorot=_to_agorot(doc.get("amountDueVat", doc.get("amount", 0))),
         currency=str(doc.get("currency") or "ILS"),
         issued=_parse_date(doc.get("documentDate")),
-        due=_parse_date(doc.get("dueDate")) or _parse_date(doc.get("documentDate")),
+        # באג (critic): בלי dueDate המועד היה תאריך ההנפקה ⇒ "טרם שולמה" יום אחרי ההנפקה.
+        # עכשיו: תאריך המסמך + תנאי תשלום ברירת מחדל (30 יום), עד שיאומת שדה תנאי התשלום ב-sandbox.
+        due=_parse_date(doc.get("dueDate")) or _plus_days(_parse_date(doc.get("documentDate")),
+                                                          DEFAULT_TERMS_DAYS),
         client_external_id=str(client.get("id", "")),
         client_name=str(client.get("name", "")),
         client_phone=str(client.get("phone") or client.get("mobile") or ""),
@@ -228,6 +239,10 @@ class GreenInvoiceClient:
         while page <= max_pages:
             body = self.search_documents(page=page, page_size=page_size)
             for doc in body.get("items", []):
+                if int(doc.get("status", STATUS_OPEN) or 0) != STATUS_OPEN:
+                    # באג (critic): הסינון היה רק בצד השרת. פילטר שגוי/מתעלם ⇒ חשבוניות ששולמו
+                    # היו נכנסות לתור. עכשיו בדיקה כפולה בצד שלנו.
+                    continue
                 doc = self._enrich_client(doc)
                 inv = map_document(doc)
                 if inv.amount_agorot > 0:

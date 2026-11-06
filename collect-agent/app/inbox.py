@@ -4,8 +4,8 @@
        ⇒ טיוטת תשובה בתור "ממתין לאישור" ⇒ בעל העסק מאשר/עורך/דוחה ⇒ `approve_draft()`
        ⇒ שער שליחה יחיד (`_can_message`: הסרה, שעות, שבת/חג) ⇒ DryRunSender.
 
-"בעל העסק מאשר כל הודעה": ברירת המחדל היא שאף תשובה לא יוצאת בלי אישור. רק אם
-`approval_mode="safe_auto"` הוגדר במפורש, תשובות מידע (קישור תשלום, "מי זה") יוצאות לבד.
+"בעל העסק מאשר כל הודעה" (הכרעת מאיר 6.11: אישור פרטני, לא מרוכז): אף תשובה לא יוצאת
+בלי אישור. `approval_mode="safe_auto"` של המנוע **מושבת כאן** — גם אם הוגדר, הטיוטה מחכה.
 
 לא משנה את service.py: משתמש בשירותים שלו (_find_customer, _opt_out, _cancel_invoice,
 _payment_link, _log_out, audit) ומוסיף שתי טבלאות משלו (conversations, drafts).
@@ -125,10 +125,8 @@ class ConversationInbox:
             "customer": cust["id"], "intent": d.intent.value,
             "secondary": [i.value for i in d.secondary], "escalate": d.escalate.value,
             "stop": d.stop.value, "draft": draft_id})
-        sent = None
-        if draft_id and d.auto_send:
-            sent = self.approve_draft(draft_id, actor="system:safe_auto")
-        auto = bool(sent and sent.get("status") == "sent_dry_run")
+        sent = None   # אין שליחה אוטומטית (אישור פרטני לכל הודעה) — d.auto_send מתעלמים ממנו
+        auto = False
         return {"intent": d.intent.value, "secondary": [i.value for i in d.secondary],
                 "escalate": d.escalate != Escalation.NONE, "escalation": d.escalate.value,
                 "stop": d.stop.value, "auto_reply": sent["body"] if auto else None,
@@ -316,6 +314,10 @@ class ConversationInbox:
         self.svc._log_out(cust["id"], msg, mid, now)
         self.db.x("UPDATE drafts SET status='sent_dry_run', sent_at=?, message_id=? WHERE id=?",
                   (_iso(now), mid, draft_id))
+        if dr["plan_id"] and dr["intent"] in (Intent.PLAN_REQUEST.value, Intent.CANT_PAY.value):
+            # ההצעה נשלחה מהתור ⇒ ההסדר אושר (אחרת /plans/approve היה שולח אותה שוב)
+            self.db.x("UPDATE plans SET status='approved' WHERE id=? AND status='proposed'",
+                      (dr["plan_id"],))
         self.svc.audit("system", "draft_sent_dry_run", {"draft": draft_id, "message_id": mid})
         return True
 
@@ -326,14 +328,44 @@ class ConversationInbox:
             return to if is_il_mobile(to) else None
         return cust["email"] if valid_email(cust["email"]) else None
 
+    def owner_message(self, cust, channel: str, text: str, *, intent: str,
+                      plan_id: int | None = None, actor: str = "owner") -> int:
+        """הודעה שבעל העסק כבר אישר (למשל הצעת פריסה מ-/plans) ⇒ טיוטה מאושרת ⇒ שער השליחה
+        היחיד. מחוץ לחלון השעות היא נשמרת כ-approved ו-flush() שולח אותה בחלון הבא."""
+        body = frame(text, replace(self._context(cust, channel), channel=channel))
+        now = _iso(self.svc.clock())
+        did = self.db.x(
+            "INSERT INTO drafts(customer_id,channel,to_addr,body,intent,status,escalate,owner_summary,"
+            "owner_actions,plan_id,created_at,decided_at,decided_by) "
+            "VALUES(?,?,?,?,?,'approved','none','', '[]',?,?,?,?)",
+            (cust["id"], channel, self._addr(cust, channel), body, intent, plan_id, now, now, actor))
+        self._try_send(did)
+        return did
+
+    def _stop_line(self, cust) -> str:
+        """הסרה בכל הודעה (הכרעת מאיר 6.11), גם בתשובות ובהצעות — לא רק בתזכורות."""
+        inv = self.db.one("SELECT * FROM invoices WHERE customer_id=? AND status='open' ORDER BY due "
+                          "LIMIT 1", (cust["id"],))
+        if self.svc.s.sms_two_way:
+            return "להסרה השיבו הסר"
+        url = self.svc.short_url(inv) if inv else (
+            self.svc.unsub_url(cust["unsub_token"]) if cust["unsub_token"] else "")
+        return f"להפסקה: {url}" if url else ""
+
     def _message(self, cust, dr) -> Message | None:
         to = dr["to_addr"] or self._addr(cust, dr["channel"])
         if not to:
             return None
         if dr["channel"] == "sms":
-            return Message("sms", to, dr["body"])
+            # אישור ההסרה עצמו / התנצלות על מספר שגוי — בלי שורת הסרה (כבר הוסרו)
+            stop = "" if dr["intent"] in (Intent.OPT_OUT.value, Intent.WRONG_PERSON.value) \
+                else self._stop_line(cust)
+            body = dr["body"] if not stop or stop in dr["body"] else f"{dr['body']} {stop}"
+            return Message("sms", to, body)
         unsub = self.svc.unsub_url(cust["unsub_token"]) if cust["unsub_token"] else ""
-        return Message("email", to, dr["body"],
+        body = dr["body"] + (f"\n\nלהסרה מתזכורות: {unsub}" if unsub and unsub not in dr["body"]
+                             else "")
+        return Message("email", to, body,
                        subject=f"תשובה מ-{self.svc.s.business_name}", unsubscribe_url=unsub)
 
     def _get(self, draft_id: int):

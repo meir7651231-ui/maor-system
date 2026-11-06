@@ -80,8 +80,11 @@ def test_r1_live_auto_replies_pass_filter(api, svc):
     bodies = [m["body"] for m in svc.sender.sent if m["channel"] == "sms"
               and m["to"] == "972501234567"][1:]  # בלי התזכורת עצמה
     assert bodies, "לא יצא אף מענה אוטומטי"
-    link = svc.db.one("SELECT payment_url FROM invoices WHERE number='1001'")["payment_url"]
-    rules = compliance.Rules(business="סטודיו מאיר", payment_link=link or "")
+    inv = svc.db.one("SELECT * FROM invoices WHERE number='1001'")
+    # הסרה בכל הודעה (הכרעת מאיר 6.11) ⇒ גם הקישור הקצר של העסק (/p/…, שם יש "הפסקה") מותר.
+    # כל קישור אחר עדיין foreign_link.
+    rules = compliance.Rules(business="סטודיו מאיר", payment_link=svc._payment_link(inv) or "",
+                             unsubscribe_url=svc.short_url(inv))
     bad = {b: compliance.violations(b, rules) for b in bodies}
     assert all(not v for v in bad.values()), bad
 

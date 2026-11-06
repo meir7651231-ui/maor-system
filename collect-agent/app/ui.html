@@ -62,7 +62,7 @@ button.resume{margin-inline-start:6px;padding:4px 10px;min-height:32px;font-size
 <body>
 <header>
   <div class="brand"><div class="logo">ג</div>
-    <div><h1>גבי</h1><div class="slogan">גבי – העוזר לגביית חובות</div></div></div>
+    <div><h1>גבי</h1><div class="slogan">הכסף שלך חוזר. בלי שתצטרך לרדוף.</div></div></div>
   <span class="dry">מצב בדיקה: אף הודעה לא נשלחת באמת</span>
   <div class="actions">
     <button id="btnSync">סנכרון חשבונית ירוקה</button>
@@ -131,7 +131,7 @@ async function load(){
   if(!rows.length){el.innerHTML='<div class="empty">אין תזכורות. לחצו "סנכרון" ואז "הכנת תזכורות".</div>';return}
   el.innerHTML=rows.map(r=>`<button class="item card ${r.id===sel?"sel":""}" data-id="${r.id}">
     <div class="row"><strong>${esc(r.customer_name)}</strong><span>${money(r.amount_agorot)}</span></div>
-    <div class="row"><span class="slogan">חשבונית ${esc(r.number)} · שלב ${r.step+1}/4</span>
+    <div class="row"><span class="slogan">חשבונית ${esc(r.number)} · שלב ${r.step+1}/3</span>
     <span class="chip ${r.status==="pending_approval"?"pending":""} ${r.block_reason?"blocked":""}">
     ${esc(r.block_reason?BLOCK[r.block_reason]||r.block_reason:STATUS[r.status]||r.status)}</span></div></button>`).join("");
   el.querySelectorAll(".item").forEach(b=>b.onclick=()=>show(+b.dataset.id));

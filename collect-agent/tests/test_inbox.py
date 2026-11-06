@@ -29,7 +29,8 @@ def test_nothing_is_sent_without_owner_approval(inbox, svc):
     assert len(svc.sender.sent) == 1
     out = svc.sender.sent[0]
     assert out["channel"] == "sms" and out["to"] == "972501234567"
-    assert "https://pay.greeninvoice.co.il/f/doc1" in out["body"]
+    assert "https://www.greeninvoice.co.il/pay/studio?invoice=1001" in out["body"]
+    assert "להפסקה: https://gabi.example/p/" in out["body"]   # הסרה בכל הודעה (הכרעת מאיר)
 
 
 def test_paid_claim_pauses_and_blocks_next_reminder(inbox, svc, clock):
@@ -118,7 +119,9 @@ def test_owner_edit_is_filtered(inbox, svc):
     d = inbox.handle("sms", DANA, "איך אפשר לשלם?")["draft_id"]
     with pytest.raises(ValueError, match="נחסם"):
         inbox.approve_draft(d, body="שלמו מייד, אחרת נאלץ לפנות להוצאה לפועל")
-    out = inbox.approve_draft(d, body="בשמחה! הקישור: https://pay.greeninvoice.co.il/f/doc1")
+    # הקישור המותר = עמוד התשלום של העסק (לא נוצר דף תשלום ב-GI — הכרעת מאיר 6.11)
+    link = svc._payment_link(svc.db.one("SELECT * FROM invoices WHERE number='1001'"))
+    out = inbox.approve_draft(d, body=f"בשמחה! הקישור: {link}")
     assert out["edited"] == 1 and out["body"].startswith("סטודיו מאיר: בשמחה")
 
 
@@ -142,12 +145,13 @@ def test_email_reply_has_subject_and_unsubscribe(inbox, svc):
     assert out["channel"] == "email" and out["subject"].startswith("תשובה מ-")
 
 
-def test_safe_auto_sends_information_only(svc):
+def test_safe_auto_is_disabled_every_message_needs_approval(svc):
+    """הכרעת מאיר (6.11): אישור פרטני לכל הודעה. היה: safe_auto שלח תשובות מידע לבד."""
     svc.sync()
     inbox = ConversationInbox(svc, OwnerPolicy(approval_mode="safe_auto"))
-    assert inbox.handle("sms", DANA, "איך אפשר לשלם?")["auto_sent"] is True
+    assert inbox.handle("sms", DANA, "איך אפשר לשלם?")["auto_sent"] is False
     assert inbox.handle("sms", DANA, "אין לי כסף")["auto_sent"] is False
-    assert len(svc.sender.sent) == 1
+    assert svc.sender.sent == []
 
 
 def test_audit_trail(inbox, svc):

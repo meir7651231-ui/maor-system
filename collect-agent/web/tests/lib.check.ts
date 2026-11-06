@@ -50,12 +50,14 @@ test('סולם + אישור', () => {
 test('מדיניות שעות — תואם policy.py', () => {
   const d = (s: string) => new Date(s);
   assert.ok(canSendAt(d('2026-11-08T10:00'))); // ראשון
-  assert.ok(!canSendAt(d('2026-11-08T19:00')));
+  assert.ok(canSendAt(d('2026-11-08T19:59'))); // הכרעת מאיר 6.11: עד 20:00
+  assert.ok(!canSendAt(d('2026-11-08T20:00')));
+  assert.ok(canSendAt(d('2026-11-08T08:00')) && !canSendAt(d('2026-11-08T07:59')));
   assert.ok(canSendAt(d('2026-11-13T11:59'))); // שישי
   assert.ok(!canSendAt(d('2026-11-13T12:00')));
   assert.ok(!canSendAt(d('2026-11-14T10:00'))); // שבת
-  assert.equal(+nextAllowed(d('2026-11-13T15:00')), +d('2026-11-15T09:00')); // שישי אחה"צ ⇒ ראשון 9:00
-  assert.equal(+nextAllowed(d('2026-11-09T07:30')), +d('2026-11-09T09:00'));
+  assert.equal(+nextAllowed(d('2026-11-13T15:00')), +d('2026-11-15T08:00')); // שישי אחה"צ ⇒ ראשון 8:00
+  assert.equal(+nextAllowed(d('2026-11-09T07:30')), +d('2026-11-09T08:00'));
   assert.ok(!canSendAt(d('2026-11-09T10:00'), new Set(['2026-11-09'])), 'חג');
 });
 

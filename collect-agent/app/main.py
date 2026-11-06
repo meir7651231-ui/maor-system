@@ -1,4 +1,4 @@
-"""FastAPI — "גבי – העוזר לגביית חובות".
+"""FastAPI — "גבי – הכסף שלך חוזר. בלי שתצטרך לרדוף.".
 
 הפעלה: uvicorn app.main:_lazy_app --factory (dry-run בלבד).
 """
@@ -144,8 +144,19 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
     def ui():
         return UI_HTML
 
-    @app.get("/landing", response_class=HTMLResponse)
+    web_index = Path(os.environ.get("WEB_DIST", Path(__file__).resolve().parent.parent / "web" /
+                                    "dist")) / "index.html"
+
+    @app.get("/landing")
     def landing():
+        """הכרעת מאיר (6.11): הדף המעוצב (web/, React) הוא הראשי. נבנה ⇒ הפניה אליו;
+        לא נבנה ⇒ גרסת הגיבוי הסטטית (/landing/plain), מיושרת לאותן הכרעות."""
+        if web_index.is_file():
+            return RedirectResponse("/app/", status_code=307)
+        return HTMLResponse(LANDING_HTML)
+
+    @app.get("/landing/plain", response_class=HTMLResponse)
+    def landing_plain():
         return LANDING_HTML
 
     @app.post("/sync", dependencies=auth)

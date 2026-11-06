@@ -102,6 +102,10 @@ class DB:
             self.conn.execute("ALTER TABLE invoices ADD COLUMN short_code TEXT")
             self.conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS ix_inv_short ON invoices(short_code)")
             self.conn.commit()
+        rcols = {r[1] for r in self.conn.execute("PRAGMA table_info(reminders)")}
+        if "approved_hash" not in rcols:  # אישור קשור לתוכן המדויק (sha256 של ה-payload)
+            self.conn.execute("ALTER TABLE reminders ADD COLUMN approved_hash TEXT")
+            self.conn.commit()
         self.lock = threading.RLock()
 
     def q(self, sql: str, args: tuple = ()) -> list[sqlite3.Row]:

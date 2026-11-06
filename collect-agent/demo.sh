@@ -77,7 +77,12 @@ out = json.loads(get("/outbox"))["messages"]
 assert all(m["channel"] in ("sms", "email") for m in out)
 assert any("pay.example/gabi-demo" in m["body"] for m in out if m["channel"] == "email"), "חסר קישור תשלום דמו"
 sms = [m for m in out if m["channel"] == "sms" and "/p/" in m["body"]]
-assert sms and all(m["length"]["segments"] <= 2 for m in sms), "SMS ארוך מ-2 חלקים"
+rem_bodies = {r["body"] for r in json.loads(get("/reminders?status=sent_dry_run"))}
+rem_sms = [m for m in sms if m["body"] in rem_bodies]
+# תזכורות יזומות ≤2 חלקים (עלות, team/market.md); תשובות בשיחה ≤268 תווים (team/legal.md §3.1),
+# כי מאז הכרעת מאיר (6.11) גם בהן יש שורת הסרה
+assert rem_sms and all(m["length"]["segments"] <= 2 for m in rem_sms), "תזכורת SMS ארוכה מ-2 חלקים"
+assert all(len(m["body"]) <= 268 for m in sms), "תשובת SMS ארוכה מ-268 תווים"
 code = sms[0]["body"].split("/p/")[1].split()[0]
 page = get(f"/p/{code}"); assert "לתשלום מאובטח" in page and "הפסקת תזכורות" in page
 class NoRedirect(urllib.request.HTTPRedirectHandler):
@@ -88,7 +93,8 @@ except urllib.error.HTTPError as e:
     loc = e.headers.get("location")
 assert loc and loc.startswith("https://pay.example/gabi-demo"), loc
 ui = get("/ui"); assert 'id="debts"' in ui and 'id="kpis"' in ui
-la = get("/landing"); assert "₪119" in la and 'href="/ui"' in la, "דף הנחיתה לא תקין"
+# /landing מפנה לדף המעוצב (/app/) כשהוא בנוי; גרסת הגיבוי תמיד ב-/landing/plain
+la = get("/landing/plain"); assert "₪119" in la and "₪1,190" in la and 'href="/ui"' in la, "דף הנחיתה לא תקין"
 import os
 if os.path.isfile("web/dist/index.html"):
     assert "גבי" in get("/app/"), "הממשק המעוצב לא מוגש ב-/app/"

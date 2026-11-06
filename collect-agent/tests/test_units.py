@@ -41,9 +41,12 @@ def test_dry_run_always_true():
 
 # ---------- מדיניות זמנים ----------
 @pytest.mark.parametrize("dt,ok", [
+    # הכרעת מאיר (6.11): 08:00–20:00 (היה 09–19)
     (at(2026, 11, 8, 10), True),    # ראשון
-    (at(2026, 11, 8, 8, 59), False),
-    (at(2026, 11, 8, 19), False),
+    (at(2026, 11, 8, 8, 59), True),
+    (at(2026, 11, 8, 7, 59), False),
+    (at(2026, 11, 8, 19, 30), True),
+    (at(2026, 11, 8, 20), False),
     (at(2026, 11, 13, 11), True),   # שישי בבוקר
     (at(2026, 11, 13, 12, 30), False),
     (at(2026, 11, 14, 10), False),  # שבת
@@ -54,11 +57,11 @@ def test_can_send(dt, ok):
 
 
 def test_next_allowed_skips_shabbat():
-    assert P.next_allowed(at(2026, 11, 13, 14)) == at(2026, 11, 15, 9)
+    assert P.next_allowed(at(2026, 11, 13, 14)) == at(2026, 11, 15, 8)
 
 
 def test_next_allowed_morning():
-    assert P.next_allowed(at(2026, 11, 9, 6)) == at(2026, 11, 9, 9)
+    assert P.next_allowed(at(2026, 11, 9, 6)) == at(2026, 11, 9, 8)
 
 
 # ---------- טלפונים ----------

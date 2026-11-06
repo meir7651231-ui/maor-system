@@ -28,7 +28,7 @@ def test_health_reports_dry_run(api):
     h = api.get("/health").json()
     assert h["dry_run"] is True and h["send_mode"] == "dry_run"
     assert h["channels"] == ["sms", "email"] and "whatsapp" not in str(h)
-    assert h["product"] == "גבי – העוזר לגביית חובות"
+    assert h["product"] == "גבי – הכסף שלך חוזר. בלי שתצטרך לרדוף."
 
 
 def test_first_message_needs_owner_approval(api, svc):
@@ -49,26 +49,29 @@ def test_first_message_needs_owner_approval(api, svc):
     assert sms["body"].startswith("סטודיו מאיר: שלום דנה,")
     assert "1,200 ₪" in sms["body"] and "https://gabi.example/p/" in sms["body"]
     assert sms["length"]["segments"] <= 2
-    # הקישור הקצר מוביל לדף התשלום של חשבונית ירוקה
+    # הקישור הקצר מוביל לעמוד התשלום של העסק (הכרעת מאיר 6.11: לא יוצרים דף תשלום/קבלה ב-GI)
     code = sms["body"].split("/p/")[1].split()[0]
     r = api.get(f"/p/{code}/pay", follow_redirects=False)
-    assert r.status_code == 302 and r.headers["location"] == "https://pay.greeninvoice.co.il/f/doc1"
-    assert "https://pay.greeninvoice.co.il/f/doc1" in mail["body"]
+    assert r.status_code == 302 and r.headers["location"] == "https://www.greeninvoice.co.il/pay/studio?invoice=1001"
+    assert "https://www.greeninvoice.co.il/pay/studio?invoice=1001" in mail["body"]
     assert "<source>StudioMeir</source>" in sms["request"]["body"]
     assert sms["request"]["url"].endswith("/api/test")
     assert mail["to"] == "c1@example.com" and "1001" in mail["subject"]
     assert mail["request"]["headers"]["List-Unsubscribe-Post"] == "List-Unsubscribe=One-Click"
 
 
-def test_second_reminder_auto_after_first_approved(api, svc, clock):
+def test_second_reminder_also_needs_approval(api, svc, clock):
+    """הכרעת מאיר (6.11): אישור פרטני לכל הודעה. היה: שלב 2 אושר אוטומטית אחרי הראשון."""
     ids = first_cycle(api)
     api.post(f"/reminders/{ids[0]}/approve")
     api.post("/dispatch")
-    # שבוע אחרי — שלב 2 ללקוח שכבר אושר ⇒ לא צריך אישור
     clock.now += timedelta(days=7)
     new = api.post("/plan").json()["created"]
     r = next(x for x in api.get("/reminders").json() if x["id"] in new and x["step"] == 1)
-    assert r["status"] == "approved" and r["template_key"] == "second"
+    assert r["status"] == "pending_approval" and r["template_key"] == "second"
+    n = len(svc.sender.sent)
+    api.post("/dispatch")
+    assert len(svc.sender.sent) == n   # בלי אישור — לא יוצא
 
 
 def test_72h_gap_and_shabbat(api, svc, clock):
@@ -80,18 +83,22 @@ def test_72h_gap_and_shabbat(api, svc, clock):
     assert api.post("/dispatch").json()["sent"] == []
 
 
-def test_final_step_always_needs_approval(api, svc, clock):
-    ids = first_cycle(api)
-    api.post(f"/reminders/{ids[0]}/approve")
-    api.post("/dispatch")
-    for _ in range(3):
+def test_three_reminders_then_stop_and_owner_notice(api, svc, clock):
+    """הכרעת מאיר (6.11): מקסימום 3 תזכורות, ואז עצירה והודעה לבעל העסק. כל אחת באישור."""
+    first_cycle(api)
+    for _ in range(6):
+        for r in api.get("/reminders?status=pending_approval").json():
+            if r["invoice_id"] == 1:
+                api.post(f"/reminders/{r['id']}/approve")
+        api.post("/dispatch")
         clock.now += timedelta(days=8)
         api.post("/plan")
-        api.post("/dispatch")
-    sent_steps = [r["step"] for r in api.get("/reminders?status=sent_dry_run").json()]
-    assert sent_steps == [0, 1, 2]
-    finals = [r for r in api.get("/reminders").json() if r["template_key"] == "final"]
-    assert finals and finals[0]["status"] == "pending_approval"
+    sent = [r for r in api.get("/reminders?status=sent_dry_run").json() if r["invoice_id"] == 1]
+    assert [r["template_key"] for r in sent] == ["friendly", "second", "final"]
+    assert not [r for r in api.get("/reminders").json()
+                if r["invoice_id"] == 1 and r["status"] in ("pending_approval", "approved")]
+    notes = [m for m in api.get("/owner/inbox").json() if m["intent"] == "ladder_done"]
+    assert len(notes) == 1 and "1001" in notes[0]["body"]
 
 
 def test_opt_out_stops_everything(api, svc, clock):
@@ -208,13 +215,14 @@ def test_no_safe_payment_link_blocks(svc, gi_client, clock, fake_gi):
     assert api.post(f"/reminders/{ids[0]}/approve").status_code == 409
 
 
-def test_payment_form_created_once(api, svc, fake_gi, clock):
+def test_no_payment_form_or_receipt_created_in_gi(api, svc, fake_gi, clock):
+    """הכרעת מאיר (6.11): לא יוצרים קבלות. היה: POST /payments/form (type 400 = קבלה) לכל חשבונית."""
     ids = first_cycle(api)
     api.post(f"/reminders/{ids[0]}/approve")
     api.post("/dispatch")
     clock.now += timedelta(days=7)
     api.post("/plan")
-    assert fake_gi.forms == 2   # אחד לכל חשבונית, לא לכל תזכורת
+    assert fake_gi.forms == 0
 
 
 def test_unsubscribe_link_and_one_click(api, svc):
@@ -242,12 +250,12 @@ def test_how_to_pay_reply_uses_invoice_link(api, svc):
     api.post(f"/reminders/{ids[0]}/approve")
     res = api.post("/inbound", json={"sender": "0501234567", "text": "איך אפשר לשלם?"}).json()
     draft = next(d for d in api.get("/conversation/drafts").json() if d["id"] == res["draft_id"])
-    assert "https://pay.greeninvoice.co.il/f/doc1" in draft["body"]
+    assert "https://www.greeninvoice.co.il/pay/studio?invoice=1001" in draft["body"]
 
 
 def test_ui_page_has_slogan_and_no_whatsapp(api):
     html = api.get("/ui").text
-    assert "גבי – העוזר לגביית חובות" in html and "SMS" in html
+    assert "הכסף שלך חוזר. בלי שתצטרך לרדוף." in html and "SMS" in html
     assert "whatsapp" not in html.lower() and "וואטסאפ" not in html
 
 
@@ -268,7 +276,7 @@ def test_dashboard_exposes_paused_customer_and_resume_button(api, svc):
 
 def test_landing_draft_price_demo_link_and_no_whatsapp(api):
     """דף הנחיתה (טיוטה): מחיר השערה 119 + 14 יום, מוביל להדגמה, noindex, בלי וואטסאפ ובלי משאבים חיצוניים."""
-    html = api.get("/landing").text
+    html = api.get("/landing/plain").text
     assert "₪119" in html and "14 יום" in html
     assert 'href="/ui"' in html and 'name="robots" content="noindex' in html
     assert "whatsapp" not in html.lower() and "וואטסאפ" not in html
@@ -357,7 +365,7 @@ def test_demo_scenario_end_to_end():
 def test_landing_form_has_no_hidden_send_channel(api):
     """משלים את test_landing_draft_price_demo_link_and_no_whatsapp: גם בלי fetch/action אסור
     שהסקריפט של הטיוטה ישלח פרטים בערוץ אחר (XHR, beacon, websocket, form.submit, mailto)."""
-    html = api.get("/landing").text
+    html = api.get("/landing/plain").text
     for vec in ("XMLHttpRequest", "sendBeacon", "WebSocket", "EventSource", ".submit()",
                 "mailto:", "new Image(", "method=\"post\"", "localStorage"):
         assert vec not in html, f"ערוץ שליחה/שמירה בטיוטת דף הנחיתה: {vec}"
@@ -534,3 +542,32 @@ def test_promise_expired_returns_to_ladder(api, svc, clock):
     clock.now += timedelta(days=5)                       # 16.11 — עבר בלי תשלום
     assert cust1(api.post("/plan").json()["created"])
     assert any(a["action"] == "pause_expired" for a in api.get("/audit").json())
+
+
+def test_landing_prefers_designed_page(tmp_path, monkeypatch, svc):
+    """הכרעת מאיר (6.11): הדף המעוצב ראשי. web/dist קיים ⇒ /landing מפנה ל-/app/; לא קיים ⇒ גיבוי."""
+    from fastapi.testclient import TestClient
+
+    from app.main import create_app
+    (tmp_path / "index.html").write_text("<!doctype html><title>גבי</title>", encoding="utf-8")
+    monkeypatch.setenv("WEB_DIST", str(tmp_path))
+    c = TestClient(create_app(svc, owner_token=OWNER_TOKEN), follow_redirects=False)
+    r = c.get("/landing")
+    assert r.status_code == 307 and r.headers["location"] == "/app/"
+    monkeypatch.setenv("WEB_DIST", str(tmp_path / "missing"))
+    c = TestClient(create_app(svc, owner_token=OWNER_TOKEN), follow_redirects=False)
+    assert c.get("/landing").status_code == 200 and "₪119" in c.get("/landing").text
+
+
+def test_landing_matches_owner_decisions(api):
+    """הכרעות מאיר (6.11) בדף הגיבוי: סלוגן, מחיר חודשי+שנתי+מע״מ, 08–20, 3 תזכורות, אישור לכל
+    הודעה, טיוטה לבדיקת עו״ד, פרטי חברה placeholder, בטא 10 — ובלי טענות שאין להן ראיה."""
+    html = api.get("/landing/plain").text
+    for must in ("הכסף שלך חוזר. בלי שתצטרך לרדוף.", "₪1,190", "כולל מע״מ ככל שחל", "08:00–20:00",
+                 "עד 3 תזכורות", "כל הודעה", "טיוטה – לבדיקת עו״ד", "[שם החברה בע״מ]", "10 עסקים",
+                 "#10B981", "#0F172A", "#FBF8F1", "Rubik", "Heebo", "בלי כרטיס"):
+        assert must in html, must
+    for banned in ("M32 5C17.1 5 5 15.6",            # לוגו הבועה הישן
+                   "מוצפן", "הצפנה", "עומד בדרישות", "תואם לחוק", "מאושר משפטית", "מובטח",
+                   "9:00–19:00", "עד 4 תזכורות", "וגם האחרונה"):
+        assert banned not in html, banned

@@ -1,8 +1,8 @@
 // מראה של app/policy.py — מתי מותר לשלוח. טהור; הזמן מוזרק.
-// א׳–ה׳ 09:00–19:00 · ו׳ 09:00–12:00 · שבת/חג — לא שולחים.
+// א׳–ה׳ 08:00–20:00 · ו׳ 08:00–12:00 · שבת/חג — לא שולחים (הכרעת מאיר 6.11; לוח החגים המלא בשרת).
 // ⚖️ אין בחוק התקשורת שעות-שליחה מפורשות לתזכורת שאינה פרסומת — זו מדיניות שמרנית של המוצר (מניעת הטרדה).
 type Win = [number, number] | null; // דקות מחצות
-const W: Win[] = [[540, 1140], [540, 1140], [540, 1140], [540, 1140], [540, 1140], [540, 720], null]; // getDay(): 0=ראשון
+const W: Win[] = [[480, 1200], [480, 1200], [480, 1200], [480, 1200], [480, 1200], [480, 720], null]; // getDay(): 0=ראשון
 
 export function canSendAt(d: Date, holidays: ReadonlySet<string> = new Set()): boolean {
   const iso = isoLocal(d);
@@ -16,7 +16,7 @@ export function nextAllowed(from: Date, holidays: ReadonlySet<string> = new Set(
     if (canSendAt(d, holidays)) return d;
     const w = W[d.getDay()];
     const m = d.getHours() * 60 + d.getMinutes();
-    if (w && m < w[0] && !holidays.has(isoLocal(d))) { d.setHours(9, 0, 0, 0); continue; }
+    if (w && m < w[0] && !holidays.has(isoLocal(d))) { d.setHours(8, 0, 0, 0); continue; }
     d.setDate(d.getDate() + 1); d.setHours(0, 0, 0, 0);
   }
   throw new Error('אין חלון שליחה בשבועיים הקרובים');

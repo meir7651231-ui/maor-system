@@ -16,6 +16,7 @@
   --color-ink-200: #E2E8F0;
   --color-ink-100: #F1F5F9;
   --color-ink-50: #F8FAFC;
+  --color-cream: #FBF8F1;   /* רקע (הכרעת מאיר 6.11: #10B981 / #0F172A / #FBF8F1) */
 
   --color-paid: #10B981;
   --color-due: #F59E0B;
@@ -36,7 +37,7 @@
   --shadow-pop: 0 12px 40px rgb(15 23 42 / .18);
 }
 
-html { font-family: var(--font-sans); color: var(--color-ink-900); background: var(--color-ink-50); }
+html { font-family: var(--font-sans); color: var(--color-ink-900); background: var(--color-cream); }
 body { margin: 0; -webkit-font-smoothing: antialiased; }
 h1, h2, h3, .font-display { font-family: var(--font-display); letter-spacing: -0.01em; }
 /* מספרים/סכומים: ספרות טבלאיות כדי שעמודות יתיישרו */
