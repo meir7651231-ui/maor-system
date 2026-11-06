@@ -15,7 +15,8 @@ CREATE TABLE IF NOT EXISTS customers (
   opted_out INTEGER NOT NULL DEFAULT 0,
   disputed INTEGER NOT NULL DEFAULT 0,
   approved_first INTEGER NOT NULL DEFAULT 0,
-  last_sent_at TEXT
+  last_sent_at TEXT,
+  unsub_token TEXT UNIQUE
 );
 CREATE TABLE IF NOT EXISTS invoices (
   id INTEGER PRIMARY KEY,
@@ -26,6 +27,7 @@ CREATE TABLE IF NOT EXISTS invoices (
   issued TEXT, due TEXT,
   customer_id INTEGER NOT NULL REFERENCES customers(id),
   status TEXT NOT NULL DEFAULT 'open',
+  payment_url TEXT,
   synced_at TEXT
 );
 CREATE TABLE IF NOT EXISTS reminders (
@@ -37,7 +39,7 @@ CREATE TABLE IF NOT EXISTS reminders (
   status TEXT NOT NULL,
   requires_approval INTEGER NOT NULL,
   body TEXT NOT NULL,
-  payload TEXT NOT NULL,
+  payload TEXT NOT NULL,           -- JSON: רשימת Message (sms/email)
   decided_at TEXT, sent_at TEXT, message_id TEXT, block_reason TEXT,
   UNIQUE(invoice_id, step)
 );
@@ -53,6 +55,7 @@ CREATE TABLE IF NOT EXISTS messages (
   id INTEGER PRIMARY KEY,
   customer_id INTEGER,
   direction TEXT NOT NULL,
+  channel TEXT,
   body TEXT NOT NULL,
   intent TEXT,
   needs_owner INTEGER NOT NULL DEFAULT 0,

@@ -1,38 +1,55 @@
-"""נוסחי תזכורת. מנומסים, בלי איום, בלי שיווק (שיווק ⇒ "דבר פרסומת" + קטגוריית Marketing).
+"""נוסחי תזכורת — SMS ומייל. מנומסים, עובדתיים, מזהים את העסק, עם קישור תשלום והסרה.
 
-כל נוסח ממופה לתבנית WhatsApp (Utility) שתוגש לאישור Meta בשלב 2.
-הפרמטרים ממוספרים כמו בתבניות WhatsApp: {{1}}, {{2}} ...
+אין בהם שום תוכן שיווקי (מבצע/הנחה/מוצר) — אחרת ההודעה עלולה להפוך ל"דבר פרסומת"
+לפי סעיף 30א לחוק התקשורת ולדרוש הסכמה מראש. נאכף בבדיקות (`MARKETING_WORDS`).
 """
 from __future__ import annotations
 
 from dataclasses import dataclass
+from html import escape
 
-OPT_OUT_LINE = "להפסקת תזכורות השיבו \"הסר\"."
+MARKETING_WORDS = ("מבצע", "הנחה", "הטבה", "מתנה", "קופון", "חדש!", "הזדמנות", "במיוחד בשבילך")
+THREAT_WORDS = ("הוצאה לפועל", "תביעה", "משטרה", "עונש", "עו\"ד", "עורך דין", "אחרונה!")
+
+SLOGAN = "גבי – העוזר לגביית חובות"
 
 
 @dataclass(frozen=True)
-class Template:
+class Step:
     key: str
-    wa_name: str
-    body: str  # עם {{n}}
+    sms: str
+    subject: str
+    email: str
 
 
-STEPS: tuple[Template, ...] = (
-    Template("friendly", "payment_reminder_friendly",
-             "שלום {{1}}, תזכורת ידידותית מ-{{2}}: חשבונית {{3}} על סך {{4}} "
-             "טרם סומנה כשולמה. לתשלום: {{5}}. אם כבר שילמתם — תודה, ואפשר להתעלם. "
-             + OPT_OUT_LINE),
-    Template("second", "payment_reminder_second",
-             "שלום {{1}}, חשבונית {{3}} מ-{{2}} על סך {{4}} עדיין פתוחה. "
-             "אפשר לשלם כאן: {{5}}, או להשיב להודעה הזו אם יש שאלה או צורך בפריסה. "
-             + OPT_OUT_LINE),
-    Template("plan_offer", "payment_reminder_plan",
-             "שלום {{1}}, רצינו לוודא שהכול בסדר לגבי חשבונית {{3}} ({{4}}). "
-             "אם נוח לכם, {{2}} יכולים לפרוס את הסכום לכמה תשלומים ללא תוספת. "
-             "השיבו \"פריסה\" ונציע הסדר. " + OPT_OUT_LINE),
-    Template("final", "payment_reminder_final",
-             "שלום {{1}}, זו תזכורת אחרונה בהודעה אוטומטית לגבי חשבונית {{3}} ({{4}}). "
-             "בעל העסק {{2}} ייצור איתכם קשר אישית. לתשלום: {{5}}. " + OPT_OUT_LINE),
+# שדות: {biz} {name} {num} {amount} {link} {unsub}
+STEPS: tuple[Step, ...] = (
+    Step("friendly",
+         "{biz}: שלום {name}, תזכורת ידידותית - חשבונית {num} על {amount} טרם שולמה. "
+         "לתשלום: {link} להסרה: {unsub}",
+         "תזכורת ידידותית: חשבונית {num} מ-{biz}",
+         "שלום {name},\n\nזו תזכורת ידידותית שחשבונית {num} על סך {amount} טרם סומנה כשולמה.\n"
+         "אפשר לשלם בקישור: {link}\n\nאם כבר שילמתם — תודה רבה, ואפשר להתעלם מהודעה זו.\n\n"
+         "בברכה,\n{biz}"),
+    Step("second",
+         "{biz}: שלום {name}, חשבונית {num} על {amount} עדיין פתוחה. לתשלום: {link} "
+         "לשאלות השיבו להודעה. להסרה: {unsub}",
+         "חשבונית {num} מ-{biz} עדיין פתוחה",
+         "שלום {name},\n\nחשבונית {num} על סך {amount} עדיין פתוחה.\nלתשלום: {link}\n\n"
+         "אם יש שאלה, או אם נוח לכם לפרוס את הסכום — פשוט השיבו למייל הזה.\n\nבברכה,\n{biz}"),
+    Step("plan_offer",
+         "{biz}: שלום {name}, אפשר לפרוס את חשבונית {num} ({amount}) לתשלומים ללא תוספת - "
+         "השיבו פריסה. לתשלום: {link} להסרה: {unsub}",
+         "אפשרות פריסה לחשבונית {num}",
+         "שלום {name},\n\nרצינו לוודא שהכול בסדר לגבי חשבונית {num} ({amount}).\n"
+         "אם נוח לכם, אפשר לפרוס את הסכום לכמה תשלומים ללא כל תוספת — השיבו \"פריסה\".\n"
+         "לתשלום מלא: {link}\n\nבברכה,\n{biz}"),
+    Step("final",
+         "{biz}: שלום {name}, תזכורת אוטומטית אחרונה לחשבונית {num} ({amount}). "
+         "נחזור אליכם אישית. לתשלום: {link} להסרה: {unsub}",
+         "תזכורת אחרונה: חשבונית {num} מ-{biz}",
+         "שלום {name},\n\nזו התזכורת האוטומטית האחרונה לגבי חשבונית {num} ({amount}).\n"
+         "בעל העסק ייצור איתכם קשר אישית בהמשך.\nלתשלום: {link}\n\nבברכה,\n{biz}"),
 )
 
 
@@ -43,14 +60,27 @@ def fmt_amount(agorot: int, currency: str = "ILS") -> str:
     return f"{s} {sym}" if sym == "₪" else f"{sym}{s}"
 
 
-def params_for(*, client_name: str, business: str, number: str,
-               amount_agorot: int, currency: str, payment_link: str) -> list[str]:
-    return [client_name or "לקוח/ה יקר/ה", business, number,
-            fmt_amount(amount_agorot, currency), payment_link or "פרטי תשלום יישלחו בהמשך"]
+def fields(*, biz: str, name: str, num: str, amount_agorot: int, currency: str,
+           link: str, unsub: str) -> dict[str, str]:
+    return {"biz": biz, "name": name or "לקוח/ה יקר/ה",
+            "num": num, "amount": fmt_amount(amount_agorot, currency),
+            "link": link, "unsub": unsub}
 
 
-def render(t: Template, params: list[str]) -> str:
-    out = t.body
-    for i, p in enumerate(params, start=1):
-        out = out.replace("{{%d}}" % i, p)
-    return out
+def render_sms(step: Step, f: dict[str, str]) -> str:
+    return step.sms.format(**f)
+
+
+def render_email(step: Step, f: dict[str, str]) -> tuple[str, str, str]:
+    text = step.email.format(**f) + f"\n\nלהסרה מתזכורות: {f['unsub']}"
+    esc = {k: escape(v) for k, v in f.items()}
+    body_html = "<br>".join(escape(line) for line in step.email.format(**f).split("\n"))
+    body_html = body_html.replace(escape(f["link"]),
+                                  f'<a href="{esc["link"]}">{esc["link"]}</a>')
+    html = (f'<div dir="rtl" style="font-family:Arial,sans-serif;font-size:15px;'
+            f'line-height:1.6;color:#1f2937">{body_html}'
+            f'<p style="margin-top:24px"><a href="{esc["link"]}" style="background:#0f766e;'
+            f'color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none">לתשלום</a></p>'
+            f'<p style="font-size:12px;color:#6b7280">הודעה אוטומטית מטעם {esc["biz"]}. '
+            f'<a href="{esc["unsub"]}">להסרה מתזכורות</a></p></div>')
+    return step.subject.format(**f), text, html

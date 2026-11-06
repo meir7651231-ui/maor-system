@@ -6,7 +6,9 @@ from app import assistant, plans, templates
 from app.assistant import Intent
 from app.config import SafetyError, load_settings
 from app.policy import TZ, Policy
-from app.whatsapp import build_template_payload, normalize_il_phone
+from app.channels import (InforUSms, Message, Sms019, SmtpEmail, TwilioSms, is_il_mobile,
+                          normalize_il_phone, sms_segments)
+from app import paylinks
 
 P = Policy(frozenset({"2026-12-25"}))
 
@@ -75,11 +77,28 @@ def test_plan_respects_min_installment():
 
 
 # ---------- תבניות ----------
-def test_templates_polite_and_opt_out():
-    for t in templates.STEPS:
-        assert templates.OPT_OUT_LINE in t.body
-        for bad in ("הוצאה לפועל", "תביעה", "משטרה", "עונש"):
-            assert bad not in t.body
+F = templates.fields(biz="סטודיו מאיר", name="דנה כהן", num="1001", amount_agorot=120000,
+                     currency="ILS", link="https://www.greeninvoice.co.il/pay/x?invoice=1001",
+                     unsub="https://gabi.example/u/AbCdEfGhIjKl")
+
+
+@pytest.mark.parametrize("step", templates.STEPS, ids=lambda s: s.key)
+def test_templates_polite_identified_no_marketing(step):
+    sms = templates.render_sms(step, F)
+    subj, text, html = templates.render_email(step, F)
+    for t in (sms, subj, text):
+        for bad in templates.MARKETING_WORDS + templates.THREAT_WORDS:
+            assert bad not in t, (step.key, bad)
+    assert sms.startswith("סטודיו מאיר:")             # זיהוי השולח
+    assert F["link"] in sms and F["unsub"] in sms      # קישור תשלום + הסרה
+    assert F["link"] in text and F["unsub"] in text
+    assert sms_segments(sms)["segments"] <= 3          # עלות סבירה
+
+
+def test_email_html_escapes_and_rtl():
+    f = {**F, "name": "<script>x</script>"}
+    _, _, html = templates.render_email(templates.STEPS[0], f)
+    assert "<script>" not in html and 'dir="rtl"' in html
 
 
 def test_amount_format():
@@ -87,10 +106,72 @@ def test_amount_format():
     assert templates.fmt_amount(100000) == "1,000 ₪"
 
 
-def test_payload_shape():
-    p = build_template_payload("972501234567", "payment_reminder_friendly", ["a", "b"])
-    assert p["type"] == "template" and p["template"]["language"]["code"] == "he"
-    assert [x["text"] for x in p["template"]["components"][0]["parameters"]] == ["a", "b"]
+# ---------- SMS ----------
+def test_segments_hebrew_ucs2():
+    assert sms_segments("א" * 70) == {"chars": 70, "encoding": "UCS-2", "segments": 1}
+    assert sms_segments("א" * 71)["segments"] == 2
+    assert sms_segments("a" * 160)["encoding"] == "GSM-7"
+
+
+def test_mobile_only():
+    assert is_il_mobile("972501234567") and not is_il_mobile("97231234567")
+
+
+MSG = Message("sms", "972501234567", "שלום")
+
+
+def test_adapters_build_requests_and_mask_secrets():
+    inf = InforUSms(username="u", token="supersecret", sender="Studio").build_request(MSG)
+    assert inf["json"]["Data"]["Recipients"][0]["Phone"] == "0501234567"
+    assert "supersecret" not in str(inf)
+    x = Sms019(username="u", token="supersecret", sender="Studio").build_request(
+        Message("sms", "972501234567", "a<b&c"))
+    assert "<message>a&lt;b&amp;c</message>" in x["body"] and "supersecret" not in str(x)
+    t = TwilioSms(token="supersecret", sender="Studio").build_request(MSG)
+    assert t["form"]["To"] == "+972501234567" and "supersecret" not in str(t)
+
+
+def test_email_one_click_unsubscribe_header():
+    m = SmtpEmail(sender="a@b.co").build_message(
+        Message("email", "c@d.co", "x", subject="s", unsubscribe_url="https://g.example/u/t"))
+    assert m["List-Unsubscribe"] == "<https://g.example/u/t>"
+    assert m["List-Unsubscribe-Post"] == "List-Unsubscribe=One-Click"
+
+
+def test_whatsapp_channel_refused():
+    with pytest.raises(SafetyError):
+        load_settings({"CHANNELS": "sms,whatsapp"})
+
+
+def test_sender_id_validated():
+    with pytest.raises(ValueError):
+        load_settings({"SMS_SENDER_ID": "שם עברי ארוך"})
+
+
+# ---------- קישורי תשלום ----------
+ALLOWED = ("greeninvoice.co.il", "morning.co")
+
+
+@pytest.mark.parametrize("url,ok", [
+    ("https://www.greeninvoice.co.il/pay/x", True),
+    ("https://greeninvoice.co.il/pay/x", True),
+    ("http://www.greeninvoice.co.il/pay/x", False),            # לא https
+    ("https://greeninvoice.co.il.evil.com/x", False),          # דומיין מתחזה
+    ("https://evilgreeninvoice.co.il/x", False),
+    ("https://user@greeninvoice.co.il/x", False),
+    ("javascript:alert(1)", False),
+])
+def test_payment_domain_allowlist(url, ok):
+    assert paylinks.domain_allowed(url, ALLOWED) is ok
+
+
+def test_resolve_prefers_doc_link_then_static():
+    assert paylinks.resolve(doc_link="https://pay.greeninvoice.co.il/f/1", static_link="",
+                            number="1", allowed=ALLOWED) == "https://pay.greeninvoice.co.il/f/1"
+    assert paylinks.resolve(doc_link="https://evil.com", static_link=
+                            "https://www.greeninvoice.co.il/pay/s", number="7",
+                            allowed=ALLOWED) == "https://www.greeninvoice.co.il/pay/s?invoice=7"
+    assert paylinks.resolve(doc_link="", static_link="", number="1", allowed=ALLOWED) is None
 
 
 # ---------- מסווג ----------

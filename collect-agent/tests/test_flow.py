@@ -24,8 +24,9 @@ def first_cycle(api):
 
 def test_health_reports_dry_run(api):
     h = api.get("/health").json()
-    assert h == {"status": "ok", "send_mode": "dry_run", "greeninvoice_env": "sandbox",
-                 "dry_run": True}
+    assert h["dry_run"] is True and h["send_mode"] == "dry_run"
+    assert h["channels"] == ["sms", "email"] and "whatsapp" not in str(h)
+    assert h["product"] == "גבי – העוזר לגביית חובות"
 
 
 def test_first_message_needs_owner_approval(api, svc):
@@ -38,11 +39,18 @@ def test_first_message_needs_owner_approval(api, svc):
     api.post(f"/reminders/{ids[0]}/approve")
     api.post(f"/reminders/{ids[1]}/reject")
     sent = api.post("/dispatch").json()["sent"]
-    assert len(sent) == 1 and sent[0]["message_id"].startswith("dryrun.")
+    assert len(sent) == 1 and all(m.startswith("dryrun.") for m in sent[0]["message_ids"])
     out = api.get("/outbox").json()["messages"]
-    assert out[0]["payload"]["to"] == "972501234567"
-    params = [p["text"] for p in out[0]["payload"]["template"]["components"][0]["parameters"]]
-    assert params == ["דנה כהן", "סטודיו מאיר", "1001", "1,200 ₪", "https://pay.example/x"]
+    assert [m["channel"] for m in out] == ["sms", "email"]
+    sms, mail = out
+    assert sms["to"] == "972501234567" and sms["provider"] == "019"
+    assert sms["body"].startswith("סטודיו מאיר: שלום דנה כהן")
+    assert "1,200 ₪" in sms["body"] and "https://pay.greeninvoice.co.il/f/doc1" in sms["body"]
+    assert "https://gabi.example/u/" in sms["body"]
+    assert "<source>StudioMeir</source>" in sms["request"]["body"]
+    assert sms["request"]["url"].endswith("/api/test")
+    assert mail["to"] == "c1@example.com" and "1001" in mail["subject"]
+    assert mail["request"]["headers"]["List-Unsubscribe-Post"] == "List-Unsubscribe=One-Click"
 
 
 def test_second_reminder_auto_after_first_approved(api, svc, clock):
@@ -83,17 +91,18 @@ def test_opt_out_stops_everything(api, svc, clock):
     ids = first_cycle(api)
     api.post(f"/reminders/{ids[0]}/approve")
     api.post("/dispatch")
-    res = api.post("/inbound", json={"phone": "0501234567", "text": "הסר"}).json()
+    res = api.post("/inbound", json={"sender": "0501234567", "text": "הסר"}).json()
     assert res["intent"] == "opt_out" and res["auto_reply"]
     clock.now += timedelta(days=10)
     assert api.post("/plan").json()["created"] == []
     api.post("/dispatch")
-    assert len(svc.sender.sent) == 2  # התזכורת + אישור-ההסרה, ולא יותר
+    # SMS+מייל של התזכורת + אישור-ההסרה ב-SMS, ולא יותר
+    assert [m["channel"] for m in svc.sender.sent] == ["sms", "email", "sms"]
 
 
 def test_paid_claim_escalates_and_stops(api, svc):
     first_cycle(api)
-    res = api.post("/inbound", json={"phone": "050-1234567", "text": "שילמתי כבר"}).json()
+    res = api.post("/inbound", json={"sender": "050-1234567", "text": "שילמתי כבר"}).json()
     assert res["escalate"] and res["auto_reply"] is None
     assert api.get("/reminders").json()[0]["status"] == "cancelled"
     assert len(api.get("/owner/inbox").json()) == 1
@@ -101,7 +110,7 @@ def test_paid_claim_escalates_and_stops(api, svc):
 
 def test_no_auto_reply_before_first_approval(api, svc):
     first_cycle(api)
-    res = api.post("/inbound", json={"phone": "050-1234567", "text": "איך אפשר לשלם?"}).json()
+    res = api.post("/inbound", json={"sender": "050-1234567", "text": "איך אפשר לשלם?"}).json()
     assert res["intent"] == "how_to_pay" and res["auto_reply"] is None
     assert svc.sender.sent == []
 
@@ -110,12 +119,13 @@ def test_plan_request_flow(api, svc):
     ids = first_cycle(api)
     api.post(f"/reminders/{ids[0]}/approve")
     api.post("/dispatch")
-    res = api.post("/inbound", json={"phone": "050-1234567", "text": "אפשר פריסה?"}).json()
+    res = api.post("/inbound", json={"sender": "050-1234567", "text": "אפשר פריסה?"}).json()
     plan = api.get("/plans").json()[0]
     assert res["plan_id"] == plan["id"] and plan["status"] == "proposed"
     assert sum(i["amount_agorot"] for i in plan["installments"]) == 120000
     msg = api.post(f"/plans/{plan['id']}/approve").json()
     assert msg["message_id"].startswith("dryrun.") and "ללא תוספת" in msg["text"]
+    assert msg["channel"] == "sms"
 
 
 def test_closed_invoice_cancels_reminder(api, svc, fake_gi):
@@ -125,15 +135,23 @@ def test_closed_invoice_cancels_reminder(api, svc, fake_gi):
     assert api.get("/reminders").json()[0]["status"] == "cancelled"
 
 
-def test_invalid_phone_cannot_be_approved(api, svc, fake_gi):
-    fake_gi.docs[0]["client"]["phone"] = "123"
+def test_invalid_phone_falls_back_to_email(api, svc, fake_gi):
+    fake_gi.docs[0]["client"]["phone"] = "03-1234567"   # קווי ⇒ אין SMS
     ids = first_cycle(api)
+    p = api.get(f"/reminders/{ids[0]}/preview").json()
+    assert [m["channel"] for m in p["messages"]] == ["email"]
+
+
+def test_no_contact_cannot_be_approved(api, svc, fake_gi):
+    fake_gi.docs[0]["client"].update(phone="123", emails=[])
+    ids = first_cycle(api)
+    assert api.get("/reminders").json()[0]["block_reason"] == "no_contact"
     assert api.post(f"/reminders/{ids[0]}/approve").status_code == 409
 
 
 def test_unknown_sender_goes_to_owner(api):
     first_cycle(api)
-    res = api.post("/inbound", json={"phone": "054-0000000", "text": "מי אתם?"}).json()
+    res = api.post("/inbound", json={"sender": "054-0000000", "text": "מי אתם?"}).json()
     assert res["intent"] == "unknown_sender" and res["escalate"]
 
 
@@ -160,3 +178,88 @@ def test_dispatch_rechecks_window(api, svc, clock):
     assert api.post("/dispatch").json()["sent"] == []
     clock.now = datetime(2026, 11, 15, 9, 30, tzinfo=TZ)  # ראשון
     assert len(api.post("/dispatch").json()["sent"]) == 1
+
+
+def test_payment_form_failure_falls_back_to_static_link(api, svc, fake_gi):
+    fake_gi.fail_forms = True
+    ids = first_cycle(api)
+    body = api.get(f"/reminders/{ids[0]}/preview").json()["messages"][0]["body"]
+    assert "https://www.greeninvoice.co.il/pay/studio?invoice=1001" in body
+
+
+def test_no_safe_payment_link_blocks(svc, gi_client, clock, fake_gi):
+    from app.config import load_settings
+    from app.db import DB
+    fake_gi.fail_forms = True
+    s = load_settings({"PAYMENT_LINK": "https://evil.example/pay"})   # לא ברשימה המותרת
+    api = TestClient(create_app(CollectService(s, DB(":memory:"), gi=gi_client, clock=clock)))
+    ids = first_cycle(api)
+    assert api.get("/reminders").json()[0]["block_reason"] == "no_payment_link"
+    assert api.post(f"/reminders/{ids[0]}/approve").status_code == 409
+
+
+def test_payment_form_created_once(api, svc, fake_gi, clock):
+    ids = first_cycle(api)
+    api.post(f"/reminders/{ids[0]}/approve")
+    api.post("/dispatch")
+    clock.now += timedelta(days=7)
+    api.post("/plan")
+    assert fake_gi.forms == 2   # אחד לכל חשבונית, לא לכל תזכורת
+
+
+def test_unsubscribe_link_and_one_click(api, svc):
+    ids = first_cycle(api)
+    tok = svc.db.one("SELECT unsub_token FROM customers WHERE id=1")["unsub_token"]
+    assert api.get(f"/u/{tok}").status_code == 200
+    assert api.get("/reminders").json()[0]["status"] == "cancelled"
+    assert api.post("/u/bogus").status_code == 404
+    assert api.post(f"/reminders/{ids[0]}/approve").status_code == 409
+
+
+def test_email_inbound_matches_customer(api, svc):
+    first_cycle(api)
+    res = api.post("/inbound", json={"channel": "email", "sender": "C1@example.com",
+                                     "text": "שילמתי אתמול"}).json()
+    assert res["intent"] == "paid_claim" and res["escalate"]
+
+
+def test_how_to_pay_reply_uses_invoice_link(api, svc):
+    ids = first_cycle(api)
+    api.post(f"/reminders/{ids[0]}/approve")
+    res = api.post("/inbound", json={"sender": "0501234567", "text": "איך אפשר לשלם?"}).json()
+    assert "https://pay.greeninvoice.co.il/f/doc1" in res["auto_reply"]
+
+
+def test_ui_page_has_slogan_and_no_whatsapp(api):
+    html = api.get("/ui").text
+    assert "גבי – העוזר לגביית חובות" in html and "SMS" in html
+    assert "whatsapp" not in html.lower() and "וואטסאפ" not in html
+
+
+def test_019_webhook_inbound_idempotent(api, svc):
+    first_cycle(api)
+    body = "type=incoming_sms&phone=0501234567&message=%D7%94%D7%A1%D7%A8&dest=StudioMeir"
+    h = {"content-type": "application/x-www-form-urlencoded"}
+    r1 = api.post("/webhooks/sms/019?k=whk-test", content=body, headers=h).json()
+    assert r1["intent"] == "opt_out"
+    r2 = api.post("/webhooks/sms/019?k=whk-test", content=body, headers=h).json()
+    assert r2["duplicate"] is True
+    assert svc.db.one("SELECT opted_out FROM customers WHERE id=1")["opted_out"] == 1
+
+
+def test_019_webhook_blacklist_and_dlr(api, svc):
+    first_cycle(api)
+    h = {"content-type": "application/x-www-form-urlencoded"}
+    assert api.post("/webhooks/sms/019?k=whk-test", content="type=dlr&phone=0501234567&status=2",
+                    headers=h).json()["ignored"]
+    api.post("/webhooks/sms/019?k=whk-test", content="type=blacklist&phone=0527654321", headers=h)
+    assert svc.db.one("SELECT opted_out FROM customers WHERE id=2")["opted_out"] == 1
+
+
+def test_019_webhook_requires_key(api, svc):
+    first_cycle(api)
+    h = {"content-type": "application/x-www-form-urlencoded"}
+    for url in ("/webhooks/sms/019", "/webhooks/sms/019?k=wrong"):
+        assert api.post(url, content="type=blacklist&phone=0501234567",
+                        headers=h).status_code == 403
+    assert svc.db.one("SELECT opted_out FROM customers WHERE id=1")["opted_out"] == 0

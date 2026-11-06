@@ -32,6 +32,8 @@ class FakeGreenInvoice:
         self.token_calls = 0
         self.search_calls = 0
         self.expire_next = False
+        self.forms = 0
+        self.fail_forms = False
 
     def handler(self, req: httpx.Request) -> httpx.Response:
         if req.url.path.endswith("/account/token"):
@@ -56,6 +58,14 @@ class FakeGreenInvoice:
             pages = max(1, -(-len(self.docs) // ps))
             return httpx.Response(200, json={"items": items, "page": page, "pages": pages,
                                              "total": len(self.docs), "pageSize": ps})
+        if req.url.path.endswith("/payments/form"):
+            if self.fail_forms:
+                return httpx.Response(500)
+            body = json.loads(req.content)
+            assert body["amount"] > 0 and body["custom"].startswith("doc")
+            self.forms += 1
+            return httpx.Response(200, json={"errorCode": 0,
+                                             "url": f"https://pay.greeninvoice.co.il/f/{body['custom']}"})
         return httpx.Response(404)
 
 
@@ -87,7 +97,10 @@ def gi_client(fake_gi):
 
 @pytest.fixture
 def svc(gi_client, clock):
-    s = load_settings({"BUSINESS_NAME": "סטודיו מאיר", "PAYMENT_LINK": "https://pay.example/x"})
+    s = load_settings({"BUSINESS_NAME": "סטודיו מאיר", "SMS_SENDER_ID": "StudioMeir",
+                       "PAYMENT_LINK": "https://www.greeninvoice.co.il/pay/studio",
+                       "PUBLIC_BASE_URL": "https://gabi.example",
+                       "SMS_WEBHOOK_KEY": "whk-test"})
     return CollectService(s, DB(":memory:"), gi=gi_client, clock=clock)
 
 

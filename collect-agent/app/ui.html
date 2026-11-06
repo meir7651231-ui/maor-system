@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>גבי – תור אישורים</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--ink:#111827;--muted:#6b7280;--line:#e5e7eb;--brand:#0f766e;
+--brand-ink:#fff;--warn:#b45309;--warn-bg:#fef3c7;--bad:#b91c1c;--sms:#e7f6f3;--chip:#eef2f7}
+@media (prefers-color-scheme:dark){:root{--bg:#0b1220;--card:#121a2b;--ink:#e5e7eb;--muted:#9aa4b2;
+--line:#243049;--brand:#2dd4bf;--brand-ink:#04211d;--warn:#fbbf24;--warn-bg:#3a2a06;--bad:#f87171;
+--sms:#10332e;--chip:#1b2540}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);
+font:15px/1.5 system-ui,-apple-system,"Segoe UI",Arial,sans-serif}
+header{padding:16px;border-bottom:1px solid var(--line);background:var(--card);display:flex;
+flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
+.brand{display:flex;gap:10px;align-items:center}.logo{width:36px;height:36px;border-radius:10px;
+background:var(--brand);color:var(--brand-ink);display:grid;place-items:center;font-weight:800}
+h1{font-size:18px;margin:0}.slogan{color:var(--muted);font-size:13px}
+.dry{background:var(--warn-bg);color:var(--warn);padding:6px 10px;border-radius:999px;
+font-size:13px;font-weight:600}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+button{font:inherit;border:1px solid var(--line);background:var(--card);color:var(--ink);
+padding:8px 14px;border-radius:10px;cursor:pointer;min-height:40px}
+button.primary{background:var(--brand);border-color:var(--brand);color:var(--brand-ink);font-weight:600}
+button.ghost-bad{color:var(--bad)}button:disabled{opacity:.5;cursor:not-allowed}
+main{display:grid;grid-template-columns:minmax(260px,360px) 1fr;gap:16px;padding:16px;
+max-width:1200px;margin:0 auto}
+@media (max-width:760px){main{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px}
+.list{display:flex;flex-direction:column;gap:8px}.item{text-align:right;width:100%;display:block}
+.item.sel{outline:2px solid var(--brand)}.row{display:flex;justify-content:space-between;gap:8px}
+.chip{background:var(--chip);border-radius:999px;padding:2px 8px;font-size:12px;color:var(--muted)}
+.chip.pending{background:var(--warn-bg);color:var(--warn)}.chip.blocked{color:var(--bad)}
+.previews{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:1000px){.previews{grid-template-columns:1fr}}
+h2{font-size:15px;margin:0 0 10px}.phone{border:1px solid var(--line);border-radius:22px;
+padding:16px 12px;max-width:340px;background:var(--bg)}
+.sender{text-align:center;color:var(--muted);font-size:12px;margin-bottom:10px}
+.bubble{background:var(--sms);border-radius:16px 16px 4px 16px;padding:10px 12px;
+white-space:pre-wrap;word-break:break-word}
+.meta{color:var(--muted);font-size:12px;margin-top:8px}
+.mail-head{font-size:13px;color:var(--muted);border-bottom:1px solid var(--line);padding-bottom:8px;
+margin-bottom:8px;word-break:break-all}
+iframe{width:100%;min-height:360px;border:1px solid var(--line);border-radius:10px;background:#fff}
+.empty{color:var(--muted);padding:24px;text-align:center}.err{color:var(--bad);margin-top:8px}
+.decide{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><div class="logo">ג</div>
+    <div><h1>גבי</h1><div class="slogan">גבי – העוזר לגביית חובות</div></div></div>
+  <span class="dry">מצב בדיקה: אף הודעה לא נשלחת באמת</span>
+  <div class="actions">
+    <button id="btnSync">סנכרון חשבונית ירוקה</button>
+    <button id="btnPlan">הכנת תזכורות</button>
+    <button id="btnDispatch" class="primary">שליחה (בדיקה)</button>
+  </div>
+</header>
+<main>
+  <section class="card"><h2>תור תזכורות</h2><div id="list" class="list"></div></section>
+  <section class="card" id="detail"><div class="empty">בחרו תזכורת כדי לראות תצוגה מקדימה של SMS ומייל</div></section>
+</main>
+<script>
+const STATUS={pending_approval:"ממתינה לאישורך",approved:"מאושרת",sent_dry_run:"נשלחה (בדיקה)",
+  rejected:"נדחתה",cancelled:"בוטלה"};
+const BLOCK={no_contact:"אין נייד או מייל תקין",no_payment_link:"אין קישור תשלום",
+  opted_out:"הלקוח ביקש הסרה",paid_claim:"הלקוח טוען ששילם",dispute:"מחלוקת",
+  invoice_closed:"החשבונית נסגרה",plan_request:"ביקש פריסה"};
+let sel=null;
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const money=a=>(a/100).toLocaleString("he-IL",{minimumFractionDigits:a%100?2:0,maximumFractionDigits:2})+" ₪";
+async function api(p,o){const r=await fetch(p,o);const j=await r.json().catch(()=>({}));
+  if(!r.ok)throw new Error(j.detail||r.status);return j}
+async function load(){
+  const rows=await api("/reminders");const el=$("#list");
+  if(!rows.length){el.innerHTML='<div class="empty">אין תזכורות. לחצו "סנכרון" ואז "הכנת תזכורות".</div>';return}
+  el.innerHTML=rows.map(r=>`<button class="item card ${r.id===sel?"sel":""}" data-id="${r.id}">
+    <div class="row"><strong>${esc(r.customer_name)}</strong><span>${money(r.amount_agorot)}</span></div>
+    <div class="row"><span class="slogan">חשבונית ${esc(r.number)} · שלב ${r.step+1}/4</span>
+    <span class="chip ${r.status==="pending_approval"?"pending":""} ${r.block_reason?"blocked":""}">
+    ${esc(r.block_reason?BLOCK[r.block_reason]||r.block_reason:STATUS[r.status]||r.status)}</span></div></button>`).join("");
+  el.querySelectorAll(".item").forEach(b=>b.onclick=()=>show(+b.dataset.id));
+}
+async function show(id){
+  sel=id;load();const p=await api(`/reminders/${id}/preview`);
+  const sms=p.messages.find(m=>m.channel==="sms"),mail=p.messages.find(m=>m.channel==="email");
+  const smsHtml=sms?`<div class="phone"><div class="sender">SMS · ${esc(sms.to.replace(/^972/,"0"))} · ${esc(sms.provider)}</div>
+     <div class="bubble">${esc(sms.body)}</div>
+     <div class="meta">${sms.length.chars} תווים · ${sms.length.encoding} · ${sms.length.segments} חלקי SMS</div></div>`
+    :'<div class="empty">אין מספר נייד — SMS לא יישלח</div>';
+  const mailHtml=mail?`<div class="mail-head"><div><b>אל:</b> ${esc(mail.to)}</div>
+     <div><b>נושא:</b> ${esc(mail.subject)}</div></div>
+     <iframe sandbox title="תצוגה מקדימה של המייל" id="mailFrame"></iframe>`
+    :'<div class="empty">אין כתובת מייל — מייל לא יישלח</div>';
+  const can=p.status==="pending_approval"&&!["no_contact","no_payment_link"].includes(p.block_reason);
+  $("#detail").innerHTML=`<div class="row"><h2>תצוגה מקדימה · ${esc(STATUS[p.status]||p.status)}</h2>
+    <span class="chip">מתוזמנת: ${esc(new Date(p.scheduled_for).toLocaleString("he-IL",{timeZone:"Asia/Jerusalem",dateStyle:"short",timeStyle:"short"}))}</span></div>
+    ${p.block_reason?`<div class="err">חסום: ${esc(BLOCK[p.block_reason]||p.block_reason)}</div>`:""}
+    <div class="previews"><div><h2>SMS</h2>${smsHtml}</div><div><h2>מייל</h2>${mailHtml}</div></div>
+    <div class="decide">${p.status==="pending_approval"?`<button class="primary" id="ok" ${can?"":"disabled"}>אישור ושליחה</button>`:""}
+    ${["pending_approval","approved"].includes(p.status)?`<button class="ghost-bad" id="no">דחייה</button>`:""}</div>
+    <div class="err" id="derr"></div>`;
+  if(mail)$("#mailFrame").srcdoc=mail.html;
+  const act=async a=>{try{await api(`/reminders/${id}/${a}`,{method:"POST"});show(id)}catch(e){$("#derr").textContent=e.message}};
+  $("#ok")&&($("#ok").onclick=()=>act("approve"));$("#no")&&($("#no").onclick=()=>act("reject"));
+}
+const run=(b,p)=>$(b).onclick=async()=>{try{await api(p,{method:"POST"});await load();sel&&show(sel)}catch(e){alert(e.message)}};
+run("#btnSync","/sync");run("#btnPlan","/plan");run("#btnDispatch","/dispatch");
+load();
+</script>
+</body>
+</html>

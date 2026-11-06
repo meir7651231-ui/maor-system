@@ -1,19 +1,29 @@
-"""FastAPI. הפעלה: uvicorn app.main:_lazy_app --factory (dry-run בלבד)."""
+"""FastAPI — "גבי – העוזר לגביית חובות".
+
+הפעלה: uvicorn app.main:_lazy_app --factory (dry-run בלבד).
+"""
 from __future__ import annotations
 
 import json
+from pathlib import Path
+from typing import Literal
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 
 from .config import Settings, load_settings
 from .db import DB
 from .greeninvoice import GreenInvoiceClient
 from .service import CollectService
+from .templates import SLOGAN
+
+UI_HTML = (Path(__file__).parent / "ui.html").read_text(encoding="utf-8")
 
 
 class InboundIn(BaseModel):
-    phone: str
+    channel: Literal["sms", "email"] = "sms"
+    sender: str
     text: str
 
 
@@ -25,7 +35,7 @@ def create_app(service: CollectService | None = None) -> FastAPI:
               if s.greeninvoice_api_id else None)
         service = CollectService(s, DB(s.db_path), gi=gi)
     svc = service
-    app = FastAPI(title="Collect Agent (dry-run)")
+    app = FastAPI(title=SLOGAN + " (dry-run)")
     app.state.svc = svc
 
     def guard(fn, *a):
@@ -40,8 +50,14 @@ def create_app(service: CollectService | None = None) -> FastAPI:
 
     @app.get("/health")
     def health():
-        return {"status": "ok", "send_mode": svc.s.send_mode,
-                "greeninvoice_env": svc.s.greeninvoice_env, "dry_run": svc.s.dry_run}
+        return {"status": "ok", "product": SLOGAN, "send_mode": svc.s.send_mode,
+                "greeninvoice_env": svc.s.greeninvoice_env, "dry_run": svc.s.dry_run,
+                "channels": list(svc.s.channels), "sms_provider": svc.s.sms_provider}
+
+    @app.get("/", response_class=HTMLResponse)
+    @app.get("/ui", response_class=HTMLResponse)
+    def ui():
+        return UI_HTML
 
     @app.post("/sync")
     def sync():
@@ -53,11 +69,17 @@ def create_app(service: CollectService | None = None) -> FastAPI:
 
     @app.get("/reminders")
     def reminders(status: str | None = None):
-        sql, args = "SELECT * FROM reminders", ()
+        sql, args = ("SELECT r.*, i.number, i.amount_agorot, i.currency, c.name customer_name "
+                     "FROM reminders r JOIN invoices i ON i.id=r.invoice_id "
+                     "JOIN customers c ON c.id=i.customer_id"), ()
         if status:
-            sql, args = sql + " WHERE status=?", (status,)
-        rows = svc.db.q(sql + " ORDER BY id", args)
+            sql, args = sql + " WHERE r.status=?", (status,)
+        rows = svc.db.q(sql + " ORDER BY r.id", args)
         return [{**dict(r), "payload": json.loads(r["payload"])} for r in rows]
+
+    @app.get("/reminders/{rid}/preview")
+    def preview(rid: int):
+        return guard(svc.preview, rid)
 
     @app.post("/reminders/{rid}/approve")
     def approve(rid: int):
@@ -77,7 +99,37 @@ def create_app(service: CollectService | None = None) -> FastAPI:
 
     @app.post("/inbound")
     def inbound(m: InboundIn):
-        return svc.inbound(m.phone, m.text)
+        return guard(svc.inbound, m.channel, m.sender, m.text)
+
+    @app.post("/webhooks/sms/019")
+    async def sms019_webhook(request: Request):
+        """019 שולחים form-urlencoded (incoming_sms: message/phone/dest; גם dlr/blacklist).
+
+        עונים 200 מהר ותמיד (אחרת 019 מנסים שוב ובסוף מפסיקים); כפילויות מסוננות ב-hash.
+        """
+        import hmac
+
+        key = request.query_params.get("k", "")
+        if not svc.s.sms_webhook_key or not hmac.compare_digest(key, svc.s.sms_webhook_key):
+            raise HTTPException(403, "forbidden")
+        raw = await request.body()
+        return svc.sms_webhook_019(raw)
+
+    @app.get("/u/{token}", response_class=HTMLResponse)
+    def unsubscribe_page(token: str):
+        ok = svc.unsubscribe(token)
+        msg = "הוסרתם מתזכורות אוטומטיות. בעל העסק ייצור קשר במידת הצורך." if ok else \
+            "הקישור אינו תקף."
+        return HTMLResponse(f'<!doctype html><html lang="he" dir="rtl"><meta charset="utf-8">'
+                            f'<meta name="viewport" content="width=device-width">'
+                            f'<body style="font-family:Arial;padding:24px">{msg}</body></html>',
+                            status_code=200 if ok else 404)
+
+    @app.post("/u/{token}")
+    def unsubscribe_one_click(token: str):  # RFC 8058 List-Unsubscribe-Post
+        if not svc.unsubscribe(token):
+            raise HTTPException(404, "לא נמצא")
+        return {"unsubscribed": True}
 
     @app.get("/owner/inbox")
     def owner_inbox():
@@ -102,6 +154,3 @@ def create_app(service: CollectService | None = None) -> FastAPI:
 
 def _lazy_app() -> FastAPI:
     return create_app()
-
-
-app = None  # נבנה ב-uvicorn דרך --factory: uvicorn app.main:_lazy_app --factory

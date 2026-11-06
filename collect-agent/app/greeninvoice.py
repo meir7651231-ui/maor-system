@@ -38,6 +38,7 @@ class Invoice:
     client_name: str
     client_phone: str
     client_email: str
+    payment_url: str = ""   # אם המסמך כבר מחזיר קישור תשלום (לאמת שם-שדה ב-sandbox)
 
 
 def _parse_date(v: Any) -> date | None:
@@ -71,6 +72,7 @@ def map_document(doc: dict[str, Any]) -> Invoice:
         client_name=str(client.get("name", "")),
         client_phone=str(client.get("phone") or client.get("mobile") or ""),
         client_email=str(emails[0]) if emails else "",
+        payment_url=str(doc.get("paymentUrl") or doc.get("paymentLink") or ""),
     )
 
 
@@ -125,6 +127,33 @@ class GreenInvoiceClient:
                 raise GreenInvoiceError(f"search נכשל: {r.status_code}")
             return r.json()
         raise GreenInvoiceError("search נכשל: 401 חוזר")
+
+    def create_payment_form(self, inv: Invoice, *, notify_url: str = "") -> str:
+        """דף תשלום של חשבונית ירוקה (POST /payments/form) — sandbox בלבד בשלב 1.
+
+        שדות לפי התיעוד הציבורי; לאמת. הסכום בשקלים (לא אגורות).
+        """
+        payload = {
+            "description": f"תשלום חשבונית {inv.number}",
+            "type": 400,              # קבלה על התשלום (לאמת מול סוג המסמך המקורי)
+            "lang": "he",
+            "currency": inv.currency,
+            "vatType": 0,
+            "amount": inv.amount_agorot / 100,
+            "maxPayments": 1,
+            "client": {"id": inv.client_external_id, "name": inv.client_name},
+            "custom": inv.external_id,
+        }
+        if notify_url:
+            payload["notifyUrl"] = notify_url
+        r = self._http.post("/payments/form", json=payload,
+                            headers={"Authorization": f"Bearer {self._auth()}"})
+        if r.status_code != 200:
+            raise GreenInvoiceError(f"payments/form נכשל: {r.status_code}")
+        url = r.json().get("url", "")
+        if not url:
+            raise GreenInvoiceError("payments/form: אין url בתשובה")
+        return str(url)
 
     def iter_open_invoices(self, page_size: int = 50, max_pages: int = 200) -> Iterator[Invoice]:
         page = 1
