@@ -1,6 +1,6 @@
 """שכבת הערוצים של השירות: מודל ההודעה + שליחת dry-run, מעל `app/integrations/`.
 
-**שכבה אחת לספקים:** כל בניית בקשה לספק (InforU / 019 / Twilio / SMTP / Resend), צנזור סודות,
+**שכבה אחת לספקים:** כל בניית בקשה לספק (019 ראשי / InforU גיבוי / SMTP / Resend), צנזור סודות,
 מניעת כפילויות וגיבוי בין ספקים — ב-`app/integrations/`. כאן נשאר רק מה שהשירות צריך:
 `Message` (מה נשמר בתור), `DryRunSender` (מה *היה* יוצא, דרך ה-adapter האמיתי ב-dry-run),
 עזרי פרטי קשר (`app/contact.py`) ופענוח מייל נכנס.
@@ -18,14 +18,15 @@ from typing import Any
 from .contact import EMAIL_RE, is_il_mobile, local_phone, normalize_il_phone, valid_email
 from .integrations.base import EmailMessageOut, IntegrationError, SmsMessage, request_preview
 from .integrations.email import SmtpEmail
-from .integrations.sms import InforUSms, Sms019, TwilioSms
+from .integrations.notifier import Notification, Notifier
+from .integrations.sms import SMS_PROVIDERS, Sms019
 from .integrations.sms import sms_segments as _segments
 
 __all__ = ["EMAIL_RE", "SMS_ADAPTERS", "DryRunSender", "Message", "SmtpEmail", "build_adapters",
            "is_il_mobile", "local_phone", "message_from_json", "message_to_json",
            "normalize_il_phone", "parse_address", "sms_segments", "strip_reply", "valid_email"]
 
-SMS_ADAPTERS = {"inforu": InforUSms, "019": Sms019, "twilio": TwilioSms}
+SMS_ADAPTERS = SMS_PROVIDERS   # 019 · inforu (Twilio יצא — לא נדרש ל-MVP)
 UNSET = "UNSET"   # מפתח חסר בשלב 1 — ה-adapter נבנה לתצוגה בלבד; הסוד מצונזר בכל מקרה
 
 
@@ -47,17 +48,20 @@ class Message:
 
 
 def build_adapters(*, provider: str = "019", username: str = "", token: str = "", sender: str = "",
+                   backup_username: str = "", backup_token: str = "",
                    email_from: str = "no-reply@example.com", smtp_host: str = "smtp.example",
                    test_endpoint: bool = True):
-    """adapters של integrations במצב dry-run (בלי transport). מפתחות חסרים ⇒ UNSET (תצוגה בלבד)."""
+    """adapters של integrations במצב dry-run (בלי transport). מפתחות חסרים ⇒ UNSET (תצוגה בלבד).
+    ⇒ (שרשרת SMS לפי סדר: הראשי ואחריו הגיבוי, מייל). 019 ראשי ⇒ InforU גיבוי, ולהפך."""
     sender = sender or "Gabi"
-    if provider == "twilio":
-        sms = TwilioSms(username or "AC" + UNSET, token or UNSET, from_=sender)
-    elif provider == "019":
-        sms = Sms019(username or UNSET, token or UNSET, sender, test_endpoint=test_endpoint)
-    else:
-        sms = SMS_ADAPTERS[provider](username or UNSET, token or UNSET, sender)
-    return sms, SmtpEmail(smtp_host, 587, "", "", email_from)
+    backup = "inforu" if provider == "019" else "019"
+
+    def mk(name: str, user: str, tok: str):
+        if name == "019":
+            return Sms019(user or UNSET, tok or UNSET, sender, test_endpoint=test_endpoint)
+        return SMS_ADAPTERS[name](user or UNSET, tok or UNSET, sender)
+    chain = [mk(provider, username, token), mk(backup, backup_username, backup_token)]
+    return chain, SmtpEmail(smtp_host, 587, "", "", email_from)
 
 
 @dataclass
@@ -71,9 +75,14 @@ class DryRunSender:
     sent: list[dict[str, Any]] = field(default_factory=list)
     mode: str = "dry_run"
 
+    allow_mock_transport: bool = False   # בדיקות failover בלבד: adapters מול httpx.MockTransport
+    provider_ids: dict[str, tuple[str, str]] = field(default_factory=dict)   # dryrun.* ⇒ (ספק, מזהה)
+
     def __post_init__(self) -> None:
-        for a in (self.sms, self.email):
-            if a is not None and not getattr(a, "dry_run", False):
+        self.chain = list(self.sms) if isinstance(self.sms, (list, tuple)) else [self.sms]
+        self.sms = self.chain[0] if self.chain else None   # הראשי — לתצוגה
+        for a in (*self.chain, self.email):
+            if a is not None and not getattr(a, "dry_run", False) and not self.allow_mock_transport:
                 raise IntegrationError("DryRunSender: adapter שאינו dry-run")
 
     def _request(self, msg: Message) -> dict[str, Any]:
@@ -102,8 +111,25 @@ class DryRunSender:
         return out
 
     def send(self, msg: Message) -> str:
+        """דרך ה-adapter עצמו (Notifier): SMS ⇒ 019, ובכשל זמני ⇒ InforU. כשל בכל הספקים ⇒
+        IntegrationError, והשירות לא מסמן "נשלח". המזהה הפנימי תמיד "dryrun.*"."""
         msg_id = f"dryrun.{uuid.uuid4().hex[:12]}"
-        self.sent.append({"id": msg_id, **self.preview(msg)})
+        if msg.channel == "sms":
+            rep = Notifier(self.chain).send(Notification(key=msg_id, phone=msg.to,
+                                                         sms_text=msg.body))
+        else:
+            rep = Notifier([], self.email).send(Notification(
+                key=msg_id, email=msg.to, email_subject=msg.subject, email_text=msg.body,
+                email_html=msg.html, unsubscribe_url=msg.unsubscribe_url))
+        rec = {"id": msg_id, **self.preview(msg), "delivery": rep.as_dict(),
+               "provider_message_id": rep.final.message_id if rep.final else ""}
+        if rep.final is not None:
+            rec["provider"] = rep.final.provider
+        if not rep.delivered:
+            raise IntegrationError(f"שליחה נכשלה בכל הספקים: {rep.as_dict()['attempts']}")
+        self.sent.append(rec)
+        # לקישור דוח מסירה (DLR) שיגיע מהספק אל ההודעה שלנו
+        self.provider_ids[msg_id] = (rec["provider"], rec["provider_message_id"])
         return msg_id
 
 

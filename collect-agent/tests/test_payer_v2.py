@@ -38,7 +38,9 @@ def test_payer_go_redirects_only_to_verified_link(svc):
     code = _code(api, svc)
     pub = TestClient(create_app(svc, owner_token=OWNER_TOKEN))
     r = pub.get(f"/pay/{code}/go?method=bit", follow_redirects=False)
-    assert r.status_code == 302 and r.headers["location"].startswith("https://pay.greeninvoice.co.il/")
+    # עמוד התשלום של העסק (review חור 3: לא נוצר דף תשלום/קבלה ב-GI)
+    assert r.status_code == 302 and r.headers["location"].startswith(
+        "https://www.greeninvoice.co.il/pay/studio")
     assert pub.get(f"/pay/{code}/go?method=paypal", follow_redirects=False).status_code == 409
     assert svc.db.one("SELECT 1 FROM audit WHERE action='pay_click' AND detail LIKE '%bit%'")
 

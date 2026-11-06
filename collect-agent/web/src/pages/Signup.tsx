@@ -28,6 +28,7 @@ export function Signup() {
             <div className="space-y-4">
               <h1 className="text-2xl font-extrabold">14 ימי ניסיון, בלי כרטיס אשראי</h1>
               <p className="text-sm text-ink-500 -mt-2">אחר כך ₪119 לחודש או ₪1,190 לשנה, כולל מע״מ ככל שחל. ביטול בכל רגע.</p>
+              <p className="text-xs rounded-lg bg-amber-50 text-amber-900 p-2">בטא סגורה ל-10 עסקים · טיוטה: לא נוצר חשבון ולא נשמרים פרטים.</p>
               <Field label="שם מלא"><input className={inputCls} value={f.name} onChange={e => setF({ ...f, name: e.target.value })} autoComplete="name" /></Field>
               <Field label="שם העסק"><input className={inputCls} value={f.biz} onChange={e => setF({ ...f, biz: e.target.value })} /></Field>
               <Field label="מייל"><input className={`${inputCls} num text-right`} type="email" value={f.email} onChange={e => setF({ ...f, email: e.target.value })} autoComplete="email" /></Field>
@@ -47,6 +48,8 @@ export function Signup() {
                 </label>
               ))}
               <div className="rounded-xl bg-ink-50 p-3 text-sm text-ink-700">🔒 בשלב הבא תדביק/י מפתח API לקריאה בלבד. גבי לא יוצר ולא משנה מסמכים.</div>
+              {/* הכרעת מאיר 6.11: זמינות ה-API לפי מסלול היא הערכה לא מאומתת — נוסח מחייב עד אימות רשמי */}
+              <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-ink-700" data-testid="gi-plan-note">ℹ️ ייתכן שנדרש מסלול Best ומעלה ב-morning; יש לאמת מול הספק.</div>
               <div className="flex gap-2"><Button variant="ghost" onClick={() => setS(0)}>חזרה</Button><Button className="flex-1" onClick={() => setS(2)}>המשך</Button></div>
             </div>
           )}

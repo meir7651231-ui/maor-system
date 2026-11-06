@@ -29,7 +29,7 @@ def test_nothing_is_sent_without_owner_approval(inbox, svc):
     assert len(svc.sender.sent) == 1
     out = svc.sender.sent[0]
     assert out["channel"] == "sms" and out["to"] == "972501234567"
-    assert "https://pay.greeninvoice.co.il/f/doc1" in out["body"]
+    assert "https://www.greeninvoice.co.il/pay/studio?invoice=1001" in out["body"]
 
 
 def test_paid_claim_pauses_and_blocks_next_reminder(inbox, svc, clock):
@@ -118,7 +118,9 @@ def test_owner_edit_is_filtered(inbox, svc):
     d = inbox.handle("sms", DANA, "איך אפשר לשלם?")["draft_id"]
     with pytest.raises(ValueError, match="נחסם"):
         inbox.approve_draft(d, body="שלמו מייד, אחרת נאלץ לפנות להוצאה לפועל")
-    out = inbox.approve_draft(d, body="בשמחה! הקישור: https://pay.greeninvoice.co.il/f/doc1")
+    # הקישור המותר = עמוד התשלום של העסק (לא נוצר דף תשלום ב-GI — review חור 3)
+    link = svc._payment_link(svc.db.one("SELECT * FROM invoices WHERE number='1001'"))
+    out = inbox.approve_draft(d, body=f"בשמחה! הקישור: {link}")
     assert out["edited"] == 1 and out["body"].startswith("סטודיו מאיר: בשמחה")
 
 
@@ -159,7 +161,7 @@ def test_audit_trail(inbox, svc):
 
 def test_send_gate_blocks_old_draft_after_opt_out(inbox, svc):
     old = inbox.handle("sms", DANA, "מי זה?")["draft_id"]
-    svc.unsubscribe(cust(svc)["unsub_token"])        # הוסר דרך קישור — לא דרך השיחה
+    svc.unsubscribe(svc.new_unsub_token(cust(svc)["id"]))        # הוסר דרך קישור — לא דרך השיחה
     out = inbox.approve_draft(old)
     assert out["status"] == "rejected" and out["decided_by"] == "system:opted_out"
     assert svc.sender.sent == []

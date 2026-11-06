@@ -40,6 +40,7 @@ def build(docs, now, holidays=""):
     clock = Clock(now)
     s = load_settings({"BUSINESS_NAME": "סטודיו מאיר", "SMS_SENDER_ID": "StudioMeir",
                        "PAYMENT_LINK": "https://www.greeninvoice.co.il/pay/studio",
+                       "EMAIL_REPLY_TO": "owner@studio.example",
                        "PUBLIC_BASE_URL": "https://gabi.example", "HOLIDAYS": holidays})
     svc = CollectService(s, DB(":memory:"), gi=gi, clock=clock)
     api = TestClient(create_app(svc, owner_token=OWNER_TOKEN, webhook_secret=WH), headers=AUTH)
@@ -84,7 +85,7 @@ def test_full_journey_over_http():
     r = customer_says(api, "+972-50-123-4567", "איך משלמים?")
     assert r["intent"] == "how_to_pay" and r["draft_id"] and not r["auto_sent"]
     draft = next(d for d in api.get("/conversation/drafts").json() if d["id"] == r["draft_id"])
-    assert "https://pay.greeninvoice.co.il/f/doc1" in json.dumps(draft, ensure_ascii=False)
+    assert "https://www.greeninvoice.co.il/pay/studio?invoice=1001" in json.dumps(draft, ensure_ascii=False)
     # לקוח 2 מבקש פריסה ⇒ הצעה ממתינה לבעלים, התזכורות נעצרות
     r = customer_says(api, "0527654321", "אפשר לפרוס לתשלומים?")
     assert r["plan_id"] and r["escalate"]

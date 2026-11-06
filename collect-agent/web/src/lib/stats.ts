@@ -1,4 +1,7 @@
-import type { Invoice } from './domain.ts';
+import { PRODUCT_RULES, type Invoice } from './domain.ts';
+
+/** אחרי 3 תזכורות: גבי עוצר ומעביר לבעל העסק. */
+export const stoppedAtMax = (list: Invoice[]) => list.filter(i => i.status !== 'paid' && i.reminders.length >= PRODUCT_RULES.maxReminders);
 import { agingOf, daysOverdue, type Aging } from './format.ts';
 
 export const isOpen = (i: Invoice) => i.status !== 'paid';
@@ -24,10 +27,11 @@ export function agingBuckets(list: Invoice[], today: string): Record<Aging, numb
   return r;
 }
 
-/** חשבוניות שמחכות לאישור תזכורת: באיחור, לא במחלוקת/הבטחה, ואין תזכורת ב-5 הימים האחרונים. */
+/** חשבוניות שמחכות לאישור תזכורת: באיחור, לא במחלוקת/הבטחה, פחות מ-3 תזכורות, ואין תזכורת ב-5 הימים האחרונים. */
 export function needsReminder(list: Invoice[], today: string): Invoice[] {
   return list
     .filter(i => (i.status === 'open' || i.status === 'reminded') && daysOverdue(i.dueAt, today) > 0)
+    .filter(i => i.reminders.length < PRODUCT_RULES.maxReminders)
     .filter(i => {
       const last = i.reminders[i.reminders.length - 1];
       return !last || daysOverdue(last.at, today) >= 5;

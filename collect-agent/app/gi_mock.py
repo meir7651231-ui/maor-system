@@ -253,6 +253,18 @@ class GreenInvoiceMock:
                                      "currency": d.get("currency", "ILS"),
                                      "linkedDocumentIds": [d["id"]]}, fire=True)
             return {"closed": d["id"], "receipt": receipt["id"]}
+        if m == "POST" and len(parts) == 3 and parts[0] == "documents" and parts[2] == "partial":
+            # תשלום חלקי: היתרה לתשלום יורדת, המסמך נשאר פתוח (לבדיקת אימות-סכום לפני שליחה)
+            d = self.docs.get(parts[1])
+            if d is None:
+                raise MockError(404, 404, "Document not found")
+            paid = float((b or {}).get("paid", 0))
+            due = float(d.get("amountDueVat", d.get("amount", 0)))
+            if not 0 < paid < due:
+                raise MockError(400, 9002, "paid must be between 0 and the open balance")
+            d["amountDueVat"] = round(due - paid, 2)
+            self.fire("document.updated", d)
+            return {"id": d["id"], "amountDueVat": d["amountDueVat"]}
         raise MockError(404, 404, "No mock admin route")
 
     # ---------- מתאמים ----------
