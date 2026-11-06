@@ -139,6 +139,16 @@ class DB:
             if col not in rcols:
                 self.conn.execute(ddl)
         self.conn.commit()
+        # DLR (דוחות מסירה): לאיזה ספק יצאה ההודעה, מזהה ההודעה אצלו, ומה עלה בגורלה
+        mcols = {r[1] for r in self.conn.execute("PRAGMA table_info(messages)")}
+        for col, ddl in (
+                ("provider", "ALTER TABLE messages ADD COLUMN provider TEXT"),
+                ("provider_id", "ALTER TABLE messages ADD COLUMN provider_id TEXT"),
+                ("delivery_status", "ALTER TABLE messages ADD COLUMN delivery_status TEXT"),
+                ("delivery_at", "ALTER TABLE messages ADD COLUMN delivery_at TEXT")):
+            if col not in mcols:
+                self.conn.execute(ddl)
+        self.conn.commit()
         # טוקני הסרה: נשמר רק sha256 (דליפת DB ⇒ אין קישורי הסרה פעילים בידי תוקף)
         self.conn.executescript(
             "CREATE TABLE IF NOT EXISTS link_tokens (token_hash TEXT PRIMARY KEY, "

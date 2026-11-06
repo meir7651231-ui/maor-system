@@ -108,3 +108,13 @@ app/greeninvoice.py             + מתודה ציבורית post() (רפקטור
 - **E2E מול שרת gi_mock ב-HTTP:** אישור ⇒ תשלום חלקי 500 ₪ ⇒ dispatch לא שולח ⇒ `amount_changed` ⇒ אישור ⇒ ה-SMS (019) והמייל יוצאים עם **700 ₪**. חשבונית ששולמה ⇒ `cancelled/invoice_closed`.
 
 **ההחלטה הבאה (מאיר, מול 019):** מסמך API רשמי (XML או JSON) + חשבון בדיקה ⇒ אימות ⇒ `CONTRACT_VERIFIED_019=True` בשינוי קוד מכוון. עד אז אין שליחה אמיתית.
+
+## 10. DLR — דוחות מסירה מ-019
+- כל SMS יוצא נרשם עכשיו עם `provider` (019/InforU, לפי מי שבאמת שלח אחרי הגיבוי), `provider_id` ו-`delivery_status=sent`. מיגרציה אוטומטית ל-`messages`.
+- webhook ‏`type=dlr` (במקום «התעלמות») ⇒ `parse_019_dlr` ⇒ `delivery_report`:
+  - **delivered** ⇒ מעדכן.
+  - **failed** ⇒ מעדכן ומוסיף **התראה לבעל העסק** (`/owner/inbox`, ‏`intent=sms_undelivered`). **בלי הסרה אוטומטית**, כי ייתכן שזו תקלה זמנית אצל המפעיל.
+  - **unknown** (קוד מספרי לא מוכר) ⇒ לא עושה כלום.
+  - סטטוס סופי לא נדרס, ו-webhook כפול לא מטופל פעמיים.
+- ⚠️ **חוזה ה-DLR של 019 לא מאומת** (שמות שדות וקודים), כמו השליחה. הפענוח סובלני (`shipment_id`/`msg_id`/`id`, ‏`status`/`dlr_status`/`status_text`), ולכן קוד מספרי לא מוכר נשאר `unknown` עד שיגיע מסמך רשמי.
+- **הוכחה:** `tests/test_dlr.py` (12 בדיקות, דרך ה-webhook האמיתי עם המפתח) · מוטציה 4/4 · **622 בדיקות עוברות**.

@@ -738,8 +738,13 @@ class CollectService:
             res: dict = {"ok": True, "kind": kind}
         elif kind == "incoming_sms" and f.get("phone") and f.get("message") is not None:
             res = {"ok": True, "kind": kind, **self.inbound("sms", f["phone"], f["message"])}
+        elif kind == "dlr":
+            from .integrations.sms import parse_019_dlr
+            pid, st = parse_019_dlr(f)
+            res = {"ok": True, "kind": kind, **self.delivery_report("019", pid, st)} if pid \
+                else {"ok": True, "kind": kind, "ignored": True}
         else:
-            res = {"ok": True, "kind": kind, "ignored": True}   # dlr ⇒ שלב 2
+            res = {"ok": True, "kind": kind, "ignored": True}
         self.db.x("INSERT INTO messages(customer_id,direction,channel,body,message_id,created_at)"
                   " VALUES(NULL,'webhook','sms',?,?,?)", (kind, key, _iso(self.clock())))
         return res
@@ -785,9 +790,31 @@ class CollectService:
         return mid
 
     def _log_out(self, cid: int, msg: Message, mid: str, now: datetime) -> None:
+        provider, pid = getattr(self.sender, "provider_ids", {}).get(mid, (None, None))
         self.db.x("INSERT INTO messages(customer_id,direction,channel,body,message_id,payload,"
-                  "created_at) VALUES(?,?,?,?,?,?,?)",
-                  (cid, "out", msg.channel, msg.body, mid, message_to_json(msg), _iso(now)))
+                  "created_at,provider,provider_id,delivery_status) VALUES(?,?,?,?,?,?,?,?,?,?)",
+                  (cid, "out", msg.channel, msg.body, mid, message_to_json(msg), _iso(now),
+                   provider, pid or None, "sent" if pid else None))
+
+    def delivery_report(self, provider: str, provider_id: str, status: str) -> dict:
+        """DLR מהספק ⇒ עדכון ההודעה היוצאת. 'failed' ⇒ התראה לבעל העסק (לא הסרה אוטומטית:
+        מספר שלא קיבל יכול להיות תקלה זמנית אצל המפעיל — ההחלטה של בעל העסק)."""
+        row = self.db.one("SELECT * FROM messages WHERE direction='out' AND provider=? AND "
+                          "provider_id=?", (provider, provider_id)) if provider_id else None
+        if row is None:
+            return {"matched": False}
+        if row["delivery_status"] in ("delivered", "failed"):
+            return {"matched": True, "status": row["delivery_status"], "final": True}
+        now = _iso(self.clock())
+        self.db.x("UPDATE messages SET delivery_status=?, delivery_at=? WHERE id=?",
+                  (status, now, row["id"]))
+        if status == "failed":
+            self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
+                      "created_at) VALUES(?,'system','sms',?, 'sms_undelivered', 1, ?)",
+                      (row["customer_id"], "ה-SMS לא נמסר ללקוח (דוח מסירה מהספק). "
+                       "כדאי לבדוק את המספר בחשבונית ירוקה.", now))
+            self.audit("system", "sms_undelivered", {"message": row["id"], "provider": provider})
+        return {"matched": True, "status": status}
 
     def resume_customer(self, customer_id: int, actor: str = "owner") -> dict:
         """בעל העסק בדק: התשלום לא התקבל ⇒ חידוש תזכורות ללקוח."""

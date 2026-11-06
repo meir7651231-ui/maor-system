@@ -76,6 +76,7 @@ class DryRunSender:
     mode: str = "dry_run"
 
     allow_mock_transport: bool = False   # בדיקות failover בלבד: adapters מול httpx.MockTransport
+    provider_ids: dict[str, tuple[str, str]] = field(default_factory=dict)   # dryrun.* ⇒ (ספק, מזהה)
 
     def __post_init__(self) -> None:
         self.chain = list(self.sms) if isinstance(self.sms, (list, tuple)) else [self.sms]
@@ -127,6 +128,8 @@ class DryRunSender:
         if not rep.delivered:
             raise IntegrationError(f"שליחה נכשלה בכל הספקים: {rep.as_dict()['attempts']}")
         self.sent.append(rec)
+        # לקישור דוח מסירה (DLR) שיגיע מהספק אל ההודעה שלנו
+        self.provider_ids[msg_id] = (rec["provider"], rec["provider_message_id"])
         return msg_id
 
 
