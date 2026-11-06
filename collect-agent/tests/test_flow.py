@@ -321,3 +321,13 @@ def test_demo_scenario_end_to_end():
     assert t["sent_sms"] == 4 and t["sent_email"] == 4 and t["owner_inbox"] == 1
     assert any("pay.example/gabi-demo" in x for x in lines)
     assert not any("whatsapp" in x.lower() for x in lines)
+
+
+
+def test_landing_form_has_no_hidden_send_channel(api):
+    """משלים את test_landing_draft_price_demo_link_and_no_whatsapp: גם בלי fetch/action אסור
+    שהסקריפט של הטיוטה ישלח פרטים בערוץ אחר (XHR, beacon, websocket, form.submit, mailto)."""
+    html = api.get("/landing").text
+    for vec in ("XMLHttpRequest", "sendBeacon", "WebSocket", "EventSource", ".submit()",
+                "mailto:", "new Image(", "method=\"post\"", "localStorage"):
+        assert vec not in html, f"ערוץ שליחה/שמירה בטיוטת דף הנחיתה: {vec}"
