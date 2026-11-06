@@ -11,7 +11,7 @@ from urllib.parse import urlencode
 
 import httpx
 
-from ..whatsapp import normalize_il_phone
+from ..channels import normalize_il_phone
 from .base import IntegrationError, ProviderError, SendResult, SmsMessage, basic_auth
 from .http import HttpAdapter
 

@@ -36,3 +36,7 @@ extend-exclude = ["demo-output"]
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B", "UP"]
 ignore = ["UP031", "UP042"]
+
+[tool.ruff.lint.per-file-ignores]
+# מחרוזות-אימון עבריות ארוכות (315 מקרי eval) — שבירה תפגע בקריאוּת
+"app/conversation.py" = ["E501"]
