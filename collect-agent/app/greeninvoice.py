@@ -33,6 +33,13 @@ class GreenInvoiceError(RuntimeError):
     pass
 
 
+def is_loopback_url(url: str) -> bool:
+    from urllib.parse import urlparse
+
+    u = urlparse(url)
+    return u.scheme == "http" and u.hostname in ("127.0.0.1", "localhost")
+
+
 @dataclass(frozen=True)
 class Invoice:
     external_id: str
@@ -94,9 +101,9 @@ class GreenInvoiceClient:
         transport: httpx.BaseTransport | None = None,
         clock=time.time,
     ) -> None:
-        if "sandbox" not in base_url:
-            # מעקה כפול מעבר ל-config: שלב 1 = sandbox בלבד
-            raise GreenInvoiceError("שלב 1: רק כתובת sandbox מותרת")
+        if "sandbox" not in base_url and not is_loopback_url(base_url):
+            # מעקה כפול מעבר ל-config: שלב 1 = sandbox, או mock מקומי (app/gi_mock.py)
+            raise GreenInvoiceError("שלב 1: רק כתובת sandbox (או mock מקומי) מותרת")
         self._http = httpx.Client(base_url=base_url, transport=transport, timeout=20)
         self._id = api_id
         self._secret = api_secret
@@ -141,6 +148,37 @@ class GreenInvoiceClient:
                    "status": list(statuses), "type": list(types)}
         return self.post("/documents/search", payload, what="search")
 
+    def _request(self, method: str, path: str, payload: Any = None, *, what: str = "") -> Any:
+        """GET/PUT/DELETE מאומת, אותו חידוש-טוקן כמו post()."""
+        for attempt in range(2):
+            r = self._http.request(method, path, json=payload,
+                                   headers={"Authorization": f"Bearer {self._auth()}"})
+            if r.status_code == 401 and attempt == 0:
+                self._token = None
+                continue
+            if r.status_code == 404:
+                raise KeyError(path)
+            if r.status_code != 200:
+                raise GreenInvoiceError(f"{what or path} נכשל: {r.status_code}")
+            return r.json()
+        raise GreenInvoiceError(f"{what or path} נכשל: 401 חוזר")
+
+    # ---------- לקוחות ----------
+    def get_client(self, client_id: str) -> dict[str, Any]:
+        return self._request("GET", f"/clients/{client_id}", what="clients/get")
+
+    def search_clients(self, *, name: str = "", active: bool | None = None, page: int = 1,
+                       page_size: int = 50) -> dict[str, Any]:
+        body: dict[str, Any] = {"page": page, "pageSize": page_size}
+        if name:
+            body["name"] = name
+        if active is not None:
+            body["active"] = active
+        return self.post("/clients/search", body, what="clients/search")
+
+    def me(self) -> dict[str, Any]:
+        return self._request("GET", "/users/me", what="users/me")
+
     def create_payment_form(self, inv: Invoice, *, notify_url: str = "") -> str:
         """דף תשלום של חשבונית ירוקה (POST /payments/form) — sandbox בלבד בשלב 1.
 
@@ -168,11 +206,29 @@ class GreenInvoiceClient:
             raise GreenInvoiceError("payments/form: אין url בתשובה")
         return str(url)
 
+    def _enrich_client(self, doc: dict[str, Any]) -> dict[str, Any]:
+        """אם במסמך אין טלפון ואין מייל ללקוח (ייתכן ב-API האמיתי — לאמת), משלימים מ-/clients/{id}.
+        מטמון לכל סנכרון, כדי לא לקרוא פעמיים לאותו לקוח."""
+        cl = doc.get("client") or {}
+        if cl.get("phone") or cl.get("mobile") or cl.get("emails") or not cl.get("id"):
+            return doc
+        cache = self.__dict__.setdefault("_client_cache", {})
+        if cl["id"] not in cache:
+            try:
+                cache[cl["id"]] = self.get_client(str(cl["id"]))
+            except (KeyError, GreenInvoiceError):
+                cache[cl["id"]] = {}
+        full = cache[cl["id"]]
+        merged = {**cl, **{k: full[k] for k in ("phone", "mobile", "emails") if full.get(k)}}
+        return {**doc, "client": merged}
+
     def iter_open_invoices(self, page_size: int = 50, max_pages: int = 200) -> Iterator[Invoice]:
+        self.__dict__["_client_cache"] = {}
         page = 1
         while page <= max_pages:
             body = self.search_documents(page=page, page_size=page_size)
             for doc in body.get("items", []):
+                doc = self._enrich_client(doc)
                 inv = map_document(doc)
                 if inv.amount_agorot > 0:
                     yield inv

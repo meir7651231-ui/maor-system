@@ -5,6 +5,9 @@
 #                        (כל SMS/מייל מודפס ללוג עם קישור תשלום דמו), ומגיש את הדשבורד:
 #                        http://127.0.0.1:${PORT:-8000}/ui   (Ctrl+C לעצירה)
 #   ./demo.sh --check    אותו דבר, מאמת את ה-API והדשבורד, ויוצא (0 = הכול עובד). ל-CI.
+#
+# חשבונית ירוקה = שרת mock מלא (app/gi_mock.py) על 127.0.0.1:${GI_PORT:-PORT+1}: טוקן, חיפוש מסמכים,
+# לקוחות, דף תשלום, ו-webhook «מסמך נוצר» שנשלח לשרת שלנו כשחשבונית משולמת.
 set -euo pipefail
 cd "$(dirname "$0")"
 PORT="${PORT:-8000}"
@@ -16,17 +19,31 @@ fi
 # ה-API דורש טוקן בעלים (team/qa.md S1). להדגמה: טוקן חד-פעמי אקראי, אלא אם הוגדר.
 export OWNER_API_TOKEN="${OWNER_API_TOKEN:-$(python3 -c 'import secrets;print(secrets.token_urlsafe(32))')}"
 
+# --- mock של חשבונית ירוקה (תהליך נפרד, HTTP אמיתי) ---
+GI_PORT="${GI_PORT:-$((PORT + 1))}"
+export GI_WEBHOOK_KEY="${GI_WEBHOOK_KEY:-$(python3 -c 'import secrets;print(secrets.token_urlsafe(24))')}"
+export GREENINVOICE_ENV=mock GREENINVOICE_MOCK_URL="http://127.0.0.1:${GI_PORT}/api/v1"
+GI_LOG="$(mktemp)"
+python3 -m app.gi_mock --port "$GI_PORT" --seed demo \
+  --webhook "http://127.0.0.1:${PORT}/webhooks/greeninvoice?k=${GI_WEBHOOK_KEY}" >"$GI_LOG" 2>&1 &
+GI_PID=$!
+cleanup() { kill "${PID:-}" "$GI_PID" 2>/dev/null || true; rm -f "${LOG:-}" "$GI_LOG"; }
+trap cleanup EXIT INT TERM
+for _ in $(seq 1 60); do curl -s -o /dev/null "http://127.0.0.1:${GI_PORT}/api/v1/users/me" && break; sleep 0.25; done
+cat "$GI_LOG"
+
 if [[ "${1:-}" != "--check" ]]; then
   [[ -f web/dist/index.html ]] && echo "▶ ממשק גבי: http://127.0.0.1:${PORT}/app/#/dashboard"
   echo "▶ דשבורד: http://127.0.0.1:${PORT}/ui  ·  דף נחיתה (טיוטה): http://127.0.0.1:${PORT}/landing"
   echo "🔑 קוד גישה לדשבורד (מודבק פעם אחת בחלון שיקפוץ): ${OWNER_API_TOKEN}"
-  exec env DEMO=1 python3 -m uvicorn app.main:_lazy_app --factory --host 127.0.0.1 --port "$PORT" --log-level warning
+  echo "▶ חשבונית ירוקה (mock): ${GREENINVOICE_MOCK_URL}"
+  DEMO=1 python3 -m uvicorn app.main:_lazy_app --factory --host 127.0.0.1 --port "$PORT" --log-level warning
+  exit $?
 fi
 
 LOG="$(mktemp)"
 DEMO=1 python3 -m uvicorn app.main:_lazy_app --factory --host 127.0.0.1 --port "$PORT" --log-level warning >"$LOG" 2>&1 &
 PID=$!
-trap 'kill $PID 2>/dev/null || true; rm -f "$LOG"' EXIT
 for _ in $(seq 1 60); do curl -sf "http://127.0.0.1:${PORT}/health" >/dev/null && break; sleep 0.25; done
 cat "$LOG"
 python3 - "$PORT" <<'PY'
@@ -42,6 +59,19 @@ except urllib.error.HTTPError as e:
     assert e.code == 401, e.code
 d = json.loads(get("/dashboard")); t = d["totals"]
 assert t["open_invoices"] == 5 and t["closed_invoices"] == 1, t
+# חשבונית ירוקה הגיעה דרך שרת ה-mock ב-HTTP, וה-webhook של «מסמך נוצר» (קבלה) הגיע אלינו
+import time
+for _ in range(40):
+    audit = json.loads(get("/audit"))
+    if any(a["action"] == "gi_webhook" for a in audit):
+        break
+    time.sleep(0.25)
+else:
+    raise AssertionError("webhook מה-mock של חשבונית ירוקה לא הגיע")
+gi = os.environ["GREENINVOICE_MOCK_URL"]
+dl = json.loads(urllib.request.urlopen(gi + "/_mock/deliveries", timeout=5).read())["deliveries"]
+assert dl and dl[0]["payload"]["type"] == 400 and dl[0]["ok"], dl
+print(f"✅ חשבונית ירוקה (mock HTTP): סנכרון + webhook קבלה {dl[0]['payload']['number']} התקבל")
 assert t["sent_sms"] >= 3 and t["sent_email"] >= 3 and t["pending_approval"] >= 1, t
 out = json.loads(get("/outbox"))["messages"]
 assert all(m["channel"] in ("sms", "email") for m in out)

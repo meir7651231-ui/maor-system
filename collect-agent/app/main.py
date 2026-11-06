@@ -211,6 +211,33 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
             raise HTTPException(403, "forbidden")
         return svc.email_webhook(m.sender, m.text, m.message_id)
 
+    @app.post("/webhooks/greeninvoice")
+    async def gi_webhook(request: Request, k: str = ""):
+        """אירוע מסמך מ-morning (למשל קבלה נוצרה = שולם) ⇒ סנכרון מיידי במקום לחכות לסבב.
+
+        morning לא מתעדת חתימה ל-webhook (לאמת) ⇒ סוד ב-URL, כמו ב-019. התוכן לא נחשב אמת:
+        הוא רק טריגר; מצב החשבוניות נקרא מחדש מה-API המאומת (sync)."""
+        if not svc.s.gi_webhook_key or not hmac.compare_digest(
+                k.encode("utf-8"), svc.s.gi_webhook_key.encode("utf-8")):
+            raise HTTPException(403, "forbidden")
+        raw = await request.body()
+        if len(raw) > MAX_WEBHOOK_BODY:
+            raise HTTPException(413, "too large")
+        try:
+            ev = json.loads(raw or b"{}")
+        except ValueError:
+            raise HTTPException(400, "invalid json") from None
+        if not isinstance(ev, dict) or not ev.get("id"):
+            raise HTTPException(400, "missing document id")
+        svc.audit("greeninvoice", "gi_webhook", {"document": str(ev.get("id"))[:64],
+                                                 "type": ev.get("type")})
+        try:
+            res = svc.sync()
+        except Exception as e:  # noqa: BLE001 — morning מנסים שוב; לא חושפים פרטים
+            svc.audit("system", "gi_webhook_sync_failed", {"error": type(e).__name__})
+            return {"ok": False}
+        return {"ok": True, "sync": res}
+
     @app.post("/webhooks/sms/019")
     async def sms019_webhook(request: Request):
         """019 שולחים form-urlencoded (incoming_sms: message/phone/dest; גם dlr/blacklist).

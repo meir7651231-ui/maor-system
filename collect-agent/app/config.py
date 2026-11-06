@@ -17,7 +17,7 @@ GREENINVOICE_URLS = {
 }
 
 ALLOWED_SEND_MODES = {"dry_run"}
-ALLOWED_GI_ENVS = {"sandbox"}
+ALLOWED_GI_ENVS = {"sandbox", "mock"}   # mock = app/gi_mock.py על 127.0.0.1 בלבד
 
 
 class SafetyError(RuntimeError):
@@ -29,6 +29,8 @@ class Settings:
     greeninvoice_env: str = "sandbox"
     greeninvoice_api_id: str = ""
     greeninvoice_api_secret: str = field(default="", repr=False)  # לא לדלוף ל-repr/לוג
+    greeninvoice_mock_url: str = ""   # רק כש-GREENINVOICE_ENV=mock (app/gi_mock.py)
+    gi_webhook_key: str = field(default="", repr=False)   # סוד ב-/webhooks/greeninvoice?k=... ; חסר ⇒ סגור
     send_mode: str = "dry_run"
     db_path: str = "collect_agent.sqlite3"
     business_name: str = "העסק שלי"
@@ -66,6 +68,10 @@ class Settings:
             raise SafetyError(
                 f"GREENINVOICE_ENV={self.greeninvoice_env!r} אסור בשלב 1 — רק sandbox."
             )
+        if self.greeninvoice_env == "mock":
+            from .greeninvoice import is_loopback_url
+            if not is_loopback_url(self.greeninvoice_mock_url):
+                raise SafetyError("GREENINVOICE_MOCK_URL חייב להיות http://127.0.0.1/localhost")
         if self.payment_link and safe_https_url(self.payment_link) is None:
             # קישור תשלום נשתל בכל הודעה ⇒ https בלבד, בלי user:pass@ ובלי תווי בקרה
             raise SafetyError("PAYMENT_LINK חייב להיות כתובת https תקינה")
@@ -82,6 +88,8 @@ class Settings:
 
     @property
     def greeninvoice_base_url(self) -> str:
+        if self.greeninvoice_env == "mock":
+            return self.greeninvoice_mock_url.rstrip("/")
         return GREENINVOICE_URLS[self.greeninvoice_env]
 
     @property
@@ -96,6 +104,8 @@ def load_settings(env: dict[str, str] | None = None) -> Settings:
         greeninvoice_env=e.get("GREENINVOICE_ENV", "sandbox"),
         greeninvoice_api_id=e.get("GREENINVOICE_API_ID", ""),
         greeninvoice_api_secret=e.get("GREENINVOICE_API_SECRET", ""),
+        greeninvoice_mock_url=e.get("GREENINVOICE_MOCK_URL", ""),
+        gi_webhook_key=e.get("GI_WEBHOOK_KEY", ""),
         send_mode=e.get("SEND_MODE", "dry_run"),
         db_path=e.get("DB_PATH", "collect_agent.sqlite3"),
         business_name=e.get("BUSINESS_NAME", "העסק שלי"),

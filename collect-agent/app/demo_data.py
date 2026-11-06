@@ -1,15 +1,14 @@
-"""נתוני דמו ו-sandbox מדומה של חשבונית ירוקה — בתוך התהליך, בלי רשת.
+"""נתוני דמו + חיבור ל-mock של חשבונית ירוקה (app/gi_mock.py).
 
 כל השמות, הטלפונים והמיילים בדויים (example.com · 050-000xxxx). אין כאן אדם אמיתי.
 משמש את `scripts/demo.py` ואת `DEMO=1 uvicorn app.main:_lazy_app --factory`.
 """
 from __future__ import annotations
 
-import json
-
 import httpx
 
-from .greeninvoice import GreenInvoiceClient, token_body
+from .gi_mock import GreenInvoiceMock
+from .greeninvoice import GreenInvoiceClient
 
 SANDBOX = "https://sandbox.d.greeninvoice.co.il/api/v1"
 DEMO_ID, DEMO_SECRET = "demo-id", "demo-secret"
@@ -36,31 +35,30 @@ def demo_docs() -> list[dict]:
     ]
 
 
-class FakeGreenInvoice:
-    """sandbox מדומה: /account/token + /documents/search עם עימוד, מאמת Bearer."""
+class DemoBackend:
+    """חשבונית ירוקה של ההדגמה = app/gi_mock.py. שני מצבים, אותו חוזה:
+    - בתוך התהליך (MockTransport) — בדיקות ו-DEMO=1 בלי שרת mock.
+    - שרת mock אמיתי על 127.0.0.1 (GREENINVOICE_ENV=mock) — ./demo.sh, כולל webhooks."""
 
-    def __init__(self, docs: list[dict]):
-        self.docs = docs
+    def __init__(self, mock: GreenInvoiceMock | None = None, url: str = ""):
+        self.mock, self.url = mock, url.rstrip("/")
 
-    def handler(self, req: httpx.Request) -> httpx.Response:
-        if req.url.path.endswith("/account/token"):
-            if json.loads(req.content) != token_body(DEMO_ID, DEMO_SECRET):
-                return httpx.Response(401, json={"errorMessage": "bad credentials"})
-            return httpx.Response(200, json={"token": "demo-token", "expires": 2_000_000_000})
-        if req.url.path.endswith("/documents/search"):
-            if req.headers.get("authorization") != "Bearer demo-token":
-                return httpx.Response(401)
-            body = json.loads(req.content)
-            page, ps = body["page"], body["pageSize"]
-            pages = max(1, -(-len(self.docs) // ps))
-            return httpx.Response(200, json={"items": self.docs[(page - 1) * ps: page * ps],
-                                             "page": page, "pages": pages,
-                                             "total": len(self.docs), "pageSize": ps})
-        return httpx.Response(404)
+    def pay(self, doc_id: str) -> dict:
+        """"הלקוח שילם": morning סוגרת את המסמך ויוצרת קבלה (⇒ webhook document.created)."""
+        if self.mock is not None:
+            status, out = self.mock.route("POST", f"/_mock/documents/{doc_id}/pay", {}, None)
+        else:
+            r = httpx.post(f"{self.url}/_mock/documents/{doc_id}/pay", timeout=5)
+            status, out = r.status_code, r.json()
+        if status != 200:
+            raise RuntimeError(f"mock pay נכשל: {status} {out}")
+        return out
 
 
-def demo_client(fake: FakeGreenInvoice | None = None) -> tuple[GreenInvoiceClient,
-                                                                FakeGreenInvoice]:
-    fake = fake or FakeGreenInvoice(demo_docs())
+def demo_client(base_url: str = "") -> tuple[GreenInvoiceClient, DemoBackend]:
+    if base_url:   # שרת mock חיצוני (127.0.0.1 בלבד — נאכף ב-config וב-GreenInvoiceClient)
+        return GreenInvoiceClient(base_url, DEMO_ID, DEMO_SECRET), DemoBackend(url=base_url)
+    mock = GreenInvoiceMock(api_id=DEMO_ID, api_secret=DEMO_SECRET, docs=demo_docs(),
+                            deliver=lambda url, payload: None)
     return (GreenInvoiceClient(SANDBOX, DEMO_ID, DEMO_SECRET,
-                               transport=httpx.MockTransport(fake.handler)), fake)
+                               transport=httpx.MockTransport(mock.handler)), DemoBackend(mock))

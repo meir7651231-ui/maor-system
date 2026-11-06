@@ -39,13 +39,15 @@ def demo_settings():
                           "PAYMENT_LINK_MODE": "static", "PAYMENT_LINK": DEMO_PAY_LINK,
                           "PAYMENT_DOMAINS": "pay.example", "EMAIL_FROM": "gabi@example.com",
                           "EMAIL_REPLY_TO": "owner@example.com",
+                          "GI_WEBHOOK_KEY": os.environ.get("GI_WEBHOOK_KEY", ""),   # webhook מה-mock
                           "TRIAL_START": "2026-11-03",   # שעון ההדגמה 8.11 ⇒ נותרו 9 ימים
                           # הקישור הקצר ב-SMS לחיץ בהדגמה (אותו פורט שעליו השרת רץ)
                           "PUBLIC_BASE_URL": f"http://127.0.0.1:{os.environ.get('PORT', '8000')}"})
 
 
 def build_demo_service() -> tuple[CollectService, object, FixedClock]:
-    gi, fake = demo_client()
+    gi, fake = demo_client(os.environ.get("GREENINVOICE_MOCK_URL", "")
+                           if os.environ.get("GREENINVOICE_ENV") == "mock" else "")
     clock = FixedClock(DEMO_NOW)
     svc = CollectService(demo_settings(), DB(":memory:"), gi=gi, clock=clock)
     return svc, fake, clock
@@ -103,7 +105,8 @@ def run_scenario(svc: CollectService, fake, out: Callable[[str], None] = print) 
         svc.inbox.approve_draft(dr["id"])
         out(f"   ✔ בעל העסק אישר תשובה ל{dr['customer']}: «{' '.join(dr['body'].split())[:60]}…»")
     n = _log_outbox(svc, n, out)
-    fake.docs = [d for d in fake.docs if d["id"] != "demo5"]
+    paid = fake.pay("demo5")   # morning: המסמך נסגר + נוצרת קבלה (⇒ webhook לשרת, אם רץ)
+    out(f"   🧾 חשבונית ירוקה (mock): מסמך {paid['closed']} נסגר, קבלה {paid['receipt']} נוצרה")
     r = svc.sync()
     out(f"⑥ מיכל שילמה בחשבונית ירוקה ⇒ סנכרון: {r['open']} פתוחות, {r['closed']} נסגרה")
     assert r["closed"] == 1
