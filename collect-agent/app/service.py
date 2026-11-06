@@ -38,7 +38,7 @@ from .policy import (
 # ימים אחרי מועד-התשלום לכל שלב
 STEP_OFFSETS_DAYS = (1, 7, 14)   # 3 תזכורות לכל היותר (הכרעת מאיר) ⇒ עצירה + התראה לבעל העסק
 ACTIVE = ("pending_approval", "approved")
-HARD_BLOCKS = {"no_contact", "no_payment_link", "compliance"}
+HARD_BLOCKS = {"no_contact", "no_payment_link", "compliance", "no_reply_to"}
 _B62 = "abcdefghijkmnpqrstuvwxyz23456789"  # אותיות קטנות+ספרות, בלי 0/o/1/l (קריא, ~31 ביט)
 
 
@@ -269,11 +269,16 @@ class CollectService:
             if bad:
                 return [], "compliance"
             msgs.append(Message("sms", phone, sms))
-        if "email" in self.s.channels and valid_email(cust["email"]):
+        email_ok = "email" in self.s.channels and valid_email(cust["email"])
+        # review חור 6: המייל אומר «השיבו למייל הזה». בלי Reply-To לתיבה של העסק (או ל-inbound שלנו)
+        # «שילמתי» הולך לכתובת מתה והתזכורות ממשיכות ⇒ ערוץ המייל חסום עד שמוגדר Reply-To.
+        if email_ok and valid_email(self.s.email_reply_to):
             subj, text, html = templates.render_email(step, f)
             msgs.append(Message("email", cust["email"], text, subject=subj, html=html,
                                 unsubscribe_url=unsub))
-        return msgs, (None if msgs else "no_contact")
+        if msgs:
+            return msgs, None
+        return msgs, ("no_reply_to" if email_ok else "no_contact")
 
     # ---------- שער שליחה יחיד (ממצא מבקר 2.6 §5) ----------
     @staticmethod
@@ -369,6 +374,13 @@ class CollectService:
         if created:
             self.audit("system", "plan", {"created": created})
         return created
+
+    def _csv_unverified(self) -> int:
+        last = self.db.one("SELECT MAX(synced_at) m FROM invoices WHERE source='csv'")["m"]
+        if not last:
+            return 0
+        return self.db.one("SELECT COUNT(*) n FROM invoices WHERE source='csv' AND status='open' "
+                           "AND synced_at < ?", (last,))["n"]
 
     def _notify_exhausted(self, inv_row, cust) -> None:
         """אחרי 3 תזכורות שנשלחו והחשבונית עדיין פתוחה ⇒ עצירה + התראה אחת לבעל העסק."""
@@ -494,15 +506,22 @@ class CollectService:
                 "messages": [self.sender.preview(m) for m in msgs]}
 
     # ---------- owner decisions ----------
-    def approve(self, reminder_id: int, actor: str = "owner") -> dict:
+    def approve(self, reminder_id: int, actor: str = "owner", *, confirm_open: bool = False) -> dict:
         r = self._reminder(reminder_id)
         if r["status"] != "pending_approval":
             raise ValueError(f"לא ממתינה לאישור (status={r['status']})")
+        inv = self._invoice(r["invoice_id"])
+        if inv["source"] == "csv" and not confirm_open:
+            # review חור 7: ב-CSV אין מקור לרענון ⇒ בעל העסק מאשר במפורש שהסכום עדיין פתוח
+            raise ValueError("חשבונית מ-CSV: יש לאשר במפורש שהסכום עדיין פתוח (confirm_open). "
+                             "האישור תקף 24 שעות")
         if r["block_reason"] in HARD_BLOCKS:
             raise ValueError({"no_contact": "אין נייד או מייל תקין ללקוח — יש לעדכן בחשבונית ירוקה",
                               "no_payment_link": "אין קישור תשלום מאובטח — יש להגדיר PAYMENT_LINK",
                               "compliance": "הנוסח נחסם במסנן הניסוח (מילה אסורה/ארוך מדי) — "
-                                            "יש לתקן את שם העסק או את הנוסח"
+                                            "יש לתקן את שם העסק או את הנוסח",
+                              "no_reply_to": "ללקוח יש רק מייל, ולא הוגדרה כתובת תשובה (Reply-To) "
+                                             "לעסק — הגדירו אותה ב-/settings"
                               }[r["block_reason"]])
         h = _sha(r["payload"])
         self.db.x("UPDATE reminders SET status='approved', decided_at=?, approved_hash=?, "
@@ -513,7 +532,8 @@ class CollectService:
         self.db.x("UPDATE customers SET approved_first=1 WHERE id=?", (cid,))
         # ר-12: מי אישר, מתי, איזו גרסת נוסח ואיזה גוף בדיוק (גיבוב)
         self.audit(actor, "approve", {"reminder": reminder_id, "body_sha256": h,
-                                      "template_version": r["template_version"]})
+                                      "template_version": r["template_version"],
+                                      "confirm_open": bool(confirm_open)})
         return dict(self._reminder(reminder_id))
 
     def reject(self, reminder_id: int, actor: str = "owner") -> dict:
@@ -602,9 +622,10 @@ class CollectService:
                       "WHERE id=?", (r["id"],))
             return "closed"
         if inv["source"] == "csv":
-            synced = _dt(inv["synced_at"])
-            if synced is None or self.clock() - synced > timedelta(hours=24):
-                self._mark_refresh_failed(r, "csv_stale")
+            # review חור 7: תוקף 24 שעות **מאישור «הסכום עדיין פתוח»**, לא מהייבוא. פג ⇒ חוזר לאישור
+            approved = _dt(r["decided_at"])
+            if approved is None or self.clock() - approved > timedelta(hours=24):
+                self._invalidate(r, "csv_stale")
                 return "failed"
             return "ok"
         if self.gi is None:
@@ -889,7 +910,9 @@ class CollectService:
                 "sent_sms": sum(m["channel"] == "sms" for m in outbox),
                 "sent_email": sum(m["channel"] == "email" for m in outbox),
                 "owner_inbox": self.db.one("SELECT COUNT(*) n FROM messages WHERE "
-                                           "needs_owner=1")["n"], **rich},
+                                           "needs_owner=1")["n"],
+                # review חור 7: חשבוניות CSV פתוחות שלא הופיעו בייבוא האחרון (אולי שולמו)
+                "csv_unverified": self._csv_unverified(), **rich},
             "invoices": rows}
 
     def _collection_series(self, today: date, closed) -> list[dict]:

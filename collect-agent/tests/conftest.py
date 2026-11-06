@@ -117,7 +117,7 @@ def svc(gi_client, clock):
     s = load_settings({"BUSINESS_NAME": "סטודיו מאיר", "SMS_SENDER_ID": "StudioMeir",
                        "PAYMENT_LINK": "https://www.greeninvoice.co.il/pay/studio",
                        "PUBLIC_BASE_URL": "https://gabi.example",
-                       "SMS_WEBHOOK_KEY": "whk-test",
+                       "SMS_WEBHOOK_KEY": "whk-test", "EMAIL_REPLY_TO": "owner@studio.example",
                        "EMAIL_WEBHOOK_KEY": "ewk-test"})
     return CollectService(s, DB(":memory:"), gi=gi_client, clock=clock)
 

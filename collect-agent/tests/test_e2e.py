@@ -40,6 +40,7 @@ def build(docs, now, holidays=""):
     clock = Clock(now)
     s = load_settings({"BUSINESS_NAME": "סטודיו מאיר", "SMS_SENDER_ID": "StudioMeir",
                        "PAYMENT_LINK": "https://www.greeninvoice.co.il/pay/studio",
+                       "EMAIL_REPLY_TO": "owner@studio.example",
                        "PUBLIC_BASE_URL": "https://gabi.example", "HOLIDAYS": holidays})
     svc = CollectService(s, DB(":memory:"), gi=gi, clock=clock)
     api = TestClient(create_app(svc, owner_token=OWNER_TOKEN, webhook_secret=WH), headers=AUTH)
