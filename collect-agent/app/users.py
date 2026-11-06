@@ -12,6 +12,7 @@ from datetime import datetime, timedelta
 
 from . import totp
 from .db import DB, token_hash
+from .secretbox import ENV_VAR, VERSION, SecretBox
 
 SESSION_HOURS = 12
 MAX_FAILS = 5
@@ -45,9 +46,17 @@ def check_pw(pw: str, stored: str) -> bool:
         return False
 
 
+def _totp_ctx(email: str) -> str:
+    return f"user:{email}:totp"
+
+
 class Users:
-    def __init__(self, db: DB, clock):
+    def __init__(self, db: DB, clock, box: SecretBox | None = None):
         self.db, self.clock = db, clock
+        # critic סבב 7: ההערה הבטיחה «מוצפן ב-SecretBox כשיש מפתח», אבל הסוד נשמר גלוי תמיד.
+        # דליפת DB = הגורם השני של כל העובדים. עכשיו: יש מפתח ⇒ AES-GCM עם הקשר פר-משתמש.
+        self.box = box if box is not None else (
+            SecretBox.from_env() if os.environ.get(ENV_VAR) else None)
         with db.lock:
             db.conn.executescript(SCHEMA)
             db.conn.commit()
@@ -63,10 +72,13 @@ class Users:
         email = email.strip().lower()
         if "@" not in email or len(password) < MIN_PW:
             raise ValueError(f"מייל תקין וסיסמה של {MIN_PW}+ תווים")
+        if self.box is None and os.environ.get("REQUIRE_USER_LOGIN") == "1":
+            raise ValueError(f"בטא אמיתית: אין יצירת משתמש בלי מפתח הצפנה ({ENV_VAR})")
         sec = totp.new_secret()
+        stored = self.box.encrypt(sec, context=_totp_ctx(email)) if self.box else sec
         try:
             self.db.x("INSERT INTO users(email,name,pw_hash,totp_secret,created_at) VALUES(?,?,?,?,?)",
-                      (email, name.strip()[:80], hash_pw(password), sec, self._now().isoformat()))
+                      (email, name.strip()[:80], hash_pw(password), stored, self._now().isoformat()))
         except Exception as e:  # UNIQUE
             raise ValueError("משתמש כבר קיים") from e
         return {"email": email, "totp_secret": sec, "otpauth": totp.otpauth_uri(sec, email)}
@@ -81,7 +93,7 @@ class Users:
         if u["locked_until"] and datetime.fromisoformat(u["locked_until"]) > now:
             return None
         ok = u["active"] and check_pw(password, u["pw_hash"])
-        counter = totp.verify(u["totp_secret"], code, now.timestamp(),
+        counter = totp.verify(self._secret(u), code, now.timestamp(),
                               last_counter=u["totp_last"]) if ok else None
         if counter is None:
             fails = u["fails"] + 1
@@ -95,6 +107,14 @@ class Users:
         self.db.x("INSERT INTO sessions VALUES(?,?,?)",
                   (token_hash(tok), u["id"], (now + timedelta(hours=SESSION_HOURS)).isoformat()))
         return tok
+
+    def _secret(self, u) -> str:
+        stored = u["totp_secret"]
+        if stored.startswith(VERSION + "."):
+            if self.box is None:
+                raise ValueError("סוד TOTP מוצפן אבל אין מפתח — נכשל סגור")
+            return self.box.decrypt(stored, context=_totp_ctx(u["email"])).reveal()
+        return stored   # דמו/מורשת בלי מפתח
 
     def actor(self, token: str) -> str | None:
         r = self.db.one("SELECT u.email, u.active, s.expires_at FROM sessions s "

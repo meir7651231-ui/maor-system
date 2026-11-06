@@ -147,3 +147,50 @@ def test_mutating_actions_are_audited_under_the_employee(env):
     if other:
         api.post(f"/reminders/{other[0]['id']}/reject", headers=AUTH)
         assert ("owner", "reject") in {(r["actor"], r["action"]) for r in svc.db.q("SELECT actor,action FROM audit")}
+
+
+def test_totp_secret_encrypted_at_rest_when_key_present(monkeypatch):
+    """critic סבב 7: ההערה הבטיחה «מוצפן ב-SecretBox כשיש מפתח», אבל הסוד נשמר גלוי. דליפת DB
+    הייתה נותנת לתוקף את הגורם השני של כל עובד. עכשיו: מוצפן, וההתחברות עדיין עובדת."""
+    import base64
+    import os as _os
+    from datetime import datetime as _dt
+
+    from app import totp as _totp
+    from app.db import DB as _DB
+    from app.policy import TZ as _TZ
+    from app.users import Users as _Users
+    monkeypatch.setenv("COLLECT_MASTER_KEYS", "k1:" + base64.b64encode(_os.urandom(32)).decode())
+    now = _dt(2026, 11, 8, 10, tzinfo=_TZ)
+    db = _DB(":memory:")
+    u = _Users(db, lambda: now)
+    sec = u.create("dana@biz.example", "דנה", "correct-horse-1")["totp_secret"]
+    assert sec not in "\n".join(db.conn.iterdump())
+    assert u.login("dana@biz.example", "correct-horse-1", _totp.code_at(sec, now.timestamp()))
+
+
+def test_real_beta_refuses_user_without_encryption_key(monkeypatch):
+    from datetime import datetime as _dt
+
+    import pytest as _pytest
+
+    from app.db import DB as _DB
+    from app.policy import TZ as _TZ
+    from app.users import Users as _Users
+    monkeypatch.delenv("COLLECT_MASTER_KEYS", raising=False)
+    monkeypatch.setenv("REQUIRE_USER_LOGIN", "1")
+    u = _Users(_DB(":memory:"), lambda: _dt(2026, 11, 8, 10, tzinfo=_TZ))
+    with _pytest.raises(ValueError, match="מפתח"):
+        u.create("x@biz.example", "x", "correct-horse-1")
+
+
+def test_failed_login_audit_has_hash_not_email(svc):
+    """critic סבב 7: 'email_sha' ביומן ההוספה-בלבד הכיל מייל מוסווה (אות ראשונה + דומיין)."""
+    from fastapi.testclient import TestClient
+
+    from app.main import create_app
+    from tests.conftest import OWNER_TOKEN
+    c = TestClient(create_app(svc, owner_token=OWNER_TOKEN))
+    c.post("/auth/login", json={"email": "someone@biz.example", "password": "x" * 10, "code": "000000"})
+    d = svc.db.one("SELECT detail FROM audit WHERE action='login_failed'")["detail"]
+    assert "@" not in d and "biz.example" not in d

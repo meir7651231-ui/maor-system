@@ -198,7 +198,10 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
     def auth_login(body: LoginIn):
         tok = users.login(body.email, body.password, body.code)
         if tok is None:
-            svc.audit("anon", "login_failed", {"email_sha": security.redact(body.email)[:40]})
+            # critic סבב 7: השדה נקרא email_sha אבל הכיל מייל מוסווה ("w***@biz.example") ביומן שלא נמחק
+            import hashlib as _h
+            svc.audit("anon", "login_failed", {"email_sha": _h.sha256(
+                body.email.strip().lower().encode()).hexdigest()[:16]})
             raise HTTPException(401, "פרטי ההתחברות או קוד האימות שגויים")
         svc.audit(body.email.strip().lower(), "login", None)
         return {"token": tok, "expires_hours": 12}
