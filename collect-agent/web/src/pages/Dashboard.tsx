@@ -8,16 +8,21 @@ import { Button, Card, LateBadge } from '../components/ui.tsx';
 import { MessagePreview } from '../components/MessagePreview.tsx';
 import type { Invoice } from '../lib/domain.ts';
 import { api, BLOCK_LABEL } from '../api.ts';
+import { areaPath, cumulative, toBars, type Bar } from '../lib/series.ts';
 
 const AGING_COLOR: Record<Aging, string> = { notDue: 'bg-ink-400', d0_30: 'bg-due', d31_60: 'bg-late', d61_90: 'bg-red-500', d90p: 'bg-red-700' };
 
 export function Dashboard() {
-  const { invoices, today, customerOf, business, queue, mode, totals, pendingOf } = useApp();
+  const { invoices, today, customerOf, business, queue, mode, totals, pendingOf, series } = useApp();
   const live = mode === 'live';
   const k = kpis(invoices, today);
   const aging = agingBuckets(invoices, today);
   const agingTotal = Object.values(aging).reduce((a, b) => a + b, 0) || 1;
-  const max = Math.max(...demoCollectedByMonth.map(m => m.amount));
+  const t = live ? totals : null;
+  // מוק: נגבה לפי חודש מנתוני הדמו; חי: גבייה שבועית מהשרת (closed_at)
+  const bars: Bar[] = live && series ? toBars(series) : demoCollectedByMonth.map(m => ({ label: m.month, value: m.amount, count: 0 }));
+  const collected = t?.collected_agorot != null ? t.collected_agorot / 100 : demoCollectedByMonth.reduce((a, m) => a + m.amount, 0);
+  const recovery = t?.recovery_rate_pct ?? Math.round((100 * collected) / (collected + k.openTotal || 1));
   const [open, setOpen] = useState<Invoice | null>(null);
 
   return (
@@ -30,14 +35,19 @@ export function Dashboard() {
         <a href="#/invoices"><Button variant="outline">לכל החשבוניות ←</Button></a>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <section aria-label="מדדי גבייה" className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4" data-testid="kpis">
+        <Kpi hero label="נגבה" value={fmtIls(collected)} sub={live ? `${totals?.closed_invoices ?? 0} חשבוניות שולמו` : 'יוני–נובמבר'} tone="good" />
+        <Kpi hero label="שיעור החזר" value={`${recovery}%`} sub="מסך החוב" tone="good" meter={recovery} />
         <Kpi label="פתוח לגבייה" value={fmtIls(k.openTotal)} sub={`${k.openCount} חשבוניות`} />
         <Kpi label="באיחור" value={fmtIls(k.overdueTotal)} sub={`${k.overdueCount} חשבוניות`} tone="late" />
-        <Kpi label="ממוצע ימי איחור" value={String(k.avgDaysLate)} sub="ימים" />
-        {live && totals
-          ? <Kpi label="נשלחו (dry-run)" value={String(totals.sent_sms + totals.sent_email)} sub={`${totals.sent_sms} SMS · ${totals.sent_email} מיילים`} tone="good" />
-          : <Kpi label="נגבה החודש" value={fmtIls(demoCollectedByMonth.at(-1)!.amount)} sub="מאז 1.11" tone="good" />}
-      </div>
+        <Kpi label="ממוצע ימי איחור" value={String(t?.avg_days_overdue ?? k.avgDaysLate)} sub="ימים" />
+        <Kpi label="בסיכון (60+ יום)" value={fmtIls((t?.at_risk_agorot ?? 0) / 100 || agingTotalRisk(aging))} sub="דורש תשומת לב" tone="late" />
+        <Kpi label="תזכורות שיצאו" value={String(t?.reminders_sent ?? invoices.reduce((a, i) => a + i.reminders.length, 0))}
+          sub={live && totals ? `${totals.sent_sms} SMS · ${totals.sent_email} מיילים · dry-run` : 'SMS ומייל'} />
+        <Kpi label="שיעור מענה" value={`${t?.reply_rate_pct ?? 0}%`} sub={live ? `${t?.customers_messaged ?? 0} לקוחות קיבלו הודעה` : 'לקוחות שהשיבו'} />
+      </section>
+
+      <CollectionChart bars={bars} live={live} cum={cumulative(bars)} />
 
       <div className="grid lg:grid-cols-[1.5fr_1fr] gap-6 items-start">
         <Card className="p-5">
@@ -72,17 +82,7 @@ export function Dashboard() {
               ))}
             </ul>
           </Card>
-          {live ? <><NeedsYou /><Outbox /><ReplySim /></> : <Card className="p-5">
-            <h2 className="text-lg font-extrabold mb-3">נגבה לפי חודש</h2>
-            <div className="flex items-end gap-2 h-32">
-              {demoCollectedByMonth.map(m => (
-                <div key={m.month} className="flex-1 flex flex-col items-center gap-1 h-full justify-end">
-                  <div className="w-full rounded-t-md bg-brand/80 hover:bg-brand" style={{ height: `${(m.amount / max) * 100}%` }} title={fmtIls(m.amount)} />
-                  <span className="text-[11px] text-ink-500">{m.month}</span>
-                </div>
-              ))}
-            </div>
-          </Card>}
+          {live && <><NeedsYou /><Outbox /><ReplySim /></>}
         </div>
       </div>
       {open && <MessagePreview invoice={open} onClose={() => setOpen(null)} />}
@@ -90,12 +90,56 @@ export function Dashboard() {
   );
 }
 
-function Kpi({ label, value, sub, tone }: { label: string; value: string; sub: string; tone?: 'late' | 'good' }) {
+const agingTotalRisk = (a: Record<Aging, number>) => a.d61_90 + a.d90p;
+
+function Kpi({ label, value, sub, tone, hero, meter }: { label: string; value: string; sub: string; tone?: 'late' | 'good'; hero?: boolean; meter?: number }) {
+  if (hero) return (
+    <div className="rounded-2xl bg-ink-900 text-white p-4 md:p-5 shadow-card">
+      <div className="text-sm text-ink-400">{label}</div>
+      <div className="text-2xl md:text-4xl font-extrabold font-display mt-1 text-brand num">{value}</div>
+      <div className="text-xs text-ink-400 mt-1">{sub}</div>
+      {meter != null && <div className="mt-3 h-1.5 rounded-full bg-white/10 overflow-hidden" role="meter" aria-valuenow={meter} aria-valuemin={0} aria-valuemax={100} aria-label={label}>
+        <div className="h-full bg-brand rounded-full" style={{ width: `${Math.min(100, meter)}%` }} /></div>}
+    </div>
+  );
   return (
     <Card className="p-4">
       <div className="text-sm text-ink-500">{label}</div>
-      <div className={`text-2xl md:text-3xl font-extrabold font-display mt-1 ${tone === 'late' ? 'text-late' : tone === 'good' ? 'text-brand-700' : ''}`}>{value}</div>
+      <div className={`text-xl md:text-3xl font-extrabold font-display mt-1 num ${tone === 'late' ? 'text-late' : tone === 'good' ? 'text-brand-700' : ''}`}>{value}</div>
       <div className="text-xs text-ink-500 mt-0.5">{sub}</div>
+    </Card>
+  );
+}
+
+/** גרף גבייה: עמודות לכל תקופה + שטח מצטבר. SVG טהור, בלי ספרייה. RTL — הכי חדש משמאל. */
+function CollectionChart({ bars, cum, live }: { bars: Bar[]; cum: number[]; live: boolean }) {
+  const W = 600, H = 160;
+  const max = Math.max(...bars.map(b => b.value), 1);
+  const total = cum.at(-1) ?? 0;
+  const bw = W / Math.max(bars.length, 1);
+  return (
+    <Card className="p-5">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h2 className="text-lg font-extrabold">גרף גבייה <span className="text-sm font-medium text-ink-500">{live ? '· לפי שבוע, 8 שבועות' : '· לפי חודש (דמו)'}</span></h2>
+        <div className="text-sm text-ink-500">סה״כ <b className="text-brand-700 num">{fmtIls(total)}</b></div>
+      </div>
+      <svg viewBox={`0 0 ${W} ${H + 24}`} className="w-full h-auto mt-3" role="img" aria-label={`גבייה מצטברת ${fmtIls(total)}`} data-testid="collection-chart">
+        <defs><linearGradient id="g" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stopColor="#10B981" stopOpacity=".28" /><stop offset="1" stopColor="#10B981" stopOpacity="0" /></linearGradient></defs>
+        <path d={areaPath(cum, W, H, bw / 2)} fill="url(#g)" />
+        {bars.map((b, i) => {
+          const h = (b.value / max) * (H - 8);
+          const x = W - (i + 1) * bw + bw * 0.22;
+          return (
+            <g key={b.label}>
+              <rect x={x} y={H - h} width={bw * 0.56} height={Math.max(h, b.value ? 2 : 0)} rx="6" fill={i === bars.length - 1 ? '#10B981' : '#0F172A'} opacity={i === bars.length - 1 ? 1 : 0.85}>
+                <title>{`${b.label}: ${fmtIls(b.value)}`}</title>
+              </rect>
+              <text x={x + bw * 0.28} y={H + 18} textAnchor="middle" fontSize="12" fill="#64748B">{b.label}</text>
+            </g>
+          );
+        })}
+        <line x1="0" x2={W} y1={H} y2={H} stroke="#E2E8F0" />
+      </svg>
     </Card>
   );
 }

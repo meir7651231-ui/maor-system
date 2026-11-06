@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Logo } from './Logo.tsx';
 import { go, type Route } from '../router.ts';
 import { useApp } from '../store.tsx';
@@ -32,12 +32,30 @@ export function Shell({ route, children }: { route: Route; children: ReactNode }
           <div className="rounded-xl bg-white/5 p-3">
             <div className="text-ink-400 text-xs">מחובר/ת כ-</div>
             <div className="font-bold">{business.name}</div>
-            <div className="text-xs text-brand mt-1" data-testid="mode">{mode === 'live' ? '● מחובר לשרת גבי · dry-run' : mode === 'mock' ? '● מצב דמו (מוק) — אין שליחה' : '… בודק חיבור לשרת'}</div>
+            <div className="text-xs text-brand mt-1" data-testid="mode">{mode === 'live' ? '● מחובר לשרת גבי · dry-run' : mode === 'mock' ? '● מצב דמו (מוק) — אין שליחה' : mode === 'locked' ? '🔒 נדרש קוד גישה' : '… בודק חיבור לשרת'}</div>
           </div>
         </div>
         </div>
       </aside>
-      <main className="flex-1 min-w-0 p-4 md:p-8 max-w-6xl">{children}</main>
+      <main className="flex-1 min-w-0 p-4 md:p-8 max-w-6xl">{mode === 'locked' ? <TokenGate /> : children}</main>
     </div>
+  );
+}
+
+/** השרת חי אבל דורש קוד גישה (401) — לא נופלים למוק בשקט, מבקשים את הקוד. */
+function TokenGate() {
+  const { unlock } = useApp();
+  const [v, setV] = useState('');
+  const [err, setErr] = useState('');
+  return (
+    <form className="max-w-md mx-auto mt-10 bg-white rounded-2xl shadow-card p-6 space-y-4" data-testid="token-gate"
+      onSubmit={async e => { e.preventDefault(); setErr(''); if (!(await unlock(v))) setErr('הקוד לא התקבל. בדקו שהעתקתם אותו במלואו.'); }}>
+      <h1 className="text-2xl font-extrabold">🔒 קוד גישה לבעל העסק</h1>
+      <p className="text-sm text-ink-500">השרת מוגן. הדביקו את קוד הגישה (ב-<code>./demo.sh</code> הוא מודפס בהפעלה). הקוד נשמר רק בלשונית הזו.</p>
+      <input value={v} onChange={e => setV(e.target.value)} type="password" autoComplete="off" aria-label="קוד גישה"
+        className="w-full h-11 rounded-xl border border-ink-200 px-3.5 num" placeholder="הדביקו כאן" />
+      {err && <p role="alert" className="text-critical text-sm font-bold">{err}</p>}
+      <button className="w-full h-11 rounded-xl bg-brand text-ink-900 font-bold" disabled={v.trim().length < 32}>כניסה</button>
+    </form>
   );
 }

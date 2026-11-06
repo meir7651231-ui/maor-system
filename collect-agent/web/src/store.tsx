@@ -4,9 +4,12 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { DEMO_TODAY, demoBusiness, demoCustomers, demoInvoices } from './data/demo.ts';
 import type { Business, Channel, Customer, Invoice, Step } from './lib/domain.ts';
 import { needsReminder } from './lib/stats.ts';
-import { api, detectBackend, fromDashboard, type Dashboard, type Health, type Draft, type OutMsg, type Plan } from './api.ts';
+import { api, AuthError, detectBackend, fromDashboard, type Dashboard, type Health, type Draft, type OutMsg, type Plan } from './api.ts';
+import { TOKEN_KEY } from './lib/auth.ts';
+import type { WeekPoint } from './lib/series.ts';
 
-export type Mode = 'loading' | 'live' | 'mock';
+/** locked = שרת חי שדורש קוד גישה (401) — לא נופלים למוק בשקט. */
+export type Mode = 'loading' | 'live' | 'mock' | 'locked';
 interface Ctx {
   mode: Mode;
   health: Health | null;
@@ -19,6 +22,9 @@ interface Ctx {
   queue: Invoice[];
   pendingOf: (invoiceId: string) => { reminderId: number; block: string | null } | undefined;
   totals: Dashboard['totals'] | null;
+  series: WeekPoint[] | null;
+  /** הדבקת קוד גישה (מצב locked) ⇒ ניסיון חיבור מחדש. */
+  unlock: (token: string) => Promise<boolean>;
   outbox: OutMsg[];
   plans: Plan[];
   drafts: Draft[];
@@ -40,6 +46,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [today, setToday] = useState(DEMO_TODAY);
   const [pendingBy, setPendingBy] = useState(new Map<string, { reminderId: number; block: string | null }>());
   const [totals, setTotals] = useState<Dashboard['totals'] | null>(null);
+  const [series, setSeries] = useState<WeekPoint[] | null>(null);
   const [outbox, setOutbox] = useState<OutMsg[]>([]);
   const [plans, setPlans] = useState<Plan[]>([]);
   const [drafts, setDrafts] = useState<Draft[]>([]);
@@ -50,7 +57,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const [d, p, o, pl, dr] = await Promise.all([api.dashboard(), api.pending(), api.outbox(), api.plans(), api.drafts().catch(() => [] as Draft[])]);
     const m = fromDashboard(d, p);
     setCustomers(m.customers); setInvoices(m.invoices); setPendingBy(m.pendingBy); setToday(m.today);
-    setTotals(d.totals); setOutbox(o.messages); setPlans(pl); setDrafts(dr);
+    setTotals(d.totals); setSeries(d.series ?? null); setOutbox(o.messages); setPlans(pl); setDrafts(dr);
     // שם העסק בחי = הקידומת של הודעות השרת ("סטודיו דמו: …") — כך הממשק לא ממציא שם
     const biz = o.messages.find(x => x.channel === 'sms')?.body.split(':')[0];
     if (biz && biz.length < 40) setBusiness(b => ({ ...b, name: biz, ownerName: biz }));
@@ -61,12 +68,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     detectBackend().then(async h => {
       if (off) return;
       if (!h) { setMode('mock'); return; }
+      setHealth(h);
       try {
         await reload();
-        setHealth(h);
         setBusiness(b => ({ ...b, smsProvider: (['019', 'inforu', 'twilio'].includes(h.sms_provider) ? h.sms_provider : b.smsProvider) as Business['smsProvider'] }));
         setMode('live');
-      } catch { setMode('mock'); }
+      } catch (e) { setMode(e instanceof AuthError ? 'locked' : 'mock'); }
     });
     return () => { off = true; };
   }, [reload]);
@@ -75,7 +82,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const live = mode === 'live';
     const customerOf = (id: string) => customers.find(c => c.id === id)!;
     return {
-      mode, health, today, business, setBusiness, customers, invoices, totals, outbox, plans, drafts, reload, toast, showToast, customerOf,
+      mode, health, today, business, setBusiness, customers, invoices, totals, series, outbox,
+      unlock: async (token: string) => {
+        try { sessionStorage.setItem(TOKEN_KEY, token.trim()); } catch { /* פרטי/חסום */ }
+        try { await reload(); setMode('live'); return true; } catch { return false; }
+      }, plans, drafts, reload, toast, showToast, customerOf,
       queue: live ? invoices.filter(i => pendingBy.has(i.id)) : needsReminder(invoices, today),
       pendingOf: id => pendingBy.get(id),
       approveAndSend: async (id, step, channels) => {
@@ -96,7 +107,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       },
       markPaid: id => { setInvoices(l => l.map(i => i.id === id ? { ...i, status: 'paid' } : i)); showToast('סומן כשולם 🎉'); },
     };
-  }, [mode, health, today, business, customers, invoices, pendingBy, totals, outbox, plans, drafts, reload, toast, showToast]);
+  }, [mode, health, today, business, customers, invoices, pendingBy, totals, series, outbox, plans, drafts, reload, toast, showToast]);
   return <C.Provider value={value}>{children}</C.Provider>;
 }
 export const useApp = () => {

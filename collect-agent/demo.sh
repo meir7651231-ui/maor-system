@@ -33,7 +33,8 @@ for _ in $(seq 1 60); do curl -s -o /dev/null "http://127.0.0.1:${GI_PORT}/api/v
 cat "$GI_LOG"
 
 if [[ "${1:-}" != "--check" ]]; then
-  [[ -f web/dist/index.html ]] && echo "▶ ממשק גבי: http://127.0.0.1:${PORT}/app/#/dashboard"
+  [[ -f web/dist/index.html ]] && echo "▶ ממשק גבי (v2): http://127.0.0.1:${PORT}/app/#/dashboard?token=${OWNER_API_TOKEN}" \
+    && echo "▶ דף נחיתה v2: http://127.0.0.1:${PORT}/app/  ·  עמוד החייב: http://127.0.0.1:${PORT}/pay/<קוד מה-SMS בלוג>"
   echo "▶ דשבורד: http://127.0.0.1:${PORT}/ui  ·  דף נחיתה (טיוטה): http://127.0.0.1:${PORT}/landing"
   echo "🔑 קוד גישה לדשבורד (מודבק פעם אחת בחלון שיקפוץ): ${OWNER_API_TOKEN}"
   echo "▶ חשבונית ירוקה (mock): ${GREENINVOICE_MOCK_URL}"
@@ -93,5 +94,13 @@ import os
 if os.path.isfile("web/dist/index.html"):
     assert "גבי" in get("/app/"), "הממשק המעוצב לא מוגש ב-/app/"
     print("✅ הממשק המעוצב מוגש ב-/app/")
+# עמוד החייב v2: ציבורי, בלי פרטי קשר, אמצעי תשלום Bit/Apple Pay/כרטיס
+pv = json.loads(get(f"/api/pay/{code}", {}))
+assert pv["methods"] == ["bit", "apple_pay", "card"] and pv["open"] and "phone" not in pv, pv
+if os.path.isfile("web/dist/index.html"):
+    assert '<base href="/app/">' in get(f"/pay/{code}", {}), "עמוד החייב לא מוגש"
+    print(f"✅ עמוד החייב v2: /pay/{code} ({pv['amount']})")
+d2 = json.loads(get("/dashboard"))
+assert len(d2["series"]) == 8 and d2["totals"]["collected_agorot"] > 0, d2["totals"]
 print(f"✅ בדיקת ההדגמה עברה: {t}")
 PY

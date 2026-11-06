@@ -156,7 +156,7 @@ def test_every_owner_endpoint_requires_token(raw_api, method, path, hdr):
 # בלי נתוני בעל העסק; 404 על קוד לא קיים).
 PUBLIC_ROUTES = {"/health", "/", "/ui", "/landing", "/u/{token}", "/webhooks/sms/019", "/webhooks/greeninvoice",
                  "/webhooks/email", "/p/{code}", "/p/{code}/pay", "/p/{code}/{action}",
-                 "/pay/{code}", "/pay/{code}/{action}", "/api/pay/{code}"}
+                 "/pay/{code}", "/pay/{code}/go", "/api/pay/{code}", "/api/pay/{code}/{action}"}
 
 
 def test_route_inventory_is_fully_guarded(svc):

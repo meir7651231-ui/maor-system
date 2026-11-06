@@ -115,3 +115,45 @@ test('שעה מהשרת מוצגת בשעון ישראל, וסכומים עם א
   assert.doesNotMatch(fmtIls(1200), /\./);
 });
 
+
+// ───────── עיצוב v2 ─────────
+import { roi, GABI_PRICE } from '../src/lib/roi.ts';
+import { toBars, cumulative, areaPath } from '../src/lib/series.ts';
+import { takeTokenFromHash, payCodeOf, TOKEN_KEY } from '../src/lib/auth.ts';
+
+test('מחשבון החזר: שקוף, מוגבל, ומול ₪119', () => {
+  const r = roi({ monthlyInvoiced: 40000, latePct: 25, hoursChasing: 4 });
+  assert.equal(r.lateAmount, 10000); assert.equal(r.recovered, 3000); assert.equal(r.timeSaved, 600);
+  assert.equal(r.net, 3000 + 600 - GABI_PRICE); assert.equal(r.multiple, 30.3);
+  const z = roi({ monthlyInvoiced: -5, latePct: 500, hoursChasing: 0 });
+  assert.equal(z.lateAmount, 0); assert.ok(z.net < 0, 'בלי חוב — לא ממציאים החזר');
+  assert.equal(roi({ monthlyInvoiced: NaN, latePct: NaN }).recovered, 0);
+});
+
+test('גרף גבייה: עמודות, מצטבר ונתיב SVG', () => {
+  const bars = toBars([{ week: '2026-11-01', collected_agorot: 210000, count: 1 }, { week: '2026-11-08', collected_agorot: 0, count: 0 }]);
+  assert.deepEqual(bars.map(b => [b.label, b.value]), [['1.11', 2100], ['8.11', 0]]);
+  assert.deepEqual(cumulative(bars), [2100, 2100]);
+  assert.match(areaPath([0, 5, 10], 100, 50), /^M100,50 L100\.0,50\.0 L50\.0,25\.0 L0\.0,0\.0 L0\.0,50 Z$/);
+  assert.equal(areaPath([], 100, 50), '');
+  assert.match(areaPath([0, 10], 100, 50, 25), /L75\.0,50\.0 L25\.0,0\.0/);   // מרכזי העמודות
+});
+
+test('טוקן בעלים מה-hash נשמר ונמחק מהכתובת; קוד עמוד החייב', () => {
+  const m = new Map<string, string>();
+  const st = { getItem: (k: string) => m.get(k) ?? null, setItem: (k: string, v: string) => void m.set(k, v) };
+  const tok = 'a'.repeat(40);
+  assert.equal(takeTokenFromHash(`#/dashboard?token=${tok}`, st), '#/dashboard');
+  assert.equal(m.get(TOKEN_KEY), tok);
+  assert.equal(takeTokenFromHash('#/dashboard?token=short', st), '#/dashboard?token=short');   // קצר מדי ⇒ מתעלמים
+  assert.equal(payCodeOf('/pay/em7t8a4'), 'em7t8a4');
+  assert.equal(payCodeOf('/pay/../etc'), null); assert.equal(payCodeOf('/app/'), null);
+});
+
+test('v2: בלי וואטסאפ בדף התשלום ובדף הנחיתה; הכותרת החדשה', () => {
+  const pay = readFileSync(new URL('../src/pages/Pay.tsx', import.meta.url), 'utf8');
+  const land = readFileSync(new URL('../src/pages/Landing.tsx', import.meta.url), 'utf8');
+  assert.ok(land.includes('הכסף שלך חוזר.') && land.includes('בלי שתצטרך לרדוף.'));
+  assert.ok(['bit:', 'apple_pay:', 'card:'].every(k => pay.includes(k)), 'Bit · Apple Pay · כרטיס');
+  assert.doesNotMatch(pay + land, /וואטסאפ|WhatsApp/i);
+});

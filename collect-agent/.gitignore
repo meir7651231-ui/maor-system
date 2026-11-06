@@ -7,3 +7,4 @@ demo-output/
 .ruff_cache/
 web/node_modules/
 web/dist/
+web/screenshots/

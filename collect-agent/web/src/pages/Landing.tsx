@@ -1,6 +1,9 @@
 import { Logo, LogoMark } from '../components/Logo.tsx';
 import { Button } from '../components/ui.tsx';
 import { go } from '../router.ts';
+import { useState } from 'react';
+import { DEFAULT_RECOVERY, GABI_PRICE, roi } from '../lib/roi.ts';
+import { fmtIls } from '../lib/format.ts';
 
 // מחיר — השערה לבדיקה (הנחיית מנהל 6.11): חבילה אחת, ₪119 לחודש, 14 ימי ניסיון. מנוי קבוע, לא אחוז מהגבייה.
 export const PRICE = { monthly: 119, trialDays: 14 } as const;
@@ -37,6 +40,7 @@ export function Landing() {
           <Logo size={34} />
           <nav className="hidden md:flex gap-6 text-sm font-medium text-ink-700">
             <a href="#how" onClick={e => { e.preventDefault(); document.getElementById('how')?.scrollIntoView({ behavior: 'smooth' }); }}>איך זה עובד</a>
+            <a href="#roi" onClick={e => { e.preventDefault(); document.getElementById('roi')?.scrollIntoView({ behavior: 'smooth' }); }}>כמה תחזירו</a>
             <a href="#pricing" onClick={e => { e.preventDefault(); document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' }); }}>מחירים</a>
             <a href="#/dashboard">דמו חי</a>
           </nav>
@@ -48,7 +52,7 @@ export function Landing() {
         <div className="max-w-6xl mx-auto px-4 py-16 md:py-24 grid md:grid-cols-2 gap-12 items-center">
           <div>
             <span className="inline-block rounded-full bg-brand/15 text-brand px-3 py-1 text-sm font-bold mb-5">לעסקים קטנים בישראל</span>
-            <h1 className="text-4xl md:text-6xl font-extrabold leading-[1.1]">גבי – העוזר<br /><span className="text-brand">לגביית חובות</span></h1>
+            <h1 className="text-4xl md:text-6xl font-extrabold leading-[1.1]" data-testid="hero-title">הכסף שלך חוזר.<br /><span className="text-brand">בלי שתצטרך לרדוף.</span></h1>
             <p className="text-lg md:text-xl text-ink-400 mt-6 leading-relaxed max-w-lg">
               גבי שולח ללקוחות תזכורות תשלום מנומסות ב-SMS ובמייל, עם קישור תשלום ישיר. אתם רק מאשרים — והכסף מגיע.
             </p>
@@ -103,6 +107,8 @@ export function Landing() {
           </div>
         </div>
       </section>
+
+ <RoiCalculator />
 
       <section id="pricing" className="max-w-6xl mx-auto px-4 py-20">
         <h2 className="text-3xl md:text-4xl font-extrabold text-center">מחיר אחד. פשוט.</h2>
@@ -170,5 +176,45 @@ function HeroPhone() {
         </div>
       </div>
     </div>
+  );
+}
+
+/** מחשבון החזר — הערכה שקופה, לא הבטחה: ההנחות מוצגות ונשלטות על ידי המשתמש. */
+function RoiCalculator() {
+  const [monthly, setMonthly] = useState(40000);
+  const [late, setLate] = useState(25);
+  const [hours, setHours] = useState(4);
+  const r = roi({ monthlyInvoiced: monthly, latePct: late, hoursChasing: hours });
+  const slider = 'w-full accent-[#10B981] h-2 cursor-pointer';
+  return (
+    <section id="roi" className="bg-ink-900 text-white" aria-labelledby="roi-title">
+      <div className="max-w-6xl mx-auto px-4 py-20 grid md:grid-cols-2 gap-10 items-center">
+        <div>
+          <h2 id="roi-title" className="text-3xl md:text-4xl font-extrabold">כמה כסף חוזר אליכם?</h2>
+          <p className="text-ink-400 mt-3 text-lg">הזיזו את הסרגלים. החישוב פשוט ושקוף — בלי אותיות קטנות.</p>
+          <div className="mt-8 space-y-6">
+            <label className="block"><div className="flex justify-between text-sm"><span>חשבוניות בחודש</span><b className="num text-brand">{fmtIls(monthly)}</b></div>
+              <input type="range" min={5000} max={300000} step={5000} value={monthly} onChange={e => setMonthly(+e.target.value)} className={slider} aria-label="סכום חשבוניות בחודש" data-testid="roi-monthly" /></label>
+            <label className="block"><div className="flex justify-between text-sm"><span>כמה מזה משולם באיחור</span><b className="num text-brand">{late}%</b></div>
+              <input type="range" min={0} max={80} step={5} value={late} onChange={e => setLate(+e.target.value)} className={slider} aria-label="אחוז באיחור" /></label>
+            <label className="block"><div className="flex justify-between text-sm"><span>שעות בחודש שאתם רודפים אחרי תשלומים</span><b className="num text-brand">{hours}</b></div>
+              <input type="range" min={0} max={30} step={1} value={hours} onChange={e => setHours(+e.target.value)} className={slider} aria-label="שעות רדיפה בחודש" /></label>
+          </div>
+        </div>
+        <div className="rounded-2xl bg-white text-ink-900 p-6 md:p-8 shadow-pop" data-testid="roi-result">
+          <div className="text-sm text-ink-500">באיחור כל חודש</div>
+          <div className="text-2xl font-extrabold num">{fmtIls(r.lateAmount)}</div>
+          <div className="mt-5 grid grid-cols-2 gap-4">
+            <div className="rounded-xl bg-brand-50 p-4"><div className="text-xs text-ink-500">חוזר מוקדם יותר*</div><div className="text-2xl font-extrabold text-brand-700 num">{fmtIls(r.recovered)}</div></div>
+            <div className="rounded-xl bg-ink-50 p-4"><div className="text-xs text-ink-500">שווי הזמן שנחסך**</div><div className="text-2xl font-extrabold num">{fmtIls(r.timeSaved)}</div></div>
+          </div>
+          <div className="mt-5 flex items-end justify-between border-t border-ink-200 pt-5">
+            <div><div className="text-sm text-ink-500">תזרים שמוקדם, מול ₪{GABI_PRICE} לחודש</div><div className="text-4xl font-extrabold font-display text-brand-700 num">×{r.multiple}</div></div>
+            <Button onClick={() => go('signup')}>להתחיל ניסיון</Button>
+          </div>
+          <p className="text-[11px] text-ink-500 mt-4 leading-relaxed">* הכסף הזה שלכם ממילא — גבי מקדים את הגעתו ומקטין את הסיכון שלא יגיע. הערכה: {Math.round(DEFAULT_RECOVERY * 100)}% מהסכום שבאיחור נגבה מוקדם יותר בזכות תזכורות קבועות — השערה, לא התחייבות. ** לפי ₪150 לשעה. התוצאה בפועל תלויה בלקוחות שלכם.</p>
+        </div>
+      </div>
+    </section>
   );
 }
