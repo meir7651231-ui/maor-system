@@ -474,7 +474,7 @@ class CollectService:
 
     def inbound(self, channel: str, sender: str, text: str) -> dict:
         """תשובת לקוח ⇒ מנוע השיחה: עצירה/השהיה/הסלמה מיד, ותשובה = טיוטה לאישור בעל העסק.
-        (היה: assistant.decide — הסיווג הישן עם הבאגים מ-team/critic.md §3.)"""
+        (assistant.py הוסר — docs/MIGRATION-assistant.md.)"""
         return self.inbox.handle(channel, sender, text)
 
     def _handle(self, cust, channel: str, text: str) -> dict:

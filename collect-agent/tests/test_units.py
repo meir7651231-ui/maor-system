@@ -2,8 +2,7 @@ from datetime import date, datetime
 
 import pytest
 
-from app import assistant, paylinks, plans, templates
-from app.assistant import Intent
+from app import paylinks, plans, templates
 from app.channels import (
     DryRunSender,
     Message,
@@ -13,7 +12,9 @@ from app.channels import (
     sms_segments,
 )
 from app.config import SafetyError, load_settings
+from app.conversation import Intent, respond
 from app.policy import TZ, Policy
+from evals.harness import build_ctx
 
 P = Policy(frozenset({"2026-12-25"}))
 
@@ -254,7 +255,11 @@ def test_resolve_prefers_doc_link_then_static():
     assert paylinks.resolve(doc_link="", static_link="", number="1", allowed=ALLOWED) is None
 
 
-# ---------- מסווג ----------
+# ---------- מסווג (הועבר מ-assistant.py שהוסר ל-conversation.py; ראו docs/MIGRATION-assistant.md) ----------
+def classify(text, llm=None):
+    return respond(text, build_ctx({}), llm=llm).intent
+
+
 @pytest.mark.parametrize("text,intent", [
     ("הסר", Intent.OPT_OUT), ("STOP", Intent.OPT_OUT),
     ("שילמתי אתמול בהעברה", Intent.PAID_CLAIM),
@@ -265,23 +270,23 @@ def test_resolve_prefers_doc_link_then_static():
     ("מה שלומך היום", Intent.UNKNOWN),
 ])
 def test_classify(text, intent):
-    assert assistant.classify(text) == intent
+    assert classify(text) == intent
 
 
 def test_dispute_beats_paid():
-    assert assistant.classify("שילמתי, וחוץ מזה זו טעות") == Intent.DISPUTE
+    assert classify("שילמתי, וחוץ מזה זו טעות") == Intent.DISPUTE
 
 
 def test_unknown_escalates_no_auto_reply():
-    d = assistant.decide("שאלה מורכבת על המע\"מ", business="x", payment_link="")
-    assert d.escalate and d.auto_reply is None
+    d = respond("שאלה מורכבת על המע\"מ", build_ctx({}))
+    assert d.escalate.value != "none" and d.reply is None and not d.auto_send
 
 
 def test_llm_garbage_falls_back():
     class Bad:
         def classify(self, t):
             return "pay_me_now"
-    assert assistant.classify("משהו", Bad()) == Intent.UNKNOWN
+    assert classify("משהו", Bad()) == Intent.UNKNOWN
 
 
 @pytest.mark.parametrize("raw,exp", [("דנה <Dana@Example.com>", "dana@example.com"),
