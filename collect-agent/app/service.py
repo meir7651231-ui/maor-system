@@ -59,6 +59,8 @@ def build_dry_sender(s: Settings) -> DryRunSender:
     return DryRunSender(sms=sms, email=email, reply_to=s.email_reply_to)
 
 
+TRIAL_WARN_DAYS = 3
+
 class CollectService:
     def __init__(self, settings: Settings, db: DB, *, sender: DryRunSender | None = None,
                  gi: GreenInvoiceClient | None = None,
@@ -308,11 +310,29 @@ class CollectService:
         """ניסיון: בסופו התזכורות נעצרות (הנתונים נשמרים) עד הצטרפות. אין trial_start ⇒ פעיל."""
         info = {"price_ils_month": self.s.price_ils_month, "trial_days": self.s.trial_days}
         if not self.s.trial_start:
-            return {**info, "on_trial": False, "active": True, "days_left": None}
+            return {**info, "on_trial": False, "active": True, "days_left": None,
+                    "ending_soon": False}
         start = date.fromisoformat(self.s.trial_start)
         left = self.s.trial_days - (self.clock().date() - start).days
         return {**info, "on_trial": True, "active": left > 0, "days_left": max(left, 0),
+                "ending_soon": 0 < left <= TRIAL_WARN_DAYS,
                 "ends": (start + timedelta(days=self.s.trial_days)).isoformat()}
+
+    def _notify_trial_ending(self) -> None:
+        """הכרעת מאיר: תזכורת לבעל העסק {TRIAL_WARN_DAYS} ימים לפני סוף הניסיון. פעם אחת."""
+        t = self.trial()
+        if not t.get("ending_soon"):
+            return
+        key = f"trial_end:{t['ends']}"
+        if self.db.one("SELECT 1 FROM messages WHERE intent='trial_ending' AND message_id=?",
+                       (key,)):
+            return
+        self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
+                  "message_id,created_at) VALUES(NULL,'system','owner',?,'trial_ending',1,?,?)",
+                  (f"תקופת הניסיון של גבי מסתיימת בעוד {t['days_left']} ימים ({t['ends']}). "
+                   "לאחריה התזכורות נעצרות (הנתונים נשמרים) עד הצטרפות.", key,
+                   _iso(self.clock())))
+        self.audit("system", "trial_ending", {"ends": t["ends"]})
 
     # ---------- planning ----------
     def plan(self) -> list[int]:
@@ -321,6 +341,7 @@ class CollectService:
             return []
         # באג: release_expired_pauses לא נקרא מאף מקום ⇒ "אשלם בחמישי" שלא שולם השהה לנצח
         self.inbox.release_expired_pauses()
+        self._notify_trial_ending()
         self.purge_closed()   # ר-10: זול, פעם בסבב
         created: list[int] = []
         rows = self.db.q("SELECT * FROM invoices WHERE status='open'")

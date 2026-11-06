@@ -675,3 +675,35 @@ def test_plan_offer_never_sent_twice(api, svc):
     assert len(offers) == 1
     api.post(f"/plans/{pid}/approve")      # אישור כפול של ההסדר עצמו
     assert len([m for m in svc.sender.sent[before:] if m["to"] == "972501234567"]) == 1
+
+
+def test_trial_ending_notice_to_owner_once(gi_client, clock):
+    """הכרעת מאיר: תזכורת לבעל העסק 3 ימים לפני סוף הניסיון — פעם אחת, לא לפני, לא אחרי."""
+    from app.config import load_settings
+    from app.db import DB
+    s = load_settings({"TRIAL_START": "2026-10-25", "SMS_SENDER_ID": "StudioMeir",
+                       "PAYMENT_LINK": "https://www.greeninvoice.co.il/pay/s"})
+    svc = CollectService(s, DB(":memory:"), gi=gi_client, clock=clock)
+    api = TestClient(create_app(svc, owner_token=OWNER_TOKEN), headers=AUTH)
+
+    def notices():
+        return [m for m in api.get("/owner/inbox").json() if m["intent"] == "trial_ending"]
+
+    clock.now = datetime(2026, 11, 5, 10, 0, tzinfo=TZ)   # נותרו 3 (ends 8.11)
+    assert svc.trial()["ending_soon"] is True
+    api.post("/plan")
+    api.post("/plan")
+    assert len(notices()) == 1 and "3 ימים" in notices()[0]["body"]
+    assert notices()[0]["customer_id"] is None
+    clock.now = datetime(2026, 11, 6, 10, 0, tzinfo=TZ)
+    api.post("/plan")
+    assert len(notices()) == 1                              # בלי כפילות
+
+
+def test_trial_not_ending_early_and_none_without_trial(gi_client, clock, svc):
+    from app.config import load_settings
+    from app.db import DB
+    s = load_settings({"TRIAL_START": "2026-11-08"})
+    early = CollectService(s, DB(":memory:"), gi=gi_client, clock=clock)
+    assert early.trial()["ending_soon"] is False
+    assert svc.trial()["ending_soon"] is False
