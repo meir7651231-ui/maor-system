@@ -70,3 +70,5 @@
 - בדיקת קישורים: internal+external links checked: 162 · external unique: 10. קישורים פנימיים ועוגנים: 0 שבורים. חיצוניים: 8×200. שני קישורי `github.com/.../actions` מחזירים 403 ל-curl מהסנדבוקס, ולכן נבדקו בדפדפן אחרי ה-push.
 - **35 תמונות, כולן ≤500KB.** הגדולה היא `demo.gif` ‏(217.8KB). ל-`<img>` אין alt חסר.
 - שוויון he/en: אותם 12 סעיפים בשני ה-README-ים.
+- **צילום ה-README ב-GitHub עצמו** (ענף `claude/repo-standard`), בהיר וכהה, עברית ואנגלית: `github-{he,en}-{light,dark}.png`. ה-`<picture>` מחליף hero ותרשימים לפי ערכת הנושא. תגית-הפריסה מחזירה 200, "passing".
+- תיקון אחרי הצילום: תווית תגית-הדמו בעברית התהפכה ב-shields.io, והוחלפה ל-"LIVE DEMO".
