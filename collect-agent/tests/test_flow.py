@@ -707,3 +707,19 @@ def test_trial_not_ending_early_and_none_without_trial(gi_client, clock, svc):
     early = CollectService(s, DB(":memory:"), gi=gi_client, clock=clock)
     assert early.trial()["ending_soon"] is False
     assert svc.trial()["ending_soon"] is False
+
+
+def test_email_blocked_without_reply_to(svc, gi_client, clock, fake_gi):
+    """review חור 6: בלי Reply-To ל«השיבו למייל הזה» התשובה הולכת לכתובת מתה ⇒ ערוץ המייל חסום."""
+    from app.config import load_settings
+    from app.db import DB
+    s = load_settings({"PAYMENT_LINK": "https://www.greeninvoice.co.il/pay/s"})   # בלי EMAIL_REPLY_TO
+    fake_gi.docs[1]["client"]["phone"] = ""                                      # יוסי: מייל בלבד
+    api = TestClient(create_app(CollectService(s, DB(":memory:"), gi=gi_client, clock=clock),
+                                owner_token=OWNER_TOKEN), headers=AUTH)
+    ids = first_cycle(api)
+    p0 = api.get(f"/reminders/{ids[0]}/preview").json()
+    assert [m["channel"] for m in p0["messages"]] == ["sms"]                     # דנה: SMS בלבד
+    r1 = next(r for r in api.get("/reminders").json() if r["id"] == ids[1])
+    assert r1["block_reason"] == "no_reply_to"
+    assert api.post(f"/reminders/{ids[1]}/approve").status_code == 409

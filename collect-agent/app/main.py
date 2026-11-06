@@ -231,8 +231,15 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         return guard(svc.preview, rid)
 
     @app.post("/reminders/{rid}/approve", dependencies=auth)
-    def approve(rid: int):
-        return guard(svc.approve, rid)
+    async def approve(rid: int, request: Request):
+        body = {}
+        if await request.body():
+            try:
+                body = await request.json()
+            except ValueError:
+                raise HTTPException(400, "JSON לא תקין") from None
+        confirm = bool(body.get("confirm_open")) if isinstance(body, dict) else False
+        return guard(lambda: svc.approve(rid, confirm_open=confirm))
 
     @app.post("/reminders/{rid}/reject", dependencies=auth)
     def reject(rid: int):

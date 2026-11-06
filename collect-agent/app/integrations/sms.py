@@ -10,8 +10,10 @@ from __future__ import annotations
 
 import json
 import re
-import xml.etree.ElementTree as ET  # noqa: S405 — רק תשובות MockTransport בשלב 1
-from xml.sax.saxutils import escape
+
+# B405: ראו parse() — DOCTYPE/ENTITY נדחים לפני הפרסור
+import xml.etree.ElementTree as ET  # noqa: S405  # nosec B405
+from xml.sax.saxutils import escape  # nosec B406
 
 import httpx
 
@@ -131,7 +133,7 @@ class InforUSms(SmsAdapter):
 # ------------------------------------------------------------------ 019 (ראשי)
 class Sms019(SmsAdapter):
     """019 SMS. XML מעל HTTPS, Bearer token (fixture תאימות — חוזה לא מאומת).
-    הצלחה לפי התיעוד הציבורי: status == 0. `test_endpoint=True` ⇒ ‎/api/test (לא שולח)."""
+    הצלחה לפי התיעוד הציבורי: status == 0. `test_endpoint=True` ⇒ /api/test (לא שולח)."""
 
     provider = "019"
     contract_verified = CONTRACT_VERIFIED_019
@@ -163,8 +165,12 @@ class Sms019(SmsAdapter):
         """סובלני: XML (<status>/<message>/<shipment_id>) או JSON — עד שהחוזה יאומת."""
         text = r.text.strip()
         if text.startswith("<"):
+            # QA: תשובה מהספק = קלט חיצוני. בלי DOCTYPE/ENTITY (XXE, billion laughs) ועם תקרת גודל,
+            # כך ש-ElementTree מפרסר רק XML פשוט — בלי תלות נוספת (defusedxml) בשלב 1
+            if len(text) > 64_000 or re.search(r"<!(DOCTYPE|ENTITY)", text, re.I):
+                raise ValueError("XML חשוד מהספק (DOCTYPE/ENTITY/גודל) — נדחה")
             try:
-                root = ET.fromstring(text)  # noqa: S314 — תשובת MockTransport בלבד בשלב 1
+                root = ET.fromstring(text)  # noqa: S314  # nosec B314
             except ET.ParseError as e:
                 raise ValueError(f"XML לא תקין: {e}") from e
             st, msg, sid = ((root.findtext(k) or "").strip()

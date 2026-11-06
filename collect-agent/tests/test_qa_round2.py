@@ -453,3 +453,20 @@ def test_workflows_have_no_duplicate_keys():
     Strict.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, construct_mapping)
     for wf in (ROOT.parent / ".github" / "workflows").glob("*.yml"):
         yaml.load(wf.read_text(encoding="utf-8"), Loader=Strict)  # noqa: S506 — SafeLoader
+
+
+@pytest.mark.parametrize("xml", [
+    '<?xml version="1.0"?><!DOCTYPE x [<!ENTITY a "aaaa"><!ENTITY b "&a;&a;&a;">]>'
+    '<sms><status>&b;</status></sms>',                                   # billion laughs
+    '<?xml version="1.0"?><!DOCTYPE x [<!ENTITY e SYSTEM "file:///etc/passwd">]>'
+    '<sms><status>&e;</status></sms>',                                   # XXE
+    "<sms><status>0</status>" + "<x/>" * 20_000 + "</sms>",              # ענק
+])
+def test_sms019_rejects_hostile_xml_response(xml):
+    """תשובת ספק = קלט חיצוני. ElementTree בלי defusedxml ⇒ דוחים DOCTYPE/ENTITY וגודל."""
+    import httpx
+
+    from app.integrations.sms import Sms019
+    adapter = Sms019.__new__(Sms019)
+    with pytest.raises(ValueError):
+        adapter.parse(httpx.Response(200, text=xml))

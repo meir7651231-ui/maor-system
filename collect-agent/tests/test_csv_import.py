@@ -45,20 +45,33 @@ def test_duplicate_number_rejected():
 
 
 def test_csv_import_endpoint_and_24h_validity(api, svc, clock):
-    """ר-4 ל-CSV: אין API לרענון ⇒ תקף 24 שעות מהייבוא; אחרי כן לא נשלח עד ייבוא חדש."""
+    """ר-4 ל-CSV + review חור 7: אין API לרענון ⇒ אישור מפורש «הסכום עדיין פתוח»,
+    ותוקף 24 שעות **מהאישור** (לא מהייבוא). פג ⇒ חוזר לאישור."""
     assert api.post("/import/csv", content=CSV_HE.encode()).json()["imported"] == 2
     assert api.post("/import/csv", content=b"bad").status_code == 400
     ids = api.post("/plan").json()["created"]
     assert ids
+    assert api.post(f"/reminders/{ids[0]}/approve").status_code == 409        # בלי confirm_open
     for i in ids:
-        api.post(f"/reminders/{i}/approve")
+        assert api.post(f"/reminders/{i}/approve", json={"confirm_open": True}).status_code == 200
     clock.now += timedelta(hours=25)
     api.post("/dispatch")
     assert svc.sender.sent == []
+    assert {svc._reminder(i)["status"] for i in ids} == {"pending_approval"}
     assert {svc._reminder(i)["block_reason"] for i in ids} == {"csv_stale"}
-    api.post("/import/csv", content=CSV_HE.encode())                    # ייבוא מחדש = אימות
+    for i in ids:                                                              # אישור מחדש = אימות
+        api.post(f"/reminders/{i}/approve", json={"confirm_open": True})
     api.post("/dispatch")
     assert svc.sender.sent
+    a = next(x for x in api.get("/audit").json() if x["action"] == "approve")
+    assert '"confirm_open": true' in a["detail"]
+
+
+def test_dashboard_counts_csv_invoices_missing_from_last_import(api, clock):
+    api.post("/import/csv", content=CSV_HE.encode())                  # 2001 + 2002
+    clock.now += timedelta(hours=1)
+    api.post("/import/csv", content="number,client,phone,amount\n2001,דנה,050-1234567,10\n".encode())
+    assert api.get("/dashboard").json()["totals"]["csv_unverified"] == 1  # 2002 לא אומתה שוב
 
 
 def test_csv_import_requires_owner_auth(svc):

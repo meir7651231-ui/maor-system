@@ -49,7 +49,7 @@ def _parse_date(v: str) -> date | None:
 
 
 def _agorot(v: str) -> int:
-    t = (v or "").replace("₪", "").replace(",", "").replace("‏", "").strip()
+    t = (v or "").replace("\u20aa", "").replace(",", "").replace("\u200f", "")  # RLM מהעתקה מאקסל.strip()
     try:
         d = Decimal(t)
     except InvalidOperation:
