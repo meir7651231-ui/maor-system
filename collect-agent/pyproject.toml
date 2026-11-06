@@ -16,3 +16,7 @@ dev = ["pytest>=8"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
+
+[tool.setuptools]
+# web/ (ממשק React) ו-team/ (מסמכים) יושבים כאן — לא חבילות פייתון
+packages = ["app"]
