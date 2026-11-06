@@ -170,6 +170,13 @@ def create_app(service: CollectService | None = None) -> FastAPI:
     def audit():
         return [dict(r) for r in svc.db.q("SELECT * FROM audit ORDER BY id DESC LIMIT 200")]
 
+    # הממשק המעוצב (web/, React) — מוגש מ-/app/ אם נבנה (`npm run build`). אותו origin ⇒ הממשק
+    # מזהה את השרת ועובד "חי" מול ה-API (dry-run). בלי build — /ui הרזה ממשיך לעבוד כרגיל.
+    web_dist = Path(os.environ.get("WEB_DIST", Path(__file__).resolve().parent.parent / "web" / "dist"))
+    if (web_dist / "index.html").is_file():
+        from fastapi.staticfiles import StaticFiles
+        app.mount("/app", StaticFiles(directory=web_dist, html=True), name="web")
+
     return app
 
 

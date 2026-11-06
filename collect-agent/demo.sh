@@ -9,8 +9,13 @@ set -euo pipefail
 cd "$(dirname "$0")"
 PORT="${PORT:-8000}"
 python3 -c "import fastapi, httpx, uvicorn" 2>/dev/null || pip install -q -e '.[dev]'
+# הממשק המעוצב (web/) — נבנה פעם אחת אם יש Node, ומוגש מ-/app/ (חי מול ה-API, dry-run).
+if [[ ! -f web/dist/index.html ]] && command -v npm >/dev/null 2>&1 && [[ "${SKIP_WEB:-}" != "1" ]]; then
+  echo "▶ בונה את הממשק (web/)…"; (cd web && npm ci --no-audit --no-fund --silent && npm run build --silent) >/dev/null
+fi
 
 if [[ "${1:-}" != "--check" ]]; then
+  [[ -f web/dist/index.html ]] && echo "▶ ממשק גבי: http://127.0.0.1:${PORT}/app/#/dashboard"
   echo "▶ דשבורד: http://127.0.0.1:${PORT}/ui  ·  דף נחיתה (טיוטה): http://127.0.0.1:${PORT}/landing"
   exec env DEMO=1 python3 -m uvicorn app.main:_lazy_app --factory --host 127.0.0.1 --port "$PORT" --log-level warning
 fi
@@ -34,5 +39,9 @@ assert all(m["channel"] in ("sms", "email") for m in out)
 assert any("pay.example/gabi-demo" in m["body"] for m in out), "חסר קישור תשלום דמו"
 ui = get("/ui"); assert 'id="debts"' in ui and 'id="kpis"' in ui
 la = get("/landing"); assert "₪119" in la and 'href="/ui"' in la, "דף הנחיתה לא תקין"
+import os
+if os.path.isfile("web/dist/index.html"):
+    assert "גבי" in get("/app/"), "הממשק המעוצב לא מוגש ב-/app/"
+    print("✅ הממשק המעוצב מוגש ב-/app/")
 print(f"✅ בדיקת ההדגמה עברה: {t}")
 PY

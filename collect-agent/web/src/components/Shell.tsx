@@ -2,7 +2,6 @@ import type { ReactNode } from 'react';
 import { Logo } from './Logo.tsx';
 import { go, type Route } from '../router.ts';
 import { useApp } from '../store.tsx';
-import { needsReminder } from '../lib/stats.ts';
 
 const NAV: { r: Route; label: string; icon: string }[] = [
   { r: 'dashboard', label: 'סקירה', icon: '◧' },
@@ -11,11 +10,11 @@ const NAV: { r: Route; label: string; icon: string }[] = [
 ];
 
 export function Shell({ route, children }: { route: Route; children: ReactNode }) {
-  const { business, invoices, today } = useApp();
-  const pending = needsReminder(invoices, today).length;
+  const { business, queue, mode } = useApp();
+  const pending = queue.length;
   return (
     <div className="min-h-screen md:flex">
-      <aside className="md:w-64 md:min-h-screen bg-ink-900 text-white md:sticky md:top-0 md:self-start flex md:flex-col">
+      <aside className="md:w-64 md:h-screen md:overflow-y-auto bg-ink-900 text-white md:sticky md:top-0 flex md:flex-col shrink-0">
         <div className="p-4 md:p-6 hidden md:block"><button onClick={() => go('landing')} className="cursor-pointer"><Logo dark /></button></div>
         <nav className="flex md:flex-col gap-1 p-2 md:px-3 w-full overflow-x-auto" aria-label="ניווט ראשי">
           {NAV.map(n => (
@@ -30,7 +29,7 @@ export function Shell({ route, children }: { route: Route; children: ReactNode }
           <div className="rounded-xl bg-white/5 p-3">
             <div className="text-ink-400 text-xs">מחובר/ת כ-</div>
             <div className="font-bold">{business.name}</div>
-            <div className="text-xs text-brand mt-1">● מצב דמו — אין שליחה אמיתית</div>
+            <div className="text-xs text-brand mt-1" data-testid="mode">{mode === 'live' ? '● מחובר לשרת גבי · dry-run' : mode === 'mock' ? '● מצב דמו (מוק) — אין שליחה' : '… בודק חיבור לשרת'}</div>
           </div>
         </div>
       </aside>

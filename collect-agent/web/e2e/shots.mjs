@@ -18,6 +18,10 @@ try {
   const p = await page({ width: 1366, height: 900 });
   await p.goto(base); await p.waitForTimeout(600);
   await p.screenshot({ path: `${out}/01-landing.png`, fullPage: true });
+  const price = await p.getByTestId('price-card').textContent();
+  if (!/₪119/.test(price) || !/14 יום/.test(price)) throw new Error('כרטיס המחיר לא מציג ₪119 + 14 יום: ' + price);
+  await p.goto(base + '#/dashboard');
+  await p.getByTestId('mode').filter({ hasText: 'מצב דמו (מוק)' }).waitFor({ timeout: 5000 }); // בלי שרת ⇒ מוק
   await p.goto(base + '#/dashboard'); await p.waitForTimeout(300);
   await p.screenshot({ path: `${out}/02-dashboard.png`, fullPage: true });
   await p.getByRole('button', { name: 'תצוגה ואישור' }).first().click();

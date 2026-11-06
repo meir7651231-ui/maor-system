@@ -11,7 +11,8 @@ type Sort = 'late' | 'amount' | 'name';
 const FILTERS: [InvoiceStatus | 'all', string][] = [['all', 'הכול'], ['open', 'פתוחות'], ['reminded', 'נשלחה תזכורת'], ['promised', 'הבטיח'], ['disputed', 'במחלוקת']];
 
 export function Invoices() {
-  const { invoices, today, customerOf, markPaid } = useApp();
+  const { invoices, today, customerOf, markPaid, mode, pendingOf } = useApp();
+  const live = mode === 'live';
   const [q, setQ] = useState('');
   const [f, setF] = useState<InvoiceStatus | 'all'>('all');
   const [sort, setSort] = useState<Sort>('late');
@@ -31,7 +32,7 @@ export function Invoices() {
     <div className="space-y-5">
       <div>
         <h1 className="text-3xl font-extrabold">חשבוניות שלא שולמו</h1>
-        <p className="text-ink-500 mt-1">מסונכרן מחשבונית ירוקה (דמו) · <b className="text-ink-900 num">{rows.length}</b> חשבוניות · <b className="text-ink-900">{fmtIls(total)}</b></p>
+        <p className="text-ink-500 mt-1">{live ? 'מסונכרן מחשבונית ירוקה (sandbox מדומה)' : 'מסונכרן מחשבונית ירוקה (דמו)'} · <b className="text-ink-900 num">{rows.length}</b> חשבוניות · <b className="text-ink-900">{fmtIls(total)}</b></p>
       </div>
       <div className="flex flex-wrap gap-3 items-center">
         <input className={`${inputCls} max-w-xs`} placeholder="חיפוש לקוח או מס׳ חשבונית…" value={q} onChange={e => setQ(e.target.value)} aria-label="חיפוש" />
@@ -69,9 +70,9 @@ export function Invoices() {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex gap-1.5 justify-end">
-                        {(i.status === 'open' || i.status === 'reminded') && d > 0 &&
+                        {(live ? !!pendingOf(i.id) : (i.status === 'open' || i.status === 'reminded') && d > 0) &&
                           <Button size="sm" onClick={() => setOpen(i)} title={STEP_LABEL[nextStep(i)]}>תזכורת</Button>}
-                        <Button size="sm" variant="outline" onClick={() => markPaid(i.id)}>שולם</Button>
+                        {!live && <Button size="sm" variant="outline" onClick={() => markPaid(i.id)}>שולם</Button>}
                       </div>
                     </td>
                   </tr>

@@ -346,3 +346,18 @@ def test_landing_form_has_no_hidden_send_channel(api):
     for vec in ("XMLHttpRequest", "sendBeacon", "WebSocket", "EventSource", ".submit()",
                 "mailto:", "new Image(", "method=\"post\"", "localStorage"):
         assert vec not in html, f"ערוץ שליחה/שמירה בטיוטת דף הנחיתה: {vec}"
+
+
+def test_web_app_served_when_built(tmp_path, monkeypatch, svc):
+    """web/dist קיים ⇒ מוגש ב-/app/ (הממשק המעוצב, אותו origin כמו ה-API). לא קיים ⇒ 404, /ui לא נפגע."""
+    from fastapi.testclient import TestClient
+
+    from app.main import create_app
+    monkeypatch.setenv("WEB_DIST", str(tmp_path / "missing"))
+    assert TestClient(create_app(svc)).get("/app/").status_code == 404
+    (tmp_path / "index.html").write_text("<title>גבי</title>", encoding="utf-8")
+    monkeypatch.setenv("WEB_DIST", str(tmp_path))
+    c = TestClient(create_app(svc))
+    r = c.get("/app/")
+    assert r.status_code == 200 and "גבי" in r.text
+    assert c.get("/health").json()["dry_run"] is True

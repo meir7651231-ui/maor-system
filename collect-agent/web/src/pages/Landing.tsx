@@ -2,12 +2,16 @@ import { Logo, LogoMark } from '../components/Logo.tsx';
 import { Button } from '../components/ui.tsx';
 import { go } from '../router.ts';
 
-// מחירון מוצע (טיוטה — מבוסס docs/MVP-SPEC.md §5; לאישור מאיר). מנוי קבוע, לא אחוז מהגבייה.
-export const PLANS = [
-  { name: 'התחלה', price: 0, tag: 'לנסות בלי סיכון', features: ['עד 5 חשבוניות במעקב', 'מייל בלבד', 'אישור ידני לכל הודעה', 'חיבור לחשבונית ירוקה'] },
-  { name: 'בסיסי', price: 79, tag: 'לפרילנסרים', features: ['עד 50 חשבוניות פעילות', 'SMS + מייל · 200 SMS כלולים', 'סולם 4 תזכורות מלא', 'קישור תשלום בכל הודעה'] },
-  { name: 'מקצועי', price: 179, tag: 'הכי משתלם', best: true, features: ['עד 250 חשבוניות פעילות', '800 SMS כלולים', 'הצעות פריסה ללא ריבית', 'זיהוי תשובות לקוח ("שילמתי", "הסר")', 'דוח גבייה חודשי · 2 משתמשים'] },
-  { name: 'עסקי', price: 349, tag: 'לעסקים עם צוות', features: ['ללא הגבלת חשבוניות', '2,000 SMS כלולים', 'כמה מותגים / שמות שולח', 'API וחיבורים מתקדמים'] },
+// מחיר — השערה לבדיקה (הנחיית מנהל 6.11): חבילה אחת, ₪119 לחודש, 14 ימי ניסיון. מנוי קבוע, לא אחוז מהגבייה.
+export const PRICE = { monthly: 119, trialDays: 14 } as const;
+export const PLAN_FEATURES = [
+  'חיבור לחשבונית ירוקה (קריאה בלבד)',
+  'תזכורות ב-SMS ובמייל, עם קישור תשלום בכל הודעה',
+  'סולם 4 תזכורות מנומסות — אתם מאשרים',
+  'זיהוי תשובות: "שילמתי", "הסר", בקשת פריסה',
+  'הצעות פריסה ללא ריבית, באישורכם',
+  'שעות שליחה סבירות, לא בשבת ובחג',
+  'עד 150 חשבוניות פתוחות · 300 תזכורות SMS בחודש',
 ];
 
 const STEPS = [
@@ -21,6 +25,7 @@ const FAQ = [
   ['למה SMS ומייל ולא וואטסאפ?', 'מדיניות WhatsApp Business אוסרת שימוש לגביית חובות. SMS ומייל מגיעים לכל לקוח, בלי סיכון לחסימת המספר שלכם — ובכל הודעה יש קישור תשלום ישיר.'],
   ['מתי ההודעות נשלחות?', 'א׳–ה׳ 9:00–19:00, ו׳ עד 12:00, לעולם לא בשבת ובחג. לכל היותר הודעה אחת ל-72 שעות לאותו לקוח.'],
   ['זה חוקי?', 'תזכורת תשלום ללקוח קיים על חשבונית שלו היא הודעה שירותית ולא "דבר פרסומת" לפי סעיף 30א לחוק התקשורת — כל עוד אין בה תוכן שיווקי. כל הודעה מזהה את העסק וכוללת קישור הסרה.'],
+  ['כמה זה עולה?', `₪${PRICE.monthly} לחודש לפני מע״מ, אחרי ${PRICE.trialDays} ימי ניסיון חינם. בלי כרטיס אשראי בהרשמה, ביטול בכל רגע.`],
   ['אתם לוקחים אחוז מהכסף?', 'לא. מנוי חודשי קבוע. הכסף עובר ישירות מהלקוח אליכם דרך קישור התשלום שלכם.'],
 ];
 
@@ -35,7 +40,7 @@ export function Landing() {
             <a href="#pricing" onClick={e => { e.preventDefault(); document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' }); }}>מחירים</a>
             <a href="#/dashboard">דמו חי</a>
           </nav>
-          <Button size="sm" onClick={() => go('signup')}>התחילו בחינם</Button>
+          <Button size="sm" onClick={() => go('signup')}>{PRICE.trialDays} ימי ניסיון</Button>
         </div>
       </header>
 
@@ -48,10 +53,10 @@ export function Landing() {
               גבי שולח ללקוחות תזכורות תשלום מנומסות ב-SMS ובמייל, עם קישור תשלום ישיר. אתם רק מאשרים — והכסף מגיע.
             </p>
             <div className="flex flex-wrap gap-3 mt-8">
-              <Button size="lg" onClick={() => go('signup')}>התחילו בחינם</Button>
+              <Button size="lg" onClick={() => go('signup')}>התחילו {PRICE.trialDays} ימי ניסיון חינם</Button>
               <Button size="lg" variant="ghost" className="text-white hover:bg-white/10" onClick={() => go('dashboard')}>לצפייה בדמו ←</Button>
             </div>
-            <p className="text-sm text-ink-400 mt-4">בלי כרטיס אשראי · מתחבר לחשבונית ירוקה · ביטול בכל רגע</p>
+            <p className="text-sm text-ink-400 mt-4">₪{PRICE.monthly} לחודש אחרי הניסיון · בלי כרטיס אשראי · ביטול בכל רגע</p>
           </div>
           <HeroPhone />
         </div>
@@ -59,7 +64,7 @@ export function Landing() {
 
       <section className="border-b border-ink-200">
         <div className="max-w-6xl mx-auto px-4 py-10 grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-          {[['2 דק׳', 'הקמה'], ['4', 'שלבי תזכורת מדורגים'], ['0', 'הודעות בשבת'], ['0%', 'עמלה מהגבייה']].map(([n, l]) => (
+          {[['2 דק׳', 'הקמה'], ['14', 'ימי ניסיון חינם'], ['0', 'הודעות בשבת'], ['0%', 'עמלה מהגבייה']].map(([n, l]) => (
             <div key={l}><div className="text-3xl md:text-4xl font-extrabold text-brand-700 font-display">{n}</div><div className="text-sm text-ink-500 mt-1">{l}</div></div>
           ))}
         </div>
@@ -100,22 +105,21 @@ export function Landing() {
       </section>
 
       <section id="pricing" className="max-w-6xl mx-auto px-4 py-20">
-        <h2 className="text-3xl md:text-4xl font-extrabold text-center">מחיר קבוע. בלי אחוזים.</h2>
-        <p className="text-center text-ink-500 mt-3 text-lg">מחירון מוצע · המחירים לפני מע״מ · SMS נוסף מעבר למכסה לפי עלות</p>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 mt-12">
-          {PLANS.map(p => (
-            <div key={p.name} className={`rounded-2xl p-6 flex flex-col ${p.best ? 'bg-ink-900 text-white ring-4 ring-brand/30 lg:-mt-3 lg:mb-3' : 'border border-ink-200'}`}>
-              <div className="flex items-center justify-between"><h3 className="text-xl font-extrabold">{p.name}</h3>
-                {p.best && <span className="text-xs font-bold bg-brand text-ink-900 rounded-full px-2.5 py-1">הכי פופולרי</span>}</div>
-              <div className={`text-sm ${p.best ? 'text-ink-400' : 'text-ink-500'}`}>{p.tag}</div>
-              <div className="mt-5 flex items-baseline gap-1"><span className="text-4xl font-extrabold font-display num">₪{p.price}</span><span className={p.best ? 'text-ink-400' : 'text-ink-500'}>/חודש</span></div>
-              <ul className="mt-5 space-y-2.5 text-sm flex-1">
-                {p.features.map(f => <li key={f} className="flex gap-2"><span className="text-brand-600">✓</span>{f}</li>)}
-              </ul>
-              <Button className="mt-6 w-full" variant={p.best ? 'primary' : 'outline'} onClick={() => go('signup')}>{p.price === 0 ? 'התחילו בחינם' : 'בחירה'}</Button>
-            </div>
-          ))}
+        <h2 className="text-3xl md:text-4xl font-extrabold text-center">מחיר אחד. פשוט.</h2>
+        <p className="text-center text-ink-500 mt-3 text-lg">{PRICE.trialDays} ימי ניסיון חינם · בלי כרטיס אשראי · בלי אחוזים מהגבייה</p>
+        <div className="mt-12 max-w-md mx-auto rounded-2xl bg-ink-900 text-white p-8 ring-4 ring-brand/30" data-testid="price-card">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xl font-extrabold">גבי</h3>
+            <span className="text-xs font-bold bg-brand text-ink-900 rounded-full px-2.5 py-1">{PRICE.trialDays} יום חינם</span>
+          </div>
+          <div className="mt-5 flex items-baseline gap-1"><span className="text-5xl font-extrabold font-display num">₪{PRICE.monthly}</span><span className="text-ink-400">/חודש · לפני מע״מ</span></div>
+          <p className="text-sm text-ink-400 mt-2">אחרי תקופת הניסיון. ביטול בכל רגע.</p>
+          <ul className="mt-6 space-y-2.5 text-sm">
+            {PLAN_FEATURES.map(f => <li key={f} className="flex gap-2"><span className="text-brand">✓</span>{f}</li>)}
+          </ul>
+          <Button className="mt-8 w-full" size="lg" onClick={() => go('signup')}>התחילו {PRICE.trialDays} ימי ניסיון</Button>
         </div>
+        <p className="text-center text-xs text-ink-500 mt-4">מחיר בבדיקה (פיילוט). תזכורות מעבר למכסה — לפי עלות.</p>
       </section>
 
       <section className="bg-ink-50">
@@ -135,7 +139,7 @@ export function Landing() {
           <LogoMark size={56} className="mx-auto" />
           <h2 className="text-3xl md:text-4xl font-extrabold mt-5">מספיק לרדוף אחרי הכסף שלכם.</h2>
           <p className="text-ink-400 mt-3 text-lg">תנו לגבי לעשות את זה — בנימוס.</p>
-          <Button size="lg" className="mt-8" onClick={() => go('signup')}>התחילו בחינם</Button>
+          <Button size="lg" className="mt-8" onClick={() => go('signup')}>התחילו {PRICE.trialDays} ימי ניסיון חינם</Button>
         </div>
       </section>
       <footer className="bg-ink-900 border-t border-white/10 text-ink-400 text-sm">

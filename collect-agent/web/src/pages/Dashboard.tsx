@@ -1,19 +1,20 @@
 import { useState } from 'react';
 import { useApp } from '../store.tsx';
-import { agingBuckets, kpis, needsReminder } from '../lib/stats.ts';
+import { agingBuckets, kpis } from '../lib/stats.ts';
 import { AGING_LABEL, daysOverdue, fmtIls, type Aging } from '../lib/format.ts';
 import { STEP_LABEL, nextStep } from '../lib/message.ts';
 import { demoCollectedByMonth } from '../data/demo.ts';
 import { Button, Card, LateBadge } from '../components/ui.tsx';
 import { MessagePreview } from '../components/MessagePreview.tsx';
 import type { Invoice } from '../lib/domain.ts';
+import { api, BLOCK_LABEL } from '../api.ts';
 
 const AGING_COLOR: Record<Aging, string> = { notDue: 'bg-ink-400', d0_30: 'bg-due', d31_60: 'bg-late', d61_90: 'bg-red-500', d90p: 'bg-red-700' };
 
 export function Dashboard() {
-  const { invoices, today, customerOf, business } = useApp();
+  const { invoices, today, customerOf, business, queue, mode, totals, pendingOf } = useApp();
+  const live = mode === 'live';
   const k = kpis(invoices, today);
-  const queue = needsReminder(invoices, today);
   const aging = agingBuckets(invoices, today);
   const agingTotal = Object.values(aging).reduce((a, b) => a + b, 0) || 1;
   const max = Math.max(...demoCollectedByMonth.map(m => m.amount));
@@ -33,7 +34,9 @@ export function Dashboard() {
         <Kpi label="פתוח לגבייה" value={fmtIls(k.openTotal)} sub={`${k.openCount} חשבוניות`} />
         <Kpi label="באיחור" value={fmtIls(k.overdueTotal)} sub={`${k.overdueCount} חשבוניות`} tone="late" />
         <Kpi label="ממוצע ימי איחור" value={String(k.avgDaysLate)} sub="ימים" />
-        <Kpi label="נגבה החודש" value={fmtIls(demoCollectedByMonth.at(-1)!.amount)} sub="מאז 1.11" tone="good" />
+        {live && totals
+          ? <Kpi label="נשלחו (dry-run)" value={String(totals.sent_sms + totals.sent_email)} sub={`${totals.sent_sms} SMS · ${totals.sent_email} מיילים`} tone="good" />
+          : <Kpi label="נגבה החודש" value={fmtIls(demoCollectedByMonth.at(-1)!.amount)} sub="מאז 1.11" tone="good" />}
       </div>
 
       <div className="grid lg:grid-cols-[1.5fr_1fr] gap-6">
@@ -47,7 +50,8 @@ export function Dashboard() {
                   <div className="h-10 w-10 shrink-0 rounded-full bg-brand-50 text-brand-700 grid place-items-center font-bold">{customerOf(i.customerId).name.slice(0, 1)}</div>
                   <div className="min-w-0 flex-1">
                     <div className="font-bold truncate">{customerOf(i.customerId).name}</div>
-                    <div className="text-sm text-ink-500"><b className="text-ink-900">{fmtIls(i.amount)}</b> · <LateBadge days={daysOverdue(i.dueAt, today)} /> · {STEP_LABEL[nextStep(i)]}</div>
+                    <div className="text-sm text-ink-500"><b className="text-ink-900">{fmtIls(i.amount)}</b> · <LateBadge days={daysOverdue(i.dueAt, today)} /> · {STEP_LABEL[nextStep(i)]}
+                      {live && pendingOf(i.id)?.block && <span className="text-critical font-bold"> · ⛔ {BLOCK_LABEL[pendingOf(i.id)!.block!] ?? pendingOf(i.id)!.block}</span>}</div>
                   </div>
                   <Button size="sm" onClick={() => setOpen(i)}>תצוגה ואישור</Button>
                 </li>
@@ -68,7 +72,7 @@ export function Dashboard() {
               ))}
             </ul>
           </Card>
-          <Card className="p-5">
+          {live ? <><Outbox /><ReplySim /></> : <Card className="p-5">
             <h2 className="text-lg font-extrabold mb-3">נגבה לפי חודש</h2>
             <div className="flex items-end gap-2 h-32">
               {demoCollectedByMonth.map(m => (
@@ -78,7 +82,7 @@ export function Dashboard() {
                 </div>
               ))}
             </div>
-          </Card>
+          </Card>}
         </div>
       </div>
       {open && <MessagePreview invoice={open} onClose={() => setOpen(null)} />}
@@ -92,6 +96,68 @@ function Kpi({ label, value, sub, tone }: { label: string; value: string; sub: s
       <div className="text-sm text-ink-500">{label}</div>
       <div className={`text-2xl md:text-3xl font-extrabold font-display mt-1 ${tone === 'late' ? 'text-late' : tone === 'good' ? 'text-brand-700' : ''}`}>{value}</div>
       <div className="text-xs text-ink-500 mt-0.5">{sub}</div>
+    </Card>
+  );
+}
+
+/** יומן היוצאים של השרת — כל מה ש*היה* נשלח (DryRunSender). הוכחה חיה שהזרימה עובדת. */
+function Outbox() {
+  const { outbox } = useApp();
+  const last = [...outbox].reverse().slice(0, 6);
+  return (
+    <Card className="p-5" >
+      <h2 className="text-lg font-extrabold mb-1">יומן יוצאים <span className="text-xs font-bold bg-ink-100 rounded-full px-2 py-0.5 align-middle">dry-run</span></h2>
+      <p className="text-xs text-ink-500 mb-3">מה שגבי <b>היה</b> שולח. שום הודעה לא יצאה באמת.</p>
+      {last.length === 0 ? <p className="text-sm text-ink-500">עוד לא נשלח דבר.</p> : (
+        <ul className="space-y-2" data-testid="outbox">
+          {last.map(m => (
+            <li key={m.id} className="rounded-lg bg-ink-50 p-2.5 text-xs">
+              <div className="flex justify-between font-bold mb-1"><span>{m.channel === 'sms' ? '📱 SMS' : '✉️ מייל'}</span><span className="num text-ink-500">{m.to}</span></div>
+              <div className="text-ink-700 line-clamp-2">{m.body}</div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Card>
+  );
+}
+
+const INTENT_LABEL: Record<string, string> = {
+  paid_claim: 'טוען ששילם ⇒ התזכורות הושהו, עבר אליך לבדיקה', opt_out: 'ביקש הסרה ⇒ לא נפנה אליו יותר',
+  how_to_pay: 'שאל איך משלמים ⇒ נשלח קישור תשלום', plan_request: 'ביקש פריסה ⇒ נוצרה הצעה לאישורך',
+  dispute: 'מחלוקת ⇒ עצירה והעברה אליך', copy_request: 'ביקש העתק חשבונית ⇒ מענה אוטומטי', thanks: 'תודה ⇒ אין צורך בפעולה', unknown: 'לא ברור ⇒ עבר אליך', unknown_sender: 'שולח לא מוכר ⇒ עבר אליך',
+};
+/** סימולציה של תשובת לקוח (POST /inbound) — כדי להראות בדמו מה גבי עושה עם תשובות. */
+function ReplySim() {
+  const { customers, reload, showToast } = useApp();
+  const withPhone = customers.filter(c => c.phone);
+  const [cid, setCid] = useState(withPhone[0]?.id ?? '');
+  const [text, setText] = useState('איך אפשר לשלם?');
+  const [res, setRes] = useState<string | null>(null);
+  const c = customers.find(x => x.id === cid);
+  return (
+    <Card className="p-5">
+      <h2 className="text-lg font-extrabold mb-1">סימולציה: לקוח עונה</h2>
+      <p className="text-xs text-ink-500 mb-3">נכנס לשרת כמו SMS נכנס (dry-run).</p>
+      <div className="space-y-2">
+        <select className="w-full h-10 rounded-lg border border-ink-200 px-2 bg-white" value={cid} onChange={e => setCid(e.target.value)} aria-label="לקוח">
+          {withPhone.map(x => <option key={x.id} value={x.id}>{x.name}</option>)}
+        </select>
+        <div className="flex flex-wrap gap-1.5">
+          {['איך אפשר לשלם?', 'שילמתי כבר', 'אפשר ב-3 תשלומים?', 'הסר'].map(t => (
+            <button key={t} onClick={() => setText(t)} className={`rounded-full px-2.5 py-1 text-xs border cursor-pointer ${text === t ? 'bg-ink-900 text-white border-ink-900' : 'border-ink-200'}`}>{t}</button>
+          ))}
+        </div>
+        <input className="w-full h-10 rounded-lg border border-ink-200 px-3" value={text} onChange={e => setText(e.target.value)} aria-label="תוכן התשובה" />
+        <Button size="sm" className="w-full" disabled={!c?.phone || !text.trim()} onClick={async () => {
+          try {
+            const r = await api.inbound('sms', c!.phone!, text);
+            setRes(`${INTENT_LABEL[r.intent] ?? r.intent}${r.auto_reply ? ` · מענה אוטומטי: "${r.auto_reply}"` : ''}`);
+            await reload();
+          } catch (e) { showToast(`שגיאה: ${(e as Error).message}`); }
+        }}>שלח תשובה (סימולציה)</Button>
+        {res && <p className="text-sm rounded-lg bg-brand-50 text-brand-700 p-2.5" data-testid="reply-result">{res}</p>}
+      </div>
     </Card>
   );
 }
