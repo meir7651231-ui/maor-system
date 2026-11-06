@@ -290,17 +290,16 @@ class ConversationInbox:
 
     # ---------- שער שליחה יחיד ----------
     def _can_message(self, cust, dr) -> str | None:
-        if cust["opted_out"] and dr["intent"] not in _ALLOWED_AFTER_OPT_OUT:
-            return "opted_out"
-        if not self.svc.policy.can_send_at(self.svc.clock()):
-            return "outside_window"
-        return None
+        """מאציל לשער היחיד של השירות (שעות/שבת/חג/ניסיון/רשימת הסרה מגובבת)."""
+        to = dr["to_addr"] or self._addr(cust, dr["channel"]) or ""
+        return self.svc.gate(cust, dr["channel"], to,
+                             opt_out_ack=dr["intent"] in _ALLOWED_AFTER_OPT_OUT)
 
     def _try_send(self, draft_id: int) -> bool:
         dr = self._get(draft_id)
         cust = self.db.one("SELECT * FROM customers WHERE id=?", (dr["customer_id"],))
         why = self._can_message(cust, dr)
-        if why == "outside_window":
+        if why in ("outside_window", "trial_expired"):
             return False  # נשאר approved; flush() ישלח בחלון הבא
         if why:
             self.db.x("UPDATE drafts SET status='rejected', decided_by=? WHERE id=?",

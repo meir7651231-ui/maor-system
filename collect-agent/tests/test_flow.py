@@ -28,7 +28,7 @@ def test_health_reports_dry_run(api):
     h = api.get("/health").json()
     assert h["dry_run"] is True and h["send_mode"] == "dry_run"
     assert h["channels"] == ["sms", "email"] and "whatsapp" not in str(h)
-    assert h["product"] == "גבי – תזכורות תשלום"
+    assert h["product"] == "גבי – תזכורות תשלום" and h["tagline"] == "הכסף שלך חוזר. בלי שתצטרך לרדוף."
 
 
 def test_first_message_needs_owner_approval(api, svc):
@@ -62,15 +62,18 @@ def test_first_message_needs_owner_approval(api, svc):
     assert mail["request"]["headers"]["List-Unsubscribe-Post"] == "List-Unsubscribe=One-Click"
 
 
-def test_second_reminder_auto_after_first_approved(api, svc, clock):
+def test_every_reminder_needs_individual_approval(api, svc, clock):
+    """הכרעת מאיר: אישור פרטני לכל הודעה (גם אחרי שהראשונה ללקוח אושרה)."""
     ids = first_cycle(api)
     api.post(f"/reminders/{ids[0]}/approve")
     api.post("/dispatch")
-    # שבוע אחרי — שלב 2 ללקוח שכבר אושר ⇒ לא צריך אישור
     clock.now += timedelta(days=7)
     new = api.post("/plan").json()["created"]
     r = next(x for x in api.get("/reminders").json() if x["id"] in new and x["step"] == 1)
-    assert r["status"] == "approved" and r["template_key"] == "second"
+    assert r["status"] == "pending_approval" and r["template_key"] == "plan_offer"
+    before = len(svc.sender.sent)
+    api.post("/dispatch")
+    assert len(svc.sender.sent) == before
 
 
 def test_72h_gap_and_shabbat(api, svc, clock):
@@ -82,18 +85,21 @@ def test_72h_gap_and_shabbat(api, svc, clock):
     assert api.post("/dispatch").json()["sent"] == []
 
 
-def test_final_step_always_needs_approval(api, svc, clock):
+def test_max_three_reminders_then_stop_and_notify_owner(api, svc, clock):
     ids = first_cycle(api)
     api.post(f"/reminders/{ids[0]}/approve")
     api.post("/dispatch")
-    for _ in range(3):
+    for _ in range(4):
         clock.now += timedelta(days=8)
-        api.post("/plan")
+        for i in api.post("/plan").json()["created"]:
+            if svc._invoice(svc._reminder(i)["invoice_id"])["customer_id"] == 1:
+                api.post(f"/reminders/{i}/approve")
         api.post("/dispatch")
-    sent_steps = [r["step"] for r in api.get("/reminders?status=sent_dry_run").json()]
-    assert sent_steps == [0, 1, 2]
-    finals = [r for r in api.get("/reminders").json() if r["template_key"] == "final"]
-    assert finals and finals[0]["status"] == "pending_approval"
+    rems = [r for r in api.get("/reminders").json() if r["invoice_id"] == 1]
+    assert [r["template_key"] for r in rems] == ["friendly", "plan_offer", "final"]
+    assert all(r["status"] == "sent_dry_run" for r in rems)          # אין רביעית
+    inbox = [m for m in api.get("/owner/inbox").json() if m["intent"] == "max_reminders"]
+    assert len(inbox) == 1 and "1001" in inbox[0]["body"]            # התראה אחת בלבד
 
 
 def test_opt_out_stops_everything(api, svc, clock):
@@ -358,7 +364,7 @@ def test_paid_claim_pauses_next_rounds_until_owner_resumes(api, svc, clock):
     assert api.post(f"/customers/{cid}/resume").status_code == 409
     api.post("/plan")
     rems = [r for r in api.get("/reminders").json() if r["invoice_id"] == 1]
-    assert len(rems) == 2 and rems[-1]["template_key"] == "second"
+    assert len(rems) == 2 and rems[-1]["template_key"] == "plan_offer"
 
 
 def test_dashboard_totals_and_rows(api, svc, fake_gi):
@@ -563,3 +569,71 @@ def test_promise_expired_returns_to_ladder(api, svc, clock):
     clock.now += timedelta(days=5)                       # 16.11 — עבר בלי תשלום
     assert cust1(api.post("/plan").json()["created"])
     assert any(a["action"] == "pause_expired" for a in api.get("/audit").json())
+
+
+# ───────── שער יחיד + ממצאי המבקר (סבב 3 של הבקאנד) ─────────
+def test_plan_approval_on_shabbat_waits_for_window(api, svc, clock):
+    """ממצא 2.4: אישור פריסה נשלח מיד, גם בשבת וגם ללקוח שהוסר. עכשיו: תור + שער."""
+    ids = first_cycle(api)
+    api.post(f"/reminders/{ids[0]}/approve")
+    api.post("/dispatch")
+    api.post("/inbound", json={"sender": "0501234567", "text": "אפשר פריסה ל-3 תשלומים?"})
+    pid = api.get("/plans").json()[-1]["id"]
+    before = len(svc.sender.sent)
+    clock.now = datetime(2026, 11, 14, 11, tzinfo=TZ)          # שבת
+    r = api.post(f"/plans/{pid}/approve").json()
+    assert r["queued"] is True and len(svc.sender.sent) == before
+    clock.now = datetime(2026, 11, 15, 8, 30, tzinfo=TZ)       # ראשון
+    svc.inbox.flush()
+    sent = svc.sender.sent[before:]
+    assert len(sent) == 1 and "להסרה:" in sent[0]["body"]       # ממצא 2.3.5: הסרה גם בתשובה
+
+
+def test_plan_approval_to_opted_out_customer_not_sent(api, svc):
+    ids = first_cycle(api)
+    api.post(f"/reminders/{ids[0]}/approve")
+    api.post("/inbound", json={"sender": "0501234567", "text": "אפשר פריסה?"})
+    pid = api.get("/plans").json()[-1]["id"]
+    svc._opt_out(1, "test")
+    before = len(svc.sender.sent)
+    api.post(f"/plans/{pid}/approve")
+    assert len(svc.sender.sent) == before
+
+
+def test_shared_phone_suppressed_across_customers(api, svc, fake_gi):
+    """ממצא 2.5: שני לקוחות על אותו טלפון — "הסר" מאחד חוסם את המספר גם לשני."""
+    fake_gi.docs[1]["client"]["phone"] = "050-1234567"
+    ids = first_cycle(api)
+    api.post("/inbound", json={"sender": "0501234567", "text": "הסר"})
+    for i in ids:
+        api.post(f"/reminders/{i}/approve")
+    api.post("/dispatch")
+    assert all(m["to"] != "972501234567" for m in svc.sender.sent if m["channel"] == "sms")
+
+
+def test_email_only_customers_not_merged(svc):
+    """ממצא 2.0.2: שני לקוחות בלי מזהה ובלי טלפון התמזגו ⇒ חוב של א' למייל של ב'."""
+    from datetime import date
+
+    from app.greeninvoice import Invoice
+    mk = lambda i, email: Invoice(f"d{i}", str(i), 305, 10000, "ILS", date(2026, 9, 1),  # noqa: E731
+                                  date(2026, 10, 1), "", f"לקוח {i}", "", email)
+    svc.ingest([mk(1, "a@x.com"), mk(2, "b@y.com"), mk(3, "")])
+    rows = svc.db.q("SELECT external_id, email FROM customers ORDER BY id")
+    assert [r["external_id"] for r in rows] == ["email:a@x.com", "email:b@y.com", "doc:d3"]
+    assert [r["email"] for r in rows][:2] == ["a@x.com", "b@y.com"]
+
+
+def test_non_open_status_not_ingested(svc):
+    from datetime import date
+
+    from app.greeninvoice import Invoice
+    inv = Invoice("d9", "9", 305, 10000, "ILS", date(2026, 9, 1), date(2026, 10, 1), "c9",
+                  "x", "0501234567", "", status=1)
+    assert svc.ingest([inv])["open"] == 0
+
+
+def test_missing_due_date_uses_terms_not_issue_date():
+    from app.greeninvoice import map_document
+    inv = map_document({"id": 1, "amount": 10, "documentDate": "2026-10-01", "status": 0})
+    assert inv.due.isoformat() == "2026-10-31" and inv.due_estimated is True

@@ -69,6 +69,14 @@ CREATE TABLE IF NOT EXISTS audit (
   id INTEGER PRIMARY KEY,
   at TEXT NOT NULL, actor TEXT NOT NULL, action TEXT NOT NULL, detail TEXT
 );
+-- ר-3: רשימת הסרה מגובבת (sha256 של טלפון מנורמל / מייל קטן) — חוסמת גם לקוח אחר עם אותו מספר
+CREATE TABLE IF NOT EXISTS suppressions (
+  hash TEXT PRIMARY KEY, channel TEXT NOT NULL, reason TEXT NOT NULL, created_at TEXT NOT NULL
+);
+-- הגדרות עסק (API מאומת). סודות לא נשמרים כאן — רק בסביבה/בכספת
+CREATE TABLE IF NOT EXISTS business_settings (
+  key TEXT PRIMARY KEY, value TEXT NOT NULL, updated_at TEXT NOT NULL
+);
 -- יומן ביקורת = ראיה (מחלוקת/עו"ד) ⇒ הוספה בלבד, אין עדכון ואין מחיקה
 CREATE TRIGGER IF NOT EXISTS audit_no_update BEFORE UPDATE ON audit
   BEGIN SELECT RAISE(ABORT, 'audit is append-only'); END;
@@ -104,6 +112,20 @@ class DB:
             self.conn.execute("ALTER TABLE invoices ADD COLUMN short_code TEXT")
             self.conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS ix_inv_short ON invoices(short_code)")
             self.conn.commit()
+        if "source" not in icols:  # api | csv — ר-4: CSV לא ניתן לרענון ⇒ תוקף 24 שעות מהייבוא
+            self.conn.execute("ALTER TABLE invoices ADD COLUMN source TEXT NOT NULL DEFAULT 'api'")
+            self.conn.commit()
+        # ר-12: גרסת הנוסח וגיבוב הגוף שאושרו. כל שינוי ⇒ האישור בטל
+        rcols = {r[1] for r in self.conn.execute("PRAGMA table_info(reminders)")}
+        for col, ddl in (
+                ("template_version", "ALTER TABLE reminders ADD COLUMN template_version TEXT"),
+                ("body_hash", "ALTER TABLE reminders ADD COLUMN body_hash TEXT"),
+                ("approved_hash", "ALTER TABLE reminders ADD COLUMN approved_hash TEXT"),
+                ("approved_version", "ALTER TABLE reminders ADD COLUMN approved_version TEXT"),
+                ("approved_by", "ALTER TABLE reminders ADD COLUMN approved_by TEXT")):
+            if col not in rcols:
+                self.conn.execute(ddl)
+        self.conn.commit()
         self.lock = threading.RLock()
 
     def q(self, sql: str, args: tuple = ()) -> list[sqlite3.Row]:

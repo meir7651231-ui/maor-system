@@ -136,8 +136,7 @@ def test_r3_wrong_person_engine_hides_details():
 
 
 # ───────────── ר-4 · ריענון לפני שליחה (נגד הטעיה בסכום) ─────────────
-@pytest.mark.xfail(strict=True, reason="ר-4: dispatch שולח את ה-payload שנבנה ב-plan; "
-                   "אין ריענון של החשבונית מ-GI לפני שליחה")
+# ר-4 נסגר: dispatch מרענן כל חשבונית מ-GI לפני שליחה. סכום שהשתנה ⇒ נבנה מחדש וחוזר לאישור
 def test_r4_amount_change_after_plan_is_not_sent_stale(api, svc, fake_gi):
     api.post("/sync")
     ids = api.post("/plan").json()["created"]
@@ -145,8 +144,84 @@ def test_r4_amount_change_after_plan_is_not_sent_stale(api, svc, fake_gi):
     for i in ids:
         api.post(f"/reminders/{i}/approve")
     api.post("/dispatch")
+    stale = [m for m in svc.sender.sent if m["to"] in ("972501234567", "c1@example.com")]
+    assert stale == []                                       # לא נשלח הסכום הישן
+    r = svc._reminder(ids[0])
+    assert r["status"] == "pending_approval" and r["block_reason"] == "amount_changed"
+    assert "700" in r["body"] and "1,200" not in r["body"]
+    api.post(f"/reminders/{ids[0]}/approve")                 # בעל העסק מאשר את הסכום החדש
+    api.post("/dispatch")
     sms = [m for m in svc.sender.sent if m["channel"] == "sms" and m["to"] == "972501234567"]
-    assert sms and "1,200" not in sms[0]["body"]
+    assert sms and "700" in sms[0]["body"]
+
+
+def test_r4_refresh_failure_blocks_send(api, svc, fake_gi):
+    api.post("/sync")
+    ids = api.post("/plan").json()["created"]
+    for i in ids:
+        api.post(f"/reminders/{i}/approve")
+    fake_gi.fail_refresh = True
+    api.post("/dispatch")
+    assert svc.sender.sent == []
+    assert svc._reminder(ids[0])["block_reason"] == "refresh_failed"
+    assert svc._reminder(ids[0])["status"] == "approved"     # לא אבד: נשלח כשהרענון מצליח
+    fake_gi.fail_refresh = False
+    api.post("/dispatch")
+    assert svc.sender.sent and svc._reminder(ids[0])["block_reason"] is None
+
+
+def test_r4_refresh_hits_source_for_every_send(api, svc, fake_gi):
+    api.post("/sync")
+    ids = api.post("/plan").json()["created"]
+    for i in ids:
+        api.post(f"/reminders/{i}/approve")
+    api.post("/dispatch")
+    assert fake_gi.refresh_calls == len(ids)
+
+
+def test_r4_status_closed_at_source_cancels(api, svc, fake_gi):
+    api.post("/sync")
+    ids = api.post("/plan").json()["created"]
+    for i in ids:
+        api.post(f"/reminders/{i}/approve")
+    fake_gi.docs[0]["status"] = 1                             # נסגר ב-morning (ממצא 2.10)
+    api.post("/dispatch")
+    assert all(m["to"] not in ("972501234567", "c1@example.com") for m in svc.sender.sent)
+    assert svc._reminder(ids[0])["status"] == "cancelled"
+
+
+# ר-12: שינוי בגוף או בגרסת הנוסח אחרי אישור ⇒ האישור בטל
+def test_r12_body_change_after_approval_invalidates(api, svc):
+    api.post("/sync")
+    ids = api.post("/plan").json()["created"]
+    api.post(f"/reminders/{ids[0]}/approve")
+    svc.db.x("UPDATE reminders SET payload=replace(payload, 'שלום', 'היי') WHERE id=?", (ids[0],))
+    api.post("/dispatch")
+    assert svc.sender.sent == []
+    r = svc._reminder(ids[0])
+    assert r["status"] == "pending_approval" and r["block_reason"] == "approval_invalidated"
+
+
+def test_r12_template_version_change_invalidates(api, svc, monkeypatch):
+    from app import templates as t
+    api.post("/sync")
+    ids = api.post("/plan").json()["created"]
+    api.post(f"/reminders/{ids[0]}/approve")
+    monkeypatch.setattr(t, "template_version", lambda: "ffffffffffff")
+    api.post("/dispatch")
+    assert svc.sender.sent == [] and svc._reminder(ids[0])["status"] == "pending_approval"
+
+
+def test_r12_audit_records_hash_and_version(api, svc):
+    api.post("/sync")
+    ids = api.post("/plan").json()["created"]
+    api.post(f"/reminders/{ids[0]}/approve")
+    import json as _j
+    a = next(x for x in api.get("/audit").json() if x["action"] == "approve")
+    d = _j.loads(a["detail"])
+    assert len(d["body_sha256"]) == 64 and len(d["template_version"]) == 12
+    r = svc._reminder(ids[0])
+    assert r["approved_by"] == "owner" and r["approved_hash"] == d["body_sha256"]
 
 
 def test_r4_closed_invoice_cancels_pending_reminder(api, svc, fake_gi):
@@ -267,7 +342,7 @@ def test_r12_approval_audited_with_actor_and_time(api, svc):
     assert len(rows) == len(ids) and all(r["actor"] == "owner" and r["at"] for r in rows)
 
 
-@pytest.mark.xfail(strict=True, reason="ר-12: לא נשמרת גרסת הנוסח שאושרה")
+# ר-12 נסגר: reminders.template_version/body_hash/approved_hash/approved_version/approved_by
 def test_r12_template_version_recorded(svc):
     from app.db import DB
     cols = {r["name"] for r in DB(":memory:").q("PRAGMA table_info(reminders)")}
@@ -284,13 +359,33 @@ def test_r13_unsubscribe_page_rtl_and_works(api, svc):
     assert 'dir="rtl"' in page and "הוסרתם" in page
 
 
-@pytest.mark.xfail(strict=True, reason="ר-13: עמוד ההסרה לא מציג שם עסק / למה קיבלתי / "
-                   "קישור מדיניות פרטיות")
+# ר-13 נסגר: שם העסק, למה קיבלתי, פרטיות, תווית טיוטה, פרטי מפעיל placeholder; הסרה ב-POST בלבד
 def test_r13_landing_explains_who_and_privacy(api, svc):
     _cycle(api)
     tok = svc.db.one("SELECT unsub_token FROM customers WHERE name='דנה כהן'")["unsub_token"]
     page = api.get(f"/u/{tok}").text
-    assert "סטודיו מאיר" in page and "פרטיות" in page
+    assert "סטודיו מאיר" in page and "פרטיות" in page and "קיבלתם הודעה זו כי" in page
+    assert "טיוטה – לבדיקת עו״ד" in page and "placeholder" in page
+    assert "אינה הודעה פרסומית" in page
+
+
+def test_r13_get_never_unsubscribes_and_token_is_128bit(api, svc):
+    _cycle(api)
+    c = svc.db.one("SELECT unsub_token, opted_out FROM customers WHERE name='דנה כהן'")
+    for _ in range(3):   # סורק קישורים פותח את הקישור כמה פעמים
+        api.get(f"/u/{c['unsub_token']}")
+        api.head(f"/u/{c['unsub_token']}")
+    assert svc.db.one("SELECT opted_out FROM customers WHERE name='דנה כהן'")["opted_out"] == 0
+    assert len(c["unsub_token"]) >= 21     # token_urlsafe(16) = 22 תווים (128 ביט)
+
+
+def test_r13_page_escapes_business_name(api, svc):
+    svc.s.__dict__  # noqa: B018
+    _cycle(api)
+    import dataclasses
+    svc.s = dataclasses.replace(svc.s, business_name="<script>x</script>")
+    tok = svc.db.one("SELECT unsub_token FROM customers WHERE name='דנה כהן'")["unsub_token"]
+    assert "<script>x" not in api.get(f"/u/{tok}").text
 
 
 # ───────────── ר-14 · אין החזקת כסף ─────────────

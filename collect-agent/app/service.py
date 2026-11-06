@@ -1,6 +1,7 @@
 """תזמור: סנכרון ⇒ תכנון תור ⇒ אישור בעלים ⇒ שליחה (dry-run, SMS+מייל) ⇒ מענה לתשובות."""
 from __future__ import annotations
 
+import hashlib
 import json
 import secrets
 import sqlite3
@@ -25,7 +26,7 @@ from .greeninvoice import GreenInvoiceClient, GreenInvoiceError, Invoice
 from .policy import MAX_REMINDERS_PER_INVOICE, TZ, Policy, customer_blocked, gap_ok
 
 # ימים אחרי מועד-התשלום לכל שלב
-STEP_OFFSETS_DAYS = (1, 7, 14, 30)
+STEP_OFFSETS_DAYS = (1, 7, 14)   # 3 תזכורות לכל היותר (הכרעת מאיר) ⇒ עצירה + התראה לבעל העסק
 ACTIVE = ("pending_approval", "approved")
 HARD_BLOCKS = {"no_contact", "no_payment_link", "compliance"}
 _B62 = "abcdefghijkmnpqrstuvwxyz23456789"  # אותיות קטנות+ספרות, בלי 0/o/1/l (קריא, ~31 ביט)
@@ -68,13 +69,30 @@ class CollectService:
                    json.dumps(detail, ensure_ascii=False) if detail is not None else None))
 
     # ---------- sync ----------
-    def ingest(self, invoices: list[Invoice]) -> dict[str, int]:
-        """upsert מלא. חשבונית פתוחה שנעלמה מהתוצאה ⇒ נסגרה ⇒ ביטול תזכורות פעילות."""
+    @staticmethod
+    def customer_key(inv: Invoice) -> str:
+        """ממצא מבקר 2.0.2: לקוחות בלי מזהה ובלי טלפון התמזגו ל-"phone:" ⇒ חוב של א' למייל של ב'.
+        סדר: מזהה GI ⇒ מייל ⇒ טלפון מנורמל ⇒ מזהה המסמך. לעולם לא ריק ולא משותף בטעות."""
+        if inv.client_external_id:
+            return inv.client_external_id
+        if valid_email(inv.client_email):
+            return "email:" + inv.client_email.strip().lower()
+        norm = normalize_il_phone(inv.client_phone)
+        if norm:
+            return "phone:" + norm
+        return "doc:" + inv.external_id
+
+    def ingest(self, invoices: list[Invoice], *, source: str = "api",
+               full: bool = True) -> dict[str, int]:
+        """upsert. full=True (סנכרון API מלא): חשבונית פתוחה שנעלמה ⇒ נסגרה ⇒ ביטול תזכורות.
+        ייבוא CSV חלקי (full=False) לא סוגר חשבוניות שלא הופיעו בקובץ."""
         now = _iso(self.clock())
         seen: set[str] = set()
         for inv in invoices:
+            if inv.status != 0 or inv.amount_agorot <= 0:
+                continue   # ממצא 2.10: רק «פתוח» עם יתרה חיובית הוא חוב
             seen.add(inv.external_id)
-            cust_ext = inv.client_external_id or f"phone:{inv.client_phone}"
+            cust_ext = self.customer_key(inv)
             self.db.x(
                 "INSERT INTO customers(external_id,name,phone,email,unsub_token) "
                 "VALUES(?,?,?,?,?) ON CONFLICT(external_id) DO UPDATE SET name=excluded.name, "
@@ -84,19 +102,23 @@ class CollectService:
                 "email=CASE WHEN customers.blocked_email=excluded.email THEN NULL "
                 "ELSE excluded.email END",
                 (cust_ext, inv.client_name, inv.client_phone, inv.client_email,
-                 secrets.token_urlsafe(9)))
+                 secrets.token_urlsafe(16)))   # ממצא 2.3.1: 128 ביט (היה 72)
             cid = self.db.one("SELECT id FROM customers WHERE external_id=?", (cust_ext,))["id"]
             self.db.x(
                 "INSERT INTO invoices(external_id,number,doc_type,amount_agorot,currency,issued,"
-                "due,customer_id,status,payment_url,synced_at) "
-                "VALUES(?,?,?,?,?,?,?,?, 'open', ?, ?) "
+                "due,customer_id,status,payment_url,synced_at,source) "
+                "VALUES(?,?,?,?,?,?,?,?, 'open', ?, ?, ?) "
                 "ON CONFLICT(external_id) DO UPDATE SET amount_agorot=excluded.amount_agorot, "
                 "due=excluded.due, status='open', synced_at=excluded.synced_at, "
+                "source=excluded.source, "
                 "payment_url=COALESCE(NULLIF(excluded.payment_url,''), invoices.payment_url)",
                 (inv.external_id, inv.number, inv.doc_type, inv.amount_agorot, inv.currency,
                  inv.issued.isoformat() if inv.issued else None,
-                 inv.due.isoformat() if inv.due else None, cid, inv.payment_url, now))
+                 inv.due.isoformat() if inv.due else None, cid, inv.payment_url, now, source))
         closed = 0
+        if not full:
+            self.audit("system", "import", {"source": source, "rows": len(seen)})
+            return {"open": len(seen), "closed": 0}
         for row in self.db.q("SELECT id, external_id FROM invoices WHERE status='open'"):
             if row["external_id"] not in seen:
                 self.db.x("UPDATE invoices SET status='closed', closed_at=? WHERE id=?",
@@ -174,6 +196,34 @@ class CollectService:
                                 unsubscribe_url=unsub))
         return msgs, (None if msgs else "no_contact")
 
+    # ---------- שער שליחה יחיד (ממצא מבקר 2.6 §5) ----------
+    @staticmethod
+    def addr_hash(channel: str, addr: str) -> str:
+        norm = normalize_il_phone(addr) if channel == "sms" else (addr or "").strip().lower()
+        return hashlib.sha256(f"{channel}:{norm or addr}".encode()).hexdigest()
+
+    def suppress(self, channel: str, addr: str, reason: str) -> None:
+        if not addr:
+            return
+        self.db.x("INSERT OR IGNORE INTO suppressions(hash,channel,reason,created_at) "
+                  "VALUES(?,?,?,?)", (self.addr_hash(channel, addr), channel, reason,
+                                      _iso(self.clock())))
+
+    def suppressed(self, channel: str, addr: str) -> bool:
+        return bool(addr) and self.db.one("SELECT 1 FROM suppressions WHERE hash=?",
+                                          (self.addr_hash(channel, addr),)) is not None
+
+    def gate(self, cust, channel: str, to: str, *, opt_out_ack: bool = False) -> str | None:
+        """כל הודעה יוצאת עוברת כאן: תזכורת, תשובה, אישור פריסה. None ⇒ מותר עכשיו.
+        'outside_window' ⇒ מותר מאוחר יותר (נשאר בתור); כל ערך אחר ⇒ אסור."""
+        if not self.trial()["active"]:
+            return "trial_expired"
+        if not opt_out_ack and (cust["opted_out"] or self.suppressed(channel, to)):
+            return "opted_out"
+        if self.policy.reason_closed(self.clock()):
+            return "outside_window"
+        return None
+
     # ---------- ניסיון 14 יום ----------
     def trial(self) -> dict:
         """ניסיון: בסופו התזכורות נעצרות (הנתונים נשמרים) עד הצטרפות. אין trial_start ⇒ פעיל."""
@@ -206,7 +256,10 @@ class CollectService:
                 continue  # בעל העסק דחה ⇒ אין תזכורות נוספות לחשבונית הזו
             done = self.db.one("SELECT COUNT(*) n FROM reminders WHERE invoice_id=?",
                                (r["id"],))["n"]
-            if done >= MAX_REMINDERS_PER_INVOICE or not r["due"]:
+            if done >= MAX_REMINDERS_PER_INVOICE:
+                self._notify_exhausted(r, cust)
+                continue
+            if not r["due"]:
                 continue
             due_at = datetime.combine(date.fromisoformat(r["due"]), time(10), TZ)
             if now < due_at + timedelta(days=STEP_OFFSETS_DAYS[done]):
@@ -219,19 +272,35 @@ class CollectService:
             msgs, block = self.build_messages(r, cust, step, link or "")
             if link is None:
                 block = "no_payment_link"
-            # אישור בעלים: הודעה ראשונה ללקוח, וכל "הודעה אחרונה"
-            needs = (not cust["approved_first"]) or step.key == "final" or bool(block)
+            # אישור פרטני (הכרעת מאיר, בטא = טיוטות בלבד): כל תזכורת ממתינה לאישור בעל העסק
+            payload = "[" + ",".join(message_to_json(m) for m in msgs) + "]"
             rid = self.db.x(
                 "INSERT INTO reminders(invoice_id,step,template_key,scheduled_for,status,"
-                "requires_approval,body,payload,block_reason) VALUES(?,?,?,?,?,?,?,?,?)",
-                (r["id"], done, step.key, _iso(when),
-                 "pending_approval" if needs else "approved", int(needs),
-                 msgs[0].body if msgs else "",
-                 "[" + ",".join(message_to_json(m) for m in msgs) + "]", block))
+                "requires_approval,body,payload,block_reason,template_version,body_hash) "
+                "VALUES(?,?,?,?,?,?,?,?,?,?,?)",
+                (r["id"], done, step.key, _iso(when), "pending_approval", 1,
+                 msgs[0].body if msgs else "", payload, block, templates.template_version(),
+                 _sha(payload)))
             created.append(rid)
         if created:
             self.audit("system", "plan", {"created": created})
         return created
+
+    def _notify_exhausted(self, inv_row, cust) -> None:
+        """אחרי 3 תזכורות שנשלחו והחשבונית עדיין פתוחה ⇒ עצירה + התראה אחת לבעל העסק."""
+        sent = self.db.one("SELECT COUNT(*) n FROM reminders WHERE invoice_id=? AND "
+                           "status LIKE 'sent%'", (inv_row["id"],))["n"]
+        if sent < MAX_REMINDERS_PER_INVOICE:
+            return
+        if self.db.one("SELECT 1 FROM messages WHERE intent='max_reminders' AND message_id=?",
+                       (f"inv:{inv_row['id']}",)):
+            return
+        self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
+                  "message_id,created_at) VALUES(?,'system','owner',?,'max_reminders',1,?,?)",
+                  (cust["id"], f"נשלחו {MAX_REMINDERS_PER_INVOICE} תזכורות לחשבונית "
+                   f"{inv_row['number']} ({cust['name']}) והיא עדיין פתוחה. התזכורות האוטומטיות "
+                   "נעצרו — מומלץ קשר אישי.", f"inv:{inv_row['id']}", _iso(self.clock())))
+        self.audit("system", "max_reminders_reached", {"invoice": inv_row["id"]})
 
     def preview(self, reminder_id: int) -> dict:
         r = self._reminder(reminder_id)
@@ -252,11 +321,16 @@ class CollectService:
                               "compliance": "הנוסח נחסם במסנן הניסוח (מילה אסורה/ארוך מדי) — "
                                             "יש לתקן את שם העסק או את הנוסח"
                               }[r["block_reason"]])
-        self.db.x("UPDATE reminders SET status='approved', decided_at=? WHERE id=?",
-                  (_iso(self.clock()), reminder_id))
+        h = _sha(r["payload"])
+        self.db.x("UPDATE reminders SET status='approved', decided_at=?, approved_hash=?, "
+                  "approved_version=?, approved_by=?, body_hash=? WHERE id=?",
+                  (_iso(self.clock()), h, r["template_version"] or templates.template_version(),
+                   actor, h, reminder_id))
         cid = self._invoice(r["invoice_id"])["customer_id"]
         self.db.x("UPDATE customers SET approved_first=1 WHERE id=?", (cid,))
-        self.audit(actor, "approve", {"reminder": reminder_id})
+        # ר-12: מי אישר, מתי, איזו גרסת נוסח ואיזה גוף בדיוק (גיבוב)
+        self.audit(actor, "approve", {"reminder": reminder_id, "body_sha256": h,
+                                      "template_version": r["template_version"]})
         return dict(self._reminder(reminder_id))
 
     def reject(self, reminder_id: int, actor: str = "owner") -> dict:
@@ -277,10 +351,19 @@ class CollectService:
         rows = self.db.q("SELECT * FROM reminders WHERE status='approved' AND scheduled_for<=? "
                          "ORDER BY scheduled_for", (_iso(now),))
         for r in rows:
+            # ר-12: אושר בדיוק הגוף הזה ובגרסת הנוסח הנוכחית? אחרת האישור בטל
+            if r["approved_hash"] != _sha(r["payload"]) or \
+                    (r["approved_version"] or "") != templates.template_version():
+                self._invalidate(r, "approval_invalidated")
+                continue
+            # ר-4: רענון מהמקור לפני כל שליחה; כשל ⇒ לא שולחים
+            fresh = self._refresh_before_send(r)
+            if fresh != "ok":
+                continue
+            r = self._reminder(r["id"])
             inv = self._invoice(r["invoice_id"])
             cust = self.db.one("SELECT * FROM customers WHERE id=?", (inv["customer_id"],))
-            reason = "invoice_closed" if inv["status"] != "open" else self._customer_block(
-                cust["id"])
+            reason = self._customer_block(cust["id"])
             if reason:
                 self.db.x("UPDATE reminders SET status='cancelled', block_reason=? WHERE id=?",
                           (reason, r["id"]))
@@ -290,9 +373,15 @@ class CollectService:
             ids = []
             for m in json.loads(r["payload"]):
                 msg = Message(**m)
+                if self.gate(cust, msg.channel, msg.to):
+                    continue
                 mid = self.sender.send(msg)
                 ids.append(mid)
                 self._log_out(cust["id"], msg, mid, now)
+            if not ids:
+                self.db.x("UPDATE reminders SET status='cancelled', block_reason='opted_out' "
+                          "WHERE id=?", (r["id"],))
+                continue
             self.db.x("UPDATE reminders SET status='sent_dry_run', sent_at=?, message_id=? "
                       "WHERE id=?", (_iso(now), ",".join(ids), r["id"]))
             self.db.x("UPDATE customers SET last_sent_at=? WHERE id=?", (_iso(now), cust["id"]))
@@ -300,6 +389,69 @@ class CollectService:
         if out:
             self.audit("system", "dispatch_dry_run", {"count": len(out)})
         return out
+
+    def _invalidate(self, r, why: str) -> None:
+        self.db.x("UPDATE reminders SET status='pending_approval', approved_hash=NULL, "
+                  "approved_version=NULL, approved_by=NULL, block_reason=? WHERE id=?",
+                  (why, r["id"]))
+        self.audit("system", why, {"reminder": r["id"]})
+
+    def _refresh_before_send(self, r) -> str:
+        """ר-4: הסכום, הסטטוס והקשר נבדקים מול המקור רגע לפני השליחה.
+        'ok' ⇒ אפשר לשלוח. אחרת התזכורת לא נשלחת:
+          • נסגרה/נמחקה ⇒ בוטלה · • הסכום השתנה ⇒ נבנתה מחדש וחוזרת לאישור
+          • כשל ברענון ⇒ נשארת מאושרת ולא נשלחת (block_reason=refresh_failed), ננסה שוב
+          • CSV (אין API) ⇒ תקף 24 שעות מהייבוא; אחרי כן נדרש ייבוא חדש."""
+        inv = self._invoice(r["invoice_id"])
+        if inv["status"] != "open":
+            self.db.x("UPDATE reminders SET status='cancelled', block_reason='invoice_closed' "
+                      "WHERE id=?", (r["id"],))
+            return "closed"
+        if inv["source"] == "csv":
+            synced = _dt(inv["synced_at"])
+            if synced is None or self.clock() - synced > timedelta(hours=24):
+                self._mark_refresh_failed(r, "csv_stale")
+                return "failed"
+            return "ok"
+        if self.gi is None:
+            self._mark_refresh_failed(r, "refresh_failed")
+            return "failed"
+        try:
+            doc = self.gi.get_document(inv["external_id"])
+        except KeyError:
+            doc = None
+        except Exception as e:  # noqa: BLE001 — כל כשל ברענון חוסם שליחה
+            self._mark_refresh_failed(r, "refresh_failed", str(e))
+            return "failed"
+        if doc is None or doc.status != 0 or doc.amount_agorot <= 0:
+            self.db.x("UPDATE invoices SET status='closed' WHERE id=?", (inv["id"],))
+            self._cancel_invoice(inv["id"], "invoice_closed")
+            self.db.x("UPDATE reminders SET status='cancelled', block_reason='invoice_closed' "
+                      "WHERE id=?", (r["id"],))
+            self.audit("system", "refresh_closed", {"invoice": inv["id"]})
+            return "closed"
+        self.db.x("UPDATE invoices SET synced_at=? WHERE id=?", (_iso(self.clock()), inv["id"]))
+        if doc.amount_agorot != inv["amount_agorot"]:
+            self.db.x("UPDATE invoices SET amount_agorot=? WHERE id=?",
+                      (doc.amount_agorot, inv["id"]))
+            inv = self._invoice(inv["id"])
+            cust = self.db.one("SELECT * FROM customers WHERE id=?", (inv["customer_id"],))
+            msgs, block = self.build_messages(inv, cust, templates.STEPS[r["step"]],
+                                              self._payment_link(inv) or "")
+            payload = "[" + ",".join(message_to_json(m) for m in msgs) + "]"
+            self.db.x("UPDATE reminders SET payload=?, body=?, body_hash=? WHERE id=?",
+                      (payload, msgs[0].body if msgs else "", _sha(payload), r["id"]))
+            self._invalidate(r, "amount_changed")
+            self.audit("system", "amount_changed", {"invoice": inv["id"],
+                                                    "to_agorot": doc.amount_agorot})
+            return "changed"
+        if r["block_reason"] in ("refresh_failed", "csv_stale"):
+            self.db.x("UPDATE reminders SET block_reason=NULL WHERE id=?", (r["id"],))
+        return "ok"
+
+    def _mark_refresh_failed(self, r, why: str, err: str = "") -> None:
+        self.db.x("UPDATE reminders SET block_reason=? WHERE id=?", (why, r["id"]))
+        self.audit("system", why, {"reminder": r["id"], "error": err[:200]})
 
     # ---------- inbound ----------
     def _find_customer(self, channel: str, sender: str):
@@ -410,21 +562,30 @@ class CollectService:
 
     def _opt_out(self, cid: int, how: str) -> None:
         self.db.x("UPDATE customers SET opted_out=1 WHERE id=?", (cid,))
+        c = self.db.one("SELECT phone, email FROM customers WHERE id=?", (cid,))
+        # ממצא 2.5: הסרה לפי כתובת, לא רק לפי רשומת לקוח (טלפון משותף / לקוח כפול)
+        self.suppress("sms", c["phone"] or "", how)
+        self.suppress("email", c["email"] or "", how)
         for inv in self.db.q("SELECT id FROM invoices WHERE customer_id=?", (cid,)):
             self._cancel_invoice(inv["id"], "opted_out")
         self.audit("customer", "opt_out", {"customer": cid, "via": how})
 
     def _reply(self, cust, channel: str, text: str, now: datetime) -> str | None:
+        """שליחה ביוזמת בעל העסק (למשל אישור פריסה). עוברת בשער ונושאת קישור הסרה (ממצא 2.3.5).
+        מחוץ לחלון ⇒ לא נשלחת עכשיו (None); המתקשר אחראי לתור."""
+        unsub = self.unsub_url(cust["unsub_token"]) if cust["unsub_token"] else ""
         if channel == "sms":
             to = normalize_il_phone(cust["phone"])
             if not is_il_mobile(to):
                 return None
-            msg = Message("sms", to, f"{self.s.business_name}: {text}")
+            msg = Message("sms", to, f"{self.s.business_name}: {text} להסרה: {unsub}")
         else:
             if not valid_email(cust["email"]):
                 return None
-            msg = Message("email", cust["email"], text,
-                          subject=f"תשובה מ-{self.s.business_name}")
+            msg = Message("email", cust["email"], f"{text}\n\nלהסרה מתזכורות: {unsub}",
+                          subject=f"תשובה מ-{self.s.business_name}", unsubscribe_url=unsub)
+        if self.gate(cust, channel, msg.to):
+            return None
         mid = self.sender.send(msg)
         self._log_out(cust["id"], msg, mid, now)
         return mid
@@ -578,11 +739,24 @@ class CollectService:
                 "השיבו \"מאשר\" ובעל העסק יאשר סופית.")
         self.db.x("UPDATE plans SET status='approved' WHERE id=?", (plan_id,))
         self._supersede_plan_drafts(plan_id)
-        now = self.clock()
+        # ממצא מבקר 2.4: אישור פריסה נשלח דרך תור הטיוטות ⇒ אותו שער (הסרה, שבת/חג/שעות, ניסיון)
+        # ובחלון סגור ממתין לחלון הבא במקום להישלח בשבת.
         channel = "sms" if is_il_mobile(normalize_il_phone(cust["phone"])) else "email"
-        msg = self._reply(cust, channel, text, now)
-        self.audit(actor, "plan_approved", {"plan": plan_id, "message_id": msg})
-        return {"plan_id": plan_id, "message_id": msg, "channel": channel, "text": text}
+        unsub = self.unsub_url(cust["unsub_token"]) if cust["unsub_token"] else ""
+        body = (f"{self.s.business_name}: {text} להסרה: {unsub}" if channel == "sms"
+                else f"{text}\n\nלהסרה מתזכורות: {unsub}")
+        did = self.db.x(
+            "INSERT INTO drafts(customer_id,channel,to_addr,body,intent,status,escalate,"
+            "owner_summary,owner_actions,plan_id,created_at,decided_at,decided_by) "
+            "VALUES(?,?,?,?, 'plan_offer', 'approved', 'none', ?, '[]', ?, ?, ?, ?)",
+            (cust["id"], channel, self.inbox._addr(cust, channel), body,
+             "הצעת פריסה שאושרה", plan_id, _iso(self.clock()), _iso(self.clock()), actor))
+        sent = self.inbox._try_send(did)
+        dr = self.db.one("SELECT status, message_id FROM drafts WHERE id=?", (did,))
+        self.audit(actor, "plan_approved", {"plan": plan_id, "draft": did,
+                                            "message_id": dr["message_id"]})
+        return {"plan_id": plan_id, "message_id": dr["message_id"], "channel": channel,
+                "text": text, "queued": not sent, "draft_status": dr["status"]}
 
     def _supersede_plan_drafts(self, plan_id: int) -> None:
         """אישור הפריסה ב-/plans שולח את ההצעה ללקוח, ולכן טיוטת plan_request המקבילה
@@ -616,6 +790,10 @@ class CollectService:
     def _cancel_invoice(self, iid: int, reason: str) -> None:
         self.db.x("UPDATE reminders SET status='cancelled', block_reason=? "
                   "WHERE invoice_id=? AND status IN (?,?)", (reason, iid, *ACTIVE))
+
+
+def _sha(payload: str) -> str:
+    return hashlib.sha256((payload or "").encode()).hexdigest()
 
 
 __all__ = ["CollectService", "build_dry_sender", "message_from_json"]

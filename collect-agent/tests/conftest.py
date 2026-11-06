@@ -36,6 +36,8 @@ class FakeGreenInvoice:
         self.expire_next = False
         self.forms = 0
         self.fail_forms = False
+        self.fail_refresh = False
+        self.refresh_calls = 0
 
     def handler(self, req: httpx.Request) -> httpx.Response:
         if req.url.path.endswith("/account/token"):
@@ -62,6 +64,16 @@ class FakeGreenInvoice:
             pages = max(1, -(-len(self.docs) // ps))
             return httpx.Response(200, json={"items": items, "page": page, "pages": pages,
                                              "total": len(self.docs), "pageSize": ps})
+        if req.method == "GET" and "/documents/" in req.url.path:
+            # ר-4: רענון מסמך יחיד לפני שליחה. fail_refresh ⇒ 500 (כשל רענון חוסם שליחה)
+            if not req.headers.get("authorization", "").startswith("Bearer tok"):
+                return httpx.Response(401)
+            if self.fail_refresh:
+                return httpx.Response(500)
+            self.refresh_calls += 1
+            doc_id = req.url.path.rsplit("/", 1)[1]
+            doc = next((d for d in self.docs if d["id"] == doc_id), None)
+            return httpx.Response(200, json=doc) if doc else httpx.Response(404)
         if req.url.path.endswith("/payments/form"):
             if self.fail_forms:
                 return httpx.Response(500)

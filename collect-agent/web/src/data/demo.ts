@@ -31,10 +31,10 @@ export const demoCustomers: Customer[] = [
 
 export const demoInvoices: Invoice[] = [
   { id: 'i1', number: '1042', customerId: 'c1', amount: 4680, payUrl: 'https://pay.example/i/1042', issuedAt: '2026-09-01', dueAt: '2026-10-01', status: 'reminded',
-    reminders: [{ at: '2026-10-04', step: 'friendly', channel: 'sms', status: 'delivered' }, { at: '2026-10-11', step: 'second', channel: 'sms', status: 'delivered' }] },
+    reminders: [{ at: '2026-10-04', step: 'friendly', channel: 'sms', status: 'delivered' }, { at: '2026-10-11', step: 'plan_offer', channel: 'sms', status: 'delivered' }] },
   { id: 'i2', number: '1047', customerId: 'c2', amount: 1170, payUrl: 'https://pay.example/i/1047', issuedAt: '2026-10-10', dueAt: '2026-10-25', status: 'open', reminders: [] },
   { id: 'i3', number: '1031', customerId: 'c3', amount: 12870, payUrl: 'https://pay.example/i/1031', issuedAt: '2026-07-15', dueAt: '2026-08-14', status: 'reminded',
-    reminders: [{ at: '2026-08-17', step: 'friendly', channel: 'sms', status: 'delivered' }, { at: '2026-08-24', step: 'second', channel: 'sms', status: 'delivered' }, { at: '2026-09-04', step: 'plan_offer', channel: 'sms', status: 'delivered' }] },
+    reminders: [{ at: '2026-08-17', step: 'friendly', channel: 'sms', status: 'delivered' }, { at: '2026-08-24', step: 'plan_offer', channel: 'sms', status: 'delivered' }, { at: '2026-09-04', step: 'final', channel: 'sms', status: 'delivered' }] },
   { id: 'i4', number: '1050', customerId: 'c4', amount: 2340, payUrl: 'https://pay.example/i/1050', issuedAt: '2026-10-20', dueAt: '2026-11-04', status: 'open', reminders: [] },
   { id: 'i5', number: '1044', customerId: 'c5', amount: 7020, payUrl: 'https://pay.example/i/1044', issuedAt: '2026-09-20', dueAt: '2026-10-20', status: 'promised', promisedAt: '2026-11-10',
     reminders: [{ at: '2026-10-23', step: 'friendly', channel: 'sms', status: 'replied' }], note: 'הבטיח להעביר ב-10.11' },
