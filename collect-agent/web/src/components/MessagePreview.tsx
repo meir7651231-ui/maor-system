@@ -32,8 +32,12 @@ export function MessagePreview({ invoice, onClose, now = new Date() }: { invoice
   const email = live && liveMail ? emailFromBackend(liveMail.body, liveMail.request.headers?.Subject ?? '', business.name) : mockEmail;
   const payUrl = live ? firstPayUrl(liveSms?.body ?? liveMail?.body ?? '') : invoice.payUrl;
   const seg = smsSegments(smsText);
-  const liveBody = (liveSms?.request as { body?: string } | undefined)?.body ?? '';
-  const smsSender = (live && /<source>([^<]+)<\/source>/.exec(liveBody)?.[1]) || business.smsSender;
+  // שכבת הספקים (app/integrations): 019 ב-JSON ⇒ body.sms.source; תאימות לאחור ל-XML ישן
+  const liveReq = (liveSms?.request as { body?: unknown } | undefined)?.body;
+  const liveSource = typeof liveReq === 'string'
+    ? /<source>([^<]+)<\/source>/.exec(liveReq)?.[1]
+    : (liveReq as { sms?: { source?: string } } | undefined)?.sms?.source;
+  const smsSender = (live && liveSource) || business.smsSender;
   const when = nextAllowed(now);
   const block = live ? pv?.block_reason ?? pending?.block ?? null : null;
   const sendable = live ? !!pv && !block && !busy : (on.sms || on.email) && !c.optedOut;

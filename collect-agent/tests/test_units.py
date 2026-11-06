@@ -5,11 +5,9 @@ import pytest
 from app import assistant, paylinks, plans, templates
 from app.assistant import Intent
 from app.channels import (
-    InforUSms,
+    DryRunSender,
     Message,
-    Sms019,
-    SmtpEmail,
-    TwilioSms,
+    build_adapters,
     is_il_mobile,
     normalize_il_phone,
     sms_segments,
@@ -164,22 +162,54 @@ def test_mobile_only():
 MSG = Message("sms", "972501234567", "שלום")
 
 
+def _preview(provider, msg=MSG):
+    sms, email = build_adapters(provider=provider, username="AC1" if provider == "twilio" else "u",
+                                token="supersecret", sender="Studio", email_from="a@b.co")
+    return DryRunSender(sms=sms, email=email).preview(msg)
+
+
 def test_adapters_build_requests_and_mask_secrets():
-    inf = InforUSms(username="u", token="supersecret", sender="Studio").build_request(MSG)
-    assert inf["json"]["Data"]["Recipients"][0]["Phone"] == "0501234567"
-    assert "supersecret" not in str(inf)
-    x = Sms019(username="u", token="supersecret", sender="Studio").build_request(
-        Message("sms", "972501234567", "a<b&c"))
-    assert "<message>a&lt;b&amp;c</message>" in x["body"] and "supersecret" not in str(x)
-    t = TwilioSms(token="supersecret", sender="Studio").build_request(MSG)
-    assert t["form"]["To"] == "+972501234567" and "supersecret" not in str(t)
+    """שכבה אחת: DryRunSender מציג את הבקשה של adapter ה-integrations, בלי סודות."""
+    inf = _preview("inforu")
+    assert inf["provider"] == "inforu"
+    assert inf["request"]["body"]["Data"]["Recipients"][0]["Phone"] == "0501234567"
+    x = _preview("019", Message("sms", "972501234567", "a<b&c"))
+    assert x["request"]["body"]["sms"]["message"] == "a<b&c"          # JSON — בלי escape של XML
+    assert x["request"]["url"].endswith("/api/test")                  # שלב 1: endpoint הבדיקה של 019
+    t = _preview("twilio")
+    assert t["request"]["body"]["To"] == "+972501234567"
+    for p in (inf, x, t):
+        assert "supersecret" not in str(p) and p["length"]["segments"] == 1
 
 
 def test_email_one_click_unsubscribe_header():
-    m = SmtpEmail(sender="a@b.co").build_message(
-        Message("email", "c@d.co", "x", subject="s", unsubscribe_url="https://g.example/u/t"))
-    assert m["List-Unsubscribe"] == "<https://g.example/u/t>"
-    assert m["List-Unsubscribe-Post"] == "List-Unsubscribe=One-Click"
+    m = _preview("019", Message("email", "c@d.co", "x", subject="s",
+                                unsubscribe_url="https://g.example/u/t"))
+    assert m["request"]["headers"]["List-Unsubscribe"] == "<https://g.example/u/t>"
+    assert m["request"]["headers"]["List-Unsubscribe-Post"] == "List-Unsubscribe=One-Click"
+
+
+def test_single_provider_layer():
+    """אין יותר מימוש ספק כפול ב-channels.py — הכול מגיע מ-app/integrations."""
+    import app.channels as ch
+    from app.integrations import sms as isms
+
+    assert ch.SMS_ADAPTERS["019"] is isms.Sms019 and ch.SmtpEmail.__module__ == "app.integrations.email"
+    src = open(ch.__file__, encoding="utf-8").read()
+    assert "build_request(self" not in src and "019sms.co.il" not in src
+
+
+def test_dry_sender_refuses_live_adapter():
+    import httpx
+    import pytest as _pt
+
+    from app.integrations.base import IntegrationError
+    from app.integrations.sms import Sms019
+
+    live = Sms019("u", "t", "Studio", transport=httpx.MockTransport(lambda r: httpx.Response(200)))
+    _, email = build_adapters()
+    with _pt.raises(IntegrationError):
+        DryRunSender(sms=live, email=email)
 
 
 def test_whatsapp_channel_refused():

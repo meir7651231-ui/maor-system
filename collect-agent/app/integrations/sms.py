@@ -11,7 +11,7 @@ from urllib.parse import urlencode
 
 import httpx
 
-from ..channels import normalize_il_phone
+from ..contact import normalize_il_phone
 from .base import IntegrationError, ProviderError, SendResult, SmsMessage, basic_auth
 from .http import HttpAdapter
 
@@ -116,10 +116,13 @@ class Sms019(SmsAdapter):
     provider = "019"
     URL = "https://019sms.co.il/api"
 
-    def __init__(self, username: str, api_token: str, sender: str, **kw) -> None:
+    def __init__(self, username: str, api_token: str, sender: str, *, test_endpoint: bool = False,
+                 **kw) -> None:
         super().__init__(**kw)
         if not username or not api_token:
             raise IntegrationError("019: חסרים SMS019_USERNAME/SMS019_TOKEN")
+        # ‎/api/test של 019 = מקבל ומאמת בקשה בלי לשלוח בפועל (לשלב בדיקת האינטגרציה, לאמת)
+        self.url = self.URL + ("/test" if test_endpoint else "")
         self.username, self.token, self.sender = username, api_token, validate_sender(sender)
 
     def _secrets(self):
@@ -129,7 +132,7 @@ class Sms019(SmsAdapter):
         sms = {"user": {"username": self.username}, "source": self.sender,
                "destinations": {"phone": [il_mobile_local(msg.to)]},
                "message": msg.text}
-        return httpx.Request("POST", self.URL, json={"sms": sms}, headers={
+        return httpx.Request("POST", self.url, json={"sms": sms}, headers={
             "Authorization": f"Bearer {self.token}"})
 
     def parse(self, r: httpx.Response) -> str:

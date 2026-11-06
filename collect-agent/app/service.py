@@ -9,10 +9,9 @@ from typing import Any
 
 from . import compliance, paylinks, plans, templates
 from .channels import (
-    SMS_ADAPTERS,
     DryRunSender,
     Message,
-    SmtpEmail,
+    build_adapters,
     is_il_mobile,
     message_from_json,
     message_to_json,
@@ -40,12 +39,10 @@ def _dt(s: str | None) -> datetime | None:
 
 
 def build_dry_sender(s: Settings) -> DryRunSender:
-    sms_cls = SMS_ADAPTERS[s.sms_provider]
-    if s.sms_provider == "twilio":
-        sms = sms_cls(token=s.sms_token, sender=s.sms_sender_id)
-    else:
-        sms = sms_cls(username=s.sms_username, token=s.sms_token, sender=s.sms_sender_id)
-    return DryRunSender(sms=sms, email=SmtpEmail(sender=s.email_from, reply_to=s.email_reply_to))
+    """adapters של app/integrations (שכבת הספקים היחידה) במצב dry-run."""
+    sms, email = build_adapters(provider=s.sms_provider, username=s.sms_username, token=s.sms_token,
+                                sender=s.sms_sender_id, email_from=s.email_from)
+    return DryRunSender(sms=sms, email=email, reply_to=s.email_reply_to)
 
 
 class CollectService:

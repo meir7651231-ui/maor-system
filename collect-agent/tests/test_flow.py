@@ -54,7 +54,9 @@ def test_first_message_needs_owner_approval(api, svc):
     r = api.get(f"/p/{code}/pay", follow_redirects=False)
     assert r.status_code == 302 and r.headers["location"] == "https://pay.greeninvoice.co.il/f/doc1"
     assert "https://pay.greeninvoice.co.il/f/doc1" in mail["body"]
-    assert "<source>StudioMeir</source>" in sms["request"]["body"]
+    # שכבת ספקים אחת (app/integrations): 019 ב-JSON, ל-/api/test בשלב 1, סוד מצונזר
+    assert sms["request"]["body"]["sms"]["source"] == "StudioMeir"
+    assert sms["request"]["headers"]["authorization"] == "***"
     assert sms["request"]["url"].endswith("/api/test")
     assert mail["to"] == "c1@example.com" and "1001" in mail["subject"]
     assert mail["request"]["headers"]["List-Unsubscribe-Post"] == "List-Unsubscribe=One-Click"
