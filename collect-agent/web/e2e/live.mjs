@@ -193,11 +193,12 @@ try {
   pm.on('console', x => x.type() === 'error' && errors.push('pay: ' + x.text()));
   await pm.goto(base + `/pay/${code}`);
   await pm.getByTestId('pay-amount').waitFor();
-  for (const k of ['bit', 'apple_pay', 'card']) ok(await pm.getByTestId(`pay-${k}`).count() === 1, `חסר ${k}`);
+  ok(await pm.getByTestId('pay-page').count() === 1, 'חסר כפתור התשלום');   // review חור 4
+  ok((await pm.getByTestId('pay-host').textContent()).includes('pay.example'), 'דומיין היעד לא מוצג');
   await noHScroll(pm, 'עמוד החייב מובייל');
-  const href = await pm.getByTestId('pay-bit').getAttribute('href');
+  const href = await pm.getByTestId('pay-page').getAttribute('href');
   const goPay = await rawFetch(new URL(href, base), { redirect: 'manual' });
-  ok(goPay.status === 302 && goPay.headers.get('location').startsWith('https://pay.example/'), 'Bit לא מוביל לדף התשלום המאומת');
+  ok(goPay.status === 302 && goPay.headers.get('location').startsWith('https://pay.example/'), 'הכפתור לא מוביל לדף התשלום המאומת');
   if (out) await pm.screenshot({ path: `${out}/v2-pay-mobile.png`, fullPage: true });
   await pm.getByRole('radio', { name: '4' }).click();
   await pm.getByTestId('pay-plan').click();

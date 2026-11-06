@@ -540,7 +540,7 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
             raise HTTPException(404, "לא נמצא") from None
 
     @app.get("/pay/{code}/go")
-    def pay_go(code: str, method: str = "card"):
+    def pay_go(code: str, method: str = "page"):
         try:
             url = svc.payer_go(code, method)
         except KeyError:

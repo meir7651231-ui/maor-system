@@ -167,7 +167,9 @@ test('v2: בלי וואטסאפ בדף התשלום ובדף הנחיתה; הכ�
   const pay = readFileSync(new URL('../src/pages/Pay.tsx', import.meta.url), 'utf8');
   const land = readFileSync(new URL('../src/pages/Landing.tsx', import.meta.url), 'utf8');
   assert.ok(land.includes('הכסף שלך חוזר.') && land.includes('בלי שתצטרך לרדוף.'));
-  assert.ok(['bit:', 'apple_pay:', 'card:'].every(k => pay.includes(k)), 'Bit · Apple Pay · כרטיס');
+  // review חור 4: כפתור ניטרלי + דומיין היעד; בלי לוגו/צבע של Bit או Apple ובלי «חשבונית ירוקה» קשיח
+  assert.ok(pay.includes('data-testid="pay-page"') && pay.includes('pay_host'));
+  assert.doesNotMatch(pay, /AppleLogo|Apple Pay|#00B2A9|apple_pay|דרך חשבונית ירוקה/);
   assert.doesNotMatch(pay + land, /וואטסאפ|WhatsApp/i);
 });
 

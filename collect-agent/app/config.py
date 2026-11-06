@@ -75,6 +75,11 @@ class Settings:
     payment_domains: tuple[str, ...] = ()           # ריק ⇒ ברירת המחדל של הספק (PAYMENT_PROVIDERS)
 
     def __post_init__(self) -> None:
+        # review חור 8: קישור ההסרה/התשלום הוא דרך ההסרה היחידה ב-SMS חד-כיווני ⇒ https בלבד
+        # (http = נראה כמו פישינג וניתן לשינוי בדרך). חריג יחיד: loopback להדגמה מקומית.
+        from .greeninvoice import is_loopback_url
+        if not (self.public_base_url.startswith("https://") or is_loopback_url(self.public_base_url)):
+            raise SafetyError("PUBLIC_BASE_URL חייב להיות https:// (או loopback להדגמה)")
         if self.send_mode not in ALLOWED_SEND_MODES:
             raise SafetyError(
                 f"SEND_MODE={self.send_mode!r} אסור בשלב 1 — רק dry_run. "

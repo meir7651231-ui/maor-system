@@ -92,8 +92,10 @@ export const api = {
 export interface PayerView {
   code: string; business: string; number: string; amount: string; amount_agorot: number; currency: string;
   due: string | null; open: boolean; opted_out: boolean; can_pay: boolean; methods: PayMethod[]; plan_options: number[]; dry_run: boolean;
+  pay_host?: string; pay_provider?: string;
 }
-export type PayMethod = 'bit' | 'apple_pay' | 'card';
+// review חור 4: כפתור ניטרלי אחד לעמוד התשלום של העסק (בלי Bit/Apple — סימני מסחר)
+export type PayMethod = 'page';
 export const payer = {
   view: (code: string) => j<PayerView>(`/api/pay/${encodeURIComponent(code)}`),
   act: (code: string, action: 'paid' | 'plan' | 'stop', installments?: number) =>
