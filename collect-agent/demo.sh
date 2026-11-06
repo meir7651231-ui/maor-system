@@ -151,3 +151,24 @@ assert "סודי-דמו-123".encode() not in open(snap, "rb").read(), "הגיב�
 print("✅ גיבוי מוצפן + שחזור (CLI): תוכן זהה, אין טקסט גלוי בקובץ")
 PY
 rm -rf "$BK"
+# מחיקת עסק שלם בסוף בטא (שער 8, CLI אמיתי): אין PII בקובץ אחרי, suppressions ו-audit נשארים, בלי אישור ⇒ לא נוגע
+WP="$(mktemp -d)"
+python3 - "$WP/live.db" <<'PY'
+import sys
+from app.db import DB
+db = DB(sys.argv[1])
+db.x("INSERT INTO customers(name,phone,email) VALUES('דנה-מחיקה','050-0007777','w@example.com')")
+db.x("INSERT INTO suppressions(hash,channel,reason,created_at) VALUES('h1','sms','stop','t')")
+db.conn.close()
+PY
+python3 -m app.wipe "$WP/live.db" >/dev/null 2>&1 && { echo "wipe רץ בלי --confirm"; exit 1; }
+python3 -m app.wipe "$WP/live.db" --confirm WIPE >/dev/null
+python3 - "$WP/live.db" <<'PY'
+import sqlite3, sys
+p = sys.argv[1]; c = sqlite3.connect(p)
+assert c.execute("select count(*) from customers").fetchone()[0] == 0
+assert c.execute("select count(*) from suppressions").fetchone()[0] == 1
+assert "דנה-מחיקה".encode() not in open(p, "rb").read() and b"050-0007777" not in open(p, "rb").read(), "PII נשאר בקובץ"
+print("✅ מחיקת עסק שלם (CLI): אין PII בקובץ, suppressions נשארו, בלי אישור לא נוגע")
+PY
+rm -rf "$WP"
