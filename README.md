@@ -8,7 +8,7 @@
 </picture>
 
 <p align="center">
-<a href="https://orbit-il.com/?org=demo"><img src="https://img.shields.io/badge/%D7%93%D7%9E%D7%95%20%D7%97%D7%99-orbit--il.com-47bfff?style=for-the-badge&labelColor=0d1120" alt="דמו חי: orbit-il.com"></a>
+<a href="https://orbit-il.com/?org=demo"><img src="https://img.shields.io/badge/live%20demo-orbit--il.com-47bfff?style=for-the-badge&labelColor=0d1120" alt="דמו חי: orbit-il.com"></a>
 <a href="https://github.com/meir7651231-ui/maor-system/actions/workflows/deploy.yml"><img src="https://github.com/meir7651231-ui/maor-system/actions/workflows/deploy.yml/badge.svg?branch=main" alt="סטטוס פריסה מ-main"></a>
 </p>
 <p align="center">
