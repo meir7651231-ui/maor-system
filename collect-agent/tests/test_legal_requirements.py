@@ -81,7 +81,8 @@ def test_r1_live_auto_replies_pass_filter(api, svc):
     bodies = [m["body"] for m in svc.sender.sent if m["channel"] == "sms"
               and m["to"] == "972501234567"][1:]  # בלי התזכורת עצמה
     assert bodies, "לא יצא אף מענה אוטומטי"
-    link = svc.db.one("SELECT payment_url FROM invoices WHERE number='1001'")["payment_url"]
+    # review חור 3: אין payment_url שנוצר ב-GI — הקישור הוא עמוד התשלום של העסק
+    link = svc._payment_link(svc.db.one("SELECT * FROM invoices WHERE number='1001'"))
     dana = svc.db.one("SELECT id FROM customers WHERE name='דנה כהן'")["id"]
     bad = {}
     for b in bodies:

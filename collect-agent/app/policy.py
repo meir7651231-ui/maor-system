@@ -57,7 +57,8 @@ class Policy:
         return iso in self.holidays or iso in self.builtin
 
     def window(self, d: date) -> tuple[time, time] | None:
-        if self._is_holiday(d):
+        # review/hostile-review חור 10: אחרי סוף הלוח המובנה אין לנו מידע על חגים ⇒ fail-closed
+        if self._is_holiday(d) or d > HOLIDAYS_VALID_UNTIL:
             return None
         win = WINDOWS[d.weekday()]
         if win and self._is_holiday(d + timedelta(days=1)):
@@ -68,6 +69,8 @@ class Policy:
         """למה אסור עכשיו (לתצוגה לבעל העסק), או None אם מותר."""
         local = when.astimezone(TZ)
         d = local.date()
+        if d > HOLIDAYS_VALID_UNTIL:
+            return "לוח החגים המובנה פג — יש לעדכן את policy.HOLIDAYS"
         if self._is_holiday(d):
             return f"חג ({self.builtin.get(d.isoformat(), 'חג')})"
         if d.weekday() == 5:
