@@ -32,10 +32,15 @@ def _snapshot(conn: sqlite3.Connection) -> bytes:
 
 
 def create_backup(conn: sqlite3.Connection, out: str | Path, box: SecretBox) -> Path:
+    # critic סבב 9: O_TRUNC דרס כל קובץ קיים. `create <db> <db>` או החלפת ארגומנטים
+    # (`create new.gbk collect.sqlite3`) **השמידו את ה-DB החי** (שוחזר). עכשיו: לעולם לא דורסים
+    # (O_EXCL) ולא הולכים אחרי symlink.
     out = Path(out)
+    if out.exists() or out.is_symlink():
+        raise SecretError(f"יעד הגיבוי קיים — לא דורסים: {out}")
     blob = base64.b64encode(_snapshot(conn)).decode("ascii")
     token = box.encrypt(blob, context=CONTEXT)
-    fd = os.open(out, os.O_CREAT | os.O_WRONLY | os.O_TRUNC, 0o600)
+    fd = os.open(out, os.O_CREAT | os.O_EXCL | os.O_WRONLY | getattr(os, "O_NOFOLLOW", 0), 0o600)
     with os.fdopen(fd, "w", encoding="ascii") as f:
         f.write(MAGIC + token + "\n")
     os.chmod(out, 0o600)
@@ -96,10 +101,22 @@ def snapshot_backup(conn: sqlite3.Connection, directory: str | Path, box: Secret
     return out
 
 
+def _open_source_db(path: str) -> sqlite3.Connection:
+    """המקור חייב להיות DB קיים. sqlite3.connect יוצר DB ריק בשקט, וכך החלפת ארגומנטים הפכה
+    את שם קובץ הגיבוי ל"מקור" ריק ואת ה-DB החי ל"יעד" שנדרס. פתיחה לקריאה בלבד."""
+    p = Path(path)
+    if not p.is_file():
+        raise SecretError(f"מקור הגיבוי לא קיים: {p} (הסדר: create <db> <out>)")
+    with open(p, "rb") as f:
+        if not f.read(16).startswith(b"SQLite format 3"):
+            raise SecretError(f"המקור אינו DB של SQLite: {p} (הסדר: create <db> <out>)")
+    return sqlite3.connect(f"file:{p}?mode=ro", uri=True)
+
+
 def main(argv: list[str]) -> int:
     if argv[1:2] == ["snapshot"] and len(argv) in (4, 5):
         box = SecretBox.from_env()
-        conn = sqlite3.connect(argv[2])
+        conn = _open_source_db(argv[2])
         try:
             snapshot_backup(conn, argv[3], box, int(argv[4]) if len(argv) == 5 else 14)
         finally:
@@ -111,7 +128,7 @@ def main(argv: list[str]) -> int:
         return 2
     box = SecretBox.from_env()
     if argv[1] == "create":
-        conn = sqlite3.connect(argv[2])
+        conn = _open_source_db(argv[2])
         try:
             create_backup(conn, argv[3], box)
         finally:

@@ -91,3 +91,55 @@ def test_rotation_refuses_keep_zero(tmp_path):
     from app.backup import rotate_backups
     with pytest.raises(ValueError):
         rotate_backups(tmp_path, 0)
+
+
+def _live_db(tmp_path):
+    import sqlite3 as _sq
+    db = tmp_path / "collect.sqlite3"
+    c = _sq.connect(db)
+    c.execute("CREATE TABLE t(x)")
+    c.execute("INSERT INTO t VALUES ('חשוב')")
+    c.commit()
+    c.close()
+    return db
+
+
+def _still_there(db):
+    import sqlite3 as _sq
+    return _sq.connect(db).execute("SELECT x FROM t").fetchall() == [("חשוב",)]
+
+
+def test_swapped_args_never_destroy_live_db(tmp_path, monkeypatch):
+    """critic סבב 9 (שוחזר): `create new.gbk collect.sqlite3` (סדר הפוך) ⇒ sqlite3.connect יצר
+    DB ריק משם הגיבוי, ו-O_TRUNC דרס את ה-DB החי. עכשיו: נדחה, וה-DB החי שלם."""
+    import base64 as _b64
+
+    import pytest as _pytest
+
+    from app import backup as _bk
+    from app.secretbox import SecretError as _SE
+    monkeypatch.setenv("COLLECT_MASTER_KEYS", "k1:" + _b64.b64encode(b"k" * 32).decode())
+    db = _live_db(tmp_path)
+    with _pytest.raises(_SE):
+        _bk.main(["x", "create", str(tmp_path / "new.gbk"), str(db)])
+    assert _still_there(db) and not (tmp_path / "new.gbk").exists()
+
+
+def test_backup_into_itself_or_existing_file_refused(tmp_path, monkeypatch):
+    """critic סבב 9 (שוחזר): `create collect.sqlite3 collect.sqlite3` השמיד את ה-DB."""
+    import base64 as _b64
+
+    import pytest as _pytest
+
+    from app import backup as _bk
+    from app.secretbox import SecretError as _SE
+    monkeypatch.setenv("COLLECT_MASTER_KEYS", "k1:" + _b64.b64encode(b"k" * 32).decode())
+    db = _live_db(tmp_path)
+    with _pytest.raises(_SE):
+        _bk.main(["x", "create", str(db), str(db)])
+    assert _still_there(db)
+    other = tmp_path / "other.txt"
+    other.write_text("לא לדרוס")
+    with _pytest.raises(_SE):
+        _bk.main(["x", "create", str(db), str(other)])
+    assert other.read_text() == "לא לדרוס"
