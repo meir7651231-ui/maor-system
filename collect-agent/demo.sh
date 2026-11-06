@@ -27,7 +27,7 @@ GI_LOG="$(mktemp)"
 python3 -m app.gi_mock --port "$GI_PORT" --seed demo \
   --webhook "http://127.0.0.1:${PORT}/webhooks/greeninvoice?k=${GI_WEBHOOK_KEY}" >"$GI_LOG" 2>&1 &
 GI_PID=$!
-cleanup() { kill "${PID:-}" "$GI_PID" 2>/dev/null || true; rm -f "${LOG:-}" "$GI_LOG"; }
+cleanup() { kill "${PID:-}" "$GI_PID" 2>/dev/null || true; rm -f "${LOG:-}" "$GI_LOG" "${DEMO_USER_SECRET_FILE:-}"; }
 trap cleanup EXIT INT TERM
 for _ in $(seq 1 60); do curl -s -o /dev/null "http://127.0.0.1:${GI_PORT}/api/v1/users/me" && break; sleep 0.25; done
 cat "$GI_LOG"
@@ -43,6 +43,8 @@ if [[ "${1:-}" != "--check" ]]; then
 fi
 
 LOG="$(mktemp)"
+# עובד דמו + סוד TOTP בקובץ זמני ⇒ בודקים כניסה אמיתית (מייל+סיסמה+קוד) מקצה לקצה
+export DEMO_USER_EMAIL="dana@example.co.il" DEMO_USER_PASSWORD="demo-pass-12345" DEMO_USER_SECRET_FILE="$(mktemp)"
 DEMO=1 python3 -m uvicorn app.main:_lazy_app --factory --host 127.0.0.1 --port "$PORT" --log-level warning >"$LOG" 2>&1 &
 PID=$!
 for _ in $(seq 1 60); do curl -sf "http://127.0.0.1:${PORT}/health" >/dev/null && break; sleep 0.25; done
@@ -100,6 +102,30 @@ assert pv["methods"] == ["page"] and pv["pay_host"] == "pay.example" and pv["ope
 if os.path.isfile("web/dist/index.html"):
     assert '<base href="/app/">' in get(f"/pay/{code}", {}), "עמוד החייב לא מוגש"
     print(f"✅ עמוד החייב v2: /pay/{code} ({pv['amount']})")
+# כניסת עובד מקצה לקצה: סיסמה שגויה ⇒ 401; סיסמה+קוד TOTP ⇒ טוקן סשן שעובד; יציאה ⇒ הטוקן נסגר
+sys.path.insert(0, ".")
+from app import totp
+from app.demo import DEMO_NOW  # שעון הדמו קבוע ⇒ קוד ה-TOTP נגזר ממנו
+def post(path, body, h=None):
+    rq = urllib.request.Request(base + path, data=json.dumps(body).encode(), method="POST",
+                                headers={"content-type": "application/json", **(h or {})})
+    try:
+        return 200, json.loads(urllib.request.urlopen(rq, timeout=5).read() or b"{}")
+    except urllib.error.HTTPError as e:
+        return e.code, None
+sec = open(os.environ["DEMO_USER_SECRET_FILE"]).read().strip()
+em, pw = os.environ["DEMO_USER_EMAIL"], os.environ["DEMO_USER_PASSWORD"]
+assert post("/auth/login", {"email": em, "password": "wrong-password-1", "code": totp.code_at(sec, DEMO_NOW.timestamp())})[0] == 401
+code_, res = post("/auth/login", {"email": em, "password": pw, "code": totp.code_at(sec, DEMO_NOW.timestamp())})
+assert code_ == 200 and len(res["token"]) >= 32, (code_, res)
+tok = {"Authorization": "Bearer " + res["token"]}
+assert json.loads(get("/dashboard", tok))["totals"]["open_invoices"] == 5
+post("/auth/logout", {}, tok)
+try:
+    get("/dashboard", tok); raise AssertionError("הטוקן עדיין תקף אחרי יציאה")
+except urllib.error.HTTPError as e:
+    assert e.code == 401, e.code
+print("✅ כניסת עובד (מייל+סיסמה+TOTP): כניסה, גישה ויציאה עובדים מקצה לקצה")
 d2 = json.loads(get("/dashboard"))
 assert len(d2["series"]) == 8 and d2["totals"]["collected_agorot"] > 0, d2["totals"]
 import http.client

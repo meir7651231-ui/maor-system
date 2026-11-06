@@ -179,6 +179,12 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
 
     users = Users(svc.db, svc.clock)
     require_login = os.environ.get("REQUIRE_USER_LOGIN") == "1"
+    if os.environ.get("DEMO") == "1" and os.environ.get("DEMO_USER_EMAIL"):
+        # הדגמה/CI בלבד: עובד דמו + קובץ סוד TOTP, כדי לבדוק כניסה אמיתית מקצה לקצה (demo.sh --check)
+        reg = users.create(os.environ["DEMO_USER_EMAIL"], "עובד דמו",
+                           os.environ.get("DEMO_USER_PASSWORD", ""))
+        if os.environ.get("DEMO_USER_SECRET_FILE"):
+            Path(os.environ["DEMO_USER_SECRET_FILE"]).write_text(reg["totp_secret"])
 
     def owner(request: Request) -> None:
         presented = security.bearer(request.headers.get("authorization"))
