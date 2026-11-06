@@ -41,3 +41,22 @@ jobs:
         run: python -m pytest -q
       - name: הדגמה מקצה לקצה (שרת + נתוני דמו + דשבורד, dry-run)
         run: ./demo.sh --check
+
+  web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: collect-agent/web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: collect-agent/web/package-lock.json
+      - run: npm ci --no-audit --no-fund
+      - name: בדיקות
+        run: npm test
+      - name: build (כולל typecheck)
+        run: npm run build
