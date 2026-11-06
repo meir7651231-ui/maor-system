@@ -237,6 +237,21 @@ def test_ui_page_has_slogan_and_no_whatsapp(api):
     assert "whatsapp" not in html.lower() and "וואטסאפ" not in html
 
 
+def test_dashboard_exposes_paused_customer_and_resume_button(api, svc):
+    """כפתור «חידוש» בדשבורד: שורה של לקוח מושהה נושאת customer_id+paused_reason, והחידוש משחרר אותו."""
+    first_cycle(api)
+    row = api.get("/dashboard").json()["invoices"][0]
+    cid = row["customer_id"]
+    svc.db.x("UPDATE customers SET paused_reason='paid_claim' WHERE id=?", (cid,))
+    row = next(x for x in api.get("/dashboard").json()["invoices"] if x["customer_id"] == cid)
+    assert row["paused_reason"] == "paid_claim" and row["customer_block"] == "paid_claim"
+    assert api.post(f"/customers/{cid}/resume").status_code == 200
+    row = next(x for x in api.get("/dashboard").json()["invoices"] if x["customer_id"] == cid)
+    assert row["paused_reason"] is None and row["customer_block"] is None
+    ui = api.get("/ui").text
+    assert "button.resume" in ui and "/resume" in ui
+
+
 def test_landing_draft_price_demo_link_and_no_whatsapp(api):
     """דף הנחיתה (טיוטה): מחיר השערה 119 + 14 יום, מוביל להדגמה, noindex, בלי וואטסאפ ובלי משאבים חיצוניים."""
     html = api.get("/landing").text

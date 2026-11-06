@@ -50,6 +50,7 @@ iframe{width:100%;min-height:360px;border:1px solid var(--line);border-radius:10
 @media (max-width:760px){.kpis{grid-template-columns:repeat(2,1fr)}}
 .kpi .v{font-size:22px;font-weight:800}.kpi .l{color:var(--muted);font-size:13px}
 .kpi.warn .v{color:var(--warn)}.tbl{overflow-x:auto}
+button.resume{min-height:32px;padding:4px 10px;font-size:13px;margin-top:4px}
 table{width:100%;border-collapse:collapse;font-size:14px}
 th,td{text-align:right;padding:8px;border-bottom:1px solid var(--line);white-space:nowrap}
 th{color:var(--muted);font-weight:600;font-size:12px}td.num{font-variant-numeric:tabular-nums}
@@ -104,8 +105,15 @@ async function loadDash(){
     return `<tr class="${x.status!=="open"?"closed":""}"><td>${esc(x.customer)}</td><td>${esc(x.number)}</td>
     <td class="num">${money(x.amount_agorot)}</td><td>${esc(x.due||"")}</td>
     <td class="${x.days_overdue>0?"late":""}">${x.days_overdue>0?x.days_overdue+" ימים":"—"}</td>
-    <td class="num">${x.reminders_sent}</td><td><span class="chip ${L&&L.status==="pending_approval"?"pending":""}">${esc(st)}</span></td></tr>`}).join("");
+    <td class="num">${x.reminders_sent}</td><td><span class="chip ${L&&L.status==="pending_approval"?"pending":""}">${esc(st)}</span>${
+    x.status==="open"&&x.paused_reason&&x.customer_block===x.paused_reason
+      ?` <button class="resume" data-cid="${x.customer_id}" title="בדקתם והתשלום לא התקבל? התזכורות ללקוח יחודשו">↻ חידוש תזכורות</button>`:""}</td></tr>`}).join("");
 }
+// חידוש ללקוח מושהה (למשל אחרי «שילמתי» שלא אומת): לחיצה ראשונה מחמשת, השנייה מבצעת
+$("#debts").addEventListener("click",async e=>{const b=e.target.closest("button.resume");if(!b)return;
+  if(!b.dataset.armed){b.dataset.armed="1";b.textContent="בטוח? לחצו שוב";setTimeout(()=>{if(b.isConnected){delete b.dataset.armed;b.textContent="↻ חידוש תזכורות"}},4000);return}
+  b.disabled=true;try{await api(`/customers/${b.dataset.cid}/resume`,{method:"POST"});await load()}
+  catch(err){b.disabled=false;b.textContent="שגיאה: "+err.message}});
 async function load(){
   loadDash().catch(()=>{});
   const rows=await api("/reminders");const el=$("#list");

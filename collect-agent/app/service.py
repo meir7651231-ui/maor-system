@@ -391,6 +391,7 @@ class CollectService:
             block = self._customer_block(r["customer_id"])
             rows.append({
                 "invoice_id": r["id"], "number": r["number"], "customer": r["cname"],
+                "customer_id": r["customer_id"], "paused_reason": r["paused_reason"],
                 "phone": r["cphone"], "email": r["cemail"], "amount_agorot": r["amount_agorot"],
                 "currency": r["currency"], "due": r["due"], "status": r["status"],
                 "days_overdue": (today - due).days if due and r["status"] == "open" else 0,
