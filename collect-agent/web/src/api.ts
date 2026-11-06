@@ -30,6 +30,15 @@ async function j<T>(path: string, init?: RequestInit): Promise<T> {
   return r.json() as Promise<T>;
 }
 
+/** כניסת עובד (מייל+סיסמה+TOTP) ⇒ טוקן סשן. 401 ⇒ AuthError עם ההודעה הכללית של השרת (לא מגלה מה שגוי). */
+export async function loginRequest(email: string, password: string, code: string): Promise<string> {
+  const r = await fetch(base + '/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: email.trim(), password, code: code.trim() }) });
+  if (r.status === 401 || r.status === 429) throw new AuthError(r.status === 429 ? 'יותר מדי ניסיונות. נסו שוב בעוד כמה דקות' : 'פרטי ההתחברות או קוד האימות שגויים');
+  if (!r.ok) throw new ApiError(`${r.status}`, r.status);
+  return (await r.json() as { token: string }).token;
+}
+
 export interface Health { status: string; dry_run: boolean; sms_provider: string; channels: string[] }
 /** בקאנד חי? רק אם מצהיר dry_run — אחרת מסרבים להתחבר (מעקה: הממשק לא מדבר עם שרת ששולח באמת). */
 export async function detectBackend(): Promise<Health | null> {

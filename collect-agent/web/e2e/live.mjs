@@ -63,9 +63,10 @@ try {
 
   // 1) שער קוד גישה (TokenGate): בלי קוד ⇒ שער, לא נפילה שקטה למוק; קוד שגוי נדחה; הקישור מ-demo.sh (#…?token=) נכנס ונמחק מהכתובת
   await p.goto(base + '/app/#/dashboard');
-  await p.getByTestId('token-gate').waitFor();
+  await p.getByTestId('staff-login').waitFor(); // כניסת עובד היא ברירת המחדל; קוד משותף מאחורי «יש לי קוד גישה»
+  await p.getByText('יש לי קוד גישה משותף').click();
   await p.getByLabel('קוד גישה').fill('x'.repeat(40));
-  await p.getByRole('button', { name: 'כניסה' }).click();
+  await p.getByTestId('token-gate').getByRole('button', { name: 'כניסה' }).click();
   await p.getByText('הקוד לא התקבל').waitFor();
   await p.goto(base + `/app/#/dashboard?token=${TOKEN}`);
   await p.getByTestId('mode').filter({ hasText: 'מחובר לשרת גבי' }).waitFor();
@@ -191,7 +192,7 @@ try {
   ok(after.owner_name === 'נועה' && after.vat_id === '123456782', 'השמירה לא הגיעה לשרת: ' + JSON.stringify(after));
   ok(after.sms.sender === before.sms.sender && after.pay.page_url === before.pay.page_url, 'נשלחו שדות שלא שונו');
   // CSV: שורה תקינה + שורה שגויה
-  const csvBody = 'מספר חשבונית,שם לקוח,טלפון,סכום,תאריך לתשלום\n9001,לקוח CSV (דמו),050-1234567,500,2026-10-01\n9002,,abc,xx,\n';
+  const csvBody = 'מספר חשבונית,שם לקוח,טלפון,סכום,תאריך לתשלום\n9001,לקוח CSV (דמו),050-0000123,500,2026-10-01\n9002,,abc,xx,\n';
   await p.getByLabel('קובץ CSV').setInputFiles({ name: 'open.csv', mimeType: 'text/csv', buffer: Buffer.from(csvBody, 'utf8') });
   await p.getByTestId('csv-result').waitFor();
   const csvText = await p.getByTestId('csv-result').textContent();

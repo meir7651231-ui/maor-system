@@ -21,3 +21,11 @@ export function payCodeOf(pathname: string): string | null {
   const m = /^\/pay\/([A-Za-z0-9]{4,32})\/?$/.exec(pathname);
   return m ? m[1] : null;
 }
+
+/** ולידציה לטופס כניסת עובד (מייל + סיסמה + קוד 6 ספרות מאפליקציית האימות). מחזיר הודעת שגיאה או null. */
+export function loginProblem(email: string, password: string, code: string): string | null {
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return 'כתבו כתובת מייל תקינה';
+  if (password.length < 1) return 'הזינו סיסמה';
+  if (!/^\d{6}$/.test(code.trim())) return 'קוד האימות הוא 6 ספרות';
+  return null;
+}

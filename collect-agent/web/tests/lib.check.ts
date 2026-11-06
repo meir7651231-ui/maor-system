@@ -128,7 +128,7 @@ test('שעה מהשרת מוצגת בשעון ישראל, וסכומים עם א
 import { timeValue, GABI_PRICE } from '../src/lib/roi.ts';
 import * as roiMod from '../src/lib/roi.ts';
 import { toBars, cumulative, areaPath } from '../src/lib/series.ts';
-import { takeTokenFromHash, payCodeOf, TOKEN_KEY } from '../src/lib/auth.ts';
+import { takeTokenFromHash, payCodeOf, loginProblem, TOKEN_KEY } from '../src/lib/auth.ts';
 
 test('מחשבון שווי הזמן: רק זמן העבודה, בלי הבטחת תשואה (הכרעת מאיר 6.11)', () => {
   const r = timeValue({ hoursPerMonth: 4, hourlyValue: 150 });
@@ -283,4 +283,12 @@ test('ייבוא CSV: 403 של שער הבטא מוסבר בעברית ובלי 
   assert.match(explainImportError(500, 'boom'), /boom/);
   const src = readFileSync(new URL('../src/api.ts', import.meta.url), 'utf8');
   assert.match(src, /throw new ApiError\(msg, r\.status\)/, 'השרת מעביר קוד סטטוס ל-UI');
+});
+
+test('loginProblem: מייל+סיסמה+קוד 6 ספרות', () => {
+  assert.equal(loginProblem('a@b.co', 'x', '123456'), null);
+  assert.match(loginProblem('ab', 'x', '123456')!, /מייל/);
+  assert.match(loginProblem('a@b.co', '', '123456')!, /סיסמה/);
+  assert.match(loginProblem('a@b.co', 'x', '12345')!, /6 ספרות/);
+  assert.match(loginProblem('a@b.co', 'x', '12345a')!, /6 ספרות/);
 });

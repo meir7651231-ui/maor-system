@@ -4,7 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { DEMO_TODAY, demoBusiness, demoCustomers, demoInvoices } from './data/demo.ts';
 import type { Business, Channel, Customer, Invoice, Step } from './lib/domain.ts';
 import { needsReminder } from './lib/stats.ts';
-import { api, AuthError, detectBackend, fromDashboard, type Dashboard, type Health, type Draft, type OutMsg, type Plan } from './api.ts';
+import { api, loginRequest, AuthError, detectBackend, fromDashboard, type Dashboard, type Health, type Draft, type OutMsg, type Plan } from './api.ts';
 import { TOKEN_KEY, readToken } from './lib/auth.ts';
 const sessionStore = () => { try { return sessionStorage; } catch { return undefined; } };
 import type { WeekPoint } from './lib/series.ts';
@@ -27,6 +27,8 @@ interface Ctx {
   series: WeekPoint[] | null;
   /** הדבקת קוד גישה (מצב locked) ⇒ ניסיון חיבור מחדש. */
   unlock: (token: string) => Promise<boolean>;
+  /** כניסת עובד: מייל+סיסמה+קוד. מחזיר null בהצלחה, אחרת הודעת שגיאה בעברית. */
+  login: (email: string, password: string, code: string) => Promise<string | null>;
   outbox: OutMsg[];
   plans: Plan[];
   drafts: Draft[];
@@ -94,6 +96,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
       unlock: async (token: string) => {
         try { sessionStorage.setItem(TOKEN_KEY, token.trim()); } catch { /* פרטי/חסום */ }
         try { await reload(); setMode('live'); return true; } catch { return false; }
+      },
+      login: async (email: string, password: string, code: string) => {
+        let tok: string;
+        try { tok = await loginRequest(email, password, code); } catch (e) { return e instanceof Error ? e.message : 'הכניסה נכשלה'; }
+        try { sessionStorage.setItem(TOKEN_KEY, tok); } catch { /* פרטי/חסום */ }
+        try { await reload(); setMode('live'); return null; } catch { return 'הכניסה הצליחה אך הטעינה נכשלה. נסו לרענן'; }
       }, plans, drafts, notices, reload, toast, showToast, customerOf,
       queue: live ? invoices.filter(i => pendingBy.has(i.id)) : needsReminder(invoices, today),
       pendingOf: id => pendingBy.get(id),

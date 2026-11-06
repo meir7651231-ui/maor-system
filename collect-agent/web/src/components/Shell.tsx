@@ -2,6 +2,7 @@ import { useState, type ReactNode } from 'react';
 import { Logo, LogoMark } from './Logo.tsx';
 import { go, type Route } from '../router.ts';
 import { useApp } from '../store.tsx';
+import { loginProblem } from '../lib/auth.ts';
 
 const NAV: { r: Route; label: string; icon: string }[] = [
   { r: 'dashboard', label: 'סקירה', icon: '◧' },
@@ -50,6 +51,40 @@ export function Shell({ route, children }: { route: Route; children: ReactNode }
 
 /** השרת חי אבל דורש קוד גישה (401) — לא נופלים למוק בשקט, מבקשים את הקוד. */
 function TokenGate() {
+  return (
+    <div className="space-y-6">
+      <StaffLogin />
+      <details className="max-w-md mx-auto text-sm text-ink-500"><summary className="cursor-pointer text-center">יש לי קוד גישה משותף (מצב פיתוח)</summary><CodeGate /></details>
+    </div>
+  );
+}
+
+/** כניסת עובד: מייל + סיסמה + קוד 6 ספרות (TOTP). הסשן נשמר רק בלשונית. */
+function StaffLogin() {
+  const { login } = useApp();
+  const [f, setF] = useState({ email: '', password: '', code: '' });
+  const [err, setErr] = useState('');
+  const [busy, setBusy] = useState(false);
+  const inp = 'w-full h-11 rounded-xl border border-ink-200 px-3.5';
+  return (
+    <form className="max-w-md mx-auto mt-10 bg-white rounded-2xl shadow-card p-6 space-y-4" data-testid="staff-login" noValidate
+      onSubmit={async e => {
+        e.preventDefault(); setErr('');
+        const p = loginProblem(f.email, f.password, f.code); if (p) { setErr(p); return; }
+        setBusy(true); const m = await login(f.email, f.password, f.code); setBusy(false); if (m) setErr(m);
+      }}>
+      <h1 className="text-2xl font-extrabold">🔐 כניסה לעובדים</h1>
+      <p className="text-sm text-ink-500">מייל, סיסמה וקוד בן 6 ספרות מאפליקציית האימות.</p>
+      <input value={f.email} onChange={e => setF({ ...f, email: e.target.value })} type="email" autoComplete="username" dir="ltr" aria-label="מייל" className={inp} placeholder="name@business.co.il" />
+      <input value={f.password} onChange={e => setF({ ...f, password: e.target.value })} type="password" autoComplete="current-password" aria-label="סיסמה" className={inp} placeholder="סיסמה" />
+      <input value={f.code} onChange={e => setF({ ...f, code: e.target.value.replace(/\D/g, '').slice(0, 6) })} inputMode="numeric" autoComplete="one-time-code" dir="ltr" aria-label="קוד אימות" className={inp + ' num'} placeholder="000000" />
+      {err && <p role="alert" className="text-critical text-sm font-bold">{err}</p>}
+      <button className="w-full h-11 rounded-xl bg-brand text-ink-900 font-bold" disabled={busy}>{busy ? 'נכנסים…' : 'כניסה'}</button>
+    </form>
+  );
+}
+
+function CodeGate() {
   const { unlock } = useApp();
   const [v, setV] = useState('');
   const [err, setErr] = useState('');
