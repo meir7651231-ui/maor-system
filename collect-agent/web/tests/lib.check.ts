@@ -125,17 +125,22 @@ test('שעה מהשרת מוצגת בשעון ישראל, וסכומים עם א
 
 
 // ───────── עיצוב v2 ─────────
-import { roi, GABI_PRICE } from '../src/lib/roi.ts';
+import { timeValue, GABI_PRICE } from '../src/lib/roi.ts';
+import * as roiMod from '../src/lib/roi.ts';
 import { toBars, cumulative, areaPath } from '../src/lib/series.ts';
 import { takeTokenFromHash, payCodeOf, TOKEN_KEY } from '../src/lib/auth.ts';
 
-test('מחשבון החזר: שקוף, מוגבל, ומול ₪119', () => {
-  const r = roi({ monthlyInvoiced: 40000, latePct: 25, hoursChasing: 4 });
-  assert.equal(r.lateAmount, 10000); assert.equal(r.recovered, 3000); assert.equal(r.timeSaved, 600);
-  assert.equal(r.net, 3000 + 600 - GABI_PRICE); assert.equal(r.multiple, 30.3);
-  const z = roi({ monthlyInvoiced: -5, latePct: 500, hoursChasing: 0 });
-  assert.equal(z.lateAmount, 0); assert.ok(z.net < 0, 'בלי חוב — לא ממציאים החזר');
-  assert.equal(roi({ monthlyInvoiced: NaN, latePct: NaN }).recovered, 0);
+test('מחשבון שווי הזמן: רק זמן העבודה, בלי הבטחת תשואה (הכרעת מאיר 6.11)', () => {
+  const r = timeValue({ hoursPerMonth: 4, hourlyValue: 150 });
+  assert.equal(r.timeValue, 600); assert.equal(r.price, 119); assert.equal(r.priceInHours, 0.8);
+  assert.equal(GABI_PRICE, 119);
+  const z = timeValue({ hoursPerMonth: -3, hourlyValue: NaN });
+  assert.equal(z.timeValue, 0); assert.equal(z.hours, 0);
+  assert.equal(timeValue({ hoursPerMonth: 4, hourlyValue: 0 }).priceInHours, 0);
+  // ratchet: אסור לחזור למודל "כמה כסף יחזור" — אין שיעור החזר, אין מכפיל, אין recovered
+  const keys = Object.keys(roiMod).join(',');
+  assert.ok(!/RECOVERY|roi\b/.test(keys), 'חזר מחשבון תשואה: ' + keys);
+  assert.ok(!('recovered' in r) && !('multiple' in r));
 });
 
 test('גרף גבייה: עמודות, מצטבר ונתיב SVG', () => {

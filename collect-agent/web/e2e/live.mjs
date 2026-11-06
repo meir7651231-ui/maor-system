@@ -171,12 +171,13 @@ try {
   await p.getByText('דנה לוי').first().waitFor();
   ok(await p.locator('tbody tr').count() === 5, 'ציפיתי ל-5 חשבוניות פתוחות');
 
-  // v2 · דף נחיתה: כותרת + מחשבון החזר
+  // v2 · דף נחיתה: כותרת + מחשבון שווי הזמן (בלי הבטחת תשואה — הכרעת מאיר 6.11)
   await p.goto(base + '/app/');
   ok((await p.getByTestId('hero-title').textContent()).includes('הכסף שלך חוזר'), 'כותרת v2 חסרה');
-  const roiBefore = await p.getByTestId('roi-result').textContent();
-  await p.getByTestId('roi-monthly').fill('100000');
-  ok(roiBefore !== await p.getByTestId('roi-result').textContent(), 'המחשבון לא מגיב');
+  const timeBefore = await p.getByTestId('time-result').textContent();
+  await p.getByTestId('time-hours').fill('10');
+  ok(timeBefore !== await p.getByTestId('time-result').textContent(), 'המחשבון לא מגיב');
+  ok(!/×|חוזר מוקדם|יחזור אליכם/.test(await p.getByTestId('time-result').textContent()), 'הבטחת תשואה במחשבון');
   await noHScroll(p, 'נחיתה דסקטופ');
   if (out) await fullShot(p, `${out}/v2-landing.png`);
   // /landing ⇒ הפניה מקומית ל-/app/
