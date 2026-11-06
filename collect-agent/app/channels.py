@@ -15,7 +15,9 @@ import uuid
 from dataclasses import dataclass, field
 from email.message import EmailMessage
 from typing import Any, Protocol
-from xml.sax.saxutils import escape
+
+# bandit B406 = false positive: רק בונים XML (escape לפלט), לא מפרסרים קלט
+from xml.sax.saxutils import escape  # nosec B406
 
 # ---------- טלפונים ----------
 

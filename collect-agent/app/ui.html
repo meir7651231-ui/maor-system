@@ -88,7 +88,14 @@ let sel=null;
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const money=a=>(a/100).toLocaleString("he-IL",{minimumFractionDigits:a%100?2:0,maximumFractionDigits:2})+" ₪";
-async function api(p,o){const r=await fetch(p,o);const j=await r.json().catch(()=>({}));
+// טוקן בעל העסק: נשמר רק ב-sessionStorage (נמחק בסגירת הלשונית), נשלח כ-Bearer
+const TOK="gabi_owner_token";
+function tok(){try{return sessionStorage.getItem(TOK)||""}catch(e){return ""}}
+async function api(p,o={},retry=true){
+  const r=await fetch(p,{...o,headers:{...(o.headers||{}),Authorization:"Bearer "+tok()}});
+  if(r.status===401&&retry){const t=prompt("קוד גישה של בעל העסק (OWNER_API_TOKEN):");
+    if(t){try{sessionStorage.setItem(TOK,t.trim())}catch(e){}return api(p,o,false)}}
+  const j=await r.json().catch(()=>({}));
   if(!r.ok)throw new Error(j.detail||r.status);return j}
 async function loadDash(){
   const d=await api("/dashboard");const t=d.totals;

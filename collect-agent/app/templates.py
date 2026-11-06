@@ -8,6 +8,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from html import escape
 
+from .security import sanitize_field
+
 MARKETING_WORDS = ("מבצע", "הנחה", "הטבה", "מתנה", "קופון", "חדש!", "הזדמנות", "במיוחד בשבילך")
 THREAT_WORDS = ("הוצאה לפועל", "תביעה", "משטרה", "עונש", "עו\"ד", "עורך דין", "אחרונה!")
 
@@ -62,8 +64,10 @@ def fmt_amount(agorot: int, currency: str = "ILS") -> str:
 
 def fields(*, biz: str, name: str, num: str, amount_agorot: int, currency: str,
            link: str, unsub: str) -> dict[str, str]:
-    return {"biz": biz, "name": name or "לקוח/ה יקר/ה",
-            "num": num, "amount": fmt_amount(amount_agorot, currency),
+    # שם/מספר מגיעים מחשבונית ירוקה = קלט חיצוני. CR/LF ב-Subject היה מפיל את בניית
+    # המייל (ValueError) ⇒ plan() כולו; RLO/שורות חדשות מאפשרים להסוות קישור ב-SMS.
+    return {"biz": sanitize_field(biz), "name": sanitize_field(name) or "לקוח/ה יקר/ה",
+            "num": sanitize_field(num, 30), "amount": fmt_amount(amount_agorot, currency),
             "link": link, "unsub": unsub}
 
 

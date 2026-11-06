@@ -26,12 +26,14 @@ class Intent(str, Enum):
 
 # סדר חשוב: הסרה ומחלוקת לפני הכול
 RULES: list[tuple[Intent, re.Pattern[str]]] = [
-    (Intent.OPT_OUT, re.compile(r"^\s*(הסר|הסירו|stop|תפסיקו|אל תשלחו)", re.I)),
+    # הסרה בכל מקום בהודעה ("בבקשה הסירו אותי") — לא רק בתחילתה (חוק התקשורת §30א)
+    (Intent.OPT_OUT, re.compile(r"(^|[\s,.!])ו?(הסר|הסירו|תסירו|הסרה|stop|unsubscribe|"
+                                r"תפסיקו|אל תשלחו|לא מעוניי)", re.I)),
     (Intent.DISPUTE, re.compile(r"(לא הזמנתי|טעות|לא מגיע|לא נכון|לא שלי|עו\"?ד|ערעור|תלונה)")),
     (Intent.PAID_CLAIM, re.compile(r"(שילמתי|כבר שולם|העברתי|שולם)")),
     (Intent.PLAN_REQUEST, re.compile(r"(פריסה|תשלומים|לפרוס|הסדר)")),
     (Intent.COPY_REQUEST, re.compile(r"(העתק|שלחו (את )?החשבונית|לא קיבלתי חשבונית)")),
-    (Intent.HOW_TO_PAY, re.compile(r"(איך (אפשר )?לשלם|קישור|ביט|העברה בנקאית|פרטי חשבון)")),
+    (Intent.HOW_TO_PAY, re.compile(r"(איך (אפשר )?(לשלם|משלמים|משלם)|קישור|ביט|העברה בנקאית|פרטי חשבון)")),
     (Intent.THANKS, re.compile(r"^\s*(תודה|סבבה|אוקיי|בסדר)\s*[!.]*\s*$")),
 ]
 

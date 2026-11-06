@@ -4,6 +4,7 @@
 """
 from __future__ import annotations
 
+import os
 import sqlite3
 import threading
 
@@ -68,11 +69,20 @@ CREATE TABLE IF NOT EXISTS audit (
   id INTEGER PRIMARY KEY,
   at TEXT NOT NULL, actor TEXT NOT NULL, action TEXT NOT NULL, detail TEXT
 );
+-- יומן ביקורת = ראיה (מחלוקת/עו"ד) ⇒ הוספה בלבד, אין עדכון ואין מחיקה
+CREATE TRIGGER IF NOT EXISTS audit_no_update BEFORE UPDATE ON audit
+  BEGIN SELECT RAISE(ABORT, 'audit is append-only'); END;
+CREATE TRIGGER IF NOT EXISTS audit_no_delete BEFORE DELETE ON audit
+  BEGIN SELECT RAISE(ABORT, 'audit is append-only'); END;
 """
 
 
 class DB:
     def __init__(self, path: str = ":memory:") -> None:
+        if path != ":memory:" and not path.startswith("file:"):
+            # ה-DB מכיל PII (שמות/טלפונים/סכומים) ⇒ קריאה/כתיבה לבעלים בלבד (0600)
+            os.close(os.open(path, os.O_CREAT | os.O_RDWR, 0o600))
+            os.chmod(path, 0o600)
         self.conn = sqlite3.connect(path, check_same_thread=False)
         self.conn.row_factory = sqlite3.Row
         self.conn.execute("PRAGMA foreign_keys = ON")

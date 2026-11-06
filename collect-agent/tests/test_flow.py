@@ -8,11 +8,12 @@ from app.config import SafetyError
 from app.main import create_app
 from app.policy import TZ
 from app.service import CollectService
+from tests.conftest import AUTH, OWNER_TOKEN
 
 
 @pytest.fixture
 def api(svc):
-    return TestClient(create_app(svc))
+    return TestClient(create_app(svc, owner_token=OWNER_TOKEN), headers=AUTH)
 
 
 def first_cycle(api):
@@ -192,7 +193,8 @@ def test_no_safe_payment_link_blocks(svc, gi_client, clock, fake_gi):
     from app.db import DB
     fake_gi.fail_forms = True
     s = load_settings({"PAYMENT_LINK": "https://evil.example/pay"})   # לא ברשימה המותרת
-    api = TestClient(create_app(CollectService(s, DB(":memory:"), gi=gi_client, clock=clock)))
+    api = TestClient(create_app(CollectService(s, DB(":memory:"), gi=gi_client, clock=clock),
+                                owner_token=OWNER_TOKEN), headers=AUTH)
     ids = first_cycle(api)
     assert api.get("/reminders").json()[0]["block_reason"] == "no_payment_link"
     assert api.post(f"/reminders/{ids[0]}/approve").status_code == 409
@@ -210,7 +212,11 @@ def test_payment_form_created_once(api, svc, fake_gi, clock):
 def test_unsubscribe_link_and_one_click(api, svc):
     ids = first_cycle(api)
     tok = svc.db.one("SELECT unsub_token FROM customers WHERE id=1")["unsub_token"]
-    assert api.get(f"/u/{tok}").status_code == 200
+    page = api.get(f"/u/{tok}")
+    assert page.status_code == 200 and 'method="post"' in page.text
+    # GET לבד לא מסיר (סורקי קישורים פותחים כל URL) — רק הכפתור/POST
+    assert api.get("/reminders").json()[0]["status"] == "pending_approval"
+    assert "הוסרתם" in api.post(f"/u/{tok}", headers={"accept": "text/html"}).text
     assert api.get("/reminders").json()[0]["status"] == "cancelled"
     assert api.post("/u/bogus").status_code == 404
     assert api.post(f"/reminders/{ids[0]}/approve").status_code == 409
