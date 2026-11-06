@@ -6,7 +6,6 @@ import { STEP_LABEL, STEP_ORDER, buildEmail, buildSms, nextStep, requiresApprova
 import { fmtWhen, fmtWhenIL, nextAllowed } from '../lib/policy.ts';
 import { daysOverdue, fmtIls, fmtPhone } from '../lib/format.ts';
 import { Button, LateBadge } from './ui.tsx';
-import { LogoMark } from './Logo.tsx';
 
 /** תצוגה מקדימה של התזכורת בדיוק כפי שתישלח — SMS ומייל — עם "אשר ושלח". */
 export function MessagePreview({ invoice, onClose, now = new Date() }: { invoice: Invoice; onClose: () => void; now?: Date }) {
@@ -146,7 +145,8 @@ export function MessagePreview({ invoice, onClose, now = new Date() }: { invoice
                 </div>
                 <div className="bg-ink-100 p-4">
                   <div className="bg-white rounded-xl p-5 max-w-md mx-auto">
-                    <div className="flex items-center gap-2 mb-4"><LogoMark size={22} /><span className="font-bold">{business.name}</span></div>
+                    {/* legal §3.3: בלי לוגו של גבי בהודעה ללקוח — רק זהות העסק */}
+                    <div className="flex items-center gap-2 mb-4"><span aria-hidden className="h-6 w-6 rounded-full bg-ink-200 grid place-items-center text-xs font-bold">{business.name.trim().charAt(0)}</span><span className="font-bold">{business.name}</span></div>
                     {email.paragraphs.map((p, i) => <p key={i} className="mb-2.5 leading-relaxed whitespace-pre-line">{linkify(p)}</p>)}
                     <div className="my-4 rounded-lg bg-ink-50 p-3 flex justify-between text-sm">
                       <span>חשבונית <span className="num">{invoice.number}</span></span><b>{fmtIls(invoice.amount)}</b>

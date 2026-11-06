@@ -35,7 +35,7 @@ cat "$GI_LOG"
 if [[ "${1:-}" != "--check" ]]; then
   [[ -f web/dist/index.html ]] && echo "▶ ממשק גבי (v2): http://127.0.0.1:${PORT}/app/#/dashboard?token=${OWNER_API_TOKEN}" \
     && echo "▶ דף נחיתה v2: http://127.0.0.1:${PORT}/app/  ·  עמוד החייב: http://127.0.0.1:${PORT}/pay/<קוד מה-SMS בלוג>"
-  echo "▶ דשבורד: http://127.0.0.1:${PORT}/ui  ·  דף נחיתה (טיוטה): http://127.0.0.1:${PORT}/landing"
+  echo "▶ דשבורד: http://127.0.0.1:${PORT}/ui  ·  /landing מפנה ל-/app/"
   echo "🔑 קוד גישה לדשבורד (מודבק פעם אחת בחלון שיקפוץ): ${OWNER_API_TOKEN}"
   echo "▶ חשבונית ירוקה (mock): ${GREENINVOICE_MOCK_URL}"
   DEMO=1 python3 -m uvicorn app.main:_lazy_app --factory --host 127.0.0.1 --port "$PORT" --log-level warning
@@ -89,7 +89,6 @@ except urllib.error.HTTPError as e:
     loc = e.headers.get("location")
 assert loc and loc.startswith("https://pay.example/gabi-demo"), loc
 ui = get("/ui"); assert 'id="debts"' in ui and 'id="kpis"' in ui
-la = get("/landing"); assert "₪119" in la and 'href="/ui"' in la, "דף הנחיתה לא תקין"
 import os
 if os.path.isfile("web/dist/index.html"):
     assert "גבי" in get("/app/"), "הממשק המעוצב לא מוגש ב-/app/"
@@ -102,5 +101,8 @@ if os.path.isfile("web/dist/index.html"):
     print(f"✅ עמוד החייב v2: /pay/{code} ({pv['amount']})")
 d2 = json.loads(get("/dashboard"))
 assert len(d2["series"]) == 8 and d2["totals"]["collected_agorot"] > 0, d2["totals"]
+import http.client
+hc = http.client.HTTPConnection("127.0.0.1", int(sys.argv[1]), timeout=5); hc.request("GET", "/landing")
+loc = hc.getresponse().getheader("location"); assert loc in ("/app/", "/ui"), f"/landing לא מפנה: {loc}"
 print(f"✅ בדיקת ההדגמה עברה: {t}")
 PY

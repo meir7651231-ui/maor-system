@@ -1,4 +1,4 @@
-"""FastAPI — "גבי – העוזר לגביית חובות".
+"""FastAPI — "גבי – תזכורות תשלום".
 
 הפעלה: uvicorn app.main:_lazy_app --factory (dry-run בלבד).
 """
@@ -24,7 +24,6 @@ from .service import CollectService
 from .templates import SLOGAN
 
 UI_HTML = (Path(__file__).parent / "ui.html").read_text(encoding="utf-8")
-LANDING_HTML = (Path(__file__).parent / "landing.html").read_text(encoding="utf-8")  # טיוטה, noindex
 
 
 MAX_WEBHOOK_BODY = 16 * 1024
@@ -98,6 +97,7 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
     app = FastAPI(title=SLOGAN + " (dry-run)", docs_url="/docs" if docs else None,
                   redoc_url=None, openapi_url="/openapi.json" if docs else None)
     app.state.svc = svc
+    web_dist = Path(os.environ.get("WEB_DIST", Path(__file__).resolve().parent.parent / "web" / "dist"))
 
     @app.middleware("http")
     async def security_headers(request: Request, call_next):
@@ -144,9 +144,12 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
     def ui():
         return UI_HTML
 
-    @app.get("/landing", response_class=HTMLResponse)
+    # הכרעת מאיר 6.11: הדף המעוצב ב-/app/ הוא דף הנחיתה היחיד. /landing = הפניה מקומית בלבד
+    # (התוכן הייחודי שלו הועבר ל-web/src/pages/Landing.tsx). בלי build — נופלים ל-/ui.
+    @app.get("/landing")
     def landing():
-        return LANDING_HTML
+        built = (web_dist / "index.html").is_file()
+        return RedirectResponse("/app/" if built else "/ui", status_code=307)
 
     @app.post("/sync", dependencies=auth)
     def sync():

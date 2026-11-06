@@ -1,6 +1,6 @@
 // מחשבון החזר (דף הנחיתה v2). טהור — נבדק ב-tests/lib.check.ts.
 // ⚠️ הערכה, לא הבטחה: שיעור ההחזר הוא השערת מוצר שמוצגת למשתמש כפרמטר, לא נתון מדוד.
-export const GABI_PRICE = 119;          // ₪ לחודש, לפני מע״מ (השערת תמחור, הנחיית מנהל 6.11)
+export const GABI_PRICE = 119;          // ₪ לחודש, כולל מע״מ ככל שחל (הכרעת מאיר 6.11; או ₪1,190 לשנה)
 export const DEFAULT_RECOVERY = 0.3;    // השערה: 30% מהחוב שבאיחור חוזר מוקדם יותר בזכות תזכורות
 
 export interface RoiInput { monthlyInvoiced: number; latePct: number; recovery?: number; hourlyValue?: number; hoursChasing?: number }

@@ -3,19 +3,19 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>גבי – תור אישורים</title>
+<title>גבי – תזכורות תשלום</title>
 <style>
-:root{--bg:#f6f7f9;--card:#fff;--ink:#111827;--muted:#6b7280;--line:#e5e7eb;--brand:#0f766e;
---brand-ink:#fff;--warn:#b45309;--warn-bg:#fef3c7;--bad:#b91c1c;--sms:#e7f6f3;--chip:#eef2f7}
+:root{--bg:#FBF8F1;--card:#fff;--ink:#0F172A;--muted:#64748B;--line:#e5e7eb;--brand:#10B981;
+--brand-ink:#0F172A;--warn:#b45309;--warn-bg:#fef3c7;--bad:#b91c1c;--sms:#e7f6f3;--chip:#eef2f7}
 @media (prefers-color-scheme:dark){:root{--bg:#0b1220;--card:#121a2b;--ink:#e5e7eb;--muted:#9aa4b2;
---line:#243049;--brand:#2dd4bf;--brand-ink:#04211d;--warn:#fbbf24;--warn-bg:#3a2a06;--bad:#f87171;
+--line:#243049;--brand:#10B981;--brand-ink:#0F172A;--warn:#fbbf24;--warn-bg:#3a2a06;--bad:#f87171;
 --sms:#10332e;--chip:#1b2540}}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);
-font:15px/1.5 system-ui,-apple-system,"Segoe UI",Arial,sans-serif}
+font:15px/1.5 Heebo,Rubik,system-ui,-apple-system,"Segoe UI",Arial,sans-serif}
 header{padding:16px;border-bottom:1px solid var(--line);background:var(--card);display:flex;
 flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
-.brand{display:flex;gap:10px;align-items:center}.logo{width:36px;height:36px;border-radius:10px;
-background:var(--brand);color:var(--brand-ink);display:grid;place-items:center;font-weight:800}
+.brand{display:flex;gap:10px;align-items:center}.logo{width:36px;height:36px;flex:none}
+.logo .eye{fill:var(--ink)}
 h1{font-size:18px;margin:0}.slogan{color:var(--muted);font-size:13px}
 .dry{background:var(--warn-bg);color:var(--warn);padding:6px 10px;border-radius:999px;
 font-size:13px;font-weight:600}
@@ -61,8 +61,8 @@ button.resume{margin-inline-start:6px;padding:4px 10px;min-height:32px;font-size
 </head>
 <body>
 <header>
-  <div class="brand"><div class="logo">ג</div>
-    <div><h1>גבי</h1><div class="slogan">גבי – העוזר לגביית חובות</div></div></div>
+  <div class="brand"><svg class="logo" viewBox="0 0 64 64" aria-hidden="true"><path d="M22 13h12a4 4 0 0 1 4 4v20" fill="none" stroke="#10B981" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><path d="M38 37l-11 9" fill="none" stroke="#10B981" stroke-width="7" stroke-linecap="round"/><path d="M14 50q18 12 36 0" fill="none" stroke="#10B981" stroke-width="5" stroke-linecap="round"/><circle class="eye" cx="48" cy="21" r="4.5"/></svg>
+    <div><h1>גבי</h1><div class="slogan">גבי – תזכורות תשלום</div></div></div>
   <span class="dry">מצב בדיקה: אף הודעה לא נשלחת באמת</span>
   <div class="actions">
     <button id="btnSync">סנכרון חשבונית ירוקה</button>
