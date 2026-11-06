@@ -81,7 +81,10 @@ def test_r1_live_auto_replies_pass_filter(api, svc):
               and m["to"] == "972501234567"][1:]  # בלי התזכורת עצמה
     assert bodies, "לא יצא אף מענה אוטומטי"
     link = svc.db.one("SELECT payment_url FROM invoices WHERE number='1001'")["payment_url"]
-    rules = compliance.Rules(business="סטודיו מאיר", payment_link=link or "")
+    tok = svc.db.one("SELECT unsub_token FROM customers WHERE name='דנה כהן'")["unsub_token"]
+    # מותר: קישור התשלום + עמוד ההסרה (§3.1 סעיף 5) — ההסרה מצורפת לכל תשובה
+    rules = compliance.Rules(business="סטודיו מאיר", payment_link=link or "",
+                             unsubscribe_url=svc.unsub_url(tok) if tok else "")
     bad = {b: compliance.violations(b, rules) for b in bodies}
     assert all(not v for v in bad.values()), bad
 

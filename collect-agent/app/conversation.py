@@ -52,6 +52,7 @@ class Intent(str, Enum):
     WHO_IS_THIS = "who_is_this"      # מי זה? על מה?
     ABUSIVE = "abusive"              # קללות
     THANKS = "thanks"                # תודה / קיבלתי
+    MINOR = "minor"                  # קטין עונה (ר-6) — לא מנהלים איתו שיחה על חוב
     UNKNOWN = "unknown"
 
 
@@ -362,6 +363,13 @@ RX: dict[Intent, re.Pattern[str]] = {
            "חרא", "חארות", "לעזאזל", "לכו לעזאזל", "תמותו", "שרמוטה", "שרמוטות", "כוס אמק", "כוסאמק", "כוס אמא שלך", "אידיוט", "אידיוטים",
            "מטומטם", "מטומטמים", "טמבל", "טמבלים", "דביל", "דבילים", "מפגר", "מפגרים", "אפסים", "נוכלים", "נוכל", "גנבים", "גנב", "רמאים", "חלאות", "חלאה", "סתום", "תסתום"),
         r"\bf+u+c+k", r"\bidiot", r"\bscam"),
+    Intent.MINOR: _rx(
+        r"אני (?:רק )?(?:קטין|קטינה|ילד|ילדה|נער|נערה)(?![\w])",
+        r"אני (?:בן|בת) (?:1[0-7]|[5-9]|" + "|".join(("חמש", "שש", "שבע", "שמונה", "תשע", "עשר", "אחת עשרה",
+                                                      "שתים עשרה", "שלוש עשרה", "ארבע עשרה", "חמש עשרה",
+                                                      "שש עשרה", "שבע עשרה", "עשרה")) + r")(?![\d\w])",
+        r"אני (?:ב|תלמיד\w* ב)כיתה [א-י](?:'|׳)?(?![\w])", r"אני (?:עדיין )?ב(?:בית ספר|תיכון|חטיבה)",
+        r"\bi'?m (?:1[0-7]|a minor)\b"),
     Intent.THANKS: _rx(
         r"^\W*(?:(?:תודה|תודה רבה|תודהה|תנקס|thanks|thank you|תודה על העדכון|קיבלתי|קיבלנו|סבבה|אחלה|"
         r"אוקיי|אוקי|ok|בסדר|בסדר גמור|מעולה|יופי|👍|🙏|רשמתי|ראיתי|טוב|רבה|גמור|לכם|לך|יום טוב|שבוע טוב)\W*)+$"),
@@ -372,7 +380,7 @@ STATEFUL = {Intent.PLAN_ACCEPT, Intent.PLAN_REJECT}
 
 # סדר עדיפות לכוונה העיקרית (קובע את נוסח התשובה)
 PRIORITY: tuple[Intent, ...] = (
-    Intent.DISTRESS, Intent.OPT_OUT, Intent.WRONG_PERSON, Intent.LEGAL, Intent.DISPUTE,
+    Intent.DISTRESS, Intent.MINOR, Intent.OPT_OUT, Intent.WRONG_PERSON, Intent.LEGAL, Intent.DISPUTE,
     Intent.PAID_CLAIM, Intent.PLAN_ACCEPT, Intent.PLAN_REJECT, Intent.PLAN_REQUEST,
     Intent.CANT_PAY, Intent.PROMISE, Intent.COPY_REQUEST, Intent.HOW_TO_PAY, Intent.CALLBACK,
     Intent.WHO_IS_THIS, Intent.ABUSIVE, Intent.THANKS, Intent.UNKNOWN,
@@ -694,6 +702,10 @@ def _numbers(ctx: Context) -> str:
 def respond(text: str, ctx: Context, *, llm: LLMClassifier | None = None,
             drafter: LLMDrafter | None = None) -> Decision:
     t = normalize(text)
+    lang = foreign_language(text)
+    if lang:
+        # ערבית/רוסית: אין הבטחת תמיכה — עוצרים אוטומציה ומעבירים לבעל העסק, בלי ניחוש ובלי LLM
+        return _foreign(lang, text, ctx)
     intents = detect(text, ctx)
     confidence = "rules"
     if intents == [Intent.UNKNOWN] and llm is not None and t:
@@ -734,6 +746,31 @@ def respond(text: str, ctx: Context, *, llm: LLMClassifier | None = None,
     return d
 
 
+_ARABIC = re.compile("[\u0600-\u06FF\u0750-\u077F]")
+_CYRILLIC = re.compile("[\u0400-\u04FF]")
+_HEB = re.compile("[\u05D0-\u05EA]")
+
+
+def foreign_language(text: str) -> str | None:
+    """'ar' / 'ru' כשרוב האותיות בכתב ערבי/קירילי, אחרת None."""
+    ar, ru = len(_ARABIC.findall(text or "")), len(_CYRILLIC.findall(text or ""))
+    he = len(_HEB.findall(text or ""))
+    if max(ar, ru) == 0 or max(ar, ru) < he:
+        return None
+    return "ar" if ar >= ru else "ru"
+
+
+def _foreign(lang: str, text: str, ctx: Context) -> Decision:
+    name = ctx.customer_name or "הלקוח/ה"
+    label = {"ar": "ערבית", "ru": "רוסית"}[lang]
+    return Decision(
+        intent=Intent.UNKNOWN, secondary=(), reply=None, auto_send=False,
+        escalate=Escalation.NORMAL, stop=Stop.PAUSE, pause_until=None, next_state=State.AWAITING_OWNER,
+        owner_summary=f"🌐 {name} השיב/ה ב{label}: \"{_clip(text)}\". האוטומציה נעצרה; נדרש מענה אישי.",
+        owner_actions=("לקרוא/לתרגם ולהשיב אישית", "לחדש תזכורות רק אחרי שבירור"),
+        tags=("foreign_language", f"lang:{lang}"), confidence="none")
+
+
 def _esc_rank(e: Escalation) -> int:
     return {Escalation.NONE: 0, Escalation.NORMAL: 1, Escalation.URGENT: 2}[e]
 
@@ -768,6 +805,9 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
             stop = s
 
     # ── השפעות מכל הכוונות (איחוד) ──
+    if Intent.MINOR in allset:
+        bump(Escalation.URGENT, Stop.PAUSE)
+        tags += ["minor", "sensitive"]
     if Intent.DISTRESS in allset:
         bump(Escalation.URGENT, Stop.PAUSE)
         tags.append("sensitive")
@@ -792,7 +832,7 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
         if _s(r"פשיטת רגל|חדלות פירעון|צו כינוס|צו פתיחת הליכים|הליך חדלות|נאמן (?:בתיק|שמונה)|כונס נכסים", t):
             tags += ["insolvency", "sensitive"]
             bump(Escalation.URGENT)
-        if _s(r"(?:הוא|היא|בעלי|אשתי|אבא|אמא|אבי|אמי|הלקוח|הלקוחה|בעל החשבון)\w*(?: שלי)? (?:נפטר|נפטרה|הלך לעולמו|הלכה לעולמה|נהרג|נהרגה)", t):
+        if _s(r"(?:הוא|היא|בעלי|אשתי|אבא|אמא|אבי|אמי|הלקוח|הלקוחה|בעל החשבון)\w*(?: שלי)?[\s,\-–]+(?:\w+[\s,]+)?(?:נפטר|נפטרה|הלך לעולמו|הלכה לעולמה|נהרג|נהרגה)", t):
             tags += ["deceased"]
             bump(Escalation.URGENT)
     if Intent.PLAN_REQUEST in allset or Intent.PLAN_ACCEPT in allset or Intent.PLAN_REJECT in allset:
@@ -806,7 +846,12 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
         bump(Escalation.NORMAL)
 
     # ── נוסח לפי הכוונה העיקרית ──
-    if primary == Intent.DISTRESS:
+    if primary == Intent.MINOR:
+        reply = None  # לא מנהלים שיחה על חוב עם קטין
+        summary = f"🔴 נראה שמי שענה במספר של {name} הוא קטין. כל האוטומציה נעצרה ולא נשלחה תשובה."
+        actions.append("לבדוק פרטי קשר נכונים של בעל החשבון; לא לפנות שוב למספר הזה בלי בירור")
+        state = State.AWAITING_OWNER
+    elif primary == Intent.DISTRESS:
         reply = (f"{hi}מצטערים מאוד לשמוע. התשלום יכול לחכות — עצרנו את כל התזכורות. "
                  f"אם קשה לכם עכשיו, ער\"ן זמינים בכל שעה בטלפון 1201.{sig}")
         summary = f"⚠️ {name} כתב/ה משהו שנשמע כמו מצוקה קשה. כל התזכורות הושהו."

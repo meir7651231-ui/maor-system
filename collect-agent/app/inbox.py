@@ -13,6 +13,7 @@ _payment_link, _log_out, audit) ומוסיף שתי טבלאות משלו (conve
 from __future__ import annotations
 
 import json
+import os
 from dataclasses import asdict, replace
 from datetime import date, datetime
 from typing import Any
@@ -32,6 +33,7 @@ from .conversation import (
     frame,
     respond,
 )
+from .llm import load_classifier
 from .policy import TZ
 
 SCHEMA = """
@@ -57,7 +59,8 @@ CREATE TABLE IF NOT EXISTS drafts (
   plan_id INTEGER,
   created_at TEXT NOT NULL,
   decided_at TEXT, decided_by TEXT, edited INTEGER NOT NULL DEFAULT 0,
-  sent_at TEXT, message_id TEXT
+  sent_at TEXT, message_id TEXT,
+  total_agorot INTEGER                -- יתרה פתוחה ברגע הניסוח (אימות סכום לפני שליחה)
 );
 """
 
@@ -71,12 +74,17 @@ def _iso(dt: datetime) -> str:
 
 
 class ConversationInbox:
-    def __init__(self, svc: Any, policy: OwnerPolicy | None = None) -> None:
+    def __init__(self, svc: Any, policy: OwnerPolicy | None = None, llm: Any = "env") -> None:
         self.svc = svc
         self.db = svc.db
         self.policy = policy or OwnerPolicy()
+        # LLM: כבוי כברירת מחדל (LLM_PROVIDER=disabled); mock בלבד; fail-closed (app/llm.py)
+        self.llm = load_classifier(os.environ) if llm == "env" else llm
         with self.db.lock:
             self.db.conn.executescript(SCHEMA)
+            cols = {r[1] for r in self.db.conn.execute("PRAGMA table_info(drafts)")}
+            if "total_agorot" not in cols:  # DB קיים מלפני העמודה
+                self.db.conn.execute("ALTER TABLE drafts ADD COLUMN total_agorot INTEGER")
 
     # ---------- קלט ----------
     def handle(self, channel: str, sender: str, text: str) -> dict:
@@ -99,7 +107,7 @@ class ConversationInbox:
         self.release_expired_pauses()
         web = channel == "web"
         ctx = self._context(cust, "sms" if web else channel)
-        d = respond(text, ctx)
+        d = respond(text, ctx, llm=self.llm)
         if web:
             d = replace(d, reply=None, auto_send=False)
         self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
@@ -172,8 +180,12 @@ class ConversationInbox:
         if d.stop == Stop.PAUSE:
             # רק הבטחה משתחררת לבד ⇒ רק לה יש תאריך בסיבה; השאר נקי לדשבורד ("paid_claim")
             auto_release = d.intent == Intent.PROMISE and d.pause_until
-            reason = d.intent.value + (f":until={d.pause_until.isoformat()}" if auto_release else "")
-            self.db.x("UPDATE customers SET paused_reason=? WHERE id=?", (reason, cid))
+            base = next((t for t in ("minor", "deceased", "insolvency") if t in d.tags), d.intent.value)
+            reason = base + (f":until={d.pause_until.isoformat()}" if auto_release else "")
+            old = (self.db.one("SELECT paused_reason FROM customers WHERE id=?", (cid,))["paused_reason"]
+                   or "")
+            if not _keeps_old_pause(old, reason):
+                self.db.x("UPDATE customers SET paused_reason=? WHERE id=?", (reason, cid))
         if d.stop != Stop.NONE:
             for inv in self.db.q("SELECT id FROM invoices WHERE customer_id=?", (cid,)):
                 self.svc._cancel_invoice(inv["id"], d.intent.value)
@@ -203,14 +215,36 @@ class ConversationInbox:
         self.db.x("UPDATE drafts SET status='superseded' WHERE customer_id=? AND "
                   "status='pending_approval' AND escalate!='urgent'", (cust["id"],))
         status = "pending_approval" if d.reply else "needs_owner"
+        body = self._with_footer(cust, channel, d.reply, d.intent.value) if d.reply else ""
         return self.db.x(
             "INSERT INTO drafts(customer_id,channel,to_addr,body,intent,status,escalate,owner_summary,"
-            "owner_actions,plan_id,created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)",
-            (cust["id"], channel, self._addr(cust, channel), d.reply or "", d.intent.value, status,
+            "owner_actions,plan_id,created_at,total_agorot) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)",
+            (cust["id"], channel, self._addr(cust, channel), body, d.intent.value, status,
              d.escalate.value,
              d.owner_summary,
              json.dumps(list(d.owner_actions), ensure_ascii=False), plan_id,
-             _iso(self.svc.clock())))
+             _iso(self.svc.clock()), self._open_total(cust["id"])))
+
+    # ---------- הסרה בכל הודעה + אימות סכום ----------
+    def _open_total(self, cid: int) -> int:
+        return self.db.one("SELECT COALESCE(SUM(amount_agorot),0) t FROM invoices "
+                           "WHERE customer_id=? AND status='open'", (cid,))["t"]
+
+    def _footer_url(self, cust) -> str:
+        if cust["unsub_token"]:
+            return self.svc.unsub_url(cust["unsub_token"])
+        inv = self.db.one("SELECT * FROM invoices WHERE customer_id=? AND status='open' "
+                          "ORDER BY due LIMIT 1", (cust["id"],))
+        return self.svc.short_url(inv) if inv else ""
+
+    def _with_footer(self, cust, channel: str, body: str, intent: str) -> str:
+        """אפשרות הסרה בכל הודעה — חוץ מאישור ההסרה עצמו ומהתנצלות למספר שגוי."""
+        if intent in (Intent.OPT_OUT.value, Intent.WRONG_PERSON.value):
+            return body
+        url = self._footer_url(cust)
+        if channel == "email":
+            return body + (f"\n\nלהפסקת הודעות: {url}" if url else "\n\nלהפסקת הודעות השיבו \"הסר\".")
+        return body + (f"\nלהפסקה: {url}" if url else " להפסקה השיבו הסר")
 
     def _save_state(self, cid: int, d: Decision, *, bump_turn: bool) -> None:
         offered = _plan_json(d.plan) if d.next_state == State.AWAITING_PLAN_REPLY and d.plan else None
@@ -263,8 +297,12 @@ class ConversationInbox:
             if not text.startswith(self.svc.s.business_name):
                 text = frame(text, replace(self._context(cust, dr["channel"]), channel=dr["channel"]))
             ctx = self._context(cust, dr["channel"])
+            url = self._footer_url(cust)
+            if (url and url not in text) or (not url and "הסר" not in text):
+                text = self._with_footer(cust, dr["channel"], text, dr["intent"])  # הסרה בכל הודעה
             bad = compliance.violations(text, compliance.Rules(
-                business=ctx.business, payment_link=ctx.payment_link, channel=dr["channel"]))
+                business=ctx.business, payment_link=ctx.payment_link, unsubscribe_url=url,
+                channel=dr["channel"]))
             if bad:
                 raise ValueError(f"הנוסח נחסם במסנן: {', '.join(bad)}")
             edited = 1
@@ -305,6 +343,15 @@ class ConversationInbox:
             self.db.x("UPDATE drafts SET status='rejected', decided_by=? WHERE id=?",
                       (f"system:{why}", draft_id))
             return False
+        now_total = self._open_total(cust["id"])
+        money = "₪" in dr["body"] or dr["plan_id"] or dr["intent"] in _MONEY_INTENTS
+        if money and dr["total_agorot"] is not None and now_total != dr["total_agorot"]:
+            # אימות סכום לפני כל שליחה: היתרה השתנתה (תשלום/עדכון) ⇒ הנוסח לא נשלח
+            self.db.x("UPDATE drafts SET status='rejected', decided_by='system:amount_changed' WHERE id=?",
+                      (draft_id,))
+            self.svc.audit("system", "draft_blocked_amount_changed",
+                           {"draft": draft_id, "was": dr["total_agorot"], "now": now_total})
+            return False
         msg = self._message(cust, dr)
         if msg is None:
             self.db.x("UPDATE drafts SET status='rejected', decided_by='system:no_address' WHERE id=?",
@@ -340,6 +387,24 @@ class ConversationInbox:
         if not r:
             raise KeyError(draft_id)
         return r
+
+
+_MONEY_INTENTS = {Intent.PLAN_REQUEST.value, Intent.PLAN_ACCEPT.value, Intent.PLAN_REJECT.value,
+                  Intent.CANT_PAY.value, Intent.HOW_TO_PAY.value, Intent.PROMISE.value,
+                  Intent.PAID_CLAIM.value}
+# השהיות "קשות": רק בעל העסק משחרר, ולא מוחלפות בסיבה רכה יותר
+_HARD_PAUSES = ("minor", "deceased", "insolvency", "distress", "legal", "dispute")
+
+
+def _keeps_old_pause(old: str, new: str) -> bool:
+    """True ⇒ לא דורסים את ההשהיה הקיימת. "שילמתי" ואחריו "אשלם בחמישי" לא יהפוך להשהיה
+    שמשתחררת לבד; קטין/פטירה/חדלות פירעון/מחלוקת לא יוחלפו בסיבה רכה."""
+    if not old:
+        return False
+    old_base, new_base = old.split(":", 1)[0], new.split(":", 1)[0]
+    if old_base in _HARD_PAUSES and new_base not in _HARD_PAUSES:
+        return True
+    return ":until=" not in old and ":until=" in new
 
 
 def _plan_json(plan: tuple[Installment, ...]) -> str:
