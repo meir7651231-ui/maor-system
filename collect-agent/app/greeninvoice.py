@@ -1,0 +1,140 @@
+"""לקוח Green Invoice (morning) — קריאה בלבד.
+
+שלב 1 משתמש רק ב:
+  POST /account/token     {id, secret} -> {token, expires}
+  POST /documents/search  פילטר סטטוס/סוג + עימוד
+
+שמות שדות לפי התיעוד הציבורי; יש לאמת מול sandbox אמיתי לפני שימוש
+(ראו docs/MVP-SPEC.md §6). המיפוי סובלני לשדות חסרים.
+"""
+from __future__ import annotations
+
+import time
+from dataclasses import dataclass
+from datetime import date
+from typing import Any, Iterator
+
+import httpx
+
+# סוגי מסמכים שמייצגים חוב פתוח (לאמת): 300 חשבון עסקה, 305 חשבונית מס
+OPEN_DEBT_TYPES = (300, 305)
+STATUS_OPEN = 0
+
+
+class GreenInvoiceError(RuntimeError):
+    pass
+
+
+@dataclass(frozen=True)
+class Invoice:
+    external_id: str
+    number: str
+    doc_type: int
+    amount_agorot: int
+    currency: str
+    issued: date | None
+    due: date | None
+    client_external_id: str
+    client_name: str
+    client_phone: str
+    client_email: str
+
+
+def _parse_date(v: Any) -> date | None:
+    if not v:
+        return None
+    try:
+        return date.fromisoformat(str(v)[:10])
+    except ValueError:
+        return None
+
+
+def _to_agorot(v: Any) -> int:
+    # עיגול חצי-למעלה על מחרוזת עשרונית — בלי שגיאות float
+    from decimal import ROUND_HALF_UP, Decimal
+
+    return int((Decimal(str(v or 0)) * 100).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
+
+
+def map_document(doc: dict[str, Any]) -> Invoice:
+    client = doc.get("client") or {}
+    emails = client.get("emails") or []
+    return Invoice(
+        external_id=str(doc.get("id", "")),
+        number=str(doc.get("number", "")),
+        doc_type=int(doc.get("type", 0) or 0),
+        amount_agorot=_to_agorot(doc.get("amountDueVat", doc.get("amount", 0))),
+        currency=str(doc.get("currency") or "ILS"),
+        issued=_parse_date(doc.get("documentDate")),
+        due=_parse_date(doc.get("dueDate")) or _parse_date(doc.get("documentDate")),
+        client_external_id=str(client.get("id", "")),
+        client_name=str(client.get("name", "")),
+        client_phone=str(client.get("phone") or client.get("mobile") or ""),
+        client_email=str(emails[0]) if emails else "",
+    )
+
+
+class GreenInvoiceClient:
+    def __init__(
+        self,
+        base_url: str,
+        api_id: str,
+        api_secret: str,
+        *,
+        transport: httpx.BaseTransport | None = None,
+        clock=time.time,
+    ) -> None:
+        if "sandbox" not in base_url:
+            # מעקה כפול מעבר ל-config: שלב 1 = sandbox בלבד
+            raise GreenInvoiceError("שלב 1: רק כתובת sandbox מותרת")
+        self._http = httpx.Client(base_url=base_url, transport=transport, timeout=20)
+        self._id = api_id
+        self._secret = api_secret
+        self._token: str | None = None
+        self._token_exp = 0.0
+        self._clock = clock
+
+    def close(self) -> None:
+        self._http.close()
+
+    def _auth(self) -> str:
+        if self._token and self._clock() < self._token_exp - 60:
+            return self._token
+        if not self._id or not self._secret:
+            raise GreenInvoiceError("חסרים GREENINVOICE_API_ID/SECRET")
+        r = self._http.post("/account/token", json={"id": self._id, "secret": self._secret})
+        if r.status_code != 200:
+            raise GreenInvoiceError(f"token נכשל: {r.status_code}")
+        body = r.json()
+        self._token = body["token"]
+        exp = body.get("expires")
+        self._token_exp = float(exp) if exp else self._clock() + 3600
+        return self._token
+
+    def search_documents(self, *, page: int = 1, page_size: int = 50,
+                         statuses=(STATUS_OPEN,), types=OPEN_DEBT_TYPES) -> dict[str, Any]:
+        payload = {"page": page, "pageSize": page_size,
+                   "status": list(statuses), "type": list(types)}
+        for attempt in range(2):
+            r = self._http.post("/documents/search", json=payload,
+                                headers={"Authorization": f"Bearer {self._auth()}"})
+            if r.status_code == 401 and attempt == 0:
+                self._token = None  # טוקן פג — לחדש פעם אחת
+                continue
+            if r.status_code != 200:
+                raise GreenInvoiceError(f"search נכשל: {r.status_code}")
+            return r.json()
+        raise GreenInvoiceError("search נכשל: 401 חוזר")
+
+    def iter_open_invoices(self, page_size: int = 50, max_pages: int = 200) -> Iterator[Invoice]:
+        page = 1
+        while page <= max_pages:
+            body = self.search_documents(page=page, page_size=page_size)
+            for doc in body.get("items", []):
+                inv = map_document(doc)
+                if inv.amount_agorot > 0:
+                    yield inv
+            pages = int(body.get("pages") or 1)
+            if page >= pages:
+                return
+            page += 1
