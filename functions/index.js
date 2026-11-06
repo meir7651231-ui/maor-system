@@ -432,7 +432,9 @@ function backupTargets(db, orgIds) {
   return [root, ...orgs];
 }
 
-exports.backupNightly = onSchedule({ schedule: 'every day 02:30', timeZone: 'Asia/Jerusalem' }, async () => {
+// 📏 G1: צילום-השורש של הלקוח-החי ≈34MB JSON (16k תורמים) — נמדד באמולטור ‏+257MB heap
+// לריצה עצמה (npm run test:backup-scale) ⇒ ברירת-המחדל 256MiB/60s הייתה נכשלת בשקט.
+exports.backupNightly = onSchedule({ schedule: 'every day 02:30', timeZone: 'Asia/Jerusalem', memory: '1GiB', timeoutSeconds: 540 }, async () => {
   const db = getFirestore();
   const bucket = getStorage().bucket();
   const today = new Date().toISOString().slice(0, 10);

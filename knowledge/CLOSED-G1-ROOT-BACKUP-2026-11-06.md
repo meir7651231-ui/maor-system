@@ -15,3 +15,8 @@ slug `root` שמור (מסונן מ-platformOrgs). BACKUP_COLLECTIONS≡ENTITY_C
 נכשל בקוד-הישן (`No such object: backups/root/…`).
 
 **דורש (מאיר):** מיזוג + פריסת Functions (`deploy-functions.yml`).
+
+## 📏 קנה-מידה (בקשת «מעקב ביצוע»)
+`npm run test:backup-scale` (אמולטור, 16,000 תורמים × 18 hist סינתטיים): צילום **33.7MB**, ריצה ~5s באמולטור,
+heap ‏26⇒283MB (**+~257MB** לגיבוי עצמו), RSS שיא ~470MB ⇒ ברירת-המחדל של Functions v2 (256MiB/60s) הייתה
+נכשלת בשקט. נקבע `memory:'1GiB', timeoutSeconds:540` ל-backupNightly (ratchet). כתיבה-בזרם לא נדרשת כעת (מרווח ~2×).

@@ -46,6 +46,10 @@ describe('🛡 G1 — גיבוי-לילה כולל את הלקוח-החי (שו�
     expect([...list].sort()).toEqual([...ENTITY_COLLECTIONS].sort());
   });
 
+  it('📏 משאבים בקנה-מידה-חי: 1GiB/540s (צילום-שורש ≈34MB, +257MB heap נמדד; ברירת-מחדל 256MiB נכשלה)', () => {
+    expect(functionsSrc).toMatch(/exports\.backupNightly = onSchedule\(\{[^}]*memory: '1GiB', timeoutSeconds: 540 \}/);
+  });
+
   it('השורש בלי meta/org מדולג (פרויקט בלי לקוח-שורש) — ארגונים לא מושפעים', () => {
     expect(sec).toContain('if (t.isRoot && !metaDoc.exists) continue;');
   });
