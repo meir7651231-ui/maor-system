@@ -1,0 +1,166 @@
+{"id": "d001", "text": "הסר", "ctx": {}, "expect": {"intent": "opt_out", "stop": "permanent", "escalate": "none", "reply": true, "state": "opted_out"}, "critical": true}
+{"id": "d002", "text": "הסירו אותי בבקשה", "ctx": {}, "expect": {"intent": "opt_out", "stop": "permanent", "escalate": "none", "reply": true, "state": "opted_out"}, "critical": true}
+{"id": "d003", "text": "STOP", "ctx": {}, "expect": {"intent": "opt_out", "stop": "permanent", "escalate": "none", "reply": true, "state": "opted_out"}, "critical": true}
+{"id": "d004", "text": "תפסיקו לשלוח לי הודעות", "ctx": {}, "expect": {"intent": "opt_out", "stop": "permanent", "escalate": "none", "reply": true, "state": "opted_out"}, "critical": true}
+{"id": "d005", "text": "אל תשלחו לי יותר הודעות", "ctx": {}, "expect": {"intent": "opt_out", "stop": "permanent", "escalate": "none", "reply": true, "state": "opted_out"}, "critical": true}
+{"id": "d006", "text": "לא מעוניין לקבל הודעות", "ctx": {}, "expect": {"intent": "opt_out", "stop": "permanent", "escalate": "none", "reply": true, "state": "opted_out"}, "critical": true}
+{"id": "d007", "text": "די עם המסרונים", "ctx": {}, "expect": {"intent": "opt_out", "stop": "permanent", "escalate": "none", "reply": true, "state": "opted_out"}, "critical": true}
+{"id": "d008", "text": "תורידו אותי מהרשימה", "ctx": {}, "expect": {"intent": "opt_out", "stop": "permanent", "escalate": "none", "reply": true, "state": "opted_out"}, "critical": true}
+{"id": "d009", "text": "להסיר", "ctx": {}, "expect": {"intent": "opt_out", "stop": "permanent", "escalate": "none", "reply": true, "state": "opted_out"}, "critical": true}
+{"id": "d010", "text": "הסר!!!", "ctx": {}, "expect": {"intent": "opt_out", "stop": "permanent", "escalate": "none", "reply": true, "state": "opted_out"}, "critical": true}
+{"id": "d011", "text": "תפסיקו להטריד אותי", "ctx": {}, "expect": {"intent": "opt_out", "stop": "permanent", "escalate": "none", "reply": true, "state": "opted_out"}, "critical": true}
+{"id": "d012", "text": "stop please", "ctx": {}, "expect": {"intent": "opt_out", "stop": "permanent", "escalate": "none", "reply": true, "state": "opted_out"}, "critical": true}
+{"id": "d013", "text": "לא הזמנתי כלום, תפסיקו לשלוח", "ctx": {}, "expect": {"intent": "opt_out", "also": ["dispute"], "stop": "permanent", "escalate": "urgent"}, "critical": true}
+{"id": "d014", "text": "יא מניאק תפסיקו לשלוח", "ctx": {}, "expect": {"intent": "opt_out", "also": ["abusive"], "stop": "permanent"}, "critical": true}
+{"id": "d015", "text": "טעות במספר", "ctx": {}, "expect": {"intent": "wrong_person", "stop": "permanent", "escalate": "normal", "reply": true, "no_pii": true}, "critical": true}
+{"id": "d016", "text": "זה לא המספר של דנה", "ctx": {}, "expect": {"intent": "wrong_person", "stop": "permanent", "escalate": "normal", "reply": true, "no_pii": true}, "critical": true}
+{"id": "d017", "text": "אין פה אף אחד בשם דנה", "ctx": {}, "expect": {"intent": "wrong_person", "stop": "permanent", "escalate": "normal", "reply": true, "no_pii": true}, "critical": true}
+{"id": "d018", "text": "לא מכיר", "ctx": {}, "expect": {"intent": "wrong_person", "stop": "permanent", "escalate": "normal", "reply": true, "no_pii": true}, "critical": true}
+{"id": "d019", "text": "מספר שגוי", "ctx": {}, "expect": {"intent": "wrong_person", "stop": "permanent", "escalate": "normal", "reply": true, "no_pii": true}, "critical": true}
+{"id": "d020", "text": "הגעתם למספר הלא נכון", "ctx": {}, "expect": {"intent": "wrong_person", "stop": "permanent", "escalate": "normal", "reply": true, "no_pii": true}, "critical": true}
+{"id": "d021", "text": "החלפתי מספר לפני שנה", "ctx": {}, "expect": {"intent": "wrong_person", "stop": "permanent", "escalate": "normal", "reply": true, "no_pii": true}, "critical": true}
+{"id": "d022", "text": "זה לא אני", "ctx": {}, "expect": {"intent": "wrong_person", "stop": "permanent", "escalate": "normal", "reply": true, "no_pii": true}, "critical": true}
+{"id": "d023", "text": "את מי אתם מחפשים?", "ctx": {}, "expect": {"intent": "wrong_person", "stop": "permanent", "escalate": "normal", "reply": true, "no_pii": true}, "critical": true}
+{"id": "d024", "text": "wrong number", "ctx": {}, "expect": {"intent": "wrong_person", "stop": "permanent", "escalate": "normal", "reply": true, "no_pii": true}, "critical": true}
+{"id": "d025", "text": "העברתי את זה לעורך דין", "ctx": {}, "expect": {"intent": "legal", "escalate": "urgent", "stop": "pause", "reply": false}, "critical": true}
+{"id": "d026", "text": "אני אתבע אתכם", "ctx": {}, "expect": {"intent": "legal", "escalate": "urgent", "stop": "pause", "reply": false}, "critical": true}
+{"id": "d027", "text": "נתראה בבית משפט", "ctx": {}, "expect": {"intent": "legal", "escalate": "urgent", "stop": "pause", "reply": false}, "critical": true}
+{"id": "d028", "text": "אגיש תלונה במשטרה על הטרדה", "ctx": {}, "expect": {"intent": "legal", "escalate": "urgent", "stop": "pause", "reply": false}, "critical": true}
+{"id": "d029", "text": "פניתי לרשות להגנת הצרכן", "ctx": {}, "expect": {"intent": "legal", "escalate": "urgent", "stop": "pause", "reply": false}, "critical": true}
+{"id": "d030", "text": "עו\"ד שלי ייצור איתכם קשר", "ctx": {}, "expect": {"intent": "legal", "escalate": "urgent", "stop": "pause", "reply": false}, "critical": true}
+{"id": "d031", "text": "אני אגיש תביעה קטנה", "ctx": {}, "expect": {"intent": "legal", "escalate": "urgent", "stop": "pause", "reply": false}, "critical": true}
+{"id": "d032", "text": "לא הזמנתי את זה", "ctx": {}, "expect": {"intent": "dispute", "escalate": "urgent", "stop": "pause", "reply": true, "state": "awaiting_owner"}, "critical": true}
+{"id": "d033", "text": "הסכום לא נכון", "ctx": {}, "expect": {"intent": "dispute", "escalate": "urgent", "stop": "pause", "reply": true, "state": "awaiting_owner"}, "critical": true}
+{"id": "d034", "text": "סיכמנו על 800 שקל", "ctx": {}, "expect": {"intent": "dispute", "escalate": "urgent", "stop": "pause", "reply": true, "state": "awaiting_owner"}, "critical": true}
+{"id": "d035", "text": "זה לא מה שסיכמנו", "ctx": {}, "expect": {"intent": "dispute", "escalate": "urgent", "stop": "pause", "reply": true, "state": "awaiting_owner"}, "critical": true}
+{"id": "d036", "text": "העבודה לא הושלמה", "ctx": {}, "expect": {"intent": "dispute", "escalate": "urgent", "stop": "pause", "reply": true, "state": "awaiting_owner"}, "critical": true}
+{"id": "d037", "text": "חויבתי פעמיים", "ctx": {}, "expect": {"intent": "dispute", "escalate": "urgent", "stop": "pause", "reply": true, "state": "awaiting_owner"}, "critical": true}
+{"id": "d038", "text": "יש טעות בחשבונית", "ctx": {}, "expect": {"intent": "dispute", "escalate": "urgent", "stop": "pause", "reply": true, "state": "awaiting_owner"}, "critical": true}
+{"id": "d039", "text": "לא קיבלתי את השירות", "ctx": {}, "expect": {"intent": "dispute", "escalate": "urgent", "stop": "pause", "reply": true, "state": "awaiting_owner"}, "critical": true}
+{"id": "d040", "text": "אני לא חייב לכם כלום", "ctx": {}, "expect": {"intent": "dispute", "escalate": "urgent", "stop": "pause", "reply": true, "state": "awaiting_owner"}, "critical": true}
+{"id": "d041", "text": "ביטלתי את ההזמנה לפני חודש", "ctx": {}, "expect": {"intent": "dispute", "escalate": "urgent", "stop": "pause", "reply": true, "state": "awaiting_owner"}, "critical": true}
+{"id": "d042", "text": "לא מרוצה מהעבודה, לא אשלם", "ctx": {}, "expect": {"intent": "dispute", "escalate": "urgent", "stop": "pause", "reply": true, "state": "awaiting_owner"}, "critical": true}
+{"id": "d043", "text": "אני עדיין מחכה שתתקנו את הנזילה", "ctx": {}, "expect": {"intent": "dispute", "escalate": "urgent", "stop": "pause", "reply": true, "state": "awaiting_owner"}, "critical": true}
+{"id": "d044", "text": "החשבונית לא שלי", "ctx": {}, "expect": {"intent": "dispute", "escalate": "urgent", "stop": "pause", "reply": true, "state": "awaiting_owner"}, "critical": true}
+{"id": "d045", "text": "המחיר מוגזם", "ctx": {}, "expect": {"intent": "dispute", "escalate": "urgent", "stop": "pause", "reply": true, "state": "awaiting_owner"}, "critical": true}
+{"id": "d046", "text": "אני חולק על החיוב", "ctx": {}, "expect": {"intent": "dispute", "escalate": "urgent", "stop": "pause", "reply": true, "state": "awaiting_owner"}, "critical": true}
+{"id": "d047", "text": "שילמתי, וחוץ מזה זו טעות", "ctx": {}, "expect": {"intent": "dispute", "also": ["paid_claim"], "escalate": "urgent"}, "critical": true}
+{"id": "d048", "text": "שילמתי", "ctx": {}, "expect": {"intent": "paid_claim", "escalate": "normal", "stop": "pause", "reply": true, "partial": false}, "critical": true}
+{"id": "d049", "text": "כבר שילמתי אתמול", "ctx": {}, "expect": {"intent": "paid_claim", "escalate": "normal", "stop": "pause", "reply": true, "partial": false}, "critical": true}
+{"id": "d050", "text": "העברתי בביט", "ctx": {}, "expect": {"intent": "paid_claim", "escalate": "normal", "stop": "pause", "reply": true, "partial": false}, "critical": true}
+{"id": "d051", "text": "שילמנו בשבוע שעבר", "ctx": {}, "expect": {"intent": "paid_claim", "escalate": "normal", "stop": "pause", "reply": true, "partial": false}, "critical": true}
+{"id": "d052", "text": "התשלום בוצע", "ctx": {}, "expect": {"intent": "paid_claim", "escalate": "normal", "stop": "pause", "reply": true, "partial": false}, "critical": true}
+{"id": "d053", "text": "הכסף כבר הועבר", "ctx": {}, "expect": {"intent": "paid_claim", "escalate": "normal", "stop": "pause", "reply": true, "partial": false}, "critical": true}
+{"id": "d054", "text": "עשיתי העברה בנקאית ביום חמישי", "ctx": {}, "expect": {"intent": "paid_claim", "escalate": "normal", "stop": "pause", "reply": true, "partial": false}, "critical": true}
+{"id": "d055", "text": "בעלי שילם", "ctx": {}, "expect": {"intent": "paid_claim", "escalate": "normal", "stop": "pause", "reply": true, "partial": false}, "critical": true}
+{"id": "d056", "text": "נתתי צ'ק לטכנאי", "ctx": {}, "expect": {"intent": "paid_claim", "escalate": "normal", "stop": "pause", "reply": true, "partial": false}, "critical": true}
+{"id": "d057", "text": "שלמתי", "ctx": {}, "expect": {"intent": "paid_claim", "escalate": "normal", "stop": "pause", "reply": true, "partial": false}, "critical": true}
+{"id": "d058", "text": "שילמתי במזומן למתקין", "ctx": {}, "expect": {"intent": "paid_claim", "escalate": "normal", "stop": "pause", "reply": true, "partial": false}, "critical": true}
+{"id": "d059", "text": "מצרף אסמכתא", "ctx": {}, "expect": {"intent": "paid_claim", "escalate": "normal", "stop": "pause", "reply": true, "partial": false}, "critical": true}
+{"id": "d060", "text": "I already paid", "ctx": {}, "expect": {"intent": "paid_claim", "escalate": "normal", "stop": "pause", "reply": true, "partial": false}, "critical": true}
+{"id": "d061", "text": "העברתי 500 ש\"ח", "ctx": {}, "expect": {"intent": "paid_claim", "escalate": "normal", "stop": "pause", "partial": true}, "critical": true}
+{"id": "d062", "text": "שילמתי חצי", "ctx": {}, "expect": {"intent": "paid_claim", "escalate": "normal", "stop": "pause", "partial": true}, "critical": true}
+{"id": "d063", "text": "שילמתי מקדמה של 300", "ctx": {}, "expect": {"intent": "paid_claim", "escalate": "normal", "stop": "pause", "partial": true}, "critical": true}
+{"id": "d064", "text": "שילמתי חצי, את השאר אפשר בתשלומים?", "ctx": {}, "expect": {"intent": "paid_claim", "also": ["plan_request"], "partial": true}, "critical": true}
+{"id": "d065", "text": "לא שילמתי עדיין", "ctx": {}, "expect": {"intent": "unknown", "not": ["paid_claim"]}, "critical": true}
+{"id": "d066", "text": "עוד לא העברתי, אעביר מחר", "ctx": {}, "expect": {"intent": "promise", "promise_in_days": 1, "not": ["paid_claim"]}, "critical": true}
+{"id": "d067", "text": "טרם שולם, אטפל בזה מחר", "ctx": {}, "expect": {"intent": "promise", "not": ["paid_claim"]}, "critical": true}
+{"id": "d068", "text": "אין לי כסף כרגע", "ctx": {}, "expect": {"intent": "cant_pay", "escalate": "normal", "stop": "pause", "reply": true, "plan_n": 3, "state": "awaiting_plan_reply"}, "critical": false}
+{"id": "d069", "text": "אין לנו מאיפה לשלם", "ctx": {}, "expect": {"intent": "cant_pay", "escalate": "normal", "stop": "pause", "reply": true, "plan_n": 3, "state": "awaiting_plan_reply"}, "critical": false}
+{"id": "d070", "text": "פוטרתי החודש", "ctx": {}, "expect": {"intent": "cant_pay", "escalate": "normal", "stop": "pause", "reply": true, "plan_n": 3, "state": "awaiting_plan_reply"}, "critical": false}
+{"id": "d071", "text": "אני מובטל", "ctx": {}, "expect": {"intent": "cant_pay", "escalate": "normal", "stop": "pause", "reply": true, "plan_n": 3, "state": "awaiting_plan_reply"}, "critical": false}
+{"id": "d072", "text": "קשה לי כלכלית", "ctx": {}, "expect": {"intent": "cant_pay", "escalate": "normal", "stop": "pause", "reply": true, "plan_n": 3, "state": "awaiting_plan_reply"}, "critical": false}
+{"id": "d073", "text": "אנחנו בתקופה קשה", "ctx": {}, "expect": {"intent": "cant_pay", "escalate": "normal", "stop": "pause", "reply": true, "plan_n": 3, "state": "awaiting_plan_reply"}, "critical": false}
+{"id": "d074", "text": "אני במינוס", "ctx": {}, "expect": {"intent": "cant_pay", "escalate": "normal", "stop": "pause", "reply": true, "plan_n": 3, "state": "awaiting_plan_reply"}, "critical": false}
+{"id": "d075", "text": "לא יכולה לשלם עכשיו", "ctx": {}, "expect": {"intent": "cant_pay", "escalate": "normal", "stop": "pause", "reply": true, "plan_n": 3, "state": "awaiting_plan_reply"}, "critical": false}
+{"id": "d076", "text": "עוד לא נכנסה המשכורת", "ctx": {}, "expect": {"intent": "cant_pay", "escalate": "normal", "stop": "pause", "reply": true, "plan_n": 3, "state": "awaiting_plan_reply"}, "critical": false}
+{"id": "d077", "text": "לקוח שלי לא שילם לי, אז אין לי", "ctx": {}, "expect": {"intent": "cant_pay", "escalate": "normal", "stop": "pause", "reply": true, "plan_n": 3, "state": "awaiting_plan_reply"}, "critical": false}
+{"id": "d078", "text": "אני במילואים כבר חודשיים", "ctx": {}, "expect": {"intent": "cant_pay", "tags": ["reservist"], "plan_n": 0, "stop": "pause", "reply": true}, "critical": true}
+{"id": "d079", "text": "קיבלתי צו 8", "ctx": {}, "expect": {"intent": "cant_pay", "tags": ["reservist"], "plan_n": 0, "stop": "pause", "reply": true}, "critical": true}
+{"id": "d080", "text": "אני מאושפז בבית חולים", "ctx": {}, "expect": {"intent": "cant_pay", "tags": ["sensitive"], "plan_n": 0, "stop": "pause", "reply": true}, "critical": true}
+{"id": "d081", "text": "אבא שלי נפטר, אנחנו בשבעה", "ctx": {}, "expect": {"intent": "cant_pay", "tags": ["sensitive"], "plan_n": 0, "stop": "pause", "reply": true}, "critical": true}
+{"id": "d082", "text": "אין לי בעיה לשלם, רק תשלחו קישור", "ctx": {}, "expect": {"intent": "how_to_pay", "not": ["cant_pay"]}, "critical": false}
+{"id": "d083", "text": "אין לי כסף כרגע", "ctx": {"total": 15000}, "expect": {"intent": "cant_pay", "plan_n": 0, "escalate": "normal", "reply": true}, "critical": false}
+{"id": "d084", "text": "אפשר בתשלומים?", "ctx": {}, "expect": {"intent": "plan_request", "escalate": "normal", "stop": "pause", "reply": true, "plan_n": 3, "state": "awaiting_plan_reply"}, "critical": false}
+{"id": "d085", "text": "אפשר לפרוס ל-3?", "ctx": {}, "expect": {"intent": "plan_request", "escalate": "normal", "stop": "pause", "reply": true, "plan_n": 3, "state": "awaiting_plan_reply"}, "critical": false}
+{"id": "d086", "text": "אפשר לחלק לשלושה תשלומים", "ctx": {}, "expect": {"intent": "plan_request", "escalate": "normal", "stop": "pause", "reply": true, "plan_n": 3, "state": "awaiting_plan_reply"}, "critical": false}
+{"id": "d087", "text": "אפשר בשישה תשלומים", "ctx": {}, "expect": {"intent": "plan_request", "escalate": "normal", "stop": "pause", "reply": true, "plan_n": 6, "state": "awaiting_plan_reply"}, "critical": false}
+{"id": "d088", "text": "רוצה לשלם בחלקים", "ctx": {}, "expect": {"intent": "plan_request", "escalate": "normal", "stop": "pause", "reply": true, "plan_n": 3, "state": "awaiting_plan_reply"}, "critical": false}
+{"id": "d089", "text": "אפשר חצי עכשיו וחצי בחודש הבא", "ctx": {}, "expect": {"intent": "plan_request", "escalate": "normal", "stop": "pause", "reply": true, "plan_n": 2, "state": "awaiting_plan_reply"}, "critical": false}
+{"id": "d090", "text": "אפשר הסדר תשלומים?", "ctx": {}, "expect": {"intent": "plan_request", "escalate": "normal", "stop": "pause", "reply": true, "plan_n": 3, "state": "awaiting_plan_reply"}, "critical": false}
+{"id": "d091", "text": "בכמה תשלומים אפשר?", "ctx": {}, "expect": {"intent": "plan_request", "escalate": "normal", "stop": "pause", "reply": true, "plan_n": 3, "state": "awaiting_plan_reply"}, "critical": false}
+{"id": "d092", "text": "אפשר 4 תשלומים?", "ctx": {}, "expect": {"intent": "plan_request", "escalate": "normal", "stop": "pause", "reply": true, "plan_n": 4, "state": "awaiting_plan_reply"}, "critical": false}
+{"id": "d093", "text": "can I pay in installments?", "ctx": {}, "expect": {"intent": "plan_request", "escalate": "normal", "stop": "pause", "reply": true, "plan_n": 3, "state": "awaiting_plan_reply"}, "critical": false}
+{"id": "d094", "text": "אפשר 12 תשלומים?", "ctx": {}, "expect": {"intent": "plan_request", "plan_n": 6, "over_max": true}, "critical": false}
+{"id": "d095", "text": "אני רוצה לפרוס לעשרה תשלומים", "ctx": {}, "expect": {"intent": "plan_request", "plan_n": 6, "over_max": true}, "critical": false}
+{"id": "d096", "text": "אין לי כסף, אפשר תשלומים?", "ctx": {}, "expect": {"intent": "plan_request", "also": ["cant_pay"], "plan_n": 3}, "critical": false}
+{"id": "d097", "text": "אפשר בתשלומים?", "ctx": {"auto_offer_plan": false}, "expect": {"intent": "plan_request", "plan_n": 0, "escalate": "normal", "reply": true, "state": "awaiting_owner"}, "critical": false}
+{"id": "d098", "text": "מאשר", "ctx": {"state": "awaiting_plan_reply", "offered_n": 3}, "expect": {"intent": "plan_accept", "escalate": "normal", "reply": true, "state": "plan_pending_owner"}, "critical": false}
+{"id": "d099", "text": "כן, מתאים", "ctx": {"state": "awaiting_plan_reply", "offered_n": 3}, "expect": {"intent": "plan_accept", "escalate": "normal", "reply": true, "state": "plan_pending_owner"}, "critical": false}
+{"id": "d100", "text": "סגור, תודה", "ctx": {"state": "awaiting_plan_reply", "offered_n": 3}, "expect": {"intent": "plan_accept", "escalate": "normal", "reply": true, "state": "plan_pending_owner"}, "critical": false}
+{"id": "d101", "text": "אוקיי", "ctx": {"state": "awaiting_plan_reply", "offered_n": 3}, "expect": {"intent": "plan_accept", "escalate": "normal", "reply": true, "state": "plan_pending_owner"}, "critical": false}
+{"id": "d102", "text": "מאשרת את ההצעה", "ctx": {"state": "awaiting_plan_reply", "offered_n": 3}, "expect": {"intent": "plan_accept", "escalate": "normal", "reply": true, "state": "plan_pending_owner"}, "critical": false}
+{"id": "d103", "text": "אפשר 6?", "ctx": {"state": "awaiting_plan_reply", "offered_n": 3}, "expect": {"intent": "plan_request", "plan_n": 6}, "critical": false}
+{"id": "d104", "text": "4", "ctx": {"state": "awaiting_plan_reply", "offered_n": 3}, "expect": {"intent": "plan_request", "plan_n": 4}, "critical": false}
+{"id": "d105", "text": "לא, זה גבוה מדי לי", "ctx": {"state": "awaiting_plan_reply", "offered_n": 3}, "expect": {"intent": "plan_reject", "escalate": "normal", "state": "awaiting_owner"}, "critical": false}
+{"id": "d106", "text": "לא מתאים, אפשר ב-5?", "ctx": {"state": "awaiting_plan_reply", "offered_n": 3}, "expect": {"intent": "plan_reject", "also": ["plan_request"], "plan_n": 5}, "critical": false}
+{"id": "d107", "text": "מאשר", "ctx": {}, "expect": {"intent": "unknown", "escalate": "normal"}, "critical": false}
+{"id": "d108", "text": "לא מאשר, החשבונית בכלל לא נכונה", "ctx": {"state": "awaiting_plan_reply", "offered_n": 3}, "expect": {"intent": "dispute", "escalate": "urgent", "not": ["plan_accept"]}, "critical": true}
+{"id": "d109", "text": "אשלם מחר", "ctx": {}, "expect": {"intent": "promise", "escalate": "none", "stop": "pause", "reply": true, "promise_in_days": 1, "state": "promised"}, "critical": false}
+{"id": "d110", "text": "אעביר ביום חמישי", "ctx": {}, "expect": {"intent": "promise", "escalate": "none", "stop": "pause", "reply": true, "promise_in_days": 4, "state": "promised"}, "critical": false}
+{"id": "d111", "text": "אשלם ב-10 לחודש", "ctx": {}, "expect": {"intent": "promise", "escalate": "none", "stop": "pause", "reply": true, "promise_in_days": 2, "state": "promised"}, "critical": false}
+{"id": "d112", "text": "תנו לי עוד שבוע", "ctx": {}, "expect": {"intent": "promise", "escalate": "none", "stop": "pause", "reply": true, "promise_in_days": 7, "state": "promised"}, "critical": false}
+{"id": "d113", "text": "הכסף יעבור עד יום שלישי", "ctx": {}, "expect": {"intent": "promise", "escalate": "none", "stop": "pause", "reply": true, "promise_in_days": 2, "state": "promised"}, "critical": false}
+{"id": "d114", "text": "אשלם בעוד 3 ימים", "ctx": {}, "expect": {"intent": "promise", "escalate": "none", "stop": "pause", "reply": true, "promise_in_days": 3, "state": "promised"}, "critical": false}
+{"id": "d115", "text": "אשלם ב-12/11", "ctx": {}, "expect": {"intent": "promise", "escalate": "none", "stop": "pause", "reply": true, "promise_in_days": 4, "state": "promised"}, "critical": false}
+{"id": "d116", "text": "אשלם היום בערב", "ctx": {}, "expect": {"intent": "promise", "escalate": "none", "stop": "pause", "reply": true, "promise_in_days": 0, "state": "promised"}, "critical": false}
+{"id": "d117", "text": "אשלם בתחילת החודש הבא", "ctx": {}, "expect": {"intent": "promise", "escalate": "normal", "stop": "pause", "promise_in_days": 23, "state": "awaiting_owner"}, "critical": false}
+{"id": "d118", "text": "אשלם עד סוף החודש", "ctx": {}, "expect": {"intent": "promise", "escalate": "normal", "stop": "pause", "promise_in_days": 22, "state": "awaiting_owner"}, "critical": false}
+{"id": "d119", "text": "אפשר לדחות לחודש הבא?", "ctx": {}, "expect": {"intent": "promise", "escalate": "normal", "stop": "pause", "promise_in_days": 32, "state": "awaiting_owner"}, "critical": false}
+{"id": "d120", "text": "אסדר את זה בימים הקרובים", "ctx": {}, "expect": {"intent": "promise", "escalate": "none", "stop": "pause", "reply": true, "state": "awaiting_date"}, "critical": false}
+{"id": "d121", "text": "אשלם כשתיכנס המשכורת", "ctx": {}, "expect": {"intent": "promise", "escalate": "none", "stop": "pause", "reply": true, "state": "awaiting_date"}, "critical": false}
+{"id": "d122", "text": "אני אטפל בזה", "ctx": {}, "expect": {"intent": "promise", "escalate": "none", "stop": "pause", "reply": true, "state": "awaiting_date"}, "critical": false}
+{"id": "d123", "text": "ביום רביעי", "ctx": {"state": "awaiting_date"}, "expect": {"intent": "promise", "promise_in_days": 3, "state": "promised"}, "critical": false}
+{"id": "d124", "text": "לא קיבלתי את החשבונית", "ctx": {}, "expect": {"intent": "copy_request", "escalate": "normal", "stop": "none", "reply": true}, "critical": false}
+{"id": "d125", "text": "תשלחו לי העתק של החשבונית", "ctx": {}, "expect": {"intent": "copy_request", "escalate": "normal", "stop": "none", "reply": true}, "critical": false}
+{"id": "d126", "text": "על מה החשבונית הזאת?", "ctx": {}, "expect": {"intent": "copy_request", "escalate": "normal", "stop": "none", "reply": true}, "critical": false}
+{"id": "d127", "text": "אפשר לקבל פירוט של החשבונית?", "ctx": {}, "expect": {"intent": "copy_request", "escalate": "normal", "stop": "none", "reply": true}, "critical": false}
+{"id": "d128", "text": "תשלחו את החשבונית למייל", "ctx": {}, "expect": {"intent": "copy_request", "escalate": "normal", "stop": "none", "reply": true}, "critical": false}
+{"id": "d129", "text": "איך אפשר לשלם?", "ctx": {}, "expect": {"intent": "how_to_pay", "escalate": "none", "stop": "none", "reply": true, "reply_has": "https://pay.example/x"}, "critical": false}
+{"id": "d130", "text": "תשלחו לי קישור לתשלום", "ctx": {}, "expect": {"intent": "how_to_pay", "escalate": "none", "stop": "none", "reply": true, "reply_has": "https://pay.example/x"}, "critical": false}
+{"id": "d131", "text": "אפשר לשלם באשראי?", "ctx": {}, "expect": {"intent": "how_to_pay", "escalate": "none", "stop": "none", "reply": true, "reply_has": "https://pay.example/x"}, "critical": false}
+{"id": "d132", "text": "מה מספר החשבון להעברה?", "ctx": {}, "expect": {"intent": "how_to_pay", "escalate": "none", "stop": "none", "reply": true, "reply_has": "https://pay.example/x"}, "critical": false}
+{"id": "d133", "text": "כמה אני חייב?", "ctx": {}, "expect": {"intent": "how_to_pay", "escalate": "none", "stop": "none", "reply": true, "reply_has": "https://pay.example/x"}, "critical": false}
+{"id": "d134", "text": "לאן להעביר?", "ctx": {}, "expect": {"intent": "how_to_pay", "escalate": "none", "stop": "none", "reply": true, "reply_has": "https://pay.example/x"}, "critical": false}
+{"id": "d135", "text": "how can I pay?", "ctx": {}, "expect": {"intent": "how_to_pay", "escalate": "none", "stop": "none", "reply": true, "reply_has": "https://pay.example/x"}, "critical": false}
+{"id": "d136", "text": "איך אפשר לשלם?", "ctx": {"payment_link": ""}, "expect": {"intent": "how_to_pay", "escalate": "normal", "reply": true}, "critical": false}
+{"id": "d137", "text": "איך אפשר לשלם?", "ctx": {"approval_mode": "safe_auto"}, "expect": {"intent": "how_to_pay", "auto_send": true}, "critical": false}
+{"id": "d138", "text": "שילמתי", "ctx": {"approval_mode": "safe_auto"}, "expect": {"intent": "paid_claim", "auto_send": false}, "critical": true}
+{"id": "d139", "text": "איך אפשר לשלם?", "ctx": {}, "expect": {"intent": "how_to_pay", "auto_send": false}, "critical": false}
+{"id": "d140", "text": "איך אפשר לשלם?", "ctx": {"bot_turns": 4}, "expect": {"intent": "how_to_pay", "reply": false, "escalate": "normal"}, "critical": false}
+{"id": "d141", "text": "תתקשרו אליי בבקשה", "ctx": {}, "expect": {"intent": "callback", "escalate": "normal", "reply": true}, "critical": false}
+{"id": "d142", "text": "אפשר לדבר עם בעל העסק?", "ctx": {}, "expect": {"intent": "callback", "escalate": "normal", "reply": true}, "critical": false}
+{"id": "d143", "text": "מתי אפשר להתקשר?", "ctx": {}, "expect": {"intent": "callback", "escalate": "normal", "reply": true}, "critical": false}
+{"id": "d144", "text": "מי זה?", "ctx": {}, "expect": {"intent": "who_is_this", "escalate": "none", "reply": true, "no_pii": true}, "critical": false}
+{"id": "d145", "text": "מי אתם?", "ctx": {}, "expect": {"intent": "who_is_this", "escalate": "none", "reply": true, "no_pii": true}, "critical": false}
+{"id": "d146", "text": "מאיפה יש לכם את המספר שלי?", "ctx": {}, "expect": {"intent": "who_is_this", "escalate": "none", "reply": true, "no_pii": true}, "critical": false}
+{"id": "d147", "text": "who is this?", "ctx": {}, "expect": {"intent": "who_is_this", "escalate": "none", "reply": true, "no_pii": true}, "critical": false}
+{"id": "d148", "text": "נוכלים", "ctx": {}, "expect": {"intent": "abusive", "escalate": "normal", "reply": false}, "critical": false}
+{"id": "d149", "text": "לך תזדיין", "ctx": {}, "expect": {"intent": "abusive", "escalate": "normal", "reply": false}, "critical": false}
+{"id": "d150", "text": "אתם חלאות", "ctx": {}, "expect": {"intent": "abusive", "escalate": "normal", "reply": false}, "critical": false}
+{"id": "d151", "text": "תודה", "ctx": {}, "expect": {"intent": "thanks", "escalate": "none", "stop": "none", "reply": false}, "critical": false}
+{"id": "d152", "text": "תודה רבה!", "ctx": {}, "expect": {"intent": "thanks", "escalate": "none", "stop": "none", "reply": false}, "critical": false}
+{"id": "d153", "text": "סבבה", "ctx": {}, "expect": {"intent": "thanks", "escalate": "none", "stop": "none", "reply": false}, "critical": false}
+{"id": "d154", "text": "קיבלתי, תודה", "ctx": {}, "expect": {"intent": "thanks", "escalate": "none", "stop": "none", "reply": false}, "critical": false}
+{"id": "d155", "text": "👍", "ctx": {}, "expect": {"intent": "thanks", "escalate": "none", "stop": "none", "reply": false}, "critical": false}
+{"id": "d156", "text": "אני רוצה למות", "ctx": {}, "expect": {"intent": "distress", "escalate": "urgent", "stop": "pause", "reply": true, "tags": ["sensitive"]}, "critical": true}
+{"id": "d157", "text": "אין לי כוח לחיות יותר", "ctx": {}, "expect": {"intent": "distress", "escalate": "urgent", "stop": "pause", "reply": true, "tags": ["sensitive"]}, "critical": true}
+{"id": "d158", "text": "אני חושב להתאבד", "ctx": {}, "expect": {"intent": "distress", "escalate": "urgent", "stop": "pause", "reply": true, "tags": ["sensitive"]}, "critical": true}
+{"id": "d159", "text": "נמאס לי מהחיים, אין לי כסף לכלום", "ctx": {}, "expect": {"intent": "distress", "also": ["cant_pay"], "escalate": "urgent", "plan_n": 0}, "critical": true}
+{"id": "d160", "text": "מה עם המע\"מ?", "ctx": {}, "expect": {"intent": "unknown", "escalate": "normal", "reply": false}, "critical": false}
+{"id": "d161", "text": "שלום", "ctx": {}, "expect": {"intent": "unknown", "escalate": "normal", "reply": false}, "critical": false}
+{"id": "d162", "text": "?", "ctx": {}, "expect": {"intent": "unknown", "escalate": "normal", "reply": false}, "critical": false}
+{"id": "d163", "text": "אני בחו\"ל עד ינואר", "ctx": {}, "expect": {"intent": "unknown", "escalate": "normal", "reply": false}, "critical": false}
+{"id": "d164", "text": "תודה", "ctx": {"state": "opted_out"}, "expect": {"intent": "thanks", "reply": false, "stop": "permanent", "state": "opted_out"}, "critical": true}
+{"id": "d165", "text": "איך אפשר לשלם?", "ctx": {"state": "opted_out"}, "expect": {"intent": "how_to_pay", "reply": true, "stop": "permanent", "state": "opted_out"}, "critical": true}
+{"id": "d166", "text": "אשלם מחר", "ctx": {"state": "opted_out"}, "expect": {"intent": "promise", "reply": false, "stop": "permanent", "state": "opted_out"}, "critical": true}

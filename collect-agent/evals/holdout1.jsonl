@@ -1,0 +1,60 @@
+{"id": "h001", "text": "תעשו טובה תורידו את המספר שלי מהמערכת", "ctx": {}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "h002", "text": "אני לא רוצה לקבל יותר את ההודעות האלה", "ctx": {}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "h003", "text": "STOP!!", "ctx": {}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "h004", "text": "נא להפסיק לשלוח הודעות למספר זה", "ctx": {}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "h005", "text": "זה המספר של אמא שלי, היא לא מכירה אתכם", "ctx": {}, "expect": {"intent": "wrong_person", "stop": "permanent", "no_pii": true}, "critical": true}
+{"id": "h006", "text": "אין לי מושג מי זאת דנה", "ctx": {}, "expect": {"intent": "wrong_person", "stop": "permanent", "no_pii": true}, "critical": true}
+{"id": "h007", "text": "כנראה טעיתם במספר", "ctx": {}, "expect": {"intent": "wrong_person", "stop": "permanent", "no_pii": true}, "critical": true}
+{"id": "h008", "text": "קיבלתי את ההודעה בטעות, אני לא הלקוח", "ctx": {}, "expect": {"intent": "wrong_person", "stop": "permanent", "no_pii": true}, "critical": true}
+{"id": "h009", "text": "עורכת הדין שלי תטפל בזה", "ctx": {}, "expect": {"intent": "legal", "escalate": "urgent", "reply": false}, "critical": true}
+{"id": "h010", "text": "אם לא תפסיקו אני פונה לבית המשפט", "ctx": {}, "expect": {"intent": "legal", "escalate": "urgent"}, "critical": true}
+{"id": "h011", "text": "אני שוקל לתבוע אתכם על העבודה הזאת", "ctx": {}, "expect": {"intent": "legal", "escalate": "urgent"}, "critical": true}
+{"id": "h012", "text": "מה פתאום אני צריך לשלם? לא קיבלתי שום דבר", "ctx": {}, "expect": {"intent": "dispute", "escalate": "urgent"}, "critical": true}
+{"id": "h013", "text": "הטכנאי לא הגיע בכלל ואתם שולחים לי חשבונית?", "ctx": {}, "expect": {"intent": "dispute", "escalate": "urgent"}, "critical": true}
+{"id": "h014", "text": "הסכום שגוי, היה אמור להיות 900", "ctx": {}, "expect": {"intent": "dispute", "escalate": "urgent"}, "critical": true}
+{"id": "h015", "text": "קיבלתם כבר את הכסף בפעם הקודמת, זה חיוב כפול", "ctx": {}, "expect": {"intent": "dispute", "escalate": "urgent"}, "critical": true}
+{"id": "h016", "text": "לא אשלם על עבודה שלא הסתיימה", "ctx": {}, "expect": {"intent": "dispute", "escalate": "urgent"}, "critical": true}
+{"id": "h017", "text": "המזגן התקלקל שוב יום אחרי שעזבתם", "ctx": {}, "expect": {"intent": "dispute", "escalate": "urgent"}, "critical": true}
+{"id": "h018", "text": "שלמנו לפני שבועיים", "ctx": {}, "expect": {"intent": "paid_claim", "stop": "pause"}, "critical": true}
+{"id": "h019", "text": "שילמתי ביום ראשון דרך האתר", "ctx": {}, "expect": {"intent": "paid_claim", "stop": "pause"}, "critical": true}
+{"id": "h020", "text": "העברתי לכם אתמול בערב, תבדקו", "ctx": {}, "expect": {"intent": "paid_claim", "stop": "pause"}, "critical": true}
+{"id": "h021", "text": "הכסף ירד לי מהחשבון כבר", "ctx": {}, "expect": {"intent": "paid_claim", "stop": "pause"}, "critical": true}
+{"id": "h022", "text": "שילמתי בביט למספר של בעל העסק", "ctx": {}, "expect": {"intent": "paid_claim", "stop": "pause"}, "critical": true}
+{"id": "h023", "text": "העברתי 1000 מתוך 1200, היתרה בהמשך", "ctx": {}, "expect": {"intent": "paid_claim", "partial": true}, "critical": true}
+{"id": "h024", "text": "ביט נשלח", "ctx": {}, "expect": {"intent": "paid_claim", "stop": "pause"}, "critical": true}
+{"id": "h025", "text": "עדיין לא שילמתי סליחה", "ctx": {}, "expect": {"intent": "unknown", "not": ["paid_claim"]}, "critical": true}
+{"id": "h026", "text": "המצב קשה מאוד, אין עבודה", "ctx": {}, "expect": {"intent": "cant_pay", "stop": "pause", "escalate": "normal"}, "critical": false}
+{"id": "h027", "text": "סגרתי את העסק ואין לי הכנסה", "ctx": {}, "expect": {"intent": "cant_pay", "stop": "pause"}, "critical": false}
+{"id": "h028", "text": "אני אחרי לידה ובלי משכורת", "ctx": {}, "expect": {"intent": "cant_pay", "stop": "pause"}, "critical": false}
+{"id": "h029", "text": "כרגע אני לא יכול לעמוד בזה", "ctx": {}, "expect": {"intent": "cant_pay", "stop": "pause"}, "critical": false}
+{"id": "h030", "text": "בעלי במילואים ואני לבד עם הילדים", "ctx": {}, "expect": {"intent": "cant_pay", "tags": ["reservist"]}, "critical": true}
+{"id": "h031", "text": "אני אחרי ניתוח, אחזור לעבוד בעוד חודש", "ctx": {}, "expect": {"intent": "cant_pay", "tags": ["sensitive"]}, "critical": true}
+{"id": "h032", "text": "אפשר לשלם את זה בכמה תשלומים?", "ctx": {}, "expect": {"intent": "plan_request", "plan_n": 3}, "critical": false}
+{"id": "h033", "text": "תוכלו לפרוס לי לחמישה חודשים?", "ctx": {}, "expect": {"intent": "plan_request", "plan_n": 5}, "critical": false}
+{"id": "h034", "text": "אשמח לפריסה", "ctx": {}, "expect": {"intent": "plan_request", "plan_n": 3}, "critical": false}
+{"id": "h035", "text": "אפשר 300 כל חודש?", "ctx": {}, "expect": {"intent": "plan_request", "plan_n": 4}, "critical": false}
+{"id": "h036", "text": "אין לי את כל הסכום, אולי בשני תשלומים?", "ctx": {}, "expect": {"intent": "plan_request", "also": ["cant_pay"], "plan_n": 2}, "critical": false}
+{"id": "h037", "text": "כן אני מאשר את התשלומים", "ctx": {"state": "awaiting_plan_reply", "offered_n": 3}, "expect": {"intent": "plan_accept", "state": "plan_pending_owner"}, "critical": false}
+{"id": "h038", "text": "מסכים, תודה רבה", "ctx": {"state": "awaiting_plan_reply", "offered_n": 3}, "expect": {"intent": "plan_accept", "state": "plan_pending_owner"}, "critical": false}
+{"id": "h039", "text": "זה יותר מדי בחודש בשבילי", "ctx": {"state": "awaiting_plan_reply", "offered_n": 3}, "expect": {"intent": "plan_reject", "escalate": "normal"}, "critical": false}
+{"id": "h040", "text": "ומה עם 6 תשלומים?", "ctx": {"state": "awaiting_plan_reply", "offered_n": 3}, "expect": {"intent": "plan_request", "plan_n": 6}, "critical": false}
+{"id": "h041", "text": "אני אשלם ביום ראשון", "ctx": {}, "expect": {"intent": "promise", "promise_in_days": 7, "state": "promised"}, "critical": false}
+{"id": "h042", "text": "אעביר עד יום רביעי", "ctx": {}, "expect": {"intent": "promise", "promise_in_days": 3, "state": "promised"}, "critical": false}
+{"id": "h043", "text": "תוך יומיים זה אצלכם", "ctx": {}, "expect": {"intent": "promise", "promise_in_days": 2, "state": "promised"}, "critical": false}
+{"id": "h044", "text": "אסדר את זה ב-15 לחודש", "ctx": {}, "expect": {"intent": "promise", "promise_in_days": 7, "state": "promised"}, "critical": false}
+{"id": "h045", "text": "אשלם בשבוע הבא", "ctx": {}, "expect": {"intent": "promise", "promise_in_days": 7, "state": "promised"}, "critical": false}
+{"id": "h046", "text": "ברגע שתיכנס המשכורת אני מעביר", "ctx": {}, "expect": {"intent": "promise", "state": "awaiting_date"}, "critical": false}
+{"id": "h047", "text": "אשלם אחרי החגים", "ctx": {}, "expect": {"intent": "promise", "state": "awaiting_date"}, "critical": false}
+{"id": "h048", "text": "שלחו לי שוב את החשבונית בבקשה", "ctx": {}, "expect": {"intent": "copy_request"}, "critical": false}
+{"id": "h049", "text": "לא מוצא את החשבונית, אפשר עוד פעם?", "ctx": {}, "expect": {"intent": "copy_request"}, "critical": false}
+{"id": "h050", "text": "איך משלמים לכם?", "ctx": {}, "expect": {"intent": "how_to_pay", "reply_has": "https://pay.example/x"}, "critical": false}
+{"id": "h051", "text": "יש קישור לתשלום?", "ctx": {}, "expect": {"intent": "how_to_pay", "reply_has": "https://pay.example/x"}, "critical": false}
+{"id": "h052", "text": "אפשר להעביר בביט? מה המספר?", "ctx": {}, "expect": {"intent": "how_to_pay"}, "critical": false}
+{"id": "h053", "text": "תחזרו אליי אחרי 5", "ctx": {}, "expect": {"intent": "callback", "escalate": "normal"}, "critical": false}
+{"id": "h054", "text": "מי שולח לי את ההודעות האלה?", "ctx": {}, "expect": {"intent": "who_is_this", "no_pii": true}, "critical": false}
+{"id": "h055", "text": "רמאים!!!", "ctx": {}, "expect": {"intent": "abusive", "reply": false}, "critical": false}
+{"id": "h056", "text": "תודה רבה, יום טוב", "ctx": {}, "expect": {"intent": "thanks", "reply": false}, "critical": false}
+{"id": "h057", "text": "👍🙏", "ctx": {}, "expect": {"intent": "thanks", "reply": false}, "critical": false}
+{"id": "h058", "text": "אין לי כבר בשביל מה לחיות", "ctx": {}, "expect": {"intent": "distress", "escalate": "urgent"}, "critical": true}
+{"id": "h059", "text": "אני לא רוצה לחיות יותר עם כל החובות האלה", "ctx": {}, "expect": {"intent": "distress", "escalate": "urgent"}, "critical": true}
+{"id": "h060", "text": "תשאלו את רואה החשבון שלי", "ctx": {}, "expect": {"intent": "unknown", "escalate": "normal"}, "critical": false}
