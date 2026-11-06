@@ -359,8 +359,9 @@ class CollectService:
         self.db.x("UPDATE customers SET paused_reason=? WHERE id=?", (reason, customer_id))
         for inv in self.db.q("SELECT id FROM invoices WHERE customer_id=?", (customer_id,)):
             self._cancel_invoice(inv["id"], reason)
+        note_id = self._owner_note(customer_id, "hold_note", note)
         self.audit(actor, "customer_hold", {"customer": customer_id, "reason": reason,
-                                            "note": (note or "")[:500]})
+                                            "note_id": note_id})
         return dict(self.db.one("SELECT * FROM customers WHERE id=?", (customer_id,)))
 
     # ---------- ר-10: legal hold + מחיקה/התממה אחרי 90 יום ----------
@@ -372,7 +373,10 @@ class CollectService:
         if val is not None and len(val) < 10:
             raise ValueError("legal hold דורש סיבה מתועדת (תיק, בקשת עו״ד, חובה חוקית)")
         self.db.x("UPDATE customers SET legal_hold=? WHERE id=?", (val, customer_id))
-        self.audit(actor, "legal_hold", {"customer": customer_id, "note": val})
+        # הסיבה עצמה נשמרת ב-customers.legal_hold (מתרוקן בשחרור); ב-audit רק עובדה + מזהה הערה
+        note_id = self._owner_note(customer_id, "legal_hold_note", val or "")
+        self.audit(actor, "legal_hold", {"customer": customer_id, "on": val is not None,
+                                         "note_id": note_id})
         return dict(self.db.one("SELECT * FROM customers WHERE id=?", (customer_id,)))
 
     def purge_closed(self) -> dict[str, int]:
@@ -395,12 +399,40 @@ class CollectService:
             if left or not self.db.one("SELECT 1 FROM invoices WHERE customer_id=?", (c["id"],)):
                 continue
             self.db.x("UPDATE messages SET body='', payload=NULL WHERE customer_id=?", (c["id"],))
+            # QA: גם טיוטות (כתובת יעד + גוף + סיכום לבעל העסק), מצב שיחה וטוקני הסרה
+            if self._table_exists("drafts"):
+                self.db.x("UPDATE drafts SET to_addr=NULL, body='', owner_summary=NULL, "
+                          "owner_actions=NULL WHERE customer_id=?", (c["id"],))
+            if self._table_exists("conversations"):
+                self.db.x("UPDATE conversations SET offered_plan=NULL WHERE customer_id=?",
+                          (c["id"],))
+            self.db.x("DELETE FROM link_tokens WHERE customer_id=?", (c["id"],))
             self.db.x("UPDATE customers SET name=NULL, phone=NULL, email=NULL, blocked_phone=NULL,"
                       " blocked_email=NULL, purged_at=? WHERE id=?", (now, c["id"]))
             cust_n += 1
-        if inv_n or cust_n:
-            self.audit("system", "retention_purge", {"invoices": inv_n, "customers": cust_n})
+        # QA: הודעה משולח לא מוכר (customer_id=NULL) = PII של מי שאינו לקוח ⇒ 90 יום מקבלתה
+        unk = self.db.q("SELECT id FROM messages WHERE customer_id IS NULL AND direction='in' "
+                        "AND body<>'' AND created_at<=?", (cutoff,))
+        for m in unk:
+            self.db.x("UPDATE messages SET body='', payload=NULL WHERE id=?", (m["id"],))
+        if inv_n or cust_n or unk:
+            self.audit("system", "retention_purge", {"invoices": inv_n, "customers": cust_n,
+                                                     "unknown_messages": len(unk)})
         return {"invoices": inv_n, "customers": cust_n}
+
+    def _table_exists(self, name: str) -> bool:
+        return self.db.one("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?",
+                           (name,)) is not None
+
+    def _owner_note(self, customer_id: int, intent: str, note: str) -> int | None:
+        """טקסט חופשי של בעל העסק (יכול להכיל שם/טלפון) נשמר כהודעה של הלקוח — נמחק עם
+        הלקוח (ר-10) — ולא ב-audit, שהוא הוספה-בלבד ולא נמחק לעולם."""
+        note = (note or "").strip()[:500]
+        if not note:
+            return None
+        return self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,"
+                         "needs_owner,created_at) VALUES(?,'note','owner',?,?,0,?)",
+                         (customer_id, note, intent, _iso(self.clock())))
 
     def preview(self, reminder_id: int) -> dict:
         r = self._reminder(reminder_id)
