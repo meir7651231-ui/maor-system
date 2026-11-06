@@ -23,6 +23,7 @@ from .channels import (
 from .config import SafetyError, Settings
 from .db import DB
 from .greeninvoice import GreenInvoiceClient, GreenInvoiceError, Invoice
+from .integrations.base import IntegrationError
 from .policy import (
     MANUAL_ONLY_AFTER_DAYS,
     MAX_REMINDERS_PER_INVOICE,
@@ -52,7 +53,9 @@ def _dt(s: str | None) -> datetime | None:
 def build_dry_sender(s: Settings) -> DryRunSender:
     """adapters של app/integrations (שכבת הספקים היחידה) במצב dry-run."""
     sms, email = build_adapters(provider=s.sms_provider, username=s.sms_username, token=s.sms_token,
-                                sender=s.sms_sender_id, email_from=s.email_from)
+                                sender=s.sms_sender_id, email_from=s.email_from,
+                                backup_username=s.sms_backup_username,
+                                backup_token=s.sms_backup_token)
     return DryRunSender(sms=sms, email=email, reply_to=s.email_reply_to)
 
 
@@ -120,7 +123,10 @@ class CollectService:
                 "ON CONFLICT(external_id) DO UPDATE SET amount_agorot=excluded.amount_agorot, "
                 "due=excluded.due, status='open', synced_at=excluded.synced_at, "
                 "source=excluded.source, "
-                "payment_url=COALESCE(NULLIF(excluded.payment_url,''), invoices.payment_url)",
+                # סכום השתנה (תשלום חלקי) ⇒ טופס התשלום השמור נבנה על הסכום הישן ⇒ לא בשימוש
+                "payment_url=CASE WHEN invoices.amount_agorot<>excluded.amount_agorot "
+                "THEN NULLIF(excluded.payment_url,'') "
+                "ELSE COALESCE(NULLIF(excluded.payment_url,''), invoices.payment_url) END",
                 (inv.external_id, inv.number, inv.doc_type, inv.amount_agorot, inv.currency,
                  inv.issued.isoformat() if inv.issued else None,
                  inv.due.isoformat() if inv.due else None, cid, inv.payment_url, now, source))
@@ -452,13 +458,24 @@ class CollectService:
             if not gap_ok(_dt(cust["last_sent_at"]), now):
                 continue  # ננסה בסבב הבא
             ids = []
+            failed = False
             for m in json.loads(r["payload"]):
                 msg = Message(**m)
                 if self.gate(cust, msg.channel, msg.to):
                     continue
-                mid = self.sender.send(msg)
+                try:
+                    mid = self.sender.send(msg)
+                except IntegrationError as e:
+                    # כל ספקי הערוץ נכשלו (019 ⇒ InforU) ⇒ לא מסמנים "נשלח" ⇒ ננסה בסבב הבא
+                    self.audit("system", "send_failed", {"reminder": r["id"],
+                                                         "channel": msg.channel,
+                                                         "error": str(e)[:300]})
+                    failed = True
+                    continue
                 ids.append(mid)
                 self._log_out(cust["id"], msg, mid, now)
+            if failed and not ids:
+                continue
             if not ids:
                 self.db.x("UPDATE reminders SET status='cancelled', block_reason='opted_out' "
                           "WHERE id=?", (r["id"],))
@@ -513,7 +530,8 @@ class CollectService:
             return "closed"
         self.db.x("UPDATE invoices SET synced_at=? WHERE id=?", (_iso(self.clock()), inv["id"]))
         if doc.amount_agorot != inv["amount_agorot"]:
-            self.db.x("UPDATE invoices SET amount_agorot=? WHERE id=?",
+            # טופס תשלום ישן = הסכום הישן ⇒ מאופס, ו-_payment_link בונה חדש על היתרה
+            self.db.x("UPDATE invoices SET amount_agorot=?, payment_url=NULL WHERE id=?",
                       (doc.amount_agorot, inv["id"]))
             inv = self._invoice(inv["id"])
             cust = self.db.one("SELECT * FROM customers WHERE id=?", (inv["customer_id"],))

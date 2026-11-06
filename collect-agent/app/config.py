@@ -42,10 +42,12 @@ class Settings:
     inbound_webhook_secret: str = field(default="", repr=False)
     # ערוצים — אין וואטסאפ (מדיניות Meta אוסרת debt collection)
     channels: tuple[str, ...] = ("sms", "email")
-    sms_provider: str = "019"             # 019 (ברירת מחדל) | inforu | twilio
+    sms_provider: str = "019"             # ראשי: 019 (ברירת מחדל) | inforu. השני = גיבוי אוטומטי
     sms_sender_id: str = ""               # שם שולח אלפאנומרי, עד 11 תווים לטיניים/ספרות
     sms_username: str = ""
     sms_token: str = field(default="", repr=False)
+    sms_backup_username: str = ""          # פרטי ספק הגיבוי (InforU כשהראשי 019, ולהפך)
+    sms_backup_token: str = field(default="", repr=False)
     email_from: str = "no-reply@example.com"
     email_reply_to: str = ""
     public_base_url: str = "https://gabi.example"   # לקישורי הסרה
@@ -78,7 +80,7 @@ class Settings:
         bad = set(self.channels) - {"sms", "email"}
         if bad:
             raise SafetyError(f"ערוץ לא נתמך: {sorted(bad)} (וואטסאפ הוסר בהחלטת מוצר)")
-        if self.sms_provider not in {"inforu", "019", "twilio"}:
+        if self.sms_provider not in {"inforu", "019"}:  # Twilio יצא (לא נדרש ל-MVP)
             raise ValueError(f"SMS_PROVIDER לא מוכר: {self.sms_provider}")
         import re as _re
         if self.sms_sender_id and not _re.fullmatch(r"[A-Za-z0-9]{1,11}", self.sms_sender_id):
@@ -118,6 +120,8 @@ def load_settings(env: dict[str, str] | None = None) -> Settings:
         sms_sender_id=e.get("SMS_SENDER_ID", ""),
         sms_username=e.get("SMS_USERNAME", ""),
         sms_token=e.get("SMS_TOKEN", ""),
+        sms_backup_username=e.get("SMS_BACKUP_USERNAME", ""),
+        sms_backup_token=e.get("SMS_BACKUP_TOKEN", ""),
         sms_webhook_key=e.get("SMS_WEBHOOK_KEY", ""),
         email_webhook_key=e.get("EMAIL_WEBHOOK_KEY", ""),
         trial_start=e.get("TRIAL_START", ""),

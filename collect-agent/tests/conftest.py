@@ -80,6 +80,7 @@ class FakeGreenInvoice:
             body = json.loads(req.content)
             assert body["amount"] > 0 and body["custom"].startswith("doc")
             self.forms += 1
+            self.last_form_amount = body["amount"]
             return httpx.Response(200, json={"errorCode": 0,
                                              "url": f"https://pay.greeninvoice.co.il/f/{body['custom']}"})
         return httpx.Response(404)

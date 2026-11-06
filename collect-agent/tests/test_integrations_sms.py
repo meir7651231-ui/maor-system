@@ -1,6 +1,5 @@
-"""SMS adapters — InforU / 019 / Twilio. אפס רשת: dry-run או MockTransport בלבד."""
+"""SMS adapters — 019 (ראשי) / InforU (גיבוי). אפס רשת: dry-run או MockTransport בלבד."""
 import json
-from urllib.parse import parse_qs
 
 import httpx
 import pytest
@@ -10,7 +9,6 @@ from app.integrations.base import IntegrationError, SmsMessage
 from app.integrations.sms import (
     InforUSms,
     Sms019,
-    TwilioSms,
     il_mobile_intl,
     il_mobile_local,
     sms_segments,
@@ -80,7 +78,7 @@ def test_missing_credentials():
     with pytest.raises(IntegrationError):
         InforUSms("", "t", "Studio")
     with pytest.raises(IntegrationError):
-        TwilioSms("AC1", "tok")   # בלי From/MSS
+        Sms019("u", "", "Studio")
 
 
 # ---------- InforU
@@ -149,48 +147,48 @@ def test_unexpected_body_handled():
     assert not r.ok and "לא צפויה" in r.error
 
 
-# ---------- 019
-def test_019_request_shape_and_success():
-    t, calls = mock(lambda r: httpx.Response(200, json={"status": 0, "message": "ok",
-                                                        "shipment_id": "s-1"}))
+# ---------- 019 (XML — fixture תאימות, חוזה לא מאומת)
+OK_019_XML = "<sms><status>0</status><message>ok</message><shipment_id>s-1</shipment_id></sms>"
+
+
+def test_019_contract_marked_unverified():
+    from app.integrations import sms
+    assert sms.CONTRACT_VERIFIED_019 is False and Sms019.contract_verified is False
+    assert sms.CONTRACT_VERIFIED_INFORU is False
+
+
+def test_019_xml_request_and_success():
+    t, calls = mock(lambda r: httpx.Response(200, text=OK_019_XML))
     a = Sms019("meir", "TOK019", "Studio", transport=t)
-    r = a.send(SmsMessage("+972-52-7654321", HEB))
+    r = a.send(SmsMessage("+972-52-7654321", "a<b & c"))
     assert r.ok and r.message_id == "s-1"
-    body = json.loads(calls[0].content)["sms"]
-    assert body["destinations"] == {"phone": ["0527654321"]}
-    assert body["source"] == "Studio" and body["user"] == {"username": "meir"}
-    assert calls[0].headers["authorization"] == "Bearer TOK019"
+    req = calls[0]
+    assert str(req.url) == "https://019sms.co.il/api/test"          # endpoint בדיקה כברירת מחדל
+    assert req.headers["content-type"].startswith("application/xml")
+    assert req.headers["authorization"] == "Bearer TOK019"
+    body = req.content.decode()
+    assert "<phone>0527654321</phone>" in body and "<message>a&lt;b &amp; c</message>" in body
     assert "TOK019" not in json.dumps(a.outbox)
 
 
-def test_019_error_status():
-    t, _ = mock(lambda r: httpx.Response(200, json={"status": 3, "message": "no credit"}))
+def test_019_xml_error_status_not_retryable():
+    t, _ = mock(lambda r: httpx.Response(200, text="<sms><status>3</status><message>no credit"
+                                                      "</message></sms>"))
     r = Sms019("u", "t", "Studio", transport=t).send(SmsMessage("0501234567", "x"))
-    assert not r.ok and "no credit" in r.error
+    assert not r.ok and not r.retryable and "no credit" in r.error
 
 
-# ---------- Twilio
-def test_twilio_form_and_sid():
-    t, calls = mock(lambda r: httpx.Response(201, json={"sid": "SM123", "status": "queued"}))
-    a = TwilioSms("AC9", "TWTOKEN", from_="Studio", transport=t)
-    r = a.send(SmsMessage("0501234567", HEB))
-    assert r.ok and r.message_id == "SM123"
-    req = calls[0]
-    assert req.url.path == "/2010-04-01/Accounts/AC9/Messages.json"
-    form = parse_qs(req.content.decode())
-    assert form["To"] == ["+972501234567"] and form["From"] == ["Studio"]
-    assert form["Body"] == [HEB]
-    assert "TWTOKEN" not in json.dumps(a.outbox)
+def test_019_json_tolerated_until_contract_verified():
+    t, _ = mock(lambda r: httpx.Response(200, json={"status": 0, "shipment_id": "j-1"}))
+    assert Sms019("u", "t", "S1", transport=t).send(SmsMessage("0501234567", "x")).message_id == "j-1"
 
 
-def test_twilio_messaging_service():
-    a = TwilioSms("AC9", "tok", messaging_service_sid="MG1")
-    r = a.send(SmsMessage("0501234567", "x"))
-    assert r.preview["body"]["MessagingServiceSid"] == "MG1"
-    assert "From" not in r.preview["body"]
+def test_019_garbage_body_is_failure():
+    t, _ = mock(lambda r: httpx.Response(200, text="<sms><status>"))
+    r = Sms019("u", "t", "S1", transport=t).send(SmsMessage("0501234567", "x"))
+    assert not r.ok and "לא צפויה" in r.error
 
 
-def test_twilio_error_body():
-    t, _ = mock(lambda r: httpx.Response(400, json={"code": 21211, "message": "invalid To"}))
-    r = TwilioSms("AC9", "tok", from_="S1", transport=t).send(SmsMessage("0501234567", "x"))
-    assert not r.ok and not r.retryable and r.error == "twilio: HTTP 400"
+def test_019_real_transport_blocked_even_with_credentials():
+    with pytest.raises(SafetyError):
+        Sms019("u", "t", "S1", transport=httpx.HTTPTransport())

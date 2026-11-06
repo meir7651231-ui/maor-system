@@ -31,7 +31,7 @@ export function MessagePreview({ invoice, onClose, now = new Date() }: { invoice
   const email = live && liveMail ? emailFromBackend(liveMail.body, liveMail.request.headers?.Subject ?? '', business.name) : mockEmail;
   const payUrl = live ? firstPayUrl(liveSms?.body ?? liveMail?.body ?? '') : invoice.payUrl;
   const seg = smsSegments(smsText);
-  // שכבת הספקים (app/integrations): 019 ב-JSON ⇒ body.sms.source; תאימות לאחור ל-XML ישן
+  // שכבת הספקים (app/integrations): 019 ב-XML (fixture תאימות, חוזה לא מאומת) ⇒ <source>; JSON נתמך גם הוא
   const liveReq = (liveSms?.request as { body?: unknown } | undefined)?.body;
   const liveSource = typeof liveReq === 'string'
     ? /<source>([^<]+)<\/source>/.exec(liveReq)?.[1]
