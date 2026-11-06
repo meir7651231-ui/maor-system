@@ -203,3 +203,10 @@ def test_urgent_card_is_not_superseded_and_owner_can_answer(inbox, svc):
         inbox.approve_draft(legal, body="נעביר לתביעה")
     out = inbox.approve_draft(legal, body="קיבלנו, נחזור אליכם בהקדם.")
     assert out["status"] == "sent_dry_run" and out["body"].startswith("סטודיו מאיר: ")
+
+
+def test_wrong_number_deletes_phone_but_apology_still_reaches_sender(inbox, svc):
+    d = inbox.handle("sms", DANA, "טעות במספר")["draft_id"]
+    assert cust(svc)["phone"] is None and cust(svc)["opted_out"] == 1
+    out = inbox.approve_draft(d)
+    assert out["status"] == "sent_dry_run" and svc.sender.sent[-1]["to"] == "972501234567"

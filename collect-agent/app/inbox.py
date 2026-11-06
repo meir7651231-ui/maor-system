@@ -47,6 +47,7 @@ CREATE TABLE IF NOT EXISTS drafts (
   id INTEGER PRIMARY KEY,
   customer_id INTEGER NOT NULL REFERENCES customers(id),
   channel TEXT NOT NULL,
+  to_addr TEXT,                      -- נקבע ביצירה (במספר שגוי הטלפון נמחק מהלקוח מיד)
   body TEXT NOT NULL,
   intent TEXT NOT NULL,
   status TEXT NOT NULL,  -- pending_approval / needs_owner / approved / sent_dry_run / rejected / superseded
@@ -110,6 +111,11 @@ class ConversationInbox:
         if d.reply or d.escalate != Escalation.NONE:
             # בלי טיוטה (למשל עו"ד) ⇒ כרטיס "דרוש טיפול" בתור, שבעל העסק יכול לענות ממנו בעצמו
             draft_id = self._draft(cust, channel, d, plan_id)
+        if getattr(self, "_wrong_number", False):
+            # ר-3: מספר שגוי ⇒ מוחקים את השדה מהלקוח (התנצלות, אם תאושר, הולכת לכתובת שנשמרה בטיוטה)
+            col = "email" if channel == "email" else "phone"
+            self.db.x(f"UPDATE customers SET {col}=NULL WHERE id=?", (cust["id"],))
+            self._wrong_number = False
         self._save_state(cust["id"], d, bump_turn=bool(d.reply))
         self.svc.audit("customer", "conversation", {
             "customer": cust["id"], "intent": d.intent.value,
@@ -154,6 +160,7 @@ class ConversationInbox:
         intents = {i.value for i in d.all_intents}
         if Intent.WRONG_PERSON.value in intents:
             self.svc._opt_out(cid, "wrong_number")
+            self._wrong_number = True
         elif d.stop == Stop.PERMANENT:
             self.svc._opt_out(cid, "reply")
         if intents & {Intent.DISPUTE.value, Intent.LEGAL.value}:
@@ -191,9 +198,10 @@ class ConversationInbox:
                   "status='pending_approval' AND escalate!='urgent'", (cust["id"],))
         status = "pending_approval" if d.reply else "needs_owner"
         return self.db.x(
-            "INSERT INTO drafts(customer_id,channel,body,intent,status,escalate,owner_summary,"
-            "owner_actions,plan_id,created_at) VALUES(?,?,?,?,?,?,?,?,?,?)",
-            (cust["id"], channel, d.reply or "", d.intent.value, status, d.escalate.value,
+            "INSERT INTO drafts(customer_id,channel,to_addr,body,intent,status,escalate,owner_summary,"
+            "owner_actions,plan_id,created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)",
+            (cust["id"], channel, self._addr(cust, channel), d.reply or "", d.intent.value, status,
+             d.escalate.value,
              d.owner_summary,
              json.dumps(list(d.owner_actions), ensure_ascii=False), plan_id,
              _iso(self.svc.clock())))
@@ -305,14 +313,21 @@ class ConversationInbox:
         self.svc.audit("system", "draft_sent_dry_run", {"draft": draft_id, "message_id": mid})
         return True
 
-    def _message(self, cust, dr) -> Message | None:
-        if dr["channel"] == "sms":
+    @staticmethod
+    def _addr(cust, channel: str) -> str | None:
+        if channel == "sms":
             to = normalize_il_phone(cust["phone"])
-            return Message("sms", to, dr["body"]) if is_il_mobile(to) else None
-        if not valid_email(cust["email"]):
+            return to if is_il_mobile(to) else None
+        return cust["email"] if valid_email(cust["email"]) else None
+
+    def _message(self, cust, dr) -> Message | None:
+        to = dr["to_addr"] or self._addr(cust, dr["channel"])
+        if not to:
             return None
+        if dr["channel"] == "sms":
+            return Message("sms", to, dr["body"])
         unsub = self.svc.unsub_url(cust["unsub_token"]) if cust["unsub_token"] else ""
-        return Message("email", cust["email"], dr["body"],
+        return Message("email", to, dr["body"],
                        subject=f"תשובה מ-{self.svc.s.business_name}", unsubscribe_url=unsub)
 
     def _get(self, draft_id: int):

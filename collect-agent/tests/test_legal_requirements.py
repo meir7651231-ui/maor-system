@@ -70,10 +70,12 @@ def test_r1_filter_blocks_threats_marketing_foreign_links(bad):
 
 
 def test_r1_live_auto_replies_pass_filter(api, svc):
-    """כל מענה אוטומטי שיוצא בפועל מהשירות עובר את אותו מסנן (כולל שם העסק בהתחלה)."""
+    """כל תשובה שיוצאת בפועל מהשירות עובר את אותו מסנן (כולל שם העסק בהתחלה).
+    התשובות הן טיוטות — בעל העסק מאשר כל אחת (team/critic.md §4) ואז הן יוצאות."""
     _cycle(api)
     for text in ("איך משלמים?", "שלחו העתק חשבונית"):
-        api.post("/inbound", json={"channel": "sms", "sender": "0501234567", "text": text})
+        r = api.post("/inbound", json={"channel": "sms", "sender": "0501234567", "text": text}).json()
+        api.post(f"/conversation/drafts/{r['draft_id']}/approve")
     bodies = [m["body"] for m in svc.sender.sent if m["channel"] == "sms"
               and m["to"] == "972501234567"][1:]  # בלי התזכורת עצמה
     assert bodies, "לא יצא אף מענה אוטומטי"
@@ -112,14 +114,13 @@ def test_r3_opt_out_blocks_all_channels_forever(api, svc, clock):
     assert all(m["to"] not in ("972501234567", "c1@example.com") for m in new)
 
 
-@pytest.mark.xfail(strict=True, reason="ר-3: אין טיפול ב'מספר שגוי' בזרימה החיה "
-                   "(service משתמש ב-assistant הישן; conversation.WRONG_PERSON לא מחובר)")
 def test_r3_wrong_number_deletes_phone_and_blocks(api, svc):
+    """נסגר: service.inbound מחובר למנוע השיחה (app/inbox.py)."""
     _cycle(api)
     api.post("/inbound", json={"channel": "sms", "sender": "0501234567",
                                "text": "טעות במספר, אני לא מכיר את דנה"})
-    row = svc.db.one("SELECT phone FROM customers WHERE name='דנה כהן'")
-    assert not row["phone"]
+    row = svc.db.one("SELECT phone, opted_out FROM customers WHERE name='דנה כהן'")
+    assert not row["phone"] and row["opted_out"] == 1
 
 
 def test_r3_wrong_person_engine_hides_details():
@@ -168,9 +169,8 @@ def test_r5_engine_stops_on_hardship():
     assert d.stop != conversation.Stop.NONE and d.escalate != conversation.Escalation.NONE
 
 
-@pytest.mark.xfail(strict=True, reason="ר-5: בזרימה החיה 'פוטרתי' מסווג UNKNOWN ⇒ "
-                   "התזכורות ממשיכות (assistant הישן)")
 def test_r5_live_hardship_pauses_reminders(api, svc):
+    """נסגר: service.inbound מחובר למנוע השיחה ('פוטרתי' ⇒ cant_pay ⇒ השהיה)."""
     _cycle(api)
     api.post("/inbound", json={"channel": "sms", "sender": "0501234567",
                                "text": "פוטרתי החודש ואין לי כסף כרגע"})
