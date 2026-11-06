@@ -664,8 +664,10 @@ class CollectService:
                 self.db.x("UPDATE reminders SET status='cancelled', block_reason='opted_out' "
                           "WHERE id=?", (r["id"],))
                 continue
-            self.db.x("UPDATE reminders SET status='sent_dry_run', sent_at=?, message_id=? "
-                      "WHERE id=?", (_iso(now), ",".join(ids), r["id"]))
+            self.db.x("UPDATE reminders SET status='sent_dry_run', sent_at=?, message_id=?, "
+                      "payload=?, body=? WHERE id=?",
+                      (_iso(now), ",".join(ids), redact_tokens(r["payload"]),
+                       redact_tokens(r["body"]), r["id"]))
             self.db.x("UPDATE customers SET last_sent_at=? WHERE id=?", (_iso(now), cust["id"]))
             out.append({"reminder_id": r["id"], "message_ids": ids, "dry_run": True})
         if out:
@@ -937,7 +939,8 @@ class CollectService:
         provider, pid = getattr(self.sender, "provider_ids", {}).get(mid, (None, None))
         self.db.x("INSERT INTO messages(customer_id,direction,channel,body,message_id,payload,"
                   "created_at,provider,provider_id,delivery_status) VALUES(?,?,?,?,?,?,?,?,?,?)",
-                  (cid, "out", msg.channel, msg.body, mid, message_to_json(msg), _iso(now),
+                  (cid, "out", msg.channel, redact_tokens(msg.body), mid,
+                   redact_tokens(message_to_json(msg)), _iso(now),
                    provider, pid or None, "sent" if pid else None))
 
     def delivery_report(self, provider: str, provider_id: str, status: str) -> dict:
@@ -1211,6 +1214,16 @@ def _rebuild_keep_log(old: DryRunSender, s: Settings) -> DryRunSender:
 def _in_days(n: int) -> str:
     """עברית תקינה: מחר / בעוד יומיים / בעוד N ימים (לא "בעוד 1 ימים")."""
     return {1: "מחר", 2: "בעוד יומיים"}.get(n, f"בעוד {n} ימים")
+
+
+_UNSUB_TOKEN = re.compile(r"(/u/)[A-Za-z0-9_-]{16,}")
+
+
+def redact_tokens(text):
+    """critic סבב 6 (R3 של QA לא הושלם): טוקן ההסרה נשמר כ-hash ב-link_tokens, אבל הגלוי נשאר
+    בעותקים של ההודעות שנשלחו (messages.body/payload, reminders.payload). מי שקורא את ה-DB יכול
+    להסיר כל לקוח. אחרי השליחה שומרים רק מסווה. הקישור עצמו ממשיך לעבוד דרך ה-hash."""
+    return _UNSUB_TOKEN.sub(r"\1[redacted]", text) if text else text
 
 
 def _sha(payload: str) -> str:

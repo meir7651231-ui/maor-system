@@ -103,3 +103,23 @@ def test_hole8_public_links_https_only(url, ok):
     else:
         with pytest.raises(SafetyError, match="https"):
             load_settings({"PUBLIC_BASE_URL": url})
+
+
+def test_round6_unsub_token_not_stored_in_plaintext(svc):
+    """critic סבב 6 (R3 של QA, אימות עצמאי): QA דיווח «טוקני הסרה נשמרים רק כ-hash», אבל הטוקן
+    הגלוי נשאר ב-messages.body/payload וב-reminders.payload. דליפת DB = יכולת להסיר כל לקוח.
+    עכשיו: אחרי השליחה רק מסווה, והקישור שנשלח עדיין עובד (דרך ה-hash)."""
+    import re as _re
+
+    from fastapi.testclient import TestClient
+
+    from app.main import create_app
+    from tests.conftest import OWNER_TOKEN
+    _cycle(svc)
+    sent = " ".join(m["body"] for m in svc.sender.sent)
+    toks = set(_re.findall(r"/u/([A-Za-z0-9_-]{16,})", sent))
+    assert toks, "אין קישור הסרה בהודעות שנשלחו"
+    dump = "\n".join(svc.db.conn.iterdump())
+    assert not [t for t in toks if t in dump], "טוקן הסרה גלוי ב-DB"
+    pub = TestClient(create_app(svc, owner_token=OWNER_TOKEN))
+    assert pub.post(f"/u/{sorted(toks)[0]}").status_code == 200        # הקישור עדיין עובד
