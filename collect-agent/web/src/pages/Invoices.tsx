@@ -60,7 +60,7 @@ export function Invoices() {
                 return (
                   <tr key={i.id} className="hover:bg-ink-50/60">
                     <td className="px-4 py-3"><div className="font-bold">{c.name}</div>{i.note && <div className="text-xs text-ink-500">📝 {i.note}</div>}</td>
-                    <td className="px-4 py-3 num">{i.number}</td>
+                    <td className="px-4 py-3"><span className="num">{i.number}</span>{i.source === 'csv' && <span className="ms-1.5 rounded bg-amber-100 text-amber-800 text-[10px] font-bold px-1.5 py-0.5" title="יובאה מקובץ CSV — לא מתעדכנת לבד">CSV</span>}</td>
                     <td className="px-4 py-3 font-bold whitespace-nowrap">{fmtIls(i.amount)}</td>
                     <td className="px-4 py-3 num">{fmtDate(i.dueAt)}</td>
                     <td className="px-4 py-3 whitespace-nowrap"><LateBadge days={d} /></td>

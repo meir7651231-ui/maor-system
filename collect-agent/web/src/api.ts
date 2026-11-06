@@ -43,6 +43,7 @@ export async function detectBackend(): Promise<Health | null> {
 export interface DashRow {
   invoice_id: number; number: string; customer: string; phone: string; email: string;
   customer_id?: number; paused_reason?: string | null;
+  source?: 'api' | 'csv';
   amount_agorot: number; currency: string; due: string | null; status: 'open' | 'closed' | string;
   days_overdue: number; reminders_sent: number;
   last_reminder: null | { id: number; step: number; status: string; template_key: string; sent_at: string | null; block_reason: string | null };
@@ -75,7 +76,8 @@ export const api = {
   dashboard: () => j<Dashboard>('/dashboard'),
   pending: () => j<{ id: number; invoice_id: number; block_reason: string | null }[]>('/reminders?status=pending_approval'),
   preview: (rid: number) => j<Preview>(`/reminders/${rid}/preview`),
-  approve: (rid: number) => j<unknown>(`/reminders/${rid}/approve`, { method: 'POST' }),
+  /** confirmOpen: לחשבונית מ-CSV בעל העסק מאשר במפורש שהסכום עדיין פתוח (השרת מחייב; תוקף 24 ש׳). */
+  approve: (rid: number, confirmOpen = false) => j<unknown>(`/reminders/${rid}/approve`, { method: 'POST', ...(confirmOpen ? { body: JSON.stringify({ confirm_open: true }) } : {}) }),
   dispatch: () => j<{ dry_run: true; sent: unknown[] }>('/dispatch', { method: 'POST' }),
   outbox: () => j<{ dry_run: true; messages: OutMsg[] }>('/outbox'),
   resume: (cid: number) => j<unknown>(`/customers/${cid}/resume`, { method: 'POST' }),
@@ -131,7 +133,7 @@ export function fromDashboard(d: Dashboard, pending: { id: number; invoice_id: n
     const reminders: Reminder[] = Array.from({ length: r.reminders_sent }, (_, i) => ({ at, step: STEP_ORDER[Math.min(i, 3)], channel: 'sms', status: 'sent' }));
     const blockNote = r.customer_block ? BLOCK_LABEL[r.customer_block] ?? r.customer_block : undefined;
     invoices.push({
-      id: String(r.invoice_id), number: r.number, customerId: cid, amount: r.amount_agorot / 100,
+      id: String(r.invoice_id), source: r.source === 'csv' ? 'csv' : 'api', number: r.number, customerId: cid, amount: r.amount_agorot / 100,
       issuedAt: r.due ?? d.today, dueAt: r.due ?? d.today, status, payUrl: '', reminders, note: blockNote,
     });
   }

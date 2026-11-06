@@ -966,6 +966,8 @@ class CollectService:
                 "customer_id": r["customer_id"], "paused_reason": r["paused_reason"],
                 "phone": r["cphone"], "email": r["cemail"], "amount_agorot": r["amount_agorot"],
                 "currency": r["currency"], "due": r["due"], "status": r["status"],
+                # web: חשבונית CSV ⇒ תיבת «הסכום עדיין פתוח» לפני אישור (confirm_open)
+                "source": r["source"],
                 "days_overdue": (today - due).days if due and r["status"] == "open" else 0,
                 "reminders_sent": sent,
                 "last_reminder": None if not last else {

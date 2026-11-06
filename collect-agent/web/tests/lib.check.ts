@@ -258,3 +258,13 @@ test('הגדרות: PUT חלקי בלבד, ולידציה כמו בשרת, שג�
   assert.equal(explainSettingsError("sms_sender_id: String should match pattern '^[A-Za-z0-9]{1,11}$'"), 'שם השולח: ערך לא תקין');
   assert.equal(explainSettingsError('קישור התשלום חייב להיות https בדומיין של bit: pay.example'), 'קישור התשלום חייב להיות https בדומיין של bit: pay.example');
 });
+
+test('מקור החשבונית מהשרת (api/csv) נשמר במודל — בסיס לתיבת «הסכום עדיין פתוח»', () => {
+  const base = { number: '1', customer: 'x', phone: '', email: '', amount_agorot: 100, currency: 'ILS', due: '2026-10-01', status: 'open',
+    days_overdue: 1, reminders_sent: 0, last_reminder: null, customer_block: null };
+  const d = { today: '2026-11-08', totals: {} as never, invoices: [{ ...base, invoice_id: 1, source: 'csv' as const }, { ...base, invoice_id: 2 }] };
+  const m = fromDashboard(d as never, []);
+  assert.deepEqual(m.invoices.map(i => i.source), ['csv', 'api']);
+  const prev = readFileSync(new URL('../src/components/MessagePreview.tsx', import.meta.url), 'utf8');
+  assert.match(prev, /disabled=\{[^}]*isCsv && !confirmOpen/, 'אישור CSV חסום עד סימון התיבה');
+});

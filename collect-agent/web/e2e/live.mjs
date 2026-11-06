@@ -200,6 +200,24 @@ try {
   await noHScroll(p, 'הגדרות דסקטופ');
   if (out) await fullShot(p, `${out}/live-07-settings.png`);
   console.log('  ✓ הגדרות חיות: שמירה בשרת, 422 מאומת, CSV עם שגיאת שורה');
+
+  // 7ב) תזכורת לחשבונית CSV: אי אפשר לאשר בלי «הסכום עדיין פתוח"; עם הסימון — השרת מקבל confirm_open
+  ok((await (await fetch(base + '/plan', { method: 'POST' })).json()).created.length >= 1, 'לא נוצרה תזכורת לחשבונית ה-CSV');
+  await p.goto(base + '/app/#/dashboard');
+  const csvItem = p.locator('li', { has: p.getByRole('button', { name: 'תצוגה ואישור' }) }).filter({ hasText: 'לקוח CSV' });
+  await csvItem.waitFor();
+  await csvItem.getByRole('button', { name: 'תצוגה ואישור' }).click();
+  await p.getByTestId('confirm-open').waitFor();
+  const approveBtn = p.getByRole('button', { name: /אשר ושלח/ });
+  await p.waitForFunction(() => /\/p\/\w+/.test(document.querySelector('textarea')?.value ?? ''));
+  ok(await approveBtn.isDisabled(), 'אישור CSV אפשרי בלי סימון «הסכום עדיין פתוח»');
+  await p.getByTestId('confirm-open').locator('input').check();
+  ok(!(await approveBtn.isDisabled()), 'הסימון לא שחרר את האישור');
+  await approveBtn.click();
+  await p.getByText('לא נשלחה הודעה אמיתית').waitFor();
+  const auditRows = await api('/audit');
+  ok(auditRows.some(a => a.action === 'approve' && /"confirm_open": true/.test(a.detail ?? '')), 'השרת לא קיבל confirm_open');
+  console.log('  ✓ חשבונית CSV: אישור רק עם «הסכום עדיין פתוח» (confirm_open מאומת ב-audit)');
   await p.goto(base + '/app/#/invoices');
   await p.getByText('דנה לוי').first().waitFor();
   ok(await p.locator('tbody tr').count() === 6, 'ציפיתי ל-6 חשבוניות פתוחות (5 + אחת מ-CSV)');

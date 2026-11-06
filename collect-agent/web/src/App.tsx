@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { AppProvider, useApp } from './store.tsx';
 import { useRoute } from './router.ts';
 import { Shell } from './components/Shell.tsx';
@@ -12,7 +13,9 @@ import { payCodeOf, takeTokenFromHash } from './lib/auth.ts';
 
 function Routed() {
   const r = useRoute();
-  const { toast } = useApp();
+  const { toast, mode, reload } = useApp();
+  // מעבר מסך בחי ⇒ רענון מהשרת (התור/החשבוניות משתנים בשרת: ייבוא CSV, תכנון לילי, תשובות לקוחות)
+  useEffect(() => { if (mode === 'live') void reload().catch(() => { /* השגיאה תוצג בפעולה הבאה */ }); }, [r, mode, reload]);
   const page = r === 'landing' ? <Landing /> : r === 'signup' ? <Signup /> : (
     <Shell route={r}>{r === 'dashboard' ? <Dashboard /> : r === 'invoices' ? <Invoices /> : r === 'inbox' ? <Inbox /> : <Settings />}</Shell>
   );
