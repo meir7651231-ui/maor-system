@@ -78,7 +78,9 @@ jobs:
           cache: pip
           cache-dependency-path: collect-agent/pyproject.toml
       - name: התקנת השרת (ל-e2e החי)
-        run: pip install -e '..[dev]'
+        run: |
+          pip install --require-hashes -r ../requirements-dev.lock
+          pip install --no-deps -e ..
       - name: התקנת הממשק
         run: npm ci --no-audit --no-fund
       - name: בדיקות יחידה (נוסחים מול templates.py, מדיניות, מיפוי API)

@@ -294,7 +294,10 @@ def test_runtime_lock_is_subset_of_dev_lock():
 def test_ci_installs_from_lock_with_hashes():
     wf = (ROOT.parent / ".github" / "workflows" / "collect-agent.yml").read_text()
     assert "--require-hashes -r requirements-dev.lock" in wf
-    assert "pip install -e '.[dev]'" not in wf
+    # כל התקנת פייתון ב-CI (כל ג'וב, כל נתיב) עוברת דרך הנעילה — לא '.[dev]' ולא '..[dev]'
+    assert not re.search(r"pip install (-e )?'?\.{1,2}\[dev\]", wf), "התקנה לא נעולה ב-CI"
+    editable = [ln for ln in wf.splitlines() if "pip install" in ln and " -e " in ln]
+    assert editable and all("--no-deps" in ln for ln in editable), editable
 
 
 # ======================= סריקות: סודות בלוגים / זיוף / סורקים =======================
