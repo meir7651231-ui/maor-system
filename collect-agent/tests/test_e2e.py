@@ -239,16 +239,16 @@ def test_paid_claim_pauses_until_owner_resumes():
 @pytest.mark.parametrize("text", ["בבקשה הסירו אותי", "תסירו אותי מהרשימה", "STOP",
                                   "אני לא מעוניין בהודעות", "ותפסיקו לשלוח", "הסר"])
 def test_opt_out_anywhere_in_message(text):
-    from app.assistant import Intent, classify
+    from tests.test_units import Intent, classify
     assert classify(text) == Intent.OPT_OUT
 
 
 @pytest.mark.parametrize("text", ["איך משלמים?", "איך אפשר לשלם", "שלחו קישור"])
 def test_how_to_pay_variants(text):
-    from app.assistant import Intent, classify
+    from tests.test_units import Intent, classify
     assert classify(text) == Intent.HOW_TO_PAY
 
 
 def test_plan_word_not_opt_out():
-    from app.assistant import Intent, classify
+    from tests.test_units import Intent, classify
     assert classify("אפשר הסדר תשלומים?") == Intent.PLAN_REQUEST

@@ -1,9 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { daysOverdue, fmtIls, fmtPhone, isIlMobile, agingOf } from '../src/lib/format.ts';
-import { buildSms, buildEmail, smsSegments, nextStep, requiresApproval, demoUnsubUrl, demoShortUrl, TEMPLATES } from '../src/lib/message.ts';
+import { buildSms, buildEmail, smsSegments, nextStep, remindersExhausted, requiresApproval, demoUnsubUrl, demoShortUrl, TEMPLATES } from '../src/lib/message.ts';
 import { readFileSync } from 'node:fs';
-import { canSendAt, nextAllowed } from '../src/lib/policy.ts';
+import { canSendAt, nextAllowed, HOLIDAYS } from '../src/lib/policy.ts';
 import { kpis, needsReminder, agingBuckets } from '../src/lib/stats.ts';
 import { DEMO_TODAY, demoBusiness, demoCustomers, demoInvoices } from '../src/data/demo.ts';
 
@@ -19,7 +19,7 @@ test('format', () => {
 });
 
 test('כל SMS בכל שלב כולל קישור קצר (תשלום+הסרה) ושורת הפסקה, ובלי מילות שיווק', () => {
-  for (const step of ['friendly', 'second', 'plan_offer', 'final'] as const) {
+  for (const step of ['friendly', 'plan_offer', 'final'] as const) {
     const s = buildSms(inv, cust, demoBusiness, step);
     // סבב 3 בבקאנד: SMS = קישור קצר אחד /p/{code} (עמוד תשלום+פריסה+הפסקה) ⇒ ≤2 חלקים
     assert.ok(s.includes(demoShortUrl(inv)), step);
@@ -40,23 +40,31 @@ test('מקטעי SMS', () => {
 
 test('סולם + אישור', () => {
   assert.equal(nextStep({ ...inv, reminders: [] }), 'friendly');
-  assert.equal(nextStep(inv), 'plan_offer'); // 2 נשלחו
+  assert.equal(nextStep(inv), 'final'); // 2 נשלחו
+  assert.ok(remindersExhausted({ ...inv, reminders: [...inv.reminders, inv.reminders[0]] }), '3 ⇒ עצירה');
+  assert.ok(!remindersExhausted(inv));
   const auto = { ...demoBusiness, autoApprove: true };
-  assert.ok(requiresApproval('final', auto, false), 'אחרונה תמיד באישור');
-  assert.ok(requiresApproval('friendly', auto, true), 'ראשונה ללקוח תמיד באישור');
-  assert.ok(!requiresApproval('second', auto, false));
+  for (const st of ['friendly', 'plan_offer', 'final'] as const)
+    assert.ok(requiresApproval(st, auto, false), `${st}: אישור פרטני לכל הודעה`);
 });
 
 test('מדיניות שעות — תואם policy.py', () => {
   const d = (s: string) => new Date(s);
-  assert.ok(canSendAt(d('2026-11-08T10:00'))); // ראשון
-  assert.ok(!canSendAt(d('2026-11-08T19:00')));
+  assert.ok(canSendAt(d('2026-11-08T08:00'))); // ראשון 08:00
+  assert.ok(!canSendAt(d('2026-11-08T07:59')));
+  assert.ok(canSendAt(d('2026-11-08T19:59')));
+  assert.ok(!canSendAt(d('2026-11-08T20:00')));
   assert.ok(canSendAt(d('2026-11-13T11:59'))); // שישי
   assert.ok(!canSendAt(d('2026-11-13T12:00')));
   assert.ok(!canSendAt(d('2026-11-14T10:00'))); // שבת
-  assert.equal(+nextAllowed(d('2026-11-13T15:00')), +d('2026-11-15T09:00')); // שישי אחה"צ ⇒ ראשון 9:00
-  assert.equal(+nextAllowed(d('2026-11-09T07:30')), +d('2026-11-09T09:00'));
-  assert.ok(!canSendAt(d('2026-11-09T10:00'), new Set(['2026-11-09'])), 'חג');
+  assert.ok(!canSendAt(d('2026-09-21T10:00')), 'יום כיפור — מובנה');
+  assert.ok(!canSendAt(d('2026-09-20T13:00')), 'ערב חג אחה"צ');
+  assert.equal(+nextAllowed(d('2026-11-13T15:00')), +d('2026-11-15T08:00')); // שישי אחה"צ ⇒ ראשון 8:00
+  assert.equal(+nextAllowed(d('2026-11-09T07:30')), +d('2026-11-09T08:00'));
+  assert.ok(!canSendAt(d('2026-11-09T10:00'), new Set(['2026-11-09'])), 'חג מהגדרות העסק');
+  const py = readFileSync(new URL('../../app/policy.py', import.meta.url), 'utf8');
+  const pyHol = [...py.matchAll(/"(\d{4}-\d{2}-\d{2})": "/g)].map(m => m[1]).sort();
+  assert.deepEqual([...HOLIDAYS].sort(), pyHol, 'לוח החגים זהה לבקאנד');
 });
 
 test('סטטיסטיקה על נתוני הדמו', () => {
@@ -72,7 +80,7 @@ test('סטטיסטיקה על נתוני הדמו', () => {
 test('הנוסחים בממשק זהים אות-באות ל-app/templates.py (הבקאנד = מקור האמת)', () => {
   const py = readFileSync(new URL('../../app/templates.py', import.meta.url), 'utf8');
   const steps = [...py.matchAll(/Step\("(\w+)",([\s\S]*?)\)(?:,\n|\n\))/g)];
-  assert.equal(steps.length, 4);
+  assert.equal(steps.length, 3);
   for (const [, key, body] of steps) {
     // כל ארגומנט = רצף מחרוזות פייתון סמוכות ⇒ משרשרים
     const lits = [...body.matchAll(/"((?:[^"\\]|\\.)*)"/g)].map(m => m[1]);
@@ -93,13 +101,13 @@ test('fromDashboard: ממפה את תמונת המצב של הבקאנד למו�
     invoice_id: 1, number: '2001', customer: 'דנה', phone: '050-0000001', email: '', amount_agorot: 345050, currency: 'ILS',
     due: '2026-10-01', status: 'open', days_overdue: 38, reminders_sent: 0, last_reminder: null, customer_block: null, ...o });
   const d: Dashboard = { today: '2026-11-08', totals: {} as Dashboard['totals'], invoices: [
-    row({}), row({ invoice_id: 2, reminders_sent: 2, last_reminder: { id: 9, step: 1, status: 'sent_dry_run', template_key: 'second', sent_at: '2026-11-01T10:00:00+02:00', block_reason: null } }),
+    row({}), row({ invoice_id: 2, reminders_sent: 2, last_reminder: { id: 9, step: 1, status: 'sent_dry_run', template_key: 'plan_offer', sent_at: '2026-11-01T10:00:00+02:00', block_reason: null } }),
     row({ invoice_id: 3, customer_block: 'paid_claim' }), row({ invoice_id: 4, customer_block: 'disputed' }),
     row({ invoice_id: 5, status: 'closed' }), row({ invoice_id: 6, customer_block: 'opted_out', phone: '' }) ] };
   const m = fromDashboard(d, [{ id: 7, invoice_id: 1, block_reason: null }, { id: 8, invoice_id: 6, block_reason: 'no_contact' }]);
   assert.equal(m.invoices[0].amount, 3450.5);
   assert.deepEqual(m.invoices.map(i => i.status), ['open', 'reminded', 'promised', 'disputed', 'paid', 'open']);
-  assert.deepEqual(m.invoices[1].reminders.map(r => r.step), ['friendly', 'second']);
+  assert.deepEqual(m.invoices[1].reminders.map(r => r.step), ['friendly', 'plan_offer']);
   assert.equal(m.invoices[1].reminders[0].at, '2026-11-01');
   assert.equal(m.pendingBy.get('1')?.reminderId, 7);
   assert.equal(m.pendingBy.get('6')?.block, 'no_contact');

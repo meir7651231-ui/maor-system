@@ -110,7 +110,7 @@ def check(case: dict, d: Decision, ctx: Context) -> list[str]:
     # אינווריאנטים בטיחותיים
     if d.auto_send and ctx.policy.approval_mode != "safe_auto":
         f.append("auto_send in approval_mode=all")
-    if d.intent in (Intent.DISPUTE, Intent.LEGAL, Intent.DISTRESS) and d.escalate.value != "urgent":
+    if d.intent in (Intent.DISPUTE, Intent.LEGAL, Intent.DISTRESS, Intent.MINOR) and d.escalate.value != "urgent":
         f.append("safety intent not urgent")
     if d.intent != Intent.UNKNOWN and not d.owner_summary:
         f.append("no owner summary")
@@ -160,6 +160,8 @@ def report(results: list[Result], name: str) -> dict:
 
 
 def main(argv: list[str]) -> int:
+    if argv[:1] == ["--heldout"]:
+        return heldout(argv[1:])
     paths = [Path(p) for p in argv] or sorted(HERE.glob("*.jsonl"))
     code = 0
     for p in paths:
@@ -184,6 +186,30 @@ def main(argv: list[str]) -> int:
         if rep["critical_pass"] < rep["critical"] or rep["guardrail_violations"]:
             code = 1
     return code
+
+
+def heldout(argv: list[str]) -> int:
+    """מוחזק-בצד: דיוק על טקסט חדש, בנפרד מרגרסיה. לא בשער pytest — לא מכווננים עליו.
+    מה שחשוב ביותר: טעויות בטוחות-בעצמן (המנוע החליט על כוונה אחרת במקום 'לא ברור ⇒ בעל העסק')."""
+    paths = [Path(p) for p in argv] or sorted((HERE / "heldout").glob("*.jsonl"))
+    for p in paths:
+        res = run(p)
+        rep = report(res, p.name)
+        safe_miss = [r for r in res if not r.ok and r.decision.intent.value == "unknown"
+                     and r.case["expect"]["intent"] != "unknown"]
+        silent = [r for r in res if r.decision.intent.value not in (r.case["expect"]["intent"], "unknown")]
+        print(f"\n═══ מוחזק-בצד: {p.name} ═══")
+        print(f"מקרים {rep['cases']} · עברו את כל הציפיות {rep['pass']} ({rep['pass_rate']:.1%}) · "
+              f"דיוק כוונה {rep['intent_acc']:.1%} · קריטיים {rep['critical_pass']}/{rep['critical']}")
+        print(f"פספוס בטוח (נפל ל'לא ברור' ⇒ בעל העסק): {len(safe_miss)}")
+        print(f"🔴 טעויות בטוחות-בעצמן: {len(silent)} (מהן קריטיות {rep['silent_critical']})")
+        for r in silent:
+            print(f"   🔴 {r.case['id']} «{r.case['text']}» ⇒ {r.decision.intent.value} "
+                  f"(צפוי {r.case['expect']['intent']})")
+        other = [r for r in res if not r.ok and r not in silent and r not in safe_miss]
+        for r in safe_miss + other:
+            print(f"   · {r.case['id']} «{r.case['text']}» ⇒ {'; '.join(r.failures)}")
+    return 0
 
 
 if __name__ == "__main__":

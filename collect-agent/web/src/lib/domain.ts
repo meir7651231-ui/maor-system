@@ -1,8 +1,8 @@
 // גבי · מודל הנתונים של הממשק (חוזה מול הבקאנד — ראו collect-agent/DESIGN.md §API)
 // ערוצים: SMS + מייל בלבד (הכרעת מוצר 6.11.2026 — WhatsApp אוסר debt collection במדיניות העסקית).
 export type Channel = 'sms' | 'email';
-/** תואם ל-app/templates.py STEPS: friendly → second → plan_offer → final */
-export type Step = 'friendly' | 'second' | 'plan_offer' | 'final';
+/** תואם ל-app/templates.py STEPS: friendly → plan_offer → final (3 לכל היותר) */
+export type Step = 'friendly' | 'plan_offer' | 'final';
 export type InvoiceStatus = 'open' | 'reminded' | 'promised' | 'paid' | 'disputed';
 
 export interface Customer { id: string; name: string; phone?: string; email?: string; contact?: string; optedOut?: boolean;

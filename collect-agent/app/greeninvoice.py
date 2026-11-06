@@ -54,6 +54,8 @@ class Invoice:
     client_phone: str
     client_email: str
     payment_url: str = ""   # אם המסמך כבר מחזיר קישור תשלום (לאמת שם-שדה ב-sandbox)
+    status: int = 0         # 0 פתוח · 1 סגור · 2 נסגר ידנית · 3 מבטל · 4 מבוטל
+    due_estimated: bool = False   # אין dueDate במסמך ⇒ תאריך המסמך + DEFAULT_TERMS_DAYS
 
 
 def _parse_date(v: Any) -> date | None:
@@ -72,9 +74,19 @@ def _to_agorot(v: Any) -> int:
     return int((Decimal(str(v or 0)) * 100).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
 
 
+DEFAULT_TERMS_DAYS = 30   # ממצא מבקר 2.9: בלי dueDate, תאריך ההנפקה ≠ מועד תשלום (שוטף+30 שמרני)
+
+
 def map_document(doc: dict[str, Any]) -> Invoice:
+    from datetime import timedelta
+
     client = doc.get("client") or {}
     emails = client.get("emails") or []
+    due = _parse_date(doc.get("dueDate"))
+    issued = _parse_date(doc.get("documentDate"))
+    due_estimated = due is None and issued is not None
+    if due is None and issued is not None:
+        due = issued + timedelta(days=DEFAULT_TERMS_DAYS)
     return Invoice(
         external_id=str(doc.get("id", "")),
         number=str(doc.get("number", "")),
@@ -82,12 +94,14 @@ def map_document(doc: dict[str, Any]) -> Invoice:
         amount_agorot=_to_agorot(doc.get("amountDueVat", doc.get("amount", 0))),
         currency=str(doc.get("currency") or "ILS"),
         issued=_parse_date(doc.get("documentDate")),
-        due=_parse_date(doc.get("dueDate")) or _parse_date(doc.get("documentDate")),
+        due=due,
         client_external_id=str(client.get("id", "")),
         client_name=str(client.get("name", "")),
         client_phone=str(client.get("phone") or client.get("mobile") or ""),
         client_email=str(emails[0]) if emails else "",
         payment_url=str(doc.get("paymentUrl") or doc.get("paymentLink") or ""),
+        status=int(doc.get("status", 0) or 0),
+        due_estimated=due_estimated,
     )
 
 
@@ -163,6 +177,11 @@ class GreenInvoiceClient:
             return r.json()
         raise GreenInvoiceError(f"{what or path} נכשל: 401 חוזר")
 
+    def get_document(self, doc_id: str) -> Invoice:
+        """ר-4: רענון מסמך יחיד לפני שליחה. KeyError ⇒ המסמך לא קיים (נמחק)."""
+        return map_document(self._enrich_client(
+            self._request("GET", f"/documents/{doc_id}", what="documents/get")))
+
     # ---------- לקוחות ----------
     def get_client(self, client_id: str) -> dict[str, Any]:
         return self._request("GET", f"/clients/{client_id}", what="clients/get")
@@ -230,7 +249,8 @@ class GreenInvoiceClient:
             for doc in body.get("items", []):
                 doc = self._enrich_client(doc)
                 inv = map_document(doc)
-                if inv.amount_agorot > 0:
+                # ממצא מבקר 2.10: רק מסמך בסטטוס «פתוח» הוא חוב, גם אם החיפוש החזיר אחר
+                if inv.amount_agorot > 0 and inv.status == STATUS_OPEN:
                     yield inv
             pages = int(body.get("pages") or 1)
             if page >= pages:

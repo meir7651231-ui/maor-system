@@ -9,6 +9,7 @@ import json
 import logging
 import os
 import re
+from html import escape as html_escape
 from pathlib import Path
 from typing import Literal
 
@@ -21,7 +22,7 @@ from .config import SafetyError, Settings, load_settings
 from .db import DB
 from .greeninvoice import GreenInvoiceClient
 from .service import CollectService
-from .templates import SLOGAN
+from .templates import SLOGAN, TAGLINE
 
 UI_HTML = (Path(__file__).parent / "ui.html").read_text(encoding="utf-8")
 
@@ -134,7 +135,7 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
 
     @app.get("/health")
     def health():
-        return {"status": "ok", "product": SLOGAN, "send_mode": svc.s.send_mode,
+        return {"status": "ok", "product": SLOGAN, "tagline": TAGLINE, "send_mode": svc.s.send_mode,
                 "greeninvoice_env": svc.s.greeninvoice_env, "dry_run": svc.s.dry_run,
                 "channels": list(svc.s.channels), "sms_provider": svc.s.sms_provider,
                 "trial": svc.trial()}
@@ -296,16 +297,27 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         פותחים כל קישור ⇒ הסרה ב-GET הייתה מסירה לקוחות שלא ביקשו. כפתור אחד ⇒ POST."""
         if not svc.has_unsub_token(token):
             return _unsub_page("הקישור אינו תקף.", 404)
-        return _unsub_page('<p>להפסיק לקבל תזכורות אוטומטיות על חשבוניות?</p>'
-                           '<form method="post"><button type="submit" style="font-size:18px;'
-                           'padding:10px 24px">כן, הסירו אותי</button></form>')
+        from . import legal
+        biz = svc.s.business_name
+        return _unsub_page(
+            f'<h1 style="font-size:20px">{html_escape(biz)} — הפסקת תזכורות</h1>'
+            f"<p>{legal.why_you_got_this(biz)}</p>"
+            "<p>להפסיק לקבל תזכורות אוטומטיות על חשבוניות? ההסרה חלה על כל הערוצים (SMS ומייל). "
+            "החשבונית עצמה לא נמחקת, ובעל העסק עשוי לפנות אליכם אישית.</p>"
+            '<form method="post"><button type="submit" style="font-size:18px;min-height:48px;'
+            'padding:10px 24px">כן, הסירו אותי</button></form>'
+            + legal.privacy_html(biz) + legal.draft_footer())
 
     @app.post("/u/{token}")
     def unsubscribe_one_click(token: str, request: Request):  # RFC 8058 + כפתור הדף
         if not svc.unsubscribe(token):
             raise HTTPException(404, "לא נמצא")
         if "text/html" in request.headers.get("accept", ""):
-            return _unsub_page("הוסרתם מתזכורות אוטומטיות. בעל העסק ייצור קשר במידת הצורך.")
+            from . import legal
+            biz = html_escape(svc.s.business_name)
+            return _unsub_page(f"<h1 style='font-size:20px'>הוסרתם</h1><p>לא יישלחו אליכם עוד "
+                               f"תזכורות אוטומטיות מ-{biz}. בעל העסק ייצור קשר במידת הצורך.</p>"
+                               + legal.draft_footer())
         return {"unsubscribed": True}
 
     @app.get("/owner/inbox", dependencies=auth)
