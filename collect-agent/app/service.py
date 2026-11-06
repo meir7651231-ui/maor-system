@@ -22,7 +22,7 @@ from .channels import (
 )
 from .config import SafetyError, Settings
 from .db import DB, token_hash
-from .greeninvoice import GreenInvoiceClient, GreenInvoiceError, Invoice
+from .greeninvoice import GreenInvoiceClient, Invoice
 from .integrations.base import IntegrationError
 from .policy import (
     MANUAL_ONLY_AFTER_DAYS,
@@ -65,14 +65,63 @@ class CollectService:
                  clock: Callable[[], datetime] | None = None) -> None:
         if not settings.dry_run:
             raise SafetyError("שלב 1: dry-run בלבד")
-        self.s = settings
+        from . import settings_api
         self.db = db
+        # הגדרות שבעל העסק שמר דרך /api/settings גוברות על ברירות המחדל (בלי סודות)
+        settings = settings_api.overlay(settings, settings_api.load_overrides(db))
+        self.s = settings
+        self._custom_sender = sender is not None
         self.sender = sender or build_dry_sender(settings)
         if getattr(self.sender, "mode", None) != "dry_run":
             raise SafetyError("שלב 1: רק DryRunSender מותר")
         self.gi = gi
         self.policy = Policy(frozenset(settings.holidays))
         self.clock = clock or (lambda: datetime.now(TZ))
+
+    # ---------- הגדרות עסק (API מאומת) ----------
+    def settings_view(self) -> dict:
+        from . import settings_api
+        return {**settings_api.public_view(self.s), "profile": settings_api.profile(self.db)}
+
+    def design_settings(self) -> dict:
+        from . import settings_api
+        has_csv = self.db.one("SELECT 1 FROM invoices WHERE source='csv' LIMIT 1") is not None
+        return settings_api.design_view(self.s, self.db, api_connected=self.gi is not None,
+                                        has_csv=has_csv)
+
+    def update_design_settings(self, body: dict) -> dict:
+        from . import settings_api
+        if isinstance(body, dict):
+            bad = settings_api.reject_secret_fields(body)
+            if bad:
+                raise PermissionError("סודות לא נשלחים דרך ה-API: " + ", ".join(bad))
+        self.update_settings(settings_api.from_design(body))
+        return self.design_settings()
+
+    def update_settings(self, raw: dict, actor: str = "owner") -> dict:
+        from pydantic import ValidationError
+
+        from . import settings_api
+        if not isinstance(raw, dict):
+            raise ValueError("גוף הבקשה חייב להיות אובייקט JSON")
+        bad = settings_api.reject_secret_fields(raw)
+        if bad:
+            raise PermissionError("סודות לא נשלחים דרך ה-API (רק בסביבה/בכספת): " + ", ".join(bad))
+        try:
+            data = settings_api.SettingsIn.model_validate(raw)
+        except ValidationError as e:
+            raise ValueError("; ".join(f"{'.'.join(map(str, x['loc']))}: {x['msg']}"
+                                       for x in e.errors())) from None
+        new, keys = settings_api.apply(self.s, data)
+        settings_api.save_overrides(self.db, new, keys, _iso(self.clock()))
+        keys += settings_api.save_profile(self.db, data, _iso(self.clock()))
+        self.s = new
+        self.policy = Policy(frozenset(new.holidays))
+        if not self._custom_sender:
+            self.sender = build_dry_sender(new) if not self.sender.sent else \
+                _rebuild_keep_log(self.sender, new)
+        self.audit(actor, "settings_updated", {"fields": keys})
+        return self.settings_view()
 
     # ---------- audit ----------
     def audit(self, actor: str, action: str, detail: Any = None) -> None:
@@ -147,19 +196,21 @@ class CollectService:
             raise RuntimeError("לא הוגדר חיבור Green Invoice (sandbox)")
         return self.ingest(list(self.gi.iter_open_invoices()))
 
+    def import_csv(self, raw: bytes, actor: str = "owner") -> dict:
+        """חלופה ל-API: ייבוא חלקי (לא סוגר חשבוניות שלא בקובץ). שגיאות לפי שורה."""
+        from . import csv_import
+        res = csv_import.parse(raw)
+        counts = self.ingest(res.invoices, source="csv", full=False)
+        self.audit(actor, "csv_import", {"rows": len(res.invoices), "errors": len(res.errors)})
+        return {"imported": counts["open"], "errors": res.errors}
+
     # ---------- payment link ----------
     def _payment_link(self, inv_row) -> str | None:
-        url = inv_row["payment_url"] or ""
-        if not url and self.s.payment_link_mode == "greeninvoice_form" and self.gi is not None:
-            try:
-                url = self.gi.create_payment_form(self._invoice_obj(inv_row))
-                self.db.x("UPDATE invoices SET payment_url=? WHERE id=?", (url, inv_row["id"]))
-            except GreenInvoiceError as e:
-                self.audit("system", "payment_form_failed", {"invoice": inv_row["id"],
-                                                             "error": str(e)})
-                url = ""
-        return paylinks.resolve(doc_link=url, static_link=self.s.payment_link,
-                                number=inv_row["number"], allowed=self.s.payment_domains)
+        """קישור לעמוד התשלום של העסק (Green Invoice/Meshulam/Bit) — רק מדומיין מותר.
+        לא נוצר שום מסמך/דף תשלום בחשבונית ירוקה (ממצא מבקר 2.0.5; הכרעת מאיר 6.11)."""
+        return paylinks.resolve(doc_link=inv_row["payment_url"] or "",
+                                static_link=self.s.payment_page, number=inv_row["number"],
+                                allowed=self.s.allowed_payment_domains)
 
     def _invoice_obj(self, r) -> Invoice:
         c = self.db.one("SELECT * FROM customers WHERE id=?", (r["customer_id"],))
@@ -960,6 +1011,12 @@ class CollectService:
     def _cancel_invoice(self, iid: int, reason: str) -> None:
         self.db.x("UPDATE reminders SET status='cancelled', block_reason=? "
                   "WHERE invoice_id=? AND status IN (?,?)", (reason, iid, *ACTIVE))
+
+
+def _rebuild_keep_log(old: DryRunSender, s: Settings) -> DryRunSender:
+    new = build_dry_sender(s)
+    new.sent = old.sent          # יומן ה-dry-run נשמר
+    return new
 
 
 def _sha(payload: str) -> str:

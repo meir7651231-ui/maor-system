@@ -160,8 +160,11 @@ PUBLIC_ROUTES = {"/health", "/", "/ui", "/landing", "/u/{token}", "/webhooks/sms
 
 
 def test_route_inventory_is_fully_guarded(svc):
-    """נקודה חדשה שנוספה בלי אימות ⇒ הבדיקה נופלת (מלבד /health)."""
-    app = create_app(svc, owner_token=OWNER_TOKEN)
+    """נקודה חדשה שנוספה בלי אימות ⇒ הבדיקה נופלת (מלבד /health).
+    מגביל בלי כללים: הבדיקה כאן היא אימות, לא קצב (עם 40+ נתיבים ה-429 הסתיר את ה-401;
+    הגבלת הקצב נבדקת בנפרד)."""
+    from app.ratelimit import RateLimiter
+    app = create_app(svc, owner_token=OWNER_TOKEN, limiter=RateLimiter(rules={}))
     c = TestClient(app)
     for route in app.routes:
         path = getattr(route, "path", "")

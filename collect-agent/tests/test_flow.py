@@ -197,17 +197,35 @@ def test_dispatch_rechecks_window(api, svc, clock):
     assert len(api.post("/dispatch").json()["sent"]) == 1
 
 
-def test_payment_form_failure_falls_back_to_static_link(api, svc, fake_gi):
-    fake_gi.fail_forms = True
+def test_payment_link_is_business_page_and_never_writes_to_gi(api, svc, fake_gi, clock):
+    """הכרעת מאיר 6.11 + ממצא מבקר 2.0.5: רק קישור לעמוד התשלום של העסק; אין POST /payments/form."""
     ids = first_cycle(api)
+    api.post(f"/reminders/{ids[0]}/approve")
+    api.post("/dispatch")
+    clock.now += timedelta(days=7)
+    api.post("/plan")
     body = api.get(f"/reminders/{ids[0]}/preview").json()["messages"][1]["body"]   # מייל
     assert "https://www.greeninvoice.co.il/pay/studio?invoice=1001" in body
+    assert fake_gi.forms == 0
+
+
+def test_greeninvoice_form_mode_refused():
+    from app.config import SafetyError, load_settings
+    with pytest.raises(SafetyError):
+        load_settings({"PAYMENT_LINK_MODE": "greeninvoice_form"})
+
+
+@pytest.mark.parametrize("provider,host", [("greeninvoice", "greeninvoice.example"),
+                                           ("meshulam", "meshulam.example"), ("bit", "bit.example")])
+def test_mock_payment_page_per_provider(provider, host):
+    from app.config import load_settings
+    s = load_settings({"PAYMENT_PROVIDER": provider})
+    assert host in s.payment_page and host in s.allowed_payment_domains
 
 
 def test_no_safe_payment_link_blocks(svc, gi_client, clock, fake_gi):
     from app.config import load_settings
     from app.db import DB
-    fake_gi.fail_forms = True
     s = load_settings({"PAYMENT_LINK": "https://evil.example/pay"})   # לא ברשימה המותרת
     api = TestClient(create_app(CollectService(s, DB(":memory:"), gi=gi_client, clock=clock),
                                 owner_token=OWNER_TOKEN), headers=AUTH)
@@ -638,3 +656,22 @@ def test_missing_due_date_uses_terms_not_issue_date():
     from app.greeninvoice import map_document
     inv = map_document({"id": 1, "amount": 10, "documentDate": "2026-10-01", "status": 0})
     assert inv.due.isoformat() == "2026-10-31" and inv.due_estimated is True
+
+
+def test_plan_offer_never_sent_twice(api, svc):
+    """ממצא מכירות/מבקר: הצעת פריסה נשלחה פעמיים — פעם מ-/plans ופעם מטיוטת מנוע השיחה."""
+    ids = first_cycle(api)
+    api.post(f"/reminders/{ids[0]}/approve")
+    api.post("/dispatch")
+    api.post("/inbound", json={"sender": "0501234567", "text": "אפשר פריסה ל-3 תשלומים?"})
+    pid = api.get("/plans").json()[-1]["id"]
+    drafts = svc.db.q("SELECT id FROM drafts WHERE plan_id=? AND intent='plan_request'", (pid,))
+    assert drafts, "המבחן חייב לכלול טיוטה מקבילה"
+    before = len(svc.sender.sent)
+    api.post(f"/plans/{pid}/approve")
+    for d in drafts:                       # בעל העסק מנסה לאשר גם את הטיוטה המקבילה
+        api.post(f"/conversation/drafts/{d['id']}/approve", json={})
+    offers = [m for m in svc.sender.sent[before:] if m["to"] == "972501234567"]
+    assert len(offers) == 1
+    api.post(f"/plans/{pid}/approve")      # אישור כפול של ההסדר עצמו
+    assert len([m for m in svc.sender.sent[before:] if m["to"] == "972501234567"]) == 1

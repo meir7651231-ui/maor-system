@@ -388,6 +388,65 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
                                + legal.draft_footer())
         return {"unsubscribed": True}
 
+    # ---------- הגדרות עסק (תיאום עם web/: מסך הגדרות) ----------
+    @app.get("/api/settings", dependencies=auth)
+    def get_settings():
+        return svc.settings_view()
+
+    @app.put("/api/settings", dependencies=auth)
+    async def put_settings(request: Request):
+        try:
+            raw = await request.json()
+        except ValueError:
+            raise HTTPException(400, "JSON לא תקין") from None
+        try:
+            return svc.update_settings(raw)
+        except PermissionError as e:
+            raise HTTPException(422, str(e)) from e
+        except (ValueError, TypeError) as e:
+            raise HTTPException(422, str(e)) from e
+
+    # חוזה העיצוב (DESIGN.md §3ב) — אותה לוגיקה, אותה ולידציה, צורה שטוחה למסך ההגדרות
+    @app.get("/settings", dependencies=auth)
+    def get_design_settings():
+        return svc.design_settings()
+
+    @app.put("/settings", dependencies=auth)
+    async def put_design_settings(request: Request):
+        try:
+            raw = await request.json()
+        except ValueError:
+            raise HTTPException(400, "JSON לא תקין") from None
+        try:
+            return svc.update_design_settings(raw)
+        except (PermissionError, ValueError, TypeError) as e:
+            raise HTTPException(422, str(e)) from e
+
+    @app.post("/settings/source/key", dependencies=auth)
+    async def settings_source_key():
+        """שלב 1: לא קולטים מפתחות אמיתיים (business_secrets.py; אין הרשמה/חיבור אמיתי).
+        הגוף לא נקרא ולא נשמר — 501 מפורש, כדי שהממשק יציג «בקרוב»."""
+        raise HTTPException(501, "שלב 1 (בטא, dry-run): חיבור מפתח API של חשבונית ירוקה עדיין "
+                                 "לא פעיל. הנתונים מגיעים מה-mock או מ-CSV. המפתח לא נשמר.")
+
+    @app.post("/settings/source/csv", dependencies=auth)
+    async def settings_source_csv(request: Request):
+        try:
+            r = svc.import_csv(await request.body())
+        except (ValueError, UnicodeDecodeError) as e:
+            raise HTTPException(400, str(e)) from e
+        return {"imported": r["imported"],
+                "rejected": [{"row": e["row"], "reason": e["error"]} for e in r["errors"]]}
+
+    @app.post("/import/csv", dependencies=auth)
+    async def import_csv(request: Request):
+        """API תחילה; CSV = חלופה (ייצוא מ-morning/Excel). גוף הבקשה = תוכן הקובץ."""
+        raw = await request.body()
+        try:
+            return svc.import_csv(raw)
+        except (ValueError, UnicodeDecodeError) as e:
+            raise HTTPException(400, str(e)) from e
+
     @app.get("/owner/inbox", dependencies=auth)
     def owner_inbox():
         return [dict(r) for r in svc.db.q(

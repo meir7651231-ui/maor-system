@@ -357,3 +357,4 @@ def test_reason_closed_explains():
     assert P.reason_closed(at(2026, 11, 14, 10)) == "שבת"
     assert "חג" in P.reason_closed(at(2026, 9, 21, 10))
     assert P.reason_closed(at(2026, 11, 8, 10)) is None
+
