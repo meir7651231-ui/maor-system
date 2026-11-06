@@ -11,6 +11,14 @@
 - ⚠️ **לא ידוע:** אם install מגדיר `core.hooksPath` או כותב ל-`.git/hooks` ואם הוא ממזג/דורס `.claude/settings.json` ו-`CLAUDE.md` קיימים — הקוד ב-`lib/*.mjs` **מוצפן (APX1)**, אי-אפשר לקרוא. הניסוי המתוכנן (התקנה על עותק-scratch של maor-system + diff) נחסם — ראו למטה.
 - ⚠️ ה-CHANGELOG: "The agent may run neither, nor install / uninstall the police" — ההתקנה מיועדת להרצה **ע"י הבעלים**, לא ע"י סוכן.
 
+### תוספת מ-S-AP/S-SEC (דרך «מעקב ביצוע», 6.11)
+- בלוק-מסומן (לא דורס; uninstall מסיר רק אותו) ל-AGENTS.md/CLAUDE.md/GEMINI.md/copilot-instructions/.cursor/rules · hooks ב-`.claude/settings.json` **ממוזגים** · דגלים: `--only`, `--no-hooks`, `--no-claude`.
+- ⚠️ **git hooks:** הבלוק נכנס **בראש** ה-hook הקיים בנתיב `git rev-parse --git-path hooks` ⇒ ב-maor-system (`core.hooksPath=.githooks`, committed) ישנה את שער-ה-commit לכל משכפל. כלל: בריפו עם hooksPath/husky — לא לגעת ב-git hooks; שילוב בשערים הקיימים = שאלה למאיר.
+- בענן `.git/hooks` לא שורד — רק committed. `harness.json` לקמט רק כפי ש-install כתב. **לא לקמט קובץ רישיון.**
+- Stop hook = check מלא, timeout 900s — ב-buildsmart (~6,000 בדיקות Flutter) לבדוק/להגביל את verify ב-harness.json.
+- עשן: `check --fast` מדלג על build/verify — אינו הוכחה שהבדיקות עוברות.
+- **החסם בעינו:** המידע הזה לא משנה את חסימת ההרצה בסשן.
+
 ## 🔴 חסם (6.11)
 הרצת קוד ההתקנה (קוד חיצוני מוצפן מ-GitHub) **נחסמה ע"י מסווג ההרשאות של הסשן** ("Code from External"), גם על עותק-ניסוי מבודד. לא עקפתי את החסימה. לא נגעתי באף ריפו-יעד.
 
