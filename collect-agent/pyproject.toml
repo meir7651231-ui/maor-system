@@ -22,7 +22,7 @@ requires = ["setuptools>=61"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-# רק app הוא חבילה (team/ מסמכים, web/ ממשק React — שברו את ה-flat-layout של pip install -e)
+# רק app הוא חבילה (team/ שבר את ה-flat-layout של pip install -e)
 packages = ["app"]
 
 [tool.setuptools.package-data]
@@ -31,12 +31,12 @@ app = ["ui.html"]
 [tool.ruff]
 line-length = 120
 target-version = "py311"
-extend-exclude = ["demo-output", "web"]
+extend-exclude = ["demo-output"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B", "UP"]
 ignore = ["UP031", "UP042"]
 
 [tool.ruff.lint.per-file-ignores]
-# רשימות ניסוח ארוכות בעברית
+# מחרוזות-אימון עבריות ארוכות (315 מקרי eval) — שבירה תפגע בקריאוּת
 "app/conversation.py" = ["E501"]
