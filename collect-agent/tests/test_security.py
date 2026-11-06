@@ -390,8 +390,10 @@ def test_gitignore_covers_sensitive_files():
 def test_no_trojan_source_bidi_chars():
     """תווי כיווניות מילוליים בקוד = Trojan Source (CVE-2021-42574). נמצא פעם אחת כבר
     ב-app/security.py עצמו (6.11.2026) — מאז רק כ-escape (\\u202e)."""
-    bidi = re.compile("[\u202a-\u202e\u2066-\u2069]")
-    for p in [*APP_FILES, *(ROOT / "tests").glob("*.py"), *(ROOT / "scripts").glob("*")]:
+    # גם RLM/LRM/ALM (bandit B613 תפס U+200F מילולי ב-app/csv_import.py, 6.11 לילה)
+    bidi = re.compile("[\u202a-\u202e\u2066-\u2069\u200e\u200f\u061c]")
+    for p in [*APP_FILES, *(ROOT / "tests").rglob("*.py"), *(ROOT / "scripts").glob("*"),
+              *(ROOT / "evals").rglob("*.py")]:
         if p.is_file():
             assert not bidi.search(p.read_text(encoding="utf-8", errors="ignore")), p.name
 

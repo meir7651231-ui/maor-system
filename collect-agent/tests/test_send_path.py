@@ -28,7 +28,7 @@ def demo():
 
 
 def _dana(svc):
-    """הלקוחה הראשונה בדמו (demo1, ‏1,200 ₪, נייד + מייל)."""
+    """הלקוחה הראשונה בדמו (demo1, 1,200 ₪, נייד + מייל)."""
     inv = svc.db.one("SELECT * FROM invoices WHERE external_id='demo1'")
     rid = svc.db.one("SELECT id FROM reminders WHERE invoice_id=?", (inv["id"],))["id"]
     return inv, rid
