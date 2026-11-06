@@ -1,4 +1,4 @@
-"""FastAPI — "גבי – העוזר לגביית חובות".
+"""FastAPI — "גבי – תזכורות תשלום".
 
 הפעלה: uvicorn app.main:_lazy_app --factory (dry-run בלבד).
 """
@@ -24,7 +24,6 @@ from .service import CollectService
 from .templates import SLOGAN
 
 UI_HTML = (Path(__file__).parent / "ui.html").read_text(encoding="utf-8")
-LANDING_HTML = (Path(__file__).parent / "landing.html").read_text(encoding="utf-8")  # טיוטה, noindex
 
 
 MAX_WEBHOOK_BODY = 16 * 1024
@@ -98,6 +97,7 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
     app = FastAPI(title=SLOGAN + " (dry-run)", docs_url="/docs" if docs else None,
                   redoc_url=None, openapi_url="/openapi.json" if docs else None)
     app.state.svc = svc
+    web_dist = Path(os.environ.get("WEB_DIST", Path(__file__).resolve().parent.parent / "web" / "dist"))
 
     @app.middleware("http")
     async def security_headers(request: Request, call_next):
@@ -144,9 +144,12 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
     def ui():
         return UI_HTML
 
-    @app.get("/landing", response_class=HTMLResponse)
+    # הכרעת מאיר 6.11: הדף המעוצב ב-/app/ הוא דף הנחיתה היחיד. /landing = הפניה מקומית בלבד
+    # (התוכן הייחודי שלו הועבר ל-web/src/pages/Landing.tsx). בלי build — נופלים ל-/ui.
+    @app.get("/landing")
     def landing():
-        return LANDING_HTML
+        built = (web_dist / "index.html").is_file()
+        return RedirectResponse("/app/" if built else "/ui", status_code=307)
 
     @app.post("/sync", dependencies=auth)
     def sync():
@@ -349,9 +352,56 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
     def conversation_flush():
         return {"sent": inbox.flush()}
 
+    web_dist = Path(os.environ.get("WEB_DIST", Path(__file__).resolve().parent.parent / "web" / "dist"))
+    # ---------- עמוד החייב v2 (/pay/{code}) — ציבורי, מינימום מידע, בלי טוקן בעלים ----------
+    def _web_index() -> str | None:
+        f = web_dist / "index.html"
+        if not f.is_file():
+            return None
+        # ה-build משתמש בנתיבים יחסיים (./assets) ⇒ <base> כדי שיעבדו גם מתחת ל-/pay/{code}
+        return f.read_text(encoding="utf-8").replace("<head>", '<head><base href="/app/">', 1)
+
+    @app.get("/pay/{code}", response_class=HTMLResponse)
+    def pay_page(code: str):
+        try:
+            svc.landing(code)
+        except KeyError:
+            return HTMLResponse(landing_page(None), status_code=404)
+        html = _web_index()
+        if html is None:   # בלי build של web/ — העמוד המוגש מהשרת ממשיך לעבוד
+            return RedirectResponse(f"/p/{code}", status_code=302)
+        return HTMLResponse(html, headers={"Cache-Control": "no-store", "X-Robots-Tag": "noindex"})
+
+    @app.get("/api/pay/{code}")
+    def pay_api(code: str):
+        try:
+            return svc.payer_view(code)
+        except KeyError:
+            raise HTTPException(404, "לא נמצא") from None
+
+    @app.get("/pay/{code}/go")
+    def pay_go(code: str, method: str = "card"):
+        try:
+            url = svc.payer_go(code, method)
+        except KeyError:
+            raise HTTPException(404, "לא נמצא") from None
+        except ValueError as e:
+            raise HTTPException(409, str(e)) from e
+        return RedirectResponse(url, status_code=302)   # יעד מאומת מול רשימת דומיינים
+
+    @app.post("/api/pay/{code}/{action}")
+    def pay_action(code: str, action: str, body: dict | None = None):
+        n = (body or {}).get("installments")
+        try:
+            res = svc.landing_action(code, action, int(n) if isinstance(n, int) or str(n).isdigit() else None)
+        except KeyError:
+            raise HTTPException(404, "לא נמצא") from None
+        except ValueError as e:
+            raise HTTPException(400, str(e)) from e
+        return {"action": action, "ok": bool(res.get("ok"))}   # בלי פרטי השיחה הפנימיים
+
     # הממשק המעוצב (web/, React) — מוגש מ-/app/ אם נבנה (`npm run build`). אותו origin ⇒ הממשק
     # מזהה את השרת ועובד "חי" מול ה-API (dry-run). בלי build — /ui הרזה ממשיך לעבוד כרגיל.
-    web_dist = Path(os.environ.get("WEB_DIST", Path(__file__).resolve().parent.parent / "web" / "dist"))
     if (web_dist / "index.html").is_file():
         from fastapi.staticfiles import StaticFiles
         app.mount("/app", StaticFiles(directory=web_dist, html=True), name="web")

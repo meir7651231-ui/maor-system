@@ -10,10 +10,9 @@ from typing import Any
 
 from . import compliance, paylinks, plans, templates
 from .channels import (
-    SMS_ADAPTERS,
     DryRunSender,
     Message,
-    SmtpEmail,
+    build_adapters,
     is_il_mobile,
     message_from_json,
     message_to_json,
@@ -41,12 +40,10 @@ def _dt(s: str | None) -> datetime | None:
 
 
 def build_dry_sender(s: Settings) -> DryRunSender:
-    sms_cls = SMS_ADAPTERS[s.sms_provider]
-    if s.sms_provider == "twilio":
-        sms = sms_cls(token=s.sms_token, sender=s.sms_sender_id)
-    else:
-        sms = sms_cls(username=s.sms_username, token=s.sms_token, sender=s.sms_sender_id)
-    return DryRunSender(sms=sms, email=SmtpEmail(sender=s.email_from, reply_to=s.email_reply_to))
+    """adapters של app/integrations (שכבת הספקים היחידה) במצב dry-run."""
+    sms, email = build_adapters(provider=s.sms_provider, username=s.sms_username, token=s.sms_token,
+                                sender=s.sms_sender_id, email_from=s.email_from)
+    return DryRunSender(sms=sms, email=email, reply_to=s.email_reply_to)
 
 
 class CollectService:
@@ -102,7 +99,8 @@ class CollectService:
         closed = 0
         for row in self.db.q("SELECT id, external_id FROM invoices WHERE status='open'"):
             if row["external_id"] not in seen:
-                self.db.x("UPDATE invoices SET status='closed' WHERE id=?", (row["id"],))
+                self.db.x("UPDATE invoices SET status='closed', closed_at=? WHERE id=?",
+                          (now, row["id"]))
                 self._cancel_invoice(row["id"], "invoice_closed")
                 closed += 1
         self.audit("system", "sync", {"open": len(seen), "closed": closed})
@@ -475,7 +473,27 @@ class CollectService:
                 "customer_block": block})
         open_rows = [x for x in rows if x["status"] == "open"]
         outbox = self.sender.sent
+        closed = self.db.q("SELECT amount_agorot, closed_at FROM invoices WHERE status='closed'")
+        collected = sum(r["amount_agorot"] for r in closed)
+        open_amt = sum(x["amount_agorot"] for x in open_rows)
+        late = [x["days_overdue"] for x in open_rows if x["days_overdue"] > 0]
+        messaged = {r["customer_id"] for r in self.db.q(
+            "SELECT DISTINCT customer_id FROM messages WHERE direction='out' AND customer_id IS NOT NULL")}
+        replied = {r["customer_id"] for r in self.db.q(
+            "SELECT DISTINCT customer_id FROM messages WHERE direction='in' AND customer_id IS NOT NULL")}
+        replied &= messaged
+        rich = {
+            "collected_agorot": collected,
+            "recovery_rate_pct": round(100 * collected / (collected + open_amt)) if collected + open_amt else 0,
+            "avg_days_overdue": round(sum(late) / len(late)) if late else 0,
+            "at_risk_agorot": sum(x["amount_agorot"] for x in open_rows if x["days_overdue"] > 60),
+            "reminders_sent": self.db.one("SELECT COUNT(*) n FROM reminders WHERE "
+                                          "status='sent_dry_run'")["n"],
+            "customers_messaged": len(messaged),
+            "reply_rate_pct": round(100 * len(replied) / len(messaged)) if messaged else 0,
+        }
         return {
+            "series": self._collection_series(today, closed),
             "today": today.isoformat(),
             "trial": self.trial(),
             "totals": {
@@ -489,8 +507,48 @@ class CollectService:
                 "sent_sms": sum(m["channel"] == "sms" for m in outbox),
                 "sent_email": sum(m["channel"] == "email" for m in outbox),
                 "owner_inbox": self.db.one("SELECT COUNT(*) n FROM messages WHERE "
-                                           "needs_owner=1")["n"]},
+                                           "needs_owner=1")["n"], **rich},
             "invoices": rows}
+
+    def _collection_series(self, today: date, closed) -> list[dict]:
+        """גבייה לפי שבוע, 8 השבועות האחרונים (ראשון–שבת), מ-closed_at. שבוע בלי גבייה = 0."""
+        start = today - timedelta(days=(today.weekday() + 1) % 7)   # ראשון של השבוע הנוכחי
+        weeks = [start - timedelta(weeks=i) for i in range(7, -1, -1)]
+        out = [{"week": w.isoformat(), "collected_agorot": 0, "count": 0} for w in weeks]
+        for r in closed:
+            if not r["closed_at"]:
+                continue
+            d = datetime.fromisoformat(r["closed_at"]).date()
+            idx = (d - weeks[0]).days // 7
+            if 0 <= idx < len(out):
+                out[idx]["collected_agorot"] += r["amount_agorot"]
+                out[idx]["count"] += 1
+        return out
+
+    # ---------- עמוד החייב (/pay/{code}) — ציבורי, מינימום מידע ----------
+    PAY_METHODS = ("bit", "apple_pay", "card")
+
+    def payer_view(self, code: str) -> dict:
+        """רק מה שהחייב צריך: שם העסק, מספר, סכום, מועד, מצב. בלי טלפון/מייל/טוקן הסרה."""
+        info = self.landing(code)
+        inv = self.db.one("SELECT amount_agorot, currency FROM invoices WHERE short_code=?", (code,))
+        return {"code": code, "business": info["business"], "number": info["number"],
+                "amount": info["amount"], "amount_agorot": inv["amount_agorot"],
+                "currency": inv["currency"], "due": info["due"], "open": info["open"],
+                "opted_out": info["opted_out"], "can_pay": bool(info["pay_url"]),
+                "methods": list(self.PAY_METHODS) if info["pay_url"] else [],
+                "plan_options": [2, 3, 4, 6], "dry_run": True}
+
+    def payer_go(self, code: str, method: str) -> str:
+        """בחירת אמצעי תשלום ⇒ דף התשלום המאובטח (חשבונית ירוקה תומכת ב-Bit/Apple Pay/כרטיס).
+        יעד מאומת מול רשימת הדומיינים; גבי לא נוגע בפרטי תשלום."""
+        if method not in self.PAY_METHODS:
+            raise ValueError("אמצעי תשלום לא מוכר")
+        info = self.landing(code)
+        if not info["pay_url"]:
+            raise ValueError("אין קישור תשלום זמין")
+        self.audit("customer", "pay_click", {"invoice": info["number"], "method": method})
+        return info["pay_url"]
 
     # ---------- plans ----------
     def propose_plan(self, customer_id: int, installments: int | None = None) -> int | None:

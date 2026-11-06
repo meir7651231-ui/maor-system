@@ -47,7 +47,9 @@ def _check(msg: EmailMessageOut) -> None:
 def unsubscribe_headers(msg: EmailMessageOut) -> dict[str, str]:
     if not msg.unsubscribe_url:
         return {}
-    if not msg.unsubscribe_url.startswith("https://"):
+    from ..greeninvoice import is_loopback_url  # http מותר רק לשרת מקומי (הדגמה/פיתוח)
+
+    if not (msg.unsubscribe_url.startswith("https://") or is_loopback_url(msg.unsubscribe_url)):
         raise IntegrationError("unsubscribe_url חייב https")
     return {"List-Unsubscribe": f"<{msg.unsubscribe_url}>",
             "List-Unsubscribe-Post": "List-Unsubscribe=One-Click"}

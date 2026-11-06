@@ -1,9 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="גבי">
-  <!-- בועת צ'אט ירוקה עם זנב בצד ימין-תחתון (RTL) -->
-  <path d="M32 5C17.1 5 5 15.6 5 28.7c0 7.4 3.9 14 10 18.4L13.2 58l11.4-6.3c2.4.6 4.8.9 7.4.9 14.9 0 27-10.6 27-23.9S46.9 5 32 5Z" fill="#10B981"/>
-  <!-- ₪ מינימליסטי בלבן -->
-  <path d="M20 39V19h9.5a6.5 6.5 0 0 1 6.5 6.5V32M28 26v13h9.5A6.5 6.5 0 0 0 44 32.5V19" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-  <!-- וי בעיגול כחול-כהה -->
-  <circle cx="49" cy="47" r="11" fill="#0F172A" stroke="#fff" stroke-width="3"/>
-  <path d="m44 47.2 3.4 3.4L54 44" fill="none" stroke="#10B981" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="14" fill="#FBF8F1"/>
+  <path d="M22 13h12a4 4 0 0 1 4 4v20" fill="none" stroke="#10B981" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M38 37l-11 9" fill="none" stroke="#10B981" stroke-width="7" stroke-linecap="round"/>
+  <path d="M14 50q18 12 36 0" fill="none" stroke="#10B981" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="48" cy="21" r="4.5" fill="#0F172A"/>
 </svg>

@@ -5,8 +5,12 @@ import { spawn } from 'node:child_process';
 const { chromium } = createRequire(import.meta.url)('playwright');
 const out = process.argv[2];
 const PORT = 8141, base = `http://127.0.0.1:${PORT}`;
+// שער האבטחה (team/qa.md S1): ה-API דורש טוקן בעלים ⇒ טוקן אקראי לריצה, נשלח בכל fetch של הבדיקה
+const TOKEN = (await import('node:crypto')).randomBytes(32).toString('base64url');
+const rawFetch = globalThis.fetch;
+const fetch = (u, init = {}) => rawFetch(u, { ...init, headers: { Authorization: `Bearer ${TOKEN}`, ...init.headers } });
 const srv = spawn('python3', ['-m', 'uvicorn', 'app.main:_lazy_app', '--factory', '--port', String(PORT), '--log-level', 'warning'],
-  { cwd: new URL('..', import.meta.url).pathname + '/..', env: { ...process.env, DEMO: '1' }, stdio: 'ignore' });
+  { cwd: new URL('..', import.meta.url).pathname + '/..', env: { ...process.env, DEMO: '1', OWNER_API_TOKEN: TOKEN }, stdio: 'ignore' });
 const ok = (c, m) => { if (!c) throw new Error(m); };
 for (let i = 0; i < 60; i++) { try { if ((await fetch(base + '/health')).ok) break; } catch { /* עוד עולה */ } await new Promise(r => setTimeout(r, 250)); }
 // צילום עמוד מלא נאמן: מגדילים את ה-viewport לגובה הדף (אחרת סרגל-צד sticky "צף" בצילום fullPage)
@@ -21,14 +25,25 @@ const b = await chromium.launch();
 const errors = [];
 try {
   const p = await b.newPage({ viewport: { width: 1366, height: 900 }, deviceScaleFactor: out ? 2 : 1 });
-  p.on('console', m => m.type() === 'error' && !/fonts\.g|status of 409/.test(m.text()) && errors.push(m.text())); // 409 = דחיית מסנן הניסוח, צפויה
+  let gate = true;   // 401 צפוי רק בשלב שער קוד-הגישה (בלי טוקן)
+  p.on('console', m => m.type() === 'error' && !/fonts\.g|status of 409/.test(m.text()) && !(gate && /status of 401/.test(m.text())) && errors.push(m.text())); // 409 = דחיית מסנן הניסוח, צפויה
   p.on('pageerror', e => errors.push(String(e)));
+  // בלי טוקן ⇒ שער קוד-גישה (לא נפילה שקטה למוק)
   await p.goto(base + '/app/#/dashboard');
+  await p.getByTestId('token-gate').waitFor();
+  // הקישור ש-demo.sh מדפיס: הטוקן ב-fragment, נשמר ב-sessionStorage ונמחק מהכתובת
+  await p.goto(base + `/app/#/dashboard?token=${TOKEN}`);
   await p.getByTestId('mode').filter({ hasText: 'מחובר לשרת גבי' }).waitFor();
+  ok(!p.url().includes('token='), 'הטוקן נשאר בשורת הכתובת');
+  gate = false;
   const outbox0 = (await (await fetch(base + '/outbox')).json()).messages.length;
   const items = p.locator('li', { has: p.getByRole('button', { name: 'תצוגה ואישור' }) });
   ok(await items.count() === 2, `ציפיתי ל-2 בתור, יש ${await items.count()}`);
   ok(await p.getByText('אין נייד או מייל תקין').count() >= 1, 'החסימה no_contact לא מוצגת');
+  // v2: 8 KPI עשירים + גרף גבייה
+  ok(await p.getByTestId('kpis').locator(':scope > *').count() === 8, 'ציפיתי ל-8 KPI');
+  await p.getByTestId('collection-chart').waitFor();
+  ok((await p.getByTestId('kpis').textContent()).includes('שיעור החזר'), 'חסר KPI שיעור החזר');
   if (out) await fullShot(p, `${out}/live-01-dashboard.png`);
 
   // חסום ⇒ אי אפשר לאשר
@@ -117,6 +132,40 @@ try {
   await p.goto(base + '/app/#/invoices');
   await p.getByText('דנה לוי').first().waitFor();
   ok(await p.locator('tbody tr').count() === 5, 'ציפיתי ל-5 חשבוניות פתוחות');
+  // v2 · דף נחיתה: כותרת חדשה + מחשבון החזר
+  await p.goto(base + '/app/');
+  ok((await p.getByTestId('hero-title').textContent()).includes('הכסף שלך חוזר'), 'כותרת v2 חסרה');
+  const roiBefore = await p.getByTestId('roi-result').textContent();
+  await p.getByTestId('roi-monthly').fill('100000');
+  ok(roiBefore !== await p.getByTestId('roi-result').textContent(), 'המחשבון לא מגיב');
+  if (out) await fullShot(p, `${out}/v2-landing.png`);
+
+  // v2 · עמוד החייב (מובייל, בלי טוקן): Bit/Apple Pay/כרטיס + פריסה
+  const smsOut = (await (await fetch(base + '/outbox')).json()).messages.find(m => m.channel === 'sms' && m.body.includes('/p/'));
+  const code = smsOut.body.split('/p/')[1].split(/\s/)[0];
+  const ctx = await b.newContext({ ...createRequire(import.meta.url)('playwright').devices['iPhone 13'] });
+  const m = await ctx.newPage();
+  m.on('pageerror', e => errors.push(String(e)));
+  await m.goto(base + `/pay/${code}`);
+  await m.getByTestId('pay-amount').waitFor();
+  for (const k of ['bit', 'apple_pay', 'card']) ok(await m.getByTestId(`pay-${k}`).count() === 1, `חסר ${k}`);
+  ok(await m.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'גלילה אופקית במובייל');
+  const href = await m.getByTestId('pay-bit').getAttribute('href');
+  const go = await rawFetch(new URL(href, base), { redirect: 'manual' });
+  ok(go.status === 302 && go.headers.get('location').startsWith('https://pay.example/'), 'Bit לא מוביל לדף התשלום המאומת');
+  if (out) await m.screenshot({ path: `${out}/v2-pay-mobile.png`, fullPage: true });
+  await m.getByRole('radio', { name: '4' }).click();
+  await m.getByTestId('pay-plan').click();
+  await m.getByTestId('pay-done').waitFor();
+  ok((await m.getByTestId('pay-done').textContent()).includes('4 תשלומים'), 'אישור בקשת הפריסה חסר');
+  if (out) await m.screenshot({ path: `${out}/v2-pay-done.png` });
+  const dm = await b.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: out ? 2 : 1 });
+  await dm.goto(base + `/app/#/dashboard?token=${TOKEN}`);
+  await dm.getByTestId('collection-chart').waitFor();
+  ok(await dm.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'דשבורד: גלילה אופקית במובייל');
+  if (out) await fullShot(dm, `${out}/v2-dashboard-mobile.png`);
+  await ctx.close();
+
   if (errors.length) throw new Error('שגיאות קונסולה:\n' + errors.join('\n'));
-  console.log(`✓ דמו חי מקצה לקצה עבר: תור 2 → אישור יוסי → יומן +2 (${outbox0}→${outbox1}) → תשובת לקוח סווגה → חידוש לקוח מושהה → הצעת פריסה אושרה ונשלחה → טיוטת מענה: שיווק נחסם, נוסח נקי אושר ונשלח · 0 שגיאות קונסולה`);
+  console.log(`✓ דמו חי מקצה לקצה עבר: תור 2 → אישור יוסי → יומן +2 (${outbox0}→${outbox1}) → תשובת לקוח סווגה → חידוש לקוח מושהה → הצעת פריסה אושרה ונשלחה → טיוטת מענה: שיווק נחסם, נוסח נקי אושר ונשלח · v2: 8 KPI + גרף · נחיתה+מחשבון · עמוד חייב Bit/Apple Pay/כרטיס + פריסה · 0 שגיאות קונסולה`);
 } finally { await b.close(); srv.kill(); }

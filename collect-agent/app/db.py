@@ -98,6 +98,8 @@ class DB:
                 self.conn.execute(ddl)
         self.conn.commit()
         icols = {r[1] for r in self.conn.execute("PRAGMA table_info(invoices)")}
+        if "closed_at" not in icols:  # מתי החשבונית נסגרה (שולמה) — לגרף הגבייה בדשבורד
+            self.conn.execute("ALTER TABLE invoices ADD COLUMN closed_at TEXT")
         if "short_code" not in icols:  # קישור קצר ל-SMS (≤2 חלקים)
             self.conn.execute("ALTER TABLE invoices ADD COLUMN short_code TEXT")
             self.conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS ix_inv_short ON invoices(short_code)")
