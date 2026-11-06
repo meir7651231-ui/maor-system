@@ -6,6 +6,12 @@
 - **מחיר יחיד:** ₪119 לחודש **או** ₪1,190 לשנה · 14 ימי ניסיון. **אין ₪79**, אין A/B, אין מסלולים או מחירונים אחרים. מקור יחיד: `docs/PRICING.md` · בקוד: `Settings.price_ils_month=119`, `price_ils_year=1190`, `trial_days=14` · בדף הנחיתה: `PRICE` ב-`web/src/pages/Landing.tsx`. (ניסוח המע״מ «כולל מע״מ ככל שחל» — עדיין לאישור רו״ח/עו״ד, `docs/PRICING.md`.)
 - **אין הרשמה לשום חשבון sandbox** (חשבונית ירוקה, 019, InforU, Twilio, ספק מייל) **בלי אישור מפורש של מאיר.** עד אז כל הפיתוח והבדיקות מול `app/gi_mock.py` ו-DryRunSender בלבד; פריטי «לאמת» נשארים פתוחים.
 
+## 🧭 הפעלת מנהל · 6.11.2026 (הפעלה 6)
+- **מיזוג:** אין ענפי `claude/*` חדשים עם שינוי אמיתי ב-`collect-agent/` (bold-bell / gallant-brown הם מיזוגי collect-agent אליהם בלבד; stoic-mccarthy נשאר נדחה). CI `collect-agent.yml` קיים. בסיס: pytest 735 ירוק, demo ירוק.
+- **נבחרה ובוצעה (בקאנד, שער 6):** משתמש לכל עובד + 2FA. `app/totp.py` (RFC 6238, אומת מול וקטורי RFC, חלון ±1, חד-פעמי) · `app/users.py` (scrypt, סוד TOTP, סשן 12 ש׳ נשמר כ-sha256, נעילה 15 דק׳ אחרי 5 כשלונות) · `POST /auth/login|logout` · הטוקן הנושא = השחקן האמיתי ב-`access_log`; `REQUIRE_USER_LOGIN=1` סוגר את הטוקן המשותף (בטא אמיתית). יצירת משתמש: `USER_PASSWORD=… python -m app.users <email> <name>`. הטוקן המשותף נשאר כברירת מחדל (תאימות). 
+- **הוכחה:** pytest **744** עוברות (9 חדשות ב-`tests/test_users_2fa.py`) · ruff נקי · `demo.sh --check` ירוק · מוטציה (דילוג על אימות הקוד) ⇒ 2 נופלות.
+- **⏭ הבא:** *עיצוב* — מסך התחברות (מייל+סיסמה+קוד) ב-`web/` במקום «קוד גישה». *בקאנד* — העברת `actor` לפעולות approve/reject/settings (היום audit כותב `owner`), הצפנת DB במנוחה (שער 5), הצפנת `totp_secret` ב-SecretBox. *משפטי* — עדכון שער 6 ל-🟡⇒✅ אחרי סקירה. *מאיר* — DPA/עו״ד/RFQ.
+
 ## 🧭 הפעלת מנהל · 6.11.2026 (הפעלה 5)
 - **מיזוג:** אין ענפי `claude/*` חדשים עם שינוי ב-`collect-agent/` מלבד `stoic-mccarthy-23f03p` (נדחה בכוונה, ראו הפעלה 3). CI `collect-agent.yml` קיים. pytest 735 עוברות.
 - **נבחרה ובוצעה:** (עיצוב) הצגת 403 של ייבוא CSV בעברית ברורה ב-`web/`: `ApiError.status` + `explainImportError` (`lib/settings.ts`) + הודעת `role=alert` במסך ההגדרות. בדיקה ב-`lib.check.ts` (web 22/22); מוטציה (ביטול `ApiError`) ⇒ נופלת. build ירוק.

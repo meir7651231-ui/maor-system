@@ -24,6 +24,7 @@ from .greeninvoice import GreenInvoiceClient
 from .ratelimit import RateLimiter, group_for
 from .service import CollectService, RealDataBlocked
 from .templates import SLOGAN, TAGLINE
+from .users import Users
 
 UI_HTML = (Path(__file__).parent / "ui.html").read_text(encoding="utf-8")
 
@@ -99,6 +100,12 @@ def _unsub_page(body: str, status: int = 200) -> HTMLResponse:
                                  "Referrer-Policy": "no-referrer"})
 
 
+
+class LoginIn(BaseModel):
+    email: str = Field(max_length=200)
+    password: str = Field(max_length=200)
+    code: str = Field(max_length=12)
+
 def create_app(service: CollectService | None = None, *, owner_token: str | None = None,
                webhook_secret: str | None = None,
                limiter: RateLimiter | None = None) -> FastAPI:
@@ -170,13 +177,38 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         resp.headers.setdefault("Referrer-Policy", "no-referrer")
         return resp
 
+    users = Users(svc.db, svc.clock)
+    require_login = os.environ.get("REQUIRE_USER_LOGIN") == "1"
+
     def owner(request: Request) -> None:
-        if not security.token_ok(security.bearer(request.headers.get("authorization")), token):
-            raise HTTPException(401, "נדרש אימות", headers={"WWW-Authenticate": "Bearer"})
-        # תיעוד צפייה במידע אישי (legal/BETA-GATE.md שער 6). שחקן = "owner" כל עוד יש טוקן יחיד
+        presented = security.bearer(request.headers.get("authorization"))
+        actor = users.actor(presented) if presented else None
+        if actor is None:
+            # הטוקן המשותף נשאר לתאימות לאחור; REQUIRE_USER_LOGIN=1 (בטא אמיתית) סוגר אותו
+            if require_login or not security.token_ok(presented, token):
+                raise HTTPException(401, "נדרש אימות", headers={"WWW-Authenticate": "Bearer"})
+            actor = "owner"
+        request.state.actor = actor
+        # תיעוד צפייה במידע אישי (legal/BETA-GATE.md שער 6): השחקן הוא העובד המחובר
         route = getattr(request.scope.get("route"), "path", "")
         if request.method == "GET" and route in PII_READ_ROUTES:
-            svc.log_access("owner", "GET", route, request.url.path)
+            svc.log_access(actor, "GET", route, request.url.path)
+
+    @app.post("/auth/login")
+    def auth_login(body: LoginIn):
+        tok = users.login(body.email, body.password, body.code)
+        if tok is None:
+            svc.audit("anon", "login_failed", {"email_sha": security.redact(body.email)[:40]})
+            raise HTTPException(401, "פרטי ההתחברות או קוד האימות שגויים")
+        svc.audit(body.email.strip().lower(), "login", None)
+        return {"token": tok, "expires_hours": 12}
+
+    @app.post("/auth/logout")
+    def auth_logout(request: Request):
+        t = security.bearer(request.headers.get("authorization"))
+        if t:
+            users.logout(t)
+        return {"ok": True}
 
     async def owner_or_signed(request: Request) -> None:
         if security.token_ok(security.bearer(request.headers.get("authorization")), token):
