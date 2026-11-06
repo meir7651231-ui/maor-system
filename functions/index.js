@@ -393,7 +393,7 @@ exports.remindersNightly = onSchedule({ schedule: 'every day 05:00', timeZone: '
 });
 
 /**
- * 💾 backupNightly — צילום-לילי (02:30) של כל ארגון-פלטפורמה ל-Storage:
+ * 💾 backupNightly — צילום-לילי (02:30) של הלקוח-החי (שורש) ושל כל ארגון-פלטפורמה ל-Storage:
  * ‏backups/{slug}/{date}.json — ‏meta + envelope + 21 אוספי-הישויות, ושומר 30
  * צילומים אחרונים (טבעת כמו ה-IndexedDB המקומי). ארגון שהדליק הצפנת-ענן —
  * המסמכים כבר {enc,iv} ⇒ הצילום מוצפן מלידה; ארגון לא-מוצפן — הצילום באותה
@@ -414,32 +414,53 @@ const BACKUP_COLLECTIONS = [
 const EXTRA_BACKUP = ['donations'];
 const BACKUP_KEEP = 30;
 
-exports.backupNightly = onSchedule({ schedule: 'every day 02:30', timeZone: 'Asia/Jerusalem' }, async () => {
+/**
+ * 🛡 G1 (6.11.2026): יעדי-הגיבוי. הלקוח-החי רץ ב-`cloudRoot:true` = נתיבי-שורש
+ * (cloud-diff.ts: colPath⇒`{col}` · metaPath⇒`meta/org` · envPath⇒`_enc/envelope` ·
+ * donationsPath⇒`donations`) — ואינו ב-platformOrgs ⇒ לפני התיקון לא גובה כלל.
+ * יעד-שורש קבוע `root` (כמו incomingCol) ⇒ backups/root/{date}.json, אותה טבעת-30.
+ * ארגוני-הפלטפורמה — ללא-שינוי (orgs/{slug}/…). slug 'root' שמור — לא נדרס ע"י ארגון.
+ */
+function backupTargets(db, orgIds) {
+  const root = {
+    slug: 'root', isRoot: true, col: (c) => db.collection(c), meta: 'meta/org', env: '_enc/envelope',
+  };
+  const orgs = orgIds.filter((id) => id !== 'root').map((id) => ({
+    slug: id, isRoot: false, col: (c) => db.collection('orgs').doc(id).collection(c),
+    meta: 'orgs/' + id + '/meta/org', env: 'orgs/' + id + '/_enc/envelope',
+  }));
+  return [root, ...orgs];
+}
+
+// 📏 G1: צילום-השורש של הלקוח-החי ≈34MB JSON (16k תורמים) — נמדד באמולטור ‏+257MB heap
+// לריצה עצמה (npm run test:backup-scale) ⇒ ברירת-המחדל 256MiB/60s הייתה נכשלת בשקט.
+exports.backupNightly = onSchedule({ schedule: 'every day 02:30', timeZone: 'Asia/Jerusalem', memory: '1GiB', timeoutSeconds: 540 }, async () => {
   const db = getFirestore();
   const bucket = getStorage().bucket();
   const today = new Date().toISOString().slice(0, 10);
   const orgs = await db.collection('platformOrgs').get();
-  for (const org of orgs.docs) {
+  for (const t of backupTargets(db, orgs.docs.map((d) => d.id))) {
     try {
-      const base = db.collection('orgs').doc(org.id);
-      const snapshot = { slug: org.id, at: new Date().toISOString(), meta: null, envelope: null, collections: {} };
-      const metaDoc = await db.doc('orgs/' + org.id + '/meta/org').get();
+      const snapshot = { slug: t.slug, at: new Date().toISOString(), meta: null, envelope: null, collections: {} };
+      const metaDoc = await db.doc(t.meta).get();
+      // שורש בלי meta/org = פרויקט בלי לקוח-שורש (readDb מחזיר null) ⇒ אין מה לצלם
+      if (t.isRoot && !metaDoc.exists) continue;
       if (metaDoc.exists) snapshot.meta = metaDoc.data();
-      const envDoc = await db.doc('orgs/' + org.id + '/_enc/envelope').get();
+      const envDoc = await db.doc(t.env).get();
       if (envDoc.exists) snapshot.envelope = envDoc.data();
       for (const col of [...BACKUP_COLLECTIONS, ...EXTRA_BACKUP]) {
-        const snap = await base.collection(col).get();
+        const snap = await t.col(col).get();
         if (snap.size) snapshot.collections[col] = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
       }
-      await bucket.file('backups/' + org.id + '/' + today + '.json').save(JSON.stringify(snapshot), { contentType: 'application/json' });
+      await bucket.file('backups/' + t.slug + '/' + today + '.json').save(JSON.stringify(snapshot), { contentType: 'application/json' });
       // טבעת: מוחקים את העודף מעבר ל-30 הצילומים האחרונים (שמות = תאריכים ⇒ מיון לקסיקוגרפי)
-      const [files] = await bucket.getFiles({ prefix: 'backups/' + org.id + '/' });
+      const [files] = await bucket.getFiles({ prefix: 'backups/' + t.slug + '/' });
       const sorted = files.map((f) => f.name).sort();
       for (const name of sorted.slice(0, Math.max(0, sorted.length - BACKUP_KEEP))) {
         await bucket.file(name).delete().catch(() => {});
       }
     } catch (e) {
-      console.error('backupNightly ' + org.id + ': ' + String(e).slice(0, 300));
+      console.error('backupNightly ' + t.slug + ': ' + String(e).slice(0, 300));
     }
   }
 });
