@@ -28,7 +28,9 @@ clock = Clock(datetime(2026, 11, 8, 10, tzinfo=TZ))
 svc = CollectService(load_settings({"BUSINESS_NAME": "סטודיו מאיר", "SMS_SENDER_ID": "StudioMeir",
                                     "PAYMENT_LINK": "https://www.greeninvoice.co.il/pay/demo"}),
                      DB(":memory:"), gi=gi, clock=clock)
-api = TestClient(create_app(svc))
+OWNER_TOKEN = __import__("secrets").token_urlsafe(32)  # טוקן חד-פעמי לדמו
+api = TestClient(create_app(svc, owner_token=OWNER_TOKEN),
+                 headers={"Authorization": f"Bearer {OWNER_TOKEN}"})
 
 
 def show(title, obj):

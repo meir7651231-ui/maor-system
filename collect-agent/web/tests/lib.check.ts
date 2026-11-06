@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { daysOverdue, fmtIls, fmtPhone, isIlMobile, agingOf } from '../src/lib/format.ts';
-import { buildSms, buildEmail, smsSegments, nextStep, requiresApproval, demoUnsubUrl, TEMPLATES } from '../src/lib/message.ts';
+import { buildSms, buildEmail, smsSegments, nextStep, requiresApproval, demoUnsubUrl, demoShortUrl, TEMPLATES } from '../src/lib/message.ts';
 import { readFileSync } from 'node:fs';
 import { canSendAt, nextAllowed } from '../src/lib/policy.ts';
 import { kpis, needsReminder, agingBuckets } from '../src/lib/stats.ts';
@@ -18,14 +18,15 @@ test('format', () => {
   assert.equal(agingOf(0), 'notDue'); assert.equal(agingOf(31), 'd31_60'); assert.equal(agingOf(91), 'd90p');
 });
 
-test('כל SMS בכל שלב כולל קישור תשלום ושורת הסרה, ובלי מילות שיווק', () => {
+test('כל SMS בכל שלב כולל קישור קצר (תשלום+הסרה) ושורת הפסקה, ובלי מילות שיווק', () => {
   for (const step of ['friendly', 'second', 'plan_offer', 'final'] as const) {
     const s = buildSms(inv, cust, demoBusiness, step);
-    assert.ok(s.includes(inv.payUrl), step);
-    assert.ok(s.endsWith(demoUnsubUrl(cust)), step);
+    // סבב 3 בבקאנד: SMS = קישור קצר אחד /p/{code} (עמוד תשלום+פריסה+הפסקה) ⇒ ≤2 חלקים
+    assert.ok(s.includes(demoShortUrl(inv)), step);
+    assert.ok(s.endsWith('להפסקה: בקישור'), step);
     assert.ok(s.startsWith(demoBusiness.name + ':'), 'מזהה את העסק');
     assert.doesNotMatch(s, /מבצע|הנחה|הטבה|מתנה|קופון|הזדמנות|הוצאה לפועל|תביעה|משטרה|עו"ד|עורך דין/, step);
-    assert.ok(smsSegments(s).segments <= 4, `${step}: ${smsSegments(s).chars} תווים`);
+    assert.ok(smsSegments(s).segments <= 3, `${step}: ${smsSegments(s).chars} תווים`);
     const e = buildEmail(inv, cust, demoBusiness, step);
     assert.ok(e.subject.includes(inv.number) && e.paragraphs.join().includes(inv.payUrl));
   }
@@ -83,3 +84,34 @@ test('הנוסחים בממשק זהים אות-באות ל-app/templates.py (ה
     }
   }
 });
+
+import { fromDashboard, type Dashboard } from '../src/api.ts';
+import { fmtWhenIL } from '../src/lib/policy.ts';
+
+test('fromDashboard: ממפה את תמונת המצב של הבקאנד למודל הממשק', () => {
+  const row = (o: Partial<Dashboard['invoices'][0]>): Dashboard['invoices'][0] => ({
+    invoice_id: 1, number: '2001', customer: 'דנה', phone: '050-0000001', email: '', amount_agorot: 345050, currency: 'ILS',
+    due: '2026-10-01', status: 'open', days_overdue: 38, reminders_sent: 0, last_reminder: null, customer_block: null, ...o });
+  const d: Dashboard = { today: '2026-11-08', totals: {} as Dashboard['totals'], invoices: [
+    row({}), row({ invoice_id: 2, reminders_sent: 2, last_reminder: { id: 9, step: 1, status: 'sent_dry_run', template_key: 'second', sent_at: '2026-11-01T10:00:00+02:00', block_reason: null } }),
+    row({ invoice_id: 3, customer_block: 'paid_claim' }), row({ invoice_id: 4, customer_block: 'disputed' }),
+    row({ invoice_id: 5, status: 'closed' }), row({ invoice_id: 6, customer_block: 'opted_out', phone: '' }) ] };
+  const m = fromDashboard(d, [{ id: 7, invoice_id: 1, block_reason: null }, { id: 8, invoice_id: 6, block_reason: 'no_contact' }]);
+  assert.equal(m.invoices[0].amount, 3450.5);
+  assert.deepEqual(m.invoices.map(i => i.status), ['open', 'reminded', 'promised', 'disputed', 'paid', 'open']);
+  assert.deepEqual(m.invoices[1].reminders.map(r => r.step), ['friendly', 'second']);
+  assert.equal(m.invoices[1].reminders[0].at, '2026-11-01');
+  assert.equal(m.pendingBy.get('1')?.reminderId, 7);
+  assert.equal(m.pendingBy.get('6')?.block, 'no_contact');
+  assert.equal(m.customers[5].phone, undefined);
+  assert.ok(m.customers[5].optedOut);
+  assert.equal(m.invoices[2].note, 'טוען ששילם — לבדיקתך');
+});
+
+test('שעה מהשרת מוצגת בשעון ישראל, וסכומים עם אגורות', () => {
+  assert.equal(fmtWhenIL('2026-11-08T10:00:00+02:00'), 'יום ראשון 10:00');
+  assert.equal(fmtWhenIL('2026-11-08T08:00:00Z'), 'יום ראשון 10:00');
+  assert.match(fmtIls(3450.5), /3,450\.50/);
+  assert.doesNotMatch(fmtIls(1200), /\./);
+});
+

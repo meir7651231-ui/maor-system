@@ -50,12 +50,13 @@ iframe{width:100%;min-height:360px;border:1px solid var(--line);border-radius:10
 @media (max-width:760px){.kpis{grid-template-columns:repeat(2,1fr)}}
 .kpi .v{font-size:22px;font-weight:800}.kpi .l{color:var(--muted);font-size:13px}
 .kpi.warn .v{color:var(--warn)}.tbl{overflow-x:auto}
-button.resume{min-height:32px;padding:4px 10px;font-size:13px;margin-top:4px}
+button.resume{display:block;white-space:nowrap;min-height:32px;padding:4px 10px;font-size:13px;margin-top:4px}
 table{width:100%;border-collapse:collapse;font-size:14px}
 th,td{text-align:right;padding:8px;border-bottom:1px solid var(--line);white-space:nowrap}
 th{color:var(--muted);font-weight:600;font-size:12px}td.num{font-variant-numeric:tabular-nums}
 tr.closed td{color:var(--muted);text-decoration:line-through}
 .late{color:var(--bad);font-weight:600}
+button.resume{margin-inline-start:6px;padding:4px 10px;min-height:32px;font-size:13px}
 </style>
 </head>
 <body>
@@ -82,18 +83,28 @@ tr.closed td{color:var(--muted);text-decoration:line-through}
 <script>
 const STATUS={pending_approval:"ממתינה לאישורך",approved:"מאושרת",sent_dry_run:"נשלחה (בדיקה)",
   rejected:"נדחתה",cancelled:"בוטלה"};
-const BLOCK={no_contact:"אין נייד או מייל תקין",plan_active:"בהסדר תשלומים",disputed:"מחלוקת",no_payment_link:"אין קישור תשלום",
+const BLOCK={no_contact:"אין נייד או מייל תקין",compliance:"נחסם במסנן הניסוח",plan_active:"בהסדר תשלומים",disputed:"מחלוקת",no_payment_link:"אין קישור תשלום",
   opted_out:"הלקוח ביקש הסרה",paid_claim:"הלקוח טוען ששילם",dispute:"מחלוקת",
   invoice_closed:"החשבונית נסגרה",plan_request:"ביקש פריסה"};
 let sel=null;
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const money=a=>(a/100).toLocaleString("he-IL",{minimumFractionDigits:a%100?2:0,maximumFractionDigits:2})+" ₪";
-async function api(p,o){const r=await fetch(p,o);const j=await r.json().catch(()=>({}));
+// טוקן בעל העסק: נשמר רק ב-sessionStorage (נמחק בסגירת הלשונית), נשלח כ-Bearer
+const TOK="gabi_owner_token";
+function tok(){try{return sessionStorage.getItem(TOK)||""}catch(e){return ""}}
+async function api(p,o={},retry=true){
+  const r=await fetch(p,{...o,headers:{...(o.headers||{}),Authorization:"Bearer "+tok()}});
+  if(r.status===401&&retry){const t=prompt("קוד גישה של בעל העסק (OWNER_API_TOKEN):");
+    if(t){try{sessionStorage.setItem(TOK,t.trim())}catch(e){}return api(p,o,false)}}
+  const j=await r.json().catch(()=>({}));
   if(!r.ok)throw new Error(j.detail||r.status);return j}
 async function loadDash(){
   const d=await api("/dashboard");const t=d.totals;
-  $("#today").textContent="נכון ל-"+d.today;
+  const tr=d.trial||{};
+  $("#today").textContent="נכון ל-"+d.today+(tr.on_trial?(tr.active
+    ?` · ניסיון חינם: נותרו ${tr.days_left} ימים, אחר כך ₪${tr.price_ils_month} לחודש`
+    :` · תקופת הניסיון הסתיימה: התזכורות נעצרו (הנתונים נשמרו). ₪${tr.price_ils_month} לחודש להמשך`):"");
   const k=[["חוב פתוח",money(t.open_agorot)],["מתוכו באיחור",money(t.overdue_agorot),1],
     ["חשבוניות פתוחות",t.open_invoices],["ממתינות לאישורך",t.pending_approval,t.pending_approval>0],
     ["SMS שנשלחו (בדיקה)",t.sent_sms],["מיילים שנשלחו (בדיקה)",t.sent_email],
@@ -102,12 +113,12 @@ async function loadDash(){
   $("#debts").innerHTML=d.invoices.map(x=>{const L=x.last_reminder;
     const st=x.status!=="open"?"שולמה ונסגרה":x.customer_block?(BLOCK[x.customer_block]||x.customer_block)
       :L?(L.block_reason?BLOCK[L.block_reason]||L.block_reason:STATUS[L.status]||L.status):"טרם הוכנה";
-    return `<tr class="${x.status!=="open"?"closed":""}"><td>${esc(x.customer)}</td><td>${esc(x.number)}</td>
+    return `<tr class="${x.status!=="open"?"closed":""}"><td>${esc(x.customer)}${
+    x.status==="open"&&x.paused_reason&&x.customer_block===x.paused_reason
+      ?` <button class="resume" data-cid="${x.customer_id}" title="בדקתם והתשלום לא התקבל? התזכורות ללקוח יחודשו">↻ חידוש תזכורות</button>`:""}</td><td>${esc(x.number)}</td>
     <td class="num">${money(x.amount_agorot)}</td><td>${esc(x.due||"")}</td>
     <td class="${x.days_overdue>0?"late":""}">${x.days_overdue>0?x.days_overdue+" ימים":"—"}</td>
-    <td class="num">${x.reminders_sent}</td><td><span class="chip ${L&&L.status==="pending_approval"?"pending":""}">${esc(st)}</span>${
-    x.status==="open"&&x.paused_reason&&x.customer_block===x.paused_reason
-      ?` <button class="resume" data-cid="${x.customer_id}" title="בדקתם והתשלום לא התקבל? התזכורות ללקוח יחודשו">↻ חידוש תזכורות</button>`:""}</td></tr>`}).join("");
+    <td class="num">${x.reminders_sent}</td><td><span class="chip ${L&&L.status==="pending_approval"?"pending":""}">${esc(st)}</span></td></tr>`}).join("");
 }
 // חידוש ללקוח מושהה (למשל אחרי «שילמתי» שלא אומת): לחיצה ראשונה מחמשת, השנייה מבצעת
 $("#debts").addEventListener("click",async e=>{const b=e.target.closest("button.resume");if(!b)return;
@@ -136,7 +147,7 @@ async function show(id){
      <div><b>נושא:</b> ${esc(mail.subject)}</div></div>
      <iframe sandbox title="תצוגה מקדימה של המייל" id="mailFrame"></iframe>`
     :'<div class="empty">אין כתובת מייל — מייל לא יישלח</div>';
-  const can=p.status==="pending_approval"&&!["no_contact","no_payment_link"].includes(p.block_reason);
+  const can=p.status==="pending_approval"&&!["no_contact","no_payment_link","compliance"].includes(p.block_reason);
   $("#detail").innerHTML=`<div class="row"><h2>תצוגה מקדימה · ${esc(STATUS[p.status]||p.status)}</h2>
     <span class="chip">מתוזמנת: ${esc(new Date(p.scheduled_for).toLocaleString("he-IL",{timeZone:"Asia/Jerusalem",dateStyle:"short",timeStyle:"short"}))}</span></div>
     ${p.block_reason?`<div class="err">חסום: ${esc(BLOCK[p.block_reason]||p.block_reason)}</div>`:""}

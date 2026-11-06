@@ -1,0 +1,122 @@
+// דמו מקצה לקצה בדפדפן: שרת גבי אמיתי (DEMO=1, dry-run) + הממשק המעוצב מ-/app/.
+// דרישה: npm run build. הרצה: node e2e/live.mjs [תיקיית-צילומים]
+import { createRequire } from 'node:module';
+import { spawn } from 'node:child_process';
+const { chromium } = createRequire(import.meta.url)('playwright');
+const out = process.argv[2];
+const PORT = 8141, base = `http://127.0.0.1:${PORT}`;
+const srv = spawn('python3', ['-m', 'uvicorn', 'app.main:_lazy_app', '--factory', '--port', String(PORT), '--log-level', 'warning'],
+  { cwd: new URL('..', import.meta.url).pathname + '/..', env: { ...process.env, DEMO: '1' }, stdio: 'ignore' });
+const ok = (c, m) => { if (!c) throw new Error(m); };
+for (let i = 0; i < 60; i++) { try { if ((await fetch(base + '/health')).ok) break; } catch { /* עוד עולה */ } await new Promise(r => setTimeout(r, 250)); }
+// צילום עמוד מלא נאמן: מגדילים את ה-viewport לגובה הדף (אחרת סרגל-צד sticky "צף" בצילום fullPage)
+async function fullShot(pg, path) {
+  const vp = pg.viewportSize();
+  const h = await pg.evaluate(() => document.documentElement.scrollHeight);
+  await pg.setViewportSize({ width: vp.width, height: Math.max(h, vp.height) });
+  await pg.screenshot({ path });
+  await pg.setViewportSize(vp);
+}
+const b = await chromium.launch();
+const errors = [];
+try {
+  const p = await b.newPage({ viewport: { width: 1366, height: 900 }, deviceScaleFactor: out ? 2 : 1 });
+  p.on('console', m => m.type() === 'error' && !/fonts\.g|status of 409/.test(m.text()) && errors.push(m.text())); // 409 = דחיית מסנן הניסוח, צפויה
+  p.on('pageerror', e => errors.push(String(e)));
+  await p.goto(base + '/app/#/dashboard');
+  await p.getByTestId('mode').filter({ hasText: 'מחובר לשרת גבי' }).waitFor();
+  const outbox0 = (await (await fetch(base + '/outbox')).json()).messages.length;
+  const items = p.locator('li', { has: p.getByRole('button', { name: 'תצוגה ואישור' }) });
+  ok(await items.count() === 2, `ציפיתי ל-2 בתור, יש ${await items.count()}`);
+  ok(await p.getByText('אין נייד או מייל תקין').count() >= 1, 'החסימה no_contact לא מוצגת');
+  if (out) await fullShot(p, `${out}/live-01-dashboard.png`);
+
+  // חסום ⇒ אי אפשר לאשר
+  await items.filter({ hasText: 'בלי פרטים' }).getByRole('button', { name: 'תצוגה ואישור' }).click();
+  await p.getByText('⛔ חסום').waitFor();
+  ok(await p.getByRole('button', { name: /אשר ושלח/ }).isDisabled(), 'תזכורת חסומה ניתנת לאישור');
+  await p.getByRole('button', { name: 'ביטול' }).click();
+
+  // יוסי ⇒ התצוגה המקדימה = הנוסח מהשרת, עם קישור תשלום וקישור הסרה
+  await items.filter({ hasText: 'יוסי' }).getByRole('button', { name: 'תצוגה ואישור' }).click();
+  const sms = p.locator('textarea');
+  // SMS = קישור קצר אחד על הדומיין שלנו (/p/… ⇒ עמוד תשלום + הפסקה) — ≤2 חלקים
+  await p.waitForFunction(() => /\/p\/\w+/.test(document.querySelector('textarea')?.value ?? ''));
+  const body = await sms.inputValue();
+  ok(body.startsWith('סטודיו דמו:') && /\/p\/\w+/.test(body), 'נוסח ה-SMS לא מהשרת: ' + body);
+  ok(/\b[12] מקטעי SMS/.test(await p.locator('text=מקטעי SMS').first().textContent()), 'SMS ארוך מ-2 חלקים');
+  if (out) await p.screenshot({ path: `${out}/live-02-preview-sms.png` });
+  await p.getByRole('tab', { name: /מייל/ }).click();
+  await p.getByText('yossi@example.com').first().waitFor();
+  ok(await p.getByText(/pay\.example\/gabi-demo/).count() > 0, 'במייל חסר קישור התשלום המלא');
+  if (out) await p.screenshot({ path: `${out}/live-03-preview-email.png` });
+  await p.getByRole('button', { name: /אשר ושלח/ }).click();
+  await p.getByText('לא נשלחה הודעה אמיתית').waitFor();
+  await p.waitForFunction(() => document.querySelectorAll('li button').length >= 0);
+  const outbox1 = (await (await fetch(base + '/outbox')).json()).messages.length;
+  ok(outbox1 === outbox0 + 2, `ביומן היוצאים ציפיתי ל-+2 (SMS+מייל), קיבלתי ${outbox0}→${outbox1}`);
+  await p.waitForFunction(() => [...document.querySelectorAll('button')].filter(x => x.textContent === 'תצוגה ואישור').length === 1);
+  ok((await p.getByTestId('outbox').textContent()).includes('יוסי'), 'יומן היוצאים בממשק לא התעדכן');
+
+  // סימולציית תשובה
+  await p.getByLabel('לקוח').selectOption({ label: 'יוסי כהן (דמו)' });
+  await p.getByRole('button', { name: 'איך אפשר לשלם?' }).click();
+  await p.getByRole('button', { name: 'שלח תשובה (סימולציה)' }).click();
+  await p.getByTestId('reply-result').waitFor();
+  ok((await p.getByTestId('reply-result').textContent()).includes('קישור תשלום'), 'הסיווג לא הוצג');
+  if (out) await fullShot(p, `${out}/live-04-after.png`);
+
+  // דורש טיפול: דנה מושהית ("שילמתי") ⇒ חידוש בלחיצה כפולה
+  const needs = p.getByTestId('needs-you');
+  await needs.getByText('דנה לוי').waitFor();
+  const resume = needs.locator('li', { hasText: 'דנה לוי' }).getByRole('button');
+  await resume.click();
+  await needs.getByRole('button', { name: 'לחצו שוב לאישור' }).click();
+  await p.getByText('התזכורות לדנה לוי (דמו) חודשו').waitFor();
+  ok(await needs.getByText('⏸ דנה').count() === 0, 'דנה עדיין מושהית אחרי חידוש');
+  const paused = (await (await fetch(base + '/dashboard')).json()).invoices.find(r => r.customer.startsWith('דנה')).paused_reason;
+  ok(paused === null, 'השרת לא חידש: ' + paused);
+
+  // בקשת פריסה ⇒ הצעה ⇒ אישור בלחיצה כפולה ⇒ נשלחת ללקוח (dry-run)
+  await p.getByLabel('לקוח').selectOption({ label: 'יוסי כהן (דמו)' });
+  await p.getByRole('button', { name: 'אפשר ב-3 תשלומים?' }).click();
+  await p.getByRole('button', { name: 'שלח תשובה (סימולציה)' }).click();
+  const plan = needs.locator('li', { hasText: 'הצעת פריסה' });
+  await plan.waitFor();
+  const ob2 = (await (await fetch(base + '/outbox')).json()).messages.length;
+  await plan.getByRole('button', { name: /אישור ההצעה/ }).click();
+  await plan.getByRole('button', { name: 'לחצו שוב לאישור' }).click();
+  await p.getByText('ההצעה אושרה').waitFor();
+  const plans = await (await fetch(base + '/plans')).json();
+  ok(plans.some(x => x.status === 'approved'), 'ההצעה לא אושרה בשרת');
+  const ob3 = (await (await fetch(base + '/outbox')).json()).messages.length;
+  ok(ob3 === ob2 + 1, `הצעת הפריסה לא נשלחה ללקוח (${ob2}→${ob3})`);
+  if (out) await fullShot(p, `${out}/live-05-needs-you.png`);
+
+  // תשובות לקוחות: הטיוטה של "איך אפשר לשלם?" ⇒ עריכה עם שיווק נחסמת ⇒ נוסח נקי מאושר ונשלח
+  await p.goto(base + '/app/#/inbox');
+  // "איך משלמים" של יוסי הוחלפה (superseded) בבקשת הפריסה שבאה אחריה ⇒ הכרטיס הפעיל = פריסה
+  const card = p.getByTestId('drafts').locator('li', { hasText: 'יוסי' }).first();
+  await card.waitFor();
+  const box = card.locator('textarea');
+  const original = await box.inputValue();
+  ok(original.trim().length > 0, 'טיוטה ריקה');
+  await box.fill('יש לנו מבצע מיוחד החודש! ' + original);
+  await card.getByRole('button', { name: 'אשר ושלח' }).click();
+  await card.getByRole('alert').waitFor();
+  ok(/תוכן שיווקי/.test(await card.getByRole('alert').textContent()), 'הסבר דחיית המסנן לא תורגם לבעל העסק');
+  if (out) await fullShot(p, `${out}/live-06-inbox.png`); // הכרטיס + דחיית מסנן הניסוח
+  const ob4 = (await (await fetch(base + '/outbox')).json()).messages.length;
+  await box.fill(original);
+  await card.getByRole('button', { name: 'אשר ושלח' }).click();
+  await p.getByText('המענה אושר ונשלח').waitFor();
+  const ob5 = (await (await fetch(base + '/outbox')).json()).messages.length;
+  ok(ob5 === ob4 + 1, `המענה לא יצא ליומן (${ob4}→${ob5})`);
+  ok(!(await (await fetch(base + '/conversation/drafts')).json()).some(d => d.customer.startsWith('יוסי')), 'הטיוטה של יוסי עדיין בתור');
+
+  await p.goto(base + '/app/#/invoices');
+  await p.getByText('דנה לוי').first().waitFor();
+  ok(await p.locator('tbody tr').count() === 5, 'ציפיתי ל-5 חשבוניות פתוחות');
+  if (errors.length) throw new Error('שגיאות קונסולה:\n' + errors.join('\n'));
+  console.log(`✓ דמו חי מקצה לקצה עבר: תור 2 → אישור יוסי → יומן +2 (${outbox0}→${outbox1}) → תשובת לקוח סווגה → חידוש לקוח מושהה → הצעת פריסה אושרה ונשלחה → טיוטת מענה: שיווק נחסם, נוסח נקי אושר ונשלח · 0 שגיאות קונסולה`);
+} finally { await b.close(); srv.kill(); }

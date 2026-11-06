@@ -4,6 +4,7 @@
 """
 from __future__ import annotations
 
+import os
 import sqlite3
 import threading
 
@@ -68,11 +69,20 @@ CREATE TABLE IF NOT EXISTS audit (
   id INTEGER PRIMARY KEY,
   at TEXT NOT NULL, actor TEXT NOT NULL, action TEXT NOT NULL, detail TEXT
 );
+-- יומן ביקורת = ראיה (מחלוקת/עו"ד) ⇒ הוספה בלבד, אין עדכון ואין מחיקה
+CREATE TRIGGER IF NOT EXISTS audit_no_update BEFORE UPDATE ON audit
+  BEGIN SELECT RAISE(ABORT, 'audit is append-only'); END;
+CREATE TRIGGER IF NOT EXISTS audit_no_delete BEFORE DELETE ON audit
+  BEGIN SELECT RAISE(ABORT, 'audit is append-only'); END;
 """
 
 
 class DB:
     def __init__(self, path: str = ":memory:") -> None:
+        if path != ":memory:" and not path.startswith("file:"):
+            # ה-DB מכיל PII (שמות/טלפונים/סכומים) ⇒ קריאה/כתיבה לבעלים בלבד (0600)
+            os.close(os.open(path, os.O_CREAT | os.O_RDWR, 0o600))
+            os.chmod(path, 0o600)
         self.conn = sqlite3.connect(path, check_same_thread=False)
         self.conn.row_factory = sqlite3.Row
         self.conn.execute("PRAGMA foreign_keys = ON")
@@ -80,6 +90,17 @@ class DB:
         cols = {r[1] for r in self.conn.execute("PRAGMA table_info(customers)")}
         if "paused_reason" not in cols:  # DB קיים מלפני העמודה
             self.conn.execute("ALTER TABLE customers ADD COLUMN paused_reason TEXT")
+            self.conn.commit()
+        # ר-3: מספר/כתובת שגויים לא חוזרים בסנכרון. SQL קבוע (בלי f-string — שער האבטחה)
+        for col, ddl in (("blocked_phone", "ALTER TABLE customers ADD COLUMN blocked_phone TEXT"),
+                         ("blocked_email", "ALTER TABLE customers ADD COLUMN blocked_email TEXT")):
+            if col not in cols:
+                self.conn.execute(ddl)
+        self.conn.commit()
+        icols = {r[1] for r in self.conn.execute("PRAGMA table_info(invoices)")}
+        if "short_code" not in icols:  # קישור קצר ל-SMS (≤2 חלקים)
+            self.conn.execute("ALTER TABLE invoices ADD COLUMN short_code TEXT")
+            self.conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS ix_inv_short ON invoices(short_code)")
             self.conn.commit()
         self.lock = threading.RLock()
 

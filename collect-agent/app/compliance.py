@@ -50,6 +50,7 @@ class Rules:
     allow_debt_word: bool = True     # False בתזכורת 1–2 (§3.1 סעיף 4)
     allow_discount: bool = False     # רק הנחה שבעל העסק אישר על החשבונית עצמה
     max_sms_chars: int = SMS_REPLY_MAX
+    subject: str = ""                # במייל: שם העסק בנושא = "בתחילת ההודעה"
 
 
 def sms_segments(text: str) -> int:
@@ -59,22 +60,27 @@ def sms_segments(text: str) -> int:
 
 def violations(text: str, r: Rules) -> list[str]:
     out: list[str] = []
+    # הרשימות השחורות נבדקות על הטקסט בלי הקישורים: קוד אקראי בקישור ("…/p/XKQZWbt") אינו
+    # "צעקה" ו-"BDI" בתוך טוקן אינו אשראי. (באג שנתפס כבדיקה מהבהבת: 0.26% מהקודים נחסמו.)
+    # הקישורים עצמם נבדקים בנפרד מול רשימת המותרים.
+    prose = _URL.sub(" ", text)
     for name, pat in LEGAL_BLACKLIST:
-        if re.search(pat, text):
+        if re.search(pat, prose):
             out.append(name)
-    if not r.allow_debt_word and re.search(DEBT_WORD[1], text):
+    if not r.allow_debt_word and re.search(DEBT_WORD[1], prose):
         out.append(DEBT_WORD[0])
     for name, pat in MARKETING_BLACKLIST:
         if name == "discount" and r.allow_discount:
             continue
-        if re.search(pat, text):
+        if re.search(pat, prose):
             out.append(name)
     allowed = {u.rstrip(".,)") for u in (r.payment_link, r.unsubscribe_url) if u}
     for m in _URL.finditer(text):
         if m.group(0).rstrip(".,)") not in allowed:
             out.append("foreign_link")
             break
-    if r.business and not text.lstrip().startswith(r.business):
+    in_subject = r.channel == "email" and r.business and r.business in r.subject
+    if r.business and not in_subject and not text.lstrip().startswith(r.business):
         out.append("no_business_first")
     if r.channel == "sms" and len(text) > r.max_sms_chars:
         out.append("sms_too_long")

@@ -3,11 +3,12 @@ from __future__ import annotations
 
 import json
 import secrets
+import sqlite3
 from collections.abc import Callable
 from datetime import date, datetime, time, timedelta
 from typing import Any
 
-from . import assistant, paylinks, plans, templates
+from . import compliance, paylinks, plans, templates
 from .channels import (
     SMS_ADAPTERS,
     DryRunSender,
@@ -27,7 +28,8 @@ from .policy import MAX_REMINDERS_PER_INVOICE, TZ, Policy, customer_blocked, gap
 # ימים אחרי מועד-התשלום לכל שלב
 STEP_OFFSETS_DAYS = (1, 7, 14, 30)
 ACTIVE = ("pending_approval", "approved")
-HARD_BLOCKS = {"no_contact", "no_payment_link"}
+HARD_BLOCKS = {"no_contact", "no_payment_link", "compliance"}
+_B62 = "abcdefghijkmnpqrstuvwxyz23456789"  # אותיות קטנות+ספרות, בלי 0/o/1/l (קריא, ~31 ביט)
 
 
 def _iso(dt: datetime) -> str:
@@ -79,7 +81,11 @@ class CollectService:
             self.db.x(
                 "INSERT INTO customers(external_id,name,phone,email,unsub_token) "
                 "VALUES(?,?,?,?,?) ON CONFLICT(external_id) DO UPDATE SET name=excluded.name, "
-                "phone=excluded.phone, email=excluded.email",
+                # ר-3: טלפון/מייל שסומנו «מספר שגוי» לא חוזרים, גם אם עדיין רשומים בחשבונית ירוקה
+                "phone=CASE WHEN customers.blocked_phone=excluded.phone THEN NULL "
+                "ELSE excluded.phone END, "
+                "email=CASE WHEN customers.blocked_email=excluded.email THEN NULL "
+                "ELSE excluded.email END",
                 (cust_ext, inv.client_name, inv.client_phone, inv.client_email,
                  secrets.token_urlsafe(9)))
             cid = self.db.one("SELECT id FROM customers WHERE external_id=?", (cust_ext,))["id"]
@@ -127,6 +133,19 @@ class CollectService:
                        r["currency"], None, None, c["external_id"], c["name"], c["phone"],
                        c["email"])
 
+    def _short_code(self, inv_row) -> str:
+        if inv_row["short_code"]:
+            return inv_row["short_code"]
+        while True:
+            code = "".join(secrets.choice(_B62) for _ in range(7))
+            if not self.db.one("SELECT 1 FROM invoices WHERE short_code=?", (code,)):
+                break
+        self.db.x("UPDATE invoices SET short_code=? WHERE id=?", (code, inv_row["id"]))
+        return code
+
+    def short_url(self, inv_row) -> str:
+        return f"{self.s.public_base_url}/p/{self._short_code(inv_row)}"
+
     def unsub_url(self, token: str) -> str:
         return f"{self.s.public_base_url}/u/{token}"
 
@@ -134,22 +153,47 @@ class CollectService:
     def build_messages(self, inv_row, cust, step: templates.Step,
                        link: str) -> tuple[list[Message], str | None]:
         unsub = self.unsub_url(cust["unsub_token"])
+        short = self.short_url(inv_row)
         f = templates.fields(biz=self.s.business_name, name=cust["name"], num=inv_row["number"],
                              amount_agorot=inv_row["amount_agorot"],
-                             currency=inv_row["currency"], link=link, unsub=unsub)
+                             currency=inv_row["currency"], link=link, unsub=unsub, short=short,
+                             two_way=self.s.sms_two_way)
         msgs: list[Message] = []
         phone = normalize_il_phone(cust["phone"])
         if "sms" in self.s.channels and is_il_mobile(phone):
-            msgs.append(Message("sms", phone, templates.render_sms(step, f)))
+            sms = templates.render_sms(step, f)
+            # ר-1 (team/legal.md): מסנן הניסוח חוסם — לא מזהיר
+            bad = compliance.violations(sms, compliance.Rules(
+                business=self.s.business_name, payment_link=short,
+                max_sms_chars=templates.SMS_HARD_MAX, allow_debt_word=step.key not in (
+                    "friendly", "second")))
+            if bad:
+                return [], "compliance"
+            msgs.append(Message("sms", phone, sms))
         if "email" in self.s.channels and valid_email(cust["email"]):
             subj, text, html = templates.render_email(step, f)
             msgs.append(Message("email", cust["email"], text, subject=subj, html=html,
                                 unsubscribe_url=unsub))
         return msgs, (None if msgs else "no_contact")
 
+    # ---------- ניסיון 14 יום ----------
+    def trial(self) -> dict:
+        """ניסיון: בסופו התזכורות נעצרות (הנתונים נשמרים) עד הצטרפות. אין trial_start ⇒ פעיל."""
+        info = {"price_ils_month": self.s.price_ils_month, "trial_days": self.s.trial_days}
+        if not self.s.trial_start:
+            return {**info, "on_trial": False, "active": True, "days_left": None}
+        start = date.fromisoformat(self.s.trial_start)
+        left = self.s.trial_days - (self.clock().date() - start).days
+        return {**info, "on_trial": True, "active": left > 0, "days_left": max(left, 0),
+                "ends": (start + timedelta(days=self.s.trial_days)).isoformat()}
+
     # ---------- planning ----------
     def plan(self) -> list[int]:
         now = self.clock()
+        if not self.trial()["active"]:
+            return []
+        # באג: release_expired_pauses לא נקרא מאף מקום ⇒ "אשלם בחמישי" שלא שולם השהה לנצח
+        self.inbox.release_expired_pauses()
         created: list[int] = []
         rows = self.db.q("SELECT * FROM invoices WHERE status='open'")
         for r in rows:
@@ -206,7 +250,9 @@ class CollectService:
             raise ValueError(f"לא ממתינה לאישור (status={r['status']})")
         if r["block_reason"] in HARD_BLOCKS:
             raise ValueError({"no_contact": "אין נייד או מייל תקין ללקוח — יש לעדכן בחשבונית ירוקה",
-                              "no_payment_link": "אין קישור תשלום מאובטח — יש להגדיר PAYMENT_LINK"
+                              "no_payment_link": "אין קישור תשלום מאובטח — יש להגדיר PAYMENT_LINK",
+                              "compliance": "הנוסח נחסם במסנן הניסוח (מילה אסורה/ארוך מדי) — "
+                                            "יש לתקן את שם העסק או את הנוסח"
                               }[r["block_reason"]])
         self.db.x("UPDATE reminders SET status='approved', decided_at=? WHERE id=?",
                   (_iso(self.clock()), reminder_id))
@@ -228,7 +274,7 @@ class CollectService:
     def dispatch(self) -> list[dict]:
         now = self.clock()
         out: list[dict] = []
-        if not self.policy.can_send_at(now):
+        if not self.policy.can_send_at(now) or not self.trial()["active"]:
             return out
         rows = self.db.q("SELECT * FROM reminders WHERE status='approved' AND scheduled_for<=? "
                          "ORDER BY scheduled_for", (_iso(now),))
@@ -268,46 +314,68 @@ class CollectService:
         return next((c for c in self.db.q("SELECT * FROM customers")
                      if normalize_il_phone(c["phone"]) == norm), None)
 
+    @property
+    def inbox(self):
+        """מנוע השיחה (app/conversation.py) מחובר ל-DB (app/inbox.py). נוצר בפעם הראשונה."""
+        if getattr(self, "_inbox", None) is None:
+            from .inbox import ConversationInbox
+            self._inbox = ConversationInbox(self)
+        return self._inbox
+
     def inbound(self, channel: str, sender: str, text: str) -> dict:
-        if channel not in ("sms", "email"):
-            raise ValueError("ערוץ לא נתמך")
-        now = self.clock()
-        cust = self._find_customer(channel, sender)
-        if cust is None:
-            self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
-                      "created_at) VALUES(NULL,'in',?,?, 'unknown_sender', 1, ?)",
-                      (channel, text, _iso(now)))
-            return {"intent": "unknown_sender", "escalate": True, "auto_reply": None}
-        oldest = self.db.one("SELECT * FROM invoices WHERE customer_id=? AND status='open' "
-                             "ORDER BY due LIMIT 1", (cust["id"],))
-        link = (self._payment_link(oldest) if oldest else None) or ""
-        d = assistant.decide(text, business=self.s.business_name, payment_link=link)
-        self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
-                  "created_at) VALUES(?,'in',?,?,?,?,?)",
-                  (cust["id"], channel, text, d.intent.value, int(d.escalate), _iso(now)))
-        if d.intent == assistant.Intent.OPT_OUT:
-            self._opt_out(cust["id"], "reply")
-        if d.intent == assistant.Intent.DISPUTE:
-            self.db.x("UPDATE customers SET disputed=1 WHERE id=?", (cust["id"],))
-        if d.intent == assistant.Intent.PAID_CLAIM:
-            # "שילמתי" ⇒ השהיה עד שבעל העסק בודק (resume) או שהחשבונית נסגרת בסנכרון.
-            # באג שנתפס בהדגמה: בלי זה הסבב הבא שלח שוב תזכורת ללקוח שאמר ששילם.
-            self.db.x("UPDATE customers SET paused_reason='paid_claim' WHERE id=?",
-                      (cust["id"],))
-        if d.stop_reminders:
-            for inv in self.db.q("SELECT id FROM invoices WHERE customer_id=?", (cust["id"],)):
-                self._cancel_invoice(inv["id"], d.intent.value)
-        plan_id = None
-        if d.intent == assistant.Intent.PLAN_REQUEST:
-            plan_id = self.propose_plan(cust["id"])
-        sent = None
-        # מענה אוטומטי רק אחרי שבעל העסק אישר הודעה ראשונה ללקוח הזה, ובאותו ערוץ
-        if d.auto_reply and cust["approved_first"]:
-            sent = self._reply(cust, channel, d.auto_reply, now)
-        self.audit("customer", "inbound", {"intent": d.intent.value, "customer": cust["id"],
-                                           "channel": channel})
-        return {"intent": d.intent.value, "escalate": d.escalate,
-                "auto_reply": d.auto_reply if sent else None, "plan_id": plan_id}
+        """תשובת לקוח ⇒ מנוע השיחה: עצירה/השהיה/הסלמה מיד, ותשובה = טיוטה לאישור בעל העסק.
+        (היה: assistant.decide — הסיווג הישן עם הבאגים מ-team/critic.md §3.)"""
+        return self.inbox.handle(channel, sender, text)
+
+    def _handle(self, cust, channel: str, text: str) -> dict:
+        """channel='web' = פעולה מעמוד הקישור הקצר: אין טיוטת תשובה (העמוד עצמו מאשר),
+        אבל כל ההשפעות (השהיה/הסדר/הסלמה) חלות כרגיל."""
+        return self.inbox.handle_customer(cust, channel, text)
+
+    # ---------- עמוד הקישור הקצר (/p/{code}) ----------
+    def landing(self, code: str) -> dict:
+        inv = self.db.one("SELECT * FROM invoices WHERE short_code=?", (code,))
+        if not inv:
+            raise KeyError(code)
+        cust = self.db.one("SELECT * FROM customers WHERE id=?", (inv["customer_id"],))
+        return {"code": code, "business": self.s.business_name, "number": inv["number"],
+                "amount": templates.fmt_amount(inv["amount_agorot"], inv["currency"]),
+                "due": inv["due"], "open": inv["status"] == "open",
+                "opted_out": bool(cust["opted_out"]), "unsub_token": cust["unsub_token"],
+                "pay_url": self._payment_link(inv) if inv["status"] == "open" else None,
+                "_cust": cust}
+
+    LANDING_TEXT = {"plan": "אני מבקש פריסה לתשלומים", "paid": "שילמתי"}
+
+    def landing_action(self, code: str, action: str, installments: int | None = None) -> dict:
+        info = self.landing(code)
+        cust = info["_cust"]
+        if action == "stop":
+            self._opt_out(cust["id"], "landing")
+            return {"action": "stop", "ok": True}
+        if action not in self.LANDING_TEXT:
+            raise ValueError("פעולה לא מוכרת")
+        text = self.LANDING_TEXT[action]
+        if action == "plan" and installments:
+            text += f" ב-{int(installments)} תשלומים"
+        res = self._handle(cust, "web", text)
+        return {"action": action, "ok": True, **res}
+
+    def email_webhook(self, sender: str, text: str, message_id: str = "") -> dict:
+        """מייל נכנס (ספק inbound-parse כלשהו, מנורמל ל-from/text/message_id). אידמפוטנטי."""
+        import hashlib
+
+        from .channels import parse_address, strip_reply
+
+        key = "mail:" + (message_id or hashlib.sha256(f"{sender}|{text}".encode()).hexdigest())
+        if self.db.one("SELECT 1 FROM messages WHERE message_id=?", (key,)):
+            return {"ok": True, "duplicate": True}
+        addr, body = parse_address(sender), strip_reply(text)
+        self.db.x("INSERT INTO messages(customer_id,direction,channel,body,message_id,created_at)"
+                  " VALUES(NULL,'webhook','email','inbound',?,?)", (key, _iso(self.clock())))
+        if not addr or not body:
+            return {"ok": True, "ignored": True}
+        return {"ok": True, **self.inbound("email", addr, body)}
 
     def sms_webhook_019(self, raw: bytes) -> dict:
         import hashlib
@@ -330,6 +398,10 @@ class CollectService:
         self.db.x("INSERT INTO messages(customer_id,direction,channel,body,message_id,created_at)"
                   " VALUES(NULL,'webhook','sms',?,?,?)", (kind, key, _iso(self.clock())))
         return res
+
+    def has_unsub_token(self, token: str) -> bool:
+        return bool(token) and self.db.one(
+            "SELECT 1 FROM customers WHERE unsub_token=?", (token,)) is not None
 
     def unsubscribe(self, token: str) -> bool:
         c = self.db.one("SELECT id FROM customers WHERE unsub_token=?", (token,))
@@ -405,6 +477,7 @@ class CollectService:
         outbox = self.sender.sent
         return {
             "today": today.isoformat(),
+            "trial": self.trial(),
             "totals": {
                 "open_invoices": len(open_rows),
                 "open_agorot": sum(x["amount_agorot"] for x in open_rows),
@@ -446,11 +519,23 @@ class CollectService:
         text = (f"שלום {cust['name']}, הצעת פריסה לחשבונית {inv['number']} ללא תוספת:\n{lines}\n"
                 "השיבו \"מאשר\" ובעל העסק יאשר סופית.")
         self.db.x("UPDATE plans SET status='approved' WHERE id=?", (plan_id,))
+        self._supersede_plan_drafts(plan_id)
         now = self.clock()
         channel = "sms" if is_il_mobile(normalize_il_phone(cust["phone"])) else "email"
         msg = self._reply(cust, channel, text, now)
         self.audit(actor, "plan_approved", {"plan": plan_id, "message_id": msg})
         return {"plan_id": plan_id, "message_id": msg, "channel": channel, "text": text}
+
+    def _supersede_plan_drafts(self, plan_id: int) -> None:
+        """אישור הפריסה ב-/plans שולח את ההצעה ללקוח, ולכן טיוטת plan_request המקבילה
+        (תור «תשובות לקוחות») נסגרת — אחרת בעל העסק יכול לאשר אותה ולשלוח הצעה פעמיים."""
+        try:
+            self.db.x("UPDATE drafts SET status='superseded', decided_by='system:plan_approved' "
+                      "WHERE plan_id=? AND status IN ('pending_approval','needs_owner')",
+                      (plan_id,))
+        except sqlite3.OperationalError:   # טבלת הטיוטות נוצרת רק עם מנוע השיחה
+            return
+        self.audit("system", "plan_drafts_superseded", {"plan": plan_id})
 
     # ---------- helpers ----------
     def _reminder(self, rid: int):

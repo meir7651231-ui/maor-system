@@ -6,6 +6,14 @@ const out = process.argv[2] ?? 'screenshots';
 const srv = spawn('npx', ['vite', 'preview', '--port', '4319', '--strictPort'], { stdio: 'ignore' });
 await new Promise(r => setTimeout(r, 2500));
 const base = 'http://localhost:4319/';
+// צילום עמוד מלא נאמן: מגדילים את ה-viewport לגובה הדף (אחרת סרגל-צד sticky "צף" בצילום fullPage)
+async function fullShot(pg, path) {
+  const vp = pg.viewportSize();
+  const h = await pg.evaluate(() => document.documentElement.scrollHeight);
+  await pg.setViewportSize({ width: vp.width, height: Math.max(h, vp.height) });
+  await pg.screenshot({ path });
+  await pg.setViewportSize(vp);
+}
 const b = await chromium.launch();
 const errors = [];
 async function page(vp) {
@@ -17,9 +25,13 @@ async function page(vp) {
 try {
   const p = await page({ width: 1366, height: 900 });
   await p.goto(base); await p.waitForTimeout(600);
-  await p.screenshot({ path: `${out}/01-landing.png`, fullPage: true });
+  await fullShot(p, `${out}/01-landing.png`);
+  const price = await p.getByTestId('price-card').textContent();
+  if (!/₪119/.test(price) || !/14 יום/.test(price)) throw new Error('כרטיס המחיר לא מציג ₪119 + 14 יום: ' + price);
+  await p.goto(base + '#/dashboard');
+  await p.getByTestId('mode').filter({ hasText: 'מצב דמו (מוק)' }).waitFor({ timeout: 5000 }); // בלי שרת ⇒ מוק
   await p.goto(base + '#/dashboard'); await p.waitForTimeout(300);
-  await p.screenshot({ path: `${out}/02-dashboard.png`, fullPage: true });
+  await fullShot(p, `${out}/02-dashboard.png`);
   await p.getByRole('button', { name: 'תצוגה ואישור' }).first().click();
   await p.screenshot({ path: `${out}/03-preview-sms.png` });
   await p.getByRole('tab', { name: /מייל/ }).click();
@@ -30,16 +42,16 @@ try {
   const after = await p.getByRole('button', { name: 'תצוגה ואישור' }).count();
   if (after !== before - 1) throw new Error(`תור האישורים לא התעדכן: ${before}→${after}`);
   await p.goto(base + '#/invoices'); await p.waitForTimeout(300);
-  await p.screenshot({ path: `${out}/05-invoices.png`, fullPage: true });
+  await fullShot(p, `${out}/05-invoices.png`);
   await p.getByLabel('חיפוש').fill('גפן');
   if (await p.locator('tbody tr').count() !== 1) throw new Error('חיפוש לא סינן');
   await p.goto(base + '#/settings'); await p.waitForTimeout(300);
-  await p.screenshot({ path: `${out}/06-settings.png`, fullPage: true });
+  await fullShot(p, `${out}/06-settings.png`);
   await p.goto(base + '#/signup'); await p.waitForTimeout(300);
   await p.screenshot({ path: `${out}/07-signup.png` });
   const m = await page({ width: 390, height: 844 });
   await m.goto(base); await m.waitForTimeout(500);
-  await m.screenshot({ path: `${out}/08-mobile-landing.png`, fullPage: true });
+  await fullShot(m, `${out}/08-mobile-landing.png`);
   await m.goto(base + '#/dashboard'); await m.waitForTimeout(300);
   const sw = await m.evaluate(() => document.documentElement.scrollWidth);
   if (sw > 390) throw new Error(`גלילה אופקית במובייל: ${sw}px`);

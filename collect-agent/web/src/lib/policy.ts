@@ -22,5 +22,12 @@ export function nextAllowed(from: Date, holidays: ReadonlySet<string> = new Set(
   throw new Error('אין חלון שליחה בשבועיים הקרובים');
 }
 const isoLocal = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+/** תאריך-שעה מהשרת (ISO עם אזור) ⇒ "יום ראשון 10:00" לפי שעון ישראל, בלי תלות באזור הדפדפן. */
+export function fmtWhenIL(iso: string): string {
+  const parts = Object.fromEntries(new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Jerusalem', weekday: 'short', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
+    .formatToParts(new Date(iso)).map(p => [p.type, p.value]));
+  const wd = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].indexOf(parts.weekday);
+  return `יום ${DAYS[wd]} ${parts.hour}:${parts.minute}`;
+}
 const DAYS = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
 export const fmtWhen = (d: Date) => `יום ${DAYS[d.getDay()]} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;

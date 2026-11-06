@@ -16,6 +16,7 @@ from fastapi.testclient import TestClient
 
 from app import compliance, conversation, plans, templates
 from app.main import create_app
+from tests.conftest import AUTH, OWNER_TOKEN
 
 APP_DIR = Path(__file__).resolve().parents[1] / "app"
 LONG_LINK = "https://pay.greeninvoice.co.il/f/aB3dE5gH7jK9mN1pQ3sT5vW7"
@@ -24,7 +25,7 @@ LONG_UNSUB = "https://gabi.example/u/Zx9Yw8Vu7Ts6"
 
 @pytest.fixture
 def api(svc):
-    return TestClient(create_app(svc))
+    return TestClient(create_app(svc, owner_token=OWNER_TOKEN), headers=AUTH)
 
 
 def _cycle(api, approve_all=True):
@@ -70,10 +71,12 @@ def test_r1_filter_blocks_threats_marketing_foreign_links(bad):
 
 
 def test_r1_live_auto_replies_pass_filter(api, svc):
-    """כל מענה אוטומטי שיוצא בפועל מהשירות עובר את אותו מסנן (כולל שם העסק בהתחלה)."""
+    """כל תשובה שיוצאת בפועל מהשירות עובר את אותו מסנן (כולל שם העסק בהתחלה).
+    התשובות הן טיוטות — בעל העסק מאשר כל אחת (team/critic.md §4) ואז הן יוצאות."""
     _cycle(api)
     for text in ("איך משלמים?", "שלחו העתק חשבונית"):
-        api.post("/inbound", json={"channel": "sms", "sender": "0501234567", "text": text})
+        r = api.post("/inbound", json={"channel": "sms", "sender": "0501234567", "text": text}).json()
+        api.post(f"/conversation/drafts/{r['draft_id']}/approve")
     bodies = [m["body"] for m in svc.sender.sent if m["channel"] == "sms"
               and m["to"] == "972501234567"][1:]  # בלי התזכורת עצמה
     assert bodies, "לא יצא אף מענה אוטומטי"
@@ -90,14 +93,8 @@ def test_r2_no_whatsapp_code_paths():
     assert "graph.facebook.com" not in src
 
 
-_LONG_FAILS = {"second", "plan_offer", "final"}
-
-
-@pytest.mark.parametrize("step", [
-    pytest.param(s, marks=pytest.mark.xfail(
-        strict=True, reason="ר-2: עם שם עסק ארוך + קישור תשלום של GI = 4 מקטעים. "
-        "פתרון: קישור קצר בדומיין שלנו (STATUS פתוח #2) או קיצור הנוסח"))
-    if s.key in _LONG_FAILS else s for s in templates.STEPS], ids=lambda s: s.key)
+# ר-2 נסגר (סבב 3): קישור קצר בדומיין שלנו (/p/{code}) במקום קישור GI + הסרה ⇒ ≤3 גם בערכים ארוכים
+@pytest.mark.parametrize("step", templates.STEPS, ids=lambda s: s.key)
 def test_r2_sms_within_three_segments_with_long_values(step):
     body = templates.render_sms(step, _fields(biz="מרכז הטיפולים של רונית", name="אלכסנדרה"))
     assert compliance.sms_segments(body) <= 3, (len(body), body)
@@ -118,14 +115,13 @@ def test_r3_opt_out_blocks_all_channels_forever(api, svc, clock):
     assert all(m["to"] not in ("972501234567", "c1@example.com") for m in new)
 
 
-@pytest.mark.xfail(strict=True, reason="ר-3: אין טיפול ב'מספר שגוי' בזרימה החיה "
-                   "(service משתמש ב-assistant הישן; conversation.WRONG_PERSON לא מחובר)")
 def test_r3_wrong_number_deletes_phone_and_blocks(api, svc):
+    """נסגר: service.inbound מחובר למנוע השיחה (app/inbox.py)."""
     _cycle(api)
     api.post("/inbound", json={"channel": "sms", "sender": "0501234567",
                                "text": "טעות במספר, אני לא מכיר את דנה"})
-    row = svc.db.one("SELECT phone FROM customers WHERE name='דנה כהן'")
-    assert not row["phone"]
+    row = svc.db.one("SELECT phone, opted_out FROM customers WHERE name='דנה כהן'")
+    assert not row["phone"] and row["opted_out"] == 1
 
 
 def test_r3_wrong_person_engine_hides_details():
@@ -174,9 +170,8 @@ def test_r5_engine_stops_on_hardship():
     assert d.stop != conversation.Stop.NONE and d.escalate != conversation.Escalation.NONE
 
 
-@pytest.mark.xfail(strict=True, reason="ר-5: בזרימה החיה 'פוטרתי' מסווג UNKNOWN ⇒ "
-                   "התזכורות ממשיכות (assistant הישן)")
 def test_r5_live_hardship_pauses_reminders(api, svc):
+    """נסגר: service.inbound מחובר למנוע השיחה ('פוטרתי' ⇒ cant_pay ⇒ השהיה)."""
     _cycle(api)
     api.post("/inbound", json={"channel": "sms", "sender": "0501234567",
                                "text": "פוטרתי החודש ואין לי כסף כרגע"})
@@ -283,8 +278,10 @@ def test_r12_template_version_recorded(svc):
 def test_r13_unsubscribe_page_rtl_and_works(api, svc):
     _cycle(api)
     tok = svc.db.one("SELECT unsub_token FROM customers WHERE name='דנה כהן'")["unsub_token"]
-    page = api.get(f"/u/{tok}").text
-    assert 'dir="rtl"' in page and 'lang="he"' in page and "הוסרתם" in page
+    page = api.get(f"/u/{tok}").text   # GET = דף אישור בלבד (סורקי קישורים לא מסירים)
+    assert 'dir="rtl"' in page and 'lang="he"' in page and "הסירו אותי" in page
+    page = api.post(f"/u/{tok}", headers={"accept": "text/html"}).text
+    assert 'dir="rtl"' in page and "הוסרתם" in page
 
 
 @pytest.mark.xfail(strict=True, reason="ר-13: עמוד ההסרה לא מציג שם עסק / למה קיבלתי / "

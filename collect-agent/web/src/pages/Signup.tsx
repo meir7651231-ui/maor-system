@@ -26,7 +26,8 @@ export function Signup() {
           </ol>
           {s === 0 && (
             <div className="space-y-4">
-              <h1 className="text-2xl font-extrabold">בואו נתחיל — 2 דקות</h1>
+              <h1 className="text-2xl font-extrabold">14 ימי ניסיון חינם — 2 דקות הקמה</h1>
+              <p className="text-sm text-ink-500 -mt-2">בלי כרטיס אשראי. אחר כך ₪119 לחודש, ביטול בכל רגע.</p>
               <Field label="שם מלא"><input className={inputCls} value={f.name} onChange={e => setF({ ...f, name: e.target.value })} autoComplete="name" /></Field>
               <Field label="שם העסק"><input className={inputCls} value={f.biz} onChange={e => setF({ ...f, biz: e.target.value })} /></Field>
               <Field label="מייל"><input className={`${inputCls} num text-right`} type="email" value={f.email} onChange={e => setF({ ...f, email: e.target.value })} autoComplete="email" /></Field>
@@ -63,7 +64,7 @@ export function Signup() {
                 <span>אני מאשר/ת שהתזכורות נשלחות רק ללקוחות קיימים של העסק, על חשבוניות אמיתיות, ושאני אחראי/ת לנכונות הסכומים.</span>
               </label>
               <div className="flex gap-2"><Button variant="ghost" onClick={() => setS(1)}>חזרה</Button>
-                <Button className="flex-1" disabled={!f.agree || (!f.sms && !f.email2)} onClick={() => go('dashboard')}>כניסה למערכת (דמו) ←</Button></div>
+                <Button className="flex-1" disabled={!f.agree || (!f.sms && !f.email2)} onClick={() => go('dashboard')}>התחלת ניסיון (דמו) ←</Button></div>
               <p className="text-xs text-ink-500 text-center">דמו בלבד — לא נוצר חשבון ולא נשמרים פרטים.</p>
             </div>
           )}

@@ -15,7 +15,9 @@ import uuid
 from dataclasses import dataclass, field
 from email.message import EmailMessage
 from typing import Any, Protocol
-from xml.sax.saxutils import escape
+
+# bandit B406 = false positive: רק בונים XML (escape לפלט), לא מפרסרים קלט
+from xml.sax.saxutils import escape  # nosec B406
 
 # ---------- טלפונים ----------
 
@@ -215,3 +217,26 @@ def message_to_json(m: Message) -> str:
 
 def message_from_json(s: str) -> Message:
     return Message(**json.loads(s))
+
+
+# ---------- מייל נכנס ----------
+_ADDR = re.compile(r"<([^<>@\s]+@[^<>\s]+)>|([^\s<>\"]+@[^\s<>\"]+)")
+_QUOTE_HDR = re.compile(r"^(on .+ wrote:|ב?תאריך .+(כתב|נכתב).*:|-{2,}\s*original message|"
+                        r"-{2,}\s*הודעה מקורית|from:\s|מאת:\s)", re.I)
+
+
+def parse_address(raw: str) -> str:
+    """'דנה <Dana@Example.com>' ⇒ 'dana@example.com'."""
+    m = _ADDR.search(raw or "")
+    return (m.group(1) or m.group(2)).strip().lower() if m else ""
+
+
+def strip_reply(text: str) -> str:
+    """רק מה שהלקוח כתב: בלי הציטוט של ההודעה שלנו ובלי חתימת '-- '."""
+    out = []
+    for line in (text or "").replace("\r\n", "\n").split("\n"):
+        s = line.strip()
+        if s.startswith(">") or _QUOTE_HDR.match(s) or s == "--":
+            break
+        out.append(line)
+    return "\n".join(out).strip()

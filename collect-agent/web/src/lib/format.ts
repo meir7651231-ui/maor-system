@@ -1,6 +1,8 @@
 // פונקציות טהורות — בלי DOM. נבדקות ב-tests/.
-const ils = new Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS', maximumFractionDigits: 0 });
-export const fmtIls = (n: number): string => ils.format(Math.round(n));
+const ils0 = new Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS', maximumFractionDigits: 0 });
+const ils2 = new Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS', minimumFractionDigits: 2, maximumFractionDigits: 2 });
+/** ₪ שלמים בלי אגורות; אחרת תמיד 2 ספרות (3,450.50 ולא 3,450.5). */
+export const fmtIls = (n: number): string => { const r = Math.round(n * 100) / 100; return (Number.isInteger(r) ? ils0 : ils2).format(r); };
 
 const dayMs = 86_400_000;
 const at = (iso: string) => new Date(iso + 'T12:00:00').getTime();

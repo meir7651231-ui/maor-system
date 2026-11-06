@@ -1,10 +1,10 @@
-# גבי (collect-agent) — בדיקות על ענף collect-agent בלבד.
+# גבי (collect-agent) — בדיקות + שער אבטחה. רץ רק כשמשהו תחת collect-agent/ משתנה.
 # אין כאן deploy, אין סודות, אין רשת חיצונית בבדיקות (socket חסום ב-conftest).
 name: collect-agent tests
 
 on:
   push:
-    branches: [collect-agent]
+    branches: [collect-agent, 'claude/**']
     paths: ["collect-agent/**", ".github/workflows/collect-agent.yml"]
   pull_request:
     branches: [collect-agent]
@@ -18,31 +18,61 @@ concurrency:
   group: collect-agent-${{ github.ref }}
   cancel-in-progress: true
 
+defaults:
+  run:
+    working-directory: collect-agent
+
 jobs:
   test:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-    defaults:
-      run:
-        working-directory: collect-agent
+    timeout-minutes: 15
     strategy:
+      fail-fast: false
       matrix:
         python: ["3.11", "3.13"]
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
+          cache: pip
+          cache-dependency-path: collect-agent/pyproject.toml
       - name: התקנה
-        run: pip install -e '.[dev]' ruff
-      - name: ruff
+        run: pip install -e '.[dev]'
+      - name: ruff (כולל כללי אבטחה S)
         run: ruff check .
-      - name: pytest
+      - name: pytest (יחידה + אבטחה + E2E + סימולציית 60 יום)
         run: python -m pytest -q
-      - name: evals של מנוע השיחה (315 מקרים)
+      - name: evals של מנוע השיחה (315 מקרים, נכשל על הפרת מעקה)
         run: python -m evals.harness
       - name: הדגמה מקצה לקצה (שרת + נתוני דמו + דשבורד, dry-run)
         run: ./demo.sh --check
+      - name: smoke — מעקות השרת (טוקן, 401, docs, webhook 019, DB 0600, אין דליפה ללוג)
+        run: bash scripts/smoke_server.sh
+
+  security:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: התקנה
+        run: |
+          python -m pip install -U pip setuptools wheel
+          python -m pip install -e '.[dev]'
+      - name: bandit (SAST)
+        # קבצי דמו: asserts של תרחיש וטוקנים מזויפים (נטענים רק בהדגמה)
+        run: bandit -q -r app scripts -x app/demo.py,app/demo_data.py,scripts/demo_integrations.py
+      - name: pip-audit (CVE ידועים בתלויות)
+        run: pip-audit --skip-editable --progress-spinner off
+      - name: סריקת סודות + Trojan Source + רשימת hosts סגורה
+        run: python -m pytest -q tests/test_security.py -k "secrets or trojan or gitignore or outbound"
 
   web:
     runs-on: ubuntu-latest
@@ -52,6 +82,8 @@ jobs:
         working-directory: collect-agent/web
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: 22

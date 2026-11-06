@@ -13,6 +13,8 @@ from app.policy import TZ
 from app.service import CollectService
 
 SANDBOX = "https://sandbox.d.greeninvoice.co.il/api/v1"
+OWNER_TOKEN = "test-owner-token-0123456789abcdefXYZ"  # רק לבדיקות
+AUTH = {"Authorization": f"Bearer {OWNER_TOKEN}"}
 
 
 def gi_doc(i: int, *, amount="1200.00", phone="050-1234567", due="2026-10-01",
@@ -38,7 +40,9 @@ class FakeGreenInvoice:
     def handler(self, req: httpx.Request) -> httpx.Response:
         if req.url.path.endswith("/account/token"):
             body = json.loads(req.content)
-            if body != {"id": "test-id", "secret": "test-secret"}:
+            # morning 2026: grant_type חובה. המוק דוחה גוף בלי השדה (מגן מפני רגרסיה)
+            if body != {"id": "test-id", "secret": "test-secret",
+                        "grant_type": "client_credentials"}:
                 return httpx.Response(401, json={"errorMessage": "bad"})
             self.token_calls += 1
             return httpx.Response(200, json={"token": f"tok{self.token_calls}",
@@ -100,7 +104,8 @@ def svc(gi_client, clock):
     s = load_settings({"BUSINESS_NAME": "סטודיו מאיר", "SMS_SENDER_ID": "StudioMeir",
                        "PAYMENT_LINK": "https://www.greeninvoice.co.il/pay/studio",
                        "PUBLIC_BASE_URL": "https://gabi.example",
-                       "SMS_WEBHOOK_KEY": "whk-test"})
+                       "SMS_WEBHOOK_KEY": "whk-test",
+                       "EMAIL_WEBHOOK_KEY": "ewk-test"})
     return CollectService(s, DB(":memory:"), gi=gi_client, clock=clock)
 
 
