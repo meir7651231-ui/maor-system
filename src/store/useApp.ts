@@ -659,7 +659,8 @@ interface AppState {
   // גיבוי ושחזור
   /** מחזיר האם הקובץ ירד בפועל (ביקורת-עומק 2.9: גיבוי-סוף-יום מסמן 'בוצע-היום' רק על הצלחה). */
   exportBackup: () => Promise<boolean>;
-  restoreDb: (db: Db) => void;
+  /** toastMsg: חסר ⇒ 'הנתונים שוחזרו מהגיבוי ✓' (ביט-זהה); null ⇒ בלי טוסט (זריעת-דמו). */
+  restoreDb: (db: Db, toastMsg?: string | null) => void;
   resetAll: () => void;
   /** 🧹 הסרת נתוני-הדמו בלבד (14.9): מוחק רק רשומות שמזהיהן בקובץ-הדמו (planDemoPurge), עם
    *  מצבות-מחיקה ⇒ נמחק גם בענן. מנהל-בלבד בארגון-ענן (כמו resetAll). מחזיר כמה הוסרו. */
@@ -4372,7 +4373,7 @@ export const useApp = create<AppState>()((set, get) => {
       return { total: plan.total, removed: plan.removed };
     },
 
-    restoreDb(db) {
+    restoreDb(db, toastMsg) {
       // swarm-b (F4): בארגון-ענן שחזור = החלפה סמכותית של הענן (cloudReplaceNow) — עובד/ת
       // בלי סמכות-מנהל לא מוחק/ת את הארגון. שורש/אופליין: isAdminAuthority ⇒ ביט-זהה.
       const cl = get().cloud;
@@ -4413,7 +4414,8 @@ export const useApp = create<AppState>()((set, get) => {
       // ישויות שנגרעו בגיבוי היו קמות-לתחייה מ-snapshot-ענן בחלון ה-debounce).
       void cloudMod?.cloudReplaceNow(prev, db);
       void dailySnapshot(db);
-      get().toast('הנתונים שוחזרו מהגיבוי ✓');
+      // W1-S6 (6.11): זריעת-הדמו עברה כאן והציגה לפרוספקט "שוחזרו מהגיבוי" ⇒ הודעה מותאמת/שקטה
+      if (toastMsg !== null) get().toast(toastMsg ?? 'הנתונים שוחזרו מהגיבוי ✓');
     },
     resetAll() {
       // swarm-b (F4): אותו שער-סמכות כמו restoreDb — איפוס בארגון-ענן = מחיקת-הענן.

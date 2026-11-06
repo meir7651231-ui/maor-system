@@ -20,7 +20,7 @@ export function DemoRibbon() {
     try {
       const res = await fetch(`${import.meta.env.BASE_URL}demo.json`, { cache: 'no-store' });
       if (!res.ok) throw new Error('קובץ הדמו לא נמצא');
-      restoreDb(freshenDemoDb(parseBackupFile(await res.text()), isoToday()));
+      restoreDb(freshenDemoDb(parseBackupFile(await res.text()), isoToday()), null); // הטוסט הייעודי למטה (בלי "שוחזרו מהגיבוי")
       toast('הדמו אופס — נתוני הדגמה טריים ✓');
     } catch (e) {
       toast('⚠ איפוס הדמו נכשל — ' + (e instanceof Error ? e.message : 'נסו שוב'));
