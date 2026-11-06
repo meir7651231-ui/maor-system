@@ -179,3 +179,28 @@ class Sms019(SmsAdapter):
 
 
 SMS_PROVIDERS = {"019": Sms019, "inforu": InforUSms}
+
+_DLR_DELIVERED = {"delivered", "delivrd", "success"}
+_DLR_FAILED = {"failed", "undeliv", "undelivered", "rejected", "rejectd", "expired", "blocked",
+               "error"}
+
+
+def parse_019_dlr(fields: dict[str, str]) -> tuple[str, str]:
+    """דוח מסירה של 019 ⇒ (מזהה ההודעה אצל הספק, delivered|failed|pending|unknown).
+
+    ⚠️ חוזה לא מאומת (כמו השליחה): שמות השדות והקודים לפי התיעוד הציבורי בלבד. סובלני לשמות
+    (shipment_id/msg_id/id) ולמילות סטטוס נפוצות. קוד מספרי שאינו מוכר ⇒ 'unknown' — **לא** פועלים
+    עליו (לא מסמנים נכשל) עד שיהיה מסמך רשמי."""
+    pid = (fields.get("shipment_id") or fields.get("msg_id") or fields.get("message_id")
+           or fields.get("id") or "").strip()
+    raw = (fields.get("status_text") or fields.get("dlr_status") or fields.get("status")
+           or "").strip().lower()
+    if raw in _DLR_DELIVERED:
+        st = "delivered"
+    elif raw in _DLR_FAILED:
+        st = "failed"
+    elif raw in ("pending", "sent", "enroute", "accepted"):
+        st = "pending"
+    else:
+        st = "unknown"
+    return pid, st
