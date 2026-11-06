@@ -81,6 +81,10 @@ class DB:
         if "paused_reason" not in cols:  # DB קיים מלפני העמודה
             self.conn.execute("ALTER TABLE customers ADD COLUMN paused_reason TEXT")
             self.conn.commit()
+        for col in ("blocked_phone", "blocked_email"):   # ר-3: מספר/כתובת שגויים לא חוזרים בסנכרון
+            if col not in cols:
+                self.conn.execute(f"ALTER TABLE customers ADD COLUMN {col} TEXT")
+        self.conn.commit()
         icols = {r[1] for r in self.conn.execute("PRAGMA table_info(invoices)")}
         if "short_code" not in icols:  # קישור קצר ל-SMS (≤2 חלקים)
             self.conn.execute("ALTER TABLE invoices ADD COLUMN short_code TEXT")

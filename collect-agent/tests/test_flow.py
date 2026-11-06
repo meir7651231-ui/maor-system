@@ -490,3 +490,40 @@ def test_trial_14_days_stops_sending_after(gi_client, clock):
 def test_no_trial_means_active(api):
     t = api.get("/health").json()["trial"]
     assert t["active"] is True and t["on_trial"] is False
+
+
+
+# ───────── פערים שנמצאו בחיבור מנוע השיחה (בדיקה מול ההתנהגות, 6.11) ─────────
+def test_wrong_number_phone_stays_deleted_after_resync(api, svc):
+    """ר-3: אחרי «מספר שגוי» הסנכרון מחשבונית ירוקה החזיר את הטלפון (עדיין רשום שם)."""
+    first_cycle(api)
+    api.post("/inbound", json={"sender": "0501234567", "text": "טעות במספר, אני לא מכיר את דנה"})
+    api.post("/sync")
+    c = svc.db.one("SELECT phone, blocked_phone FROM customers WHERE id=1")
+    assert not c["phone"] and c["blocked_phone"] == "050-1234567"
+
+
+def test_corrected_phone_after_wrong_number_is_accepted(api, svc, fake_gi):
+    first_cycle(api)
+    api.post("/inbound", json={"sender": "0501234567", "text": "טעות במספר, אני לא מכיר את דנה"})
+    fake_gi.docs[0]["client"]["phone"] = "052-1112222"   # בעל העסק תיקן בחשבונית ירוקה
+    api.post("/sync")
+    assert svc.db.one("SELECT phone FROM customers WHERE id=1")["phone"] == "052-1112222"
+
+
+def test_promise_expired_returns_to_ladder(api, svc, clock):
+    """באג: release_expired_pauses לא נקרא ⇒ הבטחה שלא קוימה השהתה את הלקוח לנצח."""
+    ids = first_cycle(api)
+    api.post(f"/reminders/{ids[0]}/approve")
+    api.post("/dispatch")
+    r = api.post("/inbound", json={"sender": "0501234567", "text": "אשלם ביום חמישי"}).json()
+    assert r["intent"] == "promise" and r["pause_until"] == "2026-11-13"
+
+    def cust1(created):
+        return [i for i in created if svc._invoice(svc._reminder(i)["invoice_id"])["customer_id"] == 1]
+
+    clock.now += timedelta(days=3)                       # 11.11 — לפני המועד: שקט
+    assert cust1(api.post("/plan").json()["created"]) == []
+    clock.now += timedelta(days=5)                       # 16.11 — עבר בלי תשלום
+    assert cust1(api.post("/plan").json()["created"])
+    assert any(a["action"] == "pause_expired" for a in api.get("/audit").json())

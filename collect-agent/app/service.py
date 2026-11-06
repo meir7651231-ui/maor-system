@@ -80,7 +80,11 @@ class CollectService:
             self.db.x(
                 "INSERT INTO customers(external_id,name,phone,email,unsub_token) "
                 "VALUES(?,?,?,?,?) ON CONFLICT(external_id) DO UPDATE SET name=excluded.name, "
-                "phone=excluded.phone, email=excluded.email",
+                # ר-3: טלפון/מייל שסומנו «מספר שגוי» לא חוזרים, גם אם עדיין רשומים בחשבונית ירוקה
+                "phone=CASE WHEN customers.blocked_phone=excluded.phone THEN NULL "
+                "ELSE excluded.phone END, "
+                "email=CASE WHEN customers.blocked_email=excluded.email THEN NULL "
+                "ELSE excluded.email END",
                 (cust_ext, inv.client_name, inv.client_phone, inv.client_email,
                  secrets.token_urlsafe(9)))
             cid = self.db.one("SELECT id FROM customers WHERE external_id=?", (cust_ext,))["id"]
@@ -187,6 +191,8 @@ class CollectService:
         now = self.clock()
         if not self.trial()["active"]:
             return []
+        # באג: release_expired_pauses לא נקרא מאף מקום ⇒ "אשלם בחמישי" שלא שולם השהה לנצח
+        self.inbox.release_expired_pauses()
         created: list[int] = []
         rows = self.db.q("SELECT * FROM invoices WHERE status='open'")
         for r in rows:

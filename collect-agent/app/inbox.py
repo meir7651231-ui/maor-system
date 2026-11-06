@@ -114,7 +114,9 @@ class ConversationInbox:
         if getattr(self, "_wrong_number", False):
             # ר-3: מספר שגוי ⇒ מוחקים את השדה מהלקוח (התנצלות, אם תאושר, הולכת לכתובת שנשמרה בטיוטה)
             col = "email" if channel == "email" else "phone"
-            self.db.x(f"UPDATE customers SET {col}=NULL WHERE id=?", (cust["id"],))
+            # שומרים את הערך שנחסם, כדי שסנכרון מחשבונית ירוקה (שם הוא עדיין רשום) לא יחזיר אותו
+            self.db.x(f"UPDATE customers SET blocked_{col}={col}, {col}=NULL WHERE id=?",
+                      (cust["id"],))
             self._wrong_number = False
         self._save_state(cust["id"], d, bump_turn=bool(d.reply))
         self.svc.audit("customer", "conversation", {

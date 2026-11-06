@@ -13,6 +13,7 @@
 | **(4) מייל נכנס** ✅ | `POST /webhooks/email?k=…` (‏from/text/message_id, אידמפוטנטי, סגור בלי סוד). מסיר ציטוט ("On … wrote:", "בתאריך … כתב:", `>`), כך ש"הסר" שמופיע בציטוט של ההודעה שלנו לא נספר | `test_email_webhook_inbound` · `test_strip_reply_drops_quote` |
 | **תמחור** ✅ | **₪119 לחודש, מסלול אחד, 14 יום ניסיון** (`MVP-SPEC §5`; מחליף את שתי הטבלאות הסותרות). בקוד: `TRIAL_START` ⇒ "נותרו N ימים" בדשבורד וב-`/health`; בסוף הניסיון אין תכנון ואין שליחה, והנתונים נשמרים | `test_trial_14_days_stops_sending_after` · צילום `docs/screens/gabi-dashboard-trial.png` |
 | **ר-2 נסגר** (פער משפטי) | ב-`test_legal_requirements.py` שלושה מקרי xfail strict ("4 מקטעים עם שם עסק ארוך") עברו בזכות הקישור הקצר ⇒ הסימון הוסר והפער נספר כסגור | `pytest` = 231 עוברות + 8 xfail |
+| **2 פערים בחיבור מנוע השיחה** (בדיקה מול ההתנהגות) | (א) **ר-3:** אחרי «מספר שגוי» הטלפון נמחק, אבל **הסנכרון הבא מחשבונית ירוקה החזיר אותו**. עכשיו נשמר `blocked_phone`/`blocked_email`, ו-ingest לא מחזיר את הערך החסום (מספר מתוקן כן נקלט). (ב) **`release_expired_pauses` לא נקרא מאף מקום** (קוד מת), ולכן «אשלם בחמישי» שלא קוים השהה את הלקוח לנצח. עכשיו `plan()` משחרר השהיות שפג תוקפן, ונרשם `pause_expired` ב-audit | `test_wrong_number_phone_stays_deleted_after_resync` · `test_corrected_phone_after_wrong_number_is_accepted` · `test_promise_expired_returns_to_ladder` · מוטציה על כל תיקון ⇒ נופלת |
 | **באג במסנן הניסוח (נתפס כבדיקה מהבהבת)** | `compliance.violations` הפעיל את הרשימות השחורות גם על תוכן הקישור. כ-0.26% מהקודים האקראיים (4+ אותיות גדולות) סומנו "pressure", ותזכורת אמיתית נחסמה. התיקון: בדיקת הרשימות על הטקסט בלי הקישורים, כשהקישורים נבדקים בנפרד מול רשימת המותרים, וגם קודים קצרים באותיות קטנות וספרות בלבד | `test_compliance_ignores_url_contents` + מוטציה (ביטול ⇒ נופלת) · 50,000 קודים ⇒ 0 חסימות |
 | מראה ב-`web/` | `web/src/lib/message.ts` עודכן לנוסחי ה-SMS החדשים (`{first}` `{short}` `{stop}`), כולל דוגמת ה-SMS בדף הנחיתה של React | `npm test` 7/7 · `npm run build` ✅ |
 
@@ -35,7 +36,7 @@ cd collect-agent && ./demo.sh          # ואז http://127.0.0.1:8000/ui  (PORT=
 | **באג שנתפס בהדגמה:** אחרי «שילמתי» הסבב הבא שלח ללקוח תזכורת שוב. עכשיו הלקוח מושהה (`paused_reason`) עד `POST /customers/{id}/resume` או עד שהחשבונית נסגרת | `test_paid_claim_pauses…` + **מוטציה:** ביטול ההשהיה ⇒ הבדיקה נופלת |
 | `pip install -e` היה שבור (התיקייה `team/` שברה את ה-flat-layout) ⇒ תוקן ב-`pyproject.toml` (+ `ui.html` ב-package-data) + תצורת ruff מקומית | ההתקנה עוברת, ruff נקי |
 | CI: `.github/workflows/collect-agent.yml` רץ על push ו-PR לענף `collect-agent` בלבד: ruff, pytest, `demo.sh --check`, על Python 3.11 ו-3.13. בלי סודות ובלי deploy | — |
-| **בדיקות: 167/167 פייתון + 7/7 web** (אחרי כל המיזוגים) · ruff נקי · `npm run build` עובר | `pytest -q` · `cd web && npm test` |
+| **בדיקות: 333 עוברות + 6 xfail** (אחרי כל המיזוגים) · ruff נקי · `npm run build` עובר | `pytest -q` · `cd web && npm test` |
 
 ## ענפי צוות שמוזגו לסבב הזה
 | ענף | תוכן | הערות מיזוג |
@@ -51,7 +52,7 @@ cd collect-agent && ./demo.sh          # ואז http://127.0.0.1:8000/ui  (PORT=
 ## ⏭ הצעד הבא לכל תפקיד
 | תפקיד | הצעד הבא |
 |---|---|
-| **פיתוח** | ~~(00) לחבר את `conversation.py` ל-`service.inbound`~~ ✅ **בוצע (תפקיד ה-AI, commits `4763832`..`f500818`):** `inbound`, `_handle` (עמוד הקישור הקצר, `web`), webhook 019 ומייל נכנס עוברים ב-`app/inbox.py`; כל תשובה = טיוטה לאישור (`/conversation/drafts`). אין צורך להמשיך את המשימה הנעולה — `assistant.py` מיותר ואפשר למחוק (יחד עם הבדיקות שלו ב-`test_units`). (0) לאחד את `app/channels.py` עם `app/integrations/`. ~~(1) SMS ≤2~~ ✅ · ~~(2) מספר תשלומים~~ ✅ · ~~(3) חידוש~~ ✅ · ~~(4) מייל נכנס~~ ✅ — ראו סבב 3 למעלה. **מסנן הניסוח (`compliance.py`) כבר רץ על כל SMS יוצא בשירות** |
+| **פיתוח** | ~~(00) לחבר את `conversation.py` ל-`service.inbound`~~ ✅ **בוצע (תפקיד ה-AI, commits `4763832`..`f500818`):** `inbound`, `_handle` (עמוד הקישור הקצר, `web`), webhook 019 ומייל נכנס עוברים ב-`app/inbox.py`; כל תשובה = טיוטה לאישור (`/conversation/drafts`). אין צורך להמשיך את המשימה הנעולה — `assistant.py` מיותר ואפשר למחוק (יחד עם הבדיקות שלו ב-`test_units`). (0) לאחד את `app/channels.py` עם `app/integrations/`. ~~(1) SMS ≤2~~ ✅ · ~~(2) מספר תשלומים~~ ✅ · ~~(3) חידוש~~ ✅ · ~~(4) מייל נכנס~~ ✅ — ראו סבב 3 למעלה. **מסנן הניסוח (`compliance.py`) כבר רץ על כל SMS יוצא בשירות** · **+2 פערים נסגרו בבדיקה מול ההתנהגות** (מספר שגוי חזר בסנכרון; `release_expired_pauses` לא נקרא) — ראו סבב 3 |
 | **עיצוב (web/)** | ✅ מחובר לשרת (`/app/`) · ✅ «דורש טיפול שלך»: חידוש לקוח מושהה + אישור הצעות פריסה (חי, e2e). הבא: תיבת בעל העסק (`/owner/inbox`) והגדרות חיות (צריך API) |
 | **מוצר** | להכריע על הכלל «עצירה אחרי 3 תזכורות בלי מענה» (היום 4) ועל תמחור (ראו חסמים) |
 | **תשתית** | לוודא ריצה ירוקה ראשונה של ה-workflow ב-GitHub. ה-`ci.yml` של מאור מופעל על כל `pull_request`, כולל PR לענף הזה, ולכן כדאי לסנן |
