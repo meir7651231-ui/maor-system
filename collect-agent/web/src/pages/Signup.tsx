@@ -8,7 +8,9 @@ const STEPS = ['פרטים', 'חיבור חשבוניות', 'ערוצים'];
 
 export function Signup() {
   const [s, setS] = useState(0);
-  const [f, setF] = useState({ name: '', biz: '', email: '', phone: '', gi: 'greeninvoice', sms: true, email2: true, agree: false });
+  const [f, setF] = useState({ name: '', biz: '', email: '', phone: '', gi: 'greeninvoice', sms: true, email2: true, agree: false, marketing: false, marketingAt: '' });
+  // critic סבב 5: מיילי ניסיון 5–7 (marketing/emails-trial.md) הם «פרסומת» לפי §30א ⇒ דרושה הסכמה
+  // מפורשת מראש: תיבה נפרדת, אופציונלית, **לא מסומנת**, עם חותמת זמן. בלי סימון ⇒ רק הודעות שירות.
   const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email);
   const ok0 = f.name.trim() && f.biz.trim() && emailOk && isIlMobile(f.phone);
   return (
@@ -65,6 +67,11 @@ export function Signup() {
               <label className="flex items-start gap-2 text-sm">
                 <input type="checkbox" className="accent-[#10B981] h-5 w-5 mt-0.5" checked={f.agree} onChange={e => setF({ ...f, agree: e.target.checked })} />
                 <span>אני מאשר/ת שהתזכורות נשלחות רק ללקוחות קיימים של העסק, על חשבוניות אמיתיות, ושאני אחראי/ת לנכונות הסכומים.</span>
+              </label>
+              <label className="flex items-start gap-2 text-sm text-ink-700" data-testid="marketing-consent">
+                <input type="checkbox" className="accent-[#10B981] h-5 w-5 mt-0.5" checked={f.marketing}
+                  onChange={e => setF({ ...f, marketing: e.target.checked, marketingAt: e.target.checked ? new Date().toISOString() : '' })} />
+                <span>אשמח לקבל מגבי עדכונים והצעות במייל (לא חובה; אפשר להסיר בכל מייל).</span>
               </label>
               <div className="flex gap-2"><Button variant="ghost" onClick={() => setS(1)}>חזרה</Button>
                 <Button className="flex-1" disabled={!f.agree || (!f.sms && !f.email2)} onClick={() => go('dashboard')}>התחלת ניסיון (דמו) ←</Button></div>

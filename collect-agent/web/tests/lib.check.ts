@@ -268,3 +268,10 @@ test('מקור החשבונית מהשרת (api/csv) נשמר במודל — ב�
   const prev = readFileSync(new URL('../src/components/MessagePreview.tsx', import.meta.url), 'utf8');
   assert.match(prev, /disabled=\{[^}]*isCsv && !confirmOpen/, 'אישור CSV חסום עד סימון התיבה');
 });
+
+test('§30א: הסכמה לפרסומת בהרשמה — נפרדת, אופציונלית, לא מסומנת, עם חותמת זמן (critic סבב 5)', () => {
+  const su = readFileSync(new URL('../src/pages/Signup.tsx', import.meta.url), 'utf8');
+  assert.match(su, /marketing: false, marketingAt: ''/, 'ברירת מחדל: לא מסומן');
+  assert.ok(su.includes('data-testid="marketing-consent"') && su.includes('לא חובה'));
+  assert.doesNotMatch(su, /disabled=\{[^}]*marketing/, 'ההסכמה לא יכולה להיות תנאי להרשמה');
+});
