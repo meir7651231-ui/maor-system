@@ -31,6 +31,7 @@ from .conversation import (
     OwnerPolicy,
     State,
     Stop,
+    detect,
     frame,
     respond,
 )
@@ -94,6 +95,9 @@ class ConversationInbox:
         now = self.svc.clock()
         cust = self.svc._find_customer(channel, sender)
         if cust is None:
+            # מבקר סבב 3: «הסר» ממספר/כתובת שעוד לא ב-DB ⇒ רשימת ההסרה (גם ללקוח עתידי)
+            if Intent.OPT_OUT in detect(text):
+                self.svc.suppress(channel, sender, "unknown_sender_opt_out")
             # לא חושפים כלום לשולח לא מזוהה; רק לבעל העסק
             self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
                       "created_at) VALUES(NULL,'in',?,?, 'unknown_sender', 1, ?)",
@@ -334,9 +338,13 @@ class ConversationInbox:
         return dict(self._get(draft_id))
 
     def flush(self) -> list[int]:
-        """שולח טיוטות שאושרו אבל חיכו לחלון שליחה (לילה/שבת/חג)."""
-        return [r["id"] for r in self.db.q("SELECT id FROM drafts WHERE status='approved' ORDER BY id")
-                if self._try_send(r["id"])]
+        """שולח טיוטות שאושרו אבל חיכו לחלון שליחה (לילה/שבת/חג).
+        מבקר סבב 3: חריגה בטיוטה אחת לא עוצרת את האחרות (_try_send תופס ומסמן)."""
+        out = []
+        for r in self.db.q("SELECT id FROM drafts WHERE status='approved' ORDER BY id"):
+            if self._try_send(r["id"]):
+                out.append(r["id"])
+        return out
 
     # ---------- שער שליחה יחיד ----------
     def _can_message(self, cust, dr) -> str | None:
@@ -355,8 +363,13 @@ class ConversationInbox:
             self.db.x("UPDATE drafts SET status='rejected', decided_by=? WHERE id=?",
                       (f"system:{why}", draft_id))
             return False
-        now_total = self._open_total(cust["id"])
         money = "₪" in dr["body"] or dr["plan_id"] or dr["intent"] in _MONEY_INTENTS
+        if money and not self.svc.refresh_customer(cust["id"]):
+            # ר-4 (מבקר סבב 3 🔴): טיוטה עם כסף יצאה בלי אף קריאה ל-GI, גם כש-GI החזיר 500.
+            # כשל רענון ⇒ לא שולחים; נשאר approved ונשלח בהצלחת רענון הבאה (flush).
+            self.svc.audit("system", "draft_refresh_failed", {"draft": draft_id})
+            return False
+        now_total = self._open_total(cust["id"])
         if money and dr["total_agorot"] is not None and now_total != dr["total_agorot"]:
             # אימות סכום לפני כל שליחה: היתרה השתנתה (תשלום/עדכון) ⇒ הנוסח לא נשלח
             self.db.x("UPDATE drafts SET status='rejected', decided_by='system:amount_changed' WHERE id=?",
@@ -370,7 +383,16 @@ class ConversationInbox:
                       (draft_id,))
             return False
         now = self.svc.clock()
-        mid = self.svc.sender.send(msg)
+        try:
+            mid = self.svc.sender.send(msg)
+        except Exception as e:  # noqa: BLE001 — מבקר סבב 3: IntegrationError (ארוך מדי) קרס ונעל את הלקוח
+            self.db.x("UPDATE drafts SET status='rejected', decided_by=? WHERE id=?",
+                      ("system:send_error", draft_id))
+            self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
+                      "created_at) VALUES(?,'system','owner',?,'send_error',1,?)",
+                      (cust["id"], f"הטיוטה לא נשלחה: {str(e)[:160]}", _iso(now)))
+            self.svc.audit("system", "draft_send_error", {"draft": draft_id, "error": str(e)[:200]})
+            return False
         self.svc._log_out(cust["id"], msg, mid, now)
         self.db.x("UPDATE drafts SET status='sent_dry_run', sent_at=?, message_id=? WHERE id=?",
                   (_iso(now), mid, draft_id))

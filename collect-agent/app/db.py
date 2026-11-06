@@ -135,7 +135,9 @@ class DB:
                 ("body_hash", "ALTER TABLE reminders ADD COLUMN body_hash TEXT"),
                 ("approved_hash", "ALTER TABLE reminders ADD COLUMN approved_hash TEXT"),
                 ("approved_version", "ALTER TABLE reminders ADD COLUMN approved_version TEXT"),
-                ("approved_by", "ALTER TABLE reminders ADD COLUMN approved_by TEXT")):
+                ("approved_by", "ALTER TABLE reminders ADD COLUMN approved_by TEXT"),
+                # ר-4 (מבקר סבב 3): הסכום שבהודעה עצמה — הרענון משווה אליו, לא ל-invoices
+                ("amount_agorot", "ALTER TABLE reminders ADD COLUMN amount_agorot INTEGER")):
             if col not in rcols:
                 self.conn.execute(ddl)
         self.conn.commit()

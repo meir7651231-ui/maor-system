@@ -26,7 +26,9 @@ COLUMNS: dict[str, tuple[str, ...]] = {
     "issued": ("תאריך", "תאריך מסמך", "date", "issued"),
     "due": ("תאריך לתשלום", "מועד תשלום", "due", "due date"),
     "currency": ("מטבע", "currency"),
+    "status": ("סטטוס", "status"),
 }
+CLOSED_STATUSES = {"סגור", "שולם", "נסגר", "מבוטל", "closed", "paid", "cancelled", "canceled"}
 
 
 @dataclass
@@ -54,6 +56,9 @@ def _agorot(v: str) -> int:
         d = Decimal(t)
     except InvalidOperation:
         raise ValueError(f"סכום לא תקין: {v}") from None
+    # מבקר סבב 3: "Infinity"/"NaN" הפילו את הייבוא (OverflowError). גם סכום לא סביר נדחה
+    if not d.is_finite() or abs(d) > Decimal("100000000"):
+        raise ValueError(f"סכום לא תקין: {v}")
     return int((d * 100).to_integral_value())
 
 
@@ -68,9 +73,10 @@ def parse(raw: bytes | str) -> CsvResult:
     head = [h.strip().lower() for h in rows[0]]
     idx: dict[str, int] = {}
     for key, names in COLUMNS.items():
-        for i, h in enumerate(head):
-            if h in {n.lower() for n in names}:
-                idx[key] = i
+        # מבקר סבב 3: עדיפות לפי סדר השמות ב-COLUMNS (יתרה לפני סה"כ), לא לפי סדר העמודות בקובץ
+        for name in names:
+            if name.lower() in head:
+                idx[key] = head.index(name.lower())
                 break
     missing = [k for k in ("number", "client", "amount") if k not in idx]
     if missing:
@@ -91,6 +97,8 @@ def parse(raw: bytes | str) -> CsvResult:
                 raise ValueError("חסר מספר מסמך")
             if num in seen:
                 raise ValueError(f"מספר מסמך כפול: {num}")
+            if cell("status").strip().lower() in CLOSED_STATUSES:
+                continue                                   # מסמך סגור/מבוטל ⇒ לא חוב
             amount = _agorot(cell("amount"))
             if amount <= 0:
                 continue                                   # שולמה / אפס ⇒ לא חוב
