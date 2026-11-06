@@ -114,20 +114,25 @@ class GreenInvoiceClient:
         self._token_exp = float(exp) if exp else self._clock() + 3600
         return self._token
 
-    def search_documents(self, *, page: int = 1, page_size: int = 50,
-                         statuses=(STATUS_OPEN,), types=OPEN_DEBT_TYPES) -> dict[str, Any]:
-        payload = {"page": page, "pageSize": page_size,
-                   "status": list(statuses), "type": list(types)}
+    def post(self, path: str, payload: dict[str, Any], *, what: str = "") -> dict[str, Any]:
+        """POST מאומת עם חידוש-טוקן חד-פעמי על 401."""
+        what = what or path
         for attempt in range(2):
-            r = self._http.post("/documents/search", json=payload,
+            r = self._http.post(path, json=payload,
                                 headers={"Authorization": f"Bearer {self._auth()}"})
             if r.status_code == 401 and attempt == 0:
                 self._token = None  # טוקן פג — לחדש פעם אחת
                 continue
             if r.status_code != 200:
-                raise GreenInvoiceError(f"search נכשל: {r.status_code}")
+                raise GreenInvoiceError(f"{what} נכשל: {r.status_code}")
             return r.json()
-        raise GreenInvoiceError("search נכשל: 401 חוזר")
+        raise GreenInvoiceError(f"{what} נכשל: 401 חוזר")
+
+    def search_documents(self, *, page: int = 1, page_size: int = 50,
+                         statuses=(STATUS_OPEN,), types=OPEN_DEBT_TYPES) -> dict[str, Any]:
+        payload = {"page": page, "pageSize": page_size,
+                   "status": list(statuses), "type": list(types)}
+        return self.post("/documents/search", payload, what="search")
 
     def create_payment_form(self, inv: Invoice, *, notify_url: str = "") -> str:
         """דף תשלום של חשבונית ירוקה (POST /payments/form) — sandbox בלבד בשלב 1.
