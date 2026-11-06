@@ -24,6 +24,7 @@ from .service import CollectService
 from .templates import SLOGAN
 
 UI_HTML = (Path(__file__).parent / "ui.html").read_text(encoding="utf-8")
+LANDING_HTML = (Path(__file__).parent / "landing.html").read_text(encoding="utf-8")  # טיוטה, noindex
 
 
 MAX_WEBHOOK_BODY = 16 * 1024
@@ -131,6 +132,10 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
     @app.get("/ui", response_class=HTMLResponse)
     def ui():
         return UI_HTML
+
+    @app.get("/landing", response_class=HTMLResponse)
+    def landing():
+        return LANDING_HTML
 
     @app.post("/sync", dependencies=auth)
     def sync():

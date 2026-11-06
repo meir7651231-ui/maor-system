@@ -1,12 +1,12 @@
 # QA · אבטחה · סודות · CI — "גבי" (collect-agent)
 
-> 6.11.2026 · ענף `claude/zen-keller-ont9jp` (מבוסס על `collect-agent` @ `76a08ca`: SMS ומייל, מנוע שיחה, demo.sh). לא מוזג, לא פורסם, ולא נשלחה אף הודעה.
+> 6.11.2026 · ענף `claude/zen-keller-ont9jp` (מוזג עם `collect-agent` @ `966985a`: SMS ומייל, מנוע שיחה, integrations, landing, web). לא מוזג, לא פורסם, ולא נשלחה אף הודעה.
 > היקף: בדיקות מקצה לקצה, סריקת אבטחה **הגנתית של המאגר המקומי בלבד** (ניתוח סטטי ובדיקות שלא פוגעות בכלום), הצפנת סודות, CI.
 > לא נבדקה שום מערכת חיצונית ולא נוצלה שום חולשה. כל השליחות dry-run, ו-conftest חוסם כל socket.
 
 ## סטטוס בשורה אחת
-✅ **220/220 בדיקות ירוקות** (היו 87; 133 חדשות שלי). ruff (כולל כללי האבטחה S) ו-bandit נקיים. evals: 166/166 + holdout. `demo.sh --check`, בדיקת העשן והדמו עוברים.
-נמצאו **2 באגים בהתנהגות המוצר** ו-**11 ממצאי אבטחה**, וכולם תוקנו. לכל אחד יש בדיקת שימור.
+✅ **302/302 בדיקות ירוקות** (134 מהן חדשות שלי). ruff (כולל כללי האבטחה S) ו-bandit נקיים. evals: 166/166 + holdout. `demo.sh --check`, בדיקת העשן והדמו עוברים.
+נמצאו **2 באגים בהתנהגות המוצר**, **13 ממצאי אבטחה** ותקלת CI אחת, וכולם תוקנו. לכל אחד יש בדיקת שימור.
 **6 בדיקות מוטציה:** הסרתי כל תיקון בנפרד, והבדיקות נפלו בכל אחד מהם.
 
 ## 1. ממצאים ותיקונים
@@ -25,6 +25,8 @@
 | S11 | 🟡 נמוכה | `/docs` ו-`/openapi.json` חשופים, ואין כותרות אבטחה | מוסתרים כברירת מחדל (`EXPOSE_DOCS=1` לפיתוח). נוספו `X-Frame-Options: DENY`, `nosniff` ו-`no-referrer` | `test_docs_hidden_by_default`, `test_security_headers` |
 | B1 | 🔴 גבוהה (מוצר) | **"שילמתי" לא עצר באמת.** (נמצא במקביל גם ב-`866da93`. אומצה הגרסה של חבר הצוות, והבדיקות שלי מאמתות אותה.) הקוד ביטל רק את התזכורות הפעילות. אחרי שבוע `plan()` יצר את השלב הבא, ומכיוון שהלקוח כבר "אושר" התזכורת **יצאה אוטומטית, בלי אישור** אל מי שאמר ששילם. **התגלה בסימולציית 60 הימים** | `customers.paused_reason='paid_claim'` (עם מיגרציה לקובץ קיים) עוצר הכול עד `POST /customers/{id}/resume` של בעל העסק (מתועד ב-audit) | `test_paid_claim_pauses_until_owner_resumes` + 3 סיבובי סימולציה |
 | B2 | 🟠 בינונית (מוצר/חוק) | **הסרה זוהתה רק בתחילת ההודעה:** "בבקשה הסירו אותי", "תסירו אותי" ו"לא מעוניין" לא נחשבו להסרה (§30א). גם "איך משלמים?" לא זוהה | ביטוי ההסרה מזוהה בכל מקום בהודעה, כולל ו׳ החיבור. נוספו "משלמים/משלם". "הסדר" עדיין לא נחשב להסרה | `test_opt_out_anywhere_in_message` (6), `test_how_to_pay_variants`, `test_plan_word_not_opt_out` |
+| S12 | 🟠 בינונית | `SmtpEmail` מאפשר `login` עם `starttls=False` בפורט 25/587, כלומר סיסמת SMTP עוברת ברשת בטקסט גלוי | סירוב בבנייה, אלא אם יש STARTTLS או פורט 465 (SMTPS) | `test_smtp_login_requires_tls` |
+| S13 | 🟡 נמוכה | `assert self.client is not None` שימש כבדיקה בזמן ריצה ב-`integrations/payments.py`. ב-`python -O` ה-assert נמחק ומתקבל AttributeError | `raise IntegrationError` מפורש | bandit B101 |
 | C1 | 🟠 (CI) | **ה-CI של `collect-agent` היה אדום:** `ruff check` נכשל על 28 שגיאות (בעיקר שורות ארוכות בטבלאות העברית של `conversation.py`) | per-file-ignore מנומק ל-E501 ב-`conversation.py`, ותיקון סדר ה-imports | `ruff check .` נקי |
 | T1 | 🟡 | **Trojan Source:** תווי כיווניות מילוליים (U+202E) נכנסו לקוד ולבדיקות דרך כלי העריכה. bandit B613 תפס | הוחלפו ב-escape | `test_no_trojan_source_bidi_chars` כבר תפסה את זה פעם נוספת |
 
@@ -36,7 +38,7 @@
 - B2: 3
 - חלון ה-replay: 2
 
-**נבדק ונמצא תקין:** כל ה-SQL עם פרמטרים. ה-UI מחטא HTML (`esc`), והמייל מוצג ב-`iframe sandbox`. ב-019 ה-XML נבנה עם `escape`. ה-webhook של 019 משווה מפתח בזמן קבוע ומסנן כפילויות לפי hash. קישורי התשלום עוברים allowlist של דומיינים. טוקן ההסרה הוא `token_urlsafe(9)`, כלומר 72 ביט, וזה מספיק. `_mask` לא מציג סוד מלא בתצוגה מקדימה.
+**נבדק ונמצא תקין:** ב-integrations יש הסוואת סודות בתצוגה מקדימה (`SECRET_HEADERS`/`SECRET_KEYS`), SMTP אמיתי חסום בשלב 1, וקיימת הגנת header-injection במייל. כל ה-SQL עם פרמטרים. ה-UI מחטא HTML (`esc`), והמייל מוצג ב-`iframe sandbox`. ב-019 ה-XML נבנה עם `escape`. ה-webhook של 019 משווה מפתח בזמן קבוע ומסנן כפילויות לפי hash. קישורי התשלום עוברים allowlist של דומיינים. טוקן ההסרה הוא `token_urlsafe(9)`, כלומר 72 ביט, וזה מספיק. `_mask` לא מציג סוד מלא בתצוגה מקדימה.
 
 ## 2. הצפנה וסודות: `app/secretbox.py`
 - **AES-256-GCM** (ספריית `cryptography`). הפורמט: `v1.<kid>.<b64url(nonce‖ct+tag)>`. ה-nonce אקראי בכל הצפנה.
@@ -68,9 +70,9 @@
 - סריקות סטטיות שרצות כחלק מ-pytest:
   - SQL רק עם פרמטרים.
   - אין eval/exec/pickle/`shell=True`/`verify=False`.
-  - **רשימה סגורה של hosts יוצאים** (GI, 019, InforU, Twilio). facebook/whatsapp אסורים.
+  - **רשימה סגורה של hosts יוצאים** (GI, 019, InforU, Twilio, Resend, iCount). facebook/whatsapp אסורים. הסריקה כוללת את `app/integrations/`.
   - 10 תבניות סודות.
-- **אומת מקומית:** ruff ✅, bandit ✅ (B406 סומן במפורש כ-false positive: `escape` רק בונה XML), pytest 220/220 ✅, evals ✅, `demo.sh --check` ✅, smoke ✅, demo ✅.
+- **אומת מקומית:** ruff ✅, bandit ✅ (B406 סומן במפורש כ-false positive: `escape` רק בונה XML), pytest 302/302 ✅, evals ✅, `demo.sh --check` ✅, smoke ✅, demo ✅.
 - ⏳ **לא אומת עדיין:** הריצה הראשונה של ה-workflow ב-GitHub. היא תרוץ אחרי ה-push.
 
 ## 5. לפני שליחה אמיתית (שלב 2): רשימה לצוות
@@ -107,6 +109,7 @@ bash scripts/smoke_server.sh
 - `app/assistant.py`: B2
 - `app/templates.py`: חיטוי
 - `app/channels.py`: הערת nosec
+- `app/integrations/email.py` + `payments.py`: S12, S13
 - `pyproject.toml`: cryptography, כלי dev, ruff + S
 - `demo.sh`: טוקן חד-פעמי, בדיקת 401
 - `.github/workflows/collect-agent.yml`: מוזג עם שלב security, smoke ו-evals

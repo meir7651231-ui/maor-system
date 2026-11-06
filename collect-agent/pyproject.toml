@@ -27,7 +27,7 @@ build-backend = "setuptools.build_meta"
 packages = ["app"]
 
 [tool.setuptools.package-data]
-app = ["ui.html"]
+app = ["ui.html", "landing.html"]
 
 [tool.ruff]
 line-length = 120
@@ -40,4 +40,5 @@ ignore = ["UP031", "UP042", "S101"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["S105", "S106", "S311"]  # טוקני-בדיקה מזויפים ו-random דטרמיניסטי לסימולציה
-"app/conversation.py" = ["E501"]  # טבלאות ביטויים/נוסחים בעברית — שבירת שורה פוגעת בקריאות
+# מחרוזות-אימון עבריות ארוכות (315 מקרי eval) — שבירה תפגע בקריאוּת
+"app/conversation.py" = ["E501"]

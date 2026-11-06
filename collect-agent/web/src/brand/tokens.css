@@ -1,0 +1,45 @@
+/* גבי · design tokens — מקור: tokens.json. Tailwind v4 קורא את @theme ומייצר מחלקות (bg-brand, text-ink-900 …). */
+@import "tailwindcss";
+
+@theme {
+  --color-brand: #10B981;
+  --color-brand-600: #059669;
+  --color-brand-700: #047857;
+  --color-brand-50: #ECFDF5;
+  --color-brand-100: #D1FAE5;
+
+  --color-ink-900: #0F172A;
+  --color-ink-800: #1E293B;
+  --color-ink-700: #334155;
+  --color-ink-500: #64748B;
+  --color-ink-400: #94A3B8;
+  --color-ink-200: #E2E8F0;
+  --color-ink-100: #F1F5F9;
+  --color-ink-50: #F8FAFC;
+
+  --color-paid: #10B981;
+  --color-due: #F59E0B;
+  --color-late: #F97316;
+  --color-critical: #EF4444;
+  --color-info: #0EA5E9;
+
+  --color-wa-bg: #EFEAE2;
+  --color-wa-out: #D9FDD3;
+
+  --font-display: Rubik, Heebo, system-ui, sans-serif;
+  --font-sans: Heebo, Rubik, system-ui, sans-serif;
+
+  --radius-xl: 16px;
+  --radius-2xl: 24px;
+
+  --shadow-card: 0 1px 2px rgb(15 23 42 / .06), 0 4px 16px rgb(15 23 42 / .06);
+  --shadow-pop: 0 12px 40px rgb(15 23 42 / .18);
+}
+
+html { font-family: var(--font-sans); color: var(--color-ink-900); background: var(--color-ink-50); }
+body { margin: 0; -webkit-font-smoothing: antialiased; }
+h1, h2, h3, .font-display { font-family: var(--font-display); letter-spacing: -0.01em; }
+/* מספרים/סכומים: ספרות טבלאיות כדי שעמודות יתיישרו */
+.num { font-variant-numeric: tabular-nums; direction: ltr; unicode-bidi: isolate; }
+:focus-visible { outline: 3px solid var(--color-brand); outline-offset: 2px; border-radius: 6px; }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }

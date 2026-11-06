@@ -23,7 +23,7 @@ from app.secretbox import Secret, SecretBox, SecretError, context_for, generate_
 from tests.conftest import OWNER_TOKEN
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-APP_FILES = sorted((ROOT / "app").glob("*.py"))
+APP_FILES = sorted((ROOT / "app").rglob("*.py"))  # כולל app/integrations/
 
 
 # ======================= SecretBox =======================
@@ -150,9 +150,9 @@ def test_every_owner_endpoint_requires_token(raw_api, method, path, hdr):
     assert r.status_code == 401, (method, path, hdr)
 
 
-# ציבוריים במכוון: בריאות, דף ה-UI (סטטי, בלי נתונים), דף הסרה (טוקן אקראי לכל לקוח),
+# ציבוריים במכוון: בריאות, דף ה-UI ודף הנחיתה (סטטיים, בלי נתונים), דף הסרה (טוקן אקראי לכל לקוח),
 # webhook של 019 (מפתח משלו ב-URL). כל תוספת כאן = החלטה מודעת.
-PUBLIC_ROUTES = {"/health", "/", "/ui", "/u/{token}", "/webhooks/sms/019"}
+PUBLIC_ROUTES = {"/health", "/", "/ui", "/landing", "/u/{token}", "/webhooks/sms/019"}
 
 
 def test_route_inventory_is_fully_guarded(svc):
@@ -331,6 +331,8 @@ ALLOWED_HOSTS = {
     "sandbox.d.greeninvoice.co.il", "api.greeninvoice.co.il",          # הנהלת חשבונות
     # ספקי SMS — נוספו במודע 6.11.2026 (adapters שרק *בונים* בקשה; שליחה = DryRunSender)
     "019sms.co.il", "capi.inforu.co.il", "api.twilio.com",
+    "api.resend.com",                    # מייל (adapter, dry-run)
+    "api.icount.co.il",                  # הנהלת חשבונות חלופית (adapter, קריאה)
 }
 
 
@@ -468,3 +470,12 @@ def test_ui_sends_bearer_and_keeps_token_in_session_only(raw_api):
     html = raw_api.get("/ui").text
     assert "Authorization" in html and "sessionStorage" in html
     assert "localStorage" not in html  # טוקן לא נשאר בדפדפן אחרי סגירת הלשונית
+
+
+def test_smtp_login_requires_tls():
+    from app.integrations.base import IntegrationError
+    from app.integrations.email import SmtpEmail as SmtpSender
+    with pytest.raises(IntegrationError):
+        SmtpSender("smtp.example", 25, "user", "pw", "a@b.example", starttls=False)
+    SmtpSender("smtp.example", 587, "user", "pw", "a@b.example")            # STARTTLS
+    SmtpSender("smtp.example", 465, "user", "pw", "a@b.example", starttls=False)  # SMTPS

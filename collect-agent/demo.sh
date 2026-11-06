@@ -13,7 +13,7 @@ python3 -c "import fastapi, httpx, uvicorn" 2>/dev/null || pip install -q -e '.[
 export OWNER_API_TOKEN="${OWNER_API_TOKEN:-$(python3 -c 'import secrets;print(secrets.token_urlsafe(32))')}"
 
 if [[ "${1:-}" != "--check" ]]; then
-  echo "▶ דשבורד: http://127.0.0.1:${PORT}/ui"
+  echo "▶ דשבורד: http://127.0.0.1:${PORT}/ui  ·  דף נחיתה (טיוטה): http://127.0.0.1:${PORT}/landing"
   echo "🔑 קוד גישה לדשבורד (מודבק פעם אחת בחלון שיקפוץ): ${OWNER_API_TOKEN}"
   exec env DEMO=1 python3 -m uvicorn app.main:_lazy_app --factory --host 127.0.0.1 --port "$PORT" --log-level warning
 fi
@@ -42,5 +42,6 @@ out = json.loads(get("/outbox"))["messages"]
 assert all(m["channel"] in ("sms", "email") for m in out)
 assert any("pay.example/gabi-demo" in m["body"] for m in out), "חסר קישור תשלום דמו"
 ui = get("/ui"); assert 'id="debts"' in ui and 'id="kpis"' in ui
+la = get("/landing"); assert "₪119" in la and 'href="/ui"' in la, "דף הנחיתה לא תקין"
 print(f"✅ בדיקת ההדגמה עברה: {t}")
 PY
