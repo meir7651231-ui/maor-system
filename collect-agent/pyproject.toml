@@ -26,7 +26,7 @@ build-backend = "setuptools.build_meta"
 packages = ["app"]
 
 [tool.setuptools.package-data]
-app = ["ui.html"]
+app = ["ui.html", "landing.html"]
 
 [tool.ruff]
 line-length = 120

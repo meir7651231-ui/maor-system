@@ -1,4 +1,5 @@
 """זרימה מקצה לקצה דרך ה-API: סנכרון sandbox מדומה ⇒ תור ⇒ אישור ⇒ dry-run ⇒ תשובות."""
+import re
 from datetime import datetime, timedelta
 
 import pytest
@@ -234,6 +235,16 @@ def test_ui_page_has_slogan_and_no_whatsapp(api):
     html = api.get("/ui").text
     assert "גבי – העוזר לגביית חובות" in html and "SMS" in html
     assert "whatsapp" not in html.lower() and "וואטסאפ" not in html
+
+
+def test_landing_draft_price_demo_link_and_no_whatsapp(api):
+    """דף הנחיתה (טיוטה): מחיר השערה 119 + 14 יום, מוביל להדגמה, noindex, בלי וואטסאפ ובלי משאבים חיצוניים."""
+    html = api.get("/landing").text
+    assert "₪119" in html and "14 יום" in html
+    assert 'href="/ui"' in html and 'name="robots" content="noindex' in html
+    assert "whatsapp" not in html.lower() and "וואטסאפ" not in html
+    assert not re.search(r'(src|href)="https?://', html), "משאב חיצוני בדף הנחיתה"
+    assert "fetch(" not in html and "action=" not in html, "טופס הטיוטה לא אמור לשלוח לשום מקום"
 
 
 def test_019_webhook_inbound_idempotent(api, svc):
