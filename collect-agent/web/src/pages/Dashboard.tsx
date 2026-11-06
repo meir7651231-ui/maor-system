@@ -220,7 +220,7 @@ export function pauseLabel(reason: string): string {
 }
 /** "דורש טיפול": לקוחות מושהים (חידוש בלחיצה כפולה) + הצעות פריסה שממתינות לאישורך. */
 function NeedsYou() {
-  const { customers, invoices, plans, reload, showToast } = useApp();
+  const { customers, invoices, plans, notices, reload, showToast } = useApp();
   const [armed, setArmed] = useState<string | null>(null);
   const seen = new Set<number>();
   const paused = customers.filter(c => c.paused && c.backendId != null && !seen.has(c.backendId) && seen.add(c.backendId));
@@ -232,12 +232,18 @@ function NeedsYou() {
     setArmed(null);
     try { await fn(); await reload(); showToast(done); } catch (e) { showToast(`לא בוצע: ${(e as Error).message}`); }
   };
-  if (!paused.length && !proposed.length) return null;
+  if (!paused.length && !proposed.length && !notices.length) return null;
   return (
     <Card className="p-5 border-amber-200" >
       <h2 className="text-lg font-extrabold mb-1">דורש טיפול שלך</h2>
       <p className="text-xs text-ink-500 mb-3">גבי עצר כאן ומחכה להחלטה שלך. אישור = לחיצה כפולה.</p>
       <ul className="space-y-2.5" data-testid="needs-you">
+        {notices.map(n => (
+          <li key={`n${n.id}`} className={`rounded-lg p-3 text-sm ${n.tone === 'warn' ? 'bg-amber-50' : 'bg-ink-50'}`} data-testid="notice" data-intent={n.intent}>
+            <div className="font-bold"><span aria-hidden>{n.icon}</span> {n.title}</div>
+            <div className="text-ink-700 text-xs mt-0.5">{n.body}</div>
+          </li>
+        ))}
         {paused.map(c => (
           <li key={`c${c.backendId}`} className="rounded-lg bg-amber-50 p-3 text-sm">
             <div className="font-bold"><span aria-hidden>⏸️</span> {c.name}</div>

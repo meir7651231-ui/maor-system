@@ -217,3 +217,17 @@ test('לוגו: מקור יחיד, עין navy תמיד, אריח קרם על ר
     .filter(f => readFileSync(f, 'utf8').includes('M22 13h12'));
   assert.deepEqual(copies, [], 'עותק נוסף של הלוגו: ' + copies.join(', '));
 });
+
+test('הודעות מערכת לבעל העסק: רק direction=system, סוף ניסיון ראשון, intent לא מוכר לא נבלע', async () => {
+  const { systemNotices } = await import('../src/lib/notices.ts');
+  const row = (id: number, direction: string, intent: string | null, body = 'x') =>
+    ({ id, customer_id: null, direction, channel: 'owner', body, intent, created_at: '2026-11-08T10:00:00+02:00' });
+  const n = systemNotices([
+    row(1, 'system', 'max_reminders'), row(2, 'in', 'dispute', 'טקסט חופשי של לקוח'),
+    row(3, 'system', 'trial_ending', 'תקופת הניסיון של גבי מסתיימת בעוד 3 ימים'), row(4, 'system', 'something_new'),
+  ]);
+  assert.deepEqual(n.map(x => x.id), [3, 4, 1]);           // trial_ending ראשון, ואז החדש ביותר
+  assert.ok(!n.some(x => x.body.includes('טקסט חופשי')));    // תשובת לקוח לא דולפת לכאן
+  assert.equal(n[0].title, 'תקופת הניסיון מסתיימת בקרוב');
+  assert.equal(n[1].title, 'הודעה מגבי');
+});

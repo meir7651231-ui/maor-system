@@ -8,6 +8,7 @@ import { api, AuthError, detectBackend, fromDashboard, type Dashboard, type Heal
 import { TOKEN_KEY, readToken } from './lib/auth.ts';
 const sessionStore = () => { try { return sessionStorage; } catch { return undefined; } };
 import type { WeekPoint } from './lib/series.ts';
+import { systemNotices, type Notice } from './lib/notices.ts';
 
 /** locked = שרת חי שדורש קוד גישה (401) — לא נופלים למוק בשקט. */
 export type Mode = 'loading' | 'live' | 'mock' | 'locked';
@@ -29,6 +30,8 @@ interface Ctx {
   outbox: OutMsg[];
   plans: Plan[];
   drafts: Draft[];
+  /** הודעות מערכת לבעל העסק (סוף ניסיון, 3 תזכורות מוצו, חשבונית ישנה, SMS לא נמסר) — חי בלבד. */
+  notices: Notice[];
   customerOf: (id: string) => Customer;
   approveAndSend: (invoiceId: string, step: Step, channels: Channel[]) => Promise<void>;
   markPaid: (invoiceId: string) => void;
@@ -51,15 +54,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [outbox, setOutbox] = useState<OutMsg[]>([]);
   const [plans, setPlans] = useState<Plan[]>([]);
   const [drafts, setDrafts] = useState<Draft[]>([]);
+  const [notices, setNotices] = useState<Notice[]>([]);
   const [toast, setToast] = useState<string | null>(null);
   const showToast = useCallback((t: string) => { setToast(t); window.setTimeout(() => setToast(null), 3600); }, []);
 
   const reload = useCallback(async () => {
     const d = await api.dashboard(); // בקשה אחת קודם: קוד שגוי ⇒ 401 יחיד, לא חמישה
-    const [p, o, pl, dr] = await Promise.all([api.pending(), api.outbox(), api.plans(), api.drafts().catch(() => [] as Draft[])]);
+    const [p, o, pl, dr, ib] = await Promise.all([api.pending(), api.outbox(), api.plans(), api.drafts().catch(() => [] as Draft[]),
+      api.ownerInbox().catch(() => [])]);
     const m = fromDashboard(d, p);
     setCustomers(m.customers); setInvoices(m.invoices); setPendingBy(m.pendingBy); setToday(m.today);
-    setTotals(d.totals); setSeries(d.series ?? null); setOutbox(o.messages); setPlans(pl); setDrafts(dr);
+    setTotals(d.totals); setSeries(d.series ?? null); setOutbox(o.messages); setPlans(pl); setDrafts(dr); setNotices(systemNotices(ib));
     // שם העסק בחי = הקידומת של הודעות השרת ("סטודיו דמו: …") — כך הממשק לא ממציא שם
     const biz = o.messages.find(x => x.channel === 'sms')?.body.split(':')[0];
     if (biz && biz.length < 40) setBusiness(b => ({ ...b, name: biz, ownerName: biz }));
@@ -89,7 +94,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       unlock: async (token: string) => {
         try { sessionStorage.setItem(TOKEN_KEY, token.trim()); } catch { /* פרטי/חסום */ }
         try { await reload(); setMode('live'); return true; } catch { return false; }
-      }, plans, drafts, reload, toast, showToast, customerOf,
+      }, plans, drafts, notices, reload, toast, showToast, customerOf,
       queue: live ? invoices.filter(i => pendingBy.has(i.id)) : needsReminder(invoices, today),
       pendingOf: id => pendingBy.get(id),
       approveAndSend: async (id, step, channels) => {
@@ -110,7 +115,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       },
       markPaid: id => { setInvoices(l => l.map(i => i.id === id ? { ...i, status: 'paid' } : i)); showToast('סומן כשולם 🎉'); },
     };
-  }, [mode, health, today, business, customers, invoices, pendingBy, totals, series, outbox, plans, drafts, reload, toast, showToast]);
+  }, [mode, health, today, business, customers, invoices, pendingBy, totals, series, outbox, plans, drafts, notices, reload, toast, showToast]);
   return <C.Provider value={value}>{children}</C.Provider>;
 }
 export const useApp = () => {

@@ -40,7 +40,8 @@ def demo_settings():
                           "PAYMENT_DOMAINS": "pay.example", "EMAIL_FROM": "gabi@example.com",
                           "EMAIL_REPLY_TO": "owner@example.com",
                           "GI_WEBHOOK_KEY": os.environ.get("GI_WEBHOOK_KEY", ""),   # webhook מה-mock
-                          "TRIAL_START": "2026-11-03",   # שעון ההדגמה 8.11 ⇒ נותרו 9 ימים
+                          # שעון ההדגמה 8.11 ⇒ נותרו 9 ימים. DEMO_TRIAL_START=2026-10-28 ⇒ נותרו 3 (מציג trial_ending)
+                          "TRIAL_START": os.environ.get("DEMO_TRIAL_START", "2026-11-03"),
                           # הקישור הקצר ב-SMS לחיץ בהדגמה (אותו פורט שעליו השרת רץ)
                           "PUBLIC_BASE_URL": f"http://127.0.0.1:{os.environ.get('PORT', '8000')}"})
 

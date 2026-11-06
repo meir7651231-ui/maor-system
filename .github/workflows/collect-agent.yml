@@ -95,6 +95,8 @@ jobs:
         run: mkdir -p "$RUNNER_TEMP/shots" && NODE_PATH="$(npm root -g)" TZ=Asia/Jerusalem node e2e/shots.mjs "$RUNNER_TEMP/shots"
       - name: e2e חי מול שרת DEMO=1 (dry-run)
         run: NODE_PATH="$(npm root -g)" TZ=UTC node e2e/live.mjs "$RUNNER_TEMP/shots"
+      - name: e2e התראות לבעל העסק (סוף ניסיון) מול DEMO=1
+        run: NODE_PATH="$(npm root -g)" TZ=UTC node e2e/notices.mjs
       - name: צילומים (רק בכישלון)
         if: failure()
         uses: actions/upload-artifact@v4

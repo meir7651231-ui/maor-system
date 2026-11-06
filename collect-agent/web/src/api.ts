@@ -4,6 +4,7 @@ import type { Customer, Invoice, InvoiceStatus, Reminder, Step } from './lib/dom
 import { STEP_ORDER } from './lib/message.ts';
 import { readToken } from './lib/auth.ts';
 import type { WeekPoint } from './lib/series.ts';
+import type { OwnerMsg } from './lib/notices.ts';
 
 /** השרת ענה 401 — צריך קוד גישה של בעל העסק. */
 export class AuthError extends Error {}
@@ -78,6 +79,7 @@ export const api = {
   outbox: () => j<{ dry_run: true; messages: OutMsg[] }>('/outbox'),
   resume: (cid: number) => j<unknown>(`/customers/${cid}/resume`, { method: 'POST' }),
   plans: () => j<Plan[]>('/plans'),
+  ownerInbox: () => j<OwnerMsg[]>('/owner/inbox'),
   approvePlan: (pid: number) => j<{ text: string }>(`/plans/${pid}/approve`, { method: 'POST' }),
   drafts: () => j<Draft[]>('/conversation/drafts'),
   approveDraft: (id: number, body?: string) => j<{ status: string }>(`/conversation/drafts/${id}/approve`, { method: 'POST', body: JSON.stringify(body === undefined ? {} : { body }) }),
