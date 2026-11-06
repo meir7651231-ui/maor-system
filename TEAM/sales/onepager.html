@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>אורביט לחוגים</title>
+<!-- W1-S4 · טיוטה מקומית · לא מפורסם. כל יכולת כאן אומתה מול src/ (ראו הערה בסוף הקובץ). -->
+<style>
+  :root { --ink:#16302b; --muted:#56706a; --brand:#17907f; --soft:#eef7f5; --bg:#ffffff; --line:#d7e6e2; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --ink:#e7f2ef; --muted:#9bb5ae; --brand:#3cc3ae; --soft:#15302b; --bg:#0e1d1a; --line:#24423c; } }
+  :root[data-theme="dark"] { --ink:#e7f2ef; --muted:#9bb5ae; --brand:#3cc3ae; --soft:#15302b; --bg:#0e1d1a; --line:#24423c; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.55 system-ui,"Segoe UI",Arial,sans-serif; }
+  .page { max-width:880px; margin:0 auto; padding:28px 16px 40px; }
+  h1 { font-size:30px; margin:0 0 4px; } h2 { font-size:19px; margin:26px 0 10px; }
+  .sub { color:var(--muted); font-size:17px; margin:0 0 18px; }
+  .proof { background:var(--soft); border-inline-start:4px solid var(--brand); padding:12px 14px; border-radius:8px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:12px; }
+  .card { border:1px solid var(--line); border-radius:10px; padding:12px 14px; }
+  .card b { display:block; margin-bottom:2px; }
+  .card span { color:var(--muted); font-size:14.5px; }
+  img { width:100%; height:auto; border:1px solid var(--line); border-radius:10px; display:block; }
+  figure { margin:0; } figcaption { color:var(--muted); font-size:13.5px; margin-top:4px; }
+  .shots { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:14px; }
+  table { width:100%; border-collapse:collapse; font-size:15px; }
+  td,th { border-bottom:1px solid var(--line); padding:7px 4px; text-align:start; vertical-align:top; }
+  .cta { margin-top:22px; padding:14px; border-radius:10px; background:var(--brand); color:#fff; font-weight:600; text-align:center; }
+  .fine { color:var(--muted); font-size:13px; margin-top:18px; }
+  @media print { .page { padding:0; } .cta { color:#000; border:2px solid #000; background:none; } }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>אורביט — המשרד של מרכז החוגים, במסך אחד</h1>
+  <p class="sub">נוכחות, כרטיסיות, גבייה ולוח שנה עברי — בלי אקסל, בלי מחברות, בעברית מלאה.</p>
+
+  <div class="proof">עמותה פעילה כבר עובדת על המערכת ושילמה עליה ₪45,000. <span style="color:var(--muted)">(שם הלקוח נמסר רק באישורו.)</span></div>
+
+  <h2>מה זה עושה ביום-יום</h2>
+  <div class="grid">
+    <div class="card"><b>✅ נוכחות הפוכה</b><span>רושמים רק מי שחסר. כל הקבוצה נוכחת בטאפ אחד.</span></div>
+    <div class="card"><b>🎟 כרטיסיות ניקוב</b><span>מכירת כרטיסייה וניקוב כניסה — והתראה כשהכרטיסייה נגמרת.</span></div>
+    <div class="card"><b>⏳ רשימת המתנה</b><span>חוג מלא? נכנסים לתור, ומשבצים כשמתפנה מקום.</span></div>
+    <div class="card"><b>💰 מרכז גבייה</b><span>כל החייבים מכל החוגים במסך אחד, עם תזכורת בוואטסאפ.</span></div>
+    <div class="card"><b>📢 הודעה לכיתה</b><span>הודעת וואטסאפ לכל ההורים של קבוצה — בלי לחפש טלפונים.</span></div>
+    <div class="card"><b>📊 דשבורד חוגים</b><span>תפוסה, המתנה, חובות וחיסורים לכל חוג. ייצוא ל-CSV.</span></div>
+    <div class="card"><b>📅 לוח שנה עברי-לועזי</b><span>חגים, ימי הולדת עבריים ותאריכים עבריים חוזרים — מחושבים לבד.</span></div>
+    <div class="card"><b>🚪 יומן חדרים</b><span>מי בכל חדר עכשיו, וחסימה אוטומטית בחגים.</span></div>
+    <div class="card"><b>📱 עובד גם בלי אינטרנט</b><span>מתקינים כאפליקציה בטלפון או במחשב. גיבוי לקובץ בלחיצה.</span></div>
+  </div>
+
+  <h2>איך זה נראה</h2>
+  <div class="shots">
+    <figure><img src="shots/courses.png" alt="מסך החוגים: כרטיס לכל חוג עם מורה, מחיר ותפוסה"><figcaption>מסך החוגים — תפוסה, מחיר וכרטיסיות בכל כרטיס (נתוני הדגמה)</figcaption></figure>
+    <figure><img src="shots/calendar.png" alt="לוח שנה חודשי בגריד עברי עם חוגים וימי הולדת"><figcaption>לוח השנה בגריד עברי — חוגים, ימי הולדת ואירועים (נתוני הדגמה)</figcaption></figure>
+  </div>
+
+  <h2>הקמה בשבוע</h2>
+  <table>
+    <tr><th>יום 0</th><td>שולחים לנו את האקסל שלכם (תלמידים, משפחות, חוגים)</td></tr>
+    <tr><th>ימים 1–3</th><td>אנחנו מקימים: שם ולוגו שלכם, ייבוא הנתונים, חוגים, חדרים ומורים</td></tr>
+    <tr><th>יום 4</th><td>הדרכה של 45 דקות לרכזת</td></tr>
+    <tr><th>יום 7</th><td>אתם עובדים לבד. שבועיים תמיכה צמודה בוואטסאפ</td></tr>
+  </table>
+
+  <h2>כמה זה עולה</h2>
+  <p>הקמה חד-פעמית ₪1,500 · מנוי חודשי במחיר השקה. <b>בלי התחייבות</b> — מבטלים בהודעה, והנתונים יוצאים איתכם בקובץ.</p>
+  <!-- ⚠️ מחיר המנוי לא מודפס כאן בכוונה: A/B ₪149/₪290 (D4) — המחיר נכתב רק בהצעה האישית, offer.md. -->
+
+  <div class="cta">רוצים לראות? 20 דקות הדגמה על הנתונים שלכם — [טלפון / וואטסאפ של מאיר]</div>
+
+  <p class="fine">המערכת מתאימה לארגונים עד 1,000 תלמידים/משפחות. כל היכולות בדף קיימות במערכת היום; חלקן מופעלות לפי בחירה בהקמה.</p>
+</div>
+<!--
+  ראיות (נבדק 6.11.2026, ענף team-hq):
+  נוכחות-הפוכה: CLAUDE.md "מודל הפוך — רושמים רק חיסורים" · AttendanceSheet.tsx bulkSetPresent
+  כרטיסיות: features.ts courses.punch · CoursesCockpit (כרטיסיות-נגמרות)
+  המתנה: courses.waitlist · גבייה: courses.collect (CollectionCenter) · הודעה לכיתה: courses.broadcast
+  דשבורד: courses.dashboard (CSV) · יומן חדרים: diary/lib.ts blockReason · courses.roomslive
+  לוח עברי: lib/hebrew.ts + hebdate.ts · PWA/אופליין: public/sw.js + lib/pwa.ts · גיבוי: BackupSection
+  לא נכלל במכוון: אפליקציית-מורה / כרטיס-הורה / חיזוי-נשירה (opt-in, דורשים הדלקה — אפשר להוסיף אחרי בדיקת דמו),
+  קבלות §46 (ממתין לרו"ח), יכולות קפואות D5.
+  צילומים: dist של team-hq, ?org=demo, 1280×800, 0 שגיאות JS.
+-->
+</body>
+</html>
