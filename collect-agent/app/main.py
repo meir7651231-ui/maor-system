@@ -29,6 +29,10 @@ class EmailIn(BaseModel):
     message_id: str = ""
 
 
+class DraftEdit(BaseModel):
+    body: str | None = None
+
+
 class InboundIn(BaseModel):
     channel: Literal["sms", "email"] = "sms"
     sender: str
@@ -218,6 +222,32 @@ def create_app(service: CollectService | None = None) -> FastAPI:
     @app.get("/audit")
     def audit():
         return [dict(r) for r in svc.db.q("SELECT * FROM audit ORDER BY id DESC LIMIT 200")]
+
+    # ---------- מנוע השיחה (app/conversation.py + app/inbox.py) ----------
+    from .inbox import ConversationInbox
+    inbox = ConversationInbox(svc)
+    app.state.inbox = inbox
+
+    @app.post("/conversation/inbound")
+    def conversation_inbound(m: InboundIn):
+        """תשובת חייב ⇒ השפעות מיידיות + טיוטת תשובה לאישור (לא נשלח כלום בלי אישור)."""
+        return guard(inbox.handle, m.channel, m.sender, m.text)
+
+    @app.get("/conversation/drafts")
+    def conversation_drafts(status: str | None = "queue"):
+        return inbox.drafts(status)
+
+    @app.post("/conversation/drafts/{did}/approve")
+    def conversation_approve(did: int, e: DraftEdit | None = None):
+        return guard(lambda: inbox.approve_draft(did, body=e.body if e else None))
+
+    @app.post("/conversation/drafts/{did}/reject")
+    def conversation_reject(did: int):
+        return guard(inbox.reject_draft, did)
+
+    @app.post("/conversation/flush")
+    def conversation_flush():
+        return {"sent": inbox.flush()}
 
     # הממשק המעוצב (web/, React) — מוגש מ-/app/ אם נבנה (`npm run build`). אותו origin ⇒ הממשק
     # מזהה את השרת ועובד "חי" מול ה-API (dry-run). בלי build — /ui הרזה ממשיך לעבוד כרגיל.
