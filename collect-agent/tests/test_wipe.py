@@ -74,3 +74,25 @@ def test_wipe_leaves_no_employee_identity_in_append_only_logs(clock, gi_client):
     dump = "\n".join(svc.db.conn.iterdump())
     assert "yael.worker" not in dump and "studio.example" not in dump
     assert svc.db.one("SELECT COUNT(*) c FROM audit WHERE actor LIKE 'user:%'")["c"] >= 1   # ראיה נשמרת
+
+
+def test_cli_backups_flag_deletes_only_gabi_backups(tmp_path):
+    p = tmp_path / "live.db"
+    _seed(p)
+    d = tmp_path / "bk"
+    d.mkdir()
+    (d / "gabi-20260101T000000Z.gbk").write_bytes(b"x")
+    (d / "gabi-20260102T000000Z.gbk").write_bytes(b"y")
+    (d / "notes.txt").write_text("keep")
+    assert main(["wipe", str(p), "--confirm", "WIPE", "--backups", str(d)]) == 0
+    assert sorted(f.name for f in d.iterdir()) == ["notes.txt"]
+
+
+def test_cli_without_backups_flag_leaves_backups(tmp_path):
+    p = tmp_path / "live.db"
+    _seed(p)
+    f = tmp_path / "gabi-20260101T000000Z.gbk"
+    f.write_bytes(b"x")
+    assert main(["wipe", str(p), "--confirm", "WIPE"]) == 0
+    assert f.exists()
+    assert main(["wipe", str(p), "--confirm", "WIPE", "--backups", str(tmp_path / "nope")]) == 1

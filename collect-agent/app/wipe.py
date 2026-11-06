@@ -5,10 +5,10 @@
   * ``suppressions`` — גיבוב בלבד; מי שביקש הסרה לא יקבל הודעה אם המערכת תעלה שוב
   * ``audit`` ו-``access_log`` — הוספה-בלבד (טריגרים), תוכן ללא PII; נרשמת שורת ``business_wipe``
 
-אחרי המחיקה: VACUUM (דורס דפים פנויים) ו-wal_checkpoint. גיבויים מוצפנים שכבר נוצרו
-**לא** נמחקים כאן — מחיקתם חלק מהנוהל (``legal/BETA-GATE.md``).
+אחרי המחיקה: VACUUM (דורס דפים פנויים) ו-wal_checkpoint. גיבויים מוצפנים נמחקים
+רק אם צוינה תיקייה: ``--backups <dir>`` (מוחק ``gabi-*.gbk`` בלבד; בלעדיה — מחיקתם חלק מהנוהל ב-``legal/BETA-GATE.md``).
 
-שימוש:  python -m app.wipe <db> --confirm WIPE
+שימוש:  python -m app.wipe <db> --confirm WIPE [--backups <dir>]
 """
 from __future__ import annotations
 
@@ -44,11 +44,29 @@ def wipe_all(conn: sqlite3.Connection, actor: str = "system") -> dict[str, int]:
     return counts
 
 
+def delete_backups(directory: str | Path) -> int:
+    """מוחק קובצי גיבוי של גבי (``gabi-*.gbk``) בלבד מהתיקייה. מחזיר כמה נמחקו."""
+    from app.backup import PREFIX, SUFFIX
+    n = 0
+    for f in Path(directory).glob(f"{PREFIX}*{SUFFIX}"):
+        if f.is_file() and not f.is_symlink():
+            f.unlink()
+            n += 1
+    return n
+
+
 def main(argv: list[str]) -> int:
+    backups = None
+    if len(argv) == 6 and argv[4] == "--backups":
+        backups = Path(argv[5])
+        argv = argv[:4]
     if len(argv) != 4 or argv[2] != "--confirm" or argv[3] != CONFIRM:
-        print(f"שימוש: python -m app.wipe <db> --confirm {CONFIRM}   (מוחק את כל נתוני העסק!)",
+        print(f"שימוש: python -m app.wipe <db> --confirm {CONFIRM} [--backups <dir>]   (מוחק את כל נתוני העסק!)",
               file=sys.stderr)
         return 2
+    if backups is not None and not backups.is_dir():
+        print(f"תיקיית הגיבויים לא קיימת: {backups}", file=sys.stderr)
+        return 1
     p = Path(argv[1])
     if not p.is_file():
         print(f"ה-DB לא קיים: {p}", file=sys.stderr)
@@ -59,6 +77,8 @@ def main(argv: list[str]) -> int:
     finally:
         conn.close()
     print("נמחק:", ", ".join(f"{k}={v}" for k, v in counts.items()))
+    if backups is not None:
+        print(f"גיבויים שנמחקו: {delete_backups(backups)}")
     return 0
 
 

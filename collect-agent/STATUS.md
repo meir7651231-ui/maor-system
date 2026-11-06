@@ -1,10 +1,16 @@
-# STATUS — גבי, תזכורות תשלום · שלב 1 · עודכן 6.11.2026 (סבב אינטגרציה, הפעלה 18)
+# STATUS — גבי, תזכורות תשלום · שלב 1 · עודכן 6.11.2026 (סבב אינטגרציה, הפעלה 19)
 
 ענף אינטגרציה: `collect-agent` (לא מוזג ל-main, ולא ימוזג בלי אישור מפורש של מאיר). תיקייה: `collect-agent/`.
 
 ## 📌 הכרעות מאיר — מחייבות כל תפקיד (6.11.2026)
 - **מחיר יחיד:** ₪119 לחודש **או** ₪1,190 לשנה · 14 ימי ניסיון. **אין ₪79**, אין A/B, אין מסלולים או מחירונים אחרים. מקור יחיד: `docs/PRICING.md` · בקוד: `Settings.price_ils_month=119`, `price_ils_year=1190`, `trial_days=14` · בדף הנחיתה: `PRICE` ב-`web/src/pages/Landing.tsx`. (ניסוח המע״מ «כולל מע״מ ככל שחל» — עדיין לאישור רו״ח/עו״ד, `docs/PRICING.md`.)
 - **אין הרשמה לשום חשבון sandbox** (חשבונית ירוקה, 019, InforU, Twilio, ספק מייל) **בלי אישור מפורש של מאיר.** עד אז כל הפיתוח והבדיקות מול `app/gi_mock.py` ו-DryRunSender בלבד; פריטי «לאמת» נשארים פתוחים.
+
+## 🧭 הפעלת מנהל · 6.11.2026 (הפעלה 19)
+- **מיזוג:** אין ענפי `claude/*` עם שינוי חדש ב-`collect-agent/` (`stoic-mccarthy-23f03p` נשאר נדחה). CI `collect-agent.yml` קיים. בסיס: pytest 762 ירוק, ruff נקי.
+- **נבחרה ובוצעה (בקאנד/משפטי, שער 8):** `python -m app.wipe <db> --confirm WIPE --backups <dir>` מוחק גם את קובצי `gabi-*.gbk` בתיקייה (רק הם; בלי הדגל — כמו קודם). סוגר «wipe שימחק גם גיבויים». בדיקות: `test_cli_backups_flag_deletes_only_gabi_backups`, `test_cli_without_backups_flag_leaves_backups`.
+- **חסמים:** SQLCipher מחכה לאישור ADR; שערים 1,2,3,9 = מאיר/עו״ד; אין sandbox ספקים.
+- **⏭ הבא:** *בקאנד* — SQLCipher אחרי אישור ADR; חיווט `--backups` לנוהל `legal/BETA-GATE.md`. *מאיר* — אישור ADR, שליחת LAWYER-QUESTIONS, DPA/RFQ, בחירת ספק אחסון.
 
 ## 🧭 הפעלת מנהל · 6.11.2026 (הפעלה 18)
 - **מיזוג:** אין ענפי `claude/*` עם שינוי חדש ב-`collect-agent/` (`stoic-mccarthy-23f03p` נשאר נדחה). CI `collect-agent.yml` קיים. בסיס: pytest 761 ירוק, ruff נקי.
