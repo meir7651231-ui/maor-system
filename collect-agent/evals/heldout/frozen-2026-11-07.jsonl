@@ -1,0 +1,36 @@
+{"id": "g001", "text": "שלום רב,\nאבקש להוריד אותי מרשימת התפוצה.\nתודה", "ctx": {"channel": "email"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "g002", "text": "נא לא לשלוח אליי יותר מיילים בנושא", "ctx": {"channel": "email"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "g003", "text": "הסירו את המייל שלי בבקשה", "ctx": {"channel": "email"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "g004", "text": "קיבלתי את המייל הזה בטעות, אני לא מכיר אתכם", "ctx": {"channel": "email"}, "expect": {"intent": "wrong_person", "stop": "permanent", "no_pii": true}, "critical": true}
+{"id": "g005", "text": "כתובת המייל הזאת לא שייכת לדנה", "ctx": {"channel": "email"}, "expect": {"intent": "wrong_person", "stop": "permanent", "no_pii": true}, "critical": true}
+{"id": "g006", "text": "שלום,\nהחשבונית לא תואמת את ההצעה שקיבלתי. אבקש לבדוק.\nבברכה", "ctx": {"channel": "email"}, "expect": {"intent": "dispute", "escalate": "urgent"}, "critical": true}
+{"id": "g007", "text": "העבודה עדיין לא הסתיימה ולכן לא אשלם בשלב זה", "ctx": {"channel": "email"}, "expect": {"intent": "dispute", "escalate": "urgent"}, "critical": true}
+{"id": "g008", "text": "החשבונית הזו לא קשורה אליי, לא הזמנתי ממכם כלום", "ctx": {"channel": "email"}, "expect": {"intent": "dispute", "escalate": "urgent"}, "critical": true}
+{"id": "g009", "text": "הנושא הועבר לטיפול עורכת הדין שלנו", "ctx": {"channel": "email"}, "expect": {"intent": "legal", "escalate": "urgent", "reply": false}, "critical": true}
+{"id": "g010", "text": "שלום, התשלום בוצע בהעברה בנקאית ב-2.11. מצרף אסמכתא.", "ctx": {"channel": "email"}, "expect": {"intent": "paid_claim", "stop": "pause"}, "critical": true}
+{"id": "g011", "text": "שילמנו כבר את החשבונית הזו בחודש שעבר", "ctx": {"channel": "email"}, "expect": {"intent": "paid_claim", "stop": "pause"}, "critical": true}
+{"id": "g012", "text": "האם התשלום שלי התקבל אצלכם?", "ctx": {"channel": "email"}, "expect": {"intent": "unknown", "not": ["paid_claim"]}, "critical": true}
+{"id": "g013", "text": "רציתי לבדוק אם כבר שילמתי את זה או לא", "ctx": {"channel": "email"}, "expect": {"intent": "unknown", "not": ["paid_claim"]}, "critical": true}
+{"id": "g014", "text": "עוד לא שילמנו, נטפל בזה השבוע", "ctx": {"channel": "email"}, "expect": {"intent": "promise", "not": ["paid_claim"]}, "critical": true}
+{"id": "g015", "text": "אנחנו בתקופה כלכלית קשה ונשמח לגמישות", "ctx": {"channel": "email"}, "expect": {"intent": "cant_pay", "stop": "pause"}, "critical": false}
+{"id": "g016", "text": "אפשר לפרוס לשלושה תשלומים?", "ctx": {"channel": "email"}, "expect": {"intent": "plan_request", "plan_n": 3}, "critical": false}
+{"id": "g017", "text": "נשמח לשלם ב-2 תשלומים", "ctx": {"channel": "email"}, "expect": {"intent": "plan_request", "plan_n": 2}, "critical": false}
+{"id": "g018", "text": "מאשרים את הפריסה, תודה", "ctx": {"state": "awaiting_plan_reply", "offered_n": 3, "channel": "email"}, "expect": {"intent": "plan_accept", "state": "plan_pending_owner"}, "critical": false}
+{"id": "g019", "text": "נעביר את התשלום עד יום חמישי", "ctx": {"channel": "email"}, "expect": {"intent": "promise", "promise_in_days": 4, "state": "promised"}, "critical": false}
+{"id": "g020", "text": "התשלום יועבר בתחילת החודש הבא", "ctx": {"channel": "email"}, "expect": {"intent": "promise", "escalate": "normal"}, "critical": false}
+{"id": "g021", "text": "אפשר לקבל שוב את החשבונית בקובץ PDF?", "ctx": {"channel": "email"}, "expect": {"intent": "copy_request"}, "critical": false}
+{"id": "g022", "text": "איך אפשר לשלם? יש העברה בנקאית?", "ctx": {"channel": "email"}, "expect": {"intent": "how_to_pay"}, "critical": false}
+{"id": "g023", "text": "מי אתם ולמה אתם פונים אליי?", "ctx": {"channel": "email"}, "expect": {"intent": "who_is_this", "no_pii": true}, "critical": false}
+{"id": "g024", "text": "אשמח לשיחה טלפונית עם בעל העסק", "ctx": {"channel": "email"}, "expect": {"intent": "callback"}, "critical": false}
+{"id": "g025", "text": "תודה רבה על התזכורת", "ctx": {"channel": "email"}, "expect": {"intent": "thanks", "reply": false}, "critical": false}
+{"id": "g026", "text": "בעלי נפטר לפני שבועיים, החשבונית על שמו", "ctx": {"channel": "email"}, "expect": {"intent": "cant_pay", "tags": ["deceased"], "escalate": "urgent"}, "critical": true}
+{"id": "g027", "text": "אני בן 16, אבא שלי לא בבית", "ctx": {"channel": "email"}, "expect": {"intent": "minor", "escalate": "urgent", "reply": false}, "critical": true}
+{"id": "g028", "text": "Добрый день, я не понимаю этот счёт", "ctx": {"channel": "email"}, "expect": {"intent": "unknown", "tags": ["foreign_language"], "stop": "pause", "reply": false}, "critical": true}
+{"id": "g029", "text": "مرحبا، هل يمكن الدفع بالتقسيط؟", "ctx": {"channel": "email"}, "expect": {"intent": "unknown", "tags": ["foreign_language"], "stop": "pause", "reply": false}, "critical": true}
+{"id": "g030", "text": "אני לא מסוגל יותר, הכל קורס עליי", "ctx": {"channel": "email"}, "expect": {"intent": "distress", "escalate": "urgent"}, "critical": true}
+{"id": "g031", "text": "שילמתי", "ctx": {"channel": "sms"}, "expect": {"intent": "paid_claim", "stop": "pause"}, "critical": true}
+{"id": "g032", "text": "רוצה לפרוס ל-4", "ctx": {"channel": "sms"}, "expect": {"intent": "plan_request", "plan_n": 4}, "critical": false}
+{"id": "g033", "text": "השירות היה מצוין, נשלם מחר בבוקר", "ctx": {"channel": "email"}, "expect": {"intent": "promise", "promise_in_days": 1, "not": ["opt_out", "legal", "dispute", "distress", "wrong_person", "minor"]}, "critical": true}
+{"id": "g034", "text": "עוד דבר: אפשר לשלם גם בביט?", "ctx": {"channel": "email"}, "expect": {"intent": "how_to_pay", "not": ["opt_out", "legal", "dispute", "distress", "wrong_person", "minor"]}, "critical": true}
+{"id": "g035", "text": "אין שום בעיה, אסדר היום", "ctx": {"channel": "email"}, "expect": {"intent": "promise", "promise_in_days": 0, "not": ["opt_out", "legal", "dispute", "distress", "wrong_person", "minor"]}, "critical": true}
+{"id": "g036", "text": "שלום, רציתי לשאול על שעות הפעילות", "ctx": {"channel": "email"}, "expect": {"intent": "unknown", "not": ["opt_out", "legal", "dispute", "distress", "wrong_person", "minor"]}, "critical": true}
