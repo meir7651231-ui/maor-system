@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="420" viewBox="0 0 1280 420" role="img" aria-label="מספרים: 3,173 בדיקות, 434 קובצי בדיקה, 328 דגלים, 46 מונחים, 13 חבילות-תחום, 4 ערכות נושא, 23 סוגי ישויות, 3 שכבות שמירה">
+<rect width="1280" height="420" rx="24" fill="#faf7f2"/>
+<text x="1220" y="62" text-anchor="start" direction="rtl" unicode-bidi="embed" font-size="24" font-weight="700" fill="#1d5f8f" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">המספרים — נמדדו מהקוד ב-6.11.2026</text>
+<rect x="966" y="92" width="275" height="124" rx="16" fill="#ffffff" stroke="#d9cfbf" stroke-width="2"/>
+<text x="1103.5" y="156" text-anchor="middle" font-size="46" font-weight="800" fill="#a05008" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">3,173</text>
+<text x="1103.5" y="192" text-anchor="middle" direction="rtl" unicode-bidi="embed" font-size="17" font-weight="500" fill="#5c5347" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">בדיקות יחידה</text>
+<rect x="664" y="92" width="275" height="124" rx="16" fill="#ffffff" stroke="#d9cfbf" stroke-width="2"/>
+<text x="801.5" y="156" text-anchor="middle" font-size="46" font-weight="800" fill="#a05008" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">434</text>
+<text x="801.5" y="192" text-anchor="middle" direction="rtl" unicode-bidi="embed" font-size="17" font-weight="500" fill="#5c5347" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">קובצי בדיקה</text>
+<rect x="362" y="92" width="275" height="124" rx="16" fill="#ffffff" stroke="#d9cfbf" stroke-width="2"/>
+<text x="499.5" y="156" text-anchor="middle" font-size="46" font-weight="800" fill="#211d17" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">328</text>
+<text x="499.5" y="192" text-anchor="middle" direction="rtl" unicode-bidi="embed" font-size="17" font-weight="500" fill="#5c5347" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">דגלי-פיצ׳ר</text>
+<rect x="60" y="92" width="275" height="124" rx="16" fill="#ffffff" stroke="#d9cfbf" stroke-width="2"/>
+<text x="197.5" y="156" text-anchor="middle" font-size="46" font-weight="800" fill="#211d17" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">46</text>
+<text x="197.5" y="192" text-anchor="middle" direction="rtl" unicode-bidi="embed" font-size="17" font-weight="500" fill="#5c5347" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">מונחים מתחלפים</text>
+<rect x="966" y="243" width="275" height="124" rx="16" fill="#ffffff" stroke="#d9cfbf" stroke-width="2"/>
+<text x="1103.5" y="307" text-anchor="middle" font-size="46" font-weight="800" fill="#211d17" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">13</text>
+<text x="1103.5" y="343" text-anchor="middle" direction="rtl" unicode-bidi="embed" font-size="17" font-weight="500" fill="#5c5347" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">חבילות-תחום</text>
+<rect x="664" y="243" width="275" height="124" rx="16" fill="#ffffff" stroke="#d9cfbf" stroke-width="2"/>
+<text x="801.5" y="307" text-anchor="middle" font-size="46" font-weight="800" fill="#211d17" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">4</text>
+<text x="801.5" y="343" text-anchor="middle" direction="rtl" unicode-bidi="embed" font-size="17" font-weight="500" fill="#5c5347" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">ערכות נושא</text>
+<rect x="362" y="243" width="275" height="124" rx="16" fill="#ffffff" stroke="#d9cfbf" stroke-width="2"/>
+<text x="499.5" y="307" text-anchor="middle" font-size="46" font-weight="800" fill="#211d17" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">23</text>
+<text x="499.5" y="343" text-anchor="middle" direction="rtl" unicode-bidi="embed" font-size="17" font-weight="500" fill="#5c5347" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">סוגי ישויות במסד</text>
+<rect x="60" y="243" width="275" height="124" rx="16" fill="#ffffff" stroke="#d9cfbf" stroke-width="2"/>
+<text x="197.5" y="307" text-anchor="middle" font-size="46" font-weight="800" fill="#211d17" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">3</text>
+<text x="197.5" y="343" text-anchor="middle" direction="rtl" unicode-bidi="embed" font-size="17" font-weight="500" fill="#5c5347" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">שכבות שמירה מקומיות</text>
+<text x="640.0" y="396" text-anchor="middle" direction="rtl" unicode-bidi="embed" font-size="15" font-weight="400" fill="#7a6f60" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">מקור: npm run verify · FEATURES / TERM_DEFS / VERTICAL_PACKS / ENTITY_COLLECTIONS</text>
+</svg>

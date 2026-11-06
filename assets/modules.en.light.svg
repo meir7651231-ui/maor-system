@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="500" viewBox="0 0 1280 500" role="img" aria-label="Orbit module grid">
+<rect width="1280" height="500" rx="24" fill="#faf7f2"/>
+<text x="60" y="62" text-anchor="start" font-size="24" font-weight="700" fill="#1d5f8f" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">What's inside — modules you switch on and off</text>
+<rect x="60" y="96" width="178" height="150" rx="16" fill="#ffffff" stroke="#1f78b4" stroke-opacity=".55" stroke-width="2"/>
+<text x="149.0" y="164" text-anchor="middle" font-size="40" font-weight="400" fill="#211d17" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">👪</text>
+<text x="149.0" y="214" text-anchor="middle" font-size="17" font-weight="600" fill="#211d17" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">Contacts (CRM)</text>
+<rect x="264" y="96" width="178" height="150" rx="16" fill="#ffffff" stroke="#1f78b4" stroke-opacity=".55" stroke-width="2"/>
+<text x="353.0" y="164" text-anchor="middle" font-size="40" font-weight="400" fill="#211d17" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">🎓</text>
+<text x="353.0" y="214" text-anchor="middle" font-size="17" font-weight="600" fill="#211d17" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">Classes &amp; enrollment</text>
+<rect x="468" y="96" width="178" height="150" rx="16" fill="#ffffff" stroke="#1f78b4" stroke-opacity=".55" stroke-width="2"/>
+<text x="557.0" y="164" text-anchor="middle" font-size="40" font-weight="400" fill="#211d17" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">✅</text>
+<text x="557.0" y="214" text-anchor="middle" font-size="17" font-weight="600" fill="#211d17" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">Attendance</text>
+<rect x="672" y="96" width="178" height="150" rx="16" fill="#ffffff" stroke="#a05008" stroke-opacity=".55" stroke-width="2"/>
+<text x="761.0" y="164" text-anchor="middle" font-size="40" font-weight="400" fill="#211d17" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">📅</text>
+<text x="761.0" y="214" text-anchor="middle" font-size="17" font-weight="600" fill="#211d17" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">Hebrew calendar</text>
+<rect x="876" y="96" width="178" height="150" rx="16" fill="#ffffff" stroke="#1f78b4" stroke-opacity=".55" stroke-width="2"/>
+<text x="965.0" y="164" text-anchor="middle" font-size="40" font-weight="400" fill="#211d17" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">🚪</text>
+<text x="965.0" y="214" text-anchor="middle" font-size="17" font-weight="600" fill="#211d17" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">Room diary</text>
+<rect x="1080" y="96" width="178" height="150" rx="16" fill="#ffffff" stroke="#a05008" stroke-opacity=".55" stroke-width="2"/>
+<text x="1169.0" y="164" text-anchor="middle" font-size="40" font-weight="400" fill="#211d17" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">💛</text>
+<text x="1169.0" y="214" text-anchor="middle" font-size="17" font-weight="600" fill="#211d17" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">Donors &amp; receipts</text>
+<rect x="60" y="272" width="178" height="150" rx="16" fill="#ffffff" stroke="#1f78b4" stroke-opacity=".55" stroke-width="2"/>
+<text x="149.0" y="340" text-anchor="middle" font-size="40" font-weight="400" fill="#211d17" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">📊</text>
+<text x="149.0" y="390" text-anchor="middle" font-size="17" font-weight="600" fill="#211d17" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">Reports &amp; CSV</text>
+<rect x="264" y="272" width="178" height="150" rx="16" fill="#ffffff" stroke="#1f78b4" stroke-opacity=".55" stroke-width="2"/>
+<text x="353.0" y="340" text-anchor="middle" font-size="40" font-weight="400" fill="#211d17" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">🛍</text>
+<text x="353.0" y="390" text-anchor="middle" font-size="17" font-weight="600" fill="#211d17" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">Service shop</text>
+<rect x="468" y="272" width="178" height="150" rx="16" fill="#ffffff" stroke="#1f78b4" stroke-opacity=".55" stroke-width="2"/>
+<text x="557.0" y="340" text-anchor="middle" font-size="40" font-weight="400" fill="#211d17" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">🚚</text>
+<text x="557.0" y="390" text-anchor="middle" font-size="17" font-weight="600" fill="#211d17" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">Distribution</text>
+<rect x="672" y="272" width="178" height="150" rx="16" fill="#ffffff" stroke="#1f78b4" stroke-opacity=".55" stroke-width="2"/>
+<text x="761.0" y="340" text-anchor="middle" font-size="40" font-weight="400" fill="#211d17" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">🪙</text>
+<text x="761.0" y="390" text-anchor="middle" font-size="17" font-weight="600" fill="#211d17" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">Charity boxes</text>
+<rect x="876" y="272" width="178" height="150" rx="16" fill="#ffffff" stroke="#1f78b4" stroke-opacity=".55" stroke-width="2"/>
+<text x="965.0" y="340" text-anchor="middle" font-size="40" font-weight="400" fill="#211d17" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">🧩</text>
+<text x="965.0" y="390" text-anchor="middle" font-size="17" font-weight="600" fill="#211d17" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">Builder wizard</text>
+<rect x="1080" y="272" width="178" height="150" rx="16" fill="#ffffff" stroke="#1f78b4" stroke-opacity=".55" stroke-width="2"/>
+<text x="1169.0" y="340" text-anchor="middle" font-size="40" font-weight="400" fill="#211d17" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">☎</text>
+<text x="1169.0" y="390" text-anchor="middle" font-size="17" font-weight="600" fill="#211d17" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">Telephony</text>
+<text x="640.0" y="472" text-anchor="middle" font-size="16" font-weight="400" fill="#7a6f60" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">Every module sits behind a flag — a missing key means on, only false turns it off</text>
+</svg>

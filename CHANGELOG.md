@@ -1,34 +1,63 @@
-# יומן שינויים
+# Changelog · יומן שינויים
 
-הפרויקט לא מפרסם גרסאות ממוספרות. הוא נפרס ברציפות מ-`main` (`.github/workflows/deploy.yml`).
-לכן היומן בנוי מ**אבני-דרך מתוארכות**. התאריכים לקוחים מ-`git log` של `main`, ובסוגריים מופיעים מספרי ה-PR או שמות דוחות-הסגירה מתיקיית [`knowledge/`](knowledge/).
+The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+The project deploys continuously from `main` and **has no version tags yet**. The version numbers below are a **SemVer proposal** for the history (no tag was created). Entries are dated from `git log` on `main`; references are PR numbers or close-out reports in [`knowledge/`](knowledge/).
 
-**בקצרה:** הקומיט הראשון נעשה ב-2026-07-22. עד 2026-11-06 יש 1,164 קומיטים על `main`: ‏265 ביולי, ‏790 באוגוסט, ‏32 בספטמבר, ‏62 באוקטובר ו-15 בנובמבר.
+הפורמט לפי Keep a Changelog. אין עדיין תגיות-גרסה. המספרים הם **הצעת SemVer** בלבד, והתאריכים מ-`git log`.
 
-| תאריך | אבן-דרך |
-|---|---|
-| **2026-11-06** | גיבוי-הלילה בשרת כולל גם ארגונים שיושבים בנתיבי-השורש, ומשאבי הפונקציה הותאמו לקנה-מידה (#519, `CLOSED-G1-ROOT-BACKUP`) |
-| 2026-11-03 | אתר ציבורי חי לארגון, וקישור-תשלום עם פרטים מלאים (`CLOSED-SITE-LIVE`, `CLOSED-PAYLINK-FULL-DETAILS`). נוספה אפליקציית PWA לחנות האפליקציות של אורביט |
-| 2026-10-29 | עורך אתר ציבורי ותרגום לספרדית ולצרפתית (`CLOSED-SITE-EDITOR`, `CLOSED-SITE-ES-FR-SOLA`) |
-| 2026-10-26 | אתר ציבורי: דומיין, ליטוש ונתונים אמיתיים (`CLOSED-PUBLIC-SITE-*`) |
-| 2026-10-22 | קופות צדקה: כפתורים ותזכורות. התראות על הרשמה (`CLOSED-TZEDAKA-*`, `CLOSED-SIGNUP-NOTIFY`) |
-| 2026-10-13 | טלפונים מרובים לכל משפחה, זיהוי כפילויות לפי כל הטלפונים, מסלולי-תזכורת עבריים ולועזיים (`CLOSED-OWNER-LIST-2026-10-13`) |
-| 2026-10-12 | ביצועי מסך התורמים בקנה-מידה גדול, בלי שינוי בפלט (`CLOSED-PERF-SUPPORTERS-A`) |
-| 2026-10-05 | סידור כרטיס-התורם. כתיבת קונפיג לענן כ-diff שדה-שדה במקום תצלום מלא (`CLOSED-CARDLAYOUT`, `CLOSED-SEGULA-CLOUDCFG-MERGE`) |
-| 2026-09-14 | הסרה סלקטיבית של נתוני-דמו (#492, `CLOSED-DEMO-PURGE`) |
-| 2026-09-10 | המסננים נשמרים במעבר בין מסכים (#490, `CLOSED-FILTER-MEMORY`) |
-| 2026-09-03 | ביקורת-עומק סבב ב׳: כ-45 תיקונים בסנכרון, בהרשאות, בביצועים ובנגישות (`CLOSED-SWARM-B`) |
-| 2026-09-02 | ביקורת-עומק לקוד בשש עדשות: סנכרון, כסף, אבטחה ועמידות (`CLOSED-DEEP-AUDIT`) |
-| 2026-09-01 | ביקורת קצה-לקצה של המסכים (`CLOSED-E2E-AUDIT`) |
-| 2026-08-24 | **לולאת-אמון:** אטימת מידע אישי, ‏PBKDF2 לנעילת PIN, מצבות-מחיקה בסנכרון, בריאות תורי SMS ומייל, CI אבטחה ל-Rules, והצפנת-ענן לכל מנהל-ארגון (#402–#420, `CLOSED-TRUST`) |
-| 2026-08-21 | חייגן ושעות-מנוחה, הו״ק המוני, היקום התלת-ממדי, גלריית תמונות, גאנט ומלאי-מחסן (#318–#330, `CLOSED-ROADMAP-BATCH`). שער-הצטרפות וצ'אט-צוות (`CLOSED-PORTAL-CHAT`) |
-| 2026-08-20 | חלון-העבודה לתורמים (#237–#245), שכבת-המודיעין (#251–#255), שמונה שיפורי-תפעול לחוגים (#281–#288) וגל ה׳ לחוגים (#294–#301) |
-| 2026-08-16 | ורטיקל הסטודיו (דיגיטל ובנייה), ייבוא vCard, זהות חזותית לכל תחום ושילוב טלפוניה (#158–#164, `CLOSED-STUDIO`) |
-| 2026-08-06 | **PWA:** האתר ניתן להתקנה כאפליקציה. פישוט הממשק בשבעה סבבים (#86–#100, `CLOSED-UX-SIMPLE`) |
-| 2026-08-05 | הוראות-קבע, תבניות-הודעה, קוד-אימות על קבלה ומיזוג כפולים (#81–#84). מקבץ-ההצטרפות (#68–#76, `CLOSED-ONBOARD`). צרור-הלילה: דוח שנתי, לוג-פעולות ו-Functions (`CLOSED-NIGHT`) |
-| 2026-08-03 | סגירת לולאת-הבאגים, והרחבת המונחים לכל התחומים (`CLOSED-BUGLOOP`, `CLOSED-VERTICALS-TERMS`) |
-| 2026-08-01 | מודול חלוקה: מתנדבים, ימי-חלוקה ולוח-מסירות (`CLOSED-SHOP7`). דמו ציבורי `?org=demo` |
-| 2026-07-31 | מסך הרשמה ואשף-הרשמה, וכניסת-ניהול (`CLOSED-SIGNUP`, `CLOSED-SIGNUP2`, `CLOSED-ADMINHUB`) |
-| 2026-07-30 | **פלטפורמת SaaS:** הרשמה ⇒ אישור ⇒ אתר לארגון, ו-`firestore.rules` נכנס לריפו (`CLOSED-PLATFORM`, `CLOSED-CLOUD2`). מודולים מבודדים: קופות צדקה וחנות (`CLOSED-TZEDAKA`, `CLOSED-SHOP` … `CLOSED-SHOP6`). סגירת פערי-היכולת מול הגרסה הקודמת (`CLOSED-P1` … `CLOSED-P3`) |
-| 2026-07-29 | שלב P0 של המעבר נסגר (`CLOSED-P0`) |
-| **2026-07-22** | הקומיט הראשון: מאגר עצמאי עם המערכת המלאה (React 19 + TypeScript + Vite) ופריסה אוטומטית |
+> **SemVer proposal:** tag the current production `main` (`0f33b41`, 2026-11-06) as **`v1.0.0`**. From then on: PATCH for fixes, MINOR for additive features behind flags, MAJOR only for a breaking data or config change (for example a `DB_VERSION` bump that needs a one-way migration).
+
+## [Unreleased]
+### Added
+- Repository presentation: bilingual README with light/dark images, a demo GIF, real screenshots, `docs/ARCHITECTURE`, `docs/GUIDE.he.md`, `CONTRIBUTING.md`, `ROADMAP.md`, `SECURITY.md`, issue and PR templates. No product code changed.
+
+## [0.7.0] — 2026-11-06 (proposed)
+### Added
+- Live public site per organization, payment links with full details (`CLOSED-SITE-LIVE`, `CLOSED-PAYLINK-FULL-DETAILS`).
+- Public-site editor, Spanish and French translations, domain and polish (`CLOSED-SITE-EDITOR`, `CLOSED-SITE-ES-FR-SOLA`, `CLOSED-PUBLIC-SITE-*`).
+- Charity boxes: buttons and reminders; sign-up notifications (`CLOSED-TZEDAKA-*`, `CLOSED-SIGNUP-NOTIFY`).
+### Fixed
+- The server's nightly backup now includes organizations stored at root paths (#519, `CLOSED-G1-ROOT-BACKUP`).
+
+## [0.6.0] — 2026-10-13 (proposed)
+### Added
+- Multiple phones per family, duplicate detection across all phones, Hebrew/Gregorian reminder tracks (`CLOSED-OWNER-LIST-2026-10-13`).
+- Donor-card layout editor (`CLOSED-CARDLAYOUT`).
+### Changed
+- Donors screen performance at large scale, with identical output (`CLOSED-PERF-SUPPORTERS-A`).
+### Fixed
+- Cloud config writes are field-by-field patches, so a flag switched on can no longer be switched back off by a stale full snapshot (`CLOSED-SEGULA-CLOUDCFG-MERGE`).
+
+## [0.5.0] — 2026-09-14 (proposed)
+### Added
+- Selective removal of demo data (#492); filters remembered across screens (#490); recurring reminders.
+### Fixed
+- About 45 fixes from deep audits of sync, permissions, performance and accessibility (`CLOSED-E2E-AUDIT`, `CLOSED-DEEP-AUDIT`, `CLOSED-SWARM-B`).
+
+## [0.4.0] — 2026-08-24 (proposed)
+### Added
+- Donor work window, intelligence layer, 3D universe and photo gallery (#237–#255, #318–#330).
+- Eight operations upgrades for classes, plus the teacher app (#281–#301).
+- Studio vertical (digital/construction), vCard import, per-vertical visual identity (#158–#164).
+### Security
+- Trust loop: personal data sealed in exports, PBKDF2 for the PIN lock, deletion tombstones in sync, outbox health, Rules red-team in CI, per-manager cloud encryption (#402–#420, `CLOSED-TRUST`).
+
+## [0.3.0] — 2026-08-06 (proposed)
+### Added
+- Installable PWA with offline support for hashed assets.
+- Standing orders, editable message templates, receipt verification code, duplicate merge (#81–#84).
+- Integrations: WhatsApp, maps, ICS calendar, payment links; optional server Functions (nightly backup, mail/SMS outboxes).
+### Changed
+- The interface simplified in seven rounds (#86–#100, `CLOSED-UX-SIMPLE`).
+
+## [0.2.0] — 2026-07-30 (proposed)
+### Added
+- SaaS platform: sign-up ⇒ approval ⇒ a site per organization; `firestore.rules` in the repo (`CLOSED-PLATFORM`, `CLOSED-CLOUD2`).
+- Isolated modules: charity boxes and service shop (`CLOSED-TZEDAKA`, `CLOSED-SHOP` … `CLOSED-SHOP6`); distribution module and public demo `?org=demo` (2026-08-01).
+- Capability-gap closure against the previous single-file version (`CLOSED-P0` … `CLOSED-P3`).
+
+## [0.1.0] — 2026-07-22 (proposed)
+### Added
+- First commit: the full system as a standalone repository (React 19 + TypeScript + Vite) with automatic deployment.
+
+[Unreleased]: https://github.com/meir7651231-ui/maor-system/compare/0f33b41...HEAD
