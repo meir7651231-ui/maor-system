@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="512" height="512" role="img" aria-label="גבי — מגנט"><g transform="rotate(-45 30 34)">
+        <path d="M16 14 V34 a14 14 0 0 0 28 0 V14" fill="none" stroke="#10B981" stroke-width="10"/>
+        <rect x="11" y="8" width="10" height="8" rx="2" fill="#FBF8F1"/>
+        <rect x="39" y="8" width="10" height="8" rx="2" fill="#FBF8F1"/>
+      </g>
+      <circle cx="51" cy="13" r="7" fill="#FBF8F1"/>
+      <path d="M41 19 l-3 3 M45 24 l-3 3" stroke="#FBF8F1" stroke-width="3" stroke-linecap="round"/></svg>
