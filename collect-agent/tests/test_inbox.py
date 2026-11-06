@@ -159,7 +159,7 @@ def test_audit_trail(inbox, svc):
 
 def test_send_gate_blocks_old_draft_after_opt_out(inbox, svc):
     old = inbox.handle("sms", DANA, "מי זה?")["draft_id"]
-    svc.unsubscribe(cust(svc)["unsub_token"])        # הוסר דרך קישור — לא דרך השיחה
+    svc.unsubscribe(svc.new_unsub_token(cust(svc)["id"]))        # הוסר דרך קישור — לא דרך השיחה
     out = inbox.approve_draft(old)
     assert out["status"] == "rejected" and out["decided_by"] == "system:opted_out"
     assert svc.sender.sent == []

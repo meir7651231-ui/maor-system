@@ -38,9 +38,12 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
           cache: pip
-          cache-dependency-path: collect-agent/pyproject.toml
+          cache-dependency-path: collect-agent/requirements-dev.lock
       - name: התקנה
-        run: pip install -e '.[dev]'
+        # נעילת תלויות: גרסאות + sha256 (requirements-dev.lock, uv --universal 3.11+)
+        run: |
+          pip install --require-hashes -r requirements-dev.lock
+          pip install --no-deps -e .
       - name: ruff (כולל כללי אבטחה S)
         run: ruff check .
       - name: pytest (יחידה + אבטחה + E2E + סימולציית 60 יום)
@@ -65,12 +68,14 @@ jobs:
       - name: התקנה
         run: |
           python -m pip install -U pip setuptools wheel
-          python -m pip install -e '.[dev]'
+          python -m pip install --require-hashes -r requirements-dev.lock
+          python -m pip install --no-deps -e .
       - name: bandit (SAST)
         # קבצי דמו: asserts של תרחיש וטוקנים מזויפים (נטענים רק בהדגמה)
         run: bandit -q -r app scripts -x app/demo.py,app/demo_data.py,scripts/demo_integrations.py
       - name: pip-audit (CVE ידועים בתלויות)
-        run: pip-audit --skip-editable --progress-spinner off
+        # הסריקה על הנעילה עצמה (מה שבאמת מותקן), לא על הסביבה
+        run: pip-audit --require-hashes -r requirements-dev.lock --progress-spinner off
       - name: סריקת סודות + Trojan Source + רשימת hosts סגורה
         run: python -m pytest -q tests/test_security.py -k "secrets or trojan or gitignore or outbound"
 

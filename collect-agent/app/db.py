@@ -4,6 +4,7 @@
 """
 from __future__ import annotations
 
+import hashlib
 import os
 import sqlite3
 import threading
@@ -85,6 +86,10 @@ CREATE TRIGGER IF NOT EXISTS audit_no_delete BEFORE DELETE ON audit
 """
 
 
+def token_hash(token: str) -> str:
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+
 class DB:
     def __init__(self, path: str = ":memory:") -> None:
         if path != ":memory:" and not path.startswith("file:"):
@@ -133,6 +138,18 @@ class DB:
                 ("approved_by", "ALTER TABLE reminders ADD COLUMN approved_by TEXT")):
             if col not in rcols:
                 self.conn.execute(ddl)
+        self.conn.commit()
+        # טוקני הסרה: נשמר רק sha256 (דליפת DB ⇒ אין קישורי הסרה פעילים בידי תוקף)
+        self.conn.executescript(
+            "CREATE TABLE IF NOT EXISTS link_tokens (token_hash TEXT PRIMARY KEY, "
+            "customer_id INTEGER NOT NULL REFERENCES customers(id), kind TEXT NOT NULL, "
+            "created_at TEXT NOT NULL);")
+        # מיגרציה: טוקנים ישנים (plaintext ב-customers.unsub_token) ⇒ hash, והעמודה מתרוקנת
+        for cid, tok in self.conn.execute(
+                "SELECT id, unsub_token FROM customers WHERE unsub_token IS NOT NULL").fetchall():
+            self.conn.execute("INSERT OR IGNORE INTO link_tokens VALUES(?,?, 'unsub', '')",
+                              (token_hash(tok), cid))
+        self.conn.execute("UPDATE customers SET unsub_token=NULL WHERE unsub_token IS NOT NULL")
         self.conn.commit()
         self.lock = threading.RLock()
 

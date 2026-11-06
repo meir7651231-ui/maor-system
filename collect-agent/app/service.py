@@ -21,7 +21,7 @@ from .channels import (
     valid_email,
 )
 from .config import SafetyError, Settings
-from .db import DB
+from .db import DB, token_hash
 from .greeninvoice import GreenInvoiceClient, GreenInvoiceError, Invoice
 from .policy import (
     MANUAL_ONLY_AFTER_DAYS,
@@ -103,15 +103,14 @@ class CollectService:
             seen.add(inv.external_id)
             cust_ext = self.customer_key(inv)
             self.db.x(
-                "INSERT INTO customers(external_id,name,phone,email,unsub_token) "
-                "VALUES(?,?,?,?,?) ON CONFLICT(external_id) DO UPDATE SET name=excluded.name, "
+                "INSERT INTO customers(external_id,name,phone,email) "
+                "VALUES(?,?,?,?) ON CONFLICT(external_id) DO UPDATE SET name=excluded.name, "
                 # ר-3: טלפון/מייל שסומנו «מספר שגוי» לא חוזרים, גם אם עדיין רשומים בחשבונית ירוקה
                 "phone=CASE WHEN customers.blocked_phone=excluded.phone THEN NULL "
                 "ELSE excluded.phone END, "
                 "email=CASE WHEN customers.blocked_email=excluded.email THEN NULL "
                 "ELSE excluded.email END",
-                (cust_ext, inv.client_name, inv.client_phone, inv.client_email,
-                 secrets.token_urlsafe(16)))   # ממצא 2.3.1: 128 ביט (היה 72)
+                (cust_ext, inv.client_name, inv.client_phone, inv.client_email))
             cid = self.db.one("SELECT id FROM customers WHERE external_id=?", (cust_ext,))["id"]
             self.db.x(
                 "INSERT INTO invoices(external_id,number,doc_type,amount_agorot,currency,issued,"
@@ -175,13 +174,27 @@ class CollectService:
     def short_url(self, inv_row) -> str:
         return f"{self.s.public_base_url}/p/{self._short_code(inv_row)}"
 
+    def new_unsub_token(self, customer_id: int) -> str:
+        """טוקן חדש (128 ביט, ממצא 2.3.1) לכל הודעה. ב-DB נשמר רק ה-sha256 ⇒ הקישורים הישנים
+        ממשיכים לעבוד, ודליפת הטבלאות לא מאפשרת להסיר לקוחות בשמם."""
+        tok = secrets.token_urlsafe(16)
+        self.db.x("INSERT INTO link_tokens(token_hash,customer_id,kind,created_at) "
+                  "VALUES(?,?, 'unsub', ?)", (token_hash(tok), customer_id, _iso(self.clock())))
+        return tok
+
+    def _unsub_customer(self, token: str):
+        if not token or len(token) > 64:
+            return None
+        return self.db.one("SELECT customer_id id FROM link_tokens WHERE token_hash=? "
+                           "AND kind='unsub'", (token_hash(token),))
+
     def unsub_url(self, token: str) -> str:
         return f"{self.s.public_base_url}/u/{token}"
 
     # ---------- message building ----------
     def build_messages(self, inv_row, cust, step: templates.Step,
                        link: str) -> tuple[list[Message], str | None]:
-        unsub = self.unsub_url(cust["unsub_token"])
+        unsub = self.unsub_url(self.new_unsub_token(cust["id"]))
         short = self.short_url(inv_row)
         f = templates.fields(biz=self.s.business_name, name=cust["name"], num=inv_row["number"],
                              amount_agorot=inv_row["amount_agorot"],
@@ -572,7 +585,7 @@ class CollectService:
         return {"code": code, "business": self.s.business_name, "number": inv["number"],
                 "amount": templates.fmt_amount(inv["amount_agorot"], inv["currency"]),
                 "due": inv["due"], "open": inv["status"] == "open",
-                "opted_out": bool(cust["opted_out"]), "unsub_token": cust["unsub_token"],
+                "opted_out": bool(cust["opted_out"]),
                 "pay_url": self._payment_link(inv) if inv["status"] == "open" else None,
                 "_cust": cust}
 
@@ -631,11 +644,10 @@ class CollectService:
         return res
 
     def has_unsub_token(self, token: str) -> bool:
-        return bool(token) and self.db.one(
-            "SELECT 1 FROM customers WHERE unsub_token=?", (token,)) is not None
+        return self._unsub_customer(token) is not None
 
     def unsubscribe(self, token: str) -> bool:
-        c = self.db.one("SELECT id FROM customers WHERE unsub_token=?", (token,))
+        c = self._unsub_customer(token)
         if not c:
             return False
         self._opt_out(c["id"], "link")
@@ -654,7 +666,7 @@ class CollectService:
     def _reply(self, cust, channel: str, text: str, now: datetime) -> str | None:
         """שליחה ביוזמת בעל העסק (למשל אישור פריסה). עוברת בשער ונושאת קישור הסרה (ממצא 2.3.5).
         מחוץ לחלון ⇒ לא נשלחת עכשיו (None); המתקשר אחראי לתור."""
-        unsub = self.unsub_url(cust["unsub_token"]) if cust["unsub_token"] else ""
+        unsub = self.unsub_url(self.new_unsub_token(cust["id"]))
         if channel == "sms":
             to = normalize_il_phone(cust["phone"])
             if not is_il_mobile(to):
@@ -823,7 +835,7 @@ class CollectService:
         # ממצא מבקר 2.4: אישור פריסה נשלח דרך תור הטיוטות ⇒ אותו שער (הסרה, שבת/חג/שעות, ניסיון)
         # ובחלון סגור ממתין לחלון הבא במקום להישלח בשבת.
         channel = "sms" if is_il_mobile(normalize_il_phone(cust["phone"])) else "email"
-        unsub = self.unsub_url(cust["unsub_token"]) if cust["unsub_token"] else ""
+        unsub = self.unsub_url(self.new_unsub_token(cust["id"]))
         body = (f"{self.s.business_name}: {text} להסרה: {unsub}" if channel == "sms"
                 else f"{text}\n\nלהסרה מתזכורות: {unsub}")
         did = self.db.x(

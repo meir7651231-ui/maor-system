@@ -227,7 +227,7 @@ def test_payment_form_created_once(api, svc, fake_gi, clock):
 
 def test_unsubscribe_link_and_one_click(api, svc):
     ids = first_cycle(api)
-    tok = svc.db.one("SELECT unsub_token FROM customers WHERE id=1")["unsub_token"]
+    tok = svc.new_unsub_token(svc.db.one("SELECT id FROM customers WHERE id=1")["id"])
     page = api.get(f"/u/{tok}")
     assert page.status_code == 200 and 'method="post"' in page.text
     # GET לבד לא מסיר (סורקי קישורים פותחים כל URL) — רק הכפתור/POST
