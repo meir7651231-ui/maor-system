@@ -30,7 +30,7 @@ async function noHScroll(pg, where) {
 }
 
 // 409 מותר רק כשהבדיקה מצפה לו במפורש (בקשה + סיבה מאומתות). כל 409 אחר / כל שגיאה אחרת ⇒ כישלון.
-let expect409 = null;         // { url: RegExp, reason: RegExp }
+let expect409 = null;         // { status?, method?, url: RegExp, reason: RegExp } — 409/422 צפוי אחד, מוכרז מראש
 let gatePhase = true;         // 401 מותר רק בשלב שער קוד הגישה (לפני כניסה), ורק מהשרת שלנו
 const allowed401 = [];
 const allowed409 = [];        // תגובות 409 שאומתו
@@ -45,16 +45,17 @@ try {
       if (gatePhase && r.url().startsWith(base + '/')) allowed401.push(r.url()); else errors.push(`401 לא צפוי: ${r.url()}`);
       return;
     }
-    if (r.status() !== 409) return;
+    if (r.status() !== 409 && r.status() !== 422) { if (r.status() >= 400 && r.url().startsWith(base)) errors.push(`${r.status()} לא צפוי: ${r.url()}`); return; }
     const u = r.url(); let body = '';
     try { body = JSON.stringify(await r.json()); } catch { /* */ }
-    if (expect409 && expect409.url.test(u) && r.request().method() === 'POST' && expect409.reason.test(body)) { allowed409.push(u); expect409 = null; }
-    else errors.push(`409 לא צפוי: ${r.request().method()} ${u} ${body}`);
+    const e = expect409;
+    if (e && (e.status ?? 409) === r.status() && e.url.test(u) && r.request().method() === (e.method ?? 'POST') && e.reason.test(body)) { allowed409.push(`${r.status()} ${u}`); expect409 = null; }
+    else errors.push(`${r.status()} לא צפוי: ${r.request().method()} ${u} ${body}`);
   });
   let console409 = 0, console401 = 0;
   p.on('console', m => {
     if (m.type() !== 'error') return;
-    if (/status of 409/.test(m.text())) { console409++; return; } // מוצלב מול allowed409 בסוף
+    if (/status of (409|422)/.test(m.text())) { console409++; return; } // מוצלב מול allowed409 בסוף
     if (/status of 401/.test(m.text())) { console401++; return; } // מוצלב מול allowed401 בסוף
     errors.push(m.text());
   });
@@ -162,14 +163,46 @@ try {
   ok((await api('/outbox')).messages.length === ob4 + 1, 'המענה לא יצא ליומן');
   console.log('  ✓ תשובות לקוחות: שיווק נחסם (409 מאומת), נוסח נקי נשלח');
 
-  // 7) הגדרות = מוק מסומן; חשבוניות
+  // 7) הגדרות חיות מול /settings: שמירה אמיתית בשרת, דחיית שרת (422 צפוי) מוצגת בעברית, ייבוא CSV עם שגיאת שורה
   await p.goto(base + '/app/#/settings');
-  await p.getByTestId('settings-mock').waitFor();
-  await p.getByRole('button', { name: 'שמירה בלשונית בלבד (מוק)' }).click();
-  await p.getByText('נשמר בלשונית הזו בלבד — לא בשרת (מוק)').waitFor();
+  await p.getByTestId('settings-live').waitFor();
+  const before = await api('/settings');
+  await p.getByLabel('שם לחתימה').waitFor();
+  ok(await p.getByLabel('שם השולח ב-SMS').inputValue() === before.sms.sender, 'הטופס לא נטען מהשרת');
+  ok(await p.getByTestId('settings-save').isDisabled(), 'שמירה זמינה בלי שינוי');
+  // ולידציה בצד הלקוח: רווח בשם שולח ⇒ אין שליחה
+  await p.getByLabel('שם השולח ב-SMS').fill('Studio Demo');
+  ok(await p.getByTestId('settings-save').isDisabled(), 'שם שולח עם רווח לא נחסם לפני שליחה');
+  await p.getByLabel('שם השולח ב-SMS').fill(before.sms.sender);
+  // דומיין זר לקישור התשלום ⇒ השרת דוחה (422 צפוי ומאומת)
+  await p.getByLabel('כתובת עמוד התשלום').fill('https://evil.example/pay');
+  expect409 = { status: 422, method: 'PUT', url: /\/settings$/, reason: /קישור התשלום/ };
+  await p.getByTestId('settings-save').click();
+  await p.getByTestId('settings-error').waitFor();
+  ok(/קישור התשלום/.test(await p.getByTestId('settings-error').textContent()) && expect409 === null, 'דחיית השרת לא הוצגה / לא אומתה');
+  ok((await api('/settings')).pay.page_url === before.pay.page_url, 'השרת שמר קישור שנדחה');
+  // שמירה תקינה: שם לחתימה + ע.מ. ⇒ נשמר בשרת
+  await p.getByRole('button', { name: 'ביטול שינויים' }).click();
+  await p.getByLabel('שם לחתימה').fill('נועה');
+  await p.getByLabel('ע.מ. / ח.פ.').fill('123456782');
+  await p.getByTestId('settings-save').click();
+  await p.getByText('✓ נשמר בשרת').waitFor();
+  const after = await api('/settings');
+  ok(after.owner_name === 'נועה' && after.vat_id === '123456782', 'השמירה לא הגיעה לשרת: ' + JSON.stringify(after));
+  ok(after.sms.sender === before.sms.sender && after.pay.page_url === before.pay.page_url, 'נשלחו שדות שלא שונו');
+  // CSV: שורה תקינה + שורה שגויה
+  const csvBody = 'מספר חשבונית,שם לקוח,טלפון,סכום,תאריך לתשלום\n9001,לקוח CSV (דמו),050-1234567,500,2026-10-01\n9002,,abc,xx,\n';
+  await p.getByLabel('קובץ CSV').setInputFiles({ name: 'open.csv', mimeType: 'text/csv', buffer: Buffer.from(csvBody, 'utf8') });
+  await p.getByTestId('csv-result').waitFor();
+  const csvText = await p.getByTestId('csv-result').textContent();
+  ok(/יובאו 1/.test(csvText) && /שורה 3/.test(csvText), 'תוצאת ה-CSV: ' + csvText);
+  ok((await api('/dashboard')).invoices.some(r => r.number === '9001'), 'חשבונית ה-CSV לא נקלטה בשרת');
+  await noHScroll(p, 'הגדרות דסקטופ');
+  if (out) await fullShot(p, `${out}/live-07-settings.png`);
+  console.log('  ✓ הגדרות חיות: שמירה בשרת, 422 מאומת, CSV עם שגיאת שורה');
   await p.goto(base + '/app/#/invoices');
   await p.getByText('דנה לוי').first().waitFor();
-  ok(await p.locator('tbody tr').count() === 5, 'ציפיתי ל-5 חשבוניות פתוחות');
+  ok(await p.locator('tbody tr').count() === 6, 'ציפיתי ל-6 חשבוניות פתוחות (5 + אחת מ-CSV)');
 
   // v2 · דף נחיתה: כותרת + מחשבון שווי הזמן (בלי הבטחת תשואה — הכרעת מאיר 6.11)
   await p.goto(base + '/app/');
@@ -223,7 +256,7 @@ try {
   console.log('  ✓ מובייל 390px: 5 מסכים בלי גלילה רוחבית');
 
   ok(console401 === allowed401.length, `שגיאות 401 בקונסולה (${console401}) ≠ 401 מאומתים (${allowed401.length})`);
-  ok(console409 === allowed409.length, `שגיאות 409 בקונסולה (${console409}) ≠ 409 מאומתים (${allowed409.length})`);
+  ok(console409 === allowed409.length, `שגיאות 409/422 בקונסולה (${console409}) ≠ מאומתות (${allowed409.length})`);
   if (errors.length) throw new Error('שגיאות:\n' + errors.join('\n'));
-  console.log(`✓ דמו חי מקצה לקצה עבר · 409 מאומתים: ${allowed409.length} · 0 שגיאות אחרות`);
+  console.log(`✓ דמו חי מקצה לקצה עבר · שגיאות צפויות שאומתו: ${allowed409.join(' | ')} · 0 שגיאות אחרות`);
 } finally { await b.close(); srv.kill(); }

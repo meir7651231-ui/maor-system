@@ -1,5 +1,6 @@
 // שכבת API מול הבקאנד של גבי (FastAPI, dry-run בלבד). אותו origin כשהממשק מוגש מ-/app/,
 // או ?api=http://127.0.0.1:8000 בפיתוח. אין בקאנד ⇒ הממשק נופל לנתוני מוק (data/demo.ts).
+import type { DesignSettings } from './lib/settings.ts';
 import type { Customer, Invoice, InvoiceStatus, Reminder, Step } from './lib/domain.ts';
 import { STEP_ORDER } from './lib/message.ts';
 import { readToken } from './lib/auth.ts';
@@ -84,6 +85,10 @@ export const api = {
   drafts: () => j<Draft[]>('/conversation/drafts'),
   approveDraft: (id: number, body?: string) => j<{ status: string }>(`/conversation/drafts/${id}/approve`, { method: 'POST', body: JSON.stringify(body === undefined ? {} : { body }) }),
   rejectDraft: (id: number) => j<unknown>(`/conversation/drafts/${id}/reject`, { method: 'POST' }),
+  settings: () => j<DesignSettings>('/settings'),
+  saveSettings: (patch: Record<string, unknown>) => j<DesignSettings>('/settings', { method: 'PUT', body: JSON.stringify(patch) }),
+  importCsv: (csv: string) => j<{ imported: number; rejected: { row: number; reason: string }[] }>('/settings/source/csv',
+    { method: 'POST', body: csv, headers: { 'Content-Type': 'text/csv; charset=utf-8' } }),
   inbound: (channel: 'sms' | 'email', sender: string, text: string) =>
     j<InboundResult>('/inbound', { method: 'POST', body: JSON.stringify({ channel, sender, text }) }),
 };

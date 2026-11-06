@@ -72,8 +72,11 @@ try {
   ok(await p.locator('tbody tr').count() === 1, 'חיפוש לא סינן');
   await p.goto(base + '#/settings'); await p.waitForTimeout(300);
   await p.getByTestId('settings-mock').waitFor();
+  ok(await p.getByRole('button', { name: 'שמירה בלשונית בלבד (מוק)' }).isDisabled(), 'במוק בלי שינוי — אין שמירה');
+  await p.getByLabel('שם לחתימה').fill('לוטם כהן');
   await p.getByRole('button', { name: 'שמירה בלשונית בלבד (מוק)' }).click();
-  await p.getByTestId('saved-note').waitFor();
+  await p.getByText('נשמר בלשונית הזו בלבד — לא בשרת (מוק)').waitFor();
+  ok(await p.getByLabel('קובץ CSV').isDisabled(), 'ייבוא CSV במוק אמור להיות כבוי');
   await fullShot(p, `${out}/06-settings.png`);
   await p.goto(base + '#/signup'); await p.waitForTimeout(300);
   await p.screenshot({ path: `${out}/07-signup.png` });

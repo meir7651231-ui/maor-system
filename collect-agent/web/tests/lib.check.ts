@@ -233,3 +233,28 @@ test('הודעות מערכת לבעל העסק: רק direction=system, סוף �
   assert.equal(n[0].title, 'תקופת הניסיון מסתיימת בקרוב');
   assert.equal(n[1].title, 'הודעה מגבי');
 });
+
+import { diffPatch, explainSettingsError, toForm, validate, vatOk, type DesignSettings } from '../src/lib/settings.ts';
+test('הגדרות: PUT חלקי בלבד, ולידציה כמו בשרת, שגיאות בעברית', () => {
+  const s: DesignSettings = {
+    business_name: 'סטודיו דמו', owner_name: '', vat_id: '', reply_email: 'owner@example.com',
+    sms: { primary: '019', backup: 'inforu', sender: 'StudioDemo' }, pay: { provider: 'greeninvoice', page_url: 'https://pay.example/x' },
+    source: { type: 'api', api_connected: true }, cadence_days: [1, 7, 14],
+    rules: { max_reminders: 3, window: '08:00-20:00', approval: 'every_message' },
+  };
+  const a = toForm(s);
+  assert.deepEqual(diffPatch(a, a), {}, 'בלי שינוי ⇒ גוף ריק');
+  assert.deepEqual(diffPatch(a, { ...a, sender: 'NewName' }), { sms: { sender: 'NewName' } });
+  assert.deepEqual(diffPatch(a, { ...a, pay_provider: 'bit' }), { pay: { provider: 'bit', page_url: 'https://pay.example/x' } }, 'החלפת ספק שולחת גם כתובת (נבדקת מול הדומיין החדש)');
+  const p = diffPatch(a, { ...a, owner_name: ' מאיר ' });
+  assert.deepEqual(p, { owner_name: 'מאיר' });
+  for (const k of ['rules', 'cadence_days', 'source', 'pricing']) assert.ok(!(k in diffPatch(a, { ...a, vat_id: '123456782' })), `${k} לעולם לא נשלח`);
+  assert.ok(vatOk('123456782') && vatOk('000000000') && !vatOk('123456789') && !vatOk('12345678'));
+  assert.equal(validate(a).sender, undefined);
+  assert.ok(validate({ ...a, sender: 'Studio Demo' }).sender, 'רווח בשם שולח נדחה (כמו בשרת)');
+  assert.ok(validate({ ...a, sender: 'ABCDEFGHIJKL' }).sender);
+  assert.ok(validate({ ...a, pay_url: 'http://pay.example/x' }).pay_url);
+  assert.ok(validate({ ...a, business_name: 'x' }).business_name);
+  assert.equal(explainSettingsError("sms_sender_id: String should match pattern '^[A-Za-z0-9]{1,11}$'"), 'שם השולח: ערך לא תקין');
+  assert.equal(explainSettingsError('קישור התשלום חייב להיות https בדומיין של bit: pay.example'), 'קישור התשלום חייב להיות https בדומיין של bit: pay.example');
+});
