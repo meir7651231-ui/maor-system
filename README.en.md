@@ -23,7 +23,7 @@
 ---
 
 <p align="center"><a href="https://orbit-il.com/?org=demo"><img src="assets/demo.gif" alt="A short tour of the demo: families, a family card, classes, the Hebrew calendar and the room diary" width="88%"></a></p>
-<p align="center"><sub>Demo tour — <code>?org=demo</code>, made-up data. Click to open the live demo.</sub></p>
+<p align="center"><sub>Tour of the live site — <code>orbit-il.com/?org=demo</code>, recorded 2026-11-06, made-up data. Click to open the demo.</sub></p>
 
 > The product UI is in Hebrew (right-to-left). This page mirrors the [Hebrew README](README.md).
 
@@ -85,7 +85,7 @@ The full picture, including the gate chain and key decisions: [`docs/ARCHITECTUR
 
 ## See it
 
-Real screenshots of the app running the demo (`?org=demo` — made-up data, no cloud). Click to enlarge. All screenshots live in [`docs/screenshots/`](docs/screenshots/).
+**Screenshots of the live site** [orbit-il.com/?org=demo](https://orbit-il.com/?org=demo), taken on 2026-11-06 (desktop and iPhone, DPR 2). Made-up data only, no cloud. Click to enlarge. All screenshots live in [`docs/screenshots/`](docs/screenshots/).
 
 <table>
 <tr>
@@ -102,6 +102,14 @@ Real screenshots of the app running the demo (`?org=demo` — made-up data, no c
 <td align="center"><a href="docs/screenshots/guide/03-search.png"><img src="docs/screenshots/guide/03-search.png" alt="Quick search with Ctrl+K"></a><br><sub>🔍 Quick search Ctrl+K</sub></td>
 <td align="center"><a href="docs/screenshots/guide/04-add-event.png"><img src="docs/screenshots/guide/04-add-event.png" alt="New event form with a Hebrew date"></a><br><sub>➕ Event on a Hebrew date</sub></td>
 <td align="center"><a href="docs/screenshots/guide/08-accessibility.png"><img src="docs/screenshots/guide/08-accessibility.png" alt="Accessibility settings panel"></a><br><sub>♿ Accessibility</sub></td>
+</tr>
+<tr>
+<td colspan="3" align="center"><sub>📱 iPhone</sub><br>
+<a href="docs/screenshots/mobile/families.png"><img src="docs/screenshots/mobile/families.png" alt="Families list on mobile" width="19%"></a>
+<a href="docs/screenshots/mobile/family-card.png"><img src="docs/screenshots/mobile/family-card.png" alt="Family card on mobile" width="19%"></a>
+<a href="docs/screenshots/mobile/calendar.png"><img src="docs/screenshots/mobile/calendar.png" alt="Calendar on mobile" width="19%"></a>
+<a href="docs/screenshots/mobile/search.png"><img src="docs/screenshots/mobile/search.png" alt="Quick search on mobile" width="19%"></a>
+</td>
 </tr>
 </table>
 

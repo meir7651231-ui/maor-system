@@ -25,7 +25,7 @@
 ---
 
 <p align="center"><a href="https://orbit-il.com/?org=demo"><img src="assets/demo.gif" alt="סיור קצר בדמו: משפחות, כרטיס משפחה, חוגים, לוח שנה עברי ויומן חדרים" width="88%"></a></p>
-<p align="center"><sub>סיור בדמו — <code>?org=demo</code>, נתונים מומצאים. לחיצה פותחת את הדמו החי.</sub></p>
+<p align="center"><sub>סיור באתר החי — <code>orbit-il.com/?org=demo</code>, צולם ב-6.11.2026, נתונים מומצאים. לחיצה פותחת את הדמו.</sub></p>
 
 ## הבעיה
 
@@ -85,7 +85,7 @@
 
 ## ככה זה נראה
 
-צילומים אמיתיים של האפליקציה בדמו (`?org=demo` — נתונים מומצאים, בלי ענן). לחיצה מגדילה. כל הצילומים נמצאים ב-[`docs/screenshots/`](docs/screenshots/).
+**צילומים מהאתר החי** [orbit-il.com/?org=demo](https://orbit-il.com/?org=demo), נלקחו ב-6.11.2026 (דסקטופ ו-iPhone, ‏DPR 2). נתונים מומצאים בלבד, בלי ענן. לחיצה מגדילה. כל הצילומים נמצאים ב-[`docs/screenshots/`](docs/screenshots/).
 
 <table>
 <tr>
@@ -102,6 +102,14 @@
 <td align="center"><a href="docs/screenshots/guide/03-search.png"><img src="docs/screenshots/guide/03-search.png" alt="חיפוש מהיר Ctrl+K"></a><br><sub>🔍 חיפוש מהיר Ctrl+K</sub></td>
 <td align="center"><a href="docs/screenshots/guide/04-add-event.png"><img src="docs/screenshots/guide/04-add-event.png" alt="טופס אירוע חדש עם תאריך עברי"></a><br><sub>➕ אירוע בתאריך עברי</sub></td>
 <td align="center"><a href="docs/screenshots/guide/08-accessibility.png"><img src="docs/screenshots/guide/08-accessibility.png" alt="חלון הגדרות נגישות"></a><br><sub>♿ נגישות</sub></td>
+</tr>
+<tr>
+<td colspan="3" align="center"><sub>📱 iPhone</sub><br>
+<a href="docs/screenshots/mobile/families.png"><img src="docs/screenshots/mobile/families.png" alt="רשימת משפחות במובייל" width="19%"></a>
+<a href="docs/screenshots/mobile/family-card.png"><img src="docs/screenshots/mobile/family-card.png" alt="כרטיס משפחה במובייל" width="19%"></a>
+<a href="docs/screenshots/mobile/calendar.png"><img src="docs/screenshots/mobile/calendar.png" alt="לוח שנה במובייל" width="19%"></a>
+<a href="docs/screenshots/mobile/search.png"><img src="docs/screenshots/mobile/search.png" alt="חיפוש מהיר במובייל" width="19%"></a>
+</td>
 </tr>
 </table>
 
