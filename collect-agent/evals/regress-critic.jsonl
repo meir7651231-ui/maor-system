@@ -1,0 +1,8 @@
+{"id": "r001", "text": "הפסק", "ctx": {}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "r002", "text": "הפסיקו", "ctx": {}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "r003", "text": "תסירו אותי", "ctx": {}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "r004", "text": "Please stop", "ctx": {}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "r005", "text": "יש לי עוד שאלה", "ctx": {}, "expect": {"intent": "unknown", "stop": "none", "not": ["dispute", "legal", "opt_out"]}, "critical": true}
+{"id": "r006", "text": "אשלם עוד היום", "ctx": {}, "expect": {"intent": "promise", "promise_in_days": 0, "not": ["dispute", "legal"]}, "critical": true}
+{"id": "r007", "text": "רוצה עוד זמן", "ctx": {}, "expect": {"intent": "promise", "state": "awaiting_date", "not": ["dispute"]}, "critical": false}
+{"id": "r008", "text": "שילמתי", "ctx": {}, "expect": {"intent": "paid_claim", "stop": "pause", "reply": true}, "critical": true}

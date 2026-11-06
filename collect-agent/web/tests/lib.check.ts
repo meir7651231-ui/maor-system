@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { daysOverdue, fmtIls, fmtPhone, isIlMobile, agingOf } from '../src/lib/format.ts';
-import { buildSms, buildEmail, smsSegments, nextStep, requiresApproval, demoUnsubUrl, TEMPLATES } from '../src/lib/message.ts';
+import { buildSms, buildEmail, smsSegments, nextStep, requiresApproval, demoUnsubUrl, demoShortUrl, TEMPLATES } from '../src/lib/message.ts';
 import { readFileSync } from 'node:fs';
 import { canSendAt, nextAllowed } from '../src/lib/policy.ts';
 import { kpis, needsReminder, agingBuckets } from '../src/lib/stats.ts';
@@ -18,14 +18,15 @@ test('format', () => {
   assert.equal(agingOf(0), 'notDue'); assert.equal(agingOf(31), 'd31_60'); assert.equal(agingOf(91), 'd90p');
 });
 
-test('כל SMS בכל שלב כולל קישור תשלום ושורת הסרה, ובלי מילות שיווק', () => {
+test('כל SMS בכל שלב כולל קישור קצר (תשלום+הסרה) ושורת הפסקה, ובלי מילות שיווק', () => {
   for (const step of ['friendly', 'second', 'plan_offer', 'final'] as const) {
     const s = buildSms(inv, cust, demoBusiness, step);
-    assert.ok(s.includes(inv.payUrl), step);
-    assert.ok(s.endsWith(demoUnsubUrl(cust)), step);
+    // סבב 3 בבקאנד: SMS = קישור קצר אחד /p/{code} (עמוד תשלום+פריסה+הפסקה) ⇒ ≤2 חלקים
+    assert.ok(s.includes(demoShortUrl(inv)), step);
+    assert.ok(s.endsWith('להפסקה: בקישור'), step);
     assert.ok(s.startsWith(demoBusiness.name + ':'), 'מזהה את העסק');
     assert.doesNotMatch(s, /מבצע|הנחה|הטבה|מתנה|קופון|הזדמנות|הוצאה לפועל|תביעה|משטרה|עו"ד|עורך דין/, step);
-    assert.ok(smsSegments(s).segments <= 4, `${step}: ${smsSegments(s).chars} תווים`);
+    assert.ok(smsSegments(s).segments <= 3, `${step}: ${smsSegments(s).chars} תווים`);
     const e = buildEmail(inv, cust, demoBusiness, step);
     assert.ok(e.subject.includes(inv.number) && e.paragraphs.join().includes(inv.payUrl));
   }
@@ -112,4 +113,47 @@ test('שעה מהשרת מוצגת בשעון ישראל, וסכומים עם א
   assert.equal(fmtWhenIL('2026-11-08T08:00:00Z'), 'יום ראשון 10:00');
   assert.match(fmtIls(3450.5), /3,450\.50/);
   assert.doesNotMatch(fmtIls(1200), /\./);
+});
+
+
+// ───────── עיצוב v2 ─────────
+import { roi, GABI_PRICE } from '../src/lib/roi.ts';
+import { toBars, cumulative, areaPath } from '../src/lib/series.ts';
+import { takeTokenFromHash, payCodeOf, TOKEN_KEY } from '../src/lib/auth.ts';
+
+test('מחשבון החזר: שקוף, מוגבל, ומול ₪119', () => {
+  const r = roi({ monthlyInvoiced: 40000, latePct: 25, hoursChasing: 4 });
+  assert.equal(r.lateAmount, 10000); assert.equal(r.recovered, 3000); assert.equal(r.timeSaved, 600);
+  assert.equal(r.net, 3000 + 600 - GABI_PRICE); assert.equal(r.multiple, 30.3);
+  const z = roi({ monthlyInvoiced: -5, latePct: 500, hoursChasing: 0 });
+  assert.equal(z.lateAmount, 0); assert.ok(z.net < 0, 'בלי חוב — לא ממציאים החזר');
+  assert.equal(roi({ monthlyInvoiced: NaN, latePct: NaN }).recovered, 0);
+});
+
+test('גרף גבייה: עמודות, מצטבר ונתיב SVG', () => {
+  const bars = toBars([{ week: '2026-11-01', collected_agorot: 210000, count: 1 }, { week: '2026-11-08', collected_agorot: 0, count: 0 }]);
+  assert.deepEqual(bars.map(b => [b.label, b.value]), [['1.11', 2100], ['8.11', 0]]);
+  assert.deepEqual(cumulative(bars), [2100, 2100]);
+  assert.match(areaPath([0, 5, 10], 100, 50), /^M100,50 L100\.0,50\.0 L50\.0,25\.0 L0\.0,0\.0 L0\.0,50 Z$/);
+  assert.equal(areaPath([], 100, 50), '');
+  assert.match(areaPath([0, 10], 100, 50, 25), /L75\.0,50\.0 L25\.0,0\.0/);   // מרכזי העמודות
+});
+
+test('טוקן בעלים מה-hash נשמר ונמחק מהכתובת; קוד עמוד החייב', () => {
+  const m = new Map<string, string>();
+  const st = { getItem: (k: string) => m.get(k) ?? null, setItem: (k: string, v: string) => void m.set(k, v) };
+  const tok = 'a'.repeat(40);
+  assert.equal(takeTokenFromHash(`#/dashboard?token=${tok}`, st), '#/dashboard');
+  assert.equal(m.get(TOKEN_KEY), tok);
+  assert.equal(takeTokenFromHash('#/dashboard?token=short', st), '#/dashboard?token=short');   // קצר מדי ⇒ מתעלמים
+  assert.equal(payCodeOf('/pay/em7t8a4'), 'em7t8a4');
+  assert.equal(payCodeOf('/pay/../etc'), null); assert.equal(payCodeOf('/app/'), null);
+});
+
+test('v2: בלי וואטסאפ בדף התשלום ובדף הנחיתה; הכותרת החדשה', () => {
+  const pay = readFileSync(new URL('../src/pages/Pay.tsx', import.meta.url), 'utf8');
+  const land = readFileSync(new URL('../src/pages/Landing.tsx', import.meta.url), 'utf8');
+  assert.ok(land.includes('הכסף שלך חוזר.') && land.includes('בלי שתצטרך לרדוף.'));
+  assert.ok(['bit:', 'apple_pay:', 'card:'].every(k => pay.includes(k)), 'Bit · Apple Pay · כרטיס');
+  assert.doesNotMatch(pay + land, /וואטסאפ|WhatsApp/i);
 });

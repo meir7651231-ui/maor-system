@@ -47,7 +47,9 @@ def _check(msg: EmailMessageOut) -> None:
 def unsubscribe_headers(msg: EmailMessageOut) -> dict[str, str]:
     if not msg.unsubscribe_url:
         return {}
-    if not msg.unsubscribe_url.startswith("https://"):
+    from ..greeninvoice import is_loopback_url  # http מותר רק לשרת מקומי (הדגמה/פיתוח)
+
+    if not (msg.unsubscribe_url.startswith("https://") or is_loopback_url(msg.unsubscribe_url)):
         raise IntegrationError("unsubscribe_url חייב https")
     return {"List-Unsubscribe": f"<{msg.unsubscribe_url}>",
             "List-Unsubscribe-Post": "List-Unsubscribe=One-Click"}
@@ -74,6 +76,9 @@ class SmtpEmail:
             raise SafetyError("שלב 1: SMTP אמיתי חסום — רק dry-run או factory מדומה")
         if not host:
             raise IntegrationError("SMTP: חסר SMTP_HOST")
+        if username and not starttls and int(port) != 465:
+            # login בלי TLS = סיסמה בטקסט גלוי ברשת (465 = SMTPS, מוצפן מההתחלה)
+            raise IntegrationError("SMTP: התחברות עם סיסמה דורשת STARTTLS או פורט 465")
         self.host, self.port, self.user, self.password = host, int(port), username, password
         self.from_addr, self.from_name = valid_email(from_addr), _no_crlf(from_name, "from_name")
         self.starttls, self.factory = starttls, factory
@@ -110,7 +115,7 @@ class SmtpEmail:
                               preview=p.preview)
         m = self.build_message(msg)
         preview = {"smtp": f"{self.host}:{self.port}", "starttls": self.starttls,
-                   "user": self.user, "password": "***",
+                   "user": self.user, "password": "***",  # nosec B105 — הסוואה, לא סיסמה
                    "headers": {k: str(v) for k, v in m.items()}, "text": msg.text}
         self.outbox.append(preview)
         mid = str(m["Message-ID"])

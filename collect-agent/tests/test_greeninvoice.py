@@ -45,3 +45,20 @@ def test_mapping_amount_exact():
 def test_mapping_tolerates_missing_fields():
     inv = map_document({"id": 9, "amount": 10})
     assert inv.amount_agorot == 1000 and inv.client_name == "" and inv.due is None
+
+
+def test_token_request_includes_grant_type():
+    """רגרסיה: מ-2026 morning דורשת grant_type=client_credentials בבקשת הטוקן.
+    בלי השדה השרת (והמוק הקפדני) מחזיר 401."""
+    seen = []
+
+    def h(req):
+        if req.url.path.endswith("/account/token"):
+            import json
+            seen.append(json.loads(req.content))
+            return httpx.Response(200, json={"token": "t", "expires": 2_000_000_000})
+        return httpx.Response(200, json={"items": [], "pages": 1})
+
+    c = GreenInvoiceClient(SANDBOX, "i", "s", transport=httpx.MockTransport(h))
+    c._auth()
+    assert seen == [{"id": "i", "secret": "s", "grant_type": "client_credentials"}]

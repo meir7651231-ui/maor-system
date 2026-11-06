@@ -119,7 +119,8 @@ class GreenInvoicePaymentForm:
         if not self.allow_write:
             fb = self.fallback.url if self.fallback else ""
             return PaymentLink(fb, self.provider, dry_run=True, preview=preview)
-        assert self.client is not None
+        if self.client is None:  # לא assert: python -O מסיר asserts
+            raise IntegrationError("payments: אין לקוח Green Invoice")
         try:
             body = self.client.post("/payments/form", payload, what="payments/form")
         except GreenInvoiceError as e:

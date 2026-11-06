@@ -81,3 +81,9 @@ app/greeninvoice.py             + מתודה ציבורית post() (רפקטור
 - לשלב את `Notifier` ב-`CollectService.dispatch` במקום `DryRunSender` של WhatsApp. את זה עושה בעל service.py, והממשק מוכן (§3).
 - נוסחי SMS קצרים (§5.1).
 - webhooks נכנסים: SMS (InforU/019/Twilio כולם תומכים בהודעות נכנסות ובדוחות מסירה) עם אימות חתימה. ב-Twilio זה `X-Twilio-Signature`.
+
+## 8. סבב 2 (אחרי rebase על collect-agent)
+- `whatsapp.py` הוסר בענף ⇒ נרמול טלפון מיובא מ-`app/channels.py`. השכבה שלי משלימה את `channels.py`: שם יש בנייה לתצוגה בלבד, אצלי יש פענוח תשובות, retry, failover, iCount ובדיקות עם mock.
+- ⚠️ **סתירה לאימות:** ב-`channels.py` הספק 019 בנוי ב-**XML** (+`/api/test`), אצלי ב-**JSON**. לפי התיעוד הציבורי 019 תומך בשניהם. לאמת בחשבון הבדיקה.
+- פיתוח (STATUS): מספר תשלומים מתוך הטקסט מחובר ל-`propose_plan` · כפתור «▶ חידוש תזכורות» בדשבורד. **174/174 ירוק**, מוטציה: הסרת החיבור ⇒ 4 בדיקות נופלות, `demo.sh --check` ירוק.
+- פטור E501 ל-`app/conversation.py` ב-pyproject כדי שה-CI (ruff) יהיה ירוק.

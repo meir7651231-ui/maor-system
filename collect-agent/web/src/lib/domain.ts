@@ -5,7 +5,8 @@ export type Channel = 'sms' | 'email';
 export type Step = 'friendly' | 'second' | 'plan_offer' | 'final';
 export type InvoiceStatus = 'open' | 'reminded' | 'promised' | 'paid' | 'disputed';
 
-export interface Customer { id: string; name: string; phone?: string; email?: string; contact?: string; optedOut?: boolean }
+export interface Customer { id: string; name: string; phone?: string; email?: string; contact?: string; optedOut?: boolean;
+  /** בחי: מזהה הלקוח בשרת + סיבת השהיה ('paid_claim' וכו׳) */ backendId?: number; paused?: string | null }
 export interface Reminder { at: string; step: Step; channel: Channel; status: 'sent' | 'delivered' | 'opened' | 'replied' | 'failed' }
 export interface Invoice {
   id: string;
