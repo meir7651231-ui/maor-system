@@ -243,7 +243,8 @@ export function LoginScreen() {
         <span>© 2026 {title}</span>
         <span style={{ display: 'flex', alignItems: 'center' }}>
           <span className="dot" aria-hidden />
-          מוצפן מקצה לקצה · הצפנה במנוחה · שלוש שכבות גיבוי
+          {/* טענת-אמת בלבד (6.11): ההצפנה (מקומית וענן) היא opt-in — אסור לטעון הצפנה כברירת-מחדל */}
+          שלוש שכבות גיבוי · הצפנה לפי בחירה
         </span>
       </footer>
 

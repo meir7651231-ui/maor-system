@@ -68,7 +68,7 @@ t('מסך ההרשמה עלה עם הכותרת החדשה (22.10)', body.includ
 t('תת-הכותרת הנעולה מופיעה', body.includes('ניהול, פתרונות מוכנים ושדרוג למערכת קיימת'));
 t('מיתוג נגזר-ארגון (שם-הארגון בכותרת) — בלי "אורביט"/ORBIT קשיח', body.includes('עמותת מבחן') && !body.includes('© 2026 ORBIT') && !body.includes('אורביט היא מערכת'));
 t('ההרשמה = אשף 5-שלבים, שלב 1 (תחום)', body.includes('שלב 1 מתוך 5') && body.includes('תחום העסק'));
-t('הבאדג׳ האמיתי (בלי WebAuthn) — "הצפנה במנוחה"', body.includes('הצפנה במנוחה') && !body.includes('WebAuthn'));
+t('הבאדג׳ האמיתי (בלי WebAuthn) — "הצפנה לפי בחירה"', body.includes('הצפנה לפי בחירה') && !body.includes('מקצה לקצה') && !body.includes('WebAuthn'));
 
 // אשף 5-השלבים (SIGNUP3) — מעבר מלא: תחום→גודל→צרכים→קשר
 await page.locator('.orbit-card button', { hasText: 'קליניקה' }).first().click();

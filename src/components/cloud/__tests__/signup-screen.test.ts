@@ -55,8 +55,8 @@ describe('🪐 ratchet — SIGNUP: מסך ההרשמה של אורביט', () =>
       expect(src).not.toContain('Google');
       expect(src).not.toContain('Apple');
     }
-    // הבאדג' הוחלף להצהרה אמיתית
-    expect(loginSrc).toContain('הצפנה במנוחה');
+    // הבאדג' הוחלף להצהרה אמיתית (6.11: ההצפנה opt-in ⇒ "לפי בחירה"; ראו security-claim.test)
+    expect(loginSrc).toContain('הצפנה לפי בחירה');
     expect(loginSrc).not.toContain('SOC 2');
   });
 
