@@ -1,0 +1,20 @@
+{
+  "name": "maor",
+  "build": "npm run build",
+  "verify": "npm test",
+  "gates": [
+    {
+      "name": "lint",
+      "cmd": "npm run lint"
+    }
+  ],
+  "mandatory": [
+    "in_scope",
+    "build",
+    "no_hand_edit",
+    "gates",
+    "verify"
+  ],
+  "state_dir": ".harness",
+  "timeout_s": 900
+}

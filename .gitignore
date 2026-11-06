@@ -23,3 +23,7 @@ e2e/shots-kh/
 e2e/shots-swarm/
 e2e/shots-mob/
 e2e/proof-shots/
+
+# >>> agent-police >>>
+.harness/
+# <<< agent-police <<<
