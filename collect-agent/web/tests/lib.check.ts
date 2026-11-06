@@ -165,3 +165,13 @@ test('v2: בלי וואטסאפ בדף התשלום ובדף הנחיתה; הכ�
   assert.ok(['bit:', 'apple_pay:', 'card:'].every(k => pay.includes(k)), 'Bit · Apple Pay · כרטיס');
   assert.doesNotMatch(pay + land, /וואטסאפ|WhatsApp/i);
 });
+
+test('הכרעות מאיר 6.11: מחיר כולל מע״מ, שנתי, אזהרת מסלול morning (הערכה) במסך החיבור ובשאלות', () => {
+  const land = readFileSync(new URL('../src/pages/Landing.tsx', import.meta.url), 'utf8');
+  const sign = readFileSync(new URL('../src/pages/Signup.tsx', import.meta.url), 'utf8');
+  const NOTE = 'ייתכן שנדרש מסלול Best ומעלה ב-morning; יש לאמת מול הספק';
+  assert.ok(sign.includes(NOTE), 'מסך החיבור חייב לציין שזמינות ה-API לפי מסלול לא מאומתת');
+  assert.ok(land.includes(NOTE), 'גם בשאלות הנפוצות');
+  assert.ok(/yearly:\s*1190/.test(land) && land.includes('כולל מע״מ ככל שחל'));
+  assert.doesNotMatch(land, /לפני מע״מ/);
+});
