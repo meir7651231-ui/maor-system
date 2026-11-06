@@ -31,6 +31,7 @@ export async function detectBackend(): Promise<Health | null> {
 
 export interface DashRow {
   invoice_id: number; number: string; customer: string; phone: string; email: string;
+  customer_id?: number; paused_reason?: string | null;
   amount_agorot: number; currency: string; due: string | null; status: 'open' | 'closed' | string;
   days_overdue: number; reminders_sent: number;
   last_reminder: null | { id: number; step: number; status: string; template_key: string; sent_at: string | null; block_reason: string | null };
@@ -47,6 +48,7 @@ export interface PreviewMsg {
   length?: { chars: number; encoding: string; segments: number };
 }
 export interface Preview { reminder_id: number; status: string; block_reason: string | null; template_key: Step; scheduled_for: string; messages: PreviewMsg[] }
+export interface Plan { id: number; customer_id: number; invoice_id: number; status: string; installments: { n: number; due: string; amount_agorot: number }[] }
 export interface OutMsg { id: string; channel: 'sms' | 'email'; to: string; body: string }
 
 export const api = {
@@ -56,6 +58,9 @@ export const api = {
   approve: (rid: number) => j<unknown>(`/reminders/${rid}/approve`, { method: 'POST' }),
   dispatch: () => j<{ dry_run: true; sent: unknown[] }>('/dispatch', { method: 'POST' }),
   outbox: () => j<{ dry_run: true; messages: OutMsg[] }>('/outbox'),
+  resume: (cid: number) => j<unknown>(`/customers/${cid}/resume`, { method: 'POST' }),
+  plans: () => j<Plan[]>('/plans'),
+  approvePlan: (pid: number) => j<{ text: string }>(`/plans/${pid}/approve`, { method: 'POST' }),
   inbound: (channel: 'sms' | 'email', sender: string, text: string) =>
     j<{ intent: string; escalate?: boolean; auto_reply?: string | null }>('/inbound', { method: 'POST', body: JSON.stringify({ channel, sender, text }) }),
 };
@@ -73,7 +78,8 @@ export function fromDashboard(d: Dashboard, pending: { id: number; invoice_id: n
   for (const p of pending) pendingBy.set(String(p.invoice_id), { reminderId: p.id, block: p.block_reason });
   for (const r of d.invoices) {
     const cid = `c${r.invoice_id}`;
-    customers.push({ id: cid, name: r.customer, phone: r.phone || undefined, email: r.email || undefined, optedOut: r.customer_block === 'opted_out' });
+    customers.push({ id: cid, name: r.customer, phone: r.phone || undefined, email: r.email || undefined, optedOut: r.customer_block === 'opted_out',
+      backendId: r.customer_id, paused: r.paused_reason ?? null });
     const status: InvoiceStatus = r.status !== 'open' ? 'paid'
       : r.customer_block === 'disputed' ? 'disputed'
       : r.customer_block === 'paid_claim' || r.customer_block === 'plan_active' ? 'promised'

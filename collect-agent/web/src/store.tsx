@@ -4,7 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { DEMO_TODAY, demoBusiness, demoCustomers, demoInvoices } from './data/demo.ts';
 import type { Business, Channel, Customer, Invoice, Step } from './lib/domain.ts';
 import { needsReminder } from './lib/stats.ts';
-import { api, detectBackend, fromDashboard, type Dashboard, type Health, type OutMsg } from './api.ts';
+import { api, detectBackend, fromDashboard, type Dashboard, type Health, type OutMsg, type Plan } from './api.ts';
 
 export type Mode = 'loading' | 'live' | 'mock';
 interface Ctx {
@@ -20,6 +20,7 @@ interface Ctx {
   pendingOf: (invoiceId: string) => { reminderId: number; block: string | null } | undefined;
   totals: Dashboard['totals'] | null;
   outbox: OutMsg[];
+  plans: Plan[];
   customerOf: (id: string) => Customer;
   approveAndSend: (invoiceId: string, step: Step, channels: Channel[]) => Promise<void>;
   markPaid: (invoiceId: string) => void;
@@ -39,14 +40,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [pendingBy, setPendingBy] = useState(new Map<string, { reminderId: number; block: string | null }>());
   const [totals, setTotals] = useState<Dashboard['totals'] | null>(null);
   const [outbox, setOutbox] = useState<OutMsg[]>([]);
+  const [plans, setPlans] = useState<Plan[]>([]);
   const [toast, setToast] = useState<string | null>(null);
   const showToast = useCallback((t: string) => { setToast(t); window.setTimeout(() => setToast(null), 3600); }, []);
 
   const reload = useCallback(async () => {
-    const [d, p, o] = await Promise.all([api.dashboard(), api.pending(), api.outbox()]);
+    const [d, p, o, pl] = await Promise.all([api.dashboard(), api.pending(), api.outbox(), api.plans()]);
     const m = fromDashboard(d, p);
     setCustomers(m.customers); setInvoices(m.invoices); setPendingBy(m.pendingBy); setToday(m.today);
-    setTotals(d.totals); setOutbox(o.messages);
+    setTotals(d.totals); setOutbox(o.messages); setPlans(pl);
     // שם העסק בחי = הקידומת של הודעות השרת ("סטודיו דמו: …") — כך הממשק לא ממציא שם
     const biz = o.messages.find(x => x.channel === 'sms')?.body.split(':')[0];
     if (biz && biz.length < 40) setBusiness(b => ({ ...b, name: biz, ownerName: biz }));
@@ -71,7 +73,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const live = mode === 'live';
     const customerOf = (id: string) => customers.find(c => c.id === id)!;
     return {
-      mode, health, today, business, setBusiness, customers, invoices, totals, outbox, reload, toast, showToast, customerOf,
+      mode, health, today, business, setBusiness, customers, invoices, totals, outbox, plans, reload, toast, showToast, customerOf,
       queue: live ? invoices.filter(i => pendingBy.has(i.id)) : needsReminder(invoices, today),
       pendingOf: id => pendingBy.get(id),
       approveAndSend: async (id, step, channels) => {
@@ -92,7 +94,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       },
       markPaid: id => { setInvoices(l => l.map(i => i.id === id ? { ...i, status: 'paid' } : i)); showToast('סומן כשולם 🎉'); },
     };
-  }, [mode, health, today, business, customers, invoices, pendingBy, totals, outbox, reload, toast, showToast]);
+  }, [mode, health, today, business, customers, invoices, pendingBy, totals, outbox, plans, reload, toast, showToast]);
   return <C.Provider value={value}>{children}</C.Provider>;
 }
 export const useApp = () => {

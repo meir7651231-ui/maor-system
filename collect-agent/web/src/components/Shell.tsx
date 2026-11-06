@@ -14,7 +14,8 @@ export function Shell({ route, children }: { route: Route; children: ReactNode }
   const pending = queue.length;
   return (
     <div className="min-h-screen md:flex">
-      <aside className="md:w-64 md:h-screen md:overflow-y-auto bg-ink-900 text-white md:sticky md:top-0 flex md:flex-col shrink-0">
+      <aside className="md:w-64 bg-ink-900 text-white shrink-0">
+        <div className="flex md:flex-col md:sticky md:top-0 md:h-screen md:overflow-y-auto">
         <div className="p-4 md:p-6 hidden md:block"><button onClick={() => go('landing')} className="cursor-pointer"><Logo dark /></button></div>
         <nav className="flex md:flex-col gap-1 p-2 md:px-3 w-full overflow-x-auto" aria-label="ניווט ראשי">
           {NAV.map(n => (
@@ -31,6 +32,7 @@ export function Shell({ route, children }: { route: Route; children: ReactNode }
             <div className="font-bold">{business.name}</div>
             <div className="text-xs text-brand mt-1" data-testid="mode">{mode === 'live' ? '● מחובר לשרת גבי · dry-run' : mode === 'mock' ? '● מצב דמו (מוק) — אין שליחה' : '… בודק חיבור לשרת'}</div>
           </div>
+        </div>
         </div>
       </aside>
       <main className="flex-1 min-w-0 p-4 md:p-8 max-w-6xl">{children}</main>

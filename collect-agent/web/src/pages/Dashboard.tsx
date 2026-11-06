@@ -39,7 +39,7 @@ export function Dashboard() {
           : <Kpi label="נגבה החודש" value={fmtIls(demoCollectedByMonth.at(-1)!.amount)} sub="מאז 1.11" tone="good" />}
       </div>
 
-      <div className="grid lg:grid-cols-[1.5fr_1fr] gap-6">
+      <div className="grid lg:grid-cols-[1.5fr_1fr] gap-6 items-start">
         <Card className="p-5">
           <h2 className="text-lg font-extrabold mb-1">תור האישורים של היום</h2>
           <p className="text-sm text-ink-500 mb-4">גבי הכין את ההודעות. תסתכל/י, תאשר/י — והוא שולח בשעות המותרות.</p>
@@ -72,7 +72,7 @@ export function Dashboard() {
               ))}
             </ul>
           </Card>
-          {live ? <><Outbox /><ReplySim /></> : <Card className="p-5">
+          {live ? <><NeedsYou /><Outbox /><ReplySim /></> : <Card className="p-5">
             <h2 className="text-lg font-extrabold mb-3">נגבה לפי חודש</h2>
             <div className="flex items-end gap-2 h-32">
               {demoCollectedByMonth.map(m => (
@@ -158,6 +158,58 @@ function ReplySim() {
         }}>שלח תשובה (סימולציה)</Button>
         {res && <p className="text-sm rounded-lg bg-brand-50 text-brand-700 p-2.5" data-testid="reply-result">{res}</p>}
       </div>
+    </Card>
+  );
+}
+
+const PAUSE_LABEL: Record<string, string> = { paid_claim: 'כתב/ה ששילם/ה — בדקו בחשבון ואז חדשו' };
+/** "דורש טיפול": לקוחות מושהים (חידוש בלחיצה כפולה) + הצעות פריסה שממתינות לאישורך. */
+function NeedsYou() {
+  const { customers, invoices, plans, reload, showToast } = useApp();
+  const [armed, setArmed] = useState<string | null>(null);
+  const seen = new Set<number>();
+  const paused = customers.filter(c => c.paused && c.backendId != null && !seen.has(c.backendId) && seen.add(c.backendId));
+  const proposed = plans.filter(p => p.status === 'proposed');
+  const nameOfCustomer = (bid: number) => customers.find(c => c.backendId === bid)?.name ?? `לקוח ${bid}`;
+  const numOf = (iid: number) => invoices.find(i => i.id === String(iid))?.number ?? String(iid);
+  const act = async (key: string, fn: () => Promise<unknown>, done: string) => {
+    if (armed !== key) { setArmed(key); window.setTimeout(() => setArmed(a => a === key ? null : a), 4000); return; }
+    setArmed(null);
+    try { await fn(); await reload(); showToast(done); } catch (e) { showToast(`לא בוצע: ${(e as Error).message}`); }
+  };
+  if (!paused.length && !proposed.length) return null;
+  return (
+    <Card className="p-5 border-amber-200" >
+      <h2 className="text-lg font-extrabold mb-1">דורש טיפול שלך</h2>
+      <p className="text-xs text-ink-500 mb-3">גבי עצר כאן ומחכה להחלטה שלך. אישור = לחיצה כפולה.</p>
+      <ul className="space-y-2.5" data-testid="needs-you">
+        {paused.map(c => (
+          <li key={`c${c.backendId}`} className="rounded-lg bg-amber-50 p-3 text-sm">
+            <div className="font-bold">⏸ {c.name}</div>
+            <div className="text-ink-700 text-xs mt-0.5">{PAUSE_LABEL[c.paused!] ?? `מושהה: ${c.paused}`}</div>
+            <Button size="sm" variant={armed === `r${c.backendId}` ? 'dark' : 'outline'} className="mt-2"
+              onClick={() => act(`r${c.backendId}`, () => api.resume(c.backendId!), `התזכורות ל${c.name} חודשו`)}>
+              {armed === `r${c.backendId}` ? 'לחצו שוב לאישור' : '↻ חידוש תזכורות'}
+            </Button>
+          </li>
+        ))}
+        {proposed.map(p => {
+          const total = p.installments.reduce((s, x) => s + x.amount_agorot, 0) / 100;
+          return (
+            <li key={`p${p.id}`} className="rounded-lg bg-brand-50 p-3 text-sm">
+              <div className="font-bold">💳 הצעת פריסה · {nameOfCustomer(p.customer_id)} · חשבונית <span className="num">{numOf(p.invoice_id)}</span></div>
+              <div className="text-xs text-ink-700 mt-0.5">{p.installments.length} תשלומים ללא ריבית · סה״כ {fmtIls(total)}</div>
+              <ol className="text-xs text-ink-500 mt-1 space-y-0.5">
+                {p.installments.map(x => <li key={x.n}><span className="num">{x.n}. {x.due.split('-').reverse().join('.')}</span> — {fmtIls(x.amount_agorot / 100)}</li>)}
+              </ol>
+              <Button size="sm" variant={armed === `p${p.id}` ? 'dark' : 'primary'} className="mt-2"
+                onClick={() => act(`p${p.id}`, () => api.approvePlan(p.id), 'ההצעה אושרה ונשלחה ללקוח (dry-run)')}>
+                {armed === `p${p.id}` ? 'לחצו שוב לאישור' : '✓ אישור ההצעה'}
+              </Button>
+            </li>
+          );
+        })}
+      </ul>
     </Card>
   );
 }
