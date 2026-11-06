@@ -22,7 +22,7 @@ from .config import SafetyError, Settings, load_settings
 from .db import DB
 from .greeninvoice import GreenInvoiceClient
 from .ratelimit import RateLimiter, group_for
-from .service import CollectService
+from .service import CollectService, RealDataBlocked
 from .templates import SLOGAN, TAGLINE
 
 UI_HTML = (Path(__file__).parent / "ui.html").read_text(encoding="utf-8")
@@ -450,6 +450,8 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
     async def settings_source_csv(request: Request):
         try:
             r = svc.import_csv(await request.body())
+        except RealDataBlocked as e:
+            raise HTTPException(403, str(e)) from e
         except (ValueError, UnicodeDecodeError) as e:
             raise HTTPException(400, str(e)) from e
         return {"imported": r["imported"],
@@ -461,6 +463,8 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         raw = await request.body()
         try:
             return svc.import_csv(raw)
+        except RealDataBlocked as e:
+            raise HTTPException(403, str(e)) from e
         except (ValueError, UnicodeDecodeError) as e:
             raise HTTPException(400, str(e)) from e
 

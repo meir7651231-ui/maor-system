@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 import secrets
 import sqlite3
 from collections.abc import Callable
@@ -60,6 +61,24 @@ def build_dry_sender(s: Settings) -> DryRunSender:
 
 
 TRIAL_WARN_DAYS = 3
+
+class RealDataBlocked(PermissionError):
+    """שער בטא 4: נתונים שאינם דמו מסומן נחסמים כל עוד REAL_DATA_ALLOWED כבוי."""
+
+
+REAL_DATA_MSG = ("שלב בטא (dry-run): מותרים רק נתוני דמו מסומנים (טלפון 05X-000XXXX, מייל בדומיין example.*). "
+                 "נתונים אמיתיים חסומים עד שמתקיימים שערי legal/BETA-GATE.md. לא נשמר דבר.")
+_SYN_PHONE = re.compile(r"^(?:\+?972|0)5\d0000\d{3}$")
+
+
+def is_synthetic_contact(phone: str, email: str) -> bool:
+    """טלפון בטווח הדמו 05X-000XXXX (או ריק) ומייל בדומיין example.* (או ריק). חייב לפחות אחד."""
+    ph = re.sub(r"[\s\-()]", "", phone or "")
+    em = (email or "").strip().lower()
+    ok_p = not ph or bool(_SYN_PHONE.match(ph))
+    ok_e = not em or bool(re.fullmatch(r"[^@\s]+@(?:[\w-]+\.)*example\.(?:com|org|net)", em))
+    return ok_p and ok_e
+
 
 class CollectService:
     def __init__(self, settings: Settings, db: DB, *, sender: DryRunSender | None = None,
@@ -207,6 +226,11 @@ class CollectService:
         """חלופה ל-API: ייבוא חלקי (לא סוגר חשבוניות שלא בקובץ). שגיאות לפי שורה."""
         from . import csv_import
         res = csv_import.parse(raw)
+        if not self.s.real_data_allowed:
+            bad = [i.number for i in res.invoices if not is_synthetic_contact(i.client_phone, i.client_email)]
+            if bad:
+                self.audit(actor, "csv_import_blocked", {"rows": len(bad)})
+                raise RealDataBlocked(REAL_DATA_MSG)
         counts = self.ingest(res.invoices, source="csv", full=False)
         self.audit(actor, "csv_import", {"rows": len(res.invoices), "errors": len(res.errors)})
         return {"imported": counts["open"], "errors": res.errors}

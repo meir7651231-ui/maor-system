@@ -65,6 +65,7 @@ class Settings:
     trial_days: int = 14
     price_ils_month: int = 119    # הכרעת מאיר 6.11: ₪119/חודש או ₪1,190/שנה, כולל מע״מ ככל שחל
     price_ils_year: int = 1190
+    real_data_allowed: bool = False  # שער בטא 4 (legal/BETA-GATE.md): כבוי ⇒ ייבוא רק של נתוני דמו מסומנים
     sms_two_way: bool = False   # True רק כשיש מספר וירטואלי שמקבל תשובות (אחרת: "להפסקה: בקישור")
     sms_webhook_key: str = field(default="", repr=False)     # סוד ב-URL של ה-webhook (?k=...) — חסר ⇒ ה-webhook סגור
     email_webhook_key: str = field(default="", repr=False)   # סוד ל-/webhooks/email?k=... — חסר ⇒ סגור
@@ -160,6 +161,7 @@ def load_settings(env: dict[str, str] | None = None) -> Settings:
         email_webhook_key=e.get("EMAIL_WEBHOOK_KEY", ""),
         trial_start=e.get("TRIAL_START", ""),
         trial_days=int(e.get("TRIAL_DAYS", "14")),
+        real_data_allowed=e.get("REAL_DATA_ALLOWED", "0").strip().lower() in ("1", "true", "yes"),
         sms_two_way=e.get("SMS_TWO_WAY", "0").strip().lower() in ("1", "true", "yes"),
         email_from=e.get("EMAIL_FROM", "no-reply@example.com"),
         email_reply_to=e.get("EMAIL_REPLY_TO", ""),

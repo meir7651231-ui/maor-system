@@ -118,7 +118,8 @@ def svc(gi_client, clock):
                        "PAYMENT_LINK": "https://www.greeninvoice.co.il/pay/studio",
                        "PUBLIC_BASE_URL": "https://gabi.example",
                        "SMS_WEBHOOK_KEY": "whk-test", "EMAIL_REPLY_TO": "owner@studio.example",
-                       "EMAIL_WEBHOOK_KEY": "ewk-test"})
+                       "EMAIL_WEBHOOK_KEY": "ewk-test",
+                       "REAL_DATA_ALLOWED": "1"})   # בדיקות הלוגיקה; השער עצמו נבדק ב-test_real_data_gate
     return CollectService(s, DB(":memory:"), gi=gi_client, clock=clock)
 
 
