@@ -143,3 +143,18 @@ def test_backup_into_itself_or_existing_file_refused(tmp_path, monkeypatch):
     with _pytest.raises(_SE):
         _bk.main(["x", "create", str(db), str(other)])
     assert other.read_text() == "לא לדרוס"
+
+
+def test_rotate_deletes_backups_older_than_30_days_but_keeps_newest(tmp_path):
+    """תיקון (מבקר סבב 9): שמירה לפי ספירה בלבד השאירה גיבוי ישן מ-30 יום (מדיניות PRIVACY §10)."""
+    from datetime import UTC, datetime
+
+    from app.backup import rotate_backups
+    for stamp in ("20260101T000000Z", "20261001T000000Z", "20261030T000000Z"):
+        (tmp_path / f"gabi-{stamp}.gbk").write_bytes(b"x")
+    gone = rotate_backups(tmp_path, keep=14, now=datetime(2026, 11, 6, tzinfo=UTC))
+    assert [p.name for p in gone] == ["gabi-20260101T000000Z.gbk", "gabi-20261001T000000Z.gbk"]
+    assert (tmp_path / "gabi-20261030T000000Z.gbk").exists()
+    # הכול ישן ⇒ החדש ביותר נשאר
+    gone = rotate_backups(tmp_path, keep=14, now=datetime(2027, 6, 1, tzinfo=UTC))
+    assert gone == [] and (tmp_path / "gabi-20261030T000000Z.gbk").exists()

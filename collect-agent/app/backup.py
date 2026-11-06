@@ -77,12 +77,32 @@ PREFIX = "gabi-"
 SUFFIX = ".gbk"
 
 
-def rotate_backups(directory: str | Path, keep: int) -> list[Path]:
-    """משאיר את ``keep`` הגיבויים החדשים (לפי שם = חותמת זמן) ומוחק את הישנים. מחזיר את שנמחקו."""
+MAX_AGE_DAYS = 30  # PRIVACY §10 / DPA §4.3: גיבויים נשמרים עד 30 יום
+
+
+def _stamp_dt(p: Path):
+    from datetime import datetime
+    try:
+        return datetime.strptime(p.name[len(PREFIX):-len(SUFFIX)], "%Y%m%dT%H%M%SZ").replace(tzinfo=UTC)
+    except ValueError:
+        return None
+
+
+def rotate_backups(directory: str | Path, keep: int, max_age_days: int | None = MAX_AGE_DAYS,
+                   now=None) -> list[Path]:
+    """משאיר את ``keep`` הגיבויים החדשים (לפי שם = חותמת זמן) ומוחק את הישנים. בנוסף נמחק כל גיבוי
+    בן יותר מ-``max_age_days`` (מדיניות 30 יום) — מלבד החדש ביותר (לא נשארים בלי גיבוי). מחזיר את שנמחקו."""
+    from datetime import datetime, timedelta
     if keep < 1:
         raise ValueError("keep חייב להיות ≥1 (לא מוחקים את כל הגיבויים)")
     files = sorted(p for p in Path(directory).glob(f"{PREFIX}*{SUFFIX}") if p.is_file())
     old = files[:-keep]
+    if max_age_days is not None and files:
+        cutoff = (now or datetime.now(UTC)) - timedelta(days=max_age_days)
+        for p in files[:-1]:
+            t = _stamp_dt(p)
+            if t is not None and t < cutoff and p not in old:
+                old.append(p)
     for p in old:
         p.unlink()
     return old
