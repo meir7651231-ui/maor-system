@@ -27,7 +27,7 @@ trap 'kill $PID 2>/dev/null || true; rm -f "$LOG"' EXIT
 for _ in $(seq 1 60); do curl -sf "http://127.0.0.1:${PORT}/health" >/dev/null && break; sleep 0.25; done
 cat "$LOG"
 python3 - "$PORT" <<'PY'
-import json, sys, urllib.request
+import json, sys, urllib.error, urllib.request
 base = f"http://127.0.0.1:{sys.argv[1]}"
 get = lambda p: urllib.request.urlopen(base + p, timeout=5).read().decode()
 h = json.loads(get("/health")); assert h["dry_run"] is True, h
@@ -36,7 +36,18 @@ assert t["open_invoices"] == 5 and t["closed_invoices"] == 1, t
 assert t["sent_sms"] >= 3 and t["sent_email"] >= 3 and t["pending_approval"] >= 1, t
 out = json.loads(get("/outbox"))["messages"]
 assert all(m["channel"] in ("sms", "email") for m in out)
-assert any("pay.example/gabi-demo" in m["body"] for m in out), "חסר קישור תשלום דמו"
+assert any("pay.example/gabi-demo" in m["body"] for m in out if m["channel"] == "email"), "חסר קישור תשלום דמו"
+sms = [m for m in out if m["channel"] == "sms" and "/p/" in m["body"]]
+assert sms and all(m["length"]["segments"] <= 2 for m in sms), "SMS ארוך מ-2 חלקים"
+code = sms[0]["body"].split("/p/")[1].split()[0]
+page = get(f"/p/{code}"); assert "לתשלום מאובטח" in page and "הפסקת תזכורות" in page
+class NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, *a, **k): return None
+try:
+    urllib.request.build_opener(NoRedirect).open(f"{base}/p/{code}/pay", timeout=5); loc = None
+except urllib.error.HTTPError as e:
+    loc = e.headers.get("location")
+assert loc and loc.startswith("https://pay.example/gabi-demo"), loc
 ui = get("/ui"); assert 'id="debts"' in ui and 'id="kpis"' in ui
 la = get("/landing"); assert "₪119" in la and 'href="/ui"' in la, "דף הנחיתה לא תקין"
 import os

@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { daysOverdue, fmtIls, fmtPhone, isIlMobile, agingOf } from '../src/lib/format.ts';
-import { buildSms, buildEmail, smsSegments, nextStep, requiresApproval, demoUnsubUrl, TEMPLATES } from '../src/lib/message.ts';
+import { buildSms, buildEmail, smsSegments, nextStep, requiresApproval, demoUnsubUrl, demoShortUrl, TEMPLATES } from '../src/lib/message.ts';
 import { readFileSync } from 'node:fs';
 import { canSendAt, nextAllowed } from '../src/lib/policy.ts';
 import { kpis, needsReminder, agingBuckets } from '../src/lib/stats.ts';
@@ -18,14 +18,15 @@ test('format', () => {
   assert.equal(agingOf(0), 'notDue'); assert.equal(agingOf(31), 'd31_60'); assert.equal(agingOf(91), 'd90p');
 });
 
-test('כל SMS בכל שלב כולל קישור תשלום ושורת הסרה, ובלי מילות שיווק', () => {
+test('כל SMS בכל שלב כולל קישור קצר (תשלום+הסרה) ושורת הפסקה, ובלי מילות שיווק', () => {
   for (const step of ['friendly', 'second', 'plan_offer', 'final'] as const) {
     const s = buildSms(inv, cust, demoBusiness, step);
-    assert.ok(s.includes(inv.payUrl), step);
-    assert.ok(s.endsWith(demoUnsubUrl(cust)), step);
+    // סבב 3 בבקאנד: SMS = קישור קצר אחד /p/{code} (עמוד תשלום+פריסה+הפסקה) ⇒ ≤2 חלקים
+    assert.ok(s.includes(demoShortUrl(inv)), step);
+    assert.ok(s.endsWith('להפסקה: בקישור'), step);
     assert.ok(s.startsWith(demoBusiness.name + ':'), 'מזהה את העסק');
     assert.doesNotMatch(s, /מבצע|הנחה|הטבה|מתנה|קופון|הזדמנות|הוצאה לפועל|תביעה|משטרה|עו"ד|עורך דין/, step);
-    assert.ok(smsSegments(s).segments <= 4, `${step}: ${smsSegments(s).chars} תווים`);
+    assert.ok(smsSegments(s).segments <= 3, `${step}: ${smsSegments(s).chars} תווים`);
     const e = buildEmail(inv, cust, demoBusiness, step);
     assert.ok(e.subject.includes(inv.number) && e.paragraphs.join().includes(inv.payUrl));
   }

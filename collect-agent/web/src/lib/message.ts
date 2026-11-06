@@ -9,6 +9,11 @@ export const STEP_LABEL: Record<Step, string> = {
 export const STEP_ORDER: Step[] = ['friendly', 'second', 'plan_offer', 'final'];
 /** כתובת הסרה בדמו (בבקאנד: `{PUBLIC_BASE_URL}/u/{unsub_token}`, service.unsub_url). */
 export const demoUnsubUrl = (c: Customer) => `https://gabi.example/u/${c.id}`;
+/** קישור קצר בדמו (בבקאנד: `{PUBLIC_BASE_URL}/p/{short_code}`, 7 תווים, service.short_url). */
+export const demoShortUrl = (inv: Invoice) => `https://gabi.example/p/${inv.id.padEnd(7, 'x').slice(0, 7)}`;
+const ORG = /בע["״]?מ|חברת|עמותת|מרפאת|משרד|סטודיו|קבוצת|ltd|inc|llc/i;
+/** מראה של templates.first_name: שם פרטי; שם ארגון ⇒ מלא. */
+export const firstName = (name: string) => { const n = (name || '').trim(); return !n ? '' : ORG.test(n) ? n : n.split(/\s+/)[0]; };
 
 /** השלב הבא לפי מספר התזכורות שכבר נשלחו. */
 export const nextStep = (inv: Invoice): Step => STEP_ORDER[Math.min(inv.reminders.length, 3)];
@@ -16,26 +21,27 @@ export const nextStep = (inv: Invoice): Step => STEP_ORDER[Math.min(inv.reminder
 export const requiresApproval = (step: Step, b: Business, isFirstToCustomer: boolean) =>
   step === 'final' || isFirstToCustomer || !b.autoApprove;
 
-// ⚠️ מראה מדויקת של app/templates.py STEPS (שדות {biz} {name} {num} {amount} {link} {unsub}).
+// ⚠️ מראה מדויקת של app/templates.py STEPS (שדות {biz} {name} {first} {num} {amount} {link} {unsub} {short} {stop} {ask} {plan_cta}).
+// SMS: קישור קצר אחד `{PUBLIC_BASE_URL}/p/{code}` (עמוד תשלום/פריסה/שילמתי/הפסקה) ⇒ ≤2 חלקים.
 // שינוי נוסח = לשנות קודם בבקאנד (שם נאכפים MARKETING_WORDS/THREAT_WORDS) ואז כאן.
 export const TEMPLATES: Record<Step, { sms: string; subject: string; email: string }> = {
   friendly: {
-    sms: '{biz}: שלום {name}, תזכורת ידידותית - חשבונית {num} על {amount} טרם שולמה. לתשלום: {link} להסרה: {unsub}',
+    sms: '{biz}: שלום {first}, חשבונית {num} ע"ס {amount} טרם סומנה כשולמה. לתשלום: {short} {stop}',
     subject: 'תזכורת ידידותית: חשבונית {num} מ-{biz}',
     email: 'שלום {name},\n\nזו תזכורת ידידותית שחשבונית {num} על סך {amount} טרם סומנה כשולמה.\nאפשר לשלם בקישור: {link}\n\nאם כבר שילמתם — תודה רבה, ואפשר להתעלם מהודעה זו.\n\nבברכה,\n{biz}',
   },
   second: {
-    sms: '{biz}: שלום {name}, חשבונית {num} על {amount} עדיין פתוחה. לתשלום: {link} לשאלות השיבו להודעה. להסרה: {unsub}',
+    sms: '{biz}: שלום {first}, חשבונית {num} ע"ס {amount} פתוחה. לתשלום: {short}{ask} {stop}',
     subject: 'חשבונית {num} מ-{biz} עדיין פתוחה',
     email: 'שלום {name},\n\nחשבונית {num} על סך {amount} עדיין פתוחה.\nלתשלום: {link}\n\nאם יש שאלה, או אם נוח לכם לפרוס את הסכום — פשוט השיבו למייל הזה.\n\nבברכה,\n{biz}',
   },
   plan_offer: {
-    sms: '{biz}: שלום {name}, אפשר לפרוס את חשבונית {num} ({amount}) לתשלומים ללא תוספת - השיבו פריסה. לתשלום: {link} להסרה: {unsub}',
+    sms: '{biz}: {first}, אפשר לפרוס את חשבונית {num} ({amount}) ללא תוספת. {plan_cta}: {short} {stop}',
     subject: 'אפשרות פריסה לחשבונית {num}',
     email: 'שלום {name},\n\nרצינו לוודא שהכול בסדר לגבי חשבונית {num} ({amount}).\nאם נוח לכם, אפשר לפרוס את הסכום לכמה תשלומים ללא כל תוספת — השיבו "פריסה".\nלתשלום מלא: {link}\n\nבברכה,\n{biz}',
   },
   final: {
-    sms: '{biz}: שלום {name}, תזכורת אוטומטית אחרונה לחשבונית {num} ({amount}). נחזור אליכם אישית. לתשלום: {link} להסרה: {unsub}',
+    sms: '{biz}: {first}, תזכורת אוטומטית אחרונה לחשבונית {num} ({amount}). לתשלום: {short} {stop}',
     subject: 'תזכורת אחרונה: חשבונית {num} מ-{biz}',
     email: 'שלום {name},\n\nזו התזכורת האוטומטית האחרונה לגבי חשבונית {num} ({amount}).\nבעל העסק ייצור איתכם קשר אישית בהמשך.\nלתשלום: {link}\n\nבברכה,\n{biz}',
   },
@@ -44,7 +50,10 @@ export const TEMPLATES: Record<Step, { sms: string; subject: string; email: stri
 export const fmtAmountBackend = (ils: number) => `${Math.round(ils).toLocaleString('en-US')} ₪`;
 
 function fields(inv: Invoice, c: Customer, b: Business): Record<string, string> {
-  return { biz: b.name, name: c.name || 'לקוח/ה יקר/ה', num: inv.number, amount: fmtAmountBackend(inv.amount), link: inv.payUrl, unsub: demoUnsubUrl(c) };
+  // מראה של templates.fields (two_way=False — שם שולח אלפאנומרי)
+  return { biz: b.name, name: c.name || 'לקוח/ה יקר/ה', first: firstName(c.name) || 'שלום', num: inv.number,
+    amount: fmtAmountBackend(inv.amount), link: inv.payUrl, unsub: demoUnsubUrl(c), short: demoShortUrl(inv),
+    stop: 'להפסקה: בקישור', ask: '', plan_cta: 'פריסה/תשלום' };
 }
 const fill = (t: string, f: Record<string, string>) => t.replace(/\{(\w+)\}/g, (_, k: string) => f[k] ?? `{${k}}`);
 

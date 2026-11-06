@@ -163,7 +163,7 @@ function HeroPhone() {
         <div className="p-3 space-y-2 text-ink-900 text-[13px] leading-relaxed min-h-72">
           <div className="text-[10px] text-center text-ink-500">היום 09:00</div>
           <div className="bg-white rounded-2xl rounded-tr-md px-3 py-2 shadow-sm max-w-[90%]">
-            סטודיו לוטם עיצוב: שלום אבי, תזכורת ידידותית - חשבונית 1042 על 4,680 ₪ טרם שולמה. לתשלום: <span className="text-info underline">pay.example/i/1042</span> להסרה: <span className="text-info underline">gabi.example/u/c1</span>
+            סטודיו לוטם עיצוב: שלום אבי, חשבונית 1042 ע"ס 4,680 ₪ טרם סומנה כשולמה. לתשלום: <span className="text-info underline">gabi.example/p/k3T9xQa</span> להפסקה: בקישור
           </div>
           <div className="bg-brand text-ink-900 rounded-2xl rounded-tl-md px-3 py-2 max-w-[70%] mr-auto">תודה, משלם עכשיו 🙏</div>
           <div className="bg-white rounded-xl px-3 py-2 shadow-sm flex items-center gap-2 text-xs"><span className="text-brand-600 text-base">✓</span> שולם · ₪4,680 · התזכורות נעצרו</div>

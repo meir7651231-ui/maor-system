@@ -42,7 +42,12 @@ class Settings:
     email_from: str = "no-reply@example.com"
     email_reply_to: str = ""
     public_base_url: str = "https://gabi.example"   # לקישורי הסרה
-    sms_webhook_key: str = ""   # סוד ב-URL של ה-webhook (?k=...) — חסר ⇒ ה-webhook סגור
+    trial_start: str = ""        # ISO; ריק ⇒ אין מגבלת ניסיון (מנוי פעיל / הדגמה)
+    trial_days: int = 14
+    price_ils_month: int = 119    # השערת תמחור (הנחיית מנהל 6.11.2026)
+    sms_two_way: bool = False   # True רק כשיש מספר וירטואלי שמקבל תשובות (אחרת: "להפסקה: בקישור")
+    sms_webhook_key: str = ""     # סוד ב-URL של ה-webhook (?k=...) — חסר ⇒ ה-webhook סגור
+    email_webhook_key: str = ""   # סוד ל-/webhooks/email?k=... — חסר ⇒ סגור
     payment_link_mode: str = "greeninvoice_form"    # greeninvoice_form | static
     payment_domains: tuple[str, ...] = ("greeninvoice.co.il", "morning.co")
 
@@ -94,6 +99,10 @@ def load_settings(env: dict[str, str] | None = None) -> Settings:
         sms_username=e.get("SMS_USERNAME", ""),
         sms_token=e.get("SMS_TOKEN", ""),
         sms_webhook_key=e.get("SMS_WEBHOOK_KEY", ""),
+        email_webhook_key=e.get("EMAIL_WEBHOOK_KEY", ""),
+        trial_start=e.get("TRIAL_START", ""),
+        trial_days=int(e.get("TRIAL_DAYS", "14")),
+        sms_two_way=e.get("SMS_TWO_WAY", "0").strip().lower() in ("1", "true", "yes"),
         email_from=e.get("EMAIL_FROM", "no-reply@example.com"),
         email_reply_to=e.get("EMAIL_REPLY_TO", ""),
         public_base_url=e.get("PUBLIC_BASE_URL", "https://gabi.example").rstrip("/"),

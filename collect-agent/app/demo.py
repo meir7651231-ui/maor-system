@@ -11,6 +11,7 @@
 from __future__ import annotations
 
 import logging
+import os
 from collections.abc import Callable
 from datetime import datetime
 
@@ -38,7 +39,9 @@ def demo_settings():
                           "PAYMENT_LINK_MODE": "static", "PAYMENT_LINK": DEMO_PAY_LINK,
                           "PAYMENT_DOMAINS": "pay.example", "EMAIL_FROM": "gabi@example.com",
                           "EMAIL_REPLY_TO": "owner@example.com",
-                          "PUBLIC_BASE_URL": "http://127.0.0.1:8000"})
+                          "TRIAL_START": "2026-11-03",   # שעון ההדגמה 8.11 ⇒ נותרו 9 ימים
+                          # הקישור הקצר ב-SMS לחיץ בהדגמה (אותו פורט שעליו השרת רץ)
+                          "PUBLIC_BASE_URL": f"http://127.0.0.1:{os.environ.get('PORT', '8000')}"})
 
 
 def build_demo_service() -> tuple[CollectService, object, FixedClock]:

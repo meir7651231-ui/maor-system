@@ -90,14 +90,8 @@ def test_r2_no_whatsapp_code_paths():
     assert "graph.facebook.com" not in src
 
 
-_LONG_FAILS = {"second", "plan_offer", "final"}
-
-
-@pytest.mark.parametrize("step", [
-    pytest.param(s, marks=pytest.mark.xfail(
-        strict=True, reason="ר-2: עם שם עסק ארוך + קישור תשלום של GI = 4 מקטעים. "
-        "פתרון: קישור קצר בדומיין שלנו (STATUS פתוח #2) או קיצור הנוסח"))
-    if s.key in _LONG_FAILS else s for s in templates.STEPS], ids=lambda s: s.key)
+# ר-2 נסגר (סבב 3): קישור קצר בדומיין שלנו (/p/{code}) במקום קישור GI + הסרה ⇒ ≤3 גם בערכים ארוכים
+@pytest.mark.parametrize("step", templates.STEPS, ids=lambda s: s.key)
 def test_r2_sms_within_three_segments_with_long_values(step):
     body = templates.render_sms(step, _fields(biz="מרכז הטיפולים של רונית", name="אלכסנדרה"))
     assert compliance.sms_segments(body) <= 3, (len(body), body)

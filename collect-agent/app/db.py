@@ -81,6 +81,11 @@ class DB:
         if "paused_reason" not in cols:  # DB קיים מלפני העמודה
             self.conn.execute("ALTER TABLE customers ADD COLUMN paused_reason TEXT")
             self.conn.commit()
+        icols = {r[1] for r in self.conn.execute("PRAGMA table_info(invoices)")}
+        if "short_code" not in icols:  # קישור קצר ל-SMS (≤2 חלקים)
+            self.conn.execute("ALTER TABLE invoices ADD COLUMN short_code TEXT")
+            self.conn.execute("CREATE UNIQUE INDEX IF NOT EXISTS ix_inv_short ON invoices(short_code)")
+            self.conn.commit()
         self.lock = threading.RLock()
 
     def q(self, sql: str, args: tuple = ()) -> list[sqlite3.Row]:
