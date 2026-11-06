@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>גבי · תזכורות תשלום מנומסות לחשבונית ירוקה</title>
+<meta name="description" content="לקוחות לא שילמו? גבי מזכיר להם בנימוס ב-SMS ובמייל, עם קישור תשלום. מתחבר לחשבונית ירוקה. אתה מאשר כל הודעה.">
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--ink:#111827;--muted:#6b7280;--line:#e5e7eb;--brand:#0f766e;
+--brand-ink:#fff;--soft:#e7f6f3;--warn:#b45309;--warn-bg:#fef3c7}
+@media (prefers-color-scheme:dark){:root{--bg:#0b1220;--card:#121a2b;--ink:#e5e7eb;--muted:#9aa4b2;
+--line:#243049;--brand:#2dd4bf;--brand-ink:#04211d;--soft:#10332e;--warn:#fbbf24;--warn-bg:#3a2a06}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Arial,sans-serif}
+a{color:inherit}
+.wrap{max-width:1080px;margin:0 auto;padding:0 16px}
+.draft{background:var(--warn-bg);color:var(--warn);text-align:center;font-size:13px;font-weight:600;padding:6px 16px}
+header{background:var(--card);border-bottom:1px solid var(--line)}
+header .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:12px}
+.brand{display:flex;gap:10px;align-items:center;text-decoration:none}
+.logo{width:36px;height:36px;border-radius:10px;background:var(--brand);color:var(--brand-ink);
+display:grid;place-items:center;font-weight:800;flex:none}
+.brand b{font-size:18px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:10px 18px;
+border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:inherit;
+font-weight:600;text-decoration:none;cursor:pointer}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:var(--brand-ink)}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+section{padding:48px 0}
+h1{font-size:clamp(28px,6vw,44px);line-height:1.2;margin:0 0 14px}
+h2{font-size:clamp(22px,4vw,30px);margin:0 0 20px}
+.lead{font-size:18px;color:var(--muted);max-width:560px}
+.hero{display:grid;grid-template-columns:1.15fr .85fr;gap:32px;align-items:center}
+@media (max-width:820px){.hero{grid-template-columns:1fr}}
+.ctas{display:flex;flex-wrap:wrap;gap:10px;margin:22px 0 10px}
+.trust{font-size:14px;color:var(--muted)}
+.phone{background:var(--card);border:1px solid var(--line);border-radius:28px;padding:18px;max-width:340px;
+margin-inline:auto;box-shadow:0 10px 30px rgba(0,0,0,.08)}
+.phone .meta{font-size:13px;color:var(--muted)}
+.bubble{background:var(--soft);border-radius:14px;padding:12px;margin:10px 0;font-size:14px}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.row span{font-size:13px;padding:6px 10px;border-radius:10px;border:1px solid var(--line)}
+.row span.ok{background:var(--brand);color:var(--brand-ink);border-color:var(--brand)}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media (max-width:820px){.grid3{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px}
+.card h3{margin:0 0 6px;font-size:18px}
+.card p{margin:0;color:var(--muted)}
+.step{font-weight:800;color:var(--brand);font-size:14px}
+.control{background:var(--soft);border-radius:20px;padding:24px}
+.control ul{margin:0;padding-inline-start:20px}
+table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+td,th{padding:10px 12px;border-bottom:1px solid var(--line);text-align:start;vertical-align:top}
+tr:last-child td{border-bottom:0}
+.price{max-width:440px;margin-inline:auto;text-align:center}
+.price .num{font-size:48px;font-weight:800}
+.price ul{text-align:start;margin:16px 0;padding-inline-start:20px}
+details{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin-bottom:8px}
+summary{cursor:pointer;font-weight:600}
+form{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:12px}
+input{font:inherit;min-height:44px;padding:8px 12px;border-radius:12px;border:1px solid var(--line);
+background:var(--card);color:var(--ink);min-width:0;flex:1 1 220px;max-width:320px}
+.note{font-size:13px;color:var(--muted)}
+footer{border-top:1px solid var(--line);padding:24px 0;font-size:13px;color:var(--muted)}
+footer .links{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:8px}
+</style>
+</head>
+<body>
+<div class="draft" id="draft-banner">טיוטה פנימית · לא פורסם · הטופס לא שולח לשום מקום</div>
+<header><div class="wrap">
+  <a class="brand" href="#top"><span class="logo" aria-hidden="true">ג</span><b>גבי</b></a>
+  <a class="btn primary" href="/ui">לדמו החי ←</a>
+</div></header>
+
+<main id="top">
+<section><div class="wrap hero">
+  <div>
+    <h1>לקוחות שוכחים לשלם. גבי לא שוכח להזכיר.</h1>
+    <p class="lead">גבי מתחבר לחשבונית ירוקה, מזהה חשבוניות שלא שולמו ומכין תזכורות מנומסות ב-SMS ובמייל, עם קישור לתשלום. אתם מאשרים בלחיצה, וההודעה יוצאת בשם העסק שלכם.</p>
+    <div class="ctas">
+      <a class="btn primary" href="#signup">14 יום ניסיון חינם ←</a>
+      <a class="btn" href="/ui">▶ ראו את הדמו החי</a>
+    </div>
+    <div class="trust">בלי כרטיס אשראי · קריאה בלבד מהחשבונות שלכם · שום הודעה לא יוצאת בלי אישור</div>
+  </div>
+  <div class="phone" aria-label="דוגמה לכרטיס אישור">
+    <div class="meta">ממתין לאישורך · SMS</div>
+    <b>דני כהן · חשבונית 1043 · ‏1,800 ₪ · 8 ימי איחור</b>
+    <div class="bubble">שלום דני, תזכורת קטנה מסטודיו נועה: חשבונית 1043 על סך 1,800 ₪ עדיין פתוחה. לתשלום: pay.example/1043 · להסרה השיבו "הסר"</div>
+    <div class="row"><span class="ok">✓ אשר ושלח</span><span>✎ ערוך</span><span>✕ לא עכשיו</span></div>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <h2>הכסף כבר שלכם. הוא רק עוד לא הגיע.</h2>
+  <div class="grid3">
+    <div class="card"><h3>😬 לא נעים לבקש</h3><p>אז דוחים בשבוע, ועוד שבוע, ועוד חודש.</p></div>
+    <div class="card"><h3>🧾 אין זמן לעקוב</h3><p>מי שילם ומי לא? כל פעם צריך לפתוח את החשבונות ולבדוק.</p></div>
+    <div class="card"><h3>💸 העבודה כבר נעשתה</h3><p>חשבונית פתוחה היא כסף שכבר הרווחתם ועוד לא קיבלתם.</p></div>
+  </div>
+</div></section>
+
+<section id="how"><div class="wrap">
+  <h2>איך זה עובד</h2>
+  <div class="grid3">
+    <div class="card"><div class="step">1</div><h3>מחברים את חשבונית ירוקה</h3><p>מדביקים מפתח API פעם אחת. גבי רק קורא ולא משנה כלום.</p></div>
+    <div class="card"><div class="step">2</div><h3>כל בוקר מקבלים רשימה</h3><p>כל תזכורת כבר כתובה, עם סכום, מספר חשבונית וקישור לתשלום.</p></div>
+    <div class="card"><div class="step">3</div><h3>מאשרים, וגבי ממשיך</h3><p>ההודעה יוצאת ב-SMS או במייל בשעה סבירה. החשבונית נסגרה? התזכורות נעצרות לבד.</p></div>
+  </div>
+</div></section>
+
+<section><div class="wrap control">
+  <h2>אתם בשליטה. תמיד.</h2>
+  <ul>
+    <li><b>שום הודעה לא יוצאת בלי שאישרתם.</b></li>
+    <li>לא בשבת ולא בחג. בימים א׳–ה׳ בין 9:00 ל-19:00, ובשישי עד 12:00.</li>
+    <li>לכל היותר הודעה אחת ב-3 ימים לאותו לקוח, ועד 4 תזכורות לחשבונית.</li>
+    <li>הלקוח כתב "שילמתי"? גבי עוצר ושואל אתכם. כתב "הסר"? לא נשלח לו יותר.</li>
+    <li>כל פעולה נרשמת ביומן שאפשר לראות.</li>
+  </ul>
+</div></section>
+
+<section><div class="wrap">
+  <h2>כשהלקוח עונה</h2>
+  <table>
+    <tr><th>הלקוח כותב</th><th>מה גבי עושה</th></tr>
+    <tr><td>"איך משלמים?"</td><td>שולח שוב את קישור התשלום</td></tr>
+    <tr><td>"שילמתי אתמול"</td><td>עוצר את התזכורות ומבקש מכם לבדוק</td></tr>
+    <tr><td>"אפשר בתשלומים?"</td><td>מכין הצעה בלי ריבית, בגבולות שקבעתם, ומחכה לאישורכם</td></tr>
+    <tr><td>"יש פה טעות"</td><td>עוצר הכול ומסמן אצלכם "דחוף"</td></tr>
+    <tr><td>"הסר"</td><td>מאשר הסרה ולא שולח יותר</td></tr>
+  </table>
+</div></section>
+
+<section id="price"><div class="wrap">
+  <h2 style="text-align:center">מחיר אחד, פשוט</h2>
+  <div class="card price">
+    <div class="num">119 ₪</div>
+    <div class="note">לחודש · מחיר השערה לבדיקה, טרם נקבע אם לפני מע״מ</div>
+    <ul>
+      <li>14 יום ניסיון חינם, בלי כרטיס אשראי</li>
+      <li>תזכורות ב-SMS ובמייל עם קישור תשלום</li>
+      <li>תור אישורים יומי ומענה לתשובות הלקוחות</li>
+      <li>הצעות פריסה בלי ריבית, בגבולות שאתם קובעים</li>
+      <li>דוח "כמה נגבה" ולוח "דורש טיפול"</li>
+    </ul>
+    <a class="btn primary" href="#signup">מתחילים 14 יום ניסיון ←</a>
+    <p class="note">אנחנו לא לוקחים אחוז מהכסף שנכנס. זה הכסף שלכם.</p>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <h2>שאלות נפוצות</h2>
+  <details><summary>צריך חשבון בחשבונית ירוקה (morning)?</summary><p>כן. בשלב זה גבי עובד רק עם חשבונית ירוקה, דרך מפתח API שאתם יוצרים בחשבון שלכם.</p></details>
+  <details><summary>גבי יכול לשנות משהו בחשבונות שלי?</summary><p>לא. גבי רק קורא חשבוניות פתוחות. הוא לא יוצר, לא עורך ולא מוחק מסמכים.</p></details>
+  <details><summary>ההודעה נשלחת בשם מי?</summary><p>בשם העסק שלכם. הלקוח רואה את שם העסק.</p></details>
+  <details><summary>ומה אם הלקוח כבר שילם?</summary><p>כשהחשבונית מסומנת כשולמה, התזכורות נעצרות. לקוח שכתב "שילמתי" מושהה עד שתבדקו.</p></details>
+  <details><summary>למה לא בוואטסאפ?</summary><p>כרגע גבי שולח SMS ומייל.</p></details>
+  <details><summary>מה קורה אחרי 14 ימי הניסיון?</summary><p>שום חיוב אוטומטי. אם תרצו להמשיך, תבחרו בעצמכם להירשם למנוי.</p></details>
+  <details><summary>אפשר לבטל?</summary><p>כן, בכל רגע ובלי התחייבות. מנתקים את המפתח בחשבונית ירוקה, ומאותו רגע לגבי אין גישה.</p></details>
+</div></section>
+
+<section id="signup"><div class="wrap" style="text-align:center">
+  <h2>הכסף שלכם מחכה בחשבוניות פתוחות.</h2>
+  <p class="lead" style="margin-inline:auto">השאירו מייל ונחזור אליכם כשהניסיון ייפתח.</p>
+  <form id="waitlist" onsubmit="return false" aria-describedby="waitlist-note">
+    <label class="note" for="wl-email" style="flex-basis:100%">אימייל</label>
+    <input id="wl-email" type="email" placeholder="you@business.co.il" autocomplete="email">
+    <button class="btn primary" type="submit" disabled>הצטרפות לרשימה (כבוי בטיוטה)</button>
+  </form>
+  <p class="note" id="waitlist-note">בטיוטה הזאת הטופס לא שולח ולא שומר שום פרט. בינתיים אפשר <a href="/ui">לנסות את הדמו החי</a>.</p>
+</div></section>
+</main>
+
+<footer><div class="wrap">
+  <div class="links"><span>תנאי שימוש (טיוטה)</span><span>מדיניות פרטיות (טיוטה)</span><span>הצהרת נגישות (טיוטה)</span><span>צור קשר</span></div>
+  חשבונית ירוקה ו-morning הם סימנים מסחריים של בעליהם. גבי הוא מוצר עצמאי ואינו קשור אליהם.
+</div></footer>
+</body>
+</html>

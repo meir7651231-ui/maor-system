@@ -12,6 +12,7 @@ python3 -c "import fastapi, httpx, uvicorn" 2>/dev/null || pip install -q -e '.[
 
 if [[ "${1:-}" != "--check" ]]; then
   echo "▶ דשבורד: http://127.0.0.1:${PORT}/ui"
+  echo "▶ טיוטת דף נחיתה: http://127.0.0.1:${PORT}/landing"
   exec env DEMO=1 python3 -m uvicorn app.main:_lazy_app --factory --host 127.0.0.1 --port "$PORT" --log-level warning
 fi
 
@@ -33,5 +34,6 @@ out = json.loads(get("/outbox"))["messages"]
 assert all(m["channel"] in ("sms", "email") for m in out)
 assert any("pay.example/gabi-demo" in m["body"] for m in out), "חסר קישור תשלום דמו"
 ui = get("/ui"); assert 'id="debts"' in ui and 'id="kpis"' in ui
+lp = get("/landing"); assert "119 ₪" in lp and 'href="/ui"' in lp and "noindex" in lp
 print(f"✅ בדיקת ההדגמה עברה: {t}")
 PY

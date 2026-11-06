@@ -20,6 +20,7 @@ from .service import CollectService
 from .templates import SLOGAN
 
 UI_HTML = (Path(__file__).parent / "ui.html").read_text(encoding="utf-8")
+LANDING_HTML = (Path(__file__).parent / "landing.html").read_text(encoding="utf-8")
 
 
 class InboundIn(BaseModel):
@@ -62,6 +63,11 @@ def create_app(service: CollectService | None = None) -> FastAPI:
     @app.get("/ui", response_class=HTMLResponse)
     def ui():
         return UI_HTML
+
+    @app.get("/landing", response_class=HTMLResponse)
+    def landing():
+        """טיוטת דף נחיתה (noindex, לא מפורסם). הטופס כבוי ולא שולח לשום מקום."""
+        return LANDING_HTML
 
     @app.post("/sync")
     def sync():

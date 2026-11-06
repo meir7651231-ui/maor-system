@@ -310,3 +310,19 @@ def test_demo_scenario_end_to_end():
     assert t["sent_sms"] == 4 and t["sent_email"] == 4 and t["owner_inbox"] == 1
     assert any("pay.example/gabi-demo" in x for x in lines)
     assert not any("whatsapp" in x.lower() for x in lines)
+
+
+def test_landing_draft_price_trial_and_safe_form(api):
+    """טיוטת דף הנחיתה: מחיר ההשערה 119 ₪ + 14 יום ניסיון, מפנה לדמו החי, noindex,
+    בלי וואטסאפ, והטופס כבוי: אין action, אין fetch, אין שום יעד חיצוני."""
+    r = api.get("/landing")
+    assert r.status_code == 200
+    html = r.text
+    assert "119 ₪" in html and "14 יום" in html
+    assert 'href="/ui"' in html
+    assert '<meta name="robots" content="noindex, nofollow">' in html
+    assert "וואטסאפ" not in html.replace("בוואטסאפ", "") and "whatsapp" not in html.lower()
+    assert "action=" not in html and "fetch(" not in html and "XMLHttpRequest" not in html
+    assert 'type="submit" disabled' in html
+    assert "<script" not in html  # אין קוד שעלול לשלוח פרטים
+    assert "אחוז מהכסף" in html  # מנוי קבוע, לא אחוז מהגבייה (ע"א 5502/16)
