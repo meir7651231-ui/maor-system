@@ -59,7 +59,7 @@ class MockError(Exception):
 class GreenInvoiceMock:
     """מצב בזיכרון + ניתוב. לא תלוי ב-FastAPI — אותו מימוש לבדיקות ולשרת."""
 
-    def __init__(self, *, api_id: str = "demo-id", api_secret: str = "demo-secret",
+    def __init__(self, *, api_id: str = "demo-id", api_secret: str = "demo-secret",  # noqa: S107 — mock
                  docs: list[dict] | None = None, clock: Callable[[], float] = time.time,
                  deliver: Callable[[str, dict], None] | None = None) -> None:
         self.api_id, self.api_secret = api_id, api_secret
@@ -126,8 +126,8 @@ class GreenInvoiceMock:
                 "items": d.get("income") or [{"description": f"מסמך {d.get('number')}",
                                               "quantity": 1, "price": total}],
                 "files": {"signed": True,
-                          "downloadLinks": {"he": f"https://mock.invalid/{d['id']}/he.pdf",
-                                            "en": f"https://mock.invalid/{d['id']}/en.pdf"}}}
+                          "downloadLinks": {"he": f"https://files.example/{d['id']}/he.pdf",
+                                            "en": f"https://files.example/{d['id']}/en.pdf"}}}
 
     def fire(self, event: str, d: dict) -> None:
         payload = self.webhook_payload(d)
