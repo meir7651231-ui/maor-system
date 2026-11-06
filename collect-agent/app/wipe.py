@@ -45,13 +45,23 @@ def wipe_all(conn: sqlite3.Connection, actor: str = "system") -> dict[str, int]:
 
 
 def delete_backups(directory: str | Path) -> int:
-    """מוחק קובצי גיבוי של גבי (``gabi-*.gbk``) בלבד מהתיקייה. מחזיר כמה נמחקו."""
-    from app.backup import PREFIX, SUFFIX
+    """מוחק כל קובץ גיבוי של גבי בתיקייה: לפי השם (``gabi-*.gbk``) **או** לפי התוכן (כותרת ``GBK1``).
+    critic סבב 11 (שוחזר): המחיקה זיהתה רק ``gabi-*.gbk``, וגיבוי ידני (``app.backup create <db>
+    before-beta-end.gbk``) שרד את ה-wipe עם כל ה-PII, בזמן שהכלי דיווח על הצלחה.
+    קבצים זרים ו-symlink לא נוגעים. מחזיר כמה נמחקו."""
+    from app.backup import MAGIC, PREFIX, SUFFIX
+    head = MAGIC.encode("ascii")
     n = 0
-    for f in Path(directory).glob(f"{PREFIX}*{SUFFIX}"):
-        if f.is_file() and not f.is_symlink():
-            f.unlink()
-            n += 1
+    for f in Path(directory).iterdir():
+        if not f.is_file() or f.is_symlink():
+            continue
+        named = f.name.startswith(PREFIX) and f.name.endswith(SUFFIX)
+        if not named:
+            with open(f, "rb") as fh:
+                if fh.read(len(head)) != head:
+                    continue
+        f.unlink()
+        n += 1
     return n
 
 

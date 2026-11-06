@@ -96,3 +96,29 @@ def test_cli_without_backups_flag_leaves_backups(tmp_path):
     assert main(["wipe", str(p), "--confirm", "WIPE"]) == 0
     assert f.exists()
     assert main(["wipe", str(p), "--confirm", "WIPE", "--backups", str(tmp_path / "nope")]) == 1
+
+
+def test_wipe_backups_deletes_every_gabi_backup_by_content_not_name(tmp_path, monkeypatch):
+    """critic סבב 11 (שוחזר על 0e3fbb1): `wipe --backups` מחק רק gabi-*.gbk. גיבוי ידני בשם אחר
+    שרד עם כל ה-PII. עכשיו זיהוי לפי הכותרת GBK1. קובץ זר ו-symlink לא נמחקים."""
+    import base64
+    import sqlite3
+
+    from app import backup, wipe
+    monkeypatch.setenv("COLLECT_MASTER_KEYS", "k1:" + base64.b64encode(b"k" * 32).decode())
+    db = tmp_path / "collect.sqlite3"
+    c = sqlite3.connect(db)
+    c.execute("CREATE TABLE customers(name)")
+    c.execute("CREATE TABLE audit(at,actor,action,detail)")
+    c.commit()
+    c.close()
+    bdir = tmp_path / "backups"
+    bdir.mkdir()
+    backup.main(["x", "snapshot", str(db), str(bdir)])
+    backup.main(["x", "create", str(db), str(bdir / "before-beta-end.gbk")])
+    backup.main(["x", "create", str(db), str(bdir / "manual.bak")])
+    (bdir / "notes.txt").write_text("לא גיבוי")
+    (bdir / "link.gbk").symlink_to(tmp_path / "collect.sqlite3")
+    assert wipe.main(["x", str(db), "--confirm", "WIPE", "--backups", str(bdir)]) == 0
+    assert sorted(p.name for p in bdir.iterdir()) == ["link.gbk", "notes.txt"]
+    assert db.exists()     # היעד של ה-symlink לא נמחק
