@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="360" viewBox="0 0 1280 360" role="img" aria-label="Install: npm ci, npm run dev, then open localhost:5173/?org=demo">
+<rect width="1280" height="360" rx="24" fill="#0d1120"/>
+<text x="60" y="60" text-anchor="start" font-size="24" font-weight="700" fill="#9fdcff" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">Run locally — three commands</text>
+<rect x="60" y="84" width="1160" height="222" rx="14" fill="#070910" stroke="#2c3a66" stroke-width="2"/>
+<rect x="60" y="84" width="1160" height="34" rx="14" fill="#141b33"/><rect x="60" y="104" width="1160" height="14" fill="#141b33"/>
+<circle cx="84" cy="101" r="6" fill="#ff5f57"/>
+<circle cx="104" cy="101" r="6" fill="#febc2e"/>
+<circle cx="124" cy="101" r="6" fill="#28c840"/>
+<text x="92" y="160" font-size="20" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,'Liberation Mono',monospace"><tspan fill="#6b7686">$ </tspan><tspan fill="#e8ecf5">npm ci</tspan></text>
+<text x="92" y="196" font-size="20" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,'Liberation Mono',monospace"><tspan fill="#6b7686">$ </tspan><tspan fill="#e8ecf5">npm run dev</tspan></text>
+<text x="92" y="232" font-size="20" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,'Liberation Mono',monospace"><tspan fill="#6b7686">  </tspan><tspan fill="#3ddc97">➜  Local:   http://localhost:5173/</tspan></text>
+<text x="92" y="268" font-size="20" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,'Liberation Mono',monospace"><tspan fill="#6b7686">  </tspan><tspan fill="#f3c76b">open  http://localhost:5173/?org=demo</tspan></text>
+<text x="60" y="336" text-anchor="start" font-size="16" font-weight="400" fill="#7d8aa6" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">Node 22 · no cloud account needed to try it</text>
+</svg>
