@@ -14,13 +14,14 @@ from pathlib import Path
 from typing import Literal
 
 from fastapi import Depends, FastAPI, HTTPException, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from pydantic import BaseModel, Field
 
 from . import security
 from .config import SafetyError, Settings, load_settings
 from .db import DB
 from .greeninvoice import GreenInvoiceClient
+from .ratelimit import RateLimiter, group_for
 from .service import CollectService
 from .templates import SLOGAN, TAGLINE
 
@@ -56,21 +57,31 @@ class InboundIn(BaseModel):
 
 
 class _RedactQueryKey(logging.Filter):
-    """uvicorn כותב ללוג הגישה את ה-URL המלא ⇒ הסוד ?k=... של ה-webhook היה דולף ללוג."""
+    """uvicorn (לוג גישה) ו-httpx (בקשות יוצאות) כותבים URL מלא ⇒ סוד ב-query
+    (?k=..., token=, key=, secret=, password=) היה דולף ללוג. ארגומנטים שאינם מחרוזת
+    (httpx.URL) מומרים למחרוזת רק אם יש בהם מה להסוות."""
 
-    _K = re.compile(r"([?&]k=)[^&\s\"]+")
+    _K = re.compile(r"(?i)([?&](?:k|key|token|secret|password|api_?key|sig)=)[^&\s\"]+")
+
+    def _red(self, a):
+        s = a if isinstance(a, str) else (str(a) if not isinstance(a, (int, float)) else None)
+        if s is None or not self._K.search(s):
+            return a
+        return self._K.sub(r"\1***", s)
 
     def filter(self, record: logging.LogRecord) -> bool:
         if isinstance(record.args, tuple):
-            record.args = tuple(self._K.sub(r"\1***", a) if isinstance(a, str) else a
-                                for a in record.args)
+            record.args = tuple(self._red(a) for a in record.args)
+        if isinstance(record.msg, str) and self._K.search(record.msg):
+            record.msg = self._K.sub(r"\1***", record.msg)
         return True
 
 
 def _install_log_redaction() -> None:
-    lg = logging.getLogger("uvicorn.access")
-    if not any(isinstance(f, _RedactQueryKey) for f in lg.filters):
-        lg.addFilter(_RedactQueryKey())
+    for name in ("uvicorn.access", "uvicorn.error", "httpx", "httpx2", "httpcore"):
+        lg = logging.getLogger(name)
+        if not any(isinstance(f, _RedactQueryKey) for f in lg.filters):
+            lg.addFilter(_RedactQueryKey())
 
 
 def _unsub_page(body: str, status: int = 200) -> HTMLResponse:
@@ -83,7 +94,8 @@ def _unsub_page(body: str, status: int = 200) -> HTMLResponse:
 
 
 def create_app(service: CollectService | None = None, *, owner_token: str | None = None,
-               webhook_secret: str | None = None) -> FastAPI:
+               webhook_secret: str | None = None,
+               limiter: RateLimiter | None = None) -> FastAPI:
     """אימות: כל נקודה מלבד /health, /ui, /u/{token} ו-webhook של 019 (שיש לו מפתח משלו)
     דורשת `Authorization: Bearer <OWNER_API_TOKEN>`. /inbound מקבל גם חתימת HMAC
     (X-Collect-Timestamp + X-Collect-Signature). טוקן חסר/חלש ⇒ האפליקציה לא עולה."""
@@ -108,6 +120,41 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
                   redoc_url=None, openapi_url="/openapi.json" if docs else None)
     app.state.svc = svc
     web_dist = Path(os.environ.get("WEB_DIST", Path(__file__).resolve().parent.parent / "web" / "dist"))
+    rl = limiter if limiter is not None else RateLimiter()
+    app.state.limiter = rl
+    trust_proxy = os.environ.get("TRUST_PROXY_HEADERS") == "1"
+
+    def client_ip(request: Request) -> str:
+        if trust_proxy:  # רק מאחורי proxy שלנו: הכתובת הימנית = מה שה-proxy ראה בפועל
+            xff = [x.strip() for x in request.headers.get("x-forwarded-for", "").split(",")]
+            if xff and xff[-1]:
+                return xff[-1]
+        return request.client.host if request.client else "unknown"
+
+    def too_many(retry: float) -> JSONResponse:
+        return JSONResponse({"detail": "יותר מדי בקשות, נסו שוב בעוד רגע"}, status_code=429,
+                            headers={"Retry-After": str(int(retry) + 1)})
+
+    @app.middleware("http")
+    async def rate_limit(request: Request, call_next):
+        ip = client_ip(request)
+        group = group_for(request.url.path)
+        if group:
+            retry = rl.check(group, ip)
+            if retry is not None:
+                return too_many(retry)
+        if request.url.path == "/webhooks/greeninvoice":
+            retry = rl.check("gi_webhook_global", "*")  # כל קריאה = sync מלא
+            if retry is not None:
+                return too_many(retry)
+        if group is None and request.url.path not in ("/health",):
+            retry = rl.blocked("auth_fail", ip)
+            if retry is not None:
+                return too_many(retry)
+        resp = await call_next(request)
+        if resp.status_code == 401:
+            rl.check("auth_fail", ip)  # רושמים כשל אימות (ניחוש טוקן)
+        return resp
 
     @app.middleware("http")
     async def security_headers(request: Request, call_next):

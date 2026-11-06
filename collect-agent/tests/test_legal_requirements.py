@@ -82,11 +82,16 @@ def test_r1_live_auto_replies_pass_filter(api, svc):
               and m["to"] == "972501234567"][1:]  # בלי התזכורת עצמה
     assert bodies, "לא יצא אף מענה אוטומטי"
     link = svc.db.one("SELECT payment_url FROM invoices WHERE number='1001'")["payment_url"]
-    tok = svc.db.one("SELECT unsub_token FROM customers WHERE name='דנה כהן'")["unsub_token"]
-    # מותר: קישור התשלום + עמוד ההסרה (§3.1 סעיף 5) — ההסרה מצורפת לכל תשובה
-    rules = compliance.Rules(business="סטודיו מאיר", payment_link=link or "",
-                             unsubscribe_url=svc.unsub_url(tok) if tok else "")
-    bad = {b: compliance.violations(b, rules) for b in bodies}
+    dana = svc.db.one("SELECT id FROM customers WHERE name='דנה כהן'")["id"]
+    bad = {}
+    for b in bodies:
+        # טוקן הסרה חדש לכל הודעה (ב-DB רק hash — QA): הקישור חייב להיות תקף ושל אותו לקוח
+        m = re.search(r"https://gabi\.example/u/([A-Za-z0-9_-]+)", b)
+        assert m and svc._unsub_customer(m.group(1))["id"] == dana, b
+        # מותר: קישור התשלום + עמוד ההסרה (§3.1 סעיף 5) — ההסרה מצורפת לכל תשובה
+        rules = compliance.Rules(business="סטודיו מאיר", payment_link=link or "",
+                                 unsubscribe_url=m.group(0))
+        bad[b] = compliance.violations(b, rules)
     assert all(not v for v in bad.values()), bad
 
 
@@ -424,7 +429,7 @@ def test_r12_template_version_recorded(svc):
 # ───────────── ר-13 · עמוד הסרה/מידע ללקוח סופי ─────────────
 def test_r13_unsubscribe_page_rtl_and_works(api, svc):
     _cycle(api)
-    tok = svc.db.one("SELECT unsub_token FROM customers WHERE name='דנה כהן'")["unsub_token"]
+    tok = svc.new_unsub_token(svc.db.one("SELECT id FROM customers WHERE name='דנה כהן'")["id"])
     page = api.get(f"/u/{tok}").text   # GET = דף אישור בלבד (סורקי קישורים לא מסירים)
     assert 'dir="rtl"' in page and 'lang="he"' in page and "הסירו אותי" in page
     page = api.post(f"/u/{tok}", headers={"accept": "text/html"}).text
@@ -434,7 +439,7 @@ def test_r13_unsubscribe_page_rtl_and_works(api, svc):
 # ר-13 נסגר: שם העסק, למה קיבלתי, פרטיות, תווית טיוטה, פרטי מפעיל placeholder; הסרה ב-POST בלבד
 def test_r13_landing_explains_who_and_privacy(api, svc):
     _cycle(api)
-    tok = svc.db.one("SELECT unsub_token FROM customers WHERE name='דנה כהן'")["unsub_token"]
+    tok = svc.new_unsub_token(svc.db.one("SELECT id FROM customers WHERE name='דנה כהן'")["id"])
     page = api.get(f"/u/{tok}").text
     assert "סטודיו מאיר" in page and "פרטיות" in page and "קיבלתם הודעה זו כי" in page
     assert "טיוטה – לבדיקת עו״ד" in page and "placeholder" in page
@@ -443,12 +448,12 @@ def test_r13_landing_explains_who_and_privacy(api, svc):
 
 def test_r13_get_never_unsubscribes_and_token_is_128bit(api, svc):
     _cycle(api)
-    c = svc.db.one("SELECT unsub_token, opted_out FROM customers WHERE name='דנה כהן'")
+    tok = svc.new_unsub_token(svc.db.one("SELECT id FROM customers WHERE name='דנה כהן'")["id"])
     for _ in range(3):   # סורק קישורים פותח את הקישור כמה פעמים
-        api.get(f"/u/{c['unsub_token']}")
-        api.head(f"/u/{c['unsub_token']}")
+        api.get(f"/u/{tok}")
+        api.head(f"/u/{tok}")
     assert svc.db.one("SELECT opted_out FROM customers WHERE name='דנה כהן'")["opted_out"] == 0
-    assert len(c["unsub_token"]) >= 21     # token_urlsafe(16) = 22 תווים (128 ביט)
+    assert len(tok) >= 21     # token_urlsafe(16) = 22 תווים (128 ביט); ב-DB רק sha256 (QA)
 
 
 def test_r13_page_escapes_business_name(api, svc):
@@ -456,7 +461,7 @@ def test_r13_page_escapes_business_name(api, svc):
     _cycle(api)
     import dataclasses
     svc.s = dataclasses.replace(svc.s, business_name="<script>x</script>")
-    tok = svc.db.one("SELECT unsub_token FROM customers WHERE name='דנה כהן'")["unsub_token"]
+    tok = svc.new_unsub_token(svc.db.one("SELECT id FROM customers WHERE name='דנה כהן'")["id"])
     assert "<script>x" not in api.get(f"/u/{tok}").text
 
 

@@ -421,7 +421,7 @@ def test_settings_repr_hides_sms_secrets():
 def test_unsubscribe_get_does_not_unsubscribe(raw_api, svc):
     """סורקי קישורים (Safe Links/תצוגה מקדימה) פותחים כל URL ב-GET ⇒ אסור שיסיר."""
     svc.ingest(list(svc.gi.iter_open_invoices()))
-    tok = svc.db.one("SELECT unsub_token FROM customers WHERE id=1")["unsub_token"]
+    tok = svc.new_unsub_token(svc.db.one("SELECT id FROM customers WHERE id=1")["id"])
     for _ in range(3):
         assert raw_api.get(f"/u/{tok}").status_code == 200
     assert svc.db.one("SELECT opted_out FROM customers WHERE id=1")["opted_out"] == 0
