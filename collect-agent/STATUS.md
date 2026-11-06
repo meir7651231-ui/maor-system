@@ -33,7 +33,7 @@ cd collect-agent && ./demo.sh          # ואז http://127.0.0.1:8000/ui  (PORT=
 ## ⏭ הצעד הבא לכל תפקיד
 | תפקיד | הצעד הבא |
 |---|---|
-| **פיתוח** | (00) **לחבר את `conversation.py` ו-`compliance.py` ל-`service.inbound`** במקום `assistant.py`, עם ריצה של `demo.sh` לפני ואחרי. (0) **לאחד את `app/channels.py` עם `app/integrations/`**: היום יש שני adapters ל-019/InforU/Twilio, ו-`service.py` משתמש רק ב-channels. (1) קיצור ה-SMS ל-≤2 חלקים. **הורד בעדיפות:** לפי `team/market.md` §4.1 החיסכון הוא 2–3 אג׳ בלבד, כך שהקיצור לא חוסם מבחינת עלות. עדיין רצוי בגלל הקריאוּת. (2) מספר תשלומים מתוך הטקסט («ל-3 תשלומים»). (3) כפתור «חידוש» ללקוח מושהה בדשבורד (ה-API כבר קיים). (4) מייל נכנס |
+| **פיתוח** | (00) **לחבר את `conversation.py` ו-`compliance.py` ל-`service.inbound`** במקום `assistant.py`, עם ריצה של `demo.sh` לפני ואחרי. (0) **לאחד את `app/channels.py` עם `app/integrations/`**: היום יש שני adapters ל-019/InforU/Twilio, ו-`service.py` משתמש רק ב-channels. (1) קיצור ה-SMS ל-≤2 חלקים. **הורד בעדיפות:** לפי `team/market.md` §4.1 החיסכון הוא 2–3 אג׳ בלבד, כך שהקיצור לא חוסם מבחינת עלות. עדיין רצוי בגלל הקריאוּת. (2) מספר תשלומים מתוך הטקסט («ל-3 תשלומים»). ~~(3) כפתור «חידוש» ללקוח מושהה~~ ✅ בדשבורד, עם אישור בלחיצה כפולה (`test_dashboard_exposes_paused_customer_and_resume_button`, נבדק בדפדפן ונרשם ב-audit). (4) מייל נכנס |
 | **עיצוב (web/)** | לחבר את `web/` ל-API האמיתי (`/dashboard`, `/reminders`, `/reminders/{id}/preview`) במקום נתוני mock. אחר כך להגיש את ה-build מ-FastAPI, כדי ש-`demo.sh` יציג אותו |
 | **מוצר** | להכריע על הכלל «עצירה אחרי 3 תזכורות בלי מענה» (היום 4) ועל תמחור (ראו חסמים) |
 | **תשתית** | לוודא ריצה ירוקה ראשונה של ה-workflow ב-GitHub. ה-`ci.yml` של מאור מופעל על כל `pull_request`, כולל PR לענף הזה, ולכן כדאי לסנן |
@@ -42,7 +42,7 @@ cd collect-agent && ./demo.sh          # ואז http://127.0.0.1:8000/ui  (PORT=
 | **משפטי** | ✅ מיפוי 14 הדרישות לבדיקות: `tests/test_legal_requirements.py` (26 עוברות, 11 פערים בסימון xfail strict, פירוט ב-legal.md §10). **לפיתוח, דחוף:** לחבר את `conversation.respond` ל-`service.inbound`. זה סוגר את "מספר שגוי" ואת "מצוקה" בזרימה החיה. אחר כך ר-4 (סכום מעודכן לפני שליחה) |
 
 ## ⛔ חסמים (אצל מאיר)
-sandbox של חשבונית ירוקה + חשבון בדיקה ב-019 · עו"ד (§81א1, DPA, 30א) · ~~סתירת תמחור~~ **הוכרע (המנהל):** ₪119 לחודש + 14 יום ניסיון. פירוט ב-`team/market.md` §4. ⚠️ `team/marketing.md` ו-`MVP-SPEC §5` עדיין מציגים 79/179/349, ויש ליישר אותם.
+sandbox של חשבונית ירוקה + חשבון בדיקה ב-019 · עו"ד (§81א1, DPA, 30א) · ~~סתירת תמחור~~ **הוכרע (המנהל):** ₪119 לחודש + 14 יום ניסיון. פירוט ב-`team/market.md` §4. ✅ `team/marketing.md`, `MVP-SPEC §5` ודף הנחיתה מיושרים.
 
 ## 🎨 עיצוב + ממשק (סשן מקביל, ענף `claude/dazzling-archimedes-66mq2d` מעל `collect-agent`) — ראו `DESIGN.md`
 - ✅ מיתוג: לוגו SVG (בועה+₪+וי), פלטה, Rubik/Heebo, design-tokens (`web/src/brand/`).
