@@ -74,6 +74,9 @@ class SmtpEmail:
             raise SafetyError("שלב 1: SMTP אמיתי חסום — רק dry-run או factory מדומה")
         if not host:
             raise IntegrationError("SMTP: חסר SMTP_HOST")
+        if username and not starttls and int(port) != 465:
+            # login בלי TLS = סיסמה בטקסט גלוי ברשת (465 = SMTPS, מוצפן מההתחלה)
+            raise IntegrationError("SMTP: התחברות עם סיסמה דורשת STARTTLS או פורט 465")
         self.host, self.port, self.user, self.password = host, int(port), username, password
         self.from_addr, self.from_name = valid_email(from_addr), _no_crlf(from_name, "from_name")
         self.starttls, self.factory = starttls, factory
@@ -110,7 +113,7 @@ class SmtpEmail:
                               preview=p.preview)
         m = self.build_message(msg)
         preview = {"smtp": f"{self.host}:{self.port}", "starttls": self.starttls,
-                   "user": self.user, "password": "***",
+                   "user": self.user, "password": "***",  # nosec B105 — הסוואה, לא סיסמה
                    "headers": {k: str(v) for k, v in m.items()}, "text": msg.text}
         self.outbox.append(preview)
         mid = str(m["Message-ID"])

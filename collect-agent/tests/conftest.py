@@ -13,6 +13,8 @@ from app.policy import TZ
 from app.service import CollectService
 
 SANDBOX = "https://sandbox.d.greeninvoice.co.il/api/v1"
+OWNER_TOKEN = "test-owner-token-0123456789abcdefXYZ"  # רק לבדיקות
+AUTH = {"Authorization": f"Bearer {OWNER_TOKEN}"}
 
 
 def gi_doc(i: int, *, amount="1200.00", phone="050-1234567", due="2026-10-01",

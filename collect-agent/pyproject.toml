@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "סוכן גבייה לעסקים קטנים בישראל — שלד MVP (dry-run בלבד)"
 requires-python = ">=3.11"
 dependencies = [
+  "cryptography>=42",  # AES-GCM לסודות במנוחה (app/secretbox.py)
   "fastapi>=0.110",
   "httpx>=0.27",
   "pydantic>=2.5",
@@ -11,7 +12,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8"]
+dev = ["pytest>=8", "ruff>=0.6", "bandit>=1.7", "pip-audit>=2.7"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -34,9 +35,10 @@ target-version = "py311"
 extend-exclude = ["demo-output", "web"]
 
 [tool.ruff.lint]
-select = ["E", "F", "W", "I", "B", "UP"]
-ignore = ["UP031", "UP042"]
+select = ["E", "F", "W", "I", "B", "UP", "S"]  # S = כללי bandit (אבטחה)
+ignore = ["UP031", "UP042", "S101"]
 
 [tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S105", "S106", "S311"]  # טוקני-בדיקה מזויפים ו-random דטרמיניסטי לסימולציה
 # מחרוזות-אימון עבריות ארוכות (315 מקרי eval) — שבירה תפגע בקריאוּת
 "app/conversation.py" = ["E501"]

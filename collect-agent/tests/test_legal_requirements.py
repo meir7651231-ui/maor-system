@@ -16,6 +16,7 @@ from fastapi.testclient import TestClient
 
 from app import compliance, conversation, plans, templates
 from app.main import create_app
+from tests.conftest import AUTH, OWNER_TOKEN
 
 APP_DIR = Path(__file__).resolve().parents[1] / "app"
 LONG_LINK = "https://pay.greeninvoice.co.il/f/aB3dE5gH7jK9mN1pQ3sT5vW7"
@@ -24,7 +25,7 @@ LONG_UNSUB = "https://gabi.example/u/Zx9Yw8Vu7Ts6"
 
 @pytest.fixture
 def api(svc):
-    return TestClient(create_app(svc))
+    return TestClient(create_app(svc, owner_token=OWNER_TOKEN), headers=AUTH)
 
 
 def _cycle(api, approve_all=True):
@@ -277,8 +278,10 @@ def test_r12_template_version_recorded(svc):
 def test_r13_unsubscribe_page_rtl_and_works(api, svc):
     _cycle(api)
     tok = svc.db.one("SELECT unsub_token FROM customers WHERE name='דנה כהן'")["unsub_token"]
-    page = api.get(f"/u/{tok}").text
-    assert 'dir="rtl"' in page and 'lang="he"' in page and "הוסרתם" in page
+    page = api.get(f"/u/{tok}").text   # GET = דף אישור בלבד (סורקי קישורים לא מסירים)
+    assert 'dir="rtl"' in page and 'lang="he"' in page and "הסירו אותי" in page
+    page = api.post(f"/u/{tok}", headers={"accept": "text/html"}).text
+    assert 'dir="rtl"' in page and "הוסרתם" in page
 
 
 @pytest.mark.xfail(strict=True, reason="ר-13: עמוד ההסרה לא מציג שם עסק / למה קיבלתי / "

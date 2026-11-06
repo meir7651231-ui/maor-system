@@ -8,6 +8,8 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass, field
 
+from .security import safe_https_url
+
 GREENINVOICE_URLS = {
     # לאמת מול התיעוד הרשמי לפני חיבור אמיתי (ראו docs/MVP-SPEC.md §6)
     "sandbox": "https://sandbox.d.greeninvoice.co.il/api/v1",
@@ -26,19 +28,22 @@ class SafetyError(RuntimeError):
 class Settings:
     greeninvoice_env: str = "sandbox"
     greeninvoice_api_id: str = ""
-    greeninvoice_api_secret: str = ""
+    greeninvoice_api_secret: str = field(default="", repr=False)  # לא לדלוף ל-repr/לוג
     send_mode: str = "dry_run"
     db_path: str = "collect_agent.sqlite3"
     business_name: str = "העסק שלי"
     payment_link: str = ""
     timezone: str = "Asia/Jerusalem"
     holidays: tuple[str, ...] = field(default_factory=tuple)  # תאריכי ISO שבהם אין שליחה
+    # אימות: טוקן בעל העסק ל-API, וסוד חתימה ל-/inbound (ראו app/security.py)
+    owner_api_token: str = field(default="", repr=False)
+    inbound_webhook_secret: str = field(default="", repr=False)
     # ערוצים — אין וואטסאפ (מדיניות Meta אוסרת debt collection)
     channels: tuple[str, ...] = ("sms", "email")
     sms_provider: str = "019"             # 019 (ברירת מחדל) | inforu | twilio
     sms_sender_id: str = ""               # שם שולח אלפאנומרי, עד 11 תווים לטיניים/ספרות
     sms_username: str = ""
-    sms_token: str = ""
+    sms_token: str = field(default="", repr=False)
     email_from: str = "no-reply@example.com"
     email_reply_to: str = ""
     public_base_url: str = "https://gabi.example"   # לקישורי הסרה
@@ -46,8 +51,8 @@ class Settings:
     trial_days: int = 14
     price_ils_month: int = 119    # השערת תמחור (הנחיית מנהל 6.11.2026)
     sms_two_way: bool = False   # True רק כשיש מספר וירטואלי שמקבל תשובות (אחרת: "להפסקה: בקישור")
-    sms_webhook_key: str = ""     # סוד ב-URL של ה-webhook (?k=...) — חסר ⇒ ה-webhook סגור
-    email_webhook_key: str = ""   # סוד ל-/webhooks/email?k=... — חסר ⇒ סגור
+    sms_webhook_key: str = field(default="", repr=False)     # סוד ב-URL של ה-webhook (?k=...) — חסר ⇒ ה-webhook סגור
+    email_webhook_key: str = field(default="", repr=False)   # סוד ל-/webhooks/email?k=... — חסר ⇒ סגור
     payment_link_mode: str = "greeninvoice_form"    # greeninvoice_form | static
     payment_domains: tuple[str, ...] = ("greeninvoice.co.il", "morning.co")
 
@@ -61,6 +66,9 @@ class Settings:
             raise SafetyError(
                 f"GREENINVOICE_ENV={self.greeninvoice_env!r} אסור בשלב 1 — רק sandbox."
             )
+        if self.payment_link and safe_https_url(self.payment_link) is None:
+            # קישור תשלום נשתל בכל הודעה ⇒ https בלבד, בלי user:pass@ ובלי תווי בקרה
+            raise SafetyError("PAYMENT_LINK חייב להיות כתובת https תקינה")
         bad = set(self.channels) - {"sms", "email"}
         if bad:
             raise SafetyError(f"ערוץ לא נתמך: {sorted(bad)} (וואטסאפ הוסר בהחלטת מוצר)")
@@ -93,6 +101,8 @@ def load_settings(env: dict[str, str] | None = None) -> Settings:
         business_name=e.get("BUSINESS_NAME", "העסק שלי"),
         payment_link=e.get("PAYMENT_LINK", ""),
         holidays=hol,
+        owner_api_token=e.get("OWNER_API_TOKEN", ""),
+        inbound_webhook_secret=e.get("INBOUND_WEBHOOK_SECRET", ""),
         channels=_csv(e.get("CHANNELS", "sms,email")),
         sms_provider=e.get("SMS_PROVIDER", "019"),
         sms_sender_id=e.get("SMS_SENDER_ID", ""),

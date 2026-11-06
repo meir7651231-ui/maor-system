@@ -3,12 +3,13 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.main import create_app
+from tests.conftest import AUTH, OWNER_TOKEN
 from tests.test_flow import first_cycle
 
 
 @pytest.fixture
 def api(svc):
-    return TestClient(create_app(svc))
+    return TestClient(create_app(svc, owner_token=OWNER_TOKEN), headers=AUTH)
 
 
 def _approve_first(api):

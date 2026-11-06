@@ -398,6 +398,10 @@ class CollectService:
                   " VALUES(NULL,'webhook','sms',?,?,?)", (kind, key, _iso(self.clock())))
         return res
 
+    def has_unsub_token(self, token: str) -> bool:
+        return bool(token) and self.db.one(
+            "SELECT 1 FROM customers WHERE unsub_token=?", (token,)) is not None
+
     def unsubscribe(self, token: str) -> bool:
         c = self.db.one("SELECT id FROM customers WHERE unsub_token=?", (token,))
         if not c:

@@ -113,10 +113,12 @@ class ConversationInbox:
             draft_id = self._draft(cust, channel, d, plan_id)
         if getattr(self, "_wrong_number", False):
             # ר-3: מספר שגוי ⇒ מוחקים את השדה מהלקוח (התנצלות, אם תאושר, הולכת לכתובת שנשמרה בטיוטה)
-            col = "email" if channel == "email" else "phone"
-            # שומרים את הערך שנחסם, כדי שסנכרון מחשבונית ירוקה (שם הוא עדיין רשום) לא יחזיר אותו
-            self.db.x(f"UPDATE customers SET blocked_{col}={col}, {col}=NULL WHERE id=?",
-                      (cust["id"],))
+            # שומרים את הערך שנחסם, כדי שסנכרון מחשבונית ירוקה (שם הוא עדיין רשום) לא יחזיר אותו.
+            # SQL קבוע לכל ערוץ (בלי f-string — שער האבטחה test_no_dynamic_sql)
+            sql = ("UPDATE customers SET blocked_email=email, email=NULL WHERE id=?"
+                   if channel == "email" else
+                   "UPDATE customers SET blocked_phone=phone, phone=NULL WHERE id=?")
+            self.db.x(sql, (cust["id"],))
             self._wrong_number = False
         self._save_state(cust["id"], d, bump_turn=bool(d.reply))
         self.svc.audit("customer", "conversation", {
@@ -187,6 +189,8 @@ class ConversationInbox:
                     "INSERT INTO plans(customer_id,invoice_id,installments,status,created_at) "
                     "VALUES(?,?,?, 'proposed', ?)",
                     (cid, oldest["id"], _plan_json(d.plan), _iso(self.svc.clock())))
+                # ר-12: כל הצעה מתועדת (נתפס ב-E2E של QA אחרי חיבור מנוע השיחה)
+                self.svc.audit("system", "plan_proposed", {"plan": plan_id, "via": "conversation"})
         if d.intent == Intent.PLAN_ACCEPT:
             row = self.db.one("SELECT id FROM plans WHERE customer_id=? AND status='proposed' "
                               "ORDER BY id DESC LIMIT 1", (cid,))

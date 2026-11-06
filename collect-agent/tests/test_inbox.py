@@ -169,7 +169,8 @@ def test_api_routes(svc):
     from fastapi.testclient import TestClient
 
     from app.main import create_app
-    api = TestClient(create_app(svc))
+    from tests.conftest import AUTH, OWNER_TOKEN
+    api = TestClient(create_app(svc, owner_token=OWNER_TOKEN), headers=AUTH)
     api.post("/sync")
     r = api.post("/conversation/inbound", json={"channel": "sms", "sender": DANA,
                                                 "text": "אפשר בתשלומים?"}).json()

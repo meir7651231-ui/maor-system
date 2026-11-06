@@ -9,6 +9,8 @@ import re
 from dataclasses import dataclass
 from html import escape
 
+from .security import sanitize_field
+
 MARKETING_WORDS = ("מבצע", "הנחה", "הטבה", "מתנה", "קופון", "חדש!", "הזדמנות", "במיוחד בשבילך")
 THREAT_WORDS = ("הוצאה לפועל", "תביעה", "משטרה", "עונש", "עו\"ד", "עורך דין", "אחרונה!")
 
@@ -80,8 +82,12 @@ def first_name(name: str) -> str:
 
 def fields(*, biz: str, name: str, num: str, amount_agorot: int, currency: str,
            link: str, unsub: str, short: str = "", two_way: bool = False) -> dict[str, str]:
-    return {"biz": biz, "name": name or "לקוח/ה יקר/ה", "first": first_name(name) or "שלום",
-            "num": num, "amount": fmt_amount(amount_agorot, currency),
+    # שם/מספר מגיעים מחשבונית ירוקה = קלט חיצוני. CR/LF ב-Subject היה מפיל את בניית
+    # המייל (ValueError) ⇒ plan() כולו; RLO/שורות חדשות מאפשרים להסוות קישור ב-SMS.
+    name = sanitize_field(name)
+    return {"biz": sanitize_field(biz), "name": name or "לקוח/ה יקר/ה",
+            "first": first_name(name) or "שלום",
+            "num": sanitize_field(num, 30), "amount": fmt_amount(amount_agorot, currency),
             "link": link, "unsub": unsub, "short": short or link,
             "stop": STOP_REPLY if two_way else STOP_LINK,
             "ask": " שאלות? השיבו." if two_way else "",
