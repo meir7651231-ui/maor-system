@@ -110,13 +110,13 @@ class CollectService:
         return settings_api.design_view(self.s, self.db, api_connected=self.gi is not None,
                                         has_csv=has_csv)
 
-    def update_design_settings(self, body: dict) -> dict:
+    def update_design_settings(self, body: dict, actor: str = "owner") -> dict:
         from . import settings_api
         if isinstance(body, dict):
             bad = settings_api.reject_secret_fields(body)
             if bad:
                 raise PermissionError("סודות לא נשלחים דרך ה-API: " + ", ".join(bad))
-        self.update_settings(settings_api.from_design(body))
+        self.update_settings(settings_api.from_design(body), actor)
         return self.design_settings()
 
     def update_settings(self, raw: dict, actor: str = "owner") -> dict:

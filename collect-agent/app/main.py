@@ -281,11 +281,11 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
             except ValueError:
                 raise HTTPException(400, "JSON לא תקין") from None
         confirm = bool(body.get("confirm_open")) if isinstance(body, dict) else False
-        return guard(lambda: svc.approve(rid, confirm_open=confirm))
+        return guard(lambda: svc.approve(rid, request.state.actor, confirm_open=confirm))
 
     @app.post("/reminders/{rid}/reject", dependencies=auth)
-    def reject(rid: int):
-        return guard(svc.reject, rid)
+    def reject(rid: int, request: Request):
+        return guard(svc.reject, rid, request.state.actor)
 
     @app.post("/dispatch", dependencies=auth)
     def dispatch():
@@ -300,16 +300,16 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         return [dict(r) for r in svc.db.q("SELECT * FROM customers ORDER BY id")]
 
     @app.post("/customers/{cid}/resume", dependencies=auth)
-    def resume(cid: int):
-        return guard(svc.resume_customer, cid)
+    def resume(cid: int, request: Request):
+        return guard(svc.resume_customer, cid, request.state.actor)
 
     @app.post("/customers/{cid}/hold", dependencies=auth)
-    def customer_hold(cid: int, b: HoldIn):          # ר-6
-        return guard(svc.set_hold, cid, b.reason, b.note)
+    def customer_hold(cid: int, b: HoldIn, request: Request):          # ר-6
+        return guard(svc.set_hold, cid, b.reason, b.note, request.state.actor)
 
     @app.post("/customers/{cid}/legal-hold", dependencies=auth)
-    def customer_legal_hold(cid: int, b: LegalHoldIn):   # ר-10
-        return guard(svc.set_legal_hold, cid, b.note)
+    def customer_legal_hold(cid: int, b: LegalHoldIn, request: Request):   # ר-10
+        return guard(svc.set_legal_hold, cid, b.note, request.state.actor)
 
     @app.post("/maintenance/purge", dependencies=auth)
     def purge():                                     # ר-10 (רץ גם בכל plan)
@@ -449,7 +449,7 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         except ValueError:
             raise HTTPException(400, "JSON לא תקין") from None
         try:
-            return svc.update_settings(raw)
+            return svc.update_settings(raw, request.state.actor)
         except PermissionError as e:
             raise HTTPException(422, str(e)) from e
         except (ValueError, TypeError) as e:
@@ -467,7 +467,7 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         except ValueError:
             raise HTTPException(400, "JSON לא תקין") from None
         try:
-            return svc.update_design_settings(raw)
+            return svc.update_design_settings(raw, request.state.actor)
         except (PermissionError, ValueError, TypeError) as e:
             raise HTTPException(422, str(e)) from e
 
@@ -481,7 +481,7 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
     @app.post("/settings/source/csv", dependencies=auth)
     async def settings_source_csv(request: Request):
         try:
-            r = svc.import_csv(await request.body())
+            r = svc.import_csv(await request.body(), request.state.actor)
         except RealDataBlocked as e:
             raise HTTPException(403, str(e)) from e
         except (ValueError, UnicodeDecodeError) as e:
@@ -494,7 +494,7 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         """API תחילה; CSV = חלופה (ייצוא מ-morning/Excel). גוף הבקשה = תוכן הקובץ."""
         raw = await request.body()
         try:
-            return svc.import_csv(raw)
+            return svc.import_csv(raw, request.state.actor)
         except RealDataBlocked as e:
             raise HTTPException(403, str(e)) from e
         except (ValueError, UnicodeDecodeError) as e:
@@ -511,8 +511,8 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
                 for r in svc.db.q("SELECT * FROM plans ORDER BY id")]
 
     @app.post("/plans/{pid}/approve", dependencies=auth)
-    def approve_plan(pid: int):
-        return guard(svc.approve_plan, pid)
+    def approve_plan(pid: int, request: Request):
+        return guard(svc.approve_plan, pid, request.state.actor)
 
     @app.get("/access-log", dependencies=auth)
     def access_log():

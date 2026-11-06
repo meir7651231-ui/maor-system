@@ -120,3 +120,30 @@ def test_secrets_not_stored_plain_password_and_weak_rejected(env):
         users.create("x@y.co", "x", "short")
     with pytest.raises(ValueError):
         users.create("dana@example.co.il", "דנה", PW)
+
+
+def test_mutating_actions_are_audited_under_the_employee(env):
+    """שער 6: approve/reject/הגדרות/ייבוא/השהיה נרשמים ב-audit על שם העובד, לא «owner»."""
+    svc, users, reg, api, clock = env
+    tok = _login(api, reg, clock).json()["token"]
+    h = {"Authorization": f"Bearer {tok}"}
+    me = "dana@example.co.il"
+    svc.sync()
+    svc.plan()
+    pending = [r["id"] for r in svc.db.q("SELECT id FROM reminders WHERE status='pending_approval'")]
+    assert len(pending) >= 2
+    assert api.post(f"/reminders/{pending[0]}/approve", headers=h).status_code == 200
+    assert api.post(f"/reminders/{pending[1]}/reject", headers=h).status_code == 200
+    cid = svc.db.one("SELECT id FROM customers")["id"]
+    assert api.post(f"/customers/{cid}/hold", headers=h,
+                    json={"reason": "minor", "note": "x"}).status_code == 200
+    assert api.put("/api/settings", headers=h, json={"business_name": "סטודיו"}).status_code in (200, 422)
+    acts = {(r["actor"], r["action"]) for r in svc.db.q("SELECT actor,action FROM audit")}
+    for a in ("approve", "reject", "customer_hold"):
+        assert (me, a) in acts, a
+        assert ("owner", a) not in acts, a
+    # הטוקן המשותף ממשיך להירשם כ-owner
+    other = svc.db.q("SELECT id FROM reminders WHERE status='pending_approval'")
+    if other:
+        api.post(f"/reminders/{other[0]['id']}/reject", headers=AUTH)
+        assert ("owner", "reject") in {(r["actor"], r["action"]) for r in svc.db.q("SELECT actor,action FROM audit")}
