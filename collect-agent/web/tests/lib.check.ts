@@ -48,14 +48,14 @@ test('סולם + אישור', () => {
     assert.ok(requiresApproval(st, auto, false), `${st}: אישור פרטני לכל הודעה`);
 });
 
-test('מדיניות שעות — תואם policy.py', () => {
+test('מדיניות שעות — הכרעת מאיר (השרת מתיישר: נעילת המשפטי ב-STATUS)', () => {
   const d = (s: string) => new Date(s);
   assert.ok(canSendAt(d('2026-11-08T08:00'))); // ראשון 08:00
   assert.ok(!canSendAt(d('2026-11-08T07:59')));
   assert.ok(canSendAt(d('2026-11-08T19:59')));
   assert.ok(!canSendAt(d('2026-11-08T20:00')));
   assert.ok(canSendAt(d('2026-11-13T11:59'))); // שישי
-  assert.ok(!canSendAt(d('2026-11-13T12:00')));
+  assert.ok(!canSendAt(d('2026-11-13T12:00')), 'שישי אחר הצהריים');
   assert.ok(!canSendAt(d('2026-11-14T10:00'))); // שבת
   assert.ok(!canSendAt(d('2026-09-21T10:00')), 'יום כיפור — מובנה');
   assert.ok(!canSendAt(d('2026-09-20T13:00')), 'ערב חג אחה"צ');
@@ -174,4 +174,22 @@ test('הכרעות מאיר 6.11: מחיר כולל מע״מ, שנתי, אזהר
   assert.ok(land.includes(NOTE), 'גם בשאלות הנפוצות');
   assert.ok(/yearly:\s*1190/.test(land) && land.includes('כולל מע״מ ככל שחל'));
   assert.doesNotMatch(land, /לפני מע״מ/);
+});
+
+import { stoppedAtMax } from '../src/lib/stats.ts';
+import { PRODUCT_RULES } from '../src/lib/domain.ts';
+test('עד 3 תזכורות לחשבונית ⇒ עצירה (הכרעת מאיר)', () => {
+  assert.equal(PRODUCT_RULES.maxReminders, 3);
+  const three = { ...demoInvoices[2], status: 'reminded' as const }; // i3: 3 תזכורות
+  assert.equal(three.reminders.length, 3);
+  assert.ok(!needsReminder([three], DEMO_TODAY).length, 'אחרי 3 — לא מציעים תזכורת רביעית');
+  assert.deepEqual(stoppedAtMax([three]).map(i => i.id), [three.id]);
+  assert.equal(demoBusiness.cadenceDays.length, 3);
+});
+
+test('סיבת השהיה מוצגת בעברית, לעולם לא כקוד גולמי', async () => {
+  const src = readFileSync(new URL('../src/pages/Dashboard.tsx', import.meta.url), 'utf8');
+  for (const intent of ['paid_claim', 'promise', 'plan_request', 'dispute', 'distress', 'cant_pay', 'legal', 'callback', 'wrong_person'])
+    assert.ok(new RegExp(`\\b${intent}:`).test(src), `חסרה תווית השהיה ל-${intent}`);
+  assert.doesNotMatch(src, /מושהה: \$\{/, 'נפילה לקוד גולמי');
 });

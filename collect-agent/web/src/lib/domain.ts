@@ -21,7 +21,24 @@ export interface Invoice {
   promisedAt?: string;
   note?: string;
 }
-export type SmsProvider = 'inforu' | '019' | 'twilio';
+/** 019 ראשי, InforU גיבוי — מאחורי adapter יחיד בשרת (dry-run בלבד). */
+export type SmsProvider = '019' | 'inforu';
+/** תשלום = קישור לעמוד התשלום של העסק. גבי לא מחזיק כסף. */
+export type PayProvider = 'greeninvoice' | 'meshulam' | 'bit';
+/** מקור החשבוניות: API תחילה, CSV חלופה. */
+export type DataSource = 'api' | 'csv';
+/** כללי המוצר (הכרעת מאיר 6.11) — לא ניתנים לשינוי בהגדרות. */
+export const PRODUCT_RULES = { maxReminders: 3, window: { from: '08:00', to: '20:00' }, fridayUntil: '12:00', perMessageApproval: true } as const;
+/** אותם כללים במילים — מוצגים בהגדרות כקבועים (🔒). */
+export const RULES = [
+  'רק ללקוחות קיימים של העסק, על חשבוניות אמיתיות',
+  'כל הודעה יוצאת רק אחרי שאישרתם אותה',
+  'הסכום נבדק מול חשבונית ירוקה לפני כל שליחה',
+  'בכל הודעה יש דרך להפסיק לקבל תזכורות',
+  'בלי איומים, בלי שיווק ובלי פנייה לאף אחד אחר',
+  'עד 3 תזכורות לחשבונית. אחר כך גבי עוצר ומעדכן אתכם',
+  '08:00–20:00 בלבד. לא בשישי אחר הצהריים, לא בשבת ולא בחג',
+] as const;
 export interface Business {
   name: string;
   ownerName: string;
@@ -29,10 +46,10 @@ export interface Business {
   email: string;
   vatId: string;
   smsSender: string;       // שם שולח אלפאנומרי (עד 11 תווים לטיניים)
-  smsProvider: SmsProvider;
+  smsProvider: SmsProvider;  // ראשי; השני משמש גיבוי
+  payProvider: PayProvider;
+  payPageUrl: string;         // עמוד התשלום של העסק (מוק: example)
+  dataSource: DataSource;
   channels: Record<Channel, boolean>;
-  autoApprove: boolean;
-  sendWindow: { from: string; to: string };
-  skipShabbat: boolean;
-  cadenceDays: [number, number, number, number]; // ימים אחרי מועד-הפירעון לכל שלב
+  cadenceDays: [number, number, number]; // ימים אחרי מועד-הפירעון: תזכורת 1/2/3 (עד 3, ואז עצירה)
 }

@@ -5,7 +5,8 @@ import { DEMO_TODAY, demoBusiness, demoCustomers, demoInvoices } from './data/de
 import type { Business, Channel, Customer, Invoice, Step } from './lib/domain.ts';
 import { needsReminder } from './lib/stats.ts';
 import { api, AuthError, detectBackend, fromDashboard, type Dashboard, type Health, type Draft, type OutMsg, type Plan } from './api.ts';
-import { TOKEN_KEY } from './lib/auth.ts';
+import { TOKEN_KEY, readToken } from './lib/auth.ts';
+const sessionStore = () => { try { return sessionStorage; } catch { return undefined; } };
 import type { WeekPoint } from './lib/series.ts';
 
 /** locked = שרת חי שדורש קוד גישה (401) — לא נופלים למוק בשקט. */
@@ -54,7 +55,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const showToast = useCallback((t: string) => { setToast(t); window.setTimeout(() => setToast(null), 3600); }, []);
 
   const reload = useCallback(async () => {
-    const [d, p, o, pl, dr] = await Promise.all([api.dashboard(), api.pending(), api.outbox(), api.plans(), api.drafts().catch(() => [] as Draft[])]);
+    const d = await api.dashboard(); // בקשה אחת קודם: קוד שגוי ⇒ 401 יחיד, לא חמישה
+    const [p, o, pl, dr] = await Promise.all([api.pending(), api.outbox(), api.plans(), api.drafts().catch(() => [] as Draft[])]);
     const m = fromDashboard(d, p);
     setCustomers(m.customers); setInvoices(m.invoices); setPendingBy(m.pendingBy); setToday(m.today);
     setTotals(d.totals); setSeries(d.series ?? null); setOutbox(o.messages); setPlans(pl); setDrafts(dr);
@@ -69,9 +71,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (off) return;
       if (!h) { setMode('mock'); return; }
       setHealth(h);
+      if (!readToken(sessionStore())) { setMode('locked'); return; } // אין קוד ⇒ ישר לשער, בלי בקשות שנועדו להיכשל
       try {
         await reload();
-        setBusiness(b => ({ ...b, smsProvider: (['019', 'inforu', 'twilio'].includes(h.sms_provider) ? h.sms_provider : b.smsProvider) as Business['smsProvider'] }));
+        setBusiness(b => ({ ...b, smsProvider: (['019', 'inforu'].includes(h.sms_provider) ? h.sms_provider : b.smsProvider) as Business['smsProvider'] }));
         setMode('live');
       } catch (e) { setMode(e instanceof AuthError ? 'locked' : 'mock'); }
     });

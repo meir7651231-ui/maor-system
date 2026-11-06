@@ -91,7 +91,7 @@ export function MessagePreview({ invoice, onClose, now = new Date() }: { invoice
               })}
             </fieldset>
             <div className="rounded-xl bg-ink-50 p-3 text-sm space-y-1.5">
-              <div>🕘 <b>יישלח:</b> {live && pv ? fmtWhenIL(pv.scheduled_for) : +when === +now ? 'מיד עם האישור' : fmtWhen(when)} <span className="text-ink-500">(א׳–ה׳ 9–19, ו׳ 9–12, לא בשבת/חג)</span></div>
+              <div>🕘 <b>יישלח:</b> {live && pv ? fmtWhenIL(pv.scheduled_for) : +when === +now ? 'מיד עם האישור' : fmtWhen(when)} <span className="text-ink-500">(א׳–ה׳ 8–20, ו׳ עד 12, לא בשבת/חג)</span></div>
               <div>🔗 <b>קישור תשלום:</b> <span className="num text-info break-all">{payUrl || '—'}</span></div>
               {live && <div>🧪 <b>מצב:</b> dry-run · ספק {liveSms?.provider ?? business.smsProvider} · שום הודעה לא יוצאת באמת</div>}
               <div>🛑 כולל קישור הסרה · מזהה את העסק · ללא תוכן שיווקי (סעיף 30א)</div>
