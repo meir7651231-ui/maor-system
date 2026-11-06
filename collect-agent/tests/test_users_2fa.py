@@ -194,3 +194,22 @@ def test_failed_login_audit_has_hash_not_email(svc):
     c.post("/auth/login", json={"email": "someone@biz.example", "password": "x" * 10, "code": "000000"})
     d = svc.db.one("SELECT detail FROM audit WHERE action='login_failed'")["detail"]
     assert "@" not in d and "biz.example" not in d
+
+
+def test_demo_user_never_created_on_a_real_service(tmp_path, monkeypatch, clock, gi_client):
+    """critic סבב 8: DEMO=1 + DEMO_USER_* יצרו עובד עם סיסמה ידועה (וסוד TOTP בקובץ) גם על שירות
+    אמיתי. דליפת סביבה לפרודקשן = דלת אחורית. והפעלה מחדש עם DB קבוע קרסה."""
+    from app.config import load_settings
+    from app.db import DB as _DB
+    from app.main import create_app
+    from app.service import CollectService
+    from tests.conftest import OWNER_TOKEN
+    monkeypatch.setenv("DEMO", "1")
+    monkeypatch.setenv("DEMO_USER_EMAIL", "dana@example.co.il")
+    monkeypatch.setenv("DEMO_USER_PASSWORD", "demo-pass-12345")
+    s = load_settings({"PAYMENT_LINK": "https://www.greeninvoice.co.il/pay/x"})
+    dbp = str(tmp_path / "real.sqlite3")
+    svc = CollectService(s, _DB(dbp), gi=gi_client, clock=clock)
+    create_app(svc, owner_token=OWNER_TOKEN)
+    create_app(CollectService(s, _DB(dbp), gi=gi_client, clock=clock), owner_token=OWNER_TOKEN)
+    assert svc.db.one("SELECT COUNT(*) c FROM users")["c"] == 0

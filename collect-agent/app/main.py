@@ -112,9 +112,11 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
     """אימות: כל נקודה מלבד /health, /ui, /u/{token} ו-webhook של 019 (שיש לו מפתח משלו)
     דורשת `Authorization: Bearer <OWNER_API_TOKEN>`. /inbound מקבל גם חתימת HMAC
     (X-Collect-Timestamp + X-Collect-Signature). טוקן חסר/חלש ⇒ האפליקציה לא עולה."""
+    demo_service = False
     if service is None and os.environ.get("DEMO") == "1":
         from .demo import demo_service_ready  # נתוני דמו בדויים + sandbox מדומה, בלי רשת
         service = demo_service_ready()
+        demo_service = True
     if service is None:
         s: Settings = load_settings()
         gi = (GreenInvoiceClient(s.greeninvoice_base_url, s.greeninvoice_api_id,
@@ -179,8 +181,13 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
 
     users = Users(svc.db, svc.clock)
     require_login = os.environ.get("REQUIRE_USER_LOGIN") == "1"
-    if os.environ.get("DEMO") == "1" and os.environ.get("DEMO_USER_EMAIL"):
-        # הדגמה/CI בלבד: עובד דמו + קובץ סוד TOTP, כדי לבדוק כניסה אמיתית מקצה לקצה (demo.sh --check)
+    # critic סבב 8: עובד הדמו (סיסמה ידועה מהסביבה + סוד TOTP בקובץ) נוצר על **כל** שירות כש-DEMO=1,
+    # גם על DB אמיתי. אם הסביבה דולפת לפרודקשן, זו דלת אחורית. וגם: הפעלה מחדש עם DB קבוע קרסה
+    # («משתמש כבר קיים»). עכשיו: רק על שירות הדמו שנבנה כאן, אף פעם לא בבטא אמיתית, ורק אם לא קיים.
+    if demo_service and os.environ.get("DEMO_USER_EMAIL") and \
+            os.environ.get("REQUIRE_USER_LOGIN") != "1" and \
+            not svc.db.one("SELECT 1 FROM users WHERE email=?",
+                           (os.environ["DEMO_USER_EMAIL"].strip().lower(),)):
         reg = users.create(os.environ["DEMO_USER_EMAIL"], "עובד דמו",
                            os.environ.get("DEMO_USER_PASSWORD", ""))
         if os.environ.get("DEMO_USER_SECRET_FILE"):
