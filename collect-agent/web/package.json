@@ -8,7 +8,8 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "test": "TZ=Asia/Jerusalem node --test --experimental-strip-types tests/*.check.ts"
+    "test": "TZ=Asia/Jerusalem node --test --experimental-strip-types tests/*.check.ts",
+    "logo": "node --experimental-strip-types scripts/gen-logo.ts"
   },
   "dependencies": {
     "@fontsource/heebo": "^5.3.0",

@@ -89,6 +89,20 @@ try {
   await m.screenshot({ path: `${out}/09-mobile-preview.png` });
   await noHScroll(m, 'מובייל תצוגה מקדימה');
 
+  // לוגו: כל סמל על רקע כהה (סרגל, פוטר, מובייל) מקבל אריח קרם, והעין navy תמיד
+  for (const [pg, url] of [[p, base + '#/dashboard'], [p, base], [m, base + '#/dashboard']]) {
+    await pg.goto(url); await pg.waitForTimeout(300);
+    const bad = await pg.evaluate(() => [...document.querySelectorAll('svg[data-logo]')].filter(svg => {
+      if (!svg.getClientRects().length) return false;
+      let el = svg.parentElement, bg = '';
+      while (el && !bg) { const c = getComputedStyle(el).backgroundColor; if (c && c !== 'rgba(0, 0, 0, 0)' && c !== 'transparent') bg = c; el = el.parentElement; }
+      const [r, g, b2] = (bg.match(/\d+/g) ?? ['255', '255', '255']).map(Number);
+      const dark = 0.2126 * r + 0.7152 * g + 0.0722 * b2 < 128;
+      const eye = svg.querySelector('circle')?.getAttribute('fill');
+      return (dark && svg.getAttribute('data-tile') !== 'cream') || eye !== '#0F172A';
+    }).length);
+    ok(bad === 0, `${bad} לוגואים על רקע כהה בלי אריח קרם / עין לא navy (${url})`);
+  }
   ok(external.length === 0, 'בקשות חיצוניות: ' + [...new Set(external)].join(', '));
   if (errors.length) throw new Error('שגיאות קונסולה:\n' + errors.join('\n'));
   console.log(`✓ מוק: ${ROUTES.length} מסכים × דסקטופ+מובייל בלי גלילה רוחבית · 0 בקשות חיצוניות · 0 שגיאות`);
