@@ -47,6 +47,8 @@ export function Signup() {
                 </label>
               ))}
               <div className="rounded-xl bg-ink-50 p-3 text-sm text-ink-700">🔒 בשלב הבא תדביק/י מפתח API לקריאה בלבד. גבי לא יוצר ולא משנה מסמכים.</div>
+              {/* הכרעת מאיר 6.11: זמינות ה-API לפי מסלול היא הערכה לא מאומתת — נוסח מחייב עד אימות רשמי */}
+              <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-ink-700" data-testid="gi-plan-note">ℹ️ ייתכן שנדרש מסלול Best ומעלה ב-morning; יש לאמת מול הספק.</div>
               <div className="flex gap-2"><Button variant="ghost" onClick={() => setS(0)}>חזרה</Button><Button className="flex-1" onClick={() => setS(2)}>המשך</Button></div>
             </div>
           )}

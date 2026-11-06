@@ -1,22 +1,33 @@
 // מראה של app/policy.py — מתי מותר לשלוח. טהור; הזמן מוזרק.
-// א׳–ה׳ 09:00–19:00 · ו׳ 09:00–12:00 · שבת/חג — לא שולחים.
+// הכרעת מאיר 6.11: 08:00–20:00 · שישי וערב חג 08:00–12:00 (בלי אחה"צ) · שבת/חג — לא שולחים.
+// לוח החגים = מראה של app/policy.py HOLIDAYS (נבדק אות-באות ב-tests/lib.check.ts).
 // ⚖️ אין בחוק התקשורת שעות-שליחה מפורשות לתזכורת שאינה פרסומת — זו מדיניות שמרנית של המוצר (מניעת הטרדה).
 type Win = [number, number] | null; // דקות מחצות
-const W: Win[] = [[540, 1140], [540, 1140], [540, 1140], [540, 1140], [540, 1140], [540, 720], null]; // getDay(): 0=ראשון
+const DAY: Win = [480, 1200], SHORT: Win = [480, 720];
+const W: Win[] = [DAY, DAY, DAY, DAY, DAY, SHORT, null]; // getDay(): 0=ראשון
+export const HOLIDAYS: ReadonlySet<string> = new Set([
+  '2026-09-12', '2026-09-13', '2026-09-21', '2026-09-26', '2026-10-03', '2027-04-22', '2027-04-28', '2027-06-11', '2027-10-02', '2027-10-03', '2027-10-11', '2027-10-16', '2027-10-23', '2028-04-11', '2028-04-17', '2028-05-31', '2028-09-21', '2028-09-22', '2028-09-30', '2028-10-05', '2028-10-12', '2029-03-31', '2029-04-06', '2029-05-20',
+]);
+const isHol = (iso: string, extra: ReadonlySet<string>) => HOLIDAYS.has(iso) || extra.has(iso);
+function windowOf(d: Date, extra: ReadonlySet<string>): Win {
+  if (isHol(isoLocal(d), extra)) return null;
+  const next = new Date(d); next.setDate(d.getDate() + 1);
+  const w = W[d.getDay()];
+  return w && isHol(isoLocal(next), extra) ? SHORT : w; // ערב חג = כמו שישי
+}
 
 export function canSendAt(d: Date, holidays: ReadonlySet<string> = new Set()): boolean {
-  const iso = isoLocal(d);
-  const w = W[d.getDay()];
+  const w = windowOf(d, holidays);
   const m = d.getHours() * 60 + d.getMinutes();
-  return !holidays.has(iso) && !!w && m >= w[0] && m < w[1];
+  return !!w && m >= w[0] && m < w[1];
 }
 export function nextAllowed(from: Date, holidays: ReadonlySet<string> = new Set()): Date {
   const d = new Date(from);
   for (let i = 0; i < 24 * 14; i++) {
     if (canSendAt(d, holidays)) return d;
-    const w = W[d.getDay()];
+    const w = windowOf(d, holidays);
     const m = d.getHours() * 60 + d.getMinutes();
-    if (w && m < w[0] && !holidays.has(isoLocal(d))) { d.setHours(9, 0, 0, 0); continue; }
+    if (w && m < w[0]) { d.setHours(8, 0, 0, 0); continue; }
     d.setDate(d.getDate() + 1); d.setHours(0, 0, 0, 0);
   }
   throw new Error('אין חלון שליחה בשבועיים הקרובים');

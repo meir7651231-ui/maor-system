@@ -2,8 +2,7 @@ from datetime import date, datetime
 
 import pytest
 
-from app import assistant, paylinks, plans, templates
-from app.assistant import Intent
+from app import paylinks, plans, templates
 from app.channels import (
     DryRunSender,
     Message,
@@ -13,7 +12,9 @@ from app.channels import (
     sms_segments,
 )
 from app.config import SafetyError, load_settings
+from app.conversation import Intent, respond
 from app.policy import TZ, Policy
+from evals.harness import build_ctx
 
 P = Policy(frozenset({"2026-12-25"}))
 
@@ -40,23 +41,29 @@ def test_dry_run_always_true():
 # ---------- מדיניות זמנים ----------
 @pytest.mark.parametrize("dt,ok", [
     (at(2026, 11, 8, 10), True),    # ראשון
-    (at(2026, 11, 8, 8, 59), False),
-    (at(2026, 11, 8, 19), False),
+    (at(2026, 11, 8, 8), True),     # 08:00 — פתיחת החלון (הכרעת מאיר)
+    (at(2026, 11, 8, 7, 59), False),
+    (at(2026, 11, 8, 19, 59), True),
+    (at(2026, 11, 8, 20), False),   # 20:00 — סגירה
     (at(2026, 11, 13, 11), True),   # שישי בבוקר
-    (at(2026, 11, 13, 12, 30), False),
+    (at(2026, 11, 13, 12), False),  # שישי אחה"צ — אסור
     (at(2026, 11, 14, 10), False),  # שבת
-    (at(2026, 12, 25, 10), False),  # חג מוגדר
+    (at(2026, 12, 25, 10), False),  # חג מוגדר בהגדרות העסק
+    (at(2026, 9, 21, 10), False),   # יום כיפור — מובנה (ממצא מבקר 2.8)
+    (at(2026, 9, 20, 11), True),    # ערב יום כיפור בבוקר
+    (at(2026, 9, 20, 13), False),   # ערב חג אחה"צ — כמו שישי
+    (at(2027, 4, 22, 10), False),   # פסח
 ])
 def test_can_send(dt, ok):
     assert P.can_send_at(dt) is ok
 
 
 def test_next_allowed_skips_shabbat():
-    assert P.next_allowed(at(2026, 11, 13, 14)) == at(2026, 11, 15, 9)
+    assert P.next_allowed(at(2026, 11, 13, 14)) == at(2026, 11, 15, 8)
 
 
 def test_next_allowed_morning():
-    assert P.next_allowed(at(2026, 11, 9, 6)) == at(2026, 11, 9, 9)
+    assert P.next_allowed(at(2026, 11, 9, 6)) == at(2026, 11, 9, 8)
 
 
 # ---------- טלפונים ----------
@@ -248,7 +255,11 @@ def test_resolve_prefers_doc_link_then_static():
     assert paylinks.resolve(doc_link="", static_link="", number="1", allowed=ALLOWED) is None
 
 
-# ---------- מסווג ----------
+# ---------- מסווג (הועבר מ-assistant.py שהוסר ל-conversation.py; ראו docs/MIGRATION-assistant.md) ----------
+def classify(text, llm=None):
+    return respond(text, build_ctx({}), llm=llm).intent
+
+
 @pytest.mark.parametrize("text,intent", [
     ("הסר", Intent.OPT_OUT), ("STOP", Intent.OPT_OUT),
     ("שילמתי אתמול בהעברה", Intent.PAID_CLAIM),
@@ -259,23 +270,23 @@ def test_resolve_prefers_doc_link_then_static():
     ("מה שלומך היום", Intent.UNKNOWN),
 ])
 def test_classify(text, intent):
-    assert assistant.classify(text) == intent
+    assert classify(text) == intent
 
 
 def test_dispute_beats_paid():
-    assert assistant.classify("שילמתי, וחוץ מזה זו טעות") == Intent.DISPUTE
+    assert classify("שילמתי, וחוץ מזה זו טעות") == Intent.DISPUTE
 
 
 def test_unknown_escalates_no_auto_reply():
-    d = assistant.decide("שאלה מורכבת על המע\"מ", business="x", payment_link="")
-    assert d.escalate and d.auto_reply is None
+    d = respond("שאלה מורכבת על המע\"מ", build_ctx({}))
+    assert d.escalate.value != "none" and d.reply is None and not d.auto_send
 
 
 def test_llm_garbage_falls_back():
     class Bad:
         def classify(self, t):
             return "pay_me_now"
-    assert assistant.classify("משהו", Bad()) == Intent.UNKNOWN
+    assert classify("משהו", Bad()) == Intent.UNKNOWN
 
 
 @pytest.mark.parametrize("raw,exp", [("דנה <Dana@Example.com>", "dana@example.com"),
@@ -310,3 +321,26 @@ def test_compliance_ignores_url_contents():
 def test_short_code_alphabet_is_lowercase_readable():
     from app.service import _B62
     assert _B62 == _B62.lower() and not set("0o1l") & set(_B62)
+
+
+
+def test_holiday_table_matches_hebrew_calendar_and_is_current():
+    """הלוח המובנה חושב מלוח עברי. נכשלת חצי שנה לפני שהטבלה נגמרת — להאריך."""
+    from app.policy import HOLIDAYS, HOLIDAYS_VALID_UNTIL
+    assert {"2026-09-21", "2027-10-11", "2028-09-30"} <= set(HOLIDAYS)   # יום כיפור ×3
+    assert date.today() < HOLIDAYS_VALID_UNTIL - __import__("datetime").timedelta(days=180)
+    try:
+        from pyluach import dates as hd
+    except ImportError:
+        return
+    for iso, name in HOLIDAYS.items():
+        y, m, d = map(int, iso.split("-"))
+        h = hd.GregorianDate(y, m, d).to_heb()
+        assert (h.month, h.day) in {(7, 1), (7, 2), (7, 10), (7, 15), (7, 22), (1, 15), (1, 21),
+                                    (3, 6)}, (iso, name)
+
+
+def test_reason_closed_explains():
+    assert P.reason_closed(at(2026, 11, 14, 10)) == "שבת"
+    assert "חג" in P.reason_closed(at(2026, 9, 21, 10))
+    assert P.reason_closed(at(2026, 11, 8, 10)) is None

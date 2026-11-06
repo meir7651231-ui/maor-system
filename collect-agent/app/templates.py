@@ -14,8 +14,9 @@ from .security import sanitize_field
 MARKETING_WORDS = ("מבצע", "הנחה", "הטבה", "מתנה", "קופון", "חדש!", "הזדמנות", "במיוחד בשבילך")
 THREAT_WORDS = ("הוצאה לפועל", "תביעה", "משטרה", "עונש", "עו\"ד", "עורך דין", "אחרונה!")
 
+PRODUCT = "גבי"
 SLOGAN = "גבי – תזכורות תשלום"
-TAGLINE = "הכסף שלך חוזר. בלי שתצטרך לרדוף."
+TAGLINE = "הכסף שלך חוזר. בלי שתצטרך לרדוף."   # לבעל העסק בלבד, לעולם לא בהודעה לחייב
 
 
 @dataclass(frozen=True)
@@ -26,6 +27,7 @@ class Step:
     email: str
 
 
+# 3 שלבים בלבד (הכרעת מאיר): ידידותית +1 · פתוחה+פריסה +7 · אחרונה +14 ⇒ עצירה והתראה לבעל העסק.
 # שדות: {biz} {name} {first} {num} {amount} {link} {unsub} {short} {stop}
 # SMS: קישור קצר אחד על הדומיין שלנו ({short} ⇒ עמוד תשלום + הפסקת תזכורות) ⇒ ≤2 חלקי SMS.
 # מייל: קישור התשלום הישיר + קישור הסרה (One-Click).
@@ -37,17 +39,11 @@ STEPS: tuple[Step, ...] = (
          "שלום {name},\n\nזו תזכורת ידידותית שחשבונית {num} על סך {amount} טרם סומנה כשולמה.\n"
          "אפשר לשלם בקישור: {link}\n\nאם כבר שילמתם — תודה רבה, ואפשר להתעלם מהודעה זו.\n\n"
          "בברכה,\n{biz}"),
-    Step("second",
-         "{biz}: שלום {first}, חשבונית {num} ע\"ס {amount} פתוחה. "
-         "לתשלום: {short}{ask} {stop}",
-         "חשבונית {num} מ-{biz} עדיין פתוחה",
-         "שלום {name},\n\nחשבונית {num} על סך {amount} עדיין פתוחה.\nלתשלום: {link}\n\n"
-         "אם יש שאלה, או אם נוח לכם לפרוס את הסכום — פשוט השיבו למייל הזה.\n\nבברכה,\n{biz}"),
     Step("plan_offer",
-         "{biz}: {first}, אפשר לפרוס את חשבונית {num} ({amount}) ללא תוספת. "
+         "{biz}: {first}, חשבונית {num} ({amount}) פתוחה, אפשר בתשלומים. "
          "{plan_cta}: {short} {stop}",
-         "אפשרות פריסה לחשבונית {num}",
-         "שלום {name},\n\nרצינו לוודא שהכול בסדר לגבי חשבונית {num} ({amount}).\n"
+         "חשבונית {num} מ-{biz} עדיין פתוחה",
+         "שלום {name},\n\nחשבונית {num} על סך {amount} עדיין פתוחה.\n"
          "אם נוח לכם, אפשר לפרוס את הסכום לכמה תשלומים ללא כל תוספת — השיבו \"פריסה\".\n"
          "לתשלום מלא: {link}\n\nבברכה,\n{biz}"),
     Step("final",
@@ -114,3 +110,12 @@ def render_email(step: Step, f: dict[str, str]) -> tuple[str, str, str]:
             f'<p style="font-size:12px;color:#6b7280">הודעה אוטומטית מטעם {esc["biz"]}. '
             f'<a href="{esc["unsub"]}">להסרה מתזכורות</a></p></div>')
     return step.subject.format(**f), text, html
+
+
+def template_version() -> str:
+    """ר-12: טביעת הנוסחים (12 תווי sha256). כל שינוי בנוסח ⇒ גרסה חדשה ⇒ אישורים קודמים בטלים."""
+    import hashlib
+    import json
+
+    src = json.dumps([s.__dict__ for s in STEPS], ensure_ascii=False, sort_keys=True)
+    return hashlib.sha256(src.encode()).hexdigest()[:12]
