@@ -78,6 +78,16 @@ CREATE TABLE IF NOT EXISTS suppressions (
 CREATE TABLE IF NOT EXISTS business_settings (
   key TEXT PRIMARY KEY, value TEXT NOT NULL, updated_at TEXT NOT NULL
 );
+-- תקנות אבטחת מידע: תיעוד גישה (צפייה) למידע אישי. הוספה בלבד, בלי תוכן — רק מי, מתי, איזה מסך
+CREATE TABLE IF NOT EXISTS access_log (
+  id INTEGER PRIMARY KEY,
+  at TEXT NOT NULL, actor TEXT NOT NULL, method TEXT NOT NULL, route TEXT NOT NULL,
+  path TEXT NOT NULL
+);
+CREATE TRIGGER IF NOT EXISTS access_log_no_update BEFORE UPDATE ON access_log
+  BEGIN SELECT RAISE(ABORT, 'access_log is append-only'); END;
+CREATE TRIGGER IF NOT EXISTS access_log_no_delete BEFORE DELETE ON access_log
+  BEGIN SELECT RAISE(ABORT, 'access_log is append-only'); END;
 -- יומן ביקורת = ראיה (מחלוקת/עו"ד) ⇒ הוספה בלבד, אין עדכון ואין מחיקה
 CREATE TRIGGER IF NOT EXISTS audit_no_update BEFORE UPDATE ON audit
   BEGIN SELECT RAISE(ABORT, 'audit is append-only'); END;

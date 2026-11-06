@@ -131,6 +131,11 @@ class CollectService:
                   (_iso(self.clock()), actor, action,
                    json.dumps(detail, ensure_ascii=False) if detail is not None else None))
 
+    # ---------- תיעוד גישה (תקנות אבטחת מידע) ----------
+    def log_access(self, actor: str, method: str, route: str, path: str) -> None:
+        self.db.x("INSERT INTO access_log(at,actor,method,route,path) VALUES(?,?,?,?,?)",
+                  (_iso(self.clock()), actor, method, route, path[:300]))
+
     # ---------- sync ----------
     @staticmethod
     def customer_key(inv: Invoice) -> str:
@@ -340,8 +345,9 @@ class CollectService:
             return
         self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
                   "message_id,created_at) VALUES(NULL,'system','owner',?,'trial_ending',1,?,?)",
-                  (f"תקופת הניסיון של גבי מסתיימת בעוד {t['days_left']} ימים ({t['ends']}). "
-                   "לאחריה התזכורות נעצרות (הנתונים נשמרים) עד הצטרפות.", key,
+                  (f"תקופת הניסיון של גבי מסתיימת {_in_days(t['days_left'])} ({t['ends']}). "
+                   "לאחריה התזכורות נעצרות (הנתונים נשמרים) עד שתבחרו להצטרף. "
+                   "לא יבוצע חיוב אוטומטי.", key,
                    _iso(self.clock())))
         self.audit("system", "trial_ending", {"ends": t["ends"]})
 
@@ -1137,6 +1143,11 @@ def _rebuild_keep_log(old: DryRunSender, s: Settings) -> DryRunSender:
     new = build_dry_sender(s)
     new.sent = old.sent          # יומן ה-dry-run נשמר
     return new
+
+
+def _in_days(n: int) -> str:
+    """עברית תקינה: מחר / בעוד יומיים / בעוד N ימים (לא "בעוד 1 ימים")."""
+    return {1: "מחר", 2: "בעוד יומיים"}.get(n, f"בעוד {n} ימים")
 
 
 def _sha(payload: str) -> str:

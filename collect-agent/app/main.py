@@ -50,6 +50,12 @@ class LegalHoldIn(BaseModel):
     note: str | None = Field(None, max_length=500)   # None/"" ⇒ ביטול
 
 
+# מסכים שמחזירים מידע אישי של לקוחות (שם/טלפון/מייל/סכום/תוכן הודעות) ⇒ כל צפייה נרשמת
+PII_READ_ROUTES = frozenset({
+    "/reminders", "/reminders/{rid}/preview", "/dashboard", "/customers", "/outbox",
+    "/owner/inbox", "/plans", "/audit", "/conversation/drafts", "/access-log"})
+
+
 class InboundIn(BaseModel):
     channel: Literal["sms", "email"] = "sms"
     sender: str = Field(max_length=254)
@@ -167,6 +173,10 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
     def owner(request: Request) -> None:
         if not security.token_ok(security.bearer(request.headers.get("authorization")), token):
             raise HTTPException(401, "נדרש אימות", headers={"WWW-Authenticate": "Bearer"})
+        # תיעוד צפייה במידע אישי (legal/BETA-GATE.md שער 6). שחקן = "owner" כל עוד יש טוקן יחיד
+        route = getattr(request.scope.get("route"), "path", "")
+        if request.method == "GET" and route in PII_READ_ROUTES:
+            svc.log_access("owner", "GET", route, request.url.path)
 
     async def owner_or_signed(request: Request) -> None:
         if security.token_ok(security.bearer(request.headers.get("authorization")), token):
@@ -467,6 +477,10 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
     @app.post("/plans/{pid}/approve", dependencies=auth)
     def approve_plan(pid: int):
         return guard(svc.approve_plan, pid)
+
+    @app.get("/access-log", dependencies=auth)
+    def access_log():
+        return [dict(r) for r in svc.db.q("SELECT * FROM access_log ORDER BY id DESC LIMIT 500")]
 
     @app.get("/audit", dependencies=auth)
     def audit():
