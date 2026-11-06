@@ -38,7 +38,9 @@ class FakeGreenInvoice:
     def handler(self, req: httpx.Request) -> httpx.Response:
         if req.url.path.endswith("/account/token"):
             body = json.loads(req.content)
-            if body != {"id": "test-id", "secret": "test-secret"}:
+            # morning 2026: grant_type חובה. המוק דוחה גוף בלי השדה (מגן מפני רגרסיה)
+            if body != {"id": "test-id", "secret": "test-secret",
+                        "grant_type": "client_credentials"}:
                 return httpx.Response(401, json={"errorMessage": "bad"})
             self.token_calls += 1
             return httpx.Response(200, json={"token": f"tok{self.token_calls}",

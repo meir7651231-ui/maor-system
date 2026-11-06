@@ -1,7 +1,9 @@
 """לקוח Green Invoice (morning) — קריאה בלבד.
 
 שלב 1 משתמש רק ב:
-  POST /account/token     {id, secret} -> {token, expires}
+  POST /account/token     {id, secret, grant_type} -> {token, expires}
+                           (grant_type="client_credentials" נדרש מ-2026 לפי הודעת morning
+                            "עדכונים חשובים בתשתית ממשק ה-API"; לאמת ב-sandbox)
   POST /documents/search  פילטר סטטוס/סוג + עימוד
 
 שמות שדות לפי התיעוד הציבורי; יש לאמת מול sandbox אמיתי לפני שימוש
@@ -20,6 +22,11 @@ import httpx
 # סוגי מסמכים שמייצגים חוב פתוח (לאמת): 300 חשבון עסקה, 305 חשבונית מס
 OPEN_DEBT_TYPES = (300, 305)
 STATUS_OPEN = 0
+
+
+def token_body(api_id: str, api_secret: str) -> dict[str, str]:
+    """גוף בקשת הטוקן. מ-2026 morning דורשת גם grant_type (ראו team/market.md §1.4)."""
+    return {"id": api_id, "secret": api_secret, "grant_type": "client_credentials"}
 
 
 class GreenInvoiceError(RuntimeError):
@@ -105,7 +112,7 @@ class GreenInvoiceClient:
             return self._token
         if not self._id or not self._secret:
             raise GreenInvoiceError("חסרים GREENINVOICE_API_ID/SECRET")
-        r = self._http.post("/account/token", json={"id": self._id, "secret": self._secret})
+        r = self._http.post("/account/token", json=token_body(self._id, self._secret))
         if r.status_code != 200:
             raise GreenInvoiceError(f"token נכשל: {r.status_code}")
         body = r.json()

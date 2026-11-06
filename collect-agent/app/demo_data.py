@@ -9,7 +9,7 @@ import json
 
 import httpx
 
-from .greeninvoice import GreenInvoiceClient
+from .greeninvoice import GreenInvoiceClient, token_body
 
 SANDBOX = "https://sandbox.d.greeninvoice.co.il/api/v1"
 DEMO_ID, DEMO_SECRET = "demo-id", "demo-secret"
@@ -44,7 +44,7 @@ class FakeGreenInvoice:
 
     def handler(self, req: httpx.Request) -> httpx.Response:
         if req.url.path.endswith("/account/token"):
-            if json.loads(req.content) != {"id": DEMO_ID, "secret": DEMO_SECRET}:
+            if json.loads(req.content) != token_body(DEMO_ID, DEMO_SECRET):
                 return httpx.Response(401, json={"errorMessage": "bad credentials"})
             return httpx.Response(200, json={"token": "demo-token", "expires": 2_000_000_000})
         if req.url.path.endswith("/documents/search"):
