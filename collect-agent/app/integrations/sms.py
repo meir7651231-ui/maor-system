@@ -1,16 +1,23 @@
-"""adapters ל-SMS: InforU · 019 SMS · Twilio.
+"""SMS — מימוש יחיד במערכת: **019 ראשי · InforU גיבוי** (הכרעת מאיר). Twilio יצא (לא נדרש ל-MVP).
 
-⚠️ שמות שדות/כתובות לפי התיעוד הציבורי — **לאמת מול חשבון אמיתי** (team/integrations.md §4).
+⚠️ **חוזה 019 לא מאומת** (`CONTRACT_VERIFIED_019 = False`): אין מסמך רשמי, ובתיעוד הציבורי יש גם XML
+וגם JSON. נשמר זמנית ה-**XML** של המימוש הקיים (לפני האיחוד) כ-fixture תאימות, ונשלח ל-endpoint
+הבדיקה `/api/test`. כל שליחה אמיתית חסומה: guard_transport (רק MockTransport) + `_live_guard`.
+החלפת הדגל = מסמך רשמי + חשבון בדיקה + שינוי קוד מכוון. גם InforU לא מאומת.
 SMS בעברית = UCS-2 ⇒ 70 תווים להודעה בודדת, 67 לכל חלק בהודעה מרובת-חלקים.
 """
 from __future__ import annotations
 
 import json
 import re
-from urllib.parse import urlencode
+
+# B405: ראו parse() — DOCTYPE/ENTITY נדחים לפני הפרסור
+import xml.etree.ElementTree as ET  # noqa: S405  # nosec B405
+from xml.sax.saxutils import escape  # nosec B406
 
 import httpx
 
+from ..config import SafetyError
 from ..contact import normalize_il_phone
 from .base import IntegrationError, ProviderError, SendResult, SmsMessage, basic_auth
 from .http import HttpAdapter
@@ -52,6 +59,18 @@ def validate_sender(sender: str) -> str:
     return sender
 
 
+CONTRACT_VERIFIED_019 = False
+CONTRACT_VERIFIED_INFORU = False
+
+
+def _live_guard(provider: str, verified: bool, transport) -> None:
+    """חוזה לא מאומת ⇒ אין שליחה אמיתית בשום מצב (רק dry-run או MockTransport)."""
+    if not verified and transport is not None and not isinstance(transport, httpx.MockTransport):
+        raise SafetyError(f"{provider}: חוזה ה-API לא אומת — שליחה אמיתית חסומה")
+
+
+
+
 class SmsAdapter(HttpAdapter):
     channel = "sms"
 
@@ -79,9 +98,11 @@ class InforUSms(SmsAdapter):
     הצלחה: StatusId == 1."""
 
     provider = "inforu"
+    contract_verified = CONTRACT_VERIFIED_INFORU
     URL = "https://capi.inforu.co.il/api/v2/SMS/SendSms"
 
     def __init__(self, username: str, api_token: str, sender: str, **kw) -> None:
+        _live_guard(self.provider, self.contract_verified, kw.get("transport"))
         super().__init__(**kw)
         if not username or not api_token:
             raise IntegrationError("InforU: חסרים INFORU_USERNAME/INFORU_TOKEN")
@@ -109,19 +130,21 @@ class InforUSms(SmsAdapter):
         return str(data.get("MessageId") or data.get("RequestId") or b.get("RequestId") or "")
 
 
-# ------------------------------------------------------------------ 019
+# ------------------------------------------------------------------ 019 (ראשי)
 class Sms019(SmsAdapter):
-    """019 SMS API (JSON). POST 019sms.co.il/api, Bearer token. הצלחה: status == 0."""
+    """019 SMS. XML מעל HTTPS, Bearer token (fixture תאימות — חוזה לא מאומת).
+    הצלחה לפי התיעוד הציבורי: status == 0. `test_endpoint=True` ⇒ /api/test (לא שולח)."""
 
     provider = "019"
+    contract_verified = CONTRACT_VERIFIED_019
     URL = "https://019sms.co.il/api"
 
-    def __init__(self, username: str, api_token: str, sender: str, *, test_endpoint: bool = False,
+    def __init__(self, username: str, api_token: str, sender: str, *, test_endpoint: bool = True,
                  **kw) -> None:
+        _live_guard(self.provider, self.contract_verified, kw.get("transport"))
         super().__init__(**kw)
         if not username or not api_token:
             raise IntegrationError("019: חסרים SMS019_USERNAME/SMS019_TOKEN")
-        # ‎/api/test של 019 = מקבל ומאמת בקשה בלי לשלוח בפועל (לשלב בדיקת האינטגרציה, לאמת)
         self.url = self.URL + ("/test" if test_endpoint else "")
         self.username, self.token, self.sender = username, api_token, validate_sender(sender)
 
@@ -129,57 +152,61 @@ class Sms019(SmsAdapter):
         return (self.token,)
 
     def build_request(self, msg: SmsMessage) -> httpx.Request:
-        sms = {"user": {"username": self.username}, "source": self.sender,
-               "destinations": {"phone": [il_mobile_local(msg.to)]},
-               "message": msg.text}
-        return httpx.Request("POST", self.url, json={"sms": sms}, headers={
-            "Authorization": f"Bearer {self.token}"})
+        xml = ("<?xml version=\"1.0\" encoding=\"UTF-8\"?><sms>"
+               f"<user><username>{escape(self.username)}</username></user>"
+               f"<source>{escape(self.sender)}</source>"
+               f"<destinations><phone>{il_mobile_local(msg.to)}</phone></destinations>"
+               f"<message>{escape(msg.text)}</message></sms>")
+        return httpx.Request("POST", self.url, content=xml.encode("utf-8"), headers={
+            "Authorization": f"Bearer {self.token}",
+            "Content-Type": "application/xml; charset=utf-8"})
 
     def parse(self, r: httpx.Response) -> str:
-        b = r.json()
-        if str(b.get("status")) != "0":
-            raise ProviderError(self.provider, f"status={b.get('status')} {b.get('message', '')}")
-        return str(b.get("shipment_id") or b.get("id") or "")
-
-
-# ------------------------------------------------------------------ Twilio
-class TwilioSms(SmsAdapter):
-    """Twilio Programmable Messaging. POST /2010-04-01/Accounts/{SID}/Messages.json
-    (form-encoded), Basic SID:AuthToken. תשובה 201 עם sid."""
-
-    provider = "twilio"
-
-    def __init__(self, account_sid: str, auth_token: str, *, from_: str = "",
-                 messaging_service_sid: str = "", **kw) -> None:
-        super().__init__(**kw)
-        if not account_sid or not auth_token:
-            raise IntegrationError("Twilio: חסרים TWILIO_ACCOUNT_SID/TWILIO_AUTH_TOKEN")
-        if not (from_ or messaging_service_sid):
-            raise IntegrationError("Twilio: נדרש From או MessagingServiceSid")
-        self.sid, self.token = account_sid, auth_token
-        self.from_ = validate_sender(from_) if from_ else ""
-        self.mss = messaging_service_sid
-
-    def _secrets(self):
-        return (self.token,)
-
-    def build_request(self, msg: SmsMessage) -> httpx.Request:
-        form = {"To": "+" + il_mobile_intl(msg.to), "Body": msg.text}
-        if self.mss:
-            form["MessagingServiceSid"] = self.mss
+        """סובלני: XML (<status>/<message>/<shipment_id>) או JSON — עד שהחוזה יאומת."""
+        text = r.text.strip()
+        if text.startswith("<"):
+            # QA: תשובה מהספק = קלט חיצוני. בלי DOCTYPE/ENTITY (XXE, billion laughs) ועם תקרת גודל,
+            # כך ש-ElementTree מפרסר רק XML פשוט — בלי תלות נוספת (defusedxml) בשלב 1
+            if len(text) > 64_000 or re.search(r"<!(DOCTYPE|ENTITY)", text, re.I):
+                raise ValueError("XML חשוד מהספק (DOCTYPE/ENTITY/גודל) — נדחה")
+            try:
+                root = ET.fromstring(text)  # noqa: S314  # nosec B314
+            except ET.ParseError as e:
+                raise ValueError(f"XML לא תקין: {e}") from e
+            st, msg, sid = ((root.findtext(k) or "").strip()
+                            for k in ("status", "message", "shipment_id"))
         else:
-            form["From"] = self.from_
-        url = f"https://api.twilio.com/2010-04-01/Accounts/{self.sid}/Messages.json"
-        return httpx.Request("POST", url, content=urlencode(form).encode(), headers={
-            "Authorization": basic_auth(self.sid, self.token),
-            "Content-Type": "application/x-www-form-urlencoded"})
+            b = json.loads(text)
+            st, msg = str(b.get("status", "")), str(b.get("message", ""))
+            sid = str(b.get("shipment_id") or b.get("id") or "")
+        if st != "0":
+            raise ProviderError(self.provider, f"status={st} {msg}".strip())
+        return sid
 
-    def parse(self, r: httpx.Response) -> str:
-        b = r.json()
-        if b.get("error_code"):
-            raise ProviderError(self.provider, f"error_code={b['error_code']} "
-                                f"{b.get('error_message', '')}")
-        sid = b.get("sid")
-        if not sid:
-            raise ProviderError(self.provider, "אין sid בתשובה: " + json.dumps(b)[:120])
-        return str(sid)
+
+SMS_PROVIDERS = {"019": Sms019, "inforu": InforUSms}
+
+_DLR_DELIVERED = {"delivered", "delivrd", "success"}
+_DLR_FAILED = {"failed", "undeliv", "undelivered", "rejected", "rejectd", "expired", "blocked",
+               "error"}
+
+
+def parse_019_dlr(fields: dict[str, str]) -> tuple[str, str]:
+    """דוח מסירה של 019 ⇒ (מזהה ההודעה אצל הספק, delivered|failed|pending|unknown).
+
+    ⚠️ חוזה לא מאומת (כמו השליחה): שמות השדות והקודים לפי התיעוד הציבורי בלבד. סובלני לשמות
+    (shipment_id/msg_id/id) ולמילות סטטוס נפוצות. קוד מספרי שאינו מוכר ⇒ 'unknown' — **לא** פועלים
+    עליו (לא מסמנים נכשל) עד שיהיה מסמך רשמי."""
+    pid = (fields.get("shipment_id") or fields.get("msg_id") or fields.get("message_id")
+           or fields.get("id") or "").strip()
+    raw = (fields.get("status_text") or fields.get("dlr_status") or fields.get("status")
+           or "").strip().lower()
+    if raw in _DLR_DELIVERED:
+        st = "delivered"
+    elif raw in _DLR_FAILED:
+        st = "failed"
+    elif raw in ("pending", "sent", "enroute", "accepted"):
+        st = "pending"
+    else:
+        st = "unknown"
+    return pid, st

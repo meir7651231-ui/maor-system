@@ -160,8 +160,11 @@ PUBLIC_ROUTES = {"/health", "/", "/ui", "/landing", "/u/{token}", "/webhooks/sms
 
 
 def test_route_inventory_is_fully_guarded(svc):
-    """נקודה חדשה שנוספה בלי אימות ⇒ הבדיקה נופלת (מלבד /health)."""
-    app = create_app(svc, owner_token=OWNER_TOKEN)
+    """נקודה חדשה שנוספה בלי אימות ⇒ הבדיקה נופלת (מלבד /health).
+    מגביל בלי כללים: הבדיקה כאן היא אימות, לא קצב (עם 40+ נתיבים ה-429 הסתיר את ה-401;
+    הגבלת הקצב נבדקת בנפרד)."""
+    from app.ratelimit import RateLimiter
+    app = create_app(svc, owner_token=OWNER_TOKEN, limiter=RateLimiter(rules={}))
     c = TestClient(app)
     for route in app.routes:
         path = getattr(route, "path", "")
@@ -387,8 +390,10 @@ def test_gitignore_covers_sensitive_files():
 def test_no_trojan_source_bidi_chars():
     """תווי כיווניות מילוליים בקוד = Trojan Source (CVE-2021-42574). נמצא פעם אחת כבר
     ב-app/security.py עצמו (6.11.2026) — מאז רק כ-escape (\\u202e)."""
-    bidi = re.compile("[\u202a-\u202e\u2066-\u2069]")
-    for p in [*APP_FILES, *(ROOT / "tests").glob("*.py"), *(ROOT / "scripts").glob("*")]:
+    # גם RLM/LRM/ALM (bandit B613 תפס U+200F מילולי ב-app/csv_import.py, 6.11 לילה)
+    bidi = re.compile("[\u202a-\u202e\u2066-\u2069\u200e\u200f\u061c]")
+    for p in [*APP_FILES, *(ROOT / "tests").rglob("*.py"), *(ROOT / "scripts").glob("*"),
+              *(ROOT / "evals").rglob("*.py")]:
         if p.is_file():
             assert not bidi.search(p.read_text(encoding="utf-8", errors="ignore")), p.name
 
@@ -421,7 +426,7 @@ def test_settings_repr_hides_sms_secrets():
 def test_unsubscribe_get_does_not_unsubscribe(raw_api, svc):
     """סורקי קישורים (Safe Links/תצוגה מקדימה) פותחים כל URL ב-GET ⇒ אסור שיסיר."""
     svc.ingest(list(svc.gi.iter_open_invoices()))
-    tok = svc.db.one("SELECT unsub_token FROM customers WHERE id=1")["unsub_token"]
+    tok = svc.new_unsub_token(svc.db.one("SELECT id FROM customers WHERE id=1")["id"])
     for _ in range(3):
         assert raw_api.get(f"/u/{tok}").status_code == 200
     assert svc.db.one("SELECT opted_out FROM customers WHERE id=1")["opted_out"] == 0

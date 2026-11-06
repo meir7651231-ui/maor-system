@@ -1,9 +1,11 @@
 // שכבת API מול הבקאנד של גבי (FastAPI, dry-run בלבד). אותו origin כשהממשק מוגש מ-/app/,
 // או ?api=http://127.0.0.1:8000 בפיתוח. אין בקאנד ⇒ הממשק נופל לנתוני מוק (data/demo.ts).
+import type { DesignSettings } from './lib/settings.ts';
 import type { Customer, Invoice, InvoiceStatus, Reminder, Step } from './lib/domain.ts';
 import { STEP_ORDER } from './lib/message.ts';
 import { readToken } from './lib/auth.ts';
 import type { WeekPoint } from './lib/series.ts';
+import type { OwnerMsg } from './lib/notices.ts';
 
 /** השרת ענה 401 — צריך קוד גישה של בעל העסק. */
 export class AuthError extends Error {}
@@ -78,10 +80,15 @@ export const api = {
   outbox: () => j<{ dry_run: true; messages: OutMsg[] }>('/outbox'),
   resume: (cid: number) => j<unknown>(`/customers/${cid}/resume`, { method: 'POST' }),
   plans: () => j<Plan[]>('/plans'),
+  ownerInbox: () => j<OwnerMsg[]>('/owner/inbox'),
   approvePlan: (pid: number) => j<{ text: string }>(`/plans/${pid}/approve`, { method: 'POST' }),
   drafts: () => j<Draft[]>('/conversation/drafts'),
   approveDraft: (id: number, body?: string) => j<{ status: string }>(`/conversation/drafts/${id}/approve`, { method: 'POST', body: JSON.stringify(body === undefined ? {} : { body }) }),
   rejectDraft: (id: number) => j<unknown>(`/conversation/drafts/${id}/reject`, { method: 'POST' }),
+  settings: () => j<DesignSettings>('/settings'),
+  saveSettings: (patch: Record<string, unknown>) => j<DesignSettings>('/settings', { method: 'PUT', body: JSON.stringify(patch) }),
+  importCsv: (csv: string) => j<{ imported: number; rejected: { row: number; reason: string }[] }>('/settings/source/csv',
+    { method: 'POST', body: csv, headers: { 'Content-Type': 'text/csv; charset=utf-8' } }),
   inbound: (channel: 'sms' | 'email', sender: string, text: string) =>
     j<InboundResult>('/inbound', { method: 'POST', body: JSON.stringify({ channel, sender, text }) }),
 };
@@ -90,8 +97,10 @@ export const api = {
 export interface PayerView {
   code: string; business: string; number: string; amount: string; amount_agorot: number; currency: string;
   due: string | null; open: boolean; opted_out: boolean; can_pay: boolean; methods: PayMethod[]; plan_options: number[]; dry_run: boolean;
+  pay_host?: string; pay_provider?: string;
 }
-export type PayMethod = 'bit' | 'apple_pay' | 'card';
+// review חור 4: כפתור ניטרלי אחד לעמוד התשלום של העסק (בלי Bit/Apple — סימני מסחר)
+export type PayMethod = 'page';
 export const payer = {
   view: (code: string) => j<PayerView>(`/api/pay/${encodeURIComponent(code)}`),
   act: (code: string, action: 'paid' | 'plan' | 'stop', installments?: number) =>

@@ -48,14 +48,14 @@ test('סולם + אישור', () => {
     assert.ok(requiresApproval(st, auto, false), `${st}: אישור פרטני לכל הודעה`);
 });
 
-test('מדיניות שעות — תואם policy.py', () => {
+test('מדיניות שעות — הכרעת מאיר (השרת מתיישר: נעילת המשפטי ב-STATUS)', () => {
   const d = (s: string) => new Date(s);
   assert.ok(canSendAt(d('2026-11-08T08:00'))); // ראשון 08:00
   assert.ok(!canSendAt(d('2026-11-08T07:59')));
   assert.ok(canSendAt(d('2026-11-08T19:59')));
   assert.ok(!canSendAt(d('2026-11-08T20:00')));
   assert.ok(canSendAt(d('2026-11-13T11:59'))); // שישי
-  assert.ok(!canSendAt(d('2026-11-13T12:00')));
+  assert.ok(!canSendAt(d('2026-11-13T12:00')), 'שישי אחר הצהריים');
   assert.ok(!canSendAt(d('2026-11-14T10:00'))); // שבת
   assert.ok(!canSendAt(d('2026-09-21T10:00')), 'יום כיפור — מובנה');
   assert.ok(!canSendAt(d('2026-09-20T13:00')), 'ערב חג אחה"צ');
@@ -125,17 +125,22 @@ test('שעה מהשרת מוצגת בשעון ישראל, וסכומים עם א
 
 
 // ───────── עיצוב v2 ─────────
-import { roi, GABI_PRICE } from '../src/lib/roi.ts';
+import { timeValue, GABI_PRICE } from '../src/lib/roi.ts';
+import * as roiMod from '../src/lib/roi.ts';
 import { toBars, cumulative, areaPath } from '../src/lib/series.ts';
 import { takeTokenFromHash, payCodeOf, TOKEN_KEY } from '../src/lib/auth.ts';
 
-test('מחשבון החזר: שקוף, מוגבל, ומול ₪119', () => {
-  const r = roi({ monthlyInvoiced: 40000, latePct: 25, hoursChasing: 4 });
-  assert.equal(r.lateAmount, 10000); assert.equal(r.recovered, 3000); assert.equal(r.timeSaved, 600);
-  assert.equal(r.net, 3000 + 600 - GABI_PRICE); assert.equal(r.multiple, 30.3);
-  const z = roi({ monthlyInvoiced: -5, latePct: 500, hoursChasing: 0 });
-  assert.equal(z.lateAmount, 0); assert.ok(z.net < 0, 'בלי חוב — לא ממציאים החזר');
-  assert.equal(roi({ monthlyInvoiced: NaN, latePct: NaN }).recovered, 0);
+test('מחשבון שווי הזמן: רק זמן העבודה, בלי הבטחת תשואה (הכרעת מאיר 6.11)', () => {
+  const r = timeValue({ hoursPerMonth: 4, hourlyValue: 150 });
+  assert.equal(r.timeValue, 600); assert.equal(r.price, 119); assert.equal(r.priceInHours, 0.8);
+  assert.equal(GABI_PRICE, 119);
+  const z = timeValue({ hoursPerMonth: -3, hourlyValue: NaN });
+  assert.equal(z.timeValue, 0); assert.equal(z.hours, 0);
+  assert.equal(timeValue({ hoursPerMonth: 4, hourlyValue: 0 }).priceInHours, 0);
+  // ratchet: אסור לחזור למודל "כמה כסף יחזור" — אין שיעור החזר, אין מכפיל, אין recovered
+  const keys = Object.keys(roiMod).join(',');
+  assert.ok(!/RECOVERY|roi\b/.test(keys), 'חזר מחשבון תשואה: ' + keys);
+  assert.ok(!('recovered' in r) && !('multiple' in r));
 });
 
 test('גרף גבייה: עמודות, מצטבר ונתיב SVG', () => {
@@ -162,7 +167,9 @@ test('v2: בלי וואטסאפ בדף התשלום ובדף הנחיתה; הכ�
   const pay = readFileSync(new URL('../src/pages/Pay.tsx', import.meta.url), 'utf8');
   const land = readFileSync(new URL('../src/pages/Landing.tsx', import.meta.url), 'utf8');
   assert.ok(land.includes('הכסף שלך חוזר.') && land.includes('בלי שתצטרך לרדוף.'));
-  assert.ok(['bit:', 'apple_pay:', 'card:'].every(k => pay.includes(k)), 'Bit · Apple Pay · כרטיס');
+  // review חור 4: כפתור ניטרלי + דומיין היעד; בלי לוגו/צבע של Bit או Apple ובלי «חשבונית ירוקה» קשיח
+  assert.ok(pay.includes('data-testid="pay-page"') && pay.includes('pay_host'));
+  assert.doesNotMatch(pay, /AppleLogo|Apple Pay|#00B2A9|apple_pay|דרך חשבונית ירוקה/);
   assert.doesNotMatch(pay + land, /וואטסאפ|WhatsApp/i);
 });
 
@@ -174,4 +181,80 @@ test('הכרעות מאיר 6.11: מחיר כולל מע״מ, שנתי, אזהר
   assert.ok(land.includes(NOTE), 'גם בשאלות הנפוצות');
   assert.ok(/yearly:\s*1190/.test(land) && land.includes('כולל מע״מ ככל שחל'));
   assert.doesNotMatch(land, /לפני מע״מ/);
+});
+
+import { stoppedAtMax } from '../src/lib/stats.ts';
+import { PRODUCT_RULES } from '../src/lib/domain.ts';
+test('עד 3 תזכורות לחשבונית ⇒ עצירה (הכרעת מאיר)', () => {
+  assert.equal(PRODUCT_RULES.maxReminders, 3);
+  const three = { ...demoInvoices[2], status: 'reminded' as const }; // i3: 3 תזכורות
+  assert.equal(three.reminders.length, 3);
+  assert.ok(!needsReminder([three], DEMO_TODAY).length, 'אחרי 3 — לא מציעים תזכורת רביעית');
+  assert.deepEqual(stoppedAtMax([three]).map(i => i.id), [three.id]);
+  assert.equal(demoBusiness.cadenceDays.length, 3);
+});
+
+test('סיבת השהיה מוצגת בעברית, לעולם לא כקוד גולמי', async () => {
+  const src = readFileSync(new URL('../src/pages/Dashboard.tsx', import.meta.url), 'utf8');
+  for (const intent of ['paid_claim', 'promise', 'plan_request', 'dispute', 'distress', 'cant_pay', 'legal', 'callback', 'wrong_person'])
+    assert.ok(new RegExp(`\\b${intent}:`).test(src), `חסרה תווית השהיה ל-${intent}`);
+  assert.doesNotMatch(src, /מושהה: \$\{/, 'נפילה לקוד גולמי');
+});
+
+import { BRAND as LOGO_BRAND, GLYPH, PUBLIC_FILES, markInner } from '../src/brand/logo.ts';
+import { readdirSync } from 'node:fs';
+test('לוגו: מקור יחיד, עין navy תמיד, אריח קרם על רקע כהה, קבצים ציבוריים מסונכרנים', () => {
+  // עין navy בלבד — גם בגרסת האריח (הכרעת מאיר: לא מחליפים לקרם על רקע כהה)
+  assert.match(GLYPH, new RegExp(`<circle[^>]*fill="${LOGO_BRAND.navy}"`));
+  assert.ok(!GLYPH.includes(LOGO_BRAND.cream), 'הסמל עצמו לא משתמש בקרם');
+  assert.ok(markInner(true).startsWith(`<rect`) && markInner(true).includes(LOGO_BRAND.cream), 'אריח קרם');
+  assert.ok(!markInner(false).includes('<rect'));
+  // הקבצים ב-public = מה שהמקור מייצר (npm run logo)
+  for (const [name, svg] of Object.entries(PUBLIC_FILES))
+    assert.equal(readFileSync(new URL(`../public/${name}`, import.meta.url), 'utf8'), svg, `public/${name} סטה מ-brand/logo.ts — הריצו npm run logo`);
+  // אין עותק שני של הצורה בקוד
+  const walk = (d: URL): string[] => readdirSync(d, { withFileTypes: true }).flatMap(e =>
+    e.isDirectory() ? walk(new URL(`${e.name}/`, d)) : [new URL(e.name, d).pathname]);
+  const copies = walk(new URL('../src/', import.meta.url)).filter(f => !f.endsWith('brand/logo.ts'))
+    .filter(f => readFileSync(f, 'utf8').includes('M22 13h12'));
+  assert.deepEqual(copies, [], 'עותק נוסף של הלוגו: ' + copies.join(', '));
+});
+
+test('הודעות מערכת לבעל העסק: רק direction=system, סוף ניסיון ראשון, intent לא מוכר לא נבלע', async () => {
+  const { systemNotices } = await import('../src/lib/notices.ts');
+  const row = (id: number, direction: string, intent: string | null, body = 'x') =>
+    ({ id, customer_id: null, direction, channel: 'owner', body, intent, created_at: '2026-11-08T10:00:00+02:00' });
+  const n = systemNotices([
+    row(1, 'system', 'max_reminders'), row(2, 'in', 'dispute', 'טקסט חופשי של לקוח'),
+    row(3, 'system', 'trial_ending', 'תקופת הניסיון של גבי מסתיימת בעוד 3 ימים'), row(4, 'system', 'something_new'),
+  ]);
+  assert.deepEqual(n.map(x => x.id), [3, 4, 1]);           // trial_ending ראשון, ואז החדש ביותר
+  assert.ok(!n.some(x => x.body.includes('טקסט חופשי')));    // תשובת לקוח לא דולפת לכאן
+  assert.equal(n[0].title, 'תקופת הניסיון מסתיימת בקרוב');
+  assert.equal(n[1].title, 'הודעה מגבי');
+});
+
+import { diffPatch, explainSettingsError, toForm, validate, vatOk, type DesignSettings } from '../src/lib/settings.ts';
+test('הגדרות: PUT חלקי בלבד, ולידציה כמו בשרת, שגיאות בעברית', () => {
+  const s: DesignSettings = {
+    business_name: 'סטודיו דמו', owner_name: '', vat_id: '', reply_email: 'owner@example.com',
+    sms: { primary: '019', backup: 'inforu', sender: 'StudioDemo' }, pay: { provider: 'greeninvoice', page_url: 'https://pay.example/x' },
+    source: { type: 'api', api_connected: true }, cadence_days: [1, 7, 14],
+    rules: { max_reminders: 3, window: '08:00-20:00', approval: 'every_message' },
+  };
+  const a = toForm(s);
+  assert.deepEqual(diffPatch(a, a), {}, 'בלי שינוי ⇒ גוף ריק');
+  assert.deepEqual(diffPatch(a, { ...a, sender: 'NewName' }), { sms: { sender: 'NewName' } });
+  assert.deepEqual(diffPatch(a, { ...a, pay_provider: 'bit' }), { pay: { provider: 'bit', page_url: 'https://pay.example/x' } }, 'החלפת ספק שולחת גם כתובת (נבדקת מול הדומיין החדש)');
+  const p = diffPatch(a, { ...a, owner_name: ' מאיר ' });
+  assert.deepEqual(p, { owner_name: 'מאיר' });
+  for (const k of ['rules', 'cadence_days', 'source', 'pricing']) assert.ok(!(k in diffPatch(a, { ...a, vat_id: '123456782' })), `${k} לעולם לא נשלח`);
+  assert.ok(vatOk('123456782') && vatOk('000000000') && !vatOk('123456789') && !vatOk('12345678'));
+  assert.equal(validate(a).sender, undefined);
+  assert.ok(validate({ ...a, sender: 'Studio Demo' }).sender, 'רווח בשם שולח נדחה (כמו בשרת)');
+  assert.ok(validate({ ...a, sender: 'ABCDEFGHIJKL' }).sender);
+  assert.ok(validate({ ...a, pay_url: 'http://pay.example/x' }).pay_url);
+  assert.ok(validate({ ...a, business_name: 'x' }).business_name);
+  assert.equal(explainSettingsError("sms_sender_id: String should match pattern '^[A-Za-z0-9]{1,11}$'"), 'שם השולח: ערך לא תקין');
+  assert.equal(explainSettingsError('קישור התשלום חייב להיות https בדומיין של bit: pay.example'), 'קישור התשלום חייב להיות https בדומיין של bit: pay.example');
 });

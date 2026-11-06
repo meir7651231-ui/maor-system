@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from dataclasses import asdict, replace
 from datetime import date, datetime
 from typing import Any
@@ -30,6 +31,7 @@ from .conversation import (
     OwnerPolicy,
     State,
     Stop,
+    detect,
     frame,
     respond,
 )
@@ -93,6 +95,9 @@ class ConversationInbox:
         now = self.svc.clock()
         cust = self.svc._find_customer(channel, sender)
         if cust is None:
+            # מבקר סבב 3: «הסר» ממספר/כתובת שעוד לא ב-DB ⇒ רשימת ההסרה (גם ללקוח עתידי)
+            if Intent.OPT_OUT in detect(text):
+                self.svc.suppress(channel, sender, "unknown_sender_opt_out")
             # לא חושפים כלום לשולח לא מזוהה; רק לבעל העסק
             self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
                       "created_at) VALUES(NULL,'in',?,?, 'unknown_sender', 1, ?)",
@@ -231,17 +236,27 @@ class ConversationInbox:
                            "WHERE customer_id=? AND status='open'", (cid,))["t"]
 
     def _footer_url(self, cust) -> str:
-        if cust["unsub_token"]:
-            return self.svc.unsub_url(cust["unsub_token"])
+        if cust["id"]:
+            return self.svc.unsub_url(self.svc.new_unsub_token(cust["id"]))
         inv = self.db.one("SELECT * FROM invoices WHERE customer_id=? AND status='open' "
                           "ORDER BY due LIMIT 1", (cust["id"],))
         return self.svc.short_url(inv) if inv else ""
 
-    def _with_footer(self, cust, channel: str, body: str, intent: str) -> str:
+    def _existing_unsub_url(self, cust, text: str) -> str | None:
+        """קישור הסרה תקף שכבר בטקסט (טוקן חדש נוצר לכל הודעה, אז משווים לפי תוקף, לא לפי מחרוזת).
+        קישור /u/ מזויף או של לקוח אחר ⇒ None (וייחסם במסנן כקישור זר)."""
+        m = re.search(re.escape(self.svc.s.public_base_url) + r"/u/([A-Za-z0-9_-]{16,64})", text)
+        if not m:
+            return None
+        c = self.svc._unsub_customer(m.group(1))
+        return m.group(0) if c and c["id"] == cust["id"] else None
+
+    def _with_footer(self, cust, channel: str, body: str, intent: str,
+                     url: str | None = None) -> str:
         """אפשרות הסרה בכל הודעה — חוץ מאישור ההסרה עצמו ומהתנצלות למספר שגוי."""
         if intent in (Intent.OPT_OUT.value, Intent.WRONG_PERSON.value):
             return body
-        url = self._footer_url(cust)
+        url = url if url is not None else self._footer_url(cust)
         if channel == "email":
             return body + (f"\n\nלהפסקת הודעות: {url}" if url else "\n\nלהפסקת הודעות השיבו \"הסר\".")
         return body + (f"\nלהפסקה: {url}" if url else " להפסקה השיבו הסר")
@@ -297,9 +312,10 @@ class ConversationInbox:
             if not text.startswith(self.svc.s.business_name):
                 text = frame(text, replace(self._context(cust, dr["channel"]), channel=dr["channel"]))
             ctx = self._context(cust, dr["channel"])
-            url = self._footer_url(cust)
+            url = self._existing_unsub_url(cust, text) or self._footer_url(cust)
             if (url and url not in text) or (not url and "הסר" not in text):
-                text = self._with_footer(cust, dr["channel"], text, dr["intent"])  # הסרה בכל הודעה
+                text = self._with_footer(cust, dr["channel"], text, dr["intent"],
+                                         url=url)  # הסרה בכל הודעה
             bad = compliance.violations(text, compliance.Rules(
                 business=ctx.business, payment_link=ctx.payment_link, unsubscribe_url=url,
                 channel=dr["channel"]))
@@ -322,9 +338,13 @@ class ConversationInbox:
         return dict(self._get(draft_id))
 
     def flush(self) -> list[int]:
-        """שולח טיוטות שאושרו אבל חיכו לחלון שליחה (לילה/שבת/חג)."""
-        return [r["id"] for r in self.db.q("SELECT id FROM drafts WHERE status='approved' ORDER BY id")
-                if self._try_send(r["id"])]
+        """שולח טיוטות שאושרו אבל חיכו לחלון שליחה (לילה/שבת/חג).
+        מבקר סבב 3: חריגה בטיוטה אחת לא עוצרת את האחרות (_try_send תופס ומסמן)."""
+        out = []
+        for r in self.db.q("SELECT id FROM drafts WHERE status='approved' ORDER BY id"):
+            if self._try_send(r["id"]):
+                out.append(r["id"])
+        return out
 
     # ---------- שער שליחה יחיד ----------
     def _can_message(self, cust, dr) -> str | None:
@@ -343,8 +363,13 @@ class ConversationInbox:
             self.db.x("UPDATE drafts SET status='rejected', decided_by=? WHERE id=?",
                       (f"system:{why}", draft_id))
             return False
-        now_total = self._open_total(cust["id"])
         money = "₪" in dr["body"] or dr["plan_id"] or dr["intent"] in _MONEY_INTENTS
+        if money and not self.svc.refresh_customer(cust["id"]):
+            # ר-4 (מבקר סבב 3 🔴): טיוטה עם כסף יצאה בלי אף קריאה ל-GI, גם כש-GI החזיר 500.
+            # כשל רענון ⇒ לא שולחים; נשאר approved ונשלח בהצלחת רענון הבאה (flush).
+            self.svc.audit("system", "draft_refresh_failed", {"draft": draft_id})
+            return False
+        now_total = self._open_total(cust["id"])
         if money and dr["total_agorot"] is not None and now_total != dr["total_agorot"]:
             # אימות סכום לפני כל שליחה: היתרה השתנתה (תשלום/עדכון) ⇒ הנוסח לא נשלח
             self.db.x("UPDATE drafts SET status='rejected', decided_by='system:amount_changed' WHERE id=?",
@@ -358,10 +383,24 @@ class ConversationInbox:
                       (draft_id,))
             return False
         now = self.svc.clock()
-        mid = self.svc.sender.send(msg)
+        try:
+            mid = self.svc.sender.send(msg)
+        except Exception as e:  # noqa: BLE001 — מבקר סבב 3: IntegrationError (ארוך מדי) קרס ונעל את הלקוח
+            self.db.x("UPDATE drafts SET status='rejected', decided_by=? WHERE id=?",
+                      ("system:send_error", draft_id))
+            self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
+                      "created_at) VALUES(?,'system','owner',?,'send_error',1,?)",
+                      (cust["id"], f"הטיוטה לא נשלחה: {str(e)[:160]}", _iso(now)))
+            self.svc.audit("system", "draft_send_error", {"draft": draft_id, "error": str(e)[:200]})
+            return False
         self.svc._log_out(cust["id"], msg, mid, now)
         self.db.x("UPDATE drafts SET status='sent_dry_run', sent_at=?, message_id=? WHERE id=?",
                   (_iso(now), mid, draft_id))
+        if dr["plan_id"]:
+            # review חור 2: הצעת הפריסה יצאה מתור התשובות ⇒ ההסדר הוכרע. אחרת /plans/approve
+            # שלח ללקוח הצעה שנייה (בנוסח ובתאריכים אחרים).
+            self.db.x("UPDATE plans SET status='approved' WHERE id=? AND status='proposed'",
+                      (dr["plan_id"],))
         self.svc.audit("system", "draft_sent_dry_run", {"draft": draft_id, "message_id": mid})
         return True
 
@@ -378,7 +417,7 @@ class ConversationInbox:
             return None
         if dr["channel"] == "sms":
             return Message("sms", to, dr["body"])
-        unsub = self.svc.unsub_url(cust["unsub_token"]) if cust["unsub_token"] else ""
+        unsub = self.svc.unsub_url(self.svc.new_unsub_token(cust["id"]))
         return Message("email", to, dr["body"],
                        subject=f"תשובה מ-{self.svc.s.business_name}", unsubscribe_url=unsub)
 

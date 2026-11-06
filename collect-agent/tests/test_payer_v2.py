@@ -26,7 +26,9 @@ def test_payer_api_is_public_and_minimal(svc):
     pub = TestClient(create_app(svc, owner_token=OWNER_TOKEN))      # בלי טוקן בעלים
     v = pub.get(f"/api/pay/{code}").json()
     assert v["number"] == "1001" and v["amount_agorot"] == 120000 and v["open"] is True
-    assert v["methods"] == ["bit", "apple_pay", "card"] and v["dry_run"] is True
+    # review חור 4: כפתור ניטרלי אחד + הדומיין המדויק של היעד (בלי Bit/Apple — סימני מסחר)
+    assert v["methods"] == ["page"] and v["dry_run"] is True
+    assert v["pay_host"] == "www.greeninvoice.co.il" and v["pay_provider"] == "חשבונית ירוקה"
     flat = str(v)
     for leak in ("050", "972", "@example.com", "unsub", "_cust", "phone", "email"):
         assert leak not in flat, leak                                  # בלי פרטי קשר/טוקן הסרה
@@ -37,10 +39,14 @@ def test_payer_go_redirects_only_to_verified_link(svc):
     api = _api(svc)
     code = _code(api, svc)
     pub = TestClient(create_app(svc, owner_token=OWNER_TOKEN))
-    r = pub.get(f"/pay/{code}/go?method=bit", follow_redirects=False)
-    assert r.status_code == 302 and r.headers["location"].startswith("https://pay.greeninvoice.co.il/")
-    assert pub.get(f"/pay/{code}/go?method=paypal", follow_redirects=False).status_code == 409
-    assert svc.db.one("SELECT 1 FROM audit WHERE action='pay_click' AND detail LIKE '%bit%'")
+    r = pub.get(f"/pay/{code}/go?method=page", follow_redirects=False)
+    # עמוד התשלום של העסק (review חור 3: לא נוצר דף תשלום/קבלה ב-GI)
+    assert r.status_code == 302 and r.headers["location"].startswith(
+        "https://www.greeninvoice.co.il/pay/studio")
+    for m in ("paypal", "bit", "apple_pay"):   # review חור 4: אין יותר כפתורי מותג
+        assert pub.get(f"/pay/{code}/go?method={m}", follow_redirects=False).status_code == 409
+    assert pub.get(f"/pay/{code}/go", follow_redirects=False).status_code == 302   # ברירת מחדל
+    assert svc.db.one("SELECT 1 FROM audit WHERE action='pay_click' AND detail LIKE '%page%'")
 
 
 def test_payer_actions_paid_plan_stop(svc):

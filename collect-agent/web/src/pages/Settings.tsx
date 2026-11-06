@@ -1,89 +1,156 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useApp } from '../store.tsx';
-import type { Business, SmsProvider } from '../lib/domain.ts';
-import { STEP_LABEL, STEP_ORDER } from '../lib/message.ts';
-import { Button, Card, Field, Toggle, inputCls } from '../components/ui.tsx';
+import { api } from '../api.ts';
+import { RULES } from '../lib/domain.ts';
+import { diffPatch, explainSettingsError, toForm, validate, type DesignSettings, type PayProvider, type SettingsForm } from '../lib/settings.ts';
+import { Button, Card, Field, inputCls } from '../components/ui.tsx';
 
-const PROVIDERS: [SmsProvider, string, string][] = [
-  ['019', '019 SMS', 'ברירת מחדל · ספק ישראלי · webhook לתשובות ודוחות מסירה'],
-  ['inforu', 'InforU', 'ספק ישראלי · שם שולח אלפאנומרי'],
-  ['twilio', 'Twilio', 'בינלאומי · גיבוי · תיעוד מצוין'],
-];
+const PAY: [PayProvider, string][] = [['greeninvoice', 'חשבונית ירוקה (morning)'], ['meshulam', 'משולם'], ['bit', 'ביט']];
 
+/**
+ * הגדרות עסק. חי: GET/PUT /settings (השרת שומר; dry-run — שום הודעה לא יוצאת). מוק: מסומן במפורש ולא נשמר.
+ * כללי המוצר (3 תזכורות, 08–20, אישור לכל הודעה), הסולם והמחיר — קבועים, מוצגים לקריאה בלבד.
+ */
 export function Settings() {
-  const { business, setBusiness, showToast } = useApp();
-  const [b, setB] = useState<Business>(business);
-  const set = <K extends keyof Business>(k: K, v: Business[K]) => setB({ ...b, [k]: v });
-  const senderOk = /^[A-Za-z][A-Za-z0-9 ]{0,10}$/.test(b.smsSender);
+  const { mode, business, setBusiness, showToast, reload } = useApp();
+  const live = mode === 'live';
+  const mockForm: SettingsForm = useMemo(() => ({
+    business_name: business.name, owner_name: business.ownerName, vat_id: business.vatId, reply_email: business.email,
+    sender: business.smsSender, pay_provider: business.payProvider, pay_url: business.payPageUrl,
+  }), [business]);
+  const [server, setServer] = useState<DesignSettings | null>(null);
+  const [orig, setOrig] = useState<SettingsForm>(mockForm);
+  const [f, setF] = useState<SettingsForm>(mockForm);
+  const [loadErr, setLoadErr] = useState<string | null>(null);
+  const [saveErr, setSaveErr] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [csv, setCsv] = useState<{ imported: number; rejected: { row: number; reason: string }[] } | null>(null);
 
+  useEffect(() => {
+    if (!live) { setOrig(mockForm); setF(mockForm); return; }
+    api.settings().then(s => { setServer(s); setOrig(toForm(s)); setF(toForm(s)); }).catch(e => setLoadErr((e as Error).message));
+  }, [live, mockForm]);
+
+  const errs = validate(f);
+  const patch = diffPatch(orig, f);
+  const dirty = Object.keys(patch).length > 0;
+  const set = <K extends keyof SettingsForm>(k: K, v: SettingsForm[K]) => { setF({ ...f, [k]: v }); setSaveErr(null); };
+  const cadence = server?.cadence_days ?? business.cadenceDays;
+
+  async function save() {
+    setBusy(true); setSaveErr(null);
+    try {
+      if (live) {
+        const s = await api.saveSettings(patch);
+        setServer(s); setOrig(toForm(s)); setF(toForm(s));
+        await reload(); // שם העסק בהודעות מתעדכן
+        showToast('✓ נשמר בשרת');
+      } else {
+        setBusiness({ ...business, name: f.business_name, ownerName: f.owner_name, vatId: f.vat_id, email: f.reply_email, smsSender: f.sender, payProvider: f.pay_provider, payPageUrl: f.pay_url });
+        setOrig(f);
+        showToast('נשמר בלשונית הזו בלבד — לא בשרת (מוק)');
+      }
+    } catch (e) { setSaveErr(explainSettingsError((e as Error).message)); }
+    setBusy(false);
+  }
+
+  async function importCsv(file: File) {
+    setCsv(null);
+    try { const r = await api.importCsv(await file.text()); setCsv(r); await reload(); showToast(`יובאו ${r.imported} חשבוניות`); }
+    catch (e) { showToast(`הייבוא נכשל: ${(e as Error).message}`); }
+  }
+
+  const err = (k: keyof SettingsForm) => errs[k] ? `⚠️ ${errs[k]}` : undefined;
   return (
     <div className="space-y-6 max-w-3xl">
       <h1 className="text-3xl font-extrabold">הגדרות עסק</h1>
+      {live ? (
+        <div role="note" data-testid="settings-live" className="rounded-2xl border border-brand/40 bg-brand-50 p-4 text-brand-700">
+          <b>✓ מחובר לשרת.</b> שינויים נשמרים בשרת ומשפיעים על התזכורות הבאות (מצב בדיקה — שום הודעה לא יוצאת באמת).
+        </div>
+      ) : (
+        <div role="note" data-testid="settings-mock" className="rounded-2xl border-2 border-dashed border-amber-400 bg-amber-50 p-4 text-amber-900">
+          <b>🧪 מוק — ההגדרות לא נשמרות בשרת.</b> אין חיבור לשרת גבי. אפשר לנסות את המסך, אבל שינוי כאן לא משפיע על שום דבר ונמחק ברענון.
+        </div>
+      )}
+      {loadErr && <p role="alert" className="text-critical font-bold">לא הצלחנו לטעון את ההגדרות: {loadErr}</p>}
 
       <Card className="p-5 space-y-4">
         <h2 className="text-lg font-extrabold">פרטי העסק</h2>
         <div className="grid sm:grid-cols-2 gap-4">
-          <Field label="שם העסק (מופיע בהודעות)"><input className={inputCls} value={b.name} onChange={e => set('name', e.target.value)} /></Field>
-          <Field label="שם פרטי לחתימה"><input className={inputCls} value={b.ownerName} onChange={e => set('ownerName', e.target.value)} /></Field>
-          <Field label="ע.מ. / ח.פ."><input className={`${inputCls} num text-right`} inputMode="numeric" value={b.vatId} onChange={e => set('vatId', e.target.value)} /></Field>
-          <Field label="מייל לתשובות לקוחות"><input className={`${inputCls} num text-right`} type="email" value={b.email} onChange={e => set('email', e.target.value)} /></Field>
+          <Field label="שם העסק (פותח כל הודעה)" hint={err('business_name')}><input className={inputCls} value={f.business_name} onChange={e => set('business_name', e.target.value)} aria-invalid={!!errs.business_name} /></Field>
+          <Field label="שם לחתימה" hint={err('owner_name')}><input className={inputCls} value={f.owner_name} onChange={e => set('owner_name', e.target.value)} /></Field>
+          <Field label="ע.מ. / ח.פ." hint={err('vat_id')}><input className={`${inputCls} num text-right`} inputMode="numeric" value={f.vat_id} onChange={e => set('vat_id', e.target.value)} /></Field>
+          <Field label="מייל לתשובות לקוחות" hint={err('reply_email')}><input className={`${inputCls} num text-right`} type="email" value={f.reply_email} onChange={e => set('reply_email', e.target.value)} /></Field>
         </div>
+      </Card>
+
+      <Card className="p-5 space-y-4">
+        <h2 className="text-lg font-extrabold">מאיפה מגיעות החשבוניות</h2>
+        <div className="rounded-xl bg-ink-50 p-3 text-sm">
+          🔌 <b>API של חשבונית ירוקה</b> (מומלץ):{' '}
+          {live ? (server?.source.api_connected ? <span className="text-brand-700 font-bold">מחובר (סביבת בדיקה)</span> : 'לא מחובר') : 'מוק'}
+          <div className="text-xs text-ink-500 mt-1">חיבור מפתח מהמסך — <b>בקרוב</b>. בשלב הבטא המפתח לא נקלט כאן ולא נשמר (כל עסק יחבר מפתח משלו בגרסה הבאה).</div>
+        </div>
+        <Field label="📄 חלופה: ייבוא קובץ CSV של חשבוניות פתוחות" hint="עמודות: מספר חשבונית, שם לקוח, טלפון, מייל, סכום/יתרה, תאריך לתשלום. שורה לא תקינה מדווחת ולא מפילה את הקובץ.">
+          {/* קלט קובץ נייטיב מציג טקסט באנגלית ⇒ מוסתר, ותווית-כפתור בעברית במקומו */}
+          <span className={`inline-flex items-center gap-2 rounded-xl border px-4 h-11 font-bold ${live ? 'border-ink-200 bg-white cursor-pointer hover:bg-ink-50 focus-within:ring-2 focus-within:ring-brand' : 'border-ink-200 bg-ink-100 text-ink-400'}`}>
+            📄 בחירת קובץ CSV…
+            <input type="file" accept=".csv,text/csv" className="sr-only" disabled={!live} aria-label="קובץ CSV"
+              onChange={e => { const file = e.target.files?.[0]; if (file) void importCsv(file); e.target.value = ''; }} />
+          </span>
+        </Field>
+        {!live && <p className="text-xs text-ink-500">ייבוא CSV זמין בחיבור לשרת.</p>}
+        {csv && (
+          <div className="rounded-xl bg-white border border-ink-200 p-3 text-sm" data-testid="csv-result">
+            ✓ יובאו <b className="num">{csv.imported}</b> חשבוניות{csv.rejected.length ? ` · ${csv.rejected.length} שורות נדחו:` : ''}
+            {csv.rejected.length > 0 && <ul className="mt-1 text-xs text-critical">{csv.rejected.map(r => <li key={r.row}>שורה <span className="num">{r.row}</span>: {r.reason}</li>)}</ul>}
+          </div>
+        )}
       </Card>
 
       <Card className="p-5 space-y-4">
         <h2 className="text-lg font-extrabold">ערוצי שליחה</h2>
-        <Row title="📱 SMS" desc="ההודעה מגיעה לכל טלפון, בלי אפליקציה."><Toggle label="SMS" checked={b.channels.sms} onChange={v => set('channels', { ...b.channels, sms: v })} /></Row>
-        <Row title="✉️ מייל" desc="נוסח מלא עם כפתור תשלום ופרטי החשבונית."><Toggle label="מייל" checked={b.channels.email} onChange={v => set('channels', { ...b.channels, email: v })} /></Row>
-        <div className="grid sm:grid-cols-3 gap-2" role="radiogroup" aria-label="ספק SMS">
-          {PROVIDERS.map(([k, name, desc]) => (
-            <button key={k} role="radio" aria-checked={b.smsProvider === k} onClick={() => set('smsProvider', k)}
-              className={`text-right rounded-xl border p-3 cursor-pointer ${b.smsProvider === k ? 'border-brand ring-1 ring-brand bg-brand-50' : 'border-ink-200 hover:bg-ink-50'}`}>
-              <div className="font-bold">{name}</div><div className="text-xs text-ink-500 mt-0.5">{desc}</div>
-            </button>
-          ))}
+        <div className="rounded-xl bg-ink-50 p-3 text-sm">
+          📱 <b>SMS:</b> ספק ראשי <b>019</b>, גיבוי <b>InforU</b> (קבוע; כרגע מצב בדיקה בלבד).<br />
+          ✉️ <b>מייל:</b> נוסח מלא עם קישור לתשלום וקישור הסרה.
         </div>
-        <Field label="שם השולח ב-SMS" hint={senderOk ? 'עד 11 תווים באנגלית/ספרות, מתחיל באות. מאושר מול הספק לפני שליחה ראשונה.' : '⚠️ עד 11 תווים באנגלית/ספרות, מתחיל באות'}>
-          <input className={`${inputCls} num text-right ${senderOk ? '' : 'border-critical'}`} value={b.smsSender} maxLength={11} onChange={e => set('smsSender', e.target.value)} />
+        <Field label="שם השולח ב-SMS" hint={err('sender') ?? 'עד 11 אותיות לועזיות/ספרות, בלי רווחים. נרשם אצל הספק לפני שליחה ראשונה.'}>
+          <input className={`${inputCls} num text-right ${errs.sender ? 'border-critical' : ''}`} value={f.sender} maxLength={11} onChange={e => set('sender', e.target.value)} />
         </Field>
       </Card>
 
       <Card className="p-5 space-y-4">
-        <h2 className="text-lg font-extrabold">מתי ואיך שולחים</h2>
-        <Row title="אישור אוטומטי לתזכורות המשך" desc="ההודעה הראשונה לכל לקוח והתזכורת האחרונה תמיד מחכות לאישורך.">
-          <Toggle label="אישור אוטומטי" checked={b.autoApprove} onChange={v => set('autoApprove', v)} />
-        </Row>
-        <Row title="לא לשלוח בשבת ובחגים" desc="שישי עד 12:00 בלבד."><Toggle label="שבת וחג" checked={b.skipShabbat} onChange={v => set('skipShabbat', v)} /></Row>
-        <div className="grid sm:grid-cols-2 gap-4">
-          <Field label="משעה"><input type="time" className={inputCls} value={b.sendWindow.from} min="08:00" onChange={e => set('sendWindow', { ...b.sendWindow, from: e.target.value })} /></Field>
-          <Field label="עד שעה"><input type="time" className={inputCls} value={b.sendWindow.to} max="20:00" onChange={e => set('sendWindow', { ...b.sendWindow, to: e.target.value })} /></Field>
+        <h2 className="text-lg font-extrabold">קישור לתשלום</h2>
+        <p className="text-sm text-ink-500">גבי לא מחזיק כסף. כל תזכורת מובילה לעמוד התשלום של העסק שלכם, והכסף עובר ישירות אליכם.</p>
+        <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="עמוד תשלום">
+          {PAY.map(([k, t]) => (
+            <button key={k} role="radio" aria-checked={f.pay_provider === k} onClick={() => set('pay_provider', k)}
+              className={`rounded-full px-4 py-2 text-sm font-bold border cursor-pointer ${f.pay_provider === k ? 'bg-ink-900 text-white border-ink-900' : 'bg-white border-ink-200'}`}>{t}</button>
+          ))}
         </div>
-        <div>
-          <div className="text-sm font-bold mb-2">סולם התזכורות (ימים אחרי מועד התשלום)</div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {STEP_ORDER.map((s, idx) => (
-              <Field key={s} label={STEP_LABEL[s]}>
-                <input type="number" min={0} max={120} className={`${inputCls} num text-right`} value={b.cadenceDays[idx]}
-                  onChange={e => { const c = [...b.cadenceDays] as Business['cadenceDays']; c[idx] = Number(e.target.value); set('cadenceDays', c); }} />
-              </Field>
-            ))}
-          </div>
-          <p className="text-xs text-ink-500 mt-2">לכל היותר הודעה אחת ל-72 שעות לאותו לקוח. "הסר", מחלוקת או הסדר — עוצרים מיד.</p>
-        </div>
+        <Field label="כתובת עמוד התשלום" hint={err('pay_url') ?? 'https בלבד, ובדומיין של הספק שנבחר (נבדק בשרת).'}>
+          <input className={`${inputCls} num text-left ${errs.pay_url ? 'border-critical' : ''}`} value={f.pay_url} onChange={e => set('pay_url', e.target.value)} aria-label="כתובת עמוד התשלום" />
+        </Field>
       </Card>
 
       <Card className="p-5 space-y-3">
-        <h2 className="text-lg font-extrabold">חיבורים</h2>
-        <Row title="🧾 חשבונית ירוקה (morning)" desc="קריאה בלבד: חשבוניות פתוחות + קישור התשלום של כל חשבונית."><span className="text-sm font-bold text-brand-700">● מחובר (דמו)</span></Row>
+        <h2 className="text-lg font-extrabold">מתי ואיך שולחים</h2>
+        <ul className="space-y-1.5 text-sm" data-testid="settings-rules">
+          {RULES.map(r => <li key={r} className="flex gap-2"><span className="text-brand-700">🔒</span>{r}</li>)}
+        </ul>
+        <p className="text-sm">סולם התזכורות (ימים אחרי מועד התשלום): {cadence.map((d, i) => <span key={i}>{i > 0 && ' · '}<b className="num">+{d}</b></span>)}</p>
+        <p className="text-xs text-ink-500">כללים קבועים של המוצר — לא ניתנים לשינוי.</p>
       </Card>
 
-      <div className="flex gap-3 sticky bottom-4">
-        <Button disabled={!senderOk} onClick={() => { setBusiness(b); showToast('ההגדרות נשמרו (בדמו — בזיכרון בלבד)'); }}>שמירה</Button>
-        <Button variant="ghost" onClick={() => setB(business)}>ביטול שינויים</Button>
+      <div className="flex flex-wrap items-center gap-3 sticky bottom-4 bg-paper/90 backdrop-blur rounded-xl p-2">
+        <Button disabled={busy || !dirty || Object.keys(errs).length > 0} onClick={save} data-testid="settings-save">
+          {live ? 'שמירה בשרת' : 'שמירה בלשונית בלבד (מוק)'}
+        </Button>
+        <Button variant="ghost" disabled={!dirty} onClick={() => { setF(orig); setSaveErr(null); }}>ביטול שינויים</Button>
+        {dirty && !saveErr && <span className="text-sm text-ink-500">יש שינויים שלא נשמרו</span>}
+        {saveErr && <span role="alert" className="text-sm text-critical font-bold" data-testid="settings-error">לא נשמר: {saveErr}</span>}
       </div>
     </div>
   );
-}
-
-function Row({ title, desc, children }: { title: string; desc: string; children: React.ReactNode }) {
-  return <div className="flex items-center gap-4 justify-between"><div><div className="font-bold">{title}</div><div className="text-sm text-ink-500">{desc}</div></div>{children}</div>;
 }

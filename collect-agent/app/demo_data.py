@@ -43,16 +43,23 @@ class DemoBackend:
     def __init__(self, mock: GreenInvoiceMock | None = None, url: str = ""):
         self.mock, self.url = mock, url.rstrip("/")
 
-    def pay(self, doc_id: str) -> dict:
-        """"הלקוח שילם": morning סוגרת את המסמך ויוצרת קבלה (⇒ webhook document.created)."""
+    def _admin(self, path: str, body: dict | None = None) -> dict:
         if self.mock is not None:
-            status, out = self.mock.route("POST", f"/_mock/documents/{doc_id}/pay", {}, None)
+            status, out = self.mock.route("POST", path, {}, body)
         else:
-            r = httpx.post(f"{self.url}/_mock/documents/{doc_id}/pay", timeout=5)
+            r = httpx.post(f"{self.url}{path}", json=body, timeout=5)
             status, out = r.status_code, r.json()
         if status != 200:
-            raise RuntimeError(f"mock pay נכשל: {status} {out}")
+            raise RuntimeError(f"mock {path} נכשל: {status} {out}")
         return out
+
+    def pay(self, doc_id: str) -> dict:
+        """"הלקוח שילם": morning סוגרת את המסמך ויוצרת קבלה (⇒ webhook document.created)."""
+        return self._admin(f"/_mock/documents/{doc_id}/pay")
+
+    def partial(self, doc_id: str, paid_ils: float) -> dict:
+        """תשלום חלקי: היתרה יורדת, המסמך נשאר פתוח (אימות סכום לפני שליחה)."""
+        return self._admin(f"/_mock/documents/{doc_id}/partial", {"paid": paid_ils})
 
 
 def demo_client(base_url: str = "") -> tuple[GreenInvoiceClient, DemoBackend]:

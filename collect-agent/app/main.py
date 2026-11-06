@@ -14,13 +14,14 @@ from pathlib import Path
 from typing import Literal
 
 from fastapi import Depends, FastAPI, HTTPException, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from pydantic import BaseModel, Field
 
 from . import security
 from .config import SafetyError, Settings, load_settings
 from .db import DB
 from .greeninvoice import GreenInvoiceClient
+from .ratelimit import RateLimiter, group_for
 from .service import CollectService
 from .templates import SLOGAN, TAGLINE
 
@@ -40,6 +41,21 @@ class DraftEdit(BaseModel):
     body: str | None = None
 
 
+class HoldIn(BaseModel):
+    reason: Literal["minor", "deceased", "insolvency"]
+    note: str = Field("", max_length=500)
+
+
+class LegalHoldIn(BaseModel):
+    note: str | None = Field(None, max_length=500)   # None/"" ⇒ ביטול
+
+
+# מסכים שמחזירים מידע אישי של לקוחות (שם/טלפון/מייל/סכום/תוכן הודעות) ⇒ כל צפייה נרשמת
+PII_READ_ROUTES = frozenset({
+    "/reminders", "/reminders/{rid}/preview", "/dashboard", "/customers", "/outbox",
+    "/owner/inbox", "/plans", "/audit", "/conversation/drafts", "/access-log"})
+
+
 class InboundIn(BaseModel):
     channel: Literal["sms", "email"] = "sms"
     sender: str = Field(max_length=254)
@@ -47,21 +63,31 @@ class InboundIn(BaseModel):
 
 
 class _RedactQueryKey(logging.Filter):
-    """uvicorn כותב ללוג הגישה את ה-URL המלא ⇒ הסוד ?k=... של ה-webhook היה דולף ללוג."""
+    """uvicorn (לוג גישה) ו-httpx (בקשות יוצאות) כותבים URL מלא ⇒ סוד ב-query
+    (?k=..., token=, key=, secret=, password=) היה דולף ללוג. ארגומנטים שאינם מחרוזת
+    (httpx.URL) מומרים למחרוזת רק אם יש בהם מה להסוות."""
 
-    _K = re.compile(r"([?&]k=)[^&\s\"]+")
+    _K = re.compile(r"(?i)([?&](?:k|key|token|secret|password|api_?key|sig)=)[^&\s\"]+")
+
+    def _red(self, a):
+        s = a if isinstance(a, str) else (str(a) if not isinstance(a, (int, float)) else None)
+        if s is None or not self._K.search(s):
+            return a
+        return self._K.sub(r"\1***", s)
 
     def filter(self, record: logging.LogRecord) -> bool:
         if isinstance(record.args, tuple):
-            record.args = tuple(self._K.sub(r"\1***", a) if isinstance(a, str) else a
-                                for a in record.args)
+            record.args = tuple(self._red(a) for a in record.args)
+        if isinstance(record.msg, str) and self._K.search(record.msg):
+            record.msg = self._K.sub(r"\1***", record.msg)
         return True
 
 
 def _install_log_redaction() -> None:
-    lg = logging.getLogger("uvicorn.access")
-    if not any(isinstance(f, _RedactQueryKey) for f in lg.filters):
-        lg.addFilter(_RedactQueryKey())
+    for name in ("uvicorn.access", "uvicorn.error", "httpx", "httpx2", "httpcore"):
+        lg = logging.getLogger(name)
+        if not any(isinstance(f, _RedactQueryKey) for f in lg.filters):
+            lg.addFilter(_RedactQueryKey())
 
 
 def _unsub_page(body: str, status: int = 200) -> HTMLResponse:
@@ -74,7 +100,8 @@ def _unsub_page(body: str, status: int = 200) -> HTMLResponse:
 
 
 def create_app(service: CollectService | None = None, *, owner_token: str | None = None,
-               webhook_secret: str | None = None) -> FastAPI:
+               webhook_secret: str | None = None,
+               limiter: RateLimiter | None = None) -> FastAPI:
     """אימות: כל נקודה מלבד /health, /ui, /u/{token} ו-webhook של 019 (שיש לו מפתח משלו)
     דורשת `Authorization: Bearer <OWNER_API_TOKEN>`. /inbound מקבל גם חתימת HMAC
     (X-Collect-Timestamp + X-Collect-Signature). טוקן חסר/חלש ⇒ האפליקציה לא עולה."""
@@ -99,6 +126,41 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
                   redoc_url=None, openapi_url="/openapi.json" if docs else None)
     app.state.svc = svc
     web_dist = Path(os.environ.get("WEB_DIST", Path(__file__).resolve().parent.parent / "web" / "dist"))
+    rl = limiter if limiter is not None else RateLimiter()
+    app.state.limiter = rl
+    trust_proxy = os.environ.get("TRUST_PROXY_HEADERS") == "1"
+
+    def client_ip(request: Request) -> str:
+        if trust_proxy:  # רק מאחורי proxy שלנו: הכתובת הימנית = מה שה-proxy ראה בפועל
+            xff = [x.strip() for x in request.headers.get("x-forwarded-for", "").split(",")]
+            if xff and xff[-1]:
+                return xff[-1]
+        return request.client.host if request.client else "unknown"
+
+    def too_many(retry: float) -> JSONResponse:
+        return JSONResponse({"detail": "יותר מדי בקשות, נסו שוב בעוד רגע"}, status_code=429,
+                            headers={"Retry-After": str(int(retry) + 1)})
+
+    @app.middleware("http")
+    async def rate_limit(request: Request, call_next):
+        ip = client_ip(request)
+        group = group_for(request.url.path)
+        if group:
+            retry = rl.check(group, ip)
+            if retry is not None:
+                return too_many(retry)
+        if request.url.path == "/webhooks/greeninvoice":
+            retry = rl.check("gi_webhook_global", "*")  # כל קריאה = sync מלא
+            if retry is not None:
+                return too_many(retry)
+        if group is None and request.url.path not in ("/health",):
+            retry = rl.blocked("auth_fail", ip)
+            if retry is not None:
+                return too_many(retry)
+        resp = await call_next(request)
+        if resp.status_code == 401:
+            rl.check("auth_fail", ip)  # רושמים כשל אימות (ניחוש טוקן)
+        return resp
 
     @app.middleware("http")
     async def security_headers(request: Request, call_next):
@@ -111,6 +173,10 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
     def owner(request: Request) -> None:
         if not security.token_ok(security.bearer(request.headers.get("authorization")), token):
             raise HTTPException(401, "נדרש אימות", headers={"WWW-Authenticate": "Bearer"})
+        # תיעוד צפייה במידע אישי (legal/BETA-GATE.md שער 6). שחקן = "owner" כל עוד יש טוקן יחיד
+        route = getattr(request.scope.get("route"), "path", "")
+        if request.method == "GET" and route in PII_READ_ROUTES:
+            svc.log_access("owner", "GET", route, request.url.path)
 
     async def owner_or_signed(request: Request) -> None:
         if security.token_ok(security.bearer(request.headers.get("authorization")), token):
@@ -175,8 +241,15 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         return guard(svc.preview, rid)
 
     @app.post("/reminders/{rid}/approve", dependencies=auth)
-    def approve(rid: int):
-        return guard(svc.approve, rid)
+    async def approve(rid: int, request: Request):
+        body = {}
+        if await request.body():
+            try:
+                body = await request.json()
+            except ValueError:
+                raise HTTPException(400, "JSON לא תקין") from None
+        confirm = bool(body.get("confirm_open")) if isinstance(body, dict) else False
+        return guard(lambda: svc.approve(rid, confirm_open=confirm))
 
     @app.post("/reminders/{rid}/reject", dependencies=auth)
     def reject(rid: int):
@@ -197,6 +270,18 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
     @app.post("/customers/{cid}/resume", dependencies=auth)
     def resume(cid: int):
         return guard(svc.resume_customer, cid)
+
+    @app.post("/customers/{cid}/hold", dependencies=auth)
+    def customer_hold(cid: int, b: HoldIn):          # ר-6
+        return guard(svc.set_hold, cid, b.reason, b.note)
+
+    @app.post("/customers/{cid}/legal-hold", dependencies=auth)
+    def customer_legal_hold(cid: int, b: LegalHoldIn):   # ר-10
+        return guard(svc.set_legal_hold, cid, b.note)
+
+    @app.post("/maintenance/purge", dependencies=auth)
+    def purge():                                     # ר-10 (רץ גם בכל plan)
+        return svc.purge_closed()
 
     @app.get("/outbox", dependencies=auth)
     def outbox():
@@ -320,6 +405,65 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
                                + legal.draft_footer())
         return {"unsubscribed": True}
 
+    # ---------- הגדרות עסק (תיאום עם web/: מסך הגדרות) ----------
+    @app.get("/api/settings", dependencies=auth)
+    def get_settings():
+        return svc.settings_view()
+
+    @app.put("/api/settings", dependencies=auth)
+    async def put_settings(request: Request):
+        try:
+            raw = await request.json()
+        except ValueError:
+            raise HTTPException(400, "JSON לא תקין") from None
+        try:
+            return svc.update_settings(raw)
+        except PermissionError as e:
+            raise HTTPException(422, str(e)) from e
+        except (ValueError, TypeError) as e:
+            raise HTTPException(422, str(e)) from e
+
+    # חוזה העיצוב (DESIGN.md §3ב) — אותה לוגיקה, אותה ולידציה, צורה שטוחה למסך ההגדרות
+    @app.get("/settings", dependencies=auth)
+    def get_design_settings():
+        return svc.design_settings()
+
+    @app.put("/settings", dependencies=auth)
+    async def put_design_settings(request: Request):
+        try:
+            raw = await request.json()
+        except ValueError:
+            raise HTTPException(400, "JSON לא תקין") from None
+        try:
+            return svc.update_design_settings(raw)
+        except (PermissionError, ValueError, TypeError) as e:
+            raise HTTPException(422, str(e)) from e
+
+    @app.post("/settings/source/key", dependencies=auth)
+    async def settings_source_key():
+        """שלב 1: לא קולטים מפתחות אמיתיים (business_secrets.py; אין הרשמה/חיבור אמיתי).
+        הגוף לא נקרא ולא נשמר — 501 מפורש, כדי שהממשק יציג «בקרוב»."""
+        raise HTTPException(501, "שלב 1 (בטא, dry-run): חיבור מפתח API של חשבונית ירוקה עדיין "
+                                 "לא פעיל. הנתונים מגיעים מה-mock או מ-CSV. המפתח לא נשמר.")
+
+    @app.post("/settings/source/csv", dependencies=auth)
+    async def settings_source_csv(request: Request):
+        try:
+            r = svc.import_csv(await request.body())
+        except (ValueError, UnicodeDecodeError) as e:
+            raise HTTPException(400, str(e)) from e
+        return {"imported": r["imported"],
+                "rejected": [{"row": e["row"], "reason": e["error"]} for e in r["errors"]]}
+
+    @app.post("/import/csv", dependencies=auth)
+    async def import_csv(request: Request):
+        """API תחילה; CSV = חלופה (ייצוא מ-morning/Excel). גוף הבקשה = תוכן הקובץ."""
+        raw = await request.body()
+        try:
+            return svc.import_csv(raw)
+        except (ValueError, UnicodeDecodeError) as e:
+            raise HTTPException(400, str(e)) from e
+
     @app.get("/owner/inbox", dependencies=auth)
     def owner_inbox():
         return [dict(r) for r in svc.db.q(
@@ -333,6 +477,10 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
     @app.post("/plans/{pid}/approve", dependencies=auth)
     def approve_plan(pid: int):
         return guard(svc.approve_plan, pid)
+
+    @app.get("/access-log", dependencies=auth)
+    def access_log():
+        return [dict(r) for r in svc.db.q("SELECT * FROM access_log ORDER BY id DESC LIMIT 500")]
 
     @app.get("/audit", dependencies=auth)
     def audit():
@@ -392,7 +540,7 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
             raise HTTPException(404, "לא נמצא") from None
 
     @app.get("/pay/{code}/go")
-    def pay_go(code: str, method: str = "card"):
+    def pay_go(code: str, method: str = "page"):
         try:
             url = svc.payer_go(code, method)
         except KeyError:

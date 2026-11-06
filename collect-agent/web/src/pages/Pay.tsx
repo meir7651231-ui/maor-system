@@ -1,16 +1,12 @@
 // עמוד החייב v2 — /pay/{code}. מובייל-ראשון. ציבורי: רואה רק עסק, מספר חשבונית, סכום ומועד.
-// אמצעי התשלום (Bit / Apple Pay / כרטיס) מובילים לדף התשלום המאובטח של חשבונית ירוקה —
-// גבי לא רואה ולא שומר פרטי תשלום. בשלב 1 הכול dry-run: אין חיוב אמיתי.
+// כפתור ניטרלי אחד ⇒ עמוד התשלום של העסק (חשבונית ירוקה / משולם / ביט — נגזר מהקישור בפועל),
+// והדומיין המדויק של היעד מוצג. בלי לוגואים או צבעי מותג של צד ג' (review חור 4: סימני מסחר,
+// הבטחה לאמצעים שהעסק אולי לא מקבל, ומראה של דף פישינג). גבי לא רואה ולא שומר פרטי תשלום.
 import { useEffect, useState } from 'react';
 import { LogoMark } from '../components/Logo.tsx';
-import { payer, type PayMethod, type PayerView } from '../api.ts';
+import { payer, type PayerView } from '../api.ts';
 import { fmtDate } from '../lib/format.ts';
 
-const METHOD: Record<PayMethod, { label: string; cls: string; icon: string }> = {
-  bit: { label: 'תשלום ב-Bit', cls: 'bg-[#00B2A9] text-white hover:brightness-110', icon: 'bit' },
-  apple_pay: { label: 'Apple Pay', cls: 'bg-black text-white hover:bg-ink-800', icon: '' },
-  card: { label: 'כרטיס אשראי', cls: 'bg-white text-ink-900 border border-ink-200 hover:bg-ink-50', icon: '💳' },
-};
 
 type Done = null | 'paid' | 'plan' | 'stop';
 
@@ -39,7 +35,7 @@ export function Pay({ code }: { code: string }) {
           <LogoMark size={30} />
           <div className="min-w-0">
             <div className="font-display font-extrabold truncate" data-testid="pay-business">{v?.business ?? '…'}</div>
-            <div className="text-xs text-ink-400">תשלום מאובטח דרך חשבונית ירוקה</div>
+            <div className="text-xs text-ink-400">תזכורת תשלום מטעם העסק</div>
           </div>
         </div>
       </header>
@@ -60,13 +56,14 @@ export function Pay({ code }: { code: string }) {
               <>
                 {v.can_pay ? (
                   <section className="space-y-2.5" aria-label="אמצעי תשלום">
-                    {v.methods.map(m => (
-                      <a key={m} href={payer.goUrl(code, m)} data-testid={`pay-${m}`}
-                        className={`flex h-14 items-center justify-center gap-2 rounded-2xl text-lg font-bold shadow-sm transition ${METHOD[m].cls}`}>
-                        {m === 'apple_pay' ? <><AppleLogo /> Pay</> : <>{m === 'bit' ? <b className="font-display tracking-tight">bit</b> : <span aria-hidden>{METHOD[m].icon}</span>}<span className={m === 'bit' ? 'sr-only' : ''}>{METHOD[m].label}</span></>}
-                      </a>
-                    ))}
-                    <p className="text-xs text-center text-ink-500">🔒 התשלום מתבצע בדף המאובטח של חשבונית ירוקה. גבי לא רואה פרטי כרטיס.</p>
+                    <a href={payer.goUrl(code, 'page')} data-testid="pay-page"
+                      className="flex h-14 items-center justify-center gap-2 rounded-2xl text-lg font-bold shadow-sm transition bg-brand text-ink-900 hover:brightness-105">
+                      לעמוד התשלום של {v.business}
+                    </a>
+                    <p className="text-xs text-center text-ink-500" data-testid="pay-host">
+                      🔒 התשלום מתבצע אצל {v.pay_provider || 'ספק התשלום של העסק'}
+                      {v.pay_host && v.pay_host !== v.pay_provider && <> · <span dir="ltr" className="num">{v.pay_host}</span></>}. גבי לא רואה פרטי תשלום.
+                    </p>
                   </section>
                 ) : <p className="rounded-2xl bg-amber-50 text-amber-800 p-4">קישור התשלום עוד לא זמין — בעל העסק יעדכן בקרוב.</p>}
 
@@ -112,6 +109,3 @@ function DoneCard({ done, planN, business }: { done: Exclude<Done, null>; planN:
   );
 }
 
-const AppleLogo = () => (
-  <svg aria-hidden width="18" height="22" viewBox="0 0 17 21" fill="currentColor"><path d="M14.1 11.2c0-2.6 2.1-3.8 2.2-3.9-1.2-1.8-3.1-2-3.7-2-1.6-.2-3.1.9-3.9.9-.8 0-2.1-.9-3.4-.9-1.7 0-3.3 1-4.2 2.6-1.8 3.1-.5 7.7 1.3 10.2.9 1.2 1.9 2.6 3.2 2.6 1.3-.1 1.8-.8 3.3-.8s2 .8 3.4.8c1.4 0 2.3-1.3 3.1-2.5 1-1.4 1.4-2.8 1.4-2.9 0 0-2.7-1-2.7-4.1zM11.6 3.6c.7-.9 1.2-2 1-3.2-1 0-2.2.7-3 1.5-.6.7-1.2 1.9-1 3 1.1.1 2.3-.6 3-1.3z"/></svg>
-);

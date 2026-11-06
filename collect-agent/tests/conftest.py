@@ -80,6 +80,7 @@ class FakeGreenInvoice:
             body = json.loads(req.content)
             assert body["amount"] > 0 and body["custom"].startswith("doc")
             self.forms += 1
+            self.last_form_amount = body["amount"]
             return httpx.Response(200, json={"errorCode": 0,
                                              "url": f"https://pay.greeninvoice.co.il/f/{body['custom']}"})
         return httpx.Response(404)
@@ -116,7 +117,7 @@ def svc(gi_client, clock):
     s = load_settings({"BUSINESS_NAME": "סטודיו מאיר", "SMS_SENDER_ID": "StudioMeir",
                        "PAYMENT_LINK": "https://www.greeninvoice.co.il/pay/studio",
                        "PUBLIC_BASE_URL": "https://gabi.example",
-                       "SMS_WEBHOOK_KEY": "whk-test",
+                       "SMS_WEBHOOK_KEY": "whk-test", "EMAIL_REPLY_TO": "owner@studio.example",
                        "EMAIL_WEBHOOK_KEY": "ewk-test"})
     return CollectService(s, DB(":memory:"), gi=gi_client, clock=clock)
 

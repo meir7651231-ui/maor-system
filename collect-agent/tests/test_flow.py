@@ -52,10 +52,10 @@ def test_first_message_needs_owner_approval(api, svc):
     # הקישור הקצר מוביל לדף התשלום של חשבונית ירוקה
     code = sms["body"].split("/p/")[1].split()[0]
     r = api.get(f"/p/{code}/pay", follow_redirects=False)
-    assert r.status_code == 302 and r.headers["location"] == "https://pay.greeninvoice.co.il/f/doc1"
-    assert "https://pay.greeninvoice.co.il/f/doc1" in mail["body"]
-    # שכבת ספקים אחת (app/integrations): 019 ב-JSON, ל-/api/test בשלב 1, סוד מצונזר
-    assert sms["request"]["body"]["sms"]["source"] == "StudioMeir"
+    assert r.status_code == 302 and r.headers["location"] == "https://www.greeninvoice.co.il/pay/studio?invoice=1001"
+    assert "https://www.greeninvoice.co.il/pay/studio?invoice=1001" in mail["body"]
+    # שכבת ספקים אחת (app/integrations): 019 ב-XML (fixture תאימות, חוזה לא מאומת), /api/test, סוד מצונזר
+    assert "<source>StudioMeir</source>" in sms["request"]["body"]
     assert sms["request"]["headers"]["authorization"] == "***"
     assert sms["request"]["url"].endswith("/api/test")
     assert mail["to"] == "c1@example.com" and "1001" in mail["subject"]
@@ -197,17 +197,35 @@ def test_dispatch_rechecks_window(api, svc, clock):
     assert len(api.post("/dispatch").json()["sent"]) == 1
 
 
-def test_payment_form_failure_falls_back_to_static_link(api, svc, fake_gi):
-    fake_gi.fail_forms = True
+def test_payment_link_is_business_page_and_never_writes_to_gi(api, svc, fake_gi, clock):
+    """הכרעת מאיר 6.11 + ממצא מבקר 2.0.5: רק קישור לעמוד התשלום של העסק; אין POST /payments/form."""
     ids = first_cycle(api)
+    api.post(f"/reminders/{ids[0]}/approve")
+    api.post("/dispatch")
+    clock.now += timedelta(days=7)
+    api.post("/plan")
     body = api.get(f"/reminders/{ids[0]}/preview").json()["messages"][1]["body"]   # מייל
     assert "https://www.greeninvoice.co.il/pay/studio?invoice=1001" in body
+    assert fake_gi.forms == 0
+
+
+def test_greeninvoice_form_mode_refused():
+    from app.config import SafetyError, load_settings
+    with pytest.raises(SafetyError):
+        load_settings({"PAYMENT_LINK_MODE": "greeninvoice_form"})
+
+
+@pytest.mark.parametrize("provider,host", [("greeninvoice", "greeninvoice.example"),
+                                           ("meshulam", "meshulam.example"), ("bit", "bit.example")])
+def test_mock_payment_page_per_provider(provider, host):
+    from app.config import load_settings
+    s = load_settings({"PAYMENT_PROVIDER": provider})
+    assert host in s.payment_page and host in s.allowed_payment_domains
 
 
 def test_no_safe_payment_link_blocks(svc, gi_client, clock, fake_gi):
     from app.config import load_settings
     from app.db import DB
-    fake_gi.fail_forms = True
     s = load_settings({"PAYMENT_LINK": "https://evil.example/pay"})   # לא ברשימה המותרת
     api = TestClient(create_app(CollectService(s, DB(":memory:"), gi=gi_client, clock=clock),
                                 owner_token=OWNER_TOKEN), headers=AUTH)
@@ -222,12 +240,13 @@ def test_payment_form_created_once(api, svc, fake_gi, clock):
     api.post("/dispatch")
     clock.now += timedelta(days=7)
     api.post("/plan")
-    assert fake_gi.forms == 2   # אחד לכל חשבונית, לא לכל תזכורת
+    # הכרעת מאיר (6.11) + review חור 3: לא יוצרים דף תשלום שמנפיק קבלה. היה: אחד לכל חשבונית
+    assert fake_gi.forms == 0
 
 
 def test_unsubscribe_link_and_one_click(api, svc):
     ids = first_cycle(api)
-    tok = svc.db.one("SELECT unsub_token FROM customers WHERE id=1")["unsub_token"]
+    tok = svc.new_unsub_token(svc.db.one("SELECT id FROM customers WHERE id=1")["id"])
     page = api.get(f"/u/{tok}")
     assert page.status_code == 200 and 'method="post"' in page.text
     # GET לבד לא מסיר (סורקי קישורים פותחים כל URL) — רק הכפתור/POST
@@ -250,7 +269,7 @@ def test_how_to_pay_reply_uses_invoice_link(api, svc):
     api.post(f"/reminders/{ids[0]}/approve")
     res = api.post("/inbound", json={"sender": "0501234567", "text": "איך אפשר לשלם?"}).json()
     draft = next(d for d in api.get("/conversation/drafts").json() if d["id"] == res["draft_id"])
-    assert "https://pay.greeninvoice.co.il/f/doc1" in draft["body"]
+    assert "https://www.greeninvoice.co.il/pay/studio?invoice=1001" in draft["body"]
 
 
 def test_ui_page_has_slogan_and_no_whatsapp(api):
@@ -637,3 +656,70 @@ def test_missing_due_date_uses_terms_not_issue_date():
     from app.greeninvoice import map_document
     inv = map_document({"id": 1, "amount": 10, "documentDate": "2026-10-01", "status": 0})
     assert inv.due.isoformat() == "2026-10-31" and inv.due_estimated is True
+
+
+def test_plan_offer_never_sent_twice(api, svc):
+    """ממצא מכירות/מבקר: הצעת פריסה נשלחה פעמיים — פעם מ-/plans ופעם מטיוטת מנוע השיחה."""
+    ids = first_cycle(api)
+    api.post(f"/reminders/{ids[0]}/approve")
+    api.post("/dispatch")
+    api.post("/inbound", json={"sender": "0501234567", "text": "אפשר פריסה ל-3 תשלומים?"})
+    pid = api.get("/plans").json()[-1]["id"]
+    drafts = svc.db.q("SELECT id FROM drafts WHERE plan_id=? AND intent='plan_request'", (pid,))
+    assert drafts, "המבחן חייב לכלול טיוטה מקבילה"
+    before = len(svc.sender.sent)
+    api.post(f"/plans/{pid}/approve")
+    for d in drafts:                       # בעל העסק מנסה לאשר גם את הטיוטה המקבילה
+        api.post(f"/conversation/drafts/{d['id']}/approve", json={})
+    offers = [m for m in svc.sender.sent[before:] if m["to"] == "972501234567"]
+    assert len(offers) == 1
+    api.post(f"/plans/{pid}/approve")      # אישור כפול של ההסדר עצמו
+    assert len([m for m in svc.sender.sent[before:] if m["to"] == "972501234567"]) == 1
+
+
+def test_trial_ending_notice_to_owner_once(gi_client, clock):
+    """הכרעת מאיר: תזכורת לבעל העסק 3 ימים לפני סוף הניסיון — פעם אחת, לא לפני, לא אחרי."""
+    from app.config import load_settings
+    from app.db import DB
+    s = load_settings({"TRIAL_START": "2026-10-25", "SMS_SENDER_ID": "StudioMeir",
+                       "PAYMENT_LINK": "https://www.greeninvoice.co.il/pay/s"})
+    svc = CollectService(s, DB(":memory:"), gi=gi_client, clock=clock)
+    api = TestClient(create_app(svc, owner_token=OWNER_TOKEN), headers=AUTH)
+
+    def notices():
+        return [m for m in api.get("/owner/inbox").json() if m["intent"] == "trial_ending"]
+
+    clock.now = datetime(2026, 11, 5, 10, 0, tzinfo=TZ)   # נותרו 3 (ends 8.11)
+    assert svc.trial()["ending_soon"] is True
+    api.post("/plan")
+    api.post("/plan")
+    assert len(notices()) == 1 and "3 ימים" in notices()[0]["body"]
+    assert notices()[0]["customer_id"] is None
+    clock.now = datetime(2026, 11, 6, 10, 0, tzinfo=TZ)
+    api.post("/plan")
+    assert len(notices()) == 1                              # בלי כפילות
+
+
+def test_trial_not_ending_early_and_none_without_trial(gi_client, clock, svc):
+    from app.config import load_settings
+    from app.db import DB
+    s = load_settings({"TRIAL_START": "2026-11-08"})
+    early = CollectService(s, DB(":memory:"), gi=gi_client, clock=clock)
+    assert early.trial()["ending_soon"] is False
+    assert svc.trial()["ending_soon"] is False
+
+
+def test_email_blocked_without_reply_to(svc, gi_client, clock, fake_gi):
+    """review חור 6: בלי Reply-To ל«השיבו למייל הזה» התשובה הולכת לכתובת מתה ⇒ ערוץ המייל חסום."""
+    from app.config import load_settings
+    from app.db import DB
+    s = load_settings({"PAYMENT_LINK": "https://www.greeninvoice.co.il/pay/s"})   # בלי EMAIL_REPLY_TO
+    fake_gi.docs[1]["client"]["phone"] = ""                                      # יוסי: מייל בלבד
+    api = TestClient(create_app(CollectService(s, DB(":memory:"), gi=gi_client, clock=clock),
+                                owner_token=OWNER_TOKEN), headers=AUTH)
+    ids = first_cycle(api)
+    p0 = api.get(f"/reminders/{ids[0]}/preview").json()
+    assert [m["channel"] for m in p0["messages"]] == ["sms"]                     # דנה: SMS בלבד
+    r1 = next(r for r in api.get("/reminders").json() if r["id"] == ids[1])
+    assert r1["block_reason"] == "no_reply_to"
+    assert api.post(f"/reminders/{ids[1]}/approve").status_code == 409

@@ -206,10 +206,21 @@ function ReplySim() {
   );
 }
 
-const PAUSE_LABEL: Record<string, string> = { paid_claim: 'כתב/ה ששילם/ה — בדקו בחשבון ואז חדשו' };
+// סיבת השהיה = כוונת מנוע השיחה (app/conversation.py Intent), אפשר עם ':until=YYYY-MM-DD'. לעולם לא מציגים קוד גולמי.
+const PAUSE_LABEL: Record<string, string> = {
+  paid_claim: 'כתב/ה ששילם/ה. בדקו בחשבון ואז חדשו', promise: 'הבטיח/ה לשלם', plan_request: 'ביקש/ה פריסה. ממתין להצעה שלכם',
+  plan_accept: 'הסכים/ה להצעת הפריסה', plan_reject: 'דחה/תה את הצעת הפריסה', cant_pay: 'כתב/ה שאין אפשרות לשלם כרגע',
+  dispute: 'יש מחלוקת על החשבונית', legal: 'הוזכר עניין משפטי', distress: 'נראה שהלקוח/ה במצוקה. כדאי לפנות אישית',
+  callback: 'ביקש/ה שתחזרו אליו/ה', wrong_person: 'כתב/ה שזה לא המספר הנכון', abusive: 'תגובה פוגענית. כדאי לטפל אישית',
+};
+export function pauseLabel(reason: string): string {
+  const [base, until] = reason.split(':until=');
+  const txt = PAUSE_LABEL[base] ?? 'מושהה עד שתבדקו';
+  return until ? `${txt} · עד ${until.split('-').reverse().join('.')}` : txt;
+}
 /** "דורש טיפול": לקוחות מושהים (חידוש בלחיצה כפולה) + הצעות פריסה שממתינות לאישורך. */
 function NeedsYou() {
-  const { customers, invoices, plans, reload, showToast } = useApp();
+  const { customers, invoices, plans, notices, reload, showToast } = useApp();
   const [armed, setArmed] = useState<string | null>(null);
   const seen = new Set<number>();
   const paused = customers.filter(c => c.paused && c.backendId != null && !seen.has(c.backendId) && seen.add(c.backendId));
@@ -221,16 +232,22 @@ function NeedsYou() {
     setArmed(null);
     try { await fn(); await reload(); showToast(done); } catch (e) { showToast(`לא בוצע: ${(e as Error).message}`); }
   };
-  if (!paused.length && !proposed.length) return null;
+  if (!paused.length && !proposed.length && !notices.length) return null;
   return (
     <Card className="p-5 border-amber-200" >
       <h2 className="text-lg font-extrabold mb-1">דורש טיפול שלך</h2>
       <p className="text-xs text-ink-500 mb-3">גבי עצר כאן ומחכה להחלטה שלך. אישור = לחיצה כפולה.</p>
       <ul className="space-y-2.5" data-testid="needs-you">
+        {notices.map(n => (
+          <li key={`n${n.id}`} className={`rounded-lg p-3 text-sm ${n.tone === 'warn' ? 'bg-amber-50' : 'bg-ink-50'}`} data-testid="notice" data-intent={n.intent}>
+            <div className="font-bold"><span aria-hidden>{n.icon}</span> {n.title}</div>
+            <div className="text-ink-700 text-xs mt-0.5">{n.body}</div>
+          </li>
+        ))}
         {paused.map(c => (
           <li key={`c${c.backendId}`} className="rounded-lg bg-amber-50 p-3 text-sm">
-            <div className="font-bold">⏸ {c.name}</div>
-            <div className="text-ink-700 text-xs mt-0.5">{PAUSE_LABEL[c.paused!] ?? `מושהה: ${c.paused}`}</div>
+            <div className="font-bold"><span aria-hidden>⏸️</span> {c.name}</div>
+            <div className="text-ink-700 text-xs mt-0.5">{pauseLabel(c.paused!)}</div>
             <Button size="sm" variant={armed === `r${c.backendId}` ? 'dark' : 'outline'} className="mt-2"
               onClick={() => act(`r${c.backendId}`, () => api.resume(c.backendId!), `התזכורות ל${c.name} חודשו`)}>
               {armed === `r${c.backendId}` ? 'לחצו שוב לאישור' : '↻ חידוש תזכורות'}

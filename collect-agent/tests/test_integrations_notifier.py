@@ -1,18 +1,11 @@
-"""גיבוי ערוצים + registry ממשתני סביבה."""
+"""גיבוי ערוצים (Notifier): 019 ⇒ InforU ⇒ מייל. MockTransport בלבד."""
 import httpx
 import pytest
 
 from app.integrations.base import IntegrationError
 from app.integrations.email import ResendEmail
 from app.integrations.notifier import Notification, Notifier
-from app.integrations.payments import GreenInvoicePaymentForm, StaticPaymentLink
-from app.integrations.registry import (
-    build_accounting,
-    build_notifier,
-    build_payment_links,
-    build_sms,
-)
-from app.integrations.sms import InforUSms, Sms019, TwilioSms
+from app.integrations.sms import InforUSms, Sms019
 
 N = Notification(key="reminder:5", phone="0501234567", email="d@example.com",
                  sms_text="תזכורת: חשבונית 1001", email_subject="תזכורת",
@@ -97,43 +90,3 @@ def test_all_dry_run_default():
 def test_no_channels():
     with pytest.raises(IntegrationError):
         Notifier([], None)
-
-
-# ------------------------------------------------------------------ registry
-ENV = {"SMS_PROVIDER": "inforu, 019,twilio", "SMS_SENDER": "Studio",
-       "INFORU_USERNAME": "u", "INFORU_TOKEN": "t", "SMS019_USERNAME": "u", "SMS019_TOKEN": "t",
-       "TWILIO_ACCOUNT_SID": "AC1", "TWILIO_AUTH_TOKEN": "t", "TWILIO_FROM": "Studio",
-       "EMAIL_PROVIDER": "resend", "RESEND_API_KEY": "re_x", "MAIL_FROM": "o@s.co"}
-
-
-def test_registry_builds_all_dry_run():
-    n = build_notifier(ENV)
-    assert [type(a) for a in n.sms] == [InforUSms, Sms019, TwilioSms]
-    assert isinstance(n.email, ResendEmail) and n.dry_run
-
-
-def test_registry_smtp():
-    n = build_notifier({"EMAIL_PROVIDER": "smtp", "SMTP_HOST": "smtp.ex.com",
-                        "MAIL_FROM": "o@s.co"})
-    assert n.email.provider == "smtp" and n.email.dry_run and n.sms == []
-
-
-def test_registry_errors():
-    with pytest.raises(IntegrationError, match="INFORU_TOKEN"):
-        build_sms("inforu", {"INFORU_USERNAME": "u", "SMS_SENDER": "S"})
-    with pytest.raises(IntegrationError):
-        build_sms("whatsapp", {})
-    with pytest.raises(IntegrationError):
-        build_notifier({})
-
-
-def test_registry_accounting_and_payments(gi_client):
-    assert build_accounting({}, gi_client=gi_client).provider == "greeninvoice"
-    assert build_accounting({"ACCOUNTING_PROVIDER": "icount",
-                             "ICOUNT_API_TOKEN": "x"}).provider == "icount"
-    assert isinstance(build_payment_links({"PAYMENT_LINK": "https://p.co/x"}), StaticPaymentLink)
-    f = build_payment_links({"PAYMENT_LINK_MODE": "greeninvoice",
-                             "PAYMENT_LINK": "https://p.co/x"}, gi_client=gi_client)
-    assert isinstance(f, GreenInvoicePaymentForm) and f.allow_write is False
-    with pytest.raises(IntegrationError):
-        build_payment_links({})

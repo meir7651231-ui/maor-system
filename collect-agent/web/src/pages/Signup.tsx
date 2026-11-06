@@ -28,6 +28,7 @@ export function Signup() {
             <div className="space-y-4">
               <h1 className="text-2xl font-extrabold">14 ימי ניסיון, בלי כרטיס אשראי</h1>
               <p className="text-sm text-ink-500 -mt-2">אחר כך ₪119 לחודש או ₪1,190 לשנה, כולל מע״מ ככל שחל. ביטול בכל רגע.</p>
+              <p className="text-xs rounded-lg bg-amber-50 text-amber-900 p-2">בטא סגורה ל-10 עסקים · טיוטה: לא נוצר חשבון ולא נשמרים פרטים.</p>
               <Field label="שם מלא"><input className={inputCls} value={f.name} onChange={e => setF({ ...f, name: e.target.value })} autoComplete="name" /></Field>
               <Field label="שם העסק"><input className={inputCls} value={f.biz} onChange={e => setF({ ...f, biz: e.target.value })} /></Field>
               <Field label="מייל"><input className={`${inputCls} num text-right`} type="email" value={f.email} onChange={e => setF({ ...f, email: e.target.value })} autoComplete="email" /></Field>

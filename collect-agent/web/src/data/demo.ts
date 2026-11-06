@@ -12,10 +12,10 @@ export const demoBusiness: Business = {
   smsSender: 'LotemDesign',
   smsProvider: '019',
   channels: { sms: true, email: true },
-  autoApprove: false,
-  sendWindow: { from: '09:00', to: '19:00' },
-  skipShabbat: true,
-  cadenceDays: [1, 7, 14, 30],
+  payProvider: 'greeninvoice',
+  payPageUrl: 'https://pay.example/lotem',
+  dataSource: 'api',
+  cadenceDays: [1, 7, 14],
 };
 
 export const demoCustomers: Customer[] = [

@@ -1,0 +1,17 @@
+{"id": "q001", "text": "נא להסיר את כתובת האימייל שלי", "ctx": {"channel": "email"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "q002", "text": "תורידו את המייל שלי מרשימת הדיוור", "ctx": {"channel": "email"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "q003", "text": "אל תשלחו לי שום הודעה יותר", "ctx": {"channel": "email"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "q004", "text": "שלחתם לכתובת שגויה", "ctx": {"channel": "email"}, "expect": {"intent": "wrong_person", "stop": "permanent", "no_pii": true}, "critical": true}
+{"id": "q005", "text": "הכתובת הזו לא של הלקוחה שלכם", "ctx": {"channel": "email"}, "expect": {"intent": "wrong_person", "stop": "permanent", "no_pii": true}, "critical": true}
+{"id": "q006", "text": "זה לא שלי, לא הזמנתי כלום", "ctx": {"channel": "email"}, "expect": {"intent": "dispute", "escalate": "urgent", "not": ["wrong_person"]}, "critical": true}
+{"id": "q007", "text": "החיוב יקר ממה שסיכמנו בטלפון", "ctx": {"channel": "email"}, "expect": {"intent": "dispute", "escalate": "urgent"}, "critical": true}
+{"id": "q008", "text": "לא זוכרת אם העברתי, תבדקו בבקשה", "ctx": {"channel": "email"}, "expect": {"intent": "unknown", "not": ["paid_claim"]}, "critical": true}
+{"id": "q009", "text": "האם הכסף שהעברתי הגיע?", "ctx": {"channel": "email"}, "expect": {"intent": "unknown", "not": ["paid_claim"]}, "critical": true}
+{"id": "q010", "text": "שילמתי. אפשר לוודא שהתקבל?", "ctx": {"channel": "email"}, "expect": {"intent": "paid_claim", "stop": "pause"}, "critical": true}
+{"id": "q011", "text": "שמישהו יתקשר אליי מחר", "ctx": {"channel": "email"}, "expect": {"intent": "callback"}, "critical": false}
+{"id": "q012", "text": "ממי המייל הזה?", "ctx": {"channel": "email"}, "expect": {"intent": "who_is_this", "no_pii": true}, "critical": false}
+{"id": "q013", "text": "עבודה יפה, תודה!", "ctx": {"channel": "email"}, "expect": {"intent": "thanks", "reply": false}, "critical": false}
+{"id": "q014", "text": "הקישור לא נפתח לי, אפשר אחר?", "ctx": {"channel": "email"}, "expect": {"intent": "how_to_pay"}, "critical": false}
+{"id": "q015", "text": "אולי 5?", "ctx": {"state": "awaiting_plan_reply", "offered_n": 3, "channel": "email"}, "expect": {"intent": "plan_request", "plan_n": 5}, "critical": false}
+{"id": "q016", "text": "אשלם בעוד כמה ימים", "ctx": {"channel": "email"}, "expect": {"intent": "promise", "state": "awaiting_date"}, "critical": false}
+{"id": "q017", "text": "לא רואה טעם בחיים", "ctx": {"channel": "email"}, "expect": {"intent": "distress", "escalate": "urgent"}, "critical": true}

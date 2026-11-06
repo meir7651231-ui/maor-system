@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Logo, LogoMark } from '../components/Logo.tsx';
 import { Button } from '../components/ui.tsx';
 import { go } from '../router.ts';
-import { DEFAULT_RECOVERY, GABI_PRICE, roi } from '../lib/roi.ts';
+import { DEFAULT_HOURLY, GABI_PRICE, timeValue } from '../lib/roi.ts';
 import { fmtIls } from '../lib/format.ts';
 
 // הכרעות מאיר (6.11, סופי): ₪119 לחודש או ₪1,190 לשנה, כולל מע״מ ככל שחל · 14 ימי ניסיון בלי כרטיס · אין מסלולים אחרים.
@@ -27,8 +27,8 @@ const STEPS = [
 
 const LADDER = [
   ['יום 1', 'תזכורת ידידותית', 'bg-brand'],
-  ['יום 7', 'תזכורת שנייה', 'bg-due'],
-  ['יום 14', 'תזכורת שלישית ואחרונה, עם הצעת פריסה', 'bg-late'],
+  ['יום 7', 'תזכורת שנייה, עם אפשרות לתשלומים', 'bg-due'],
+  ['יום 14', 'תזכורת שלישית ואחרונה', 'bg-late'],
   ['ואז', 'גבי עוצר ומעדכן אתכם. ההמשך אצלכם', 'bg-ink-900'],
 ] as const;
 
@@ -67,7 +67,7 @@ export function Landing() {
           <nav className="hidden md:flex gap-6 text-sm font-medium text-ink-700" aria-label="ניווט ראשי">
             <a href="#how" onClick={scrollTo('how')}>איך זה עובד</a>
             <a href="#control" onClick={scrollTo('control')}>שליטה</a>
-            <a href="#roi" onClick={scrollTo('roi')}>כמה תחזירו</a>
+            <a href="#time" onClick={scrollTo('time')}>שווי הזמן</a>
             <a href="#pricing" onClick={scrollTo('pricing')}>מחיר</a>
             <a href="#/dashboard">דמו חי</a>
           </nav>
@@ -149,7 +149,7 @@ export function Landing() {
         </div>
       </section>
 
-      <RoiCalculator />
+      <TimeCalculator />
 
       <section id="pricing" className="max-w-6xl mx-auto px-4 py-20">
         <h2 className="text-3xl md:text-4xl font-extrabold text-center">מחיר אחד. פשוט.</h2>
@@ -241,40 +241,33 @@ function HeroPhone() {
   );
 }
 
-/** מחשבון החזר — הערכה שקופה, לא הבטחה: ההנחות מוצגות ונשלטות על ידי המשתמש. */
-function RoiCalculator() {
-  const [monthly, setMonthly] = useState(40000);
-  const [late, setLate] = useState(25);
+/** מחשבון שווי הזמן (הכרעת מאיר 6.11): משווה רק לזמן העבודה שמוקדש היום למעקב. בלי הבטחת תשואה, בלי מכפיל. */
+function TimeCalculator() {
   const [hours, setHours] = useState(4);
-  const r = roi({ monthlyInvoiced: monthly, latePct: late, hoursChasing: hours });
+  const [hourly, setHourly] = useState(DEFAULT_HOURLY);
+  const r = timeValue({ hoursPerMonth: hours, hourlyValue: hourly });
   const slider = 'w-full accent-[#10B981] h-2 cursor-pointer';
   return (
-    <section id="roi" className="bg-ink-900 text-white" aria-labelledby="roi-title">
+    <section id="time" className="bg-ink-900 text-white" aria-labelledby="time-title">
       <div className="max-w-6xl mx-auto px-4 py-20 grid md:grid-cols-2 gap-10 items-center">
         <div>
-          <h2 id="roi-title" className="text-3xl md:text-4xl font-extrabold">כמה כסף חוזר אליכם?</h2>
-          <p className="text-ink-400 mt-3 text-lg">הזיזו את הסרגלים. החישוב פשוט ושקוף — בלי אותיות קטנות.</p>
+          <h2 id="time-title" className="text-3xl md:text-4xl font-extrabold">כמה שווה הזמן שאתם רודפים אחרי תשלומים?</h2>
+          <p className="text-ink-400 mt-3 text-lg">חשבון שלכם, עם המספרים שלכם. בלי הנחות ובלי הבטחות.</p>
           <div className="mt-8 space-y-6">
-            <label className="block"><div className="flex justify-between text-sm"><span>חשבוניות בחודש</span><b className="num text-brand">{fmtIls(monthly)}</b></div>
-              <input type="range" min={5000} max={300000} step={5000} value={monthly} onChange={e => setMonthly(+e.target.value)} className={slider} aria-label="סכום חשבוניות בחודש" data-testid="roi-monthly" /></label>
-            <label className="block"><div className="flex justify-between text-sm"><span>כמה מזה משולם באיחור</span><b className="num text-brand">{late}%</b></div>
-              <input type="range" min={0} max={80} step={5} value={late} onChange={e => setLate(+e.target.value)} className={slider} aria-label="אחוז באיחור" /></label>
-            <label className="block"><div className="flex justify-between text-sm"><span>שעות בחודש שאתם רודפים אחרי תשלומים</span><b className="num text-brand">{hours}</b></div>
-              <input type="range" min={0} max={30} step={1} value={hours} onChange={e => setHours(+e.target.value)} className={slider} aria-label="שעות רדיפה בחודש" /></label>
+            <label className="block"><div className="flex justify-between text-sm"><span>שעות בחודש על מעקב ותזכורות</span><b className="num text-brand">{r.hours}</b></div>
+              <input type="range" min={0} max={30} step={1} value={hours} onChange={e => setHours(+e.target.value)} className={slider} aria-label="שעות בחודש על מעקב תשלומים" data-testid="time-hours" /></label>
+            <label className="block"><div className="flex justify-between text-sm"><span>כמה שווה לכם שעת עבודה</span><b className="num text-brand">{fmtIls(r.hourly)}</b></div>
+              <input type="range" min={0} max={600} step={10} value={hourly} onChange={e => setHourly(+e.target.value)} className={slider} aria-label="שווי שעת עבודה" /></label>
           </div>
         </div>
-        <div className="rounded-2xl bg-white text-ink-900 p-6 md:p-8 shadow-pop" data-testid="roi-result">
-          <div className="text-sm text-ink-500">באיחור כל חודש</div>
-          <div className="text-2xl font-extrabold num">{fmtIls(r.lateAmount)}</div>
-          <div className="mt-5 grid grid-cols-2 gap-4">
-            <div className="rounded-xl bg-brand-50 p-4"><div className="text-xs text-ink-500">חוזר מוקדם יותר*</div><div className="text-2xl font-extrabold text-brand-700 num">{fmtIls(r.recovered)}</div></div>
-            <div className="rounded-xl bg-ink-50 p-4"><div className="text-xs text-ink-500">שווי הזמן שנחסך**</div><div className="text-2xl font-extrabold num">{fmtIls(r.timeSaved)}</div></div>
+        <div className="rounded-2xl bg-white text-ink-900 p-6 md:p-8 shadow-pop" data-testid="time-result">
+          <div className="text-sm text-ink-500">הזמן שאתם מקדישים היום למעקב שווה</div>
+          <div className="text-4xl font-extrabold font-display num text-brand-700">{fmtIls(r.timeValue)} <span className="text-base font-medium text-ink-500">בחודש</span></div>
+          <div className="mt-5 rounded-xl bg-ink-50 p-4 text-sm">
+            גבי עולה <b className="num">₪{GABI_PRICE}</b> לחודש{r.priceInHours > 0 && <>, כמו <b className="num">{r.priceInHours}</b> שעות עבודה שלכם</>}.
           </div>
-          <div className="mt-5 flex items-end justify-between border-t border-ink-200 pt-5">
-            <div><div className="text-sm text-ink-500">תזרים שמוקדם, מול ₪{GABI_PRICE} לחודש</div><div className="text-4xl font-extrabold font-display text-brand-700 num">×{r.multiple}</div></div>
-            <Button onClick={() => go('signup')}>להתחיל ניסיון</Button>
-          </div>
-          <p className="text-[11px] text-ink-500 mt-4 leading-relaxed">* הכסף הזה שלכם ממילא — גבי מקדים את הגעתו ומקטין את הסיכון שלא יגיע. הערכה: {Math.round(DEFAULT_RECOVERY * 100)}% מהסכום שבאיחור נגבה מוקדם יותר בזכות תזכורות קבועות — השערה, לא התחייבות. ** לפי ₪150 לשעה. התוצאה בפועל תלויה בלקוחות שלכם.</p>
+          <div className="mt-5 flex justify-end"><Button onClick={() => go('signup')}>להתחיל ניסיון</Button></div>
+          <p className="text-[11px] text-ink-500 mt-4 leading-relaxed">החישוב משווה רק לזמן העבודה. אין בו התחייבות שחשבונית כלשהי תשולם, והוא לא מעריך כמה כסף יחזור. גבי מכין את התזכורות; האישור, וחלק מהזמן, נשארים אצלכם.</p>
         </div>
       </div>
     </section>

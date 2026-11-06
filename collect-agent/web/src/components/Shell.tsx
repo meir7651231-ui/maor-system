@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react';
-import { Logo } from './Logo.tsx';
+import { Logo, LogoMark } from './Logo.tsx';
 import { go, type Route } from '../router.ts';
 import { useApp } from '../store.tsx';
 
@@ -13,10 +13,16 @@ const NAV: { r: Route; label: string; icon: string }[] = [
 export function Shell({ route, children }: { route: Route; children: ReactNode }) {
   const { business, queue, mode, drafts } = useApp();
   const pending = queue.length;
+  const modeText = mode === 'live' ? '● מחובר לשרת גבי · dry-run' : mode === 'mock' ? '● מצב דמו (מוק) — אין שליחה' : mode === 'locked' ? '🔒 נדרש קוד גישה' : '… בודק חיבור לשרת';
   return (
     <div className="min-h-screen md:flex">
       <aside className="md:w-64 bg-ink-900 text-white shrink-0">
-        <div className="flex md:flex-col md:sticky md:top-0 md:h-screen md:overflow-y-auto">
+        <div className="flex flex-col md:sticky md:top-0 md:h-screen md:overflow-y-auto">
+        {/* מובייל: לוגו + מצב חיבור תמיד גלויים (dry-run/מוק/נעול לא מוסתר) */}
+        <div className="md:hidden flex items-center justify-between gap-2 px-3 pt-3">
+          <button onClick={() => go('landing')} className="cursor-pointer flex items-center gap-2" aria-label="גבי – לדף הבית"><LogoMark size={28} dark /><b className="font-display">גבי</b></button>
+          <span className="text-[11px] text-brand truncate" data-testid="mode-mobile">{modeText}</span>
+        </div>
         <div className="p-4 md:p-6 hidden md:block"><button onClick={() => go('landing')} className="cursor-pointer"><Logo dark /></button></div>
         <nav className="flex md:flex-col gap-1 p-2 md:px-3 w-full overflow-x-auto" aria-label="ניווט ראשי">
           {NAV.map(n => (
@@ -32,7 +38,7 @@ export function Shell({ route, children }: { route: Route; children: ReactNode }
           <div className="rounded-xl bg-white/5 p-3">
             <div className="text-ink-400 text-xs">מחובר/ת כ-</div>
             <div className="font-bold">{business.name}</div>
-            <div className="text-xs text-brand mt-1" data-testid="mode">{mode === 'live' ? '● מחובר לשרת גבי · dry-run' : mode === 'mock' ? '● מצב דמו (מוק) — אין שליחה' : mode === 'locked' ? '🔒 נדרש קוד גישה' : '… בודק חיבור לשרת'}</div>
+            <div className="text-xs text-brand mt-1" data-testid="mode">{modeText}</div>
           </div>
         </div>
         </div>

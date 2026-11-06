@@ -1,4 +1,4 @@
-"""iCount + Green Invoice source + קישורי תשלום."""
+"""iCount + Green Invoice source (קריאה בלבד, MockTransport)."""
 import json
 
 import httpx
@@ -6,18 +6,9 @@ import pytest
 
 from app.config import SafetyError, load_settings
 from app.db import DB
-from app.greeninvoice import GreenInvoiceClient
 from app.integrations.accounting import GreenInvoiceSource, ICountClient, map_icount_doc
 from app.integrations.base import IntegrationError
-from app.integrations.payments import (
-    GreenInvoicePaymentForm,
-    PaymentRequest,
-    StaticPaymentLink,
-    TemplatePaymentLink,
-    agorot_to_decimal,
-)
 from app.service import CollectService
-from tests.conftest import SANDBOX
 
 
 def icount_doc(i, *, balance="500.50", doctype="invoice", phone="052-7654321"):
@@ -121,78 +112,3 @@ def test_icount_feeds_collect_service(clock):
 def test_greeninvoice_source(gi_client):
     src = GreenInvoiceSource(gi_client)
     assert [i.external_id for i in src.iter_open_invoices()] == ["doc1", "doc2"]
-
-
-# ------------------------------------------------------------------ תשלום
-REQ = PaymentRequest("doc1", "1001", 120050, client_name="דנה", client_email="d@ex.com")
-
-
-def test_agorot_decimal():
-    assert agorot_to_decimal(120050) == "1200.50"
-    assert agorot_to_decimal(7) == "0.07"
-    with pytest.raises(IntegrationError):
-        agorot_to_decimal(-1)
-
-
-def test_static_link_https_only():
-    assert StaticPaymentLink("https://pay.example/x").link_for(REQ).url == "https://pay.example/x"
-    with pytest.raises(IntegrationError):
-        StaticPaymentLink("http://pay.example/x")
-    with pytest.raises(IntegrationError):
-        StaticPaymentLink("javascript:alert(1)")
-
-
-def test_template_link_encodes():
-    t = TemplatePaymentLink("https://pay.example/p?sum={amount}&inv={invoice}&ref={ref}")
-    url = t.link_for(PaymentRequest("a&b", "10 01", 9900)).url
-    assert url == "https://pay.example/p?sum=99.00&inv=10%2001&ref=a%26b"
-
-
-def test_template_unknown_field():
-    with pytest.raises(IntegrationError):
-        TemplatePaymentLink("https://pay.example/{client_id_number}")
-
-
-def test_gi_form_dry_run_uses_fallback():
-    f = GreenInvoicePaymentForm(None, fallback=StaticPaymentLink("https://pay.example/x"))
-    link = f.link_for(REQ)
-    assert link.dry_run and link.url == "https://pay.example/x"
-    body = link.preview["body"]
-    assert body["amount"] == 1200.5 and body["custom"] == "doc1" and body["maxPayments"] == 1
-
-
-def _gi_with_form(response):
-    calls = []
-
-    def h(req):
-        if req.url.path.endswith("/account/token"):
-            return httpx.Response(200, json={"token": "tok", "expires": 2_000_000_000})
-        calls.append(json.loads(req.content))
-        return response
-    return GreenInvoiceClient(SANDBOX, "i", "s", transport=httpx.MockTransport(h)), calls
-
-
-def test_gi_form_write_success_and_cache():
-    gi, calls = _gi_with_form(httpx.Response(200, json={"errorCode": 0,
-                                                        "url": "https://pay.greeninvoice/x"}))
-    f = GreenInvoicePaymentForm(gi, plugin_id="plug", allow_write=True)
-    assert f.link_for(REQ).url == "https://pay.greeninvoice/x"
-    f.link_for(REQ)
-    assert len(calls) == 1 and calls[0]["pluginId"] == "plug"
-
-
-def test_gi_form_error_falls_back():
-    gi, _ = _gi_with_form(httpx.Response(500))
-    f = GreenInvoicePaymentForm(gi, allow_write=True,
-                                fallback=StaticPaymentLink("https://pay.example/x"))
-    link = f.link_for(REQ)
-    assert link.url == "https://pay.example/x" and "error" in link.preview
-
-
-def test_gi_form_rejects_non_https_and_zero():
-    gi, _ = _gi_with_form(httpx.Response(200, json={"errorCode": 0, "url": "http://x"}))
-    f = GreenInvoicePaymentForm(gi, allow_write=True)
-    with pytest.raises(IntegrationError):
-        f.link_for(REQ)
-    with pytest.raises(IntegrationError):
-        f.link_for(PaymentRequest("d", "1", 0))

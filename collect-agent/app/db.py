@@ -4,6 +4,7 @@
 """
 from __future__ import annotations
 
+import hashlib
 import os
 import sqlite3
 import threading
@@ -77,12 +78,26 @@ CREATE TABLE IF NOT EXISTS suppressions (
 CREATE TABLE IF NOT EXISTS business_settings (
   key TEXT PRIMARY KEY, value TEXT NOT NULL, updated_at TEXT NOT NULL
 );
+-- תקנות אבטחת מידע: תיעוד גישה (צפייה) למידע אישי. הוספה בלבד, בלי תוכן — רק מי, מתי, איזה מסך
+CREATE TABLE IF NOT EXISTS access_log (
+  id INTEGER PRIMARY KEY,
+  at TEXT NOT NULL, actor TEXT NOT NULL, method TEXT NOT NULL, route TEXT NOT NULL,
+  path TEXT NOT NULL
+);
+CREATE TRIGGER IF NOT EXISTS access_log_no_update BEFORE UPDATE ON access_log
+  BEGIN SELECT RAISE(ABORT, 'access_log is append-only'); END;
+CREATE TRIGGER IF NOT EXISTS access_log_no_delete BEFORE DELETE ON access_log
+  BEGIN SELECT RAISE(ABORT, 'access_log is append-only'); END;
 -- יומן ביקורת = ראיה (מחלוקת/עו"ד) ⇒ הוספה בלבד, אין עדכון ואין מחיקה
 CREATE TRIGGER IF NOT EXISTS audit_no_update BEFORE UPDATE ON audit
   BEGIN SELECT RAISE(ABORT, 'audit is append-only'); END;
 CREATE TRIGGER IF NOT EXISTS audit_no_delete BEFORE DELETE ON audit
   BEGIN SELECT RAISE(ABORT, 'audit is append-only'); END;
 """
+
+
+def token_hash(token: str) -> str:
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
 
 
 class DB:
@@ -115,6 +130,14 @@ class DB:
         if "source" not in icols:  # api | csv — ר-4: CSV לא ניתן לרענון ⇒ תוקף 24 שעות מהייבוא
             self.conn.execute("ALTER TABLE invoices ADD COLUMN source TEXT NOT NULL DEFAULT 'api'")
             self.conn.commit()
+        # ר-10: legal hold מתועד + חותמות מחיקה/התממה. SQL קבוע (שער האבטחה)
+        for have, col, ddl in (
+                (cols, "legal_hold", "ALTER TABLE customers ADD COLUMN legal_hold TEXT"),
+                (cols, "purged_at", "ALTER TABLE customers ADD COLUMN purged_at TEXT"),
+                (icols, "purged_at", "ALTER TABLE invoices ADD COLUMN purged_at TEXT")):
+            if col not in have:
+                self.conn.execute(ddl)
+        self.conn.commit()
         # ר-12: גרסת הנוסח וגיבוב הגוף שאושרו. כל שינוי ⇒ האישור בטל
         rcols = {r[1] for r in self.conn.execute("PRAGMA table_info(reminders)")}
         for col, ddl in (
@@ -122,9 +145,33 @@ class DB:
                 ("body_hash", "ALTER TABLE reminders ADD COLUMN body_hash TEXT"),
                 ("approved_hash", "ALTER TABLE reminders ADD COLUMN approved_hash TEXT"),
                 ("approved_version", "ALTER TABLE reminders ADD COLUMN approved_version TEXT"),
-                ("approved_by", "ALTER TABLE reminders ADD COLUMN approved_by TEXT")):
+                ("approved_by", "ALTER TABLE reminders ADD COLUMN approved_by TEXT"),
+                # ר-4 (מבקר סבב 3): הסכום שבהודעה עצמה — הרענון משווה אליו, לא ל-invoices
+                ("amount_agorot", "ALTER TABLE reminders ADD COLUMN amount_agorot INTEGER")):
             if col not in rcols:
                 self.conn.execute(ddl)
+        self.conn.commit()
+        # DLR (דוחות מסירה): לאיזה ספק יצאה ההודעה, מזהה ההודעה אצלו, ומה עלה בגורלה
+        mcols = {r[1] for r in self.conn.execute("PRAGMA table_info(messages)")}
+        for col, ddl in (
+                ("provider", "ALTER TABLE messages ADD COLUMN provider TEXT"),
+                ("provider_id", "ALTER TABLE messages ADD COLUMN provider_id TEXT"),
+                ("delivery_status", "ALTER TABLE messages ADD COLUMN delivery_status TEXT"),
+                ("delivery_at", "ALTER TABLE messages ADD COLUMN delivery_at TEXT")):
+            if col not in mcols:
+                self.conn.execute(ddl)
+        self.conn.commit()
+        # טוקני הסרה: נשמר רק sha256 (דליפת DB ⇒ אין קישורי הסרה פעילים בידי תוקף)
+        self.conn.executescript(
+            "CREATE TABLE IF NOT EXISTS link_tokens (token_hash TEXT PRIMARY KEY, "
+            "customer_id INTEGER NOT NULL REFERENCES customers(id), kind TEXT NOT NULL, "
+            "created_at TEXT NOT NULL);")
+        # מיגרציה: טוקנים ישנים (plaintext ב-customers.unsub_token) ⇒ hash, והעמודה מתרוקנת
+        for cid, tok in self.conn.execute(
+                "SELECT id, unsub_token FROM customers WHERE unsub_token IS NOT NULL").fetchall():
+            self.conn.execute("INSERT OR IGNORE INTO link_tokens VALUES(?,?, 'unsub', '')",
+                              (token_hash(tok), cid))
+        self.conn.execute("UPDATE customers SET unsub_token=NULL WHERE unsub_token IS NOT NULL")
         self.conn.commit()
         self.lock = threading.RLock()
 

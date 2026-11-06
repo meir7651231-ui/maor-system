@@ -170,23 +170,34 @@ MSG = Message("sms", "972501234567", "שלום")
 
 
 def _preview(provider, msg=MSG):
-    sms, email = build_adapters(provider=provider, username="AC1" if provider == "twilio" else "u",
-                                token="supersecret", sender="Studio", email_from="a@b.co")
+    sms, email = build_adapters(provider=provider, username="u", token="supersecret",
+                                sender="Studio", email_from="a@b.co")
     return DryRunSender(sms=sms, email=email).preview(msg)
 
 
 def test_adapters_build_requests_and_mask_secrets():
-    """שכבה אחת: DryRunSender מציג את הבקשה של adapter ה-integrations, בלי סודות."""
+    """שכבה אחת: DryRunSender מציג את הבקשה של adapter ה-integrations, בלי סודות.
+    019 = XML של המימוש הקיים, נשמר מחרוזת-מלאה כ-fixture תאימות (חוזה לא מאומת)."""
     inf = _preview("inforu")
     assert inf["provider"] == "inforu"
     assert inf["request"]["body"]["Data"]["Recipients"][0]["Phone"] == "0501234567"
     x = _preview("019", Message("sms", "972501234567", "a<b&c"))
-    assert x["request"]["body"]["sms"]["message"] == "a<b&c"          # JSON — בלי escape של XML
-    assert x["request"]["url"].endswith("/api/test")                  # שלב 1: endpoint הבדיקה של 019
-    t = _preview("twilio")
-    assert t["request"]["body"]["To"] == "+972501234567"
-    for p in (inf, x, t):
+    assert x["request"]["body"] == (
+        '<?xml version="1.0" encoding="UTF-8"?><sms><user><username>u</username></user>'
+        '<source>Studio</source><destinations><phone>0501234567</phone></destinations>'
+        '<message>a&lt;b&amp;c</message></sms>')
+    assert x["request"]["url"] == "https://019sms.co.il/api/test"   # שלב 1: endpoint הבדיקה
+    for p in (inf, x):
         assert "supersecret" not in str(p) and p["length"]["segments"] == 1
+
+
+def test_default_chain_is_019_then_inforu():
+    chain, _ = build_adapters()
+    assert [a.provider for a in chain] == ["019", "inforu"] and all(a.dry_run for a in chain)
+    chain, _ = build_adapters(provider="inforu")
+    assert [a.provider for a in chain] == ["inforu", "019"]
+    with pytest.raises(ValueError):
+        load_settings({"SMS_PROVIDER": "twilio"})                    # Twilio יצא (לא נדרש ל-MVP)
 
 
 def test_email_one_click_unsubscribe_header():
@@ -217,6 +228,8 @@ def test_dry_sender_refuses_live_adapter():
     _, email = build_adapters()
     with _pt.raises(IntegrationError):
         DryRunSender(sms=live, email=email)
+    with _pt.raises(IntegrationError):
+        DryRunSender(sms=[Sms019("u", "t", "Studio"), live], email=email)   # גם הגיבוי נבדק
 
 
 def test_whatsapp_channel_refused():
@@ -344,3 +357,4 @@ def test_reason_closed_explains():
     assert P.reason_closed(at(2026, 11, 14, 10)) == "שבת"
     assert "חג" in P.reason_closed(at(2026, 9, 21, 10))
     assert P.reason_closed(at(2026, 11, 8, 10)) is None
+
