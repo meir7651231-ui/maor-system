@@ -6,6 +6,12 @@
 - **מחיר יחיד:** ₪119 לחודש **או** ₪1,190 לשנה · 14 ימי ניסיון. **אין ₪79**, אין A/B, אין מסלולים או מחירונים אחרים. מקור יחיד: `docs/PRICING.md` · בקוד: `Settings.price_ils_month=119`, `price_ils_year=1190`, `trial_days=14` · בדף הנחיתה: `PRICE` ב-`web/src/pages/Landing.tsx`. (ניסוח המע״מ «כולל מע״מ ככל שחל» — עדיין לאישור רו״ח/עו״ד, `docs/PRICING.md`.)
 - **אין הרשמה לשום חשבון sandbox** (חשבונית ירוקה, 019, InforU, Twilio, ספק מייל) **בלי אישור מפורש של מאיר.** עד אז כל הפיתוח והבדיקות מול `app/gi_mock.py` ו-DryRunSender בלבד; פריטי «לאמת» נשארים פתוחים.
 
+## 🧭 הפעלת מנהל · 6.11.2026 (הפעלה 12)
+- **מיזוג:** אין ענפי `claude/*` חדשים עם שינוי ב-`collect-agent/` (`stoic-mccarthy-23f03p` נשאר נדחה, ראו הפעלה 3). CI `collect-agent.yml` קיים.
+- **נבחרה ובוצעה (בקאנד, שער 5 — גיבוי מתוזמן):** `python -m app.backup snapshot <db> <dir> [keep=14]` — קובץ `gabi-<UTC>.gbk` מוצפן בתיקייה 0700 + סבב שמירה (`rotate_backups`; keep<1 ⇒ שגיאה, לא מוחק הכול). מוכן ל-cron.
+- **הוכחה:** pytest **756** עוברות (2 חדשות) · ruff נקי.
+- **⏭ הבא:** *בקאנד* — החלטה SQLCipher מול הצפנת-שדות PII. *משפטי* — שאלת עו״ד על דיווח לרשות. *מאיר* — DPA/עו״ד/RFQ.
+
 ## 🧭 הפעלת מנהל · 6.11.2026 (הפעלה 11)
 - **מיזוג:** אין ענפי `claude/*` חדשים עם שינוי ב-`collect-agent/` (הכול כלול; `stoic-mccarthy-23f03p` נשאר נדחה, ראו הפעלה 3). CI `collect-agent.yml` קיים. בסיס: pytest ירוק, ruff נקי.
 - **נבחרה ובוצעה (בקאנד, שער 5 — חלק «גיבוי מוצפן»):** `app/backup.py` — תצלום עקבי של ה-DB (sqlite backup API) מוצפן AES-256-GCM ב-SecretBox (הקשר `backup:db`), קובץ 0600. שחזור: פענוח ⇒ `integrity_check` ⇒ כתיבה לנתיב חדש בלבד (לא דורס). CLI: `python -m app.backup create|restore`. מפתח מ-`COLLECT_MASTER_KEYS` (רוטציה: גיבוי ישן משוחזר עם k1 ברשימה).

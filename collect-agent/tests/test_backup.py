@@ -72,3 +72,22 @@ def test_not_a_backup_file(tmp_path):
     p.write_text("hello")
     with pytest.raises(SecretError):
         restore_backup(p, tmp_path / "r.db", _box())
+
+
+def test_snapshot_rotation_keeps_newest(tmp_path):
+    from app.backup import snapshot_backup
+    db, box = _db(tmp_path), _box()
+    d = tmp_path / "bk"
+    for i in range(5):
+        snapshot_backup(db.conn, d, box, keep=3, now=f"2026110{i}T000000Z")
+    names = sorted(p.name for p in d.iterdir())
+    assert names == [f"gabi-2026110{i}T000000Z.gbk" for i in (2, 3, 4)]
+    assert stat.S_IMODE(os.stat(d).st_mode) == 0o700
+    r = restore_backup(d / names[-1], tmp_path / "r.db", box)
+    assert sqlite3.connect(r).execute("SELECT count(*) FROM customers").fetchone()[0] == 1
+
+
+def test_rotation_refuses_keep_zero(tmp_path):
+    from app.backup import rotate_backups
+    with pytest.raises(ValueError):
+        rotate_backups(tmp_path, 0)
