@@ -69,7 +69,9 @@ def test_session_token_acts_as_the_employee_in_access_log(env):
     assert api.get("/customers", headers={"Authorization": f"Bearer {tok}"}).status_code in (200, 404)
     api.get("/dashboard", headers={"Authorization": f"Bearer {tok}"})
     actors = {r["actor"] for r in svc.db.q("SELECT actor FROM access_log")}
-    assert "dana@example.co.il" in actors and "owner" not in actors
+    # critic סבב 10: ביומן פסאודונים (user:<id>), לא המייל — היומן הוספה-בלבד ושורד מחיקת עסק
+    dana = "user:%d" % svc.db.one("SELECT id FROM users WHERE email='dana@example.co.il'")["id"]
+    assert dana in actors and "owner" not in actors and "dana@example.co.il" not in actors
     api.get("/dashboard", headers=AUTH)  # הטוקן המשותף נשאר ⇒ owner
     assert "owner" in {r["actor"] for r in svc.db.q("SELECT actor FROM access_log")}
 
@@ -127,7 +129,7 @@ def test_mutating_actions_are_audited_under_the_employee(env):
     svc, users, reg, api, clock = env
     tok = _login(api, reg, clock).json()["token"]
     h = {"Authorization": f"Bearer {tok}"}
-    me = "dana@example.co.il"
+    me = "user:%d" % svc.db.one("SELECT id FROM users WHERE email='dana@example.co.il'")["id"]
     svc.sync()
     svc.plan()
     pending = [r["id"] for r in svc.db.q("SELECT id FROM reminders WHERE status='pending_approval'")]

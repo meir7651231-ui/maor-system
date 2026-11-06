@@ -117,11 +117,14 @@ class Users:
         return stored   # דמו/מורשת בלי מפתח
 
     def actor(self, token: str) -> str | None:
-        r = self.db.one("SELECT u.email, u.active, s.expires_at FROM sessions s "
+        """שם השחקן ביומנים: «user:<id>» ולא המייל. critic סבב 10: audit ו-access_log הם הוספה-בלבד,
+        ולכן מייל של עובד שנכתב בהם נשאר לנצח, גם אחרי מחיקת העסק (app.wipe). המיפוי id ⇒ מייל
+        קיים רק בטבלת users, שנמחקת. אחרי מחיקה היומן נשאר ראיה, אבל בלי זהות."""
+        r = self.db.one("SELECT u.id, u.email, u.active, s.expires_at FROM sessions s "
                         "JOIN users u ON u.id=s.user_id WHERE s.token_hash=?", (token_hash(token),))
         if r is None or not r["active"] or datetime.fromisoformat(r["expires_at"]) <= self._now():
             return None
-        return r["email"]
+        return f"user:{r['id']}"
 
     def logout(self, token: str) -> None:
         self.db.x("DELETE FROM sessions WHERE token_hash=?", (token_hash(token),))

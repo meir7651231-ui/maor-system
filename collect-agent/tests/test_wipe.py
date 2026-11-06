@@ -41,3 +41,36 @@ def test_cli_requires_confirmation(tmp_path):
     assert sqlite3.connect(p).execute("SELECT COUNT(*) FROM customers").fetchone()[0] == 1
     assert main(["wipe", str(p), "--confirm", "WIPE"]) == 0
     assert sqlite3.connect(p).execute("SELECT COUNT(*) FROM customers").fetchone()[0] == 0
+
+
+def test_wipe_leaves_no_employee_identity_in_append_only_logs(clock, gi_client):
+    """critic סבב 10 (שוחזר על 2625071): אחרי app.wipe לא נשאר מידע של חייבים, אבל **המייל של העובדת**
+    נשאר ב-audit וב-access_log (הוספה-בלבד, טריגרים), בניגוד ל-«תוכן ללא PII» ב-docstring.
+    עכשיו היומנים רושמים user:<id>, והמיפוי נמחק עם users."""
+    from fastapi.testclient import TestClient
+
+    from app import totp
+    from app.config import load_settings
+    from app.db import DB
+    from app.main import create_app
+    from app.service import CollectService
+    from app.users import Users
+    from app.wipe import wipe_all
+    from tests.conftest import OWNER_TOKEN
+    s = load_settings({"PAYMENT_LINK": "https://www.greeninvoice.co.il/pay/x"})
+    svc = CollectService(s, DB(":memory:"), gi=gi_client, clock=clock)
+    api = TestClient(create_app(svc, owner_token=OWNER_TOKEN))
+    reg = Users(svc.db, svc.clock).create("yael.worker@studio.example", "יעל", "correct-horse-1")
+    code = totp.code_at(reg["totp_secret"], clock.now.timestamp())
+    tok = api.post("/auth/login", json={"email": "yael.worker@studio.example",
+                                        "password": "correct-horse-1", "code": code}).json()["token"]
+    h = {"Authorization": f"Bearer {tok}"}
+    api.post("/sync", headers=h)
+    api.post("/plan", headers=h)
+    api.get("/dashboard", headers=h)
+    rid = svc.db.one("SELECT id FROM reminders")["id"]
+    api.post(f"/reminders/{rid}/approve", headers=h)
+    wipe_all(svc.db.conn)
+    dump = "\n".join(svc.db.conn.iterdump())
+    assert "yael.worker" not in dump and "studio.example" not in dump
+    assert svc.db.one("SELECT COUNT(*) c FROM audit WHERE actor LIKE 'user:%'")["c"] >= 1   # ראיה נשמרת

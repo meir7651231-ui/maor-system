@@ -216,7 +216,7 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
             svc.audit("anon", "login_failed", {"email_sha": _h.sha256(
                 body.email.strip().lower().encode()).hexdigest()[:16]})
             raise HTTPException(401, "פרטי ההתחברות או קוד האימות שגויים")
-        svc.audit(body.email.strip().lower(), "login", None)
+        svc.audit(users.actor(tok) or "user:?", "login", None)   # פסאודונים, לא מייל (critic סבב 10)
         return {"token": tok, "expires_hours": 12}
 
     @app.post("/auth/logout")
