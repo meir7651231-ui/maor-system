@@ -35,6 +35,14 @@ export function Dashboard() {
         <a href="#/invoices"><Button variant="outline">לכל החשבוניות ←</Button></a>
       </div>
 
+      {live && (totals?.csv_unverified ?? 0) > 0 && (
+        <div role="status" data-testid="csv-unverified" className="rounded-2xl border border-amber-300 bg-amber-50 text-amber-900 p-4 flex flex-wrap items-center gap-3">
+          <span aria-hidden className="text-xl">⚠️</span>
+          <span className="flex-1 min-w-0"><b className="num">{totals!.csv_unverified}</b> {totals!.csv_unverified === 1 ? 'חשבונית מקובץ CSV לא הופיעה' : 'חשבוניות מקובץ CSV לא הופיעו'} בייבוא האחרון — ייתכן שכבר שולמו.
+            תזכורות עליהן לא יישלחו עד שתאשרו שוב שהסכום עדיין פתוח, או תייבאו קובץ מעודכן.</span>
+          <a href="#/settings" className="font-bold underline whitespace-nowrap">ייבוא קובץ מעודכן ←</a>
+        </div>
+      )}
       <section aria-label="מדדי גבייה" className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4" data-testid="kpis">
         <Kpi hero label="נגבה" value={fmtIls(collected)} sub={live ? `${totals?.closed_invoices ?? 0} חשבוניות שולמו` : 'יוני–נובמבר'} tone="good" />
         <Kpi hero label="שיעור החזר" value={`${recovery}%`} sub="מסך החוב" tone="good" meter={recovery} />

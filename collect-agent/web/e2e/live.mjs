@@ -218,6 +218,21 @@ try {
   const auditRows = await api('/audit');
   ok(auditRows.some(a => a.action === 'approve' && /"confirm_open": true/.test(a.detail ?? '')), 'השרת לא קיבל confirm_open');
   console.log('  ✓ חשבונית CSV: אישור רק עם «הסכום עדיין פתוח» (confirm_open מאומת ב-audit)');
+  // 7ג) אזהרת «CSV לא הופיעה בייבוא האחרון». בדמו השעון קפוא ⇒ השרת לא יכול לחשב פער בין ייבואים,
+  //     ולכן זו בדיקת ממשק: מזריקים csv_unverified=1 לתשובת /dashboard האמיתית. (הלוגיקה בשרת נבדקת ב-pytest:
+  //     test_dashboard_counts_csv_invoices_missing_from_last_import.)
+  ok(!(await p.getByTestId('csv-unverified').count()), 'אזהרת CSV מוצגת לפני שיש סיבה');
+  await p.route('**/dashboard', async route => {
+    const res = await route.fetch(); const j = await res.json();
+    j.totals.csv_unverified = 1;
+    await route.fulfill({ response: res, json: j });
+  });
+  await p.goto(base + '/app/#/invoices'); await p.goto(base + '/app/#/dashboard');
+  await p.getByTestId('csv-unverified').waitFor();
+  ok((await p.getByTestId('csv-unverified').textContent()).includes('1 חשבונית'), 'נוסח האזהרה');
+  await noHScroll(p, 'דשבורד עם אזהרת CSV');
+  await p.unroute('**/dashboard');
+  console.log('  ✓ אזהרת «CSV לא הופיעה בייבוא האחרון» (ממשק)');
   await p.goto(base + '/app/#/invoices');
   await p.getByText('דנה לוי').first().waitFor();
   ok(await p.locator('tbody tr').count() === 6, 'ציפיתי ל-6 חשבוניות פתוחות (5 + אחת מ-CSV)');

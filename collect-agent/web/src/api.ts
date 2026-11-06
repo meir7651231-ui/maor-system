@@ -53,7 +53,8 @@ export interface Dashboard {
   today: string;
   totals: { open_invoices: number; open_agorot: number; overdue_agorot: number; closed_invoices: number; pending_approval: number; sent_sms: number; sent_email: number; owner_inbox: number;
     collected_agorot?: number; recovery_rate_pct?: number; avg_days_overdue?: number; at_risk_agorot?: number;
-    reminders_sent?: number; customers_messaged?: number; reply_rate_pct?: number };
+    reminders_sent?: number; customers_messaged?: number; reply_rate_pct?: number;
+    /** חשבוניות CSV פתוחות שלא הופיעו בייבוא האחרון — אולי כבר שולמו */ csv_unverified?: number };
   series?: WeekPoint[];
   invoices: DashRow[];
 }
