@@ -158,3 +158,18 @@ def test_rotate_deletes_backups_older_than_30_days_but_keeps_newest(tmp_path):
     # הכול ישן ⇒ החדש ביותר נשאר
     gone = rotate_backups(tmp_path, keep=14, now=datetime(2027, 6, 1, tzinfo=UTC))
     assert gone == [] and (tmp_path / "gabi-20261030T000000Z.gbk").exists()
+
+
+def test_check_fresh_alerts_when_backups_stop(tmp_path):
+    """critic סבב 11.2: הגיבוי האחרון לא נמחק לעולם, ולכן cron שנעצר נשאר שקט. check מתריע (exit 1)."""
+    from datetime import UTC, datetime
+
+    from app import backup as _bk
+    d = tmp_path / "b"
+    d.mkdir()
+    now = datetime(2026, 11, 6, 12, tzinfo=UTC)
+    assert _bk.check_fresh(d, now=now)[0] is False                         # ריק ⇒ התרעה
+    (d / "gabi-20261106T020000Z.gbk").write_text("x")
+    assert _bk.check_fresh(d, now=now)[0] is True                          # 10 שעות
+    assert _bk.check_fresh(d, 48, now=datetime(2026, 11, 9, 12, tzinfo=UTC))[0] is False
+    assert _bk.main(["x", "check", str(tmp_path / "missing")]) == 1

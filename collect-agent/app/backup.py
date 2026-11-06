@@ -6,6 +6,7 @@
 
 שימוש:  python -m app.backup create <db> <out>   |   python -m app.backup restore <in> <db_new>
          python -m app.backup snapshot <db> <dir> [keep=14]   (cron; מסבב ישנים)
+         python -m app.backup check <dir> [max_hours=48]      (ניטור: 0 = טרי, 1 = ישן/חסר)
 """
 from __future__ import annotations
 
@@ -121,6 +122,22 @@ def snapshot_backup(conn: sqlite3.Connection, directory: str | Path, box: Secret
     return out
 
 
+def check_fresh(directory: str | Path, max_hours: float = 48, now=None) -> tuple[bool, str]:
+    """critic סבב 11.2: rotate_backups משאיר תמיד את הגיבוי החדש ביותר, גם בן יותר מ-30 יום. אם ה-cron
+    נעצר, אף אחד לא שם לב: אין גיבויים חדשים, והישן עם ה-PII נשאר לתמיד. בדיקה לניטור או ל-cron:
+    האם הגיבוי האחרון (לפי חותמת השם) בן פחות מ-``max_hours``."""
+    from datetime import datetime, timedelta
+    stamps = [t for p in Path(directory).glob(f"{PREFIX}*{SUFFIX}") if p.is_file()
+              and (t := _stamp_dt(p)) is not None] if Path(directory).is_dir() else []
+    if not stamps:
+        return False, "אין גיבויים בתיקייה"
+    newest = max(stamps)
+    age = (now or datetime.now(UTC)) - newest
+    if age > timedelta(hours=max_hours):
+        return False, f"הגיבוי האחרון בן {age.total_seconds() / 3600:.0f} שעות (מעל {max_hours:g}) — ה-cron נעצר?"
+    return True, f"הגיבוי האחרון בן {age.total_seconds() / 3600:.1f} שעות"
+
+
 def _open_source_db(path: str) -> sqlite3.Connection:
     """המקור חייב להיות DB קיים. sqlite3.connect יוצר DB ריק בשקט, וכך החלפת ארגומנטים הפכה
     את שם קובץ הגיבוי ל"מקור" ריק ואת ה-DB החי ל"יעד" שנדרס. פתיחה לקריאה בלבד."""
@@ -134,6 +151,10 @@ def _open_source_db(path: str) -> sqlite3.Connection:
 
 
 def main(argv: list[str]) -> int:
+    if argv[1:2] == ["check"] and len(argv) in (3, 4):
+        ok, msg = check_fresh(argv[2], float(argv[3]) if len(argv) == 4 else 48)
+        print(("ok: " if ok else "ALERT: ") + msg, file=sys.stdout if ok else sys.stderr)
+        return 0 if ok else 1
     if argv[1:2] == ["snapshot"] and len(argv) in (4, 5):
         box = SecretBox.from_env()
         conn = _open_source_db(argv[2])
