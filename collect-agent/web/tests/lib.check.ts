@@ -234,7 +234,7 @@ test('הודעות מערכת לבעל העסק: רק direction=system, סוף �
   assert.equal(n[1].title, 'הודעה מגבי');
 });
 
-import { diffPatch, explainSettingsError, toForm, validate, vatOk, type DesignSettings } from '../src/lib/settings.ts';
+import { diffPatch, explainImportError, explainSettingsError, toForm, validate, vatOk, type DesignSettings } from '../src/lib/settings.ts';
 test('הגדרות: PUT חלקי בלבד, ולידציה כמו בשרת, שגיאות בעברית', () => {
   const s: DesignSettings = {
     business_name: 'סטודיו דמו', owner_name: '', vat_id: '', reply_email: 'owner@example.com',
@@ -274,4 +274,13 @@ test('§30א: הסכמה לפרסומת בהרשמה — נפרדת, אופצי�
   assert.match(su, /marketing: false, marketingAt: ''/, 'ברירת מחדל: לא מסומן');
   assert.ok(su.includes('data-testid="marketing-consent"') && su.includes('לא חובה'));
   assert.doesNotMatch(su, /disabled=\{[^}]*marketing/, 'ההסכמה לא יכולה להיות תנאי להרשמה');
+});
+
+test('ייבוא CSV: 403 של שער הבטא מוסבר בעברית ובלי «נכשל» מטעה; שגיאות אחרות לא נבלעות', () => {
+  const m = explainImportError(403, 'x');
+  assert.match(m, /נתוני דמו/); assert.match(m, /לא יובאה אף שורה/); assert.doesNotMatch(m, /403/);
+  assert.match(explainImportError(400, 'קובץ ריק'), /קובץ ריק/);
+  assert.match(explainImportError(500, 'boom'), /boom/);
+  const src = readFileSync(new URL('../src/api.ts', import.meta.url), 'utf8');
+  assert.match(src, /throw new ApiError\(msg, r\.status\)/, 'השרת מעביר קוד סטטוס ל-UI');
 });

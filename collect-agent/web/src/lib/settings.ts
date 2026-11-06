@@ -65,3 +65,10 @@ export function explainSettingsError(detail: string): string {
     return `${field}: ${msg}`;
   }).join(' · ');
 }
+
+/** כשל ייבוא CSV ⇒ עברית ברורה. 403 = שער הבטא (נתוני דמו בלבד), לא תקלה; לא יובאה אף שורה. */
+export function explainImportError(status: number | undefined, detail: string): string {
+  if (status === 403) return 'הייבוא נחסם: בשלב הבטא (dry-run) מותר לייבא רק נתוני דמו מסומנים (טלפון 05X-000XXXX, מייל בדומיין example.*). לא יובאה אף שורה, ושום הודעה לא נשלחת.';
+  if (status === 400) return `הקובץ לא נקלט: ${detail}`;
+  return `הייבוא נכשל: ${detail}`;
+}

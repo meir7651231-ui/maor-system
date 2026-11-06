@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useApp } from '../store.tsx';
 import { api } from '../api.ts';
 import { RULES } from '../lib/domain.ts';
-import { diffPatch, explainSettingsError, toForm, validate, type DesignSettings, type PayProvider, type SettingsForm } from '../lib/settings.ts';
+import { diffPatch, explainImportError, explainSettingsError, toForm, validate, type DesignSettings, type PayProvider, type SettingsForm } from '../lib/settings.ts';
 import { Button, Card, Field, inputCls } from '../components/ui.tsx';
 
 const PAY: [PayProvider, string][] = [['greeninvoice', 'חשבונית ירוקה (morning)'], ['meshulam', 'משולם'], ['bit', 'ביט']];
@@ -24,6 +24,7 @@ export function Settings() {
   const [loadErr, setLoadErr] = useState<string | null>(null);
   const [saveErr, setSaveErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [csvErr, setCsvErr] = useState<string | null>(null);
   const [csv, setCsv] = useState<{ imported: number; rejected: { row: number; reason: string }[] } | null>(null);
 
   useEffect(() => {
@@ -55,9 +56,9 @@ export function Settings() {
   }
 
   async function importCsv(file: File) {
-    setCsv(null);
+    setCsv(null); setCsvErr(null);
     try { const r = await api.importCsv(await file.text()); setCsv(r); await reload(); showToast(`יובאו ${r.imported} חשבוניות`); }
-    catch (e) { showToast(`הייבוא נכשל: ${(e as Error).message}`); }
+    catch (e) { const m = explainImportError((e as { status?: number }).status, (e as Error).message); setCsvErr(m); showToast(m); }
   }
 
   const err = (k: keyof SettingsForm) => errs[k] ? `⚠️ ${errs[k]}` : undefined;
@@ -101,6 +102,7 @@ export function Settings() {
           </span>
         </Field>
         {!live && <p className="text-xs text-ink-500">ייבוא CSV זמין בחיבור לשרת.</p>}
+        {csvErr && <p role="alert" className="mt-2 text-sm text-critical" data-testid="csv-error">⚠️ {csvErr}</p>}
         {csv && (
           <div className="rounded-xl bg-white border border-ink-200 p-3 text-sm" data-testid="csv-result">
             ✓ יובאו <b className="num">{csv.imported}</b> חשבוניות{csv.rejected.length ? ` · ${csv.rejected.length} שורות נדחו:` : ''}

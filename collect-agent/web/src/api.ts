@@ -9,6 +9,8 @@ import type { OwnerMsg } from './lib/notices.ts';
 
 /** השרת ענה 401 — צריך קוד גישה של בעל העסק. */
 export class AuthError extends Error {}
+/** שגיאת שרת עם קוד HTTP (כדי להציג הסבר לפי סוג הכשל). */
+export class ApiError extends Error { status: number; constructor(msg: string, status: number) { super(msg); this.status = status; } }
 const session = (): Storage | undefined => { try { return sessionStorage; } catch { return undefined; } };
 
 const base = (() => {
@@ -23,7 +25,7 @@ async function j<T>(path: string, init?: RequestInit): Promise<T> {
   if (!r.ok) {
     let msg = `${r.status}`;
     try { const b = await r.json(); msg = typeof b.detail === 'string' ? b.detail : JSON.stringify(b.detail); } catch { /* גוף לא-JSON */ }
-    throw new Error(msg);
+    throw new ApiError(msg, r.status);
   }
   return r.json() as Promise<T>;
 }
