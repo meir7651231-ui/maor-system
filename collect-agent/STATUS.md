@@ -27,12 +27,13 @@ cd collect-agent && ./demo.sh          # ואז http://127.0.0.1:8000/ui  (PORT=
 | `claude/gallant-brown-ien8fb` | שיווק: `team/marketing.md` (מסרים, דף נחיתה, תסריט דמו, SEO) | נקי |
 | `claude/stoic-mccarthy-23f03p` | מבקר: `team/critic.md` | נקי. ממצא 3 («שילמתי» ⇒ תזכורת נוספת) **תוקן בסבב הזה** |
 | `claude/dazzling-archimedes-66mq2d` | עיצוב: `web/` (React+Tailwind RTL, מיתוג, DESIGN.md) | קונפליקט ב-`pyproject`/`.gitignore`: אוחד. נוסף ג'וב `web` ל-CI |
+| `origin/collect-agent` (24c6fbf) | מנוע שיחה: `app/conversation.py` (18 כוונות) + `compliance.py` + `evals/` | נקי. evals: **315/315**, 0 טעויות שקטות. נוסף ל-CI. ⚠️ **עדיין לא מחובר ל-`service.py`**, שמשתמש ב-`assistant.py` הישן |
 | `claude/funny-euler-kfq3b6` | `app/integrations/` (SMS/מייל/iCount/תשלומים, mock) | קונפליקט סמנטי: יובא `app.whatsapp` שנמחק, והופנה ל-`app.channels`. **שתי שכבות SMS במקביל** (`channels.py` ו-`integrations/sms.py`). צריך לאחד, ראו «פיתוח» למטה |
 
 ## ⏭ הצעד הבא לכל תפקיד
 | תפקיד | הצעד הבא |
 |---|---|
-| **פיתוח** | (0) **לאחד את `app/channels.py` עם `app/integrations/`**: היום יש שני adapters ל-019/InforU/Twilio, ו-`service.py` משתמש רק ב-channels. (1) קיצור ה-SMS ל-≤2 חלקים. היום יש 3, ו-`team/market.md` דורש 2 כי זו העלות המשמעותית היחידה. (2) מספר תשלומים מתוך הטקסט («ל-3 תשלומים»). (3) כפתור «חידוש» ללקוח מושהה בדשבורד (ה-API כבר קיים). (4) מייל נכנס |
+| **פיתוח** | (00) **לחבר את `conversation.py` ו-`compliance.py` ל-`service.inbound`** במקום `assistant.py`, עם ריצה של `demo.sh` לפני ואחרי. (0) **לאחד את `app/channels.py` עם `app/integrations/`**: היום יש שני adapters ל-019/InforU/Twilio, ו-`service.py` משתמש רק ב-channels. (1) קיצור ה-SMS ל-≤2 חלקים. היום יש 3, ו-`team/market.md` דורש 2 כי זו העלות המשמעותית היחידה. (2) מספר תשלומים מתוך הטקסט («ל-3 תשלומים»). (3) כפתור «חידוש» ללקוח מושהה בדשבורד (ה-API כבר קיים). (4) מייל נכנס |
 | **עיצוב (web/)** | לחבר את `web/` ל-API האמיתי (`/dashboard`, `/reminders`, `/reminders/{id}/preview`) במקום נתוני mock. אחר כך להגיש את ה-build מ-FastAPI, כדי ש-`demo.sh` יציג אותו |
 | **מוצר** | להכריע על הכלל «עצירה אחרי 3 תזכורות בלי מענה» (היום 4) ועל תמחור (ראו חסמים) |
 | **תשתית** | לוודא ריצה ירוקה ראשונה של ה-workflow ב-GitHub. ה-`ci.yml` של מאור מופעל על כל `pull_request`, כולל PR לענף הזה, ולכן כדאי לסנן |

@@ -39,6 +39,8 @@ jobs:
         run: ruff check .
       - name: pytest
         run: python -m pytest -q
+      - name: evals של מנוע השיחה (315 מקרים)
+        run: python -m evals.harness
       - name: הדגמה מקצה לקצה (שרת + נתוני דמו + דשבורד, dry-run)
         run: ./demo.sh --check
 
