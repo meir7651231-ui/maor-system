@@ -7,7 +7,7 @@ from collections.abc import Callable
 from datetime import date, datetime, time, timedelta
 from typing import Any
 
-from . import assistant, paylinks, plans, templates
+from . import assistant, conversation, paylinks, plans, templates
 from .channels import (
     SMS_ADAPTERS,
     DryRunSender,
@@ -299,7 +299,8 @@ class CollectService:
                 self._cancel_invoice(inv["id"], d.intent.value)
         plan_id = None
         if d.intent == assistant.Intent.PLAN_REQUEST:
-            plan_id = self.propose_plan(cust["id"])
+            # «ל-3 תשלומים» / «בחמישה תשלומים» ⇒ המספר המבוקש (נחתך בתקרות plans.propose)
+            plan_id = self.propose_plan(cust["id"], conversation.extract_installments(text))
         sent = None
         # מענה אוטומטי רק אחרי שבעל העסק אישר הודעה ראשונה ללקוח הזה, ובאותו ערוץ
         if d.auto_reply and cust["approved_first"]:
