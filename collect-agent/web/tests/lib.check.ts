@@ -193,3 +193,22 @@ test('סיבת השהיה מוצגת בעברית, לעולם לא כקוד גו
     assert.ok(new RegExp(`\\b${intent}:`).test(src), `חסרה תווית השהיה ל-${intent}`);
   assert.doesNotMatch(src, /מושהה: \$\{/, 'נפילה לקוד גולמי');
 });
+
+import { BRAND as LOGO_BRAND, GLYPH, PUBLIC_FILES, markInner } from '../src/brand/logo.ts';
+import { readdirSync } from 'node:fs';
+test('לוגו: מקור יחיד, עין navy תמיד, אריח קרם על רקע כהה, קבצים ציבוריים מסונכרנים', () => {
+  // עין navy בלבד — גם בגרסת האריח (הכרעת מאיר: לא מחליפים לקרם על רקע כהה)
+  assert.match(GLYPH, new RegExp(`<circle[^>]*fill="${LOGO_BRAND.navy}"`));
+  assert.ok(!GLYPH.includes(LOGO_BRAND.cream), 'הסמל עצמו לא משתמש בקרם');
+  assert.ok(markInner(true).startsWith(`<rect`) && markInner(true).includes(LOGO_BRAND.cream), 'אריח קרם');
+  assert.ok(!markInner(false).includes('<rect'));
+  // הקבצים ב-public = מה שהמקור מייצר (npm run logo)
+  for (const [name, svg] of Object.entries(PUBLIC_FILES))
+    assert.equal(readFileSync(new URL(`../public/${name}`, import.meta.url), 'utf8'), svg, `public/${name} סטה מ-brand/logo.ts — הריצו npm run logo`);
+  // אין עותק שני של הצורה בקוד
+  const walk = (d: URL): string[] => readdirSync(d, { withFileTypes: true }).flatMap(e =>
+    e.isDirectory() ? walk(new URL(`${e.name}/`, d)) : [new URL(e.name, d).pathname]);
+  const copies = walk(new URL('../src/', import.meta.url)).filter(f => !f.endsWith('brand/logo.ts'))
+    .filter(f => readFileSync(f, 'utf8').includes('M22 13h12'));
+  assert.deepEqual(copies, [], 'עותק נוסף של הלוגו: ' + copies.join(', '));
+});
