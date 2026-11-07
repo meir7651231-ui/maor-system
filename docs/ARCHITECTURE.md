@@ -35,14 +35,40 @@ flowchart LR
 
 `loadOrgConfig()` in `src/lib/config.ts` resolves the organization in this order:
 
-1. a runtime override in `localStorage` (`maor_org_config`, written by the setup wizard);
-2. `?org=<slug>` ⇒ `public/c/<slug>/config.json` — one deployment serves any number of organizations;
+1. `?org=<slug>` (or a custom domain mapped to a slug) ⇒ the cached cloud config for that slug if one exists, otherwise `public/c/<slug>/config.json` — one deployment serves any number of organizations;
+2. a runtime override in `localStorage` (`maor_org_config`, written by the builder wizard) — only when it belongs to the same slug, and never the demo's override at the root;
 3. `./config.json` next to the build;
 4. `DEFAULT_CONFIG` when nothing loads.
 
 Every loaded config goes through `normalizeConfig`, which sanitizes it with allow-lists (themes, motion, integrations, templates, https-only URLs).
 
 A config carries **feature flags** (`src/types/features.ts`, 328 today), **terms** (46 — what this organization calls a "family", a "class", a "donor"), a **theme** (4) and optionally a **vertical pack** (`src/lib/verticalPacks.ts`, 13) that sets modules, terms, theme, accent and icon together.
+
+## The core: config → termOf / featureOn / moduleOn
+
+Everything that makes one organization look and behave differently from another flows through **three pure functions** in `src/lib/config.ts`. Components never test for an organization; they ask the config:
+
+| Function | Contract | Used on (grep, lines in `src/`) |
+|---|---|---|
+| `termOf(cfg, key, fallback)` | the organization's word for a concept ("patients" instead of "families"); empty or missing ⇒ the fallback | 925 |
+| `featureOn(cfg, key)` | **missing = on, only `false` turns off**; any parent flag set to `false` turns off its children, and so does turning off the module (the first segment of the key) | 634 |
+| `moduleOn(cfg, module)` | a navigation module is shown unless `modules[m] === false` | 81 |
+
+A **vertical pack** is just a preset for that config: `applyVerticalPack(config, packId)` (`src/lib/verticalPacks.ts`) replaces `terms`, `modules` and `features` with the pack's values and applies its theme, accent, icon and motion. An accent the organization picked by hand (`accentCustom`) is kept. The vertical a customer picks at sign-up (`lib/signupWizard.ts`, step 1) is seeded as the starting pack when the owner approves the request in the control panel (`PlatformPanel` → `applyVerticalPack`); from there the builder wizard (`#builder`) fine-tunes the same config — so the "fit" for each organization is data, not code.
+
+```mermaid
+flowchart LR
+  P[vertical pack<br/>VERTICAL_PACKS] -->|applyVerticalPack| C[OrgConfig<br/>terms · modules · features · theme]
+  W[builder wizard<br/>switches] --> C
+  C --> T[termOf]
+  C --> F[featureOn]
+  C --> M[moduleOn]
+  T --> UI[every screen]
+  F --> UI
+  M --> UI
+```
+
+A browser matrix (`npm run e2e:verticals`) loads the config each pack produces, visits every screen, and fails if a default term leaks through instead of the pack's term.
 
 ## Data and persistence
 
@@ -74,7 +100,7 @@ Access is enforced by `firestore.rules` (allow-listed e-mails, org manager, staf
 
 1. **Local-first, static hosting.** No server is required to run the app; data stays in the organization's browser with three layers of protection. The cloud is opt-in per organization.
 2. **White-label by configuration, not by fork.** One codebase, one build; each organization is a `config.json`. Terms go through `termOf`, features through `featureOn`.
-3. **Flag contract: a missing key means on, only `false` turns off.** Turning off a parent flag turns off its children (`featureOn`). Features that must never switch on by default use an explicit `=== true` opt-in instead.
+3. **Flag contract: a missing key means on, only `false` turns off** (see [the core](#the-core-config--termof--featureon--moduleon)). Turning off a parent flag turns off its children (`featureOn`). Features that must never switch on by default use an explicit `=== true` opt-in instead.
 4. **Pure logic, tested.** Each module is a pure `lib.ts` (no store, no DOM) with unit tests beside it; every fixed bug gets a "ratchet" test that keeps it fixed.
 5. **Money stays sequential.** Receipt counters only move forward, cloud merges never decrease them, and isolated modules (shop, charity boxes, distribution) never write into donations or receipts.
 

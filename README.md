@@ -20,9 +20,39 @@
 
 <h3 align="center">מערכת ניהול אחת שמתלבשת על כל ארגון — והנתונים נשארים אצלכם.</h3>
 
-<p align="center"><a href="#הבעיה"><b>הבעיה</b></a> · <a href="#איך-זה-עובד">איך זה עובד</a> · <a href="#מה-יש-בפנים">מה יש בפנים</a> · <a href="#ככה-זה-נראה">ככה זה נראה</a> · <a href="#הרצה-מקומית-ב-20-שניות">הרצה מקומית</a> · <a href="#מתי-לבחור-בנו--ומתי-לא">מתי לבחור בנו</a> · <a href="#מה-זה-לא-עושה">מה זה לא עושה</a> · <a href="#תיעוד">תיעוד</a> · <a href="#שאלות-נפוצות">שאלות</a></p>
+<p align="center"><a href="#מתלבשת-על-כל-ארגון"><b>מתלבשת על כל ארגון</b></a> · <a href="#הבעיה">הבעיה</a> · <a href="#איך-זה-עובד">איך זה עובד</a> · <a href="#מה-יש-בפנים">מה יש בפנים</a> · <a href="#ככה-זה-נראה">ככה זה נראה</a> · <a href="#הרצה-מקומית-ב-20-שניות">הרצה מקומית</a> · <a href="#מתי-לבחור-בנו--ומתי-לא">מתי לבחור בנו</a> · <a href="#מה-זה-לא-עושה">מה זה לא עושה</a> · <a href="#תיעוד">תיעוד</a> · <a href="#שאלות-נפוצות">שאלות</a></p>
 
 ---
+
+## מתלבשת על כל ארגון
+
+אותו קוד ואותה בנייה. בחירת תחום אחת מחליפה **מונחים, ערכת נושא, צבע, אייקון, מבנה-מסך ותפריט**. למטה **אותו מסך עם אותם נתונים** בשלושה תחומים — שימו לב שגם שמות הרשומות מתחלפים (משפחת כהן ← מטופל כהן ← אורח כהן):
+
+<table>
+<tr>
+<td width="33%" align="center"><a href="docs/screenshots/verticals/chesed.png"><img src="docs/screenshots/verticals/chesed.png" alt="עמותת חסד: מסך משפחות, ערכת אור ראשון עם סרגל צד"></a><br><sub>🕊️ <b>עמותת חסד</b> — "משפחות" · ערכת אור ראשון · סרגל-צד · כל המודולים</sub></td>
+<td width="33%" align="center"><a href="docs/screenshots/verticals/clinic.png"><img src="docs/screenshots/verticals/clinic.png" alt="קליניקה: מסך מטופלים, ערכת קהילה בצבע ורוד"></a><br><sub>💇 <b>קליניקה</b> — "מטופלים" · ערכת קהילה בוורוד · חבילות טיפול · חדרי טיפול</sub></td>
+<td width="33%" align="center"><a href="docs/screenshots/verticals/hospitality.png"><img src="docs/screenshots/verticals/hospitality.png" alt="אירוח: מסך אורחים, ערכת היכל כהה"></a><br><sub>🏨 <b>אירוח / צימרים</b> — "אורחים" · ערכת היכל הכהה · לוח יחידות · מועדון אורחים</sub></td>
+</tr>
+</table>
+
+**איך זה קורה:**
+
+1. **בהרשמה** הלקוח בוחר תחום — שלב 1 מתוך 5 באשף (צילום מהאתר החי). כשהבעלים מאשר את הבקשה, חבילת התחום הזה נזרעת כנקודת-הפתיחה.
+2. **באשף ההרכבה** אפשר להחליף חבילה ולכוונן: להדליק ולכבות כל יכולת, ולשנות מונחים, צבע ושם.
+3. הקונפיג הזה הוא כל ההבדל — הקוד אחד. מאחורי הקלעים: `applyVerticalPack` ← `termOf` / `featureOn` / `moduleOn` (פירוט ב-[ארכיטקטורה](docs/ARCHITECTURE.he.md#הליבה-קונפיג--termof--featureon--moduleon)).
+
+<table>
+<tr>
+<td width="40%" align="center"><a href="docs/screenshots/verticals/signup-wizard.png"><img src="docs/screenshots/verticals/signup-wizard.png" alt="אשף ההרשמה באתר החי: שלב 1 מתוך 5 — מה תחום העסק"></a><br><sub>① אשף ההרשמה — "מה תחום העסק?"</sub></td>
+<td width="30%" align="center"><a href="docs/screenshots/verticals/builder-vertical.png"><img src="docs/screenshots/verticals/builder-vertical.png" alt="אשף ההרכבה: בחירת סוג העסק מתוך 13 חבילות"></a><br><sub>② אשף ההרכבה — בחירת חבילה</sub></td>
+<td width="30%" align="center"><a href="docs/screenshots/verticals/builder-toggles.png"><img src="docs/screenshots/verticals/builder-toggles.png" alt="אשף ההרכבה: מתגים להדלקה וכיבוי של יכולות במסך המשפחות"></a><br><sub>③ מתג לכל יכולת</sub></td>
+</tr>
+</table>
+
+**13** חבילות-תחום · **46** מונחים מתחלפים · **328** דגלי-פיצ'ר · **4** ערכות נושא — כולם נספרו מהקוד (`VERTICAL_PACKS`, `TERM_DEFS`, `FEATURES`).
+
+<sub>שלושת צילומי התחומים: build מקומי מ-main, עם הקונפיג ש-`applyVerticalPack` מייצר לכל חבילה ועם נתוני-הדמו. אשף ההרשמה צולם מהאתר החי, אשף ההרכבה מה-build המקומי. כל הצילומים מ-7.11.2026.</sub>
 
 <p align="center"><a href="https://orbit-il.com/?org=demo"><img src="assets/demo.gif" alt="סיור קצר בדמו: משפחות, כרטיס משפחה, לוח שנה עברי ויומן חדרים" width="88%"></a></p>
 <p align="center"><sub>סיור באתר החי — <code>orbit-il.com/?org=demo</code>, צולם ב-6.11.2026, נתונים מומצאים. לחיצה פותחת את הדמו.</sub></p>

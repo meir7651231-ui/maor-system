@@ -18,9 +18,39 @@
 
 <h3 align="center">One management system that adapts to any organization — and your data stays with you.</h3>
 
-<p align="center"><a href="#the-problem"><b>The problem</b></a> · <a href="#how-it-works">How it works</a> · <a href="#whats-inside">What's inside</a> · <a href="#see-it">See it</a> · <a href="#run-locally-in-20-seconds">Run locally</a> · <a href="#when-to-choose-orbit--and-when-not-to">When to choose it</a> · <a href="#what-it-does-not-do">What it does not do</a> · <a href="#documentation">Docs</a> · <a href="#faq">FAQ</a></p>
+<p align="center"><a href="#fits-any-organization"><b>Fits any organization</b></a> · <a href="#the-problem">The problem</a> · <a href="#how-it-works">How it works</a> · <a href="#whats-inside">What's inside</a> · <a href="#see-it">See it</a> · <a href="#run-locally-in-20-seconds">Run locally</a> · <a href="#when-to-choose-orbit--and-when-not-to">When to choose it</a> · <a href="#what-it-does-not-do">What it does not do</a> · <a href="#documentation">Docs</a> · <a href="#faq">FAQ</a></p>
 
 ---
+
+## Fits any organization
+
+One codebase, one build. Choosing a vertical swaps the **terms, theme, color, icon, layout and menu**. Below is **the same screen with the same data** in three verticals — note that even record names change ("family Cohen" → "patient Cohen" → "guest Cohen"):
+
+<table>
+<tr>
+<td width="33%" align="center"><a href="docs/screenshots/verticals/chesed.png"><img src="docs/screenshots/verticals/chesed.png" alt="Non-profit: families screen, Or-Rishon theme with a side bar"></a><br><sub>🕊️ <b>Non-profit</b> — "families" · Or-Rishon theme · side bar · every module</sub></td>
+<td width="33%" align="center"><a href="docs/screenshots/verticals/clinic.png"><img src="docs/screenshots/verticals/clinic.png" alt="Clinic: patients screen, Kehila theme in pink"></a><br><sub>💇 <b>Clinic</b> — "patients" · Kehila theme in pink · treatment packages · treatment rooms</sub></td>
+<td width="33%" align="center"><a href="docs/screenshots/verticals/hospitality.png"><img src="docs/screenshots/verticals/hospitality.png" alt="Hospitality: guests screen, dark Heichal theme"></a><br><sub>🏨 <b>Hospitality</b> — "guests" · dark Heichal theme · units board · guest club</sub></td>
+</tr>
+</table>
+
+**How it happens:**
+
+1. **At sign-up** the customer picks a vertical — step 1 of 5 in the wizard (screenshot of the live site). When the owner approves the request, that vertical's pack is seeded as the starting point.
+2. **In the builder wizard** you can switch packs and fine-tune: turn any capability on or off, change terms, color and name.
+3. That configuration is the whole difference — the code is one. Under the hood: `applyVerticalPack` → `termOf` / `featureOn` / `moduleOn` (see [Architecture](docs/ARCHITECTURE.md#the-core-config--termof--featureon--moduleon)).
+
+<table>
+<tr>
+<td width="40%" align="center"><a href="docs/screenshots/verticals/signup-wizard.png"><img src="docs/screenshots/verticals/signup-wizard.png" alt="Sign-up wizard on the live site: step 1 of 5 — what is your field"></a><br><sub>① Sign-up wizard — "what is your field?"</sub></td>
+<td width="30%" align="center"><a href="docs/screenshots/verticals/builder-vertical.png"><img src="docs/screenshots/verticals/builder-vertical.png" alt="Builder wizard: choosing a business type out of 13 packs"></a><br><sub>② Builder wizard — pick a pack</sub></td>
+<td width="30%" align="center"><a href="docs/screenshots/verticals/builder-toggles.png"><img src="docs/screenshots/verticals/builder-toggles.png" alt="Builder wizard: switches for each capability of the families screen"></a><br><sub>③ A switch for every capability</sub></td>
+</tr>
+</table>
+
+**13** vertical packs · **46** swappable terms · **328** feature flags · **4** themes — all counted from the code (`VERTICAL_PACKS`, `TERM_DEFS`, `FEATURES`).
+
+<sub>The three vertical screenshots: a local build of main with the config `applyVerticalPack` produces for each pack, on the demo data. The sign-up wizard is from the live site; the builder wizard from the local build. All taken 2026-11-07.</sub>
 
 <p align="center"><a href="https://orbit-il.com/?org=demo"><img src="assets/demo.gif" alt="A short tour of the demo: families, a family card, the Hebrew calendar and the room diary" width="88%"></a></p>
 <p align="center"><sub>Tour of the live site — <code>orbit-il.com/?org=demo</code>, recorded 2026-11-06, made-up data. Click to open the demo.</sub></p>
