@@ -774,6 +774,27 @@ export async function syncGContacts(fnUrl: string): Promise<{ total?: number; cr
   return j.status || {};
 }
 
+/** 🪙 מסירה לגבי **חתומה-בשרת** (v2, 7.11) — קורא ל-gabiHandoff עם טוקן-הכניסה; הסוד יושב
+ *  בכספת (orgSecrets/{slug}.gabiHandoff, read:false) והמייל נלקח מה-ID-token בשרת. מחזיר את
+ *  הכתובת כפי שהתקבלה — ה-caller מאמת אותה מול הבסיס שבקונפיג (gabiServerUrlOk). ה-org בגוף
+ *  בלבד (לא ב-query). כשל ⇒ זורק (ה-UI נופל למסלול-המקומי של v1 אם יש סוד-מקומי). */
+export async function requestGabiHandoff(fnUrl: string): Promise<string> {
+  const clean = String(fnUrl || '').trim();
+  if (!/^https:\/\//i.test(clean)) throw new Error('כתובת-פונקציה לא-תקינה (חייבת https)');
+  const user = requireAuth().currentUser;
+  if (!user) throw new Error('נדרשת התחברות-ענן');
+  const token = await user.getIdToken();
+  const r = await fetch(clean, {
+    method: 'POST',
+    headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ org: scope.slug }),
+    referrerPolicy: 'no-referrer',
+  });
+  const j = (await r.json().catch(() => ({}))) as { ok?: boolean; error?: string; url?: string };
+  if (!r.ok || j.ok !== true || typeof j.url !== 'string') throw new Error(j.error || 'gabi-handoff (' + r.status + ')');
+  return j.url;
+}
+
 /** סימון תשלום-נכנס כ"נרשם" (אחרי שהמזכירה רשמה תרומה/תשלום במערכת). */
 export async function markIncomingPayment(id: string): Promise<void> {
   await updateDoc(doc(requireDb(), scopedCol('incomingPayments'), id), {

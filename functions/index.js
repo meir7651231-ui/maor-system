@@ -454,3 +454,10 @@ Object.assign(exports, require('./solaPull'));
 // 📇 סנכרון אנשי-קשר ל-Google (People API, 1.9) — מתוזמן-יומי + on-demand.
 // דורמנטי בלי GCONTACTS_CLIENT_ID/SECRET ו-refresh-token פר-ארגון בכספת.
 Object.assign(exports, require('./gcontactsSync'));
+
+// 🪙 חתימת מסירה לגבי בשרת (v2 של הסוד, 7.11 — לא פרוס). רק ה-endpoint מיוצא (לא הליבה הטהורה).
+// דורמנטי: בלי orgSecrets/{slug}.gabiHandoff ⇒ 412; בלי integrations.gabi.enabled ⇒ 403.
+{
+  const { gabiHandoff } = require('./gabiHandoff');
+  if (gabiHandoff) exports.gabiHandoff = gabiHandoff;
+}

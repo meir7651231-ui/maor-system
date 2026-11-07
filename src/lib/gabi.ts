@@ -209,12 +209,41 @@ export function gabiSectionVisible(config: OrgConfig, email: string | null | und
   return integrationOn(config, 'gabi') && isAdminAuthority(config, email, isManager);
 }
 
-/** סיבת-חסימה של כפתור-החיבור ('' = מוכן). הסדר = מה שהמנהל צריך לתקן קודם. */
-export function gabiConnectBlocker(config: OrgConfig, email: string | null | undefined, savedSecret: string): string {
+/**
+ * סיבת-חסימה של כפתור-החיבור ('' = מוכן). הסדר = מה שהמנהל צריך לתקן קודם.
+ * ‏`vaultSecret` (v2): הסוד שמור בכספת-השרת (orgSecretsMeta.gabiHandoff) ⇒ החתימה בפונקציה,
+ * ולכן אין צורך בסוד מקומי. בלי הפרמטר ⇒ ההתנהגות של v1 ביט-זהה.
+ */
+export function gabiConnectBlocker(config: OrgConfig, email: string | null | undefined, savedSecret: string, vaultSecret = false): string {
   if (!safeHttpsUrl(integrationSetting(config, 'gabi', 'baseUrl'))) return 'כתובת גבי טרם הוגדרה (אשף ← הרחבות).';
   const slug = config.slug || 'default';
   if (slug === 'default' || slug === 'demo') return 'החיבור זמין לארגון-פלטפורמה בלבד.';
   if (!(email || '').trim()) return 'נדרשת התחברות-ענן כמנהל/ת (המייל נמסר לגבי).';
+  if (vaultSecret) return '';
   if ((savedSecret || '').trim().length < GABI_SECRET_MIN_LEN) return `נדרש סוד-חיבור מגבי (לפחות ${GABI_SECRET_MIN_LEN} תווים).`;
   return '';
+}
+
+/* ── v2: חתימה בשרת (functions/gabiHandoff.js) ─────────────────────────────── */
+
+/**
+ * האם להעדיף את פונקציית-השרת: ענן מוגדר ומחובר + ארגון-פלטפורמה. (הקריאה עצמה —
+ * ‏`requestGabiHandoff` ב-lib/cloud, נטען דינמית; המודול הזה נשאר אפס-רשת.)
+ */
+export function gabiPreferServer(config: OrgConfig, cloudEnabled: boolean, email: string | null | undefined): boolean {
+  const slug = config.slug || 'default';
+  return !!cloudEnabled && !!config.firebase && !!(email || '').trim() && slug !== 'default' && slug !== 'demo';
+}
+
+/**
+ * כתובת שהשרת החזיר — מתקבלת רק אם היא **בדיוק** מה ש-gabiConnectUrl היה בונה מהבסיס
+ * שבקונפיג (אותו מקור, נתיב /connect/orbit, בלי query, טוקן בפורמט). כל סטייה ⇒ null
+ * (לא פותחים לאן שתשובת-רשת אומרת).
+ */
+export function gabiServerUrlOk(baseUrl: string, url: unknown): string | null {
+  if (typeof url !== 'string') return null;
+  const m = /#h=([A-Za-z0-9_-]+\.[A-Za-z0-9_-]+)$/.exec(url);
+  if (!m) return null;
+  const expect = gabiConnectUrl(baseUrl, m[1]);
+  return expect && expect === url ? url : null;
 }

@@ -16,8 +16,12 @@ import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import {
   buildGabiHandoffClaims, buildGabiHandoffUrl, gabiConnectUrl, gabiPriceLine, GABI_HANDOFF_MAX_TTL,
-  GABI_PRODUCT, gabiConnectBlocker, gabiSectionVisible, signGabiHandoff, verifyGabiHandoff,
+  GABI_PRODUCT, gabiConnectBlocker, gabiPreferServer, gabiSectionVisible, gabiServerUrlOk, signGabiHandoff,
+  verifyGabiHandoff,
 } from '../gabi';
+import { ORG_SECRET_KEYS } from '../cloudConfig';
+import cloudSrc from '../cloud.ts?raw';
+import fnSrc from '../../../functions/gabiHandoff.js?raw';
 import { integrationOn, normalizeConfig } from '../config';
 import { DEFAULT_PRICES } from '../pricing';
 import { DEFAULT_CONFIG, INTEGRATION_KEYS, INTEGRATION_SETTING_KEYS, type OrgConfig } from '../../types/config';
@@ -169,5 +173,56 @@ describe('🪙 גבי — חוזה-המסירה החתום', () => {
     const tok = u.hash.replace(/^#h=/, '');
     expect((await verifyGabiHandoff(tok, SECRET, NOW + 1)).ok).toBe(true);
     expect(await buildGabiHandoffUrl({ baseUrl: '', slug: 'acme', email: 'a@b.co', secret: SECRET, nowSec: NOW, nonce: NONCE })).toBeNull();
+  });
+});
+
+describe('🪙 גבי — v2: חתימה בשרת (functions/gabiHandoff · לא פרוס)', () => {
+  const on: OrgConfig = { ...DEFAULT_CONFIG, slug: 'acme', integrations: { gabi: { enabled: true, baseUrl: 'https://gabi.example' } } };
+  const cloud: OrgConfig = { ...on, firebase: { apiKey: 'x', authDomain: 'x', projectId: 'x', appId: 'x' } };
+
+  it('מעדיפים שרת רק עם ענן מוגדר+מחובר בארגון-פלטפורמה; אחרת v1 המקומי', () => {
+    expect(gabiPreferServer(cloud, true, 'boss@acme.org')).toBe(true);
+    expect(gabiPreferServer(cloud, false, 'boss@acme.org')).toBe(false);
+    expect(gabiPreferServer(on, true, 'boss@acme.org')).toBe(false); // בלי firebase
+    expect(gabiPreferServer(cloud, true, '')).toBe(false);
+    expect(gabiPreferServer({ ...cloud, slug: 'demo' }, true, 'a@b.co')).toBe(false);
+    expect(gabiPreferServer({ ...cloud, slug: 'default' }, true, 'a@b.co')).toBe(false);
+  });
+
+  it('סוד בכספת ⇒ אין צורך בסוד-מקומי; בלי הפרמטר ⇒ v1 ביט-זהה', () => {
+    expect(gabiConnectBlocker(cloud, 'a@b.co', '', true)).toBe('');
+    expect(gabiConnectBlocker(cloud, 'a@b.co', '')).toContain('סוד-חיבור');
+    // הכספת לא עוקפת את השערים הקודמים
+    expect(gabiConnectBlocker({ ...cloud, integrations: { gabi: { enabled: true } } }, 'a@b.co', '', true)).toContain('כתובת גבי');
+    expect(gabiConnectBlocker(cloud, '', '', true)).toContain('התחברות-ענן');
+  });
+
+  it('🛡 כתובת מהשרת מתקבלת רק אם זהה בדיוק למה שהבסיס בקונפיג היה בונה', () => {
+    const good = 'https://gabi.example/connect/orbit#h=aaa.bbb';
+    expect(gabiServerUrlOk('https://gabi.example', good)).toBe(good);
+    expect(gabiServerUrlOk('https://gabi.example', 'https://evil.example/connect/orbit#h=aaa.bbb')).toBeNull();
+    expect(gabiServerUrlOk('https://gabi.example', 'https://gabi.example/connect/orbit?h=aaa.bbb')).toBeNull();
+    expect(gabiServerUrlOk('https://gabi.example', 'https://gabi.example/x/connect/orbit#h=aaa.bbb')).toBeNull();
+    expect(gabiServerUrlOk('https://gabi.example', 'javascript:alert(1)#h=a.b')).toBeNull();
+    expect(gabiServerUrlOk('https://gabi.example', 42)).toBeNull();
+  });
+
+  it('🛡 הגנות-מקור: כספת מוכרת, הרשת רק בייבוא-דינמי, נפילה ל-v1, org בגוף', () => {
+    expect(ORG_SECRET_KEYS).toContain('gabiHandoff');
+    // GabiSection: אין רשת ישירה; השרת דרך import() דינמי בלבד; הכתובת מאומתת; v1 נשאר
+    expect(sectionSrc).toContain("await import('../../lib/cloud')");
+    expect(sectionSrc).toContain('gabiServerUrlOk(base, await requestGabiHandoff(HANDOFF_FN))');
+    expect(sectionSrc).toContain('if (!url) url = await connectLocal();');
+    expect(sectionSrc).toContain("m.writeOrgSecrets(slug, { gabiHandoff: v })");
+    expect(sectionSrc).not.toMatch(/^import [^;]*from ['"]\.\.\/\.\.\/lib\/cloud(Config)?['"]/m);
+    // lib/cloud: POST עם ID-token; ה-org בגוף, לא ב-query
+    const fn = cloudSrc.slice(cloudSrc.indexOf('export async function requestGabiHandoff'));
+    const body = fn.slice(0, fn.indexOf('\n}\n'));
+    expect(body).toContain("Authorization: 'Bearer ' + token");
+    expect(body).toContain('body: JSON.stringify({ org: scope.slug })');
+    expect(body).not.toContain('searchParams');
+    // הפונקציה: הסוד מהכספת, מנהל מאומת, דגל דלוק
+    expect(fnSrc).toContain("db.doc('orgSecrets/' + slug)");
+    expect(fnSrc).toContain('g.enabled !== true');
   });
 });

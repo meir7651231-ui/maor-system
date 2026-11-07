@@ -21,8 +21,8 @@ ORG = "acme-studio"
 EMAIL = "manager@acme.example"
 NONCE = "N" * 22
 
-# וקטור-זהב משותף: אותה מחרוזת בדיוק נבדקת בצד-אורביט (src/lib/__tests__/gabi-handoff-fn.test.ts)
-# מול signGabiHandoff של TypeScript ⇒ שני מימושים בלתי-תלויים מסכימים על הבייטים.
+# וקטור-זהב משותף: אותה מחרוזת בדיוק נבדקת בצד-אורביט (functions/gabiHandoff.test.mjs)
+# מול signGabiHandoff של TypeScript ומול חותם-השרת (Node) ⇒ שלושה מימושים מסכימים על הבייטים.
 GOLDEN_SECRET = "orbit-gabi-golden-vector-secret-0123456789"
 GOLDEN_TOKEN = ("eyJ2IjoxLCJpc3MiOiJvcmJpdCIsImF1ZCI6ImdhYmkiLCJvcmciOiJhY21lLXN0dWRpbyIsImVtYWlsIjoi"
                 "bWFuYWdlckBhY21lLmV4YW1wbGUiLCJpYXQiOjE3NjI1MDAwMDAsImV4cCI6MTc2MjUwMDEyMCwibm9uY2Ui"
