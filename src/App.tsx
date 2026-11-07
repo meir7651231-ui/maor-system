@@ -272,7 +272,8 @@ export default function App() {
       try {
         const res = await fetch(`${import.meta.env.BASE_URL}demo.json`, { cache: 'no-store' });
         if (!res.ok || cancelled) return;
-        restoreDb(freshenDemoDb(parseBackupFile(await res.text()), isoToday()));
+        // null ⇒ בלי טוסט "שוחזרו מהגיבוי" — הפרוספקט נוחת בדמו, לא בשחזור (סרט-הדמו מסביר)
+        restoreDb(freshenDemoDb(parseBackupFile(await res.text()), isoToday()), null);
         try {
           sessionStorage.setItem('maor_demo_seeded', '1');
         } catch {
