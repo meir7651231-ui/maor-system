@@ -17,7 +17,7 @@ from datetime import datetime
 
 from .config import load_settings
 from .db import DB
-from .demo_data import demo_client
+from .demo_data import demo_client, demo_source_factory
 from .policy import TZ
 from .service import CollectService
 
@@ -50,7 +50,8 @@ def build_demo_service() -> tuple[CollectService, object, FixedClock]:
     gi, fake = demo_client(os.environ.get("GREENINVOICE_MOCK_URL", "")
                            if os.environ.get("GREENINVOICE_ENV") == "mock" else "")
     clock = FixedClock(DEMO_NOW)
-    svc = CollectService(demo_settings(), DB(":memory:"), gi=gi, clock=clock)
+    factory, _ = demo_source_factory()   # בחירת מקור אחר בהגדרות ⇒ mock בתוך התהליך (בלי רשת)
+    svc = CollectService(demo_settings(), DB(":memory:"), gi=gi, clock=clock, source_factory=factory)
     return svc, fake, clock
 
 

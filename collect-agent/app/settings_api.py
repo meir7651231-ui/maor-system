@@ -20,11 +20,13 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from . import compliance, paylinks
 from .config import PAYMENT_PROVIDERS, Settings
+from .integrations.sources import SOURCE_SYSTEMS, public_systems
 from .policy import MAX_REMINDERS_PER_INVOICE, MIN_GAP, WINDOWS
 
 SECRET_HINT = re.compile(r"(token|secret|password|passwd|api_?key|key$|auth)", re.I)
 EDITABLE = ("business_name", "sms_sender_id", "payment_provider", "payment_link",
-            "email_reply_to", "extra_holidays", "sms_two_way", "owner_name", "vat_id")
+            "email_reply_to", "extra_holidays", "sms_two_way", "owner_name", "vat_id",
+            "source_system")
 PROFILE = ("owner_name", "vat_id")        # נשמרים ב-business_settings, לא ב-Settings
 
 
@@ -38,6 +40,8 @@ class SettingsIn(BaseModel):
     email_reply_to: str | None = Field(None, max_length=120)
     extra_holidays: list[str] | None = Field(None, max_length=60)
     sms_two_way: bool | None = None
+    # מקור החשבוניות (בחירה בלבד — הסודות לא עוברים כאן). DESIGN.md §3ב: source.system
+    source_system: Literal["greeninvoice", "icount", "rivhit", "ezcount", "csv"] | None = None
     # פרופיל העסק (לא סודות; לחשבונית/לעמוד ההסרה) — חוזה העיצוב DESIGN.md §3ב
     owner_name: str | None = Field(None, min_length=2, max_length=60)
     vat_id: str | None = Field(None, pattern=r"^\d{9}$")
@@ -132,6 +136,8 @@ def public_view(s: Settings) -> dict:
                     "email_webhook_key": st(s.email_webhook_key),
                     "note": "סודות מוגדרים בסביבה/בכספת בלבד — לא דרך ה-API"},
         "mode": {"dry_run": s.dry_run, "greeninvoice_env": s.greeninvoice_env},
+        "source": {"system": s.source_system, "label": SOURCE_SYSTEMS[s.source_system].label,
+                   "systems": public_systems()},
     }
 
 
@@ -169,7 +175,8 @@ def save_overrides(db, s: Settings, keys: list[str], now_iso: str) -> None:
 def overlay(s: Settings, overrides: dict) -> Settings:
     ok = {k: (tuple(v) if k == "holidays" else v) for k, v in overrides.items()
           if k in {"business_name", "sms_sender_id", "payment_provider", "payment_link",
-                   "email_reply_to", "holidays", "sms_two_way"}}
+                   "email_reply_to", "holidays", "sms_two_way", "source_system"}
+          and not (k == "source_system" and v not in SOURCE_SYSTEMS)}
     return dataclasses.replace(s, **ok) if ok else s
 
 
@@ -191,8 +198,17 @@ def save_profile(db, data: SettingsIn, now_iso: str) -> list[str]:
 
 
 # ---------- חוזה העיצוב (DESIGN.md §3ב): GET/PUT /settings ----------
-def design_view(s: Settings, db, *, api_connected: bool, has_csv: bool) -> dict:
+def source_secrets_status(s: Settings, system: str, stored: frozenset[str] = frozenset()) -> dict:
+    """רק set/missing לכל סוד שהמקור צריך — לעולם לא ערך. חשבונית ירוקה: גם מהסביבה (כמו היום)."""
+    env = {"gi_api_id": s.greeninvoice_api_id, "gi_api_secret": s.greeninvoice_api_secret}
+    return {f: "set" if (f in stored or env.get(f)) else "missing"
+            for f in SOURCE_SYSTEMS[system].secret_fields}
+
+
+def design_view(s: Settings, db, *, api_connected: bool, has_csv: bool,
+                stored_secrets: frozenset[str] = frozenset()) -> dict:
     p = profile(db)
+    sysdef = SOURCE_SYSTEMS[s.source_system]
     return {
         "business_name": s.business_name, "owner_name": p["owner_name"], "vat_id": p["vat_id"],
         "reply_email": s.email_reply_to,
@@ -200,8 +216,15 @@ def design_view(s: Settings, db, *, api_connected: bool, has_csv: bool) -> dict:
                 "sender": s.sms_sender_id},
         "pay": {"provider": s.payment_provider, "page_url": s.payment_page,
                 "is_mock": not s.payment_link},
-        "source": {"type": "api" if api_connected or not has_csv else "csv",
-                   "api_connected": api_connected},
+        "source": {"type": "csv" if sysdef.kind == "csv" else
+                   ("api" if api_connected or not has_csv else "csv"),
+                   "api_connected": api_connected,
+                   "system": s.source_system, "system_label": sysdef.label,
+                   "docs_verified": sysdef.docs_verified, "webhook": sysdef.webhook,
+                   "secrets": source_secrets_status(s, s.source_system, stored_secrets),
+                   # שלב 1: POST /settings/source/key ⇒ 501. מפתח לא נקלט ולא נשמר.
+                   "key_intake": "not_available_stage1",
+                   "systems": public_systems()},
         "cadence_days": [1, 7, 14],
         "rules": {"max_reminders": MAX_REMINDERS_PER_INVOICE, "window": "08:00-20:00",
                   "friday_and_holiday_eve": "08:00-12:00", "approval": "every_message"},
@@ -210,7 +233,7 @@ def design_view(s: Settings, db, *, api_connected: bool, has_csv: bool) -> dict:
     }
 
 
-READ_ONLY_DESIGN_KEYS = {"cadence_days", "rules", "pricing", "source"}
+READ_ONLY_DESIGN_KEYS = {"cadence_days", "rules", "pricing"}
 
 
 def from_design(body: dict) -> dict:
@@ -240,7 +263,14 @@ def from_design(body: dict) -> dict:
         out["payment_provider"] = pay["provider"]
     if "page_url" in pay:
         out["payment_link"] = pay["page_url"]
-    unknown = set(body) - {"business_name", "owner_name", "vat_id", "reply_email", "sms", "pay"}
+    if "source" in body:
+        src = body["source"]
+        # רק הבחירה ניתנת לשינוי. type/api_connected/secrets — מחושבים בשרת; מפתחות — לא דרך כאן.
+        if not isinstance(src, dict) or set(src) != {"system"}:
+            raise ValueError("source: רק system ניתן לשינוי (סודות — לא דרך ה-API)")
+        out["source_system"] = src["system"]
+    unknown = set(body) - {"business_name", "owner_name", "vat_id", "reply_email", "sms", "pay",
+                           "source"}
     if unknown:
         raise ValueError(f"שדות לא מוכרים: {', '.join(sorted(unknown))}")
     return out

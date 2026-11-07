@@ -157,7 +157,9 @@ def test_every_owner_endpoint_requires_token(raw_api, method, path, hdr):
 PUBLIC_ROUTES = {"/health", "/auth/login", "/auth/logout",
                   "/", "/ui", "/landing", "/u/{token}", "/webhooks/sms/019", "/webhooks/greeninvoice",
                  "/webhooks/email", "/p/{code}", "/p/{code}/pay", "/p/{code}/{action}",
-                 "/pay/{code}", "/pay/{code}/go", "/api/pay/{code}", "/api/pay/{code}/{action}"}
+                 "/pay/{code}", "/pay/{code}/go", "/api/pay/{code}", "/api/pay/{code}/{action}",
+                 # webhook ממקור חשבוניות נבחר (iCount): סוד ב-URL (SOURCE_WEBHOOK_KEY, 403 בלי), טריגר בלבד
+                 "/webhooks/source/{system}"}
 
 
 def test_route_inventory_is_fully_guarded(svc):
@@ -341,7 +343,22 @@ ALLOWED_HOSTS = {
     "019sms.co.il", "capi.inforu.co.il", "api.twilio.com",
     "api.resend.com",                    # מייל (adapter, dry-run)
     "api.icount.co.il",                  # הנהלת חשבונות חלופית (adapter, קריאה)
+    # מקורות חשבוניות נוספים (7.11.2026, app/integrations/sources.py) — adapters קריאה בלבד,
+    # שלב 1 רק מול MockTransport (guard_transport). ייצור EZcount (api.ezcount.co.il) לא בקוד.
+    "api.rivhit.co.il", "demo.ezcount.co.il",
 }
+# כתובות תיעוד ציבורי שמצוטטות ב-docstrings (מקור החוזה) — לא יעד של אף קריאה בקוד
+DOC_ONLY_HOSTS = {"apiv3.icount.co.il", "documenter.getpostman.com", "developers.hyp.co.il",
+                  "www.greeninvoice.co.il"}
+
+
+def test_doc_only_hosts_are_never_request_targets():
+    """כתובת תיעוד מותרת רק כציטוט — לא בקבוע BASE/URL ולא בקריאת httpx."""
+    for f in APP_FILES:
+        for line in f.read_text(encoding="utf-8").splitlines():
+            if any(h in line for h in DOC_ONLY_HOSTS):
+                code = line.split("#")[0]
+                assert not re.search(r"(BASE|_URL)\s*=|httpx\.|base_url", code), f"{f.name}: {line.strip()}"
 
 
 def test_no_unexpected_outbound_hosts():
@@ -349,7 +366,7 @@ def test_no_unexpected_outbound_hosts():
     WhatsApp (graph.facebook.com) אסור בהחלטת מוצר — מדיניות Meta."""
     for f in APP_FILES:
         for host in re.findall(r"https?://([A-Za-z0-9.-]+)", f.read_text(encoding="utf-8")):
-            assert (host in ALLOWED_HOSTS or host.endswith(".example")
+            assert (host in ALLOWED_HOSTS or host in DOC_ONLY_HOSTS or host.endswith(".example")
                     or host in ("127.0.0.1", "localhost")), f"{f.name}: {host}"
             assert "facebook" not in host and "whatsapp" not in host
 

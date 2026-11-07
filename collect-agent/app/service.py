@@ -25,6 +25,7 @@ from .config import SafetyError, Settings
 from .db import DB, token_hash
 from .greeninvoice import GreenInvoiceClient, Invoice
 from .integrations.base import IntegrationError
+from .integrations.sources import SOURCE_SYSTEMS, InvoiceSource, provider_of, source_provider
 from .policy import (
     MANUAL_ONLY_AFTER_DAYS,
     MAX_REMINDERS_PER_INVOICE,
@@ -71,6 +72,15 @@ REAL_DATA_MSG = ("שלב בטא (dry-run): מותרים רק נתוני דמו �
 _SYN_PHONE = re.compile(r"^(?:\+?972|0)5\d0000\d{3}$")
 
 
+def _closable_by(provider: str, external_id: str) -> bool:
+    """סנכרון מלא סוגר רק חשבוניות שהמקור הזה אחראי להן. חשבונית ירוקה — כמו תמיד (הכול, חוץ
+    מחשבוניות של adapter אחר); iCount/רווחית/EZcount — רק חשבוניות עם הקידומת שלהם."""
+    owner = provider_of(external_id)
+    if provider == "greeninvoice":
+        return owner in ("greeninvoice", "csv")
+    return owner == provider
+
+
 def is_synthetic_contact(phone: str, email: str) -> bool:
     """טלפון בטווח הדמו 05X-000XXXX (או ריק) ומייל בדומיין example.* (או ריק). חייב לפחות אחד."""
     ph = re.sub(r"[\s\-()]", "", phone or "")
@@ -82,8 +92,9 @@ def is_synthetic_contact(phone: str, email: str) -> bool:
 
 class CollectService:
     def __init__(self, settings: Settings, db: DB, *, sender: DryRunSender | None = None,
-                 gi: GreenInvoiceClient | None = None,
-                 clock: Callable[[], datetime] | None = None) -> None:
+                 gi: GreenInvoiceClient | InvoiceSource | None = None,
+                 clock: Callable[[], datetime] | None = None,
+                 source_factory: Callable[[str], InvoiceSource | None] | None = None) -> None:
         if not settings.dry_run:
             raise SafetyError("שלב 1: dry-run בלבד")
         from . import settings_api
@@ -95,9 +106,35 @@ class CollectService:
         self.sender = sender or build_dry_sender(settings)
         if getattr(self.sender, "mode", None) != "dry_run":
             raise SafetyError("שלב 1: רק DryRunSender מותר")
+        # מקור החשבוניות (app/integrations/sources.py). `gi` נשאר שם השדה מטעמי תאימות; הוא כל
+        # InvoiceSource. מקורות שנבנו נשמרים, כך שחזרה למקור קודם לא מאבדת את החיבור שלו.
+        self._sources: dict[str, InvoiceSource] = {source_provider(gi): gi} if gi is not None else {}
+        self._source_factory = source_factory
         self.gi = gi
         self.policy = Policy(frozenset(settings.holidays))
         self.clock = clock or (lambda: datetime.now(TZ))
+        if gi is not None and settings.source_system != source_provider(gi):
+            self._switch_source(settings.source_system)
+
+    # ---------- מקור החשבוניות ----------
+    def _switch_source(self, system: str) -> None:
+        """בחירת מקור. CSV ⇒ אין API. מקור שלא חובר (אין סודות/factory) ⇒ None ⇒ «לא מחובר»."""
+        if system == "csv":
+            self.gi = None
+            return
+        if system not in self._sources and self._source_factory is not None:
+            built = self._source_factory(system)
+            if built is not None:
+                self._sources[system] = built
+        self.gi = self._sources.get(system)
+
+    @property
+    def source_system(self) -> str:
+        return self.s.source_system
+
+    def _source_owns(self, external_id: str) -> bool:
+        """רענון רק מול המקור שממנו הגיעה החשבונית. מזהה של ספק אחר ⇒ לא שואלים (ולא סוגרים)."""
+        return _closable_by(source_provider(self.gi), external_id)
 
     # ---------- הגדרות עסק (API מאומת) ----------
     def settings_view(self) -> dict:
@@ -107,8 +144,8 @@ class CollectService:
     def design_settings(self) -> dict:
         from . import settings_api
         has_csv = self.db.one("SELECT 1 FROM invoices WHERE source='csv' LIMIT 1") is not None
-        return settings_api.design_view(self.s, self.db, api_connected=self.gi is not None,
-                                        has_csv=has_csv)
+        connected = self.gi is not None and source_provider(self.gi) == self.s.source_system
+        return settings_api.design_view(self.s, self.db, api_connected=connected, has_csv=has_csv)
 
     def update_design_settings(self, body: dict, actor: str = "owner") -> dict:
         from . import settings_api
@@ -136,7 +173,12 @@ class CollectService:
         new, keys = settings_api.apply(self.s, data)
         settings_api.save_overrides(self.db, new, keys, _iso(self.clock()))
         keys += settings_api.save_profile(self.db, data, _iso(self.clock()))
+        switched = new.source_system != self.s.source_system
         self.s = new
+        if switched:
+            self._switch_source(new.source_system)
+            self.audit(actor, "source_system_changed", {"to": new.source_system,
+                                                        "connected": self.gi is not None})
         self.policy = Policy(frozenset(new.holidays))
         if not self._custom_sender:
             self.sender = build_dry_sender(new) if not self.sender.sent else \
@@ -170,7 +212,7 @@ class CollectService:
         return "doc:" + inv.external_id
 
     def ingest(self, invoices: list[Invoice], *, source: str = "api",
-               full: bool = True) -> dict[str, int]:
+               full: bool = True, provider: str | None = None) -> dict[str, int]:
         """upsert. full=True (סנכרון API מלא): חשבונית פתוחה שנעלמה ⇒ נסגרה ⇒ ביטול תזכורות.
         ייבוא CSV חלקי (full=False) לא סוגר חשבוניות שלא הופיעו בקובץ."""
         now = _iso(self.clock())
@@ -209,6 +251,8 @@ class CollectService:
             self.audit("system", "import", {"source": source, "rows": len(seen)})
             return {"open": len(seen), "closed": 0}
         for row in self.db.q("SELECT id, external_id FROM invoices WHERE status='open'"):
+            if provider is not None and not _closable_by(provider, row["external_id"]):
+                continue   # חשבונית של מקור אחר — העדרה מהסנכרון הזה לא אומר שנסגרה
             if row["external_id"] not in seen:
                 self.db.x("UPDATE invoices SET status='closed', closed_at=? WHERE id=?",
                           (now, row["id"]))
@@ -218,9 +262,14 @@ class CollectService:
         return {"open": len(seen), "closed": closed}
 
     def sync(self) -> dict[str, int]:
+        if self.s.source_system == "csv":
+            raise RuntimeError("מקור החשבוניות הוא קובץ CSV — אין סנכרון API (ייבוא דרך /settings/source/csv)")
         if self.gi is None:
-            raise RuntimeError("לא הוגדר חיבור Green Invoice (sandbox)")
-        return self.ingest(list(self.gi.iter_open_invoices()))
+            if self.s.source_system == "greeninvoice":
+                raise RuntimeError("לא הוגדר חיבור Green Invoice (sandbox)")
+            raise RuntimeError(f"לא הוגדר חיבור ל-{SOURCE_SYSTEMS[self.s.source_system].label} "
+                               "(שלב 1: mock בלבד)")
+        return self.ingest(list(self.gi.iter_open_invoices()), provider=source_provider(self.gi))
 
     def import_csv(self, raw: bytes, actor: str = "owner") -> dict:
         """חלופה ל-API: ייבוא חלקי (לא סוגר חשבוניות שלא בקובץ). שגיאות לפי שורה."""
@@ -712,7 +761,7 @@ class CollectService:
             if inv["amount_agorot"] != sent_amount:     # ייבוא חוזר עם יתרה אחרת (מבקר סבב 3)
                 return self._rebuild_for_amount(r, inv, inv["amount_agorot"])
             return "ok"
-        if self.gi is None:
+        if self.gi is None or not self._source_owns(inv["external_id"]):
             self._mark_refresh_failed(r, "refresh_failed")
             return "failed"
         try:
@@ -761,7 +810,7 @@ class CollectService:
                 synced = _dt(inv["synced_at"])
                 ok = ok and synced is not None and self.clock() - synced <= timedelta(hours=24)
                 continue
-            if self.gi is None:
+            if self.gi is None or not self._source_owns(inv["external_id"]):
                 return False
             try:
                 doc = self.gi.get_document(inv["external_id"])

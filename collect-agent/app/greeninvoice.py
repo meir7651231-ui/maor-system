@@ -106,6 +106,9 @@ def map_document(doc: dict[str, Any]) -> Invoice:
 
 
 class GreenInvoiceClient:
+    # מממש את InvoiceSource (app/integrations/sources.py): iter_open_invoices + get_document
+    provider = "greeninvoice"
+
     def __init__(
         self,
         base_url: str,
