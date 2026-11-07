@@ -62,16 +62,16 @@ const PALM = 'M9 31 C9 28.5 12.5 27.8 14 30 C16.5 35 20.5 37.8 26 37.8 C31 37.8 
 const THUMB = 'M35.6 33.5 L35 22.5 C34.7 20.2 37.6 19 39 20.8 L42.4 30.5 L43.2 34 Z';
 const C = { navy:'#0F172A', cream:'#FBF8F1', green:'#10B981', greenL:'#059669' };
 // ברירת-המחדל = ערכי-הבעלים (7.11) + וריאציה ב: המטבע חצי בתוך הארנק
-const DEF = { handRot:51.5, thumbRot:15, cuffGap:1.6, cuffW:6.5, coinX:0.3, coinY:55, coinR:6, coinIn:1, coinGap:1.6, walX:-13.2, walY:55, walW:27, walH:17, scale:100, offX:0, offY:0 };
+const DEF = { handX:5, handY:-5, handRot:51.5, thumbRot:15, cuffGap:1.6, cuffW:6.5, coinX:0.3, coinY:55, coinR:6, coinIn:1, coinGap:1.6, walX:-13.2, walY:55, walW:27, walH:17, scale:100, offX:0, offY:0 };
 const SPEC = [
-  ['היד', [['handRot','סיבוב היד',20,100,0.5,'°'],['thumbRot','זווית האגודל',-40,40,0.5,'°'],['cuffGap','רווח לשרוול',0,5,0.1,''],['cuffW','עובי השרוול',3,10,0.1,'']]],
+  ['היד', [['handX','מרחק ↔',-15,25,0.1,''],['handY','מרחק ↕',-25,15,0.1,''],['handRot','סיבוב היד',20,100,0.5,'°'],['thumbRot','זווית האגודל',-40,40,0.5,'°'],['cuffGap','רווח לשרוול',0,5,0.1,''],['cuffW','עובי השרוול',3,10,0.1,'']]],
   ['המטבע', [['coinX','מיקום ↔',-30,30,0.1,''],['coinY','מיקום ↕',10,80,0.1,''],['coinR','גודל',3,10,0.1,''],['coinIn','בתוך הארנק (0/1)',0,1,1,''],['coinGap','רווח משפת הארנק',0.6,4,0.1,'']]],
   ['הארנק', [['walX','מיקום ↔',-40,30,0.1,''],['walY','מיקום ↕',20,70,0.1,''],['walW','רוחב',16,40,0.5,''],['walH','גובה',10,26,0.5,'']]],
   ['הכול', [['scale','גודל כללי',60,130,1,'%'],['offX','הזזה ↔',-12,12,0.1,''],['offY','הזזה ↕',-12,12,0.1,'']]],
 ];
 let S = load();
-function load(){ try { const v = JSON.parse(localStorage.getItem('gabi-tuner-2')||'null'); return v ? {...DEF, ...v} : {...DEF}; } catch { return {...DEF}; } }
-function save(){ try { localStorage.setItem('gabi-tuner-2', JSON.stringify(S)); } catch {} }
+function load(){ try { const v = JSON.parse(localStorage.getItem('gabi-tuner-3')||'null'); return v ? {...DEF, ...v} : {...DEF}; } catch { return {...DEF}; } }
+function save(){ try { localStorage.setItem('gabi-tuner-3', JSON.stringify(S)); } catch {} }
 const $ = id => document.getElementById(id);
 
 function wallet(ink,bg,x,y,w,h){
@@ -82,7 +82,7 @@ function wallet(ink,bg,x,y,w,h){
 }
 function inner(ink,coin,bg){
   const cuff = `<rect x="${52+S.cuffGap}" y="33" width="${S.cuffW}" height="16" rx="2.4" fill="${ink}"/>`;
-  const hand = `<g transform="rotate(${S.handRot} 32 32) translate(0 82) scale(1 -1)"><path d="${PALM}" fill="${ink}"/><path d="${THUMB}" transform="rotate(${S.thumbRot} 39.4 31)" fill="${ink}"/>${cuff}</g>`;
+  const hand = `<g transform="translate(${S.handX} ${S.handY}) rotate(${S.handRot} 32 32) translate(0 82) scale(1 -1)"><path d="${PALM}" fill="${ink}"/><path d="${THUMB}" transform="rotate(${S.thumbRot} 39.4 31)" fill="${ink}"/>${cuff}</g>`;
   // מטבע בתוך הארנק: נחתך מעל שפת הארנק (רווח coinGap), כך שרק החצי העליון גלוי — "נכנס לארנק"
   const clip = S.coinIn ? `<clipPath id="cin"><rect x="-300" y="-300" width="600" height="${300 + S.walY - S.coinGap}"/></clipPath>` : '';
   const coinEl = `<circle cx="${S.coinX}" cy="${S.coinY}" r="${S.coinR}" fill="${coin}"${S.coinIn ? ' clip-path="url(#cin)"' : ''}/>`;
