@@ -1,19 +1,23 @@
 // הרכיב היחיד של הלוגו. כל הצורה באה מ-brand/logo.ts (מקור יחיד) — להחלפת לוגו לא נוגעים כאן.
-import { markInner, NAME, SLOGAN, VIEWBOX } from '../brand/logo.ts';
+import { useId } from 'react';
+import { markInner, GAPS, NAME, SLOGAN, TILE, VIEWBOX } from '../brand/logo.ts';
 
 export { BRAND, SLOGAN } from '../brand/logo.ts';
 
 /**
- * הסמל. `dark` = מוצג על רקע כהה ⇒ אריח קרם מאחוריו (העין נשארת navy).
- * `tile` מכריח אריח גם על רקע בהיר (למשל אייקון אפליקציה).
+ * הסמל (יד שמשחררת מטבע לארנק). `dark` = מוצג על רקע כהה ⇒ דיו קרם ומטבע ירוק-בהיר.
+ * `tile` ⇒ על אריח נייבי (כמו אייקון האפליקציה). בגדלים קטנים (<48) הרווח מטבע↔ארנק מוגדל לשורת-פיקסל נקייה.
  */
-export function LogoMark({ size = 36, className = '', dark = false, tile }: { size?: number; className?: string; dark?: boolean; tile?: boolean }) {
-  const withTile = tile ?? dark;
+export function LogoMark({ size = 36, className = '', dark = false, tile = false }: { size?: number; className?: string; dark?: boolean; tile?: boolean }) {
+  const id = useId().replace(/[^a-zA-Z0-9_-]/g, '');
+  const onDark = dark || tile;
+  const gap = size < 48 ? GAPS.inline : GAPS.master;
+  const inner = (tile ? TILE : '') + markInner({ onDark, size: tile ? 54 : 60, gap, id });
   return (
     <svg viewBox={`0 0 ${VIEWBOX} ${VIEWBOX}`} width={size} height={size} className={className} aria-hidden="true"
-      data-logo="gimel-smile" data-tile={withTile ? 'cream' : 'none'}
+      data-logo="hand-wallet" data-variant={onDark ? 'dark' : 'light'} data-tile={tile ? 'navy' : 'none'}
       // תוכן קבוע מהקוד (לא קלט משתמש) — בטוח
-      dangerouslySetInnerHTML={{ __html: markInner(withTile) }} />
+      dangerouslySetInnerHTML={{ __html: inner }} />
   );
 }
 

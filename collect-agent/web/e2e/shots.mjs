@@ -92,7 +92,7 @@ try {
   await m.screenshot({ path: `${out}/09-mobile-preview.png` });
   await noHScroll(m, 'מובייל תצוגה מקדימה');
 
-  // לוגו: כל סמל על רקע כהה (סרגל, פוטר, מובייל) מקבל אריח קרם, והעין navy תמיד
+  // לוגו: על רקע כהה — גרסת-כהה (דיו קרם); על בהיר — דיו נייבי; המטבע הירוק היחיד
   for (const [pg, url] of [[p, base + '#/dashboard'], [p, base], [m, base + '#/dashboard']]) {
     await pg.goto(url); await pg.waitForTimeout(300);
     const bad = await pg.evaluate(() => [...document.querySelectorAll('svg[data-logo]')].filter(svg => {
@@ -101,10 +101,11 @@ try {
       while (el && !bg) { const c = getComputedStyle(el).backgroundColor; if (c && c !== 'rgba(0, 0, 0, 0)' && c !== 'transparent') bg = c; el = el.parentElement; }
       const [r, g, b2] = (bg.match(/\d+/g) ?? ['255', '255', '255']).map(Number);
       const dark = 0.2126 * r + 0.7152 * g + 0.0722 * b2 < 128;
-      const eye = svg.querySelector('circle')?.getAttribute('fill');
-      return (dark && svg.getAttribute('data-tile') !== 'cream') || eye !== '#0F172A';
+      const variant = svg.getAttribute('data-variant');
+      const coin = svg.querySelector('circle[clip-path]')?.getAttribute('fill');
+      return (dark ? variant !== 'dark' && svg.getAttribute('data-tile') !== 'navy' : variant !== 'light') || !['#10B981', '#059669'].includes(coin);
     }).length);
-    ok(bad === 0, `${bad} לוגואים על רקע כהה בלי אריח קרם / עין לא navy (${url})`);
+    ok(bad === 0, `${bad} לוגואים בגרסה לא תואמת לרקע / מטבע לא ירוק (${url})`);
   }
   ok(external.length === 0, 'בקשות חיצוניות: ' + [...new Set(external)].join(', '));
   if (errors.length) throw new Error('שגיאות קונסולה:\n' + errors.join('\n'));

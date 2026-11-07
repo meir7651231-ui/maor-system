@@ -201,14 +201,19 @@ test('סיבת השהיה מוצגת בעברית, לעולם לא כקוד גו
   assert.doesNotMatch(src, /מושהה: \$\{/, 'נפילה לקוד גולמי');
 });
 
-import { BRAND as LOGO_BRAND, GLYPH, PUBLIC_FILES, markInner } from '../src/brand/logo.ts';
+import { BRAND as LOGO_BRAND, P as LOGO_P, PUBLIC_FILES, markInner } from '../src/brand/logo.ts';
 import { readdirSync } from 'node:fs';
-test('לוגו: מקור יחיד, עין navy תמיד, אריח קרם על רקע כהה, קבצים ציבוריים מסונכרנים', () => {
-  // עין navy בלבד — גם בגרסת האריח (הכרעת מאיר: לא מחליפים לקרם על רקע כהה)
-  assert.match(GLYPH, new RegExp(`<circle[^>]*fill="${LOGO_BRAND.navy}"`));
-  assert.ok(!GLYPH.includes(LOGO_BRAND.cream), 'הסמל עצמו לא משתמש בקרם');
-  assert.ok(markInner(true).startsWith(`<rect`) && markInner(true).includes(LOGO_BRAND.cream), 'אריח קרם');
-  assert.ok(!markInner(false).includes('<rect'));
+test('לוגו: מקור יחיד (עיצוב מאיר), ירוק רק במטבע, דיו לפי רקע, מזהים ייחודיים, קבצים ציבוריים מסונכרנים', () => {
+  const light = markInner({ id: 'a' }), dark = markInner({ onDark: true, id: 'b' });
+  // הירוק רק על המטבע: #059669 על רקע בהיר, #10B981 על כהה (הכרעת מאיר: ירוק = הכסף)
+  assert.match(light, new RegExp(`<circle[^>]*fill="${LOGO_BRAND.greenOnLight}"[^>]*clip-path`));
+  assert.match(dark, new RegExp(`<circle[^>]*fill="${LOGO_BRAND.green}"[^>]*clip-path`));
+  assert.ok(light.includes(`fill="${LOGO_BRAND.navy}"`) && !light.includes(LOGO_BRAND.cream), 'רקע בהיר: דיו נייבי');
+  assert.ok(dark.includes(`fill="${LOGO_BRAND.cream}"`) && !dark.includes(`fill="${LOGO_BRAND.navy}"`), 'רקע כהה: דיו קרם');
+  // ערכי-הבעלים לא זזו (כיוונון חי 7.11)
+  assert.deepEqual([LOGO_P.handRot, LOGO_P.thumbRot, LOGO_P.coinX, LOGO_P.walX], [25, 6, 22.5, 8.4]);
+  // מזהים ייחודיים — שני סמלים באותו עמוד לא מתנגשים
+  assert.ok(light.includes('id="w-a"') && dark.includes('id="w-b"') && !light.includes('w-b'));
   // הקבצים ב-public = מה שהמקור מייצר (npm run logo)
   for (const [name, svg] of Object.entries(PUBLIC_FILES))
     assert.equal(readFileSync(new URL(`../public/${name}`, import.meta.url), 'utf8'), svg, `public/${name} סטה מ-brand/logo.ts — הריצו npm run logo`);
@@ -216,7 +221,7 @@ test('לוגו: מקור יחיד, עין navy תמיד, אריח קרם על ר
   const walk = (d: URL): string[] => readdirSync(d, { withFileTypes: true }).flatMap(e =>
     e.isDirectory() ? walk(new URL(`${e.name}/`, d)) : [new URL(e.name, d).pathname]);
   const copies = walk(new URL('../src/', import.meta.url)).filter(f => !f.endsWith('brand/logo.ts'))
-    .filter(f => readFileSync(f, 'utf8').includes('M22 13h12'));
+    .filter(f => readFileSync(f, 'utf8').includes('C16.5 35 20.5 37.8'));
   assert.deepEqual(copies, [], 'עותק נוסף של הלוגו: ' + copies.join(', '));
 });
 
