@@ -398,14 +398,30 @@ class CollectService:
         return f"{self.s.public_base_url}/u/{token}"
 
     # ---------- message building ----------
-    def build_messages(self, inv_row, cust, step: templates.Step,
+    def build_messages(self, invs, cust, step_idx: int,
                        link: str) -> tuple[list[Message], str | None]:
+        """invs = החשבוניות שהתזכורת כוללת (לפי מועד; הראשונה = עוגן). אחת ⇒ הנוסח הרגיל, אות-באות.
+        כמה ⇒ נוסח מאוחד (critic 15.1/2.12): סה״כ + מספרים (או כמה, אם ארוך), קישור קצר אחד לעמוד
+        שמפרט את כולן. במייל המאוחד הקישור הוא אותו עמוד (כל חשבונית וקישור התשלום שלה שם)."""
+        if not isinstance(invs, (list, tuple)):
+            invs = [invs]
+        inv_row = invs[0]
         unsub = self.unsub_url(self.new_unsub_token(cust["id"]))
         short = self.short_url(inv_row)
-        f = templates.fields(biz=self.s.business_name, name=cust["name"], num=inv_row["number"],
-                             amount_agorot=inv_row["amount_agorot"],
-                             currency=inv_row["currency"], link=link, unsub=unsub, short=short,
-                             two_way=self.s.sms_two_way)
+        step: templates.Step | templates.MultiStep
+        if len(invs) == 1:
+            step = templates.STEPS[step_idx]
+            f = templates.fields(biz=self.s.business_name, name=cust["name"], num=inv_row["number"],
+                                 amount_agorot=inv_row["amount_agorot"],
+                                 currency=inv_row["currency"], link=link, unsub=unsub, short=short,
+                                 two_way=self.s.sms_two_way)
+        else:
+            step = templates.STEPS_MULTI[step_idx]
+            link = short
+            f = templates.fields_multi(biz=self.s.business_name, name=cust["name"],
+                                       invoices=[(r["number"], r["amount_agorot"]) for r in invs],
+                                       currency=inv_row["currency"], link=link, unsub=unsub,
+                                       short=short, two_way=self.s.sms_two_way)
         msgs: list[Message] = []
         phone = normalize_il_phone(cust["phone"])
         if "sms" in self.s.channels and is_il_mobile(phone):
@@ -426,7 +442,7 @@ class CollectService:
             # ר-1 גם על המייל (מבקר סבב 3 🟠): שם לקוח מ-CSV עם «תביעה»/קישור זר נחסם
             bad = compliance.violations(subj + "\n" + text, compliance.Rules(
                 business="", payment_link=link, unsubscribe_url=unsub, channel="email",
-                allow_debt_word=step.key not in ("friendly", "second")))
+                own_name=self.s.business_name, allow_debt_word=step.key not in ("friendly", "second")))
             if bad:
                 return [], "compliance"
             msgs.append(Message("email", cust["email"], text, subject=subj, html=html,
@@ -502,64 +518,143 @@ class CollectService:
         self.inbox.release_expired_pauses()
         self._notify_trial_ending()
         self.purge_closed()   # ר-10: זול, פעם בסבב
+        self._roll_episodes(now)
         created: list[int] = []
-        rows = self.db.q("SELECT * FROM invoices WHERE status='open'")
-        for r in rows:
-            cust = self.db.one("SELECT * FROM customers WHERE id=?", (r["customer_id"],))
-            if self._customer_block(cust["id"]):
-                continue
-            if self.db.one("SELECT 1 FROM reminders WHERE invoice_id=? AND status IN (?,?)",
-                           (r["id"], *ACTIVE)):
-                continue
-            if self.db.one("SELECT 1 FROM reminders WHERE invoice_id=? AND status='rejected'",
-                           (r["id"],)):
+        custs = self.db.q("SELECT DISTINCT customer_id FROM invoices WHERE status='open' "
+                          "ORDER BY customer_id")
+        for c in custs:
+            rid = self._plan_customer(c["customer_id"], now)
+            if rid:
+                created.append(rid)
+        if created:
+            self.audit("system", "plan", {"created": created})
+        return created
+
+    # ---------- תזכורת מאוחדת ללקוח (critic 15.1/2.12, הכרעת מאיר 7.11.2026) ----------
+    # הכלל (שמרני — אף לקוח לא מקבל יותר הודעות מבעבר):
+    #   • הודעה אחת ללקוח בכל שלב, על כל החשבוניות הפתוחות שכבר עברו את מועד התזכורת הראשונה
+    #     (מועד+1), באותו מטבע של החשבונית הוותיקה (אין סה״כ של שקל+דולר; מטבע אחר ממתין).
+    #   • סולם 3 התזכורות (ידידותית +1 ⇒ פריסה +7 ⇒ אחרונה +14) נספר **ללקוח לאפיזודת חוב**:
+    #     התזכורות שנשלחו ללקוח וכוללות חשבונית שעדיין פתוחה, או שנשלחו מאז תחילת האפיזודה
+    #     (`customers.episode_since` — מתאפס רק כשאין ללקוח אף חשבונית פתוחה בסבב התכנון).
+    #   • חשבונית חדשה שנוספה באמצע אפיזודה **מצטרפת לשלב הבא** — לא מתחילה מ-1. אחרי 3 — עצירה
+    #     ללקוח כולו (גם חשבונית חדשה לא מתחילה סולם חדש עד שהחוב כולו נסגר) + התראה אחת לבעל העסק.
+    #   • מועד השלב: מועד החשבונית הוותיקה שבהודעה + היסט השלב (כמו קודם), ו-72 שעות ללקוח.
+    #   • דחייה של בעל העסק חלה על החשבוניות שבהודעה — הן לא ייכללו שוב (כמו קודם, לחשבונית).
+    #   • נתונים ישנים (תזכורת לחשבונית) נספרים כמו שהם ⇒ 2 חשבוניות × 2 תזכורות = 4 ⇒ עצירה.
+    def _roll_episodes(self, now: datetime) -> None:
+        self.db.x("UPDATE customers SET episode_since=NULL WHERE episode_since IS NOT NULL AND id "
+                  "NOT IN (SELECT customer_id FROM invoices WHERE status='open')")
+        self.db.x("UPDATE customers SET episode_since=? WHERE episode_since IS NULL AND id IN "
+                  "(SELECT customer_id FROM invoices WHERE status='open')", (_iso(now),))
+
+    def reminder_invoice_ids(self, rid: int) -> list[int]:
+        """החשבוניות שהתזכורת כוללת, לפי מועד (העוגן ראשון)."""
+        return [r["id"] for r in self.db.q(
+            "SELECT i.id FROM reminder_invoices x JOIN invoices i ON i.id=x.invoice_id "
+            "WHERE x.reminder_id=? ORDER BY i.due, i.id", (rid,))]
+
+    def _link_invoices(self, rid: int, ids: list[int]) -> None:
+        self.db.x("DELETE FROM reminder_invoices WHERE reminder_id=?", (rid,))
+        for iid in ids:
+            self.db.x("INSERT OR IGNORE INTO reminder_invoices(reminder_id, invoice_id) VALUES(?,?)",
+                      (rid, iid))
+
+    def _customer_reminders(self, cid: int, statuses: tuple[str, ...] | None = None, *,
+                            sent: bool = False) -> list:
+        """כל התזכורות של הלקוח (לפי עוגן), לפי זמן שליחה. SQL קבוע (שער האבטחה), סינון בפייתון."""
+        rows = self.db.q("SELECT r.* FROM reminders r JOIN invoices i ON i.id=r.invoice_id "
+                         "WHERE i.customer_id=? ORDER BY r.sent_at, r.id", (cid,))
+        return [r for r in rows if (statuses is None or r["status"] in statuses)
+                and (not sent or str(r["status"]).startswith("sent"))]
+
+    def episode_sent(self, cid: int) -> list:
+        """התזכורות שנשלחו ללקוח באפיזודת החוב הנוכחית (ראו הכלל למעלה)."""
+        cust = self.db.one("SELECT episode_since FROM customers WHERE id=?", (cid,))
+        since = _dt(cust["episode_since"]) if cust else None
+        open_ids = {r["id"] for r in self.db.q(
+            "SELECT id FROM invoices WHERE customer_id=? AND status='open'", (cid,))}
+        out = []
+        for r in self._customer_reminders(cid, sent=True):
+            sent_at = _dt(r["sent_at"])
+            if set(self.reminder_invoice_ids(r["id"])) & open_ids or \
+                    (since is not None and sent_at is not None and sent_at >= since):
+                out.append(r)
+        return out
+
+    def _plan_customer(self, cid: int, now: datetime) -> int | None:
+        cust = self.db.one("SELECT * FROM customers WHERE id=?", (cid,))
+        if self._customer_block(cid):
+            return None
+        rejected = {iid for r in self._customer_reminders(cid, ("rejected",))
+                    for iid in self.reminder_invoice_ids(r["id"])}
+        cands = []
+        for r in self.db.q("SELECT * FROM invoices WHERE customer_id=? AND status='open' "
+                           "ORDER BY due, id", (cid,)):
+            if r["id"] in rejected:
                 continue  # בעל העסק דחה ⇒ אין תזכורות נוספות לחשבונית הזו
             born = r["issued"] or r["due"]
             if born and (now.date() - date.fromisoformat(born)).days > MANUAL_ONLY_AFTER_DAYS:
                 self._notify_too_old(r, cust)   # ר-7: אין שום אוטומציה, רק התראה אחת
                 continue
-            # מבקר סבב 3 (8): שלב נקבע לפי מה **שנשלח**, לא לפי תזכורות שבוטלו (השהיה/ביטול)
-            done = self.db.one("SELECT COUNT(*) n FROM reminders WHERE invoice_id=? AND "
-                               "status LIKE 'sent%'", (r["id"],))["n"]
-            if done >= MAX_REMINDERS_PER_INVOICE:
-                self._notify_exhausted(r, cust)
-                continue
-            if not r["due"]:
-                continue
-            due_at = datetime.combine(date.fromisoformat(r["due"]), time(10), TZ)
-            if now < due_at + timedelta(days=STEP_OFFSETS_DAYS[done]):
-                continue
-            last = _dt(cust["last_sent_at"])
-            earliest = max(now, last + timedelta(hours=72)) if last else now
-            when = self.policy.next_allowed(earliest)
-            step = templates.STEPS[done]
-            link = self._payment_link(r)
-            msgs, block = self.build_messages(r, cust, step, link or "")
-            if link is None:
-                block = "no_payment_link"
-            # אישור פרטני (הכרעת מאיר, בטא = טיוטות בלבד): כל תזכורת ממתינה לאישור בעל העסק
-            payload = "[" + ",".join(message_to_json(m) for m in msgs) + "]"
-            vals = (step.key, _iso(when), "pending_approval", 1, msgs[0].body if msgs else "",
-                    payload, block, templates.template_version(), _sha(payload),
-                    r["amount_agorot"])
-            old = self.db.one("SELECT id FROM reminders WHERE invoice_id=? AND step=?",
-                              (r["id"], done))
-            if old:   # שלב שבוטל קודם — נבנה מחדש באותה רשומה (UNIQUE(invoice_id, step))
-                self.db.x("UPDATE reminders SET template_key=?, scheduled_for=?, status=?, "
-                          "requires_approval=?, body=?, payload=?, block_reason=?, "
-                          "template_version=?, body_hash=?, amount_agorot=?, approved_hash=NULL, "
-                          "approved_version=NULL, approved_by=NULL, decided_at=NULL WHERE id=?",
-                          (*vals, old["id"]))
-                rid = old["id"]
-            else:
-                rid = self.db.x(
-                    "INSERT INTO reminders(invoice_id,step,template_key,scheduled_for,status,"
-                    "requires_approval,body,payload,block_reason,template_version,body_hash,"
-                    "amount_agorot) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)", (r["id"], done, *vals))
-            created.append(rid)
-        if created:
-            self.audit("system", "plan", {"created": created})
-        return created
+            if r["due"]:
+                cands.append(r)
+        # מבקר סבב 3 (8): שלב נקבע לפי מה **שנשלח**, לא לפי תזכורות שבוטלו (השהיה/ביטול)
+        done = len(self.episode_sent(cid))
+        if done >= MAX_REMINDERS_PER_INVOICE:
+            self._notify_exhausted(cust)
+            return None
+
+        def due_at(r) -> datetime:
+            return datetime.combine(date.fromisoformat(r["due"]), time(10), TZ)
+
+        ready = [r for r in cands if now >= due_at(r) + timedelta(days=STEP_OFFSETS_DAYS[0])]
+        if not ready:
+            return None
+        ready = [r for r in ready if r["currency"] == ready[0]["currency"]]
+        lead = ready[0]
+        act = self._customer_reminders(cid, ACTIVE)
+        if act:   # הודעה אחת בתור ללקוח
+            # חשבונית שהבשילה בזמן שהטיוטה ממתינה מצטרפת אליה (אותו שלב) ⇒ נבנית מחדש ולאישור מחדש
+            covered = set(self.reminder_invoice_ids(act[0]["id"]))
+            if act[0]["invoice_id"] == lead["id"] and {r["id"] for r in ready} > covered:
+                self._rebuild_for_amount(act[0], ready, why="invoices_joined")
+            return None
+        if now < due_at(lead) + timedelta(days=STEP_OFFSETS_DAYS[done]):
+            return None
+        last = _dt(cust["last_sent_at"])
+        earliest = max(now, last + timedelta(hours=72)) if last else now
+        when = self.policy.next_allowed(earliest)
+        step = templates.STEPS[done]
+        links = [self._payment_link(r) for r in ready]
+        msgs, block = self.build_messages(ready, cust, done, links[0] or "")
+        if any(x is None for x in links):
+            block = "no_payment_link"
+        total = sum(r["amount_agorot"] for r in ready)
+        # אישור פרטני (הכרעת מאיר, בטא = טיוטות בלבד): כל תזכורת ממתינה לאישור בעל העסק
+        payload = "[" + ",".join(message_to_json(m) for m in msgs) + "]"
+        vals = (step.key, _iso(when), "pending_approval", 1, msgs[0].body if msgs else "",
+                payload, block, templates.template_version(), _sha(payload), total)
+        old = self.db.one("SELECT id, status FROM reminders WHERE invoice_id=? AND step=?",
+                          (lead["id"], done))
+        if old and str(old["status"]).startswith("sent"):
+            # לא אמור לקרות (תזכורת שנשלחה ומכסה חשבונית פתוחה נספרת ב-done); לא דורסים ראיה
+            self.audit("system", "plan_conflict", {"reminder": old["id"]})
+            return None
+        if old:   # שלב שבוטל/נדחה קודם — נבנה מחדש באותה רשומה (UNIQUE(invoice_id, step))
+            self.db.x("UPDATE reminders SET template_key=?, scheduled_for=?, status=?, "
+                      "requires_approval=?, body=?, payload=?, block_reason=?, "
+                      "template_version=?, body_hash=?, amount_agorot=?, approved_hash=NULL, "
+                      "approved_version=NULL, approved_by=NULL, decided_at=NULL WHERE id=?",
+                      (*vals, old["id"]))
+            rid = old["id"]
+        else:
+            rid = self.db.x(
+                "INSERT INTO reminders(invoice_id,step,template_key,scheduled_for,status,"
+                "requires_approval,body,payload,block_reason,template_version,body_hash,"
+                "amount_agorot) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)", (lead["id"], done, *vals))
+        self._link_invoices(rid, [r["id"] for r in ready])
+        return rid
 
     def _csv_unverified(self) -> int:
         last = self.db.one("SELECT MAX(synced_at) m FROM invoices WHERE source='csv'")["m"]
@@ -568,21 +663,26 @@ class CollectService:
         return self.db.one("SELECT COUNT(*) n FROM invoices WHERE source='csv' AND status='open' "
                            "AND synced_at < ?", (last,))["n"]
 
-    def _notify_exhausted(self, inv_row, cust) -> None:
-        """אחרי 3 תזכורות שנשלחו והחשבונית עדיין פתוחה ⇒ עצירה + התראה אחת לבעל העסק."""
-        sent = self.db.one("SELECT COUNT(*) n FROM reminders WHERE invoice_id=? AND "
-                           "status LIKE 'sent%'", (inv_row["id"],))["n"]
-        if sent < MAX_REMINDERS_PER_INVOICE:
+    def _notify_exhausted(self, cust) -> None:
+        """אחרי 3 תזכורות שנשלחו ללקוח באפיזודה והחוב עדיין פתוח ⇒ עצירה + התראה אחת לבעל העסק."""
+        sent = self.episode_sent(cust["id"])
+        if len(sent) < MAX_REMINDERS_PER_INVOICE:
             return
+        key = f"cust:{cust['id']}:{cust['episode_since'] or ''}"
         if self.db.one("SELECT 1 FROM messages WHERE intent='max_reminders' AND message_id=?",
-                       (f"inv:{inv_row['id']}",)):
+                       (key,)):
             return
+        nums = [r["number"] for r in self.db.q(
+            "SELECT number FROM invoices WHERE customer_id=? AND status='open' ORDER BY due, id",
+            (cust["id"],))]
+        what = (f"לחשבונית {nums[0]}" if len(nums) == 1 else
+                f"על {len(nums)} חשבוניות פתוחות ({', '.join(nums)})")
         self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
                   "message_id,created_at) VALUES(?,'system','owner',?,'max_reminders',1,?,?)",
-                  (cust["id"], f"נשלחו {MAX_REMINDERS_PER_INVOICE} תזכורות לחשבונית "
-                   f"{inv_row['number']} ({cust['name']}) והיא עדיין פתוחה. התזכורות האוטומטיות "
-                   "נעצרו — מומלץ קשר אישי.", f"inv:{inv_row['id']}", _iso(self.clock())))
-        self.audit("system", "max_reminders_reached", {"invoice": inv_row["id"]})
+                  (cust["id"], f"נשלחו {MAX_REMINDERS_PER_INVOICE} תזכורות {what} ({cust['name']}) "
+                   "והחוב עדיין פתוח. התזכורות האוטומטיות נעצרו — מומלץ קשר אישי.", key,
+                   _iso(self.clock())))
+        self.audit("system", "max_reminders_reached", {"customer": cust["id"]})
 
     def _notify_too_old(self, inv_row, cust) -> None:
         key = f"old:{inv_row['id']}"
@@ -637,7 +737,9 @@ class CollectService:
         for r in self.db.q("SELECT i.id FROM invoices i JOIN customers c ON c.id=i.customer_id "
                            "WHERE i.status='closed' AND i.purged_at IS NULL AND i.closed_at "
                            "IS NOT NULL AND i.closed_at<=? AND c.legal_hold IS NULL", (cutoff,)):
-            self.db.x("UPDATE reminders SET body='', payload='[]' WHERE invoice_id=?", (r["id"],))
+            self.db.x("UPDATE reminders SET body='', payload='[]' WHERE invoice_id=? OR id IN "
+                      "(SELECT reminder_id FROM reminder_invoices WHERE invoice_id=?)",
+                      (r["id"], r["id"]))
             self.db.x("UPDATE invoices SET purged_at=?, payment_url=NULL WHERE id=?",
                       (now, r["id"]))
             inv_n += 1
@@ -696,8 +798,9 @@ class CollectService:
         r = self._reminder(reminder_id)
         if r["status"] != "pending_approval":
             raise ValueError(f"לא ממתינה לאישור (status={r['status']})")
-        inv = self._invoice(r["invoice_id"])
-        if inv["source"] == "csv" and not confirm_open:
+        invs = [self._invoice(i) for i in self.reminder_invoice_ids(reminder_id)] or \
+            [self._invoice(r["invoice_id"])]
+        if any(i["source"] == "csv" for i in invs) and not confirm_open:
             # review חור 7: ב-CSV אין מקור לרענון ⇒ בעל העסק מאשר במפורש שהסכום עדיין פתוח
             raise ValueError("חשבונית מ-CSV: יש לאשר במפורש שהסכום עדיין פתוח (confirm_open). "
                              "האישור תקף 24 שעות")
@@ -803,17 +906,38 @@ class CollectService:
         self.audit("system", why, {"reminder": r["id"]})
 
     def _refresh_before_send(self, r) -> str:
-        """ר-4: הסכום, הסטטוס והקשר נבדקים מול המקור רגע לפני השליחה.
+        """ר-4: הסכום, הסטטוס והקשר נבדקים מול המקור רגע לפני השליחה — לכל חשבונית שבהודעה.
         'ok' ⇒ אפשר לשלוח. אחרת התזכורת לא נשלחת:
-          • נסגרה/נמחקה ⇒ בוטלה · • הסכום השתנה ⇒ נבנתה מחדש וחוזרת לאישור
+          • העוגן נסגר/נמחק ⇒ בוטלה (התכנון הבא בונה הודעה חדשה על מה שנשאר, לאישור מחדש)
+          • חשבונית אחרת בהודעה נסגרה, או סכום השתנה ⇒ נבנתה מחדש וחוזרת לאישור
           • כשל ברענון ⇒ נשארת מאושרת ולא נשלחת (block_reason=refresh_failed), ננסה שוב
           • CSV (אין API) ⇒ תקף 24 שעות מהייבוא; אחרי כן נדרש ייבוא חדש."""
-        inv = self._invoice(r["invoice_id"])
-        if inv["status"] != "open":
+        ids = self.reminder_invoice_ids(r["id"]) or [r["invoice_id"]]
+        still: list = []
+        for iid in ids:
+            res = self._refresh_invoice(r, self._invoice(iid))
+            if res == "failed":
+                return "failed"
+            if res == "open":
+                still.append(self._invoice(iid))
+        if not still or still[0]["id"] != r["invoice_id"]:
             self.db.x("UPDATE reminders SET status='cancelled', block_reason='invoice_closed' "
                       "WHERE id=?", (r["id"],))
             return "closed"
-        sent_amount = r["amount_agorot"] if r["amount_agorot"] is not None else inv["amount_agorot"]
+        total = sum(i["amount_agorot"] for i in still)
+        sent_amount = r["amount_agorot"] if r["amount_agorot"] is not None else total
+        # מבקר סבב 3 (🔴): משווים לסכום **שבהודעה שאושרה**, לא ל-invoices — אחרת sync() בין האישור
+        # לשליחה עדכן את invoices, ההשוואה יצאה שווה, ונשלח הסכום הישן.
+        if total != sent_amount or len(still) != len(ids):
+            return self._rebuild_for_amount(r, still)
+        if r["block_reason"] in ("refresh_failed", "csv_stale"):
+            self.db.x("UPDATE reminders SET block_reason=NULL WHERE id=?", (r["id"],))
+        return "ok"
+
+    def _refresh_invoice(self, r, inv) -> str:
+        """חשבונית אחת מתוך התזכורת ⇒ 'open' (הסכום ב-invoices מעודכן) · 'closed' · 'failed'."""
+        if inv["status"] != "open":
+            return "closed"
         if inv["source"] == "csv":
             # review חור 7: תוקף 24 שעות **מאישור «הסכום עדיין פתוח»**, לא מהייבוא. פג ⇒ חוזר לאישור
             approved = _dt(r["decided_at"])
@@ -827,9 +951,7 @@ class CollectService:
                     _dt(last) > approved:
                 self._invalidate(r, "csv_missing_from_import")
                 return "failed"
-            if inv["amount_agorot"] != sent_amount:     # ייבוא חוזר עם יתרה אחרת (מבקר סבב 3)
-                return self._rebuild_for_amount(r, inv, inv["amount_agorot"])
-            return "ok"
+            return "open"   # ייבוא חוזר עם יתרה אחרת כבר עדכן את invoices (מבקר סבב 3)
         if self.gi is None or not self._source_owns(inv["external_id"]):
             self._mark_refresh_failed(r, "refresh_failed")
             return "failed"
@@ -853,32 +975,29 @@ class CollectService:
             doc = replace(doc, amount_agorot=doc.amount_agorot - credit)
         if doc is None or doc.status != 0 or doc.amount_agorot <= 0:
             self.db.x("UPDATE invoices SET status='closed' WHERE id=?", (inv["id"],))
-            self._cancel_invoice(inv["id"], "invoice_closed")
-            self.db.x("UPDATE reminders SET status='cancelled', block_reason='invoice_closed' "
-                      "WHERE id=?", (r["id"],))
             self.audit("system", "refresh_closed", {"invoice": inv["id"]})
             return "closed"
         self.db.x("UPDATE invoices SET synced_at=? WHERE id=?", (_iso(self.clock()), inv["id"]))
-        # מבקר סבב 3 (🔴): משווים לסכום **שבהודעה שאושרה**, לא ל-invoices — אחרת sync() בין האישור
-        # לשליחה עדכן את invoices, ההשוואה יצאה שווה, ונשלח הסכום הישן.
-        if doc.amount_agorot != sent_amount or doc.amount_agorot != inv["amount_agorot"]:
-            return self._rebuild_for_amount(r, inv, doc.amount_agorot)
-        if r["block_reason"] in ("refresh_failed", "csv_stale"):
-            self.db.x("UPDATE reminders SET block_reason=NULL WHERE id=?", (r["id"],))
-        return "ok"
+        if doc.amount_agorot != inv["amount_agorot"]:
+            self.db.x("UPDATE invoices SET amount_agorot=?, payment_url=NULL WHERE id=?",
+                      (doc.amount_agorot, inv["id"]))
+        return "open"
 
-    def _rebuild_for_amount(self, r, inv, amount: int) -> str:
-        self.db.x("UPDATE invoices SET amount_agorot=?, payment_url=NULL WHERE id=?",
-                  (amount, inv["id"]))
-        inv = self._invoice(inv["id"])
-        cust = self.db.one("SELECT * FROM customers WHERE id=?", (inv["customer_id"],))
-        msgs, block = self.build_messages(inv, cust, templates.STEPS[r["step"]],
-                                          self._payment_link(inv) or "")
+    def _rebuild_for_amount(self, r, invs: list, why: str = "amount_changed") -> str:
+        """ההודעה נבנית מחדש על החשבוניות שעדיין פתוחות והסכומים העדכניים ⇒ חוזרת לאישור."""
+        cust = self.db.one("SELECT * FROM customers WHERE id=?", (invs[0]["customer_id"],))
+        links = [self._payment_link(i) for i in invs]
+        msgs, block = self.build_messages(invs, cust, r["step"], links[0] or "")
+        if any(x is None for x in links):
+            block = "no_payment_link"
         payload = "[" + ",".join(message_to_json(m) for m in msgs) + "]"
+        total = sum(i["amount_agorot"] for i in invs)
         self.db.x("UPDATE reminders SET payload=?, body=?, body_hash=?, amount_agorot=? WHERE id=?",
-                  (payload, msgs[0].body if msgs else "", _sha(payload), amount, r["id"]))
-        self._invalidate(r, "amount_changed")
-        self.audit("system", "amount_changed", {"invoice": inv["id"], "to_agorot": amount})
+                  (payload, msgs[0].body if msgs else "", _sha(payload), total, r["id"]))
+        self._link_invoices(r["id"], [i["id"] for i in invs])
+        self._invalidate(r, block if block in HARD_BLOCKS else why)
+        self.audit("system", why, {"invoice": invs[0]["id"], "reminder": r["id"],
+                                                "to_agorot": total, "invoices": len(invs)})
         return "changed"
 
     def refresh_customer(self, cid: int) -> bool:
@@ -948,12 +1067,41 @@ class CollectService:
         if not inv:
             raise KeyError(code)
         cust = self.db.one("SELECT * FROM customers WHERE id=?", (inv["customer_id"],))
+        items = self._landing_items(inv)
+        total = sum(i["amount_agorot"] for i in items)
+        links = {i["pay_url"] for i in items}
         return {"code": code, "business": self.s.business_name, "number": inv["number"],
                 "amount": templates.fmt_amount(inv["amount_agorot"], inv["currency"]),
-                "due": inv["due"], "open": inv["status"] == "open",
+                "due": inv["due"], "open": bool(items),
                 "opted_out": bool(cust["opted_out"]),
                 "pay_url": self._payment_link(inv) if inv["status"] == "open" else None,
+                # critic 15.1/2.12: הודעה מאוחדת ⇒ העמוד מפרט את כל החשבוניות שבה, עם סה״כ
+                "invoices": [{k: v for k, v in i.items() if k != "pay_url"}
+                             | {"can_pay": bool(i["pay_url"])} for i in items],
+                "count": len(items), "total_agorot": total,
+                "total": templates.fmt_amount(total, inv["currency"]),
+                # קישור תשלום אחד לכולן (עמוד קבוע של העסק) ⇒ כפתור אחד; אחרת כפתור לכל חשבונית
+                "pay_shared": len(items) > 1 and len(links) == 1 and None not in links,
                 "_cust": cust}
+
+    def _landing_items(self, inv) -> list[dict]:
+        """החשבוניות הפתוחות שבתזכורת האחרונה שכוללת את החשבונית של הקוד (לפי מועד). אין תזכורת
+        (קישור מתשובה בשיחה) ⇒ החשבונית עצמה. סגורה ⇒ לא מוצגת לתשלום."""
+        rem = self.db.one("SELECT r.id FROM reminders r JOIN reminder_invoices x ON "
+                          "x.reminder_id=r.id WHERE x.invoice_id=? AND r.status NOT IN "
+                          "('cancelled','rejected') ORDER BY r.id DESC LIMIT 1", (inv["id"],))
+        ids = self.reminder_invoice_ids(rem["id"]) if rem else [inv["id"]]
+        if inv["id"] not in ids:
+            ids = [inv["id"], *ids]
+        out = []
+        for iid in ids:
+            r = self._invoice(iid)
+            if r is None or r["status"] != "open" or r["currency"] != inv["currency"]:
+                continue
+            out.append({"number": r["number"], "due": r["due"], "amount_agorot": r["amount_agorot"],
+                        "amount": templates.fmt_amount(r["amount_agorot"], r["currency"]),
+                        "code": self._short_code(r), "pay_url": self._payment_link(r)})
+        return out
 
     LANDING_TEXT = {"plan": "אני מבקש פריסה לתשלומים", "paid": "שילמתי"}
 
@@ -1117,10 +1265,13 @@ class CollectService:
         for r in self.db.q("SELECT i.*, c.name cname, c.phone cphone, c.email cemail, "
                            "c.opted_out, c.disputed, c.paused_reason FROM invoices i "
                            "JOIN customers c ON c.id=i.customer_id ORDER BY i.due, i.id"):
-            last = self.db.one("SELECT * FROM reminders WHERE invoice_id=? ORDER BY step DESC, "
-                               "id DESC LIMIT 1", (r["id"],))
-            sent = self.db.one("SELECT COUNT(*) n FROM reminders WHERE invoice_id=? AND "
-                               "status='sent_dry_run'", (r["id"],))["n"]
+            # תזכורת מאוחדת נספרת בכל חשבונית שהיא כוללת (reminder_invoices)
+            last = self.db.one("SELECT r.* FROM reminders r JOIN reminder_invoices x ON "
+                               "x.reminder_id=r.id WHERE x.invoice_id=? ORDER BY r.step DESC, "
+                               "r.id DESC LIMIT 1", (r["id"],))
+            sent = self.db.one("SELECT COUNT(*) n FROM reminders r JOIN reminder_invoices x ON "
+                               "x.reminder_id=r.id WHERE x.invoice_id=? AND "
+                               "r.status='sent_dry_run'", (r["id"],))["n"]
             due = date.fromisoformat(r["due"]) if r["due"] else None
             block = self._customer_block(r["customer_id"])
             rows.append({
@@ -1134,6 +1285,7 @@ class CollectService:
                 "reminders_sent": sent,
                 "last_reminder": None if not last else {
                     "id": last["id"], "step": last["step"], "status": last["status"],
+                    "invoice_ids": self.reminder_invoice_ids(last["id"]),
                     "template_key": last["template_key"], "sent_at": last["sent_at"],
                     "block_reason": last["block_reason"]},
                 "customer_block": block})
@@ -1227,6 +1379,9 @@ class CollectService:
                 "amount": info["amount"], "amount_agorot": inv["amount_agorot"],
                 "currency": inv["currency"], "due": info["due"], "open": info["open"],
                 "opted_out": info["opted_out"], "can_pay": bool(info["pay_url"]),
+                "invoices": info["invoices"], "count": info["count"],
+                "total": info["total"], "total_agorot": info["total_agorot"],
+                "pay_shared": info["pay_shared"],
                 "methods": list(self.PAY_METHODS) if info["pay_url"] else [],
                 "pay_host": self.pay_destination(info["pay_url"])[0] if info["pay_url"] else "",
                 "pay_provider": self.pay_destination(info["pay_url"])[1] if info["pay_url"] else "",
@@ -1316,7 +1471,7 @@ class CollectService:
         # ר-1 על כל טקסט יוצא (מבקר סבב 3 🟠): גם הצעת הפריסה עוברת במסנן
         bad = compliance.violations(body, compliance.Rules(
             business=self.s.business_name if channel == "sms" else "", unsubscribe_url=unsub,
-            channel=channel, max_sms_chars=templates.SMS_HARD_MAX))
+            channel=channel, max_sms_chars=templates.SMS_HARD_MAX, own_name=self.s.business_name))
         if bad:
             raise ValueError(f"נוסח ההצעה נחסם במסנן הניסוח: {', '.join(bad)}")
         self._supersede_plan_drafts(plan_id)
@@ -1368,8 +1523,11 @@ class CollectService:
                                 plan_active=bool(plan), paused=c["paused_reason"])
 
     def _cancel_invoice(self, iid: int, reason: str) -> None:
-        self.db.x("UPDATE reminders SET status='cancelled', block_reason=? "
-                  "WHERE invoice_id=? AND status IN (?,?)", (reason, iid, *ACTIVE))
+        """כל תזכורת פעילה **שכוללת** את החשבונית (גם מאוחדת) מבוטלת — הנוסח שלה כבר לא נכון.
+        התכנון הבא בונה הודעה על מה שנשאר פתוח, לאישור מחדש."""
+        self.db.x("UPDATE reminders SET status='cancelled', block_reason=? WHERE status IN (?,?) "
+                  "AND (invoice_id=? OR id IN (SELECT reminder_id FROM reminder_invoices "
+                  "WHERE invoice_id=?))", (reason, *ACTIVE, iid, iid))
 
 
 def _rebuild_keep_log(old: DryRunSender, s: Settings) -> DryRunSender:

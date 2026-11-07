@@ -168,6 +168,19 @@ class DB:
             if col not in mcols:
                 self.conn.execute(ddl)
         self.conn.commit()
+        # critic 15.1/2.12 (הכרעת מאיר 7.11): תזכורת מאוחדת ללקוח — אילו חשבוניות כל תזכורת כוללת.
+        # reminders.invoice_id נשאר «עוגן» (החשבונית הוותיקה); תזכורות ישנות = החשבונית שלהן בלבד.
+        self.conn.executescript(
+            "CREATE TABLE IF NOT EXISTS reminder_invoices (reminder_id INTEGER NOT NULL "
+            "REFERENCES reminders(id), invoice_id INTEGER NOT NULL REFERENCES invoices(id), "
+            "PRIMARY KEY(reminder_id, invoice_id));"
+            "CREATE INDEX IF NOT EXISTS ix_ri_inv ON reminder_invoices(invoice_id);"
+            "INSERT OR IGNORE INTO reminder_invoices(reminder_id, invoice_id) "
+            "SELECT r.id, r.invoice_id FROM reminders r WHERE NOT EXISTS "
+            "(SELECT 1 FROM reminder_invoices x WHERE x.reminder_id=r.id);")
+        if "episode_since" not in cols:   # תחילת «אפיזודת החוב» הנוכחית של הלקוח (סולם 3 התזכורות)
+            self.conn.execute("ALTER TABLE customers ADD COLUMN episode_since TEXT")
+        self.conn.commit()
         # טוקני הסרה: נשמר רק sha256 (דליפת DB ⇒ אין קישורי הסרה פעילים בידי תוקף)
         self.conn.executescript(
             "CREATE TABLE IF NOT EXISTS link_tokens (token_hash TEXT PRIMARY KEY, "

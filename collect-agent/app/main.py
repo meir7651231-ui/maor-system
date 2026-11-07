@@ -310,7 +310,9 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         if status:
             sql, args = sql + " WHERE r.status=?", (status,)
         rows = svc.db.q(sql + " ORDER BY r.id", args)
-        return [{**dict(r), "payload": json.loads(r["payload"])} for r in rows]
+        # תזכורת מאוחדת (critic 15.1/2.12): כל החשבוניות שבהודעה; invoice_id = העוגן
+        return [{**dict(r), "payload": json.loads(r["payload"]),
+                 "invoice_ids": svc.reminder_invoice_ids(r["id"])} for r in rows]
 
     @app.get("/reminders/{rid}/preview", dependencies=auth)
     def preview(rid: int):
@@ -714,17 +716,34 @@ def landing_page(info: dict | None) -> str:
 
     if info is None:
         return _PAGE.format(title="קישור לא תקף", body="<h1>הקישור אינו תקף</h1>")
-    head = (f'<h1>{e(info["business"])}</h1><div class="m">חשבונית {e(info["number"])}'
-            + (f' · מועד {e(info["due"])}' if info["due"] else "") + "</div>")
+    items = info.get("invoices") or []
+    if len(items) > 1:   # הודעה מאוחדת (critic 15.1/2.12): כל החשבוניות שבה + סה״כ
+        head = f'<h1>{e(info["business"])}</h1><div class="m">{len(items)} חשבוניות פתוחות</div>'
+    else:
+        head = (f'<h1>{e(info["business"])}</h1><div class="m">חשבונית {e(info["number"])}'
+                + (f' · מועד {e(info["due"])}' if info["due"] else "") + "</div>")
     if not info["open"]:
         return _PAGE.format(title="שולם", body=head + "<p>החשבונית סגורה. תודה רבה!</p>")
     base = f'/p/{e(info["code"])}'
-    pay = (f'<a class="b p" href="{base}/pay">לתשלום מאובטח</a>' if info["pay_url"]
-           else '<p class="m">קישור התשלום יישלח בהקדם.</p>')
+    amount = info["amount"]
+    if len(items) > 1:
+        amount = info["total"]
+        rows = "".join(
+            f'<li>חשבונית {e(i["number"])} — {e(i["amount"])}'
+            + (f' · מועד {e(i["due"])}' if i["due"] else "")
+            + ("" if info["pay_shared"] or not i["can_pay"] else
+               f' · <a href="/p/{e(i["code"])}/pay">לתשלום</a>') + "</li>" for i in items)
+        head += f'<ul class="m" data-testid="landing-invoices">{rows}</ul>'
+        pay = (f'<a class="b p" href="{base}/pay">לתשלום מאובטח</a>' if info["pay_shared"]
+               else "" if any(i["can_pay"] for i in items)
+               else '<p class="m">קישור התשלום יישלח בהקדם.</p>')
+    else:
+        pay = (f'<a class="b p" href="{base}/pay">לתשלום מאובטח</a>' if info["pay_url"]
+               else '<p class="m">קישור התשלום יישלח בהקדם.</p>')
     opts = "".join(f'<option value="{n}">{n} תשלומים</option>' for n in (2, 3, 4, 6))
     stop = ('<p class="m">התזכורות האוטומטיות הופסקו.</p>' if info["opted_out"] else
             f'<form method="post" action="{base}/stop"><button class="b">הפסקת תזכורות</button></form>')
-    body = (head + f'<div class="amt">{e(info["amount"])}</div>' + pay
+    body = (head + f'<div class="amt">{e(amount)}</div>' + pay
             + f'<form method="post" action="{base}/plan"><select name="n" aria-label="מספר תשלומים">'
             + opts + '</select><button class="b">בקשת פריסה ללא תוספת</button></form>'
             + f'<form method="post" action="{base}/paid"><button class="b">כבר שילמתי</button></form>'

@@ -20,6 +20,8 @@ export function Pay({ code }: { code: string }) {
 
   useEffect(() => { payer.view(code).then(setV).catch(() => setErr('הקישור אינו תקף או שפג תוקפו.')); }, [code]);
   useEffect(() => { document.title = v ? `תשלום לחשבונית ${v.number} · ${v.business}` : 'תשלום חשבונית'; }, [v]);
+  // הודעה מאוחדת (critic 15.1/2.12): כמה חשבוניות ⇒ פירוט + סה״כ; תשלום בכפתור אחד או לכל חשבונית
+  const many = (v?.invoices?.length ?? 0) > 1 ? v!.invoices! : null;
 
   const act = async (a: 'paid' | 'plan' | 'stop') => {
     setBusy(true);
@@ -47,14 +49,29 @@ export function Pay({ code }: { code: string }) {
         {v && (
           <>
             <section className="rounded-2xl bg-white shadow-card p-5" aria-labelledby="amt">
-              <div className="text-sm text-ink-500">חשבונית <span className="num">{v.number}</span>{v.due && <> · לתשלום עד <span className="num">{fmtDate(v.due)}</span></>}</div>
-              <div id="amt" className="font-display font-extrabold text-5xl mt-2 num" data-testid="pay-amount">{v.amount}</div>
+              {many ? <>
+                <div className="text-sm text-ink-500"><span className="num">{many.length}</span> חשבוניות פתוחות · סה״כ</div>
+                <div id="amt" className="font-display font-extrabold text-5xl mt-2 num" data-testid="pay-amount">{v.total}</div>
+                <ul className="mt-3 divide-y divide-ink-100 text-sm" data-testid="pay-invoices">
+                  {many.map(i => (
+                    <li key={i.code} className="flex items-center justify-between gap-2 py-2">
+                      <span>חשבונית <span className="num">{i.number}</span>{i.due && <> · <span className="num">{fmtDate(i.due)}</span></>}</span>
+                      <span className="flex items-center gap-2"><b className="num">{i.amount}</b>
+                        {v.open && !v.pay_shared && i.can_pay && <a href={payer.goUrl(i.code, 'page')} className="rounded-lg bg-brand px-2.5 py-1 font-bold text-ink-900">לתשלום</a>}</span>
+                    </li>))}
+                </ul>
+              </> : <>
+                <div className="text-sm text-ink-500">חשבונית <span className="num">{v.number}</span>{v.due && <> · לתשלום עד <span className="num">{fmtDate(v.due)}</span></>}</div>
+                <div id="amt" className="font-display font-extrabold text-5xl mt-2 num" data-testid="pay-amount">{v.amount}</div>
+              </>}
               {!v.open && <div className="mt-3 rounded-xl bg-brand-50 text-brand-700 font-bold p-3">✓ החשבונית כבר שולמה. תודה!</div>}
             </section>
 
             {done ? <DoneCard done={done} planN={planN} business={v.business} /> : v.open && (
               <>
-                {v.can_pay ? (
+                {many && !v.pay_shared ? (many.some(i => i.can_pay) ? null
+                  : <p className="rounded-2xl bg-amber-50 text-amber-800 p-4">קישור התשלום עוד לא זמין — בעל העסק יעדכן בקרוב.</p>)
+                : v.can_pay ? (
                   <section className="space-y-2.5" aria-label="אמצעי תשלום">
                     <a href={payer.goUrl(code, 'page')} data-testid="pay-page"
                       className="flex h-14 items-center justify-center gap-2 rounded-2xl text-lg font-bold shadow-sm transition bg-brand text-ink-900 hover:brightness-105">
@@ -69,7 +86,7 @@ export function Pay({ code }: { code: string }) {
 
                 <section className="rounded-2xl bg-white shadow-card p-5 space-y-3">
                   <h2 className="font-extrabold text-lg">צריכים פריסה?</h2>
-                  <p className="text-sm text-ink-500">אפשר לבקש לחלק לתשלומים, ללא ריבית. הבקשה עוברת לאישור בעל העסק.</p>
+                  <p className="text-sm text-ink-500">אפשר לבקש לחלק {many ? 'את הסכום הכולל' : ''} לתשלומים, ללא ריבית. הבקשה עוברת לאישור בעל העסק.</p>
                   <div className="flex gap-2" role="radiogroup" aria-label="מספר תשלומים">
                     {v.plan_options.map(n => (
                       <button key={n} role="radio" aria-checked={planN === n} onClick={() => setPlanN(n)}

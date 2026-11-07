@@ -79,7 +79,7 @@ test('סטטיסטיקה על נתוני הדמו', () => {
 
 test('הנוסחים בממשק זהים אות-באות ל-app/templates.py (הבקאנד = מקור האמת)', () => {
   const py = readFileSync(new URL('../../app/templates.py', import.meta.url), 'utf8');
-  const steps = [...py.matchAll(/Step\("(\w+)",([\s\S]*?)\)(?:,\n|\n\))/g)];
+  const steps = [...py.matchAll(/\bStep\("(\w+)",([\s\S]*?)\)(?:,\n|\n\))/g)];
   assert.equal(steps.length, 3);
   for (const [, key, body] of steps) {
     // כל ארגומנט = רצף מחרוזות פייתון סמוכות ⇒ משרשרים
