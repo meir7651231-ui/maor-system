@@ -83,6 +83,7 @@ async function readStored(ids) {
   const p = await blank();
   const r = await p.evaluate(async ({ key, idbName, ids }) => {
     const ls = localStorage.getItem(key);
+    const jr = localStorage.getItem(key.replace(/^maor_db/, 'maor_exitlog'));
     const d = await new Promise((res, rej) => { const q = indexedDB.open(idbName); q.onsuccess = () => res(q.result); q.onerror = () => rej(q.error); });
     const get = (store, k) => new Promise((res) => { const tx = d.transaction(store, 'readonly'); const q = tx.objectStore(store).get(k); q.onsuccess = () => res(q.result); q.onerror = () => res(null); });
     const keys = (store) => new Promise((res) => { const tx = d.transaction(store, 'readonly'); const q = tx.objectStore(store).getAllKeys(); q.onsuccess = () => res(q.result); q.onerror = () => res([]); });
@@ -92,7 +93,7 @@ async function readStored(ids) {
     const est = navigator.storage?.estimate ? await navigator.storage.estimate() : null;
     const snaps = d.objectStoreNames.contains('snapshots') ? await keys('snapshots') : [];
     d.close();
-    return { lsPresent: !!ls, idbSavedAt: cur?.savedAt ?? null, notes: pick(src), idbNotes: pick(cur), snapshots: snaps, usageMB: est ? +(est.usage / 1e6).toFixed(0) : null, quotaMB: est ? +(est.quota / 1e6).toFixed(0) : null };
+    return { lsPresent: !!ls, journal: jr ? jr.length : 0, lsKeys: Object.keys(localStorage), idbSavedAt: cur?.savedAt ?? null, notes: pick(src), idbNotes: pick(cur), snapshots: snaps, usageMB: est ? +(est.usage / 1e6).toFixed(0) : null, quotaMB: est ? +(est.quota / 1e6).toFixed(0) : null };
   }, { key: DB_KEY, idbName: IDB_NAME, ids });
   await p.close();
   return r;
@@ -103,6 +104,11 @@ async function openApp() {
   page.on('console', (m) => { if (m.type() === 'error') errors.push('console: ' + m.text().slice(0, 200)); });
   const cdp = await ctx.newCDPSession(page);
   await cdp.send('Emulation.setCPUThrottlingRate', { rate: THROTTLE });
+  // אבחון: האם pagehide/visibilitychange נורים בסגירה (סימון סינכרוני ב-LS)
+  await page.addInitScript(() => {
+    addEventListener('pagehide', () => { try { localStorage.setItem('pw_pagehide', String(Date.now())); } catch {} });
+    document.addEventListener('visibilitychange', () => { try { localStorage.setItem('pw_vis_' + document.visibilityState, String(Date.now())); } catch {} });
+  });
   const t0 = Date.now();
   await page.goto(`${base}/?org=${ORG}`, { waitUntil: 'commit' });
   await page.locator('nav >> text=תורמים').first().waitFor({ timeout: 120000 });
@@ -157,10 +163,18 @@ for (const ms of DELAYS) {
   await page.waitForTimeout(ms);
   await page.close({ runBeforeUnload: true }); // סגירת-לשונית: pagehide ⇒ flushSaveSync
   await new Promise((r) => setTimeout(r, 1500));
+  const raw = await readStored([sp(0).id]); // מה שבאחסון
+  // ↑ מיד אחרי הסגירה (בלי האפליקציה)
+  if (process.env.DEBUG_CLEAR) { const b = await blank(); await b.evaluate(() => { for (const k of Object.keys(localStorage)) if (k.startsWith('pw_')) localStorage.removeItem(k); }); await b.close(); }
+  const re = await openApp();
+  await re.page.waitForTimeout(6000);
+  await re.page.close({ runBeforeUnload: true });
+  await new Promise((r) => setTimeout(r, 1500));
   const st = await readStored([sp(0).id]);
   const kept = st.notes[sp(0).id] === marker;
-  result.E1.push({ closeAfterMs: ms, kept, loadMs, lsPresent: st.lsPresent });
-  log('E1', ms + 'ms', kept ? 'נשמר' : '❌ אבד', JSON.stringify({ loadMs, ls: st.lsPresent }));
+  const keptRaw = raw.notes[sp(0).id] === marker;
+  result.E1.push({ closeAfterMs: ms, kept, keptInIdbRightAfterClose: keptRaw, loadMs, lsPresent: st.lsPresent });
+  log('E1', ms + 'ms', kept ? 'נשמר' : '❌ אבד', JSON.stringify({ loadMs, idbRightAfterClose: keptRaw, journalAfterClose: raw.journal, keys: raw.lsKeys.filter((k) => /pw_|exitlog/.test(k)), ls: st.lsPresent }));
 }
 
 // E2 — שתי לשוניות (lost-update)
