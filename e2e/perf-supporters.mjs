@@ -644,4 +644,6 @@ async function main() {
   server.close();
 }
 
-main().catch((e) => { console.error('[perf] FAILED', e); try { server.close(); } catch {} process.exit(1); });
+// P0-DATA (7.11): ייבוא המחולל לכלי-האבחון (e2e/p0-data-diag.mjs) בלי להריץ את המדידה
+export { genDb, orgCfg, DB_KEY, IDB_NAME, TODAY, MIME, BLANK_HTML };
+if (process.env.PERF_IMPORT !== '1') main().catch((e) => { console.error('[perf] FAILED', e); try { server.close(); } catch {} process.exit(1); });
