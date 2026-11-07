@@ -35,6 +35,10 @@ export interface PriceTable {
 /** סוג-העסקה: מנוי חודשי (הענן שלך) או Enterprise חד-פעמי (הענן שלו). */
 export type DealMode = 'subscription' | 'enterprise';
 
+/** חבילת "הודעות ללקוחות" — הרחבות שנגבות יחד פעם-אחת (במחיר whatsapp). 7.11.2026, הכרעת-בעלים. */
+const MSG_GROUP = ['whatsapp', 'sms'];
+const MSG_LABEL = '💬 הודעות ללקוחות';
+
 /**
  * מחירי-ברירת-מחדל להרחבות — כויילו למחירי-שוק ריאליים ‏(SaaS ניהול-עמותות
  * בישראל, 2026). placeholder עריך — הבעלים משנה באשף. מפתחות = INTEGRATION_LABELS.
@@ -43,7 +47,10 @@ const DEFAULT_INTEGRATION_PRICES: Record<string, number> = {
   receipts: 60, // קבלות §46 אוטומטיות — ערך-ציות גבוה
   payments: 90, // סליקה והוראות-קבע
   whatsapp: 50,
-  sms: 40, // דמי-מודול (עלות-הודעה בפועל נגבית בנפרד)
+  // 📱 7.11.2026 (הכרעת-בעלים "ב"): SMS **כלול** בחבילת "הודעות ללקוחות" (₪50, ≡ packs[msg] בחנות) — לא נגבה
+  // בנפרד; וואטסאפ ו/או SMS = שורה אחת במחיר-החבילה (MSG_GROUP ב-computeQuote). ⚠️ עלות-ההודעה בפועל
+  // (ספק ה-SMS, פר-הודעה) נגבית בנפרד ואינה חלק מהמחירון.
+  sms: 0,
   phone: 90, // טלפוניה/מרכזייה
   gcal: 30,
   drive: 30,
@@ -167,7 +174,20 @@ export function computeQuote(
 ): Quote {
   const onModules = ALL_MODULES.filter((m) => cfg.modules?.[m] !== false);
   const all: QuoteLine[] = onModules.map((m) => ({ key: m, label: nameOf(m), price: prices.modules[m] ?? 0, kind: 'module' as const }));
-  const addonLines: QuoteLine[] = addons.map((a) => ({ key: a.key, label: a.label, price: prices.integrations[a.key] ?? 0, kind: 'integration' as const }));
+  // 📱 חבילת "הודעות ללקוחות" (7.11): וואטסאפ ו-SMS = שורה אחת במחיר-החבילה (prices.integrations.whatsapp),
+  // גם כשרק אחד מהם דלוק. בלי הודעות ⇒ ביט-זהה.
+  const addonLines: QuoteLine[] = [];
+  let msgDone = false;
+  for (const a of addons) {
+    if (MSG_GROUP.includes(a.key)) {
+      if (msgDone) continue; // שורה אחת לחבילה, במקום של ההרחבה-הראשונה מהקבוצה (וואטסאפ-בלבד ⇒ ביט-זהה)
+      msgDone = true;
+      const wa = addons.find((x) => x.key === 'whatsapp');
+      addonLines.push({ key: 'whatsapp', label: wa?.label ?? MSG_LABEL, price: prices.integrations.whatsapp ?? 0, kind: 'integration' as const });
+      continue;
+    }
+    addonLines.push({ key: a.key, label: a.label, price: prices.integrations[a.key] ?? 0, kind: 'integration' as const });
+  }
   // 🌐 אתר לעסק — רק כשהאתר הציבורי דלוק בקונפיג. בלי config.site ⇒ אין שורה (הצעה ביט-זהה).
   const siteLines: QuoteLine[] = publicSiteOn(cfg as OrgConfig) ? [{ key: 'site', label: 'אתר לעסק', price: prices.site ?? 0, kind: 'integration' as const }] : [];
   const lines = [...all.filter((l) => l.price > 0), ...addonLines.filter((l) => l.price > 0), ...siteLines.filter((l) => l.price > 0)];

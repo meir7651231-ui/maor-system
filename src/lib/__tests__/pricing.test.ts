@@ -6,6 +6,7 @@
 import { describe, expect, it } from 'vitest';
 import { computeQuote, DEFAULT_PRICES, normalizePrices, shekel, type PriceTable } from '../pricing';
 import type { ModuleKey } from '../../types/config';
+import PRICING_SRC from '../pricing.ts?raw';
 
 const nameOf = (m: ModuleKey) => m; // בטסט: שם = מפתח
 
@@ -123,5 +124,35 @@ describe('🌐 ratchet — אתר לעסק בהצעה + מחירון-החנות 
     for (const pk of packs) expect(MAP[pk.key](DEFAULT_PRICES), 'חבילה ' + pk.key).toBe(pk.price);
     // גם הבסיס וההקמה בחנות (קבועים ב-index.html) ≡ האשף
     expect(STORE_HTML).toContain(`const BASE = ${DEFAULT_PRICES.base}, SETUP = ${DEFAULT_PRICES.setup};`);
+  });
+});
+
+/**
+ * ratchet — 📱 SMS כלול בחבילת "הודעות ללקוחות" ₪50 (7.11.2026, הכרעת-בעלים "ב", ≡ packs[msg] בחנות).
+ * 🐛 sms היה מתומחר בנפרד (₪40) ⇒ וואטסאפ+SMS = ₪90 באשף מול ₪50 בחנות.
+ */
+describe('📱 ratchet — SMS כלול בהודעות (₪50)', () => {
+  const off = { modules: { courses: false, diary: false, tzedaka: false, shop: false, shop7: false, reports: false, supporters: false } };
+  const WA = { key: 'whatsapp', label: '💬 וואטסאפ' };
+  const SMS = { key: 'sms', label: '📱 הודעות SMS' };
+  it('וואטסאפ + SMS ⇒ שורה אחת של ₪50 בלבד', () => {
+    const q = computeQuote(off, 'small', DEFAULT_PRICES, nameOf, [WA, SMS]);
+    const msg = q.lines.filter((l) => l.key === 'whatsapp' || l.key === 'sms');
+    expect(msg).toEqual([{ key: 'whatsapp', label: '💬 וואטסאפ', price: 50, kind: 'integration' }]);
+    expect(q.modulesSubtotal).toBe(50);
+  });
+  it('SMS לבד ⇒ מחיר-החבילה ₪50 (לא ₪40 ולא חינם)', () => {
+    const q = computeQuote(off, 'small', DEFAULT_PRICES, nameOf, [SMS]);
+    expect(q.modulesSubtotal).toBe(50);
+  });
+  it('בלי הודעות / וואטסאפ-בלבד ⇒ ביט-זהה לחישוב הישן (שורה במקום המקורי)', () => {
+    const other = [{ key: 'ai', label: 'AI' }, WA, { key: 'receipts', label: 'קבלות' }];
+    const q = computeQuote(off, 'small', DEFAULT_PRICES, nameOf, other);
+    expect(q.lines.map((l) => l.key + ':' + l.price)).toEqual(['ai:120', 'whatsapp:50', 'receipts:60']);
+    expect(computeQuote(off, 'small', DEFAULT_PRICES, nameOf, [{ key: 'ai', label: 'AI' }]).modulesSubtotal).toBe(120);
+  });
+  it('עלות-ההודעה בפועל (ספק) — מתועדת כנפרדת; SMS עדיין roadmap ⇒ לא נמכר כ"פעיל"', () => {
+    expect(PRICING_SRC).toMatch(/עלות-ההודעה בפועל[\s\S]{0,60}נגבית בנפרד/);
+    expect(DEFAULT_PRICES.integrations.sms).toBe(0);
   });
 });
