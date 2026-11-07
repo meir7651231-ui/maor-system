@@ -40,6 +40,7 @@ export const INTEGRATION_LABELS: Record<string, string> = {
   campaign: '📣 חיבור קמפיין גיוס',
   mail: '📧 קבלות ותזכורות במייל',
   gcontacts: '📇 סנכרון אנשי-קשר ל-Google',
+  gabi: '🪙 גבי – תזכורות תשלום',
 };
 
 /**
@@ -66,6 +67,9 @@ export const INTEGRATION_STATUS: Record<string, IntegrationStatus> = {
   phone: 'roadmap', // שרת-מוכן-בריפו (functions/)
   mail: 'roadmap', // צרור-הלילה — mailOutbox בשרת (functions/), ממתין ל-Blaze+deploy
   gcontacts: 'roadmap', // People API בשרת (functions/gcontactsSync) — ממתין ל-OAuth של הבעלים
+  // 🪙 גבי (7.11.2026): מוצר נפרד (collect-agent/) שטרם הושק — לא נמכר/מתומחר עד ההשקה.
+  // ההשקה = הכרעת-בעלים: מעבר ל-'live' + מחיר ב-DEFAULT_INTEGRATION_PRICES + עדכון ה-ratchet.
+  gabi: 'roadmap',
 };
 
 function esc(s: string): string {

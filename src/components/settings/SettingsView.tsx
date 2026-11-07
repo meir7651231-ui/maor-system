@@ -31,6 +31,7 @@ import { ThemeSection } from './ThemeSection';
 import { AuditSection } from './AuditSection';
 import { DonorImportSection } from './DonorImportSection';
 import { GContactsSection } from './GContactsSection';
+import { GabiSection } from './GabiSection';
 import { OrgSecretsSection } from './OrgSecretsSection';
 import { OutboxSection } from './OutboxSection';
 import { publicSiteSlugFor } from '../../lib/siteDomains';
@@ -88,7 +89,7 @@ const SECTION_GROUP: Record<string, GroupId> = {
   'sec-org': 'org', 'sec-theme': 'org', 'sec-teachers': 'org', 'sec-rooms': 'org', 'sec-notif': 'org', 'sec-access': 'org',
   'sec-backup': 'data', 'sec-export': 'data', 'sec-import': 'data', 'sec-donor-import': 'data', 'sec-gcontacts': 'data', 'sec-audit': 'data',
   'sec-security': 'security', 'sec-encryption': 'security', 'sec-cloud-encryption': 'security', 'sec-org-secrets': 'security', 'sec-donation-split': 'security', 'sec-outbox': 'security',
-  'sec-ai': 'adv', 'sec-audittrail': 'adv', 'sec-verifyreceipt': 'adv', 'sec-reset': 'adv',
+  'sec-ai': 'adv', 'sec-gabi': 'adv', 'sec-audittrail': 'adv', 'sec-verifyreceipt': 'adv', 'sec-reset': 'adv',
 };
 
 export function SettingsView() {
@@ -124,7 +125,8 @@ export function SettingsView() {
     security: !isDemo && (featureOn(config, 'shell.lock') || featureOn(config, 'settings.encryption') || canPlatform ||
       // כספת-מפתחות (9.8) — אותו שער של OrgSecretsSection עצמו
       (cloudOn && config.slug !== 'default' && (isManager || canPlatform))),
-    adv: !isDemo && ((integrationOn(config, 'ai') && isAdmin) || (featureOn(config, 'settings.audittrail') && isAdmin) ||
+    // 🪙 גבי (7.11): אותו שער של GabiSection עצמו (הרחבה+מנהל) — חסר ⇒ ביט-זהה
+    adv: !isDemo && ((integrationOn(config, 'ai') && isAdmin) || (integrationOn(config, 'gabi') && isAdmin) || (featureOn(config, 'settings.audittrail') && isAdmin) ||
       featureOn(config, 'core.receipt.verifycode') || secOn('sec-reset')),
   };
   const shownGroup: GroupId = groupHas[group] ? group : 'org';
@@ -135,6 +137,7 @@ export function SettingsView() {
     ...(featureOn(config, 'settings.encryption') ? [{ id: 'sec-encryption', label: 'הצפנה' }] : []),
     ...(canPlatform || (cloudOn && isManager && config.slug !== 'default') ? [{ id: 'sec-cloud-encryption', label: 'הצפנת ענן' }] : []),
     ...(integrationOn(config, 'ai') && isAdmin ? [{ id: 'sec-ai', label: 'עוזר AI' }] : []),
+    ...(integrationOn(config, 'gabi') && isAdmin ? [{ id: 'sec-gabi', label: '🪙 גבי' }] : []),
     ...(featureOn(config, 'settings.audittrail') && isAdmin ? [{ id: 'sec-audittrail', label: 'לוג פעולות' }] : []),
     ...(featureOn(config, 'core.receipt.verifycode') ? [{ id: 'sec-verifyreceipt', label: 'אימות קבלה' }] : []),
     ...(isAdmin && integrationOn(config, 'payments') && cloudOn ? [{ id: 'sec-donor-import', label: 'ייבוא ' + termOf(config, 'nav.supporters', 'תורמים') }] : []),
@@ -229,6 +232,8 @@ export function SettingsView() {
         <>
           {/* גל ג׳ (ai): מפתח-העוזר — מוצג רק כשההרחבה נמכרה; מקומי-למכשיר בלבד */}
           <AiKeySection />
+          {/* 🪙 גבי – תזכורות תשלום (7.11, roadmap) — מגודר בעצמו (הרחבה+מנהל) */}
+          <GabiSection />
           {/* לוג-פעולות (#10) — הרכיב מגודר דגל+מנהל בעצמו */}
           <AuditTrailSection />
           {/* 🔍 אימות-קבלה (#11) — מגודר דגל בעצמו */}

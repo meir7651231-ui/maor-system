@@ -1111,6 +1111,23 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
                 </Field>
               </div>
             )}
+            {/* 🪙 גבי (7.11.2026, roadmap): אין צ'יפ-מכירה (לא הושק). רק כשהדגל כבר דלוק
+                (קונפיג-מיובא/הפעלה-ידנית של הבעלים) — שדה כתובת-הבסיס; הסוד לא כאן. */}
+            {config.integrations?.gabi?.enabled && (
+              <div style={{ marginTop: 8 }}>
+                <Field label="🪙 כתובת גבי (https) — לכפתור «התחברות לגבי»">
+                  <TextInput
+                    value={integrationSetting(config, 'gabi', 'baseUrl')}
+                    onChange={(v) => setIntegrationField('gabi', 'baseUrl', v)}
+                    dir="ltr"
+                    placeholder="https://…"
+                  />
+                </Field>
+                <div style={{ fontSize: 11.5, color: 'var(--ink-faint)' }}>
+                  סוד-החתימה מוזן אצל מנהל-הארגון (הגדרות ← גבי) — מקומי-למכשיר, לא בקונפיג.
+                </div>
+              </div>
+            )}
             {config.integrations?.ai?.enabled && (
               <div style={{ fontSize: 11.5, color: 'var(--ink-faint)', marginTop: 8 }}>
                 🤖 מפתח-ה-API מוזן אצל הלקוח (הגדרות ← עוזר חכם) — מקומי-למכשיר, לא בקונפיג.

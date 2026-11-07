@@ -442,6 +442,8 @@ export type FirebaseOrgConfig = NonNullable<OrgConfig['firebase']>;
 export const INTEGRATION_KEYS = [
   'receipts', 'payments', 'whatsapp', 'sms', 'phone', 'gcal',
   'drive', 'sheets', 'maps', 'esign', 'ai', 'campaign', 'mail', 'gcontacts',
+  // 🪙 גבי – תזכורות תשלום (7.11.2026): מוצר נפרד שיימכר בתוך אורביט — roadmap עד ההשקה
+  'gabi',
 ] as const;
 
 /**
@@ -463,6 +465,9 @@ export const INTEGRATION_SETTING_KEYS: Record<string, readonly string[]> = {
   // 📇 סנכרון אנשי-קשר ל-Google (1.9): שם-קבוצת-היעד (לא סוד — ה-refresh-token
   // חי בכספת-השרת orgSecrets, לא כאן). חסר ⇒ ברירת-מחדל "מאור — אנשי קשר".
   gcontacts: ['groupName'],
+  // 🪙 גבי (7.11): כתובת-הבסיס של גבי (https בלבד — safeHttpsUrl בנקודת-השימוש). לא סוד:
+  // סוד-החתימה של המסירה לעולם לא כאן (מקומי-למכשיר; ראה lib/gabi.ts).
+  gabi: ['baseUrl'],
 };
 
 export const DEFAULT_CONFIG: OrgConfig = {

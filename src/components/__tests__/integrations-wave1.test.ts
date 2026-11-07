@@ -22,7 +22,7 @@ import wizardSrc from '../builder/BuilderWizard.tsx?raw';
 import handoffSrc from '../builder/handoff.ts?raw';
 
 describe('🔌 ratchet — INTEGRATIONS גל א׳: גידור + כנות', () => {
-  it('לכל 14 ההרחבות יש סטטוס; live = 7 (גל א׳ 3 + גל ג׳ "עד-המפתח" 4)', () => {
+  it('לכל 15 ההרחבות יש סטטוס; live = 7 (גל א׳ 3 + גל ג׳ "עד-המפתח" 4)', () => {
     for (const k of Object.keys(INTEGRATION_LABELS)) {
       expect(INTEGRATION_STATUS[k], 'סטטוס חסר ל-' + k).toBeTruthy();
     }
@@ -32,7 +32,8 @@ describe('🔌 ratchet — INTEGRATIONS גל א׳: גידור + כנות', () =>
     // ‏mail הצטרפה בצרור-הלילה 5.8.2026 (#1 מייל-קבלות + תקציר-בוקר)
     // gcontacts הצטרפה 1.9 (People API בשרת, ממתין ל-OAuth של הבעלים)
     const roadmap = Object.keys(INTEGRATION_STATUS).filter((k) => INTEGRATION_STATUS[k] === 'roadmap').sort();
-    expect(roadmap).toEqual(['gcontacts', 'mail', 'phone', 'sheets', 'sms']);
+    // gabi הצטרפה 7.11 (מוצר נפרד שטרם הושק — לא נמכר עד ההשקה; ratchet gabi-store)
+    expect(roadmap).toEqual(['gabi', 'gcontacts', 'mail', 'phone', 'sheets', 'sms']);
   });
 
   it('INTEGRATION_KEYS (ה-allowlist) ≡ מפתחות התוויות והסטטוסים — מקור-אמת אחד', () => {
