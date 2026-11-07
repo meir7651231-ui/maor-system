@@ -8,6 +8,7 @@
  */
 import { openDB, type IDBPDatabase } from 'idb';
 import { isoLocal } from '../lib/date-util';
+import { diffDb, type DbDiff } from '../lib/cloud-diff';
 import { supporterAggregates } from '../lib/supporterAgg';
 import { sanitizePhotos } from '../lib/photoGallery';
 import { AYIN_STAGES } from '../lib/ayin';
@@ -168,6 +169,8 @@ export function setPersistNamespace(slug: string): void {
     IDB_NAME = 'maor';
     idb = null;
     lsDropped = lsDroppedNotice = storedIsEnvelope = false; // ⚡ (12.10) משטר-המכסה ודגל-המעטפת הם פר-מפתח
+    journalAt = null;
+    storedBase = null;
     return;
   }
   nsSlug = slug;
@@ -176,6 +179,8 @@ export function setPersistNamespace(slug: string): void {
   IDB_NAME = `maor:${slug}`;
   idb = null; // חיבור קודם (אם נפתח) מצביע ל-DB הלא נכון
   lsDropped = lsDroppedNotice = storedIsEnvelope = false; // ⚡ (12.10) משטר-המכסה ודגל-המעטפת הם פר-מפתח
+  journalAt = null;
+  storedBase = null;
 }
 
 let nsSlug = '';
@@ -847,6 +852,165 @@ export function readStoredPlainDb(raw?: string | null): Db | null {
   }
 }
 
+/* ─────────── 🛟 יומן-יציאה (P0-DATA, 7.11.2026) ───────────
+ * 🐛 במשטר IDB-בלבד (מסמך > מכסת localStorage — הלקוח-החי, 34MB) שמירה ב-pagehide/hidden היא
+ * `put` אסינכרוני של כל המסמך (0.6–1.4s) שמבוטל בפריקת-הדף ⇒ עריכה שנסגרה תוך ~1 שנייה **אבדה
+ * בשקט** (e2e/p0-data-diag.mjs E1; knowledge/DIAG-P0-DATA-STAGE0-2026-11-07.md). התיקון: ביציאה
+ * כותבים **סינכרונית** ל-localStorage רק את מה שהשתנה מאז השמירה האחרונה שהושלמה (diffDb — רשומות
+ * שלמות, קטן); בטעינה הבאה, אם היומן חדש מהמסמך המאוחסן — מחילים אותו ושומרים. גלוי בלבד (מוצפן ⇒
+ * לא כותבים גלוי ל-LS). מסמך שנכנס ל-LS (≤ ~2k תורמים) ⇒ אפס שינוי (lsDropped=false).
+ */
+let journalAt: string | null = null;
+/** המסמך שמונח כעת באחסון (נטען/נשמר/אומץ) — הבסיס ל-diff של היומן. רשימות שלא השתנו חולקות הפניה ⇒ diffDb זול. */
+let storedBase: Db | null = null;
+const journalKey = () => LS_KEY.replace(/^maor_db/, 'maor_exitlog');
+function lsDocAbsent(): boolean {
+  try {
+    return localStorage.getItem(LS_KEY) === null;
+  } catch {
+    return true;
+  }
+}
+
+/** כתיבת יומן (סינכרוני) — ברגע-העריכה (setDb) וביציאה. true = נכתב. רק במשטר IDB-בלבד וגלוי, ורק כשיש שינוי מול המאוחסן. */
+export function writeExitJournal(next: Db, base: Db | null = storedBase): boolean {
+  if ((dek && envelope) || !base || base === next) return false;
+  // משטר IDB-בלבד: נלמד בסשן (lsDropped) — או, ביציאה הראשונה של הסשן, ניכר מכך שאין מסמך ב-LS
+  // (נטען מ-IDB). מסמך-קטן שה-LS שלו נוקה ⇒ היומן מיותר ונמחק בטעינה (ה-LS שנכתב ביציאה חדש ממנו).
+  if (!lsDropped && !lsDocAbsent()) return false;
+  try {
+    const diff = diffDb(base, next);
+    if (!diff.sets.length && !diff.deletes.length && !diff.meta) return false;
+    const at = new Date().toISOString();
+    localStorage.setItem(journalKey(), JSON.stringify({ v: 1, at, diff }));
+    journalAt = at;
+    return true;
+  } catch {
+    return false; // יומן גדול מהמכסה (עריכה-המונית) ⇒ כמו לפני התיקון
+  }
+}
+
+/** החלת diff על Db (טהור): sets מחליפים/מוסיפים לפי id, deletes מסירים, meta דורס (בלי savedAt). */
+export function applyDbDiff(db: Db, diff: DbDiff): Db {
+  const out = { ...db } as unknown as Record<string, unknown>;
+  const byCol = new Map<string, { sets: Map<string, unknown>; dels: Set<string> }>();
+  const slot = (c: string) => {
+    let x = byCol.get(c);
+    if (!x) byCol.set(c, (x = { sets: new Map(), dels: new Set() }));
+    return x;
+  };
+  for (const st of diff.sets ?? []) slot(st.col).sets.set(st.id, st.data);
+  for (const d of diff.deletes ?? []) slot(d.col).dels.add(d.id);
+  for (const [col, { sets, dels }] of byCol) {
+    const list = Array.isArray(out[col]) ? (out[col] as Array<{ id: string }>) : [];
+    const seen = new Set<string>();
+    const next: unknown[] = [];
+    for (const item of list) {
+      if (dels.has(item.id)) continue;
+      seen.add(item.id);
+      next.push(sets.has(item.id) ? sets.get(item.id) : item);
+    }
+    for (const [id, data] of sets) if (!seen.has(id) && !dels.has(id)) next.push(data);
+    out[col] = next;
+  }
+  if (diff.meta) {
+    const { savedAt: _ignored, ...meta } = diff.meta as Record<string, unknown>;
+    Object.assign(out, meta);
+  }
+  return out as unknown as Db;
+}
+
+/* 🛟 P0-DATA E2 (7.11.2026): שער ריבוי-הלשוניות (#3) נשען על אירוע `storage` של localStorage — במשטר
+ * IDB-בלבד אין כתיבת-LS ⇒ אין אירוע ⇒ לשונית ישנה דרסה בשקט עריכה של לשונית אחרת (p0-data-diag E2).
+ * BroadcastChannel משחזר את אותו אות; המקבל מאמץ לפי אותם כללים (useApp startMultiTabGuard). */
+let bc: BroadcastChannel | null = null;
+let bcName = '';
+function channel(): BroadcastChannel | null {
+  if (typeof BroadcastChannel === 'undefined') return null;
+  const name = 'maor-db:' + LS_KEY;
+  if (!bc || bcName !== name) {
+    try {
+      bc?.close();
+    } catch {
+      /* סגור */
+    }
+    bc = new BroadcastChannel(name);
+    bcName = name;
+  }
+  return bc;
+}
+function announceIdbSave(savedAt: string | undefined): void {
+  try {
+    channel()?.postMessage({ t: 'saved', savedAt: savedAt ?? '' });
+  } catch {
+    /* ערוץ לא זמין */
+  }
+}
+/** מאזין לשמירות של לשוניות אחרות במשטר IDB-בלבד. מחזיר ביטול. */
+export function onOtherTabIdbSave(cb: (savedAt: string) => void): () => void {
+  const ch = channel();
+  if (!ch) return () => {};
+  const h = (e: MessageEvent) => {
+    const d = e.data as { t?: string; savedAt?: string } | null;
+    if (d && d.t === 'saved' && typeof d.savedAt === 'string') cb(d.savedAt);
+  };
+  ch.addEventListener('message', h);
+  return () => ch.removeEventListener('message', h);
+}
+/** קריאת המסמך המאוחסן ב-IDB (גלוי) — לאימוץ אחרי שמירה של לשונית אחרת. מוצפן/פגום ⇒ null. */
+export async function readStoredIdbPlainDb(): Promise<Db | null> {
+  try {
+    const raw = await (await getIdb()).get(IDB_STORE, 'current');
+    if (!raw || isEncrypted(raw)) return null;
+    const m = migrate(raw);
+    if (m) storedBase = m; // אומץ מלשונית אחרת = זה מה שבאחסון
+    return m;
+  } catch {
+    return null;
+  }
+}
+
+/** בטעינה: יומן חדש מהמסמך ⇒ מוחל (ומסומן כריפוי ⇒ init שומר); ישן/פגום ⇒ נמחק. */
+function withExitJournal(db: Db): Db {
+  let raw: string | null = null;
+  try {
+    raw = localStorage.getItem(journalKey());
+  } catch {
+    return db;
+  }
+  if (!raw) return db;
+  try {
+    const j = JSON.parse(raw) as { at?: string; diff?: DbDiff };
+    if (j && typeof j.at === 'string' && j.diff && j.at > (db.savedAt ?? '')) {
+      const healed = migrate(applyDbDiff(db, j.diff));
+      if (healed) {
+        migrateHealed = true; // init/decryptUnlock ⇒ scheduleSave; השמירה המוצלחת תמחק את היומן
+        journalAt = j.at;
+        return healed;
+      }
+    }
+  } catch {
+    /* יומן פגום — נמחק למטה */
+  }
+  try {
+    localStorage.removeItem(journalKey());
+  } catch {
+    /* חסום */
+  }
+  return db;
+}
+
+/** אחרי שמירה שהושלמה: מסמך שנשמר אחרי היומן מכיל אותו ⇒ היומן מיותר. */
+function clearExitJournalIfCovered(savedAt: string | undefined): void {
+  if (!journalAt || !savedAt || savedAt < journalAt) return;
+  try {
+    localStorage.removeItem(journalKey());
+  } catch {
+    /* חסום */
+  }
+  journalAt = null;
+}
+
 /** טעינה: localStorage תחילה, נפילה ל-IndexedDB, ואז DB ריק. מזהה מעטפת מוצפנת. */
 export async function loadDb(): Promise<LoadResult> {
   migrateHealed = false; // ⚠️ ביקורת (12.10): נלמד מחדש בטעינה זו — ראה takeMigrateHealed
@@ -858,7 +1022,10 @@ export async function loadDb(): Promise<LoadResult> {
     return { db: emptyDb(), corrupt: false, encrypted: true };
   }
   const parsed = migrate(raw);
-  if (parsed) return { db: parsed, corrupt: false };
+  if (parsed) {
+    storedBase = parsed; // 🛟 P0-DATA: מה שבאחסון (לפני החלת-היומן)
+    return { db: withExitJournal(parsed), corrupt: false };
+  }
   // ה-LS החזיר ערך תקין-JSON אך ש-migrate דחה (למשל '[]', ‏42, אובייקט ללא v,
   // או v גבוה מדי) → לפני שמכריזים פגום, מתייעצים עם העותק השני ב-IndexedDB.
   let idbRaw: unknown = null;
@@ -874,7 +1041,10 @@ export async function loadDb(): Promise<LoadResult> {
       return { db: emptyDb(), corrupt: false, encrypted: true };
     }
     const idbParsed = migrate(idbRaw);
-    if (idbParsed) return { db: idbParsed, corrupt: false };
+    if (idbParsed) {
+      storedBase = idbParsed;
+      return { db: withExitJournal(idbParsed), corrupt: false };
+    }
   }
   // לא-null אך לא תקין → פגום; שומרים עותק אם אפשר
   if (raw) {
@@ -1046,6 +1216,9 @@ export async function saveDb(db: Db, opts?: { plaintext?: boolean }): Promise<bo
     ok = true;
     idbOk = true;
     storedIsEnvelope = !!(dek && envelope); // ⚡ (12.10) מה שיש עכשיו ב-IDB — בלי לקרוא אותו
+    clearExitJournalIfCovered(doc.savedAt); // 🛟 P0-DATA
+    storedBase = doc;
+    if (lsSkipped || !lsOk) announceIdbSave(doc.savedAt); // 🛟 P0-DATA E2: אין אירוע-storage במשטר IDB-בלבד
     // LS נכשל (מכסה מלאה) אך IDB הצליח → מוחקים את העותק הישן ב-LS. אחרת
     // readRaw היה מחזיר את ה-snapshot הקריא שקדם למכסה, וכל עריכה שנשמרה
     // רק ל-IndexedDB לאחר מכן הייתה נעלמת בטעינה הבאה (איבוד נתונים שקט).
@@ -1096,6 +1269,7 @@ export function flushSaveSync(db: Db): void {
   // ⚡ (12.10): במשטר-IDB-בלבד אין כתיבה סינכרונית אפשרית (IDB אסינכרוני) — stringify של 34MB
   // ב-pagehide רק כדי ש-setItem ייכשל שוב נחסך; במקומו כתיבה-מיטבית אסינכרונית כמו בנתיב-המוצפן.
   if (lsDropped) {
+    writeExitJournal(db); // 🛟 P0-DATA: סינכרוני — שורד פריקה גם כשה-put הבא מבוטל
     void saveDb(db);
     return;
   }
@@ -1106,6 +1280,9 @@ export function flushSaveSync(db: Db): void {
   } catch {
     /* JSON פגום — ממשיכים לכתיבה */
   }
+  // 🛟 P0-DATA: יציאה ראשונה בסשן במסמך-ענק — היומן נכתב **לפני** ה-stringify של 34MB (שנמשך מעבר לחלון
+  // הפריקה ונקטע); כשאין מסמך ב-LS בלבד (lsDocAbsent), כך שמסמך-קטן רגיל לא נוגע ביומן.
+  writeExitJournal(db);
   // ⚡ (12.10) אותו משטר-מכסה כמו saveDb: כישלון/חריגה-מהסף כאן נלמדים לשאר הסשן
   if (!lsWrite(JSON.stringify({ ...db, savedAt: new Date().toISOString() }))) void saveDb(db);
 }

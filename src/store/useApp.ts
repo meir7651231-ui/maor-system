@@ -92,6 +92,9 @@ import {
   runWhenIdleVisible,
   currentDbKey,
   readStoredPlainDb,
+  onOtherTabIdbSave,
+  readStoredIdbPlainDb,
+  writeExitJournal,
   setPersistNamespace,
   nsLsKey,
   decryptAndLoad,
@@ -947,6 +950,9 @@ export const useApp = create<AppState>()((set, get) => {
       return { db: { ...s.db, ...withDels } };
     });
     dirty = true; // עריכה מקומית ממתינה — שער ריבוי-הטאבים לא ידרוס אותה (#3)
+    // 🛟 P0-DATA (7.11): במשטר IDB-בלבד — יומן סינכרוני **ברגע-העריכה**, לפני הרינדור. ביציאה מהירה ה-thread
+    // עוד עסוק ברינדור של 16k שורות ו-pagehide לא רץ כלל (נמדד: p0-data-diag 100–300ms). no-op במסמך שב-LS.
+    if (!get().staleTab) writeExitJournal(get().db);
     scheduleSave();
     // דחיפה לענן (debounced במודול הענן) — no-op כשאין ענן / בזמן החלת שינוי מרוחק
     cloudMod?.cloudOnDbChange(prev, get().db);
@@ -987,6 +993,27 @@ export const useApp = create<AppState>()((set, get) => {
       const cur = get().db.savedAt;
       if (cur && ext.savedAt <= cur) return; // לא חדש יותר — אין מה לאמץ
       set({ db: ext }); // אימוץ הכתיבה החיצונית; בלי scheduleSave (כבר מאוחסן)
+    });
+    // 🛟 P0-DATA E2 (7.11.2026): אותו שער במשטר IDB-בלבד (מסמך > מכסת LS) — אין אירוע-storage, לכן
+    // BroadcastChannel מ-persist. אותם כללים בדיוק: מוצפן ⇒ staleTab; עריכה ממתינה ⇒ לא נוגעים; חדש-יותר ⇒ מאמצים.
+    onOtherTabIdbSave((savedAt) => {
+      if (get().encrypted) {
+        if (!dirty && !get().staleTab) {
+          set({ staleTab: true });
+          warnStaleTab();
+        }
+        return;
+      }
+      if (dirty || get().needDecrypt) return;
+      const cur0 = get().db.savedAt;
+      if (cur0 && savedAt <= cur0) return;
+      void readStoredIdbPlainDb().then((ext) => {
+        if (!ext || !ext.savedAt || dirty) return;
+        const cur = get().db.savedAt;
+        if (cur && ext.savedAt <= cur) return;
+        lastSaved = ext; // כבר מאוחסן — flush לא יכתוב אותו שוב
+        set({ db: ext });
+      });
     });
   }
 
