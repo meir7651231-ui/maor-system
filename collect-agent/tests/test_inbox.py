@@ -227,3 +227,24 @@ def test_plan_approval_via_plans_supersedes_parallel_draft(inbox, svc):
     with pytest.raises(ValueError, match="superseded"):
         inbox.approve_draft(draft_id)
     assert len(svc.sender.sent) == 1   # לא נשלח שוב
+
+
+def test_queued_approved_reply_goes_out_with_the_regular_dispatch_cron(svc, clock):
+    """critic סבב 13 (שוחזר): לפי MVP-SPEC יש cron אחד, «dispatch כל 15 דק׳». תשובה או הצעת פריסה
+    שבעל העסק אישר מחוץ לחלון (שישי אחה״צ/שבת) נשארה approved ונשלחה **רק** ב-/conversation/flush
+    ידני. כלומר בפועל לעולם לא. עכשיו dispatch שולח גם את התור הזה (דרך אותו שער שליחה)."""
+    from datetime import datetime as _dt
+
+    from app.policy import TZ as _TZ
+    svc.sync()
+    for rid in svc.plan():
+        svc.approve(rid)
+    svc.dispatch()
+    res = svc.inbound("sms", "0501234567", "אפשר לפרוס לשלושה תשלומים?")
+    clock.now = _dt(2026, 11, 14, 11, 0, tzinfo=_TZ)              # שבת: בעל העסק מאשר
+    n = len(svc.sender.sent)
+    out = svc.approve_plan(res["plan_id"])
+    assert out["queued"] is True and len(svc.sender.sent) == n
+    clock.now = _dt(2026, 11, 15, 8, 15, tzinfo=_TZ)              # ראשון: ה-cron הרגיל
+    svc.dispatch()
+    assert len(svc.sender.sent) == n + 1 and "פריסה" in svc.sender.sent[-1]["body"]

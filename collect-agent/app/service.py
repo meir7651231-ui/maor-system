@@ -619,6 +619,10 @@ class CollectService:
         out: list[dict] = []
         if not self.policy.can_send_at(now) or not self.trial()["active"]:
             return out
+        # critic סבב 13: ה-cron היחיד במפרט הוא dispatch. תשובות והצעות פריסה שבעל העסק אישר מחוץ
+        # לחלון חיכו ל-/conversation/flush ידני, כלומר בפועל לא יצאו לעולם. עכשיו גם הן יוצאות כאן,
+        # דרך אותו שער שליחה (הסרה, שעות, שבת וחג, ניסיון).
+        self.inbox.flush()
         rows = self.db.q("SELECT * FROM reminders WHERE status='approved' AND scheduled_for<=? "
                          "ORDER BY scheduled_for", (_iso(now),))
         for r in rows:
