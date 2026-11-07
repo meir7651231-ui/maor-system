@@ -96,7 +96,13 @@ def rotate_backups(directory: str | Path, keep: int, max_age_days: int | None = 
     from datetime import datetime, timedelta
     if keep < 1:
         raise ValueError("keep חייב להיות ≥1 (לא מוחקים את כל הגיבויים)")
-    files = sorted(p for p in Path(directory).glob(f"{PREFIX}*{SUFFIX}") if p.is_file())
+    # רק גיבויים מתוזמנים (חותמת תקינה בשם), ממוינים לפי החותמת. היה: מיון לפי שם של כל gabi-*.gbk,
+    # כך שקובץ ידני כמו gabi-manual.gbk נחשב «החדש ביותר»: תפס מקום ב-keep, והגיבוי המתוזמן האחרון
+    # נמחק לפי גיל ⇒ אפשר היה להישאר בלי אף גיבוי אמיתי. קבצים בשם אחר לא נוגעים בהם כאן
+    # (מחיקתם: `app.wipe --backups`, לפי כותרת GBK1).
+    stamped = [(t, p) for p in Path(directory).glob(f"{PREFIX}*{SUFFIX}")
+               if p.is_file() and (t := _stamp_dt(p)) is not None]
+    files = [p for _, p in sorted(stamped)]
     old = files[:-keep]
     if max_age_days is not None and files:
         cutoff = (now or datetime.now(UTC)) - timedelta(days=max_age_days)

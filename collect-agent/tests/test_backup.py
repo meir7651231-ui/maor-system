@@ -78,10 +78,10 @@ def test_snapshot_rotation_keeps_newest(tmp_path):
     from app.backup import snapshot_backup
     db, box = _db(tmp_path), _box()
     d = tmp_path / "bk"
-    for i in range(5):
+    for i in range(1, 6):   # ימים 1–5 (היה 0–4: "20261100" אינו תאריך, והסבב מסתמך על החותמת)
         snapshot_backup(db.conn, d, box, keep=3, now=f"2026110{i}T000000Z")
     names = sorted(p.name for p in d.iterdir())
-    assert names == [f"gabi-2026110{i}T000000Z.gbk" for i in (2, 3, 4)]
+    assert names == [f"gabi-2026110{i}T000000Z.gbk" for i in (3, 4, 5)]
     assert stat.S_IMODE(os.stat(d).st_mode) == 0o700
     r = restore_backup(d / names[-1], tmp_path / "r.db", box)
     assert sqlite3.connect(r).execute("SELECT count(*) FROM customers").fetchone()[0] == 1

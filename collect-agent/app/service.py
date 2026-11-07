@@ -180,6 +180,8 @@ class CollectService:
         for inv in invoices:
             if inv.status != 0 or inv.amount_agorot <= 0:
                 continue   # ממצא 2.10: רק «פתוח» עם יתרה חיובית הוא חוב
+            if not self._merge_csv_twin(inv, source):
+                continue
             seen.add(inv.external_id)
             cust_ext = self.customer_key(inv)
             self.db.x(
@@ -223,6 +225,26 @@ class CollectService:
         if held:
             out["review"] = held   # לקוחות שהושהו לבדיקת זיכוי (2.16) — רק כשיש
         return out
+
+    def _merge_csv_twin(self, inv: Invoice, source: str) -> bool:
+        """critic 3.6.4: אותה חשבונית מ-CSV (`csv:{מספר}`) ומה-API היו שני שרשורים. סנכרון API מלא
+        «סגר» את עותק ה-CSV ⇒ נספר כ«נגבה» בדשבורד, ומונה 3 התזכורות התחיל מאפס בשרשור החדש.
+        API: עותק CSV פתוח באותו מספר (חשבונית 305) מאומץ — מקבל את המזהה של ה-API, וההיסטוריה,
+        הלקוח ומצבו (השהיה/מחלוקת/הסרה) נשמרים. CSV: מספר שכבר מגיע מה-API ⇒ השורה מדולגת
+        (ה-API הוא מקור האמת). False ⇒ לדלג על השורה."""
+        if source == "csv":
+            return self.db.one("SELECT 1 FROM invoices WHERE number=? AND doc_type=? AND "
+                               "source!='csv'", (inv.number, inv.doc_type)) is None
+        if inv.doc_type != 305 or self.db.one("SELECT 1 FROM invoices WHERE external_id=?",
+                                              (inv.external_id,)):
+            return True
+        twin = self.db.one("SELECT id FROM invoices WHERE external_id=? AND status='open'",
+                           ("csv:" + inv.number,))
+        if twin:
+            self.db.x("UPDATE invoices SET external_id=?, source=? WHERE id=?",
+                      (inv.external_id, source, twin["id"]))
+            self.audit("system", "csv_invoice_adopted_by_api", {"invoice": twin["id"]})
+        return True
 
     def sync(self) -> dict[str, int]:
         if self.gi is None:
@@ -1076,10 +1098,19 @@ class CollectService:
             "customers_messaged": len(messaged),
             "reply_rate_pct": round(100 * len(replied) / len(messaged)) if messaged else 0,
         }
+        now = self.clock()
+        closed_why = self.policy.reason_closed(now)
+        try:
+            next_ok: str | None = _iso(self.policy.next_allowed(now))
+        except ValueError:   # לוח החגים פג (fail-closed) ⇒ אין חלון; הדשבורד לא קורס
+            next_ok = None
         return {
             "series": self._collection_series(today, closed),
             "today": today.isoformat(),
             "trial": self.trial(),
+            # critic 2.3.2: בשבת/בלילה/בחג «לא נשלח כלום» נראה כמו תקלה. מציגים מתי מותר ולמה
+            "send_window": {"open_now": closed_why is None, "closed_reason": closed_why,
+                            "next_allowed": next_ok},
             "totals": {
                 "open_invoices": len(open_rows),
                 "open_agorot": sum(x["amount_agorot"] for x in open_rows),

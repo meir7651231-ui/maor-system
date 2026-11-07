@@ -13,6 +13,9 @@ from dataclasses import dataclass, field
 from datetime import date, datetime, time, timedelta
 from zoneinfo import ZoneInfo
 
+# מקור יחיד לאזור הזמן, ולא הגדרה: חלון 08–20, שבת והחגים מוגדרים לפי שעון ישראל, וגבי פונה רק
+# לחייבים בישראל. (critic 3.5: היה גם `Settings.timezone`, שלא נקרא מאף מקום — הוסר כדי שלא ייראה
+# כאילו אפשר לשנות אותו; test_critic_open_items נועל.)
 TZ = ZoneInfo("Asia/Jerusalem")
 
 DAY = (time(8), time(20))

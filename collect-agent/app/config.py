@@ -45,7 +45,6 @@ class Settings:
     db_path: str = "collect_agent.sqlite3"
     business_name: str = "העסק שלי"
     payment_link: str = ""
-    timezone: str = "Asia/Jerusalem"
     holidays: tuple[str, ...] = field(default_factory=tuple)  # תאריכי ISO שבהם אין שליחה
     # אימות: טוקן בעל העסק ל-API, וסוד חתימה ל-/inbound (ראו app/security.py)
     owner_api_token: str = field(default="", repr=False)
@@ -116,8 +115,12 @@ class Settings:
 
     @property
     def payment_page(self) -> str:
-        """הקישור לעמוד התשלום של העסק; בלי הגדרה ⇒ עמוד מוק של הספק (example, לא קיים)."""
-        return self.payment_link or PAYMENT_PROVIDERS[self.payment_provider]["mock"]
+        """הקישור לעמוד התשלום של העסק; בלי הגדרה ⇒ עמוד מוק של הספק (example, לא קיים).
+        critic (סבב 2, «רק קישור לעמוד העסק»): עם נתוני חייבים אמיתיים (REAL_DATA_ALLOWED) אין
+        מוק — בלי קישור אמיתי ⇒ "" ⇒ התזכורת נחסמת `no_payment_link`, ולא יוצאת עם קישור שלא קיים."""
+        if self.payment_link:
+            return self.payment_link
+        return "" if self.real_data_allowed else PAYMENT_PROVIDERS[self.payment_provider]["mock"]
 
     @property
     def allowed_payment_domains(self) -> tuple[str, ...]:
