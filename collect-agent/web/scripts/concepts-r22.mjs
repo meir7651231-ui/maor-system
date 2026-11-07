@@ -15,7 +15,7 @@ export const R22 = { id: 'gimel-dagesh-11', name: 'גּ — הדגש הוא המ
   story: 'ה-ג של גבי, והדגש שבתוכה הוא מטבע — הכסף חזר למקום שלו, בתוך השם. אות עברית אמיתית, נקודה במקומה, בלי פינות חדות ובלי מרדף.' };
 const AX = 37, AY = 30.75;
 const centered = (ink, coin, s) => `<g transform="translate(${(32 - AX * s).toFixed(2)} ${(32 - AY * s).toFixed(2)}) scale(${s})">${mark(ink, coin)}</g>`;
-const svgOpen = (w, h, px, label = 'ג') => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${px}" height="${(px * h / w).toFixed(1)}" role="img" aria-label="${label}">`;
+const svgOpen = (w, h, px, label = 'ג') => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${px}" height="${+(px * h / w).toFixed(1)}" role="img" aria-label="${label}">`;
 export const tileSvg = (px = 1024) => `${svgOpen(64, 64, px)}<rect width="64" height="64" fill="${C.navy}"/>${centered(C.cream, C.green, 0.92)}</svg>`;
 export const iosDarkSvg = () => `${svgOpen(64, 64, 1024)}${centered(C.cream, C.green, 0.92)}</svg>`;
 export const adaptiveFg = () => `${svgOpen(64, 64, 432)}${centered(C.cream, C.green, 0.66)}</svg>`;
