@@ -1,0 +1,141 @@
+<title>Gabi Logo Tuner</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&display=swap">
+<style>
+  /* Layout: preview stage on one side, control panel on the other; stacks to one column on a phone */
+  :root {
+    --bg:#eef0f3; --surface:#ffffff; --fg:#0F172A; --muted:#475569; --line:#e2e5ea; --field:#f6f7f9;
+    --btn:#0F172A; --btn-fg:#FBF8F1;
+    --font: Rubik, Heebo, Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+    --bg:#0b1020; --surface:#141a2c; --fg:#e8ecf3; --muted:#9aa4b6; --line:#263049; --field:#0f1527;
+    --btn:#FBF8F1; --btn-fg:#0F172A; color-scheme:dark } }
+  :root[data-theme="dark"] {
+    --bg:#0b1020; --surface:#141a2c; --fg:#e8ecf3; --muted:#9aa4b6; --line:#263049; --field:#0f1527;
+    --btn:#FBF8F1; --btn-fg:#0F172A; color-scheme:dark }
+  * { box-sizing:border-box; }
+  body { background:var(--bg); color:var(--fg); font-family:var(--font);
+    padding-left:max(16px, env(safe-area-inset-left, 0px)); padding-right:max(16px, env(safe-area-inset-right, 0px)); padding-block:14px 24px; }
+  h1 { margin:0; font-size:20px; text-wrap:balance; }
+  .sub { color:var(--muted); font-size:13px; margin:4px 0 12px; max-width:65ch; }
+  main { display:grid; grid-template-columns:minmax(0,1fr) 340px; gap:14px; }
+  @media (max-width:820px){ main { grid-template-columns:minmax(0,1fr); } }
+  .card { background:var(--surface); border-radius:14px; padding:14px; min-width:0; }
+  .stage { display:flex; flex-wrap:wrap; gap:14px; align-items:flex-end; }
+  .stage figure { margin:0; display:flex; flex-direction:column; align-items:center; gap:4px; font-size:11px; color:var(--muted); }
+  .big { width:min(300px,100%); height:auto; max-width:100%; aspect-ratio:1; }
+  fieldset { border:0; border-top:1px solid var(--line); margin:0; padding:10px 0 4px; }
+  legend { font-weight:600; font-size:13px; padding:0 0 4px; }
+  .row { display:grid; grid-template-columns:96px minmax(0,1fr) 50px; align-items:center; gap:8px; font-size:13px; margin:5px 0; }
+  .row input[type=range] { width:100%; direction:ltr; accent-color:#059669; }
+  .row output { text-align:left; font-variant-numeric:tabular-nums; direction:ltr; }
+  .btns { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+  button { font:inherit; font-size:13px; border:1px solid var(--line); background:var(--surface); color:var(--fg); border-radius:10px; padding:8px 12px; cursor:pointer; min-height:40px; }
+  button.primary { background:var(--btn); color:var(--btn-fg); border-color:var(--btn); }
+  button:focus-visible, input:focus-visible { outline:2px solid #059669; outline-offset:2px; }
+  pre { direction:ltr; text-align:left; font-size:11px; background:var(--field); border-radius:10px; padding:10px; white-space:pre-wrap; word-break:break-all; margin:10px 0 0; }
+  label.chk { font-size:13px; display:flex; gap:6px; align-items:center; margin:6px 0; }
+</style>
+
+<div dir="rtl">
+  <h1>כיוונון הלוגו של גבי</h1>
+  <p class="sub">הזיזו את המחוונים — התצוגה מתעדכנת מיד בכל הגדלים. בסוף: «העתקת ערכים» והדביקו לי בצ׳אט.</p>
+  <main>
+    <section class="card"><div class="stage" id="stage"></div></section>
+    <aside class="card">
+      <label class="chk"><input type="checkbox" id="autofit" checked> מרכוז והתאמה אוטומטיים למשטח</label>
+      <label class="chk"><input type="checkbox" id="guides"> קווי-עזר (מרכז המשטח)</label>
+      <div id="controls"></div>
+      <div class="btns">
+        <button class="primary" id="copy">העתקת ערכים</button>
+        <button id="copysvg">העתקת SVG</button>
+        <button id="reset">איפוס</button>
+      </div>
+      <pre id="out"></pre>
+    </aside>
+  </main>
+</div>
+
+<script>
+const PALM = 'M9 31 C9 28.5 12.5 27.8 14 30 C16.5 35 20.5 37.8 26 37.8 C31 37.8 34.5 35.5 36.6 31.5 C38.4 28.6 41.6 28.4 43.4 30.6 C44.6 32.4 45.6 33.8 47.5 34.2 L52 35 L52 46.6 C45 46.6 40 46.4 35 46.6 C22 47.2 12 42 9.5 35 C9.2 33.8 9 32.4 9 31 Z';
+const THUMB = 'M35.6 33.5 L35 22.5 C34.7 20.2 37.6 19 39 20.8 L42.4 30.5 L43.2 34 Z';
+const C = { navy:'#0F172A', cream:'#FBF8F1', green:'#10B981', greenL:'#059669' };
+const DEF = { handRot:55, thumbRot:15, cuffGap:2.2, cuffW:6.6, coinX:-5.6, coinY:32.2, coinR:6, walX:-19.6, walY:41.8, walW:27, walH:17, scale:100, offX:0, offY:0 };
+const SPEC = [
+  ['היד', [['handRot','סיבוב היד',20,100,0.5,'°'],['thumbRot','זווית האגודל',-40,40,0.5,'°'],['cuffGap','רווח לשרוול',0,5,0.1,''],['cuffW','עובי השרוול',3,10,0.1,'']]],
+  ['המטבע', [['coinX','מיקום ↔',-30,30,0.1,''],['coinY','מיקום ↕',10,60,0.1,''],['coinR','גודל',3,10,0.1,'']]],
+  ['הארנק', [['walX','מיקום ↔',-40,30,0.1,''],['walY','מיקום ↕',20,70,0.1,''],['walW','רוחב',16,40,0.5,''],['walH','גובה',10,26,0.5,'']]],
+  ['הכול', [['scale','גודל כללי',60,130,1,'%'],['offX','הזזה ↔',-12,12,0.1,''],['offY','הזזה ↕',-12,12,0.1,'']]],
+];
+let S = load();
+function load(){ try { const v = JSON.parse(localStorage.getItem('gabi-tuner')||'null'); return v ? {...DEF, ...v} : {...DEF}; } catch { return {...DEF}; } }
+function save(){ try { localStorage.setItem('gabi-tuner', JSON.stringify(S)); } catch {} }
+const $ = id => document.getElementById(id);
+
+function wallet(ink,bg,x,y,w,h){
+  return `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="5" fill="${ink}"/>`+
+    `<rect x="${x+3.6}" y="${y+3.8}" width="${w-7.2}" height="2.4" rx="1.2" fill="${bg}"/>`+
+    `<rect x="${x+w-9.5}" y="${y+h/2-4}" width="12" height="8" rx="4" fill="${ink}" stroke="${bg}" stroke-width="1.8"/>`+
+    `<circle cx="${x+w-3.8}" cy="${y+h/2}" r="1.7" fill="${bg}"/>`;
+}
+function inner(ink,coin,bg){
+  const cuff = `<rect x="${52+S.cuffGap}" y="33" width="${S.cuffW}" height="16" rx="2.4" fill="${ink}"/>`;
+  const hand = `<g transform="rotate(${S.handRot} 32 32) translate(0 82) scale(1 -1)"><path d="${PALM}" fill="${ink}"/><path d="${THUMB}" transform="rotate(${S.thumbRot} 39.4 31)" fill="${ink}"/>${cuff}</g>`;
+  return hand + `<circle cx="${S.coinX}" cy="${S.coinY}" r="${S.coinR}" fill="${coin}"/>` + wallet(ink,bg,S.walX,S.walY,S.walW,S.walH);
+}
+function tile(px,bg,ink,coin,rx=14){
+  const guide = $('guides').checked && px>=200 ? '<path d="M32 0V64M0 32H64" stroke="#e11d48" stroke-width=".25" fill="none"/>' : '';
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="${px}" height="${px}"${px>=200?' class="big"':''} role="img" aria-label="לוגו גבי"><rect width="64" height="64" rx="${rx}" fill="${bg}"/><g class="m">${inner(ink,coin,bg)}</g>${guide}</svg>`;
+}
+function fit(){
+  const auto = $('autofit').checked;
+  for (const g of document.querySelectorAll('g.m')) {
+    g.removeAttribute('transform');
+    const b = g.getBBox();
+    const k = (auto ? Math.min(50/b.width, 50/b.height) : 1) * S.scale/100;
+    const tx = auto ? 32 - k*(b.x+b.width/2) : 0, ty = auto ? 32 - k*(b.y+b.height/2) : 0;
+    g.setAttribute('transform', `translate(${(tx+S.offX).toFixed(2)} ${(ty+S.offY).toFixed(2)}) scale(${k.toFixed(4)})`);
+  }
+}
+function render(){
+  $('stage').innerHTML =
+    `<figure>${tile(300,C.cream,C.navy,C.greenL)}<span>נייבי על קרם</span></figure>`+
+    `<figure>${tile(300,C.navy,C.cream,C.green)}<span>קרם על נייבי</span></figure>`+
+    `<figure>${tile(96,C.navy,C.cream,C.green)}<span>אייקון 96</span></figure>`+
+    `<figure>${tile(64,C.navy,C.cream,C.green)}<span>64</span></figure>`+
+    `<figure>${tile(48,C.navy,C.cream,C.green)}<span>48</span></figure>`+
+    `<figure>${tile(32,C.navy,C.cream,C.green)}<span>32</span></figure>`+
+    `<figure>${tile(64,'#FFFFFF','#000000','#000000',0)}<span>שחור-לבן</span></figure>`;
+  fit();
+  $('out').textContent = JSON.stringify(Object.fromEntries(Object.entries(S).map(([k,v])=>[k,+(+v).toFixed(2)])));
+  save();
+}
+function buildControls(){
+  const host = $('controls'); host.innerHTML='';
+  for (const [title, items] of SPEC) {
+    const fs = document.createElement('fieldset');
+    fs.innerHTML = `<legend>${title}</legend>` + items.map(([k,l,min,max,step,u]) =>
+      `<div class="row"><label for="c_${k}">${l}</label><input type="range" id="c_${k}" min="${min}" max="${max}" step="${step}" value="${S[k]}"><output id="o_${k}">${(+S[k]).toFixed(1)}${u}</output></div>`).join('');
+    host.appendChild(fs);
+    for (const [k,,,,,u] of items) {
+      const el = fs.querySelector('#c_'+k);
+      el.addEventListener('input', () => { S[k] = +el.value; fs.querySelector('#o_'+k).textContent = (+el.value).toFixed(1)+u; render(); });
+    }
+  }
+}
+async function copyText(text, btn, label){
+  try { await navigator.clipboard.writeText(text); btn.textContent = 'הועתק ✓'; }
+  catch { const r = document.createRange(); r.selectNodeContents($('out')); getSelection().removeAllRanges(); getSelection().addRange(r); btn.textContent = 'סומן — העתיקו ידנית'; }
+  setTimeout(() => btn.textContent = label, 1600);
+}
+$('autofit').addEventListener('change', render);
+$('guides').addEventListener('change', render);
+$('reset').addEventListener('click', () => { S = {...DEF}; buildControls(); render(); });
+$('copy').addEventListener('click', e => copyText($('out').textContent, e.currentTarget, 'העתקת ערכים'));
+$('copysvg').addEventListener('click', e => {
+  const svg = document.querySelector('#stage svg').outerHTML.replace(/ class="[^"]*"/g,'').replace(/width="300" height="300"/,'width="1024" height="1024"');
+  copyText(svg, e.currentTarget, 'העתקת SVG');
+});
+buildControls(); render();
+</script>
