@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useApp } from '../store.tsx';
 import { api } from '../api.ts';
 import { RULES } from '../lib/domain.ts';
-import { diffPatch, explainImportError, explainSettingsError, toForm, validate, type DesignSettings, type PayProvider, type SettingsForm } from '../lib/settings.ts';
+import { diffPatch, explainImportError, explainSettingsError, SOURCE_SYSTEMS, sourceLabel, toForm, validate, type DesignSettings, type PayProvider, type SettingsForm } from '../lib/settings.ts';
 import { Button, Card, Field, inputCls } from '../components/ui.tsx';
 
 const PAY: [PayProvider, string][] = [['greeninvoice', 'חשבונית ירוקה (morning)'], ['meshulam', 'משולם'], ['bit', 'ביט']];
@@ -17,6 +17,7 @@ export function Settings() {
   const mockForm: SettingsForm = useMemo(() => ({
     business_name: business.name, owner_name: business.ownerName, vat_id: business.vatId, reply_email: business.email,
     sender: business.smsSender, pay_provider: business.payProvider, pay_url: business.payPageUrl,
+    source_system: business.sourceSystem ?? (business.dataSource === 'csv' ? 'csv' : 'greeninvoice'),
   }), [business]);
   const [server, setServer] = useState<DesignSettings | null>(null);
   const [orig, setOrig] = useState<SettingsForm>(mockForm);
@@ -47,7 +48,7 @@ export function Settings() {
         await reload(); // שם העסק בהודעות מתעדכן
         showToast('✓ נשמר בשרת');
       } else {
-        setBusiness({ ...business, name: f.business_name, ownerName: f.owner_name, vatId: f.vat_id, email: f.reply_email, smsSender: f.sender, payProvider: f.pay_provider, payPageUrl: f.pay_url });
+        setBusiness({ ...business, name: f.business_name, ownerName: f.owner_name, vatId: f.vat_id, email: f.reply_email, smsSender: f.sender, payProvider: f.pay_provider, payPageUrl: f.pay_url, sourceSystem: f.source_system, dataSource: f.source_system === 'csv' ? 'csv' : 'api' });
         setOrig(f);
         showToast('נשמר בלשונית הזו בלבד — לא בשרת (מוק)');
       }
@@ -88,10 +89,31 @@ export function Settings() {
 
       <Card className="p-5 space-y-4">
         <h2 className="text-lg font-extrabold">מאיפה מגיעות החשבוניות</h2>
-        <div className="rounded-xl bg-ink-50 p-3 text-sm">
-          🔌 <b>API של חשבונית ירוקה</b> (מומלץ):{' '}
-          {live ? (server?.source.api_connected ? <span className="text-brand-700 font-bold">מחובר (סביבת בדיקה)</span> : 'לא מחובר') : 'מוק'}
-          <div className="text-xs text-ink-500 mt-1">חיבור מפתח מהמסך — <b>בקרוב</b>. בשלב הבטא המפתח לא נקלט כאן ולא נשמר (כל עסק יחבר מפתח משלו בגרסה הבאה).</div>
+        <p className="text-sm text-ink-500">גבי <b>רק קורא</b> חשבוניות פתוחות ממערכת החשבוניות שלכם. הוא לא יוצר, לא משנה ולא מבטל מסמכים.</p>
+        <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="מערכת החשבוניות" data-testid="source-systems">
+          {SOURCE_SYSTEMS.map(o => (
+            <button key={o.key} role="radio" aria-checked={f.source_system === o.key} onClick={() => set('source_system', o.key)}
+              data-testid={`source-${o.key}`} title={o.note}
+              className={`rounded-full px-4 py-2 text-sm font-bold border cursor-pointer ${f.source_system === o.key ? 'bg-ink-900 text-white border-ink-900' : 'bg-white border-ink-200'}`}>
+              {o.label}
+            </button>
+          ))}
+        </div>
+        <div className="rounded-xl bg-ink-50 p-3 text-sm" data-testid="source-status">
+          {f.source_system === 'csv' ? (
+            <>📄 <b>קובץ CSV</b>: מייבאים קובץ חשבוניות פתוחות (למטה). אין סנכרון אוטומטי, ולכן לפני כל תזכורת תתבקשו לאשר שהסכום עדיין פתוח.</>
+          ) : (
+            <>
+              🔌 <b>{sourceLabel(f.source_system)}</b>{f.source_system === 'greeninvoice' && ' (מומלץ)'}:{' '}
+              {!live ? 'מוק'
+                : f.source_system !== orig.source_system ? 'יתעדכן אחרי שמירה'
+                : server?.source.api_connected ? <span className="text-brand-700 font-bold">מחובר (סביבת בדיקה)</span> : 'לא מחובר'}
+              <div className="text-xs text-ink-500 mt-1">חיבור מפתח מהמסך — <b>בקרוב</b>. בשלב הבטא המפתח לא נקלט כאן ולא נשמר (כל עסק יחבר מפתח משלו בגרסה הבאה).</div>
+              {f.source_system === 'ezcount' && (
+                <div className="text-xs text-amber-900 mt-1" data-testid="source-unverified">⚠️ ממשק הקריאה של EZcount עדיין בבדיקה מול הספק. עד שיאומת, אפשר לייבא גם קובץ CSV.</div>
+              )}
+            </>
+          )}
         </div>
         <Field label="📄 חלופה: ייבוא קובץ CSV של חשבוניות פתוחות" hint="עמודות: מספר חשבונית, שם לקוח, טלפון, מייל, סכום/יתרה, תאריך לתשלום. שורה לא תקינה מדווחת ולא מפילה את הקובץ.">
           {/* קלט קובץ נייטיב מציג טקסט באנגלית ⇒ מוסתר, ותווית-כפתור בעברית במקומו */}

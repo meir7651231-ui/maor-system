@@ -239,7 +239,7 @@ test('הודעות מערכת לבעל העסק: רק direction=system, סוף �
   assert.equal(n[1].title, 'הודעה מגבי');
 });
 
-import { diffPatch, explainImportError, explainSettingsError, toForm, validate, vatOk, type DesignSettings } from '../src/lib/settings.ts';
+import { diffPatch, explainImportError, explainSettingsError, SOURCE_SYSTEMS, sourceLabel, toForm, validate, vatOk, type DesignSettings } from '../src/lib/settings.ts';
 test('הגדרות: PUT חלקי בלבד, ולידציה כמו בשרת, שגיאות בעברית', () => {
   const s: DesignSettings = {
     business_name: 'סטודיו דמו', owner_name: '', vat_id: '', reply_email: 'owner@example.com',
@@ -262,6 +262,30 @@ test('הגדרות: PUT חלקי בלבד, ולידציה כמו בשרת, שג�
   assert.ok(validate({ ...a, business_name: 'x' }).business_name);
   assert.equal(explainSettingsError("sms_sender_id: String should match pattern '^[A-Za-z0-9]{1,11}$'"), 'שם השולח: ערך לא תקין');
   assert.equal(explainSettingsError('קישור התשלום חייב להיות https בדומיין של bit: pay.example'), 'קישור התשלום חייב להיות https בדומיין של bit: pay.example');
+});
+
+test('מקור חשבוניות: נשלחת רק הבחירה ורק כשהשתנתה; הרשימה זהה לשרת', () => {
+  const s: DesignSettings = {
+    business_name: 'סטודיו דמו', owner_name: '', vat_id: '', reply_email: '',
+    sms: { primary: '019', backup: 'inforu', sender: 'StudioDemo' }, pay: { provider: 'greeninvoice', page_url: '' },
+    source: { type: 'api', api_connected: true }, cadence_days: [1, 7, 14],
+    rules: { max_reminders: 3, window: '08:00-20:00', approval: 'every_message' },
+  };
+  const a = toForm(s);
+  assert.equal(a.source_system, 'greeninvoice', 'שרת ישן בלי system ⇒ חשבונית ירוקה');
+  assert.equal(toForm({ ...s, source: { ...s.source, system: 'rivhit' } }).source_system, 'rivhit');
+  assert.deepEqual(diffPatch(a, a), {});
+  assert.deepEqual(diffPatch(a, { ...a, source_system: 'icount' }), { source: { system: 'icount' } });
+  const p = JSON.stringify(diffPatch(a, { ...a, source_system: 'ezcount' }));
+  assert.ok(!/key|token|secret|api_connected|type/.test(p), 'לעולם לא סוד ולא שדה מחושב');
+  assert.equal(sourceLabel('rivhit'), 'רווחית');
+  assert.equal(sourceLabel(undefined), 'חשבונית ירוקה (morning)');
+  // מקור אמת: SOURCE_SYSTEMS ב-app/integrations/sources.py — אותם מפתחות, באותו סדר
+  const py = readFileSync(new URL('../../app/integrations/sources.py', import.meta.url), 'utf8');
+  const block = py.slice(py.indexOf('SOURCE_SYSTEMS: dict'), py.indexOf('SOURCE_KEYS ='));
+  const keys = [...block.matchAll(/^ {4}"(\w+)": SourceSystem\(/gm)].map(m => m[1]);
+  assert.deepEqual(SOURCE_SYSTEMS.map(x => x.key), keys);
+  assert.equal(explainSettingsError("source_system: Input should be 'greeninvoice'"), "מערכת החשבוניות: Input should be 'greeninvoice'");
 });
 
 test('מקור החשבונית מהשרת (api/csv) נשמר במודל — בסיס לתיבת «הסכום עדיין פתוח»', () => {
