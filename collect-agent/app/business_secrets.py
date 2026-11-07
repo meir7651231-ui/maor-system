@@ -23,7 +23,10 @@ CREATE TABLE IF NOT EXISTS business_secrets (
 """
 
 FIELDS = frozenset({"gi_api_id", "gi_api_secret", "sms_token", "sms_username", "smtp_password",
-                    "email_api_key", "sms_webhook_key", "email_webhook_key", "gi_webhook_key"})
+                    "email_api_key", "sms_webhook_key", "email_webhook_key", "gi_webhook_key",
+                    # מקורות חשבוניות נוספים (app/integrations/sources.py) — קריאה בלבד
+                    "icount_api_token", "rivhit_api_token", "ezcount_api_key",
+                    "ezcount_developer_email", "source_webhook_key"})
 
 
 class BusinessSecrets:

@@ -29,6 +29,8 @@ export type SmsProvider = '019' | 'inforu';
 export type PayProvider = 'greeninvoice' | 'meshulam' | 'bit';
 /** מקור החשבוניות: API תחילה, CSV חלופה. */
 export type DataSource = 'api' | 'csv';
+/** מערכת החשבוניות (app/integrations/sources.py). קריאה בלבד בכולן. */
+export type SourceSystem = 'greeninvoice' | 'icount' | 'rivhit' | 'ezcount' | 'csv';
 /** כללי המוצר (הכרעת מאיר 6.11) — לא ניתנים לשינוי בהגדרות. */
 export const PRODUCT_RULES = { maxReminders: 3, window: { from: '08:00', to: '20:00' }, fridayUntil: '12:00', perMessageApproval: true } as const;
 /** אותם כללים במילים — מוצגים בהגדרות כקבועים (🔒). */
@@ -52,6 +54,7 @@ export interface Business {
   payProvider: PayProvider;
   payPageUrl: string;         // עמוד התשלום של העסק (מוק: example)
   dataSource: DataSource;
+  sourceSystem?: SourceSystem;   // חסר ⇒ חשבונית ירוקה (או CSV כש-dataSource='csv')
   channels: Record<Channel, boolean>;
   cadenceDays: [number, number, number]; // ימים אחרי מועד-הפירעון: תזכורת 1/2/3 (עד 3, ואז עצירה)
 }

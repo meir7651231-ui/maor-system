@@ -159,7 +159,8 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
             retry = rl.check(group, ip)
             if retry is not None:
                 return too_many(retry)
-        if request.url.path == "/webhooks/greeninvoice":
+        if request.url.path == "/webhooks/greeninvoice" or \
+                request.url.path.startswith("/webhooks/source/"):
             retry = rl.check("gi_webhook_global", "*")  # כל קריאה = sync מלא
             if retry is not None:
                 return too_many(retry)
@@ -402,6 +403,37 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
             return {"ok": False}
         return {"ok": True, "sync": res}
 
+    @app.post("/webhooks/source/{system}")
+    async def source_webhook(system: str, request: Request, k: str = ""):
+        """webhook ממערכת חשבוניות שאינה חשבונית ירוקה (iCount מתעדת webhook; רווחית/EZcount לא).
+        כמו ב-morning: סוד ב-URL (SOURCE_WEBHOOK_KEY), התוכן **רק טריגר** — המצב נקרא מחדש מה-API
+        המאומת (sync). מערכת שאינה המקור הנבחר ⇒ 404 (לא מסנכרנים ממקור שלא נבחר)."""
+        from .integrations.sources import SOURCE_SYSTEMS
+        if not svc.s.source_webhook_key or not hmac.compare_digest(
+                k.encode("utf-8"), svc.s.source_webhook_key.encode("utf-8")):
+            raise HTTPException(403, "forbidden")
+        sysdef = SOURCE_SYSTEMS.get(system)
+        if sysdef is None or sysdef.webhook != "trigger" or system == "greeninvoice" or \
+                system != svc.s.source_system:
+            raise HTTPException(404, "not found")
+        raw = await request.body()
+        if len(raw) > MAX_WEBHOOK_BODY:
+            raise HTTPException(413, "too large")
+        try:
+            ev = json.loads(raw or b"{}")
+        except ValueError:
+            raise HTTPException(400, "invalid json") from None
+        if not isinstance(ev, dict):
+            raise HTTPException(400, "invalid payload")
+        svc.audit(system, "source_webhook", {"system": system,
+                                             "ref": str(ev.get("docnum") or ev.get("id") or "")[:64]})
+        try:
+            res = svc.sync()
+        except Exception as e:  # noqa: BLE001 — הספק ינסה שוב; לא חושפים פרטים
+            svc.audit("system", "source_webhook_sync_failed", {"error": type(e).__name__})
+            return {"ok": False}
+        return {"ok": True, "sync": res}
+
     @app.post("/webhooks/sms/019")
     async def sms019_webhook(request: Request):
         """019 שולחים form-urlencoded (incoming_sms: message/phone/dest; גם dlr/blacklist).
@@ -518,7 +550,9 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
     async def settings_source_key():
         """שלב 1: לא קולטים מפתחות אמיתיים (business_secrets.py; אין הרשמה/חיבור אמיתי).
         הגוף לא נקרא ולא נשמר — 501 מפורש, כדי שהממשק יציג «בקרוב»."""
-        raise HTTPException(501, "שלב 1 (בטא, dry-run): חיבור מפתח API של חשבונית ירוקה עדיין "
+        from .integrations.sources import SOURCE_SYSTEMS
+        label = SOURCE_SYSTEMS[svc.s.source_system].label
+        raise HTTPException(501, f"שלב 1 (בטא, dry-run): חיבור מפתח API של {label} עדיין "
                                  "לא פעיל. הנתונים מגיעים מה-mock או מ-CSV. המפתח לא נשמר.")
 
     @app.post("/settings/source/csv", dependencies=auth)

@@ -78,3 +78,34 @@ def demo_client(base_url: str = "") -> tuple[GreenInvoiceClient, DemoBackend]:
                             deliver=lambda url, payload: None)
     return (GreenInvoiceClient(SANDBOX, DEMO_ID, DEMO_SECRET,
                                transport=httpx.MockTransport(mock.handler)), DemoBackend(mock))
+
+
+def demo_source_factory():
+    """הדגמה: בחירת iCount/רווחית/EZcount בהגדרות ⇒ adapter אמיתי מעל mock בתוך התהליך (בלי רשת),
+    עם נתונים בדויים. מחזיר (factory, mocks) — ה-mocks חשופים לבדיקות ולהדגמת «שולם»."""
+    from .ezcount_mock import EZcountMock
+    from .ezcount_mock import demo_docs as ez_docs
+    from .icount_mock import ICountMock, demo_clients
+    from .icount_mock import demo_docs as ic_docs
+    from .integrations.ezcount import EZcountClient
+    from .integrations.icount import ICountClient
+    from .integrations.rivhit import RivhitClient
+    from .rivhit_mock import RivhitMock, demo_customers
+    from .rivhit_mock import demo_docs as rv_docs
+
+    mocks = {"icount": ICountMock(docs=ic_docs(), clients=demo_clients()),
+             "rivhit": RivhitMock(docs=rv_docs(), customers=demo_customers()),
+             "ezcount": EZcountMock(docs=ez_docs())}
+
+    def factory(system: str):
+        m = mocks.get(system)
+        if m is None:
+            return None
+        t = httpx.MockTransport(m.handler)
+        if system == "icount":
+            return ICountClient(api_token=m.api_token, transport=t)
+        if system == "rivhit":
+            return RivhitClient(api_token=m.api_token, transport=t)
+        return EZcountClient(api_key=m.api_key, developer_email=m.developer_email, transport=t)
+
+    return factory, mocks

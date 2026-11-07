@@ -1,10 +1,25 @@
 // מסך ההגדרות מול השרת (GET/PUT /settings, חוזה DESIGN.md §3ב). טהור — נבדק ב-tests.
+import type { SourceSystem } from './domain.ts';
 export type PayProvider = 'greeninvoice' | 'meshulam' | 'bit';
+export type { SourceSystem };
+export const SOURCE_SYSTEMS: { key: SourceSystem; label: string; note: string }[] = [
+  { key: 'greeninvoice', label: 'חשבונית ירוקה (morning)', note: 'מומלץ · סנכרון אוטומטי' },
+  { key: 'icount', label: 'iCount', note: 'סנכרון אוטומטי' },
+  { key: 'rivhit', label: 'רווחית', note: 'סנכרון אוטומטי' },
+  { key: 'ezcount', label: 'EZcount', note: 'בבדיקה מול הספק' },
+  { key: 'csv', label: 'קובץ CSV', note: 'ייבוא ידני' },
+];
+export const sourceLabel = (k: SourceSystem | undefined) => SOURCE_SYSTEMS.find(x => x.key === k)?.label ?? 'חשבונית ירוקה (morning)';
 export interface DesignSettings {
   business_name: string; owner_name: string; vat_id: string; reply_email: string;
   sms: { primary: string; backup: string; sender: string };
   pay: { provider: PayProvider; page_url: string; is_mock?: boolean };
-  source: { type: 'api' | 'csv'; api_connected: boolean };
+  source: {
+    type: 'api' | 'csv'; api_connected: boolean;
+    // מהשרת (DESIGN.md §3ב). אופציונלי — שרת ישן בלי הבחירה ⇒ חשבונית ירוקה
+    system?: SourceSystem; system_label?: string; docs_verified?: string;
+    secrets?: Record<string, 'set' | 'missing'>; key_intake?: string;
+  };
   cadence_days: number[];
   rules: { max_reminders: number; window: string; friday_and_holiday_eve?: string; approval: string };
   pricing?: { month_ils: number; year_ils: number; trial_days: number; card_required: boolean };
@@ -12,13 +27,16 @@ export interface DesignSettings {
 export interface SettingsForm {
   business_name: string; owner_name: string; vat_id: string; reply_email: string;
   sender: string; pay_provider: PayProvider; pay_url: string;
+  source_system: SourceSystem;
 }
 export const toForm = (s: DesignSettings): SettingsForm => ({
   business_name: s.business_name ?? '', owner_name: s.owner_name ?? '', vat_id: s.vat_id ?? '', reply_email: s.reply_email ?? '',
   sender: s.sms?.sender ?? '', pay_provider: s.pay?.provider ?? 'greeninvoice', pay_url: s.pay?.page_url ?? '',
+  source_system: s.source?.system ?? 'greeninvoice',
 });
 
-/** רק מה שהשתנה — PUT חלקי. שדות קבועים (rules/cadence/source/pricing) לעולם לא נשלחים. */
+/** רק מה שהשתנה — PUT חלקי. שדות קבועים (rules/cadence/pricing) לעולם לא נשלחים.
+ *  ממקור החשבוניות נשלחת רק הבחירה (`source.system`) ורק כשהשתנתה — לעולם לא מפתח/סוד. */
 export function diffPatch(a: SettingsForm, b: SettingsForm): Record<string, unknown> {
   const out: Record<string, unknown> = {};
   for (const k of ['business_name', 'owner_name', 'vat_id', 'reply_email'] as const) if (a[k] !== b[k]) out[k] = b[k].trim();
@@ -27,6 +45,7 @@ export function diffPatch(a: SettingsForm, b: SettingsForm): Record<string, unkn
   if (a.pay_provider !== b.pay_provider) pay.provider = b.pay_provider;
   if (a.pay_url !== b.pay_url || (a.pay_provider !== b.pay_provider)) pay.page_url = b.pay_url.trim();
   if (Object.keys(pay).length) out.pay = pay;
+  if (a.source_system !== b.source_system) out.source = { system: b.source_system };
   return out;
 }
 
@@ -54,6 +73,7 @@ export function vatOk(v: string): boolean {
 const FIELD_HE: Record<string, string> = {
   sms_sender_id: 'שם השולח', business_name: 'שם העסק', owner_name: 'שם לחתימה', vat_id: 'ע.מ./ח.פ.',
   email_reply_to: 'מייל לתשובות', payment_link: 'קישור התשלום', payment_provider: 'ספק התשלום',
+  source_system: 'מערכת החשבוניות',
 };
 /** הודעת 422 מהשרת ⇒ עברית (קודי שדה של pydantic מתורגמים; טקסט עברי נשאר כמו שהוא). */
 export function explainSettingsError(detail: string): string {

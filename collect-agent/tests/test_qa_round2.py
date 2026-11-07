@@ -328,7 +328,7 @@ def test_no_secrets_in_logs_during_full_flow(svc, caplog):
 
 
 @pytest.mark.parametrize("path", ["/webhooks/email", "/webhooks/greeninvoice",
-                                  "/webhooks/sms/019"])
+                                  "/webhooks/sms/019", "/webhooks/source/icount"])
 @pytest.mark.parametrize("k", [None, "", "wrong"])
 def test_webhooks_reject_missing_or_wrong_key(svc, path, k):
     api = TestClient(create_app(svc, owner_token=OWNER_TOKEN))

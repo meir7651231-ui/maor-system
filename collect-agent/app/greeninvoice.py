@@ -190,6 +190,9 @@ def net_credits(debts: list[Invoice], credits: list[Invoice],
 
 
 class GreenInvoiceClient:
+    # מממש את InvoiceSource (app/integrations/sources.py): iter_open_invoices + get_document
+    provider = "greeninvoice"
+
     def __init__(
         self,
         base_url: str,

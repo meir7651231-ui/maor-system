@@ -73,6 +73,10 @@ class Settings:
     payment_link_mode: str = "static"
     payment_provider: str = "greeninvoice"          # greeninvoice | meshulam | bit
     payment_domains: tuple[str, ...] = ()           # ריק ⇒ ברירת המחדל של הספק (PAYMENT_PROVIDERS)
+    # מקור החשבוניות של העסק (app/integrations/sources.py): greeninvoice | icount | rivhit | ezcount | csv.
+    # הבחירה בלבד; הסודות של כל מקור — רק דרך business_secrets (שלב 1: לא נקלטים בכלל).
+    source_system: str = "greeninvoice"
+    source_webhook_key: str = field(default="", repr=False)   # סוד ל-/webhooks/source/{system}?k=... ; חסר ⇒ סגור
 
     def __post_init__(self) -> None:
         # review חור 8: קישור ההסרה/התשלום הוא דרך ההסרה היחידה ב-SMS חד-כיווני ⇒ https בלבד
@@ -112,6 +116,9 @@ class Settings:
             raise ValueError(f"PAYMENT_LINK_MODE לא מוכר: {self.payment_link_mode}")
         if self.payment_provider not in PAYMENT_PROVIDERS:
             raise ValueError(f"PAYMENT_PROVIDER לא מוכר: {self.payment_provider}")
+        from .integrations.sources import SOURCE_KEYS
+        if self.source_system not in SOURCE_KEYS:
+            raise ValueError(f"SOURCE_SYSTEM לא מוכר: {self.source_system}")
 
     @property
     def payment_page(self) -> str:
@@ -172,6 +179,8 @@ def load_settings(env: dict[str, str] | None = None) -> Settings:
         payment_link_mode=e.get("PAYMENT_LINK_MODE", "static"),
         payment_provider=e.get("PAYMENT_PROVIDER", "greeninvoice"),
         payment_domains=_csv(e.get("PAYMENT_DOMAINS", "")),
+        source_system=e.get("SOURCE_SYSTEM", "greeninvoice").strip().lower(),
+        source_webhook_key=e.get("SOURCE_WEBHOOK_KEY", ""),
     )
 
 
