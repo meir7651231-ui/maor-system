@@ -840,8 +840,17 @@ class CollectService:
         except Exception as e:  # noqa: BLE001 — כל כשל ברענון חוסם שליחה
             self._mark_refresh_failed(r, "refresh_failed", str(e))
             return "failed"
-        if doc is not None:   # ממצא 2.16: המקור מחזיר יתרה גולמית; הזיכוי שקוזז בסנכרון נשאר מקוזז
-            doc = replace(doc, amount_agorot=doc.amount_agorot - (inv["credit_agorot"] or 0))
+        if doc is not None:   # ממצא 2.16: המקור מחזיר יתרה גולמית; מקזזים את הזיכויים
+            credit = inv["credit_agorot"] or 0
+            if hasattr(self.gi, "credits_for"):
+                # critic סבב 20 (שוחזר): זיכוי שהונפק **אחרי** הסנכרון האחרון לא נראה, ונשלח
+                # "1,200 ₪" כשהיתרה בפועל ₪700. עכשיו נשלפים הזיכויים העדכניים של המסמך הזה.
+                try:
+                    credit = self.gi.credits_for(inv["external_id"], since=doc.issued)
+                except Exception as e:  # noqa: BLE001 — כשל ⇒ לא שולחים (נכשל סגור)
+                    self._mark_refresh_failed(r, "refresh_failed", str(e))
+                    return "failed"
+            doc = replace(doc, amount_agorot=doc.amount_agorot - credit)
         if doc is None or doc.status != 0 or doc.amount_agorot <= 0:
             self.db.x("UPDATE invoices SET status='closed' WHERE id=?", (inv["id"],))
             self._cancel_invoice(inv["id"], "invoice_closed")
