@@ -307,3 +307,15 @@ def test_compliance_email_business_in_subject_is_enough():
     base = dict(business="סטודיו מאיר", payment_link="https://pay.example/x", channel="email")
     assert "no_business_first" in compliance.violations(body, compliance.Rules(**base))
     assert compliance.violations(body, compliance.Rules(**base, subject="תזכורת מסטודיו מאיר")) == []
+
+
+@pytest.mark.parametrize("text", ["חסום אותי", "תחסמו את המספר", "תחסמו אותי בבקשה", "block me",
+                                  "please block this number"])
+def test_block_request_is_opt_out(text):
+    """critic סבב 14 (שוחזר על afcaac6): «חסום אותי» סווג unknown, והתזכורות נמשכו."""
+    from datetime import date as _d
+
+    from app import conversation as _cv
+    ctx = _cv.Context(today=_d(2026, 11, 8), business="סטודיו", invoices=(_cv.OpenInvoice("1", 120000),))
+    d = _cv.respond(text, ctx)
+    assert d.intent == _cv.Intent.OPT_OUT and d.stop == _cv.Stop.PERMANENT
