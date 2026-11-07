@@ -96,6 +96,7 @@ import {
   readStoredIdbPlainDb,
   writeExitJournal,
   clearAllJournals,
+  takeRescuedJournals,
   setPersistNamespace,
   nsLsKey,
   decryptAndLoad,
@@ -1119,6 +1120,7 @@ export const useApp = create<AppState>()((set, get) => {
               // נתיב החלת-מרוחק: שמירה מקומית כרגיל, בלי cloudOnDbChange (אין הד)
               setDbFromRemote: (db) => {
                 set({ db });
+                if (!get().staleTab) writeExitJournal(db); // 🛟 P0-DATA ביקורת-2 #5: היומן עוקב גם אחרי מיזוג-ענן
                 scheduleSave();
               },
               toast: (t) => get().toast(t),
@@ -1507,6 +1509,8 @@ export const useApp = create<AppState>()((set, get) => {
       // ⚠️ ביקורת (12.10): migrate ריפא (מספור-קבלות/מצברים/מונים/גרסה) ⇒ שמירה אחת — הריפוי שהוצג חייב
       // להיות עמיד (עד היום הגיע לדיסק דרך runDecay בלי-תנאי). מסמך נקי ⇒ אפס שמירה (הרווח נשמר).
       if (takeMigrateHealed()) { lastSaved = null; scheduleSave(); }
+      // 🛟 P0-DATA ביקורת-2: יומן שלא תאם את המסמך (לשונית אחרת/שמירה שהתחייבה) לא הוחל — הודעה גלויה, לא דריסה-שקטה
+      if (takeRescuedJournals()) runWhenIdleVisible(() => get().toast('⚠ נמצאו שינויים מחלון שנסגר לפני שנשמרו — לא הוחלו אוטומטית (נשמר עותק-הצלה במכשיר)'), 5_000);
       // חיבור ענן — opt-in פר-ארגון; בלי config.firebase שום דבר לא משתנה
       if (config.firebase) void connectCloud(config.firebase, config);
       postLoad(db, corrupt);

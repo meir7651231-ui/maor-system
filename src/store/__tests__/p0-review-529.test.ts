@@ -89,34 +89,78 @@ describe('🛟 #529 ביקורת — 1. מחיקה אחרי שמירה-בטיס�
   });
 });
 
-describe('🛟 #529 ביקורת — 2. יומן פר-לשונית', () => {
-  it('א\' וב\' עורכות; א\' שומרת; ב\' נסגרת בלי שמירה ⇒ עריכת ב\' נשמרת בטעינה (וגם של א\')', async () => {
+describe('🛟 #529 ביקורת — 2. יומן פר-לשונית (ביקורת-2: יומן לא-תואם לא מוחל — עותק-הצלה גלוי)', () => {
+  it('א\' וב\' עורכות; א\' שומרת; ב\' נסגרת ⇒ עבודת א\' נשמרת; יומן ב\' (בסיס ישן) **לא מוחל** — נשמר כעותק-הצלה', async () => {
     const A = await tab();
     const dA = (await A.loadDb()).db;
     const B = await tab();
     const dB = (await B.loadDb()).db;
     const a1 = { ...dA, supporters: [sup('s1', 'A'), dA.supporters[1]] };
     A.writeExitJournal(a1);
-    const b1 = { ...dB, supporters: [dB.supporters[0], sup('s2', 'B')] };
-    B.writeExitJournal(b1);
+    B.writeExitJournal({ ...dB, supporters: [dB.supporters[0], sup('s2', 'B')] });
     await A.saveDb(a1); // א' שומרת (מוחקת רק את היומן שלה)
-    const re = (await (await tab()).loadDb()).db;
+    const C = await tab();
+    const re = (await C.loadDb()).db;
     expect(note(re, 's1')).toBe('A');
-    expect(note(re, 's2')).toBe('B');
+    expect(note(re, 's2')).toBe(''); // לא הוחל בשקט
+    expect(ls.getItem('maor_exitlog_rescue')).toContain('"B"'); // אבל לא נזנח — עותק-הצלה
+    expect(C.takeRescuedJournals()).toBe(1); // ⇒ הודעה גלויה
   });
-  it('יומן של לשונית-ישנה לא מגלגל אחורה מצבות/מונים של אחרת (meta ממוזג)', async () => {
+});
+
+describe('🛟 #529 ביקורת-2 — יומן-יתום לא דורס עבודה חדשה (5 תרחישים)', () => {
+  it('HIGH 1: א\' עורכת s1 ונסגרת; ב\' מוחקת s1 ושומרת ⇒ s1 לא חוזר', async () => {
+    const B = await tab(); // ב' פתוחה כבר
+    const dB = (await B.loadDb()).db;
     const A = await tab();
     const dA = (await A.loadDb()).db;
-    const B = await tab();
-    const dB = (await B.loadDb()).db;
-    const a1 = { ...dA, donationSeq: 50, delLog: [{ at: '2026-11-07T11:00:00.000Z', col: 'supporters', id: 'gone' }] };
-    await A.saveDb(a1);
-    const b1 = { ...dB, supporters: [dB.supporters[0], sup('s2', 'B')], donationSeq: 3, orgName: 'B-org' };
-    B.writeExitJournal(b1);
+    A.writeExitJournal({ ...dA, supporters: [sup('s1', 'A'), dA.supporters[1]] }); // א' נסגרת לפני שמירה
+    await B.saveDb({ ...dB, supporters: [dB.supporters[1]] }); // ב' מוחקת s1
     const re = (await (await tab()).loadDb()).db;
-    expect(re.donationSeq).toBe(50);
-    expect((re.delLog ?? []).some((e) => e.id === 'gone')).toBe(true);
-    expect(note(re, 's2')).toBe('B');
+    expect(ids(re)).toEqual(['s2']);
+  });
+  it('HIGH 2 (קבלות §46): יומן-יתום עם D-1 לא משנה את D-1 שב\' כבר הנפיקה ושמרה', async () => {
+    const B = await tab(); // ב' פתוחה כבר
+    const dB = (await B.loadDb()).db;
+    const A = await tab();
+    const dA = (await A.loadDb()).db;
+    const don = (rid: string) => ({ rid, date: '2026-11-07', amount: 100, cur: '₪' });
+    A.writeExitJournal({ ...dA, donationSeq: 2, supporters: [{ ...sup('s1'), donations: [don('D-1')], count: 1, ils: 100 } as never, dA.supporters[1]] }); // א' הנפיקה D-1 ונסגרה
+    await B.saveDb({ ...dB, donationSeq: 2, supporters: [dB.supporters[0], { ...sup('s2'), donations: [don('D-1')], count: 1, ils: 100 } as never] });
+    const re = (await (await tab()).loadDb()).db;
+    const rids = re.supporters.flatMap((s) => (s.donations ?? []).map((d) => s.id + ':' + d.rid));
+    expect(rids).toEqual(['s2:D-1']); // הקבלה של ב' לא מוספרה מחדש, וזו של א' לא הוחלה
+  });
+  it('MED 3: יומן-יתום לא מגלגל אחורה הגדרות-ארגון (orgName/usdRate)', async () => {
+    const B = await tab(); // ב' פתוחה כבר
+    const dB = (await B.loadDb()).db;
+    const A = await tab();
+    const dA = (await A.loadDb()).db;
+    A.writeExitJournal({ ...dA, orgName: 'ישן', usdRate: 3.1, supporters: [sup('s1', 'A'), dA.supporters[1]] });
+    await B.saveDb({ ...dB, orgName: 'חדש', usdRate: 3.9 });
+    const re = (await (await tab()).loadDb()).db;
+    expect(re.orgName).toBe('חדש');
+    expect(re.usdRate).toBe(3.9);
+  });
+  it('MED 4: ביטול "טופל" (הסרת מפתח attnDone) בלשונית אחת לא חוזר בטעינה', async () => {
+    st('db').set('current', structuredClone({ ...emptyDb(), supporters: [sup('s1'), sup('s2')], attnDone: { k1: '2026-11-01', k2: '2026-11-01' }, savedAt: '2026-11-07T10:00:00.000Z' }));
+    const A = await tab();
+    const d0 = (await A.loadDb()).db;
+    A.writeExitJournal({ ...d0, attnDone: { k2: '2026-11-01' } }); // k1 בוטל; נסגר לפני שמירה
+    const re = (await (await tab()).loadDb()).db;
+    expect(Object.keys(re.attnDone ?? {})).toEqual(['k2']);
+  });
+  it('MED 5 (ענן): מיזוג-מרוחק שנשמר לא נמחק ע"י ביסוס-מחדש של יומן מקומי ישן', async () => {
+    const A = await tab();
+    const d0 = (await A.loadDb()).db;
+    const l1 = { ...d0, supporters: [sup('s1', 'L'), d0.supporters[1]] };
+    A.writeExitJournal(l1); // עריכה מקומית
+    const merged = { ...l1, supporters: [...l1.supporters, sup('r9', 'מהענן')] }; // setDbFromRemote
+    A.writeExitJournal(merged); // ⇐ החיווט ב-useApp (setDbFromRemote)
+    await A.saveDb(merged);
+    const re = (await (await tab()).loadDb()).db;
+    expect(ids(re)).toEqual(['r9', 's1', 's2']);
+    expect(note(re, 's1')).toBe('L');
   });
 });
 

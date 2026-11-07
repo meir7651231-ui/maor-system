@@ -91,7 +91,10 @@ describe('🛡 הגנות-מקור — החיווט', () => {
     expect(persistSrc).toContain('if (!lsDropped && lsHasDoc) return false;');
     expect(persistSrc).toMatch(/envelope = env;\s*clearAllJournals\(\);/); // beginEncryption
     expect((persistSrc.match(/clearAllJournals\(\); \/\/ 🛟 P0-DATA \(3\)/g) ?? []).length).toBeGreaterThanOrEqual(2); // שני ענפי-הטעינה המוצפנים
-    expect(persistSrc).toContain('rebaseJournalAfterSave(db);');
+    expect(persistSrc).toContain('rebaseJournalAfterSave(journalAtStart);');
+    expect(persistSrc).toContain('if (journalVersion === versionAtStart || !lastJournaled) {');
+    expect(appSrc).toMatch(/setDbFromRemote: \(db\) => \{\s*set\(\{ db \}\);\s*if \(!get\(\)\.staleTab\) writeExitJournal\(db\);/); // ביקורת-2 #5
+    expect(persistSrc).toContain("j.base === db.savedAt"); // ביקורת-2: רק יומן שבסיסו == המסמך הנטען
     expect(appSrc).toMatch(/restoreDb\(db\) \{[\s\S]{0,3500}clearAllJournals\(\);/);
   });
 });
