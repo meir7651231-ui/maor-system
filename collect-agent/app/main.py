@@ -208,8 +208,8 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
             svc.log_access(actor, "GET", route, request.url.path)
 
     @app.post("/auth/login")
-    def auth_login(body: LoginIn):
-        tok = users.login(body.email, body.password, body.code)
+    def auth_login(body: LoginIn, request: Request):
+        tok = users.login(body.email, body.password, body.code, ip=client_ip(request))
         if tok is None:
             # critic סבב 7: השדה נקרא email_sha אבל הכיל מייל מוסווה ("w***@biz.example") ביומן שלא נמחק
             import hashlib as _h

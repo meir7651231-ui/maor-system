@@ -15,7 +15,8 @@ from .db import DB, token_hash
 from .secretbox import ENV_VAR, VERSION, SecretBox
 
 SESSION_HOURS = 12
-MAX_FAILS = 5
+MAX_FAILS = 5            # לכל (חשבון, IP)
+MAX_FAILS_GLOBAL = 50    # לחשבון מכל המקורות יחד (התקפה מבוזרת)
 LOCK_MIN = 15
 MIN_PW = 10
 
@@ -25,6 +26,9 @@ CREATE TABLE IF NOT EXISTS users (
   pw_hash TEXT NOT NULL, totp_secret TEXT NOT NULL, totp_last INTEGER NOT NULL DEFAULT 0,
   active INTEGER NOT NULL DEFAULT 1, fails INTEGER NOT NULL DEFAULT 0,
   locked_until TEXT, created_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS login_locks (
+  email TEXT NOT NULL, ip TEXT NOT NULL, fails INTEGER NOT NULL DEFAULT 0, locked_until TEXT,
+  PRIMARY KEY (email, ip));
 CREATE TABLE IF NOT EXISTS sessions (
   token_hash TEXT PRIMARY KEY, user_id INTEGER NOT NULL REFERENCES users(id),
   expires_at TEXT NOT NULL);
@@ -83,27 +87,40 @@ class Users:
             raise ValueError("משתמש כבר קיים") from e
         return {"email": email, "totp_secret": sec, "otpauth": totp.otpauth_uri(sec, email)}
 
-    def login(self, email: str, password: str, code: str) -> str | None:
-        """טוקן סשן, או None. הודעת כשל אחת לכל סיבה (בלי חשיפת קיום משתמש)."""
-        u = self.db.one("SELECT * FROM users WHERE email=?", (email.strip().lower(),))
+    def login(self, email: str, password: str, code: str, ip: str = "") -> str | None:
+        """טוקן סשן, או None. הודעת כשל אחת לכל סיבה (בלי חשיפת קיום משתמש).
+        critic סבב 16 (פתוח מסבב 7): הנעילה הייתה לכל החשבון, ולכן 5 ניסיונות של תוקף מכל מקום
+        נעלו את העובדת (DoS). עכשיו: נעילה לפי (חשבון, IP) אחרי 5, ולחשבון כולו רק אחרי 50."""
+        email = email.strip().lower()
+        u = self.db.one("SELECT * FROM users WHERE email=?", (email,))
         now = self._now()
         if u is None:
             hash_pw(password)  # תזמון דומה
             return None
         if u["locked_until"] and datetime.fromisoformat(u["locked_until"]) > now:
             return None
+        ll = self.db.one("SELECT * FROM login_locks WHERE email=? AND ip=?", (email, ip))
+        if ll and ll["locked_until"] and datetime.fromisoformat(ll["locked_until"]) > now:
+            return None
         ok = u["active"] and check_pw(password, u["pw_hash"])
         counter = totp.verify(self._secret(u), code, now.timestamp(),
                               last_counter=u["totp_last"]) if ok else None
         if counter is None:
+            until = (now + timedelta(minutes=LOCK_MIN)).isoformat()
             fails = u["fails"] + 1
-            lock = (now + timedelta(minutes=LOCK_MIN)).isoformat() if fails >= MAX_FAILS else None
+            glock = until if fails >= MAX_FAILS_GLOBAL else None
             self.db.x("UPDATE users SET fails=?, locked_until=? WHERE id=?",
-                      (0 if lock else fails, lock, u["id"]))
+                      (0 if glock else fails, glock, u["id"]))
+            lf = (ll["fails"] if ll else 0) + 1
+            lock = until if lf >= MAX_FAILS else None
+            self.db.x("INSERT INTO login_locks(email,ip,fails,locked_until) VALUES(?,?,?,?) "
+                      "ON CONFLICT(email,ip) DO UPDATE SET fails=excluded.fails, "
+                      "locked_until=excluded.locked_until", (email, ip, 0 if lock else lf, lock))
             return None
         tok = secrets.token_urlsafe(32)
         self.db.x("UPDATE users SET fails=0, locked_until=NULL, totp_last=? WHERE id=?",
                   (counter, u["id"]))
+        self.db.x("DELETE FROM login_locks WHERE email=? AND ip=?", (email, ip))
         self.db.x("INSERT INTO sessions VALUES(?,?,?)",
                   (token_hash(tok), u["id"], (now + timedelta(hours=SESSION_HOURS)).isoformat()))
         return tok

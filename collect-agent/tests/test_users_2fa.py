@@ -215,3 +215,28 @@ def test_demo_user_never_created_on_a_real_service(tmp_path, monkeypatch, clock,
     create_app(svc, owner_token=OWNER_TOKEN)
     create_app(CollectService(s, _DB(dbp), gi=gi_client, clock=clock), owner_token=OWNER_TOKEN)
     assert svc.db.one("SELECT COUNT(*) c FROM users")["c"] == 0
+
+
+def test_attacker_cannot_lock_out_employee_from_another_ip(svc, clock):
+    """critic סבב 16 (פתוח מסבב 7, שוחזר): 5 ניסיונות שגויים של תוקף מ-IP אחר נעלו את העובדת
+    ל-15 דקות (DoS). עכשיו הנעילה לפי (חשבון, IP); נעילה גלובלית רק בסף גבוה (התקפה מבוזרת)."""
+    from fastapi.testclient import TestClient
+
+    from app import totp
+    from app.main import create_app
+    from app.users import Users
+    from tests.conftest import OWNER_TOKEN
+    app = create_app(svc, owner_token=OWNER_TOKEN)
+    reg = Users(svc.db, svc.clock).create("dana@biz.example", "דנה", "correct-horse-1")
+    attacker = TestClient(app, client=("203.0.113.9", 5555))
+    dana = TestClient(app, client=("198.51.100.7", 5555))
+    for _ in range(5):
+        attacker.post("/auth/login", json={"email": "dana@biz.example", "password": "x" * 10, "code": "000000"})
+    code = totp.code_at(reg["totp_secret"], clock.now.timestamp())
+    r = dana.post("/auth/login", json={"email": "dana@biz.example", "password": "correct-horse-1", "code": code})
+    assert r.status_code == 200, "התוקף נעל את העובדת מ-IP אחר"
+    # מאותו IP של התוקף ⇒ עדיין נעול (ההגנה מפני ניחוש נשמרת)
+    clock.now = clock.now.replace(second=(clock.now.second + 31) % 60)
+    r2 = attacker.post("/auth/login", json={"email": "dana@biz.example", "password": "correct-horse-1",
+                                            "code": totp.code_at(reg["totp_secret"], clock.now.timestamp() + 31)})
+    assert r2.status_code in (401, 429)
