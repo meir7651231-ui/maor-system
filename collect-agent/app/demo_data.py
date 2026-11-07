@@ -57,6 +57,15 @@ class DemoBackend:
         """"הלקוח שילם": morning סוגרת את המסמך ויוצרת קבלה (⇒ webhook document.created)."""
         return self._admin(f"/_mock/documents/{doc_id}/pay")
 
+    def credit(self, doc_id: str, amount_ils: float, *, link: bool = True) -> dict:
+        """מסמך זיכוי (330) — מקושר לחשבונית, או בלי קישור (⇒ בדיקת בעל העסק)."""
+        return self._admin(f"/_mock/documents/{doc_id}/credit", {"amount": amount_ils, "link": link})
+
+    def convert(self, doc_id: str, *, close_source: bool = False, **extra) -> dict:
+        """חשבון עסקה (300) ⇒ חשבונית מס (305) מקושרת."""
+        return self._admin(f"/_mock/documents/{doc_id}/convert",
+                           {"close_source": close_source, **extra})
+
     def partial(self, doc_id: str, paid_ils: float) -> dict:
         """תשלום חלקי: היתרה יורדת, המסמך נשאר פתוח (אימות סכום לפני שליחה)."""
         return self._admin(f"/_mock/documents/{doc_id}/partial", {"paid": paid_ils})

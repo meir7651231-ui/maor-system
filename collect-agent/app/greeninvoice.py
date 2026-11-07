@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import time
 from collections.abc import Iterator
-from dataclasses import dataclass
+from dataclasses import dataclass, field, replace
 from datetime import date
 from typing import Any
 
@@ -22,6 +22,13 @@ import httpx
 # סוגי מסמכים שמייצגים חוב פתוח (לאמת): 300 חשבון עסקה, 305 חשבונית מס
 OPEN_DEBT_TYPES = (300, 305)
 STATUS_OPEN = 0
+# ממצא מבקר 2.16: זיכוי (330) מקטין חוב, ו-300 שהומר ל-305/320 הוא אותו חוב פעמיים.
+# הקישור בין מסמכים לפי linkedDocumentIds / linkedDocuments (לאמת שם-שדה ב-sandbox).
+TYPE_PROFORMA, TYPE_TAX_INVOICE, TYPE_CREDIT = 300, 305, 330
+CREDIT_TYPES = (TYPE_CREDIT,)
+CREDIT_STATUSES = (0, 1, 2)          # לא 3/4: זיכוי שבוטל לא מקטין כלום
+SUCCESSOR_TYPES = (305, 320)         # מה ש-300 יכול להפוך אליו (חשבונית מס · חשבונית מס/קבלה)
+SUCCESSOR_CLOSED_STATUSES = (1, 2)   # ה-305 כבר שולם/נסגר, וה-300 נשאר «פתוח» אצל morning
 
 
 def token_body(api_id: str, api_secret: str) -> dict[str, str]:
@@ -56,6 +63,9 @@ class Invoice:
     payment_url: str = ""   # אם המסמך כבר מחזיר קישור תשלום (לאמת שם-שדה ב-sandbox)
     status: int = 0         # 0 פתוח · 1 סגור · 2 נסגר ידנית · 3 מבטל · 4 מבוטל
     due_estimated: bool = False   # אין dueDate במסמך ⇒ תאריך המסמך + DEFAULT_TERMS_DAYS
+    linked_ids: tuple[str, ...] = ()   # מסמכים מקושרים (זיכוי ⇒ החשבונית; 305 ⇒ ה-300 שממנו הומר)
+    gross_agorot: int = 0         # סכום המסמך המלא, כשיש גם amountDueVat (0 = לא ידוע)
+    credit_agorot: int = 0        # זיכוי שקוזז מהיתרה (amount_agorot כבר נטו)
 
 
 def _parse_date(v: Any) -> date | None:
@@ -75,6 +85,13 @@ def _to_agorot(v: Any) -> int:
 
 
 DEFAULT_TERMS_DAYS = 30   # ממצא מבקר 2.9: בלי dueDate, תאריך ההנפקה ≠ מועד תשלום (שוטף+30 שמרני)
+
+
+def _linked_ids(doc: dict[str, Any]) -> tuple[str, ...]:
+    """סובלני לשתי צורות (לאמת): linkedDocumentIds=[id] · linkedDocuments=[{id}|id]."""
+    raw = list(doc.get("linkedDocumentIds") or []) + list(doc.get("linkedDocuments") or [])
+    out = [str(x.get("id", "")) if isinstance(x, dict) else str(x) for x in raw]
+    return tuple(dict.fromkeys(x for x in out if x))
 
 
 def map_document(doc: dict[str, Any]) -> Invoice:
@@ -102,7 +119,74 @@ def map_document(doc: dict[str, Any]) -> Invoice:
         payment_url=str(doc.get("paymentUrl") or doc.get("paymentLink") or ""),
         status=int(doc.get("status", 0) or 0),
         due_estimated=due_estimated,
+        linked_ids=_linked_ids(doc),
+        gross_agorot=(_to_agorot(doc.get("amount")) if "amountDueVat" in doc and "amount" in doc
+                      else 0),
     )
+
+
+@dataclass(frozen=True)
+class Netting:
+    """תוצאת קיזוז: החוב הנטו + מה שלא ניתן לשייך בביטחון (⇒ בדיקת בעל העסק, לא ניחוש)."""
+    invoices: list[Invoice]
+    review: list[tuple[Invoice, str]] = field(default_factory=list)   # (מסמך הלקוח, סיבה)
+
+
+def net_credits(debts: list[Invoice], credits: list[Invoice],
+                successors: list[Invoice] = ()) -> Netting:
+    """טהור. ממצא מבקר 2.16 — שמרני: מקזזים רק כשהשיוך חד-משמעי. כל ספק ⇒ review ללקוח
+    (גבי לא מזכירה ללקוח הזה עד שבעל העסק בודק), ולעולם לא מקטינים חוב לפי ניחוש.
+
+    1. 300 שיש 305/320 שמצביע עליו (פתוח או שכבר נסגר) ⇒ ה-300 יוצא (אותו חוב פעמיים).
+       סכום שונה (הומר חלקית?) ⇒ גם review.
+    2. זיכוי שמצביע על חוב פתוח אחד ⇒ היתרה יורדת בסכום הזיכוי; ≤0 ⇒ החוב יוצא.
+       מצביע על כמה חובות · גדול מהיתרה · היתרה כבר הוקטנה (amountDueVat<amount, אולי הזיכוי
+       כבר נכלל) ⇒ review. זיכוי בלי קישור ⇒ review ללקוח. זיכוי שמצביע רק על מסמכים שאינם
+       פתוחים ⇒ אין מה לקזז (ואין גם תזכורת על המסמך הסגור)."""
+    review: list[tuple[Invoice, str]] = []
+    by_id = {d.external_id: d for d in debts}
+    replaced: dict[str, str] = {}   # 300 ⇒ המסמך שהחליף אותו
+    for succ in [d for d in debts if d.doc_type != TYPE_PROFORMA] + list(successors):
+        for lid in succ.linked_ids:
+            src = by_id.get(lid)
+            if src is None or src.doc_type != TYPE_PROFORMA or lid in replaced:
+                continue
+            replaced[lid] = succ.external_id
+            src_total = src.gross_agorot or src.amount_agorot
+            if (succ.gross_agorot or succ.amount_agorot) != src_total:
+                review.append((src, "conversion_amount_mismatch"))
+    open_ids = {d.external_id for d in debts if d.external_id not in replaced}
+    credit_on: dict[str, int] = {}
+    for c in credits:
+        if c.amount_agorot <= 0:
+            continue
+        if not c.linked_ids:
+            review.append((c, "credit_unlinked"))
+            continue
+        targets = {replaced.get(lid, lid) for lid in c.linked_ids}
+        hit = sorted(t for t in targets if t in open_ids)
+        if not hit:
+            continue
+        if len(hit) > 1:
+            review.append((c, "credit_multi_invoice"))
+            continue
+        d = by_id[hit[0]]
+        if d.gross_agorot and d.amount_agorot < d.gross_agorot:
+            review.append((d, "credit_after_partial"))
+            continue
+        credit_on[d.external_id] = credit_on.get(d.external_id, 0) + c.amount_agorot
+    out: list[Invoice] = []
+    for d in debts:
+        if d.external_id in replaced:
+            continue
+        cr = credit_on.get(d.external_id, 0)
+        if cr > d.amount_agorot:
+            review.append((d, "credit_exceeds_balance"))   # העודף שייך אולי לחשבונית אחרת
+        if cr:
+            d = replace(d, amount_agorot=max(0, d.amount_agorot - cr), credit_agorot=cr)
+        if d.amount_agorot > 0:
+            out.append(d)
+    return Netting(out, review)
 
 
 class GreenInvoiceClient:
@@ -157,9 +241,12 @@ class GreenInvoiceClient:
         raise GreenInvoiceError(f"{what} נכשל: 401 חוזר")
 
     def search_documents(self, *, page: int = 1, page_size: int = 50,
-                         statuses=(STATUS_OPEN,), types=OPEN_DEBT_TYPES) -> dict[str, Any]:
-        payload = {"page": page, "pageSize": page_size,
-                   "status": list(statuses), "type": list(types)}
+                         statuses=(STATUS_OPEN,), types=OPEN_DEBT_TYPES,
+                         from_date: date | None = None) -> dict[str, Any]:
+        payload: dict[str, Any] = {"page": page, "pageSize": page_size,
+                                   "status": list(statuses), "type": list(types)}
+        if from_date is not None:
+            payload["fromDate"] = from_date.isoformat()   # לאמת: שם השדה ב-sandbox
         return self.post("/documents/search", payload, what="search")
 
     def _request(self, method: str, path: str, payload: Any = None, *, what: str = "") -> Any:
@@ -223,7 +310,45 @@ class GreenInvoiceClient:
         merged = {**cl, **{k: full[k] for k in ("phone", "mobile", "emails") if full.get(k)}}
         return {**doc, "client": merged}
 
+    def _iter_docs(self, *, types, statuses, from_date: date | None, page_size: int,
+                   max_pages: int) -> Iterator[Invoice]:
+        page = 1
+        while page <= max_pages:
+            body = self.search_documents(page=page, page_size=page_size, statuses=statuses,
+                                         types=types, from_date=from_date)
+            for doc in body.get("items", []):
+                inv = map_document(self._enrich_client(doc))
+                # סינון כפול בצד שלנו (כמו 2.10): לא סומכים על פילטר השרת
+                if inv.doc_type not in types or inv.status not in statuses:
+                    continue
+                # בזיכוי היתרה לתשלום (amountDueVat) לא רלוונטית — סכום הזיכוי הוא סכום המסמך
+                total = _to_agorot(doc.get("amount", doc.get("total", 0)))
+                yield replace(inv, amount_agorot=abs(total)) if inv.doc_type == TYPE_CREDIT else inv
+            if page >= int(body.get("pages") or 1):
+                return
+            page += 1
+
+    def open_debts(self, page_size: int = 50, max_pages: int = 200) -> Netting:
+        """החוב הפתוח **אחרי קיזוז** (ממצא מבקר 2.16) — זה מה שהסנכרון קולט.
+        זיכויים ומסמכי-המשך נשלפים רק מתאריך החוב הפתוח הוותיק (לא כל ההיסטוריה)."""
+        debts = list(self.iter_open_invoices(page_size=page_size, max_pages=max_pages))
+        dates = [d.issued for d in debts if d.issued]
+        if not debts:
+            return Netting([])
+        start = min(dates) if dates else None
+        credits = list(self._iter_docs(types=CREDIT_TYPES, statuses=CREDIT_STATUSES,
+                                       from_date=start, page_size=page_size, max_pages=max_pages))
+        successors: list[Invoice] = []
+        pro = [d.issued for d in debts if d.doc_type == TYPE_PROFORMA]
+        if pro:
+            pstart = min((x for x in pro if x), default=None)
+            successors = list(self._iter_docs(
+                types=SUCCESSOR_TYPES, statuses=SUCCESSOR_CLOSED_STATUSES, from_date=pstart,
+                page_size=page_size, max_pages=max_pages))
+        return net_credits(debts, credits, successors)
+
     def iter_open_invoices(self, page_size: int = 50, max_pages: int = 200) -> Iterator[Invoice]:
+        """גולמי — **לפני** קיזוז זיכויים והמרות 300⇒305. הסנכרון משתמש ב-open_debts()."""
         self.__dict__["_client_cache"] = {}
         page = 1
         while page <= max_pages:

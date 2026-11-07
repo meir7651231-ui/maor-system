@@ -125,6 +125,7 @@ export const payer = {
 export const BLOCK_LABEL: Record<string, string> = {
   no_contact: 'אין נייד או מייל תקין', no_payment_link: 'אין קישור תשלום מאובטח',
   opted_out: 'הלקוח ביקש הסרה', disputed: 'במחלוקת', plan_active: 'בהסדר תשלומים', paid_claim: 'טוען ששילם — לבדיקתך',
+  credit_review: 'זיכוי לא משויך — לבדיקתך',
 };
 
 /** ממיר את תמונת המצב של הבקאנד למודל של הממשק. טהור (נבדק ב-tests). */

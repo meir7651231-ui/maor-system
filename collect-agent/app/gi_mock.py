@@ -22,6 +22,8 @@
 קודי סוג מסמך: 10 הצעת מחיר · 100 הזמנה · 200 תעודת משלוח · 300 חשבון עסקה · 305 חשבונית מס ·
 320 חשבונית מס/קבלה · 330 זיכוי · 400 קבלה · 405 קבלה על תרומה.
 קודי סטטוס: 0 פתוח · 1 סגור · 2 נסגר ידנית · 3 מבטל מסמך אחר · 4 מבוטל.
+קישור בין מסמכים: linkedDocumentIds (קבלה ⇒ חשבונית · זיכוי 330 ⇒ חשבונית · 305 ⇒ ה-300 שממנו
+הומר). ניהול: /_mock/documents/{id}/credit · /_mock/documents/{id}/convert (ממצא 2.16; לאמת).
 
 שימוש:
   - בבדיקות:   httpx.MockTransport(GreenInvoiceMock(...).handler)   — בלי רשת
@@ -265,6 +267,34 @@ class GreenInvoiceMock:
             d["amountDueVat"] = round(due - paid, 2)
             self.fire("document.updated", d)
             return {"id": d["id"], "amountDueVat": d["amountDueVat"]}
+        if m == "POST" and len(parts) == 3 and parts[0] == "documents" and parts[2] == "credit":
+            # ממצא מבקר 2.16: מסמך זיכוי (330) על חשבונית. {"amount", "link": true}. link=false ⇒
+            # זיכוי בלי קישור (קיים בפועל — לאמת), כדי לבדוק שגבי לא מנחשת לאיזו חשבונית הוא שייך.
+            d = self.docs.get(parts[1])
+            if d is None:
+                raise MockError(404, 404, "Document not found")
+            amount = float((b or {}).get("amount", d.get("amount", 0)))
+            if amount <= 0:
+                raise MockError(400, 9003, "credit amount must be positive")
+            credit = {"type": 330, "amount": amount, "client": d.get("client"),
+                      "currency": d.get("currency", "ILS"), "status": int((b or {}).get("status", 0))}
+            if (b or {}).get("link", True):
+                credit["linkedDocumentIds"] = [d["id"]]
+            return self._add_doc(credit, fire=True)
+        if m == "POST" and len(parts) == 3 and parts[0] == "documents" and parts[2] == "convert":
+            # חשבון עסקה (300) ⇒ חשבונית מס (305) מקושרת. close_source=false (ברירת מחדל) = המקרה
+            # המסוכן: ה-300 נשאר «פתוח» ⇒ אותו חוב פעמיים. התנהגות morning בפועל — לאמת.
+            d = self.docs.get(parts[1])
+            if d is None or d.get("type") != 300:
+                raise MockError(404, 404, "Proforma (300) not found")
+            body = b or {}
+            new = {"type": int(body.get("type", 305)), "amount": body.get("amount", d.get("amount")),
+                   "client": d.get("client"), "currency": d.get("currency", "ILS"),
+                   "dueDate": d.get("dueDate"), "linkedDocumentIds": [d["id"]],
+                   "status": int(body.get("status", 0))}
+            if body.get("close_source"):
+                d["status"] = 1
+            return self._add_doc(new, fire=True)
         raise MockError(404, 404, "No mock admin route")
 
     # ---------- מתאמים ----------

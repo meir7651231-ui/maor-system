@@ -196,16 +196,18 @@ class ConversationInbox:
                 self.svc._cancel_invoice(inv["id"], d.intent.value)
         plan_id = None
         if d.plan and d.intent != Intent.PLAN_ACCEPT:
-            oldest = self.db.one("SELECT id FROM invoices WHERE customer_id=? AND status='open' "
-                                 "ORDER BY due LIMIT 1", (cid,))
-            if oldest:
+            # מבקר §4.6: ההצעה (d.plan) נבנתה על כל החוב הפתוח (Context.total_agorot) ⇒ ההסדר נרשם
+            # על כל החשבוניות, לא רק על הוותיקה. סה״כ לא תואם (מטבעות שונים) ⇒ לא נרשם הסדר.
+            invs, total = self.svc.open_debt(cid)
+            if invs and total == sum(i.amount_agorot for i in d.plan):
                 # הצעה חדשה מחליפה הצעה קודמת שעוד לא אושרה
                 self.db.x("UPDATE plans SET status='rejected' WHERE customer_id=? AND status='proposed'",
                           (cid,))
                 plan_id = self.db.x(
-                    "INSERT INTO plans(customer_id,invoice_id,installments,status,created_at) "
-                    "VALUES(?,?,?, 'proposed', ?)",
-                    (cid, oldest["id"], _plan_json(d.plan), _iso(self.svc.clock())))
+                    "INSERT INTO plans(customer_id,invoice_id,installments,status,created_at,"
+                    "invoice_ids) VALUES(?,?,?, 'proposed', ?, ?)",
+                    (cid, invs[0]["id"], _plan_json(d.plan), _iso(self.svc.clock()),
+                     json.dumps([r["id"] for r in invs])))
                 # ר-12: כל הצעה מתועדת (נתפס ב-E2E של QA אחרי חיבור מנוע השיחה)
                 self.svc.audit("system", "plan_proposed", {"plan": plan_id, "via": "conversation"})
         if d.intent == Intent.PLAN_ACCEPT:

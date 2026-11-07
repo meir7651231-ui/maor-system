@@ -57,13 +57,20 @@ class FakeGreenInvoice:
                 return httpx.Response(401)
             self.search_calls += 1
             body = json.loads(req.content)
-            assert body["status"] == [0]
+            if set(body["type"]) & {300, 305} and 330 not in body["type"] and \
+                    set(body["status"]) == {0}:
+                docs = self.docs                    # חיפוש החוב הפתוח — כמו קודם, בלי סינון סוג
+            else:
+                # ממצא 2.16: זיכויים (330) / מסמכי-המשך סגורים — מסנן לפי סוג וסטטוס כמו השרת
+                assert body["type"] in ([330], [305, 320]), body
+                docs = [d for d in self.docs if d.get("type") in body["type"]
+                        and d.get("status", 0) in body["status"]]
             page = body["page"]
             ps = body["pageSize"]
-            items = self.docs[(page - 1) * ps: page * ps]
-            pages = max(1, -(-len(self.docs) // ps))
+            items = docs[(page - 1) * ps: page * ps]
+            pages = max(1, -(-len(docs) // ps))
             return httpx.Response(200, json={"items": items, "page": page, "pages": pages,
-                                             "total": len(self.docs), "pageSize": ps})
+                                             "total": len(docs), "pageSize": ps})
         if req.method == "GET" and "/documents/" in req.url.path:
             # ר-4: רענון מסמך יחיד לפני שליחה. fail_refresh ⇒ 500 (כשל רענון חוסם שליחה)
             if not req.headers.get("authorization", "").startswith("Bearer tok"):

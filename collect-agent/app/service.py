@@ -7,6 +7,7 @@ import re
 import secrets
 import sqlite3
 from collections.abc import Callable
+from dataclasses import replace
 from datetime import date, datetime, time, timedelta
 from typing import Any
 
@@ -170,9 +171,10 @@ class CollectService:
         return "doc:" + inv.external_id
 
     def ingest(self, invoices: list[Invoice], *, source: str = "api",
-               full: bool = True) -> dict[str, int]:
+               full: bool = True, review: list[tuple[Invoice, str]] = ()) -> dict[str, int]:
         """upsert. full=True (סנכרון API מלא): חשבונית פתוחה שנעלמה ⇒ נסגרה ⇒ ביטול תזכורות.
-        ייבוא CSV חלקי (full=False) לא סוגר חשבוניות שלא הופיעו בקובץ."""
+        ייבוא CSV חלקי (full=False) לא סוגר חשבוניות שלא הופיעו בקובץ.
+        review (ממצא 2.16): זיכוי/המרה שלא שויכו בביטחון ⇒ הלקוח מושהה לבדיקת בעל העסק."""
         now = _iso(self.clock())
         seen: set[str] = set()
         for inv in invoices:
@@ -192,18 +194,20 @@ class CollectService:
             cid = self.db.one("SELECT id FROM customers WHERE external_id=?", (cust_ext,))["id"]
             self.db.x(
                 "INSERT INTO invoices(external_id,number,doc_type,amount_agorot,currency,issued,"
-                "due,customer_id,status,payment_url,synced_at,source) "
-                "VALUES(?,?,?,?,?,?,?,?, 'open', ?, ?, ?) "
+                "due,customer_id,status,payment_url,synced_at,source,credit_agorot) "
+                "VALUES(?,?,?,?,?,?,?,?, 'open', ?, ?, ?, ?) "
                 "ON CONFLICT(external_id) DO UPDATE SET amount_agorot=excluded.amount_agorot, "
                 "due=excluded.due, status='open', synced_at=excluded.synced_at, "
-                "source=excluded.source, "
+                "source=excluded.source, credit_agorot=excluded.credit_agorot, "
                 # סכום השתנה (תשלום חלקי) ⇒ טופס התשלום השמור נבנה על הסכום הישן ⇒ לא בשימוש
                 "payment_url=CASE WHEN invoices.amount_agorot<>excluded.amount_agorot "
                 "THEN NULLIF(excluded.payment_url,'') "
                 "ELSE COALESCE(NULLIF(excluded.payment_url,''), invoices.payment_url) END",
                 (inv.external_id, inv.number, inv.doc_type, inv.amount_agorot, inv.currency,
                  inv.issued.isoformat() if inv.issued else None,
-                 inv.due.isoformat() if inv.due else None, cid, inv.payment_url, now, source))
+                 inv.due.isoformat() if inv.due else None, cid, inv.payment_url, now, source,
+                 inv.credit_agorot))
+        held = self._hold_for_credit_review(review)
         closed = 0
         if not full:
             self.audit("system", "import", {"source": source, "rows": len(seen)})
@@ -214,13 +218,54 @@ class CollectService:
                           (now, row["id"]))
                 self._cancel_invoice(row["id"], "invoice_closed")
                 closed += 1
-        self.audit("system", "sync", {"open": len(seen), "closed": closed})
-        return {"open": len(seen), "closed": closed}
+        self.audit("system", "sync", {"open": len(seen), "closed": closed, "review": held})
+        out = {"open": len(seen), "closed": closed}
+        if held:
+            out["review"] = held   # לקוחות שהושהו לבדיקת זיכוי (2.16) — רק כשיש
+        return out
 
     def sync(self) -> dict[str, int]:
         if self.gi is None:
             raise RuntimeError("לא הוגדר חיבור Green Invoice (sandbox)")
+        if hasattr(self.gi, "open_debts"):   # ממצא 2.16: החוב אחרי קיזוז זיכויים והמרות 300⇒305
+            net = self.gi.open_debts()
+            return self.ingest(net.invoices, review=net.review)
         return self.ingest(list(self.gi.iter_open_invoices()))
+
+    CREDIT_REVIEW = "credit_review"
+
+    def _hold_for_credit_review(self, review: list[tuple[Invoice, str]]) -> int:
+        """ממצא 2.16 (שמרני): זיכוי שלא ניתן לשייך לחשבונית ⇒ לא מנחשים את הסכום. הלקוח מושהה
+        (paused_reason=credit_review, משתחרר רק ב-resume של בעל העסק) + התראה אחת לבעל העסק.
+        התראה לכל צירוף מסמכים — אחרי resume אותו זיכוי לא משהה שוב; זיכוי חדש כן."""
+        by_cust: dict[str, dict[str, str]] = {}
+        for doc, why in review:
+            by_cust.setdefault(self.customer_key(doc), {})[doc.external_id] = why
+        held = 0
+        for key, docs in by_cust.items():
+            cust = self.db.one("SELECT * FROM customers WHERE external_id=?", (key,))
+            if not cust or not self.db.one("SELECT 1 FROM invoices WHERE customer_id=? AND "
+                                           "status='open'", (cust["id"],)):
+                continue   # אין חוב פתוח ללקוח ⇒ אין על מה להזכיר
+            mid = f"credit:{cust['id']}:" + ",".join(sorted(docs))
+            if self.db.one("SELECT 1 FROM messages WHERE intent=? AND message_id=?",
+                           (self.CREDIT_REVIEW, mid)):
+                continue
+            if not cust["paused_reason"]:
+                self.db.x("UPDATE customers SET paused_reason=? WHERE id=?",
+                          (self.CREDIT_REVIEW, cust["id"]))
+            for inv in self.db.q("SELECT id FROM invoices WHERE customer_id=?", (cust["id"],)):
+                self._cancel_invoice(inv["id"], self.CREDIT_REVIEW)
+            self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
+                      "message_id,created_at) VALUES(?,'system','owner',?,?,1,?,?)",
+                      (cust["id"], f"ל{cust['name'] or 'לקוח'} יש זיכוי או המרת מסמך שלא הצלחנו "
+                       "לשייך בוודאות לחשבונית. כדי לא לדרוש סכום שגוי, התזכורות ללקוח הזה "
+                       "נעצרו. בדקו בחשבונית ירוקה ואז חדשו את התזכורות.", self.CREDIT_REVIEW,
+                       mid, _iso(self.clock())))
+            self.audit("system", "credit_review", {"customer": cust["id"],
+                                                   "reasons": sorted(set(docs.values()))})
+            held += 1
+        return held
 
     def import_csv(self, raw: bytes, actor: str = "owner") -> dict:
         """חלופה ל-API: ייבוא חלקי (לא סוגר חשבוניות שלא בקובץ). שגיאות לפי שורה."""
@@ -722,6 +767,8 @@ class CollectService:
         except Exception as e:  # noqa: BLE001 — כל כשל ברענון חוסם שליחה
             self._mark_refresh_failed(r, "refresh_failed", str(e))
             return "failed"
+        if doc is not None:   # ממצא 2.16: המקור מחזיר יתרה גולמית; הזיכוי שקוזז בסנכרון נשאר מקוזז
+            doc = replace(doc, amount_agorot=doc.amount_agorot - (inv["credit_agorot"] or 0))
         if doc is None or doc.status != 0 or doc.amount_agorot <= 0:
             self.db.x("UPDATE invoices SET status='closed' WHERE id=?", (inv["id"],))
             self._cancel_invoice(inv["id"], "invoice_closed")
@@ -770,6 +817,8 @@ class CollectService:
             except Exception as e:  # noqa: BLE001
                 self.audit("system", "refresh_failed", {"invoice": inv["id"], "error": str(e)[:200]})
                 return False
+            if doc is not None:   # ממצא 2.16: כמו ב-_refresh_before_send — יתרה נטו
+                doc = replace(doc, amount_agorot=doc.amount_agorot - (inv["credit_agorot"] or 0))
             if doc is None or doc.status != 0 or doc.amount_agorot <= 0:
                 self.db.x("UPDATE invoices SET status='closed' WHERE id=?", (inv["id"],))
                 self._cancel_invoice(inv["id"], "invoice_closed")
@@ -1104,19 +1153,28 @@ class CollectService:
         return info["pay_url"]
 
     # ---------- plans ----------
+    def open_debt(self, customer_id: int) -> tuple[list, int]:
+        """מבקר §4.6: הסדר נבנה על **כל** החוב הפתוח של הלקוח, לא על החשבונית הוותיקה בלבד.
+        ⇒ (החשבוניות הפתוחות לפי מועד, סה״כ באגורות). כמה מטבעות ⇒ סה״כ 0 (אין חיבור שקל+דולר)."""
+        invs = self.db.q("SELECT * FROM invoices WHERE customer_id=? AND status='open' "
+                         "ORDER BY due, id", (customer_id,))
+        if len({r["currency"] for r in invs}) > 1:
+            return invs, 0
+        return invs, sum(r["amount_agorot"] for r in invs)
+
     def propose_plan(self, customer_id: int, installments: int | None = None) -> int | None:
-        inv = self.db.one("SELECT * FROM invoices WHERE customer_id=? AND status='open' "
-                          "ORDER BY due LIMIT 1", (customer_id,))
-        if not inv:
+        invs, total = self.open_debt(customer_id)
+        if not invs or total <= 0:
             return None
-        items = plans.propose(inv["amount_agorot"], self.clock().date() + timedelta(days=7),
-                              installments)
+        items = plans.propose(total, self.clock().date() + timedelta(days=7), installments)
         data = [{"n": i.n, "due": i.due.isoformat(), "amount_agorot": i.amount_agorot}
                 for i in items]
-        pid = self.db.x("INSERT INTO plans(customer_id,invoice_id,installments,status,created_at)"
-                        " VALUES(?,?,?, 'proposed', ?)",
-                        (customer_id, inv["id"], json.dumps(data), _iso(self.clock())))
-        self.audit("system", "plan_proposed", {"plan": pid})
+        # invoice_id = החשבונית הוותיקה (עוגן, לתאימות); invoice_ids = כל מה שנכלל בהסדר
+        pid = self.db.x("INSERT INTO plans(customer_id,invoice_id,installments,status,created_at,"
+                        "invoice_ids) VALUES(?,?,?, 'proposed', ?, ?)",
+                        (customer_id, invs[0]["id"], json.dumps(data), _iso(self.clock()),
+                         json.dumps([r["id"] for r in invs])))
+        self.audit("system", "plan_proposed", {"plan": pid, "invoices": len(invs)})
         return pid
 
     def approve_plan(self, plan_id: int, actor: str = "owner") -> dict:
@@ -1127,17 +1185,31 @@ class CollectService:
         # ר-4 (מבקר סבב 3 🔴): הצעה של 3×400 נשלחה על חוב של 300 ⇒ רענון והשוואה לפני הכול
         if not self.refresh_customer(cust["id"]):
             raise ValueError("לא ניתן לאמת את הסכום מול המקור כרגע — ההסדר לא נשלח. נסו שוב")
-        inv = self._invoice(p["invoice_id"])
         items = json.loads(p["installments"])
         total = sum(i["amount_agorot"] for i in items)
-        if inv["status"] != "open" or inv["amount_agorot"] != total:
+        if p["invoice_ids"]:
+            # מבקר §4.6: ההסדר על כלל החוב ⇒ אותן חשבוניות פתוחות ואותו סה״כ, אחרת הצעה חדשה
+            invs, now_total = self.open_debt(cust["id"])
+            changed = (sorted(r["id"] for r in invs) != sorted(json.loads(p["invoice_ids"]))
+                       or now_total != total)
+        else:   # הסדר ישן (לפני invoice_ids) — על חשבונית אחת, כמו קודם
+            invs = [self._invoice(p["invoice_id"])]
+            now_total = invs[0]["amount_agorot"]
+            changed = invs[0]["status"] != "open" or now_total != total
+        if changed:
             self.db.x("UPDATE plans SET status='superseded' WHERE id=?", (plan_id,))
             self.audit("system", "plan_amount_changed", {"plan": plan_id, "plan_total": total,
-                                                         "now": inv["amount_agorot"]})
+                                                         "now": now_total})
             raise ValueError("היתרה השתנתה מאז שההסדר הוצע — נדרשת הצעה חדשה")
+        what = (f"לחשבונית {invs[0]['number']}" if len(invs) == 1 else
+                f"ל-{len(invs)} חשבוניות פתוחות ({', '.join(r['number'] for r in invs)}, "
+                f"סה״כ {templates.fmt_amount(total)})")
+        # ב-SMS בלי רשימת מספרים (אורך): רק כמה חשבוניות והסה״כ
+        what_sms = what if len(invs) == 1 else \
+            f"ל-{len(invs)} חשבוניות פתוחות (סה״כ {templates.fmt_amount(total)})"
         lines = "\n".join(f"{i['n']}. {i['due']} — {templates.fmt_amount(i['amount_agorot'])}"
                           for i in items)
-        text = (f"שלום {cust['name']}, הצעת פריסה לחשבונית {inv['number']} ללא תוספת:\n{lines}\n"
+        text = (f"שלום {cust['name']}, הצעת פריסה {what} ללא תוספת:\n{lines}\n"
                 "השיבו \"מאשר\" ובעל העסק יאשר סופית.")
         channel = "sms" if is_il_mobile(normalize_il_phone(cust["phone"])) else "email"
         unsub = self.unsub_url(self.new_unsub_token(cust["id"]))
@@ -1146,7 +1218,7 @@ class CollectService:
             first, rest = items[0]["amount_agorot"], items[-1]["amount_agorot"]
             sched = (f"{len(items)} תשלומים של {templates.fmt_amount(rest)}" if first == rest else
                      f"{len(items)} תשלומים: {templates.fmt_amount(first)} ואז {templates.fmt_amount(rest)}")
-            body = (f"{self.s.business_name}: הצעת פריסה לחשבונית {inv['number']} ללא תוספת: {sched}, "
+            body = (f"{self.s.business_name}: הצעת פריסה {what_sms} ללא תוספת: {sched}, "
                     f"החל מ-{items[0]['due']}. להסרה: {unsub}")
         else:
             body = f"{text}\n\nלהסרה מתזכורות: {unsub}"

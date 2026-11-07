@@ -8,6 +8,7 @@ const KIND: Record<string, { icon: string; title: string; tone: Notice['tone'] }
   max_reminders: { icon: '✋', title: 'נשלחו 3 תזכורות — מומלץ קשר אישי', tone: 'warn' },
   manual_only_old: { icon: '🗂️', title: 'חשבונית ישנה — טיפול ידני בלבד', tone: 'info' },
   sms_undelivered: { icon: '📵', title: 'SMS לא נמסר', tone: 'warn' },
+  credit_review: { icon: '🧾', title: 'זיכוי שלא שויך לחשבונית — לבדיקתך', tone: 'warn' },
 };
 
 /** מסנן ומתרגם. intent לא מוכר ⇒ מוצג עם כותרת כללית (לא נבלע בשקט). סדר: trial_ending ראשון, ואז החדש ביותר. */

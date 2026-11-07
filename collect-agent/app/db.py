@@ -130,6 +130,13 @@ class DB:
         if "source" not in icols:  # api | csv — ר-4: CSV לא ניתן לרענון ⇒ תוקף 24 שעות מהייבוא
             self.conn.execute("ALTER TABLE invoices ADD COLUMN source TEXT NOT NULL DEFAULT 'api'")
             self.conn.commit()
+        if "credit_agorot" not in icols:  # ממצא 2.16: זיכוי שקוזז (amount_agorot = נטו) — לרענון
+            self.conn.execute("ALTER TABLE invoices ADD COLUMN credit_agorot INTEGER NOT NULL DEFAULT 0")
+            self.conn.commit()
+        pcols = {r[1] for r in self.conn.execute("PRAGMA table_info(plans)")}
+        if "invoice_ids" not in pcols:  # מבקר §4.6: ההסדר על **כל** החוב — אילו חשבוניות נכללו
+            self.conn.execute("ALTER TABLE plans ADD COLUMN invoice_ids TEXT")
+            self.conn.commit()
         # ר-10: legal hold מתועד + חותמות מחיקה/התממה. SQL קבוע (שער האבטחה)
         for have, col, ddl in (
                 (cols, "legal_hold", "ALTER TABLE customers ADD COLUMN legal_hold TEXT"),
