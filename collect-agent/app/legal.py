@@ -41,3 +41,22 @@ def draft_footer() -> str:
     return (f'<p style="font-size:12px;color:#64748b;margin-top:20px">'
             f'<span style="border:1px solid #cbd5e1;border-radius:6px;padding:1px 6px">'
             f'{escape(DRAFT_LABEL)}</span> · {escape(OPERATOR["legal_name"])}</p>')
+
+
+def privacy_points(business: str) -> dict[str, str]:
+    """אותו תוכן כמו why_you_got_this + privacy_html, כטקסט נקי (בלי HTML) — לעמוד החייב ב-web
+    (`/pay/{code}`), כדי שגם הוא יציג «למה קיבלתם» ופרטיות כמו `/p` ו-`/u` (ר-13). מקור יחיד."""
+    o = OPERATOR
+    return {
+        "why": (f"קיבלתם הודעה זו כי אצל {business} רשומה על שמכם חשבונית פתוחה. ההודעה נשלחה מטעם "
+                f"{business} באופן אוטומטי, אחרי שבעל העסק אישר אותה. היא אינה הודעה פרסומית."),
+        "controller": (f"בעל השליטה במידע הוא {business}. השירות מופעל עבורו כספק עיבוד בידי "
+                       f"{o['legal_name']} ({o['company_id']}, {o['address']})."),
+        "use": ("המידע שבשימוש: שם, פרטי קשר, מספר חשבונית וסכום — רק לצורך תזכורת על החשבונית הזו. "
+                "איננו מוכרים או מעבירים אותו לצד שלישי למטרות אחרות, לא שולחים לכם פרסומות, "
+                "לא פונים לאף אחד מלבדכם ולא מדווחים ללשכות אשראי."),
+        "retention": ("מידע על חוב שנסגר נמחק או מותמם 90 יום אחרי הסגירה, אלא אם קיימת חובה חוקית "
+                      "או החזקה משפטית מתועדת. בקשת הסרה נשמרת כטביעת אצבע מגובבת בלבד, כדי שלא נפנה שוב."),
+        "contact": f"בקשה לעיון, לתיקון או למחיקה: לפנות ל-{business} או ל-{o['privacy_email']}.",
+        "label": f"{DRAFT_LABEL} · {o['legal_name']}",
+    }

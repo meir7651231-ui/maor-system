@@ -651,9 +651,12 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
     @app.get("/api/pay/{code}")
     def pay_api(code: str):
         try:
-            return svc.payer_view(code)
+            view = svc.payer_view(code)
         except KeyError:
             raise HTTPException(404, "לא נמצא") from None
+        from . import legal
+        # ר-13: גם עמוד ה-web של החייב מציג «למה קיבלתם» ופרטיות (כמו /p ו-/u) — מאותו מקור
+        return {**view, "legal": legal.privacy_points(view["business"])}
 
     @app.get("/pay/{code}/go")
     def pay_go(code: str, method: str = "page"):

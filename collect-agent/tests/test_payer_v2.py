@@ -35,6 +35,19 @@ def test_payer_api_is_public_and_minimal(svc):
     assert pub.get("/api/pay/nope").status_code == 404
 
 
+def test_payer_api_carries_privacy_texts(svc):
+    """ר-13 (מבקר: Pay.tsx בלי פרטיות): עמוד ה-web מקבל את אותם טקסטים כמו /p — בעל השליטה הוא העסק,
+    שמירה 90 יום, דרך לעיון/מחיקה, ותווית «טיוטה לעו״ד». מקור יחיד: legal.privacy_points."""
+    api = _api(svc)
+    code = _code(api, svc)
+    v = TestClient(create_app(svc, owner_token=OWNER_TOKEN)).get(f"/api/pay/{code}").json()
+    lg = v["legal"]
+    assert v["business"] in lg["why"] and "אינה הודעה פרסומית" in lg["why"]
+    assert v["business"] in lg["controller"] and "90 יום" in lg["retention"]
+    assert "למחיקה" in lg["contact"] and "טיוטה" in lg["label"]
+    assert all("<" not in t for t in lg.values())                    # טקסט נקי, בלי HTML
+
+
 def test_payer_go_redirects_only_to_verified_link(svc):
     api = _api(svc)
     code = _code(api, svc)

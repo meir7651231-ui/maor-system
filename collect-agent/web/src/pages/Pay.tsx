@@ -32,7 +32,7 @@ export function Pay({ code }: { code: string }) {
     <div className="min-h-screen bg-ink-50 flex flex-col">
       <header className="bg-ink-900 text-white">
         <div className="max-w-md mx-auto px-4 py-4 flex items-center gap-3">
-          <LogoMark size={30} />
+          <LogoMark size={30} dark />
           <div className="min-w-0">
             <div className="font-display font-extrabold truncate" data-testid="pay-business">{v?.business ?? '…'}</div>
             <div className="text-xs text-ink-400">תזכורת תשלום מטעם העסק</div>
@@ -90,6 +90,18 @@ export function Pay({ code }: { code: string }) {
           </>
         )}
       </main>
+      {v?.legal && (
+        <section className="w-full max-w-md mx-auto px-4" aria-labelledby="why-privacy" data-testid="pay-legal">
+          <p className="text-sm text-ink-700 leading-relaxed">{v.legal.why}</p>
+          <details className="mt-3 rounded-2xl bg-white shadow-card p-4 text-sm text-ink-700">
+            <summary id="why-privacy" className="cursor-pointer font-bold text-ink-900">פרטיות ומחיקת מידע</summary>
+            <div className="mt-3 space-y-2 leading-relaxed">
+              <p>{v.legal.controller}</p><p>{v.legal.use}</p><p>{v.legal.retention}</p><p>{v.legal.contact}</p>
+              <p className="text-xs text-ink-500"><span className="rounded border border-ink-200 px-1.5">{v.legal.label}</span></p>
+            </div>
+          </details>
+        </section>
+      )}
       <footer className="text-center text-xs text-ink-500 py-6 px-4">
         נשלח מטעם {v?.business ?? 'העסק'} באמצעות גבי · {v?.dry_run && <b>מצב הדגמה — לא יבוצע חיוב אמיתי</b>}
       </footer>

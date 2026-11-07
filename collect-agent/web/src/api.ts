@@ -125,6 +125,8 @@ export interface PayerView {
   code: string; business: string; number: string; amount: string; amount_agorot: number; currency: string;
   due: string | null; open: boolean; opted_out: boolean; can_pay: boolean; methods: PayMethod[]; plan_options: number[]; dry_run: boolean;
   pay_host?: string; pay_provider?: string;
+  /** ר-13: «למה קיבלתם» ופרטיות — אותו מקור כמו /p ו-/u בשרת (legal.privacy_points) */
+  legal?: { why: string; controller: string; use: string; retention: string; contact: string; label: string };
 }
 // review חור 4: כפתור ניטרלי אחד לעמוד התשלום של העסק (בלי Bit/Apple — סימני מסחר)
 export type PayMethod = 'page';

@@ -319,6 +319,8 @@ try {
   await pm.getByTestId('pay-amount').waitFor();
   ok(await pm.getByTestId('pay-page').count() === 1, 'חסר כפתור התשלום');   // review חור 4
   ok((await pm.getByTestId('pay-host').textContent()).includes('pay.example'), 'דומיין היעד לא מוצג');
+  // ר-13: עמוד ה-web של החייב מציג «למה קיבלתם» + פרטיות (כמו /p ו-/u)
+  ok((await pm.getByTestId('pay-legal').textContent()).includes('אינה הודעה פרסומית'), 'עמוד החייב בלי «למה קיבלתם»/פרטיות');
   await noHScroll(pm, 'עמוד החייב מובייל');
   const href = await pm.getByTestId('pay-page').getAttribute('href');
   const goPay = await rawFetch(new URL(href, base), { redirect: 'manual' });
