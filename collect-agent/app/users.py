@@ -50,6 +50,12 @@ def check_pw(pw: str, stored: str) -> bool:
         return False
 
 
+def _lock_key(email: str) -> str:
+    """מפתח טבלת הנעילות: גיבוב של המייל, לא המייל עצמו — הטבלה נספרת גם למיילים שאינם קיימים
+    (כדי שהנעילה לא תגלה קיום חשבון), ולכן לא שומרים בה מיילים שהוקלדו בטעות או ע״י תוקף."""
+    return "h:" + hashlib.sha256(email.strip().lower().encode()).hexdigest()[:32]
+
+
 def _totp_ctx(email: str) -> str:
     return f"user:{email}:totp"
 
@@ -94,13 +100,17 @@ class Users:
         email = email.strip().lower()
         u = self.db.one("SELECT * FROM users WHERE email=?", (email,))
         now = self._now()
+        # שער 6 (מסך התחברות): הנעילה לפי (מייל, IP) נבדקת ונספרת **לפני** בדיקת קיום המשתמש, גם
+        # למייל שאינו קיים. כך הממשק יכול לומר «ננעל זמנית» (429) בלי שהנעילה תגלה אם החשבון קיים.
+        lk = _lock_key(email)
+        ll = self.db.one("SELECT * FROM login_locks WHERE email=? AND ip=?", (lk, ip))
+        if ll and ll["locked_until"] and datetime.fromisoformat(ll["locked_until"]) > now:
+            return None
         if u is None:
             hash_pw(password)  # תזמון דומה
+            self._fail_ip(lk, ip, ll, now)
             return None
         if u["locked_until"] and datetime.fromisoformat(u["locked_until"]) > now:
-            return None
-        ll = self.db.one("SELECT * FROM login_locks WHERE email=? AND ip=?", (email, ip))
-        if ll and ll["locked_until"] and datetime.fromisoformat(ll["locked_until"]) > now:
             return None
         ok = u["active"] and check_pw(password, u["pw_hash"])
         counter = totp.verify(self._secret(u), code, now.timestamp(),
@@ -111,19 +121,41 @@ class Users:
             glock = until if fails >= MAX_FAILS_GLOBAL else None
             self.db.x("UPDATE users SET fails=?, locked_until=? WHERE id=?",
                       (0 if glock else fails, glock, u["id"]))
-            lf = (ll["fails"] if ll else 0) + 1
-            lock = until if lf >= MAX_FAILS else None
-            self.db.x("INSERT INTO login_locks(email,ip,fails,locked_until) VALUES(?,?,?,?) "
-                      "ON CONFLICT(email,ip) DO UPDATE SET fails=excluded.fails, "
-                      "locked_until=excluded.locked_until", (email, ip, 0 if lock else lf, lock))
+            self._fail_ip(lk, ip, ll, now)
             return None
         tok = secrets.token_urlsafe(32)
         self.db.x("UPDATE users SET fails=0, locked_until=NULL, totp_last=? WHERE id=?",
                   (counter, u["id"]))
-        self.db.x("DELETE FROM login_locks WHERE email=? AND ip=?", (email, ip))
+        self.db.x("DELETE FROM login_locks WHERE email=? AND ip=?", (lk, ip))
         self.db.x("INSERT INTO sessions VALUES(?,?,?)",
                   (token_hash(tok), u["id"], (now + timedelta(hours=SESSION_HOURS)).isoformat()))
         return tok
+
+    def _fail_ip(self, lk: str, ip: str, ll, now: datetime) -> None:
+        lf = (ll["fails"] if ll else 0) + 1
+        lock = (now + timedelta(minutes=LOCK_MIN)).isoformat() if lf >= MAX_FAILS else None
+        self.db.x("INSERT INTO login_locks(email,ip,fails,locked_until) VALUES(?,?,?,?) "
+                  "ON CONFLICT(email,ip) DO UPDATE SET fails=excluded.fails, "
+                  "locked_until=excluded.locked_until", (lk, ip, 0 if lock else lf, lock))
+
+    def ip_locked_for(self, email: str, ip: str) -> int:
+        """שניות עד שחרור נעילת (מייל, IP), או 0. לא מגלה קיום חשבון: נספר גם למייל שאינו קיים.
+        הנעילה הגלובלית (MAX_FAILS_GLOBAL, רק לחשבון קיים) לא נחשפת כאן — היא נשארת 401 כללי."""
+        ll = self.db.one("SELECT locked_until FROM login_locks WHERE email=? AND ip=?",
+                         (_lock_key(email), ip))
+        if not ll or not ll["locked_until"]:
+            return 0
+        left = (datetime.fromisoformat(ll["locked_until"]) - self._now()).total_seconds()
+        return max(0, int(left) + 1) if left > 0 else 0
+
+    def whoami(self, token: str) -> dict | None:
+        """לממשק בלבד (לא ליומנים): השחקן + שם התצוגה של העובד המחובר."""
+        actor = self.actor(token)
+        if actor is None:
+            return None
+        r = self.db.one("SELECT u.name FROM sessions s JOIN users u ON u.id=s.user_id "
+                        "WHERE s.token_hash=?", (token_hash(token),))
+        return {"actor": actor, "kind": "user", "name": r["name"] if r else ""}
 
     def _secret(self, u) -> str:
         stored = u["totp_secret"]

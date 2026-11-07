@@ -214,6 +214,8 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         if request.method == "GET" and route in PII_READ_ROUTES:
             svc.log_access(actor, "GET", route, request.url.path)
 
+    auth_dep = [Depends(owner)]
+
     @app.post("/auth/login")
     def auth_login(body: LoginIn, request: Request):
         tok = users.login(body.email, body.password, body.code, ip=client_ip(request))
@@ -222,15 +224,31 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
             import hashlib as _h
             svc.audit("anon", "login_failed", {"email_sha": _h.sha256(
                 body.email.strip().lower().encode()).hexdigest()[:16]})
+            # מסך ההתחברות (שער 6): נעילת (מייל, IP) ⇒ 429 עם Retry-After, כדי שהעובדת תדע לחכות
+            # במקום לנחש שוב. הנעילה נספרת גם למייל שאינו קיים ⇒ ה-429 לא מגלה קיום חשבון.
+            left = users.ip_locked_for(body.email, client_ip(request))
+            if left:
+                return JSONResponse({"detail": "יותר מדי ניסיונות כניסה. הכניסה ננעלה זמנית"},
+                                    status_code=429, headers={"Retry-After": str(left)})
             raise HTTPException(401, "פרטי ההתחברות או קוד האימות שגויים")
         svc.audit(users.actor(tok) or "user:?", "login", None)   # פסאודונים, לא מייל (critic סבב 10)
         return {"token": tok, "expires_hours": 12}
+
+    @app.get("/auth/me", dependencies=auth_dep)
+    def auth_me(request: Request):
+        """מי מחובר (לממשק): עובד ⇒ שם התצוגה שלו; טוקן משותף ⇒ owner. לא נרשם ביומן הצפייה."""
+        t = security.bearer(request.headers.get("authorization"))
+        me = users.whoami(t) if t else None
+        return me or {"actor": request.state.actor, "kind": "owner", "name": ""}
 
     @app.post("/auth/logout")
     def auth_logout(request: Request):
         t = security.bearer(request.headers.get("authorization"))
         if t:
+            actor = users.actor(t)
             users.logout(t)
+            if actor:
+                svc.audit(actor, "logout", None)
         return {"ok": True}
 
     async def owner_or_signed(request: Request) -> None:
@@ -259,7 +277,9 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         return {"status": "ok", "product": SLOGAN, "tagline": TAGLINE, "send_mode": svc.s.send_mode,
                 "greeninvoice_env": svc.s.greeninvoice_env, "dry_run": svc.s.dry_run,
                 "channels": list(svc.s.channels), "sms_provider": svc.s.sms_provider,
-                "trial": svc.trial()}
+                "trial": svc.trial(),
+                # הממשק: כש-True מוצגת רק כניסת עובד (מייל+סיסמה+קוד), בלי «קוד גישה משותף»
+                "login_required": require_login}
 
     @app.get("/", response_class=HTMLResponse)
     @app.get("/ui", response_class=HTMLResponse)
@@ -559,13 +579,15 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
     def conversation_drafts(status: str | None = "queue"):
         return inbox.drafts(status)
 
+    # שער 6: אישור/דחיית טיוטת תשובה נרשמים ב-audit על שם העובד המחובר, לא «owner»
     @app.post("/conversation/drafts/{did}/approve", dependencies=auth)
-    def conversation_approve(did: int, e: DraftEdit | None = None):
-        return guard(lambda: inbox.approve_draft(did, body=e.body if e else None))
+    def conversation_approve(did: int, request: Request, e: DraftEdit | None = None):
+        return guard(lambda: inbox.approve_draft(did, body=e.body if e else None,
+                                                 actor=request.state.actor))
 
     @app.post("/conversation/drafts/{did}/reject", dependencies=auth)
-    def conversation_reject(did: int):
-        return guard(inbox.reject_draft, did)
+    def conversation_reject(did: int, request: Request):
+        return guard(lambda: inbox.reject_draft(did, actor=request.state.actor))
 
     @app.post("/conversation/flush", dependencies=auth)
     def conversation_flush():

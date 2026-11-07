@@ -84,9 +84,12 @@ def test_totp_code_is_single_use(env):
 
 def test_lockout_after_5_failures_even_with_right_code(env):
     svc, users, reg, api, clock = env
-    for _ in range(5):
+    for _ in range(4):
         assert _login(api, reg, clock, pw="wrong-password-1").status_code == 401
-    assert _login(api, reg, clock).status_code == 401  # נעול
+    # הכשלון החמישי נועל את (החשבון, IP) ⇒ 429 עם Retry-After (מסך ההתחברות מציג «ננעל זמנית»)
+    r5 = _login(api, reg, clock, pw="wrong-password-1")
+    assert r5.status_code == 429 and int(r5.headers["Retry-After"]) > 0
+    assert _login(api, reg, clock).status_code == 429  # נעול, גם עם הסיסמה והקוד הנכונים
     clock.now += timedelta(minutes=16)
     assert _login(api, reg, clock, shift=0).status_code == 200
 
