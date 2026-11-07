@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="520" viewBox="0 0 1280 520" role="img" aria-label="אורביט — מערכת ניהול אחת לכל ארגון. הנתונים נשארים אצלכם.">
+<defs>
+<radialGradient id="bg" cx="28%" cy="50%" r="80%"><stop offset="0" stop-color="#16203d"/><stop offset=".55" stop-color="#0d1120"/><stop offset="1" stop-color="#070910"/></radialGradient>
+<radialGradient id="planet" cx="38%" cy="34%" r="72%"><stop offset="0" stop-color="#3a5fb8"/><stop offset=".55" stop-color="#16285c"/><stop offset="1" stop-color="#0a1230"/></radialGradient>
+<radialGradient id="halo" cx="50%" cy="50%" r="50%"><stop offset=".55" stop-color="#47bfff" stop-opacity=".22"/><stop offset="1" stop-color="#47bfff" stop-opacity="0"/></radialGradient>
+<linearGradient id="ring" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#47bfff" stop-opacity=".15"/><stop offset=".5" stop-color="#9fdcff"/><stop offset="1" stop-color="#47bfff" stop-opacity=".15"/></linearGradient>
+<linearGradient id="silver" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f4f6fb"/><stop offset="1" stop-color="#aab3c7"/></linearGradient>
+<filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+<clipPath id="pc"><circle cx="330" cy="260" r="118"/></clipPath>
+</defs>
+<style>
+.orb{transform-origin:330px 260px;animation:spin 40s linear infinite}
+.orb2{transform-origin:330px 260px;animation:spin 64s linear infinite reverse}
+@keyframes spin{to{transform:rotate(360deg)}}
+.tw{animation:tw 3.2s ease-in-out infinite}.tw2{animation:tw 4.4s ease-in-out infinite}
+@keyframes tw{0%,100%{opacity:.25}50%{opacity:1}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+text{font-family:'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif}
+</style>
+<rect width="1280" height="520" rx="24" fill="url(#bg)"/>
+<g fill="#dfe8ff">
+<circle class="tw" cx="80" cy="60" r="1.6"/><circle class="tw2" cx="210" cy="430" r="1.3"/><circle class="tw" cx="560" cy="80" r="1.2"/><circle class="tw2" cx="640" cy="470" r="1.6"/>
+<circle class="tw2" cx="120" cy="300" r="1.1"/><circle class="tw" cx="700" cy="230" r="1.3"/><circle class="tw" cx="1220" cy="70" r="1.4"/><circle class="tw2" cx="1180" cy="470" r="1.2"/>
+<circle cx="40" cy="190" r="1"/><circle cx="470" cy="470" r="1"/><circle cx="600" cy="300" r="1"/><circle cx="1240" cy="300" r="1"/><circle cx="760" cy="40" r="1"/><circle cx="880" cy="490" r="1"/>
+</g>
+<!-- planet -->
+<circle cx="330" cy="260" r="190" fill="url(#halo)"/>
+<circle cx="330" cy="260" r="118" fill="url(#planet)"/>
+<g clip-path="url(#pc)" stroke="#7fb4ff" stroke-opacity=".22" fill="none" stroke-width="1.2">
+<ellipse cx="330" cy="260" rx="118" ry="40"/><ellipse cx="330" cy="260" rx="118" ry="82"/><ellipse cx="330" cy="260" rx="40" ry="118"/><ellipse cx="330" cy="260" rx="82" ry="118"/><line x1="212" y1="260" x2="448" y2="260"/>
+</g>
+<!-- core: data stays home -->
+<g transform="translate(330 260)" filter="url(#glow)">
+<rect x="-34" y="-30" width="68" height="60" rx="12" fill="#211d17" stroke="#f3c76b" stroke-width="3"/>
+<path d="M-18 -12h36M-18 0h36M-18 12h22" stroke="#f3c76b" stroke-width="4" stroke-linecap="round"/>
+</g>
+<!-- ring -->
+<ellipse cx="330" cy="260" rx="236" ry="74" transform="rotate(-18 330 260)" fill="none" stroke="url(#ring)" stroke-width="5"/>
+<!-- orbiting modules -->
+<g class="orb">
+<g transform="translate(330 70)"><circle r="26" fill="#0d1120" stroke="#47bfff" stroke-width="2"/><text y="9" text-anchor="middle" font-size="24">👪</text></g>
+<g transform="translate(520 260)"><circle r="26" fill="#0d1120" stroke="#47bfff" stroke-width="2"/><text y="9" text-anchor="middle" font-size="24">📅</text></g>
+<g transform="translate(330 450)"><circle r="26" fill="#0d1120" stroke="#47bfff" stroke-width="2"/><text y="9" text-anchor="middle" font-size="24">🧾</text></g>
+<g transform="translate(140 260)"><circle r="26" fill="#0d1120" stroke="#47bfff" stroke-width="2"/><text y="9" text-anchor="middle" font-size="24">📊</text></g>
+</g>
+<g class="orb2">
+<g transform="translate(470 120)"><circle r="20" fill="#0d1120" stroke="#b9a7ff" stroke-width="2"/><text y="7" text-anchor="middle" font-size="18">🎓</text></g>
+<g transform="translate(190 400)"><circle r="20" fill="#0d1120" stroke="#b9a7ff" stroke-width="2"/><text y="7" text-anchor="middle" font-size="18">💳</text></g>
+</g>
+<!-- text block (RTL, anchored to the right edge) -->
+<text x="1190" y="168" text-anchor="start" direction="rtl" font-size="84" font-weight="800" fill="url(#silver)">אורביט</text>
+<text x="1190" y="222" text-anchor="start" direction="rtl" font-size="20" font-weight="600" fill="#7fb4ff">ORBIT · מערכת הניהול שלכם</text>
+<text x="1190" y="296" text-anchor="start" direction="rtl" font-size="34" font-weight="800" fill="#f4f6fb">מערכת ניהול אחת לכל ארגון.</text>
+<text x="1190" y="342" text-anchor="start" direction="rtl" font-size="34" font-weight="800" fill="#f3c76b">הנתונים נשארים אצלכם.</text>
+<text x="1190" y="402" text-anchor="start" direction="rtl" font-size="19" fill="#aab3c7">אנשי־קשר · חוגים ונוכחות · לוח עברי־לועזי · תרומות וקבלות · דוחות</text>
+<text x="1190" y="434" text-anchor="start" direction="rtl" font-size="17" fill="#7d8aa6">React · TypeScript · אתר סטטי local-first · ענן לפי בחירה</text>
+</svg>

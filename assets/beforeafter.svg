@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="440" viewBox="0 0 1280 440" role="img" aria-label="לפני ואחרי: בלי אורביט הארגון מפוזר בין כלים; עם אורביט הכול במקום אחד והנתונים אצלכם">
+<rect width="1280" height="440" rx="24" fill="#0d1120"/>
+<defs><marker id="a" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0 0L10 5L0 10z" fill="#47bfff"/></marker></defs>
+<rect x="670" y="40" width="550" height="360" rx="18" fill="#2a1219" stroke="#ff6b78" stroke-opacity=".6" stroke-width="2"/>
+<text x="945" y="92" text-anchor="middle" direction="rtl" unicode-bidi="embed" font-size="28" font-weight="800" fill="#ff6b78" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">בלי אורביט</text>
+<text x="1180" y="150" text-anchor="middle" font-size="22" font-weight="800" fill="#ff6b78" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">✕</text>
+<text x="1155" y="150" text-anchor="start" direction="rtl" unicode-bidi="embed" font-size="20" font-weight="500" fill="#e8ecf5" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">גיליונות מפוזרים בכמה מחשבים</text>
+<text x="1180" y="202" text-anchor="middle" font-size="22" font-weight="800" fill="#ff6b78" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">✕</text>
+<text x="1155" y="202" text-anchor="start" direction="rtl" unicode-bidi="embed" font-size="20" font-weight="500" fill="#e8ecf5" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">רשימות בוואטסאפ ובמחברות</text>
+<text x="1180" y="254" text-anchor="middle" font-size="22" font-weight="800" fill="#ff6b78" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">✕</text>
+<text x="1155" y="254" text-anchor="start" direction="rtl" unicode-bidi="embed" font-size="20" font-weight="500" fill="#e8ecf5" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">תאריכים עבריים מחושבים ידנית</text>
+<text x="1180" y="306" text-anchor="middle" font-size="22" font-weight="800" fill="#ff6b78" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">✕</text>
+<text x="1155" y="306" text-anchor="start" direction="rtl" unicode-bidi="embed" font-size="20" font-weight="500" fill="#e8ecf5" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">קבלות נכתבות אחת-אחת</text>
+<text x="1180" y="358" text-anchor="middle" font-size="22" font-weight="800" fill="#ff6b78" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">✕</text>
+<text x="1155" y="358" text-anchor="start" direction="rtl" unicode-bidi="embed" font-size="20" font-weight="500" fill="#e8ecf5" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">גיבוי? כשנזכרים</text>
+<rect x="60" y="40" width="550" height="360" rx="18" fill="#0f2a22" stroke="#3ddc97" stroke-opacity=".6" stroke-width="2"/>
+<text x="335" y="92" text-anchor="middle" direction="rtl" unicode-bidi="embed" font-size="28" font-weight="800" fill="#3ddc97" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">עם אורביט</text>
+<text x="570" y="150" text-anchor="middle" font-size="22" font-weight="800" fill="#3ddc97" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">✓</text>
+<text x="545" y="150" text-anchor="start" direction="rtl" unicode-bidi="embed" font-size="20" font-weight="500" fill="#e8ecf5" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">מסך אחד לכל הארגון</text>
+<text x="570" y="202" text-anchor="middle" font-size="22" font-weight="800" fill="#3ddc97" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">✓</text>
+<text x="545" y="202" text-anchor="start" direction="rtl" unicode-bidi="embed" font-size="20" font-weight="500" fill="#e8ecf5" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">לוח עברי-לועזי מובנה</text>
+<text x="570" y="254" text-anchor="middle" font-size="22" font-weight="800" fill="#3ddc97" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">✓</text>
+<text x="545" y="254" text-anchor="start" direction="rtl" unicode-bidi="embed" font-size="20" font-weight="500" fill="#e8ecf5" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">קבלות במספור רציף (סעיף 46)</text>
+<text x="570" y="306" text-anchor="middle" font-size="22" font-weight="800" fill="#3ddc97" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">✓</text>
+<text x="545" y="306" text-anchor="start" direction="rtl" unicode-bidi="embed" font-size="20" font-weight="500" fill="#e8ecf5" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">שמירה אוטומטית + גיבוי יומי</text>
+<text x="570" y="358" text-anchor="middle" font-size="22" font-weight="800" fill="#3ddc97" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">✓</text>
+<text x="545" y="358" text-anchor="start" direction="rtl" unicode-bidi="embed" font-size="20" font-weight="500" fill="#e8ecf5" font-family="'Segoe UI','Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif">אתר סטטי — בלי שרת חובה</text>
+<path d="M655 220 L625 220" stroke="#47bfff" stroke-width="4" marker-end="url(#a)"/>
+</svg>
