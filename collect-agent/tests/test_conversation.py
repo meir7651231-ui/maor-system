@@ -319,3 +319,16 @@ def test_block_request_is_opt_out(text):
     ctx = _cv.Context(today=_d(2026, 11, 8), business="סטודיו", invoices=(_cv.OpenInvoice("1", 120000),))
     d = _cv.respond(text, ctx)
     assert d.intent == _cv.Intent.OPT_OUT and d.stop == _cv.Stop.PERMANENT
+
+
+@pytest.mark.parametrize("text", ["אני בבית חולים, אשלם ביום ראשון", "אני בבית החולים, אשלם ב-20 לחודש",
+                                  "אני בבי\"ח, אשלם ביום חמישי", "אבא שלי בטיפול נמרץ, אשלם בשבוע הבא"])
+def test_hospital_is_sensitive_hardship_not_auto_released_promise(text):
+    """critic סבב 18 (פתוח מסבב 2, 2.13, שוחזר): «אני בבית חולים, אשלם ביום ראשון» סווג promise בלבד, ולכן
+    שוחרר אוטומטית ב-16.11 והתזכורות חזרו לאדם מאושפז. «מאושפזת» כבר זוהה כקושי רגיש. עכשיו גם בית חולים."""
+    from datetime import date as _d
+
+    from app import conversation as _cv
+    ctx = _cv.Context(today=_d(2026, 11, 8), business="סטודיו", invoices=(_cv.OpenInvoice("1", 120000),))
+    d = _cv.respond(text, ctx)
+    assert d.intent == _cv.Intent.CANT_PAY and "sensitive" in d.tags and d.stop == _cv.Stop.PAUSE
