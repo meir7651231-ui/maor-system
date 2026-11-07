@@ -99,7 +99,8 @@ export interface OutMsg { id: string; channel: 'sms' | 'email'; to: string; body
 export const api = {
   me: () => j<Me>('/auth/me'),
   dashboard: () => j<Dashboard>('/dashboard'),
-  pending: () => j<{ id: number; invoice_id: number; block_reason: string | null }[]>('/reminders?status=pending_approval'),
+  // invoice_id = העוגן של תזכורת מאוחדת; invoice_ids = כל החשבוניות שבהודעה
+  pending: () => j<{ id: number; invoice_id: number; invoice_ids?: number[]; block_reason: string | null }[]>('/reminders?status=pending_approval'),
   preview: (rid: number) => j<Preview>(`/reminders/${rid}/preview`),
   /** confirmOpen: לחשבונית מ-CSV בעל העסק מאשר במפורש שהסכום עדיין פתוח (השרת מחייב; תוקף 24 ש׳). */
   approve: (rid: number, confirmOpen = false) => j<unknown>(`/reminders/${rid}/approve`, { method: 'POST', ...(confirmOpen ? { body: JSON.stringify({ confirm_open: true }) } : {}) }),
@@ -125,9 +126,14 @@ export interface PayerView {
   code: string; business: string; number: string; amount: string; amount_agorot: number; currency: string;
   due: string | null; open: boolean; opted_out: boolean; can_pay: boolean; methods: PayMethod[]; plan_options: number[]; dry_run: boolean;
   pay_host?: string; pay_provider?: string;
+  /** critic 15.1/2.12: הודעה מאוחדת ⇒ כל החשבוניות שבה (לפי מועד) + סה״כ. אחת ⇒ invoices.length===1 */
+  invoices?: PayerInvoice[]; count?: number; total?: string; total_agorot?: number;
+  /** קישור תשלום אחד לכולן (עמוד קבוע של העסק) ⇒ כפתור אחד; אחרת כפתור לכל חשבונית */
+  pay_shared?: boolean;
   /** ר-13: «למה קיבלתם» ופרטיות — אותו מקור כמו /p ו-/u בשרת (legal.privacy_points) */
   legal?: { why: string; controller: string; use: string; retention: string; contact: string; label: string };
 }
+export interface PayerInvoice { number: string; due: string | null; amount: string; amount_agorot: number; code: string; can_pay: boolean }
 // review חור 4: כפתור ניטרלי אחד לעמוד התשלום של העסק (בלי Bit/Apple — סימני מסחר)
 export type PayMethod = 'page';
 export const payer = {

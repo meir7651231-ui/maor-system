@@ -73,8 +73,18 @@ class SettingsIn(BaseModel):
             raise ValueError("שם העסק לא יכול לכלול קישור או תווים מיוחדים")
         # שם העסק פותח כל SMS ⇒ חייב לעבור את מסנן הניסוח (ר-1)
         bad = compliance.violations(f"{v}: שלום", compliance.Rules(business=v))
+        # critic 3.6.5: השם המדויק פטור ממסנן המותגים בהודעות — לכן צירוף בנק/רשות נחסם כאן
+        bad += compliance.business_name_violations(v)
         if bad:
             raise ValueError(f"שם העסק נחסם במסנן הניסוח: {', '.join(bad)}")
+        return v
+
+    @field_validator("sms_sender_id")
+    @classmethod
+    def _sender(cls, v: str | None) -> str | None:
+        # critic 3.6.5: שם שולח "BankLeumi"/"PayBox" = התחזות לבנק/אפליקציית תשלום
+        if v and compliance.sender_id_violations(v):
+            raise ValueError("שם השולח לא יכול לכלול שם של בנק, אפליקציית תשלום או רשות")
         return v
 
     @field_validator("email_reply_to")

@@ -21,7 +21,7 @@ CONFIRM = "WIPE"
 
 # SQL קבוע (שער האבטחה: בלי f-string). סדר: ילדים לפני הורים בגלל foreign_keys.
 _TABLES = ("sessions", "login_locks", "users", "link_tokens", "drafts", "conversations", "messages",
-           "reminders", "plans", "invoices", "customers", "business_settings",
+           "reminder_invoices", "reminders", "plans", "invoices", "customers", "business_settings",
            "business_secrets")
 _DELETE = {t: f"DELETE FROM {t}" for t in _TABLES}  # noqa: S608 — שמות קבועים מהרשימה למעלה
 _COUNT = {t: f"SELECT COUNT(*) FROM {t}" for t in _TABLES}  # noqa: S608

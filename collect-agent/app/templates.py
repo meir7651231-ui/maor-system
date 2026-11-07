@@ -55,6 +55,51 @@ STEPS: tuple[Step, ...] = (
 )
 
 
+@dataclass(frozen=True)
+class MultiStep:
+    """תזכורת מאוחדת ללקוח עם כמה חשבוניות פתוחות (critic 15.1/2.12, הכרעת מאיר 7.11.2026).
+    שדות נוספים: {count} {nums} {lines}; {amount} = הסה״כ. ב-SMS: אם רשימת המספרים חורגת מ-2 חלקים
+    (SMS_TARGET) ⇒ `sms_count` (כמה חשבוניות + סה״כ), והקישור הקצר מוביל לעמוד שמפרט את כולן."""
+    key: str
+    sms: str
+    sms_count: str
+    subject: str
+    email: str
+
+
+# אותו סולם (ידידותית ⇒ פריסה ⇒ אחרונה), אותו טון, אותם כללי ניסוח — בלשון רבים.
+STEPS_MULTI: tuple[MultiStep, ...] = (
+    MultiStep("friendly",
+              "{biz}: שלום {first}, חשבוניות {nums} (סה\"כ {amount}) טרם סומנו כשולמו. "
+              "לתשלום: {short} {stop}",
+              "{biz}: שלום {first}, {count} חשבוניות (סה\"כ {amount}) טרם סומנו כשולמו. "
+              "לתשלום: {short} {stop}",
+              "תזכורת ידידותית: {count} חשבוניות מ-{biz}",
+              "שלום {name},\n\nזו תזכורת ידידותית ש-{count} חשבוניות על סך כולל של {amount} טרם "
+              "סומנו כשולמו:\n{lines}\nלפירוט ולתשלום: {link}\n\nאם כבר שילמתם — תודה רבה, ואפשר "
+              "להתעלם מהודעה זו.\n\nבברכה,\n{biz}"),
+    MultiStep("plan_offer",
+              "{biz}: {first}, חשבוניות {nums} (סה\"כ {amount}) פתוחות, אפשר בתשלומים. "
+              "{plan_cta}: {short} {stop}",
+              "{biz}: {first}, {count} חשבוניות (סה\"כ {amount}) פתוחות, אפשר בתשלומים. "
+              "{plan_cta}: {short} {stop}",
+              "{count} חשבוניות מ-{biz} עדיין פתוחות",
+              "שלום {name},\n\n{count} חשבוניות על סך כולל של {amount} עדיין פתוחות:\n{lines}\n"
+              "אם נוח לכם, אפשר לפרוס את הסכום הכולל לכמה תשלומים ללא כל תוספת — השיבו \"פריסה\".\n"
+              "לפירוט ולתשלום: {link}\n\nבברכה,\n{biz}"),
+    MultiStep("final",
+              "{biz}: {first}, תזכורת אוטומטית אחרונה לחשבוניות {nums} (סה\"כ {amount}). "
+              "לתשלום: {short} {stop}",
+              "{biz}: {first}, תזכורת אוטומטית אחרונה ל-{count} חשבוניות (סה\"כ {amount}). "
+              "לתשלום: {short} {stop}",
+              "תזכורת אחרונה: {count} חשבוניות מ-{biz}",
+              "שלום {name},\n\nזו התזכורת האוטומטית האחרונה לגבי {count} חשבוניות על סך כולל של "
+              "{amount}:\n{lines}\nבעל העסק ייצור איתכם קשר אישית בהמשך.\nלפירוט ולתשלום: {link}"
+              "\n\nבברכה,\n{biz}"),
+)
+assert [s.key for s in STEPS_MULTI] == ["friendly", "plan_offer", "final"]
+
+
 def fmt_amount(agorot: int, currency: str = "ILS") -> str:
     sym = {"ILS": "₪", "USD": "$", "EUR": "€"}.get(currency, currency + " ")
     whole, frac = divmod(agorot, 100)
@@ -91,13 +136,29 @@ def fields(*, biz: str, name: str, num: str, amount_agorot: int, currency: str,
             "plan_cta": "פריסה/תשלום"}   # העמוד מאפשר גם פריסה (גם בלי 2-way)
 
 
-def render_sms(step: Step, f: dict[str, str]) -> str:
+def fields_multi(*, biz: str, name: str, invoices: list[tuple[str, int]], currency: str,
+                 link: str, unsub: str, short: str = "", two_way: bool = False) -> dict[str, str]:
+    """invoices = [(מספר, סכום באגורות)] לפי מועד. {amount} = הסה״כ (מטבע אחד בלבד)."""
+    nums = [sanitize_field(n, 30) for n, _ in invoices]
+    total = sum(a for _, a in invoices)
+    f = fields(biz=biz, name=name, num=", ".join(nums), amount_agorot=total, currency=currency,
+               link=link, unsub=unsub, short=short, two_way=two_way)
+    f["count"] = str(len(invoices))
+    f["nums"] = f["num"] = ", ".join(nums)
+    f["lines"] = "\n".join(f"• חשבונית {n} — {fmt_amount(a, currency)}"
+                           for n, (_, a) in zip(nums, invoices, strict=True))
+    return f
+
+
+def render_sms(step: Step | MultiStep, f: dict[str, str]) -> str:
     out = step.sms.format(**f)
+    if isinstance(step, MultiStep) and len(out) > SMS_TARGET:
+        out = step.sms_count.format(**f)   # רשימה ארוכה ⇒ כמה + סה״כ; הפירוט בעמוד הקישור
     # "שלום שלום," כשאין שם — מנקים
     return out.replace("שלום שלום,", "שלום,").replace(": שלום, ", ": שלום, ")
 
 
-def render_email(step: Step, f: dict[str, str]) -> tuple[str, str, str]:
+def render_email(step: Step | MultiStep, f: dict[str, str]) -> tuple[str, str, str]:
     text = step.email.format(**f) + f"\n\nלהסרה מתזכורות: {f['unsub']}"
     esc = {k: escape(v) for k, v in f.items()}
     body_html = "<br>".join(escape(line) for line in step.email.format(**f).split("\n"))
@@ -117,5 +178,6 @@ def template_version() -> str:
     import hashlib
     import json
 
-    src = json.dumps([s.__dict__ for s in STEPS], ensure_ascii=False, sort_keys=True)
+    src = json.dumps([s.__dict__ for s in STEPS] + [s.__dict__ for s in STEPS_MULTI],
+                     ensure_ascii=False, sort_keys=True)
     return hashlib.sha256(src.encode()).hexdigest()[:12]
