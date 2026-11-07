@@ -47,7 +47,7 @@ const PLATFORM_DEMOS: {
   accent: string;
   theme: string;
 }[] = [
-  { org: 'מאור החסד', colorName: 'ירוק צהר', desc: 'הארגון שלך', accent: '#0e7a6c', theme: 'tsohar' },
+  { org: 'השם שלכם', colorName: 'ירוק צהר', desc: 'הארגון שלכם', accent: '#0e7a6c', theme: 'tsohar' },
   { org: 'יד ביד ת״א', colorName: 'סגול רויאל', desc: 'ארגון חונכות', accent: '#8a3ffc', theme: 'tsohar' },
   { org: 'לב פתוח', colorName: 'אדום שני', desc: 'בית תמחוי', accent: '#b3362a', theme: 'tsohar' },
   { org: 'אופק לילדים', colorName: 'כחול עומק', desc: 'קרן מלגות', accent: '#1554b0', theme: 'tsohar' },
@@ -837,7 +837,7 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
             onToggleOpen={() => flipOpen('branding', true)}
           >
             <Field label="שם הארגון">
-              <TextInput value={config.orgName} onChange={setName} placeholder="למשל: מאור החסד" />
+              <TextInput value={config.orgName} onChange={setName} placeholder="למשל: מרכז אור" />
             </Field>
             {featureOn(config, 'core.taxreceipt') && (
               <>
