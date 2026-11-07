@@ -12,6 +12,7 @@ _payment_link, _log_out, audit) ומוסיף שתי טבלאות משלו (conve
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import re
@@ -115,11 +116,12 @@ class ConversationInbox:
         d = respond(text, ctx, llm=self.llm)
         if web:
             d = replace(d, reply=None, auto_send=False)
+        d = self._hold_reply_if_opted_out(cust, channel, d)
         self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
                   "created_at) VALUES(?,'in',?,?,?,?,?)",
                   (cust["id"], channel, text, d.intent.value,
                    int(d.escalate != Escalation.NONE), _iso(now)))
-        plan_id = self._apply_effects(cust, d)
+        plan_id = self._apply_effects(cust, d, prior=ctx.state)
         draft_id = None
         if d.reply or d.escalate != Escalation.NONE:
             # בלי טיוטה (למשל עו"ד) ⇒ כרטיס "דרוש טיפול" בתור, שבעל העסק יכול לענות ממנו בעצמו
@@ -171,8 +173,23 @@ class ConversationInbox:
             payment_link=link, channel=channel, state=state, offered_plan=offered,
             bot_turns=conv["bot_turns"] if conv else 0, policy=self.policy)
 
+    def _hold_reply_if_opted_out(self, cust, channel: str, d: Decision) -> Decision:
+        """לקוח שכבר הוסר (או שהכתובת שלו ברשימת ההסרה): שער השליחה (`_can_message`) יחסום כל
+        תשובה שאינה ב-`_ALLOWED_AFTER_OPT_OUT`. המנוע עדיין מנסח לחלק מהכוונות (שילמתי, מחלוקת,
+        מצוקה) ⇒ בעל העסק קיבל טיוטה, אישר, והיא נדחתה בשקט כ-`system:opted_out`. במקום טיוטה שלא
+        תצא לעולם ⇒ כרטיס «דרוש טיפול» עם הנחיה לפנות אישית (ההגבלה עצמה לא משתנה — TERMS §6)."""
+        if channel == "web" or not d.reply or d.intent.value in _ALLOWED_AFTER_OPT_OUT:
+            return d
+        if not (cust["opted_out"] or self.svc.suppressed(channel, self._addr(cust, channel) or "")):
+            return d
+        esc = d.escalate if d.escalate != Escalation.NONE else Escalation.NORMAL
+        return replace(d, reply=None, auto_send=False, escalate=esc,
+                       tags=d.tags + ("opted_out_no_reply",),
+                       owner_actions=d.owner_actions + (
+                           "הלקוח/ה ביקש/ה הסרה — לא תישלח תשובה אוטומטית; לפנות אישית בלבד",))
+
     # ---------- השפעות מיידיות (לא מחכות לאישור — הן רק עוצרות) ----------
-    def _apply_effects(self, cust, d: Decision) -> int | None:
+    def _apply_effects(self, cust, d: Decision, prior: State = State.IDLE) -> int | None:
         cid = cust["id"]
         intents = {i.value for i in d.all_intents}
         if Intent.WRONG_PERSON.value in intents:
@@ -195,6 +212,16 @@ class ConversationInbox:
             for inv in self.db.q("SELECT id FROM invoices WHERE customer_id=?", (cid,)):
                 self.svc._cancel_invoice(inv["id"], d.intent.value)
         plan_id = None
+        if prior == State.AWAITING_PLAN_REPLY and intents & {Intent.PLAN_REJECT.value,
+                                                             Intent.PLAN_REQUEST.value}:
+            # ההצעה האחרונה כבר נשלחה (status='approved' = בעל העסק אישר לשלוח), והלקוח דחה אותה
+            # או ביקש אחרת. בלי זה היא נשארה approved לנצח ⇒ `plan_active` חוסם תזכורות גם אחרי
+            # שבעל העסק מחדש (critic 2.3.4). השהיית plan_reject/plan_request עצמה נשארת.
+            last = self.db.one("SELECT id FROM plans WHERE customer_id=? AND status IN "
+                               "('proposed','approved') ORDER BY id DESC LIMIT 1", (cid,))
+            if last:
+                self.db.x("UPDATE plans SET status='rejected' WHERE id=?", (last["id"],))
+                self.svc.audit("customer", "plan_rejected_by_customer", {"plan": last["id"]})
         if d.plan and d.intent != Intent.PLAN_ACCEPT:
             # מבקר §4.6: ההצעה (d.plan) נבנתה על כל החוב הפתוח (Context.total_agorot) ⇒ ההסדר נרשם
             # על כל החשבוניות, לא רק על הוותיקה. סה״כ לא תואם (מטבעות שונים) ⇒ לא נרשם הסדר.
@@ -211,8 +238,10 @@ class ConversationInbox:
                 # ר-12: כל הצעה מתועדת (נתפס ב-E2E של QA אחרי חיבור מנוע השיחה)
                 self.svc.audit("system", "plan_proposed", {"plan": plan_id, "via": "conversation"})
         if d.intent == Intent.PLAN_ACCEPT:
-            row = self.db.one("SELECT id FROM plans WHERE customer_id=? AND status='proposed' "
-                              "ORDER BY id DESC LIMIT 1", (cid,))
+            # גם הצעה שכבר נשלחה (approved): זה המסלול הרגיל — בעל העסק אישר, הלקוח השיב «מאשר».
+            # היה: רק 'proposed' ⇒ plan_id=None והאישור לא נקשר לשום הסדר.
+            row = self.db.one("SELECT id FROM plans WHERE customer_id=? AND status IN "
+                              "('proposed','approved') ORDER BY id DESC LIMIT 1", (cid,))
             plan_id = row["id"] if row else None
             self.svc.audit("customer", "plan_accepted_by_customer", {"plan": plan_id})
         return plan_id
@@ -326,7 +355,9 @@ class ConversationInbox:
             edited = 1
         self.db.x("UPDATE drafts SET status='approved', body=?, edited=?, decided_at=?, decided_by=? "
                   "WHERE id=?", (text, edited, _iso(self.svc.clock()), actor, draft_id))
-        self.svc.audit(actor, "draft_approved", {"draft": draft_id, "edited": bool(edited)})
+        # ר-12: מה בדיוק אושר (כמו approved_hash בתזכורות) — שינוי מאוחר של הגוף ב-DB יתגלה
+        self.svc.audit(actor, "draft_approved", {"draft": draft_id, "edited": bool(edited),
+                                                 "body_sha": _body_sha(text)})
         self._try_send(draft_id)
         return dict(self._get(draft_id))
 
@@ -403,7 +434,8 @@ class ConversationInbox:
             # שלח ללקוח הצעה שנייה (בנוסח ובתאריכים אחרים).
             self.db.x("UPDATE plans SET status='approved' WHERE id=? AND status='proposed'",
                       (dr["plan_id"],))
-        self.svc.audit("system", "draft_sent_dry_run", {"draft": draft_id, "message_id": mid})
+        self.svc.audit("system", "draft_sent_dry_run", {"draft": draft_id, "message_id": mid,
+                                                        "body_sha": _body_sha(dr["body"])})
         return True
 
     @staticmethod
@@ -446,6 +478,10 @@ def _keeps_old_pause(old: str, new: str) -> bool:
     if old_base in _HARD_PAUSES and new_base not in _HARD_PAUSES:
         return True
     return ":until=" not in old and ":until=" in new
+
+
+def _body_sha(body: str) -> str:
+    return hashlib.sha256((body or "").encode()).hexdigest()[:16]
 
 
 def _plan_json(plan: tuple[Installment, ...]) -> str:

@@ -566,8 +566,9 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         return [dict(r) for r in svc.db.q("SELECT * FROM audit ORDER BY id DESC LIMIT 200")]
 
     # ---------- מנוע השיחה (app/conversation.py + app/inbox.py) ----------
-    from .inbox import ConversationInbox
-    inbox = ConversationInbox(svc)
+    # מופע יחיד: אותה תיבה שמשמשת את /inbound, את ה-webhooks (019, מייל), את /dispatch (flush)
+    # ואת /plans. היה: מופע שני כאן ⇒ /conversation/* עקף מדיניות או LLM שהוגדרו על svc.inbox.
+    inbox = svc.inbox
     app.state.inbox = inbox
 
     @app.post("/conversation/inbound", dependencies=[Depends(owner_or_signed)])
@@ -691,6 +692,11 @@ def landing_page(info: dict | None) -> str:
             + opts + '</select><button class="b">בקשת פריסה ללא תוספת</button></form>'
             + f'<form method="post" action="{base}/paid"><button class="b">כבר שילמתי</button></form>'
             + stop)
+    # ר-13 (critic סבב 2): זה העמוד שקישור ה-SMS מוביל אליו («להפסקה: בקישור»), ולכן גם בו —
+    # כמו ב-/u — למה קיבלתם, מי בעל השליטה ופרטיות (טיוטה לעו״ד)
+    from . import legal
+    body += (f'<p class="m">{legal.why_you_got_this(info["business"])}</p>'
+             + legal.privacy_html(info["business"]) + legal.draft_footer())
     return _PAGE.format(title=f'תשלום · {e(info["business"])}', body=body)
 
 
