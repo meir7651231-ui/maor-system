@@ -44,9 +44,16 @@ const ls = new MemStorage();
 (globalThis as unknown as { localStorage: MemStorage }).localStorage = ls;
 
 type P = typeof import('../persist');
+const opened: P[] = [];
+/** פתיחה-מחדש אחרי שכל הלשוניות נסגרו (לשונית סגורה לא עונה ל-ping — כמו בדפדפן). */
+async function reopen(): Promise<P> {
+  for (const t of opened.splice(0)) t.closeTabChannel?.();
+  return tab();
+}
 async function tab(): Promise<P> {
   vi.resetModules();
   const P = await import('../persist');
+  opened.push(P);
   P.setPersistNamespace('x');
   P.setPersistNamespace('default');
   return P;
@@ -59,7 +66,7 @@ function seedStored(): void {
 const ids = (db: Db) => db.supporters.map((s) => s.id).sort();
 const note = (db: Db, id: string) => db.supporters.find((s) => s.id === id)?.nextNote;
 
-beforeEach(() => { ls.clear(); clearAll(); seedStored(); });
+beforeEach(() => { for (const t of opened.splice(0)) t.closeTabChannel?.(); ls.clear(); clearAll(); seedStored(); });
 
 describe('🛟 #529 ביקורת — 1. מחיקה אחרי שמירה-בטיסה לא קמה לתחייה', () => {
   it('הוספת x1 ⇒ שמירה בטיסה ⇒ מחיקת x1 ⇒ השמירה מסתיימת ⇒ סגירה ⇒ בטעינה x1 לא קיים', async () => {
@@ -71,7 +78,7 @@ describe('🛟 #529 ביקורת — 1. מחיקה אחרי שמירה-בטיס�
     const t3 = { ...t1, supporters: t1.supporters.filter((s) => s.id !== 'x1') }; // המשתמש מוחק x1
     A.writeExitJournal(t3);
     await s1; // S1 מסתיימת (מכילה x1) — ולפני S2 הלשונית נסגרת
-    const C = await tab();
+    const C = await reopen();
     const re = (await C.loadDb()).db;
     expect(ids(re)).toEqual(['s1', 's2']);
   });
@@ -84,7 +91,7 @@ describe('🛟 #529 ביקורת — 1. מחיקה אחרי שמירה-בטיס�
     const t3 = { ...t1, supporters: [sup('s1', ''), t1.supporters[1]] }; // ביטול
     A.writeExitJournal(t3);
     await s1;
-    const re = (await (await tab()).loadDb()).db;
+    const re = (await (await reopen()).loadDb()).db;
     expect(note(re, 's1')).toBe('');
   });
 });
@@ -99,7 +106,7 @@ describe('🛟 #529 ביקורת — 2. יומן פר-לשונית (ביקורת
     A.writeExitJournal(a1);
     B.writeExitJournal({ ...dB, supporters: [dB.supporters[0], sup('s2', 'B')] });
     await A.saveDb(a1); // א' שומרת (מוחקת רק את היומן שלה)
-    const C = await tab();
+    const C = await reopen();
     const re = (await C.loadDb()).db;
     expect(note(re, 's1')).toBe('A');
     expect(note(re, 's2')).toBe(''); // לא הוחל בשקט
@@ -116,7 +123,7 @@ describe('🛟 #529 ביקורת-2 — יומן-יתום לא דורס עבוד�
     const dA = (await A.loadDb()).db;
     A.writeExitJournal({ ...dA, supporters: [sup('s1', 'A'), dA.supporters[1]] }); // א' נסגרת לפני שמירה
     await B.saveDb({ ...dB, supporters: [dB.supporters[1]] }); // ב' מוחקת s1
-    const re = (await (await tab()).loadDb()).db;
+    const re = (await (await reopen()).loadDb()).db;
     expect(ids(re)).toEqual(['s2']);
   });
   it('HIGH 2 (קבלות §46): יומן-יתום עם D-1 לא משנה את D-1 שב\' כבר הנפיקה ושמרה', async () => {
@@ -127,7 +134,7 @@ describe('🛟 #529 ביקורת-2 — יומן-יתום לא דורס עבוד�
     const don = (rid: string) => ({ rid, date: '2026-11-07', amount: 100, cur: '₪' });
     A.writeExitJournal({ ...dA, donationSeq: 2, supporters: [{ ...sup('s1'), donations: [don('D-1')], count: 1, ils: 100 } as never, dA.supporters[1]] }); // א' הנפיקה D-1 ונסגרה
     await B.saveDb({ ...dB, donationSeq: 2, supporters: [dB.supporters[0], { ...sup('s2'), donations: [don('D-1')], count: 1, ils: 100 } as never] });
-    const re = (await (await tab()).loadDb()).db;
+    const re = (await (await reopen()).loadDb()).db;
     const rids = re.supporters.flatMap((s) => (s.donations ?? []).map((d) => s.id + ':' + d.rid));
     expect(rids).toEqual(['s2:D-1']); // הקבלה של ב' לא מוספרה מחדש, וזו של א' לא הוחלה
   });
@@ -138,7 +145,7 @@ describe('🛟 #529 ביקורת-2 — יומן-יתום לא דורס עבוד�
     const dA = (await A.loadDb()).db;
     A.writeExitJournal({ ...dA, orgName: 'ישן', usdRate: 3.1, supporters: [sup('s1', 'A'), dA.supporters[1]] });
     await B.saveDb({ ...dB, orgName: 'חדש', usdRate: 3.9 });
-    const re = (await (await tab()).loadDb()).db;
+    const re = (await (await reopen()).loadDb()).db;
     expect(re.orgName).toBe('חדש');
     expect(re.usdRate).toBe(3.9);
   });
@@ -147,7 +154,7 @@ describe('🛟 #529 ביקורת-2 — יומן-יתום לא דורס עבוד�
     const A = await tab();
     const d0 = (await A.loadDb()).db;
     A.writeExitJournal({ ...d0, attnDone: { k2: '2026-11-01' } }); // k1 בוטל; נסגר לפני שמירה
-    const re = (await (await tab()).loadDb()).db;
+    const re = (await (await reopen()).loadDb()).db;
     expect(Object.keys(re.attnDone ?? {})).toEqual(['k2']);
   });
   it('MED 5 (ענן): מיזוג-מרוחק שנשמר לא נמחק ע"י ביסוס-מחדש של יומן מקומי ישן', async () => {
@@ -158,7 +165,7 @@ describe('🛟 #529 ביקורת-2 — יומן-יתום לא דורס עבוד�
     const merged = { ...l1, supporters: [...l1.supporters, sup('r9', 'מהענן')] }; // setDbFromRemote
     A.writeExitJournal(merged); // ⇐ החיווט ב-useApp (setDbFromRemote)
     await A.saveDb(merged);
-    const re = (await (await tab()).loadDb()).db;
+    const re = (await (await reopen()).loadDb()).db;
     expect(ids(re)).toEqual(['r9', 's1', 's2']);
     expect(note(re, 's1')).toBe('L');
   });
@@ -172,5 +179,37 @@ describe('🛟 #529 ביקורת — 3. אין יומן גלוי אחרי הפע
     expect([...ls.m.keys()].some((k) => k.startsWith('maor_exitlog'))).toBe(true);
     await A.beginEncryption(d0, 'pw-123456');
     expect([...ls.m.keys()].some((k) => k.startsWith('maor_exitlog'))).toBe(false);
+  });
+});
+
+describe('🛟 #529 ביקורת-3', () => {
+  it('#1: עותק-ההצלה (PII) נמחק בהפעלת-הצפנה', async () => {
+    ls.setItem('maor_exitlog_rescue', JSON.stringify([{ savedAt: Date.now(), j: { v: 2, base: 'x', at: 1, diff: { sets: [{ col: 'supporters', id: 's1', data: { idNum: '012345678' } }], deletes: [], meta: null } } }]));
+    const A = await tab();
+    const d0 = (await A.loadDb()).db;
+    await A.beginEncryption(d0, 'pw-123456');
+    expect(ls.getItem('maor_exitlog_rescue')).toBeNull();
+  });
+  it('#2: עותק-ההצלה תחום (512K תווים · תפוגה 14 יום) ונגיש לייצוא', async () => {
+    const big = 'א'.repeat(200_000);
+    const old = { savedAt: Date.now() - 15 * 864e5, j: { v: 2, base: 'x', at: 1, diff: { sets: [], deletes: [], meta: { orgName: 'ישן' } } } };
+    const items = [old, ...[1, 2, 3, 4].map((i) => ({ savedAt: Date.now(), j: { v: 2, base: 'x', at: i, diff: { sets: [], deletes: [], meta: { orgName: big } } } }))];
+    ls.setItem('maor_exitlog_rescue', JSON.stringify(items));
+    const A = await tab();
+    const live = A.rescueJournals();
+    expect(live.some((r) => r.j.diff.meta?.orgName === 'ישן')).toBe(false); // פג-תוקף נוקה
+    expect((ls.getItem('maor_exitlog_rescue') ?? '').length).toBeLessThanOrEqual(512_000);
+  });
+  it('#3: לשונית חדשה לא גונבת יומן של לשונית חיה (x1 לא קם אחרי שא\' מחקה אותו)', async () => {
+    const A = await tab();
+    const dA = (await A.loadDb()).db;
+    const a1 = { ...dA, supporters: [...dA.supporters, sup('x1')] };
+    A.writeExitJournal(a1); // א' חיה, x1 רק ביומן
+    const B = await tab();
+    const dB = (await B.loadDb()).db; // ב' נפתחת — אסור לה לקחת את היומן של א'
+    await B.saveDb(dB);
+    A.writeExitJournal({ ...a1, supporters: a1.supporters.filter((x) => x.id !== 'x1') }); // א' מוחקת x1
+    const re = (await (await reopen()).loadDb()).db;
+    expect(ids(re)).toEqual(['s1', 's2']);
   });
 });
