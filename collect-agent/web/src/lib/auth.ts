@@ -1,5 +1,7 @@
-// טוקן בעלים ל-API (שער האבטחה של השרת, team/qa.md S1). sessionStorage בלבד — נמחק בסגירת הלשונית.
-// אותו מפתח כמו /ui ⇒ הדבקה אחת לשני הממשקים. קישור מ-demo.sh: #/dashboard?token=… (fragment — לא נשלח לשרת).
+// טוקן ל-API: סשן עובד (/auth/login, שער 6) או קוד הגישה המשותף (מצב פיתוח/דמו, team/qa.md S1).
+// sessionStorage בלבד — לא localStorage ולא cookie: נמחק בסגירת הלשונית, לא משותף ללשוניות אחרות,
+// ונשלח רק בכותרת Authorization (לא אוטומטית ⇒ אין CSRF). השרת שומר רק sha256, תוקף 12 ש׳, ויציאה מבטלת.
+// טוקן סשן לעולם לא נכנס לכתובת. קישור הפיתוח מ-demo.sh (#/dashboard?token=…) נקלט ונמחק מהכתובת מיד.
 export const TOKEN_KEY = 'gabi_owner_token';
 
 export interface Storage { getItem(k: string): string | null; setItem(k: string, v: string): void }
@@ -29,3 +31,20 @@ export function loginProblem(email: string, password: string, code: string): str
   if (!/^\d{6}$/.test(code.trim())) return 'קוד האימות הוא 6 ספרות';
   return null;
 }
+
+/** הודעת שגיאה לכניסה לפי תשובת השרת. השרת לא מגלה אם הסיסמה או הקוד שגויים (ולא אם המשתמש קיים)
+ *  — בכוונה, נגד ניחוש — ולכן ההודעה מכסה את שניהם ומסבירה את הטעות הנפוצה בקוד. טהור (נבדק). */
+export function loginErrorText(status: number, retryAfter?: string | null): string {
+  if (status === 401) return 'המייל, הסיסמה או קוד האימות שגויים. הקוד מתחלף כל 30 שניות ואפשר להשתמש בכל קוד פעם אחת בלבד';
+  if (status === 429) {
+    const s = Number(retryAfter);
+    const min = Number.isFinite(s) && s > 0 ? Math.max(1, Math.ceil(s / 60)) : 15;
+    return `יותר מדי ניסיונות כניסה. מטעמי אבטחה הכניסה ננעלה זמנית. נסו שוב בעוד ${min === 1 ? 'דקה' : `${min} דקות`}`;
+  }
+  if (status === 403) return 'אין לחשבון הזה הרשאת גישה. פנו לבעל העסק כדי שיפעיל את המשתמש שלכם';
+  if (status === 0) return 'אין חיבור לשרת גבי. בדקו את החיבור ונסו שוב';
+  return 'הכניסה נכשלה בגלל תקלה בשרת. נסו שוב בעוד רגע';
+}
+
+/** הקוד מאפליקציית האימות: רק ספרות (מדביקים לפעמים «123 456»), עד 6. */
+export const cleanCode = (v: string): string => v.replace(/\D/g, '').slice(0, 6);

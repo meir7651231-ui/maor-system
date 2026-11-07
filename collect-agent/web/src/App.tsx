@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { AppProvider, useApp } from './store.tsx';
-import { useRoute } from './router.ts';
+import { go, useRoute } from './router.ts';
 import { Shell } from './components/Shell.tsx';
 import { Landing } from './pages/Landing.tsx';
 import { Signup } from './pages/Signup.tsx';
@@ -9,6 +9,7 @@ import { Invoices } from './pages/Invoices.tsx';
 import { Settings } from './pages/Settings.tsx';
 import { Inbox } from './pages/Inbox.tsx';
 import { Pay } from './pages/Pay.tsx';
+import { Login } from './pages/Login.tsx';
 import { payCodeOf, takeTokenFromHash } from './lib/auth.ts';
 
 function Routed() {
@@ -16,7 +17,10 @@ function Routed() {
   const { toast, mode, reload } = useApp();
   // מעבר מסך בחי ⇒ רענון מהשרת (התור/החשבוניות משתנים בשרת: ייבוא CSV, תכנון לילי, תשובות לקוחות)
   useEffect(() => { if (mode === 'live') void reload().catch(() => { /* השגיאה תוצג בפעולה הבאה */ }); }, [r, mode, reload]);
-  const page = r === 'landing' ? <Landing /> : r === 'signup' ? <Signup /> : (
+  // כבר מחובר ⇒ #/login מעביר לסקירה (גם מיד אחרי כניסה מוצלחת)
+  useEffect(() => { if (r === 'login' && mode === 'live') go('dashboard'); }, [r, mode]);
+  // שער 6: שרת חי שדורש אימות ⇒ מסך הכניסה במקום המסך המבוקש (הכתובת נשמרת ⇒ אחרי כניסה חוזרים אליו)
+  const page = r === 'landing' ? <Landing /> : r === 'signup' ? <Signup /> : r === 'login' || mode === 'locked' ? <Login /> : (
     <Shell route={r}>{r === 'dashboard' ? <Dashboard /> : r === 'invoices' ? <Invoices /> : r === 'inbox' ? <Inbox /> : <Settings />}</Shell>
   );
   return (

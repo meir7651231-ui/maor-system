@@ -1,8 +1,7 @@
-import { useState, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { Logo, LogoMark } from './Logo.tsx';
 import { go, type Route } from '../router.ts';
 import { useApp } from '../store.tsx';
-import { loginProblem } from '../lib/auth.ts';
 
 const NAV: { r: Route; label: string; icon: string }[] = [
   { r: 'dashboard', label: 'סקירה', icon: '◧' },
@@ -12,7 +11,9 @@ const NAV: { r: Route; label: string; icon: string }[] = [
 ];
 
 export function Shell({ route, children }: { route: Route; children: ReactNode }) {
-  const { business, queue, mode, drafts } = useApp();
+  const { business, queue, mode, drafts, me, logout } = useApp();
+  // בחי: שם העובד המחובר (שער 6); טוקן משותף ⇒ שם העסק (כמו קודם)
+  const who = mode === 'live' && me?.kind === 'user' && me.name ? me.name : business.name;
   const pending = queue.length;
   const modeText = mode === 'live' ? '● מחובר לשרת גבי · dry-run' : mode === 'mock' ? '● מצב דמו (מוק) — אין שליחה' : mode === 'locked' ? '🔒 נדרש קוד גישה' : '… בודק חיבור לשרת';
   return (
@@ -22,7 +23,10 @@ export function Shell({ route, children }: { route: Route; children: ReactNode }
         {/* מובייל: לוגו + מצב חיבור תמיד גלויים (dry-run/מוק/נעול לא מוסתר) */}
         <div className="md:hidden flex items-center justify-between gap-2 px-3 pt-3">
           <button onClick={() => go('landing')} className="cursor-pointer flex items-center gap-2" aria-label="גבי – לדף הבית"><LogoMark size={28} dark /><b className="font-display">גבי</b></button>
-          <span className="text-[11px] text-brand truncate" data-testid="mode-mobile">{modeText}</span>
+          <span className="flex items-center gap-2 min-w-0">
+            <span className="text-[11px] text-brand truncate" data-testid="mode-mobile">{modeText}</span>
+            {mode === 'live' && <button onClick={() => void logout()} className="shrink-0 text-[11px] font-bold rounded-lg border border-white/20 px-2 py-1 cursor-pointer" data-testid="logout-mobile">יציאה</button>}
+          </span>
         </div>
         <div className="p-4 md:p-6 hidden md:block"><button onClick={() => go('landing')} className="cursor-pointer"><Logo dark /></button></div>
         <nav className="flex md:flex-col gap-1 p-2 md:px-3 w-full overflow-x-auto" aria-label="ניווט ראשי">
@@ -38,65 +42,17 @@ export function Shell({ route, children }: { route: Route; children: ReactNode }
         <div className="mt-auto p-5 hidden md:block text-sm">
           <div className="rounded-xl bg-white/5 p-3">
             <div className="text-ink-400 text-xs">מחובר/ת כ-</div>
-            <div className="font-bold">{business.name}</div>
+            <div className="font-bold truncate" data-testid="whoami">{who}</div>
             <div className="text-xs text-brand mt-1" data-testid="mode">{modeText}</div>
+            {mode === 'live' && (
+              <button onClick={() => void logout()} data-testid="logout"
+                className="mt-3 w-full h-9 rounded-lg border border-white/15 text-sm font-bold text-ink-100 hover:bg-white/10 cursor-pointer">יציאה</button>
+            )}
           </div>
         </div>
         </div>
       </aside>
-      <main className="flex-1 min-w-0 p-4 md:p-8 max-w-6xl">{mode === 'locked' ? <TokenGate /> : children}</main>
+      <main className="flex-1 min-w-0 p-4 md:p-8 max-w-6xl">{children}</main>
     </div>
-  );
-}
-
-/** השרת חי אבל דורש קוד גישה (401) — לא נופלים למוק בשקט, מבקשים את הקוד. */
-function TokenGate() {
-  return (
-    <div className="space-y-6">
-      <StaffLogin />
-      <details className="max-w-md mx-auto text-sm text-ink-500"><summary className="cursor-pointer text-center">יש לי קוד גישה משותף (מצב פיתוח)</summary><CodeGate /></details>
-    </div>
-  );
-}
-
-/** כניסת עובד: מייל + סיסמה + קוד 6 ספרות (TOTP). הסשן נשמר רק בלשונית. */
-function StaffLogin() {
-  const { login } = useApp();
-  const [f, setF] = useState({ email: '', password: '', code: '' });
-  const [err, setErr] = useState('');
-  const [busy, setBusy] = useState(false);
-  const inp = 'w-full h-11 rounded-xl border border-ink-200 px-3.5';
-  return (
-    <form className="max-w-md mx-auto mt-10 bg-white rounded-2xl shadow-card p-6 space-y-4" data-testid="staff-login" noValidate
-      onSubmit={async e => {
-        e.preventDefault(); setErr('');
-        const p = loginProblem(f.email, f.password, f.code); if (p) { setErr(p); return; }
-        setBusy(true); const m = await login(f.email, f.password, f.code); setBusy(false); if (m) setErr(m);
-      }}>
-      <h1 className="text-2xl font-extrabold">🔐 כניסה לעובדים</h1>
-      <p className="text-sm text-ink-500">מייל, סיסמה וקוד בן 6 ספרות מאפליקציית האימות.</p>
-      <input value={f.email} onChange={e => setF({ ...f, email: e.target.value })} type="email" autoComplete="username" dir="ltr" aria-label="מייל" className={inp} placeholder="name@business.co.il" />
-      <input value={f.password} onChange={e => setF({ ...f, password: e.target.value })} type="password" autoComplete="current-password" aria-label="סיסמה" className={inp} placeholder="סיסמה" />
-      <input value={f.code} onChange={e => setF({ ...f, code: e.target.value.replace(/\D/g, '').slice(0, 6) })} inputMode="numeric" autoComplete="one-time-code" dir="ltr" aria-label="קוד אימות" className={inp + ' num'} placeholder="000000" />
-      {err && <p role="alert" className="text-critical text-sm font-bold">{err}</p>}
-      <button className="w-full h-11 rounded-xl bg-brand text-ink-900 font-bold" disabled={busy}>{busy ? 'נכנסים…' : 'כניסה'}</button>
-    </form>
-  );
-}
-
-function CodeGate() {
-  const { unlock } = useApp();
-  const [v, setV] = useState('');
-  const [err, setErr] = useState('');
-  return (
-    <form className="max-w-md mx-auto mt-10 bg-white rounded-2xl shadow-card p-6 space-y-4" data-testid="token-gate"
-      onSubmit={async e => { e.preventDefault(); setErr(''); if (!(await unlock(v))) setErr('הקוד לא התקבל. בדקו שהעתקתם אותו במלואו.'); }}>
-      <h1 className="text-2xl font-extrabold">🔒 קוד גישה לבעל העסק</h1>
-      <p className="text-sm text-ink-500">השרת מוגן. הדביקו את קוד הגישה (ב-<code>./demo.sh</code> הוא מודפס בהפעלה). הקוד נשמר רק בלשונית הזו.</p>
-      <input value={v} onChange={e => setV(e.target.value)} type="password" autoComplete="off" aria-label="קוד גישה"
-        className="w-full h-11 rounded-xl border border-ink-200 px-3.5 num" placeholder="הדביקו כאן" />
-      {err && <p role="alert" className="text-critical text-sm font-bold">{err}</p>}
-      <button className="w-full h-11 rounded-xl bg-brand text-ink-900 font-bold" disabled={v.trim().length < 32}>כניסה</button>
-    </form>
   );
 }

@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-export type Route = 'landing' | 'signup' | 'dashboard' | 'invoices' | 'inbox' | 'settings';
+export type Route = 'landing' | 'signup' | 'login' | 'dashboard' | 'invoices' | 'inbox' | 'settings';
 const parse = (h: string): Route => {
   const r = h.replace(/^#\/?/, '');
-  return (['signup', 'dashboard', 'invoices', 'inbox', 'settings'] as Route[]).includes(r as Route) ? (r as Route) : 'landing';
+  return (['signup', 'login', 'dashboard', 'invoices', 'inbox', 'settings'] as Route[]).includes(r as Route) ? (r as Route) : 'landing';
 };
 export function useRoute(): Route {
   const [r, setR] = useState(() => parse(location.hash));

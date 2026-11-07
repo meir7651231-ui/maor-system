@@ -31,7 +31,7 @@ async function page(vp) {
   });
   return p;
 }
-const ROUTES = ['', '#/signup', '#/dashboard', '#/invoices', '#/inbox', '#/settings'];
+const ROUTES = ['', '#/signup', '#/login', '#/dashboard', '#/invoices', '#/inbox', '#/settings'];
 try {
   const p = await page({ width: 1366, height: 900 });
   await p.goto(base); await p.waitForTimeout(600);
@@ -80,6 +80,20 @@ try {
   await fullShot(p, `${out}/06-settings.png`);
   await p.goto(base + '#/signup'); await p.waitForTimeout(300);
   await p.screenshot({ path: `${out}/07-signup.png` });
+  // מסך הכניסה (שער 6) במוק: הטופס מוצג, אין שרת ⇒ אין בקשה; הסבר + «המשך להדגמה»; בלי «קוד גישה משותף»
+  await p.goto(base + '#/login'); await p.getByTestId('login-mock').waitFor();
+  ok(await p.getByText('יש לי קוד גישה משותף').count() === 0, 'במוק אין קוד משותף');
+  const postsBeforeLogin = posts.length;
+  await p.getByLabel('מייל').fill('dana@example.co.il');
+  await p.getByLabel('סיסמה', { exact: true }).fill('x'.repeat(12));
+  await p.getByLabel('קוד אימות').fill('12 34 56');
+  ok(await p.getByLabel('קוד אימות').inputValue() === '123456', 'קוד האימות לא נוקה לספרות');
+  await p.getByRole('button', { name: 'כניסה' }).click();
+  await p.getByTestId('login-error').filter({ hasText: 'מצב דמו' }).waitFor();
+  ok(posts.length === postsBeforeLogin, 'כניסה במוק שלחה בקשה');
+  await p.screenshot({ path: `${out}/07b-login.png` });
+  await p.getByRole('button', { name: 'המשך להדגמה ←' }).click();
+  await p.getByTestId('mode').filter({ hasText: 'מצב דמו (מוק)' }).waitFor();
   for (const r of ROUTES) { await p.goto(base + r); await p.waitForTimeout(250); await noHScroll(p, `דסקטופ ${r || 'נחיתה'}`); }
 
   const m = await page({ width: 390, height: 844 });

@@ -1,14 +1,25 @@
 // דמו מקצה לקצה בדפדפן: שרת גבי אמיתי (DEMO=1, dry-run) + הממשק המעוצב מ-/app/.
 // דרישה: npm run build. הרצה: node e2e/live.mjs [תיקיית-צילומים]
 import { createRequire } from 'node:module';
-import { spawn } from 'node:child_process';
+import { spawn, execFileSync } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
+import { mkdtempSync, existsSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 const { chromium } = createRequire(import.meta.url)('playwright');
 const out = process.argv[2];
 const PORT = 8141, base = `http://127.0.0.1:${PORT}`;
 const TOKEN = randomBytes(32).toString('base64url'); // קוד גישה חד-פעמי לבדיקה (השרת דורש 32+ תווים)
+const ROOT = new URL('../..', import.meta.url).pathname;
+// שער 6: עובד דמו אמיתי (מייל+סיסמה+סוד TOTP בקובץ זמני) — כמו demo.sh --check, רק דרך הדפדפן
+const STAFF = { email: 'dana@example.co.il', password: 'demo-pass-12345', secretFile: join(mkdtempSync(join(tmpdir(), 'gabi-e2e-')), 'totp') };
 const srv = spawn('python3', ['-m', 'uvicorn', 'app.main:_lazy_app', '--factory', '--port', String(PORT), '--log-level', 'warning'],
-  { cwd: new URL('../..', import.meta.url).pathname, env: { ...process.env, DEMO: '1', OWNER_API_TOKEN: TOKEN }, stdio: 'ignore' });
+  { cwd: ROOT, env: { ...process.env, DEMO: '1', OWNER_API_TOKEN: TOKEN,
+    DEMO_USER_EMAIL: STAFF.email, DEMO_USER_PASSWORD: STAFF.password, DEMO_USER_SECRET_FILE: STAFF.secretFile }, stdio: 'ignore' });
+// קוד ה-TOTP נגזר משעון הדמו הקבוע (app/demo.py DEMO_NOW) ומאותו מימוש בשרת (app/totp.py)
+const totpCode = () => execFileSync('python3', ['-c',
+  'import sys; from app import totp; from app.demo import DEMO_NOW; print(totp.code_at(open(sys.argv[1]).read().strip(), DEMO_NOW.timestamp()))',
+  STAFF.secretFile], { cwd: ROOT }).toString().trim();
 const ok = (c, m) => { if (!c) throw new Error(m); };
 const H = { Authorization: `Bearer ${TOKEN}` };
 const rawFetch = globalThis.fetch;
@@ -33,6 +44,7 @@ async function noHScroll(pg, where) {
 let expect409 = null;         // { status?, method?, url: RegExp, reason: RegExp } — 409/422 צפוי אחד, מוכרז מראש
 let gatePhase = true;         // 401 מותר רק בשלב שער קוד הגישה (לפני כניסה), ורק מהשרת שלנו
 const allowed401 = [];
+const allowed429 = [];        // 429 מותר רק בבדיקת הנעילה של מסך הכניסה (שלב השער)
 const allowed409 = [];        // תגובות 409 שאומתו
 const errors = [];
 const b = await chromium.launch();
@@ -41,6 +53,10 @@ try {
   const p = await ctx.newPage();
   await p.setViewportSize({ width: 1366, height: 900 });
   p.on('response', async r => {
+    if (r.status() === 429) {
+      if (gatePhase && r.url() === base + '/auth/login') allowed429.push(r.url()); else errors.push(`429 לא צפוי: ${r.url()}`);
+      return;
+    }
     if (r.status() === 401) {
       if (gatePhase && r.url().startsWith(base + '/')) allowed401.push(r.url()); else errors.push(`401 לא צפוי: ${r.url()}`);
       return;
@@ -52,11 +68,12 @@ try {
     if (e && (e.status ?? 409) === r.status() && e.url.test(u) && r.request().method() === (e.method ?? 'POST') && e.reason.test(body)) { allowed409.push(`${r.status()} ${u}`); expect409 = null; }
     else errors.push(`${r.status()} לא צפוי: ${r.request().method()} ${u} ${body}`);
   });
-  let console409 = 0, console401 = 0;
+  let console409 = 0, console401 = 0, console429 = 0;
   p.on('console', m => {
     if (m.type() !== 'error') return;
     if (/status of (409|422)/.test(m.text())) { console409++; return; } // מוצלב מול allowed409 בסוף
     if (/status of 401/.test(m.text())) { console401++; return; } // מוצלב מול allowed401 בסוף
+    if (/status of 429/.test(m.text())) { console429++; return; } // מוצלב מול allowed429 בסוף
     errors.push(m.text());
   });
   p.on('pageerror', e => errors.push(String(e)));
@@ -64,6 +81,46 @@ try {
   // 1) שער קוד גישה (TokenGate): בלי קוד ⇒ שער, לא נפילה שקטה למוק; קוד שגוי נדחה; הקישור מ-demo.sh (#…?token=) נכנס ונמחק מהכתובת
   await p.goto(base + '/app/#/dashboard');
   await p.getByTestId('staff-login').waitFor(); // כניסת עובד היא ברירת המחדל; קוד משותף מאחורי «יש לי קוד גישה»
+  ok(await p.getByTestId('mode').count() === 0, 'שרת נעול ⇒ מסך כניסה מלא, לא השלד עם נתונים');
+  for (let i = 0; i < 40 && !existsSync(STAFF.secretFile); i++) await new Promise(r => setTimeout(r, 100));
+  const loginForm = p.getByTestId('staff-login');
+  const tryLogin = async (email, pw, code) => {
+    await p.getByLabel('מייל').fill(email);
+    await p.getByLabel('סיסמה', { exact: true }).fill(pw);
+    await p.getByLabel('קוד אימות').fill(code);
+    // מחכים לתשובת השרת (בזמן הבקשה הכפתור כבוי ⇒ לחיצה נוספת הייתה נבלעת)
+    await Promise.all([p.waitForResponse(r => r.url() === base + '/auth/login'), loginForm.getByRole('button', { name: 'כניסה' }).click()]);
+  };
+  // 1א) סיסמה שגויה (עם קוד נכון) ⇒ הודעה כללית שלא מגלה מה שגוי
+  await tryLogin(STAFF.email, 'wrong-password-1', totpCode());
+  await p.getByTestId('login-error').filter({ hasText: 'הסיסמה או קוד האימות שגויים' }).waitFor();
+  // 1ב) קוד שגוי (סיסמה נכונה) ⇒ אותה הודעה; השדה נוקה (קוד חד-פעמי)
+  await tryLogin(STAFF.email, STAFF.password, '000000');
+  await p.getByTestId('login-error').filter({ hasText: 'הסיסמה או קוד האימות שגויים' }).waitFor();
+  ok(await p.getByLabel('קוד אימות').inputValue() === '', 'הקוד לא נוקה אחרי כשל');
+  if (out) await p.screenshot({ path: `${out}/web-login-desktop.png` });
+  // 1ג) מייל+סיסמה+קוד נכונים ⇒ חי, שם העובד מוצג, הכתובת המבוקשת נשמרה, אין טוקן בכתובת
+  await tryLogin(STAFF.email, STAFF.password, totpCode());
+  await p.getByTestId('mode').filter({ hasText: 'מחובר לשרת גבי' }).waitFor();
+  ok((await p.getByTestId('whoami').textContent()).includes('עובד דמו'), 'שם העובד המחובר לא מוצג');
+  ok(p.url().endsWith('#/dashboard') && !/token/.test(p.url()), 'כתובת אחרי כניסה: ' + p.url());
+  const staffTok = await p.evaluate(() => sessionStorage.getItem('gabi_owner_token'));
+  ok(staffTok && staffTok !== TOKEN, 'סשן העובד לא נשמר בלשונית');
+  ok(await p.evaluate(() => localStorage.length) === 0, 'משהו נשמר ב-localStorage');
+  const audit0 = await api('/audit');
+  ok(audit0.some(a => a.action === 'login' && /^user:\d+$/.test(a.actor)), 'הכניסה לא נרשמה ב-audit על שם העובד');
+  ok((await api('/access-log')).some(a => /^user:\d+$/.test(a.actor)), 'יומן הצפייה לא רשם את העובד');
+  // 1ד) יציאה ⇒ מסך הכניסה, הסשן בוטל גם בשרת, נמחק מהלשונית
+  await p.getByTestId('logout').click();
+  await p.getByTestId('staff-login').waitFor();
+  ok(await p.evaluate(() => sessionStorage.getItem('gabi_owner_token')) === null, 'הסשן נשאר בלשונית אחרי יציאה');
+  ok((await rawFetch(base + '/auth/me', { headers: { Authorization: `Bearer ${staffTok}` } })).status === 401, 'הסשן תקף בשרת אחרי יציאה');
+  ok((await api('/audit')).some(a => a.action === 'logout' && /^user:\d+$/.test(a.actor)), 'היציאה לא נרשמה ב-audit');
+  // 1ה) נעילה: 5 כשלונות לאותו מייל מאותו IP ⇒ 429 «ננעלה זמנית» (גם למייל שאינו קיים — לא מגלה קיום חשבון)
+  for (let i = 0; i < 5; i++) await tryLogin('ghost@example.co.il', 'wrong-password-1', '123456');
+  await p.getByTestId('login-error').filter({ hasText: 'ננעלה זמנית' }).waitFor();
+  ok(allowed429.length === 1, `ציפיתי ל-429 אחד, היו ${allowed429.length}`);
+  console.log('  ✓ מסך כניסה: סיסמה/קוד שגויים, כניסה כעובד (audit+יומן צפייה), יציאה מבטלת בשרת, נעילה 429');
   await p.getByText('יש לי קוד גישה משותף').click();
   await p.getByLabel('קוד גישה').fill('x'.repeat(40));
   await p.getByTestId('token-gate').getByRole('button', { name: 'כניסה' }).click();
@@ -289,6 +346,15 @@ try {
   if (out) await fullShot(m, `${out}/v2-dashboard-mobile.png`);
   console.log('  ✓ מובייל 390px: 5 מסכים בלי גלילה רוחבית');
 
+  // מסך הכניסה במובייל (לשונית חדשה בלי סשן ⇒ מסך הכניסה, בלי בקשות שנכשלות)
+  const ml = await b.newPage({ viewport: { width: 390, height: 844 } });
+  ml.on('pageerror', e => errors.push(String(e)));
+  ml.on('console', x => x.type() === 'error' && errors.push('login-mobile: ' + x.text()));
+  await ml.goto(base + '/app/#/invoices'); await ml.getByTestId('staff-login').waitFor();
+  await noHScroll(ml, 'מסך כניסה מובייל');
+  if (out) await ml.screenshot({ path: `${out}/web-login-mobile.png`, fullPage: true });
+  await ml.close();
+  ok(console429 === allowed429.length, `שגיאות 429 בקונסולה (${console429}) ≠ מאומתות (${allowed429.length})`);
   ok(console401 === allowed401.length, `שגיאות 401 בקונסולה (${console401}) ≠ 401 מאומתים (${allowed401.length})`);
   ok(console409 === allowed409.length, `שגיאות 409/422 בקונסולה (${console409}) ≠ מאומתות (${allowed409.length})`);
   if (errors.length) throw new Error('שגיאות:\n' + errors.join('\n'));

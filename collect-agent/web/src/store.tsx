@@ -1,10 +1,10 @@
 // מצב הממשק. שני מקורות: "חי" — הבקאנד של גבי ב-dry-run (אותו origin), או "מוק" — נתוני דמו בזיכרון.
 // בשני המצבים אין שליחה אמיתית: בחי השליחה היא DryRunSender של הבקאנד; במוק רק רשומה בזיכרון.
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { DEMO_TODAY, demoBusiness, demoCustomers, demoInvoices } from './data/demo.ts';
 import type { Business, Channel, Customer, Invoice, Step } from './lib/domain.ts';
 import { needsReminder } from './lib/stats.ts';
-import { api, loginRequest, AuthError, detectBackend, fromDashboard, type Dashboard, type Health, type Draft, type OutMsg, type Plan } from './api.ts';
+import { api, loginRequest, logoutRequest, AuthError, detectBackend, fromDashboard, type Dashboard, type Health, type Draft, type Me, type OutMsg, type Plan } from './api.ts';
 import { TOKEN_KEY, readToken } from './lib/auth.ts';
 const sessionStore = () => { try { return sessionStorage; } catch { return undefined; } };
 import type { WeekPoint } from './lib/series.ts';
@@ -29,6 +29,12 @@ interface Ctx {
   unlock: (token: string) => Promise<boolean>;
   /** כניסת עובד: מייל+סיסמה+קוד. מחזיר null בהצלחה, אחרת הודעת שגיאה בעברית. */
   login: (email: string, password: string, code: string) => Promise<string | null>;
+  /** יציאה: מבטל את הסשן בשרת, מוחק אותו מהלשונית ומנקה את הנתונים מהזיכרון. */
+  logout: () => Promise<void>;
+  /** מי מחובר בחי (עובד ⇒ שם; טוקן משותף ⇒ owner). null במוק/לפני כניסה. */
+  me: Me | null;
+  /** הסבר למסך הכניסה (למשל: פג תוקף הסשן באמצע עבודה). */
+  authNote: string | null;
   outbox: OutMsg[];
   plans: Plan[];
   drafts: Draft[];
@@ -58,12 +64,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [drafts, setDrafts] = useState<Draft[]>([]);
   const [notices, setNotices] = useState<Notice[]>([]);
   const [toast, setToast] = useState<string | null>(null);
+  const [me, setMe] = useState<Me | null>(null);
+  const [authNote, setAuthNote] = useState<string | null>(null);
+  const modeRef = useRef<Mode>('loading');
+  useEffect(() => { modeRef.current = mode; }, [mode]);
   const showToast = useCallback((t: string) => { setToast(t); window.setTimeout(() => setToast(null), 3600); }, []);
 
-  const reload = useCallback(async () => {
+  /** מנקה את הסשן ואת המידע האישי מהזיכרון (יציאה / סשן שפג) ⇒ מסך הכניסה. */
+  const dropSession = useCallback((note: string | null) => {
+    try { sessionStorage.removeItem(TOKEN_KEY); } catch { /* פרטי/חסום */ }
+    setMe(null); setCustomers([]); setInvoices([]); setPendingBy(new Map()); setTotals(null); setSeries(null);
+    setOutbox([]); setPlans([]); setDrafts([]); setNotices([]);
+    setAuthNote(note); setMode('locked');
+  }, []);
+
+  const load = useCallback(async () => {
     const d = await api.dashboard(); // בקשה אחת קודם: קוד שגוי ⇒ 401 יחיד, לא חמישה
-    const [p, o, pl, dr, ib] = await Promise.all([api.pending(), api.outbox(), api.plans(), api.drafts().catch(() => [] as Draft[]),
-      api.ownerInbox().catch(() => [])]);
+    const [p, o, pl, dr, ib, who] = await Promise.all([api.pending(), api.outbox(), api.plans(), api.drafts().catch(() => [] as Draft[]),
+      api.ownerInbox().catch(() => []), api.me().catch(() => null)]);
+    setMe(who);
     const m = fromDashboard(d, p);
     setCustomers(m.customers); setInvoices(m.invoices); setPendingBy(m.pendingBy); setToday(m.today);
     setTotals(d.totals); setSeries(d.series ?? null); setOutbox(o.messages); setPlans(pl); setDrafts(dr); setNotices(systemNotices(ib));
@@ -71,6 +90,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const biz = o.messages.find(x => x.channel === 'sms')?.body.split(':')[0];
     if (biz && biz.length < 40) setBusiness(b => ({ ...b, name: biz, ownerName: biz }));
   }, []);
+  // 401 באמצע עבודה (הסשן פג אחרי 12 ש׳, העובד הושבת, יציאה מלשונית אחרת) ⇒ חזרה למסך הכניסה עם הסבר,
+  // בלי להשאיר נתוני חייבים על המסך. לפני הכניסה (מצב locked) 401 הוא פשוט «קוד שגוי».
+  const reload = useCallback(async () => {
+    try { await load(); } catch (e) {
+      if (e instanceof AuthError && modeRef.current === 'live') dropSession('תוקף הכניסה פג. היכנסו שוב כדי להמשיך');
+      throw e;
+    }
+  }, [load, dropSession]);
 
   useEffect(() => {
     let off = false;
@@ -95,14 +122,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
       mode, health, today, business, setBusiness, customers, invoices, totals, series, outbox,
       unlock: async (token: string) => {
         try { sessionStorage.setItem(TOKEN_KEY, token.trim()); } catch { /* פרטי/חסום */ }
-        try { await reload(); setMode('live'); return true; } catch { return false; }
+        try { await reload(); setAuthNote(null); setMode('live'); return true; } catch {
+          try { sessionStorage.removeItem(TOKEN_KEY); } catch { /* */ }   // קוד שגוי לא נשאר בלשונית
+          return false;
+        }
       },
       login: async (email: string, password: string, code: string) => {
         let tok: string;
         try { tok = await loginRequest(email, password, code); } catch (e) { return e instanceof Error ? e.message : 'הכניסה נכשלה'; }
         try { sessionStorage.setItem(TOKEN_KEY, tok); } catch { /* פרטי/חסום */ }
-        try { await reload(); setMode('live'); return null; } catch { return 'הכניסה הצליחה אך הטעינה נכשלה. נסו לרענן'; }
-      }, plans, drafts, notices, reload, toast, showToast, customerOf,
+        try { await reload(); setAuthNote(null); setMode('live'); return null; } catch { return 'הכניסה הצליחה אך הטעינה נכשלה. נסו לרענן'; }
+      },
+      logout: async () => {
+        await logoutRequest();
+        dropSession(null);
+        showToast('יצאת מהמערכת. הסשן בוטל גם בשרת');
+      },
+      me, authNote, plans, drafts, notices, reload, toast, showToast, customerOf,
       queue: live ? invoices.filter(i => pendingBy.has(i.id)) : needsReminder(invoices, today),
       pendingOf: id => pendingBy.get(id),
       approveAndSend: async (id, step, channels, opts) => {
@@ -123,7 +159,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       },
       markPaid: id => { setInvoices(l => l.map(i => i.id === id ? { ...i, status: 'paid' } : i)); showToast('סומן כשולם 🎉'); },
     };
-  }, [mode, health, today, business, customers, invoices, pendingBy, totals, series, outbox, plans, drafts, notices, reload, toast, showToast]);
+  }, [mode, health, today, business, customers, invoices, pendingBy, totals, series, outbox, plans, drafts, notices, reload, toast, showToast, me, authNote, dropSession]);
   return <C.Provider value={value}>{children}</C.Provider>;
 }
 export const useApp = () => {

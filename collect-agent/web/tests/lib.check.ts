@@ -128,7 +128,7 @@ test('שעה מהשרת מוצגת בשעון ישראל, וסכומים עם א
 import { timeValue, GABI_PRICE } from '../src/lib/roi.ts';
 import * as roiMod from '../src/lib/roi.ts';
 import { toBars, cumulative, areaPath } from '../src/lib/series.ts';
-import { takeTokenFromHash, payCodeOf, loginProblem, TOKEN_KEY } from '../src/lib/auth.ts';
+import { takeTokenFromHash, payCodeOf, loginProblem, loginErrorText, cleanCode, TOKEN_KEY } from '../src/lib/auth.ts';
 
 test('מחשבון שווי הזמן: רק זמן העבודה, בלי הבטחת תשואה (הכרעת מאיר 6.11)', () => {
   const r = timeValue({ hoursPerMonth: 4, hourlyValue: 150 });
@@ -296,4 +296,32 @@ test('loginProblem: מייל+סיסמה+קוד 6 ספרות', () => {
   assert.match(loginProblem('a@b.co', '', '123456')!, /סיסמה/);
   assert.match(loginProblem('a@b.co', 'x', '12345')!, /6 ספרות/);
   assert.match(loginProblem('a@b.co', 'x', '12345a')!, /6 ספרות/);
+});
+
+test('שער 6 · הודעות כניסה: 401 כללי (לא מגלה מה שגוי), 429 עם דקות, 403, רשת', () => {
+  const w = loginErrorText(401);
+  assert.match(w, /הסיסמה/); assert.match(w, /קוד האימות/); assert.match(w, /30 שניות/);
+  assert.doesNotMatch(w, /לא קיים|לא נמצא/, 'אסור לגלות אם המשתמש קיים');
+  assert.match(loginErrorText(429, '900'), /ננעלה זמנית/); assert.match(loginErrorText(429, '900'), /15 דקות/);
+  assert.match(loginErrorText(429, '30'), /בעוד דקה/);
+  assert.match(loginErrorText(429, null), /15 דקות/);          // בלי Retry-After ⇒ ברירת המחדל של הנעילה
+  assert.match(loginErrorText(403), /הרשאת גישה/);
+  assert.match(loginErrorText(0), /אין חיבור/);
+  assert.match(loginErrorText(500), /תקלה בשרת/);
+  for (const st of [401, 403, 429, 0, 500]) assert.doesNotMatch(loginErrorText(st), /\b(401|403|429|500)\b/);
+  assert.equal(cleanCode('123 456'), '123456'); assert.equal(cleanCode('12a3-4567'), '123456'); assert.equal(cleanCode(''), '');
+});
+
+test('שער 6 · מסך הכניסה: אין טוקן בכתובת, סשן רק ב-sessionStorage, יציאה מבטלת בשרת', () => {
+  const login = readFileSync(new URL('../src/pages/Login.tsx', import.meta.url), 'utf8');
+  const store = readFileSync(new URL('../src/store.tsx', import.meta.url), 'utf8');
+  const api = readFileSync(new URL('../src/api.ts', import.meta.url), 'utf8');
+  const all = login + store + api;
+  assert.doesNotMatch(all, /localStorage|document\.cookie/, 'הסשן נשמר רק בלשונית');
+  assert.doesNotMatch(all, /location\.(hash|href|search)\s*=.*tok/i, 'טוקן לא נכנס לכתובת');
+  assert.match(api, /'\/auth\/logout'/); assert.match(store, /logoutRequest\(\)/);
+  assert.match(store, /removeItem\(TOKEN_KEY\)/, 'יציאה/פג תוקף מוחקים את הסשן מהלשונית');
+  // הקוד המשותף מוצג רק כשהשרת לא דורש כניסת עובד (REQUIRE_USER_LOGIN=1 ⇒ אין «קוד גישה»)
+  assert.match(login, /login_required !== true/);
+  assert.match(login, /autoComplete="one-time-code"/); assert.match(login, /autoComplete="current-password"/);
 });

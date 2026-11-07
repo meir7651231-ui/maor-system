@@ -3,7 +3,7 @@
 import type { DesignSettings } from './lib/settings.ts';
 import type { Customer, Invoice, InvoiceStatus, Reminder, Step } from './lib/domain.ts';
 import { STEP_ORDER } from './lib/message.ts';
-import { readToken } from './lib/auth.ts';
+import { loginErrorText, readToken } from './lib/auth.ts';
 import type { WeekPoint } from './lib/series.ts';
 import type { OwnerMsg } from './lib/notices.ts';
 
@@ -30,16 +30,28 @@ async function j<T>(path: string, init?: RequestInit): Promise<T> {
   return r.json() as Promise<T>;
 }
 
-/** כניסת עובד (מייל+סיסמה+TOTP) ⇒ טוקן סשן. 401 ⇒ AuthError עם ההודעה הכללית של השרת (לא מגלה מה שגוי). */
+/** כניסת עובד (מייל+סיסמה+TOTP) ⇒ טוקן סשן. כשל ⇒ AuthError עם הודעה בעברית לפי הסטטוס (401/429/403/רשת). */
 export async function loginRequest(email: string, password: string, code: string): Promise<string> {
-  const r = await fetch(base + '/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: email.trim(), password, code: code.trim() }) });
-  if (r.status === 401 || r.status === 429) throw new AuthError(r.status === 429 ? 'יותר מדי ניסיונות. נסו שוב בעוד כמה דקות' : 'פרטי ההתחברות או קוד האימות שגויים');
-  if (!r.ok) throw new ApiError(`${r.status}`, r.status);
+  let r: Response;
+  try {
+    r = await fetch(base + '/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email.trim(), password, code: code.trim() }) });
+  } catch { throw new AuthError(loginErrorText(0)); }
+  if (!r.ok) throw new AuthError(loginErrorText(r.status, r.headers.get('Retry-After')));
   return (await r.json() as { token: string }).token;
 }
 
-export interface Health { status: string; dry_run: boolean; sms_provider: string; channels: string[] }
+/** יציאה: מבטל את הסשן בשרת (לא רק מוחק מהלשונית). כשל רשת לא חוסם — המחיקה המקומית קורית בכל מקרה. */
+export async function logoutRequest(): Promise<void> {
+  const tok = readToken(session());
+  if (!tok) return;
+  try { await fetch(base + '/auth/logout', { method: 'POST', headers: { Authorization: `Bearer ${tok}` } }); } catch { /* השרת לא זמין */ }
+}
+
+/** מי מחובר: עובד (שם תצוגה) או הטוקן המשותף (owner). */
+export interface Me { actor: string; kind: 'user' | 'owner'; name: string }
+
+export interface Health { status: string; dry_run: boolean; sms_provider: string; channels: string[]; /** REQUIRE_USER_LOGIN=1 ⇒ אין קוד משותף */ login_required?: boolean }
 /** בקאנד חי? רק אם מצהיר dry_run — אחרת מסרבים להתחבר (מעקה: הממשק לא מדבר עם שרת ששולח באמת). */
 export async function detectBackend(): Promise<Health | null> {
   try {
@@ -85,6 +97,7 @@ export interface InboundResult { intent: string; escalate?: boolean; escalation?
 export interface OutMsg { id: string; channel: 'sms' | 'email'; to: string; body: string }
 
 export const api = {
+  me: () => j<Me>('/auth/me'),
   dashboard: () => j<Dashboard>('/dashboard'),
   pending: () => j<{ id: number; invoice_id: number; block_reason: string | null }[]>('/reminders?status=pending_approval'),
   preview: (rid: number) => j<Preview>(`/reminders/${rid}/preview`),
