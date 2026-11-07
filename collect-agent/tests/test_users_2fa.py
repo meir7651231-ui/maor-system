@@ -240,3 +240,23 @@ def test_attacker_cannot_lock_out_employee_from_another_ip(svc, clock):
     r2 = attacker.post("/auth/login", json={"email": "dana@biz.example", "password": "correct-horse-1",
                                             "code": totp.code_at(reg["totp_secret"], clock.now.timestamp() + 31)})
     assert r2.status_code in (401, 429)
+
+
+def test_real_data_requires_per_employee_login(monkeypatch, tmp_path):
+    """critic סבב 17 (פתוח מסבב 7, שוחזר): REAL_DATA_ALLOWED=1 (שער בטא 4) בלי REQUIRE_USER_LOGIN=1
+    השאיר את הטוקן המשותף פעיל: גישה לנתוני חייבים אמיתיים בלי עובד מזוהה ובלי 2FA (שער 6).
+    עכשיו: בנתיב הפריסה (create_app() בונה את השירות מהסביבה) השרת לא עולה בשילוב הזה."""
+    import pytest as _pytest
+
+    from app.config import SafetyError
+    from app.main import create_app
+    from tests.conftest import OWNER_TOKEN
+    monkeypatch.delenv("DEMO", raising=False)
+    monkeypatch.delenv("REQUIRE_USER_LOGIN", raising=False)
+    monkeypatch.setenv("REAL_DATA_ALLOWED", "1")
+    monkeypatch.setenv("DB_PATH", str(tmp_path / "real.sqlite3"))
+    monkeypatch.setenv("PAYMENT_LINK", "https://www.greeninvoice.co.il/pay/x")
+    with _pytest.raises(SafetyError, match="REQUIRE_USER_LOGIN"):
+        create_app(owner_token=OWNER_TOKEN)
+    monkeypatch.setenv("REQUIRE_USER_LOGIN", "1")
+    create_app(owner_token=OWNER_TOKEN)

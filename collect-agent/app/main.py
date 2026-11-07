@@ -113,6 +113,7 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
     דורשת `Authorization: Bearer <OWNER_API_TOKEN>`. /inbound מקבל גם חתימת HMAC
     (X-Collect-Timestamp + X-Collect-Signature). טוקן חסר/חלש ⇒ האפליקציה לא עולה."""
     demo_service = False
+    built_from_env = service is None   # נתיב הפריסה (uvicorn --factory); בבדיקות השירות מוזרק
     if service is None and os.environ.get("DEMO") == "1":
         from .demo import demo_service_ready  # נתוני דמו בדויים + sandbox מדומה, בלי רשת
         service = demo_service_ready()
@@ -181,6 +182,12 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
 
     users = Users(svc.db, svc.clock)
     require_login = os.environ.get("REQUIRE_USER_LOGIN") == "1"
+    if built_from_env and getattr(svc.s, "real_data_allowed", False) and not require_login:
+        # critic סבב 17 (פתוח מסבב 7): נתוני חייבים אמיתיים (שער 4) עם הטוקן המשותף פתוח = גישה
+        # בלי עובד מזוהה ובלי 2FA (שער 6). נכשל סגור בנתיב הפריסה: לא עולים בשילוב הזה.
+        # (שירות מוזרק = בדיקות הלוגיקה עם הטוקן המשותף; השער עצמו נבדק ב-test_users_2fa.)
+        raise SafetyError("REAL_DATA_ALLOWED=1 מחייב REQUIRE_USER_LOGIN=1 (משתמש לכל עובד + 2FA, "
+                          "בלי טוקן משותף) — legal/BETA-GATE.md שער 6")
     # critic סבב 8: עובד הדמו (סיסמה ידועה מהסביבה + סוד TOTP בקובץ) נוצר על **כל** שירות כש-DEMO=1,
     # גם על DB אמיתי. אם הסביבה דולפת לפרודקשן, זו דלת אחורית. וגם: הפעלה מחדש עם DB קבוע קרסה
     # («משתמש כבר קיים»). עכשיו: רק על שירות הדמו שנבנה כאן, אף פעם לא בבטא אמיתית, ורק אם לא קיים.
