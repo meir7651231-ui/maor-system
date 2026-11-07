@@ -24,7 +24,7 @@
 
 ---
 
-<p align="center"><a href="https://orbit-il.com/?org=demo"><img src="assets/demo.gif" alt="סיור קצר בדמו: משפחות, כרטיס משפחה, חוגים, לוח שנה עברי ויומן חדרים" width="88%"></a></p>
+<p align="center"><a href="https://orbit-il.com/?org=demo"><img src="assets/demo.gif" alt="סיור קצר בדמו: משפחות, כרטיס משפחה, לוח שנה עברי ויומן חדרים" width="88%"></a></p>
 <p align="center"><sub>סיור באתר החי — <code>orbit-il.com/?org=demo</code>, צולם ב-6.11.2026, נתונים מומצאים. לחיצה פותחת את הדמו.</sub></p>
 
 ## הבעיה
@@ -94,7 +94,7 @@
 <td width="33%" align="center"><a href="docs/screenshots/guide/02-family-card.png"><img src="docs/screenshots/guide/02-family-card.png" alt="כרטיס משפחה עם פרטי קשר ובני משפחה"></a><br><sub>🗂 כרטיס משפחה</sub></td>
 </tr>
 <tr>
-<td align="center"><a href="docs/screenshots/courses.png"><img src="docs/screenshots/courses.png" alt="ניהול חוגים בכרטיסים"></a><br><sub>🎓 חוגים</sub></td>
+<td align="center"><a href="docs/screenshots/guide/01-add-family.png"><img src="docs/screenshots/guide/01-add-family.png" alt="טופס הוספת משפחה"></a><br><sub>➕ הוספת משפחה</sub></td>
 <td align="center"><a href="docs/screenshots/diary.png"><img src="docs/screenshots/diary.png" alt="יומן חדרים לפי שעות"></a><br><sub>🚪 יומן חדרים</sub></td>
 <td align="center"><a href="docs/screenshots/guide/07-theme.png"><img src="docs/screenshots/guide/07-theme.png" alt="בחירת ערכת נושא וצבע הדגשה"></a><br><sub>🎨 ערכות נושא</sub></td>
 </tr>

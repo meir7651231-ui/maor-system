@@ -22,7 +22,7 @@
 
 ---
 
-<p align="center"><a href="https://orbit-il.com/?org=demo"><img src="assets/demo.gif" alt="A short tour of the demo: families, a family card, classes, the Hebrew calendar and the room diary" width="88%"></a></p>
+<p align="center"><a href="https://orbit-il.com/?org=demo"><img src="assets/demo.gif" alt="A short tour of the demo: families, a family card, the Hebrew calendar and the room diary" width="88%"></a></p>
 <p align="center"><sub>Tour of the live site — <code>orbit-il.com/?org=demo</code>, recorded 2026-11-06, made-up data. Click to open the demo.</sub></p>
 
 > The product UI is in Hebrew (right-to-left). This page mirrors the [Hebrew README](README.md).
@@ -94,7 +94,7 @@ The full picture, including the gate chain and key decisions: [`docs/ARCHITECTUR
 <td width="33%" align="center"><a href="docs/screenshots/guide/02-family-card.png"><img src="docs/screenshots/guide/02-family-card.png" alt="Family card with contact details and members"></a><br><sub>🗂 Family card</sub></td>
 </tr>
 <tr>
-<td align="center"><a href="docs/screenshots/courses.png"><img src="docs/screenshots/courses.png" alt="Classes as cards"></a><br><sub>🎓 Classes</sub></td>
+<td align="center"><a href="docs/screenshots/guide/01-add-family.png"><img src="docs/screenshots/guide/01-add-family.png" alt="Add-family form"></a><br><sub>➕ Add a family</sub></td>
 <td align="center"><a href="docs/screenshots/diary.png"><img src="docs/screenshots/diary.png" alt="Room diary by hour"></a><br><sub>🚪 Room diary</sub></td>
 <td align="center"><a href="docs/screenshots/guide/07-theme.png"><img src="docs/screenshots/guide/07-theme.png" alt="Theme and accent color picker"></a><br><sub>🎨 Themes</sub></td>
 </tr>
