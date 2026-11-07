@@ -97,6 +97,7 @@ import {
   writeExitJournal,
   clearAllJournals,
   takeRescuedJournals,
+  takeOversizedJournalRecords,
   setPersistNamespace,
   nsLsKey,
   decryptAndLoad,
@@ -1511,6 +1512,7 @@ export const useApp = create<AppState>()((set, get) => {
       if (takeMigrateHealed()) { lastSaved = null; scheduleSave(); }
       // 🛟 P0-DATA ביקורת-2: יומן שלא תאם את המסמך (לשונית אחרת/שמירה שהתחייבה) לא הוחל — הודעה גלויה, לא דריסה-שקטה
       if (takeRescuedJournals()) runWhenIdleVisible(() => get().toast('⚠ נמצאו שינויים מחלון שנסגר לפני שנשמרו — לא הוחלו אוטומטית. עותק-הצלה: הגדרות ← נתונים ← גיבוי ושחזור ← ⬇ עותקי-הצלה'), 5_000);
+      { const big = takeOversizedJournalRecords(); if (big) runWhenIdleVisible(() => get().toast('⚠ שינויים מחלון שנסגר (' + big + ' רשומות) גדולים מדי לעותק-הצלה — לא הוחלו; הם עדיין שמורים במכשיר'), 5_000); }
       // חיבור ענן — opt-in פר-ארגון; בלי config.firebase שום דבר לא משתנה
       if (config.firebase) void connectCloud(config.firebase, config);
       postLoad(db, corrupt);

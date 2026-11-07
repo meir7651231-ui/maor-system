@@ -213,3 +213,19 @@ describe('🛟 #529 ביקורת-3', () => {
     expect(ids(re)).toEqual(['s1', 's2']);
   });
 });
+
+describe('🛟 #529 אימות-4 — יומן יחיד מעל תקרת-ההצלה', () => {
+  it('לא מרוקן את עותקי-ההצלה הוותיקים, לא מוחק את מפתח-היומן, ומדווח "גדול מדי" (לא "נשמר עותק")', async () => {
+    const oldItem = { savedAt: Date.now(), j: { v: 2, base: 'old', at: 1, diff: { sets: [], deletes: [], meta: { orgName: 'ותיק' } } } };
+    ls.setItem('maor_exitlog_rescue', JSON.stringify([oldItem]));
+    // יומן של לשונית שנסגרה, בסיס לא-תואם, גדול מ-512K תווים (עריכה המונית)
+    const big = { v: 2, base: '1999-01-01T00:00:00.000Z', at: 2, diff: { sets: Array.from({ length: 300 }, (_, i) => ({ col: 'supporters', id: 'b' + i, data: { id: 'b' + i, notes: 'א'.repeat(2000) } })), deletes: [], meta: null } };
+    ls.setItem('maor_exitlog|deadtab', JSON.stringify(big));
+    const C = await reopen();
+    await C.loadDb();
+    expect(ls.getItem('maor_exitlog_rescue')).toContain('ותיק'); // הוותיק לא נדחק
+    expect(ls.getItem('maor_exitlog|deadtab')).not.toBeNull(); // היומן לא נמחק — לא נשמר עותק
+    expect(C.takeRescuedJournals()).toBe(0); // אין "נשמר עותק"
+    expect(C.takeOversizedJournalRecords()).toBe(300); // הודעה גלויה עם מספר הרשומות
+  });
+});

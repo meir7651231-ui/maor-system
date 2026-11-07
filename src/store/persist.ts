@@ -1082,7 +1082,7 @@ function readRescue(now = Date.now()): RescueItem[] {
     return [];
   }
 }
-function writeRescue(items: RescueItem[]): void {
+function writeRescue(items: RescueItem[]): boolean {
   let list = items.slice(-5);
   let json = JSON.stringify(list);
   while (list.length && json.length > RESCUE_MAX_CHARS) {
@@ -1092,10 +1092,43 @@ function writeRescue(items: RescueItem[]): void {
   try {
     if (list.length) localStorage.setItem(rescueKey(), json);
     else removeKey(rescueKey());
+    return true;
   } catch {
-    /* אין מקום — לא דוחקים כתיבות-LS אחרות */
+    return false; // אין מקום — לא דוחקים כתיבות-LS אחרות
   }
 }
+/**
+ * הוספת יומנים לעותק-ההצלה. ביקורת-4: יומן **יחיד** גדול מהתקרה לא נכנס — ולא דוחק את הוותיקים
+ * (קודם: הלולאה רוקנה את כל הרשימה ומחקה את המפתח). מחזיר אילו נשמרו בפועל.
+ */
+function addToRescue(js: Journal[], now = Date.now()): Set<Journal> {
+  const saved = new Set<Journal>();
+  const fits = js.filter((j) => JSON.stringify({ savedAt: now, j }).length <= RESCUE_MAX_CHARS);
+  if (!fits.length) return saved;
+  const old = readRescue(now);
+  let keep = old;
+  const fresh = fits.map((j) => ({ savedAt: now, j }));
+  // דוחקים רק ותיקים; החדשים נכנסים מהאחרון אחורה עד שהתקרה מתמלאת
+  let chosen: RescueItem[] = [];
+  for (let i = fresh.length - 1; i >= 0; i--) {
+    const trial = [fresh[i], ...chosen];
+    if (JSON.stringify(trial).length <= RESCUE_MAX_CHARS) chosen = trial;
+  }
+  while (keep.length && JSON.stringify([...keep, ...chosen]).length > RESCUE_MAX_CHARS) keep = keep.slice(1);
+  if (!chosen.length) return saved;
+  if (!writeRescue([...keep, ...chosen].slice(-5))) return saved;
+  const written = new Set(readRescue(now).map((r) => r.j.at + '|' + r.j.base));
+  for (const r of chosen) if (written.has(r.j.at + '|' + r.j.base)) saved.add(r.j);
+  return saved;
+}
+let oversizedOnLoad = 0;
+/** מספר הרשומות ביומנים שלא הוחלו וגם לא נכנסו לעותק-ההצלה (גדולים מדי) — להודעה גלויה. */
+export function takeOversizedJournalRecords(): number {
+  const n = oversizedOnLoad;
+  oversizedOnLoad = 0;
+  return n;
+}
+
 /** עותקי-ההצלה (בתוקף) — לייצוא ידני. מנקה פגי-תוקף בדרך. */
 export function rescueJournals(): RescueItem[] {
   const live = readRescue();
@@ -1135,20 +1168,30 @@ async function withExitJournal(db: Db): Promise<Db> {
   const mine = keys.filter((k) => !alive.has(k.slice(pre.length))); // יומנים של לשוניות שנסגרו
   if (!mine.length) return db;
   const js: Journal[] = [];
+  const keyOf = new Map<Journal, string>();
   for (const k of mine) {
     try {
       const j = JSON.parse(localStorage.getItem(k) ?? 'null') as Journal | null;
-      if (j && j.v === 2 && j.diff) js.push(j);
+      if (j && j.v === 2 && j.diff) {
+        js.push(j);
+        keyOf.set(j, k);
+      }
     } catch {
       /* פגום ⇒ יימחק */
     }
   }
   const match = js.filter((j) => !!db.savedAt && j.base === db.savedAt).sort((x, y) => (y.at || 0) - (x.at || 0))[0];
   const rest = js.filter((j) => j !== match);
+  const unsavedKeys = new Set<string>();
   if (rest.length) {
-    const now = Date.now();
-    writeRescue([...readRescue(now), ...rest.map((j) => ({ savedAt: now, j }))]);
-    rescuedOnLoad += rest.length;
+    const saved = addToRescue(rest);
+    rescuedOnLoad += saved.size;
+    for (const j of rest) {
+      if (saved.has(j)) continue;
+      oversizedOnLoad += (j.diff.sets?.length ?? 0) + (j.diff.deletes?.length ?? 0) || 1;
+      const k = keyOf.get(j);
+      if (k) unsavedKeys.add(k); // ביקורת-4: לא שומרים עותק ⇒ לא מוחקים את היומן
+    }
   }
   let out = db;
   if (match) {
@@ -1158,7 +1201,7 @@ async function withExitJournal(db: Db): Promise<Db> {
       migrateHealed = true; // init ⇒ scheduleSave ⇒ השמירה תכיל את היומן
     }
   }
-  for (const k of mine) removeKey(k);
+  for (const k of mine) if (!unsavedKeys.has(k)) removeKey(k);
   if (out !== db) writeExitJournal(out); // רשת-ביטחון עד שהשמירה המרפאת תושלם
   return out;
 }
