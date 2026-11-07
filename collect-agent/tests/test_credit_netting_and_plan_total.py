@@ -233,3 +233,21 @@ def test_plan_superseded_when_one_of_its_invoices_was_paid(clock):
         svc.approve_plan(pid)
     assert svc.db.one("SELECT status FROM plans WHERE id=?", (pid,))["status"] == "superseded"
     assert svc.sender.sent == []
+
+
+def test_credit_issued_after_approval_is_not_sent_at_old_amount(svc, fake_gi):
+    """critic סבב 20 (שוחזר): זיכוי שהונפק **בין הסנכרון לשליחה** לא נראה ברענון שלפני השליחה.
+    _refresh_before_send מושך מסמך יחיד (get_document) ומקזז רק את הזיכוי שהיה ידוע בסנכרון האחרון,
+    ולכן נשלח "1,200 ₪" כשהיתרה בפועל ₪700. זו הטעיה (סעיף 2 לחוק הגנת הצרכן, ר-4)."""
+    svc.sync()
+    rid = next(r for r in svc.plan()
+               if svc._invoice(svc._reminder(r)["invoice_id"])["external_id"] == "doc1")
+    svc.approve(rid)
+    fake_gi.docs.append({"id": "cr1", "number": "9001", "type": 330, "status": 0, "amount": "500.00",
+                         "currency": "ILS", "documentDate": "2026-11-08", "linkedDocumentIds": ["doc1"],
+                         "client": {"id": "cl1", "name": "דנה כהן", "phone": "050-1234567"}})
+    n = len(svc.sender.sent)
+    svc.dispatch()
+    sent = [m["body"] for m in svc.sender.sent[n:] if "1001" in m["body"]]
+    assert not any("1,200" in b for b in sent), sent
+    assert svc._reminder(rid)["status"] != "sent_dry_run" or any("700" in b for b in sent)

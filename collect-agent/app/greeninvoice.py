@@ -331,6 +331,17 @@ class GreenInvoiceClient:
                 return
             page += 1
 
+    def credits_for(self, doc_id: str, since=None) -> int:
+        """סך הזיכויים (330, לא מבוטלים) שמקושרים למסמך הזה, מתאריך המסמך. משמש ברענון שלפני שליחה
+        (critic סבב 20: זיכוי שהונפק אחרי הסנכרון לא נראה). זיכוי שמקושר לכמה מסמכים לא נספר כאן:
+        הוא ב-review מהסנכרון, והלקוח מושהה ממילא."""
+        total = 0
+        for c in self._iter_docs(types=CREDIT_TYPES, statuses=CREDIT_STATUSES, from_date=since,
+                                 page_size=50, max_pages=200):
+            if c.amount_agorot > 0 and tuple(c.linked_ids) == (doc_id,):
+                total += c.amount_agorot
+        return total
+
     def open_debts(self, page_size: int = 50, max_pages: int = 200) -> Netting:
         """החוב הפתוח **אחרי קיזוז** (ממצא מבקר 2.16) — זה מה שהסנכרון קולט.
         זיכויים ומסמכי-המשך נשלפים רק מתאריך החוב הפתוח הוותיק (לא כל ההיסטוריה)."""
