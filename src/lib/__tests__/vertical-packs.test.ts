@@ -4,6 +4,7 @@
  * הקונפיג (firebase/adminEmails/theme). חבילה לא-מוכרת = no-op בטוח.
  * ורטיקל מסחרי מכבה פיצ'רים ייחודיים-לעמותה (COMMERCIAL_OFF) — מוסך לא מציג §46.
  */
+import STORE from '../../../public/orbit/store/data.json';
 import { describe, expect, it } from 'vitest';
 import { VERTICAL_PACKS, applyVerticalPack, COMMERCIAL_OFF } from '../verticalPacks';
 import { TERM_DEFS } from '../../types/features';
@@ -121,6 +122,7 @@ describe('🏢 ratchet — applyVerticalPack (פאס-8)', () => {
       hospitality: ['families', 'calendar', 'diary', 'supporters', 'reports'],
       gemach: [], // המטריצה המלאה מפורשת ב-modules
       tzedakot: [], // כנ"ל
+      edu: [], // 🎓 חינוך וחוגים — המטריצה המלאה מפורשת ב-modules
       digital: ['families', 'calendar', 'supporters', 'reports'], // דיגיטל — בלי חוגים/יומן/צדקה/חנות
       build: ['families', 'calendar', 'diary', 'supporters', 'reports'], // בנייה — יומן=אתרים דלוק
       studio: ['families', 'calendar', 'diary', 'supporters', 'reports'], // משולב — כמו בנייה
@@ -254,5 +256,42 @@ describe('🎨 ratchet — זהות-חזותית פר-ורטיקל', () => {
     // הכותרת (side-logo) מציגה את אימוג׳י-הארגון כשקיים
     expect(appSrc).toMatch(/config\.emoji \? \(/);
     expect(appSrc).toMatch(/applyFavicon\(config\.emoji\)/);
+  });
+});
+
+/**
+ * ratchet — 🎓 חבילת "חינוך וחוגים" (edu, 7.11.2026, אישור-בעלים): התחום היה בחנות (soon) בלי חבילה ⇒
+ * בחירה בו פתחה את ההרשמה בלי תחום. החבילה: מנוע-החוגים ליבה, בלי תורמים/צדקה/חנות/חלוקה; נוטה-לעמותה
+ * (§46 נשאר); זהות לפי ערכת "מחברת · ירוק תפוח" בחנות. והלקוח-החי (חסד) ביט-זהה.
+ */
+describe('🎓 ratchet — חבילת חינוך וחוגים (edu)', () => {
+  const base: OrgConfig = { ...DEFAULT_CONFIG, firebase: { apiKey: 'k', authDomain: 'a', projectId: 'p', appId: 'i' } as OrgConfig['firebase'] };
+  it('מודולים: משפחות/חוגים/לוח/יומן/דוחות דלוקים; תורמים/צדקה/חנות/חלוקה כבויים', () => {
+    const c = applyVerticalPack(base, 'edu');
+    expect(c.modules).toEqual({ families: true, courses: true, calendar: true, diary: true, supporters: false, reports: true, tzedaka: false, shop: false, shop7: false });
+  });
+  it('נוטה-לעמותה: אין COMMERCIAL_OFF (§46 ברירת-המחדל); מונחי-חינוך — כולל כותרת "חוגים" (לא "ניהול קורסים")', () => {
+    const c = applyVerticalPack(base, 'edu');
+    expect(c.features).toEqual({});
+    expect(c.terms!['entity.members']).toBe('ילדים');
+    expect(c.terms!['nav.courses']).toBe('חוגים');
+    expect(c.terms!['entity.room']).toBe('כיתה');
+  });
+  it('זהות = ערכת "מחברת · ירוק תפוח" בחנות (accent ≡ th.a של editions.edu)', () => {
+    const ed = (STORE.editions as Array<{ id: string; th: { a: string }; soon?: boolean; label: string }>).find((e) => e.id === 'edu')!;
+    const c = applyVerticalPack(base, 'edu');
+    expect(c.accent).toBe(ed.th.a);
+    expect(c.emoji).toBe('🎓');
+    expect(c.theme).toBe('kehila');
+    expect(ed.soon).toBeFalsy(); // התחום פעיל בחנות
+    expect(VERTICAL_PACKS.find((p) => p.id === 'edu')!.label).toBe(ed.label);
+  });
+  it('🕊️ הלקוח-החי ביט-זהה: חבילת החסד לא השתנתה', () => {
+    const chesed = VERTICAL_PACKS.find((p) => p.id === 'chesed')!;
+    expect(JSON.stringify(chesed)).toBe(JSON.stringify({ id: 'chesed', emoji: '🕊️', label: 'עמותת חסד', sub: 'גמ"ח · קופת צדקה', terms: {}, modules: {}, theme: 'or-rishon' }));
+  });
+  it('כל תחום בחנות שאינו "בקרוב" — יש לו חבילה (בחירה בו פותחת הרשמה עם תחום מסומן)', () => {
+    const ids = new Set(VERTICAL_PACKS.map((p) => p.id));
+    for (const e of STORE.editions as Array<{ id: string; soon?: boolean }>) if (!e.soon) expect(ids.has(e.id), 'תחום ' + e.id).toBe(true);
   });
 });

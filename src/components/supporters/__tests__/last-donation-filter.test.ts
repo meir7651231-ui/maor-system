@@ -42,9 +42,11 @@ describe('supLastInBucket — דליי-זמן מהיום', () => {
 
 describe('הגנת-מקור — הבורר תמיד-גלוי, מסנן, מנוקה ב"נקה הכל", ומיון בגריד', () => {
   it('הבורר "תרומה אחרונה" לא מגודר בבחירת-תקופה', () => {
-    expect(viewSrc).toContain('ariaLabel="תרומה אחרונה"');
+    // 7.11: התווית דרך termOf(entity.donation) — דליפת-מונח בוורטיקלים מסחריים (e2e:verticals); ברירת-מחדל ביט-זהה
+    const ARIA = "ariaLabel={termOf(config, 'entity.donation', 'תרומה') + ' אחרונה'}";
+    expect(viewSrc).toContain(ARIA);
     // הבורר יושב לפני הגידור (monthF || gaveYearF) של בורר-התקופה
-    expect(viewSrc.indexOf('ariaLabel="תרומה אחרונה"')).toBeLessThan(viewSrc.indexOf('{(monthF || gaveYearF) && ('));
+    expect(viewSrc.indexOf(ARIA)).toBeLessThan(viewSrc.indexOf('{(monthF || gaveYearF) && ('));
     // ⚡ 12.10.2026 (ביצועים): הפרדיקט עבר שורה-בשורה ל-lib.ts (filterSupporterList, ממומואיז במסך) — אותו כלל, מקור חדש
     expect(libSrc).toContain('if (lastF && !supLastInBucket(sp, today, lastF)) return false;');
     expect(viewSrc).toContain("|| !!segF || !!lastF ||");
