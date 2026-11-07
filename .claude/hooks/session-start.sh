@@ -37,5 +37,5 @@ if [[ "$UNPUSHED" -gt 0 ]]; then
   echo "📦 $UNPUSHED שמירות ממתינות לדחיפה"
 fi
 echo "🔁 שרשרת אימות: npm run verify (typecheck + lint + test + build)"
-echo "🎭 e2e: npm run e2e — ⚠️ חסום כרגע ע\"י מסך התחברות ענן (ראה CLAUDE.md)"
+echo "🎭 e2e: npm run e2e (אחרי build) — ירוק נכון ל-3.11.2026"
 echo "════════════════════════════════════════"
