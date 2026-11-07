@@ -14,7 +14,9 @@ import {
   isEncryptedBackup,
   decryptBackupFile,
   isCryptoActive,
+  rescueJournals,
 } from '../../store/persist';
+import { guardExport } from '../../lib/exportGate';
 import { Btn, Field, FormError, Modal, TextInput } from '../ui';
 import { featureOn, isAdminAuthority, termOf } from '../../lib/config';
 import { Section, SectionNote } from './lib';
@@ -46,6 +48,19 @@ export function BackupSection() {
   const exportBackup = useApp((s) => s.exportBackup);
   const restoreDb = useApp((s) => s.restoreDb);
   const toast = useApp((s) => s.toast);
+  // 🛟 P0-DATA ביקורת-3 #2: עותקי-הצלה (יומני-עריכה שלא הוחלו) — ייצוא JSON ידני דרך שער-היציאה
+  const [rescueCount, setRescueCount] = useState(() => rescueJournals().length);
+  function exportRescue() {
+    const items = rescueJournals();
+    setRescueCount(items.length);
+    if (!items.length || !guardExport()) return;
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([JSON.stringify(items, null, 1)], { type: 'application/json' }));
+    a.download = 'maor-rescue-' + new Date().toISOString().slice(0, 10) + '.json';
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+    toast('⬇ עותקי-ההצלה ירדו — לשחזור פנו לתמיכה');
+  }
   // 🔐 נחיל ב׳ 3.9 (F4): שחזור בארגון-ענן = דריסת הענן לכל המכשירים (withRemovalTombstones +
   // cloudReplaceNow) — שמור למנהל/ת הארגון. אופליין/שורש (כל מחובר ב-adminEmails) — ביט-זהה
   // להיום. הייצוא (⬇ הורדת גיבוי מלא) נשאר — רק טריגרי-השחזור מוסתרים.
@@ -209,6 +224,10 @@ export function BackupSection() {
           <Btn kind="primary" onClick={exportBackup}>
             ⬇ הורדת גיבוי מלא
           </Btn>
+        )}
+        {/* 🛟 P0-DATA ביקורת-3 #2: עותקי-הצלה — שינויים מחלון שנסגר שלא הוחלו (לא-תואמים) — לייצוא ידני */}
+        {rescueCount > 0 && featureOn(useApp.getState().config, 'core.export') && (
+          <Btn onClick={exportRescue}>{'⬇ עותקי-הצלה (' + rescueCount + ')'}</Btn>
         )}
         {canRestore && (
           <label className="btn" style={{ cursor: 'pointer' }}>
