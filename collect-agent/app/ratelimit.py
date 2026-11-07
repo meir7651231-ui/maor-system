@@ -25,10 +25,13 @@ DEFAULT_RULES: dict[str, Rule] = {
     "webhook": Rule(120, 60),         # 019 / מייל / inbound חתום
     "gi_webhook_global": Rule(6, 60),  # כל קריאה = sync מלא מול חשבונית ירוקה
     "auth_fail": Rule(30, 300),       # כשלי אימות לבעלים מאותו IP
+    "orbit_connect": Rule(20, 60),    # /connect/orbit + אימות טוקן-המסירה מאורביט (טוקן = ניחוש חתימה)
 }
 
 
 def group_for(path: str) -> str | None:
+    if path in ("/connect/orbit", "/api/connect/orbit"):
+        return "orbit_connect"
     if path.startswith(("/p/", "/u/", "/pay/", "/api/pay/")):
         return "public_link"
     if path.startswith("/webhooks/") or path in ("/inbound", "/conversation/inbound"):

@@ -26,7 +26,9 @@ FIELDS = frozenset({"gi_api_id", "gi_api_secret", "sms_token", "sms_username", "
                     "email_api_key", "sms_webhook_key", "email_webhook_key", "gi_webhook_key",
                     # מקורות חשבוניות נוספים (app/integrations/sources.py) — קריאה בלבד
                     "icount_api_token", "rivhit_api_token", "ezcount_api_key",
-                    "ezcount_developer_email", "source_webhook_key"})
+                    "ezcount_developer_email", "source_webhook_key",
+                    # סוד-המסירה מאורביט (app/orbit_connect.py) — פר-ארגון, מונפק ע״י בעל העסק
+                    "orbit_handoff_secret"})
 
 
 class BusinessSecrets:
@@ -76,6 +78,12 @@ class BusinessSecrets:
                            r["business_id"], r["field"]))
                 n += 1
         return n
+
+    def delete(self, business_id: int, field: str) -> None:
+        """מחיקת סוד יחיד (ביטול קישור). שאר הסודות של העסק נשארים."""
+        self._check(field)
+        self.db.x("DELETE FROM business_secrets WHERE business_id=? AND field=?",
+                  (business_id, field))
 
     def delete_business(self, business_id: int) -> None:
         self.db.x("DELETE FROM business_secrets WHERE business_id=?", (business_id,))

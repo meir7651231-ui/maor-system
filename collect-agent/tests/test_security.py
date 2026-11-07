@@ -159,7 +159,10 @@ PUBLIC_ROUTES = {"/health", "/auth/login", "/auth/logout",
                  "/webhooks/email", "/p/{code}", "/p/{code}/pay", "/p/{code}/{action}",
                  "/pay/{code}", "/pay/{code}/go", "/api/pay/{code}", "/api/pay/{code}/{action}",
                  # webhook ממקור חשבוניות נבחר (iCount): סוד ב-URL (SOURCE_WEBHOOK_KEY, 403 בלי), טריגר בלבד
-                 "/webhooks/source/{system}"}
+                 "/webhooks/source/{system}",
+                 # כניסה מאורביט (חוזה-המסירה v1): דף סטטי + אימות טוקן חתום פר-ארגון (HMAC, חד-פעמי,
+                 # ≤300 שנ'). הצלחה = ארגון+מייל בלבד, **לא** סשן — הכניסה עצמה = /auth/login (שער 6)
+                 "/connect/orbit", "/api/connect/orbit"}
 
 
 def test_route_inventory_is_fully_guarded(svc):

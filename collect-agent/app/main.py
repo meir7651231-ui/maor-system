@@ -101,6 +101,10 @@ def _unsub_page(body: str, status: int = 200) -> HTMLResponse:
 
 
 
+class OrbitSecretIn(BaseModel):
+    org: str = Field(max_length=63)
+
+
 class LoginIn(BaseModel):
     email: str = Field(max_length=200)
     password: str = Field(max_length=200)
@@ -600,6 +604,81 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
     @app.get("/audit", dependencies=auth)
     def audit():
         return [dict(r) for r in svc.db.q("SELECT * FROM audit ORDER BY id DESC LIMIT 200")]
+
+    # ---------- כניסה מאורביט (חוזה-המסירה v1, app/orbit_connect.py) ----------
+    from .orbit_connect import CONNECT_PAGE, HandoffRejected, OrbitConnect
+    from .secretbox import SecretError
+    orbit = OrbitConnect(svc.db)
+    app.state.orbit = orbit
+    connect_next = "/app/#/dashboard" if (web_dist / "index.html").is_file() else "/ui"
+
+    @app.get("/connect/orbit", response_class=HTMLResponse)
+    def connect_orbit_page():
+        """ציבורי: דף סטטי. הטוקן ב-fragment (#h=…) — לא מגיע לשרת; הדף שולח אותו ב-POST."""
+        return HTMLResponse(CONNECT_PAGE.replace("__NEXT__", connect_next),
+                            headers={"Cache-Control": "no-store", "X-Robots-Tag": "noindex",
+                                     "Referrer-Policy": "no-referrer"})
+
+    @app.post("/api/connect/orbit")
+    async def connect_orbit_verify(request: Request):
+        """אימות טוקן-המסירה. הצלחה ⇒ ארגון+מייל בלבד (למילוי מראש) — **לא** סשן: הכניסה
+        עצמה עוברת /auth/login (סיסמה+TOTP, שער 6). כל כשל ⇒ 401 אחיד; הסיבה רק ב-audit."""
+        if request.url.query:   # טוקן לעולם לא ב-query (לוגי-גישה/Referer)
+            raise HTTPException(400, "הטוקן נשלח בגוף הבקשה בלבד")
+        raw = await request.body()
+        if len(raw) > 4096:
+            raise HTTPException(413, "too large")
+        try:
+            body = json.loads(raw or b"{}")
+        except ValueError:
+            raise HTTPException(400, "JSON לא תקין") from None
+        tok = body.get("token") if isinstance(body, dict) else None
+        import hashlib as _h
+        try:
+            c = orbit.verify(tok if isinstance(tok, str) else "", int(svc.clock().timestamp()))
+        except HandoffRejected as e:
+            svc.audit("orbit", "orbit_handoff_rejected", {"reason": e.reason})
+            raise HTTPException(401, "הקישור אינו תקף או שפג תוקפו") from None
+        except SecretError:
+            svc.audit("orbit", "orbit_handoff_rejected", {"reason": "no_master_key"})
+            raise HTTPException(503, "החיבור מאורביט אינו זמין כרגע") from None
+        svc.audit("orbit", "orbit_handoff_ok", {"org": c.org, "email_sha": _h.sha256(
+            c.email.encode()).hexdigest()[:16]})
+        return JSONResponse({"ok": True, "org": c.org, "email": c.email, "next": "login"},
+                            headers={"Cache-Control": "no-store"})
+
+    @app.get("/orbit/link", dependencies=auth)
+    def orbit_link_status():
+        """מצב הקישור לאורביט — ארגון ותאריכים בלבד, לעולם לא הסוד."""
+        link = orbit.link()
+        return {"linked": bool(link), **(link or {})}
+
+    @app.post("/orbit/link/secret", dependencies=auth)
+    def orbit_link_secret(b: OrbitSecretIn, request: Request):
+        """הנפקה/רוטציה של סוד-המסירה (מוחזר **פעם אחת**; המנהל מדביק אותו באורביט).
+        רוטציה מבטלת את הסוד הקודם מיד."""
+        rotating = bool(orbit.link())
+        try:
+            secret = orbit.issue_secret(b.org, at=svc.clock().isoformat())
+        except ValueError as e:
+            raise HTTPException(409, str(e)) from e
+        except SecretError:
+            raise HTTPException(503, "אין מפתח הצפנה (COLLECT_MASTER_KEYS) — הסוד לא נשמר") from None
+        svc.audit(request.state.actor, "orbit_secret_rotated" if rotating else "orbit_secret_issued",
+                  {"org": b.org.strip().lower()})
+        return JSONResponse({"org": b.org.strip().lower(), "secret": secret, "shown_once": True},
+                            headers={"Cache-Control": "no-store"})
+
+    @app.post("/orbit/link/unlink", dependencies=auth)
+    def orbit_unlink(request: Request):
+        link = orbit.link()
+        try:
+            done = orbit.unlink()
+        except SecretError:
+            raise HTTPException(503, "אין מפתח הצפנה (COLLECT_MASTER_KEYS)") from None
+        if done:
+            svc.audit(request.state.actor, "orbit_unlinked", {"org": link["org"] if link else ""})
+        return {"unlinked": done}
 
     # ---------- מנוע השיחה (app/conversation.py + app/inbox.py) ----------
     # מופע יחיד: אותה תיבה שמשמשת את /inbound, את ה-webhooks (019, מייל), את /dispatch (flush)
