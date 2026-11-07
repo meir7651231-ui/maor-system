@@ -62,3 +62,21 @@ def test_token_request_includes_grant_type():
     c = GreenInvoiceClient(SANDBOX, "i", "s", transport=httpx.MockTransport(h))
     c._auth()
     assert seen == [{"id": "i", "secret": "s", "grant_type": "client_credentials"}]
+
+
+def test_create_payment_form_is_blocked_and_makes_no_network_call():
+    """critic סבב 19: הפונקציה שיוצרת ב-GI דף תשלום שמנפיק קבלה (type 400) נשארה בקוד ומוכנה לכתיבה,
+    בניגוד ל-«לא יוצרים קבלות» ו-«גבי רק קורא». עכשיו SafetyError, ושום בקשה לא יוצאת."""
+    import httpx
+    import pytest
+
+    from app.config import SafetyError
+    from app.greeninvoice import GreenInvoiceClient, Invoice
+    calls = []
+    tr = httpx.MockTransport(lambda req: calls.append(req.url.path) or httpx.Response(200, json={
+        "token": "t", "expires": 2_000_000_000, "url": "https://pay.greeninvoice.co.il/f/x"}))
+    c = GreenInvoiceClient("https://sandbox.d.greeninvoice.co.il/api/v1", "id", "secret", transport=tr)
+    inv = Invoice("d1", "1", 305, 10000, "ILS", None, None, "c1", "דנה", "0501234567", "")
+    with pytest.raises(SafetyError):
+        c.create_payment_form(inv)
+    assert calls == []

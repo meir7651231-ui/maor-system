@@ -199,31 +199,13 @@ class GreenInvoiceClient:
         return self._request("GET", "/users/me", what="users/me")
 
     def create_payment_form(self, inv: Invoice, *, notify_url: str = "") -> str:
-        """דף תשלום של חשבונית ירוקה (POST /payments/form) — sandbox בלבד בשלב 1.
-
-        שדות לפי התיעוד הציבורי; לאמת. הסכום בשקלים (לא אגורות).
-        """
-        payload = {
-            "description": f"תשלום חשבונית {inv.number}",
-            "type": 400,              # קבלה על התשלום (לאמת מול סוג המסמך המקורי)
-            "lang": "he",
-            "currency": inv.currency,
-            "vatType": 0,
-            "amount": inv.amount_agorot / 100,
-            "maxPayments": 1,
-            "client": {"id": inv.client_external_id, "name": inv.client_name},
-            "custom": inv.external_id,
-        }
-        if notify_url:
-            payload["notifyUrl"] = notify_url
-        r = self._http.post("/payments/form", json=payload,
-                            headers={"Authorization": f"Bearer {self._auth()}"})
-        if r.status_code != 200:
-            raise GreenInvoiceError(f"payments/form נכשל: {r.status_code}")
-        url = r.json().get("url", "")
-        if not url:
-            raise GreenInvoiceError("payments/form: אין url בתשובה")
-        return str(url)
+        """**חסום.** POST /payments/form (type 400) יוצר בחשבונית ירוקה דף תשלום שמנפיק **קבלה** בשם העסק.
+        הכרעת מאיר (6.11): לא יוצרים קבלות ולא כותבים ל-GI. «גבי רק קורא» (דף הנחיתה, ה-FAQ, התנאים).
+        critic סבב 19: אף אחד כבר לא קרא לפונקציה, אבל היא נשארה מוכנה לכתיבה, ו-PR אחד היה מחזיר אותה.
+        עכשיו נכשלת סגור, בלי שום קריאת רשת."""
+        from .config import SafetyError
+        raise SafetyError("create_payment_form חסום: גבי לא יוצר קבלות ולא כותב לחשבונית ירוקה "
+                          "(הכרעת מאיר 6.11). קישור התשלום = PAYMENT_LINK של העסק")
 
     def _enrich_client(self, doc: dict[str, Any]) -> dict[str, Any]:
         """אם במסמך אין טלפון ואין מייל ללקוח (ייתכן ב-API האמיתי — לאמת), משלימים מ-/clients/{id}.
