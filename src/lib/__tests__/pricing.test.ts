@@ -75,3 +75,53 @@ describe('💰 ratchet — מנוע התמחור', () => {
     expect(shekel(149)).toBe('₪149');
   });
 });
+
+/**
+ * ratchet — 🌐 "אתר לעסק" ₪40 + מחירון-החנות ≡ מחירון-האשף (7.11.2026, אישור-בעלים).
+ * 🐛 בחנות packs[key=site].price=40, אבל באשף-ההרכבה לא הייתה שורה לאתר ⇒ ההצעה מהאשף לא תאמה
+ * את מה שהחנות הציגה. ובנוסף: שני המחירונים נפרדים ⇒ נעילת-שוויון לכל 12 החבילות.
+ */
+import STORE from '../../../public/orbit/store/data.json';
+import STORE_HTML from '../../../public/orbit/store/index.html?raw';
+
+describe('🌐 ratchet — אתר לעסק בהצעה + מחירון-החנות ≡ האשף', () => {
+  const allOff = { modules: { courses: false, diary: false, tzedaka: false, shop: false, shop7: false, reports: false, supporters: false } };
+  it('אתר דלוק (config.site) ⇒ שורת "אתר לעסק" ‎+₪40 בחודשי', () => {
+    const without = computeQuote(allOff, 'small', DEFAULT_PRICES, nameOf);
+    const withSite = computeQuote({ ...allOff, site: { enabled: true } as never }, 'small', DEFAULT_PRICES, nameOf);
+    expect(withSite.lines.find((l) => l.key === 'site')).toEqual({ key: 'site', label: 'אתר לעסק', price: 40, kind: 'integration' });
+    expect(withSite.monthly - without.monthly).toBe(40);
+  });
+  it('בלי אתר / אתר מכובה / הדגל shell.publicsite כבוי ⇒ הצעה ביט-זהה (אין שורה)', () => {
+    const base = computeQuote(allOff, 'small', DEFAULT_PRICES, nameOf);
+    for (const cfg of [allOff, { ...allOff, site: { enabled: false } as never }, { ...allOff, site: { enabled: true } as never, features: { 'shell.publicsite': false } }]) {
+      expect(JSON.stringify(computeQuote(cfg, 'small', DEFAULT_PRICES, nameOf))).toBe(JSON.stringify(base));
+    }
+  });
+  it('טבלת-מחירים שמורה ישנה (בלי site) ⇒ ברירת-המחדל 40', () => {
+    expect(normalizePrices({ base: 290 }).site).toBe(40);
+    expect(normalizePrices({ site: 55 }).site).toBe(55);
+  });
+  it('🔒 מחירון-החנות ≡ מחירון-האשף לכל 12 החבילות (שלא יסטו שוב)', () => {
+    // מפתח-חבילה בחנות ⇒ איפה המחיר באשף
+    const MAP: Record<string, (p: PriceTable) => number | undefined> = {
+      donors: (p) => p.modules.supporters,
+      payments: (p) => p.integrations.payments,
+      receipts: (p) => p.integrations.receipts,
+      courses: (p) => p.modules.courses,
+      rooms: (p) => p.modules.diary,
+      shop: (p) => p.modules.shop,
+      dist: (p) => p.modules.shop7,
+      phone: (p) => p.integrations.phone,
+      msg: (p) => p.integrations.whatsapp,
+      site: (p) => p.site,
+      reports: (p) => p.modules.reports,
+      ai: (p) => p.integrations.ai,
+    };
+    const packs = STORE.packs as Array<{ key: string; price: number }>;
+    expect(packs.map((p) => p.key).sort()).toEqual(Object.keys(MAP).sort()); // חבילה חדשה בחנות ⇒ חייבת מיפוי כאן
+    for (const pk of packs) expect(MAP[pk.key](DEFAULT_PRICES), 'חבילה ' + pk.key).toBe(pk.price);
+    // גם הבסיס וההקמה בחנות (קבועים ב-index.html) ≡ האשף
+    expect(STORE_HTML).toContain(`const BASE = ${DEFAULT_PRICES.base}, SETUP = ${DEFAULT_PRICES.setup};`);
+  });
+});
