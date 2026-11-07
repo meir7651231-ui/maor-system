@@ -221,13 +221,13 @@ if (process.env.FUNCTIONS_EMULATOR !== undefined || process.env.K_SERVICE || pro
     }
 
     // מתוזמן — יומי 04:10 (מחוץ לשעות-הלילה של הגיבוי/תזכורות).
-    exports.gcontactsSync = onSchedule(
+    module.exports.gcontactsSync = onSchedule(
       { schedule: 'every day 04:10', timeZone: 'Asia/Jerusalem', secrets: ['GCONTACTS_CLIENT_ID', 'GCONTACTS_CLIENT_SECRET'], timeoutSeconds: 540, memory: '256MiB' },
       async () => { await syncAll(); },
     );
 
     // on-demand — "סנכרן עכשיו" מהאפליקציה. אימות: Bearer ID-token של מנהל/מייל-על.
-    exports.gcontactsSyncNow = onRequest(
+    module.exports.gcontactsSyncNow = onRequest(
       { secrets: ['GCONTACTS_CLIENT_ID', 'GCONTACTS_CLIENT_SECRET'], timeoutSeconds: 300, memory: '256MiB', cors: true },
       async (req, res) => {
         try {

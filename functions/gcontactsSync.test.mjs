@@ -58,3 +58,14 @@ describe('gcontactsSync — ליבה טהורה', () => {
     expect(updates).toHaveLength(0);
   });
 });
+
+describe('gcontactsSync — ייצוא ה-endpoints (ratchet)', () => {
+  it('🐛 `exports.x =` אחרי `module.exports = {...}` נבלע ⇒ ה-endpoints לא היו מגיעים ל-index', async () => {
+    const { readFileSync } = await import('node:fs');
+    const src = readFileSync(new URL('./gcontactsSync.js', import.meta.url), 'utf8');
+    expect(src).toContain('module.exports = {');
+    expect(src).toContain('module.exports.gcontactsSync = onSchedule(');
+    expect(src).toContain('module.exports.gcontactsSyncNow = onRequest(');
+    expect(src).not.toMatch(/^\s+exports\.\w+ = on(Schedule|Request)\(/m);
+  });
+});
