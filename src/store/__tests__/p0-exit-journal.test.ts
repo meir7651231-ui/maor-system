@@ -86,11 +86,12 @@ describe('🛡 הגנות-מקור — החיווט', () => {
     expect(persistSrc).toContain('if (lsSkipped || !lsOk) announceIdbSave(doc.savedAt);');
     expect(appSrc).toMatch(/onOtherTabIdbSave\(\(savedAt\) => \{[\s\S]{0,400}if \(dirty \|\| get\(\)\.needDecrypt\) return;/);
   });
-  it('מוצפן ⇒ לא כותבים יומן גלוי; טעינה מחילה רק יומן חדש מהמסמך; שמירה-שהושלמה מנקה', () => {
-    expect(persistSrc).toContain('if ((dek && envelope) || !base || base === next) return false;');
-    expect(persistSrc).toContain('if (!lsDropped && !lsDocAbsent()) return false;'); // מסמך ב-LS ⇒ אין יומן (לקוח-קטן ביט-זהה)
-    expect(persistSrc).toContain("j.at > (db.savedAt ?? '')");
-    expect(persistSrc).toContain('return { db: withExitJournal(parsed), corrupt: false }');
-    expect(persistSrc).toContain('clearExitJournalIfCovered(doc.savedAt);');
+  it('מוצפן ⇒ אין יומן גלוי (לא נכתב · נמחק בהפעלת-הצפנה ובטעינה מוצפנת); מסמך-ב-LS ⇒ אין יומן; בסיס מדויק', () => {
+    expect(persistSrc).toContain('if (dek && envelope) return false; // (3)');
+    expect(persistSrc).toContain('if (!lsDropped && lsHasDoc) return false;');
+    expect(persistSrc).toMatch(/envelope = env;\s*clearAllJournals\(\);/); // beginEncryption
+    expect((persistSrc.match(/clearAllJournals\(\); \/\/ 🛟 P0-DATA \(3\)/g) ?? []).length).toBeGreaterThanOrEqual(2); // שני ענפי-הטעינה המוצפנים
+    expect(persistSrc).toContain('rebaseJournalAfterSave(db);');
+    expect(appSrc).toMatch(/restoreDb\(db\) \{[\s\S]{0,3500}clearAllJournals\(\);/);
   });
 });

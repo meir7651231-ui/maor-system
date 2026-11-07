@@ -13,9 +13,13 @@ import { supporterAggregates } from '../lib/supporterAgg';
 import { sanitizePhotos } from '../lib/photoGallery';
 import { AYIN_STAGES } from '../lib/ayin';
 import {
+  AUDIT_CAP,
   DB_VERSION,
   emptyAyin,
   emptyDb,
+  mergeDelLogs,
+  type AuditEntry,
+  type DelEntry,
   type CredLogEntry,
   type Db,
   type FamilyCred,
@@ -81,6 +85,7 @@ function lsWrite(payload: string): boolean {
   if (lsDropped) return false;
   try {
     localStorage.setItem(LS_KEY, payload);
+    lsHasDoc = true;
     return true;
   } catch (e) {
     dropLs(e); /* מכסה מלאה / מצב פרטי */
@@ -169,8 +174,8 @@ export function setPersistNamespace(slug: string): void {
     IDB_NAME = 'maor';
     idb = null;
     lsDropped = lsDroppedNotice = storedIsEnvelope = false; // ⚡ (12.10) משטר-המכסה ודגל-המעטפת הם פר-מפתח
-    journalAt = null;
-    storedBase = null;
+    storedBase = lastJournaled = null;
+    lsHasDoc = false;
     return;
   }
   nsSlug = slug;
@@ -179,8 +184,8 @@ export function setPersistNamespace(slug: string): void {
   IDB_NAME = `maor:${slug}`;
   idb = null; // חיבור קודם (אם נפתח) מצביע ל-DB הלא נכון
   lsDropped = lsDroppedNotice = storedIsEnvelope = false; // ⚡ (12.10) משטר-המכסה ודגל-המעטפת הם פר-מפתח
-  journalAt = null;
-  storedBase = null;
+  storedBase = lastJournaled = null;
+  lsHasDoc = false;
 }
 
 let nsSlug = '';
@@ -757,6 +762,7 @@ export interface LoadResult {
 async function readRaw(): Promise<unknown> {
   try {
     const raw = localStorage.getItem(LS_KEY);
+    lsHasDoc = !!raw; // 🛟 P0-DATA: נלמד פעם אחת — לא getItem בכל עריכה
     if (raw) return JSON.parse(raw);
   } catch {
     /* חסום או JSON פגום — ננסה IndexedDB */
@@ -852,45 +858,101 @@ export function readStoredPlainDb(raw?: string | null): Db | null {
   }
 }
 
-/* ─────────── 🛟 יומן-יציאה (P0-DATA, 7.11.2026) ───────────
- * 🐛 במשטר IDB-בלבד (מסמך > מכסת localStorage — הלקוח-החי, 34MB) שמירה ב-pagehide/hidden היא
- * `put` אסינכרוני של כל המסמך (0.6–1.4s) שמבוטל בפריקת-הדף ⇒ עריכה שנסגרה תוך ~1 שנייה **אבדה
- * בשקט** (e2e/p0-data-diag.mjs E1; knowledge/DIAG-P0-DATA-STAGE0-2026-11-07.md). התיקון: ביציאה
- * כותבים **סינכרונית** ל-localStorage רק את מה שהשתנה מאז השמירה האחרונה שהושלמה (diffDb — רשומות
- * שלמות, קטן); בטעינה הבאה, אם היומן חדש מהמסמך המאוחסן — מחילים אותו ושומרים. גלוי בלבד (מוצפן ⇒
- * לא כותבים גלוי ל-LS). מסמך שנכנס ל-LS (≤ ~2k תורמים) ⇒ אפס שינוי (lsDropped=false).
+/* ─────────── 🛟 יומן-עריכה (P0-DATA, 7.11.2026) ───────────
+ * 🐛 במשטר IDB-בלבד (מסמך > מכסת localStorage — הלקוח-החי, 34MB) השמירה היא `put` אסינכרוני של כל המסמך
+ * (0.6–1.4s) שמבוטל בפריקת-הדף; ביציאה מהירה ה-thread עוד עסוק ברינדור ו-pagehide לא רץ כלל ⇒ עריכה שנסגרה
+ * תוך ~1ש׳ **אבדה בשקט** (e2e/p0-data-diag.mjs E1). התיקון: ברגע-העריכה (setDb) נכתב **סינכרונית** ל-LS
+ * רק ה-diff מול המסמך-המאוחסן (diffDb), ובטעינה הוא מוחל.
+ * ביקורת-עוינת (7.11) — שלושה כללים:
+ *  (1) **ביסוס-מחדש:** כל שמירה שהושלמה מחשבת מחדש את יומן-הלשונית מול המסמך החדש (או מוחקת כשהוא
+ *      מכוסה) ⇒ מחיקה/ביטול אחרי שמירה-בטיסה לא "קמים" מחדש. כל יומן קיים = עבודה לא-מכוסה ⇒ מוחל.
+ *  (2) **מפתח פר-לשונית** `maor_exitlog:<slug>|<tabId>` — לשונית מוחקת רק את שלה; meta ממוזג (מונים=max,
+ *      מצבות/לוג/attnDone=איחוד), לא מוחלף — יומן של לשונית ישנה לא מגלגל אחורה מצבות של אחרת.
+ *  (3) **הצפנה ⇒ אין יומן גלוי:** לא נכתב כשמוצפן, ונמחק בהפעלת-הצפנה ובטעינה מוצפנת.
+ * מסמך שב-LS (≤ ~2,200 תורמים) ⇒ אפס שינוי (lsHasDoc נלמד בטעינה/כתיבה — בלי getItem בכל עריכה).
  */
-let journalAt: string | null = null;
-/** המסמך שמונח כעת באחסון (נטען/נשמר/אומץ) — הבסיס ל-diff של היומן. רשימות שלא השתנו חולקות הפניה ⇒ diffDb זול. */
-let storedBase: Db | null = null;
-const journalKey = () => LS_KEY.replace(/^maor_db/, 'maor_exitlog');
-function lsDocAbsent(): boolean {
-  try {
-    return localStorage.getItem(LS_KEY) === null;
-  } catch {
-    return true;
-  }
+let storedBase: Db | null = null; // המסמך שמונח כעת באחסון (נטען/נשמר/אומץ)
+let lastJournaled: Db | null = null; // ה-db האחרון שנרשם ביומן של הלשונית הזו
+let lsHasDoc = false; // האם מסמך-ה-DB נמצא כעת ב-LS (נלמד ב-readRaw/lsWrite/removeItem)
+const TAB_ID = Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+const journalPrefix = () => LS_KEY.replace(/^maor_db/, 'maor_exitlog') + '|';
+const journalKey = () => journalPrefix() + TAB_ID;
+interface Journal {
+  v: 2;
+  base: string; // savedAt של המסמך שמולו חושב (תיעוד/אבחון)
+  at: number; // סדר-החלה בין לשוניות בלבד (לא שער)
+  diff: DbDiff;
 }
 
-/** כתיבת יומן (סינכרוני) — ברגע-העריכה (setDb) וביציאה. true = נכתב. רק במשטר IDB-בלבד וגלוי, ורק כשיש שינוי מול המאוחסן. */
-export function writeExitJournal(next: Db, base: Db | null = storedBase): boolean {
-  if ((dek && envelope) || !base || base === next) return false;
-  // משטר IDB-בלבד: נלמד בסשן (lsDropped) — או, ביציאה הראשונה של הסשן, ניכר מכך שאין מסמך ב-LS
-  // (נטען מ-IDB). מסמך-קטן שה-LS שלו נוקה ⇒ היומן מיותר ונמחק בטעינה (ה-LS שנכתב ביציאה חדש ממנו).
-  if (!lsDropped && !lsDocAbsent()) return false;
+function journalKeys(): string[] {
+  const out: string[] = [];
+  try {
+    const pre = journalPrefix();
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith(pre)) out.push(k);
+    }
+  } catch {
+    /* חסום */
+  }
+  return out;
+}
+function removeKey(k: string): void {
+  try {
+    localStorage.removeItem(k);
+  } catch {
+    /* חסום */
+  }
+}
+function clearOwnJournal(): void {
+  removeKey(journalKey());
+  lastJournaled = null;
+}
+/** מחיקת כל היומנים של התחום (הפעלת-הצפנה · טעינה מוצפנת · שחזור/איפוס). */
+export function clearAllJournals(): void {
+  for (const k of journalKeys()) removeKey(k);
+  lastJournaled = null;
+}
+
+/** יומן-עריכה (סינכרוני) — ברגע-העריכה (setDb) וביציאה. true = נכתב. */
+export function writeExitJournal(next: Db): boolean {
+  if (dek && envelope) return false; // (3) מוצפן — לא כותבים גלוי
+  if (!lsDropped && lsHasDoc) return false; // מסמך שב-LS — המנגנון הקיים מספיק (ביט-זהה)
+  const base = storedBase;
+  if (!base || !base.savedAt) return false;
+  // (1) גם כשהמצב-הנוכחי ≡ המאוחסן זוכרים אותו (lastJournaled): שמירה-בטיסה של מצב-ביניים (למשל עם
+  // רשומה שנמחקה אחריה) עלולה להסתיים אחר-כך — ואז rebase יחשב מולה את המחיקה.
+  lastJournaled = next;
+  if (next === base) {
+    removeKey(journalKey());
+    return false;
+  }
   try {
     const diff = diffDb(base, next);
-    if (!diff.sets.length && !diff.deletes.length && !diff.meta) return false;
-    const at = new Date().toISOString();
-    localStorage.setItem(journalKey(), JSON.stringify({ v: 1, at, diff }));
-    journalAt = at;
+    if (!diff.sets.length && !diff.deletes.length && !diff.meta) {
+      removeKey(journalKey());
+      return false;
+    }
+    const j: Journal = { v: 2, base: base.savedAt, at: Date.now(), diff };
+    localStorage.setItem(journalKey(), JSON.stringify(j));
     return true;
   } catch {
     return false; // יומן גדול מהמכסה (עריכה-המונית) ⇒ כמו לפני התיקון
   }
 }
 
-/** החלת diff על Db (טהור): sets מחליפים/מוסיפים לפי id, deletes מסירים, meta דורס (בלי savedAt). */
+/** (1) אחרי שמירה שהושלמה (`src` = ה-db שנשמר): מכוסה ⇒ מחיקה; אחרת ⇒ ביסוס-מחדש מול המסמך החדש. */
+function rebaseJournalAfterSave(src: Db): void {
+  if (!lastJournaled) return;
+  if (lastJournaled === src) {
+    clearOwnJournal();
+    return;
+  }
+  writeExitJournal(lastJournaled);
+}
+
+const COUNTERS = new Set(['seq', 'receiptSeq', 'donationSeq', 'shopReceiptSeq']);
+/** החלת diff על Db (טהור): sets מחליפים/מוסיפים לפי id, deletes מסירים; meta **ממוזג** (2). */
 export function applyDbDiff(db: Db, diff: DbDiff): Db {
   const out = { ...db } as unknown as Record<string, unknown>;
   const byCol = new Map<string, { sets: Map<string, unknown>; dels: Set<string> }>();
@@ -914,8 +976,19 @@ export function applyDbDiff(db: Db, diff: DbDiff): Db {
     out[col] = next;
   }
   if (diff.meta) {
-    const { savedAt: _ignored, ...meta } = diff.meta as Record<string, unknown>;
-    Object.assign(out, meta);
+    for (const [k, v] of Object.entries(diff.meta as Record<string, unknown>)) {
+      if (k === 'savedAt') continue;
+      if (v === undefined) continue;
+      if (COUNTERS.has(k)) out[k] = Math.max(Number(out[k]) || 0, Number(v) || 0);
+      else if (k === 'delLog') out[k] = mergeDelLogs(out[k] as DelEntry[] | undefined, v as DelEntry[] | undefined);
+      else if (k === 'audit') {
+        const cur = Array.isArray(out[k]) ? (out[k] as AuditEntry[]) : [];
+        const seen = new Set(cur.map((e) => JSON.stringify(e)));
+        const add = (Array.isArray(v) ? (v as AuditEntry[]) : []).filter((e) => !seen.has(JSON.stringify(e)));
+        out[k] = [...cur, ...add].slice(-AUDIT_CAP);
+      } else if (k === 'attnDone' && v && typeof v === 'object') out[k] = { ...((out[k] as object) ?? {}), ...(v as object) };
+      else out[k] = v;
+    }
   }
   return out as unknown as Db;
 }
@@ -970,45 +1043,35 @@ export async function readStoredIdbPlainDb(): Promise<Db | null> {
   }
 }
 
-/** בטעינה: יומן חדש מהמסמך ⇒ מוחל (ומסומן כריפוי ⇒ init שומר); ישן/פגום ⇒ נמחק. */
+/**
+ * בטעינה: כל יומן קיים = עבודה **לא-מכוסה** של לשונית (שמירה שהושלמה מבססת-מחדש/מוחקת את יומן הלשונית
+ * שלה — rebaseJournalAfterSave), ולכן כולם מוחלים, לפי סדר-כתיבה. יומן של לשונית ב' שחושב מול בסיס ישן
+ * (לשונית א' שמרה בינתיים) נושא רק את הרשומות **שב'** שינתה ⇒ לא מחזיר אחורה את עבודת א'; meta ממוזג.
+ */
 function withExitJournal(db: Db): Db {
-  let raw: string | null = null;
-  try {
-    raw = localStorage.getItem(journalKey());
-  } catch {
-    return db;
-  }
-  if (!raw) return db;
-  try {
-    const j = JSON.parse(raw) as { at?: string; diff?: DbDiff };
-    if (j && typeof j.at === 'string' && j.diff && j.at > (db.savedAt ?? '')) {
-      const healed = migrate(applyDbDiff(db, j.diff));
-      if (healed) {
-        migrateHealed = true; // init/decryptUnlock ⇒ scheduleSave; השמירה המוצלחת תמחק את היומן
-        journalAt = j.at;
-        return healed;
-      }
+  const keys = journalKeys();
+  if (!keys.length) return db;
+  const js: Journal[] = [];
+  for (const k of keys) {
+    try {
+      const j = JSON.parse(localStorage.getItem(k) ?? 'null') as Journal | null;
+      if (j && j.v === 2 && j.diff) js.push(j);
+    } catch {
+      /* פגום ⇒ יימחק */
     }
-  } catch {
-    /* יומן פגום — נמחק למטה */
   }
-  try {
-    localStorage.removeItem(journalKey());
-  } catch {
-    /* חסום */
+  let out = db;
+  for (const j of js.sort((x, y) => (x.at || 0) - (y.at || 0))) out = applyDbDiff(out, j.diff);
+  if (out !== db) {
+    const healed = migrate(out);
+    if (healed) {
+      out = healed;
+      migrateHealed = true; // init ⇒ scheduleSave ⇒ השמירה תכיל את היומנים
+    } else out = db;
   }
-  return db;
-}
-
-/** אחרי שמירה שהושלמה: מסמך שנשמר אחרי היומן מכיל אותו ⇒ היומן מיותר. */
-function clearExitJournalIfCovered(savedAt: string | undefined): void {
-  if (!journalAt || !savedAt || savedAt < journalAt) return;
-  try {
-    localStorage.removeItem(journalKey());
-  } catch {
-    /* חסום */
-  }
-  journalAt = null;
+  for (const k of keys) removeKey(k);
+  if (out !== db) writeExitJournal(out); // רשת-ביטחון (יומן של הלשונית הזו) עד שהשמירה המרפאת תושלם
+  return out;
 }
 
 /** טעינה: localStorage תחילה, נפילה ל-IndexedDB, ואז DB ריק. מזהה מעטפת מוצפנת. */
@@ -1019,6 +1082,7 @@ export async function loadDb(): Promise<LoadResult> {
   if (isEncrypted(raw)) {
     // מוצפן — לא מפענחים כאן (אין קוד). מחזירים דגל; App יבקש קוד.
     envelope = raw;
+    clearAllJournals(); // 🛟 P0-DATA (3): אין יומן גלוי לצד מסמך מוצפן
     return { db: emptyDb(), corrupt: false, encrypted: true };
   }
   const parsed = migrate(raw);
@@ -1038,6 +1102,7 @@ export async function loadDb(): Promise<LoadResult> {
     if (isEncrypted(idbRaw)) {
       storedIsEnvelope = true;
       envelope = idbRaw as EncEnvelope;
+      clearAllJournals(); // 🛟 P0-DATA (3)
       return { db: emptyDb(), corrupt: false, encrypted: true };
     }
     const idbParsed = migrate(idbRaw);
@@ -1105,6 +1170,7 @@ export async function beginEncryption(db: Db, password: string): Promise<string>
   if (!key) throw new Error('כשל בהפעלת ההצפנה');
   dek = key;
   envelope = env;
+  clearAllJournals(); // 🛟 P0-DATA (3): הפעלת-הצפנה ⇒ אין יומן גלוי ב-LS
   await writeEnvelope(env);
   // צילומים גלויים ישנים בטבעת ינגחו את ההצפנה — מנקים אותם.
   await purgeSnapshots();
@@ -1156,6 +1222,7 @@ async function writeEnvelope(env: EncEnvelope): Promise<boolean> {
     if (!lsOk) {
       try {
         localStorage.removeItem(LS_KEY);
+        lsHasDoc = false;
       } catch {
         /* חסום — אין מה לעשות */
       }
@@ -1216,8 +1283,8 @@ export async function saveDb(db: Db, opts?: { plaintext?: boolean }): Promise<bo
     ok = true;
     idbOk = true;
     storedIsEnvelope = !!(dek && envelope); // ⚡ (12.10) מה שיש עכשיו ב-IDB — בלי לקרוא אותו
-    clearExitJournalIfCovered(doc.savedAt); // 🛟 P0-DATA
-    storedBase = doc;
+    storedBase = doc; // 🛟 P0-DATA: מה שמונח כעת באחסון
+    rebaseJournalAfterSave(db); // (1) מכוסה ⇒ נמחק; אחרת ⇒ מבוסס-מחדש מול doc
     if (lsSkipped || !lsOk) announceIdbSave(doc.savedAt); // 🛟 P0-DATA E2: אין אירוע-storage במשטר IDB-בלבד
     // LS נכשל (מכסה מלאה) אך IDB הצליח → מוחקים את העותק הישן ב-LS. אחרת
     // readRaw היה מחזיר את ה-snapshot הקריא שקדם למכסה, וכל עריכה שנשמרה
@@ -1225,6 +1292,7 @@ export async function saveDb(db: Db, opts?: { plaintext?: boolean }): Promise<bo
     if (!lsOk) {
       try {
         localStorage.removeItem(LS_KEY);
+        lsHasDoc = false;
       } catch {
         /* חסום — אין מה לעשות */
       }
@@ -1238,6 +1306,7 @@ export async function saveDb(db: Db, opts?: { plaintext?: boolean }): Promise<bo
   if (!ok && lsSkipped) {
     try {
       localStorage.setItem(LS_KEY, payload ?? JSON.stringify(doc));
+      lsHasDoc = true;
       ok = lsOk = true;
       lsDropped = false; // נכנס ⇒ LS שוב שכבה חיה (השמירות הבאות ינסו כמו היום)
     } catch {
@@ -1281,7 +1350,7 @@ export function flushSaveSync(db: Db): void {
     /* JSON פגום — ממשיכים לכתיבה */
   }
   // 🛟 P0-DATA: יציאה ראשונה בסשן במסמך-ענק — היומן נכתב **לפני** ה-stringify של 34MB (שנמשך מעבר לחלון
-  // הפריקה ונקטע); כשאין מסמך ב-LS בלבד (lsDocAbsent), כך שמסמך-קטן רגיל לא נוגע ביומן.
+  // הפריקה ונקטע); כשאין מסמך ב-LS בלבד (lsHasDoc), כך שמסמך-קטן רגיל לא נוגע ביומן.
   writeExitJournal(db);
   // ⚡ (12.10) אותו משטר-מכסה כמו saveDb: כישלון/חריגה-מהסף כאן נלמדים לשאר הסשן
   if (!lsWrite(JSON.stringify({ ...db, savedAt: new Date().toISOString() }))) void saveDb(db);

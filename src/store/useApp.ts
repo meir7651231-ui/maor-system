@@ -95,6 +95,7 @@ import {
   onOtherTabIdbSave,
   readStoredIdbPlainDb,
   writeExitJournal,
+  clearAllJournals,
   setPersistNamespace,
   nsLsKey,
   decryptAndLoad,
@@ -4435,6 +4436,7 @@ export const useApp = create<AppState>()((set, get) => {
       };
       set({ db: withRemovalTombstones(prev, db) }); // ביקורת-עומק 2.9: מצבה לכל ישות שנגרעה בשחזור (אחרת אופליין מחיה)
       dirty = true; // 🐛 נחיל-עמוק (13.8): שחזור עוקף setDb ⇒ בלי סימון-dirty שער ריבוי-הטאבים דרס שחזור טרי
+      clearAllJournals(); // 🛟 P0-DATA: יומנים ישנים לא יוחלו על השחזור
       scheduleSave();
       // 12.8: שחזור = החלפה מלאה ⇒ אותה החלפה סמכותית-מיידית כמו איפוס (אחרת
       // ישויות שנגרעו בגיבוי היו קמות-לתחייה מ-snapshot-ענן בחלון ה-debounce).
@@ -4453,6 +4455,7 @@ export const useApp = create<AppState>()((set, get) => {
       const db = emptyDb();
       set({ db: withRemovalTombstones(prev, db) }); // ביקורת-עומק 2.9: איפוס = מצבה לכל ישות
       dirty = true; // 🐛 נחיל-עמוק (13.8): איפוס עוקף setDb ⇒ בלי סימון-dirty שער ריבוי-הטאבים דרס איפוס טרי
+      clearAllJournals(); // 🛟 P0-DATA
       scheduleSave();
       // 12.8: החלפה סמכותית מיידית — הזרימה המושהית הרגילה נתנה ל-snapshot-ענן
       // להחזיר את הישויות שנמחקו (תורמים/משפחות) בחלון ה-debounce. cloudReplaceNow
