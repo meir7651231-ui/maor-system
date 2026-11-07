@@ -1,0 +1,769 @@
+{
+  "slug": "maor-hachesed",
+  "orgName": "מאור החסד",
+  "theme": "or-rishon",
+  "modules": {},
+  "features": {},
+  "terms": {},
+  "telephony": { "enabled": true },
+  "integrations": {
+    "payments": { "enabled": true, "solaPullUrl": "https://us-central1-maor-system.cloudfunctions.net/solaPull" }
+  },
+  "adminEmails": ["meir7651231@gmail.com"],
+  "firebase": {
+    "apiKey": "AIzaSyCVvJvJAnTEWSzdtmONXcZyRijHdrvPeIo",
+    "authDomain": "maor-system.firebaseapp.com",
+    "projectId": "maor-system",
+    "storageBucket": "maor-system.firebasestorage.app",
+    "messagingSenderId": "437845665303",
+    "appId": "1:437845665303:web:955fa5636e5b408ae7de52"
+  },
+  "cloudRoot": true,
+  "site": {
+    "enabled": true,
+    "langs": [
+      "he",
+      "en",
+      "es",
+      "fr"
+    ],
+    "icon": "🕯️",
+    "donateUrl": "https://www.matara.pro/nedarimplus/online/?mosad=7001532",
+    "heroBadge": {
+      "he": "600 אלמנות · 2,000 יתומים · מאז 1994",
+      "en": "600 widows · 2,000 orphans · since 1994",
+      "es": "600 viudas · 2.000 huérfanos · desde 1994",
+      "fr": "600 veuves · 2 000 orphelins · depuis 1994"
+    },
+    "heroTitle": {
+      "he": "הבית ליתומים",
+      "en": "A home for orphans",
+      "es": "Un hogar para huérfanos",
+      "fr": "Un foyer pour les orphelins"
+    },
+    "titleAccent": {
+      "he": "ואלמנות.",
+      "en": "& widows.",
+      "es": "y viudas.",
+      "fr": "et les veuves."
+    },
+    "brandLine": {
+      "he": "הבית ליתומים ואלמנות",
+      "en": "The Home For Orphans and Widows",
+      "es": "El hogar de huérfanos y viudas",
+      "fr": "Le foyer des orphelins et des veuves"
+    },
+    "tagline": {
+      "he": "אנחנו פותחים את הדלת לילדי השם ומספקים מפלט חם ומזמין ליתומים ואלמנות. פעילויות חברתיות, תמיכה, הדרכה אישית, חיזוק רוחני ורגשי.",
+      "en": "We open our door to orphans and widows — a warm, welcoming refuge with social activities, support, personal guidance and spiritual and emotional strength.",
+      "es": "Abrimos nuestra puerta a huérfanos y viudas: un refugio cálido y acogedor con actividades sociales, apoyo, acompañamiento personal y fortaleza espiritual y emocional.",
+      "fr": "Nous ouvrons notre porte aux orphelins et aux veuves : un refuge chaleureux et accueillant, avec des activités, du soutien, un accompagnement personnel et une force spirituelle et émotionnelle."
+    },
+    "microCopy": {
+      "he": "כל תרומה, בכל סכום — מביאה אור לחיים של יתום או אלמנה ♡",
+      "en": "Every gift, of any size, brings light to an orphan or widow ♡",
+      "es": "Cada donación, del tamaño que sea, lleva luz a un huérfano o a una viuda ♡",
+      "fr": "Chaque don, quelle que soit sa taille, apporte la lumière à un orphelin ou à une veuve ♡"
+    },
+    "marquee": [
+      {
+        "he": "600 אלמנות נתמכות",
+        "en": "600 widows supported",
+        "es": "600 viudas acompañadas",
+        "fr": "600 veuves soutenues"
+      },
+      {
+        "he": "2,000 יתומים",
+        "en": "2,000 orphans",
+        "es": "2.000 huérfanos",
+        "fr": "2 000 orphelins"
+      },
+      {
+        "he": "הבית פתוח 24/7",
+        "en": "Our home is open 24/7",
+        "es": "Nuestro hogar está abierto 24/7",
+        "fr": "Notre foyer est ouvert 24 h/24, 7 j/7"
+      },
+      {
+        "he": "מאז 1994 — בברכת גדולי ישראל",
+        "en": "Since 1994 — blessed by Torah leaders",
+        "es": "Desde 1994 — con la bendición de los grandes de la Torá",
+        "fr": "Depuis 1994 — avec la bénédiction des grands de la Torah"
+      },
+      {
+        "he": "עמותה רשומה · ע״ר 580651719",
+        "en": "Registered nonprofit · 580651719",
+        "es": "Organización sin fines de lucro registrada · 580651719",
+        "fr": "Association enregistrée · 580651719"
+      },
+      {
+        "he": "קבלה מוכרת · סעיף 46",
+        "en": "Tax-recognized receipt · §46",
+        "es": "Recibo deducible de impuestos · §46",
+        "fr": "Reçu fiscal reconnu · §46"
+      }
+    ],
+    "servicesHeading": {
+      "he": "השירותים שלנו",
+      "en": "Our services",
+      "es": "Nuestros servicios",
+      "fr": "Nos services"
+    },
+    "services": [
+      {
+        "icon": "🏠",
+        "title": {
+          "he": "בית פתוח",
+          "en": "An open home",
+          "es": "Un hogar abierto",
+          "fr": "Un foyer ouvert"
+        },
+        "text": {
+          "he": "הבית של 'מאור החסד לוצקין' פתוח לאלמנות ויתומים מסביב לשעון, בכל פעם שהם מחפשים תמיכה, שמחה, או פשוט מילה טובה.",
+          "en": "Meor Hachesed Lutzkin's home is open to widows and orphans around the clock — whenever they need support, joy, or simply a kind word.",
+          "es": "El hogar de Meor Hachesed Lutzkin está abierto a viudas y huérfanos a toda hora: cuando necesitan apoyo, alegría o simplemente una palabra amable.",
+          "fr": "Le foyer de Meor Hachesed Lutzkin est ouvert aux veuves et aux orphelins à toute heure : quand ils ont besoin de soutien, de joie ou simplement d'un mot gentil."
+        }
+      },
+      {
+        "icon": "👰",
+        "title": {
+          "he": "הכנסת כלה",
+          "en": "Brides",
+          "es": "Novias",
+          "fr": "Mariées"
+        },
+        "text": {
+          "he": "אנו מלווים כלות יתומות ואלמנות ומסבסדים רכישת שמלת כלה, תכשיטים ואביזרים בחנויות המובילות, כדי שיום חתונתן יהיה מושלם.",
+          "en": "We accompany orphaned and widowed brides and subsidize wedding gowns, jewelry and accessories at leading stores, so their wedding day is perfect.",
+          "es": "Acompañamos a novias huérfanas y viudas y subsidiamos vestidos de novia, joyas y accesorios en tiendas destacadas, para que el día de su boda sea perfecto.",
+          "fr": "Nous accompagnons les mariées orphelines et veuves et subventionnons robes de mariée, bijoux et accessoires dans des boutiques de premier plan, pour que le jour de leur mariage soit parfait."
+        }
+      },
+      {
+        "icon": "🎉",
+        "title": {
+          "he": "ארגון שמחות",
+          "en": "Celebrations",
+          "es": "Celebraciones",
+          "fr": "Fêtes"
+        },
+        "text": {
+          "he": "אנו מסייעים בארגון אירוסין, בר מצוות, חתונות ושאר אירועים משפחתיים – החל מתכנון, דרך מימון חלקי ועד ליווי אישי.",
+          "en": "We help organize engagements, bar mitzvahs, weddings and other family celebrations — from planning, through partial funding, to personal guidance.",
+          "es": "Ayudamos a organizar compromisos, bar mitzvás, bodas y otras celebraciones familiares: desde la planificación y la financiación parcial hasta el acompañamiento personal.",
+          "fr": "Nous aidons à organiser fiançailles, bar-mitsvas, mariages et autres fêtes familiales : de la préparation au financement partiel, jusqu'à l'accompagnement personnel."
+        }
+      },
+      {
+        "icon": "🚌",
+        "title": {
+          "he": "טיולים ופעילויות",
+          "en": "Trips & activities",
+          "es": "Excursiones y actividades",
+          "fr": "Sorties et activités"
+        },
+        "text": {
+          "he": "אנחנו מארגנים טיולים מרהיבים, ימי כיף ופעילויות מיוחדות לנשים וליתומות, שמאפשרים מנוחה, התרעננות והנאה משותפת.",
+          "en": "We organize wonderful trips, fun days and special activities for women and orphaned girls, for rest, renewal and shared joy.",
+          "es": "Organizamos excursiones maravillosas, días de diversión y actividades especiales para mujeres y niñas huérfanas, para descansar, renovarse y compartir la alegría.",
+          "fr": "Nous organisons de belles sorties, des journées de détente et des activités spéciales pour les femmes et les jeunes filles orphelines, pour se reposer, se ressourcer et partager la joie."
+        }
+      },
+      {
+        "icon": "💆‍♀️",
+        "title": {
+          "he": "טיפולי גוף ונפש",
+          "en": "Body & soul care",
+          "es": "Cuidado del cuerpo y el alma",
+          "fr": "Soins du corps et de l'âme"
+        },
+        "text": {
+          "he": "חדר טיפולים מקצועי המציע טיפולי קוסמטיקה, עיסויים מרגיעים וטיפולים רפלקסולוגיים להתחדשות גוף ונפש.",
+          "en": "A professional treatment room offering beauty treatments, relaxing massages and reflexology for body and soul.",
+          "es": "Una sala de tratamientos profesional con tratamientos de belleza, masajes relajantes y reflexología para el cuerpo y el alma.",
+          "fr": "Une salle de soins professionnelle proposant soins esthétiques, massages relaxants et réflexologie pour le corps et l'âme."
+        }
+      },
+      {
+        "icon": "🎙️",
+        "title": {
+          "he": "אולפן הקלטות",
+          "en": "Recording studio",
+          "es": "Estudio de grabación",
+          "fr": "Studio d'enregistrement"
+        },
+        "text": {
+          "he": "חדר אולפן הקלטות מקצועי להקלטת שירים, הרצאות, פודקאסטים או יצירות אישיות – הזדמנות ייחודית לביטוי עצמי.",
+          "en": "A professional recording studio for songs, lectures, podcasts or personal creations — a unique chance for self-expression.",
+          "es": "Un estudio de grabación profesional para canciones, charlas, pódcasts o creaciones personales: una oportunidad única de expresarse.",
+          "fr": "Un studio d'enregistrement professionnel pour des chansons, des conférences, des podcasts ou des créations personnelles : une occasion unique de s'exprimer."
+        }
+      }
+    ],
+    "stats": [
+      {
+        "value": "600",
+        "label": {
+          "he": "אלמנות נתמכות",
+          "en": "widows supported",
+          "es": "viudas acompañadas",
+          "fr": "veuves soutenues"
+        }
+      },
+      {
+        "value": "2,000",
+        "label": {
+          "he": "יתומים",
+          "en": "orphans",
+          "es": "huérfanos",
+          "fr": "orphelins"
+        }
+      },
+      {
+        "value": "30+",
+        "label": {
+          "he": "שנות פעילות",
+          "en": "years of activity",
+          "es": "años de actividad",
+          "fr": "années d'activité"
+        }
+      },
+      {
+        "value": "24/7",
+        "label": {
+          "he": "הבית פתוח",
+          "en": "open home",
+          "es": "hogar abierto",
+          "fr": "foyer ouvert"
+        }
+      }
+    ],
+    "transparency": {
+      "heading": {
+        "he": "עמותה רשומה. תרומה מוכרת.",
+        "en": "Registered charity. Recognized gifts.",
+        "es": "Organización registrada. Donaciones reconocidas.",
+        "fr": "Association enregistrée. Dons reconnus."
+      },
+      "text": {
+        "he": "מאור החסד לוצקין היא עמותה רשומה (ע״ר 580651719). תרומות בישראל מוכרות לפי סעיף 46; בארה״ב — Meor Hachesed Lutzkin Inc, Tax ID 99-0780369.",
+        "en": "Meor Hachesed Lutzkin is a registered Israeli nonprofit (580651719). In the US: Meor Hachesed Lutzkin Inc, Tax ID 99-0780369.",
+        "es": "Meor Hachesed Lutzkin es una organización sin fines de lucro registrada en Israel (580651719). En EE. UU.: Meor Hachesed Lutzkin Inc, Tax ID 99-0780369.",
+        "fr": "Meor Hachesed Lutzkin est une association à but non lucratif enregistrée en Israël (580651719). Aux États-Unis : Meor Hachesed Lutzkin Inc, Tax ID 99-0780369."
+      },
+      "badges": [
+        {
+          "he": "עמותה רשומה (ע״ר 580651719)",
+          "en": "Registered nonprofit (580651719)",
+          "es": "Organización registrada (580651719)",
+          "fr": "Association enregistrée (580651719)"
+        },
+        {
+          "he": "סעיף 46 — בתוקף עד 31.12.2027",
+          "en": "§46 tax credit — valid until 31.12.2027",
+          "es": "Crédito fiscal §46 — vigente hasta el 31.12.2027",
+          "fr": "Crédit d'impôt §46 — valable jusqu'au 31.12.2027"
+        },
+        {
+          "he": "ניהול תקין 2026",
+          "en": "Proper management 2026",
+          "es": "Gestión adecuada 2026",
+          "fr": "Gestion conforme 2026"
+        },
+        {
+          "he": "US Tax ID 99-0780369",
+          "en": "US Tax ID 99-0780369",
+          "es": "Tax ID en EE. UU. 99-0780369",
+          "fr": "Tax ID aux États-Unis 99-0780369"
+        }
+      ],
+      "reportsUrl": "https://www.guidestar.org.il/organization/580651719",
+      "reportsLabel": {
+        "he": "לאישורים הרשמיים בגיידסטאר",
+        "en": "Official certificates (GuideStar Israel)",
+        "es": "Certificados oficiales (GuideStar Israel)",
+        "fr": "Certificats officiels (GuideStar Israël)"
+      }
+    },
+    "storyTitle": {
+      "he": "כשילד מאבד הורה,",
+      "en": "When a child loses a parent,",
+      "es": "Cuando un niño pierde a su padre o a su madre,",
+      "fr": "Quand un enfant perd un parent,"
+    },
+    "storyTitleAccent": {
+      "he": "העולם שלו קורס.",
+      "en": "their world collapses.",
+      "es": "su mundo se derrumba.",
+      "fr": "son monde s'effondre."
+    },
+    "story": {
+      "he": "דמיינו ילדה בת שמונה שחוזרת הביתה מבית הספר. היא פותחת את הדלת ומחפשת את החיבוק שממתין לה כל יום — אבל הפעם, ובכל הפעמים שאחרי, החיבוק הזה כבר לא יהיה שם. זהו המציאות היומיומית של מאות יתומים ויתומות. העמותה נוסדה בשנת 1994 על ידי הרבנית הינדא שפרינצא לוצקין ע״ה, מתוך חזון פשוט אך עוצמתי: שאף יתום לא ירגיש לבד. היום, אנחנו ממשיכים את דרכה — פותחים את הדלת, מחבקים, תומכים ומלווים מאות משפחות בכל יום.",
+      "en": "Imagine an eight-year-old girl coming home from school. She opens the door looking for the hug that waits for her every day — but this time, and every time after, that hug will no longer be there. This is the daily reality of hundreds of orphans. Our organization was founded in 1994 by Rebbetzin Hinda Shprintza Lutzkin OBM with a simple yet powerful vision: that no orphan should ever feel alone. Today we continue her path — opening the door, embracing, supporting and accompanying hundreds of families every day.",
+      "es": "Imagine a una niña de ocho años que vuelve a casa de la escuela. Abre la puerta buscando el abrazo que la espera cada día, pero esta vez, y todas las veces que vengan, ese abrazo ya no estará. Esta es la realidad diaria de cientos de huérfanos. Nuestra organización fue fundada en 1994 por la Rebetzin Hinda Shprintza Lutzkin, de bendita memoria, con una visión sencilla pero poderosa: que ningún huérfano se sienta jamás solo. Hoy seguimos su camino: abrimos la puerta, abrazamos, apoyamos y acompañamos a cientos de familias cada día.",
+      "fr": "Imaginez une petite fille de huit ans qui rentre de l'école. Elle ouvre la porte en cherchant le câlin qui l'attend chaque jour — mais cette fois, et toutes les fois suivantes, ce câlin ne sera plus là. C'est la réalité quotidienne de centaines d'orphelins. Notre association a été fondée en 1994 par la Rabbanit Hinda Shprintza Lutzkin, de mémoire bénie, avec une vision simple mais puissante : qu'aucun orphelin ne se sente jamais seul. Aujourd'hui, nous poursuivons son chemin — nous ouvrons la porte, nous embrassons, nous soutenons et accompagnons des centaines de familles chaque jour."
+    },
+    "storyBadge": {
+      "he": "מאז 1994 — בברכת גדולי ישראל ♡",
+      "en": "Since 1994 — blessed by Torah leaders ♡",
+      "es": "Desde 1994 — con la bendición de los grandes de la Torá ♡",
+      "fr": "Depuis 1994 — avec la bénédiction des grands de la Torah ♡"
+    },
+    "founder": {
+      "name": {
+        "he": "הרבנית הינדא שפרינצא לוצקין ע״ה · מייסדת",
+        "en": "Rebbetzin Hinda Shprintza Lutzkin OBM · Founder",
+        "es": "Rebetzin Hinda Shprintza Lutzkin, de bendita memoria · Fundadora",
+        "fr": "Rabbanit Hinda Shprintza Lutzkin, de mémoire bénie · Fondatrice"
+      },
+      "quote": {
+        "he": "״שאף יתום לא ירגיש לבד.״",
+        "en": "\"That no orphan should ever feel alone.\"",
+        "es": "«Que ningún huérfano se sienta jamás solo.»",
+        "fr": "« Qu'aucun orphelin ne se sente jamais seul. »"
+      }
+    },
+    "timeline": [
+      {
+        "year": "1994",
+        "title": {
+          "he": "נוסדה העמותה",
+          "en": "Founded",
+          "es": "Fundación",
+          "fr": "Fondation"
+        },
+        "note": {
+          "he": "על ידי הרבנית הינדא שפרינצא לוצקין ע״ה",
+          "en": "by Rebbetzin Hinda Shprintza Lutzkin OBM",
+          "es": "por la Rebetzin Hinda Shprintza Lutzkin, de bendita memoria",
+          "fr": "par la Rabbanit Hinda Shprintza Lutzkin, de mémoire bénie"
+        }
+      },
+      {
+        "year": "2026",
+        "title": {
+          "he": "600 אלמנות · 2,000 יתומים",
+          "en": "600 widows · 2,000 orphans",
+          "es": "600 viudas · 2.000 huérfanos",
+          "fr": "600 veuves · 2 000 orphelins"
+        },
+        "note": {
+          "he": "בניהול מירי קירשנבאום (לוצקין)",
+          "en": "Directed by Miri Kirschenbaum (Lutzkin)",
+          "es": "Dirigida por Miri Kirschenbaum (Lutzkin)",
+          "fr": "Dirigée par Miri Kirschenbaum (Lutzkin)"
+        }
+      }
+    ],
+    "paymentMethods": [
+      {
+        "icon": "💳",
+        "label": {
+          "he": "כרטיס אשראי (ישראל)",
+          "en": "Credit card (Israel)",
+          "es": "Tarjeta de crédito (Israel)",
+          "fr": "Carte bancaire (Israël)"
+        },
+        "detail": {
+          "he": "תרומה מאובטחת דרך נדרים פלוס",
+          "en": "Secure donation via Nedarim Plus",
+          "es": "Donación segura a través de Nedarim Plus",
+          "fr": "Don sécurisé via Nedarim Plus"
+        },
+        "url": "https://www.matara.pro/nedarimplus/online/?mosad=7001532"
+      },
+      {
+        "icon": "🌍",
+        "label": {
+          "he": "כרטיס אשראי (חו״ל)",
+          "en": "Credit card (International)",
+          "es": "Tarjeta de crédito (internacional)",
+          "fr": "Carte bancaire (international)"
+        },
+        "detail": {
+          "he": "תרומה מאובטחת דרך Cardknox",
+          "en": "Secure online donation via Cardknox",
+          "es": "Donación segura en línea a través de Cardknox",
+          "fr": "Don sécurisé en ligne via Cardknox"
+        },
+        "url": "https://secure.cardknox.com/meorhachessedlutzkininc"
+      },
+      {
+        "icon": "🏦",
+        "label": {
+          "he": "Zelle (ארה״ב)",
+          "en": "Zelle (USA)",
+          "es": "Zelle (EE. UU.)",
+          "fr": "Zelle (États-Unis)"
+        },
+        "detail": {
+          "he": "929-563-1794 · Meor Hachesed Lutzkin Inc · Tax ID 99-0780369",
+          "en": "929-563-1794 · Meor Hachesed Lutzkin Inc · Tax ID 99-0780369",
+          "es": "929-563-1794 · Meor Hachesed Lutzkin Inc · Tax ID 99-0780369",
+          "fr": "929-563-1794 · Meor Hachesed Lutzkin Inc · Tax ID 99-0780369"
+        },
+        "ltr": true
+      },
+      {
+        "icon": "✉️",
+        "label": {
+          "he": "המחאות (ישראל)",
+          "en": "Checks (Israel)",
+          "es": "Cheques (Israel)",
+          "fr": "Chèques (Israël)"
+        },
+        "detail": {
+          "he": "לפקודת: מאור החסד לוצקין (ע\"ר) · אדוניהו הכהן 23, ירושלים, מיקוד 9534311",
+          "en": "Payable to: Maor Hachesed Lutzkin (NPO) · Adoniyahu HaCohen 23, Jerusalem 9534311",
+          "es": "A nombre de: Maor Hachesed Lutzkin (organización registrada) · Adoniyahu HaCohen 23, Jerusalén 9534311",
+          "fr": "À l'ordre de : Maor Hachesed Lutzkin (association) · Adoniyahu HaCohen 23, Jérusalem 9534311"
+        }
+      },
+      {
+        "icon": "✉️",
+        "label": {
+          "he": "המחאות (ארה״ב)",
+          "en": "Checks (USA)",
+          "es": "Cheques (EE. UU.)",
+          "fr": "Chèques (États-Unis)"
+        },
+        "detail": {
+          "he": "לפקודת Meor Hachessed Lutzkin Inc · 14 Olympia Lane, Monsey, NY 10952",
+          "en": "Payable to Meor Hachessed Lutzkin Inc · 14 Olympia Lane, Monsey, NY 10952",
+          "es": "A nombre de Meor Hachessed Lutzkin Inc · 14 Olympia Lane, Monsey, NY 10952",
+          "fr": "À l'ordre de Meor Hachessed Lutzkin Inc · 14 Olympia Lane, Monsey, NY 10952"
+        }
+      },
+      {
+        "icon": "🚗",
+        "label": {
+          "he": "איסוף מהבית",
+          "en": "Home pickup",
+          "es": "Recogida a domicilio",
+          "fr": "Collecte à domicile"
+        },
+        "detail": {
+          "he": "נגיע לאסוף את התרומה! 054-853-8794 · US 929-563-1794",
+          "en": "We will come to pick up your donation! 054-853-8794 · US 929-563-1794",
+          "es": "¡Pasamos a recoger su donación! 054-853-8794 · EE. UU. 929-563-1794",
+          "fr": "Nous venons chercher votre don ! 054-853-8794 · États-Unis 929-563-1794"
+        }
+      }
+    ],
+    "donateNote": {
+      "he": "בישראל — קבלה מוכרת לפי סעיף 46 (ע״ר 580651719) · בארה״ב — Tax ID 99-0780369",
+      "en": "Israel — §46 receipt (NPO 580651719) · USA — Tax ID 99-0780369",
+      "es": "Israel — recibo §46 (organización 580651719) · EE. UU. — Tax ID 99-0780369",
+      "fr": "Israël — reçu §46 (association 580651719) · États-Unis — Tax ID 99-0780369"
+    },
+    "calc": {
+      "unitAmount": 500,
+      "unit": {
+        "he": "חודשי אימוץ יתום",
+        "en": "Months of orphan sponsorship",
+        "es": "Meses de apadrinamiento de un huérfano",
+        "fr": "Mois de parrainage d'un orphelin"
+      },
+      "unit2Amount": 1000,
+      "unit2": {
+        "he": "חודשי החזקת אלמנה",
+        "en": "Months of widow support",
+        "es": "Meses de apoyo a una viuda",
+        "fr": "Mois de soutien à une veuve"
+      },
+      "note": {
+        "he": "₪500 = חודש של אימוץ יתום · ₪1,000 = חודש של החזקת אלמנה",
+        "en": "₪500 = a month for an orphan · ₪1,000 = a month for a widow",
+        "es": "₪500 = un mes para un huérfano · ₪1.000 = un mes para una viuda",
+        "fr": "₪500 = un mois pour un orphelin · ₪1 000 = un mois pour une veuve"
+      }
+    },
+    "amounts": [
+      180,
+      500,
+      1000,
+      2000
+    ],
+    "campaign": {
+      "title": {
+        "he": "היו שותפים בשמחה",
+        "en": "Be a partner in joy",
+        "es": "Sea parte de la alegría",
+        "fr": "Soyez partenaire de la joie"
+      }
+    },
+    "tiers": [
+      {
+        "name": {
+          "he": "אימוץ יתום",
+          "en": "Sponsor an orphan",
+          "es": "Apadrinar a un huérfano",
+          "fr": "Parrainer un orphelin"
+        },
+        "amount": 500,
+        "period": {
+          "he": "/ חודש",
+          "en": "/ month",
+          "es": "/ mes",
+          "fr": "/ mois"
+        },
+        "perks": [
+          {
+            "he": "תזונה יומית מלאה",
+            "en": "Full daily nutrition",
+            "es": "Alimentación diaria completa",
+            "fr": "Une alimentation quotidienne complète"
+          },
+          {
+            "he": "ביגוד והנעלה",
+            "en": "Clothing and shoes",
+            "es": "Ropa y calzado",
+            "fr": "Vêtements et chaussures"
+          },
+          {
+            "he": "חומרי לימוד וחינוך",
+            "en": "Learning and school supplies",
+            "es": "Útiles escolares y de estudio",
+            "fr": "Fournitures scolaires"
+          },
+          {
+            "he": "פעילויות חברתיות",
+            "en": "Social activities",
+            "es": "Actividades sociales",
+            "fr": "Activités sociales"
+          }
+        ]
+      },
+      {
+        "name": {
+          "he": "החזקת אלמנה",
+          "en": "Support a widow",
+          "es": "Apoyar a una viuda",
+          "fr": "Soutenir une veuve"
+        },
+        "amount": 1000,
+        "period": {
+          "he": "/ חודש",
+          "en": "/ month",
+          "es": "/ mes",
+          "fr": "/ mois"
+        },
+        "featured": true,
+        "perks": [
+          {
+            "he": "סיוע בשכר דירה",
+            "en": "Help with rent",
+            "es": "Ayuda con el alquiler",
+            "fr": "Aide au loyer"
+          },
+          {
+            "he": "חשבונות חשמל ומים",
+            "en": "Electricity and water bills",
+            "es": "Facturas de luz y agua",
+            "fr": "Factures d'électricité et d'eau"
+          },
+          {
+            "he": "מזון ומוצרים בסיסיים",
+            "en": "Food and basic goods",
+            "es": "Alimentos y productos básicos",
+            "fr": "Nourriture et produits de base"
+          },
+          {
+            "he": "ליווי וטיפולים רגשיים",
+            "en": "Emotional support and therapy",
+            "es": "Apoyo emocional y terapia",
+            "fr": "Soutien émotionnel et thérapie"
+          },
+          {
+            "he": "חוגים לילדים",
+            "en": "Activities for the children",
+            "es": "Actividades para los niños",
+            "fr": "Activités pour les enfants"
+          }
+        ]
+      },
+      {
+        "name": {
+          "he": "החזקת בית יתומים",
+          "en": "Sustain an orphans' home",
+          "es": "Sostener un hogar de huérfanos",
+          "fr": "Soutenir un foyer d'orphelins"
+        },
+        "amount": 2000,
+        "period": {
+          "he": "/ חודש",
+          "en": "/ month",
+          "es": "/ mes",
+          "fr": "/ mois"
+        },
+        "perks": [
+          {
+            "he": "כל הצרכים הבסיסיים",
+            "en": "All basic needs",
+            "es": "Todas las necesidades básicas",
+            "fr": "Tous les besoins essentiels"
+          },
+          {
+            "he": "חינוך מלא לכל הילדים",
+            "en": "Full education for every child",
+            "es": "Educación completa para cada niño",
+            "fr": "Une éducation complète pour chaque enfant"
+          },
+          {
+            "he": "ארגון שמחות ואירועים",
+            "en": "Celebrations and events",
+            "es": "Celebraciones y eventos",
+            "fr": "Fêtes et événements"
+          },
+          {
+            "he": "ליווי אישי צמוד",
+            "en": "Close personal guidance",
+            "es": "Acompañamiento personal cercano",
+            "fr": "Un accompagnement personnel proche"
+          },
+          {
+            "he": "טיפולים והעצמה",
+            "en": "Therapy and empowerment",
+            "es": "Terapia y empoderamiento",
+            "fr": "Thérapie et renforcement"
+          }
+        ]
+      }
+    ],
+    "faq": [
+      {
+        "q": {
+          "he": "למי העמותה עוזרת?",
+          "en": "Who does the organization help?",
+          "es": "¿A quién ayuda la organización?",
+          "fr": "Qui l'association aide-t-elle ?"
+        },
+        "a": {
+          "he": "ליתומים ולאלמנות — בית פתוח 24/7, הכנסת כלה, ארגון שמחות, טיולים, טיפולי גוף ונפש, אולפן הקלטות ו-10 חוגים.",
+          "en": "Orphans and widows — an open home 24/7, bridal support, celebrations, trips, body-and-soul treatments, a recording studio and 10 classes.",
+          "es": "A huérfanos y viudas: un hogar abierto 24/7, apoyo a novias, celebraciones, excursiones, tratamientos para el cuerpo y el alma, un estudio de grabación y 10 talleres.",
+          "fr": "Les orphelins et les veuves : un foyer ouvert 24 h/24, l'accompagnement des mariées, des fêtes, des sorties, des soins du corps et de l'âme, un studio d'enregistrement et 10 ateliers."
+        }
+      },
+      {
+        "q": {
+          "he": "האם התרומה מוכרת לצורכי מס?",
+          "en": "Is my donation tax-deductible?",
+          "es": "¿Mi donación es deducible de impuestos?",
+          "fr": "Mon don est-il déductible des impôts ?"
+        },
+        "a": {
+          "he": "כן. בישראל — לפי סעיף 46 (עמותה רשומה 580651719). בארה״ב — Meor Hachesed Lutzkin Inc, Tax ID 99-0780369.",
+          "en": "Yes. In Israel — under section 46 (registered nonprofit 580651719). In the US — Meor Hachesed Lutzkin Inc, Tax ID 99-0780369.",
+          "es": "Sí. En Israel, según la sección 46 (organización registrada 580651719). En EE. UU., Meor Hachesed Lutzkin Inc, Tax ID 99-0780369.",
+          "fr": "Oui. En Israël, selon la section 46 (association enregistrée 580651719). Aux États-Unis, Meor Hachesed Lutzkin Inc, Tax ID 99-0780369."
+        }
+      },
+      {
+        "q": {
+          "he": "איך תורמים מחו״ל?",
+          "en": "How can I donate from abroad?",
+          "es": "¿Cómo puedo donar desde el extranjero?",
+          "fr": "Comment faire un don depuis l'étranger ?"
+        },
+        "a": {
+          "he": "בכרטיס אשראי (Cardknox), ב-Zelle למספר 929-563-1794, או בהמחאה ל-Meor Hachessed Lutzkin Inc, 14 Olympia Lane, Monsey, NY 10952.",
+          "en": "By credit card (Cardknox), via Zelle to 929-563-1794, or by check to Meor Hachessed Lutzkin Inc, 14 Olympia Lane, Monsey, NY 10952.",
+          "es": "Con tarjeta de crédito (Cardknox), por Zelle al 929-563-1794, o con cheque a nombre de Meor Hachessed Lutzkin Inc, 14 Olympia Lane, Monsey, NY 10952.",
+          "fr": "Par carte bancaire (Cardknox), par Zelle au 929-563-1794, ou par chèque à l'ordre de Meor Hachessed Lutzkin Inc, 14 Olympia Lane, Monsey, NY 10952."
+        }
+      },
+      {
+        "q": {
+          "he": "אפשר שיאספו את התרומה מהבית?",
+          "en": "Can you pick up my donation?",
+          "es": "¿Pueden pasar a recoger mi donación?",
+          "fr": "Pouvez-vous venir chercher mon don ?"
+        },
+        "a": {
+          "he": "בשמחה! התקשרו 054-853-8794 (ישראל) או 929-563-1794 (ארה״ב), או כתבו ל-m0548538794@gmail.com.",
+          "en": "Gladly! Call 054-853-8794 (Israel) or 929-563-1794 (USA), or write to m0548538794@gmail.com.",
+          "es": "¡Con gusto! Llame al 054-853-8794 (Israel) o al 929-563-1794 (EE. UU.), o escriba a m0548538794@gmail.com.",
+          "fr": "Avec plaisir ! Appelez le 054-853-8794 (Israël) ou le 929-563-1794 (États-Unis), ou écrivez à m0548538794@gmail.com."
+        }
+      }
+    ],
+    "contactForm": {
+      "enabled": true,
+      "note": {
+        "he": "נחזור אליכם בהקדם בע״ה",
+        "en": "We will get back to you soon",
+        "es": "Le responderemos pronto",
+        "fr": "Nous vous répondrons rapidement"
+      }
+    },
+    "contact": {
+      "phones": [
+        "054-853-8794",
+        "929-563-1794",
+        "+52-559-652-9955",
+        "+44-7441-906875"
+      ],
+      "whatsapp": "0548538794",
+      "email": "m0548538794@gmail.com",
+      "hours": {
+        "he": "הבית פתוח 24/7",
+        "en": "Our home is open 24/7",
+        "es": "Nuestro hogar está abierto 24/7",
+        "fr": "Notre foyer est ouvert 24 h/24, 7 j/7"
+      },
+      "address": {
+        "he": "אדוניהו הכהן 23, ירושלים, מיקוד 9534311 · 14 Olympia Lane, Monsey, NY 10952",
+        "en": "Adoniyahu HaCohen 23, Jerusalem 9534311 · 14 Olympia Lane, Monsey, NY 10952",
+        "es": "Adoniyahu HaCohen 23, Jerusalén 9534311 · 14 Olympia Lane, Monsey, NY 10952",
+        "fr": "Adoniyahu HaCohen 23, Jérusalem 9534311 · 14 Olympia Lane, Monsey, NY 10952"
+      },
+      "taxNote": {
+        "he": "עמותה רשומה (ע״ר) 580651719 · סעיף 46 · US Tax ID 99-0780369 · בניהול מירי קירשנבאום (לוצקין) · פועלת בברכת גדולי ישראל",
+        "en": "Registered nonprofit 580651719 · §46 · US Tax ID 99-0780369 · Directed by Miri Kirschenbaum (Lutzkin) · Blessed by Torah leaders",
+        "es": "Organización registrada 580651719 · §46 · Tax ID en EE. UU. 99-0780369 · Dirigida por Miri Kirschenbaum (Lutzkin) · Con la bendición de los grandes de la Torá",
+        "fr": "Association enregistrée 580651719 · §46 · Tax ID aux États-Unis 99-0780369 · Dirigée par Miri Kirschenbaum (Lutzkin) · Avec la bénédiction des grands de la Torah"
+      },
+      "phoneLabels": [
+        {
+          "he": "ישראל",
+          "en": "Israel",
+          "es": "Israel",
+          "fr": "Israël"
+        },
+        {
+          "he": "ארה״ב",
+          "en": "USA",
+          "es": "EE. UU.",
+          "fr": "États-Unis"
+        },
+        {
+          "he": "מקסיקו",
+          "en": "Mexico",
+          "es": "México",
+          "fr": "Mexique"
+        },
+        {
+          "he": "לונדון",
+          "en": "London",
+          "es": "Londres",
+          "fr": "Londres"
+        }
+      ]
+    },
+    "donateUrlIntl": "https://secure.cardknox.com/meorhachessedlutzkininc",
+    "accessibility": {
+      "he": "אנו ב«מאור החסד» רואים חשיבות רבה בהנגשת האתר לכלל הציבור, ובכלל זה לאנשים עם מוגבלות.\nהאתר נבנה בשאיפה לעמוד בתקנות שוויון זכויות לאנשים עם מוגבלות (התאמות נגישות לשירות), התשע״ג–2013, ובתקן הישראלי ת״י 5568 (המבוסס על הנחיות WCAG 2.0 ברמה AA).\n\nמה עשינו באתר:\n• האתר מותאם לצפייה בטלפון, בטאבלט ובמחשב.\n• ניתן לנווט באתר באמצעות המקלדת, וחלונות נסגרים במקש Esc.\n• כפתורים ושדות הטופס מסומנים בתוויות עבור קוראי מסך.\n• האתר מכבד את הגדרת «הפחתת תנועה» במכשיר.\n• שפת הדף וכיוון הכתיבה מוגדרים, והכותרות בנויות במבנה היררכי.\n\nנתקלתם בקושי?\nלמרות מאמצינו, ייתכן שחלקים באתר עדיין אינם נגישים במלואם. נשמח לשמוע ולתקן:\nטלפון: 054-853-8794 · מייל: m0548538794@gmail.com\n\nעדכון אחרון של ההצהרה: אוקטובר 2026",
+      "en": "At Maor Hachesed we want our website to be accessible to everyone, including people with disabilities.\nThe site was built aiming to meet the Israeli accessibility regulations (2013) and Israeli Standard 5568, based on WCAG 2.0 level AA.\n\nWhat we did:\n• The site adapts to phones, tablets and computers.\n• The site can be navigated by keyboard; dialogs close with the Esc key.\n• Buttons and form fields are labeled for screen readers.\n• The site respects the device's \"reduce motion\" setting.\n• Page language and direction are declared, and headings are hierarchical.\n\nHaving trouble?\nDespite our efforts, some parts may not yet be fully accessible. Please let us know and we will fix it:\nPhone: +972-54-853-8794 · Email: m0548538794@gmail.com\n\nLast updated: October 2026",
+      "es": "En Maor Hachesed queremos que nuestro sitio sea accesible para todos, incluidas las personas con discapacidad.\nEl sitio se construyó con el objetivo de cumplir las normas de accesibilidad de Israel (2013) y la Norma Israelí 5568, basada en WCAG 2.0 nivel AA.\n\nLo que hicimos:\n• El sitio se adapta a teléfonos, tabletas y computadoras.\n• Se puede navegar con el teclado; los diálogos se cierran con la tecla Esc.\n• Los botones y campos de formulario están etiquetados para lectores de pantalla.\n• El sitio respeta la opción «reducir movimiento» del dispositivo.\n• Se declaran el idioma y la dirección de la página, y los títulos son jerárquicos.\n\n¿Tiene alguna dificultad?\nA pesar de nuestros esfuerzos, algunas partes quizá aún no sean totalmente accesibles. Avísenos y lo corregiremos:\nTeléfono: +972-54-853-8794 · Correo: m0548538794@gmail.com\n\nÚltima actualización: octubre de 2026",
+      "fr": "Chez Maor Hachesed, nous voulons que notre site soit accessible à tous, y compris aux personnes en situation de handicap.\nLe site a été conçu pour respecter la réglementation israélienne sur l'accessibilité (2013) et la norme israélienne 5568, fondée sur les WCAG 2.0 niveau AA.\n\nCe que nous avons fait :\n• Le site s'adapte aux téléphones, tablettes et ordinateurs.\n• Il peut être parcouru au clavier ; les fenêtres se ferment avec la touche Échap.\n• Les boutons et champs de formulaire sont étiquetés pour les lecteurs d'écran.\n• Le site respecte le réglage « réduire les animations » de l'appareil.\n• La langue et le sens de lecture de la page sont déclarés, et les titres sont hiérarchisés.\n\nVous rencontrez une difficulté ?\nMalgré nos efforts, certaines parties ne sont peut-être pas encore entièrement accessibles. Signalez-le-nous et nous corrigerons :\nTéléphone : +972-54-853-8794 · E-mail : m0548538794@gmail.com\n\nDernière mise à jour : octobre 2026"
+    },
+    "privacy": {
+      "he": "מה קורה עם המידע שלכם באתר «מאור החסד»:\n\n• טופס «דברו איתנו» וההרשמה לעדכונים אינם שומרים מידע באתר. בלחיצה על «שליחה» נפתחת אצלכם הודעת וואטסאפ (או מייל) אלינו, ואתם בוחרים אם לשלוח אותה. הפרטים שתשלחו (שם, טלפון, מייל ותוכן הפנייה) ישמשו אותנו רק כדי לחזור אליכם ולטפל בפנייה.\n• התרומות מתבצעות בעמודי הסליקה המאובטחים של נדרים פלוס ושל Cardknox, ולא באתר זה. פרטי כרטיס האשראי מוזנים אצלם בלבד. פרטי התרומה (שם וסכום) מגיעים אלינו לצורך רישום התרומה והנפקת קבלה.\n• מדידת כניסות: אנו משתמשים ב-Cloudflare Web Analytics, שסופר כניסות לאתר בלי עוגיות (cookies) ובלי לעקוב אחרי מבקרים בודדים.\n• איננו מוכרים מידע אישי ואיננו מעבירים אותו לאחרים, למעט כשהחוק מחייב זאת.\n\nלעיון, לתיקון או למחיקה של מידע עליכם: 054-853-8794 · m0548538794@gmail.com\n\nעדכון אחרון: אוקטובר 2026",
+      "en": "How we handle your information at Maor Hachesed:\n\n• The \"Talk to us\" form and the updates sign-up do not store anything on this site. Pressing \"Send\" opens a WhatsApp message (or email) to us on your device, and you decide whether to send it. What you send (name, phone, email, message) is used only to reply to you.\n• Donations are made on the secure payment pages of Nedarim Plus and Cardknox, not on this site. Card details are entered there only. Donation details (name and amount) reach us so we can record the gift and issue a receipt.\n• Visit counting: we use Cloudflare Web Analytics, which counts visits without cookies and without tracking individual visitors.\n• We do not sell personal information or share it with others, except where required by law.\n\nTo view, correct or delete your information: +972-54-853-8794 · m0548538794@gmail.com\n\nLast updated: October 2026",
+      "es": "Cómo tratamos su información en Maor Hachesed:\n\n• El formulario «Hable con nosotros» y la suscripción a novedades no guardan nada en este sitio. Al pulsar «Enviar» se abre en su dispositivo un mensaje de WhatsApp (o un correo) dirigido a nosotros, y usted decide si enviarlo. Lo que envíe (nombre, teléfono, correo, mensaje) se usa solo para responderle.\n• Las donaciones se realizan en las páginas de pago seguras de Nedarim Plus y Cardknox, no en este sitio. Los datos de la tarjeta se ingresan solo allí. Los datos de la donación (nombre y monto) nos llegan para registrarla y emitir un recibo.\n• Conteo de visitas: usamos Cloudflare Web Analytics, que cuenta las visitas sin cookies y sin seguir a visitantes individuales.\n• No vendemos información personal ni la compartimos con terceros, salvo cuando la ley lo exige.\n\nPara ver, corregir o eliminar su información: +972-54-853-8794 · m0548538794@gmail.com\n\nÚltima actualización: octubre de 2026",
+      "fr": "Comment nous traitons vos informations chez Maor Hachesed :\n\n• Le formulaire « Parlez-nous » et l'inscription aux nouvelles n'enregistrent rien sur ce site. En appuyant sur « Envoyer », un message WhatsApp (ou un e-mail) à notre attention s'ouvre sur votre appareil, et vous décidez de l'envoyer ou non. Ce que vous envoyez (nom, téléphone, e-mail, message) sert uniquement à vous répondre.\n• Les dons se font sur les pages de paiement sécurisées de Nedarim Plus et de Cardknox, et non sur ce site. Les données de carte ne sont saisies que là-bas. Les détails du don (nom et montant) nous parviennent pour l'enregistrer et émettre un reçu.\n• Mesure d'audience : nous utilisons Cloudflare Web Analytics, qui compte les visites sans cookies et sans suivre les visiteurs individuellement.\n• Nous ne vendons pas d'informations personnelles et ne les partageons pas, sauf obligation légale.\n\nPour consulter, corriger ou supprimer vos informations : +972-54-853-8794 · m0548538794@gmail.com\n\nDernière mise à jour : octobre 2026"
+    }
+  }
+}
