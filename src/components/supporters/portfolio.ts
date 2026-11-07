@@ -48,7 +48,7 @@ export function portfolioIntel(
   rate = 3.7,
   topN = 10,
 ): PortfolioIntel {
-  const scoreBins = new Array<number>(10).fill(0);
+  const scoreBins = Array.from<number>({ length: 10 }).fill(0);
   const tierCounts: Record<string, number> = {};
   const ltvs: number[] = [];
   let giftCount = 0, ltv = 0, gaveEver = 0, retained = 0,
@@ -145,7 +145,7 @@ export function activeByMonth(
   months = 12,
   rate = 3.7,
 ): number[] {
-  const out = new Array<number>(months).fill(0);
+  const out = Array.from<number>({ length: months }).fill(0);
   for (const sp of supporters) {
     const scan = donorScan(sp, todayIso, rate, months);
     for (let i = 0; i < months; i++) if (scan.monthly[i] > 0) out[i]++;
