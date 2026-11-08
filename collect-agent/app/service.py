@@ -26,7 +26,13 @@ from .config import SafetyError, Settings
 from .db import DB, token_hash
 from .greeninvoice import GreenInvoiceClient, Invoice
 from .integrations.base import IntegrationError
-from .integrations.sources import SOURCE_SYSTEMS, InvoiceSource, provider_of, source_provider
+from .integrations.sources import (
+    SOURCE_SYSTEMS,
+    CreditAmbiguous,
+    InvoiceSource,
+    provider_of,
+    source_provider,
+)
 from .policy import (
     MANUAL_ONLY_AFTER_DAYS,
     MAX_REMINDERS_PER_INVOICE,
@@ -310,35 +316,60 @@ class CollectService:
     def _hold_for_credit_review(self, review: list[tuple[Invoice, str]]) -> int:
         """ממצא 2.16 (שמרני): זיכוי שלא ניתן לשייך לחשבונית ⇒ לא מנחשים את הסכום. הלקוח מושהה
         (paused_reason=credit_review, משתחרר רק ב-resume של בעל העסק) + התראה אחת לבעל העסק.
-        התראה לכל צירוף מסמכים — אחרי resume אותו זיכוי לא משהה שוב; זיכוי חדש כן."""
+        התראה לכל צירוף מסמכים — אחרי resume אותו זיכוי לא משהה שוב; זיכוי חדש כן.
+        זיכוי שלא מזוהה לשום לקוח קיים (אין מזהה/מייל/טלפון תואם) ⇒ התראה כללית לבעל העסק, בלי
+        השהיה של אף לקוח (לא מנחשים למי הוא שייך)."""
         by_cust: dict[str, dict[str, str]] = {}
         for doc, why in review:
             by_cust.setdefault(self.customer_key(doc), {})[doc.external_id] = why
         held = 0
         for key, docs in by_cust.items():
             cust = self.db.one("SELECT * FROM customers WHERE external_id=?", (key,))
-            if not cust or not self.db.one("SELECT 1 FROM invoices WHERE customer_id=? AND "
-                                           "status='open'", (cust["id"],)):
-                continue   # אין חוב פתוח ללקוח ⇒ אין על מה להזכיר
-            mid = f"credit:{cust['id']}:" + ",".join(sorted(docs))
-            if self.db.one("SELECT 1 FROM messages WHERE intent=? AND message_id=?",
-                           (self.CREDIT_REVIEW, mid)):
+            if not cust:
+                self._orphan_credit_alert(docs)
                 continue
-            if not cust["paused_reason"]:
-                self.db.x("UPDATE customers SET paused_reason=? WHERE id=?",
-                          (self.CREDIT_REVIEW, cust["id"]))
-            for inv in self.db.q("SELECT id FROM invoices WHERE customer_id=?", (cust["id"],)):
-                self._cancel_invoice(inv["id"], self.CREDIT_REVIEW)
-            self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
-                      "message_id,created_at) VALUES(?,'system','owner',?,?,1,?,?)",
-                      (cust["id"], f"ל{cust['name'] or 'לקוח'} יש זיכוי או המרת מסמך שלא הצלחנו "
-                       "לשייך בוודאות לחשבונית. כדי לא לדרוש סכום שגוי, התזכורות ללקוח הזה "
-                       "נעצרו. בדקו בחשבונית ירוקה ואז חדשו את התזכורות.", self.CREDIT_REVIEW,
-                       mid, _iso(self.clock())))
-            self.audit("system", "credit_review", {"customer": cust["id"],
-                                                   "reasons": sorted(set(docs.values()))})
-            held += 1
+            held += self._hold_customer_for_credit(cust, docs)
         return held
+
+    def _hold_customer_for_credit(self, cust, docs: dict[str, str]) -> int:
+        """1 ⇒ הלקוח הושהה עכשיו (חדש). 0 ⇒ אין חוב פתוח, או שבעל העסק כבר קיבל התראה על אותם
+        מסמכים (ואם חידש — זו הכרעה שלו, לא משהים שוב)."""
+        if not self.db.one("SELECT 1 FROM invoices WHERE customer_id=? AND status='open'",
+                           (cust["id"],)):
+            return 0   # אין חוב פתוח ללקוח ⇒ אין על מה להזכיר
+        mid = f"credit:{cust['id']}:" + ",".join(sorted(docs))
+        if self.db.one("SELECT 1 FROM messages WHERE intent=? AND message_id=?",
+                       (self.CREDIT_REVIEW, mid)):
+            return 0
+        if not cust["paused_reason"]:
+            self.db.x("UPDATE customers SET paused_reason=? WHERE id=?",
+                      (self.CREDIT_REVIEW, cust["id"]))
+        for inv in self.db.q("SELECT id FROM invoices WHERE customer_id=?", (cust["id"],)):
+            self._cancel_invoice(inv["id"], self.CREDIT_REVIEW)
+        label = SOURCE_SYSTEMS[self.s.source_system].label
+        self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
+                  "message_id,created_at) VALUES(?,'system','owner',?,?,1,?,?)",
+                  (cust["id"], f"ל{cust['name'] or 'לקוח'} יש זיכוי או המרת מסמך שלא הצלחנו "
+                   "לשייך בוודאות לחשבונית. כדי לא לדרוש סכום שגוי, התזכורות ללקוח הזה "
+                   f"נעצרו. בדקו ב{label} ואז חדשו את התזכורות.", self.CREDIT_REVIEW,
+                   mid, _iso(self.clock())))
+        self.audit("system", "credit_review", {"customer": cust["id"],
+                                               "reasons": sorted(set(docs.values()))})
+        return 1
+
+    def _orphan_credit_alert(self, docs: dict[str, str]) -> None:
+        mid = "credit:orphan:" + ",".join(sorted(docs))
+        if self.db.one("SELECT 1 FROM messages WHERE intent=? AND message_id=?",
+                       (self.CREDIT_REVIEW, mid)):
+            return
+        label = SOURCE_SYSTEMS[self.s.source_system].label
+        self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
+                  "message_id,created_at) VALUES(NULL,'system','owner',?,?,1,?,?)",
+                  (f"נמצא ב{label} זיכוי שלא הצלחנו לשייך לשום לקוח (אין מזהה, מייל או טלפון "
+                   "תואמים). בדקו למי הוא שייך, ואם צריך — השהו את התזכורות ללקוח הזה.",
+                   self.CREDIT_REVIEW, mid, _iso(self.clock())))
+        self.audit("system", "credit_review_orphan", {"docs": len(docs),
+                                                      "reasons": sorted(set(docs.values()))})
 
     def import_csv(self, raw: bytes, actor: str = "owner") -> dict:
         """חלופה ל-API: ייבוא חלקי (לא סוגר חשבוניות שלא בקובץ). שגיאות לפי שורה."""
@@ -956,23 +987,12 @@ class CollectService:
             self._mark_refresh_failed(r, "refresh_failed")
             return "failed"
         try:
-            doc = self.gi.get_document(inv["external_id"])
-        except KeyError:
-            doc = None
-        except Exception as e:  # noqa: BLE001 — כל כשל ברענון חוסם שליחה
+            doc = self._fresh_doc(inv)
+        except _CreditHeld:
+            return "failed"     # הלקוח הושהה לבדיקת זיכוי; התזכורת בוטלה (credit_review)
+        except Exception as e:  # noqa: BLE001 — כל כשל ברענון (כולל זיכויים) חוסם שליחה
             self._mark_refresh_failed(r, "refresh_failed", str(e))
             return "failed"
-        if doc is not None:   # ממצא 2.16: המקור מחזיר יתרה גולמית; מקזזים את הזיכויים
-            credit = inv["credit_agorot"] or 0
-            if hasattr(self.gi, "credits_for"):
-                # critic סבב 20 (שוחזר): זיכוי שהונפק **אחרי** הסנכרון האחרון לא נראה, ונשלח
-                # "1,200 ₪" כשהיתרה בפועל ₪700. עכשיו נשלפים הזיכויים העדכניים של המסמך הזה.
-                try:
-                    credit = self.gi.credits_for(inv["external_id"], since=doc.issued)
-                except Exception as e:  # noqa: BLE001 — כשל ⇒ לא שולחים (נכשל סגור)
-                    self._mark_refresh_failed(r, "refresh_failed", str(e))
-                    return "failed"
-            doc = replace(doc, amount_agorot=doc.amount_agorot - credit)
         if doc is None or doc.status != 0 or doc.amount_agorot <= 0:
             self.db.x("UPDATE invoices SET status='closed' WHERE id=?", (inv["id"],))
             self.audit("system", "refresh_closed", {"invoice": inv["id"]})
@@ -1000,9 +1020,37 @@ class CollectService:
                                                 "to_agorot": total, "invoices": len(invs)})
         return "changed"
 
+    def _customer_row(self, cid: int):
+        return self.db.one("SELECT * FROM customers WHERE id=?", (cid,))
+
+    def _fresh_doc(self, inv) -> Invoice | None:
+        """ר-4, **לכל מקור**: המסמך מהמקור + הזיכויים העדכניים שלו (critic סבב 20), כיתרה נטו.
+        None ⇒ המסמך לא קיים. חריגה ⇒ אסור לשלוח: כשל רענון, או מקור בלי `credits_for`
+        (credits_unverifiable — לא מניחים «אין זיכויים»).
+        זיכוי שלא ניתן לשייך (CreditAmbiguous): חדש ⇒ הלקוח מושהה לבדיקת בעל העסק (`_CreditHeld`).
+        אותו זיכוי שבעל העסק כבר בדק וחידש ⇒ מקזזים רק את מה שמשויך בוודאות (הכרעה שלו)."""
+        try:
+            doc = self.gi.get_document(inv["external_id"])
+        except KeyError:
+            return None
+        if doc.status != 0 or doc.amount_agorot <= 0:
+            return doc
+        credits_for = getattr(self.gi, "credits_for", None)
+        if credits_for is None:
+            raise IntegrationError(f"credits_unverifiable: {source_provider(self.gi)}")
+        try:
+            credit = credits_for(inv["external_id"], since=doc.issued, doc=doc)
+        except CreditAmbiguous as e:
+            if self._hold_customer_for_credit(self._customer_row(inv["customer_id"]),
+                                              {c.external_id: why for c, why in e.items}):
+                raise _CreditHeld from e
+            credit = e.certain
+        return replace(doc, amount_agorot=doc.amount_agorot - credit)
+
     def refresh_customer(self, cid: int) -> bool:
         """ר-4 לטיוטות ולהסדרים (מבקר סבב 3): רענון כל החשבוניות הפתוחות של הלקוח מהמקור.
-        True ⇒ הנתונים טריים (invoices עודכנו). False ⇒ כשל/אין מקור ⇒ אסור לשלוח טקסט עם כסף."""
+        True ⇒ הנתונים טריים (invoices עודכנו). False ⇒ כשל/אין מקור/זיכוי שלא שויך ⇒ אסור
+        לשלוח טקסט עם כסף. אותו רענון כמו לפני תזכורת (`_fresh_doc`), כולל זיכויים — לכל מקור."""
         ok = True
         for inv in self.db.q("SELECT * FROM invoices WHERE customer_id=? AND status='open'", (cid,)):
             if inv["source"] == "csv":
@@ -1012,14 +1060,12 @@ class CollectService:
             if self.gi is None or not self._source_owns(inv["external_id"]):
                 return False
             try:
-                doc = self.gi.get_document(inv["external_id"])
-            except KeyError:
-                doc = None
+                doc = self._fresh_doc(inv)
+            except _CreditHeld:
+                return False
             except Exception as e:  # noqa: BLE001
                 self.audit("system", "refresh_failed", {"invoice": inv["id"], "error": str(e)[:200]})
                 return False
-            if doc is not None:   # ממצא 2.16: כמו ב-_refresh_before_send — יתרה נטו
-                doc = replace(doc, amount_agorot=doc.amount_agorot - (inv["credit_agorot"] or 0))
             if doc is None or doc.status != 0 or doc.amount_agorot <= 0:
                 self.db.x("UPDATE invoices SET status='closed' WHERE id=?", (inv["id"],))
                 self._cancel_invoice(inv["id"], "invoice_closed")
@@ -1119,8 +1165,12 @@ class CollectService:
         res = self._handle(cust, "web", text)
         return {"action": action, "ok": True, **res}
 
-    def email_webhook(self, sender: str, text: str, message_id: str = "") -> dict:
-        """מייל נכנס (ספק inbound-parse כלשהו, מנורמל ל-from/text/message_id). אידמפוטנטי."""
+    def email_webhook(self, sender: str, text: str, message_id: str = "", *,
+                      auth_results: str = "") -> dict:
+        """מייל נכנס (ספק inbound-parse כלשהו, מנורמל ל-from/text/message_id). אידמפוטנטי.
+        critic 3.6.7: מייל נכנס לא מאומת יכול להתחזות ללקוח. ההשפעות של מייל נכנס הן רק עצירה
+        (השהיה/מחלוקת/הסרה — שמרני), ולכן לא חוסמים; אבל **מתעדים** את פסיקת SPF/DKIM/DMARC של
+        הספק (`email_auth` ב-audit, בלי כתובות), ומייל שלא עבר אימות מסומן לבעל העסק."""
         import hashlib
 
         from .channels import parse_address, strip_reply
@@ -1133,7 +1183,15 @@ class CollectService:
                   " VALUES(NULL,'webhook','email','inbound',?,?)", (key, _iso(self.clock())))
         if not addr or not body:
             return {"ok": True, "ignored": True}
-        return {"ok": True, **self.inbound("email", addr, body)}
+        auth = email_auth_verdict(auth_results)
+        self.audit("system", "email_auth", {"message": key[:80], **auth})
+        out = self.inbound("email", addr, body)
+        if not auth["verified"] and out.get("draft_id"):
+            # כרטיס/טיוטה: בעל העסק יודע שהמייל לא אומת אצל הספק (אולי התחזות)
+            self.db.x("UPDATE drafts SET owner_summary=COALESCE(owner_summary,'') || ? WHERE id=?",
+                      (" ⚠️ המייל לא עבר אימות שולח (SPF/DKIM) — ייתכן שלא נשלח ע״י הלקוח.",
+                       out["draft_id"]))
+        return {"ok": True, **out, "email_verified": auth["verified"]}
 
     def sms_webhook_019(self, raw: bytes) -> dict:
         import hashlib
@@ -1528,6 +1586,22 @@ class CollectService:
         self.db.x("UPDATE reminders SET status='cancelled', block_reason=? WHERE status IN (?,?) "
                   "AND (invoice_id=? OR id IN (SELECT reminder_id FROM reminder_invoices "
                   "WHERE invoice_id=?))", (reason, *ACTIVE, iid, iid))
+
+
+def email_auth_verdict(header: str) -> dict:
+    """טהור. Authentication-Results ⇒ {spf, dkim, dmarc, verified}. verified רק כש-DMARC עבר, או
+    (בלי DMARC) SPF או DKIM עברו. כותרת חסרה ⇒ לא מאומת (לא מניחים שעבר)."""
+    h = (header or "").lower()
+    res = {}
+    for k in ("spf", "dkim", "dmarc"):
+        m = re.search(rf"\b{k}=([a-z]+)", h)
+        res[k] = m.group(1) if m else "none"
+    ok = res["dmarc"] == "pass" or (res["dmarc"] == "none" and "pass" in (res["spf"], res["dkim"]))
+    return {**res, "verified": ok}
+
+
+class _CreditHeld(Exception):  # noqa: N818
+    """רענון גילה זיכוי חדש שלא ניתן לשייך ⇒ הלקוח הושהה (credit_review). פנימי לשירות."""
 
 
 def _rebuild_keep_log(old: DryRunSender, s: Settings) -> DryRunSender:

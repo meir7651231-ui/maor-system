@@ -46,6 +46,19 @@ class EZcountMock:
     def cancel(self, uuid: str) -> None:
         self.docs[uuid]["is_cancelled"] = True
 
+    def credit(self, uuid: str, amount: float, *, link: bool = True,
+               links: list[str] | None = None) -> str:
+        """זיכוי (330) לאותו לקוח. הקישור ב-`parent_uuid` / `linked_docs` — «לאמת» (לא מתועד)."""
+        src = self.docs[uuid]
+        cu = f"ez-c{sum(1 for d in self.docs.values() if d['type'] == 330) + 1:03d}"
+        refs = links if links is not None else ([uuid] if link else [])
+        self.docs[cu] = {"doc_uuid": cu, "doc_number": f"9{len(self.docs):04d}", "type": 330,
+                         "date": "05/10/2026", "pay_until": "", "customer_name": src["customer_name"],
+                         "customer_email": src["customer_email"], "customer_phone": src["customer_phone"],
+                         "main_currency_iso": src["main_currency_iso"], "price_total": float(amount),
+                         **({"linked_docs": list(refs)} if refs else {})}
+        return cu
+
     def route(self, method: str, path: str, headers: dict[str, str], body: Any) -> tuple[int, dict]:
         if any(path.startswith(p) for p in WRITE_PATHS):
             self.write_attempts.append(path)

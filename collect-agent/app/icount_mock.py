@@ -11,6 +11,8 @@
 פעולות כתיבה מתועדות (doc/create, doc/cancel, doc/close, client/create, webhook/add …) נרשמות
 ב-`write_attempts` ונדחות — כדי שבדיקה תוכיח שהלקוח שלנו לא קרא להן לעולם.
 «לאמת»: שדות התוצאה בחיפוש ב-detail_level=2 (כאן: כמו doc_info, בלי טלפון/מייל של הלקוח).
+«לאמת»: חשבונית זיכוי = doctype "refund"; הקישור לחשבונית המקורית ב-`based_on` [{doctype, docnum}]
+(שם השדה לא מתועד בפומבי — ה-mock משקף את ההנחה של ה-adapter, לא מוכיח את החוזה).
 """
 from __future__ import annotations
 
@@ -67,6 +69,20 @@ class ICountMock:
 
     def cancel(self, doctype: str, docnum: int) -> None:
         self.docs[(doctype, docnum)]["is_cancelled"] = True
+
+    def credit(self, doctype: str, docnum: int, amount: float, *, link: bool = True,
+               links: list[tuple[str, int]] | None = None, dateissued: str = "2026-10-05") -> int:
+        """מנפיק חשבונית זיכוי (refund) ללקוח של המסמך. link=False ⇒ בלי קישור. ⇒ מספר הזיכוי."""
+        src = self.docs[(doctype, docnum)]
+        num = 9000 + sum(1 for k in self.docs if k[0] == "refund") + 1
+        refs = links if links is not None else ([(doctype, docnum)] if link else [])
+        self.docs[("refund", num)] = {
+            "doctype": "refund", "docnum": num, "client_id": src["client_id"],
+            "client_name": src["client_name"], "dateissued": dateissued, "duedate": "",
+            "currency_code": src.get("currency_code", "ILS"), "totalwithvat": float(amount),
+            "remainingsum": 0.0, "status": STATUS_CLOSED, "is_cancelled": False,
+            **({"based_on": [{"doctype": t, "docnum": n} for t, n in refs]} if refs else {})}
+        return num
 
     # ---------- API ----------
     @staticmethod

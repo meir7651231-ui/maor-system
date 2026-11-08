@@ -103,3 +103,22 @@ def test_full_flow_through_collect_service(mock, clock):
     assert svc.sync() == {"open": 1, "closed": 0}
     mock.pay("ez-0001")
     assert svc.sync() == {"open": 0, "closed": 1}
+
+
+# ───────── זיכויים (critic סבב 21 · 21.1/21.2) ─────────
+def test_type_330_credit_with_tolerant_link(ez, mock):
+    from app.integrations.sources import CreditAmbiguous
+    assert "330" in ezcount.__doc__ and "linked_docs" in ezcount.__doc__
+    mock.credit("ez-0001", 500)
+    [c] = list(ez.iter_credits())
+    assert (c.doc_type, c.amount_agorot, c.linked_ids) == (330, 50000, ("ezcount:ez-0001",))
+    assert ez.credits_for("ezcount:ez-0001") == 50000
+    net = ez.open_debts()
+    assert [(i.external_id, i.amount_agorot) for i in net.invoices] == [("ezcount:ez-0001", 130000)]
+    mock.credit("ez-0001", 100, link=False)
+    doc = ez.get_document("ezcount:ez-0001")
+    with pytest.raises(CreditAmbiguous, match="credit_unlinked"):
+        ez.credits_for("ezcount:ez-0001", doc=doc)                 # אותו לקוח (מייל) בלי קישור
+    assert map_ezcount_doc({"type": 330, "doc_uuid": "x", "price_total": 10,
+                            "parent_uuid": "p"}).linked_ids == ("ezcount:p",)
+    assert mock.write_attempts == []

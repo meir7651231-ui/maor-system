@@ -105,3 +105,23 @@ def test_full_flow_through_collect_service(mock, clock):
     mock.pay(21, 1, 7001)
     assert svc.sync() == {"open": 1, "closed": 1}
     assert mock.write_attempts == []
+
+
+# ───────── זיכויים (critic סבב 21 · 21.1/21.2) ─────────
+def test_negative_balance_row_is_an_unlinked_credit_never_netted(rv, mock):
+    """אין שדה קישור בדוח היתרות ⇒ זיכוי לעולם לא מקוזז; ללקוח ⇒ review. «לאמת» מתועד."""
+    from app.integrations import rivhit
+    from app.integrations.sources import CreditAmbiguous
+    assert "balance<0" in rivhit.__doc__ and "לאמת" in rivhit.__doc__
+    mock.credit(21, 300)
+    net = rv.open_debts()
+    assert {i.external_id: i.amount_agorot for i in net.invoices} == \
+        {"rivhit:21:1:7001": 220000, "rivhit:22:1:7002": 50000}
+    assert [(c.client_external_id, c.amount_agorot, why) for c, why in net.review] == \
+        [("rivhit:21", 30000, "credit_unlinked")]
+    with pytest.raises(CreditAmbiguous):
+        rv.credits_for("rivhit:21:1:7001")
+    assert rv.credits_for("rivhit:22:1:7002") == 0
+    # get_document לא מתבלבל עם שורת הזיכוי
+    assert rv.get_document("rivhit:21:1:7001").amount_agorot == 220000
+    assert mock.write_attempts == []

@@ -121,6 +121,21 @@ class Context:
         return self.invoices[0].currency if self.invoices else "ILS"
 
     @property
+    def mixed_currency(self) -> bool:
+        """חשבוניות פתוחות במטבעות שונים ⇒ אין סה״כ אחד (שקל+דולר לא מחברים), ולכן גם אין הצעת
+        פריסה אוטומטית — `service.open_debt` מחזיר 0 ולא רושם הסדר. כרטיס לבעל העסק במקום."""
+        return len({i.currency for i in self.invoices}) > 1
+
+    def total_text(self) -> str:
+        """הסכום לתצוגה. מטבעות שונים ⇒ סכום לכל מטבע («₪1,000 + $200»), לא חיבור."""
+        if not self.mixed_currency:
+            return fmt_amount(self.total_agorot, self.currency) if self.invoices else ""
+        by: dict[str, int] = {}
+        for i in self.invoices:
+            by[i.currency] = by.get(i.currency, 0) + i.amount_agorot
+        return " + ".join(fmt_amount(v, c) for c, v in by.items())
+
+    @property
     def first_name(self) -> str:
         return (self.customer_name or "").split()[0] if self.customer_name.strip() else ""
 
@@ -684,6 +699,8 @@ def redact_for_llm(text: str, ctx: Context) -> str:
 
 # ═══════════════════════════ הצעת פריסה ═══════════════════════════
 def propose_plan(ctx: Context, requested: int | None, start: date | None = None) -> tuple[Installment, ...]:
+    if ctx.mixed_currency:
+        return ()   # אין סה״כ אחד לפרוס (critic: הצעה יצאה בלי שהסדר נרשם)
     total = ctx.total_agorot
     if total <= 0:
         return ()
@@ -816,7 +833,7 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
     p = ctx.policy
     hi, sig = _hi(ctx), ""
     name = ctx.customer_name or "הלקוח/ה"
-    total = fmt_amount(ctx.total_agorot, ctx.currency) if ctx.invoices else ""
+    total = ctx.total_text()
     reply: str | None = None
     esc, stop = Escalation.NONE, Stop.NONE
     pause_until: date | None = None
@@ -978,6 +995,13 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
                 summary += f" ⚠️ ביקש/ה {requested} — מעל התקרה שלך ({p.max_installments})."
                 actions.append(f"להחליט אם לאשר {requested} תשלומים")
             actions.append("לאשר את טיוטת ההצעה לפני שליחה")
+        elif ctx.mixed_currency and p.auto_offer_plan and not sensitive:
+            reply = (f"{hi}תודה ששיתפתם. נחזור אליכם אישית כדי למצוא יחד פתרון שמתאים לכם.{sig}")
+            summary = (f"{name} מבקש/ת הסדר/מתקשה לשלם. לא הוצעה פריסה אוטומטית: החשבוניות "
+                       f"הפתוחות במטבעות שונים ({total}).")
+            actions.append("להציע הסדר ידנית (חשבוניות במטבעות שונים)")
+            tags.append("mixed_currency")
+            state = State.AWAITING_OWNER
         elif "reservist" in tags:
             reply = (f"{hi}תודה על השירות! עצרנו את התזכורות לתקופה הקרובה, ונחזור אליכם אישית "
                      f"כשיהיה נוח. אין שום לחץ.{sig}")

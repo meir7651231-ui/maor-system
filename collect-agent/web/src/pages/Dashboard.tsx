@@ -220,7 +220,7 @@ const PAUSE_LABEL: Record<string, string> = {
   plan_accept: 'הסכים/ה להצעת הפריסה', plan_reject: 'דחה/תה את הצעת הפריסה', cant_pay: 'כתב/ה שאין אפשרות לשלם כרגע',
   dispute: 'יש מחלוקת על החשבונית', legal: 'הוזכר עניין משפטי', distress: 'נראה שהלקוח/ה במצוקה. כדאי לפנות אישית',
   callback: 'ביקש/ה שתחזרו אליו/ה', wrong_person: 'כתב/ה שזה לא המספר הנכון', abusive: 'תגובה פוגענית. כדאי לטפל אישית',
-  credit_review: 'יש זיכוי שלא שויך לחשבונית. בדקו בחשבונית ירוקה ואז חדשו',
+  credit_review: 'יש זיכוי שלא שויך לחשבונית. בדקו במערכת החשבוניות ואז חדשו',
 };
 export function pauseLabel(reason: string): string {
   const [base, until] = reason.split(':until=');

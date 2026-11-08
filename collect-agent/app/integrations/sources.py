@@ -6,6 +6,12 @@
   • `get_document(ext_id)`  — רענון מסמך יחיד לפני שליחה (ר-4). `KeyError` ⇒ המסמך לא קיים;
                                `status != 0` או סכום 0 ⇒ נסגר/שולם. כל חריגה אחרת ⇒ השירות חוסם שליחה
                                (refresh_failed) — אף פעם לא «מניח שעדיין פתוח».
+  • `credits_for(ext_id, since=None, doc=None)` — סך הזיכויים שמשויכים **רק** למסמך הזה, ברגע
+                               שלפני שליחה (critic סבב 20: זיכוי שהונפק אחרי הסנכרון). זיכוי שנוגע
+                               במסמך יחד עם אחרים, או זיכוי בלי קישור של אותו לקוח ⇒ `CreditAmbiguous`
+                               (השירות משהה לבדיקת בעל העסק — לא מנחשים). מקור בלי `credits_for` ⇒
+                               השירות **חוסם שליחה** (credits_unverifiable), לא מניח «אין זיכויים».
+  • `open_debts()`          — החוב הפתוח **אחרי** קיזוז (`Netting`): מה שהסנכרון קולט.
   • `provider`              — מזהה המערכת. ה-external_id של כל ספק שאינו חשבונית ירוקה מקבל קידומת
                                (`icount:`, `rivhit:`, `ezcount:`), כך שמעבר ספק לא מתנגש ולא סוגר
                                חשבוניות של ספק אחר (`provider_of`).
@@ -19,14 +25,15 @@ webhook — אופציונלי: מערכת שתומכת ב-webhook רק *מעי�
 """
 from __future__ import annotations
 
-from collections.abc import Callable, Iterator
+from collections.abc import Callable, Iterable, Iterator
 from dataclasses import dataclass
 from datetime import date, timedelta
 from typing import Protocol, runtime_checkable
 
 import httpx
 
-from ..greeninvoice import DEFAULT_TERMS_DAYS, GreenInvoiceClient, Invoice
+from ..contact import normalize_il_phone, valid_email
+from ..greeninvoice import DEFAULT_TERMS_DAYS, GreenInvoiceClient, Invoice, Netting
 
 
 @runtime_checkable
@@ -36,6 +43,52 @@ class InvoiceSource(Protocol):
     def iter_open_invoices(self) -> Iterator[Invoice]: ...
 
     def get_document(self, external_id: str) -> Invoice: ...
+
+    def credits_for(self, external_id: str, since=None, doc: Invoice | None = None) -> int: ...
+
+    def open_debts(self) -> Netting: ...
+
+
+class CreditAmbiguous(Exception):  # noqa: N818 — מצב עסקי, לא באג
+    """זיכוי שלא ניתן לשייך בוודאות למסמך שעומדים להזכיר עליו ⇒ לא שולחים, בדיקת בעל העסק.
+    `items` = [(מסמך הזיכוי, סיבה)] — אותה צורה כמו `Netting.review`."""
+
+    def __init__(self, items: list[tuple[Invoice, str]], certain: int = 0) -> None:
+        super().__init__(", ".join(sorted({why for _, why in items})))
+        self.items = items
+        self.certain = certain     # סך הזיכויים שכן משויכים בוודאות למסמך
+
+
+def same_client(a: Invoice, b: Invoice) -> bool:
+    """אותו לקוח לפי מזהה המקור, ובלעדיו לפי מייל או טלפון מנורמל. ספק ⇒ לא (False)."""
+    if a.client_external_id and b.client_external_id:
+        return a.client_external_id == b.client_external_id
+    ea, eb = a.client_email.strip().lower(), b.client_email.strip().lower()
+    if valid_email(ea) and ea == eb:
+        return True
+    pa, pb = normalize_il_phone(a.client_phone), normalize_il_phone(b.client_phone)
+    return bool(pa) and pa == pb
+
+
+def credits_on_doc(credits: Iterable[Invoice], doc: Invoice | str) -> int:
+    """טהור — הכלל השמרני של `net_credits`, למסמך אחד ברגע הרענון:
+    זיכוי שמקושר **רק** למסמך ⇒ נספר. מקושר אליו ולעוד מסמכים ⇒ CreditAmbiguous (credit_multi_invoice).
+    בלי קישור, של אותו לקוח (כשהמסמך המלא ידוע) ⇒ CreditAmbiguous (credit_unlinked)."""
+    doc_id = doc if isinstance(doc, str) else doc.external_id
+    total, unsure = 0, []
+    for c in credits:
+        if c.amount_agorot <= 0:
+            continue
+        links = tuple(dict.fromkeys(c.linked_ids))
+        if links == (doc_id,):
+            total += c.amount_agorot
+        elif doc_id in links:
+            unsure.append((c, "credit_multi_invoice"))
+        elif not links and not isinstance(doc, str) and same_client(c, doc):
+            unsure.append((c, "credit_unlinked"))
+    if unsure:
+        raise CreditAmbiguous(unsure, total)
+    return total
 
 
 class GreenInvoiceSource:
@@ -51,6 +104,12 @@ class GreenInvoiceSource:
 
     def get_document(self, external_id: str) -> Invoice:
         return self.client.get_document(external_id)
+
+    def credits_for(self, external_id: str, since=None, doc: Invoice | None = None) -> int:
+        return self.client.credits_for(external_id, since=since, doc=doc)
+
+    def open_debts(self) -> Netting:
+        return self.client.open_debts(page_size=self.page_size)
 
 
 # ------------------------------------------------------------------ רישום מערכות
