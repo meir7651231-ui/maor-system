@@ -1159,15 +1159,34 @@ class CollectService:
         self.audit("system", why, {"reminder": r["id"], "error": err[:200]})
 
     # ---------- inbound ----------
-    def _find_customer(self, channel: str, sender: str):
+    def _find_customers(self, channel: str, sender: str) -> list:
+        """כל הלקוחות עם הכתובת הזו (טלפון משותף / מייל משותף ⇒ יותר מאחד — סבב 26)."""
         if channel == "email":
             e = (sender or "").strip().lower()
-            return self.db.one("SELECT * FROM customers WHERE lower(email)=?", (e,)) if e else None
+            return self.db.q("SELECT * FROM customers WHERE lower(email)=? ORDER BY id", (e,)) if e else []
         norm = normalize_il_phone(sender)
         if not norm:
-            return None
-        return next((c for c in self.db.q("SELECT * FROM customers")
-                     if normalize_il_phone(c["phone"]) == norm), None)
+            return []
+        return [c for c in self.db.q("SELECT * FROM customers ORDER BY id")
+                if normalize_il_phone(c["phone"]) == norm]
+
+    def _resolve_sender(self, channel: str, sender: str) -> tuple[Any, bool]:
+        """critic סבב 27: ⇒ (לקוח, דו-משמעי). כמה לקוחות על אותה כתובת ⇒ מי שקיבל את ההודעה
+        היוצאת האחרונה בערוץ הזה (התשובה היא לה). אף אחד לא קיבל ⇒ (None, True): לא מנחשים — היה
+        «הראשון בטבלה», ו«איך משלמים?» של משה קיבל טיוטה עם החוב של רונית."""
+        custs = self._find_customers(channel, sender)
+        if len(custs) <= 1:
+            return (custs[0] if custs else None), False
+        last = {c["id"]: self.db.one("SELECT MAX(id) m FROM messages WHERE direction='out' AND "
+                                     "channel=? AND customer_id=?", (channel, c["id"]))["m"] or 0
+                for c in custs}
+        best = max(last, key=last.get)
+        if not last[best]:
+            return None, True
+        return next(c for c in custs if c["id"] == best), False
+
+    def _find_customer(self, channel: str, sender: str):
+        return self._resolve_sender(channel, sender)[0]
 
     @property
     def inbox(self):
@@ -1285,8 +1304,7 @@ class CollectService:
         if kind == "blacklist" and f.get("phone"):
             # מבקר סבב 3: גם מספר שעוד לא ב-DB נחסם (לקוח שיתווסף אחר כך עם המספר לא יקבל SMS)
             self.suppress("sms", f["phone"], "carrier_blacklist")
-            cust = self._find_customer("sms", f["phone"])
-            if cust:
+            for cust in self._find_customers("sms", f["phone"]):   # טלפון משותף ⇒ כולם
                 self._opt_out(cust["id"], "carrier_blacklist")
             res: dict = {"ok": True, "kind": kind}
         elif kind == "incoming_sms" and f.get("phone") and f.get("message") is not None:

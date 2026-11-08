@@ -94,7 +94,17 @@ class ConversationInbox:
         if channel not in ("sms", "email"):
             raise ValueError("ערוץ לא נתמך")
         now = self.svc.clock()
-        cust = self.svc._find_customer(channel, sender)
+        cust, ambiguous = self.svc._resolve_sender(channel, sender)
+        if cust is None and ambiguous:
+            # critic סבב 27: כתובת של כמה לקוחות ואף אחד מהם לא קיבל הודעה ⇒ לא משייכים ולא מנסחים
+            # (אין טיוטה עם חוב של אדם אחר). «הסר» ⇒ רשימת ההסרה לפי הכתובת ⇒ חל על כולם.
+            if {Intent.OPT_OUT, Intent.WRONG_PERSON} & set(detect(text)):
+                self.svc.suppress(channel, sender, "shared_contact_opt_out")
+            self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
+                      "created_at) VALUES(NULL,'in',?,?, 'shared_contact_ambiguous', 1, ?)",
+                      (channel, text, _iso(now)))
+            return {"intent": "shared_contact_ambiguous", "escalate": True, "escalation": "normal",
+                    "draft_id": None, "auto_reply": None, "plan_id": None}
         if cust is None:
             # מבקר סבב 3: «הסר» ממספר/כתובת שעוד לא ב-DB ⇒ רשימת ההסרה (גם ללקוח עתידי)
             if Intent.OPT_OUT in detect(text):

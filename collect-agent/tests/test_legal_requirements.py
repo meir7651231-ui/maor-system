@@ -552,3 +552,38 @@ def test_csv_same_phone_different_names_not_merged(svc):
     by = {r["number"]: r["customer_id"] for r in svc.db.q("SELECT number,customer_id FROM invoices")}
     assert by["3"] != by["4"] and by["4"] == by["5"]
     assert svc.db.one("SELECT COUNT(*) n FROM messages WHERE intent='shared_contact'")["n"] == 1
+
+
+def _shared_phone_csv(svc):
+    raw = ("מספר חשבונית,לקוח,סכום,תאריך לתשלום,טלפון\n"
+           "3,רונית לוי,300,2026-10-01,050-0001111\n4,משה כהן,400,2026-10-01,050-0001111\n").encode()
+    svc.import_csv(raw)
+    return {r["name"]: r["id"] for r in svc.db.q("SELECT id,name FROM customers")}
+
+
+def test_shared_phone_reply_goes_to_customer_who_got_last_message(svc):
+    """critic סבב 27: אחרי ההפרדה (סבב 26) — משה קיבל תזכורת ושאל «איך אפשר לשלם?» ⇒ טיוטה עם החוב
+    של **רונית** (300 ₪, החשבונית שלה) לאותו מספר, ו«שילמתי» השהה את רונית בזמן שמשה המשיך לקבל
+    תזכורות (`_find_customer` = הראשון בטבלה). עכשיו: מי שקיבל את ההודעה האחרונה למספר הזה."""
+    ids = _shared_phone_csv(svc)
+    svc.plan()
+    rems = {r["customer_id"]: r["id"] for r in svc.db.q(
+        "SELECT r.id, i.customer_id FROM reminders r JOIN invoices i ON i.id=r.invoice_id")}
+    svc.approve(rems[ids["משה כהן"]], confirm_open=True)
+    svc.dispatch()
+    svc.inbound("sms", "050-0001111", "איך אפשר לשלם?")
+    d = svc.db.one("SELECT * FROM drafts ORDER BY id DESC LIMIT 1")
+    assert d["customer_id"] == ids["משה כהן"] and "300" not in d["body"]
+    svc.inbound("sms", "050-0001111", "שילמתי")
+    paused = {r["name"]: r["paused_reason"] for r in svc.db.q("SELECT name,paused_reason FROM customers")}
+    assert paused["משה כהן"] and not paused["רונית לוי"]
+
+
+def test_shared_phone_reply_without_any_outbound_is_not_attributed(svc):
+    """אף אחד מהשניים לא קיבל הודעה ⇒ לא מנחשים: אין טיוטה עם חוב, כרטיס לבעל העסק."""
+    _shared_phone_csv(svc)
+    r = svc.inbound("sms", "050-0001111", "איך אפשר לשלם?")
+    assert r["draft_id"] is None and r["intent"] == "shared_contact_ambiguous"
+    assert svc.db.one("SELECT COUNT(*) n FROM drafts")["n"] == 0
+    r = svc.inbound("sms", "050-0001111", "הסר")
+    assert svc.suppressed("sms", "050-0001111")
