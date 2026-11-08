@@ -183,3 +183,25 @@ def test_r10_no_pii_bytes_left_in_db_file_after_purge(gi_client, clock, tmp_path
     raw = b"".join(f.read_bytes() for f in tmp_path.iterdir())
     leaks = [p for p in (NAME, "1234567", "c1@example", "רונית") if p.encode() in raw]
     assert not leaks, f"PII בבתים של קובץ ה-DB אחרי מחיקה: {leaks}"
+
+
+def test_r10_short_link_dies_with_purge(svc, clock):
+    """critic סבב 28: אחרי מחיקת 90 יום הקישור הקצר מה-SMS (/p/<code>) עדיין עבד — הציג את שם העסק
+    ומספר החשבונית, ו«כבר שילמתי»/«הפסקה» יצרו רשומות חדשות על לקוח שהותמם. עכשיו: 404."""
+    from fastapi.testclient import TestClient
+
+    from app.main import create_app
+    from tests.conftest import OWNER_TOKEN
+    _full_life(svc, clock)
+    code = svc.db.one("SELECT short_code FROM invoices WHERE short_code IS NOT NULL")["short_code"]
+    c = TestClient(create_app(svc, owner_token=OWNER_TOKEN))
+    assert c.get(f"/p/{code}").status_code == 200
+    clock.now += timedelta(days=91)
+    svc.purge_closed()
+    n_msgs = svc.db.one("SELECT COUNT(*) n FROM messages")["n"]
+    r = c.get(f"/p/{code}")
+    assert r.status_code == 404 and "1001" not in r.text
+    assert c.post(f"/p/{code}/paid").status_code == 404
+    assert c.post(f"/p/{code}/stop").status_code == 404
+    assert c.get(f"/p/{code}/pay").status_code == 404
+    assert svc.db.one("SELECT COUNT(*) n FROM messages")["n"] == n_msgs

@@ -850,7 +850,8 @@ class CollectService:
             self.db.x("UPDATE reminders SET body='', payload='[]' WHERE invoice_id=? OR id IN "
                       "(SELECT reminder_id FROM reminder_invoices WHERE invoice_id=?)",
                       (r["id"], r["id"]))
-            self.db.x("UPDATE invoices SET purged_at=?, payment_url=NULL WHERE id=?",
+            # critic סבב 28: גם הקוד של הקישור הקצר (/p/) — אחרת הוא חי לנצח אחרי המחיקה
+            self.db.x("UPDATE invoices SET purged_at=?, payment_url=NULL, short_code=NULL WHERE id=?",
                       (now, r["id"]))
             inv_n += 1
         for c in self.db.q("SELECT id FROM customers WHERE purged_at IS NULL AND "
@@ -1209,7 +1210,7 @@ class CollectService:
     # ---------- עמוד הקישור הקצר (/p/{code}) ----------
     def landing(self, code: str) -> dict:
         inv = self.db.one("SELECT * FROM invoices WHERE short_code=?", (code,))
-        if not inv:
+        if not inv or inv["purged_at"]:
             raise KeyError(code)
         cust = self.db.one("SELECT * FROM customers WHERE id=?", (inv["customer_id"],))
         items = self._landing_items(inv)
