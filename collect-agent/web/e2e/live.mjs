@@ -348,6 +348,48 @@ try {
   if (out) await fullShot(m, `${out}/v2-dashboard-mobile.png`);
   console.log('  ✓ מובייל 390px: 5 מסכים בלי גלילה רוחבית');
 
+  // 9) בורר מקור החשבוניות: iCount בהגדרות ⇒ השרת שומר source.system ⇒ סנכרון מול ה-mock של iCount
+  //    (בתוך התהליך, בלי רשת) ⇒ שחזור לחשבונית ירוקה. רק הבחירה נשלחת — אף פעם לא מפתח.
+  await p.goto(base + '/app/#/settings');
+  await p.getByTestId('settings-live').waitFor();
+  const srcBefore = (await api('/settings')).source;
+  ok(srcBefore.system === 'greeninvoice' && srcBefore.api_connected === true, 'מקור התחלתי: ' + JSON.stringify(srcBefore));
+  ok(await p.getByTestId('source-greeninvoice').getAttribute('aria-checked') === 'true', 'הבורר לא נטען מהשרת');
+  const putBodies = [];
+  const onReq = r => { if (r.method() === 'PUT' && r.url() === base + '/settings') putBodies.push(r.postData() ?? ''); };
+  p.on('request', onReq);
+  await p.getByTestId('source-icount').click();
+  ok(await p.getByTestId('source-icount').getAttribute('aria-checked') === 'true', 'iCount לא נבחר');
+  ok((await p.getByTestId('source-status').textContent()).includes('יתעדכן אחרי שמירה'), 'סטטוס לפני שמירה');
+  await p.getByTestId('settings-save').click();
+  await p.getByTestId('source-status').filter({ hasText: 'מחובר (סביבת בדיקה)' }).waitFor();
+  const srcIc = (await api('/settings')).source;
+  ok(srcIc.system === 'icount' && srcIc.api_connected === true && srcIc.system_label === 'iCount', 'השרת לא שמר iCount: ' + JSON.stringify(srcIc));
+  ok(putBodies.length === 1 && JSON.parse(putBodies[0]).source?.system === 'icount', 'גוף השמירה: ' + putBodies.join(' | '));
+  ok(!/token|secret|key/i.test(putBodies[0]), 'נשלח סוד בשמירת המקור');
+  const openBefore = (await api('/dashboard')).invoices.filter(r => r.status === 'open').length;
+  const icSync = await (await fetch(base + '/sync', { method: 'POST' })).json();
+  ok(icSync.open === 2 && icSync.closed === 0, 'סנכרון iCount: ' + JSON.stringify(icSync));
+  const dashIc = await api('/dashboard');
+  ok(dashIc.invoices.some(r => r.number === '3001') && dashIc.invoices.some(r => r.number === '3002'), 'חשבוניות ה-iCount לא נקלטו');
+  const openAfter = dashIc.invoices.filter(r => r.status === 'open').length;
+  ok(openAfter === openBefore + 2, `סנכרון iCount סגר חשבוניות של מקור אחר: ${openBefore} ⇒ ${openAfter}`);
+  await p.goto(base + '/app/#/invoices');
+  await p.getByText('נועה ברק (דמו)').first().waitFor();
+  ok((await api('/audit')).some(a => a.action === 'source_system_changed' && /icount/.test(a.detail ?? '')), 'אין audit להחלפת מקור');
+  // שחזור
+  await p.goto(base + '/app/#/settings');
+  await p.getByTestId('settings-live').waitFor();
+  await p.getByTestId('source-greeninvoice').click();
+  await p.getByTestId('settings-save').click();
+  await p.getByTestId('source-status').filter({ hasText: 'מחובר (סביבת בדיקה)' }).waitFor();
+  p.off('request', onReq);
+  ok((await api('/settings')).source.system === 'greeninvoice', 'השחזור לחשבונית ירוקה לא נשמר');
+  const giSync = await (await fetch(base + '/sync', { method: 'POST' })).json();
+  ok(giSync.open >= 5, 'סנכרון חשבונית ירוקה אחרי שחזור: ' + JSON.stringify(giSync));
+  if (out) await fullShot(p, `${out}/live-09-source.png`);
+  console.log('  ✓ בורר מקור: iCount נשמר בשרת, סנכרון מול ה-mock, שחזור לחשבונית ירוקה');
+
   // מסך הכניסה במובייל (לשונית חדשה בלי סשן ⇒ מסך הכניסה, בלי בקשות שנכשלות)
   const ml = await b.newPage({ viewport: { width: 390, height: 844 } });
   ml.on('pageerror', e => errors.push(String(e)));
