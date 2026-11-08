@@ -39,12 +39,12 @@ const M = (iso: string): number => {
 
 /** אגרגציית-עונתיות על כל התיק — מעבר-יחיד. */
 export function seasonality(supporters: readonly Supporter[], rate = 3.7): Seasonality {
-  const ils = new Array<number>(13).fill(0); // אינדקס 1–12
-  const gifts = new Array<number>(13).fill(0);
-  const donorHits = new Array<number>(13).fill(0);
+  const ils = Array.from<number>({ length: 13 }).fill(0); // אינדקס 1–12
+  const gifts = Array.from<number>({ length: 13 }).fill(0);
+  const donorHits = Array.from<number>({ length: 13 }).fill(0);
 
   for (const sp of supporters) {
-    const seen = new Array<boolean>(13).fill(false);
+    const seen = Array.from<boolean>({ length: 13 }).fill(false);
     const take = (date: string, amount: number, cur?: string) => {
       const m = M(date);
       if (!m) return;
@@ -90,7 +90,7 @@ export interface DonorRhythm {
 
 /** קצב-הנתינה של תורם-יחיד — החודש-הדומיננטי והאם הוא עונתי. */
 export function donorRhythm(sp: Supporter, rate = 3.7): DonorRhythm {
-  const ils = new Array<number>(13).fill(0);
+  const ils = Array.from<number>({ length: 13 }).fill(0);
   let total = 0, count = 0;
   const take = (date: string, amount: number, cur?: string) => {
     const m = M(date);
