@@ -11,7 +11,7 @@
 - **נבחרה:** אין משימת קוד לא-חסומה; לא נוסף קוד. **חסמים (מאיר):** ספק אחסון · LAWYER-QUESTIONS · DPA/RFQ · הרשמה ל-sandbox · נוסח TERMS §8 · שערי בטא 1–3, 9.
 
 ## 🧭 הפעלת מנהל · 8.11.2026 (הפעלה 46)
-- **מיזוג:** אין שינוי חדש ב-`collect-agent/` בשום ענף `claude/*` מלבד `stoic-mccarthy-23f03p` (e7cc3e23) — נדחה שוב (ניתן לסגור). CI `collect-agent.yml` קיים. אימות (venv מ-`requirements-dev.lock`): pytest **1140** ירוק (13 דולגו), ruff נקי, `demo.sh --check` ירוק מקצה לקצה.
+- **מיזוג:** מוזג בבסיס: תיקון critic סבב 22 (7b370a91, מושך מהסשן המקביל). `stoic-mccarthy-23f03p` נדחה שוב (ניתן לסגור). CI `collect-agent.yml` קיים. אימות (venv מ-`requirements-dev.lock`): pytest **1142** ירוק (13 דולגו), ruff נקי, `demo.sh --check` ירוק מקצה לקצה.
 - **נבחרה:** אין משימת קוד לא-חסומה; לא נוסף קוד. **חסמים (מאיר):** ספק אחסון · LAWYER-QUESTIONS · DPA/RFQ · הרשמה ל-sandbox · נוסח TERMS §8 · שערי בטא 1–3, 9.
 
 ## 🧭 הפעלת מנהל · 8.11.2026 (הפעלה 44)
