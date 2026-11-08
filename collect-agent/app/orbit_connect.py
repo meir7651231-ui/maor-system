@@ -255,9 +255,11 @@ maxlength="12"></label>
   var st=document.getElementById('st'), f=document.getElementById('f');
   var m=/(?:^#|&)h=([A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+)/.exec(location.hash||'');
   try{history.replaceState(null,'',location.pathname);}catch(e){}   // הטוקן יוצא משורת-הכתובת מיד
+  var e=/(?:^#|&)e=([A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+)/.exec(location.hash||'');   // זכאות (חיוב דרך אורביט)
   if(!m){st.textContent='הקישור אינו תקף או שפג תוקפו. חזרו לאורביט ונסו שוב.';return;}
+  var body={token:m[1]};if(e){body.ent=e[1];}
   fetch('/api/connect/orbit',{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({token:m[1]}),credentials:'omit',referrerPolicy:'no-referrer'})
+    body:JSON.stringify(body),credentials:'omit',referrerPolicy:'no-referrer'})
   .then(function(r){return r.ok?r.json():Promise.reject(r.status);})
   .then(function(d){
     document.getElementById('org').textContent=d.org;
