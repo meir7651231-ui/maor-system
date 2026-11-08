@@ -127,6 +127,10 @@ class DB:
         self.IntegrityError = opened.module.IntegrityError
         self.conn.row_factory = opened.module.Row
         self.conn.execute("PRAGMA foreign_keys = ON")
+        # critic סבב 24 (ר-10): מחיקת 90 הימים (`purge_closed`) עשתה UPDATE ל-NULL/'' — אבל התוכן
+        # הישן (שם, טלפון, מייל, טקסט של שולח לא מוכר) נשאר בבתים של הקובץ, בדפים/תאים ששוחררו.
+        # secure_delete ⇒ SQLite דורס באפסים כל תוכן שנמחק או הוחלף.
+        self.conn.execute("PRAGMA secure_delete = ON")
         self.conn.executescript(SCHEMA)
         cols = {r[1] for r in self.conn.execute("PRAGMA table_info(customers)")}
         if "paused_reason" not in cols:  # DB קיים מלפני העמודה
@@ -222,6 +226,13 @@ class DB:
     def one(self, sql: str, args: tuple = ()) -> sqlite3.Row | None:
         rows = self.q(sql, args)
         return rows[0] if rows else None
+
+    def scrub(self) -> None:
+        """VACUUM: בונה את הקובץ מחדש ⇒ דורס גם דפים פנויים וגם שטח פנוי בתוך דפים חיים
+        (שם נשארו השאריות — `freelist_count` היה 0)."""
+        with self.lock:
+            self.conn.commit()
+            self.conn.execute("VACUUM")
 
     def x(self, sql: str, args: tuple = ()) -> int:
         with self.lock:

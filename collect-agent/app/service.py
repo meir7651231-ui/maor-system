@@ -838,6 +838,7 @@ class CollectService:
         if inv_n or cust_n or unk:
             self.audit("system", "retention_purge", {"invoices": inv_n, "customers": cust_n,
                                                      "unknown_messages": len(unk)})
+            self.db.scrub()   # critic סבב 24: גם דפים פנויים מלפני secure_delete (DB קיים)
         return {"invoices": inv_n, "customers": cust_n}
 
     def _table_exists(self, name: str) -> bool:

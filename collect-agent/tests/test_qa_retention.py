@@ -152,3 +152,34 @@ def test_pii_patterns_sanity(svc, clock):
     _full_life(svc, clock)
     dump = _dump(svc)
     assert NAME in dump and re.search(r"(0501234567|972501234567|050-1234567)", dump)
+
+
+def _disk_svc(gi_client, clock, path, *, secure_delete=True):
+    from app.config import load_settings
+    from app.db import DB
+    from app.service import CollectService
+    s = load_settings({"BUSINESS_NAME": "סטודיו מאיר", "SMS_SENDER_ID": "StudioMeir",
+                       "PAYMENT_LINK": "https://www.greeninvoice.co.il/pay/studio",
+                       "PUBLIC_BASE_URL": "https://gabi.example", "SMS_WEBHOOK_KEY": "whk-test",
+                       "EMAIL_REPLY_TO": "owner@studio.example", "EMAIL_WEBHOOK_KEY": "ewk-test",
+                       "REAL_DATA_ALLOWED": "1"})
+    db = DB(str(path))
+    if not secure_delete:   # DB שנוצר לפני התיקון (דפים פנויים «מלוכלכים»)
+        db.conn.execute("PRAGMA secure_delete = OFF")
+    return CollectService(s, db, gi=gi_client, clock=clock)
+
+
+@pytest.mark.parametrize("secure_delete", [True, False])
+def test_r10_no_pii_bytes_left_in_db_file_after_purge(gi_client, clock, tmp_path, secure_delete):
+    """critic סבב 24: ה-dump (iterdump) נקי, אבל **הקובץ עצמו** החזיק אחרי 91 יום את השם, הטלפון,
+    המייל וגם את הטקסט של שולח לא מוכר — בדפים/תאים ששוחררו ב-UPDATE. «נמחק» בלי שנמחק.
+    עכשיו: secure_delete בכל חיבור + VACUUM אחרי מחיקה (גם ל-DB קיים עם דפים מלוכלכים)."""
+    path = tmp_path / "g.sqlite3"
+    svc = _disk_svc(gi_client, clock, path, secure_delete=secure_delete)
+    _full_life(svc, clock)
+    clock.now += timedelta(days=91)
+    svc.purge_closed()
+    svc.db.conn.commit()
+    raw = b"".join(f.read_bytes() for f in tmp_path.iterdir())
+    leaks = [p for p in (NAME, "1234567", "c1@example", "רונית") if p.encode() in raw]
+    assert not leaks, f"PII בבתים של קובץ ה-DB אחרי מחיקה: {leaks}"
