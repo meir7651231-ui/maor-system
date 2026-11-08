@@ -61,6 +61,19 @@ class RivhitMock:
         d["paid_amount"] = round(float(d["paid_amount"]) + paid, 2)
         d["balance"] = round(float(d["total_amount"]) - d["paid_amount"], 2)
 
+    def credit(self, customer_id: int, amount: float, *, document_type: int = 2,
+               issue_date: str = "05/10/2026") -> int:
+        """זיכוי פתוח ללקוח: בדוח היתרות מופיע עם יתרה שלילית (לאמת — סוג המסמך פר-חשבון)."""
+        num = 8000 + len(self.docs) + len(self.closed) + 1
+        name = next((d["customer_name"] for d in self.docs.values()
+                     if d["customer_id"] == customer_id), "")
+        self.docs[(customer_id, document_type, num)] = {
+            "customer_id": customer_id, "document_type": document_type, "document_number": num,
+            "customer_name": name, "issue_date": issue_date, "due_date": "",
+            "total_amount": -float(amount), "paid_amount": 0.0, "balance": -float(amount),
+            "currency_id": 1}
+        return num
+
     @staticmethod
     def _ok(data: dict) -> dict:
         return {"error_code": 0, "client_message": "", "debug_message": "", "data": data}

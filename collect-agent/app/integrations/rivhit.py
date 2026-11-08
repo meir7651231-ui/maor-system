@@ -23,18 +23,24 @@
   • currency_id: 0/1 = ש״ח. כל מטבע אחר ⇒ **מדלגים** (לא מזכירים על סכום שאיננו יודעים לתייג).
   • מספרי סוג מסמך מוגדרים לכל חשבון (Document.TypeList) ⇒ לא ממפים לקודי חשבונית ירוקה (doc_type=0).
   • אין עימוד מתועד לדוח היתרות.
+  • **זיכויים (critic 2.16 / סבב 20):** סוג מסמך הזיכוי מוגדר לכל חשבון (Document.TypeList), ואין
+    בדוח היתרות שדה קישור לחשבונית המקורית ⇒ **לעולם לא מקזזים**. שורה עם יתרה שלילית (balance<0)
+    בדוח היתרות של הלקוח = זיכוי פתוח (לאמת) ⇒ הלקוח מושהה לבדיקת בעל העסק (`credit_review`), כמו
+    זיכוי בלי קישור ב-`greeninvoice.net_credits`. פעם קודם השורה הזו נבלעה בשקט (סכום שלילי ⇒ דילוג)
+    והלקוח קיבל תזכורת על הסכום המלא.
 """
 from __future__ import annotations
 
 from collections.abc import Iterator
+from dataclasses import replace
 from typing import Any
 
 import httpx
 
 from ..config import SafetyError
-from ..greeninvoice import Invoice, _to_agorot
+from ..greeninvoice import TYPE_CREDIT, Invoice, Netting, _to_agorot, net_credits
 from .base import IntegrationError, ProviderError, classify_status, guard_transport
-from .sources import due_or_estimate, parse_il_date
+from .sources import CreditAmbiguous, due_or_estimate, parse_il_date
 
 RIVHIT_BASE = "https://api.rivhit.co.il/online/RivhitOnlineAPI.svc"
 PREFIX = "rivhit:"
@@ -80,6 +86,25 @@ def map_rivhit_open_doc(d: dict[str, Any], customer: dict[str, Any] | None = Non
     )
 
 
+def _num(v: Any) -> float:
+    try:
+        return float(v or 0)
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def is_rivhit_credit(d: dict[str, Any]) -> bool:
+    """יתרה שלילית בדוח היתרות = זיכוי/החזר שעוד לא נוצל (לאמת)."""
+    return _num(d.get("balance")) < 0
+
+
+def map_rivhit_credit(d: dict[str, Any], customer: dict[str, Any] | None = None) -> Invoice:
+    """זיכוי — בלי קישור (אין שדה מתועד) ⇒ net_credits שולח ל-review, לא מקזז. גם במטבע זר."""
+    inv = map_rivhit_open_doc({**d, "balance": abs(_num(d.get("balance"))), "currency_id": None},
+                              customer)
+    return replace(inv, doc_type=TYPE_CREDIT, linked_ids=())
+
+
 class RivhitClient:
     """שלב 1: חיבור רק דרך httpx.MockTransport. בלי transport ⇒ SafetyError בכל קריאה."""
 
@@ -119,6 +144,7 @@ class RivhitClient:
         return [r for r in rows if isinstance(r, dict)]
 
     def iter_open_invoices(self) -> Iterator[Invoice]:
+        """גולמי — **לפני** בדיקת זיכויים. הסנכרון משתמש ב-open_debts()."""
         self._customers = {}
         for d in self._open_docs():
             cid = d.get("customer_id")
@@ -126,17 +152,49 @@ class RivhitClient:
             if inv.amount_agorot > 0:
                 yield inv
 
-    def get_document(self, external_id: str) -> Invoice:
-        """ר-4: דוח היתרות הפתוחות של הלקוח, מסונן לסוג המסמך. המסמך כבר לא שם ⇒ סגור (status=1).
-        כל כשל אחר ⇒ חריגה (השירות חוסם שליחה)."""
+    def open_debts(self) -> Netting:
+        """אותו מעבר על דוח היתרות: חובות + זיכויים פתוחים (יתרה שלילית) ⇒ net_credits.
+        הזיכויים בלי קישור ⇒ review ללקוח, אף פעם לא קיזוז לפי ניחוש."""
+        self._customers = {}
+        debts, credits = [], []
+        for d in self._open_docs():
+            cid = d.get("customer_id")
+            c = self._customer(cid) if cid not in (None, "", 0) else None
+            if is_rivhit_credit(d):
+                credits.append(map_rivhit_credit(d, c))
+                continue
+            inv = map_rivhit_open_doc(d, c)
+            if inv.amount_agorot > 0:
+                debts.append(inv)
+        return net_credits(debts, credits) if debts else Netting([])
+
+    def credits_for(self, external_id: str, since=None, doc: Invoice | None = None) -> int:
+        """רענון לפני שליחה: זיכוי פתוח ללקוח (יתרה שלילית בדוח שלו) ⇒ CreditAmbiguous — אי אפשר
+        לשייך אותו למסמך (אין קישור מתועד). אין זיכויים ⇒ 0. כשל ⇒ חריגה (השירות חוסם שליחה)."""
+        cid, _, _ = self._parse(external_id)
+        credits = [map_rivhit_credit(d, self._customer(cid))
+                   for d in self._open_docs(customer_id=cid) if is_rivhit_credit(d)]
+        if credits:
+            raise CreditAmbiguous([(c, "credit_unlinked") for c in credits])
+        return 0
+
+    @staticmethod
+    def _parse(external_id: str) -> tuple[int, int, int]:
         if not external_id.startswith(PREFIX):
             raise IntegrationError(f"רווחית: מזהה של מקור אחר ({external_id[:20]})")
         parts = external_id[len(PREFIX):].split(":")
         if len(parts) != 3 or not all(p.lstrip("-").isdigit() for p in parts):
             raise IntegrationError("רווחית: מזהה מסמך לא תקין")
         cid, dtype, dnum = (int(p) for p in parts)
+        return cid, dtype, dnum
+
+    def get_document(self, external_id: str) -> Invoice:
+        """ר-4: דוח היתרות הפתוחות של הלקוח, מסונן לסוג המסמך. המסמך כבר לא שם ⇒ סגור (status=1).
+        כל כשל אחר ⇒ חריגה (השירות חוסם שליחה)."""
+        cid, dtype, dnum = self._parse(external_id)
         for d in self._open_docs(customer_id=cid, document_type=dtype):
-            if _int(d.get("document_number")) == dnum and _int(d.get("document_type")) in (dtype, None):
+            if _int(d.get("document_number")) == dnum and \
+                    _int(d.get("document_type")) in (dtype, None) and not is_rivhit_credit(d):
                 return map_rivhit_open_doc(d, self._customer(cid))
         return Invoice(external_id=external_id, number=str(dnum), doc_type=0, amount_agorot=0,
                        currency="ILS", issued=None, due=None,

@@ -146,3 +146,32 @@ def test_full_flow_through_collect_service(mock, clock):
     assert svc._reminder(rid)["status"] == "cancelled"
     assert svc.sync() == {"open": 1, "closed": 0}   # כבר סגורה ע״י הרענון
     assert mock.write_attempts == []
+
+
+# ───────── זיכויים (critic סבב 21 · 21.1/21.2) ─────────
+def test_refunds_are_read_only_with_tolerant_link_and_marked_unverified(ic, mock):
+    """refund = חשבונית זיכוי; הקישור ב-based_on — שניהם «לאמת» ומתועדים ככאלה."""
+    from app.integrations import icount
+    assert "refund" in icount.__doc__ and "לאמת" in icount.__doc__ and "based_on" in icount.__doc__
+    n = mock.credit("invoice", 3001, 250)
+    list(ic.iter_open_invoices())
+    [c] = list(ic.iter_credits())
+    assert (c.doc_type, c.amount_agorot, c.linked_ids) == (330, 25000, ("icount:invoice-3001",))
+    # חיפוש הזיכויים בלי פילטר סטטוס (סטטוס של זיכוי לא מתועד) ⇒ גם «סגור» נספר; מבוטל לא
+    assert all("status" not in b for m, b in mock.requests
+               if m == "doc/search" and b["doctype"] == "refund")
+    mock.cancel("refund", n)
+    assert list(ic.iter_credits()) == []
+    assert map_icount_doc({"doctype": "refund", "docnum": 1, "totalwithvat": -90,
+                           "orig_doctype": "deal", "orig_docnum": 7}).linked_ids == ("icount:deal-7",)
+    assert mock.write_attempts == []
+
+
+def test_credits_for_and_open_debts(ic, mock):
+    mock.credit("invoice", 3001, 400)
+    net = ic.open_debts()
+    assert {i.external_id: i.amount_agorot for i in net.invoices} == \
+        {"icount:invoice-3001": 110000, "icount:deal-3002": 40000} and net.review == []
+    assert ic.credits_for("icount:invoice-3001") == 40000
+    with pytest.raises(IntegrationError):
+        ic.credits_for("doc1")

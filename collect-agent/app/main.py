@@ -36,6 +36,8 @@ class EmailIn(BaseModel):
     sender: str
     text: str
     message_id: str = ""
+    # critic 3.6.7: כותרת Authentication-Results כפי שספק ה-inbound-parse מעביר (שם השדה לאמת לכל ספק)
+    auth_results: str = Field(default="", max_length=4000)
 
 
 class DraftEdit(BaseModel):
@@ -376,7 +378,7 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         if not svc.s.email_webhook_key or not hmac.compare_digest(
                 k.encode("utf-8"), svc.s.email_webhook_key.encode("utf-8")):
             raise HTTPException(403, "forbidden")
-        return svc.email_webhook(m.sender, m.text, m.message_id)
+        return svc.email_webhook(m.sender, m.text, m.message_id, auth_results=m.auth_results)
 
     @app.post("/webhooks/greeninvoice")
     async def gi_webhook(request: Request, k: str = ""):

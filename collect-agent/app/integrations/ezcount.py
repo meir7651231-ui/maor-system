@@ -20,6 +20,10 @@
   • סימון ביטול/סגירה (is_cancelled / cancelled / status). כל סימון אמת ⇒ לא חוב.
   • אין webhook מתועד לקריאה ⇒ סנכרון לפי סבב בלבד.
 רק סוגים 300/305 נחשבים חוב (320 = חשבונית מס קבלה, שולמה מעצם הגדרתה).
+**זיכויים (critic 2.16 / סבב 20):** סוג 330 = זיכוי (מתועד ב-createDoc). שם שדה הקישור לחשבונית
+המקורית **לא מתועד** ⇒ קריאה סובלנית (`parent_uuid` · `parent` · `linked_docs` [uuid]), לאמת.
+בלי קישור מזוהה ⇒ לא מקזזים ⇒ הלקוח מושהה לבדיקת בעל העסק (`credit_review`), כמו
+`greeninvoice.net_credits`. חוב עם יתרה < price_total ועם זיכוי מקושר ⇒ review (אולי כבר נכלל).
 """
 from __future__ import annotations
 
@@ -29,9 +33,9 @@ from typing import Any
 import httpx
 
 from ..config import SafetyError
-from ..greeninvoice import Invoice, _to_agorot
+from ..greeninvoice import TYPE_CREDIT, Invoice, Netting, _to_agorot, net_credits
 from .base import IntegrationError, ProviderError, classify_status, guard_transport
-from .sources import due_or_estimate, parse_il_date
+from .sources import credits_on_doc, due_or_estimate, parse_il_date
 
 EZCOUNT_DEMO_BASE = "https://demo.ezcount.co.il"
 SEARCH_PATH = "/api/searchDocs"      # לאמת — לא מתועד בפומבי (placeholder, נבדק רק מול ה-mock)
@@ -44,10 +48,18 @@ def _flag(d: dict[str, Any], *keys: str) -> bool:
     return any(d.get(k) in (True, 1, "1", "true") for k in keys)
 
 
+def _links(d: dict[str, Any]) -> tuple[str, ...]:
+    """לאמת: שם שדה הקישור של זיכוי לא מתועד. כל צורה אחרת ⇒ אין קישור (⇒ review)."""
+    raw = [d.get("parent_uuid"), d.get("parent")] + list(d.get("linked_docs") or [])
+    return tuple(dict.fromkeys(f"{PREFIX}{x}" for x in raw if isinstance(x, str) and x))
+
+
 def map_ezcount_doc(d: dict[str, Any]) -> Invoice:
     dtype = int(d.get("type") or 0)
     bal = next((d[k] for k in ("balance", "remaining", "amount_due") if d.get(k) not in (None, "")),
                None)
+    if dtype == TYPE_CREDIT:      # בזיכוי: הסכום הוא סכום המסמך
+        bal = abs(float(d.get("price_total") or 0))
     closed = _flag(d, "is_cancelled", "cancelled", "is_closed", "closed") or \
         str(d.get("status", "")).lower() in ("closed", "cancelled", "paid")
     issued = parse_il_date(d.get("date"))
@@ -56,7 +68,8 @@ def map_ezcount_doc(d: dict[str, Any]) -> Invoice:
         external_id=f"{PREFIX}{d.get('doc_uuid', '')}",
         number=str(d.get("doc_number") or ""),
         doc_type=dtype,
-        amount_agorot=_to_agorot(bal) if bal is not None and dtype in DEBT_TYPES else 0,
+        amount_agorot=_to_agorot(bal) if bal is not None and dtype in (*DEBT_TYPES, TYPE_CREDIT)
+        else 0,
         currency=str(d.get("main_currency_iso") or "ILS").upper(),
         issued=issued,
         due=due,
@@ -66,6 +79,9 @@ def map_ezcount_doc(d: dict[str, Any]) -> Invoice:
         client_email=str(d.get("customer_email") or ""),
         status=1 if closed else 0,
         due_estimated=estimated,
+        linked_ids=_links(d) if dtype == TYPE_CREDIT else (),
+        gross_agorot=_to_agorot(d["price_total"]) if dtype in DEBT_TYPES and bal is not None
+        and d.get("price_total") not in (None, "") else 0,
     )
 
 
@@ -108,6 +124,27 @@ class EZcountClient:
                     yield inv
             if len(rows) < self.page_size:
                 return
+
+    def iter_credits(self) -> Iterator[Invoice]:
+        """זיכויים (330) שלא בוטלו. נקודת החיפוש עצמה «לאמת» (ראו למעלה)."""
+        for page in range(1, self.max_pages + 1):
+            b = self._call({"types": [TYPE_CREDIT], "page": page, "page_size": self.page_size})
+            rows = [r for r in (b.get("docs") or []) if isinstance(r, dict)]
+            for d in rows:
+                inv = map_ezcount_doc(d)
+                if inv.status == 0 and inv.amount_agorot > 0 and d.get("doc_uuid"):
+                    yield inv
+            if len(rows) < self.page_size:
+                return
+
+    def open_debts(self) -> Netting:
+        debts = list(self.iter_open_invoices())
+        return net_credits(debts, list(self.iter_credits())) if debts else Netting([])
+
+    def credits_for(self, external_id: str, since=None, doc: Invoice | None = None) -> int:
+        if not external_id.startswith(PREFIX):
+            raise IntegrationError(f"EZcount: מזהה של מקור אחר ({external_id[:20]})")
+        return credits_on_doc(self.iter_credits(), doc if doc is not None else external_id)
 
     def get_document(self, external_id: str) -> Invoice:
         if not external_id.startswith(PREFIX):

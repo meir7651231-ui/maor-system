@@ -24,6 +24,12 @@
   • אילו שדות מוחזרים בחיפוש ב-detail_level=2 («+client details+detailed totals») — המיפוי סובלני;
     בלי remainingsum/balance למסמך «נסגר חלקית» ⇒ סכום 0 (לא מזכירים על סכום לא ידוע).
   • מבנה גוף ה-webhook — אצלנו הוא רק טריגר לסנכרון.
+  • **זיכויים (critic 2.16 / סבב 20):** סוג המסמך `refund` = חשבונית זיכוי (לאמת). שם שדה הקישור
+    לחשבונית המקורית **לא מתועד** בפומבי ⇒ קריאה סובלנית (`based_on` [{doctype, docnum}] ·
+    `orig_doctype`+`orig_docnum`), לאמת. זיכוי בלי קישור מזוהה ⇒ **לא מקזזים** ⇒ הלקוח מושהה
+    לבדיקת בעל העסק (`credit_review`), כמו `greeninvoice.net_credits`. זיכוי מבוטל (is_cancelled) ⇒
+    לא נספר. חוב «נסגר חלקית» עם זיכוי מקושר ⇒ review (אולי הזיכוי כבר בתוך remainingsum).
+  • המרת deal ⇒ invoice (אותו חוב פעמיים?) — לא ידוע אם iCount סוגרת את ה-deal; לא ממומש, לאמת.
 """
 from __future__ import annotations
 
@@ -34,13 +40,14 @@ from typing import Any
 import httpx
 
 from ..config import SafetyError
-from ..greeninvoice import Invoice, _to_agorot
+from ..greeninvoice import TYPE_CREDIT, Invoice, Netting, _to_agorot, net_credits
 from .base import IntegrationError, ProviderError, classify_status, guard_transport
-from .sources import due_or_estimate, parse_il_date
+from .sources import credits_on_doc, due_or_estimate, parse_il_date
 
 ICOUNT_BASE = "https://api.icount.co.il/api/v3.php"
 ICOUNT_DEBT_DOCTYPES = ("invoice", "deal")   # חשבונית מס · חשבון עסקה (לאמת)
-ICOUNT_DOCTYPE_CODES = {"invoice": 305, "deal": 300}   # ⇒ קודי הסוג של חשבונית ירוקה, לאחידות
+ICOUNT_CREDIT_DOCTYPES = ("refund",)          # חשבונית זיכוי (לאמת)
+ICOUNT_DOCTYPE_CODES = {"invoice": 305, "deal": 300, "refund": TYPE_CREDIT}   # ⇒ קודי חשבונית ירוקה
 PREFIX = "icount:"
 STATUS_OPEN, STATUS_CLOSED, STATUS_PARTIAL = 0, 1, 2
 SEARCH_DETAIL_LEVEL = 2   # 1 = רק תאריך+לקוח+סכום כולל; 2 = פרטי לקוח + סכומים מפורטים (לאמת)
@@ -55,10 +62,29 @@ def _amount(d: dict[str, Any], status: int) -> Any:
     return d.get("totalwithvat", d.get("total", 0))
 
 
+def _ref(doctype: Any, docnum: Any) -> str:
+    return f"{PREFIX}{doctype}-{docnum}" if doctype and docnum not in (None, "") else ""
+
+
+def _links(d: dict[str, Any]) -> tuple[str, ...]:
+    """לאמת: שם שדה הקישור של זיכוי לחשבונית לא מתועד. סובלני לשתי צורות; כל דבר אחר ⇒ אין קישור."""
+    out: list[str] = []
+    for x in d.get("based_on") or []:
+        if isinstance(x, dict):
+            out.append(_ref(x.get("doctype"), x.get("docnum")))
+    out.append(_ref(d.get("orig_doctype"), d.get("orig_docnum")))
+    return tuple(dict.fromkeys(x for x in out if x))
+
+
 def map_icount_doc(d: dict[str, Any]) -> Invoice:
     """מיפוי סובלני — שמות השדות לפי התיעוד הציבורי של iCount v3 (doc_info), לאמת מול חשבון אמיתי."""
     raw_status = int(d.get("status", 0) or 0)
-    amount = _amount(d, raw_status)
+    credit = str(d.get("doctype") or "") in ICOUNT_CREDIT_DOCTYPES
+    # בזיכוי: סכום הזיכוי הוא סכום המסמך (לא «יתרה לתשלום»)
+    amount = abs(float(d.get("totalwithvat", d.get("total", 0)) or 0)) if credit \
+        else _amount(d, raw_status)
+    gross = d.get("totalwithvat") if not credit and d.get("remainingsum") not in (None, "") \
+        else None
     email = d.get("client_email") or d.get("email") or ""
     if isinstance(email, list):
         email = email[0] if email else ""
@@ -85,6 +111,8 @@ def map_icount_doc(d: dict[str, Any]) -> Invoice:
         client_email=str(email),
         status=status,
         due_estimated=estimated,
+        linked_ids=_links(d) if credit else (),
+        gross_agorot=_to_agorot(gross) if gross not in (None, "") else 0,
     )
 
 
@@ -144,9 +172,12 @@ class ICountClient:
                 return self._call(path, {**payload, **self._auth_payload()})
             raise
 
-    def search_page(self, doctype: str, offset: int) -> dict[str, Any]:
-        payload = {"doctype": doctype, "status": STATUS_OPEN,
-                   "limit": self.page_size, "offset": offset, "detail_level": SEARCH_DETAIL_LEVEL}
+    def search_page(self, doctype: str, offset: int,
+                    status: int | None = STATUS_OPEN) -> dict[str, Any]:
+        payload = {"doctype": doctype, "limit": self.page_size, "offset": offset,
+                   "detail_level": SEARCH_DETAIL_LEVEL}
+        if status is not None:
+            payload["status"] = status
         try:
             return self._authed("/doc/search", payload)
         except ProviderError as e:
@@ -177,24 +208,55 @@ class ICountClient:
         if d.get("doctype") and d.get("docnum") not in (None, ""):
             self._index[inv.external_id] = (str(d["doctype"]), str(d["docnum"]))
 
+    def _rows(self, doctype: str, status: int | None = STATUS_OPEN) -> Iterator[dict[str, Any]]:
+        offset = 0
+        for _ in range(self.max_pages):
+            b = self.search_page(doctype, offset, status)
+            rows = b.get("results_list") or b.get("docs") or []
+            if isinstance(rows, dict):
+                rows = list(rows.values())
+            yield from (r for r in rows if isinstance(r, dict))
+            if len(rows) < self.page_size:
+                return
+            offset += self.page_size
+
     def iter_open_invoices(self) -> Iterator[Invoice]:
+        """גולמי — **לפני** קיזוז זיכויים. הסנכרון משתמש ב-open_debts()."""
         self._clients = {}
         for doctype in ICOUNT_DEBT_DOCTYPES:
-            offset = 0
-            for _ in range(self.max_pages):
-                b = self.search_page(doctype, offset)
-                rows = b.get("results_list") or b.get("docs") or []
-                if isinstance(rows, dict):
-                    rows = list(rows.values())
-                for d in rows:
-                    d = self._enrich(d)
-                    inv = map_icount_doc(d)
-                    self._remember(d, inv)
-                    if inv.amount_agorot > 0 and inv.status == 0:
-                        yield inv
-                if len(rows) < self.page_size:
-                    break
-                offset += self.page_size
+            for d in self._rows(doctype):
+                d = self._enrich(d)
+                inv = map_icount_doc(d)
+                self._remember(d, inv)
+                if inv.amount_agorot > 0 and inv.status == 0:
+                    yield inv
+
+    def iter_credits(self) -> Iterator[Invoice]:
+        """חשבוניות זיכוי שלא בוטלו (כל סטטוס). הקישור מתורגם למזהה שבו החוב נשמר בסנכרון
+        (ייתכן doc_id), כדי ש-net_credits ישייך לפי אותו external_id."""
+        rev = {v: k for k, v in self._index.items()}
+        for doctype in ICOUNT_CREDIT_DOCTYPES:
+            for d in self._rows(doctype, status=None):
+                inv = map_icount_doc(d)
+                if inv.status == 4 or inv.amount_agorot <= 0:
+                    continue
+                links = []
+                for lid in inv.linked_ids:
+                    t, _, n = lid[len(PREFIX):].partition("-")
+                    links.append(rev.get((t, n), lid))
+                yield dataclasses.replace(inv, linked_ids=tuple(links))
+
+    def open_debts(self) -> Netting:
+        """החוב הפתוח **אחרי** קיזוז זיכויים — אותו כלל שמרני של חשבונית ירוקה (net_credits)."""
+        debts = list(self.iter_open_invoices())
+        if not debts:
+            return Netting([])
+        return net_credits(debts, list(self.iter_credits()))
+
+    def credits_for(self, external_id: str, since=None, doc: Invoice | None = None) -> int:
+        """רענון לפני שליחה: זיכויים עדכניים של המסמך הזה. ספק ⇒ CreditAmbiguous (לא מנחשים)."""
+        self._locate(external_id)    # מזהה זר/לא מוכר ⇒ IntegrationError (השירות חוסם שליחה)
+        return credits_on_doc(self.iter_credits(), doc if doc is not None else external_id)
 
     def _locate(self, external_id: str) -> tuple[str, str]:
         if not external_id.startswith(PREFIX):
