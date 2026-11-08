@@ -521,10 +521,23 @@ class CollectService:
             return orbit_entitlement.evaluate(ent, self.clock().date(), trial_days=self.s.trial_days,
                                               price_ils_month=self.s.price_ils_month)
         info = {"price_ils_month": self.s.price_ils_month, "trial_days": self.s.trial_days}
-        if not self.s.trial_start:
+        trial_start = self.s.trial_start
+        if not trial_start:
+            # critic סבב 21 (שוחזר): עסק מקושר לאורביט (חיוב דרך אורביט) שלא קיבל אף זכאות מאומתת היה
+            # active לתמיד. הזכאות עוברת בדפדפן של הלקוח, ומספיק להסיר אותה. עכשיו: ניסיון מתאריך הקישור.
+            try:
+                link = self.db.one("SELECT created_at FROM orbit_links LIMIT 1")
+            except Exception:   # noqa: BLE001 — טבלת הקישור נוצרת רק עם OrbitConnect (אין ⇒ לא מקושר)
+                link = None
+            if link and link["created_at"]:
+                try:
+                    trial_start = date.fromisoformat(str(link["created_at"])[:10]).isoformat()
+                except ValueError:   # תאריך פגום לא מפיל את trial(); שמרני ⇒ הניסיון מתחיל היום
+                    trial_start = self.clock().date().isoformat()
+        if not trial_start:
             return {**info, "on_trial": False, "active": True, "days_left": None,
                     "ending_soon": False}
-        start = date.fromisoformat(self.s.trial_start)
+        start = date.fromisoformat(trial_start)
         left = self.s.trial_days - (self.clock().date() - start).days
         return {**info, "on_trial": True, "active": left > 0, "days_left": max(left, 0),
                 "ending_soon": 0 < left <= TRIAL_WARN_DAYS,
