@@ -33,7 +33,6 @@ from .integrations.sources import (
     source_provider,
 )
 from .policy import (
-    MANUAL_ONLY_AFTER_DAYS,
     MAX_REMINDERS_PER_INVOICE,
     OWNER_HOLDS,
     RETENTION_DAYS,
@@ -41,6 +40,7 @@ from .policy import (
     Policy,
     customer_blocked,
     gap_ok,
+    invoice_too_old,
 )
 
 # ימים אחרי מועד-התשלום לכל שלב
@@ -663,8 +663,7 @@ class CollectService:
                            "ORDER BY due, id", (cid,)):
             if r["id"] in rejected:
                 continue  # בעל העסק דחה ⇒ אין תזכורות נוספות לחשבונית הזו
-            born = r["issued"] or r["due"]
-            if born and (now.date() - date.fromisoformat(born)).days > MANUAL_ONLY_AFTER_DAYS:
+            if invoice_too_old(r, now.date()):
                 self._notify_too_old(r, cust)   # ר-7: אין שום אוטומציה, רק התראה אחת
                 continue
             if r["due"]:

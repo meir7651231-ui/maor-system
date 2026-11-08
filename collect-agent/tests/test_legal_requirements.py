@@ -472,3 +472,20 @@ def test_r14_no_money_handling_code():
     for forbidden in (r"card_?number", r"\bcvv\b", r"stripe\.", r"/charges?\b", r"payout",
                       r"transfer_funds"):
         assert not re.search(forbidden, src, re.I), forbidden
+
+
+def test_r7_old_invoice_no_auto_plan_or_auto_reply_in_conversation(api, svc, fake_gi):
+    """critic סבב 23: ר-7 נאכף רק בתור התזכורות (`_plan_customer`). בשיחה, לקוח שכל החוב שלו
+    בחשבונית מ-2022 שאל «אפשר בתשלומים?» ⇒ טיוטת פריסה 3×400 ₪ על החשבונית הישנה, הסדר
+    נרשם, ובעל העסק לא קיבל שום סימן שזו חשבונית מעל 3 שנים. עכשיו: אין הצעה ואין הסדר,
+    כרטיס «טיפול ידני» (תגית manual_only_old), ואין שליחה אוטומטית."""
+    fake_gi.docs[0]["documentDate"] = "2022-01-01"
+    fake_gi.docs[0]["dueDate"] = "2022-02-01"
+    api.post("/sync")
+    r = api.post("/inbound", json={"channel": "sms", "sender": "0501234567",
+                                   "text": "אפשר לשלם בתשלומים?"}).json()
+    assert r["plan_id"] is None and not r["auto_sent"]
+    assert svc.db.one("SELECT COUNT(*) n FROM plans")["n"] == 0
+    assert "manual_only_old" in r["tags"]
+    assert any("3 שנים" in a for a in r["owner_actions"])
+    assert "400" not in (r["owner_summary"] or "")

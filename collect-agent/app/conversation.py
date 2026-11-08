@@ -111,6 +111,7 @@ class Context:
     offered_plan: tuple[Installment, ...] = ()
     bot_turns: int = 0                # כמה תשובות שלנו כבר היו בשיחה הזו
     policy: OwnerPolicy = field(default_factory=OwnerPolicy)
+    manual_old: bool = False          # ר-7: יש חשבונית פתוחה מעל 3 שנים ⇒ אין הצעת פריסה אוטומטית
 
     @property
     def total_agorot(self) -> int:
@@ -699,8 +700,8 @@ def redact_for_llm(text: str, ctx: Context) -> str:
 
 # ═══════════════════════════ הצעת פריסה ═══════════════════════════
 def propose_plan(ctx: Context, requested: int | None, start: date | None = None) -> tuple[Installment, ...]:
-    if ctx.mixed_currency:
-        return ()   # אין סה״כ אחד לפרוס (critic: הצעה יצאה בלי שהסדר נרשם)
+    if ctx.mixed_currency or ctx.manual_old:
+        return ()   # אין סה״כ אחד לפרוס (critic: הצעה יצאה בלי שהסדר נרשם) / ר-7: ידני בלבד
     total = ctx.total_agorot
     if total <= 0:
         return ()
@@ -995,6 +996,14 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
                 summary += f" ⚠️ ביקש/ה {requested} — מעל התקרה שלך ({p.max_installments})."
                 actions.append(f"להחליט אם לאשר {requested} תשלומים")
             actions.append("לאשר את טיוטת ההצעה לפני שליחה")
+        elif ctx.manual_old and p.auto_offer_plan and not sensitive:
+            # critic סבב 23 (ר-7): חשבונית מעל 3 שנים ⇒ אין שום אוטומציה, גם לא הצעת פריסה בשיחה
+            reply = (f"{hi}תודה ששיתפתם. נחזור אליכם אישית כדי למצוא יחד פתרון שמתאים לכם.{sig}")
+            summary = (f"{name} מבקש/ת הסדר/מתקשה לשלם. לא הוצעה פריסה אוטומטית: יש חשבונית "
+                       f"פתוחה בת יותר מ-3 שנים.")
+            actions.append("להציע הסדר ידנית (חשבונית בת יותר מ-3 שנים — טיפול ידני בלבד)")
+            tags.append("manual_only_old")
+            state = State.AWAITING_OWNER
         elif ctx.mixed_currency and p.auto_offer_plan and not sensitive:
             reply = (f"{hi}תודה ששיתפתם. נחזור אליכם אישית כדי למצוא יחד פתרון שמתאים לכם.{sig}")
             summary = (f"{name} מבקש/ת הסדר/מתקשה לשלם. לא הוצעה פריסה אוטומטית: החשבוניות "

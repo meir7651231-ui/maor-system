@@ -60,6 +60,12 @@ HOLIDAYS_VALID_UNTIL = date(2029, 8, 31)
 MIN_GAP = timedelta(hours=72)
 MAX_REMINDERS_PER_INVOICE = 3
 MANUAL_ONLY_AFTER_DAYS = 3 * 365   # ר-7: חשבונית מעל 3 שנים ⇒ טיפול ידני בלבד
+
+
+def invoice_too_old(r, today: date) -> bool:
+    """ר-7: חשבונית (לפי תאריך ההנפקה, אחרת המועד) מעל 3 שנים ⇒ טיפול ידני בלבד."""
+    born = r["issued"] or r["due"]
+    return bool(born) and (today - date.fromisoformat(born)).days > MANUAL_ONLY_AFTER_DAYS
 RETENTION_DAYS = 90                # ר-10: חוב סגור ⇒ מחיקה/התממה אחרי 90 יום (אלא legal hold)
 OWNER_HOLDS = ("minor", "deceased", "insolvency")   # ר-6: סימון בעל העסק = השהיה קשה
 
