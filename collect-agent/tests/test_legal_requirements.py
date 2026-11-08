@@ -537,3 +537,18 @@ def test_invoice_without_any_date_notifies_owner_once(svc, fake_gi):
     alerts = svc.db.q("SELECT * FROM messages WHERE needs_owner=1 AND intent='no_due_date'")
     assert len(alerts) == 1 and "1001" in alerts[0]["body"]
     assert inv["status"] == "open"   # לא סוגרים ולא מבטלים — רק מודיעים
+
+
+def test_csv_same_phone_different_names_not_merged(svc):
+    """critic סבב 26 (2.11, גרסת CSV): שתי שורות בלי מזהה לקוח, אותו טלפון ושמות שונים (רונית, משה)
+    ⇒ לקוח אחד: השם של רונית נדרס ל«משה», והתזכורת המאוחדת אמרה למשה «2 חשבוניות, 700 ₪» — כולל
+    החוב של רונית (חשיפת חוב לצד ג׳). עכשיו: לקוחות נפרדים + הודעה לבעל העסק. אותו שם ⇒ אותו לקוח."""
+    raw = ("מספר חשבונית,לקוח,סכום,תאריך לתשלום,טלפון\n"
+           "3,רונית לוי,300,2026-10-01,050-0001111\n4,משה כהן,400,2026-10-01,050-0001111\n"
+           "5,משה  כהן,50,2026-10-01,050-0001111\n").encode()
+    svc.import_csv(raw)
+    custs = {r["name"]: r["id"] for r in svc.db.q("SELECT id,name FROM customers")}
+    assert set(custs) == {"רונית לוי", "משה  כהן"} or set(custs) == {"רונית לוי", "משה כהן"}
+    by = {r["number"]: r["customer_id"] for r in svc.db.q("SELECT number,customer_id FROM invoices")}
+    assert by["3"] != by["4"] and by["4"] == by["5"]
+    assert svc.db.one("SELECT COUNT(*) n FROM messages WHERE intent='shared_contact'")["n"] == 1

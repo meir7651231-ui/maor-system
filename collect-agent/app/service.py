@@ -217,6 +217,34 @@ class CollectService:
             return "phone:" + norm
         return "doc:" + inv.external_id
 
+    @staticmethod
+    def _norm_name(name: str | None) -> str:
+        return " ".join((name or "").split())
+
+    def _customer_key_db(self, inv: Invoice) -> str:
+        """critic סבב 26 (2.11): בלי מזהה לקוח, המפתח הוא מייל/טלפון — ושני אנשים שונים עם אותו
+        טלפון (משפחה, משרד) התמזגו: השם נדרס והתזכורת המאוחדת חשפה את החוב של אחד לשני. עכשיו: אם
+        כבר קיים לקוח במפתח הזה **בשם אחר** ⇒ מפתח נפרד לפי השם, והודעה אחת לבעל העסק. אותו שם (גם
+        עם רווחים שונים) או לקוח קיים בלי שם ⇒ אותו מפתח, כך שמיפויים קיימים לא זזים."""
+        key = self.customer_key(inv)
+        if inv.client_external_id or key.startswith("doc:"):
+            return key
+        name = self._norm_name(inv.client_name)
+        row = self.db.one("SELECT name FROM customers WHERE external_id=?", (key,))
+        if row is None or not name or not self._norm_name(row["name"]) \
+                or self._norm_name(row["name"]) == name:
+            return key
+        alt = f"{key}|name:{name}"
+        if not self.db.one("SELECT 1 FROM customers WHERE external_id=?", (alt,)):
+            self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
+                      "message_id,created_at) VALUES(NULL,'system','owner',?,'shared_contact',1,?,?)",
+                      (f"חשבונית {inv.number}: שני לקוחות בשמות שונים עם אותו טלפון/מייל ובלי מזהה לקוח נשמרו כלקוחות "
+                       "נפרדים (לא מאחדים חובות של אנשים שונים). אם זה אותו אדם — אחדו את השם "
+                       "במערכת החשבוניות.", "shared:" + hashlib.sha256(alt.encode()).hexdigest()[:24],
+                       _iso(self.clock())))
+            self.audit("system", "shared_contact_split", {})
+        return alt
+
     def ingest(self, invoices: list[Invoice], *, source: str = "api",
                full: bool = True, review: list[tuple[Invoice, str]] = (),
                provider: str | None = None) -> dict[str, int]:
@@ -231,7 +259,7 @@ class CollectService:
             if not self._merge_csv_twin(inv, source):
                 continue
             seen.add(inv.external_id)
-            cust_ext = self.customer_key(inv)
+            cust_ext = self._customer_key_db(inv)
             self.db.x(
                 "INSERT INTO customers(external_id,name,phone,email) "
                 "VALUES(?,?,?,?) ON CONFLICT(external_id) DO UPDATE SET name=excluded.name, "
