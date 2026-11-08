@@ -668,6 +668,8 @@ class CollectService:
                 continue
             if r["due"]:
                 cands.append(r)
+            else:   # critic סבב 25: בלי שום תאריך ⇒ לא מתזמנים, אבל גם לא שותקים
+                self._notify_no_due(r, cust)
         # מבקר סבב 3 (8): שלב נקבע לפי מה **שנשלח**, לא לפי תזכורות שבוטלו (השהיה/ביטול)
         done = len(self.episode_sent(cid))
         if done >= MAX_REMINDERS_PER_INVOICE:
@@ -752,6 +754,17 @@ class CollectService:
                    "והחוב עדיין פתוח. התזכורות האוטומטיות נעצרו — מומלץ קשר אישי.", key,
                    _iso(self.clock())))
         self.audit("system", "max_reminders_reached", {"customer": cust["id"]})
+
+    def _notify_no_due(self, inv_row, cust) -> None:
+        key = f"nodue:{inv_row['id']}"
+        if self.db.one("SELECT 1 FROM messages WHERE intent='no_due_date' AND message_id=?", (key,)):
+            return
+        self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
+                  "message_id,created_at) VALUES(?,'system','owner',?,'no_due_date',1,?,?)",
+                  (cust["id"], f"לחשבונית {inv_row['number']} ({cust['name']}) אין תאריך הנפקה ואין מועד "
+                   "תשלום, ולכן גבי לא שולחת עליה תזכורות. השלימו תאריך במערכת החשבוניות.", key,
+                   _iso(self.clock())))
+        self.audit("system", "no_due_date", {"invoice": inv_row["id"]})
 
     def _notify_too_old(self, inv_row, cust) -> None:
         key = f"old:{inv_row['id']}"

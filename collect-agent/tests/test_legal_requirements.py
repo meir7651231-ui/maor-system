@@ -489,3 +489,51 @@ def test_r7_old_invoice_no_auto_plan_or_auto_reply_in_conversation(api, svc, fak
     assert "manual_only_old" in r["tags"]
     assert any("3 שנים" in a for a in r["owner_actions"])
     assert "400" not in (r["owner_summary"] or "")
+
+
+@pytest.mark.parametrize("amt,n", [("123456.77", 6), ("99999.97", 3), ("123456.79", 12)])
+def test_plan_offer_fits_sms_with_longest_business_name(svc, fake_gi, clock, amt, n):
+    """critic סבב 25: שם עסק של 40 תווים (המקסימום בהגדרות) + «קשה לי» + חלוקה לא שווה ⇒ הצעת
+    הפריסה הגיעה ל-283–291 תווים (תקרת תשובה: 268). בעל העסק אישר ⇒ השליחה נכשלה, הטיוטה נסגרה
+    כ«נדחתה», והלקוח שאמר שקשה לו לא קיבל כלום. עכשיו: נוסח מקוצר שנכנס בתקציב (כולל קישור ההסרה),
+    ואם גם הוא לא נכנס ⇒ אין הצעה אוטומטית, כרטיס להציע ידנית."""
+    import dataclasses
+
+    from app.compliance import SMS_REPLY_MAX
+    svc.s = dataclasses.replace(svc.s, business_name="א" * 20 + " " + "ב" * 19)
+    fake_gi.docs[:] = [d for d in fake_gi.docs if d["number"] == "1001"]
+    fake_gi.docs[0]["amount"] = amt
+    fake_gi.docs[0]["client"]["name"] = "אלכסנדרה-מרגריטה בן-שושן"
+    svc.sync()
+    r = svc.inbound("sms", "050-1234567", f"קשה לי, אפשר לפרוס ל-{n} תשלומים?")
+    out = svc.inbox.approve_draft(r["draft_id"])
+    assert out["status"] == "sent_dry_run", out
+    assert len(out["body"]) <= SMS_REPLY_MAX
+    assert "/u/" in out["body"] and "₪" in out["body"]
+
+
+def test_plan_offer_too_long_even_compact_goes_to_owner_without_plan():
+    """critic סבב 25: אם גם הנוסח המקוצר לא נכנס ב-SMS ⇒ אין הצעה ואין הסדר, כרטיס לבעל העסק."""
+    from datetime import date
+    ctx = conversation.Context(today=date(2026, 11, 8), business="א" * 40, customer_name="דנה כהן",
+                               invoices=(conversation.OpenInvoice("1", 123_456_77),),
+                               footer_len=120)
+    d = conversation.respond("קשה לי, אפשר לפרוס ל-6 תשלומים?", ctx)
+    assert not d.plan and "plan_too_long_for_sms" in d.tags
+    assert d.next_state == conversation.State.AWAITING_OWNER
+    assert any("ידנית" in a for a in d.owner_actions) and "₪" not in (d.reply or "")
+
+
+def test_invoice_without_any_date_notifies_owner_once(svc, fake_gi):
+    """critic סבב 25: חשבונית בלי dueDate וגם בלי documentDate נשארה «פתוחה» לנצח — בלי תזכורת
+    ובלי שום הודעה לבעל העסק (שבטוח שגבי מטפלת בה). עכשיו: התראה אחת «להשלים תאריך»."""
+    for k in ("documentDate", "dueDate"):
+        fake_gi.docs[0].pop(k)
+    svc.sync()
+    svc.plan()
+    svc.plan()
+    inv = svc.db.one("SELECT * FROM invoices WHERE number='1001'")
+    assert svc.db.one("SELECT 1 FROM reminders WHERE invoice_id=?", (inv["id"],)) is None
+    alerts = svc.db.q("SELECT * FROM messages WHERE needs_owner=1 AND intent='no_due_date'")
+    assert len(alerts) == 1 and "1001" in alerts[0]["body"]
+    assert inv["status"] == "open"   # לא סוגרים ולא מבטלים — רק מודיעים

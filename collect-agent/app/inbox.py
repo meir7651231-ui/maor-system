@@ -176,7 +176,9 @@ class ConversationInbox:
                            for r in invs),
             payment_link=link, channel=channel, state=state, offered_plan=offered,
             bot_turns=conv["bot_turns"] if conv else 0, policy=self.policy,
-            manual_old=any(invoice_too_old(r, self.svc.clock().date()) for r in invs))
+            manual_old=any(invoice_too_old(r, self.svc.clock().date()) for r in invs),
+            # critic סבב 25: מקום לשורת ההסרה (`_with_footer`, טוקן של 22 תווים) בתקציב ה-SMS
+            footer_len=len("\nלהפסקה: " + self.svc.unsub_url("x" * 22)))
 
     def _hold_reply_if_opted_out(self, cust, channel: str, d: Decision) -> Decision:
         """לקוח שכבר הוסר (או שהכתובת שלו ברשימת ההסרה): שער השליחה (`_can_message`) יחסום כל

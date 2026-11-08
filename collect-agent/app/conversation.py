@@ -112,6 +112,12 @@ class Context:
     bot_turns: int = 0                # כמה תשובות שלנו כבר היו בשיחה הזו
     policy: OwnerPolicy = field(default_factory=OwnerPolicy)
     manual_old: bool = False          # ר-7: יש חשבונית פתוחה מעל 3 שנים ⇒ אין הצעת פריסה אוטומטית
+    footer_len: int = 0               # אורך שורת ההסרה שתתווסף ב-SMS (נשמר מקום בתקציב 268)
+
+    def fits_sms(self, body: str) -> bool:
+        """הגוף (לפני שם העסק) + שם העסק + שורת ההסרה ≤ תקרת התשובה ב-SMS."""
+        return self.channel != "sms" or \
+            len(frame(body, self)) + self.footer_len <= compliance.SMS_REPLY_MAX
 
     @property
     def total_agorot(self) -> int:
@@ -988,6 +994,11 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
                 intro = f"{hi}אפשר לפרוס עד {p.max_installments} תשלומים בלי תוספת: "
             reply = (intro + plan_lines(plan, ctx.currency) + ". "
                      f"בכפוף לאישור סופי. מתאים? השיבו \"מאשר\" או כתבו מה מתאים לכם.{sig}")
+            if not ctx.fits_sms(reply):
+                # critic סבב 25: שם עסק ארוך + «קשה לי» + חלוקה לא שווה ⇒ 291 תווים. בעל העסק אישר,
+                # השליחה נכשלה, והלקוח לא קיבל כלום. נוסח מקוצר — אותם סכומים ותאריכים.
+                reply = (f"{hi}אפשר לפרוס את {total} בלי תוספת: {plan_lines(plan, ctx.currency)}. "
+                         f"בכפוף לאישור. מתאים? השיבו \"מאשר\".{sig}")
             state = State.AWAITING_PLAN_REPLY
             summary = f"{name} " + ("סיפר/ה על קושי" if primary == Intent.CANT_PAY else "ביקש/ה פריסה") + \
                       (f" ל-{requested} תשלומים" if requested else "") + \
@@ -995,7 +1006,15 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
             if over:
                 summary += f" ⚠️ ביקש/ה {requested} — מעל התקרה שלך ({p.max_installments})."
                 actions.append(f"להחליט אם לאשר {requested} תשלומים")
-            actions.append("לאשר את טיוטת ההצעה לפני שליחה")
+            if ctx.fits_sms(reply):
+                actions.append("לאשר את טיוטת ההצעה לפני שליחה")
+            else:   # גם המקוצר לא נכנס ⇒ אין הצעה אוטומטית (לא נרשם הסדר), כרטיס להציע ידנית
+                reply = (f"{hi}תודה ששיתפתם. נחזור אליכם אישית כדי למצוא יחד פתרון שמתאים לכם.{sig}")
+                summary = summary.replace("טיוטת הצעה:", "לא הוצעה אוטומטית (ארוכה מדי ל-SMS). הצעה מחושבת:")
+                plan = ()
+                tags.append("plan_too_long_for_sms")
+                actions.append("להציע פריסה ידנית (ההצעה ארוכה מדי ל-SMS)")
+                state = State.AWAITING_OWNER
         elif ctx.manual_old and p.auto_offer_plan and not sensitive:
             # critic סבב 23 (ר-7): חשבונית מעל 3 שנים ⇒ אין שום אוטומציה, גם לא הצעת פריסה בשיחה
             reply = (f"{hi}תודה ששיתפתם. נחזור אליכם אישית כדי למצוא יחד פתרון שמתאים לכם.{sig}")
