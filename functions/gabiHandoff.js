@@ -89,7 +89,75 @@ function handoffUrl({ baseUrl, slug, email, secret, nowSec, nonce, ttlSec }) {
   return t ? { url: connectUrl(baseUrl, t), exp: c.exp } : null;
 }
 
-module.exports = { buildClaims, signToken, connectUrl, handoffUrl, newNonce, GABI_MAX_TTL: MAX_TTL };
+/* ── זכאות (חיוב דרך אורביט, הכרעת-בעלים 8.11.2026) ─────────────────────────────
+ * אורביט מחייב את העסק על גבי; גבי לומד את מצב-המנוי מטוקן-זכאות חתום וקצר-מועד שמצורף
+ * ל-fragment של המסירה (`#h={handoff}&e={entitlement}`). המקור: `platformOrgs/{slug}.billing.gabi`
+ * (כתיבה = מייל-על בלבד; Rules קיימים). **המפתח = GABI_ENTITLEMENT_KEY (env, פלטפורמה)** —
+ * לא סוד-המסירה הפר-ארגוני: את זה הלקוח המשלם עצמו מדביק, והוא היה יכול לחתום לעצמו "active".
+ * חוזה: knowledge/BUILD-ORDER-GABI-STORE-2026-11-07.md §7 · מאמת: collect-agent/app/orbit_entitlement.py. */
+const ENT_CONTEXT = 'gabi-entitlement-v1.';
+const ENT_TTL = 120;
+const PLANS = ['monthly', 'yearly'];
+const STATUSES = ['trial', 'active', 'past_due', 'cancelled'];
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+const validDate = (s) => DATE_RE.test(s) && new Date(s + 'T12:00:00Z').toISOString().slice(0, 10) === s;
+
+/** חיטוי רשומת-המנוי — זהה ל-normalizeGabiSubscription (src/lib/gabiBilling.ts). פסול ⇒ null. */
+function normalizeSubscription(raw) {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+  const plan = clean(raw.plan);
+  const status = clean(raw.status);
+  if (!PLANS.includes(plan) || !STATUSES.includes(status)) return null;
+  const trialStart = clean(raw.trialStart);
+  const paidUntil = clean(raw.paidUntil);
+  if (trialStart && !validDate(trialStart)) return null;
+  if (paidUntil && !validDate(paidUntil)) return null;
+  if (status === 'trial' && !trialStart) return null;
+  if ((status === 'active' || status === 'past_due') && !paidUntil) return null;
+  return { plan, status, trialStart, paidUntil };
+}
+
+/** הקישור "חזרה לחיוב באורביט" שגבי מציג לבעל העסק — https בלבד, ?org= של הארגון. */
+function billingUrlFor(appUrl, slug) {
+  const u = safeHttps(appUrl);
+  if (!u || !SLUG_RE.test(slug)) return '';
+  u.search = '?org=' + slug;
+  u.hash = '';
+  return u.toString();
+}
+
+/** claims קנוניים של הזכאות; קלט פסול ⇒ null. */
+function entitlementClaims({ slug, sub, billingUrl, nowSec, ttlSec }) {
+  const org = clean(slug).toLowerCase();
+  const s = normalizeSubscription(sub);
+  const ttl = ttlSec === undefined ? ENT_TTL : ttlSec;
+  if (!s || !SLUG_RE.test(org) || org === 'default' || org === 'demo' || org === 'root') return null;
+  if (!Number.isInteger(nowSec) || nowSec <= 0 || !Number.isInteger(ttl) || ttl < 1 || ttl > MAX_TTL) return null;
+  const bu = clean(billingUrl);
+  if (bu && !safeHttps(bu)) return null;
+  return { v: 1, iss: 'orbit', aud: 'gabi', typ: 'entitlement', org, plan: s.plan, status: s.status,
+    trial_start: s.trialStart, paid_until: s.paidUntil, billing_url: bu, iat: nowSec, exp: nowSec + ttl };
+}
+
+/** חתימת-הזכאות (סדר-שדות קנוני). מפתח < 32 ⇒ null (אין זכאות — גבי נשאר במצבו). */
+function signEntitlement(c, key) {
+  const k = clean(key);
+  if (!c || k.length < SECRET_MIN_LEN) return null;
+  const json = JSON.stringify({ v: c.v, iss: c.iss, aud: c.aud, typ: c.typ, org: c.org, plan: c.plan, status: c.status,
+    trial_start: c.trial_start, paid_until: c.paid_until, billing_url: c.billing_url, iat: c.iat, exp: c.exp });
+  const payload = b64url(Buffer.from(json, 'utf8'));
+  return payload + '.' + b64url(crypto.createHmac('sha256', k).update(ENT_CONTEXT + payload).digest());
+}
+
+/** כתובת-המסירה + זכאות (אם יש רשומה ומפתח). בלי אחד מהם ⇒ הכתובת של v1 ביט-זהה. */
+function withEntitlement(url, ent) {
+  return ent && /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(ent) ? url + '&e=' + ent : url;
+}
+
+module.exports = {
+  buildClaims, signToken, connectUrl, handoffUrl, newNonce, GABI_MAX_TTL: MAX_TTL,
+  normalizeSubscription, billingUrlFor, entitlementClaims, signEntitlement, withEntitlement,
+};
 
 // ── חיווט-השרת (נטען רק בסביבת-Functions; מדולג בבדיקות-יחידה) ────────────────
 if (process.env.FUNCTIONS_EMULATOR !== undefined || process.env.K_SERVICE || process.env.GCLOUD_PROJECT) {
@@ -127,11 +195,17 @@ if (process.env.FUNCTIONS_EMULATOR !== undefined || process.env.K_SERVICE || pro
         const vault = await db.doc('orgSecrets/' + slug).get();
         const secret = clean(vault.exists ? (vault.data() || {}).gabiHandoff : '');
         if (secret.length < SECRET_MIN_LEN) { res.status(412).json({ error: 'no-secret' }); return; }
-        const out = handoffUrl({ baseUrl: g.baseUrl, slug, email: el, secret, nowSec: Math.floor(Date.now() / 1000), nonce: newNonce() });
+        const nowSec = Math.floor(Date.now() / 1000);
+        const out = handoffUrl({ baseUrl: g.baseUrl, slug, email: el, secret, nowSec, nonce: newNonce() });
         if (!out || !out.url) { res.status(422).json({ error: 'cannot-sign' }); return; }
+        // זכאות (חיוב דרך אורביט): רק עם רשומת-מנוי תקינה + מפתח-פלטפורמה. אחרת — v1 ביט-זהה.
+        const ent = signEntitlement(entitlementClaims({
+          slug, sub: ((od.billing || {}).gabi), nowSec,
+          billingUrl: billingUrlFor(process.env.ORBIT_APP_URL || 'https://orbit-il.com/', slug),
+        }), process.env.GABI_ENTITLEMENT_KEY);
         // ללא לוג של הכתובת/הטוקן — רק עובדת-ההנפקה
-        console.log('gabiHandoff issued org=' + slug);
-        res.json({ ok: true, url: out.url, exp: out.exp });
+        console.log('gabiHandoff issued org=' + slug + (ent ? ' +entitlement' : ''));
+        res.json({ ok: true, url: withEntitlement(out.url, ent), exp: out.exp });
       } catch (e) {
         console.error('gabiHandoff: ' + String(e).slice(0, 200));
         res.status(500).json({ error: 'failed' });

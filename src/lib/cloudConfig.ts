@@ -12,6 +12,7 @@ import { addDoc, arrayRemove, arrayUnion, collection, deleteDoc, deleteField, do
 import { cloudDb } from './cloud';
 import type { OrgConfig } from '../types/config';
 import type { ConfigPatchOp } from './configPatch';
+import { normalizeGabiSubscription, type GabiSubscription } from './gabiBilling';
 import { sanitizeSupportText, type SupportMsg, type SupportSide, type SupportThread, type TeamMsg } from './supportChat';
 
 /** אוסף מסמכי הארגונים של הפלטפורמה. */
@@ -219,6 +220,35 @@ export async function readOrgSecretsMeta(slug: string): Promise<Partial<Record<O
   } catch {
     return {};
   }
+}
+
+/* ── 🪙 מנוי גבי (חיוב דרך אורביט, 8.11.2026) — platformOrgs/{slug}.billing.gabi ─────────
+ * קריאה: מנהל/חברי-הארגון (get של מסמך-הארגון). כתיבה: **מייל-על בלבד** — Rules קיימים
+ * (עדכון-מנהל מוגבל ל-members/memberConfigs/joinOpen/joinCode); red-team §י״ד. */
+
+/** רשומת-המנוי (מחוטאת) או null — אין רשומה/אין הרשאה/רשת ⇒ null (התצוגה: «טרם הוגדר»). */
+export async function readOrgGabiBilling(slug: string): Promise<GabiSubscription | null> {
+  try {
+    const snap = await getDoc(doc(cloudDb(), PLATFORM_ORGS, slug));
+    if (!snap.exists()) return null;
+    const billing = (snap.data() as { billing?: { gabi?: unknown } }).billing;
+    return normalizeGabiSubscription(billing?.gabi);
+  } catch {
+    return null;
+  }
+}
+
+/** כתיבת הרשומה (מייל-על). ‏updateDoc+FieldPath — מחליף את billing.gabi בלבד, לא נוגע
+ *  בשאר המסמך (ובלי merge:true על מפה — לקח 5.10). ‏null ⇒ מחיקת הרשומה. */
+export async function writeOrgGabiBilling(slug: string, sub: GabiSubscription | null, by: string): Promise<void> {
+  const ref = doc(cloudDb(), PLATFORM_ORGS, slug);
+  if (!sub) {
+    await updateDoc(ref, new FieldPath('billing', 'gabi'), deleteField());
+    return;
+  }
+  const clean = normalizeGabiSubscription({ ...sub, updatedAt: new Date().toISOString(), updatedBy: by });
+  if (!clean) throw new Error('רשומת-מנוי לא תקינה');
+  await updateDoc(ref, new FieldPath('billing', 'gabi'), JSON.parse(JSON.stringify(clean)));
 }
 
 /** מחיקת בקשת הרשמה (אישור/דחייה בלוח הבקרה). */

@@ -609,9 +609,12 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
 
     # ---------- כניסה מאורביט (חוזה-המסירה v1, app/orbit_connect.py) ----------
     from .orbit_connect import CONNECT_PAGE, HandoffRejected, OrbitConnect
+    from .orbit_entitlement import EntitlementRejected, OrbitEntitlements
     from .secretbox import SecretError
     orbit = OrbitConnect(svc.db)
     app.state.orbit = orbit
+    entitlements = OrbitEntitlements(svc.db)
+    app.state.orbit_entitlements = entitlements
     connect_next = "/app/#/dashboard" if (web_dist / "index.html").is_file() else "/ui"
 
     @app.get("/connect/orbit", response_class=HTMLResponse)
@@ -628,7 +631,7 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         if request.url.query:   # טוקן לעולם לא ב-query (לוגי-גישה/Referer)
             raise HTTPException(400, "הטוקן נשלח בגוף הבקשה בלבד")
         raw = await request.body()
-        if len(raw) > 4096:
+        if len(raw) > 6144:   # מסירה (≤2048) + זכאות (≤2048) + מעטפת
             raise HTTPException(413, "too large")
         try:
             body = json.loads(raw or b"{}")
@@ -646,7 +649,34 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
             raise HTTPException(503, "החיבור מאורביט אינו זמין כרגע") from None
         svc.audit("orbit", "orbit_handoff_ok", {"org": c.org, "email_sha": _h.sha256(
             c.email.encode()).hexdigest()[:16]})
-        return JSONResponse({"ok": True, "org": c.org, "email": c.email, "next": "login"},
+        out = {"ok": True, "org": c.org, "email": c.email, "next": "login"}
+        # זכאות (חיוב דרך אורביט, הכרעת מאיר 8.11): טוקן נפרד, חתום במפתח-פלטפורמה, רק אחרי
+        # מסירה תקינה ורק לאותו ארגון. כשל בזכאות לא מכשיל את הכניסה (הסיבה ב-audit בלבד).
+        ent = body.get("ent")
+        if isinstance(ent, str) and ent:
+            try:
+                e = entitlements.ingest(ent, int(svc.clock().timestamp()), org=c.org,
+                                        at=svc.clock().isoformat())
+            except EntitlementRejected as er:
+                svc.audit("orbit", "orbit_entitlement_rejected", {"reason": er.reason})
+                out["entitlement"] = "ignored"
+            else:
+                svc.audit("orbit", "orbit_entitlement_ok", {"org": c.org, "plan": e.get("plan"),
+                                                            "status": e.get("status"),
+                                                            "paid_until": e.get("paid_until")})
+                out["entitlement"] = "updated"
+        return JSONResponse(out, headers={"Cache-Control": "no-store"})
+
+    @app.get("/orbit/entitlement", dependencies=auth)
+    def orbit_entitlement_view(request: Request):
+        """הזכאות האחרונה מאורביט + המצב המחושב (מה שקובע אם גבי מתכנן/שולח). בעלים בלבד."""
+        from .orbit_entitlement import current
+        ent = current(svc.db)
+        svc.audit(request.state.actor, "orbit_entitlement_viewed", {"present": ent is not None})
+        link = orbit.link()
+        return JSONResponse({"linked": bool(link), "entitlement": ent,
+                             "billing": svc.trial() if ent else None,
+                             "source": "orbit" if ent else "local"},
                             headers={"Cache-Control": "no-store"})
 
     @app.get("/orbit/link", dependencies=auth)
@@ -676,6 +706,8 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         link = orbit.link()
         try:
             done = orbit.unlink()
+            if done:
+                entitlements.delete()   # ביטול קישור ⇒ חזרה להתנהגות של היום (זכאות לא נגררת)
         except SecretError:
             raise HTTPException(503, "אין מפתח הצפנה (COLLECT_MASTER_KEYS)") from None
         if done:

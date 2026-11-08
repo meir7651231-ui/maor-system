@@ -10,7 +10,7 @@ from dataclasses import replace
 from datetime import date, datetime, time, timedelta
 from typing import Any
 
-from . import compliance, paylinks, plans, templates
+from . import compliance, orbit_entitlement, paylinks, plans, templates
 from .channels import (
     DryRunSender,
     Message,
@@ -511,7 +511,15 @@ class CollectService:
 
     # ---------- ניסיון 14 יום ----------
     def trial(self) -> dict:
-        """ניסיון: בסופו התזכורות נעצרות (הנתונים נשמרים) עד הצטרפות. אין trial_start ⇒ פעיל."""
+        """ניסיון: בסופו התזכורות נעצרות (הנתונים נשמרים) עד הצטרפות. אין trial_start ⇒ פעיל.
+
+        הכרעת מאיר 8.11.2026 — חיוב דרך אורביט: עסק **מקושר** לאורביט שקיבל זכאות מאומתת ⇒ המצב
+        נלקח ממנה (app/orbit_entitlement.py: ניסיון 14 יום מ-trial_start של אורביט · active עד
+        paid_until · חסד 7 ימים · cancelled ⇒ עצירה). עסק לא-מקושר / בלי זכאות ⇒ כמו היום."""
+        ent = orbit_entitlement.current(self.db)
+        if ent is not None:
+            return orbit_entitlement.evaluate(ent, self.clock().date(), trial_days=self.s.trial_days,
+                                              price_ils_month=self.s.price_ils_month)
         info = {"price_ils_month": self.s.price_ils_month, "trial_days": self.s.trial_days}
         if not self.s.trial_start:
             return {**info, "on_trial": False, "active": True, "days_left": None,
@@ -535,14 +543,33 @@ class CollectService:
                   "message_id,created_at) VALUES(NULL,'system','owner',?,'trial_ending',1,?,?)",
                   (f"תקופת הניסיון של גבי מסתיימת {_in_days(t['days_left'])} ({t['ends']}). "
                    "לאחריה התזכורות נעצרות (הנתונים נשמרים) עד שתבחרו להצטרף. "
-                   "לא יבוצע חיוב אוטומטי.", key,
+                   "לא יבוצע חיוב אוטומטי." + _orbit_join(t), key,
                    _iso(self.clock())))
         self.audit("system", "trial_ending", {"ends": t["ends"]})
+
+    def _notify_orbit_billing(self, t: dict) -> None:
+        """חיוב דרך אורביט: חסד / סיום / ביטול ⇒ הודעה אחת לבעל העסק (עם קישור לחיוב באורביט)."""
+        if t.get("source") != "orbit":
+            return
+        n = orbit_entitlement.notice(t)
+        if not n:
+            return
+        key, body = n
+        if self.db.one("SELECT 1 FROM messages WHERE intent='orbit_billing' AND message_id=?",
+                       (key,)):
+            return
+        self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
+                  "message_id,created_at) VALUES(NULL,'system','owner',?,'orbit_billing',1,?,?)",
+                  (body, key, _iso(self.clock())))
+        self.audit("system", "orbit_billing_notice", {"state": t.get("state"),
+                                                      "ends": t.get("ends")})
 
     # ---------- planning ----------
     def plan(self) -> list[int]:
         now = self.clock()
-        if not self.trial()["active"]:
+        t = self.trial()
+        self._notify_orbit_billing(t)   # גם (ובעיקר) כשהשליחה נעצרה — בעל העסק צריך לדעת למה
+        if not t["active"]:
             return []
         # באג: release_expired_pauses לא נקרא מאף מקום ⇒ "אשלם בחמישי" שלא שולם השהה לנצח
         self.inbox.release_expired_pauses()
@@ -1607,6 +1634,14 @@ def _rebuild_keep_log(old: DryRunSender, s: Settings) -> DryRunSender:
     new = build_dry_sender(s)
     new.sent = old.sent          # יומן ה-dry-run נשמר
     return new
+
+
+def _orbit_join(t: dict) -> str:
+    """עסק שמשלם דרך אורביט: ההצטרפות היא שם, לא בגבי."""
+    if t.get("source") != "orbit":
+        return ""
+    url = t.get("billing_url")
+    return f" ההצטרפות והתשלום — דרך אורביט: {url}" if url else " ההצטרפות והתשלום — דרך אורביט."
 
 
 def _in_days(n: int) -> str:
