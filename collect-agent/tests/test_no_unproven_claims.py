@@ -12,9 +12,21 @@ DOCS = [*ROOT.glob("team/*.md"), *ROOT.glob("marketing/**/*.md"), *ROOT.glob("we
         *ROOT.glob("app/*.html"), *ROOT.glob("legal/*.md")]
 
 
+def _gate5_done() -> bool:
+    """critic סבב 22: התנאי הישן («sqlcipher» מופיע ב-db.py) נעשה אמת ברגע שהקוד נכתב מאחורי דגל —
+    והמגן כבה, אף שבפריסה הדגל כבוי. עכשיו: מותר לטעון רק כששער 5 ב-BETA-GATE סומן ✅."""
+    for line in (ROOT / "legal/BETA-GATE.md").read_text(encoding="utf-8").splitlines():
+        if line.startswith("| 5 |"):
+            return line.split("|")[4].strip().startswith("✅")
+    return False
+
+
+def test_gate5_parsed_and_not_done_yet():
+    assert not _gate5_done()
+
+
 def test_no_customer_data_encrypted_claim_until_db_encryption_ships():
-    db_encrypted = "sqlcipher" in (ROOT / "app/db.py").read_text(encoding="utf-8").lower()
-    if db_encrypted:
+    if _gate5_done():
         return
     bad = [f"{p.relative_to(ROOT)}:{n}" for p in DOCS if p.name != "critic.md"
            for n, line in enumerate(p.read_text(encoding="utf-8").splitlines(), 1)

@@ -17,7 +17,7 @@ from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from pydantic import BaseModel, Field
 
-from . import security
+from . import dbcrypt, security
 from .config import SafetyError, Settings, load_settings
 from .db import DB
 from .greeninvoice import GreenInvoiceClient
@@ -195,6 +195,12 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         # (שירות מוזרק = בדיקות הלוגיקה עם הטוקן המשותף; השער עצמו נבדק ב-test_users_2fa.)
         raise SafetyError("REAL_DATA_ALLOWED=1 מחייב REQUIRE_USER_LOGIN=1 (משתמש לכל עובד + 2FA, "
                           "בלי טוקן משותף) — legal/BETA-GATE.md שער 6")
+    if (built_from_env and getattr(svc.s, "real_data_allowed", False)
+            and dbcrypt.mode() != dbcrypt.SQLCIPHER and os.environ.get("ACK_PLAINTEXT_DB") != "1"):
+        # critic סבב 22: נתוני חייבים אמיתיים (שער 4) על DB גלוי (DB_ENCRYPTION כבוי) עלו בשקט, אף ששער 5
+        # דורש DB מוצפן במנוחה. נכשל סגור; חריגה רק בהחלטה מפורשת (ACK_PLAINTEXT_DB=1 — שער 5 🟡 עם תוכנית).
+        raise SafetyError("REAL_DATA_ALLOWED=1 על DB לא מוצפן — הגדירו DB_ENCRYPTION=sqlcipher, "
+                          "או ACK_PLAINTEXT_DB=1 בהחלטה מפורשת — legal/BETA-GATE.md שער 5")
     # critic סבב 8: עובד הדמו (סיסמה ידועה מהסביבה + סוד TOTP בקובץ) נוצר על **כל** שירות כש-DEMO=1,
     # גם על DB אמיתי. אם הסביבה דולפת לפרודקשן, זו דלת אחורית. וגם: הפעלה מחדש עם DB קבוע קרסה
     # («משתמש כבר קיים»). עכשיו: רק על שירות הדמו שנבנה כאן, אף פעם לא בבטא אמיתית, ורק אם לא קיים.
