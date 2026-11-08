@@ -238,12 +238,13 @@ export function gabiPreferServer(config: OrgConfig, cloudEnabled: boolean, email
 /**
  * כתובת שהשרת החזיר — מתקבלת רק אם היא **בדיוק** מה ש-gabiConnectUrl היה בונה מהבסיס
  * שבקונפיג (אותו מקור, נתיב /connect/orbit, בלי query, טוקן בפורמט). כל סטייה ⇒ null
- * (לא פותחים לאן שתשובת-רשת אומרת).
+ * (לא פותחים לאן שתשובת-רשת אומרת). ‏8.11: מותרת סיומת `&e={זכאות}` (חיוב דרך אורביט —
+ * טוקן-הזכאות החתום בשרת, lib/gabiBilling) — באותו פורמט-טוקן בדיוק, ושום דבר אחר.
  */
 export function gabiServerUrlOk(baseUrl: string, url: unknown): string | null {
   if (typeof url !== 'string') return null;
-  const m = /#h=([A-Za-z0-9_-]+\.[A-Za-z0-9_-]+)$/.exec(url);
+  const m = /#h=([A-Za-z0-9_-]+\.[A-Za-z0-9_-]+)(&e=[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+)?$/.exec(url);
   if (!m) return null;
   const expect = gabiConnectUrl(baseUrl, m[1]);
-  return expect && expect === url ? url : null;
+  return expect && expect + (m[2] ?? '') === url ? url : null;
 }

@@ -247,6 +247,18 @@ await T('🔴 עורך של מאור לא כותב באתר של ארגון אח
 await T('🔴 עורך-אתר לא מקבל גישה לנתוני-המשרד (אוספי-שורש)', assertFails(getDoc(doc(mgr, 'families/f1'))));
 await T('מייל-על יוצר/מעדכן editors', assertSucceeds(setDoc(doc(su, 'publicSites/new'), { site: {}, editors: ['a@b.co'] })));
 
+console.log('\n═══ י״ד · 🪙 מנוי גבי (חיוב דרך אורביט, 8.11.2026) — platformOrgs/{slug}.billing ═══');
+// רשומת-המנוי = מקור-הזכאות שאורביט חותם לגבי. לקוח שכותב אותה = «active לנצח» בחינם.
+// בלי שינוי-Rules: עדכון-מנהל מוגבל ל-members/memberConfigs/joinOpen/joinCode ⇒ billing = מייל-על בלבד.
+const GABI_SUB = { plan: 'monthly', status: 'active', trialStart: '2026-11-01', paidUntil: '2099-12-31', payUrl: '' };
+await T('🔴 מנהל-הארגון לא מסמן לעצמו מנוי-גבי פעיל (billing)', assertFails(updateDoc(doc(boss, 'platformOrgs/acme'), new FieldPath('billing', 'gabi'), GABI_SUB)));
+await T('🔴 מנהל לא מגניב billing בתוך עדכון-members לגיטימי', assertFails(updateDoc(doc(boss, 'platformOrgs/acme'), { members: ['boss@acme.com', 'emp@acme.com', 'ltd@acme.com'], billing: { gabi: GABI_SUB } })));
+await T('🔴 חבר-ארגון לא כותב billing', assertFails(updateDoc(doc(emp, 'platformOrgs/acme'), new FieldPath('billing', 'gabi'), GABI_SUB)));
+await T('🔴 זר לא כותב billing', assertFails(updateDoc(doc(stranger, 'platformOrgs/acme'), new FieldPath('billing', 'gabi'), GABI_SUB)));
+await T('מייל-על כותב את רשומת-המנוי', assertSucceeds(updateDoc(doc(su, 'platformOrgs/acme'), new FieldPath('billing', 'gabi'), { ...GABI_SUB, paidUntil: '2026-12-08' })));
+await T('מנהל-הארגון קורא את מצב-המנוי (תצוגה ב-GabiSection)', assertSucceeds(getDoc(doc(boss, 'platformOrgs/acme'))));
+await T('🔴 חבר-ארגון-אחר לא קורא את מצב-המנוי של acme', assertFails(getDoc(doc(env.authenticatedContext('x', { email: 'x@other.com' }).firestore(), 'platformOrgs/acme'))));
+
 await env.cleanup();
 console.log(`\n── סיכום red-team ── ${pass} עברו · ${fail} נכשלו`);
 if (fail > 0) { console.log('❌ יש חור-אבטחה — Rules לא חוסמים תרחיש-תקיפה!'); process.exit(1); }
