@@ -21,6 +21,15 @@ if SEND_MODE=live timeout 20 python3 -c 'from app.main import _lazy_app; _lazy_a
   fail "האפליקציה עלתה עם SEND_MODE=live"
 fi
 
+# 3. שער 5 (רק כש-DB_ENCRYPTION=sqlcipher): הצפנה דלוקה בלי COLLECT_MASTER_KEYS ⇒ לא עולה, ולא נוצר קובץ
+if [[ "${DB_ENCRYPTION:-}" == "sqlcipher" ]]; then
+  if COLLECT_MASTER_KEYS= DB_PATH="$TMP/nokey.sqlite3" timeout 20 python3 -c \
+      'from app.main import _lazy_app; _lazy_app()' 2>/dev/null; then
+    fail "האפליקציה עלתה עם DB_ENCRYPTION=sqlcipher בלי מפתח"
+  fi
+  [ ! -e "$TMP/nokey.sqlite3" ] || fail "נוצר קובץ DB למרות שההצפנה נכשלה"
+fi
+
 python3 -m uvicorn app.main:_lazy_app --factory --host 127.0.0.1 --port "$PORT" \
   --log-level info >"$TMP/server.log" 2>&1 &
 PID=$!
@@ -46,5 +55,10 @@ if grep -q "$SMS_WEBHOOK_KEY" "$TMP/server.log"; then fail "מפתח ה-webhook 
 PERM="$(stat -c '%a' "$DB_PATH")"
 [ "$PERM" = 600 ] || fail "הרשאות DB $PERM (צריך 600)"
 if grep -q "$OWNER_API_TOKEN" "$TMP/server.log"; then fail "הטוקן דלף ללוג"; fi
+if [[ "${DB_ENCRYPTION:-}" == "sqlcipher" ]]; then
+  python3 -c 'import sys; from app import dbcrypt; dbcrypt.assert_encrypted_file(sys.argv[1])' "$DB_PATH" \
+    || fail "DB_ENCRYPTION=sqlcipher אבל קובץ ה-DB של השרת לא מוצפן"
+  echo "✅ smoke SQLCipher: בלי מפתח לא עולה; קובץ ה-DB של השרת מוצפן"
+fi
 grep "webhooks/sms/019" "$TMP/server.log" | head -2
 echo "✅ smoke: עולה רק עם טוקן, dry-run, 401 בלי אימות, docs מוסתר, webhook 019 עם מפתח, DB 0600, אין דליפת טוקן/מפתח ללוג"

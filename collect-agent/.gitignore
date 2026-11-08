@@ -8,3 +8,5 @@ demo-output/
 web/node_modules/
 web/dist/
 web/screenshots/
+*.gbk
+*.encrypting

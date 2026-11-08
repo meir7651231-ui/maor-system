@@ -55,6 +55,40 @@ jobs:
       - name: smoke — מעקות השרת (טוקן, 401, docs, webhook 019, DB 0600, אין דליפה ללוג)
         run: bash scripts/smoke_server.sh
 
+  # שער 5 · SQLCipher (ADR שלב 2, מאחורי DB_ENCRYPTION=sqlcipher). ג'וב נפרד: ה-test למעלה רץ בלי המודול
+  # (ההתקנה וברירת המחדל לא משתנות; בדיקות SQLCipher מדלגות שם בנקיות) — כאן הן רצות באמת על 3.11/3.13.
+  sqlcipher:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+          cache-dependency-path: |
+            collect-agent/requirements-dev.lock
+            collect-agent/requirements-sqlcipher.lock
+      - name: התקנה (dev + sqlcipher, hashes)
+        run: |
+          pip install --require-hashes -r requirements-dev.lock -r requirements-sqlcipher.lock
+          pip install --no-deps -e .
+          python -c "import sqlcipher3; print(sqlcipher3.connect(':memory:').execute('PRAGMA cipher_version').fetchone())"
+      - name: בדיקות SQLCipher אמיתיות (המודול מותקן ⇒ אין skip)
+        run: python -m pytest -q -rs tests/test_db_encryption.py tests/test_backup.py tests/test_wipe.py
+      - name: pytest מלא (הדגל כבוי — התקנת המודול לבדה לא משנה התנהגות)
+        run: python -m pytest -q
+      - name: הדגמה מקצה לקצה עם DB_ENCRYPTION=sqlcipher
+        run: DB_ENCRYPTION=sqlcipher ./demo.sh --check
+      - name: smoke עם DB_ENCRYPTION=sqlcipher (בלי מפתח לא עולה; קובץ השרת מוצפן). מפתח חד-פעמי
+        run: DB_ENCRYPTION=sqlcipher COLLECT_MASTER_KEYS="$(python -m app.secretbox)" bash scripts/smoke_server.sh
+
   # הממשק המעוצב (web/): typecheck+build, בדיקות יחידה, e2e מוק (בלי שרת) ו-e2e חי מול שרת DEMO=1 אמיתי (dry-run).
   # ה-e2e החי אוכף: 409/401 רק צפויים ומאומתים, סגירת טיוטת plan_request מול השרת, בלי גלילה רוחבית בדסקטופ/מובייל.
   web:
@@ -125,6 +159,8 @@ jobs:
         run: bandit -q -r app scripts -x app/demo.py,app/demo_data.py,scripts/demo_integrations.py
       - name: pip-audit (CVE ידועים בתלויות)
         # הסריקה על הנעילה עצמה (מה שבאמת מותקן), לא על הסביבה
-        run: pip-audit --require-hashes -r requirements-dev.lock --progress-spinner off
+        run: |
+          pip-audit --require-hashes -r requirements-dev.lock --progress-spinner off
+          pip-audit --require-hashes -r requirements-sqlcipher.lock --progress-spinner off
       - name: סריקת סודות + Trojan Source + רשימת hosts סגורה
         run: python -m pytest -q tests/test_security.py -k "secrets or trojan or gitignore or outbound"

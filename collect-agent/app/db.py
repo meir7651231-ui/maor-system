@@ -8,6 +8,9 @@ import hashlib
 import os
 import sqlite3
 import threading
+from collections.abc import Mapping
+
+from . import dbcrypt
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS customers (
@@ -101,13 +104,28 @@ def token_hash(token: str) -> str:
 
 
 class DB:
-    def __init__(self, path: str = ":memory:") -> None:
-        if path != ":memory:" and not path.startswith("file:"):
+    def __init__(self, path: str = ":memory:", *, env: Mapping[str, str] | None = None) -> None:
+        # שער 5 (ADR שלב 2): DB_ENCRYPTION=sqlcipher ⇒ SQLCipher עם מפתח נגזר מ-COLLECT_MASTER_KEYS.
+        # נכשל סגור לפני כל נגיעה בקובץ: דגל לא מוכר / מודול חסר ⇒ שגיאה, לא plaintext.
+        enc = dbcrypt.mode(env) == dbcrypt.SQLCIPHER
+        on_disk = path != ":memory:" and not path.startswith("file:")
+        if enc:
+            dbcrypt.load_module()
+            if on_disk:
+                dbcrypt.candidate_keys(env)   # COLLECT_MASTER_KEYS חסר ⇒ שגיאה לפני יצירת קובץ
+        if on_disk:
             # ה-DB מכיל PII (שמות/טלפונים/סכומים) ⇒ קריאה/כתיבה לבעלים בלבד (0600)
             os.close(os.open(path, os.O_CREAT | os.O_RDWR, 0o600))
             os.chmod(path, 0o600)
-        self.conn = sqlite3.connect(path, check_same_thread=False)
-        self.conn.row_factory = sqlite3.Row
+        opened = dbcrypt.open_db(path, env=env, check_same_thread=False)
+        self.conn = opened.conn
+        self.key_id = opened.kid          # None = לא מוצפן
+        self.encrypted = opened.kid is not None
+        self.needs_rekey = opened.kid is not None and opened.kid != opened.active_kid
+        # חריגי המנוע בפועל (sqlcipher3 לא יורש מ-sqlite3): ``except db.OperationalError``
+        self.OperationalError = opened.module.OperationalError
+        self.IntegrityError = opened.module.IntegrityError
+        self.conn.row_factory = opened.module.Row
         self.conn.execute("PRAGMA foreign_keys = ON")
         self.conn.executescript(SCHEMA)
         cols = {r[1] for r in self.conn.execute("PRAGMA table_info(customers)")}
@@ -193,6 +211,8 @@ class DB:
                               (token_hash(tok), cid))
         self.conn.execute("UPDATE customers SET unsub_token=NULL WHERE unsub_token IS NOT NULL")
         self.conn.commit()
+        if enc and on_disk:   # אימות אמיתי: הקובץ שנכתב אינו SQLite גלוי
+            dbcrypt.assert_encrypted_file(path)
         self.lock = threading.RLock()
 
     def q(self, sql: str, args: tuple = ()) -> list[sqlite3.Row]:

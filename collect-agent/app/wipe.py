@@ -8,6 +8,9 @@
 אחרי המחיקה: VACUUM (דורס דפים פנויים) ו-wal_checkpoint. גיבויים מוצפנים נמחקים
 רק אם צוינה תיקייה: ``--backups <dir>`` (מוחק ``gabi-*.gbk`` בלבד; בלעדיה — מחיקתם חלק מהנוהל ב-``legal/BETA-GATE.md``).
 
+SQLCipher (``DB_ENCRYPTION=sqlcipher``): ה-DB נפתח במפתח הנגזר (``app/dbcrypt.py``); המחיקה וה-VACUUM
+רצים בתוך הקובץ המוצפן, והוא נשאר מוצפן. DB מוצפן בלי הדגל / גלוי עם הדגל ⇒ שגיאה ברורה, לא נוגעים.
+
 שימוש:  python -m app.wipe <db> --confirm WIPE [--backups <dir>]
 """
 from __future__ import annotations
@@ -16,6 +19,8 @@ import sqlite3
 import sys
 from datetime import UTC, datetime
 from pathlib import Path
+
+from . import dbcrypt
 
 CONFIRM = "WIPE"
 
@@ -81,7 +86,11 @@ def main(argv: list[str]) -> int:
     if not p.is_file():
         print(f"ה-DB לא קיים: {p}", file=sys.stderr)
         return 1
-    conn = sqlite3.connect(str(p))
+    try:
+        conn = dbcrypt.connect_existing(p)
+    except dbcrypt.DBEncryptionError as e:
+        print(str(e), file=sys.stderr)
+        return 1
     try:
         counts = wipe_all(conn, actor="cli")
     finally:

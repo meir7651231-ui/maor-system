@@ -13,6 +13,10 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=8", "ruff>=0.6", "bandit>=1.7", "pip-audit>=2.7"]
+# שער 5 · SQLCipher (DB_ENCRYPTION=sqlcipher, app/dbcrypt.py). אופציונלי: התקנת ברירת המחדל וה-CI בלי
+# הדגל לא משתנות. נעילה עם hashes: requirements-sqlcipher.lock. רישיון: zlib (העטיפה) + BSD-3 (SQLCipher)
+# + Apache-2.0 (OpenSSL המקושר סטטית ב-wheel) — מתירניים לשימוש מסחרי.
+sqlcipher = ["sqlcipher3==0.6.4"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

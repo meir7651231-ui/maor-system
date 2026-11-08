@@ -144,10 +144,13 @@ python3 -m app.backup snapshot "$BK/src.sqlite3" "$BK/snaps" 3 >/dev/null
 SNAP="$(ls "$BK"/snaps/gabi-*.gbk | head -1)"
 python3 -m app.backup restore "$SNAP" "$BK/restored.sqlite3" >/dev/null
 python3 - "$BK" "$SNAP" <<'PY'
-import sqlite3, sys
+import sys
+from app import dbcrypt
 bk, snap = sys.argv[1], sys.argv[2]
-assert sqlite3.connect(f"{bk}/restored.sqlite3").execute("select x from t").fetchone()[0] == "סודי-דמו-123"
+assert dbcrypt.connect_existing(f"{bk}/restored.sqlite3").execute("select x from t").fetchone()[0] == "סודי-דמו-123"
 assert "סודי-דמו-123".encode() not in open(snap, "rb").read(), "הגיבוי לא מוצפן"
+if dbcrypt.mode() == dbcrypt.SQLCIPHER:   # שער 5: גם היעד המשוחזר מוצפן
+    assert not dbcrypt.is_plaintext_sqlite(f"{bk}/restored.sqlite3"), "השחזור נכתב גלוי"
 print("✅ גיבוי מוצפן + שחזור (CLI): תוכן זהה, אין טקסט גלוי בקובץ")
 PY
 rm -rf "$BK"
@@ -164,11 +167,34 @@ PY
 python3 -m app.wipe "$WP/live.db" >/dev/null 2>&1 && { echo "wipe רץ בלי --confirm"; exit 1; }
 python3 -m app.wipe "$WP/live.db" --confirm WIPE >/dev/null
 python3 - "$WP/live.db" <<'PY'
-import sqlite3, sys
-p = sys.argv[1]; c = sqlite3.connect(p)
+import sys
+from app import dbcrypt
+p = sys.argv[1]; c = dbcrypt.connect_existing(p)
+if dbcrypt.mode() == dbcrypt.SQLCIPHER:
+    assert not dbcrypt.is_plaintext_sqlite(p), "ה-DB אחרי wipe לא מוצפן"
 assert c.execute("select count(*) from customers").fetchone()[0] == 0
 assert c.execute("select count(*) from suppressions").fetchone()[0] == 1
 assert "דנה-מחיקה".encode() not in open(p, "rb").read() and b"050-0007777" not in open(p, "rb").read(), "PII נשאר בקובץ"
 print("✅ מחיקת עסק שלם (CLI): אין PII בקובץ, suppressions נשארו, בלי אישור לא נוגע")
 PY
 rm -rf "$WP"
+# שער 5 · SQLCipher (רק כש-DB_ENCRYPTION=sqlcipher): מיגרציה של DB גלוי ⇒ מוצפן עם גיבוי מאומת, פעם שנייה מסרבת
+if [[ "${DB_ENCRYPTION:-}" == "sqlcipher" ]]; then
+  EN="$(mktemp -d)"
+  DB_ENCRYPTION=off python3 - "$EN/live.db" <<'PY'
+import sys
+from app.db import DB
+db = DB(sys.argv[1]); db.x("INSERT INTO customers(name,phone) VALUES('דנה-הצפנה','050-0008888')"); db.conn.close()
+PY
+  python3 -m app.db_encrypt "$EN/live.db" --confirm ENCRYPT --backup "$EN/pre.gbk" >/dev/null
+  python3 -m app.db_encrypt "$EN/live.db" --confirm ENCRYPT >/dev/null 2>&1 && { echo "הצפנה כפולה לא נחסמה"; exit 1; }
+  python3 - "$EN/live.db" <<'PY'
+import sys
+from app.db import DB
+p = sys.argv[1]; raw = open(p, "rb").read()
+assert raw[:16] != b"SQLite format 3\x00" and b"050-0008888" not in raw, "ה-DB לא מוצפן אחרי המיגרציה"
+db = DB(p); assert db.encrypted and db.one("SELECT phone FROM customers")[0] == "050-0008888"
+print("✅ SQLCipher: מיגרציה עם גיבוי מאומת, הקובץ מוצפן, נפתח במפתח, הצפנה כפולה נחסמה")
+PY
+  rm -rf "$EN"
+fi

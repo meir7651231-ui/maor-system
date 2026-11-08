@@ -5,7 +5,6 @@ import hashlib
 import json
 import re
 import secrets
-import sqlite3
 from collections.abc import Callable
 from dataclasses import replace
 from datetime import date, datetime, time, timedelta
@@ -1558,7 +1557,7 @@ class CollectService:
             self.db.x("UPDATE drafts SET status='superseded', decided_by='system:plan_approved' "
                       "WHERE plan_id=? AND status IN ('pending_approval','needs_owner')",
                       (plan_id,))
-        except sqlite3.OperationalError:   # טבלת הטיוטות נוצרת רק עם מנוע השיחה
+        except self.db.OperationalError:   # טבלת הטיוטות נוצרת רק עם מנוע השיחה
             return
         self.audit("system", "plan_drafts_superseded", {"plan": plan_id})
 

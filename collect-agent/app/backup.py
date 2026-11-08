@@ -4,6 +4,11 @@
 הקשר קשור ל-``backup:db``) ונכתב בהרשאות 0600. המפתח מחוץ ל-DB (COLLECT_MASTER_KEYS).
 שחזור: פענוח ⇒ בדיקת תקינות (integrity_check) ⇒ כתיבה לנתיב חדש בלבד (לעולם לא דורס).
 
+SQLCipher (``DB_ENCRYPTION=sqlcipher``, ``app/dbcrypt.py``): הגיבוי נפתח מה-DB המוצפן במפתח הנגזר,
+ותוכנו (תמונת SQLite) נבנה **בזיכרון בלבד** ונעטף באותו GBK1 — אותו פורמט, אין קובץ גלוי בדרך.
+שחזור כשהדגל דלוק כותב יעד **מוצפן** (ומאמת שהכותרת אינה SQLite גלוי). גיבוי ישן משחזר גם אחרי
+rekey של ה-DB: הוא קשור ל-SecretBox (``backup:db``), לא למפתח ה-DB.
+
 שימוש:  python -m app.backup create <db> <out>   |   python -m app.backup restore <in> <db_new>
          python -m app.backup snapshot <db> <dir> [keep=14]   (cron; מסבב ישנים)
          python -m app.backup check <dir> [max_hours=48]      (ניטור: 0 = טרי, 1 = ישן/חסר)
@@ -17,17 +22,47 @@ import sys
 from datetime import UTC
 from pathlib import Path
 
+from . import dbcrypt
 from .secretbox import SecretBox, SecretError
 
 CONTEXT = "backup:db"
 MAGIC = "GBK1\n"
 
 
-def _snapshot(conn: sqlite3.Connection) -> bytes:
+def _snapshot(conn) -> bytes:
     mem = sqlite3.connect(":memory:")
     try:
-        conn.backup(mem)
+        if isinstance(conn, sqlite3.Connection):
+            conn.backup(mem)
+        else:   # sqlcipher3: אין backup API מול stdlib ⇒ העתקה לוגית לזיכרון (לא לדיסק)
+            dbcrypt.copy_database(conn, mem)
         return mem.serialize()
+    finally:
+        mem.close()
+
+
+def _decrypt_image(src: str | Path, box: SecretBox) -> sqlite3.Connection:
+    """GBK1 ⇒ DB בזיכרון אחרי integrity_check. נכשל סגור."""
+    text = Path(src).read_text(encoding="ascii")
+    if not text.startswith(MAGIC):
+        raise SecretError("קובץ גיבוי לא מוכר")
+    raw = base64.b64decode(box.decrypt(text[len(MAGIC):].strip(), context=CONTEXT).reveal())
+    mem = sqlite3.connect(":memory:")
+    try:
+        mem.deserialize(raw)
+        if mem.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
+            raise SecretError("הגיבוי פגום (integrity_check)")
+    except BaseException:
+        mem.close()
+        raise
+    return mem
+
+
+def verify_backup(src: str | Path, box: SecretBox) -> dict[str, int]:
+    """פענוח + integrity_check בזיכרון (בלי לכתוב קובץ). מחזיר ספירת שורות לכל טבלה."""
+    mem = _decrypt_image(src, box)
+    try:
+        return dbcrypt.table_counts(mem)
     finally:
         mem.close()
 
@@ -48,26 +83,37 @@ def create_backup(conn: sqlite3.Connection, out: str | Path, box: SecretBox) -> 
     return out
 
 
-def restore_backup(src: str | Path, dest: str | Path, box: SecretBox) -> Path:
+def restore_backup(src: str | Path, dest: str | Path, box: SecretBox, *, env=None) -> Path:
+    """שחזור לנתיב חדש. ``DB_ENCRYPTION=sqlcipher`` ⇒ היעד נכתב מוצפן ומאומת."""
     dest = Path(dest)
     if dest.exists():
         raise SecretError("יעד השחזור קיים — לא דורסים (מחקו ידנית אחרי בדיקה)")
-    text = Path(src).read_text(encoding="ascii")
-    if not text.startswith(MAGIC):
-        raise SecretError("קובץ גיבוי לא מוכר")
-    raw = base64.b64decode(box.decrypt(text[len(MAGIC):].strip(), context=CONTEXT).reveal())
-    mem = sqlite3.connect(":memory:")
+    enc = dbcrypt.mode(env) == dbcrypt.SQLCIPHER
+    if enc:
+        dbcrypt.load_module()   # נכשל סגור לפני שנוצר קובץ
+    mem = _decrypt_image(src, box)
+    created = False
     try:
-        mem.deserialize(raw)
-        if mem.execute("PRAGMA integrity_check").fetchone()[0] != "ok":
-            raise SecretError("הגיבוי פגום (integrity_check)")
         fd = os.open(dest, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
         os.close(fd)
-        out = sqlite3.connect(dest)
+        created = True
+        out = dbcrypt.open_db(str(dest), env=env).conn
         try:
-            mem.backup(out)
+            if isinstance(out, sqlite3.Connection):
+                mem.backup(out)
+            else:
+                dbcrypt.copy_database(mem, out)
+                if out.execute("PRAGMA integrity_check").fetchone()[0] != "ok" or \
+                        dbcrypt.table_counts(out) != dbcrypt.table_counts(mem):
+                    raise SecretError("שחזור מוצפן לא תואם לגיבוי")
         finally:
             out.close()
+        if enc:
+            dbcrypt.assert_encrypted_file(dest)
+    except BaseException:
+        if created:
+            dest.unlink(missing_ok=True)   # לא משאירים יעד חלקי/לא-מאומת
+        raise
     finally:
         mem.close()
     os.chmod(dest, 0o600)
@@ -144,16 +190,22 @@ def check_fresh(directory: str | Path, max_hours: float = 48, now=None) -> tuple
     return True, f"הגיבוי האחרון בן {age.total_seconds() / 3600:.1f} שעות"
 
 
-def _open_source_db(path: str) -> sqlite3.Connection:
+def _open_source_db(path: str):
     """המקור חייב להיות DB קיים. sqlite3.connect יוצר DB ריק בשקט, וכך החלפת ארגומנטים הפכה
-    את שם קובץ הגיבוי ל"מקור" ריק ואת ה-DB החי ל"יעד" שנדרס. פתיחה לקריאה בלבד."""
+    את שם קובץ הגיבוי ל"מקור" ריק ואת ה-DB החי ל"יעד" שנדרס. פתיחה לקריאה בלבד.
+    SQLite גלוי ⇒ stdlib; אחרת רק עם DB_ENCRYPTION=sqlcipher ומפתח שפותח אותו."""
     p = Path(path)
     if not p.is_file():
         raise SecretError(f"מקור הגיבוי לא קיים: {p} (הסדר: create <db> <out>)")
-    with open(p, "rb") as f:
-        if not f.read(16).startswith(b"SQLite format 3"):
-            raise SecretError(f"המקור אינו DB של SQLite: {p} (הסדר: create <db> <out>)")
-    return sqlite3.connect(f"file:{p}?mode=ro", uri=True)
+    if dbcrypt.is_plaintext_sqlite(p):
+        return sqlite3.connect(f"file:{p}?mode=ro", uri=True)
+    if dbcrypt.mode() != dbcrypt.SQLCIPHER:
+        raise SecretError(f"המקור אינו DB של SQLite: {p} (הסדר: create <db> <out>; "
+                          f"DB מוצפן ⇒ {dbcrypt.FLAG}=sqlcipher)")
+    try:
+        return dbcrypt.open_db(str(p), readonly=True).conn
+    except dbcrypt.DBEncryptionError as e:
+        raise SecretError(str(e)) from None
 
 
 def main(argv: list[str]) -> int:
