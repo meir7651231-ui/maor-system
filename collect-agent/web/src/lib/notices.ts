@@ -14,12 +14,18 @@ const KIND: Record<string, { icon: string; title: string; tone: Notice['tone'] }
   credit_review: { icon: '🧾', title: 'זיכוי שלא שויך לחשבונית — לבדיקתך', tone: 'warn' },
   // חיוב דרך אורביט (8.11.2026): חסד / סיום / ביטול — הגוף כולל קישור לחיוב באורביט
   orbit_billing: { icon: '💳', title: 'המנוי לגבי — נדרשת פעולה באורביט', tone: 'warn' },
+  // critic סבב 33: הודעות **נכנסות** בלי לקוח — אין להן טיוטה ב«תשובות לקוחות», וזה המקום היחיד שבו הן נראות
+  unknown_sender: { icon: '❔', title: 'הודעה ממספר/כתובת לא מוכרים', tone: 'warn' },
+  shared_contact_ambiguous: { icon: '👥', title: 'הודעה ממספר/כתובת של כמה לקוחות — לא שויכה, לבדיקתך', tone: 'warn' },
 };
+/** נכנסות שמוצגות כאן: רק בלי לקוח מזוהה (ללקוח מזוהה יש טיוטה/כרטיס ב«תשובות לקוחות»). */
+const INBOUND_ORPHANS = new Set(['unknown_sender', 'shared_contact_ambiguous']);
 
 /** מסנן ומתרגם. intent לא מוכר ⇒ מוצג עם כותרת כללית (לא נבלע בשקט). סדר: trial_ending ראשון, ואז החדש ביותר. */
 export function systemNotices(rows: OwnerMsg[]): Notice[] {
   return rows
-    .filter(r => r.direction === 'system')
+    .filter(r => r.direction === 'system'
+      || (r.direction === 'in' && r.customer_id == null && INBOUND_ORPHANS.has(r.intent ?? '')))
     .map(r => {
       const k = KIND[r.intent ?? ''] ?? { icon: 'ℹ️', title: 'הודעה מגבי', tone: 'info' as const };
       return { id: r.id, icon: k.icon, title: k.title, body: r.body, tone: k.tone, intent: r.intent ?? '' };
