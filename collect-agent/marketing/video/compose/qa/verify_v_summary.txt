@@ -1,21 +1,21 @@
 # verify v
 frames: 984; with screen: 722
 status counts: {'interp': 45, 'meas': 547, 'nophone': 262, 'refit': 50, 'weak': 80}
-green_calib_px: max 425.000  mean 1.463  p95 0.000  frames>0: 15  frames>20: 7  worst: [218, 216, 217, 215, 220]
-green_final_band_px: max 204.000  mean 2.773  p95 0.000  frames>0: 15  frames>20: 14  worst: [378, 377, 380, 367, 366]
+green_calib_px: max 425.000  mean 1.468  p95 0.000  frames>0: 12  frames>20: 7  worst: [218, 216, 217, 215, 220]
+green_final_band_px: max 454.000  mean 4.922  p95 0.000  frames>0: 14  frames>20: 14  worst: [378, 366, 380, 367, 377]
 green_source_px: max 164374.000  mean 129692.242  p95 157838.550  frames>0: 722  frames>20: 722  worst: [247, 248, 685, 684, 686]
-skin_changed_px: max 210.000  mean 9.356  p95 50.000  frames>0: 249  frames>20: 111  worst: [106, 105, 108, 107, 102]
-changed_outside_green_px: max 66.000  mean 0.648  p95 0.950  frames>0: 37  frames>20: 8  worst: [303, 105, 209, 274, 278]
-jagged_px: max 356.000  mean 31.291  p95 93.000  frames>0: 715  frames>20: 346  worst: [141, 138, 142, 139, 143]
-jagged_ratio: max 0.748  mean 0.090  p95 0.454  frames>0: 715  frames>20: 0  worst: [25, 36, 37, 26, 40]
-kept_source_in_screen_px: max 10860.000  mean 32.722  p95 41.000  frames>0: 109  frames>20: 67  worst: [145, 136, 135, 124, 390]
-ui_vs_plate_maxabs_side: p50 0.270  p95 1.892  max 4.026  frames>0.5: 140/717
-ui_vs_plate_maxabs_side [meas/refit only]: p50 0.260  p95 0.436  max 3.038  frames>0.5: 27/597
-ui_vs_plate_p95_pt: p50 0.969  p95 3.625  max 4.740  frames>0.5: 714/716
+skin_changed_px: max 530.000  mean 25.789  p95 128.950  frames>0: 289  frames>20: 205  worst: [105, 106, 108, 107, 101]
+changed_outside_green_px: max 137.000  mean 2.650  p95 10.000  frames>0: 108  frames>20: 24  worst: [105, 278, 276, 303, 274]
+jagged_px: max 323.000  mean 33.731  p95 119.950  frames>0: 715  frames>20: 305  worst: [138, 141, 139, 613, 510]
+jagged_ratio: max 0.748  mean 0.091  p95 0.454  frames>0: 715  frames>20: 0  worst: [25, 36, 37, 26, 40]
+kept_source_in_screen_px: max 7777.000  mean 19.751  p95 0.000  frames>0: 11  frames>20: 7  worst: [145, 136, 135, 124, 134]
+ui_vs_plate_maxabs_side: p50 0.241  p95 0.459  max 1.687  frames>0.5: 31/717
+ui_vs_plate_maxabs_side [meas/refit only]: p50 0.243  p95 0.357  max 1.687  frames>0.5: 15/597
+ui_vs_plate_p95_pt: p50 0.864  p95 1.598  max 4.114  frames>0.5: 711/716
 fit_bias_maxabs: p50 0.158  p95 0.863  max 2.351  frames>0.5: 70/713
 fit_bias_maxabs [meas/refit only]: p50 0.144  p95 0.266  max 0.348  frames>0.5: 0/597
 track_vs_plate_px: p50 0.835  p95 8.202  max 65.031  frames>0.5: 544/712
 track_vs_plate_px [meas/refit only]: p50 0.772  p95 6.622  max 65.031  frames>0.5: 433/590
 plate_motion_px: p50 0.982  p95 5.784  max 33.482  frames>0.5: 587/712
-frames over 0.5px (either edge metric): [97, 98, 103, 104, 109, 113, 114, 127, 128, 132, 133, 134, 135, 146, 148, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 165, 168, 171, 172, 173, 174, 175, 176, 187, 188, 189, 190, 191, 192, 193, 212, 217, 219, 264, 265, 266, 267, 268, 270, 271, 273, 295, 296, 297, 298, 299, 300, 301, 329, 331, 337, 338, 339, 340, 341, 342, 344, 345, 346, 348, 366, 367, 368, 369, 371, 372, 373, 374, 375, 376, 377, 378, 379, 380, 381, 382, 385, 386, 390, 408, 410, 411, 412, 413, 414, 415, 416, 418, 507, 508, 509, 510, 548, 549, 550, 551, 552, 553, 557, 585, 586, 588, 589, 590, 592, 596, 597, 598, 599, 601, 602, 604, 605, 606, 607, 608, 609, 610, 612, 613, 652, 653, 654, 656, 661, 664, 665, 668, 669, 672, 691, 692]
-frames with any residual green (calib): [106, 107, 108, 130, 131, 132, 191, 215, 216, 217, 218, 219, 220, 610, 612]
+frames over 0.5px (either edge metric): [103, 104, 106, 109, 113, 114, 124, 126, 132, 133, 135, 144, 145, 146, 147, 148, 149, 150, 151, 156, 157, 158, 159, 168, 187, 188, 212, 217, 264, 265, 266, 267, 268, 270, 271, 295, 296, 297, 298, 299, 300, 301, 337, 338, 339, 340, 341, 344, 345, 346, 366, 367, 369, 371, 372, 373, 374, 377, 378, 379, 380, 381, 382, 385, 411, 412, 413, 414, 415, 416, 507, 508, 509, 549, 550, 585, 586, 588, 589, 590, 597, 604, 605, 608, 609, 612, 613, 652, 653, 692]
+frames with any residual green (calib): [106, 114, 116, 149, 188, 215, 216, 217, 218, 219, 220, 390]

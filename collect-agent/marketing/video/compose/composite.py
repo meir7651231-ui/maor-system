@@ -109,6 +109,7 @@ def despill_around(fr, Hm, protect=None):
 
 
 PREV = {'hand': None, 'i': -9}
+GF_R, GF_EPS = 5, 6e-4
 
 
 def fill_holes(m):
@@ -262,12 +263,16 @@ def composite(fr, i, ui):
         okc = np.zeros(ncy, bool); okc[np.unique(lcy[cy_in & (inner > 0.99)])] = True; okc[0] = False
         cy_ok = okc[lcy].astype(np.float32)
         a_geo = np.where(cov > 0.99, 1.0, np.maximum(np.minimum(cov, a_key), np.minimum(cov3, cv2.GaussianBlur(cy_ok, (0, 0), 0.7))))
+        # עידון מונחה גם לשפת-המסך (כרומה 4:2:0 ⇒ מדרגות), ושוב חסום בצורה
+        GI0 = (Yp / 255.0).astype(np.float32)
+        a_geo = np.where(cov > 0.99, 1.0, np.minimum(cov, np.clip(guided(GI0, a_geo.astype(np.float32), r=GF_R, eps=GF_EPS), 0, 1)))
         a = np.minimum(a_in, a_geo)
     else:
         k = np.maximum(np.maximum(np.clip(a_lin / 0.7, 0, 1), cv2.GaussianBlur(np.maximum(glare.astype(np.float32), cyan_e), (0, 0), 0.8)), np.clip(gdom * 2, 0, 1))
         Ssoft = cv2.GaussianBlur(S0.astype(np.float32), (0, 0), 0.8)
         inner_w = cv2.erode(S0.astype(np.uint8), np.ones((7, 7), np.uint8)) > 0
-        a = a_in * np.where(inner_w, 1.0, np.minimum(Ssoft, cv2.GaussianBlur(k, (0, 0), 0.7)))
+        kg = np.clip(guided((Yp / 255.0).astype(np.float32), np.minimum(Ssoft, k).astype(np.float32), r=GF_R, eps=GF_EPS), 0, 1)
+        a = a_in * np.where(inner_w, 1.0, kg)
     a = np.clip(a, 0, 1)
     # ---------------- UI: הצללה מהמסך; צל-אצבע = multiply; בוהק = screen-blend מוגבל
     s_px = local_scale(Hm)
@@ -310,7 +315,9 @@ def composite(fr, i, ui):
     nb2, db2 = norm_blur(P, pure_b, 5.0)
     Bcol = np.where(db1 > 0.02, nb1 / np.maximum(db1, 1e-6), np.where(db2 > 0.002, nb2 / np.maximum(db2, 1e-6), P))
     kb = np.clip((a_lin - 0.02) / 0.15, 0, 1)[..., None]
-    Fn = (1 - kb) * P + kb * Bcol
+    # שולי-המסך (מסגרת/צל): חזית = המקור עם despill (G ≤ max(R,B)) — לא צבע-שכנים (שלקח בהיר מהעץ/היד ויצר רצועה)
+    Pds = P.copy(); Pds[:, :, 1] = np.minimum(Pds[:, :, 1], np.maximum(Pds[:, :, 0], Pds[:, :, 2]))
+    Fn = (1 - kb) * P + kb * Pds
     pure_f = (core & (a_chr < 0.1)).astype(np.float32)
     nf1, df1 = norm_blur(P, pure_f, 2.0)
     nf2, df2 = norm_blur(P, pure_f, 6.0)
@@ -341,6 +348,13 @@ def composite(fr, i, ui):
         Fh[:, :, 1] = np.minimum(Fh[:, :, 1], lm)        # despill ניטרלי (עור רגיל לא משתנה: אצלו G < (R+B)/2)
         Fh = np.where((fg < 0.98)[..., None], np.where((pure_f > 0)[..., None], Fh, Fcol * 0.5 + Fh * 0.5), Fh)
         UIs = UIp
+        # עידון מונחה (He et al.): המאט הגס (כרומה 4:2:0, גושי 2×2) מעודן מול ה-luma ברזולוציה מלאה —
+        # השפה עוקבת אחרי קצה-האצבע האמיתי, בלי מדרגות
+        GI = cv2.GaussianBlur(Yp / 255.0, (0, 0), 0.5).astype(np.float32)
+        fg_g = np.clip(guided(GI, fg.astype(np.float32), r=GF_R, eps=GF_EPS), 0, 1)
+        fg_g = np.where(fg >= 0.995, np.maximum(fg_g, fg * 0.0 + fg_g), fg_g)
+        fg_g = np.where(hd > 0, fg_g, fg)                                # רק בסביבת היד
+        fg = np.clip((fg_g - 0.04) / 0.92, 0, 1)
         an = 1 - fg
         # פיקסל מעורב: חזית מוכפלת-מראש = P − α·G (unmix; צל על המסך ⇒ ≈0) — לא P מנוקה (שיצר הילה אפורה);
         # הליבה האטומה של היד = המקור עם despill ניטרלי (אור-מסך ירוק על צד-האצבע ⇒ ניטרלי)
