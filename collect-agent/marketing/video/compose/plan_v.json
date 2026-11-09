@@ -1,0 +1,14 @@
+{"notif_in": 1.0, "sms_at": 19.95,
+ "steps": [
+  {"kind": "tap", "t": 8.75, "target": "lock_notif"},
+  {"kind": "flick", "t0": 11.33, "t1": 11.85, "on": "dash"},
+  {"kind": "flick", "t0": 12.5, "t1": 12.88, "on": "dash"},
+  {"kind": "tap", "t": 13.5, "target": "dash_row"},
+  {"kind": "flick", "t0": 14.2, "t1": 14.85, "on": "sheet"},
+  {"kind": "flick", "t0": 15.45, "t1": 15.75, "on": "sheet"},
+  {"kind": "flick", "t0": 17.33, "t1": 17.88, "on": "sheet"},
+  {"kind": "tap", "t": 18.85, "target": "approve_btn", "win": 0.12},
+  {"kind": "tap", "t": 21.17, "target": "sms_link"},
+  {"kind": "flick", "t0": 23.0, "t1": 23.85, "on": "pay"},
+  {"kind": "flick", "t0": 25.3, "t1": 25.9, "on": "pay"}
+ ]}

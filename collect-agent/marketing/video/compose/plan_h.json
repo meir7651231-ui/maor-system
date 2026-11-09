@@ -1,0 +1,11 @@
+{"notif_in": 1.0,
+ "steps": [
+  {"kind": "tap", "t": 8.75, "target": "lock_notif"},
+  {"kind": "flick", "t0": 11.25, "t1": 11.85, "on": "dash"},
+  {"kind": "flick", "t0": 12.4, "t1": 12.92, "on": "dash"},
+  {"kind": "tap", "t": 13.5, "target": "dash_row"},
+  {"kind": "flick", "t0": 14.15, "t1": 14.8, "on": "sheet"},
+  {"kind": "flick", "t0": 15.8, "t1": 16.4, "on": "sheet"},
+  {"kind": "flick", "t0": 17.3, "t1": 17.9, "on": "sheet"},
+  {"kind": "tap", "t": 18.85, "target": "approve_btn", "win": 0.12}
+ ]}
