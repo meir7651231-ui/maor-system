@@ -204,4 +204,7 @@ def test_r10_short_link_dies_with_purge(svc, clock):
     assert c.post(f"/p/{code}/paid").status_code == 404
     assert c.post(f"/p/{code}/stop").status_code == 404
     assert c.get(f"/p/{code}/pay").status_code == 404
+    # סבב 29: גם המסלול השני של עמוד התשלום (web/) — דרך אותו `landing`
+    assert c.get(f"/api/pay/{code}").status_code == 404
+    assert c.post(f"/api/pay/{code}/paid", json={}).status_code == 404
     assert svc.db.one("SELECT COUNT(*) n FROM messages")["n"] == n_msgs
