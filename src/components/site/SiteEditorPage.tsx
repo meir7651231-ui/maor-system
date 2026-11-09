@@ -121,7 +121,7 @@ export function SiteEditorPage({ onClose }: { onClose: () => void }) {
       await m.savePublicSite(slug, clean, email);
       setDraft(clean);
       setSaved(JSON.stringify(clean));
-      setDocData((d) => ({ ...(d ?? {}), site: clean as Record<string, unknown>, updatedAt: new Date().toISOString(), updatedBy: email.toLowerCase() }));
+      setDocData((d) => ({ ...d, site: clean as Record<string, unknown>, updatedAt: new Date().toISOString(), updatedBy: email.toLowerCase() }));
       toast('✅ נשמר — האתר מתעדכן לכל המבקרים');
     } catch {
       toast('❌ השמירה נכשלה — בדקו חיבור/הרשאה ונסו שוב');
@@ -153,7 +153,7 @@ export function SiteEditorPage({ onClose }: { onClose: () => void }) {
     try {
       const m = await import('../../store/cloudSync');
       await m.setPublicSiteEditors(slug, editors);
-      setDocData((d) => ({ ...(d ?? {}), editors: editors.map((x) => x.toLowerCase()) }));
+      setDocData((d) => ({ ...d, editors: editors.map((x) => x.toLowerCase()) }));
       toast('✅ רשימת-העורכים עודכנה');
     } catch {
       toast('❌ העדכון נכשל');
