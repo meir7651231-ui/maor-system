@@ -596,6 +596,10 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         return [dict(r) for r in svc.db.q(
             "SELECT * FROM messages WHERE needs_owner=1 ORDER BY id DESC")]
 
+    @app.post("/owner/inbox/{mid}/done", dependencies=auth)
+    def owner_inbox_done(mid: int, request: Request):   # critic סבב 34: «טופל» ⇒ יורד מ«דורש טיפול שלך»
+        return guard(svc.owner_message_done, mid, request.state.actor)
+
     @app.get("/plans", dependencies=auth)
     def list_plans():
         return [{**dict(r), "installments": json.loads(r["installments"])}

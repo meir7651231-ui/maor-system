@@ -15,8 +15,8 @@ for (const [fmt, W, H, pos, fs] of [['h', 1280, 720, 'bottom:44px', 40], ['v', 7
   }
   // כרטיס סיום
   await p.setContent(`<style>${CSS}body{width:${W}px;height:${H}px;background:#0F172A;color:#FBF8F1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:${fmt === 'h' ? 14 : 22}px;text-align:center}
-svg{width:${fmt === 'h' ? 150 : 190}px;height:${fmt === 'h' ? 150 : 190}px;border-radius:34px}.n{font-weight:800;font-size:${fmt === 'h' ? 64 : 78}px}.s{font-weight:800;font-size:${fmt === 'h' ? 34 : 40}px;color:#10B981;padding:0 30px}.p{font-family:H;font-size:${fmt === 'h' ? 26 : 30}px;opacity:.9}.m{font-family:H;font-size:${fmt === 'h' ? 18 : 22}px;opacity:.6;padding:0 30px}</style>
-${logo}<div class="n">גבי – תזכורות תשלום</div><div class="s">הכסף שלך חוזר. בלי שתצטרך לרדוף.</div><div class="p">₪119 לחודש · 14 ימי ניסיון בלי כרטיס אשראי</div><div class="m">עובד עם חשבונית ירוקה · iCount · רווחית · EZcount</div>`);
+svg{width:${fmt === 'h' ? 150 : 190}px;height:${fmt === 'h' ? 150 : 190}px;border-radius:34px}.n{font-weight:800;font-size:${fmt === 'h' ? 64 : 78}px}.s{font-weight:800;font-size:${fmt === 'h' ? 34 : 40}px;color:#10B981;padding:0 30px}.p{font-family:H;font-size:${fmt === 'h' ? 26 : 30}px;opacity:.9;padding:0 30px;line-height:1.45}.m{font-family:H;font-size:${fmt === 'h' ? 18 : 22}px;opacity:.6;padding:0 30px}</style>
+${logo}<div class="n">גבי – תזכורות תשלום</div><div class="s">הכסף שלך חוזר. בלי שתצטרך לרדוף.</div><div class="p">₪119 לחודש או ₪1,190 לשנה · כולל מע״מ ככל שחל<br>14 ימי ניסיון בלי כרטיס אשראי</div><div class="m">עובד עם חשבונית ירוקה · iCount · רווחית · EZcount</div>`);
   await p.evaluate(() => document.fonts.ready); await p.screenshot({ path: `${S}/end_${fmt}.png` });
 }
 await b.close(); console.log('ok');

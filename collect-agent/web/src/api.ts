@@ -109,6 +109,7 @@ export const api = {
   resume: (cid: number) => j<unknown>(`/customers/${cid}/resume`, { method: 'POST' }),
   plans: () => j<Plan[]>('/plans'),
   ownerInbox: () => j<OwnerMsg[]>('/owner/inbox'),
+  ownerDone: (id: number) => j<unknown>(`/owner/inbox/${id}/done`, { method: 'POST' }),
   approvePlan: (pid: number) => j<{ text: string }>(`/plans/${pid}/approve`, { method: 'POST' }),
   drafts: () => j<Draft[]>('/conversation/drafts'),
   approveDraft: (id: number, body?: string) => j<{ status: string }>(`/conversation/drafts/${id}/approve`, { method: 'POST', body: JSON.stringify(body === undefined ? {} : { body }) }),

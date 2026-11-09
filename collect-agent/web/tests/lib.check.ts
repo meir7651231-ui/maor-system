@@ -382,3 +382,12 @@ test('הודעות נכנסות בלי לקוח (שולח לא מוכר / כתו
   assert.ok(n.find(x => x.id === 2)!.title.includes('כמה לקוחות'));
   assert.ok(n.find(x => x.id === 1)!.body.includes('רונית'));
 });
+
+// critic סבב 34: אין דרך לסמן הודעה כ«טופל» ⇒ «דורש טיפול שלך» מצטבר לנצח. כפתור + API לשרת.
+test('«דורש טיפול שלך»: לכל הודעה כפתור «טופל» שקורא ל-/owner/inbox/{id}/done', () => {
+  const api = readFileSync(new URL('../src/api.ts', import.meta.url), 'utf8');
+  assert.match(api, /ownerDone: \(id: number\) => j<unknown>\(`\/owner\/inbox\/\$\{id\}\/done`, \{ method: 'POST' \}\)/);
+  const dash = readFileSync(new URL('../src/pages/Dashboard.tsx', import.meta.url), 'utf8');
+  assert.match(dash, /api\.ownerDone\(n\.id\)/);
+  assert.match(dash, /data-testid="notice-done"/);
+});

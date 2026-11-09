@@ -252,6 +252,9 @@ function NeedsYou() {
           <li key={`n${n.id}`} className={`rounded-lg p-3 text-sm ${n.tone === 'warn' ? 'bg-amber-50' : 'bg-ink-50'}`} data-testid="notice" data-intent={n.intent}>
             <div className="font-bold"><span aria-hidden>{n.icon}</span> {n.title}</div>
             <div className="text-ink-700 text-xs mt-0.5">{n.body}</div>
+            <Button size="sm" variant={armed === `n${n.id}` ? 'dark' : 'outline'} className="mt-2" data-testid="notice-done"
+              onClick={() => act(`n${n.id}`, () => api.ownerDone(n.id), 'סומן כטופל')}>
+              {armed === `n${n.id}` ? 'לחצו שוב לאישור' : '✓ טופל'}</Button>
           </li>
         ))}
         {paused.map(c => (

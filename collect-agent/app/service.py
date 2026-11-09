@@ -784,6 +784,15 @@ class CollectService:
                    _iso(self.clock())))
         self.audit("system", "max_reminders_reached", {"customer": cust["id"]})
 
+    def owner_message_done(self, mid: int, actor: str = "owner") -> dict:
+        """critic סבב 34: בעל העסק מסמן הודעה כ«טופל». רק needs_owner=1 ⇒ 0 (התוכן לא נמחק — ר-10 מטפל
+        בזה). הדה-דופ של ההתראות (message_id) לא תלוי ב-needs_owner, ולכן היא לא נוצרת מחדש."""
+        if not self.db.one("SELECT 1 FROM messages WHERE id=? AND needs_owner=1", (mid,)):
+            raise KeyError(mid)
+        self.db.x("UPDATE messages SET needs_owner=0 WHERE id=?", (mid,))
+        self.audit(actor, "owner_message_done", {"message": mid})
+        return {"id": mid, "done": True}
+
     def _notify_no_due(self, inv_row, cust) -> None:
         key = f"nodue:{inv_row['id']}"
         if self.db.one("SELECT 1 FROM messages WHERE intent='no_due_date' AND message_id=?", (key,)):

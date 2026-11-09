@@ -688,3 +688,17 @@ def test_reminder_approved_in_advance_for_future_slot_still_sends(svc, fake_gi, 
     clock.now += timedelta(days=10, minutes=5)
     svc.dispatch()
     assert svc.db.one("SELECT status FROM reminders WHERE id=?", (rid,))["status"] == "sent_dry_run"
+
+
+def test_owner_can_mark_notice_done(api, svc):
+    """critic סבב 34: לא הייתה שום דרך לסמן הודעה לבעל העסק כ«טופל» — «דורש טיפול שלך» רק הצטבר
+    (סוף ניסיון, זיכוי יתום, הודעה ממספר לא מוכר...). עכשיו: POST /owner/inbox/{id}/done ⇒ יורד מהרשימה,
+    נרשם ב-audit, ולא נוצר מחדש (הדה-דופ לפי message_id לא תלוי ב-needs_owner)."""
+    svc.inbound("sms", "054-7777777", "מי אתם?")
+    mid = api.get("/owner/inbox").json()[0]["id"]
+    r = api.post(f"/owner/inbox/{mid}/done")
+    assert r.status_code == 200
+    assert all(m["id"] != mid for m in api.get("/owner/inbox").json())
+    assert any(a["action"] == "owner_message_done" for a in api.get("/audit").json())
+    assert api.post(f"/owner/inbox/{mid}/done").status_code == 404     # כבר טופל
+    assert api.post("/owner/inbox/999999/done").status_code == 404

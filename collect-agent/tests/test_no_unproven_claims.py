@@ -32,3 +32,17 @@ def test_no_customer_data_encrypted_claim_until_db_encryption_ships():
            for n, line in enumerate(p.read_text(encoding="utf-8").splitlines(), 1)
            if CLAIM.search(line) and "critic" not in line]
     assert not bad, bad
+
+
+def test_marketing_price_always_with_vat_and_yearly():
+    """critic סבב 34: כרטיס הסיום של הסרטון «הסופי» (`marketing/video/compose/overlays.mjs`) הציג
+    «₪119 לחודש · 14 ימי ניסיון» בלי «כולל מע״מ ככל שחל» ובלי ₪1,190/שנה — בניגוד להכרעת המחיר
+    (המחיר המלא = 119/1,190 כולל מע״מ ככל שחל). כל קובץ חומר-שיווק שמזכיר ₪119 חייב גם את השניים."""
+    globs = ("marketing/**/*.mjs", "marketing/**/*.html", "marketing/**/*.json", "marketing/**/*.md")
+    bad = []
+    for g in globs:
+        for p in ROOT.glob(g):
+            t = p.read_text(encoding="utf-8", errors="ignore")
+            if re.search(r"₪\s?119|119\s?₪", t) and not ("כולל מע״מ ככל שחל" in t and "1,190" in t):
+                bad.append(str(p.relative_to(ROOT)))
+    assert not bad, bad
