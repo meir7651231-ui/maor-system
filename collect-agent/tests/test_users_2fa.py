@@ -262,4 +262,26 @@ def test_real_data_requires_per_employee_login(monkeypatch, tmp_path):
     with _pytest.raises(SafetyError, match="REQUIRE_USER_LOGIN"):
         create_app(owner_token=OWNER_TOKEN)
     monkeypatch.setenv("REQUIRE_USER_LOGIN", "1")
+    monkeypatch.setenv("ACK_PLAINTEXT_DB", "1")  # שער 5 נבדק בנפרד (סבב 22)
+    create_app(owner_token=OWNER_TOKEN)
+
+
+def test_real_data_on_plaintext_db_fails_closed(monkeypatch, tmp_path):
+    """critic סבב 22: REAL_DATA_ALLOWED=1 + REQUIRE_USER_LOGIN=1 עלה על DB גלוי (DB_ENCRYPTION כבוי),
+    בניגוד לשער 5. עכשיו נכשל סגור; חריגה רק ב-ACK_PLAINTEXT_DB=1 מפורש."""
+    import pytest as _pytest
+
+    from app.config import SafetyError
+    from app.main import create_app
+    from tests.conftest import OWNER_TOKEN
+    monkeypatch.delenv("DEMO", raising=False)
+    monkeypatch.delenv("DB_ENCRYPTION", raising=False)
+    monkeypatch.delenv("ACK_PLAINTEXT_DB", raising=False)
+    monkeypatch.setenv("REQUIRE_USER_LOGIN", "1")
+    monkeypatch.setenv("REAL_DATA_ALLOWED", "1")
+    monkeypatch.setenv("DB_PATH", str(tmp_path / "real.sqlite3"))
+    monkeypatch.setenv("PAYMENT_LINK", "https://www.greeninvoice.co.il/pay/x")
+    with _pytest.raises(SafetyError, match="DB_ENCRYPTION"):
+        create_app(owner_token=OWNER_TOKEN)
+    monkeypatch.setenv("ACK_PLAINTEXT_DB", "1")
     create_app(owner_token=OWNER_TOKEN)

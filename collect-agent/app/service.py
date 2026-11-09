@@ -33,7 +33,6 @@ from .integrations.sources import (
     source_provider,
 )
 from .policy import (
-    MANUAL_ONLY_AFTER_DAYS,
     MAX_REMINDERS_PER_INVOICE,
     OWNER_HOLDS,
     RETENTION_DAYS,
@@ -41,6 +40,7 @@ from .policy import (
     Policy,
     customer_blocked,
     gap_ok,
+    invoice_too_old,
 )
 
 # ימים אחרי מועד-התשלום לכל שלב
@@ -217,6 +217,34 @@ class CollectService:
             return "phone:" + norm
         return "doc:" + inv.external_id
 
+    @staticmethod
+    def _norm_name(name: str | None) -> str:
+        return " ".join((name or "").split())
+
+    def _customer_key_db(self, inv: Invoice) -> str:
+        """critic סבב 26 (2.11): בלי מזהה לקוח, המפתח הוא מייל/טלפון — ושני אנשים שונים עם אותו
+        טלפון (משפחה, משרד) התמזגו: השם נדרס והתזכורת המאוחדת חשפה את החוב של אחד לשני. עכשיו: אם
+        כבר קיים לקוח במפתח הזה **בשם אחר** ⇒ מפתח נפרד לפי השם, והודעה אחת לבעל העסק. אותו שם (גם
+        עם רווחים שונים) או לקוח קיים בלי שם ⇒ אותו מפתח, כך שמיפויים קיימים לא זזים."""
+        key = self.customer_key(inv)
+        if inv.client_external_id or key.startswith("doc:"):
+            return key
+        name = self._norm_name(inv.client_name)
+        row = self.db.one("SELECT name FROM customers WHERE external_id=?", (key,))
+        if row is None or not name or not self._norm_name(row["name"]) \
+                or self._norm_name(row["name"]) == name:
+            return key
+        alt = f"{key}|name:{name}"
+        if not self.db.one("SELECT 1 FROM customers WHERE external_id=?", (alt,)):
+            self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
+                      "message_id,created_at) VALUES(NULL,'system','owner',?,'shared_contact',1,?,?)",
+                      (f"חשבונית {inv.number}: שני לקוחות בשמות שונים עם אותו טלפון/מייל ובלי מזהה לקוח נשמרו כלקוחות "
+                       "נפרדים (לא מאחדים חובות של אנשים שונים). אם זה אותו אדם — אחדו את השם "
+                       "במערכת החשבוניות.", "shared:" + hashlib.sha256(alt.encode()).hexdigest()[:24],
+                       _iso(self.clock())))
+            self.audit("system", "shared_contact_split", {})
+        return alt
+
     def ingest(self, invoices: list[Invoice], *, source: str = "api",
                full: bool = True, review: list[tuple[Invoice, str]] = (),
                provider: str | None = None) -> dict[str, int]:
@@ -231,7 +259,7 @@ class CollectService:
             if not self._merge_csv_twin(inv, source):
                 continue
             seen.add(inv.external_id)
-            cust_ext = self.customer_key(inv)
+            cust_ext = self._customer_key_db(inv)
             self.db.x(
                 "INSERT INTO customers(external_id,name,phone,email) "
                 "VALUES(?,?,?,?) ON CONFLICT(external_id) DO UPDATE SET name=excluded.name, "
@@ -521,10 +549,23 @@ class CollectService:
             return orbit_entitlement.evaluate(ent, self.clock().date(), trial_days=self.s.trial_days,
                                               price_ils_month=self.s.price_ils_month)
         info = {"price_ils_month": self.s.price_ils_month, "trial_days": self.s.trial_days}
-        if not self.s.trial_start:
+        trial_start = self.s.trial_start
+        if not trial_start:
+            # critic סבב 21 (שוחזר): עסק מקושר לאורביט (חיוב דרך אורביט) שלא קיבל אף זכאות מאומתת היה
+            # active לתמיד. הזכאות עוברת בדפדפן של הלקוח, ומספיק להסיר אותה. עכשיו: ניסיון מתאריך הקישור.
+            try:
+                link = self.db.one("SELECT created_at FROM orbit_links LIMIT 1")
+            except Exception:   # noqa: BLE001 — טבלת הקישור נוצרת רק עם OrbitConnect (אין ⇒ לא מקושר)
+                link = None
+            if link and link["created_at"]:
+                try:
+                    trial_start = date.fromisoformat(str(link["created_at"])[:10]).isoformat()
+                except ValueError:   # תאריך פגום לא מפיל את trial(); שמרני ⇒ הניסיון מתחיל היום
+                    trial_start = self.clock().date().isoformat()
+        if not trial_start:
             return {**info, "on_trial": False, "active": True, "days_left": None,
                     "ending_soon": False}
-        start = date.fromisoformat(self.s.trial_start)
+        start = date.fromisoformat(trial_start)
         left = self.s.trial_days - (self.clock().date() - start).days
         return {**info, "on_trial": True, "active": left > 0, "days_left": max(left, 0),
                 "ending_soon": 0 < left <= TRIAL_WARN_DAYS,
@@ -650,12 +691,13 @@ class CollectService:
                            "ORDER BY due, id", (cid,)):
             if r["id"] in rejected:
                 continue  # בעל העסק דחה ⇒ אין תזכורות נוספות לחשבונית הזו
-            born = r["issued"] or r["due"]
-            if born and (now.date() - date.fromisoformat(born)).days > MANUAL_ONLY_AFTER_DAYS:
+            if invoice_too_old(r, now.date()):
                 self._notify_too_old(r, cust)   # ר-7: אין שום אוטומציה, רק התראה אחת
                 continue
             if r["due"]:
                 cands.append(r)
+            else:   # critic סבב 25: בלי שום תאריך ⇒ לא מתזמנים, אבל גם לא שותקים
+                self._notify_no_due(r, cust)
         # מבקר סבב 3 (8): שלב נקבע לפי מה **שנשלח**, לא לפי תזכורות שבוטלו (השהיה/ביטול)
         done = len(self.episode_sent(cid))
         if done >= MAX_REMINDERS_PER_INVOICE:
@@ -741,6 +783,17 @@ class CollectService:
                    _iso(self.clock())))
         self.audit("system", "max_reminders_reached", {"customer": cust["id"]})
 
+    def _notify_no_due(self, inv_row, cust) -> None:
+        key = f"nodue:{inv_row['id']}"
+        if self.db.one("SELECT 1 FROM messages WHERE intent='no_due_date' AND message_id=?", (key,)):
+            return
+        self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
+                  "message_id,created_at) VALUES(?,'system','owner',?,'no_due_date',1,?,?)",
+                  (cust["id"], f"לחשבונית {inv_row['number']} ({cust['name']}) אין תאריך הנפקה ואין מועד "
+                   "תשלום, ולכן גבי לא שולחת עליה תזכורות. השלימו תאריך במערכת החשבוניות.", key,
+                   _iso(self.clock())))
+        self.audit("system", "no_due_date", {"invoice": inv_row["id"]})
+
     def _notify_too_old(self, inv_row, cust) -> None:
         key = f"old:{inv_row['id']}"
         if self.db.one("SELECT 1 FROM messages WHERE intent='manual_only_old' AND message_id=?",
@@ -797,7 +850,8 @@ class CollectService:
             self.db.x("UPDATE reminders SET body='', payload='[]' WHERE invoice_id=? OR id IN "
                       "(SELECT reminder_id FROM reminder_invoices WHERE invoice_id=?)",
                       (r["id"], r["id"]))
-            self.db.x("UPDATE invoices SET purged_at=?, payment_url=NULL WHERE id=?",
+            # critic סבב 28: גם הקוד של הקישור הקצר (/p/) — אחרת הוא חי לנצח אחרי המחיקה
+            self.db.x("UPDATE invoices SET purged_at=?, payment_url=NULL, short_code=NULL WHERE id=?",
                       (now, r["id"]))
             inv_n += 1
         for c in self.db.q("SELECT id FROM customers WHERE purged_at IS NULL AND "
@@ -826,6 +880,7 @@ class CollectService:
         if inv_n or cust_n or unk:
             self.audit("system", "retention_purge", {"invoices": inv_n, "customers": cust_n,
                                                      "unknown_messages": len(unk)})
+            self.db.scrub()   # critic סבב 24: גם דפים פנויים מלפני secure_delete (DB קיים)
         return {"invoices": inv_n, "customers": cust_n}
 
     def _table_exists(self, name: str) -> bool:
@@ -1105,15 +1160,34 @@ class CollectService:
         self.audit("system", why, {"reminder": r["id"], "error": err[:200]})
 
     # ---------- inbound ----------
-    def _find_customer(self, channel: str, sender: str):
+    def _find_customers(self, channel: str, sender: str) -> list:
+        """כל הלקוחות עם הכתובת הזו (טלפון משותף / מייל משותף ⇒ יותר מאחד — סבב 26)."""
         if channel == "email":
             e = (sender or "").strip().lower()
-            return self.db.one("SELECT * FROM customers WHERE lower(email)=?", (e,)) if e else None
+            return self.db.q("SELECT * FROM customers WHERE lower(email)=? ORDER BY id", (e,)) if e else []
         norm = normalize_il_phone(sender)
         if not norm:
-            return None
-        return next((c for c in self.db.q("SELECT * FROM customers")
-                     if normalize_il_phone(c["phone"]) == norm), None)
+            return []
+        return [c for c in self.db.q("SELECT * FROM customers ORDER BY id")
+                if normalize_il_phone(c["phone"]) == norm]
+
+    def _resolve_sender(self, channel: str, sender: str) -> tuple[Any, bool]:
+        """critic סבב 27: ⇒ (לקוח, דו-משמעי). כמה לקוחות על אותה כתובת ⇒ מי שקיבל את ההודעה
+        היוצאת האחרונה בערוץ הזה (התשובה היא לה). אף אחד לא קיבל ⇒ (None, True): לא מנחשים — היה
+        «הראשון בטבלה», ו«איך משלמים?» של משה קיבל טיוטה עם החוב של רונית."""
+        custs = self._find_customers(channel, sender)
+        if len(custs) <= 1:
+            return (custs[0] if custs else None), False
+        last = {c["id"]: self.db.one("SELECT MAX(id) m FROM messages WHERE direction='out' AND "
+                                     "channel=? AND customer_id=?", (channel, c["id"]))["m"] or 0
+                for c in custs}
+        best = max(last, key=last.get)
+        if not last[best]:
+            return None, True
+        return next(c for c in custs if c["id"] == best), False
+
+    def _find_customer(self, channel: str, sender: str):
+        return self._resolve_sender(channel, sender)[0]
 
     @property
     def inbox(self):
@@ -1136,7 +1210,7 @@ class CollectService:
     # ---------- עמוד הקישור הקצר (/p/{code}) ----------
     def landing(self, code: str) -> dict:
         inv = self.db.one("SELECT * FROM invoices WHERE short_code=?", (code,))
-        if not inv:
+        if not inv or inv["purged_at"]:
             raise KeyError(code)
         cust = self.db.one("SELECT * FROM customers WHERE id=?", (inv["customer_id"],))
         items = self._landing_items(inv)
@@ -1231,8 +1305,7 @@ class CollectService:
         if kind == "blacklist" and f.get("phone"):
             # מבקר סבב 3: גם מספר שעוד לא ב-DB נחסם (לקוח שיתווסף אחר כך עם המספר לא יקבל SMS)
             self.suppress("sms", f["phone"], "carrier_blacklist")
-            cust = self._find_customer("sms", f["phone"])
-            if cust:
+            for cust in self._find_customers("sms", f["phone"]):   # טלפון משותף ⇒ כולם
                 self._opt_out(cust["id"], "carrier_blacklist")
             res: dict = {"ok": True, "kind": kind}
         elif kind == "incoming_sms" and f.get("phone") and f.get("message") is not None:

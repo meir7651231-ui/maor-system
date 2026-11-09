@@ -152,3 +152,59 @@ def test_pii_patterns_sanity(svc, clock):
     _full_life(svc, clock)
     dump = _dump(svc)
     assert NAME in dump and re.search(r"(0501234567|972501234567|050-1234567)", dump)
+
+
+def _disk_svc(gi_client, clock, path, *, secure_delete=True):
+    from app.config import load_settings
+    from app.db import DB
+    from app.service import CollectService
+    s = load_settings({"BUSINESS_NAME": "סטודיו מאיר", "SMS_SENDER_ID": "StudioMeir",
+                       "PAYMENT_LINK": "https://www.greeninvoice.co.il/pay/studio",
+                       "PUBLIC_BASE_URL": "https://gabi.example", "SMS_WEBHOOK_KEY": "whk-test",
+                       "EMAIL_REPLY_TO": "owner@studio.example", "EMAIL_WEBHOOK_KEY": "ewk-test",
+                       "REAL_DATA_ALLOWED": "1"})
+    db = DB(str(path))
+    if not secure_delete:   # DB שנוצר לפני התיקון (דפים פנויים «מלוכלכים»)
+        db.conn.execute("PRAGMA secure_delete = OFF")
+    return CollectService(s, db, gi=gi_client, clock=clock)
+
+
+@pytest.mark.parametrize("secure_delete", [True, False])
+def test_r10_no_pii_bytes_left_in_db_file_after_purge(gi_client, clock, tmp_path, secure_delete):
+    """critic סבב 24: ה-dump (iterdump) נקי, אבל **הקובץ עצמו** החזיק אחרי 91 יום את השם, הטלפון,
+    המייל וגם את הטקסט של שולח לא מוכר — בדפים/תאים ששוחררו ב-UPDATE. «נמחק» בלי שנמחק.
+    עכשיו: secure_delete בכל חיבור + VACUUM אחרי מחיקה (גם ל-DB קיים עם דפים מלוכלכים)."""
+    path = tmp_path / "g.sqlite3"
+    svc = _disk_svc(gi_client, clock, path, secure_delete=secure_delete)
+    _full_life(svc, clock)
+    clock.now += timedelta(days=91)
+    svc.purge_closed()
+    svc.db.conn.commit()
+    raw = b"".join(f.read_bytes() for f in tmp_path.iterdir())
+    leaks = [p for p in (NAME, "1234567", "c1@example", "רונית") if p.encode() in raw]
+    assert not leaks, f"PII בבתים של קובץ ה-DB אחרי מחיקה: {leaks}"
+
+
+def test_r10_short_link_dies_with_purge(svc, clock):
+    """critic סבב 28: אחרי מחיקת 90 יום הקישור הקצר מה-SMS (/p/<code>) עדיין עבד — הציג את שם העסק
+    ומספר החשבונית, ו«כבר שילמתי»/«הפסקה» יצרו רשומות חדשות על לקוח שהותמם. עכשיו: 404."""
+    from fastapi.testclient import TestClient
+
+    from app.main import create_app
+    from tests.conftest import OWNER_TOKEN
+    _full_life(svc, clock)
+    code = svc.db.one("SELECT short_code FROM invoices WHERE short_code IS NOT NULL")["short_code"]
+    c = TestClient(create_app(svc, owner_token=OWNER_TOKEN))
+    assert c.get(f"/p/{code}").status_code == 200
+    clock.now += timedelta(days=91)
+    svc.purge_closed()
+    n_msgs = svc.db.one("SELECT COUNT(*) n FROM messages")["n"]
+    r = c.get(f"/p/{code}")
+    assert r.status_code == 404 and "1001" not in r.text
+    assert c.post(f"/p/{code}/paid").status_code == 404
+    assert c.post(f"/p/{code}/stop").status_code == 404
+    assert c.get(f"/p/{code}/pay").status_code == 404
+    # סבב 29: גם המסלול השני של עמוד התשלום (web/) — דרך אותו `landing`
+    assert c.get(f"/api/pay/{code}").status_code == 404
+    assert c.post(f"/api/pay/{code}/paid", json={}).status_code == 404
+    assert svc.db.one("SELECT COUNT(*) n FROM messages")["n"] == n_msgs

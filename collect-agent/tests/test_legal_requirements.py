@@ -472,3 +472,118 @@ def test_r14_no_money_handling_code():
     for forbidden in (r"card_?number", r"\bcvv\b", r"stripe\.", r"/charges?\b", r"payout",
                       r"transfer_funds"):
         assert not re.search(forbidden, src, re.I), forbidden
+
+
+def test_r7_old_invoice_no_auto_plan_or_auto_reply_in_conversation(api, svc, fake_gi):
+    """critic סבב 23: ר-7 נאכף רק בתור התזכורות (`_plan_customer`). בשיחה, לקוח שכל החוב שלו
+    בחשבונית מ-2022 שאל «אפשר בתשלומים?» ⇒ טיוטת פריסה 3×400 ₪ על החשבונית הישנה, הסדר
+    נרשם, ובעל העסק לא קיבל שום סימן שזו חשבונית מעל 3 שנים. עכשיו: אין הצעה ואין הסדר,
+    כרטיס «טיפול ידני» (תגית manual_only_old), ואין שליחה אוטומטית."""
+    fake_gi.docs[0]["documentDate"] = "2022-01-01"
+    fake_gi.docs[0]["dueDate"] = "2022-02-01"
+    api.post("/sync")
+    r = api.post("/inbound", json={"channel": "sms", "sender": "0501234567",
+                                   "text": "אפשר לשלם בתשלומים?"}).json()
+    assert r["plan_id"] is None and not r["auto_sent"]
+    assert svc.db.one("SELECT COUNT(*) n FROM plans")["n"] == 0
+    assert "manual_only_old" in r["tags"]
+    assert any("3 שנים" in a for a in r["owner_actions"])
+    assert "400" not in (r["owner_summary"] or "")
+
+
+@pytest.mark.parametrize("amt,n", [("123456.77", 6), ("99999.97", 3), ("123456.79", 12)])
+def test_plan_offer_fits_sms_with_longest_business_name(svc, fake_gi, clock, amt, n):
+    """critic סבב 25: שם עסק של 40 תווים (המקסימום בהגדרות) + «קשה לי» + חלוקה לא שווה ⇒ הצעת
+    הפריסה הגיעה ל-283–291 תווים (תקרת תשובה: 268). בעל העסק אישר ⇒ השליחה נכשלה, הטיוטה נסגרה
+    כ«נדחתה», והלקוח שאמר שקשה לו לא קיבל כלום. עכשיו: נוסח מקוצר שנכנס בתקציב (כולל קישור ההסרה),
+    ואם גם הוא לא נכנס ⇒ אין הצעה אוטומטית, כרטיס להציע ידנית."""
+    import dataclasses
+
+    from app.compliance import SMS_REPLY_MAX
+    svc.s = dataclasses.replace(svc.s, business_name="א" * 20 + " " + "ב" * 19)
+    fake_gi.docs[:] = [d for d in fake_gi.docs if d["number"] == "1001"]
+    fake_gi.docs[0]["amount"] = amt
+    fake_gi.docs[0]["client"]["name"] = "אלכסנדרה-מרגריטה בן-שושן"
+    svc.sync()
+    r = svc.inbound("sms", "050-1234567", f"קשה לי, אפשר לפרוס ל-{n} תשלומים?")
+    out = svc.inbox.approve_draft(r["draft_id"])
+    assert out["status"] == "sent_dry_run", out
+    assert len(out["body"]) <= SMS_REPLY_MAX
+    assert "/u/" in out["body"] and "₪" in out["body"]
+
+
+def test_plan_offer_too_long_even_compact_goes_to_owner_without_plan():
+    """critic סבב 25: אם גם הנוסח המקוצר לא נכנס ב-SMS ⇒ אין הצעה ואין הסדר, כרטיס לבעל העסק."""
+    from datetime import date
+    ctx = conversation.Context(today=date(2026, 11, 8), business="א" * 40, customer_name="דנה כהן",
+                               invoices=(conversation.OpenInvoice("1", 123_456_77),),
+                               footer_len=120)
+    d = conversation.respond("קשה לי, אפשר לפרוס ל-6 תשלומים?", ctx)
+    assert not d.plan and "plan_too_long_for_sms" in d.tags
+    assert d.next_state == conversation.State.AWAITING_OWNER
+    assert any("ידנית" in a for a in d.owner_actions) and "₪" not in (d.reply or "")
+
+
+def test_invoice_without_any_date_notifies_owner_once(svc, fake_gi):
+    """critic סבב 25: חשבונית בלי dueDate וגם בלי documentDate נשארה «פתוחה» לנצח — בלי תזכורת
+    ובלי שום הודעה לבעל העסק (שבטוח שגבי מטפלת בה). עכשיו: התראה אחת «להשלים תאריך»."""
+    for k in ("documentDate", "dueDate"):
+        fake_gi.docs[0].pop(k)
+    svc.sync()
+    svc.plan()
+    svc.plan()
+    inv = svc.db.one("SELECT * FROM invoices WHERE number='1001'")
+    assert svc.db.one("SELECT 1 FROM reminders WHERE invoice_id=?", (inv["id"],)) is None
+    alerts = svc.db.q("SELECT * FROM messages WHERE needs_owner=1 AND intent='no_due_date'")
+    assert len(alerts) == 1 and "1001" in alerts[0]["body"]
+    assert inv["status"] == "open"   # לא סוגרים ולא מבטלים — רק מודיעים
+
+
+def test_csv_same_phone_different_names_not_merged(svc):
+    """critic סבב 26 (2.11, גרסת CSV): שתי שורות בלי מזהה לקוח, אותו טלפון ושמות שונים (רונית, משה)
+    ⇒ לקוח אחד: השם של רונית נדרס ל«משה», והתזכורת המאוחדת אמרה למשה «2 חשבוניות, 700 ₪» — כולל
+    החוב של רונית (חשיפת חוב לצד ג׳). עכשיו: לקוחות נפרדים + הודעה לבעל העסק. אותו שם ⇒ אותו לקוח."""
+    raw = ("מספר חשבונית,לקוח,סכום,תאריך לתשלום,טלפון\n"
+           "3,רונית לוי,300,2026-10-01,050-0001111\n4,משה כהן,400,2026-10-01,050-0001111\n"
+           "5,משה  כהן,50,2026-10-01,050-0001111\n").encode()
+    svc.import_csv(raw)
+    custs = {r["name"]: r["id"] for r in svc.db.q("SELECT id,name FROM customers")}
+    assert set(custs) == {"רונית לוי", "משה  כהן"} or set(custs) == {"רונית לוי", "משה כהן"}
+    by = {r["number"]: r["customer_id"] for r in svc.db.q("SELECT number,customer_id FROM invoices")}
+    assert by["3"] != by["4"] and by["4"] == by["5"]
+    assert svc.db.one("SELECT COUNT(*) n FROM messages WHERE intent='shared_contact'")["n"] == 1
+
+
+def _shared_phone_csv(svc):
+    raw = ("מספר חשבונית,לקוח,סכום,תאריך לתשלום,טלפון\n"
+           "3,רונית לוי,300,2026-10-01,050-0001111\n4,משה כהן,400,2026-10-01,050-0001111\n").encode()
+    svc.import_csv(raw)
+    return {r["name"]: r["id"] for r in svc.db.q("SELECT id,name FROM customers")}
+
+
+def test_shared_phone_reply_goes_to_customer_who_got_last_message(svc):
+    """critic סבב 27: אחרי ההפרדה (סבב 26) — משה קיבל תזכורת ושאל «איך אפשר לשלם?» ⇒ טיוטה עם החוב
+    של **רונית** (300 ₪, החשבונית שלה) לאותו מספר, ו«שילמתי» השהה את רונית בזמן שמשה המשיך לקבל
+    תזכורות (`_find_customer` = הראשון בטבלה). עכשיו: מי שקיבל את ההודעה האחרונה למספר הזה."""
+    ids = _shared_phone_csv(svc)
+    svc.plan()
+    rems = {r["customer_id"]: r["id"] for r in svc.db.q(
+        "SELECT r.id, i.customer_id FROM reminders r JOIN invoices i ON i.id=r.invoice_id")}
+    svc.approve(rems[ids["משה כהן"]], confirm_open=True)
+    svc.dispatch()
+    svc.inbound("sms", "050-0001111", "איך אפשר לשלם?")
+    d = svc.db.one("SELECT * FROM drafts ORDER BY id DESC LIMIT 1")
+    assert d["customer_id"] == ids["משה כהן"] and "300" not in d["body"]
+    svc.inbound("sms", "050-0001111", "שילמתי")
+    paused = {r["name"]: r["paused_reason"] for r in svc.db.q("SELECT name,paused_reason FROM customers")}
+    assert paused["משה כהן"] and not paused["רונית לוי"]
+
+
+def test_shared_phone_reply_without_any_outbound_is_not_attributed(svc):
+    """אף אחד מהשניים לא קיבל הודעה ⇒ לא מנחשים: אין טיוטה עם חוב, כרטיס לבעל העסק."""
+    _shared_phone_csv(svc)
+    r = svc.inbound("sms", "050-0001111", "איך אפשר לשלם?")
+    assert r["draft_id"] is None and r["intent"] == "shared_contact_ambiguous"
+    assert svc.db.one("SELECT COUNT(*) n FROM drafts")["n"] == 0
+    r = svc.inbound("sms", "050-0001111", "הסר")
+    assert svc.suppressed("sms", "050-0001111")

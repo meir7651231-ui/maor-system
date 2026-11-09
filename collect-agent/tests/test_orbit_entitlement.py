@@ -287,10 +287,13 @@ def test_unlinked_business_keeps_local_trial(gi_client, clock):
     assert svc.trial()["active"] is False and "source" not in svc.trial()
 
 
-def test_linked_without_entitlement_keeps_local_behaviour(svc):
+def test_linked_without_entitlement_gets_trial_from_link_date(svc):
+    """היה: «מקושר בלי זכאות ⇒ התנהגות מקומית» (active לתמיד בלי TRIAL_START). critic סבב 21 שינה את זה:
+    הזכאות עוברת ב-fragment דרך הדפדפן של הלקוח, ולכן הסרת `&e=` נתנה שימוש חינם ללא הגבלה, בניגוד
+    להכרעת מאיר (חיוב דרך אורביט). עכשיו: ניסיון של 14 יום מתאריך הקישור. (הכרעה הפיכה — ראו critic.md 21.1)"""
     _link(svc)
-    assert svc.trial() == {"price_ils_month": 119, "trial_days": 14, "on_trial": False,
-                           "active": True, "days_left": None, "ending_soon": False}
+    t = svc.trial()
+    assert t["on_trial"] is True and t["active"] is True and t["days_left"] == 14
 
 
 def test_unlink_drops_entitlement(svc, api):

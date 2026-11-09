@@ -122,3 +122,20 @@ def test_wipe_backups_deletes_every_gabi_backup_by_content_not_name(tmp_path, mo
     assert wipe.main(["x", str(db), "--confirm", "WIPE", "--backups", str(bdir)]) == 0
     assert sorted(p.name for p in bdir.iterdir()) == ["link.gbk", "notes.txt"]
     assert db.exists()     # היעד של ה-symlink לא נמחק
+
+
+def test_wipe_covers_every_table_the_app_creates():
+    """critic סבב 29: «מחיקת עסק שלם» מוחקת רשימה קבועה (`wipe._TABLES`). טבלאות נוצרות בכמה מודולים
+    (users, inbox, orbit...), וטבלה חדשה שנשכחה מהרשימה = PII שנשאר אחרי «מחקנו הכול». המגן סורק את
+    כל `CREATE TABLE` ב-app/: כל טבלה נמחקת, או נשמרת במכוון (יומנים הוספה-בלבד + רשימת הסרה מגובבת)."""
+    import re
+    from pathlib import Path
+
+    from app import wipe
+    keep = {"audit", "access_log", "suppressions"}   # ראיה בלי תוכן + גיבוב בלבד (ר-3, ר-10)
+    src = "\n".join(p.read_text(encoding="utf-8")
+                    for p in (Path(__file__).resolve().parent.parent / "app").glob("*.py"))
+    created = set(re.findall(r"CREATE TABLE IF NOT EXISTS (\w+)", src))
+    assert len(created) >= 20, created   # הסריקה עצמה עובדת
+    missing = created - set(wipe._TABLES) - keep
+    assert not missing, f"טבלאות שלא נמחקות ב-wipe: {sorted(missing)}"

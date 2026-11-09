@@ -37,7 +37,7 @@ from .conversation import (
     respond,
 )
 from .llm import load_classifier
-from .policy import TZ
+from .policy import TZ, invoice_too_old
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS conversations (
@@ -94,7 +94,17 @@ class ConversationInbox:
         if channel not in ("sms", "email"):
             raise ValueError("ערוץ לא נתמך")
         now = self.svc.clock()
-        cust = self.svc._find_customer(channel, sender)
+        cust, ambiguous = self.svc._resolve_sender(channel, sender)
+        if cust is None and ambiguous:
+            # critic סבב 27: כתובת של כמה לקוחות ואף אחד מהם לא קיבל הודעה ⇒ לא משייכים ולא מנסחים
+            # (אין טיוטה עם חוב של אדם אחר). «הסר» ⇒ רשימת ההסרה לפי הכתובת ⇒ חל על כולם.
+            if {Intent.OPT_OUT, Intent.WRONG_PERSON} & set(detect(text)):
+                self.svc.suppress(channel, sender, "shared_contact_opt_out")
+            self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
+                      "created_at) VALUES(NULL,'in',?,?, 'shared_contact_ambiguous', 1, ?)",
+                      (channel, text, _iso(now)))
+            return {"intent": "shared_contact_ambiguous", "escalate": True, "escalation": "normal",
+                    "draft_id": None, "auto_reply": None, "plan_id": None}
         if cust is None:
             # מבקר סבב 3: «הסר» ממספר/כתובת שעוד לא ב-DB ⇒ רשימת ההסרה (גם ללקוח עתידי)
             if Intent.OPT_OUT in detect(text):
@@ -117,6 +127,10 @@ class ConversationInbox:
         if web:
             d = replace(d, reply=None, auto_send=False)
         d = self._hold_reply_if_opted_out(cust, channel, d)
+        if ctx.manual_old and d.auto_send:
+            # critic סבב 23 (ר-7): חשבונית מעל 3 שנים ⇒ שום תשובה לא יוצאת בלי אישור פרטני
+            d = replace(d, auto_send=False, tags=d.tags + ("manual_only_old",),
+                        owner_actions=d.owner_actions + ("יש חשבונית בת יותר מ-3 שנים — לאשר ידנית",))
         self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
                   "created_at) VALUES(?,'in',?,?,?,?,?)",
                   (cust["id"], channel, text, d.intent.value,
@@ -171,7 +185,10 @@ class ConversationInbox:
                                        date.fromisoformat(r["due"]) if r["due"] else None)
                            for r in invs),
             payment_link=link, channel=channel, state=state, offered_plan=offered,
-            bot_turns=conv["bot_turns"] if conv else 0, policy=self.policy)
+            bot_turns=conv["bot_turns"] if conv else 0, policy=self.policy,
+            manual_old=any(invoice_too_old(r, self.svc.clock().date()) for r in invs),
+            # critic סבב 25: מקום לשורת ההסרה (`_with_footer`, טוקן של 22 תווים) בתקציב ה-SMS
+            footer_len=len("\nלהפסקה: " + self.svc.unsub_url("x" * 22)))
 
     def _hold_reply_if_opted_out(self, cust, channel: str, d: Decision) -> Decision:
         """לקוח שכבר הוסר (או שהכתובת שלו ברשימת ההסרה): שער השליחה (`_can_message`) יחסום כל
