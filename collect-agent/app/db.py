@@ -200,6 +200,12 @@ class DB:
             "INSERT OR IGNORE INTO reminder_invoices(reminder_id, invoice_id) "
             "SELECT r.id, r.invoice_id FROM reminders r WHERE NOT EXISTS "
             "(SELECT 1 FROM reminder_invoices x WHERE x.reminder_id=r.id);")
+        # critic סבב 36: plan() על 5,000 לקוחות = 7–8 שנ׳, כי כל שאילתה פר-לקוח סרקה את כל הטבלה.
+        # אינדקסים (IF NOT EXISTS ⇒ בטוח גם ל-DB קיים; אחרי כל ה-ALTER, כך שהעמודות קיימות).
+        self.conn.executescript(
+            "CREATE INDEX IF NOT EXISTS ix_inv_cust ON invoices(customer_id, status);"
+            "CREATE INDEX IF NOT EXISTS ix_msg_mid ON messages(message_id);"
+            "CREATE INDEX IF NOT EXISTS ix_msg_cust ON messages(customer_id);")
         if "episode_since" not in cols:   # תחילת «אפיזודת החוב» הנוכחית של הלקוח (סולם 3 התזכורות)
             self.conn.execute("ALTER TABLE customers ADD COLUMN episode_since TEXT")
         self.conn.commit()
