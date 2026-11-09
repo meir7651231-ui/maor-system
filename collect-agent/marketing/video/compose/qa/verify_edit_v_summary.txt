@@ -1,0 +1,21 @@
+# verify edit_v
+frames: 533; with screen: 271
+status counts: {'meas': 261, 'nophone': 262, 'refit': 5, 'weak': 5}
+green_calib_px: max 0.000  mean 0.000  p95 0.000  frames>0: 0  frames>20: 0  worst: [0, 1, 2, 3, 4]
+green_final_band_px: max 0.000  mean 0.000  p95 0.000  frames>0: 0  frames>20: 0  worst: [0, 1, 2, 3, 4]
+green_source_px: max 164374.000  mean 117532.716  p95 159402.000  frames>0: 271  frames>20: 271  worst: [152, 153, 154, 151, 265]
+skin_changed_px: max 0.000  mean 0.000  p95 0.000  frames>0: 0  frames>20: 0  worst: [0, 1, 2, 3, 4]
+changed_outside_green_px: max 0.000  mean 0.000  p95 0.000  frames>0: 0  frames>20: 0  worst: [0, 1, 2, 3, 4]
+jagged_px: max 86.000  mean 23.727  p95 74.000  frames>0: 271  frames>20: 95  worst: [17, 36, 15, 21, 40]
+jagged_ratio: max 0.748  mean 0.143  p95 0.639  frames>0: 271  frames>20: 0  worst: [25, 36, 37, 26, 40]
+kept_source_in_screen_px: max 0.000  mean 0.000  p95 0.000  frames>0: 0  frames>20: 0  worst: [0, 1, 2, 3, 4]
+ui_vs_plate_maxabs_side: p50 0.233  p95 0.318  max 1.244  frames>0.5: 2/271
+ui_vs_plate_maxabs_side [meas/refit only]: p50 0.233  p95 0.305  max 1.244  frames>0.5: 1/266
+ui_vs_plate_p95_pt: p50 0.771  p95 0.957  max 1.259  frames>0.5: 270/271
+fit_bias_maxabs: p50 0.129  p95 0.225  max 1.098  frames>0.5: 3/271
+fit_bias_maxabs [meas/refit only]: p50 0.129  p95 0.220  max 0.281  frames>0.5: 0/266
+track_vs_plate_px: p50 0.627  p95 5.212  max 19.281  frames>0.5: 163/268
+track_vs_plate_px [meas/refit only]: p50 0.609  p95 5.169  max 19.281  frames>0.5: 158/263
+plate_motion_px: p50 0.915  p95 5.002  max 32.616  frames>0.5: 212/268
+frames over 0.5px (either edge metric): [98, 99, 100, 101, 110]
+frames with any residual green (calib): []

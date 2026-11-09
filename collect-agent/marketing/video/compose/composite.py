@@ -226,6 +226,17 @@ def composite(fr, i, ui):
     nh_, lh_, sh_, _ = cv2.connectedComponentsWithStats(holes.astype(np.uint8), 8)
     small = np.zeros(nh_, bool); small[1:] = sh_[1:, cv2.CC_STAT_AREA] <= 300
     hand = hraw | small[lh_]
+    # ציפורן/קצה-אצבע בהיר ודהוי (נראה כמו בוהק) שמחובר ליד וללא כרומטיות-מסך — חלק מהאצבע, לא בוהק.
+    # (השתקפות על הזכוכית: שומרת גוון-ירקרק ⇒ a_chr גבוה, או גדולה בהרבה מציפורן)
+    nail_c = (glare & (a_chr < 0.25) & ~hand).astype(np.uint8)
+    nn_, ln_, sn_, _ = cv2.connectedComponentsWithStats(nail_c, 8)
+    if nn_ > 1:
+        hd3 = cv2.dilate(hand.astype(np.uint8), np.ones((3, 3), np.uint8)) > 0
+        tch = np.bincount(ln_[hd3 & (nail_c > 0)].ravel(), minlength=nn_) > 0
+        okn = tch & (sn_[:, cv2.CC_STAT_AREA] <= 1500); okn[0] = False
+        nail = okn[ln_]
+        hand = hand | nail
+        glare = glare & ~nail
     hand_full = np.zeros((H, W), np.uint8); hand_full[y0:y1, x0:x1] = hand
     PREV['hand'], PREV['i'] = cv2.dilate(hand_full, np.ones((9, 9), np.uint8)), i
     # weak: בוהק שנוגע במסך (בתוך סביבת-הצורה) — גם מסך
@@ -355,6 +366,9 @@ def composite(fr, i, ui):
         fg_g = np.where(fg >= 0.995, np.maximum(fg_g, fg * 0.0 + fg_g), fg_g)
         fg_g = np.where(hd > 0, fg_g, fg)                                # רק בסביבת היד
         fg = np.clip((fg_g - 0.04) / 0.92, 0, 1)
+        # פיקסל-יד שאין בו ירוק (ציפורן בהירה, עור): אטום ובצבע עצמו
+        solid = hand & (a_lin < 0.15) & (a_chr < 0.3)
+        fg = np.where(solid, 1.0, fg)
         an = 1 - fg
         # פיקסל מעורב: חזית מוכפלת-מראש = P − α·G (unmix; צל על המסך ⇒ ≈0) — לא P מנוקה (שיצר הילה אפורה);
         # הליבה האטומה של היד = המקור עם despill ניטרלי (אור-מסך ירוק על צד-האצבע ⇒ ניטרלי)
@@ -363,6 +377,8 @@ def composite(fr, i, ui):
         nq1, dq1 = norm_blur(Fh, pf, 2.5)
         nq2, dq2 = norm_blur(Fh, pf, 9.0)
         Fq = np.where(dq1 > 0.03, nq1 / np.maximum(dq1, 1e-6), np.where(dq2 > 0.003, nq2 / np.maximum(dq2, 1e-6), Fh))
+        wq = np.clip((a_lin - 0.12) / 0.25, 0, 1)[..., None]          # צבע-שכן רק כשיש ערבוב-ירוק ממשי
+        Fq = (1 - wq) * Fh + wq * Fq
         prem = (1 - an)[..., None] * Fq
         core_out = np.where((fg >= 0.98)[..., None], Fh, prem)
         out = np.where(mixr[..., None], np.where((fg >= 0.98)[..., None], Fh, prem + an[..., None] * UIs), out)
@@ -385,39 +401,98 @@ def over(base, rgba):
     return (base * (1 - al) + rgba[:, :, :3] * al).astype(np.uint8)
 
 
+def edit_plan(path):
+    """עריכה: טווחי-מקור שנשמרים (כולל), מיפוי זמן-מקור⇒זמן-פלט, ותזמון-כתוביות מחדש לפי המיפוי."""
+    keep = [tuple(k) for k in json.load(open(path))['keep']]
+    kept = [f for a, b in keep for f in range(a, b + 1)]
+    out_of = {f: o for o, f in enumerate(kept)}
+    return keep, kept, out_of
+
+
+def retime_caps(caps, kept, fps):
+    out = []
+    for c in caps:
+        fa = [o for o, f in enumerate(kept) if f / fps >= c['a']]
+        fb = [o for o, f in enumerate(kept) if f / fps <= c['b']]
+        if not fa or not fb or fb[-1] - fa[0] < int(1.0 * fps):
+            continue                                                 # כתובית שנפלה בחיתוך כולה
+        out.append(dict(c, a=fa[0] / fps, b=fb[-1] / fps))
+    return out
+
+
 if __name__ == '__main__':
+    EDIT = sys.argv[sys.argv.index('--edit') + 1] if '--edit' in sys.argv else None
+    SRC_OUT = sys.argv[sys.argv.index('--src-out') + 1] if '--src-out' in sys.argv else None
+    if EDIT:
+        keep, kept, out_of = edit_plan(EDIT)
+        caps_o = retime_caps(caps, kept, fps)
+        capimgs_o = [capimgs[caps.index(next(c0 for c0 in caps if c0['text'] == c['text']))] for c in caps_o]
+        dur = len(kept) / fps
+        json.dump(dict(keep=keep, out_frames=len(kept), captions=caps_o), open(EDIT.replace('.json', '_out.json'), 'w'),
+                  ensure_ascii=False, indent=1)
+    else:
+        kept, out_of = list(range(NF)), {f: f for f in range(NF)}
+        caps_o, capimgs_o = caps, capimgs
+        dur = NF / fps
     tgt = CALIB or OUT
-    dur = NF / fps
     args = ['ffmpeg', '-y', '-loglevel', 'error', '-f', 'rawvideo', '-pix_fmt', 'bgr24', '-s', f'{W}x{H}', '-r', str(fps), '-i', '-']
     if CALIB:
         args += ['-c:v', 'ffv1', '-level', '3', '-pix_fmt', 'bgr0', tgt]          # כיול: ללא-אבדן (מדדי-פיקסל מדויקים)
+    elif EDIT:
+        # אודיו: מקטעי-המקור לפי העריכה, כל מקטע מוארך ב-15ms ומחובר ב-acrossfade 15ms ⇒ סנכרון נשמר בכל חיתוך
+        X = 0.015
+        fl = []
+        for k, (a, b) in enumerate(keep):
+            t0, t1 = a / fps, (b + 1) / fps + (X if k < len(keep) - 1 else 0)
+            fl.append(f'[1:a]atrim={t0:.4f}:{t1:.4f},asetpts=PTS-STARTPTS[s{k}]')
+        last = 's0'
+        for k in range(1, len(keep)):
+            fl.append(f'[{last}][s{k}]acrossfade=d={X}:c1=tri:c2=tri[x{k}]'); last = f'x{k}'
+        fl.append(f'[{last}]apad,afade=t=out:st={dur - 1.5:.3f}:d={1.5 + END_S}[aout]')
+        args += ['-i', SRC, '-filter_complex', ';'.join(fl), '-map', '0:v', '-map', '[aout]',
+                 '-t', str(dur + END_S), '-c:v', 'libx264', '-preset', 'slow', '-crf', '17', '-pix_fmt', 'yuv420p',
+                 '-c:a', 'aac', '-b:a', '160k', '-movflags', '+faststart', tgt]
     else:
         args += ['-i', SRC, '-map', '0:v', '-map', '1:a?', '-af', f'apad,afade=t=out:st={dur - 1.5}:d={1.5 + END_S}',
                  '-t', str(dur + END_S), '-c:v', 'libx264', '-preset', 'slow', '-crf', '17', '-pix_fmt', 'yuv420p',
                  '-c:a', 'aac', '-b:a', '160k', '-movflags', '+faststart', tgt]
     ff = subprocess.Popen(args, stdin=subprocess.PIPE)
+    fs = None
+    if SRC_OUT:
+        fs = subprocess.Popen(['ffmpeg', '-y', '-loglevel', 'error', '-f', 'rawvideo', '-pix_fmt', 'bgr24', '-s', f'{W}x{H}',
+                               '-r', str(fps), '-i', '-', '-c:v', 'ffv1', '-level', '3', '-pix_fmt', 'bgr0', SRC_OUT], stdin=subprocess.PIPE)
     gray = np.full((1688, 780, 3), 200, np.uint8)
-    i = 0
+    keepset = set(kept)
+    i = 0; o = 0
     while True:
         ok, fr = cap.read()
         if not ok or (LIMIT and i >= LIMIT):
             break
-        t = i / fps
+        if i not in keepset:
+            i += 1
+            continue
+        t = i / fps                         # זמן-מקור (סנכרון האנימציה לאצבע)
+        to = out_of[i] / fps                # זמן-פלט (כתוביות/סיום)
+        if fs is not None:
+            fs.stdin.write(fr.tobytes())
         ui = gray if CALIB else anim.render(t)
         fr, _ = composite(fr, i, ui)
         if not CALIB:
-            for c, im in zip(caps, capimgs):
-                if c['a'] <= t <= c['b']:
-                    k = min(1, (t - c['a']) / 0.3, (c['b'] - t) / 0.3)
+            for c, im in zip(caps_o, capimgs_o):
+                if c['a'] <= to <= c['b']:
+                    k = min(1, (to - c['a']) / 0.3, (c['b'] - to) / 0.3)
                     im2 = im.copy(); im2[:, :, 3] = (im2[:, :, 3] * k).astype(np.uint8)
                     fr = over(fr, im2)
-            if t > dur - FADE:
-                k = (t - (dur - FADE)) / FADE
+            if to > dur - FADE:
+                k = (to - (dur - FADE)) / FADE
                 fr = cv2.addWeighted(fr, 1 - k, end, k, 0)
-        ff.stdin.write(fr.tobytes()); i += 1
-        if i % 120 == 0:
-            print(i, flush=True)
+        ff.stdin.write(fr.tobytes()); i += 1; o += 1
+        if o % 120 == 0:
+            print(o, flush=True)
     if not CALIB:
         for _ in range(int(END_S * fps)):
             ff.stdin.write(end.tobytes())
-    ff.stdin.close(); ff.wait(); print('done', tgt, i)
+    ff.stdin.close(); ff.wait()
+    if fs is not None:
+        fs.stdin.close(); fs.wait()
+    print('done', tgt, o)

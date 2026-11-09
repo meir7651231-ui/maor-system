@@ -13,8 +13,9 @@ os.makedirs(OD, exist_ok=True)
 OUT = {'h': f'{VD}/gabi-demo-16x9.mp4', 'v': f'{VD}/gabi-reel-9x16.mp4'}
 TW, TH, Z = 160, 120, 2
 for c in (sys.argv[4] if len(sys.argv) > 4 else 'hv'):
-    z = np.load(f'{S}/w/stb_{c}.npz', allow_pickle=True)
-    fin = np.load(f'{S}/w/fin_{c}.npz')['tip_img']
+    ED = os.environ.get('EDIT_DIR')                       # פלט ערוך: npz מקוצרים מ-edit_npz.py
+    z = np.load(f'{ED}_{c}/stb.npz' if ED else f'{S}/w/stb_{c}.npz', allow_pickle=True)
+    fin = np.load(f'{ED}_{c}/fin.npz' if ED else f'{S}/w/fin_{c}.npz')['tip_img']
     C, st = z['C'], z['status']
     cap = cv2.VideoCapture(OUT[c])
     N = len(C)
