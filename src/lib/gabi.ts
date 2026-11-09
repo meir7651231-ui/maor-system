@@ -32,10 +32,10 @@ export const GABI_PRODUCT = {
   logoSrc: '/gabi/logo-mark.svg',
 } as const;
 
-/** שורת-מחיר לתצוגה: ‏"₪119/חודש או ₪1,190/שנה · 14 ימי ניסיון". */
+/** שורת-מחיר לתצוגה: ‏"₪119/חודש או ₪1,190/שנה, כולל מע״מ ככל שחל · 14 ימי ניסיון" (הכרעת-בעלים). */
 export function gabiPriceLine(): string {
   const fmt = (n: number) => '₪' + n.toLocaleString('en-US');
-  return `${fmt(GABI_PRODUCT.priceMonthly)}/חודש או ${fmt(GABI_PRODUCT.priceYearly)}/שנה · ${GABI_PRODUCT.trialDays} ימי ניסיון`;
+  return `${fmt(GABI_PRODUCT.priceMonthly)}/חודש או ${fmt(GABI_PRODUCT.priceYearly)}/שנה, כולל מע״מ ככל שחל · ${GABI_PRODUCT.trialDays} ימי ניסיון`;
 }
 
 /* ── חוזה-המסירה ───────────────────────────────────────────────────────── */

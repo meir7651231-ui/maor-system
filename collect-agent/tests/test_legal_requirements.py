@@ -587,3 +587,66 @@ def test_shared_phone_reply_without_any_outbound_is_not_attributed(svc):
     assert svc.db.one("SELECT COUNT(*) n FROM drafts")["n"] == 0
     r = svc.inbound("sms", "050-0001111", "הסר")
     assert svc.suppressed("sms", "050-0001111")
+
+
+def _expired_trial_then_join(svc, clock, text):
+    import dataclasses
+    from datetime import timedelta
+    svc.s = dataclasses.replace(svc.s, trial_start=(clock.now.date() - timedelta(days=13)).isoformat())
+    svc.sync()
+    r = svc.inbound("sms", "050-1234567", text)
+    clock.now += timedelta(days=2)                       # הניסיון נגמר
+    assert svc.inbox.approve_draft(r["draft_id"])["status"] == "approved"   # מחכה (trial_expired)
+    svc.s = dataclasses.replace(svc.s, trial_start="")   # הצטרף
+    clock.now += timedelta(days=20)
+    svc.dispatch()
+    return svc.db.one("SELECT * FROM drafts WHERE id=?", (r["draft_id"],))
+
+
+def test_stale_approved_reply_is_not_sent_weeks_later(svc, fake_gi, clock):
+    """critic סבב 30: תשובה שאושרה אחרי סוף הניסיון חיכתה בתור, ויצאה 22 יום אחרי השאלה, כשבעל
+    העסק הצטרף. «איך אפשר לשלם?» ⇒ תשובה שלושה שבועות אחר כך, על סמך אישור ישן. עכשיו: טיוטה
+    שממתינה יותר מ-4 ימים מהשאלה חוזרת לאישור מחדש, ולא נשלחת."""
+    d = _expired_trial_then_join(svc, clock, "איך אפשר לשלם?")
+    assert d["status"] == "pending_approval" and d["sent_at"] is None
+    assert "לאשר מחדש" in (d["owner_summary"] or "")
+
+
+def test_stale_plan_offer_with_past_dates_is_withdrawn(svc, fake_gi, clock):
+    """הצעת פריסה שאושרה וחיכתה 3 שבועות: התשלום הראשון (בעוד 7 ימים מהשאלה) כבר עבר ⇒ לא נשלחת,
+    וההסדר המוצע מבוטל; כרטיס לבעל העסק."""
+    d = _expired_trial_then_join(svc, clock, "אפשר לפרוס ל-3 תשלומים?")
+    assert d["status"] == "rejected" and d["decided_by"] == "system:stale" and d["sent_at"] is None
+    assert svc.db.one("SELECT status FROM plans WHERE id=?", (d["plan_id"],))["status"] == "rejected"
+    assert svc.db.one("SELECT 1 FROM messages WHERE intent='stale_draft' AND needs_owner=1")
+
+
+def test_owner_approving_old_question_now_still_sends(svc, fake_gi, clock):
+    """אישור עכשיו על שאלה מלפני 5 ימים = החלטה טרייה ⇒ נשלח (הספירה מהאישור, לא מהשאלה)."""
+    from datetime import timedelta
+    svc.sync()
+    r = svc.inbound("sms", "050-1234567", "איך אפשר לשלם?")
+    clock.now += timedelta(days=5)
+    assert svc.inbox.approve_draft(r["draft_id"])["status"] == "sent_dry_run"
+
+
+def test_plan_offer_approved_after_first_due_date_is_withdrawn(svc, fake_gi, clock):
+    """הצעה שהתשלום הראשון בה (שבוע מהשאלה) כבר עבר כשבעל העסק אישר ⇒ לא נשלחת."""
+    from datetime import timedelta
+    svc.sync()
+    r = svc.inbound("sms", "050-1234567", "אפשר לפרוס ל-3 תשלומים?")
+    clock.now += timedelta(days=8)
+    out = svc.inbox.approve_draft(r["draft_id"])
+    assert out["status"] == "rejected" and out["decided_by"] == "system:stale"
+
+
+def test_approve_plan_with_past_due_dates_is_refused(svc, fake_gi, clock):
+    """critic סבב 30: גם המסלול השני (`approve_plan`) אישר הסדר שתאריך התשלום הראשון בו כבר עבר,
+    ושלח ללקוח אישור עם תאריכים שחלפו. עכשיו: ההסדר מוחלף, ובעל העסק מתבקש להציע חדש."""
+    from datetime import timedelta
+    svc.sync()
+    r = svc.inbound("sms", "050-1234567", "אפשר לפרוס ל-3 תשלומים?")
+    clock.now += timedelta(days=8)
+    with pytest.raises(ValueError, match="תאריכ"):
+        svc.approve_plan(r["plan_id"])
+    assert svc.db.one("SELECT status FROM plans WHERE id=?", (r["plan_id"],))["status"] == "superseded"

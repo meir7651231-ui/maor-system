@@ -1589,6 +1589,11 @@ class CollectService:
         if not self.refresh_customer(cust["id"]):
             raise ValueError("לא ניתן לאמת את הסכום מול המקור כרגע — ההסדר לא נשלח. נסו שוב")
         items = json.loads(p["installments"])
+        if any(date.fromisoformat(i["due"]) < self.clock().date() for i in items):
+            # critic סבב 30: הצעה ישנה ⇒ אישור ללקוח עם תאריכי תשלום שכבר עברו
+            self.db.x("UPDATE plans SET status='superseded' WHERE id=?", (plan_id,))
+            self.audit("system", "plan_dates_passed", {"plan": plan_id})
+            raise ValueError("תאריכי התשלום בהצעה כבר עברו — נדרשת הצעה חדשה")
         total = sum(i["amount_agorot"] for i in items)
         if p["invoice_ids"]:
             # מבקר §4.6: ההסדר על כלל החוב ⇒ אותן חשבוניות פתוחות ואותו סה״כ, אחרת הצעה חדשה
