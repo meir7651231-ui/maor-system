@@ -7,7 +7,7 @@
 - **אין הרשמה לשום חשבון sandbox** (חשבונית ירוקה, 019, InforU, Twilio, ספק מייל) **בלי אישור מפורש של מאיר.** עד אז כל הפיתוח והבדיקות מול `app/gi_mock.py` ו-DryRunSender בלבד; פריטי «לאמת» נשארים פתוחים.
 
 ## 🧭 הפעלת מנהל · 9.11.2026 (הפעלה 65)
-- **מיזוג:** אין שינוי חדש ב-`collect-agent/` בענפי `claude/*` מלבד `stoic-mccarthy-23f03p` (נדחה). אימות: pytest **1155** ירוק, `demo.sh --check` ירוק. **תוקן:** ruff נכשל על `marketing/video/compose/composite.py` (סרטוני השיווק, 37a112d4) — E401/I001 תוקנו.
+- **מיזוג:** אין שינוי חדש ב-`collect-agent/` בענפי `claude/*` מלבד `stoic-mccarthy-23f03p` (נדחה). אימות: pytest **1155** ירוק, `demo.sh --check` ירוק. **תוקן:** ruff נכשל על `marketing/video/compose/composite.py` (סרטוני השיווק, 37a112d4) — הסקריפטים הוחרגו מ-ruff (`marketing/video`, הפקה חד-פעמית).
 - **חסמים (מאיר):** ספק אחסון · LAWYER-QUESTIONS · DPA/RFQ · הרשמה ל-sandbox · נוסח TERMS §8 · שערי בטא 1–3, 9.
 
 ## 🧭 הפעלת מנהל · 9.11.2026 (הפעלה 64)
