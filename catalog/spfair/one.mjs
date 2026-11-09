@@ -172,6 +172,8 @@ const out = {
     };
   }),
   targets: { selfprint: sp, baseline: bl },
+  /* SHELF-V · גרסאות על המדף: כמה נשמרו בכל סבב, כמה לא (תקרה / לא רץ על רוב הלחץ), וכמה יש על המדף בסוף */
+  ...(BUD.shelfVariants ? { shelfVariants: { max: BUD.shelfVariants.max, perRound: JSON.parse(res.ledger).rounds.map((F) => ({ round: F.round, variants: F.variants || 0, dupCap: F.dupCap || 0, dupNoRun: F.dupNoRun || 0 })), onShelf: [...tap.H0.shelf.keys()].filter((k) => k.includes('~')).length, shelf: tap.H0.shelf.size } } : {}),
   ...(NT ? { numTol: { about: 'SHELF-FIX · אותה הרצה בסרגל הישן (בלי רצפה ליד אפס): השפעת-המנוע = r2 מול ‎…OldStick‎; השפעת-הסרגל = ‎…OldStick‎ מול השדות הרגילים', targetsOldStick: { selfprint: spOld, baseline: blOld }, exactOldStick: { baseline: exactOf({ exactRebuilt: exactOld.baseline }), selfprint: exactOf({ exactRebuilt: exactOld.selfprint }) }, onLoad: compare.numTolOnLoad, ...ownOf('SP-FAIR'), stressDiffer: JSON.parse(res.ledger).rounds.map((F) => ({ round: F.round, ...F.stressDiffer })) } } : {}),
 };
 fs.mkdirSync(path.join(HERE, 'runs'), { recursive: true });

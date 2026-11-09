@@ -39,6 +39,9 @@ const SH = await import('./shelf.mjs');
    (תהליכי-בן) נשארת בסרגל הישן — המדף שלה מקבל טביעה מחדש בטעינה (loadShelf). חסר ⇒ ביט-זהה ל-RECIPES2. */
 const NT = !!JSON.parse(fs.readFileSync(path.join(HERE, 'budget.json'), 'utf8')).numTol;
 if (NT) L.setNumTol(true);
+/* SHELF-V (9.11.2026) · budget.shelfVariants = { max }: המדף שומר עד max גרסאות לכל טביעה שנבדלות בקלטי-הלחץ (shelf.mjs ›
+   offerVariants). חסר ⇒ ביט-זהה (המדף של היום). */
+const SV = JSON.parse(fs.readFileSync(path.join(HERE, 'budget.json'), 'utf8')).shelfVariants || null;
 /* RECIPES · ספר-המתכונים (recipes/book.mjs — נכתב ע״י AI פעם אחת ונעול) — רק כש-budget.recipes */
 const RECIPE_SHAPES = BUD_RECIPES() ? (await import('./recipes/load.mjs')).recipeShapes((await import('./recipes/book.mjs')).RECIPES) : [];
 function BUD_RECIPES() { return JSON.parse(fs.readFileSync(path.join(HERE, 'budget.json'), 'utf8')).recipes || null; }
@@ -390,7 +393,7 @@ async function selfprint({ R, things, shelf, log, shapes = CODE.shapes, perBp = 
     const t = { key, id: idOf('tool|' + key), floor: 'tool', form, of: kids.map((k) => k.id), sig: ty.sig, out: ty.out, graph, nParts: graphNodes(graph).length, names: [] };
     let m; try { m = measure(R, t); } catch { m = { junk: 'חיווט' }; }
     let res = null;
-    if (!m.junk && m.out === ty.out) { Object.assign(t, { fp: m.fp, steps: m.steps, outs: m.outs }); res = shelf.get(t.fp) || t; if (res === t) things.set(t.id, t); }
+    if (!m.junk && m.out === ty.out) { Object.assign(t, { fp: m.fp, steps: m.steps, outs: m.outs }); res = SV ? SH.sameVersion(shelf, t, shelfCx)?.v || t : shelf.get(t.fp) || t; if (res === t) things.set(t.id, t); } // SHELF-V: כלי ששונה-בלחץ מכל הגרסאות נשאר הוא עצמו
     toolCache.set(key, res); return res;
   };
   const perItemTools = (src) => {
@@ -478,7 +481,7 @@ async function selfprint({ R, things, shelf, log, shapes = CODE.shapes, perBp = 
     if (D.ex.length < 12) D.ex.push({ kind, sig: sk, shelf: { id: cur.id, floor: cur.floor, verbs: exactVerbs(R, cur) }, now: { id: t.id, bp: b.id }, differ: c.differ, ran: c.ran + '/' + c.n });
   };
   /* המדף — כלי-המנוע שמתן-ההחלטה (shelf.mjs › offer) צריך */
-  const shelfCx = { better: L.better, stressSamples: (t) => R.stressOf(t.sig), stressOuts: (t) => stressOuts(R, t), stressCompare: L.stressCompare, extraDiffers: (t, cur) => L.extraSamples(t.sig).some((a) => !L.sameOut(R.runOne(t, a).v, R.runOne(cur, a).v)) };
+  const shelfCx = { ...(SV ? { variants: SV, index: new Map(), sameOut: L.sameOut } : {}), better: L.better, stressSamples: (t) => R.stressOf(t.sig), stressOuts: (t) => stressOuts(R, t), stressCompare: L.stressCompare, extraDiffers: (t, cur) => L.extraSamples(t.sig).some((a) => !L.sameOut(R.runOne(t, a).v, R.runOne(cur, a).v)) };
   for (let rd = 1; rd <= BUD.rounds; rd++) {
     const F = { round: rd, blueprints: bps.length, built: 0, new: 0, replaced: 0, dup: 0, junk: {}, typingsTried: 0 };
     /* מאגרים לפי חתימה (מהמדף הנוכחי): קודם עם-שם-מיוחד, אחר-כך הכי פשוט (צעדים) */
@@ -605,6 +608,7 @@ async function selfprint({ R, things, shelf, log, shapes = CODE.shapes, perBp = 
       /* המדף (shelf.mjs): בלי budget.shelfVariants — ההתנהגות של RECIPES2 מילה במילה */
       const o = SH.offer(shelf, t, shelfCx);
       if (o.kind === 'new') { t.idx = nextIdx++; things.set(t.id, t); fresh.push(t); F.new++; b.fresh++; continue; }
+      if (o.kind === 'variant') { t.idx = nextIdx++; things.set(t.id, t); fresh.push(t); F.variants = (F.variants || 0) + 1; b.fresh++; continue; } // SHELF-V
       if (o.kind === 'stressRejected') { F.stressRejected = (F.stressRejected || 0) + 1; if (NT) noteDiffer(F, 'stressRejected', t, o.cur, o.c, b); continue; }
       // גם 200 קלטים אקראיים (בהרצה הראשונה "שיפור" אחד עבר את הלחץ ונפל כאן — עכשיו נבדק לפני ההחלפה)
       if (o.kind === 'extraRejected') { F.extraRejected = (F.extraRejected || 0) + 1; continue; }
@@ -615,11 +619,13 @@ async function selfprint({ R, things, shelf, log, shapes = CODE.shapes, perBp = 
         continue;
       }
       F.dup++;
+      if (SV && o.why) { const k = o.why === 'cap' ? 'dupCap' : 'dupNoRun'; F[k] = (F[k] || 0) + 1; } // SHELF-V: למה לא נשמר כגרסה
+      if (SV && !NT) R.stressCache.delete(t.key);
       if (NT) { noteDiffer(F, 'dup', t, o.cur, L.stressCompare(R.stressOf(t.sig), stressOuts(R, t), stressOuts(R, o.cur)), b); R.stressCache.delete(t.key); } // כפול לא נשמר ⇒ גם פלטי-הלחץ שלו לא
     }
     /* המתאר — לכל מה שעלה למדף בסבב */
     for (const t of fresh) Object.assign(t, nameThing(R, t));
-    const succ = fresh.filter((t) => shelf.get(t.fp) === t && isSpecial(t));
+    const succ = fresh.filter((t) => (SV ? SH.onShelf(shelf, t) : shelf.get(t.fp) === t) && isSpecial(t));
     F.named = succ.length;
     /* הצלחה ⇒ שרטוט חדש (שרטוט בתוך שרטוט) */
     let born = 0;
@@ -633,7 +639,7 @@ async function selfprint({ R, things, shelf, log, shapes = CODE.shapes, perBp = 
        מתנהג כאופרטור), אחר-כך הכי פשוט (צעדים). */
     if (r2) {
       const bpOf = new Map(bps.map((b) => [b.id, b]));
-      const cand = fresh.filter((t) => shelf.get(t.fp) === t && !isSpecial(t) && !t.tool && bpOf.get(t.bp)?.stage === 'R');
+      const cand = fresh.filter((t) => (SV ? SH.onShelf(shelf, t) : shelf.get(t.fp) === t) && !isSpecial(t) && !t.tool && bpOf.get(t.bp)?.stage === 'R');
       const und = (t) => (t.fill || []).filter((id) => { const c = things.get(id); return c && (isSpecial(c) || c.form === 'base' || c.tool || [...opLike].some((k) => k.endsWith('|' + id))); }).length / Math.max(1, (t.fill || []).length);
       const bySk = new Map();
       for (const t of cand) { const k = sigKeyOf(t); if (!bySk.has(k)) bySk.set(k, []); bySk.get(k).push(t); }
