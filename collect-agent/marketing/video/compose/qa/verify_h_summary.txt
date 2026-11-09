@@ -1,16 +1,20 @@
 # verify h
 frames: 480; with screen: 480
 status counts: {'interp': 15, 'meas': 391, 'refit': 36, 'weak': 38}
-green_calib_px: max 8  mean 0.04  frames>0: 4  frames>20: 0
-green_final_band_px: max 0  mean 0.00  frames>0: 0  frames>20: 0
-green_source_px: max 66283  mean 49219.72  frames>0: 480  frames>20: 480
-ui_vs_plate_maxabs_side: p50 0.181  p95 2.388  max 4.212  frames>0.5: 138/480
-ui_vs_plate_maxabs_side [meas/refit only]: p50 0.168  p95 1.455  max 3.436  frames>0.5: 85/427
-ui_vs_plate_p95_pt: p50 0.597  p95 3.815  max 4.495  frames>0.5: 337/480
+green_calib_px: max 17.000  mean 0.181  p95 0.000  frames>0: 16  frames>20: 0  worst: [204, 203, 202, 423, 427]
+green_final_band_px: max 4.000  mean 0.013  p95 0.000  frames>0: 2  frames>20: 0  worst: [120, 280, 0, 1, 2]
+green_source_px: max 66283.000  mean 49219.725  p95 61696.850  frames>0: 480  frames>20: 480  worst: [248, 247, 249, 246, 250]
+skin_changed_px: max 4.000  mean 0.008  p95 0.000  frames>0: 1  frames>20: 0  worst: [414, 0, 1, 2, 3]
+changed_outside_green_px: max 116.000  mean 0.850  p95 0.000  frames>0: 5  frames>20: 4  worst: [120, 119, 109, 118, 108]
+jagged_px: max 228.000  mean 15.719  p95 65.150  frames>0: 341  frames>20: 117  worst: [128, 137, 127, 134, 136]
+jagged_ratio: max 0.526  mean 0.069  p95 0.216  frames>0: 341  frames>20: 0  worst: [223, 372, 467, 465, 333]
+ui_vs_plate_maxabs_side: p50 0.382  p95 0.801  max 2.102  frames>0.5: 143/480
+ui_vs_plate_maxabs_side [meas/refit only]: p50 0.363  p95 0.684  max 1.305  frames>0.5: 101/427
+ui_vs_plate_p95_pt: p50 0.847  p95 3.044  max 3.566  frames>0.5: 466/480
 fit_bias_maxabs: p50 0.110  p95 0.467  max 1.111  frames>0.5: 18/480
 fit_bias_maxabs [meas/refit only]: p50 0.096  p95 0.303  max 0.345  frames>0.5: 0/427
 track_vs_plate_px: p50 0.249  p95 8.789  max 173.389  frames>0.5: 101/469
 track_vs_plate_px [meas/refit only]: p50 0.258  p95 8.031  max 80.692  frames>0.5: 87/416
 plate_motion_px: p50 0.686  p95 4.776  max 17.407  frames>0.5: 312/469
-frames over 0.5px (either edge metric): [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 110, 112, 113, 114, 116, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 138, 175, 176, 190, 191, 192]
-frames with any residual green (calib): [4, 112, 117, 132]
+frames over 0.5px (either edge metric): [6, 7, 8, 9, 10, 11, 12, 13, 15, 16, 17, 18, 19, 20, 21, 22, 29, 30, 32, 33, 34, 35, 41, 47, 50, 52, 54, 55, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 74, 75, 105, 106, 107, 122, 124, 125, 127, 128, 135, 136, 138, 141, 144, 163, 171, 175, 176, 190, 191, 192, 210, 219, 221, 292, 293, 295, 296, 297, 298, 302, 303, 304, 305, 306, 307, 308, 310, 311, 312, 313, 317, 331, 341, 343, 344, 345, 347, 353, 354, 355, 357, 359, 360, 362, 363, 365, 366, 367, 368, 369, 372, 376, 377, 378, 380, 381, 382, 383, 384, 396, 397, 398, 399, 400, 401, 402, 403, 404, 405, 406, 407, 408, 409, 410, 411, 412, 414, 415, 416, 439, 449, 453, 457, 463, 464, 465, 467, 468, 471, 472, 473, 476]
+frames with any residual green (calib): [201, 202, 203, 204, 205, 206, 209, 211, 280, 282, 307, 351, 421, 422, 423, 427]

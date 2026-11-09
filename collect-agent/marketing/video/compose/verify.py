@@ -93,10 +93,32 @@ for i in range(N):
     big |= cv2.dilate(keep[lab_].astype(np.uint8), np.ones((15, 15), np.uint8)) > 0
     band = (cv2.dilate(pm, np.ones((31, 31), np.uint8)) > 0) & ~(cv2.dilate(pm, np.ones((4, 4), np.uint8)) > 0)
     gc = greenish(fc)
-    row['green_calib_px'] = int((gc & big).sum())
+    # ירוק-שיורי = פיקסל ירקרק בפלט, שהיה ירוק-מסך במקור או שנגענו בו (לא בוקה/צמחייה שלא שונו)
+    _fsi, _fci = fs.astype(np.int16), fc.astype(np.int16)
+    _D = _fsi[:, :, 1] - (_fsi[:, :, 0] + _fsi[:, :, 2]) // 2
+    touched = (np.abs(_fci - _fsi).max(2) > 2) | (_D > 30)
+    row['green_calib_px'] = int((gc & big & touched).sum())
     # בזמן מעבר לכרטיס-הסיום (שיש בו טקסט ירוק) — לא נספר
     row['green_final_band_px'] = int((greenish(ff) & band).sum()) if i / cs.get(cv2.CAP_PROP_FPS) < N / cs.get(cv2.CAP_PROP_FPS) - 0.6 else None
     row['green_source_px'] = int((greenish(fs) & big).sum())
+    # (d) מצבי-כשל ספציפיים (על רינדור-הכיול ללא-אבדן — בלי כתוביות ובלי רעש-דחיסה):
+    fsi, fci = fs.astype(np.int16), fc.astype(np.int16)
+    Dsrc = fsi[:, :, 1] - (fsi[:, :, 0] + fsi[:, :, 2]) // 2
+    diff = np.abs(fci - fsi).max(2)
+    # (a) עור במקור (חם, לא-ירוק) שהפלט שינה ביותר מ-6/255
+    skin = ((fsi[:, :, 2] - fsi[:, :, 1]) > 10) & ((fsi[:, :, 2] - fsi[:, :, 0]) > 20) & (Dsrc <= 0)
+    row['skin_changed_px'] = int((skin & (diff > 6)).sum())
+    # (b) שינוי מחוץ לירוק-המקור + רצועת-שפה (5px): ה-UI/העיבוד לא אמור לגעת שם
+    gband = cv2.dilate((Dsrc > 3).astype(np.uint8), np.ones((11, 11), np.uint8)) > 0
+    row['changed_outside_green_px'] = int((~gband & (diff > 6)).sum())
+    # (c) משוננות שפת-החזית בתוך המסך: מסכת-ה-UI (אפור-הכיול) מול גרסה מוחלקת שלה, לכל פיקסל-שפה
+    ui_m = (np.abs(fci - np.array([171, 177, 180])).max(2) < 30).astype(np.uint8)
+    inner_m = cv2.erode(pm, np.ones((13, 13), np.uint8)) > 0
+    edge_px = (ui_m ^ cv2.erode(ui_m, np.ones((3, 3), np.uint8))).astype(bool) & inner_m
+    sm = cv2.GaussianBlur(ui_m.astype(np.float32), (0, 0), 1.5) > 0.5
+    row['fg_edge_px'] = int(edge_px.sum())
+    row['jagged_px'] = int(((sm != ui_m.astype(bool)) & inner_m).sum())
+    row['jagged_ratio'] = round(row['jagged_px'] / max(1, row['fg_edge_px']), 4)
     # (b) יישור-שפה: נקודות על הצלעות הישרות, בתוך הפריים
     x = project(Hm, P[STR]); n = project(Hm, P[STR] + 0.25 * Nn[STR]) - x
     n /= np.linalg.norm(n, axis=1, keepdims=True)
@@ -163,9 +185,12 @@ def col(k, filt=None):
 good_st = lambda r: r['status'] in ('meas', 'refit')
 lines = [f'# verify {TAG}', f'frames: {len(rows)}; with screen: {sum(1 for r in rows if "green_calib_px" in r)}',
          'status counts: ' + str({s: sum(1 for r in rows if r["status"] == s) for s in sorted(set(r["status"] for r in rows))})]
-for k in ('green_calib_px', 'green_final_band_px', 'green_source_px'):
+for k in ('green_calib_px', 'green_final_band_px', 'green_source_px', 'skin_changed_px', 'changed_outside_green_px', 'jagged_px', 'jagged_ratio'):
     v = col(k)
-    lines.append(f'{k}: max {v.max():.0f}  mean {v.mean():.2f}  frames>0: {(v > 0).sum()}  frames>20: {(v > 20).sum()}')
+    if len(v) == 0:
+        continue
+    worst = [r['frame'] for r in sorted([r for r in rows if r.get(k) is not None], key=lambda r: -r[k])[:5]]
+    lines.append(f'{k}: max {v.max():.3f}  mean {v.mean():.3f}  p95 {np.percentile(v, 95):.3f}  frames>0: {(v > 0).sum()}  frames>20: {(v > 20).sum()}  worst: {worst}')
 for k, f in (('ui_vs_plate_maxabs_side', None), ('ui_vs_plate_maxabs_side', good_st), ('ui_vs_plate_p95_pt', None),
              ('fit_bias_maxabs', None), ('fit_bias_maxabs', good_st), ('track_vs_plate_px', None), ('track_vs_plate_px', good_st),
              ('plate_motion_px', None)):

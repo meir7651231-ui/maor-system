@@ -2,7 +2,7 @@
 מעל), unmix + despill בשוליים, התאמת בהירות/הצללה/בוהק מהצילום, טשטוש-תנועה בתזוזה מהירה, כתוביות וכרטיס-סיום.
 
 שימוש: python composite.py <fmt h|v> <video> <stab.npz> <finger.npz> <plan.json> <ui_dir> <assets_dir> <out.mp4>
-       [--calib out_calib.mp4]  ← רינדור-כיול: UI אפור-אחיד (לבדיקת שאריות-ירוק ויישור-שפה ב-verify.py)
+       [--calib out_calib.mkv]  ← רינדור-כיול: UI אפור-אחיד (לבדיקת שאריות-ירוק ויישור-שפה ב-verify.py)
 """
 import sys
 import json
@@ -94,7 +94,7 @@ def despill_around(fr, Hm, protect=None):
         return fr
     scr = np.zeros((gy1 - gy0, gx1 - gx0), np.uint8)
     cv2.fillPoly(scr, [np.round(pc - [gx0, gy0]).astype(np.int32)], 255)
-    zm = cv2.GaussianBlur(cv2.dilate(scr, np.ones((181, 181), np.uint8)).astype(np.float32) / 255, (0, 0), 30)
+    zm = cv2.GaussianBlur(cv2.dilate(scr, np.ones((181, 181), np.uint8)).astype(np.float32) / 255, (0, 0), 8)
     zm *= 1 - cv2.dilate(scr, np.ones((5, 5), np.uint8)).astype(np.float32) / 255
     if protect is not None:
         zm *= 1 - protect[gy0:gy1, gx0:gx1].astype(np.float32)
@@ -123,7 +123,9 @@ def composite(fr, i, ui):
         near = cv2.dilate(pm0, np.ones((121, 121), np.uint8)) > 0
         Df0 = greenness(fr)
         lv0 = float(np.median(Df0[(pm0 > 0) & (Df0 > 30)])) if ((pm0 > 0) & (Df0 > 30)).sum() > 200 else 80.0
-        strong = Df0 > 0.7 * lv0
+        f16 = fr.astype(np.int16)
+        mint0 = ((f16[:, :, 1] - np.maximum(f16[:, :, 0], f16[:, :, 2])) > 12) & (cv2.cvtColor(fr, cv2.COLOR_BGR2GRAY) > 110) & (f16[:, :, 0] - f16[:, :, 2] > 10)
+        strong = (Df0 > 0.7 * lv0) | mint0
         # ירוק-מסך חזק מחוץ לצורה, ששייך לאותו רכיב-ירוק כמו פנים-המסך (המסך "גולש" — גאומטריה שגויה);
         # אור-ירוק על כף-היד הוא רכיב נפרד ולא נספר
         n_, lab_, st_, _ = cv2.connectedComponentsWithStats(strong.astype(np.uint8), 8)
@@ -148,120 +150,145 @@ def composite(fr, i, ui):
     if x1 - x0 < 10 or y1 - y0 < 10:
         return fr, None
     roi = (x0, y0, x1, y1)
-    if not weak:
-        fr = despill_around(fr, Hm)
     P = fr[y0:y1, x0:x1].astype(np.float32)
     D = greenness(fr[y0:y1, x0:x1])
     cov = poly_cov(Hm, roi)
     inner = poly_cov(Hm, roi, shrink=3)
     lvl = float(np.median(D[(cov > 0.99) & (D > 25)])) if ((cov > 0.99) & (D > 25)).sum() > 200 else 80.0
-    # פליטת-המסך (הירוק הנקי, כולל הצללה רכה): ממוצע-מנורמל של פיקסלים ירוקים-נקיים
-    Yp = 0.114 * P[:, :, 0] + 0.587 * P[:, :, 1] + 0.299 * P[:, :, 2]
-    clean = ((D > 0.72 * lvl) & (inner > 0.99)).astype(np.float32)
+    Bc_, Gc_, Rc_ = P[:, :, 0], P[:, :, 1], P[:, :, 2]
+    Yp = 0.114 * Bc_ + 0.587 * Gc_ + 0.299 * Rc_
+    # פליטת-המסך G (הירוק הנקי + הצללה רכה): ממוצע-מנורמל של פיקסלים ירוקים-נקיים
+    clean = ((D > 0.72 * lvl) & ((inner > 0.99) if not weak else (D > 0.85 * lvl))).astype(np.float32)
     n1, d1 = norm_blur(P, clean, 7)
     n2, d2 = norm_blur(P, clean, 28)
     med = np.array([np.median(P[:, :, k][clean > 0]) if clean.sum() > 50 else (75, 144, 33)[k] for k in range(3)], np.float32)
     G = np.where(d1 > 0.05, n1 / np.maximum(d1, 1e-6), np.where(d2 > 0.02, n2 / np.maximum(d2, 1e-6), med))
     Dg = np.maximum(G[:, :, 1] - 0.5 * (G[:, :, 0] + G[:, :, 2]), 20)
+    Yg = 0.114 * G[:, :, 0] + 0.587 * G[:, :, 1] + 0.299 * G[:, :, 2]
+    # ---------------- המאט (ברזולוציה מלאה, בלי מסכות-גושים ובלי מורפולוגיה שמכרסמת באצבע)
+    # a_lin = D/D(G): מפתח ליניארי. "ירוק בבירור" נבחן גם לפי כרומטיות (R/G, B/G) קרובה לזו של המסך —
+    # בלי תלות בבהירות: צל על המסך = מסך; עור (גם מואר-ירוק) = חזית.
+    # הכרומה בווידאו דגומה-בחצי (4:2:0) ומופיעה כגושי 2×2 אחרי פענוח ⇒ החלקה קלה (σ≈0.9) לפני המפתח —
+    # מפתח רציף ברזולוציה מלאה, בלי דיתור/מדרגות בשפה
+    D = cv2.GaussianBlur(D, (0, 0), 0.9)
     a_lin = np.clip(D / Dg, 0, 1)
-    # צל-האצבע על המסך: ירוק כהה (אותו גוון, פחות אור) ⇒ זה עדיין מסך. מפתח לפי "ירוק ביחס לבהירות"
-    Yg0 = 0.114 * G[:, :, 0] + 0.587 * G[:, :, 1] + 0.299 * G[:, :, 2]
-    hue_a = np.clip((D / (Yp + 1)) / (Dg / (Yg0 + 1)), 0, 1)
-    hue_a = np.where((Yp > 30) & (a_lin > 0.2), hue_a, a_lin)          # רק כשיש ירוק ממשי (לא מסגרת כהה)
-    a_key = np.maximum(a_lin, hue_a)
-    # בוהק חזק על המסך (חלון משתקף): ירקרק-מנטה בהיר ודהוי — זה עדיין מסך (הבוהק יתווסף מעל ה-UI)
-    a_mint = np.clip(((P[:, :, 1] - P[:, :, 2]) - 8) / 20, 0, 1) * (Yp > 110) * (P[:, :, 1] >= P[:, :, 0] - 10)
-    a_key = np.maximum(a_key, a_mint)
-    # ירוק שעדיין נוכח בבירור (צל/השתקפות-אצבע חלשה על הזכוכית) = מסך; רק מתחת ל-~15% ירוק = אצבע
-    a_key = np.clip((a_key - 0.22) / 0.43, 0, 1)
-    shadow = np.clip(Yp / np.maximum(Yg0, 1), 0, 1)                  # 1 = בלי צל
-    shadow = np.where(hue_a > a_lin + 0.05, shadow, 1.0)
-    # מסתירים: אצבע = רכיב עור/כהה שנוגע בשפת-המסך או בשולי-הפריים; כל שאר ה'לא-ירוק' בפנים (בוהק, השתקפות,
-    # פס-הבית) = מסך (alpha=1) — הבוהק מתווסף מעל ה-UI
-    scr8 = (cov > 0.5).astype(np.uint8)
-    occ = occluder_mask(fr[y0:y1, x0:x1], D, scr8, lvl)
-    n, lab, st, _ = cv2.connectedComponentsWithStats(occ, 8)
-    band = (cov > 0.5) & (inner < 0.5)
-    fb = np.zeros_like(band)
-    if x0 == 0: fb[:, :2] = True
-    if y0 == 0: fb[:2, :] = True
-    if x1 == W: fb[:, -2:] = True
-    if y1 == H: fb[-2:, :] = True
-    band |= fb & (cov > 0.5)
-    fingers = np.zeros(occ.shape, np.uint8)
-    for k in range(1, n):
-        comp = lab == k
-        if (comp & band).sum() >= 3 and st[k, cv2.CC_STAT_AREA] >= 12:
-            fingers[comp] = 1
-    fing_d = cv2.dilate(fingers, np.ones((11, 11), np.uint8)).astype(bool)
-    fill = (inner > 0.5) & ~fing_d
-    a_ref = np.clip(guided(Yp / 255.0, a_key.astype(np.float32)), 0, 1)
-    # מעבר רך בין "מסך-ודאי" לאזור-האצבע (בלי תפר-מדרגות של מסכת-הכרומה)
-    wf = cv2.GaussianBlur(fing_d.astype(np.float32), (0, 0), 3.0)
-    wf = np.maximum(wf, (inner < 0.5).astype(np.float32))
-    # שפת-המסך (מסגרת): כיסוי גאומטרי של צורת-המודל המותאמת — לא המפתח (הכרומה דגומה-בחצי ונמרחת ~1px
-    # החוצה). ליד אצבעות: המפתח המעודן (אצבע חוצה את השפה), כפול הכיסוי.
-    cov_s = cv2.GaussianBlur(cov, (0, 0), 0.6)
-    a = wf * (a_ref * cov_s) + (1 - wf) * cov_s
-    a = np.where(fingers > 0, np.minimum(a, a_ref), a)
-    zone = cv2.dilate((cov > 0.02).astype(np.uint8), np.ones((3, 3), np.uint8)).astype(np.float32)
+    gG = np.maximum(G[:, :, 1], 1); gP = np.maximum(Gc_, 1)
+    dist = cv2.GaussianBlur(np.abs(Rc_ / gP - G[:, :, 2] / gG) + np.abs(Bc_ / gP - G[:, :, 0] / gG), (0, 0), 0.9)
+    a_chr = np.where(Yp > 15, np.clip(1 - (dist - 0.08) / 0.35, 0, 1), a_lin)
+    # בוהק-מנטה בהיר על הזכוכית (ירקרק-תכלכל: B>R — בניגוד לעור מואר-ירוק שבו R>B)
+    a_mint = np.clip(((Gc_ - np.maximum(Rc_, Bc_)) - 8) / 12, 0, 1) * np.clip((Yp - 95) / 20, 0, 1) * np.clip((Bc_ - Rc_ - 5) / 10, 0, 1)
+    refl = (np.abs(Rc_ - Gc_) < 12) & (Gc_ - Bc_ > 15) & (Yp > 120)                    # השתקפות צהבהבה
+    glare_n = ((Rc_ - Bc_) < 10) & (Yp > 110)                                           # בוהק ניטרלי/תכלכל
+    skin = ((Rc_ - Gc_) > 10) & ((Rc_ - Bc_) > 20) & ~refl
+    # שולי-ההשתקפות (מעבר לירוק) — שייכים להשתקפות, לא לאצבע: הרחבה של 3px שלא נוגעת בעור
+    refl = refl | ((cv2.dilate(refl.astype(np.uint8), np.ones((7, 7), np.uint8)) > 0) & ~skin & (a_chr > 0.15))
+    # חזית = אצבע/יד: רכיב "לא-ירוק" (לא בוהק, לא המסגרת הכהה מאוד) שיש בו עור (≥10 פיקסלים).
+    fgc = ((a_chr < 0.5) & (a_mint < 0.5) & ~refl & ~glare_n & (Yp > 30)).astype(np.uint8)
+    # קווים דקים (שולי-מעבר בין ירוק להשתקפות) אינם אצבע: פתיחה 5×5 לפני תיוג-רכיבים, ואז שחזור לשפה המקורית
+    k5 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
+    fgo = cv2.morphologyEx(fgc, cv2.MORPH_OPEN, k5)
+    nfc, labf, stf, _ = cv2.connectedComponentsWithStats(fgo, 8)
+    hit = np.bincount(labf[skin & (fgo > 0)].ravel(), minlength=nfc) >= 10
+    hit[0] = False
+    core = hit[labf].astype(np.uint8)
+    fing = (cv2.dilate(core, k5) > 0) & (fgc > 0)
+    # משקל רך (בלי מדרגות) בין "ליד אצבע: רק המפתח, האצבע אטומה" לבין "מסך"
+    wfg = np.clip(cv2.GaussianBlur(cv2.dilate(fing.astype(np.uint8), np.ones((3, 3), np.uint8)).astype(np.float32), (0, 0), 1.5) * 1.6, 0, 1)
+    wfg = np.maximum(wfg, fing.astype(np.float32))
+    shade_scr = np.where(a_chr > a_lin, a_chr, 0)                     # צל על המסך (כרומטיות-מסך, כהה יותר)
+    a_scr = np.maximum(a_lin, np.maximum(shade_scr, np.maximum(a_mint, (refl | (glare_n & (inner > 0.5))).astype(np.float32))))
     if weak:
-        # פריים חלש (טשטוש/הסתרה): כל הירוק המחובר למסך מוחלף (ה-UI המרופד מכסה) — אף פעם לא ירוק גלוי
-        gm = (a_lin > 0.2).astype(np.uint8)
-        n_, lab_, st_, _ = cv2.connectedComponentsWithStats(gm, 8)
-        touch = np.unique(lab_[(cov > 0.5) & (gm > 0)])
-        extra = np.isin(lab_, touch[touch > 0])
-        zone = np.maximum(zone, cv2.dilate(extra.astype(np.uint8), np.ones((3, 3), np.uint8)).astype(np.float32))
-    a = a * zone
-    if weak:
-        # פריים חלש (טשטוש-תנועה/הסתרה, גאומטריה מאומדת): המפתח קובע לגמרי היכן ה-UI — בלי "דש" מעל המסגרת,
-        # ובלי ירוק גלוי; חורים סגורים בתוך הירוק (בוהק/פס-הבית) ממולאים.
-        gk = (a_ref > 0.5).astype(np.uint8)
-        hole = cv2.morphologyEx(gk, cv2.MORPH_CLOSE, np.ones((9, 9), np.uint8))
-        hole = cv2.erode(hole, np.ones((5, 5), np.uint8)).astype(bool) & ~fing_d
-        a = np.where(hole, 1.0, a_ref) * zone
-    # UI: בהירות/הצללה מהמסך בצילום + בוהק
+        # גאומטריה לא-מאומתת: רק רכיב-המסך הראשי (ירוק שנוגע בצורה המאומדת) וחורים סגורים בו — לא אור-ירוק על היד
+        gmain = ((a_lin > 0.5) | (a_mint > 0.5)).astype(np.uint8)
+        ng, lg, sg, _ = cv2.connectedComponentsWithStats(gmain, 8)
+        keep = np.zeros(ng, bool); keep[np.unique(lg[(cov > 0.5) & (gmain > 0)])] = True; keep[0] = False
+        ffm = keep[lg].astype(np.uint8); hh_, ww_ = ffm.shape; mm = np.zeros((hh_ + 2, ww_ + 2), np.uint8)
+        for sx, sy in ((0, 0), (ww_ - 1, 0), (0, hh_ - 1), (ww_ - 1, hh_ - 1)):
+            if ffm[sy, sx] == 0:
+                cv2.floodFill(ffm, mm, (sx, sy), 2)
+        region = cv2.dilate((ffm != 2).astype(np.uint8), np.ones((5, 5), np.uint8)).astype(np.float32)
+        a_scr = a_scr * np.clip(cv2.GaussianBlur(region, (0, 0), 1.2) * 1.5, 0, 1)
+    # ליד אצבע: כל מה שלא ירוק בבירור = חזית אטומה; מעבר רך לפי המפתח
+    a_f = np.clip((np.minimum(a_chr, a_lin / 0.6) - 0.15) / 0.7, 0, 1)
+    a = wfg * a_f + (1 - wfg) * a_scr
+    # שפת-המסך: לעולם לא מעבר לירוק של המקור. כרומה נמרחת ~1px על המסגרת הכהה ⇒ חסם-בהירות; הצורה המותאמת
+    # רק חוסמת (+1px), לעולם לא מרחיבה.
+    a_y = cv2.GaussianBlur(np.clip((Yp - 25) / np.maximum(Yg - 25, 10), 0, 1), (0, 0), 0.7)
+    edge = inner < 0.99
+    a = np.where(edge, wfg * a + (1 - wfg) * np.minimum(a, a_y), a)
+    if not weak:
+        a = np.minimum(a, cov)                            # הצורה המותאמת חוסמת בלבד (בלי הרחבה)
+        fill = (inner > 0.5) & ~fing                      # הצורה ממלאת (בוהק/השתקפות/פס-הבית) — בפנים בלבד
+    else:
+        gk = ((a > 0.5) | (a_mint > 0.5)).astype(np.uint8); ff = gk.copy(); hh, ww = ff.shape; msk = np.zeros((hh + 2, ww + 2), np.uint8)
+        for sx, sy in ((0, 0), (ww - 1, 0), (0, hh - 1), (ww - 1, hh - 1)):
+            if ff[sy, sx] == 0:
+                cv2.floodFill(ff, msk, (sx, sy), 2)
+        fill = (ff == 0) & ~fing
+    # פס-הבית של הצילום: מוחלף כולו (ה-UI מציג את שלו) — מלבן במרחב-UI, רק במקום שיש סביבו מסך, לא על אצבע
+    ind = np.zeros(a.shape, np.uint8)
+    rect = np.array([[100.0, 815.0], [290.0, 815.0], [290.0, 842.0], [100.0, 842.0]])
+    cv2.fillPoly(ind, [np.round(project(Hm, rect) - [x0, y0]).astype(np.int32)], 1)
+    ind = (ind > 0) & (cv2.dilate((a > 0.5).astype(np.uint8), np.ones((9, 9), np.uint8)) > 0) & ~fing & (Yp > 0)
+    if not weak:
+        ind &= cov > 0.99
+    fill = fill | ind
+    a = np.where(fill, wfg * a + (1 - wfg) * 1.0, a)
+    # רכות-השפה כמו במקור (הצילום רך ~1px): החלקה קלה של ה-alpha ברצועת-המסגרת בלבד, שוב חסומה בצורה
+    a_s = np.minimum(cv2.GaussianBlur(a.astype(np.float32), (0, 0), 0.8), a)      # מרכך פנימה בלבד — לא מתפשט החוצה
+    a = np.where(edge & (wfg < 0.3) & ~fill, a_s, a)
+    # ---------------- UI: בהירות/הצללה מהמסך בצילום; בוהק רק בפנים, הרחק מעור ומהשפה (לא יוצר שפה בהירה)
     s_px = local_scale(Hm)
-    warp = None
-    if 0 < i < len(Cs) - 1 and np.isfinite(Cs[i - 1]).all() and np.isfinite(Cs[i + 1]).all() \
-            and np.abs(Cs[i + 1] - Cs[i - 1]).max() > 6:
-        # טשטוש-תנועה (צמצם 180°): ממוצע עיוותים לאורך חצי-פריים
+    good_nb = 0 < i < len(Cs) - 1 and all(str(STATUS[j]) in ('meas', 'refit') for j in (i - 1, i, i + 1))
+    if good_nb and np.abs(Cs[i + 1] - Cs[i - 1]).max() > 6:
+        # טשטוש-תנועה (צמצם 180°) — רק בין פריימים נמדדים, מוגבל ל-8px לחצי-צמצם
         acc = 0
         for u in np.linspace(-0.25, 0.25, 9):
-            Cu = C + (Cs[i + 1] - C) * u if u > 0 else C + (C - Cs[i - 1]) * u
-            acc = acc + warp_ui(ui, H_of(Cu), roi, s_px)
+            dC = (Cs[i + 1] - C) * u if u > 0 else (C - Cs[i - 1]) * u
+            dC = dC * min(1.0, 8.0 / max(1e-6, np.abs(dC).max()))
+            acc = acc + warp_ui(ui, H_of(C + dC), roi, s_px)
         warp = acc / 9
     else:
         warp = warp_ui(ui, Hm, roi, s_px)
     warp = cv2.GaussianBlur(warp, (0, 0), 0.55)
-    Yg = 0.114 * G[:, :, 0] + 0.587 * G[:, :, 1] + 0.299 * G[:, :, 2]
     ref = float(np.median(Yg[clean > 0])) if clean.sum() > 50 else float(Yg.mean())
     shade = np.clip((cv2.GaussianBlur(Yg, (0, 0), 20) / max(ref, 1)) ** 0.5, 0.86, 1.12)[..., None]
-    glare = cv2.GaussianBlur(np.clip(Yp - Yg - 5, 0, None), (0, 0), 1.5) * 0.35
-    glare = np.where(fill, glare, 0)[..., None]
-    tint = np.array([0.95, 0.985, 1.0], np.float32)          # BGR — חמימות קלה כמו התאורה בסצנה
-    UIp = warp * (0.9 * tint) * shade * (0.8 + 0.2 * shadow)[..., None] + glare
-    # רקע: הצילום פחות תרומת-המסך (unmix), ובלי שפך-ירוק
-    # רקע לפיקסלים מעורבים (שולי אצבע/מסגרת): צבע-החזית נלקח מהשכנים הלא-ירוקים לגמרי (ולא P−a·G,
-    # שמשאיר מגנטה כשהירוק המקומי שונה מההערכה). פיקסל לא-ירוק לגמרי = הצילום עצמו.
-    pure = (a_lin < 0.04).astype(np.float32)
-    nb, db = norm_blur(P, pure, 2.0)
-    nb2, db2 = norm_blur(P, pure, 6.0)
-    Bc = np.where(db > 0.02, nb / np.maximum(db, 1e-6), np.where(db2 > 0.005, nb2 / np.maximum(db2, 1e-6), P))
-    resid = np.where((a < 0.02)[..., None], P, Bc)
-    dz = cv2.dilate((cov > 0.02).astype(np.uint8), np.ones((31, 31), np.uint8)) > 0
-    lim = np.maximum(resid[:, :, 0], resid[:, :, 2]) + 2          # בלי שפך-ירוק (ובלי להפוך בוהק-מנטה למגנטה)
-    resid[:, :, 1] = np.where(dz, np.minimum(resid[:, :, 1], lim), resid[:, :, 1])
-    resid = resid * (1 - a)[..., None]
-    out = resid + a[..., None] * UIp
+    shadow = np.where((shade_scr > a_lin + 0.05) & (wfg < 0.5), np.clip(Yp / np.maximum(Yg, 1), 0, 1), 1.0)
+    deep = (cv2.erode((inner > 0.5).astype(np.uint8), np.ones((5, 5), np.uint8)) > 0) if not weak else fill
+    glare = cv2.GaussianBlur(np.clip(Yp - Yg - 5, 0, None) * (fill & deep & ~ind), (0, 0), 1.5) * 0.35
+    tint = np.array([0.95, 0.985, 1.0], np.float32)
+    UIp = warp * (0.9 * tint) * shade * (0.8 + 0.2 * shadow)[..., None] + glare[..., None]
+    # ---------------- חזית/רקע לפיקסלים מעורבים (בלי חלוקה ב-(1−a) שמגבירה רעש-דחיסה):
+    # מסגרת — צבע השכנים הלא-ירוקים; אצבע — צבע האצבע הטהורה הסמוכה; פיקסל שה-UI לא מכסה — המקור עצמו.
+    pure_b = (a_lin < 0.05).astype(np.float32)
+    nb1, db1 = norm_blur(P, pure_b, 1.5)
+    nb2, db2 = norm_blur(P, pure_b, 5.0)
+    Bcol = np.where(db1 > 0.02, nb1 / np.maximum(db1, 1e-6), np.where(db2 > 0.002, nb2 / np.maximum(db2, 1e-6), P))
+    kb = np.clip((a_lin - 0.02) / 0.15, 0, 1)[..., None]            # מעבר רציף (בלי דיתור פיקסל-פיקסל)
+    Fn = (1 - kb) * P + kb * Bcol
+    pure_f = (fing & (a_chr < 0.05) & (a_lin < 0.1)).astype(np.float32)
+    nf1, df1 = norm_blur(P, pure_f, 2.0)
+    nf2, df2 = norm_blur(P, pure_f, 6.0)
+    Fcol = np.where(df1 > 0.02, nf1 / np.maximum(df1, 1e-6), np.where(df2 > 0.002, nf2 / np.maximum(df2, 1e-6), P))
+    kf = np.clip(a_f * 2.5, 0, 1)[..., None] * (1 - pure_f[..., None])
+    Ffing = (1 - kf) * P + kf * Fcol
+    Fn = wfg[..., None] * Ffing + (1 - wfg[..., None]) * Fn
+    ka = np.clip(a / 0.02, 0, 1)[..., None]
+    Fn = (1 - ka) * P + ka * Fn
+    # despill רק ברצועת-השפה: פיקסלים עם גוון-ירוק בטווח 5px מכיסוי-ה-UI
+    band_e = (cv2.dilate((a > 0.01).astype(np.uint8), np.ones((11, 11), np.uint8)) > 0) & (a < 0.999)
+    tinted = (D > 2) & band_e
+    # ליד אצבע: הירוק מוחלף בממוצע R/B (ניטרלי — לא טורקיז); במסגרת: max(R,B)
+    lim = np.where(wfg > 0.05, 0.5 * (Fn[:, :, 0] + Fn[:, :, 2]) + 4, np.maximum(Fn[:, :, 0], Fn[:, :, 2]) + 2)
+    Fn[:, :, 1] = np.where(tinted, np.minimum(Fn[:, :, 1], lim), Fn[:, :, 1])
+    out = (1 - a)[..., None] * Fn + a[..., None] * UIp
     res = fr.copy()
-    res[y0:y1, x0:x1] = np.clip(out, 0, 255).astype(np.uint8)
-    if weak:
-        # ניקוי אור-ירוק סביב — אחרי ההרכבה, ובלי לגעת באזור שה-UI כיסה (שם הירוק היה מסך)
-        prot = np.zeros((H, W), np.uint8)
-        prot[y0:y1, x0:x1] = cv2.dilate((a > 0.02).astype(np.uint8), np.ones((5, 5), np.uint8))
-        res = despill_around(res, Hm, prot)
-    return res, dict(roi=roi, a=a, fingers=fingers, cov=cov)
+    res[y0:y1, x0:x1] = np.clip(np.round(out), 0, 255).astype(np.uint8)
+    # אור-ירוק סביב (על היד/השולחן) — אחרי ההרכבה, רק מחוץ למה שה-UI כיסה
+    prot = np.zeros((H, W), np.uint8)
+    prot[y0:y1, x0:x1] = cv2.dilate((a > 0.01).astype(np.uint8), np.ones((3, 3), np.uint8))
+    res = despill_around(res, Hm, prot)
+    return res, dict(roi=roi, a=a, a_lin=a_lin, cov=cov, fing=fing)
 
 
 def over(base, rgba):
@@ -274,7 +301,7 @@ if __name__ == '__main__':
     dur = NF / fps
     args = ['ffmpeg', '-y', '-loglevel', 'error', '-f', 'rawvideo', '-pix_fmt', 'bgr24', '-s', f'{W}x{H}', '-r', str(fps), '-i', '-']
     if CALIB:
-        args += ['-c:v', 'libx264', '-preset', 'fast', '-crf', '12', '-pix_fmt', 'yuv420p', tgt]
+        args += ['-c:v', 'ffv1', '-level', '3', '-pix_fmt', 'bgr0', tgt]          # כיול: ללא-אבדן (מדדי-פיקסל מדויקים)
     else:
         args += ['-i', SRC, '-map', '0:v', '-map', '1:a?', '-af', f'apad,afade=t=out:st={dur - 1.5}:d={1.5 + END_S}',
                  '-t', str(dur + END_S), '-c:v', 'libx264', '-preset', 'slow', '-crf', '17', '-pix_fmt', 'yuv420p',

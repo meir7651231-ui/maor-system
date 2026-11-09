@@ -20,7 +20,7 @@ Q=qa; mkdir -p $Q $O
 for c in h v; do
   if [ $c = h ]; then SRC=$HV; OUTF=$O/gabi-demo-16x9.mp4; else SRC=$VV; OUTF=$O/gabi-reel-9x16.mp4; fi
   $PY composite.py $c $SRC $W/stb_$c.npz $W/fin_$c.npz plan_$c.json ui assets $OUTF
-  $PY composite.py $c $SRC $W/stb_$c.npz $W/fin_$c.npz plan_$c.json ui assets /dev/null --calib $Q/calib_$c.mp4
-  $PY verify.py $c $SRC $W/stb_$c.npz $Q/calib_$c.mp4 $OUTF $Q
+  $PY composite.py $c $SRC $W/stb_$c.npz $W/fin_$c.npz plan_$c.json ui assets /dev/null --calib $Q/calib_$c.mkv
+  $PY verify.py $c $SRC $W/stb_$c.npz $Q/calib_$c.mkv $OUTF $Q
   $PY debug_video.py $SRC $W/stb_$c.npz $W/fin_$c.npz $Q/debug_$c.mp4
 done
