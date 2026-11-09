@@ -17,7 +17,7 @@ import json
 import os
 import re
 from dataclasses import asdict, replace
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from typing import Any
 
 from . import compliance
@@ -74,6 +74,9 @@ _ALLOWED_AFTER_OPT_OUT = {Intent.OPT_OUT.value, Intent.WRONG_PERSON.value, Inten
 
 def _iso(dt: datetime) -> str:
     return dt.astimezone(TZ).isoformat(timespec="seconds")
+
+
+STALE_DRAFT_HOURS = 96   # critic סבב 30: טיוטה מאושרת שחיכתה מעבר לזה מהשאלה ⇒ לא נשלחת
 
 
 class ConversationInbox:
@@ -403,6 +406,40 @@ class ConversationInbox:
         return self.svc.gate(cust, dr["channel"], to,
                              opt_out_ack=dr["intent"] in _ALLOWED_AFTER_OPT_OUT)
 
+    def _withdraw_if_stale(self, dr) -> bool:
+        """critic סבב 30: טיוטה שאושרה וחיכתה בתור (סוף ניסיון, חלון) יצאה גם שבועות אחרי האישור —
+        «איך אפשר לשלם?» ⇒ תשובה אחרי 22 יום, והצעת פריסה שהתשלום הראשון שלה כבר עבר. עכשיו: מעבר
+        ל-STALE_DRAFT_HOURS (4 ימים: מכסה שבת + ראש השנה) מהאישור, או הצעה שתאריך בה כבר הגיע ⇒ לא
+        שולחים. הצעת פריסה ⇒ בוטלה (התאריכים לא תקפים); כל תשובה אחרת ⇒ חוזרת לאישור מחדש."""
+        now = self.svc.clock()
+        try:   # מאז האישור (אישור עכשיו על שאלה ישנה = החלטה טרייה של בעל העסק)
+            since = datetime.fromisoformat(dr["decided_at"] or dr["created_at"])
+        except (TypeError, ValueError):
+            return False
+        past_due = False
+        if dr["plan_id"]:
+            row = self.db.one("SELECT installments FROM plans WHERE id=?", (dr["plan_id"],))
+            past_due = bool(row) and any(date.fromisoformat(i["due"]) < now.date()
+                                         for i in json.loads(row["installments"] or "[]"))
+        if not past_due and now - since <= timedelta(hours=STALE_DRAFT_HOURS):
+            return False
+        if dr["plan_id"]:
+            self.db.x("UPDATE drafts SET status='rejected', decided_by='system:stale' WHERE id=?",
+                      (dr["id"],))
+            self.db.x("UPDATE plans SET status='rejected' WHERE id=? AND status IN ('proposed','approved')",
+                      (dr["plan_id"],))
+            self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
+                      "created_at) VALUES(?,'system','owner',?,'stale_draft',1,?)",
+                      (dr["customer_id"], "הצעת הפריסה שאישרת לא נשלחה: היא חיכתה יותר מ-4 ימים, "
+                       "והתאריכים בה כבר לא תקפים. אפשר לשלוח הצעה חדשה.", _iso(self.svc.clock())))
+        else:
+            self.db.x("UPDATE drafts SET status='pending_approval', decided_by=NULL, decided_at=NULL, "
+                      "owner_summary=COALESCE(owner_summary,'') || ? WHERE id=?",
+                      (" ⏳ התשובה חיכתה יותר מ-4 ימים ולא נשלחה — לאשר מחדש אם עדיין רלוונטית.",
+                       dr["id"]))
+        self.svc.audit("system", "draft_stale", {"draft": dr["id"], "plan": bool(dr["plan_id"])})
+        return True
+
     def _try_send(self, draft_id: int) -> bool:
         dr = self._get(draft_id)
         cust = self.db.one("SELECT * FROM customers WHERE id=?", (dr["customer_id"],))
@@ -412,6 +449,8 @@ class ConversationInbox:
         if why:
             self.db.x("UPDATE drafts SET status='rejected', decided_by=? WHERE id=?",
                       (f"system:{why}", draft_id))
+            return False
+        if self._withdraw_if_stale(dr):
             return False
         money = "₪" in dr["body"] or dr["plan_id"] or dr["intent"] in _MONEY_INTENTS
         if money and not self.svc.refresh_customer(cust["id"]):

@@ -36,7 +36,7 @@ app = ["ui.html"]
 [tool.ruff]
 line-length = 120
 target-version = "py311"
-extend-exclude = ["demo-output", "web"]
+extend-exclude = ["demo-output", "web", "marketing/video"]  # סקריפטי-הפקה חד-פעמיים, לא קוד המוצר
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B", "UP", "S"]  # S = כללי bandit (אבטחה)

@@ -9,6 +9,7 @@ const KIND: Record<string, { icon: string; title: string; tone: Notice['tone'] }
   manual_only_old: { icon: '🗂️', title: 'חשבונית ישנה — טיפול ידני בלבד', tone: 'info' },
   no_due_date: { icon: '📅', title: 'חשבונית בלי תאריך — אין תזכורות עליה', tone: 'warn' },
   shared_contact: { icon: '👥', title: 'אותו טלפון/מייל, שמות שונים — נשמרו כלקוחות נפרדים', tone: 'info' },
+  stale_draft: { icon: '⏳', title: 'הצעה שחיכתה יותר מדי — לא נשלחה', tone: 'warn' },
   sms_undelivered: { icon: '📵', title: 'SMS לא נמסר', tone: 'warn' },
   credit_review: { icon: '🧾', title: 'זיכוי שלא שויך לחשבונית — לבדיקתך', tone: 'warn' },
   // חיוב דרך אורביט (8.11.2026): חסד / סיום / ביטול — הגוף כולל קישור לחיוב באורביט
