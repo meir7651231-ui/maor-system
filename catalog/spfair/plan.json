@@ -1,5 +1,5 @@
 {
- "about": "SP-FAIR — תוכנית ההרצות, נקבעה לפני ההרצה הראשונה. המנוע ותקציבו קפואים; משתנה רק salt (זרע-הדגימה של הצמיחה: sampleIdx(seed ^ salt)) או rounds (מספר סבבי-השרטוטים). s0 = ההרצה של SELFPRINT כמו שהיא (בדיקה שהכלי לא משנה כלום: פלטים זהים בבתים לקבצים שבענף). · RINGS-PORT: m2 (לפני, מנוע MINER2) ו-rp (אחרי). s0…r6 = מנוע SELFPRINT — תיעוד; --check חל רק על הרצות של המנוע הנוכחי (rp). · RECIPES (16.10.2026): rc = ספר-המתכונים (budget.recipes, תקציב נוסף); rp-eq = מנוע RINGS-PORT בלי מתכונים באותו תקציב-שרטוטים כולל (rings.total += recipes.total) — הביקורת ההוגנת ל-rc. · RECIPES2 (16.10.2026): rc ו-rp-eq מקבלים recipes2:null (המנוע של אז, ביט-זהה); r2 = כרך ב׳ + מילוי-חכם + פתרון-ביניים⇒כלי; rc2-eq = מנוע RECIPES (בלי השינויים) באותו תקציב-שרטוטים כולל (recipes.total = 12,000) — הביקורת ההוגנת ל-r2. · SHELF-FIX (3.11.2026, החלטת-מנהל): r2t = r2 + budget.numTol (הסרגל עם רצפה ליד אפס — grow/lib.mjs › setNumTol; דרך patch, budget.json לא שונה ⇒ כל ההרצות האחרות ביט-זהות). one.mjs מודד את r2t פעמיים: בסרגל החדש ובסרגל הישן (numTol.…OldStick).",
+ "about": "SP-FAIR — תוכנית ההרצות, נקבעה לפני ההרצה הראשונה. המנוע ותקציבו קפואים; משתנה רק salt (זרע-הדגימה של הצמיחה: sampleIdx(seed ^ salt)) או rounds (מספר סבבי-השרטוטים). s0 = ההרצה של SELFPRINT כמו שהיא (בדיקה שהכלי לא משנה כלום: פלטים זהים בבתים לקבצים שבענף). · RINGS-PORT: m2 (לפני, מנוע MINER2) ו-rp (אחרי). s0…r6 = מנוע SELFPRINT — תיעוד; --check חל רק על הרצות של המנוע הנוכחי (rp). · RECIPES (16.10.2026): rc = ספר-המתכונים (budget.recipes, תקציב נוסף); rp-eq = מנוע RINGS-PORT בלי מתכונים באותו תקציב-שרטוטים כולל (rings.total += recipes.total) — הביקורת ההוגנת ל-rc. · RECIPES2 (16.10.2026): rc ו-rp-eq מקבלים recipes2:null (המנוע של אז, ביט-זהה); r2 = כרך ב׳ + מילוי-חכם + פתרון-ביניים⇒כלי; rc2-eq = מנוע RECIPES (בלי השינויים) באותו תקציב-שרטוטים כולל (recipes.total = 12,000) — הביקורת ההוגנת ל-r2. · SHELF-FIX (3.11.2026, החלטת-מנהל): r2t = r2 + budget.numTol (הסרגל עם רצפה ליד אפס — grow/lib.mjs › setNumTol; דרך patch, budget.json לא שונה ⇒ כל ההרצות האחרות ביט-זהות). one.mjs מודד את r2t פעמיים: בסרגל החדש ובסרגל הישן (numTol.…OldStick). · SHELF-V (9.11.2026): r2v = r2t + budget.shelfVariants {max:4} — המדף שומר עד 4 גרסאות לכל טביעה שנבדלות בלחץ (catalog/selfprint/shelf.mjs › offerVariants); דרך patch, budget.json לא שונה.",
  "runs": {
   "s0": {
    "salt": 0,
@@ -76,6 +76,17 @@
    },
    "experiment": "SHELF-FIX · אחרי: r2 (RECIPES2) + הסרגל עם רצפה ליד אפס (numTol); המדף כמו שהוא + מונה stressDiffer; כל השאר זהה ל-r2",
    "engine": "RECIPES2 + numTol"
+  },
+  "r2v": {
+   "salt": 0,
+   "patch": {
+    "numTol": true,
+    "shelfVariants": {
+     "max": 4
+    }
+   },
+   "experiment": "SHELF-V · אחרי: r2t (r2 + numTol) + המדף שומר עד 4 גרסאות לכל טביעה שנבדלות בלחץ; כל השאר זהה ל-r2t",
+   "engine": "RECIPES2 + numTol + shelfVariants"
   }
  }
 }

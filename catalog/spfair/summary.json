@@ -205,6 +205,24 @@
    "success": 76,
    "maxDepthSuccess": 2,
    "wrongImprovements": 0
+  },
+  "r2v": {
+   "salt": 0,
+   "rounds": 3,
+   "sameBytesAsBranch": false,
+   "exactFair": [
+    "average",
+    "sum"
+   ],
+   "exactBaseline": [],
+   "averagePct": {
+    "baseline": 36,
+    "selfprint": 100
+   },
+   "blueprints": 378,
+   "success": 77,
+   "maxDepthSuccess": 2,
+   "wrongImprovements": 0
   }
  },
  "exactFairBy": {
@@ -218,7 +236,8 @@
    "rc",
    "rp-eq",
    "rc2-eq",
-   "r2t"
+   "r2t",
+   "r2v"
   ],
   "extreme": [
    "rc",
@@ -226,7 +245,8 @@
   ],
   "sum": [
    "r2",
-   "r2t"
+   "r2t",
+   "r2v"
   ]
  },
  "targetsHitBy": {
@@ -251,14 +271,16 @@
     "rc",
     "r2",
     "rc2-eq",
-    "r2t"
+    "r2t",
+    "r2v"
    ],
    "baseline": [],
    "byBlueprint": [
     "rc:recipe:bp-s-37b79277:d1",
     "r2:recipe:bp-s-37b79277:d1",
     "rc2-eq:recipe:bp-s-37b79277:d1",
-    "r2t:recipe:bp-s-37b79277:d1"
+    "r2t:recipe:bp-s-37b79277:d1",
+    "r2v:recipe:bp-s-37b79277:d1"
    ],
    "alreadyPart": []
   },
@@ -269,14 +291,16 @@
     "rc",
     "r2",
     "rc2-eq",
-    "r2t"
+    "r2t",
+    "r2v"
    ],
    "baseline": [],
    "byBlueprint": [
     "rc:recipe:bp-s-37b79277:d1",
     "r2:recipe:bp-s-37b79277:d1",
     "rc2-eq:recipe:bp-s-37b79277:d1",
-    "r2t:recipe:bp-s-37b79277:d1"
+    "r2t:recipe:bp-s-37b79277:d1",
+    "r2v:recipe:bp-s-37b79277:d1"
    ],
    "alreadyPart": []
   },
@@ -287,14 +311,16 @@
     "rc",
     "r2",
     "rc2-eq",
-    "r2t"
+    "r2t",
+    "r2v"
    ],
    "baseline": [],
    "byBlueprint": [
     "rc:recipe:bp-s-a6e802dd:d1",
     "r2:recipe:bp-s-a6e802dd:d1",
     "rc2-eq:recipe:bp-s-a6e802dd:d1",
-    "r2t:recipe:bp-s-a6e802dd:d1"
+    "r2t:recipe:bp-s-a6e802dd:d1",
+    "r2v:recipe:bp-s-a6e802dd:d1"
    ],
    "alreadyPart": []
   },
@@ -303,12 +329,14 @@
    "known": false,
    "selfprint": [
     "rc2-eq",
-    "r2t"
+    "r2t",
+    "r2v"
    ],
    "baseline": [],
    "byBlueprint": [
     "rc2-eq:recipe:bp-s-9cc635ab:d1",
-    "r2t:recipe:bp-s-9cc635ab:d1"
+    "r2t:recipe:bp-s-9cc635ab:d1",
+    "r2v:recipe:bp-s-9cc635ab:d1"
    ],
    "alreadyPart": []
   },
@@ -328,7 +356,8 @@
     "rp-eq",
     "r2",
     "rc2-eq",
-    "r2t"
+    "r2t",
+    "r2v"
    ],
    "byBlueprint": [],
    "alreadyPart": []
@@ -338,7 +367,8 @@
    "known": false,
    "selfprint": [
     "r2",
-    "r2t"
+    "r2t",
+    "r2v"
    ],
    "baseline": [
     "m2",
@@ -347,11 +377,13 @@
     "rp-eq",
     "r2",
     "rc2-eq",
-    "r2t"
+    "r2t",
+    "r2v"
    ],
    "byBlueprint": [
     "r2:recipe:bp-s-5b6fc061:d1",
-    "r2t:recipe:bp-s-5b6fc061:d1"
+    "r2t:recipe:bp-s-5b6fc061:d1",
+    "r2v:recipe:bp-s-5b6fc061:d1"
    ],
    "alreadyPart": [
     "s0",
@@ -365,7 +397,8 @@
     "rp-eq",
     "r2",
     "rc2-eq",
-    "r2t"
+    "r2t",
+    "r2v"
    ]
   },
   "last": {
@@ -392,7 +425,8 @@
     "rp-eq",
     "r2",
     "rc2-eq",
-    "r2t"
+    "r2t",
+    "r2v"
    ]
   },
   "max": {
@@ -413,7 +447,8 @@
     "rp-eq",
     "r2",
     "rc2-eq",
-    "r2t"
+    "r2t",
+    "r2v"
    ]
   },
   "mean": {
@@ -429,7 +464,8 @@
     "rc",
     "rp-eq",
     "rc2-eq",
-    "r2t"
+    "r2t",
+    "r2v"
    ],
    "baseline": [],
    "byBlueprint": [
@@ -443,7 +479,8 @@
     "rp-eq:code:bp-c-4590428b:d1",
     "rc2-eq:recipe:bp-s-a1fd2009:d1",
     "rc2-eq:code:bp-c-4590428b:d1",
-    "r2t:code:bp-c-4590428b:d1"
+    "r2t:code:bp-c-4590428b:d1",
+    "r2v:code:bp-c-4590428b:d1"
    ],
    "alreadyPart": []
   },
@@ -462,7 +499,8 @@
     "rp-eq",
     "r2",
     "rc2-eq",
-    "r2t"
+    "r2t",
+    "r2v"
    ],
    "baseline": [
     "s0",
@@ -476,11 +514,13 @@
     "rp-eq",
     "r2",
     "rc2-eq",
-    "r2t"
+    "r2t",
+    "r2v"
    ],
    "byBlueprint": [
     "r2:recipe:bp-s-5fabe09c:d1",
-    "r2t:recipe:bp-s-5fabe09c:d1"
+    "r2t:recipe:bp-s-5fabe09c:d1",
+    "r2v:recipe:bp-s-5fabe09c:d1"
    ],
    "alreadyPart": []
   },
@@ -498,7 +538,8 @@
     "rp-eq",
     "r2",
     "rc2-eq",
-    "r2t"
+    "r2t",
+    "r2v"
    ],
    "baseline": [],
    "byBlueprint": [
@@ -512,7 +553,8 @@
     "rp-eq:code:bp-c-4590428b:d1",
     "r2:code:bp-c-4590428b:d1",
     "rc2-eq:recipe:bp-s-a1fd2009:d1",
-    "r2t:code:bp-c-4590428b:d1"
+    "r2t:code:bp-c-4590428b:d1",
+    "r2v:code:bp-c-4590428b:d1"
    ],
    "alreadyPart": []
   },
@@ -531,7 +573,8 @@
     "rp-eq",
     "r2",
     "rc2-eq",
-    "r2t"
+    "r2t",
+    "r2v"
    ],
    "baseline": [
     "s0",
@@ -545,7 +588,8 @@
     "rp-eq",
     "r2",
     "rc2-eq",
-    "r2t"
+    "r2t",
+    "r2v"
    ],
    "byBlueprint": [],
    "alreadyPart": []
@@ -568,7 +612,8 @@
     "rp-eq",
     "r2",
     "rc2-eq",
-    "r2t"
+    "r2t",
+    "r2v"
    ]
   },
   "sortDesc": {
@@ -589,7 +634,8 @@
     "rp-eq",
     "r2",
     "rc2-eq",
-    "r2t"
+    "r2t",
+    "r2v"
    ]
   },
   "squares": {
@@ -601,7 +647,8 @@
     "rp-eq",
     "r2",
     "rc2-eq",
-    "r2t"
+    "r2t",
+    "r2v"
    ],
    "byBlueprint": [],
    "alreadyPart": []
@@ -611,12 +658,14 @@
    "known": false,
    "selfprint": [
     "r2",
-    "r2t"
+    "r2t",
+    "r2v"
    ],
    "baseline": [],
    "byBlueprint": [
     "r2:recipe:bp-s-2b3d8a3c:d1",
-    "r2t:recipe:bp-s-2b3d8a3c:d1"
+    "r2t:recipe:bp-s-2b3d8a3c:d1",
+    "r2v:recipe:bp-s-2b3d8a3c:d1"
    ],
    "alreadyPart": []
   }
