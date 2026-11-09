@@ -1,6 +1,8 @@
 # verify edit_h
 frames: 285; with screen: 285
 status counts: {'interp': 10, 'meas': 234, 'refit': 5, 'weak': 36}
+raw_green_calib_px: max 0.000  mean 0.000  p95 0.000  frames>0: 0  frames>20: 0  worst: [0, 1, 2, 3, 4]
+raw_green_final_px: max 0.000  mean 0.000  p95 0.000  frames>0: 0  frames>20: 0  worst: [0, 1, 2, 3, 4]
 green_calib_px: max 0.000  mean 0.000  p95 0.000  frames>0: 0  frames>20: 0  worst: [0, 1, 2, 3, 4]
 green_final_band_px: max 0.000  mean 0.000  p95 0.000  frames>0: 0  frames>20: 0  worst: [0, 1, 2, 3, 4]
 green_source_px: max 66283.000  mean 47988.839  p95 61666.200  frames>0: 285  frames>20: 285  worst: [162, 161, 163, 160, 164]

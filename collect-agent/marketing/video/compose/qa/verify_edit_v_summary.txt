@@ -1,6 +1,8 @@
 # verify edit_v
 frames: 533; with screen: 271
 status counts: {'meas': 261, 'nophone': 262, 'refit': 5, 'weak': 5}
+raw_green_calib_px: max 0.000  mean 0.000  p95 0.000  frames>0: 0  frames>20: 0  worst: [0, 1, 2, 3, 4]
+raw_green_final_px: max 0.000  mean 0.000  p95 0.000  frames>0: 0  frames>20: 0  worst: [0, 1, 2, 3, 4]
 green_calib_px: max 0.000  mean 0.000  p95 0.000  frames>0: 0  frames>20: 0  worst: [0, 1, 2, 3, 4]
 green_final_band_px: max 0.000  mean 0.000  p95 0.000  frames>0: 0  frames>20: 0  worst: [0, 1, 2, 3, 4]
 green_source_px: max 164374.000  mean 117532.716  p95 159402.000  frames>0: 271  frames>20: 271  worst: [152, 153, 154, 151, 265]

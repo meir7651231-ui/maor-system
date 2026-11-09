@@ -463,6 +463,14 @@ if __name__ == '__main__':
                                '-r', str(fps), '-i', '-', '-c:v', 'ffv1', '-level', '3', '-pix_fmt', 'bgr0', SRC_OUT], stdin=subprocess.PIPE)
     gray = np.full((1688, 780, 3), 200, np.uint8)
     keepset = set(kept)
+    # מסך הלפטופ (קליפ אנכי): לוח-הבוקר ברוחב-דסקטופ על המסך הירוק, לפי laptop.py
+    LAP = {}
+    if FMT == 'v':
+        import laptop
+        LAP, lap_spread, _ = laptop.track(SRC, 722, 745)
+        desk_ui = cv2.imread(f'{UI}/desktop_dash.png')
+        desk_gray = np.full_like(desk_ui, 200)
+        print('laptop frames', len(LAP), 'corner spread px', round(lap_spread, 3), flush=True)
     i = 0; o = 0
     while True:
         ok, fr = cap.read()
@@ -475,8 +483,11 @@ if __name__ == '__main__':
         to = out_of[i] / fps                # זמן-פלט (כתוביות/סיום)
         if fs is not None:
             fs.stdin.write(fr.tobytes())
-        ui = gray if CALIB else anim.render(t)
-        fr, _ = composite(fr, i, ui)
+        if i in LAP:
+            fr, _, _ = laptop.composite(fr, LAP[i], desk_gray if CALIB else desk_ui, guided, poly_cov, norm_blur, None)
+        else:
+            ui = gray if CALIB else anim.render(t)
+            fr, _ = composite(fr, i, ui)
         if not CALIB:
             for c, im in zip(caps_o, capimgs_o):
                 if c['a'] <= to <= c['b']:

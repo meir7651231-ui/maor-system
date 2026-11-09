@@ -22,7 +22,26 @@ for c in (sys.argv[4] if len(sys.argv) > 4 else 'hv'):
     tiles = []
     for i in range(N):
         ok, fr = cap.read()
-        if not ok or not np.isfinite(C[i]).all():
+        if not ok:
+            continue
+        if not np.isfinite(C[i]).all():
+            # בלי טלפון (למשל סצנת-הלפטופ): גם נבדק — חיתוך ×2 סביב צלע-מסך הלפטופ אם יש, ופריים מלא מוקטן
+            sf = int(z['src_frame'][i]) if 'src_frame' in z else i
+            Hh, Ww = fr.shape[:2]
+            if c == 'v' and 722 <= sf <= 745:
+                for (cx, cy) in ((370, 520), (240, 740)):     # צלע ימנית/תחתונה של מסך הלפטופ
+                    x0 = int(np.clip(cx - TW / 2, 0, Ww - TW)); y0 = int(np.clip(cy - TH / 2, 0, Hh - TH))
+                    t = cv2.resize(fr[y0:y0 + TH, x0:x0 + TW], None, fx=Z, fy=Z, interpolation=cv2.INTER_NEAREST)
+                    cv2.rectangle(t, (0, 0), (150, 18), (0, 0, 0), -1)
+                    cv2.putText(t, f'{c}{i} laptop', (3, 14), 0, 0.45, (0, 255, 255), 1)
+                    tiles.append(t)
+            sc = min(TW * Z / Ww, TH * Z / Hh)
+            small = cv2.resize(fr, None, fx=sc, fy=sc, interpolation=cv2.INTER_AREA)
+            t = np.zeros((TH * Z, TW * Z, 3), np.uint8)
+            t[:small.shape[0], :small.shape[1]] = small
+            cv2.rectangle(t, (0, 0), (150, 18), (0, 0, 0), -1)
+            cv2.putText(t, f'{c}{i} full', (3, 14), 0, 0.45, (0, 255, 255), 1)
+            tiles.append(t)
             continue
         H, W = fr.shape[:2]
         if np.isfinite(fin[i]).all():

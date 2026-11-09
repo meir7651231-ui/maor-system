@@ -65,6 +65,14 @@ def greenish(f):
 
 
 cs, cc, cf = cv2.VideoCapture(SRC), cv2.VideoCapture(CAL), cv2.VideoCapture(FIN)
+
+
+def raw_green(f):
+    """מגלה ירוק-מסך גולמי בכל הפריים (HSV + דומיננטיות-G): גוון 35–72, רוויה≥120, בהירות≥70, G−max(R,B)>45 (כמו scan_final.py)."""
+    h = cv2.cvtColor(f, cv2.COLOR_BGR2HSV)
+    fi = f.astype(np.int16)
+    return (cv2.inRange(h, (35, 120, 70), (72, 255, 255)) > 0) & ((fi[:, :, 1] - np.maximum(fi[:, :, 0], fi[:, :, 2])) > 45)
+
 W, H = int(cs.get(3)), int(cs.get(4))
 N = int(z['N'])
 rows = []
@@ -76,6 +84,12 @@ for i in range(N):
         break
     row = dict(frame=i, t=round(i / cs.get(cv2.CAP_PROP_FPS), 3), status=str(status[i]))
     gs = cv2.cvtColor(fs, cv2.COLOR_BGR2GRAY)
+    # (e) ירוק-גולמי בכל הפריים, ללא חריגים (כולל פריימים בלי טלפון): ברינדור-הכיול (UI אפור, בלי כתוביות),
+    #     ובפלט-הסופי — בפיקסלים שזהים לכיול (כלומר לא UI/כתובית/כרטיס-סיום, שבהם ירוק-המותג לגיטימי)
+    rg_c = raw_green(fc)
+    same = np.abs(ff.astype(np.int16) - fc.astype(np.int16)).max(2) <= 6
+    row['raw_green_calib_px'] = int(rg_c.sum())
+    row['raw_green_final_px'] = int((raw_green(ff) & same).sum())
     if not np.isfinite(C[i]).all():
         rows.append(row); prev = None
         continue
@@ -197,7 +211,7 @@ def col(k, filt=None):
 good_st = lambda r: r['status'] in ('meas', 'refit')
 lines = [f'# verify {TAG}', f'frames: {len(rows)}; with screen: {sum(1 for r in rows if "green_calib_px" in r)}',
          'status counts: ' + str({s: sum(1 for r in rows if r["status"] == s) for s in sorted(set(r["status"] for r in rows))})]
-for k in ('green_calib_px', 'green_final_band_px', 'green_source_px', 'skin_changed_px', 'changed_outside_green_px', 'jagged_px', 'jagged_ratio', 'kept_source_in_screen_px'):
+for k in ('raw_green_calib_px', 'raw_green_final_px', 'green_calib_px', 'green_final_band_px', 'green_source_px', 'skin_changed_px', 'changed_outside_green_px', 'jagged_px', 'jagged_ratio', 'kept_source_in_screen_px'):
     v = col(k)
     if len(v) == 0:
         continue
