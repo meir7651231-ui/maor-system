@@ -1,5 +1,11 @@
 """מרכיב את מסכי גבי על מסך-הירוק בטלפון (מעקב פינות + homography), מוסיף כתוביות וכרטיס סיום."""
-import cv2, numpy as np, json, subprocess, sys
+import json
+import subprocess
+import sys
+
+import cv2
+import numpy as np
+
 S = sys.argv[1]; SRC, FMT, OUT = sys.argv[2], sys.argv[3], sys.argv[4]
 SCREENS = json.loads(sys.argv[5])          # [[from_sec, name], ...]
 ASPECT = 844 / 390
