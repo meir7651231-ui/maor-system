@@ -149,6 +149,19 @@ export const BLOCK_LABEL: Record<string, string> = {
   credit_review: 'זיכוי לא משויך — לבדיקתך',
 };
 
+/** critic סבב 32: סיבות שבהן התזכורת רק **חזרה לאישור** (השרת מאשר אותן). הממשק השבית אותן כ«חסום». */
+export const REAPPROVE_LABEL: Record<string, string> = {
+  approval_expired: 'האישור הקודם פג (חיכה יותר מ-7 ימים) — לאשר מחדש',
+  approval_invalidated: 'הנוסח השתנה מאז האישור — לאשר מחדש',
+  amount_changed: 'הסכום התעדכן מהמקור — לבדוק ולאשר מחדש',
+};
+
+/** 'hard' = אסור לאשר (כפתור מושבת) · 'reapprove' = מותר, עם הסבר · null = אין. לא מוכר ⇒ 'hard' (שמרני). */
+export function blockKind(b: string | null | undefined): 'hard' | 'reapprove' | null {
+  if (!b) return null;
+  return b in REAPPROVE_LABEL ? 'reapprove' : 'hard';
+}
+
 /** ממיר את תמונת המצב של הבקאנד למודל של הממשק. טהור (נבדק ב-tests). */
 export function fromDashboard(d: Dashboard, pending: { id: number; invoice_id: number; block_reason: string | null }[]) {
   const customers: Customer[] = [];

@@ -349,3 +349,36 @@ test('שער 6 · מסך הכניסה: אין טוקן בכתובת, סשן רק
   assert.match(login, /login_required !== true/);
   assert.match(login, /autoComplete="one-time-code"/); assert.match(login, /autoComplete="current-password"/);
 });
+
+// critic סבב 32: הממשק השבית את «אשר ושלח» לכל block_reason — גם לסיבות «לאשר מחדש» (approval_expired,
+// approval_invalidated, amount_changed), שהשרת דווקא מאשר. ⇒ תזכורת שחזרה לאישור נתקעה לתמיד («⛔ חסום»).
+import { blockKind, REAPPROVE_LABEL } from '../src/api.ts';
+test('block_reason: חסימה קשה משביתה; «לאשר מחדש» לא', () => {
+  for (const b of ['no_contact', 'no_payment_link', 'opted_out', 'disputed', 'paid_claim', 'credit_review'])
+    assert.equal(blockKind(b), 'hard', b);
+  for (const b of ['approval_expired', 'approval_invalidated', 'amount_changed']) {
+    assert.equal(blockKind(b), 'reapprove', b);
+    assert.ok(REAPPROVE_LABEL[b], b);
+  }
+  assert.equal(blockKind(null), null);
+  assert.equal(blockKind('something_new'), 'hard');   // לא מוכר ⇒ שמרני (משבית)
+  const mp = readFileSync(new URL('../src/components/MessagePreview.tsx', import.meta.url), 'utf8');
+  assert.match(mp, /blockKind\(block\) !== 'hard'|blockKind\(block\) === 'hard'/);
+  assert.doesNotMatch(mp, /sendable = live \? !!pv && !block &&/);
+});
+
+// critic סבב 33: הודעה נכנסת משולח לא מוכר / מכתובת של כמה לקוחות (סבב 27) נשמרת needs_owner=1, אבל
+// systemNotices סינן רק direction=system ⇒ בעל העסק לעולם לא ראה אותה (אין לה טיוטה ב«תשובות לקוחות»).
+test('הודעות נכנסות בלי לקוח (שולח לא מוכר / כתובת משותפת) מגיעות לבעל העסק', async () => {
+  const { systemNotices } = await import('../src/lib/notices.ts');
+  const row = (id: number, direction: string, intent: string | null, body: string, customer_id: number | null = null) =>
+    ({ id, customer_id, direction, channel: 'sms', body, intent, created_at: '2026-11-09T10:00:00+02:00' });
+  const n = systemNotices([
+    row(1, 'in', 'unknown_sender', 'מי אתם? אני רונית'),
+    row(2, 'in', 'shared_contact_ambiguous', 'שילמתי אתמול'),
+    row(3, 'in', 'dispute', 'טקסט חופשי של לקוח', 7),        // לקוח מזוהה ⇒ לא כאן (יש לו טיוטה)
+  ]);
+  assert.deepEqual(n.map(x => x.id).sort(), [1, 2]);
+  assert.ok(n.find(x => x.id === 2)!.title.includes('כמה לקוחות'));
+  assert.ok(n.find(x => x.id === 1)!.body.includes('רונית'));
+});

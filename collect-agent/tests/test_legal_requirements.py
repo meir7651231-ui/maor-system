@@ -650,3 +650,41 @@ def test_approve_plan_with_past_due_dates_is_refused(svc, fake_gi, clock):
     with pytest.raises(ValueError, match="תאריכ"):
         svc.approve_plan(r["plan_id"])
     assert svc.db.one("SELECT status FROM plans WHERE id=?", (r["plan_id"],))["status"] == "superseded"
+
+
+def test_reminder_approval_expires_after_7_days_waiting(svc, fake_gi, clock):
+    """critic סבב 31: תזכורת שאושרה וחיכתה (סוף ניסיון) יצאה 22 יום אחרי האישור, ביום שבעל העסק
+    הצטרף — יחד עם כל שאר התור, באותו בוקר. בינתיים הוא אולי כבר דיבר עם הלקוח. «אישור פרטני לכל
+    הודעה» ⇒ אישור תקף 7 ימים מהמאוחר מבין האישור ומועד השליחה המתוכנן; אחרי זה חוזרת לאישור."""
+    import dataclasses
+    from datetime import timedelta
+    svc.s = dataclasses.replace(svc.s, trial_start=(clock.now.date() - timedelta(days=13)).isoformat())
+    svc.sync()
+    rid = svc.plan()[0]
+    clock.now += timedelta(days=2)              # הניסיון נגמר — מאשר בכל זאת
+    svc.approve(rid)
+    svc.s = dataclasses.replace(svc.s, trial_start="")
+    clock.now += timedelta(days=20)
+    n = len(svc.sender.sent)
+    svc.dispatch()
+    r = svc.db.one("SELECT status, block_reason FROM reminders WHERE id=?", (rid,))
+    assert len(svc.sender.sent) == n
+    assert r["status"] == "pending_approval" and r["block_reason"] == "approval_expired"
+    # סבב 32: אישור מחדש עובד (זו לא חסימה קשה) ⇒ נשלחת
+    svc.approve(rid)
+    svc.dispatch()
+    assert len(svc.sender.sent) > n
+    assert svc.db.one("SELECT status FROM reminders WHERE id=?", (rid,))["status"] == "sent_dry_run"
+
+
+def test_reminder_approved_in_advance_for_future_slot_still_sends(svc, fake_gi, clock):
+    """אישור מראש לתזכורת שמתוכננת לעוד 10 ימים ⇒ נשלחת במועד (הספירה מהמועד, לא מהאישור)."""
+    from datetime import timedelta
+    svc.sync()
+    rid = svc.plan()[0]
+    svc.db.x("UPDATE reminders SET scheduled_for=? WHERE id=?",
+             ((clock.now + timedelta(days=10)).isoformat(), rid))
+    svc.approve(rid)
+    clock.now += timedelta(days=10, minutes=5)
+    svc.dispatch()
+    assert svc.db.one("SELECT status FROM reminders WHERE id=?", (rid,))["status"] == "sent_dry_run"

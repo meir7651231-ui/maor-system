@@ -33,6 +33,7 @@ from .integrations.sources import (
     source_provider,
 )
 from .policy import (
+    APPROVAL_VALID_DAYS,
     MAX_REMINDERS_PER_INVOICE,
     OWNER_HOLDS,
     RETENTION_DAYS,
@@ -963,6 +964,12 @@ class CollectService:
             if r["approved_hash"] != _sha(r["payload"]) or \
                     (r["approved_version"] or "") != templates.template_version():
                 self._invalidate(r, "approval_invalidated")
+                continue
+            # critic סבב 31: אישור שחיכה (סוף ניסיון/חסימה) יצא 22 יום אחר כך, עם כל התור באותו בוקר.
+            # תקף APPROVAL_VALID_DAYS מהמאוחר מבין האישור והמועד המתוכנן (אישור מראש לעתיד נשמר).
+            anchor = max(d for d in (_dt(r["decided_at"]), _dt(r["scheduled_for"])) if d is not None)
+            if now - anchor > timedelta(days=APPROVAL_VALID_DAYS):
+                self._invalidate(r, "approval_expired")
                 continue
             # ר-4: רענון מהמקור לפני כל שליחה; כשל ⇒ לא שולחים
             fresh = self._refresh_before_send(r)

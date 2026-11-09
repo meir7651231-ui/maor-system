@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { api, BLOCK_LABEL, type Preview } from '../api.ts';
+import { api, BLOCK_LABEL, blockKind, REAPPROVE_LABEL, type Preview } from '../api.ts';
 import { useApp } from '../store.tsx';
 import type { Channel, Invoice, Step } from '../lib/domain.ts';
 import { STEP_LABEL, STEP_ORDER, buildEmail, buildSms, nextStep, requiresApproval, smsSegments } from '../lib/message.ts';
@@ -41,7 +41,7 @@ export function MessagePreview({ invoice, onClose, now = new Date() }: { invoice
   const smsSender = (live && liveSource) || business.smsSender;
   const when = nextAllowed(now);
   const block = live ? pv?.block_reason ?? pending?.block ?? null : null;
-  const sendable = live ? !!pv && !block && !busy : (on.sms || on.email) && !c.optedOut;
+  const sendable = live ? !!pv && blockKind(block) !== 'hard' && !busy : (on.sms || on.email) && !c.optedOut;
   useEffect(() => {
     if (live && pv) { setOn({ sms: !!liveSms, email: !!liveMail }); setTab(liveSms ? 'sms' : 'email'); if (pv.template_key) setStep(pv.template_key); }
   }, [live, pv, liveSms, liveMail]);
@@ -98,7 +98,8 @@ export function MessagePreview({ invoice, onClose, now = new Date() }: { invoice
               {live && <div>🧪 <b>מצב:</b> dry-run · ספק {liveSms?.provider ?? business.smsProvider} · שום הודעה לא יוצאת באמת</div>}
               <div>🛑 כולל קישור הסרה · מזהה את העסק · ללא תוכן שיווקי (סעיף 30א)</div>
               {(live || requiresApproval(step, business, invoice.reminders.length === 0)) && <div className="text-amber-700">✋ שלב זה דורש את אישורך</div>}
-              {block && <div className="text-critical font-bold">⛔ חסום: {BLOCK_LABEL[block] ?? block}</div>}
+              {blockKind(block) === 'hard' && <div className="text-critical font-bold">⛔ חסום: {BLOCK_LABEL[block!] ?? block}</div>}
+              {blockKind(block) === 'reapprove' && <div className="text-amber-700 font-bold">⏳ {REAPPROVE_LABEL[block!]}</div>}
               {err && <div className="text-critical">שגיאה: {err}</div>}
               {live && !pv && !err && <div className="text-ink-500">טוען תצוגה מקדימה מהשרת…</div>}
             </div>
