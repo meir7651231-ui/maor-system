@@ -408,9 +408,11 @@ class CollectService:
             if bad:
                 self.audit(actor, "csv_import_blocked", {"rows": len(bad)})
                 raise RealDataBlocked(REAL_DATA_MSG)
-        counts = self.ingest(res.invoices, source="csv", full=False)
-        self.audit(actor, "csv_import", {"rows": len(res.invoices), "errors": len(res.errors)})
-        return {"imported": counts["open"], "errors": res.errors}
+        counts = self.ingest(res.invoices, source="csv", full=False,
+                             review=[(c, "csv_negative_balance") for c in res.credits])
+        self.audit(actor, "csv_import", {"rows": len(res.invoices), "errors": len(res.errors),
+                                         "credits": len(res.credits)})
+        return {"imported": counts["open"], "errors": res.errors, "credits": len(res.credits)}
 
     # ---------- payment link ----------
     def _payment_link(self, inv_row) -> str | None:

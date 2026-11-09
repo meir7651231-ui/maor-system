@@ -347,3 +347,29 @@ def test_unverified_inbound_email_is_recorded_and_flagged_for_owner(clock):
     assert "אימות שולח" not in (d2["owner_summary"] or "")
     rows = svc.db.q("SELECT * FROM audit WHERE action='email_auth'")
     assert len(rows) == 2 and "cl1@example.com" not in "".join(str(dict(a)) for a in rows)
+
+
+def test_csv_negative_balance_line_holds_customer_for_credit_review(svc):
+    """critic סבב 35: ב-CSV שורה ביתרה שלילית (זיכוי ללקוח) **נבלעה בשקט** (`amount <= 0 ⇒ continue`) —
+    אותה מחלקה של 21.1 ברווחית. לקוח עם חשבונית 1,000 וזיכוי -200 קיבל תזכורת על 1,000. עכשיו: הזיכוי
+    מעביר את הלקוח ל-credit_review (בלי ניחוש סכום), כמו בכל שאר המקורות, והשורה מדווחת בתוצאה."""
+    raw = ("מספר חשבונית,לקוח,סכום,תאריך לתשלום,טלפון\n"
+           "10,משה כהן,1000,2026-10-01,050-0001111\n"
+           "11,משה כהן,-200,2026-10-02,050-0001111\n").encode()
+    r = svc.import_csv(raw)
+    assert r["imported"] == 1 and r.get("credits") == 1
+    cust = svc.db.one("SELECT paused_reason FROM customers")
+    assert cust["paused_reason"] == "credit_review"
+    assert svc.plan() == []
+
+
+def test_csv_settings_endpoint_reports_credits(svc):
+    from fastapi.testclient import TestClient
+
+    from app.main import create_app
+    from tests.conftest import AUTH, OWNER_TOKEN
+    c = TestClient(create_app(svc, owner_token=OWNER_TOKEN), headers=AUTH)
+    raw = ("מספר חשבונית,לקוח,סכום,תאריך לתשלום,טלפון\n10,משה,1000,2026-10-01,050-0001111\n"
+           "11,משה,-200,2026-10-02,050-0001111\n").encode()
+    r = c.post("/settings/source/csv", content=raw)
+    assert r.status_code == 200 and r.json()["credits"] == 1 and r.json()["imported"] == 1

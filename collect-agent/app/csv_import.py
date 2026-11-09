@@ -35,6 +35,7 @@ CLOSED_STATUSES = {"סגור", "שולם", "נסגר", "מבוטל", "closed", "
 class CsvResult:
     invoices: list[Invoice] = field(default_factory=list)
     errors: list[dict] = field(default_factory=list)
+    credits: list[Invoice] = field(default_factory=list)   # critic סבב 35: יתרה שלילית = זיכוי ⇒ לבדיקה
 
 
 def _parse_date(v: str) -> date | None:
@@ -100,7 +101,7 @@ def parse(raw: bytes | str) -> CsvResult:
             if cell("status").strip().lower() in CLOSED_STATUSES:
                 continue                                   # מסמך סגור/מבוטל ⇒ לא חוב
             amount = _agorot(cell("amount"))
-            if amount <= 0:
+            if amount == 0:
                 continue                                   # שולמה / אפס ⇒ לא חוב
             issued = _parse_date(cell("issued"))
             due = _parse_date(cell("due"))
@@ -110,8 +111,11 @@ def parse(raw: bytes | str) -> CsvResult:
             if not cell("phone") and not cell("email"):
                 raise ValueError("אין טלפון ואין מייל")
             seen.add(num)
-            out.invoices.append(Invoice(
-                external_id=f"csv:{num}", number=num, doc_type=305, amount_agorot=amount,
+            # critic סבב 35: יתרה שלילית = זיכוי ללקוח. היה `<= 0 ⇒ continue` (נבלע בשקט, כמו רווחית ב-21.1)
+            # ⇒ תזכורת על הסכום המלא. עכשיו: לא חוב, אבל הלקוח עובר לבדיקת זיכוי (בלי ניחוש סכום).
+            (out.credits if amount < 0 else out.invoices).append(Invoice(
+                external_id=f"csv:{num}", number=num, doc_type=330 if amount < 0 else 305,
+                amount_agorot=abs(amount),
                 currency=(cell("currency") or "ILS").upper(), issued=issued, due=due,
                 client_external_id="", client_name=cell("client"), client_phone=cell("phone"),
                 client_email=cell("email"), due_estimated=est))

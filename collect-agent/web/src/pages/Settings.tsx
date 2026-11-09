@@ -26,7 +26,7 @@ export function Settings() {
   const [saveErr, setSaveErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [csvErr, setCsvErr] = useState<string | null>(null);
-  const [csv, setCsv] = useState<{ imported: number; rejected: { row: number; reason: string }[] } | null>(null);
+  const [csv, setCsv] = useState<{ imported: number; credits?: number; rejected: { row: number; reason: string }[] } | null>(null);
 
   useEffect(() => {
     if (!live) { setOrig(mockForm); setF(mockForm); return; }
@@ -129,6 +129,7 @@ export function Settings() {
           <div className="rounded-xl bg-white border border-ink-200 p-3 text-sm" data-testid="csv-result">
             ✓ יובאו <b className="num">{csv.imported}</b> חשבוניות{csv.rejected.length ? ` · ${csv.rejected.length} שורות נדחו:` : ''}
             {csv.rejected.length > 0 && <ul className="mt-1 text-xs text-critical">{csv.rejected.map(r => <li key={r.row}>שורה <span className="num">{r.row}</span>: {r.reason}</li>)}</ul>}
+            {!!csv.credits && <p className="mt-1 text-xs text-amber-700" data-testid="csv-credits">⏸️ <span className="num">{csv.credits}</span> שורות ביתרה שלילית (זיכוי) — הלקוחות שלהן הושהו לבדיקתך, בלי תזכורת עד שתאשר/י</p>}
           </div>
         )}
       </Card>
