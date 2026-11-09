@@ -43,7 +43,7 @@ k = 1
 for c, f, name in FIXED:
     crop_at(c, f, name, f'{Q}/check_{k}_{c}_{name}.png'); k += 1
 # הגרועים לפי מדד (מכל הקליפים)
-for metric in ('skin_changed_px', 'changed_outside_green_px', 'jagged_ratio', 'green_calib_px'):
+for metric in ('skin_changed_px', 'changed_outside_green_px', 'jagged_ratio', 'green_calib_px', 'kept_source_in_screen_px'):
     best = None
     for c in 'hv':
         for r in csv.DictReader(open(f'{Q}/verify_{c}.csv')):

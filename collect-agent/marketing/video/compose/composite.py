@@ -108,6 +108,19 @@ def despill_around(fr, Hm, protect=None):
     return out
 
 
+PREV = {'hand': None, 'i': -9}
+
+
+def fill_holes(m):
+    """ממלא חורים סגורים במסכה בוליאנית (flood-fill מהשוליים)."""
+    m8 = m.astype(np.uint8)
+    hh, ww = m8.shape
+    ff = np.pad(m8, 1)
+    msk = np.zeros((hh + 4, ww + 4), np.uint8)
+    cv2.floodFill(ff, msk, (0, 0), 2)
+    return (ff[1:-1, 1:-1] != 2)
+
+
 def composite(fr, i, ui):
     C = Cs[i]
     if not np.isfinite(C).all():
@@ -165,83 +178,101 @@ def composite(fr, i, ui):
     G = np.where(d1 > 0.05, n1 / np.maximum(d1, 1e-6), np.where(d2 > 0.02, n2 / np.maximum(d2, 1e-6), med))
     Dg = np.maximum(G[:, :, 1] - 0.5 * (G[:, :, 0] + G[:, :, 2]), 20)
     Yg = 0.114 * G[:, :, 0] + 0.587 * G[:, :, 1] + 0.299 * G[:, :, 2]
-    # ---------------- המאט (ברזולוציה מלאה, בלי מסכות-גושים ובלי מורפולוגיה שמכרסמת באצבע)
-    # a_lin = D/D(G): מפתח ליניארי. "ירוק בבירור" נבחן גם לפי כרומטיות (R/G, B/G) קרובה לזו של המסך —
-    # בלי תלות בבהירות: צל על המסך = מסך; עור (גם מואר-ירוק) = חזית.
-    # הכרומה בווידאו דגומה-בחצי (4:2:0) ומופיעה כגושי 2×2 אחרי פענוח ⇒ החלקה קלה (σ≈0.9) לפני המפתח —
-    # מפתח רציף ברזולוציה מלאה, בלי דיתור/מדרגות בשפה
-    D = cv2.GaussianBlur(D, (0, 0), 0.9)
+    # ---------------- המאט, סבב 3. עיקרון: בתוך המסך הכול מסך (UI), חוץ מהיד. היד = רכיבי "לא-ירוק, לא-בוהק"
+    # שיש בהם עור ושמחוברים ליד שמחוץ למסך (או לרכיב-היד בפריים הקודם — עקביות-זמן). בוהק/השתקפות על הזכוכית
+    # (בהיר ודהוי) = מסך: מוחלף ב-UI ומתווסף כהדגשה רכה (screen blend מוגבל). צל-האצבע = מסך, מוכפל (multiply).
+    D = cv2.GaussianBlur(D, (0, 0), 0.9)               # כרומה 4:2:0 ⇒ גושי 2×2; מפתח רציף ברזולוציה מלאה
     a_lin = np.clip(D / Dg, 0, 1)
     gG = np.maximum(G[:, :, 1], 1); gP = np.maximum(Gc_, 1)
     dist = cv2.GaussianBlur(np.abs(Rc_ / gP - G[:, :, 2] / gG) + np.abs(Bc_ / gP - G[:, :, 0] / gG), (0, 0), 0.9)
-    a_chr = np.where(Yp > 15, np.clip(1 - (dist - 0.08) / 0.35, 0, 1), a_lin)
-    # בוהק-מנטה בהיר על הזכוכית (ירקרק-תכלכל: B>R — בניגוד לעור מואר-ירוק שבו R>B)
-    a_mint = np.clip(((Gc_ - np.maximum(Rc_, Bc_)) - 8) / 12, 0, 1) * np.clip((Yp - 95) / 20, 0, 1) * np.clip((Bc_ - Rc_ - 5) / 10, 0, 1)
-    refl = (np.abs(Rc_ - Gc_) < 12) & (Gc_ - Bc_ > 15) & (Yp > 120)                    # השתקפות צהבהבה
-    glare_n = ((Rc_ - Bc_) < 10) & (Yp > 110)                                           # בוהק ניטרלי/תכלכל
-    skin = ((Rc_ - Gc_) > 10) & ((Rc_ - Bc_) > 20) & ~refl
-    # שולי-ההשתקפות (מעבר לירוק) — שייכים להשתקפות, לא לאצבע: הרחבה של 3px שלא נוגעת בעור
-    refl = refl | ((cv2.dilate(refl.astype(np.uint8), np.ones((7, 7), np.uint8)) > 0) & ~skin & (a_chr > 0.15))
-    # חזית = אצבע/יד: רכיב "לא-ירוק" (לא בוהק, לא המסגרת הכהה מאוד) שיש בו עור (≥10 פיקסלים).
-    fgc = ((a_chr < 0.5) & (a_mint < 0.5) & ~refl & ~glare_n & (Yp > 30)).astype(np.uint8)
-    # קווים דקים (שולי-מעבר בין ירוק להשתקפות) אינם אצבע: פתיחה 5×5 לפני תיוג-רכיבים, ואז שחזור לשפה המקורית
-    k5 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
-    fgo = cv2.morphologyEx(fgc, cv2.MORPH_OPEN, k5)
-    nfc, labf, stf, _ = cv2.connectedComponentsWithStats(fgo, 8)
-    hit = np.bincount(labf[skin & (fgo > 0)].ravel(), minlength=nfc) >= 10
-    hit[0] = False
-    core = hit[labf].astype(np.uint8)
-    fing = (cv2.dilate(core, k5) > 0) & (fgc > 0)
-    # משקל רך (בלי מדרגות) בין "ליד אצבע: רק המפתח, האצבע אטומה" לבין "מסך"
-    wfg = np.clip(cv2.GaussianBlur(cv2.dilate(fing.astype(np.uint8), np.ones((3, 3), np.uint8)).astype(np.float32), (0, 0), 1.5) * 1.6, 0, 1)
-    wfg = np.maximum(wfg, fing.astype(np.float32))
-    shade_scr = np.where(a_chr > a_lin, a_chr, 0)                     # צל על המסך (כרומטיות-מסך, כהה יותר)
-    a_scr = np.maximum(a_lin, np.maximum(shade_scr, np.maximum(a_mint, (refl | (glare_n & (inner > 0.5))).astype(np.float32))))
-    if weak:
-        # גאומטריה לא-מאומתת: רק רכיב-המסך הראשי (ירוק שנוגע בצורה המאומדת) וחורים סגורים בו — לא אור-ירוק על היד
-        gmain = ((a_lin > 0.5) | (a_mint > 0.5)).astype(np.uint8)
-        ng, lg, sg, _ = cv2.connectedComponentsWithStats(gmain, 8)
-        keep = np.zeros(ng, bool); keep[np.unique(lg[(cov > 0.5) & (gmain > 0)])] = True; keep[0] = False
-        ffm = keep[lg].astype(np.uint8); hh_, ww_ = ffm.shape; mm = np.zeros((hh_ + 2, ww_ + 2), np.uint8)
-        for sx, sy in ((0, 0), (ww_ - 1, 0), (0, hh_ - 1), (ww_ - 1, hh_ - 1)):
-            if ffm[sy, sx] == 0:
-                cv2.floodFill(ffm, mm, (sx, sy), 2)
-        region = cv2.dilate((ffm != 2).astype(np.uint8), np.ones((5, 5), np.uint8)).astype(np.float32)
-        a_scr = a_scr * np.clip(cv2.GaussianBlur(region, (0, 0), 1.2) * 1.5, 0, 1)
-    # ליד אצבע: כל מה שלא ירוק בבירור = חזית אטומה; מעבר רך לפי המפתח
-    a_f = np.clip((np.minimum(a_chr, a_lin / 0.6) - 0.15) / 0.7, 0, 1)
-    a = wfg * a_f + (1 - wfg) * a_scr
-    # שפת-המסך: לעולם לא מעבר לירוק של המקור. כרומה נמרחת ~1px על המסגרת הכהה ⇒ חסם-בהירות; הצורה המותאמת
-    # רק חוסמת (+1px), לעולם לא מרחיבה.
-    a_y = cv2.GaussianBlur(np.clip((Yp - 25) / np.maximum(Yg - 25, 10), 0, 1), (0, 0), 0.7)
-    edge = inner < 0.99
-    a = np.where(edge, wfg * a + (1 - wfg) * np.minimum(a, a_y), a)
+    a_chr = np.where(Yp > 12, np.clip(1 - (dist - 0.08) / 0.35, 0, 1), a_lin)      # כרומטיות-מסך (לא תלוי בהירות)
+    # ירוק-דומיננטי (גם כהה/צל עם תאורה כחלחלה) = מסך: לעור/מסגרת/שולחן אין G>max(R,B)
+    gdom = np.clip((cv2.GaussianBlur(Gc_ - np.maximum(Rc_, Bc_), (0, 0), 0.9) - 8) / 20, 0, 1)
+    a_chr = np.maximum(a_chr, gdom)
+    sat = P.max(2) - P.min(2)
+    skin = ((Rc_ - Gc_) > 10) & ((Rc_ - Bc_) > 20)
+    # בוהק על הזכוכית: בהיר ודהוי, או מנטה/תכלת בהירה (G,B ≫ R — לעור אף פעם אין)
+    cyan = (Gc_ - Rc_ > 30) & (Bc_ - Rc_ > 20) & (Yp > 150) & (inner > 0.5)
+    glare = ((((Yp > 105) & (sat < 60) & ((Rc_ - Gc_) < 12)) | ((Gc_ - np.maximum(Rc_, Bc_) > 6) & (Yp > 100))) & (a_chr < 0.9)) | cyan
+    # --- אזור-המסך S
     if not weak:
-        a = np.minimum(a, cov)                            # הצורה המותאמת חוסמת בלבד (בלי הרחבה)
-        fill = (inner > 0.5) & ~fing                      # הצורה ממלאת (בוהק/השתקפות/פס-הבית) — בפנים בלבד
+        S0 = cov > 0.5
     else:
-        gk = ((a > 0.5) | (a_mint > 0.5)).astype(np.uint8); ff = gk.copy(); hh, ww = ff.shape; msk = np.zeros((hh + 2, ww + 2), np.uint8)
-        for sx, sy in ((0, 0), (ww - 1, 0), (0, hh - 1), (ww - 1, hh - 1)):
-            if ff[sy, sx] == 0:
-                cv2.floodFill(ff, msk, (sx, sy), 2)
-        fill = (ff == 0) & ~fing
-    # פס-הבית של הצילום: מוחלף כולו (ה-UI מציג את שלו) — מלבן במרחב-UI, רק במקום שיש סביבו מסך, לא על אצבע
-    ind = np.zeros(a.shape, np.uint8)
-    rect = np.array([[100.0, 815.0], [290.0, 815.0], [290.0, 842.0], [100.0, 842.0]])
-    cv2.fillPoly(ind, [np.round(project(Hm, rect) - [x0, y0]).astype(np.int32)], 1)
-    ind = (ind > 0) & (cv2.dilate((a > 0.5).astype(np.uint8), np.ones((9, 9), np.uint8)) > 0) & ~fing & (Yp > 0)
+        gm = ((a_lin > 0.45) | (gdom > 0.5) | cyan).astype(np.uint8)
+        ng, lg, sg, _ = cv2.connectedComponentsWithStats(gm, 8)
+        keep = np.zeros(ng, bool); keep[np.unique(lg[(cov > 0.5) & (gm > 0)])] = True; keep[0] = False
+        keep &= sg[:, cv2.CC_STAT_AREA] > 150
+        S0 = fill_holes(keep[lg])
+    cyan_e = ((Gc_ - Rc_ > 30) & (Bc_ - Rc_ > 20) & (Yp > 120)).astype(np.float32)   # בוהק-מנטה (זכוכית, לא מסגרת)
+    cov3 = cv2.dilate(cov, np.ones((7, 7), np.uint8))
+    if weak:
+        S0 = fill_holes(S0 | ((cyan_e > 0) & (cov3 > 0.5)))
+    # --- היד
+    # בתוך המסך: לא-ירוק ולא-בוהק; מחוץ למסך: רק עור-בגוון (לא המסגרת הכהה, שמקיפה את המסך ותסגור אותו)
+    skin_out = ((Rc_ - Bc_) > 12) & ((Rc_ - Gc_) > 4) & (Yp > 35)
+    # צל על המסך (ירקרק-כהה: G≥R ומתחת לבהירות-המסך) — לא יד; יוכפל על ה-UI
+    shadow_px = (Gc_ >= Rc_ - 2) & (Yp < 0.8 * Yg) & (Gc_ > Bc_) & (a_chr > 0.2)
+    cand = np.where(S0, (a_chr < 0.5) & ~glare & ~shadow_px & (Yp > 22), skin_out).astype(np.uint8)
+    nc, lc, sc_, _ = cv2.connectedComponentsWithStats(cand, 8)
+    sk = np.bincount(lc[skin & (cand > 0)].ravel(), minlength=nc)
+    outside = np.bincount(lc[~S0 & (cand > 0)].ravel(), minlength=nc)
+    prevm = PREV['hand'][y0:y1, x0:x1] if PREV['hand'] is not None and PREV['i'] == i - 1 else None
+    prev_ov = np.bincount(lc[(prevm > 0) & (cand > 0)].ravel(), minlength=nc) if prevm is not None else np.zeros(nc)
+    hit = (sk >= 20) & ((outside >= 5) | (prev_ov >= 20) | weak)          # פריים חלש: כל רכיב-עור בתוך המסך = יד
+    hit[0] = False
+    hraw = hit[lc]
+    holes = fill_holes(hraw) & ~hraw                   # הדגשות קטנות על האצבע (חורים סגורים) שייכות לאצבע; בוהק גדול — לא
+    nh_, lh_, sh_, _ = cv2.connectedComponentsWithStats(holes.astype(np.uint8), 8)
+    small = np.zeros(nh_, bool); small[1:] = sh_[1:, cv2.CC_STAT_AREA] <= 300
+    hand = hraw | small[lh_]
+    hand_full = np.zeros((H, W), np.uint8); hand_full[y0:y1, x0:x1] = hand
+    PREV['hand'], PREV['i'] = cv2.dilate(hand_full, np.ones((9, 9), np.uint8)), i
+    # weak: בוהק שנוגע במסך (בתוך סביבת-הצורה) — גם מסך
+    if weak:
+        gl = (glare & ~hand).astype(np.uint8)
+        nl, ll, sl, _ = cv2.connectedComponentsWithStats(gl, 8)
+        tch = np.zeros(nl, bool)
+        tch[np.unique(ll[(cv2.dilate(S0.astype(np.uint8), np.ones((3, 3), np.uint8)) > 0) & (gl > 0)])] = True
+        tch[0] = False
+        near = cv2.dilate((cov > 0.5).astype(np.uint8), np.ones((21, 21), np.uint8)) > 0
+        S0 = fill_holes(S0 | (tch[ll] & (cov > 0.5)))
+    if weak:
+        S0 = cv2.GaussianBlur(S0.astype(np.float32), (0, 0), 1.6) > 0.5      # שפה חלקה (בלי מדרגות-כרומה)
+    Sm = S0 & ~hand
+    # --- alpha
+    core = cv2.erode(hand.astype(np.uint8), np.ones((3, 3), np.uint8)) > 0
+    band = (cv2.dilate(hand.astype(np.uint8), np.ones((5, 5), np.uint8)) > 0) & ~core
+    a_hand = np.clip((a_chr - 0.15) / 0.7, 0, 1)
+    # שפת-היד: מפתח-כרומה כשהשכן ירוק; מול בוהק (אין מפתח) — שפה רכה גאומטרית מהמסכה (σ≈1px), בלי מדרגות
+    a_geo_h = 1 - np.clip(cv2.GaussianBlur(hand.astype(np.float32), (0, 0), 1.0) * 2 - 0.5, 0, 1)
+    a_in = np.where(core, 0.0, np.where(band, np.where(glare, a_geo_h, a_hand), 1.0))
+    a_in = np.where(band, cv2.GaussianBlur(a_in.astype(np.float32), (0, 0), 0.9), a_in)
+    # פיקסלים מעורבים בתוך היד (טשטוש-תנועה של קצה האצבע מעל הירוק): שקיפות לפי המפתח הליניארי (לא עור)
+    mixed = hand & ~skin & ~glare & (a_lin > 0.12)
+    a_in = np.where(mixed, np.maximum(a_in, np.clip((a_lin - 0.12) / 0.7, 0, 1)), a_in)
     if not weak:
-        ind &= cov > 0.99
-    fill = fill | ind
-    a = np.where(fill, wfg * a + (1 - wfg) * 1.0, a)
-    # רכות-השפה כמו במקור (הצילום רך ~1px): החלקה קלה של ה-alpha ברצועת-המסגרת בלבד, שוב חסומה בצורה
-    a_s = np.minimum(cv2.GaussianBlur(a.astype(np.float32), (0, 0), 0.8), a)      # מרכך פנימה בלבד — לא מתפשט החוצה
-    a = np.where(edge & (wfg < 0.3) & ~fill, a_s, a)
-    # ---------------- UI: בהירות/הצללה מהמסך בצילום; בוהק רק בפנים, הרחק מעור ומהשפה (לא יוצר שפה בהירה)
+        a_y = cv2.GaussianBlur(np.clip((Yp - 25) / np.maximum(Yg - 25, 10), 0, 1), (0, 0), 0.7)
+        edge = inner < 0.99
+        # שפה: עד היכן שהירוק של המקור מגיע (מפתח ליניארי, ובוהק) — לכל היותר 2px מעבר לצורה המותאמת; לעולם לא מעבר
+        cov2 = cv2.dilate(cov, np.ones((3, 3), np.uint8))
+        a_key = np.maximum(a_lin, glare.astype(np.float32) * cov)
+        # בוהק-מנטה צמוד לשפה: עד 3px מעבר לצורה רק כשהוא מחובר לבוהק בפנים (לא הדגשת-המסגרת)
+        cy_in = (cyan_e > 0) & (cov3 > 0.5)
+        ncy, lcy, _, _ = cv2.connectedComponentsWithStats(cy_in.astype(np.uint8), 8)
+        okc = np.zeros(ncy, bool); okc[np.unique(lcy[cy_in & (inner > 0.99)])] = True; okc[0] = False
+        cy_ok = okc[lcy].astype(np.float32)
+        a_geo = np.where(cov > 0.99, 1.0, np.maximum(np.minimum(cov, a_key), np.minimum(cov3, cv2.GaussianBlur(cy_ok, (0, 0), 0.7))))
+        a = np.minimum(a_in, a_geo)
+    else:
+        k = np.maximum(np.maximum(np.clip(a_lin / 0.7, 0, 1), cv2.GaussianBlur(np.maximum(glare.astype(np.float32), cyan_e), (0, 0), 0.8)), np.clip(gdom * 2, 0, 1))
+        Ssoft = cv2.GaussianBlur(S0.astype(np.float32), (0, 0), 0.8)
+        inner_w = cv2.erode(S0.astype(np.uint8), np.ones((7, 7), np.uint8)) > 0
+        a = a_in * np.where(inner_w, 1.0, np.minimum(Ssoft, cv2.GaussianBlur(k, (0, 0), 0.7)))
+    a = np.clip(a, 0, 1)
+    # ---------------- UI: הצללה מהמסך; צל-אצבע = multiply; בוהק = screen-blend מוגבל
     s_px = local_scale(Hm)
     good_nb = 0 < i < len(Cs) - 1 and all(str(STATUS[j]) in ('meas', 'refit') for j in (i - 1, i, i + 1))
     if good_nb and np.abs(Cs[i + 1] - Cs[i - 1]).max() > 6:
-        # טשטוש-תנועה (צמצם 180°) — רק בין פריימים נמדדים, מוגבל ל-8px לחצי-צמצם
         acc = 0
         for u in np.linspace(-0.25, 0.25, 9):
             dC = (Cs[i + 1] - C) * u if u > 0 else (C - Cs[i - 1]) * u
@@ -251,37 +282,81 @@ def composite(fr, i, ui):
     else:
         warp = warp_ui(ui, Hm, roi, s_px)
     warp = cv2.GaussianBlur(warp, (0, 0), 0.55)
-    ref = float(np.median(Yg[clean > 0])) if clean.sum() > 50 else float(Yg.mean())
+    clean = clean > 0
+    ref = float(np.median(Yg[clean])) if clean.sum() > 50 else float(Yg.mean())
     shade = np.clip((cv2.GaussianBlur(Yg, (0, 0), 20) / max(ref, 1)) ** 0.5, 0.86, 1.12)[..., None]
-    shadow = np.where((shade_scr > a_lin + 0.05) & (wfg < 0.5), np.clip(Yp / np.maximum(Yg, 1), 0, 1), 1.0)
-    deep = (cv2.erode((inner > 0.5).astype(np.uint8), np.ones((5, 5), np.uint8)) > 0) if not weak else fill
-    glare = cv2.GaussianBlur(np.clip(Yp - Yg - 5, 0, None) * (fill & deep & ~ind), (0, 0), 1.5) * 0.35
+    rel = Yp / np.maximum(Yg, 1)
+    # סביב היד (עד ~12px): unmix פיזיקלי (out = P − α·G + α·UI) — צל = כפלי, טשטוש-תנועה ושולי-אצבע = מעורבים,
+    # בלי מסכת-בוהק ובלי צל נפרד (שיצרו הילה/נקודות לבנות)
+    near_h = (cv2.dilate(hand.astype(np.uint8), cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (25, 25))) > 0) & S0
+    # בוהק/השתקפות גדולים (≥150px) ליד היד נשארים "מסך" (UI + הדגשה); נקודות-בוהק קטנות בשפת-האצבע = ערבוב
+    glb = (glare | (cyan_e > 0)).astype(np.uint8)
+    ngb, lgb, sgb, _ = cv2.connectedComponentsWithStats(glb, 8)
+    bigg = np.zeros(ngb, bool); bigg[1:] = sgb[1:, cv2.CC_STAT_AREA] >= 150
+    glare_big = bigg[lgb] & ~hand
+    mixr = near_h & ~glare_big
+    shad = np.where(Sm & ~glare & ((a_chr > 0.4) | shadow_px), np.clip(rel, 0.35, 1.0), 1.0)   # מפת-צל אחת לכל המסך (בלי תפר)
+    shad = cv2.GaussianBlur(shad.astype(np.float32), (0, 0), 1.2)
+    shad = 0.25 + 0.75 * shad                          # צל רך ומוגבל (לא כתם אטום)
+    shad = np.where(shad > 0.97, 1.0, shad / 0.97)
+    g = np.clip((Yp - Yg - 8) / np.maximum(255 - Yg, 30), 0, 1) * (Sm & ~band & ~near_h)
+    g = cv2.GaussianBlur(g.astype(np.float32), (0, 0), 1.5)
     tint = np.array([0.95, 0.985, 1.0], np.float32)
-    UIp = warp * (0.9 * tint) * shade * (0.8 + 0.2 * shadow)[..., None] + glare[..., None]
-    # ---------------- חזית/רקע לפיקסלים מעורבים (בלי חלוקה ב-(1−a) שמגבירה רעש-דחיסה):
-    # מסגרת — צבע השכנים הלא-ירוקים; אצבע — צבע האצבע הטהורה הסמוכה; פיקסל שה-UI לא מכסה — המקור עצמו.
+    UIp = warp * (0.9 * tint) * shade * shad[..., None]
+    UIp = 255 - (255 - UIp) * (1 - 0.55 * g[..., None])
+    # ---------------- חזית: היד = המקור; שולי-היד = צבע-האצבע הטהורה הסמוכה + despill ניטרלי; מסגרת = שכנים לא-ירוקים
     pure_b = (a_lin < 0.05).astype(np.float32)
     nb1, db1 = norm_blur(P, pure_b, 1.5)
     nb2, db2 = norm_blur(P, pure_b, 5.0)
     Bcol = np.where(db1 > 0.02, nb1 / np.maximum(db1, 1e-6), np.where(db2 > 0.002, nb2 / np.maximum(db2, 1e-6), P))
-    kb = np.clip((a_lin - 0.02) / 0.15, 0, 1)[..., None]            # מעבר רציף (בלי דיתור פיקסל-פיקסל)
+    kb = np.clip((a_lin - 0.02) / 0.15, 0, 1)[..., None]
     Fn = (1 - kb) * P + kb * Bcol
-    pure_f = (fing & (a_chr < 0.05) & (a_lin < 0.1)).astype(np.float32)
+    pure_f = (core & (a_chr < 0.1)).astype(np.float32)
     nf1, df1 = norm_blur(P, pure_f, 2.0)
     nf2, df2 = norm_blur(P, pure_f, 6.0)
     Fcol = np.where(df1 > 0.02, nf1 / np.maximum(df1, 1e-6), np.where(df2 > 0.002, nf2 / np.maximum(df2, 1e-6), P))
-    kf = np.clip(a_f * 2.5, 0, 1)[..., None] * (1 - pure_f[..., None])
-    Ffing = (1 - kf) * P + kf * Fcol
-    Fn = wfg[..., None] * Ffing + (1 - wfg[..., None]) * Fn
-    ka = np.clip(a / 0.02, 0, 1)[..., None]
-    Fn = (1 - ka) * P + ka * Fn
-    # despill רק ברצועת-השפה: פיקסלים עם גוון-ירוק בטווח 5px מכיסוי-ה-UI
-    band_e = (cv2.dilate((a > 0.01).astype(np.uint8), np.ones((11, 11), np.uint8)) > 0) & (a < 0.999)
-    tinted = (D > 2) & band_e
-    # ליד אצבע: הירוק מוחלף בממוצע R/B (ניטרלי — לא טורקיז); במסגרת: max(R,B)
-    lim = np.where(wfg > 0.05, 0.5 * (Fn[:, :, 0] + Fn[:, :, 2]) + 4, np.maximum(Fn[:, :, 0], Fn[:, :, 2]) + 2)
+    Fn = np.where((band | hand)[..., None], P, Fn)          # היד ושוליה: פיקסלי-המקור (despill בלבד)
+    # despill ניטרלי בשולי-היד שנוגעים במסך (עד ~4px פנימה; אור-המסך הירוק על העור) ובפיקסלים המעורבים
+    hand_edge = hand & (cv2.dilate((Sm & ~hand).astype(np.uint8), np.ones((15, 15), np.uint8)) > 0) & ~skin
+    # despill: שולי-היד — ניטרלי; כל היד — ירוק לא מעל max(R,B) (אור-ירוק מהמסך על הצד-התחתון של האצבע); עור לא נוגעים
+    lim = np.where(band, 0.5 * (Fn[:, :, 0] + Fn[:, :, 2]) + 4, np.maximum(Fn[:, :, 0], Fn[:, :, 2]) + 2)
+    ring = (cov3 > 0.02) & (cov < 0.99) & (a_lin > 0.02) & ~hand
+    tinted = (D > 2) & (((((a > 0.01) & (a < 0.999)) | hand | band) & (cv2.dilate(S0.astype(np.uint8), np.ones((5, 5), np.uint8)) > 0)) | ring)
     Fn[:, :, 1] = np.where(tinted, np.minimum(Fn[:, :, 1], lim), Fn[:, :, 1])
+    # טבעת-השפה מחוץ לצורה (עד 3px) שבה נשאר ירוק-מסך (טשטוש/דגימת-כרומה): צבע-המסגרת השכנה — לא UI ולא ירוק
+    ka = np.maximum(np.clip(a / 0.02, 0, 1), (((hand | band) & S0) | ring).astype(np.float32))[..., None]
+    Fn = (1 - ka) * P + ka * Fn
+    fing = hand
     out = (1 - a)[..., None] * Fn + a[..., None] * UIp
+    # שולי-היד ופיקסלים מעורבים (לא עור, לא בוהק): unmix מדויק לפי המפתח הליניארי — out = P − α·G + α·UI
+    # (המקור פחות תרומת-הירוק, ועוד ה-UI באותה מידה; אין חלוקה ב-(1−α) ⇒ אין הגברת-רעש, אין קו כהה/בהיר)
+    if mixr.any():
+        # סביב היד: alpha רך מכרומטיות (לא מסכה בינארית) — חזית = היד ושוליה (≤2px), לא בוהק; כל השאר מסך
+        hd = np.clip(cv2.GaussianBlur(cv2.dilate(hand.astype(np.uint8), np.ones((5, 5), np.uint8)).astype(np.float32), (0, 0), 1.2) * 1.5, 0, 1)
+        fg = np.clip((0.6 - a_chr) / 0.45, 0, 1) * hd * ~(glare & ~hand)
+        fg = np.maximum(fg, (hand & (a_lin < 0.12) & (a_chr < 0.3)).astype(np.float32))
+        fg = cv2.GaussianBlur(fg.astype(np.float32), (0, 0), 0.9)
+        Fh = P.copy()
+        lm = 0.5 * (Fh[:, :, 0] + Fh[:, :, 2]) + 4
+        Fh[:, :, 1] = np.minimum(Fh[:, :, 1], lm)        # despill ניטרלי (עור רגיל לא משתנה: אצלו G < (R+B)/2)
+        Fh = np.where((fg < 0.98)[..., None], np.where((pure_f > 0)[..., None], Fh, Fcol * 0.5 + Fh * 0.5), Fh)
+        UIs = UIp
+        an = 1 - fg
+        # פיקסל מעורב: חזית מוכפלת-מראש = P − α·G (unmix; צל על המסך ⇒ ≈0) — לא P מנוקה (שיצר הילה אפורה);
+        # הליבה האטומה של היד = המקור עם despill ניטרלי (אור-מסך ירוק על צד-האצבע ⇒ ניטרלי)
+        # צבע-החזית בפיקסל מעורב = צבע האצבע הטהורה הקרובה (normalized blur), לא P−α·G (שיוצר מגנטה/אפור)
+        pf = (fg >= 0.98).astype(np.float32)
+        nq1, dq1 = norm_blur(Fh, pf, 2.5)
+        nq2, dq2 = norm_blur(Fh, pf, 9.0)
+        Fq = np.where(dq1 > 0.03, nq1 / np.maximum(dq1, 1e-6), np.where(dq2 > 0.003, nq2 / np.maximum(dq2, 1e-6), Fh))
+        prem = (1 - an)[..., None] * Fq
+        core_out = np.where((fg >= 0.98)[..., None], Fh, prem)
+        out = np.where(mixr[..., None], np.where((fg >= 0.98)[..., None], Fh, prem + an[..., None] * UIs), out)
+        a = np.where(mixr, an, a)
+    # despill אחרון על הפלט: פיקסלים שבמקור היו ירקרקים והפלט בהם הוא בעיקר חזית (α<0.5) — G≤max(R,B)+2
+    fin_sp = (D > 2) & (a < 0.5) & (cv2.dilate(hand.astype(np.uint8), np.ones((7, 7), np.uint8)) > 0)
+    lim2 = 0.5 * (out[:, :, 0] + out[:, :, 2]) + 4                 # אור-מסך ירוק על העור ⇒ ניטרלי
+    out[:, :, 1] = np.where(fin_sp, np.minimum(out[:, :, 1], lim2), out[:, :, 1])
     res = fr.copy()
     res[y0:y1, x0:x1] = np.clip(np.round(out), 0, 255).astype(np.uint8)
     # אור-ירוק סביב (על היד/השולחן) — אחרי ההרכבה, רק מחוץ למה שה-UI כיסה

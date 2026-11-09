@@ -119,6 +119,18 @@ for i in range(N):
     row['fg_edge_px'] = int(edge_px.sum())
     row['jagged_px'] = int(((sm != ui_m.astype(bool)) & inner_m).sum())
     row['jagged_ratio'] = round(row['jagged_px'] / max(1, row['fg_edge_px']), 4)
+    # (d) שטח בתוך פוליגון-המסך שנשאר פיקסלי-מקור (שינוי ≤6), לא כולל יד: רכיבי "לא-ירוק" עם עור שמחוברים
+    #     ליד שמחוץ לפוליגון (במקור). אמור להיות ~0.
+    inpm = cv2.erode(pm, np.ones((7, 7), np.uint8)) > 0
+    nongreen = (Dsrc < 25)
+    skin_in = ((fsi[:, :, 2] - fsi[:, :, 0]) > 12)
+    cand_h = (nongreen & ((pm > 0) | skin_in)).astype(np.uint8)
+    nh, lh, sh_, _ = cv2.connectedComponentsWithStats(cand_h, 8)
+    outc = np.bincount(lh[(pm == 0) & (cand_h > 0) & skin_in].ravel(), minlength=nh)
+    skc = np.bincount(lh[skin_in & (cand_h > 0)].ravel(), minlength=nh)
+    okh = (outc >= 20) & (skc >= 20); okh[0] = False
+    handm = cv2.dilate(okh[lh].astype(np.uint8), np.ones((5, 5), np.uint8)) > 0
+    row['kept_source_in_screen_px'] = int((inpm & (diff <= 6) & ~handm).sum())
     # (b) יישור-שפה: נקודות על הצלעות הישרות, בתוך הפריים
     x = project(Hm, P[STR]); n = project(Hm, P[STR] + 0.25 * Nn[STR]) - x
     n /= np.linalg.norm(n, axis=1, keepdims=True)
@@ -185,7 +197,7 @@ def col(k, filt=None):
 good_st = lambda r: r['status'] in ('meas', 'refit')
 lines = [f'# verify {TAG}', f'frames: {len(rows)}; with screen: {sum(1 for r in rows if "green_calib_px" in r)}',
          'status counts: ' + str({s: sum(1 for r in rows if r["status"] == s) for s in sorted(set(r["status"] for r in rows))})]
-for k in ('green_calib_px', 'green_final_band_px', 'green_source_px', 'skin_changed_px', 'changed_outside_green_px', 'jagged_px', 'jagged_ratio'):
+for k in ('green_calib_px', 'green_final_band_px', 'green_source_px', 'skin_changed_px', 'changed_outside_green_px', 'jagged_px', 'jagged_ratio', 'kept_source_in_screen_px'):
     v = col(k)
     if len(v) == 0:
         continue
