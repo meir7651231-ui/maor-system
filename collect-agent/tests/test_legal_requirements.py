@@ -670,6 +670,11 @@ def test_reminder_approval_expires_after_7_days_waiting(svc, fake_gi, clock):
     r = svc.db.one("SELECT status, block_reason FROM reminders WHERE id=?", (rid,))
     assert len(svc.sender.sent) == n
     assert r["status"] == "pending_approval" and r["block_reason"] == "approval_expired"
+    # סבב 32: אישור מחדש עובד (זו לא חסימה קשה) ⇒ נשלחת
+    svc.approve(rid)
+    svc.dispatch()
+    assert len(svc.sender.sent) > n
+    assert svc.db.one("SELECT status FROM reminders WHERE id=?", (rid,))["status"] == "sent_dry_run"
 
 
 def test_reminder_approved_in_advance_for_future_slot_still_sends(svc, fake_gi, clock):

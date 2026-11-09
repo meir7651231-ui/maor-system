@@ -349,3 +349,20 @@ test('שער 6 · מסך הכניסה: אין טוקן בכתובת, סשן רק
   assert.match(login, /login_required !== true/);
   assert.match(login, /autoComplete="one-time-code"/); assert.match(login, /autoComplete="current-password"/);
 });
+
+// critic סבב 32: הממשק השבית את «אשר ושלח» לכל block_reason — גם לסיבות «לאשר מחדש» (approval_expired,
+// approval_invalidated, amount_changed), שהשרת דווקא מאשר. ⇒ תזכורת שחזרה לאישור נתקעה לתמיד («⛔ חסום»).
+import { blockKind, REAPPROVE_LABEL } from '../src/api.ts';
+test('block_reason: חסימה קשה משביתה; «לאשר מחדש» לא', () => {
+  for (const b of ['no_contact', 'no_payment_link', 'opted_out', 'disputed', 'paid_claim', 'credit_review'])
+    assert.equal(blockKind(b), 'hard', b);
+  for (const b of ['approval_expired', 'approval_invalidated', 'amount_changed']) {
+    assert.equal(blockKind(b), 'reapprove', b);
+    assert.ok(REAPPROVE_LABEL[b], b);
+  }
+  assert.equal(blockKind(null), null);
+  assert.equal(blockKind('something_new'), 'hard');   // לא מוכר ⇒ שמרני (משבית)
+  const mp = readFileSync(new URL('../src/components/MessagePreview.tsx', import.meta.url), 'utf8');
+  assert.match(mp, /blockKind\(block\) !== 'hard'|blockKind\(block\) === 'hard'/);
+  assert.doesNotMatch(mp, /sendable = live \? !!pv && !block &&/);
+});
