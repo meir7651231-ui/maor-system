@@ -151,7 +151,7 @@ if (await pg.getByLabel('שם מלא *').count()) {
   await pg.getByRole('textbox', { name: 'עיר' }).fill('ירושלים');
   await pg.locator('button', { hasText: 'שמירה' }).first().click();
   await pg.waitForTimeout(900);
-  const city = await pg.evaluate((id) => JSON.parse(localStorage.getItem('maor_db')).supporters.find((s) => s.id === id)?.address ?? JSON.parse(localStorage.getItem('maor_db')).supporters.find((s) => s.id === id)?.city ?? '', firstId);
+  const _city = await pg.evaluate((id) => JSON.parse(localStorage.getItem('maor_db')).supporters.find((s) => s.id === id)?.address ?? JSON.parse(localStorage.getItem('maor_db')).supporters.find((s) => s.id === id)?.city ?? '', firstId);
   (await pg.locator('text=📞 חייגן').count()) ? ok('חזרנו לחייגן אחרי העריכה') : fail('לא חזרנו לחייגן אחרי עריכה');
 } else fail('טופס-העריכה לא נפתח');
 
