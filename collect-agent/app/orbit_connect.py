@@ -42,7 +42,7 @@ MAX_TTL = 300          # שניות — תקרה קשיחה (exp − iat)
 CLOCK_SKEW = 60        # שניות — מותר ש-iat יהיה מעט «בעתיד» (שעון אורביט מקדים)
 MIN_SECRET_LEN = 32
 MAX_TOKEN_LEN = 2048
-SECRET_FIELD = "orbit_handoff_secret"  # noqa: S105 — שם שדה בכספת, לא ערך סוד
+SECRET_FIELD = "orbit_handoff_secret"  # noqa: S105  # nosec B105 — שם שדה בכספת, לא ערך סוד
 BUSINESS_ID = 1        # שלב 1 = עסק יחיד בפריסה (app/db.py); שלב 2 ⇒ business_id אמיתי
 FORBIDDEN_ORGS = frozenset({"default", "demo"})
 

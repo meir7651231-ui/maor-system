@@ -509,3 +509,21 @@ def test_smtp_login_requires_tls():
         SmtpSender("smtp.example", 25, "user", "pw", "a@b.example", starttls=False)
     SmtpSender("smtp.example", 587, "user", "pw", "a@b.example")            # STARTTLS
     SmtpSender("smtp.example", 465, "user", "pw", "a@b.example", starttls=False)  # SMTPS
+
+
+def test_bandit_clean_like_ci():
+    """ratchet (הפעלה 106): ג׳וב security ב-CI נכשל ב-4 ממצאי bandit (B105/B101/B608×2) במשך כמה
+    הפעלות, בזמן ש-pytest המקומי היה ירוק — אף אחד לא הריץ bandit לפני push. עכשיו pytest מריץ את
+    אותה פקודה בדיוק כמו ה-workflow, כך שממצא חדש נתפס מקומית."""
+    import shutil
+    import subprocess  # noqa: S404  # nosec B404
+
+    exe = shutil.which("bandit")
+    if exe is None:
+        pytest.skip("bandit לא מותקן (requirements-dev.lock)")
+    root = pathlib.Path(__file__).resolve().parent.parent
+    r = subprocess.run(  # noqa: S603  # nosec B603 — פקודה קבועה, בלי קלט חיצוני
+        [exe, "-q", "-r", "app", "scripts", "-x",
+         "app/demo.py,app/demo_data.py,scripts/demo_integrations.py"],
+        cwd=root, capture_output=True, text=True, timeout=180, check=False)
+    assert r.returncode == 0, r.stdout[-3000:]

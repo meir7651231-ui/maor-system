@@ -29,8 +29,8 @@ _TABLES = ("sessions", "login_locks", "users", "link_tokens", "drafts", "convers
            "reminder_invoices", "reminders", "plans", "invoices", "customers", "business_settings",
            "business_secrets", "orbit_nonces", "orbit_entitlements", "orbit_links",
            "webhook_dedupe")
-_DELETE = {t: f"DELETE FROM {t}" for t in _TABLES}  # noqa: S608 — שמות קבועים מהרשימה למעלה
-_COUNT = {t: f"SELECT COUNT(*) FROM {t}" for t in _TABLES}  # noqa: S608
+_DELETE = {t: f"DELETE FROM {t}" for t in _TABLES}  # noqa: S608  # nosec B608 — שמות קבועים מהרשימה למעלה
+_COUNT = {t: f"SELECT COUNT(*) FROM {t}" for t in _TABLES}  # noqa: S608  # nosec B608
 
 
 def wipe_all(conn: sqlite3.Connection, actor: str = "system") -> dict[str, int]:

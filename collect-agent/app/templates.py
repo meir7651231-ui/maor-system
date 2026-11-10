@@ -97,7 +97,8 @@ STEPS_MULTI: tuple[MultiStep, ...] = (
               "{amount}:\n{lines}\nבעל העסק ייצור איתכם קשר אישית בהמשך.\nלפירוט ולתשלום: {link}"
               "\n\nבברכה,\n{biz}"),
 )
-assert [s.key for s in STEPS_MULTI] == ["friendly", "plan_offer", "final"]
+if [s.key for s in STEPS_MULTI] != ["friendly", "plan_offer", "final"]:  # לא assert: python -O מוחק
+    raise RuntimeError("STEPS_MULTI: סדר השלבים השתנה")
 
 
 def fmt_amount(agorot: int, currency: str = "ILS") -> str:
