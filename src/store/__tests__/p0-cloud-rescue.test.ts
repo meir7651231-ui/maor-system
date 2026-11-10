@@ -20,7 +20,7 @@ function applyDiff(d: DbDiff) {
   for (const x of d.deletes) cloud.delete(x.col + '|' + x.id);
 }
 function cloudAsDb(): Db {
-  const db = { ...emptyDb(), ...(cloudMeta ?? {}) } as Db;
+  const db = { ...emptyDb(), ...cloudMeta } as Db;
   db.supporters = [...cloud.entries()].filter(([k]) => k.startsWith('supporters|')).map(([, v]) => v) as unknown as Db['supporters'];
   return db;
 }
