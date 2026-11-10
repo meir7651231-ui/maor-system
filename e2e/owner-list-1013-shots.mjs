@@ -7,6 +7,7 @@ import { createServer } from 'http';
 import { readFileSync, existsSync, statSync } from 'fs';
 import { join, extname, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { CHROME_EXE } from './chrome-path.mjs';
 const HERE = dirname(fileURLToPath(import.meta.url));
 const DIST = join(HERE, '..', 'dist');
 const OUT = join(HERE, 'shots', 'owner-1013');
@@ -14,7 +15,7 @@ const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css
 const server = createServer((req, res) => { let p = join(DIST, decodeURIComponent(req.url.split('?')[0].split('#')[0])); if (!existsSync(p) || !statSync(p).isFile()) p = join(DIST, 'index.html'); res.setHeader('Content-Type', MIME[extname(p)] ?? 'application/octet-stream'); res.end(readFileSync(p)); });
 await new Promise((r) => server.listen(8255, r));
 const cfg = JSON.parse(readFileSync(join(HERE, '..', 'public', 'config.json'), 'utf8')); delete cfg.firebase;
-const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--no-sandbox'] });
+const browser = await chromium.launch({ executablePath: CHROME_EXE, args: ['--no-sandbox'] });
 const pg = await browser.newPage({ viewport: { width: 1100, height: 1000 } });
 const errors = []; pg.on('pageerror', (e) => errors.push(e.message));
 const step = async (name, fn) => { try { await fn(); console.log('✅ ' + name); } catch (e) { console.log('❌ ' + name + ': ' + e.message.split('\n').slice(0, 3).join(' | ')); await pg.screenshot({ path: OUT + '/fail-' + name.replace(/\s+/g, '_') + '.png' }); } };

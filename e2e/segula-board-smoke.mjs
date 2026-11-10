@@ -4,8 +4,8 @@
  * ב-db.events (type call · spId של אותה שורה · הערה «סגולת 40 יום») + קשר-הבא ⇒ הכפתור בשורה הוחלף בצ'יפ
  * «🕯 יום 0/40» (לא זורעים פעמיים) ⇒ הלחיצה לא פתחה כרטיס ⇒ פתיחת הכרטיס מהשורה ⇒ פאנל «סגולה פעילה».
  * (ב) תפריט ▾ ⇒ «שבועי ×12» על השורה השנייה ⇒ 12 אירועי «חזרה שבועית» + צ'יפ «📆 1/12».
- * (ג) «הגיע הזמן» (6.10): תומך/ת **בלי תיק-טיפול** עם סגולה שתזכורתה הראשונה אתמול ⇒ עולה ללוח (צבוע, «🕯 הגיע הזמן»)
- *     עם «✓ בוצע» ⇒ לחיצה ⇒ האירוע done, השורה יורדת (אין תיק ואין תזכורת נוספת שהגיע יומה).
+ * (ג) «הגיע הזמן» (6.10; מ-13.10 ברצועה נפרדת «⏰ תזכורות שהגיע זמנן»): תומך/ת **בלי תיק-טיפול** עם סגולה שתזכורתה
+ *     הראשונה אתמול ⇒ עולה לרצועה עם «✓ בוצע» ⇒ לחיצה ⇒ האירוע done, השורה יורדת.
  * (ד) supporters.segula=false ⇒ אין כפתור בלוח. דורש build.
  */
 import { chromium } from 'playwright-core';
@@ -13,9 +13,10 @@ import { createServer } from 'http';
 import { readFileSync, existsSync, statSync } from 'fs';
 import { join, extname, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { CHROME_EXE } from './chrome-path.mjs';
 const HERE = dirname(fileURLToPath(import.meta.url));
 const DIST = join(HERE, '..', 'dist');
-const CHROME = process.env.CHROME_PATH ?? '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
+const CHROME = CHROME_EXE;
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png', '.webmanifest': 'application/manifest+json' };
 const server = createServer((req, res) => { let p = join(DIST, decodeURIComponent(req.url.split('?')[0].split('#')[0])); if (!existsSync(p) || !statSync(p).isFile()) p = join(DIST, 'index.html'); res.setHeader('Content-Type', MIME[extname(p)] ?? 'application/octet-stream'); res.end(readFileSync(p)); });
 await new Promise((r) => server.listen(8274, r));
@@ -51,16 +52,19 @@ const segulaEvs = async (pg) => ((await dbRead(pg)).events || []).filter((e) => 
   const { ctx, pg, errors } = await boot({});
   const rows = pg.locator('.ayin-row[role="button"]');
   const nRows = await rows.count();
-  nRows === 5 ? ok('(א) הלוח פתוח עם 5 שורות (4 תיקים + 1 «הגיע הזמן» בלי תיק)') : fail('(א) שורות: ' + nRows);
+  // 13.10 (בקשת-בעלים): תזכורת שהגיע יומה יצאה מטבלת-השלבים לרצועה נפרדת «⏰ תזכורות שהגיע זמנן» (.ayin-reminder-row)
+  const remRows = pg.locator('.ayin-reminder-row[role="button"]');
+  nRows === 4 && (await remRows.count()) === 1 ? ok('(א) הלוח: 4 תיקים בטבלה + 1 «הגיע הזמן» ברצועת-התזכורות') : fail('(א) שורות: ' + nRows + ' · רצועה: ' + (await remRows.count()));
   const btns = pg.locator('.ayin-row[role="button"] button', { hasText: '🕯 40 יום ▾' });
   (await btns.count()) === 4 ? ok('(א) כפתור «🕯 40 יום ▾» בכל שורה בלי סדרה (4)') : fail('(א) כפתורים: ' + (await btns.count()) + ' ≠ 4');
   (await segulaEvs(pg)).filter((e) => e.spId !== dueSp.id).length === 0 ? ok('(א) לפני הלחיצה: 0 אירועי-סגולה (חוץ מהזרועים ל-ג)') : fail('(א) אירועים לפני הלחיצה');
-  // השורה הראשונה עם כפתור (השורה הראשונה בלוח היא «הגיע הזמן» — בלי כפתור-זריעה)
+  // השורה הראשונה עם כפתור-זריעה
   const firstRow = rows.filter({ has: pg.locator('button', { hasText: '🕯 40 יום ▾' }) }).first();
   const firstName = (await firstRow.locator('div').first().textContent() || '').trim();
   await btns.first().click(); await pg.waitForTimeout(300);
   const menu = firstRow.locator('.ayin-recur-menu');
-  (await menu.count()) === 1 && (await menu.locator('button').count()) === 4 ? ok('(א) ▾ ⇒ תפריט 4 מצבים: 40 יום · יומי · שבועי · חודשי') : fail('(א) התפריט חסר/לא 4');
+  // 13.10: RECUR_MODES = 7 מצבים (40 יום · יומי · שבועי · חודשי · חודשיים · שנתי · ראש חודש)
+  (await menu.count()) === 1 && (await menu.locator('button').count()) === 7 ? ok('(א) ▾ ⇒ תפריט 7 מצבים (40 יום … ראש חודש)') : fail('(א) התפריט חסר/לא 7: ' + (await menu.locator('button').count()));
   (await pg.locator('button', { hasText: '→ כל ' }).count()) === 0 ? ok('(א) פתיחת התפריט לא פתחה כרטיס') : fail('(א) נפתח כרטיס מהתפריט');
   await menu.locator('button', { hasText: '40 יום' }).first().click(); await pg.waitForTimeout(900);
   const evs = (await segulaEvs(pg)).filter((e) => e.spId !== dueSp.id);
@@ -79,19 +83,19 @@ const segulaEvs = async (pg) => ((await dbRead(pg)).events || []).filter((e) => 
   const weekly = ((await dbRead(pg)).events || []).filter((e) => (e.notes || '').startsWith('חזרה שבועית'));
   weekly.length === 12 && weekly.every((e) => e.type === 'call' && e.spId && e.spId !== sp.id) ? ok('(ב) «שבועי ×12» מהתפריט ⇒ 12 אירועי «חזרה שבועית» לשורה השנייה') : fail('(ב) שבועי: ' + weekly.length);
   (await pg.locator('.ayin-row[role="button"] span', { hasText: '📆 1/12' }).count()) === 1 ? ok('(ב) צ\'יפ «📆 1/12» בשורה השבועית (התזכורת הבאה = 1 מתוך 12)') : fail('(ב) צ\'יפ-השבועי חסר');
-  /* (ג) «הגיע הזמן» — התומך/ת בלי תיק */
-  const dueRow = rows.filter({ hasText: dueSp.name }).first();
-  (await dueRow.count()) === 1 ? ok('(ג) התומך/ת בלי תיק-טיפול עלה ללוח בגלל תזכורת שהגיע יומה: ' + dueSp.name) : fail('(ג) השורה חסרה');
-  (await dueRow.locator('text=הגיע הזמן').count()) >= 1 && (await dueRow.locator('text=אין תיק טיפול').count()) === 1 ? ok('(ג) השורה: «🕯 הגיע הזמן» + «אין תיק טיפול» (בלי כפתור-חכם)') : fail('(ג) סימוני-השורה חסרים');
+  /* (ג) «הגיע הזמן» — התומך/ת בלי תיק, ברצועת-התזכורות (13.10) */
+  const dueRow = remRows.filter({ hasText: dueSp.name }).first();
+  (await dueRow.count()) === 1 && (await rows.filter({ hasText: dueSp.name }).count()) === 0 ? ok('(ג) התומך/ת בלי תיק-טיפול עלה לרצועת-התזכורות (לא לטבלת-השלבים): ' + dueSp.name) : fail('(ג) השורה חסרה ברצועה');
+  (await pg.locator('text=⏰ תזכורות שהגיע זמנן').count()) === 1 && (await dueRow.locator('text=תזכורת 1/40').count()) === 1 && (await dueRow.locator('text=באיחור').count()) === 1 ? ok('(ג) הרצועה: «⏰ תזכורות שהגיע זמנן» · «תזכורת 1/40» · «באיחור»') : fail('(ג) סימוני-השורה חסרים');
   const doneBtn = dueRow.locator('button', { hasText: '✓ בוצע' });
   (await doneBtn.count()) === 1 ? ok('(ג) כפתור «✓ בוצע · 🕯 1/40»') : fail('(ג) כפתור-בוצע חסר');
   await doneBtn.click(); await pg.waitForTimeout(800);
   const ev0 = ((await dbRead(pg)).events || []).find((e) => e.id === 'segdue0');
   ev0?.done === true ? ok('(ג) ✓ בוצע ⇒ האירוע סומן done (toggleEventDone)') : fail('(ג) האירוע לא סומן');
-  (await rows.filter({ hasText: dueSp.name }).count()) === 0 ? ok('(ג) אחרי ✓ השורה ירדה מהלוח (אין תיק, אין תזכורת נוספת שהגיע יומה)') : fail('(ג) השורה נשארה');
+  (await remRows.filter({ hasText: dueSp.name }).count()) === 0 ? ok('(ג) אחרי ✓ השורה ירדה מהרצועה (אין תזכורת נוספת שהגיע יומה)') : fail('(ג) השורה נשארה');
   (await pg.locator('button', { hasText: '→ כל ' }).count()) === 0 ? ok('(ג) ✓ בוצע לא פתח כרטיס') : fail('(ג) נפתח כרטיס');
   await pg.screenshot({ path: join(HERE, 'shots', 'segula-board.png'), fullPage: false }).catch(() => {});
-  await rows.first().click(); await pg.waitForTimeout(900);
+  await rows.filter({ hasText: firstName }).first().click(); await pg.waitForTimeout(900);
   (await pg.locator('text=🕯 40 ימים — סגולה פעילה').count()) === 1 ? ok('(א) פתיחת הכרטיס מהשורה ⇒ פאנל «סגולה פעילה» (אותו מנגנון)') : fail('(א) הכרטיס בלי פאנל-סגולה');
   errors.length === 0 ? ok('(א) אפס שגיאות-קונסולה') : fail('(א) שגיאות: ' + errors.join(' | '));
   await ctx.close();
@@ -101,7 +105,8 @@ const segulaEvs = async (pg) => ((await dbRead(pg)).events || []).filter((e) => 
 {
   const { ctx, pg, errors } = await boot({ 'supporters.segula': false });
   const nRows = await pg.locator('.ayin-row[role="button"]').count();
-  (await pg.locator('.ayin-row[role="button"] button', { hasText: '🕯 40 יום' }).count()) === 0 && nRows === 4 ? ok('(ד) דגל false ⇒ אין כפתור 40 יום בלוח, ואין קפיצת-תזכורת (4 שורות)') : fail('(ד) כפתור/שורה למרות הדגל: ' + nRows);
+  const nRem = await pg.locator('.ayin-reminder-row').count();
+  (await pg.locator('.ayin-row[role="button"] button', { hasText: '🕯 40 יום' }).count()) === 0 && nRows === 4 && nRem === 0 ? ok('(ד) דגל false ⇒ אין כפתור 40 יום בלוח, ואין רצועת-תזכורות (4 שורות)') : fail('(ד) כפתור/שורה למרות הדגל: ' + nRows + ' · רצועה ' + nRem);
   errors.length === 0 ? ok('(ד) אפס שגיאות-קונסולה') : fail('(ד) שגיאות: ' + errors.join(' | '));
   await ctx.close();
 }

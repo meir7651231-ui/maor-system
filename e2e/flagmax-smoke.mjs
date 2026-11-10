@@ -13,11 +13,12 @@ import http from 'http';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { CHROME_EXE } from './chrome-path.mjs';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DIST = path.join(ROOT, 'dist');
 const PORT = 8891;
-const CHROME = process.env.CHROME ?? '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
+const CHROME = CHROME_EXE;
 
 /* דגלי-flag-max-2 — נקראים חיים מהמקור: כל key מהבלוק שאחרי סמן-הפירוק. */
 const featSrc = fs.readFileSync(path.join(ROOT, 'src/types/features.ts'), 'utf8');

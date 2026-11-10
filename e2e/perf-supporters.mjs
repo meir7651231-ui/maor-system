@@ -19,7 +19,7 @@
  *   PORT     פורט לשרת הסטטי המובנה (8311)
  *   DIST     תיקיית הבנייה להגשה (<repo>/dist-perf)
  *   OUT      תיקיית פלט ל-JSON גולמי + פרופילים (<repo>/e2e/.tmp-perf)
- *   CHROME   קובץ-ההרצה של chromium (/opt/pw-browsers/chromium-1194/chrome-linux/chrome)
+ *   CHROME   קובץ-ההרצה של chromium (ברירת-מחדל: e2e/chrome-path.mjs)
  *   ORG      slug ל-‎?org=‎ (demo) — מפתח ה-localStorage הופך ל-`maor_db:<slug>`
  *   SEED     זרע PRNG (42)
  *   AUTOEXP  1 = לתת לגיבוי-סוף-היום (exportBackupFile) לרוץ באמצע המדידה (0: מסומן-כבוצע מראש)
@@ -49,6 +49,7 @@ import { readFileSync, existsSync, statSync, mkdirSync, writeFileSync, readdirSy
 import { join, extname, dirname, resolve, basename } from 'path';
 import { fileURLToPath } from 'url';
 import { deflateSync } from 'zlib';
+import { CHROME_EXE } from './chrome-path.mjs';
 const SourceMapConsumer = await import('source-map').then((m) => m.SourceMapConsumer).catch(() => null);
 if (!SourceMapConsumer) console.log('[perf] חבילת source-map לא זמינה — מיפוי הפרופיל למקור מדולג');
 
@@ -63,7 +64,7 @@ const THROTTLE = +env('THROTTLE', 4);
 const PORT = +env('PORT', 8311);
 const DIST = resolve(env('DIST', join(ROOT, 'dist-perf')));
 const OUT = resolve(env('OUT', join(ROOT, 'e2e', '.tmp-perf')));
-const CHROME = env('CHROME', process.env.CHROME_PATH ?? '/opt/pw-browsers/chromium-1194/chrome-linux/chrome');
+const CHROME = env('CHROME', CHROME_EXE);
 const ORG = env('ORG', 'demo');
 const SEED = +env('SEED', 42);
 const TODAY = '2026-10-12';
