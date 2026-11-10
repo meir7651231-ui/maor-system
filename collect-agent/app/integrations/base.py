@@ -27,6 +27,40 @@ def jstr(v: Any, *, strip: bool = False) -> str:
     return s.strip() if strip else s
 
 
+_THOUSANDS = re.compile(r"^[+-]?\d{1,3}(,\d{3})+(\.\d+)?$")
+_INVISIBLE = ("\u20aa", " ", "\u00a0", "\u202f", "\u200f", "\u200e")
+
+
+def parse_amount_agorot(v: Any, *, max_agorot: int = 10_000_000_000) -> int:
+    """סכום מקלט חיצוני (JSON של מערכת החשבוניות / תא CSV) ⇒ אגורות, עיגול חצי-למעלה, בלי float.
+    מקור יחיד לשני הנתיבים (הפעלה 111). פסיק מותר **רק** כמפריד אלפים תקין ("1,200" / "12,345.67");
+    פסיק כנקודה עשרונית ("1200,50", "12,5"), פורמט אירופאי ("1.200,50"), קבוצות שגויות ("1,2,3"),
+    NaN/Infinity, טקסט, או מעל התקרה ⇒ ValueError. לא מנחשים: סכום שגוי בתזכורת גרוע מדילוג."""
+    from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
+
+    if isinstance(v, bool):
+        raise ValueError(f"סכום לא תקין: {v!r}")
+    t = str(v if v is not None else 0)
+    for ch in _INVISIBLE:
+        t = t.replace(ch, "")
+    t = t.strip()
+    if "," in t:
+        if not _THOUSANDS.match(t):
+            raise ValueError(f"סכום לא תקין: {v!r}")
+        t = t.replace(",", "")
+    t = t or "0"
+    try:
+        d = Decimal(t)
+    except InvalidOperation:
+        raise ValueError(f"סכום לא תקין: {v!r}") from None
+    if not d.is_finite():
+        raise ValueError(f"סכום לא תקין: {v!r}")
+    out = int((d * 100).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
+    if abs(out) > max_agorot:
+        raise ValueError(f"סכום לא סביר: {v!r}")
+    return out
+
+
 def safe_map(owner: Any, fn: Any, *args: Any) -> Any:
     """critic סבב 44: מיפוי מסמך אחד שנכשל (סכום/תאריך לא תקין) לא מפיל את כל הסנכרון. ⇒ None, ונספר
     ב-`owner.malformed`. השירות לא סוגר חשבוניות בסנכרון שבו היה מסמך פגום (אולי זה הוא), ומתריע."""

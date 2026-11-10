@@ -19,7 +19,7 @@ from typing import Any
 
 import httpx
 
-from .integrations.base import jstr, safe_map
+from .integrations.base import jstr, parse_amount_agorot, safe_map
 
 # סוגי מסמכים שמייצגים חוב פתוח (לאמת): 300 חשבון עסקה, 305 חשבונית מס
 OPEN_DEBT_TYPES = (300, 305)
@@ -85,23 +85,10 @@ MAX_AMOUNT_AGOROT = 10_000_000_000   # 100 מיליון ₪ — מעל זה = נ
 def _to_agorot(v: Any) -> int:
     """עיגול חצי-למעלה על מחרוזת עשרונית — בלי שגיאות float.
     critic סבב 44: "1,200.50" / "₪1,200" / "1 200" נקראים. לא תקין ("NaN", "abc", "1.200,50" אירופאי,
-    מעל 100 מיליון ₪) ⇒ ValueError — והמיפוי מסמן את המסמך כפגום (`safe_map`), לא מפיל את כל הסנכרון."""
-    from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
-
-    t = str(v if v is not None else 0).replace("\u20aa", "").replace(" ", "").replace("\u00a0", "").strip()
-    if "," in t and "." in t and t.rfind(",") > t.rfind("."):
-        raise ValueError(f"סכום לא תקין: {v!r}")         # 1.200,50 — פורמט אירופאי, לא מנחשים
-    t = t.replace(",", "") or "0"
-    try:
-        d = Decimal(t)
-    except InvalidOperation:
-        raise ValueError(f"סכום לא תקין: {v!r}") from None
-    if not d.is_finite():
-        raise ValueError(f"סכום לא תקין: {v!r}")
-    out = int((d * 100).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
-    if abs(out) > MAX_AMOUNT_AGOROT:
-        raise ValueError(f"סכום לא סביר: {v!r}")
-    return out
+    מעל 100 מיליון ₪) ⇒ ValueError — והמיפוי מסמן את המסמך כפגום (`safe_map`), לא מפיל את כל הסנכרון.
+    הפעלה 111: הפסיק נקרא רק כמפריד אלפים תקין (קבוצות של 3). "1200,50" / "12,5" / "1,2,3" ⇒ ValueError
+    (קודם: כל פסיק נמחק ⇒ "1200,50" הפך ל-120,050 ₪ — חוב מנופח פי 100 בתזכורת)."""
+    return parse_amount_agorot(v, max_agorot=MAX_AMOUNT_AGOROT)
 
 
 DEFAULT_TERMS_DAYS = 30   # ממצא מבקר 2.9: בלי dueDate, תאריך ההנפקה ≠ מועד תשלום (שוטף+30 שמרני)

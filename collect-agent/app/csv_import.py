@@ -10,9 +10,9 @@ import csv
 import io
 from dataclasses import dataclass, field
 from datetime import date, timedelta
-from decimal import Decimal, InvalidOperation
 
 from .greeninvoice import DEFAULT_TERMS_DAYS, Invoice
+from .integrations.base import parse_amount_agorot
 
 MAX_BYTES = 2_000_000
 MAX_ROWS = 5_000
@@ -52,15 +52,12 @@ def _parse_date(v: str) -> date | None:
 
 
 def _agorot(v: str) -> int:
-    t = (v or "").replace("\u20aa", "").replace(",", "").replace("\u200f", "")  # RLM מהעתקה מאקסל.strip()
-    try:
-        d = Decimal(t)
-    except InvalidOperation:
-        raise ValueError(f"סכום לא תקין: {v}") from None
-    # מבקר סבב 3: "Infinity"/"NaN" הפילו את הייבוא (OverflowError). גם סכום לא סביר נדחה
-    if not d.is_finite() or abs(d) > Decimal("100000000"):
-        raise ValueError(f"סכום לא תקין: {v}")
-    return int((d * 100).to_integral_value())
+    # מבקר סבב 3: "Infinity"/"NaN" הפילו את הייבוא; סכום לא סביר (מעל 100 מיליון ₪) נדחה.
+    # הפעלה 111: אותו מפענח כמו במקורות ה-API. קודם כל פסיק נמחק ⇒ "1200,50" יובא כ-120,050 ₪
+    # ו-"1.200,50" כ-1.20 ₪. עכשיו פסיק מותר רק כמפריד אלפים, אחרת השורה נדחית עם הודעה.
+    if not (v or "").replace("\u200f", "").strip():
+        raise ValueError(f"סכום לא תקין: {v}")   # תא ריק = שגיאה, לא 0
+    return parse_amount_agorot(v, max_agorot=10_000_000_000)
 
 
 def parse(raw: bytes | str) -> CsvResult:
