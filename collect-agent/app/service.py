@@ -852,7 +852,17 @@ class CollectService:
 
     def purge_closed(self) -> dict[str, int]:
         """חוב סגור מעל 90 יום ⇒ ריקון תוכן ההודעות והתממת הלקוח (כשאין לו חוב פתוח),
-        אלא אם יש legal hold מתועד. רשימת ההסרה (suppressions, גיבוב בלבד) ו-audit נשארים."""
+        אלא אם יש legal hold מתועד. רשימת ההסרה (suppressions, גיבוב בלבד) ו-audit נשארים.
+        critic סבב 37: הכול בטרנזקציה אחת — אטומי (אין לקוח חצי-מותמם) ו-commit אחד במקום ~5 לחוב."""
+        with self.db.batch():
+            inv_n, cust_n, unk = self._purge_rows()
+        if inv_n or cust_n or unk:
+            self.audit("system", "retention_purge", {"invoices": inv_n, "customers": cust_n,
+                                                     "unknown_messages": unk})
+            self.db.scrub()   # critic סבב 24: גם דפים פנויים מלפני secure_delete (DB קיים)
+        return {"invoices": inv_n, "customers": cust_n}
+
+    def _purge_rows(self) -> tuple[int, int, int]:
         cutoff = _iso(self.clock() - timedelta(days=RETENTION_DAYS))
         now = _iso(self.clock())
         inv_n = cust_n = 0
@@ -889,11 +899,7 @@ class CollectService:
                         "AND body<>'' AND created_at<=?", (cutoff,))
         for m in unk:
             self.db.x("UPDATE messages SET body='', payload=NULL WHERE id=?", (m["id"],))
-        if inv_n or cust_n or unk:
-            self.audit("system", "retention_purge", {"invoices": inv_n, "customers": cust_n,
-                                                     "unknown_messages": len(unk)})
-            self.db.scrub()   # critic סבב 24: גם דפים פנויים מלפני secure_delete (DB קיים)
-        return {"invoices": inv_n, "customers": cust_n}
+        return inv_n, cust_n, len(unk)
 
     def _table_exists(self, name: str) -> bool:
         return self.db.one("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?",

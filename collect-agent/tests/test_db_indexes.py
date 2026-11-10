@@ -32,3 +32,33 @@ def test_landing_select_touch_target_at_least_44px():
     from app import main
     m = re.search(r"select\{\{([^}]*)\}\}", main._PAGE)
     assert m and re.search(r"min-height:\s*(4[4-9]|[5-9]\d)px", m.group(1)), m and m.group(1)
+
+
+def test_pending_reminders_summary_view_is_small(svc, fake_gi):
+    """critic סבב 37: הממשק טוען בכל רענון `/reminders?status=pending_approval` ומשתמש ב-4 שדות בלבד,
+    אבל השרת החזיר את כל הגוף וה-payload (כולל HTML של המייל): על 5,000 לקוחות = **12MB** לכל רענון.
+    עכשיו: `view=summary` ⇒ רק id/invoice_id/invoice_ids/block_reason/status, והממשק מבקש אותו."""
+    from pathlib import Path
+
+    from fastapi.testclient import TestClient
+
+    from app.main import create_app
+    from tests.conftest import AUTH, OWNER_TOKEN
+    c = TestClient(create_app(svc, owner_token=OWNER_TOKEN), headers=AUTH)
+    svc.sync()
+    svc.plan()
+    full = c.get("/reminders?status=pending_approval").json()
+    summ = c.get("/reminders?status=pending_approval&view=summary").json()
+    assert len(full) == len(summ) > 0
+    assert set(summ[0]) == {"id", "invoice_id", "invoice_ids", "block_reason", "status"}
+    assert summ[0]["invoice_ids"] == full[0]["invoice_ids"]
+    api = (Path(__file__).resolve().parent.parent / "web/src/api.ts").read_text(encoding="utf-8")
+    assert "/reminders?status=pending_approval&view=summary" in api
+
+
+def test_draft_footer_follows_theme_colors():
+    """critic סבב 37: במצב כהה, כותרת «טיוטה – לבדיקת עו״ד» בעמוד /p/ הייתה בניגודיות 3.65 (מינימום 4.5),
+    כי הצבע היה קבוע (#64748b) ולא משתנה העמוד. עכשיו: var(--muted) עם fallback לעמודים בלי משתנים."""
+    from app import legal
+    html = legal.draft_footer()
+    assert "color:var(--muted" in html and "border:1px solid var(--line" in html

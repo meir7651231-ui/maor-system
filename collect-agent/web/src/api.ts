@@ -100,7 +100,7 @@ export const api = {
   me: () => j<Me>('/auth/me'),
   dashboard: () => j<Dashboard>('/dashboard'),
   // invoice_id = העוגן של תזכורת מאוחדת; invoice_ids = כל החשבוניות שבהודעה
-  pending: () => j<{ id: number; invoice_id: number; invoice_ids?: number[]; block_reason: string | null }[]>('/reminders?status=pending_approval'),
+  pending: () => j<{ id: number; invoice_id: number; invoice_ids?: number[]; block_reason: string | null }[]>('/reminders?status=pending_approval&view=summary'),
   preview: (rid: number) => j<Preview>(`/reminders/${rid}/preview`),
   /** confirmOpen: לחשבונית מ-CSV בעל העסק מאשר במפורש שהסכום עדיין פתוח (השרת מחייב; תוקף 24 ש׳). */
   approve: (rid: number, confirmOpen = false) => j<unknown>(`/reminders/${rid}/approve`, { method: 'POST', ...(confirmOpen ? { body: JSON.stringify({ confirm_open: true }) } : {}) }),

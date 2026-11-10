@@ -208,3 +208,31 @@ def test_r10_short_link_dies_with_purge(svc, clock):
     assert c.get(f"/api/pay/{code}").status_code == 404
     assert c.post(f"/api/pay/{code}/paid", json={}).status_code == 404
     assert svc.db.one("SELECT COUNT(*) n FROM messages")["n"] == n_msgs
+
+
+def test_r10_purge_is_atomic_and_single_commit(svc, clock, monkeypatch):
+    """critic סבב 37: purge_closed ביצע commit אחרי כל כתיבה (~5 לחוב) ⇒ 2,500 חובות = 4.7 שנ׳ (10,000 = 18 שנ׳),
+    בתוך plan() של ה-cron, ו**לא אטומי**: נפילה באמצע השאירה לקוח חצי-מותמם (הודעות נמחקו, שם/טלפון נשארו).
+    עכשיו: טרנזקציה אחת (`DB.batch`) ⇒ נפילה ⇒ שום דבר לא השתנה."""
+    _full_life(svc, clock)
+    clock.now += timedelta(days=91)
+    before = _dump(svc)
+    calls = {"n": 0}
+    orig = svc._table_exists
+
+    def boom(name):                      # נופל באמצע: אחרי שהודעות הלקוח כבר רוקנו
+        calls["n"] += 1
+        if calls["n"] == 2:
+            raise RuntimeError("crash mid-purge")
+        return orig(name)
+    monkeypatch.setattr(svc, "_table_exists", boom)
+    with pytest.raises(RuntimeError):
+        svc.purge_closed()
+    assert _dump(svc) == before          # כלום לא השתנה (אין לקוח חצי-מותמם)
+    monkeypatch.setattr(svc, "_table_exists", orig)
+    commits = []
+    svc.db.conn.set_trace_callback(lambda s: commits.append(s) if s.strip().upper().startswith("COMMIT") else None)
+    svc.purge_closed()
+    svc.db.conn.set_trace_callback(None)
+    assert len(commits) <= 3, commits
+    assert NAME not in _dump(svc)

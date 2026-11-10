@@ -38,8 +38,9 @@ def privacy_html(business: str) -> str:
 
 
 def draft_footer() -> str:
-    return (f'<p style="font-size:12px;color:#64748b;margin-top:20px">'
-            f'<span style="border:1px solid #cbd5e1;border-radius:6px;padding:1px 6px">'
+    # critic סבב 37: משתני העמוד (מצב כהה) עם fallback — היה #64748b קבוע ⇒ ניגודיות 3.65 בכהה
+    return (f'<p style="font-size:12px;color:var(--muted,#64748b);margin-top:20px">'
+            f'<span style="border:1px solid var(--line,#cbd5e1);border-radius:6px;padding:1px 6px">'
             f'{escape(DRAFT_LABEL)}</span> · {escape(OPERATOR["legal_name"])}</p>')
 
 

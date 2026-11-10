@@ -8,7 +8,8 @@ import hashlib
 import os
 import sqlite3
 import threading
-from collections.abc import Mapping
+from collections.abc import Iterator, Mapping
+from contextlib import contextmanager
 
 from . import dbcrypt
 
@@ -224,6 +225,7 @@ class DB:
         if enc and on_disk:   # אימות אמיתי: הקובץ שנכתב אינו SQLite גלוי
             dbcrypt.assert_encrypted_file(path)
         self.lock = threading.RLock()
+        self._batch_depth = 0
 
     def q(self, sql: str, args: tuple = ()) -> list[sqlite3.Row]:
         with self.lock:
@@ -240,8 +242,29 @@ class DB:
             self.conn.commit()
             self.conn.execute("VACUUM")
 
+    @contextmanager
+    def batch(self) -> Iterator[None]:
+        """critic סבב 37: טרנזקציה אחת לכמה כתיבות (`x` לא עושה commit בפנים). כשל ⇒ rollback של הכול.
+        purge_closed עשה commit לכל כתיבה: 2,500 חובות = 4.7 שנ׳, ונפילה באמצע השאירה לקוח חצי-מותמם."""
+        with self.lock:
+            outer = self._batch_depth == 0
+            if outer:
+                self.conn.commit()          # לא בולעים כתיבות קודמות לתוך ה-rollback
+            self._batch_depth += 1
+            try:
+                yield
+            except BaseException:
+                self._batch_depth -= 1
+                if outer:
+                    self.conn.rollback()
+                raise
+            self._batch_depth -= 1
+            if outer:
+                self.conn.commit()
+
     def x(self, sql: str, args: tuple = ()) -> int:
         with self.lock:
             cur = self.conn.execute(sql, args)
-            self.conn.commit()
+            if not self._batch_depth:
+                self.conn.commit()
             return cur.lastrowid or 0
