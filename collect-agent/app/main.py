@@ -94,9 +94,8 @@ def _install_log_redaction() -> None:
 
 
 def _unsub_page(body: str, status: int = 200) -> HTMLResponse:
-    return HTMLResponse('<!doctype html><html lang="he" dir="rtl"><meta charset="utf-8">'
-                        '<meta name="viewport" content="width=device-width">'
-                        f'<body style="font-family:Arial;padding:24px">{body}</body></html>',
+    # critic סבב 41: אותה תבנית כמו /p/ (מצב כהה, משתנים, כפתורים 48px) — היה HTML בלי עיצוב
+    return HTMLResponse(_PAGE.format(title="הפסקת תזכורות", body=body),
                         status_code=status,
                         headers={"Cache-Control": "no-store", "X-Robots-Tag": "noindex",
                                  "Referrer-Policy": "no-referrer"})
@@ -515,8 +514,7 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
             f"<p>{legal.why_you_got_this(biz)}</p>"
             "<p>להפסיק לקבל תזכורות אוטומטיות על חשבוניות? ההסרה חלה על כל הערוצים (SMS ומייל). "
             "החשבונית עצמה לא נמחקת, ובעל העסק עשוי לפנות אליכם אישית.</p>"
-            '<form method="post"><button type="submit" style="font-size:18px;min-height:48px;'
-            'padding:10px 24px">כן, הסירו אותי</button></form>'
+            '<form method="post"><button type="submit" class="b p">כן, הסירו אותי</button></form>'
             + legal.privacy_html(biz) + legal.draft_footer())
 
     @app.post("/u/{token}")

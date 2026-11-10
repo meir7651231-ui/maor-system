@@ -108,3 +108,13 @@ def test_ingest_is_atomic(svc, monkeypatch):
         svc.ingest(docs2)
     assert [tuple(r) for r in svc.db.q("SELECT external_id, amount_agorot FROM invoices ORDER BY id")] == \
         [tuple(r) for r in before]
+
+
+def test_unsub_page_uses_shared_theme():
+    """critic סבב 41 (פתוח מ-38): עמוד ההסרה (/u/) — מה שהחייב רואה מכל SMS — היה HTML בלי עיצוב:
+    לבן גם במצב כהה, כפתור מערכת. עכשיו: אותה תבנית כמו /p/ (משתנים, מצב כהה, כפתור 48px)."""
+    from app import main
+    html = main._unsub_page("<p>x</p>").body.decode()
+    assert "prefers-color-scheme:dark" in html and 'class="c"' in html
+    import inspect
+    assert 'class="b p"' in inspect.getsource(main.create_app)   # כפתור «כן, הסירו אותי» בעיצוב

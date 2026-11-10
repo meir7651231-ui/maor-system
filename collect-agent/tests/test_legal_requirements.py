@@ -812,3 +812,14 @@ def test_concurrent_approve_plan_sends_once(svc, fake_gi):
         t.join()
     assert len(svc.sender.sent) - n0 == 1, svc.sender.sent[n0:]
     assert len(errs) == 1
+
+
+def test_dashboard_counts_send_unknown_like_the_cap(svc, fake_gi, clock):
+    """critic סבב 41: send_unknown (39.1) נספרת לתקרת 3 בשרת, אבל הדשבורד ספר רק sent_dry_run ⇒ הממשק
+    הראה פחות תזכורות ממה שהתקרה סופרת (ושלב הבא שגוי). עכשיו: אותה ספירה."""
+    svc.sync()
+    rid = svc.plan()[0]
+    svc.db.x("UPDATE reminders SET status='send_unknown' WHERE id=?", (rid,))
+    inv = svc.db.one("SELECT invoice_id FROM reminders WHERE id=?", (rid,))["invoice_id"]
+    row = next(r for r in svc.dashboard()["invoices"] if r["invoice_id"] == inv)
+    assert row["reminders_sent"] == 1

@@ -1495,7 +1495,8 @@ class CollectService:
                                "r.id DESC LIMIT 1", (r["id"],))
             sent = self.db.one("SELECT COUNT(*) n FROM reminders r JOIN reminder_invoices x ON "
                                "x.reminder_id=r.id WHERE x.invoice_id=? AND "
-                               "r.status='sent_dry_run'", (r["id"],))["n"]
+                               # critic סבב 41: send_unknown נספרת כמו בתקרה (אולי יצאה)
+                               "r.status IN ('sent_dry_run','send_unknown')", (r["id"],))["n"]
             due = date.fromisoformat(r["due"]) if r["due"] else None
             block = self._customer_block(r["customer_id"])
             rows.append({
