@@ -87,10 +87,16 @@ def _to_agorot(v: Any) -> int:
 DEFAULT_TERMS_DAYS = 30   # ממצא מבקר 2.9: בלי dueDate, תאריך ההנפקה ≠ מועד תשלום (שוטף+30 שמרני)
 
 
+def _s(v: Any) -> str:
+    """null ב-JSON ⇒ "" (לא "None"). הפעלה 107: `str(None)` הפך לקוח בלי מזהה למפתח המשותף
+    "None" ⇒ שני לקוחות שונים התמזגו והחוב של א' נשלח למייל של ב'."""
+    return "" if v is None else str(v)
+
+
 def _linked_ids(doc: dict[str, Any]) -> tuple[str, ...]:
     """סובלני לשתי צורות (לאמת): linkedDocumentIds=[id] · linkedDocuments=[{id}|id]."""
     raw = list(doc.get("linkedDocumentIds") or []) + list(doc.get("linkedDocuments") or [])
-    out = [str(x.get("id", "")) if isinstance(x, dict) else str(x) for x in raw]
+    out = [_s(x.get("id")) if isinstance(x, dict) else _s(x) for x in raw]
     return tuple(dict.fromkeys(x for x in out if x))
 
 
@@ -105,17 +111,17 @@ def map_document(doc: dict[str, Any]) -> Invoice:
     if due is None and issued is not None:
         due = issued + timedelta(days=DEFAULT_TERMS_DAYS)
     return Invoice(
-        external_id=str(doc.get("id", "")),
-        number=str(doc.get("number", "")),
+        external_id=_s(doc.get("id")),
+        number=_s(doc.get("number")),
         doc_type=int(doc.get("type", 0) or 0),
         amount_agorot=_to_agorot(doc.get("amountDueVat", doc.get("amount", 0))),
         currency=str(doc.get("currency") or "ILS"),
         issued=_parse_date(doc.get("documentDate")),
         due=due,
-        client_external_id=str(client.get("id", "")),
-        client_name=str(client.get("name", "")),
+        client_external_id=_s(client.get("id")),
+        client_name=_s(client.get("name")),
         client_phone=str(client.get("phone") or client.get("mobile") or ""),
-        client_email=str(emails[0]) if emails else "",
+        client_email=_s(emails[0]) if emails else "",
         payment_url=str(doc.get("paymentUrl") or doc.get("paymentLink") or ""),
         status=int(doc.get("status", 0) or 0),
         due_estimated=due_estimated,
