@@ -74,7 +74,7 @@ export const SCREENPOP_VERSION = 1;
  * העשרת-כרטיס (item 41): שולף שדות-הקשר שימושיים מהרשומה — קטגוריה/עיר/תרומה-
  * אחרונה/סכום-מצטבר/תגיות/הערה — אם קיימים. אף שדה לא חובה; אין=לא-נכלל.
  */
-export function enrichContact(rec, kind) {
+export function enrichContact(rec, _kind) {
   // רק שדות שקיימים באמת ב-domain.ts (Supporter: cat/city/last/ils/usd). אין balance/tags.
   const e = {};
   if (rec.cat) e.category = rec.cat;
@@ -87,7 +87,7 @@ export function enrichContact(rec, kind) {
 
 /** מסנן שדות-כסף מהעשרה (למצב-צנעה). */
 function stripMoney(enr) {
-  const { totalIls, totalUsd, lastDonation, ...rest } = enr || {};
+  const { totalIls: _ils, totalUsd: _usd, lastDonation: _last, ...rest } = enr || {};
   return rest;
 }
 

@@ -31,7 +31,7 @@ await pg.locator('nav button, .side-link', { hasText: 'תורמים' }).first().
 
 /* (א) הלוח: פתיחה + מסנן ⇒ כרטיס ⇒ חזרה */
 await pg.locator('button', { hasText: '▼ הצגה' }).first().click(); await pg.waitForTimeout(500);
-const regionSel = pg.locator('select[aria-label="אזור טלפון"], select[aria-label="אזור"]').last();
+const _regionSel = pg.locator('select[aria-label="אזור טלפון"], select[aria-label="אזור"]').last();
 const boardSelects = await pg.locator('main .card select').count();
 ok('הלוח נפתח (' + boardSelects + ' בוררים)');
 const stageChips = pg.locator('button.chip', { hasText: /בהכנה|רישום/ }).first();
@@ -48,7 +48,7 @@ await pg.locator('button', { hasText: '📋 כל ה' }).first().click(); await p
 const modal = pg.locator('[role="dialog"], .modal').last();
 const search = modal.locator('input').first();
 await search.fill('שם'); await pg.waitForTimeout(400);
-const tableBox = modal.locator('div[style*="overflow-y: auto"], div[style*="overflowY"]').first();
+const _tableBox = modal.locator('div[style*="overflow-y: auto"], div[style*="overflowY"]').first();
 const wrap = modal.locator('table').first().locator('xpath=..');
 await wrap.evaluate((el) => { el.scrollTop = 150; }); await pg.waitForTimeout(400);
 const scrolled = await wrap.evaluate((el) => el.scrollTop);

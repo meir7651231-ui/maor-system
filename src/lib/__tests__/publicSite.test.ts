@@ -90,7 +90,7 @@ describe('🌐 שדות-העיצוב (design 16.8) — חיטוי + מבנה', (
     expect(c.site?.founder?.name).toBe('מרים');
     expect(c.site?.founder?.quote).toEqual({ he: 'ציטוט' });
     expect(c.site?.founder?.photo).toBeUndefined(); // http נזרק
-    expect((c.site?.founder as Record<string, unknown>).evil).toBeUndefined();
+    expect((c.site?.founder as Record<string, unknown> | undefined)?.evil).toBeUndefined();
     expect(base({ founder: { photo: 'https://x/p.jpg' } }).site?.founder?.photo).toBe('https://x/p.jpg');
   });
 

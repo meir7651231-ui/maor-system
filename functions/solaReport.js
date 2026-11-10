@@ -68,12 +68,12 @@ function isApproved(r) {
 
 /**
  * @param {Array<Record<string, unknown>>} rows - xReportData מ-Report:Transactions
- * @param {string} org - slug הארגון
+ * @param {string} _org - slug הארגון (לא בשימוש כרגע; נשמר בחתימה לקוראים הקיימים)
  * @returns {{ writes: Array<{id: string, data: Record<string, unknown>}>, lastDateIso: string }}
  *   writes — רשומות-לכתיבה (doc-id דטרמיניסטי `sola-<xRefNum>` ⇒ דדופ בין-ריצות);
  *   lastDateIso — התאריך המאוחר ביותר שנראה (ל-cursor-החלון של המשיכה הבאה).
  */
-function planSolaWrites(rows, org) {
+function planSolaWrites(rows, _org) {
   const writes = [];
   let lastDateIso = '';
   for (const r of Array.isArray(rows) ? rows : []) {
