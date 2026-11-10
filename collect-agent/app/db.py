@@ -190,6 +190,9 @@ class DB:
                 ("delivery_at", "ALTER TABLE messages ADD COLUMN delivery_at TEXT")):
             if col not in mcols:
                 self.conn.execute(ddl)
+        # critic סבב 39: מתי נתפסה תזכורת לשליחה (approved ⇒ sending) — לזיהוי שליחה שנתקעה באמצע
+        if "claimed_at" not in {r[1] for r in self.conn.execute("PRAGMA table_info(reminders)")}:
+            self.conn.execute("ALTER TABLE reminders ADD COLUMN claimed_at TEXT")
         self.conn.commit()
         # critic 15.1/2.12 (הכרעת מאיר 7.11): תזכורת מאוחדת ללקוח — אילו חשבוניות כל תזכורת כוללת.
         # reminders.invoice_id נשאר «עוגן» (החשבונית הוותיקה); תזכורות ישנות = החשבונית שלהן בלבד.
@@ -261,6 +264,14 @@ class DB:
             self._batch_depth -= 1
             if outer:
                 self.conn.commit()
+
+    def update(self, sql: str, args: tuple = ()) -> int:
+        """כמו x, אבל מחזיר כמה שורות השתנו (לתפיסה אטומית: «עדכן אם עדיין X»)."""
+        with self.lock:
+            cur = self.conn.execute(sql, args)
+            if not self._batch_depth:
+                self.conn.commit()
+            return cur.rowcount
 
     def x(self, sql: str, args: tuple = ()) -> int:
         with self.lock:

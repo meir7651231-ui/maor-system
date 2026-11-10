@@ -678,7 +678,8 @@ class CollectService:
         rows = self.db.q("SELECT r.* FROM reminders r JOIN invoices i ON i.id=r.invoice_id "
                          "WHERE i.customer_id=? ORDER BY r.sent_at, r.id", (cid,))
         return [r for r in rows if (statuses is None or r["status"] in statuses)
-                and (not sent or str(r["status"]).startswith("sent"))]
+                and (not sent or str(r["status"]).startswith("sent")
+                     or r["status"] == "send_unknown")]   # critic סבב 39: אולי יצאה ⇒ נספרת (שמרני)
 
     def episode_sent(self, cid: int) -> list:
         """התזכורות שנשלחו ללקוח באפיזודת החוב הנוכחית (ראו הכלל למעלה)."""
@@ -726,6 +727,8 @@ class CollectService:
             return None
         ready = [r for r in ready if r["currency"] == ready[0]["currency"]]
         lead = ready[0]
+        if self._customer_reminders(cid, ("sending",)):
+            return None   # critic סבב 39: באמצע שליחה (או נתקעה) ⇒ לא בונים/משנים כלום עד שיוכרע
         act = self._customer_reminders(cid, ACTIVE)
         if act:   # הודעה אחת בתור ללקוח
             # חשבונית שהבשילה בזמן שהטיוטה ממתינה מצטרפת אליה (אותו שלב) ⇒ נבנית מחדש ולאישור מחדש
@@ -985,6 +988,7 @@ class CollectService:
         # לחלון חיכו ל-/conversation/flush ידני, כלומר בפועל לא יצאו לעולם. עכשיו גם הן יוצאות כאן,
         # דרך אותו שער שליחה (הסרה, שעות, שבת וחג, ניסיון).
         self.inbox.flush()
+        self._recover_stuck_sends(now)
         rows = self.db.q("SELECT * FROM reminders WHERE status='approved' AND scheduled_for<=? "
                          "ORDER BY scheduled_for", (_iso(now),))
         for r in rows:
@@ -1013,6 +1017,8 @@ class CollectService:
                 continue
             if not gap_ok(_dt(cust["last_sent_at"]), now):
                 continue  # ננסה בסבב הבא
+            if not self._claim_reminder(r["id"]):
+                continue   # critic סבב 39: ריצה אחרת כבר תפסה אותה (אין שליחה כפולה במקביל)
             ids = []
             failed = False
             for m in json.loads(r["payload"]):
@@ -1031,6 +1037,8 @@ class CollectService:
                 ids.append(mid)
                 self._log_out(cust["id"], msg, mid, now)
             if failed and not ids:
+                # שום הודעה לא יצאה ⇒ משחררים את התפיסה, וננסה בסבב הבא
+                self.db.x("UPDATE reminders SET status='approved', claimed_at=NULL WHERE id=?", (r["id"],))
                 continue
             if not ids:
                 self.db.x("UPDATE reminders SET status='cancelled', block_reason='opted_out' "
@@ -1045,6 +1053,30 @@ class CollectService:
         if out:
             self.audit("system", "dispatch_dry_run", {"count": len(out)})
         return out
+
+    CLAIM_STALE = timedelta(minutes=30)
+
+    def _claim_reminder(self, rid: int) -> bool:
+        """critic סבב 39: תפיסה אטומית לפני השליחה. False ⇒ מישהו אחר כבר תפס/שלח."""
+        return self.db.update("UPDATE reminders SET status='sending', claimed_at=? "
+                              "WHERE id=? AND status='approved'", (_iso(self.clock()), rid)) == 1
+
+    def _recover_stuck_sends(self, now: datetime) -> None:
+        """תזכורת שנתפסה ולא סומנה תוך 30 דק׳ = נפילה באמצע שליחה. **לא שולחים שוב** (אולי חלק יצא):
+        send_unknown + הודעה לבעל העסק לבדוק ביומן היוצאים לפני שליחה ידנית."""
+        cutoff = _iso(now - self.CLAIM_STALE)
+        for r in self.db.q("SELECT id FROM reminders WHERE status='sending' AND claimed_at<=?", (cutoff,)):
+            if self.db.update("UPDATE reminders SET status='send_unknown' WHERE id=? AND status='sending'",
+                              (r["id"],)) != 1:
+                continue
+            inv = self._invoice(self._reminder(r["id"])["invoice_id"])
+            self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
+                      "message_id,created_at) VALUES(?,'system','owner',?,'send_unknown',1,?,?)",
+                      (inv["customer_id"] if inv else None,
+                       f"שליחת תזכורת לחשבונית {inv['number'] if inv else ''} נקטעה באמצע. ייתכן שחלק "
+                       "מההודעות יצא — היא לא תישלח שוב אוטומטית. בדקו ב«יומן יוצאים» לפני שליחה ידנית.",
+                       f"sendunk:{r['id']}", _iso(now)))
+            self.audit("system", "send_unknown", {"reminder": r["id"]})
 
     def _invalidate(self, r, why: str) -> None:
         self.db.x("UPDATE reminders SET status='pending_approval', approved_hash=NULL, "

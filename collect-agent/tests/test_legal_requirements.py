@@ -702,3 +702,47 @@ def test_owner_can_mark_notice_done(api, svc):
     assert any(a["action"] == "owner_message_done" for a in api.get("/audit").json())
     assert api.post(f"/owner/inbox/{mid}/done").status_code == 404     # כבר טופל
     assert api.post("/owner/inbox/999999/done").status_code == 404
+
+
+def test_crash_after_send_does_not_resend(svc, fake_gi, clock):
+    """critic סבב 39: dispatch שולח ורק אחר כך מסמן «נשלח». נפילה ביניהם (שגיאה לא צפויה במייל אחרי
+    שה-SMS כבר יצא, או קריסת תהליך) השאירה את התזכורת `approved` ⇒ הסבב הבא שלח **שוב** את ה-SMS.
+    וגם שתי ריצות dispatch במקביל בחרו את אותן שורות. עכשיו: תפיסה אטומית (approved ⇒ sending) לפני
+    השליחה; תקועה ב-sending ⇒ לא נשלחת שוב, מסומנת send_unknown והודעה לבעל העסק."""
+    from datetime import timedelta
+    svc.sync()
+    rid = svc.plan()[0]
+    svc.approve(rid)
+    orig = svc.sender.send
+    calls = {"n": 0}
+
+    def flaky(msg):
+        calls["n"] += 1
+        if calls["n"] == 2:                      # ה-SMS יצא; המייל נופל בשגיאה לא צפויה
+            raise RuntimeError("boom")
+        return orig(msg)
+    svc.sender.send = flaky
+    with pytest.raises(RuntimeError):
+        svc.dispatch()
+    svc.sender.send = orig
+    n_sent = len(svc.sender.sent)
+    clock.now += timedelta(hours=2)
+    svc.dispatch()
+    assert len(svc.sender.sent) == n_sent        # לא נשלח שוב
+    r = svc.db.one("SELECT status FROM reminders WHERE id=?", (rid,))
+    assert r["status"] == "send_unknown"
+    assert svc.db.one("SELECT 1 FROM messages WHERE intent='send_unknown' AND needs_owner=1")
+    cid = svc.db.one("SELECT i.customer_id FROM reminders r JOIN invoices i ON i.id=r.invoice_id "
+                     "WHERE r.id=?", (rid,))["customer_id"]
+    assert len(svc.episode_sent(cid)) == 1      # נספרת לתקרת 3 (אולי יצאה)
+
+
+def test_claim_prevents_concurrent_double_send(svc, fake_gi):
+    """שתי ריצות במקביל: השנייה רואה את התזכורת כבר תפוסה ולא שולחת."""
+    svc.sync()
+    rid = svc.plan()[0]
+    svc.approve(rid)
+    assert svc._claim_reminder(rid) is True
+    assert svc._claim_reminder(rid) is False
+    assert svc.plan() == []                      # בזמן sending לא נבנית תזכורת נוספת ללקוח
+    assert svc.db.one("SELECT status FROM reminders WHERE id=?", (rid,))["status"] == "sending"
