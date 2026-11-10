@@ -12,6 +12,7 @@ const KIND: Record<string, { icon: string; title: string; tone: Notice['tone'] }
   stale_draft: { icon: '⏳', title: 'הצעה שחיכתה יותר מדי — לא נשלחה', tone: 'warn' },
   send_unknown: { icon: '⚠️', title: 'שליחה נקטעה באמצע — לבדוק ביומן היוצאים', tone: 'warn' },
   doc_without_id: { icon: '🧾', title: 'מסמכים בלי מזהה ממערכת החשבוניות — לא נשלחות עליהם תזכורות', tone: 'warn' },
+  doc_malformed: { icon: '🧾', title: 'מסמכים עם נתון לא תקין — דולגו, ולא נסגרה אף חשבונית', tone: 'warn' },
   sms_undelivered: { icon: '📵', title: 'SMS לא נמסר', tone: 'warn' },
   credit_review: { icon: '🧾', title: 'זיכוי שלא שויך לחשבונית — לבדיקתך', tone: 'warn' },
   // חיוב דרך אורביט (8.11.2026): חסד / סיום / ביטול — הגוף כולל קישור לחיוב באורביט

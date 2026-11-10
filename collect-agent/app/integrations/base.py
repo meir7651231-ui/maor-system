@@ -27,6 +27,16 @@ def jstr(v: Any, *, strip: bool = False) -> str:
     return s.strip() if strip else s
 
 
+def safe_map(owner: Any, fn: Any, *args: Any) -> Any:
+    """critic סבב 44: מיפוי מסמך אחד שנכשל (סכום/תאריך לא תקין) לא מפיל את כל הסנכרון. ⇒ None, ונספר
+    ב-`owner.malformed`. השירות לא סוגר חשבוניות בסנכרון שבו היה מסמך פגום (אולי זה הוא), ומתריע."""
+    try:
+        return fn(*args)
+    except (ValueError, ArithmeticError, TypeError, KeyError):
+        owner.__dict__["malformed"] = owner.__dict__.get("malformed", 0) + 1
+        return None
+
+
 class IntegrationError(RuntimeError):
     """תקלה בקונפיגורציה או בקלט (לא תלויה בספק)."""
 

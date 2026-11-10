@@ -39,7 +39,7 @@ import httpx
 
 from ..config import SafetyError
 from ..greeninvoice import TYPE_CREDIT, Invoice, Netting, _to_agorot, net_credits
-from .base import IntegrationError, ProviderError, classify_status, guard_transport, jstr
+from .base import IntegrationError, ProviderError, classify_status, guard_transport, jstr, safe_map
 from .sources import CreditAmbiguous, due_or_estimate, parse_il_date
 
 RIVHIT_BASE = "https://api.rivhit.co.il/online/RivhitOnlineAPI.svc"
@@ -157,8 +157,9 @@ class RivhitClient:
         self._customers = {}
         for d in self._open_docs():
             cid = d.get("customer_id")
-            inv = map_rivhit_open_doc(d, self._customer(cid) if cid not in (None, "", 0) else None)
-            if inv.amount_agorot > 0:
+            inv = safe_map(self, map_rivhit_open_doc, d,
+                           self._customer(cid) if cid not in (None, "", 0) else None)
+            if inv is not None and inv.amount_agorot > 0:
                 yield inv
 
     def open_debts(self) -> Netting:
@@ -170,9 +171,13 @@ class RivhitClient:
             cid = d.get("customer_id")
             c = self._customer(cid) if cid not in (None, "", 0) else None
             if is_rivhit_credit(d):
-                credits.append(map_rivhit_credit(d, c))
+                cr = safe_map(self, map_rivhit_credit, d, c)
+                if cr is not None:
+                    credits.append(cr)
                 continue
-            inv = map_rivhit_open_doc(d, c)
+            inv = safe_map(self, map_rivhit_open_doc, d, c)
+            if inv is None:
+                continue
             if inv.amount_agorot > 0:
                 debts.append(inv)
         return net_credits(debts, credits) if debts else Netting([])

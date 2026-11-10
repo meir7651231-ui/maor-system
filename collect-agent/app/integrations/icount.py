@@ -41,7 +41,7 @@ import httpx
 
 from ..config import SafetyError
 from ..greeninvoice import TYPE_CREDIT, Invoice, Netting, _to_agorot, net_credits
-from .base import IntegrationError, ProviderError, classify_status, guard_transport, jstr
+from .base import IntegrationError, ProviderError, classify_status, guard_transport, jstr, safe_map
 from .sources import credits_on_doc, due_or_estimate, parse_il_date
 
 ICOUNT_BASE = "https://api.icount.co.il/api/v3.php"
@@ -229,7 +229,9 @@ class ICountClient:
         for doctype in ICOUNT_DEBT_DOCTYPES:
             for d in self._rows(doctype):
                 d = self._enrich(d)
-                inv = map_icount_doc(d)
+                inv = safe_map(self, map_icount_doc, d)
+                if inv is None:
+                    continue
                 self._remember(d, inv)
                 if inv.amount_agorot > 0 and inv.status == 0:
                     yield inv
@@ -240,7 +242,9 @@ class ICountClient:
         rev = {v: k for k, v in self._index.items()}
         for doctype in ICOUNT_CREDIT_DOCTYPES:
             for d in self._rows(doctype, status=None):
-                inv = map_icount_doc(d)
+                inv = safe_map(self, map_icount_doc, d)
+                if inv is None:
+                    continue
                 if inv.status == 4 or inv.amount_agorot <= 0:
                     continue
                 links = []

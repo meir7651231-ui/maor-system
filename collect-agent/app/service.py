@@ -327,6 +327,17 @@ class CollectService:
             out["review"] = held   # לקוחות שהושהו לבדיקת זיכוי (2.16) — רק כשיש
         return out
 
+    def _notify_malformed(self, n: int) -> None:
+        key = "malformed:" + self.clock().date().isoformat()
+        if self.db.one("SELECT 1 FROM messages WHERE intent='doc_malformed' AND message_id=?", (key,)):
+            return
+        self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
+                  "message_id,created_at) VALUES(NULL,'system','owner',?,'doc_malformed',1,?,?)",
+                  (f"{n} מסמכים ממערכת החשבוניות הגיעו עם נתון לא תקין (סכום או תאריך), ולכן דולגו. "
+                   "בסנכרון הזה גבי לא סגרה אף חשבונית, כדי לא לסמן בטעות חוב פתוח כשולם.", key,
+                   _iso(self.clock())))
+        self.audit("system", "doc_malformed", {"count": n})
+
     def _notify_docs_without_id(self, n: int) -> None:
         """התראה אחת ליום (בלי PII) — לא בכל סנכרון."""
         key = "noid:" + self.clock().date().isoformat()
@@ -368,10 +379,18 @@ class CollectService:
             raise RuntimeError(f"לא הוגדר חיבור ל-{SOURCE_SYSTEMS[self.s.source_system].label} "
                                "(שלב 1: mock בלבד)")
         provider = source_provider(self.gi)
+        self.gi.__dict__["malformed"] = 0
         if hasattr(self.gi, "open_debts"):   # ממצא 2.16: החוב אחרי קיזוז זיכויים והמרות 300⇒305
             net = self.gi.open_debts()
-            return self.ingest(net.invoices, review=net.review, provider=provider)
-        return self.ingest(list(self.gi.iter_open_invoices()), provider=provider)
+            invs, review = net.invoices, net.review
+        else:
+            invs, review = list(self.gi.iter_open_invoices()), []
+        # critic סבב 44: מסמך פגום (סכום/תאריך לא תקין) דולג. ייתכן שזה מסמך פתוח שכבר אצלנו ⇒
+        # בסנכרון הזה לא סוגרים כלום (אחרת הוא ייראה «שולם»), ובעל העסק מקבל התראה.
+        bad = self.gi.__dict__.get("malformed", 0)
+        if bad:
+            self._notify_malformed(bad)
+        return self.ingest(invs, review=review, provider=provider, full=not bad)
 
     CREDIT_REVIEW = "credit_review"
 

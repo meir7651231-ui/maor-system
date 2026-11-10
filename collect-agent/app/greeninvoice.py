@@ -19,7 +19,7 @@ from typing import Any
 
 import httpx
 
-from .integrations.base import jstr
+from .integrations.base import jstr, safe_map
 
 # סוגי מסמכים שמייצגים חוב פתוח (לאמת): 300 חשבון עסקה, 305 חשבונית מס
 OPEN_DEBT_TYPES = (300, 305)
@@ -79,11 +79,29 @@ def _parse_date(v: Any) -> date | None:
         return None
 
 
-def _to_agorot(v: Any) -> int:
-    # עיגול חצי-למעלה על מחרוזת עשרונית — בלי שגיאות float
-    from decimal import ROUND_HALF_UP, Decimal
+MAX_AMOUNT_AGOROT = 10_000_000_000   # 100 מיליון ₪ — מעל זה = נתון שגוי (כמו התקרה ב-CSV)
 
-    return int((Decimal(str(v or 0)) * 100).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
+
+def _to_agorot(v: Any) -> int:
+    """עיגול חצי-למעלה על מחרוזת עשרונית — בלי שגיאות float.
+    critic סבב 44: "1,200.50" / "₪1,200" / "1 200" נקראים. לא תקין ("NaN", "abc", "1.200,50" אירופאי,
+    מעל 100 מיליון ₪) ⇒ ValueError — והמיפוי מסמן את המסמך כפגום (`safe_map`), לא מפיל את כל הסנכרון."""
+    from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
+
+    t = str(v if v is not None else 0).replace("\u20aa", "").replace(" ", "").replace("\u00a0", "").strip()
+    if "," in t and "." in t and t.rfind(",") > t.rfind("."):
+        raise ValueError(f"סכום לא תקין: {v!r}")         # 1.200,50 — פורמט אירופאי, לא מנחשים
+    t = t.replace(",", "") or "0"
+    try:
+        d = Decimal(t)
+    except InvalidOperation:
+        raise ValueError(f"סכום לא תקין: {v!r}") from None
+    if not d.is_finite():
+        raise ValueError(f"סכום לא תקין: {v!r}")
+    out = int((d * 100).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
+    if abs(out) > MAX_AMOUNT_AGOROT:
+        raise ValueError(f"סכום לא סביר: {v!r}")
+    return out
 
 
 DEFAULT_TERMS_DAYS = 30   # ממצא מבקר 2.9: בלי dueDate, תאריך ההנפקה ≠ מועד תשלום (שוטף+30 שמרני)
@@ -329,12 +347,16 @@ class GreenInvoiceClient:
             body = self.search_documents(page=page, page_size=page_size, statuses=statuses,
                                          types=types, from_date=from_date)
             for doc in body.get("items", []):
-                inv = map_document(self._enrich_client(doc))
+                inv = safe_map(self, map_document, self._enrich_client(doc))
+                if inv is None:
+                    continue
                 # סינון כפול בצד שלנו (כמו 2.10): לא סומכים על פילטר השרת
                 if inv.doc_type not in types or inv.status not in statuses:
                     continue
                 # בזיכוי היתרה לתשלום (amountDueVat) לא רלוונטית — סכום הזיכוי הוא סכום המסמך
-                total = _to_agorot(doc.get("amount", doc.get("total", 0)))
+                total = safe_map(self, _to_agorot, doc.get("amount", doc.get("total", 0)))
+                if total is None:
+                    continue
                 yield replace(inv, amount_agorot=abs(total)) if inv.doc_type == TYPE_CREDIT else inv
             if page >= int(body.get("pages") or 1):
                 return
@@ -376,7 +398,9 @@ class GreenInvoiceClient:
             body = self.search_documents(page=page, page_size=page_size)
             for doc in body.get("items", []):
                 doc = self._enrich_client(doc)
-                inv = map_document(doc)
+                inv = safe_map(self, map_document, doc)
+                if inv is None:
+                    continue
                 # ממצא מבקר 2.10: רק מסמך בסטטוס «פתוח» הוא חוב, גם אם החיפוש החזיר אחר
                 if inv.amount_agorot > 0 and inv.status == STATUS_OPEN:
                     yield inv
