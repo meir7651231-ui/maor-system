@@ -41,7 +41,7 @@ import httpx
 
 from ..config import SafetyError
 from ..greeninvoice import TYPE_CREDIT, Invoice, Netting, _to_agorot, net_credits
-from .base import IntegrationError, ProviderError, classify_status, guard_transport
+from .base import IntegrationError, ProviderError, classify_status, guard_transport, jstr
 from .sources import credits_on_doc, due_or_estimate, parse_il_date
 
 ICOUNT_BASE = "https://api.icount.co.il/api/v3.php"
@@ -159,7 +159,10 @@ class ICountClient:
         if not self._sid:
             b = self._call("/auth/login", {"cid": self.cid, "user": self.user,
                                            "pass": self.password})
-            self._sid = str(b["sid"])
+            sid = jstr(b.get("sid"), strip=True)
+            if not sid:     # status:true בלי sid ⇒ לא שולחים "None" ולא קורסים ב-KeyError
+                raise ProviderError(self.provider, "auth/login: תשובה בלי sid", retryable=False)
+            self._sid = sid
         return {"sid": self._sid}
 
     def _authed(self, path: str, payload: dict[str, Any]) -> dict[str, Any]:
@@ -290,4 +293,4 @@ class ICountClient:
     @staticmethod
     def webhook_ref(payload: dict[str, Any]) -> str:
         """מה שמזהה את המסמך בגוף ה-webhook (לאמת: מבנה הגוף לא מתועד). רק לרישום ב-audit."""
-        return f"{payload.get('doctype', '')}-{payload.get('docnum', '')}"[:64]
+        return f"{jstr(payload.get('doctype'))}-{jstr(payload.get('docnum'))}"[:64]

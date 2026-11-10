@@ -19,7 +19,7 @@ import httpx
 
 from ..config import SafetyError
 from ..contact import normalize_il_phone
-from .base import IntegrationError, ProviderError, SendResult, SmsMessage, basic_auth
+from .base import IntegrationError, ProviderError, SendResult, SmsMessage, basic_auth, jstr
 from .http import HttpAdapter
 
 GSM7 = set("@£$¥èéùìòÇ\nØø\rÅåΔ_ΦΓΛΩΠΨΣΘΞÆæßÉ !\"#¤%&'()*+,-./0123456789:;<=>?¡"
@@ -124,8 +124,8 @@ class InforUSms(SmsAdapter):
         b = r.json()
         if b.get("StatusId") != 1:
             # StatusId שלילי = שגיאת קלט/הרשאה — לא חוזרים
-            raise ProviderError(self.provider, f"StatusId={b.get('StatusId')} "
-                                f"{b.get('StatusDescription', '')}".strip())
+            raise ProviderError(self.provider, f"StatusId={jstr(b.get('StatusId')) or '?'} "
+                                f"{jstr(b.get('StatusDescription'))}".strip())
         data = b.get("Data") or {}
         return str(data.get("MessageId") or data.get("RequestId") or b.get("RequestId") or "")
 
