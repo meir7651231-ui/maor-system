@@ -11,6 +11,7 @@ import { useApp } from '../../store/useApp';
 import { isSuperAdmin, normalizeConfig, normalizeSite } from '../../lib/config';
 import { SITE_DOMAINS, publicSiteSlugFor } from '../../lib/siteDomains';
 import { fillMissingLangs } from '../../lib/publicSiteCloud';
+import { siteLiveFromDb } from '../../lib/siteLive';
 import { SiteContentEditor } from '../builder/SiteContentEditor';
 import { Btn } from '../ui';
 import type { PublicSiteContent } from '../../types/config';
@@ -70,6 +71,9 @@ export function SiteEditorPage({ onClose }: { onClose: () => void }) {
   const [armClose, setArmClose] = useState(false);
   const [editorsText, setEditorsText] = useState('');
   const baseSite = useRef<PublicSiteContent | undefined>(config.site);
+  // 📡 «שידור חי»: הצעת-המספרים מנתוני-המשרד שבמכשיר (סכומים כוללים בלבד) — מחושב פעם אחת בפתיחת המסך
+  // (בלי מנוי-DB — נקרא פעם אחת בפתיחת-המסך; ratchet db-watch)
+  const [sysLive] = useState(() => siteLiveFromDb(useApp.getState().db, new Date(), config));
 
   const load = async () => {
     setPhase('loading');
@@ -237,7 +241,7 @@ export function SiteEditorPage({ onClose }: { onClose: () => void }) {
         <div style={{ fontSize: 13, color: 'var(--ink-soft)', margin: '6px 0 10px', lineHeight: 1.6 }}>
           כל השדות כאן הם מה שהמבקרים רואים באתר. שדה ריק — לא מוצג באתר. השינויים נשמרים רק בלחיצה על «💾 שמירה ופרסום».
         </div>
-        <SiteContentEditor site={draft} onChange={setDraft} />
+        <SiteContentEditor site={draft} onChange={setDraft} systemLive={() => sysLive} />
         {superUser && (
           <div style={{ marginTop: 26, borderTop: '1px solid var(--line)', paddingTop: 14 }}>
             <div style={{ fontWeight: 800 }}>👥 מי רשאי לערוך (מנהל-מערכת בלבד)</div>

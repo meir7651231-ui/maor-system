@@ -25,7 +25,7 @@ import {
   unitLabel,
 } from '../../lib/ayin';
 import { featureOn, integrationOn, integrationSetting } from '../../lib/config';
-import { orgPayWho, orgSolaPayUrl, payLink, supporterPayPerson } from '../../lib/payLink';
+import { orgPayLabels, orgPayWho, orgSolaPayUrl, payLink, supporterPayPerson } from '../../lib/payLink';
 import { scheduleTasks } from '../../lib/projectSchedule';
 import { kitProgress, DEFAULT_KIT_LABELS } from '../../lib/installKit';
 import { hebDateFull } from '../../lib/hebrew';
@@ -104,6 +104,8 @@ export function AyinCard(props: { supporter: Supporter }) {
   const ayinSolaHref = payGateOn && integrationOn(cfg, 'payments')
     ? payLink(orgSolaPayUrl(integrationSetting(cfg, 'payments', 'solaPayUrl'), cfg.slug), 0, orgPayWho(cfg.slug, supporterPayPerson(sp)))
     : null;
+  // 3.11.2026: במאור — הכפתורים אומרים את המטבע (נדרים ₪ · סולה $)
+  const payLbl = orgPayLabels(cfg.slug);
   // כתב-כמויות/הצעת-מחיר — רק בהקשר מסחרי (§46 כבוי) + דגל. בעמותה מוסתר לגמרי.
   const boqOn = featureOn(cfg, 'supporters.ayin.boq') && !featureOn(cfg, 'core.taxreceipt');
   const timeOn = featureOn(cfg, 'supporters.ayin.time') && !featureOn(cfg, 'core.taxreceipt');
@@ -241,7 +243,7 @@ export function AyinCard(props: { supporter: Supporter }) {
               aria-label="פתיחת עמוד-התשלום בנדרים"
               style={{ textDecoration: 'none' }}
             >
-              💳 תשלום בנדרים
+              {payLbl?.ned ?? '💳 תשלום בנדרים'}
             </a>
           )}
           {!a.paid && ayinSolaHref && (
@@ -254,7 +256,7 @@ export function AyinCard(props: { supporter: Supporter }) {
               aria-label="פתיחת עמוד-התשלום בסולה (חו״ל)"
               style={{ textDecoration: 'none' }}
             >
-              💳 תשלום בסולה (חו״ל)
+              {payLbl?.sola ?? '💳 תשלום בסולה (חו״ל)'}
             </a>
           )}
           {!a.paid && <span style={{ fontSize: 11.5, color: 'var(--ink-faint)' }}>נדרש תשלום כדי להשלים</span>}

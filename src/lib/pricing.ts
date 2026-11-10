@@ -5,7 +5,8 @@
  * (טווחי-שוק לעמותות בישראל) שהבעלים דורס בפועל דרך האשף. המנוע לא קובע מחיר,
  * רק מחשב סכום מטבלת-מחירים נתונה. נשמר מקומית (מכשיר-המטמיע), לא בקונפיג-הלקוח.
  */
-import type { ModuleKey } from '../types/config';
+import type { ModuleKey, OrgConfig } from '../types/config';
+import { publicSiteOn } from './config';
 import { ALL_MODULES } from '../components/platform/lib';
 
 export type OrgSize = 'small' | 'medium' | 'large';
@@ -22,6 +23,11 @@ export interface PriceTable {
   sizeMult: Record<OrgSize, number>;
   /** הקמה חד-פעמית (0 = חינם כמנוף-מכירה). */
   setup: number;
+  /**
+   * 🌐 "אתר לעסק" — תוספת חודשית כשהאתר-הציבורי דלוק (publicSiteOn: הדגל shell.publicsite + config.site
+   * לא-מכובה). 7.11.2026 (אישור-בעלים): תואם packs[key=site].price בחנות (public/orbit/store/data.json).
+   */
+  site: number;
   /** עסקת Enterprise ("על הענן שלו") — חד-פעמי גדול + תחזוקה שנתית. */
   enterprise: { oneTime: number; annualMaintenance: number };
 }
@@ -70,6 +76,7 @@ export const DEFAULT_PRICES: PriceTable = {
   integrations: DEFAULT_INTEGRATION_PRICES,
   sizeMult: { small: 1, medium: 1.6, large: 2.4 },
   setup: 1500, // הקמה/הטמעה חד-פעמית — נורמת-שוק (הבעלים יכול לאפס כמנוף-מכירה)
+  site: 40, // 🌐 אתר לעסק — רק כשהאתר הציבורי דלוק (≡ חבילת site בחנות)
   enterprise: { oneTime: 55000, annualMaintenance: 9000 },
 };
 
@@ -138,6 +145,7 @@ export function normalizePrices(raw: unknown): PriceTable {
       large: num(base.sizeMult?.large, DEFAULT_PRICES.sizeMult.large),
     },
     setup: num(base.setup, DEFAULT_PRICES.setup),
+    site: num(base.site, DEFAULT_PRICES.site), // טבלה-שמורה ישנה (בלי site) ⇒ ברירת-המחדל
     enterprise: {
       oneTime: num(base.enterprise?.oneTime, DEFAULT_PRICES.enterprise.oneTime),
       annualMaintenance: num(base.enterprise?.annualMaintenance, DEFAULT_PRICES.enterprise.annualMaintenance),
@@ -150,7 +158,7 @@ export function normalizePrices(raw: unknown): PriceTable {
  * ופונקציית-שם (nameOf — כדי לכבד דריסות-מונח termOf של הלקוח). מחזיר פירוט מלא.
  */
 export function computeQuote(
-  cfg: { modules?: Partial<Record<ModuleKey, boolean>> },
+  cfg: { modules?: Partial<Record<ModuleKey, boolean>>; site?: OrgConfig['site']; features?: OrgConfig['features'] },
   size: OrgSize,
   prices: PriceTable,
   nameOf: (m: ModuleKey) => string,
@@ -160,7 +168,9 @@ export function computeQuote(
   const onModules = ALL_MODULES.filter((m) => cfg.modules?.[m] !== false);
   const all: QuoteLine[] = onModules.map((m) => ({ key: m, label: nameOf(m), price: prices.modules[m] ?? 0, kind: 'module' as const }));
   const addonLines: QuoteLine[] = addons.map((a) => ({ key: a.key, label: a.label, price: prices.integrations[a.key] ?? 0, kind: 'integration' as const }));
-  const lines = [...all.filter((l) => l.price > 0), ...addonLines.filter((l) => l.price > 0)];
+  // 🌐 אתר לעסק — רק כשהאתר הציבורי דלוק בקונפיג. בלי config.site ⇒ אין שורה (הצעה ביט-זהה).
+  const siteLines: QuoteLine[] = publicSiteOn(cfg as OrgConfig) ? [{ key: 'site', label: 'אתר לעסק', price: prices.site ?? 0, kind: 'integration' as const }] : [];
+  const lines = [...all.filter((l) => l.price > 0), ...addonLines.filter((l) => l.price > 0), ...siteLines.filter((l) => l.price > 0)];
   const included = all.filter((l) => l.price === 0);
   const modulesSubtotal = lines.reduce((s, l) => s + l.price, 0);
   const sizeMult = prices.sizeMult[size] ?? 1;

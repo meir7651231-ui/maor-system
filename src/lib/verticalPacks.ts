@@ -349,6 +349,48 @@ export const VERTICAL_PACKS: VerticalPack[] = [
     },
   },
   {
+    // 🎓 חינוך וחוגים (7.11.2026, אישור-בעלים) — מרכזי חוגים · גנים · מוסדות תורניים. נוטה-לעמותה:
+    // בלי COMMERCIAL_OFF (§46 נשאר — ברירת-המחדל של מאור). מנוע-החוגים הוא הליבה; אין תורמים/צדקה/חנות/
+    // חלוקה. זהות-חזותית לפי ערכת "מחברת · ירוק תפוח" בחנות (public/orbit/store/data.json editions.edu):
+    // ערכה בהירה-חמה (kehila) + ירוק-תפוח. עמדה מפורשת לכל 9 המודולים — המטריצה המלאה.
+    id: 'edu',
+    emoji: '🎓',
+    label: 'חינוך וחוגים',
+    sub: 'חוגים · גנים · מוסדות תורניים',
+    theme: 'kehila',
+    accent: '#3c8f2f',
+    icon: '🎓',
+    motion: 'calm',
+    terms: {
+      'nav.families': 'משפחות',
+      'entity.family': 'משפחה',
+      'entity.familyOf': 'משפחת',
+      'entity.member': 'ילד/ה',
+      'entity.members': 'ילדים',
+      'nav.courses': 'חוגים', // ⚠️ גם כותרת-המסך (ברירת-המחדל שם "ניהול קורסים")
+      'entity.course': 'חוג',
+      'entity.student': 'תלמיד/ה',
+      'entity.students': 'תלמידים',
+      'entity.teacher': 'מורה',
+      'entity.enrollment': 'שיבוץ',
+      'entity.enrollments': 'שיבוצים',
+      'nav.diary': 'יומן כיתות',
+      'entity.room': 'כיתה',
+      'entity.rooms': 'כיתות',
+    },
+    modules: {
+      families: true,
+      courses: true,
+      calendar: true,
+      diary: true,
+      supporters: false,
+      reports: true,
+      tzedaka: false,
+      shop: false,
+      shop7: false,
+    },
+  },
+  {
     // ורטיקל מסחרי — סטודיו דיגיטל (אפליקציות/אתרים). הלקוחות = מדריך-לקוחות,
     // "העין" = משפך-הפרויקטים (בריף→הצעה→פיתוח→בדיקה→השקה), התומכים = לידים.
     id: 'digital',

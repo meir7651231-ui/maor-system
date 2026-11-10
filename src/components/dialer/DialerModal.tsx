@@ -20,7 +20,7 @@ import { contactWindow } from '../supporters/quietHours';
 import { renderTemplate } from '../../lib/templates';
 import { activeDriver } from '../../lib/telephony/driver';
 import { downloadCsv, type Cell } from '../../lib/csvx';
-import { orgPayWho, orgSolaPayUrl, payLink, supporterPayPerson } from '../../lib/payLink';
+import { orgPayLabels, orgPayWho, orgSolaPayUrl, payLink, supporterPayPerson } from '../../lib/payLink';
 import type { DialOutcome } from '../../types/domain';
 import { Modal, Btn, Empty } from '../ui';
 import { WaBtn } from '../WaBtn';
@@ -170,6 +170,8 @@ export function DialerModal({ onClose }: { onClose: () => void }) {
   const solaDonateHref = sp && integrationOn(config, 'payments')
     ? payLink(orgSolaPayUrl(integrationSetting(config, 'payments', 'solaPayUrl'), config.slug), 0, orgPayWho(config.slug, supporterPayPerson(sp)))
     : null;
+  // 3.11.2026: במאור — הכפתורים אומרים את המטבע (נדרים ₪ · סולה $)
+  const payLbl = orgPayLabels(config.slug);
   const addCareName = () => {
     if (!sp || !nameVal.trim()) return;
     const nm = nameVal.trim();
@@ -345,7 +347,7 @@ export function DialerModal({ onClose }: { onClose: () => void }) {
                         className="chip"
                         title="התורם משלם בעצמו בעמוד-הסליקה — התשלום ייקלט אוטומטית (לא לרשום גם ידנית)"
                       >
-                        💳 עמוד-תרומה
+                        {payLbl?.ned ?? '💳 עמוד-תרומה'}
                       </a>
                     )}
                     {solaDonateHref && (
@@ -356,7 +358,7 @@ export function DialerModal({ onClose }: { onClose: () => void }) {
                         className="chip"
                         title="עמוד-התשלום בסולה — התשלום ייקלט אוטומטית (לא לרשום גם ידנית)"
                       >
-                        💳 סולה
+                        {payLbl?.sola ?? '💳 סולה'}
                       </a>
                     )}
                     {donateHref && waOn && sp.phone && (

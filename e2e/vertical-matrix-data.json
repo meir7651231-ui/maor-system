@@ -340,6 +340,39 @@
    "features": {}
   },
   {
+   "id": "edu",
+   "label": "חינוך וחוגים",
+   "terms": {
+    "nav.families": "משפחות",
+    "entity.family": "משפחה",
+    "entity.familyOf": "משפחת",
+    "entity.member": "ילד/ה",
+    "entity.members": "ילדים",
+    "nav.courses": "חוגים",
+    "entity.course": "חוג",
+    "entity.student": "תלמיד/ה",
+    "entity.students": "תלמידים",
+    "entity.teacher": "מורה",
+    "entity.enrollment": "שיבוץ",
+    "entity.enrollments": "שיבוצים",
+    "nav.diary": "יומן כיתות",
+    "entity.room": "כיתה",
+    "entity.rooms": "כיתות"
+   },
+   "modules": {
+    "families": true,
+    "courses": true,
+    "calendar": true,
+    "diary": true,
+    "supporters": false,
+    "reports": true,
+    "tzedaka": false,
+    "shop": false,
+    "shop7": false
+   },
+   "features": {}
+  },
+  {
    "id": "digital",
    "label": "סטודיו דיגיטל",
    "terms": {

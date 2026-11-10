@@ -31,6 +31,7 @@ import { TEMPLATE_DEFS } from '../../lib/templates';
 import { TelephonyPanel } from '../telephony/TelephonyPanel';
 import { isDemoSession } from '../../lib/demoLock';
 import { emptyTelephonyConfig } from '../telephony/lib';
+import { siteLiveFromDb } from '../../lib/siteLive';
 
 const DEFAULT_APP_URL = 'https://meir7651231-ui.github.io/maor-system/';
 
@@ -46,7 +47,7 @@ const PLATFORM_DEMOS: {
   accent: string;
   theme: string;
 }[] = [
-  { org: 'מאור החסד', colorName: 'ירוק צהר', desc: 'הארגון שלך', accent: '#0e7a6c', theme: 'tsohar' },
+  { org: 'השם שלכם', colorName: 'ירוק צהר', desc: 'הארגון שלכם', accent: '#0e7a6c', theme: 'tsohar' },
   { org: 'יד ביד ת״א', colorName: 'סגול רויאל', desc: 'ארגון חונכות', accent: '#8a3ffc', theme: 'tsohar' },
   { org: 'לב פתוח', colorName: 'אדום שני', desc: 'בית תמחוי', accent: '#b3362a', theme: 'tsohar' },
   { org: 'אופק לילדים', colorName: 'כחול עומק', desc: 'קרן מלגות', accent: '#1554b0', theme: 'tsohar' },
@@ -283,6 +284,8 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
   // בדמו האשף תמיד נפתח עם slug=demo/‏?org=demo ⇒ הנעילה מחזיקה כל הסשן; בשורש היא לעולם לא נדלקת ⇒
   // שדה-המזהה ומקטע-ההרחבות בדיוק כמו ב-main.
   const [demoAtOpen] = useState(() => isDemoSession(config));
+  // 📡 «שידור חי» — הצעת-המספרים מנתוני-המשרד, פעם אחת בפתיחת-האשף (בלי מנוי-DB)
+  const [sysLive] = useState(() => siteLiveFromDb(useApp.getState().db, new Date(), config));
   const [appUrl, setAppUrl] = useState(DEFAULT_APP_URL);
   const [installer, setInstaller] = useState('מאיר — הקמת מערכות לעמותות');
   const [slugTouched, setSlugTouched] = useState(config.slug !== 'default');
@@ -834,7 +837,7 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
             onToggleOpen={() => flipOpen('branding', true)}
           >
             <Field label="שם הארגון">
-              <TextInput value={config.orgName} onChange={setName} placeholder="למשל: מאור החסד" />
+              <TextInput value={config.orgName} onChange={setName} placeholder="למשל: מרכז אור" />
             </Field>
             {featureOn(config, 'core.taxreceipt') && (
               <>
@@ -1256,7 +1259,7 @@ export function BuilderWizard({ onClose }: { onClose: () => void }) {
               </span>
             </div>
 
-            <SiteContentEditor site={config.site} onChange={(site) => patch({ site })} />
+            <SiteContentEditor site={config.site} onChange={(site) => patch({ site })} systemLive={() => sysLive} />
           </SectionShell>
           );
         })()}

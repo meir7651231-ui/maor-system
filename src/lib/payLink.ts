@@ -123,3 +123,9 @@ export function orgPayWho(orgSlug: string | undefined, p: PayPerson): string | P
   const on = !!orgSlug && Object.values(SITE_DOMAINS).some((x) => x.payFullDetails && (x.officeSlug === orgSlug || x.slug === orgSlug));
   return on ? p : (p.name ?? '');
 }
+
+/** תוויות-הכפתורים עם המטבע — רק לארגון שהופעל (מאור, `payCurrencyLabels`); אחרת null ⇒ התווית הקיימת בכל משטח. טהור. */
+export function orgPayLabels(orgSlug: string | undefined): { ned: string; sola: string } | null {
+  const on = !!orgSlug && Object.values(SITE_DOMAINS).some((x) => x.payCurrencyLabels && (x.officeSlug === orgSlug || x.slug === orgSlug));
+  return on ? { ned: '💳 נדרים · ₪ שקל', sola: '💳 סולה · $ דולר' } : null;
+}

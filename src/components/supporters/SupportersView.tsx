@@ -241,6 +241,12 @@ const SupporterGridCard = memo(function SupporterGridCard(props: Omit<RowProps, 
   );
 });
 
+/** 7.11: תווית-דלי "תרומה אחרונה" דרך termOf — "ללא תרומה" דלף בוורטיקלים מסחריים (e2e:verticals). ברירת-מחדל ביט-זהה. */
+function lastBucketLabel(config: OrgConfig, b: { key: string; label: string } | undefined): string {
+  if (!b) return '';
+  return b.key === 'never' ? 'ללא ' + termOf(config, 'entity.donation', 'תרומה') : b.label;
+}
+
 export function SupportersView() {
   const db = useDbWatch('orgName', 'supporters', 'ui', 'usdRate');
   const rate = db.usdRate; // שער-דולר עריך — משוקלל בכל חישובי ה-₪-שקול והציון
@@ -804,7 +810,7 @@ export function SupportersView() {
           : null;
   const drillChips: { label: string; clear: () => void }[] = [
     ...(segLabel ? [{ label: 'סגמנט: ' + segLabel, clear: () => setSegF(null) }] : []),
-    ...(lastF ? [{ label: '🕐 תרומה אחרונה ' + (LAST_BUCKETS.find((b) => b.key === lastF)?.label ?? ''), clear: () => setLastF(null) }] : []),
+    ...(lastF ? [{ label: '🕐 ' + termOf(config, 'entity.donation', 'תרומה') + ' אחרונה ' + lastBucketLabel(config, LAST_BUCKETS.find((b) => b.key === lastF)), clear: () => setLastF(null) }] : []),
     ...(periodLabel ? [{ label: periodLabel, clear: () => { setMonthF(null); setGaveYearF(null); setPeriodMode('gave'); } }] : []),
     ...(acqYearF ? [{ label: 'גויסו ב-' + acqYearF, clear: () => setAcqYearF(null) }] : []),
   ];
@@ -1137,8 +1143,8 @@ export function SupportersView() {
         <Select
           value={lastF ?? 'all'}
           onChange={(v) => setLastF(v === 'all' ? null : (v as LastBucket))}
-          ariaLabel="תרומה אחרונה"
-          options={[{ value: 'all', label: '🕐 תרומה אחרונה: הכול' }, ...LAST_BUCKETS.map((b) => ({ value: b.key, label: '🕐 ' + b.label }))]}
+          ariaLabel={termOf(config, 'entity.donation', 'תרומה') + ' אחרונה'}
+          options={[{ value: 'all', label: '🕐 ' + termOf(config, 'entity.donation', 'תרומה') + ' אחרונה: הכול' }, ...LAST_BUCKETS.map((b) => ({ value: b.key, label: '🕐 ' + lastBucketLabel(config, b) }))]}
         />
         {/* ↕ מיון בתצוגת-גריד — בגריד אין כותרות-טבלה ללחיצה ⇒ "תרומה אחרונה" ושאר
             המיונים לא היו נגישים כלל (אותו sort של הטבלה). */}

@@ -6,7 +6,7 @@
  * 2. fetch('./config.json') — קובץ סטטי יחסי ל-base (פר-פריסה של ארגון).
  * 3. DEFAULT_CONFIG — כשאין קובץ / הקובץ פגום (404, JSON שבור).
  */
-import { DEFAULT_CONFIG, INTEGRATION_KEYS, INTEGRATION_SETTING_KEYS, MOTION_KEYS, SITE_LANGS, type FirebaseOrgConfig, type LocalizedText, type ModuleKey, type OrgConfig, type PublicSiteContent, type SiteLang, type TelNumber, type TelephonyConfig } from '../types/config';
+import { DEFAULT_CONFIG, INTEGRATION_KEYS, INTEGRATION_SETTING_KEYS, MOTION_KEYS, SITE_LANGS, SITE_SECTION_KEYS, type SiteSectionKey, type FirebaseOrgConfig, type LocalizedText, type ModuleKey, type OrgConfig, type PublicSiteContent, type SiteLang, type TelNumber, type TelephonyConfig } from '../types/config';
 import { TEMPLATE_KEYS } from './templates';
 import { currentSiteDomain } from './siteDomains';
 
@@ -283,6 +283,75 @@ export function normalizeSite(raw: unknown): PublicSiteContent | undefined {
       .filter((x): x is { value: string; label: LocalizedText } => !!x)
       .slice(0, 8);
     if (stats.length) out.stats = stats;
+  }
+  // 📡 «שידור חי» (3.11.2026) — allowlist + תקרות; מספרים כמחרוזות-תצוגה (המנהל שולט בניסוח)
+  if (s.live && typeof s.live === 'object' && !Array.isArray(s.live)) {
+    const L = s.live as Record<string, unknown>;
+    const live: NonNullable<PublicSiteContent['live']> = {};
+    if (L.enabled === true) live.enabled = true;
+    const lt = normLocalized(L.title, 80);
+    if (lt) live.title = lt;
+    const card = (v: unknown) => {
+      if (!v || typeof v !== 'object' || Array.isArray(v)) return null;
+      const o = v as Record<string, unknown>;
+      const value = siteStr(o.value, 24);
+      const label = normLocalized(o.label, 60);
+      if (!value || !label) return null;
+      const c: NonNullable<NonNullable<PublicSiteContent['live']>['cards']>[number] = { value, label };
+      const icon = siteStr(o.icon, 12);
+      if (icon) c.icon = icon;
+      const badge = normLocalized(o.badge, 40);
+      if (badge) c.badge = badge;
+      if (o.hidden === true) c.hidden = true;
+      const src = siteStr(o.src, 24);
+      if (src && /^[a-z0-9_-]+$/i.test(src)) c.src = src;
+      return c;
+    };
+    const cards = Array.isArray(L.cards) ? L.cards.map(card).filter((x): x is NonNullable<typeof x> => !!x).slice(0, 6) : [];
+    if (cards.length) live.cards = cards;
+    const today = Array.isArray(L.today) ? L.today.map(card).filter((x): x is NonNullable<typeof x> => !!x).slice(0, 4) : [];
+    if (today.length) live.today = today;
+    if (L.raised && typeof L.raised === 'object' && !Array.isArray(L.raised)) {
+      const r = L.raised as Record<string, unknown>;
+      const raised: NonNullable<NonNullable<PublicSiteContent['live']>['raised']> = {};
+      if (r.show === true) raised.show = true;
+      const rv = sitePosNum(r.value);
+      if (rv !== undefined) raised.value = rv;
+      const rg = sitePosNum(r.goal);
+      if (rg !== undefined) raised.goal = rg;
+      if (Object.keys(raised).length) live.raised = raised;
+    }
+    if (Array.isArray(L.week)) {
+      const week = L.week
+        .map((w) => {
+          if (!w || typeof w !== 'object' || Array.isArray(w)) return null;
+          const o = w as Record<string, unknown>;
+          const when = siteStr(o.when, 30);
+          const title = normLocalized(o.title, 80);
+          if (!title) return null;
+          const note = normLocalized(o.note, 120);
+          return { when, title, ...(note ? { note } : {}) };
+        })
+        .filter((x): x is NonNullable<typeof x> => !!x)
+        .slice(0, 7);
+      if (week.length) live.week = week;
+    }
+    if (Array.isArray(L.ticker)) {
+      const tk = L.ticker.map((x) => normLocalized(x, 100)).filter((x): x is LocalizedText => !!x).slice(0, 8);
+      if (tk.length) live.ticker = tk;
+    }
+    const asOf = siteStr(L.asOf, 10);
+    if (/^\d{4}-\d{2}-\d{2}$/.test(asOf)) live.asOf = asOf;
+    if (Object.keys(live).length) out.live = live;
+  }
+  // 🧱 סדר-החלקים (3.11.2026) — רק מפתחות-מוכרים, בלי כפילויות
+  if (s.sections && typeof s.sections === 'object' && !Array.isArray(s.sections)) {
+    const S = s.sections as Record<string, unknown>;
+    const keys = (v: unknown) =>
+      Array.isArray(v) ? [...new Set(v.filter((k): k is SiteSectionKey => (SITE_SECTION_KEYS as readonly string[]).includes(k as string)))] : [];
+    const order = keys(S.order);
+    const hidden = keys(S.hidden);
+    if (order.length || hidden.length) out.sections = { ...(order.length ? { order } : {}), ...(hidden.length ? { hidden } : {}) };
   }
   if (s.liveFamilies === true) out.liveFamilies = true;
   const lfl = normLocalized(s.liveFamiliesLabel, 60);

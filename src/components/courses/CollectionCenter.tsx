@@ -4,7 +4,7 @@
  */
 import { useApp } from '../../store/useApp';
 import { featureOn, integrationOn, integrationSetting } from '../../lib/config';
-import { familyPayPerson, orgPayWho, orgSolaPayUrl, payLink } from '../../lib/payLink';
+import { familyPayPerson, orgPayLabels, orgPayWho, orgSolaPayUrl, payLink } from '../../lib/payLink';
 import { Btn, Empty, Modal } from '../ui';
 import { WaBtn } from '../WaBtn';
 import { guardExport } from '../../lib/exportGate';
@@ -25,6 +25,8 @@ export function CollectionCenter(props: { onClose: () => void }) {
     integrationOn(config, 'payments') && featureOn(config, 'courses.paylink')
       ? orgSolaPayUrl(integrationSetting(config, 'payments', 'solaPayUrl'), config.slug)
       : '';
+  // 3.11.2026: במאור — הכפתורים אומרים את המטבע (נדרים ₪ · סולה $)
+  const payLbl = orgPayLabels(config.slug);
   // 3.11.2026: פרטי-המשלם המלאים (המשפחה) לכל שורה — לא רק השם
   const personOf = (memberId: string, name: string) => {
     const fam = db.families.find((f) => f.members.some((x) => x.id === memberId));
@@ -89,7 +91,7 @@ export function CollectionCenter(props: { onClose: () => void }) {
                     title="קישור-תשלום לעמוד-הסליקה (אינו מנפיק קבלה)"
                     style={{ textDecoration: 'none', fontSize: 12, fontWeight: 700, color: 'var(--accent-deep, var(--accent))', border: '1px solid var(--line)', borderRadius: 8, padding: '2px 8px', whiteSpace: 'nowrap' }}
                   >
-                    💳 תשלום מקוון
+                    {payLbl?.ned ?? '💳 תשלום מקוון'}
                   </a>
                 ) : null;
               })()}
@@ -106,7 +108,7 @@ export function CollectionCenter(props: { onClose: () => void }) {
                     title="קישור לעמוד-התשלום בסולה (אינו מנפיק קבלה)"
                     style={{ textDecoration: 'none', fontSize: 12, fontWeight: 700, color: 'var(--accent-deep, var(--accent))', border: '1px solid var(--line)', borderRadius: 8, padding: '2px 8px', whiteSpace: 'nowrap' }}
                   >
-                    💳 סולה
+                    {payLbl?.sola ?? '💳 סולה'}
                   </a>
                 ) : null;
               })()}

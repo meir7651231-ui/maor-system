@@ -8,7 +8,7 @@
  * העמוד החי של מאור (xBillLastName/xBillPhone/xEmail/xBillStreet/xBillCity/xBillZip התמלאו).
  */
 import { describe, expect, it } from 'vitest';
-import { familyPayPerson, orgPayWho, orgSolaPayUrl, payLink, supporterPayPerson } from '../payLink';
+import { familyPayPerson, orgPayLabels, orgPayWho, orgSolaPayUrl, payLink, supporterPayPerson } from '../payLink';
 import supDetail from '../../components/supporters/SupporterDetail.tsx?raw';
 import dialer from '../../components/dialer/DialerModal.tsx?raw';
 import ayin from '../../components/supporters/AyinCard.tsx?raw';
@@ -122,5 +122,28 @@ describe('🔒 «רק מאור» — שאר הלקוחות ביט-זהים לה�
     expect(payLink(NED, 180, orgPayWho('other-org', P))).toBe(NED + '&Amount=180&ClientName=%D7%9E%D7%A9%D7%94+%D7%9B%D7%94%D7%9F');
     const sola = new URL(payLink(SOLA, 500, orgPayWho('other-org', P))!);
     expect([...sola.searchParams.entries()]).toEqual([['amount', '500'], ['name', 'משה כהן']]);
+  });
+});
+
+describe('💱 «בתרומה נדרים תכתוב שקל וסולה דולר» (3.11.2026) — רק מאור', () => {
+  it('מאור ⇒ תוויות עם המטבע; אחר ⇒ null (התווית הקיימת)', () => {
+    expect(orgPayLabels('mavr-hchsd')).toEqual({ ned: '💳 נדרים · ₪ שקל', sola: '💳 סולה · $ דולר' });
+    expect(orgPayLabels('maor-hachesed')).not.toBeNull();
+    expect(orgPayLabels('other-org')).toBeNull();
+    expect(orgPayLabels(undefined)).toBeNull();
+  });
+  it('כל 5 המשטחים: תווית-מטבע או התווית הישנה', () => {
+    const pairs: [string, string, string][] = [
+      [supDetail, "{payLbl?.ned ?? '💳 עמוד תרומה'}", "{payLbl?.sola ?? '💳 סולה'}"],
+      [dialer, "{payLbl?.ned ?? '💳 עמוד-תרומה'}", "{payLbl?.sola ?? '💳 סולה'}"],
+      [ayin, "{payLbl?.ned ?? '💳 תשלום בנדרים'}", "{payLbl?.sola ?? '💳 תשלום בסולה (חו״ל)'}"],
+      [manage, "{payLbl?.ned ?? '💳 תשלום מקוון'}", "{payLbl?.sola ?? '💳 סולה'}"],
+      [collection, "{payLbl?.ned ?? '💳 תשלום מקוון'}", "{payLbl?.sola ?? '💳 סולה'}"],
+    ];
+    for (const [src, n, so] of pairs) {
+      expect(src).toContain(n);
+      expect(src).toContain(so);
+      expect(src).toMatch(/const payLbl = orgPayLabels\((config|cfg)\.slug\);/);
+    }
   });
 });

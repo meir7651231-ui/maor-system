@@ -14,7 +14,7 @@ import { deviceTag, makeId } from '../../lib/ids';
 import { normalizePhone, normSearch, formatIsraeliPhone } from '../../lib/validate';
 import { downloadCsv, parseAnyDate, parseCsv, readCsvFileText } from '../../lib/csvx';
 import { ayinSheetRows, featLabel, parseAyinSheet, type AyinSheetParse } from '../../lib/ayin';
-import { mergeFamilyImport, parseFamiliesCsv, type FamiliesImportPlan } from '../../lib/familiesImport';
+import { kidGenderOf, mergeFamilyImport, parseFamiliesCsv, type FamiliesImportPlan } from '../../lib/familiesImport';
 import { importableContacts, contactToRow, type ContactRow } from '../../lib/vcardImport';
 import { Btn, Chip, Field, FormError } from '../ui';
 import { Section, SectionNote } from './lib';
@@ -854,7 +854,7 @@ function KidsImport() {
       const m: PendMember = {
         ...emptyMember(),
         first,
-        gender: /בת|נק|f|ילדה/i.test(gr) ? 'f' : 'm',
+        gender: kidGenderOf(gr),
         birth: parseAnyDate(iBirth >= 0 ? (r[iBirth] ?? '') : ''),
         idNum: iChildId >= 0 ? digits(r[iChildId]) : '',
         school: clean(iSchool >= 0 ? r[iSchool] : ''),

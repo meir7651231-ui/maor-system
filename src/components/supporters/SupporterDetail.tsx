@@ -7,7 +7,7 @@ import type { Supporter } from '../../types/domain';
 import { useApp } from '../../store/useApp';
 import { canGrantedAction, featureOn, integrationOn, integrationSetting, isSuperAdmin, telephonyOn, termOf } from '../../lib/config';
 import { canIssueReceipt } from '../platform/lib';
-import { orgPayWho, orgSolaPayUrl, payLink, supporterPayPerson } from '../../lib/payLink';
+import { orgPayLabels, orgPayWho, orgSolaPayUrl, payLink, supporterPayPerson } from '../../lib/payLink';
 import { askClaude, readAiKey, thanksPrompt } from '../../lib/ai';
 import { annualReportLines, donationYears, downloadAnnualReport } from '../../lib/annualReport';
 import { callStats } from '../../lib/dialer';
@@ -100,6 +100,8 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
   const solaDonateHref = integrationOn(config, 'payments')
     ? payLink(orgSolaPayUrl(integrationSetting(config, 'payments', 'solaPayUrl'), config.slug), 0, orgPayWho(config.slug, supporterPayPerson(sp)))
     : null;
+  // 3.11.2026: במאור — הכפתורים אומרים את המטבע (נדרים ₪ · סולה $); אחרים — התווית הקיימת
+  const payLbl = orgPayLabels(config.slug);
   const aiReady = integrationOn(config, 'ai') && !!readAiKey();
   // גל ד׳ (sms): תור-שליחה בענן — הכפתור רק לארגון-ענן מחובר עם ההרחבה
   const cloudReady = useApp((s) => s.cloud.enabled && !!s.cloud.user);
@@ -659,7 +661,7 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
                   aria-label="פתיחת עמוד-התרומה של הארגון"
                   style={{ textDecoration: 'none' }}
                 >
-                  💳 עמוד תרומה
+                  {payLbl?.ned ?? '💳 עמוד תרומה'}
                 </a>
               )}
               {solaDonateHref && (
@@ -672,7 +674,7 @@ export function SupporterDetail(props: { supporter: Supporter; onBack: () => voi
                   aria-label="פתיחת עמוד-התשלום בסולה"
                   style={{ textDecoration: 'none' }}
                 >
-                  💳 סולה
+                  {payLbl?.sola ?? '💳 סולה'}
                 </a>
               )}
               {smsReady && (

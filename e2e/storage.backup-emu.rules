@@ -1,0 +1,3 @@
+rules_version = '2';
+// אמולטור-בלבד (G1 backup-root.emu) — לא נפרס. ה-Admin SDK עוקף Rules ממילא.
+service firebase.storage { match /b/{bucket}/o { match /{all=**} { allow read, write: if false; } } }

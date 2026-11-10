@@ -35,9 +35,9 @@ const full: WizardState = {
 };
 
 describe('🪐 ratchet — אשף ההרשמה (SIGNUP3)', () => {
-  it('5 שלבים; התחומים נגזרים מ-13 חבילות-הוורטיקל', () => {
+  it('5 שלבים; התחומים נגזרים מ-14 חבילות-הוורטיקל (+חינוך וחוגים 7.11)', () => {
     expect(WIZARD_STEPS).toBe(5);
-    expect(WIZARD_INDUSTRIES.length).toBe(13);
+    expect(WIZARD_INDUSTRIES.length).toBe(14);
     expect(WIZARD_INDUSTRIES.map((i) => i.id)).toContain('chesed');
     expect(ORG_SIZES.length).toBe(3);
     expect(ORG_NEEDS.length).toBeGreaterThanOrEqual(5);

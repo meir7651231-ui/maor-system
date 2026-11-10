@@ -81,4 +81,15 @@ export const SKELETON_I18N: Readonly<Record<string, { es: string; fr: string }>>
   'Accessibility statement': { es: 'Declaración de accesibilidad', fr: "Déclaration d'accessibilité" },
   'Privacy policy': { es: 'Política de privacidad', fr: 'Politique de confidentialité' },
   'Close': { es: 'Cerrar', fr: 'Fermer' },
+  // 📡 שידור חי (3.11.2026)
+  'Live · updated from our system': { es: 'En vivo · actualizado desde nuestro sistema', fr: 'En direct · mis à jour depuis notre système' },
+  "What's happening at home now.": { es: 'Lo que pasa ahora en el hogar.', fr: 'Ce qui se passe au foyer en ce moment.' },
+  'of the yearly goal': { es: 'de la meta anual', fr: "de l'objectif annuel" },
+  'Raised this year': { es: 'Recaudado este año', fr: 'Collecté cette année' },
+  'of': { es: 'de', fr: 'sur' },
+  'This week at home ♡': { es: 'Esta semana en el hogar ♡', fr: 'Cette semaine au foyer ♡' },
+  'You can be part of the next number ♡': { es: 'Usted puede ser parte del próximo número ♡', fr: 'Vous pouvez faire partie du prochain chiffre ♡' },
+  'Every gift goes straight into the count — and brings light to an orphan or a widow.': { es: 'Cada donación entra directo a la cuenta — y lleva luz a un huérfano o a una viuda.', fr: "Chaque don entre directement dans le compte — et apporte la lumière à un orphelin ou à une veuve." },
+  'Updates': { es: 'Novedades', fr: 'Actualités' },
+  'No names or personal details — totals only': { es: 'Sin nombres ni datos personales — solo totales', fr: 'Sans noms ni données personnelles — uniquement des totaux' },
 };
