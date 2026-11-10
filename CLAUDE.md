@@ -36,12 +36,12 @@ React 19 · TypeScript 6 · Vite 8 · Zustand 5 · idb · firebase 12 (נטען 
 בדיקות: Vitest 4 · Lint: oxlint · e2e: Playwright (`playwright-core`, Chromium מותקן מראש) · Rules: אמולטור Firestore.
 Node 22 (CI), npm. שרת אופציונלי: `functions/` (Firebase Functions, Blaze).
 
-## פקודות (אומתו בהרצה ב-3.11.2026, על main ‏`ee78822`)
+## פקודות (אומתו בהרצה ב-10.11.2026, על main ‏`2bf6a42`)
 ```bash
 npm ci                 # התקנה (~50 שניות)
 npm run typecheck      # tsc -b --noEmit — 0 שגיאות (~30 ש')
-npm run lint           # oxlint — יוצא 0; כרגע 273 אזהרות (ראו STATUS.md)
-npm run test           # vitest run — 431 קבצים · 3148 בדיקות ירוקות (~50 ש')
+npm run lint           # oxlint — יוצא 0; כרגע 290 אזהרות (PR #536 מאפס ומוסיף --deny-warnings)
+npm run test           # vitest run — 439 קבצים · 3210 בדיקות ירוקות (~60 ש')
 npm run build          # tsc -b && vite build + bundle-budget (תקרת gzip לבנדל הראשי; ~35 ש')
 npm run verify:fast    # typecheck → lint → test (לולאת פיתוח)
 npm run verify         # verify:fast + build (שער commit מלא)
@@ -51,6 +51,7 @@ npm run test:rules     # red-team ל-Firestore Rules באמולטור (דורש 
 npm run dev            # שרת פיתוח Vite
 ```
 סוויטות דפדפן נוספות: `node e2e/demo-walkthrough.mjs` · `node e2e/launch-readiness.mjs` · `node e2e/signup.mjs`.
+בדיקות מחוץ ל-vitest: `node telephony/test.mjs` (golden + יחידה, 677 בדיקות).
 מריצים אותן בסוף אשכול-עבודה / חבילה, לא על כל commit (חריג: נגעת ב-e2e או בזרימת UI מרכזית).
 
 ### שערים מדורגים (Git hooks ב-`.githooks/`, מחומשים ב-`.claude/hooks/session-start.sh`)
