@@ -21,6 +21,7 @@ from . import dbcrypt, security
 from .config import SafetyError, Settings, load_settings
 from .db import DB
 from .greeninvoice import GreenInvoiceClient
+from .integrations.base import jstr
 from .ratelimit import RateLimiter, group_for
 from .service import CollectService, RealDataBlocked
 from .templates import SLOGAN, TAGLINE
@@ -412,7 +413,7 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
             raise HTTPException(400, "invalid json") from None
         if not isinstance(ev, dict) or not ev.get("id"):
             raise HTTPException(400, "missing document id")
-        svc.audit("greeninvoice", "gi_webhook", {"document": str(ev.get("id"))[:64],
+        svc.audit("greeninvoice", "gi_webhook", {"document": jstr(ev.get("id"))[:64],
                                                  "type": ev.get("type")})
         try:
             res = svc.sync()

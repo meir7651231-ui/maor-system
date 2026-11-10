@@ -34,7 +34,7 @@ import httpx
 
 from ..config import SafetyError
 from ..greeninvoice import TYPE_CREDIT, Invoice, Netting, _to_agorot, net_credits
-from .base import IntegrationError, ProviderError, classify_status, guard_transport
+from .base import IntegrationError, ProviderError, classify_status, guard_transport, jstr
 from .sources import credits_on_doc, due_or_estimate, parse_il_date
 
 EZCOUNT_DEMO_BASE = "https://demo.ezcount.co.il"
@@ -61,7 +61,7 @@ def map_ezcount_doc(d: dict[str, Any]) -> Invoice:
     if dtype == TYPE_CREDIT:      # בזיכוי: הסכום הוא סכום המסמך
         bal = abs(float(d.get("price_total") or 0))
     closed = _flag(d, "is_cancelled", "cancelled", "is_closed", "closed") or \
-        str(d.get("status", "")).lower() in ("closed", "cancelled", "paid")
+        jstr(d.get("status")).lower() in ("closed", "cancelled", "paid")
     issued = parse_il_date(d.get("date"))
     due, estimated = due_or_estimate(parse_il_date(d.get("pay_until")), issued)
     return Invoice(

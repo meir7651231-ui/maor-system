@@ -39,7 +39,7 @@ import httpx
 
 from ..config import SafetyError
 from ..greeninvoice import TYPE_CREDIT, Invoice, Netting, _to_agorot, net_credits
-from .base import IntegrationError, ProviderError, classify_status, guard_transport
+from .base import IntegrationError, ProviderError, classify_status, guard_transport, jstr
 from .sources import CreditAmbiguous, due_or_estimate, parse_il_date
 
 RIVHIT_BASE = "https://api.rivhit.co.il/online/RivhitOnlineAPI.svc"
@@ -56,7 +56,7 @@ def _int(v: Any) -> int | None:
 
 def _part(v: Any) -> str:
     """null ⇒ "" (לא "None" — הפעלת מנהל 108, אותו דפוס של `greeninvoice._s`)."""
-    return "" if v is None else str(v).strip()
+    return jstr(v, strip=True)
 
 
 def rivhit_external_id(customer_id: Any, document_type: Any, document_number: Any) -> str:

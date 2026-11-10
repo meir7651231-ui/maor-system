@@ -19,6 +19,8 @@ from typing import Any
 
 import httpx
 
+from .integrations.base import jstr
+
 # סוגי מסמכים שמייצגים חוב פתוח (לאמת): 300 חשבון עסקה, 305 חשבונית מס
 OPEN_DEBT_TYPES = (300, 305)
 STATUS_OPEN = 0
@@ -90,7 +92,7 @@ DEFAULT_TERMS_DAYS = 30   # ממצא מבקר 2.9: בלי dueDate, תאריך ה
 def _s(v: Any) -> str:
     """null ב-JSON ⇒ "" (לא "None"). הפעלה 107: `str(None)` הפך לקוח בלי מזהה למפתח המשותף
     "None" ⇒ שני לקוחות שונים התמזגו והחוב של א' נשלח למייל של ב'."""
-    return "" if v is None else str(v)
+    return jstr(v)
 
 
 def _linked_ids(doc: dict[str, Any]) -> tuple[str, ...]:

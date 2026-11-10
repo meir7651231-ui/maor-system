@@ -17,6 +17,16 @@ SECRET_KEYS = re.compile(r"^(sid|pass)$|secret|token|password|api_?key", re.IGNO
 REDACTED = "***"
 
 
+def jstr(v: Any, *, strip: bool = False) -> str:
+    """ערך מ-JSON/CSV חיצוני ⇒ מחרוזת, כש-null ⇒ "" (לא "None").
+    הפעלות 107/108: `str(None)` יצר מפתחות משותפים ("None", "rivhit:None:1:None") ⇒ מיזוג לקוחות
+    ומסמכים. נאכף ב-tests/test_no_bare_str_get.py: אסור `str(x.get(...))` חשוף."""
+    if v is None:
+        return ""
+    s = str(v)
+    return s.strip() if strip else s
+
+
 class IntegrationError(RuntimeError):
     """תקלה בקונפיגורציה או בקלט (לא תלויה בספק)."""
 
