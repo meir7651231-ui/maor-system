@@ -1648,9 +1648,18 @@ class CollectService:
         return pid
 
     def approve_plan(self, plan_id: int, actor: str = "owner") -> dict:
-        p = self.db.one("SELECT * FROM plans WHERE id=?", (plan_id,))
-        if not p or p["status"] != "proposed":
+        # critic סבב 40: תפיסה אטומית proposed ⇒ approving. שני אישורים במקביל (לחיצה כפולה / שתי
+        # לשוניות) עברו שניהם את הבדיקה ⇒ שתי טיוטות ⇒ שני אישורי הסדר ללקוח.
+        if self.db.update("UPDATE plans SET status='approving' WHERE id=? AND status='proposed'",
+                          (plan_id,)) != 1:
             raise ValueError("הסדר לא קיים או כבר הוכרע")
+        try:
+            return self._approve_plan_claimed(plan_id, actor)
+        finally:   # כל יציאה שלא קבעה מצב סופי (שגיאת רענון וכד׳) ⇒ חוזר להצעה
+            self.db.x("UPDATE plans SET status='proposed' WHERE id=? AND status='approving'", (plan_id,))
+
+    def _approve_plan_claimed(self, plan_id: int, actor: str) -> dict:
+        p = self.db.one("SELECT * FROM plans WHERE id=?", (plan_id,))
         cust = self.db.one("SELECT * FROM customers WHERE id=?", (p["customer_id"],))
         # ר-4 (מבקר סבב 3 🔴): הצעה של 3×400 נשלחה על חוב של 300 ⇒ רענון והשוואה לפני הכול
         if not self.refresh_customer(cust["id"]):

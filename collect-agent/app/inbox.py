@@ -91,6 +91,9 @@ class ConversationInbox:
             cols = {r[1] for r in self.db.conn.execute("PRAGMA table_info(drafts)")}
             if "total_agorot" not in cols:  # DB קיים מלפני העמודה
                 self.db.conn.execute("ALTER TABLE drafts ADD COLUMN total_agorot INTEGER")
+            if "claimed_at" not in cols:    # critic סבב 40: תפיסה לשליחה (כמו reminders, 39.1)
+                self.db.conn.execute("ALTER TABLE drafts ADD COLUMN claimed_at TEXT")
+            self.db.conn.commit()
 
     # ---------- קלט ----------
     def handle(self, channel: str, sender: str, text: str) -> dict:
@@ -394,6 +397,7 @@ class ConversationInbox:
         """שולח טיוטות שאושרו אבל חיכו לחלון שליחה (לילה/שבת/חג).
         מבקר סבב 3: חריגה בטיוטה אחת לא עוצרת את האחרות (_try_send תופס ומסמן)."""
         out = []
+        self._recover_stuck_drafts()
         for r in self.db.q("SELECT id FROM drafts WHERE status='approved' ORDER BY id"):
             if self._try_send(r["id"]):
                 out.append(r["id"])
@@ -440,6 +444,26 @@ class ConversationInbox:
         self.svc.audit("system", "draft_stale", {"draft": dr["id"], "plan": bool(dr["plan_id"])})
         return True
 
+    def _claim_draft(self, draft_id: int) -> bool:
+        """critic סבב 40: תפיסה אטומית (approved ⇒ sending) לפני השליחה. False ⇒ מישהו אחר כבר שולח/שלח."""
+        return self.db.update("UPDATE drafts SET status='sending', claimed_at=? WHERE id=? AND "
+                              "status='approved'", (_iso(self.svc.clock()), draft_id)) == 1
+
+    def _recover_stuck_drafts(self) -> None:
+        """טיוטה ב-sending מעל 30 דק׳ = נפילה בין send לסימון ⇒ לא שולחים שוב; send_unknown + הודעה."""
+        cutoff = _iso(self.svc.clock() - self.svc.CLAIM_STALE)
+        for r in self.db.q("SELECT id, customer_id FROM drafts WHERE status='sending' AND claimed_at<=?",
+                           (cutoff,)):
+            if self.db.update("UPDATE drafts SET status='send_unknown' WHERE id=? AND status='sending'",
+                              (r["id"],)) != 1:
+                continue
+            self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
+                      "message_id,created_at) VALUES(?,'system','owner',?,'send_unknown',1,?,?)",
+                      (r["customer_id"], "שליחת תשובה ללקוח נקטעה באמצע. ייתכן שהיא יצאה — היא לא "
+                       "תישלח שוב אוטומטית. בדקו ב«יומן יוצאים» לפני שליחה ידנית.",
+                       f"sendunk-draft:{r['id']}", _iso(self.svc.clock())))
+            self.svc.audit("system", "send_unknown", {"draft": r["id"]})
+
     def _try_send(self, draft_id: int) -> bool:
         dr = self._get(draft_id)
         cust = self.db.one("SELECT * FROM customers WHERE id=?", (dr["customer_id"],))
@@ -472,6 +496,8 @@ class ConversationInbox:
                       (draft_id,))
             return False
         now = self.svc.clock()
+        if not self._claim_draft(draft_id):
+            return False   # critic סבב 40: אישור ו-flush במקביל / ריצה אחרת — רק אחד שולח
         try:
             mid = self.svc.sender.send(msg)
         except Exception as e:  # noqa: BLE001 — מבקר סבב 3: IntegrationError (ארוך מדי) קרס ונעל את הלקוח

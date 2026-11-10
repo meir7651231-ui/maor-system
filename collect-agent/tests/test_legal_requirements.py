@@ -746,3 +746,69 @@ def test_claim_prevents_concurrent_double_send(svc, fake_gi):
     assert svc._claim_reminder(rid) is False
     assert svc.plan() == []                      # בזמן sending לא נבנית תזכורת נוספת ללקוח
     assert svc.db.one("SELECT status FROM reminders WHERE id=?", (rid,))["status"] == "sending"
+
+
+def test_draft_crash_after_send_does_not_resend(svc, fake_gi, clock, monkeypatch):
+    """critic סבב 40: אותו דפוס של 39.1 בטיוטות שיחה. _try_send שולח ואז מסמן; נפילה ביניהם (למשל ה-log
+    נכשל) השאירה `approved` ⇒ flush של ה-cron שלח **שוב**. וגם: אישור של בעל העסק (בקשת HTTP) בדיוק
+    כשה-cron מריץ flush ⇒ שתי שליחות. עכשיו: תפיסה אטומית; נתקעה ⇒ send_unknown בלי שליחה חוזרת."""
+    from datetime import timedelta
+    svc.sync()
+    r = svc.inbound("sms", "050-1234567", "איך אפשר לשלם?")
+    orig = svc._log_out
+
+    def boom(*a, **k):
+        raise RuntimeError("disk full")
+    monkeypatch.setattr(svc, "_log_out", boom)
+    with pytest.raises(RuntimeError):
+        svc.inbox.approve_draft(r["draft_id"])
+    monkeypatch.setattr(svc, "_log_out", orig)
+    n = len(svc.sender.sent)
+    clock.now += timedelta(hours=2)
+    svc.dispatch()                               # flush של ה-cron
+    assert len(svc.sender.sent) == n
+    d = svc.db.one("SELECT status FROM drafts WHERE id=?", (r["draft_id"],))
+    assert d["status"] == "send_unknown"
+    assert svc.db.one("SELECT 1 FROM messages WHERE intent='send_unknown' AND needs_owner=1")
+
+
+def test_draft_claim_is_exclusive(svc, fake_gi):
+    svc.sync()
+    r = svc.inbound("sms", "050-1234567", "איך אפשר לשלם?")
+    svc.db.x("UPDATE drafts SET status='approved' WHERE id=?", (r["draft_id"],))
+    assert svc.inbox._claim_draft(r["draft_id"]) is True
+    assert svc.inbox._claim_draft(r["draft_id"]) is False
+    assert svc.inbox.flush() == []               # ה-cron לא שולח טיוטה שתפוסה
+
+
+def test_concurrent_approve_plan_sends_once(svc, fake_gi):
+    """critic סבב 40: שני approve_plan במקביל (לחיצה כפולה / שתי לשוניות) עברו שניהם את `status=='proposed'`
+    לפני שמישהו עדכן ⇒ שתי טיוטות ⇒ **שני אישורי הסדר** ללקוח. עכשיו: תפיסה אטומית proposed ⇒ approving."""
+    import threading
+    svc.sync()
+    r = svc.inbound("sms", "050-1234567", "אפשר לפרוס ל-3 תשלומים?")
+    bar = threading.Barrier(2, timeout=1.5)
+    orig = svc.refresh_customer
+
+    def slow(cid):
+        try:
+            bar.wait()                           # שני ה-threads נפגשים כאן (אם שניהם הגיעו)
+        except threading.BrokenBarrierError:
+            pass
+        return orig(cid)
+    svc.refresh_customer = slow
+    n0 = len(svc.sender.sent)
+    errs = []
+
+    def go():
+        try:
+            svc.approve_plan(r["plan_id"])
+        except ValueError as e:
+            errs.append(str(e))
+    ts = [threading.Thread(target=go) for _ in range(2)]
+    for t in ts:
+        t.start()
+    for t in ts:
+        t.join()
+    assert len(svc.sender.sent) - n0 == 1, svc.sender.sent[n0:]
+    assert len(errs) == 1
