@@ -868,3 +868,16 @@ def test_failed_webhook_processing_releases_claim_so_retry_works(svc, monkeypatc
     r = svc.sms_webhook_019(raw)
     assert not r.get("duplicate")
     assert svc.suppressed("sms", "0547777777")
+
+
+def test_webhook_dedupe_keys_expire_with_retention(svc, clock):
+    """critic סבב 42 (ℹ️): טבלת webhook_dedupe גדלה לנצח, ומזהה הודעת מייל יכול לשאת דומיין/שם שולח.
+    עכשיו purge_closed מוחק מפתחות מעל 90 יום; מפתח טרי נשאר ועדיין חוסם retry כפול."""
+    from datetime import timedelta
+    svc.email_webhook("c1@example.com", "איך לשלם?", "<old@mail.example>")
+    clock.now += timedelta(days=91)
+    svc.email_webhook("c1@example.com", "תודה", "<new@mail.example>")
+    svc.purge_closed()
+    keys = [r["key"] for r in svc.db.q("SELECT key FROM webhook_dedupe")]
+    assert keys == ["mail:<new@mail.example>"]
+    assert svc.email_webhook("c1@example.com", "תודה", "<new@mail.example>").get("duplicate")

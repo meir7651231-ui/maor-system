@@ -913,6 +913,9 @@ class CollectService:
                         "AND body<>'' AND created_at<=?", (cutoff,))
         for m in unk:
             self.db.x("UPDATE messages SET body='', payload=NULL WHERE id=?", (m["id"],))
+        # critic סבב 42 (ℹ️): מפתחות dedupe של webhooks גדלו לנצח. ספק לא שולח retry אחרי 90 יום,
+        # ומזהה הודעת מייל יכול לשאת דומיין/שם שולח ⇒ אותו חלון שמירה.
+        self.db.x("DELETE FROM webhook_dedupe WHERE at<=?", (cutoff,))
         return inv_n, cust_n, len(unk)
 
     def _table_exists(self, name: str) -> bool:
