@@ -8,9 +8,10 @@ import { createServer } from 'http';
 import { readFileSync, existsSync, statSync } from 'fs';
 import { join, extname, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { CHROME_EXE } from './chrome-path.mjs';
 const HERE = dirname(fileURLToPath(import.meta.url));
 const DIST = join(HERE, '..', 'dist');
-const CHROME = process.env.CHROME_PATH ?? '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
+const CHROME = CHROME_EXE;
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png', '.webmanifest': 'application/manifest+json' };
 const server = createServer((req, res) => { let p = join(DIST, decodeURIComponent(req.url.split('?')[0].split('#')[0])); if (!existsSync(p) || !statSync(p).isFile()) p = join(DIST, 'index.html'); res.setHeader('Content-Type', MIME[extname(p)] ?? 'application/octet-stream'); res.end(readFileSync(p)); });
 await new Promise((r) => server.listen(8268, r));
@@ -62,7 +63,10 @@ const modal2 = pg.locator('[role="dialog"], .modal').last();
 (await modal2.locator('input').first().inputValue()) === 'שם' ? ok('חזרה: טקסט-החיפוש נשמר') : fail('החיפוש אופס');
 (await modal2.locator('tbody tr').count()) === rowsNames ? ok('חזרה: אותן ' + rowsNames + ' שורות') : fail('שורות שונות');
 const wrap2 = modal2.locator('table').first().locator('xpath=..');
-const restored = await wrap2.evaluate((el) => el.scrollTop);
+// 10.11.2026: השחזור קורה אחרי ציור-הטבלה; תחת עומס-CPU קריאה-אחת אחרי 900ms נכשלה לפעמים (0 ≠ 150)
+// למרות שהשחזור עובד ⇒ ממתינים עד 3 ש' לשחזור. אם אין שחזור כלל — עדיין נכשל.
+let restored = 0;
+for (let t = 0; t < 30; t++) { restored = await wrap2.evaluate((el) => el.scrollTop); if (Math.abs(restored - scrolled) <= 2) break; await pg.waitForTimeout(100); }
 Math.abs(restored - scrolled) <= 2 ? ok('חזרה: גלילת-הטבלה שוחזרה (' + restored + 'px)') : fail('גלילה לא שוחזרה: ' + restored + ' ≠ ' + scrolled);
 await modal2.locator('button', { hasText: 'סגירה' }).first().click(); await pg.waitForTimeout(300);
 (await pg.locator('[role="dialog"], .modal').count()) === 0 ? ok('"סגירה" סוגרת (ולא חוזר לבד)') : fail('המודאל לא נסגר');

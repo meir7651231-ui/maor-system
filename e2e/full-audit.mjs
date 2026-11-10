@@ -8,13 +8,14 @@ import { createServer } from 'http';
 import { readFileSync, existsSync, statSync, mkdirSync, rmSync } from 'fs';
 import { join, extname, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { CHROME_EXE } from './chrome-path.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const DIST = join(HERE, '..', 'dist');
 const SHOTS = join(HERE, 'shots-audit');
 rmSync(SHOTS, { recursive: true, force: true });
 mkdirSync(SHOTS, { recursive: true });
-const CHROME = process.env.CHROME_PATH ?? '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
+const CHROME = CHROME_EXE;
 const DEMO = readFileSync(join(DIST, 'demo.json'), 'utf8');
 
 const server = createServer((req, res) => {
@@ -84,10 +85,13 @@ async function appPass(width, tag) {
   const nav = async (label, name) => {
     await closeModals();
     // mobile: nav may be in bottom bar / "עוד" modal; desktop: side-link or top nav
-    let btn = page.locator('.app-side .side-link, nav.app-nav button, .bottomnav button', { hasText: label });
+    // 10.11.2026: במובייל הסריקה לא ניווטה כלל — הסלקטור תפס קודם את כפתורי-הצד (.side-link) שקיימים ב-DOM
+    // אבל מוסתרים במובייל ⇒ click נכשל בשקט (catch) וכל 'המסכים' מדדו את אותו מסך. עכשיו: רק כפתור גלוי,
+    // כולל הניווט התחתון .bottom-nav (UX-SIMPLE; השם הישן .bottomnav נשמר).
+    let btn = page.locator('.app-side .side-link, nav.app-nav button, .bottom-nav button, .bottomnav button', { hasText: label }).filter({ visible: true });
     if (!(await btn.count())) {
-      const more = page.locator('button', { hasText: 'עוד' });
-      if (await more.count()) { await more.first().click().catch(() => {}); await wait(300); btn = page.locator('[role="dialog"] button, .modal button', { hasText: label }); }
+      const more = page.locator('button', { hasText: 'עוד' }).filter({ visible: true });
+      if (await more.count()) { await more.first().click().catch(() => {}); await wait(300); btn = page.locator('[role="dialog"] button, .modal button', { hasText: label }).filter({ visible: true }); }
     }
     if (await btn.count()) { await btn.first().click().catch(() => {}); await wait(650); }
     await closeModals();

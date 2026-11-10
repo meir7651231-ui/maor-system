@@ -9,10 +9,11 @@ import { createServer } from 'http';
 import { readFileSync, existsSync, statSync } from 'fs';
 import { join, extname, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { CHROME_EXE } from './chrome-path.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const DIST = join(HERE, '..', 'dist');
-const CHROME = process.env.CHROME_PATH ?? '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
+const CHROME = CHROME_EXE;
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png', '.webmanifest': 'application/manifest+json' };
 
 const server = createServer((req, res) => {
@@ -146,12 +147,14 @@ if (await payChip.count()) {
 // עריכת-פרטים — SupporterForm מחליף את החייגן וחוזר
 await pg.locator('button', { hasText: '✎ עריכת פרטים' }).click();
 await pg.waitForTimeout(400);
-if (await pg.getByLabel('שם מלא *').count()) {
+// 13.10 (#510): התווית הפכה ל'שם מלא (מופיע על הקבלה) *' (פיצול פרטי/משפחה) — התאמת-תחילית, לא נוסח-קשיח
+if (await pg.getByLabel(/^שם מלא/).count()) {
   ok('✎ עריכת-פרטים פתחה את טופס-התומך');
   await pg.getByRole('textbox', { name: 'עיר' }).fill('ירושלים');
   await pg.locator('button', { hasText: 'שמירה' }).first().click();
   await pg.waitForTimeout(900);
-  const city = await pg.evaluate((id) => JSON.parse(localStorage.getItem('maor_db')).supporters.find((s) => s.id === id)?.address ?? JSON.parse(localStorage.getItem('maor_db')).supporters.find((s) => s.id === id)?.city ?? '', firstId);
+  const city = await pg.evaluate((id) => JSON.parse(localStorage.getItem('maor_db')).supporters.find((s) => s.id === id)?.city ?? '', firstId);
+  city === 'ירושלים' ? ok('העיר שנערכה נשמרה בכרטיס') : fail('העיר לא נשמרה: ' + city);
   (await pg.locator('text=📞 חייגן').count()) ? ok('חזרנו לחייגן אחרי העריכה') : fail('לא חזרנו לחייגן אחרי עריכה');
 } else fail('טופס-העריכה לא נפתח');
 
