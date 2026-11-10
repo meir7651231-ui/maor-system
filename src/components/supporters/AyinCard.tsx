@@ -36,7 +36,7 @@ import { fmtDate, supIls } from './lib';
 
 export function AyinCard(props: { supporter: Supporter }) {
   const sp = props.supporter;
-  const a = { ...emptyAyin(), ...(sp.ayin ?? {}) }; // ayin חלקי (גיבוי-ישן/ענן) — כל תת-מערך מובטח
+  const a = { ...emptyAyin(), ...sp.ayin }; // ayin חלקי (גיבוי-ישן/ענן) — כל תת-מערך מובטח
   const cfg = useApp((s) => s.config);
   const toast = useApp((s) => s.toast);
   const setSupporterNext = useApp((s) => s.setSupporterNext);

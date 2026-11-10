@@ -35,6 +35,6 @@ export function composeSmtpUrl(email: string, password: string, host: string): s
   const pw = password.trim();
   const h = host.trim();
   if (!em || !pw || !h || em.indexOf('@') < 1) return null;
-  const scheme = /:465$/.test(h) ? 'smtps' : 'smtp';
+  const scheme = h.endsWith(':465') ? 'smtps' : 'smtp';
   return `${scheme}://${encodeURIComponent(em)}:${encodeURIComponent(pw)}@${h}`;
 }
