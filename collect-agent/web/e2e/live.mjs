@@ -51,6 +51,9 @@ const b = await chromium.launch();
 try {
   const ctx = await b.newContext();
   const p = await ctx.newPage();
+  // הפעלה 111: settings-live מופיע לפני ש-GET /settings חזר. עד אז הטופס מראה ברירת-מחדל, וקליק בחלון הזה
+  // נדרס בטעינה ⇒ «שמירה» נשארת מושבתת (נכשל לסירוגין ב-live.mjs, גם לפני). מחכים ל-data-loaded=1.
+  const settingsLoaded = () => p.locator('[data-testid="settings-live"][data-loaded="1"]').waitFor();
   await p.setViewportSize({ width: 1366, height: 900 });
   p.on('response', async r => {
     if (r.status() === 429) {
@@ -223,7 +226,7 @@ try {
 
   // 7) הגדרות חיות מול /settings: שמירה אמיתית בשרת, דחיית שרת (422 צפוי) מוצגת בעברית, ייבוא CSV עם שגיאת שורה
   await p.goto(base + '/app/#/settings');
-  await p.getByTestId('settings-live').waitFor();
+  await settingsLoaded();
   const before = await api('/settings');
   await p.getByLabel('שם לחתימה').waitFor();
   ok(await p.getByLabel('שם השולח ב-SMS').inputValue() === before.sms.sender, 'הטופס לא נטען מהשרת');
@@ -351,7 +354,7 @@ try {
   // 9) בורר מקור החשבוניות: iCount בהגדרות ⇒ השרת שומר source.system ⇒ סנכרון מול ה-mock של iCount
   //    (בתוך התהליך, בלי רשת) ⇒ שחזור לחשבונית ירוקה. רק הבחירה נשלחת — אף פעם לא מפתח.
   await p.goto(base + '/app/#/settings');
-  await p.getByTestId('settings-live').waitFor();
+  await settingsLoaded();
   const srcBefore = (await api('/settings')).source;
   ok(srcBefore.system === 'greeninvoice' && srcBefore.api_connected === true, 'מקור התחלתי: ' + JSON.stringify(srcBefore));
   ok(await p.getByTestId('source-greeninvoice').getAttribute('aria-checked') === 'true', 'הבורר לא נטען מהשרת');
@@ -379,7 +382,7 @@ try {
   ok((await api('/audit')).some(a => a.action === 'source_system_changed' && /icount/.test(a.detail ?? '')), 'אין audit להחלפת מקור');
   // שחזור
   await p.goto(base + '/app/#/settings');
-  await p.getByTestId('settings-live').waitFor();
+  await settingsLoaded();
   await p.getByTestId('source-greeninvoice').click();
   await p.getByTestId('settings-save').click();
   await p.getByTestId('source-status').filter({ hasText: 'מחובר (סביבת בדיקה)' }).waitFor();

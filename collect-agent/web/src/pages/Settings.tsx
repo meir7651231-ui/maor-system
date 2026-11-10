@@ -67,7 +67,7 @@ export function Settings() {
     <div className="space-y-6 max-w-3xl">
       <h1 className="text-3xl font-extrabold">הגדרות עסק</h1>
       {live ? (
-        <div role="note" data-testid="settings-live" className="rounded-2xl border border-brand/40 bg-brand-50 p-4 text-brand-700">
+        <div role="note" data-testid="settings-live" data-loaded={server ? '1' : '0'} className="rounded-2xl border border-brand/40 bg-brand-50 p-4 text-brand-700">
           <b>✓ מחובר לשרת.</b> שינויים נשמרים בשרת ומשפיעים על התזכורות הבאות (מצב בדיקה — שום הודעה לא יוצאת באמת).
         </div>
       ) : (
