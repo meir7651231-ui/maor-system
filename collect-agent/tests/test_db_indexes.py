@@ -62,3 +62,49 @@ def test_draft_footer_follows_theme_colors():
     from app import legal
     html = legal.draft_footer()
     assert "color:var(--muted" in html and "border:1px solid var(--line" in html
+
+
+def _count_commits(svc, fn):
+    commits = []
+    svc.db.conn.set_trace_callback(lambda s: commits.append(s) if s.strip().upper().startswith("COMMIT") else None)
+    try:
+        fn()
+    finally:
+        svc.db.conn.set_trace_callback(None)
+    return len(commits)
+
+
+def test_sync_and_plan_commits_do_not_scale_with_customers(svc):
+    """critic סבב 38: על DB בדיסק, סנכרון של 5,000 חשבוניות = 7.1 שנ׳ ו-plan() = 17.4 שנ׳ — commit (fsync)
+    לכל שורה (~2 לחשבונית, ~4 לתזכורת), עם ה-DB נעול כל הזמן. וסנכרון שנפל באמצע השאיר חצי מהחשבוניות
+    מעודכנות. עכשיו: ingest בטרנזקציה אחת; plan במנות. מספר ה-commits לא גדל לינארית עם הלקוחות."""
+    from app.greeninvoice import map_document
+    from tests.conftest import gi_doc
+    docs = [map_document(gi_doc(i, phone=f"050-{i:07d}", client_id=f"c{i}")) for i in range(1, 301)]
+    assert _count_commits(svc, lambda: svc.ingest(docs)) <= 5
+    assert _count_commits(svc, svc.plan) <= 20
+
+
+def test_ingest_is_atomic(svc, monkeypatch):
+    """נפילה באמצע סנכרון ⇒ שום חשבונית לא עודכנה (לא «חצי סנכרון»)."""
+    import pytest as _pytest
+
+    from app.greeninvoice import map_document
+    from tests.conftest import gi_doc
+    docs = [map_document(gi_doc(i, phone=f"050-{i:07d}", client_id=f"c{i}")) for i in range(1, 6)]
+    svc.ingest(docs)
+    before = svc.db.q("SELECT external_id, amount_agorot FROM invoices ORDER BY id")
+    docs2 = [map_document(gi_doc(i, amount="999.00", phone=f"050-{i:07d}", client_id=f"c{i}")) for i in range(1, 6)]
+    n = {"c": 0}
+    orig = svc._merge_csv_twin
+
+    def boom(inv, source):
+        n["c"] += 1
+        if n["c"] == 4:
+            raise RuntimeError("crash mid-sync")
+        return orig(inv, source)
+    monkeypatch.setattr(svc, "_merge_csv_twin", boom)
+    with _pytest.raises(RuntimeError):
+        svc.ingest(docs2)
+    assert [tuple(r) for r in svc.db.q("SELECT external_id, amount_agorot FROM invoices ORDER BY id")] == \
+        [tuple(r) for r in before]

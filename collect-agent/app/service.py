@@ -252,6 +252,14 @@ class CollectService:
         """upsert. full=True (סנכרון API מלא): חשבונית פתוחה שנעלמה ⇒ נסגרה ⇒ ביטול תזכורות.
         ייבוא CSV חלקי (full=False) לא סוגר חשבוניות שלא הופיעו בקובץ.
         review (ממצא 2.16): זיכוי/המרה שלא שויכו בביטחון ⇒ הלקוח מושהה לבדיקת בעל העסק."""
+        # critic סבב 38: טרנזקציה אחת — commit לכל שורה עלה 7 שנ׳ ל-5,000 בדיסק, וסנכרון שנפל באמצע
+        # השאיר חלק מהחשבוניות מעודכנות. עכשיו: הכול או כלום (והרבה יותר מהר).
+        with self.db.batch():
+            return self._ingest_rows(invoices, source=source, full=full, review=review,
+                                     provider=provider)
+
+    def _ingest_rows(self, invoices: list[Invoice], *, source: str, full: bool,
+                     review: list[tuple[Invoice, str]], provider: str | None) -> dict[str, int]:
         now = _iso(self.clock())
         seen: set[str] = set()
         for inv in invoices:
@@ -623,10 +631,13 @@ class CollectService:
         created: list[int] = []
         custs = self.db.q("SELECT DISTINCT customer_id FROM invoices WHERE status='open' "
                           "ORDER BY customer_id")
-        for c in custs:
-            rid = self._plan_customer(c["customer_id"], now)
-            if rid:
-                created.append(rid)
+        # critic סבב 38: במנות של 200 לקוחות לטרנזקציה — commit לכל כתיבה עלה 17 שנ׳ ל-5,000 בדיסק
+        for i in range(0, len(custs), 200):
+            with self.db.batch():
+                for c in custs[i:i + 200]:
+                    rid = self._plan_customer(c["customer_id"], now)
+                    if rid:
+                        created.append(rid)
         if created:
             self.audit("system", "plan", {"created": created})
         return created
