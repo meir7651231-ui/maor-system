@@ -97,6 +97,12 @@ def is_synthetic_contact(phone: str, email: str) -> bool:
     return ok_p and ok_e
 
 
+def _missing_doc_id(ext: str) -> bool:
+    """מזהה מסמך ריק/חסר: "" · "None" · קידומת מקור בלבד ("ezcount:") · "ezcount:None"."""
+    tail = (ext or "").split(":", 1)[-1].strip()
+    return tail in ("", "None", "null")
+
+
 class CollectService:
     def __init__(self, settings: Settings, db: DB, *, sender: DryRunSender | None = None,
                  gi: GreenInvoiceClient | InvoiceSource | None = None,
@@ -262,7 +268,13 @@ class CollectService:
                      review: list[tuple[Invoice, str]], provider: str | None) -> dict[str, int]:
         now = _iso(self.clock())
         seen: set[str] = set()
+        no_id = 0
         for inv in invoices:
+            if _missing_doc_id(inv.external_id):
+                # critic סבב 43: מסמך בלי מזהה (id=null ב-GI, doc_uuid חסר ב-EZcount) ⇒ "" / "ezcount:" /
+                # "ezcount:None" — ושני כאלה התמזגו לחשבונית אחת. בלי מזהה אין רענון מהמקור (ר-4) ⇒ מדלגים.
+                no_id += 1
+                continue
             if inv.status != 0 or inv.amount_agorot <= 0:
                 continue   # ממצא 2.10: רק «פתוח» עם יתרה חיובית הוא חוב
             if not self._merge_csv_twin(inv, source):
@@ -295,6 +307,8 @@ class CollectService:
                  inv.due.isoformat() if inv.due else None, cid, inv.payment_url, now, source,
                  inv.credit_agorot))
         held = self._hold_for_credit_review(review)
+        if no_id:
+            self._notify_docs_without_id(no_id)
         closed = 0
         if not full:
             self.audit("system", "import", {"source": source, "rows": len(seen)})
@@ -312,6 +326,18 @@ class CollectService:
         if held:
             out["review"] = held   # לקוחות שהושהו לבדיקת זיכוי (2.16) — רק כשיש
         return out
+
+    def _notify_docs_without_id(self, n: int) -> None:
+        """התראה אחת ליום (בלי PII) — לא בכל סנכרון."""
+        key = "noid:" + self.clock().date().isoformat()
+        if self.db.one("SELECT 1 FROM messages WHERE intent='doc_without_id' AND message_id=?", (key,)):
+            return
+        self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
+                  "message_id,created_at) VALUES(NULL,'system','owner',?,'doc_without_id',1,?,?)",
+                  (f"{n} מסמכים ממערכת החשבוניות הגיעו בלי מזהה, ולכן גבי לא שולחת עליהם תזכורות "
+                   "(אי אפשר לאמת מולם סכום לפני שליחה). בדקו אותם במערכת החשבוניות.", key,
+                   _iso(self.clock())))
+        self.audit("system", "doc_without_id", {"count": n})
 
     def _merge_csv_twin(self, inv: Invoice, source: str) -> bool:
         """critic 3.6.4: אותה חשבונית מ-CSV (`csv:{מספר}`) ומה-API היו שני שרשורים. סנכרון API מלא
