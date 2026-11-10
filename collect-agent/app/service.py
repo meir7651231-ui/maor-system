@@ -1334,6 +1334,14 @@ class CollectService:
 
     def email_webhook(self, sender: str, text: str, message_id: str = "", *,
                       auth_results: str = "") -> dict:
+        try:
+            return self._email_webhook(sender, text, message_id, auth_results=auth_results)
+        except Exception:
+            self._release_webhook("mail:" + (message_id or hashlib.sha256(f"{sender}|{text}".encode()).hexdigest()))
+            raise
+
+    def _email_webhook(self, sender: str, text: str, message_id: str = "", *,
+                       auth_results: str = "") -> dict:
         """מייל נכנס (ספק inbound-parse כלשהו, מנורמל ל-from/text/message_id). אידמפוטנטי.
         critic 3.6.7: מייל נכנס לא מאומת יכול להתחזות ללקוח. ההשפעות של מייל נכנס הן רק עצירה
         (השהיה/מחלוקת/הסרה — שמרני), ולכן לא חוסמים; אבל **מתעדים** את פסיקת SPF/DKIM/DMARC של
@@ -1343,7 +1351,7 @@ class CollectService:
         from .channels import parse_address, strip_reply
 
         key = "mail:" + (message_id or hashlib.sha256(f"{sender}|{text}".encode()).hexdigest())
-        if self.db.one("SELECT 1 FROM messages WHERE message_id=?", (key,)):
+        if not self._claim_webhook(key) or self.db.one("SELECT 1 FROM messages WHERE message_id=?", (key,)):
             return {"ok": True, "duplicate": True}
         addr, body = parse_address(sender), strip_reply(text)
         self.db.x("INSERT INTO messages(customer_id,direction,channel,body,message_id,created_at)"
@@ -1361,11 +1369,19 @@ class CollectService:
         return {"ok": True, **out, "email_verified": auth["verified"]}
 
     def sms_webhook_019(self, raw: bytes) -> dict:
+        try:
+            return self._sms_webhook_019(raw)
+        except Exception:
+            self._release_webhook("019:" + hashlib.sha256(raw).hexdigest())
+            raise
+
+    def _sms_webhook_019(self, raw: bytes) -> dict:
         import hashlib
         from urllib.parse import parse_qs
 
         key = "019:" + hashlib.sha256(raw).hexdigest()
-        if self.db.one("SELECT 1 FROM messages WHERE message_id=?", (key,)):
+        # critic סבב 42: התפיסה לפני העיבוד (הרשומה ב-messages נכתבת רק בסוף ⇒ חלון לעיבוד כפול)
+        if not self._claim_webhook(key) or self.db.one("SELECT 1 FROM messages WHERE message_id=?", (key,)):
             return {"ok": True, "duplicate": True}
         f = {k: v[0] for k, v in parse_qs(raw.decode("utf-8", "replace")).items()}
         kind = f.get("type", "incoming_sms")
@@ -1387,6 +1403,15 @@ class CollectService:
         self.db.x("INSERT INTO messages(customer_id,direction,channel,body,message_id,created_at)"
                   " VALUES(NULL,'webhook','sms',?,?,?)", (kind, key, _iso(self.clock())))
         return res
+
+    def _claim_webhook(self, key: str) -> bool:
+        """critic סבב 42: True רק לבקשה הראשונה עם המפתח הזה (אטומי). retry של הספק / worker שני ⇒ False."""
+        return self.db.update("INSERT OR IGNORE INTO webhook_dedupe(key, at) VALUES(?,?)",
+                              (key, _iso(self.clock()))) == 1
+
+    def _release_webhook(self, key: str) -> None:
+        """עיבוד נכשל ⇒ משחררים את המפתח, כדי ש-retry של הספק יעובד («הסר» לא הולך לאיבוד)."""
+        self.db.x("DELETE FROM webhook_dedupe WHERE key=?", (key,))
 
     def has_unsub_token(self, token: str) -> bool:
         return self._unsub_customer(token) is not None

@@ -231,6 +231,19 @@ def copy_database(src: Any, dst: Any) -> None:
     """מעתיק סכמה+נתונים מ-``src`` ל-``dst`` ריק (גם בין sqlite3 ל-sqlcipher3, שאין ביניהם backup API).
     טבלאות ⇒ שורות ⇒ אינדקסים/טריגרים/views (טריגרי append-only לא חוסמים הכנסה). כולל sqlite_sequence
     ו-user_version. טרנזקציה אחת ב-dst."""
+    # critic סבב 42: טרנזקציית קריאה במקור ⇒ snapshot אחד לכל הטבלאות. בלעדיה כתיבה של השרת בין טבלה
+    # לטבלה נכנסה לגיבוי באמצע (חשבונית בלי הלקוח שלה). אם המקור כבר בטרנזקציה — היא ה-snapshot.
+    own_tx = not getattr(src, "in_transaction", False)
+    if own_tx:
+        src.execute("BEGIN")
+    try:
+        _copy_database(src, dst)
+    finally:
+        if own_tx:
+            src.execute("COMMIT")
+
+
+def _copy_database(src: Any, dst: Any) -> None:
     objs = src.execute("SELECT type, name, sql FROM sqlite_master WHERE sql IS NOT NULL "
                        "AND name NOT LIKE 'sqlite_%' ORDER BY rowid").fetchall()
     tables = [(n, s) for t, n, s in objs if t == "table"]

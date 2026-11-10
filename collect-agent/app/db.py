@@ -190,6 +190,8 @@ class DB:
                 ("delivery_at", "ALTER TABLE messages ADD COLUMN delivery_at TEXT")):
             if col not in mcols:
                 self.conn.execute(ddl)
+        # critic סבב 42: dedupe אטומי ל-webhooks נכנסים (PRIMARY KEY ⇒ רק בקשה אחת «תופסת» מפתח)
+        self.conn.execute("CREATE TABLE IF NOT EXISTS webhook_dedupe (key TEXT PRIMARY KEY, at TEXT NOT NULL)")
         # critic סבב 39: מתי נתפסה תזכורת לשליחה (approved ⇒ sending) — לזיהוי שליחה שנתקעה באמצע
         if "claimed_at" not in {r[1] for r in self.conn.execute("PRAGMA table_info(reminders)")}:
             self.conn.execute("ALTER TABLE reminders ADD COLUMN claimed_at TEXT")

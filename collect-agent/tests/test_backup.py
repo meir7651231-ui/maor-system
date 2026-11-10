@@ -173,3 +173,40 @@ def test_check_fresh_alerts_when_backups_stop(tmp_path):
     assert _bk.check_fresh(d, now=now)[0] is True                          # 10 שעות
     assert _bk.check_fresh(d, 48, now=datetime(2026, 11, 9, 12, tzinfo=UTC))[0] is False
     assert _bk.main(["x", "check", str(tmp_path / "missing")]) == 1
+
+
+def test_logical_copy_is_a_consistent_snapshot(tmp_path):
+    """critic סבב 42: ב-SQLCipher הגיבוי הוא העתקה לוגית טבלה-אחר-טבלה (`copy_database`), בלי טרנזקציית
+    קריאה במקור ⇒ כתיבה של השרת בין טבלה לטבלה = גיבוי לא עקבי (חשבונית בלי הלקוח שלה וכד׳).
+    עכשיו: BEGIN במקור ⇒ snapshot אחד (כותב מקביל ממתין/נדחה, לא «נכנס באמצע»)."""
+    import sqlite3
+
+    from app import dbcrypt
+    path = tmp_path / "src.db"
+    c = sqlite3.connect(path)
+    c.executescript("CREATE TABLE a(x); CREATE TABLE b(x); INSERT INTO a VALUES(1); INSERT INTO b VALUES(1);")
+    c.commit()
+    c.close()
+    src = sqlite3.connect(path, isolation_level=None)
+
+    class Proxy:
+        def __init__(self, conn):
+            self.conn = conn
+
+        def execute(self, sql, *a):
+            if sql.startswith("SELECT") and '"b"' in sql:      # בין טבלה a לטבלה b
+                w = sqlite3.connect(path, timeout=0)
+                try:
+                    w.execute("INSERT INTO a VALUES(2)")
+                    w.execute("INSERT INTO b VALUES(2)")
+                    w.commit()
+                except sqlite3.OperationalError:
+                    pass                                         # נחסם ע״י ה-snapshot ⇒ תקין
+                finally:
+                    w.close()
+            return self.conn.execute(sql, *a)
+    dst = sqlite3.connect(":memory:")
+    dbcrypt.copy_database(Proxy(src), dst)
+    na = dst.execute("SELECT COUNT(*) FROM a").fetchone()[0]
+    nb = dst.execute("SELECT COUNT(*) FROM b").fetchone()[0]
+    assert na == nb, (na, nb)

@@ -823,3 +823,48 @@ def test_dashboard_counts_send_unknown_like_the_cap(svc, fake_gi, clock):
     inv = svc.db.one("SELECT invoice_id FROM reminders WHERE id=?", (rid,))["invoice_id"]
     row = next(r for r in svc.dashboard()["invoices"] if r["invoice_id"] == inv)
     assert row["reminders_sent"] == 1
+
+
+@pytest.mark.parametrize("kind", ["019", "mail"])
+def test_concurrent_duplicate_webhook_processed_once(svc, fake_gi, kind):
+    """critic סבב 42: dedupe של webhook = «בדוק אם קיים, אחר כך הכנס», וב-019 הרשומה נכתבת **אחרי** העיבוד.
+    retry של הספק במקביל (או שני workers) ⇒ שתי הבקשות עוברות ⇒ עיבוד כפול (שתי טיוטות / שתי השפעות).
+    עכשיו: תפיסה אטומית של המפתח (טבלת webhook_dedupe, PRIMARY KEY) **לפני** העיבוד."""
+    import threading
+    svc.sync()
+    bar = threading.Barrier(2, timeout=1.5)
+    orig = svc.inbound
+
+    def slow(*a, **k):
+        try:
+            bar.wait()
+        except threading.BrokenBarrierError:
+            pass
+        return orig(*a, **k)
+    svc.inbound = slow
+    raw = b"type=incoming_sms&phone=0501234567&message=%D7%90%D7%99%D7%9A+%D7%9C%D7%A9%D7%9C%D7%9D"
+
+    def go():
+        if kind == "019":
+            svc.sms_webhook_019(raw)
+        else:
+            svc.email_webhook("c1@example.com", "איך לשלם?", "<m1@example.com>")
+    ts = [threading.Thread(target=go) for _ in range(2)]
+    for t in ts:
+        t.start()
+    for t in ts:
+        t.join()
+    assert svc.db.one("SELECT COUNT(*) n FROM messages WHERE direction='in'")["n"] == 1
+
+
+def test_failed_webhook_processing_releases_claim_so_retry_works(svc, monkeypatch):
+    """אם העיבוד נכשל אחרי התפיסה, ה-retry של הספק חייב להיות מעובד (אחרת «הסר» הולך לאיבוד)."""
+    raw = b"type=incoming_sms&phone=0547777777&message=%D7%94%D7%A1%D7%A8"   # «הסר»
+    orig = svc.inbound
+    monkeypatch.setattr(svc, "inbound", lambda *a, **k: (_ for _ in ()).throw(RuntimeError("db hiccup")))
+    with pytest.raises(RuntimeError):
+        svc.sms_webhook_019(raw)
+    monkeypatch.setattr(svc, "inbound", orig)
+    r = svc.sms_webhook_019(raw)
+    assert not r.get("duplicate")
+    assert svc.suppressed("sms", "0547777777")
