@@ -177,7 +177,7 @@ class Sms019(SmsAdapter):
                             for k in ("status", "message", "shipment_id"))
         else:
             b = json.loads(text)
-            st, msg = str(b.get("status", "")), str(b.get("message", ""))
+            st, msg = str(b.get("status") if b.get("status") is not None else ""), str(b.get("message") or "")
             sid = str(b.get("shipment_id") or b.get("id") or "")
         if st != "0":
             raise ProviderError(self.provider, f"status={st} {msg}".strip())

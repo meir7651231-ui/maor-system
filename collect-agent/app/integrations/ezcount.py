@@ -65,7 +65,7 @@ def map_ezcount_doc(d: dict[str, Any]) -> Invoice:
     issued = parse_il_date(d.get("date"))
     due, estimated = due_or_estimate(parse_il_date(d.get("pay_until")), issued)
     return Invoice(
-        external_id=f"{PREFIX}{d.get('doc_uuid', '')}",
+        external_id=f"{PREFIX}{d.get('doc_uuid') or ''}",
         number=str(d.get("doc_number") or ""),
         doc_type=dtype,
         amount_agorot=_to_agorot(bal) if bal is not None and dtype in (*DEBT_TYPES, TYPE_CREDIT)

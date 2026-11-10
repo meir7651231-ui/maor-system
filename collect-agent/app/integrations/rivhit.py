@@ -54,8 +54,17 @@ def _int(v: Any) -> int | None:
         return None
 
 
+def _part(v: Any) -> str:
+    """null ⇒ "" (לא "None" — הפעלת מנהל 108, אותו דפוס של `greeninvoice._s`)."""
+    return "" if v is None else str(v).strip()
+
+
 def rivhit_external_id(customer_id: Any, document_type: Any, document_number: Any) -> str:
-    return f"{PREFIX}{customer_id}:{document_type}:{document_number}"
+    """בלי מספר מסמך אין מזהה ⇒ PREFIX בלבד, ו-`_missing_doc_id` בשירות מדלג (לא ממזג שני מסמכים)."""
+    num = _part(document_number)
+    if not num:
+        return PREFIX
+    return f"{PREFIX}{_part(customer_id)}:{_part(document_type)}:{num}"
 
 
 def map_rivhit_open_doc(d: dict[str, Any], customer: dict[str, Any] | None = None) -> Invoice:
