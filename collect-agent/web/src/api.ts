@@ -72,9 +72,12 @@ export interface DashRow {
   last_reminder: null | { id: number; step: number; status: string; template_key: string; sent_at: string | null; block_reason: string | null };
   customer_block: string | null;
 }
+/** סיכום למטבע שאינו ₪ (app/service.py _other_currency). הסכומים ב-totals הם ₪ בלבד. */
+export interface OtherCurrency { currency: string; open_invoices: number; open_agorot: number; overdue_agorot: number; at_risk_agorot: number; collected_agorot: number }
 export interface Dashboard {
   today: string;
   totals: { open_invoices: number; open_agorot: number; overdue_agorot: number; closed_invoices: number; pending_approval: number; sent_sms: number; sent_email: number; owner_inbox: number;
+    other_currency?: OtherCurrency[];
     collected_agorot?: number; recovery_rate_pct?: number; avg_days_overdue?: number; at_risk_agorot?: number;
     reminders_sent?: number; customers_messaged?: number; reply_rate_pct?: number;
     /** חשבוניות CSV פתוחות שלא הופיעו בייבוא האחרון — אולי כבר שולמו */ csv_unverified?: number };

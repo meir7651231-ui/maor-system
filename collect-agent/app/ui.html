@@ -90,6 +90,9 @@ let sel=null;
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const money=a=>(a/100).toLocaleString("he-IL",{minimumFractionDigits:a%100?2:0,maximumFractionDigits:2})+" ₪";
+// מטבע שאינו ₪ ⇒ כמו templates.fmt_amount בשרת ($500, CHF 1,234.50); לא מציגים דולר כשקל
+const fmtCur=(a,c)=>{if(!c||c==="ILS")return money(a);const s={USD:"$",EUR:"€",GBP:"£"}[c]||c+" ";
+  return s+Math.floor(a/100).toLocaleString("en-US")+(a%100?"."+String(a%100).padStart(2,"0"):"")};
 // טוקן בעל העסק: נשמר רק ב-sessionStorage (נמחק בסגירת הלשונית), נשלח כ-Bearer
 const TOK="gabi_owner_token";
 function tok(){try{return sessionStorage.getItem(TOK)||""}catch(e){return ""}}
@@ -105,7 +108,8 @@ async function loadDash(){
   $("#today").textContent="נכון ל-"+d.today+(tr.on_trial?(tr.active
     ?` · ניסיון חינם: נותרו ${tr.days_left} ימים, אחר כך ₪${tr.price_ils_month} לחודש`
     :` · תקופת הניסיון הסתיימה: התזכורות נעצרו (הנתונים נשמרו). ₪${tr.price_ils_month} לחודש להמשך`):"");
-  const k=[["חוב פתוח",money(t.open_agorot)],["מתוכו באיחור",money(t.overdue_agorot),1],
+  const oc=t.other_currency||[],plus=f=>oc.filter(o=>o[f]>0).map(o=>" + "+fmtCur(o[f],o.currency)).join("");
+  const k=[["חוב פתוח",money(t.open_agorot)+plus("open_agorot")],["מתוכו באיחור",money(t.overdue_agorot)+plus("overdue_agorot"),1],
     ["חשבוניות פתוחות",t.open_invoices],["ממתינות לאישורך",t.pending_approval,t.pending_approval>0],
     ["SMS שנשלחו (בדיקה)",t.sent_sms],["מיילים שנשלחו (בדיקה)",t.sent_email],
     ["דורש טיפול שלך",t.owner_inbox,t.owner_inbox>0],["נסגרו (שולמו)",t.closed_invoices]];
@@ -116,7 +120,7 @@ async function loadDash(){
     return `<tr class="${x.status!=="open"?"closed":""}"><td>${esc(x.customer)}${
     x.status==="open"&&x.paused_reason&&x.customer_block===x.paused_reason
       ?` <button class="resume" data-cid="${x.customer_id}" title="בדקתם והתשלום לא התקבל? התזכורות ללקוח יחודשו">↻ חידוש תזכורות</button>`:""}</td><td>${esc(x.number)}</td>
-    <td class="num">${money(x.amount_agorot)}</td><td>${esc(x.due||"")}</td>
+    <td class="num">${esc(fmtCur(x.amount_agorot,x.currency))}</td><td>${esc(x.due||"")}</td>
     <td class="${x.days_overdue>0?"late":""}">${x.days_overdue>0?x.days_overdue+" ימים":"—"}</td>
     <td class="num">${x.reminders_sent}</td><td><span class="chip ${L&&L.status==="pending_approval"?"pending":""}">${esc(st)}</span></td></tr>`}).join("");
 }

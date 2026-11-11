@@ -6,14 +6,18 @@ import { agingOf, daysOverdue, ratioHalfUp, type Aging } from './format.ts';
 
 export const isOpen = (i: Invoice) => i.status !== 'paid';
 
+/** חשבונית בשקלים (מטבע חסר = ILS). סכומי ה-KPI והגיול לא מחברים מטבעות אחרים. */
+export const isIls = (i: Invoice) => !i.currency || i.currency === 'ILS';
+
 export interface Kpis { openTotal: number; overdueTotal: number; openCount: number; overdueCount: number; avgDaysLate: number; needsAction: number }
 export function kpis(list: Invoice[], today: string): Kpis {
   const open = list.filter(isOpen);
   const overdue = open.filter(i => daysOverdue(i.dueAt, today) > 0);
   const late = overdue.map(i => daysOverdue(i.dueAt, today));
   return {
-    openTotal: open.reduce((s, i) => s + i.amount, 0),
-    overdueTotal: overdue.reduce((s, i) => s + i.amount, 0),
+    // סכומים ב-₪ בלבד, כמו totals בשרת (הפעלה 131); הספירות כוללות כל מטבע
+    openTotal: open.filter(isIls).reduce((s, i) => s + i.amount, 0),
+    overdueTotal: overdue.filter(isIls).reduce((s, i) => s + i.amount, 0),
     openCount: open.length,
     overdueCount: overdue.length,
     avgDaysLate: ratioHalfUp(late.reduce((a, b) => a + b, 0), late.length),
@@ -23,7 +27,7 @@ export function kpis(list: Invoice[], today: string): Kpis {
 
 export function agingBuckets(list: Invoice[], today: string): Record<Aging, number> {
   const r: Record<Aging, number> = { notDue: 0, d0_30: 0, d31_60: 0, d61_90: 0, d90p: 0 };
-  for (const i of list.filter(isOpen)) r[agingOf(daysOverdue(i.dueAt, today))] += i.amount;
+  for (const i of list.filter(isOpen).filter(isIls)) r[agingOf(daysOverdue(i.dueAt, today))] += i.amount;
   return r;
 }
 

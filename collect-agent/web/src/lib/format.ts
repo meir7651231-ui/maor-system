@@ -20,6 +20,13 @@ export function fmtTotal(items: readonly { amount: number; currency?: string }[]
   return [...by].map(([c, v]) => fmtMoney(v, c)).join(' + ');
 }
 
+/** «ועוד $500 + €20» — הסכומים שאינם ₪ לשדה אחד של `totals.other_currency` (באגורות). אין ⇒ ''.
+ *  ה-KPI בשרת ובממשק הם ₪ בלבד; מטבע אחר מוצג לידם ולא מחובר אליהם. */
+export function plusOther<K extends string>(other: readonly ({ currency: string } & Record<K, number>)[] | undefined, field: K): string {
+  const parts = (other ?? []).filter(o => o[field] > 0).map(o => fmtMoney(o[field] / 100, o.currency));
+  return parts.length ? `ועוד ${parts.join(' + ')}` : '';
+}
+
 const dayMs = 86_400_000;
 const at = (iso: string) => new Date(iso + 'T12:00:00').getTime();
 /** ימים מאז מועד הפירעון (שלילי = עוד לא הגיע). */

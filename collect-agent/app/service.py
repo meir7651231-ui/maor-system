@@ -59,6 +59,34 @@ def _iso(dt: datetime) -> str:
     return dt.astimezone(TZ).isoformat(timespec="seconds")
 
 
+def _cur(row) -> str:
+    """מטבע של שורת חשבונית; ריק/חסר ⇒ ILS (ברירת המחדל של הסכימה)."""
+    return (row["currency"] or "ILS").upper()
+
+
+def _other_currency(open_rows, closed_rows) -> list[dict]:
+    """סיכום לכל מטבע שאינו ₪ (ממוין לפי קוד): פתוח/באיחור/בסיכון/נגבה. בלי המרה ובלי חיבור בין מטבעות."""
+    by: dict[str, dict] = {}
+
+    def slot(c: str) -> dict:
+        return by.setdefault(c, {"currency": c, "open_invoices": 0, "open_agorot": 0,
+                                 "overdue_agorot": 0, "at_risk_agorot": 0, "collected_agorot": 0})
+    for x in open_rows:
+        if _cur(x) == "ILS":
+            continue
+        s = slot(_cur(x))
+        s["open_invoices"] += 1
+        s["open_agorot"] += x["amount_agorot"]
+        if x["days_overdue"] > 0:
+            s["overdue_agorot"] += x["amount_agorot"]
+        if x["days_overdue"] > 60:
+            s["at_risk_agorot"] += x["amount_agorot"]
+    for r in closed_rows:
+        if _cur(r) != "ILS":
+            slot(_cur(r))["collected_agorot"] += r["amount_agorot"]
+    return [by[c] for c in sorted(by)]
+
+
 def ratio_half_up(num: int, den: int, scale: int = 1) -> int:
     """round(scale*num/den) בעיגול «חצי למעלה» בחשבון שלמים (num,den ≥ 0; den=0 ⇒ 0).
     הפעלה 129: round() של Python מעגל חצי-לזוגי (12.5 ⇒ 12, 2.5 ⇒ 2), והממשק (Math.round)
@@ -1687,9 +1715,14 @@ class CollectService:
                 "customer_block": block})
         open_rows = [x for x in rows if x["status"] == "open"]
         outbox = self.sender.sent
-        closed = self.db.q("SELECT amount_agorot, closed_at FROM invoices WHERE status='closed'")
+        closed_all = self.db.q("SELECT amount_agorot, currency, closed_at FROM invoices "
+                               "WHERE status='closed'")
+        # הפעלה 131: הסכומים ב-KPI הם שקלים בלבד. $500 ו-1,200 ₪ חוברו ל-«1,700 ₪»; מטבע אחר
+        # מוחזר בנפרד ב-other_currency (סכום לכל מטבע, בלי המרה — אין לנו שער).
+        closed = [r for r in closed_all if _cur(r) == "ILS"]
+        ils_open = [x for x in open_rows if _cur(x) == "ILS"]
         collected = sum(r["amount_agorot"] for r in closed)
-        open_amt = sum(x["amount_agorot"] for x in open_rows)
+        open_amt = sum(x["amount_agorot"] for x in ils_open)
         late = [x["days_overdue"] for x in open_rows if x["days_overdue"] > 0]
         messaged = {r["customer_id"] for r in self.db.q(
             "SELECT DISTINCT customer_id FROM messages WHERE direction='out' AND customer_id IS NOT NULL")}
@@ -1700,7 +1733,8 @@ class CollectService:
             "collected_agorot": collected,
             "recovery_rate_pct": ratio_half_up(collected, collected + open_amt, 100),
             "avg_days_overdue": ratio_half_up(sum(late), len(late)),
-            "at_risk_agorot": sum(x["amount_agorot"] for x in open_rows if x["days_overdue"] > 60),
+            "at_risk_agorot": sum(x["amount_agorot"] for x in ils_open if x["days_overdue"] > 60),
+            "other_currency": _other_currency(open_rows, closed_all),
             "reminders_sent": self.db.one("SELECT COUNT(*) n FROM reminders WHERE "
                                           "status='sent_dry_run'")["n"],
             "customers_messaged": len(messaged),
@@ -1721,8 +1755,8 @@ class CollectService:
                             "next_allowed": next_ok},
             "totals": {
                 "open_invoices": len(open_rows),
-                "open_agorot": sum(x["amount_agorot"] for x in open_rows),
-                "overdue_agorot": sum(x["amount_agorot"] for x in open_rows
+                "open_agorot": open_amt,
+                "overdue_agorot": sum(x["amount_agorot"] for x in ils_open
                                       if x["days_overdue"] > 0),
                 "closed_invoices": len(rows) - len(open_rows),
                 "pending_approval": self.db.one("SELECT COUNT(*) n FROM reminders WHERE "

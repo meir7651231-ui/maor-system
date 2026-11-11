@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { daysOverdue, fmtIls, fmtMoney, fmtTotal, fmtPhone, isIlMobile, agingOf, ratioHalfUp } from '../src/lib/format.ts';
+import { daysOverdue, fmtIls, fmtMoney, fmtTotal, plusOther, fmtPhone, isIlMobile, agingOf, ratioHalfUp } from '../src/lib/format.ts';
 import { firstName, buildSms, buildEmail, smsSegments, GSM7, GSM7_EXT, nextStep, remindersExhausted, requiresApproval, demoUnsubUrl, demoShortUrl, TEMPLATES, fmtAmountBackend } from '../src/lib/message.ts';
 import { readFileSync } from 'node:fs';
 import { canSendAt, nextAllowed, HOLIDAYS } from '../src/lib/policy.ts';
@@ -539,4 +539,30 @@ test('הפעלה 130: סכום במטבע החשבונית — מראה של tem
     assert.doesNotMatch(src, /fmtIls\((invoice|i)\.amount\)/, `${f}: סכום חשבונית בלי מטבע`);
     assert.doesNotMatch(src, /fmtIls\(o\.(amount|usual)_agorot/, `${f}: amount_check בלי מטבע`);
   }
+});
+
+test('הפעלה 131: KPI ב-₪ בלבד; מטבע אחר לידם («ועוד $500») ולא מחובר', () => {
+  const mk = (id: string, amount: number, dueAt: string, currency?: string): (typeof demoInvoices)[number] =>
+    ({ ...demoInvoices[0], id, amount, dueAt, status: 'open', reminders: [], ...(currency ? { currency } : {}) }) as (typeof demoInvoices)[number];
+  const list = [mk('a', 1200, '2026-10-01'), mk('b', 500, '2026-08-01', 'USD'), mk('c', 300, '2026-12-01', 'ILS')];
+  const k = kpis(list, '2026-11-11');
+  assert.equal(k.openTotal, 1500);            // הקוד הישן: 2000
+  assert.equal(k.overdueTotal, 1200);         // הקוד הישן: 1700
+  assert.equal(k.openCount, 3);
+  assert.equal(k.overdueCount, 2);
+  const ag = agingBuckets(list, '2026-11-11');
+  assert.equal(Object.values(ag).reduce((a, b) => a + b, 0), 1500);
+  const oc = [{ currency: 'EUR', open_invoices: 0, open_agorot: 0, overdue_agorot: 0, at_risk_agorot: 0, collected_agorot: 2050 },
+    { currency: 'USD', open_invoices: 1, open_agorot: 50000, overdue_agorot: 50000, at_risk_agorot: 50000, collected_agorot: 0 }];
+  assert.equal(plusOther(oc, 'open_agorot'), 'ועוד $500');
+  assert.equal(plusOther(oc, 'collected_agorot'), 'ועוד €20.50');
+  assert.equal(plusOther([{ currency: 'USD', open_agorot: 100 }, { currency: 'CHF', open_agorot: 250 }], 'open_agorot'), 'ועוד $1 + CHF 2.50');
+  assert.equal(plusOther(undefined, 'open_agorot'), '');
+  assert.equal(plusOther([], 'open_agorot'), '');
+  // הגנת-מקור: השרת מסכם ₪ בלבד ומחזיר other_currency; הדשבורד מציג אותו
+  const svc = readFileSync(new URL('../../app/service.py', import.meta.url), 'utf8');
+  assert.match(svc, /"other_currency": _other_currency\(open_rows, closed_all\)/);
+  assert.match(svc, /"open_agorot": open_amt,/);
+  const dash = readFileSync(new URL('../src/pages/Dashboard.tsx', import.meta.url), 'utf8');
+  for (const f of ['open_agorot', 'overdue_agorot', 'at_risk_agorot', 'collected_agorot']) assert.match(dash, new RegExp(`sub\\([^\\n]*'${f}'\\)`), f);
 });

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useApp } from '../store.tsx';
 import { agingBuckets, kpis } from '../lib/stats.ts';
-import { AGING_LABEL, daysOverdue, fmtIls, fmtMoney, ratioHalfUp, type Aging } from '../lib/format.ts';
+import { AGING_LABEL, daysOverdue, fmtIls, fmtMoney, plusOther, ratioHalfUp, type Aging } from '../lib/format.ts';
 import { STEP_LABEL, nextStep } from '../lib/message.ts';
 import { demoCollectedByMonth } from '../data/demo.ts';
 import { Button, Card, LateBadge } from '../components/ui.tsx';
@@ -26,6 +26,8 @@ export function Dashboard() {
   // מוק: באגורות שלמות ובאותו עיגול כמו השרת (ratio_half_up) — 24.90 ₪ בשקלים צפים היה נותן 12.4999…
   const collectedAg = Math.round(collected * 100);
   const recovery = t?.recovery_rate_pct ?? ratioHalfUp(collectedAg, collectedAg + Math.round(k.openTotal * 100), 100);
+  const oc = t?.other_currency;
+  const sub = (base: string, field: 'open_agorot' | 'overdue_agorot' | 'at_risk_agorot' | 'collected_agorot') => [base, plusOther(oc, field)].filter(Boolean).join(' · ');
   const [open, setOpen] = useState<Invoice | null>(null);
 
   return (
@@ -47,12 +49,12 @@ export function Dashboard() {
         </div>
       )}
       <section aria-label="מדדי גבייה" className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4" data-testid="kpis">
-        <Kpi hero label="נגבה" value={fmtIls(collected)} sub={live ? `${totals?.closed_invoices ?? 0} חשבוניות שולמו` : 'יוני–נובמבר'} tone="good" />
-        <Kpi hero label="שיעור החזר" value={`${recovery}%`} sub="מסך החוב" tone="good" meter={recovery} />
-        <Kpi label="פתוח לגבייה" value={fmtIls(k.openTotal)} sub={`${k.openCount} חשבוניות`} />
-        <Kpi label="באיחור" value={fmtIls(k.overdueTotal)} sub={`${k.overdueCount} חשבוניות`} tone="late" />
+        <Kpi hero label="נגבה" value={fmtIls(collected)} sub={sub(live ? `${totals?.closed_invoices ?? 0} חשבוניות שולמו` : 'יוני–נובמבר', 'collected_agorot')} tone="good" />
+        <Kpi hero label="שיעור החזר" value={`${recovery}%`} sub={oc?.length ? 'מסך החוב ב-₪' : 'מסך החוב'} tone="good" meter={recovery} />
+        <Kpi label="פתוח לגבייה" value={fmtIls(k.openTotal)} sub={sub(`${k.openCount} חשבוניות`, 'open_agorot')} />
+        <Kpi label="באיחור" value={fmtIls(k.overdueTotal)} sub={sub(`${k.overdueCount} חשבוניות`, 'overdue_agorot')} tone="late" />
         <Kpi label="ממוצע ימי איחור" value={String(t?.avg_days_overdue ?? k.avgDaysLate)} sub="ימים" />
-        <Kpi label="בסיכון (60+ יום)" value={fmtIls((t?.at_risk_agorot ?? 0) / 100 || agingTotalRisk(aging))} sub="דורש תשומת לב" tone="late" />
+        <Kpi label="בסיכון (60+ יום)" value={fmtIls((t?.at_risk_agorot ?? 0) / 100 || agingTotalRisk(aging))} sub={sub('דורש תשומת לב', 'at_risk_agorot')} tone="late" />
         <Kpi label="תזכורות שיצאו" value={String(t?.reminders_sent ?? invoices.reduce((a, i) => a + i.reminders.length, 0))}
           sub={live && totals ? `${totals.sent_sms} SMS · ${totals.sent_email} מיילים · dry-run` : 'SMS ומייל'} />
         <Kpi label="שיעור מענה" value={`${t?.reply_rate_pct ?? 0}%`} sub={live ? `${t?.customers_messaged ?? 0} לקוחות קיבלו הודעה` : 'לקוחות שהשיבו'} />
