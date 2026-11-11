@@ -4,12 +4,12 @@
  * (1) מסך-הכניסה ⇒ החנות ⇒ "חינוך וחוגים" ⇒ "פתיחת המערכת" ⇒ אשף-ההרשמה שלב 1 עם התחום מסומן.
  * (2) ארגון עם החבילה מוחלת + נתוני-דמו ⇒ ניווט בלי תורמים/צדקה/חנות, צבע ירוק-תפוח, מונחי-חינוך.
  */
-import { createRequire } from 'module';
 import { createServer } from 'http';
 import { readFileSync, existsSync, statSync, mkdirSync } from 'fs';
 import { join, extname, dirname } from 'path';
 import { fileURLToPath } from 'url';
-const { chromium } = createRequire(import.meta.url)('playwright');
+import { chromium } from 'playwright-core';
+import { CHROME_EXE } from './chrome-path.mjs';
 const HERE = dirname(fileURLToPath(import.meta.url));
 const DIST = join(HERE, '..', 'dist');
 const SHOTS = join(HERE, 'shots', 'edu-vertical');
@@ -23,7 +23,7 @@ const server = createServer((req, res) => {
 });
 await new Promise((r) => server.listen(4199, r));
 const BASE = 'http://localhost:4199/';
-const browser = await chromium.launch({ args: ['--no-sandbox'] });
+const browser = await chromium.launch({ executablePath: CHROME_EXE, args: ['--no-sandbox'] });
 const ctx = await browser.newContext({ viewport: { width: 1366, height: 900 }, locale: 'he-IL' });
 const page = await ctx.newPage();
 const errors = [];

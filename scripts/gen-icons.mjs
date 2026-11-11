@@ -10,11 +10,12 @@ import { chromium } from 'playwright-core';
 import { readFile } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { CHROME_EXE } from '../e2e/chrome-path.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const svg = await readFile(join(root, 'public', 'favicon.svg'), 'utf8');
 
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium', args: ['--no-sandbox'] });
+const b = await chromium.launch({ executablePath: CHROME_EXE, args: ['--no-sandbox'] });
 const pg = await b.newPage();
 
 async function shoot(size, { pad = 0.1, bg = 'transparent' } = {}) {

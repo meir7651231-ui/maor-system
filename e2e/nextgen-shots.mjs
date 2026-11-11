@@ -8,6 +8,7 @@ import http from 'node:http';
 import { readFile, mkdir } from 'node:fs/promises';
 import { join, dirname, extname, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { CHROME_EXE } from './chrome-path.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', 'dist');
 const OUT = process.env.SHOTS_OUT || join(dirname(fileURLToPath(import.meta.url)), 'nextgen-shots');
@@ -58,7 +59,7 @@ const supporters = [
   donor('l', 'חסדי נעמי', 'עסק', '054-3434343', [[G(5), 1500], ['2026-08-10', 1800]]),
 ];
 
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium', args: ['--no-sandbox', '--use-gl=swiftshader'] });
+const b = await chromium.launch({ executablePath: CHROME_EXE, args: ['--no-sandbox', '--use-gl=swiftshader'] });
 const ctx = await b.newContext({ viewport: { width: 1180, height: 900 }, deviceScaleFactor: 2 });
 // זריעת localStorage לפני שה-JS של האפליקציה רץ — כדי שה-DB שלנו נטען בבוט הראשון
 // (אחרת האפליקציה שומרת DB ריק לפני שהזרקה-אחרי-טעינה נקראת).

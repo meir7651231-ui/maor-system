@@ -32,6 +32,24 @@ describe('e2e/ci-suites — כל סקריפט מסווג', () => {
     expect(PUSH).toContain('toggle-matrix.mjs');
   });
 
+  // הבאג (11.11, הריצה הראשונה ב-GitHub): 3 סקריפטים עברו מקומית ונכשלו ב-CI — שניים עם נתיב קשיח
+  // '/opt/pw-browsers/chromium' (קיים רק בסביבת-הענן), ואחד עם require('playwright') — חבילה שמותקנת
+  // גלובלית רק בסביבת-הענן ואינה תלות של הפרויקט (התלות היא playwright-core).
+  it('אין נתיב-דפדפן קשיח ואין ייבוא של playwright (רק playwright-core + chrome-path.mjs)', () => {
+    const offenders: string[] = [];
+    for (const dir of ['e2e', 'scripts']) {
+      const abs = join(E2E, '..', dir);
+      for (const f of readdirSync(abs).filter((x) => x.endsWith('.mjs'))) {
+        if (f === 'chrome-path.mjs') continue;
+        const src = readFileSync(join(abs, f), 'utf8');
+        if (/\/opt\/pw-browsers/.test(src)) offenders.push(`${dir}/${f}: נתיב /opt/pw-browsers קשיח`);
+        if (/(from\s+|require\()\s*['"]playwright['"]/.test(src) || /\)\(\s*['"]playwright['"]\s*\)/.test(src)) offenders.push(`${dir}/${f}: ייבוא 'playwright'`);
+        if (/chromium\.launch\(/.test(src) && !/executablePath:\s*CHROME/.test(src)) offenders.push(`${dir}/${f}: launch בלי executablePath מ-chrome-path.mjs`);
+      }
+    }
+    expect(offenders, 'השתמשו ב-CHROME_EXE מ-e2e/chrome-path.mjs וב-playwright-core').toEqual([]);
+  });
+
   it('ci.yml מריץ את סוויטת push אחרי build, ו-e2e-nightly.yml את הלילית', () => {
     const ci = readFileSync(join(E2E, '..', '.github', 'workflows', 'ci.yml'), 'utf8');
     expect(ci).toMatch(/node e2e\/run-ci\.mjs --suite=push/);
