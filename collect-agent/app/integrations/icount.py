@@ -93,8 +93,10 @@ def map_icount_doc(d: dict[str, Any]) -> Invoice:
     doctype = str(d.get("doctype") or "")
     docnum = str(d.get("docnum") or d.get("doc_number") or "")
     ext = d.get("doc_id") or d.get("id") or (f"{doctype}-{docnum}" if docnum else "")
-    issued = parse_il_date(d.get("dateissued") or d.get("doc_date"))
-    due, estimated = due_or_estimate(parse_il_date(d.get("duedate") or d.get("due_date")), issued)
+    # הפעלה 118: "0000-00-00" בשדה הראשון לא מסתיר מועד אמיתי בשדה החלופי
+    issued = parse_il_date(d.get("dateissued")) or parse_il_date(d.get("doc_date"))
+    due, estimated = due_or_estimate(
+        parse_il_date(d.get("duedate")) or parse_il_date(d.get("due_date")), issued)
     # 0 פתוח ו-2 «נסגר חלקית» = עדיין חוב (היתרה בסכום). 1 סגור · מבוטל ⇒ לא חוב.
     status = 4 if d.get("is_cancelled") else (1 if raw_status == STATUS_CLOSED else 0)
     return Invoice(

@@ -5,8 +5,10 @@ import base64
 import json
 import re
 from dataclasses import dataclass, field
+from datetime import date, datetime
 from typing import Any
 from urllib.parse import parse_qsl
+from zoneinfo import ZoneInfo
 
 import httpx
 
@@ -93,6 +95,74 @@ def parse_currency(v: Any) -> str:
     if _ISO_CODE.match(t.upper()) and t.isascii():
         return t.upper()
     raise ValueError(f"מטבע לא מוכר: {v!r}")
+
+
+# הפעלה 118 — תאריך מקלט חיצוני (GI/iCount/EZcount/רווחית) לפני חישוב מועד התזכורת.
+# באג שנמצא: מועד תשלום אמיתי בפורמט שלא זוהה ("15-10-2026", epoch, RLM מוביל, "2026/10/15", "1/10/26")
+# נפל ל-None בשקט ⇒ מועד "מוערך" = הנפקה+30 ⇒ «טרם שולמה» לפני המועד האמיתי (או אחרי, באיחור).
+_DATE_JUNK = re.compile("[\x00-\x1f\x7f\u00a0\u00ad\u061c\u200b-\u200f\u202a-\u202e\u2060-\u2069\ufeff]")
+_D_ISO = re.compile(r"^(\d{4})-(\d{1,2})-(\d{1,2})(?:$|[ T])")
+_D_YMD = re.compile(r"^(\d{4})[/.](\d{1,2})[/.](\d{1,2})(?:$|[ T])")
+_D_DMY = re.compile(r"^(\d{1,2})[/.-](\d{1,2})[/.-](\d{4}|\d{2})(?:$|[ T])")
+_D_COMPACT = re.compile(r"^(\d{4})(\d{2})(\d{2})$")
+_D_EPOCH = re.compile(r"^(\d{9,10}|\d{12,13})(?:\.0+)?$")
+_D_DOTNET = re.compile(r"^/Date\((\d{12,13})(?:[+-]\d{4})?\)/$")
+_D_TZ_TAIL = re.compile(r"(?:Z|[+-]\d{2}(?::?\d{2})?)$")
+DATE_MIN_YEAR, DATE_MAX_YEAR = 2000, 2099
+
+
+_IL_TZ = ZoneInfo("Asia/Jerusalem")
+
+
+def _il_date_of_epoch(sec: float) -> date:
+    return datetime.fromtimestamp(sec, _IL_TZ).date()
+
+
+def parse_ext_date(v: Any) -> date | None:
+    """תאריך ממערכת הנהלת חשבונות ⇒ `date` לפי שעון ישראל, או None (לא ידוע ⇒ הקורא מעריך הנפקה+30).
+    נתמך: ISO (גם עם שעה; עם אזור-זמן ⇒ מומר לשעון ישראל) · YYYY/MM/DD · DD/MM/YYYY ו-DD.MM.YYYY
+    ו-DD-MM-YYYY (גם שנה בשתי ספרות ⇒ 20YY, גם עם שעה) · YYYYMMDD · epoch בשניות/מילישניות
+    (מספר או מחרוזת) · /Date(ms)/. תווי כיווניות/רוחב-אפס/רווחים מוסרים. ממלא-מקום ("0000-00-00",
+    "None", "-", 0), תאריך לא קיים (31/02), או שנה מחוץ ל-2000–2099 ⇒ None."""
+    if v is None or isinstance(v, bool):
+        return None
+    if isinstance(v, datetime):
+        d = v.date() if v.tzinfo is None else _il_date_of_epoch(v.timestamp())
+        return d if DATE_MIN_YEAR <= d.year <= DATE_MAX_YEAR else None
+    if isinstance(v, date):
+        return v if DATE_MIN_YEAR <= v.year <= DATE_MAX_YEAR else None
+    if isinstance(v, float):
+        if v != v or v in (float("inf"), float("-inf")) or not v.is_integer():
+            return None
+        v = int(v)
+    s = _DATE_JUNK.sub("", str(v)).strip()
+    if not s:
+        return None
+    try:
+        d: date | None = None
+        m = _D_EPOCH.match(s) or _D_DOTNET.match(s)
+        if m:
+            n = int(m.group(1))
+            d = _il_date_of_epoch(n / 1000 if len(m.group(1)) >= 12 else n)
+        elif m := _D_COMPACT.match(s):
+            d = date(int(m.group(1)), int(m.group(2)), int(m.group(3)))
+        elif m := _D_ISO.match(s):
+            rest = s[m.end():].strip() if s[m.end() - 1:m.end()] in (" ", "T") else ""
+            if rest and _D_TZ_TAIL.search(rest):
+                dt = datetime.fromisoformat(s.replace(" ", "T", 1).replace("Z", "+00:00"))
+                d = _il_date_of_epoch(dt.timestamp())
+            else:
+                d = date(int(m.group(1)), int(m.group(2)), int(m.group(3)))
+        elif m := _D_YMD.match(s):
+            d = date(int(m.group(1)), int(m.group(2)), int(m.group(3)))
+        elif m := _D_DMY.match(s):
+            y = int(m.group(3)) + (2000 if len(m.group(3)) == 2 else 0)
+            d = date(y, int(m.group(2)), int(m.group(1)))
+    except (ValueError, OverflowError, OSError):
+        return None
+    if d is None:
+        return None
+    return d if DATE_MIN_YEAR <= d.year <= DATE_MAX_YEAR else None
 
 
 def safe_map(owner: Any, fn: Any, *args: Any) -> Any:

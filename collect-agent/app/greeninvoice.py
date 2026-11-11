@@ -20,7 +20,7 @@ from typing import Any
 import httpx
 
 from .contact import clean_email
-from .integrations.base import jstr, parse_amount_agorot, parse_currency, safe_map
+from .integrations.base import jstr, parse_amount_agorot, parse_currency, parse_ext_date, safe_map
 from .security import clean_doc_number
 
 # סוגי מסמכים שמייצגים חוב פתוח (לאמת): 300 חשבון עסקה, 305 חשבונית מס
@@ -79,15 +79,9 @@ class Invoice:
 
 
 def _parse_date(v: Any) -> date | None:
-    """critic סבב 45: אותו כלל כמו `parse_il_date` (הפעלה 112) — שנה מחוץ ל-2000–2099 ⇒ None.
-    dueDate=1900 עם הנפקה עדכנית יצר תזכורת «טרם שולמה» מיד, לפני המועד האמיתי."""
-    if not v or isinstance(v, bool):
-        return None
-    try:
-        d = date.fromisoformat(str(v)[:10])
-    except ValueError:
-        return None
-    return d if 2000 <= d.year <= 2099 else None
+    """critic סבב 45: שנה מחוץ ל-2000–2099 ⇒ None. הפעלה 118: אותו מפענח לכל המקורות (`parse_ext_date`) —
+    RLM מוביל, epoch, "2026/10/20" ו-UTC-בחצות-ישראל נפלו קודם ל-None/ליום הקודם ⇒ מועד "מוערך" שגוי."""
+    return parse_ext_date(v)
 
 
 MAX_AMOUNT_AGOROT = 10_000_000_000   # 100 מיליון ₪ — מעל זה = נתון שגוי (כמו התקרה ב-CSV)
