@@ -20,24 +20,17 @@ import { isoToday } from './lib/date-util';
 import { freshenDemoDb } from './lib/demoFresh';
 import { todaySessions } from './components/home/homeData';
 import { Btn, Modal } from './components/ui';
-import { ImpactWall } from './components/wall/ImpactWall';
-import { MoneyTimer } from './components/timer/MoneyTimer';
-import { CashRegister } from './components/timer/CashRegister';
-import { BodyMap } from './components/timer/BodyMap';
-import { DedupModal } from './components/families/DedupModal';
 import { CallerLookup } from './components/CallerLookup';
 import { GuideModal } from './components/GuideModal';
 import { TourOverlay } from './components/TourOverlay';
 import { A11yFab } from './components/A11yFab';
 import { UpdateBanner } from './components/UpdateBanner';
 import { HomeView } from './components/home/HomeView';
-import { CommandPalette } from './components/palette/CommandPalette';
 import { DemoDrop } from './components/DemoDrop';
 import { DemoRibbon } from './components/DemoRibbon';
 import { DayGate } from './components/wheel/DayGate';
 import { ChangePasswordModal } from './components/cloud/ChangePasswordModal';
 import { NetCheckModal } from './components/cloud/NetCheckModal';
-import { SupportChatModal, SupportInbox, TeamChatModal } from './components/support/SupportChat';
 import { latestTeamAt, teamUnreadCount, type TeamMsg } from './lib/supportChat';
 import { AdminHub, HubButton } from './components/AdminHub';
 import { LockScreen } from './components/lock/LockScreen';
@@ -47,6 +40,29 @@ import { DEFAULT_LOCK_ZONES } from './lib/lock';
 import { useViewScrollMemory } from './lib/scrollMemory';
 import { applySiteIcons, currentSiteDomain } from './lib/siteDomains';
 import { fetchCloudSite, withCloudSite } from './lib/publicSiteCloud';
+
+/* 🌙 לילה 11.11.2026 — גאדג'טים ומודאלים שנפתחים רק בפעולת-משתמש (קיר-ההשפעה, טיימר,
+ * קופה רושמת, מפת-טיפול, איחוד-כפולים, פלטת-פקודות, צ׳אט-תמיכה/צוות) נטענים עצל —
+ * יצאו מבנדל-הכניסה. כל אחד עטוף ב-<Suspense fallback={null}> (אותו JSX, אותם תנאים).
+ * הדגל ליד כל loader = החימום-ב-idle מוריד רק גאדג'ט דלוק ⇒ הפתיחה מיידית כמו קודם. */
+const GADGET_LOADERS = {
+  wall: { flag: 'home.impactwall', load: () => import('./components/wall/ImpactWall') },
+  timer: { flag: 'core.timer', load: () => import('./components/timer/MoneyTimer') },
+  cashbox: { flag: 'core.cashbox', load: () => import('./components/timer/CashRegister') },
+  bodymap: { flag: 'core.bodymap', load: () => import('./components/timer/BodyMap') },
+  dedup: { flag: 'settings.dedup', load: () => import('./components/families/DedupModal') },
+  palette: { flag: 'shell.palette', load: () => import('./components/palette/CommandPalette') },
+} as const;
+const ImpactWall = lazy(async () => ({ default: (await GADGET_LOADERS.wall.load()).ImpactWall }));
+const MoneyTimer = lazy(async () => ({ default: (await GADGET_LOADERS.timer.load()).MoneyTimer }));
+const CashRegister = lazy(async () => ({ default: (await GADGET_LOADERS.cashbox.load()).CashRegister }));
+const BodyMap = lazy(async () => ({ default: (await GADGET_LOADERS.bodymap.load()).BodyMap }));
+const DedupModal = lazy(async () => ({ default: (await GADGET_LOADERS.dedup.load()).DedupModal }));
+const CommandPalette = lazy(async () => ({ default: (await GADGET_LOADERS.palette.load()).CommandPalette }));
+const loadSupportChat = () => import('./components/support/SupportChat');
+const SupportChatModal = lazy(async () => ({ default: (await loadSupportChat()).SupportChatModal }));
+const SupportInbox = lazy(async () => ({ default: (await loadSupportChat()).SupportInbox }));
+const TeamChatModal = lazy(async () => ({ default: (await loadSupportChat()).TeamChatModal }));
 
 /* ⚡ VISION-LIGHT ‏#13 — פיצול-chunks לפי מודולים: כל מסך-מודול נטען עצל
  * ‏(React.lazy) ב-chunk משלו; הבנדל הראשי נשאר בית+שלד. ה-loaders משותפים
@@ -481,6 +497,12 @@ export default function App() {
         const modKey = k === 'reenroll' ? 'courses' : k;
         if (k === 'settings' || mods[modKey] !== false) void VIEW_LOADERS[k]().catch(() => { /* אופליין — ייטען בניווט */ });
       }
+      // גאדג'טים דלוקים בלבד (לילה 11.11) — אחרי שיצאו מבנדל-הכניסה, נפתחים מיידית גם בלחיצה הראשונה
+      const st = useApp.getState();
+      for (const g of Object.values(GADGET_LOADERS)) {
+        if (featureOn(st.config, g.flag)) void g.load().catch(() => { /* אופליין — ייטען בפתיחה */ });
+      }
+      if (st.cloud.enabled && st.cloud.user) void loadSupportChat().catch(() => { /* אופליין */ });
     };
     const w = window as Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number; cancelIdleCallback?: (id: number) => void };
     const hasIdle = typeof w.requestIdleCallback === 'function';
@@ -1236,7 +1258,7 @@ export default function App() {
     <div className={'app-shell' + (shell === 'top' ? '' : ' shell-side')}>
       {shell === 'side' ? sideShell : shell === 'side-wide' ? sideWideShell : topShell}
 
-      {paletteOpen && featureOn(config, 'shell.palette') && <CommandPalette />}
+      {paletteOpen && featureOn(config, 'shell.palette') && <Suspense fallback={null}><CommandPalette /></Suspense>}
 
       {/* כניסת-הניהול (ADMINHUB) — נפתחת רק ממנהל-על (הכפתור מגודר canAdminHub);
           הבורר מנתב לכלים דרך ה-hash כך שהקישורים הישנים ממשיכים לעבוד */}
@@ -1330,9 +1352,9 @@ export default function App() {
         </Modal>
       )}
       {featureOn(config, 'shell.netcheck') && netCheckOpen && <NetCheckModal onClose={() => setNetCheckOpen(false)} />}
-      {featureOn(config, 'shell.support') && cloud.enabled && cloud.user && supportOpen && <SupportChatModal onClose={() => setSupportOpen(false)} />}
-      {supportInboxOpen && <SupportInbox onClose={() => setSupportInboxOpen(false)} />}
-      {teamChatOpen && <TeamChatModal onClose={() => { setTeamChatOpen(false); if (window.location.hash === '#teamchat') history.replaceState(null, '', window.location.pathname + window.location.search); }} />}
+      {featureOn(config, 'shell.support') && cloud.enabled && cloud.user && supportOpen && <Suspense fallback={null}><SupportChatModal onClose={() => setSupportOpen(false)} /></Suspense>}
+      {supportInboxOpen && <Suspense fallback={null}><SupportInbox onClose={() => setSupportInboxOpen(false)} /></Suspense>}
+      {teamChatOpen && <Suspense fallback={null}><TeamChatModal onClose={() => { setTeamChatOpen(false); if (window.location.hash === '#teamchat') history.replaceState(null, '', window.location.pathname + window.location.search); }} /></Suspense>}
       {/* תפריט-החשבון (UX סבב-א׳) — מייל, סטטוס-סנכרון כטקסט, יציאה בשני צעדים */}
       {userMenuOpen && cloud.user && (
         <Modal title="החשבון שלי" onClose={() => setUserMenuOpen(false)}>
@@ -1365,7 +1387,7 @@ export default function App() {
       {/* 🤖 שאל-את-מאור (VISION-LIGHT #30) — עצל, opt-in */}
       {askOpen && askMaorOn && (
         <Suspense fallback={null}>
-          <AskMaorModal onClose={() => setAskOpen(false)} />
+            <AskMaorModal onClose={() => setAskOpen(false)} />
         </Suspense>
       )}
 
@@ -1470,48 +1492,58 @@ export default function App() {
       )}
 
       {wallOpen && featureOn(config, 'home.impactwall') && (
-        <ImpactWall
-          onClose={() => {
-            window.location.hash = '';
-            setWallOpen(false);
-          }}
-        />
+        <Suspense fallback={null}>
+          <ImpactWall
+            onClose={() => {
+              window.location.hash = '';
+              setWallOpen(false);
+            }}
+          />
+        </Suspense>
       )}
 
       {timerOpen && featureOn(config, 'core.timer') && (
-        <MoneyTimer
-          onClose={() => {
-            window.location.hash = '';
-            setTimerOpen(false);
-          }}
-        />
+        <Suspense fallback={null}>
+          <MoneyTimer
+            onClose={() => {
+              window.location.hash = '';
+              setTimerOpen(false);
+            }}
+          />
+        </Suspense>
       )}
 
       {cashboxOpen && featureOn(config, 'core.cashbox') && (
-        <CashRegister
-          onClose={() => {
-            window.location.hash = '';
-            setCashboxOpen(false);
-          }}
-        />
+        <Suspense fallback={null}>
+          <CashRegister
+            onClose={() => {
+              window.location.hash = '';
+              setCashboxOpen(false);
+            }}
+          />
+        </Suspense>
       )}
 
       {bodymapOpen && featureOn(config, 'core.bodymap') && (
-        <BodyMap
-          onClose={() => {
-            window.location.hash = '';
-            setBodymapOpen(false);
-          }}
-        />
+        <Suspense fallback={null}>
+          <BodyMap
+            onClose={() => {
+              window.location.hash = '';
+              setBodymapOpen(false);
+            }}
+          />
+        </Suspense>
       )}
 
       {dedupOpen && featureOn(config, 'settings.dedup') && (
-        <DedupModal
-          onClose={() => {
-            window.location.hash = '';
-            setDedupOpen(false);
-          }}
-        />
+        <Suspense fallback={null}>
+          <DedupModal
+            onClose={() => {
+              window.location.hash = '';
+              setDedupOpen(false);
+            }}
+          />
+        </Suspense>
       )}
 
       {callerOpen && telephonyOn(config) && (
