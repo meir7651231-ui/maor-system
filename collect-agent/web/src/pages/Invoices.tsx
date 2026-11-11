@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { useApp } from '../store.tsx';
 import { daysOverdue, fmtDate, fmtMoney, fmtTotal } from '../lib/format.ts';
 import { STEP_LABEL, nextStep } from '../lib/message.ts';
-import { isOpen } from '../lib/stats.ts';
+import { byAmountDesc, isOpen } from '../lib/stats.ts';
 import type { Invoice, InvoiceStatus } from '../lib/domain.ts';
 import { Button, Card, LateBadge, StatusBadge, inputCls } from '../components/ui.tsx';
 import { MessagePreview } from '../components/MessagePreview.tsx';
@@ -22,7 +22,7 @@ export function Invoices() {
     return invoices.filter(isOpen)
       .filter(i => f === 'all' || i.status === f)
       .filter(i => !t || customerOf(i.customerId).name.includes(t) || i.number.includes(t))
-      .sort((a, b) => sort === 'amount' ? b.amount - a.amount : sort === 'name'
+      .sort((a, b) => sort === 'amount' ? byAmountDesc(a, b) : sort === 'name'
         ? customerOf(a.customerId).name.localeCompare(customerOf(b.customerId).name, 'he')
         : daysOverdue(b.dueAt, today) - daysOverdue(a.dueAt, today));
   }, [invoices, q, f, sort, today, customerOf]);

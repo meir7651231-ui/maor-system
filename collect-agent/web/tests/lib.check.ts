@@ -566,3 +566,19 @@ test('הפעלה 131: KPI ב-₪ בלבד; מטבע אחר לידם («ועוד 
   const dash = readFileSync(new URL('../src/pages/Dashboard.tsx', import.meta.url), 'utf8');
   for (const f of ['open_agorot', 'overdue_agorot', 'at_risk_agorot', 'collected_agorot']) assert.match(dash, new RegExp(`sub\\([^\\n]*'${f}'\\)`), f);
 });
+
+import { byAmountDesc } from '../src/lib/stats.ts';
+test('הפעלה 132: מיון «לפי סכום» לא משווה מטבעות — ₪ קודם, מטבע אחר כקבוצה נפרדת', () => {
+  const mk = (id: string, amount: number, currency?: string): (typeof demoInvoices)[number] =>
+    ({ ...demoInvoices[0], id, amount, ...(currency ? { currency } : {}) }) as (typeof demoInvoices)[number];
+  const list = [mk('usd9000', 9000, 'USD'), mk('ils100', 100), mk('eur50', 50, 'EUR'), mk('ils2490', 2490, 'ILS'), mk('usd20', 20, 'USD'), mk('ils800', 800)];
+  // הקוד הישן (b.amount - a.amount): usd9000 ראשון, eur50 אחרי ils100
+  assert.deepEqual([...list].sort(byAmountDesc).map(i => i.id), ['ils2490', 'ils800', 'ils100', 'eur50', 'usd9000', 'usd20']);
+  // עסק בשקלים בלבד ⇒ אותו סדר כמו קודם
+  const ils = demoInvoices.filter(i => !i.currency || i.currency === 'ILS');
+  assert.deepEqual([...ils].sort(byAmountDesc).map(i => i.id), [...ils].sort((a, b) => b.amount - a.amount).map(i => i.id));
+  // הגנת-מקור: העמוד ממיין דרך byAmountDesc
+  const src = readFileSync(new URL('../src/pages/Invoices.tsx', import.meta.url), 'utf8');
+  assert.match(src, /sort === 'amount' \? byAmountDesc\(a, b\)/);
+  assert.doesNotMatch(src, /b\.amount - a\.amount/);
+});

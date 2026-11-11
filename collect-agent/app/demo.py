@@ -123,10 +123,18 @@ def run_scenario(svc: CollectService, fake, out: Callable[[str], None] = print) 
     out(f"⑥ מיכל שילמה בחשבונית ירוקה ⇒ סנכרון: {r['open']} פתוחות, {r['closed']} נסגרה")
     assert r["closed"] == 1
     d = svc.dashboard()["totals"]
-    out(f"⑦ דשבורד: חוב פתוח {d['open_agorot'] / 100:,.2f} ₪ ב-{d['open_invoices']} חשבוניות · "
+    out(f"⑦ דשבורד: חוב פתוח {open_debt_text(d)} ב-{d['open_invoices']} חשבוניות · "
         f"SMS {d['sent_sms']} · מיילים {d['sent_email']} · ממתינות לאישור {d['pending_approval']}"
         f" · בתיבת בעל העסק {d['owner_inbox']}")
     return d
+
+
+def open_debt_text(totals: dict) -> str:
+    """«8,725.00 ₪», ואם יש חוב פתוח במטבע אחר: «8,725.00 ₪ + $500». בלי חיבור בין מטבעות (אין שער המרה)."""
+    parts = [f"{totals['open_agorot'] / 100:,.2f} ₪"]
+    parts += [fmt_amount(o["open_agorot"], o["currency"])
+              for o in totals.get("other_currency", []) if o["open_agorot"]]
+    return " + ".join(parts)
 
 
 def demo_service_ready() -> CollectService:

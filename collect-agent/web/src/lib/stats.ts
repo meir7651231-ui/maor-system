@@ -9,6 +9,14 @@ export const isOpen = (i: Invoice) => i.status !== 'paid';
 /** חשבונית בשקלים (מטבע חסר = ILS). סכומי ה-KPI והגיול לא מחברים מטבעות אחרים. */
 export const isIls = (i: Invoice) => !i.currency || i.currency === 'ILS';
 
+/** מיון «לפי סכום»: ₪ קודם (מהגבוה לנמוך), ואחריו כל מטבע אחר כקבוצה נפרדת לפי קוד המטבע.
+ *  אין לנו שער המרה, ולכן $500 ו-500 ₪ לא מושווים זה לזה (הפעלה 132). */
+export function byAmountDesc(a: Invoice, b: Invoice): number {
+  const ca = isIls(a) ? '' : a.currency!, cb = isIls(b) ? '' : b.currency!;
+  if (ca !== cb) return ca < cb ? -1 : 1;
+  return b.amount - a.amount;
+}
+
 export interface Kpis { openTotal: number; overdueTotal: number; openCount: number; overdueCount: number; avgDaysLate: number; needsAction: number }
 export function kpis(list: Invoice[], today: string): Kpis {
   const open = list.filter(isOpen);
