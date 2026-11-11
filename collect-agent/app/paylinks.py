@@ -22,6 +22,9 @@ def domain_allowed(url: str, allowed: tuple[str, ...]) -> bool:
 
 
 def with_invoice_param(url: str, number: str) -> str:
+    # critic סבב 47: מספר ריק (נוקה בהפעלה 116) ⇒ בלי `invoice=` ריק — העמוד הכללי של העסק
+    if not (number or "").strip():
+        return url
     u = urlparse(url)
     q = dict(parse_qsl(u.query))
     q.setdefault("invoice", number)

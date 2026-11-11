@@ -400,3 +400,9 @@ test('firstName = מראה של templates.first_name (הפעלה 115: תואר/�
   ];
   for (const [n, f] of cases) assert.equal(firstName(n), f, n);
 });
+
+// critic סבב 47: מספר חשבונית שנוקה לריק (הפעלה 116) הוצג בעמוד החייב כ«חשבונית  ·» — עכשיו «(ללא מספר)».
+test('עמוד החייב: מספר חשבונית ריק ⇒ «(ללא מספר)»', () => {
+  const pay = readFileSync(new URL('../src/pages/Pay.tsx', import.meta.url), 'utf8');
+  assert.equal((pay.match(/number \|\| '\(ללא מספר\)'/g) ?? []).length, 3);
+});

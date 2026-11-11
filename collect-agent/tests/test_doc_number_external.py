@@ -130,3 +130,24 @@ def test_multi_reminder_with_unnamed_invoice_does_not_misattribute_total():
     sms = t.render_sms(t.STEPS_MULTI[0], fm)
     assert "1002 (" not in sms and "2 חשבוניות" in sms and "1,200" in sms
     assert "• חשבונית  —" not in fm["lines"] and "ללא מספר" in fm["lines"]
+
+
+def test_payment_link_without_number_has_no_empty_invoice_param(svc, fake_gi):
+    """critic סבב 47: מסמך שמספרו נוקה לריק (הפעלה 116) ⇒ קישור התשלום `…?invoice=` עם ערך ריק — עמוד
+    התשלום של העסק לא יודע על מה משלמים. ובעמוד /p/ «חשבונית  · מועד». עכשיו: בלי מספר ⇒ בלי הפרמטר
+    (העמוד הכללי של העסק), ובעמוד «חשבונית (ללא מספר)»."""
+    from fastapi.testclient import TestClient
+
+    from app.main import create_app
+    from app.paylinks import with_invoice_param
+    from tests.conftest import OWNER_TOKEN
+    assert with_invoice_param("https://pay.example/x", "") == "https://pay.example/x"
+    assert with_invoice_param("https://pay.example/x?a=1", "") == "https://pay.example/x?a=1"
+    fake_gi.docs[:] = fake_gi.docs[:1]
+    fake_gi.docs[0]["number"] = None
+    svc.sync()
+    svc.plan()
+    code = svc.db.one("SELECT short_code FROM invoices")["short_code"]
+    assert "invoice=" not in (svc.landing(code)["pay_url"] or "")
+    html = TestClient(create_app(svc, owner_token=OWNER_TOKEN)).get(f"/p/{code}").text
+    assert "חשבונית  ·" not in html and "(ללא מספר)" in html

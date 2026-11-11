@@ -848,7 +848,7 @@ def landing_page(info: dict | None) -> str:
     if len(items) > 1:   # הודעה מאוחדת (critic 15.1/2.12): כל החשבוניות שבה + סה״כ
         head = f'<h1>{e(info["business"])}</h1><div class="m">{len(items)} חשבוניות פתוחות</div>'
     else:
-        head = (f'<h1>{e(info["business"])}</h1><div class="m">חשבונית {e(info["number"])}'
+        head = (f'<h1>{e(info["business"])}</h1><div class="m">חשבונית {e(info["number"] or "(ללא מספר)")}'
                 + (f' · מועד {e(info["due"])}' if info["due"] else "") + "</div>")
     if not info["open"]:
         return _PAGE.format(title="שולם", body=head + "<p>החשבונית סגורה. תודה רבה!</p>")
@@ -857,7 +857,7 @@ def landing_page(info: dict | None) -> str:
     if len(items) > 1:
         amount = info["total"]
         rows = "".join(
-            f'<li>חשבונית {e(i["number"])} — {e(i["amount"])}'
+            f'<li>חשבונית {e(i["number"] or "(ללא מספר)")} — {e(i["amount"])}'
             + (f' · מועד {e(i["due"])}' if i["due"] else "")
             + ("" if info["pay_shared"] or not i["can_pay"] else
                f' · <a href="/p/{e(i["code"])}/pay">לתשלום</a>') + "</li>" for i in items)

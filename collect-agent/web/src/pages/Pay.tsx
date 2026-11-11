@@ -19,7 +19,7 @@ export function Pay({ code }: { code: string }) {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => { payer.view(code).then(setV).catch(() => setErr('הקישור אינו תקף או שפג תוקפו.')); }, [code]);
-  useEffect(() => { document.title = v ? `תשלום לחשבונית ${v.number} · ${v.business}` : 'תשלום חשבונית'; }, [v]);
+  useEffect(() => { document.title = v ? `תשלום לחשבונית ${v.number || '(ללא מספר)'} · ${v.business}` : 'תשלום חשבונית'; }, [v]);
   // הודעה מאוחדת (critic 15.1/2.12): כמה חשבוניות ⇒ פירוט + סה״כ; תשלום בכפתור אחד או לכל חשבונית
   const many = (v?.invoices?.length ?? 0) > 1 ? v!.invoices! : null;
 
@@ -55,13 +55,13 @@ export function Pay({ code }: { code: string }) {
                 <ul className="mt-3 divide-y divide-ink-100 text-sm" data-testid="pay-invoices">
                   {many.map(i => (
                     <li key={i.code} className="flex items-center justify-between gap-2 py-2">
-                      <span>חשבונית <span className="num">{i.number}</span>{i.due && <> · <span className="num">{fmtDate(i.due)}</span></>}</span>
+                      <span>חשבונית <span className="num">{i.number || '(ללא מספר)'}</span>{i.due && <> · <span className="num">{fmtDate(i.due)}</span></>}</span>
                       <span className="flex items-center gap-2"><b className="num">{i.amount}</b>
                         {v.open && !v.pay_shared && i.can_pay && <a href={payer.goUrl(i.code, 'page')} className="rounded-lg bg-brand px-2.5 py-1 font-bold text-ink-900">לתשלום</a>}</span>
                     </li>))}
                 </ul>
               </> : <>
-                <div className="text-sm text-ink-500">חשבונית <span className="num">{v.number}</span>{v.due && <> · לתשלום עד <span className="num">{fmtDate(v.due)}</span></>}</div>
+                <div className="text-sm text-ink-500">חשבונית <span className="num">{v.number || '(ללא מספר)'}</span>{v.due && <> · לתשלום עד <span className="num">{fmtDate(v.due)}</span></>}</div>
                 <div id="amt" className="font-display font-extrabold text-5xl mt-2 num" data-testid="pay-amount">{v.amount}</div>
               </>}
               {!v.open && <div className="mt-3 rounded-xl bg-brand-50 text-brand-700 font-bold p-3">✓ החשבונית כבר שולמה. תודה!</div>}
