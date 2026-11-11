@@ -350,12 +350,27 @@ class ConversationInbox:
         rows = self.db.q(sql + (" WHERE d.status=?" if status else "") +
                          " ORDER BY CASE d.escalate WHEN 'urgent' THEN 0 WHEN 'normal' THEN 1 ELSE 2 END, d.id",
                          (status,) if status else ())
-        return [dict(r) | {"owner_actions": json.loads(r["owner_actions"] or "[]")} for r in rows]
+        return [dict(r) | {"owner_actions": json.loads(r["owner_actions"] or "[]"),
+                           "amount_check": self._amount_check(r)} for r in rows]
 
-    def approve_draft(self, draft_id: int, *, body: str | None = None, actor: str = "owner") -> dict:
+    def _amount_check(self, dr) -> list[dict]:
+        """critic סבב 48: כמו הפעלה 123 בתזכורות — טיוטה עם כסף ללקוח שיש לו חשבונית פתוחה בסכום חריג (פי 50
+        מהרגיל) ⇒ מה שחריג (לממשק ולאישור). בלי כסף בטיוטה ⇒ []."""
+        money = "₪" in (dr["body"] or "") or dr["plan_id"] or dr["intent"] in _MONEY_INTENTS
+        if not money:
+            return []
+        invs = self.db.q("SELECT * FROM invoices WHERE customer_id=? AND status='open'", (dr["customer_id"],))
+        return [{"number": i["number"], "amount_agorot": i["amount_agorot"], "usual_agorot": u,
+                 "currency": i["currency"]} for i, u in self.svc._amount_outliers(invs)]
+
+    def approve_draft(self, draft_id: int, *, body: str | None = None, actor: str = "owner",
+                      confirm_amount: bool = False) -> dict:
         dr = self._get(draft_id)
         if dr["status"] not in ("pending_approval", "needs_owner"):
             raise ValueError(f"הטיוטה כבר הוכרעה (status={dr['status']})")
+        if self._amount_check(dr) and not confirm_amount:
+            raise ValueError("סכום חריג מאוד מהרגיל ללקוח (אולי נקודה עשרונית במקום הלא נכון?) — "
+                             "יש לאשר במפורש שהסכום נכון (confirm_amount)")
         if dr["status"] == "needs_owner" and not (body or "").strip():
             raise ValueError("אין טיוטה — כתבו תשובה או סגרו את הכרטיס")
         cust = self.db.one("SELECT * FROM customers WHERE id=?", (dr["customer_id"],))

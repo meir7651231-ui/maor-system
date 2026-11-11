@@ -93,6 +93,7 @@ export interface Draft {
   id: number; customer_id: number; customer: string; channel: 'sms' | 'email'; to_addr: string; body: string;
   intent: string; status: 'pending_approval' | 'needs_owner' | string; escalate: 'urgent' | 'normal' | 'none' | string;
   owner_summary: string; owner_actions: string[]; plan_id: number | null; created_at: string;
+  amount_check?: AmountCheck[];
 }
 export interface InboundResult { intent: string; escalate?: boolean; escalation?: string; auto_reply?: string | null; draft_id?: number | null; owner_summary?: string; owner_actions?: string[] }
 export interface OutMsg { id: string; channel: 'sms' | 'email'; to: string; body: string }
@@ -117,7 +118,8 @@ export const api = {
   ownerDone: (id: number) => j<unknown>(`/owner/inbox/${id}/done`, { method: 'POST' }),
   approvePlan: (pid: number) => j<{ text: string }>(`/plans/${pid}/approve`, { method: 'POST' }),
   drafts: () => j<Draft[]>('/conversation/drafts'),
-  approveDraft: (id: number, body?: string) => j<{ status: string }>(`/conversation/drafts/${id}/approve`, { method: 'POST', body: JSON.stringify(body === undefined ? {} : { body }) }),
+  /** confirmAmount (critic סבב 48): טיוטה עם כסף ללקוח עם סכום חריג — אישור מפורש (השרת מחייב). */
+  approveDraft: (id: number, body?: string, confirmAmount = false) => j<{ status: string }>(`/conversation/drafts/${id}/approve`, { method: 'POST', body: JSON.stringify({ ...(body === undefined ? {} : { body }), ...(confirmAmount ? { confirm_amount: true } : {}) }) }),
   rejectDraft: (id: number) => j<unknown>(`/conversation/drafts/${id}/reject`, { method: 'POST' }),
   settings: () => j<DesignSettings>('/settings'),
   saveSettings: (patch: Record<string, unknown>) => j<DesignSettings>('/settings', { method: 'PUT', body: JSON.stringify(patch) }),

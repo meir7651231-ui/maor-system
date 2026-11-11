@@ -4,6 +4,7 @@ import { api, type Draft } from '../api.ts';
 import { Button, Card } from '../components/ui.tsx';
 import { smsSegments } from '../lib/message.ts';
 import { fmtWhenIL } from '../lib/policy.ts';
+import { fmtIls } from '../lib/format.ts';
 
 const INTENT: Record<string, string> = {
   how_to_pay: 'שאל/ה איך משלמים', paid_claim: 'טוען/ת ששילם/ה', plan_request: 'מבקש/ת פריסה', opt_out: 'ביקש/ה הסרה',
@@ -49,6 +50,8 @@ function DraftCard({ d }: { d: Draft }) {
   const [body, setBody] = useState(d.body ?? '');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [confirmAmount, setConfirmAmount] = useState(false);
+  const odd = d.amount_check ?? [];   // critic סבב 48: סכום חריג ⇒ אישור מפורש
   const [esc, cls] = ESC[d.escalate] ?? ESC.none;
   const needsWrite = d.status === 'needs_owner';
   const seg = smsSegments(body);
@@ -75,10 +78,16 @@ function DraftCard({ d }: { d: Draft }) {
             className="mt-1 w-full rounded-xl border border-ink-200 p-3 text-sm focus:border-brand focus:ring-2 focus:ring-brand/30 outline-none" />
         </label>
         {d.channel === 'sms' && <div className="text-xs text-ink-500"><span className="num">{seg.chars}</span> תווים · <span className="num">{seg.segments}</span> מקטעי SMS · נוסח שנערך עובר את מסנן הניסוח (בלי שיווק/איומים)</div>}
+        {odd.length > 0 && (
+          <label className="mt-3 flex items-start gap-2 text-sm rounded-xl bg-red-50 text-red-900 px-3 py-2" data-testid="draft-confirm-amount">
+            <input type="checkbox" className="h-5 w-5 mt-0.5 accent-[#10B981]" checked={confirmAmount} onChange={e => setConfirmAmount(e.target.checked)} />
+            <span><b>הסכום נכון — בדקתי.</b> {odd.map(o => `חשבונית ${o.number || '(ללא מספר)'}: ${fmtIls(o.amount_agorot / 100)} (בדרך כלל ${fmtIls(o.usual_agorot / 100)})`).join(' · ')}. אולי הנקודה העשרונית במקום הלא נכון?</span>
+          </label>
+        )}
         {err && <p className="mt-2 text-sm text-critical font-bold" role="alert">לא נשלח: {err}</p>}
         <div className="mt-4 flex flex-wrap gap-2 justify-end">
           <Button variant="ghost" disabled={busy} onClick={() => run(() => api.rejectDraft(d.id), 'הכרטיס נסגר בלי מענה')}>✗ סגירה בלי מענה</Button>
-          <Button disabled={busy || !body.trim()} onClick={() => run(() => api.approveDraft(d.id, body === d.body ? undefined : body), '✓ המענה אושר ונשלח (dry-run)')}>✓ אשר ושלח</Button>
+          <Button disabled={busy || !body.trim() || (odd.length > 0 && !confirmAmount)} onClick={() => run(() => api.approveDraft(d.id, body === d.body ? undefined : body, confirmAmount), '✓ המענה אושר ונשלח (dry-run)')}>✓ אשר ושלח</Button>
         </div>
       </Card>
     </li>

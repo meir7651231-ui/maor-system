@@ -1796,7 +1796,13 @@ class CollectService:
         self.audit("system", "plan_proposed", {"plan": pid, "invoices": len(invs)})
         return pid
 
-    def approve_plan(self, plan_id: int, actor: str = "owner") -> dict:
+    def approve_plan(self, plan_id: int, actor: str = "owner", *, confirm_amount: bool = False) -> dict:
+        p0 = self.db.one("SELECT customer_id FROM plans WHERE id=?", (plan_id,))
+        if p0 and not confirm_amount and self._amount_outliers(self.db.q(
+                "SELECT * FROM invoices WHERE customer_id=? AND status='open'", (p0["customer_id"],))):
+            # critic סבב 48: הצעת פריסה על סכום חריג (פי 50) — אותו כלל של הפעלה 123
+            raise ValueError("סכום חריג מאוד מהרגיל ללקוח (אולי נקודה עשרונית במקום הלא נכון?) — "
+                             "יש לאשר במפורש שהסכום נכון (confirm_amount)")
         # critic סבב 40: תפיסה אטומית proposed ⇒ approving. שני אישורים במקביל (לחיצה כפולה / שתי
         # לשוניות) עברו שניהם את הבדיקה ⇒ שתי טיוטות ⇒ שני אישורי הסדר ללקוח.
         if self.db.update("UPDATE plans SET status='approving' WHERE id=? AND status='proposed'",

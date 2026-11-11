@@ -411,3 +411,11 @@ test('עמוד החייב: מספר חשבונית ריק ⇒ «(ללא מספר
   const pay = readFileSync(new URL('../src/pages/Pay.tsx', import.meta.url), 'utf8');
   assert.equal((pay.match(/number \|\| '\(ללא מספר\)'/g) ?? []).length, 3);
 });
+
+// critic סבב 48: טיוטה עם כסף ללקוח עם סכום חריג (פי 50) — השרת דורש confirm_amount; בלי תיבה בממשק בעל העסק תקוע.
+test('תשובות לקוחות: סכום חריג ⇒ תיבת «הסכום נכון» והכפתור שולח confirm_amount', () => {
+  const inbox = readFileSync(new URL('../src/pages/Inbox.tsx', import.meta.url), 'utf8');
+  assert.match(inbox, /data-testid="draft-confirm-amount"/);
+  assert.match(inbox, /api\.approveDraft\(d\.id, body === d\.body \? undefined : body, confirmAmount\)/);
+  assert.match(inbox, /odd\.length > 0 && !confirmAmount/);
+});

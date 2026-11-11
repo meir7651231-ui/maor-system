@@ -43,6 +43,7 @@ class EmailIn(BaseModel):
 
 class DraftEdit(BaseModel):
     body: str | None = None
+    confirm_amount: bool = False   # critic סבב 48: סכום חריג ⇒ אישור מפורש
 
 
 class HoldIn(BaseModel):
@@ -613,8 +614,9 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
                 for r in svc.db.q("SELECT * FROM plans ORDER BY id")]
 
     @app.post("/plans/{pid}/approve", dependencies=auth)
-    def approve_plan(pid: int, request: Request):
-        return guard(svc.approve_plan, pid, request.state.actor)
+    def approve_plan(pid: int, request: Request, e: DraftEdit | None = None):
+        return guard(lambda: svc.approve_plan(pid, request.state.actor,
+                                              confirm_amount=bool(e and e.confirm_amount)))
 
     @app.get("/access-log", dependencies=auth)
     def access_log():
@@ -750,7 +752,8 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
     @app.post("/conversation/drafts/{did}/approve", dependencies=auth)
     def conversation_approve(did: int, request: Request, e: DraftEdit | None = None):
         return guard(lambda: inbox.approve_draft(did, body=e.body if e else None,
-                                                 actor=request.state.actor))
+                                                 actor=request.state.actor,
+                                                 confirm_amount=bool(e and e.confirm_amount)))
 
     @app.post("/conversation/drafts/{did}/reject", dependencies=auth)
     def conversation_reject(did: int, request: Request):
