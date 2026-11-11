@@ -382,7 +382,9 @@ import { blockKind, REAPPROVE_LABEL } from '../src/api.ts';
 test('block_reason: חסימה קשה משביתה; «לאשר מחדש» לא', () => {
   for (const b of ['no_contact', 'no_payment_link', 'opted_out', 'disputed', 'paid_claim', 'credit_review'])
     assert.equal(blockKind(b), 'hard', b);
-  for (const b of ['approval_expired', 'approval_invalidated', 'amount_changed', 'amount_check']) {
+  for (const b of ['compliance', 'no_reply_to']) assert.equal(blockKind(b), 'hard', b);
+  // critic סבב 51: CSV שחזר לאישור (24 ש׳ / חסר בייבוא) — השרת מתיר; הממשק השבית עם קוד גולמי
+  for (const b of ['approval_expired', 'approval_invalidated', 'amount_changed', 'amount_check', 'csv_stale', 'csv_missing_from_import']) {
     assert.equal(blockKind(b), 'reapprove', b);
     assert.ok(REAPPROVE_LABEL[b], b);
   }

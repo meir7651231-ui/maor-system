@@ -306,6 +306,20 @@ try {
   await noHScroll(p, 'דשבורד עם אזהרת CSV');
   await p.unroute('**/dashboard');
   console.log('  ✓ אזהרת «CSV לא הופיעה בייבוא האחרון» (ממשק)');
+  // 7ד) critic סבב 51: block_reason=csv_stale (השרת מחזיר לאישור אחרי 24 ש׳) הוצג «⛔ חסום: csv_stale» עם
+  //     כפתור מושבת ⇒ תקוע. מזריקים לתשובת /reminders האמיתית ובודקים תווית «לאשר מחדש» ולא קוד גולמי.
+  await p.route('**/reminders?status=pending_approval*', async route => {
+    const res = await route.fetch(); const j = await res.json();
+    if (j[0]) j[0].block_reason = 'csv_stale';
+    await route.fulfill({ response: res, json: j });
+  });
+  await p.goto(base + '/app/#/invoices'); await p.goto(base + '/app/#/dashboard');
+  await p.getByText(/עברו יותר מ-24 שעות/).first().waitFor();
+  ok(!(await p.getByText('csv_stale').count()), 'קוד גולמי csv_stale בממשק');
+  ok(!(await p.getByText(/⛔.*csv_stale/).count()), 'csv_stale מסווג כחסימה קשה');
+  if (out) await fullShot(p, `${out}/live-07d-csv-stale.png`);
+  await p.unroute('**/reminders?status=pending_approval*');
+  console.log('  ✓ csv_stale מוצג «לאשר מחדש» (לא חסום, לא קוד גולמי)');
   await p.goto(base + '/app/#/invoices');
   await p.getByText('דנה לוי').first().waitFor();
   ok(await p.locator('tbody tr').count() === 9, 'ציפיתי ל-9 חשבוניות פתוחות (8 + אחת מ-CSV)');
