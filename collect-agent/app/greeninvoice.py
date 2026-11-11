@@ -139,7 +139,10 @@ def due_or_estimate(due: date | None, issued: date | None, *,
         due = None
     # הפעלה 120: מועד רחוק מדי (טעות בשנה) ⇒ גם הוא "לא ידוע". קודם: החוב נחשב "טרם הגיע מועדו" עשרות שנים
     # ⇒ לא קיבל תזכורת לעולם, בשקט. גם במסמך מקושר — טעות בשנה היא טעות, לא מועד שעבר בירושה.
-    if due is not None and issued is not None and (due - issued).days > MAX_TERMS_DAYS:
+    # הפעלה 122: אבל רק כשהמועד עצמו רחוק בעתיד (מעל שנה מהיום). מועד קרוב להיום עם הנפקה ישנה מאוד = ההנפקה
+    # היא הטעות (2024 במקום 2026) ⇒ המועד האמיתי נשמר. קודם נמחק ⇒ הוערך 2024+30 ⇒ תזכורת לפני המועד האמיתי.
+    if (due is not None and issued is not None and (due - issued).days > MAX_TERMS_DAYS
+            and (due - (today or as_of())).days > MAX_FUTURE_ISSUE_DAYS):
         due = None
     if due is None and issued is not None:
         return issued + timedelta(days=DEFAULT_TERMS_DAYS), True

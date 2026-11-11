@@ -893,10 +893,18 @@ class CollectService:
         self._cancel_invoice(inv_row["id"], "manual_only_old")
         self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
                   "message_id,created_at) VALUES(?,'system','owner',?,'manual_only_old',1,?,?)",
-                  (cust["id"], f"חשבונית {inv_row['number']} ({cust['name']}) בת יותר מ-3 שנים. "
-                   "גבי לא שולחת עליה תזכורות אוטומטיות — לטיפול ידני בלבד.", key,
+                  (cust["id"], self._too_old_text(inv_row, cust), key,
                    _iso(self.clock())))
         self.audit("system", "manual_only_old", {"invoice": inv_row["id"]})
+
+    @staticmethod
+    def _too_old_text(inv_row, cust) -> str:
+        # הפעלה 122: התאריך + רמז לטעות — 2016 במקום 2026 נראה כמו חוב ישן, ובעל העסק צריך רק לתקן תאריך
+        born = inv_row["issued"] or inv_row["due"]
+        when = f" (מ-{date.fromisoformat(born):%d/%m/%Y})" if born else ""
+        return (f"חשבונית {inv_row['number']} ({cust['name']}){when} בת יותר מ-3 שנים. "
+                "גבי לא שולחת עליה תזכורות אוטומטיות — לטיפול ידני בלבד. "
+                "אם התאריך שגוי (טעות בשנה?) — תקנו אותו במערכת החשבוניות.")
 
     # ---------- ר-6: סימון בעל העסק (קטין / נפטר / חדלות פירעון) ----------
     def set_hold(self, customer_id: int, reason: str, note: str = "", actor: str = "owner") -> dict:
