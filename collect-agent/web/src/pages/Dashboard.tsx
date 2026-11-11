@@ -8,6 +8,7 @@ import { Button, Card, LateBadge } from '../components/ui.tsx';
 import { MessagePreview } from '../components/MessagePreview.tsx';
 import type { Invoice } from '../lib/domain.ts';
 import { api, BLOCK_LABEL, blockKind, REAPPROVE_LABEL } from '../api.ts';
+import { mockAmountCheck } from '../lib/policy.ts';
 import { areaPath, cumulative, toBars, type Bar } from '../lib/series.ts';
 
 const AGING_COLOR: Record<Aging, string> = { notDue: 'bg-ink-400', d0_30: 'bg-due', d31_60: 'bg-late', d61_90: 'bg-red-500', d90p: 'bg-red-700' };
@@ -70,7 +71,8 @@ export function Dashboard() {
                     <div className="font-bold truncate">{customerOf(i.customerId).name}</div>
                     <div className="text-sm text-ink-500"><b className="text-ink-900">{fmtIls(i.amount)}</b> · <LateBadge days={daysOverdue(i.dueAt, today)} /> · {STEP_LABEL[nextStep(i)]}
                       {live && blockKind(pendingOf(i.id)?.block) === 'hard' && <span className="text-critical font-bold"> · ⛔ {BLOCK_LABEL[pendingOf(i.id)!.block!] ?? pendingOf(i.id)!.block}</span>}
-                      {live && blockKind(pendingOf(i.id)?.block) === 'reapprove' && <span className="text-amber-700 font-bold"> · ⏳ {REAPPROVE_LABEL[pendingOf(i.id)!.block!]}</span>}</div>
+                      {live && blockKind(pendingOf(i.id)?.block) === 'reapprove' && <span className="text-amber-700 font-bold"> · ⏳ {REAPPROVE_LABEL[pendingOf(i.id)!.block!]}</span>}
+                      {!live && mockAmountCheck(i, invoices).length > 0 && <span className="text-amber-700 font-bold" data-testid="mock-amount-check"> · ⏳ {REAPPROVE_LABEL.amount_check}</span>}</div>
                   </div>
                   <Button size="sm" onClick={() => setOpen(i)}>תצוגה ואישור</Button>
                 </li>

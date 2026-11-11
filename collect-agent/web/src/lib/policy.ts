@@ -44,3 +44,24 @@ export function fmtWhenIL(iso: string): string {
 }
 const DAYS = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
 export const fmtWhen = (d: Date) => `יום ${DAYS[d.getDay()]} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+
+// ── סכום חריג (מראה של app/policy.py amount_outlier, הפעלה 123) ──
+// סכום ≥ פי 50 מחציון החשבוניות האחרות של הלקוח (לפחות 2) וגם ≥ ₪1,000 ⇒ אישור מפורש לפני תזכורת.
+export const AMOUNT_OUTLIER_FACTOR = 50;
+export const AMOUNT_OUTLIER_MIN_AGOROT = 100_000;
+export const AMOUNT_OUTLIER_MIN_HISTORY = 2;
+/** הסכום הרגיל (חציון, באגורות) אם הסכום חריג, אחרת null. טהור. */
+export function amountOutlier(amountAgorot: number, history: number[]): number | null {
+  const hist = history.filter(a => a > 0).sort((a, b) => a - b);
+  if (hist.length < AMOUNT_OUTLIER_MIN_HISTORY || amountAgorot < AMOUNT_OUTLIER_MIN_AGOROT) return null;
+  const n = hist.length;
+  const med = n % 2 ? hist[n >> 1] : Math.floor((hist[n / 2 - 1] + hist[n / 2]) / 2);
+  return med > 0 && amountAgorot >= med * AMOUNT_OUTLIER_FACTOR ? med : null;
+}
+/** במצב הדגמה (בלי שרת): אותו כרטיס «הסכום נכון — בדקתי» שהשרת מחזיר ב-preview.amount_check. */
+export function mockAmountCheck(inv: { id: string; number: string; customerId: string; amount: number },
+  all: readonly { id: string; customerId: string; amount: number }[]) {
+  const ag = (n: number) => Math.round(n * 100);
+  const usual = amountOutlier(ag(inv.amount), all.filter(o => o.customerId === inv.customerId && o.id !== inv.id).map(o => ag(o.amount)));
+  return usual === null ? [] : [{ number: inv.number, amount_agorot: ag(inv.amount), usual_agorot: usual, currency: 'ILS' }];
+}

@@ -60,12 +60,27 @@ try {
   await fullShot(p, `${out}/02-dashboard.png`);
   await p.getByRole('button', { name: 'תצוגה ואישור' }).first().click();
   await p.screenshot({ path: `${out}/03-preview-sms.png` });
+  // הפעלה 126: במוק ה-SMS נושא את הקישור המקוצר (demoShortUrl) ⇒ «חסר קישור תשלום» הופיע בכל תצוגה מקדימה
+  ok(await p.getByText('חסר קישור תשלום').count() === 0, 'מוק: אזהרת «חסר קישור תשלום» שגויה על SMS עם קישור');
   await p.getByRole('tab', { name: /מייל/ }).click();
   await p.screenshot({ path: `${out}/04-preview-email.png` });
   const n0 = await p.getByRole('button', { name: 'תצוגה ואישור' }).count();
   await p.getByRole('button', { name: /אשר ושלח/ }).click();
   await p.getByText('לא נשלחה הודעה אמיתית').waitFor();
   ok(await p.getByRole('button', { name: 'תצוגה ואישור' }).count() === n0 - 1, 'תור האישורים לא התעדכן');
+  // הפעלה 126: סכום חריג גם בהדגמה הסטטית — 2,490 ₪ ללקוח שמשלם 24.90/29.90 ⇒ אישור מפורש
+  const gal = p.locator('li').filter({ hasText: 'גל שרון' });
+  await gal.getByTestId('mock-amount-check').waitFor();
+  await gal.getByRole('button', { name: 'תצוגה ואישור' }).click();
+  const send = p.getByRole('button', { name: /אשר ושלח/ });
+  await p.getByText('הסכום נכון — בדקתי').waitFor();
+  ok(await send.isDisabled(), 'סכום חריג במוק: «אשר ושלח» פתוח לפני סימון «הסכום נכון»');
+  await p.screenshot({ path: `${out}/03b-preview-amount-check.png` });
+  await p.getByRole('checkbox', { name: /הסכום נכון/ }).check();
+  ok(!(await send.isDisabled()), 'סכום חריג במוק: «אשר ושלח» נעול גם אחרי הסימון');
+  await send.click();
+  await p.getByText('לא נשלחה הודעה אמיתית').first().waitFor();
+  ok(await gal.count() === 0, 'גל שרון נשארה בתור אחרי האישור');
   await p.goto(base + '#/invoices'); await p.waitForTimeout(300);
   await fullShot(p, `${out}/05-invoices.png`);
   await p.getByLabel('חיפוש').fill('גפן');

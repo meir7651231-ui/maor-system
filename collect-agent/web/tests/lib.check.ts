@@ -69,7 +69,7 @@ test('מדיניות שעות — הכרעת מאיר (השרת מתיישר: נ
 
 test('סטטיסטיקה על נתוני הדמו', () => {
   const k = kpis(demoInvoices, DEMO_TODAY);
-  assert.equal(k.openCount, 9);
+  assert.equal(k.openCount, 10);
   const q = needsReminder(demoInvoices, DEMO_TODAY).map(i => i.id);
   assert.ok(!q.includes('i5') && !q.includes('i9'), 'הבטחה/מחלוקת לא בתור');
   assert.ok(!q.includes('i6'), 'עוד לא הגיע מועד');
@@ -418,4 +418,24 @@ test('תשובות לקוחות: סכום חריג ⇒ תיבת «הסכום נ�
   assert.match(inbox, /data-testid="draft-confirm-amount"/);
   assert.match(inbox, /api\.approveDraft\(d\.id, body === d\.body \? undefined : body, confirmAmount\)/);
   assert.match(inbox, /odd\.length > 0 && !confirmAmount/);
+});
+
+test('סכום חריג: מראה של app/policy.py amount_outlier + כרטיס בהדגמה הסטטית (הפעלה 126)', async () => {
+  const { amountOutlier, mockAmountCheck, AMOUNT_OUTLIER_FACTOR, AMOUNT_OUTLIER_MIN_AGOROT, AMOUNT_OUTLIER_MIN_HISTORY } = await import('../src/lib/policy.ts');
+  const py = readFileSync(new URL('../../app/policy.py', import.meta.url), 'utf8');
+  const c = (k: string) => Number(new RegExp(`^${k} = ([\\d_]+)`, 'm').exec(py)![1].replaceAll('_', ''));
+  assert.equal(AMOUNT_OUTLIER_FACTOR, c('AMOUNT_OUTLIER_FACTOR'));
+  assert.equal(AMOUNT_OUTLIER_MIN_AGOROT, c('AMOUNT_OUTLIER_MIN_AGOROT'));
+  assert.equal(AMOUNT_OUTLIER_MIN_HISTORY, c('AMOUNT_OUTLIER_MIN_HISTORY'));
+  assert.equal(amountOutlier(1_200_000, [12_000, 13_000]), 12_500, 'פי 100 ⇒ חריג');
+  assert.equal(amountOutlier(1_200_000, [12_000]), null, 'היסטוריה קצרה ⇒ לא מנחשים');
+  assert.equal(amountOutlier(90_000, [100, 100]), null, 'מתחת ל-₪1,000');
+  assert.equal(amountOutlier(500_000, [12_000, 13_000]), null, 'פי 40 ⇒ לא חריג');
+  const gal = demoInvoices.find(i => i.number === '2009')!;
+  assert.deepEqual(mockAmountCheck(gal, demoInvoices), [{ number: '2009', amount_agorot: 249_000, usual_agorot: 2740, currency: 'ILS' }]);
+  assert.ok(needsReminder(demoInvoices, DEMO_TODAY).some(i => i.id === gal.id), 'החשבונית בתור האישורים');
+  for (const i of demoInvoices.filter(x => x.id !== gal.id)) assert.deepEqual(mockAmountCheck(i, demoInvoices), [], `רק 2009 חריגה (${i.number})`);
+  const mp = readFileSync(new URL('../src/components/MessagePreview.tsx', import.meta.url), 'utf8');
+  assert.match(mp, /: mockAmountCheck\(invoice, invoices\)/, 'בהדגמה הכרטיס מחושב מקומית, לא [] קבוע');
+  assert.match(mp, /smsText\.includes\(live \? payUrl : demoShortUrl\(invoice\)\)/, 'במוק: אזהרת «חסר קישור» מול הקישור המקוצר שב-SMS');
 });

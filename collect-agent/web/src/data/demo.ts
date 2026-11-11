@@ -27,6 +27,7 @@ export const demoCustomers: Customer[] = [
   { id: 'c6', name: 'פיצה נפוליטנה', phone: '0500000006', email: 'client06@example.com', contact: 'יוסי' },
   { id: 'c7', name: 'יעל אברהם – אימון אישי', phone: '0500000007', email: 'client07@example.com', contact: 'יעל אברהם' },
   { id: 'c8', name: 'משרד עו״ד גולן', phone: '0500000008', email: 'client08@example.com', contact: 'נועם גולן' },
+  { id: 'c9', name: 'גל שרון', phone: '0500000009', email: 'client09@example.com', contact: 'גל שרון' },
 ];
 
 export const demoInvoices: Invoice[] = [
@@ -49,6 +50,10 @@ export const demoInvoices: Invoice[] = [
   { id: 'i11', number: '1043', customerId: 'c4', amount: 2340, payUrl: 'https://pay.example/i/1043', issuedAt: '2026-09-20', dueAt: '2026-10-05', status: 'paid', reminders: [] },
   { id: 'i12', number: '1036', customerId: 'c1', amount: 3510, payUrl: 'https://pay.example/i/1036', issuedAt: '2026-08-10', dueAt: '2026-09-09', status: 'paid',
     reminders: [{ at: '2026-09-12', step: 'friendly', channel: 'sms', status: 'delivered' }] },
+  // מנוי חודשי 24.90/29.90 ₪ — והשלישית 2,490 ₪ (הנקודה העשרונית נשמטה) ⇒ כרטיס «הסכום נכון — בדקתי» (הפעלה 126)
+  { id: 'i13', number: '2007', customerId: 'c9', amount: 24.9, payUrl: 'https://pay.example/i/2007', issuedAt: '2026-08-01', dueAt: '2026-08-15', status: 'paid', reminders: [] },
+  { id: 'i14', number: '2008', customerId: 'c9', amount: 29.9, payUrl: 'https://pay.example/i/2008', issuedAt: '2026-09-01', dueAt: '2026-09-15', status: 'paid', reminders: [] },
+  { id: 'i15', number: '2009', customerId: 'c9', amount: 2490, payUrl: 'https://pay.example/i/2009', issuedAt: '2026-10-01', dueAt: '2026-10-15', status: 'open', reminders: [] },
 ];
 
 /** נגבה בחודשים האחרונים (₪) — לגרף בדשבורד. */

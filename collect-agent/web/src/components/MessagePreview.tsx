@@ -2,14 +2,14 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { api, BLOCK_LABEL, blockKind, REAPPROVE_LABEL, type Preview } from '../api.ts';
 import { useApp } from '../store.tsx';
 import type { Channel, Invoice, Step } from '../lib/domain.ts';
-import { STEP_LABEL, STEP_ORDER, buildEmail, buildSms, nextStep, requiresApproval, smsSegments } from '../lib/message.ts';
-import { fmtWhen, fmtWhenIL, nextAllowed } from '../lib/policy.ts';
+import { STEP_LABEL, STEP_ORDER, buildEmail, demoShortUrl, buildSms, nextStep, requiresApproval, smsSegments } from '../lib/message.ts';
+import { fmtWhen, fmtWhenIL, mockAmountCheck, nextAllowed } from '../lib/policy.ts';
 import { daysOverdue, fmtIls, fmtPhone } from '../lib/format.ts';
 import { Button, LateBadge } from './ui.tsx';
 
 /** תצוגה מקדימה של התזכורת בדיוק כפי שתישלח — SMS ומייל — עם "אשר ושלח". */
 export function MessagePreview({ invoice, onClose, now = new Date() }: { invoice: Invoice; onClose: () => void; now?: Date }) {
-  const { business, customerOf, approveAndSend, today, mode, pendingOf, showToast } = useApp();
+  const { business, customerOf, approveAndSend, today, mode, pendingOf, showToast, invoices } = useApp();
   const live = mode === 'live';
   const c = customerOf(invoice.customerId);
   const pending = pendingOf(invoice.id);
@@ -43,7 +43,7 @@ export function MessagePreview({ invoice, onClose, now = new Date() }: { invoice
   const when = nextAllowed(now);
   const block = live ? pv?.block_reason ?? pending?.block ?? null : null;
   const sendable = live ? !!pv && blockKind(block) !== 'hard' && !busy : (on.sms || on.email) && !c.optedOut;
-  const odd = live ? pv?.amount_check ?? [] : [];
+  const odd = live ? pv?.amount_check ?? [] : mockAmountCheck(invoice, invoices);   // הפעלה 126: גם בהדגמה הסטטית
   useEffect(() => {
     if (live && pv) { setOn({ sms: !!liveSms, email: !!liveMail }); setTab(liveSms ? 'sms' : 'email'); if (pv.template_key) setStep(pv.template_key); }
   }, [live, pv, liveSms, liveMail]);
@@ -138,7 +138,7 @@ export function MessagePreview({ invoice, onClose, now = new Date() }: { invoice
                 </label>
                 <div className={`text-xs mt-1 ${seg.segments > 3 ? 'text-critical font-bold' : 'text-ink-500'}`}>
                   <span className="num">{seg.chars}</span> תווים · <span className="num">{seg.segments}</span> מקטעי SMS {seg.unicode && '(עברית: 70/67 תווים למקטע)'}
-                  {!!payUrl && !smsText.includes(payUrl) && <span className="text-critical font-bold"> · ⚠️ חסר קישור תשלום</span>}
+                  {!!payUrl && !smsText.includes(live ? payUrl : demoShortUrl(invoice)) && <span className="text-critical font-bold"> · ⚠️ חסר קישור תשלום</span>}
                 </div>
               </div>
             ) : (
