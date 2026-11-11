@@ -140,5 +140,5 @@ def test_source_key_is_write_only_and_not_stored_in_phase1(api, svc):
 def test_source_csv_contract(api):
     csv_body = "number,client,phone,amount\n5,A,0501234567,10\n6,B,,20\n"
     r = api.post("/settings/source/csv", content=csv_body.encode()).json()
-    assert r == {"imported": 1, "credits": 0, "date_order": "dmy",   # critic סבב 35: זיכויים (יתרה שלילית) ⇒ לבדיקה
+    assert r == {"imported": 1, "credits": 0, "date_order": "dmy", "amount_check": [],   # critic 35 · הפעלה 124
                  "rejected": [{"row": 3, "reason": "אין טלפון ואין מייל"}]}

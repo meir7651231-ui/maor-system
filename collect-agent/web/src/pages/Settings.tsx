@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useApp } from '../store.tsx';
-import { api } from '../api.ts';
+import { api, type AmountCheck } from '../api.ts';
+import { fmtIls } from '../lib/format.ts';
 import { RULES } from '../lib/domain.ts';
 import { diffPatch, explainImportError, explainSettingsError, SOURCE_SYSTEMS, sourceLabel, toForm, validate, type DesignSettings, type PayProvider, type SettingsForm } from '../lib/settings.ts';
 import { Button, Card, Field, inputCls } from '../components/ui.tsx';
@@ -26,7 +27,7 @@ export function Settings() {
   const [saveErr, setSaveErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [csvErr, setCsvErr] = useState<string | null>(null);
-  const [csv, setCsv] = useState<{ imported: number; credits?: number; date_order?: string; rejected: { row: number; reason: string }[] } | null>(null);
+  const [csv, setCsv] = useState<{ imported: number; credits?: number; date_order?: string; amount_check?: AmountCheck[]; rejected: { row: number; reason: string }[] } | null>(null);
 
   useEffect(() => {
     if (!live) { setOrig(mockForm); setF(mockForm); return; }
@@ -131,6 +132,8 @@ export function Settings() {
             {csv.rejected.length > 0 && <ul className="mt-1 text-xs text-critical">{csv.rejected.map(r => <li key={r.row}>שורה <span className="num">{r.row}</span>: {r.reason}</li>)}</ul>}
             {csv.date_order === 'mdy' && <p className="mt-1 text-xs text-amber-700" data-testid="csv-date-order">📅 התאריכים בקובץ זוהו בפורמט אמריקאי (חודש/יום) ונקראו כך. אם זו טעות — ייצאו מחדש בפורמט YYYY-MM-DD.</p>}
             {csv.date_order === 'mixed' && <p className="mt-1 text-xs text-amber-700" data-testid="csv-date-order">📅 בקובץ יש גם יום/חודש וגם חודש/יום — שורות עם תאריך דו-משמעי נדחו.</p>}
+            {(csv.amount_check?.length ?? 0) > 0 && <div role="alert" className="mt-1 text-xs text-critical" data-testid="csv-amount-check">⚠️ סכום חריג מאוד מהרגיל ללקוח — אולי הנקודה העשרונית במקום הלא נכון? גבי לא תשלח תזכורת עליו עד שתאשרו במפורש:
+              <ul className="mt-1">{csv.amount_check!.map(o => <li key={o.number}>חשבונית <span className="num">{o.number || '(ללא מספר)'}</span>: <span className="num">{fmtIls(o.amount_agorot / 100)}</span> (בדרך כלל <span className="num">{fmtIls(o.usual_agorot / 100)}</span>)</li>)}</ul></div>}
             {!!csv.credits && <p className="mt-1 text-xs text-amber-700" data-testid="csv-credits">⏸️ <span className="num">{csv.credits}</span> שורות ביתרה שלילית (זיכוי) — הלקוחות שלהן הושהו לבדיקתך, בלי תזכורת עד שתאשר/י</p>}
           </div>
         )}

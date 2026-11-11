@@ -123,7 +123,7 @@ export const api = {
   rejectDraft: (id: number) => j<unknown>(`/conversation/drafts/${id}/reject`, { method: 'POST' }),
   settings: () => j<DesignSettings>('/settings'),
   saveSettings: (patch: Record<string, unknown>) => j<DesignSettings>('/settings', { method: 'PUT', body: JSON.stringify(patch) }),
-  importCsv: (csv: string) => j<{ imported: number; credits?: number; date_order?: string; rejected: { row: number; reason: string }[] }>('/settings/source/csv',
+  importCsv: (csv: string) => j<{ imported: number; credits?: number; date_order?: string; amount_check?: AmountCheck[]; rejected: { row: number; reason: string }[] }>('/settings/source/csv',
     { method: 'POST', body: csv, headers: { 'Content-Type': 'text/csv; charset=utf-8' } }),
   inbound: (channel: 'sms' | 'email', sender: string, text: string) =>
     j<InboundResult>('/inbound', { method: 'POST', body: JSON.stringify({ channel, sender, text }) }),

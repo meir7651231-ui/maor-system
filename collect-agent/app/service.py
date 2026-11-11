@@ -478,7 +478,21 @@ class CollectService:
         self.audit(actor, "csv_import", {"rows": len(res.invoices), "errors": len(res.errors),
                                          "credits": len(res.credits)})
         return {"imported": counts["open"], "errors": res.errors, "credits": len(res.credits),
-                "date_order": res.date_order}
+                "date_order": res.date_order, "amount_check": self._csv_amount_check(res.invoices)}
+
+    def _csv_amount_check(self, invoices) -> list[dict]:
+        """הפעלה 124: סכום חריג (פי 50 מהרגיל ללקוח) כבר ברגע הייבוא — לא רק בתכנון. בעל העסק רואה
+        את השורה מיד, כשהקובץ עוד פתוח אצלו, וגם מקבל את אותה התראה (מפתח זהה ⇒ בלי כפילות בתכנון)."""
+        rows = [r for r in (self.db.one("SELECT * FROM invoices WHERE external_id=? AND status='open'",
+                                        (i.external_id,)) for i in invoices) if r]
+        out = []
+        for inv, usual in self._amount_outliers(rows):
+            cust = self.db.one("SELECT * FROM customers WHERE id=?", (inv["customer_id"],))
+            if cust:
+                self._notify_amount_check(inv, cust, usual)
+            out.append({"number": inv["number"], "amount_agorot": inv["amount_agorot"],
+                        "usual_agorot": usual, "currency": inv["currency"]})
+        return out
 
     # ---------- payment link ----------
     def _payment_link(self, inv_row) -> str | None:
