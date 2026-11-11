@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { daysOverdue, fmtIls, fmtPhone, isIlMobile, agingOf } from '../src/lib/format.ts';
-import { firstName, buildSms, buildEmail, smsSegments, nextStep, remindersExhausted, requiresApproval, demoUnsubUrl, demoShortUrl, TEMPLATES } from '../src/lib/message.ts';
+import { firstName, buildSms, buildEmail, smsSegments, nextStep, remindersExhausted, requiresApproval, demoUnsubUrl, demoShortUrl, TEMPLATES, fmtAmountBackend } from '../src/lib/message.ts';
 import { readFileSync } from 'node:fs';
 import { canSendAt, nextAllowed, HOLIDAYS } from '../src/lib/policy.ts';
 import { kpis, needsReminder, agingBuckets } from '../src/lib/stats.ts';
@@ -446,4 +446,19 @@ test('התראת סכום חריג: כותרת ייעודית וטון אזהר�
   const [n] = systemNotices([{ id: 1, customer_id: 1, direction: 'system', channel: 'owner', body: 'x', intent: 'amount_check', created_at: '2026-11-11T10:00:00+02:00' }]);
   assert.notEqual(n.title, 'הודעה מגבי');
   assert.equal(n.tone, 'warn');
+});
+
+// הפעלה 127: סכום ב-SMS של המוק = templates.fmt_amount של השרת, אות-באות (קודם 24.90 עוגל ל-"25 ₪").
+test('fmtAmountBackend תואם templates.fmt_amount (אגורות, פסיקים, אפס)', () => {
+  const cases: [number, string][] = [
+    [12870, '12,870 ₪'], [24.9, '24.90 ₪'], [29.9, '29.90 ₪'], [2490, '2,490 ₪'],
+    [0.05, '0.05 ₪'], [1234567.89, '1,234,567.89 ₪'], [100, '100 ₪'], [0.1 + 0.2, '0.30 ₪'],
+  ];
+  for (const [ils, want] of cases) assert.equal(fmtAmountBackend(ils), want, String(ils));
+  // מקור: הצורה בשרת לא השתנתה (אם תשתנה — לעדכן כאן ובמראה).
+  const py = readFileSync(new URL('../../app/templates.py', import.meta.url), 'utf8');
+  assert.match(py, /s = f"\{whole:,\}" \+ \(f"\.\{frac:02d\}" if frac else ""\)/);
+  const paid = demoInvoices.find(i => i.number === '2007')!;
+  const cust = demoCustomers.find(c => c.id === paid.customerId)!;
+  assert.match(buildSms(paid, cust, demoBusiness, 'friendly'), /ע"ס 24\.90 ₪/);
 });

@@ -58,8 +58,13 @@ export const TEMPLATES: Record<Step, { sms: string; subject: string; email: stri
     email: 'שלום {name},\n\nזו התזכורת האוטומטית האחרונה לגבי חשבונית {num} ({amount}).\nבעל העסק ייצור איתכם קשר אישית בהמשך.\nלתשלום: {link}\n\nבברכה,\n{biz}',
   },
 };
-/** תואם templates.fmt_amount: "12,870 ₪" */
-export const fmtAmountBackend = (ils: number) => `${Math.round(ils).toLocaleString('en-US')} ₪`;
+/** מראה אות-באות של templates.fmt_amount (ILS): "12,870 ₪", "24.90 ₪" — אגורות רק כשאינן אפס.
+ *  הפעלה 127: קודם עוגל לשקל שלם (24.90 ⇒ "25 ₪") ⇒ ה-SMS במוק שונה מזה שהשרת שולח. */
+export const fmtAmountBackend = (ils: number) => {
+  const agorot = Math.round(ils * 100);
+  const whole = Math.floor(agorot / 100), frac = agorot % 100;
+  return `${whole.toLocaleString('en-US')}${frac ? '.' + String(frac).padStart(2, '0') : ''} ₪`;
+};
 
 function fields(inv: Invoice, c: Customer, b: Business): Record<string, string> {
   // מראה של templates.fields (two_way=False — שם שולח אלפאנומרי)
