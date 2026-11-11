@@ -30,7 +30,7 @@ import { CallBtn } from '../CallBtn';
 import { tierOf } from '../families/lib';
 import { groupLabelOf } from '../courses/lib';
 import { liveSuggestions } from '../shop8/lib';
-import { nextClosure } from '../telephony/lib';
+import { nextClosure } from '../telephony/closure';
 import { buildPodium, buildWeek, fmtIls } from '../wall/wallData';
 import {
   courseMetrics,
