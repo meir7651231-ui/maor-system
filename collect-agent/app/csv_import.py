@@ -12,7 +12,7 @@ import re
 from dataclasses import dataclass, field
 from datetime import date, timedelta
 
-from .contact import normalize_il_phone, valid_email
+from .contact import clean_email, normalize_il_phone
 from .greeninvoice import DEFAULT_TERMS_DAYS, Invoice
 from .integrations.base import parse_amount_agorot, parse_currency
 from .security import DOC_NUMBER_MAX, clean_doc_number
@@ -189,7 +189,7 @@ def parse(raw: bytes | str) -> CsvResult:
             phone = _csv_phone(cell("phone"))
             # הפעלה 114: טלפון שלא מזוהה ובלי מייל תקין = חייב שאי אפשר להגיע אליו ⇒ שגיאה גלויה בייבוא
             # (קודם נקלט בשקט ואף תזכורת לא יצאה).
-            if not normalize_il_phone(phone) and not valid_email(cell("email")):
+            if not normalize_il_phone(phone) and not clean_email(cell("email")):
                 raise ValueError(f"טלפון לא מזוהה ואין מייל תקין: {cell('phone')[:30]!r}")
             seen.add(num)
             # critic סבב 35: יתרה שלילית = זיכוי ללקוח. היה `<= 0 ⇒ continue` (נבלע בשקט, כמו רווחית ב-21.1)

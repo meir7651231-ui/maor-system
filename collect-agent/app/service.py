@@ -15,6 +15,7 @@ from .channels import (
     DryRunSender,
     Message,
     build_adapters,
+    clean_email,
     is_il_mobile,
     message_from_json,
     message_to_json,
@@ -573,7 +574,8 @@ class CollectService:
     # ---------- שער שליחה יחיד (ממצא מבקר 2.6 §5) ----------
     @staticmethod
     def addr_hash(channel: str, addr: str) -> str:
-        norm = normalize_il_phone(addr) if channel == "sms" else (addr or "").strip().lower()
+        # הפעלה 117: אותו מנקה כמו בייבוא — "mailto:"/RLM/אותיות גדולות לא עוקפים הסרה
+        norm = normalize_il_phone(addr) if channel == "sms" else (clean_email(addr) or (addr or "").strip().lower())
         return hashlib.sha256(f"{channel}:{norm or addr}".encode()).hexdigest()
 
     def suppress(self, channel: str, addr: str, reason: str) -> None:

@@ -19,6 +19,7 @@ from typing import Any
 
 import httpx
 
+from .contact import clean_email
 from .integrations.base import jstr, parse_amount_agorot, parse_currency, safe_map
 from .security import clean_doc_number
 
@@ -73,6 +74,8 @@ class Invoice:
     def __post_init__(self) -> None:
         # הפעלה 116: מספר המסמך מנוקה במקום אחד לכל המקורות (תצוגה לחייב + איחוד CSV↔API).
         object.__setattr__(self, "number", clean_doc_number(self.number))
+        # הפעלה 117: גם המייל — כתובת אחת תקינה באותיות קטנות (נמען, מפתח לקוח, הסרה, חסימה) לכל המקורות.
+        object.__setattr__(self, "client_email", clean_email(self.client_email))
 
 
 def _parse_date(v: Any) -> date | None:
@@ -136,7 +139,7 @@ def map_document(doc: dict[str, Any]) -> Invoice:
         client_external_id=_s(client.get("id")),
         client_name=_s(client.get("name")),
         client_phone=str(client.get("phone") or client.get("mobile") or ""),
-        client_email=_s(emails[0]) if emails else "",
+        client_email=clean_email(emails),   # הפעלה 117: הראשונה התקינה, לא emails[0] העיוור
         payment_url=str(doc.get("paymentUrl") or doc.get("paymentLink") or ""),
         status=int(doc.get("status", 0) or 0),
         due_estimated=due_estimated,

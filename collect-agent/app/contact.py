@@ -39,7 +39,47 @@ def local_phone(norm: str) -> str:
 
 
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+# הפעלה 117: תווים שלא יכולים להופיע בכתובת אמיתית (בלי מרכאות) — "mailto:x@y", "<x@y>", "x@y,z@w",
+# RLM/רוחב-אפס מייצוא אחר. קודם עברו את EMAIL_RE ⇒ נשלח מייל לכתובת שלא קיימת / ההסרה עוקפה.
+_EMAIL_BAD_CHARS = re.compile(r"[<>(),;:\"\[\]\\\x00-\x1f\x7f\u00ad\u200b-\u200f\u202a-\u202e\u2060-\u2069\ufeff]")
 
 
 def valid_email(e: str) -> bool:
-    return bool(EMAIL_RE.match(e or ""))
+    e = e or ""
+    if not EMAIL_RE.match(e) or _EMAIL_BAD_CHARS.search(e):
+        return False
+    local, domain = e.rsplit("@", 1)
+    return not (local.startswith(".") or local.endswith(".") or ".." in e
+                or domain.startswith((".", "-")) or domain.endswith((".", "-")))
+
+
+_EMAIL_STRIP = re.compile("[\x00-\x1f\x7f\u00ad\u200b-\u200f\u202a-\u202e\u2060-\u2069\ufeff]")
+_EMAIL_SPLIT = re.compile(r"[\s,;|/]+")
+
+
+def clean_email(v: object) -> str:
+    """הפעלה 117 — מייל לקוח מקלט חיצוני (CSV/GI/iCount/EZcount/רווחית) ⇒ כתובת אחת תקינה באותיות קטנות, או "".
+    "Dan@Example.COM" ⇒ "dan@example.com" · " dan@x.com " · "mailto:dan@x.com" · "דן כהן <dan@x.com>" ·
+    "dan@x.com; ruth@y.com" ⇒ הראשונה התקינה · רשימה (GI emails[]) ⇒ הראשונה התקינה · RLM/רוחב-אפס מוסרים ·
+    "＠" ברוחב-מלא ⇒ "@" · נקודה נגררת מוסרת. ממלא-מקום ("None", "-") / בלי כתובת ⇒ "".
+    באגים שנמצאו: מייל עם רווח/כמה כתובות בתא ⇒ החייב «בלי מייל» בשקט; "mailto:…"/"<…>" עברו כ"תקינים" ⇒
+    נשלח לכתובת שלא קיימת; אותיות גדולות/RLM ⇒ מפתח-הסרה אחר ⇒ מי שביקש הסרה קיבל שוב מייל."""
+    if v is None or isinstance(v, bool):
+        return ""
+    if isinstance(v, (list, tuple)):
+        for item in v:
+            c = clean_email(item)
+            if c:
+                return c
+        return ""
+    s = _EMAIL_STRIP.sub("", unicodedata.normalize("NFKC", str(v)))
+    bracketed = re.findall(r"<([^<>]*)>", s)
+    candidates = bracketed + _EMAIL_SPLIT.split(s)
+    for p in candidates:
+        p = p.strip().strip("\"'()[]<>{}")
+        if p.lower().startswith("mailto:"):
+            p = p[7:]
+        p = p.split("?", 1)[0].rstrip(".").lower()
+        if valid_email(p):
+            return p
+    return ""

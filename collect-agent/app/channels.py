@@ -15,14 +15,14 @@ import uuid
 from dataclasses import dataclass, field
 from typing import Any
 
-from .contact import EMAIL_RE, is_il_mobile, local_phone, normalize_il_phone, valid_email
+from .contact import EMAIL_RE, clean_email, is_il_mobile, local_phone, normalize_il_phone, valid_email
 from .integrations.base import EmailMessageOut, IntegrationError, SmsMessage, request_preview
 from .integrations.email import SmtpEmail
 from .integrations.notifier import Notification, Notifier
 from .integrations.sms import SMS_PROVIDERS, Sms019
 from .integrations.sms import sms_segments as _segments
 
-__all__ = ["EMAIL_RE", "SMS_ADAPTERS", "DryRunSender", "Message", "SmtpEmail", "build_adapters",
+__all__ = ["EMAIL_RE", "SMS_ADAPTERS", "DryRunSender", "Message", "SmtpEmail", "build_adapters", "clean_email",
            "is_il_mobile", "local_phone", "message_from_json", "message_to_json",
            "normalize_il_phone", "parse_address", "sms_segments", "strip_reply", "valid_email"]
 
