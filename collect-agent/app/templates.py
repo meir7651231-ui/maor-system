@@ -165,8 +165,9 @@ def fields_multi(*, biz: str, name: str, invoices: list[tuple[str, int]], curren
                link=link, unsub=unsub, short=short, two_way=two_way)
     f["count"] = str(len(invoices))
     f["nums"] = f["num"] = joined
-    f["lines"] = "\n".join(f"• חשבונית {n} — {fmt_amount(a, currency)}"
+    f["lines"] = "\n".join(f"• חשבונית {n or '(ללא מספר)'} — {fmt_amount(a, currency)}"
                            for n, (_, a) in zip(nums, invoices, strict=True))
+    f["incomplete"] = "1" if any(not n for n in nums) else ""
     return f
 
 
@@ -180,7 +181,8 @@ def _tidy(s: str) -> str:
 
 def render_sms(step: Step | MultiStep, f: dict[str, str]) -> str:
     out = _tidy(step.sms.format(**f))
-    if isinstance(step, MultiStep) and len(out) > SMS_TARGET:
+    # critic סבב 46: חשבונית בלי מספר ⇒ הרשימה לא שלמה ⇒ «חשבוניות 1002 (סה"כ X)» ייחס את כל הסכום ל-1002
+    if isinstance(step, MultiStep) and (len(out) > SMS_TARGET or f.get("incomplete")):
         out = _tidy(step.sms_count.format(**f))   # רשימה ארוכה ⇒ כמה + סה״כ; הפירוט בעמוד הקישור
     # "שלום שלום," כשאין שם — מנקים
     return out.replace("שלום שלום,", "שלום,").replace(": שלום, ", ": שלום, ")

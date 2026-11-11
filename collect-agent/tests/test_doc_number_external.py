@@ -118,3 +118,15 @@ def test_csv_end_to_end_sms_has_clean_number(svc):
     api.post("/dispatch")
     [m] = svc.sender.sent
     assert "חשבונית 1234 " in m["body"] and "1234.0" not in m["body"]
+
+
+def test_multi_reminder_with_unnamed_invoice_does_not_misattribute_total():
+    """critic סבב 46: אחרי הפעלה 116 מספר ריק נשמט מהרשימה ⇒ SMS מאוחד «חשבוניות 1002 (סה"כ 1,200 ₪)»
+    כש-1002 היא 200 ₪ והשאר (1,000 ₪) בלי מספר ⇒ נראה שחשבונית 1002 היא 1,200 ₪. ובמייל «• חשבונית  —».
+    עכשיו: חסר מספר ⇒ נוסח הספירה («2 חשבוניות, סה״כ») ובשורות «ללא מספר»."""
+    from app import templates as t
+    fm = t.fields_multi(biz="סטודיו", name="דנה", invoices=[("None", 100000), ("1002", 20000)],
+                        currency="ILS", link="https://x/p/a", unsub="https://x/u/b")
+    sms = t.render_sms(t.STEPS_MULTI[0], fm)
+    assert "1002 (" not in sms and "2 חשבוניות" in sms and "1,200" in sms
+    assert "• חשבונית  —" not in fm["lines"] and "ללא מספר" in fm["lines"]
