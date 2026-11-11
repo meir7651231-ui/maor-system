@@ -15,6 +15,7 @@ from datetime import date, timedelta
 from .contact import normalize_il_phone, valid_email
 from .greeninvoice import DEFAULT_TERMS_DAYS, Invoice
 from .integrations.base import parse_amount_agorot, parse_currency
+from .security import DOC_NUMBER_MAX, clean_doc_number
 
 MAX_BYTES = 2_000_000
 MAX_ROWS = 5_000
@@ -161,9 +162,16 @@ def parse(raw: bytes | str) -> CsvResult:
         if not any(c.strip() for c in row):
             continue
         try:
-            num = cell("number")
-            if not num:
+            raw_num = cell("number")
+            if not raw_num:
                 raise ValueError("חסר מספר מסמך")
+            # הפעלה 116: אותו ניקוי כמו ב-Invoice (מפתח `csv:{מספר}` ואיחוד מול ה-API). "None"/קישור ⇒
+            # שגיאה גלויה; "1234.0" מ-Excel ⇒ "1234"; RLM/רווחים כפולים לא מפצלים מסמך.
+            num = clean_doc_number(raw_num)
+            if not num:
+                raise ValueError(f"מספר מסמך לא תקין: {raw_num[:30]!r}")
+            if len(num) > DOC_NUMBER_MAX:
+                raise ValueError(f"מספר מסמך ארוך מדי (מעל {DOC_NUMBER_MAX} תווים)")
             if num in seen:
                 raise ValueError(f"מספר מסמך כפול: {num}")
             if cell("status").strip().lower() in CLOSED_STATUSES:

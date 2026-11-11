@@ -747,7 +747,7 @@ def _hi(ctx: Context) -> str:
 
 
 def _numbers(ctx: Context) -> str:
-    nums = [i.number for i in ctx.invoices]
+    nums = [i.number for i in ctx.invoices if i.number]   # הפעלה 116: מספר ריק ⇒ לא «חשבונית »
     if not nums:
         return ""
     return ("חשבונית " + nums[0]) if len(nums) == 1 else ("חשבוניות " + ", ".join(nums))

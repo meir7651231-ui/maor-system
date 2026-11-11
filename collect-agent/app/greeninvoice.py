@@ -20,6 +20,7 @@ from typing import Any
 import httpx
 
 from .integrations.base import jstr, parse_amount_agorot, parse_currency, safe_map
+from .security import clean_doc_number
 
 # סוגי מסמכים שמייצגים חוב פתוח (לאמת): 300 חשבון עסקה, 305 חשבונית מס
 OPEN_DEBT_TYPES = (300, 305)
@@ -68,6 +69,10 @@ class Invoice:
     linked_ids: tuple[str, ...] = ()   # מסמכים מקושרים (זיכוי ⇒ החשבונית; 305 ⇒ ה-300 שממנו הומר)
     gross_agorot: int = 0         # סכום המסמך המלא, כשיש גם amountDueVat (0 = לא ידוע)
     credit_agorot: int = 0        # זיכוי שקוזז מהיתרה (amount_agorot כבר נטו)
+
+    def __post_init__(self) -> None:
+        # הפעלה 116: מספר המסמך מנוקה במקום אחד לכל המקורות (תצוגה לחייב + איחוד CSV↔API).
+        object.__setattr__(self, "number", clean_doc_number(self.number))
 
 
 def _parse_date(v: Any) -> date | None:

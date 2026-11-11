@@ -9,7 +9,7 @@ import re
 from dataclasses import dataclass
 from html import escape
 
-from .security import clean_client_name, sanitize_field
+from .security import clean_client_name, clean_doc_number, sanitize_field
 
 MARKETING_WORDS = ("מבצע", "הנחה", "הטבה", "מתנה", "קופון", "חדש!", "הזדמנות", "במיוחד בשבילך")
 THREAT_WORDS = ("הוצאה לפועל", "תביעה", "משטרה", "עונש", "עו\"ד", "עורך דין", "אחרונה!")
@@ -148,7 +148,7 @@ def fields(*, biz: str, name: str, num: str, amount_agorot: int, currency: str,
     name = clean_client_name(name)
     return {"biz": sanitize_field(biz), "name": name or "לקוח/ה יקר/ה",
             "first": first_name(name) or "שלום",
-            "num": sanitize_field(num, 30), "amount": fmt_amount(amount_agorot, currency),
+            "num": sanitize_field(clean_doc_number(num), 30), "amount": fmt_amount(amount_agorot, currency),
             "link": link, "unsub": unsub, "short": short or link,
             "stop": STOP_REPLY if two_way else STOP_LINK,
             "ask": " שאלות? השיבו." if two_way else "",
@@ -158,29 +158,38 @@ def fields(*, biz: str, name: str, num: str, amount_agorot: int, currency: str,
 def fields_multi(*, biz: str, name: str, invoices: list[tuple[str, int]], currency: str,
                  link: str, unsub: str, short: str = "", two_way: bool = False) -> dict[str, str]:
     """invoices = [(מספר, סכום באגורות)] לפי מועד. {amount} = הסה״כ (מטבע אחד בלבד)."""
-    nums = [sanitize_field(n, 30) for n, _ in invoices]
+    nums = [sanitize_field(clean_doc_number(n), 30) for n, _ in invoices]
+    joined = ", ".join(n for n in nums if n)    # הפעלה 116: מספר ריק לא משאיר ", ," ברשימה
     total = sum(a for _, a in invoices)
-    f = fields(biz=biz, name=name, num=", ".join(nums), amount_agorot=total, currency=currency,
+    f = fields(biz=biz, name=name, num=joined, amount_agorot=total, currency=currency,
                link=link, unsub=unsub, short=short, two_way=two_way)
     f["count"] = str(len(invoices))
-    f["nums"] = f["num"] = ", ".join(nums)
+    f["nums"] = f["num"] = joined
     f["lines"] = "\n".join(f"• חשבונית {n} — {fmt_amount(a, currency)}"
                            for n, (_, a) in zip(nums, invoices, strict=True))
     return f
 
 
+_EMPTY_NUM_GAP = re.compile(r"(חשבוניו?ת) {2,}")
+
+
+def _tidy(s: str) -> str:
+    """הפעלה 116: מספר חשבונית ריק ⇒ «חשבונית  ע"ס» (רווח כפול) ⇒ «חשבונית ע"ס»."""
+    return _EMPTY_NUM_GAP.sub(r"\1 ", s)
+
+
 def render_sms(step: Step | MultiStep, f: dict[str, str]) -> str:
-    out = step.sms.format(**f)
+    out = _tidy(step.sms.format(**f))
     if isinstance(step, MultiStep) and len(out) > SMS_TARGET:
-        out = step.sms_count.format(**f)   # רשימה ארוכה ⇒ כמה + סה״כ; הפירוט בעמוד הקישור
+        out = _tidy(step.sms_count.format(**f))   # רשימה ארוכה ⇒ כמה + סה״כ; הפירוט בעמוד הקישור
     # "שלום שלום," כשאין שם — מנקים
     return out.replace("שלום שלום,", "שלום,").replace(": שלום, ", ": שלום, ")
 
 
 def render_email(step: Step | MultiStep, f: dict[str, str]) -> tuple[str, str, str]:
-    text = step.email.format(**f) + f"\n\nלהסרה מתזכורות: {f['unsub']}"
+    text = _tidy(step.email.format(**f)) + f"\n\nלהסרה מתזכורות: {f['unsub']}"
     esc = {k: escape(v) for k, v in f.items()}
-    body_html = "<br>".join(escape(line) for line in step.email.format(**f).split("\n"))
+    body_html = "<br>".join(escape(line) for line in _tidy(step.email.format(**f)).split("\n"))
     body_html = body_html.replace(escape(f["link"]),
                                   f'<a href="{esc["link"]}">{esc["link"]}</a>')
     html = (f'<div dir="rtl" style="font-family:Arial,sans-serif;font-size:15px;'
@@ -189,7 +198,7 @@ def render_email(step: Step | MultiStep, f: dict[str, str]) -> tuple[str, str, s
             f'color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none">לתשלום</a></p>'
             f'<p style="font-size:12px;color:#6b7280">הודעה אוטומטית מטעם {esc["biz"]}. '
             f'<a href="{esc["unsub"]}">להסרה מתזכורות</a></p></div>')
-    return step.subject.format(**f), text, html
+    return _tidy(step.subject.format(**f)), text, html
 
 
 def template_version() -> str:

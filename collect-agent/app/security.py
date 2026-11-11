@@ -134,6 +134,33 @@ def clean_client_name(v: object, max_len: int = 80) -> str:
     return s.strip(" ,;:-")
 
 
+# הפעלה 116 — מספר חשבונית מקלט חיצוני (CSV/GI/iCount/EZcount/רווחית) לפני SMS/מייל ולפני מפתח המסמך.
+_EXCEL_FLOAT = re.compile(r"^(\d+)\.0+$")
+_PLACEHOLDER_NUMS = frozenset({"none", "null", "nan", "nil", "undefined", "n/a", "na", "-", "--", "0",
+                               "לא ידוע", "ללא", "אין"})
+DOC_NUMBER_MAX = 64
+
+
+def clean_doc_number(v: object) -> str:
+    """מספר מסמך שמוצג לחייב ומשמש מפתח (`csv:{מספר}`, איחוד CSV↔API): שורה אחת, בלי כיווניות/רוחב-אפס,
+    רווחים מאוחדים. ממלא-מקום ("None"/"null"/"-") או מספר שמכיל קישור ⇒ "" (לא מוצג לחייב).
+    Excel ⇒ "1234.0" חוזר ל-"1234". באג שנמצא: «חשבונית None», «חשבונית http://…» ב-SMS לחייב,
+    ו-"1234.0" מ-Excel מול "1234" מה-API ⇒ שתי חשבוניות ⇒ שתי תזכורות על אותו חוב."""
+    if v is None or isinstance(v, bool):
+        return ""
+    s = _ZERO_WIDTH.sub("", sanitize_field(str(v), 400))
+    s = " ".join(s.split())
+    s = s.strip(" ,;:")
+    m = _EXCEL_FLOAT.match(s)
+    if m:
+        s = m.group(1)
+    if s.lower() in _PLACEHOLDER_NUMS or not any(c.isalnum() for c in s):
+        return ""
+    if _URLISH.search(s) or "@" in s:
+        return ""
+    return s
+
+
 def html_escape(v: str) -> str:
     return (v.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
             .replace('"', "&quot;").replace("'", "&#x27;"))
