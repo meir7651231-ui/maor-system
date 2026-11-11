@@ -44,6 +44,8 @@ white-space:pre-wrap;word-break:break-word}
 margin-bottom:8px;word-break:break-all}
 iframe{width:100%;min-height:360px;border:1px solid var(--line);border-radius:10px;background:#fff}
 .empty{color:var(--muted);padding:24px;text-align:center}.err{color:var(--bad);margin-top:8px}
+.note{color:var(--warn);background:var(--warn-bg);padding:8px 12px;border-radius:8px;margin-top:8px}
+.confirm{display:flex;gap:8px;align-items:flex-start;margin-top:12px;padding:10px 12px;border:1px solid var(--bad);border-radius:8px;cursor:pointer}
 .decide{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
 #dash{max-width:1200px;margin:16px auto 0;padding:0 16px}
 .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:12px}
@@ -84,8 +86,19 @@ button.resume{margin-inline-start:6px;padding:4px 10px;min-height:32px;font-size
 const STATUS={pending_approval:"ממתינה לאישורך",approved:"מאושרת",sent_dry_run:"נשלחה (בדיקה)",
   rejected:"נדחתה",cancelled:"בוטלה"};
 const BLOCK={no_contact:"אין נייד או מייל תקין",compliance:"נחסם במסנן הניסוח",plan_active:"בהסדר תשלומים",disputed:"מחלוקת",no_payment_link:"אין קישור תשלום",
-  opted_out:"הלקוח ביקש הסרה",paid_claim:"הלקוח טוען ששילם",dispute:"מחלוקת",
+  no_reply_to:"ללקוח יש רק מייל ולא הוגדרה כתובת תשובה לעסק",
+  opted_out:"הלקוח ביקש הסרה",paid_claim:"הלקוח טוען ששילם",dispute:"מחלוקת",credit_review:"זיכוי לא משויך, לבדיקתך",
   invoice_closed:"החשבונית נסגרה",plan_request:"ביקש פריסה"};
+// הפעלה 133: חסימה קשה = HARD_BLOCKS בשרת (אסור לאשר). REAPPROVE = התזכורת רק חזרה לאישור, השרת מתיר.
+const HARD=["no_contact","no_payment_link","compliance","no_reply_to"];
+const REAPPROVE={approval_expired:"האישור הקודם פג (חיכה יותר מ-7 ימים). לאשר מחדש",
+  approval_invalidated:"הנוסח השתנה מאז האישור. לאשר מחדש",
+  amount_changed:"הסכום התעדכן מהמקור. לבדוק ולאשר מחדש",
+  amount_check:"סכום חריג מאוד מהרגיל ללקוח. לבדוק שהוא נכון ולאשר במפורש",
+  csv_stale:"עברו יותר מ-24 שעות מאישור «הסכום עדיין פתוח». לוודא שוב ולאשר מחדש",
+  csv_missing_from_import:"החשבונית לא הופיעה בייבוא ה-CSV האחרון (אולי שולמה?). לבדוק ולאשר מחדש"};
+// תווית קצרה לצ׳יפ: המשפט הראשון של ההסבר
+const why=b=>REAPPROVE[b]?REAPPROVE[b].split(". ")[0]:BLOCK[b]||b;
 let sel=null;
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -116,7 +129,7 @@ async function loadDash(){
   $("#kpis").innerHTML=k.map(([l,v,w])=>`<div class="card kpi ${w?"warn":""}"><div class="v">${esc(v)}</div><div class="l">${esc(l)}</div></div>`).join("");
   $("#debts").innerHTML=d.invoices.map(x=>{const L=x.last_reminder;
     const st=x.status!=="open"?"שולמה ונסגרה":x.customer_block?(BLOCK[x.customer_block]||x.customer_block)
-      :L?(L.block_reason?BLOCK[L.block_reason]||L.block_reason:STATUS[L.status]||L.status):"טרם הוכנה";
+      :L?(L.block_reason?why(L.block_reason):STATUS[L.status]||L.status):"טרם הוכנה";
     return `<tr class="${x.status!=="open"?"closed":""}"><td>${esc(x.customer)}${
     x.status==="open"&&x.paused_reason&&x.customer_block===x.paused_reason
       ?` <button class="resume" data-cid="${x.customer_id}" title="בדקתם והתשלום לא התקבל? התזכורות ללקוח יחודשו">↻ חידוש תזכורות</button>`:""}</td><td>${esc(x.number)}</td>
@@ -134,10 +147,10 @@ async function load(){
   const rows=await api("/reminders");const el=$("#list");
   if(!rows.length){el.innerHTML='<div class="empty">אין תזכורות. לחצו "סנכרון" ואז "הכנת תזכורות".</div>';return}
   el.innerHTML=rows.map(r=>`<button class="item card ${r.id===sel?"sel":""}" data-id="${r.id}">
-    <div class="row"><strong>${esc(r.customer_name)}</strong><span>${money(r.amount_agorot)}</span></div>
+    <div class="row"><strong>${esc(r.customer_name)}</strong><span>${esc(fmtCur(r.amount_agorot,r.currency))}</span></div>
     <div class="row"><span class="slogan">חשבונית ${esc(r.number)} · שלב ${r.step+1}/4</span>
-    <span class="chip ${r.status==="pending_approval"?"pending":""} ${r.block_reason?"blocked":""}">
-    ${esc(r.block_reason?BLOCK[r.block_reason]||r.block_reason:STATUS[r.status]||r.status)}</span></div></button>`).join("");
+    <span class="chip ${r.status==="pending_approval"?"pending":""} ${r.block_reason&&!REAPPROVE[r.block_reason]?"blocked":""}">
+    ${esc(r.block_reason?why(r.block_reason):STATUS[r.status]||r.status)}</span></div></button>`).join("");
   el.querySelectorAll(".item").forEach(b=>b.onclick=()=>show(+b.dataset.id));
 }
 async function show(id){
@@ -151,17 +164,29 @@ async function show(id){
      <div><b>נושא:</b> ${esc(mail.subject)}</div></div>
      <iframe sandbox title="תצוגה מקדימה של המייל" id="mailFrame"></iframe>`
     :'<div class="empty">אין כתובת מייל — מייל לא יישלח</div>';
-  const can=p.status==="pending_approval"&&!["no_contact","no_payment_link","compliance"].includes(p.block_reason);
+  const can=p.status==="pending_approval"&&!HARD.includes(p.block_reason);
+  // השרת דורש אישור מפורש: confirm_amount (סכום חריג) ו-confirm_open (חשבונית מ-CSV). בלי התיבות האלה
+  // «אישור ושליחה» נדחה תמיד ⇒ התזכורת נתקעה במסך הזה.
+  const odd=p.amount_check||[];
+  const checks=p.status==="pending_approval"&&can?(odd.length?`<label class="confirm" id="amtBox"><input type="checkbox" id="cAmt">
+      הסכום נכון, בדקתי: ${odd.map(o=>`חשבונית ${esc(o.number)} על ${esc(fmtCur(o.amount_agorot,o.currency))} (בדרך כלל ${esc(fmtCur(o.usual_agorot,o.currency))})`).join(" · ")}</label>`:"")
+    +(p.needs_confirm_open?`<label class="confirm" id="openBox"><input type="checkbox" id="cOpen">
+      בדקתי: הסכום עדיין פתוח (חשבונית מקובץ CSV, לא מסתנכרנת אוטומטית)</label>`:""):"";
   $("#detail").innerHTML=`<div class="row"><h2>תצוגה מקדימה · ${esc(STATUS[p.status]||p.status)}</h2>
     <span class="chip">מתוזמנת: ${esc(new Date(p.scheduled_for).toLocaleString("he-IL",{timeZone:"Asia/Jerusalem",dateStyle:"short",timeStyle:"short"}))}</span></div>
-    ${p.block_reason?`<div class="err">חסום: ${esc(BLOCK[p.block_reason]||p.block_reason)}</div>`:""}
+    ${p.block_reason?(REAPPROVE[p.block_reason]?`<div class="note" id="blockNote">לבדיקתך: ${esc(REAPPROVE[p.block_reason])}</div>`
+      :`<div class="err" id="blockNote">חסום: ${esc(BLOCK[p.block_reason]||p.block_reason)}</div>`):""}
     <div class="previews"><div><h2>SMS</h2>${smsHtml}</div><div><h2>מייל</h2>${mailHtml}</div></div>
+    ${checks}
     <div class="decide">${p.status==="pending_approval"?`<button class="primary" id="ok" ${can?"":"disabled"}>אישור ושליחה</button>`:""}
     ${["pending_approval","approved"].includes(p.status)?`<button class="ghost-bad" id="no">דחייה</button>`:""}</div>
     <div class="err" id="derr"></div>`;
   if(mail)$("#mailFrame").srcdoc=mail.html;
-  const act=async a=>{try{await api(`/reminders/${id}/${a}`,{method:"POST"});await load();show(id)}catch(e){$("#derr").textContent=e.message}};
-  $("#ok")&&($("#ok").onclick=()=>act("approve"));$("#no")&&($("#no").onclick=()=>act("reject"));
+  const act=async(a,body)=>{try{await api(`/reminders/${id}/${a}`,{method:"POST",...(body?{headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}:{})});await load();show(id)}catch(e){$("#derr").textContent=e.message}};
+  const boxes=[$("#cAmt"),$("#cOpen")].filter(Boolean),okBtn=$("#ok");
+  const gate=()=>{if(okBtn)okBtn.disabled=!can||boxes.some(x=>!x.checked)};
+  boxes.forEach(x=>x.onchange=gate);gate();
+  okBtn&&(okBtn.onclick=()=>act("approve",{confirm_amount:!!($("#cAmt")&&$("#cAmt").checked),confirm_open:!!($("#cOpen")&&$("#cOpen").checked)}));$("#no")&&($("#no").onclick=()=>act("reject"));
 }
 const run=(b,p)=>$(b).onclick=async()=>{try{await api(p,{method:"POST"});await load();sel&&show(sel)}catch(e){alert(e.message)}};
 run("#btnSync","/sync");run("#btnPlan","/plan");run("#btnDispatch","/dispatch");

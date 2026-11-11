@@ -1103,6 +1103,8 @@ class CollectService:
                 "amount_check": [{"number": i["number"], "amount_agorot": i["amount_agorot"],
                                   "usual_agorot": u, "currency": i["currency"]}
                                  for i, u in self._amount_outliers(invs)],
+                # הפעלה 133: approve דורש confirm_open לחשבונית מ-CSV; הממשק צריך לדעת להציג את התיבה
+                "needs_confirm_open": any(i["source"] == "csv" for i in invs),
                 "messages": [self.sender.preview(m) for m in msgs]}
 
     # ---------- owner decisions ----------

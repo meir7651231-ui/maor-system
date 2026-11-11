@@ -1,0 +1,98 @@
+"""הפעלה 133 — הדשבורד הפשוט (/ui): תזכורת שדורשת אישור מפורש נתקעה שם לנצח.
+
+באג (לפני התיקון): `approve` בשרת דורש `confirm_amount` (סכום חריג, critic 48) ו-`confirm_open`
+(חשבונית מ-CSV, review חור 7). `/ui` שלח `POST /reminders/{id}/approve` בלי גוף ⇒ השרת דחה תמיד,
+והמסך הציג רק את הודעת השגיאה. בהדגמה (`./demo.sh` מפנה ל-`/ui`) זו התזכורת של גל שרון (2,490 ₪).
+בנוסף: סיבות «חזרה לאישור» (csv_stale וכו') הוצגו «חסום: csv_stale», `no_reply_to` לא השבית את הכפתור,
+וברשימת התזכורות חשבונית בדולר הוצגה ב-₪.
+התיקון: `preview` מחזיר `needs_confirm_open`; `/ui` מציג תיבות סימון, שולח את האישורים בגוף הבקשה,
+ומבחין בין חסימה קשה לבין «לבדיקתך».
+"""
+from __future__ import annotations
+
+import re
+from pathlib import Path
+
+from fastapi.testclient import TestClient
+
+from app.main import create_app
+from app.service import AMOUNT_CHECK, HARD_BLOCKS
+from tests.conftest import AUTH, OWNER_TOKEN
+
+ROOT = Path(__file__).resolve().parent.parent
+UI = (ROOT / "app/ui.html").read_text(encoding="utf-8")
+SRC = "\n".join(p.read_text(encoding="utf-8") for p in (ROOT / "app").glob("*.py"))
+HEAD = "מספר מסמך,שם לקוח,טלפון,יתרה לתשלום,תאריך,תאריך לתשלום\n"
+
+
+def _api(svc):
+    return TestClient(create_app(svc, owner_token=OWNER_TOKEN), headers=AUTH)
+
+
+def _pending(api):
+    return api.get("/reminders", params={"status": "pending_approval"}).json()
+
+
+def test_preview_tells_ui_when_csv_confirmation_is_needed(svc):
+    api = _api(svc)
+    api.post("/sync")
+    api.post("/plan")
+    first = _pending(api)[0]
+    assert api.get(f"/reminders/{first['id']}/preview").json()["needs_confirm_open"] is False
+    r = api.post("/settings/source/csv",
+                 content=(HEAD + "3001,רון לוי,050-7654321,300,01/09/2026,01/10/2026\n").encode())
+    assert r.status_code == 200, r.text
+    api.post("/plan")
+    csv_rem = next(x for x in _pending(api) if x["number"] == "3001")
+    assert api.get(f"/reminders/{csv_rem['id']}/preview").json()["needs_confirm_open"] is True
+    # בלי גוף (כמו /ui הישן) ⇒ נדחה; עם confirm_open ⇒ מאושר
+    assert api.post(f"/reminders/{csv_rem['id']}/approve").status_code >= 400
+    ok = api.post(f"/reminders/{csv_rem['id']}/approve", json={"confirm_open": True})
+    assert ok.status_code == 200, ok.text
+
+
+def test_amount_check_reminder_needs_body_from_ui(svc):
+    api = _api(svc)
+    rows = "".join(f"{3001 + k},דנה כהן,050-1234567,{a},01/09/2026,01/10/2026\n"
+                   for k, a in enumerate(("120", "130", "12000")))
+    api.post("/settings/source/csv", content=(HEAD + rows).encode())
+    api.post("/plan")
+    rem = next(x for x in _pending(api) if x["block_reason"] == AMOUNT_CHECK)
+    assert api.get(f"/reminders/{rem['id']}/preview").json()["amount_check"]
+    assert api.post(f"/reminders/{rem['id']}/approve", json={"confirm_open": True}).status_code >= 400
+    ok = api.post(f"/reminders/{rem['id']}/approve", json={"confirm_open": True, "confirm_amount": True})
+    assert ok.status_code == 200, ok.text
+
+
+def _js_keys(name: str) -> set[str]:
+    m = re.search(r"const " + name + r"=\{(.*?)\};", UI, re.S)
+    assert m, name
+    return set(re.findall(r"\b([a-z_]+):\"", m.group(1)))
+
+
+def test_ui_sends_confirmations_and_shows_checkboxes():
+    assert "confirm_amount:" in UI and "confirm_open:" in UI, "/ui לא שולח את האישורים המפורשים"
+    assert 'id="cAmt"' in UI and 'id="cOpen"' in UI
+    assert "p.needs_confirm_open" in UI and "p.amount_check" in UI
+    assert '{method:"POST"});await load();show(id)' not in UI, "approve בלי גוף חזר"
+
+
+def test_ui_hard_blocks_match_server_and_reapprove_reasons_are_not_blocked():
+    m = re.search(r"const HARD=\[([^\]]*)\]", UI)
+    assert m and set(re.findall(r'"([a-z_]+)"', m.group(1))) == HARD_BLOCKS
+    assert HARD_BLOCKS <= _js_keys("BLOCK"), "חסימה קשה בלי תווית ב-/ui"
+    rs = set(re.findall(r'_invalidate\(\w+, "([a-z_]+)"\)', SRC)) | {AMOUNT_CHECK}
+    rs |= set(re.findall(r'why: str = "([a-z_]+)"', SRC))
+    assert {"csv_stale", "csv_missing_from_import", "approval_expired", "amount_changed"} <= rs
+    assert not rs - _js_keys("REAPPROVE"), sorted(rs - _js_keys("REAPPROVE"))
+    assert not HARD_BLOCKS & _js_keys("REAPPROVE")
+
+
+def test_ui_reminder_list_uses_invoice_currency():
+    assert "money(r.amount_agorot)" not in UI, "$500 הוצג «500 ₪» ברשימת התזכורות"
+    assert "fmtCur(r.amount_agorot,r.currency)" in UI
+
+
+def test_ui_debts_table_has_no_raw_block_code():
+    assert "BLOCK[L.block_reason]||L.block_reason" not in UI, "טבלת החובות הציגה «amount_check» גולמי"
+    assert "why(L.block_reason)" in UI
