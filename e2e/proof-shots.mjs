@@ -8,6 +8,7 @@ import http from 'node:http';
 import { readFile, mkdir } from 'node:fs/promises';
 import { join, dirname, extname, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { CHROME_EXE } from './chrome-path.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', 'dist');
 const OUT = process.env.SHOTS_OUT || join(dirname(fileURLToPath(import.meta.url)), 'proof-shots');
@@ -44,7 +45,7 @@ const supporters = [
   donor('c', 'דוד אוחנה', '054-4444444', [['2026-08-12', 500], ['2026-08-25', 500]], { nextDate: '2026-09-10' }),
 ];
 
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium', args: ['--no-sandbox', '--use-gl=swiftshader'] });
+const b = await chromium.launch({ executablePath: CHROME_EXE, args: ['--no-sandbox', '--use-gl=swiftshader'] });
 const ctx = await b.newContext({ viewport: { width: 1180, height: 1000 }, deviceScaleFactor: 2 });
 await ctx.addInitScript(([sup, today]) => {
   if (!localStorage.getItem('maor_org_config')) {

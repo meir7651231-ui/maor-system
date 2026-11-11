@@ -8,6 +8,7 @@ import http from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { extname, join, normalize, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { CHROME_EXE } from './chrome-path.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', 'dist');
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.woff2': 'font/woff2' };
@@ -28,7 +29,7 @@ const base = `http://127.0.0.1:${port}/maor-system/`;
 const results = [];
 const pass = (n, ok, note = '') => { results.push({ n, ok, note }); console.log(`${ok ? '✅' : '❌'} ${n}${note ? ' — ' + note : ''}`); };
 
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium', args: ['--no-sandbox'] });
+const b = await chromium.launch({ executablePath: CHROME_EXE, args: ['--no-sandbox'] });
 const ctx = await b.newContext({ viewport: { width: 1000, height: 850 }, acceptDownloads: true });
 const pg = await ctx.newPage();
 const consoleErrors = [];

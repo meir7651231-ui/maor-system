@@ -10,12 +10,12 @@
  */
 process.env.PERF_IMPORT = '1';
 const { genDb, orgCfg, DB_KEY, IDB_NAME, TODAY, MIME, BLANK_HTML } = await import('./perf-supporters.mjs');
-import { createRequire } from 'module';
 import { createServer } from 'http';
 import { readFileSync, existsSync, statSync, writeFileSync, mkdirSync } from 'fs';
 import { join, extname, dirname, resolve } from 'path';
 import { fileURLToPath } from 'url';
-const { chromium } = createRequire(import.meta.url)('playwright');
+import { chromium } from 'playwright-core';
+import { CHROME_EXE } from './chrome-path.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const DIST = resolve(process.env.DIST || join(HERE, '..', 'dist'));
@@ -43,7 +43,7 @@ const server = createServer((req, res) => {
 });
 await new Promise((r) => server.listen(PORT, '127.0.0.1', r));
 const base = `http://127.0.0.1:${PORT}`;
-const browser = await chromium.launch({ args: ['--no-sandbox', '--disable-dev-shm-usage'] });
+const browser = await chromium.launch({ executablePath: CHROME_EXE, args: ['--no-sandbox', '--disable-dev-shm-usage'] });
 const ctx = await browser.newContext({ viewport: { width: 1366, height: 900 }, locale: 'he-IL', timezoneId: 'UTC' });
 const errors = [];
 

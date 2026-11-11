@@ -4,6 +4,7 @@ import http from 'node:http';
 import { readFile, mkdir } from 'node:fs/promises';
 import { join, dirname, extname, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { CHROME_EXE } from './chrome-path.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', 'dist');
 const OUT = join(dirname(fileURLToPath(import.meta.url)), 'nextgen-shots');
@@ -21,7 +22,7 @@ const server = http.createServer(async (req, res) => {
 await new Promise((r) => server.listen(0, r));
 const base = `http://127.0.0.1:${server.address().port}/maor-system/`;
 
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium', args: ['--no-sandbox', '--use-gl=swiftshader'] });
+const b = await chromium.launch({ executablePath: CHROME_EXE, args: ['--no-sandbox', '--use-gl=swiftshader'] });
 const ctx = await b.newContext({ viewport: { width: 1180, height: 1400 }, deviceScaleFactor: 2 });
 await ctx.addInitScript(() => {
   if (!localStorage.getItem('maor_org_config')) {
