@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { daysOverdue, fmtIls, fmtPhone, isIlMobile, agingOf, ratioHalfUp } from '../src/lib/format.ts';
+import { daysOverdue, fmtIls, fmtMoney, fmtTotal, fmtPhone, isIlMobile, agingOf, ratioHalfUp } from '../src/lib/format.ts';
 import { firstName, buildSms, buildEmail, smsSegments, GSM7, GSM7_EXT, nextStep, remindersExhausted, requiresApproval, demoUnsubUrl, demoShortUrl, TEMPLATES, fmtAmountBackend } from '../src/lib/message.ts';
 import { readFileSync } from 'node:fs';
 import { canSendAt, nextAllowed, HOLIDAYS } from '../src/lib/policy.ts';
@@ -504,4 +504,39 @@ test('ratioHalfUp = מראה של app/service.py ratio_half_up (KPI בדשבור
   assert.equal(kpis([mk('a', '2026-11-05'), mk('b', '2026-11-02')], '2026-11-06').avgDaysLate, 3);
   const dash = readFileSync(new URL('../src/pages/Dashboard.tsx', import.meta.url), 'utf8');
   assert.match(dash, /recovery_rate_pct \?\? ratioHalfUp\(collectedAg/, 'שיעור החזר במוק באגורות ובאותו עיגול');
+});
+
+test('הפעלה 130: סכום במטבע החשבונית — מראה של templates.fmt_amount, לא «₪» קבוע', () => {
+  // הוקלט מפלט Python: fmt_amount(agorot, currency)
+  const py: [number, string, string][] = [
+    [50000, 'USD', '$500'], [120050, 'EUR', '€1,200.50'], [99, 'GBP', '£0.99'],
+    [123456789, 'CHF', 'CHF 1,234,567.89'], [249000, 'ILS', '2,490 ₪'], [1, 'USD', '$0.01'], [100000, 'JPY', 'JPY 1,000'],
+  ];
+  for (const [ag, c, want] of py) assert.equal(fmtAmountBackend(ag / 100, c), want, `${ag} ${c}`);
+  // ILS/חסר ⇒ התצוגה הקיימת (Intl) לא השתנתה; מטבע אחר ⇒ כמו השרת
+  assert.equal(fmtMoney(3450.5), fmtIls(3450.5));
+  assert.equal(fmtMoney(3450.5, 'ILS'), fmtIls(3450.5));
+  assert.equal(fmtMoney(500, 'USD'), '$500');
+  assert.doesNotMatch(fmtMoney(500, 'USD'), /₪/);
+  // סה״כ: מטבע אחד ⇒ סכום אחד; מעורב ⇒ לכל מטבע (כמו conversation.total_text), לא חיבור
+  assert.equal(fmtTotal([{ amount: 100 }, { amount: 200.5 }]), fmtIls(300.5));
+  assert.equal(fmtTotal([{ amount: 1000 }, { amount: 500, currency: 'USD' }, { amount: 200 }]), `${fmtIls(1200)} + $500`);
+  assert.equal(fmtTotal([]), fmtIls(0));
+  assert.equal(fmtTotal([{ amount: 0.1, currency: 'USD' }, { amount: 0.2, currency: 'USD' }]), '$0.30');
+  // הסמלים זהים למילון בשרת
+  const tpl = readFileSync(new URL('../../app/templates.py', import.meta.url), 'utf8');
+  assert.match(tpl, /\{"ILS": "₪", "USD": "\$", "EUR": "€", "GBP": "£"\}\.get\(currency, currency \+ " "\)/);
+  // SMS של המוק נושא את המטבע
+  assert.match(buildSms({ ...inv, amount: 500, currency: 'USD' }, cust, demoBusiness, 'friendly'), /\$500/);
+  // fromDashboard מעביר את המטבע (ILS לא נכתב — המודל של הדמו לא השתנה)
+  const base = { number: '1', customer: 'x', phone: '', email: '', due: '2026-10-01', status: 'open', days_overdue: 1, reminders_sent: 0, last_reminder: null, customer_block: null };
+  const m = fromDashboard({ today: '2026-11-08', totals: {} as Dashboard['totals'], invoices: [
+    { ...base, invoice_id: 1, amount_agorot: 50000, currency: 'USD' }, { ...base, invoice_id: 2, amount_agorot: 100, currency: 'ILS' }] }, []);
+  assert.deepEqual(m.invoices.map(i => i.currency), ['USD', undefined]);
+  // הגנת-מקור: אף סכום של חשבונית/בדיקת-סכום בממשק לא עובר ב-fmtIls בלי מטבע
+  for (const f of ['components/MessagePreview.tsx', 'pages/Invoices.tsx', 'pages/Inbox.tsx', 'pages/Settings.tsx', 'pages/Dashboard.tsx']) {
+    const src = readFileSync(new URL(`../src/${f}`, import.meta.url), 'utf8');
+    assert.doesNotMatch(src, /fmtIls\((invoice|i)\.amount\)/, `${f}: סכום חשבונית בלי מטבע`);
+    assert.doesNotMatch(src, /fmtIls\(o\.(amount|usual)_agorot/, `${f}: amount_check בלי מטבע`);
+  }
 });

@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useApp } from '../store.tsx';
-import { daysOverdue, fmtDate, fmtIls } from '../lib/format.ts';
+import { daysOverdue, fmtDate, fmtMoney, fmtTotal } from '../lib/format.ts';
 import { STEP_LABEL, nextStep } from '../lib/message.ts';
 import { isOpen } from '../lib/stats.ts';
 import type { Invoice, InvoiceStatus } from '../lib/domain.ts';
@@ -26,13 +26,12 @@ export function Invoices() {
         ? customerOf(a.customerId).name.localeCompare(customerOf(b.customerId).name, 'he')
         : daysOverdue(b.dueAt, today) - daysOverdue(a.dueAt, today));
   }, [invoices, q, f, sort, today, customerOf]);
-  const total = rows.reduce((s, i) => s + i.amount, 0);
-
+  
   return (
     <div className="space-y-5">
       <div>
         <h1 className="text-3xl font-extrabold">חשבוניות שלא שולמו</h1>
-        <p className="text-ink-500 mt-1">{live ? 'מסונכרן מחשבונית ירוקה (sandbox מדומה)' : 'מסונכרן מחשבונית ירוקה (דמו)'} · <b className="text-ink-900 num">{rows.length}</b> חשבוניות · <b className="text-ink-900">{fmtIls(total)}</b></p>
+        <p className="text-ink-500 mt-1">{live ? 'מסונכרן מחשבונית ירוקה (sandbox מדומה)' : 'מסונכרן מחשבונית ירוקה (דמו)'} · <b className="text-ink-900 num">{rows.length}</b> חשבוניות · <b className="text-ink-900">{fmtTotal(rows)}</b></p>
       </div>
       <div className="flex flex-wrap gap-3 items-center">
         <input className={`${inputCls} max-w-xs`} placeholder="חיפוש לקוח או מס׳ חשבונית…" value={q} onChange={e => setQ(e.target.value)} aria-label="חיפוש" />
@@ -61,7 +60,7 @@ export function Invoices() {
                   <tr key={i.id} className="hover:bg-ink-50/60">
                     <td className="px-4 py-3"><div className="font-bold">{c.name}</div>{i.note && <div className="text-xs text-ink-500">📝 {i.note}</div>}</td>
                     <td className="px-4 py-3"><span className="num">{i.number}</span>{i.source === 'csv' && <span className="ms-1.5 rounded bg-amber-100 text-amber-800 text-[10px] font-bold px-1.5 py-0.5" title="יובאה מקובץ CSV — לא מתעדכנת לבד">CSV</span>}</td>
-                    <td className="px-4 py-3 font-bold whitespace-nowrap">{fmtIls(i.amount)}</td>
+                    <td className="px-4 py-3 font-bold whitespace-nowrap">{fmtMoney(i.amount, i.currency)}</td>
                     <td className="px-4 py-3 num">{fmtDate(i.dueAt)}</td>
                     <td className="px-4 py-3 whitespace-nowrap"><LateBadge days={d} /></td>
                     <td className="px-4 py-3"><StatusBadge status={i.status} /></td>

@@ -58,18 +58,23 @@ export const TEMPLATES: Record<Step, { sms: string; subject: string; email: stri
     email: 'שלום {name},\n\nזו התזכורת האוטומטית האחרונה לגבי חשבונית {num} ({amount}).\nבעל העסק ייצור איתכם קשר אישית בהמשך.\nלתשלום: {link}\n\nבברכה,\n{biz}',
   },
 };
-/** מראה אות-באות של templates.fmt_amount (ILS): "12,870 ₪", "24.90 ₪" — אגורות רק כשאינן אפס.
- *  הפעלה 127: קודם עוגל לשקל שלם (24.90 ⇒ "25 ₪") ⇒ ה-SMS במוק שונה מזה שהשרת שולח. */
-export const fmtAmountBackend = (ils: number) => {
-  const agorot = Math.round(ils * 100);
-  const whole = Math.floor(agorot / 100), frac = agorot % 100;
-  return `${whole.toLocaleString('en-US')}${frac ? '.' + String(frac).padStart(2, '0') : ''} ₪`;
+/** סמלי מטבע — מראה של המילון ב-templates.fmt_amount. קוד אחר ⇒ "CODE " לפני הסכום. */
+export const CURRENCY_SYM: Record<string, string> = { ILS: '₪', USD: '$', EUR: '€', GBP: '£' };
+/** מראה אות-באות של templates.fmt_amount: "12,870 ₪", "24.90 ₪", "$500", "CHF 1,200.50" — אגורות רק כשאינן אפס.
+ *  הפעלה 127: קודם עוגל לשקל שלם (24.90 ⇒ "25 ₪") ⇒ ה-SMS במוק שונה מזה שהשרת שולח.
+ *  הפעלה 130: מקבל מטבע (ברירת מחדל ILS) — קודם תמיד ₪. divmod כמו Python (floor). */
+export const fmtAmountBackend = (amount: number, currency = 'ILS') => {
+  const agorot = Math.round(amount * 100);
+  const whole = Math.floor(agorot / 100), frac = agorot - whole * 100;
+  const s = `${whole.toLocaleString('en-US')}${frac ? '.' + String(frac).padStart(2, '0') : ''}`;
+  const sym = CURRENCY_SYM[currency] ?? `${currency} `;
+  return sym === '₪' ? `${s} ₪` : `${sym}${s}`;
 };
 
 function fields(inv: Invoice, c: Customer, b: Business): Record<string, string> {
   // מראה של templates.fields (two_way=False — שם שולח אלפאנומרי)
   return { biz: b.name, name: c.name || 'לקוח/ה יקר/ה', first: firstName(c.name) || 'שלום', num: inv.number,
-    amount: fmtAmountBackend(inv.amount), link: inv.payUrl, unsub: demoUnsubUrl(c), short: demoShortUrl(inv),
+    amount: fmtAmountBackend(inv.amount, inv.currency), link: inv.payUrl, unsub: demoUnsubUrl(c), short: demoShortUrl(inv),
     stop: 'להפסקה: בקישור', ask: '', plan_cta: 'פריסה/תשלום' };
 }
 const fill = (t: string, f: Record<string, string>) => t.replace(/\{(\w+)\}/g, (_, k: string) => f[k] ?? `{${k}}`);

@@ -192,6 +192,7 @@ export function fromDashboard(d: Dashboard, pending: { id: number; invoice_id: n
     invoices.push({
       id: String(r.invoice_id), source: r.source === 'csv' ? 'csv' : 'api', number: r.number, customerId: cid, amount: r.amount_agorot / 100,
       issuedAt: r.due ?? d.today, dueAt: r.due ?? d.today, status, payUrl: '', reminders, note: blockNote,
+      ...(r.currency && r.currency !== 'ILS' ? { currency: r.currency } : {}),
     });
   }
   return { customers, invoices, pendingBy, today: d.today };

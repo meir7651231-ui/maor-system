@@ -4,7 +4,7 @@ import { useApp } from '../store.tsx';
 import type { Channel, Invoice, Step } from '../lib/domain.ts';
 import { STEP_LABEL, STEP_ORDER, buildEmail, demoShortUrl, buildSms, nextStep, requiresApproval, smsSegments } from '../lib/message.ts';
 import { fmtWhen, fmtWhenIL, mockAmountCheck, nextAllowed } from '../lib/policy.ts';
-import { daysOverdue, fmtIls, fmtPhone } from '../lib/format.ts';
+import { daysOverdue, fmtMoney, fmtPhone } from '../lib/format.ts';
 import { Button, LateBadge } from './ui.tsx';
 
 /** תצוגה מקדימה של התזכורת בדיוק כפי שתישלח — SMS ומייל — עם "אשר ושלח". */
@@ -63,7 +63,7 @@ export function MessagePreview({ invoice, onClose, now = new Date() }: { invoice
         <header className="flex items-start justify-between gap-4 p-5 border-b border-ink-200">
           <div>
             <h2 id="mp-title" className="text-xl font-extrabold">תזכורת ל{c.name}</h2>
-            <p className="text-sm text-ink-500 mt-1">חשבונית <span className="num">{invoice.number}</span> · <b className="text-ink-900">{fmtIls(invoice.amount)}</b> · <LateBadge days={daysOverdue(invoice.dueAt, today)} /></p>
+            <p className="text-sm text-ink-500 mt-1">חשבונית <span className="num">{invoice.number}</span> · <b className="text-ink-900">{fmtMoney(invoice.amount, invoice.currency)}</b> · <LateBadge days={daysOverdue(invoice.dueAt, today)} /></p>
           </div>
           <button onClick={onClose} aria-label="סגירה" className="h-9 w-9 rounded-lg hover:bg-ink-100 text-xl cursor-pointer">✕</button>
         </header>
@@ -154,9 +154,9 @@ export function MessagePreview({ invoice, onClose, now = new Date() }: { invoice
                     <div className="flex items-center gap-2 mb-4"><span aria-hidden className="h-6 w-6 rounded-full bg-ink-200 grid place-items-center text-xs font-bold">{business.name.trim().charAt(0)}</span><span className="font-bold">{business.name}</span></div>
                     {email.paragraphs.map((p, i) => <p key={i} className="mb-2.5 leading-relaxed whitespace-pre-line">{linkify(p)}</p>)}
                     <div className="my-4 rounded-lg bg-ink-50 p-3 flex justify-between text-sm">
-                      <span>חשבונית <span className="num">{invoice.number}</span></span><b>{fmtIls(invoice.amount)}</b>
+                      <span>חשבונית <span className="num">{invoice.number}</span></span><b>{fmtMoney(invoice.amount, invoice.currency)}</b>
                     </div>
-                    <a href="#" onClick={e => e.preventDefault()} className="block text-center bg-brand text-ink-900 font-bold rounded-xl py-3">{email.cta} · {fmtIls(invoice.amount)}</a>
+                    <a href="#" onClick={e => e.preventDefault()} className="block text-center bg-brand text-ink-900 font-bold rounded-xl py-3">{email.cta} · {fmtMoney(invoice.amount, invoice.currency)}</a>
                     <p className="text-[11px] text-ink-500 mt-4 leading-relaxed">{email.footer} <span className="text-info underline">להסרה מתזכורות</span></p>
                   </div>
                 </div>
@@ -170,13 +170,13 @@ export function MessagePreview({ invoice, onClose, now = new Date() }: { invoice
           {live && isCsv && (
             <label className="me-auto flex items-start gap-2 text-sm rounded-xl bg-amber-50 text-amber-900 px-3 py-2 max-w-md" data-testid="confirm-open">
               <input type="checkbox" className="h-5 w-5 mt-0.5 accent-[#10B981]" checked={confirmOpen} onChange={e => setConfirmOpen(e.target.checked)} />
-              <span><b>הסכום {fmtIls(invoice.amount)} עדיין פתוח</b> — בדקתי. (חשבונית מקובץ CSV לא מתעדכנת לבד; האישור תקף 24 שעות.)</span>
+              <span><b>הסכום {fmtMoney(invoice.amount, invoice.currency)} עדיין פתוח</b> — בדקתי. (חשבונית מקובץ CSV לא מתעדכנת לבד; האישור תקף 24 שעות.)</span>
             </label>
           )}
           {odd.length > 0 && (
             <label className="me-auto flex items-start gap-2 text-sm rounded-xl bg-red-50 text-red-900 px-3 py-2 max-w-md" data-testid="confirm-amount">
               <input type="checkbox" className="h-5 w-5 mt-0.5 accent-[#10B981]" checked={confirmAmount} onChange={e => setConfirmAmount(e.target.checked)} />
-              <span><b>הסכום נכון — בדקתי.</b> {odd.map(o => `חשבונית ${o.number}: ${fmtIls(o.amount_agorot / 100)} (בדרך כלל ${fmtIls(o.usual_agorot / 100)})`).join(' · ')}. אולי הנקודה העשרונית במקום הלא נכון?</span>
+              <span><b>הסכום נכון — בדקתי.</b> {odd.map(o => `חשבונית ${o.number}: ${fmtMoney(o.amount_agorot / 100, o.currency)} (בדרך כלל ${fmtMoney(o.usual_agorot / 100, o.currency)})`).join(' · ')}. אולי הנקודה העשרונית במקום הלא נכון?</span>
             </label>
           )}
           <Button variant="ghost" onClick={onClose}>ביטול</Button>

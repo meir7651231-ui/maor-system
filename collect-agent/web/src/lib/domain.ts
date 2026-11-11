@@ -22,6 +22,8 @@ export interface Invoice {
   note?: string;
   /** מאיפה החשבונית: API (מתרענן לבד) או CSV (בעל העסק מאשר שהסכום עדיין פתוח) */
   source?: 'api' | 'csv';
+  /** קוד ISO של המטבע (חסר = ILS). השרת שומר מטבע לכל חשבונית (USD/EUR/GBP/…) — הפעלה 130. */
+  currency?: string;
 }
 /** 019 ראשי, InforU גיבוי — מאחורי adapter יחיד בשרת (dry-run בלבד). */
 export type SmsProvider = '019' | 'inforu';

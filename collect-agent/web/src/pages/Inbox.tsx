@@ -4,7 +4,7 @@ import { api, type Draft } from '../api.ts';
 import { Button, Card } from '../components/ui.tsx';
 import { smsSegments } from '../lib/message.ts';
 import { fmtWhenIL } from '../lib/policy.ts';
-import { fmtIls } from '../lib/format.ts';
+import { fmtMoney } from '../lib/format.ts';
 
 const INTENT: Record<string, string> = {
   how_to_pay: 'שאל/ה איך משלמים', paid_claim: 'טוען/ת ששילם/ה', plan_request: 'מבקש/ת פריסה', opt_out: 'ביקש/ה הסרה',
@@ -81,7 +81,7 @@ function DraftCard({ d }: { d: Draft }) {
         {odd.length > 0 && (
           <label className="mt-3 flex items-start gap-2 text-sm rounded-xl bg-red-50 text-red-900 px-3 py-2" data-testid="draft-confirm-amount">
             <input type="checkbox" className="h-5 w-5 mt-0.5 accent-[#10B981]" checked={confirmAmount} onChange={e => setConfirmAmount(e.target.checked)} />
-            <span><b>הסכום נכון — בדקתי.</b> {odd.map(o => `חשבונית ${o.number || '(ללא מספר)'}: ${fmtIls(o.amount_agorot / 100)} (בדרך כלל ${fmtIls(o.usual_agorot / 100)})`).join(' · ')}. אולי הנקודה העשרונית במקום הלא נכון?</span>
+            <span><b>הסכום נכון — בדקתי.</b> {odd.map(o => `חשבונית ${o.number || '(ללא מספר)'}: ${fmtMoney(o.amount_agorot / 100, o.currency)} (בדרך כלל ${fmtMoney(o.usual_agorot / 100, o.currency)})`).join(' · ')}. אולי הנקודה העשרונית במקום הלא נכון?</span>
           </label>
         )}
         {err && <p className="mt-2 text-sm text-critical font-bold" role="alert">לא נשלח: {err}</p>}

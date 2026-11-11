@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useApp } from '../store.tsx';
 import { agingBuckets, kpis } from '../lib/stats.ts';
-import { AGING_LABEL, daysOverdue, fmtIls, ratioHalfUp, type Aging } from '../lib/format.ts';
+import { AGING_LABEL, daysOverdue, fmtIls, fmtMoney, ratioHalfUp, type Aging } from '../lib/format.ts';
 import { STEP_LABEL, nextStep } from '../lib/message.ts';
 import { demoCollectedByMonth } from '../data/demo.ts';
 import { Button, Card, LateBadge } from '../components/ui.tsx';
@@ -71,7 +71,7 @@ export function Dashboard() {
                   <div className="h-10 w-10 shrink-0 rounded-full bg-brand-50 text-brand-700 grid place-items-center font-bold">{customerOf(i.customerId).name.slice(0, 1)}</div>
                   <div className="min-w-0 flex-1">
                     <div className="font-bold truncate">{customerOf(i.customerId).name}</div>
-                    <div className="text-sm text-ink-500"><b className="text-ink-900">{fmtIls(i.amount)}</b> · <LateBadge days={daysOverdue(i.dueAt, today)} /> · {STEP_LABEL[nextStep(i)]}
+                    <div className="text-sm text-ink-500"><b className="text-ink-900">{fmtMoney(i.amount, i.currency)}</b> · <LateBadge days={daysOverdue(i.dueAt, today)} /> · {STEP_LABEL[nextStep(i)]}
                       {live && blockKind(pendingOf(i.id)?.block) === 'hard' && <span className="text-critical font-bold"> · ⛔ {BLOCK_LABEL[pendingOf(i.id)!.block!] ?? pendingOf(i.id)!.block}</span>}
                       {live && blockKind(pendingOf(i.id)?.block) === 'reapprove' && <span className="text-amber-700 font-bold"> · ⏳ {REAPPROVE_LABEL[pendingOf(i.id)!.block!]}</span>}
                       {!live && mockAmountCheck(i, invoices).length > 0 && <span className="text-amber-700 font-bold" data-testid="mock-amount-check"> · ⏳ {REAPPROVE_LABEL.amount_check}</span>}</div>
@@ -285,7 +285,7 @@ function NeedsYou() {
                 <label className="mt-2 flex items-start gap-2 text-xs rounded-lg bg-red-50 text-red-900 px-2 py-1.5" data-testid="plan-confirm-amount">
                   <input type="checkbox" className="h-5 w-5 mt-0.5 accent-[#10B981]" checked={!!planConfirm[p.id]}
                     onChange={e => setPlanConfirm(s => ({ ...s, [p.id]: e.target.checked }))} />
-                  <span><b>הסכום נכון — בדקתי.</b> {p.amount_check!.map(o => `חשבונית ${o.number || '(ללא מספר)'}: ${fmtIls(o.amount_agorot / 100)} (בדרך כלל ${fmtIls(o.usual_agorot / 100)})`).join(' · ')}. אולי הנקודה העשרונית במקום הלא נכון?</span>
+                  <span><b>הסכום נכון — בדקתי.</b> {p.amount_check!.map(o => `חשבונית ${o.number || '(ללא מספר)'}: ${fmtMoney(o.amount_agorot / 100, o.currency)} (בדרך כלל ${fmtMoney(o.usual_agorot / 100, o.currency)})`).join(' · ')}. אולי הנקודה העשרונית במקום הלא נכון?</span>
                 </label>
               )}
               <Button size="sm" variant={armed === `p${p.id}` ? 'dark' : 'primary'} className="mt-2"
