@@ -13,7 +13,7 @@ from dataclasses import dataclass, field
 from datetime import date, timedelta
 
 from .greeninvoice import DEFAULT_TERMS_DAYS, Invoice
-from .integrations.base import parse_amount_agorot
+from .integrations.base import parse_amount_agorot, parse_currency
 
 MAX_BYTES = 2_000_000
 MAX_ROWS = 5_000
@@ -167,7 +167,7 @@ def parse(raw: bytes | str) -> CsvResult:
             (out.credits if amount < 0 else out.invoices).append(Invoice(
                 external_id=f"csv:{num}", number=num, doc_type=330 if amount < 0 else 305,
                 amount_agorot=abs(amount),
-                currency=(cell("currency") or "ILS").upper(), issued=issued, due=due,
+                currency=parse_currency(cell("currency")), issued=issued, due=due,
                 client_external_id="", client_name=cell("client"), client_phone=cell("phone"),
                 client_email=cell("email"), due_estimated=est))
         except ValueError as e:

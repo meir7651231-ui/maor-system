@@ -61,6 +61,40 @@ def parse_amount_agorot(v: Any, *, max_agorot: int = 10_000_000_000) -> int:
     return out
 
 
+_CURRENCY_ALIASES = {
+    "ILS": "ILS", "NIS": "ILS", "₪": "ILS", "ש\"ח": "ILS", "ש״ח": "ILS", "שח": "ILS", "שקל": "ILS",
+    "שקלים": "ILS", "ש'ח": "ILS", "ש׳ח": "ILS",
+    "USD": "USD", "$": "USD", "US$": "USD", "דולר": "USD", "דולרים": "USD",
+    "EUR": "EUR", "€": "EUR", "אירו": "EUR", "יורו": "EUR",
+    "GBP": "GBP", "£": "GBP", "ליש\"ט": "GBP",
+}
+_ISO_CODE = re.compile(r"^[A-Z]{3}$")
+
+
+def parse_currency(v: Any) -> str:
+    """מטבע מקלט חיצוני (JSON / תא CSV) ⇒ קוד ISO אחד. ריק/null ⇒ ILS (ברירת המחדל של כל המקורות).
+    הפעלה 113: ה-CSV שמר את התא כמו שהוא (`.upper()`), ו-GI/iCount בלי נרמול בכלל. לכן
+    'ש"ח'/'NIS'/'ils'/'₪' נשמרו כמטבעות **שונים** מ-ILS: התזכורת הציגה 'ש"ח 1,200' / 'NIS 1,200'
+    במקום '1,200 ₪', ושתי חשבוניות של אותו לקוח (ILS + 'ש"ח') נחשבו «מטבעות מעורבים» ⇒ אין תזכורת
+    מאוחדת. וגם: טקסט חופשי (קישור, שורה חדשה) נכנס כמו שהוא לגוף ה-SMS. עכשיו: כינוי מוכר ⇒ קוד,
+    קוד ISO של 3 אותיות ⇒ כמו שהוא, וכל השאר ⇒ ValueError (CSV: שורה נדחית · API: מסמך פגום)."""
+    if v is None:
+        return "ILS"
+    if not isinstance(v, str):
+        raise ValueError(f"מטבע לא תקין: {v!r}")
+    t = v
+    for ch in (" ", "\u00a0", "\u202f", "\u200f", "\u200e"):
+        t = t.replace(ch, "")
+    if not t:
+        return "ILS"
+    code = _CURRENCY_ALIASES.get(t) or _CURRENCY_ALIASES.get(t.upper())
+    if code:
+        return code
+    if _ISO_CODE.match(t.upper()) and t.isascii():
+        return t.upper()
+    raise ValueError(f"מטבע לא מוכר: {v!r}")
+
+
 def safe_map(owner: Any, fn: Any, *args: Any) -> Any:
     """critic סבב 44: מיפוי מסמך אחד שנכשל (סכום/תאריך לא תקין) לא מפיל את כל הסנכרון. ⇒ None, ונספר
     ב-`owner.malformed`. השירות לא סוגר חשבוניות בסנכרון שבו היה מסמך פגום (אולי זה הוא), ומתריע."""

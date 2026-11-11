@@ -19,7 +19,7 @@ from typing import Any
 
 import httpx
 
-from .integrations.base import jstr, parse_amount_agorot, safe_map
+from .integrations.base import jstr, parse_amount_agorot, parse_currency, safe_map
 
 # סוגי מסמכים שמייצגים חוב פתוח (לאמת): 300 חשבון עסקה, 305 חשבונית מס
 OPEN_DEBT_TYPES = (300, 305)
@@ -122,7 +122,7 @@ def map_document(doc: dict[str, Any]) -> Invoice:
         number=_s(doc.get("number")),
         doc_type=int(doc.get("type", 0) or 0),
         amount_agorot=_to_agorot(doc.get("amountDueVat", doc.get("amount", 0))),
-        currency=str(doc.get("currency") or "ILS"),
+        currency=parse_currency(doc.get("currency")),
         issued=_parse_date(doc.get("documentDate")),
         due=due,
         client_external_id=_s(client.get("id")),

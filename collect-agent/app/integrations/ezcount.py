@@ -34,7 +34,7 @@ import httpx
 
 from ..config import SafetyError
 from ..greeninvoice import TYPE_CREDIT, Invoice, Netting, _to_agorot, net_credits
-from .base import IntegrationError, ProviderError, classify_status, guard_transport, jstr, safe_map
+from .base import IntegrationError, ProviderError, classify_status, guard_transport, jstr, parse_currency, safe_map
 from .sources import credits_on_doc, due_or_estimate, parse_il_date
 
 EZCOUNT_DEMO_BASE = "https://demo.ezcount.co.il"
@@ -70,7 +70,7 @@ def map_ezcount_doc(d: dict[str, Any]) -> Invoice:
         doc_type=dtype,
         amount_agorot=_to_agorot(bal) if bal is not None and dtype in (*DEBT_TYPES, TYPE_CREDIT)
         else 0,
-        currency=str(d.get("main_currency_iso") or "ILS").upper(),
+        currency=parse_currency(d.get("main_currency_iso")),
         issued=issued,
         due=due,
         client_external_id="",       # אין מזהה לקוח בשדות המתועדים ⇒ השירות מזהה לפי מייל/טלפון

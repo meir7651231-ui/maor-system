@@ -102,7 +102,7 @@ if [s.key for s in STEPS_MULTI] != ["friendly", "plan_offer", "final"]:  # לא 
 
 
 def fmt_amount(agorot: int, currency: str = "ILS") -> str:
-    sym = {"ILS": "₪", "USD": "$", "EUR": "€"}.get(currency, currency + " ")
+    sym = {"ILS": "₪", "USD": "$", "EUR": "€", "GBP": "£"}.get(currency, currency + " ")
     whole, frac = divmod(agorot, 100)
     s = f"{whole:,}" + (f".{frac:02d}" if frac else "")
     return f"{s} {sym}" if sym == "₪" else f"{sym}{s}"

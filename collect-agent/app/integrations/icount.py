@@ -41,7 +41,7 @@ import httpx
 
 from ..config import SafetyError
 from ..greeninvoice import TYPE_CREDIT, Invoice, Netting, _to_agorot, net_credits
-from .base import IntegrationError, ProviderError, classify_status, guard_transport, jstr, safe_map
+from .base import IntegrationError, ProviderError, classify_status, guard_transport, jstr, parse_currency, safe_map
 from .sources import credits_on_doc, due_or_estimate, parse_il_date
 
 ICOUNT_BASE = "https://api.icount.co.il/api/v3.php"
@@ -102,7 +102,7 @@ def map_icount_doc(d: dict[str, Any]) -> Invoice:
         number=docnum,
         doc_type=ICOUNT_DOCTYPE_CODES.get(doctype, 0),
         amount_agorot=_to_agorot(amount),
-        currency=str(d.get("currency_code") or d.get("currency") or "ILS"),
+        currency=parse_currency(d.get("currency_code") or d.get("currency")),
         issued=issued,
         due=due,
         client_external_id=f"{PREFIX}{d['client_id']}" if d.get("client_id") else "",
