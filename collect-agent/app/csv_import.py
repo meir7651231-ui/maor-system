@@ -12,6 +12,7 @@ import re
 from dataclasses import dataclass, field
 from datetime import date, timedelta
 
+from .contact import normalize_il_phone, valid_email
 from .greeninvoice import DEFAULT_TERMS_DAYS, Invoice
 from .integrations.base import parse_amount_agorot, parse_currency
 
@@ -110,6 +111,22 @@ def _agorot(v: str) -> int:
     return parse_amount_agorot(v, max_agorot=10_000_000_000)
 
 
+# הפעלה 114: Excel שומר טלפון כמספר ⇒ האפס המוביל נמחק ('0501234567' ⇒ 501234567, לפעמים '501234567.0').
+# קודם המספר נדחה בשקט ⇒ החייב לא קיבל SMS. רק תא של ספרות בלבד, באורך ובקידומת של מספר ישראלי
+# בלי האפס (נייד 5X/VoIP 7X = 9 ספרות, נייח 2/3/4/8/9 = 8 ספרות) — ובעמודת טלפון בלבד.
+_EXCEL_NUM_PHONE = re.compile(r"(?:[57]\d{8}|[23489]\d{7}|972[2-9]\d{7,8})")
+
+
+def _csv_phone(v: str) -> str:
+    s = v.strip()
+    m = re.fullmatch(r"(\d+)\.0+", s)
+    if m:
+        s = m.group(1)
+    if _EXCEL_NUM_PHONE.fullmatch(s):
+        return s if s.startswith("972") else "0" + s
+    return v.strip()
+
+
 def parse(raw: bytes | str) -> CsvResult:
     if isinstance(raw, bytes):
         if len(raw) > MAX_BYTES:
@@ -161,6 +178,11 @@ def parse(raw: bytes | str) -> CsvResult:
                 due = issued + timedelta(days=DEFAULT_TERMS_DAYS)
             if not cell("phone") and not cell("email"):
                 raise ValueError("אין טלפון ואין מייל")
+            phone = _csv_phone(cell("phone"))
+            # הפעלה 114: טלפון שלא מזוהה ובלי מייל תקין = חייב שאי אפשר להגיע אליו ⇒ שגיאה גלויה בייבוא
+            # (קודם נקלט בשקט ואף תזכורת לא יצאה).
+            if not normalize_il_phone(phone) and not valid_email(cell("email")):
+                raise ValueError(f"טלפון לא מזוהה ואין מייל תקין: {cell('phone')[:30]!r}")
             seen.add(num)
             # critic סבב 35: יתרה שלילית = זיכוי ללקוח. היה `<= 0 ⇒ continue` (נבלע בשקט, כמו רווחית ב-21.1)
             # ⇒ תזכורת על הסכום המלא. עכשיו: לא חוב, אבל הלקוח עובר לבדיקת זיכוי (בלי ניחוש סכום).
@@ -168,7 +190,7 @@ def parse(raw: bytes | str) -> CsvResult:
                 external_id=f"csv:{num}", number=num, doc_type=330 if amount < 0 else 305,
                 amount_agorot=abs(amount),
                 currency=parse_currency(cell("currency")), issued=issued, due=due,
-                client_external_id="", client_name=cell("client"), client_phone=cell("phone"),
+                client_external_id="", client_name=cell("client"), client_phone=phone,
                 client_email=cell("email"), due_estimated=est))
         except ValueError as e:
             out.errors.append({"row": n, "error": str(e)})

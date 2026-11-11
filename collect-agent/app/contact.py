@@ -2,18 +2,29 @@
 from __future__ import annotations
 
 import re
+import unicodedata
 
 # ---------- טלפונים ----------
 
 
+def _ascii_digits(raw: str) -> str:
+    """הפעלה 114: ספרות לא-לטיניות (ערביות-הודיות ٠-٩, רוחב-מלא ０-９) ⇒ ASCII.
+    קודם `\\D` של re (יוניקוד) השאיר אותן כמו שהן ⇒ המספר נדחה כלא-תקין."""
+    return "".join(str(unicodedata.digit(c)) if c.isdecimal() else c for c in raw)
+
+
 def normalize_il_phone(raw: str) -> str | None:
-    """'050-1234567' / '+972 50 1234567' ⇒ '972501234567'. לא-תקין ⇒ None."""
-    d = re.sub(r"\D", "", raw or "")
+    """'050-1234567' / '+972 50 1234567' / '+972 (0)50-1234567' ⇒ '972501234567'. לא-תקין ⇒ None."""
+    d = re.sub(r"\D", "", _ascii_digits(raw or ""), flags=re.ASCII)
     if d.startswith("00"):
         d = d[2:]
+    # הפעלה 114: קידומת בינלאומית + אפס-חיוג ('+972 (0)50…', '972-050…') ⇒ קודם נדחה כלא-תקין
+    # ⇒ החייב לא קיבל SMS בשקט. מסירים את האפס רק כשהאורך מתאים בדיוק למספר ישראלי.
+    if d.startswith("9720") and len(d) in (12, 13):
+        d = "972" + d[4:]
     if d.startswith("0") and len(d) in (9, 10):
         d = "972" + d[1:]
-    if not d.startswith("972") or len(d) not in (11, 12):
+    if not d.startswith("972") or len(d) not in (11, 12) or d[3] == "0":
         return None
     return d
 
