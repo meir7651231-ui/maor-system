@@ -4,7 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { DEMO_TODAY, demoBusiness, demoCustomers, demoInvoices } from './data/demo.ts';
 import type { Business, Channel, Customer, Invoice, Step } from './lib/domain.ts';
 import { needsReminder } from './lib/stats.ts';
-import { api, loginRequest, logoutRequest, AuthError, detectBackend, fromDashboard, type Dashboard, type Health, type Draft, type Me, type OutMsg, type Plan } from './api.ts';
+import { api, loginRequest, logoutRequest, AuthError, detectBackend, fromDashboard, type Dashboard, type Health, type Draft, type Me, type OutMsg, type PendingRef, type Plan } from './api.ts';
 import { TOKEN_KEY, readToken } from './lib/auth.ts';
 const sessionStore = () => { try { return sessionStorage; } catch { return undefined; } };
 import type { WeekPoint } from './lib/series.ts';
@@ -22,7 +22,7 @@ interface Ctx {
   invoices: Invoice[];
   /** התור לאישור: במוק — נגזר מכללי הסולם; בחי — התזכורות שהבקאנד תכנן ומחכות לאישור. */
   queue: Invoice[];
-  pendingOf: (invoiceId: string) => { reminderId: number; block: string | null } | undefined;
+  pendingOf: (invoiceId: string) => PendingRef | undefined;
   totals: Dashboard['totals'] | null;
   series: WeekPoint[] | null;
   /** הדבקת קוד גישה (מצב locked) ⇒ ניסיון חיבור מחדש. */
@@ -56,7 +56,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [customers, setCustomers] = useState<Customer[]>(demoCustomers);
   const [invoices, setInvoices] = useState<Invoice[]>(demoInvoices);
   const [today, setToday] = useState(DEMO_TODAY);
-  const [pendingBy, setPendingBy] = useState(new Map<string, { reminderId: number; block: string | null }>());
+  const [pendingBy, setPendingBy] = useState(new Map<string, PendingRef>());
   const [totals, setTotals] = useState<Dashboard['totals'] | null>(null);
   const [series, setSeries] = useState<WeekPoint[] | null>(null);
   const [outbox, setOutbox] = useState<OutMsg[]>([]);

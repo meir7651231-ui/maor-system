@@ -776,13 +776,13 @@ class CollectService:
             "SELECT i.id FROM reminder_invoices x JOIN invoices i ON i.id=x.invoice_id "
             "WHERE x.reminder_id=? ORDER BY i.due, i.id", (rid,))]
 
-    def reminder_totals(self, rid: int, anchor_id: int) -> dict:
+    def reminder_totals(self, rid: int, anchor_id: int, ids: list[int] | None = None) -> dict:
         """כמה חשבוניות בתזכורת ומה הסכום הכולל שלה, לרשימת התזכורות (הפעלה 134).
 
         `/reminders` מחזיר את סכום התזכורת לצד `number`/`currency` של חשבונית העוגן בלבד ⇒ תזכורת מאוחדת
         של 3 חשבוניות הוצגה ברשימה כ«חשבונית N» על כל הסכום, וסה״כ במטבעות שונים במטבע של העוגן.
         מטבעות שונים לא מחוברים («1,200 ₪ + $500», כמו `conversation.total_text`)."""
-        ids = self.reminder_invoice_ids(rid) or [anchor_id]
+        ids = (ids if ids is not None else self.reminder_invoice_ids(rid)) or [anchor_id]
         by: dict[str, int] = {}
         for iid in ids:
             i = self._invoice(iid)
@@ -1119,6 +1119,9 @@ class CollectService:
                                  for i, u in self._amount_outliers(invs)],
                 # הפעלה 133: approve דורש confirm_open לחשבונית מ-CSV; הממשק צריך לדעת להציג את התיבה
                 "needs_confirm_open": any(i["source"] == "csv" for i in invs),
+                # הפעלה 135: `/app/` הציג תזכורת מאוחדת כחשבונית העוגן בלבד (מספר אחד, סכום חלקי)
+                "numbers": [i["number"] for i in invs],
+                **self.reminder_totals(reminder_id, r["invoice_id"], [i["id"] for i in invs]),
                 "messages": [self.sender.preview(m) for m in msgs]}
 
     # ---------- owner decisions ----------

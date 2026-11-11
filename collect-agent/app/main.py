@@ -321,7 +321,12 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
             # critic סבב 37: הממשק צריך 4 שדות; התשובה המלאה (גוף + payload + HTML) הייתה 12MB ב-5,000 לקוחות
             q = "SELECT id, invoice_id, block_reason, status FROM reminders"
             rows = svc.db.q(q + " WHERE status=? ORDER BY id", (status,)) if status else svc.db.q(q + " ORDER BY id")
-            return [{**dict(r), "invoice_ids": svc.reminder_invoice_ids(r["id"])} for r in rows]
+            # הפעלה 135: תור האישורים ב-`/app/` צריך לדעת שתזכורת כוללת כמה חשבוניות ומה הסה״כ שלה
+            out = []
+            for r in rows:
+                ids = svc.reminder_invoice_ids(r["id"])
+                out.append({**dict(r), "invoice_ids": ids, **svc.reminder_totals(r["id"], r["invoice_id"], ids)})
+            return out
         sql, args = ("SELECT r.*, i.number, i.amount_agorot, i.currency, c.name customer_name "
                      "FROM reminders r JOIN invoices i ON i.id=r.invoice_id "
                      "JOIN customers c ON c.id=i.customer_id"), ()

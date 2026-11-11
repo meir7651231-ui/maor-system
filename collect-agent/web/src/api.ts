@@ -90,7 +90,12 @@ export interface PreviewMsg {
   length?: { chars: number; encoding: string; segments: number };
 }
 export interface AmountCheck { number: string; amount_agorot: number; usual_agorot: number; currency: string }
-export interface Preview { reminder_id: number; status: string; block_reason: string | null; template_key: Step; scheduled_for: string; messages: PreviewMsg[]; amount_check?: AmountCheck[] }
+export interface Preview { reminder_id: number; status: string; block_reason: string | null; template_key: Step; scheduled_for: string; messages: PreviewMsg[]; amount_check?: AmountCheck[];
+  /** הפעלה 135: תזכורת מאוחדת — כל המספרים, כמה חשבוניות, הסה״כ לפי מטבע, והאם יש בה חשבונית מ-CSV */
+  needs_confirm_open?: boolean; numbers?: string[]; invoice_count?: number; total_text?: string }
+/** תזכורת שממתינה לאישור, לפי חשבונית העוגן. count/totalText רק כשהתזכורת כוללת יותר מחשבונית אחת. */
+export interface PendingRef { reminderId: number; block: string | null; count?: number; totalText?: string }
+export interface PendingRow { id: number; invoice_id: number; invoice_ids?: number[]; block_reason: string | null; invoice_count?: number; total_text?: string }
 export interface Plan { id: number; customer_id: number; invoice_id: number; status: string; installments: { n: number; due: string; amount_agorot: number }[]; amount_check?: AmountCheck[] }
 export interface Draft {
   id: number; customer_id: number; customer: string; channel: 'sms' | 'email'; to_addr: string; body: string;
@@ -105,7 +110,7 @@ export const api = {
   me: () => j<Me>('/auth/me'),
   dashboard: () => j<Dashboard>('/dashboard'),
   // invoice_id = העוגן של תזכורת מאוחדת; invoice_ids = כל החשבוניות שבהודעה
-  pending: () => j<{ id: number; invoice_id: number; invoice_ids?: number[]; block_reason: string | null }[]>('/reminders?status=pending_approval&view=summary'),
+  pending: () => j<PendingRow[]>('/reminders?status=pending_approval&view=summary'),
   preview: (rid: number) => j<Preview>(`/reminders/${rid}/preview`),
   /** confirmOpen: לחשבונית מ-CSV בעל העסק מאשר במפורש שהסכום עדיין פתוח (השרת מחייב; תוקף 24 ש׳). */
   /** confirmAmount (הפעלה 123): סכום חריג מאוד מהרגיל ללקוח — בעל העסק מאשר במפורש שהסכום נכון (השרת מחייב). */
@@ -180,11 +185,12 @@ export function blockKind(b: string | null | undefined): 'hard' | 'reapprove' | 
 }
 
 /** ממיר את תמונת המצב של הבקאנד למודל של הממשק. טהור (נבדק ב-tests). */
-export function fromDashboard(d: Dashboard, pending: { id: number; invoice_id: number; block_reason: string | null }[]) {
+export function fromDashboard(d: Dashboard, pending: PendingRow[]) {
   const customers: Customer[] = [];
   const invoices: Invoice[] = [];
-  const pendingBy = new Map<string, { reminderId: number; block: string | null }>();
-  for (const p of pending) pendingBy.set(String(p.invoice_id), { reminderId: p.id, block: p.block_reason });
+  const pendingBy = new Map<string, PendingRef>();
+  for (const p of pending) pendingBy.set(String(p.invoice_id), { reminderId: p.id, block: p.block_reason,
+    ...((p.invoice_count ?? 1) > 1 ? { count: p.invoice_count, totalText: p.total_text } : {}) });
   for (const r of d.invoices) {
     const cid = `c${r.invoice_id}`;
     customers.push({ id: cid, name: r.customer, phone: r.phone || undefined, email: r.email || undefined, optedOut: r.customer_block === 'opted_out',

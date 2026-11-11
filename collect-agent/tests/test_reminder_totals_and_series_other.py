@@ -70,10 +70,11 @@ def test_total_text_does_not_add_currencies(svc):
     assert len(parts) == 2 and any(p.startswith("$") for p in parts) and any("₪" in p for p in parts)
 
 
-def test_summary_view_is_unchanged(svc):
+def test_summary_view_stays_lean(svc):
+    # הפעלה 135: גם התצוגה המקוצרת מקבלת invoice_count/total_text (תור האישורים ב-/app/); עדיין בלי גוף/payload
     api, _ = _planned(svc)
     row = api.get("/reminders", params={"view": "summary"}).json()[0]
-    assert set(row) == {"id", "invoice_id", "block_reason", "status", "invoice_ids"}
+    assert set(row) == {"id", "invoice_id", "block_reason", "status", "invoice_ids", "invoice_count", "total_text"}
 
 
 def test_series_reports_other_currency_per_week(svc):

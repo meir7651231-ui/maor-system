@@ -73,7 +73,9 @@ export function Dashboard() {
                   <div className="h-10 w-10 shrink-0 rounded-full bg-brand-50 text-brand-700 grid place-items-center font-bold">{customerOf(i.customerId).name.slice(0, 1)}</div>
                   <div className="min-w-0 flex-1">
                     <div className="font-bold truncate">{customerOf(i.customerId).name}</div>
-                    <div className="text-sm text-ink-500"><b className="text-ink-900">{fmtMoney(i.amount, i.currency)}</b> · <LateBadge days={daysOverdue(i.dueAt, today)} /> · {STEP_LABEL[nextStep(i)]}
+                    <div className="text-sm text-ink-500">{live && pendingOf(i.id)?.count
+                      ? <span data-testid="queue-merged"><span className="num">{pendingOf(i.id)!.count}</span> חשבוניות · <b className="text-ink-900">{pendingOf(i.id)!.totalText}</b></span>
+                      : <b className="text-ink-900">{fmtMoney(i.amount, i.currency)}</b>} · <LateBadge days={daysOverdue(i.dueAt, today)} /> · {STEP_LABEL[nextStep(i)]}
                       {live && blockKind(pendingOf(i.id)?.block) === 'hard' && <span className="text-critical font-bold"> · ⛔ {BLOCK_LABEL[pendingOf(i.id)!.block!] ?? pendingOf(i.id)!.block}</span>}
                       {live && blockKind(pendingOf(i.id)?.block) === 'reapprove' && <span className="text-amber-700 font-bold"> · ⏳ {REAPPROVE_LABEL[pendingOf(i.id)!.block!]}</span>}
                       {!live && mockAmountCheck(i, invoices).length > 0 && <span className="text-amber-700 font-bold" data-testid="mock-amount-check"> · ⏳ {REAPPROVE_LABEL.amount_check}</span>}</div>

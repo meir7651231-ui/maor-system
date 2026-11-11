@@ -139,6 +139,10 @@ try {
   const items = p.locator('li', { has: p.getByRole('button', { name: 'תצוגה ואישור' }) });
   ok(await items.count() === 3, `ציפיתי ל-3 בתור (יוסי, בלי פרטים, גל — סכום חריג), יש ${await items.count()}`);
   ok(await p.getByText('אין נייד או מייל תקין').count() >= 1, 'החסימה no_contact לא מוצגת');
+  // הפעלה 135: תזכורת מאוחדת בתור = «3 חשבוניות · סה״כ», חשבונית יחידה בלי שינוי
+  const galRow = await items.filter({ hasText: 'גל שרון' }).getByTestId('queue-merged').textContent();
+  ok(/^3 חשבוניות · .*₪/.test(galRow.trim()), `שורת התור של גל: ${galRow}`);
+  ok(await items.filter({ hasText: 'יוסי' }).getByTestId('queue-merged').count() === 0, 'חשבונית יחידה סומנה כמאוחדת');
   // v2: 8 KPI + גרף גבייה
   ok(await p.getByTestId('kpis').locator(':scope > *').count() === 8, 'ציפיתי ל-8 KPI');
   await p.getByTestId('collection-chart').waitFor();
@@ -156,6 +160,12 @@ try {
   await items.filter({ hasText: 'גל שרון' }).getByRole('button', { name: 'תצוגה ואישור' }).click();
   const confirmAmt = p.getByTestId('confirm-amount');
   await confirmAmt.waitFor();
+  // הפעלה 135: התזכורת של גל כוללת 3 חשבוניות ⇒ הכותרת מציגה את כולן ואת הסה״כ שב-SMS, לא את חשבונית העוגן
+  const galPv = await api(`/reminders/${(await api('/reminders?status=pending_approval&view=summary')).find(r => r.invoice_count === 3).id}/preview`);
+  const mpSub = await p.getByTestId('mp-sub').textContent();
+  ok(mpSub.includes('3 חשבוניות') && galPv.numbers.every(n => mpSub.includes(n)) && mpSub.includes(galPv.total_text),
+    `כותרת התצוגה המקדימה לא מציגה תזכורת מאוחדת: ${mpSub}`);
+  ok(galPv.messages.find(m => m.channel === 'sms').body.includes(galPv.total_text), 'הסה״כ בכותרת שונה מהסה״כ ב-SMS');
   ok(/2009/.test(await confirmAmt.textContent()) && /2,490/.test(await confirmAmt.textContent()), 'תיבת הסכום החריג בלי החשבונית/הסכום');
   ok(await p.getByRole('button', { name: /אשר ושלח/ }).isDisabled(), 'סכום חריג ניתן לאישור בלי סימון');
   await confirmAmt.locator('input').check();
