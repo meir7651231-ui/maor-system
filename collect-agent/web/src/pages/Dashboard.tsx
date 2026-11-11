@@ -234,6 +234,7 @@ export function pauseLabel(reason: string): string {
 function NeedsYou() {
   const { customers, invoices, plans, notices, reload, showToast } = useApp();
   const [armed, setArmed] = useState<string | null>(null);
+  const [planConfirm, setPlanConfirm] = useState<Record<number, boolean>>({});   // critic סבב 49: סכום חריג
   const seen = new Set<number>();
   const paused = customers.filter(c => c.paused && c.backendId != null && !seen.has(c.backendId) && seen.add(c.backendId));
   const proposed = plans.filter(p => p.status === 'proposed');
@@ -278,8 +279,16 @@ function NeedsYou() {
               <ol className="text-xs text-ink-500 mt-1 space-y-0.5">
                 {p.installments.map(x => <li key={x.n}><span className="num">{x.n}. {x.due.split('-').reverse().join('.')}</span> — {fmtIls(x.amount_agorot / 100)}</li>)}
               </ol>
+              {(p.amount_check?.length ?? 0) > 0 && (
+                <label className="mt-2 flex items-start gap-2 text-xs rounded-lg bg-red-50 text-red-900 px-2 py-1.5" data-testid="plan-confirm-amount">
+                  <input type="checkbox" className="h-5 w-5 mt-0.5 accent-[#10B981]" checked={!!planConfirm[p.id]}
+                    onChange={e => setPlanConfirm(s => ({ ...s, [p.id]: e.target.checked }))} />
+                  <span><b>הסכום נכון — בדקתי.</b> {p.amount_check!.map(o => `חשבונית ${o.number || '(ללא מספר)'}: ${fmtIls(o.amount_agorot / 100)} (בדרך כלל ${fmtIls(o.usual_agorot / 100)})`).join(' · ')}. אולי הנקודה העשרונית במקום הלא נכון?</span>
+                </label>
+              )}
               <Button size="sm" variant={armed === `p${p.id}` ? 'dark' : 'primary'} className="mt-2"
-                onClick={() => act(`p${p.id}`, () => api.approvePlan(p.id), 'ההצעה אושרה ונשלחה ללקוח (dry-run)')}>
+                disabled={(p.amount_check?.length ?? 0) > 0 && !planConfirm[p.id]}
+                onClick={() => act(`p${p.id}`, () => api.approvePlan(p.id, planConfirm[p.id] ?? false), 'ההצעה אושרה ונשלחה ללקוח (dry-run)')}>
                 {armed === `p${p.id}` ? 'לחצו שוב לאישור' : '✓ אישור ההצעה'}
               </Button>
             </li>

@@ -439,3 +439,11 @@ test('סכום חריג: מראה של app/policy.py amount_outlier + כרטיס
   assert.match(mp, /: mockAmountCheck\(invoice, invoices\)/, 'בהדגמה הכרטיס מחושב מקומית, לא [] קבוע');
   assert.match(mp, /smsText\.includes\(live \? payUrl : demoShortUrl\(invoice\)\)/, 'במוק: אזהרת «חסר קישור» מול הקישור המקוצר שב-SMS');
 });
+
+// critic סבב 49: amount_check (הפעלה 123) הוצג בדשבורד ככותרת כללית «הודעה מגבי» בטון מידע.
+test('התראת סכום חריג: כותרת ייעודית וטון אזהרה', async () => {
+  const { systemNotices } = await import('../src/lib/notices.ts');
+  const [n] = systemNotices([{ id: 1, customer_id: 1, direction: 'system', channel: 'owner', body: 'x', intent: 'amount_check', created_at: '2026-11-11T10:00:00+02:00' }]);
+  assert.notEqual(n.title, 'הודעה מגבי');
+  assert.equal(n.tone, 'warn');
+});

@@ -40,3 +40,22 @@ def test_api_passes_confirm_amount(svc, fake_gi):
     c = TestClient(create_app(svc, owner_token=OWNER_TOKEN), headers=AUTH)
     assert c.post(f"/conversation/drafts/{r['draft_id']}/approve", json={}).status_code == 409
     assert c.post(f"/conversation/drafts/{r['draft_id']}/approve", json={"confirm_amount": True}).status_code == 200
+
+
+def test_plans_list_flags_amount_check_and_dashboard_can_confirm(svc, fake_gi):
+    """critic סבב 49 (פתוח מ-48): אישור הסדר מכרטיס «דורש טיפול» בדשבורד החזיר 409 בלי דרך לאשר משם
+    (אין תיבה). עכשיו: /plans מחזיר amount_check להסדר מוצע, והדשבורד מציג תיבה ושולח confirm_amount."""
+    from pathlib import Path
+
+    from fastapi.testclient import TestClient
+
+    from app.main import create_app
+    from tests.conftest import AUTH, OWNER_TOKEN
+    r = _setup(svc, fake_gi)
+    c = TestClient(create_app(svc, owner_token=OWNER_TOKEN), headers=AUTH)
+    plan = next(p for p in c.get("/plans").json() if p["id"] == r["plan_id"])
+    assert plan["amount_check"] and plan["amount_check"][0]["amount_agorot"] == 1_200_000
+    web = Path(__file__).resolve().parent.parent / "web/src"
+    dash = (web / "pages/Dashboard.tsx").read_text(encoding="utf-8")
+    assert "api.approvePlan(p.id, planConfirm[p.id]" in dash and 'data-testid="plan-confirm-amount"' in dash
+    assert "approvePlan: (pid: number, confirmAmount = false)" in (web / "api.ts").read_text(encoding="utf-8")

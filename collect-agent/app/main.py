@@ -611,7 +611,13 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
 
     @app.get("/plans", dependencies=auth)
     def list_plans():
-        return [{**dict(r), "installments": json.loads(r["installments"])}
+        def check(r):   # critic סבב 49: הסדר מוצע על סכום חריג ⇒ הדשבורד מציג תיבת אישור
+            if r["status"] != "proposed":
+                return []
+            invs = svc.db.q("SELECT * FROM invoices WHERE customer_id=? AND status='open'", (r["customer_id"],))
+            return [{"number": i["number"], "amount_agorot": i["amount_agorot"], "usual_agorot": u,
+                     "currency": i["currency"]} for i, u in svc._amount_outliers(invs)]
+        return [{**dict(r), "installments": json.loads(r["installments"]), "amount_check": check(r)}
                 for r in svc.db.q("SELECT * FROM plans ORDER BY id")]
 
     @app.post("/plans/{pid}/approve", dependencies=auth)

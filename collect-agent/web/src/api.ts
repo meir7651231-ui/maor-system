@@ -88,7 +88,7 @@ export interface PreviewMsg {
 }
 export interface AmountCheck { number: string; amount_agorot: number; usual_agorot: number; currency: string }
 export interface Preview { reminder_id: number; status: string; block_reason: string | null; template_key: Step; scheduled_for: string; messages: PreviewMsg[]; amount_check?: AmountCheck[] }
-export interface Plan { id: number; customer_id: number; invoice_id: number; status: string; installments: { n: number; due: string; amount_agorot: number }[] }
+export interface Plan { id: number; customer_id: number; invoice_id: number; status: string; installments: { n: number; due: string; amount_agorot: number }[]; amount_check?: AmountCheck[] }
 export interface Draft {
   id: number; customer_id: number; customer: string; channel: 'sms' | 'email'; to_addr: string; body: string;
   intent: string; status: 'pending_approval' | 'needs_owner' | string; escalate: 'urgent' | 'normal' | 'none' | string;
@@ -116,7 +116,8 @@ export const api = {
   plans: () => j<Plan[]>('/plans'),
   ownerInbox: () => j<OwnerMsg[]>('/owner/inbox'),
   ownerDone: (id: number) => j<unknown>(`/owner/inbox/${id}/done`, { method: 'POST' }),
-  approvePlan: (pid: number) => j<{ text: string }>(`/plans/${pid}/approve`, { method: 'POST' }),
+  /** confirmAmount (critic סבב 49): הסדר על סכום חריג — אישור מפורש (השרת מחייב). */
+  approvePlan: (pid: number, confirmAmount = false) => j<{ text: string }>(`/plans/${pid}/approve`, { method: 'POST', ...(confirmAmount ? { body: JSON.stringify({ confirm_amount: true }) } : {}) }),
   drafts: () => j<Draft[]>('/conversation/drafts'),
   /** confirmAmount (critic סבב 48): טיוטה עם כסף ללקוח עם סכום חריג — אישור מפורש (השרת מחייב). */
   approveDraft: (id: number, body?: string, confirmAmount = false) => j<{ status: string }>(`/conversation/drafts/${id}/approve`, { method: 'POST', body: JSON.stringify({ ...(body === undefined ? {} : { body }), ...(confirmAmount ? { confirm_amount: true } : {}) }) }),
