@@ -330,7 +330,9 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         rows = svc.db.q(sql + " ORDER BY r.id", args)
         # תזכורת מאוחדת (critic 15.1/2.12): כל החשבוניות שבהודעה; invoice_id = העוגן
         return [{**dict(r), "payload": json.loads(r["payload"]),
-                 "invoice_ids": svc.reminder_invoice_ids(r["id"])} for r in rows]
+                 "invoice_ids": svc.reminder_invoice_ids(r["id"]),
+                 # הפעלה 134: number/currency הם של העוגן בלבד; הרשימה מציגה כמה חשבוניות ואת הסה״כ לפי מטבע
+                 **svc.reminder_totals(r["id"], r["invoice_id"])} for r in rows]
 
     @app.get("/reminders/{rid}/preview", dependencies=auth)
     def preview(rid: int):

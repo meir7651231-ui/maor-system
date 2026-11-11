@@ -776,6 +776,20 @@ class CollectService:
             "SELECT i.id FROM reminder_invoices x JOIN invoices i ON i.id=x.invoice_id "
             "WHERE x.reminder_id=? ORDER BY i.due, i.id", (rid,))]
 
+    def reminder_totals(self, rid: int, anchor_id: int) -> dict:
+        """כמה חשבוניות בתזכורת ומה הסכום הכולל שלה, לרשימת התזכורות (הפעלה 134).
+
+        `/reminders` מחזיר את סכום התזכורת לצד `number`/`currency` של חשבונית העוגן בלבד ⇒ תזכורת מאוחדת
+        של 3 חשבוניות הוצגה ברשימה כ«חשבונית N» על כל הסכום, וסה״כ במטבעות שונים במטבע של העוגן.
+        מטבעות שונים לא מחוברים («1,200 ₪ + $500», כמו `conversation.total_text`)."""
+        ids = self.reminder_invoice_ids(rid) or [anchor_id]
+        by: dict[str, int] = {}
+        for iid in ids:
+            i = self._invoice(iid)
+            by[_cur(i)] = by.get(_cur(i), 0) + i["amount_agorot"]
+        return {"invoice_count": len(ids),
+                "total_text": " + ".join(templates.fmt_amount(v, c) for c, v in by.items())}
+
     def _link_invoices(self, rid: int, ids: list[int]) -> None:
         self.db.x("DELETE FROM reminder_invoices WHERE reminder_id=?", (rid,))
         for iid in ids:
@@ -1749,7 +1763,7 @@ class CollectService:
         except ValueError:   # לוח החגים פג (fail-closed) ⇒ אין חלון; הדשבורד לא קורס
             next_ok = None
         return {
-            "series": self._collection_series(today, closed),
+            "series": self._collection_series(today, closed_all),
             "today": today.isoformat(),
             "trial": self.trial(),
             # critic 2.3.2: בשבת/בלילה/בחג «לא נשלח כלום» נראה כמו תקלה. מציגים מתי מותר ולמה
@@ -1772,18 +1786,29 @@ class CollectService:
             "invoices": rows}
 
     def _collection_series(self, today: date, closed) -> list[dict]:
-        """גבייה לפי שבוע, 8 השבועות האחרונים (ראשון–שבת), מ-closed_at. שבוע בלי גבייה = 0."""
+        """גבייה לפי שבוע, 8 השבועות האחרונים (ראשון–שבת), מ-closed_at. שבוע בלי גבייה = 0.
+
+        `collected_agorot` ו-`count` הם ₪ בלבד. גבייה במטבע אחר באותו שבוע ⇒ `other` (ממוין לפי קוד
+        מטבע), בלי המרה: הגרף לא מצייר אותה, והממשק כותב לידו «ועוד $500, לא בגרף» (הפעלה 134).
+        המפתח `other` קיים רק בשבוע שיש בו גבייה כזו ⇒ עסק בשקלים בלבד מקבל את אותה תשובה כמו קודם."""
         start = today - timedelta(days=(today.weekday() + 1) % 7)   # ראשון של השבוע הנוכחי
         weeks = [start - timedelta(weeks=i) for i in range(7, -1, -1)]
         out = [{"week": w.isoformat(), "collected_agorot": 0, "count": 0} for w in weeks]
+        other: list[dict[str, int]] = [{} for _ in weeks]
         for r in closed:
             if not r["closed_at"]:
                 continue
             d = datetime.fromisoformat(r["closed_at"]).date()
             idx = (d - weeks[0]).days // 7
             if 0 <= idx < len(out):
-                out[idx]["collected_agorot"] += r["amount_agorot"]
-                out[idx]["count"] += 1
+                if _cur(r) == "ILS":
+                    out[idx]["collected_agorot"] += r["amount_agorot"]
+                    out[idx]["count"] += 1
+                else:
+                    other[idx][_cur(r)] = other[idx].get(_cur(r), 0) + r["amount_agorot"]
+        for point, by in zip(out, other, strict=True):
+            if by:
+                point["other"] = [{"currency": c, "collected_agorot": by[c]} for c in sorted(by)]
         return out
 
     # ---------- עמוד החייב (/pay/{code}) — ציבורי, מינימום מידע ----------

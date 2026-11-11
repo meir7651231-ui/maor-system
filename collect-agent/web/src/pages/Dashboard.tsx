@@ -9,7 +9,7 @@ import { MessagePreview } from '../components/MessagePreview.tsx';
 import type { Invoice } from '../lib/domain.ts';
 import { api, BLOCK_LABEL, blockKind, REAPPROVE_LABEL } from '../api.ts';
 import { mockAmountCheck } from '../lib/policy.ts';
-import { areaPath, cumulative, toBars, type Bar } from '../lib/series.ts';
+import { areaPath, cumulative, otherInSeries, toBars, type Bar } from '../lib/series.ts';
 
 const AGING_COLOR: Record<Aging, string> = { notDue: 'bg-ink-400', d0_30: 'bg-due', d31_60: 'bg-late', d61_90: 'bg-red-500', d90p: 'bg-red-700' };
 
@@ -60,7 +60,7 @@ export function Dashboard() {
         <Kpi label="שיעור מענה" value={`${t?.reply_rate_pct ?? 0}%`} sub={live ? `${t?.customers_messaged ?? 0} לקוחות קיבלו הודעה` : 'לקוחות שהשיבו'} />
       </section>
 
-      <CollectionChart bars={bars} live={live} cum={cumulative(bars)} />
+      <CollectionChart bars={bars} live={live} cum={cumulative(bars)} other={live && series ? plusOther(otherInSeries(series), 'collected_agorot') : ''} />
 
       <div className="grid lg:grid-cols-[1.5fr_1fr] gap-6 items-start">
         <Card className="p-5">
@@ -127,7 +127,7 @@ function Kpi({ label, value, sub, tone, hero, meter }: { label: string; value: s
 }
 
 /** גרף גבייה: עמודות לכל תקופה + שטח מצטבר. SVG טהור, בלי ספרייה. RTL — הכי חדש משמאל. */
-function CollectionChart({ bars, cum, live }: { bars: Bar[]; cum: number[]; live: boolean }) {
+function CollectionChart({ bars, cum, live, other }: { bars: Bar[]; cum: number[]; live: boolean; other: string }) {
   const W = 600, H = 160;
   const max = Math.max(...bars.map(b => b.value), 1);
   const total = cum.at(-1) ?? 0;
@@ -136,7 +136,7 @@ function CollectionChart({ bars, cum, live }: { bars: Bar[]; cum: number[]; live
     <Card className="p-5">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="text-lg font-extrabold">גרף גבייה <span className="text-sm font-medium text-ink-500">{live ? '· לפי שבוע, 8 שבועות' : '· לפי חודש (דמו)'}</span></h2>
-        <div className="text-sm text-ink-500">סה״כ <b className="text-brand-700 num">{fmtIls(total)}</b></div>
+        <div className="text-sm text-ink-500">סה״כ <b className="text-brand-700 num">{fmtIls(total)}</b>{other && <span data-testid="chart-other"> · {other}, לא בגרף</span>}</div>
       </div>
       <svg viewBox={`0 0 ${W} ${H + 24}`} className="w-full h-auto mt-3" role="img" aria-label={`גבייה מצטברת ${fmtIls(total)}`} data-testid="collection-chart">
         <defs><linearGradient id="g" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stopColor="#10B981" stopOpacity=".28" /><stop offset="1" stopColor="#10B981" stopOpacity="0" /></linearGradient></defs>

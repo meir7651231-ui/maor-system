@@ -147,8 +147,8 @@ async function load(){
   const rows=await api("/reminders");const el=$("#list");
   if(!rows.length){el.innerHTML='<div class="empty">אין תזכורות. לחצו "סנכרון" ואז "הכנת תזכורות".</div>';return}
   el.innerHTML=rows.map(r=>`<button class="item card ${r.id===sel?"sel":""}" data-id="${r.id}">
-    <div class="row"><strong>${esc(r.customer_name)}</strong><span>${esc(fmtCur(r.amount_agorot,r.currency))}</span></div>
-    <div class="row"><span class="slogan">חשבונית ${esc(r.number)} · שלב ${r.step+1}/4</span>
+    <div class="row"><strong>${esc(r.customer_name)}</strong><span>${esc(r.total_text||fmtCur(r.amount_agorot,r.currency))}</span></div>
+    <div class="row"><span class="slogan">${r.invoice_count>1?`${r.invoice_count} חשבוניות`:`חשבונית ${esc(r.number)}`} · שלב ${r.step+1}/4</span>
     <span class="chip ${r.status==="pending_approval"?"pending":""} ${r.block_reason&&!REAPPROVE[r.block_reason]?"blocked":""}">
     ${esc(r.block_reason?why(r.block_reason):STATUS[r.status]||r.status)}</span></div></button>`).join("");
   el.querySelectorAll(".item").forEach(b=>b.onclick=()=>show(+b.dataset.id));

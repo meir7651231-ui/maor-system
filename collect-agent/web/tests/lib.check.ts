@@ -584,3 +584,24 @@ test('הפעלה 132: מיון «לפי סכום» לא משווה מטבעות 
   assert.match(src, /sort === 'amount' \? byAmountDesc\(a, b\)/);
   assert.doesNotMatch(src, /b\.amount - a\.amount/);
 });
+
+import { otherInSeries } from '../src/lib/series.ts';
+test('הפעלה 134: גרף הגבייה מצייר ₪ בלבד — גבייה במטבע אחר מוצגת לידו («ועוד $500, לא בגרף»)', () => {
+  const series = [
+    { week: '2026-10-25', collected_agorot: 120000, count: 1, other: [{ currency: 'USD', collected_agorot: 30000 }] },
+    { week: '2026-11-01', collected_agorot: 0, count: 0 },
+    { week: '2026-11-08', collected_agorot: 0, count: 0, other: [{ currency: 'USD', collected_agorot: 20000 }, { currency: 'EUR', collected_agorot: 2050 }] }];
+  assert.deepEqual(otherInSeries(series), [{ currency: 'EUR', collected_agorot: 2050 }, { currency: 'USD', collected_agorot: 50000 }]);
+  assert.equal(plusOther(otherInSeries(series), 'collected_agorot'), 'ועוד €20.50 + $500');
+  // העמודות עצמן לא משתנות: ₪ בלבד
+  assert.deepEqual(toBars(series).map(b => b.value), [1200, 0, 0]);
+  // עסק בשקלים בלבד ⇒ אין שורה
+  assert.deepEqual(otherInSeries([{ week: '2026-11-08', collected_agorot: 100, count: 1 }]), []);
+  assert.equal(plusOther(otherInSeries([]), 'collected_agorot'), '');
+  // הגנת-מקור: השרת מחזיר other לשבוע, והדשבורד מציג אותו ליד הסה״כ
+  const svc = readFileSync(new URL('../../app/service.py', import.meta.url), 'utf8');
+  assert.match(svc, /point\["other"\] = \[\{"currency": c, "collected_agorot": by\[c\]\} for c in sorted\(by\)\]/);
+  const dash = readFileSync(new URL('../src/pages/Dashboard.tsx', import.meta.url), 'utf8');
+  assert.match(dash, /plusOther\(otherInSeries\(series\), 'collected_agorot'\)/);
+  assert.match(dash, /data-testid="chart-other"/);
+});

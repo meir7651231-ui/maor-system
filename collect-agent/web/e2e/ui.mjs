@@ -30,6 +30,10 @@ try {
   ok(/סכום חריג/.test(await item.textContent()), 'ברשימה: קוד גולמי במקום «סכום חריג»');
   ok(!(await item.locator('.chip').getAttribute('class')).includes('blocked'), 'סכום חריג מסומן כחסום');
   ok(!/amount_check/.test(await p.locator('#debts').textContent()), 'טבלת החובות מציגה קוד גולמי amount_check');
+  // הפעלה 134: תזכורת מאוחדת מציגה «N חשבוניות», לא את מספר חשבונית העוגן לצד הסה״כ
+  const labels = await p.locator('#list .item .slogan').allTextContents();
+  ok(labels.some(t => /^\d+ חשבוניות · שלב/.test(t.trim())), 'אין תזכורת מאוחדת עם «N חשבוניות»: ' + labels.join(' | '));
+  ok(labels.some(t => /^חשבונית \S+ · שלב/.test(t.trim())), 'תזכורת של חשבונית אחת איבדה את המספר');
   await item.click();
   const btn = p.locator('#ok');
   await btn.waitFor();

@@ -1,5 +1,5 @@
 // גרף הגבייה בדשבורד. טהור.
-export interface WeekPoint { week: string; collected_agorot: number; count: number }
+export interface WeekPoint { week: string; collected_agorot: number; count: number; other?: { currency: string; collected_agorot: number }[] }
 export interface Bar { label: string; value: number; count: number }
 
 /** שבוע ISO (ראשון) ⇒ תווית "8.11"; ערך בשקלים. */
@@ -8,6 +8,14 @@ export function toBars(series: WeekPoint[]): Bar[] {
     const [, m, d] = p.week.split('-');
     return { label: `${Number(d)}.${Number(m)}`, value: p.collected_agorot / 100, count: p.count };
   });
+}
+
+/** גבייה שאינה ב-₪ בכל השבועות שבגרף, סכום לכל מטבע (ממוין לפי קוד). הגרף מצייר ₪ בלבד;
+ *  את זה מציגים לידו דרך plusOther («ועוד $500»). אין ⇒ []. */
+export function otherInSeries(series: WeekPoint[]): { currency: string; collected_agorot: number }[] {
+  const by = new Map<string, number>();
+  for (const p of series) for (const o of p.other ?? []) by.set(o.currency, (by.get(o.currency) ?? 0) + o.collected_agorot);
+  return [...by.keys()].sort().map(currency => ({ currency, collected_agorot: by.get(currency)! }));
 }
 
 /** קו מגמה מצטבר (לשטח מתחת לעמודות). */
