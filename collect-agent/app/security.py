@@ -110,6 +110,30 @@ def sanitize_field(v: str, max_len: int = 80) -> str:
     return sanitize_header_value(v, max_len)
 
 
+# הפעלה 115 — שם לקוח מקלט חיצוני (CSV/GI/iCount/EZcount/רווחית) לפני SMS/מייל ולפני מפתח הלקוח.
+_ZERO_WIDTH = re.compile("[\u200b\u200c\u200d\u2060\ufeff\u00ad]")
+_URLISH = re.compile(r"(?i)(?:https?://|www\.)\S*|\b[\w-]+(?:\.[\w-]+)*\.(?:co\.il|org\.il|com|net|org|info|io|me|ly|il|co)\b\S*")
+_PLACEHOLDER_NAMES = frozenset({"none", "null", "nan", "nil", "undefined", "n/a", "na", "-",
+                                "לא ידוע", "ללא", "ללא שם", "אין", "אין שם", "לקוח", "לקוח כללי"})
+
+
+def clean_client_name(v: object, max_len: int = 80) -> str:
+    """שם לקוח שמוצג לחייב: שורה אחת, בלי תווי כיווניות/רוחב-אפס, רווחים מאוחדים, בלי קישורים.
+    ערך-ממלא-מקום ("None"/"null"/"-"/"לא ידוע") או שם בלי אף אות (טלפון, ת״ז) ⇒ "" ⇒ פנייה כללית.
+    באג שנמצא: «שלום None,» / «שלום 0501234567,» ב-SMS לחייב; קישור בשם נכנס לגוף המייל."""
+    s = _ZERO_WIDTH.sub("", sanitize_field("" if v is None else str(v), 400))
+    s = _URLISH.sub(" ", s)
+    s = " ".join(s.split())
+    if s.lower().strip(" .,;:-_*\"'") in _PLACEHOLDER_NAMES or s.lower() in _PLACEHOLDER_NAMES:
+        return ""
+    if not any(c.isalpha() for c in s):
+        return ""
+    if len(s) > max_len:
+        cut = s[:max_len]
+        s = cut.rsplit(" ", 1)[0] if " " in cut else cut
+    return s.strip(" ,;:-")
+
+
 def html_escape(v: str) -> str:
     return (v.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
             .replace('"', "&quot;").replace("'", "&#x27;"))

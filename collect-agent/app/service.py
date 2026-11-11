@@ -43,6 +43,7 @@ from .policy import (
     gap_ok,
     invoice_too_old,
 )
+from .security import clean_client_name
 
 # ימים אחרי מועד-התשלום לכל שלב
 STEP_OFFSETS_DAYS = (1, 7, 14)   # 3 תזכורות לכל היותר (הכרעת מאיר) ⇒ עצירה + התראה לבעל העסק
@@ -226,7 +227,8 @@ class CollectService:
 
     @staticmethod
     def _norm_name(name: str | None) -> str:
-        return " ".join((name or "").split())
+        # הפעלה 115: אותו ניקוי כמו בתזכורת — "\\u200fדוד כהן" ו-"None" לא מפצלים לקוח בשקר
+        return clean_client_name(name)
 
     def _customer_key_db(self, inv: Invoice) -> str:
         """critic סבב 26 (2.11): בלי מזהה לקוח, המפתח הוא מייל/טלפון — ושני אנשים שונים עם אותו
@@ -283,13 +285,15 @@ class CollectService:
             cust_ext = self._customer_key_db(inv)
             self.db.x(
                 "INSERT INTO customers(external_id,name,phone,email) "
-                "VALUES(?,?,?,?) ON CONFLICT(external_id) DO UPDATE SET name=excluded.name, "
+                "VALUES(?,?,?,?) ON CONFLICT(external_id) DO UPDATE SET "
+                # הפעלה 115: שם ריק/ממלא-מקום ("None") לא מוחק שם אמיתי שכבר ידוע
+                "name=COALESCE(NULLIF(excluded.name,''), customers.name), "
                 # ר-3: טלפון/מייל שסומנו «מספר שגוי» לא חוזרים, גם אם עדיין רשומים בחשבונית ירוקה
                 "phone=CASE WHEN customers.blocked_phone=excluded.phone THEN NULL "
                 "ELSE excluded.phone END, "
                 "email=CASE WHEN customers.blocked_email=excluded.email THEN NULL "
                 "ELSE excluded.email END",
-                (cust_ext, inv.client_name, inv.client_phone, inv.client_email))
+                (cust_ext, clean_client_name(inv.client_name), inv.client_phone, inv.client_email))
             cid = self.db.one("SELECT id FROM customers WHERE external_id=?", (cust_ext,))["id"]
             self.db.x(
                 "INSERT INTO invoices(external_id,number,doc_type,amount_agorot,currency,issued,"

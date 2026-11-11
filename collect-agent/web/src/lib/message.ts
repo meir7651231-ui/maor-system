@@ -13,8 +13,22 @@ export const demoUnsubUrl = (c: Customer) => `https://gabi.example/u/${c.id}`;
 /** קישור קצר בדמו (בבקאנד: `{PUBLIC_BASE_URL}/p/{short_code}`, 7 תווים, service.short_url). */
 export const demoShortUrl = (inv: Invoice) => `https://gabi.example/p/${inv.id.padEnd(7, 'x').slice(0, 7)}`;
 const ORG = /בע["״]?מ|חברת|עמותת|מרפאת|משרד|סטודיו|קבוצת|ltd|inc|llc/i;
-/** מראה של templates.first_name: שם פרטי; שם ארגון ⇒ מלא. */
-export const firstName = (name: string) => { const n = (name || '').trim(); return !n ? '' : ORG.test(n) ? n : n.split(/\s+/)[0]; };
+const TITLES = new Set(['מר', 'מרת', "גב'", 'גב׳', 'גברת', 'ד"ר', 'ד״ר', "דר'", 'דר׳', 'הרב', 'הרבנית',
+  'עו"ד', 'עו״ד', 'רו"ח', 'רו״ח', "פרופ'", 'פרופ׳', 'פרופסור',
+  'mr', 'mr.', 'mrs', 'mrs.', 'ms', 'ms.', 'dr', 'dr.', 'prof', 'prof.']);
+/** מראה של templates.FIRST_MAX: שם פרטי ארוך מזה ⇒ «שלום,». */
+export const FIRST_MAX = 20;
+/** מראה של templates.first_name: שם פרטי; שם ארגון ⇒ מלא; תואר מוביל מדולג (הפעלה 115). */
+export const firstName = (name: string) => {
+  const n = (name || '').trim();
+  if (!n) return '';
+  if (ORG.test(n)) return n;
+  const parts = n.split(/\s+/);
+  let first = parts[0];
+  if (TITLES.has(parts[0].toLowerCase()) && parts.length >= 2) first = parts.length >= 3 ? parts[1] : `${parts[0]} ${parts[1]}`;
+  first = first.replace(/^[,;:.-]+|[,;:.-]+$/g, '');
+  return TITLES.has(first.toLowerCase()) || first.length > FIRST_MAX ? '' : first;
+};
 
 /** השלב הבא לפי מספר התזכורות שכבר נשלחו. */
 export const nextStep = (inv: Invoice): Step => STEP_ORDER[Math.min(inv.reminders.length, STEP_ORDER.length - 1)];

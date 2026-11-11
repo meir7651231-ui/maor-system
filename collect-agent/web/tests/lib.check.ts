@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { daysOverdue, fmtIls, fmtPhone, isIlMobile, agingOf } from '../src/lib/format.ts';
-import { buildSms, buildEmail, smsSegments, nextStep, remindersExhausted, requiresApproval, demoUnsubUrl, demoShortUrl, TEMPLATES } from '../src/lib/message.ts';
+import { firstName, buildSms, buildEmail, smsSegments, nextStep, remindersExhausted, requiresApproval, demoUnsubUrl, demoShortUrl, TEMPLATES } from '../src/lib/message.ts';
 import { readFileSync } from 'node:fs';
 import { canSendAt, nextAllowed, HOLIDAYS } from '../src/lib/policy.ts';
 import { kpis, needsReminder, agingBuckets } from '../src/lib/stats.ts';
@@ -390,4 +390,13 @@ test('«דורש טיפול שלך»: לכל הודעה כפתור «טופל» 
   const dash = readFileSync(new URL('../src/pages/Dashboard.tsx', import.meta.url), 'utf8');
   assert.match(dash, /api\.ownerDone\(n\.id\)/);
   assert.match(dash, /data-testid="notice-done"/);
+});
+
+test('firstName = מראה של templates.first_name (הפעלה 115: תואר/פיסוק/אורך)', () => {
+  const cases: [string, string][] = [
+    ['מר דוד כהן', 'דוד'], ['ד"ר שרה לוי', 'שרה'], ['ד״ר שרה לוי', 'שרה'], ['הרב יוסף כהן', 'יוסף'],
+    ['מר כהן', 'מר כהן'], ["גב' רחל", "גב' רחל"], ['Dr. Sarah Levi', 'Sarah'], ['Cohen, David', 'Cohen'],
+    ['מר', ''], ['א'.repeat(30), ''], ['דוד כהן', 'דוד'], ['סטודיו אור', 'סטודיו אור'], ['', ''],
+  ];
+  for (const [n, f] of cases) assert.equal(firstName(n), f, n);
 });

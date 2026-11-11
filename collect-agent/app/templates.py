@@ -9,7 +9,7 @@ import re
 from dataclasses import dataclass
 from html import escape
 
-from .security import sanitize_field
+from .security import clean_client_name, sanitize_field
 
 MARKETING_WORDS = ("מבצע", "הנחה", "הטבה", "מתנה", "קופון", "חדש!", "הזדמנות", "במיוחד בשבילך")
 THREAT_WORDS = ("הוצאה לפועל", "תביעה", "משטרה", "עונש", "עו\"ד", "עורך דין", "אחרונה!")
@@ -115,19 +115,37 @@ STOP_LINK = "להפסקה: בקישור"         # שם שולח אלפאנומ�
 _ORG = re.compile(r"בע[\"״]?מ|חברת|עמותת|מרפאת|משרד|סטודיו|קבוצת|ltd|inc|llc", re.I)
 
 
+_TITLES = frozenset({"מר", "מרת", "גב'", "גב׳", "גברת", 'ד"ר', "ד״ר", "דר'", "דר׳", "הרב", "הרבנית",
+                     'עו"ד', "עו״ד", 'רו"ח', "רו״ח", "פרופ'", "פרופ׳", "פרופסור",
+                     "mr", "mr.", "mrs", "mrs.", "ms", "ms.", "dr", "dr.", "prof", "prof."})
+FIRST_MAX = 20   # שם פרטי ארוך מזה ⇒ «שלום,» (אחרת SMS עובר ל-3 חלקים — הפעלה 115)
+
+
 def first_name(name: str) -> str:
-    """שם פרטי לפנייה (legal §3.1). שם של ארגון ⇒ השם המלא. ריק ⇒ ''."""
+    """שם פרטי לפנייה (legal §3.1). שם של ארגון ⇒ השם המלא. ריק ⇒ ''.
+    הפעלה 115: תואר מוביל ("מר דוד כהן") ⇒ «שלום דוד» ולא «שלום מר»; תואר + שם יחיד ⇒ שניהם
+    ("מר כהן"); פיסוק נגרר ("Cohen,") מוסר; שם פרטי ארוך מ-FIRST_MAX ⇒ ''."""
     n = (name or "").strip()
     if not n:
         return ""
-    return n if _ORG.search(n) else n.split()[0]
+    if _ORG.search(n):
+        return n
+    parts = n.split()
+    if parts[0].lower() in _TITLES and len(parts) >= 2:
+        first = parts[1] if len(parts) >= 3 else f"{parts[0]} {parts[1]}"
+    else:
+        first = parts[0]
+    first = first.strip(",;:.-")
+    if first.lower() in _TITLES or len(first) > FIRST_MAX:
+        return ""
+    return first
 
 
 def fields(*, biz: str, name: str, num: str, amount_agorot: int, currency: str,
            link: str, unsub: str, short: str = "", two_way: bool = False) -> dict[str, str]:
     # שם/מספר מגיעים מחשבונית ירוקה = קלט חיצוני. CR/LF ב-Subject היה מפיל את בניית
     # המייל (ValueError) ⇒ plan() כולו; RLO/שורות חדשות מאפשרים להסוות קישור ב-SMS.
-    name = sanitize_field(name)
+    name = clean_client_name(name)
     return {"biz": sanitize_field(biz), "name": name or "לקוח/ה יקר/ה",
             "first": first_name(name) or "שלום",
             "num": sanitize_field(num, 30), "amount": fmt_amount(amount_agorot, currency),
