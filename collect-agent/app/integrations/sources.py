@@ -25,6 +25,7 @@ webhook — אופציונלי: מערכת שתומכת ב-webhook רק *מעי�
 """
 from __future__ import annotations
 
+import re
 from collections.abc import Callable, Iterable, Iterator
 from dataclasses import dataclass
 from datetime import date, timedelta
@@ -172,19 +173,27 @@ def due_or_estimate(due: date | None, issued: date | None) -> tuple[date | None,
     return due, False
 
 
+_IL_DMY = re.compile(r"^(\d{1,2})[/.](\d{1,2})[/.](\d{4})(?:[ T].*)?$")
+
+
 def parse_il_date(v: object) -> date | None:
-    """ISO (2026-10-20…) או DD/MM/YYYY (רווחית/EZcount). כל דבר אחר ⇒ None."""
-    if not v:
+    """ISO (2026-10-20…) או DD/MM/YYYY (רווחית/EZcount). כל דבר אחר ⇒ None.
+    הפעלה 112: גם בלי אפס מוביל ("5/3/2026") ובנקודות ("05.03.2026") — קודם נפלו ל-None ⇒
+    מועד "מוערך" הנפקה+30 בשקט במקום המועד האמיתי. שנה מחוץ ל-2000–2099 ⇒ None (לא חוב בן 1,800 שנה)."""
+    if not v or isinstance(v, bool):
         return None
     s = str(v).strip()
     try:
         if len(s) >= 10 and s[4] == "-":
-            return date.fromisoformat(s[:10])
-        if len(s) >= 10 and s[2] == "/" and s[5] == "/":
-            return date(int(s[6:10]), int(s[3:5]), int(s[0:2]))
+            d = date.fromisoformat(s[:10])
+        else:
+            m = _IL_DMY.match(s)
+            if not m:
+                return None
+            d = date(int(m.group(3)), int(m.group(2)), int(m.group(1)))
     except ValueError:
         return None
-    return None
+    return d if 2000 <= d.year <= 2099 else None
 
 
 def build_source(system: str, secret: Callable[[str], str | None], *,

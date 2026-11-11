@@ -465,7 +465,8 @@ class CollectService:
                              review=[(c, "csv_negative_balance") for c in res.credits])
         self.audit(actor, "csv_import", {"rows": len(res.invoices), "errors": len(res.errors),
                                          "credits": len(res.credits)})
-        return {"imported": counts["open"], "errors": res.errors, "credits": len(res.credits)}
+        return {"imported": counts["open"], "errors": res.errors, "credits": len(res.credits),
+                "date_order": res.date_order}
 
     # ---------- payment link ----------
     def _payment_link(self, inv_row) -> str | None:

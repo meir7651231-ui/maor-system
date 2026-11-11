@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import csv
 import io
+import re
 from dataclasses import dataclass, field
 from datetime import date, timedelta
 
@@ -36,19 +37,68 @@ class CsvResult:
     invoices: list[Invoice] = field(default_factory=list)
     errors: list[dict] = field(default_factory=list)
     credits: list[Invoice] = field(default_factory=list)   # critic סבב 35: יתרה שלילית = זיכוי ⇒ לבדיקה
+    date_order: str = "dmy"                                # הפעלה 112: dmy / mdy / mixed (זוהה מהקובץ)
 
 
-def _parse_date(v: str) -> date | None:
+_DMY = re.compile(r"^(\d{1,2})[/.\-](\d{1,2})[/.\-](\d{4}|\d{2})$")
+_ISO = re.compile(r"^(\d{4})-(\d{1,2})-(\d{1,2})(?:[ T].*)?$")
+MIN_YEAR, MAX_YEAR = 2000, 2099      # הפעלה 112: "01/10/0226" (שגיאת הקלדה) היה חוב "באיחור" של 1,800 שנה
+
+
+def _day_month(v: str) -> tuple[int, int] | None:
+    """שני השדות הראשונים של תאריך עם לוכסן/נקודה/מקף (בלי לפרש מי יום ומי חודש)."""
+    m = _DMY.match((v or "").strip())
+    return (int(m.group(1)), int(m.group(2))) if m else None
+
+
+def detect_date_order(values: list[str]) -> str:
+    """הפעלה 112: קובץ מ-Excel באנגלית (MM/DD) נקרא בשקט כ-DD/MM ⇒ "03/05/2026" (5 במרץ)
+    נקלט כ-3 במאי ⇒ תזכורת יוצאת חודשיים לפני/אחרי המועד. ההחלטה פר-קובץ, לפי ראיה חד-משמעית:
+    שדה ראשון > 12 ⇒ DMY · שדה שני > 12 ⇒ MDY · שתיהן ⇒ "mixed" (תאריך דו-משמעי נדחה).
+    בלי ראיה ⇒ DMY (ברירת המחדל הישראלית)."""
+    dmy = mdy = False
+    for v in values:
+        dm = _day_month(v)
+        if not dm:
+            continue
+        a, b = dm
+        if a > 12 >= b:
+            dmy = True
+        elif b > 12 >= a:
+            mdy = True
+    if dmy and mdy:
+        return "mixed"
+    return "mdy" if mdy else "dmy"
+
+
+def _parse_date(v: str, order: str = "dmy") -> date | None:
     v = (v or "").strip()
     if not v:
         return None
-    for fmt in ("%Y-%m-%d", "%d/%m/%Y", "%d.%m.%Y", "%d/%m/%y"):
-        try:
-            from datetime import datetime
-            return datetime.strptime(v, fmt).date()
-        except ValueError:
-            continue
-    raise ValueError(f"תאריך לא תקין: {v}")
+    try:
+        m = _ISO.match(v)
+        if m:
+            y, mo, d = int(m.group(1)), int(m.group(2)), int(m.group(3))
+        else:
+            m = _DMY.match(v)
+            if not m:
+                raise ValueError
+            a, b, y = int(m.group(1)), int(m.group(2)), int(m.group(3))
+            if len(m.group(3)) == 2:
+                y += 2000
+            if order == "mixed" and a <= 12 and b <= 12 and a != b:
+                raise ValueError(f"תאריך דו-משמעי: {v} (בקובץ יש גם DD/MM וגם MM/DD) — "
+                                 "כתבו אותו כ-YYYY-MM-DD")
+            d, mo = (b, a) if order == "mdy" else (a, b)
+            if order == "mixed" and b > 12:
+                d, mo = b, a
+        if not MIN_YEAR <= y <= MAX_YEAR:
+            raise ValueError(f"שנה לא סבירה בתאריך: {v}")
+        return date(y, mo, d)
+    except ValueError as e:
+        if str(e).startswith(("תאריך דו-משמעי", "שנה לא סבירה")):
+            raise
+        raise ValueError(f"תאריך לא תקין: {v}") from None
 
 
 def _agorot(v: str) -> int:
@@ -83,6 +133,10 @@ def parse(raw: bytes | str) -> CsvResult:
         raise ValueError(f"יותר מדי שורות (מקס׳ {MAX_ROWS})")
     out = CsvResult()
     seen: set[str] = set()
+    date_cells = [r[idx[k]] for r in rows[1:] for k in ("issued", "due")
+                  if k in idx and idx[k] < len(r)]
+    order = detect_date_order(date_cells)
+    out.date_order = order
     for n, row in enumerate(rows[1:], start=2):
         def cell(k: str, row=row) -> str:
             i = idx.get(k)
@@ -100,8 +154,8 @@ def parse(raw: bytes | str) -> CsvResult:
             amount = _agorot(cell("amount"))
             if amount == 0:
                 continue                                   # שולמה / אפס ⇒ לא חוב
-            issued = _parse_date(cell("issued"))
-            due = _parse_date(cell("due"))
+            issued = _parse_date(cell("issued"), order)
+            due = _parse_date(cell("due"), order)
             est = due is None and issued is not None
             if due is None and issued is not None:
                 due = issued + timedelta(days=DEFAULT_TERMS_DAYS)

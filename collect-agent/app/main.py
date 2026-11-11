@@ -582,6 +582,7 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         except (ValueError, UnicodeDecodeError) as e:
             raise HTTPException(400, str(e)) from e
         return {"imported": r["imported"], "credits": r.get("credits", 0),   # critic סבב 35: זיכויים ⇒ בדיקה
+                "date_order": r.get("date_order", "dmy"),                    # הפעלה 112
                 "rejected": [{"row": e["row"], "reason": e["error"]} for e in r["errors"]]}
 
     @app.post("/import/csv", dependencies=auth)
