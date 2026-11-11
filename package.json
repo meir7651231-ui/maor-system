@@ -15,6 +15,8 @@
     "verify": "npm run typecheck && npm run lint && npm run test && npm run build",
     "verify:fast": "npm run typecheck && npm run lint && npm run test",
     "e2e:verticals": "node e2e/vertical-matrix.mjs",
+    "e2e:ci": "node e2e/run-ci.mjs --suite=push",
+    "e2e:nightly": "node e2e/run-ci.mjs --suite=nightly",
     "test:rules": "firebase emulators:exec --only firestore --project demo-maor 'node e2e/rules-redteam.mjs'",
     "test:backup-emu": "firebase emulators:exec --only firestore,storage --project demo-maor --config e2e/firebase.backup-emu.json 'node functions/backup-root.emu.mjs'",
     "test:backup-scale": "firebase emulators:exec --only firestore,storage --project demo-maor --config e2e/firebase.backup-emu.json 'node --expose-gc functions/backup-root.scale.emu.mjs'"
