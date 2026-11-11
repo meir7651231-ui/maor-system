@@ -343,8 +343,10 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
                 body = await request.json()
             except ValueError:
                 raise HTTPException(400, "JSON לא תקין") from None
-        confirm = bool(body.get("confirm_open")) if isinstance(body, dict) else False
-        return guard(lambda: svc.approve(rid, request.state.actor, confirm_open=confirm))
+        body = body if isinstance(body, dict) else {}
+        return guard(lambda: svc.approve(rid, request.state.actor,
+                                         confirm_open=body.get("confirm_open") is True,
+                                         confirm_amount=body.get("confirm_amount") is True))
 
     @app.post("/reminders/{rid}/reject", dependencies=auth)
     def reject(rid: int, request: Request):

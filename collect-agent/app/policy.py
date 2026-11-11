@@ -67,6 +67,27 @@ def invoice_too_old(r, today: date) -> bool:
     """ר-7: חשבונית (לפי תאריך ההנפקה, אחרת המועד) מעל 3 שנים ⇒ טיפול ידני בלבד."""
     born = r["issued"] or r["due"]
     return bool(born) and (today - date.fromisoformat(born)).days > MANUAL_ONLY_AFTER_DAYS
+# הפעלה 123: סכום חריג פי 50 ומעלה מהרגיל ללקוח (חציון חשבוניותיו האחרות, אותו מטבע, ≥2) = כנראה
+# נקודה עשרונית במקום הלא נכון (12,000 במקום 120). לא שולחים בלי אישור מפורש של בעל העסק.
+AMOUNT_OUTLIER_FACTOR = 50
+AMOUNT_OUTLIER_MIN_AGOROT = 100_000   # מתחת ל-₪1,000 אין סיכון של דרישה מופרזת שמצדיקה עצירה
+AMOUNT_OUTLIER_MIN_HISTORY = 2
+
+
+def amount_outlier(amount_agorot: int, history: list[int]) -> int | None:
+    """הסכום הרגיל (חציון, באגורות) אם `amount_agorot` חריג לעומתו, אחרת None. טהור.
+    history = סכומי החשבוניות **האחרות** של הלקוח באותו מטבע (פתוחות וסגורות). פחות מ-2 ⇒ אין
+    בסיס להשוואה ⇒ None (לא מנחשים על לקוח חדש)."""
+    hist = sorted(a for a in history if a and a > 0)
+    if len(hist) < AMOUNT_OUTLIER_MIN_HISTORY or amount_agorot < AMOUNT_OUTLIER_MIN_AGOROT:
+        return None
+    n = len(hist)
+    med = hist[n // 2] if n % 2 else (hist[n // 2 - 1] + hist[n // 2]) // 2
+    if med <= 0 or amount_agorot < med * AMOUNT_OUTLIER_FACTOR:
+        return None
+    return med
+
+
 RETENTION_DAYS = 90                # ר-10: חוב סגור ⇒ מחיקה/התממה אחרי 90 יום (אלא legal hold)
 OWNER_HOLDS = ("minor", "deceased", "insolvency")   # ר-6: סימון בעל העסק = השהיה קשה
 

@@ -356,7 +356,7 @@ import { blockKind, REAPPROVE_LABEL } from '../src/api.ts';
 test('block_reason: חסימה קשה משביתה; «לאשר מחדש» לא', () => {
   for (const b of ['no_contact', 'no_payment_link', 'opted_out', 'disputed', 'paid_claim', 'credit_review'])
     assert.equal(blockKind(b), 'hard', b);
-  for (const b of ['approval_expired', 'approval_invalidated', 'amount_changed']) {
+  for (const b of ['approval_expired', 'approval_invalidated', 'amount_changed', 'amount_check']) {
     assert.equal(blockKind(b), 'reapprove', b);
     assert.ok(REAPPROVE_LABEL[b], b);
   }
@@ -365,6 +365,11 @@ test('block_reason: חסימה קשה משביתה; «לאשר מחדש» לא',
   const mp = readFileSync(new URL('../src/components/MessagePreview.tsx', import.meta.url), 'utf8');
   assert.match(mp, /blockKind\(block\) !== 'hard'|blockKind\(block\) === 'hard'/);
   assert.doesNotMatch(mp, /sendable = live \? !!pv && !block &&/);
+  // הפעלה 123: סכום חריג ⇒ תיבת אישור מפורש, והכפתור מושבת עד הסימון; confirm_amount נשלח לשרת
+  assert.match(mp, /data-testid="confirm-amount"/);
+  assert.match(mp, /odd\.length > 0 && !confirmAmount/);
+  const apiSrc = readFileSync(new URL('../src/api.ts', import.meta.url), 'utf8');
+  assert.match(apiSrc, /confirm_amount: true/);
 });
 
 // critic סבב 33: הודעה נכנסת משולח לא מוכר / מכתובת של כמה לקוחות (סבב 27) נשמרת needs_owner=1, אבל

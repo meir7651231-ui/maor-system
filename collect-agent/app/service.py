@@ -40,6 +40,7 @@ from .policy import (
     RETENTION_DAYS,
     TZ,
     Policy,
+    amount_outlier,
     customer_blocked,
     gap_ok,
     invoice_too_old,
@@ -49,6 +50,7 @@ from .security import clean_client_name
 # ימים אחרי מועד-התשלום לכל שלב
 STEP_OFFSETS_DAYS = (1, 7, 14)   # 3 תזכורות לכל היותר (הכרעת מאיר) ⇒ עצירה + התראה לבעל העסק
 ACTIVE = ("pending_approval", "approved")
+AMOUNT_CHECK = "amount_check"   # הפעלה 123: סכום חריג ⇒ אישור מפורש (לא חסימה קשה)
 HARD_BLOCKS = {"no_contact", "no_payment_link", "compliance", "no_reply_to"}
 _B62 = "abcdefghijkmnpqrstuvwxyz23456789"  # אותיות קטנות+ספרות, בלי 0/o/1/l (קריא, ~31 ביט)
 
@@ -803,6 +805,11 @@ class CollectService:
         msgs, block = self.build_messages(ready, cust, done, links[0] or "")
         if any(x is None for x in links):
             block = "no_payment_link"
+        odd = self._amount_outliers(ready)
+        for r, usual in odd:
+            self._notify_amount_check(r, cust, usual)
+        if odd and not block:
+            block = AMOUNT_CHECK   # רך: מותר לאשר, רק עם confirm_amount (נבדק מחדש ב-approve)
         total = sum(r["amount_agorot"] for r in ready)
         # אישור פרטני (הכרעת מאיר, בטא = טיוטות בלבד): כל תזכורת ממתינה לאישור בעל העסק
         payload = "[" + ",".join(message_to_json(m) for m in msgs) + "]"
@@ -884,6 +891,35 @@ class CollectService:
                     "תקנו את התאריך במערכת החשבוניות.")
         return (f"לחשבונית {inv_row['number']} ({cust['name']}) אין תאריך הנפקה ואין מועד "
                 "תשלום, ולכן גבי לא שולחת עליה תזכורות. השלימו תאריך במערכת החשבוניות.")
+
+    # ---------- הפעלה 123: סכום חריג (נקודה עשרונית במקום הלא נכון?) ----------
+    def _amount_outliers(self, invs) -> list[tuple]:
+        """החשבוניות שבהודעה שסכומן חריג מול שאר החשבוניות של אותו לקוח (אותו מטבע) ⇒ [(row, רגיל)]."""
+        out = []
+        for inv in invs:
+            hist = [h["amount_agorot"] for h in self.db.q(
+                "SELECT amount_agorot FROM invoices WHERE customer_id=? AND currency=? AND id<>?",
+                (inv["customer_id"], inv["currency"], inv["id"]))]
+            usual = amount_outlier(inv["amount_agorot"], hist)
+            if usual is not None:
+                out.append((inv, usual))
+        return out
+
+    def _notify_amount_check(self, inv_row, cust, usual: int) -> None:
+        """התראה אחת לחשבונית ולסכום (סכום אחר ⇒ התראה חדשה)."""
+        key = f"amt:{inv_row['id']}:{inv_row['amount_agorot']}"
+        if self.db.one("SELECT 1 FROM messages WHERE intent=? AND message_id=?", (AMOUNT_CHECK, key)):
+            return
+        cur = inv_row["currency"]
+        self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
+                  "message_id,created_at) VALUES(?,'system','owner',?,?,1,?,?)",
+                  (cust["id"], f"לחשבונית {inv_row['number']} ({cust['name'] or 'לקוח'}) סכום "
+                   f"{templates.fmt_amount(inv_row['amount_agorot'], cur)} — פי "
+                   f"{inv_row['amount_agorot'] // usual} ויותר מהסכום הרגיל של הלקוח "
+                   f"({templates.fmt_amount(usual, cur)}). אולי הנקודה העשרונית במקום הלא נכון? "
+                   "גבי לא תשלח את התזכורת עד שתאשרו במפורש שהסכום נכון. אם הוא שגוי — "
+                   "תקנו אותו במערכת החשבוניות.", AMOUNT_CHECK, key, _iso(self.clock())))
+        self.audit("system", AMOUNT_CHECK, {"invoice": inv_row["id"]})
 
     def _notify_too_old(self, inv_row, cust) -> None:
         key = f"old:{inv_row['id']}"
@@ -1007,14 +1043,20 @@ class CollectService:
 
     def preview(self, reminder_id: int) -> dict:
         r = self._reminder(reminder_id)
+        invs = [self._invoice(i) for i in self.reminder_invoice_ids(reminder_id)] or \
+            [self._invoice(r["invoice_id"])]
         msgs = [Message(**m) for m in json.loads(r["payload"])]
         return {"reminder_id": reminder_id, "status": r["status"],
                 "block_reason": r["block_reason"], "template_key": r["template_key"],
                 "scheduled_for": r["scheduled_for"],
+                "amount_check": [{"number": i["number"], "amount_agorot": i["amount_agorot"],
+                                  "usual_agorot": u, "currency": i["currency"]}
+                                 for i, u in self._amount_outliers(invs)],
                 "messages": [self.sender.preview(m) for m in msgs]}
 
     # ---------- owner decisions ----------
-    def approve(self, reminder_id: int, actor: str = "owner", *, confirm_open: bool = False) -> dict:
+    def approve(self, reminder_id: int, actor: str = "owner", *, confirm_open: bool = False,
+                confirm_amount: bool = False) -> dict:
         r = self._reminder(reminder_id)
         if r["status"] != "pending_approval":
             raise ValueError(f"לא ממתינה לאישור (status={r['status']})")
@@ -1032,6 +1074,10 @@ class CollectService:
                               "no_reply_to": "ללקוח יש רק מייל, ולא הוגדרה כתובת תשובה (Reply-To) "
                                              "לעסק — הגדירו אותה ב-/settings"
                               }[r["block_reason"]])
+        # הפעלה 123: נבדק מחדש על הסכומים של עכשיו (גם אחרי בנייה מחדש, כש-block_reason הוא amount_changed)
+        if self._amount_outliers(invs) and not confirm_amount:
+            raise ValueError("סכום חריג מאוד מהרגיל ללקוח (אולי נקודה עשרונית במקום הלא נכון?) — "
+                             "יש לאשר במפורש שהסכום נכון (confirm_amount)")
         h = _sha(r["payload"])
         self.db.x("UPDATE reminders SET status='approved', decided_at=?, approved_hash=?, "
                   "approved_version=?, approved_by=?, body_hash=? WHERE id=?",
@@ -1042,7 +1088,8 @@ class CollectService:
         # ר-12: מי אישר, מתי, איזו גרסת נוסח ואיזה גוף בדיוק (גיבוב)
         self.audit(actor, "approve", {"reminder": reminder_id, "body_sha256": h,
                                       "template_version": r["template_version"],
-                                      "confirm_open": bool(confirm_open)})
+                                      "confirm_open": bool(confirm_open),
+                                      "confirm_amount": bool(confirm_amount)})
         return dict(self._reminder(reminder_id))
 
     def reject(self, reminder_id: int, actor: str = "owner") -> dict:

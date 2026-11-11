@@ -41,7 +41,7 @@ interface Ctx {
   /** הודעות מערכת לבעל העסק (סוף ניסיון, 3 תזכורות מוצו, חשבונית ישנה, SMS לא נמסר) — חי בלבד. */
   notices: Notice[];
   customerOf: (id: string) => Customer;
-  approveAndSend: (invoiceId: string, step: Step, channels: Channel[], opts?: { confirmOpen?: boolean }) => Promise<void>;
+  approveAndSend: (invoiceId: string, step: Step, channels: Channel[], opts?: { confirmOpen?: boolean; confirmAmount?: boolean }) => Promise<void>;
   markPaid: (invoiceId: string) => void;
   reload: () => Promise<void>;
   toast: string | null;
@@ -145,7 +145,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         if (live) {
           const p = pendingBy.get(id);
           if (!p) throw new Error('אין תזכורת שממתינה לאישור לחשבונית הזו');
-          await api.approve(p.reminderId, !!opts?.confirmOpen);
+          await api.approve(p.reminderId, !!opts?.confirmOpen, !!opts?.confirmAmount);
           const r = await api.dispatch();
           await reload();
           showToast(`✓ אושר · ${r.sent.length ? `${r.sent.length} תזכורות יצאו ב-dry-run (ביומן היוצאים)` : 'נכנס לתור — ייצא בחלון השליחה הבא'} · לא נשלחה הודעה אמיתית`);

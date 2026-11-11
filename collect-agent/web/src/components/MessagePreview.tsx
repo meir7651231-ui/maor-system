@@ -17,6 +17,7 @@ export function MessagePreview({ invoice, onClose, now = new Date() }: { invoice
   const [busy, setBusy] = useState(false);
   const isCsv = invoice.source === 'csv';
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmAmount, setConfirmAmount] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   useEffect(() => {
     if (!live || !pending) return;
@@ -42,6 +43,7 @@ export function MessagePreview({ invoice, onClose, now = new Date() }: { invoice
   const when = nextAllowed(now);
   const block = live ? pv?.block_reason ?? pending?.block ?? null : null;
   const sendable = live ? !!pv && blockKind(block) !== 'hard' && !busy : (on.sms || on.email) && !c.optedOut;
+  const odd = live ? pv?.amount_check ?? [] : [];
   useEffect(() => {
     if (live && pv) { setOn({ sms: !!liveSms, email: !!liveMail }); setTab(liveSms ? 'sms' : 'email'); if (pv.template_key) setStep(pv.template_key); }
   }, [live, pv, liveSms, liveMail]);
@@ -171,10 +173,16 @@ export function MessagePreview({ invoice, onClose, now = new Date() }: { invoice
               <span><b>הסכום {fmtIls(invoice.amount)} עדיין פתוח</b> — בדקתי. (חשבונית מקובץ CSV לא מתעדכנת לבד; האישור תקף 24 שעות.)</span>
             </label>
           )}
+          {odd.length > 0 && (
+            <label className="me-auto flex items-start gap-2 text-sm rounded-xl bg-red-50 text-red-900 px-3 py-2 max-w-md" data-testid="confirm-amount">
+              <input type="checkbox" className="h-5 w-5 mt-0.5 accent-[#10B981]" checked={confirmAmount} onChange={e => setConfirmAmount(e.target.checked)} />
+              <span><b>הסכום נכון — בדקתי.</b> {odd.map(o => `חשבונית ${o.number}: ${fmtIls(o.amount_agorot / 100)} (בדרך כלל ${fmtIls(o.usual_agorot / 100)})`).join(' · ')}. אולי הנקודה העשרונית במקום הלא נכון?</span>
+            </label>
+          )}
           <Button variant="ghost" onClick={onClose}>ביטול</Button>
-          <Button disabled={!sendable || (live && isCsv && !confirmOpen)} onClick={async () => {
+          <Button disabled={!sendable || (live && isCsv && !confirmOpen) || (odd.length > 0 && !confirmAmount)} onClick={async () => {
             setBusy(true);
-            try { await approveAndSend(invoice.id, step, channels, { confirmOpen }); onClose(); }
+            try { await approveAndSend(invoice.id, step, channels, { confirmOpen, confirmAmount }); onClose(); }
             catch (e) { showToast(`לא אושר: ${(e as Error).message}`); setBusy(false); }
           }}>
             ✓ אשר ושלח {channels.length === 2 ? 'ב-SMS ובמייל' : channels[0] === 'sms' ? 'ב-SMS' : channels[0] === 'email' ? 'במייל' : ''}

@@ -86,7 +86,8 @@ export interface PreviewMsg {
   request: { headers?: Record<string, string> };
   length?: { chars: number; encoding: string; segments: number };
 }
-export interface Preview { reminder_id: number; status: string; block_reason: string | null; template_key: Step; scheduled_for: string; messages: PreviewMsg[] }
+export interface AmountCheck { number: string; amount_agorot: number; usual_agorot: number; currency: string }
+export interface Preview { reminder_id: number; status: string; block_reason: string | null; template_key: Step; scheduled_for: string; messages: PreviewMsg[]; amount_check?: AmountCheck[] }
 export interface Plan { id: number; customer_id: number; invoice_id: number; status: string; installments: { n: number; due: string; amount_agorot: number }[] }
 export interface Draft {
   id: number; customer_id: number; customer: string; channel: 'sms' | 'email'; to_addr: string; body: string;
@@ -103,7 +104,11 @@ export const api = {
   pending: () => j<{ id: number; invoice_id: number; invoice_ids?: number[]; block_reason: string | null }[]>('/reminders?status=pending_approval&view=summary'),
   preview: (rid: number) => j<Preview>(`/reminders/${rid}/preview`),
   /** confirmOpen: לחשבונית מ-CSV בעל העסק מאשר במפורש שהסכום עדיין פתוח (השרת מחייב; תוקף 24 ש׳). */
-  approve: (rid: number, confirmOpen = false) => j<unknown>(`/reminders/${rid}/approve`, { method: 'POST', ...(confirmOpen ? { body: JSON.stringify({ confirm_open: true }) } : {}) }),
+  /** confirmAmount (הפעלה 123): סכום חריג מאוד מהרגיל ללקוח — בעל העסק מאשר במפורש שהסכום נכון (השרת מחייב). */
+  approve: (rid: number, confirmOpen = false, confirmAmount = false) => {
+    const body = { ...(confirmOpen ? { confirm_open: true } : {}), ...(confirmAmount ? { confirm_amount: true } : {}) };
+    return j<unknown>(`/reminders/${rid}/approve`, { method: 'POST', ...(Object.keys(body).length ? { body: JSON.stringify(body) } : {}) });
+  },
   dispatch: () => j<{ dry_run: true; sent: unknown[] }>('/dispatch', { method: 'POST' }),
   outbox: () => j<{ dry_run: true; messages: OutMsg[] }>('/outbox'),
   resume: (cid: number) => j<unknown>(`/customers/${cid}/resume`, { method: 'POST' }),
@@ -155,6 +160,7 @@ export const REAPPROVE_LABEL: Record<string, string> = {
   approval_expired: 'האישור הקודם פג (חיכה יותר מ-7 ימים) — לאשר מחדש',
   approval_invalidated: 'הנוסח השתנה מאז האישור — לאשר מחדש',
   amount_changed: 'הסכום התעדכן מהמקור — לבדוק ולאשר מחדש',
+  amount_check: 'סכום חריג מאוד מהרגיל ללקוח — לבדוק שהוא נכון ולאשר במפורש',
 };
 
 /** 'hard' = אסור לאשר (כפתור מושבת) · 'reapprove' = מותר, עם הסבר · null = אין. לא מוכר ⇒ 'hard' (שמרני). */
