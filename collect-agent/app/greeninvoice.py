@@ -99,6 +99,22 @@ def _to_agorot(v: Any) -> int:
 DEFAULT_TERMS_DAYS = 30   # ממצא מבקר 2.9: בלי dueDate, תאריך ההנפקה ≠ מועד תשלום (שוטף+30 שמרני)
 
 
+def due_or_estimate(due: date | None, issued: date | None, *,
+                    inherited: bool = False) -> tuple[date | None, bool]:
+    """מועד התשלום של מסמך מ-API. בלי מועד ⇒ הנפקה + 30, "מוערך" (ממצא מבקר 2.9).
+    הפעלה 119: מועד **לפני** תאריך ההנפקה = נתון שגוי (עמודות הפוכות / הקלדה) ⇒ גם הוא "לא ידוע" ⇒ הנפקה+30.
+    קודם התקבל כמו שהוא ⇒ החוב נראה באיחור כבר ביום ההנפקה ⇒ תזכורת «טרם שולמה» מיידית. מועד = יום ההנפקה
+    (תשלום מיידי) תקין ונשמר. `inherited=True` = מסמך מקושר למסמך-מקור (חשבון עסקה 300 שהומר ל-305 שומר את
+    מועד ה-300 המקורי, גם אם ההמרה מאוחרת לו) ⇒ המועד המוקדם אמיתי ונשמר כמו שהוא."""
+    from datetime import timedelta
+
+    if due is not None and issued is not None and due < issued and not inherited:
+        due = None
+    if due is None and issued is not None:
+        return issued + timedelta(days=DEFAULT_TERMS_DAYS), True
+    return due, False
+
+
 def _s(v: Any) -> str:
     """null ב-JSON ⇒ "" (לא "None"). הפעלה 107: `str(None)` הפך לקוח בלי מזהה למפתח המשותף
     "None" ⇒ שני לקוחות שונים התמזגו והחוב של א' נשלח למייל של ב'."""
@@ -113,22 +129,18 @@ def _linked_ids(doc: dict[str, Any]) -> tuple[str, ...]:
 
 
 def map_document(doc: dict[str, Any]) -> Invoice:
-    from datetime import timedelta
-
     client = doc.get("client") or {}
     emails = client.get("emails") or []
-    due = _parse_date(doc.get("dueDate"))
     issued = _parse_date(doc.get("documentDate"))
-    due_estimated = due is None and issued is not None
-    if due is None and issued is not None:
-        due = issued + timedelta(days=DEFAULT_TERMS_DAYS)
+    linked = _linked_ids(doc)
+    due, due_estimated = due_or_estimate(_parse_date(doc.get("dueDate")), issued, inherited=bool(linked))
     return Invoice(
         external_id=_s(doc.get("id")),
         number=_s(doc.get("number")),
         doc_type=int(doc.get("type", 0) or 0),
         amount_agorot=_to_agorot(doc.get("amountDueVat", doc.get("amount", 0))),
         currency=parse_currency(doc.get("currency")),
-        issued=_parse_date(doc.get("documentDate")),
+        issued=issued,
         due=due,
         client_external_id=_s(client.get("id")),
         client_name=_s(client.get("name")),
@@ -137,7 +149,7 @@ def map_document(doc: dict[str, Any]) -> Invoice:
         payment_url=str(doc.get("paymentUrl") or doc.get("paymentLink") or ""),
         status=int(doc.get("status", 0) or 0),
         due_estimated=due_estimated,
-        linked_ids=_linked_ids(doc),
+        linked_ids=linked,
         gross_agorot=(_to_agorot(doc.get("amount")) if "amountDueVat" in doc and "amount" in doc
                       else 0),
     )

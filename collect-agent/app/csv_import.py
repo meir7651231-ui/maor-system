@@ -181,6 +181,11 @@ def parse(raw: bytes | str) -> CsvResult:
                 continue                                   # שולמה / אפס ⇒ לא חוב
             issued = _parse_date(cell("issued"), order)
             due = _parse_date(cell("due"), order)
+            # הפעלה 119: מועד לפני תאריך המסמך = עמודות הפוכות / הקלדה ⇒ שגיאה גלויה בייבוא
+            # (קודם: החוב נראה באיחור כבר ביום ההנפקה ⇒ תזכורת «טרם שולמה» מיידית). יום זהה = תקין.
+            if due is not None and issued is not None and due < issued:
+                raise ValueError(f"מועד התשלום ({due:%d/%m/%Y}) לפני תאריך המסמך ({issued:%d/%m/%Y})"
+                                 " — אולי העמודות הפוכות?")
             est = due is None and issued is not None
             if due is None and issued is not None:
                 due = issued + timedelta(days=DEFAULT_TERMS_DAYS)

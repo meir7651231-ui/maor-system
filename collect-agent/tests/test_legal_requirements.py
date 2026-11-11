@@ -573,7 +573,9 @@ def test_shared_phone_reply_goes_to_customer_who_got_last_message(svc):
     svc.dispatch()
     svc.inbound("sms", "050-0001111", "איך אפשר לשלם?")
     d = svc.db.one("SELECT * FROM drafts ORDER BY id DESC LIMIT 1")
-    assert d["customer_id"] == ids["משה כהן"] and "300" not in d["body"]
+    # הפעלה 119: CI #427 (sqlcipher 3.13) נפל כי הטוקן האקראי בקישור התשלום הכיל "300" ⇒ בודקים בלי קישורים
+    body = re.sub(r"https?://\S+", "", d["body"])
+    assert d["customer_id"] == ids["משה כהן"] and "300" not in body
     svc.inbound("sms", "050-0001111", "שילמתי")
     paused = {r["name"]: r["paused_reason"] for r in svc.db.q("SELECT name,paused_reason FROM customers")}
     assert paused["משה כהן"] and not paused["רונית לוי"]

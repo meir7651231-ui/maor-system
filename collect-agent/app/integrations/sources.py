@@ -27,13 +27,14 @@ from __future__ import annotations
 
 from collections.abc import Callable, Iterable, Iterator
 from dataclasses import dataclass
-from datetime import date, timedelta
+from datetime import date
 from typing import Protocol, runtime_checkable
 
 import httpx
 
 from ..contact import normalize_il_phone, valid_email
-from ..greeninvoice import DEFAULT_TERMS_DAYS, GreenInvoiceClient, Invoice, Netting
+from ..greeninvoice import GreenInvoiceClient, Invoice, Netting
+from ..greeninvoice import due_or_estimate as due_or_estimate  # הפעלה 119: כלל אחד לכל המקורות (re-export)
 from .base import parse_ext_date
 
 
@@ -166,13 +167,6 @@ def public_systems() -> list[dict]:
 
 
 # ------------------------------------------------------------------ עזרים משותפים לכל ה-adapters
-def due_or_estimate(due: date | None, issued: date | None) -> tuple[date | None, bool]:
-    """כמו map_document של חשבונית ירוקה (ממצא מבקר 2.9): בלי מועד תשלום ⇒ הנפקה + 30 (שמרני)."""
-    if due is None and issued is not None:
-        return issued + timedelta(days=DEFAULT_TERMS_DAYS), True
-    return due, False
-
-
 def parse_il_date(v: object) -> date | None:
     """הפעלה 112: ISO/DD/MM/YYYY, שנה 2000–2099. הפעלה 118: מאציל למפענח המשותף `parse_ext_date`
     (גם DD-MM-YYYY, שנה בשתי ספרות, YYYY/MM/DD, epoch, כיווניות/רוחב-אפס, אזור-זמן ⇒ שעון ישראל)."""
