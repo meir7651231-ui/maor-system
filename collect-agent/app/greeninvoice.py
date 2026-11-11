@@ -71,12 +71,15 @@ class Invoice:
 
 
 def _parse_date(v: Any) -> date | None:
-    if not v:
+    """critic סבב 45: אותו כלל כמו `parse_il_date` (הפעלה 112) — שנה מחוץ ל-2000–2099 ⇒ None.
+    dueDate=1900 עם הנפקה עדכנית יצר תזכורת «טרם שולמה» מיד, לפני המועד האמיתי."""
+    if not v or isinstance(v, bool):
         return None
     try:
-        return date.fromisoformat(str(v)[:10])
+        d = date.fromisoformat(str(v)[:10])
     except ValueError:
         return None
+    return d if 2000 <= d.year <= 2099 else None
 
 
 MAX_AMOUNT_AGOROT = 10_000_000_000   # 100 מיליון ₪ — מעל זה = נתון שגוי (כמו התקרה ב-CSV)

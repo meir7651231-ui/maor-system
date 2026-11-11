@@ -98,3 +98,19 @@ def test_api_reports_date_order(svc):
     r = api.post("/settings/source/csv", content=body)
     assert r.status_code == 200, r.text
     assert r.json()["date_order"] == "mdy"
+
+
+def test_gi_dates_outside_2000_2099_are_ignored_like_other_sources():
+    """critic סבב 45: הפעלה 112 הגבילה את `parse_il_date` (iCount/EZcount/רווחית) לשנים 2000–2099, אבל
+    ל-GI יש `_parse_date` נפרד בלי הגבלה ⇒ מסמך עם dueDate=1900-01-01 (נתון שגוי) והנפקה עדכנית קיבל
+    תזכורת «טרם שולמה» **מיד** — לפני המועד האמיתי. עכשיו: אותו כלל ⇒ מועד לא ידוע ⇒ הנפקה+30 (מוערך)."""
+    from datetime import date
+
+    from app.greeninvoice import _parse_date, map_document
+    from tests.conftest import gi_doc
+    assert _parse_date("1900-01-01") is None and _parse_date("2999-12-31") is None
+    assert _parse_date("2026-10-01") == date(2026, 10, 1)
+    d = gi_doc(1)
+    d["documentDate"], d["dueDate"] = "2026-11-01", "1900-01-01"
+    inv = map_document(d)
+    assert inv.due == date(2026, 12, 1) and inv.due_estimated
