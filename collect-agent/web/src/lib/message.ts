@@ -90,10 +90,23 @@ export function buildEmail(inv: Invoice, c: Customer, b: Business, step: Step): 
   };
 }
 
-/** ספירת מקטעי SMS. עברית ⇒ UCS-2: 70 תווים למקטע בודד, 67 במשורשר. */
+// מראה אות-באות של app/integrations/sms.py GSM7/GSM7_EXT/sms_segments (הפעלה 128).
+// קודם: «unicode» = תו מעל 127, ואימוג'י נספר כיחידה אחת ⇒ המונה בתיבת התשובות הראה מקטע אחד
+// כשהשרת (והחיוב אצל הספק) ספר שניים. GSM-7: תווי הרחבה ({ } [ ] ~ | ^ \ €) = 2 יחידות;
+// é/ü/£ הם GSM-7 ולא UCS-2; ` אינו GSM-7. UCS-2: תו מחוץ ל-BMP (אימוג'י) = 2 יחידות UTF-16.
+export const GSM7 = new Set([...'@£$¥èéùìòÇ\nØø\rÅåΔ_ΦΓΛΩΠΨΣΘΞÆæßÉ !"#¤%&\'()*+,-./0123456789:;<=>?¡'
+  + 'ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÑÜ§¿abcdefghijklmnopqrstuvwxyzäöñüà']);
+export const GSM7_EXT = new Set([...'^{}\\[~]|€']);
+
+/** ספירת מקטעי SMS. עברית ⇒ UCS-2: 70 יחידות למקטע בודד, 67 במשורשר; GSM-7: 160/153.
+ *  chars = תווים (code points), כמו channels.sms_segments; segments לפי יחידות, כמו השרת. */
 export function smsSegments(text: string): { chars: number; segments: number; unicode: boolean } {
-  const unicode = [...text].some(ch => ch.codePointAt(0)! > 127);
-  const chars = [...text].length;
-  const single = unicode ? 70 : 160, multi = unicode ? 67 : 153;
-  return { chars, unicode, segments: chars <= single ? 1 : Math.ceil(chars / multi) };
+  const cps = [...text];
+  const chars = cps.length;
+  if (cps.every(ch => GSM7.has(ch) || GSM7_EXT.has(ch))) {
+    const units = cps.reduce((n, ch) => n + (GSM7_EXT.has(ch) ? 2 : 1), 0);
+    return { chars, unicode: false, segments: units <= 160 ? 1 : Math.ceil(units / 153) };
+  }
+  const units = text.length;   // UTF-16: אימוג'י = 2 (ord > 0xFFFF בשרת)
+  return { chars, unicode: true, segments: units <= 70 ? 1 : Math.ceil(units / 67) };
 }

@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { daysOverdue, fmtIls, fmtPhone, isIlMobile, agingOf } from '../src/lib/format.ts';
-import { firstName, buildSms, buildEmail, smsSegments, nextStep, remindersExhausted, requiresApproval, demoUnsubUrl, demoShortUrl, TEMPLATES, fmtAmountBackend } from '../src/lib/message.ts';
+import { firstName, buildSms, buildEmail, smsSegments, GSM7, GSM7_EXT, nextStep, remindersExhausted, requiresApproval, demoUnsubUrl, demoShortUrl, TEMPLATES, fmtAmountBackend } from '../src/lib/message.ts';
 import { readFileSync } from 'node:fs';
 import { canSendAt, nextAllowed, HOLIDAYS } from '../src/lib/policy.ts';
 import { kpis, needsReminder, agingBuckets } from '../src/lib/stats.ts';
@@ -36,6 +36,32 @@ test('מקטעי SMS', () => {
   assert.deepEqual(smsSegments('a'.repeat(160)), { chars: 160, unicode: false, segments: 1 });
   assert.equal(smsSegments('א'.repeat(70)).segments, 1);
   assert.equal(smsSegments('א'.repeat(71)).segments, 2);
+});
+
+test('smsSegments = מראה של integrations.sms_segments (הפעלה 128: אימוג\'י/GSM-7/הרחבה)', () => {
+  // [טקסט, chars, segments, unicode] — הפלט הוקלט מ-app.channels.sms_segments (Python).
+  const cases: [string, number, number, boolean][] = [
+    ['a'.repeat(160), 160, 1, false], ['a'.repeat(161), 161, 2, false],
+    ['א'.repeat(70), 70, 1, true], ['א'.repeat(71), 71, 2, true],
+    ['א'.repeat(69) + '👍', 70, 2, true],          // היה 1: אימוג'י = 2 יחידות UTF-16
+    ['א'.repeat(134), 134, 2, true], ['א'.repeat(133) + '👍', 134, 3, true],   // היה 2
+    ['{'.repeat(80), 80, 1, false], ['{'.repeat(81), 81, 2, false],            // היה 1: תו הרחבה = 2
+    ['é'.repeat(160), 160, 1, false], ['é'.repeat(161), 161, 2, false],        // היה 3 (UCS-2)
+    ['`'.repeat(10), 10, 1, true],                                              // ` אינו GSM-7
+    ['שלום 👍👍', 7, 1, true], ['€'.repeat(81), 81, 2, false], ['', 0, 1, false],
+  ];
+  for (const [t, chars, segments, unicode] of cases)
+    assert.deepEqual(smsSegments(t), { chars, segments, unicode }, JSON.stringify(t.slice(0, 8)) + ` (${t.length})`);
+  // הגנת-מקור: טבלאות GSM-7 זהות לשרת (שינוי שם ⇒ לשנות כאן).
+  const py = readFileSync(new URL('../../app/integrations/sms.py', import.meta.url), 'utf8');
+  const gsm = py.match(/GSM7 = set\("([^"\\]*(?:\\.[^"\\]*)*)"\s*\n\s*"([^"]*)"\)/);
+  assert.ok(gsm, 'GSM7 בשרת שינה צורה');
+  const unesc = (x: string) => x.replace(/\\n/g, '\n').replace(/\\r/g, '\r').replace(/\\"/g, '"');
+  assert.deepEqual([...GSM7].sort(), [...new Set([...unesc(gsm[1] + gsm[2])])].sort());
+  const ext = py.match(/GSM7_EXT = set\("([^"]*)"\)/);
+  assert.ok(ext, 'GSM7_EXT בשרת שינה צורה');
+  assert.deepEqual([...GSM7_EXT].sort(), [...new Set([...ext[1].replace(/\\\\/g, '\\')])].sort());
+  assert.match(py, /units = sum\(2 if ord\(c\) > 0xFFFF else 1 for c in text\)/);
 });
 
 test('סולם + אישור', () => {
