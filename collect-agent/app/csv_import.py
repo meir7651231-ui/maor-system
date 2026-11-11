@@ -13,7 +13,7 @@ from dataclasses import dataclass, field
 from datetime import date, timedelta
 
 from .contact import clean_email, normalize_il_phone
-from .greeninvoice import DEFAULT_TERMS_DAYS, Invoice
+from .greeninvoice import DEFAULT_TERMS_DAYS, MAX_TERMS_DAYS, Invoice
 from .integrations.base import parse_amount_agorot, parse_currency
 from .security import DOC_NUMBER_MAX, clean_doc_number
 
@@ -186,6 +186,10 @@ def parse(raw: bytes | str) -> CsvResult:
             if due is not None and issued is not None and due < issued:
                 raise ValueError(f"מועד התשלום ({due:%d/%m/%Y}) לפני תאריך המסמך ({issued:%d/%m/%Y})"
                                  " — אולי העמודות הפוכות?")
+            # הפעלה 120: מועד מעל שנתיים אחרי המסמך = טעות בשנה ⇒ החוב לא היה מקבל תזכורת לעולם, בשקט.
+            if due is not None and issued is not None and (due - issued).days > MAX_TERMS_DAYS:
+                raise ValueError(f"מועד התשלום ({due:%d/%m/%Y}) יותר משנתיים אחרי תאריך המסמך"
+                                 f" ({issued:%d/%m/%Y}) — אולי טעות בשנה?")
             est = due is None and issued is not None
             if due is None and issued is not None:
                 due = issued + timedelta(days=DEFAULT_TERMS_DAYS)

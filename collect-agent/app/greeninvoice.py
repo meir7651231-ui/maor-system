@@ -97,6 +97,7 @@ def _to_agorot(v: Any) -> int:
 
 
 DEFAULT_TERMS_DAYS = 30   # ממצא מבקר 2.9: בלי dueDate, תאריך ההנפקה ≠ מועד תשלום (שוטף+30 שמרני)
+MAX_TERMS_DAYS = 2 * 365  # הפעלה 120: מועד מעל שנתיים אחרי ההנפקה = טעות בשנה (2062 במקום 2026), לא תנאי תשלום
 
 
 def due_or_estimate(due: date | None, issued: date | None, *,
@@ -109,6 +110,10 @@ def due_or_estimate(due: date | None, issued: date | None, *,
     from datetime import timedelta
 
     if due is not None and issued is not None and due < issued and not inherited:
+        due = None
+    # הפעלה 120: מועד רחוק מדי (טעות בשנה) ⇒ גם הוא "לא ידוע". קודם: החוב נחשב "טרם הגיע מועדו" עשרות שנים
+    # ⇒ לא קיבל תזכורת לעולם, בשקט. גם במסמך מקושר — טעות בשנה היא טעות, לא מועד שעבר בירושה.
+    if due is not None and issued is not None and (due - issued).days > MAX_TERMS_DAYS:
         due = None
     if due is None and issued is not None:
         return issued + timedelta(days=DEFAULT_TERMS_DAYS), True
