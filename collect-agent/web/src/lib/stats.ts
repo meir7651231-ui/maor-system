@@ -2,7 +2,7 @@ import { PRODUCT_RULES, type Invoice } from './domain.ts';
 
 /** אחרי 3 תזכורות: גבי עוצר ומעביר לבעל העסק. */
 export const stoppedAtMax = (list: Invoice[]) => list.filter(i => i.status !== 'paid' && i.reminders.length >= PRODUCT_RULES.maxReminders);
-import { agingOf, daysOverdue, type Aging } from './format.ts';
+import { agingOf, daysOverdue, ratioHalfUp, type Aging } from './format.ts';
 
 export const isOpen = (i: Invoice) => i.status !== 'paid';
 
@@ -16,7 +16,7 @@ export function kpis(list: Invoice[], today: string): Kpis {
     overdueTotal: overdue.reduce((s, i) => s + i.amount, 0),
     openCount: open.length,
     overdueCount: overdue.length,
-    avgDaysLate: late.length ? Math.round(late.reduce((a, b) => a + b, 0) / late.length) : 0,
+    avgDaysLate: ratioHalfUp(late.reduce((a, b) => a + b, 0), late.length),
     needsAction: needsReminder(list, today).length,
   };
 }

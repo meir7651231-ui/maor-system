@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useApp } from '../store.tsx';
 import { agingBuckets, kpis } from '../lib/stats.ts';
-import { AGING_LABEL, daysOverdue, fmtIls, type Aging } from '../lib/format.ts';
+import { AGING_LABEL, daysOverdue, fmtIls, ratioHalfUp, type Aging } from '../lib/format.ts';
 import { STEP_LABEL, nextStep } from '../lib/message.ts';
 import { demoCollectedByMonth } from '../data/demo.ts';
 import { Button, Card, LateBadge } from '../components/ui.tsx';
@@ -23,7 +23,9 @@ export function Dashboard() {
   // מוק: נגבה לפי חודש מנתוני הדמו; חי: גבייה שבועית מהשרת (closed_at)
   const bars: Bar[] = live && series ? toBars(series) : demoCollectedByMonth.map(m => ({ label: m.month, value: m.amount, count: 0 }));
   const collected = t?.collected_agorot != null ? t.collected_agorot / 100 : demoCollectedByMonth.reduce((a, m) => a + m.amount, 0);
-  const recovery = t?.recovery_rate_pct ?? Math.round((100 * collected) / (collected + k.openTotal || 1));
+  // מוק: באגורות שלמות ובאותו עיגול כמו השרת (ratio_half_up) — 24.90 ₪ בשקלים צפים היה נותן 12.4999…
+  const collectedAg = Math.round(collected * 100);
+  const recovery = t?.recovery_rate_pct ?? ratioHalfUp(collectedAg, collectedAg + Math.round(k.openTotal * 100), 100);
   const [open, setOpen] = useState<Invoice | null>(null);
 
   return (

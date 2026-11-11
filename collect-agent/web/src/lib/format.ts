@@ -9,6 +9,11 @@ const at = (iso: string) => new Date(iso + 'T12:00:00').getTime();
 /** ימים מאז מועד הפירעון (שלילי = עוד לא הגיע). */
 export const daysOverdue = (dueAt: string, today: string): number => Math.round((at(today) - at(dueAt)) / dayMs);
 
+/** round(scale·num/den) «חצי למעלה» בחשבון שלמים — מראה של app/service.py ratio_half_up (הפעלה 129).
+ *  השרת עיגל ב-round() של Python (חצי-לזוגי: 12.5 ⇒ 12) והממשק ב-Math.round (12.5 ⇒ 13). den≤0 ⇒ 0. */
+export const ratioHalfUp = (num: number, den: number, scale = 1): number =>
+  den <= 0 ? 0 : Math.floor((2 * scale * num + den) / (2 * den));
+
 export const fmtDate = (iso: string): string => {
   const [y, m, d] = iso.split('-');
   return `${d}.${m}.${y.slice(2)}`;

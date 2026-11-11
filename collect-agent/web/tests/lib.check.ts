@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { daysOverdue, fmtIls, fmtPhone, isIlMobile, agingOf } from '../src/lib/format.ts';
+import { daysOverdue, fmtIls, fmtPhone, isIlMobile, agingOf, ratioHalfUp } from '../src/lib/format.ts';
 import { firstName, buildSms, buildEmail, smsSegments, GSM7, GSM7_EXT, nextStep, remindersExhausted, requiresApproval, demoUnsubUrl, demoShortUrl, TEMPLATES, fmtAmountBackend } from '../src/lib/message.ts';
 import { readFileSync } from 'node:fs';
 import { canSendAt, nextAllowed, HOLIDAYS } from '../src/lib/policy.ts';
@@ -487,4 +487,21 @@ test('fmtAmountBackend תואם templates.fmt_amount (אגורות, פסיקים
   const paid = demoInvoices.find(i => i.number === '2007')!;
   const cust = demoCustomers.find(c => c.id === paid.customerId)!;
   assert.match(buildSms(paid, cust, demoBusiness, 'friendly'), /ע"ס 24\.90 ₪/);
+});
+
+test('ratioHalfUp = מראה של app/service.py ratio_half_up (KPI בדשבורד, הפעלה 129)', () => {
+  // אותה טבלה כמו tests/test_ratio_half_up.py (פלט Python). 12.5 ⇒ 13 ו-2.5 ⇒ 3 (round של Python נתן 12 ו-2)
+  const cases: [number, number, number, number][] = [[1, 8, 100, 13], [5, 2, 1, 3], [3, 2, 1, 2], [1, 3, 100, 33],
+    [2, 3, 100, 67], [0, 5, 100, 0], [7, 0, 100, 0], [249000, 249000 + 872500, 100, 22], [5, 4, 1, 1], [7, 4, 1, 2],
+    [1, 200, 100, 1], [1, 201, 100, 0]];
+  for (const [n, d, s, want] of cases) assert.equal(ratioHalfUp(n, d, s), want, `${n}/${d}×${s}`);
+  const py = readFileSync(new URL('../../app/service.py', import.meta.url), 'utf8');
+  assert.match(py, /return \(2 \* scale \* num \+ den\) \/\/ \(2 \* den\)/, 'נוסחת השרת');
+  for (const key of ['recovery_rate_pct', 'avg_days_overdue', 'reply_rate_pct'])
+    assert.match(py, new RegExp(`"${key}": ratio_half_up\\(`), key);
+  // ממוצע ימי איחור במוק: 1 ו-4 ימים ⇒ 3 (לא 2)
+  const mk = (id: string, dueAt: string) => ({ ...demoInvoices[0], id, dueAt, status: 'open' as const, reminders: [] });
+  assert.equal(kpis([mk('a', '2026-11-05'), mk('b', '2026-11-02')], '2026-11-06').avgDaysLate, 3);
+  const dash = readFileSync(new URL('../src/pages/Dashboard.tsx', import.meta.url), 'utf8');
+  assert.match(dash, /recovery_rate_pct \?\? ratioHalfUp\(collectedAg/, 'שיעור החזר במוק באגורות ובאותו עיגול');
 });

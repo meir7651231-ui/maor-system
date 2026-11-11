@@ -59,6 +59,15 @@ def _iso(dt: datetime) -> str:
     return dt.astimezone(TZ).isoformat(timespec="seconds")
 
 
+def ratio_half_up(num: int, den: int, scale: int = 1) -> int:
+    """round(scale*num/den) בעיגול «חצי למעלה» בחשבון שלמים (num,den ≥ 0; den=0 ⇒ 0).
+    הפעלה 129: round() של Python מעגל חצי-לזוגי (12.5 ⇒ 12, 2.5 ⇒ 2), והממשק (Math.round)
+    מעגל 12.5 ⇒ 13 — ההדגמה והחי הראו מספר אחר. מראה: web/src/lib/format.ts ratioHalfUp."""
+    if den <= 0:
+        return 0
+    return (2 * scale * num + den) // (2 * den)
+
+
 def _dt(s: str | None) -> datetime | None:
     return datetime.fromisoformat(s) if s else None
 
@@ -1689,13 +1698,13 @@ class CollectService:
         replied &= messaged
         rich = {
             "collected_agorot": collected,
-            "recovery_rate_pct": round(100 * collected / (collected + open_amt)) if collected + open_amt else 0,
-            "avg_days_overdue": round(sum(late) / len(late)) if late else 0,
+            "recovery_rate_pct": ratio_half_up(collected, collected + open_amt, 100),
+            "avg_days_overdue": ratio_half_up(sum(late), len(late)),
             "at_risk_agorot": sum(x["amount_agorot"] for x in open_rows if x["days_overdue"] > 60),
             "reminders_sent": self.db.one("SELECT COUNT(*) n FROM reminders WHERE "
                                           "status='sent_dry_run'")["n"],
             "customers_messaged": len(messaged),
-            "reply_rate_pct": round(100 * len(replied) / len(messaged)) if messaged else 0,
+            "reply_rate_pct": ratio_half_up(len(replied), len(messaged), 100),
         }
         now = self.clock()
         closed_why = self.policy.reason_closed(now)
