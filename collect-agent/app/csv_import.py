@@ -13,7 +13,7 @@ from dataclasses import dataclass, field
 from datetime import date, timedelta
 
 from .contact import clean_email, normalize_il_phone
-from .greeninvoice import DEFAULT_TERMS_DAYS, MAX_TERMS_DAYS, Invoice
+from .greeninvoice import DEFAULT_TERMS_DAYS, MAX_TERMS_DAYS, Invoice, issued_in_far_future
 from .integrations.base import parse_amount_agorot, parse_currency
 from .security import DOC_NUMBER_MAX, clean_doc_number
 
@@ -128,7 +128,7 @@ def _csv_phone(v: str) -> str:
     return v.strip()
 
 
-def parse(raw: bytes | str) -> CsvResult:
+def parse(raw: bytes | str, today: date | None = None) -> CsvResult:
     if isinstance(raw, bytes):
         if len(raw) > MAX_BYTES:
             raise ValueError("הקובץ גדול מדי (מקס׳ 2MB)")
@@ -181,6 +181,10 @@ def parse(raw: bytes | str) -> CsvResult:
                 continue                                   # שולמה / אפס ⇒ לא חוב
             issued = _parse_date(cell("issued"), order)
             due = _parse_date(cell("due"), order)
+            # הפעלה 121: תאריך מסמך מעל שנה בעתיד = טעות בשנה ⇒ שגיאה גלויה (קודם: «אולי העמודות הפוכות?» מטעה,
+            # או מועד 2062 מוערך ⇒ אין תזכורת לעולם, בשקט).
+            if issued_in_far_future(issued, today):
+                raise ValueError(f"תאריך המסמך ({issued:%d/%m/%Y}) רחוק בעתיד — אולי טעות בשנה?")
             # הפעלה 119: מועד לפני תאריך המסמך = עמודות הפוכות / הקלדה ⇒ שגיאה גלויה בייבוא
             # (קודם: החוב נראה באיחור כבר ביום ההנפקה ⇒ תזכורת «טרם שולמה» מיידית). יום זהה = תקין.
             if due is not None and issued is not None and due < issued:

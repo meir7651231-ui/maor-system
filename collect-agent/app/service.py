@@ -24,7 +24,7 @@ from .channels import (
 )
 from .config import SafetyError, Settings
 from .db import DB, token_hash
-from .greeninvoice import GreenInvoiceClient, Invoice
+from .greeninvoice import AS_OF, GreenInvoiceClient, Invoice, issued_in_far_future
 from .integrations.base import IntegrationError
 from .integrations.sources import (
     SOURCE_SYSTEMS,
@@ -385,11 +385,16 @@ class CollectService:
                                "(שלב 1: mock בלבד)")
         provider = source_provider(self.gi)
         self.gi.__dict__["malformed"] = 0
-        if hasattr(self.gi, "open_debts"):   # ממצא 2.16: החוב אחרי קיזוז זיכויים והמרות 300⇒305
-            net = self.gi.open_debts()
-            invs, review = net.invoices, net.review
-        else:
-            invs, review = list(self.gi.iter_open_invoices()), []
+        # הפעלה 121: "היום" של חישוב המועד = שעון השירות (הנפקה רחוקה בעתיד = טעות בשנה)
+        as_of_token = AS_OF.set(self.clock().date())
+        try:
+            if hasattr(self.gi, "open_debts"):   # ממצא 2.16: החוב אחרי קיזוז זיכויים והמרות 300⇒305
+                net = self.gi.open_debts()
+                invs, review = net.invoices, net.review
+            else:
+                invs, review = list(self.gi.iter_open_invoices()), []
+        finally:
+            AS_OF.reset(as_of_token)
         # critic סבב 44: מסמך פגום (סכום/תאריך לא תקין) דולג. ייתכן שזה מסמך פתוח שכבר אצלנו ⇒
         # בסנכרון הזה לא סוגרים כלום (אחרת הוא ייראה «שולם»), ובעל העסק מקבל התראה.
         bad = self.gi.__dict__.get("malformed", 0)
@@ -460,7 +465,7 @@ class CollectService:
     def import_csv(self, raw: bytes, actor: str = "owner") -> dict:
         """חלופה ל-API: ייבוא חלקי (לא סוגר חשבוניות שלא בקובץ). שגיאות לפי שורה."""
         from . import csv_import
-        res = csv_import.parse(raw)
+        res = csv_import.parse(raw, today=self.clock().date())
         if not self.s.real_data_allowed:
             bad = [i.number for i in res.invoices if not is_synthetic_contact(i.client_phone, i.client_email)]
             if bad:
@@ -867,10 +872,18 @@ class CollectService:
             return
         self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
                   "message_id,created_at) VALUES(?,'system','owner',?,'no_due_date',1,?,?)",
-                  (cust["id"], f"לחשבונית {inv_row['number']} ({cust['name']}) אין תאריך הנפקה ואין מועד "
-                   "תשלום, ולכן גבי לא שולחת עליה תזכורות. השלימו תאריך במערכת החשבוניות.", key,
+                  (cust["id"], self._no_due_text(inv_row, cust), key,
                    _iso(self.clock())))
         self.audit("system", "no_due_date", {"invoice": inv_row["id"]})
+
+    def _no_due_text(self, inv_row, cust) -> str:
+        issued = date.fromisoformat(inv_row["issued"]) if inv_row["issued"] else None
+        if issued_in_far_future(issued, self.clock().date()):   # הפעלה 121: לא «אין תאריך» — תאריך שגוי
+            return (f"לחשבונית {inv_row['number']} ({cust['name']}) תאריך הנפקה {issued:%d/%m/%Y} — רחוק "
+                    "בעתיד, אולי טעות בשנה? — ואין מועד תשלום, ולכן גבי לא שולחת עליה תזכורות. "
+                    "תקנו את התאריך במערכת החשבוניות.")
+        return (f"לחשבונית {inv_row['number']} ({cust['name']}) אין תאריך הנפקה ואין מועד "
+                "תשלום, ולכן גבי לא שולחת עליה תזכורות. השלימו תאריך במערכת החשבוניות.")
 
     def _notify_too_old(self, inv_row, cust) -> None:
         key = f"old:{inv_row['id']}"

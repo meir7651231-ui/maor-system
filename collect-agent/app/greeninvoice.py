@@ -13,9 +13,11 @@ from __future__ import annotations
 
 import time
 from collections.abc import Iterator
+from contextvars import ContextVar
 from dataclasses import dataclass, field, replace
-from datetime import date
+from datetime import date, datetime
 from typing import Any
+from zoneinfo import ZoneInfo
 
 import httpx
 
@@ -100,8 +102,24 @@ DEFAULT_TERMS_DAYS = 30   # ממצא מבקר 2.9: בלי dueDate, תאריך ה
 MAX_TERMS_DAYS = 2 * 365  # הפעלה 120: מועד מעל שנתיים אחרי ההנפקה = טעות בשנה (2062 במקום 2026), לא תנאי תשלום
 
 
+MAX_FUTURE_ISSUE_DAYS = 365  # הפעלה 121: הנפקה מעל שנה אחרי היום = טעות בשנה (2062 במקום 2026), לא חשבונית מוקדמת
+
+# הפעלה 121: "היום" של חישוב המועד. השירות קובע אותו לפי השעון שלו בזמן סנכרון (דטרמיניסטי בבדיקות/הדגמה);
+# בלי ערך ⇒ התאריך האמיתי בישראל.
+AS_OF: ContextVar[date | None] = ContextVar("gabi_as_of", default=None)
+
+
+def as_of() -> date:
+    return AS_OF.get() or datetime.now(ZoneInfo("Asia/Jerusalem")).date()
+
+
+def issued_in_far_future(issued: date | None, today: date | None = None) -> bool:
+    """הפעלה 121: תאריך הנפקה מעל שנה אחרי היום ⇒ כמעט בוודאות טעות בשנה."""
+    return issued is not None and (issued - (today or as_of())).days > MAX_FUTURE_ISSUE_DAYS
+
+
 def due_or_estimate(due: date | None, issued: date | None, *,
-                    inherited: bool = False) -> tuple[date | None, bool]:
+                    inherited: bool = False, today: date | None = None) -> tuple[date | None, bool]:
     """מועד התשלום של מסמך מ-API. בלי מועד ⇒ הנפקה + 30, "מוערך" (ממצא מבקר 2.9).
     הפעלה 119: מועד **לפני** תאריך ההנפקה = נתון שגוי (עמודות הפוכות / הקלדה) ⇒ גם הוא "לא ידוע" ⇒ הנפקה+30.
     קודם התקבל כמו שהוא ⇒ החוב נראה באיחור כבר ביום ההנפקה ⇒ תזכורת «טרם שולמה» מיידית. מועד = יום ההנפקה
@@ -109,6 +127,14 @@ def due_or_estimate(due: date | None, issued: date | None, *,
     מועד ה-300 המקורי, גם אם ההמרה מאוחרת לו) ⇒ המועד המוקדם אמיתי ונשמר כמו שהוא."""
     from datetime import timedelta
 
+    # הפעלה 121: הנפקה רחוקה בעתיד (טעות בשנה) ⇒ ההנפקה "לא ידועה" לצורך החישוב. קודם: הנפקה+30 = 2062 ⇒ אין
+    # תזכורת לעולם, ומועד אמיתי (1.10.2026) נמחק כ«מועד לפני ההנפקה» ⇒ אותו דבר. עכשיו מועד אמיתי נשמר, ובלי
+    # מועד ⇒ אין מועד ⇒ התראה גלויה לבעל העסק (`_notify_no_due`) במקום שקט. מועד שגם הוא רחוק ⇒ גם הוא לא ידוע.
+    if issued_in_far_future(issued, today):
+        t = today or as_of()
+        if due is not None and (due - t).days > MAX_TERMS_DAYS:
+            due = None
+        return due, False
     if due is not None and issued is not None and due < issued and not inherited:
         due = None
     # הפעלה 120: מועד רחוק מדי (טעות בשנה) ⇒ גם הוא "לא ידוע". קודם: החוב נחשב "טרם הגיע מועדו" עשרות שנים
