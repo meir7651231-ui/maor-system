@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # גבי — הדגמה מקצה לקצה בפקודה אחת (מקומי, dry-run, נתוני דמו בדויים, בלי רשת חיצונית).
 #
-#   ./demo.sh            מרים את השרת עם 6 חשבוניות פתוחות מזויפות, מריץ תזכורות dry-run
+#   ./demo.sh            מרים את השרת עם 9 חשבוניות פתוחות מזויפות (7 לקוחות), מריץ תזכורות dry-run
 #                        (כל SMS/מייל מודפס ללוג עם קישור תשלום דמו), ומגיש את הדשבורד:
 #                        http://127.0.0.1:${PORT:-8000}/ui   (Ctrl+C לעצירה)
 #   ./demo.sh --check    אותו דבר, מאמת את ה-API והדשבורד, ויוצא (0 = הכול עובד). ל-CI.
@@ -61,7 +61,7 @@ try:
 except urllib.error.HTTPError as e:
     assert e.code == 401, e.code
 d = json.loads(get("/dashboard")); t = d["totals"]
-assert t["open_invoices"] == 5 and t["closed_invoices"] == 1, t
+assert t["open_invoices"] == 8 and t["closed_invoices"] == 1, t
 # חשבונית ירוקה הגיעה דרך שרת ה-mock ב-HTTP, וה-webhook של «מסמך נוצר» (קבלה) הגיע אלינו
 import time
 for _ in range(40):
@@ -90,6 +90,14 @@ try:
 except urllib.error.HTTPError as e:
     loc = e.headers.get("location")
 assert loc and loc.startswith("https://pay.example/gabi-demo"), loc
+# הפעלה 125: סכום חריג בהדגמה — גל שרון, 2,490 במקום 24.90 ⇒ ממתינה לאישור מפורש + התראה בתיבה
+odd = [r for r in json.loads(get("/reminders?status=pending_approval&view=summary"))
+       if r["block_reason"] == "amount_check"]
+assert len(odd) == 1, odd
+pr = json.loads(get(f"/reminders/{odd[0]['id']}/preview"))
+assert [(c["number"], c["amount_agorot"]) for c in pr["amount_check"]] == [("2009", 249000)], pr["amount_check"]
+assert any(m["intent"] == "amount_check" for m in json.loads(get("/owner/inbox"))), "חסרה התראת סכום חריג"
+print("✅ סכום חריג בהדגמה: חשבונית 2009 ממתינה לאישור «הסכום נכון» + התראה לבעל העסק")
 ui = get("/ui"); assert 'id="debts"' in ui and 'id="kpis"' in ui
 import os
 if os.path.isfile("web/dist/index.html"):
@@ -119,7 +127,7 @@ assert post("/auth/login", {"email": em, "password": "wrong-password-1", "code":
 code_, res = post("/auth/login", {"email": em, "password": pw, "code": totp.code_at(sec, DEMO_NOW.timestamp())})
 assert code_ == 200 and len(res["token"]) >= 32, (code_, res)
 tok = {"Authorization": "Bearer " + res["token"]}
-assert json.loads(get("/dashboard", tok))["totals"]["open_invoices"] == 5
+assert json.loads(get("/dashboard", tok))["totals"]["open_invoices"] == 8
 post("/auth/logout", {}, tok)
 try:
     get("/dashboard", tok); raise AssertionError("הטוקן עדיין תקף אחרי יציאה")

@@ -14,15 +14,16 @@ SANDBOX = "https://sandbox.d.greeninvoice.co.il/api/v1"
 DEMO_ID, DEMO_SECRET = "demo-id", "demo-secret"
 
 
-def _doc(i: int, name: str, phone: str, email: str, amount: str, due: str) -> dict:
+def _doc(i: int, name: str, phone: str, email: str, amount: str, due: str,
+         client: str = "") -> dict:
     return {"id": f"demo{i}", "number": str(2000 + i), "type": 305, "status": 0,
             "amount": amount, "currency": "ILS", "documentDate": "2026-09-01", "dueDate": due,
-            "client": {"id": f"dcl{i}", "name": name, "phone": phone,
+            "client": {"id": client or f"dcl{i}", "name": name, "phone": phone,
                        "emails": [email] if email else []}}
 
 
 def demo_docs() -> list[dict]:
-    """6 לקוחות בדויים, כל אחד מדגים מסלול אחר בזרימה."""
+    """7 לקוחות בדויים (9 חשבוניות), כל אחד מדגים מסלול אחר בזרימה."""
     return [
         _doc(1, "דנה לוי (דמו)", "050-0000001", "dana@example.com", "1200.00", "2026-10-01"),
         _doc(2, "יוסי כהן (דמו)", "052-0000002", "yossi@example.com", "3450.50", "2026-10-10"),
@@ -32,6 +33,11 @@ def demo_docs() -> list[dict]:
         _doc(5, "מיכל דוד (דמו)", "050-0000005", "michal@example.com", "2100.00",
              "2026-10-05"),                                         # תשלם ⇒ תיסגר בסנכרון
         _doc(6, "לקוח בלי פרטים (דמו)", "123", "", "300.00", "2026-10-01"),  # אין ערוץ
+        # הפעלה 125: סכום חריג — מנוי חודשי של ~₪25, והשלישית הוקלדה 2,490 במקום 24.90 (נקודה
+        # עשרונית שנשמטה) ⇒ תזכורת מאוחדת אחת שממתינה לאישור מפורש «הסכום נכון» + התראה לבעל העסק
+        *(_doc(i, "גל שרון (דמו)", "053-0000007", "gal@example.com", amt, due, client="dcl7")
+          for i, amt, due in ((7, "24.90", "2026-10-01"), (8, "29.90", "2026-10-08"),
+                              (9, "2490.00", "2026-10-15"))),
     ]
 
 

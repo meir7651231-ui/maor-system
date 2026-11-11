@@ -137,7 +137,7 @@ try {
 
   const outbox0 = (await api('/outbox')).messages.length;
   const items = p.locator('li', { has: p.getByRole('button', { name: 'תצוגה ואישור' }) });
-  ok(await items.count() === 2, `ציפיתי ל-2 בתור, יש ${await items.count()}`);
+  ok(await items.count() === 3, `ציפיתי ל-3 בתור (יוסי, בלי פרטים, גל — סכום חריג), יש ${await items.count()}`);
   ok(await p.getByText('אין נייד או מייל תקין').count() >= 1, 'החסימה no_contact לא מוצגת');
   // v2: 8 KPI + גרף גבייה
   ok(await p.getByTestId('kpis').locator(':scope > *').count() === 8, 'ציפיתי ל-8 KPI');
@@ -151,6 +151,18 @@ try {
   await p.getByText('⛔ חסום').waitFor();
   ok(await p.getByRole('button', { name: /אשר ושלח/ }).isDisabled(), 'תזכורת חסומה ניתנת לאישור');
   await p.getByRole('button', { name: 'ביטול' }).click();
+
+  // 2ב) הפעלה 125: סכום חריג בדמו (גל שרון, 2,490 במקום 24.90) ⇒ אישור רק אחרי «הסכום נכון — בדקתי»
+  await items.filter({ hasText: 'גל שרון' }).getByRole('button', { name: 'תצוגה ואישור' }).click();
+  const confirmAmt = p.getByTestId('confirm-amount');
+  await confirmAmt.waitFor();
+  ok(/2009/.test(await confirmAmt.textContent()) && /2,490/.test(await confirmAmt.textContent()), 'תיבת הסכום החריג בלי החשבונית/הסכום');
+  ok(await p.getByRole('button', { name: /אשר ושלח/ }).isDisabled(), 'סכום חריג ניתן לאישור בלי סימון');
+  await confirmAmt.locator('input').check();
+  ok(!(await p.getByRole('button', { name: /אשר ושלח/ }).isDisabled()), 'הסימון «הסכום נכון» לא שחרר את האישור');
+  if (out) await p.screenshot({ path: `${out}/live-02b-amount-check.png` });
+  await p.getByRole('button', { name: 'ביטול' }).click();   // נשארת ממתינה (לא שולחים בהדגמה)
+  console.log('  ✓ סכום חריג: אישור נעול עד «הסכום נכון — בדקתי»');
 
   // 3) יוסי ⇒ התצוגה המקדימה = הנוסח מהשרת (קישור קצר /p/, ≤2 חלקים); מייל עם קישור מלא
   await items.filter({ hasText: 'יוסי' }).getByRole('button', { name: 'תצוגה ואישור' }).click();
@@ -166,7 +178,7 @@ try {
   await p.getByText('לא נשלחה הודעה אמיתית').waitFor();
   const outbox1 = (await api('/outbox')).messages.length;
   ok(outbox1 === outbox0 + 2, `ביומן היוצאים ציפיתי ל-+2 (SMS+מייל), קיבלתי ${outbox0}→${outbox1}`);
-  await p.waitForFunction(() => [...document.querySelectorAll('button')].filter(x => x.textContent === 'תצוגה ואישור').length === 1);
+  await p.waitForFunction(() => [...document.querySelectorAll('button')].filter(x => x.textContent === 'תצוגה ואישור').length === 2);
   console.log('  ✓ תצוגה מקדימה ⇒ אישור ⇒ יומן +2');
 
   // 4) דורש טיפול: דנה מושהית ("שילמתי") ⇒ חידוש בלחיצה כפולה ⇒ מאומת בשרת
@@ -296,7 +308,7 @@ try {
   console.log('  ✓ אזהרת «CSV לא הופיעה בייבוא האחרון» (ממשק)');
   await p.goto(base + '/app/#/invoices');
   await p.getByText('דנה לוי').first().waitFor();
-  ok(await p.locator('tbody tr').count() === 6, 'ציפיתי ל-6 חשבוניות פתוחות (5 + אחת מ-CSV)');
+  ok(await p.locator('tbody tr').count() === 9, 'ציפיתי ל-9 חשבוניות פתוחות (8 + אחת מ-CSV)');
 
   // v2 · דף נחיתה: כותרת + מחשבון שווי הזמן (בלי הבטחת תשואה — הכרעת מאיר 6.11)
   await p.goto(base + '/app/');

@@ -1,6 +1,6 @@
 """מצב הדגמה: sandbox מדומה של חשבונית ירוקה + תרחיש מוכן + הדפסת כל הודעה ללוג.
 
-`DEMO=1 uvicorn app.main:_lazy_app --factory` (או ./demo.sh) ⇒ השרת עולה עם 6 חשבוניות
+`DEMO=1 uvicorn app.main:_lazy_app --factory` (או ./demo.sh) ⇒ השרת עולה עם 9 חשבוניות
 פתוחות בדויות, התרחיש רץ (סנכרון ⇒ תור ⇒ אישורים ⇒ שליחת dry-run ⇒ תשובות לקוחות ⇒
 חשבונית ששולמה נסגרת), וכל SMS/מייל *שהיה* נשלח מודפס ללוג. אחר כך הדשבורד ב-/ui חי
 ואפשר להמשיך ללחוץ (למשל לאשר את התזכורת של יוסי שנשארה ממתינה).
@@ -19,7 +19,8 @@ from .config import load_settings
 from .db import DB
 from .demo_data import demo_client, demo_source_factory
 from .policy import TZ
-from .service import CollectService
+from .service import AMOUNT_CHECK, CollectService
+from .templates import fmt_amount
 
 log = logging.getLogger("gabi.demo")
 DEMO_PAY_LINK = "https://pay.example/gabi-demo"   # דומיין example ⇒ לא קיים באמת
@@ -73,14 +74,21 @@ def run_scenario(svc: CollectService, fake, out: Callable[[str], None] = print) 
     out("══ גבי · הדגמה (dry-run, נתונים בדויים, אף הודעה לא יוצאת) ══")
     r = svc.sync()
     out(f"① סנכרון חשבונית ירוקה (sandbox מדומה): {r['open']} חשבוניות פתוחות")
-    assert r == {"open": 6, "closed": 0}, r
+    assert r == {"open": 9, "closed": 0}, r
     created = svc.plan()
-    out(f"② הוכנו {len(created)} תזכורות — כולן ממתינות לאישור בעל העסק")
-    assert len(created) == 6
+    out(f"② הוכנו {len(created)} תזכורות — כולן ממתינות לאישור בעל העסק"
+        " (לגל שרון: הודעה אחת על 3 חשבוניות)")
+    assert len(created) == 7
     assert svc.dispatch() == [], "נשלח משהו לפני אישור!"
-    approved, left = [], None
+    approved, left, odd = [], None, None
     for rid in created:
         rem = svc._reminder(rid)
+        if rem["block_reason"] == AMOUNT_CHECK:   # הפעלה 125: נשארת לאישור מפורש של בעל העסק
+            chk = svc.preview(rid)["amount_check"][0]
+            out(f"   ⚠️ תזכורת #{rid}: חשבונית {chk['number']} על {fmt_amount(chk['amount_agorot'])}"
+                f" — בדרך כלל {fmt_amount(chk['usual_agorot'])}. ממתינה לאישור «הסכום נכון» ב-/app/")
+            odd = rid
+            continue
         if rem["block_reason"]:
             out(f"   ⛔ תזכורת #{rid} חסומה: {rem['block_reason']}")
             continue
@@ -94,6 +102,8 @@ def run_scenario(svc: CollectService, fake, out: Callable[[str], None] = print) 
     out(f"④ שליחה (dry-run): {len(sent)} תזכורות ⇒")
     n = _log_outbox(svc, 0, out)
     assert len(sent) == len(approved)
+    assert odd is not None, "סכום חריג (גל שרון) לא סומן לאישור מפורש"
+    assert svc._reminder(odd)["status"] == "pending_approval", "סכום חריג נשלח בלי אישור!"
     out("⑤ תשובות לקוחות:")
     for ch, who, text in [("sms", "050-0000001", "שילמתי אתמול בהעברה"),
                           ("sms", "054-0000004", "הסר"),

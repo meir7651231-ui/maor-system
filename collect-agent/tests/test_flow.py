@@ -409,9 +409,14 @@ def test_demo_scenario_end_to_end():
     svc2, fake, _ = build_demo_service()
     lines: list[str] = []
     t = run_scenario(svc2, fake, out=lines.append)
-    assert t["open_invoices"] == 5 and t["closed_invoices"] == 1
+    assert t["open_invoices"] == 8 and t["closed_invoices"] == 1
     # 5 SMS: גם "שילמתי" מקבל עכשיו תשובה (תודה + בקשת אסמכתא) אחרי אישור בעל העסק
-    assert t["sent_sms"] == 5 and t["sent_email"] == 4 and t["owner_inbox"] == 1
+    # owner_inbox 2: «שילמתי» + הפעלה 125 — התראת סכום חריג (גל שרון, 2,490 במקום 24.90)
+    assert t["sent_sms"] == 5 and t["sent_email"] == 4 and t["owner_inbox"] == 2
+    assert any("⚠️" in x and "2009" in x and "2,490" in x and "27.40" in x for x in lines)
+    odd = [r for r in svc2.db.q("SELECT * FROM reminders WHERE block_reason='amount_check'")]
+    assert len(odd) == 1 and odd[0]["status"] == "pending_approval"   # לא נשלח בלי אישור מפורש
+    assert not any("530000007" in m["to"] or "gal@" in m["to"] for m in svc2.sender.sent)
     assert any("pay.example/gabi-demo" in x for x in lines)
     assert not any("whatsapp" in x.lower() for x in lines)
 
