@@ -66,7 +66,8 @@ export function Invoices() {
                     <td className="px-4 py-3 whitespace-nowrap"><LateBadge days={d} /></td>
                     <td className="px-4 py-3"><StatusBadge status={i.status} /></td>
                     <td className="px-4 py-3 text-xs text-ink-500 whitespace-nowrap">
-                      {last ? <span data-testid="sent-cell">{i.reminders.length}{last.at && <> · אחרונה {fmtDate(last.at)}</>} {sentChannels(i).map(c => c === 'sms' ? '📱' : '✉️').join('')}</span> : 'טרם נשלחה'}
+                      {last && i.lastSent?.unknown ? <span data-testid="sent-cell" className="text-amber-700 font-bold" title="השליחה האחרונה נקטעה באמצע. בדקו ביומן היוצאים לפני שליחה ידנית">{i.reminders.length} · אחרונה: לא ידוע אם יצאה ⚠️</span>
+                        : last ? <span data-testid="sent-cell">{i.reminders.length}{last.at && <> · אחרונה {fmtDate(last.at)}</>} {sentChannels(i).map(c => c === 'sms' ? '📱' : '✉️').join('')}</span> : 'טרם נשלחה'}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex gap-1.5 justify-end">

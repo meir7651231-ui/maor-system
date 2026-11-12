@@ -645,6 +645,7 @@ test('הפעלה 136: עמוד החשבוניות — חשבונית שכלול�
   assert.match(page, /data-testid="in-merged" onClick=\{\(\) => setOpen\(anchor\)\}/);   // הלחיצה פותחת את תזכורת העוגן
 });
 
+const page0 = () => readFileSync(new URL('../src/pages/Invoices.tsx', import.meta.url), 'utf8');
 test('הפעלה 137: עמודת «תזכורות» — המועד והערוץ של מה שיצא בפועל, לא של הטיוטה שבתור', async () => {
   const { sentChannels } = await import('../src/lib/stats.ts');
   const row = (id: number, extra: Partial<Dashboard['invoices'][0]>): Dashboard['invoices'][0] => ({
@@ -654,7 +655,7 @@ test('הפעלה 137: עמודת «תזכורות» — המועד והערוץ 
   const d: Dashboard = { today: '2026-11-15', totals: {} as Dashboard['totals'], invoices: [
     row(1, { last_sent: { sent_at: '2026-11-08T10:00:00+02:00', channels: ['email'] } }),
     row(2, { last_sent: { sent_at: '2026-11-08T10:00:00+02:00', channels: ['email', 'sms'] } }),
-    row(3, { last_sent: { sent_at: null, channels: [] } }),           // send_unknown: נספרת, המועד לא ידוע
+    row(3, { last_sent: { sent_at: null, channels: [], unknown: true } }), // send_unknown: נספרת, המועד לא ידוע
     row(4, {}),                                                       // שרת ישן בלי last_sent
   ] };
   const [a, b, c, old] = fromDashboard(d, []).invoices;
@@ -663,7 +664,10 @@ test('הפעלה 137: עמודת «תזכורות» — המועד והערוץ 
   assert.deepEqual(sentChannels(a), ['email']);                       // לא 📱 ללקוח שקיבל מייל בלבד
   assert.deepEqual(sentChannels(b), ['email', 'sms']);
   assert.equal(c.reminders.at(-1)?.at, '');                           // לא ממציאים תאריך
-  assert.deepEqual(c.lastSent, { at: null, channels: [] });
+  assert.deepEqual(c.lastSent, { at: null, channels: [], unknown: true });
+  // critic סבב 53: ניסיון שנקטע ⇒ לא ממציאים 📱 (נפילה ל-reminders.at(-1).channel = 'sms')
+  assert.deepEqual(sentChannels(c), []);
+  assert.match(page0(), /lastSent\?\.unknown \? <span[^>]*>\{i\.reminders\.length\} · אחרונה: לא ידוע אם יצאה/);
   assert.equal(old.reminders.at(-1)?.at, '2026-11-15');               // שרת ישן: בלי שינוי
   assert.equal(old.lastSent, undefined);
   assert.deepEqual(sentChannels(old), ['sms']);

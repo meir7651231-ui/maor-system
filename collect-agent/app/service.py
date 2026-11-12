@@ -1726,10 +1726,12 @@ class CollectService:
                                # critic סבב 41: send_unknown נספרת כמו בתקרה (אולי יצאה)
                                "r.status IN ('sent_dry_run','send_unknown')", (r["id"],))["n"]
             # הפעלה 137: התזכורת האחרונה ש*יצאה* (last למעלה הוא השלב הגבוה, גם טיוטה בתור)
-            ls = self.db.one("SELECT r.sent_at, r.message_id FROM reminders r JOIN reminder_invoices x "
+            # critic סבב 53: הניסיון האחרון (שלב גבוה), גם כשהוא send_unknown בלי sent_at. קודם
+            # `ORDER BY sent_at IS NULL` דחף אותו לסוף ⇒ הוצג מועד של תזכורת ישנה ⇒ חשש לפנייה ידנית כפולה
+            ls = self.db.one("SELECT r.sent_at, r.message_id, r.status FROM reminders r JOIN reminder_invoices x "
                              "ON x.reminder_id=r.id WHERE x.invoice_id=? AND r.status IN "
-                             "('sent_dry_run','send_unknown') ORDER BY r.sent_at IS NULL, "
-                             "r.sent_at DESC, r.id DESC LIMIT 1", (r["id"],))
+                             "('sent_dry_run','send_unknown') ORDER BY r.step DESC, r.id DESC LIMIT 1",
+                             (r["id"],))
             due = date.fromisoformat(r["due"]) if r["due"] else None
             block = self._customer_block(r["customer_id"])
             rows.append({
@@ -1742,7 +1744,8 @@ class CollectService:
                 "days_overdue": (today - due).days if due and r["status"] == "open" else 0,
                 "reminders_sent": sent,
                 "last_sent": None if not ls else {
-                    "sent_at": ls["sent_at"], "channels": self._sent_channels(ls["message_id"])},
+                    "sent_at": ls["sent_at"], "channels": self._sent_channels(ls["message_id"]),
+                    "unknown": ls["status"] == "send_unknown"},
                 "last_reminder": None if not last else {
                     "id": last["id"], "step": last["step"], "status": last["status"],
                     "invoice_ids": self.reminder_invoice_ids(last["id"]),

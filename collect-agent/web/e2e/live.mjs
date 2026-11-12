@@ -361,6 +361,23 @@ try {
       `חשבונית ${r.number}: «${cell}» לא תואם לערוצים ${r.last_sent.channels}`);
   }
   console.log(`  ✓ עמוד החשבוניות: מועד וערוץ השליחה לפי last_sent (${sent137.length} שורות)`);
+  // critic סבב 53: הניסיון האחרון נקטע (send_unknown) ⇒ «לא ידוע אם יצאה», לא מועד/📱 של תזכורת ישנה.
+  //   מזריקים את הצורה שהשרת מחזיר עכשיו (unknown:true, sent_at:null) לתשובת /dashboard האמיתית.
+  const unk = sent137[0];
+  await p.route('**/dashboard', async route => {
+    const res = await route.fetch(); const j = await res.json();
+    for (const r of j.invoices) if (r.invoice_id === unk.invoice_id) r.last_sent = { sent_at: null, channels: [], unknown: true };
+    await route.fulfill({ response: res, json: j });
+  });
+  await p.goto(base + '/app/#/invoices'); await p.reload();
+  const unkCell = p.locator('tbody tr', { hasText: unk.number }).getByTestId('sent-cell').first();
+  await unkCell.waitFor();
+  const unkText = (await unkCell.textContent()) ?? '';
+  ok(/לא ידוע אם יצאה/.test(unkText) && !unkText.includes('📱') && !/\d+\.\d+/.test(unkText.replace(/^\d+/, '')),
+    `send_unknown הוצג כשליחה רגילה: «${unkText}»`);
+  if (out) await fullShot(p, `${out}/live-07f-send-unknown.png`);
+  await p.unroute('**/dashboard');
+  console.log('  ✓ עמוד החשבוניות: ניסיון שנקטע מוצג «לא ידוע אם יצאה» (בלי מועד/ערוץ ישן)');
 
   // הפעלה 138 (נשאר מ-134): גבייה שאינה ב-₪ מוצגת ליד הגרף («$500, לא בגרף») ולא מחוברת לסה״כ ב-₪.
   //   בהדגמה אין גבייה בדולר, לכן מזריקים אותה לתשובת /dashboard האמיתית (שבוע אחרון) ובודקים בדפדפן.

@@ -70,7 +70,7 @@ export interface DashRow {
   amount_agorot: number; currency: string; due: string | null; status: 'open' | 'closed' | string;
   days_overdue: number; reminders_sent: number;
   /** הפעלה 137: התזכורת האחרונה שבאמת יצאה (מתי ובאיזה ערוצים). חסר בשרת ישן. */
-  last_sent?: null | { sent_at: string | null; channels: string[] };
+  last_sent?: null | { sent_at: string | null; channels: string[]; unknown?: boolean };
   last_reminder: null | { id: number; step: number; status: string; template_key: string; sent_at: string | null; block_reason: string | null };
   customer_block: string | null;
 }
@@ -211,7 +211,8 @@ export function fromDashboard(d: Dashboard, pending: PendingRow[]) {
     const at = (ls !== undefined ? ls?.sent_at ?? '' : r.last_reminder?.sent_at ?? d.today).slice(0, 10);
     const channel: Channel = sentChannels.length && !sentChannels.includes('sms') ? 'email' : 'sms';
     const reminders: Reminder[] = Array.from({ length: r.reminders_sent }, (_, i) => ({ at, step: STEP_ORDER[Math.min(i, 3)], channel, status: 'sent' }));
-    const lastSent = ls ? { at: at || null, channels: sentChannels } : undefined;
+    // critic סבב 53: הניסיון האחרון נקטע (send_unknown) ⇒ לא מציגים תאריך/ערוץ של תזכורת ישנה יותר
+    const lastSent = ls ? { at: at || null, channels: sentChannels, unknown: !!ls.unknown } : undefined;
     const blockNote = r.customer_block ? BLOCK_LABEL[r.customer_block] ?? r.customer_block : undefined;
     invoices.push({
       id: String(r.invoice_id), source: r.source === 'csv' ? 'csv' : 'api', number: r.number, customerId: cid, amount: r.amount_agorot / 100,

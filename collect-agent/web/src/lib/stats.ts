@@ -53,6 +53,7 @@ export function needsReminder(list: Invoice[], today: string): Invoice[] {
 
 /** הערוצים שבהם יצאה התזכורת האחרונה. חי: מה שנרשם ביומן היוצאים (lastSent); מוק / שרת ישן: הערוץ של התזכורת האחרונה. */
 export function sentChannels(inv: Invoice): Channel[] {
+  if (inv.lastSent?.unknown) return inv.lastSent.channels;   // critic סבב 53: לא ממציאים 📱
   if (inv.lastSent?.channels.length) return inv.lastSent.channels;
   const last = inv.reminders.at(-1);
   return last ? [last.channel] : [];

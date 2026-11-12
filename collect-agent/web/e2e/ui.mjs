@@ -70,7 +70,7 @@ try {
   await p.route('**/dashboard', async route => {
     const res = await route.fetch(); const j = await res.json();
     const open = j.invoices.filter(x => x.status === 'open');
-    if (open[0]) { open[0].customer_block = null; open[0].last_reminder = { ...(open[0].last_reminder ?? { id: 1, step: 1, template_key: 'x', sent_at: null, invoice_ids: [] }), status: 'send_unknown', block_reason: null }; }
+    if (open[0]) { open[0].customer_block = null; open[0].last_reminder = { ...(open[0].last_reminder ?? { id: 1, step: 1, template_key: 'x', sent_at: null, invoice_ids: [] }), status: 'send_unknown', block_reason: null }; open[0].reminders_sent = 1; open[0].last_sent = { sent_at: null, channels: [], unknown: true }; }
     if (open[1]) open[1].customer_block = 'promise:until=2026-11-20';
     if (open[2]) open[2].customer_block = 'deceased';
     // הפעלה 138: שלב 2 בתור (sent_at ריק) אחרי ששלב 1 יצא במייל בלבד; ושליחה שנקטעה בלי מועד
@@ -90,6 +90,8 @@ try {
   const c3 = await sentCell(mocked138[0]), c4 = await sentCell(mocked138[1]);
   ok(c3.includes('אחרונה 28.10') && c3.includes('✉️') && !c3.includes('📱'), `שלב 2 בתור: «${c3}» במקום «1 · אחרונה 28.10 ✉️»`);
   ok(c4.trim() === '1', `שליחה שנקטעה בלי מועד: «${c4}» במקום הספירה בלבד`);
+  // critic סבב 53: ניסיון שנקטע ⇒ «לא ידוע אם יצאה», לא מועד/ערוץ של תזכורת ישנה
+  ok(/לא ידוע אם יצאה/.test(await p.locator('#debts tr').first().locator('td.sent').textContent()), 'last_sent.unknown לא מוצג ב-/ui');
   if (out) await p.screenshot({ path: `${out}/ui-03-status-pause.png`, fullPage: true });
   await p.unroute('**/dashboard');
   ok(errors.length === 0, 'שגיאות:\n' + errors.join('\n'));

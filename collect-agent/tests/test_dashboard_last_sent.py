@@ -50,7 +50,8 @@ def test_nothing_sent_yet_means_no_last_sent(api):
 def test_last_sent_has_date_and_real_channels(api):
     _send_first(api)
     row = _row(api)
-    assert row["last_sent"] == {"sent_at": row["last_reminder"]["sent_at"], "channels": ["email", "sms"]}
+    assert row["last_sent"] == {"sent_at": row["last_reminder"]["sent_at"], "channels": ["email", "sms"],
+                               "unknown": False}
 
 
 def test_pending_next_step_does_not_hide_when_the_last_one_went_out(api, clock):
@@ -107,3 +108,30 @@ def test_simple_ui_shows_last_sent_not_queued_draft():
     assert "const lastSent=x=>{const s=x.last_sent;" in ui
     assert '<td class="num sent">${x.reminders_sent}${esc(lastSent(x))}</td>' in ui
     assert "L.sent_at" not in ui and "last_reminder.sent_at" not in ui
+
+
+def test_later_send_unknown_is_not_hidden_behind_an_older_sent(api, svc, clock):
+    """critic סבב 53: שלב 1 יצא ב-1.11, שלב 2 נקטע באמצע השליחה (send_unknown, sent_at ריק, אולי יצא).
+    `ORDER BY sent_at IS NULL` דחף את שלב 2 לסוף ⇒ «2 · אחרונה 1.11 📱»: בעל העסק רואה שעברו 7 ימים
+    ושולח ידנית, בזמן שאולי נשלחה הודעה רק היום (פנייה כפולה). צריך: הניסיון האחרון, ומסומן «לא ידוע»."""
+    _send_first(api)
+    first = _row(api)["last_sent"]["sent_at"]
+    clock.now += timedelta(days=7)
+    api.post("/plan")
+    rid = _row(api)["last_reminder"]["id"]
+    svc.db.x("UPDATE reminders SET status='send_unknown', sent_at=NULL, message_id=NULL WHERE id=?", (rid,))
+    row = _row(api)
+    assert row["reminders_sent"] == 2
+    ls = row["last_sent"]
+    assert ls["unknown"] is True and ls["sent_at"] is None and ls["channels"] == [], ls
+    assert ls["sent_at"] != first
+    # והתזכורת שיצאה בוודאות — לא מסומנת unknown
+    svc.db.x("UPDATE reminders SET status='cancelled' WHERE id=?", (rid,))
+    assert _row(api)["last_sent"] == {"sent_at": first, "channels": ["email", "sms"], "unknown": False}
+
+
+def test_both_uis_show_send_unknown_instead_of_a_date():
+    ui = (ROOT / "app/ui.html").read_text(encoding="utf-8")
+    assert "s.unknown" in ui and "לא ידוע אם יצאה" in ui
+    assert "lastSent?.unknown" in PAGE and "לא ידוע אם יצאה" in PAGE
+    assert "unknown: !!ls.unknown" in API
