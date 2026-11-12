@@ -211,7 +211,7 @@ async function loadDash(ask){
       ?` <button class="resume" data-cid="${x.customer_id}" title="בדקתם והתשלום לא התקבל? התזכורות ללקוח יחודשו">↻ חידוש תזכורות</button>`:""}</td><td>${esc(x.number)}</td>
     <td class="num">${esc(fmtCur(x.amount_agorot,x.currency))}</td><td>${esc(x.due||"")}</td>
     <td class="${x.days_overdue>0?"late":""}">${x.days_overdue>0?x.days_overdue+" ימים":"—"}</td>
-    <td class="num sent">${x.reminders_sent}${esc(lastSent(x))}</td><td><span class="chip ${L&&L.status==="pending_approval"?"pending":""}">${esc(st)}</span></td></tr>`}).join("");
+    <td class="num sent">${x.reminders_sent}${esc(lastSent(x))}</td><td><span class="chip ${x.status==="open"&&!x.customer_block&&L&&(L.status==="pending_approval"||L.amount_drift)?"pending":""}">${esc(st)}</span></td></tr>`}).join("");
 }
 // חידוש ללקוח מושהה (למשל אחרי «שילמתי» שלא אומת): לחיצה ראשונה מחמשת, השנייה מבצעת
 $("#debts").addEventListener("click",async e=>{const b=e.target.closest("button.resume");if(!b)return;
@@ -312,13 +312,19 @@ async function show(id,info,stale){
   // פעולה שנכשלה (הנוסח לא הוחלף) ⇒ הכפתורים חוזרים למצב שלפני הלחיצה, כדי שאפשר יהיה לנסות שוב
   const thaw=()=>{boxes.forEach(x=>{x.disabled=false});if(noBtn)noBtn.disabled=false;gate()};
   boxes.forEach(x=>x.onchange=gate);gate();
+  // הפעלה 159: תצוגה שנטענה באמצע פעולת כותרת (סנכרון / הכנה / שליחה) נשארת בלי כפתורי החלטה עד שהפעולה מסתיימת
+  if(busy)freeze(d);
   okBtn&&(okBtn.onclick=()=>act("approve",{confirm_amount:!!($("#cAmt")&&$("#cAmt").checked),confirm_open:!!($("#cOpen")&&$("#cOpen").checked),seen_hash:p.body_hash}));noBtn&&(noBtn.onclick=()=>act("reject"));
 }
 const DONE={approve:"approved",reject:"rejected"};
 // הפעלה 146: כשל בכפתורי הכותרת מוצג בשורה בדף (היה חלון קופץ של הדפדפן), ונסגר ב«הבנתי» או בפעולה הבאה
-const run=(b,p)=>$(b).onclick=async()=>{busy=true;hdr();$("#acterr").hidden=true;
-  try{await api(p,{method:"POST"});await load();sel&&show(sel)}
-  catch(e){failed(e,m=>{$("#actMsg").textContent="הפעולה לא בוצעה: "+m;$("#acterr").hidden=false})}finally{busy=false;hdr()}};
+// הפעלה 159: בזמן פעולת כותרת כפתורי ההחלטה בלוח כבויים. סנכרון יכול לבנות את הנוסח מחדש ושליחה יכולה להוציא את
+// התזכורת, ועד עכשיו אפשר היה לאשר או לדחות באותו רגע את הנוסח שעל המסך. בסיום (גם בכשל) התצוגה נטענת מחדש
+// מהשרת, כי פעולה שנקטעה אולי נרשמה. busy יורד לפני הטעינה, כדי שהתצוגה החדשה תחזור עם כפתורים פעילים.
+const run=(b,p)=>$(b).onclick=async()=>{busy=true;hdr();freeze($("#detail"));$("#acterr").hidden=true;
+  try{await api(p,{method:"POST"});await load()}
+  catch(e){failed(e,m=>{$("#actMsg").textContent="הפעולה לא בוצעה: "+m;$("#acterr").hidden=false})}
+  finally{busy=false;hdr();sel&&show(sel)}};
 $("#btnAct").onclick=()=>{$("#acterr").hidden=true};
 $("#btnWunk").onclick=()=>{$("#wunk").hidden=true};
 $("#btnLogin").onclick=()=>{locked=false;$("#locked").hidden=true;hdr();load()};

@@ -293,10 +293,25 @@ try {
   await inject(p, '**/sync', async route => { await gate146; await route.fulfill({ status: 409, contentType: 'application/json', body: JSON.stringify({ detail: 'הסנכרון כבר רץ' }) }); });
   await p.locator('#btnSync').click();
   ok(await p.locator('#btnSync').isDisabled() && await p.locator('#btnDispatch').isDisabled(), 'בזמן פעולה כפתורי הכותרת פתוחים (לחיצה כפולה)');
+  // הפעלה 159: בזמן פעולת כותרת גם כפתורי ההחלטה בלוח כבויים (סנכרון יכול לבנות את הנוסח מחדש באותו רגע)
+  const dec159 = p.locator('#detail .decide button');
+  ok(await dec159.count() > 0 && await dec159.evaluateAll(b => b.every(x => x.disabled)), '/ui: כפתורי ההחלטה פעילים בזמן פעולת כותרת');
+  // תזכורת אחרת שנפתחת באמצע הפעולה נטענת גם היא בלי כפתורי החלטה פעילים
+  const items159 = await p.locator('#list .item').evaluateAll(b => b.map(x => ({ sel: x.classList.contains('sel'), open: /ממתינה|מאושרת/.test(x.querySelector('.chip')?.textContent ?? '') })));
+  const cur159 = items159.findIndex(x => x.sel), other159 = items159.findIndex((x, i) => i !== cur159 && x.open);
+  ok(cur159 >= 0 && other159 >= 0, '/ui: אין בתור תזכורת נוספת עם כפתורי החלטה: ' + JSON.stringify(items159));
+  await p.locator('#list .item').nth(other159).click();
+  await p.locator('#detail:not([aria-busy]) .decide button').first().waitFor();
+  ok(await dec159.evaluateAll(b => b.every(x => x.disabled)), '/ui: תזכורת שנפתחה בזמן פעולת כותרת קיבלה כפתורי החלטה פעילים');
+  await p.locator('#list .item').nth(cur159).click();
+  await p.locator('#detail:not([aria-busy]) .decide button').first().waitFor();
+  ok(await dec159.evaluateAll(b => b.every(x => x.disabled)), '/ui: חזרה לתזכורת בזמן פעולת כותרת הדליקה את כפתורי ההחלטה');
   release146();
   await p.locator('#acterr').waitFor({ state: 'visible' });
   ok((await p.locator('#actMsg').textContent()) === 'הפעולה לא בוצעה: הסנכרון כבר רץ', 'שורת הכשל: ' + await p.locator('#actMsg').textContent());
   ok(dialogs.length === 0 && await p.locator('#btnSync').isEnabled(), 'כשל בכפתור כותרת פתח חלון, או שהכפתורים נשארו כבויים');
+  // אחרי שהפעולה הסתיימה (כאן בכשל) התצוגה נטענת מחדש והכפתורים חוזרים
+  await p.waitForFunction(() => { const b = [...document.querySelectorAll('#detail .decide button')]; return b.length > 0 && b.some(x => !x.disabled); });
   if (out) await p.screenshot({ path: `${out}/ui-07-action-error.png`, fullPage: true });
   await p.locator('#btnAct').click();
   ok(await p.locator('#acterr').isHidden(), '«הבנתי» לא סגר את שורת הכשל');

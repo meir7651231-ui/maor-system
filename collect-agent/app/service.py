@@ -1892,7 +1892,10 @@ class CollectService:
                     "id": last["id"], "step": last["step"], "status": last["status"],
                     "invoice_ids": self.reminder_invoice_ids(last["id"]),
                     "template_key": last["template_key"], "sent_at": last["sent_at"],
-                    "block_reason": last["block_reason"]},
+                    "block_reason": last["block_reason"],
+                    # הפעלה 159: טבלת החובות הציגה «מאושרת» לתזכורת שהסכום שלה השתנה במקור, בזמן שהתור
+                    # (157) כבר סימן אותה כמי שתחזור לאישור. אותו חישוב כמו ב-/preview וב-/reminders.
+                    "amount_drift": self.reminder_amount_drift(last)},
                 "customer_block": block})
         open_rows = [x for x in rows if x["status"] == "open"]
         outbox = self.sender.sent

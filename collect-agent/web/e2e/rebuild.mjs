@@ -139,6 +139,11 @@ try {
     const chip157 = u.locator('#list .item', { hasText: 'יוסי' }).locator('.chip');
     await chip157.waitFor();
     ok((await chip157.textContent()).trim() === 'הסכום השתנה במקור, תחזור לאישורך', '/ui: הצ׳יפ בתור לתזכורת מאושרת שהסכום שלה השתנה: ' + (await chip157.textContent()).trim());
+    // הפעלה 159: גם טבלת החובות (last_reminder מ-/dashboard). היה: «מאושרת», בזמן שהתור כבר אמר שתחזור לאישור
+    const chip159 = u.locator('#debts tr', { hasText: 'יוסי' }).locator('.chip');
+    await chip159.first().waitFor();
+    ok((await chip159.first().textContent()).trim() === 'הסכום השתנה במקור, תחזור לאישורך' && await chip159.first().evaluate(e => e.classList.contains('pending')),
+      '/ui: הצ׳יפ בטבלת החובות לתזכורת מאושרת שהסכום שלה השתנה: ' + (await chip159.first().textContent()).trim());
     await u.locator('#list .item', { hasText: 'יוסי' }).click();
     await u.locator('#driftNote').waitFor();
     const note = await u.locator('#driftNote').textContent();

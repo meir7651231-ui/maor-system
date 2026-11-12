@@ -74,7 +74,8 @@ def test_summary_view_stays_lean(svc):
     # הפעלה 135: גם התצוגה המקוצרת מקבלת invoice_count/total_text (תור האישורים ב-/app/); עדיין בלי גוף/payload
     api, _ = _planned(svc)
     row = api.get("/reminders", params={"view": "summary"}).json()[0]
-    assert set(row) == {"id", "invoice_id", "block_reason", "status", "invoice_ids", "invoice_count", "total_text"}
+    assert set(row) == {"id", "invoice_id", "block_reason", "status", "invoice_ids", "invoice_count", "total_text",
+                        "amount_drift"}
 
 
 def test_series_reports_other_currency_per_week(svc):

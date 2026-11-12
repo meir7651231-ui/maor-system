@@ -39,7 +39,7 @@ def test_summary_view_has_count_and_total(svc):
     assert rows
     # התשובה נשארת רזה (critic סבב 37): בלי גוף ההודעה ובלי payload
     assert all(set(r) == {"id", "invoice_id", "block_reason", "status", "invoice_ids",
-                          "invoice_count", "total_text"} for r in rows)
+                          "invoice_count", "total_text", "amount_drift"} for r in rows)
     full = {r["id"]: r for r in api.get("/reminders").json()}
     for r in rows:
         assert (r["invoice_count"], r["total_text"]) == (full[r["id"]]["invoice_count"], full[r["id"]]["total_text"])

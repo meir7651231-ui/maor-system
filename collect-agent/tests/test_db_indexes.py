@@ -52,7 +52,7 @@ def test_pending_reminders_summary_view_is_small(svc, fake_gi):
     assert len(full) == len(summ) > 0
     # הפעלה 135: נוספו שני שדות קצרים (מספר החשבוניות והסה״כ לפי מטבע) לתור האישורים; עדיין בלי גוף/payload
     assert set(summ[0]) == {"id", "invoice_id", "invoice_ids", "block_reason", "status",
-                            "invoice_count", "total_text"}
+                            "invoice_count", "total_text", "amount_drift"}
     assert not {"payload", "body"} & set(summ[0]) and len(summ[0]["total_text"]) < 60
     assert summ[0]["invoice_ids"] == full[0]["invoice_ids"]
     api = (Path(__file__).resolve().parent.parent / "web/src/api.ts").read_text(encoding="utf-8")
