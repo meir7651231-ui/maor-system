@@ -112,7 +112,7 @@ export interface PreviewMsg {
   length?: { chars: number; encoding: string; segments: number };
 }
 export interface AmountCheck { number: string; amount_agorot: number; usual_agorot: number; currency: string }
-export interface Preview { reminder_id: number; status: string; block_reason: string | null; template_key: Step; scheduled_for: string; messages: PreviewMsg[]; amount_check?: AmountCheck[];
+export interface Preview { reminder_id: number; status: string; /** critic סבב 56: גיבוב הנוסח שהוצג ⇒ seen_hash באישור */ body_hash?: string; block_reason: string | null; template_key: Step; scheduled_for: string; messages: PreviewMsg[]; amount_check?: AmountCheck[];
   /** הפעלה 135: תזכורת מאוחדת — כל המספרים, כמה חשבוניות, הסה״כ לפי מטבע, והאם יש בה חשבונית מ-CSV */
   needs_confirm_open?: boolean; numbers?: string[]; invoice_count?: number; total_text?: string }
 /** תזכורת שממתינה לאישור, לפי חשבונית העוגן. count/totalText רק כשהתזכורת כוללת יותר מחשבונית אחת. */
@@ -136,8 +136,9 @@ export const api = {
   preview: (rid: number) => j<Preview>(`/reminders/${rid}/preview`),
   /** confirmOpen: לחשבונית מ-CSV בעל העסק מאשר במפורש שהסכום עדיין פתוח (השרת מחייב; תוקף 24 ש׳). */
   /** confirmAmount (הפעלה 123): סכום חריג מאוד מהרגיל ללקוח — בעל העסק מאשר במפורש שהסכום נכון (השרת מחייב). */
-  approve: (rid: number, confirmOpen = false, confirmAmount = false) => {
-    const body = { ...(confirmOpen ? { confirm_open: true } : {}), ...(confirmAmount ? { confirm_amount: true } : {}) };
+  approve: (rid: number, confirmOpen = false, confirmAmount = false, seenHash?: string) => {
+    // critic סבב 56: seen_hash = הנוסח שבעל העסק ראה. השרת מסרב אם התזכורת נבנתה מחדש מאז (סכום אחר)
+    const body = { ...(confirmOpen ? { confirm_open: true } : {}), ...(confirmAmount ? { confirm_amount: true } : {}), ...(seenHash ? { seen_hash: seenHash } : {}) };
     return j<unknown>(`/reminders/${rid}/approve`, { method: 'POST', ...(Object.keys(body).length ? { body: JSON.stringify(body) } : {}) });
   },
   dispatch: () => j<{ dry_run: true; sent: unknown[] }>('/dispatch', { method: 'POST' }),

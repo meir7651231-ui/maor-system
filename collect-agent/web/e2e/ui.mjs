@@ -59,6 +59,20 @@ try {
   await p.locator('#ok').waitFor();
   ok(await p.locator('#ok').isEnabled() && await p.locator('.confirm').count() === 0, 'תזכורת רגילה: תיבה מיותרת או כפתור נעול');
   if (out) await p.screenshot({ path: `${out}/ui-02-regular.png`, fullPage: true });
+  // critic סבב 56: תצוגה מקדימה ישנה (התזכורת נבנתה מחדש מאז) ⇒ השרת מסרב לאשר, לא יוצא דבר
+  await p.route('**/reminders/*/preview', async route => {
+    const res = await route.fetch(); const j = await res.json(); j.body_hash = 'stale-' + j.body_hash;
+    await route.fulfill({ response: res, json: j });
+  });
+  await p.locator('#list .item .chip.pending').first().click();
+  await p.locator('#ok').waitFor();
+  const before56 = (await (await fetch(base + '/outbox', { headers: H })).json()).messages.length;
+  await p.locator('#ok').click();
+  await p.waitForFunction(() => /השתנו מאז שפתחתם/.test(document.querySelector('#derr')?.textContent ?? ''));
+  ok((await (await fetch(base + '/outbox', { headers: H })).json()).messages.length === before56, '/ui: יצאה הודעה מתצוגה ישנה');
+  if (out) await p.screenshot({ path: `${out}/ui-02c-stale-preview.png`, fullPage: true });
+  await p.unroute('**/reminders/*/preview');
+  { const i = errors.findIndex(e => /^409 .*\/reminders\/\d+\/approve$/.test(e)); if (i >= 0) errors.splice(i, 1); }   // הסירוב הצפוי
   // הפעלה 138: עמודת «תזכורות שנשלחו» ב-/ui — מועד וערוצים של מה שיצא בפועל (last_sent), מול ה-API האמיתי
   await p.reload(); await p.locator('#debts tr').first().waitFor();
   const dash138 = await (await fetch(base + '/dashboard', { headers: H })).json();

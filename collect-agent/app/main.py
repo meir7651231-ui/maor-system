@@ -356,7 +356,9 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         body = body if isinstance(body, dict) else {}
         return guard(lambda: svc.approve(rid, request.state.actor,
                                          confirm_open=body.get("confirm_open") is True,
-                                         confirm_amount=body.get("confirm_amount") is True))
+                                         confirm_amount=body.get("confirm_amount") is True,
+                                         seen_hash=body["seen_hash"] if isinstance(body.get("seen_hash"), str)
+                                         else None))
 
     @app.post("/reminders/{rid}/reject", dependencies=auth)
     def reject(rid: int, request: Request):

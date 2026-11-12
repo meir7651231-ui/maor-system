@@ -55,7 +55,7 @@ interface Ctx {
   /** הודעות מערכת לבעל העסק (סוף ניסיון, 3 תזכורות מוצו, חשבונית ישנה, SMS לא נמסר) — חי בלבד. */
   notices: Notice[];
   customerOf: (id: string) => Customer;
-  approveAndSend: (invoiceId: string, step: Step, channels: Channel[], opts?: { confirmOpen?: boolean; confirmAmount?: boolean }) => Promise<void>;
+  approveAndSend: (invoiceId: string, step: Step, channels: Channel[], opts?: { confirmOpen?: boolean; confirmAmount?: boolean; seenHash?: string }) => Promise<void>;
   markPaid: (invoiceId: string) => void;
   reload: () => Promise<void>;
   toast: string | null;
@@ -225,7 +225,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           // הפעלה 146: ניסיון חוזר של אישור שכבר נרשם (התשובה הקודמת אבדה) ⇒ השרת עונה 409 «כבר אושרה».
           // זה לא כשל: ממשיכים לשליחה ולרענון כרגיל, וההודעה אומרת «כבר אושרה» במקום «לא אושר».
           let already = false;
-          try { await api.approve(p.reminderId, !!opts?.confirmOpen, !!opts?.confirmAmount); }
+          try { await api.approve(p.reminderId, !!opts?.confirmOpen, !!opts?.confirmAmount, opts?.seenHash); }
           catch (e) { if (!alreadyDone(e, 'approved')) throw e; already = true; }
           // הפעלה 143: האישור כבר נרשם בשרת. כשל בשליחה/ברענון שאחריו לא מוצג כ«לא אושר» (היה מטעה ⇒ ניסיון חוזר).
           let r: { sent: unknown[] };

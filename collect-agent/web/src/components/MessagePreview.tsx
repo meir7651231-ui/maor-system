@@ -188,7 +188,7 @@ export function MessagePreview({ invoice, onClose, now = new Date() }: { invoice
           <Button variant="ghost" onClick={onClose}>ביטול</Button>
           <Button disabled={!sendable || (live && isCsv && !confirmOpen) || (odd.length > 0 && !confirmAmount)} onClick={async () => {
             setBusy(true);
-            try { await approveAndSend(invoice.id, step, channels, { confirmOpen, confirmAmount }); onClose(); }
+            try { await approveAndSend(invoice.id, step, channels, { confirmOpen, confirmAmount, seenHash: pv?.body_hash }); onClose(); }
             catch (e) { showToast(failPrefix('לא אושר', (e as Error).message)); setBusy(false); }
           }}>
             ✓ אשר ושלח {channels.length === 2 ? 'ב-SMS ובמייל' : channels[0] === 'sms' ? 'ב-SMS' : channels[0] === 'email' ? 'במייל' : ''}

@@ -183,6 +183,27 @@ try {
   await p.getByRole('button', { name: 'ביטול' }).click();   // נשארת ממתינה (לא שולחים בהדגמה)
   console.log('  ✓ סכום חריג: אישור נעול עד «הסכום נכון — בדקתי»');
 
+  // 3א) critic סבב 56: האישור קשור לנוסח שהוצג (seen_hash). מדמים תצוגה מקדימה ישנה (התזכורת נבנתה מחדש
+  //     בסכום אחר מאז שנפתחה) ⇒ השרת מסרב, ההודעה ברורה, ושום דבר לא יוצא.
+  await p.route('**/reminders/*/preview', async route => {
+    const res = await route.fetch(); const j = await res.json(); j.body_hash = 'stale-' + j.body_hash;
+    await route.fulfill({ response: res, json: j });
+  });
+  let sentSeen = null;
+  p.on('request', r => { if (/\/reminders\/\d+\/approve$/.test(r.url())) sentSeen = JSON.parse(r.postData() || '{}').seen_hash ?? null; });
+  const outboxS = (await api('/outbox')).messages.length;
+  await items.filter({ hasText: 'יוסי' }).getByRole('button', { name: 'תצוגה ואישור' }).click();
+  await p.waitForFunction(() => /\/p\/\w+/.test(document.querySelector('textarea')?.value ?? ''));
+  expect409 = { url: /\/reminders\/\d+\/approve$/, reason: /השתנו מאז שפתחתם/ };
+  await p.getByRole('button', { name: /אשר ושלח/ }).click();
+  await p.getByText(/השתנו מאז שפתחתם/).first().waitFor();
+  ok(expect409 === null, 'הסירוב לא הגיע כ-409 המצופה');
+  ok(typeof sentSeen === 'string' && sentSeen.startsWith('stale-'), 'הממשק לא שלח seen_hash באישור: ' + sentSeen);
+  ok((await api('/outbox')).messages.length === outboxS, 'יצאה הודעה למרות נוסח שלא נראה');
+  if (out) await p.screenshot({ path: `${out}/live-02c-stale-preview.png` });
+  await p.unroute('**/reminders/*/preview');
+  await p.getByRole('button', { name: 'ביטול' }).click();
+  console.log('  ✓ אישור מתצוגה מקדימה ישנה ⇒ «השתנו מאז שפתחתם», לא יצא דבר (seen_hash)');
   // 3) יוסי ⇒ התצוגה המקדימה = הנוסח מהשרת (קישור קצר /p/, ≤2 חלקים); מייל עם קישור מלא
   await items.filter({ hasText: 'יוסי' }).getByRole('button', { name: 'תצוגה ואישור' }).click();
   await p.waitForFunction(() => /\/p\/\w+/.test(document.querySelector('textarea')?.value ?? ''));
@@ -241,11 +262,12 @@ try {
   const original = await box.inputValue();
   ok(original.trim().length > 0, 'טיוטה ריקה');
   await box.fill('יש לנו מבצע מיוחד החודש! ' + original);
+  const a409 = allowed409.length;
   expect409 = { url: /\/conversation\/drafts\/\d+\/approve$/, reason: /marketing/ };
   await card.getByRole('button', { name: 'אשר ושלח' }).click();
   await card.getByRole('alert').waitFor();
   ok(/תוכן שיווקי/.test(await card.getByRole('alert').textContent()), 'הסבר דחיית המסנן לא תורגם לבעל העסק');
-  ok(allowed409.length === 1 && expect409 === null, 'הדחייה לא הגיעה כ-409 המצופה (בקשה+סיבה)');
+  ok(allowed409.length === a409 + 1 && expect409 === null, 'הדחייה לא הגיעה כ-409 המצופה (בקשה+סיבה)');
   await noHScroll(p, 'תיבת תשובות דסקטופ');
   if (out) await fullShot(p, `${out}/live-06-inbox.png`);
   const ob4 = (await api('/outbox')).messages.length;

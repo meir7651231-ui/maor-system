@@ -264,7 +264,7 @@ async function show(id,info){
   const boxes=[$("#cAmt"),$("#cOpen")].filter(Boolean),okBtn=$("#ok");
   const gate=()=>{if(okBtn)okBtn.disabled=!can||boxes.some(x=>!x.checked)};
   boxes.forEach(x=>x.onchange=gate);gate();
-  okBtn&&(okBtn.onclick=()=>act("approve",{confirm_amount:!!($("#cAmt")&&$("#cAmt").checked),confirm_open:!!($("#cOpen")&&$("#cOpen").checked)}));$("#no")&&($("#no").onclick=()=>act("reject"));
+  okBtn&&(okBtn.onclick=()=>act("approve",{confirm_amount:!!($("#cAmt")&&$("#cAmt").checked),confirm_open:!!($("#cOpen")&&$("#cOpen").checked),seen_hash:p.body_hash}));$("#no")&&($("#no").onclick=()=>act("reject"));
 }
 const DONE={approve:"approved",reject:"rejected"};
 // הפעלה 146: כשל בכפתורי הכותרת מוצג בשורה בדף (היה חלון קופץ של הדפדפן), ונסגר ב«הבנתי» או בפעולה הבאה

@@ -1162,6 +1162,8 @@ class CollectService:
             [self._invoice(r["invoice_id"])]
         msgs = [Message(**m) for m in json.loads(r["payload"])]
         return {"reminder_id": reminder_id, "status": r["status"],
+                # critic סבב 56: הממשק מחזיר אותו באישור (seen_hash) ⇒ מאשרים רק את מה שהוצג
+                "body_hash": _sha(r["payload"]),
                 "block_reason": r["block_reason"], "template_key": r["template_key"],
                 "scheduled_for": r["scheduled_for"],
                 "amount_check": [{"number": i["number"], "amount_agorot": i["amount_agorot"],
@@ -1176,10 +1178,16 @@ class CollectService:
 
     # ---------- owner decisions ----------
     def approve(self, reminder_id: int, actor: str = "owner", *, confirm_open: bool = False,
-                confirm_amount: bool = False) -> dict:
+                confirm_amount: bool = False, seen_hash: str | None = None) -> dict:
         r = self._reminder(reminder_id)
         if r["status"] != "pending_approval":
             raise _not_pending(r["status"], "approve")
+        # critic סבב 56: תזכורת שנבנתה מחדש (סכום השתנה ⇒ amount_changed) חוזרת לאישור **באותו מזהה**. בעל עסק
+        # שתצוגה מקדימה ישנה (1,200 ₪) פתוחה אצלו אישר בלחיצה את הנוסח החדש (1,500 ₪) בלי לראות אותו, והוא יצא.
+        # seen_hash = הגיבוב של מה שהוצג לו (מ-/preview). שונה מהנוסח הנוכחי ⇒ סירוב, ופותחים מחדש.
+        if seen_hash is not None and seen_hash != _sha(r["payload"]):
+            raise ValueError("הנוסח או הסכום השתנו מאז שפתחתם את התצוגה המקדימה. "
+                             "פתחו אותה שוב, בדקו ואשרו")
         invs = [self._invoice(i) for i in self.reminder_invoice_ids(reminder_id)] or \
             [self._invoice(r["invoice_id"])]
         if any(i["source"] == "csv" for i in invs) and not confirm_open:
