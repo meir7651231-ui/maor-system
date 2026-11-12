@@ -17,6 +17,13 @@ describe('🛡 kidGenderOf — מגדר מעמודת-הייבוא', () => {
   it('"נ" רק כתא-שלם — מילים שמכילות נ אינן "בת"', () => {
     for (const g of ['נער', 'בנים', 'נ ז']) expect(kidGenderOf(g), g).toBe('m');
   });
+  // 🐛 12.11.2026: "בנות" אינה מכילה "בת" ⇒ עמודת-מין בנים/בנות קלטה את כל הבנות כבנים (אותו נזק כמו "נ").
+  it('צורות-נקבה שלמות נוספות ⇒ בת', () => {
+    for (const g of ['בנות', ' בנות ', 'נשים', 'אישה', 'אשה', 'girl', 'Girls', 'Woman', 'women']) expect(kidGenderOf(g), g).toBe('f');
+  });
+  it('הצורות החדשות רק כתא-שלם — טקסט מעורב/זכר לא משתנה', () => {
+    for (const g of ['בנים', 'בנים ובנות', 'boy', 'boys', 'man', 'men', 'גבר', 'אנשים']) expect(kidGenderOf(g), g).toBe('m');
+  });
   it('הגנת-מקור: ייבוא-הילדים משתמש ב-kidGenderOf', () => {
     expect(importSrc).toContain('gender: kidGenderOf(gr),');
     expect(importSrc).not.toContain("/בת|נק|f|ילדה/i.test(gr)");
