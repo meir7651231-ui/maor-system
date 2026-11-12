@@ -4,7 +4,7 @@ import type { DesignSettings } from './lib/settings.ts';
 import type { Channel, Customer, Invoice, InvoiceStatus, Reminder, Step } from './lib/domain.ts';
 import { STEP_ORDER } from './lib/message.ts';
 import { loginErrorText, readToken } from './lib/auth.ts';
-import { failureText } from './lib/failure.ts';
+import { failureText, writeOutcomeUnknown } from './lib/failure.ts';
 import type { WeekPoint } from './lib/series.ts';
 import type { OwnerMsg } from './lib/notices.ts';
 
@@ -18,18 +18,28 @@ const base = (() => {
   try { return new URLSearchParams(location.search).get('api')?.replace(/\/$/, '') ?? ''; } catch { return ''; }
 })();
 
+/** הפעלה 144: אירועים שה-store מאזין להם (נרשמים ב-AppProvider). כך כל קריאה, מכל מסך, מטופלת באותו מקום.
+ *  authLost: השרת דחה בקשה **עם** טוקן (401) ⇒ הסשן פג. writeUnknown: פעולת כתיבה נקטעה ולא ידוע אם נרשמה. */
+export const apiEvents: { authLost: (() => void) | null; writeUnknown: (() => void) | null } = { authLost: null, writeUnknown: null };
+
 async function j<T>(path: string, init?: RequestInit): Promise<T> {
   const tok = readToken(session());
   const auth: Record<string, string> = tok ? { Authorization: `Bearer ${tok}` } : {};
+  const write = (init?.method ?? 'GET').toUpperCase() !== 'GET';
   let r: Response;
   // הפעלה 143: כשל רשת הוא ApiError עם סטטוס 0 והסבר בעברית (היה TypeError «Failed to fetch» שהוצג למשתמש)
   try { r = await fetch(base + path, { ...init, headers: { 'Content-Type': 'application/json', ...auth, ...init?.headers } }); }
-  catch { throw new ApiError(failureText(0), 0); }
-  if (r.status === 401) throw new AuthError('תוקף הכניסה פג. היכנסו שוב כדי להמשיך');
+  catch { if (write) apiEvents.writeUnknown?.(); throw new ApiError(failureText(0, null, write), 0); }
+  if (r.status === 401) {
+    // הפעלה 144: 401 באמצע פעולה (לא רק ברענון) ⇒ ה-store מעביר מיד למסך הכניסה ומנקה את הנתונים מהמסך
+    if (tok) apiEvents.authLost?.();
+    throw new AuthError('תוקף הכניסה פג. היכנסו שוב כדי להמשיך');
+  }
   if (!r.ok) {
     let detail = '';
     try { const b = await r.json(); detail = typeof b.detail === 'string' ? b.detail : b.detail == null ? '' : JSON.stringify(b.detail); } catch { /* גוף לא-JSON */ }
-    const msg = failureText(r.status, detail);
+    if (write && writeOutcomeUnknown(r.status, detail)) apiEvents.writeUnknown?.();
+    const msg = failureText(r.status, detail, write);
     throw new ApiError(msg, r.status);
   }
   return r.json() as Promise<T>;

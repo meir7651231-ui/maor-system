@@ -629,12 +629,12 @@ try {
   ok((await p.getByTestId('mode-mobile').textContent()).includes('אין חיבור לשרת'), 'מובייל: מצב החיבור לא מציג את הכשל');
   if (out) await fullShot(p, `${out}/live-13-stale-banner-mobile.png`);
   await p.setViewportSize({ width: 1366, height: 900 });
-  // השרת חזר ⇒ «נסו שוב» מעלים את הפס
+  // הפעלה 144: השרת חזר ⇒ הפס נעלם **לבד** (רענון אוטומטי כשהדפדפן מדווח שהחיבור חזר), בלי ללחוץ «נסו שוב»
   await p.unroute('**/dashboard');
-  await p.getByTestId('stale-retry').click();
+  await p.evaluate(() => window.dispatchEvent(new Event('online')));
   await p.getByTestId('stale-banner').waitFor({ state: 'detached' });
   ok((await p.getByTestId('mode').textContent()).includes('מחובר לשרת גבי'), 'אחרי רענון מוצלח מצב החיבור לא חזר ל«מחובר»');
-  console.log('  ✓ רענון שנכשל באמצע עבודה: פס «הנתונים לא עודכנו», הנתונים האחרונים נשארים, «נסו שוב» מחזיר');
+  console.log('  ✓ רענון שנכשל באמצע עבודה: פס «הנתונים לא עודכנו», הנתונים האחרונים נשארים, והפס נעלם לבד כשהחיבור חוזר');
 
   // 14) הפעלה 142: קוד הגישה המשותף החזיר «הקוד לא התקבל» גם כשהשרת נכשל (5xx) והקוד בכלל לא נבדק.
   const g = await (await b.newContext()).newPage();
@@ -718,9 +718,63 @@ try {
   await h.getByTestId('settings-save').click();
   await h.getByTestId('stale-banner').waitFor({ state: 'detached' });
   ok((await api('/settings')).owner_name === signBefore, 'שם החתימה לא שוחזר');
-  ok(hFail.join('|') === '502 PUT /settings|503 GET /dashboard', 'שלב 16: כשלים לא צפויים: ' + hFail.join(' | '));
-  await h.context().close();
+  // הפעלה 144: בזמן שהפס מוצג הממשק מנסה לרענן לבד ⇒ ייתכן יותר מ-503 אחד על /dashboard
+  ok(/^502 PUT \/settings(\|503 GET \/dashboard)+$/.test(hFail.join('|')), 'שלב 16: כשלים לא צפויים: ' + hFail.join(' | '));
   console.log('  ✓ פעולה כשהשרת למטה: הסבר בעברית בלי קוד HTTP; שמירה שהצליחה + רענון שנכשל ⇒ «נשמר» + פס');
+
+  // 17) הפעלה 144: כשל רשת באמצע פעולת כתיבה, כשהבקשה **כן** הגיעה לשרת ונרשמה (התשובה אבדה בדרך).
+  //     עד עכשיו: «לא נשמר … נסו שוב» ⇒ ניסיון חוזר עיוור. עכשיו: «לא ידוע אם הפעולה נרשמה», והממשק מרענן לבד
+  //     (בלי לחיצה) ומציג את המצב האמיתי: הערך כבר בשרת, אין מה לשמור, וההודעה נעלמת.
+  hFail.length = 0;
+  await h.getByLabel('שם לחתימה').fill('רות ק');
+  await inject(h, '**/settings', onPut(async route => { await route.fetch(); await route.abort(); }));
+  await h.getByTestId('settings-save').click();
+  await h.getByTestId('settings-error').filter({ hasText: 'לא ידוע אם הפעולה נרשמה' }).waitFor();
+  ok(!(await h.getByTestId('settings-error').textContent()).includes('לא נשמר'), 'תוצאה לא ידועה הוצגה כ«לא נשמר»');
+  await h.getByTestId('stale-banner').waitFor();
+  if (out) await h.screenshot({ path: `${out}/live-17-write-unknown.png` });
+  await h.unroute('**/settings');
+  await h.getByTestId('stale-banner').waitFor({ state: 'detached' });     // רענון אוטומטי, בלי «נסו שוב»
+  await h.getByTestId('settings-error').waitFor({ state: 'detached' });   // הטופס התיישר מול השרת
+  ok((await api('/settings')).owner_name === 'רות ק', 'הבקשה שהתשובה שלה אבדה לא נרשמה בשרת');
+  ok(await h.getByLabel('שם לחתימה').inputValue() === 'רות ק', 'אחרי הרענון האוטומטי הטופס לא מציג את מה שבשרת');
+  ok(await h.getByTestId('settings-save').isDisabled(), 'אחרי הרענון האוטומטי «שמירה» עדיין זמינה ⇒ מזמין שמירה כפולה');
+  ok(hFail.length === 0, 'שלב 17: כשלים לא צפויים: ' + hFail.join(' | '));
+  console.log('  ✓ כתיבה שהתשובה שלה אבדה: «לא ידוע אם נרשמה», רענון אוטומטי, והטופס מציג את מה שבשרת');
+
+  // 18) הפעלה 144: ההגדרות השתנו בשרת ממקום אחר בזמן שהטופס פתוח. אחרי רענון (כאן: ייבוא CSV) שדה שלא נערך
+  //     מקבל את הערך מהשרת, ושדה שהמשתמש כבר ערך לא נדרס. השמירה שולחת רק את מה שהמשתמש שינה.
+  await h.getByLabel('מייל לתשובות לקוחות').fill('office@example.co.il');   // עריכה מקומית שעוד לא נשמרה
+  ok((await fetch(base + '/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ owner_name: signBefore }) })).ok, 'שינוי ההגדרות מבחוץ נכשל');
+  await h.getByLabel('קובץ CSV').setInputFiles({ name: 'bad.csv', mimeType: 'text/csv', buffer: Buffer.from('מספר חשבונית,שם לקוח,טלפון,סכום,תאריך לתשלום\n9777,,abc,xx,\n', 'utf8') });
+  await h.getByTestId('csv-result').waitFor();
+  for (let i = 0; i < 100 && await h.getByLabel('שם לחתימה').inputValue() !== signBefore; i++) await h.waitForTimeout(100);
+  ok(await h.getByLabel('שם לחתימה').inputValue() === signBefore, 'שדה שלא נערך לא התרענן מהשרת אחרי הרענון');
+  ok(await h.getByLabel('מייל לתשובות לקוחות').inputValue() === 'office@example.co.il', 'רענון מהשרת דרס שדה שהמשתמש ערך');
+  let putBody = null;
+  h.on('request', r => { if (r.method() === 'PUT' && r.url() === base + '/settings') putBody = r.postDataJSON(); });
+  await h.getByTestId('settings-save').click();
+  await h.getByText('✓ נשמר בשרת').waitFor();
+  ok(JSON.stringify(putBody) === JSON.stringify({ reply_email: 'office@example.co.il' }), 'השמירה שלחה יותר ממה שהמשתמש שינה: ' + JSON.stringify(putBody));
+  const s18 = await api('/settings');
+  ok(s18.owner_name === signBefore && s18.reply_email === 'office@example.co.il', 'מצב השרת אחרי שלב 18: ' + JSON.stringify(s18));
+  ok(hFail.length === 0, 'שלב 18: כשלים לא צפויים: ' + hFail.join(' | '));
+  console.log('  ✓ הגדרות שהשתנו בשרת בזמן עריכה: שדה שלא נערך מתרענן, שדה שנערך נשמר, ונשלח רק מה ששונה');
+
+  // 19) הפעלה 144: 401 באמצע פעולה (הסשן פג / בוטל) הציג הודעה אבל השאיר את המשתמש ואת הנתונים על המסך עד
+  //     הרענון הבא. עכשיו: מיד מסך הכניסה עם הסבר, הסשן נמחק מהלשונית, ואין נתוני לקוחות על המסך.
+  await h.getByLabel('שם לחתימה').fill('אחרי שפג');
+  await inject(h, '**/settings', onPut(route => route.fulfill({ status: 401, contentType: 'application/json', body: '{"detail":"unauthorized"}' })));
+  await h.getByTestId('settings-save').click();
+  await h.getByTestId('staff-login').waitFor();
+  ok((await h.locator('body').textContent()).includes('תוקף הכניסה פג'), 'מסך הכניסה אחרי 401 באמצע פעולה בלי הסבר');
+  ok(await h.evaluate(() => sessionStorage.getItem('gabi_owner_token')) === null, '401 באמצע פעולה: הסשן נשאר בלשונית');
+  ok(await h.getByTestId('settings-save').count() === 0 && await h.getByText('גל שרון').count() === 0, '401 באמצע פעולה: המסך הקודם נשאר מוצג');
+  ok((await api('/settings')).owner_name === signBefore, 'שמירה שנדחתה ב-401 שינתה את השרת');
+  ok(hFail.join('|') === '401 PUT /settings', 'שלב 19: כשלים לא צפויים: ' + hFail.join(' | '));
+  if (out) await h.screenshot({ path: `${out}/live-19-auth-lost.png` });
+  await h.context().close();
+  console.log('  ✓ 401 באמצע פעולה: מיד מסך הכניסה עם «תוקף הכניסה פג», הסשן נמחק, אין נתונים על המסך');
   failPhase = false;
   ok(consoleFail >= 4, `שגיאות הקונסולה של הכשל המכוון לא נספרו (${consoleFail})`);
 

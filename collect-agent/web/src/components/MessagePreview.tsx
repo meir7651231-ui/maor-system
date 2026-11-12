@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { api, BLOCK_LABEL, blockKind, REAPPROVE_LABEL, type Preview } from '../api.ts';
+import { failPrefix } from '../lib/failure.ts';
 import { useApp } from '../store.tsx';
 import type { Channel, Invoice, Step } from '../lib/domain.ts';
 import { STEP_LABEL, STEP_ORDER, buildEmail, demoShortUrl, buildSms, nextStep, requiresApproval, smsSegments } from '../lib/message.ts';
@@ -188,7 +189,7 @@ export function MessagePreview({ invoice, onClose, now = new Date() }: { invoice
           <Button disabled={!sendable || (live && isCsv && !confirmOpen) || (odd.length > 0 && !confirmAmount)} onClick={async () => {
             setBusy(true);
             try { await approveAndSend(invoice.id, step, channels, { confirmOpen, confirmAmount }); onClose(); }
-            catch (e) { showToast(`לא אושר: ${(e as Error).message}`); setBusy(false); }
+            catch (e) { showToast(failPrefix('לא אושר', (e as Error).message)); setBusy(false); }
           }}>
             ✓ אשר ושלח {channels.length === 2 ? 'ב-SMS ובמייל' : channels[0] === 'sms' ? 'ב-SMS' : channels[0] === 'email' ? 'במייל' : ''}
           </Button>

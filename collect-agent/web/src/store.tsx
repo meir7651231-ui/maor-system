@@ -4,11 +4,12 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { DEMO_TODAY, demoBusiness, demoCustomers, demoInvoices } from './data/demo.ts';
 import type { Business, Channel, Customer, Invoice, Step } from './lib/domain.ts';
 import { needsReminder } from './lib/stats.ts';
-import { api, loginRequest, logoutRequest, AuthError, detectBackend, fromDashboard, type Dashboard, type Health, type Draft, type Me, type OutMsg, type PendingRef, type Plan } from './api.ts';
+import { api, apiEvents, loginRequest, logoutRequest, AuthError, detectBackend, fromDashboard, type Dashboard, type Health, type Draft, type Me, type OutMsg, type PendingRef, type Plan } from './api.ts';
 import { TOKEN_KEY, readToken } from './lib/auth.ts';
 const sessionStore = () => { try { return sessionStorage; } catch { return undefined; } };
 import type { WeekPoint } from './lib/series.ts';
 import { systemNotices, type Notice } from './lib/notices.ts';
+import { retryDelayMs } from './lib/failure.ts';
 
 /** locked = שרת חי שדורש קוד גישה (401) — לא נופלים למוק בשקט.
  *  error = יש שרת (או שיש בלשונית כניסה שמורה) אבל הטעינה נכשלה — מסך שגיאה עם «נסו שוב», לא נתוני מוק. */
@@ -34,6 +35,8 @@ interface Ctx {
   unlock: (token: string) => Promise<UnlockResult>;
   /** הפעלה 142: רענון מהשרת נכשל באמצע עבודה (מצב חי) ⇒ מה שמוצג אולי כבר לא עדכני. מתאפס ברענון מוצלח. */
   stale: boolean;
+  /** הפעלה 144: עולה ב-1 בכל רענון מוצלח מהשרת. מסכים שמחזיקים עותק משלהם (הגדרות) מתרעננים לפיו. */
+  dataSeq: number;
   /** מצב error ⇒ ניסיון חיבור מחדש (בדיקת שרת + טעינה). */
   retry: () => Promise<void>;
   /** כניסת עובד: מייל+סיסמה+קוד. מחזיר null בהצלחה, אחרת הודעת שגיאה בעברית. */
@@ -77,9 +80,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [me, setMe] = useState<Me | null>(null);
   const [authNote, setAuthNote] = useState<string | null>(null);
   const [stale, setStale] = useState(false);
+  const [dataSeq, setDataSeq] = useState(0);
   const modeRef = useRef<Mode>('loading');
   useEffect(() => { modeRef.current = mode; }, [mode]);
-  const showToast = useCallback((t: string) => { setToast(t); window.setTimeout(() => setToast(null), 3600); }, []);
+  const showToast = useCallback((t: string) => { setToast(t); window.setTimeout(() => setToast(null), Math.max(3600, t.length * 60)); /* הודעה ארוכה נשארת יותר זמן */ }, []);
 
   /** מנקה את הסשן ואת המידע האישי מהזיכרון (יציאה / סשן שפג) ⇒ מסך הכניסה. */
   const dropSession = useCallback((note: string | null) => {
@@ -111,13 +115,41 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // בלי להשאיר נתוני חייבים על המסך. לפני הכניסה (מצב locked) 401 הוא פשוט «קוד שגוי».
   const reload = useCallback(async () => {
     const seq = loadSeq.current + 1;   // המספר שהרענון הזה יקבל ב-load
-    try { if (await load()) setStale(false); } catch (e) {
+    try { if (await load()) { setStale(false); setDataSeq(n => n + 1); } } catch (e) {
       if (e instanceof AuthError) { if (modeRef.current === 'live') dropSession('תוקף הכניסה פג. היכנסו שוב כדי להמשיך'); }
       // הפעלה 142: רענון שנכשל (5xx/רשת) במצב חי נבלע בשקט והמסך המשיך להציג נתונים ישנים בלי סימן.
       else if (modeRef.current === 'live' && seq === loadSeq.current) setStale(true);
       throw e;
     }
   }, [load, dropSession]);
+
+  // הפעלה 144 (1): 401 באמצע פעולה (אישור, שמירה, ייבוא) הציג הודעה אבל השאיר את נתוני החייבים על המסך עד
+  // הרענון הבא. עכשיו כל 401 על בקשה עם טוקן במצב חי מעביר מיד למסך הכניסה. לפני כניסה (locked) = «קוד שגוי».
+  // (2): פעולת כתיבה שנקטעה ⇒ לא ידוע אם נרשמה. מסמנים stale (הפס), ורענון שכבר באוויר לא מכבה את הסימון.
+  useEffect(() => {
+    apiEvents.authLost = () => { if (modeRef.current === 'live') dropSession('תוקף הכניסה פג. היכנסו שוב כדי להמשיך'); };
+    apiEvents.writeUnknown = () => { if (modeRef.current === 'live') { loadSeq.current++; setStale(true); } };
+    return () => { apiEvents.authLost = null; apiEvents.writeUnknown = null; };
+  }, [dropSession]);
+  // הפעלה 144 (2): כל עוד הנתונים לא עדכניים (מצב חי) מנסים לרענן לבד: בהמתנה גדלה (2–15 ש׳), מיד כשהדפדפן
+  // מדווח שהחיבור חזר (online), וכשהלשונית חוזרת לחזית. כך המשתמש רואה את המצב האמיתי לפני ניסיון חוזר.
+  useEffect(() => {
+    if (mode !== 'live' || !stale) return;
+    let n = 0, timer = 0, off = false, running = false;
+    const attempt = () => {
+      if (off || running) return;
+      window.clearTimeout(timer);
+      if (document.visibilityState === 'hidden') return;   // לשונית ברקע: מחכים לחזרה לחזית
+      running = true;
+      void reload().catch(() => { /* עדיין אין חיבור ⇒ הפס נשאר; 401 ⇒ מסך הכניסה */ })
+        .finally(() => { running = false; if (!off) timer = window.setTimeout(attempt, retryDelayMs(++n)); });
+    };
+    timer = window.setTimeout(attempt, retryDelayMs(0));
+    const now = () => { n = 0; attempt(); };
+    window.addEventListener('online', now);
+    document.addEventListener('visibilitychange', now);
+    return () => { off = true; window.clearTimeout(timer); window.removeEventListener('online', now); document.removeEventListener('visibilitychange', now); };
+  }, [mode, stale, reload]);
 
   // הפעלה 141: טעינה שנכשלת אחרי שהשרת ענה ל-/health (או כשיש כניסה שמורה והשרת לא עונה) נפלה למוק בשקט,
   // ובעל עסק מחובר ראה לקוחות וסכומים בדויים כאילו הם שלו. עכשיו: מצב error עם «נסו שוב». מוק = רק כשאין שרת ואין כניסה.
@@ -172,7 +204,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         dropSession(null);
         showToast('יצאת מהמערכת. הסשן בוטל גם בשרת');
       },
-      me, authNote, stale, plans, drafts, notices, reload, toast, showToast, customerOf, retry: connect,
+      me, authNote, stale, dataSeq, plans, drafts, notices, reload, toast, showToast, customerOf, retry: connect,
       // התור של המוק מוצג רק במצב מוק (לא בזמן טעינה/שגיאה — אחרת התג בניווט מציג ספירה בדויה)
       queue: live ? invoices.filter(i => pendingBy.has(i.id)) : mode === 'mock' ? needsReminder(invoices, today) : [],
       pendingOf: id => pendingBy.get(id),
@@ -197,7 +229,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       },
       markPaid: id => { setInvoices(l => l.map(i => i.id === id ? { ...i, status: 'paid' } : i)); showToast('סומן כשולם 🎉'); },
     };
-  }, [mode, health, today, business, customers, invoices, pendingBy, mergedBy, totals, series, outbox, plans, drafts, notices, reload, toast, showToast, me, authNote, stale, dropSession, connect]);
+  }, [mode, health, today, business, customers, invoices, pendingBy, mergedBy, totals, series, outbox, plans, drafts, notices, reload, toast, showToast, me, authNote, stale, dataSeq, dropSession, connect]);
   return <C.Provider value={value}>{children}</C.Provider>;
 }
 export const useApp = () => {

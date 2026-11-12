@@ -736,7 +736,7 @@ test('הפעלה 141: טעינה שנכשלה ⇒ מצב error עם «נסו ש�
 test('הפעלה 142: רענון שנכשל במצב חי ⇒ stale ופס «הנתונים לא עודכנו»; קוד גישה מבחין בין 401 לכשל שרת', () => {
   const store = readFileSync(new URL('../src/store.tsx', import.meta.url), 'utf8');
   // רענון מוצלח מנקה את הסימון; כשל שאינו 401 במצב חי מדליק אותו
-  assert.match(store, /if \(await load\(\)\) setStale\(false\);/);
+  assert.match(store, /if \(await load\(\)\) \{ setStale\(false\); setDataSeq\(n => n \+ 1\); \}/);
   assert.match(store, /else if \(modeRef\.current === 'live' && seq === loadSeq\.current\) setStale\(true\);/);
   // הפעלה 143: תשובה של רענון ישן לא דורסת רענון חדש יותר
   assert.match(store, /if \(my !== loadSeq\.current\) return false;/);
@@ -770,8 +770,8 @@ test('הפעלה 143: הודעת כשל בעברית בלי קוד HTTP גולמ
   assert.match(failureText(429, 'Too Many Requests'), /יותר מדי בקשות/);
   assert.match(failureText(404, ''), /הבקשה נכשלה \(שגיאה 404\)/);
   const api = readFileSync(new URL('../src/api.ts', import.meta.url), 'utf8');
-  assert.match(api, /catch \{ throw new ApiError\(failureText\(0\), 0\); \}/, 'כשל רשת ⇒ ApiError בעברית');
-  assert.match(api, /const msg = failureText\(r\.status, detail\);/);
+  assert.match(api, /throw new ApiError\(failureText\(0, null, write\), 0\); \}/, 'כשל רשת ⇒ ApiError בעברית');
+  assert.match(api, /const msg = failureText\(r\.status, detail, write\);/);
   const store = readFileSync(new URL('../src/store.tsx', import.meta.url), 'utf8');
   assert.doesNotMatch(store, /return 'הכניסה הצליחה אך הטעינה נכשלה/);
   assert.match(store, /setAuthNote\(null\); setMode\('error'\); return null;/);
@@ -785,8 +785,68 @@ test('הפעלה 143: הודעת כשל בעברית בלי קוד HTTP גולמ
   // הגדרות בחי: הטעינה מהשרת לא תלויה ב-mockForm (רענון ברקע דרס הקלדה)
   const st = readFileSync(new URL('../src/pages/Settings.tsx', import.meta.url), 'utf8');
   assert.doesNotMatch(st, /api\.settings\(\)[^]*?\}, \[live, mockForm\]\);/);
-  assert.match(st, /return \(\) => \{ on = false; \};\n  \}, \[live\]\);/);
+  assert.match(st, /return \(\) => \{ on = false; \};\n  \}, \[live, dataSeq\]\);/);
   const ui = readFileSync(new URL('../../app/ui.html', import.meta.url), 'utf8');
   assert.match(ui, /id="pverr" role="alert"/);
   assert.doesNotMatch(ui, /throw new Error\(j\.detail\|\|r\.status\)/);
+});
+
+test('הפעלה 144: כתיבה שנקטעה ⇒ «לא ידוע אם נרשמה» + רענון אוטומטי; 401 באמצע פעולה ⇒ מסך הכניסה; הגדרות מתמזגות מול השרת', async () => {
+  const { failureText, failPrefix, writeOutcomeUnknown, retryDelayMs, WRITE_UNKNOWN, NO_CONNECTION, SERVER_DOWN } = await import('../src/lib/failure.ts');
+  // קריאה (GET) נשארת כמו ב-143; כתיבה בלי הסבר מהשרת ⇒ «לא ידוע אם הפעולה נרשמה», בלי «נסו שוב» עיוור
+  assert.equal(failureText(0, null, false), NO_CONNECTION);
+  assert.equal(failureText(502, '', false), SERVER_DOWN);
+  for (const [st, d] of [[0, null], [500, 'Internal Server Error'], [502, ''], [504, undefined]] as const) {
+    const m = failureText(st, d, true);
+    assert.ok(m.includes(WRITE_UNKNOWN), `${st}: ${m}`);
+    assert.doesNotMatch(m, /\d{3}|[A-Za-z]{4,}/, 'בלי קוד או אנגלית');
+    assert.equal(writeOutcomeUnknown(st, d), true);
+  }
+  assert.match(failureText(0, null, true), /^אין חיבור לשרת גבי\. /);
+  assert.match(failureText(502, '', true), /^השרת לא זמין כרגע\. /);
+  // סירוב מפורש של השרת (עברית / 4xx) = תוצאה ידועה: ההודעה כמו שהיא, בלי «לא ידוע»
+  assert.equal(failureText(503, 'אין מפתח הצפנה (COLLECT_MASTER_KEYS)', true), 'אין מפתח הצפנה (COLLECT_MASTER_KEYS)');
+  assert.equal(failureText(409, 'התזכורת כבר אושרה', true), 'התזכורת כבר אושרה');
+  for (const [st, d] of [[503, 'אין מפתח הצפנה'], [409, 'x'], [422, ''], [404, ''], [429, '']] as const) assert.equal(writeOutcomeUnknown(st, d), false, String(st));
+  // «לא בוצע:» לא נכתב כשלא ידוע אם בוצע
+  assert.equal(failPrefix('לא בוצע', 'התזכורת כבר אושרה'), 'לא בוצע: התזכורת כבר אושרה');
+  assert.equal(failPrefix('לא בוצע', failureText(0, null, true)), failureText(0, null, true));
+  assert.doesNotMatch(failPrefix('לא נשמר', failureText(502, '', true)), /לא נשמר/);
+  // המתנה גדלה וחסומה (לא מציפים שרת שנפל, ולא מחכים יותר מ-15 שניות)
+  assert.deepEqual([0, 1, 2, 3, 4, 99].map(retryDelayMs), [2000, 4000, 8000, 15000, 15000, 15000]);
+  assert.equal(retryDelayMs(-1), 2000); assert.equal(retryDelayMs(NaN), 2000);
+
+  const api = readFileSync(new URL('../src/api.ts', import.meta.url), 'utf8');
+  assert.match(api, /const write = \(init\?\.method \?\? 'GET'\)\.toUpperCase\(\) !== 'GET';/);
+  assert.match(api, /if \(tok\) apiEvents\.authLost\?\.\(\);/, '401 על בקשה עם טוקן ⇒ אירוע ל-store');
+  assert.match(api, /catch \{ if \(write\) apiEvents\.writeUnknown\?\.\(\);/);
+  assert.match(api, /if \(write && writeOutcomeUnknown\(r\.status, detail\)\) apiEvents\.writeUnknown\?\.\(\);/);
+  const store = readFileSync(new URL('../src/store.tsx', import.meta.url), 'utf8');
+  // 401 רק במצב חי מפיל את הסשן (לפני כניסה זה «קוד שגוי»); כתיבה לא ידועה מבטלת רענון שבאוויר ומדליקה את הפס
+  assert.match(store, /apiEvents\.authLost = \(\) => \{ if \(modeRef\.current === 'live'\) dropSession\(/);
+  assert.match(store, /apiEvents\.writeUnknown = \(\) => \{ if \(modeRef\.current === 'live'\) \{ loadSeq\.current\+\+; setStale\(true\); \} \};/);
+  assert.match(store, /if \(mode !== 'live' \|\| !stale\) return;/);
+  assert.match(store, /window\.addEventListener\('online', now\);/);
+  assert.match(store, /if \(off \|\| running\) return;/, 'אין שני רענונים אוטומטיים במקביל');
+  for (const f of ['pages/Dashboard.tsx', 'pages/Settings.tsx', 'components/MessagePreview.tsx']) {
+    const src = readFileSync(new URL('../src/' + f, import.meta.url), 'utf8');
+    assert.doesNotMatch(src, /`לא (בוצע|נשלח|אושר|נשמר): \$\{/, f + ': קידומת «לא בוצע» בלי failPrefix');
+  }
+
+  const { mergeServerForm, diffPatch } = await import('../src/lib/settings.ts');
+  const base = { business_name: 'סטודיו', owner_name: 'נועה', vat_id: '', reply_email: '', sender: 'Studio', pay_provider: 'greeninvoice', pay_url: '', source_system: 'greeninvoice' } as const;
+  // טופס שלא נערך ⇒ מתרענן כולו מהשרת
+  const srv = { ...base, owner_name: 'רות', source_system: 'csv' } as const;
+  assert.deepEqual(mergeServerForm(base, base, srv), { orig: srv, f: srv });
+  // שדה שנערך נשאר; שדה שלא נערך מקבל את ערך השרת; נשלח רק מה שהמשתמש שינה
+  const edited = { ...base, reply_email: 'a@example.com' };
+  const m = mergeServerForm(base, edited, srv);
+  assert.equal(m.f.reply_email, 'a@example.com'); assert.equal(m.f.owner_name, 'רות'); assert.equal(m.f.source_system, 'csv');
+  assert.deepEqual(diffPatch(m.orig, m.f), { reply_email: 'a@example.com' });
+  // מה שהוקלד כבר נמצא בשרת (כתיבה שהתשובה שלה אבדה) ⇒ אין מה לשמור
+  const typed = { ...base, owner_name: 'רות' };
+  assert.deepEqual(diffPatch(...Object.values(mergeServerForm(base, typed, { ...base, owner_name: 'רות' })) as [typeof base, typeof base]), {});
+  const st = readFileSync(new URL('../src/pages/Settings.tsx', import.meta.url), 'utf8');
+  assert.match(st, /if \(!on \|\| my !== reqSeq\.current\) return;/, 'תשובה ישנה לא נכתבת לטופס');
+  assert.match(st, /reqSeq\.current\+\+;[^\n]*\n\s*const s = await api\.saveSettings\(patch\);\n\s*reqSeq\.current\+\+;/);
 });

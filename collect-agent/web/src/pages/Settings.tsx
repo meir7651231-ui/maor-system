@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useApp } from '../store.tsx';
 import { api, type AmountCheck } from '../api.ts';
 import { fmtMoney } from '../lib/format.ts';
 import { RULES } from '../lib/domain.ts';
-import { diffPatch, explainImportError, explainSettingsError, SOURCE_SYSTEMS, sourceLabel, toForm, validate, type DesignSettings, type PayProvider, type SettingsForm } from '../lib/settings.ts';
+import { diffPatch, explainImportError, explainSettingsError, mergeServerForm, SOURCE_SYSTEMS, sourceLabel, toForm, validate, type DesignSettings, type PayProvider, type SettingsForm } from '../lib/settings.ts';
 import { Button, Card, Field, inputCls } from '../components/ui.tsx';
+import { failPrefix } from '../lib/failure.ts';
 
 const PAY: [PayProvider, string][] = [['greeninvoice', 'חשבונית ירוקה (morning)'], ['meshulam', 'משולם'], ['bit', 'ביט']];
 
@@ -13,7 +14,7 @@ const PAY: [PayProvider, string][] = [['greeninvoice', 'חשבונית ירוק�
  * כללי המוצר (3 תזכורות, 08–20, אישור לכל הודעה), הסולם והמחיר — קבועים, מוצגים לקריאה בלבד.
  */
 export function Settings() {
-  const { mode, business, setBusiness, showToast, reload } = useApp();
+  const { mode, business, setBusiness, showToast, reload, dataSeq } = useApp();
   const live = mode === 'live';
   const mockForm: SettingsForm = useMemo(() => ({
     business_name: business.name, owner_name: business.ownerName, vat_id: business.vatId, reply_email: business.email,
@@ -32,13 +33,24 @@ export function Settings() {
   // הפעלה 143: בחי הטופס נטען מהשרת פעם אחת בכניסה למסך. קודם האפקט היה תלוי גם ב-mockForm, שמתחלף בכל
   // רענון ברקע (שם העסק מהשרת) ⇒ GET /settings נוסף שדרס את מה שהמשתמש כבר הקליד, ו«שמירה» נשארה כבויה.
   useEffect(() => { if (!live) { setOrig(mockForm); setF(mockForm); } }, [live, mockForm]);
+  // הפעלה 144: אחרי ייבוא CSV או שינוי בשרת ממקום אחר הטופס לא התרענן עד כניסה מחדש למסך. עכשיו הוא נטען
+  // שוב אחרי כל רענון מוצלח (dataSeq), במיזוג: שדה שהמשתמש ערך לא נדרס (mergeServerForm). reqSeq: תשובה
+  // שיצאה לפני שמירה (או לפני בקשה חדשה יותר) לא נכתבת לטופס.
+  const cur = useRef({ orig, f }); cur.current = { orig, f };
+  const reqSeq = useRef(0);
+  const loaded = useRef(false);
   useEffect(() => {
     if (!live) return;
     let on = true;
-    api.settings().then(s => { if (!on) return; setServer(s); setOrig(toForm(s)); setF(toForm(s)); setLoadErr(null); })
-      .catch(e => { if (on) setLoadErr((e as Error).message); });
+    const my = ++reqSeq.current;
+    api.settings().then(s => {
+      if (!on || my !== reqSeq.current) return;
+      const m = mergeServerForm(cur.current.orig, cur.current.f, toForm(s));
+      loaded.current = true; setServer(s); setOrig(m.orig); setF(m.f); setLoadErr(null);
+      if (!Object.keys(diffPatch(m.orig, m.f)).length) setSaveErr(null);   // מה שהוקלד כבר בשרת ⇒ הודעת «לא ידוע אם נרשם» מיותרת
+    }).catch(e => { if (on && !loaded.current) setLoadErr((e as Error).message); });   // כשל ברענון רקע ⇒ הפס בשלד
     return () => { on = false; };
-  }, [live]);
+  }, [live, dataSeq]);
 
   const errs = validate(f);
   const patch = diffPatch(orig, f);
@@ -50,7 +62,9 @@ export function Settings() {
     setBusy(true); setSaveErr(null);
     try {
       if (live) {
+        reqSeq.current++;   // טעינה שכבר באוויר משקפת את המצב שלפני השמירה
         const s = await api.saveSettings(patch);
+        reqSeq.current++;
         setServer(s); setOrig(toForm(s)); setF(toForm(s));
         await reload().catch(() => { /* נשמר; כשל ברענון ⇒ הפס «הנתונים לא עודכנו» */ }); // שם העסק בהודעות מתעדכן
         showToast('✓ נשמר בשרת');
@@ -59,7 +73,7 @@ export function Settings() {
         setOrig(f);
         showToast('נשמר בלשונית הזו בלבד — לא בשרת (מוק)');
       }
-    } catch (e) { setSaveErr(explainSettingsError((e as Error).message)); }
+    } catch (e) { setSaveErr(failPrefix('לא נשמר', explainSettingsError((e as Error).message))); }
     setBusy(false);
   }
 
@@ -185,7 +199,7 @@ export function Settings() {
         </Button>
         <Button variant="ghost" disabled={!dirty} onClick={() => { setF(orig); setSaveErr(null); }}>ביטול שינויים</Button>
         {dirty && !saveErr && <span className="text-sm text-ink-500">יש שינויים שלא נשמרו</span>}
-        {saveErr && <span role="alert" className="text-sm text-critical font-bold" data-testid="settings-error">לא נשמר: {saveErr}</span>}
+        {saveErr && <span role="alert" className="text-sm text-critical font-bold" data-testid="settings-error">{saveErr}</span>}
       </div>
     </div>
   );

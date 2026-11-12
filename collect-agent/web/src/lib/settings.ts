@@ -35,6 +35,15 @@ export const toForm = (s: DesignSettings): SettingsForm => ({
   source_system: s.source?.system ?? 'greeninvoice',
 });
 
+/** הפעלה 144: ההגדרות נטענו מחדש מהשרת בזמן שהטופס פתוח (ייבוא CSV, שינוי מלשונית אחרת, רענון רקע).
+ *  שדה שהמשתמש לא נגע בו (שווה למקור) מקבל את ערך השרת; שדה שנערך נשאר כמו שהוקלד. המקור החדש = השרת,
+ *  ולכן השמירה שולחת רק את מה שהמשתמש שינה. טופס שלא נערך ⇒ מתרענן כולו. טהור. */
+export function mergeServerForm(orig: SettingsForm, f: SettingsForm, server: SettingsForm): { orig: SettingsForm; f: SettingsForm } {
+  const out: Record<string, unknown> = { ...server };
+  for (const k of Object.keys(server) as (keyof SettingsForm)[]) if (f[k] !== orig[k]) out[k] = f[k];
+  return { orig: server, f: out as unknown as SettingsForm };
+}
+
 /** רק מה שהשתנה — PUT חלקי. שדות קבועים (rules/cadence/pricing) לעולם לא נשלחים.
  *  ממקור החשבוניות נשלחת רק הבחירה (`source.system`) ורק כשהשתנתה — לעולם לא מפתח/סוד. */
 export function diffPatch(a: SettingsForm, b: SettingsForm): Record<string, unknown> {
