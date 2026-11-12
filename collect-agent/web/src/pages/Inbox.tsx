@@ -57,7 +57,9 @@ function DraftCard({ d }: { d: Draft }) {
   const seg = smsSegments(body);
   const run = async (fn: () => Promise<unknown>, ok: string) => {
     setBusy(true); setErr(null);
-    try { await fn(); await reload(); showToast(ok); } catch (e) { setErr(explainViolation((e as Error).message)); setBusy(false); }
+    try { await fn(); } catch (e) { setErr(explainViolation((e as Error).message)); setBusy(false); return; }
+    // הפעלה 143: הפעולה בוצעה; כשל ברענון שאחריה לא מוצג כשגיאת הפעולה
+    await reload().catch(() => { setBusy(false); }); showToast(ok);
   };
   return (
     <li>

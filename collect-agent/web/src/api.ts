@@ -4,6 +4,7 @@ import type { DesignSettings } from './lib/settings.ts';
 import type { Channel, Customer, Invoice, InvoiceStatus, Reminder, Step } from './lib/domain.ts';
 import { STEP_ORDER } from './lib/message.ts';
 import { loginErrorText, readToken } from './lib/auth.ts';
+import { failureText } from './lib/failure.ts';
 import type { WeekPoint } from './lib/series.ts';
 import type { OwnerMsg } from './lib/notices.ts';
 
@@ -20,11 +21,15 @@ const base = (() => {
 async function j<T>(path: string, init?: RequestInit): Promise<T> {
   const tok = readToken(session());
   const auth: Record<string, string> = tok ? { Authorization: `Bearer ${tok}` } : {};
-  const r = await fetch(base + path, { ...init, headers: { 'Content-Type': 'application/json', ...auth, ...init?.headers } });
-  if (r.status === 401) throw new AuthError('נדרש קוד גישה');
+  let r: Response;
+  // הפעלה 143: כשל רשת הוא ApiError עם סטטוס 0 והסבר בעברית (היה TypeError «Failed to fetch» שהוצג למשתמש)
+  try { r = await fetch(base + path, { ...init, headers: { 'Content-Type': 'application/json', ...auth, ...init?.headers } }); }
+  catch { throw new ApiError(failureText(0), 0); }
+  if (r.status === 401) throw new AuthError('תוקף הכניסה פג. היכנסו שוב כדי להמשיך');
   if (!r.ok) {
-    let msg = `${r.status}`;
-    try { const b = await r.json(); msg = typeof b.detail === 'string' ? b.detail : JSON.stringify(b.detail); } catch { /* גוף לא-JSON */ }
+    let detail = '';
+    try { const b = await r.json(); detail = typeof b.detail === 'string' ? b.detail : b.detail == null ? '' : JSON.stringify(b.detail); } catch { /* גוף לא-JSON */ }
+    const msg = failureText(r.status, detail);
     throw new ApiError(msg, r.status);
   }
   return r.json() as Promise<T>;

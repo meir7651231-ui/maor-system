@@ -129,11 +129,15 @@ const fmtCur=(a,c)=>{if(!c||c==="ILS")return money(a);const s={USD:"$",EUR:"€"
 const TOK="gabi_owner_token";
 function tok(){try{return sessionStorage.getItem(TOK)||""}catch(e){return ""}}
 async function api(p,o={},retry=true){
-  const r=await fetch(p,{...o,headers:{...(o.headers||{}),Authorization:"Bearer "+tok()}});
+  // הפעלה 143: כשל רשת ו-5xx בלי הסבר מוצגים בעברית, לא «Failed to fetch» ולא קוד HTTP גולמי
+  let r;try{r=await fetch(p,{...o,headers:{...(o.headers||{}),Authorization:"Bearer "+tok()}})}
+  catch(e){throw new Error("אין חיבור לשרת גבי. בדקו את החיבור ונסו שוב")}
   if(r.status===401&&retry){const t=prompt("קוד גישה של בעל העסק (OWNER_API_TOKEN):");
     if(t){try{sessionStorage.setItem(TOK,t.trim())}catch(e){}return api(p,o,false)}}
   const j=await r.json().catch(()=>({}));
-  if(!r.ok)throw new Error(j.detail||r.status);return j}
+  if(!r.ok){const d=typeof j.detail==="string"?j.detail:"";
+    throw new Error(r.status>=500?(/[\u0590-\u05FF]/.test(d)?d:"השרת לא זמין כרגע. נסו שוב בעוד רגע"):d||"הבקשה נכשלה (שגיאה "+r.status+")")}
+  return j}
 async function loadDash(){
   const d=await api("/dashboard");const t=d.totals;
   const tr=d.trial||{};
@@ -177,7 +181,13 @@ async function load(){
   el.querySelectorAll(".item").forEach(b=>b.onclick=()=>show(+b.dataset.id));
 }
 async function show(id){
-  sel=id;load();const p=await api(`/reminders/${id}/preview`);
+  sel=id;load();
+  // הפעלה 143: כשל בטעינת התצוגה המקדימה היה unhandled rejection, והלוח נשאר על התזכורת הקודמת בלי הסבר
+  let p;try{p=await api(`/reminders/${id}/preview`)}catch(e){if(sel!==id)return;
+    $("#detail").innerHTML=`<div class="err" id="pverr" role="alert">לא הצלחנו לטעון את התצוגה המקדימה: ${esc(e.message)}</div>
+      <div class="decide"><button class="primary" id="pvRetry">נסו שוב</button></div>`;
+    $("#pvRetry").onclick=()=>show(id);return}
+  if(sel!==id)return;
   const sms=p.messages.find(m=>m.channel==="sms"),mail=p.messages.find(m=>m.channel==="email");
   const smsHtml=sms?`<div class="phone"><div class="sender">SMS · ${esc(sms.to.replace(/^972/,"0"))} · ${esc(sms.provider)}</div>
      <div class="bubble">${esc(sms.body)}</div>

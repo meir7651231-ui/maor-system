@@ -736,8 +736,10 @@ test('הפעלה 141: טעינה שנכשלה ⇒ מצב error עם «נסו ש�
 test('הפעלה 142: רענון שנכשל במצב חי ⇒ stale ופס «הנתונים לא עודכנו»; קוד גישה מבחין בין 401 לכשל שרת', () => {
   const store = readFileSync(new URL('../src/store.tsx', import.meta.url), 'utf8');
   // רענון מוצלח מנקה את הסימון; כשל שאינו 401 במצב חי מדליק אותו
-  assert.match(store, /await load\(\); setStale\(false\);/);
-  assert.match(store, /else if \(modeRef\.current === 'live'\) setStale\(true\);/);
+  assert.match(store, /if \(await load\(\)\) setStale\(false\);/);
+  assert.match(store, /else if \(modeRef\.current === 'live' && seq === loadSeq\.current\) setStale\(true\);/);
+  // הפעלה 143: תשובה של רענון ישן לא דורסת רענון חדש יותר
+  assert.match(store, /if \(my !== loadSeq\.current\) return false;/);
   // יציאה / סשן שפג ⇒ הסימון לא נשאר למסך הכניסה
   assert.match(store, /setStale\(false\); setMode\('locked'\)/);
   // unlock: רק 401 הוא «קוד שגוי»
@@ -752,4 +754,39 @@ test('הפעלה 142: רענון שנכשל במצב חי ⇒ stale ופס «ה�
   assert.doesNotMatch(ui, /loadDash\(\)\.catch\(\(\)=>\{\}\)/);
   assert.match(ui, /Promise\.allSettled\(\[loadDash\(\),api\("\/reminders"\)\]\)/);
   assert.match(ui, /id="loaderr" role="alert" hidden/);
+});
+
+test('הפעלה 143: הודעת כשל בעברית בלי קוד HTTP גולמי; כניסה שהטעינה אחריה נכשלה ⇒ מסך השגיאה; רענון שנכשל אחרי פעולה אינו «לא בוצע»', async () => {
+  const { failureText, NO_CONNECTION, SERVER_DOWN } = await import('../src/lib/failure.ts');
+  assert.equal(failureText(0), NO_CONNECTION);
+  for (const [st, d] of [[500, 'Internal Server Error'], [502, ''], [503, 'down'], [504, undefined]] as const) {
+    assert.equal(failureText(st, d), SERVER_DOWN);
+    assert.doesNotMatch(failureText(st, d), /\d{3}|[A-Za-z]{4,}/, 'בלי קוד או אנגלית');
+  }
+  // הסבר בעברית מהשרת נשמר, גם ב-5xx
+  assert.equal(failureText(503, 'אין מפתח הצפנה (COLLECT_MASTER_KEYS)'), 'אין מפתח הצפנה (COLLECT_MASTER_KEYS)');
+  assert.equal(failureText(409, 'התזכורת כבר אושרה'), 'התזכורת כבר אושרה');
+  assert.equal(failureText(422, 'payment_link: קישור התשלום חייב להיות בדומיין הספק'), 'payment_link: קישור התשלום חייב להיות בדומיין הספק');
+  assert.match(failureText(429, 'Too Many Requests'), /יותר מדי בקשות/);
+  assert.match(failureText(404, ''), /הבקשה נכשלה \(שגיאה 404\)/);
+  const api = readFileSync(new URL('../src/api.ts', import.meta.url), 'utf8');
+  assert.match(api, /catch \{ throw new ApiError\(failureText\(0\), 0\); \}/, 'כשל רשת ⇒ ApiError בעברית');
+  assert.match(api, /const msg = failureText\(r\.status, detail\);/);
+  const store = readFileSync(new URL('../src/store.tsx', import.meta.url), 'utf8');
+  assert.doesNotMatch(store, /return 'הכניסה הצליחה אך הטעינה נכשלה/);
+  assert.match(store, /setAuthNote\(null\); setMode\('error'\); return null;/);
+  const app = readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8');
+  assert.match(app, /r === 'login' && \(mode === 'live' \|\| mode === 'error'\)\) go\('dashboard'\)/);
+  // פעולה שהצליחה: כשל ברענון שאחריה לא נכנס ל-catch של הפעולה
+  for (const f of ['pages/Dashboard.tsx', 'pages/Inbox.tsx', 'pages/Settings.tsx']) {
+    const src = readFileSync(new URL('../src/' + f, import.meta.url), 'utf8');
+    assert.doesNotMatch(src, /await reload\(\);/, f + ': reload בלי catch אחרי פעולה');
+  }
+  // הגדרות בחי: הטעינה מהשרת לא תלויה ב-mockForm (רענון ברקע דרס הקלדה)
+  const st = readFileSync(new URL('../src/pages/Settings.tsx', import.meta.url), 'utf8');
+  assert.doesNotMatch(st, /api\.settings\(\)[^]*?\}, \[live, mockForm\]\);/);
+  assert.match(st, /return \(\) => \{ on = false; \};\n  \}, \[live\]\);/);
+  const ui = readFileSync(new URL('../../app/ui.html', import.meta.url), 'utf8');
+  assert.match(ui, /id="pverr" role="alert"/);
+  assert.doesNotMatch(ui, /throw new Error\(j\.detail\|\|r\.status\)/);
 });

@@ -215,8 +215,8 @@ function ReplySim() {
           try {
             const r = await api.inbound('sms', c!.phone!, text);
             setRes(`${r.owner_summary ?? INTENT_LABEL[r.intent] ?? r.intent}${r.auto_reply ? ` · מענה אוטומטי: "${r.auto_reply}"` : ''}${r.draft_id ? ' · טיוטת מענה ממתינה לאישורך ב«תשובות לקוחות»' : ''}`);
-            await reload();
-          } catch (e) { showToast(`שגיאה: ${(e as Error).message}`); }
+            await reload().catch(() => { /* הפעולה בוצעה; כשל ברענון ⇒ הפס «הנתונים לא עודכנו» */ });
+          } catch (e) { showToast(`לא נשלח: ${(e as Error).message}`); }
         }}>שלח תשובה (סימולציה)</Button>
         {res && <p className="text-sm rounded-lg bg-brand-50 text-brand-700 p-2.5" data-testid="reply-result">{res}</p>}
       </div>
@@ -252,7 +252,9 @@ function NeedsYou() {
   const act = async (key: string, fn: () => Promise<unknown>, done: string) => {
     if (armed !== key) { setArmed(key); window.setTimeout(() => setArmed(a => a === key ? null : a), 4000); return; }
     setArmed(null);
-    try { await fn(); await reload(); showToast(done); } catch (e) { showToast(`לא בוצע: ${(e as Error).message}`); }
+    // הפעלה 143: כשל ברענון אחרי פעולה שהצליחה אינו «לא בוצע» (הפס «הנתונים לא עודכנו» מטפל בו)
+    try { await fn(); } catch (e) { showToast(`לא בוצע: ${(e as Error).message}`); return; }
+    await reload().catch(() => { /* stale / 401 מטופלים ב-store */ }); showToast(done);
   };
   if (!paused.length && !proposed.length && !notices.length) return null;
   return (

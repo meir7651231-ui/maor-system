@@ -657,6 +657,70 @@ try {
   await g.getByTestId('mode').filter({ hasText: 'מחובר לשרת גבי' }).waitFor();
   await g.context().close();
   console.log('  ✓ קוד גישה: כשל שרת ⇒ «השרת לא זמין», לא «הקוד לא התקבל»; אותו קוד נכנס כשהשרת חוזר');
+  // 15) הפעלה 143: כניסת עובד שהצליחה כשהטעינה שאחריה נכשלה השאירה את המשתמש במסך הכניסה עם «נסו לרענן»
+  //     (והקוד החד-פעמי כבר נוצל). עכשיו: מסך השגיאה עם «נסו שוב», והסשן השמור מתחבר כשהשרת חוזר.
+  //     /auth/login מיורט (קוד ה-TOTP של שעון הדמו כבר נוצל בשלב 1) ומחזיר טוקן תקף של השרת.
+  const h = await (await b.newContext()).newPage();
+  await h.setViewportSize({ width: 1366, height: 900 });
+  h.on('pageerror', e => errors.push('שלב 15/16: ' + String(e)));
+  const hFail = [];
+  h.on('response', r => { if (r.status() >= 400) hFail.push(`${r.status()} ${r.request().method()} ${r.url().replace(base, '')}`); });
+  await h.goto(base + '/app/#/login');
+  await h.getByTestId('staff-login').waitFor();
+  await inject(h, '**/auth/login', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ token: TOKEN }) }));
+  await inject(h, '**/dashboard', route => route.fulfill({ status: 503, contentType: 'application/json', body: '{"detail":"down"}' }));
+  await h.getByLabel('מייל').fill(STAFF.email);
+  await h.getByLabel('סיסמה', { exact: true }).fill(STAFF.password);
+  await h.getByLabel('קוד אימות').fill('123456');
+  await h.getByTestId('staff-login').getByRole('button', { name: 'כניסה' }).click();
+  await h.getByTestId('app-error').waitFor();
+  ok(await h.getByTestId('staff-login').count() === 0, 'כניסה שהצליחה + טעינה שנכשלה: המשתמש נשאר במסך הכניסה');
+  ok(h.url().endsWith('#/dashboard'), 'אחרי כניסה שהטעינה שלה נכשלה הכתובת נשארה: ' + h.url());
+  ok(await h.evaluate(() => sessionStorage.getItem('gabi_owner_token')) === TOKEN, 'הסשן לא נשמר אחרי כניסה מוצלחת');
+  ok(await h.getByText('קפה הגפן').count() === 0, 'מסך השגיאה אחרי כניסה מציג נתוני מוק');
+  if (out) await h.screenshot({ path: `${out}/live-15-login-load-error.png` });
+  await h.unroute('**/dashboard');
+  await h.getByTestId('app-retry').click();
+  await h.getByTestId('mode').filter({ hasText: 'מחובר לשרת גבי' }).waitFor();
+  await h.getByTestId('kpis').waitFor();
+  ok(hFail.join('|') === '503 GET /dashboard', 'שלב 15: כשלים לא צפויים: ' + hFail.join(' | '));
+  console.log('  ✓ כניסה שהצליחה כשהטעינה נכשלה: מסך השגיאה עם «נסו שוב» (לא מסך הכניסה), והסשן השמור מתחבר');
+
+  // 16) הפעלה 143: פעולה שנכשלת כשהשרת למטה מסבירה בעברית (היה «Failed to fetch» / קוד HTTP גולמי),
+  //     ופעולה שהצליחה כשרק הרענון שאחריה נכשל לא מוצגת כ«לא נשמר».
+  hFail.length = 0;
+  await h.goto(base + '/app/#/settings');
+  await h.locator('[data-testid="settings-live"][data-loaded="1"]').waitFor();
+  const signBefore = (await api('/settings')).owner_name;
+  const onPut = fn => route => route.request().method() === 'PUT' ? fn(route) : route.continue();
+  await h.getByLabel('שם לחתימה').fill('נועה ב');
+  await inject(h, '**/settings', onPut(route => route.abort()));
+  await h.getByTestId('settings-save').click();
+  await h.getByTestId('settings-error').filter({ hasText: 'אין חיבור לשרת גבי' }).waitFor();
+  ok(!/fetch|TypeError/i.test(await h.getByTestId('settings-error').textContent()), 'כשל רשת מוצג באנגלית');
+  await h.unroute('**/settings');
+  await inject(h, '**/settings', onPut(route => route.fulfill({ status: 502, contentType: 'text/html', body: '<h1>Bad Gateway</h1>' })));
+  await h.getByTestId('settings-save').click();
+  await h.getByTestId('settings-error').filter({ hasText: 'השרת לא זמין כרגע' }).waitFor();
+  ok(!/502|Bad Gateway/.test(await h.getByTestId('settings-error').textContent()), 'קוד HTTP גולמי מוצג למשתמש');
+  ok((await api('/settings')).owner_name === signBefore, 'שמירה שנכשלה שינתה את השרת');
+  if (out) await h.screenshot({ path: `${out}/live-16-action-server-down.png` });
+  await h.unroute('**/settings');
+  // השמירה מצליחה, הרענון שאחריה נכשל ⇒ «✓ נשמר בשרת» + הפס «הנתונים לא עודכנו», בלי «לא נשמר»
+  await inject(h, '**/dashboard', route => route.fulfill({ status: 503, contentType: 'application/json', body: '{"detail":"down"}' }));
+  await h.getByTestId('settings-save').click();
+  await h.getByText('✓ נשמר בשרת').waitFor();
+  await h.getByTestId('stale-banner').waitFor();
+  ok(await h.getByTestId('settings-error').count() === 0, 'שמירה שהצליחה הוצגה כ«לא נשמר» בגלל כשל ברענון');
+  ok((await api('/settings')).owner_name === 'נועה ב', 'השמירה לא הגיעה לשרת');
+  await h.unroute('**/dashboard');
+  await h.getByLabel('שם לחתימה').fill(signBefore);
+  await h.getByTestId('settings-save').click();
+  await h.getByTestId('stale-banner').waitFor({ state: 'detached' });
+  ok((await api('/settings')).owner_name === signBefore, 'שם החתימה לא שוחזר');
+  ok(hFail.join('|') === '502 PUT /settings|503 GET /dashboard', 'שלב 16: כשלים לא צפויים: ' + hFail.join(' | '));
+  await h.context().close();
+  console.log('  ✓ פעולה כשהשרת למטה: הסבר בעברית בלי קוד HTTP; שמירה שהצליחה + רענון שנכשל ⇒ «נשמר» + פס');
   failPhase = false;
   ok(consoleFail >= 4, `שגיאות הקונסולה של הכשל המכוון לא נספרו (${consoleFail})`);
 

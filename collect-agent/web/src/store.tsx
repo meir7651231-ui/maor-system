@@ -89,10 +89,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setAuthNote(note); setStale(false); setMode('locked');
   }, []);
 
-  const load = useCallback(async () => {
+  // הפעלה 143: שני רענונים במקביל (מעבר מסך מיד אחרי חיבור) חזרו לפעמים בסדר הפוך, והתשובה הישנה דרסה את
+  // החדשה: נתונים ישנים על המסך, או פס «לא עודכנו» שנכבה אף שהרענון האחרון נכשל. רק הרענון האחרון קובע.
+  const loadSeq = useRef(0);
+  const load = useCallback(async (): Promise<boolean> => {
+    const my = ++loadSeq.current;
     const d = await api.dashboard(); // בקשה אחת קודם: קוד שגוי ⇒ 401 יחיד, לא חמישה
     const [p, o, pl, dr, ib, who] = await Promise.all([api.pending(), api.outbox(), api.plans(), api.drafts().catch(() => [] as Draft[]),
       api.ownerInbox().catch(() => []), api.me().catch(() => null)]);
+    if (my !== loadSeq.current) return false;   // התחיל רענון חדש יותר ⇒ התשובה הזו כבר לא עדכנית
     setMe(who);
     const m = fromDashboard(d, p);
     setCustomers(m.customers); setInvoices(m.invoices); setPendingBy(m.pendingBy); setMergedBy(m.mergedBy); setToday(m.today);
@@ -100,14 +105,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
     // שם העסק בחי = הקידומת של הודעות השרת ("סטודיו דמו: …") — כך הממשק לא ממציא שם
     const biz = o.messages.find(x => x.channel === 'sms')?.body.split(':')[0];
     if (biz && biz.length < 40) setBusiness(b => ({ ...b, name: biz, ownerName: biz }));
+    return true;
   }, []);
   // 401 באמצע עבודה (הסשן פג אחרי 12 ש׳, העובד הושבת, יציאה מלשונית אחרת) ⇒ חזרה למסך הכניסה עם הסבר,
   // בלי להשאיר נתוני חייבים על המסך. לפני הכניסה (מצב locked) 401 הוא פשוט «קוד שגוי».
   const reload = useCallback(async () => {
-    try { await load(); setStale(false); } catch (e) {
+    const seq = loadSeq.current + 1;   // המספר שהרענון הזה יקבל ב-load
+    try { if (await load()) setStale(false); } catch (e) {
       if (e instanceof AuthError) { if (modeRef.current === 'live') dropSession('תוקף הכניסה פג. היכנסו שוב כדי להמשיך'); }
       // הפעלה 142: רענון שנכשל (5xx/רשת) במצב חי נבלע בשקט והמסך המשיך להציג נתונים ישנים בלי סימן.
-      else if (modeRef.current === 'live') setStale(true);
+      else if (modeRef.current === 'live' && seq === loadSeq.current) setStale(true);
       throw e;
     }
   }, [load, dropSession]);
@@ -153,7 +160,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
         let tok: string;
         try { tok = await loginRequest(email, password, code); } catch (e) { return e instanceof Error ? e.message : 'הכניסה נכשלה'; }
         try { sessionStorage.setItem(TOKEN_KEY, tok); } catch { /* פרטי/חסום */ }
-        try { await reload(); setAuthNote(null); setMode('live'); return null; } catch { return 'הכניסה הצליחה אך הטעינה נכשלה. נסו לרענן'; }
+        try { await reload(); setAuthNote(null); setMode('live'); return null; } catch (e) {
+          if (e instanceof AuthError) { try { sessionStorage.removeItem(TOKEN_KEY); } catch { /* */ } return 'הכניסה לא הושלמה. נסו שוב'; }
+          // הפעלה 143: הכניסה הצליחה והסשן שמור, רק הטעינה נכשלה. היה: הודעת «נסו לרענן» והמשתמש נתקע במסך
+          // הכניסה (קוד חד-פעמי שכבר נוצל). עכשיו: מסך השגיאה עם «נסו שוב», שמתחבר עם הסשן השמור.
+          setAuthNote(null); setMode('error'); return null;
+        }
       },
       logout: async () => {
         await logoutRequest();
@@ -170,8 +182,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
           const p = pendingBy.get(id);
           if (!p) throw new Error('אין תזכורת שממתינה לאישור לחשבונית הזו');
           await api.approve(p.reminderId, !!opts?.confirmOpen, !!opts?.confirmAmount);
-          const r = await api.dispatch();
-          await reload();
+          // הפעלה 143: האישור כבר נרשם בשרת. כשל בשליחה/ברענון שאחריו לא מוצג כ«לא אושר» (היה מטעה ⇒ ניסיון חוזר).
+          let r: { sent: unknown[] };
+          try { r = await api.dispatch(); } catch (e) { if (e instanceof AuthError) throw e; r = { sent: [] }; }
+          await reload().catch(() => { /* stale ⇒ הפס «הנתונים לא עודכנו»; 401 ⇒ מסך הכניסה */ });
           showToast(`✓ אושר · ${r.sent.length ? `${r.sent.length} תזכורות יצאו ב-dry-run (ביומן היוצאים)` : 'נכנס לתור — ייצא בחלון השליחה הבא'} · לא נשלחה הודעה אמיתית`);
           return;
         }

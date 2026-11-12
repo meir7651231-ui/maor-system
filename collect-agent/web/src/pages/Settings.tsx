@@ -29,10 +29,16 @@ export function Settings() {
   const [csvErr, setCsvErr] = useState<string | null>(null);
   const [csv, setCsv] = useState<{ imported: number; credits?: number; date_order?: string; amount_check?: AmountCheck[]; rejected: { row: number; reason: string }[] } | null>(null);
 
+  // הפעלה 143: בחי הטופס נטען מהשרת פעם אחת בכניסה למסך. קודם האפקט היה תלוי גם ב-mockForm, שמתחלף בכל
+  // רענון ברקע (שם העסק מהשרת) ⇒ GET /settings נוסף שדרס את מה שהמשתמש כבר הקליד, ו«שמירה» נשארה כבויה.
+  useEffect(() => { if (!live) { setOrig(mockForm); setF(mockForm); } }, [live, mockForm]);
   useEffect(() => {
-    if (!live) { setOrig(mockForm); setF(mockForm); return; }
-    api.settings().then(s => { setServer(s); setOrig(toForm(s)); setF(toForm(s)); }).catch(e => setLoadErr((e as Error).message));
-  }, [live, mockForm]);
+    if (!live) return;
+    let on = true;
+    api.settings().then(s => { if (!on) return; setServer(s); setOrig(toForm(s)); setF(toForm(s)); setLoadErr(null); })
+      .catch(e => { if (on) setLoadErr((e as Error).message); });
+    return () => { on = false; };
+  }, [live]);
 
   const errs = validate(f);
   const patch = diffPatch(orig, f);
@@ -46,7 +52,7 @@ export function Settings() {
       if (live) {
         const s = await api.saveSettings(patch);
         setServer(s); setOrig(toForm(s)); setF(toForm(s));
-        await reload(); // שם העסק בהודעות מתעדכן
+        await reload().catch(() => { /* נשמר; כשל ברענון ⇒ הפס «הנתונים לא עודכנו» */ }); // שם העסק בהודעות מתעדכן
         showToast('✓ נשמר בשרת');
       } else {
         setBusiness({ ...business, name: f.business_name, ownerName: f.owner_name, vatId: f.vat_id, email: f.reply_email, smsSender: f.sender, payProvider: f.pay_provider, payPageUrl: f.pay_url, sourceSystem: f.source_system, dataSource: f.source_system === 'csv' ? 'csv' : 'api' });
@@ -59,7 +65,7 @@ export function Settings() {
 
   async function importCsv(file: File) {
     setCsv(null); setCsvErr(null);
-    try { const r = await api.importCsv(await file.text()); setCsv(r); await reload(); showToast(`יובאו ${r.imported} חשבוניות`); }
+    try { const r = await api.importCsv(await file.text()); setCsv(r); await reload().catch(() => { /* יובא; כשל ברענון ⇒ הפס */ }); showToast(`יובאו ${r.imported} חשבוניות`); }
     catch (e) { const m = explainImportError((e as { status?: number }).status, (e as Error).message); setCsvErr(m); showToast(m); }
   }
 

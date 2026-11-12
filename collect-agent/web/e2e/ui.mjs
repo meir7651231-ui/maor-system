@@ -120,8 +120,21 @@ try {
   await p.locator('#btnRetry').click();
   await p.locator('#loaderr').waitFor({ state: 'hidden' });
   ok(failed >= 3, `הכשלים המוזרקים לא הגיעו לדף (${failed})`);
+  // הפעלה 143: כשל בתצוגה המקדימה היה unhandled rejection והלוח נשאר על התזכורת הקודמת. עכשיו: שגיאה בלוח הפרטים + «נסו שוב».
+  let pvFailed = 0;
+  await inject(p, '**/reminders/*/preview', route => { pvFailed++; return route.fulfill({ status: 502, contentType: 'text/html', body: 'Bad Gateway' }); });
+  await p.locator('#list .item').first().click();
+  await p.locator('#pverr').waitFor();
+  const pvText = await p.locator('#pverr').textContent();
+  ok(pvText.includes('השרת לא זמין כרגע') && !/502|Bad Gateway/.test(pvText), `שגיאת התצוגה המקדימה: «${pvText}»`);
+  ok(await p.locator('#ok').count() === 0, 'כשל בתצוגה המקדימה השאיר כפתור אישור של תזכורת אחרת');
+  if (out) await p.screenshot({ path: `${out}/ui-05-preview-error.png`, fullPage: true });
+  await p.unroute('**/reminders/*/preview');
+  await p.locator('#pvRetry').click();
+  await p.locator('#detail h2').first().waitFor();
+  ok(await p.locator('#pverr').count() === 0 && pvFailed === 1, `«נסו שוב» בתצוגה המקדימה לא טען אותה (${pvFailed})`);
   // ה-503 המוזרקים נרשמו כשגיאות תגובה: מסירים רק אותם, כל שגיאה אחרת נשארת
-  const mine = errors.splice(before).filter(e => !/^503 .*\/(dashboard|reminders)$/.test(e));
+  const mine = errors.splice(before).filter(e => !/^503 .*\/(dashboard|reminders)$/.test(e) && !/^502 .*\/reminders\/\d+\/preview$/.test(e));
   errors.push(...mine);
   errors.push(...routeErrors);
   ok(errors.length === 0, 'שגיאות:\n' + errors.join('\n'));
