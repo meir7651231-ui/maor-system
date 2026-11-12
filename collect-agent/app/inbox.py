@@ -79,6 +79,22 @@ def _iso(dt: datetime) -> str:
 STALE_DRAFT_HOURS = 96   # critic סבב 30: טיוטה מאושרת שחיכתה מעבר לזה מהשאלה ⇒ לא נשלחת
 
 
+
+# הפעלה 146: סירוב להכרעה על טיוטה שכבר הוכרעה, בעברית (היה «status=superseded» גולמי בממשק)
+_DRAFT_DECIDED_HE = {
+    "approved": "הטיוטה כבר אושרה",
+    "sent": "הטיוטה כבר אושרה ונשלחה",
+    "sent_dry_run": "הטיוטה כבר אושרה ונשלחה",
+    "sending": "הטיוטה כבר אושרה, והיא בשליחה",
+    "send_unknown": "הטיוטה כבר אושרה. השליחה נקטעה באמצע, בדקו ביומן היוצאים",
+    "rejected": "הטיוטה כבר נסגרה בלי מענה",
+    "superseded": "הטיוטה הוחלפה כי המצב מול הלקוח השתנה",
+}
+
+
+def _decided_he(status: str) -> str:
+    return _DRAFT_DECIDED_HE.get(status, "הטיוטה כבר הוכרעה")
+
 class ConversationInbox:
     def __init__(self, svc: Any, policy: OwnerPolicy | None = None, llm: Any = "env") -> None:
         self.svc = svc
@@ -367,7 +383,7 @@ class ConversationInbox:
                       confirm_amount: bool = False) -> dict:
         dr = self._get(draft_id)
         if dr["status"] not in ("pending_approval", "needs_owner"):
-            raise ValueError(f"הטיוטה כבר הוכרעה (status={dr['status']})")
+            raise ValueError(_decided_he(dr["status"]) + ". אי אפשר לאשר אותה")
         if self._amount_check(dr) and not confirm_amount:
             raise ValueError("סכום חריג מאוד מהרגיל ללקוח (אולי נקודה עשרונית במקום הלא נכון?) — "
                              "יש לאשר במפורש שהסכום נכון (confirm_amount)")
@@ -402,7 +418,7 @@ class ConversationInbox:
     def reject_draft(self, draft_id: int, actor: str = "owner") -> dict:
         dr = self._get(draft_id)
         if dr["status"] not in ("pending_approval", "needs_owner", "approved"):
-            raise ValueError(f"לא ניתן לדחות (status={dr['status']})")
+            raise ValueError(_decided_he(dr["status"]) + ". אי אפשר לדחות אותה")
         self.db.x("UPDATE drafts SET status='rejected', decided_at=?, decided_by=? WHERE id=?",
                   (_iso(self.svc.clock()), actor, draft_id))
         self.svc.audit(actor, "draft_rejected", {"draft": draft_id})

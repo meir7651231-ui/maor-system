@@ -11,7 +11,12 @@ import type { OwnerMsg } from './lib/notices.ts';
 /** השרת ענה 401 — צריך קוד גישה של בעל העסק. */
 export class AuthError extends Error {}
 /** שגיאת שרת עם קוד HTTP (כדי להציג הסבר לפי סוג הכשל). */
-export class ApiError extends Error { status: number; constructor(msg: string, status: number) { super(msg); this.status = status; } }
+export class ApiError extends Error {
+  status: number;
+  /** הפעלה 146: השרת סימן (X-Gabi-Already) שההכרעה שביקשנו כבר נרשמה קודם: 'approved' / 'rejected'. לא כשל. */
+  already: string | null;
+  constructor(msg: string, status: number, already: string | null = null) { super(msg); this.status = status; this.already = already; }
+}
 const session = (): Storage | undefined => { try { return sessionStorage; } catch { return undefined; } };
 
 const base = (() => {
@@ -40,7 +45,7 @@ async function j<T>(path: string, init?: RequestInit): Promise<T> {
     try { const b = await r.json(); detail = typeof b.detail === 'string' ? b.detail : b.detail == null ? '' : JSON.stringify(b.detail); } catch { /* גוף לא-JSON */ }
     if (write && writeOutcomeUnknown(r.status, detail)) apiEvents.writeUnknown?.();
     const msg = failureText(r.status, detail, write);
-    throw new ApiError(msg, r.status);
+    throw new ApiError(msg, r.status, r.status === 409 ? r.headers.get('X-Gabi-Already') : null);
   }
   return r.json() as Promise<T>;
 }

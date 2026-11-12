@@ -47,7 +47,13 @@ export function mergeServerForm(orig: SettingsForm, f: SettingsForm, server: Set
 /** הפעלה 145: 401 באמצע עריכת ההגדרות מעביר למסך הכניסה, ומה שהוקלד אבד. עכשיו השדות שנערכו נשמרים
  *  בזיכרון הלשונית בלבד (לא ב-storage, נעלמים ברענון הדף) ומוחזרים לטופס אחרי כניסה מחדש.
  *  keep נדלק רק כשהסשן פג (store.dropSession עם הסבר); יציאה יזומה או מעבר מסך רגיל מוחקים את הטיוטה. */
-export const settingsDraft: { value: Partial<SettingsForm> | null; keep: boolean } = { value: null, keep: false };
+export const settingsDraft: { value: Partial<SettingsForm> | null; keep: boolean; owner: string | null } = { value: null, keep: false, owner: null };
+/** הפעלה 146: הטיוטה שייכת למי שהקליד אותה (`owner` = המזהה מ-/auth/me). אחרי סשן שפג היא מוחזרת רק אם
+ *  אותו משתמש נכנס שוב; עובד אחר של אותו עסק באותה לשונית לא מקבל אותה. זהות לא ידועה (בזמן ההקלדה או
+ *  בכניסה) ⇒ לא מחזירים. טהור. */
+export function draftFor(d: { value: Partial<SettingsForm> | null; keep: boolean; owner: string | null }, actor: string | null | undefined): Partial<SettingsForm> | null {
+  return d.keep && d.value && d.owner && actor && d.owner === actor ? d.value : null;
+}
 const FORM_KEYS = ['business_name', 'owner_name', 'vat_id', 'reply_email', 'sender', 'pay_provider', 'pay_url', 'source_system'] as const;
 /** השדות שהמשתמש שינה מול המקור; null כשאין שינוי. טהור. */
 export function formDiff(orig: SettingsForm, f: SettingsForm): Partial<SettingsForm> | null {

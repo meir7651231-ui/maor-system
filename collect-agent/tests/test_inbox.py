@@ -58,7 +58,7 @@ def test_opt_out_is_immediate_and_later_drafts_blocked(inbox, svc):
     # אישור ההסרה מותר; הטיוטה הקודמת הוחלפה ואי אפשר לאשר אותה
     inbox.approve_draft(res["draft_id"])
     assert svc.sender.sent[-1]["body"].endswith("תזכורות אוטומטיות.")
-    with pytest.raises(ValueError, match="superseded"):
+    with pytest.raises(ValueError, match="הטיוטה הוחלפה"):
         inbox.approve_draft(first)
     assert len(svc.sender.sent) == 1
 
@@ -224,7 +224,7 @@ def test_plan_approval_via_plans_supersedes_parallel_draft(inbox, svc):
     svc.approve_plan(plan_id)
     assert len(svc.sender.sent) == 1
     assert inbox.drafts("pending_approval") == []
-    with pytest.raises(ValueError, match="superseded"):
+    with pytest.raises(ValueError, match="הטיוטה הוחלפה"):
         inbox.approve_draft(draft_id)
     assert len(svc.sender.sent) == 1   # לא נשלח שוב
 

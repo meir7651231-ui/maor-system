@@ -52,6 +52,41 @@ STEP_OFFSETS_DAYS = (1, 7, 14)   # 3 תזכורות לכל היותר (הכרע�
 ACTIVE = ("pending_approval", "approved")
 AMOUNT_CHECK = "amount_check"   # הפעלה 123: סכום חריג ⇒ אישור מפורש (לא חסימה קשה)
 HARD_BLOCKS = {"no_contact", "no_payment_link", "compliance", "no_reply_to"}
+
+
+class AlreadyDecided(ValueError):
+    """הפעלה 146: ניסיון חוזר של הכרעה שכבר נרשמה (למשל אישור שהתשובה שלו אבדה ברשת).
+    עדיין 409 (לא משנים מצב ולא רושמים שוב ביומן), אבל עם `state` שהממשק מזהה:
+    "approved" / "rejected" = הפעולה שביקשתם כבר נעשתה ⇒ מוצג כ«כבר אושרה/נדחתה», לא כשגיאה."""
+
+    def __init__(self, msg: str, state: str):
+        super().__init__(msg)
+        self.state = state
+
+
+# מצבים שבהם האישור כבר נרשם (גם אם ההודעה כבר יצאה או שהשליחה נקטעה)
+_APPROVED_STATES = ("approved", "sending", "sent_dry_run", "sent", "send_unknown")
+_NOT_PENDING_HE = {
+    "approved": "התזכורת כבר אושרה",
+    "sending": "התזכורת כבר אושרה, והיא בשליחה",
+    "sent_dry_run": "התזכורת כבר אושרה ונשלחה",
+    "sent": "התזכורת כבר אושרה ונשלחה",
+    "send_unknown": "התזכורת כבר אושרה. השליחה נקטעה באמצע, בדקו ביומן היוצאים",
+    "rejected": "התזכורת כבר נדחתה",
+    "cancelled": "התזכורת בוטלה (החשבונית נסגרה או השתנתה)",
+}
+
+
+def _not_pending(status: str, action: str) -> ValueError:
+    """סירוב להכרעה על תזכורת שכבר הוכרעה: נוסח בעברית בלי קוד סטטוס גולמי.
+    action = "approve" / "reject". אותה הכרעה שוב ⇒ AlreadyDecided (הממשק מציג «כבר…»)."""
+    he = _NOT_PENDING_HE.get(status, "התזכורת כבר לא ממתינה להכרעה")
+    if action == "approve" and status in _APPROVED_STATES:
+        return AlreadyDecided(he, "approved")
+    if action == "reject" and status == "rejected":
+        return AlreadyDecided(he, "rejected")
+    tail = "אי אפשר לאשר אותה" if action == "approve" else "אי אפשר לדחות אותה"
+    return ValueError(f"{he}. {tail}")
 _B62 = "abcdefghijkmnpqrstuvwxyz23456789"  # אותיות קטנות+ספרות, בלי 0/o/1/l (קריא, ~31 ביט)
 
 
@@ -1129,7 +1164,7 @@ class CollectService:
                 confirm_amount: bool = False) -> dict:
         r = self._reminder(reminder_id)
         if r["status"] != "pending_approval":
-            raise ValueError(f"לא ממתינה לאישור (status={r['status']})")
+            raise _not_pending(r["status"], "approve")
         invs = [self._invoice(i) for i in self.reminder_invoice_ids(reminder_id)] or \
             [self._invoice(r["invoice_id"])]
         if any(i["source"] == "csv" for i in invs) and not confirm_open:
@@ -1165,7 +1200,7 @@ class CollectService:
     def reject(self, reminder_id: int, actor: str = "owner") -> dict:
         r = self._reminder(reminder_id)
         if r["status"] not in ACTIVE:
-            raise ValueError(f"לא ניתן לדחות (status={r['status']})")
+            raise _not_pending(r["status"], "reject")
         self.db.x("UPDATE reminders SET status='rejected', decided_at=? WHERE id=?",
                   (_iso(self.clock()), reminder_id))
         self.audit(actor, "reject", {"reminder": reminder_id})

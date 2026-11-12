@@ -37,3 +37,11 @@ export function failureText(status: number, detail?: string | null, write = fals
   if (status === 429 && !HEBREW.test(d)) return 'יותר מדי בקשות בזמן קצר. המתינו רגע ונסו שוב';
   return d || `הבקשה נכשלה (שגיאה ${status})`;
 }
+
+/** הפעלה 146: ניסיון חוזר של הכרעה שכבר נרשמה בשרת (409 + X-Gabi-Already). `want` = ההכרעה שביקשנו.
+ *  true רק כשהשרת אישר שאותה הכרעה כבר נרשמה; 409 אחר (חסימה, תזכורת שנדחתה) נשאר סירוב. טהור. */
+export const ALREADY_APPROVED = '✓ התזכורת הזו כבר אושרה קודם';
+export function alreadyDone(e: unknown, want: 'approved' | 'rejected'): boolean {
+  const x = e as { status?: unknown; already?: unknown } | null;
+  return !!x && x.status === 409 && x.already === want;
+}

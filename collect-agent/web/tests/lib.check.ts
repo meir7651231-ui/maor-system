@@ -337,7 +337,7 @@ test('ייבוא CSV: 403 של שער הבטא מוסבר בעברית ובלי 
   assert.match(explainImportError(400, 'קובץ ריק'), /קובץ ריק/);
   assert.match(explainImportError(500, 'boom'), /boom/);
   const src = readFileSync(new URL('../src/api.ts', import.meta.url), 'utf8');
-  assert.match(src, /throw new ApiError\(msg, r\.status\)/, 'השרת מעביר קוד סטטוס ל-UI');
+  assert.match(src, /throw new ApiError\(msg, r\.status[,)]/, 'השרת מעביר קוד סטטוס ל-UI');
 });
 
 test('loginProblem: מייל+סיסמה+קוד 6 ספרות', () => {
@@ -865,14 +865,14 @@ test('הפעלה 145: טיוטת ההגדרות שורדת סשן שפג (בזי
   assert.deepEqual(restoreDraft(srv, null), srv);
   // מפתח לא מוכר או ערך שאינו מחרוזת לא נכנסים לטופס
   assert.deepEqual(restoreDraft(srv, { owner_name: 5, evil: 'x' } as never), srv);
-  assert.deepEqual(settingsDraft, { value: null, keep: false });
+  assert.deepEqual(settingsDraft, { value: null, keep: false, owner: null });
   const fs = await import('node:fs');
   const store = fs.readFileSync(new URL('../src/store.tsx', import.meta.url), 'utf8');
-  assert.match(store, /if \(note\) settingsDraft\.keep = settingsDraft\.value !== null; else \{ settingsDraft\.value = null; settingsDraft\.keep = false; \}/);
+  assert.match(store, /if \(note\) settingsDraft\.keep = settingsDraft\.value !== null; else \{ settingsDraft\.value = null; settingsDraft\.keep = false; settingsDraft\.owner = null; \}/);
   const lib = fs.readFileSync(new URL('../src/lib/settings.ts', import.meta.url), 'utf8');
   assert.doesNotMatch(lib, /sessionStorage|localStorage/, 'הטיוטה לא נכתבת ל-storage');
   const page = fs.readFileSync(new URL('../src/pages/Settings.tsx', import.meta.url), 'utf8');
-  assert.match(page, /settingsDraft\.keep && settingsDraft\.value\) \{ m\.f = restoreDraft/);
+  assert.match(page, /if \(mine\) \{ m\.f = restoreDraft\(m\.f, mine\); setRestored\(true\); \}/);
   assert.match(page, /if \(!settingsDraft\.keep\) settingsDraft\.value = null/);
   const app = fs.readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8');
   assert.match(app, /r === 'settings' \? 'top-5' : 'bottom-5'/);
@@ -885,4 +885,40 @@ test('הפעלה 145: טיוטת ההגדרות שורדת סשן שפג (בזי
   assert.match(ui, /function lock\(had\)\{[^}]*sessionStorage\.removeItem\(TOK\)/);
   assert.match(ui, /RETRY_MS=\[2000,4000,8000,15000\]/);
   assert.match(ui, /if\(!stale\|\|locked\|\|document\.hidden\)return/, 'לשונית ברקע או מסך נעול לא שולחים רענון');
+});
+
+test('הפעלה 146: טיוטת ההגדרות מוחזרת רק למי שהקליד אותה; אישור שכבר נרשם (409 + X-Gabi-Already) אינו כשל', async () => {
+  const { draftFor } = await import('../src/lib/settings.ts');
+  const v = { owner_name: 'רות' };
+  assert.deepEqual(draftFor({ value: v, keep: true, owner: 'user:1' }, 'user:1'), v);
+  // עובד אחר באותה לשונית, זהות לא ידועה (בהקלדה או בכניסה), או טיוטה שלא סומנה לשמירה ⇒ לא מחזירים
+  assert.equal(draftFor({ value: v, keep: true, owner: 'user:1' }, 'user:2'), null);
+  assert.equal(draftFor({ value: v, keep: true, owner: 'user:1' }, null), null);
+  assert.equal(draftFor({ value: v, keep: true, owner: null }, null), null);
+  assert.equal(draftFor({ value: v, keep: true, owner: null }, 'user:1'), null);
+  assert.equal(draftFor({ value: v, keep: false, owner: 'user:1' }, 'user:1'), null);
+  assert.equal(draftFor({ value: null, keep: true, owner: 'user:1' }, 'user:1'), null);
+  const fs = await import('node:fs');
+  const page = fs.readFileSync(new URL('../src/pages/Settings.tsx', import.meta.url), 'utf8');
+  assert.match(page, /const mine = loaded\.current \? null : draftFor\(settingsDraft, actor\.current\);/);
+  assert.match(page, /if \(!loaded\.current && !mine\) settingsDraft\.value = null;/, 'טיוטה של משתמש אחר נמחקת');
+  assert.match(page, /settingsDraft\.owner = actor\.current;/);
+
+  const { alreadyDone, ALREADY_APPROVED } = await import('../src/lib/failure.ts');
+  assert.equal(alreadyDone({ status: 409, already: 'approved' }, 'approved'), true);
+  assert.equal(alreadyDone({ status: 409, already: 'rejected' }, 'approved'), false, 'נדחתה ≠ כבר אושרה');
+  assert.equal(alreadyDone({ status: 409, already: null }, 'approved'), false, '409 רגיל (חסימה) נשאר סירוב');
+  assert.equal(alreadyDone({ status: 200, already: 'approved' }, 'approved'), false);
+  assert.equal(alreadyDone(new Error('x'), 'approved'), false);
+  assert.equal(alreadyDone(null, 'approved'), false);
+  assert.ok(ALREADY_APPROVED.includes('כבר אושרה'));
+  const api = fs.readFileSync(new URL('../src/api.ts', import.meta.url), 'utf8');
+  assert.match(api, /new ApiError\(msg, r\.status, r\.status === 409 \? r\.headers\.get\('X-Gabi-Already'\) : null\)/);
+  const store = fs.readFileSync(new URL('../src/store.tsx', import.meta.url), 'utf8');
+  assert.match(store, /catch \(e\) \{ if \(!alreadyDone\(e, 'approved'\)\) throw e; already = true; \}/);
+  // /ui: אותה כותרת; כפתורי הכותרת כבויים כשהמסך נעול; אין alert
+  const ui = fs.readFileSync(new URL('../../app/ui.html', import.meta.url), 'utf8');
+  assert.match(ui, /r\.headers\.get\("X-Gabi-Already"\)/);
+  assert.doesNotMatch(ui, /alert\(/, 'ב-/ui לא נשאר alert');
+  assert.match(ui, /function hdr\(\)\{/);
 });

@@ -9,7 +9,7 @@ import { TOKEN_KEY, readToken } from './lib/auth.ts';
 const sessionStore = () => { try { return sessionStorage; } catch { return undefined; } };
 import type { WeekPoint } from './lib/series.ts';
 import { systemNotices, type Notice } from './lib/notices.ts';
-import { retryDelayMs } from './lib/failure.ts';
+import { ALREADY_APPROVED, alreadyDone, retryDelayMs } from './lib/failure.ts';
 import { settingsDraft } from './lib/settings.ts';
 
 /** locked = שרת חי שדורש קוד גישה (401) — לא נופלים למוק בשקט.
@@ -90,7 +90,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const dropSession = useCallback((note: string | null) => {
     try { sessionStorage.removeItem(TOKEN_KEY); } catch { /* פרטי/חסום */ }
     // הפעלה 145: סשן שפג ⇒ מה שהוקלד בהגדרות נשמר בזיכרון ויוחזר אחרי כניסה; יציאה יזומה מוחקת אותו
-    if (note) settingsDraft.keep = settingsDraft.value !== null; else { settingsDraft.value = null; settingsDraft.keep = false; }
+    if (note) settingsDraft.keep = settingsDraft.value !== null; else { settingsDraft.value = null; settingsDraft.keep = false; settingsDraft.owner = null; }
     setMe(null); setCustomers([]); setInvoices([]); setPendingBy(new Map()); setMergedBy(new Map()); setTotals(null); setSeries(null);
     setOutbox([]); setPlans([]); setDrafts([]); setNotices([]);
     setAuthNote(note); setStale(false); setMode('locked');
@@ -216,12 +216,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
         if (live) {
           const p = pendingBy.get(id);
           if (!p) throw new Error('אין תזכורת שממתינה לאישור לחשבונית הזו');
-          await api.approve(p.reminderId, !!opts?.confirmOpen, !!opts?.confirmAmount);
+          // הפעלה 146: ניסיון חוזר של אישור שכבר נרשם (התשובה הקודמת אבדה) ⇒ השרת עונה 409 «כבר אושרה».
+          // זה לא כשל: ממשיכים לשליחה ולרענון כרגיל, וההודעה אומרת «כבר אושרה» במקום «לא אושר».
+          let already = false;
+          try { await api.approve(p.reminderId, !!opts?.confirmOpen, !!opts?.confirmAmount); }
+          catch (e) { if (!alreadyDone(e, 'approved')) throw e; already = true; }
           // הפעלה 143: האישור כבר נרשם בשרת. כשל בשליחה/ברענון שאחריו לא מוצג כ«לא אושר» (היה מטעה ⇒ ניסיון חוזר).
           let r: { sent: unknown[] };
           try { r = await api.dispatch(); } catch (e) { if (e instanceof AuthError) throw e; r = { sent: [] }; }
           await reload().catch(() => { /* stale ⇒ הפס «הנתונים לא עודכנו»; 401 ⇒ מסך הכניסה */ });
-          showToast(`✓ אושר · ${r.sent.length ? `${r.sent.length} תזכורות יצאו ב-dry-run (ביומן היוצאים)` : 'נכנס לתור — ייצא בחלון השליחה הבא'} · לא נשלחה הודעה אמיתית`);
+          showToast(`${already ? ALREADY_APPROVED : '✓ אושר'} · ${r.sent.length ? `${r.sent.length} תזכורות יצאו ב-dry-run (ביומן היוצאים)` : 'נכנס לתור — ייצא בחלון השליחה הבא'} · לא נשלחה הודעה אמיתית`);
           return;
         }
         setInvoices(list => list.map(i => i.id !== id ? i : {

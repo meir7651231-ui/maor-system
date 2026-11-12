@@ -77,6 +77,7 @@ button.resume{margin-inline-start:6px;padding:4px 10px;min-height:32px;font-size
 <div class="err loaderr" id="loaderr" role="alert" hidden><span>לא הצלחנו לטעון את הנתונים מהשרת. מה שמוצג כאן אולי לא עדכני.</span>
   <button id="btnRetry">נסו שוב</button></div>
 <div class="note loaderr" id="wunk" role="alert" hidden><span id="wunkMsg"></span><button id="btnWunk">הבנתי</button></div>
+<div class="err loaderr" id="acterr" role="alert" hidden><span id="actMsg"></span><button id="btnAct">הבנתי</button></div>
 <div class="err loaderr" id="locked" role="alert" hidden><span id="lockMsg"></span><button id="btnLogin" class="primary">כניסה</button></div>
 <div id="dash">
   <div class="kpis" id="kpis"></div>
@@ -134,12 +135,14 @@ function tok(){try{return sessionStorage.getItem(TOK)||""}catch(e){return ""}}
 //  • כתיבה שנקטעה (רשת, או 5xx בלי הסבר בעברית): אולי נרשמה בשרת ⇒ «לא ידוע אם הפעולה נרשמה», לא «נסו שוב» עיוור.
 //  • 401 שלא נפתר בקוד חדש: הנתונים יורדים מהמסך, הטוקן נמחק מהלשונית, ומוצג פס כניסה.
 const WRITE_UNKNOWN="לא ידוע אם הפעולה נרשמה. בדקו אחרי שהנתונים יתרעננו, לפני שמנסים שוב";
-let locked=false,stale=false,rt=null,rn=0,loading=0;
+let locked=false,stale=false,rt=null,rn=0,loading=0,busy=false;
+// הפעלה 146: כפתורי הכותרת כבויים כשהמסך נעול (אחרי 401, עד «כניסה») ובזמן שפעולה רצה (לחיצה כפולה).
+function hdr(){for(const i of ["#btnSync","#btnPlan","#btnDispatch"])$(i).disabled=locked||busy}
 const RETRY_MS=[2000,4000,8000,15000];
 function lock(had){locked=true;stale=false;clearTimeout(rt);sel=null;try{sessionStorage.removeItem(TOK)}catch(e){}
   for(const i of ["#kpis","#debts","#list"])$(i).innerHTML="";$("#today").textContent="";
   $("#detail").innerHTML='<div class="empty">בחרו תזכורת כדי לראות תצוגה מקדימה של SMS ומייל</div>';
-  $("#loaderr").hidden=$("#wunk").hidden=true;
+  $("#loaderr").hidden=$("#wunk").hidden=$("#acterr").hidden=true;hdr();
   $("#lockMsg").textContent=had?"תוקף הכניסה פג. הנתונים הוסרו מהמסך. היכנסו שוב כדי להמשיך"
     :"כדי לראות את הנתונים צריך את קוד הגישה של בעל העסק";
   $("#locked").hidden=false}
@@ -160,7 +163,9 @@ async function api(p,o={},retry=true){
   const j=await r.json().catch(()=>({}));
   if(!r.ok){const d=typeof j.detail==="string"?j.detail:"",he=/[\u0590-\u05FF]/.test(d);
     if(r.status>=500&&!he&&write)throw unknown("השרת לא זמין כרגע");
-    throw new Error(r.status>=500?(he?d:"השרת לא זמין כרגע. נסו שוב בעוד רגע"):d||"הבקשה נכשלה (שגיאה "+r.status+")")}
+    // הפעלה 146: 409 עם X-Gabi-Already = ההכרעה שביקשנו כבר נרשמה קודם (approved / rejected). לא כשל.
+    throw Object.assign(new Error(r.status>=500?(he?d:"השרת לא זמין כרגע. נסו שוב בעוד רגע"):d||"הבקשה נכשלה (שגיאה "+r.status+")"),
+      {already:r.status===409?r.headers.get("X-Gabi-Already"):null})}
   return j}
 // כשל של פעולת כתיבה: 401 ⇒ פס הכניסה כבר מוצג; תוצאה לא ידועה ⇒ הודעה + רענון; אחרת ההודעה במקום הרגיל
 function failed(e,show){if(e.auth)return;if(!e.unknown)return show(e.message);
@@ -218,7 +223,7 @@ async function load(ask=true){
     ${esc(r.block_reason?why(r.block_reason):STATUS[r.status]||r.status)}</span></div></button>`).join("");
   el.querySelectorAll(".item").forEach(b=>b.onclick=()=>show(+b.dataset.id));
 }
-async function show(id){
+async function show(id,info){
   sel=id;load();
   // הפעלה 143: כשל בטעינת התצוגה המקדימה היה unhandled rejection, והלוח נשאר על התזכורת הקודמת בלי הסבר
   let p;try{p=await api(`/reminders/${id}/preview`)}catch(e){if(sel!==id||e.auth)return;
@@ -251,17 +256,24 @@ async function show(id){
     ${checks}
     <div class="decide">${p.status==="pending_approval"?`<button class="primary" id="ok" ${can?"":"disabled"}>אישור ושליחה</button>`:""}
     ${["pending_approval","approved"].includes(p.status)?`<button class="ghost-bad" id="no">דחייה</button>`:""}</div>
-    <div class="err" id="derr"></div>`;
+    <div class="err" id="derr"></div>${info?`<div class="note" id="dinfo" role="status">${esc(info)}</div>`:""}`;
   if(mail)$("#mailFrame").srcdoc=mail.html;
-  const act=async(a,body)=>{try{await api(`/reminders/${id}/${a}`,{method:"POST",...(body?{headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}:{})});await load();show(id)}catch(e){failed(e,m=>{$("#derr").textContent=m})}};
+  const act=async(a,body)=>{try{await api(`/reminders/${id}/${a}`,{method:"POST",...(body?{headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}:{})});await load();show(id)}
+    // הפעלה 146: אישור/דחייה שכבר נרשמו (ניסיון חוזר אחרי תשובה שאבדה) ⇒ «כבר…» ורענון, לא שגיאה
+    catch(e){if(e.already===DONE[a]){await load();return show(id,e.message+". המסך עודכן")}failed(e,m=>{$("#derr").textContent=m})}};
   const boxes=[$("#cAmt"),$("#cOpen")].filter(Boolean),okBtn=$("#ok");
   const gate=()=>{if(okBtn)okBtn.disabled=!can||boxes.some(x=>!x.checked)};
   boxes.forEach(x=>x.onchange=gate);gate();
   okBtn&&(okBtn.onclick=()=>act("approve",{confirm_amount:!!($("#cAmt")&&$("#cAmt").checked),confirm_open:!!($("#cOpen")&&$("#cOpen").checked)}));$("#no")&&($("#no").onclick=()=>act("reject"));
 }
-const run=(b,p)=>$(b).onclick=async()=>{try{await api(p,{method:"POST"});await load();sel&&show(sel)}catch(e){failed(e,m=>alert(m))}};
+const DONE={approve:"approved",reject:"rejected"};
+// הפעלה 146: כשל בכפתורי הכותרת מוצג בשורה בדף (היה חלון קופץ של הדפדפן), ונסגר ב«הבנתי» או בפעולה הבאה
+const run=(b,p)=>$(b).onclick=async()=>{busy=true;hdr();$("#acterr").hidden=true;
+  try{await api(p,{method:"POST"});await load();sel&&show(sel)}
+  catch(e){failed(e,m=>{$("#actMsg").textContent="הפעולה לא בוצעה: "+m;$("#acterr").hidden=false})}finally{busy=false;hdr()}};
+$("#btnAct").onclick=()=>{$("#acterr").hidden=true};
 $("#btnWunk").onclick=()=>{$("#wunk").hidden=true};
-$("#btnLogin").onclick=()=>{locked=false;$("#locked").hidden=true;load()};
+$("#btnLogin").onclick=()=>{locked=false;$("#locked").hidden=true;hdr();load()};
 $("#btnRetry").onclick=async e=>{e.target.disabled=true;try{await load()}finally{e.target.disabled=false}};
 run("#btnSync","/sync");run("#btnPlan","/plan");run("#btnDispatch","/dispatch");
 load();

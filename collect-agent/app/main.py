@@ -282,7 +282,9 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         except KeyError:
             raise HTTPException(404, "לא נמצא") from None
         except ValueError as e:
-            raise HTTPException(409, str(e)) from e
+            # הפעלה 146: אותה הכרעה שוב (אישור שכבר נרשם) ⇒ 409 עם כותרת שהממשק מזהה ומציג «כבר אושרה»
+            state = getattr(e, "state", None)
+            raise HTTPException(409, str(e), headers={"X-Gabi-Already": state} if state else None) from e
         except RuntimeError as e:
             raise HTTPException(503, str(e)) from e
 

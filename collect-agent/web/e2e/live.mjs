@@ -808,6 +808,63 @@ try {
   ok(await h.getByLabel('שם לחתימה').inputValue() === 'אחרי שפג' && await h.getByTestId('settings-dirty').count() === 0, 'עריכה שננטשה במעבר מסך שוחזרה');
   ok((await fetch(base + '/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ owner_name: signBefore }) })).ok, 'החזרת ההגדרות למצב הקודם נכשלה');
   ok(hFail.length === 0, 'שלב 20: כשלים לא צפויים: ' + hFail.join(' | '));
+
+  // 21) הפעלה 146: הטיוטה שייכת למי שהקליד אותה. הסשן פג באמצע עריכה, ועובד אחר נכנס באותה לשונית
+  //     (‎/auth/me מחזיר זהות אחרת) ⇒ הוא רואה את ערכי השרת, בלי «החזרנו את מה שהקלדתם».
+  await h.getByLabel('שם לחתימה').fill('טיוטה של עובד קודם');
+  await inject(h, '**/settings', onPut(route => route.fulfill({ status: 401, contentType: 'application/json', body: '{"detail":"unauthorized"}' })));
+  await h.getByTestId('settings-save').click();
+  await h.getByTestId('staff-login').waitFor();
+  await h.unroute('**/settings');
+  await inject(h, '**/auth/me', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ actor: 'user:99', kind: 'user', name: 'עובד אחר' }) }));
+  await h.getByLabel('מייל').fill(STAFF.email);
+  await h.getByLabel('סיסמה', { exact: true }).fill(STAFF.password);
+  await h.getByLabel('קוד אימות').fill('123456');
+  await h.getByTestId('staff-login').getByRole('button', { name: 'כניסה' }).click();
+  if (!h.url().endsWith('#/settings')) { await h.getByTestId('staff-login').waitFor({ state: 'detached' }); await h.goto(base + '/app/#/settings'); }
+  await h.locator('[data-testid="settings-live"][data-loaded="1"]').waitFor();
+  ok((await h.getByTestId('whoami').textContent()).includes('עובד אחר'), 'שלב 21: הזהות האחרת לא נטענה (הבדיקה לא משחזרת עובד אחר)');
+  ok(await h.getByLabel('שם לחתימה').inputValue() === signBefore, 'עובד אחר קיבל את הטיוטה של קודמו: ' + await h.getByLabel('שם לחתימה').inputValue());
+  ok(await h.getByTestId('settings-dirty').count() === 0 && await h.getByTestId('settings-save').isDisabled(), 'עובד אחר רואה «שינויים שלא נשמרו» של קודמו');
+  ok(hFail.join('|') === '401 PUT /settings', 'שלב 21: כשלים לא צפויים: ' + hFail.join(' | '));
+  if (out) await h.screenshot({ path: `${out}/live-21-draft-other-user.png` });
+  await h.unroute('**/auth/me');
+  console.log('  ✓ טיוטת ההגדרות לא מוחזרת לעובד אחר שנכנס באותה לשונית');
+
+  // 22) הפעלה 146: אישור שנרשם בשרת והתשובה שלו אבדה, ואז ניסיון חוזר ⇒ השרת עונה 409 «כבר אושרה» (X-Gabi-Already).
+  //     הממשק מציג «כבר אושרה קודם» ולא «לא אושר», סוגר את החלון ומרענן. ביומן הביקורת אישור אחד בלבד.
+  hFail.length = 0;
+  await h.goto(base + '/app/#/dashboard');
+  const items146 = h.locator('li', { has: h.getByRole('button', { name: 'תצוגה ואישור' }) });
+  await items146.first().waitFor();
+  const btn146 = h.getByRole('button', { name: /אשר ושלח/ });
+  let opened146 = false;
+  for (let i = 0; i < await items146.count() && !opened146; i++) {
+    await items146.nth(i).getByRole('button', { name: 'תצוגה ואישור' }).click();
+    await btn146.waitFor();
+    await h.waitForFunction(() => /\/p\/\w+/.test(document.querySelector('textarea')?.value ?? ''), null, { timeout: 4000 }).catch(() => { /* חסומה: אין קישור */ });
+    for (const t of ['confirm-open', 'confirm-amount']) if (await h.getByTestId(t).count()) await h.getByTestId(t).locator('input').check();
+    if (await btn146.isEnabled()) opened146 = true; else await h.getByRole('button', { name: 'ביטול' }).click();
+  }
+  ok(opened146, 'שלב 22: אין בתור תזכורת שאפשר לאשר');
+  let seen146 = null;
+  await inject(h, '**/reminders/*/approve', async route => {
+    const first = await route.fetch();                       // האישור נרשם בשרת; התשובה «אובדת»
+    const second = await route.fetch();                      // הניסיון החוזר
+    seen146 = { first: first.status(), status: second.status(), already: second.headers()['x-gabi-already'], rid: Number(route.request().url().match(/reminders\/(\d+)\/approve/)[1]) };
+    await route.fulfill({ response: second });
+  });
+  await btn146.click();
+  await h.getByText('כבר אושרה קודם').waitFor();
+  ok(seen146 && seen146.first === 200 && seen146.status === 409 && seen146.already === 'approved', 'שלב 22: השרת לא ענה 409 «כבר אושרה»: ' + JSON.stringify(seen146));
+  ok(!(await h.locator('body').textContent()).includes('לא אושר'), 'אישור שכבר נרשם מוצג כ«לא אושר»');
+  ok(await btn146.count() === 0, 'אחרי «כבר אושרה» חלון התצוגה המקדימה נשאר פתוח');
+  const aud146 = (await api('/audit')).filter(a => a.action === 'approve' && new RegExp(`"reminder": ${seen146.rid}\\b`).test(a.detail ?? ''));
+  ok(aud146.length === 1, `שלב 22: ביומן הביקורת ${aud146.length} אישורים לתזכורת ${seen146.rid}`);
+  ok(hFail.join('|') === `409 POST /reminders/${seen146.rid}/approve`, 'שלב 22: כשלים לא צפויים: ' + hFail.join(' | '));
+  if (out) await h.screenshot({ path: `${out}/live-22-already-approved.png` });
+  await h.unroute('**/reminders/*/approve');
+  console.log('  ✓ אישור חוזר של תזכורת שכבר אושרה: 409 «כבר אושרה», מוצג כ«כבר אושרה קודם», אישור אחד ביומן');
   await h.context().close();
   console.log('  ✓ סשן שפג באמצע עריכת הגדרות: אחרי כניסה מחדש ההקלדה חוזרת, מסומנת כלא שמורה, ונשמרת; מעבר מסך רגיל לא משחזר');
   failPhase = false;

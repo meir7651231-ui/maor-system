@@ -3,7 +3,7 @@ import { useApp } from '../store.tsx';
 import { api, type AmountCheck } from '../api.ts';
 import { fmtMoney } from '../lib/format.ts';
 import { RULES } from '../lib/domain.ts';
-import { diffPatch, explainImportError, explainSettingsError, formDiff, mergeServerForm, restoreDraft, settingsDraft, SOURCE_SYSTEMS, sourceLabel, toForm, validate, type DesignSettings, type PayProvider, type SettingsForm } from '../lib/settings.ts';
+import { diffPatch, explainImportError, explainSettingsError, draftFor, formDiff, mergeServerForm, restoreDraft, settingsDraft, SOURCE_SYSTEMS, sourceLabel, toForm, validate, type DesignSettings, type PayProvider, type SettingsForm } from '../lib/settings.ts';
 import { Button, Card, Field, inputCls } from '../components/ui.tsx';
 import { failPrefix } from '../lib/failure.ts';
 
@@ -14,7 +14,7 @@ const PAY: [PayProvider, string][] = [['greeninvoice', 'חשבונית ירוק�
  * כללי המוצר (3 תזכורות, 08–20, אישור לכל הודעה), הסולם והמחיר — קבועים, מוצגים לקריאה בלבד.
  */
 export function Settings() {
-  const { mode, business, setBusiness, showToast, reload, dataSeq } = useApp();
+  const { mode, business, setBusiness, showToast, reload, dataSeq, me } = useApp();
   const live = mode === 'live';
   const mockForm: SettingsForm = useMemo(() => ({
     business_name: business.name, owner_name: business.ownerName, vat_id: business.vatId, reply_email: business.email,
@@ -39,6 +39,7 @@ export function Settings() {
   // שיצאה לפני שמירה (או לפני בקשה חדשה יותר) לא נכתבת לטופס.
   const cur = useRef({ orig, f }); cur.current = { orig, f };
   const reqSeq = useRef(0);
+  const actor = useRef<string | null>(null); actor.current = me?.actor ?? null;
   const loaded = useRef(false);
   useEffect(() => {
     if (!live) return;
@@ -48,7 +49,10 @@ export function Settings() {
       if (!on || my !== reqSeq.current) return;
       const m = mergeServerForm(cur.current.orig, cur.current.f, toForm(s));
       // הפעלה 145: כניסה מחדש אחרי סשן שפג באמצע עריכה ⇒ מחזירים את מה שהוקלד (עדיין לא שמור)
-      if (!loaded.current && settingsDraft.keep && settingsDraft.value) { m.f = restoreDraft(m.f, settingsDraft.value); setRestored(true); }
+      // הפעלה 146: רק למי שהקליד אותה. נכנס משתמש אחר ⇒ הטיוטה נמחקת ולא מוצגת
+      const mine = loaded.current ? null : draftFor(settingsDraft, actor.current);
+      if (mine) { m.f = restoreDraft(m.f, mine); setRestored(true); }
+      if (!loaded.current && !mine) settingsDraft.value = null;
       settingsDraft.keep = false;
       loaded.current = true; setServer(s); setOrig(m.orig); setF(m.f); setLoadErr(null);
       if (!Object.keys(diffPatch(m.orig, m.f)).length) setSaveErr(null);   // מה שהוקלד כבר בשרת ⇒ הודעת «לא ידוע אם נרשם» מיותרת
@@ -57,7 +61,7 @@ export function Settings() {
   }, [live, dataSeq]);
 
   // הפעלה 145: השדות שנערכו נשמרים בזיכרון הלשונית בלבד, כדי לשרוד סשן שפג. מעבר מסך רגיל מוחק אותם.
-  useEffect(() => { if (live && loaded.current) settingsDraft.value = formDiff(orig, f); }, [live, orig, f]);
+  useEffect(() => { if (live && loaded.current) { settingsDraft.value = formDiff(orig, f); settingsDraft.owner = actor.current; } }, [live, orig, f, me]);
   useEffect(() => () => { if (!settingsDraft.keep) settingsDraft.value = null; }, []);
 
   const errs = validate(f);
