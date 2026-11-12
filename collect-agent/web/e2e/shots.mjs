@@ -57,6 +57,10 @@ try {
 
   await p.goto(base + '#/dashboard');
   await p.getByTestId('mode').filter({ hasText: 'מצב דמו (מוק)' }).waitFor({ timeout: 5000 }); // בלי שרת ⇒ מוק
+  // הפעלה 140: המוק מספר את אותו סיפור כמו ההדגמה של השרת — הלקוח בחו״ל שילם $500, מוצג ליד ה-₪ ולא מחובר אליו
+  ok((await p.getByTestId('chart-other').textContent()).trim() === '· ועוד $500, לא בגרף', 'מוק: שורת «לא בגרף» של הלקוח בדולר חסרה');
+  ok((await p.getByTestId('kpis').textContent()).includes('ועוד $500'), 'מוק: «נגבה» בלי הדולר שנגבה');
+  ok((await p.getByTestId('collection-chart').getAttribute('aria-label')).replace(/[^\d]/g, '') === '124870', 'מוק: הדולר חובר לסה״כ ב-₪ של הגרף');
   await fullShot(p, `${out}/02-dashboard.png`);
   await p.getByRole('button', { name: 'תצוגה ואישור' }).first().click();
   await p.screenshot({ path: `${out}/03-preview-sms.png` });

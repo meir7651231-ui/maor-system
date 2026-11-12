@@ -33,6 +33,25 @@ export function kpis(list: Invoice[], today: string): Kpis {
   };
 }
 
+/** מוק: סיכום לכל מטבע שאינו ₪ — מראה של `app/service.py _other_currency` (הפעלה 140).
+ *  אותו מבנה ואותם כללים כמו `totals.other_currency` בשרת: ממוין לפי קוד המטבע, פתוח/באיחור/בסיכון (60+ יום)/נגבה,
+ *  באגורות שלמות, בלי המרה ובלי חיבור בין מטבעות. אין חשבונית במטבע אחר ⇒ []. */
+export function mockOtherCurrency(list: Invoice[], today: string) {
+  const by = new Map<string, { currency: string; open_invoices: number; open_agorot: number; overdue_agorot: number; at_risk_agorot: number; collected_agorot: number }>();
+  for (const i of list) {
+    if (isIls(i)) continue;
+    const c = i.currency!, ag = Math.round(i.amount * 100);
+    const s = by.get(c) ?? { currency: c, open_invoices: 0, open_agorot: 0, overdue_agorot: 0, at_risk_agorot: 0, collected_agorot: 0 };
+    by.set(c, s);
+    if (!isOpen(i)) { s.collected_agorot += ag; continue; }
+    const late = daysOverdue(i.dueAt, today);
+    s.open_invoices += 1; s.open_agorot += ag;
+    if (late > 0) s.overdue_agorot += ag;
+    if (late > 60) s.at_risk_agorot += ag;
+  }
+  return [...by.keys()].sort().map(c => by.get(c)!);
+}
+
 export function agingBuckets(list: Invoice[], today: string): Record<Aging, number> {
   const r: Record<Aging, number> = { notDue: 0, d0_30: 0, d31_60: 0, d61_90: 0, d90p: 0 };
   for (const i of list.filter(isOpen).filter(isIls)) r[agingOf(daysOverdue(i.dueAt, today))] += i.amount;

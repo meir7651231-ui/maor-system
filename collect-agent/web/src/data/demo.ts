@@ -28,6 +28,8 @@ export const demoCustomers: Customer[] = [
   { id: 'c7', name: 'יעל אברהם – אימון אישי', phone: '0500000007', email: 'client07@example.com', contact: 'יעל אברהם' },
   { id: 'c8', name: 'משרד עו״ד גולן', phone: '0500000008', email: 'client08@example.com', contact: 'נועם גולן' },
   { id: 'c9', name: 'גל שרון', phone: '0500000009', email: 'client09@example.com', contact: 'גל שרון' },
+  // לקוח בחו״ל, מייל בלבד — כמו Studio Abroad בהדגמה של השרת (app/demo_data.py, הפעלה 139)
+  { id: 'c10', name: 'Studio Abroad', email: 'client10@example.com', contact: 'Alex' },
 ];
 
 export const demoInvoices: Invoice[] = [
@@ -54,6 +56,9 @@ export const demoInvoices: Invoice[] = [
   { id: 'i13', number: '2007', customerId: 'c9', amount: 24.9, payUrl: 'https://pay.example/i/2007', issuedAt: '2026-08-01', dueAt: '2026-08-15', status: 'paid', reminders: [] },
   { id: 'i14', number: '2008', customerId: 'c9', amount: 29.9, payUrl: 'https://pay.example/i/2008', issuedAt: '2026-09-01', dueAt: '2026-09-15', status: 'paid', reminders: [] },
   { id: 'i15', number: '2009', customerId: 'c9', amount: 2490, payUrl: 'https://pay.example/i/2009', issuedAt: '2026-10-01', dueAt: '2026-10-15', status: 'open', reminders: [] },
+  // חשבונית בדולר ששולמה אחרי תזכורת במייל ⇒ «ועוד $500» ליד «נגבה» וליד הגרף, בלי המרה ובלי חיבור ל-₪ (הפעלה 140)
+  { id: 'i16', number: '2010', customerId: 'c10', amount: 500, currency: 'USD', payUrl: 'https://pay.example/i/2010', issuedAt: '2026-09-15', dueAt: '2026-10-12', status: 'paid',
+    reminders: [{ at: '2026-10-15', step: 'friendly', channel: 'email', status: 'opened' }] },
 ];
 
 /** נגבה בחודשים האחרונים (₪) — לגרף בדשבורד. */

@@ -21,7 +21,10 @@ function Routed() {
   useEffect(() => { if (r === 'login' && mode === 'live') go('dashboard'); }, [r, mode]);
   // שער 6: שרת חי שדורש אימות ⇒ מסך הכניסה במקום המסך המבוקש (הכתובת נשמרת ⇒ אחרי כניסה חוזרים אליו)
   const page = r === 'landing' ? <Landing /> : r === 'signup' ? <Signup /> : r === 'login' || mode === 'locked' ? <Login /> : (
-    <Shell route={r}>{r === 'dashboard' ? <Dashboard /> : r === 'invoices' ? <Invoices /> : r === 'inbox' ? <Inbox /> : <Settings />}</Shell>
+    // הפעלה 140: עד שיודעים אם יש שרת (mode='loading') לא מציגים את נתוני המוק — בעל עסק מחובר ראה לרגע לקוחות
+    // וסכומים בדויים בכל טעינה. מצב ניטרלי עד שהשרת עונה (חי) או שאין שרת (מוק).
+    <Shell route={r}>{mode === 'loading' ? <div role="status" data-testid="app-loading" className="py-24 text-center text-ink-500">טוען…</div>
+      : r === 'dashboard' ? <Dashboard /> : r === 'invoices' ? <Invoices /> : r === 'inbox' ? <Inbox /> : <Settings />}</Shell>
   );
   return (
     <>

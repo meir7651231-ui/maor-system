@@ -674,3 +674,47 @@ test('הפעלה 137: עמודת «תזכורות» — המועד והערוץ 
   const page = readFileSync(new URL('../src/pages/Invoices.tsx', import.meta.url), 'utf8');
   assert.match(page, /last\.at && <> · אחרונה/);                       // בלי מועד ⇒ בלי «אחרונה»
 });
+
+// הפעלה 140: מצב המוק מספר את אותו סיפור כמו ההדגמה של השרת — לקוח בחו״ל שילם $500, והדולר מוצג ליד ה-₪ ולא מחובר אליו
+import { mockOtherCurrency } from '../src/lib/stats.ts';
+test('מוק: mockOtherCurrency = מראה של _other_currency בשרת (פתוח/באיחור/בסיכון/נגבה, לכל מטבע בנפרד)', () => {
+  const mk = (id: string, amount: number, currency: string | undefined, dueAt: string, status: 'open' | 'paid'): (typeof demoInvoices)[number] =>
+    ({ ...demoInvoices[0], id, amount, dueAt, status, reminders: [], ...(currency ? { currency } : {}) }) as (typeof demoInvoices)[number];
+  const list = [
+    mk('a', 1000, undefined, '2026-10-01', 'open'),      // ₪ ⇒ לא נכנס
+    mk('b', 500, 'USD', '2026-10-12', 'paid'),            // נגבה
+    mk('c', 200.5, 'USD', '2026-11-01', 'open'),          // באיחור 5 ימים
+    mk('d', 300, 'USD', '2026-08-01', 'open'),            // 97 ימים ⇒ גם בסיכון
+    mk('e', 20.5, 'EUR', '2026-12-01', 'open'),           // עוד לא הגיע מועד
+  ];
+  assert.deepEqual(mockOtherCurrency(list, DEMO_TODAY), [
+    { currency: 'EUR', open_invoices: 1, open_agorot: 2050, overdue_agorot: 0, at_risk_agorot: 0, collected_agorot: 0 },
+    { currency: 'USD', open_invoices: 2, open_agorot: 50050, overdue_agorot: 50050, at_risk_agorot: 30000, collected_agorot: 50000 },
+  ]);
+  assert.deepEqual(mockOtherCurrency([list[0]], DEMO_TODAY), []);
+  // בדיוק 60 יום איחור אינו «בסיכון» (השרת: days_overdue > 60)
+  assert.equal(mockOtherCurrency([mk('f', 10, 'USD', '2026-09-07', 'open')], DEMO_TODAY)[0].at_risk_agorot, 0);
+});
+test('מוק: נתוני הדמו כוללים את הלקוח בדולר, ו-$500 לא מחובר לשום סכום ב-₪', () => {
+  const usd = demoInvoices.find(i => i.number === '2010')!;
+  assert.equal(usd.currency, 'USD'); assert.equal(usd.status, 'paid');
+  const cust = demoCustomers.find(c => c.id === usd.customerId)!;
+  assert.ok(cust.email && !cust.phone, 'לקוח בחו״ל: מייל בלבד, כמו בהדגמה של השרת');
+  assert.ok(usd.reminders.every(r => r.channel === 'email'), 'בלי טלפון אין SMS');
+  const oc = mockOtherCurrency(demoInvoices, DEMO_TODAY);
+  assert.deepEqual(oc, [{ currency: 'USD', open_invoices: 0, open_agorot: 0, overdue_agorot: 0, at_risk_agorot: 0, collected_agorot: 50000 }]);
+  assert.equal(plusOther(oc, 'collected_agorot'), 'ועוד $500');
+  assert.equal(plusOther(oc, 'open_agorot'), '');
+  // ה-KPI והגיול ב-₪ לא זזו מהוספת החשבונית בדולר
+  const without = demoInvoices.filter(i => i !== usd);
+  assert.deepEqual(kpis(demoInvoices, DEMO_TODAY), kpis(without, DEMO_TODAY));
+  assert.deepEqual(agingBuckets(demoInvoices, DEMO_TODAY), agingBuckets(without, DEMO_TODAY));
+  const dash = readFileSync(new URL('../src/pages/Dashboard.tsx', import.meta.url), 'utf8');
+  assert.match(dash, /live \? t\?\.other_currency : mockOtherCurrency\(invoices, today\)/);
+});
+test('הפעלה 140: בזמן טעינה (mode=loading) המסכים לא מציגים את נתוני המוק', () => {
+  const app = readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8');
+  assert.match(app, /mode === 'loading' \? <div role="status" data-testid="app-loading"/);
+  // דף הנחיתה, ההרשמה ומסך הכניסה לא ממתינים לשרת
+  assert.match(app, /r === 'landing' \? <Landing \/> : r === 'signup' \? <Signup \/> : r === 'login' \|\| mode === 'locked' \? <Login \/>/);
+});

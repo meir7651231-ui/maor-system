@@ -13,6 +13,8 @@ const TOKEN = randomBytes(32).toString('base64url'); // קוד גישה חד-פ�
 const ROOT = new URL('../..', import.meta.url).pathname;
 // שער 6: עובד דמו אמיתי (מייל+סיסמה+סוד TOTP בקובץ זמני) — כמו demo.sh --check, רק דרך הדפדפן
 const STAFF = { email: 'dana@example.co.il', password: 'demo-pass-12345', secretFile: join(mkdtempSync(join(tmpdir(), 'gabi-e2e-')), 'totp') };
+// הפעלה 140: שרת יתום מהרצה קודמת על אותו פורט (טוקן אחר) גרם לכישלון מבלבל במסך הכניסה ⇒ עוצרים מיד עם הסבר
+try { await globalThis.fetch(`http://127.0.0.1:${PORT}/health`); console.error(`פורט ${PORT} תפוס (שרת מהרצה קודמת?) — עצרו אותו והריצו שוב`); process.exit(1); } catch { /* פנוי */ }
 const srv = spawn('python3', ['-m', 'uvicorn', 'app.main:_lazy_app', '--factory', '--port', String(PORT), '--log-level', 'warning'],
   { cwd: ROOT, env: { ...process.env, DEMO: '1', OWNER_API_TOKEN: TOKEN,
     DEMO_USER_EMAIL: STAFF.email, DEMO_USER_PASSWORD: STAFF.password, DEMO_USER_SECRET_FILE: STAFF.secretFile }, stdio: 'ignore' });
@@ -20,7 +22,19 @@ const srv = spawn('python3', ['-m', 'uvicorn', 'app.main:_lazy_app', '--factory'
 const totpCode = () => execFileSync('python3', ['-c',
   'import sys; from app import totp; from app.demo import DEMO_NOW; print(totp.code_at(open(sys.argv[1]).read().strip(), DEMO_NOW.timestamp()))',
   STAFF.secretFile], { cwd: ROOT }).toString().trim();
+process.on('exit', () => srv.kill());   // גם ביציאה על חריגה שלא נתפסה — לא משאירים שרת על הפורט
 const ok = (c, m) => { if (!c) throw new Error(m); };
+// יירוט תשובה (הזרקה לתשובה האמיתית של השרת). בקשה שעוד באוויר כשהדף מנווט הלאה נסגרת ב«disposed/closed»;
+// בלי התפיסה כאן החריגה עלתה מתוך ה-callback, הפילה את התהליך לפני ה-finally והשאירה שרת יתום (הפעלה 140).
+// כל שגיאה אחרת בתוך היירוט (כולל ok שנכשל) נרשמת ב-errors ומכשילה את הריצה בסוף.
+const routeErrors = [];
+const inject = (pg, pattern, fn) => pg.route(pattern, async route => {
+  try { await fn(route); } catch (e) {
+    if (/disposed|has been closed|Target closed|Route is already handled/i.test(String(e))) return;
+    routeErrors.push('יירוט ' + pattern + ': ' + String(e));
+    try { await route.continue(); } catch { /* הבקשה כבר נסגרה */ }
+  }
+});
 const H = { Authorization: `Bearer ${TOKEN}` };
 const rawFetch = globalThis.fetch;
 const fetch = (u, init = {}) => rawFetch(u, { ...init, headers: { ...H, ...init.headers } }); // fetch של הבדיקה = עם טוקן
@@ -305,7 +319,7 @@ try {
   //     ולכן זו בדיקת ממשק: מזריקים csv_unverified=1 לתשובת /dashboard האמיתית. (הלוגיקה בשרת נבדקת ב-pytest:
   //     test_dashboard_counts_csv_invoices_missing_from_last_import.)
   ok(!(await p.getByTestId('csv-unverified').count()), 'אזהרת CSV מוצגת לפני שיש סיבה');
-  await p.route('**/dashboard', async route => {
+  await inject(p, '**/dashboard', async route => {
     const res = await route.fetch(); const j = await res.json();
     j.totals.csv_unverified = 1;
     await route.fulfill({ response: res, json: j });
@@ -318,7 +332,7 @@ try {
   console.log('  ✓ אזהרת «CSV לא הופיעה בייבוא האחרון» (ממשק)');
   // 7ד) critic סבב 51: block_reason=csv_stale (השרת מחזיר לאישור אחרי 24 ש׳) הוצג «⛔ חסום: csv_stale» עם
   //     כפתור מושבת ⇒ תקוע. מזריקים לתשובת /reminders האמיתית ובודקים תווית «לאשר מחדש» ולא קוד גולמי.
-  await p.route('**/reminders?status=pending_approval*', async route => {
+  await inject(p, '**/reminders?status=pending_approval*', async route => {
     const res = await route.fetch(); const j = await res.json();
     if (j[0]) j[0].block_reason = 'csv_stale';
     await route.fulfill({ response: res, json: j });
@@ -364,7 +378,7 @@ try {
   // critic סבב 53: הניסיון האחרון נקטע (send_unknown) ⇒ «לא ידוע אם יצאה», לא מועד/📱 של תזכורת ישנה.
   //   מזריקים את הצורה שהשרת מחזיר עכשיו (unknown:true, sent_at:null) לתשובת /dashboard האמיתית.
   const unk = sent137[0];
-  await p.route('**/dashboard', async route => {
+  await inject(p, '**/dashboard', async route => {
     const res = await route.fetch(); const j = await res.json();
     for (const r of j.invoices) if (r.invoice_id === unk.invoice_id) r.last_sent = { sent_at: null, channels: [], unknown: true };
     await route.fulfill({ response: res, json: j });
@@ -395,7 +409,7 @@ try {
     `הסה״כ ב-₪ של הגרף («${chartTotal}») אינו ${ils139 / 100} ₪ — אולי הדולר חובר`);
   if (out) await fullShot(p, `${out}/live-01a-chart-other-demo.png`);
   // ועוד: כמה מטבעות בכמה שבועות מסוכמים לכל מטבע בנפרד (אין תרחיש כזה בהדגמה ⇒ מוזרק לתשובה האמיתית)
-  await p.route('**/dashboard', async route => {
+  await inject(p, '**/dashboard', async route => {
     const res = await route.fetch(); const j = await res.json();
     ok(Array.isArray(j.series) && j.series.length > 1, 'ל-/dashboard אין series');
     j.series.at(-1).other = [{ currency: 'USD', collected_agorot: 50000 }];
@@ -506,6 +520,64 @@ try {
   if (out) await fullShot(p, `${out}/live-09-source.png`);
   console.log('  ✓ בורר מקור: iCount נשמר בשרת, סנכרון מול ה-mock, שחזור לחשבונית ירוקה');
 
+  // 10) הפעלה 140 (נשאר מ-135): תזכורת מאוחדת שבה חשבונית מ-CSV **אינה העוגן**. השרת דורש confirm_open כשיש
+  //     חשבונית CSV בכל מקום בתזכורת; לפני 135 הממשק הציג את התיבה רק לפי העוגן ⇒ האישור נדחה בלי דרך לסמן.
+  //     בהדגמה כל לקוחות ה-API מגיעים עם מזהה לקוח, ולכן חשבונית CSV לא מצטרפת אליהם ⇒ מייבאים שתי חשבוניות
+  //     CSV ללקוח אחד (תזכורת מאוחדת אמיתית בשרת) ומזריקים לתשובת /dashboard רק את מקור העוגן ('api').
+  //     כל השאר אמיתי: needs_confirm_open, הסה״כ, ה-409 בלי הסימון וה-confirm_open שנרשם ב-audit.
+  const csv140 = 'מספר חשבונית,שם לקוח,טלפון,סכום,תאריך לתשלום\n9001,לקוח CSV (דמו),050-0000123,500,2026-10-01\n'
+    + '9003,לקוח מאוחד CSV (דמו),050-0000124,300,2026-10-01\n9004,לקוח מאוחד CSV (דמו),050-0000124,500.50,2026-10-03\n';
+  const imp140 = await (await fetch(base + '/settings/source/csv', { method: 'POST', body: csv140, headers: { 'Content-Type': 'text/csv; charset=utf-8' } })).json();
+  ok(imp140.imported >= 2 && !imp140.rejected.length, 'ייבוא ה-CSV של התזכורת המאוחדת: ' + JSON.stringify(imp140));
+  await fetch(base + '/plan', { method: 'POST' });
+  const dash140 = await api('/dashboard');
+  const inv140 = ['9003', '9004'].map(n => dash140.invoices.find(r => r.number === n));
+  ok(inv140.every(r => r && r.source === 'csv'), 'חשבוניות 9003/9004 לא נקלטו כ-CSV');
+  const rem140 = (await api('/reminders?status=pending_approval&view=summary')).find(r => r.invoice_ids.includes(inv140[1].invoice_id));
+  ok(rem140 && rem140.invoice_count === 2 && rem140.invoice_id === inv140[0].invoice_id, 'ציפיתי לתזכורת מאוחדת אחת של 9003+9004 שהעוגן שלה 9003: ' + JSON.stringify(rem140));
+  ok(rem140.total_text === '800.50 ₪', 'סה״כ התזכורת המאוחדת: ' + rem140.total_text);
+  ok((await api(`/reminders/${rem140.id}/preview`)).needs_confirm_open === true, 'השרת לא מסמן needs_confirm_open');
+  // בלי הסימון השרת דוחה (זה מה שבעל העסק היה פוגש אם התיבה לא הייתה מוצגת)
+  const deny140 = await fetch(base + `/reminders/${rem140.id}/approve`, { method: 'POST' });
+  ok([409, 422].includes(deny140.status), `אישור בלי confirm_open עבר בשרת: ${deny140.status}`);
+  await inject(p, '**/dashboard', async route => {
+    const res = await route.fetch(); const j = await res.json();
+    for (const r of j.invoices) if (r.invoice_id === rem140.invoice_id) r.source = 'api';   // העוגן «מה-API»
+    await route.fulfill({ response: res, json: j });
+  });
+  await p.goto(base + '/app/#/dashboard'); await p.reload();
+  const item140 = p.locator('li', { has: p.getByRole('button', { name: 'תצוגה ואישור' }) }).filter({ hasText: 'לקוח מאוחד CSV' });
+  await item140.waitFor();
+  ok((await item140.getByTestId('queue-merged').textContent()).includes('800.50 ₪'), 'התור לא מציג את סה״כ התזכורת המאוחדת');
+  await item140.getByRole('button', { name: 'תצוגה ואישור' }).click();
+  await p.waitForFunction(() => /\/p\/\w+/.test(document.querySelector('textarea')?.value ?? ''));
+  ok((await p.getByTestId('mp-sub').textContent()).includes('2 חשבוניות'), 'התצוגה המקדימה לא מציגה תזכורת מאוחדת');
+  ok(await p.getByTestId('confirm-open').count() === 1, 'תיבת «הסכום עדיין פתוח» לא מוצגת כשחשבונית ה-CSV אינה העוגן');
+  ok((await p.getByTestId('confirm-open').textContent()).includes('800.50 ₪'), 'התיבה מציגה את סכום העוגן ולא את סה״כ התזכורת');
+  const approve140 = p.getByRole('button', { name: /אשר ושלח/ });
+  ok(await approve140.isDisabled(), 'אישור תזכורת מאוחדת עם CSV אפשרי בלי הסימון');
+  if (out) await fullShot(p, `${out}/live-10-merged-csv-not-anchor.png`);
+  await p.getByTestId('confirm-open').locator('input').check();
+  await approve140.click();
+  await p.getByText('לא נשלחה הודעה אמיתית').waitFor();
+  const audit140 = (await api('/audit')).find(a => a.action === 'approve' && new RegExp(`"reminder": ${rem140.id}\\b`).test(a.detail ?? ''));
+  ok(audit140 && /"confirm_open": true/.test(audit140.detail), 'האישור של התזכורת המאוחדת לא נרשם עם confirm_open');
+  await p.unroute('**/dashboard');
+  console.log('  ✓ תזכורת מאוחדת עם CSV שאינו העוגן: התיבה לפי השרת, הסה״כ של כל התזכורת, confirm_open ב-audit');
+
+  // 11) הפעלה 140: בזמן הטעינה מהשרת לא מוצגים נתוני המוק (לקוחות וסכומים בדויים הופיעו לרגע לבעל עסק מחובר).
+  //     מאטים את /health כדי לתפוס את חלון הטעינה: מצב ניטרלי, בלי אף שם לקוח מהמוק ובלי «$500» של המוק.
+  await inject(p, '**/health', async route => { await new Promise(r => setTimeout(r, 1200)); await route.continue(); });
+  await p.goto(base + '/app/#/dashboard'); await p.reload();
+  await p.getByTestId('app-loading').waitFor();
+  ok(await p.getByText('קפה הגפן').count() === 0 && await p.getByTestId('kpis').count() === 0 && await p.getByTestId('chart-other').count() === 0,
+    'נתוני המוק מוצגים בזמן הטעינה מהשרת');
+  await p.getByTestId('mode').filter({ hasText: 'מחובר לשרת גבי' }).waitFor();
+  await p.getByTestId('kpis').waitFor();
+  ok(await p.getByTestId('app-loading').count() === 0 && await p.getByText('קפה הגפן').count() === 0, 'אחרי הטעינה: מצב הטעינה נשאר או שנתוני המוק מוצגים');
+  await p.unroute('**/health');
+  console.log('  ✓ טעינה מהשרת: מצב ניטרלי, בלי הבזק של נתוני המוק');
+
   // מסך הכניסה במובייל (לשונית חדשה בלי סשן ⇒ מסך הכניסה, בלי בקשות שנכשלות)
   const ml = await b.newPage({ viewport: { width: 390, height: 844 } });
   ml.on('pageerror', e => errors.push(String(e)));
@@ -517,6 +589,7 @@ try {
   ok(console429 === allowed429.length, `שגיאות 429 בקונסולה (${console429}) ≠ מאומתות (${allowed429.length})`);
   ok(console401 === allowed401.length, `שגיאות 401 בקונסולה (${console401}) ≠ 401 מאומתים (${allowed401.length})`);
   ok(console409 === allowed409.length, `שגיאות 409/422 בקונסולה (${console409}) ≠ מאומתות (${allowed409.length})`);
+  errors.push(...routeErrors);
   if (errors.length) throw new Error('שגיאות:\n' + errors.join('\n'));
   console.log(`✓ דמו חי מקצה לקצה עבר · שגיאות צפויות שאומתו: ${allowed409.join(' | ')} · 0 שגיאות אחרות`);
 } finally { await b.close(); srv.kill(); }

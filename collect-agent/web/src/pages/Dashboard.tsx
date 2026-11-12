@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useApp } from '../store.tsx';
-import { agingBuckets, kpis } from '../lib/stats.ts';
+import { agingBuckets, kpis, mockOtherCurrency } from '../lib/stats.ts';
 import { AGING_LABEL, daysOverdue, fmtIls, fmtMoney, plusOther, ratioHalfUp, type Aging } from '../lib/format.ts';
 import { STEP_LABEL, nextStep } from '../lib/message.ts';
 import { demoCollectedByMonth } from '../data/demo.ts';
@@ -26,7 +26,8 @@ export function Dashboard() {
   // מוק: באגורות שלמות ובאותו עיגול כמו השרת (ratio_half_up) — 24.90 ₪ בשקלים צפים היה נותן 12.4999…
   const collectedAg = Math.round(collected * 100);
   const recovery = t?.recovery_rate_pct ?? ratioHalfUp(collectedAg, collectedAg + Math.round(k.openTotal * 100), 100);
-  const oc = t?.other_currency;
+  // מוק: אותו סיכום שהשרת מחזיר ב-totals.other_currency, מחושב מנתוני הדמו (הפעלה 140)
+  const oc = live ? t?.other_currency : mockOtherCurrency(invoices, today);
   const sub = (base: string, field: 'open_agorot' | 'overdue_agorot' | 'at_risk_agorot' | 'collected_agorot') => [base, plusOther(oc, field)].filter(Boolean).join(' · ');
   const [open, setOpen] = useState<Invoice | null>(null);
 
@@ -60,7 +61,7 @@ export function Dashboard() {
         <Kpi label="שיעור מענה" value={`${t?.reply_rate_pct ?? 0}%`} sub={live ? `${t?.customers_messaged ?? 0} לקוחות קיבלו הודעה` : 'לקוחות שהשיבו'} />
       </section>
 
-      <CollectionChart bars={bars} live={live} cum={cumulative(bars)} other={live && series ? plusOther(otherInSeries(series), 'collected_agorot') : ''} />
+      <CollectionChart bars={bars} live={live} cum={cumulative(bars)} other={live ? (series ? plusOther(otherInSeries(series), 'collected_agorot') : '') : plusOther(oc, 'collected_agorot')} />
 
       <div className="grid lg:grid-cols-[1.5fr_1fr] gap-6 items-start">
         <Card className="p-5">
