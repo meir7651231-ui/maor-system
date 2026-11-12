@@ -115,6 +115,10 @@ const $=s=>document.querySelector(s);
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const money=a=>(a/100).toLocaleString("he-IL",{minimumFractionDigits:a%100?2:0,maximumFractionDigits:2})+" ₪";
 // מטבע שאינו ₪ ⇒ כמו templates.fmt_amount בשרת ($500, CHF 1,234.50); לא מציגים דולר כשקל
+// הפעלה 138: מועד וערוצים של התזכורת האחרונה ש*יצאה* (last_sent מהשרת, לפי יומן היוצאים), לא של הטיוטה שבתור
+const lastSent=x=>{const s=x.last_sent;if(!s)return"";const [,m,d]=(s.sent_at||"").slice(0,10).split("-").map(Number);
+  const ch=(s.channels||[]).map(c=>({sms:"📱",email:"✉️"}[c]||"")).join("");
+  return (d&&m?` · אחרונה ${d}.${m}`:"")+(ch?" "+ch:"")};
 const fmtCur=(a,c)=>{if(!c||c==="ILS")return money(a);const s={USD:"$",EUR:"€",GBP:"£"}[c]||c+" ";
   return s+Math.floor(a/100).toLocaleString("en-US")+(a%100?"."+String(a%100).padStart(2,"0"):"")};
 // טוקן בעל העסק: נשמר רק ב-sessionStorage (נמחק בסגירת הלשונית), נשלח כ-Bearer
@@ -146,7 +150,7 @@ async function loadDash(){
       ?` <button class="resume" data-cid="${x.customer_id}" title="בדקתם והתשלום לא התקבל? התזכורות ללקוח יחודשו">↻ חידוש תזכורות</button>`:""}</td><td>${esc(x.number)}</td>
     <td class="num">${esc(fmtCur(x.amount_agorot,x.currency))}</td><td>${esc(x.due||"")}</td>
     <td class="${x.days_overdue>0?"late":""}">${x.days_overdue>0?x.days_overdue+" ימים":"—"}</td>
-    <td class="num">${x.reminders_sent}</td><td><span class="chip ${L&&L.status==="pending_approval"?"pending":""}">${esc(st)}</span></td></tr>`}).join("");
+    <td class="num sent">${x.reminders_sent}${esc(lastSent(x))}</td><td><span class="chip ${L&&L.status==="pending_approval"?"pending":""}">${esc(st)}</span></td></tr>`}).join("");
 }
 // חידוש ללקוח מושהה (למשל אחרי «שילמתי» שלא אומת): לחיצה ראשונה מחמשת, השנייה מבצעת
 $("#debts").addEventListener("click",async e=>{const b=e.target.closest("button.resume");if(!b)return;

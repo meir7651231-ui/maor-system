@@ -94,3 +94,16 @@ def test_web_reads_last_sent_and_not_the_pending_step():
     assert "(r.last_reminder?.sent_at ?? d.today)" not in API
     assert "last.channel === 'sms' ? '📱' : '✉️'" not in PAGE
     assert "sentChannels" in PAGE
+
+
+def test_simple_ui_shows_last_sent_not_queued_draft():
+    """הפעלה 138: גם /ui (app/ui.html) מציג מועד וערוץ של מה שיצא, מתוך last_sent ולא מתוך last_reminder.
+
+    מגן-מקור: עמודת «תזכורות שנשלחו» קוראת את last_sent, ואין בקובץ קריאה ל-sent_at של last_reminder
+    (שהוא השלב הגבוה ביותר, גם כשהוא טיוטה בתור). ההתנהגות עצמה נבדקת בדפדפן ב-web/e2e/ui.mjs.
+    """
+    from pathlib import Path
+    ui = (Path(__file__).resolve().parent.parent / "app/ui.html").read_text(encoding="utf-8")
+    assert "const lastSent=x=>{const s=x.last_sent;" in ui
+    assert '<td class="num sent">${x.reminders_sent}${esc(lastSent(x))}</td>' in ui
+    assert "L.sent_at" not in ui and "last_reminder.sent_at" not in ui

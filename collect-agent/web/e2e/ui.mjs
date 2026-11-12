@@ -15,6 +15,7 @@ const ok = (c, m) => { if (!c) throw new Error(m); };
 const H = { Authorization: `Bearer ${TOKEN}` };
 for (let i = 0; i < 80; i++) { try { if ((await fetch(base + '/health')).ok) break; } catch { /* עוד עולה */ } await new Promise(r => setTimeout(r, 250)); }
 const errors = [];
+let mocked138 = [];
 const b = await chromium.launch();
 try {
   const ctx = await b.newContext();
@@ -53,6 +54,17 @@ try {
   await p.locator('#ok').waitFor();
   ok(await p.locator('#ok').isEnabled() && await p.locator('.confirm').count() === 0, 'תזכורת רגילה: תיבה מיותרת או כפתור נעול');
   if (out) await p.screenshot({ path: `${out}/ui-02-regular.png`, fullPage: true });
+  // הפעלה 138: עמודת «תזכורות שנשלחו» ב-/ui — מועד וערוצים של מה שיצא בפועל (last_sent), מול ה-API האמיתי
+  await p.reload(); await p.locator('#debts tr').first().waitFor();
+  const dash138 = await (await fetch(base + '/dashboard', { headers: H })).json();
+  for (const r of dash138.invoices) {
+    const cell = (await p.locator('#debts tr', { hasText: r.number }).first().locator('td.sent').textContent()) ?? '';
+    const ls = r.last_sent;
+    if (!ls) { ok(!cell.includes('אחרונה') && !/📱|✉️/.test(cell), `חשבונית ${r.number}: «${cell}» מציג שליחה שלא הייתה`); continue; }
+    const [, m, d] = (ls.sent_at ?? '').slice(0, 10).split('-').map(Number);
+    ok(!ls.sent_at || cell.includes(`אחרונה ${d}.${m}`), `חשבונית ${r.number}: «${cell}» בלי מועד השליחה ${ls.sent_at}`);
+    ok(cell.includes('📱') === ls.channels.includes('sms') && cell.includes('✉️') === ls.channels.includes('email'), `חשבונית ${r.number}: «${cell}» לא תואם לערוצים ${ls.channels}`);
+  }
   // critic סבב 52: טבלת החובות הציגה קוד גולמי — סטטוס send_unknown וסיבת השהיה «promise:until=…» / «deceased».
   //   מזריקים לתשובת /dashboard האמיתית (המצבים נדירים בדמו) ובודקים נוסח בעברית.
   await p.route('**/dashboard', async route => {
@@ -61,6 +73,11 @@ try {
     if (open[0]) { open[0].customer_block = null; open[0].last_reminder = { ...(open[0].last_reminder ?? { id: 1, step: 1, template_key: 'x', sent_at: null, invoice_ids: [] }), status: 'send_unknown', block_reason: null }; }
     if (open[1]) open[1].customer_block = 'promise:until=2026-11-20';
     if (open[2]) open[2].customer_block = 'deceased';
+    // הפעלה 138: שלב 2 בתור (sent_at ריק) אחרי ששלב 1 יצא במייל בלבד; ושליחה שנקטעה בלי מועד
+    if (open[3]) Object.assign(open[3], { customer_block: null, reminders_sent: 1, last_sent: { sent_at: '2026-10-28T09:00:00+00:00', channels: ['email'] },
+      last_reminder: { id: 2, step: 2, template_key: 'x', sent_at: null, invoice_ids: [], status: 'pending_approval', block_reason: null } });
+    if (open[4]) Object.assign(open[4], { reminders_sent: 1, last_sent: { sent_at: null, channels: [] } });
+    mocked138 = [open[3]?.number, open[4]?.number];
     await route.fulfill({ response: res, json: j });
   });
   await p.goto(base + '/ui'); await p.locator('#debts tr').first().waitFor();
@@ -68,8 +85,13 @@ try {
   for (const raw of ['send_unknown', 'promise', 'deceased', ':until='])
     ok(!debts.includes(raw), `טבלת החובות מציגה קוד גולמי: ${raw}`);
   ok(/השליחה נקטעה באמצע/.test(debts) && /הבטיח\/ה לשלם · עד 20\.11\.2026/.test(debts) && /סימנתם: נפטר\/ה/.test(debts), 'נוסחי הסטטוס/השהיה חסרים');
+  const sentCell = async n => (await p.locator('#debts tr', { hasText: n }).first().locator('td.sent').textContent()) ?? '';
+  ok(mocked138[0] && mocked138[1], 'בהדגמה פחות מ-5 חשבוניות פתוחות');
+  const c3 = await sentCell(mocked138[0]), c4 = await sentCell(mocked138[1]);
+  ok(c3.includes('אחרונה 28.10') && c3.includes('✉️') && !c3.includes('📱'), `שלב 2 בתור: «${c3}» במקום «1 · אחרונה 28.10 ✉️»`);
+  ok(c4.trim() === '1', `שליחה שנקטעה בלי מועד: «${c4}» במקום הספירה בלבד`);
   if (out) await p.screenshot({ path: `${out}/ui-03-status-pause.png`, fullPage: true });
   await p.unroute('**/dashboard');
   ok(errors.length === 0, 'שגיאות:\n' + errors.join('\n'));
-  console.log('✓ /ui: סכום חריג מאושר רק אחרי סימון מפורש · תזכורת רגילה ללא שינוי · סטטוס/השהיה בעברית');
+  console.log('✓ /ui: סכום חריג מאושר רק אחרי סימון מפורש · תזכורת רגילה ללא שינוי · סטטוס/השהיה בעברית · מועד וערוץ השליחה לפי last_sent');
 } finally { await b.close(); srv.kill(); }

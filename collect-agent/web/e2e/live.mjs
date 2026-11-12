@@ -362,6 +362,27 @@ try {
   }
   console.log(`  ✓ עמוד החשבוניות: מועד וערוץ השליחה לפי last_sent (${sent137.length} שורות)`);
 
+  // הפעלה 138 (נשאר מ-134): גבייה שאינה ב-₪ מוצגת ליד הגרף («$500, לא בגרף») ולא מחוברת לסה״כ ב-₪.
+  //   בהדגמה אין גבייה בדולר, לכן מזריקים אותה לתשובת /dashboard האמיתית (שבוע אחרון) ובודקים בדפדפן.
+  await p.goto(base + '/app/#/dashboard'); await p.getByTestId('collection-chart').waitFor();
+  ok(await p.getByTestId('chart-other').count() === 0, 'שורת «לא בגרף» מופיעה בלי גבייה במטבע אחר');
+  const chartTotal = await p.getByTestId('collection-chart').getAttribute('aria-label');
+  await p.route('**/dashboard', async route => {
+    const res = await route.fetch(); const j = await res.json();
+    ok(Array.isArray(j.series) && j.series.length > 1, 'ל-/dashboard אין series');
+    j.series.at(-1).other = [{ currency: 'USD', collected_agorot: 50000 }];
+    j.series[0].other = [{ currency: 'EUR', collected_agorot: 12050 }, { currency: 'USD', collected_agorot: 25000 }];
+    await route.fulfill({ response: res, json: j });
+  });
+  await p.reload(); await p.getByTestId('chart-other').waitFor();
+  const other138 = await p.getByTestId('chart-other').textContent();
+  ok(other138.includes('$750') && other138.includes('€120.50') && other138.includes('לא בגרף'), `שורת «לא בגרף»: «${other138}»`);
+  ok(await p.getByTestId('collection-chart').getAttribute('aria-label') === chartTotal, 'גבייה במטבע אחר חוברה לסה״כ ב-₪ של הגרף');
+  await noHScroll(p, 'דשבורד עם גבייה במטבע אחר');
+  if (out) await fullShot(p, `${out}/live-01b-chart-other.png`);
+  await p.unroute('**/dashboard');
+  console.log('  ✓ גרף הגבייה: גבייה שאינה ב-₪ מוצגת בנפרד («לא בגרף»), הסה״כ ב-₪ לא משתנה');
+
   // v2 · דף נחיתה: כותרת + מחשבון שווי הזמן (בלי הבטחת תשואה — הכרעת מאיר 6.11)
   await p.goto(base + '/app/');
   ok((await p.getByTestId('hero-title').textContent()).includes('הכסף שלך חוזר'), 'כותרת v2 חסרה');
