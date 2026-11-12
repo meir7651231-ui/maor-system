@@ -45,8 +45,9 @@ function Routed() {
   return (
     <>
       {page}
-      <div aria-live="polite" className="fixed bottom-5 inset-x-0 flex justify-center pointer-events-none z-50 px-4">
-        {toast && <div className="bg-ink-900 text-white rounded-xl px-5 py-3 shadow-pop font-medium">{toast}</div>}
+      {/* הפעלה 145: בהגדרות ה-toast כיסה את שורת השגיאה בסרגל השמירה הדביק שבתחתית ⇒ שם הוא מוצג למעלה */}
+      <div aria-live="polite" className={`fixed ${r === 'settings' ? 'top-5' : 'bottom-5'} inset-x-0 flex justify-center pointer-events-none z-50 px-4`}>
+        {toast && <div data-testid="toast" className="bg-ink-900 text-white rounded-xl px-5 py-3 shadow-pop font-medium">{toast}</div>}
       </div>
     </>
   );

@@ -44,6 +44,24 @@ export function mergeServerForm(orig: SettingsForm, f: SettingsForm, server: Set
   return { orig: server, f: out as unknown as SettingsForm };
 }
 
+/** הפעלה 145: 401 באמצע עריכת ההגדרות מעביר למסך הכניסה, ומה שהוקלד אבד. עכשיו השדות שנערכו נשמרים
+ *  בזיכרון הלשונית בלבד (לא ב-storage, נעלמים ברענון הדף) ומוחזרים לטופס אחרי כניסה מחדש.
+ *  keep נדלק רק כשהסשן פג (store.dropSession עם הסבר); יציאה יזומה או מעבר מסך רגיל מוחקים את הטיוטה. */
+export const settingsDraft: { value: Partial<SettingsForm> | null; keep: boolean } = { value: null, keep: false };
+const FORM_KEYS = ['business_name', 'owner_name', 'vat_id', 'reply_email', 'sender', 'pay_provider', 'pay_url', 'source_system'] as const;
+/** השדות שהמשתמש שינה מול המקור; null כשאין שינוי. טהור. */
+export function formDiff(orig: SettingsForm, f: SettingsForm): Partial<SettingsForm> | null {
+  const out: Record<string, unknown> = {};
+  for (const k of FORM_KEYS) if (f[k] !== orig[k]) out[k] = f[k];
+  return Object.keys(out).length ? out as Partial<SettingsForm> : null;
+}
+/** טופס השרת + השדות מהטיוטה. רק מפתחות מוכרים עם ערך מחרוזת; המקור נשאר השרת ⇒ השדות מסומנים כלא שמורים. טהור. */
+export function restoreDraft(server: SettingsForm, draft: Partial<SettingsForm> | null): SettingsForm {
+  const out: Record<string, unknown> = { ...server };
+  for (const k of FORM_KEYS) { const v = draft?.[k]; if (typeof v === 'string') out[k] = v; }
+  return out as unknown as SettingsForm;
+}
+
 /** רק מה שהשתנה — PUT חלקי. שדות קבועים (rules/cadence/pricing) לעולם לא נשלחים.
  *  ממקור החשבוניות נשלחת רק הבחירה (`source.system`) ורק כשהשתנתה — לעולם לא מפתח/סוד. */
 export function diffPatch(a: SettingsForm, b: SettingsForm): Record<string, unknown> {

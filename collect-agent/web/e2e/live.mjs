@@ -755,6 +755,9 @@ try {
   h.on('request', r => { if (r.method() === 'PUT' && r.url() === base + '/settings') putBody = r.postDataJSON(); });
   await h.getByTestId('settings-save').click();
   await h.getByText('✓ נשמר בשרת').waitFor();
+  // הפעלה 145: בהגדרות ה-toast לא מכסה את סרגל השמירה (שם מוצגת שורת השגיאה)
+  const tb = await h.getByTestId('toast').boundingBox(), sb = await h.getByTestId('settings-save').locator('..').boundingBox();
+  ok(tb && sb && (tb.y + tb.height <= sb.y || tb.y >= sb.y + sb.height), 'ה-toast מכסה את סרגל השמירה בהגדרות: ' + JSON.stringify([tb, sb]));
   ok(JSON.stringify(putBody) === JSON.stringify({ reply_email: 'office@example.co.il' }), 'השמירה שלחה יותר ממה שהמשתמש שינה: ' + JSON.stringify(putBody));
   const s18 = await api('/settings');
   ok(s18.owner_name === signBefore && s18.reply_email === 'office@example.co.il', 'מצב השרת אחרי שלב 18: ' + JSON.stringify(s18));
@@ -773,8 +776,40 @@ try {
   ok((await api('/settings')).owner_name === signBefore, 'שמירה שנדחתה ב-401 שינתה את השרת');
   ok(hFail.join('|') === '401 PUT /settings', 'שלב 19: כשלים לא צפויים: ' + hFail.join(' | '));
   if (out) await h.screenshot({ path: `${out}/live-19-auth-lost.png` });
-  await h.context().close();
   console.log('  ✓ 401 באמצע פעולה: מיד מסך הכניסה עם «תוקף הכניסה פג», הסשן נמחק, אין נתונים על המסך');
+
+  // 20) הפעלה 145: אחרי 401 באמצע עריכת ההגדרות מה שהוקלד אבד. עכשיו: אחרי כניסה מחדש השדה שנערך חוזר לטופס
+  //     (מזיכרון הלשונית בלבד, לא מ-storage), מסומן כלא שמור, והשמירה שולחת רק אותו.
+  hFail.length = 0;
+  await h.unroute('**/settings');
+  ok(await h.evaluate(() => Object.keys(sessionStorage).length + Object.keys(localStorage).length) === 0, 'הטיוטה נשמרה ב-storage של הדפדפן');
+  await h.unroute('**/auth/login');
+  await inject(h, '**/auth/login', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ token: TOKEN }) }));
+  await h.getByLabel('מייל').fill(STAFF.email);
+  await h.getByLabel('סיסמה', { exact: true }).fill(STAFF.password);
+  await h.getByLabel('קוד אימות').fill('123456');
+  await h.getByTestId('staff-login').getByRole('button', { name: 'כניסה' }).click();
+  if (!h.url().endsWith('#/settings')) { await h.getByTestId('staff-login').waitFor({ state: 'detached' }); await h.goto(base + '/app/#/settings'); }
+  await h.getByTestId('settings-dirty').filter({ hasText: 'החזרנו את מה שהקלדתם' }).waitFor();
+  ok(await h.getByLabel('שם לחתימה').inputValue() === 'אחרי שפג', 'אחרי כניסה מחדש מה שהוקלד בהגדרות לא חזר');
+  ok(await h.getByLabel('מייל לתשובות לקוחות').inputValue() === 'office@example.co.il', 'שדה שלא נערך לא מציג את ערך השרת');
+  ok(await h.getByTestId('settings-save').isEnabled(), 'אחרי השחזור «שמירה» כבויה');
+  if (out) await h.screenshot({ path: `${out}/live-20-draft-restored.png` });
+  putBody = null;
+  await h.getByTestId('settings-save').click();
+  await h.getByText('✓ נשמר בשרת').waitFor();
+  ok(JSON.stringify(putBody) === JSON.stringify({ owner_name: 'אחרי שפג' }), 'שמירה אחרי שחזור שלחה: ' + JSON.stringify(putBody));
+  ok((await api('/settings')).owner_name === 'אחרי שפג', 'השמירה אחרי השחזור לא נרשמה בשרת');
+  // מעבר מסך רגיל (בלי סשן שפג) לא משחזר עריכה שננטשה
+  await h.getByLabel('שם לחתימה').fill('ננטש');
+  await h.goto(base + '/app/#/dashboard'); await h.goto(base + '/app/#/settings');
+  await h.getByTestId('settings-save').waitFor();
+  for (let i = 0; i < 50 && await h.getByLabel('שם לחתימה').inputValue() !== 'אחרי שפג'; i++) await h.waitForTimeout(100);
+  ok(await h.getByLabel('שם לחתימה').inputValue() === 'אחרי שפג' && await h.getByTestId('settings-dirty').count() === 0, 'עריכה שננטשה במעבר מסך שוחזרה');
+  ok((await fetch(base + '/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ owner_name: signBefore }) })).ok, 'החזרת ההגדרות למצב הקודם נכשלה');
+  ok(hFail.length === 0, 'שלב 20: כשלים לא צפויים: ' + hFail.join(' | '));
+  await h.context().close();
+  console.log('  ✓ סשן שפג באמצע עריכת הגדרות: אחרי כניסה מחדש ההקלדה חוזרת, מסומנת כלא שמורה, ונשמרת; מעבר מסך רגיל לא משחזר');
   failPhase = false;
   ok(consoleFail >= 4, `שגיאות הקונסולה של הכשל המכוון לא נספרו (${consoleFail})`);
 

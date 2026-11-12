@@ -133,10 +133,84 @@ try {
   await p.locator('#pvRetry').click();
   await p.locator('#detail h2').first().waitFor();
   ok(await p.locator('#pverr').count() === 0 && pvFailed === 1, `«נסו שוב» בתצוגה המקדימה לא טען אותה (${pvFailed})`);
+  // הפעלה 145: /ui מקבל את ההתנהגות של /app/ מהפעלה 144.
+  const dialogs = []; let answer = null;
+  p.on('dialog', d => { dialogs.push(`${d.type()}: ${d.message()}`); return d.type() === 'prompt' && answer ? d.accept(answer) : d.dismiss(); });
+  const wunk = p.locator('#wunk');
+  ok(await wunk.isHidden() && await p.locator('#locked').isHidden(), 'פס «לא ידוע» או פס הכניסה מוצגים בלי סיבה');
+  // (א) כתיבה שלא הגיעה לשרת (רשת): «לא ידוע אם הפעולה נרשמה», בלי alert ובלי «נסו שוב»; אחרי הרענון האוטומטי הנוסח מתעדכן
+  await inject(p, '**/plan', route => route.abort('failed'));
+  await p.locator('#btnPlan').click();
+  await wunk.waitFor({ state: 'visible' });
+  await p.locator('#wunkMsg', { hasText: 'הנתונים התרעננו עכשיו' }).waitFor();
+  ok(dialogs.length === 0, 'כתיבה שנקטעה פתחה חלון: ' + dialogs.join(' | '));
+  await p.unroute('**/plan');
+  await p.locator('#btnWunk').click();
+  ok(await wunk.isHidden(), '«הבנתי» לא סגר את ההודעה');
+  // (ב) אישור שהגיע לשרת ונרשם, והתשובה אבדה: ההודעה «לא ידוע אם נרשמה», בלי «נסו שוב», והמסך מתרענן ומראה «מאושרת»
+  await p.locator('#list .item', { has: p.locator('.chip.pending') }).first().click();
+  await p.locator('#ok').waitFor();
+  for (const c of await p.locator('.confirm input').all()) await c.check();
+  let approvedId = 0;
+  await inject(p, '**/reminders/*/approve', async route => {
+    const res = await route.fetch(); ok(res.ok(), 'האישור נדחה בשרת: ' + res.status());
+    approvedId = Number(route.request().url().match(/reminders\/(\d+)\/approve/)[1]);
+    await route.abort('failed');
+  });
+  let seenUnknown = '';
+  await p.exposeFunction('__seen145', t => { if (!seenUnknown) seenUnknown = t; });
+  await p.evaluate(() => new MutationObserver(() => { const w = document.querySelector('#wunk'); if (!w.hidden) window.__seen145(w.textContent); })
+    .observe(document.querySelector('#wunk'), { attributes: true, childList: true, subtree: true, characterData: true }));
+  await p.locator('#ok').click();
+  await p.locator('#wunkMsg', { hasText: 'הנתונים התרעננו עכשיו' }).waitFor();
+  ok(seenUnknown.includes('אין חיבור לשרת גבי. לא ידוע אם הפעולה נרשמה') && !seenUnknown.includes('נסו שוב'), `הודעת כתיבה שנקטעה: «${seenUnknown}»`);
+  ok(dialogs.length === 0, 'אישור שנקטע פתח חלון: ' + dialogs.join(' | '));
+  await p.unroute('**/reminders/*/approve');
+  const st145 = (await (await fetch(base + '/reminders?view=summary', { headers: H })).json()).find(r => r.id === approvedId);
+  ok(st145 && st145.status !== 'pending_approval', 'האישור לא נרשם בשרת (הבדיקה לא משחזרת תשובה שאבדה)');
+  ok(!/ממתינה לאישורך/.test(await p.locator(`#list .item[data-id="${approvedId}"] .chip`).textContent()), 'אחרי הרענון האוטומטי התור עדיין מציג «ממתינה לאישורך»');
+  await p.locator('#btnWunk').click();
+  // (ג) נתונים לא עדכניים ⇒ רענון אוטומטי: אחרי כ-2 שניות בלי לחיצה, ומיד באירוע online
+  const before145 = errors.length;
+  let down = true;
+  await inject(p, '**/dashboard', route => down ? route.fulfill({ status: 503, contentType: 'application/json', body: '{"detail":"down"}' }) : route.continue());
+  await p.evaluate(() => { load(false); });
+  await p.locator('#loaderr').waitFor({ state: 'visible' });
+  down = false;
+  await p.locator('#loaderr').waitFor({ state: 'hidden', timeout: 6000 });   // בלי לחיצה על «נסו שוב»
+  down = true;
+  await p.evaluate(() => { load(false); });
+  await p.locator('#loaderr').waitFor({ state: 'visible' });
+  await p.waitForTimeout(2600);                                             // הניסיון של 2 שניות נכשל ⇒ הבא רק בעוד 4
+  ok(await p.locator('#loaderr').isVisible(), 'הפס נעלם כשהשרת עדיין למטה');
+  down = false;
+  await p.evaluate(() => window.dispatchEvent(new Event('online')));
+  await p.locator('#loaderr').waitFor({ state: 'hidden', timeout: 1500 });   // מיד, לא אחרי 4 שניות
+  await p.unroute('**/dashboard');
+  // (ד) 401 באמצע פעולה, והמשתמש לא מזין קוד חדש ⇒ הנתונים יורדים מהמסך, הטוקן נמחק, פס כניסה. בלי alert.
+  await inject(p, '**/dispatch', route => route.fulfill({ status: 401, contentType: 'application/json', body: '{"detail":"unauthorized"}' }));
+  await p.locator('#btnDispatch').click();
+  await p.locator('#locked').waitFor({ state: 'visible' });
+  ok(/תוקף הכניסה פג/.test(await p.locator('#lockMsg').textContent()), 'פס הכניסה בלי «תוקף הכניסה פג»');
+  ok(await p.locator('#debts tr').count() === 0 && await p.locator('#list .item').count() === 0 && await p.locator('#kpis .kpi').count() === 0
+    && await p.locator('#ok').count() === 0, 'אחרי 401 נשארו נתוני חייבים על המסך');
+  ok(await p.evaluate(() => sessionStorage.getItem('gabi_owner_token')) === null, 'אחרי 401 הטוקן נשאר בלשונית');
+  ok(dialogs.length === 1 && dialogs[0].startsWith('prompt'), 'אחרי 401 ציפינו לחלון קוד גישה אחד בלבד: ' + dialogs.join(' | '));
+  if (out) await p.screenshot({ path: `${out}/ui-06-auth-lost.png`, fullPage: true });
+  await p.unroute('**/dispatch');
+  await p.waitForTimeout(2500);
+  ok(await p.locator('#debts tr').count() === 0 && dialogs.length === 1, 'מסך נעול שלח רענון אוטומטי או פתח חלון');
+  // כניסה מחדש: חלון אחד (לא אחד לכל בקשה מקבילה), הנתונים חוזרים
+  answer = TOKEN;
+  await p.locator('#btnLogin').click();
+  await p.locator('#debts tr').first().waitFor();
+  await p.locator('#list .item').first().waitFor();
+  ok(await p.locator('#locked').isHidden() && dialogs.length === 2, 'כניסה מחדש: הפס נשאר או שנפתח יותר מחלון אחד: ' + dialogs.join(' | '));
+  errors.push(...errors.splice(before145).filter(e => !/^503 .*\/dashboard$/.test(e) && !/^401 .*\/(dispatch|dashboard|reminders)$/.test(e)));
   // ה-503 המוזרקים נרשמו כשגיאות תגובה: מסירים רק אותם, כל שגיאה אחרת נשארת
   const mine = errors.splice(before).filter(e => !/^503 .*\/(dashboard|reminders)$/.test(e) && !/^502 .*\/reminders\/\d+\/preview$/.test(e));
   errors.push(...mine);
   errors.push(...routeErrors);
   ok(errors.length === 0, 'שגיאות:\n' + errors.join('\n'));
-  console.log('✓ /ui: סכום חריג מאושר רק אחרי סימון מפורש · תזכורת רגילה ללא שינוי · סטטוס/השהיה בעברית · מועד וערוץ השליחה לפי last_sent · כשל טעינה ⇒ פס שגיאה ו«נסו שוב»');
+  console.log('✓ /ui: סכום חריג מאושר רק אחרי סימון מפורש · תזכורת רגילה ללא שינוי · סטטוס/השהיה בעברית · מועד וערוץ השליחה לפי last_sent · כשל טעינה ⇒ פס שגיאה ו«נסו שוב» · כתיבה שנקטעה ⇒ «לא ידוע אם נרשמה» + רענון אוטומטי · 401 ⇒ מסך נעול');
 } finally { await b.close(); srv.kill(); }

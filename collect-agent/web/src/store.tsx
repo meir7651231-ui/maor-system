@@ -10,6 +10,7 @@ const sessionStore = () => { try { return sessionStorage; } catch { return undef
 import type { WeekPoint } from './lib/series.ts';
 import { systemNotices, type Notice } from './lib/notices.ts';
 import { retryDelayMs } from './lib/failure.ts';
+import { settingsDraft } from './lib/settings.ts';
 
 /** locked = שרת חי שדורש קוד גישה (401) — לא נופלים למוק בשקט.
  *  error = יש שרת (או שיש בלשונית כניסה שמורה) אבל הטעינה נכשלה — מסך שגיאה עם «נסו שוב», לא נתוני מוק. */
@@ -88,6 +89,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   /** מנקה את הסשן ואת המידע האישי מהזיכרון (יציאה / סשן שפג) ⇒ מסך הכניסה. */
   const dropSession = useCallback((note: string | null) => {
     try { sessionStorage.removeItem(TOKEN_KEY); } catch { /* פרטי/חסום */ }
+    // הפעלה 145: סשן שפג ⇒ מה שהוקלד בהגדרות נשמר בזיכרון ויוחזר אחרי כניסה; יציאה יזומה מוחקת אותו
+    if (note) settingsDraft.keep = settingsDraft.value !== null; else { settingsDraft.value = null; settingsDraft.keep = false; }
     setMe(null); setCustomers([]); setInvoices([]); setPendingBy(new Map()); setMergedBy(new Map()); setTotals(null); setSeries(null);
     setOutbox([]); setPlans([]); setDrafts([]); setNotices([]);
     setAuthNote(note); setStale(false); setMode('locked');

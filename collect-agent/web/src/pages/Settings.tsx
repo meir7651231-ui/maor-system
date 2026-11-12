@@ -3,7 +3,7 @@ import { useApp } from '../store.tsx';
 import { api, type AmountCheck } from '../api.ts';
 import { fmtMoney } from '../lib/format.ts';
 import { RULES } from '../lib/domain.ts';
-import { diffPatch, explainImportError, explainSettingsError, mergeServerForm, SOURCE_SYSTEMS, sourceLabel, toForm, validate, type DesignSettings, type PayProvider, type SettingsForm } from '../lib/settings.ts';
+import { diffPatch, explainImportError, explainSettingsError, formDiff, mergeServerForm, restoreDraft, settingsDraft, SOURCE_SYSTEMS, sourceLabel, toForm, validate, type DesignSettings, type PayProvider, type SettingsForm } from '../lib/settings.ts';
 import { Button, Card, Field, inputCls } from '../components/ui.tsx';
 import { failPrefix } from '../lib/failure.ts';
 
@@ -26,6 +26,7 @@ export function Settings() {
   const [f, setF] = useState<SettingsForm>(mockForm);
   const [loadErr, setLoadErr] = useState<string | null>(null);
   const [saveErr, setSaveErr] = useState<string | null>(null);
+  const [restored, setRestored] = useState(false);
   const [busy, setBusy] = useState(false);
   const [csvErr, setCsvErr] = useState<string | null>(null);
   const [csv, setCsv] = useState<{ imported: number; credits?: number; date_order?: string; amount_check?: AmountCheck[]; rejected: { row: number; reason: string }[] } | null>(null);
@@ -46,11 +47,18 @@ export function Settings() {
     api.settings().then(s => {
       if (!on || my !== reqSeq.current) return;
       const m = mergeServerForm(cur.current.orig, cur.current.f, toForm(s));
+      // הפעלה 145: כניסה מחדש אחרי סשן שפג באמצע עריכה ⇒ מחזירים את מה שהוקלד (עדיין לא שמור)
+      if (!loaded.current && settingsDraft.keep && settingsDraft.value) { m.f = restoreDraft(m.f, settingsDraft.value); setRestored(true); }
+      settingsDraft.keep = false;
       loaded.current = true; setServer(s); setOrig(m.orig); setF(m.f); setLoadErr(null);
       if (!Object.keys(diffPatch(m.orig, m.f)).length) setSaveErr(null);   // מה שהוקלד כבר בשרת ⇒ הודעת «לא ידוע אם נרשם» מיותרת
     }).catch(e => { if (on && !loaded.current) setLoadErr((e as Error).message); });   // כשל ברענון רקע ⇒ הפס בשלד
     return () => { on = false; };
   }, [live, dataSeq]);
+
+  // הפעלה 145: השדות שנערכו נשמרים בזיכרון הלשונית בלבד, כדי לשרוד סשן שפג. מעבר מסך רגיל מוחק אותם.
+  useEffect(() => { if (live && loaded.current) settingsDraft.value = formDiff(orig, f); }, [live, orig, f]);
+  useEffect(() => () => { if (!settingsDraft.keep) settingsDraft.value = null; }, []);
 
   const errs = validate(f);
   const patch = diffPatch(orig, f);
@@ -59,7 +67,7 @@ export function Settings() {
   const cadence = server?.cadence_days ?? business.cadenceDays;
 
   async function save() {
-    setBusy(true); setSaveErr(null);
+    setBusy(true); setSaveErr(null); setRestored(false);
     try {
       if (live) {
         reqSeq.current++;   // טעינה שכבר באוויר משקפת את המצב שלפני השמירה
@@ -197,8 +205,8 @@ export function Settings() {
         <Button disabled={busy || !dirty || Object.keys(errs).length > 0} onClick={save} data-testid="settings-save">
           {live ? 'שמירה בשרת' : 'שמירה בלשונית בלבד (מוק)'}
         </Button>
-        <Button variant="ghost" disabled={!dirty} onClick={() => { setF(orig); setSaveErr(null); }}>ביטול שינויים</Button>
-        {dirty && !saveErr && <span className="text-sm text-ink-500">יש שינויים שלא נשמרו</span>}
+        <Button variant="ghost" disabled={!dirty} onClick={() => { setF(orig); setSaveErr(null); setRestored(false); }}>ביטול שינויים</Button>
+        {dirty && !saveErr && <span className="text-sm text-ink-500" data-testid="settings-dirty">{restored ? 'החזרנו את מה שהקלדתם לפני שתוקף הכניסה פג. עדיין לא נשמר' : 'יש שינויים שלא נשמרו'}</span>}
         {saveErr && <span role="alert" className="text-sm text-critical font-bold" data-testid="settings-error">{saveErr}</span>}
       </div>
     </div>

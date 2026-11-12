@@ -752,7 +752,7 @@ test('הפעלה 142: רענון שנכשל במצב חי ⇒ stale ופס «ה�
   // /ui: כשל טעינה לא נבלע
   const ui = readFileSync(new URL('../../app/ui.html', import.meta.url), 'utf8');
   assert.doesNotMatch(ui, /loadDash\(\)\.catch\(\(\)=>\{\}\)/);
-  assert.match(ui, /Promise\.allSettled\(\[loadDash\(\),api\("\/reminders"\)\]\)/);
+  assert.match(ui, /Promise\.allSettled\(\[loadDash\(ask\),api\("\/reminders",\{\},ask\)\]\)/);
   assert.match(ui, /id="loaderr" role="alert" hidden/);
 });
 
@@ -849,4 +849,40 @@ test('הפעלה 144: כתיבה שנקטעה ⇒ «לא ידוע אם נרשמ�
   const st = readFileSync(new URL('../src/pages/Settings.tsx', import.meta.url), 'utf8');
   assert.match(st, /if \(!on \|\| my !== reqSeq\.current\) return;/, 'תשובה ישנה לא נכתבת לטופס');
   assert.match(st, /reqSeq\.current\+\+;[^\n]*\n\s*const s = await api\.saveSettings\(patch\);\n\s*reqSeq\.current\+\+;/);
+});
+
+test('הפעלה 145: טיוטת ההגדרות שורדת סשן שפג (בזיכרון בלבד) ונמחקת ביציאה יזומה; ה-toast בהגדרות לא על סרגל השמירה', async () => {
+  const { formDiff, restoreDraft, settingsDraft, diffPatch } = await import('../src/lib/settings.ts');
+  const base = { business_name: 'סטודיו', owner_name: 'דנה', vat_id: '', reply_email: 'a@example.com', sender: 'Studio', pay_provider: 'greeninvoice' as const, pay_url: '', source_system: 'greeninvoice' as const };
+  assert.equal(formDiff(base, base), null);
+  const edited = { ...base, owner_name: 'רות', pay_url: 'https://pay.example/x' };
+  assert.deepEqual(formDiff(base, edited), { owner_name: 'רות', pay_url: 'https://pay.example/x' });
+  // השרת השתנה בינתיים: שדה שלא נערך = ערך השרת; שדה מהטיוטה = מה שהוקלד, ונשלח לבדו בשמירה
+  const srv = { ...base, business_name: 'סטודיו חדש' };
+  const back = restoreDraft(srv, formDiff(base, edited));
+  assert.deepEqual(back, { ...srv, owner_name: 'רות', pay_url: 'https://pay.example/x' });
+  assert.deepEqual(Object.keys(diffPatch(srv, back)).sort(), ['owner_name', 'pay']);
+  assert.deepEqual(restoreDraft(srv, null), srv);
+  // מפתח לא מוכר או ערך שאינו מחרוזת לא נכנסים לטופס
+  assert.deepEqual(restoreDraft(srv, { owner_name: 5, evil: 'x' } as never), srv);
+  assert.deepEqual(settingsDraft, { value: null, keep: false });
+  const fs = await import('node:fs');
+  const store = fs.readFileSync(new URL('../src/store.tsx', import.meta.url), 'utf8');
+  assert.match(store, /if \(note\) settingsDraft\.keep = settingsDraft\.value !== null; else \{ settingsDraft\.value = null; settingsDraft\.keep = false; \}/);
+  const lib = fs.readFileSync(new URL('../src/lib/settings.ts', import.meta.url), 'utf8');
+  assert.doesNotMatch(lib, /sessionStorage|localStorage/, 'הטיוטה לא נכתבת ל-storage');
+  const page = fs.readFileSync(new URL('../src/pages/Settings.tsx', import.meta.url), 'utf8');
+  assert.match(page, /settingsDraft\.keep && settingsDraft\.value\) \{ m\.f = restoreDraft/);
+  assert.match(page, /if \(!settingsDraft\.keep\) settingsDraft\.value = null/);
+  const app = fs.readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8');
+  assert.match(app, /r === 'settings' \? 'top-5' : 'bottom-5'/);
+  // /ui (app/ui.html): אותו נוסח «לא ידוע אם נרשמה» כמו ב-/app/, כתיבה שנכשלה לא מציגה «נסו שוב», ו-401 מנקה את המסך
+  const { WRITE_UNKNOWN } = await import('../src/lib/failure.ts');
+  const ui = fs.readFileSync(new URL('../../app/ui.html', import.meta.url), 'utf8');
+  assert.ok(ui.includes(`const WRITE_UNKNOWN="${WRITE_UNKNOWN}";`), 'הנוסח ב-/ui שונה מהנוסח ב-/app/');
+  assert.match(ui, /catch\(e\)\{throw write\?unknown\("אין חיבור לשרת גבי"\)/);
+  assert.match(ui, /if\(r\.status>=500&&!he&&write\)throw unknown\(/);
+  assert.match(ui, /function lock\(had\)\{[^}]*sessionStorage\.removeItem\(TOK\)/);
+  assert.match(ui, /RETRY_MS=\[2000,4000,8000,15000\]/);
+  assert.match(ui, /if\(!stale\|\|locked\|\|document\.hidden\)return/, 'לשונית ברקע או מסך נעול לא שולחים רענון');
 });

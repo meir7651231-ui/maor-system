@@ -76,6 +76,8 @@ button.resume{margin-inline-start:6px;padding:4px 10px;min-height:32px;font-size
 </header>
 <div class="err loaderr" id="loaderr" role="alert" hidden><span>לא הצלחנו לטעון את הנתונים מהשרת. מה שמוצג כאן אולי לא עדכני.</span>
   <button id="btnRetry">נסו שוב</button></div>
+<div class="note loaderr" id="wunk" role="alert" hidden><span id="wunkMsg"></span><button id="btnWunk">הבנתי</button></div>
+<div class="err loaderr" id="locked" role="alert" hidden><span id="lockMsg"></span><button id="btnLogin" class="primary">כניסה</button></div>
 <div id="dash">
   <div class="kpis" id="kpis"></div>
   <section class="card"><div class="row"><h2>חובות פתוחים וסטטוס תזכורות</h2><span class="slogan" id="today"></span></div>
@@ -128,18 +130,43 @@ const fmtCur=(a,c)=>{if(!c||c==="ILS")return money(a);const s={USD:"$",EUR:"€"
 // טוקן בעל העסק: נשמר רק ב-sessionStorage (נמחק בסגירת הלשונית), נשלח כ-Bearer
 const TOK="gabi_owner_token";
 function tok(){try{return sessionStorage.getItem(TOK)||""}catch(e){return ""}}
+// הפעלה 145: אותה התנהגות כמו ב-/app/ (הפעלה 144).
+//  • כתיבה שנקטעה (רשת, או 5xx בלי הסבר בעברית): אולי נרשמה בשרת ⇒ «לא ידוע אם הפעולה נרשמה», לא «נסו שוב» עיוור.
+//  • 401 שלא נפתר בקוד חדש: הנתונים יורדים מהמסך, הטוקן נמחק מהלשונית, ומוצג פס כניסה.
+const WRITE_UNKNOWN="לא ידוע אם הפעולה נרשמה. בדקו אחרי שהנתונים יתרעננו, לפני שמנסים שוב";
+let locked=false,stale=false,rt=null,rn=0,loading=0;
+const RETRY_MS=[2000,4000,8000,15000];
+function lock(had){locked=true;stale=false;clearTimeout(rt);sel=null;try{sessionStorage.removeItem(TOK)}catch(e){}
+  for(const i of ["#kpis","#debts","#list"])$(i).innerHTML="";$("#today").textContent="";
+  $("#detail").innerHTML='<div class="empty">בחרו תזכורת כדי לראות תצוגה מקדימה של SMS ומייל</div>';
+  $("#loaderr").hidden=$("#wunk").hidden=true;
+  $("#lockMsg").textContent=had?"תוקף הכניסה פג. הנתונים הוסרו מהמסך. היכנסו שוב כדי להמשיך"
+    :"כדי לראות את הנתונים צריך את קוד הגישה של בעל העסק";
+  $("#locked").hidden=false}
+function authErr(had){if(!locked)lock(had);return Object.assign(new Error("תוקף הכניסה פג"),{auth:true})}
 async function api(p,o={},retry=true){
   // הפעלה 143: כשל רשת ו-5xx בלי הסבר מוצגים בעברית, לא «Failed to fetch» ולא קוד HTTP גולמי
-  let r;try{r=await fetch(p,{...o,headers:{...(o.headers||{}),Authorization:"Bearer "+tok()}})}
-  catch(e){throw new Error("אין חיבור לשרת גבי. בדקו את החיבור ונסו שוב")}
-  if(r.status===401&&retry){const t=prompt("קוד גישה של בעל העסק (OWNER_API_TOKEN):");
-    if(t){try{sessionStorage.setItem(TOK,t.trim())}catch(e){}return api(p,o,false)}}
+  const write=!!o.method&&o.method!=="GET",sent=tok();
+  const unknown=m=>Object.assign(new Error(m+". "+WRITE_UNKNOWN),{unknown:true});
+  let r;try{r=await fetch(p,{...o,headers:{...(o.headers||{}),Authorization:"Bearer "+sent}})}
+  catch(e){throw write?unknown("אין חיבור לשרת גבי"):new Error("אין חיבור לשרת גבי. בדקו את החיבור ונסו שוב")}
+  if(r.status===401){
+    // בקשה מקבילה כבר קיבלה קוד חדש ⇒ לא שואלים פעמיים; המשתמש כבר ביטל ⇒ לא שואלים שוב
+    if(retry&&tok()&&tok()!==sent)return api(p,o,false);
+    if(!retry||locked)throw authErr(!!sent);
+    const t=prompt("קוד גישה של בעל העסק (OWNER_API_TOKEN):");
+    if(!t||!t.trim())throw authErr(!!sent);
+    try{sessionStorage.setItem(TOK,t.trim())}catch(e){}return api(p,o,false)}
   const j=await r.json().catch(()=>({}));
-  if(!r.ok){const d=typeof j.detail==="string"?j.detail:"";
-    throw new Error(r.status>=500?(/[\u0590-\u05FF]/.test(d)?d:"השרת לא זמין כרגע. נסו שוב בעוד רגע"):d||"הבקשה נכשלה (שגיאה "+r.status+")")}
+  if(!r.ok){const d=typeof j.detail==="string"?j.detail:"",he=/[\u0590-\u05FF]/.test(d);
+    if(r.status>=500&&!he&&write)throw unknown("השרת לא זמין כרגע");
+    throw new Error(r.status>=500?(he?d:"השרת לא זמין כרגע. נסו שוב בעוד רגע"):d||"הבקשה נכשלה (שגיאה "+r.status+")")}
   return j}
-async function loadDash(){
-  const d=await api("/dashboard");const t=d.totals;
+// כשל של פעולת כתיבה: 401 ⇒ פס הכניסה כבר מוצג; תוצאה לא ידועה ⇒ הודעה + רענון; אחרת ההודעה במקום הרגיל
+function failed(e,show){if(e.auth)return;if(!e.unknown)return show(e.message);
+  delete $("#wunkMsg").dataset.fresh;$("#wunkMsg").textContent=e.message;$("#wunk").hidden=false;load(false)}
+async function loadDash(ask){
+  const d=await api("/dashboard",{},ask);if(locked)return;const t=d.totals;
   const tr=d.trial||{};
   $("#today").textContent="נכון ל-"+d.today+(tr.on_trial?(tr.active
     ?` · ניסיון חינם: נותרו ${tr.days_left} ימים, אחר כך ₪${tr.price_ils_month} לחודש, כולל מע״מ ככל שחל`
@@ -164,12 +191,23 @@ async function loadDash(){
 $("#debts").addEventListener("click",async e=>{const b=e.target.closest("button.resume");if(!b)return;
   if(!b.dataset.armed){b.dataset.armed="1";b.textContent="בטוח? לחצו שוב";setTimeout(()=>{if(b.isConnected){delete b.dataset.armed;b.textContent="↻ חידוש תזכורות"}},4000);return}
   b.disabled=true;try{await api(`/customers/${b.dataset.cid}/resume`,{method:"POST"});await load()}
-  catch(err){b.disabled=false;b.textContent="שגיאה: "+err.message}});
+  catch(err){failed(err,m=>{b.disabled=false;b.textContent="שגיאה: "+m})}});
 // הפעלה 142: כשל ב-/dashboard נבלע בשקט (הטבלה נשארה ריקה או ישנה), וכשל ב-/reminders השאיר תור ריק בלי הסבר.
 // עכשיו: פס שגיאה עם «נסו שוב»; מה שכבר על המסך נשאר, עם האזהרה שאולי אינו עדכני.
-async function load(){
-  const [d,q]=await Promise.allSettled([loadDash(),api("/reminders")]);
-  $("#loaderr").hidden=d.status==="fulfilled"&&q.status==="fulfilled";
+// הפעלה 145: כשהנתונים לא עדכניים הדף מרענן לבד: אחרי 2, 4, 8 ו-15 שניות, מיד כשהחיבור חוזר (online),
+// וכשהלשונית חוזרת לחזית. לשונית ברקע לא שולחת בקשות. ask=false: רענון אוטומטי לא פותח חלון קוד גישה.
+function sched(){clearTimeout(rt);if(!stale||locked||document.hidden)return;
+  rt=setTimeout(()=>{if(!loading)load(false)},RETRY_MS[Math.min(rn++,RETRY_MS.length-1)])}
+addEventListener("online",()=>{if(stale&&!locked){rn=0;load(false)}});
+document.addEventListener("visibilitychange",()=>{if(document.hidden)clearTimeout(rt);else if(stale&&!locked)load(false)});
+async function load(ask=true){
+  loading++;let d,q;try{[d,q]=await Promise.allSettled([loadDash(ask),api("/reminders",{},ask)])}finally{loading--}
+  if(locked)return;
+  stale=!(d.status==="fulfilled"&&q.status==="fulfilled");
+  $("#loaderr").hidden=!stale;
+  if(stale)sched();else{rn=0;clearTimeout(rt);
+    if(!$("#wunk").hidden&&!$("#wunkMsg").dataset.fresh){$("#wunkMsg").dataset.fresh="1";
+      $("#wunkMsg").textContent="הנתונים התרעננו עכשיו. בדקו במסך אם הפעולה נרשמה, לפני שמנסים שוב"}}
   if(q.status!=="fulfilled")return;
   const rows=q.value;const el=$("#list");
   if(!rows.length){el.innerHTML='<div class="empty">אין תזכורות. לחצו "סנכרון" ואז "הכנת תזכורות".</div>';return}
@@ -183,7 +221,7 @@ async function load(){
 async function show(id){
   sel=id;load();
   // הפעלה 143: כשל בטעינת התצוגה המקדימה היה unhandled rejection, והלוח נשאר על התזכורת הקודמת בלי הסבר
-  let p;try{p=await api(`/reminders/${id}/preview`)}catch(e){if(sel!==id)return;
+  let p;try{p=await api(`/reminders/${id}/preview`)}catch(e){if(sel!==id||e.auth)return;
     $("#detail").innerHTML=`<div class="err" id="pverr" role="alert">לא הצלחנו לטעון את התצוגה המקדימה: ${esc(e.message)}</div>
       <div class="decide"><button class="primary" id="pvRetry">נסו שוב</button></div>`;
     $("#pvRetry").onclick=()=>show(id);return}
@@ -215,13 +253,15 @@ async function show(id){
     ${["pending_approval","approved"].includes(p.status)?`<button class="ghost-bad" id="no">דחייה</button>`:""}</div>
     <div class="err" id="derr"></div>`;
   if(mail)$("#mailFrame").srcdoc=mail.html;
-  const act=async(a,body)=>{try{await api(`/reminders/${id}/${a}`,{method:"POST",...(body?{headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}:{})});await load();show(id)}catch(e){$("#derr").textContent=e.message}};
+  const act=async(a,body)=>{try{await api(`/reminders/${id}/${a}`,{method:"POST",...(body?{headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}:{})});await load();show(id)}catch(e){failed(e,m=>{$("#derr").textContent=m})}};
   const boxes=[$("#cAmt"),$("#cOpen")].filter(Boolean),okBtn=$("#ok");
   const gate=()=>{if(okBtn)okBtn.disabled=!can||boxes.some(x=>!x.checked)};
   boxes.forEach(x=>x.onchange=gate);gate();
   okBtn&&(okBtn.onclick=()=>act("approve",{confirm_amount:!!($("#cAmt")&&$("#cAmt").checked),confirm_open:!!($("#cOpen")&&$("#cOpen").checked)}));$("#no")&&($("#no").onclick=()=>act("reject"));
 }
-const run=(b,p)=>$(b).onclick=async()=>{try{await api(p,{method:"POST"});await load();sel&&show(sel)}catch(e){alert(e.message)}};
+const run=(b,p)=>$(b).onclick=async()=>{try{await api(p,{method:"POST"});await load();sel&&show(sel)}catch(e){failed(e,m=>alert(m))}};
+$("#btnWunk").onclick=()=>{$("#wunk").hidden=true};
+$("#btnLogin").onclick=()=>{locked=false;$("#locked").hidden=true;load()};
 $("#btnRetry").onclick=async e=>{e.target.disabled=true;try{await load()}finally{e.target.disabled=false}};
 run("#btnSync","/sync");run("#btnPlan","/plan");run("#btnDispatch","/dispatch");
 load();
