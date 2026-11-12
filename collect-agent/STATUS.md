@@ -13,8 +13,9 @@
 - **בוצע:**
   - `web/e2e/lib.mjs`: `srvStdio(name)` ו-`srvLogLevel()`. עם `E2E_LOG_DIR` הפלט של כל שרת שהבדיקה מרימה נכתב ל-`<שם>.log` ו-uvicorn רץ ב-`info` (רצף הבקשות והסטטוסים). בלי המשתנה: `stdio: 'ignore'` ו-`warning`, כמו קודם.
   - `live.mjs`, `ui.mjs`, `notices.mjs`, `rebuild.mjs` (שרת גבי + ה-mock של חשבונית ירוקה) עברו לעזר. 6 קובצי לוג בשמות נפרדים.
-  - `.github/workflows/collect-agent.yml`, ג'וב `web`: `E2E_LOG_DIR` מכוון לתיקיית הצילומים, ולכן הלוגים עולים באותו artifact (`web-e2e-shots`) בכישלון. נוסף שלב שמדפיס בכישלון 200 שורות אחרונות מכל לוג לפלט הג'וב.
+  - `.github/workflows/collect-agent.yml`, ג'וב `web`: `E2E_LOG_DIR` מכוון לתיקיית הצילומים (דרך `GITHUB_ENV`), ולכן הלוגים עולים באותו artifact (`web-e2e-shots`) בכישלון. נוסף שלב שמדפיס בכישלון 200 שורות אחרונות מכל לוג לפלט הג'וב.
   - `tests/test_e2e_server_logs.py` (5): מגן-מקור — אף שרת python ב-`e2e/` לא עולה עם `stdio: 'ignore'`, שמות הלוגים שונים, העזר כבוי בלי המשתנה, וה-workflow מכוון את המשתנה לתיקייה שעולה.
+- **ריצה 479 נפסלה, ותוקן:** הקומיט הראשון של ההפעלה (`3c51a47d`) הגדיר את המשתנה ב-`env` ברמת הג'וב עם `${{ runner.temp }}`. ההקשר `runner` לא זמין שם, ו-GitHub פסל את כל ה-workflow בלי להריץ אף ג'וב. המגן ב-pytest בדק רק שהשורה קיימת, ולכן עבר מקומית. עכשיו המשתנה נכתב בשלב נפרד, והמגן אוסר `runner.*` ב-`env` של ג'וב.
 - **בדיקות:** אומת מקומית: pytest **1761** ירוק (13 דולגו), ruff נקי, evals ירוק, smoke ירוק, `demo.sh --check` ירוק, web test **57** ירוק, typecheck + build, `shots`, `live`, `notices`, `ui`, `rebuild` ירוקים עם `E2E_LOG_DIR`, ו-`ui` גם בלעדיו. הלוגים נבדקו: מפתח ה-webhook מופיע כ-`k=***`, ואין בהם טוקן בעלים או סיסמה. לא הורצו: bandit, pip-audit, ג'וב sqlcipher (ירוצו ב-CI).
 - **לא טופל, ידוע:**
   - שלבי הכישלון ב-workflow (הדפסת הלוג והעלאת ה-artifact) לא רצו בפועל: אין ריצה אדומה שבודקת אותם.

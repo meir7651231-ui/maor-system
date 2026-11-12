@@ -94,9 +94,6 @@ jobs:
   web:
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    env:
-      # פלט השרתים שבדיקות הדפדפן מרימות (e2e/lib.mjs srvStdio) נכתב לתיקיית הצילומים ⇒ עולה כ-artifact בכישלון
-      E2E_LOG_DIR: ${{ runner.temp }}/shots
     defaults:
       run:
         working-directory: collect-agent/web
@@ -128,6 +125,9 @@ jobs:
         run: |
           npm i -g playwright@1.63.0
           npx -y playwright@1.63.0 install --with-deps chromium
+      - name: לוג השרתים של בדיקות הדפדפן ⇒ תיקיית הצילומים (עולה כ-artifact בכישלון)
+        # ההקשר runner לא זמין ב-env ברמת הג'וב (ריצה 479 נפסלה על זה) ⇒ דרך GITHUB_ENV. e2e/lib.mjs srvStdio
+        run: echo "E2E_LOG_DIR=$RUNNER_TEMP/shots" >> "$GITHUB_ENV"
       - name: e2e מוק — 6 מסכים, דסקטופ+מובייל, 0 בקשות חיצוניות
         run: mkdir -p "$RUNNER_TEMP/shots" && NODE_PATH="$(npm root -g)" TZ=Asia/Jerusalem node e2e/shots.mjs "$RUNNER_TEMP/shots"
       - name: e2e חי מול שרת DEMO=1 (dry-run)

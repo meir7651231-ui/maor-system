@@ -44,7 +44,10 @@ def test_workflow_points_log_dir_at_uploaded_artifact_dir():
         return
     wf = WORKFLOW.read_text(encoding="utf-8")
     web = wf[wf.index("\n  web:\n"): wf.index("\n  security:\n")]
-    assert "E2E_LOG_DIR: ${{ runner.temp }}/shots" in web
+    assert 'echo "E2E_LOG_DIR=$RUNNER_TEMP/shots" >> "$GITHUB_ENV"' in web
+    # ריצה 479: ההקשר runner לא זמין ב-env ברמת הג'וב, וה-workflow כולו נפסל בלי להריץ אף ג'וב
+    for m in re.finditer(r"\n    env:\n((?:      .*\n)+)", wf):
+        assert "runner." not in m.group(1), "runner.* ב-env ברמת הג'וב פוסל את ה-workflow"
     assert "path: ${{ runner.temp }}/shots" in web
     assert 'tail -n 200 "$f"' in web                     # הלוג גם בפלט הג'וב עצמו, לא רק ב-artifact
 
