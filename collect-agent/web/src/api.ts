@@ -1,7 +1,7 @@
 // שכבת API מול הבקאנד של גבי (FastAPI, dry-run בלבד). אותו origin כשהממשק מוגש מ-/app/,
 // או ?api=http://127.0.0.1:8000 בפיתוח. אין בקאנד ⇒ הממשק נופל לנתוני מוק (data/demo.ts).
 import type { DesignSettings } from './lib/settings.ts';
-import type { Customer, Invoice, InvoiceStatus, Reminder, Step } from './lib/domain.ts';
+import type { Channel, Customer, Invoice, InvoiceStatus, Reminder, Step } from './lib/domain.ts';
 import { STEP_ORDER } from './lib/message.ts';
 import { loginErrorText, readToken } from './lib/auth.ts';
 import type { WeekPoint } from './lib/series.ts';
@@ -69,6 +69,8 @@ export interface DashRow {
   source?: 'api' | 'csv';
   amount_agorot: number; currency: string; due: string | null; status: 'open' | 'closed' | string;
   days_overdue: number; reminders_sent: number;
+  /** הפעלה 137: התזכורת האחרונה שבאמת יצאה (מתי ובאיזה ערוצים). חסר בשרת ישן. */
+  last_sent?: null | { sent_at: string | null; channels: string[] };
   last_reminder: null | { id: number; step: number; status: string; template_key: string; sent_at: string | null; block_reason: string | null };
   customer_block: string | null;
 }
@@ -202,13 +204,20 @@ export function fromDashboard(d: Dashboard, pending: PendingRow[]) {
       : r.customer_block === 'disputed' ? 'disputed'
       : r.customer_block === 'paid_claim' || r.customer_block === 'plan_active' ? 'promised'
       : r.reminders_sent > 0 ? 'reminded' : 'open';
-    const at = (r.last_reminder?.sent_at ?? d.today).slice(0, 10);
-    const reminders: Reminder[] = Array.from({ length: r.reminders_sent }, (_, i) => ({ at, step: STEP_ORDER[Math.min(i, 3)], channel: 'sms', status: 'sent' }));
+    // הפעלה 137: המועד והערוץ מ-last_sent (מה שיצא בפועל). last_reminder הוא השלב הגבוה, ויכול להיות
+    // טיוטה בתור בלי sent_at ⇒ פעם הוצג כאן התאריך של היום. שרת ישן (בלי last_sent) ⇒ כמו קודם.
+    const ls = r.last_sent;
+    const sentChannels = (ls?.channels ?? []).filter((c): c is Channel => c === 'sms' || c === 'email');
+    const at = (ls !== undefined ? ls?.sent_at ?? '' : r.last_reminder?.sent_at ?? d.today).slice(0, 10);
+    const channel: Channel = sentChannels.length && !sentChannels.includes('sms') ? 'email' : 'sms';
+    const reminders: Reminder[] = Array.from({ length: r.reminders_sent }, (_, i) => ({ at, step: STEP_ORDER[Math.min(i, 3)], channel, status: 'sent' }));
+    const lastSent = ls ? { at: at || null, channels: sentChannels } : undefined;
     const blockNote = r.customer_block ? BLOCK_LABEL[r.customer_block] ?? r.customer_block : undefined;
     invoices.push({
       id: String(r.invoice_id), source: r.source === 'csv' ? 'csv' : 'api', number: r.number, customerId: cid, amount: r.amount_agorot / 100,
       issuedAt: r.due ?? d.today, dueAt: r.due ?? d.today, status, payUrl: '', reminders, note: blockNote,
       ...(r.currency && r.currency !== 'ILS' ? { currency: r.currency } : {}),
+      ...(lastSent ? { lastSent } : {}),
     });
   }
   return { customers, invoices, pendingBy, mergedBy, today: d.today };

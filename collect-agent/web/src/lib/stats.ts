@@ -1,4 +1,4 @@
-import { PRODUCT_RULES, type Invoice } from './domain.ts';
+import { PRODUCT_RULES, type Channel, type Invoice } from './domain.ts';
 
 /** אחרי 3 תזכורות: גבי עוצר ומעביר לבעל העסק. */
 export const stoppedAtMax = (list: Invoice[]) => list.filter(i => i.status !== 'paid' && i.reminders.length >= PRODUCT_RULES.maxReminders);
@@ -49,4 +49,11 @@ export function needsReminder(list: Invoice[], today: string): Invoice[] {
       return !last || daysOverdue(last.at, today) >= 5;
     })
     .sort((a, b) => b.amount - a.amount);
+}
+
+/** הערוצים שבהם יצאה התזכורת האחרונה. חי: מה שנרשם ביומן היוצאים (lastSent); מוק / שרת ישן: הערוץ של התזכורת האחרונה. */
+export function sentChannels(inv: Invoice): Channel[] {
+  if (inv.lastSent?.channels.length) return inv.lastSent.channels;
+  const last = inv.reminders.at(-1);
+  return last ? [last.channel] : [];
 }

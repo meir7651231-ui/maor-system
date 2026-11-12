@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { useApp } from '../store.tsx';
 import { daysOverdue, fmtDate, fmtMoney, fmtTotal } from '../lib/format.ts';
 import { STEP_LABEL, nextStep } from '../lib/message.ts';
-import { byAmountDesc, isOpen } from '../lib/stats.ts';
+import { byAmountDesc, isOpen, sentChannels } from '../lib/stats.ts';
 import type { Invoice, InvoiceStatus } from '../lib/domain.ts';
 import { Button, Card, LateBadge, StatusBadge, inputCls } from '../components/ui.tsx';
 import { MessagePreview } from '../components/MessagePreview.tsx';
@@ -66,7 +66,7 @@ export function Invoices() {
                     <td className="px-4 py-3 whitespace-nowrap"><LateBadge days={d} /></td>
                     <td className="px-4 py-3"><StatusBadge status={i.status} /></td>
                     <td className="px-4 py-3 text-xs text-ink-500 whitespace-nowrap">
-                      {last ? <>{i.reminders.length} · אחרונה {fmtDate(last.at)} {last.channel === 'sms' ? '📱' : '✉️'}</> : 'טרם נשלחה'}
+                      {last ? <span data-testid="sent-cell">{i.reminders.length}{last.at && <> · אחרונה {fmtDate(last.at)}</>} {sentChannels(i).map(c => c === 'sms' ? '📱' : '✉️').join('')}</span> : 'טרם נשלחה'}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex gap-1.5 justify-end">

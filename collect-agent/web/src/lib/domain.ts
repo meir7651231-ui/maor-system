@@ -18,6 +18,8 @@ export interface Invoice {
   status: InvoiceStatus;
   payUrl: string;       // קישור התשלום של החשבונית (למשל דף התשלום בחשבונית ירוקה)
   reminders: Reminder[];
+  /** חי בלבד: התזכורת האחרונה שיצאה בפועל. at ריק ⇒ מועד השליחה לא ידוע (send_unknown). */
+  lastSent?: { at: string | null; channels: Channel[] };
   promisedAt?: string;
   note?: string;
   /** מאיפה החשבונית: API (מתרענן לבד) או CSV (בעל העסק מאשר שהסכום עדיין פתוח) */

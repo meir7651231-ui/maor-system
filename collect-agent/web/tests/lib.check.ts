@@ -644,3 +644,29 @@ test('הפעלה 136: עמוד החשבוניות — חשבונית שכלול�
   assert.match(page, /live \? mergedAnchorOf\(i\.id\)/);          // רק בחי: במוק אין תזכורות מאוחדות
   assert.match(page, /data-testid="in-merged" onClick=\{\(\) => setOpen\(anchor\)\}/);   // הלחיצה פותחת את תזכורת העוגן
 });
+
+test('הפעלה 137: עמודת «תזכורות» — המועד והערוץ של מה שיצא בפועל, לא של הטיוטה שבתור', async () => {
+  const { sentChannels } = await import('../src/lib/stats.ts');
+  const row = (id: number, extra: Partial<Dashboard['invoices'][0]>): Dashboard['invoices'][0] => ({
+    invoice_id: id, number: String(1000 + id), customer: 'דנה', phone: '050-1234567', email: 'd@example.com', amount_agorot: 120000, currency: 'ILS',
+    due: '2026-10-01', status: 'open', days_overdue: 45, reminders_sent: 1, customer_block: null,
+    last_reminder: { id: 9, step: 1, status: 'pending_approval', template_key: 'plan_offer', sent_at: null, block_reason: null }, ...extra });
+  const d: Dashboard = { today: '2026-11-15', totals: {} as Dashboard['totals'], invoices: [
+    row(1, { last_sent: { sent_at: '2026-11-08T10:00:00+02:00', channels: ['email'] } }),
+    row(2, { last_sent: { sent_at: '2026-11-08T10:00:00+02:00', channels: ['email', 'sms'] } }),
+    row(3, { last_sent: { sent_at: null, channels: [] } }),           // send_unknown: נספרת, המועד לא ידוע
+    row(4, {}),                                                       // שרת ישן בלי last_sent
+  ] };
+  const [a, b, c, old] = fromDashboard(d, []).invoices;
+  // הבאג: שלב 2 בתור (sent_at ריק) ⇒ «אחרונה 15.11» (היום). עכשיו: מועד השליחה של שלב 1
+  assert.equal(a.reminders.at(-1)?.at, '2026-11-08');
+  assert.deepEqual(sentChannels(a), ['email']);                       // לא 📱 ללקוח שקיבל מייל בלבד
+  assert.deepEqual(sentChannels(b), ['email', 'sms']);
+  assert.equal(c.reminders.at(-1)?.at, '');                           // לא ממציאים תאריך
+  assert.deepEqual(c.lastSent, { at: null, channels: [] });
+  assert.equal(old.reminders.at(-1)?.at, '2026-11-15');               // שרת ישן: בלי שינוי
+  assert.equal(old.lastSent, undefined);
+  assert.deepEqual(sentChannels(old), ['sms']);
+  const page = readFileSync(new URL('../src/pages/Invoices.tsx', import.meta.url), 'utf8');
+  assert.match(page, /last\.at && <> · אחרונה/);                       // בלי מועד ⇒ בלי «אחרונה»
+});

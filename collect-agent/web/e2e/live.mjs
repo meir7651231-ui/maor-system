@@ -349,6 +349,19 @@ try {
   if (out) await fullShot(p, `${out}/live-07e-in-merged.png`);
   console.log('  ✓ עמוד החשבוניות: חשבוניות נלוות מסומנות «בתזכורת מאוחדת»');
 
+  // הפעלה 137: עמודת «תזכורות» — המועד והערוץ של מה שיצא בפועל (last_sent), לא של הטיוטה שבתור
+  const dash137 = await api('/dashboard');
+  const sent137 = dash137.invoices.filter(r => r.status === 'open' && r.reminders_sent > 0);
+  ok(await p.getByTestId('sent-cell').count() === sent137.length, `עמודת «תזכורות»: ${await p.getByTestId('sent-cell').count()} שורות עם שליחה, לפי ה-API ${sent137.length}`);
+  for (const r of sent137) {
+    const cell = (await p.locator('tbody tr', { hasText: r.number }).getByTestId('sent-cell').first().textContent()) ?? '';
+    const [y, m, d] = (r.last_sent.sent_at ?? '').slice(0, 10).split('-').map(Number);
+    ok(!r.last_sent.sent_at || cell.includes(`${d}.${m}`), `חשבונית ${r.number}: «${cell}» בלי מועד השליחה ${r.last_sent.sent_at}`);
+    ok(cell.includes('📱') === r.last_sent.channels.includes('sms') && cell.includes('✉️') === r.last_sent.channels.includes('email'),
+      `חשבונית ${r.number}: «${cell}» לא תואם לערוצים ${r.last_sent.channels}`);
+  }
+  console.log(`  ✓ עמוד החשבוניות: מועד וערוץ השליחה לפי last_sent (${sent137.length} שורות)`);
+
   // v2 · דף נחיתה: כותרת + מחשבון שווי הזמן (בלי הבטחת תשואה — הכרעת מאיר 6.11)
   await p.goto(base + '/app/');
   ok((await p.getByTestId('hero-title').textContent()).includes('הכסף שלך חוזר'), 'כותרת v2 חסרה');

@@ -1700,6 +1700,16 @@ class CollectService:
         return dict(self.db.one("SELECT * FROM customers WHERE id=?", (customer_id,)))
 
     # ---------- dashboard ----------
+    def _sent_channels(self, message_id: str | None) -> list[str]:
+        """הערוצים שבהם תזכורת יצאה בפועל, לפי יומן היוצאים (לא לפי מה שתוכנן ב-payload)."""
+        out: set[str] = set()
+        for mid in (message_id or "").split(","):
+            if mid:
+                out.update(m["channel"] for m in self.db.q(
+                    "SELECT DISTINCT channel FROM messages WHERE direction='out' AND message_id=?",
+                    (mid,)) if m["channel"])
+        return sorted(out)
+
     def dashboard(self) -> dict:
         """תמונת מצב לבעל העסק: כל החובות הפתוחים + סטטוס התזכורת האחרונה לכל אחד."""
         today = self.clock().date()
@@ -1715,6 +1725,11 @@ class CollectService:
                                "x.reminder_id=r.id WHERE x.invoice_id=? AND "
                                # critic סבב 41: send_unknown נספרת כמו בתקרה (אולי יצאה)
                                "r.status IN ('sent_dry_run','send_unknown')", (r["id"],))["n"]
+            # הפעלה 137: התזכורת האחרונה ש*יצאה* (last למעלה הוא השלב הגבוה, גם טיוטה בתור)
+            ls = self.db.one("SELECT r.sent_at, r.message_id FROM reminders r JOIN reminder_invoices x "
+                             "ON x.reminder_id=r.id WHERE x.invoice_id=? AND r.status IN "
+                             "('sent_dry_run','send_unknown') ORDER BY r.sent_at IS NULL, "
+                             "r.sent_at DESC, r.id DESC LIMIT 1", (r["id"],))
             due = date.fromisoformat(r["due"]) if r["due"] else None
             block = self._customer_block(r["customer_id"])
             rows.append({
@@ -1726,6 +1741,8 @@ class CollectService:
                 "source": r["source"],
                 "days_overdue": (today - due).days if due and r["status"] == "open" else 0,
                 "reminders_sent": sent,
+                "last_sent": None if not ls else {
+                    "sent_at": ls["sent_at"], "channels": self._sent_channels(ls["message_id"])},
                 "last_reminder": None if not last else {
                     "id": last["id"], "step": last["step"], "status": last["status"],
                     "invoice_ids": self.reminder_invoice_ids(last["id"]),
