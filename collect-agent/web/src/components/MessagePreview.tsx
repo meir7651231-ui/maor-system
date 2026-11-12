@@ -27,10 +27,19 @@ export function MessagePreview({ invoice, onClose, now = new Date() }: { invoice
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmAmount, setConfirmAmount] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [tries, setTries] = useState(0);
   useEffect(() => {
     if (!live || !pending) return;
-    api.preview(pending.reminderId).then(setPv).catch(e => setErr(String(e.message ?? e)));
-  }, [live, pending]);
+    // הפעלה 158: רק הבקשה האחרונה קובעת (רענון ברקע מחליף את pending ושולח בקשה חדשה; תשובה ישנה שחזרה
+    // אחריה דרסה את החדשה), ו«נסו שוב» מנקה את השגיאה.
+    let dead = false;
+    setErr(null);
+    api.preview(pending.reminderId).then(v => { if (!dead) setPv(v); }).catch(e => { if (!dead) setErr(String(e.message ?? e)); });
+    return () => { dead = true; };
+  }, [live, pending, tries]);
+  // הפעלה 158: עד שהנוסח מגיע מהשרת לא מוצג שום דבר שנגזר מהמוק (שלב, מועד, ערוצים, נוסח מייל) — שלד בלבד.
+  const loading = live && !!pending && !pv && !err;
+  const failed = live && !pv && !!err;
   const [step, setStep] = useState<Step>(nextStep(invoice));
   const [tab, setTab] = useState<Channel>(c.phone && business.channels.sms ? 'sms' : 'email');
   const [on, setOn] = useState<Record<Channel, boolean>>({ sms: !!c.phone && business.channels.sms, email: !!c.email && business.channels.email });
@@ -66,7 +75,7 @@ export function MessagePreview({ invoice, onClose, now = new Date() }: { invoice
   const channels = (['sms', 'email'] as Channel[]).filter(ch => on[ch]);
   return (
     <div className="fixed inset-0 z-40 bg-ink-900/60 backdrop-blur-sm flex items-end md:items-center justify-center p-0 md:p-6" onClick={onClose}>
-      <div ref={dialog} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="mp-title" onClick={e => e.stopPropagation()}
+      <div ref={dialog} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="mp-title" aria-busy={loading || undefined} onClick={e => e.stopPropagation()}
         className="bg-white w-full md:max-w-4xl max-h-[94vh] overflow-y-auto rounded-t-2xl md:rounded-2xl shadow-pop outline-none">
         <header className="flex items-start justify-between gap-4 p-5 border-b border-ink-200">
           <div>
@@ -79,6 +88,14 @@ export function MessagePreview({ invoice, onClose, now = new Date() }: { invoice
         </header>
 
         {changed && <div role="alert" data-testid="mp-stale" className="mx-5 mt-4 rounded-xl bg-amber-50 text-amber-900 px-4 py-3 text-sm font-bold">⚠️ {changed}</div>}
+        {loading ? <PreviewSkeleton /> : failed ? (
+          <div role="alert" data-testid="mp-error" className="p-8 text-center">
+            <p className="font-bold text-ink-900">התצוגה המקדימה לא נטענה מהשרת</p>
+            <p className="mt-1 text-sm text-ink-500">לא מוצג נוסח, כדי שלא תאשרו הודעה שלא ראיתם. {err}</p>
+            <button type="button" data-testid="mp-retry" onClick={() => setTries(n => n + 1)}
+              className="mt-4 h-11 px-6 rounded-xl bg-ink-900 text-white font-bold cursor-pointer">נסו שוב</button>
+          </div>
+        ) : (
         <div className="grid md:grid-cols-[1fr_1.1fr] gap-6 p-5">
           {/* צד שליטה */}
           <div className="space-y-5">
@@ -114,7 +131,6 @@ export function MessagePreview({ invoice, onClose, now = new Date() }: { invoice
               {blockKind(block) === 'hard' && <div className="text-critical font-bold">⛔ חסום: {BLOCK_LABEL[block!] ?? block}</div>}
               {blockKind(block) === 'reapprove' && <div className="text-amber-700 font-bold">⏳ {REAPPROVE_LABEL[block!]}</div>}
               {err && <div className="text-critical">שגיאה: {err}</div>}
-              {live && !pv && !err && <div className="text-ink-500">טוען תצוגה מקדימה מהשרת…</div>}
             </div>
           </div>
 
@@ -128,7 +144,12 @@ export function MessagePreview({ invoice, onClose, now = new Date() }: { invoice
                 </button>
               ))}
             </div>
-            {tab === 'sms' ? (
+            {live && !(tab === 'sms' ? liveSms : liveMail) ? (
+              // הפעלה 158: ערוץ שאין לו הודעה בתזכורת הזו הציג בועה ריקה (SMS) או מייל שנבנה מהמוק ולא יישלח
+              <p data-testid="mp-no-channel" className="rounded-xl bg-ink-50 text-ink-500 text-sm text-center px-4 py-10">
+                בתזכורת הזו לא יישלח {tab === 'sms' ? 'SMS' : 'מייל'}.
+              </p>
+            ) : tab === 'sms' ? (
               <div>
                 <div className="mx-auto max-w-[320px] rounded-[2rem] border-[10px] border-ink-900 bg-ink-100 overflow-hidden shadow-card">
                   <div className="bg-white px-4 py-3 text-center border-b border-ink-200">
@@ -175,10 +196,11 @@ export function MessagePreview({ invoice, onClose, now = new Date() }: { invoice
             )}
           </div>
         </div>
+        )}
 
         <footer className="sticky bottom-0 bg-white border-t border-ink-200 p-4 flex flex-wrap items-center gap-3 justify-end">
           {c.optedOut && <span className="text-critical text-sm font-bold me-auto">הלקוח ביקש הסרה — אין שליחה</span>}
-          {live && isCsv && (
+          {live && !!pv && isCsv && (
             <label className="me-auto flex items-start gap-2 text-sm rounded-xl bg-amber-50 text-amber-900 px-3 py-2 max-w-md" data-testid="confirm-open">
               <input type="checkbox" className="h-5 w-5 mt-0.5 accent-[#10B981]" checked={confirmOpen} onChange={e => setConfirmOpen(e.target.checked)} />
               <span><b>הסכום {total} עדיין פתוח</b> — בדקתי. (חשבונית מקובץ CSV לא מתעדכנת לבד; האישור תקף 24 שעות.)</span>
@@ -212,9 +234,36 @@ export function MessagePreview({ invoice, onClose, now = new Date() }: { invoice
               showFail(failPrefix('לא אושר', (e as Error).message)); setBusy(false);
             }
           }}>
-            ✓ אשר ושלח {channels.length === 2 ? 'ב-SMS ובמייל' : channels[0] === 'sms' ? 'ב-SMS' : channels[0] === 'email' ? 'במייל' : ''}
+            ✓ אשר ושלח {live && !pv ? '' : channels.length === 2 ? 'ב-SMS ובמייל' : channels[0] === 'sms' ? 'ב-SMS' : channels[0] === 'email' ? 'במייל' : ''}
           </Button>
         </footer>
+      </div>
+    </div>
+  );
+}
+
+/** הפעלה 158: שלד התצוגה המקדימה בצורת החלון עצמו: עמודת פרטים ומסגרת טלפון עם בועת הודעה. צורות בלבד,
+ *  מוסתרות מקורא מסך; הוא שומע «טוען תצוגה מקדימה…» פעם אחת. */
+function PreviewSkeleton() {
+  const bar = 'rounded-md bg-ink-200';
+  return (
+    <div role="status" data-testid="mp-loading">
+      <span className="sr-only">טוען תצוגה מקדימה…</span>
+      <div aria-hidden="true" data-testid="mp-skeleton" className="animate-pulse grid md:grid-cols-[1fr_1.1fr] gap-6 p-5">
+        <div className="space-y-5">
+          <div className="grid grid-cols-2 gap-2">{[0, 1, 2, 3].map(i => <div key={i} className={`${bar} h-10`} />)}</div>
+          <div className="space-y-2"><div className={`${bar} h-12`} /><div className={`${bar} h-12`} /></div>
+          <div className={`${bar} h-28`} />
+        </div>
+        <div>
+          <div className={`${bar} h-11 mb-3`} />
+          <div className="mx-auto max-w-[320px] rounded-[2rem] border-[10px] border-ink-200 bg-ink-100 overflow-hidden">
+            <div className="bg-white px-4 py-3 border-b border-ink-200"><div className={`${bar} mx-auto h-9 w-9 rounded-full`} /></div>
+            <div className="p-3 min-h-56"><div className="bg-white rounded-2xl px-3.5 py-3 space-y-2 max-w-[92%]">
+              <div className={`${bar} h-3 w-full`} /><div className={`${bar} h-3 w-5/6`} /><div className={`${bar} h-3 w-2/3`} />
+            </div></div>
+          </div>
+        </div>
       </div>
     </div>
   );

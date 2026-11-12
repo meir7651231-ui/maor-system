@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useState } from 'react';
 import { TOAST_BOTTOM, toastBottom } from './lib/toast.ts';
 import { AppProvider, useApp } from './store.tsx';
-import { go, useRoute } from './router.ts';
+import { go, useRoute, type Route } from './router.ts';
 import { Shell } from './components/Shell.tsx';
 import { Landing } from './pages/Landing.tsx';
 import { Signup } from './pages/Signup.tsx';
@@ -28,24 +28,51 @@ function LoadError() {
 }
 
 /** הפעלה 150: שלד טעינה במקום «טוען…» במרכז מסך ריק. צורות אפורות בלבד: בלי שמות, בלי סכומים ובלי כותרות של מסך מסוים
- *  (הכלל של 140 נשמר: שום דבר שנראה כמו נתוני העסק). קורא מסך שומע «טוען נתונים…» פעם אחת; הצורות מוסתרות ממנו. */
-function LoadingSkeleton() {
+ *  (הכלל של 140 נשמר: שום דבר שנראה כמו נתוני העסק). קורא מסך שומע «טוען נתונים…» פעם אחת; הצורות מוסתרות ממנו.
+ *  הפעלה 158: הצורות לפי המסך המבוקש (סקירה: מדדים + תור; חשבוניות: טבלה; תשובות: כרטיסים; הגדרות: טופס),
+ *  כדי שהמסך לא יקפוץ לפריסה אחרת כשהנתונים מגיעים. עדיין צורות בלבד. */
+function LoadingSkeleton({ route }: { route: Route }) {
   const bar = 'rounded-md bg-ink-200';
+  const card = 'rounded-2xl bg-white shadow-card p-5';
+  const shape = route === 'invoices' || route === 'inbox' || route === 'settings' ? route : 'dashboard';
   return (
     <>
       <span className="sr-only">טוען נתונים…</span>
-      <div aria-hidden="true" data-testid="app-skeleton" className="animate-pulse space-y-6 py-2">
+      <div aria-hidden="true" data-testid="app-skeleton" data-shape={shape} className="animate-pulse space-y-6 py-2">
         <div className={`${bar} h-7 w-40`} />
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-          {[0, 1, 2, 3].map(i => (
-            <div key={i} className="rounded-2xl bg-white shadow-card p-5 space-y-3"><div className={`${bar} h-7 w-1/2`} /><div className={`${bar} h-4 w-3/4`} /></div>
-          ))}
-        </div>
-        <div className="rounded-2xl bg-white shadow-card p-5 space-y-4">
-          {[0, 1, 2, 3].map(i => (
-            <div key={i} className="flex items-center gap-3"><div className={`${bar} h-10 w-10 shrink-0 rounded-full`} /><div className="flex-1 space-y-2"><div className={`${bar} h-4 w-1/3`} /><div className={`${bar} h-3 w-1/2`} /></div></div>
-          ))}
-        </div>
+        {shape === 'dashboard' && <>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+            {[0, 1, 2, 3].map(i => (
+              <div key={i} className={`${card} space-y-3`}><div className={`${bar} h-7 w-1/2`} /><div className={`${bar} h-4 w-3/4`} /></div>
+            ))}
+          </div>
+          <div className={`${card} space-y-4`}>
+            {[0, 1, 2, 3].map(i => (
+              <div key={i} className="flex items-center gap-3"><div className={`${bar} h-10 w-10 shrink-0 rounded-full`} /><div className="flex-1 space-y-2"><div className={`${bar} h-4 w-1/3`} /><div className={`${bar} h-3 w-1/2`} /></div></div>
+            ))}
+          </div>
+        </>}
+        {shape === 'invoices' && <>
+          <div className="flex flex-wrap gap-2">{[0, 1, 2, 3].map(i => <div key={i} className={`${bar} h-9 w-24 rounded-full`} />)}</div>
+          <div className={`${card} space-y-4`} data-testid="sk-table">
+            {[0, 1, 2, 3, 4, 5].map(i => (
+              <div key={i} className="flex items-center gap-4"><div className={`${bar} h-4 w-1/4`} /><div className={`${bar} h-4 w-16`} /><div className={`${bar} h-4 flex-1`} /><div className={`${bar} h-8 w-20 shrink-0`} /></div>
+            ))}
+          </div>
+        </>}
+        {shape === 'inbox' && [0, 1, 2].map(i => (
+          <div key={i} className={`${card} space-y-3`} data-testid="sk-msg">
+            <div className="flex items-center gap-3"><div className={`${bar} h-10 w-10 shrink-0 rounded-full`} /><div className={`${bar} h-4 w-1/3`} /></div>
+            <div className={`${bar} h-4 w-5/6`} /><div className={`${bar} h-4 w-2/3`} />
+            <div className="flex gap-2"><div className={`${bar} h-9 w-24`} /><div className={`${bar} h-9 w-24`} /></div>
+          </div>
+        ))}
+        {shape === 'settings' && [0, 1].map(i => (
+          <div key={i} className={`${card} space-y-4`} data-testid="sk-form">
+            <div className={`${bar} h-5 w-1/4`} />
+            {[0, 1, 2].map(j => <div key={j} className="space-y-2"><div className={`${bar} h-3 w-24`} /><div className={`${bar} h-11 w-full`} /></div>)}
+          </div>
+        ))}
       </div>
     </>
   );
@@ -77,7 +104,7 @@ function Routed() {
   const page = r === 'landing' ? <Landing /> : r === 'signup' ? <Signup /> : r === 'login' || mode === 'locked' ? <Login /> : (
     // הפעלה 140: עד שיודעים אם יש שרת (mode='loading') לא מציגים את נתוני המוק — בעל עסק מחובר ראה לרגע לקוחות
     // וסכומים בדויים בכל טעינה. מצב ניטרלי עד שהשרת עונה (חי) או שאין שרת (מוק).
-    <Shell route={r}>{mode === 'loading' ? <div role="status" data-testid="app-loading"><LoadingSkeleton /></div>
+    <Shell route={r}>{mode === 'loading' ? <div role="status" data-testid="app-loading"><LoadingSkeleton route={r} /></div>
       : mode === 'error' ? <LoadError />
       : r === 'dashboard' ? <Dashboard /> : r === 'invoices' ? <Invoices /> : r === 'inbox' ? <Inbox /> : <Settings />}</Shell>
   );

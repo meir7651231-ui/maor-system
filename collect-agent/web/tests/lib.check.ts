@@ -988,12 +988,13 @@ test('הפעלה 149: אישור על נוסח ישן ⇒ התצוגה נטענ�
 });
 test('הפעלה 150: שלד טעינה ב-/app/ וב-/ui — צורות בלבד, מוסתר מקורא מסך, בלי נתונים בזמן טעינה', () => {
   const app = readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8');
-  assert.match(app, /mode === 'loading' \? <div role="status" data-testid="app-loading"><LoadingSkeleton \/><\/div>/);
+  assert.match(app, /mode === 'loading' \? <div role="status" data-testid="app-loading"><LoadingSkeleton route=\{r\} \/><\/div>/);
   const sk = app.slice(app.indexOf('function LoadingSkeleton'), app.indexOf('function Routed'));
   assert.match(sk, /<span className="sr-only">טוען נתונים…<\/span>/);
   assert.match(sk, /<div aria-hidden="true" data-testid="app-skeleton"/);
   // הכלל של 140: בשלד אין שום נתון או רכיב שמציג נתונים (גם לא מהמוק)
-  assert.doesNotMatch(sk, /useApp|invoices|customers|demo|₪|\$\d/);
+  // (158: 'invoices' מותר רק כשם מסך במירכאות, לא כמשתנה נתונים)
+  assert.doesNotMatch(sk, /useApp|\binvoices\b(?!')|customers|demo|₪|\$\d/);
   const ui = readFileSync(new URL('../../app/ui.html', import.meta.url), 'utf8');
   // השלד מוצג רק בטעינה שהמשתמש יזם (ask) ורק בחלק שעוד לא נטען; רענון רקע לא מחליף נתונים בשלד
   assert.match(ui, /async function load\(ask=true\)\{\n {2}if\(ask&&!locked\)skel\(\);/);
@@ -1032,4 +1033,30 @@ test('הפעלה 151: הודעת כשל ב-/app/ נשארת עד סגירה יד
   }
   assert.equal((readFileSync(new URL('../src/pages/Dashboard.tsx', import.meta.url), 'utf8').match(/showFail\(failPrefix\(/g) ?? []).length, 2);
   assert.match(readFileSync(new URL('../src/components/MessagePreview.tsx', import.meta.url), 'utf8'), /showFail\(failPrefix\('לא אושר'/);
+});
+test('הפעלה 158: /app/ — שלד לפי המסך המבוקש; תצוגה מקדימה בטעינה ובכשל בלי תוכן מהמוק; ערוץ בלי הודעה', () => {
+  const app = readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8');
+  const sk = app.slice(app.indexOf('function LoadingSkeleton'), app.indexOf('function Routed'));
+  assert.match(sk, /data-testid="app-skeleton" data-shape=\{shape\}/);
+  for (const s of ['dashboard', 'invoices', 'inbox', 'settings']) assert.match(sk, new RegExp(`shape === '${s}' &&`), 'אין צורה ל-' + s);
+  // מסך שאינו אחד מהארבעה (login שננעל באמצע טעינה) נופל לצורת הסקירה ולא לשלד ריק
+  assert.match(sk, /\? route : 'dashboard'/);
+  const mp = readFileSync(new URL('../src/components/MessagePreview.tsx', import.meta.url), 'utf8');
+  // בזמן טעינה או כשל: השלד או ההודעה מחליפים את כל גוף החלון (שלב, ערוצים, מועד, נוסח)
+  assert.match(mp, /const loading = live && !!pending && !pv && !err;/);
+  assert.match(mp, /const failed = live && !pv && !!err;/);
+  assert.match(mp, /\{loading \? <PreviewSkeleton \/> : failed \? \(/);
+  assert.match(mp, /aria-busy=\{loading \|\| undefined\}/);
+  assert.doesNotMatch(mp, /טוען תצוגה מקדימה מהשרת…/, 'הודעת הטעינה הישנה בתוך תוכן שנגזר מהמוק');
+  const psk = mp.slice(mp.indexOf('function PreviewSkeleton'), mp.indexOf('function firstPayUrl'));
+  assert.match(psk, /<div role="status" data-testid="mp-loading">\s*<span className="sr-only">טוען תצוגה מקדימה…<\/span>\s*<div aria-hidden="true" data-testid="mp-skeleton"/);
+  assert.doesNotMatch(psk, /useApp|invoice|business|pv\b|₪/);
+  // אי אפשר לאשר בלי נוסח מהשרת, ותיבות «בדקתי» לא מוצגות לפני שהוא נטען
+  assert.match(mp, /const sendable = live \? !!pv && /);
+  assert.match(mp, /\{live && !!pv && isCsv && \(/);
+  // רק הבקשה האחרונה קובעת, ו«נסו שוב» שולח בקשה חדשה
+  assert.match(mp, /let dead = false;[\s\S]{0,200}if \(!dead\) setPv\(v\)[\s\S]{0,200}return \(\) => \{ dead = true; \};\s*\}, \[live, pending, tries\]\);/);
+  assert.match(mp, /data-testid="mp-retry" onClick=\{\(\) => setTries\(n => n \+ 1\)\}/);
+  // ערוץ בלי הודעה בתזכורת: לא בועה ריקה ולא מייל מהמוק
+  assert.match(mp, /\{live && !\(tab === 'sms' \? liveSms : liveMail\) \? \(/);
 });

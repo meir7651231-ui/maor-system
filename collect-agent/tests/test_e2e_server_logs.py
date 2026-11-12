@@ -60,3 +60,12 @@ def test_access_log_is_on_only_when_the_log_is_kept():
         src = f.read_text(encoding="utf-8")
         assert "'--log-level', 'warning'" not in src, f.name
         assert src.count("'uvicorn'") == src.count("'--log-level', srvLogLevel()"), f.name
+
+
+def test_every_browser_script_runs_in_ci():
+    """הפעלה 158: בדיקת דפדפן שלא רשומה ב-workflow לא רצה אף פעם (rebuild.mjs נוסף ל-CI רק ב-155)."""
+    wf = (ROOT.parent / ".github" / "workflows" / "collect-agent.yml").read_text(encoding="utf-8")
+    scripts = sorted(f.name for f in E2E.glob("*.mjs") if f.name != "lib.mjs")
+    assert "preview.mjs" in scripts
+    for name in scripts:
+        assert f"node e2e/{name}" in wf, f"{name} לא רץ ב-CI"
