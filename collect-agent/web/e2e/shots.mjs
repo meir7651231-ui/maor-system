@@ -87,6 +87,11 @@ try {
   ok(await gal.count() === 0, 'גל שרון נשארה בתור אחרי האישור');
   await p.goto(base + '#/invoices'); await p.waitForTimeout(300);
   await fullShot(p, `${out}/05-invoices.png`);
+  // הפעלה 141: החשבונית בדולר של המוק (2010) שולמה ⇒ היא לא ברשימת «לא שולמו», וכל הסכומים בעמוד ב-₪
+  const amounts141 = await p.locator('tbody tr td:nth-child(3)').allTextContents();
+  ok(await p.locator('tbody tr', { hasText: 'Studio Abroad' }).count() === 0 && !(await p.locator('tbody').textContent()).includes('$'),
+    'חשבונית הדולר ששולמה מופיעה ב«חשבוניות שלא שולמו»');
+  ok(amounts141.length > 0 && amounts141.every(t => t.includes('₪')), 'עמוד החשבוניות במוק: סכום בלי ₪: ' + amounts141.join(' | '));
   await p.getByLabel('חיפוש').fill('גפן');
   ok(await p.locator('tbody tr').count() === 1, 'חיפוש לא סינן');
   await p.goto(base + '#/settings'); await p.waitForTimeout(300);

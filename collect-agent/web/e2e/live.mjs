@@ -6,6 +6,7 @@ import { randomBytes } from 'node:crypto';
 import { mkdtempSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { assertPortFree, makeInject } from './lib.mjs';
 const { chromium } = createRequire(import.meta.url)('playwright');
 const out = process.argv[2];
 const PORT = 8141, base = `http://127.0.0.1:${PORT}`;
@@ -13,8 +14,7 @@ const TOKEN = randomBytes(32).toString('base64url'); // קוד גישה חד-פ�
 const ROOT = new URL('../..', import.meta.url).pathname;
 // שער 6: עובד דמו אמיתי (מייל+סיסמה+סוד TOTP בקובץ זמני) — כמו demo.sh --check, רק דרך הדפדפן
 const STAFF = { email: 'dana@example.co.il', password: 'demo-pass-12345', secretFile: join(mkdtempSync(join(tmpdir(), 'gabi-e2e-')), 'totp') };
-// הפעלה 140: שרת יתום מהרצה קודמת על אותו פורט (טוקן אחר) גרם לכישלון מבלבל במסך הכניסה ⇒ עוצרים מיד עם הסבר
-try { await globalThis.fetch(`http://127.0.0.1:${PORT}/health`); console.error(`פורט ${PORT} תפוס (שרת מהרצה קודמת?) — עצרו אותו והריצו שוב`); process.exit(1); } catch { /* פנוי */ }
+await assertPortFree(PORT);
 const srv = spawn('python3', ['-m', 'uvicorn', 'app.main:_lazy_app', '--factory', '--port', String(PORT), '--log-level', 'warning'],
   { cwd: ROOT, env: { ...process.env, DEMO: '1', OWNER_API_TOKEN: TOKEN,
     DEMO_USER_EMAIL: STAFF.email, DEMO_USER_PASSWORD: STAFF.password, DEMO_USER_SECRET_FILE: STAFF.secretFile }, stdio: 'ignore' });
@@ -24,17 +24,9 @@ const totpCode = () => execFileSync('python3', ['-c',
   STAFF.secretFile], { cwd: ROOT }).toString().trim();
 process.on('exit', () => srv.kill());   // גם ביציאה על חריגה שלא נתפסה — לא משאירים שרת על הפורט
 const ok = (c, m) => { if (!c) throw new Error(m); };
-// יירוט תשובה (הזרקה לתשובה האמיתית של השרת). בקשה שעוד באוויר כשהדף מנווט הלאה נסגרת ב«disposed/closed»;
-// בלי התפיסה כאן החריגה עלתה מתוך ה-callback, הפילה את התהליך לפני ה-finally והשאירה שרת יתום (הפעלה 140).
-// כל שגיאה אחרת בתוך היירוט (כולל ok שנכשל) נרשמת ב-errors ומכשילה את הריצה בסוף.
+// כל שגיאה בתוך יירוט נרשמת כאן ומכשילה את הריצה בסוף (e2e/lib.mjs)
 const routeErrors = [];
-const inject = (pg, pattern, fn) => pg.route(pattern, async route => {
-  try { await fn(route); } catch (e) {
-    if (/disposed|has been closed|Target closed|Route is already handled/i.test(String(e))) return;
-    routeErrors.push('יירוט ' + pattern + ': ' + String(e));
-    try { await route.continue(); } catch { /* הבקשה כבר נסגרה */ }
-  }
-});
+const inject = makeInject(routeErrors);
 const H = { Authorization: `Bearer ${TOKEN}` };
 const rawFetch = globalThis.fetch;
 const fetch = (u, init = {}) => rawFetch(u, { ...init, headers: { ...H, ...init.headers } }); // fetch של הבדיקה = עם טוקן
@@ -56,6 +48,7 @@ async function noHScroll(pg, where) {
 
 // 409 מותר רק כשהבדיקה מצפה לו במפורש (בקשה + סיבה מאומתות). כל 409 אחר / כל שגיאה אחרת ⇒ כישלון.
 let expect409 = null;         // { status?, method?, url: RegExp, reason: RegExp } — 409/422 צפוי אחד, מוכרז מראש
+let failPhase = false, allowedFail = 0, consoleFail = 0; // הפעלה 141: כשל טעינה מכוון (503 / בקשה שבוטלה) — רק בשלב 12
 let gatePhase = true;         // 401 מותר רק בשלב שער קוד הגישה (לפני כניסה), ורק מהשרת שלנו
 const allowed401 = [];
 const allowed429 = [];        // 429 מותר רק בבדיקת הנעילה של מסך הכניסה (שלב השער)
@@ -78,6 +71,7 @@ try {
       if (gatePhase && r.url().startsWith(base + '/')) allowed401.push(r.url()); else errors.push(`401 לא צפוי: ${r.url()}`);
       return;
     }
+    if (failPhase && r.status() === 503 && r.url() === base + '/dashboard') { allowedFail++; return; }
     if (r.status() !== 409 && r.status() !== 422) { if (r.status() >= 400 && r.url().startsWith(base)) errors.push(`${r.status()} לא צפוי: ${r.url()}`); return; }
     const u = r.url(); let body = '';
     try { body = JSON.stringify(await r.json()); } catch { /* */ }
@@ -91,6 +85,7 @@ try {
     if (/status of (409|422)/.test(m.text())) { console409++; return; } // מוצלב מול allowed409 בסוף
     if (/status of 401/.test(m.text())) { console401++; return; } // מוצלב מול allowed401 בסוף
     if (/status of 429/.test(m.text())) { console429++; return; } // מוצלב מול allowed429 בסוף
+    if (failPhase && /status of 503|ERR_FAILED/.test(m.text())) { consoleFail++; return; }
     errors.push(m.text());
   });
   p.on('pageerror', e => errors.push(String(e)));
@@ -577,6 +572,43 @@ try {
   ok(await p.getByTestId('app-loading').count() === 0 && await p.getByText('קפה הגפן').count() === 0, 'אחרי הטעינה: מצב הטעינה נשאר או שנתוני המוק מוצגים');
   await p.unroute('**/health');
   console.log('  ✓ טעינה מהשרת: מצב ניטרלי, בלי הבזק של נתוני המוק');
+
+  // 12) הפעלה 141: טעינה שנכשלת לא נופלת לנתוני המוק. עד עכשיו שרת שענה ל-/health ואז נכשל ב-/dashboard
+  //     הציג לבעל עסק מחובר את «קפה הגפן» ו-124,870 ₪ כאילו הם שלו. עכשיו: מסך שגיאה ו«נסו שוב».
+  failPhase = true;
+  const noMock = async where => ok(await p.getByText('קפה הגפן').count() === 0 && await p.getByTestId('kpis').count() === 0
+    && await p.locator('nav .bg-brand').count() === 0, `${where}: נתוני המוק (לקוח/KPI/תג התור) מוצגים`);
+  // 12א) /health עונה, /dashboard מחזיר 503
+  await inject(p, '**/dashboard', route => route.fulfill({ status: 503, contentType: 'application/json', body: '{"detail":"down"}' }));
+  await p.goto(base + '/app/#/dashboard'); await p.reload();
+  await p.getByTestId('app-error').waitFor();
+  await noMock('שרת שנכשל ב-/dashboard');
+  ok((await p.getByTestId('mode').textContent()).includes('אין חיבור לשרת'), 'מצב החיבור לא מציג «אין חיבור לשרת»');
+  ok(!(await p.getByTestId('mode').textContent()).includes('מוק') && (await p.getByTestId('whoami').textContent()).trim() === '…', 'בשגיאה מוצג מצב מוק או שם העסק של המוק');
+  await p.goto(base + '/app/#/invoices'); await p.getByTestId('app-error').waitFor(); await noMock('עמוד החשבוניות בשגיאה');
+  if (out) await fullShot(p, `${out}/live-12-load-error.png`);
+  ok(allowedFail >= 1, 'ה-503 המוזרק לא הגיע לדף');
+  // «נסו שוב» כשהשרת חזר ⇒ הנתונים האמיתיים, בלי רענון דף
+  await p.unroute('**/dashboard');
+  await p.getByTestId('app-retry').click();
+  await p.getByTestId('mode').filter({ hasText: 'מחובר לשרת גבי' }).waitFor();
+  await p.getByText('גל שרון').first().waitFor();
+  ok(await p.getByTestId('app-error').count() === 0, 'מסך השגיאה נשאר אחרי «נסו שוב» מוצלח');
+  // 12ב) יש כניסה שמורה בלשונית והשרת לא עונה בכלל ⇒ שגיאה, לא מוק
+  await inject(p, '**/health', route => route.abort());
+  await p.goto(base + '/app/#/dashboard'); await p.reload();
+  await p.getByTestId('app-error').waitFor();
+  await noMock('שרת שלא עונה כשיש כניסה שמורה');
+  // «נסו שוב» כשהשרת עדיין למטה ⇒ נשארים בשגיאה
+  await p.getByTestId('app-retry').click();
+  await p.getByTestId('app-retry').filter({ hasText: 'נסו שוב' }).waitFor();
+  ok(await p.getByTestId('app-error').count() === 1, '«נסו שוב» כושל יצא ממסך השגיאה');
+  await p.unroute('**/health');
+  await p.getByTestId('app-retry').click();
+  await p.getByTestId('kpis').waitFor();
+  failPhase = false;
+  ok(consoleFail >= 2, `שגיאות הקונסולה של הכשל המכוון לא נספרו (${consoleFail})`);
+  console.log('  ✓ טעינה שנכשלה: מסך שגיאה ו«נסו שוב», בלי נתוני המוק (503 אחרי /health, ושרת שלא עונה עם כניסה שמורה)');
 
   // מסך הכניסה במובייל (לשונית חדשה בלי סשן ⇒ מסך הכניסה, בלי בקשות שנכשלות)
   const ml = await b.newPage({ viewport: { width: 390, height: 844 } });

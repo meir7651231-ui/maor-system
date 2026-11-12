@@ -13,9 +13,9 @@ const NAV: { r: Route; label: string; icon: string }[] = [
 export function Shell({ route, children }: { route: Route; children: ReactNode }) {
   const { business, queue, mode, drafts, me, logout } = useApp();
   // בחי: שם העובד המחובר (שער 6); טוקן משותף ⇒ שם העסק (כמו קודם)
-  const who = mode === 'live' && me?.kind === 'user' && me.name ? me.name : business.name;
+  const who = mode === 'loading' || mode === 'error' ? '…' : mode === 'live' && me?.kind === 'user' && me.name ? me.name : business.name;
   const pending = queue.length;
-  const modeText = mode === 'live' ? '● מחובר לשרת גבי · dry-run' : mode === 'mock' ? '● מצב דמו (מוק) — אין שליחה' : mode === 'locked' ? '🔒 נדרש קוד גישה' : '… בודק חיבור לשרת';
+  const modeText = mode === 'live' ? '● מחובר לשרת גבי · dry-run' : mode === 'mock' ? '● מצב דמו (מוק) — אין שליחה' : mode === 'locked' ? '🔒 נדרש קוד גישה' : mode === 'error' ? '⚠ אין חיבור לשרת' : '… בודק חיבור לשרת';
   return (
     <div className="min-h-screen md:flex">
       <aside className="md:w-64 bg-ink-900 text-white shrink-0">

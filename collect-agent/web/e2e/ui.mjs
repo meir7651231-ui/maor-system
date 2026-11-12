@@ -4,14 +4,19 @@
 import { createRequire } from 'node:module';
 import { spawn } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
+import { assertPortFree, makeInject } from './lib.mjs';
 const { chromium } = createRequire(import.meta.url)('playwright');
 const out = process.argv[2];
 const PORT = 8143, base = `http://127.0.0.1:${PORT}`;
 const TOKEN = randomBytes(32).toString('base64url');
 const ROOT = new URL('../..', import.meta.url).pathname;
+await assertPortFree(PORT);
 const srv = spawn('python3', ['-m', 'uvicorn', 'app.main:_lazy_app', '--factory', '--port', String(PORT), '--log-level', 'warning'],
   { cwd: ROOT, env: { ...process.env, DEMO: '1', OWNER_API_TOKEN: TOKEN }, stdio: 'ignore' });
+process.on('exit', () => srv.kill());   // גם ביציאה על חריגה שלא נתפסה — לא משאירים שרת על הפורט
 const ok = (c, m) => { if (!c) throw new Error(m); };
+const routeErrors = [];
+const inject = makeInject(routeErrors);
 const H = { Authorization: `Bearer ${TOKEN}` };
 for (let i = 0; i < 80; i++) { try { if ((await fetch(base + '/health')).ok) break; } catch { /* עוד עולה */ } await new Promise(r => setTimeout(r, 250)); }
 const errors = [];
@@ -67,7 +72,7 @@ try {
   }
   // critic סבב 52: טבלת החובות הציגה קוד גולמי — סטטוס send_unknown וסיבת השהיה «promise:until=…» / «deceased».
   //   מזריקים לתשובת /dashboard האמיתית (המצבים נדירים בדמו) ובודקים נוסח בעברית.
-  await p.route('**/dashboard', async route => {
+  await inject(p, '**/dashboard', async route => {
     const res = await route.fetch(); const j = await res.json();
     const open = j.invoices.filter(x => x.status === 'open');
     if (open[0]) { open[0].customer_block = null; open[0].last_reminder = { ...(open[0].last_reminder ?? { id: 1, step: 1, template_key: 'x', sent_at: null, invoice_ids: [] }), status: 'send_unknown', block_reason: null }; open[0].reminders_sent = 1; open[0].last_sent = { sent_at: null, channels: [], unknown: true }; }
@@ -94,6 +99,7 @@ try {
   ok(/לא ידוע אם יצאה/.test(await p.locator('#debts tr').first().locator('td.sent').textContent()), 'last_sent.unknown לא מוצג ב-/ui');
   if (out) await p.screenshot({ path: `${out}/ui-03-status-pause.png`, fullPage: true });
   await p.unroute('**/dashboard');
+  errors.push(...routeErrors);
   ok(errors.length === 0, 'שגיאות:\n' + errors.join('\n'));
   console.log('✓ /ui: סכום חריג מאושר רק אחרי סימון מפורש · תזכורת רגילה ללא שינוי · סטטוס/השהיה בעברית · מועד וערוץ השליחה לפי last_sent');
 } finally { await b.close(); srv.kill(); }

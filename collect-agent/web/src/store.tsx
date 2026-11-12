@@ -10,8 +10,9 @@ const sessionStore = () => { try { return sessionStorage; } catch { return undef
 import type { WeekPoint } from './lib/series.ts';
 import { systemNotices, type Notice } from './lib/notices.ts';
 
-/** locked = שרת חי שדורש קוד גישה (401) — לא נופלים למוק בשקט. */
-export type Mode = 'loading' | 'live' | 'mock' | 'locked';
+/** locked = שרת חי שדורש קוד גישה (401) — לא נופלים למוק בשקט.
+ *  error = יש שרת (או שיש בלשונית כניסה שמורה) אבל הטעינה נכשלה — מסך שגיאה עם «נסו שוב», לא נתוני מוק. */
+export type Mode = 'loading' | 'live' | 'mock' | 'locked' | 'error';
 interface Ctx {
   mode: Mode;
   health: Health | null;
@@ -29,6 +30,8 @@ interface Ctx {
   series: WeekPoint[] | null;
   /** הדבקת קוד גישה (מצב locked) ⇒ ניסיון חיבור מחדש. */
   unlock: (token: string) => Promise<boolean>;
+  /** מצב error ⇒ ניסיון חיבור מחדש (בדיקת שרת + טעינה). */
+  retry: () => Promise<void>;
   /** כניסת עובד: מייל+סיסמה+קוד. מחזיר null בהצלחה, אחרת הודעת שגיאה בעברית. */
   login: (email: string, password: string, code: string) => Promise<string | null>;
   /** יציאה: מבטל את הסשן בשרת, מוחק אותו מהלשונית ומנקה את הנתונים מהזיכרון. */
@@ -102,21 +105,29 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, [load, dropSession]);
 
-  useEffect(() => {
-    let off = false;
-    detectBackend().then(async h => {
-      if (off) return;
-      if (!h) { setMode('mock'); return; }
-      setHealth(h);
-      if (!readToken(sessionStore())) { setMode('locked'); return; } // אין קוד ⇒ ישר לשער, בלי בקשות שנועדו להיכשל
-      try {
-        await reload();
-        setBusiness(b => ({ ...b, smsProvider: (['019', 'inforu'].includes(h.sms_provider) ? h.sms_provider : b.smsProvider) as Business['smsProvider'] }));
-        setMode('live');
-      } catch (e) { setMode(e instanceof AuthError ? 'locked' : 'mock'); }
-    });
-    return () => { off = true; };
+  // הפעלה 141: טעינה שנכשלת אחרי שהשרת ענה ל-/health (או כשיש כניסה שמורה והשרת לא עונה) נפלה למוק בשקט,
+  // ובעל עסק מחובר ראה לקוחות וסכומים בדויים כאילו הם שלו. עכשיו: מצב error עם «נסו שוב». מוק = רק כשאין שרת ואין כניסה.
+  const gen = useRef(0);
+  const connect = useCallback(async () => {
+    const my = ++gen.current;
+    const set = (m: Mode) => { if (gen.current === my) setMode(m); };
+    set('loading');
+    const h = await detectBackend();
+    if (gen.current !== my) return;
+    const tok = readToken(sessionStore());
+    if (!h) { set(tok ? 'error' : 'mock'); return; }
+    setHealth(h);
+    if (!tok) { set('locked'); return; } // אין קוד ⇒ ישר לשער, בלי בקשות שנועדו להיכשל
+    try {
+      await reload();
+      setBusiness(b => ({ ...b, smsProvider: (['019', 'inforu'].includes(h.sms_provider) ? h.sms_provider : b.smsProvider) as Business['smsProvider'] }));
+      set('live');
+    } catch (e) { set(e instanceof AuthError ? 'locked' : 'error'); }
   }, [reload]);
+  useEffect(() => {
+    void connect();
+    return () => { gen.current++; };
+  }, [connect]);
 
   const value = useMemo<Ctx>(() => {
     const live = mode === 'live';
@@ -141,8 +152,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         dropSession(null);
         showToast('יצאת מהמערכת. הסשן בוטל גם בשרת');
       },
-      me, authNote, plans, drafts, notices, reload, toast, showToast, customerOf,
-      queue: live ? invoices.filter(i => pendingBy.has(i.id)) : needsReminder(invoices, today),
+      me, authNote, plans, drafts, notices, reload, toast, showToast, customerOf, retry: connect,
+      // התור של המוק מוצג רק במצב מוק (לא בזמן טעינה/שגיאה — אחרת התג בניווט מציג ספירה בדויה)
+      queue: live ? invoices.filter(i => pendingBy.has(i.id)) : mode === 'mock' ? needsReminder(invoices, today) : [],
       pendingOf: id => pendingBy.get(id),
       mergedAnchorOf: id => { const a = mergedBy.get(id); return a ? invoices.find(i => i.id === a) : undefined; },
       approveAndSend: async (id, step, channels, opts) => {
@@ -163,7 +175,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       },
       markPaid: id => { setInvoices(l => l.map(i => i.id === id ? { ...i, status: 'paid' } : i)); showToast('סומן כשולם 🎉'); },
     };
-  }, [mode, health, today, business, customers, invoices, pendingBy, mergedBy, totals, series, outbox, plans, drafts, notices, reload, toast, showToast, me, authNote, dropSession]);
+  }, [mode, health, today, business, customers, invoices, pendingBy, mergedBy, totals, series, outbox, plans, drafts, notices, reload, toast, showToast, me, authNote, dropSession, connect]);
   return <C.Provider value={value}>{children}</C.Provider>;
 }
 export const useApp = () => {

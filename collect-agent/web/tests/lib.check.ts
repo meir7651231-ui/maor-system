@@ -718,3 +718,18 @@ test('הפעלה 140: בזמן טעינה (mode=loading) המסכים לא מצ�
   // דף הנחיתה, ההרשמה ומסך הכניסה לא ממתינים לשרת
   assert.match(app, /r === 'landing' \? <Landing \/> : r === 'signup' \? <Signup \/> : r === 'login' \|\| mode === 'locked' \? <Login \/>/);
 });
+test('הפעלה 141: טעינה שנכשלה ⇒ מצב error עם «נסו שוב», לא נפילה שקטה לנתוני המוק', () => {
+  const store = readFileSync(new URL('../src/store.tsx', import.meta.url), 'utf8');
+  // אחרי ש-/health ענה: כשל שאינו 401 ⇒ error (היה: mock)
+  assert.match(store, /set\(e instanceof AuthError \? 'locked' : 'error'\)/);
+  assert.doesNotMatch(store, /AuthError \? 'locked' : 'mock'/);
+  // אין שרת: מוק רק כשאין כניסה שמורה בלשונית
+  assert.match(store, /if \(!h\) \{ set\(tok \? 'error' : 'mock'\); return; \}/);
+  // התור של המוק (התג בניווט) רק במצב מוק
+  assert.match(store, /mode === 'mock' \? needsReminder\(invoices, today\) : \[\]/);
+  const app = readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8');
+  assert.match(app, /: mode === 'error' \? <LoadError \/>\s*: r === 'dashboard'/);
+  assert.match(app, /role="alert" data-testid="app-error"/);
+  const shell = readFileSync(new URL('../src/components/Shell.tsx', import.meta.url), 'utf8');
+  assert.match(shell, /mode === 'loading' \|\| mode === 'error' \? '…'/);
+});

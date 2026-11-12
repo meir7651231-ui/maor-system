@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { AppProvider, useApp } from './store.tsx';
 import { go, useRoute } from './router.ts';
 import { Shell } from './components/Shell.tsx';
@@ -12,6 +12,20 @@ import { Pay } from './pages/Pay.tsx';
 import { Login } from './pages/Login.tsx';
 import { payCodeOf, takeTokenFromHash } from './lib/auth.ts';
 
+/** הפעלה 141: השרת לא ענה או שהטעינה נכשלה ⇒ הודעה ברורה ו«נסו שוב», בלי נתוני מוק שנראים כמו נתוני העסק. */
+function LoadError() {
+  const { retry } = useApp();
+  const [busy, setBusy] = useState(false);
+  return (
+    <div role="alert" data-testid="app-error" className="py-24 text-center max-w-md mx-auto">
+      <h1 className="text-xl font-bold text-ink-900">לא הצלחנו לטעון את הנתונים מהשרת</h1>
+      <p className="mt-2 text-ink-500">לא מוצגים נתונים, כדי שלא תראו מספרים שאינם שלכם. בדקו את החיבור ונסו שוב.</p>
+      <button disabled={busy} data-testid="app-retry" onClick={() => { setBusy(true); void retry().finally(() => setBusy(false)); }}
+        className="mt-6 h-11 px-6 rounded-xl bg-ink-900 text-white font-bold cursor-pointer disabled:opacity-60">{busy ? 'מנסה…' : 'נסו שוב'}</button>
+    </div>
+  );
+}
+
 function Routed() {
   const r = useRoute();
   const { toast, mode, reload } = useApp();
@@ -24,6 +38,7 @@ function Routed() {
     // הפעלה 140: עד שיודעים אם יש שרת (mode='loading') לא מציגים את נתוני המוק — בעל עסק מחובר ראה לרגע לקוחות
     // וסכומים בדויים בכל טעינה. מצב ניטרלי עד שהשרת עונה (חי) או שאין שרת (מוק).
     <Shell route={r}>{mode === 'loading' ? <div role="status" data-testid="app-loading" className="py-24 text-center text-ink-500">טוען…</div>
+      : mode === 'error' ? <LoadError />
       : r === 'dashboard' ? <Dashboard /> : r === 'invoices' ? <Invoices /> : r === 'inbox' ? <Inbox /> : <Settings />}</Shell>
   );
   return (
