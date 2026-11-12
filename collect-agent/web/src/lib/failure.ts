@@ -41,6 +41,11 @@ export function failureText(status: number, detail?: string | null, write = fals
 /** הפעלה 146: ניסיון חוזר של הכרעה שכבר נרשמה בשרת (409 + X-Gabi-Already). `want` = ההכרעה שביקשנו.
  *  true רק כשהשרת אישר שאותה הכרעה כבר נרשמה; 409 אחר (חסימה, תזכורת שנדחתה) נשאר סירוב. טהור. */
 export const ALREADY_APPROVED = '✓ התזכורת הזו כבר אושרה קודם';
+/** הפעלה 147: אותו דבר להצעת פריסה ולטיוטת מענה (אישור / סגירה בלי מענה). */
+export const ALREADY_PLAN = '✓ הצעת הפריסה הזו כבר אושרה קודם';
+export const ALREADY_DRAFT = '✓ המענה הזה כבר אושר קודם';
+export const ALREADY_DRAFT_CLOSED = '✓ הכרטיס הזה כבר נסגר קודם';
+export type Already = { want: 'approved' | 'rejected'; msg: string };
 export function alreadyDone(e: unknown, want: 'approved' | 'rejected'): boolean {
   const x = e as { status?: unknown; already?: unknown } | null;
   return !!x && x.status === 409 && x.already === want;

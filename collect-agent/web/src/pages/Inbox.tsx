@@ -5,6 +5,7 @@ import { Button, Card } from '../components/ui.tsx';
 import { smsSegments } from '../lib/message.ts';
 import { fmtWhenIL } from '../lib/policy.ts';
 import { fmtMoney } from '../lib/format.ts';
+import { ALREADY_DRAFT, ALREADY_DRAFT_CLOSED, alreadyDone, type Already } from '../lib/failure.ts';
 
 const INTENT: Record<string, string> = {
   how_to_pay: 'שאל/ה איך משלמים', paid_claim: 'טוען/ת ששילם/ה', plan_request: 'מבקש/ת פריסה', opt_out: 'ביקש/ה הסרה',
@@ -55,11 +56,16 @@ function DraftCard({ d }: { d: Draft }) {
   const [esc, cls] = ESC[d.escalate] ?? ESC.none;
   const needsWrite = d.status === 'needs_owner';
   const seg = smsSegments(body);
-  const run = async (fn: () => Promise<unknown>, ok: string) => {
+  const run = async (fn: () => Promise<unknown>, ok: string, already?: Already) => {
     setBusy(true); setErr(null);
-    try { await fn(); } catch (e) { setErr(explainViolation((e as Error).message)); setBusy(false); return; }
+    // הפעלה 147: 409 «כבר אושר/נסגר» (ניסיון חוזר אחרי תשובה שאבדה) אינו כשל: מרעננים, הכרטיס יורד מהתור
+    let was = false;
+    try { await fn(); } catch (e) {
+      if (!already || !alreadyDone(e, already.want)) { setErr(explainViolation((e as Error).message)); setBusy(false); return; }
+      was = true;
+    }
     // הפעלה 143: הפעולה בוצעה; כשל ברענון שאחריה לא מוצג כשגיאת הפעולה
-    await reload().catch(() => { setBusy(false); }); showToast(ok);
+    await reload().catch(() => { setBusy(false); }); showToast(was && already ? already.msg : ok);
   };
   return (
     <li>
@@ -88,8 +94,8 @@ function DraftCard({ d }: { d: Draft }) {
         )}
         {err && <p className="mt-2 text-sm text-critical font-bold" role="alert">לא נשלח: {err}</p>}
         <div className="mt-4 flex flex-wrap gap-2 justify-end">
-          <Button variant="ghost" disabled={busy} onClick={() => run(() => api.rejectDraft(d.id), 'הכרטיס נסגר בלי מענה')}>✗ סגירה בלי מענה</Button>
-          <Button disabled={busy || !body.trim() || (odd.length > 0 && !confirmAmount)} onClick={() => run(() => api.approveDraft(d.id, body === d.body ? undefined : body, confirmAmount), '✓ המענה אושר ונשלח (dry-run)')}>✓ אשר ושלח</Button>
+          <Button variant="ghost" disabled={busy} onClick={() => run(() => api.rejectDraft(d.id), 'הכרטיס נסגר בלי מענה', { want: 'rejected', msg: ALREADY_DRAFT_CLOSED })}>✗ סגירה בלי מענה</Button>
+          <Button disabled={busy || !body.trim() || (odd.length > 0 && !confirmAmount)} onClick={() => run(() => api.approveDraft(d.id, body === d.body ? undefined : body, confirmAmount), '✓ המענה אושר ונשלח (dry-run)', { want: 'approved', msg: ALREADY_DRAFT })}>✓ אשר ושלח</Button>
         </div>
       </Card>
     </li>

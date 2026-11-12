@@ -8,7 +8,7 @@ import { Button, Card, LateBadge } from '../components/ui.tsx';
 import { MessagePreview } from '../components/MessagePreview.tsx';
 import type { Invoice } from '../lib/domain.ts';
 import { api, BLOCK_LABEL, blockKind, REAPPROVE_LABEL } from '../api.ts';
-import { failPrefix } from '../lib/failure.ts';
+import { ALREADY_PLAN, alreadyDone, failPrefix, type Already } from '../lib/failure.ts';
 import { mockAmountCheck } from '../lib/policy.ts';
 import { areaPath, cumulative, otherInSeries, toBars, type Bar } from '../lib/series.ts';
 
@@ -250,12 +250,17 @@ function NeedsYou() {
   const proposed = plans.filter(p => p.status === 'proposed');
   const nameOfCustomer = (bid: number) => customers.find(c => c.backendId === bid)?.name ?? `לקוח ${bid}`;
   const numOf = (iid: number) => invoices.find(i => i.id === String(iid))?.number ?? String(iid);
-  const act = async (key: string, fn: () => Promise<unknown>, done: string) => {
+  const act = async (key: string, fn: () => Promise<unknown>, done: string, already?: Already) => {
     if (armed !== key) { setArmed(key); window.setTimeout(() => setArmed(a => a === key ? null : a), 4000); return; }
     setArmed(null);
     // הפעלה 143: כשל ברענון אחרי פעולה שהצליחה אינו «לא בוצע» (הפס «הנתונים לא עודכנו» מטפל בו)
-    try { await fn(); } catch (e) { showToast(failPrefix('לא בוצע', (e as Error).message)); return; }
-    await reload().catch(() => { /* stale / 401 מטופלים ב-store */ }); showToast(done);
+    // הפעלה 147: 409 «כבר אושרה» (ניסיון חוזר אחרי תשובה שאבדה) אינו כשל: מרעננים ומציגים «כבר אושרה קודם»
+    let was = false;
+    try { await fn(); } catch (e) {
+      if (!already || !alreadyDone(e, already.want)) { showToast(failPrefix('לא בוצע', (e as Error).message)); return; }
+      was = true;
+    }
+    await reload().catch(() => { /* stale / 401 מטופלים ב-store */ }); showToast(was && already ? already.msg : done);
   };
   if (!paused.length && !proposed.length && !notices.length) return null;
   return (
@@ -300,7 +305,7 @@ function NeedsYou() {
               )}
               <Button size="sm" variant={armed === `p${p.id}` ? 'dark' : 'primary'} className="mt-2"
                 disabled={(p.amount_check?.length ?? 0) > 0 && !planConfirm[p.id]}
-                onClick={() => act(`p${p.id}`, () => api.approvePlan(p.id, planConfirm[p.id] ?? false), 'ההצעה אושרה ונשלחה ללקוח (dry-run)')}>
+                onClick={() => act(`p${p.id}`, () => api.approvePlan(p.id, planConfirm[p.id] ?? false), 'ההצעה אושרה ונשלחה ללקוח (dry-run)', { want: 'approved', msg: ALREADY_PLAN })}>
                 {armed === `p${p.id}` ? 'לחצו שוב לאישור' : '✓ אישור ההצעה'}
               </Button>
             </li>

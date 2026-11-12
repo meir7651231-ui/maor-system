@@ -865,6 +865,40 @@ try {
   if (out) await h.screenshot({ path: `${out}/live-22-already-approved.png` });
   await h.unroute('**/reminders/*/approve');
   console.log('  ✓ אישור חוזר של תזכורת שכבר אושרה: 409 «כבר אושרה», מוצג כ«כבר אושרה קודם», אישור אחד ביומן');
+
+  // 23) הפעלה 147: אותו כלל לטיוטת מענה. האישור נרשם, התשובה אבדה, ניסיון חוזר ⇒ 409 + X-Gabi-Already מהשרת האמיתי.
+  //     הממשק מציג «כבר אושר קודם» (לא שגיאה בכרטיס), הכרטיס יורד מהתור, ביומן אישור אחד והודעה אחת יצאה.
+  hFail.length = 0;
+  await h.goto(base + '/app/#/dashboard');
+  await h.getByLabel('לקוח').selectOption({ label: 'דנה לוי (דמו)' });
+  await h.getByRole('button', { name: 'איך אפשר לשלם?' }).click();
+  await h.getByRole('button', { name: 'שלח תשובה (סימולציה)' }).click();
+  await h.getByTestId('reply-result').waitFor();
+  await h.goto(base + '/app/#/inbox');
+  const card147 = h.getByTestId('drafts').locator('li', { hasText: 'דנה' }).first();
+  await card147.waitFor();
+  const ob147 = (await api('/outbox')).messages.length;
+  let seen147 = null;
+  await inject(h, '**/conversation/drafts/*/approve', async route => {
+    const first = await route.fetch();
+    const second = await route.fetch();
+    seen147 = { first: first.status(), status: second.status(), already: second.headers()['x-gabi-already'], did: Number(route.request().url().match(/drafts\/(\d+)\/approve/)[1]) };
+    await route.fulfill({ response: second });
+  });
+  if (await card147.getByTestId('draft-confirm-amount').count()) await card147.getByTestId('draft-confirm-amount').locator('input').check();
+  if (!(await card147.locator('textarea').inputValue()).trim()) await card147.locator('textarea').fill('תודה על הפנייה, נחזור אליך בהקדם.');
+  await card147.getByRole('button', { name: 'אשר ושלח' }).click();
+  await h.getByText('המענה הזה כבר אושר קודם').waitFor();
+  ok(seen147 && seen147.first === 200 && seen147.status === 409 && seen147.already === 'approved', 'שלב 23: השרת לא ענה 409 «כבר אושרה»: ' + JSON.stringify(seen147));
+  ok(await h.getByRole('alert').count() === 0, 'שלב 23: אישור שכבר נרשם מוצג כשגיאה בכרטיס');
+  ok(!(await api('/conversation/drafts')).some(d => d.id === seen147.did), 'שלב 23: הטיוטה נשארה בתור');
+  ok((await api('/outbox')).messages.length === ob147 + 1, 'שלב 23: לא יצאה בדיוק הודעה אחת');
+  const aud147 = (await api('/audit')).filter(a => a.action === 'draft_approved' && new RegExp(`"draft": ${seen147.did}\\b`).test(a.detail ?? ''));
+  ok(aud147.length === 1, `שלב 23: ביומן הביקורת ${aud147.length} אישורים לטיוטה ${seen147.did}`);
+  ok(hFail.join('|') === `409 POST /conversation/drafts/${seen147.did}/approve`, 'שלב 23: כשלים לא צפויים: ' + hFail.join(' | '));
+  if (out) await h.screenshot({ path: `${out}/live-23-already-draft.png` });
+  await h.unroute('**/conversation/drafts/*/approve');
+  console.log('  ✓ אישור חוזר של מענה שכבר אושר: 409 «כבר אושרה», מוצג כ«כבר אושר קודם», אישור אחד והודעה אחת');
   await h.context().close();
   console.log('  ✓ סשן שפג באמצע עריכת הגדרות: אחרי כניסה מחדש ההקלדה חוזרת, מסומנת כלא שמורה, ונשמרת; מעבר מסך רגיל לא משחזר');
   failPhase = false;

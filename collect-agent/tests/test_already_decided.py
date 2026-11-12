@@ -116,3 +116,84 @@ def test_source_guard_no_raw_status_in_reminder_refusals():
     assert "לא ממתינה לאישור (status=" not in src
     assert "לא ניתן לדחות (status=" not in src
     assert 'headers={"X-Gabi-Already": state}' in (ROOT / "app/main.py").read_text(encoding="utf-8")
+
+
+# ---------- הפעלה 147: אותו כלל להצעות פריסה ולטיוטות מענה ----------
+
+def _plan(api):
+    rid = _first_pending(api)
+    api.post(f"/reminders/{rid}/approve")
+    api.post("/dispatch")
+    res = api.post("/inbound", json={"sender": "050-1234567", "text": "אפשר פריסה?"}).json()
+    return res["plan_id"]
+
+
+def _draft(api):
+    api.post("/sync")
+    return api.post("/conversation/inbound",
+                    json={"channel": "sms", "sender": "050-1234567", "text": "איך אפשר לשלם?"}).json()["draft_id"]
+
+
+def test_second_plan_approve_is_already_approved(svc):
+    api = _api(svc)
+    pid = _plan(api)
+    assert api.post(f"/plans/{pid}/approve").status_code == 200
+    sent = len(svc.sender.sent)
+    r = api.post(f"/plans/{pid}/approve")
+    assert r.status_code == 409 and r.headers.get("x-gabi-already") == "approved"
+    assert r.json()["detail"] == "הצעת הפריסה כבר אושרה"
+    # בלי אישור שני ביומן, בלי הודעה שנייה ללקוח
+    assert len(_audits(svc, "plan_approved")) == 1 and len(svc.sender.sent) == sent
+
+
+def test_already_approved_plan_wins_over_amount_check(svc, monkeypatch):
+    """ניסיון חוזר בלי confirm_amount על הצעה שכבר אושרה: «כבר אושרה», לא דרישת אישור סכום."""
+    api = _api(svc)
+    pid = _plan(api)
+    assert api.post(f"/plans/{pid}/approve").status_code == 200
+    monkeypatch.setattr(svc, "_amount_outliers", lambda invs: [(invs[0], 1)] if invs else [])
+    r = api.post(f"/plans/{pid}/approve")
+    assert r.status_code == 409 and r.headers.get("x-gabi-already") == "approved"
+
+
+def test_superseded_or_unknown_plan_is_a_real_refusal(svc):
+    api = _api(svc)
+    pid = _plan(api)
+    for status in ("superseded", "approving", "weird_state"):
+        svc.db.x("UPDATE plans SET status=? WHERE id=?", (status, pid))
+        r = api.post(f"/plans/{pid}/approve")
+        assert r.status_code == 409 and "x-gabi-already" not in r.headers
+        assert "הצעת הפריסה" in r.json()["detail"] and not RAW.search(r.json()["detail"])
+        assert svc.db.one("SELECT status FROM plans WHERE id=?", (pid,))["status"] == status
+    assert _audits(svc, "plan_approved") == []
+    assert api.post("/plans/99999/approve").status_code == 409
+
+
+def test_second_draft_approve_is_already_approved(svc):
+    api = _api(svc)
+    did = _draft(api)
+    assert api.post(f"/conversation/drafts/{did}/approve").status_code == 200
+    sent = len(svc.sender.sent)
+    r = api.post(f"/conversation/drafts/{did}/approve", json={"body": "נוסח אחר לגמרי"})
+    assert r.status_code == 409 and r.headers.get("x-gabi-already") == "approved"
+    assert r.json()["detail"].startswith("הטיוטה כבר אושרה") and not RAW.search(r.json()["detail"])
+    assert len(_audits(svc, "draft_approved")) == 1 and len(svc.sender.sent) == sent
+
+
+def test_second_draft_reject_is_already_rejected_and_cross_decisions_refuse(svc):
+    api = _api(svc)
+    did = _draft(api)
+    assert api.post(f"/conversation/drafts/{did}/reject").status_code == 200
+    r = api.post(f"/conversation/drafts/{did}/reject")
+    assert r.status_code == 409 and r.headers.get("x-gabi-already") == "rejected"
+    assert r.json()["detail"] == "הטיוטה כבר נסגרה בלי מענה"
+    assert len(_audits(svc, "draft_rejected")) == 1
+    # אישור של טיוטה שנסגרה = סירוב אמיתי, בלי הכותרת
+    r = api.post(f"/conversation/drafts/{did}/approve")
+    assert r.status_code == 409 and "x-gabi-already" not in r.headers
+    assert r.json()["detail"] == "הטיוטה כבר נסגרה בלי מענה. אי אפשר לאשר אותה"
+    # טיוטה שהוחלפה: שתי ההכרעות מסורבות בלי הכותרת
+    svc.db.x("UPDATE drafts SET status='superseded' WHERE id=?", (did,))
+    for action in ("approve", "reject"):
+        r = api.post(f"/conversation/drafts/{did}/{action}")
+        assert r.status_code == 409 and "x-gabi-already" not in r.headers

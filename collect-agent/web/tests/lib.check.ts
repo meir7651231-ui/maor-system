@@ -922,3 +922,18 @@ test('הפעלה 146: טיוטת ההגדרות מוחזרת רק למי שהק�
   assert.doesNotMatch(ui, /alert\(/, 'ב-/ui לא נשאר alert');
   assert.match(ui, /function hdr\(\)\{/);
 });
+
+test('הפעלה 147: «כבר אושרה» גם להצעת פריסה ולטיוטת מענה', async () => {
+  const f = await import('../src/lib/failure.ts');
+  const fs = await import('node:fs');
+  assert.ok(f.ALREADY_PLAN.includes('כבר אושרה') && f.ALREADY_DRAFT.includes('כבר אושר') && f.ALREADY_DRAFT_CLOSED.includes('כבר נסגר'));
+  const dash = fs.readFileSync(new URL('../src/pages/Dashboard.tsx', import.meta.url), 'utf8');
+  assert.match(dash, /if \(!already \|\| !alreadyDone\(e, already\.want\)\) \{ showToast\(failPrefix\('לא בוצע'/, 'רק 409 עם הכותרת המתאימה אינו כשל');
+  assert.match(dash, /api\.approvePlan\([^\n]*\{ want: 'approved', msg: ALREADY_PLAN \}/);
+  // חידוש לקוח / סגירת הודעה לא מקבלים את ההקלה (אין להם כותרת)
+  assert.equal((dash.match(/msg: ALREADY_/g) ?? []).length, 1);
+  const inbox = fs.readFileSync(new URL('../src/pages/Inbox.tsx', import.meta.url), 'utf8');
+  assert.match(inbox, /if \(!already \|\| !alreadyDone\(e, already\.want\)\) \{ setErr\(/);
+  assert.match(inbox, /api\.approveDraft\([^\n]*\{ want: 'approved', msg: ALREADY_DRAFT \}/);
+  assert.match(inbox, /api\.rejectDraft\([^\n]*\{ want: 'rejected', msg: ALREADY_DRAFT_CLOSED \}/);
+});

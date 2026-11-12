@@ -87,6 +87,21 @@ def _not_pending(status: str, action: str) -> ValueError:
         return AlreadyDecided(he, "rejected")
     tail = "אי אפשר לאשר אותה" if action == "approve" else "אי אפשר לדחות אותה"
     return ValueError(f"{he}. {tail}")
+
+
+# הפעלה 147: אותו כלל להצעת פריסה. approved = האישור כבר נרשם ⇒ AlreadyDecided («כבר אושרה», לא שגיאה).
+_PLAN_NOT_PROPOSED_HE = {
+    "approving": "הצעת הפריסה נמצאת באישור כרגע. המתינו רגע ורעננו",
+    "superseded": "הצעת הפריסה הוחלפה כי המצב מול הלקוח השתנה. נדרשת הצעה חדשה",
+}
+
+
+def _plan_not_proposed(status: str) -> ValueError:
+    if status == "approved":
+        return AlreadyDecided("הצעת הפריסה כבר אושרה", "approved")
+    return ValueError(_PLAN_NOT_PROPOSED_HE.get(status, "הצעת הפריסה כבר הוכרעה. אי אפשר לאשר אותה"))
+
+
 _B62 = "abcdefghijkmnpqrstuvwxyz23456789"  # אותיות קטנות+ספרות, בלי 0/o/1/l (קריא, ~31 ביט)
 
 
@@ -1939,7 +1954,10 @@ class CollectService:
         return pid
 
     def approve_plan(self, plan_id: int, actor: str = "owner", *, confirm_amount: bool = False) -> dict:
-        p0 = self.db.one("SELECT customer_id FROM plans WHERE id=?", (plan_id,))
+        p0 = self.db.one("SELECT customer_id, status FROM plans WHERE id=?", (plan_id,))
+        if p0 and p0["status"] != "proposed":
+            # הפעלה 147: אישור חוזר (התשובה אבדה ברשת) ⇒ «כבר אושרה», לפני בדיקת הסכום החריג
+            raise _plan_not_proposed(p0["status"])
         if p0 and not confirm_amount and self._amount_outliers(self.db.q(
                 "SELECT * FROM invoices WHERE customer_id=? AND status='open'", (p0["customer_id"],))):
             # critic סבב 48: הצעת פריסה על סכום חריג (פי 50) — אותו כלל של הפעלה 123
@@ -1949,7 +1967,9 @@ class CollectService:
         # לשוניות) עברו שניהם את הבדיקה ⇒ שתי טיוטות ⇒ שני אישורי הסדר ללקוח.
         if self.db.update("UPDATE plans SET status='approving' WHERE id=? AND status='proposed'",
                           (plan_id,)) != 1:
-            raise ValueError("הסדר לא קיים או כבר הוכרע")
+            # מרוץ: מישהו תפס/הכריע בין הבדיקה לתפיסה ⇒ הנוסח לפי המצב העדכני
+            now = self.db.one("SELECT status FROM plans WHERE id=?", (plan_id,))
+            raise _plan_not_proposed(now["status"]) if now else ValueError("הסדר לא קיים או כבר הוכרע")
         try:
             return self._approve_plan_claimed(plan_id, actor)
         finally:   # כל יציאה שלא קבעה מצב סופי (שגיאת רענון וכד׳) ⇒ חוזר להצעה

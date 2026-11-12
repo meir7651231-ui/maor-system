@@ -95,6 +95,21 @@ _DRAFT_DECIDED_HE = {
 def _decided_he(status: str) -> str:
     return _DRAFT_DECIDED_HE.get(status, "הטיוטה כבר הוכרעה")
 
+
+_DRAFT_APPROVED_STATES = ("approved", "sending", "sent_dry_run", "sent", "send_unknown")
+
+
+def _draft_decided(status: str, action: str) -> ValueError:
+    """הפעלה 147: אותה הכרעה שוב על טיוטה (התשובה אבדה ברשת) ⇒ AlreadyDecided, כמו בתזכורות (146).
+    עדיין 409 ובלי שינוי מצב; הממשק מציג «כבר אושר/נסגר» ולא שגיאה. הכרעה הפוכה נשארת סירוב רגיל."""
+    from .service import AlreadyDecided  # ייבוא מאוחר: service מייבא את inbox
+    he = _decided_he(status)
+    if action == "approve" and status in _DRAFT_APPROVED_STATES:
+        return AlreadyDecided(he, "approved")
+    if action == "reject" and status == "rejected":
+        return AlreadyDecided(he, "rejected")
+    return ValueError(he + (". אי אפשר לאשר אותה" if action == "approve" else ". אי אפשר לדחות אותה"))
+
 class ConversationInbox:
     def __init__(self, svc: Any, policy: OwnerPolicy | None = None, llm: Any = "env") -> None:
         self.svc = svc
@@ -383,7 +398,7 @@ class ConversationInbox:
                       confirm_amount: bool = False) -> dict:
         dr = self._get(draft_id)
         if dr["status"] not in ("pending_approval", "needs_owner"):
-            raise ValueError(_decided_he(dr["status"]) + ". אי אפשר לאשר אותה")
+            raise _draft_decided(dr["status"], "approve")
         if self._amount_check(dr) and not confirm_amount:
             raise ValueError("סכום חריג מאוד מהרגיל ללקוח (אולי נקודה עשרונית במקום הלא נכון?) — "
                              "יש לאשר במפורש שהסכום נכון (confirm_amount)")
@@ -418,7 +433,7 @@ class ConversationInbox:
     def reject_draft(self, draft_id: int, actor: str = "owner") -> dict:
         dr = self._get(draft_id)
         if dr["status"] not in ("pending_approval", "needs_owner", "approved"):
-            raise ValueError(_decided_he(dr["status"]) + ". אי אפשר לדחות אותה")
+            raise _draft_decided(dr["status"], "reject")
         self.db.x("UPDATE drafts SET status='rejected', decided_at=?, decided_by=? WHERE id=?",
                   (_iso(self.svc.clock()), actor, draft_id))
         self.svc.audit(actor, "draft_rejected", {"draft": draft_id})
