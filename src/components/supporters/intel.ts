@@ -61,7 +61,7 @@ export interface DonorScan {
  * פעם-אחת ומחשבים ממנו, כדי לא לסרוק את ההיסטוריה חמש פעמים לכל תורם.
  */
 export function donorScan(sp: Supporter, todayIso: string, rate = 3.7, months = 12): DonorScan {
-  const monthly = new Array<number>(months).fill(0);
+  const monthly = Array.from<number>({ length: months }).fill(0);
   let count = 0, ils = 0, first = '', last = '';
 
   const take = (date: string, amount: number, cur?: string) => {
