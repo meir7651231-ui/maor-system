@@ -96,3 +96,20 @@ def test_ui_reminder_list_uses_invoice_currency():
 def test_ui_debts_table_has_no_raw_block_code():
     assert "BLOCK[L.block_reason]||L.block_reason" not in UI, "טבלת החובות הציגה «amount_check» גולמי"
     assert "why(L.block_reason)" in UI
+
+
+def test_ui_first_load_skeleton_not_blank_run150():
+    """הפעלה 150: בכניסה ראשונה `/ui` הציג כותרות בלי מספרים, טבלה ריקה ותור ריק עד שהשרת ענה, וטעינה ראשונה
+    שנכשלה נראתה כמו «אין חובות» לצד «מה שמוצג כאן אולי לא עדכני». עכשיו: שלד טעינה בחלק שעוד לא נטען,
+    «לא נטענו» כשהטעינה הראשונה נכשלת, והנוסח של פס השגיאה לפי מה שבאמת על המסך.
+    ההתנהגות עצמה נבדקת בדפדפן ב-web/e2e/ui.mjs; כאן הגנת-מקור שרצה גם ב-CI (שאין בו דפדפן)."""
+    from pathlib import Path
+    ui = (Path(__file__).resolve().parent.parent / "app/ui.html").read_text(encoding="utf-8")
+    assert "if(ask&&!locked)skel();" in ui                      # רק טעינה שהמשתמש יזם, לא רענון רקע
+    assert "function skel(){if(got.d&&got.q)return;" in ui      # אחרי שנטען פעם אחת — לא מחליפים נתונים בשלד
+    assert 'aria-hidden="true"><span class="sk big">' in ui     # השלד מוסתר מקורא מסך
+    assert '<div class="vh" id="busyMsg" role="status"></div>' in ui
+    assert "החובות לא נטענו מהשרת" in ui and "תור התזכורות לא נטען מהשרת" in ui
+    assert 'got.d||got.q?"מה שמוצג כאן אולי לא עדכני.":"עדיין אין נתונים להצגה."' in ui
+    assert "got={d:false,q:false};busyOff();" in ui.split("function lock(had){")[1].split("\n")[0]
+    assert "@media (prefers-reduced-motion:reduce){.sk{animation:none}}" in ui

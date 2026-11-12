@@ -83,7 +83,7 @@ try {
   await p.unroute('**/reminders/*/preview');
   { const i = errors.findIndex(e => /^409 .*\/reminders\/\d+\/approve$/.test(e)); if (i >= 0) errors.splice(i, 1); }   // הסירוב הצפוי
   // הפעלה 138: עמודת «תזכורות שנשלחו» ב-/ui — מועד וערוצים של מה שיצא בפועל (last_sent), מול ה-API האמיתי
-  await p.reload(); await p.locator('#debts tr').first().waitFor();
+  await p.reload(); await p.locator('#debts tr:not(.skrow)').first().waitFor();
   const dash138 = await (await fetch(base + '/dashboard', { headers: H })).json();
   for (const r of dash138.invoices) {
     const cell = (await p.locator('#debts tr', { hasText: r.number }).first().locator('td.sent').textContent()) ?? '';
@@ -108,7 +108,7 @@ try {
     mocked138 = [open[3]?.number, open[4]?.number];
     await route.fulfill({ response: res, json: j });
   });
-  await p.goto(base + '/ui'); await p.locator('#debts tr').first().waitFor();
+  await p.goto(base + '/ui'); await p.locator('#debts tr:not(.skrow)').first().waitFor();
   const debts = await p.locator('#debts').textContent();
   for (const raw of ['send_unknown', 'promise', 'deceased', ':until='])
     ok(!debts.includes(raw), `טבלת החובות מציגה קוד גולמי: ${raw}`);
@@ -257,15 +257,60 @@ try {
   // כניסה מחדש: חלון אחד (לא אחד לכל בקשה מקבילה), הנתונים חוזרים
   answer = TOKEN;
   await p.locator('#btnLogin').click();
-  await p.locator('#debts tr').first().waitFor();
+  await p.locator('#debts tr:not(.skrow)').first().waitFor();
   await p.locator('#list .item').first().waitFor();
   for (const id of ['#btnSync', '#btnPlan', '#btnDispatch']) ok(await p.locator(id).isEnabled(), `אחרי כניסה: ${id} נשאר כבוי`);
   ok(await p.locator('#locked').isHidden() && dialogs.length === 2, 'כניסה מחדש: הפס נשאר או שנפתח יותר מחלון אחד: ' + dialogs.join(' | '));
+  // הפעלה 150: שלד טעינה בכניסה ראשונה במקום מסך ריק. מאטים את שתי הבקשות כדי לתפוס את חלון הטעינה.
+  const slow150 = async route => { await new Promise(r => setTimeout(r, 1200)); await route.continue(); };
+  await inject(p, '**/dashboard', slow150); await inject(p, '**/reminders', slow150);
+  await p.reload();
+  await p.locator('#debts tr.skrow').first().waitFor();
+  ok(await p.locator('#kpis .kpi .sk').count() === 16 && await p.locator('#debts tr.skrow').count() === 3 && await p.locator('#list .skitem').count() === 3,
+    '/ui: שלד הטעינה חסר או חלקי');
+  ok(await p.locator('#list .item').count() === 0 && await p.locator('#debts td.sent').count() === 0, '/ui: נתונים מוצגים לצד השלד');
+  ok(await p.locator('#dash').getAttribute('aria-busy') === 'true' && await p.locator('#list').getAttribute('aria-busy') === 'true'
+    && await p.locator('#busyMsg').textContent() === 'טוען נתונים…', '/ui: בזמן הטעינה אין aria-busy או הודעת «טוען נתונים…»');
+  ok(await p.locator('.sk').evaluateAll(els => els.every(e => e.closest('[aria-hidden="true"]'))), '/ui: צורות השלד חשופות לקורא מסך');
+  ok(await p.locator('#loaderr').isHidden(), '/ui: פס שגיאה בזמן טעינה תקינה');
+  if (out) await p.screenshot({ path: `${out}/ui-07-skeleton.png`, fullPage: true });
+  await p.locator('#debts tr:not(.skrow)').first().waitFor(); await p.locator('#list .item').first().waitFor();
+  ok(await p.locator('.sk').count() === 0 && await p.locator('#dash').getAttribute('aria-busy') === null
+    && await p.locator('#busyMsg').textContent() === '', '/ui: השלד או aria-busy נשארו אחרי הטעינה');
+  // אחרי שהנתונים נטענו, רענון (לחיצה על תזכורת, פעולה) לא מחזיר את השלד: הנתונים נשארים על המסך
+  await p.locator('#list .item').first().click();
+  ok(await p.locator('.sk').count() === 0, '/ui: רענון אחרי טעינה החזיר את השלד');
+  await p.unroute('**/dashboard'); await p.unroute('**/reminders');
+  // טעינה ראשונה שנכשלת: לא שלד לנצח ולא טבלה ריקה שנראית כמו «אין חובות», אלא «לא נטענו» + פס שגיאה מתאים
+  let down150 = true;
+  const fail150 = route => down150 ? route.fulfill({ status: 503, contentType: 'application/json', body: '{"detail":"down"}' }) : route.continue();
+  await inject(p, '**/dashboard', fail150); await inject(p, '**/reminders', fail150);
+  await p.reload();
+  await p.locator('#loaderr').waitFor({ state: 'visible' });
+  ok(/עדיין אין נתונים להצגה/.test(await p.locator('#loadMsg').textContent()) && !/אולי לא עדכני/.test(await p.locator('#loadMsg').textContent()),
+    '/ui: כשל בטעינה ראשונה מציג «מה שמוצג כאן אולי לא עדכני» כשאין דבר על המסך');
+  ok(await p.locator('.sk').count() === 0 && await p.locator('#debts tr.unloaded').count() === 1 && await p.locator('#list .unloaded').count() === 1
+    && await p.locator('#kpis .kpi').count() === 0 && await p.locator('#dash').getAttribute('aria-busy') === null, '/ui: כשל בטעינה ראשונה השאיר שלד או מסך ריק בלי הסבר');
+  if (out) await p.screenshot({ path: `${out}/ui-08-first-load-failed.png`, fullPage: true });
+  down150 = false;                                                          // השרת חזר ⇒ הרענון האוטומטי ממלא, בלי לחיצה
+  await p.locator('#list .item').first().waitFor({ timeout: 6000 }); await p.locator('#debts tr:not(.unloaded)').first().waitFor();
+  ok(await p.locator('#loaderr').isHidden() && await p.locator('.unloaded').count() === 0, '/ui: אחרי שהשרת חזר נשארו «לא נטענו» או פס השגיאה');
+  await p.unroute('**/dashboard'); await p.unroute('**/reminders');
+  // רק /dashboard נכשל בטעינה ראשונה: התור מוצג, החובות «לא נטענו», והפס מזהיר שמה שמוצג אולי לא עדכני
+  await inject(p, '**/dashboard', route => route.fulfill({ status: 503, contentType: 'application/json', body: '{"detail":"down"}' }));
+  await p.reload();
+  await p.locator('#loaderr').waitFor({ state: 'visible' });
+  ok(await p.locator('#list .item').count() > 0 && await p.locator('#debts tr.unloaded').count() === 1 && /אולי לא עדכני/.test(await p.locator('#loadMsg').textContent()),
+    '/ui: כשל חלקי בטעינה ראשונה לא מוצג נכון');
+  await p.unroute('**/dashboard');
+  await p.locator('#btnRetry').click();
+  await p.locator('#loaderr').waitFor({ state: 'hidden' });
+  ok(await p.locator('#debts tr.unloaded').count() === 0 && await p.locator('#debts td.sent').count() > 0, '/ui: «נסו שוב» לא טען את החובות');
   errors.push(...errors.splice(before145).filter(e => !/^503 .*\/dashboard$/.test(e) && !/^401 .*\/(dispatch|dashboard|reminders)$/.test(e) && !/^409 .*\/(sync|reminders\/\d+\/approve)$/.test(e)));
   // ה-503 המוזרקים נרשמו כשגיאות תגובה: מסירים רק אותם, כל שגיאה אחרת נשארת
   const mine = errors.splice(before).filter(e => !/^503 .*\/(dashboard|reminders)$/.test(e) && !/^502 .*\/reminders\/\d+\/preview$/.test(e));
   errors.push(...mine);
   errors.push(...routeErrors);
   ok(errors.length === 0, 'שגיאות:\n' + errors.join('\n'));
-  console.log('✓ /ui: סכום חריג מאושר רק אחרי סימון מפורש · תזכורת רגילה ללא שינוי · סטטוס/השהיה בעברית · מועד וערוץ השליחה לפי last_sent · כשל טעינה ⇒ פס שגיאה ו«נסו שוב» · כתיבה שנקטעה ⇒ «לא ידוע אם נרשמה» + רענון אוטומטי · 401 ⇒ מסך נעול וכפתורי הכותרת כבויים · אישור חוזר ⇒ «כבר אושרה» · כשל בכפתור כותרת ⇒ שורה בדף, בלי חלון');
+  console.log('✓ /ui: סכום חריג מאושר רק אחרי סימון מפורש · תזכורת רגילה ללא שינוי · סטטוס/השהיה בעברית · מועד וערוץ השליחה לפי last_sent · שלד טעינה בכניסה ראשונה · כשל טעינה ⇒ פס שגיאה ו«נסו שוב» · כתיבה שנקטעה ⇒ «לא ידוע אם נרשמה» + רענון אוטומטי · 401 ⇒ מסך נעול וכפתורי הכותרת כבויים · אישור חוזר ⇒ «כבר אושרה» · כשל בכפתור כותרת ⇒ שורה בדף, בלי חלון');
 } finally { await b.close(); srv.kill(); }

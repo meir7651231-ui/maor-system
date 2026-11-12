@@ -601,6 +601,12 @@ try {
   await inject(p, '**/health', async route => { await new Promise(r => setTimeout(r, 1200)); await route.continue(); });
   await p.goto(base + '/app/#/dashboard'); await p.reload();
   await p.getByTestId('app-loading').waitFor();
+  // הפעלה 150: שלד טעינה במקום «טוען…». צורות בלבד (אין בו טקסט), מוסתר מקורא מסך, שמכריז «טוען נתונים…» פעם אחת
+  const sk150 = p.getByTestId('app-skeleton');
+  ok(await sk150.count() === 1 && await sk150.getAttribute('aria-hidden') === 'true' && (await sk150.textContent()).trim() === '', 'בזמן הטעינה אין שלד, או שהוא חשוף לקורא מסך או מכיל טקסט');
+  ok((await p.getByTestId('app-loading').textContent()).trim() === 'טוען נתונים…' && await p.getByTestId('app-loading').getAttribute('role') === 'status', 'מצב הטעינה בלי הכרזת «טוען נתונים…»');
+  ok(await sk150.locator('div.rounded-md').first().evaluate(e => { const r = e.getBoundingClientRect(); return r.width > 20 && r.height > 8 && getComputedStyle(e).backgroundColor !== 'rgba(0, 0, 0, 0)'; }), 'צורות השלד לא נראות (בלי גודל או בלי צבע)');
+  if (out) await p.screenshot({ path: `${out}/live-11-skeleton.png`, fullPage: true });
   ok(await p.getByText('קפה הגפן').count() === 0 && await p.getByTestId('kpis').count() === 0 && await p.getByTestId('chart-other').count() === 0,
     'נתוני המוק מוצגים בזמן הטעינה מהשרת');
   await p.getByTestId('mode').filter({ hasText: 'מחובר לשרת גבי' }).waitFor();

@@ -61,6 +61,11 @@ tr.closed td{color:var(--muted);text-decoration:line-through}
 button.resume{margin-inline-start:6px;padding:4px 10px;min-height:32px;font-size:13px}
 .loaderr{display:flex;flex-wrap:wrap;align-items:center;gap:12px;max-width:1168px;margin:16px auto 0;padding:0 16px;font-weight:600}
 .loaderr[hidden]{display:none}.loaderr span{flex:1;min-width:200px}
+.sk{display:block;height:14px;border-radius:6px;background:var(--chip);animation:sk 1.2s ease-in-out infinite}
+.sk.w{width:60%}.sk.big{height:24px;width:50%;margin-bottom:8px}.skitem{display:grid;gap:10px}
+@keyframes sk{50%{opacity:.45}}
+@media (prefers-reduced-motion:reduce){.sk{animation:none}}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 </style>
 </head>
 <body>
@@ -74,7 +79,8 @@ button.resume{margin-inline-start:6px;padding:4px 10px;min-height:32px;font-size
     <button id="btnDispatch" class="primary">שליחה (בדיקה)</button>
   </div>
 </header>
-<div class="err loaderr" id="loaderr" role="alert" hidden><span>לא הצלחנו לטעון את הנתונים מהשרת. מה שמוצג כאן אולי לא עדכני.</span>
+<div class="vh" id="busyMsg" role="status"></div>
+<div class="err loaderr" id="loaderr" role="alert" hidden><span id="loadMsg">לא הצלחנו לטעון את הנתונים מהשרת. מה שמוצג כאן אולי לא עדכני.</span>
   <button id="btnRetry">נסו שוב</button></div>
 <div class="note loaderr" id="wunk" role="alert" hidden><span id="wunkMsg"></span><button id="btnWunk">הבנתי</button></div>
 <div class="err loaderr" id="acterr" role="alert" hidden><span id="actMsg"></span><button id="btnAct">הבנתי</button></div>
@@ -135,11 +141,21 @@ function tok(){try{return sessionStorage.getItem(TOK)||""}catch(e){return ""}}
 //  • כתיבה שנקטעה (רשת, או 5xx בלי הסבר בעברית): אולי נרשמה בשרת ⇒ «לא ידוע אם הפעולה נרשמה», לא «נסו שוב» עיוור.
 //  • 401 שלא נפתר בקוד חדש: הנתונים יורדים מהמסך, הטוקן נמחק מהלשונית, ומוצג פס כניסה.
 const WRITE_UNKNOWN="לא ידוע אם הפעולה נרשמה. בדקו אחרי שהנתונים יתרעננו, לפני שמנסים שוב";
-let locked=false,stale=false,rt=null,rn=0,loading=0,busy=false;
+let locked=false,stale=false,rt=null,rn=0,loading=0,busy=false,got={d:false,q:false};
 // הפעלה 146: כפתורי הכותרת כבויים כשהמסך נעול (אחרי 401, עד «כניסה») ובזמן שפעולה רצה (לחיצה כפולה).
 function hdr(){for(const i of ["#btnSync","#btnPlan","#btnDispatch"])$(i).disabled=locked||busy}
 const RETRY_MS=[2000,4000,8000,15000];
-function lock(had){locked=true;stale=false;clearTimeout(rt);sel=null;try{sessionStorage.removeItem(TOK)}catch(e){}
+// הפעלה 150: בכניסה ראשונה (ואחרי כניסה מחדש) הדף היה ריק עד שהשרת ענה: כותרות בלי מספרים, טבלה ותור ריקים.
+// עכשיו שלד טעינה בכל חלק שעוד לא נטען (got). השלד מוסתר מקורא מסך; הוא שומע «טוען נתונים…» פעם אחת.
+// חלק שנכשל בטעינה הראשונה מציג «לא נטען», לא שלד שמהבהב לנצח ולא טבלה ריקה שנראית כמו «אין חובות».
+const SK='<span class="sk"></span>';
+function busyOff(){$("#dash").removeAttribute("aria-busy");$("#list").removeAttribute("aria-busy");$("#busyMsg").textContent=""}
+function skel(){if(got.d&&got.q)return;
+  if(!got.d){$("#kpis").innerHTML=Array(8).fill('<div class="card kpi" aria-hidden="true"><span class="sk big"></span><span class="sk w"></span></div>').join("");
+    $("#debts").innerHTML=Array(3).fill(`<tr class="skrow" aria-hidden="true">${`<td>${SK}</td>`.repeat(7)}</tr>`).join("")}
+  if(!got.q)$("#list").innerHTML=Array(3).fill(`<div class="card skitem" aria-hidden="true"><span class="sk w"></span>${SK}</div>`).join("");
+  $("#dash").setAttribute("aria-busy","true");$("#list").setAttribute("aria-busy","true");$("#busyMsg").textContent="טוען נתונים…"}
+function lock(had){locked=true;stale=false;clearTimeout(rt);sel=null;try{sessionStorage.removeItem(TOK)}catch(e){}got={d:false,q:false};busyOff();
   for(const i of ["#kpis","#debts","#list"])$(i).innerHTML="";$("#today").textContent="";
   $("#detail").innerHTML='<div class="empty">בחרו תזכורת כדי לראות תצוגה מקדימה של SMS ומייל</div>';
   $("#loaderr").hidden=$("#wunk").hidden=$("#acterr").hidden=true;hdr();
@@ -206,9 +222,15 @@ function sched(){clearTimeout(rt);if(!stale||locked||document.hidden)return;
 addEventListener("online",()=>{if(stale&&!locked){rn=0;load(false)}});
 document.addEventListener("visibilitychange",()=>{if(document.hidden)clearTimeout(rt);else if(stale&&!locked)load(false)});
 async function load(ask=true){
+  if(ask&&!locked)skel();
   loading++;let d,q;try{[d,q]=await Promise.allSettled([loadDash(ask),api("/reminders",{},ask)])}finally{loading--}
   if(locked)return;
   stale=!(d.status==="fulfilled"&&q.status==="fulfilled");
+  if(d.status==="fulfilled")got.d=true;else if(!got.d){$("#kpis").innerHTML="";
+    $("#debts").innerHTML='<tr class="unloaded"><td colspan="7" class="empty">החובות לא נטענו מהשרת</td></tr>'}
+  if(q.status==="fulfilled")got.q=true;else if(!got.q)$("#list").innerHTML='<div class="empty unloaded">תור התזכורות לא נטען מהשרת</div>';
+  busyOff();
+  $("#loadMsg").textContent="לא הצלחנו לטעון את הנתונים מהשרת. "+(got.d||got.q?"מה שמוצג כאן אולי לא עדכני.":"עדיין אין נתונים להצגה.");
   $("#loaderr").hidden=!stale;
   if(stale)sched();else{rn=0;clearTimeout(rt);
     if(!$("#wunk").hidden&&!$("#wunkMsg").dataset.fresh){$("#wunkMsg").dataset.fresh="1";

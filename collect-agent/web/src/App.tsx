@@ -27,6 +27,30 @@ function LoadError() {
   );
 }
 
+/** הפעלה 150: שלד טעינה במקום «טוען…» במרכז מסך ריק. צורות אפורות בלבד: בלי שמות, בלי סכומים ובלי כותרות של מסך מסוים
+ *  (הכלל של 140 נשמר: שום דבר שנראה כמו נתוני העסק). קורא מסך שומע «טוען נתונים…» פעם אחת; הצורות מוסתרות ממנו. */
+function LoadingSkeleton() {
+  const bar = 'rounded-md bg-ink-200';
+  return (
+    <>
+      <span className="sr-only">טוען נתונים…</span>
+      <div aria-hidden="true" data-testid="app-skeleton" className="animate-pulse space-y-6 py-2">
+        <div className={`${bar} h-7 w-40`} />
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+          {[0, 1, 2, 3].map(i => (
+            <div key={i} className="rounded-2xl bg-white shadow-card p-5 space-y-3"><div className={`${bar} h-7 w-1/2`} /><div className={`${bar} h-4 w-3/4`} /></div>
+          ))}
+        </div>
+        <div className="rounded-2xl bg-white shadow-card p-5 space-y-4">
+          {[0, 1, 2, 3].map(i => (
+            <div key={i} className="flex items-center gap-3"><div className={`${bar} h-10 w-10 shrink-0 rounded-full`} /><div className="flex-1 space-y-2"><div className={`${bar} h-4 w-1/3`} /><div className={`${bar} h-3 w-1/2`} /></div></div>
+          ))}
+        </div>
+      </div>
+    </>
+  );
+}
+
 function Routed() {
   const r = useRoute();
   const { toast, mode, reload } = useApp();
@@ -46,7 +70,7 @@ function Routed() {
   const page = r === 'landing' ? <Landing /> : r === 'signup' ? <Signup /> : r === 'login' || mode === 'locked' ? <Login /> : (
     // הפעלה 140: עד שיודעים אם יש שרת (mode='loading') לא מציגים את נתוני המוק — בעל עסק מחובר ראה לרגע לקוחות
     // וסכומים בדויים בכל טעינה. מצב ניטרלי עד שהשרת עונה (חי) או שאין שרת (מוק).
-    <Shell route={r}>{mode === 'loading' ? <div role="status" data-testid="app-loading" className="py-24 text-center text-ink-500">טוען…</div>
+    <Shell route={r}>{mode === 'loading' ? <div role="status" data-testid="app-loading"><LoadingSkeleton /></div>
       : mode === 'error' ? <LoadError />
       : r === 'dashboard' ? <Dashboard /> : r === 'invoices' ? <Invoices /> : r === 'inbox' ? <Inbox /> : <Settings />}</Shell>
   );

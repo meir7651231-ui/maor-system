@@ -986,3 +986,22 @@ test('הפעלה 149: אישור על נוסח ישן ⇒ התצוגה נטענ�
   for (const [a, b] of [['1,200 ₪', '1,500 ₪'], ['1,200 ₪', '1,200 ₪'], [undefined, '1,500 ₪']] as const)
     assert.equal(staleText(a, b), f.staleChangeText(a, b), 'נוסח /ui ≠ נוסח /app/');
 });
+test('הפעלה 150: שלד טעינה ב-/app/ וב-/ui — צורות בלבד, מוסתר מקורא מסך, בלי נתונים בזמן טעינה', () => {
+  const app = readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8');
+  assert.match(app, /mode === 'loading' \? <div role="status" data-testid="app-loading"><LoadingSkeleton \/><\/div>/);
+  const sk = app.slice(app.indexOf('function LoadingSkeleton'), app.indexOf('function Routed'));
+  assert.match(sk, /<span className="sr-only">טוען נתונים…<\/span>/);
+  assert.match(sk, /<div aria-hidden="true" data-testid="app-skeleton"/);
+  // הכלל של 140: בשלד אין שום נתון או רכיב שמציג נתונים (גם לא מהמוק)
+  assert.doesNotMatch(sk, /useApp|invoices|customers|demo|₪|\$\d/);
+  const ui = readFileSync(new URL('../../app/ui.html', import.meta.url), 'utf8');
+  // השלד מוצג רק בטעינה שהמשתמש יזם (ask) ורק בחלק שעוד לא נטען; רענון רקע לא מחליף נתונים בשלד
+  assert.match(ui, /async function load\(ask=true\)\{\n {2}if\(ask&&!locked\)skel\(\);/);
+  assert.match(ui, /function skel\(\)\{if\(got\.d&&got\.q\)return;/);
+  // מסך נעול ⇒ got מתאפס (אחרי כניסה מחדש שוב שלד), ו-aria-busy יורד
+  assert.match(ui, /function lock\(had\)\{[^\n]*got=\{d:false,q:false\};busyOff\(\);/);
+  // טעינה ראשונה שנכשלה ⇒ «לא נטענו», לא שלד ולא טבלה ריקה; והפס לא טוען «מה שמוצג» כשאין דבר על המסך
+  assert.match(ui, /else if\(!got\.d\)\{\$\("#kpis"\)\.innerHTML="";/);
+  assert.match(ui, /got\.d\|\|got\.q\?"מה שמוצג כאן אולי לא עדכני\.":"עדיין אין נתונים להצגה\."/);
+  assert.match(ui, /@media \(prefers-reduced-motion:reduce\)\{\.sk\{animation:none\}\}/);
+});
