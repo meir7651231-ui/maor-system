@@ -361,8 +361,25 @@ class CollectService:
         # critic סבב 38: טרנזקציה אחת — commit לכל שורה עלה 7 שנ׳ ל-5,000 בדיסק, וסנכרון שנפל באמצע
         # השאיר חלק מהחשבוניות מעודכנות. עכשיו: הכול או כלום (והרבה יותר מהר).
         with self.db.batch():
-            return self._ingest_rows(invoices, source=source, full=full, review=review,
-                                     provider=provider)
+            out = self._ingest_rows(invoices, source=source, full=full, review=review,
+                                    provider=provider)
+            self._rebuild_pending_on_amount_drift()
+            return out
+
+    def _rebuild_pending_on_amount_drift(self) -> None:
+        """הפעלה 153: סכום שהשתנה במקור בזמן שהתזכורת **ממתינה לאישור**. עד כאן הנוסח נשאר על הסכום הישן
+        (3,450.50 ₪) בזמן שכותרת התצוגה המקדימה כבר הציגה את החדש (3,600.50 ₪); בעל העסק אישר את הנוסח הישן,
+        והשליחה סירבה והחזירה לאישור (שום דבר שגוי לא יצא, אבל האישור התבזבז). עכשיו הנוסח נבנה מחדש כבר
+        בסנכרון. רק כשכל החשבוניות שבהודעה פתוחות; סגירה/הצטרפות מטופלות במסלולים הקיימים. תזכורת מאושרת
+        לא משתנה כאן: היא נבדקת מול המקור רגע לפני השליחה (_refresh_before_send)."""
+        for r in self.db.q("SELECT * FROM reminders WHERE status='pending_approval' "
+                           "AND amount_agorot IS NOT NULL"):
+            ids = self.reminder_invoice_ids(r["id"]) or [r["invoice_id"]]
+            invs = [self.db.one("SELECT * FROM invoices WHERE id=?", (i,)) for i in ids]
+            if any(i is None or i["status"] != "open" for i in invs):
+                continue
+            if sum(i["amount_agorot"] for i in invs) != r["amount_agorot"]:
+                self._rebuild_for_amount(r, invs)
 
     def _ingest_rows(self, invoices: list[Invoice], *, source: str, full: bool,
                      review: list[tuple[Invoice, str]], provider: str | None) -> dict[str, int]:

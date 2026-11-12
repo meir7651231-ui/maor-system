@@ -81,6 +81,10 @@ class DemoBackend:
         """תשלום חלקי: היתרה יורדת, המסמך נשאר פתוח (אימות סכום לפני שליחה)."""
         return self._admin(f"/_mock/documents/{doc_id}/partial", {"paid": paid_ils})
 
+    def set_amount(self, doc_id: str, amount_ils: float) -> dict:
+        """הסכום לתשלום משתנה במקור (גם כלפי מעלה), המסמך נשאר פתוח ⇒ תזכורת מאושרת נבנית מחדש."""
+        return self._admin(f"/_mock/documents/{doc_id}/amount", {"amount": amount_ils})
+
 
 def demo_client(base_url: str = "") -> tuple[GreenInvoiceClient, DemoBackend]:
     if base_url:   # שרת mock חיצוני (127.0.0.1 בלבד — נאכף ב-config וב-GreenInvoiceClient)

@@ -267,6 +267,22 @@ class GreenInvoiceMock:
             d["amountDueVat"] = round(due - paid, 2)
             self.fire("document.updated", d)
             return {"id": d["id"], "amountDueVat": d["amountDueVat"]}
+        if m == "POST" and len(parts) == 3 and parts[0] == "documents" and parts[2] == "amount":
+            # הפעלה 153: הסכום לתשלום משתנה במקור (גם כלפי מעלה) בזמן שהמסמך פתוח — לבדיקת «התזכורת נבנית
+            # מחדש וחוזרת לאישור» בדפדפן. כלי בדיקה בלבד: האם וכיצד סכום של מסמך פתוח משתנה ב-morning — לאמת.
+            d = self.docs.get(parts[1])
+            if d is None:
+                raise MockError(404, 404, "Document not found")
+            try:
+                amount = round(float((b or {}).get("amount")), 2)
+            except (TypeError, ValueError):
+                raise MockError(400, 9004, "amount must be a number") from None
+            if not 0 < amount < 10_000_000 or d.get("status") != 0:
+                raise MockError(400, 9004, "amount must be positive, on an open document")
+            d["amount"] = amount
+            d.pop("amountDueVat", None)   # סכום חדש ⇒ היתרה החלקית הישנה כבר לא נכונה
+            self.fire("document.updated", d)
+            return {"id": d["id"], "amount": d["amount"]}
         if m == "POST" and len(parts) == 3 and parts[0] == "documents" and parts[2] == "credit":
             # ממצא מבקר 2.16: מסמך זיכוי (330) על חשבונית. {"amount", "link": true}. link=false ⇒
             # זיכוי בלי קישור (קיים בפועל — לאמת), כדי לבדוק שגבי לא מנחשת לאיזו חשבונית הוא שייך.
