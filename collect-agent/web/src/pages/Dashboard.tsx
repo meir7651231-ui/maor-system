@@ -192,7 +192,7 @@ const INTENT_LABEL: Record<string, string> = {
 };
 /** סימולציה של תשובת לקוח (POST /inbound) — כדי להראות בדמו מה גבי עושה עם תשובות. */
 function ReplySim() {
-  const { customers, reload, showToast } = useApp();
+  const { customers, reload, showFail } = useApp();
   const withPhone = customers.filter(c => c.phone);
   const [cid, setCid] = useState(withPhone[0]?.id ?? '');
   const [text, setText] = useState('איך אפשר לשלם?');
@@ -217,7 +217,7 @@ function ReplySim() {
             const r = await api.inbound('sms', c!.phone!, text);
             setRes(`${r.owner_summary ?? INTENT_LABEL[r.intent] ?? r.intent}${r.auto_reply ? ` · מענה אוטומטי: "${r.auto_reply}"` : ''}${r.draft_id ? ' · טיוטת מענה ממתינה לאישורך ב«תשובות לקוחות»' : ''}`);
             await reload().catch(() => { /* הפעולה בוצעה; כשל ברענון ⇒ הפס «הנתונים לא עודכנו» */ });
-          } catch (e) { showToast(failPrefix('לא נשלח', (e as Error).message)); }
+          } catch (e) { showFail(failPrefix('לא נשלח', (e as Error).message)); }
         }}>שלח תשובה (סימולציה)</Button>
         {res && <p className="text-sm rounded-lg bg-brand-50 text-brand-700 p-2.5" data-testid="reply-result">{res}</p>}
       </div>
@@ -242,7 +242,7 @@ export function pauseLabel(reason: string): string {
 }
 /** "דורש טיפול": לקוחות מושהים (חידוש בלחיצה כפולה) + הצעות פריסה שממתינות לאישורך. */
 function NeedsYou() {
-  const { customers, invoices, plans, notices, reload, showToast } = useApp();
+  const { customers, invoices, plans, notices, reload, showToast, showFail } = useApp();
   const [armed, setArmed] = useState<string | null>(null);
   const [planConfirm, setPlanConfirm] = useState<Record<number, boolean>>({});   // critic סבב 49: סכום חריג
   const seen = new Set<number>();
@@ -257,7 +257,7 @@ function NeedsYou() {
     // הפעלה 147: 409 «כבר אושרה» (ניסיון חוזר אחרי תשובה שאבדה) אינו כשל: מרעננים ומציגים «כבר אושרה קודם»
     let was = false;
     try { await fn(); } catch (e) {
-      if (!already || !alreadyDone(e, already.want)) { showToast(failPrefix('לא בוצע', (e as Error).message)); return; }
+      if (!already || !alreadyDone(e, already.want)) { showFail(failPrefix('לא בוצע', (e as Error).message)); return; }
       was = true;
     }
     await reload().catch(() => { /* stale / 401 מטופלים ב-store */ }); showToast(was && already ? already.msg : done);

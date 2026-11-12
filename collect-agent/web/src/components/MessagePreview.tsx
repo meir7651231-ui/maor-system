@@ -10,7 +10,7 @@ import { Button, LateBadge } from './ui.tsx';
 
 /** תצוגה מקדימה של התזכורת בדיוק כפי שתישלח — SMS ומייל — עם "אשר ושלח". */
 export function MessagePreview({ invoice, onClose, now = new Date() }: { invoice: Invoice; onClose: () => void; now?: Date }) {
-  const { business, customerOf, approveAndSend, today, mode, pendingOf, showToast, invoices, reload } = useApp();
+  const { business, customerOf, approveAndSend, today, mode, pendingOf, showFail, invoices, reload } = useApp();
   const live = mode === 'live';
   const c = customerOf(invoice.customerId);
   const pending = pendingOf(invoice.id);
@@ -209,7 +209,7 @@ export function MessagePreview({ invoice, onClose, now = new Date() }: { invoice
                   }
                 } catch { /* נופלים להודעה הרגילה */ }
               }
-              showToast(failPrefix('לא אושר', (e as Error).message)); setBusy(false);
+              showFail(failPrefix('לא אושר', (e as Error).message)); setBusy(false);
             }
           }}>
             ✓ אשר ושלח {channels.length === 2 ? 'ב-SMS ובמייל' : channels[0] === 'sms' ? 'ב-SMS' : channels[0] === 'email' ? 'במייל' : ''}

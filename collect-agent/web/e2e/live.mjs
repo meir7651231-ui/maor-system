@@ -1005,6 +1005,68 @@ try {
   if (out) await h.screenshot({ path: `${out}/live-24-already-plan.png` });
   await h.unroute('**/plans/*/approve');
   console.log('  ✓ אישור חוזר של הצעת פריסה שכבר אושרה: 409 «כבר אושרה», מוצג כ«כבר אושרה קודם», אישור אחד והודעה אחת');
+  // 25) הפעלה 151: הודעת כשל («לא נשלח», «לא בוצע», «לא אושר») נשארת עד סגירה ידנית. קודם היא נעלמה אחרי כ-4 שניות,
+  //     ובעל עסק שהסיט מבט לא ידע שהפעולה לא בוצעה. סגירה: כפתור ✕ נגיש או Escape; Escape סוגר קודם את ההודעה ורק אחר כך את החלון.
+  hFail.length = 0;
+  await h.goto(base + '/app/#/dashboard');
+  const REFUSE151 = 'הלקוח ביקש לא לקבל הודעות';
+  await inject(h, '**/inbound', route => route.fulfill({ status: 409, contentType: 'application/json', body: JSON.stringify({ detail: REFUSE151 }) }));
+  const label151 = (await h.getByLabel('לקוח').locator('option').allTextContents()).find(x => x.trim());
+  const fail151 = async () => {
+    await h.getByLabel('לקוח').selectOption({ label: label151 });
+    await h.getByRole('button', { name: 'שילמתי כבר' }).click();
+    await h.getByRole('button', { name: 'שלח תשובה (סימולציה)' }).click();
+    await h.getByTestId('toast').filter({ hasText: `לא נשלח: ${REFUSE151}` }).waitFor();
+  };
+  await fail151();
+  const toast151 = h.getByTestId('toast'), close151 = h.getByRole('button', { name: 'סגירת ההודעה' });
+  ok(await toast151.getAttribute('role') === 'alert', 'שלב 25: הודעת הכשל בלי role="alert"');
+  const cb151 = await close151.boundingBox();
+  ok(cb151 && cb151.width >= 44 && cb151.height >= 44, 'שלב 25: כפתור הסגירה קטן מ-44px: ' + JSON.stringify(cb151));
+  await h.waitForTimeout(7000);   // הודעת הצלחה באורך הזה נעלמת אחרי 3.6 שניות
+  ok(await toast151.count() === 1 && (await toast151.textContent()).includes(REFUSE151), 'שלב 25: הודעת הכשל נעלמה לבד');
+  if (out) await h.screenshot({ path: `${out}/live-25-fail-toast.png` });
+  // מקלדת: הכפתור מקבל פוקוס ו-Enter סוגר
+  await close151.focus(); await h.keyboard.press('Enter');
+  await toast151.waitFor({ state: 'detached' });
+  // מובייל: ההודעה והכפתור בתוך רוחב המסך, והכפתור לא נדחק החוצה כשהטקסט נשבר לשורות
+  const vp151 = h.viewportSize();
+  await h.setViewportSize({ width: 390, height: 844 });
+  await fail151();
+  const mt151 = await toast151.boundingBox(), mc151 = await close151.boundingBox();
+  ok(mt151 && mt151.x >= 0 && mt151.x + mt151.width <= 390, 'שלב 25, מובייל: ההודעה חורגת מרוחב המסך: ' + JSON.stringify(mt151));
+  ok(mc151 && mc151.x >= mt151.x && mc151.x + mc151.width <= mt151.x + mt151.width && mc151.width >= 44, 'שלב 25, מובייל: כפתור הסגירה מחוץ להודעה: ' + JSON.stringify([mt151, mc151]));
+  if (out) await h.screenshot({ path: `${out}/live-25-fail-toast-mobile.png` });
+  await close151.click();
+  await toast151.waitFor({ state: 'detached' });
+  await h.setViewportSize(vp151);
+  // Escape: עם חלון פתוח, הלחיצה הראשונה סוגרת את ההודעה והחלון נשאר; השנייה סוגרת את החלון
+  await fail151();
+  await h.getByRole('button', { name: 'תצוגה ואישור' }).first().click();
+  await h.getByRole('dialog').waitFor();
+  ok(await toast151.count() === 1, 'שלב 25: פתיחת חלון הסירה את הודעת הכשל');
+  await h.keyboard.press('Escape');
+  await toast151.waitFor({ state: 'detached' });
+  ok(await h.getByRole('dialog').count() === 1, 'שלב 25: Escape אחד סגר גם את ההודעה וגם את החלון');
+  await h.keyboard.press('Escape');
+  await h.getByRole('dialog').waitFor({ state: 'detached' });
+  // הודעת הצלחה שבאה אחרי כשל מחליפה אותו, ונעלמת לבד (לא נשארת «דביקה»)
+  await fail151();
+  await h.goto(base + '/app/#/settings');
+  await h.getByTestId('settings-save').waitFor();
+  ok(await toast151.count() === 1 && (await toast151.textContent()).includes(REFUSE151), 'שלב 25: מעבר מסך הסיר את הודעת הכשל לפני שנסגרה');
+  const mail151 = h.getByLabel('מייל לתשובות לקוחות'), was151 = await mail151.inputValue();
+  await mail151.fill('office151@example.co.il');
+  await h.getByTestId('settings-save').click();
+  await toast151.filter({ hasText: '✓ נשמר בשרת' }).waitFor();
+  ok(await close151.count() === 0 && await toast151.getAttribute('role') === null, 'שלב 25: הודעת הצלחה הוצגה כהודעת כשל');
+  await toast151.waitFor({ state: 'detached', timeout: 8000 });
+  await mail151.fill(was151); await h.getByTestId('settings-save').click();
+  await toast151.filter({ hasText: '✓ נשמר בשרת' }).waitFor();
+  ok((await api('/settings')).reply_email === was151, 'שלב 25: ההגדרות לא הוחזרו');
+  ok(hFail.length === 4 && hFail.every(x => x === '409 POST /inbound'), 'שלב 25: כשלים לא צפויים: ' + hFail.join(' | '));
+  await h.unroute('**/inbound');
+  console.log('  ✓ הודעת כשל נשארת עד סגירה: ✕ (עכבר, מקלדת, מובייל), Escape לפני החלון, והודעת הצלחה מחליפה אותה ונעלמת לבד');
   await h.context().close();
   console.log('  ✓ סשן שפג באמצע עריכת הגדרות: אחרי כניסה מחדש ההקלדה חוזרת, מסומנת כלא שמורה, ונשמרת; מעבר מסך רגיל לא משחזר');
   failPhase = false;

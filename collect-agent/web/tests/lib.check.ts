@@ -945,7 +945,7 @@ test('הפעלה 147: «כבר אושרה» גם להצעת פריסה ולטי�
   const fs = await import('node:fs');
   assert.ok(f.ALREADY_PLAN.includes('כבר אושרה') && f.ALREADY_DRAFT.includes('כבר אושר') && f.ALREADY_DRAFT_CLOSED.includes('כבר נסגר'));
   const dash = fs.readFileSync(new URL('../src/pages/Dashboard.tsx', import.meta.url), 'utf8');
-  assert.match(dash, /if \(!already \|\| !alreadyDone\(e, already\.want\)\) \{ showToast\(failPrefix\('לא בוצע'/, 'רק 409 עם הכותרת המתאימה אינו כשל');
+  assert.match(dash, /if \(!already \|\| !alreadyDone\(e, already\.want\)\) \{ showFail\(failPrefix\('לא בוצע'/, 'רק 409 עם הכותרת המתאימה אינו כשל');
   assert.match(dash, /api\.approvePlan\([^\n]*\{ want: 'approved', msg: ALREADY_PLAN \}/);
   // חידוש לקוח / סגירת הודעה לא מקבלים את ההקלה (אין להם כותרת)
   assert.equal((dash.match(/msg: ALREADY_/g) ?? []).length, 1);
@@ -1004,4 +1004,32 @@ test('הפעלה 150: שלד טעינה ב-/app/ וב-/ui — צורות בלב�
   assert.match(ui, /else if\(!got\.d\)\{\$\("#kpis"\)\.innerHTML="";/);
   assert.match(ui, /got\.d\|\|got\.q\?"מה שמוצג כאן אולי לא עדכני\.":"עדיין אין נתונים להצגה\."/);
   assert.match(ui, /@media \(prefers-reduced-motion:reduce\)\{\.sk\{animation:none\}\}/);
+});
+
+test('הפעלה 151: הודעת כשל ב-/app/ נשארת עד סגירה ידנית (✕ נגיש / Escape); הודעת הצלחה עדיין נעלמת לבד', () => {
+  const store = readFileSync(new URL('../src/store.tsx', import.meta.url), 'utf8');
+  // showFail: בלי טיימר. הטיימר של הודעה קודמת מבוטל, אחרת הוא היה מוחק את הודעת הכשל
+  const fail = store.match(/const showFail = useCallback\(\(t: string\) => \{([^\n]*)\}, \[\]\);/);
+  assert.ok(fail, 'showFail לא נמצא');
+  assert.match(fail![1], /window\.clearTimeout\(toastTimer\.current\)/);
+  assert.doesNotMatch(fail![1], /setTimeout/, 'הודעת כשל לא נעלמת בטיימר');
+  assert.match(fail![1], /setSticky\(true\)/);
+  // הודעה רגילה שבאה אחרי כשל מחליפה אותו ואינה «דביקה»
+  assert.match(store, /toastTimer\.current = window\.setTimeout\(\(\) => setToast\(null\), toastMs\(t\)\);\s*setSticky\(false\);/);
+  // יציאה / סשן שפג: הודעת כשל (עם שם לקוח או סכום) לא נשארת מעל מסך הכניסה
+  assert.match(store, /closeToast\(\);[^\n]*\n\s*setMe\(null\)/);
+  assert.match(store, /if \(mode === 'locked' && toastSticky\) closeToast\(\)/);
+  const app = readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8');
+  assert.match(app, /data-sticky role="alert"/);
+  assert.match(app, /data-testid="toast-close" aria-label="סגירת ההודעה" onClick=\{closeToast\}/);
+  assert.match(app, /size-11/, 'יעד מגע של 44px');
+  assert.match(app, /e\.stopImmediatePropagation\(\); closeToast\(\)/, 'Escape סוגר את ההודעה לפני החלון');
+  assert.match(app, /addEventListener\('keydown', k, true\)/);
+  // כל הודעת «לא …:» של פעולה שנכשלה עוברת דרך showFail, לא דרך showToast
+  for (const f of ['../src/components/MessagePreview.tsx', '../src/pages/Dashboard.tsx', '../src/pages/Inbox.tsx', '../src/pages/Settings.tsx']) {
+    const src = readFileSync(new URL(f, import.meta.url), 'utf8');
+    assert.doesNotMatch(src, /showToast\(failPrefix\(/, f + ': הודעת כשל שנעלמת לבד');
+  }
+  assert.equal((readFileSync(new URL('../src/pages/Dashboard.tsx', import.meta.url), 'utf8').match(/showFail\(failPrefix\(/g) ?? []).length, 2);
+  assert.match(readFileSync(new URL('../src/components/MessagePreview.tsx', import.meta.url), 'utf8'), /showFail\(failPrefix\('לא אושר'/);
 });

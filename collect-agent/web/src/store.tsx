@@ -60,6 +60,10 @@ interface Ctx {
   reload: () => Promise<void>;
   toast: string | null;
   showToast: (t: string) => void;
+  /** הפעלה 151: הודעת כשל («לא בוצע», «לא אושר», «לא נשלח»). נשארת על המסך עד סגירה ידנית או עד ההודעה הבאה. */
+  showFail: (t: string) => void;
+  toastSticky: boolean;
+  closeToast: () => void;
 }
 const C = createContext<Ctx | null>(null);
 
@@ -90,17 +94,27 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const showToast = useCallback((t: string) => {
     window.clearTimeout(toastTimer.current);
     setToast(t); toastTimer.current = window.setTimeout(() => setToast(null), toastMs(t));
+    setSticky(false);
   }, []);
+  // הפעלה 151: הודעת כשל לא נעלמת לבד. בעל עסק שהסיט מבט ל-4 שניות לא ידע שהפעולה לא בוצעה.
+  // בלי טיימר; הודעה חדשה (כל סוג) מחליפה אותה, וסגירה ידנית או יציאה מהסשן מסירות אותה.
+  const [toastSticky, setSticky] = useState(false);
+  const showFail = useCallback((t: string) => { window.clearTimeout(toastTimer.current); setToast(t); setSticky(true); }, []);
+  const closeToast = useCallback(() => { window.clearTimeout(toastTimer.current); setToast(null); setSticky(false); }, []);
 
   /** מנקה את הסשן ואת המידע האישי מהזיכרון (יציאה / סשן שפג) ⇒ מסך הכניסה. */
   const dropSession = useCallback((note: string | null) => {
     try { sessionStorage.removeItem(TOKEN_KEY); } catch { /* פרטי/חסום */ }
     // הפעלה 145: סשן שפג ⇒ מה שהוקלד בהגדרות נשמר בזיכרון ויוחזר אחרי כניסה; יציאה יזומה מוחקת אותו
     if (note) settingsDraft.keep = settingsDraft.value !== null; else { settingsDraft.value = null; settingsDraft.keep = false; settingsDraft.owner = null; }
+    closeToast();   // הפעלה 151: הודעת כשל עם שם לקוח או סכום לא נשארת מעל מסך הכניסה
     setMe(null); setCustomers([]); setInvoices([]); setPendingBy(new Map()); setMergedBy(new Map()); setTotals(null); setSeries(null);
     setOutbox([]); setPlans([]); setDrafts([]); setNotices([]);
     setAuthNote(note); setStale(false); setMode('locked');
-  }, []);
+  }, [closeToast]);
+  // הפעלה 151: 401 באמצע פעולה ⇒ הפעולה מדווחת «לא בוצע» אחרי שהסשן כבר נוקה. במסך הכניסה מוצגת הסיבה
+  // («תוקף הכניסה פג»), ולכן הודעת כשל שנשארת עד סגירה לא מוצגת מעליו.
+  useEffect(() => { if (mode === 'locked' && toastSticky) closeToast(); }, [mode, toastSticky, closeToast]);
 
   // הפעלה 143: שני רענונים במקביל (מעבר מסך מיד אחרי חיבור) חזרו לפעמים בסדר הפוך, והתשובה הישנה דרסה את
   // החדשה: נתונים ישנים על המסך, או פס «לא עודכנו» שנכבה אף שהרענון האחרון נכשל. רק הרענון האחרון קובע.
@@ -213,7 +227,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         dropSession(null);
         showToast('יצאת מהמערכת. הסשן בוטל גם בשרת');
       },
-      me, authNote, stale, dataSeq, plans, drafts, notices, reload, toast, showToast, customerOf, retry: connect,
+      me, authNote, stale, dataSeq, plans, drafts, notices, reload, toast, showToast, showFail, toastSticky, closeToast, customerOf, retry: connect,
       // התור של המוק מוצג רק במצב מוק (לא בזמן טעינה/שגיאה — אחרת התג בניווט מציג ספירה בדויה)
       queue: live ? invoices.filter(i => pendingBy.has(i.id)) : mode === 'mock' ? needsReminder(invoices, today) : [],
       pendingOf: id => pendingBy.get(id),
@@ -242,7 +256,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       },
       markPaid: id => { setInvoices(l => l.map(i => i.id === id ? { ...i, status: 'paid' } : i)); showToast('סומן כשולם 🎉'); },
     };
-  }, [mode, health, today, business, customers, invoices, pendingBy, mergedBy, totals, series, outbox, plans, drafts, notices, reload, toast, showToast, me, authNote, stale, dataSeq, dropSession, connect]);
+  }, [mode, health, today, business, customers, invoices, pendingBy, mergedBy, totals, series, outbox, plans, drafts, notices, reload, toast, showToast, showFail, toastSticky, closeToast, me, authNote, stale, dataSeq, dropSession, connect]);
   return <C.Provider value={value}>{children}</C.Provider>;
 }
 export const useApp = () => {

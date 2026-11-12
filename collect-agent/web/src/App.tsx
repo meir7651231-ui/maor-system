@@ -53,7 +53,7 @@ function LoadingSkeleton() {
 
 function Routed() {
   const r = useRoute();
-  const { toast, mode, reload } = useApp();
+  const { toast, toastSticky, closeToast, mode, reload } = useApp();
   // מעבר מסך בחי ⇒ רענון מהשרת (התור/החשבוניות משתנים בשרת: ייבוא CSV, תכנון לילי, תשובות לקוחות)
   useEffect(() => { if (mode === 'live') void reload().catch(() => { /* כשל ⇒ store מסמן stale והשלד מציג «הנתונים לא עודכנו» */ }); }, [r, mode, reload]);
   // כבר מחובר ⇒ #/login מעביר לסקירה (גם מיד אחרי כניסה מוצלחת)
@@ -66,6 +66,13 @@ function Routed() {
     const bar = document.querySelector('[data-sticky-bar]');
     setToastAt(toastBottom(bar ? bar.getBoundingClientRect().top : null, window.innerHeight));
   }, [toast, r]);
+  // הפעלה 151: Escape סוגר קודם את הודעת הכשל, ורק לחיצה שנייה סוגרת את החלון שמתחתיה (capture ⇒ לפני המאזין של החלון)
+  useEffect(() => {
+    if (!toast || !toastSticky) return;
+    const k = (e: KeyboardEvent) => { if (e.key === 'Escape') { e.stopImmediatePropagation(); closeToast(); } };
+    window.addEventListener('keydown', k, true);
+    return () => window.removeEventListener('keydown', k, true);
+  }, [toast, toastSticky, closeToast]);
   // שער 6: שרת חי שדורש אימות ⇒ מסך הכניסה במקום המסך המבוקש (הכתובת נשמרת ⇒ אחרי כניסה חוזרים אליו)
   const page = r === 'landing' ? <Landing /> : r === 'signup' ? <Signup /> : r === 'login' || mode === 'locked' ? <Login /> : (
     // הפעלה 140: עד שיודעים אם יש שרת (mode='loading') לא מציגים את נתוני המוק — בעל עסק מחובר ראה לרגע לקוחות
@@ -80,7 +87,14 @@ function Routed() {
       {/* הפעלה 145: בהגדרות ה-toast כיסה את שורת השגיאה בסרגל השמירה הדביק שבתחתית.
           הפעלה 148: הפתרון של 145 (להציג למעלה) כיסה את הכותרת, מצב החיבור וכפתור היציאה ⇒ ה-toast תמיד בתחתית, מורם מעל הסרגל */}
       <div aria-live="polite" style={{ bottom: toastAt }} className="fixed inset-x-0 flex justify-center pointer-events-none z-50 px-4">
-        {toast && <div data-testid="toast" className="bg-ink-900 text-white rounded-xl px-5 py-3 shadow-pop font-medium">{toast}</div>}
+        {/* הפעלה 151: הודעת כשל נשארת עד סגירה (✕ / Escape). role="alert" ⇒ קורא מסך מכריז מיד; הודעת הצלחה נשארת polite ונעלמת לבד */}
+        {toast && (toastSticky
+          ? <div data-testid="toast" data-sticky role="alert" className="pointer-events-auto flex items-center gap-2 bg-ink-900 text-white rounded-xl ps-5 pe-1.5 py-1.5 shadow-pop font-medium max-w-full">
+              <span className="py-1.5 min-w-0 break-words">{toast}</span>
+              <button type="button" data-testid="toast-close" aria-label="סגירת ההודעה" onClick={closeToast}
+                className="shrink-0 size-11 grid place-items-center rounded-lg cursor-pointer hover:bg-white/15 focus-visible:outline-2 focus-visible:outline-white"><span aria-hidden="true">✕</span></button>
+            </div>
+          : <div data-testid="toast" className="bg-ink-900 text-white rounded-xl px-5 py-3 shadow-pop font-medium">{toast}</div>)}
       </div>
     </>
   );
