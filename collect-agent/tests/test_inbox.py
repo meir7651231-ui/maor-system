@@ -58,7 +58,8 @@ def test_opt_out_is_immediate_and_later_drafts_blocked(inbox, svc):
     # אישור ההסרה מותר; הטיוטה הקודמת הוחלפה ואי אפשר לאשר אותה
     inbox.approve_draft(res["draft_id"])
     assert svc.sender.sent[-1]["body"].endswith("תזכורות אוטומטיות.")
-    with pytest.raises(ValueError, match="הטיוטה הוחלפה"):
+    # critic סבב 58: נעצרת כבר בהסרה, וההסבר אומר זאת במפורש (היה «הוחלפה»)
+    with pytest.raises(ValueError, match="ביקש הסרה"):
         inbox.approve_draft(first)
     assert len(svc.sender.sent) == 1
 
@@ -162,8 +163,11 @@ def test_audit_trail(inbox, svc):
 def test_send_gate_blocks_old_draft_after_opt_out(inbox, svc):
     old = inbox.handle("sms", DANA, "מי זה?")["draft_id"]
     svc.unsubscribe(svc.new_unsub_token(cust(svc)["id"]))        # הוסר דרך קישור — לא דרך השיחה
-    out = inbox.approve_draft(old)
-    assert out["status"] == "rejected" and out["decided_by"] == "system:opted_out"
+    # critic סבב 58: הטיוטה נעצרת כבר בהסרה (לא רק בשער השליחה), והאישור מסביר למה
+    with pytest.raises(ValueError, match="ביקש הסרה"):
+        inbox.approve_draft(old)
+    d = svc.db.one("SELECT status, decided_by FROM drafts WHERE id=?", (old,))
+    assert d["status"] == "superseded" and d["decided_by"] == "system:opted_out"
     assert svc.sender.sent == []
 
 

@@ -398,6 +398,8 @@ class ConversationInbox:
                       confirm_amount: bool = False) -> dict:
         dr = self._get(draft_id)
         if dr["status"] not in ("pending_approval", "needs_owner"):
+            if dr["decided_by"] == "system:opted_out":   # critic סבב 58: נעצרה בהסרה ⇒ הסבר מדויק
+                raise ValueError("הלקוח ביקש הסרה אחרי שהטיוטה נוסחה, ולכן היא לא תישלח")
             raise _draft_decided(dr["status"], "approve")
         if self._amount_check(dr) and not confirm_amount:
             raise ValueError("סכום חריג מאוד מהרגיל ללקוח (אולי נקודה עשרונית במקום הלא נכון?) — "

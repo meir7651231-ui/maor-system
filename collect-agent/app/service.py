@@ -1727,6 +1727,14 @@ class CollectService:
         self.suppress("email", c["email"] or "", how)
         for inv in self.db.q("SELECT id FROM invoices WHERE customer_id=?", (cid,)):
             self._cancel_invoice(inv["id"], "opted_out")
+        # critic סבב 58: תשובה שנוסחה **לפני** ההסרה («איך משלמים?» ⇒ קישור תשלום) ואושרה בלילה, יצאה בבוקר
+        # אחרי שהלקוח לחץ «הסר» — כי HOW_TO_PAY ברשימת המותרים אחרי הסרה. המותר נועד לשאלה ששאל **אחרי**
+        # ההסרה (טיוטה חדשה, שנוצרת מכאן והלאה). הרצון האחרון שלו הוא ההסרה ⇒ טיוטות קודמות שממתינות נעצרות.
+        # אישור ההסרה עצמו (opt_out / wrong_person) לא נעצר.
+        if self._table_exists("drafts"):
+            self.db.x("UPDATE drafts SET status='superseded', decided_by='system:opted_out' "
+                      "WHERE customer_id=? AND status IN ('pending_approval','approved') "
+                      "AND intent NOT IN ('opt_out','wrong_person')", (cid,))
         self.audit("customer", "opt_out", {"customer": cid, "via": how})
         # review חור 1 (הכרעת המבקר לפי הכללים, שמרני): לקוח אחר על אותו נייד/מייל הוא כמעט תמיד
         # אותו אדם או משק בית ⇒ «הסר» עוצר גם את שאר הערוצים שלו (היה: מייל לכתובת שלו נשלח).
