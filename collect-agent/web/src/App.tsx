@@ -30,7 +30,7 @@ function Routed() {
   const r = useRoute();
   const { toast, mode, reload } = useApp();
   // מעבר מסך בחי ⇒ רענון מהשרת (התור/החשבוניות משתנים בשרת: ייבוא CSV, תכנון לילי, תשובות לקוחות)
-  useEffect(() => { if (mode === 'live') void reload().catch(() => { /* השגיאה תוצג בפעולה הבאה */ }); }, [r, mode, reload]);
+  useEffect(() => { if (mode === 'live') void reload().catch(() => { /* כשל ⇒ store מסמן stale והשלד מציג «הנתונים לא עודכנו» */ }); }, [r, mode, reload]);
   // כבר מחובר ⇒ #/login מעביר לסקירה (גם מיד אחרי כניסה מוצלחת)
   useEffect(() => { if (r === 'login' && mode === 'live') go('dashboard'); }, [r, mode]);
   // שער 6: שרת חי שדורש אימות ⇒ מסך הכניסה במקום המסך המבוקש (הכתובת נשמרת ⇒ אחרי כניסה חוזרים אליו)

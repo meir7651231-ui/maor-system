@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Logo, LogoMark } from './Logo.tsx';
 import { go, type Route } from '../router.ts';
 import { useApp } from '../store.tsx';
@@ -10,12 +10,25 @@ const NAV: { r: Route; label: string; icon: string }[] = [
   { r: 'settings', label: 'הגדרות עסק', icon: '⚙' },
 ];
 
+/** הפעלה 142: רענון מהשרת נכשל באמצע עבודה ⇒ פס גלוי עם ניסיון חוזר, במקום נתונים ישנים בלי סימן. */
+function StaleBanner() {
+  const { reload } = useApp();
+  const [busy, setBusy] = useState(false);
+  return (
+    <div role="status" data-testid="stale-banner" className="mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+      <span className="min-w-0 flex-1"><b>⚠ הנתונים לא עודכנו.</b> לא הצלחנו להתחבר לשרת, וייתכן שמה שמוצג כבר לא עדכני.</span>
+      <button disabled={busy} data-testid="stale-retry" onClick={() => { setBusy(true); void reload().catch(() => { /* הפס נשאר */ }).finally(() => setBusy(false)); }}
+        className="h-10 shrink-0 rounded-lg bg-ink-900 px-4 font-bold text-white cursor-pointer disabled:opacity-60">{busy ? 'מנסה…' : 'נסו שוב'}</button>
+    </div>
+  );
+}
+
 export function Shell({ route, children }: { route: Route; children: ReactNode }) {
-  const { business, queue, mode, drafts, me, logout } = useApp();
+  const { business, queue, mode, drafts, me, logout, stale } = useApp();
   // בחי: שם העובד המחובר (שער 6); טוקן משותף ⇒ שם העסק (כמו קודם)
   const who = mode === 'loading' || mode === 'error' ? '…' : mode === 'live' && me?.kind === 'user' && me.name ? me.name : business.name;
   const pending = queue.length;
-  const modeText = mode === 'live' ? '● מחובר לשרת גבי · dry-run' : mode === 'mock' ? '● מצב דמו (מוק) — אין שליחה' : mode === 'locked' ? '🔒 נדרש קוד גישה' : mode === 'error' ? '⚠ אין חיבור לשרת' : '… בודק חיבור לשרת';
+  const modeText = mode === 'live' ? (stale ? '⚠ אין חיבור לשרת · הנתונים לא עודכנו' : '● מחובר לשרת גבי · dry-run') : mode === 'mock' ? '● מצב דמו (מוק) — אין שליחה' : mode === 'locked' ? '🔒 נדרש קוד גישה' : mode === 'error' ? '⚠ אין חיבור לשרת' : '… בודק חיבור לשרת';
   return (
     <div className="min-h-screen md:flex">
       <aside className="md:w-64 bg-ink-900 text-white shrink-0">
@@ -52,7 +65,7 @@ export function Shell({ route, children }: { route: Route; children: ReactNode }
         </div>
         </div>
       </aside>
-      <main className="flex-1 min-w-0 p-4 md:p-8 max-w-6xl">{children}</main>
+      <main className="flex-1 min-w-0 p-4 md:p-8 max-w-6xl">{mode === 'live' && stale && <StaleBanner />}{children}</main>
     </div>
   );
 }

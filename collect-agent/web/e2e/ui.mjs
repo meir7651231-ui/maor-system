@@ -99,7 +99,31 @@ try {
   ok(/לא ידוע אם יצאה/.test(await p.locator('#debts tr').first().locator('td.sent').textContent()), 'last_sent.unknown לא מוצג ב-/ui');
   if (out) await p.screenshot({ path: `${out}/ui-03-status-pause.png`, fullPage: true });
   await p.unroute('**/dashboard');
+  // הפעלה 142: כשל טעינה ב-/ui נבלע בשקט (טבלה ישנה/ריקה בלי הסבר). עכשיו: פס שגיאה עם «נסו שוב».
+  ok(await p.locator('#loaderr').isHidden(), 'פס השגיאה מוצג בלי כשל');
+  const before = errors.length; let failed = 0;
+  const fail = route => { failed++; return route.fulfill({ status: 503, contentType: 'application/json', body: '{"detail":"down"}' }); };
+  await inject(p, '**/dashboard', fail);
+  await p.locator('#btnPlan').click();                       // פעולה ⇒ load() ⇒ /dashboard נכשל
+  await p.locator('#loaderr').waitFor({ state: 'visible' });
+  ok(await p.locator('#debts tr').count() > 0 && await p.locator('#list .item').count() > 0, 'כשל ב-/dashboard רוקן את המסך');
+  await p.locator('#btnRetry').click();                      // השרת עדיין למטה ⇒ הפס נשאר
+  await p.waitForFunction(() => !document.querySelector('#btnRetry').disabled);
+  ok(await p.locator('#loaderr').isVisible(), '«נסו שוב» כושל הסתיר את פס השגיאה');
+  await p.unroute('**/dashboard');
+  await inject(p, '**/reminders', fail);                     // גם כשל בתור התזכורות מוצג (היה: unhandled rejection)
+  await p.locator('#btnRetry').click();
+  await p.waitForFunction(() => !document.querySelector('#btnRetry').disabled);
+  ok(await p.locator('#loaderr').isVisible() && await p.locator('#list .item').count() > 0, 'כשל ב-/reminders: אין פס שגיאה או שהתור התרוקן');
+  if (out) await p.screenshot({ path: `${out}/ui-04-load-error.png`, fullPage: true });
+  await p.unroute('**/reminders');
+  await p.locator('#btnRetry').click();
+  await p.locator('#loaderr').waitFor({ state: 'hidden' });
+  ok(failed >= 3, `הכשלים המוזרקים לא הגיעו לדף (${failed})`);
+  // ה-503 המוזרקים נרשמו כשגיאות תגובה: מסירים רק אותם, כל שגיאה אחרת נשארת
+  const mine = errors.splice(before).filter(e => !/^503 .*\/(dashboard|reminders)$/.test(e));
+  errors.push(...mine);
   errors.push(...routeErrors);
   ok(errors.length === 0, 'שגיאות:\n' + errors.join('\n'));
-  console.log('✓ /ui: סכום חריג מאושר רק אחרי סימון מפורש · תזכורת רגילה ללא שינוי · סטטוס/השהיה בעברית · מועד וערוץ השליחה לפי last_sent');
+  console.log('✓ /ui: סכום חריג מאושר רק אחרי סימון מפורש · תזכורת רגילה ללא שינוי · סטטוס/השהיה בעברית · מועד וערוץ השליחה לפי last_sent · כשל טעינה ⇒ פס שגיאה ו«נסו שוב»');
 } finally { await b.close(); srv.kill(); }

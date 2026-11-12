@@ -85,12 +85,14 @@ function CodeGate() {
   const [err, setErr] = useState('');
   return (
     <form className="mt-3 bg-white rounded-2xl shadow-card p-5 space-y-3 text-ink-900" data-testid="token-gate"
-      onSubmit={async e => { e.preventDefault(); setErr(''); if (!(await unlock(v))) setErr('הקוד לא התקבל. בדקו שהעתקתם אותו במלואו.'); }}>
+      onSubmit={async e => { e.preventDefault(); setErr(''); const r = await unlock(v);
+        if (r === 'bad') setErr('הקוד לא התקבל. בדקו שהעתקתם אותו במלואו.');
+        else if (r === 'down') setErr('השרת לא זמין כרגע, ולכן הקוד לא נבדק. נסו שוב בעוד רגע.'); }}>
       <h2 className="font-extrabold">🔑 קוד גישה לבעל העסק</h2>
       <p className="text-ink-500">ב-<code>./demo.sh</code> הקוד מודפס בהפעלה. בבטא אמיתית האפשרות הזו כבויה, וכל עובד נכנס עם משתמש משלו.</p>
       <input value={v} onChange={e => setV(e.target.value)} type="password" autoComplete="off" aria-label="קוד גישה"
         className={`${inputCls} num`} placeholder="הדביקו כאן" />
-      {err && <p role="alert" className="text-critical font-bold">{err}</p>}
+      {err && <p role="alert" className="text-critical font-bold" data-testid="token-error">{err}</p>}
       <Button variant="dark" className="w-full" disabled={v.trim().length < 32}>כניסה</Button>
     </form>
   );

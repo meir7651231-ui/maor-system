@@ -733,3 +733,23 @@ test('הפעלה 141: טעינה שנכשלה ⇒ מצב error עם «נסו ש�
   const shell = readFileSync(new URL('../src/components/Shell.tsx', import.meta.url), 'utf8');
   assert.match(shell, /mode === 'loading' \|\| mode === 'error' \? '…'/);
 });
+test('הפעלה 142: רענון שנכשל במצב חי ⇒ stale ופס «הנתונים לא עודכנו»; קוד גישה מבחין בין 401 לכשל שרת', () => {
+  const store = readFileSync(new URL('../src/store.tsx', import.meta.url), 'utf8');
+  // רענון מוצלח מנקה את הסימון; כשל שאינו 401 במצב חי מדליק אותו
+  assert.match(store, /await load\(\); setStale\(false\);/);
+  assert.match(store, /else if \(modeRef\.current === 'live'\) setStale\(true\);/);
+  // יציאה / סשן שפג ⇒ הסימון לא נשאר למסך הכניסה
+  assert.match(store, /setStale\(false\); setMode\('locked'\)/);
+  // unlock: רק 401 הוא «קוד שגוי»
+  assert.match(store, /return e instanceof AuthError \? 'bad' : 'down';/);
+  const shell = readFileSync(new URL('../src/components/Shell.tsx', import.meta.url), 'utf8');
+  assert.match(shell, /\{mode === 'live' && stale && <StaleBanner \/>\}\{children\}/);
+  assert.match(shell, /role="status" data-testid="stale-banner"/);
+  const login = readFileSync(new URL('../src/pages/Login.tsx', import.meta.url), 'utf8');
+  assert.match(login, /r === 'down'\) setErr\('השרת לא זמין כרגע/);
+  // /ui: כשל טעינה לא נבלע
+  const ui = readFileSync(new URL('../../app/ui.html', import.meta.url), 'utf8');
+  assert.doesNotMatch(ui, /loadDash\(\)\.catch\(\(\)=>\{\}\)/);
+  assert.match(ui, /Promise\.allSettled\(\[loadDash\(\),api\("\/reminders"\)\]\)/);
+  assert.match(ui, /id="loaderr" role="alert" hidden/);
+});

@@ -606,9 +606,59 @@ try {
   await p.unroute('**/health');
   await p.getByTestId('app-retry').click();
   await p.getByTestId('kpis').waitFor();
-  failPhase = false;
-  ok(consoleFail >= 2, `שגיאות הקונסולה של הכשל המכוון לא נספרו (${consoleFail})`);
   console.log('  ✓ טעינה שנכשלה: מסך שגיאה ו«נסו שוב», בלי נתוני המוק (503 אחרי /health, ושרת שלא עונה עם כניסה שמורה)');
+
+  // 13) הפעלה 142: רענון שנכשל באמצע עבודה (מעבר מסך כשהשרת נפל) נבלע בשקט, והנתונים הישנים נשארו בלי סימן.
+  //     עכשיו: פס «הנתונים לא עודכנו» עם «נסו שוב»; הנתונים האחרונים נשארים על המסך, לא מסך שגיאה ולא מוק.
+  const failsBefore = allowedFail;
+  await inject(p, '**/dashboard', route => route.fulfill({ status: 503, contentType: 'application/json', body: '{"detail":"down"}' }));
+  await p.goto(base + '/app/#/invoices');
+  await p.getByTestId('stale-banner').waitFor();
+  ok(allowedFail > failsBefore, 'ה-503 המוזרק (רענון) לא הגיע לדף');
+  ok(await p.getByTestId('app-error').count() === 0, 'רענון שנכשל החליף את המסך במסך שגיאה (צריך פס בלבד)');
+  ok(await p.getByText('גל שרון').count() > 0 && await p.getByText('קפה הגפן').count() === 0, 'רענון שנכשל: הנתונים האחרונים נעלמו או הוחלפו במוק');
+  ok((await p.getByTestId('mode').textContent()).includes('הנתונים לא עודכנו'), 'מצב החיבור עדיין «מחובר» כשהרענון נכשל');
+  if (out) await fullShot(p, `${out}/live-13-stale-banner.png`);
+  // «נסו שוב» כשהשרת עדיין למטה ⇒ הפס נשאר
+  await Promise.all([p.waitForResponse(r => r.url() === base + '/dashboard' && r.status() === 503), p.getByTestId('stale-retry').click()]);
+  await p.getByTestId('stale-retry').filter({ hasText: 'נסו שוב' }).waitFor();
+  ok(await p.getByTestId('stale-banner').count() === 1, '«נסו שוב» כושל הסתיר את הפס');
+  // מובייל: הפס לא יוצר גלילה רוחבית, ומצב החיבור בכותרת מתעדכן
+  await p.setViewportSize({ width: 390, height: 844 });
+  await noHScroll(p, 'פס «הנתונים לא עודכנו» במובייל');
+  ok((await p.getByTestId('mode-mobile').textContent()).includes('אין חיבור לשרת'), 'מובייל: מצב החיבור לא מציג את הכשל');
+  if (out) await fullShot(p, `${out}/live-13-stale-banner-mobile.png`);
+  await p.setViewportSize({ width: 1366, height: 900 });
+  // השרת חזר ⇒ «נסו שוב» מעלים את הפס
+  await p.unroute('**/dashboard');
+  await p.getByTestId('stale-retry').click();
+  await p.getByTestId('stale-banner').waitFor({ state: 'detached' });
+  ok((await p.getByTestId('mode').textContent()).includes('מחובר לשרת גבי'), 'אחרי רענון מוצלח מצב החיבור לא חזר ל«מחובר»');
+  console.log('  ✓ רענון שנכשל באמצע עבודה: פס «הנתונים לא עודכנו», הנתונים האחרונים נשארים, «נסו שוב» מחזיר');
+
+  // 14) הפעלה 142: קוד הגישה המשותף החזיר «הקוד לא התקבל» גם כשהשרת נכשל (5xx) והקוד בכלל לא נבדק.
+  const g = await (await b.newContext()).newPage();
+  g.on('pageerror', e => errors.push(String(e)));
+  let gate503 = 0;
+  g.on('response', r => { if (r.status() === 503 && r.url() === base + '/dashboard') gate503++; else if (r.status() >= 400) errors.push(`שער קוד: ${r.status()} ${r.url()}`); });
+  await g.goto(base + '/app/#/dashboard');
+  await g.getByTestId('staff-login').waitFor();
+  await inject(g, '**/dashboard', route => route.fulfill({ status: 503, contentType: 'application/json', body: '{"detail":"down"}' }));
+  await g.getByText('יש לי קוד גישה משותף').click();
+  await g.getByLabel('קוד גישה').fill(TOKEN);   // הקוד הנכון
+  await g.getByTestId('token-gate').getByRole('button', { name: 'כניסה' }).click();
+  await g.getByTestId('token-error').filter({ hasText: 'השרת לא זמין כרגע' }).waitFor();
+  ok(!(await g.getByTestId('token-error').textContent()).includes('הקוד לא התקבל'), 'כשל שרת הוצג כ«קוד שגוי»');
+  ok(gate503 === 1, `ציפינו ל-503 אחד בשער הקוד, היו ${gate503}`);
+  ok(await g.evaluate(() => sessionStorage.getItem('gabi_owner_token')) === null, 'קוד שלא אומת נשאר בלשונית');
+  // השרת חזר ⇒ אותו קוד (נשאר בשדה) נכנס
+  await g.unroute('**/dashboard');
+  await g.getByTestId('token-gate').getByRole('button', { name: 'כניסה' }).click();
+  await g.getByTestId('mode').filter({ hasText: 'מחובר לשרת גבי' }).waitFor();
+  await g.context().close();
+  console.log('  ✓ קוד גישה: כשל שרת ⇒ «השרת לא זמין», לא «הקוד לא התקבל»; אותו קוד נכנס כשהשרת חוזר');
+  failPhase = false;
+  ok(consoleFail >= 4, `שגיאות הקונסולה של הכשל המכוון לא נספרו (${consoleFail})`);
 
   // מסך הכניסה במובייל (לשונית חדשה בלי סשן ⇒ מסך הכניסה, בלי בקשות שנכשלות)
   const ml = await b.newPage({ viewport: { width: 390, height: 844 } });

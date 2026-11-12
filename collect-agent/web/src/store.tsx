@@ -13,6 +13,8 @@ import { systemNotices, type Notice } from './lib/notices.ts';
 /** locked = שרת חי שדורש קוד גישה (401) — לא נופלים למוק בשקט.
  *  error = יש שרת (או שיש בלשונית כניסה שמורה) אבל הטעינה נכשלה — מסך שגיאה עם «נסו שוב», לא נתוני מוק. */
 export type Mode = 'loading' | 'live' | 'mock' | 'locked' | 'error';
+/** תוצאת קוד הגישה המשותף: ok · bad = השרת דחה את הקוד (401) · down = השרת לא ענה או נכשל (5xx/רשת), הקוד לא נבדק. */
+export type UnlockResult = 'ok' | 'bad' | 'down';
 interface Ctx {
   mode: Mode;
   health: Health | null;
@@ -29,7 +31,9 @@ interface Ctx {
   totals: Dashboard['totals'] | null;
   series: WeekPoint[] | null;
   /** הדבקת קוד גישה (מצב locked) ⇒ ניסיון חיבור מחדש. */
-  unlock: (token: string) => Promise<boolean>;
+  unlock: (token: string) => Promise<UnlockResult>;
+  /** הפעלה 142: רענון מהשרת נכשל באמצע עבודה (מצב חי) ⇒ מה שמוצג אולי כבר לא עדכני. מתאפס ברענון מוצלח. */
+  stale: boolean;
   /** מצב error ⇒ ניסיון חיבור מחדש (בדיקת שרת + טעינה). */
   retry: () => Promise<void>;
   /** כניסת עובד: מייל+סיסמה+קוד. מחזיר null בהצלחה, אחרת הודעת שגיאה בעברית. */
@@ -72,6 +76,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [toast, setToast] = useState<string | null>(null);
   const [me, setMe] = useState<Me | null>(null);
   const [authNote, setAuthNote] = useState<string | null>(null);
+  const [stale, setStale] = useState(false);
   const modeRef = useRef<Mode>('loading');
   useEffect(() => { modeRef.current = mode; }, [mode]);
   const showToast = useCallback((t: string) => { setToast(t); window.setTimeout(() => setToast(null), 3600); }, []);
@@ -81,7 +86,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     try { sessionStorage.removeItem(TOKEN_KEY); } catch { /* פרטי/חסום */ }
     setMe(null); setCustomers([]); setInvoices([]); setPendingBy(new Map()); setMergedBy(new Map()); setTotals(null); setSeries(null);
     setOutbox([]); setPlans([]); setDrafts([]); setNotices([]);
-    setAuthNote(note); setMode('locked');
+    setAuthNote(note); setStale(false); setMode('locked');
   }, []);
 
   const load = useCallback(async () => {
@@ -99,8 +104,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // 401 באמצע עבודה (הסשן פג אחרי 12 ש׳, העובד הושבת, יציאה מלשונית אחרת) ⇒ חזרה למסך הכניסה עם הסבר,
   // בלי להשאיר נתוני חייבים על המסך. לפני הכניסה (מצב locked) 401 הוא פשוט «קוד שגוי».
   const reload = useCallback(async () => {
-    try { await load(); } catch (e) {
-      if (e instanceof AuthError && modeRef.current === 'live') dropSession('תוקף הכניסה פג. היכנסו שוב כדי להמשיך');
+    try { await load(); setStale(false); } catch (e) {
+      if (e instanceof AuthError) { if (modeRef.current === 'live') dropSession('תוקף הכניסה פג. היכנסו שוב כדי להמשיך'); }
+      // הפעלה 142: רענון שנכשל (5xx/רשת) במצב חי נבלע בשקט והמסך המשיך להציג נתונים ישנים בלי סימן.
+      else if (modeRef.current === 'live') setStale(true);
       throw e;
     }
   }, [load, dropSession]);
@@ -136,9 +143,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
       mode, health, today, business, setBusiness, customers, invoices, totals, series, outbox,
       unlock: async (token: string) => {
         try { sessionStorage.setItem(TOKEN_KEY, token.trim()); } catch { /* פרטי/חסום */ }
-        try { await reload(); setAuthNote(null); setMode('live'); return true; } catch {
-          try { sessionStorage.removeItem(TOKEN_KEY); } catch { /* */ }   // קוד שגוי לא נשאר בלשונית
-          return false;
+        try { await reload(); setAuthNote(null); setMode('live'); return 'ok'; } catch (e) {
+          try { sessionStorage.removeItem(TOKEN_KEY); } catch { /* */ }   // קוד שלא אומת לא נשאר בלשונית
+          // הפעלה 142: רק 401 הוא «קוד שגוי». 5xx/רשת ⇒ הקוד לא נבדק בכלל, ואסור לומר למשתמש שהוא שגוי.
+          return e instanceof AuthError ? 'bad' : 'down';
         }
       },
       login: async (email: string, password: string, code: string) => {
@@ -152,7 +160,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         dropSession(null);
         showToast('יצאת מהמערכת. הסשן בוטל גם בשרת');
       },
-      me, authNote, plans, drafts, notices, reload, toast, showToast, customerOf, retry: connect,
+      me, authNote, stale, plans, drafts, notices, reload, toast, showToast, customerOf, retry: connect,
       // התור של המוק מוצג רק במצב מוק (לא בזמן טעינה/שגיאה — אחרת התג בניווט מציג ספירה בדויה)
       queue: live ? invoices.filter(i => pendingBy.has(i.id)) : mode === 'mock' ? needsReminder(invoices, today) : [],
       pendingOf: id => pendingBy.get(id),
@@ -175,7 +183,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       },
       markPaid: id => { setInvoices(l => l.map(i => i.id === id ? { ...i, status: 'paid' } : i)); showToast('סומן כשולם 🎉'); },
     };
-  }, [mode, health, today, business, customers, invoices, pendingBy, mergedBy, totals, series, outbox, plans, drafts, notices, reload, toast, showToast, me, authNote, dropSession, connect]);
+  }, [mode, health, today, business, customers, invoices, pendingBy, mergedBy, totals, series, outbox, plans, drafts, notices, reload, toast, showToast, me, authNote, stale, dropSession, connect]);
   return <C.Provider value={value}>{children}</C.Provider>;
 }
 export const useApp = () => {
