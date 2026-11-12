@@ -113,3 +113,23 @@ def test_ui_first_load_skeleton_not_blank_run150():
     assert 'got.d||got.q?"מה שמוצג כאן אולי לא עדכני.":"עדיין אין נתונים להצגה."' in ui
     assert "got={d:false,q:false};busyOff();" in ui.split("function lock(had){")[1].split("\n")[0]
     assert "@media (prefers-reduced-motion:reduce){.sk{animation:none}}" in ui
+
+
+def test_ui_preview_skeleton_on_switch_run152():
+    """הפעלה 152: במעבר לתזכורת אחרת לוח התצוגה המקדימה ב-`/ui` המשיך להציג את התזכורת הקודמת, עם «אישור ושליחה»
+    פעיל שלה, עד שהשרת ענה — בזמן שהרשימה כבר סימנה את החדשה. לחיצה באותו רגע אישרה את התזכורת הלא נכונה.
+    עכשיו הלוח מתחלף מיד לשלד טעינה; רענון של אותה תזכורת לא מחליף לשלד.
+    ההתנהגות נבדקת בדפדפן ב-web/e2e/ui.mjs; כאן הגנת-מקור שרצה גם ב-CI (שאין בו דפדפן)."""
+    from pathlib import Path
+    ui = (Path(__file__).resolve().parent.parent / "app/ui.html").read_text(encoding="utf-8")
+    body = ui.split("async function show(id,info,stale){")[1]
+    head = body.split("let p;try{")[0]
+    # השלד נכנס לפני הבקשה לשרת, ורק כשעוברים לתזכורת אחרת
+    assert 'if(shown!==id){shown=null;d.innerHTML=PVSK;d.setAttribute("aria-busy","true")}' in head
+    assert 'id="pvBusy" role="status">טוען תצוגה מקדימה…' in ui
+    assert '<div class="previews" aria-hidden="true">' in ui.split("const PVSK=")[1].split("\n")[0]
+    # aria-busy יורד בהצלחה, בכשל ובנעילה; shown מתעדכן רק אחרי שהתשובה של התזכורת הנבחרת הגיעה
+    assert 'if(sel!==id)return;\n  shown=id;d.removeAttribute("aria-busy");' in body
+    assert 'shown=null;d.removeAttribute("aria-busy");d.innerHTML=`<div class="err" id="pverr"' in body
+    lock = ui.split("function lock(had){")[1].split("\n")[0]
+    assert 'sel=shown=null;$("#detail").removeAttribute("aria-busy");' in lock

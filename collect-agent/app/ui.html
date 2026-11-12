@@ -123,7 +123,7 @@ const REAPPROVE={approval_expired:"האישור הקודם פג (חיכה יות
   csv_missing_from_import:"החשבונית לא הופיעה בייבוא ה-CSV האחרון (אולי שולמה?). לבדוק ולאשר מחדש"};
 // תווית קצרה לצ׳יפ: המשפט הראשון של ההסבר
 const why=b=>REAPPROVE[b]?REAPPROVE[b].split(". ")[0]:pause(b);
-let sel=null;
+let sel=null,shown=null;
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const money=a=>(a/100).toLocaleString("he-IL",{minimumFractionDigits:a%100?2:0,maximumFractionDigits:2})+" ₪";
@@ -155,7 +155,7 @@ function skel(){if(got.d&&got.q)return;
     $("#debts").innerHTML=Array(3).fill(`<tr class="skrow" aria-hidden="true">${`<td>${SK}</td>`.repeat(7)}</tr>`).join("")}
   if(!got.q)$("#list").innerHTML=Array(3).fill(`<div class="card skitem" aria-hidden="true"><span class="sk w"></span>${SK}</div>`).join("");
   $("#dash").setAttribute("aria-busy","true");$("#list").setAttribute("aria-busy","true");$("#busyMsg").textContent="טוען נתונים…"}
-function lock(had){locked=true;stale=false;clearTimeout(rt);sel=null;try{sessionStorage.removeItem(TOK)}catch(e){}got={d:false,q:false};busyOff();
+function lock(had){locked=true;stale=false;clearTimeout(rt);sel=shown=null;$("#detail").removeAttribute("aria-busy");try{sessionStorage.removeItem(TOK)}catch(e){}got={d:false,q:false};busyOff();
   for(const i of ["#kpis","#debts","#list"])$(i).innerHTML="";$("#today").textContent="";
   $("#detail").innerHTML='<div class="empty">בחרו תזכורת כדי לראות תצוגה מקדימה של SMS ומייל</div>';
   $("#loaderr").hidden=$("#wunk").hidden=$("#acterr").hidden=true;hdr();
@@ -247,14 +247,21 @@ async function load(ask=true){
 }
 // הפעלה 149: אישור על נוסח ישן (409 + X-Gabi-Stale) ⇒ התצוגה נטענת מחדש לבד, עם מה שהשתנה (was = הסכום שהוצג קודם)
 const staleText=(was,now)=>(was&&now&&was!==now?`הסכום השתנה מ-${was} ל-${now}.`:"הנוסח השתנה מאז שפתחתם.")+" זה הנוסח המעודכן. שום דבר לא נשלח. בדקו ואשרו שוב";
+// הפעלה 152: במעבר לתזכורת אחרת הלוח הציג את התזכורת הקודמת, עם «אישור ושליחה» פעיל שלה, עד שהשרת ענה —
+// בזמן שהרשימה כבר סימנה את החדשה. לחיצה באותו רגע אישרה את התזכורת הלא נכונה. עכשיו הלוח מתחלף מיד לשלד טעינה.
+// רענון של אותה תזכורת (אחרי פעולה) לא מחליף לשלד, כדי שהמסך לא יהבהב; shown = התזכורת שמוצגת בלוח כרגע.
+const PVSK=`<p class="slogan" id="pvBusy" role="status">טוען תצוגה מקדימה…</p><div class="previews" aria-hidden="true">${`<div class="skitem"><span class="sk big"></span>${SK}<span class="sk w"></span>${SK}</div>`.repeat(2)}</div>`;
 async function show(id,info,stale){
-  sel=id;load();
+  sel=id;const d=$("#detail");
+  if(shown!==id){shown=null;d.innerHTML=PVSK;d.setAttribute("aria-busy","true")}
+  load();
   // הפעלה 143: כשל בטעינת התצוגה המקדימה היה unhandled rejection, והלוח נשאר על התזכורת הקודמת בלי הסבר
   let p;try{p=await api(`/reminders/${id}/preview`)}catch(e){if(sel!==id||e.auth)return;
-    $("#detail").innerHTML=`<div class="err" id="pverr" role="alert">לא הצלחנו לטעון את התצוגה המקדימה: ${esc(e.message)}</div>
+    shown=null;d.removeAttribute("aria-busy");d.innerHTML=`<div class="err" id="pverr" role="alert">לא הצלחנו לטעון את התצוגה המקדימה: ${esc(e.message)}</div>
       <div class="decide"><button class="primary" id="pvRetry">נסו שוב</button></div>`;
     $("#pvRetry").onclick=()=>show(id);return}
   if(sel!==id)return;
+  shown=id;d.removeAttribute("aria-busy");
   const sms=p.messages.find(m=>m.channel==="sms"),mail=p.messages.find(m=>m.channel==="email");
   const smsHtml=sms?`<div class="phone"><div class="sender">SMS · ${esc(sms.to.replace(/^972/,"0"))} · ${esc(sms.provider)}</div>
      <div class="bubble">${esc(sms.body)}</div>

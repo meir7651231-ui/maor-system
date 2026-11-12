@@ -156,6 +156,39 @@ try {
   await p.locator('#pvRetry').click();
   await p.locator('#detail h2').first().waitFor();
   ok(await p.locator('#pverr').count() === 0 && pvFailed === 1, `«נסו שוב» בתצוגה המקדימה לא טען אותה (${pvFailed})`);
+  // הפעלה 152: במעבר לתזכורת אחרת הלוח הציג את הקודמת (עם «אישור ושליחה» שלה) עד שהשרת ענה. עכשיו: שלד טעינה מיד.
+  let open152; const gate152 = new Promise(r => { open152 = r; });
+  let held152 = 0;
+  await inject(p, '**/reminders/*/preview', async route => { held152++; await gate152; await route.continue(); });
+  const first152 = await p.locator('#detail').innerHTML();
+  await p.locator('#list .item').nth(1).click();
+  await p.locator('#pvBusy').waitFor();
+  ok(held152 === 1 && await p.locator('#detail').getAttribute('aria-busy') === 'true', '/ui: מעבר תזכורת בלי aria-busy בלוח התצוגה המקדימה');
+  ok(await p.locator('#ok').count() === 0 && await p.locator('#no').count() === 0 && await p.locator('#detail iframe').count() === 0,
+    '/ui: בזמן טעינת תזכורת אחרת נשארו בלוח כפתורים או נוסח של התזכורת הקודמת');
+  ok((await p.locator('#pvBusy').textContent()).includes('טוען תצוגה מקדימה') && await p.locator('#pvBusy').getAttribute('role') === 'status', '/ui: אין הודעת טעינה לקורא מסך');
+  ok(await p.locator('#detail .sk').count() > 0 && await p.locator('#detail .sk').evaluateAll(els => els.every(e => e.closest('[aria-hidden="true"]'))), '/ui: שלד התצוגה המקדימה חסר או חשוף לקורא מסך');
+  ok(await p.locator('#list .item.sel').count() === 1 && await p.locator('#list .item').nth(1).evaluate(e => e.classList.contains('sel')), '/ui: הרשימה לא מסמנת את התזכורת שנטענת');
+  if (out) await p.screenshot({ path: `${out}/ui-09-preview-loading.png`, fullPage: true });
+  open152();
+  await p.locator('#detail h2').first().waitFor();
+  ok(await p.locator('#detail .sk').count() === 0 && await p.locator('#pvBusy').count() === 0 && await p.locator('#detail').getAttribute('aria-busy') === null,
+    '/ui: השלד נשאר אחרי שהתצוגה המקדימה נטענה');
+  ok(await p.locator('#detail').innerHTML() !== first152, '/ui: הלוח לא התחלף לתזכורת שנבחרה');
+  await p.unroute('**/reminders/*/preview');
+  // רענון של אותה תזכורת (לחיצה חוזרת, או אחרי פעולה) לא מחליף לשלד: הנוסח נשאר על המסך עד שהתשובה מגיעה
+  let open152b; const gate152b = new Promise(r => { open152b = r; });
+  let held152b = 0;
+  await inject(p, '**/reminders/*/preview', async route => { held152b++; await gate152b; await route.continue(); });
+  await p.locator('#list .item').nth(1).click();
+  for (let i = 0; i < 40 && !held152b; i++) await p.waitForTimeout(50);
+  ok(held152b === 1 && await p.locator('#detail .sk').count() === 0 && await p.locator('#detail h2').count() > 0 && await p.locator('#detail').getAttribute('aria-busy') === null,
+    '/ui: רענון של אותה תזכורת החליף את הנוסח בשלד');
+  open152b();
+  await p.waitForLoadState('networkidle');
+  await p.unroute('**/reminders/*/preview');
+  await p.locator('#list .item').first().click();          // חוזרים לתזכורת הראשונה, כמו לפני הבלוק הזה
+  await p.locator('#detail:not([aria-busy]) h2').first().waitFor();
   // הפעלה 145: /ui מקבל את ההתנהגות של /app/ מהפעלה 144.
   const dialogs = []; let answer = null;
   p.on('dialog', d => { dialogs.push(`${d.type()}: ${d.message()}`); return d.type() === 'prompt' && answer ? d.accept(answer) : d.dismiss(); });
@@ -279,7 +312,7 @@ try {
     && await p.locator('#busyMsg').textContent() === '', '/ui: השלד או aria-busy נשארו אחרי הטעינה');
   // אחרי שהנתונים נטענו, רענון (לחיצה על תזכורת, פעולה) לא מחזיר את השלד: הנתונים נשארים על המסך
   await p.locator('#list .item').first().click();
-  ok(await p.locator('.sk').count() === 0, '/ui: רענון אחרי טעינה החזיר את השלד');
+  ok(await p.locator('#dash .sk, #list .sk').count() === 0, '/ui: רענון אחרי טעינה החזיר את השלד');   // הלוח עצמו כן בשלד בזמן טעינת תצוגה מקדימה (152)
   await p.unroute('**/dashboard'); await p.unroute('**/reminders');
   // טעינה ראשונה שנכשלת: לא שלד לנצח ולא טבלה ריקה שנראית כמו «אין חובות», אלא «לא נטענו» + פס שגיאה מתאים
   let down150 = true;
@@ -312,5 +345,5 @@ try {
   errors.push(...mine);
   errors.push(...routeErrors);
   ok(errors.length === 0, 'שגיאות:\n' + errors.join('\n'));
-  console.log('✓ /ui: סכום חריג מאושר רק אחרי סימון מפורש · תזכורת רגילה ללא שינוי · סטטוס/השהיה בעברית · מועד וערוץ השליחה לפי last_sent · שלד טעינה בכניסה ראשונה · כשל טעינה ⇒ פס שגיאה ו«נסו שוב» · כתיבה שנקטעה ⇒ «לא ידוע אם נרשמה» + רענון אוטומטי · 401 ⇒ מסך נעול וכפתורי הכותרת כבויים · אישור חוזר ⇒ «כבר אושרה» · כשל בכפתור כותרת ⇒ שורה בדף, בלי חלון');
+  console.log('✓ /ui: סכום חריג מאושר רק אחרי סימון מפורש · תזכורת רגילה ללא שינוי · סטטוס/השהיה בעברית · מועד וערוץ השליחה לפי last_sent · שלד טעינה בכניסה ראשונה · שלד בלוח במעבר בין תזכורות · כשל טעינה ⇒ פס שגיאה ו«נסו שוב» · כתיבה שנקטעה ⇒ «לא ידוע אם נרשמה» + רענון אוטומטי · 401 ⇒ מסך נעול וכפתורי הכותרת כבויים · אישור חוזר ⇒ «כבר אושרה» · כשל בכפתור כותרת ⇒ שורה בדף, בלי חלון');
 } finally { await b.close(); srv.kill(); }
