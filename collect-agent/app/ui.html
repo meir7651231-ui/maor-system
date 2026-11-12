@@ -255,6 +255,8 @@ const driftText=d=>`הסכום במקור השתנה${d.was_text?` מ-${d.was_te
 const PVSK=`<p class="slogan" id="pvBusy" role="status">טוען תצוגה מקדימה…</p><div class="previews" aria-hidden="true">${`<div class="skitem"><span class="sk big"></span>${SK}<span class="sk w"></span>${SK}</div>`.repeat(2)}</div>`;
 async function show(id,info,stale){
   sel=id;const d=$("#detail");
+  // הפעלה 155: הסימון ברשימה עבר רק כש-/reminders חזר; עד אז הרשימה סימנה את התזכורת הקודמת והלוח טען את החדשה
+  document.querySelectorAll("#list .item").forEach(b=>b.classList.toggle("sel",+b.dataset.id===id));
   if(shown!==id){shown=null;d.innerHTML=PVSK;d.setAttribute("aria-busy","true")}
   load();
   // הפעלה 143: כשל בטעינת התצוגה המקדימה היה unhandled rejection, והלוח נשאר על התזכורת הקודמת בלי הסבר

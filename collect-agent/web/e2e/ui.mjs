@@ -161,6 +161,10 @@ try {
   let held152 = 0;
   await inject(p, '**/reminders/*/preview', async route => { held152++; await gate152; await route.continue(); });
   const first152 = await p.locator('#detail').innerHTML();
+  // הפעלה 155: גם /reminders מוחזק. הסימון ברשימה עבר רק כשהרענון חזר, ולכן הבדיקה למטה נכשלה ב-CI כשהוא איחר
+  // (הרצה 475). עכשיו הסימון עובר בלחיצה עצמה, והבדיקה תופסת את זה בכל הרצה ולא רק כשהשרת איטי.
+  let heldList155 = 0;
+  await inject(p, '**/reminders', async route => { heldList155++; await gate152; await route.continue(); });
   await p.locator('#list .item').nth(1).click();
   await p.locator('#pvBusy').waitFor();
   ok(held152 === 1 && await p.locator('#detail').getAttribute('aria-busy') === 'true', '/ui: מעבר תזכורת בלי aria-busy בלוח התצוגה המקדימה');
@@ -168,6 +172,7 @@ try {
     '/ui: בזמן טעינת תזכורת אחרת נשארו בלוח כפתורים או נוסח של התזכורת הקודמת');
   ok((await p.locator('#pvBusy').textContent()).includes('טוען תצוגה מקדימה') && await p.locator('#pvBusy').getAttribute('role') === 'status', '/ui: אין הודעת טעינה לקורא מסך');
   ok(await p.locator('#detail .sk').count() > 0 && await p.locator('#detail .sk').evaluateAll(els => els.every(e => e.closest('[aria-hidden="true"]'))), '/ui: שלד התצוגה המקדימה חסר או חשוף לקורא מסך');
+  ok(heldList155 === 1, `/ui: רענון התור לא הוחזק (${heldList155}); הבדיקה לא בודקת את הסימון לפני שהוא חוזר`);
   ok(await p.locator('#list .item.sel').count() === 1 && await p.locator('#list .item').nth(1).evaluate(e => e.classList.contains('sel')), '/ui: הרשימה לא מסמנת את התזכורת שנטענת');
   if (out) await p.screenshot({ path: `${out}/ui-09-preview-loading.png`, fullPage: true });
   open152();
@@ -176,6 +181,8 @@ try {
     '/ui: השלד נשאר אחרי שהתצוגה המקדימה נטענה');
   ok(await p.locator('#detail').innerHTML() !== first152, '/ui: הלוח לא התחלף לתזכורת שנבחרה');
   await p.unroute('**/reminders/*/preview');
+  await p.unroute('**/reminders');
+  ok(await p.locator('#list .item.sel').count() === 1 && await p.locator('#list .item').nth(1).evaluate(e => e.classList.contains('sel')), '/ui: הסימון ברשימה אבד אחרי שרענון התור חזר');
   // רענון של אותה תזכורת (לחיצה חוזרת, או אחרי פעולה) לא מחליף לשלד: הנוסח נשאר על המסך עד שהתשובה מגיעה
   let open152b; const gate152b = new Promise(r => { open152b = r; });
   let held152b = 0;
