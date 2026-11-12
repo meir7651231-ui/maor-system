@@ -409,16 +409,27 @@ def test_demo_scenario_end_to_end():
     svc2, fake, _ = build_demo_service()
     lines: list[str] = []
     t = run_scenario(svc2, fake, out=lines.append)
-    assert t["open_invoices"] == 8 and t["closed_invoices"] == 1
+    # הפעלה 139: גם הלקוח בחו״ל (חשבונית 2010, $500) שילם ⇒ 2 סגורות
+    assert t["open_invoices"] == 8 and t["closed_invoices"] == 2
     # 5 SMS: גם "שילמתי" מקבל עכשיו תשובה (תודה + בקשת אסמכתא) אחרי אישור בעל העסק
     # owner_inbox 2: «שילמתי» + הפעלה 125 — התראת סכום חריג (גל שרון, 2,490 במקום 24.90)
-    assert t["sent_sms"] == 5 and t["sent_email"] == 4 and t["owner_inbox"] == 2
+    assert t["sent_sms"] == 5 and t["sent_email"] == 5 and t["owner_inbox"] == 2
     assert any("⚠️" in x and "2009" in x and "2,490" in x and "27.40" in x for x in lines)
     odd = [r for r in svc2.db.q("SELECT * FROM reminders WHERE block_reason='amount_check'")]
     assert len(odd) == 1 and odd[0]["status"] == "pending_approval"   # לא נשלח בלי אישור מפורש
     assert not any("530000007" in m["to"] or "gal@" in m["to"] for m in svc2.sender.sent)
     assert any("pay.example/gabi-demo" in x for x in lines)
     assert not any("whatsapp" in x.lower() for x in lines)
+    # הפעלה 139: גבייה בדולר לא מתחברת לשקלים. ₪ בלבד ב-collected_agorot ובגרף, הדולר בנפרד
+    assert t["collected_agorot"] == 210000
+    assert [(o["currency"], o["collected_agorot"], o["open_agorot"]) for o in t["other_currency"]] \
+        == [("USD", 50000, 0)]
+    assert any("נגבה: 2,100.00 ₪ + $500" in x for x in lines)
+    week = [p for p in svc2.dashboard()["series"] if p["count"] or p.get("other")]
+    assert week == [{"week": "2026-11-08", "collected_agorot": 210000, "count": 1,
+                     "other": [{"currency": "USD", "collected_agorot": 50000}]}]
+    usd_mail = [m for m in svc2.sender.sent if m["to"] == "abroad@example.com"]
+    assert len(usd_mail) == 1 and "$500" in usd_mail[0]["body"] and "₪" not in usd_mail[0]["body"]
 
 
 

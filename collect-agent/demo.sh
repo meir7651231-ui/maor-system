@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # גבי — הדגמה מקצה לקצה בפקודה אחת (מקומי, dry-run, נתוני דמו בדויים, בלי רשת חיצונית).
 #
-#   ./demo.sh            מרים את השרת עם 9 חשבוניות פתוחות מזויפות (7 לקוחות), מריץ תזכורות dry-run
+#   ./demo.sh            מרים את השרת עם 10 חשבוניות פתוחות מזויפות (8 לקוחות, אחת בדולר), מריץ תזכורות dry-run
 #                        (כל SMS/מייל מודפס ללוג עם קישור תשלום דמו), ומגיש את הדשבורד:
 #                        http://127.0.0.1:${PORT:-8000}/ui   (Ctrl+C לעצירה)
 #   ./demo.sh --check    אותו דבר, מאמת את ה-API והדשבורד, ויוצא (0 = הכול עובד). ל-CI.
@@ -61,7 +61,7 @@ try:
 except urllib.error.HTTPError as e:
     assert e.code == 401, e.code
 d = json.loads(get("/dashboard")); t = d["totals"]
-assert t["open_invoices"] == 8 and t["closed_invoices"] == 1, t
+assert t["open_invoices"] == 8 and t["closed_invoices"] == 2, t
 # חשבונית ירוקה הגיעה דרך שרת ה-mock ב-HTTP, וה-webhook של «מסמך נוצר» (קבלה) הגיע אלינו
 import time
 for _ in range(40):
@@ -136,6 +136,13 @@ except urllib.error.HTTPError as e:
 print("✅ כניסת עובד (מייל+סיסמה+TOTP): כניסה, גישה ויציאה עובדים מקצה לקצה")
 d2 = json.loads(get("/dashboard"))
 assert len(d2["series"]) == 8 and d2["totals"]["collected_agorot"] > 0, d2["totals"]
+# הפעלה 139: הלקוח בחו״ל שילם $500 ⇒ הדולר בנפרד (other_currency + other בשבוע), ה-₪ בלי שינוי
+assert d2["totals"]["collected_agorot"] == 210000, d2["totals"]
+assert [(o["currency"], o["collected_agorot"]) for o in d2["totals"]["other_currency"]] == [("USD", 50000)], d2["totals"]
+wk = [p for p in d2["series"] if p.get("other")]
+assert len(wk) == 1 and wk[0]["collected_agorot"] == 210000 \
+    and wk[0]["other"] == [{"currency": "USD", "collected_agorot": 50000}], d2["series"]
+print("✅ גבייה במטבע אחר: 2,100 ₪ בגרף + $500 בנפרד (בלי המרה, בלי חיבור)")
 import http.client
 hc = http.client.HTTPConnection("127.0.0.1", int(sys.argv[1]), timeout=5); hc.request("GET", "/landing")
 loc = hc.getresponse().getheader("location"); assert loc in ("/app/", "/ui"), f"/landing לא מפנה: {loc}"

@@ -1,6 +1,6 @@
 """מצב הדגמה: sandbox מדומה של חשבונית ירוקה + תרחיש מוכן + הדפסת כל הודעה ללוג.
 
-`DEMO=1 uvicorn app.main:_lazy_app --factory` (או ./demo.sh) ⇒ השרת עולה עם 9 חשבוניות
+`DEMO=1 uvicorn app.main:_lazy_app --factory` (או ./demo.sh) ⇒ השרת עולה עם 10 חשבוניות
 פתוחות בדויות, התרחיש רץ (סנכרון ⇒ תור ⇒ אישורים ⇒ שליחת dry-run ⇒ תשובות לקוחות ⇒
 חשבונית ששולמה נסגרת), וכל SMS/מייל *שהיה* נשלח מודפס ללוג. אחר כך הדשבורד ב-/ui חי
 ואפשר להמשיך ללחוץ (למשל לאשר את התזכורת של יוסי שנשארה ממתינה).
@@ -74,11 +74,11 @@ def run_scenario(svc: CollectService, fake, out: Callable[[str], None] = print) 
     out("══ גבי · הדגמה (dry-run, נתונים בדויים, אף הודעה לא יוצאת) ══")
     r = svc.sync()
     out(f"① סנכרון חשבונית ירוקה (sandbox מדומה): {r['open']} חשבוניות פתוחות")
-    assert r == {"open": 9, "closed": 0}, r
+    assert r == {"open": 10, "closed": 0}, r
     created = svc.plan()
     out(f"② הוכנו {len(created)} תזכורות — כולן ממתינות לאישור בעל העסק"
         " (לגל שרון: הודעה אחת על 3 חשבוניות)")
-    assert len(created) == 7
+    assert len(created) == 8
     assert svc.dispatch() == [], "נשלח משהו לפני אישור!"
     approved, left, odd = [], None, None
     for rid in created:
@@ -119,14 +119,27 @@ def run_scenario(svc: CollectService, fake, out: Callable[[str], None] = print) 
     n = _log_outbox(svc, n, out)
     paid = fake.pay("demo5")   # morning: המסמך נסגר + נוצרת קבלה (⇒ webhook לשרת, אם רץ)
     out(f"   🧾 חשבונית ירוקה (mock): מסמך {paid['closed']} נסגר, קבלה {paid['receipt']} נוצרה")
+    usd = fake.pay("demo10")   # הפעלה 139: גם הלקוח בחו״ל שילם — חשבונית בדולר
+    out(f"   🧾 חשבונית ירוקה (mock): מסמך {usd['closed']} (בדולר) נסגר, קבלה {usd['receipt']} נוצרה")
     r = svc.sync()
-    out(f"⑥ מיכל שילמה בחשבונית ירוקה ⇒ סנכרון: {r['open']} פתוחות, {r['closed']} נסגרה")
-    assert r["closed"] == 1
+    out(f"⑥ מיכל והלקוח בחו״ל שילמו בחשבונית ירוקה ⇒ סנכרון: {r['open']} פתוחות, {r['closed']} נסגרו")
+    assert r["closed"] == 2
     d = svc.dashboard()["totals"]
     out(f"⑦ דשבורד: חוב פתוח {open_debt_text(d)} ב-{d['open_invoices']} חשבוניות · "
         f"SMS {d['sent_sms']} · מיילים {d['sent_email']} · ממתינות לאישור {d['pending_approval']}"
         f" · בתיבת בעל העסק {d['owner_inbox']}")
+    out(f"   נגבה: {collected_text(d)} (מטבע אחר מוצג בנפרד, בלי המרה)")
+    assert [(o["currency"], o["collected_agorot"]) for o in d["other_currency"]] == [("USD", 50000)], \
+        d["other_currency"]
     return d
+
+
+def collected_text(totals: dict) -> str:
+    """«2,100.00 ₪ + $500»: מה שנגבה, כל מטבע בנפרד (אין שער המרה ⇒ לא מחברים)."""
+    parts = [f"{totals['collected_agorot'] / 100:,.2f} ₪"]
+    parts += [fmt_amount(o["collected_agorot"], o["currency"])
+              for o in totals.get("other_currency", []) if o["collected_agorot"]]
+    return " + ".join(parts)
 
 
 def open_debt_text(totals: dict) -> str:

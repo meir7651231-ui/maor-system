@@ -15,15 +15,15 @@ DEMO_ID, DEMO_SECRET = "demo-id", "demo-secret"
 
 
 def _doc(i: int, name: str, phone: str, email: str, amount: str, due: str,
-         client: str = "") -> dict:
+         client: str = "", currency: str = "ILS", issued: str = "2026-09-01") -> dict:
     return {"id": f"demo{i}", "number": str(2000 + i), "type": 305, "status": 0,
-            "amount": amount, "currency": "ILS", "documentDate": "2026-09-01", "dueDate": due,
+            "amount": amount, "currency": currency, "documentDate": issued, "dueDate": due,
             "client": {"id": client or f"dcl{i}", "name": name, "phone": phone,
                        "emails": [email] if email else []}}
 
 
 def demo_docs() -> list[dict]:
-    """7 לקוחות בדויים (9 חשבוניות), כל אחד מדגים מסלול אחר בזרימה."""
+    """8 לקוחות בדויים (10 חשבוניות), כל אחד מדגים מסלול אחר בזרימה."""
     return [
         _doc(1, "דנה לוי (דמו)", "050-0000001", "dana@example.com", "1200.00", "2026-10-01"),
         _doc(2, "יוסי כהן (דמו)", "052-0000002", "yossi@example.com", "3450.50", "2026-10-10"),
@@ -38,6 +38,11 @@ def demo_docs() -> list[dict]:
         *(_doc(i, "גל שרון (דמו)", "053-0000007", "gal@example.com", amt, due, client="dcl7")
           for i, amt, due in ((7, "24.90", "2026-10-01"), (8, "29.90", "2026-10-08"),
                               (9, "2490.00", "2026-10-15"))),
+        # הפעלה 139: לקוח בחו״ל, חשבונית בדולר. מקבל תזכורת במייל ומשלם ⇒ הגבייה שלו מופיעה
+        # בנפרד מהשקלים («ועוד $500, לא בגרף»), בלי המרה ובלי חיבור בין מטבעות. תאריך המסמך מאוחר
+        # יותר ⇒ היא האחרונה בסנכרון, והמזהים של תשע הקודמות לא זזים
+        _doc(10, "Studio Abroad (דמו)", "", "abroad@example.com", "500.00", "2026-10-12",
+             currency="USD", issued="2026-09-15"),
     ]
 
 

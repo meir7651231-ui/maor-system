@@ -380,10 +380,21 @@ try {
   console.log('  ✓ עמוד החשבוניות: ניסיון שנקטע מוצג «לא ידוע אם יצאה» (בלי מועד/ערוץ ישן)');
 
   // הפעלה 138 (נשאר מ-134): גבייה שאינה ב-₪ מוצגת ליד הגרף («$500, לא בגרף») ולא מחוברת לסה״כ ב-₪.
-  //   בהדגמה אין גבייה בדולר, לכן מזריקים אותה לתשובת /dashboard האמיתית (שבוע אחרון) ובודקים בדפדפן.
-  await p.goto(base + '/app/#/dashboard'); await p.getByTestId('collection-chart').waitFor();
-  ok(await p.getByTestId('chart-other').count() === 0, 'שורת «לא בגרף» מופיעה בלי גבייה במטבע אחר');
+  //   הפעלה 139: בהדגמה הלקוח בחו״ל (חשבונית 2010) שילם $500 ⇒ השורה נבדקת מקצה לקצה, בלי הזרקה:
+  //   מה שהשרת מחזיר (other_currency + other בשבוע) הוא מה שהדפדפן מציג, וה-$500 לא נכנס לסה״כ ב-₪.
+  await p.goto(base + '/app/#/dashboard'); await p.getByTestId('chart-other').waitFor();
+  const dash139 = await api('/dashboard');
+  const usd139 = dash139.totals.other_currency.find(o => o.currency === 'USD');
+  ok(usd139 && usd139.collected_agorot === 50000 && usd139.open_agorot === 0, 'ההדגמה: חסרה גבייה של $500 ב-other_currency');
+  ok(dash139.series.filter(w => w.other).length === 1, 'ההדגמה: ציפיתי לשבוע אחד עם גבייה במטבע אחר');
+  const real139 = (await p.getByTestId('chart-other').textContent()).trim();
+  ok(real139 === '· ועוד $500, לא בגרף', `שורת «לא בגרף» בהדגמה: «${real139}»`);
   const chartTotal = await p.getByTestId('collection-chart').getAttribute('aria-label');
+  const ils139 = dash139.series.reduce((n, w) => n + w.collected_agorot, 0);
+  ok(ils139 === dash139.totals.collected_agorot && chartTotal.replace(/[^\d]/g, '') === String(ils139 / 100),
+    `הסה״כ ב-₪ של הגרף («${chartTotal}») אינו ${ils139 / 100} ₪ — אולי הדולר חובר`);
+  if (out) await fullShot(p, `${out}/live-01a-chart-other-demo.png`);
+  // ועוד: כמה מטבעות בכמה שבועות מסוכמים לכל מטבע בנפרד (אין תרחיש כזה בהדגמה ⇒ מוזרק לתשובה האמיתית)
   await p.route('**/dashboard', async route => {
     const res = await route.fetch(); const j = await res.json();
     ok(Array.isArray(j.series) && j.series.length > 1, 'ל-/dashboard אין series');

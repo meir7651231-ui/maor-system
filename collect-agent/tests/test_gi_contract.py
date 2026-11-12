@@ -92,12 +92,12 @@ def test_documents_search_shape_filters_and_paging(mock):
     st, out = call(mock, "POST", "/documents/search", {"page": 1, "pageSize": 4, "status": [0],
                                                        "type": [305]}, tok)
     assert st == 200 and set(out) == {"total", "page", "pageSize", "pages", "items"}
-    assert out["total"] == 9 and out["pages"] == 3 and len(out["items"]) == 4   # הפעלה 125: 9 בדמו
+    assert out["total"] == 10 and out["pages"] == 3 and len(out["items"]) == 4   # הפעלה 139: 10 בדמו
     more = [call(mock, "POST", "/documents/search", {"page": p, "pageSize": 4, "status": [0],
                                                      "type": [305]}, tok)[1]["items"] for p in (2, 3)]
-    assert [len(x) for x in more] == [4, 1]
+    assert [len(x) for x in more] == [4, 2]
     ids = [d["id"] for d in out["items"] + more[0] + more[1]]
-    assert len(set(ids)) == 9                                 # אין כפילות בין עמודים
+    assert len(set(ids)) == 10                                # אין כפילות בין עמודים
     for d in out["items"]:
         assert {"id", "number", "type", "status", "amount", "currency", "documentDate",
                 "client"} <= set(d)
@@ -155,7 +155,7 @@ def test_webhook_on_payment_has_documented_payload(mock):
 # ───────── (ב) הלקוח שלנו מדבר לפי החוזה ─────────
 def test_client_reads_all_open_invoices_across_pages(gi, mock):
     invs = list(gi.iter_open_invoices(page_size=4))
-    assert sorted(i.number for i in invs) == [str(2000 + i) for i in range(1, 10)]
+    assert sorted(i.number for i in invs) == [str(2000 + i) for i in range(1, 11)]
     assert ("POST", "/account/token") in mock.requests
     assert sum(1 for r in mock.requests if r == ("POST", "/documents/search")) == 3
     assert sum(1 for r in mock.requests if r == ("POST", "/account/token")) == 1   # טוקן אחד
@@ -171,7 +171,7 @@ def test_client_refreshes_expired_token(gi, mock, gclock):
 def test_client_recovers_from_revoked_token(gi, mock):
     list(gi.iter_open_invoices())
     mock.tokens.clear()                       # morning ביטלה את הטוקן (401) ⇒ חידוש חד-פעמי
-    assert len(list(gi.iter_open_invoices())) == 9
+    assert len(list(gi.iter_open_invoices())) == 10
 
 
 def test_closed_document_disappears_from_open_sync(gi, mock):
@@ -223,7 +223,7 @@ def test_mock_asgi_app_same_contract(mock):
     assert c.post("/api/v1/account/token", content=b"{bad").status_code == 400
     tok = c.post("/api/v1/account/token", json=token_body(DEMO_ID, DEMO_SECRET)).json()["token"]
     r = c.post("/api/v1/documents/search", json={"status": [0]}, headers={"Authorization": f"Bearer {tok}"})
-    assert r.status_code == 200 and r.json()["total"] == 9
+    assert r.status_code == 200 and r.json()["total"] == 10
 
 
 def test_app_webhook_triggers_sync(svc, fake_gi):
