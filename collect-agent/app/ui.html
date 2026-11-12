@@ -165,7 +165,7 @@ async function api(p,o={},retry=true){
     if(r.status>=500&&!he&&write)throw unknown("השרת לא זמין כרגע");
     // הפעלה 146: 409 עם X-Gabi-Already = ההכרעה שביקשנו כבר נרשמה קודם (approved / rejected). לא כשל.
     throw Object.assign(new Error(r.status>=500?(he?d:"השרת לא זמין כרגע. נסו שוב בעוד רגע"):d||"הבקשה נכשלה (שגיאה "+r.status+")"),
-      {already:r.status===409?r.headers.get("X-Gabi-Already"):null})}
+      {already:r.status===409?r.headers.get("X-Gabi-Already"):null,stale:r.status===409&&r.headers.get("X-Gabi-Stale")==="preview"})}
   return j}
 // כשל של פעולת כתיבה: 401 ⇒ פס הכניסה כבר מוצג; תוצאה לא ידועה ⇒ הודעה + רענון; אחרת ההודעה במקום הרגיל
 function failed(e,show){if(e.auth)return;if(!e.unknown)return show(e.message);
@@ -223,7 +223,9 @@ async function load(ask=true){
     ${esc(r.block_reason?why(r.block_reason):STATUS[r.status]||r.status)}</span></div></button>`).join("");
   el.querySelectorAll(".item").forEach(b=>b.onclick=()=>show(+b.dataset.id));
 }
-async function show(id,info){
+// הפעלה 149: אישור על נוסח ישן (409 + X-Gabi-Stale) ⇒ התצוגה נטענת מחדש לבד, עם מה שהשתנה (was = הסכום שהוצג קודם)
+const staleText=(was,now)=>(was&&now&&was!==now?`הסכום השתנה מ-${was} ל-${now}.`:"הנוסח השתנה מאז שפתחתם.")+" זה הנוסח המעודכן. שום דבר לא נשלח. בדקו ואשרו שוב";
+async function show(id,info,stale){
   sel=id;load();
   // הפעלה 143: כשל בטעינת התצוגה המקדימה היה unhandled rejection, והלוח נשאר על התזכורת הקודמת בלי הסבר
   let p;try{p=await api(`/reminders/${id}/preview`)}catch(e){if(sel!==id||e.auth)return;
@@ -256,11 +258,12 @@ async function show(id,info){
     ${checks}
     <div class="decide">${p.status==="pending_approval"?`<button class="primary" id="ok" ${can?"":"disabled"}>אישור ושליחה</button>`:""}
     ${["pending_approval","approved"].includes(p.status)?`<button class="ghost-bad" id="no">דחייה</button>`:""}</div>
-    <div class="err" id="derr"></div>${info?`<div class="note" id="dinfo" role="status">${esc(info)}</div>`:""}`;
+    <div class="err" id="derr"></div>${stale?`<div class="note" id="dstale" role="alert">${esc(staleText(stale.was,p.total_text))}</div>`:""}${info?`<div class="note" id="dinfo" role="status">${esc(info)}</div>`:""}`;
   if(mail)$("#mailFrame").srcdoc=mail.html;
   const act=async(a,body)=>{try{await api(`/reminders/${id}/${a}`,{method:"POST",...(body?{headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}:{})});await load();show(id)}
     // הפעלה 146: אישור/דחייה שכבר נרשמו (ניסיון חוזר אחרי תשובה שאבדה) ⇒ «כבר…» ורענון, לא שגיאה
-    catch(e){if(e.already===DONE[a]){await load();return show(id,e.message+". המסך עודכן")}failed(e,m=>{$("#derr").textContent=m})}};
+    catch(e){if(e.already===DONE[a]){await load();return show(id,e.message+". המסך עודכן")}
+      if(a==="approve"&&e.stale){await load();return show(id,null,{was:p.total_text})}failed(e,m=>{$("#derr").textContent=m})}};
   const boxes=[$("#cAmt"),$("#cOpen")].filter(Boolean),okBtn=$("#ok");
   const gate=()=>{if(okBtn)okBtn.disabled=!can||boxes.some(x=>!x.checked)};
   boxes.forEach(x=>x.onchange=gate);gate();

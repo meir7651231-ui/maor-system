@@ -59,16 +59,25 @@ try {
   await p.locator('#ok').waitFor();
   ok(await p.locator('#ok').isEnabled() && await p.locator('.confirm').count() === 0, 'תזכורת רגילה: תיבה מיותרת או כפתור נעול');
   if (out) await p.screenshot({ path: `${out}/ui-02-regular.png`, fullPage: true });
-  // critic סבב 56: תצוגה מקדימה ישנה (התזכורת נבנתה מחדש מאז) ⇒ השרת מסרב לאשר, לא יוצא דבר
+  // critic סבב 56: תצוגה מקדימה ישנה (התזכורת נבנתה מחדש מאז) ⇒ השרת מסרב לאשר, לא יוצא דבר.
+  // הפעלה 149: התצוגה נטענת מחדש לבד, עם «הסכום השתנה מ-… ל-…», בלי שורת שגיאה ובלי «פתחו שוב».
+  let pv149 = 0, total149 = null;
   await p.route('**/reminders/*/preview', async route => {
-    const res = await route.fetch(); const j = await res.json(); j.body_hash = 'stale-' + j.body_hash;
+    const res = await route.fetch(); const j = await res.json(); total149 = j.total_text;
+    if (pv149++ === 0) { j.body_hash = 'stale-' + j.body_hash; j.total_text = '1 ₪'; }
     await route.fulfill({ response: res, json: j });
   });
   await p.locator('#list .item .chip.pending').first().click();
   await p.locator('#ok').waitFor();
+  ok(await p.locator('#dstale').count() === 0, '/ui: «הנוסח השתנה» מוצג לפני שקרה משהו');
   const before56 = (await (await fetch(base + '/outbox', { headers: H })).json()).messages.length;
   await p.locator('#ok').click();
-  await p.waitForFunction(() => /השתנו מאז שפתחתם/.test(document.querySelector('#derr')?.textContent ?? ''));
+  await p.locator('#dstale').waitFor();
+  const stale149 = await p.locator('#dstale').textContent();
+  ok(stale149.includes(`הסכום השתנה מ-1 ₪ ל-${total149}.`) && stale149.includes('שום דבר לא נשלח'), '/ui: ההסבר לא מציג לפני/אחרי: ' + stale149);
+  ok(pv149 >= 2, '/ui: התצוגה לא נטענה מחדש');
+  ok((await p.locator('#derr').textContent()) === '', '/ui: שורת שגיאה למרות שהתצוגה נטענה מחדש');
+  ok(await p.locator('#ok').isEnabled(), '/ui: אחרי הטעינה מחדש אי אפשר לאשר');
   ok((await (await fetch(base + '/outbox', { headers: H })).json()).messages.length === before56, '/ui: יצאה הודעה מתצוגה ישנה');
   if (out) await p.screenshot({ path: `${out}/ui-02c-stale-preview.png`, fullPage: true });
   await p.unroute('**/reminders/*/preview');

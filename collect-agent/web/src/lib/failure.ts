@@ -50,3 +50,16 @@ export function alreadyDone(e: unknown, want: 'approved' | 'rejected'): boolean 
   const x = e as { status?: unknown; already?: unknown } | null;
   return !!x && x.status === 409 && x.already === want;
 }
+
+/** הפעלה 149 (המלצת critic סבב 56): האישור נשלח על נוסח ישן (409 + X-Gabi-Stale: preview). הממשק טוען את
+ *  התצוגה המקדימה מחדש ומציג מה השתנה, במקום «לא אושר» ו«פתחו שוב». 409 אחר נשאר סירוב רגיל. טהור. */
+export function stalePreview(e: unknown): boolean {
+  const x = e as { status?: unknown; stale?: unknown } | null;
+  return !!x && x.status === 409 && x.stale === true;
+}
+/** הנוסח שמוצג מעל התצוגה שנטענה מחדש. was/now = הסכום הכולל שהוצג קודם ועכשיו (total_text מהשרת). */
+export function staleChangeText(was?: string | null, now?: string | null): string {
+  const a = (was ?? '').trim(), b = (now ?? '').trim();
+  const what = a && b && a !== b ? `הסכום השתנה מ-${a} ל-${b}.` : 'הנוסח השתנה מאז שפתחתם.';
+  return `${what} זה הנוסח המעודכן. שום דבר לא נשלח. בדקו ואשרו שוב`;
+}

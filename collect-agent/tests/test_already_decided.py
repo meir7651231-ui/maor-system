@@ -115,7 +115,7 @@ def test_source_guard_no_raw_status_in_reminder_refusals():
     src = (ROOT / "app/service.py").read_text(encoding="utf-8")
     assert "לא ממתינה לאישור (status=" not in src
     assert "לא ניתן לדחות (status=" not in src
-    assert 'headers={"X-Gabi-Already": state}' in (ROOT / "app/main.py").read_text(encoding="utf-8")
+    assert '{"X-Gabi-Already": state} if state else {}' in (ROOT / "app/main.py").read_text(encoding="utf-8")
 
 
 # ---------- הפעלה 147: אותו כלל להצעות פריסה ולטיוטות מענה ----------

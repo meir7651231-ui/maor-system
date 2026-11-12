@@ -15,7 +15,9 @@ export class ApiError extends Error {
   status: number;
   /** הפעלה 146: השרת סימן (X-Gabi-Already) שההכרעה שביקשנו כבר נרשמה קודם: 'approved' / 'rejected'. לא כשל. */
   already: string | null;
-  constructor(msg: string, status: number, already: string | null = null) { super(msg); this.status = status; this.already = already; }
+  /** הפעלה 149: השרת סימן (X-Gabi-Stale) שהאישור נשלח על נוסח ישן ⇒ הממשק טוען את התצוגה המקדימה מחדש. */
+  stale: boolean;
+  constructor(msg: string, status: number, already: string | null = null, stale = false) { super(msg); this.status = status; this.already = already; this.stale = stale; }
 }
 const session = (): Storage | undefined => { try { return sessionStorage; } catch { return undefined; } };
 
@@ -45,7 +47,7 @@ async function j<T>(path: string, init?: RequestInit): Promise<T> {
     try { const b = await r.json(); detail = typeof b.detail === 'string' ? b.detail : b.detail == null ? '' : JSON.stringify(b.detail); } catch { /* גוף לא-JSON */ }
     if (write && writeOutcomeUnknown(r.status, detail)) apiEvents.writeUnknown?.();
     const msg = failureText(r.status, detail, write);
-    throw new ApiError(msg, r.status, r.status === 409 ? r.headers.get('X-Gabi-Already') : null);
+    throw new ApiError(msg, r.status, r.status === 409 ? r.headers.get('X-Gabi-Already') : null, r.status === 409 && r.headers.get('X-Gabi-Stale') === 'preview');
   }
   return r.json() as Promise<T>;
 }

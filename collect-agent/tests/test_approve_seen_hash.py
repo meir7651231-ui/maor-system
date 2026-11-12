@@ -40,6 +40,8 @@ def test_stale_preview_cannot_approve_rebuilt_reminder(api, svc, fake_gi):
     before = len(svc.sender.sent)
     res = api.post(f"/reminders/{rid}/approve", json={"seen_hash": seen["body_hash"]})
     assert res.status_code == 409 and "השתנו מאז שפתחתם" in res.json()["detail"], res.text
+    # הפעלה 149: הסירוב מסומן ⇒ הממשק טוען את התצוגה מחדש ומציג מה השתנה (ולא «כבר אושרה»)
+    assert res.headers.get("X-Gabi-Stale") == "preview" and "X-Gabi-Already" not in res.headers
     assert svc._reminder(rid)["status"] == "pending_approval"
     api.post("/dispatch")
     assert len(svc.sender.sent) == before, "יצא נוסח שבעל העסק לא ראה"
@@ -49,6 +51,38 @@ def test_stale_preview_cannot_approve_rebuilt_reminder(api, svc, fake_gi):
     assert api.post(f"/reminders/{rid}/approve", json={"seen_hash": fresh["body_hash"]}).status_code == 200
     api.post("/dispatch")
     assert "1,500" in svc.sender.sent[-1]["body"] or "1,500" in svc.sender.sent[-2]["body"]
+
+
+def test_stale_header_only_for_stale_preview(api, svc, fake_gi):
+    """הפעלה 149: X-Gabi-Stale רק כשהנוסח השתנה. סירוב אחר (כבר אושרה / נדחתה) בלי הכותרת, אחרת הממשק היה
+    טוען מחדש ומציג «הנוסח השתנה» על סירוב שאינו כזה. /preview נותן לממשק את הסכום לפני ואחרי."""
+    rid, seen = _rebuilt(api, fake_gi)
+    fresh = api.get(f"/reminders/{rid}/preview").json()
+    assert (seen["total_text"], fresh["total_text"]) == ("1,200 ₪", "1,500 ₪")
+    assert fresh["status"] == "pending_approval"
+    ok = api.post(f"/reminders/{rid}/approve", json={"seen_hash": fresh["body_hash"]})
+    assert ok.status_code == 200 and "X-Gabi-Stale" not in ok.headers
+    # אישור חוזר עם הגיבוב הישן: האישור כבר נרשם ⇒ «כבר אושרה», לא «הנוסח השתנה»
+    again = api.post(f"/reminders/{rid}/approve", json={"seen_hash": seen["body_hash"]})
+    assert again.status_code == 409 and again.headers.get("X-Gabi-Already") == "approved"
+    assert "X-Gabi-Stale" not in again.headers
+    assert api.post(f"/reminders/{rid}/reject").status_code == 200
+    rej = api.post(f"/reminders/{rid}/approve", json={"seen_hash": "x"})
+    assert rej.status_code == 409 and "X-Gabi-Stale" not in rej.headers
+
+
+def test_both_uis_reload_stale_preview():
+    """הגנת-מקור (הפעלה 149): שני הממשקים מזהים את הכותרת, טוענים את התצוגה מחדש ומנקים את תיבות האישור."""
+    api_ts = (ROOT / "web/src/api.ts").read_text(encoding="utf-8")
+    mp = (ROOT / "web/src/components/MessagePreview.tsx").read_text(encoding="utf-8")
+    ui = (ROOT / "app/ui.html").read_text(encoding="utf-8")
+    main = (ROOT / "app/main.py").read_text(encoding="utf-8")
+    assert '"X-Gabi-Stale": stale' in main
+    assert "r.headers.get('X-Gabi-Stale') === 'preview'" in api_ts
+    assert "if (stalePreview(e) && pending)" in mp and "setConfirmOpen(false); setConfirmAmount(false)" in mp
+    assert "fresh.status === 'pending_approval'" in mp, "תזכורת שכבר לא ממתינה לא מוצגת כ«בדקו ואשרו שוב»"
+    assert 'r.headers.get("X-Gabi-Stale")==="preview"' in ui
+    assert 'if(a==="approve"&&e.stale){await load();return show(id,null,{was:p.total_text})}' in ui
 
 
 def test_both_uis_send_seen_hash():

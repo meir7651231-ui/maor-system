@@ -930,7 +930,7 @@ test('הפעלה 146: טיוטת ההגדרות מוחזרת רק למי שהק�
   assert.equal(alreadyDone(null, 'approved'), false);
   assert.ok(ALREADY_APPROVED.includes('כבר אושרה'));
   const api = fs.readFileSync(new URL('../src/api.ts', import.meta.url), 'utf8');
-  assert.match(api, /new ApiError\(msg, r\.status, r\.status === 409 \? r\.headers\.get\('X-Gabi-Already'\) : null\)/);
+  assert.match(api, /new ApiError\(msg, r\.status, r\.status === 409 \? r\.headers\.get\('X-Gabi-Already'\) : null,/);   // הפעלה 149: נוסף פרמטר stale
   const store = fs.readFileSync(new URL('../src/store.tsx', import.meta.url), 'utf8');
   assert.match(store, /catch \(e\) \{ if \(!alreadyDone\(e, 'approved'\)\) throw e; already = true; \}/);
   // /ui: אותה כותרת; כפתורי הכותרת כבויים כשהמסך נעול; אין alert
@@ -953,4 +953,36 @@ test('הפעלה 147: «כבר אושרה» גם להצעת פריסה ולטי�
   assert.match(inbox, /if \(!already \|\| !alreadyDone\(e, already\.want\)\) \{ setErr\(/);
   assert.match(inbox, /api\.approveDraft\([^\n]*\{ want: 'approved', msg: ALREADY_DRAFT \}/);
   assert.match(inbox, /api\.rejectDraft\([^\n]*\{ want: 'rejected', msg: ALREADY_DRAFT_CLOSED \}/);
+});
+
+test('הפעלה 149: אישור על נוסח ישן ⇒ התצוגה נטענת מחדש עם מה שהשתנה (המלצת critic סבב 56)', async () => {
+  const f = await import('../src/lib/failure.ts');
+  const fs = await import('node:fs');
+  assert.equal(f.stalePreview({ status: 409, stale: true }), true);
+  assert.equal(f.stalePreview({ status: 409, stale: false }), false, '409 רגיל (חסימה, כבר אושרה) נשאר סירוב');
+  assert.equal(f.stalePreview({ status: 409 }), false);
+  assert.equal(f.stalePreview({ status: 500, stale: true }), false);
+  assert.equal(f.stalePreview(new Error('x')), false);
+  assert.equal(f.stalePreview(null), false);
+  assert.equal(f.staleChangeText('1,200 ₪', '1,500 ₪'), 'הסכום השתנה מ-1,200 ₪ ל-1,500 ₪. זה הנוסח המעודכן. שום דבר לא נשלח. בדקו ואשרו שוב');
+  // אותו סכום (השתנה רק הנוסח) או סכום חסר ⇒ לא ממציאים «הסכום השתנה»
+  for (const [a, b] of [['1,200 ₪', '1,200 ₪'], [undefined, '1,500 ₪'], ['1,200 ₪', null], ['', ''], [' 1,200 ₪ ', '1,200 ₪']] as const) {
+    const t = f.staleChangeText(a, b);
+    assert.ok(t.startsWith('הנוסח השתנה מאז שפתחתם.') && !t.includes('הסכום השתנה'), `${a} ⇒ ${b}: ${t}`);
+    assert.ok(t.includes('שום דבר לא נשלח') && t.includes('בדקו ואשרו שוב'));
+  }
+  const api = fs.readFileSync(new URL('../src/api.ts', import.meta.url), 'utf8');
+  assert.match(api, /r\.status === 409 && r\.headers\.get\('X-Gabi-Stale'\) === 'preview'\)/);
+  const mp = fs.readFileSync(new URL('../src/components/MessagePreview.tsx', import.meta.url), 'utf8');
+  assert.match(mp, /if \(stalePreview\(e\) && pending\) \{/);
+  assert.match(mp, /setPv\(fresh\); setConfirmOpen\(false\); setConfirmAmount\(false\); setBusy\(false\);/, 'התיבות סומנו על הסכום הישן ⇒ מתנקות');
+  assert.match(mp, /if \(fresh\.status === 'pending_approval'\) \{/, 'תזכורת שכבר לא ממתינה ⇒ ההודעה הרגילה');
+  assert.match(mp, /role="alert" data-testid="mp-stale"/);
+  // /ui: אותו כלל, והנוסח זהה לזה של /app/
+  const ui = fs.readFileSync(new URL('../../app/ui.html', import.meta.url), 'utf8');
+  const m = /const staleText=\(was,now\)=>(.+);\n/.exec(ui);
+  assert.ok(m, 'staleText ב-ui.html');
+  const staleText = new Function('was', 'now', `return ${m![1]}`) as (a?: string, b?: string) => string;
+  for (const [a, b] of [['1,200 ₪', '1,500 ₪'], ['1,200 ₪', '1,200 ₪'], [undefined, '1,500 ₪']] as const)
+    assert.equal(staleText(a, b), f.staleChangeText(a, b), 'נוסח /ui ≠ נוסח /app/');
 });

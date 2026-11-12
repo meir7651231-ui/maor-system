@@ -284,7 +284,10 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         except ValueError as e:
             # הפעלה 146: אותה הכרעה שוב (אישור שכבר נרשם) ⇒ 409 עם כותרת שהממשק מזהה ומציג «כבר אושרה»
             state = getattr(e, "state", None)
-            raise HTTPException(409, str(e), headers={"X-Gabi-Already": state} if state else None) from e
+            # הפעלה 149: אישור על נוסח ישן (seen_hash) ⇒ כותרת שהממשק מזהה וטוען את התצוגה המקדימה מחדש
+            stale = getattr(e, "stale", None)
+            headers = {**({"X-Gabi-Already": state} if state else {}), **({"X-Gabi-Stale": stale} if stale else {})}
+            raise HTTPException(409, str(e), headers=headers or None) from e
         except RuntimeError as e:
             raise HTTPException(503, str(e)) from e
 

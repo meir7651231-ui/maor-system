@@ -64,6 +64,14 @@ class AlreadyDecided(ValueError):
         self.state = state
 
 
+class StalePreview(ValueError):
+    """הפעלה 149 (המלצת critic סבב 56): האישור נשלח על נוסח ישן (seen_hash לא תואם). עדיין 409 ושום דבר לא
+    מאושר, אבל עם `stale` שהממשק מזהה (X-Gabi-Stale) ⇒ טוען את התצוגה המקדימה מחדש ומציג מה השתנה,
+    במקום שורת שגיאה ו«פתחו שוב»."""
+
+    stale = "preview"
+
+
 # מצבים שבהם האישור כבר נרשם (גם אם ההודעה כבר יצאה או שהשליחה נקטעה)
 _APPROVED_STATES = ("approved", "sending", "sent_dry_run", "sent", "send_unknown")
 _NOT_PENDING_HE = {
@@ -1186,8 +1194,8 @@ class CollectService:
         # שתצוגה מקדימה ישנה (1,200 ₪) פתוחה אצלו אישר בלחיצה את הנוסח החדש (1,500 ₪) בלי לראות אותו, והוא יצא.
         # seen_hash = הגיבוב של מה שהוצג לו (מ-/preview). שונה מהנוסח הנוכחי ⇒ סירוב, ופותחים מחדש.
         if seen_hash is not None and seen_hash != _sha(r["payload"]):
-            raise ValueError("הנוסח או הסכום השתנו מאז שפתחתם את התצוגה המקדימה. "
-                             "פתחו אותה שוב, בדקו ואשרו")
+            raise StalePreview("הנוסח או הסכום השתנו מאז שפתחתם את התצוגה המקדימה. "
+                               "פתחו אותה שוב, בדקו ואשרו")
         invs = [self._invoice(i) for i in self.reminder_invoice_ids(reminder_id)] or \
             [self._invoice(r["invoice_id"])]
         if any(i["source"] == "csv" for i in invs) and not confirm_open:

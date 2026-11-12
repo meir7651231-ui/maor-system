@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { api, BLOCK_LABEL, blockKind, REAPPROVE_LABEL, type Preview } from '../api.ts';
-import { failPrefix } from '../lib/failure.ts';
+import { failPrefix, staleChangeText, stalePreview } from '../lib/failure.ts';
 import { useApp } from '../store.tsx';
 import type { Channel, Invoice, Step } from '../lib/domain.ts';
 import { STEP_LABEL, STEP_ORDER, buildEmail, demoShortUrl, buildSms, nextStep, requiresApproval, smsSegments } from '../lib/message.ts';
@@ -10,7 +10,7 @@ import { Button, LateBadge } from './ui.tsx';
 
 /** תצוגה מקדימה של התזכורת בדיוק כפי שתישלח — SMS ומייל — עם "אשר ושלח". */
 export function MessagePreview({ invoice, onClose, now = new Date() }: { invoice: Invoice; onClose: () => void; now?: Date }) {
-  const { business, customerOf, approveAndSend, today, mode, pendingOf, showToast, invoices } = useApp();
+  const { business, customerOf, approveAndSend, today, mode, pendingOf, showToast, invoices, reload } = useApp();
   const live = mode === 'live';
   const c = customerOf(invoice.customerId);
   const pending = pendingOf(invoice.id);
@@ -19,7 +19,11 @@ export function MessagePreview({ invoice, onClose, now = new Date() }: { invoice
   // הפעלה 135: השרת דורש confirm_open אם יש חשבונית מ-CSV בכל התזכורת, לא רק בעוגן
   const isCsv = pv?.needs_confirm_open ?? invoice.source === 'csv';
   const merged = live && (pv?.invoice_count ?? pending?.count ?? 1) > 1;
-  const total = merged ? pv?.total_text ?? pending?.totalText ?? '' : fmtMoney(invoice.amount, invoice.currency);
+  // הפעלה 149: אחרי אישור שנדחה כי הנוסח השתנה, התצוגה נטענת מחדש וכאן ההסבר (מה היה ומה עכשיו)
+  const [changed, setChanged] = useState<string | null>(null);
+  // אחרי טעינה מחדש הסכום בכותרת מגיע מהשרת (invoice מהרשימה עוד מחזיק את הסכום הישן עד שהרענון מסתיים)
+  const total = changed && pv?.total_text ? pv.total_text
+    : merged ? pv?.total_text ?? pending?.totalText ?? '' : fmtMoney(invoice.amount, invoice.currency);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmAmount, setConfirmAmount] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -74,6 +78,7 @@ export function MessagePreview({ invoice, onClose, now = new Date() }: { invoice
           <button onClick={onClose} aria-label="סגירה" className="h-9 w-9 rounded-lg hover:bg-ink-100 text-xl cursor-pointer">✕</button>
         </header>
 
+        {changed && <div role="alert" data-testid="mp-stale" className="mx-5 mt-4 rounded-xl bg-amber-50 text-amber-900 px-4 py-3 text-sm font-bold">⚠️ {changed}</div>}
         <div className="grid md:grid-cols-[1fr_1.1fr] gap-6 p-5">
           {/* צד שליטה */}
           <div className="space-y-5">
@@ -189,7 +194,23 @@ export function MessagePreview({ invoice, onClose, now = new Date() }: { invoice
           <Button disabled={!sendable || (live && isCsv && !confirmOpen) || (odd.length > 0 && !confirmAmount)} onClick={async () => {
             setBusy(true);
             try { await approveAndSend(invoice.id, step, channels, { confirmOpen, confirmAmount, seenHash: pv?.body_hash }); onClose(); }
-            catch (e) { showToast(failPrefix('לא אושר', (e as Error).message)); setBusy(false); }
+            catch (e) {
+              // הפעלה 149: הנוסח השתנה מאז שנפתח (seen_hash) ⇒ טוענים אותו מחדש כאן, מנקים את תיבות האישור
+              // (הן סומנו על הסכום הישן), ומציגים מה השתנה. כשהטעינה נכשלת או שהתזכורת כבר לא ממתינה ⇒ ההודעה הרגילה.
+              if (stalePreview(e) && pending) {
+                try {
+                  const fresh = await api.preview(pending.reminderId);
+                  if (fresh.status === 'pending_approval') {
+                    setChanged(staleChangeText(pv?.total_text, fresh.total_text));
+                    setPv(fresh); setConfirmOpen(false); setConfirmAmount(false); setBusy(false);
+                    dialog.current?.scrollTo?.({ top: 0 });   // ההסבר בראש החלון; במובייל הכפתור בתחתית
+                    void reload().catch(() => { /* הפס «הנתונים לא עודכנו» מטפל */ });
+                    return;
+                  }
+                } catch { /* נופלים להודעה הרגילה */ }
+              }
+              showToast(failPrefix('לא אושר', (e as Error).message)); setBusy(false);
+            }
           }}>
             ✓ אשר ושלח {channels.length === 2 ? 'ב-SMS ובמייל' : channels[0] === 'sms' ? 'ב-SMS' : channels[0] === 'email' ? 'במייל' : ''}
           </Button>

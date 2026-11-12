@@ -184,26 +184,40 @@ try {
   console.log('  ✓ סכום חריג: אישור נעול עד «הסכום נכון — בדקתי»');
 
   // 3א) critic סבב 56: האישור קשור לנוסח שהוצג (seen_hash). מדמים תצוגה מקדימה ישנה (התזכורת נבנתה מחדש
-  //     בסכום אחר מאז שנפתחה) ⇒ השרת מסרב, ההודעה ברורה, ושום דבר לא יוצא.
+  //     בסכום אחר מאז שנפתחה) ⇒ השרת מסרב, ושום דבר לא יוצא.
+  //     הפעלה 149: הממשק לא מציג «לא אושר… פתחו שוב». הוא טוען את התצוגה מחדש, מציג מה השתנה, ומנקה את האישור.
+  let previews = 0, realTotal = null;
   await p.route('**/reminders/*/preview', async route => {
-    const res = await route.fetch(); const j = await res.json(); j.body_hash = 'stale-' + j.body_hash;
+    const res = await route.fetch(); const j = await res.json(); realTotal = j.total_text;
+    if (previews++ === 0) { j.body_hash = 'stale-' + j.body_hash; j.total_text = '1 ₪'; }   // רק הפתיחה הראשונה ישנה
     await route.fulfill({ response: res, json: j });
   });
-  let sentSeen = null;
-  p.on('request', r => { if (/\/reminders\/\d+\/approve$/.test(r.url())) sentSeen = JSON.parse(r.postData() || '{}').seen_hash ?? null; });
+  const seenSent = [];
+  p.on('request', r => { if (/\/reminders\/\d+\/approve$/.test(r.url())) seenSent.push(JSON.parse(r.postData() || '{}').seen_hash ?? null); });
   const outboxS = (await api('/outbox')).messages.length;
   await items.filter({ hasText: 'יוסי' }).getByRole('button', { name: 'תצוגה ואישור' }).click();
   await p.waitForFunction(() => /\/p\/\w+/.test(document.querySelector('textarea')?.value ?? ''));
+  ok(await p.getByTestId('mp-stale').count() === 0, 'הסבר «הנוסח השתנה» מוצג לפני שקרה משהו');
   expect409 = { url: /\/reminders\/\d+\/approve$/, reason: /השתנו מאז שפתחתם/ };
   await p.getByRole('button', { name: /אשר ושלח/ }).click();
-  await p.getByText(/השתנו מאז שפתחתם/).first().waitFor();
+  const staleBox = p.getByTestId('mp-stale');
+  await staleBox.waitFor();
   ok(expect409 === null, 'הסירוב לא הגיע כ-409 המצופה');
-  ok(typeof sentSeen === 'string' && sentSeen.startsWith('stale-'), 'הממשק לא שלח seen_hash באישור: ' + sentSeen);
+  ok(seenSent.length === 1 && typeof seenSent[0] === 'string' && seenSent[0].startsWith('stale-'), 'הממשק לא שלח seen_hash באישור: ' + seenSent);
   ok((await api('/outbox')).messages.length === outboxS, 'יצאה הודעה למרות נוסח שלא נראה');
+  const staleTxt = await staleBox.textContent();
+  ok(staleTxt.includes(`הסכום השתנה מ-1 ₪ ל-${realTotal}.`) && staleTxt.includes('שום דבר לא נשלח'), 'ההסבר לא מציג לפני/אחרי: ' + staleTxt);
+  ok(await staleBox.getAttribute('role') === 'alert', 'ההסבר לא מוכרז לקורא מסך');
+  ok(previews >= 2, 'התצוגה המקדימה לא נטענה מחדש אחרי הסירוב');
+  ok((await p.getByTestId('mp-sub').textContent()).includes(realTotal), 'הכותרת לא מציגה את הסכום המעודכן: ' + await p.getByTestId('mp-sub').textContent());
+  ok(await p.getByText(/לא אושר/).count() === 0, 'הוצג «לא אושר» למרות שהתצוגה נטענה מחדש');
+  ok(await p.getByRole('dialog').count() === 1 && await p.getByRole('button', { name: /אשר ושלח/ }).isEnabled(), 'אחרי הטעינה מחדש אי אפשר לאשר');
+  ok(await staleBox.evaluate(el => { const r = el.getBoundingClientRect(); return r.top >= 0 && r.bottom <= innerHeight; }), 'ההסבר מחוץ למסך');
   if (out) await p.screenshot({ path: `${out}/live-02c-stale-preview.png` });
   await p.unroute('**/reminders/*/preview');
   await p.getByRole('button', { name: 'ביטול' }).click();
-  console.log('  ✓ אישור מתצוגה מקדימה ישנה ⇒ «השתנו מאז שפתחתם», לא יצא דבר (seen_hash)');
+  ok((await api('/outbox')).messages.length === outboxS, 'יצאה הודעה אחרי הטעינה מחדש בלי אישור');
+  console.log('  ✓ אישור מתצוגה ישנה ⇒ התצוגה נטענה מחדש עם «הסכום השתנה מ-… ל-…», לא יצא דבר (seen_hash)');
   // 3) יוסי ⇒ התצוגה המקדימה = הנוסח מהשרת (קישור קצר /p/, ≤2 חלקים); מייל עם קישור מלא
   await items.filter({ hasText: 'יוסי' }).getByRole('button', { name: 'תצוגה ואישור' }).click();
   await p.waitForFunction(() => /\/p\/\w+/.test(document.querySelector('textarea')?.value ?? ''));
