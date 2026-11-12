@@ -230,6 +230,8 @@ const PAUSE_LABEL: Record<string, string> = {
   dispute: 'יש מחלוקת על החשבונית', legal: 'הוזכר עניין משפטי', distress: 'נראה שהלקוח/ה במצוקה. כדאי לפנות אישית',
   callback: 'ביקש/ה שתחזרו אליו/ה', wrong_person: 'כתב/ה שזה לא המספר הנכון', abusive: 'תגובה פוגענית. כדאי לטפל אישית',
   credit_review: 'יש זיכוי שלא שויך לחשבונית. בדקו במערכת החשבוניות ואז חדשו',
+  // critic סבב 52: השהיות שבעל העסק סימן בעצמו קיבלו «מושהה עד שתבדקו»
+  minor: 'סימנתם: קטין/ה', deceased: 'סימנתם: נפטר/ה', insolvency: 'סימנתם: הליך חדלות פירעון',
 };
 export function pauseLabel(reason: string): string {
   const [base, until] = reason.split(':until=');

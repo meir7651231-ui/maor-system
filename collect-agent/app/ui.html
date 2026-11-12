@@ -84,7 +84,18 @@ button.resume{margin-inline-start:6px;padding:4px 10px;min-height:32px;font-size
 </main>
 <script>
 const STATUS={pending_approval:"ממתינה לאישורך",approved:"מאושרת",sent_dry_run:"נשלחה (בדיקה)",
-  rejected:"נדחתה",cancelled:"בוטלה"};
+  rejected:"נדחתה",cancelled:"בוטלה",sending:"בשליחה",
+  send_unknown:"השליחה נקטעה באמצע, אולי יצאה. לבדוק ביומן היוצאים"};
+// critic סבב 52: סיבת השהיה = כוונת מנוע השיחה או סימון בעל העסק, אולי עם ':until=YYYY-MM-DD'.
+// לפני כן הוצג קוד גולמי («promise:until=…», «deceased»). זהה ל-PAUSE_LABEL ב-/app/.
+const PAUSE={paid_claim:"כתב/ה ששילם/ה. בדקו בחשבון ואז חדשו",promise:"הבטיח/ה לשלם",plan_request:"ביקש/ה פריסה",
+  plan_accept:"הסכים/ה להצעת הפריסה",plan_reject:"דחה/תה את הצעת הפריסה",cant_pay:"כתב/ה שאין אפשרות לשלם כרגע",
+  dispute:"יש מחלוקת על החשבונית",legal:"הוזכר עניין משפטי",distress:"נראה שהלקוח/ה במצוקה. כדאי לפנות אישית",
+  callback:"ביקש/ה שתחזרו אליו/ה",wrong_person:"כתב/ה שזה לא המספר הנכון",abusive:"תגובה פוגענית. כדאי לטפל אישית",
+  credit_review:"יש זיכוי שלא שויך לחשבונית. בדקו ואז חדשו",minor:"סימנתם: קטין/ה",deceased:"סימנתם: נפטר/ה",
+  insolvency:"סימנתם: הליך חדלות פירעון"};
+const pause=r=>{const [b,u]=String(r).split(":until=");const t=BLOCK[b]||PAUSE[b]||"מושהה עד שתבדקו";
+  return u?t+" · עד "+u.split("-").reverse().join("."):t};
 const BLOCK={no_contact:"אין נייד או מייל תקין",compliance:"נחסם במסנן הניסוח",plan_active:"בהסדר תשלומים",disputed:"מחלוקת",no_payment_link:"אין קישור תשלום",
   no_reply_to:"ללקוח יש רק מייל ולא הוגדרה כתובת תשובה לעסק",
   opted_out:"הלקוח ביקש הסרה",paid_claim:"הלקוח טוען ששילם",dispute:"מחלוקת",credit_review:"זיכוי לא משויך, לבדיקתך",
@@ -98,7 +109,7 @@ const REAPPROVE={approval_expired:"האישור הקודם פג (חיכה יות
   csv_stale:"עברו יותר מ-24 שעות מאישור «הסכום עדיין פתוח». לוודא שוב ולאשר מחדש",
   csv_missing_from_import:"החשבונית לא הופיעה בייבוא ה-CSV האחרון (אולי שולמה?). לבדוק ולאשר מחדש"};
 // תווית קצרה לצ׳יפ: המשפט הראשון של ההסבר
-const why=b=>REAPPROVE[b]?REAPPROVE[b].split(". ")[0]:BLOCK[b]||b;
+const why=b=>REAPPROVE[b]?REAPPROVE[b].split(". ")[0]:pause(b);
 let sel=null;
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -119,8 +130,8 @@ async function loadDash(){
   const d=await api("/dashboard");const t=d.totals;
   const tr=d.trial||{};
   $("#today").textContent="נכון ל-"+d.today+(tr.on_trial?(tr.active
-    ?` · ניסיון חינם: נותרו ${tr.days_left} ימים, אחר כך ₪${tr.price_ils_month} לחודש`
-    :` · תקופת הניסיון הסתיימה: התזכורות נעצרו (הנתונים נשמרו). ₪${tr.price_ils_month} לחודש להמשך`):"");
+    ?` · ניסיון חינם: נותרו ${tr.days_left} ימים, אחר כך ₪${tr.price_ils_month} לחודש, כולל מע״מ ככל שחל`
+    :` · תקופת הניסיון הסתיימה: התזכורות נעצרו (הנתונים נשמרו). ₪${tr.price_ils_month} לחודש להמשך, כולל מע״מ ככל שחל`):"");
   const oc=t.other_currency||[],plus=f=>oc.filter(o=>o[f]>0).map(o=>" + "+fmtCur(o[f],o.currency)).join("");
   const k=[["חוב פתוח",money(t.open_agorot)+plus("open_agorot")],["מתוכו באיחור",money(t.overdue_agorot)+plus("overdue_agorot"),1],
     ["חשבוניות פתוחות",t.open_invoices],["ממתינות לאישורך",t.pending_approval,t.pending_approval>0],
@@ -128,7 +139,7 @@ async function loadDash(){
     ["דורש טיפול שלך",t.owner_inbox,t.owner_inbox>0],["נסגרו (שולמו)",t.closed_invoices]];
   $("#kpis").innerHTML=k.map(([l,v,w])=>`<div class="card kpi ${w?"warn":""}"><div class="v">${esc(v)}</div><div class="l">${esc(l)}</div></div>`).join("");
   $("#debts").innerHTML=d.invoices.map(x=>{const L=x.last_reminder;
-    const st=x.status!=="open"?"שולמה ונסגרה":x.customer_block?(BLOCK[x.customer_block]||x.customer_block)
+    const st=x.status!=="open"?"שולמה ונסגרה":x.customer_block?pause(x.customer_block)
       :L?(L.block_reason?why(L.block_reason):STATUS[L.status]||L.status):"טרם הוכנה";
     return `<tr class="${x.status!=="open"?"closed":""}"><td>${esc(x.customer)}${
     x.status==="open"&&x.paused_reason&&x.customer_block===x.paused_reason
@@ -175,7 +186,7 @@ async function show(id){
   $("#detail").innerHTML=`<div class="row"><h2>תצוגה מקדימה · ${esc(STATUS[p.status]||p.status)}</h2>
     <span class="chip">מתוזמנת: ${esc(new Date(p.scheduled_for).toLocaleString("he-IL",{timeZone:"Asia/Jerusalem",dateStyle:"short",timeStyle:"short"}))}</span></div>
     ${p.block_reason?(REAPPROVE[p.block_reason]?`<div class="note" id="blockNote">לבדיקתך: ${esc(REAPPROVE[p.block_reason])}</div>`
-      :`<div class="err" id="blockNote">חסום: ${esc(BLOCK[p.block_reason]||p.block_reason)}</div>`):""}
+      :`<div class="err" id="blockNote">חסום: ${esc(pause(p.block_reason))}</div>`):""}
     <div class="previews"><div><h2>SMS</h2>${smsHtml}</div><div><h2>מייל</h2>${mailHtml}</div></div>
     ${checks}
     <div class="decide">${p.status==="pending_approval"?`<button class="primary" id="ok" ${can?"":"disabled"}>אישור ושליחה</button>`:""}

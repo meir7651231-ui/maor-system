@@ -53,6 +53,23 @@ try {
   await p.locator('#ok').waitFor();
   ok(await p.locator('#ok').isEnabled() && await p.locator('.confirm').count() === 0, 'תזכורת רגילה: תיבה מיותרת או כפתור נעול');
   if (out) await p.screenshot({ path: `${out}/ui-02-regular.png`, fullPage: true });
+  // critic סבב 52: טבלת החובות הציגה קוד גולמי — סטטוס send_unknown וסיבת השהיה «promise:until=…» / «deceased».
+  //   מזריקים לתשובת /dashboard האמיתית (המצבים נדירים בדמו) ובודקים נוסח בעברית.
+  await p.route('**/dashboard', async route => {
+    const res = await route.fetch(); const j = await res.json();
+    const open = j.invoices.filter(x => x.status === 'open');
+    if (open[0]) { open[0].customer_block = null; open[0].last_reminder = { ...(open[0].last_reminder ?? { id: 1, step: 1, template_key: 'x', sent_at: null, invoice_ids: [] }), status: 'send_unknown', block_reason: null }; }
+    if (open[1]) open[1].customer_block = 'promise:until=2026-11-20';
+    if (open[2]) open[2].customer_block = 'deceased';
+    await route.fulfill({ response: res, json: j });
+  });
+  await p.goto(base + '/ui'); await p.locator('#debts tr').first().waitFor();
+  const debts = await p.locator('#debts').textContent();
+  for (const raw of ['send_unknown', 'promise', 'deceased', ':until='])
+    ok(!debts.includes(raw), `טבלת החובות מציגה קוד גולמי: ${raw}`);
+  ok(/השליחה נקטעה באמצע/.test(debts) && /הבטיח\/ה לשלם · עד 20\.11\.2026/.test(debts) && /סימנתם: נפטר\/ה/.test(debts), 'נוסחי הסטטוס/השהיה חסרים');
+  if (out) await p.screenshot({ path: `${out}/ui-03-status-pause.png`, fullPage: true });
+  await p.unroute('**/dashboard');
   ok(errors.length === 0, 'שגיאות:\n' + errors.join('\n'));
-  console.log('✓ /ui: סכום חריג מאושר רק אחרי סימון מפורש · תזכורת רגילה ללא שינוי');
+  console.log('✓ /ui: סכום חריג מאושר רק אחרי סימון מפורש · תזכורת רגילה ללא שינוי · סטטוס/השהיה בעברית');
 } finally { await b.close(); srv.kill(); }

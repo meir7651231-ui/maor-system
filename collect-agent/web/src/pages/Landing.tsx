@@ -87,7 +87,7 @@ export function Landing() {
               <Button size="lg" onClick={() => go('signup')}>התחילו {PRICE.trialDays} ימי ניסיון</Button>
               <Button size="lg" variant="ghost" className="text-white hover:bg-white/10" onClick={() => go('dashboard')}>לצפייה בדמו ←</Button>
             </div>
-            <p className="text-sm text-ink-400 mt-4">בלי כרטיס אשראי · ₪{PRICE.monthly} לחודש או ₪{PRICE.yearly.toLocaleString('he-IL')} לשנה אחרי הניסיון · בלי אחוז מהגבייה</p>
+            <p className="text-sm text-ink-400 mt-4">בלי כרטיס אשראי · ₪{PRICE.monthly} לחודש או ₪{PRICE.yearly.toLocaleString('he-IL')} לשנה אחרי הניסיון, כולל מע״מ ככל שחל · בלי אחוז מהגבייה</p>
           </div>
           <HeroPhone />
         </div>
@@ -264,7 +264,7 @@ function TimeCalculator() {
           <div className="text-sm text-ink-500">הזמן שאתם מקדישים היום למעקב שווה</div>
           <div className="text-4xl font-extrabold font-display num text-brand-700">{fmtIls(r.timeValue)} <span className="text-base font-medium text-ink-500">בחודש</span></div>
           <div className="mt-5 rounded-xl bg-ink-50 p-4 text-sm">
-            גבי עולה <b className="num">₪{GABI_PRICE}</b> לחודש{r.priceInHours > 0 && <>, כמו <b className="num">{r.priceInHours}</b> שעות עבודה שלכם</>}.
+            גבי עולה <b className="num">₪{GABI_PRICE}</b> לחודש (כולל מע״מ ככל שחל){r.priceInHours > 0 && <>, כמו <b className="num">{r.priceInHours}</b> שעות עבודה שלכם</>}.
           </div>
           <div className="mt-5 flex justify-end"><Button onClick={() => go('signup')}>להתחיל ניסיון</Button></div>
           <p className="text-[11px] text-ink-500 mt-4 leading-relaxed">החישוב משווה רק לזמן העבודה. אין בו התחייבות שחשבונית כלשהי תשולם, והוא לא מעריך כמה כסף יחזור. גבי מכין את התזכורות; האישור, וחלק מהזמן, נשארים אצלכם.</p>
