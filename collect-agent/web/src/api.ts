@@ -191,6 +191,9 @@ export function fromDashboard(d: Dashboard, pending: PendingRow[]) {
   const pendingBy = new Map<string, PendingRef>();
   for (const p of pending) pendingBy.set(String(p.invoice_id), { reminderId: p.id, block: p.block_reason,
     ...((p.invoice_count ?? 1) > 1 ? { count: p.invoice_count, totalText: p.total_text } : {}) });
+  // הפעלה 136: שאר החשבוניות של תזכורת מאוחדת (לא העוגן) ⇒ מזהה חשבונית העוגן, כדי לסמן אותן «בתזכורת מאוחדת»
+  const mergedBy = new Map<string, string>();
+  for (const p of pending) for (const iid of p.invoice_ids ?? []) if (iid !== p.invoice_id) mergedBy.set(String(iid), String(p.invoice_id));
   for (const r of d.invoices) {
     const cid = `c${r.invoice_id}`;
     customers.push({ id: cid, name: r.customer, phone: r.phone || undefined, email: r.email || undefined, optedOut: r.customer_block === 'opted_out',
@@ -208,5 +211,5 @@ export function fromDashboard(d: Dashboard, pending: PendingRow[]) {
       ...(r.currency && r.currency !== 'ILS' ? { currency: r.currency } : {}),
     });
   }
-  return { customers, invoices, pendingBy, today: d.today };
+  return { customers, invoices, pendingBy, mergedBy, today: d.today };
 }

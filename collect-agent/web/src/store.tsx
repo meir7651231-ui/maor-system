@@ -23,6 +23,8 @@ interface Ctx {
   /** התור לאישור: במוק — נגזר מכללי הסולם; בחי — התזכורות שהבקאנד תכנן ומחכות לאישור. */
   queue: Invoice[];
   pendingOf: (invoiceId: string) => PendingRef | undefined;
+  /** חשבונית שכלולה בתזכורת מאוחדת ואינה העוגן ⇒ חשבונית העוגן (שעליה התזכורת מוצגת ומאושרת). */
+  mergedAnchorOf: (invoiceId: string) => Invoice | undefined;
   totals: Dashboard['totals'] | null;
   series: WeekPoint[] | null;
   /** הדבקת קוד גישה (מצב locked) ⇒ ניסיון חיבור מחדש. */
@@ -57,6 +59,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [invoices, setInvoices] = useState<Invoice[]>(demoInvoices);
   const [today, setToday] = useState(DEMO_TODAY);
   const [pendingBy, setPendingBy] = useState(new Map<string, PendingRef>());
+  const [mergedBy, setMergedBy] = useState(new Map<string, string>());
   const [totals, setTotals] = useState<Dashboard['totals'] | null>(null);
   const [series, setSeries] = useState<WeekPoint[] | null>(null);
   const [outbox, setOutbox] = useState<OutMsg[]>([]);
@@ -73,7 +76,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   /** מנקה את הסשן ואת המידע האישי מהזיכרון (יציאה / סשן שפג) ⇒ מסך הכניסה. */
   const dropSession = useCallback((note: string | null) => {
     try { sessionStorage.removeItem(TOKEN_KEY); } catch { /* פרטי/חסום */ }
-    setMe(null); setCustomers([]); setInvoices([]); setPendingBy(new Map()); setTotals(null); setSeries(null);
+    setMe(null); setCustomers([]); setInvoices([]); setPendingBy(new Map()); setMergedBy(new Map()); setTotals(null); setSeries(null);
     setOutbox([]); setPlans([]); setDrafts([]); setNotices([]);
     setAuthNote(note); setMode('locked');
   }, []);
@@ -84,7 +87,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       api.ownerInbox().catch(() => []), api.me().catch(() => null)]);
     setMe(who);
     const m = fromDashboard(d, p);
-    setCustomers(m.customers); setInvoices(m.invoices); setPendingBy(m.pendingBy); setToday(m.today);
+    setCustomers(m.customers); setInvoices(m.invoices); setPendingBy(m.pendingBy); setMergedBy(m.mergedBy); setToday(m.today);
     setTotals(d.totals); setSeries(d.series ?? null); setOutbox(o.messages); setPlans(pl); setDrafts(dr); setNotices(systemNotices(ib));
     // שם העסק בחי = הקידומת של הודעות השרת ("סטודיו דמו: …") — כך הממשק לא ממציא שם
     const biz = o.messages.find(x => x.channel === 'sms')?.body.split(':')[0];
@@ -141,6 +144,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       me, authNote, plans, drafts, notices, reload, toast, showToast, customerOf,
       queue: live ? invoices.filter(i => pendingBy.has(i.id)) : needsReminder(invoices, today),
       pendingOf: id => pendingBy.get(id),
+      mergedAnchorOf: id => { const a = mergedBy.get(id); return a ? invoices.find(i => i.id === a) : undefined; },
       approveAndSend: async (id, step, channels, opts) => {
         if (live) {
           const p = pendingBy.get(id);
@@ -159,7 +163,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       },
       markPaid: id => { setInvoices(l => l.map(i => i.id === id ? { ...i, status: 'paid' } : i)); showToast('סומן כשולם 🎉'); },
     };
-  }, [mode, health, today, business, customers, invoices, pendingBy, totals, series, outbox, plans, drafts, notices, reload, toast, showToast, me, authNote, dropSession]);
+  }, [mode, health, today, business, customers, invoices, pendingBy, mergedBy, totals, series, outbox, plans, drafts, notices, reload, toast, showToast, me, authNote, dropSession]);
   return <C.Provider value={value}>{children}</C.Provider>;
 }
 export const useApp = () => {

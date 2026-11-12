@@ -11,7 +11,7 @@ type Sort = 'late' | 'amount' | 'name';
 const FILTERS: [InvoiceStatus | 'all', string][] = [['all', 'הכול'], ['open', 'פתוחות'], ['reminded', 'נשלחה תזכורת'], ['promised', 'הבטיח'], ['disputed', 'במחלוקת']];
 
 export function Invoices() {
-  const { invoices, today, customerOf, markPaid, mode, pendingOf } = useApp();
+  const { invoices, today, customerOf, markPaid, mode, pendingOf, mergedAnchorOf } = useApp();
   const live = mode === 'live';
   const [q, setQ] = useState('');
   const [f, setF] = useState<InvoiceStatus | 'all'>('all');
@@ -56,6 +56,7 @@ export function Invoices() {
               {rows.map(i => {
                 const c = customerOf(i.customerId), d = daysOverdue(i.dueAt, today);
                 const last = i.reminders.at(-1);
+                const anchor = live ? mergedAnchorOf(i.id) : undefined;
                 return (
                   <tr key={i.id} className="hover:bg-ink-50/60">
                     <td className="px-4 py-3"><div className="font-bold">{c.name}</div>{i.note && <div className="text-xs text-ink-500">📝 {i.note}</div>}</td>
@@ -71,6 +72,9 @@ export function Invoices() {
                       <div className="flex gap-1.5 justify-end">
                         {(live ? !!pendingOf(i.id) : (i.status === 'open' || i.status === 'reminded') && d > 0) &&
                           <Button size="sm" onClick={() => setOpen(i)} title={STEP_LABEL[nextStep(i)]}>תזכורת</Button>}
+                        {anchor && <button type="button" data-testid="in-merged" onClick={() => setOpen(anchor)}
+                          title={`החשבונית הזו נכללת בתזכורת אחת יחד עם חשבונית ${anchor.number}. לחיצה פותחת את התזכורת`}
+                          className="rounded-full bg-ink-50 border border-ink-200 px-2.5 py-1 text-xs font-medium text-ink-500 hover:bg-ink-200/60 cursor-pointer whitespace-nowrap">בתזכורת מאוחדת</button>}
                         {!live && <Button size="sm" variant="outline" onClick={() => markPaid(i.id)}>שולם</Button>}
                       </div>
                     </td>

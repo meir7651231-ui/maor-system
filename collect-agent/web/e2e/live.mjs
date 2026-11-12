@@ -333,6 +333,21 @@ try {
   await p.goto(base + '/app/#/invoices');
   await p.getByText('דנה לוי').first().waitFor();
   ok(await p.locator('tbody tr').count() === 9, 'ציפיתי ל-9 חשבוניות פתוחות (8 + אחת מ-CSV)');
+  // הפעלה 136: שאר החשבוניות של תזכורת מאוחדת (לא העוגן) מסומנות «בתזכורת מאוחדת», והלחיצה פותחת את התזכורת כולה
+  const pend136 = await api('/reminders?status=pending_approval&view=summary');
+  const members136 = pend136.reduce((n, r) => n + r.invoice_ids.filter(x => x !== r.invoice_id).length, 0);
+  ok(members136 >= 2, `ציפיתי לתזכורת מאוחדת ממתינה (גל שרון) בנתוני הדמו, נמצאו ${members136} חשבוניות נלוות`);
+  const badges136 = p.getByTestId('in-merged');
+  ok(await badges136.count() === members136, `«בתזכורת מאוחדת»: ${await badges136.count()} סימונים, ציפיתי ל-${members136}`);
+  const galRows136 = p.locator('tbody tr', { hasText: 'גל שרון' });
+  ok(await galRows136.getByRole('button', { name: 'תזכורת', exact: true }).count() === 1, 'כפתור «תזכורת» צריך להופיע רק בשורת העוגן של גל');
+  ok(await galRows136.getByTestId('in-merged').count() === 2, 'שתי החשבוניות הנלוות של גל לא סומנו');
+  ok(await p.locator('tbody tr', { hasText: 'יוסי' }).getByTestId('in-merged').count() === 0, 'חשבונית יחידה סומנה «בתזכורת מאוחדת»');
+  await galRows136.getByTestId('in-merged').first().click();
+  ok((await p.getByTestId('mp-sub').textContent()).includes('3 חשבוניות'), 'הלחיצה על «בתזכורת מאוחדת» לא פתחה את התזכורת המאוחדת');
+  await p.getByRole('button', { name: 'ביטול' }).click();
+  if (out) await fullShot(p, `${out}/live-07e-in-merged.png`);
+  console.log('  ✓ עמוד החשבוניות: חשבוניות נלוות מסומנות «בתזכורת מאוחדת»');
 
   // v2 · דף נחיתה: כותרת + מחשבון שווי הזמן (בלי הבטחת תשואה — הכרעת מאיר 6.11)
   await p.goto(base + '/app/');

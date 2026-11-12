@@ -626,3 +626,21 @@ test('הפעלה 135: תזכורת מאוחדת בתור האישורים של /
   const main = readFileSync(new URL('../../app/main.py', import.meta.url), 'utf8');
   assert.match(main, /"invoice_ids": ids, \*\*svc\.reminder_totals\(/);
 });
+
+test('הפעלה 136: עמוד החשבוניות — חשבונית שכלולה בתזכורת מאוחדת ואינה העוגן מסומנת ומפנה לעוגן', () => {
+  const row = (id: number): Dashboard['invoices'][0] => ({
+    invoice_id: id, number: String(2000 + id), customer: 'גל', phone: '053-0000007', email: '', amount_agorot: 2490, currency: 'ILS',
+    due: '2026-10-01', status: 'open', days_overdue: 38, reminders_sent: 0, last_reminder: null, customer_block: null });
+  const d: Dashboard = { today: '2026-11-08', totals: {} as Dashboard['totals'], invoices: [row(1), row(2), row(3), row(4)] };
+  const m = fromDashboard(d, [
+    { id: 7, invoice_id: 1, invoice_ids: [1, 2, 3], block_reason: null, invoice_count: 3, total_text: '74.70 ₪' },
+    { id: 8, invoice_id: 4, invoice_ids: [4], block_reason: null, invoice_count: 1, total_text: '24.90 ₪' },
+  ]);
+  // 2 ו-3 מפנות לעוגן 1; העוגן עצמו וחשבונית יחידה לא מסומנים
+  assert.deepEqual([...m.mergedBy], [['2', '1'], ['3', '1']]);
+  // שרת ישן בלי invoice_ids ⇒ אין סימון, כמו קודם
+  assert.equal(fromDashboard(d, [{ id: 7, invoice_id: 1, block_reason: null }]).mergedBy.size, 0);
+  const page = readFileSync(new URL('../src/pages/Invoices.tsx', import.meta.url), 'utf8');
+  assert.match(page, /live \? mergedAnchorOf\(i\.id\)/);          // רק בחי: במוק אין תזכורות מאוחדות
+  assert.match(page, /data-testid="in-merged" onClick=\{\(\) => setOpen\(anchor\)\}/);   // הלחיצה פותחת את תזכורת העוגן
+});
