@@ -116,7 +116,9 @@ export interface PreviewMsg {
 export interface AmountCheck { number: string; amount_agorot: number; usual_agorot: number; currency: string }
 export interface Preview { reminder_id: number; status: string; /** critic סבב 56: גיבוב הנוסח שהוצג ⇒ seen_hash באישור */ body_hash?: string; block_reason: string | null; template_key: Step; scheduled_for: string; messages: PreviewMsg[]; amount_check?: AmountCheck[];
   /** הפעלה 135: תזכורת מאוחדת — כל המספרים, כמה חשבוניות, הסה״כ לפי מטבע, והאם יש בה חשבונית מ-CSV */
-  needs_confirm_open?: boolean; numbers?: string[]; invoice_count?: number; total_text?: string }
+  needs_confirm_open?: boolean; numbers?: string[]; invoice_count?: number; total_text?: string;
+  /** הפעלה 154: תזכורת מאושרת שהסכום שלה השתנה במקור (הנוסח עדיין על הסכום הקודם, ולא יישלח כך) */
+  amount_drift?: { was_text: string | null; now_text: string } | null }
 /** תזכורת שממתינה לאישור, לפי חשבונית העוגן. count/totalText רק כשהתזכורת כוללת יותר מחשבונית אחת. */
 export interface PendingRef { reminderId: number; block: string | null; count?: number; totalText?: string }
 export interface PendingRow { id: number; invoice_id: number; invoice_ids?: number[]; block_reason: string | null; invoice_count?: number; total_text?: string }

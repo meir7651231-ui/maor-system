@@ -57,11 +57,12 @@ async function raiseWhilePending(rid, seen, to) {
   return rebuilt(pv, seen);
 }
 /** תזכורת מאושרת (מלשונית אחרת): הסכום עולה במקור, והשליחה בונה את התזכורת מחדש במקום לשלוח. */
-async function approveThenRaise(rid, seen, to) {
+async function approveThenRaise(rid, seen, to, between) {
   const a = await post(`/reminders/${rid}/approve`, { seen_hash: seen });
   ok(a.status === 200, `אישור מלשונית אחרת נכשל: ${a.status} ${await a.text()}`);
   const before = (await outbox()).length;
   await setAmount(to);
+  if (between) await between();
   const d = await (await post('/dispatch')).json();
   ok(d.dry_run === true && d.sent.length === 0, 'יצאה תזכורת מאושרת אחרי שהסכום במקור השתנה: ' + JSON.stringify(d));
   ok((await outbox()).length === before, 'יומן היוצאים גדל אחרי שהסכום במקור השתנה');
@@ -124,7 +125,29 @@ try {
   await items.filter({ hasText: 'יוסי' }).getByRole('button', { name: 'תצוגה ואישור' }).click();
   await q.waitForFunction(() => (document.querySelector('textarea')?.value ?? '').includes('3,600.50'));
   ok(await q.getByTestId('mp-stale').count() === 0, '/app/: «הסכום השתנה» מוצג לפני שקרה משהו');
-  const pvC = await approveThenRaise(rid, pvB.body_hash, 3750.5);
+  // הפעלה 154: בין הסנכרון לשליחה התזכורת מאושרת, הסכום במקור כבר 3,750.50 והנוסח עדיין על 3,600.50.
+  // /ui מציג את הפער במפורש (amount_drift), בלי כפתור אישור, ושום דבר לא יוצא.
+  const driftSeen = async () => {
+    let pv = null;
+    for (let i = 0; i < 100; i++) { pv = await api(`/reminders/${rid}/preview`); if (pv.amount_drift) break; await new Promise(r => setTimeout(r, 100)); }
+    ok(pv.status === 'approved' && pv.body_hash === pvB.body_hash, `הסנכרון שינה תזכורת מאושרת: ${pv.status}`);
+    ok(pv.amount_drift?.was_text === '3,600.50 ₪' && pv.amount_drift?.now_text === '3,750.50 ₪', 'amount_drift: ' + JSON.stringify(pv.amount_drift));
+    const u = await ctx.newPage(); watch(u);
+    await u.setViewportSize({ width: 1280, height: 900 });
+    await u.goto(base + '/ui');
+    await u.locator('#list .item', { hasText: 'יוסי' }).click();
+    await u.locator('#driftNote').waitFor();
+    const note = await u.locator('#driftNote').textContent();
+    ok(note.includes('מ-3,600.50 ₪ ל-3,750.50 ₪') && note.includes('לא יישלח כך') && note.includes('תחזור אליכם לאישור'), '/ui: הערת הפער לא מסבירה מה השתנה: ' + note);
+    ok(hasAmt(await u.locator('.bubble').first().innerText(), '3,600.50'), '/ui: הנוסח המאושר השתנה לפני השליחה');
+    ok(await u.locator('#ok').count() === 0, '/ui: כפתור אישור על תזכורת מאושרת');
+    // «לבדוק ולאשר מחדש» (מהבנייה הקודמת) לא מוצג על תזכורת שכבר אושרה; רק הערת הפער
+    ok(await u.locator('#blockNote').count() === 0, '/ui: «לבדוק ולאשר מחדש» על תזכורת שכבר אושרה');
+    if (out) await u.screenshot({ path: `${out}/rebuild-02-drift.png`, fullPage: true });
+    await u.close();
+    console.log('  ✓ /ui: תזכורת מאושרת שהסכום שלה עלה במקור ⇒ «מ-3,600.50 ₪ ל-3,750.50 ₪ … לא יישלח כך», לפני ה-/dispatch');
+  };
+  const pvC = await approveThenRaise(rid, pvB.body_hash, 3750.5, driftSeen);
   ok(pvC.total_text === '3,750.50 ₪', 'הסכום אחרי הבנייה השנייה: ' + pvC.total_text);
   ok(hasAmt(await q.locator('textarea').first().inputValue(), '3,600.50'), '/app/: התצוגה הפתוחה השתנתה לפני הלחיצה');
   await q.getByRole('button', { name: /אשר ושלח/ }).click();

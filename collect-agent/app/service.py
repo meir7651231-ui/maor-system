@@ -1186,7 +1186,12 @@ class CollectService:
         invs = [self._invoice(i) for i in self.reminder_invoice_ids(reminder_id)] or \
             [self._invoice(r["invoice_id"])]
         msgs = [Message(**m) for m in json.loads(r["payload"])]
+        totals = self.reminder_totals(reminder_id, r["invoice_id"], [i["id"] for i in invs])
         return {"reminder_id": reminder_id, "status": r["status"],
+                # הפעלה 154: תזכורת **מאושרת** שהסכום שלה השתנה במקור לא נבנית מחדש בסנכרון (זה היה מבטל
+                # אישור קיים; נבדקת רגע לפני השליחה). עד אז הרשימה הציגה את הסכום החדש והנוסח את הישן, בלי
+                # הסבר. הממשק מציג: הנוסח לא יישלח כך, והתזכורת תחזור לאישור עם הסכום המעודכן.
+                "amount_drift": self._approved_amount_drift(r, invs, totals["total_text"]),
                 # critic סבב 56: הממשק מחזיר אותו באישור (seen_hash) ⇒ מאשרים רק את מה שהוצג
                 "body_hash": _sha(r["payload"]),
                 "block_reason": r["block_reason"], "template_key": r["template_key"],
@@ -1198,8 +1203,23 @@ class CollectService:
                 "needs_confirm_open": any(i["source"] == "csv" for i in invs),
                 # הפעלה 135: `/app/` הציג תזכורת מאוחדת כחשבונית העוגן בלבד (מספר אחד, סכום חלקי)
                 "numbers": [i["number"] for i in invs],
-                **self.reminder_totals(reminder_id, r["invoice_id"], [i["id"] for i in invs]),
+                **totals,
                 "messages": [self.sender.preview(m) for m in msgs]}
+
+    @staticmethod
+    def _approved_amount_drift(r, invs: list, now_text: str) -> dict | None:
+        """הסכום שעליו נבנה הנוסח המאושר מול הסכום במקור עכשיו. None כשאין פער, כשהתזכורת לא מאושרת
+        (ממתינה נבנית מחדש בסנכרון, הפעלה 153), או כשחשבונית נסגרה (מסלול אחר מבטל את התזכורת)."""
+        if r["status"] != "approved" or r["amount_agorot"] is None:
+            return None
+        if any(i["status"] != "open" for i in invs):
+            return None
+        if sum(i["amount_agorot"] for i in invs) == r["amount_agorot"]:
+            return None
+        curs = {_cur(i) for i in invs}
+        # מטבעות שונים לא מחוברים ⇒ אין «סכום קודם» אחד להציג; הממשק מציג רק את הסכום העדכני
+        was = templates.fmt_amount(r["amount_agorot"], curs.pop()) if len(curs) == 1 else None
+        return {"was_text": was, "now_text": now_text}
 
     # ---------- owner decisions ----------
     def approve(self, reminder_id: int, actor: str = "owner", *, confirm_open: bool = False,

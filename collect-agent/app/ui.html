@@ -250,6 +250,8 @@ const staleText=(was,now)=>(was&&now&&was!==now?`הסכום השתנה מ-${was}
 // הפעלה 152: במעבר לתזכורת אחרת הלוח הציג את התזכורת הקודמת, עם «אישור ושליחה» פעיל שלה, עד שהשרת ענה —
 // בזמן שהרשימה כבר סימנה את החדשה. לחיצה באותו רגע אישרה את התזכורת הלא נכונה. עכשיו הלוח מתחלף מיד לשלד טעינה.
 // רענון של אותה תזכורת (אחרי פעולה) לא מחליף לשלד, כדי שהמסך לא יהבהב; shown = התזכורת שמוצגת בלוח כרגע.
+// הפעלה 154: תזכורת מאושרת שהסכום שלה השתנה במקור. הנוסח שמוצג הוא הישן; הוא לא יישלח, והתזכורת תחזור לאישור
+const driftText=d=>`הסכום במקור השתנה${d.was_text?` מ-${d.was_text}`:""} ל-${d.now_text} אחרי שאישרתם. הנוסח שכאן עדיין על הסכום הקודם, והוא לא יישלח כך: לפני השליחה התזכורת תחזור אליכם לאישור עם הסכום המעודכן.`;
 const PVSK=`<p class="slogan" id="pvBusy" role="status">טוען תצוגה מקדימה…</p><div class="previews" aria-hidden="true">${`<div class="skitem"><span class="sk big"></span>${SK}<span class="sk w"></span>${SK}</div>`.repeat(2)}</div>`;
 async function show(id,info,stale){
   sel=id;const d=$("#detail");
@@ -281,8 +283,9 @@ async function show(id,info,stale){
       בדקתי: הסכום עדיין פתוח (חשבונית מקובץ CSV, לא מסתנכרנת אוטומטית)</label>`:""):"";
   $("#detail").innerHTML=`<div class="row"><h2>תצוגה מקדימה · ${esc(STATUS[p.status]||p.status)}</h2>
     <span class="chip">מתוזמנת: ${esc(new Date(p.scheduled_for).toLocaleString("he-IL",{timeZone:"Asia/Jerusalem",dateStyle:"short",timeStyle:"short"}))}</span></div>
-    ${p.block_reason?(REAPPROVE[p.block_reason]?`<div class="note" id="blockNote">לבדיקתך: ${esc(REAPPROVE[p.block_reason])}</div>`
+    ${p.block_reason&&!(REAPPROVE[p.block_reason]&&p.status!=="pending_approval")?(REAPPROVE[p.block_reason]?`<div class="note" id="blockNote">לבדיקתך: ${esc(REAPPROVE[p.block_reason])}</div>`
       :`<div class="err" id="blockNote">חסום: ${esc(pause(p.block_reason))}</div>`):""}
+    ${p.amount_drift?`<div class="note" id="driftNote" role="status">${esc(driftText(p.amount_drift))}</div>`:""}
     <div class="previews"><div><h2>SMS</h2>${smsHtml}</div><div><h2>מייל</h2>${mailHtml}</div></div>
     ${checks}
     <div class="decide">${p.status==="pending_approval"?`<button class="primary" id="ok" ${can?"":"disabled"}>אישור ושליחה</button>`:""}
