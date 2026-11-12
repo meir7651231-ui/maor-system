@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useState } from 'react';
+import { TOAST_BOTTOM, toastBottom } from './lib/toast.ts';
 import { AppProvider, useApp } from './store.tsx';
 import { go, useRoute } from './router.ts';
 import { Shell } from './components/Shell.tsx';
@@ -34,6 +35,13 @@ function Routed() {
   // כבר מחובר ⇒ #/login מעביר לסקירה (גם מיד אחרי כניסה מוצלחת)
   // הפעלה 143: גם כניסה שהצליחה כשהטעינה שאחריה נכשלה (mode='error', הסשן שמור) יוצאת ממסך הכניסה, אל מסך השגיאה עם «נסו שוב»
   useEffect(() => { if (r === 'login' && (mode === 'live' || mode === 'error')) go('dashboard'); }, [r, mode]);
+  // הפעלה 148: כשמוצג toast מודדים את הסרגל הדביק שבתחתית (אם יש) ומרימים את ה-toast מעליו
+  const [toastAt, setToastAt] = useState(TOAST_BOTTOM);
+  useLayoutEffect(() => {
+    if (!toast) return;
+    const bar = document.querySelector('[data-sticky-bar]');
+    setToastAt(toastBottom(bar ? bar.getBoundingClientRect().top : null, window.innerHeight));
+  }, [toast, r]);
   // שער 6: שרת חי שדורש אימות ⇒ מסך הכניסה במקום המסך המבוקש (הכתובת נשמרת ⇒ אחרי כניסה חוזרים אליו)
   const page = r === 'landing' ? <Landing /> : r === 'signup' ? <Signup /> : r === 'login' || mode === 'locked' ? <Login /> : (
     // הפעלה 140: עד שיודעים אם יש שרת (mode='loading') לא מציגים את נתוני המוק — בעל עסק מחובר ראה לרגע לקוחות
@@ -45,8 +53,9 @@ function Routed() {
   return (
     <>
       {page}
-      {/* הפעלה 145: בהגדרות ה-toast כיסה את שורת השגיאה בסרגל השמירה הדביק שבתחתית ⇒ שם הוא מוצג למעלה */}
-      <div aria-live="polite" className={`fixed ${r === 'settings' ? 'top-5' : 'bottom-5'} inset-x-0 flex justify-center pointer-events-none z-50 px-4`}>
+      {/* הפעלה 145: בהגדרות ה-toast כיסה את שורת השגיאה בסרגל השמירה הדביק שבתחתית.
+          הפעלה 148: הפתרון של 145 (להציג למעלה) כיסה את הכותרת, מצב החיבור וכפתור היציאה ⇒ ה-toast תמיד בתחתית, מורם מעל הסרגל */}
+      <div aria-live="polite" style={{ bottom: toastAt }} className="fixed inset-x-0 flex justify-center pointer-events-none z-50 px-4">
         {toast && <div data-testid="toast" className="bg-ink-900 text-white rounded-xl px-5 py-3 shadow-pop font-medium">{toast}</div>}
       </div>
     </>

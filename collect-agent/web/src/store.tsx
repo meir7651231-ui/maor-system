@@ -11,6 +11,7 @@ import type { WeekPoint } from './lib/series.ts';
 import { systemNotices, type Notice } from './lib/notices.ts';
 import { ALREADY_APPROVED, alreadyDone, retryDelayMs } from './lib/failure.ts';
 import { settingsDraft } from './lib/settings.ts';
+import { toastMs } from './lib/toast.ts';
 
 /** locked = שרת חי שדורש קוד גישה (401) — לא נופלים למוק בשקט.
  *  error = יש שרת (או שיש בלשונית כניסה שמורה) אבל הטעינה נכשלה — מסך שגיאה עם «נסו שוב», לא נתוני מוק. */
@@ -84,7 +85,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [dataSeq, setDataSeq] = useState(0);
   const modeRef = useRef<Mode>('loading');
   useEffect(() => { modeRef.current = mode; }, [mode]);
-  const showToast = useCallback((t: string) => { setToast(t); window.setTimeout(() => setToast(null), Math.max(3600, t.length * 60)); /* הודעה ארוכה נשארת יותר זמן */ }, []);
+  // הפעלה 148: טיימר אחד ל-toast. קודם כל הודעה השאירה טיימר משלה, והטיימר של הודעה ישנה מחק הודעה חדשה אחרי שבריר שנייה
+  const toastTimer = useRef<number | undefined>(undefined);
+  const showToast = useCallback((t: string) => {
+    window.clearTimeout(toastTimer.current);
+    setToast(t); toastTimer.current = window.setTimeout(() => setToast(null), toastMs(t));
+  }, []);
 
   /** מנקה את הסשן ואת המידע האישי מהזיכרון (יציאה / סשן שפג) ⇒ מסך הכניסה. */
   const dropSession = useCallback((note: string | null) => {

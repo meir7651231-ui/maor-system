@@ -875,7 +875,24 @@ test('הפעלה 145: טיוטת ההגדרות שורדת סשן שפג (בזי
   assert.match(page, /if \(mine\) \{ m\.f = restoreDraft\(m\.f, mine\); setRestored\(true\); \}/);
   assert.match(page, /if \(!settingsDraft\.keep\) settingsDraft\.value = null/);
   const app = fs.readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8');
-  assert.match(app, /r === 'settings' \? 'top-5' : 'bottom-5'/);
+  // הפעלה 148: לא עוד «למעלה בהגדרות» (כיסה את הכותרת) — ה-toast בתחתית ומורם מעל הסרגל הדביק
+  assert.doesNotMatch(app, /top-5/);
+  assert.match(app, /style=\{\{ bottom: toastAt \}\}/);
+  assert.match(app, /querySelector\('\[data-sticky-bar\]'\)/);
+  assert.match(readFileSync(new URL('../src/pages/Settings.tsx', import.meta.url), 'utf8'), /data-sticky-bar[^>]*sticky bottom-4/);
+  const { toastBottom, TOAST_BOTTOM, TOAST_GAP } = await import('../src/lib/toast.ts');
+  assert.equal(toastBottom(null, 800), TOAST_BOTTOM, 'אין סרגל ⇒ המיקום הרגיל');
+  assert.equal(toastBottom(728, 800), 72 + TOAST_GAP, 'סרגל דביק ⇒ מעליו, עם רווח');
+  assert.equal(toastBottom(600, 800), 200 + TOAST_GAP, 'סרגל גבוה (שורת שגיאה שנשברה לשורות) ⇒ עדיין מעליו');
+  assert.equal(toastBottom(900, 800), TOAST_BOTTOM, 'סרגל מתחת לחלון ⇒ המיקום הרגיל');
+  assert.equal(toastBottom(-40, 800), TOAST_BOTTOM, 'סרגל שנגלל מעל החלון ⇒ המיקום הרגיל');
+  assert.equal(toastBottom(795, 800), TOAST_BOTTOM, 'לעולם לא נמוך מהמיקום הרגיל');
+  assert.equal(toastBottom(NaN, 800), TOAST_BOTTOM);
+  // טיימר אחד ל-toast: הודעה חדשה מבטלת את הטיימר של הקודמת
+  const { toastMs } = await import('../src/lib/toast.ts');
+  assert.equal(toastMs('קצר'), 3600); assert.equal(toastMs('א'.repeat(100)), 6000);
+  const storeSrc148 = readFileSync(new URL('../src/store.tsx', import.meta.url), 'utf8');
+  assert.match(storeSrc148, /window\.clearTimeout\(toastTimer\.current\);\s*setToast\(t\); toastTimer\.current = window\.setTimeout/);
   // /ui (app/ui.html): אותו נוסח «לא ידוע אם נרשמה» כמו ב-/app/, כתיבה שנכשלה לא מציגה «נסו שוב», ו-401 מנקה את המסך
   const { WRITE_UNKNOWN } = await import('../src/lib/failure.ts');
   const ui = fs.readFileSync(new URL('../../app/ui.html', import.meta.url), 'utf8');

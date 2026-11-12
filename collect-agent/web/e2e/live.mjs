@@ -756,9 +756,29 @@ try {
   await h.getByTestId('settings-save').click();
   await h.getByText('✓ נשמר בשרת').waitFor();
   // הפעלה 145: בהגדרות ה-toast לא מכסה את סרגל השמירה (שם מוצגת שורת השגיאה)
-  const tb = await h.getByTestId('toast').boundingBox(), sb = await h.getByTestId('settings-save').locator('..').boundingBox();
-  ok(tb && sb && (tb.y + tb.height <= sb.y || tb.y >= sb.y + sb.height), 'ה-toast מכסה את סרגל השמירה בהגדרות: ' + JSON.stringify([tb, sb]));
+  //     הפעלה 148: וגם לא את ראש המסך (כותרת, מצב חיבור, יציאה) — הוא בתחתית, צמוד מעל הסרגל
+  const tb = await h.getByTestId('toast').boundingBox(), sb = await h.getByTestId('settings-bar').boundingBox();
+  ok(tb && sb && tb.y + tb.height <= sb.y && sb.y - (tb.y + tb.height) <= 24, 'ה-toast בהגדרות לא צמוד מעל סרגל השמירה: ' + JSON.stringify([tb, sb]));
   ok(JSON.stringify(putBody) === JSON.stringify({ reply_email: 'office@example.co.il' }), 'השמירה שלחה יותר ממה שהמשתמש שינה: ' + JSON.stringify(putBody));
+  // הפעלה 148, מובייל: ה-toast לא מכסה את השורה העליונה (לוגו, מצב חיבור, יציאה), לא את הניווט ולא את סרגל השמירה
+  //     וגם: הודעה חדשה לא נמחקת בטיימר של ההודעה שלפניה («נשמר» עדיין מוצגת כשהייבוא מסתיים)
+  const vp148 = h.viewportSize();
+  await h.setViewportSize({ width: 390, height: 844 });
+  await h.waitForTimeout(2500);
+  ok(await h.getByTestId('toast').count() === 1, 'הודעת «נשמר» נעלמה לפני הזמן');
+  await h.getByLabel('קובץ CSV').setInputFiles({ name: 'bad2.csv', mimeType: 'text/csv', buffer: Buffer.from('מספר חשבונית,שם לקוח,טלפון,סכום,תאריך לתשלום\n9778,,abc,xx,\n', 'utf8') });
+  await h.getByTestId('toast').filter({ hasText: 'יובאו' }).waitFor();
+  await h.waitForTimeout(2000);   // כאן הטיימר של «נשמר» כבר פקע; ההודעה החדשה חייבת להישאר
+  ok(await h.getByTestId('toast').filter({ hasText: 'יובאו' }).count() === 1, 'הטיימר של ההודעה הקודמת מחק את ההודעה החדשה');
+  const mt = await h.getByTestId('toast').boundingBox(), mb = await h.getByTestId('settings-bar').boundingBox();
+  const hit = (a, c) => a && c && a.x < c.x + c.width && c.x < a.x + a.width && a.y < c.y + c.height && c.y < a.y + a.height;
+  ok(mt && mb && !hit(mt, mb) && mt.y + mt.height <= mb.y, 'מובייל: ה-toast מכסה את סרגל השמירה: ' + JSON.stringify([mt, mb]));
+  for (const sel of ['[data-testid="logout-mobile"]', '[data-testid="mode-mobile"]', 'nav[aria-label="ניווט ראשי"]'])
+    ok(!hit(mt, await h.locator(sel).boundingBox()), `מובייל: ה-toast מכסה את ${sel}`);
+  ok(mt.x >= 0 && mt.x + mt.width <= 390, 'מובייל: ה-toast חורג מרוחב המסך');
+  if (out) await h.screenshot({ path: `${out}/live-18-toast-mobile.png` });
+  await h.getByTestId('toast').waitFor({ state: 'detached' });
+  await h.setViewportSize(vp148);
   const s18 = await api('/settings');
   ok(s18.owner_name === signBefore && s18.reply_email === 'office@example.co.il', 'מצב השרת אחרי שלב 18: ' + JSON.stringify(s18));
   ok(hFail.length === 0, 'שלב 18: כשלים לא צפויים: ' + hFail.join(' | '));
@@ -899,6 +919,50 @@ try {
   if (out) await h.screenshot({ path: `${out}/live-23-already-draft.png` });
   await h.unroute('**/conversation/drafts/*/approve');
   console.log('  ✓ אישור חוזר של מענה שכבר אושר: 409 «כבר אושרה», מוצג כ«כבר אושר קודם», אישור אחד והודעה אחת');
+  // 24) הפעלה 148: אותו כלל להצעת פריסה. האישור נרשם, התשובה אבדה, ניסיון חוזר ⇒ 409 + X-Gabi-Already מהשרת האמיתי.
+  //     הממשק מציג «הצעת הפריסה הזו כבר אושרה קודם» (לא «לא בוצע»), ההצעה יורדת מהרשימה, אישור אחד ביומן והודעה אחת ללקוח.
+  hFail.length = 0;
+  await h.goto(base + '/app/#/dashboard');
+  const before148 = new Set((await api('/plans')).map(x => x.id));
+  // לקוח שעוד אין לו הצעה: מנסים את לקוחות הדמו לפי הסדר עד שנוצרת הצעת פריסה חדשה בשרת
+  const names148 = await h.getByLabel('לקוח').locator('option').allTextContents();
+  let pid148 = null;
+  for (const label of names148) {
+    if (!label.trim()) continue;
+    await h.getByLabel('לקוח').selectOption({ label });
+    await h.getByRole('button', { name: 'אפשר ב-3 תשלומים?' }).click();
+    await h.getByRole('button', { name: 'שלח תשובה (סימולציה)' }).click();
+    await h.getByTestId('reply-result').waitFor();
+    const fresh = (await api('/plans')).find(x => x.status === 'proposed' && !before148.has(x.id));
+    if (fresh) { pid148 = fresh.id; break; }
+  }
+  ok(pid148 !== null, 'שלב 24: לא נוצרה הצעת פריסה חדשה לאף לקוח דמו');
+  await h.goto(base + '/app/#/dashboard');
+  const plan148 = h.getByTestId('needs-you').locator('li', { hasText: 'הצעת פריסה' }).first();
+  await plan148.waitFor();
+  const ob148 = (await api('/outbox')).messages.length;
+  let seen148 = null;
+  await inject(h, '**/plans/*/approve', async route => {
+    const first = await route.fetch();                       // האישור נרשם בשרת; התשובה «אובדת»
+    const second = await route.fetch();                      // הניסיון החוזר
+    seen148 = { first: first.status(), status: second.status(), already: second.headers()['x-gabi-already'], pid: Number(route.request().url().match(/plans\/(\d+)\/approve/)[1]) };
+    await route.fulfill({ response: second });
+  });
+  if (await plan148.getByTestId('plan-confirm-amount').count()) await plan148.getByTestId('plan-confirm-amount').locator('input').check();
+  await plan148.getByRole('button', { name: /אישור ההצעה/ }).click();
+  await plan148.getByRole('button', { name: 'לחצו שוב לאישור' }).click();
+  await h.getByText('הצעת הפריסה הזו כבר אושרה קודם').waitFor();
+  ok(seen148 && seen148.first === 200 && seen148.status === 409 && seen148.already === 'approved', 'שלב 24: השרת לא ענה 409 «כבר אושרה»: ' + JSON.stringify(seen148));
+  ok(!(await h.locator('body').textContent()).includes('לא בוצע'), 'שלב 24: אישור שכבר נרשם מוצג כ«לא בוצע»');
+  ok((await api('/plans')).find(x => x.id === seen148.pid)?.status === 'approved', 'שלב 24: ההצעה לא מאושרת בשרת');
+  await h.waitForFunction(() => !document.querySelector('[data-testid="needs-you"]')?.textContent.includes('הצעת פריסה'));
+  ok((await api('/outbox')).messages.length === ob148 + 1, `שלב 24: לא יצאה בדיוק הודעה אחת (${ob148}→${(await api('/outbox')).messages.length})`);
+  const aud148 = (await api('/audit')).filter(a => new RegExp(`"plan": ${seen148.pid}\\b`).test(a.detail ?? '') && a.action === 'plan_approved');
+  ok(aud148.length === 1, `שלב 24: ביומן הביקורת ${aud148.length} אישורים להצעה ${seen148.pid}`);
+  ok(hFail.join('|') === `409 POST /plans/${seen148.pid}/approve`, 'שלב 24: כשלים לא צפויים: ' + hFail.join(' | '));
+  if (out) await h.screenshot({ path: `${out}/live-24-already-plan.png` });
+  await h.unroute('**/plans/*/approve');
+  console.log('  ✓ אישור חוזר של הצעת פריסה שכבר אושרה: 409 «כבר אושרה», מוצג כ«כבר אושרה קודם», אישור אחד והודעה אחת');
   await h.context().close();
   console.log('  ✓ סשן שפג באמצע עריכת הגדרות: אחרי כניסה מחדש ההקלדה חוזרת, מסומנת כלא שמורה, ונשמרת; מעבר מסך רגיל לא משחזר');
   failPhase = false;
