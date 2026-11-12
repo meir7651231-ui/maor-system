@@ -6,7 +6,7 @@ import { randomBytes } from 'node:crypto';
 import { mkdtempSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { assertPortFree, makeInject } from './lib.mjs';
+import { assertPortFree, makeInject, srvStdio, srvLogLevel } from './lib.mjs';
 const { chromium } = createRequire(import.meta.url)('playwright');
 const out = process.argv[2];
 const PORT = 8141, base = `http://127.0.0.1:${PORT}`;
@@ -15,9 +15,9 @@ const ROOT = new URL('../..', import.meta.url).pathname;
 // שער 6: עובד דמו אמיתי (מייל+סיסמה+סוד TOTP בקובץ זמני) — כמו demo.sh --check, רק דרך הדפדפן
 const STAFF = { email: 'dana@example.co.il', password: 'demo-pass-12345', secretFile: join(mkdtempSync(join(tmpdir(), 'gabi-e2e-')), 'totp') };
 await assertPortFree(PORT);
-const srv = spawn('python3', ['-m', 'uvicorn', 'app.main:_lazy_app', '--factory', '--port', String(PORT), '--log-level', 'warning'],
+const srv = spawn('python3', ['-m', 'uvicorn', 'app.main:_lazy_app', '--factory', '--port', String(PORT), '--log-level', srvLogLevel()],
   { cwd: ROOT, env: { ...process.env, DEMO: '1', OWNER_API_TOKEN: TOKEN,
-    DEMO_USER_EMAIL: STAFF.email, DEMO_USER_PASSWORD: STAFF.password, DEMO_USER_SECRET_FILE: STAFF.secretFile }, stdio: 'ignore' });
+    DEMO_USER_EMAIL: STAFF.email, DEMO_USER_PASSWORD: STAFF.password, DEMO_USER_SECRET_FILE: STAFF.secretFile }, stdio: srvStdio('server-live') });
 // קוד ה-TOTP נגזר משעון הדמו הקבוע (app/demo.py DEMO_NOW) ומאותו מימוש בשרת (app/totp.py)
 const totpCode = () => execFileSync('python3', ['-c',
   'import sys; from app import totp; from app.demo import DEMO_NOW; print(totp.code_at(open(sys.argv[1]).read().strip(), DEMO_NOW.timestamp()))',

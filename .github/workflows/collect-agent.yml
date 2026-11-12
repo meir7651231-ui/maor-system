@@ -94,6 +94,9 @@ jobs:
   web:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    env:
+      # פלט השרתים שבדיקות הדפדפן מרימות (e2e/lib.mjs srvStdio) נכתב לתיקיית הצילומים ⇒ עולה כ-artifact בכישלון
+      E2E_LOG_DIR: ${{ runner.temp }}/shots
     defaults:
       run:
         working-directory: collect-agent/web
@@ -135,7 +138,12 @@ jobs:
         run: NODE_PATH="$(npm root -g)" TZ=UTC node e2e/ui.mjs "$RUNNER_TEMP/shots"
       - name: e2e בנייה מחדש אמיתית של תזכורת מול ה-mock של חשבונית ירוקה (בלי יירוט, /ui ו-/app/)
         run: NODE_PATH="$(npm root -g)" TZ=UTC node e2e/rebuild.mjs "$RUNNER_TEMP/shots"
-      - name: צילומים (רק בכישלון)
+      - name: לוג השרתים של בדיקות הדפדפן (רק בכישלון, 200 שורות אחרונות לכל קובץ)
+        if: failure()
+        run: |
+          shopt -s nullglob
+          for f in "$E2E_LOG_DIR"/*.log; do echo "=== $f"; tail -n 200 "$f"; done
+      - name: צילומים + לוג השרתים (רק בכישלון)
         if: failure()
         uses: actions/upload-artifact@v4
         with:

@@ -3,6 +3,7 @@
 // דרישה: npm run build. הרצה: node e2e/notices.mjs
 import { createRequire } from 'node:module';
 import { spawn } from 'node:child_process';
+import { srvStdio, srvLogLevel } from './lib.mjs';
 const { chromium } = createRequire(import.meta.url)('playwright');
 const root = new URL('../..', import.meta.url).pathname;
 const ok = (c, m) => { if (!c) throw new Error(m); };
@@ -10,8 +11,8 @@ const ok = (c, m) => { if (!c) throw new Error(m); };
 async function run(port, trialStart) {
   const base = `http://127.0.0.1:${port}`;
   const TOKEN = (await import('node:crypto')).randomBytes(32).toString('base64url');
-  const srv = spawn('python3', ['-m', 'uvicorn', 'app.main:_lazy_app', '--factory', '--port', String(port), '--log-level', 'warning'],
-    { cwd: root, env: { ...process.env, DEMO: '1', OWNER_API_TOKEN: TOKEN, PORT: String(port), DEMO_TRIAL_START: trialStart }, stdio: 'ignore' });
+  const srv = spawn('python3', ['-m', 'uvicorn', 'app.main:_lazy_app', '--factory', '--port', String(port), '--log-level', srvLogLevel()],
+    { cwd: root, env: { ...process.env, DEMO: '1', OWNER_API_TOKEN: TOKEN, PORT: String(port), DEMO_TRIAL_START: trialStart }, stdio: srvStdio(`server-notices-${port}`) });
   for (let i = 0; i < 80; i++) { try { if ((await fetch(base + '/health')).ok) break; } catch { /* עולה */ } await new Promise(r => setTimeout(r, 250)); }
   const b = await chromium.launch(); const errors = []; const seen = {};
   try {

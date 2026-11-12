@@ -4,15 +4,15 @@
 import { createRequire } from 'node:module';
 import { spawn } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
-import { assertPortFree, makeInject } from './lib.mjs';
+import { assertPortFree, makeInject, srvStdio, srvLogLevel } from './lib.mjs';
 const { chromium } = createRequire(import.meta.url)('playwright');
 const out = process.argv[2];
 const PORT = 8143, base = `http://127.0.0.1:${PORT}`;
 const TOKEN = randomBytes(32).toString('base64url');
 const ROOT = new URL('../..', import.meta.url).pathname;
 await assertPortFree(PORT);
-const srv = spawn('python3', ['-m', 'uvicorn', 'app.main:_lazy_app', '--factory', '--port', String(PORT), '--log-level', 'warning'],
-  { cwd: ROOT, env: { ...process.env, DEMO: '1', OWNER_API_TOKEN: TOKEN }, stdio: 'ignore' });
+const srv = spawn('python3', ['-m', 'uvicorn', 'app.main:_lazy_app', '--factory', '--port', String(PORT), '--log-level', srvLogLevel()],
+  { cwd: ROOT, env: { ...process.env, DEMO: '1', OWNER_API_TOKEN: TOKEN }, stdio: srvStdio('server-ui') });
 process.on('exit', () => srv.kill());   // גם ביציאה על חריגה שלא נתפסה — לא משאירים שרת על הפורט
 const ok = (c, m) => { if (!c) throw new Error(m); };
 const routeErrors = [];
