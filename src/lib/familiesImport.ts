@@ -133,3 +133,39 @@ export function kidGenderOf(raw: string): 'f' | 'm' {
   if (/^נ\s*['׳".]?$/.test(g)) return 'f';
   return 'm';
 }
+
+/**
+ * מפתח-השוואה לטלפון בייבוא (12.11.2026) — ספרות בלבד, בלי 00/972 ובלי אפסים מובילים.
+ * זהה ל-`phoneKey` של זיהוי-המתקשר (ננעל ב-ratchet); מוגדר כאן כדי שהמודול יישאר נטול-תלויות.
+ */
+export function importPhoneKey(raw: string | undefined): string {
+  let d = (raw ?? '').replace(/\D/g, '');
+  if (d.startsWith('00')) d = d.slice(2);
+  if (d.startsWith('972')) d = d.slice(3);
+  return d.replace(/^0+/, '');
+}
+
+/** מפתח-השוואה לת"ז — ספרות בלי אפסים מובילים (אקסל משמיט אותם: 012345678 ⇒ 12345678). */
+export function importIdKey(raw: string | undefined): string {
+  return (raw ?? '').replace(/\D/g, '').replace(/^0+/, '');
+}
+
+/**
+ * המשפחות שהטלפון שייך להן — לפי **כל** הטלפונים (ראשי, שני, ונוספים `phones[]`).
+ * 🐛 ייבוא-הילדים השווה ספרות-גולמיות ⇒ מספר שאקסל השמיט לו את ה-0 המוביל (501234567),
+ * מספר בקידומת 972, או מספר ששמור ב"טלפונים נוספים" — לא הותאמו, והילד נוצר במשפחה כפולה
+ * חדשה (או דולג כ"דו-משמעי"). מפתח קצר מ-7 ספרות ⇒ אין התאמה (כמו הסף הקודם).
+ */
+export function familiesByPhone(fams: readonly Family[], raw: string | undefined): Family[] {
+  const key = importPhoneKey(raw);
+  if (key.length < 7) return [];
+  const hit = (p: string | undefined) => !!p && importPhoneKey(p) === key;
+  return fams.filter((f) => hit(f.phone) || hit(f.phone2) || (Array.isArray(f.phones) ? f.phones : []).some((x) => hit(x?.num)));
+}
+
+/** המשפחות שת"ז-ההורה שייכת להן (אב/אם) — חסין לאפסים-מובילים שהושמטו. מפתח קצר מ-5 ⇒ אין התאמה. */
+export function familiesByParentId(fams: readonly Family[], raw: string | undefined): Family[] {
+  const key = importIdKey(raw);
+  if (key.length < 5) return [];
+  return fams.filter((f) => importIdKey(f.fatherId) === key || importIdKey(f.motherId) === key);
+}

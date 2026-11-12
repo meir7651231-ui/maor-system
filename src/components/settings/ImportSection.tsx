@@ -14,7 +14,7 @@ import { deviceTag, makeId } from '../../lib/ids';
 import { normalizePhone, normSearch, formatIsraeliPhone } from '../../lib/validate';
 import { downloadCsv, parseAnyDate, parseCsv, readCsvFileText } from '../../lib/csvx';
 import { ayinSheetRows, featLabel, parseAyinSheet, type AyinSheetParse } from '../../lib/ayin';
-import { kidGenderOf, mergeFamilyImport, parseFamiliesCsv, type FamiliesImportPlan } from '../../lib/familiesImport';
+import { familiesByParentId, familiesByPhone, kidGenderOf, mergeFamilyImport, parseFamiliesCsv, type FamiliesImportPlan } from '../../lib/familiesImport';
 import { importableContacts, contactToRow, type ContactRow } from '../../lib/vcardImport';
 import { Btn, Chip, Field, FormError } from '../ui';
 import { Section, SectionNote } from './lib';
@@ -802,22 +802,18 @@ function KidsImport() {
       // התאמת משפחה — לפי סדר עדיפות: ת"ז הורה ← טלפון ← שם משפחה (+שם האם/+עיר)
       let target: Family | null = null;
       let how = '';
-      const pid = iParentId >= 0 ? digits(r[iParentId]) : '';
-      if (pid.length >= 5) {
-        const hits = fams.filter((f) => digits(f.fatherId) === pid || digits(f.motherId) === pid);
+      if (iParentId >= 0) {
+        const hits = familiesByParentId(fams, r[iParentId]);
         if (hits.length === 1) {
           target = hits[0];
           how = 'ת"ז הורה';
         }
       }
       if (!target && iPhone >= 0) {
-        const ph = digits(r[iPhone]);
-        if (ph.length >= 7) {
-          const hits = fams.filter((f) => digits(f.phone) === ph || digits(f.phone2) === ph);
-          if (hits.length === 1) {
-            target = hits[0];
-            how = 'טלפון';
-          }
+        const hits = familiesByPhone(fams, r[iPhone]);
+        if (hits.length === 1) {
+          target = hits[0];
+          how = 'טלפון';
         }
       }
       const nf = normName(surname);
