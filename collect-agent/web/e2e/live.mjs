@@ -187,7 +187,9 @@ try {
   //     בסכום אחר מאז שנפתחה) ⇒ השרת מסרב, ושום דבר לא יוצא.
   //     הפעלה 149: הממשק לא מציג «לא אושר… פתחו שוב». הוא טוען את התצוגה מחדש, מציג מה השתנה, ומנקה את האישור.
   let previews = 0, realTotal = null;
-  await p.route('**/reminders/*/preview', async route => {
+  // critic סבב 59: דרך inject (lib.mjs) — p.route ישיר הפיל את הריצה ב«Route is already handled» כשתצוגה נוספת
+  // נטענה בזמן ה-unroute (מרוץ, ~1 מתוך 3 ריצות)
+  await inject(p, '**/reminders/*/preview', async route => {
     const res = await route.fetch(); const j = await res.json(); realTotal = j.total_text;
     if (previews++ === 0) { j.body_hash = 'stale-' + j.body_hash; j.total_text = '1 ₪'; }   // רק הפתיחה הראשונה ישנה
     await route.fulfill({ response: res, json: j });

@@ -717,6 +717,19 @@ class CollectService:
         self.db.x("INSERT OR IGNORE INTO suppressions(hash,channel,reason,created_at) "
                   "VALUES(?,?,?,?)", (self.addr_hash(channel, addr), channel, reason,
                                       _iso(self.clock())))
+        # critic סבב 59: הסרה לפי כתובת בלבד (כתובת משותפת שלא זוהה בה לקוח, חסימת ספק) לא עצרה טיוטה שנוסחה
+        # קודם לאותה כתובת. בכוונות שמותרות אחרי הסרה (איך משלמים / עותק / חזרו אליי) השער מדלג על בדיקת
+        # הכתובת ⇒ הטיוטה הייתה יוצאת לכתובת שביקשה הסרה. עכשיו: כל טיוטה ממתינה לכתובת הזו נעצרת.
+        if self._table_exists("drafts"):
+            h = self.addr_hash(channel, addr)
+            for d in self.db.q("SELECT d.id, d.to_addr, c.phone, c.email FROM drafts d JOIN customers c "
+                               "ON c.id=d.customer_id WHERE d.channel=? AND d.status IN "
+                               "('pending_approval','approved') AND d.intent NOT IN ('opt_out','wrong_person')",
+                               (channel,)):
+                to = d["to_addr"] or (d["phone"] if channel == "sms" else d["email"]) or ""
+                if to and self.addr_hash(channel, to) == h:
+                    self.db.x("UPDATE drafts SET status='superseded', decided_by='system:opted_out' "
+                              "WHERE id=?", (d["id"],))
 
     def suppressed(self, channel: str, addr: str) -> bool:
         return bool(addr) and self.db.one("SELECT 1 FROM suppressions WHERE hash=?",
@@ -1741,10 +1754,7 @@ class CollectService:
         # אחרי שהלקוח לחץ «הסר» — כי HOW_TO_PAY ברשימת המותרים אחרי הסרה. המותר נועד לשאלה ששאל **אחרי**
         # ההסרה (טיוטה חדשה, שנוצרת מכאן והלאה). הרצון האחרון שלו הוא ההסרה ⇒ טיוטות קודמות שממתינות נעצרות.
         # אישור ההסרה עצמו (opt_out / wrong_person) לא נעצר.
-        if self._table_exists("drafts"):
-            self.db.x("UPDATE drafts SET status='superseded', decided_by='system:opted_out' "
-                      "WHERE customer_id=? AND status IN ('pending_approval','approved') "
-                      "AND intent NOT IN ('opt_out','wrong_person')", (cid,))
+        self._stop_pending_drafts(cid)
         self.audit("customer", "opt_out", {"customer": cid, "via": how})
         # review חור 1 (הכרעת המבקר לפי הכללים, שמרני): לקוח אחר על אותו נייד/מייל הוא כמעט תמיד
         # אותו אדם או משק בית ⇒ «הסר» עוצר גם את שאר הערוצים שלו (היה: מייל לכתובת שלו נשלח).
@@ -1758,8 +1768,19 @@ class CollectService:
                 self.suppress("email", o["email"] or "", how)
                 for inv in self.db.q("SELECT id FROM invoices WHERE customer_id=?", (o["id"],)):
                     self._cancel_invoice(inv["id"], "opted_out")
+                # critic סבב 59: גם הטיוטות של הלקוח עם הכתובת המשותפת (סבב 58 עצר רק את של המבקש)
+                self._stop_pending_drafts(o["id"])
                 self.audit("customer", "opt_out", {"customer": o["id"], "via": how,
                                                     "shared_contact_of": cid})
+
+    def _stop_pending_drafts(self, cid: int) -> None:
+        """critic סבב 58–59: טיוטות שנוסחו לפני ההסרה וממתינות (לאישור או לחלון) לא יוצאות אחריה, גם בכוונות
+        שמותרות אחרי הסרה (איך משלמים / עותק / חזרו אליי) — המותר נועד לשאלה שנשאלה *אחרי* ההסרה.
+        אישור ההסרה עצמו (opt_out / wrong_person) לא נעצר."""
+        if self._table_exists("drafts"):
+            self.db.x("UPDATE drafts SET status='superseded', decided_by='system:opted_out' "
+                      "WHERE customer_id=? AND status IN ('pending_approval','approved') "
+                      "AND intent NOT IN ('opt_out','wrong_person')", (cid,))
 
     def _reply(self, cust, channel: str, text: str, now: datetime) -> str | None:
         """שליחה ביוזמת בעל העסק (למשל אישור פריסה). עוברת בשער ונושאת קישור הסרה (ממצא 2.3.5).
