@@ -131,5 +131,8 @@ export function kidGenderOf(raw: string): 'f' | 'm' {
   const g = (raw ?? '').trim();
   if (/בת|נק|f|ילדה/i.test(g)) return 'f';
   if (/^נ\s*['׳".]?$/.test(g)) return 'f';
+  // 12.11.2026: צורות-נקבה נפוצות שהכלל הישן פספס — "בנות" (אין בה "בת"), "אישה/אשה", "נשים",
+  // girl/girls/woman/women ⇒ נקלטו כבנים. רק כתא-שלם (כמו "נ") — "בנים ובנות"/טקסט חופשי לא משתנים.
+  if (/^(בנות|נשים|אי?שה|girls?|wom[ae]n)$/i.test(g)) return 'f';
   return 'm';
 }
