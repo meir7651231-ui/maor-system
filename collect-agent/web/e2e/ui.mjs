@@ -59,6 +59,28 @@ try {
   await p.locator('#ok').waitFor();
   ok(await p.locator('#ok').isEnabled() && await p.locator('.confirm').count() === 0, 'תזכורת רגילה: תיבה מיותרת או כפתור נעול');
   if (out) await p.screenshot({ path: `${out}/ui-02-regular.png`, fullPage: true });
+  // הפעלה 157: רענון של אותה תזכורת (לחיצה חוזרת, או אחרי פעולה). הנוסח נשאר על המסך, אבל כפתורי ההחלטה שלו
+  // כבויים עד שהתצוגה חוזרת מהשרת. מחזיקים את /preview כדי לבדוק את החלון הזה בכל הרצה.
+  let free157; const held157 = new Promise(r => { free157 = r; });
+  await inject(p, '**/reminders/*/preview', async route => { await held157; await route.continue(); });
+  const body157 = await p.locator('.bubble').first().innerText();
+  await p.locator('#list .item.sel').click();
+  ok(await p.locator('#ok').isDisabled() && await p.locator('#no').isDisabled(), '/ui: כפתורי ההחלטה פעילים בזמן רענון של אותה תזכורת');
+  ok(await p.locator('#pvBusy').count() === 0 && await p.locator('.bubble').first().innerText() === body157, '/ui: רענון של אותה תזכורת החליף את הנוסח בשלד (הבהוב)');
+  free157();
+  await p.waitForFunction(() => { const o = document.querySelector('#ok'), n = document.querySelector('#no'); return o && n && !o.disabled && !n.disabled; });
+  await p.unroute('**/reminders/*/preview');
+  // פעולה שרצה: הכפתורים כבויים מהלחיצה. פעולה שנכשלה (הנוסח לא הוחלף): הם חוזרים, וההסבר מוצג.
+  let fail157; const wait157 = new Promise(r => { fail157 = r; });
+  await inject(p, '**/reminders/*/reject', async route => { await wait157; await route.fulfill({ status: 400, contentType: 'application/json', body: JSON.stringify({ detail: 'בדיקה: הדחייה לא נרשמה' }) }); });
+  const at157 = errors.length;
+  await p.locator('#no').click();
+  ok(await p.locator('#ok').isDisabled() && await p.locator('#no').isDisabled(), '/ui: כפתורי ההחלטה פעילים בזמן שהפעולה רצה (לחיצה כפולה)');
+  fail157();
+  await p.locator('#derr', { hasText: 'בדיקה: הדחייה לא נרשמה' }).waitFor();
+  ok(await p.locator('#ok').isEnabled() && await p.locator('#no').isEnabled(), '/ui: אחרי פעולה שנכשלה הכפתורים נשארו כבויים');
+  await p.unroute('**/reminders/*/reject');
+  errors.push(...errors.splice(at157).filter(e => !/^400 .*\/reminders\/\d+\/reject$/.test(e)));
   // critic סבב 56: תצוגה מקדימה ישנה (התזכורת נבנתה מחדש מאז) ⇒ השרת מסרב לאשר, לא יוצא דבר.
   // הפעלה 149: התצוגה נטענת מחדש לבד, עם «הסכום השתנה מ-… ל-…», בלי שורת שגיאה ובלי «פתחו שוב».
   let pv149 = 0, total149 = null;

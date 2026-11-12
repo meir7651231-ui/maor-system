@@ -342,7 +342,9 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         return [{**dict(r), "payload": json.loads(r["payload"]),
                  "invoice_ids": svc.reminder_invoice_ids(r["id"]),
                  # הפעלה 134: number/currency הם של העוגן בלבד; הרשימה מציגה כמה חשבוניות ואת הסה״כ לפי מטבע
-                 **svc.reminder_totals(r["id"], r["invoice_id"])} for r in rows]
+                 **svc.reminder_totals(r["id"], r["invoice_id"]),
+                 # הפעלה 157: תזכורת מאושרת שהסכום שלה השתנה במקור ⇒ הרשימה מסמנת שהיא תחזור לאישור
+                 "amount_drift": svc.reminder_amount_drift(r)} for r in rows]
 
     @app.get("/reminders/{rid}/preview", dependencies=auth)
     def preview(rid: int):

@@ -95,7 +95,8 @@ def test_ui_reminder_list_uses_invoice_currency():
 
 def test_ui_debts_table_has_no_raw_block_code():
     assert "BLOCK[L.block_reason]||L.block_reason" not in UI, "טבלת החובות הציגה «amount_check» גולמי"
-    assert "why(L.block_reason)" in UI
+    # הפעלה 157: הטבלה והתור עוברים דרך chipOf (why() לסיבה, או הסטטוס כשהסיבה היא שארית מאישור קודם)
+    assert ":L?chipOf(L):" in UI and "why(r.block_reason)" in UI
 
 
 def test_ui_first_load_skeleton_not_blank_run150():

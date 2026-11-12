@@ -1206,6 +1206,16 @@ class CollectService:
                 **totals,
                 "messages": [self.sender.preview(m) for m in msgs]}
 
+    def reminder_amount_drift(self, r) -> dict | None:
+        """הפעלה 157: אותו פער כמו ב-/preview, לשורה ברשימת התזכורות (`/reminders`). הרשימה ב-/ui סימנה תזכורת
+        מאושרת כזו «הסכום התעדכן מהמקור» (שארית מבנייה קודמת) או סתם «מאושרת», בלי רמז שהיא תחזור לאישור."""
+        if r["status"] != "approved":
+            return None
+        ids = self.reminder_invoice_ids(r["id"]) or [r["invoice_id"]]
+        return self._approved_amount_drift(
+            r, [self._invoice(i) for i in ids],
+            self.reminder_totals(r["id"], r["invoice_id"], ids)["total_text"])
+
     @staticmethod
     def _approved_amount_drift(r, invs: list, now_text: str) -> dict | None:
         """הסכום שעליו נבנה הנוסח המאושר מול הסכום במקור עכשיו. None כשאין פער, כשהתזכורת לא מאושרת

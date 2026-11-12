@@ -135,6 +135,10 @@ try {
     const u = await ctx.newPage(); watch(u);
     await u.setViewportSize({ width: 1280, height: 900 });
     await u.goto(base + '/ui');
+    // הפעלה 157: גם התור מסמן אותה (היה: «הסכום התעדכן מהמקור», שארית מהבנייה הקודמת, בלי רמז שתחזור לאישור)
+    const chip157 = u.locator('#list .item', { hasText: 'יוסי' }).locator('.chip');
+    await chip157.waitFor();
+    ok((await chip157.textContent()).trim() === 'הסכום השתנה במקור, תחזור לאישורך', '/ui: הצ׳יפ בתור לתזכורת מאושרת שהסכום שלה השתנה: ' + (await chip157.textContent()).trim());
     await u.locator('#list .item', { hasText: 'יוסי' }).click();
     await u.locator('#driftNote').waitFor();
     const note = await u.locator('#driftNote').textContent();

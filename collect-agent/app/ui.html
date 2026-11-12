@@ -123,6 +123,11 @@ const REAPPROVE={approval_expired:"האישור הקודם פג (חיכה יות
   csv_missing_from_import:"החשבונית לא הופיעה בייבוא ה-CSV האחרון (אולי שולמה?). לבדוק ולאשר מחדש"};
 // תווית קצרה לצ׳יפ: המשפט הראשון של ההסבר
 const why=b=>REAPPROVE[b]?REAPPROVE[b].split(". ")[0]:pause(b);
+// הפעלה 157: הצ׳יפ של תזכורת (בתור ובטבלת החובות). סיבה מ-REAPPROVE מתארת תזכורת ש*ממתינה* לאישור; אחרי
+// שאושרה, נשלחה או נדחתה היא שארית ⇒ מציגים את הסטטוס. תזכורת מאושרת שהסכום שלה השתנה במקור (amount_drift
+// מהשרת) מסומנת כמי שתחזור לאישור, כמו ההערה בלוח התצוגה (154).
+const DRIFT="הסכום השתנה במקור, תחזור לאישורך";
+const chipOf=r=>r.amount_drift?DRIFT:r.block_reason&&!(REAPPROVE[r.block_reason]&&r.status!=="pending_approval")?why(r.block_reason):STATUS[r.status]||r.status;
 let sel=null,shown=null;
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -200,7 +205,7 @@ async function loadDash(ask){
   $("#kpis").innerHTML=k.map(([l,v,w])=>`<div class="card kpi ${w?"warn":""}"><div class="v">${esc(v)}</div><div class="l">${esc(l)}</div></div>`).join("");
   $("#debts").innerHTML=d.invoices.map(x=>{const L=x.last_reminder;
     const st=x.status!=="open"?"שולמה ונסגרה":x.customer_block?pause(x.customer_block)
-      :L?(L.block_reason?why(L.block_reason):STATUS[L.status]||L.status):"טרם הוכנה";
+      :L?chipOf(L):"טרם הוכנה";
     return `<tr class="${x.status!=="open"?"closed":""}"><td>${esc(x.customer)}${
     x.status==="open"&&x.paused_reason&&x.customer_block===x.paused_reason
       ?` <button class="resume" data-cid="${x.customer_id}" title="בדקתם והתשלום לא התקבל? התזכורות ללקוח יחודשו">↻ חידוש תזכורות</button>`:""}</td><td>${esc(x.number)}</td>
@@ -241,8 +246,8 @@ async function load(ask=true){
   el.innerHTML=rows.map(r=>`<button class="item card ${r.id===sel?"sel":""}" data-id="${r.id}">
     <div class="row"><strong>${esc(r.customer_name)}</strong><span>${esc(r.total_text||fmtCur(r.amount_agorot,r.currency))}</span></div>
     <div class="row"><span class="slogan">${r.invoice_count>1?`${r.invoice_count} חשבוניות`:`חשבונית ${esc(r.number)}`} · שלב ${r.step+1}/4</span>
-    <span class="chip ${r.status==="pending_approval"?"pending":""} ${r.block_reason&&!REAPPROVE[r.block_reason]?"blocked":""}">
-    ${esc(r.block_reason?why(r.block_reason):STATUS[r.status]||r.status)}</span></div></button>`).join("");
+    <span class="chip ${r.status==="pending_approval"||r.amount_drift?"pending":""} ${r.block_reason&&!REAPPROVE[r.block_reason]?"blocked":""}">
+    ${esc(chipOf(r))}</span></div></button>`).join("");
   el.querySelectorAll(".item").forEach(b=>b.onclick=()=>show(+b.dataset.id));
 }
 // הפעלה 149: אישור על נוסח ישן (409 + X-Gabi-Stale) ⇒ התצוגה נטענת מחדש לבד, עם מה שהשתנה (was = הסכום שהוצג קודם)
@@ -252,12 +257,16 @@ const staleText=(was,now)=>(was&&now&&was!==now?`הסכום השתנה מ-${was}
 // רענון של אותה תזכורת (אחרי פעולה) לא מחליף לשלד, כדי שהמסך לא יהבהב; shown = התזכורת שמוצגת בלוח כרגע.
 // הפעלה 154: תזכורת מאושרת שהסכום שלה השתנה במקור. הנוסח שמוצג הוא הישן; הוא לא יישלח, והתזכורת תחזור לאישור
 const driftText=d=>`הסכום במקור השתנה${d.was_text?` מ-${d.was_text}`:""} ל-${d.now_text} אחרי שאישרתם. הנוסח שכאן עדיין על הסכום הקודם, והוא לא יישלח כך: לפני השליחה התזכורת תחזור אליכם לאישור עם הסכום המעודכן.`;
+const freeze=d=>d.querySelectorAll(".decide button,.confirm input").forEach(x=>{x.disabled=true});
 const PVSK=`<p class="slogan" id="pvBusy" role="status">טוען תצוגה מקדימה…</p><div class="previews" aria-hidden="true">${`<div class="skitem"><span class="sk big"></span>${SK}<span class="sk w"></span>${SK}</div>`.repeat(2)}</div>`;
 async function show(id,info,stale){
   sel=id;const d=$("#detail");
   // הפעלה 155: הסימון ברשימה עבר רק כש-/reminders חזר; עד אז הרשימה סימנה את התזכורת הקודמת והלוח טען את החדשה
   document.querySelectorAll("#list .item").forEach(b=>b.classList.toggle("sel",+b.dataset.id===id));
   if(shown!==id){shown=null;d.innerHTML=PVSK;d.setAttribute("aria-busy","true")}
+  // הפעלה 157: רענון של אותה תזכורת (אחרי פעולה או לחיצה חוזרת) השאיר את כפתורי ההחלטה של הנוסח הקודם פעילים
+  // עד שהשרת ענה. הנוסח נשאר על המסך (בלי הבהוב), אבל אי אפשר להכריע עליו עד שהתצוגה חוזרת.
+  else freeze(d);
   load();
   // הפעלה 143: כשל בטעינת התצוגה המקדימה היה unhandled rejection, והלוח נשאר על התזכורת הקודמת בלי הסבר
   let p;try{p=await api(`/reminders/${id}/preview`)}catch(e){if(sel!==id||e.auth)return;
@@ -294,14 +303,16 @@ async function show(id,info,stale){
     ${["pending_approval","approved"].includes(p.status)?`<button class="ghost-bad" id="no">דחייה</button>`:""}</div>
     <div class="err" id="derr"></div>${stale?`<div class="note" id="dstale" role="alert">${esc(staleText(stale.was,p.total_text))}</div>`:""}${info?`<div class="note" id="dinfo" role="status">${esc(info)}</div>`:""}`;
   if(mail)$("#mailFrame").srcdoc=mail.html;
-  const act=async(a,body)=>{try{await api(`/reminders/${id}/${a}`,{method:"POST",...(body?{headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}:{})});await load();show(id)}
+  const act=async(a,body)=>{freeze(d);try{await api(`/reminders/${id}/${a}`,{method:"POST",...(body?{headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}:{})});await load();show(id)}
     // הפעלה 146: אישור/דחייה שכבר נרשמו (ניסיון חוזר אחרי תשובה שאבדה) ⇒ «כבר…» ורענון, לא שגיאה
     catch(e){if(e.already===DONE[a]){await load();return show(id,e.message+". המסך עודכן")}
-      if(a==="approve"&&e.stale){await load();return show(id,null,{was:p.total_text})}failed(e,m=>{$("#derr").textContent=m})}};
-  const boxes=[$("#cAmt"),$("#cOpen")].filter(Boolean),okBtn=$("#ok");
+      if(a==="approve"&&e.stale){await load();return show(id,null,{was:p.total_text})}thaw();failed(e,m=>{$("#derr").textContent=m})}};
+  const boxes=[$("#cAmt"),$("#cOpen")].filter(Boolean),okBtn=$("#ok"),noBtn=$("#no");
   const gate=()=>{if(okBtn)okBtn.disabled=!can||boxes.some(x=>!x.checked)};
+  // פעולה שנכשלה (הנוסח לא הוחלף) ⇒ הכפתורים חוזרים למצב שלפני הלחיצה, כדי שאפשר יהיה לנסות שוב
+  const thaw=()=>{boxes.forEach(x=>{x.disabled=false});if(noBtn)noBtn.disabled=false;gate()};
   boxes.forEach(x=>x.onchange=gate);gate();
-  okBtn&&(okBtn.onclick=()=>act("approve",{confirm_amount:!!($("#cAmt")&&$("#cAmt").checked),confirm_open:!!($("#cOpen")&&$("#cOpen").checked),seen_hash:p.body_hash}));$("#no")&&($("#no").onclick=()=>act("reject"));
+  okBtn&&(okBtn.onclick=()=>act("approve",{confirm_amount:!!($("#cAmt")&&$("#cAmt").checked),confirm_open:!!($("#cOpen")&&$("#cOpen").checked),seen_hash:p.body_hash}));noBtn&&(noBtn.onclick=()=>act("reject"));
 }
 const DONE={approve:"approved",reject:"rejected"};
 // הפעלה 146: כשל בכפתורי הכותרת מוצג בשורה בדף (היה חלון קופץ של הדפדפן), ונסגר ב«הבנתי» או בפעולה הבאה
