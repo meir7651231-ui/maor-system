@@ -615,7 +615,7 @@ test('הפעלה 135: תזכורת מאוחדת בתור האישורים של /
     { id: 7, invoice_id: 1, invoice_ids: [1, 2, 3], block_reason: null, invoice_count: 3, total_text: '1,200 ₪ + $500' },
     { id: 8, invoice_id: 4, invoice_ids: [4], block_reason: null, invoice_count: 1, total_text: '24.90 ₪' },
     ]);
-  assert.deepEqual(m.pendingBy.get('1'), { reminderId: 7, block: null, count: 3, totalText: '1,200 ₪ + $500' });
+  assert.deepEqual(m.pendingBy.get('1'), { reminderId: 7, block: null, count: 3, totalText: '1,200 ₪ + $500', ids: ['1', '2', '3'] });
   // חשבונית אחת ⇒ בדיוק כמו קודם (אין count ⇒ הממשק מציג את סכום החשבונית)
   assert.deepEqual(m.pendingBy.get('4'), { reminderId: 8, block: null });
   // שרת ישן בלי השדות ⇒ כמו קודם
@@ -1167,4 +1167,34 @@ test('הפעלה 166: ספירת הפער אחידה — רק חשבוניות �
   assert.doesNotMatch(invs, /!!i\.amountDrift/);
   const st = readFileSync(new URL('../src/lib/stats.ts', import.meta.url), 'utf8');
   assert.match(st, /const all = list\.filter\(hasOpenDrift\)\.sort\(byAmountDesc\);/);
+});
+
+test('הפעלה 171: חיפוש ב-/app/ (lib/search.ts) — אותם כללים כמו found ב-/ui', async () => {
+  const { found, normQ, digitsOf } = await import('../src/lib/search.ts');
+  assert.ok(found('', 'x', '1'));
+  assert.ok(found('  ', 'x', '1'), 'רווחים בלבד = אין חיפוש');
+  assert.ok(found('דנה', 'דָּנָה  כהן', '1001'), 'בלי ניקוד');
+  assert.ok(found('דנה כהן', 'דנה   כהן', '1001'), 'רווחים כפולים');
+  assert.ok(found('ACME', 'Acme Ltd', '1'), 'בלי רישיות');
+  assert.ok(found('050-123', 'x', '9', '0501234567'), 'ספרות עם מקף ⇒ טלפון');
+  assert.ok(found('(050) 123', 'x', '9', '050-123-4567'), 'סוגריים ורווחים בטלפון');
+  assert.ok(!found('050-999', 'x', '9', '0501234567'));
+  assert.ok(found('1002', 'x', ['1001', '1002']), 'מספר שאינו העוגן בתזכורת מאוחדת');
+  assert.ok(!found('0110', 'x', ['1001', '1002']), 'בלי הדבקת מספרים');
+  assert.ok(found('INV-7', 'x', 'inv-77'), 'מספר אלפאנומרי כטקסט');
+  assert.ok(!found('-', 'x', '1', '050'), 'מקף לבד ⇒ אין ספרות ⇒ לא נמצא');
+  assert.ok(found('5', 'x', undefined, undefined) === false);
+  assert.equal(normQ(' אָ  ב '), 'א ב'); assert.equal(digitsOf('+972-50'), '97250');
+  // מגן-מקור: הכללים זהים ל-ui.html (אותו ביטוי ספרות ואותו טווח ניקוד), ושני המסכים של /app/ משתמשים ב-found
+  const ui = readFileSync(new URL('../../app/ui.html', import.meta.url), 'utf8');
+  const src = readFileSync(new URL('../src/lib/search.ts', import.meta.url), 'utf8');
+  for (const piece of ['/[\\u0591-\\u05C7]/g', '/^[\\d\\s\\-+()]+$/']) {
+    assert.ok(ui.includes(piece), `ui.html בלי ${piece}`); assert.ok(src.includes(piece), `search.ts בלי ${piece}`);
+  }
+  const inv = readFileSync(new URL('../src/pages/Invoices.tsx', import.meta.url), 'utf8');
+  const dash = readFileSync(new URL('../src/pages/Dashboard.tsx', import.meta.url), 'utf8');
+  assert.match(inv, /found\(t, c\.name, i\.number, c\.phone\)/);
+  assert.match(dash, /pendingOf\(i\.id\)\?\.ids/);
+  assert.match(dash, /shownQueue\.map\(i =>/);
+  assert.doesNotMatch(dash, /\{queue\.map\(i =>/, 'התור חייב להיות מסונן');
 });

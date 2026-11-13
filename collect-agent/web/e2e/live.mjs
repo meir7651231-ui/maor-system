@@ -152,6 +152,28 @@ try {
   const galRow = await items.filter({ hasText: 'גל שרון' }).getByTestId('queue-merged').textContent();
   ok(/^3 חשבוניות · .*₪/.test(galRow.trim()), `שורת התור של גל: ${galRow}`);
   ok(await items.filter({ hasText: 'יוסי' }).getByTestId('queue-merged').count() === 0, 'חשבונית יחידה סומנה כמאוחדת');
+  // הפעלה 171: חיפוש בתור האישורים — לפי מספר של חשבונית שאינה העוגן בתזכורת המאוחדת של גל, לפי טלפון עם מקפים,
+  // ולפי מחרוזת שלא קיימת (הודעה + ניקוי). החיפוש בצד הלקוח בלבד: אף בקשה לשרת.
+  {
+    const galInv = (await api('/dashboard')).invoices.filter(r => r.customer.startsWith('גל שרון') && r.status === 'open');
+    const galRem = (await api('/reminders?view=list&status=pending_approval')).find(r => r.customer_name.startsWith('גל שרון') && r.numbers.length > 1);
+    ok(galRem, 'אין תזכורת מאוחדת של גל בתור');
+    const other = { number: galRem.numbers[1] };
+    const find = p.getByTestId('queue-find');
+    let reqs = 0; const onReq = r => { if (r.url().startsWith(base) && !r.url().includes('/app/')) reqs++; }; p.on('request', onReq);
+    await find.fill(other.number);
+    ok(await items.count() === 1 && (await items.first().textContent()).includes('גל שרון'), `חיפוש ${other.number} לא מצא רק את גל`);
+    if (galInv[0].phone) {
+      const ph = galInv[0].phone.replace(/\D/g, ''); await find.fill(`${ph.slice(0, 3)}-${ph.slice(3, 6)}`);
+      ok((await items.allTextContents()).some(t => t.includes('גל שרון')), 'חיפוש טלפון עם מקף לא מצא את גל');
+    }
+    await find.fill('אין-כזה-לקוח');
+    ok(await items.count() === 0, 'חיפוש ריק השאיר שורות'); await p.getByTestId('queue-empty').waitFor();
+    await p.getByTestId('queue-empty').getByRole('button', { name: 'ניקוי החיפוש' }).click();
+    ok(await items.count() === 3 && await find.inputValue() === '', 'ניקוי החיפוש לא החזיר את התור');
+    p.off('request', onReq); ok(reqs === 0, `החיפוש שלח ${reqs} בקשות לשרת`);
+    console.log(`  ✓ חיפוש בתור האישורים (מספר לא-עוגן ${other.number}, טלפון, ריק+ניקוי)`);
+  }
   // v2: 8 KPI + גרף גבייה
   ok(await p.getByTestId('kpis').locator(':scope > *').count() === 8, 'ציפיתי ל-8 KPI');
   await p.getByTestId('collection-chart').waitFor();

@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import { found } from '../lib/search.ts';
 import { useApp } from '../store.tsx';
 import { agingBuckets, capDrift, kpis, mockOtherCurrency } from '../lib/stats.ts';
 import { AGING_LABEL, daysOverdue, fmtIls, fmtMoney, plusOther, ratioHalfUp, type Aging } from '../lib/format.ts';
 import { STEP_LABEL, nextStep } from '../lib/message.ts';
 import { demoCollectedByMonth } from '../data/demo.ts';
-import { Button, Card, LateBadge } from '../components/ui.tsx';
+import { Button, Card, LateBadge, inputCls } from '../components/ui.tsx';
 import { MessagePreview } from '../components/MessagePreview.tsx';
 import type { Invoice } from '../lib/domain.ts';
 import { api, BLOCK_LABEL, blockKind, DRIFT_LABEL, REAPPROVE_LABEL } from '../api.ts';
@@ -32,6 +33,13 @@ export function Dashboard() {
   const sub = (base: string, field: 'open_agorot' | 'overdue_agorot' | 'at_risk_agorot' | 'collected_agorot') => [base, plusOther(oc, field)].filter(Boolean).join(' · ');
   const [open, setOpen] = useState<Invoice | null>(null);
   const drift = capDrift(live ? invoices : []);
+  // הפעלה 171: חיפוש בתור האישורים — שם, טלפון, וכל מספרי החשבוניות של תזכורת מאוחדת (לא רק העוגן), כמו ב-/ui
+  const [qq, setQq] = useState('');
+  const byId = useMemo(() => new Map(invoices.map(i => [i.id, i])), [invoices]);
+  const shownQueue = !qq.trim() ? queue : queue.filter(i => {
+    const c = customerOf(i.customerId), ids = (live && pendingOf(i.id)?.ids) || [i.id];
+    return found(qq, c.name, ids.map(id => byId.get(id)?.number ?? (id === i.id ? i.number : '')), c.phone);
+  });
 
   return (
     <div className="space-y-6">
@@ -89,9 +97,14 @@ export function Dashboard() {
                 className="mt-2 inline-flex min-h-9 items-center text-sm font-bold text-amber-900 underline">ועוד <span className="num mx-1">{drift.more}</span> בטבלת החשבוניות ←</a>}
             </div>
           )}
-          {queue.length === 0 ? <p className="text-ink-500 py-8 text-center">אין מה לאשר — הכול מטופל ✨</p> : (
+          {queue.length > 0 && <input type="search" value={qq} onChange={e => setQq(e.target.value)} data-testid="queue-find" autoComplete="off"
+            placeholder="חיפוש לפי שם, מס׳ חשבונית או טלפון" aria-label="חיפוש בתור האישורים"
+            className={`${inputCls} mb-3`} />}
+          {queue.length === 0 ? <p className="text-ink-500 py-8 text-center">אין מה לאשר — הכול מטופל ✨</p> : shownQueue.length === 0 ? (
+            <p className="text-ink-500 py-8 text-center" data-testid="queue-empty">אין בתור תזכורת שמתאימה ל«{qq.trim()}». <button type="button" onClick={() => setQq('')} className="font-bold underline cursor-pointer">ניקוי החיפוש</button></p>
+          ) : (
             <ul className="divide-y divide-ink-200">
-              {queue.map(i => (
+              {shownQueue.map(i => (
                 <li key={i.id} className="flex items-center gap-3 py-3">
                   <div className="h-10 w-10 shrink-0 rounded-full bg-brand-50 text-brand-700 grid place-items-center font-bold">{customerOf(i.customerId).name.slice(0, 1)}</div>
                   <div className="min-w-0 flex-1">

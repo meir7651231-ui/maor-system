@@ -121,7 +121,9 @@ export interface Preview { reminder_id: number; status: string; /** critic סב�
   /** הפעלה 154: תזכורת מאושרת שהסכום שלה השתנה במקור (הנוסח עדיין על הסכום הקודם, ולא יישלח כך) */
   amount_drift?: { was_text: string | null; now_text: string } | null }
 /** תזכורת שממתינה לאישור, לפי חשבונית העוגן. count/totalText רק כשהתזכורת כוללת יותר מחשבונית אחת. */
-export interface PendingRef { reminderId: number; block: string | null; count?: number; totalText?: string }
+export interface PendingRef { reminderId: number; block: string | null; count?: number; totalText?: string;
+  /** הפעלה 171: תזכורת מאוחדת — מזהי כל החשבוניות שבה (כולל העוגן), לחיפוש בתור לפי כל מספר */
+  ids?: string[] }
 export interface PendingRow { id: number; invoice_id: number; invoice_ids?: number[]; block_reason: string | null; invoice_count?: number; total_text?: string }
 export interface Plan { id: number; customer_id: number; invoice_id: number; status: string; installments: { n: number; due: string; amount_agorot: number }[]; amount_check?: AmountCheck[] }
 export interface Draft {
@@ -223,7 +225,8 @@ export function fromDashboard(d: Dashboard, pending: PendingRow[]) {
   const invoices: Invoice[] = [];
   const pendingBy = new Map<string, PendingRef>();
   for (const p of pending) pendingBy.set(String(p.invoice_id), { reminderId: p.id, block: p.block_reason,
-    ...((p.invoice_count ?? 1) > 1 ? { count: p.invoice_count, totalText: p.total_text } : {}) });
+    ...((p.invoice_count ?? 1) > 1 ? { count: p.invoice_count, totalText: p.total_text } : {}),
+    ...((p.invoice_ids?.length ?? 0) > 1 ? { ids: p.invoice_ids!.map(String) } : {}) });
   // הפעלה 136: שאר החשבוניות של תזכורת מאוחדת (לא העוגן) ⇒ מזהה חשבונית העוגן, כדי לסמן אותן «בתזכורת מאוחדת»
   const mergedBy = new Map<string, string>();
   for (const p of pending) for (const iid of p.invoice_ids ?? []) if (iid !== p.invoice_id) mergedBy.set(String(iid), String(p.invoice_id));

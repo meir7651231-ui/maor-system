@@ -8,6 +8,7 @@ import { Button, Card, LateBadge, StatusBadge, inputCls } from '../components/ui
 import { DRIFT_LABEL, driftText } from '../api.ts';
 import { MessagePreview } from '../components/MessagePreview.tsx';
 import { hashParam } from '../router.ts';
+import { found } from '../lib/search.ts';
 
 type Sort = 'late' | 'amount' | 'name';
 type Filter = InvoiceStatus | 'all' | 'drift';
@@ -27,7 +28,8 @@ export function Invoices() {
     const t = q.trim();
     return invoices.filter(isOpen)
       .filter(i => f === 'all' || (f === 'drift' ? hasOpenDrift(i) : i.status === f))
-      .filter(i => !t || customerOf(i.customerId).name.includes(t) || i.number.includes(t))
+      // הפעלה 171: אותם כללים כמו /ui (lib/search.ts) — גם טלפון, ספרות בלי מקפים, בלי ניקוד/רישיות
+      .filter(i => { if (!t) return true; const c = customerOf(i.customerId); return found(t, c.name, i.number, c.phone); })
       .sort((a, b) => sort === 'amount' ? byAmountDesc(a, b) : sort === 'name'
         ? customerOf(a.customerId).name.localeCompare(customerOf(b.customerId).name, 'he')
         : daysOverdue(b.dueAt, today) - daysOverdue(a.dueAt, today));
@@ -40,7 +42,7 @@ export function Invoices() {
         <p className="text-ink-500 mt-1">{live ? 'מסונכרן מחשבונית ירוקה (sandbox מדומה)' : 'מסונכרן מחשבונית ירוקה (דמו)'} · <b className="text-ink-900 num">{rows.length}</b> חשבוניות · <b className="text-ink-900">{fmtTotal(rows)}</b></p>
       </div>
       <div className="flex flex-wrap gap-3 items-center">
-        <input className={`${inputCls} max-w-xs`} placeholder="חיפוש לקוח או מס׳ חשבונית…" value={q} onChange={e => setQ(e.target.value)} aria-label="חיפוש" />
+        <input className={`${inputCls} max-w-xs`} type="search" placeholder="חיפוש לפי שם, מס׳ חשבונית או טלפון" value={q} onChange={e => setQ(e.target.value)} aria-label="חיפוש בחשבוניות" data-testid="inv-find" autoComplete="off" />
         <div className="flex flex-wrap gap-1.5">
           {chips.map(([k, l]) => (
             <button key={k} onClick={() => setF(k)} aria-pressed={f === k} {...(k === 'drift' ? { 'data-testid': 'filter-drift' } : {})}
@@ -101,7 +103,9 @@ export function Invoices() {
                   </Fragment>
                 );
               })}
-              {rows.length === 0 && <tr><td colSpan={8} className="text-center py-12 text-ink-500">לא נמצאו חשבוניות</td></tr>}
+              {rows.length === 0 && <tr><td colSpan={8} className="text-center py-12 text-ink-500" data-testid="inv-empty">{q.trim()
+                ? <>לא נמצאו חשבוניות עבור «{q.trim()}». <button type="button" onClick={() => setQ('')} className="font-bold underline cursor-pointer">ניקוי החיפוש</button></>
+                : 'לא נמצאו חשבוניות'}</td></tr>}
             </tbody>
           </table>
         </div>
