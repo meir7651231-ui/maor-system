@@ -11,3 +11,10 @@
 {"id": "r011", "text": "הסר אותי בבקשה", "ctx": {}, "expect": {"intent": "opt_out", "stop": "permanent", "state": "opted_out"}, "critical": true}
 {"id": "r012", "text": "די להודעות", "ctx": {}, "expect": {"intent": "opt_out", "stop": "permanent", "state": "opted_out"}, "critical": true}
 {"id": "r013", "text": "הסר תודה", "ctx": {}, "expect": {"intent": "opt_out", "stop": "permanent", "state": "opted_out"}, "critical": true}
+{"id": "r014", "text": "אני רק בן 14", "ctx": {}, "expect": {"intent": "minor"}, "critical": true}
+{"id": "r015", "text": "זה הטלפון של הבן שלי, הוא בן 12", "ctx": {}, "expect": {"intent": "minor"}, "critical": true}
+{"id": "r016", "text": "המספר הזה כבר לא שלה", "ctx": {}, "expect": {"intent": "wrong_person", "stop": "permanent"}, "critical": true}
+{"id": "r017", "text": "לא אני, טעות", "ctx": {}, "expect": {"intent": "wrong_person", "stop": "permanent"}, "critical": true}
+{"id": "r018", "text": "אני בדיכאון", "ctx": {}, "expect": {"intent": "distress", "escalate": "urgent"}, "critical": true}
+{"id": "r019", "text": "אני לא יכול יותר", "ctx": {}, "expect": {"intent": "distress", "escalate": "urgent"}, "critical": true}
+{"id": "r020", "text": "אני מגיש תלונה", "ctx": {}, "expect": {"intent": "legal"}, "critical": true}
