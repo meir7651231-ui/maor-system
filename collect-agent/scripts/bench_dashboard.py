@@ -11,6 +11,7 @@
     python scripts/bench_dashboard.py --encrypted        # אותו דבר עם SQLCipher (דורש sqlcipher3)
     python scripts/bench_dashboard.py --invoices 200 --json
     python scripts/bench_dashboard.py --sent             # אחרי אישור ושליחה (dry-run) של כל התזכורות
+    python scripts/bench_dashboard.py --sent --history 200000   # + היסטוריית הודעות (חודשים של שליחות ותשובות)
 """
 from __future__ import annotations
 
@@ -42,7 +43,7 @@ SETTINGS = {"BUSINESS_NAME": "עסק לדוגמה", "SMS_SENDER_ID": "Demo",
             "PUBLIC_BASE_URL": "https://gabi.example", "REAL_DATA_ALLOWED": "1"}
 
 
-def build(path: str, n: int, env: dict[str, str], sent: bool = False) -> CollectService:
+def build(path: str, n: int, env: dict[str, str], sent: bool = False, history: int = 0) -> CollectService:
     customers = max(1, n * 2 // 5)
     docs = [gi_doc(k, client_id=f"cl{k % customers}", name=f"לקוח {k % customers}",
                    phone=f"050-{1000000 + k % customers}", amount=f"{100 + k % 900}.00",
@@ -55,7 +56,23 @@ def build(path: str, n: int, env: dict[str, str], sent: bool = False) -> Collect
     svc.plan()
     if sent:
         send_all(svc)
+    if history:
+        add_history(svc, history)
     return svc
+
+
+def add_history(svc: CollectService, n: int) -> None:
+    """הפעלה 178: היסטוריית `messages` כמו אחרי חודשים בשטח — יוצאות ונכנסות לכל הלקוחות, אחת מ-500
+    «דורשת טיפול», חלק עם מזהה ספק (DLR). דטרמיניסטי (בלי random), נכתב ישירות לטבלה."""
+    cust = [r["id"] for r in svc.db.q("SELECT id FROM customers ORDER BY id")]
+    rows = [(cust[k % len(cust)], "in" if k % 3 == 0 else "out", "sms" if k % 4 else "email",
+             "תודה, אשלם השבוע" if k % 3 == 0 else "תזכורת: יתרה פתוחה", 1 if k % 500 == 0 else 0,
+             f"hist{k}", "019" if k % 2 else None, f"p{k}" if k % 2 else None,
+             f"2026-{6 + k % 5:02d}-{1 + k % 28:02d}T10:00:00+03:00") for k in range(n)]
+    with svc.db.conn:
+        svc.db.conn.executemany(
+            "INSERT INTO messages(customer_id, direction, channel, body, needs_owner, message_id, provider, "
+            "provider_id, created_at) VALUES(?,?,?,?,?,?,?,?,?)", rows)
 
 
 def send_all(svc: CollectService) -> int:
@@ -90,7 +107,7 @@ def count_queries(svc: CollectService, fn) -> int:
     return n[0]
 
 
-def run(n: int, encrypted: bool, repeat: int, sent: bool = False) -> dict:
+def run(n: int, encrypted: bool, repeat: int, sent: bool = False, history: int = 0) -> dict:
     env = dict(os.environ)
     env["DB_ENCRYPTION"] = "sqlcipher" if encrypted else "off"
     if encrypted and not env.get("COLLECT_MASTER_KEYS"):
@@ -99,7 +116,7 @@ def run(n: int, encrypted: bool, repeat: int, sent: bool = False) -> dict:
     with tempfile.TemporaryDirectory() as d:
         path = str(Path(d) / "bench.sqlite3")
         t0 = time.perf_counter()
-        svc = build(path, n, env, sent)
+        svc = build(path, n, env, sent, history)
         seed = time.perf_counter() - t0
         rows = svc.dashboard()["invoices"]
 
@@ -111,6 +128,7 @@ def run(n: int, encrypted: bool, repeat: int, sent: bool = False) -> dict:
             "customers": svc.db.one("SELECT COUNT(*) n FROM customers")["n"],
             "reminders": svc.db.one("SELECT COUNT(*) n FROM reminders")["n"],
             "sent_rows": sum(1 for x in rows if x["last_sent"]),
+            "messages": svc.db.one("SELECT COUNT(*) n FROM messages")["n"],
             "encrypted": bool(svc.db.encrypted),
             "file_mb": round(os.path.getsize(path) / 1e6, 2),
             "seed_s": round(seed, 1),
@@ -118,6 +136,9 @@ def run(n: int, encrypted: bool, repeat: int, sent: bool = False) -> dict:
             "after_list_ms": median_ms(lambda: svc.dashboard(view="list"), repeat),
             "before_per_invoice_ms": median_ms(before, max(1, repeat // 2)),
             "after_queries": count_queries(svc, svc.dashboard),
+            # /owner/inbox — אותה שאילתה כמו ב-app/main.py
+            "owner_inbox_ms": median_ms(lambda: svc.db.q("SELECT * FROM messages WHERE needs_owner=1 "
+                                                         "ORDER BY id DESC"), repeat),
         }
         svc.db.conn.close()
         return out
@@ -129,19 +150,21 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--encrypted", action="store_true", help="DB_ENCRYPTION=sqlcipher (דורש sqlcipher3)")
     p.add_argument("--repeat", type=int, default=5)
     p.add_argument("--sent", action="store_true", help="לאשר ולשלוח (dry-run) את כל התזכורות לפני המדידה")
+    p.add_argument("--history", type=int, default=0, help="מספר הודעות היסטוריות להוסיף (הפעלה 178)")
     p.add_argument("--json", action="store_true")
     a = p.parse_args(argv)
-    r = run(a.invoices, a.encrypted, a.repeat, a.sent)
+    r = run(a.invoices, a.encrypted, a.repeat, a.sent, a.history)
     if a.json:
         print(json.dumps(r, ensure_ascii=False))
     else:
         kind = "SQLCipher" if r["encrypted"] else "קובץ גלוי"
         print(f"{kind} · {r['invoices']} חשבוניות · {r['customers']} לקוחות · {r['reminders']} תזכורות · "
-              f"{r['sent_rows']} שורות שיצאו · "
+              f"{r['sent_rows']} שורות שיצאו · {r['messages']} הודעות · "
               f"{r['file_mb']}MB")
         print(f"  לפני (שאילתות לכל חשבונית): {r['before_per_invoice_ms']} ms")
         print(f"  אחרי /dashboard: {r['after_ms']} ms · {r['after_queries']} שאילתות")
         print(f"  אחרי /dashboard?view=list: {r['after_list_ms']} ms")
+        print(f"  /owner/inbox: {r['owner_inbox_ms']} ms")
     return 0
 
 

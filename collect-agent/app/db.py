@@ -213,7 +213,16 @@ class DB:
             "CREATE INDEX IF NOT EXISTS ix_msg_mid ON messages(message_id);"
             "CREATE INDEX IF NOT EXISTS ix_msg_cust ON messages(customer_id);"
             # הפעלה 161: _customer_block רץ לכל חשבונית ב-/dashboard ולכל לקוח ב-plan(), וסרק את כל plans
-            "CREATE INDEX IF NOT EXISTS ix_plan_cust ON plans(customer_id, status);")
+            "CREATE INDEX IF NOT EXISTS ix_plan_cust ON plans(customer_id, status);"
+            # הפעלה 178: /dashboard על היסטוריית הודעות (200,000 שורות) — 736ms, מתוכם 524ms בשתי שאילתות
+            # `SELECT DISTINCT customer_id … WHERE direction=?` (סריקה מלאה), ועוד 17ms בספירת needs_owner=1
+            # (גם /owner/inbox). ה-SQL עצמו לא השתנה. customer_id **ראשון**: אינדקס שמתחיל ב-direction נבחר
+            # (בלי ANALYZE) גם לשאילתות לפי message_id ⇒ ערוצי היוצאים ב-/dashboard קפצו 6 ⇒ 134ms.
+            "CREATE INDEX IF NOT EXISTS ix_msg_cust_dir ON messages(customer_id, direction);"
+            "CREATE INDEX IF NOT EXISTS ix_msg_owner ON messages(id) WHERE needs_owner=1;"
+            # דוח מסירה (DLR) מחפש את ההודעה לפי provider+provider_id — סריקה מלאה לכל דיווח
+            "CREATE INDEX IF NOT EXISTS ix_msg_provider ON messages(provider_id, provider) "
+            "WHERE provider_id IS NOT NULL;")
         if "episode_since" not in cols:   # תחילת «אפיזודת החוב» הנוכחית של הלקוח (סולם 3 התזכורות)
             self.conn.execute("ALTER TABLE customers ADD COLUMN episode_since TEXT")
         self.conn.commit()
