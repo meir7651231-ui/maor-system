@@ -46,6 +46,15 @@ def _accepts_gzip(request: Request) -> bool:
     return False
 
 
+def _cacheable_static(path: str) -> bool:
+    """רק נכסי ה-build של /app/ (קבצים עם סיומת, בלי נתוני לקוחות) רשאים להישמר במטמון.
+    /app/ עצמו (index.html) לא: אחרת דפדפן עלול להחזיק דף ישן אחרי פריסה."""
+    if not path.startswith("/app/"):
+        return False
+    last = path.rsplit("/", 1)[-1]
+    return "." in last and not last.endswith(".html")
+
+
 def gzip_json(request: Request, data) -> Response:
     """JSON רגיל (אותו גוף כמו תשובה רגילה של FastAPI), דחוס ב-gzip כשהלקוח מקבל ושווה לדחוס."""
     resp = JSONResponse(data)
@@ -214,6 +223,11 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         resp.headers.setdefault("X-Content-Type-Options", "nosniff")
         resp.headers.setdefault("X-Frame-Options", "DENY")
         resp.headers.setdefault("Referrer-Policy", "no-referrer")
+        # הפעלה 172 (פתוח מביקורת 170): תשובות ה-API ועמודי /p/ מכילים שמות, טלפונים וסכומי חוב.
+        # בלי Cache-Control דפדפן/פרוקסי רשאי לשמור אותן (מטמון היוריסטי, כפתור «אחורה» אחרי
+        # יציאה). ברירת מחדל no-store לכל דבר; חריג יחיד: נכסי /app/ הסטטיים (JS/CSS בלי נתונים).
+        if not _cacheable_static(request.url.path):
+            resp.headers.setdefault("Cache-Control", "no-store")
         return resp
 
     users = Users(svc.db, svc.clock)
