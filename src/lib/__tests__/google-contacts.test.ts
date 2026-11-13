@@ -139,3 +139,45 @@ describe('📇 הגנת-מקור — חיווט הסנכרון (דורמנטי, 
     expect(cloud).toContain('user.getIdToken()');
   });
 });
+
+/**
+ * ratchet (לילה 13.11.2026) — 🐛 "טלפונים נוספים" של משפחה (`Family.phones[]`, בקשת-בעלים 13.10)
+ * לא נאספו לסנכרון-Google ולייצוא-vCard: האיסוף הכיר רק phone/phone2 + בני-המשפחה.
+ * ⇒ מספר שנשמר כ"נוסף" (או שעבר ל-phones[] במיזוג-כפולים) נעלם מאנשי-הקשר בטלפון.
+ */
+describe('📞 טלפונים-נוספים של משפחה מגיעים ל-Google ול-vCard', () => {
+  const extra = [{ id: 'ph1', num: '077-9876543', label: 'עבודה' }, { id: 'ph2', num: '+972 50 1111111' }];
+
+  it('phones[] נאספים אחרי ראשי/נוסף ולפני בני-המשפחה; כפול-מנורמל מסונן', () => {
+    const [c] = collectOrgContacts(
+      [fam({ phone2: '02-5551234', phones: extra, members: [{ phone: '058-7654321', phone2: '' }] as Family['members'] })],
+      [], [],
+    );
+    expect(c.phones).toEqual(['050-1111111', '02-5551234', '077-9876543', '058-7654321']);
+  });
+
+  it('משפחה שכל טלפוניה ב-phones[] בלבד — לא מדולגת', () => {
+    const c = collectOrgContacts([fam({ phone: '', phones: [extra[0]] })], [], []);
+    expect(c).toHaveLength(1);
+    expect(c[0].phones).toEqual(['077-9876543']);
+  });
+
+  it('המספר-הנוסף מופיע ב-vCard וב-People payload', () => {
+    const [c] = collectOrgContacts([fam({ phones: [extra[0]] })], [], []);
+    expect(buildVcard(c)).toContain('077-9876543');
+    expect(JSON.stringify(toPersonResource(c))).toContain('077-9876543');
+  });
+
+  it('בלי phones[] ⇒ ביט-זהה לקודם', () => {
+    const [c] = collectOrgContacts([fam({ phone2: '02-5551234' })], [], []);
+    expect(c.phones).toEqual(['050-1111111', '02-5551234']);
+  });
+
+  it('phones פגום (לא-מערך / איבר null) לא מפיל את האיסוף — משפחה ותורם', () => {
+    const badFam = fam({ phones: 'garbage' as unknown as Family['phones'] });
+    const badSup = sup({ phones: [null, { id: 'x', num: '03-9999999' }] as unknown as Supporter['phones'] });
+    const c = collectOrgContacts([badFam], [badSup], []);
+    expect(c[0].phones).toEqual(['050-1111111']);
+    expect(c[1].phones).toEqual(['052-2222222', '03-9999999']);
+  });
+});
