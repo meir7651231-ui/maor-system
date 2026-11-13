@@ -50,6 +50,7 @@ from .security import clean_client_name
 # ימים אחרי מועד-התשלום לכל שלב
 STEP_OFFSETS_DAYS = (1, 7, 14)   # 3 תזכורות לכל היותר (הכרעת מאיר) ⇒ עצירה + התראה לבעל העסק
 ACTIVE = ("pending_approval", "approved")
+AWAITING_OWNER = "awaiting_owner"   # critic סבב 64: הודעת הלקוח ממתינה לבעל העסק ⇒ אין תזכורת עד שיטפל
 AMOUNT_CHECK = "amount_check"   # הפעלה 123: סכום חריג ⇒ אישור מפורש (לא חסימה קשה)
 HARD_BLOCKS = {"no_contact", "no_payment_link", "compliance", "no_reply_to"}
 
@@ -1858,6 +1859,12 @@ class CollectService:
         if not c["paused_reason"]:
             raise ValueError("הלקוח לא מושהה")
         self.db.x("UPDATE customers SET paused_reason=NULL WHERE id=?", (customer_id,))
+        # critic סבב 64: «חידוש תזכורות» = בעל העסק טיפל בעניין ⇒ הכרטיסים הפתוחים של הלקוח נסגרים (אחרת
+        # AWAITING_OWNER היה ממשיך לעצור את התזכורות שהוא ביקש לחדש)
+        if self._table_exists("drafts"):
+            self.db.x("UPDATE drafts SET status='rejected', decided_by=?, decided_at=? WHERE customer_id=? "
+                      "AND status IN ('pending_approval','needs_owner')",
+                      (f"{actor}:resumed", _iso(self.clock()), customer_id))
         self.audit(actor, "resume_customer", {"customer": customer_id, "was": c["paused_reason"]})
         return dict(self.db.one("SELECT * FROM customers WHERE id=?", (customer_id,)))
 
@@ -2204,8 +2211,17 @@ class CollectService:
                         (cid,))
         plan = self.db.one("SELECT 1 FROM plans WHERE customer_id=? AND status IN "
                            "('proposed','approved')", (cid,))
-        return customer_blocked(opted_out=bool(c["opted_out"]), disputed=bool(c["disputed"]),
-                                plan_active=bool(plan), paused=c["paused_reason"])
+        block = customer_blocked(opted_out=bool(c["opted_out"]), disputed=bool(c["disputed"]),
+                                 plan_active=bool(plan), paused=c["paused_reason"])
+        # critic סבב 64: הלקוח כתב והודעתו ממתינה לבעל העסק (טיוטה/כרטיס) ⇒ אין תזכורת חדשה, ומאושרת לא יוצאת.
+        # היה: «קיבלתי, בודקת עם רואה החשבון ואחזור אליכם» ⇒ שבוע אחרי כן «חשבונית … פתוחה» יצאה בלי שאיש ענה.
+        # משתחרר מעצמו כשבעל העסק ענה/סגר (אין השהיה שצריך לזכור לשחרר).
+        if block is None and self._table_exists("drafts") and self.db.one(
+                "SELECT 1 FROM drafts WHERE customer_id=? AND status IN ('pending_approval','needs_owner') "
+                # הבטחה («אשלם ביום חמישי») כבר משהה עד מועד מוגדר ומשתחררת לבד אם לא שולם — זה התכנון שלה
+                "AND intent != 'promise'", (cid,)):
+            return AWAITING_OWNER
+        return block
 
     def _cancel_invoice(self, iid: int, reason: str) -> None:
         """כל תזכורת פעילה **שכוללת** את החשבונית (גם מאוחדת) מבוטלת — הנוסח שלה כבר לא נכון.

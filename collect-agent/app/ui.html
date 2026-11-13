@@ -114,6 +114,7 @@ const pause=r=>{const [b,u]=String(r).split(":until=");const t=BLOCK[b]||PAUSE[b
   return u?t+" · עד "+u.split("-").reverse().join("."):t};
 const BLOCK={no_contact:"אין נייד או מייל תקין",compliance:"נחסם במסנן הניסוח",plan_active:"בהסדר תשלומים",disputed:"מחלוקת",no_payment_link:"אין קישור תשלום",
   no_reply_to:"ללקוח יש רק מייל ולא הוגדרה כתובת תשובה לעסק",
+  awaiting_owner:"הלקוח כתב לכם — התזכורות ממתינות לתשובה שלכם",
   opted_out:"הלקוח ביקש הסרה",paid_claim:"הלקוח טוען ששילם",dispute:"מחלוקת",credit_review:"זיכוי לא משויך, לבדיקתך",
   invoice_closed:"החשבונית נסגרה",plan_request:"ביקש פריסה"};
 // הפעלה 133: חסימה קשה = HARD_BLOCKS בשרת (אסור לאשר). REAPPROVE = התזכורת רק חזרה לאישור, השרת מתיר.

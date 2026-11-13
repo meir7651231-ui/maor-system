@@ -65,6 +65,8 @@ CREATE TABLE IF NOT EXISTS drafts (
   sent_at TEXT, message_id TEXT,
   total_agorot INTEGER                -- יתרה פתוחה ברגע הניסוח (אימות סכום לפני שליחה)
 );
+-- critic סבב 64: _customer_block בודק «הודעה של הלקוח ממתינה לבעל העסק» לכל חשבונית בדשבורד ובתכנון
+CREATE INDEX IF NOT EXISTS ix_drafts_cust ON drafts(customer_id, status);
 """
 
 # הודעה ללקוח שביקש הסרה מותרת רק כמענה לבקשה מפורשת שלו או כאישור ההסרה עצמה
