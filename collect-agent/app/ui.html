@@ -243,7 +243,7 @@ function drawDebts(){
     const st=x.status!=="open"?"שולמה ונסגרה":x.customer_block?pause(x.customer_block)
       :L?chipOf(L):"טרם הוכנה";
     return `<tr class="${x.status!=="open"?"closed":""}"><td>${esc(x.customer)}${
-    x.status==="open"&&x.paused_reason&&x.customer_block===x.paused_reason
+    x.status==="open"&&x.paused_reason&&(x.customer_block===x.paused_reason||x.customer_block==="disputed")
       ?` <button class="resume" data-cid="${x.customer_id}"${busy?" disabled":""} title="בדקתם והתשלום לא התקבל? התזכורות ללקוח יחודשו">↻ חידוש תזכורות</button>`:""}</td><td>${esc(x.number)}</td>
     <td class="num">${esc(fmtCur(x.amount_agorot,x.currency))}</td><td>${esc(x.due||"")}</td>
     <td class="${x.days_overdue>0?"late":""}">${x.days_overdue>0?x.days_overdue+" ימים":"—"}</td>

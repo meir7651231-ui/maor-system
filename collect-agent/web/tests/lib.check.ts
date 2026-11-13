@@ -624,7 +624,10 @@ test('הפעלה 135: תזכורת מאוחדת בתור האישורים של /
   assert.match(mp, /pv\?\.needs_confirm_open \?\? invoice\.source === 'csv'/);
   assert.doesNotMatch(mp, /cta\} · \{fmtMoney\(invoice\.amount/);
   const main = readFileSync(new URL('../../app/main.py', import.meta.url), 'utf8');
-  assert.match(main, /"invoice_ids": ids, \*\*svc\.reminder_totals\(/);
+  // critic סבב 66: הפעלה 179 העבירה את החישוב ל-reminder_extras_many (המגן נכשל על origin — CI אדום). אותה כוונה:
+  // view=summary מחזיר invoice_count ו-total_text של כל התזכורת המאוחדת, לא של העוגן
+  assert.match(main, /"invoice_count": e\["invoice_count"\],\s*\n?\s*"total_text": e\["total_text"\]/);
+  assert.match(main, /ex = svc\.reminder_extras_many\(rows\)/);
 });
 
 test('הפעלה 136: עמוד החשבוניות — חשבונית שכלולה בתזכורת מאוחדת ואינה העוגן מסומנת ומפנה לעוגן', () => {

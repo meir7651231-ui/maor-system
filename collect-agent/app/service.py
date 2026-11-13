@@ -1343,6 +1343,14 @@ class CollectService:
         self._recover_stuck_sends(now)
         rows = self.db.q("SELECT * FROM reminders WHERE status='approved' AND scheduled_for<=? "
                          "ORDER BY scheduled_for", (_iso(now),))
+        # critic סבב 66: מרווח 72 השעות לפי **כתובת**, לא רק לפי רשומת לקוח (כמו ההסרה וההחזקה). שני לקוחות על
+        # אותו נייד קיבלו שני SMS גבייה באותה שנייה. מפה כתובת ⇒ השליחה האחרונה אליה, מתעדכנת תוך כדי הסבב.
+        last_by_contact: dict[tuple[str, str], datetime] = {}
+        for c in self.db.q("SELECT phone, email, last_sent_at FROM customers WHERE last_sent_at IS NOT NULL"):
+            t = _dt(c["last_sent_at"])
+            for k in self._contacts_of(c):
+                if t and (k not in last_by_contact or t > last_by_contact[k]):
+                    last_by_contact[k] = t
         for r in rows:
             # ר-12: אושר בדיוק הגוף הזה ובגרסת הנוסח הנוכחית? אחרת האישור בטל
             if r["approved_hash"] != _sha(r["payload"]) or \
@@ -1369,6 +1377,9 @@ class CollectService:
                 continue
             if not gap_ok(_dt(cust["last_sent_at"]), now):
                 continue  # ננסה בסבב הבא
+            shared = [last_by_contact[k] for k in self._contacts_of(cust) if k in last_by_contact]
+            if shared and not gap_ok(max(shared), now):
+                continue  # critic סבב 66: אותה כתובת קיבלה תזכורת (של לקוח אחר) לפני פחות מ-72 שעות
             if not self._claim_reminder(r["id"]):
                 continue   # critic סבב 39: ריצה אחרת כבר תפסה אותה (אין שליחה כפולה במקביל)
             ids = []
@@ -1401,6 +1412,8 @@ class CollectService:
                       (_iso(now), ",".join(ids), redact_tokens(r["payload"]),
                        redact_tokens(r["body"]), r["id"]))
             self.db.x("UPDATE customers SET last_sent_at=? WHERE id=?", (_iso(now), cust["id"]))
+            for k in self._contacts_of(cust):
+                last_by_contact[k] = now
             out.append({"reminder_id": r["id"], "message_ids": ids, "dry_run": True})
         if out:
             self.audit("system", "dispatch_dry_run", {"count": len(out)})
@@ -1887,16 +1900,19 @@ class CollectService:
         c = self.db.one("SELECT * FROM customers WHERE id=?", (customer_id,))
         if not c:
             raise KeyError(customer_id)
-        if not c["paused_reason"]:
+        if not c["paused_reason"] and not c["disputed"]:
             raise ValueError("הלקוח לא מושהה")
-        self.db.x("UPDATE customers SET paused_reason=NULL WHERE id=?", (customer_id,))
+        # critic סבב 66: מחלוקת מסמנת גם disputed=1, ושום מסלול לא ניקה אותו ⇒ «חודשו» ב-200 והלקוח נשאר חסום
+        # לתמיד. «חידוש» = בעל העסק סגר את העניין ⇒ משחרר גם את המחלוקת.
+        self.db.x("UPDATE customers SET paused_reason=NULL, disputed=0 WHERE id=?", (customer_id,))
         # critic סבב 64: «חידוש תזכורות» = בעל העסק טיפל בעניין ⇒ הכרטיסים הפתוחים של הלקוח נסגרים (אחרת
         # AWAITING_OWNER היה ממשיך לעצור את התזכורות שהוא ביקש לחדש)
         if self._table_exists("drafts"):
             self.db.x("UPDATE drafts SET status='rejected', decided_by=?, decided_at=? WHERE customer_id=? "
                       "AND status IN ('pending_approval','needs_owner')",
                       (f"{actor}:resumed", _iso(self.clock()), customer_id))
-        self.audit(actor, "resume_customer", {"customer": customer_id, "was": c["paused_reason"]})
+        self.audit(actor, "resume_customer", {"customer": customer_id, "was": c["paused_reason"],
+                                              "was_disputed": bool(c["disputed"])})
         return dict(self.db.one("SELECT * FROM customers WHERE id=?", (customer_id,)))
 
     # ---------- dashboard ----------
