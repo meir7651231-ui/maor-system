@@ -48,6 +48,11 @@ function uniqEmails(raw) {
   return out;
 }
 
+/** מספרי phones[] — חסין לרשומה פגומה (לא-מערך / איבר null): איש-קשר אחד לא מפיל את כל הסנכרון. */
+function extraNums(phones) {
+  return Array.isArray(phones) ? phones.map((p) => (p ? p.num : undefined)) : [];
+}
+
 /** מפתח-יציב לזיהוי-חוזר — חייב להיות זהה ל-src/lib/googleContacts.contactStableKey. */
 function stableKey(kind, id) {
   return 'maor:' + kind + ':' + id;
@@ -59,7 +64,8 @@ function collectContacts(data, org) {
   for (const f of data.families || []) {
     const name = clean(f.name);
     if (!name) continue;
-    const phones = uniqPhones([f.phone, f.phone2, ...((f.members || []).flatMap((m) => [m.phone, m.phone2]))]);
+    // חייב להיות זהה ל-src/lib/googleContacts.collectOrgContacts: ראשי → נוסף → phones[] → בני-המשפחה.
+    const phones = uniqPhones([f.phone, f.phone2, ...extraNums(f.phones), ...((f.members || []).flatMap((m) => [m.phone, m.phone2]))]);
     const emails = uniqEmails([f.email]);
     if (!phones.length && !emails.length) continue;
     out.push({ id: f.id, kind: 'family', name, phones, emails, address: clean(f.address), city: clean(f.city), org });
@@ -67,7 +73,7 @@ function collectContacts(data, org) {
   for (const s of data.supporters || []) {
     const name = clean(s.name);
     if (!name) continue;
-    const phones = uniqPhones([s.phone, ...((s.phones || []).map((p) => p.num))]);
+    const phones = uniqPhones([s.phone, ...extraNums(s.phones)]);
     const emails = uniqEmails([s.email]);
     if (!phones.length && !emails.length) continue;
     out.push({ id: s.id, kind: 'supporter', name, phones, emails, address: clean(s.address), city: clean(s.city), org });

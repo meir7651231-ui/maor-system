@@ -47,6 +47,10 @@ function uniqPhones(raw: (string | undefined)[]): string[] {
   return out;
 }
 
+/** מספרי phones[] — חסין לרשומה פגומה (לא-מערך / איבר null) כדי שאיש-קשר אחד לא יפיל את כל הסנכרון. */
+const extraNums = (phones: unknown): (string | undefined)[] =>
+  Array.isArray(phones) ? phones.map((p) => (p as { num?: string } | null)?.num) : [];
+
 function uniqEmails(raw: (string | undefined)[]): string[] {
   const seen = new Set<string>();
   const out: string[] = [];
@@ -72,7 +76,9 @@ export function collectOrgContacts(
   for (const f of families || []) {
     const name = clean(f.name);
     if (!name) continue;
-    const phones = uniqPhones([f.phone, f.phone2, ...(f.members || []).flatMap((m) => [m.phone, m.phone2])]);
+    // 🐛 עד 13.11: "טלפונים נוספים" של משפחה (phones[], 13.10) לא נאספו ⇒ לא הגיעו ל-Google/vCard.
+    // הסדר: ראשי → נוסף → phones[] → טלפוני בני-המשפחה (זהה ל-functions/gcontactsSync.js).
+    const phones = uniqPhones([f.phone, f.phone2, ...extraNums(f.phones), ...(f.members || []).flatMap((m) => [m.phone, m.phone2])]);
     const emails = uniqEmails([f.email]);
     if (!phones.length && !emails.length) continue;
     out.push({ id: f.id, kind: 'family', name, phones, emails, address: clean(f.address), city: clean(f.city), org });
@@ -80,7 +86,7 @@ export function collectOrgContacts(
   for (const s of supporters || []) {
     const name = clean(s.name);
     if (!name) continue;
-    const phones = uniqPhones([s.phone, ...(s.phones || []).map((p) => p.num)]);
+    const phones = uniqPhones([s.phone, ...extraNums(s.phones)]);
     const emails = uniqEmails([s.email]);
     if (!phones.length && !emails.length) continue;
     out.push({ id: s.id, kind: 'supporter', name, phones, emails, address: clean(s.address), city: clean(s.city), org });

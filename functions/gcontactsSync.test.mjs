@@ -57,4 +57,21 @@ describe('gcontactsSync — ליבה טהורה', () => {
     expect(creates).toHaveLength(3);
     expect(updates).toHaveLength(0);
   });
+
+  // ratchet (לילה 13.11.2026) — 🐛 Family.phones[] ("טלפונים נוספים", 13.10) לא נאספו בשרת.
+  it('טלפונים-נוספים של משפחה (phones[]) נאספים — ראשי → נוסף → phones[] → בני-המשפחה', () => {
+    const d = { families: [{ id: 'f9', name: 'לוי', phone: '050-1111111', phone2: '02-5551234', phones: [{ num: '077-9876543' }, { num: '0501111111' }], members: [{ phone: '058-7654321' }] }] };
+    const [c] = collectContacts(d, 'מאור');
+    expect(c.phones).toEqual(['050-1111111', '02-5551234', '077-9876543', '058-7654321']);
+    expect(JSON.stringify(toPersonBody(c))).toContain('077-9876543');
+  });
+
+  it('משפחה עם טלפון ב-phones[] בלבד לא מדולגת; phones פגום לא מפיל', () => {
+    const d = {
+      families: [{ id: 'f8', name: 'כץ', phone: '', phones: [{ num: '077-1112223' }] }, { id: 'f7', name: 'בר', phone: '050-2223334', phones: 'garbage' }],
+      supporters: [{ id: 's7', name: 'דן', phone: '052-2222222', phones: [null, { num: '03-9999999' }] }],
+    };
+    const c = collectContacts(d, 'מאור');
+    expect(c.map((x) => x.phones)).toEqual([['077-1112223'], ['050-2223334'], ['052-2222222', '03-9999999']]);
+  });
 });
