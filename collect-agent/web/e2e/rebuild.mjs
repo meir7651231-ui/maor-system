@@ -154,6 +154,25 @@ try {
     ok(await u.locator('#blockNote').count() === 0, '/ui: «לבדוק ולאשר מחדש» על תזכורת שכבר אושרה');
     if (out) await u.screenshot({ path: `${out}/rebuild-02-drift.png`, fullPage: true });
     await u.close();
+    // הפעלה 160: גם טבלת החשבוניות של /app/ (עד כאן: «נשלחה תזכורת» בלי שום סימן שהמאושרת לא תצא כך)
+    for (const [vp, viewport] of [['דסקטופ', { width: 1280, height: 900 }], ['מובייל', { width: 390, height: 844 }]]) {
+      const a = await ctx.newPage(); watch(a);
+      await a.setViewportSize(viewport);
+      await a.goto(base + `/app/#/invoices?token=${TOKEN}`);
+      const chip = a.locator('tbody tr', { hasText: 'יוסי' }).getByTestId('amount-drift-chip');
+      await chip.waitFor();
+      ok((await chip.textContent()).trim() === 'הסכום השתנה במקור, תחזור לאישורך', `/app/ ${vp}: הצ׳יפ בעמודת הסטטוס: ` + await chip.textContent());
+      const dr = a.getByTestId('amount-drift');
+      ok(await dr.count() === 1 && await a.getByTestId('amount-drift-chip').count() === 1, `/app/ ${vp}: הפער מסומן על יותר מחשבונית אחת`);
+      const t = await dr.textContent();
+      ok(t.includes('חשבונית 2002:') && t.includes('מ-3,600.50 ₪ ל-3,750.50 ₪') && t.includes('תחזור אליכם לאישור'), `/app/ ${vp}: הסבר הפער בטבלת החשבוניות: ` + t);
+      // ההסבר נראה בלי גלילה רוחבית של הטבלה (במובייל עמודת הסטטוס מחוץ למסך)
+      ok(await dr.locator('p').evaluate(e => { const r = e.getBoundingClientRect(); return r.left >= 0 && r.right <= innerWidth && r.width > 200; }), `/app/ ${vp}: הסבר הפער מחוץ למסך`);
+      ok(await a.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), `/app/ ${vp}: גלילה רוחבית של העמוד עם סימון הפער`);
+      if (out) await a.screenshot({ path: `${out}/rebuild-02-app-drift${vp === 'מובייל' ? '-mobile' : ''}.png`, fullPage: true });
+      await a.close();
+    }
+    console.log('  ✓ /app/: טבלת החשבוניות מסמנת את התזכורת המאושרת שהסכום שלה השתנה (דסקטופ ומובייל)');
     console.log('  ✓ /ui: תזכורת מאושרת שהסכום שלה עלה במקור ⇒ «מ-3,600.50 ₪ ל-3,750.50 ₪ … לא יישלח כך», לפני ה-/dispatch');
   };
   const pvC = await approveThenRaise(rid, pvB.body_hash, 3750.5, driftSeen);
@@ -186,6 +205,8 @@ try {
   ok(mine.length >= 1 && mine.every(m => hasAmt(m.body, '3,750.50')), 'יצאה הודעה בלי הסכום העדכני: ' + JSON.stringify(mine.map(m => m.body)));
   ok(!mine.some(m => hasAmt(m.body, '3,450.50') || hasAmt(m.body, '3,600.50') || hasAmt(m.html, '3,450.50') || hasAmt(m.html, '3,600.50')), 'יצא סכום ישן');
   console.log('  ✓ /app/: עלייה שנייה אחרי אישור ⇒ השליחה בנתה מחדש, «מ-3,600.50 ₪ ל-3,750.50 ₪», אישור על הנוסח העדכני עבר, ויצא (dry-run) רק 3,750.50 ₪');
+  await q.goto(base + '/app/#/invoices'); await q.locator('tbody tr').first().waitFor();
+  ok(await q.getByTestId('amount-drift').count() === 0, '/app/: סימון הפער נשאר אחרי שהתזכורת נבנתה מחדש ונשלחה');
   ok(errors.length === 0, 'שגיאות:\n' + errors.join('\n'));
   console.log('✓ בנייה מחדש אמיתית מול ה-mock של חשבונית ירוקה: בלי יירוט, שני הממשקים, ושום הודעה לא יצאה על סכום שבעל העסק לא ראה');
 } finally { await b.close(); srv.kill(); mock.kill(); }

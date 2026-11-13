@@ -3,6 +3,8 @@
 //   2) חלון «תצוגה ואישור» בזמן שהנוסח נטען: שלד, בלי שלב / מועד / נוסח שנגזרו מהמוק, ובלי אפשרות לאשר.
 //   3) נוסח שלא נטען: הודעה ו«נסו שוב», בלי נוסח ובלי אפשרות לאשר.
 //   4) ערוץ שאין לו הודעה בתזכורת: «לא יישלח מייל», ולא מייל שנבנה מהמוק.
+//   5) הפעלה 160: התזכורת הוחלפה באחרת (מזהה חדש) בזמן שהחלון פתוח ⇒ הנוסח הקודם יורד מיד, שלד בלי אישור,
+//      ואז הנוסח החדש. הכול רץ פעמיים: דסקטופ ומובייל (390), כולל בדיקת גלילה רוחבית כשהחלון פתוח.
 // דרישה: npm run build. הרצה: node e2e/preview.mjs [תיקיית-צילומים]
 import { createRequire } from 'node:module';
 import { spawn } from 'node:child_process';
@@ -23,10 +25,16 @@ const inject = makeInject(routeErrors);
 for (let i = 0; i < 80; i++) { try { if ((await fetch(base + '/health')).ok) break; } catch { /* עוד עולה */ } await new Promise(r => setTimeout(r, 250)); }
 
 const errors = [];
-let expect503 = 0, seen503 = 0, console503 = 0;
+let expect503 = 0, seen503 = 0, console503 = 0, expectCut = 0, seenCut = 0;
+const H = { Authorization: `Bearer ${TOKEN}` };
+const FAKE = 987654;   // מזהה של התזכורת «החדשה» בסעיף 5 (קיים רק ביירוט)
 const b = await chromium.launch();
 try {
-  const p = await b.newPage({ viewport: { width: 1366, height: 900 } });
+ for (const [vp, viewport] of [['דסקטופ', { width: 1366, height: 900 }], ['מובייל', { width: 390, height: 844 }]]) {
+  const sfx = vp === 'מובייל' ? '-mobile' : '';
+  expect503 = seen503 = console503 = expectCut = seenCut = 0;
+  const p = await b.newPage({ viewport });
+  const noScroll = async what => ok(await p.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), `${vp} · ${what}: גלילה רוחבית`);
   p.on('pageerror', e => errors.push(String(e)));
   p.on('response', r => {
     if (r.status() < 400 || !r.url().startsWith(base)) return;
@@ -36,6 +44,7 @@ try {
   p.on('console', m => {
     if (m.type() !== 'error' || /fonts\.g/.test(m.text())) return;
     if (/status of 503/.test(m.text()) && console503 < expect503) { console503++; return; }
+    if (/ERR_FAILED/.test(m.text()) && seenCut < expectCut) { seenCut++; return; }
     errors.push(m.text());
   });
   await p.goto(`${base}/app/#/dashboard?token=${TOKEN}`);
@@ -55,7 +64,7 @@ try {
     if (part) ok(await sk.getByTestId(part).count() === n, `שלד ${route}: חסר ${part}`);
     else ok(await sk.locator('[data-testid^="sk-"]').count() === 0, 'שלד הסקירה מכיל חלקים של מסך אחר');
     ok(await p.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), `שלד ${route}: גלילה רוחבית`);
-    if (out) await p.screenshot({ path: `${out}/preview-01-skeleton-${route}.png` });
+    if (out) await p.screenshot({ path: `${out}/preview-01-skeleton-${route}${sfx}.png` });
     await sk.waitFor({ state: 'detached' });
   }
   await p.unroute('**/health');
@@ -63,9 +72,17 @@ try {
   console.log('  ✓ שלד הטעינה בצורת המסך המבוקש: חשבוניות, תשובות, הגדרות, סקירה');
 
   // 2) חלון התצוגה המקדימה בזמן טעינת הנוסח
-  let release, mode = 'hold';
+  let release, mode = 'hold', release2;
+  const held2 = new Promise(r => { release2 = r; });
   const held = new Promise(r => { release = r; });
   await inject(p, '**/reminders/*/preview', async route => {
+    if (route.request().url().includes(`/reminders/${FAKE}/preview`)) {   // סעיף 5: התזכורת «החדשה»
+      await held2;
+      const j = await (await fetch(`${base}/reminders/${realId}/preview`, { headers: H })).json();
+      j.reminder_id = FAKE; j.body_hash = 'f'.repeat(64);
+      for (const m of j.messages) m.body = m.body.replace('שלום', 'שלום (נוסח חדש)');
+      return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(j) });
+    }
     if (mode === 'hold') { await held; return route.continue(); }
     if (mode === 'fail') return route.fulfill({ status: 503, contentType: 'application/json', body: '{"detail":"unavailable"}' });
     if (mode === 'sms-only') {
@@ -76,6 +93,8 @@ try {
     }
     return route.continue();
   });
+  const realId = (await (await fetch(`${base}/reminders?status=pending_approval&view=summary`, { headers: H })).json()).find(r => r.total_text === '3,450.50 ₪')?.id;
+  ok(realId, 'אין בדמו תזכורת ממתינה על 3,450.50 ₪ (יוסי)');
   const items = p.locator('li', { has: p.getByRole('button', { name: 'תצוגה ואישור' }) });
   const open = () => items.filter({ hasText: 'יוסי' }).getByRole('button', { name: 'תצוגה ואישור' }).click();
   const dlg = p.getByRole('dialog'), approve = dlg.getByRole('button', { name: /אשר ושלח/ });
@@ -90,12 +109,15 @@ try {
   ok(await approve.isDisabled() && (await approve.textContent()).trim() === '✓ אשר ושלח', 'בזמן הטעינה אפשר לאשר, או שהכפתור מציין ערוצים שלא הגיעו מהשרת');
   ok(await dlg.getByTestId('confirm-open').count() === 0 && await dlg.getByTestId('confirm-amount').count() === 0, 'תיבת «בדקתי» מוצגת לפני שהנוסח נטען');
   ok((await dlg.locator('#mp-title').textContent()).includes('יוסי'), 'כותרת החלון בלי שם הלקוח בזמן הטעינה');
-  if (out) await p.screenshot({ path: `${out}/preview-02-loading.png` });
+  await noScroll('חלון התצוגה בטעינה');
+  if (out) await p.screenshot({ path: `${out}/preview-02-loading${sfx}.png` });
   mode = 'pass'; release();
   await p.getByTestId('mp-loading').waitFor({ state: 'detached' });
   await p.waitForFunction(() => /\/p\/\w+/.test(document.querySelector('textarea')?.value ?? ''));
   ok(await dlg.getAttribute('aria-busy') === null && await approve.isEnabled(), 'אחרי הטעינה החלון עדיין busy או שאי אפשר לאשר');
   ok(/אשר ושלח ב/.test(await approve.textContent()), 'אחרי הטעינה הכפתור לא מציין ערוצים');
+  await noScroll('חלון התצוגה עם הנוסח');
+  ok(await approve.isVisible() && await p.evaluate(() => { const r = [...document.querySelectorAll('[role=dialog] footer button')].at(-1).getBoundingClientRect(); return r.left >= 0 && r.right <= innerWidth && r.bottom <= innerHeight; }), `${vp}: כפתור האישור מחוץ למסך`);
   await p.keyboard.press('Escape'); await dlg.waitFor({ state: 'detached' });
   console.log('  ✓ תצוגה מקדימה בטעינה: שלד, בלי תוכן מהמוק, בלי אישור; אחרי התשובה הנוסח מהשרת');
 
@@ -106,7 +128,8 @@ try {
   ok(await p.getByTestId('mp-error').getAttribute('role') === 'alert', 'כשל הטעינה לא מוכרז לקורא מסך');
   ok(await dlg.locator('textarea').count() === 0 && await dlg.getByRole('tab').count() === 0 && await approve.isDisabled(), 'אחרי כשל טעינה מוצג נוסח או שאפשר לאשר');
   ok(await p.getByTestId('mp-loading').count() === 0 && await dlg.getAttribute('aria-busy') === null, 'אחרי כשל טעינה השלד נשאר');
-  if (out) await p.screenshot({ path: `${out}/preview-03-error.png` });
+  await noScroll('חלון התצוגה בכשל');
+  if (out) await p.screenshot({ path: `${out}/preview-03-error${sfx}.png` });
   mode = 'pass';
   await p.getByTestId('mp-retry').click();
   await p.waitForFunction(() => /\/p\/\w+/.test(document.querySelector('textarea')?.value ?? ''));
@@ -124,10 +147,39 @@ try {
   ok((await dlg.getByTestId('mp-no-channel').textContent()).trim() === 'בתזכורת הזו לא יישלח מייל.', 'לשונית המייל בלי ההודעה «לא יישלח מייל»');
   ok(await dlg.getByText('הודעה אוטומטית מטעם').count() === 0 && await dlg.getByText('לתשלום').count() === 0, 'מוצג מייל שלא יישלח');
   ok(/אשר ושלח ב-SMS$/.test((await approve.textContent()).trim()), 'כפתור האישור לא מציין SMS בלבד: ' + await approve.textContent());
-  if (out) await p.screenshot({ path: `${out}/preview-04-no-mail.png` });
+  if (out) await p.screenshot({ path: `${out}/preview-04-no-mail${sfx}.png` });
   await p.keyboard.press('Escape'); await dlg.waitFor({ state: 'detached' });
-  await p.unroute('**/reminders/*/preview');
   console.log('  ✓ ערוץ בלי הודעה: «בתזכורת הזו לא יישלח מייל»');
+
+  // 5) התזכורת הוחלפה באחרת בזמן שהחלון פתוח. האישור נקטע ברשת ⇒ «הנתונים לא עודכנו» ⇒ רענון אוטומטי, ובו
+  //    לתזכורת של יוסי כבר מזהה אחר. עד שהנוסח שלה נטען: שלד, בלי הנוסח הקודם ובלי אפשרות לאשר.
+  mode = 'pass';
+  await open();
+  await p.waitForFunction(() => /\/p\/\w+/.test(document.querySelector('textarea')?.value ?? ''));
+  ok(!(await dlg.locator('textarea').inputValue()).includes('(נוסח חדש)'), 'הנוסח ההתחלתי כבר מסומן כחדש');
+  await inject(p, '**/reminders?status=pending_approval*', async route => {
+    const res = await route.fetch(); const rows = await res.json();
+    const row = rows.find(r => r.id === realId);
+    ok(row, 'התזכורת של יוסי לא ברשימת הממתינות');
+    row.id = FAKE;
+    return route.fulfill({ response: res, json: rows });
+  });
+  await inject(p, '**/reminders/*/approve', route => route.abort('failed'));
+  expectCut = 1;
+  await approve.click();
+  await p.getByTestId('mp-loading').waitFor({ timeout: 20000 });
+  ok(await dlg.locator('textarea').count() === 0 && await dlg.getByRole('tab').count() === 0, `${vp}: הנוסח של התזכורת הקודמת נשאר על המסך אחרי שהוחלפה`);
+  ok(await approve.isDisabled() && (await approve.textContent()).trim() === '✓ אשר ושלח', `${vp}: אפשר לאשר לפני שהנוסח של התזכורת החדשה נטען`);
+  ok(await dlg.getAttribute('aria-busy') === 'true', `${vp}: החלון לא busy בזמן טעינת התזכורת החדשה`);
+  if (out) await p.screenshot({ path: `${out}/preview-05-replaced${sfx}.png` });
+  release2();
+  await p.waitForFunction(() => (document.querySelector('textarea')?.value ?? '').includes('(נוסח חדש)'));
+  ok(await approve.isEnabled() && await p.getByTestId('mp-loading').count() === 0, `${vp}: אחרי טעינת התזכורת החדשה אי אפשר לאשר`);
+  ok(seenCut === 1, `${vp}: האישור שנקטע לא נספר`);
+  await p.unroute('**/reminders/*/approve'); await p.unroute('**/reminders?status=pending_approval*'); await p.unroute('**/reminders/*/preview');
+  await p.close();
+  console.log(`  ✓ תזכורת שהוחלפה בזמן שהחלון פתוח: שלד בלי הנוסח הקודם ובלי אישור, ואז הנוסח החדש · ${vp}`);
+ }
 
   errors.push(...routeErrors);
   if (errors.length) throw new Error('שגיאות:\n' + errors.join('\n'));

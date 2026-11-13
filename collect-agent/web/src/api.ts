@@ -93,7 +93,8 @@ export interface DashRow {
   days_overdue: number; reminders_sent: number;
   /** הפעלה 137: התזכורת האחרונה שבאמת יצאה (מתי ובאיזה ערוצים). חסר בשרת ישן. */
   last_sent?: null | { sent_at: string | null; channels: string[]; unknown?: boolean };
-  last_reminder: null | { id: number; step: number; status: string; template_key: string; sent_at: string | null; block_reason: string | null };
+  last_reminder: null | { id: number; step: number; status: string; template_key: string; sent_at: string | null; block_reason: string | null;
+    /** הפעלה 159: תזכורת מאושרת שהסכום שלה השתנה במקור. חסר בשרת ישן. */ amount_drift?: { was_text: string | null; now_text: string } | null };
   customer_block: string | null;
 }
 /** סיכום למטבע שאינו ₪ (app/service.py _other_currency). הסכומים ב-totals הם ₪ בלבד. */
@@ -205,6 +206,11 @@ export const REAPPROVE_LABEL: Record<string, string> = {
   csv_missing_from_import: 'החשבונית לא הופיעה בייבוא ה-CSV האחרון (אולי שולמה?) — לבדוק ולאשר מחדש',
 };
 
+/** הפעלה 160: לטבלת החשבוניות של /app/. התווית זהה ל-DRIFT ב-app/ui.html (נעול בבדיקה); ההסבר מקביל ל-driftText שם. */
+export const DRIFT_LABEL = 'הסכום השתנה במקור, תחזור לאישורך';
+export const driftText = (d: { was: string | null; now: string }) =>
+  `הסכום במקור השתנה${d.was ? ` מ-${d.was}` : ''} ל-${d.now} אחרי שאישרתם. התזכורת לא תישלח על הסכום הקודם: לפני השליחה היא תחזור אליכם לאישור עם הסכום המעודכן.`;
+
 /** 'hard' = אסור לאשר (כפתור מושבת) · 'reapprove' = מותר, עם הסבר · null = אין. לא מוכר ⇒ 'hard' (שמרני). */
 export function blockKind(b: string | null | undefined): 'hard' | 'reapprove' | null {
   if (!b) return null;
@@ -238,12 +244,15 @@ export function fromDashboard(d: Dashboard, pending: PendingRow[]) {
     const reminders: Reminder[] = Array.from({ length: r.reminders_sent }, (_, i) => ({ at, step: STEP_ORDER[Math.min(i, 3)], channel, status: 'sent' }));
     // critic סבב 53: הניסיון האחרון נקטע (send_unknown) ⇒ לא מציגים תאריך/ערוץ של תזכורת ישנה יותר
     const lastSent = ls ? { at: at || null, channels: sentChannels, unknown: !!ls.unknown } : undefined;
+    // הפעלה 160: כמו טבלת החובות ב-/ui — רק לחשבונית פתוחה שהלקוח שלה לא מושהה (שם הסטטוס הוא ההשהיה)
+    const drift = r.status === 'open' && !r.customer_block ? r.last_reminder?.amount_drift : null;
     const blockNote = r.customer_block ? BLOCK_LABEL[r.customer_block] ?? r.customer_block : undefined;
     invoices.push({
       id: String(r.invoice_id), source: r.source === 'csv' ? 'csv' : 'api', number: r.number, customerId: cid, amount: r.amount_agorot / 100,
       issuedAt: r.due ?? d.today, dueAt: r.due ?? d.today, status, payUrl: '', reminders, note: blockNote,
       ...(r.currency && r.currency !== 'ILS' ? { currency: r.currency } : {}),
       ...(lastSent ? { lastSent } : {}),
+      ...(drift ? { amountDrift: { was: drift.was_text, now: drift.now_text } } : {}),
     });
   }
   return { customers, invoices, pendingBy, mergedBy, today: d.today };

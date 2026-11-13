@@ -1,10 +1,11 @@
-import { useMemo, useState } from 'react';
+import { Fragment, useMemo, useState } from 'react';
 import { useApp } from '../store.tsx';
 import { daysOverdue, fmtDate, fmtMoney, fmtTotal } from '../lib/format.ts';
 import { STEP_LABEL, nextStep } from '../lib/message.ts';
 import { byAmountDesc, isOpen, sentChannels } from '../lib/stats.ts';
 import type { Invoice, InvoiceStatus } from '../lib/domain.ts';
 import { Button, Card, LateBadge, StatusBadge, inputCls } from '../components/ui.tsx';
+import { DRIFT_LABEL, driftText } from '../api.ts';
 import { MessagePreview } from '../components/MessagePreview.tsx';
 
 type Sort = 'late' | 'amount' | 'name';
@@ -58,13 +59,15 @@ export function Invoices() {
                 const last = i.reminders.at(-1);
                 const anchor = live ? mergedAnchorOf(i.id) : undefined;
                 return (
-                  <tr key={i.id} className="hover:bg-ink-50/60">
+                  <Fragment key={i.id}>
+                  <tr className="hover:bg-ink-50/60">
                     <td className="px-4 py-3"><div className="font-bold">{c.name}</div>{i.note && <div className="text-xs text-ink-500">📝 {i.note}</div>}</td>
                     <td className="px-4 py-3"><span className="num">{i.number}</span>{i.source === 'csv' && <span className="ms-1.5 rounded bg-amber-100 text-amber-800 text-[10px] font-bold px-1.5 py-0.5" title="יובאה מקובץ CSV — לא מתעדכנת לבד">CSV</span>}</td>
                     <td className="px-4 py-3 font-bold whitespace-nowrap">{fmtMoney(i.amount, i.currency)}</td>
                     <td className="px-4 py-3 num">{fmtDate(i.dueAt)}</td>
                     <td className="px-4 py-3 whitespace-nowrap"><LateBadge days={d} /></td>
-                    <td className="px-4 py-3"><StatusBadge status={i.status} /></td>
+                    <td className="px-4 py-3"><StatusBadge status={i.status} />
+                      {live && i.amountDrift && <span data-testid="amount-drift-chip" className="mt-1.5 flex w-fit rounded-full bg-amber-50 ring-1 ring-inset ring-amber-200 px-2.5 py-0.5 text-xs font-bold text-amber-800 whitespace-nowrap">{DRIFT_LABEL}</span>}</td>
                     <td className="px-4 py-3 text-xs text-ink-500 whitespace-nowrap">
                       {last && i.lastSent?.unknown ? <span data-testid="sent-cell" className="text-amber-700 font-bold" title="השליחה האחרונה נקטעה באמצע. בדקו ביומן היוצאים לפני שליחה ידנית">{i.reminders.length} · אחרונה: לא ידוע אם יצאה ⚠️</span>
                         : last ? <span data-testid="sent-cell">{i.reminders.length}{last.at && <> · אחרונה {fmtDate(last.at)}</>} {sentChannels(i).map(c => c === 'sms' ? '📱' : '✉️').join('')}</span> : 'טרם נשלחה'}
@@ -80,6 +83,14 @@ export function Invoices() {
                       </div>
                     </td>
                   </tr>
+                  {/* הפעלה 160: תזכורת מאושרת שהסכום שלה השתנה במקור. ההסבר בשורה משלו, מתחילת הטבלה: גלוי גם
+                      במובייל (עמודת הסטטוס שם מחוץ למסך עד גלילה) ובמגע (אין ריחוף ל-title). */}
+                  {live && i.amountDrift && <tr data-testid="amount-drift" className="bg-amber-50/60 border-t-0">
+                    <td colSpan={8} className="px-4 pb-3 pt-0 text-xs text-amber-900">
+                      <p className="max-w-[min(42rem,calc(100vw-4rem))] leading-snug">⚠️ <b>חשבונית <span className="num">{i.number}</span>:</b> {driftText(i.amountDrift)}</p>
+                    </td>
+                  </tr>}
+                  </Fragment>
                 );
               })}
               {rows.length === 0 && <tr><td colSpan={8} className="text-center py-12 text-ink-500">לא נמצאו חשבוניות</td></tr>}

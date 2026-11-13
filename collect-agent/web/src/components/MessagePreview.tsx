@@ -34,6 +34,9 @@ export function MessagePreview({ invoice, onClose, now = new Date() }: { invoice
     // אחריה דרסה את החדשה), ו«נסו שוב» מנקה את השגיאה.
     let dead = false;
     setErr(null);
+    // הפעלה 160: התזכורת הוחלפה באחרת (מזהה חדש) בזמן שהחלון פתוח ⇒ הנוסח הקודם יורד מיד (שלד, בלי כפתור
+    // פעיל) עד שהחדש נטען. אותו מזהה (רענון ברקע) ⇒ הנוסח נשאר עד שהתשובה מחליפה אותו, בלי הבהוב.
+    setPv(cur => (cur && cur.reminder_id !== pending.reminderId ? null : cur));
     api.preview(pending.reminderId).then(v => { if (!dead) setPv(v); }).catch(e => { if (!dead) setErr(String(e.message ?? e)); });
     return () => { dead = true; };
   }, [live, pending, tries]);

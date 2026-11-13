@@ -1055,8 +1055,43 @@ test('הפעלה 158: /app/ — שלד לפי המסך המבוקש; תצוגה 
   assert.match(mp, /const sendable = live \? !!pv && /);
   assert.match(mp, /\{live && !!pv && isCsv && \(/);
   // רק הבקשה האחרונה קובעת, ו«נסו שוב» שולח בקשה חדשה
-  assert.match(mp, /let dead = false;[\s\S]{0,200}if \(!dead\) setPv\(v\)[\s\S]{0,200}return \(\) => \{ dead = true; \};\s*\}, \[live, pending, tries\]\);/);
+  assert.match(mp, /let dead = false;[\s\S]{0,600}if \(!dead\) setPv\(v\)[\s\S]{0,200}return \(\) => \{ dead = true; \};\s*\}, \[live, pending, tries\]\);/);
   assert.match(mp, /data-testid="mp-retry" onClick=\{\(\) => setTries\(n => n \+ 1\)\}/);
   // ערוץ בלי הודעה בתזכורת: לא בועה ריקה ולא מייל מהמוק
   assert.match(mp, /\{live && !\(tab === 'sms' \? liveSms : liveMail\) \? \(/);
+});
+
+test('הפעלה 160: /app/ מסמן בטבלת החשבוניות תזכורת מאושרת שהסכום שלה השתנה במקור', async () => {
+  const { DRIFT_LABEL, driftText } = await import('../src/api.ts');
+  const lr = (amount_drift?: { was_text: string | null; now_text: string } | null) =>
+    ({ id: 9, step: 0, status: 'approved', template_key: 'friendly', sent_at: null, block_reason: null, ...(amount_drift === undefined ? {} : { amount_drift }) });
+  const row = (o: Partial<Dashboard['invoices'][0]>): Dashboard['invoices'][0] => ({
+    invoice_id: 1, number: '2001', customer: 'דנה', phone: '050-0000001', email: '', amount_agorot: 375050, currency: 'ILS',
+    due: '2026-10-01', status: 'open', days_overdue: 38, reminders_sent: 0, last_reminder: null, customer_block: null, ...o });
+  const drift = { was_text: '3,600.50 ₪', now_text: '3,750.50 ₪' };
+  const d: Dashboard = { today: '2026-11-13', totals: {} as Dashboard['totals'], invoices: [
+    row({ last_reminder: lr(drift) }),
+    row({ invoice_id: 2, last_reminder: lr(null) }),                               // מאושרת בלי פער
+    row({ invoice_id: 3, last_reminder: lr() }),                                   // שרת ישן: אין שדה
+    row({ invoice_id: 4, last_reminder: lr(drift), customer_block: 'paid_claim' }),   // לקוח מושהה ⇒ הסטטוס הוא ההשהיה
+    row({ invoice_id: 5, last_reminder: lr(drift), status: 'closed' }),            // שולמה ונסגרה
+    row({ invoice_id: 6, last_reminder: lr({ was_text: null, now_text: '120.00 $' }) }) ] };
+  const m = fromDashboard(d, []);
+  assert.deepEqual(m.invoices.map(i => i.amountDrift), [{ was: '3,600.50 ₪', now: '3,750.50 ₪' }, undefined, undefined, undefined, undefined, { was: null, now: '120.00 $' }]);
+  assert.ok(!('amountDrift' in m.invoices[1]), 'בלי פער השדה לא נכתב (המודל של הדמו לא משתנה)');
+  const t = driftText(m.invoices[0].amountDrift!);
+  assert.match(t, /מ-3,600\.50 ₪ ל-3,750\.50 ₪/); assert.match(t, /לא תישלח על הסכום הקודם/); assert.match(t, /תחזור אליכם לאישור/);
+  assert.equal(driftText(m.invoices[5].amountDrift!).includes(' מ-'), false, 'בלי סכום קודם אין «מ-»');
+  assert.doesNotMatch(t, /—/);
+  // אותה תווית בשני הממשקים
+  const ui = readFileSync(new URL('../../app/ui.html', import.meta.url), 'utf8');
+  assert.ok(ui.includes(`const DRIFT="${DRIFT_LABEL}";`), 'התווית ב-/app/ שונה מזו שב-/ui');
+  const inv = readFileSync(new URL('../src/pages/Invoices.tsx', import.meta.url), 'utf8');
+  assert.match(inv, /\{live && i\.amountDrift && <span data-testid="amount-drift-chip"[^>]*>\{DRIFT_LABEL\}<\/span>\}/);
+  assert.match(inv, /\{live && i\.amountDrift && <tr data-testid="amount-drift"[\s\S]{0,400}\{driftText\(i\.amountDrift\)\}/);
+});
+
+test('הפעלה 160: תזכורת שהוחלפה באחרת בזמן שהחלון פתוח ⇒ הנוסח הקודם יורד לפני הבקשה החדשה (מגן-מקור)', () => {
+  const mp = readFileSync(new URL('../src/components/MessagePreview.tsx', import.meta.url), 'utf8');
+  assert.match(mp, /setErr\(null\);[\s\S]{0,400}setPv\(cur => \(cur && cur\.reminder_id !== pending\.reminderId \? null : cur\)\);\s*api\.preview\(pending\.reminderId\)/);
 });
