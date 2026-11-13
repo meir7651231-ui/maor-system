@@ -2,7 +2,7 @@ import { Fragment, useMemo, useState } from 'react';
 import { useApp } from '../store.tsx';
 import { daysOverdue, fmtDate, fmtMoney, fmtTotal } from '../lib/format.ts';
 import { STEP_LABEL, nextStep } from '../lib/message.ts';
-import { byAmountDesc, hasOpenDrift, isOpen, sentChannels } from '../lib/stats.ts';
+import { byAmountDesc, hasOpenDrift, hasPausedCustomer, isOpen, sentChannels } from '../lib/stats.ts';
 import type { Invoice, InvoiceStatus } from '../lib/domain.ts';
 import { Button, Card, LateBadge, StatusBadge, inputCls } from '../components/ui.tsx';
 import { DRIFT_LABEL, driftText } from '../api.ts';
@@ -11,7 +11,7 @@ import { hashParam } from '../router.ts';
 import { found } from '../lib/search.ts';
 
 type Sort = 'late' | 'amount' | 'name';
-type Filter = InvoiceStatus | 'all' | 'drift';
+type Filter = InvoiceStatus | 'all' | 'drift' | 'paused';
 const FILTERS: [InvoiceStatus | 'all', string][] = [['all', 'הכול'], ['open', 'פתוחות'], ['reminded', 'נשלחה תזכורת'], ['promised', 'הבטיח'], ['disputed', 'במחלוקת']];
 
 export function Invoices() {
@@ -19,15 +19,21 @@ export function Invoices() {
   const live = mode === 'live';
   const [q, setQ] = useState('');
   // הפעלה 164: «ועוד N» ממסך הסקירה מגיע עם #/invoices?f=drift ⇒ מסונן לתזכורות שהסכום שלהן השתנה (חי בלבד)
-  const [f, setF] = useState<Filter>(() => live && hashParam(location.hash, 'f') === 'drift' ? 'drift' : 'all');
+  // הפעלה 174: גם #/invoices?f=paused ⇒ מסונן ללקוחות מושהים
+  const [f, setF] = useState<Filter>(() => { const h = live ? hashParam(location.hash, 'f') : null; return h === 'drift' || h === 'paused' ? h : 'all'; });
   const driftCount = live ? invoices.filter(hasOpenDrift).length : 0;
-  const chips: [Filter, string][] = live && (driftCount > 0 || f === 'drift') ? [...FILTERS, ['drift', `הסכום השתנה (${driftCount})`]] : FILTERS;
+  // הפעלה 174: «מושהים (N)» — חשבוניות פתוחות של לקוחות שהתזכורות אליהם מושהות (חי בלבד; בדמו אין השהיה)
+  const isPaused = (i: Invoice) => hasPausedCustomer(i, customerOf);
+  const pausedCount = live ? invoices.filter(isPaused).length : 0;
+  const chips: [Filter, string][] = [...FILTERS,
+    ...(live && (driftCount > 0 || f === 'drift') ? [['drift', `הסכום השתנה (${driftCount})`] as [Filter, string]] : []),
+    ...(live && (pausedCount > 0 || f === 'paused') ? [['paused', `מושהים (${pausedCount})`] as [Filter, string]] : [])];
   const [sort, setSort] = useState<Sort>('late');
   const [open, setOpen] = useState<Invoice | null>(null);
   const rows = useMemo(() => {
     const t = q.trim();
     return invoices.filter(isOpen)
-      .filter(i => f === 'all' || (f === 'drift' ? hasOpenDrift(i) : i.status === f))
+      .filter(i => f === 'all' || (f === 'drift' ? hasOpenDrift(i) : f === 'paused' ? isPaused(i) : i.status === f))
       // הפעלה 171: אותם כללים כמו /ui (lib/search.ts) — גם טלפון, ספרות בלי מקפים, בלי ניקוד/רישיות
       .filter(i => { if (!t) return true; const c = customerOf(i.customerId); return found(t, c.name, i.number, c.phone); })
       .sort((a, b) => sort === 'amount' ? byAmountDesc(a, b) : sort === 'name'
@@ -45,7 +51,7 @@ export function Invoices() {
         <input className={`${inputCls} max-w-xs`} type="search" placeholder="חיפוש לפי שם, מס׳ חשבונית או טלפון" value={q} onChange={e => setQ(e.target.value)} aria-label="חיפוש בחשבוניות" data-testid="inv-find" autoComplete="off" />
         <div className="flex flex-wrap gap-1.5">
           {chips.map(([k, l]) => (
-            <button key={k} onClick={() => setF(k)} aria-pressed={f === k} {...(k === 'drift' ? { 'data-testid': 'filter-drift' } : {})}
+            <button key={k} onClick={() => setF(k)} aria-pressed={f === k} {...(k === 'drift' || k === 'paused' ? { 'data-testid': `filter-${k}` } : {})}
               className={`rounded-full px-3.5 py-1.5 text-sm font-medium cursor-pointer ${f === k ? 'bg-ink-900 text-white' : 'bg-white border border-ink-200 hover:bg-ink-50'}`}>{l}</button>
           ))}
         </div>
@@ -105,7 +111,7 @@ export function Invoices() {
               })}
               {rows.length === 0 && <tr><td colSpan={8} className="text-center py-12 text-ink-500" data-testid="inv-empty">{q.trim()
                 ? <>לא נמצאו חשבוניות עבור «{q.trim()}». <button type="button" onClick={() => setQ('')} className="font-bold underline cursor-pointer">ניקוי החיפוש</button></>
-                : 'לא נמצאו חשבוניות'}</td></tr>}
+                : f === 'paused' ? 'אין כרגע לקוחות מושהים' : 'לא נמצאו חשבוניות'}</td></tr>}
             </tbody>
           </table>
         </div>

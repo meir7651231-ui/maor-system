@@ -4,7 +4,7 @@ import { daysOverdue, fmtIls, fmtMoney, fmtTotal, plusOther, fmtPhone, isIlMobil
 import { firstName, buildSms, buildEmail, smsSegments, GSM7, GSM7_EXT, nextStep, remindersExhausted, requiresApproval, demoUnsubUrl, demoShortUrl, TEMPLATES, fmtAmountBackend } from '../src/lib/message.ts';
 import { readFileSync } from 'node:fs';
 import { canSendAt, nextAllowed, HOLIDAYS } from '../src/lib/policy.ts';
-import { kpis, needsReminder, agingBuckets, capDrift, DRIFT_CAP, hasOpenDrift } from '../src/lib/stats.ts';
+import { kpis, needsReminder, agingBuckets, capDrift, DRIFT_CAP, hasOpenDrift, hasPausedCustomer } from '../src/lib/stats.ts';
 import { DEMO_TODAY, demoBusiness, demoCustomers, demoInvoices } from '../src/data/demo.ts';
 
 const inv = demoInvoices[0], cust = demoCustomers[0];
@@ -1145,9 +1145,10 @@ test('הפעלה 164: רשימת הפער במסך הסקירה מוגבלת (ca
   assert.match(dash, /\{drift\.shown\.map\(i => \(/);
   assert.match(dash, /\{drift\.more > 0 && <a href="#\/invoices\?f=drift" data-testid="drift-more"/);
   const invs = readFileSync(new URL('../src/pages/Invoices.tsx', import.meta.url), 'utf8');
-  assert.match(invs, /useState<Filter>\(\(\) => live && hashParam\(location\.hash, 'f'\) === 'drift' \? 'drift' : 'all'\)/);
+  // הפעלה 174: הפרמטר נקרא רק בחי, ועכשיו גם 'paused'
+  assert.match(invs, /useState<Filter>\(\(\) => \{ const h = live \? hashParam\(location\.hash, 'f'\) : null; return h === 'drift' \|\| h === 'paused' \? h : 'all'; \}\)/);
   // הפעלה 166: הסינון עבר ל-hasOpenDrift המשותף (שינוי מכוון; המבחן שלו למטה)
-  assert.match(invs, /f === 'drift' \? hasOpenDrift\(i\) : i\.status === f/);
+  assert.match(invs, /f === 'drift' \? hasOpenDrift\(i\) : f === 'paused' \? isPaused\(i\) : i\.status === f/);
 });
 
 test('הפעלה 166: ספירת הפער אחידה — רק חשבוניות פתוחות, בכותרת, ב«ועוד N», בצ׳יפ ובסינון', () => {
@@ -1197,4 +1198,21 @@ test('הפעלה 171: חיפוש ב-/app/ (lib/search.ts) — אותם כללי�
   assert.match(dash, /pendingOf\(i\.id\)\?\.ids/);
   assert.match(dash, /shownQueue\.map\(i =>/);
   assert.doesNotMatch(dash, /\{queue\.map\(i =>/, 'התור חייב להיות מסונן');
+});
+
+test('הפעלה 174: hasPausedCustomer — רק חשבונית פתוחה של לקוח מושהה; צ׳יפ+סינון+קישור במקור', () => {
+  const cust = (paused: string | null) => (_: string) => ({ paused });
+  const open = { ...demoInvoices[0], status: 'open' as const };
+  assert.equal(hasPausedCustomer(open, cust('paid_claim')), true);
+  assert.equal(hasPausedCustomer(open, cust('callback:until=2026-12-01')), true);
+  assert.equal(hasPausedCustomer(open, cust(null)), false, 'לא מושהה');
+  assert.equal(hasPausedCustomer({ ...open, status: 'paid' }, cust('paid_claim')), false, 'שולמה — לא נספרת');
+  assert.equal(hasPausedCustomer({ ...open, status: 'promised' }, cust('promise')), true, 'הבטיח — עדיין פתוחה');
+  const inv = readFileSync(new URL('../src/pages/Invoices.tsx', import.meta.url), 'utf8');
+  // אותה פונקציה בספירה ובסינון — אחרת הצ׳יפ «מושהים (N)» והטבלה יכולים להראות מספרים שונים
+  assert.match(inv, /pausedCount = live \? invoices\.filter\(isPaused\)/);
+  assert.match(inv, /f === 'paused' \? isPaused\(i\)/);
+  assert.match(inv, /h === 'drift' \|\| h === 'paused'/, '#/invoices?f=paused נקרא');
+  const dash = readFileSync(new URL('../src/pages/Dashboard.tsx', import.meta.url), 'utf8');
+  assert.match(dash, /href="#\/invoices\?f=paused"/);
 });

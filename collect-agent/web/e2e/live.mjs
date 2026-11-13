@@ -271,6 +271,26 @@ try {
   await p.waitForFunction(() => [...document.querySelectorAll('button')].filter(x => x.textContent === 'תצוגה ואישור').length === 2);
   console.log('  ✓ תצוגה מקדימה ⇒ אישור ⇒ יומן +2');
 
+  // הפעלה 174: «החשבוניות של הלקוחות המושהים בטבלה» ⇒ #/invoices?f=paused ⇒ רק החשבוניות הפתוחות של מושהים (לפי השרת), 0 בקשות
+  {
+    const dash174 = await api('/dashboard');
+    const want = dash174.invoices.filter(r => r.status === 'open' && r.paused_reason).map(r => r.number).sort();
+    ok(want.length > 0, 'ההדגמה: ציפיתי ללפחות חשבונית פתוחה אחת של לקוח מושהה');
+    await p.getByTestId('paused-table').click();
+    await p.getByTestId('filter-paused').filter({ hasText: `מושהים (${want.length})` }).waitFor();
+    ok(await p.getByTestId('filter-paused').getAttribute('aria-pressed') === 'true', 'הצ׳יפ «מושהים» לא נבחר מהקישור');
+    let req174 = 0; const onReq = () => { req174++; }; p.on('request', onReq);
+    const rowsNow = async () => (await p.locator('tbody tr td:nth-child(2) .num').allTextContents()).map(x => x.trim()).sort();
+    ok(JSON.stringify(await rowsNow()) === JSON.stringify(want), `סינון מושהים: ציפיתי ${want}, קיבלתי ${await rowsNow()}`);
+    await p.getByRole('button', { name: 'הכול', exact: true }).click();
+    ok((await rowsNow()).length > want.length, '«הכול» לא החזיר את שאר החשבוניות');
+    p.off('request', onReq);
+    ok(req174 === 0, `הסינון שלח ${req174} בקשות לשרת`);
+    await p.goto(base + '/app/#/dashboard');
+    await p.getByTestId('needs-you').waitFor();
+    console.log(`  ✓ סינון «מושהים (${want.length})» בטבלת החשבוניות`);
+  }
+
   // 4) דורש טיפול: דנה מושהית ("שילמתי") ⇒ חידוש בלחיצה כפולה ⇒ מאומת בשרת
   const needs = p.getByTestId('needs-you');
   const dana = needs.locator('li', { hasText: 'דנה לוי' });

@@ -84,6 +84,10 @@ export const DRIFT_CAP = 5;
 /** הפעלה 166: פער סכום נספר רק על חשבונית פתוחה — אותו כלל בכותרת הרשימה במסך הסקירה, ב«ועוד N», בצ׳יפ «הסכום השתנה (N)»
  *  ובסינון של טבלת החשבוניות (שמציגה רק פתוחות). לפני כן הכותרת ספרה גם שולמו ⇒ «ועוד 3» הוביל לטבלה עם 1. */
 export const hasOpenDrift = (i: Invoice) => isOpen(i) && !!i.amountDrift;
+/** הפעלה 174: חשבונית פתוחה של לקוח מושהה (paused_reason מהשרת) — אותו כלל בצ׳יפ «מושהים (N)» ובסינון של טבלת
+ *  החשבוניות. חשבונית ששולמה לא נספרת גם אם הלקוח עדיין מושהה (הטבלה מציגה רק פתוחות). */
+export const hasPausedCustomer = (i: Invoice, customerOf: (id: string) => { paused?: string | null }) =>
+  isOpen(i) && !!customerOf(i.customerId).paused;
 export function capDrift(list: Invoice[], cap = DRIFT_CAP): { shown: Invoice[]; more: number; total: number } {
   const all = list.filter(hasOpenDrift).sort(byAmountDesc);
   return { shown: all.slice(0, cap), more: Math.max(0, all.length - cap), total: all.length };

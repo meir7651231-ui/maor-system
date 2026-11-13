@@ -346,6 +346,9 @@ function NeedsYou() {
           );
         })}
       </ul>
+      {/* הפעלה 174: מכאן לטבלת החשבוניות מסוננת למושהים (סכום, איחור, הערה) */}
+      {paused.length > 0 && <a href="#/invoices?f=paused" data-testid="paused-table"
+        className="mt-3 inline-block text-sm font-bold text-ink-700 underline">החשבוניות של הלקוחות המושהים בטבלה ←</a>}
     </Card>
   );
 }
