@@ -64,6 +64,31 @@ def build_adapters(*, provider: str = "019", username: str = "", token: str = ""
     return chain, SmtpEmail(smtp_host, 587, "", "", email_from)
 
 
+DRYRUN_LOG_MAX = 1000   # הפעלה 182: תקרת יומן ה-dry-run בזיכרון (5,000 שליחות ≈ 2.2MB, וגדל לכל חיי התהליך)
+
+
+class SentLog(list):
+    """יומן ה-dry-run: רשימה רגילה (השוואה ל-[], חיתוך, len) של N הרשומות האחרונות בלבד.
+    `total`/`by_channel` = מונים לכל חיי התהליך — לא יורדים כשרשומה ישנה נדחקת, כך שספירות
+    הדשבורד ו-`total` של /outbox נשארים מדויקים גם אחרי התקרה. מתחת לתקרה ⇒ ביט-זהה לרשימה."""
+
+    def __init__(self, items=(), maxlen: int = DRYRUN_LOG_MAX) -> None:
+        super().__init__()
+        self.maxlen = maxlen
+        self.total = 0
+        self.by_channel: dict[str, int] = {}
+        for it in items:
+            self.append(it)
+
+    def append(self, rec) -> None:  # type: ignore[override]
+        super().append(rec)
+        self.total += 1
+        ch = rec.get("channel", "") if isinstance(rec, dict) else ""
+        self.by_channel[ch] = self.by_channel.get(ch, 0) + 1
+        if len(self) > self.maxlen:
+            del self[: len(self) - self.maxlen]
+
+
 @dataclass
 class DryRunSender:
     """"שולחת" = בונה דרך ה-adapter של integrations את הבקשה המדויקת שהייתה יוצאת, ורושמת.
@@ -72,13 +97,15 @@ class DryRunSender:
     sms: Any
     email: Any
     reply_to: str = ""
-    sent: list[dict[str, Any]] = field(default_factory=list)
+    sent: SentLog = field(default_factory=SentLog)
     mode: str = "dry_run"
 
     allow_mock_transport: bool = False   # בדיקות failover בלבד: adapters מול httpx.MockTransport
     provider_ids: dict[str, tuple[str, str]] = field(default_factory=dict)   # dryrun.* ⇒ (ספק, מזהה)
 
     def __post_init__(self) -> None:
+        if not isinstance(self.sent, SentLog):
+            self.sent = SentLog(self.sent)
         self.chain = list(self.sms) if isinstance(self.sms, (list, tuple)) else [self.sms]
         self.sms = self.chain[0] if self.chain else None   # הראשי — לתצוגה
         for a in (*self.chain, self.email):
@@ -130,6 +157,9 @@ class DryRunSender:
         self.sent.append(rec)
         # לקישור דוח מסירה (DLR) שיגיע מהספק אל ההודעה שלנו
         self.provider_ids[msg_id] = (rec["provider"], rec["provider_message_id"])
+        # נקרא מיד אחרי השליחה (_log_out) ונשמר ב-messages ⇒ גם המפה בתקרה, הישנות ראשונות
+        while len(self.provider_ids) > self.sent.maxlen:
+            self.provider_ids.pop(next(iter(self.provider_ids)))
         return msg_id
 
 

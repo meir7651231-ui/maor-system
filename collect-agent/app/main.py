@@ -481,7 +481,8 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
             return {"dry_run": True, "messages": sent}
         if not 1 <= limit <= 500:
             raise HTTPException(400, "limit: 1–500")
-        return {"dry_run": True, "messages": sent[-limit:], "total": len(sent)}
+        # total = לכל חיי התהליך (היומן עצמו בתקרה, הפעלה 182)
+        return {"dry_run": True, "messages": sent[-limit:], "total": getattr(sent, "total", len(sent))}
 
     @app.post("/inbound", dependencies=[Depends(owner_or_signed)])
     def inbound(m: InboundIn):

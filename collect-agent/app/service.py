@@ -2066,8 +2066,8 @@ class CollectService:
                 "closed_invoices": len(rows) - len(open_rows),
                 "pending_approval": self.db.one("SELECT COUNT(*) n FROM reminders WHERE "
                                                 "status='pending_approval'")["n"],
-                "sent_sms": sum(m["channel"] == "sms" for m in outbox),
-                "sent_email": sum(m["channel"] == "email" for m in outbox),
+                "sent_sms": _sent_count(outbox, "sms"),
+                "sent_email": _sent_count(outbox, "email"),
                 "owner_inbox": self.db.one("SELECT COUNT(*) n FROM messages WHERE "
                                            "needs_owner=1")["n"],
                 # review חור 7: חשבוניות CSV פתוחות שלא הופיעו בייבוא האחרון (אולי שולמו)
@@ -2363,6 +2363,15 @@ def email_auth_verdict(header: str) -> dict:
 
 class _CreditHeld(Exception):  # noqa: N818
     """רענון גילה זיכוי חדש שלא ניתן לשייך ⇒ הלקוח הושהה (credit_review). פנימי לשירות."""
+
+
+def _sent_count(outbox, channel: str) -> int:
+    """הפעלה 182: מהמונה לכל חיי התהליך (SentLog.by_channel) — היומן עצמו בתקרה. sender מותאם
+    שמחזיק רשימה רגילה ⇒ ספירה כמו קודם."""
+    by = getattr(outbox, "by_channel", None)
+    if by is not None:
+        return by.get(channel, 0)
+    return sum(m["channel"] == channel for m in outbox)
 
 
 def _rebuild_keep_log(old: DryRunSender, s: Settings) -> DryRunSender:
