@@ -149,7 +149,8 @@ export const api = {
     return j<unknown>(`/reminders/${rid}/approve`, { method: 'POST', ...(Object.keys(body).length ? { body: JSON.stringify(body) } : {}) });
   },
   dispatch: () => j<{ dry_run: true; sent: unknown[] }>('/dispatch', { method: 'POST' }),
-  outbox: () => j<{ dry_run: true; messages: OutMsg[] }>('/outbox'),
+  // הפעלה 181: רק מה שהדשבורד מציג (6 האחרונות) — לא כל היומן בכל רענון
+  outbox: (limit = 6) => j<{ dry_run: true; messages: OutMsg[]; total?: number }>(`/outbox?limit=${limit}`),
   resume: (cid: number) => j<unknown>(`/customers/${cid}/resume`, { method: 'POST' }),
   plans: () => j<Plan[]>('/plans'),
   ownerInbox: () => j<OwnerMsg[]>('/owner/inbox'),

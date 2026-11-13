@@ -473,8 +473,15 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         return svc.purge_closed()
 
     @app.get("/outbox", dependencies=auth)
-    def outbox():
-        return {"dry_run": True, "messages": svc.sender.sent}
+    def outbox(limit: int | None = None):
+        # הפעלה 181: ה-SPA מציג רק את 6 האחרונות אבל משך את כל היומן בכל רענון (5,000 חשבוניות שיצאו ⇒ 2.2MB,
+        # ~250ms). ?limit=N ⇒ N האחרונות בלבד (בסדר הכרונולוגי) + total. בלי limit ⇒ כמו קודם, ביט-זהה.
+        sent = svc.sender.sent
+        if limit is None:
+            return {"dry_run": True, "messages": sent}
+        if not 1 <= limit <= 500:
+            raise HTTPException(400, "limit: 1–500")
+        return {"dry_run": True, "messages": sent[-limit:], "total": len(sent)}
 
     @app.post("/inbound", dependencies=[Depends(owner_or_signed)])
     def inbound(m: InboundIn):
