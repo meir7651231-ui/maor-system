@@ -2233,28 +2233,50 @@ class CollectService:
         # critic סבב 64: הלקוח כתב והודעתו ממתינה לבעל העסק (טיוטה/כרטיס) ⇒ אין תזכורת חדשה, ומאושרת לא יוצאת.
         # היה: «קיבלתי, בודקת עם רואה החשבון ואחזור אליכם» ⇒ שבוע אחרי כן «חשבונית … פתוחה» יצאה בלי שאיש ענה.
         # משתחרר מעצמו כשבעל העסק ענה/סגר (אין השהיה שצריך לזכור לשחרר).
-        if block is None and self._table_exists("drafts") and self.db.one(
-                "SELECT 1 FROM drafts WHERE customer_id=? AND status IN ('pending_approval','needs_owner') "
-                # הבטחה («אשלם ביום חמישי») כבר משהה עד מועד מוגדר ומשתחררת לבד אם לא שולם — זה התכנון שלה
-                "AND intent != 'promise'", (cid,)):
-            return AWAITING_OWNER
+        if block is None:
+            ids, contacts = self._waiting_owner()
+            if cid in ids:
+                return AWAITING_OWNER
+            me = self.db.one("SELECT phone, email FROM customers WHERE id=?", (cid,))
+            if me and self._contacts_of(me) & contacts:   # critic סבב 65: אותה כתובת ⇒ אותה החזקה
+                return AWAITING_OWNER
         return block
+
+    @staticmethod
+    def _contacts_of(c) -> set[tuple[str, str]]:
+        out = set()
+        p = normalize_il_phone(c["phone"] or "")
+        if p:
+            out.add(("sms", p))
+        e = (c["email"] or "").strip().lower()
+        if e:
+            out.add(("email", e))
+        return out
+
+    def _waiting_owner(self) -> tuple[set[int], set[tuple[str, str]]]:
+        """critic סבב 64–65: לקוחות שהודעה שלהם ממתינה לבעל העסק, וגם הכתובות שלהם (טלפון/מייל משותף ⇒ אותו אדם
+        או משק בית, כמו בכלל ההסרה). הבטחה («אשלם ביום חמישי») לא נכללת: היא כבר משהה עד מועד ומשתחררת לבד."""
+        if not self._table_exists("drafts"):
+            return set(), set()
+        rows = self.db.q("SELECT DISTINCT c.id, c.phone, c.email FROM drafts d JOIN customers c ON c.id=d.customer_id "
+                         "WHERE d.status IN ('pending_approval','needs_owner') AND d.intent != 'promise'")
+        contacts: set[tuple[str, str]] = set()
+        for r in rows:
+            contacts |= self._contacts_of(r)
+        return {r["id"] for r in rows}, contacts
 
     def _customer_blocks(self) -> dict[int, str | None]:
         """הפעלה 175: `_customer_block` לכל הלקוחות בבת אחת (ל-/dashboard) — אותם כללים, 3–4 שאילתות במקום
         3 לכל לקוח. מוגן בבדיקת זהות מול `_customer_block` (tests/test_dashboard_batched.py)."""
         plans = {r["customer_id"] for r in self.db.q(
             "SELECT DISTINCT customer_id FROM plans WHERE status IN ('proposed','approved')")}
-        waiting: set[int] = set()
-        if self._table_exists("drafts"):
-            waiting = {r["customer_id"] for r in self.db.q(
-                "SELECT DISTINCT customer_id FROM drafts WHERE status IN ('pending_approval','needs_owner') "
-                "AND intent != 'promise'")}
+        waiting, contacts = self._waiting_owner()
         out: dict[int, str | None] = {}
-        for c in self.db.q("SELECT id, opted_out, disputed, paused_reason FROM customers"):
+        for c in self.db.q("SELECT id, opted_out, disputed, paused_reason, phone, email FROM customers"):
             block = customer_blocked(opted_out=bool(c["opted_out"]), disputed=bool(c["disputed"]),
                                      plan_active=c["id"] in plans, paused=c["paused_reason"])
-            out[c["id"]] = AWAITING_OWNER if block is None and c["id"] in waiting else block
+            held = c["id"] in waiting or bool(contacts and self._contacts_of(c) & contacts)
+            out[c["id"]] = AWAITING_OWNER if block is None and held else block
         return out
 
     def _cancel_invoice(self, iid: int, reason: str) -> None:

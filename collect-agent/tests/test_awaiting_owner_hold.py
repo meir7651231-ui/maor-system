@@ -66,3 +66,25 @@ def test_both_uis_label_awaiting_owner():
     api_ts = (ROOT / "web/src/api.ts").read_text(encoding="utf-8")
     ui = (ROOT / "app/ui.html").read_text(encoding="utf-8")
     assert "awaiting_owner:" in api_ts and "awaiting_owner:" in ui
+
+
+def test_shared_phone_hold_covers_the_other_customer(svc, fake_gi, clock):
+    """critic סבב 65: דנה ורון חולקים נייד. ההודעה «אחזור אליכם» מהנייד שויכה לרון ⇒ רון מוחזק, אבל דנה קיבלה
+    תזכורת **לאותו נייד** — מי שכתב «אחזור אליכם» קיבל «חשבונית פתוחה». ההחזקה לפי כתובת, כמו ההסרה (סבב 59)."""
+    from tests.conftest import gi_doc
+    fake_gi.docs = [gi_doc(1, phone="050-1234567", name="דנה כהן"),
+                    gi_doc(2, phone="050-1234567", name="רון כהן", client_id="cl2")]
+    api = TestClient(create_app(svc, owner_token=OWNER_TOKEN), headers=AUTH)
+    api.post("/sync")
+    for i in api.post("/plan").json()["created"]:
+        api.post(f"/reminders/{i}/approve")
+    api.post("/dispatch")
+    api.post("/inbound", json={"sender": "050-1234567", "text": TEXT})
+    blocks = {c["id"]: svc._customer_block(c["id"]) for c in svc.db.q("SELECT id FROM customers")}
+    assert set(blocks.values()) == {"awaiting_owner"}, blocks
+    assert svc._customer_blocks() == blocks                       # הגרסה המקובצת (הפעלה 175) זהה
+    clock.now += timedelta(days=8)
+    assert api.post("/plan").json()["created"] == []
+    n0 = len(svc.sender.sent)
+    api.post("/dispatch")
+    assert [m for m in svc.sender.sent[n0:] if m["to"] == "972501234567"] == []
