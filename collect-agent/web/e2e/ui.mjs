@@ -109,6 +109,8 @@ try {
   // הפעלה 138: עמודת «תזכורות שנשלחו» ב-/ui — מועד וערוצים של מה שיצא בפועל (last_sent), מול ה-API האמיתי
   await p.reload(); await p.locator('#debts tr:not(.skrow)').first().waitFor();
   const dash138 = await (await fetch(base + '/dashboard', { headers: H })).json();
+  // הפעלה 167: סגורות מוסתרות כברירת מחדל ⇒ «הכול» כדי לבדוק את כל השורות
+  if (await p.locator('#df button[data-d="1"]').count()) await p.locator('#df button[data-d="1"]').click();
   for (const r of dash138.invoices) {
     const cell = (await p.locator('#debts tr', { hasText: r.number }).first().locator('td.sent').textContent()) ?? '';
     const ls = r.last_sent;
@@ -457,6 +459,39 @@ try {
   await p.locator('#list .empty').waitFor();
   ok(/אין תזכורות לטיפול/.test(await p.locator('#list').textContent()) && /5000/.test(await p.locator('#list').textContent()), '/ui 165: «לטיפול» ריק בלי הסבר');
   await p.unroute(LIST);
+  // הפעלה 167: טבלת החובות על 5,000 חשבוניות (1,000 מהן נסגרו). היה: 5,000 שורות ב-DOM, 4.5–5.1 שנ׳ עד שהטבלה
+  // הופיעה (מעבד מואט ×4). עכשיו: ברירת מחדל «פתוחות», עד 50 שורות, «הצגת עוד», ו«הכול» מציג גם את הסגורות.
+  const real167 = await (await fetch(base + '/dashboard', { headers: H })).json();
+  const t167 = real167.invoices.find(x => x.status === 'open');
+  real167.invoices = Array.from({ length: 5000 }, (_, i) => ({ ...t167, invoice_id: 50000 + i, number: String(80000 + i),
+    customer: `חייב בדיקה ${i}`, status: i % 5 === 4 ? 'closed' : 'open' }));
+  await inject(p, '**/dashboard', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(real167) }));
+  const s167 = Date.now();
+  await p.reload(); await p.locator('#debts td.sent').first().waitFor();
+  const ms167 = Date.now() - s167;
+  const df = p.locator('#df button');
+  ok(await df.count() === 2 && /פתוחות \(4000\)/.test(await df.nth(0).textContent()) && /\(5000\)/.test(await df.nth(1).textContent())
+    && await df.nth(0).getAttribute('aria-pressed') === 'true', '/ui 167: מוני החובות לא נכונים או «פתוחות» לא ברירת המחדל');
+  ok(await p.locator('#debts tr').count() === 50 && await p.locator('#debts tr.closed').count() === 0, '/ui 167: לא 50 שורות פתוחות בטעינה הראשונה');
+  ok(/נותרו 3950/.test(await p.locator('#dMoreBtn').textContent()), '/ui 167: «הצגת עוד» בלי מספר הנותרים');
+  await p.locator('#dMoreBtn').click();
+  ok(await p.locator('#debts tr').count() === 100 && /נותרו 3900/.test(await p.locator('#dMoreBtn').textContent()), '/ui 167: «הצגת עוד» לא הוסיף 50');
+  ok(/חייב בדיקה 0/.test(await p.locator('#debts tr').first().textContent()), '/ui 167: הסדר של השרת (מועד מוקדם ראשון) לא נשמר');
+  await df.nth(1).click();
+  ok(await p.locator('#debts tr').count() === 50 && await p.locator('#debts tr.closed').count() === 10 && /נותרו 4950/.test(await p.locator('#dMoreBtn').textContent())
+    && await df.nth(1).getAttribute('aria-pressed') === 'true', '/ui 167: «הכול» לא מציג גם סגורות');
+  if (out) await p.screenshot({ path: `${out}/ui-11-debts-paged.png` });
+  await p.setViewportSize({ width: 390, height: 844 });
+  ok(await p.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), '/ui 167: גלילה רוחבית במובייל עם סינון החובות');
+  await p.setViewportSize({ width: 1280, height: 900 });
+  await p.unroute('**/dashboard');
+  real167.invoices.forEach(x => { x.status = 'closed'; });
+  await inject(p, '**/dashboard', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(real167) }));
+  await p.reload(); await p.locator('#debts td.empty').waitFor();
+  ok(/אין חובות פתוחים/.test(await p.locator('#debts').textContent()) && /5000/.test(await p.locator('#debts').textContent()) && await p.locator('#dMoreBtn').count() === 0,
+    '/ui 167: «פתוחות» ריק בלי הסבר');
+  await p.unroute('**/dashboard');
+  console.log(`  /ui 167: 5,000 חשבוניות ⇒ טבלת החובות אחרי ${ms167}ms (טעינה מחדש מלאה)`);
   await p.reload(); await p.locator('#list .item').first().waitFor();
   console.log(`  /ui 165: 5,000 תזכורות ⇒ כרטיס ראשון אחרי ${ms165}ms (טעינה מחדש מלאה, כולל /dashboard)`);
   errors.push(...errors.splice(before145).filter(e => !/^503 .*\/dashboard$/.test(e) && !/^401 .*\/(dispatch|dashboard|reminders(\?view=list)?)$/.test(e) && !/^409 .*\/(sync|reminders\/\d+\/approve)$/.test(e)));

@@ -106,6 +106,26 @@ def test_ui_queue_defaults_to_actionable_and_pages():
     done = SRC[SRC.index("qDone=r=>"):SRC.index("let qRows")]
     assert "!r.amount_drift&&" in done and 'startsWith("sent")' in done
     assert '"rejected"' in done and '"cancelled"' in done and "send_unknown" not in done
-    assert "r.id===sel" in SRC[SRC.index("function drawQueue"):SRC.index("el.innerHTML=view.map")]
+    dq = SRC.index("function drawQueue")    # הפעלה 167: גם drawDebts מכיל el.innerHTML=view.map ⇒ מחפשים אחרי drawQueue
+    assert "r.id===sel" in SRC[dq:SRC.index("el.innerHTML=view.map", dq)]
     assert "el.innerHTML=view.map" in SRC and "el.innerHTML=rows.map" not in SRC
     assert "qRows=q.value;drawQueue();" in SRC
+
+
+# ---------- הפעלה 167: טבלת החובות ב-/ui — «פתוחות» כברירת מחדל ועד 50 שורות ----------
+
+def test_debts_table_defaults_to_open_and_pages():
+    """5,000 חשבוניות ⇒ 5,000 שורות בכל רענון (4.5–5.1 שנ׳ במעבד מואט ×4). עכשיו כמו התור: «פתוחות» כברירת מחדל,
+    סגורות מאחורי «הכול», ועד DPAGE שורות עם «הצגת עוד». אף שורה לא נמחקת — הכול נשאר נגיש."""
+    src = SRC
+    assert "const DPAGE=50;" in src and "let dRows=[],dAll=false,dLim=DPAGE;" in src
+    load = src[src.index("async function loadDash(ask){"):src.index("const DPAGE=50;")]
+    assert "dRows=d.invoices;drawDebts();" in load
+    assert "d.invoices.map(" not in load                     # השורות לא נבנות יותר כולן בטעינה
+    draw = src[src.index("function drawDebts(){"):src.index("// חידוש ללקוח מושהה")]
+    assert 'open=rows.filter(x=>x.status==="open"),pick=dAll?rows:open' in draw
+    assert "view=pick.slice(0,dLim)" in draw and "el.innerHTML=view.map(" in draw
+    assert "dLim+=DPAGE" in draw and 'dAll=b.dataset.d==="1";dLim=DPAGE' in draw
+    assert "אין חובות פתוחים. «הכול» מציג" in draw          # ריק בלי הסבר נראה כמו «אין חובות»
+    # נעילה מנקה גם את הסינון ואת «הצגת עוד»
+    assert 'for(const i of ["#kpis","#debts","#list","#df","#dmore"])' in src

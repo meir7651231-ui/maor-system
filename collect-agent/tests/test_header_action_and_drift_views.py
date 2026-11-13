@@ -87,7 +87,7 @@ def test_closed_invoice_shows_no_drift_on_dashboard(api, fake_gi):
 
 
 def test_debts_table_chip_marks_drift_as_pending():
-    row = SRC[SRC.index('$("#debts").innerHTML=d.invoices.map('):SRC.index("// חידוש ללקוח מושהה")]
+    row = SRC[SRC.index('el.innerHTML=view.map(x=>{const L=x.last_reminder;'):SRC.index("// חידוש ללקוח מושהה")]
     assert ":L?chipOf(L):" in row                                      # chipOf מציג DRIFT כשיש amount_drift
     assert 'L&&(L.status==="pending_approval"||L.amount_drift)?"pending":""' in row
     # צבע «ממתין» רק כשהצ׳יפ באמת מציג את התזכורת (לא «שולמה ונסגרה», לא לקוח מושהה)
@@ -117,7 +117,7 @@ def test_resume_button_is_off_during_header_action():
     ההחלטה: גם זה שכבר על המסך (hdr), גם שורה שנבנית מחדש באמצע הפעולה (התבנית), וגם לחיצה שעקפה (המאזין)."""
     hdr = SRC[SRC.index("function hdr(){"):SRC.index("function busyOff()")]
     assert '"#debts button.resume").forEach(b=>{b.disabled=busy||!!b.dataset.going})' in hdr
-    row = SRC[SRC.index('$("#debts").innerHTML=d.invoices.map('):SRC.index("// חידוש ללקוח מושהה")]
+    row = SRC[SRC.index('el.innerHTML=view.map(x=>{const L=x.last_reminder;'):SRC.index("// חידוש ללקוח מושהה")]
     assert '<button class="resume" data-cid="${x.customer_id}"${busy?" disabled":""}' in row
     click = SRC[SRC.index('$("#debts").addEventListener("click"'):SRC.index("// הפעלה 142")]
     assert 'closest("button.resume");if(!b||busy)return;' in click

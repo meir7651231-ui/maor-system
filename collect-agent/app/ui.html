@@ -32,7 +32,7 @@ max-width:1200px;margin:0 auto}
 .item.sel{outline:2px solid var(--brand)}
 .qf{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}.qf button{min-height:32px;padding:4px 10px;font-size:13px}
 .qf button[aria-pressed="true"]{background:var(--brand);border-color:var(--brand);color:var(--brand-ink)}
-#qmore button{width:100%;margin-top:8px}.row{display:flex;justify-content:space-between;gap:8px}
+#qmore button,#dmore button{width:100%;margin-top:8px}.row{display:flex;justify-content:space-between;gap:8px}
 .chip{background:var(--chip);border-radius:999px;padding:2px 8px;font-size:12px;color:var(--muted)}
 .chip.pending{background:var(--warn-bg);color:var(--warn)}.chip.blocked{color:var(--bad)}
 .previews{display:grid;grid-template-columns:1fr 1fr;gap:16px}
@@ -90,9 +90,9 @@ button.resume{margin-inline-start:6px;padding:4px 10px;min-height:32px;font-size
 <div class="err loaderr" id="locked" role="alert" hidden><span id="lockMsg"></span><button id="btnLogin" class="primary">כניסה</button></div>
 <div id="dash">
   <div class="kpis" id="kpis"></div>
-  <section class="card"><div class="row"><h2>חובות פתוחים וסטטוס תזכורות</h2><span class="slogan" id="today"></span></div>
+  <section class="card"><div class="row"><h2>חובות פתוחים וסטטוס תזכורות</h2><span class="slogan" id="today"></span></div><div class="qf" id="df" role="group" aria-label="סינון החובות"></div>
     <div class="tbl"><table><thead><tr><th>לקוח</th><th>חשבונית</th><th>סכום</th><th>מועד</th><th>איחור</th>
-    <th>תזכורות שנשלחו</th><th>סטטוס אחרון</th></tr></thead><tbody id="debts"></tbody></table></div></section>
+    <th>תזכורות שנשלחו</th><th>סטטוס אחרון</th></tr></thead><tbody id="debts"></tbody></table></div><div id="dmore"></div></section>
 </div>
 <main>
   <section class="card"><h2>תור תזכורות</h2><div class="qf" id="qf" role="group" aria-label="סינון התור"></div><div id="list" class="list"></div><div id="qmore"></div></section>
@@ -167,7 +167,7 @@ function skel(){if(got.d&&got.q)return;
   if(!got.q)$("#list").innerHTML=Array(3).fill(`<div class="card skitem" aria-hidden="true"><span class="sk w"></span>${SK}</div>`).join("");
   $("#dash").setAttribute("aria-busy","true");$("#list").setAttribute("aria-busy","true");$("#busyMsg").textContent="טוען נתונים…"}
 function lock(had){locked=true;stale=false;clearTimeout(rt);sel=shown=null;$("#detail").removeAttribute("aria-busy");try{sessionStorage.removeItem(TOK)}catch(e){}got={d:false,q:false};busyOff();
-  for(const i of ["#kpis","#debts","#list"])$(i).innerHTML="";$("#today").textContent="";
+  for(const i of ["#kpis","#debts","#list","#df","#dmore"])$(i).innerHTML="";$("#today").textContent="";
   $("#detail").innerHTML='<div class="empty">בחרו תזכורת כדי לראות תצוגה מקדימה של SMS ומייל</div>';
   $("#loaderr").hidden=$("#wunk").hidden=$("#acterr").hidden=true;hdr();
   $("#lockMsg").textContent=had?"תוקף הכניסה פג. הנתונים הוסרו מהמסך. היכנסו שוב כדי להמשיך"
@@ -209,7 +209,22 @@ async function loadDash(ask){
     ["SMS שנשלחו (בדיקה)",t.sent_sms],["מיילים שנשלחו (בדיקה)",t.sent_email],
     ["דורש טיפול שלך",t.owner_inbox,t.owner_inbox>0],["נסגרו (שולמו)",t.closed_invoices]];
   $("#kpis").innerHTML=k.map(([l,v,w])=>`<div class="card kpi ${w?"warn":""}"><div class="v">${esc(v)}</div><div class="l">${esc(l)}</div></div>`).join("");
-  $("#debts").innerHTML=d.invoices.map(x=>{const L=x.last_reminder;
+  dRows=d.invoices;drawDebts();
+}
+// הפעלה 167: טבלת החובות ציירה את כל החשבוניות (גם שנסגרו) בכל רענון. על 5,000 חשבוניות: 5,000 שורות ב-DOM,
+// 4.5–5.1 שנ׳ עד שהטבלה הופיעה (מעבד מואט ×4). עכשיו, כמו התור (165): ברירת מחדל «פתוחות» (סגורות מאחורי «הכול»)
+// ועד DPAGE שורות לפי סדר השרת (המועד המוקדם ראשון); «הצגת עוד» מוסיף עוד DPAGE. הסינון בצד הלקוח בלבד.
+const DPAGE=50;
+let dRows=[],dAll=false,dLim=DPAGE;
+function drawDebts(){
+  const rows=dRows,open=rows.filter(x=>x.status==="open"),pick=dAll?rows:open,el=$("#debts");
+  $("#df").innerHTML=rows.length>open.length?`<button type="button" data-d="0" aria-pressed="${!dAll}">פתוחות (${open.length})</button><button type="button" data-d="1" aria-pressed="${dAll}">הכול, כולל שנסגרו (${rows.length})</button>`:"";
+  $("#df").querySelectorAll("button").forEach(b=>b.onclick=()=>{dAll=b.dataset.d==="1";dLim=DPAGE;drawDebts()});
+  const view=pick.slice(0,dLim),left=pick.length-view.length;
+  $("#dmore").innerHTML=left?`<button type="button" id="dMoreBtn">הצגת עוד ${Math.min(DPAGE,left)} (נותרו ${left})</button>`:"";
+  if(left)$("#dMoreBtn").onclick=()=>{dLim+=DPAGE;drawDebts()};
+  if(!pick.length){el.innerHTML=`<tr><td colspan="7" class="empty">${rows.length?`אין חובות פתוחים. «הכול» מציג ${rows.length} חשבוניות שנסגרו.`:"אין חשבוניות. לחצו \"סנכרון\" כדי למשוך אותן."}</td></tr>`;return}
+  el.innerHTML=view.map(x=>{const L=x.last_reminder;
     const st=x.status!=="open"?"שולמה ונסגרה":x.customer_block?pause(x.customer_block)
       :L?chipOf(L):"טרם הוכנה";
     return `<tr class="${x.status!=="open"?"closed":""}"><td>${esc(x.customer)}${
