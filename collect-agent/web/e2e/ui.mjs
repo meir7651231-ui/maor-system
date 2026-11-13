@@ -316,6 +316,42 @@ try {
   await p.locator('#btnAct').click();
   ok(await p.locator('#acterr').isHidden(), '«הבנתי» לא סגר את שורת הכשל');
   await p.unroute('**/sync');
+  // הפעלה 161: (א) «↻ חידוש תזכורות» כבוי בזמן פעולת כותרת; (ב) תיבת «בדקתי» שסומנה נשארת מסומנת אחרי פעולת
+  // כותרת שנכשלה, כל עוד הנוסח זהה (body_hash), ויורדת כשהנוסח השתנה. התיבה מוזרקת לתשובת השרת (needs_confirm_open).
+  let bump161 = false, release161; const gate161 = new Promise(r => { release161 = r; });
+  await inject(p, '**/reminders/*/preview', async route => {
+    const r = await route.fetch(); const j = await r.json();
+    // בשלב הזה של התרחיש לא נשארה בתור תזכורת ממתינה ⇒ תזכורת מאושרת מוצגת ללוח כממתינה (לא מאשרים אותה כאן)
+    if (j.status === 'approved') { j.status = 'pending_approval'; j.block_reason = null; j.amount_drift = null; j.needs_confirm_open = true; }
+    if (bump161) j.body_hash = 'f'.repeat(64);
+    await route.fulfill({ response: r, json: j });
+  });
+  await inject(p, '**/sync', async route => { await gate161; await route.fulfill({ status: 409, contentType: 'application/json', body: JSON.stringify({ detail: 'הסנכרון כבר רץ' }) }); });
+  const pend161 = p.locator('#list .item', { has: p.locator('.chip', { hasText: /^\s*מאושרת\s*$/ }) }).first();
+  await pend161.click();
+  const box161 = p.locator('#cOpen');
+  await p.locator('#detail:not([aria-busy]) #cOpen:enabled').waitFor();
+  ok(await p.locator('#ok').isDisabled(), '/ui 161: «אישור ושליחה» פתוח לפני הסימון');
+  await box161.check();
+  ok(await p.locator('#ok').isEnabled(), '/ui 161: «אישור ושליחה» נעול אחרי הסימון');
+  const resume161 = p.locator('#debts button.resume');
+  ok(await resume161.count() > 0 && await resume161.evaluateAll(b => b.every(x => !x.disabled)), '/ui 161: אין כפתור «חידוש תזכורות» פעיל בטבלת החובות');
+  await p.locator('#btnSync').click();
+  ok(await resume161.evaluateAll(b => b.every(x => x.disabled)), '/ui 161: «חידוש תזכורות» פעיל בזמן פעולת כותרת');
+  ok(await box161.isDisabled() && await box161.isChecked(), '/ui 161: התיבה פעילה או לא מסומנת בזמן פעולת כותרת');
+  release161();
+  await p.locator('#acterr').waitFor({ state: 'visible' });
+  await p.locator('#detail:not([aria-busy]) #cOpen:enabled').waitFor();
+  ok(await box161.isChecked() && await p.locator('#ok').isEnabled(), '/ui 161: אחרי פעולת כותרת שנכשלה הסימון «בדקתי» התאפס');
+  ok(await resume161.count() > 0 && await resume161.evaluateAll(b => b.every(x => !x.disabled)), '/ui 161: «חידוש תזכורות» נשאר כבוי אחרי שהפעולה הסתיימה');
+  // הנוסח השתנה בין שתי הטעינות ⇒ הסימון יורד, והכפתור נעול עד סימון מחדש
+  bump161 = true;
+  await p.locator('#btnSync').click();
+  await p.locator('#detail:not([aria-busy]) #cOpen:enabled:not(:checked)').waitFor();
+  ok(await p.locator('#ok').isDisabled(), '/ui 161: נוסח שהשתנה נשאר עם «בדקתי» מסומן וכפתור פתוח');
+  bump161 = false;
+  await p.locator('#btnAct').click();
+  await p.unroute('**/sync'); await p.unroute('**/reminders/*/preview');
   // (ד) 401 באמצע פעולה, והמשתמש לא מזין קוד חדש ⇒ הנתונים יורדים מהמסך, הטוקן נמחק, פס כניסה. בלי alert.
   await inject(p, '**/dispatch', route => route.fulfill({ status: 401, contentType: 'application/json', body: '{"detail":"unauthorized"}' }));
   await p.locator('#btnDispatch').click();

@@ -211,7 +211,9 @@ class DB:
         self.conn.executescript(
             "CREATE INDEX IF NOT EXISTS ix_inv_cust ON invoices(customer_id, status);"
             "CREATE INDEX IF NOT EXISTS ix_msg_mid ON messages(message_id);"
-            "CREATE INDEX IF NOT EXISTS ix_msg_cust ON messages(customer_id);")
+            "CREATE INDEX IF NOT EXISTS ix_msg_cust ON messages(customer_id);"
+            # הפעלה 161: _customer_block רץ לכל חשבונית ב-/dashboard ולכל לקוח ב-plan(), וסרק את כל plans
+            "CREATE INDEX IF NOT EXISTS ix_plan_cust ON plans(customer_id, status);")
         if "episode_since" not in cols:   # תחילת «אפיזודת החוב» הנוכחית של הלקוח (סולם 3 התזכורות)
             self.conn.execute("ALTER TABLE customers ADD COLUMN episode_since TEXT")
         self.conn.commit()

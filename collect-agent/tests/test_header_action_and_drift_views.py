@@ -108,3 +108,43 @@ def test_preview_rendered_during_header_action_stays_frozen():
     body = SRC[SRC.index("async function show(id,info,stale){"):SRC.index("const DONE=")]
     # אחרי gate() (שמדליק את «אישור ושליחה») ולא לפניו
     assert body.index("boxes.forEach(x=>x.onchange=gate);gate();") < body.index("if(busy)freeze(d);")
+
+
+# ---------- הפעלה 161: «↻ חידוש תזכורות» ותיבות «בדקתי» בזמן פעולת כותרת ----------
+
+def test_resume_button_is_off_during_header_action():
+    """חידוש ללקוח מושהה באמצע סנכרון / הכנה / שליחה שינה את מצב הלקוח מתחת לפעולה שרצה. הכפתור כבוי כמו כפתורי
+    ההחלטה: גם זה שכבר על המסך (hdr), גם שורה שנבנית מחדש באמצע הפעולה (התבנית), וגם לחיצה שעקפה (המאזין)."""
+    hdr = SRC[SRC.index("function hdr(){"):SRC.index("function busyOff()")]
+    assert '"#debts button.resume").forEach(b=>{b.disabled=busy||!!b.dataset.going})' in hdr
+    row = SRC[SRC.index('$("#debts").innerHTML=d.invoices.map('):SRC.index("// חידוש ללקוח מושהה")]
+    assert '<button class="resume" data-cid="${x.customer_id}"${busy?" disabled":""}' in row
+    click = SRC[SRC.index('$("#debts").addEventListener("click"'):SRC.index("// הפעלה 142")]
+    assert 'closest("button.resume");if(!b||busy)return;' in click
+    # כפתור שהבקשה שלו באוויר לא נדלק כשפעולת כותרת מסתיימת באמצע
+    assert click.index('b.dataset.going="1"') < click.index("await api(`/customers/")
+
+
+def test_checked_boxes_survive_refresh_only_when_text_is_identical():
+    """אחרי פעולת כותרת שנכשלה הלוח נטען מחדש ותיבות «בדקתי» שסומנו התאפסו. הסימון נשמר רק לאותה תזכורת ולאותו
+    נוסח בדיוק (body_hash מהשרת); נוסח או סכום שהשתנו ⇒ הסימון יורד, כי הוא ניתן על מה שהוצג קודם."""
+    body = SRC[SRC.index("async function show(id,info,stale){"):SRC.index("const DONE=")]
+    keep = 'const kept=shown===id&&pvHash===p.body_hash?["#cAmt","#cOpen"].filter(s=>$(s)&&$(s).checked):[];'
+    assert keep in body
+    # נקרא לפני שהלוח נבנה מחדש, ומוחזר לפני gate() (שקובע אם «אישור ושליחה» פתוח)
+    render = body.index('$("#detail").innerHTML=`<div class="row">')
+    assert body.index(keep) < body.index('shown=id;d.removeAttribute("aria-busy");pvHash=p.body_hash;') < render
+    assert render < body.index("kept.forEach(s=>{if($(s))$(s).checked=true});") \
+        < body.index("boxes.forEach(x=>x.onchange=gate);gate();")
+
+
+def test_preview_hash_is_stable_across_reads_and_changes_with_amount(api, fake_gi):
+    """הבסיס לשמירת הסימון: אותו נוסח ⇒ אותו body_hash בכל קריאה; סכום שהשתנה במקור ⇒ גיבוב אחר."""
+    api.post("/sync")
+    rid = api.post("/plan").json()["created"][0]
+    h1 = api.get(f"/reminders/{rid}/preview").json()["body_hash"]
+    api.post("/sync")
+    assert api.get(f"/reminders/{rid}/preview").json()["body_hash"] == h1
+    fake_gi.docs[0]["amount"] = "1500.00"
+    api.post("/sync")
+    assert api.get(f"/reminders/{rid}/preview").json()["body_hash"] != h1

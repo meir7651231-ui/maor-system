@@ -13,6 +13,13 @@ HOT = [
     "SELECT id FROM invoices WHERE customer_id=? AND status='open'",
     "SELECT 1 FROM messages WHERE intent=? AND message_id=?",
     "SELECT 1 FROM messages WHERE message_id=?",
+    # הפעלה 161: השאילתות שרצות לכל חשבונית ב-/dashboard (כולל חישוב amount_drift לתזכורת מאושרת). נמדד על
+    # 5,000 לקוחות עם תזכורות מאושרות: 0.3 שנ׳ בשירות, 0.5 שנ׳ דרך HTTP. סריקה מלאה באחת מהן ⇒ ריבועי.
+    "SELECT r.* FROM reminders r JOIN reminder_invoices x ON x.reminder_id=r.id WHERE x.invoice_id=? "
+    "ORDER BY r.step DESC, r.id DESC LIMIT 1",
+    "SELECT i.id FROM reminder_invoices x JOIN invoices i ON i.id=x.invoice_id WHERE x.reminder_id=? "
+    "ORDER BY i.due, i.id",
+    "SELECT 1 FROM plans WHERE customer_id=? AND status IN ('proposed','approved')",
 ]
 
 
