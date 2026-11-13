@@ -32,7 +32,7 @@ max-width:1200px;margin:0 auto}
 .item.sel{outline:2px solid var(--brand)}
 .qf{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}.qf button{min-height:32px;padding:4px 10px;font-size:13px}
 .qf button[aria-pressed="true"]{background:var(--brand);border-color:var(--brand);color:var(--brand-ink)}
-#qmore button,#dmore button{width:100%;margin-top:8px}.row{display:flex;justify-content:space-between;gap:8px}
+#qmore button,#dmore button{width:100%;margin-top:8px}.find{width:100%;min-height:36px;margin-bottom:8px;padding:6px 10px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:inherit;font:inherit;box-sizing:border-box}.row{display:flex;justify-content:space-between;gap:8px}
 .chip{background:var(--chip);border-radius:999px;padding:2px 8px;font-size:12px;color:var(--muted)}
 .chip.pending{background:var(--warn-bg);color:var(--warn)}.chip.blocked{color:var(--bad)}
 .previews{display:grid;grid-template-columns:1fr 1fr;gap:16px}
@@ -90,12 +90,12 @@ button.resume{margin-inline-start:6px;padding:4px 10px;min-height:32px;font-size
 <div class="err loaderr" id="locked" role="alert" hidden><span id="lockMsg"></span><button id="btnLogin" class="primary">כניסה</button></div>
 <div id="dash">
   <div class="kpis" id="kpis"></div>
-  <section class="card"><div class="row"><h2>חובות פתוחים וסטטוס תזכורות</h2><span class="slogan" id="today"></span></div><div class="qf" id="df" role="group" aria-label="סינון החובות"></div>
+  <section class="card"><div class="row"><h2>חובות פתוחים וסטטוס תזכורות</h2><span class="slogan" id="today"></span></div><input type="search" class="find" id="dFind" placeholder="חיפוש לפי שם לקוח, מספר חשבונית או טלפון" aria-label="חיפוש בחובות" autocomplete="off" hidden><div class="qf" id="df" role="group" aria-label="סינון החובות"></div>
     <div class="tbl"><table><thead><tr><th>לקוח</th><th>חשבונית</th><th>סכום</th><th>מועד</th><th>איחור</th>
     <th>תזכורות שנשלחו</th><th>סטטוס אחרון</th></tr></thead><tbody id="debts"></tbody></table></div><div id="dmore"></div></section>
 </div>
 <main>
-  <section class="card"><h2>תור תזכורות</h2><div class="qf" id="qf" role="group" aria-label="סינון התור"></div><div id="list" class="list"></div><div id="qmore"></div></section>
+  <section class="card"><h2>תור תזכורות</h2><input type="search" class="find" id="qFind" placeholder="חיפוש לפי שם לקוח או מספר חשבונית" aria-label="חיפוש בתור" autocomplete="off" hidden><div class="qf" id="qf" role="group" aria-label="סינון התור"></div><div id="list" class="list"></div><div id="qmore"></div></section>
   <section class="card" id="detail"><div class="empty">בחרו תזכורת כדי לראות תצוגה מקדימה של SMS ומייל</div></section>
 </main>
 <script>
@@ -167,7 +167,7 @@ function skel(){if(got.d&&got.q)return;
   if(!got.q)$("#list").innerHTML=Array(3).fill(`<div class="card skitem" aria-hidden="true"><span class="sk w"></span>${SK}</div>`).join("");
   $("#dash").setAttribute("aria-busy","true");$("#list").setAttribute("aria-busy","true");$("#busyMsg").textContent="טוען נתונים…"}
 function lock(had){locked=true;stale=false;clearTimeout(rt);sel=shown=null;$("#detail").removeAttribute("aria-busy");try{sessionStorage.removeItem(TOK)}catch(e){}got={d:false,q:false};busyOff();
-  for(const i of ["#kpis","#debts","#list","#df","#dmore"])$(i).innerHTML="";$("#today").textContent="";
+  for(const i of ["#kpis","#debts","#list","#df","#dmore","#qf","#qmore"])$(i).innerHTML="";dQ=qQ="";for(const i of ["#dFind","#qFind"]){$(i).value="";$(i).hidden=true}$("#today").textContent="";
   $("#detail").innerHTML='<div class="empty">בחרו תזכורת כדי לראות תצוגה מקדימה של SMS ומייל</div>';
   $("#loaderr").hidden=$("#wunk").hidden=$("#acterr").hidden=true;hdr();
   $("#lockMsg").textContent=had?"תוקף הכניסה פג. הנתונים הוסרו מהמסך. היכנסו שוב כדי להמשיך"
@@ -214,16 +214,28 @@ async function loadDash(ask){
 // הפעלה 167: טבלת החובות ציירה את כל החשבוניות (גם שנסגרו) בכל רענון. על 5,000 חשבוניות: 5,000 שורות ב-DOM,
 // 4.5–5.1 שנ׳ עד שהטבלה הופיעה (מעבד מואט ×4). עכשיו, כמו התור (165): ברירת מחדל «פתוחות» (סגורות מאחורי «הכול»)
 // ועד DPAGE שורות לפי סדר השרת (המועד המוקדם ראשון); «הצגת עוד» מוסיף עוד DPAGE. הסינון בצד הלקוח בלבד.
+// הפעלה 168: חיפוש לפי שם לקוח / מספר חשבונית / טלפון, מעל הסינון והעימוד. 5,000 חשבוניות ⇒ בלי חיפוש היה צריך
+// «הצגת עוד» עשרות פעמים כדי להגיע ללקוח אחד. השדה סטטי ב-HTML (לא נבנה מחדש בציור) ⇒ הפוקוס נשאר בזמן ההקלדה.
+// התאמה: אותיות בלי ניקוד ורווחים כפולים, בלי תלות ברישיות. חיפוש של ספרות בלבד (גם עם מקפים/רווחים) משווה ספרות
+// מול מספר החשבונית והטלפון, כך ש-«050-123» מוצא «0501234567». הסינון בצד הלקוח בלבד, כמו «פתוחות»/«הכול».
+const norm=v=>String(v??"").replace(/[\u0591-\u05C7]/g,"").replace(/\s+/g," ").trim().toLowerCase(),
+  digits=v=>String(v??"").replace(/\D/g,""),
+  found=(q,name,num,phone)=>{const t=norm(q);if(!t)return true;
+    if(/^[\d\s\-+()]+$/.test(t)){const d=digits(t);return !!d&&(digits(num).includes(d)||digits(phone).includes(d))}
+    return norm(name).includes(t)||norm(num).includes(t)};
+let dQ="",qQ="";
 const DPAGE=50;
 let dRows=[],dAll=false,dLim=DPAGE;
 function drawDebts(){
-  const rows=dRows,open=rows.filter(x=>x.status==="open"),pick=dAll?rows:open,el=$("#debts");
-  $("#df").innerHTML=rows.length>open.length?`<button type="button" data-d="0" aria-pressed="${!dAll}">פתוחות (${open.length})</button><button type="button" data-d="1" aria-pressed="${dAll}">הכול, כולל שנסגרו (${rows.length})</button>`:"";
+  const rows0=dRows,rows=dQ?rows0.filter(x=>found(dQ,x.customer,x.number,x.phone)):rows0,
+    open=rows.filter(x=>x.status==="open"),pick=dAll?rows:open,el=$("#debts");
+  $("#dFind").hidden=!rows0.length;
+  $("#df").innerHTML=rows0.length>rows0.filter(x=>x.status==="open").length?`<button type="button" data-d="0" aria-pressed="${!dAll}">פתוחות (${open.length})</button><button type="button" data-d="1" aria-pressed="${dAll}">הכול, כולל שנסגרו (${rows.length})</button>`:"";
   $("#df").querySelectorAll("button").forEach(b=>b.onclick=()=>{dAll=b.dataset.d==="1";dLim=DPAGE;drawDebts()});
   const view=pick.slice(0,dLim),left=pick.length-view.length;
   $("#dmore").innerHTML=left?`<button type="button" id="dMoreBtn">הצגת עוד ${Math.min(DPAGE,left)} (נותרו ${left})</button>`:"";
   if(left)$("#dMoreBtn").onclick=()=>{dLim+=DPAGE;drawDebts()};
-  if(!pick.length){el.innerHTML=`<tr><td colspan="7" class="empty">${rows.length?`אין חובות פתוחים. «הכול» מציג ${rows.length} חשבוניות שנסגרו.`:"אין חשבוניות. לחצו \"סנכרון\" כדי למשוך אותן."}</td></tr>`;return}
+  if(!pick.length){el.innerHTML=`<tr><td colspan="7" class="empty">${dQ&&rows0.length?`לא נמצאו ${dAll?"חשבוניות":"חובות פתוחים"} עבור «${esc(dQ)}».${!dAll&&rows.length?` «הכול» מציג ${rows.length} שנסגרו.`:""}`:rows.length?`אין חובות פתוחים. «הכול» מציג ${rows.length} חשבוניות שנסגרו.`:"אין חשבוניות. לחצו \"סנכרון\" כדי למשוך אותן."}</td></tr>`;return}
   el.innerHTML=view.map(x=>{const L=x.last_reminder;
     const st=x.status!=="open"?"שולמה ונסגרה":x.customer_block?pause(x.customer_block)
       :L?chipOf(L):"טרם הוכנה";
@@ -234,6 +246,7 @@ function drawDebts(){
     <td class="${x.days_overdue>0?"late":""}">${x.days_overdue>0?x.days_overdue+" ימים":"—"}</td>
     <td class="num sent">${x.reminders_sent}${esc(lastSent(x))}</td><td><span class="chip ${x.status==="open"&&!x.customer_block&&L&&(L.status==="pending_approval"||L.amount_drift)?"pending":""}">${esc(st)}</span></td></tr>`}).join("");
 }
+$("#dFind").addEventListener("input",e=>{dQ=e.target.value;dLim=DPAGE;drawDebts()});
 // חידוש ללקוח מושהה (למשל אחרי «שילמתי» שלא אומת): לחיצה ראשונה מחמשת, השנייה מבצעת
 $("#debts").addEventListener("click",async e=>{const b=e.target.closest("button.resume");if(!b||busy)return;
   if(!b.dataset.armed){b.dataset.armed="1";b.textContent="בטוח? לחצו שוב";setTimeout(()=>{if(b.isConnected){delete b.dataset.armed;b.textContent="↻ חידוש תזכורות"}},4000);return}
@@ -271,10 +284,14 @@ async function load(ask=true){
 const QPAGE=50,qDone=r=>!r.amount_drift&&(String(r.status).startsWith("sent")||r.status==="rejected"||r.status==="cancelled");
 let qRows=[],qAll=false,qLim=QPAGE;
 function drawQueue(){
-  const rows=qRows,el=$("#list"),act=rows.filter(r=>!qDone(r)),pick=qAll?rows:rows.filter(r=>!qDone(r)||r.id===sel);
-  $("#qf").innerHTML=rows.length?`<button type="button" data-q="0" aria-pressed="${!qAll}">לטיפול (${act.length})</button><button type="button" data-q="1" aria-pressed="${qAll}">הכול (${rows.length})</button>`:"";
+  // הפעלה 168: חיפוש (ראו found למעלה). התזכורת שנבחרה נשארת גם כשאינה תואמת — לא נעלמת מתחת ליד (165)
+  const all=qRows,rows=qQ?all.filter(r=>r.id===sel||found(qQ,r.customer_name,r.number)):all,
+    el=$("#list"),act=rows.filter(r=>!qDone(r)),pick=qAll?rows:rows.filter(r=>!qDone(r)||r.id===sel);
+  $("#qFind").hidden=!all.length;
+  $("#qf").innerHTML=all.length?`<button type="button" data-q="0" aria-pressed="${!qAll}">לטיפול (${act.length})</button><button type="button" data-q="1" aria-pressed="${qAll}">הכול (${rows.length})</button>`:"";
   $("#qf").querySelectorAll("button").forEach(b=>b.onclick=()=>{qAll=b.dataset.q==="1";qLim=QPAGE;drawQueue()});
-  if(!rows.length){el.innerHTML='<div class="empty">אין תזכורות. לחצו "סנכרון" ואז "הכנת תזכורות".</div>';$("#qmore").innerHTML="";return}
+  if(!all.length){el.innerHTML='<div class="empty">אין תזכורות. לחצו "סנכרון" ואז "הכנת תזכורות".</div>';$("#qmore").innerHTML="";return}
+  if(!pick.length&&qQ){el.innerHTML=`<div class="empty">לא נמצאו תזכורות${qAll?"":" לטיפול"} עבור «${esc(qQ)}».${!qAll&&rows.length?` «הכול» מציג ${rows.length} שכבר נשלחו או נסגרו.`:""}</div>`;$("#qmore").innerHTML="";return}
   if(!pick.length){el.innerHTML=`<div class="empty">אין תזכורות לטיפול. «הכול» מציג ${rows.length} שכבר נשלחו או נסגרו.</div>`;$("#qmore").innerHTML="";return}
   const si=pick.findIndex(r=>r.id===sel),lim=Math.max(qLim,si+1),view=pick.slice(0,lim),left=pick.length-view.length;
   $("#qmore").innerHTML=left?`<button type="button" id="qMoreBtn">הצגת עוד ${Math.min(QPAGE,left)} (נותרו ${left})</button>`:"";
@@ -286,6 +303,7 @@ function drawQueue(){
     ${esc(chipOf(r))}</span></div></button>`).join("");
   el.querySelectorAll(".item").forEach(b=>b.onclick=()=>show(+b.dataset.id));
 }
+$("#qFind").addEventListener("input",e=>{qQ=e.target.value;qLim=QPAGE;drawQueue()});
 // הפעלה 149: אישור על נוסח ישן (409 + X-Gabi-Stale) ⇒ התצוגה נטענת מחדש לבד, עם מה שהשתנה (was = הסכום שהוצג קודם)
 const staleText=(was,now)=>(was&&now&&was!==now?`הסכום השתנה מ-${was} ל-${now}.`:"הנוסח השתנה מאז שפתחתם.")+" זה הנוסח המעודכן. שום דבר לא נשלח. בדקו ואשרו שוב";
 // הפעלה 152: במעבר לתזכורת אחרת הלוח הציג את התזכורת הקודמת, עם «אישור ושליחה» פעיל שלה, עד שהשרת ענה —

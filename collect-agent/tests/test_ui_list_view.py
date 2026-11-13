@@ -127,5 +127,44 @@ def test_debts_table_defaults_to_open_and_pages():
     assert "view=pick.slice(0,dLim)" in draw and "el.innerHTML=view.map(" in draw
     assert "dLim+=DPAGE" in draw and 'dAll=b.dataset.d==="1";dLim=DPAGE' in draw
     assert "אין חובות פתוחים. «הכול» מציג" in draw          # ריק בלי הסבר נראה כמו «אין חובות»
-    # נעילה מנקה גם את הסינון ואת «הצגת עוד»
-    assert 'for(const i of ["#kpis","#debts","#list","#df","#dmore"])' in src
+    # נעילה מנקה גם את הסינון ואת «הצגת עוד». הפעלה 168: גם את סינון התור («לטיפול (N)» של המשתמש הקודם נשאר
+    # על המסך הנעול) ואת שדות החיפוש
+    assert 'for(const i of ["#kpis","#debts","#list","#df","#dmore","#qf","#qmore"])' in src
+
+
+# ---------- הפעלה 168: חיפוש לפי שם / מספר חשבונית / טלפון בתור ובטבלת החובות ----------
+
+def _found():
+    """מריץ את פונקציית ההתאמה של הדף ב-node, אם זמין; אחרת None (המגן הטקסטואלי עדיין רץ)."""
+    import shutil
+    import subprocess
+    node = shutil.which("node")
+    if not node:
+        return None
+    i = SRC.index("const norm=")
+    fn = SRC[i:SRC.index(";\nlet dQ", i)]
+    cases = [["דנה", "דָּנָה  כהן", "1001", ""], ["דנה כהן", "דנה   כהן", "1", ""],
+             ["050-123", "x", "9", "0501234567"], ["1001", "x", "INV-1001", ""],
+             ["כהן", "לוי", "1", "050"], ["", "x", "1", ""], ["DANA", "dana k", "1", ""],
+             ["--", "x", "1", "050"], ["123", "x", "9", None]]
+    js = fn + ";console.log(JSON.stringify(" + json.dumps(cases) + ".map(c=>found(...c))))"
+    out = subprocess.run([node, "-e", js], capture_output=True, text=True, check=True).stdout  # noqa: S603 — קוד הדף עצמו
+    return json.loads(out)
+
+
+def test_ui_search_in_queue_and_debts():
+    """5,000 חשבוניות/תזכורות עם עימוד של 50 ⇒ להגיע ללקוח אחד דרש «הצגת עוד» עשרות פעמים. מגן-מקור: שדה חיפוש
+    סטטי לכל רשימה (הפוקוס לא הולך לאיבוד בציור), הקלדה מאפסת את העימוד, התזכורת שנבחרה לא נעלמת, ריק ⇒ הסבר
+    עם מה שחיפשו, כפתורי «לטיפול»/«הכול» נשארים גם כשאין התאמה (אחרת אי אפשר לעבור ל«הכול»)."""
+    assert 'id="dFind"' in SRC and 'id="qFind"' in SRC
+    assert '$("#dFind").addEventListener("input",e=>{dQ=e.target.value;dLim=DPAGE;drawDebts()});' in SRC
+    assert '$("#qFind").addEventListener("input",e=>{qQ=e.target.value;qLim=QPAGE;drawQueue()});' in SRC
+    draw = SRC[SRC.index("function drawDebts(){"):SRC.index("// חידוש ללקוח מושהה")]
+    assert "found(dQ,x.customer,x.number,x.phone)" in draw and "לא נמצאו" in draw and "esc(dQ)" in draw
+    q = SRC[SRC.index("function drawQueue(){"):SRC.index('el.querySelectorAll(".item")')]
+    assert "r.id===sel||found(qQ,r.customer_name,r.number)" in q and "esc(qQ)" in q
+    assert '$("#qf").innerHTML=all.length?' in q                  # לא rows.length — אחרת הכפתורים נעלמים בחיפוש ריק
+    assert 'dQ=qQ="";' in SRC                                      # נעילה מנקה את החיפוש
+    got = _found()
+    if got is not None:
+        assert got == [True, True, True, True, False, True, True, False, False], got

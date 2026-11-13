@@ -448,6 +448,20 @@ try {
   await qf.nth(1).click();
   ok(await p.locator('#list .item').count() === 50 && /נותרו 4950/.test(await p.locator('#qMoreBtn').textContent())
     && await qf.nth(1).getAttribute('aria-pressed') === 'true', '/ui 165: «הכול» לא מציג 50 ראשונים + «הצגת עוד»');
+  // הפעלה 168: חיפוש בתור. «לקוח בדיקה 4999» (פער, לטיפול) נמצא בהקלדה; 70120 = מספר החשבונית של תזכורת שנשלחה
+  await qf.nth(0).click();
+  await p.locator('#qFind').fill('בדיקה 4999');
+  ok(await p.locator('#list .item').count() === 1 && /לקוח בדיקה 4999/.test(await p.locator('#list').textContent())
+    && /לטיפול \(1\)/.test(await qf.nth(0).textContent()), '/ui 168: חיפוש שם בתור לא מצא תזכורת אחת');
+  ok(await p.evaluate(() => document.activeElement?.id === 'qFind'), '/ui 168: הפוקוס יצא משדה החיפוש בזמן ההקלדה');
+  await p.locator('#qFind').fill('70120');
+  ok(/לא נמצאו תזכורות לטיפול/.test(await p.locator('#list').textContent()) && /«הכול» מציג 1/.test(await p.locator('#list').textContent())
+    && await qf.count() === 2, '/ui 168: תזכורת שנשלחה לא מוסברת ב«לטיפול», או שכפתורי הסינון נעלמו');
+  await qf.nth(1).click();
+  ok(await p.locator('#list .item').count() === 1 && /70120/.test(await p.locator('#list').textContent()), '/ui 168: «הכול» + חיפוש מספר לא מצא');
+  if (out) await p.screenshot({ path: `${out}/ui-12-queue-search.png` });
+  await p.locator('#qFind').fill('');
+  ok(await p.locator('#list .item').count() === 50 && /נותרו 4950/.test(await p.locator('#qMoreBtn').textContent()), '/ui 168: ניקוי החיפוש לא החזיר את הרשימה');
   await p.setViewportSize({ width: 390, height: 844 });
   ok(await p.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), '/ui 165: גלילה רוחבית במובייל עם שורת הסינון');
   if (out) await p.screenshot({ path: `${out}/ui-10-queue-mobile.png` });
@@ -484,6 +498,24 @@ try {
   await p.setViewportSize({ width: 390, height: 844 });
   ok(await p.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), '/ui 167: גלילה רוחבית במובייל עם סינון החובות');
   await p.setViewportSize({ width: 1280, height: 900 });
+  // הפעלה 168: חיפוש בטבלת החובות — שם, מספר חשבונית, וטלפון עם מקפים; סגורה נמצאת רק ב«הכול»
+  await df.nth(0).click();
+  await p.locator('#dFind').fill('חייב בדיקה 4321');
+  ok(await p.locator('#debts tr').count() === 1 && /חייב בדיקה 4321/.test(await p.locator('#debts').textContent())
+    && await p.locator('#dMoreBtn').count() === 0, '/ui 168: חיפוש שם בטבלת החובות');
+  await p.locator('#dFind').fill('84324');
+  ok(/לא נמצאו חובות פתוחים/.test(await p.locator('#debts').textContent()) && /«הכול» מציג 1 שנסגרו/.test(await p.locator('#debts').textContent()),
+    '/ui 168: חשבונית סגורה לא מוסברת ב«פתוחות»');
+  await df.nth(1).click();
+  ok(await p.locator('#debts tr.closed').count() === 1, '/ui 168: «הכול» + חיפוש מספר לא מצא את הסגורה');
+  const ph = String(t167.phone || '').replace(/\D/g, '');
+  if (ph.length >= 6) {
+    await p.locator('#dFind').fill(ph.slice(0, 3) + '-' + ph.slice(3, 6));
+    ok(await p.locator('#debts tr').count() === 50, '/ui 168: חיפוש טלפון עם מקף לא מצא');
+  }
+  await p.locator('#dFind').fill('אין כזה לקוח');
+  ok(/לא נמצאו חשבוניות עבור «אין כזה לקוח»/.test(await p.locator('#debts').textContent()), '/ui 168: חיפוש בלי תוצאה בלי הסבר');
+  await p.locator('#dFind').fill('');
   await p.unroute('**/dashboard');
   real167.invoices.forEach(x => { x.status = 'closed'; });
   await inject(p, '**/dashboard', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(real167) }));
