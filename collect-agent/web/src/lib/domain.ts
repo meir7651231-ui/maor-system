@@ -21,7 +21,8 @@ export interface Invoice {
   /** חי בלבד: התזכורת האחרונה שיצאה בפועל. at ריק ⇒ מועד השליחה לא ידוע (send_unknown). */
   lastSent?: { at: string | null; channels: Channel[]; unknown?: boolean };
   /** חי בלבד (הפעלה 160): התזכורת האחרונה אושרה, ומאז הסכום במקור השתנה. היא לא תישלח כך; תחזור לאישור. */
-  amountDrift?: { was: string | null; now: string };
+  amountDrift?: { was: string | null; now: string;
+    /** הפעלה 163: מזהה התזכורת המאושרת ⇒ אפשר לפתוח את הנוסח שאושר (לקריאה בלבד). חסר בשרת ישן. */ reminderId?: number };
   promisedAt?: string;
   note?: string;
   /** מאיפה החשבונית: API (מתרענן לבד) או CSV (בעל העסק מאשר שהסכום עדיין פתוח) */

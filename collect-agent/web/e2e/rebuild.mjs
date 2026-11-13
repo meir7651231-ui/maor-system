@@ -170,8 +170,37 @@ try {
       ok(await dr.locator('p').evaluate(e => { const r = e.getBoundingClientRect(); return r.left >= 0 && r.right <= innerWidth && r.width > 200; }), `/app/ ${vp}: הסבר הפער מחוץ למסך`);
       ok(await a.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), `/app/ ${vp}: גלילה רוחבית של העמוד עם סימון הפער`);
       if (out) await a.screenshot({ path: `${out}/rebuild-02-app-drift${vp === 'מובייל' ? '-mobile' : ''}.png`, fullPage: true });
+      // הפעלה 163: «הנוסח שאושר» פותח את התזכורת המאושרת לקריאה בלבד: הפער מהשרת, הנוסח הישן, ואין «אשר ושלח»
+      const openDraft = async (where, tag) => {
+        const before = (await outbox()).length;
+        const [pvRes] = await Promise.all([a.waitForResponse(r => r.url() === `${base}/reminders/${rid}/preview`), where.getByTestId('drift-open').click()]);
+        ok(pvRes.status() === 200, `/app/ ${vp}: הנוסח שאושר לא נטען: ${pvRes.status()}`);
+        const dlg = a.getByRole('dialog');
+        const md = dlg.getByTestId('mp-drift'); await md.waitFor();
+        const mt = await md.textContent();
+        ok(mt.includes('מ-3,600.50 ₪ ל-3,750.50 ₪') && mt.includes('מה שאישרתם'), `/app/ ${vp}: הסבר הפער בחלון: ` + mt);
+        await a.waitForFunction(() => (document.querySelector('[role=dialog] textarea')?.value ?? '').includes('3,600.50'));
+        ok(await dlg.getByRole('button', { name: /אשר ושלח/ }).count() === 0, `/app/ ${vp}: «אשר ושלח» על תזכורת שכבר אושרה`);
+        ok(await dlg.getByTestId('mp-reapprove').count() === 0, `/app/ ${vp}: «לבדוק ולאשר מחדש» על תזכורת שכבר אושרה`);
+        ok(await dlg.getByTestId('mp-readonly').count() === 1 && await dlg.getByTestId('confirm-amount').count() === 0 && await dlg.getByTestId('confirm-open').count() === 0,
+          `/app/ ${vp}: החלון לא בקריאה בלבד`);
+        ok(await md.evaluate(e => { const r = e.getBoundingClientRect(); return r.left >= 0 && r.right <= innerWidth; }), `/app/ ${vp}: הסבר הפער בחלון מחוץ למסך`);
+        if (out) await a.screenshot({ path: `${out}/rebuild-02-app-draft${vp === 'מובייל' ? '-mobile' : ''}-${tag}.png` });
+        await dlg.locator('footer').getByRole('button', { name: 'סגירה', exact: true }).click();
+        await dlg.waitFor({ state: 'detached' });
+        ok((await outbox()).length === before, `/app/ ${vp}: פתיחת הנוסח שאושר הוציאה הודעה`);
+      };
+      await openDraft(dr, 'invoices');
+      // וגם ממסך הסקירה: רשימת «הסכום השתנה במקור» מעל תור האישורים
+      await a.goto(base + '/app/#/dashboard');
+      const dl = a.getByTestId('drift-list'); await dl.waitFor();
+      const dlt = await dl.textContent();
+      ok(dlt.includes('יוסי') && dlt.includes('2002') && dlt.includes('3,750.50'), `/app/ ${vp}: רשימת הפער במסך הסקירה: ` + dlt);
+      ok(await a.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), `/app/ ${vp}: גלילה רוחבית במסך הסקירה עם רשימת הפער`);
+      await openDraft(dl, 'dash');
       await a.close();
     }
+    console.log('  ✓ /app/: «הנוסח שאושר» (טבלת החשבוניות + מסך הסקירה) נפתח לקריאה בלבד עם הסבר הפער, בלי «אשר ושלח», בלי שליחה');
     console.log('  ✓ /app/: טבלת החשבוניות מסמנת את התזכורת המאושרת שהסכום שלה השתנה (דסקטופ ומובייל)');
     console.log('  ✓ /ui: תזכורת מאושרת שהסכום שלה עלה במקור ⇒ «מ-3,600.50 ₪ ל-3,750.50 ₪ … לא יישלח כך», לפני ה-/dispatch');
   };

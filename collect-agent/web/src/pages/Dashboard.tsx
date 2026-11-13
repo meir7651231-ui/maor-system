@@ -7,7 +7,7 @@ import { demoCollectedByMonth } from '../data/demo.ts';
 import { Button, Card, LateBadge } from '../components/ui.tsx';
 import { MessagePreview } from '../components/MessagePreview.tsx';
 import type { Invoice } from '../lib/domain.ts';
-import { api, BLOCK_LABEL, blockKind, REAPPROVE_LABEL } from '../api.ts';
+import { api, BLOCK_LABEL, blockKind, DRIFT_LABEL, REAPPROVE_LABEL } from '../api.ts';
 import { ALREADY_PLAN, alreadyDone, failPrefix, type Already } from '../lib/failure.ts';
 import { mockAmountCheck } from '../lib/policy.ts';
 import { areaPath, cumulative, otherInSeries, toBars, type Bar } from '../lib/series.ts';
@@ -31,6 +31,7 @@ export function Dashboard() {
   const oc = live ? t?.other_currency : mockOtherCurrency(invoices, today);
   const sub = (base: string, field: 'open_agorot' | 'overdue_agorot' | 'at_risk_agorot' | 'collected_agorot') => [base, plusOther(oc, field)].filter(Boolean).join(' · ');
   const [open, setOpen] = useState<Invoice | null>(null);
+  const drifted = live ? invoices.filter(i => i.amountDrift) : [];
 
   return (
     <div className="space-y-6">
@@ -68,6 +69,23 @@ export function Dashboard() {
         <Card className="p-5">
           <h2 className="text-lg font-extrabold mb-1">תור האישורים של היום</h2>
           <p className="text-sm text-ink-500 mb-4">גבי הכין את ההודעות. תסתכל/י, תאשר/י — והוא שולח בשעות המותרות.</p>
+          {/* הפעלה 163: תזכורות שכבר אושרו והסכום שלהן השתנה במקור. הן לא בתור (לא ממתינות), אבל לא יישלחו
+              כמו שאושרו; כאן רואים אותן ופותחים את הנוסח שאושר, לקריאה בלבד */}
+          {live && drifted.length > 0 && (
+            <div data-testid="drift-list" className="mb-4 rounded-xl bg-amber-50 ring-1 ring-inset ring-amber-200 p-3">
+              <p className="text-sm font-bold text-amber-900">⚠️ {DRIFT_LABEL} (<span className="num">{drifted.length}</span>)</p>
+              <ul className="mt-2 space-y-1.5">
+                {drifted.map(i => (
+                  <li key={i.id} className="flex flex-wrap items-center gap-2 text-sm text-amber-900">
+                    <span className="font-bold">{customerOf(i.customerId).name}</span>
+                    <span>חשבונית <span className="num">{i.number}</span>:{i.amountDrift!.was && <> <span className="num">{i.amountDrift!.was}</span> ⇐</>} <b className="num">{i.amountDrift!.now}</b></span>
+                    {i.amountDrift!.reminderId && <button type="button" data-testid="drift-open" onClick={() => setOpen(i)}
+                      className="ms-auto min-h-9 rounded-lg bg-white ring-1 ring-inset ring-amber-300 px-3 py-1 text-xs font-bold hover:bg-amber-100 cursor-pointer">הנוסח שאושר</button>}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
           {queue.length === 0 ? <p className="text-ink-500 py-8 text-center">אין מה לאשר — הכול מטופל ✨</p> : (
             <ul className="divide-y divide-ink-200">
               {queue.map(i => (

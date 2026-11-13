@@ -752,7 +752,9 @@ test('הפעלה 142: רענון שנכשל במצב חי ⇒ stale ופס «ה�
   // /ui: כשל טעינה לא נבלע
   const ui = readFileSync(new URL('../../app/ui.html', import.meta.url), 'utf8');
   assert.doesNotMatch(ui, /loadDash\(\)\.catch\(\(\)=>\{\}\)/);
-  assert.match(ui, /Promise\.allSettled\(\[loadDash\(ask\),api\("\/reminders",\{\},ask\)\]\)/);
+  // הפעלה 162: התור נטען ב-view=list (שדות השורה בלבד), לא ב-/reminders המלא
+  assert.match(ui, /Promise\.allSettled\(\[loadDash\(ask\),api\("\/reminders\?view=list",\{\},ask\)\]\)/);
+  assert.doesNotMatch(ui, /api\("\/reminders",\{\},ask\)/);
   assert.match(ui, /id="loaderr" role="alert" hidden/);
 });
 
@@ -1043,7 +1045,7 @@ test('הפעלה 158: /app/ — שלד לפי המסך המבוקש; תצוגה 
   assert.match(sk, /\? route : 'dashboard'/);
   const mp = readFileSync(new URL('../src/components/MessagePreview.tsx', import.meta.url), 'utf8');
   // בזמן טעינה או כשל: השלד או ההודעה מחליפים את כל גוף החלון (שלב, ערוצים, מועד, נוסח)
-  assert.match(mp, /const loading = live && !!pending && !pv && !err;/);
+  assert.match(mp, /const loading = live && !!rid && !pv && !err;/);
   assert.match(mp, /const failed = live && !pv && !!err;/);
   assert.match(mp, /\{loading \? <PreviewSkeleton \/> : failed \? \(/);
   assert.match(mp, /aria-busy=\{loading \|\| undefined\}/);
@@ -1053,9 +1055,9 @@ test('הפעלה 158: /app/ — שלד לפי המסך המבוקש; תצוגה 
   assert.doesNotMatch(psk, /useApp|invoice|business|pv\b|₪/);
   // אי אפשר לאשר בלי נוסח מהשרת, ותיבות «בדקתי» לא מוצגות לפני שהוא נטען
   assert.match(mp, /const sendable = live \? !!pv && /);
-  assert.match(mp, /\{live && !!pv && isCsv && \(/);
+  assert.match(mp, /\{!readOnly && live && !!pv && isCsv && \(/);   // הפעלה 163: ולא בקריאה בלבד
   // רק הבקשה האחרונה קובעת, ו«נסו שוב» שולח בקשה חדשה
-  assert.match(mp, /let dead = false;[\s\S]{0,600}if \(!dead\) setPv\(v\)[\s\S]{0,200}return \(\) => \{ dead = true; \};\s*\}, \[live, pending, tries\]\);/);
+  assert.match(mp, /let dead = false;[\s\S]{0,600}if \(!dead\) setPv\(v\)[\s\S]{0,200}return \(\) => \{ dead = true; \};\s*\}, \[live, pending, rid, tries\]\);/);
   assert.match(mp, /data-testid="mp-retry" onClick=\{\(\) => setTries\(n => n \+ 1\)\}/);
   // ערוץ בלי הודעה בתזכורת: לא בועה ריקה ולא מייל מהמוק
   assert.match(mp, /\{live && !\(tab === 'sms' \? liveSms : liveMail\) \? \(/);
@@ -1077,7 +1079,8 @@ test('הפעלה 160: /app/ מסמן בטבלת החשבוניות תזכורת 
     row({ invoice_id: 5, last_reminder: lr(drift), status: 'closed' }),            // שולמה ונסגרה
     row({ invoice_id: 6, last_reminder: lr({ was_text: null, now_text: '120.00 $' }) }) ] };
   const m = fromDashboard(d, []);
-  assert.deepEqual(m.invoices.map(i => i.amountDrift), [{ was: '3,600.50 ₪', now: '3,750.50 ₪' }, undefined, undefined, undefined, undefined, { was: null, now: '120.00 $' }]);
+  // הפעלה 163: גם מזהה התזכורת המאושרת, כדי לפתוח את הנוסח שאושר
+  assert.deepEqual(m.invoices.map(i => i.amountDrift), [{ was: '3,600.50 ₪', now: '3,750.50 ₪', reminderId: 9 }, undefined, undefined, undefined, undefined, { was: null, now: '120.00 $', reminderId: 9 }]);
   assert.ok(!('amountDrift' in m.invoices[1]), 'בלי פער השדה לא נכתב (המודל של הדמו לא משתנה)');
   const t = driftText(m.invoices[0].amountDrift!);
   assert.match(t, /מ-3,600\.50 ₪ ל-3,750\.50 ₪/); assert.match(t, /לא תישלח על הסכום הקודם/); assert.match(t, /תחזור אליכם לאישור/);
@@ -1093,5 +1096,27 @@ test('הפעלה 160: /app/ מסמן בטבלת החשבוניות תזכורת 
 
 test('הפעלה 160: תזכורת שהוחלפה באחרת בזמן שהחלון פתוח ⇒ הנוסח הקודם יורד לפני הבקשה החדשה (מגן-מקור)', () => {
   const mp = readFileSync(new URL('../src/components/MessagePreview.tsx', import.meta.url), 'utf8');
-  assert.match(mp, /setErr\(null\);[\s\S]{0,400}setPv\(cur => \(cur && cur\.reminder_id !== pending\.reminderId \? null : cur\)\);\s*api\.preview\(pending\.reminderId\)/);
+  assert.match(mp, /setErr\(null\);[\s\S]{0,400}setPv\(cur => \(cur && cur\.reminder_id !== rid \? null : cur\)\);\s*api\.preview\(rid\)/);
+});
+
+test('הפעלה 163: תזכורת מאושרת עם פער נפתחת ב-/app/ לקריאה בלבד (טבלת החשבוניות + מסך הסקירה)', () => {
+  const mp = readFileSync(new URL('../src/components/MessagePreview.tsx', import.meta.url), 'utf8');
+  // הנוסח נטען לפי התזכורת הממתינה, ואם אין — לפי התזכורת המאושרת שיש לה פער
+  assert.match(mp, /const driftRid = live && !pending \? invoice\.amountDrift\?\.reminderId : undefined;/);
+  assert.match(mp, /const rid = pending\?\.reminderId \?\? driftRid;/);
+  assert.match(mp, /api\.preview\(rid\)/);
+  // לקריאה בלבד: אין «אשר ושלח» ואין תיבות אישור; ההסבר על הפער מגיע מהשרת (amount_drift של /preview)
+  assert.match(mp, /const readOnly = live && \(!!driftRid \|\| \(!!pv && pv\.status !== 'pending_approval'\)\);/);
+  assert.match(mp, /\{!readOnly && <Button disabled/);
+  assert.match(mp, /\{!readOnly && live && !!pv && isCsv && \(/);
+  assert.match(mp, /\{!readOnly && odd\.length > 0 && \(/);
+  assert.match(mp, /\{!readOnly && blockKind\(block\) === 'reapprove' && <div data-testid="mp-reapprove"/);
+  assert.match(mp, /const drift = live \? pv\?\.amount_drift \?\? null : null;/);
+  assert.match(mp, /data-testid="mp-drift"[\s\S]{0,300}driftText\(\{ was: drift\.was_text, now: drift\.now_text \}\)/);
+  const inv = readFileSync(new URL('../src/pages/Invoices.tsx', import.meta.url), 'utf8');
+  assert.match(inv, /\{i\.amountDrift\.reminderId && <button type="button" data-testid="drift-open" onClick=\{\(\) => setOpen\(i\)\}/);
+  const dash = readFileSync(new URL('../src/pages/Dashboard.tsx', import.meta.url), 'utf8');
+  assert.match(dash, /const drifted = live \? invoices\.filter\(i => i\.amountDrift\) : \[\];/);
+  assert.match(dash, /\{live && drifted\.length > 0 && \(\s*<div data-testid="drift-list"/);
+  assert.match(dash, /data-testid="drift-open" onClick=\{\(\) => setOpen\(i\)\}/);
 });

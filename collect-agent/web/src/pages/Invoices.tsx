@@ -88,6 +88,9 @@ export function Invoices() {
                   {live && i.amountDrift && <tr data-testid="amount-drift" className="bg-amber-50/60 border-t-0">
                     <td colSpan={8} className="px-4 pb-3 pt-0 text-xs text-amber-900">
                       <p className="max-w-[min(42rem,calc(100vw-4rem))] leading-snug">⚠️ <b>חשבונית <span className="num">{i.number}</span>:</b> {driftText(i.amountDrift)}</p>
+                      {/* הפעלה 163: פותח את הנוסח שאושר, לקריאה בלבד */}
+                      {i.amountDrift.reminderId && <button type="button" data-testid="drift-open" onClick={() => setOpen(i)}
+                        className="mt-1.5 min-h-9 rounded-lg bg-white ring-1 ring-inset ring-amber-300 px-3 py-1 text-xs font-bold text-amber-900 hover:bg-amber-100 cursor-pointer">הנוסח שאושר</button>}
                     </td>
                   </tr>}
                   </Fragment>

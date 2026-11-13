@@ -252,7 +252,7 @@ export function fromDashboard(d: Dashboard, pending: PendingRow[]) {
       issuedAt: r.due ?? d.today, dueAt: r.due ?? d.today, status, payUrl: '', reminders, note: blockNote,
       ...(r.currency && r.currency !== 'ILS' ? { currency: r.currency } : {}),
       ...(lastSent ? { lastSent } : {}),
-      ...(drift ? { amountDrift: { was: drift.was_text, now: drift.now_text } } : {}),
+      ...(drift ? { amountDrift: { was: drift.was_text, now: drift.now_text, ...(r.last_reminder?.id ? { reminderId: r.last_reminder.id } : {}) } } : {}),
     });
   }
   return { customers, invoices, pendingBy, mergedBy, today: d.today };

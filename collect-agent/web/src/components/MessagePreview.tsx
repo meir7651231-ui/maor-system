@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { api, BLOCK_LABEL, blockKind, REAPPROVE_LABEL, type Preview } from '../api.ts';
+import { api, BLOCK_LABEL, blockKind, DRIFT_LABEL, driftText, REAPPROVE_LABEL, type Preview } from '../api.ts';
 import { failPrefix, staleChangeText, stalePreview } from '../lib/failure.ts';
 import { useApp } from '../store.tsx';
 import type { Channel, Invoice, Step } from '../lib/domain.ts';
@@ -14,6 +14,10 @@ export function MessagePreview({ invoice, onClose, now = new Date() }: { invoice
   const live = mode === 'live';
   const c = customerOf(invoice.customerId);
   const pending = pendingOf(invoice.id);
+  // הפעלה 163: תזכורת שכבר אושרה והסכום שלה השתנה במקור ⇒ נפתחת לקריאה בלבד (מה אושר, מה השתנה). אין כאן אישור:
+  // היא לא תישלח על הסכום הקודם, ותחזור לתור האישורים עם הסכום המעודכן.
+  const driftRid = live && !pending ? invoice.amountDrift?.reminderId : undefined;
+  const rid = pending?.reminderId ?? driftRid;
   const [pv, setPv] = useState<Preview | null>(null);
   const [busy, setBusy] = useState(false);
   // הפעלה 135: השרת דורש confirm_open אם יש חשבונית מ-CSV בכל התזכורת, לא רק בעוגן
@@ -29,19 +33,22 @@ export function MessagePreview({ invoice, onClose, now = new Date() }: { invoice
   const [err, setErr] = useState<string | null>(null);
   const [tries, setTries] = useState(0);
   useEffect(() => {
-    if (!live || !pending) return;
+    if (!live || !rid) return;
     // הפעלה 158: רק הבקשה האחרונה קובעת (רענון ברקע מחליף את pending ושולח בקשה חדשה; תשובה ישנה שחזרה
     // אחריה דרסה את החדשה), ו«נסו שוב» מנקה את השגיאה.
     let dead = false;
     setErr(null);
     // הפעלה 160: התזכורת הוחלפה באחרת (מזהה חדש) בזמן שהחלון פתוח ⇒ הנוסח הקודם יורד מיד (שלד, בלי כפתור
     // פעיל) עד שהחדש נטען. אותו מזהה (רענון ברקע) ⇒ הנוסח נשאר עד שהתשובה מחליפה אותו, בלי הבהוב.
-    setPv(cur => (cur && cur.reminder_id !== pending.reminderId ? null : cur));
-    api.preview(pending.reminderId).then(v => { if (!dead) setPv(v); }).catch(e => { if (!dead) setErr(String(e.message ?? e)); });
+    setPv(cur => (cur && cur.reminder_id !== rid ? null : cur));
+    api.preview(rid).then(v => { if (!dead) setPv(v); }).catch(e => { if (!dead) setErr(String(e.message ?? e)); });
     return () => { dead = true; };
-  }, [live, pending, tries]);
+  }, [live, pending, rid, tries]);
   // הפעלה 158: עד שהנוסח מגיע מהשרת לא מוצג שום דבר שנגזר מהמוק (שלב, מועד, ערוצים, נוסח מייל) — שלד בלבד.
-  const loading = live && !!pending && !pv && !err;
+  const loading = live && !!rid && !pv && !err;
+  // לקריאה בלבד: נפתחה דרך הפער, או שהתזכורת כבר לא ממתינה לאישור (אושרה/נשלחה בינתיים)
+  const readOnly = live && (!!driftRid || (!!pv && pv.status !== 'pending_approval'));
+  const drift = live ? pv?.amount_drift ?? null : null;
   const failed = live && !pv && !!err;
   const [step, setStep] = useState<Step>(nextStep(invoice));
   const [tab, setTab] = useState<Channel>(c.phone && business.channels.sms ? 'sms' : 'email');
@@ -90,6 +97,8 @@ export function MessagePreview({ invoice, onClose, now = new Date() }: { invoice
           <button onClick={onClose} aria-label="סגירה" className="h-9 w-9 rounded-lg hover:bg-ink-100 text-xl cursor-pointer">✕</button>
         </header>
 
+        {drift && <div role="status" data-testid="mp-drift" className="mx-5 mt-4 rounded-xl bg-amber-50 ring-1 ring-inset ring-amber-200 text-amber-900 px-4 py-3 text-sm">
+          <b>⚠️ {DRIFT_LABEL}.</b> {driftText({ was: drift.was_text, now: drift.now_text })} הנוסח למטה הוא מה שאישרתם, על הסכום הקודם.</div>}
         {changed && <div role="alert" data-testid="mp-stale" className="mx-5 mt-4 rounded-xl bg-amber-50 text-amber-900 px-4 py-3 text-sm font-bold">⚠️ {changed}</div>}
         {loading ? <PreviewSkeleton /> : failed ? (
           <div role="alert" data-testid="mp-error" className="p-8 text-center">
@@ -130,9 +139,10 @@ export function MessagePreview({ invoice, onClose, now = new Date() }: { invoice
               <div>🔗 <b>קישור תשלום:</b> <span className="num text-info break-all">{payUrl || '—'}</span></div>
               {live && <div>🧪 <b>מצב:</b> dry-run · ספק {liveSms?.provider ?? business.smsProvider} · שום הודעה לא יוצאת באמת</div>}
               <div>🛑 כולל קישור הסרה · מזהה את העסק · ללא תוכן שיווקי (סעיף 30א)</div>
-              {(live || requiresApproval(step, business, invoice.reminders.length === 0)) && <div className="text-amber-700">✋ שלב זה דורש את אישורך</div>}
+              {!readOnly && (live || requiresApproval(step, business, invoice.reminders.length === 0)) && <div className="text-amber-700">✋ שלב זה דורש את אישורך</div>}
               {blockKind(block) === 'hard' && <div className="text-critical font-bold">⛔ חסום: {BLOCK_LABEL[block!] ?? block}</div>}
-              {blockKind(block) === 'reapprove' && <div className="text-amber-700 font-bold">⏳ {REAPPROVE_LABEL[block!]}</div>}
+              {/* הפעלה 163: כמו /ui (157) — «לאשר מחדש» שנשאר מבנייה קודמת לא מוצג על תזכורת שכבר אושרה */}
+              {!readOnly && blockKind(block) === 'reapprove' && <div data-testid="mp-reapprove" className="text-amber-700 font-bold">⏳ {REAPPROVE_LABEL[block!]}</div>}
               {err && <div className="text-critical">שגיאה: {err}</div>}
             </div>
           </div>
@@ -203,20 +213,21 @@ export function MessagePreview({ invoice, onClose, now = new Date() }: { invoice
 
         <footer className="sticky bottom-0 bg-white border-t border-ink-200 p-4 flex flex-wrap items-center gap-3 justify-end">
           {c.optedOut && <span className="text-critical text-sm font-bold me-auto">הלקוח ביקש הסרה — אין שליחה</span>}
-          {live && !!pv && isCsv && (
+          {readOnly && <span data-testid="mp-readonly" className="me-auto text-sm text-ink-500">{pv?.status === 'approved' ? 'התזכורת כבר אושרה' : 'התזכורת לא ממתינה לאישור'} — לקריאה בלבד.</span>}
+          {!readOnly && live && !!pv && isCsv && (
             <label className="me-auto flex items-start gap-2 text-sm rounded-xl bg-amber-50 text-amber-900 px-3 py-2 max-w-md" data-testid="confirm-open">
               <input type="checkbox" className="h-5 w-5 mt-0.5 accent-[#10B981]" checked={confirmOpen} onChange={e => setConfirmOpen(e.target.checked)} />
               <span><b>הסכום {total} עדיין פתוח</b> — בדקתי. (חשבונית מקובץ CSV לא מתעדכנת לבד; האישור תקף 24 שעות.)</span>
             </label>
           )}
-          {odd.length > 0 && (
+          {!readOnly && odd.length > 0 && (
             <label className="me-auto flex items-start gap-2 text-sm rounded-xl bg-red-50 text-red-900 px-3 py-2 max-w-md" data-testid="confirm-amount">
               <input type="checkbox" className="h-5 w-5 mt-0.5 accent-[#10B981]" checked={confirmAmount} onChange={e => setConfirmAmount(e.target.checked)} />
               <span><b>הסכום נכון — בדקתי.</b> {odd.map(o => `חשבונית ${o.number}: ${fmtMoney(o.amount_agorot / 100, o.currency)} (בדרך כלל ${fmtMoney(o.usual_agorot / 100, o.currency)})`).join(' · ')}. אולי הנקודה העשרונית במקום הלא נכון?</span>
             </label>
           )}
-          <Button variant="ghost" onClick={onClose}>ביטול</Button>
-          <Button disabled={!sendable || (live && isCsv && !confirmOpen) || (odd.length > 0 && !confirmAmount)} onClick={async () => {
+          <Button variant="ghost" onClick={onClose}>{readOnly ? 'סגירה' : 'ביטול'}</Button>
+          {!readOnly && <Button disabled={!sendable || (live && isCsv && !confirmOpen) || (odd.length > 0 && !confirmAmount)} onClick={async () => {
             setBusy(true);
             try { await approveAndSend(invoice.id, step, channels, { confirmOpen, confirmAmount, seenHash: pv?.body_hash }); onClose(); }
             catch (e) {
@@ -238,7 +249,7 @@ export function MessagePreview({ invoice, onClose, now = new Date() }: { invoice
             }
           }}>
             ✓ אשר ושלח {live && !pv ? '' : channels.length === 2 ? 'ב-SMS ובמייל' : channels[0] === 'sms' ? 'ב-SMS' : channels[0] === 'email' ? 'במייל' : ''}
-          </Button>
+          </Button>}
         </footer>
       </div>
     </div>
