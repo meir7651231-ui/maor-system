@@ -220,9 +220,11 @@ async function loadDash(ask){
 // מול מספר החשבונית והטלפון, כך ש-«050-123» מוצא «0501234567». הסינון בצד הלקוח בלבד, כמו «פתוחות»/«הכול».
 const norm=v=>String(v??"").replace(/[\u0591-\u05C7]/g,"").replace(/\s+/g," ").trim().toLowerCase(),
   digits=v=>String(v??"").replace(/\D/g,""),
-  found=(q,name,num,phone)=>{const t=norm(q);if(!t)return true;
-    if(/^[\d\s\-+()]+$/.test(t)){const d=digits(t);return !!d&&(digits(num).includes(d)||digits(phone).includes(d))}
-    return norm(name).includes(t)||norm(num).includes(t)};
+  // הפעלה 169: num יכול להיות גם מערך (כל מספרי החשבוניות בתזכורת מאוחדת) — כל מספר נבדק לחוד, בלי הדבקה
+  // (אחרת «1001»+«1002» ⇒ «10011002» ו-«0110» היה נמצא).
+  found=(q,name,num,phone)=>{const t=norm(q);if(!t)return true;const ns=[].concat(num??[]);
+    if(/^[\d\s\-+()]+$/.test(t)){const d=digits(t);return !!d&&(ns.some(n=>digits(n).includes(d))||digits(phone).includes(d))}
+    return norm(name).includes(t)||ns.some(n=>norm(n).includes(t))};
 let dQ="",qQ="";
 const DPAGE=50;
 let dRows=[],dAll=false,dLim=DPAGE;
@@ -285,7 +287,7 @@ const QPAGE=50,qDone=r=>!r.amount_drift&&(String(r.status).startsWith("sent")||r
 let qRows=[],qAll=false,qLim=QPAGE;
 function drawQueue(){
   // הפעלה 168: חיפוש (ראו found למעלה). התזכורת שנבחרה נשארת גם כשאינה תואמת — לא נעלמת מתחת ליד (165)
-  const all=qRows,rows=qQ?all.filter(r=>r.id===sel||found(qQ,r.customer_name,r.number)):all,
+  const all=qRows,rows=qQ?all.filter(r=>r.id===sel||found(qQ,r.customer_name,r.numbers||r.number)):all,
     el=$("#list"),act=rows.filter(r=>!qDone(r)),pick=qAll?rows:rows.filter(r=>!qDone(r)||r.id===sel);
   $("#qFind").hidden=!all.length;
   $("#qf").innerHTML=all.length?`<button type="button" data-q="0" aria-pressed="${!qAll}">לטיפול (${act.length})</button><button type="button" data-q="1" aria-pressed="${qAll}">הכול (${rows.length})</button>`:"";

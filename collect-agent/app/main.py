@@ -330,13 +330,20 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
                  "JOIN customers c ON c.id=i.customer_id")
             rows = (svc.db.q(q + " WHERE r.status=? ORDER BY r.id", (status,)) if status
                     else svc.db.q(q + " ORDER BY r.id"))
+            # הפעלה 169: חיפוש בתור של `/ui` (168) מצא תזכורת מאוחדת רק לפי מספר העוגן. `numbers` = כל מספרי
+            # החשבוניות בתזכורת (לפי מועד, העוגן ראשון), בשאילתה אחת לכל הרשימה — לא אחת לכל תזכורת.
+            nums: dict[int, list[str]] = {}
+            for x in svc.db.q("SELECT x.reminder_id rid, i.number FROM reminder_invoices x "
+                              "JOIN invoices i ON i.id=x.invoice_id ORDER BY x.reminder_id, i.due, i.id"):
+                nums.setdefault(x["rid"], []).append(x["number"])
             out = []
             for r in rows:
                 ids = svc.reminder_invoice_ids(r["id"])
                 row = {k: r[k] for k in ("id", "invoice_id", "block_reason", "status", "step", "number",
                                          "customer_name")}
                 out.append({**row, "invoice_ids": ids, **svc.reminder_totals(r["id"], r["invoice_id"], ids),
-                            "amount_drift": svc.reminder_amount_drift(r)})
+                            "amount_drift": svc.reminder_amount_drift(r),
+                            "numbers": nums.get(r["id"]) or [r["number"]]})
             return out
         if view == "summary":
             # critic סבב 37: הממשק צריך 4 שדות; התשובה המלאה (גוף + payload + HTML) הייתה 12MB ב-5,000 לקוחות

@@ -430,6 +430,8 @@ try {
     status: i < 120 ? (i % 2 ? 'approved' : 'pending_approval') : ['sent_dry_run', 'rejected', 'cancelled', 'sent'][i % 4],
     step: 0, number: String(70000 + i), customer_name: `לקוח בדיקה ${i}`, invoice_ids: [i + 1], invoice_count: 1,
     total_text: '100.00 ₪', amount_drift: i === 4999 ? { was_text: '90.00 ₪', now_text: '100.00 ₪' } : null }));
+  // הפעלה 169: תזכורת מאוחדת — 88002 הוא מספר של חשבונית שאינה העוגן; החיפוש צריך למצוא אותה דרך `numbers`
+  Object.assign(big165[10], { numbers: ['70010', '88001', '88002'], invoice_ids: [11, 8801, 8802], invoice_count: 3 });
   await inject(p, LIST, route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(big165) }));
   const t165 = Date.now();
   await p.reload();
@@ -459,6 +461,10 @@ try {
     && await qf.count() === 2, '/ui 168: תזכורת שנשלחה לא מוסברת ב«לטיפול», או שכפתורי הסינון נעלמו');
   await qf.nth(1).click();
   ok(await p.locator('#list .item').count() === 1 && /70120/.test(await p.locator('#list').textContent()), '/ui 168: «הכול» + חיפוש מספר לא מצא');
+  await p.locator('#qFind').fill('88002');
+  ok(await p.locator('#list .item').count() === 1 && /לקוח בדיקה 10[\d.,]* ₪/.test(await p.locator('#list').textContent()) && /3 חשבוניות/.test(await p.locator('#list').textContent()),
+    '/ui 169: חיפוש לפי מספר של חשבונית שאינה העוגן לא מצא את התזכורת המאוחדת');
+  await p.locator('#qFind').fill('70120');
   if (out) await p.screenshot({ path: `${out}/ui-12-queue-search.png` });
   await p.locator('#qFind').fill('');
   ok(await p.locator('#list .item').count() === 50 && /נותרו 4950/.test(await p.locator('#qMoreBtn').textContent()), '/ui 168: ניקוי החיפוש לא החזיר את הרשימה');

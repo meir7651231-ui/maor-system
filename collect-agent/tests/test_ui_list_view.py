@@ -20,6 +20,8 @@ from tests.conftest import AUTH, OWNER_TOKEN
 SRC = (pathlib.Path(__file__).parent.parent / "app" / "ui.html").read_text(encoding="utf-8")
 FIELDS = {"id", "invoice_id", "block_reason", "status", "step", "number", "customer_name",
           "invoice_ids", "invoice_count", "total_text", "amount_drift"}
+# הפעלה 169: `numbers` קיים רק ב-`view=list` (חיפוש בתור); לא בתצוגה המלאה
+LIST_ONLY = {"numbers"}
 
 
 @pytest.fixture
@@ -38,9 +40,10 @@ def test_list_view_has_only_list_fields_with_same_values_as_full(api, fake_gi):
     lst = api.get("/reminders?view=list").json()
     assert [r["id"] for r in lst] == [r["id"] for r in full] and lst
     for f, r in zip(full, lst, strict=True):
-        assert set(r) == FIELDS
+        assert set(r) == FIELDS | LIST_ONLY
         assert not {"payload", "body", "html"} & set(r)
-        assert {k: f[k] for k in FIELDS} == r
+        assert {k: f[k] for k in FIELDS} == {k: r[k] for k in FIELDS}
+        assert r["numbers"][0] == f["number"]
 
 
 def test_list_view_filters_by_status(api, fake_gi):
@@ -86,7 +89,7 @@ def test_ui_loads_list_view_not_full_reminders():
     # הפעלה 165: השורה עברה ל-drawQueue (סינון «לטיפול» + עימוד) ⇒ המגן מכסה את כל הפונקציה, כולל שדות הסינון
     row = SRC[SRC.index("const QPAGE="):SRC.index('el.querySelectorAll(".item")')]
     used = set(re.findall(r"\br\.(\w+)", row))
-    assert used <= FIELDS, used - FIELDS
+    assert used <= FIELDS | LIST_ONLY, used - FIELDS - LIST_ONLY
 
 
 def test_list_view_total_text_keeps_invoice_currency(api, fake_gi):
@@ -146,7 +149,10 @@ def _found():
     cases = [["דנה", "דָּנָה  כהן", "1001", ""], ["דנה כהן", "דנה   כהן", "1", ""],
              ["050-123", "x", "9", "0501234567"], ["1001", "x", "INV-1001", ""],
              ["כהן", "לוי", "1", "050"], ["", "x", "1", ""], ["DANA", "dana k", "1", ""],
-             ["--", "x", "1", "050"], ["123", "x", "9", None]]
+             ["--", "x", "1", "050"], ["123", "x", "9", None],
+             # הפעלה 169: מערך מספרים — כל אחד לחוד, בלי הדבקה ביניהם
+             ["3003", "x", ["3001", "3002", "3003"], ""], ["0130", "x", ["3001", "3002"], ""],
+             ["inv-2", "x", ["INV-1", "INV-2"], ""], ["3001", "x", [], ""]]
     js = fn + ";console.log(JSON.stringify(" + json.dumps(cases) + ".map(c=>found(...c))))"
     out = subprocess.run([node, "-e", js], capture_output=True, text=True, check=True).stdout  # noqa: S603 — קוד הדף עצמו
     return json.loads(out)
@@ -162,9 +168,33 @@ def test_ui_search_in_queue_and_debts():
     draw = SRC[SRC.index("function drawDebts(){"):SRC.index("// חידוש ללקוח מושהה")]
     assert "found(dQ,x.customer,x.number,x.phone)" in draw and "לא נמצאו" in draw and "esc(dQ)" in draw
     q = SRC[SRC.index("function drawQueue(){"):SRC.index('el.querySelectorAll(".item")')]
-    assert "r.id===sel||found(qQ,r.customer_name,r.number)" in q and "esc(qQ)" in q
+    assert "r.id===sel||found(qQ,r.customer_name,r.numbers||r.number)" in q and "esc(qQ)" in q
     assert '$("#qf").innerHTML=all.length?' in q                  # לא rows.length — אחרת הכפתורים נעלמים בחיפוש ריק
     assert 'dQ=qQ="";' in SRC                                      # נעילה מנקה את החיפוש
     got = _found()
     if got is not None:
-        assert got == [True, True, True, True, False, True, True, False, False], got
+        assert got == [True, True, True, True, False, True, True, False, False, True, False, True, False], got
+
+
+# ---------- הפעלה 169: חיפוש בתור לפי מספר של חשבונית שאינה העוגן ----------
+
+HEAD = "מספר מסמך,שם לקוח,טלפון,יתרה לתשלום,תאריך,תאריך לתשלום\n"
+CSV = HEAD + "".join(f"{3001 + k},דנה כהן,050-1234567,{a},01/09/2026,01/10/2026\n"
+                     for k, a in enumerate(("120", "130.50", "140")))
+
+
+def test_list_view_numbers_cover_all_invoices_of_merged_reminder(api):
+    """הבאג (168): החיפוש בתור השווה רק את `number` של העוגן ⇒ תזכורת מאוחדת על 3001–3003 לא נמצאה בחיפוש
+    «3003». עכשיו `numbers` מחזיר את כל המספרים לפי מועד (העוגן ראשון), ותזכורת רגילה ⇒ [המספר שלה]."""
+    api.post("/sync")
+    assert api.post("/settings/source/csv", content=CSV.encode()).status_code == 200
+    api.post("/plan")
+    rows = api.get("/reminders?view=list").json()
+    merged = [r for r in rows if r["invoice_count"] > 1]
+    assert merged and all(len(r["numbers"]) == r["invoice_count"] for r in rows)
+    m = merged[0]
+    assert sorted(m["numbers"]) == ["3001", "3002", "3003"] and m["numbers"][0] == m["number"]
+    assert all(r["numbers"] == [r["number"]] for r in rows if r["invoice_count"] == 1)
+    # מסונן לפי סטטוס ⇒ אותם מספרים
+    st = api.get(f"/reminders?status={m['status']}&view=list").json()
+    assert next(r for r in st if r["id"] == m["id"])["numbers"] == m["numbers"]
