@@ -10,7 +10,8 @@ import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import { allMembers, useApp, type View } from '../../store/useApp';
 import { featureOn, moduleOn, roleOf, termOf } from '../../lib/config';
 import { guardExport } from '../../lib/exportGate';
-import { supporterVisibleForDesignations } from '../supporters/lib';
+import { allSupPhones, supporterVisibleForDesignations } from '../supporters/lib';
+import { familyPhoneDigits } from '../families/lib';
 import { levenshtein, smartFilter } from '../../lib/search';
 import { normSearch } from '../../lib/validate';
 import { DEFAULT_LOCK_ZONES } from '../../lib/lock';
@@ -531,8 +532,7 @@ export function CommandPalette() {
           f.mother,
           f.city,
           f.community,
-          digits(f.phone),
-          digits(f.phone2),
+          ...familyPhoneDigits(f),
         ]),
         run: () => {
           selectFamily(f.id);
@@ -598,7 +598,7 @@ export function CommandPalette() {
         icon: '💛',
         title: sp.name,
         sub: [sp.cat, sp.phone].filter(Boolean).join(' · '),
-        terms: toTerms([sp.name, sp.cat, sp.forWho, sp.email, digits(sp.phone), sp.idNum, 'תורם', 'תרומה', 'תומכת']),
+        terms: toTerms([sp.name, sp.cat, sp.forWho, sp.email, ...allSupPhones(sp).map((r) => digits(r.num)), sp.idNum, 'תורם', 'תרומה', 'תומכת']),
         run: () => {
           // UX סבב-ז׳: נוחתים על כרטיס-התומך עצמו (כמו משפחות) — לא רק על המסך
           useApp.getState().openSupporterCard(sp.id);

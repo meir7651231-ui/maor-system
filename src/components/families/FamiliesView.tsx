@@ -15,7 +15,7 @@ import { levenshtein, smartFilter } from '../../lib/search';
 import { normSearch } from '../../lib/validate';
 import { hebDateFull } from '../../lib/hebrew';
 import { ActionsMenu, Btn, Empty, PageHead, Select, TextInput } from '../ui';
-import { chipStyle, finderAxisValue, maritalChipStyle, numMatch, STATUS_META, tierOf } from './lib';
+import { chipStyle, familyPhoneDigits, familyPhoneMatches, finderAxisValue, maritalChipStyle, numMatch, STATUS_META, tierOf } from './lib';
 import { requestSettingsSection } from '../settings/lib';
 import { FamilyFinder } from './FamilyFinder';
 import { FamilyForm } from './FamilyForm';
@@ -195,10 +195,7 @@ export function FamiliesView() {
     if (finderOpen && !Object.entries(fwLocks).every(([k, v]) => finderAxisValue(db, f, k) === v)) return false;
     // שורת סינון-עמודות
     if (colF.name.trim() && !normSearch([f.name, f.father, f.mother].join(' ')).includes(normSearch(colF.name))) return false;
-    if (colF.phone.trim()) {
-      const pd = colF.phone.replace(/\D/g, '');
-      if (!pd || !((f.phone || '') + (f.phone2 || '')).replace(/\D/g, '').includes(pd)) return false;
-    }
+    if (colF.phone.trim() && !familyPhoneMatches(f, colF.phone)) return false;
     if (!numMatch(colF.kids, kidsOf(f).length)) return false;
     if (!numMatch(colF.courses, enrollCount.get(f.id) || 0)) return false;
     if (colF.status !== 'all' && f.status !== colF.status) return false;
@@ -221,8 +218,7 @@ export function FamiliesView() {
           f.mother,
           f.city,
           f.community,
-          (f.phone || '').replace(/\D/g, ''),
-          (f.phone2 || '').replace(/\D/g, ''),
+          ...familyPhoneDigits(f),
           ...f.members.map((m) => m.first),
         ].filter(Boolean),
       )

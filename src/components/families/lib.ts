@@ -18,6 +18,25 @@ export function allFamilyPhones(f: Pick<Family, 'phone' | 'phone2' | 'phones'>):
   return [f.phone, f.phone2, ...extra].map((p) => (typeof p === 'string' ? p.trim() : '')).filter(Boolean);
 }
 
+/**
+ * כל הטלפונים של משפחה כספרות-בלבד — מונחי-חיפוש (מסך-המשפחות, הפלטה, שיבוץ-לחוג).
+ * 🐛 עד 13.11: החיפוש הכיר רק phone/phone2 ⇒ מספר שנשמר ב"טלפונים נוספים" (phones[], 13.10)
+ * או שהגיע ממיזוג-כפולים לא מצא את המשפחה. ריקים מסוננים, כפולים מאוחדים, סדר יציב.
+ */
+export function familyPhoneDigits(f: Pick<Family, 'phone' | 'phone2' | 'phones'>): string[] {
+  return [...new Set(allFamilyPhones(f).map((p) => p.replace(/\D/g, '')).filter(Boolean))];
+}
+
+/**
+ * סינון-עמודת-הטלפון: האם אחד ממספרי-המשפחה מכיל את הספרות שהוקלדו.
+ * שאילתה בלי ספרות ⇒ false (כמו קודם). ההתאמה פר-מספר — לא על שרשור המספרים
+ * (שרשור התאים בטעות רצף שחוצה את הגבול בין שני מספרים).
+ */
+export function familyPhoneMatches(f: Pick<Family, 'phone' | 'phone2' | 'phones'>, query: string): boolean {
+  const q = (query || '').replace(/\D/g, '');
+  return !!q && familyPhoneDigits(f).some((d) => d.includes(q));
+}
+
 /** תצוגת תאריך DD/MM/YYYY (פנימית נשמר ISO). */
 export function fmtDate(iso: string): string {
   if (!iso) return '—';
