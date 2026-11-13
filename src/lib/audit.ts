@@ -9,7 +9,7 @@ import type { OrgConfig } from '../types/config';
 import { termOf } from './config';
 import { validIsraeliId, normName } from './validate';
 import { supporterAggregates } from './supporterAgg';
-import { ageOf } from '../components/families/lib';
+import { ageOf, allFamilyPhones } from '../components/families/lib';
 
 export type AuditCategory =
   | 'כפילות'
@@ -68,6 +68,14 @@ export function phoneIssue(p: string | undefined): string | null {
 }
 
 /**
+ * הטלפונים-הנוספים (phones[]) שנבדקים לתקינות. מספר בינ"ל מפורש (+… / 00…) מדולג —
+ * בנוספים שומרים גם קרובים בחו"ל, ו-phoneIssue מכיר רק תבנית ישראלית (היה מציף התרעות-שווא).
+ */
+function extraPhonesToCheck(f: Family): string[] {
+  return allFamilyPhones({ phone: '', phone2: '', phones: f.phones }).filter((p) => !/^(\+|00)/.test(p));
+}
+
+/**
  * הרצת הביקורת — מחזירה את כל הממצאים (לא ממוינים). הקיבוץ לקטגוריות
  * נעשה בתצוגה. הלוגיקה זהה לאב-הטיפוס עד לפרטי הניסוח.
  *
@@ -89,7 +97,8 @@ export function runAudit(db: Db, todayIso = '', extra = true, config?: OrgConfig
   for (const f of (Array.isArray(db.families) ? db.families : [])) {
     const k1 = normName(f.name) + '|' + normName(f.mother || '');
     (g1[k1] = g1[k1] || []).push(f);
-    for (const p of [f.phone, f.phone2]) {
+    // 🐛 עד 13.11: רק phone/phone2 — מספר ב"טלפונים נוספים" (phones[], 13.10) לא נבדק ככפילות.
+    for (const p of allFamilyPhones(f)) {
       const d = digits(p);
       if (d.length >= 7) (g2[d] = g2[d] || []).push(f);
     }
@@ -125,7 +134,7 @@ export function runAudit(db: Db, todayIso = '', extra = true, config?: OrgConfig
       const d = digits(idn);
       if (d.length && !validIsraeliId(d)) add('ת"ז', T('entity.familyOf', 'משפחת') + ' ' + f.name + ': ת"ז ' + who + ' לא עוברת ספרת ביקורת (' + idn + ')', f.id);
     }
-    for (const p of [f.phone, f.phone2]) {
+    for (const p of [f.phone, f.phone2, ...extraPhonesToCheck(f)]) {
       const pi = phoneIssue(p);
       if (pi) add('טלפון', T('entity.familyOf', 'משפחת') + ' ' + f.name + ': ' + pi, f.id);
     }
@@ -141,7 +150,8 @@ export function runAudit(db: Db, todayIso = '', extra = true, config?: OrgConfig
       add('לוגיקה', T('entity.familyOf', 'משפחת') + ' ' + f.name + ': מסומנת "' + f.maritalStatus + '" אבל רשומות שתי תעודות זהות של בני זוג', f.id);
     if (f.maritalStatus === 'נשואים' && f.status === 'active' && !f.father && !f.mother)
       add('לוגיקה', T('entity.familyOf', 'משפחת') + ' ' + f.name + ': מסומנת נשואים אבל לא רשום אף בן זוג', f.id);
-    if (!digits(f.phone) && !digits(f.phone2) && !f.email) add('קשר', T('entity.familyOf', 'משפחת') + ' ' + f.name + ': אין שום פרט קשר (טלפון או אימייל)', f.id);
+    // משפחה שהטלפון היחיד שלה ב-phones[] — יש לה פרט-קשר (היה: התרעת-שווא)
+    if (!allFamilyPhones(f).some((p) => digits(p)) && !f.email) add('קשר', T('entity.familyOf', 'משפחת') + ' ' + f.name + ': אין שום פרט קשר (טלפון או אימייל)', f.id);
 
     const seenKid = new Set<string>();
     for (const m of members(f)) {
