@@ -118,6 +118,11 @@ def _iso(dt: datetime) -> str:
     return dt.astimezone(TZ).isoformat(timespec="seconds")
 
 
+def _step_id(row) -> tuple[int, int]:
+    """מפתח «התזכורת האחרונה»: אותו סדר כמו `ORDER BY r.step DESC, r.id DESC` (step NOT NULL)."""
+    return (row["step"], row["id"])
+
+
 def _cur(row) -> str:
     """מטבע של שורת חשבונית; ריק/חסר ⇒ ILS (ברירת המחדל של הסכימה)."""
     return (row["currency"] or "ILS").upper()
@@ -1898,26 +1903,38 @@ class CollectService:
             return {"today": full["today"], "trial": full["trial"], "totals": full["totals"], "invoices": inv}
         today = self.clock().date()
         rows = []
+        # הפעלה 175: היו 3 שאילתות לכל חשבונית (תזכורת אחרונה / ספירת יוצאות / אחרונה שיצאה) + שאילתות
+        # חסימה לכל חשבונית. עכשיו: שאילתה אחת לכל קישורי התזכורות, ובחירה בפייתון באותו סדר בדיוק
+        # (step DESC, id DESC — step NOT NULL); חסימה ו-invoice_ids מחושבים פעם אחת ללקוח/לתזכורת.
+        by_inv: dict[int, list] = {}
+        members: dict[int, list[int]] = {}
+        for x in self.db.q("SELECT x.invoice_id xiid, r.* FROM reminders r JOIN reminder_invoices x "
+                           "ON x.reminder_id=r.id"):
+            by_inv.setdefault(x["xiid"], []).append(x)
+            members.setdefault(x["id"], []).append(x["xiid"])
+        # אותו סדר כמו reminder_invoice_ids: `ORDER BY i.due, i.id` (due ריק ראשון, כמו ב-SQLite)
+        due_of = {i["id"]: i["due"] for i in self.db.q("SELECT id, due FROM invoices")}
+
+        def _order(iid: int) -> tuple:
+            d = due_of[iid]
+            return (d is not None, d or "", iid)
+        rids = {rid: sorted((i for i in ids if i in due_of), key=_order) for rid, ids in members.items()}
+        blocks = self._customer_blocks()
         for r in self.db.q("SELECT i.*, c.name cname, c.phone cphone, c.email cemail, "
                            "c.opted_out, c.disputed, c.paused_reason FROM invoices i "
                            "JOIN customers c ON c.id=i.customer_id ORDER BY i.due, i.id"):
             # תזכורת מאוחדת נספרת בכל חשבונית שהיא כוללת (reminder_invoices)
-            last = self.db.one("SELECT r.* FROM reminders r JOIN reminder_invoices x ON "
-                               "x.reminder_id=r.id WHERE x.invoice_id=? ORDER BY r.step DESC, "
-                               "r.id DESC LIMIT 1", (r["id"],))
-            sent = self.db.one("SELECT COUNT(*) n FROM reminders r JOIN reminder_invoices x ON "
-                               "x.reminder_id=r.id WHERE x.invoice_id=? AND "
-                               # critic סבב 41: send_unknown נספרת כמו בתקרה (אולי יצאה)
-                               "r.status IN ('sent_dry_run','send_unknown')", (r["id"],))["n"]
+            mine = by_inv.get(r["id"], [])
+            last = max(mine, key=_step_id, default=None)
+            # critic סבב 41: send_unknown נספרת כמו בתקרה (אולי יצאה)
+            went = [m for m in mine if m["status"] in ("sent_dry_run", "send_unknown")]
+            sent = len(went)
             # הפעלה 137: התזכורת האחרונה ש*יצאה* (last למעלה הוא השלב הגבוה, גם טיוטה בתור)
             # critic סבב 53: הניסיון האחרון (שלב גבוה), גם כשהוא send_unknown בלי sent_at. קודם
             # `ORDER BY sent_at IS NULL` דחף אותו לסוף ⇒ הוצג מועד של תזכורת ישנה ⇒ חשש לפנייה ידנית כפולה
-            ls = self.db.one("SELECT r.sent_at, r.message_id, r.status FROM reminders r JOIN reminder_invoices x "
-                             "ON x.reminder_id=r.id WHERE x.invoice_id=? AND r.status IN "
-                             "('sent_dry_run','send_unknown') ORDER BY r.step DESC, r.id DESC LIMIT 1",
-                             (r["id"],))
+            ls = max(went, key=_step_id, default=None)
             due = date.fromisoformat(r["due"]) if r["due"] else None
-            block = self._customer_block(r["customer_id"])
+            block = blocks[r["customer_id"]]
             rows.append({
                 "invoice_id": r["id"], "number": r["number"], "customer": r["cname"],
                 "customer_id": r["customer_id"], "paused_reason": r["paused_reason"],
@@ -1932,7 +1949,7 @@ class CollectService:
                     "unknown": ls["status"] == "send_unknown"},
                 "last_reminder": None if not last else {
                     "id": last["id"], "step": last["step"], "status": last["status"],
-                    "invoice_ids": self.reminder_invoice_ids(last["id"]),
+                    "invoice_ids": list(rids[last["id"]]),
                     "template_key": last["template_key"], "sent_at": last["sent_at"],
                     "block_reason": last["block_reason"],
                     # הפעלה 159: טבלת החובות הציגה «מאושרת» לתזכורת שהסכום שלה השתנה במקור, בזמן שהתור
@@ -2222,6 +2239,23 @@ class CollectService:
                 "AND intent != 'promise'", (cid,)):
             return AWAITING_OWNER
         return block
+
+    def _customer_blocks(self) -> dict[int, str | None]:
+        """הפעלה 175: `_customer_block` לכל הלקוחות בבת אחת (ל-/dashboard) — אותם כללים, 3–4 שאילתות במקום
+        3 לכל לקוח. מוגן בבדיקת זהות מול `_customer_block` (tests/test_dashboard_batched.py)."""
+        plans = {r["customer_id"] for r in self.db.q(
+            "SELECT DISTINCT customer_id FROM plans WHERE status IN ('proposed','approved')")}
+        waiting: set[int] = set()
+        if self._table_exists("drafts"):
+            waiting = {r["customer_id"] for r in self.db.q(
+                "SELECT DISTINCT customer_id FROM drafts WHERE status IN ('pending_approval','needs_owner') "
+                "AND intent != 'promise'")}
+        out: dict[int, str | None] = {}
+        for c in self.db.q("SELECT id, opted_out, disputed, paused_reason FROM customers"):
+            block = customer_blocked(opted_out=bool(c["opted_out"]), disputed=bool(c["disputed"]),
+                                     plan_active=c["id"] in plans, paused=c["paused_reason"])
+            out[c["id"]] = AWAITING_OWNER if block is None and c["id"] in waiting else block
+        return out
 
     def _cancel_invoice(self, iid: int, reason: str) -> None:
         """כל תזכורת פעילה **שכוללת** את החשבונית (גם מאוחדת) מבוטלת — הנוסח שלה כבר לא נכון.
