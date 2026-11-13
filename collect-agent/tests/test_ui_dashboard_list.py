@@ -2,7 +2,7 @@
 
 על 5,000 חשבוניות: 2.46MB לכל רענון (והדף מרענן אחרי כל פעולה), ועוד 0.5MB של `/reminders?view=list`.
 עכשיו: `/dashboard?view=list` מחזיר רק את השדות ש-`/ui` מציג (1.90MB), ושתי תצוגות `view=list` נדחסות ב-gzip
-כשהדפדפן מקבל: 1.90MB ⇒ 86KB, 0.51MB ⇒ 49KB. `/dashboard` המלא (של `/app/`) לא השתנה ולא נדחס.
+כשהדפדפן מקבל: 1.90MB ⇒ 86KB, 0.51MB ⇒ 49KB. `/dashboard` המלא (של `/app/`) לא השתנה (מהפעלה 173 גם הוא נדחס).
 הבדיקה בדפדפן: `web/e2e/ui.mjs` (הכותרת `content-encoding: gzip` והבקשה עם `view=list`).
 """
 from __future__ import annotations
@@ -58,13 +58,13 @@ def test_list_has_only_ui_fields_with_same_values_as_full(api, fake_gi):
             assert x["last_reminder"] == {k: f["last_reminder"][k] for k in LAST}
 
 
-def test_full_dashboard_unchanged_and_not_compressed(api):
-    """`/app/` (React) נשען על `/dashboard` המלא: series, send_window, email, source, invoice_ids נשארים."""
+def test_full_dashboard_unchanged(api):
+    """`/app/` (React) נשען על `/dashboard` המלא: series, send_window, email, source, invoice_ids נשארים.
+    (הפעלה 173: גם הוא נדחס — `tests/test_app_gzip.py`.)"""
     r = api.get("/dashboard", headers={"Accept-Encoding": "gzip"})
     d = r.json()
     assert {"series", "send_window", "today", "trial", "totals", "invoices"} <= set(d)
     assert {"email", "source"} <= set(d["invoices"][0])
-    assert "content-encoding" not in r.headers
 
 
 @pytest.mark.parametrize("path", ["/dashboard?view=list", "/reminders?view=list"])

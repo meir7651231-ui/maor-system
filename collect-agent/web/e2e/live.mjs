@@ -137,8 +137,20 @@ try {
   await p.getByLabel('קוד גישה').fill('x'.repeat(40));
   await p.getByTestId('token-gate').getByRole('button', { name: 'כניסה' }).click();
   await p.getByText('הקוד לא התקבל').waitFor();
+  // הפעלה 173: `/app/` מושך בכל רענון את `/dashboard` המלא ואת תור ה-summary — שניהם עוברים ב-gzip_json
+  const dash173 = p.waitForResponse(r => new URL(r.url()).pathname === '/dashboard' && r.request().method() === 'GET');
+  const pend173 = p.waitForResponse(r => new URL(r.url()).pathname === '/reminders'
+    && new URL(r.url()).searchParams.get('view') === 'summary');
   await p.goto(base + `/app/#/dashboard?token=${TOKEN}`);
   await p.getByTestId('mode').filter({ hasText: 'מחובר לשרת גבי' }).waitFor();
+  {
+    const [d, q] = [await (await dash173).allHeaders(), await (await pend173).allHeaders()];
+    ok(d['content-encoding'] === 'gzip', `/dashboard של /app/ לא נדחס: ${d['content-encoding']}`);
+    for (const [n, h] of [['/dashboard', d], ['/reminders?view=summary', q]]) {
+      ok(/accept-encoding/i.test(h['vary'] ?? ''), `${n}: חסר Vary: Accept-Encoding (לא עבר ב-gzip_json)`);
+      ok(h['cache-control'] === 'no-store', `${n}: Cache-Control ${h['cache-control']}`);
+    }
+  }
   ok(!p.url().includes('token='), 'הטוקן נשאר בשורת הכתובת');
   gatePhase = false;
   ok(allowed401.length >= 1, 'קוד שגוי לא הגיע לשרת כ-401');

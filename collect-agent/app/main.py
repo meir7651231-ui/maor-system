@@ -29,7 +29,8 @@ from .templates import SLOGAN, TAGLINE
 from .users import Users
 
 # הפעלה 170: `/ui` מבקש בכל רענון (גם אחרי כל פעולה) את `/dashboard` ואת `/reminders` — על 5,000 חשבוניות
-# 2.46MB + 0.5MB, לא דחוסים. JSON כזה נדחס פי ~20 (מפתחות חוזרים). הדחיסה רק לשתי תצוגות `view=list` של `/ui`,
+# 2.46MB + 0.5MB, לא דחוסים. JSON כזה נדחס פי ~20 (מפתחות חוזרים). הדחיסה רק לתשובות הגדולות שהדפים טוענים
+# בכל רענון (`/ui`: שתי תצוגות `view=list`; `/app/`, הפעלה 173: `/dashboard` המלא ו-`/reminders?view=summary`),
 # לא לכל האפליקציה: אין שם סוד שמשתקף לצד קלט של תוקף (BREACH), כי ההרשאה ב-Bearer מ-sessionStorage ולא בעוגייה.
 GZIP_MIN = 1400
 
@@ -400,7 +401,8 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
                 # תזכורת מאושרת שהסכום שלה השתנה במקור כ«מאושרת» רגילה. מחושב רק לתזכורת מאושרת.
                 out.append({**row, "invoice_ids": ids, **svc.reminder_totals(r["id"], r["invoice_id"], ids),
                             "amount_drift": svc.reminder_amount_drift(r)})
-            return out
+            # הפעלה 173: `/app/` טוען את התצוגה הזו בכל רענון של לוח הבקרה ⇒ אותה דחיסה כמו של `/ui` (170)
+            return gzip_json(request, out)
         sql, args = ("SELECT r.*, i.number, i.amount_agorot, i.currency, c.name customer_name "
                      "FROM reminders r JOIN invoices i ON i.id=r.invoice_id "
                      "JOIN customers c ON c.id=i.customer_id"), ()
@@ -447,7 +449,8 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         # הפעלה 170: `view=list` = השדות ש-`/ui` מציג בלבד (כמו `/reminders?view=list`, 162), דחוס
         if view == "list":
             return gzip_json(request, svc.dashboard("list"))
-        return svc.dashboard()
+        # הפעלה 173: `/dashboard` המלא (של `/app/`) — אותו תוכן, דחוס כשהדפדפן מקבל (2.46MB על 5,000 חשבוניות)
+        return gzip_json(request, svc.dashboard())
 
     @app.get("/customers", dependencies=auth)
     def customers():
