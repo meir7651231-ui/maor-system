@@ -19,6 +19,8 @@ const routeErrors = [];
 const inject = makeInject(routeErrors);
 // הפעלה 162: /ui טוען את התור ב-/reminders?view=list (לא את /reminders המלא) ⇒ יירוט לפי הנתיב, בלי תלות ב-query
 const LIST = u => u.pathname.endsWith('/reminders');
+// הפעלה 170: /ui טוען את /dashboard?view=list ⇒ גם כאן יירוט לפי הנתיב, בלי תלות ב-query
+const DASH = u => u.pathname.endsWith('/dashboard');
 const H = { Authorization: `Bearer ${TOKEN}` };
 for (let i = 0; i < 80; i++) { try { if ((await fetch(base + '/health')).ok) break; } catch { /* עוד עולה */ } await new Promise(r => setTimeout(r, 250)); }
 const errors = [];
@@ -32,9 +34,17 @@ try {
   p.on('pageerror', e => errors.push(`pageerror: ${e.message}`));
   p.on('response', r => { if (r.status() >= 400) errors.push(`${r.status()} ${r.url()}`); });
   p.on('request', r => { if (!r.url().startsWith(base) && !/^(data|about|blob):/.test(r.url())) errors.push(`בקשה חיצונית: ${r.url()}`); });
+  // הפעלה 170: /ui מבקש את התצוגה המקוצרת של /dashboard, והדפדפן מקבל אותה ואת התור דחוסים (gzip)
+  const dash170 = p.waitForResponse(r => DASH(new URL(r.url())));
+  const list170 = p.waitForResponse(r => LIST(new URL(r.url())));
   await p.goto(base + '/ui');
   const item = p.locator('#list .item', { hasText: 'גל שרון' });
   await item.waitFor();
+  for (const [name, rp] of [['/dashboard', dash170], ['/reminders', list170]]) {
+    const r = await rp;
+    ok(new URL(r.url()).searchParams.get('view') === 'list', `${name}: /ui לא ביקש view=list: ${r.url()}`);
+    ok((await r.allHeaders())['content-encoding'] === 'gzip', `${name}?view=list לא נדחס`);
+  }
   ok(/סכום חריג/.test(await item.textContent()), 'ברשימה: קוד גולמי במקום «סכום חריג»');
   ok(!(await item.locator('.chip').getAttribute('class')).includes('blocked'), 'סכום חריג מסומן כחסום');
   ok(!/amount_check/.test(await p.locator('#debts').textContent()), 'טבלת החובות מציגה קוד גולמי amount_check');
@@ -121,7 +131,7 @@ try {
   }
   // critic סבב 52: טבלת החובות הציגה קוד גולמי — סטטוס send_unknown וסיבת השהיה «promise:until=…» / «deceased».
   //   מזריקים לתשובת /dashboard האמיתית (המצבים נדירים בדמו) ובודקים נוסח בעברית.
-  await inject(p, '**/dashboard', async route => {
+  await inject(p, DASH, async route => {
     const res = await route.fetch(); const j = await res.json();
     const open = j.invoices.filter(x => x.status === 'open');
     if (open[0]) { open[0].customer_block = null; open[0].last_reminder = { ...(open[0].last_reminder ?? { id: 1, step: 1, template_key: 'x', sent_at: null, invoice_ids: [] }), status: 'send_unknown', block_reason: null }; open[0].reminders_sent = 1; open[0].last_sent = { sent_at: null, channels: [], unknown: true }; }
@@ -147,19 +157,19 @@ try {
   // critic סבב 53: ניסיון שנקטע ⇒ «לא ידוע אם יצאה», לא מועד/ערוץ של תזכורת ישנה
   ok(/לא ידוע אם יצאה/.test(await p.locator('#debts tr').first().locator('td.sent').textContent()), 'last_sent.unknown לא מוצג ב-/ui');
   if (out) await p.screenshot({ path: `${out}/ui-03-status-pause.png`, fullPage: true });
-  await p.unroute('**/dashboard');
+  await p.unroute(DASH);
   // הפעלה 142: כשל טעינה ב-/ui נבלע בשקט (טבלה ישנה/ריקה בלי הסבר). עכשיו: פס שגיאה עם «נסו שוב».
   ok(await p.locator('#loaderr').isHidden(), 'פס השגיאה מוצג בלי כשל');
   const before = errors.length; let failed = 0;
   const fail = route => { failed++; return route.fulfill({ status: 503, contentType: 'application/json', body: '{"detail":"down"}' }); };
-  await inject(p, '**/dashboard', fail);
+  await inject(p, DASH, fail);
   await p.locator('#btnPlan').click();                       // פעולה ⇒ load() ⇒ /dashboard נכשל
   await p.locator('#loaderr').waitFor({ state: 'visible' });
   ok(await p.locator('#debts tr').count() > 0 && await p.locator('#list .item').count() > 0, 'כשל ב-/dashboard רוקן את המסך');
   await p.locator('#btnRetry').click();                      // השרת עדיין למטה ⇒ הפס נשאר
   await p.waitForFunction(() => !document.querySelector('#btnRetry').disabled);
   ok(await p.locator('#loaderr').isVisible(), '«נסו שוב» כושל הסתיר את פס השגיאה');
-  await p.unroute('**/dashboard');
+  await p.unroute(DASH);
   await inject(p, LIST, fail);                     // גם כשל בתור התזכורות מוצג (היה: unhandled rejection)
   await p.locator('#btnRetry').click();
   await p.waitForFunction(() => !document.querySelector('#btnRetry').disabled);
@@ -263,7 +273,7 @@ try {
   // (ג) נתונים לא עדכניים ⇒ רענון אוטומטי: אחרי כ-2 שניות בלי לחיצה, ומיד באירוע online
   const before145 = errors.length;
   let down = true;
-  await inject(p, '**/dashboard', route => down ? route.fulfill({ status: 503, contentType: 'application/json', body: '{"detail":"down"}' }) : route.continue());
+  await inject(p, DASH, route => down ? route.fulfill({ status: 503, contentType: 'application/json', body: '{"detail":"down"}' }) : route.continue());
   await p.evaluate(() => { load(false); });
   await p.locator('#loaderr').waitFor({ state: 'visible' });
   down = false;
@@ -276,7 +286,7 @@ try {
   down = false;
   await p.evaluate(() => window.dispatchEvent(new Event('online')));
   await p.locator('#loaderr').waitFor({ state: 'hidden', timeout: 1500 });   // מיד, לא אחרי 4 שניות
-  await p.unroute('**/dashboard');
+  await p.unroute(DASH);
   // הפעלה 146 (ה): אישור שכבר נרשם בשרת (כאן: אושר ממקום אחר בזמן שהמסך פתוח) ⇒ «כבר אושרה» כהערה, לא כשגיאה; המסך מתעדכן
   await p.locator('#list .item', { has: p.locator('.chip.pending:not(.blocked)') }).first().click();
   await p.locator('#ok').waitFor();
@@ -381,7 +391,7 @@ try {
   ok(await p.locator('#locked').isHidden() && dialogs.length === 2, 'כניסה מחדש: הפס נשאר או שנפתח יותר מחלון אחד: ' + dialogs.join(' | '));
   // הפעלה 150: שלד טעינה בכניסה ראשונה במקום מסך ריק. מאטים את שתי הבקשות כדי לתפוס את חלון הטעינה.
   const slow150 = async route => { await new Promise(r => setTimeout(r, 1200)); await route.continue(); };
-  await inject(p, '**/dashboard', slow150); await inject(p, LIST, slow150);
+  await inject(p, DASH, slow150); await inject(p, LIST, slow150);
   await p.reload();
   await p.locator('#debts tr.skrow').first().waitFor();
   ok(await p.locator('#kpis .kpi .sk').count() === 16 && await p.locator('#debts tr.skrow').count() === 3 && await p.locator('#list .skitem').count() === 3,
@@ -398,11 +408,11 @@ try {
   // אחרי שהנתונים נטענו, רענון (לחיצה על תזכורת, פעולה) לא מחזיר את השלד: הנתונים נשארים על המסך
   await p.locator('#list .item').first().click();
   ok(await p.locator('#dash .sk, #list .sk').count() === 0, '/ui: רענון אחרי טעינה החזיר את השלד');   // הלוח עצמו כן בשלד בזמן טעינת תצוגה מקדימה (152)
-  await p.unroute('**/dashboard'); await p.unroute(LIST);
+  await p.unroute(DASH); await p.unroute(LIST);
   // טעינה ראשונה שנכשלת: לא שלד לנצח ולא טבלה ריקה שנראית כמו «אין חובות», אלא «לא נטענו» + פס שגיאה מתאים
   let down150 = true;
   const fail150 = route => down150 ? route.fulfill({ status: 503, contentType: 'application/json', body: '{"detail":"down"}' }) : route.continue();
-  await inject(p, '**/dashboard', fail150); await inject(p, LIST, fail150);
+  await inject(p, DASH, fail150); await inject(p, LIST, fail150);
   await p.reload();
   await p.locator('#loaderr').waitFor({ state: 'visible' });
   ok(/עדיין אין נתונים להצגה/.test(await p.locator('#loadMsg').textContent()) && !/אולי לא עדכני/.test(await p.locator('#loadMsg').textContent()),
@@ -413,14 +423,14 @@ try {
   down150 = false;                                                          // השרת חזר ⇒ הרענון האוטומטי ממלא, בלי לחיצה
   await p.locator('#list .item').first().waitFor({ timeout: 6000 }); await p.locator('#debts tr:not(.unloaded)').first().waitFor();
   ok(await p.locator('#loaderr').isHidden() && await p.locator('.unloaded').count() === 0, '/ui: אחרי שהשרת חזר נשארו «לא נטענו» או פס השגיאה');
-  await p.unroute('**/dashboard'); await p.unroute(LIST);
+  await p.unroute(DASH); await p.unroute(LIST);
   // רק /dashboard נכשל בטעינה ראשונה: התור מוצג, החובות «לא נטענו», והפס מזהיר שמה שמוצג אולי לא עדכני
-  await inject(p, '**/dashboard', route => route.fulfill({ status: 503, contentType: 'application/json', body: '{"detail":"down"}' }));
+  await inject(p, DASH, route => route.fulfill({ status: 503, contentType: 'application/json', body: '{"detail":"down"}' }));
   await p.reload();
   await p.locator('#loaderr').waitFor({ state: 'visible' });
   ok(await p.locator('#list .item').count() > 0 && await p.locator('#debts tr.unloaded').count() === 1 && /אולי לא עדכני/.test(await p.locator('#loadMsg').textContent()),
     '/ui: כשל חלקי בטעינה ראשונה לא מוצג נכון');
-  await p.unroute('**/dashboard');
+  await p.unroute(DASH);
   await p.locator('#btnRetry').click();
   await p.locator('#loaderr').waitFor({ state: 'hidden' });
   ok(await p.locator('#debts tr.unloaded').count() === 0 && await p.locator('#debts td.sent').count() > 0, '/ui: «נסו שוב» לא טען את החובות');
@@ -485,7 +495,7 @@ try {
   const t167 = real167.invoices.find(x => x.status === 'open');
   real167.invoices = Array.from({ length: 5000 }, (_, i) => ({ ...t167, invoice_id: 50000 + i, number: String(80000 + i),
     customer: `חייב בדיקה ${i}`, status: i % 5 === 4 ? 'closed' : 'open' }));
-  await inject(p, '**/dashboard', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(real167) }));
+  await inject(p, DASH, route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(real167) }));
   const s167 = Date.now();
   await p.reload(); await p.locator('#debts td.sent').first().waitFor();
   const ms167 = Date.now() - s167;
@@ -522,19 +532,19 @@ try {
   await p.locator('#dFind').fill('אין כזה לקוח');
   ok(/לא נמצאו חשבוניות עבור «אין כזה לקוח»/.test(await p.locator('#debts').textContent()), '/ui 168: חיפוש בלי תוצאה בלי הסבר');
   await p.locator('#dFind').fill('');
-  await p.unroute('**/dashboard');
+  await p.unroute(DASH);
   real167.invoices.forEach(x => { x.status = 'closed'; });
-  await inject(p, '**/dashboard', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(real167) }));
+  await inject(p, DASH, route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(real167) }));
   await p.reload(); await p.locator('#debts td.empty').waitFor();
   ok(/אין חובות פתוחים/.test(await p.locator('#debts').textContent()) && /5000/.test(await p.locator('#debts').textContent()) && await p.locator('#dMoreBtn').count() === 0,
     '/ui 167: «פתוחות» ריק בלי הסבר');
-  await p.unroute('**/dashboard');
+  await p.unroute(DASH);
   console.log(`  /ui 167: 5,000 חשבוניות ⇒ טבלת החובות אחרי ${ms167}ms (טעינה מחדש מלאה)`);
   await p.reload(); await p.locator('#list .item').first().waitFor();
   console.log(`  /ui 165: 5,000 תזכורות ⇒ כרטיס ראשון אחרי ${ms165}ms (טעינה מחדש מלאה, כולל /dashboard)`);
-  errors.push(...errors.splice(before145).filter(e => !/^503 .*\/dashboard$/.test(e) && !/^401 .*\/(dispatch|dashboard|reminders(\?view=list)?)$/.test(e) && !/^409 .*\/(sync|reminders\/\d+\/approve)$/.test(e)));
+  errors.push(...errors.splice(before145).filter(e => !/^503 .*\/dashboard(\?view=list)?$/.test(e) && !/^401 .*\/(dispatch|(dashboard|reminders)(\?view=list)?)$/.test(e) && !/^409 .*\/(sync|reminders\/\d+\/approve)$/.test(e)));
   // ה-503 המוזרקים נרשמו כשגיאות תגובה: מסירים רק אותם, כל שגיאה אחרת נשארת
-  const mine = errors.splice(before).filter(e => !/^503 .*\/(dashboard|reminders(\?view=list)?)$/.test(e) && !/^502 .*\/reminders\/\d+\/preview$/.test(e));
+  const mine = errors.splice(before).filter(e => !/^503 .*\/(dashboard|reminders)(\?view=list)?$/.test(e) && !/^502 .*\/reminders\/\d+\/preview$/.test(e));
   errors.push(...mine);
   errors.push(...routeErrors);
   ok(errors.length === 0, 'שגיאות:\n' + errors.join('\n'));

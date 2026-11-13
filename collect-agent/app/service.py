@@ -1872,8 +1872,23 @@ class CollectService:
                     (mid,)) if m["channel"])
         return sorted(out)
 
-    def dashboard(self) -> dict:
+    # הפעלה 170: `/ui` מבקש את `/dashboard` המלא בכל רענון (2.46MB על 5,000 חשבוניות) ומשתמש רק בחלק מהשדות.
+    # `view="list"` = אותם ערכים, רק השדות ש-`/ui` מציג: בלי email/source לחשבונית, ובתזכורת האחרונה רק
+    # id/step/status/block_reason/amount_drift (בלי invoice_ids/template_key/sent_at), ובלי series/send_window.
+    DASH_LIST_INVOICE = ("invoice_id", "number", "customer", "customer_id", "paused_reason", "phone",
+                         "amount_agorot", "currency", "due", "status", "days_overdue", "reminders_sent",
+                         "last_sent", "last_reminder", "customer_block")
+    DASH_LIST_LAST = ("id", "step", "status", "block_reason", "amount_drift")
+
+    def dashboard(self, view: str | None = None) -> dict:
         """תמונת מצב לבעל העסק: כל החובות הפתוחים + סטטוס התזכורת האחרונה לכל אחד."""
+        if view == "list":
+            full = self.dashboard()
+            inv = [{k: x[k] for k in self.DASH_LIST_INVOICE} for x in full["invoices"]]
+            for x in inv:
+                if x["last_reminder"]:
+                    x["last_reminder"] = {k: x["last_reminder"][k] for k in self.DASH_LIST_LAST}
+            return {"today": full["today"], "trial": full["trial"], "totals": full["totals"], "invoices": inv}
         today = self.clock().date()
         rows = []
         for r in self.db.q("SELECT i.*, c.name cname, c.phone cphone, c.email cemail, "

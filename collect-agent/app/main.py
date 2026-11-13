@@ -4,6 +4,7 @@
 """
 from __future__ import annotations
 
+import gzip
 import hmac
 import json
 import logging
@@ -14,7 +15,7 @@ from pathlib import Path
 from typing import Literal
 
 from fastapi import Depends, FastAPI, HTTPException, Request
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
 from pydantic import BaseModel, Field
 
 from . import dbcrypt, security
@@ -26,6 +27,33 @@ from .ratelimit import RateLimiter, group_for
 from .service import CollectService, RealDataBlocked
 from .templates import SLOGAN, TAGLINE
 from .users import Users
+
+# הפעלה 170: `/ui` מבקש בכל רענון (גם אחרי כל פעולה) את `/dashboard` ואת `/reminders` — על 5,000 חשבוניות
+# 2.46MB + 0.5MB, לא דחוסים. JSON כזה נדחס פי ~20 (מפתחות חוזרים). הדחיסה רק לשתי תצוגות `view=list` של `/ui`,
+# לא לכל האפליקציה: אין שם סוד שמשתקף לצד קלט של תוקף (BREACH), כי ההרשאה ב-Bearer מ-sessionStorage ולא בעוגייה.
+GZIP_MIN = 1400
+
+
+def _accepts_gzip(request: Request) -> bool:
+    for part in request.headers.get("accept-encoding", "").lower().split(","):
+        name, _, params = part.strip().partition(";")
+        if name.strip() in ("gzip", "*"):
+            q = params.replace(" ", "")
+            try:
+                return not q.startswith("q=") or float(q[2:]) > 0     # gzip;q=0 = «לא לדחוס»
+            except ValueError:
+                return False
+    return False
+
+
+def gzip_json(request: Request, data) -> Response:
+    """JSON רגיל (אותו גוף כמו תשובה רגילה של FastAPI), דחוס ב-gzip כשהלקוח מקבל ושווה לדחוס."""
+    resp = JSONResponse(data)
+    if len(resp.body) < GZIP_MIN or not _accepts_gzip(request):
+        resp.headers["Vary"] = "Accept-Encoding"
+        return resp
+    return Response(gzip.compress(resp.body, 5), media_type="application/json",
+                    headers={"Content-Encoding": "gzip", "Vary": "Accept-Encoding"})
 
 UI_HTML = (Path(__file__).parent / "ui.html").read_text(encoding="utf-8")
 
@@ -321,7 +349,7 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         return {"created": svc.plan()}
 
     @app.get("/reminders", dependencies=auth)
-    def reminders(status: str | None = None, view: str | None = None):
+    def reminders(request: Request, status: str | None = None, view: str | None = None):
         if view == "list":
             # הפעלה 162: `/ui` טען את `/reminders` המלא בכל רענון (27MB על 5,000 לקוחות: גוף + payload + HTML
             # של המייל), ומשתמש רק בשורת הרשימה. עכשיו: שדות הרשימה בלבד, בשאילתה אחת עם שם הלקוח ומספר העוגן.
@@ -344,7 +372,7 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
                 out.append({**row, "invoice_ids": ids, **svc.reminder_totals(r["id"], r["invoice_id"], ids),
                             "amount_drift": svc.reminder_amount_drift(r),
                             "numbers": nums.get(r["id"]) or [r["number"]]})
-            return out
+            return gzip_json(request, out)
         if view == "summary":
             # critic סבב 37: הממשק צריך 4 שדות; התשובה המלאה (גוף + payload + HTML) הייתה 12MB ב-5,000 לקוחות
             q = "SELECT id, invoice_id, block_reason, status, amount_agorot FROM reminders"
@@ -401,7 +429,10 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         return {"dry_run": True, "sent": svc.dispatch()}
 
     @app.get("/dashboard", dependencies=auth)
-    def dashboard():
+    def dashboard(request: Request, view: str | None = None):
+        # הפעלה 170: `view=list` = השדות ש-`/ui` מציג בלבד (כמו `/reminders?view=list`, 162), דחוס
+        if view == "list":
+            return gzip_json(request, svc.dashboard("list"))
         return svc.dashboard()
 
     @app.get("/customers", dependencies=auth)

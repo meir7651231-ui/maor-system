@@ -198,7 +198,7 @@ async function api(p,o={},retry=true){
 function failed(e,show){if(e.auth)return;if(!e.unknown)return show(e.message);
   delete $("#wunkMsg").dataset.fresh;$("#wunkMsg").textContent=e.message;$("#wunk").hidden=false;load(false)}
 async function loadDash(ask){
-  const d=await api("/dashboard",{},ask);if(locked)return;const t=d.totals;
+  const d=await api("/dashboard?view=list",{},ask);if(locked)return;const t=d.totals;
   const tr=d.trial||{};
   $("#today").textContent="נכון ל-"+d.today+(tr.on_trial?(tr.active
     ?` · ניסיון חינם: נותרו ${tr.days_left} ימים, אחר כך ₪${tr.price_ils_month} לחודש, כולל מע״מ ככל שחל`
