@@ -77,3 +77,11 @@ export function sentChannels(inv: Invoice): Channel[] {
   const last = inv.reminders.at(-1);
   return last ? [last.channel] : [];
 }
+
+/** הפעלה 164: רשימת «הסכום השתנה במקור» במסך הסקירה מוגבלת ל-DRIFT_CAP שורות (הגבוהות ראשונות, אותו מיון כמו
+ *  «מיון: סכום»); השאר ⇒ «ועוד N» שמוביל לטבלת החשבוניות מסוננת לפער. בלי זה, על מאות פערים התור נדחק מתחת לרשימה. */
+export const DRIFT_CAP = 5;
+export function capDrift(list: Invoice[], cap = DRIFT_CAP): { shown: Invoice[]; more: number; total: number } {
+  const all = list.filter(i => i.amountDrift).sort(byAmountDesc);
+  return { shown: all.slice(0, cap), more: Math.max(0, all.length - cap), total: all.length };
+}

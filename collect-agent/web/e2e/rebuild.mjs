@@ -198,8 +198,17 @@ try {
       ok(dlt.includes('יוסי') && dlt.includes('2002') && dlt.includes('3,750.50'), `/app/ ${vp}: רשימת הפער במסך הסקירה: ` + dlt);
       ok(await a.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), `/app/ ${vp}: גלילה רוחבית במסך הסקירה עם רשימת הפער`);
       await openDraft(dl, 'dash');
+      // הפעלה 164: פער אחד ⇒ בלי «ועוד»; והקישור «ועוד N» (#/invoices?f=drift) פותח את הטבלה מסוננת לפער
+      ok(await a.getByTestId('drift-more').count() === 0, `/app/ ${vp}: «ועוד» עם פער יחיד`);
+      await a.goto(base + '/app/#/invoices?f=drift');
+      const fd = a.getByTestId('filter-drift'); await fd.waitFor();
+      ok(await fd.getAttribute('aria-pressed') === 'true' && (await fd.textContent()).includes('(1)'), `/app/ ${vp}: #/invoices?f=drift לא מסנן: ` + await fd.textContent());
+      ok(await a.locator('tbody tr:not([data-testid=amount-drift])').count() === 1 && await a.getByTestId('amount-drift').count() === 1, `/app/ ${vp}: הסינון לפער מציג יותר מחשבונית אחת`);
+      await a.getByRole('button', { name: 'הכול', exact: true }).click();
+      ok(await a.locator('tbody tr:not([data-testid=amount-drift])').count() > 1, `/app/ ${vp}: «הכול» לא מחזיר את כל החשבוניות`);
       await a.close();
     }
+    console.log('  ✓ /app/: #/invoices?f=drift מסנן לפער (הפעלה 164), «ועוד» לא מוצג עם פער יחיד');
     console.log('  ✓ /app/: «הנוסח שאושר» (טבלת החשבוניות + מסך הסקירה) נפתח לקריאה בלבד עם הסבר הפער, בלי «אשר ושלח», בלי שליחה');
     console.log('  ✓ /app/: טבלת החשבוניות מסמנת את התזכורת המאושרת שהסכום שלה השתנה (דסקטופ ומובייל)');
     console.log('  ✓ /ui: תזכורת מאושרת שהסכום שלה עלה במקור ⇒ «מ-3,600.50 ₪ ל-3,750.50 ₪ … לא יישלח כך», לפני ה-/dispatch');

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useApp } from '../store.tsx';
-import { agingBuckets, kpis, mockOtherCurrency } from '../lib/stats.ts';
+import { agingBuckets, capDrift, kpis, mockOtherCurrency } from '../lib/stats.ts';
 import { AGING_LABEL, daysOverdue, fmtIls, fmtMoney, plusOther, ratioHalfUp, type Aging } from '../lib/format.ts';
 import { STEP_LABEL, nextStep } from '../lib/message.ts';
 import { demoCollectedByMonth } from '../data/demo.ts';
@@ -31,7 +31,7 @@ export function Dashboard() {
   const oc = live ? t?.other_currency : mockOtherCurrency(invoices, today);
   const sub = (base: string, field: 'open_agorot' | 'overdue_agorot' | 'at_risk_agorot' | 'collected_agorot') => [base, plusOther(oc, field)].filter(Boolean).join(' · ');
   const [open, setOpen] = useState<Invoice | null>(null);
-  const drifted = live ? invoices.filter(i => i.amountDrift) : [];
+  const drift = capDrift(live ? invoices : []);
 
   return (
     <div className="space-y-6">
@@ -71,11 +71,11 @@ export function Dashboard() {
           <p className="text-sm text-ink-500 mb-4">גבי הכין את ההודעות. תסתכל/י, תאשר/י — והוא שולח בשעות המותרות.</p>
           {/* הפעלה 163: תזכורות שכבר אושרו והסכום שלהן השתנה במקור. הן לא בתור (לא ממתינות), אבל לא יישלחו
               כמו שאושרו; כאן רואים אותן ופותחים את הנוסח שאושר, לקריאה בלבד */}
-          {live && drifted.length > 0 && (
+          {live && drift.total > 0 && (
             <div data-testid="drift-list" className="mb-4 rounded-xl bg-amber-50 ring-1 ring-inset ring-amber-200 p-3">
-              <p className="text-sm font-bold text-amber-900">⚠️ {DRIFT_LABEL} (<span className="num">{drifted.length}</span>)</p>
+              <p className="text-sm font-bold text-amber-900">⚠️ {DRIFT_LABEL} (<span className="num">{drift.total}</span>)</p>
               <ul className="mt-2 space-y-1.5">
-                {drifted.map(i => (
+                {drift.shown.map(i => (
                   <li key={i.id} className="flex flex-wrap items-center gap-2 text-sm text-amber-900">
                     <span className="font-bold">{customerOf(i.customerId).name}</span>
                     <span>חשבונית <span className="num">{i.number}</span>:{i.amountDrift!.was && <> <span className="num">{i.amountDrift!.was}</span> ⇐</>} <b className="num">{i.amountDrift!.now}</b></span>
@@ -84,6 +84,9 @@ export function Dashboard() {
                   </li>
                 ))}
               </ul>
+              {/* הפעלה 164: תקרה ⇒ השאר בטבלת החשבוניות, מסוננת לפער */}
+              {drift.more > 0 && <a href="#/invoices?f=drift" data-testid="drift-more"
+                className="mt-2 inline-flex min-h-9 items-center text-sm font-bold text-amber-900 underline">ועוד <span className="num mx-1">{drift.more}</span> בטבלת החשבוניות ←</a>}
             </div>
           )}
           {queue.length === 0 ? <p className="text-ink-500 py-8 text-center">אין מה לאשר — הכול מטופל ✨</p> : (

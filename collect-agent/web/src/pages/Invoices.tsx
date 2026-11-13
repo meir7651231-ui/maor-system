@@ -7,21 +7,26 @@ import type { Invoice, InvoiceStatus } from '../lib/domain.ts';
 import { Button, Card, LateBadge, StatusBadge, inputCls } from '../components/ui.tsx';
 import { DRIFT_LABEL, driftText } from '../api.ts';
 import { MessagePreview } from '../components/MessagePreview.tsx';
+import { hashParam } from '../router.ts';
 
 type Sort = 'late' | 'amount' | 'name';
+type Filter = InvoiceStatus | 'all' | 'drift';
 const FILTERS: [InvoiceStatus | 'all', string][] = [['all', 'הכול'], ['open', 'פתוחות'], ['reminded', 'נשלחה תזכורת'], ['promised', 'הבטיח'], ['disputed', 'במחלוקת']];
 
 export function Invoices() {
   const { invoices, today, customerOf, markPaid, mode, pendingOf, mergedAnchorOf } = useApp();
   const live = mode === 'live';
   const [q, setQ] = useState('');
-  const [f, setF] = useState<InvoiceStatus | 'all'>('all');
+  // הפעלה 164: «ועוד N» ממסך הסקירה מגיע עם #/invoices?f=drift ⇒ מסונן לתזכורות שהסכום שלהן השתנה (חי בלבד)
+  const [f, setF] = useState<Filter>(() => live && hashParam(location.hash, 'f') === 'drift' ? 'drift' : 'all');
+  const driftCount = live ? invoices.filter(i => isOpen(i) && i.amountDrift).length : 0;
+  const chips: [Filter, string][] = live && (driftCount > 0 || f === 'drift') ? [...FILTERS, ['drift', `הסכום השתנה (${driftCount})`]] : FILTERS;
   const [sort, setSort] = useState<Sort>('late');
   const [open, setOpen] = useState<Invoice | null>(null);
   const rows = useMemo(() => {
     const t = q.trim();
     return invoices.filter(isOpen)
-      .filter(i => f === 'all' || i.status === f)
+      .filter(i => f === 'all' || (f === 'drift' ? !!i.amountDrift : i.status === f))
       .filter(i => !t || customerOf(i.customerId).name.includes(t) || i.number.includes(t))
       .sort((a, b) => sort === 'amount' ? byAmountDesc(a, b) : sort === 'name'
         ? customerOf(a.customerId).name.localeCompare(customerOf(b.customerId).name, 'he')
@@ -37,8 +42,8 @@ export function Invoices() {
       <div className="flex flex-wrap gap-3 items-center">
         <input className={`${inputCls} max-w-xs`} placeholder="חיפוש לקוח או מס׳ חשבונית…" value={q} onChange={e => setQ(e.target.value)} aria-label="חיפוש" />
         <div className="flex flex-wrap gap-1.5">
-          {FILTERS.map(([k, l]) => (
-            <button key={k} onClick={() => setF(k)} aria-pressed={f === k}
+          {chips.map(([k, l]) => (
+            <button key={k} onClick={() => setF(k)} aria-pressed={f === k} {...(k === 'drift' ? { 'data-testid': 'filter-drift' } : {})}
               className={`rounded-full px-3.5 py-1.5 text-sm font-medium cursor-pointer ${f === k ? 'bg-ink-900 text-white' : 'bg-white border border-ink-200 hover:bg-ink-50'}`}>{l}</button>
           ))}
         </div>

@@ -4,7 +4,7 @@ import { daysOverdue, fmtIls, fmtMoney, fmtTotal, plusOther, fmtPhone, isIlMobil
 import { firstName, buildSms, buildEmail, smsSegments, GSM7, GSM7_EXT, nextStep, remindersExhausted, requiresApproval, demoUnsubUrl, demoShortUrl, TEMPLATES, fmtAmountBackend } from '../src/lib/message.ts';
 import { readFileSync } from 'node:fs';
 import { canSendAt, nextAllowed, HOLIDAYS } from '../src/lib/policy.ts';
-import { kpis, needsReminder, agingBuckets } from '../src/lib/stats.ts';
+import { kpis, needsReminder, agingBuckets, capDrift, DRIFT_CAP } from '../src/lib/stats.ts';
 import { DEMO_TODAY, demoBusiness, demoCustomers, demoInvoices } from '../src/data/demo.ts';
 
 const inv = demoInvoices[0], cust = demoCustomers[0];
@@ -1116,7 +1116,35 @@ test('הפעלה 163: תזכורת מאושרת עם פער נפתחת ב-/app/ 
   const inv = readFileSync(new URL('../src/pages/Invoices.tsx', import.meta.url), 'utf8');
   assert.match(inv, /\{i\.amountDrift\.reminderId && <button type="button" data-testid="drift-open" onClick=\{\(\) => setOpen\(i\)\}/);
   const dash = readFileSync(new URL('../src/pages/Dashboard.tsx', import.meta.url), 'utf8');
-  assert.match(dash, /const drifted = live \? invoices\.filter\(i => i\.amountDrift\) : \[\];/);
-  assert.match(dash, /\{live && drifted\.length > 0 && \(\s*<div data-testid="drift-list"/);
+  // הפעלה 164: הרשימה עברה ל-capDrift (תקרה + «ועוד N»); המבחן שלה למטה
+  assert.match(dash, /const drift = capDrift\(live \? invoices : \[\]\);/);
+  assert.match(dash, /\{live && drift\.total > 0 && \(\s*<div data-testid="drift-list"/);
   assert.match(dash, /data-testid="drift-open" onClick=\{\(\) => setOpen\(i\)\}/);
+});
+
+test('הפעלה 164: רשימת הפער במסך הסקירה מוגבלת (capDrift) ו«ועוד N» מוביל לטבלה מסוננת', async () => {
+  const mk = (n: number, amount: number, drift = true) => ({ ...inv, id: `d${n}`, number: String(n), amount,
+    ...(drift ? { amountDrift: { was: '1 ₪', now: `${amount} ₪`, reminderId: n } } : { amountDrift: undefined }) });
+  const list = [mk(1, 100), mk(2, 900), mk(3, 50, false), mk(4, 300), mk(5, 700), mk(6, 10), mk(7, 500), mk(8, 200)];
+  const r = capDrift(list);
+  assert.equal(DRIFT_CAP, 5);
+  assert.equal(r.total, 7);                                   // בלי החשבונית שאין לה פער
+  assert.equal(r.more, 2);
+  assert.deepEqual(r.shown.map(i => i.number), ['2', '5', '7', '4', '8']);   // הגבוהות ראשונות
+  assert.deepEqual(capDrift(list.slice(0, 3)), { shown: [list[1], list[0]], more: 0, total: 2 });
+  assert.deepEqual(capDrift([]), { shown: [], more: 0, total: 0 });
+  assert.equal(list[0].amount, 100);                           // לא ממיין את הרשימה המקורית במקום
+  // הנתב: פרמטר אחרי ? לא מפיל לדף הנחיתה, ו-hashParam קורא אותו
+  const rt = readFileSync(new URL('../src/router.ts', import.meta.url), 'utf8');
+  assert.match(rt, /\.split\('\?'\)\[0\]/);
+  const { hashParam } = await import('../src/router.ts');
+  assert.equal(hashParam('#/invoices?f=drift', 'f'), 'drift');
+  assert.equal(hashParam('#/invoices', 'f'), null);
+  assert.equal(hashParam('#/invoices?f=drift&x=1', 'f'), 'drift');
+  const dash = readFileSync(new URL('../src/pages/Dashboard.tsx', import.meta.url), 'utf8');
+  assert.match(dash, /\{drift\.shown\.map\(i => \(/);
+  assert.match(dash, /\{drift\.more > 0 && <a href="#\/invoices\?f=drift" data-testid="drift-more"/);
+  const invs = readFileSync(new URL('../src/pages/Invoices.tsx', import.meta.url), 'utf8');
+  assert.match(invs, /useState<Filter>\(\(\) => live && hashParam\(location\.hash, 'f'\) === 'drift' \? 'drift' : 'all'\)/);
+  assert.match(invs, /f === 'drift' \? !!i\.amountDrift : i\.status === f/);
 });
