@@ -81,7 +81,10 @@ export function sentChannels(inv: Invoice): Channel[] {
 /** הפעלה 164: רשימת «הסכום השתנה במקור» במסך הסקירה מוגבלת ל-DRIFT_CAP שורות (הגבוהות ראשונות, אותו מיון כמו
  *  «מיון: סכום»); השאר ⇒ «ועוד N» שמוביל לטבלת החשבוניות מסוננת לפער. בלי זה, על מאות פערים התור נדחק מתחת לרשימה. */
 export const DRIFT_CAP = 5;
+/** הפעלה 166: פער סכום נספר רק על חשבונית פתוחה — אותו כלל בכותרת הרשימה במסך הסקירה, ב«ועוד N», בצ׳יפ «הסכום השתנה (N)»
+ *  ובסינון של טבלת החשבוניות (שמציגה רק פתוחות). לפני כן הכותרת ספרה גם שולמו ⇒ «ועוד 3» הוביל לטבלה עם 1. */
+export const hasOpenDrift = (i: Invoice) => isOpen(i) && !!i.amountDrift;
 export function capDrift(list: Invoice[], cap = DRIFT_CAP): { shown: Invoice[]; more: number; total: number } {
-  const all = list.filter(i => i.amountDrift).sort(byAmountDesc);
+  const all = list.filter(hasOpenDrift).sort(byAmountDesc);
   return { shown: all.slice(0, cap), more: Math.max(0, all.length - cap), total: all.length };
 }

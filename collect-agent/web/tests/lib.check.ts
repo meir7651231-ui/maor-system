@@ -4,7 +4,7 @@ import { daysOverdue, fmtIls, fmtMoney, fmtTotal, plusOther, fmtPhone, isIlMobil
 import { firstName, buildSms, buildEmail, smsSegments, GSM7, GSM7_EXT, nextStep, remindersExhausted, requiresApproval, demoUnsubUrl, demoShortUrl, TEMPLATES, fmtAmountBackend } from '../src/lib/message.ts';
 import { readFileSync } from 'node:fs';
 import { canSendAt, nextAllowed, HOLIDAYS } from '../src/lib/policy.ts';
-import { kpis, needsReminder, agingBuckets, capDrift, DRIFT_CAP } from '../src/lib/stats.ts';
+import { kpis, needsReminder, agingBuckets, capDrift, DRIFT_CAP, hasOpenDrift } from '../src/lib/stats.ts';
 import { DEMO_TODAY, demoBusiness, demoCustomers, demoInvoices } from '../src/data/demo.ts';
 
 const inv = demoInvoices[0], cust = demoCustomers[0];
@@ -1146,5 +1146,25 @@ test('הפעלה 164: רשימת הפער במסך הסקירה מוגבלת (ca
   assert.match(dash, /\{drift\.more > 0 && <a href="#\/invoices\?f=drift" data-testid="drift-more"/);
   const invs = readFileSync(new URL('../src/pages/Invoices.tsx', import.meta.url), 'utf8');
   assert.match(invs, /useState<Filter>\(\(\) => live && hashParam\(location\.hash, 'f'\) === 'drift' \? 'drift' : 'all'\)/);
-  assert.match(invs, /f === 'drift' \? !!i\.amountDrift : i\.status === f/);
+  // הפעלה 166: הסינון עבר ל-hasOpenDrift המשותף (שינוי מכוון; המבחן שלו למטה)
+  assert.match(invs, /f === 'drift' \? hasOpenDrift\(i\) : i\.status === f/);
+});
+
+test('הפעלה 166: ספירת הפער אחידה — רק חשבוניות פתוחות, בכותרת, ב«ועוד N», בצ׳יפ ובסינון', () => {
+  const mk = (n: number, amount: number, status: typeof inv.status) => ({ ...inv, id: `o${n}`, number: String(n), amount, status,
+    amountDrift: { was: '1 ₪', now: `${amount} ₪`, reminderId: n } });
+  // 7 עם פער: 2 שולמו (סגורות) + 5 פתוחות ⇒ הכותרת 5, ואין «ועוד» (לפני התיקון: 7 ו«ועוד 2» שהובילו לטבלה עם 5)
+  const list = [mk(1, 9000, 'paid'), mk(2, 100, 'open'), mk(3, 800, 'paid'), mk(4, 300, 'reminded'), mk(5, 50, 'promised'), mk(6, 70, 'disputed'), mk(7, 20, 'open')];
+  const r = capDrift(list);
+  assert.equal(r.total, 5);
+  assert.equal(r.more, 0);
+  assert.ok(r.shown.every(i => i.status !== 'paid'));
+  assert.deepEqual(r.shown.map(i => i.number), ['4', '2', '6', '5', '7']);
+  assert.equal(list.filter(hasOpenDrift).length, r.total);    // אותו מספר כמו הצ׳יפ בטבלה
+  assert.equal(hasOpenDrift({ ...inv, status: 'open', amountDrift: undefined }), false);
+  const invs = readFileSync(new URL('../src/pages/Invoices.tsx', import.meta.url), 'utf8');
+  assert.match(invs, /const driftCount = live \? invoices\.filter\(hasOpenDrift\)\.length : 0;/);
+  assert.doesNotMatch(invs, /!!i\.amountDrift/);
+  const st = readFileSync(new URL('../src/lib/stats.ts', import.meta.url), 'utf8');
+  assert.match(st, /const all = list\.filter\(hasOpenDrift\)\.sort\(byAmountDesc\);/);
 });

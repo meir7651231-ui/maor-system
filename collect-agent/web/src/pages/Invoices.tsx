@@ -2,7 +2,7 @@ import { Fragment, useMemo, useState } from 'react';
 import { useApp } from '../store.tsx';
 import { daysOverdue, fmtDate, fmtMoney, fmtTotal } from '../lib/format.ts';
 import { STEP_LABEL, nextStep } from '../lib/message.ts';
-import { byAmountDesc, isOpen, sentChannels } from '../lib/stats.ts';
+import { byAmountDesc, hasOpenDrift, isOpen, sentChannels } from '../lib/stats.ts';
 import type { Invoice, InvoiceStatus } from '../lib/domain.ts';
 import { Button, Card, LateBadge, StatusBadge, inputCls } from '../components/ui.tsx';
 import { DRIFT_LABEL, driftText } from '../api.ts';
@@ -19,14 +19,14 @@ export function Invoices() {
   const [q, setQ] = useState('');
   // הפעלה 164: «ועוד N» ממסך הסקירה מגיע עם #/invoices?f=drift ⇒ מסונן לתזכורות שהסכום שלהן השתנה (חי בלבד)
   const [f, setF] = useState<Filter>(() => live && hashParam(location.hash, 'f') === 'drift' ? 'drift' : 'all');
-  const driftCount = live ? invoices.filter(i => isOpen(i) && i.amountDrift).length : 0;
+  const driftCount = live ? invoices.filter(hasOpenDrift).length : 0;
   const chips: [Filter, string][] = live && (driftCount > 0 || f === 'drift') ? [...FILTERS, ['drift', `הסכום השתנה (${driftCount})`]] : FILTERS;
   const [sort, setSort] = useState<Sort>('late');
   const [open, setOpen] = useState<Invoice | null>(null);
   const rows = useMemo(() => {
     const t = q.trim();
     return invoices.filter(isOpen)
-      .filter(i => f === 'all' || (f === 'drift' ? !!i.amountDrift : i.status === f))
+      .filter(i => f === 'all' || (f === 'drift' ? hasOpenDrift(i) : i.status === f))
       .filter(i => !t || customerOf(i.customerId).name.includes(t) || i.number.includes(t))
       .sort((a, b) => sort === 'amount' ? byAmountDesc(a, b) : sort === 'name'
         ? customerOf(a.customerId).name.localeCompare(customerOf(b.customerId).name, 'he')
