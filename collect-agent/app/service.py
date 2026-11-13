@@ -885,6 +885,32 @@ class CollectService:
         return {"invoice_count": len(ids),
                 "total_text": " + ".join(templates.fmt_amount(v, c) for c, v in by.items())}
 
+    def reminder_extras_many(self, rows) -> dict[int, dict]:
+        """הפעלה 179: `invoice_ids` / `invoice_count` / `total_text` / `amount_drift` / `numbers` לכל שורות
+        `/reminders` בשתי שאילתות קבועות, במקום `reminder_invoice_ids` + `_invoice` לכל חשבונית +
+        `reminder_amount_drift` לכל שורה (2,000 תזכורות ≈ 7,000 שאילתות). אותו פלט בדיוק כמו המימוש
+        שורה-שורה (נבדק בזהות): אותו סדר (מועד, מזהה), אותה נפילה לעוגן כשאין קישורים, אותו פער מאושרת."""
+        links: dict[int, list] = {}
+        for x in self.db.q("SELECT x.reminder_id rid, i.* FROM reminder_invoices x "
+                           "JOIN invoices i ON i.id=x.invoice_id ORDER BY x.reminder_id, i.due, i.id"):
+            links.setdefault(x["rid"], []).append(x)
+        anchors = {i["id"]: i for i in self.db.q(
+            "SELECT DISTINCT i.* FROM invoices i JOIN reminders r ON r.invoice_id=i.id")}
+        out: dict[int, dict] = {}
+        for r in rows:
+            linked = links.get(r["id"], [])
+            invs = linked or [anchors[r["invoice_id"]]]
+            by: dict[str, int] = {}
+            for i in invs:
+                by[_cur(i)] = by.get(_cur(i), 0) + i["amount_agorot"]
+            text = " + ".join(templates.fmt_amount(v, c) for c, v in by.items())
+            out[r["id"]] = {"invoice_ids": [i["id"] for i in linked], "invoice_count": len(invs),
+                            "total_text": text,
+                            "amount_drift": (self._approved_amount_drift(r, invs, text)
+                                             if r["status"] == "approved" else None),
+                            "numbers": [i["number"] for i in linked]}
+        return out
+
     def _link_invoices(self, rid: int, ids: list[int]) -> None:
         self.db.x("DELETE FROM reminder_invoices WHERE reminder_id=?", (rid,))
         for iid in ids:

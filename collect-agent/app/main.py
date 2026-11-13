@@ -375,32 +375,31 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
                     else svc.db.q(q + " ORDER BY r.id"))
             # הפעלה 169: חיפוש בתור של `/ui` (168) מצא תזכורת מאוחדת רק לפי מספר העוגן. `numbers` = כל מספרי
             # החשבוניות בתזכורת (לפי מועד, העוגן ראשון), בשאילתה אחת לכל הרשימה — לא אחת לכל תזכורת.
-            nums: dict[int, list[str]] = {}
-            for x in svc.db.q("SELECT x.reminder_id rid, i.number FROM reminder_invoices x "
-                              "JOIN invoices i ON i.id=x.invoice_id ORDER BY x.reminder_id, i.due, i.id"):
-                nums.setdefault(x["rid"], []).append(x["number"])
+            # הפעלה 179: כל השדות הנגזרים בשתי שאילתות (`reminder_extras_many`), לא ~3.5 שאילתות לכל תזכורת
+            ex = svc.reminder_extras_many(rows)
             out = []
             for r in rows:
-                ids = svc.reminder_invoice_ids(r["id"])
+                e = ex[r["id"]]
                 row = {k: r[k] for k in ("id", "invoice_id", "block_reason", "status", "step", "number",
                                          "customer_name")}
-                out.append({**row, "invoice_ids": ids, **svc.reminder_totals(r["id"], r["invoice_id"], ids),
-                            "amount_drift": svc.reminder_amount_drift(r),
-                            "numbers": nums.get(r["id"]) or [r["number"]]})
+                out.append({**row, "invoice_ids": e["invoice_ids"], "invoice_count": e["invoice_count"],
+                            "total_text": e["total_text"], "amount_drift": e["amount_drift"],
+                            "numbers": e["numbers"] or [r["number"]]})
             return gzip_json(request, out)
         if view == "summary":
             # critic סבב 37: הממשק צריך 4 שדות; התשובה המלאה (גוף + payload + HTML) הייתה 12MB ב-5,000 לקוחות
             q = "SELECT id, invoice_id, block_reason, status, amount_agorot FROM reminders"
             rows = svc.db.q(q + " WHERE status=? ORDER BY id", (status,)) if status else svc.db.q(q + " ORDER BY id")
             # הפעלה 135: תור האישורים ב-`/app/` צריך לדעת שתזכורת כוללת כמה חשבוניות ומה הסה״כ שלה
+            ex = svc.reminder_extras_many(rows)   # הפעלה 179: שתי שאילתות לכל הרשימה
             out = []
             for r in rows:
-                ids = svc.reminder_invoice_ids(r["id"])
+                e = ex[r["id"]]
                 row = {k: r[k] for k in ("id", "invoice_id", "block_reason", "status")}
                 # הפעלה 159: אותו amount_drift כמו בתצוגה המלאה (157), כדי שהתצוגה המקוצרת לא תסמן
                 # תזכורת מאושרת שהסכום שלה השתנה במקור כ«מאושרת» רגילה. מחושב רק לתזכורת מאושרת.
-                out.append({**row, "invoice_ids": ids, **svc.reminder_totals(r["id"], r["invoice_id"], ids),
-                            "amount_drift": svc.reminder_amount_drift(r)})
+                out.append({**row, "invoice_ids": e["invoice_ids"], "invoice_count": e["invoice_count"],
+                            "total_text": e["total_text"], "amount_drift": e["amount_drift"]})
             # הפעלה 173: `/app/` טוען את התצוגה הזו בכל רענון של לוח הבקרה ⇒ אותה דחיסה כמו של `/ui` (170)
             return gzip_json(request, out)
         sql, args = ("SELECT r.*, i.number, i.amount_agorot, i.currency, c.name customer_name "
@@ -410,12 +409,13 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
             sql, args = sql + " WHERE r.status=?", (status,)
         rows = svc.db.q(sql + " ORDER BY r.id", args)
         # תזכורת מאוחדת (critic 15.1/2.12): כל החשבוניות שבהודעה; invoice_id = העוגן
+        ex = svc.reminder_extras_many(rows)   # הפעלה 179: אותם שדות, שתי שאילתות לכל הרשימה
         return [{**dict(r), "payload": json.loads(r["payload"]),
-                 "invoice_ids": svc.reminder_invoice_ids(r["id"]),
+                 "invoice_ids": ex[r["id"]]["invoice_ids"],
                  # הפעלה 134: number/currency הם של העוגן בלבד; הרשימה מציגה כמה חשבוניות ואת הסה״כ לפי מטבע
-                 **svc.reminder_totals(r["id"], r["invoice_id"]),
+                 "invoice_count": ex[r["id"]]["invoice_count"], "total_text": ex[r["id"]]["total_text"],
                  # הפעלה 157: תזכורת מאושרת שהסכום שלה השתנה במקור ⇒ הרשימה מסמנת שהיא תחזור לאישור
-                 "amount_drift": svc.reminder_amount_drift(r)} for r in rows]
+                 "amount_drift": ex[r["id"]]["amount_drift"]} for r in rows]
 
     @app.get("/reminders/{rid}/preview", dependencies=auth)
     def preview(rid: int):
