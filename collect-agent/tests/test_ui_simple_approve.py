@@ -90,7 +90,9 @@ def test_ui_hard_blocks_match_server_and_reapprove_reasons_are_not_blocked():
 
 def test_ui_reminder_list_uses_invoice_currency():
     assert "money(r.amount_agorot)" not in UI, "$500 הוצג «500 ₪» ברשימת התזכורות"
-    assert "fmtCur(r.amount_agorot,r.currency)" in UI
+    # הפעלה 162: המטבע מגיע מהשרת ב-total_text (templates.fmt_amount לפי מטבע כל חשבונית, «1,200 ₪ + $500»);
+    # הנפילה ל-fmtCur(r.amount_agorot,r.currency) ירדה כי `view=list` לא מחזיר amount_agorot/currency
+    assert "esc(r.total_text)" in UI and "r.amount_agorot" not in UI[UI.index("el.innerHTML=rows.map"):]
 
 
 def test_ui_debts_table_has_no_raw_block_code():

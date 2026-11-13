@@ -322,6 +322,22 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
 
     @app.get("/reminders", dependencies=auth)
     def reminders(status: str | None = None, view: str | None = None):
+        if view == "list":
+            # הפעלה 162: `/ui` טען את `/reminders` המלא בכל רענון (27MB על 5,000 לקוחות: גוף + payload + HTML
+            # של המייל), ומשתמש רק בשורת הרשימה. עכשיו: שדות הרשימה בלבד, בשאילתה אחת עם שם הלקוח ומספר העוגן.
+            q = ("SELECT r.id, r.invoice_id, r.block_reason, r.status, r.step, r.amount_agorot, i.number, "
+                 "c.name customer_name FROM reminders r JOIN invoices i ON i.id=r.invoice_id "
+                 "JOIN customers c ON c.id=i.customer_id")
+            rows = (svc.db.q(q + " WHERE r.status=? ORDER BY r.id", (status,)) if status
+                    else svc.db.q(q + " ORDER BY r.id"))
+            out = []
+            for r in rows:
+                ids = svc.reminder_invoice_ids(r["id"])
+                row = {k: r[k] for k in ("id", "invoice_id", "block_reason", "status", "step", "number",
+                                         "customer_name")}
+                out.append({**row, "invoice_ids": ids, **svc.reminder_totals(r["id"], r["invoice_id"], ids),
+                            "amount_drift": svc.reminder_amount_drift(r)})
+            return out
         if view == "summary":
             # critic סבב 37: הממשק צריך 4 שדות; התשובה המלאה (גוף + payload + HTML) הייתה 12MB ב-5,000 לקוחות
             q = "SELECT id, invoice_id, block_reason, status, amount_agorot FROM reminders"

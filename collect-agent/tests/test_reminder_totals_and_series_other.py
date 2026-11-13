@@ -98,6 +98,7 @@ def test_series_reports_other_currency_per_week(svc):
 
 
 def test_source_guards():
-    assert "r.invoice_count>1" in UI and "r.total_text||" in UI
+    # הפעלה 162: הנפילה ל-fmtCur(amount_agorot,currency) ירדה — `view=list` מחזיר תמיד total_text (לפחות העוגן)
+    assert "r.invoice_count>1" in UI and "esc(r.total_text)" in UI
     assert "חשבונית ${esc(r.number)} · שלב" not in UI
     assert "otherInSeries(series)" in DASH and "לא בגרף" in DASH

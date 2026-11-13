@@ -231,7 +231,7 @@ addEventListener("online",()=>{if(stale&&!locked){rn=0;load(false)}});
 document.addEventListener("visibilitychange",()=>{if(document.hidden)clearTimeout(rt);else if(stale&&!locked)load(false)});
 async function load(ask=true){
   if(ask&&!locked)skel();
-  loading++;let d,q;try{[d,q]=await Promise.allSettled([loadDash(ask),api("/reminders",{},ask)])}finally{loading--}
+  loading++;let d,q;try{[d,q]=await Promise.allSettled([loadDash(ask),api("/reminders?view=list",{},ask)])}finally{loading--}
   if(locked)return;
   stale=!(d.status==="fulfilled"&&q.status==="fulfilled");
   if(d.status==="fulfilled")got.d=true;else if(!got.d){$("#kpis").innerHTML="";
@@ -247,7 +247,7 @@ async function load(ask=true){
   const rows=q.value;const el=$("#list");
   if(!rows.length){el.innerHTML='<div class="empty">אין תזכורות. לחצו "סנכרון" ואז "הכנת תזכורות".</div>';return}
   el.innerHTML=rows.map(r=>`<button class="item card ${r.id===sel?"sel":""}" data-id="${r.id}">
-    <div class="row"><strong>${esc(r.customer_name)}</strong><span>${esc(r.total_text||fmtCur(r.amount_agorot,r.currency))}</span></div>
+    <div class="row"><strong>${esc(r.customer_name)}</strong><span>${esc(r.total_text)}</span></div>
     <div class="row"><span class="slogan">${r.invoice_count>1?`${r.invoice_count} חשבוניות`:`חשבונית ${esc(r.number)}`} · שלב ${r.step+1}/4</span>
     <span class="chip ${r.status==="pending_approval"||r.amount_drift?"pending":""} ${r.block_reason&&!REAPPROVE[r.block_reason]?"blocked":""}">
     ${esc(chipOf(r))}</span></div></button>`).join("");

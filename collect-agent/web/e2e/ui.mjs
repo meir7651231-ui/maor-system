@@ -17,6 +17,8 @@ process.on('exit', () => srv.kill());   // גם ביציאה על חריגה ש�
 const ok = (c, m) => { if (!c) throw new Error(m); };
 const routeErrors = [];
 const inject = makeInject(routeErrors);
+// הפעלה 162: /ui טוען את התור ב-/reminders?view=list (לא את /reminders המלא) ⇒ יירוט לפי הנתיב, בלי תלות ב-query
+const LIST = u => u.pathname.endsWith('/reminders');
 const H = { Authorization: `Bearer ${TOKEN}` };
 for (let i = 0; i < 80; i++) { try { if ((await fetch(base + '/health')).ok) break; } catch { /* עוד עולה */ } await new Promise(r => setTimeout(r, 250)); }
 const errors = [];
@@ -156,12 +158,12 @@ try {
   await p.waitForFunction(() => !document.querySelector('#btnRetry').disabled);
   ok(await p.locator('#loaderr').isVisible(), '«נסו שוב» כושל הסתיר את פס השגיאה');
   await p.unroute('**/dashboard');
-  await inject(p, '**/reminders', fail);                     // גם כשל בתור התזכורות מוצג (היה: unhandled rejection)
+  await inject(p, LIST, fail);                     // גם כשל בתור התזכורות מוצג (היה: unhandled rejection)
   await p.locator('#btnRetry').click();
   await p.waitForFunction(() => !document.querySelector('#btnRetry').disabled);
   ok(await p.locator('#loaderr').isVisible() && await p.locator('#list .item').count() > 0, 'כשל ב-/reminders: אין פס שגיאה או שהתור התרוקן');
   if (out) await p.screenshot({ path: `${out}/ui-04-load-error.png`, fullPage: true });
-  await p.unroute('**/reminders');
+  await p.unroute(LIST);
   await p.locator('#btnRetry').click();
   await p.locator('#loaderr').waitFor({ state: 'hidden' });
   ok(failed >= 3, `הכשלים המוזרקים לא הגיעו לדף (${failed})`);
@@ -185,8 +187,8 @@ try {
   const first152 = await p.locator('#detail').innerHTML();
   // הפעלה 155: גם /reminders מוחזק. הסימון ברשימה עבר רק כשהרענון חזר, ולכן הבדיקה למטה נכשלה ב-CI כשהוא איחר
   // (הרצה 475). עכשיו הסימון עובר בלחיצה עצמה, והבדיקה תופסת את זה בכל הרצה ולא רק כשהשרת איטי.
-  let heldList155 = 0;
-  await inject(p, '**/reminders', async route => { heldList155++; await gate152; await route.continue(); });
+  let heldList155 = 0, listUrl162 = '';
+  await inject(p, LIST, async route => { heldList155++; listUrl162 = route.request().url(); await gate152; await route.continue(); });
   await p.locator('#list .item').nth(1).click();
   await p.locator('#pvBusy').waitFor();
   ok(held152 === 1 && await p.locator('#detail').getAttribute('aria-busy') === 'true', '/ui: מעבר תזכורת בלי aria-busy בלוח התצוגה המקדימה');
@@ -194,6 +196,7 @@ try {
     '/ui: בזמן טעינת תזכורת אחרת נשארו בלוח כפתורים או נוסח של התזכורת הקודמת');
   ok((await p.locator('#pvBusy').textContent()).includes('טוען תצוגה מקדימה') && await p.locator('#pvBusy').getAttribute('role') === 'status', '/ui: אין הודעת טעינה לקורא מסך');
   ok(await p.locator('#detail .sk').count() > 0 && await p.locator('#detail .sk').evaluateAll(els => els.every(e => e.closest('[aria-hidden="true"]'))), '/ui: שלד התצוגה המקדימה חסר או חשוף לקורא מסך');
+  ok(new URL(listUrl162).searchParams.get('view') === 'list', `/ui: התור נטען בלי view=list (${listUrl162}); חוזר לטעון את /reminders המלא`);
   ok(heldList155 === 1, `/ui: רענון התור לא הוחזק (${heldList155}); הבדיקה לא בודקת את הסימון לפני שהוא חוזר`);
   ok(await p.locator('#list .item.sel').count() === 1 && await p.locator('#list .item').nth(1).evaluate(e => e.classList.contains('sel')), '/ui: הרשימה לא מסמנת את התזכורת שנטענת');
   if (out) await p.screenshot({ path: `${out}/ui-09-preview-loading.png`, fullPage: true });
@@ -203,7 +206,7 @@ try {
     '/ui: השלד נשאר אחרי שהתצוגה המקדימה נטענה');
   ok(await p.locator('#detail').innerHTML() !== first152, '/ui: הלוח לא התחלף לתזכורת שנבחרה');
   await p.unroute('**/reminders/*/preview');
-  await p.unroute('**/reminders');
+  await p.unroute(LIST);
   ok(await p.locator('#list .item.sel').count() === 1 && await p.locator('#list .item').nth(1).evaluate(e => e.classList.contains('sel')), '/ui: הסימון ברשימה אבד אחרי שרענון התור חזר');
   // רענון של אותה תזכורת (לחיצה חוזרת, או אחרי פעולה) לא מחליף לשלד: הנוסח נשאר על המסך עד שהתשובה מגיעה
   let open152b; const gate152b = new Promise(r => { open152b = r; });
@@ -376,7 +379,7 @@ try {
   ok(await p.locator('#locked').isHidden() && dialogs.length === 2, 'כניסה מחדש: הפס נשאר או שנפתח יותר מחלון אחד: ' + dialogs.join(' | '));
   // הפעלה 150: שלד טעינה בכניסה ראשונה במקום מסך ריק. מאטים את שתי הבקשות כדי לתפוס את חלון הטעינה.
   const slow150 = async route => { await new Promise(r => setTimeout(r, 1200)); await route.continue(); };
-  await inject(p, '**/dashboard', slow150); await inject(p, '**/reminders', slow150);
+  await inject(p, '**/dashboard', slow150); await inject(p, LIST, slow150);
   await p.reload();
   await p.locator('#debts tr.skrow').first().waitFor();
   ok(await p.locator('#kpis .kpi .sk').count() === 16 && await p.locator('#debts tr.skrow').count() === 3 && await p.locator('#list .skitem').count() === 3,
@@ -393,11 +396,11 @@ try {
   // אחרי שהנתונים נטענו, רענון (לחיצה על תזכורת, פעולה) לא מחזיר את השלד: הנתונים נשארים על המסך
   await p.locator('#list .item').first().click();
   ok(await p.locator('#dash .sk, #list .sk').count() === 0, '/ui: רענון אחרי טעינה החזיר את השלד');   // הלוח עצמו כן בשלד בזמן טעינת תצוגה מקדימה (152)
-  await p.unroute('**/dashboard'); await p.unroute('**/reminders');
+  await p.unroute('**/dashboard'); await p.unroute(LIST);
   // טעינה ראשונה שנכשלת: לא שלד לנצח ולא טבלה ריקה שנראית כמו «אין חובות», אלא «לא נטענו» + פס שגיאה מתאים
   let down150 = true;
   const fail150 = route => down150 ? route.fulfill({ status: 503, contentType: 'application/json', body: '{"detail":"down"}' }) : route.continue();
-  await inject(p, '**/dashboard', fail150); await inject(p, '**/reminders', fail150);
+  await inject(p, '**/dashboard', fail150); await inject(p, LIST, fail150);
   await p.reload();
   await p.locator('#loaderr').waitFor({ state: 'visible' });
   ok(/עדיין אין נתונים להצגה/.test(await p.locator('#loadMsg').textContent()) && !/אולי לא עדכני/.test(await p.locator('#loadMsg').textContent()),
@@ -408,7 +411,7 @@ try {
   down150 = false;                                                          // השרת חזר ⇒ הרענון האוטומטי ממלא, בלי לחיצה
   await p.locator('#list .item').first().waitFor({ timeout: 6000 }); await p.locator('#debts tr:not(.unloaded)').first().waitFor();
   ok(await p.locator('#loaderr').isHidden() && await p.locator('.unloaded').count() === 0, '/ui: אחרי שהשרת חזר נשארו «לא נטענו» או פס השגיאה');
-  await p.unroute('**/dashboard'); await p.unroute('**/reminders');
+  await p.unroute('**/dashboard'); await p.unroute(LIST);
   // רק /dashboard נכשל בטעינה ראשונה: התור מוצג, החובות «לא נטענו», והפס מזהיר שמה שמוצג אולי לא עדכני
   await inject(p, '**/dashboard', route => route.fulfill({ status: 503, contentType: 'application/json', body: '{"detail":"down"}' }));
   await p.reload();
@@ -419,9 +422,9 @@ try {
   await p.locator('#btnRetry').click();
   await p.locator('#loaderr').waitFor({ state: 'hidden' });
   ok(await p.locator('#debts tr.unloaded').count() === 0 && await p.locator('#debts td.sent').count() > 0, '/ui: «נסו שוב» לא טען את החובות');
-  errors.push(...errors.splice(before145).filter(e => !/^503 .*\/dashboard$/.test(e) && !/^401 .*\/(dispatch|dashboard|reminders)$/.test(e) && !/^409 .*\/(sync|reminders\/\d+\/approve)$/.test(e)));
+  errors.push(...errors.splice(before145).filter(e => !/^503 .*\/dashboard$/.test(e) && !/^401 .*\/(dispatch|dashboard|reminders(\?view=list)?)$/.test(e) && !/^409 .*\/(sync|reminders\/\d+\/approve)$/.test(e)));
   // ה-503 המוזרקים נרשמו כשגיאות תגובה: מסירים רק אותם, כל שגיאה אחרת נשארת
-  const mine = errors.splice(before).filter(e => !/^503 .*\/(dashboard|reminders)$/.test(e) && !/^502 .*\/reminders\/\d+\/preview$/.test(e));
+  const mine = errors.splice(before).filter(e => !/^503 .*\/(dashboard|reminders(\?view=list)?)$/.test(e) && !/^502 .*\/reminders\/\d+\/preview$/.test(e));
   errors.push(...mine);
   errors.push(...routeErrors);
   ok(errors.length === 0, 'שגיאות:\n' + errors.join('\n'));
