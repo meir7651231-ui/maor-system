@@ -8,6 +8,7 @@ import { emptyFamily } from '../../types/domain';
 import { allMembers, useApp } from '../../store/useApp';
 import { featureOn, termOf } from '../../lib/config';
 import { smartFilter } from '../../lib/search';
+import { familyPhoneDigits } from '../families/lib';
 import { formatIsraeliPhone } from '../../lib/validate';
 import { Btn, Field, FormError, Modal, Select, TextInput } from '../ui';
 import { HebDateInput } from '../HebDateInput';
@@ -102,7 +103,8 @@ export function EnrollModal(props: { course: Course; waitlist?: boolean; onClose
             ' ' +
             m.famName,
           // חיפוש: שם/משפחה/טלפון/ת"ז + מצב-משפחתי (כשגלוי)
-          terms: [m.first, m.famName, (phone || '').replace(/\D/g, ''), m.idNum, marital].filter(Boolean),
+          // כולל כל טלפוני-המשפחה (גם phones[]) — מוצאים תלמיד גם לפי מספר-נוסף של ההורים
+          terms: [m.first, m.famName, (phone || '').replace(/\D/g, ''), ...(fam ? familyPhoneDigits(fam) : []), m.idNum, marital].filter(Boolean),
         };
       });
   }, [db, c.id, cfg, maritalOn]);
