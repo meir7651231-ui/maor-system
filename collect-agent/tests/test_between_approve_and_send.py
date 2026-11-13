@@ -164,3 +164,57 @@ def test_address_only_suppression_stops_pending_draft_to_that_address(api, svc, 
     api.post("/dispatch")
     late = svc.sender.sent[n0:]
     assert late == [], [(m["to"], m["body"][:60]) for m in late]
+
+
+def test_owner_is_told_when_an_approved_draft_is_stopped(api, svc, clock):
+    """critic סבב 60: בסבבים 58–59 הטיוטה שנעצרה נעלמה בשקט מהתור (גם כשבעל העסק כבר אישר אותה) ⇒ הוא חשב
+    שהלקוח קיבל את קישור התשלום. עכשיו: הודעה בתיבה שלו, עם השם ועם «שאישרתם»."""
+    _approved(api, svc)
+    api.post("/dispatch")
+    r = api.post("/conversation/inbound", json={"channel": "sms", "sender": "050-1234567",
+                                                "text": "איך אפשר לשלם?"}).json()
+    if not r.get("draft_id"):
+        pytest.skip("המנוע ענה אוטומטית — אין טיוטה ממתינה")
+    clock.now = datetime(2026, 11, 8, 21, 30, tzinfo=TZ)
+    api.post(f"/conversation/drafts/{r['draft_id']}/approve", json={})
+    api.post(f"/u/{svc.new_unsub_token(1)}")
+    notes = [m for m in api.get("/owner/inbox").json() if m["intent"] == "draft_stopped_opt_out"]
+    assert len(notes) == 1, api.get("/owner/inbox").json()
+    assert "שאישרתם" in notes[0]["body"] and "דנה" in notes[0]["body"] and "הסרה" in notes[0]["body"]
+
+
+def test_reverse_opt_out_ack_still_sent_on_both_channels(api, svc):
+    """הכיוון ההפוך: העצירה לא חוסמת את אישור ההסרה עצמו (SMS), והלקוח לא מקבל שום דבר אחר."""
+    _approved(api, svc)
+    api.post("/dispatch")
+    n0 = len(svc.sender.sent)
+    api.post("/conversation/inbound", json={"channel": "sms", "sender": "050-1234567", "text": "הסר"})
+    drafts = [d for d in api.get("/conversation/drafts").json() if d["intent"] == "opt_out"]
+    for d in drafts:
+        api.post(f"/conversation/drafts/{d['id']}/approve", json={})
+    out = svc.sender.sent[n0:]
+    assert out and all("תזכורות" in m["body"] for m in out), [m["body"][:60] for m in out]
+    assert not any("לתשלום" in m["body"] or "קישור" in m["body"] for m in out)
+
+
+def test_reverse_other_customer_with_similar_name_untouched(svc, fake_gi, clock):
+    """הסרה של «דנה כהן» לא עוצרת טיוטה של «דני כהן» בנייד אחר (העצירה לפי לקוח/כתובת, לא לפי שם)."""
+    from tests.conftest import gi_doc
+    fake_gi.docs = [gi_doc(1, phone="050-1234567", name="דנה כהן"),
+                    gi_doc(2, phone="052-7654321", name="דני כהן", client_id="cl2")]
+    api = TestClient(create_app(svc, owner_token=OWNER_TOKEN), headers=AUTH)
+    api.post("/sync")
+    other = svc.db.one("SELECT * FROM customers WHERE name='דני כהן'")
+    for rid in api.post("/plan").json()["created"]:
+        api.post(f"/reminders/{rid}/approve")
+    api.post("/dispatch")
+    r = api.post("/conversation/inbound", json={"channel": "sms", "sender": "052-7654321",
+                                                "text": "איך אפשר לשלם?"}).json()
+    if not r.get("draft_id"):
+        pytest.skip("המנוע ענה אוטומטית — אין טיוטה ממתינה")
+    a = svc.db.one("SELECT * FROM customers WHERE name='דנה כהן'")
+    api.post(f"/u/{svc.new_unsub_token(a['id'])}")
+    d = svc.db.one("SELECT status FROM drafts WHERE id=?", (r["draft_id"],))
+    assert d["status"] == "pending_approval", dict(d)
+    assert svc.db.one("SELECT opted_out FROM customers WHERE id=?", (other["id"],))["opted_out"] == 0
+    assert not [m for m in api.get("/owner/inbox").json() if m["intent"] == "draft_stopped_opt_out"]
