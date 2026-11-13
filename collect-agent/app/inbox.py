@@ -72,6 +72,12 @@ _ALLOWED_AFTER_OPT_OUT = {Intent.OPT_OUT.value, Intent.WRONG_PERSON.value, Inten
                           Intent.COPY_REQUEST.value, Intent.CALLBACK.value}
 
 
+# critic סבב 61: סיבות שער (service.gate) לבעל העסק, כשתשובה שאושרה נחסמת ברגע השליחה
+_GATE_HE = {
+    "opted_out": "הלקוח ביקש הסרה, ולכן אסור לשלוח. אם צריך, פנו ללקוח אישית",
+}
+
+
 def _iso(dt: datetime) -> str:
     return dt.astimezone(TZ).isoformat(timespec="seconds")
 
@@ -519,8 +525,7 @@ class ConversationInbox:
         if why in ("outside_window", "trial_expired"):
             return False  # נשאר approved; flush() ישלח בחלון הבא
         if why:
-            self.db.x("UPDATE drafts SET status='rejected', decided_by=? WHERE id=?",
-                      (f"system:{why}", draft_id))
+            self._drop_approved(draft_id, cust, f"system:{why}", _GATE_HE.get(why, "השליחה נחסמה בשער השליחה"))
             return False
         if self._withdraw_if_stale(dr):
             return False
@@ -533,15 +538,16 @@ class ConversationInbox:
         now_total = self._open_total(cust["id"])
         if money and dr["total_agorot"] is not None and now_total != dr["total_agorot"]:
             # אימות סכום לפני כל שליחה: היתרה השתנתה (תשלום/עדכון) ⇒ הנוסח לא נשלח
-            self.db.x("UPDATE drafts SET status='rejected', decided_by='system:amount_changed' WHERE id=?",
-                      (draft_id,))
+            self._drop_approved(draft_id, cust, "system:amount_changed",
+                                "היתרה של הלקוח השתנתה מאז שהתשובה נוסחה (תשלום או עדכון), ולכן הסכום בה כבר "
+                                "לא נכון. אם צריך, תכינו תשובה חדשה")
             self.svc.audit("system", "draft_blocked_amount_changed",
                            {"draft": draft_id, "was": dr["total_agorot"], "now": now_total})
             return False
         msg = self._message(cust, dr)
         if msg is None:
-            self.db.x("UPDATE drafts SET status='rejected', decided_by='system:no_address' WHERE id=?",
-                      (draft_id,))
+            self._drop_approved(draft_id, cust, "system:no_address",
+                                "אין ללקוח כתובת תקינה בערוץ הזה (נייד/מייל). עדכנו את פרטי הקשר ושלחו שוב")
             return False
         now = self.svc.clock()
         if not self._claim_draft(draft_id):
@@ -549,11 +555,8 @@ class ConversationInbox:
         try:
             mid = self.svc.sender.send(msg)
         except Exception as e:  # noqa: BLE001 — מבקר סבב 3: IntegrationError (ארוך מדי) קרס ונעל את הלקוח
-            self.db.x("UPDATE drafts SET status='rejected', decided_by=? WHERE id=?",
-                      ("system:send_error", draft_id))
-            self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
-                      "created_at) VALUES(?,'system','owner',?,'send_error',1,?)",
-                      (cust["id"], f"הטיוטה לא נשלחה: {str(e)[:160]}", _iso(now)))
+            self._drop_approved(draft_id, cust, "system:send_error", f"שגיאת שליחה: {str(e)[:160]}",
+                                intent="send_error", body=f"הטיוטה לא נשלחה: {str(e)[:160]}")
             self.svc.audit("system", "draft_send_error", {"draft": draft_id, "error": str(e)[:200]})
             return False
         self.svc._log_out(cust["id"], msg, mid, now)
@@ -567,6 +570,17 @@ class ConversationInbox:
         self.svc.audit("system", "draft_sent_dry_run", {"draft": draft_id, "message_id": mid,
                                                         "body_sha": _body_sha(dr["body"])})
         return True
+
+    def _drop_approved(self, draft_id: int, cust, decided_by: str, reason: str, *,
+                       intent: str = "draft_not_sent", body: str | None = None) -> None:
+        """critic סבב 61: טיוטה **שבעל העסק אישר** לא יוצאת בגלל החלטת מערכת ⇒ נדחית **ובעל העסק מקבל הודעה**.
+        היה: amount_changed / no_address / חסימה בשער נדחו בשקט, ובעל העסק בטוח שהלקוח קיבל תשובה."""
+        self.db.x("UPDATE drafts SET status='rejected', decided_by=? WHERE id=?", (decided_by, draft_id))
+        who = cust["name"] if cust and cust["name"] else "הלקוח"
+        text = body or f"התשובה שאישרתם ל{who} לא נשלחה: {reason}."
+        self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,created_at) "
+                  "VALUES(?,'system','owner',?,?,1,?)",
+                  (cust["id"] if cust else None, text, intent, _iso(self.svc.clock())))
 
     @staticmethod
     def _addr(cust, channel: str) -> str | None:

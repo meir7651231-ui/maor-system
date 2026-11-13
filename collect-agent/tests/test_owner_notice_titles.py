@@ -12,6 +12,9 @@ ROOT = Path(__file__).resolve().parent.parent
 def _server_intents() -> set[str]:
     src = "\n".join(p.read_text(encoding="utf-8") for p in (ROOT / "app").glob("*.py"))
     lit = set(re.findall(r"'system',\s*'(?:owner|sms)',\s*\?,\s*'([a-z_]+)'", src))
+    # critic סבב 61: הודעה לבעלים דרך פונקציה עם intent כפרמטר (`_drop_approved(..., intent="send_error")`,
+    # וברירת המחדל `intent: str = "draft_not_sent"`) — אחרת המגן היה מפספס אותן
+    lit |= set(re.findall(r'\bintent(?::\s*str)?\s*=\s*"([a-z_]+)"', src))
     consts = dict(re.findall(r'^\s*(CREDIT_REVIEW|AMOUNT_CHECK)\s*=\s*"([a-z_]+)"', src, re.M))
     if re.search(r"'system','owner',\?,\?", src):
         lit |= set(consts.values())
