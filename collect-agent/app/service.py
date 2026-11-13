@@ -1884,6 +1884,20 @@ class CollectService:
                     (mid,)) if m["channel"])
         return sorted(out)
 
+    def _sent_channels_many(self, message_ids) -> dict[str, set[str]]:
+        """הפעלה 177: אותו חישוב כמו `_sent_channels`, לכל המזהים בבת אחת — mid ⇒ ערוצי היוצאים שלו.
+        ב-/dashboard היה שאילתה לכל שורה שיצאה: 5,000 חשבוניות שיצאו ⇒ 5,016 שאילתות. SQL קבוע (בלי בניית
+        `IN (?,?,…)`, test_no_dynamic_sql): המזהים עוברים כפרמטר JSON יחיד ל-json_each."""
+        mids = sorted({m for mid in message_ids for m in (mid or "").split(",") if m})
+        out: dict[str, set[str]] = {}
+        if not mids:
+            return out
+        for m in self.db.q("SELECT DISTINCT message_id, channel FROM messages WHERE direction='out' "
+                           "AND message_id IN (SELECT value FROM json_each(?))", (json.dumps(mids),)):
+            if m["channel"]:
+                out.setdefault(m["message_id"], set()).add(m["channel"])
+        return out
+
     # הפעלה 170: `/ui` מבקש את `/dashboard` המלא בכל רענון (2.46MB על 5,000 חשבוניות) ומשתמש רק בחלק מהשדות.
     # `view="list"` = אותם ערכים, רק השדות ש-`/ui` מציג: בלי email/source לחשבונית, ובתזכורת האחרונה רק
     # id/step/status/block_reason/amount_drift (בלי invoice_ids/template_key/sent_at), ובלי series/send_window.
@@ -1920,6 +1934,12 @@ class CollectService:
             return (d is not None, d or "", iid)
         rids = {rid: sorted((i for i in ids if i in due_of), key=_order) for rid, ids in members.items()}
         blocks = self._customer_blocks()
+        # הפעלה 177: ערוצי היוצאים של כל תזכורת שיצאה — בשאילתה אחת (לכל 500 מזהים), לא שורה-שורה
+        chans = self._sent_channels_many(x["message_id"] for xs in by_inv.values() for x in xs
+                                         if x["status"] in ("sent_dry_run", "send_unknown"))
+
+        def _channels(message_id: str | None) -> list[str]:
+            return sorted({c for m in (message_id or "").split(",") if m for c in chans.get(m, ())})
         for r in self.db.q("SELECT i.*, c.name cname, c.phone cphone, c.email cemail, "
                            "c.opted_out, c.disputed, c.paused_reason FROM invoices i "
                            "JOIN customers c ON c.id=i.customer_id ORDER BY i.due, i.id"):
@@ -1945,7 +1965,7 @@ class CollectService:
                 "days_overdue": (today - due).days if due and r["status"] == "open" else 0,
                 "reminders_sent": sent,
                 "last_sent": None if not ls else {
-                    "sent_at": ls["sent_at"], "channels": self._sent_channels(ls["message_id"]),
+                    "sent_at": ls["sent_at"], "channels": _channels(ls["message_id"]),
                     "unknown": ls["status"] == "send_unknown"},
                 "last_reminder": None if not last else {
                     "id": last["id"], "step": last["step"], "status": last["status"],

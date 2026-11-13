@@ -10,6 +10,7 @@
     python scripts/bench_dashboard.py                    # 5,000 חשבוניות, קובץ גלוי
     python scripts/bench_dashboard.py --encrypted        # אותו דבר עם SQLCipher (דורש sqlcipher3)
     python scripts/bench_dashboard.py --invoices 200 --json
+    python scripts/bench_dashboard.py --sent             # אחרי אישור ושליחה (dry-run) של כל התזכורות
 """
 from __future__ import annotations
 
@@ -41,7 +42,7 @@ SETTINGS = {"BUSINESS_NAME": "עסק לדוגמה", "SMS_SENDER_ID": "Demo",
             "PUBLIC_BASE_URL": "https://gabi.example", "REAL_DATA_ALLOWED": "1"}
 
 
-def build(path: str, n: int, env: dict[str, str]) -> CollectService:
+def build(path: str, n: int, env: dict[str, str], sent: bool = False) -> CollectService:
     customers = max(1, n * 2 // 5)
     docs = [gi_doc(k, client_id=f"cl{k % customers}", name=f"לקוח {k % customers}",
                    phone=f"050-{1000000 + k % customers}", amount=f"{100 + k % 900}.00",
@@ -52,7 +53,17 @@ def build(path: str, n: int, env: dict[str, str]) -> CollectService:
                          clock=Clock(datetime(2026, 11, 8, 10, 0, tzinfo=TZ)))
     svc.sync()
     svc.plan()
+    if sent:
+        send_all(svc)
     return svc
+
+
+def send_all(svc: CollectService) -> int:
+    """הפעלה 177: מאשרים את כל התזכורות הממתינות ומריצים dispatch (DryRunSender, בלי רשת) ⇒ שורות עם
+    `last_sent` — הנתיב של `_sent_channels`, שב-176 לא נמדד."""
+    for r in svc.db.q("SELECT id FROM reminders WHERE status='pending_approval'"):
+        svc.approve(r["id"], confirm_open=True, confirm_amount=True)
+    return len(svc.dispatch())
 
 
 def median_ms(fn, repeat: int) -> float:
@@ -79,7 +90,7 @@ def count_queries(svc: CollectService, fn) -> int:
     return n[0]
 
 
-def run(n: int, encrypted: bool, repeat: int) -> dict:
+def run(n: int, encrypted: bool, repeat: int, sent: bool = False) -> dict:
     env = dict(os.environ)
     env["DB_ENCRYPTION"] = "sqlcipher" if encrypted else "off"
     if encrypted and not env.get("COLLECT_MASTER_KEYS"):
@@ -88,7 +99,7 @@ def run(n: int, encrypted: bool, repeat: int) -> dict:
     with tempfile.TemporaryDirectory() as d:
         path = str(Path(d) / "bench.sqlite3")
         t0 = time.perf_counter()
-        svc = build(path, n, env)
+        svc = build(path, n, env, sent)
         seed = time.perf_counter() - t0
         rows = svc.dashboard()["invoices"]
 
@@ -99,6 +110,7 @@ def run(n: int, encrypted: bool, repeat: int) -> dict:
             "invoices": len(rows),
             "customers": svc.db.one("SELECT COUNT(*) n FROM customers")["n"],
             "reminders": svc.db.one("SELECT COUNT(*) n FROM reminders")["n"],
+            "sent_rows": sum(1 for x in rows if x["last_sent"]),
             "encrypted": bool(svc.db.encrypted),
             "file_mb": round(os.path.getsize(path) / 1e6, 2),
             "seed_s": round(seed, 1),
@@ -116,14 +128,16 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--invoices", type=int, default=5000)
     p.add_argument("--encrypted", action="store_true", help="DB_ENCRYPTION=sqlcipher (דורש sqlcipher3)")
     p.add_argument("--repeat", type=int, default=5)
+    p.add_argument("--sent", action="store_true", help="לאשר ולשלוח (dry-run) את כל התזכורות לפני המדידה")
     p.add_argument("--json", action="store_true")
     a = p.parse_args(argv)
-    r = run(a.invoices, a.encrypted, a.repeat)
+    r = run(a.invoices, a.encrypted, a.repeat, a.sent)
     if a.json:
         print(json.dumps(r, ensure_ascii=False))
     else:
         kind = "SQLCipher" if r["encrypted"] else "קובץ גלוי"
         print(f"{kind} · {r['invoices']} חשבוניות · {r['customers']} לקוחות · {r['reminders']} תזכורות · "
+              f"{r['sent_rows']} שורות שיצאו · "
               f"{r['file_mb']}MB")
         print(f"  לפני (שאילתות לכל חשבונית): {r['before_per_invoice_ms']} ms")
         print(f"  אחרי /dashboard: {r['after_ms']} ms · {r['after_queries']} שאילתות")

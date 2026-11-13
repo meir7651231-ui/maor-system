@@ -81,7 +81,7 @@ jobs:
           pip install --no-deps -e .
           python -c "import sqlcipher3; print(sqlcipher3.connect(':memory:').execute('PRAGMA cipher_version').fetchone())"
       - name: בדיקות SQLCipher אמיתיות (המודול מותקן ⇒ אין skip)
-        run: python -m pytest -q -rs tests/test_db_encryption.py tests/test_backup.py tests/test_wipe.py tests/test_bench_dashboard.py
+        run: python -m pytest -q -rs tests/test_db_encryption.py tests/test_backup.py tests/test_wipe.py tests/test_bench_dashboard.py tests/test_dashboard_sent_channels.py
       - name: pytest מלא (הדגל כבוי — התקנת המודול לבדה לא משנה התנהגות)
         run: python -m pytest -q
       - name: הדגמה מקצה לקצה עם DB_ENCRYPTION=sqlcipher
