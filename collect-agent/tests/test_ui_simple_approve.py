@@ -92,7 +92,7 @@ def test_ui_reminder_list_uses_invoice_currency():
     assert "money(r.amount_agorot)" not in UI, "$500 הוצג «500 ₪» ברשימת התזכורות"
     # הפעלה 162: המטבע מגיע מהשרת ב-total_text (templates.fmt_amount לפי מטבע כל חשבונית, «1,200 ₪ + $500»);
     # הנפילה ל-fmtCur(r.amount_agorot,r.currency) ירדה כי `view=list` לא מחזיר amount_agorot/currency
-    assert "esc(r.total_text)" in UI and "r.amount_agorot" not in UI[UI.index("el.innerHTML=rows.map"):]
+    assert "esc(r.total_text)" in UI and "r.amount_agorot" not in UI[UI.index("const QPAGE="):]
 
 
 def test_ui_debts_table_has_no_raw_block_code():

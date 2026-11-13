@@ -83,7 +83,8 @@ def test_ui_loads_list_view_not_full_reminders():
     """מגן-מקור: הדף לא חוזר לבקש את `/reminders` המלא, ושורת הרשימה משתמשת רק בשדות של `view=list`."""
     assert 'api("/reminders?view=list",{},ask)' in SRC
     assert not re.search(r'api\("/reminders"\s*[,)]', SRC)
-    row = SRC[SRC.index("el.innerHTML=rows.map"):SRC.index('el.querySelectorAll(".item")')]
+    # הפעלה 165: השורה עברה ל-drawQueue (סינון «לטיפול» + עימוד) ⇒ המגן מכסה את כל הפונקציה, כולל שדות הסינון
+    row = SRC[SRC.index("const QPAGE="):SRC.index('el.querySelectorAll(".item")')]
     used = set(re.findall(r"\br\.(\w+)", row))
     assert used <= FIELDS, used - FIELDS
 
@@ -95,3 +96,16 @@ def test_list_view_total_text_keeps_invoice_currency(api, fake_gi):
     _planned(api)
     texts = {r["total_text"] for r in api.get("/reminders?view=list").json()}
     assert any("$" in t and "₪" not in t for t in texts), texts
+
+
+def test_ui_queue_defaults_to_actionable_and_pages():
+    """הפעלה 165: התור ב-/ui הציג את כל 5,000 התזכורות (גם שנשלחו/נדחו/בוטלו) בכל רענון — 2.2–3.3 שנ׳ לטעינה
+    במעבד מואט ×4, והממתינות נקברו. מגן-מקור: ברירת מחדל «לטיפול», גבול של 50, «הצגת עוד», ו«נסגר» מוגדר בדיוק:
+    send_unknown (אולי יצאה) ותזכורת עם פער סכום נשארות לטיפול; התזכורת שנבחרה לא נעלמת מהרשימה."""
+    assert "const QPAGE=50" in SRC and "let qRows=[],qAll=false,qLim=QPAGE;" in SRC
+    done = SRC[SRC.index("qDone=r=>"):SRC.index("let qRows")]
+    assert "!r.amount_drift&&" in done and 'startsWith("sent")' in done
+    assert '"rejected"' in done and '"cancelled"' in done and "send_unknown" not in done
+    assert "r.id===sel" in SRC[SRC.index("function drawQueue"):SRC.index("el.innerHTML=view.map")]
+    assert "el.innerHTML=view.map" in SRC and "el.innerHTML=rows.map" not in SRC
+    assert "qRows=q.value;drawQueue();" in SRC

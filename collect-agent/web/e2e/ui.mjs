@@ -422,6 +422,43 @@ try {
   await p.locator('#btnRetry').click();
   await p.locator('#loaderr').waitFor({ state: 'hidden' });
   ok(await p.locator('#debts tr.unloaded').count() === 0 && await p.locator('#debts td.sent').count() > 0, '/ui: «נסו שוב» לא טען את החובות');
+  // הפעלה 165: התור על 5,000 תזכורות (120 לטיפול, השאר נשלחו/נדחו/בוטלו). היה: 5,000 כרטיסים ב-DOM בכל רענון,
+  // והממתינות נקברו בין הסגורות. עכשיו: ברירת מחדל «לטיפול», עד 50 כרטיסים, «הצגת עוד», ו«הכול» מציג את השאר.
+  const big165 = Array.from({ length: 5000 }, (_, i) => ({ id: 900000 + i, invoice_id: i + 1, block_reason: null,
+    status: i < 120 ? (i % 2 ? 'approved' : 'pending_approval') : ['sent_dry_run', 'rejected', 'cancelled', 'sent'][i % 4],
+    step: 0, number: String(70000 + i), customer_name: `לקוח בדיקה ${i}`, invoice_ids: [i + 1], invoice_count: 1,
+    total_text: '100.00 ₪', amount_drift: i === 4999 ? { was_text: '90.00 ₪', now_text: '100.00 ₪' } : null }));
+  await inject(p, LIST, route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(big165) }));
+  const t165 = Date.now();
+  await p.reload();
+  await p.locator('#list .item').first().waitFor();
+  const ms165 = Date.now() - t165;
+  const qf = p.locator('#qf button');
+  ok(await qf.count() === 2 && /לטיפול \(121\)/.test(await qf.nth(0).textContent()) && /הכול \(5000\)/.test(await qf.nth(1).textContent())
+    && await qf.nth(0).getAttribute('aria-pressed') === 'true', '/ui 165: מוני הסינון לא נכונים או «לטיפול» לא ברירת המחדל');
+  ok(await p.locator('#list .item').count() === 50, '/ui 165: יותר מ-50 כרטיסים בטעינה הראשונה');
+  ok(!/נשלחה|נדחתה|בוטלה/.test(await p.locator('#list').textContent()), '/ui 165: «לטיפול» מציג תזכורות שנשלחו/נדחו/בוטלו');
+  ok(/נותרו 71/.test(await p.locator('#qMoreBtn').textContent()), '/ui 165: «הצגת עוד» בלי מספר הנותרים');
+  await p.locator('#qMoreBtn').click(); await p.locator('#qMoreBtn').click();
+  ok(await p.locator('#list .item').count() === 121 && await p.locator('#qMoreBtn').count() === 0, '/ui 165: «הצגת עוד» לא הציג את כל ה-121');
+  ok(await p.locator('#list .item', { hasText: 'לקוח בדיקה 4999' }).count() === 1, '/ui 165: תזכורת עם פער סכום (שנשלחה) הוסתרה מ«לטיפול»');
+  if (out) await p.screenshot({ path: `${out}/ui-09-queue-paged.png` });
+  await qf.nth(1).click();
+  ok(await p.locator('#list .item').count() === 50 && /נותרו 4950/.test(await p.locator('#qMoreBtn').textContent())
+    && await qf.nth(1).getAttribute('aria-pressed') === 'true', '/ui 165: «הכול» לא מציג 50 ראשונים + «הצגת עוד»');
+  await p.setViewportSize({ width: 390, height: 844 });
+  ok(await p.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), '/ui 165: גלילה רוחבית במובייל עם שורת הסינון');
+  if (out) await p.screenshot({ path: `${out}/ui-10-queue-mobile.png` });
+  await p.setViewportSize({ width: 1280, height: 900 });
+  await p.unroute(LIST);
+  big165.forEach(r => { r.status = 'sent_dry_run'; r.amount_drift = null; });
+  await inject(p, LIST, route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(big165) }));
+  await p.reload();
+  await p.locator('#list .empty').waitFor();
+  ok(/אין תזכורות לטיפול/.test(await p.locator('#list').textContent()) && /5000/.test(await p.locator('#list').textContent()), '/ui 165: «לטיפול» ריק בלי הסבר');
+  await p.unroute(LIST);
+  await p.reload(); await p.locator('#list .item').first().waitFor();
+  console.log(`  /ui 165: 5,000 תזכורות ⇒ כרטיס ראשון אחרי ${ms165}ms (טעינה מחדש מלאה, כולל /dashboard)`);
   errors.push(...errors.splice(before145).filter(e => !/^503 .*\/dashboard$/.test(e) && !/^401 .*\/(dispatch|dashboard|reminders(\?view=list)?)$/.test(e) && !/^409 .*\/(sync|reminders\/\d+\/approve)$/.test(e)));
   // ה-503 המוזרקים נרשמו כשגיאות תגובה: מסירים רק אותם, כל שגיאה אחרת נשארת
   const mine = errors.splice(before).filter(e => !/^503 .*\/(dashboard|reminders(\?view=list)?)$/.test(e) && !/^502 .*\/reminders\/\d+\/preview$/.test(e));

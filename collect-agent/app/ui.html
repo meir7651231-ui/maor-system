@@ -29,7 +29,10 @@ max-width:1200px;margin:0 auto}
 @media (max-width:760px){main{grid-template-columns:1fr}}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px}
 .list{display:flex;flex-direction:column;gap:8px}.item{text-align:right;width:100%;display:block}
-.item.sel{outline:2px solid var(--brand)}.row{display:flex;justify-content:space-between;gap:8px}
+.item.sel{outline:2px solid var(--brand)}
+.qf{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}.qf button{min-height:32px;padding:4px 10px;font-size:13px}
+.qf button[aria-pressed="true"]{background:var(--brand);border-color:var(--brand);color:var(--brand-ink)}
+#qmore button{width:100%;margin-top:8px}.row{display:flex;justify-content:space-between;gap:8px}
 .chip{background:var(--chip);border-radius:999px;padding:2px 8px;font-size:12px;color:var(--muted)}
 .chip.pending{background:var(--warn-bg);color:var(--warn)}.chip.blocked{color:var(--bad)}
 .previews{display:grid;grid-template-columns:1fr 1fr;gap:16px}
@@ -92,7 +95,7 @@ button.resume{margin-inline-start:6px;padding:4px 10px;min-height:32px;font-size
     <th>תזכורות שנשלחו</th><th>סטטוס אחרון</th></tr></thead><tbody id="debts"></tbody></table></div></section>
 </div>
 <main>
-  <section class="card"><h2>תור תזכורות</h2><div id="list" class="list"></div></section>
+  <section class="card"><h2>תור תזכורות</h2><div class="qf" id="qf" role="group" aria-label="סינון התור"></div><div id="list" class="list"></div><div id="qmore"></div></section>
   <section class="card" id="detail"><div class="empty">בחרו תזכורת כדי לראות תצוגה מקדימה של SMS ומייל</div></section>
 </main>
 <script>
@@ -244,9 +247,24 @@ async function load(ask=true){
     if(!$("#wunk").hidden&&!$("#wunkMsg").dataset.fresh){$("#wunkMsg").dataset.fresh="1";
       $("#wunkMsg").textContent="הנתונים התרעננו עכשיו. בדקו במסך אם הפעולה נרשמה, לפני שמנסים שוב"}}
   if(q.status!=="fulfilled")return;
-  const rows=q.value;const el=$("#list");
-  if(!rows.length){el.innerHTML='<div class="empty">אין תזכורות. לחצו "סנכרון" ואז "הכנת תזכורות".</div>';return}
-  el.innerHTML=rows.map(r=>`<button class="item card ${r.id===sel?"sel":""}" data-id="${r.id}">
+  qRows=q.value;drawQueue();
+}
+// הפעלה 165: התור הציג את כל התזכורות (גם שנשלחו/נדחו/בוטלו), בלי גבול. על 5,000 לקוחות: 5,000 כרטיסים ב-DOM
+// בכל רענון, והממתינות לאישור נקברו בין הסגורות. עכשיו: ברירת מחדל «לטיפול» (כל מה שלא נשלח/נדחה/בוטל, וכל
+// תזכורת עם פער סכום), ועד QPAGE כרטיסים; «הצגת עוד» מוסיף עוד QPAGE. «הכול» מציג את השאר. הסינון בצד הלקוח בלבד:
+// השרת מחזיר את אותה רשימה (view=list). התזכורת שנבחרה תמיד מוצגת: גם מעבר לגבול, וגם אחרי שנדחתה/נשלחה.
+const QPAGE=50,qDone=r=>!r.amount_drift&&(String(r.status).startsWith("sent")||r.status==="rejected"||r.status==="cancelled");
+let qRows=[],qAll=false,qLim=QPAGE;
+function drawQueue(){
+  const rows=qRows,el=$("#list"),act=rows.filter(r=>!qDone(r)),pick=qAll?rows:rows.filter(r=>!qDone(r)||r.id===sel);
+  $("#qf").innerHTML=rows.length?`<button type="button" data-q="0" aria-pressed="${!qAll}">לטיפול (${act.length})</button><button type="button" data-q="1" aria-pressed="${qAll}">הכול (${rows.length})</button>`:"";
+  $("#qf").querySelectorAll("button").forEach(b=>b.onclick=()=>{qAll=b.dataset.q==="1";qLim=QPAGE;drawQueue()});
+  if(!rows.length){el.innerHTML='<div class="empty">אין תזכורות. לחצו "סנכרון" ואז "הכנת תזכורות".</div>';$("#qmore").innerHTML="";return}
+  if(!pick.length){el.innerHTML=`<div class="empty">אין תזכורות לטיפול. «הכול» מציג ${rows.length} שכבר נשלחו או נסגרו.</div>`;$("#qmore").innerHTML="";return}
+  const si=pick.findIndex(r=>r.id===sel),lim=Math.max(qLim,si+1),view=pick.slice(0,lim),left=pick.length-view.length;
+  $("#qmore").innerHTML=left?`<button type="button" id="qMoreBtn">הצגת עוד ${Math.min(QPAGE,left)} (נותרו ${left})</button>`:"";
+  if(left)$("#qMoreBtn").onclick=()=>{qLim=lim+QPAGE;drawQueue()};
+  el.innerHTML=view.map(r=>`<button class="item card ${r.id===sel?"sel":""}" data-id="${r.id}">
     <div class="row"><strong>${esc(r.customer_name)}</strong><span>${esc(r.total_text)}</span></div>
     <div class="row"><span class="slogan">${r.invoice_count>1?`${r.invoice_count} חשבוניות`:`חשבונית ${esc(r.number)}`} · שלב ${r.step+1}/4</span>
     <span class="chip ${r.status==="pending_approval"||r.amount_drift?"pending":""} ${r.block_reason&&!REAPPROVE[r.block_reason]?"blocked":""}">
