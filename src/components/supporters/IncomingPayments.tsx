@@ -17,6 +17,7 @@ import { normSearch } from '../../lib/validate';
 import { integrationSetting, isSuperAdmin, termOf } from '../../lib/config';
 import { fmtDate, supCount, totalLabel } from './lib';
 import { payBal } from '../courses/lib';
+import { enrollPhoneDigits, supPhoneContains, supPhoneVsPay } from './incomingMatch';
 import type { Supporter } from '../../types/domain';
 
 type CloudMod = typeof import('../../store/cloudSync');
@@ -322,7 +323,7 @@ function MergeView(props: { pay: IncomingPayment; onBack: () => void; onMerged: 
       const fam = famOf.get(m.famId || '');
       const label = ((m.first || '') + ' ' + (m.famName || '')).trim() || fam?.name || '—';
       const course = courseOf.get(en.courseId) || '';
-      const phones = [m.phone, fam?.phone, fam?.phone2].map((x) => normPhone(x || '')).filter((x) => x.length >= 7);
+      const phones = enrollPhoneDigits(m, fam);
       const phoneHit = payDigits.length >= 7 && phones.some((x) => x === payDigits);
       const textHit =
         (qn.length >= 2 && (normSearch(label).includes(qn) || normSearch(course).includes(qn))) ||
@@ -352,7 +353,7 @@ function MergeView(props: { pay: IncomingPayment; onBack: () => void; onMerged: 
   const searchResults = useMemo(() => {
     if (qn.length < 2 && qDigits.length < 3) return [];
     return supporters
-      .filter((s) => (qn.length >= 2 && normSearch(s.name).includes(qn)) || (qDigits.length >= 3 && normPhone(s.phone).includes(qDigits)))
+      .filter((s) => (qn.length >= 2 && normSearch(s.name).includes(qn)) || supPhoneContains(s, qDigits))
       .slice(0, 10);
   }, [qn, qDigits, supporters]);
   const list = q.trim() ? searchResults : candidates;
@@ -442,7 +443,7 @@ function MergeView(props: { pay: IncomingPayment; onBack: () => void; onMerged: 
               </div>
               {/* השוואת-שדות תשלום↔כרטיס (בסגנון בדיקת-כפילויות) */}
               <CmpRow label="שם" a={pay.name} b={sp.name} match={!!pay.name && normSearch(pay.name) === normSearch(sp.name)} />
-              <CmpRow label="טלפון" a={pay.phone} b={sp.phone} match={!!normPhone(pay.phone) && normPhone(pay.phone) === normPhone(sp.phone)} />
+              <PhoneCmpRow pay={pay.phone} sp={sp} />
               <CmpRow label="אימייל" a={pay.email || ''} b={sp.email} match={!!pay.email && pay.email.toLowerCase() === (sp.email || '').toLowerCase()} />
               <CmpRow label={'ת"ז'} a={pay.zeout || ''} b={sp.idNum} match={!!normId(pay.zeout) && normId(pay.zeout) === normId(sp.idNum)} />
               <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
@@ -466,6 +467,12 @@ function MergeView(props: { pay: IncomingPayment; onBack: () => void; onMerged: 
 }
 
 /** שורת-השוואה: תווית · ערך-בתשלום · ערך-בכרטיס; רקע ירוק כשהם תואמים. */
+/** שורת-השוואת-טלפון — מכירה גם את הטלפונים-הנוספים של הכרטיס (phones[]). */
+function PhoneCmpRow(props: { pay: string; sp: Supporter }) {
+  const r = supPhoneVsPay(props.sp, props.pay);
+  return <CmpRow label="טלפון" a={props.pay} b={r.num} match={r.match} />;
+}
+
 function CmpRow(props: { label: string; a: string; b: string; match: boolean }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '2px 6px', fontSize: 12.5, borderRadius: 6, background: props.match ? 'var(--ok-bg, #eaf6ec)' : 'transparent' }}>
