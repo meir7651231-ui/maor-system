@@ -104,7 +104,26 @@ describe('🪙 מנוי גבי — הרשומה', () => {
   it('המחיר היחיד: ₪119/חודש · ₪1,190/שנה', () => {
     expect(gabiPlanPrice('monthly')).toBe(119);
     expect(gabiPlanPrice('yearly')).toBe(1190);
-    expect(gabiPlanLabel('yearly')).toBe('שנתי · ₪1,190/שנה');
+    // critic סבב 67: התווית מוצגת לבעל העסק ליד כפתור התשלום (הגדרות ← המנוי) ⇒ «כולל מע״מ ככל שחל» (הכרעת מאיר)
+    expect(gabiPlanLabel('yearly')).toBe('שנתי · ₪1,190/שנה, כולל מע״מ ככל שחל');
+    expect(gabiPlanLabel('monthly')).toBe('חודשי · ₪119/חודש, כולל מע״מ ככל שחל');
+  });
+
+  it('critic סבב 67: כל הצגת מחיר גבי ברכיבי מאור אומרת «כולל מע״מ»', async () => {
+    const { readFileSync, readdirSync, statSync } = await import('node:fs');
+    const { join } = await import('node:path');
+    const walk = (d: string): string[] => readdirSync(d).flatMap((f) => {
+      const p = join(d, f); return statSync(p).isDirectory() ? (f === '__tests__' ? [] : walk(p)) : /\.(ts|tsx)$/.test(f) ? [p] : [];
+    });
+    const bad: string[] = [];
+    for (const f of walk('src')) {
+      const lines = readFileSync(f, 'utf8').split('\n');
+      lines.forEach((l, i) => {
+        if (/^\s*(\/\/|\/\*|\*)/.test(l)) return;
+        if (/₪\$\{gabiPlanPrice|₪\$\{GABI_PRODUCT\.price|₪\s?(119|1,190)\b/.test(l) && !/מע״מ/.test(lines.slice(Math.max(0, i - 2), i + 3).join(' '))) bad.push(`${f}:${i + 1}`);
+      });
+    }
+    expect(bad).toEqual([]);
   });
 });
 

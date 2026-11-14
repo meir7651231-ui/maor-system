@@ -82,7 +82,8 @@ export function gabiPlanPrice(plan: GabiPlan): number {
 }
 
 export function gabiPlanLabel(plan: GabiPlan): string {
-  return plan === 'yearly' ? `שנתי · ₪${gabiPlanPrice('yearly').toLocaleString('en-US')}/שנה` : `חודשי · ₪${gabiPlanPrice('monthly')}/חודש`;
+  // critic סבב 67: מוצג לבעל העסק ליד כפתור התשלום ⇒ «כולל מע״מ ככל שחל» (הכרעת מאיר: המחיר תמיד כולל מע״מ)
+  return plan === 'yearly' ? `שנתי · ₪${gabiPlanPrice('yearly').toLocaleString('en-US')}/שנה, כולל מע״מ ככל שחל` : `חודשי · ₪${gabiPlanPrice('monthly')}/חודש, כולל מע״מ ככל שחל`;
 }
 
 function addDays(iso: string, n: number): string {
