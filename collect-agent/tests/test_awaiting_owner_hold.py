@@ -11,6 +11,7 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
+from app.channels import sent_mark, sent_since
 from app.main import create_app
 from tests.conftest import AUTH, OWNER_TOKEN
 
@@ -35,7 +36,7 @@ def _first_sent(api, svc):
 
 
 def _to_c1(svc, n0):
-    return [m for m in svc.sender.sent[n0:] if m["to"] in ("972501234567", "c1@example.com")]
+    return [m for m in sent_since(svc.sender.sent, n0) if m["to"] in ("972501234567", "c1@example.com")]
 
 
 def test_no_next_reminder_while_customer_message_waits(api, svc, clock):
@@ -57,7 +58,7 @@ def test_approved_reminder_waits_if_customer_wrote_after_approval(api, svc, cloc
     for i in _mine(svc, api.post("/plan").json()["created"]):
         api.post(f"/reminders/{i}/approve")
     api.post("/inbound", json={"sender": "050-1234567", "text": TEXT})   # כתב אחרי האישור, לפני השליחה
-    n0 = len(svc.sender.sent)
+    n0 = sent_mark(svc.sender.sent)
     api.post("/dispatch")
     assert _to_c1(svc, n0) == [], [m["body"][:50] for m in _to_c1(svc, n0)]
 
@@ -85,6 +86,6 @@ def test_shared_phone_hold_covers_the_other_customer(svc, fake_gi, clock):
     assert svc._customer_blocks() == blocks                       # הגרסה המקובצת (הפעלה 175) זהה
     clock.now += timedelta(days=8)
     assert api.post("/plan").json()["created"] == []
-    n0 = len(svc.sender.sent)
+    n0 = sent_mark(svc.sender.sent)
     api.post("/dispatch")
-    assert [m for m in svc.sender.sent[n0:] if m["to"] == "972501234567"] == []
+    assert [m for m in sent_since(svc.sender.sent, n0) if m["to"] == "972501234567"] == []

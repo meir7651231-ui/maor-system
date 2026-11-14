@@ -12,6 +12,7 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
+from app.channels import sent_mark
 from app.main import create_app
 from tests.conftest import AUTH, OWNER_TOKEN
 
@@ -37,14 +38,14 @@ def _rebuilt(api, fake_gi):
 def test_stale_preview_cannot_approve_rebuilt_reminder(api, svc, fake_gi):
     rid, seen = _rebuilt(api, fake_gi)
     assert svc._reminder(rid)["status"] == "pending_approval" and "1,500" in svc._reminder(rid)["body"]
-    before = len(svc.sender.sent)
+    before = sent_mark(svc.sender.sent)
     res = api.post(f"/reminders/{rid}/approve", json={"seen_hash": seen["body_hash"]})
     assert res.status_code == 409 and "השתנו מאז שפתחתם" in res.json()["detail"], res.text
     # הפעלה 149: הסירוב מסומן ⇒ הממשק טוען את התצוגה מחדש ומציג מה השתנה (ולא «כבר אושרה»)
     assert res.headers.get("X-Gabi-Stale") == "preview" and "X-Gabi-Already" not in res.headers
     assert svc._reminder(rid)["status"] == "pending_approval"
     api.post("/dispatch")
-    assert len(svc.sender.sent) == before, "יצא נוסח שבעל העסק לא ראה"
+    assert sent_mark(svc.sender.sent) == before, "יצא נוסח שבעל העסק לא ראה"
     # פתיחה מחדש ⇒ הגיבוב החדש ⇒ האישור עובר, ויוצא 1,500 (מה שנראה)
     fresh = api.get(f"/reminders/{rid}/preview").json()
     assert fresh["body_hash"] != seen["body_hash"] and "1,500" in fresh["messages"][0]["body"]

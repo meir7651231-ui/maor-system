@@ -8,6 +8,7 @@ from datetime import date
 import httpx
 import pytest
 
+from app.channels import sent_mark, sent_since
 from app.config import load_settings
 from app.db import DB
 from app.gi_mock import GreenInvoiceMock
@@ -246,8 +247,8 @@ def test_credit_issued_after_approval_is_not_sent_at_old_amount(svc, fake_gi):
     fake_gi.docs.append({"id": "cr1", "number": "9001", "type": 330, "status": 0, "amount": "500.00",
                          "currency": "ILS", "documentDate": "2026-11-08", "linkedDocumentIds": ["doc1"],
                          "client": {"id": "cl1", "name": "דנה כהן", "phone": "050-1234567"}})
-    n = len(svc.sender.sent)
+    n = sent_mark(svc.sender.sent)
     svc.dispatch()
-    sent = [m["body"] for m in svc.sender.sent[n:] if "1001" in m["body"]]
+    sent = [m["body"] for m in sent_since(svc.sender.sent, n) if "1001" in m["body"]]
     assert not any("1,200" in b for b in sent), sent
     assert svc._reminder(rid)["status"] != "sent_dry_run" or any("700" in b for b in sent)

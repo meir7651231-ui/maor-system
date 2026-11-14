@@ -1,6 +1,7 @@
 """רגרסיה לממצאי המבקר, סבב 3 (team/critic.md). כל בדיקה משחזרת את הסקריפט שלו ב-/tmp/claude-0/critic3."""
 from datetime import timedelta
 
+from app.channels import sent_mark
 from tests.conftest import gi_doc
 
 
@@ -65,7 +66,7 @@ def test_money_draft_not_sent_when_refresh_fails(svc, fake_gi):
     assert svc.sender.sent == []
     fake_gi.fail_refresh = False
     svc.inbox.flush()                                  # רענון הצליח ⇒ יוצא
-    assert len(svc.sender.sent) == 1
+    assert sent_mark(svc.sender.sent) == 1
 
 
 def test_money_draft_calls_source_before_send(svc, fake_gi):

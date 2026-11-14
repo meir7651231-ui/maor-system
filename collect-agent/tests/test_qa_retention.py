@@ -8,6 +8,7 @@ from datetime import timedelta
 
 import pytest
 
+from app.channels import sent_mark
 from app.greeninvoice import map_document
 from tests.conftest import gi_doc
 
@@ -90,9 +91,9 @@ def test_r10_suppression_survives_purge_and_still_blocks(svc, clock):
             svc.approve(r)
         except ValueError:
             pass
-    before = len(svc.sender.sent)
+    before = sent_mark(svc.sender.sent)
     svc.dispatch()
-    assert len(svc.sender.sent) == before
+    assert sent_mark(svc.sender.sent) == before
 
 
 def test_r10_audit_has_no_free_text_pii(svc, clock):

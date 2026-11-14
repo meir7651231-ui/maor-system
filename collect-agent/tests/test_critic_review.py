@@ -6,6 +6,7 @@ from datetime import datetime
 
 import pytest
 
+from app.channels import sent_mark, sent_since
 from app.config import SafetyError, load_settings
 from app.policy import TZ, Policy
 
@@ -20,12 +21,12 @@ def _cycle(svc):
 def test_hole2_plan_offer_sent_once_draft_then_plans(svc):
     _cycle(svc)
     res = svc.inbound("sms", "0501234567", "אפשר לפרוס לשלושה תשלומים?")
-    n = len(svc.sender.sent)
+    n = sent_mark(svc.sender.sent)
     svc.inbox.approve_draft(res["draft_id"])
-    assert len(svc.sender.sent) == n + 1
+    assert sent_mark(svc.sender.sent) == n + 1
     with pytest.raises(ValueError):
         svc.approve_plan(res["plan_id"])
-    assert len(svc.sender.sent) == n + 1
+    assert sent_mark(svc.sender.sent) == n + 1
 
 
 def test_hole3_no_receipt_creating_payment_mode():
@@ -82,7 +83,7 @@ def test_hole1_opt_out_on_shared_phone_stops_all_channels_of_both(svc, fake_gi, 
     _cycle(svc)
     svc.inbound("sms", "0501234567", "תסירו אותי")
     clock.now += timedelta(days=10)
-    n = len(svc.sender.sent)
+    n = sent_mark(svc.sender.sent)
     svc.sync()
     for rid in svc.plan():
         try:
@@ -90,7 +91,7 @@ def test_hole1_opt_out_on_shared_phone_stops_all_channels_of_both(svc, fake_gi, 
         except ValueError:
             pass
     svc.dispatch()
-    assert svc.sender.sent[n:] == []
+    assert sent_since(svc.sender.sent, n) == []
     assert [r["opted_out"] for r in svc.db.q("SELECT opted_out FROM customers ORDER BY id")] == [1, 1]
 
 

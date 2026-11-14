@@ -13,6 +13,7 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
+from app.channels import sent_mark
 from app.main import create_app
 from tests.conftest import AUTH, OWNER_TOKEN
 
@@ -138,12 +139,12 @@ def test_second_plan_approve_is_already_approved(svc):
     api = _api(svc)
     pid = _plan(api)
     assert api.post(f"/plans/{pid}/approve").status_code == 200
-    sent = len(svc.sender.sent)
+    sent = sent_mark(svc.sender.sent)
     r = api.post(f"/plans/{pid}/approve")
     assert r.status_code == 409 and r.headers.get("x-gabi-already") == "approved"
     assert r.json()["detail"] == "הצעת הפריסה כבר אושרה"
     # בלי אישור שני ביומן, בלי הודעה שנייה ללקוח
-    assert len(_audits(svc, "plan_approved")) == 1 and len(svc.sender.sent) == sent
+    assert len(_audits(svc, "plan_approved")) == 1 and sent_mark(svc.sender.sent) == sent
 
 
 def test_already_approved_plan_wins_over_amount_check(svc, monkeypatch):
@@ -173,11 +174,11 @@ def test_second_draft_approve_is_already_approved(svc):
     api = _api(svc)
     did = _draft(api)
     assert api.post(f"/conversation/drafts/{did}/approve").status_code == 200
-    sent = len(svc.sender.sent)
+    sent = sent_mark(svc.sender.sent)
     r = api.post(f"/conversation/drafts/{did}/approve", json={"body": "נוסח אחר לגמרי"})
     assert r.status_code == 409 and r.headers.get("x-gabi-already") == "approved"
     assert r.json()["detail"].startswith("הטיוטה כבר אושרה") and not RAW.search(r.json()["detail"])
-    assert len(_audits(svc, "draft_approved")) == 1 and len(svc.sender.sent) == sent
+    assert len(_audits(svc, "draft_approved")) == 1 and sent_mark(svc.sender.sent) == sent
 
 
 def test_second_draft_reject_is_already_rejected_and_cross_decisions_refuse(svc):

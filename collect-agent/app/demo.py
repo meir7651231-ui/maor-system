@@ -15,6 +15,7 @@ import os
 from collections.abc import Callable
 from datetime import datetime
 
+from .channels import sent_mark, sent_since
 from .config import load_settings
 from .db import DB
 from .demo_data import demo_client, demo_source_factory
@@ -58,7 +59,7 @@ def build_demo_service() -> tuple[CollectService, object, FixedClock]:
 
 def _log_outbox(svc: CollectService, start: int, out: Callable[[str], None]) -> int:
     msgs = svc.sender.sent
-    for m in msgs[start:]:
+    for m in sent_since(msgs, start):
         if m["channel"] == "sms":
             seg = m.get("length", {}).get("segments", "?")
             out(f"📱 SMS  → {m['to']}  ({seg} חלקים, ספק {m['provider']}, dry-run)\n"
@@ -66,7 +67,7 @@ def _log_outbox(svc: CollectService, start: int, out: Callable[[str], None]) -> 
         else:
             out(f"✉️  מייל → {m['to']}  נושא: {m.get('subject', '')}\n"
                 f"         {m['body'][:220].replace(chr(10), ' ')}…")
-    return len(msgs)
+    return sent_mark(msgs)
 
 
 def run_scenario(svc: CollectService, fake, out: Callable[[str], None] = print) -> dict:

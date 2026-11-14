@@ -12,6 +12,7 @@ from datetime import datetime
 import pytest
 from fastapi.testclient import TestClient
 
+from app.channels import sent_mark, sent_since
 from app.main import create_app
 from app.policy import TZ
 from tests.conftest import AUTH, OWNER_TOKEN
@@ -33,7 +34,7 @@ def _approved(api, svc) -> int:
 
 
 def _to_customer(svc, since: int) -> list:
-    return [m for m in svc.sender.sent[since:] if m["to"] in (PHONE, MAIL)]
+    return [m for m in sent_since(svc.sender.sent, since) if m["to"] in (PHONE, MAIL)]
 
 
 def test_control_nothing_happened_it_is_sent(api, svc):
@@ -89,7 +90,7 @@ def test_one_click_unsubscribe_from_email_before_send(api, svc):
 def test_reply_draft_approved_at_night_then_opt_out(api, svc, clock):
     _approved(api, svc)
     api.post("/dispatch")                                  # התזכורת יצאה (בקרה)
-    n0 = len(svc.sender.sent)
+    n0 = sent_mark(svc.sender.sent)
     api.post("/inbound", json={"sender": "050-1234567", "text": "איך אפשר לשלם?"})
     drafts = api.get("/conversation/drafts").json()
     if not drafts:
@@ -97,12 +98,12 @@ def test_reply_draft_approved_at_night_then_opt_out(api, svc, clock):
     clock.now = datetime(2026, 11, 8, 21, 30, tzinfo=TZ)   # לילה ⇒ אושר, ממתין לחלון
     d = drafts[0]
     api.post(f"/conversation/drafts/{d['id']}/approve", json={})
-    assert len(svc.sender.sent) == n0, "יצא בלילה"
+    assert sent_mark(svc.sender.sent) == n0, "יצא בלילה"
     token = svc.new_unsub_token(1)
     api.post(f"/u/{token}")
     clock.now = datetime(2026, 11, 9, 9, 0, tzinfo=TZ)
     api.post("/dispatch")
-    late = [m for m in svc.sender.sent[n0:] if m["to"] in (PHONE, MAIL)]
+    late = [m for m in sent_since(svc.sender.sent, n0) if m["to"] in (PHONE, MAIL)]
     assert late == [], [m["body"][:60] for m in late]
 
 
@@ -123,25 +124,25 @@ def test_shared_contact_opt_out_stops_the_other_customers_drafts(svc, fake_gi, c
         pytest.skip("המנוע ענה אוטומטית — אין טיוטה ממתינה")
     clock.now = datetime(2026, 11, 8, 21, 30, tzinfo=TZ)
     api.post(f"/conversation/drafts/{did}/approve", json={})
-    n0 = len(svc.sender.sent)
+    n0 = sent_mark(svc.sender.sent)
     assert api.post(f"/u/{svc.new_unsub_token(a['id'])}").status_code == 200
     assert svc.db.one("SELECT opted_out FROM customers WHERE id=?", (b["id"],))["opted_out"] == 1
     clock.now = datetime(2026, 11, 9, 9, 0, tzinfo=TZ)
     api.post("/dispatch")
-    late = svc.sender.sent[n0:]
+    late = sent_since(svc.sender.sent, n0)
     assert late == [], [(m["to"], m["body"][:60]) for m in late]
 
 
 def test_plan_proposed_before_opt_out_is_not_sent_after(api, svc):
     _approved(api, svc)
     api.post("/dispatch")
-    n0 = len(svc.sender.sent)
+    n0 = sent_mark(svc.sender.sent)
     api.post("/inbound", json={"sender": "050-1234567", "text": "אפשר פריסה?"})
     pid = api.get("/plans").json()[-1]["id"]
-    n1 = len(svc.sender.sent)
+    n1 = sent_mark(svc.sender.sent)
     api.post(f"/u/{svc.new_unsub_token(1)}")
     res = api.post(f"/plans/{pid}/approve")
-    late = svc.sender.sent[n1:]
+    late = sent_since(svc.sender.sent, n1)
     assert late == [], [m["body"][:60] for m in late]
     assert res.status_code in (200, 409), res.text
     assert n1 >= n0
@@ -158,11 +159,11 @@ def test_address_only_suppression_stops_pending_draft_to_that_address(api, svc, 
         pytest.skip("המנוע ענה אוטומטית — אין טיוטה ממתינה")
     clock.now = datetime(2026, 11, 8, 21, 30, tzinfo=TZ)
     api.post(f"/conversation/drafts/{r['draft_id']}/approve", json={})
-    n0 = len(svc.sender.sent)
+    n0 = sent_mark(svc.sender.sent)
     svc.suppress("sms", "050-1234567", "carrier_blacklist")     # כתובת בלבד, הלקוח עצמו לא סומן
     clock.now = datetime(2026, 11, 9, 9, 0, tzinfo=TZ)
     api.post("/dispatch")
-    late = svc.sender.sent[n0:]
+    late = sent_since(svc.sender.sent, n0)
     assert late == [], [(m["to"], m["body"][:60]) for m in late]
 
 
@@ -187,12 +188,12 @@ def test_reverse_opt_out_ack_still_sent_on_both_channels(api, svc):
     """הכיוון ההפוך: העצירה לא חוסמת את אישור ההסרה עצמו (SMS), והלקוח לא מקבל שום דבר אחר."""
     _approved(api, svc)
     api.post("/dispatch")
-    n0 = len(svc.sender.sent)
+    n0 = sent_mark(svc.sender.sent)
     api.post("/conversation/inbound", json={"channel": "sms", "sender": "050-1234567", "text": "הסר"})
     drafts = [d for d in api.get("/conversation/drafts").json() if d["intent"] == "opt_out"]
     for d in drafts:
         api.post(f"/conversation/drafts/{d['id']}/approve", json={})
-    out = svc.sender.sent[n0:]
+    out = sent_since(svc.sender.sent, n0)
     assert out and all("תזכורות" in m["body"] for m in out), [m["body"][:60] for m in out]
     assert not any("לתשלום" in m["body"] or "קישור" in m["body"] for m in out)
 

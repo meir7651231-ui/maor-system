@@ -12,6 +12,7 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
+from app.channels import sent_mark
 from app.main import create_app
 from app.policy import TZ
 from tests.conftest import AUTH, OWNER_TOKEN
@@ -46,10 +47,10 @@ def _notes(api):
 def test_amount_changed_between_approval_and_send_tells_owner(api, svc, clock, fake_gi):
     did = _approved_reply_at_night(api, svc, clock)
     fake_gi.docs[0]["amount"] = "700.00"                              # שילם חלק בלילה
-    n0 = len(svc.sender.sent)
+    n0 = sent_mark(svc.sender.sent)
     clock.now = datetime(2026, 11, 9, 9, 0, tzinfo=TZ)
     api.post("/dispatch")
-    assert len(svc.sender.sent) == n0                                 # הסכום הישן לא יצא (נכון)
+    assert sent_mark(svc.sender.sent) == n0                                 # הסכום הישן לא יצא (נכון)
     assert svc.db.one("SELECT decided_by FROM drafts WHERE id=?", (did,))["decided_by"] == "system:amount_changed"
     notes = _notes(api)
     assert len(notes) == 1 and "השתנתה" in notes[0]["body"] and "דנה" in notes[0]["body"], notes

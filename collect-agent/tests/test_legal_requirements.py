@@ -16,6 +16,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app import compliance, conversation, plans, templates
+from app.channels import sent_mark, sent_since
 from app.main import create_app
 from tests.conftest import AUTH, OWNER_TOKEN
 
@@ -114,14 +115,14 @@ def test_r2_sms_within_three_segments_with_long_values(step):
 def test_r3_opt_out_blocks_all_channels_forever(api, svc, clock):
     _cycle(api)
     api.post("/inbound", json={"channel": "sms", "sender": "0501234567", "text": "הסר"})
-    before = len(svc.sender.sent)
+    before = sent_mark(svc.sender.sent)
     for _ in range(4):
         clock.now += timedelta(days=8)
         api.post("/sync")
         for i in api.post("/plan").json()["created"]:
             api.post(f"/reminders/{i}/approve")
         api.post("/dispatch")
-    new = svc.sender.sent[before:]
+    new = sent_since(svc.sender.sent, before)
     assert all(m["to"] not in ("972501234567", "c1@example.com") for m in new)
 
 
@@ -398,11 +399,11 @@ def test_r10_suppression_survives_purge_and_is_hash_only(api, svc, fake_gi, cloc
     assert rows and not any("050" in str(tuple(r)) or "97250" in str(tuple(r)) for r in rows)
     fake_gi.docs.append(gi_doc(7, client_id="cl-new", due="2026-10-20"))   # אותו טלפון
     api.post("/sync")
-    before = len(svc.sender.sent)
+    before = sent_mark(svc.sender.sent)
     for i in api.post("/plan").json()["created"]:
         api.post(f"/reminders/{i}/approve")
     api.post("/dispatch")
-    assert all(m["to"] != "972501234567" for m in svc.sender.sent[before:])
+    assert all(m["to"] != "972501234567" for m in sent_since(svc.sender.sent, before))
 
 
 # ───────────── ר-11 · סודות לא דולפים ─────────────
@@ -667,15 +668,15 @@ def test_reminder_approval_expires_after_7_days_waiting(svc, fake_gi, clock):
     svc.approve(rid)
     svc.s = dataclasses.replace(svc.s, trial_start="")
     clock.now += timedelta(days=20)
-    n = len(svc.sender.sent)
+    n = sent_mark(svc.sender.sent)
     svc.dispatch()
     r = svc.db.one("SELECT status, block_reason FROM reminders WHERE id=?", (rid,))
-    assert len(svc.sender.sent) == n
+    assert sent_mark(svc.sender.sent) == n
     assert r["status"] == "pending_approval" and r["block_reason"] == "approval_expired"
     # סבב 32: אישור מחדש עובד (זו לא חסימה קשה) ⇒ נשלחת
     svc.approve(rid)
     svc.dispatch()
-    assert len(svc.sender.sent) > n
+    assert sent_mark(svc.sender.sent) > n
     assert svc.db.one("SELECT status FROM reminders WHERE id=?", (rid,))["status"] == "sent_dry_run"
 
 
@@ -727,10 +728,10 @@ def test_crash_after_send_does_not_resend(svc, fake_gi, clock):
     with pytest.raises(RuntimeError):
         svc.dispatch()
     svc.sender.send = orig
-    n_sent = len(svc.sender.sent)
+    n_sent = sent_mark(svc.sender.sent)
     clock.now += timedelta(hours=2)
     svc.dispatch()
-    assert len(svc.sender.sent) == n_sent        # לא נשלח שוב
+    assert sent_mark(svc.sender.sent) == n_sent        # לא נשלח שוב
     r = svc.db.one("SELECT status FROM reminders WHERE id=?", (rid,))
     assert r["status"] == "send_unknown"
     assert svc.db.one("SELECT 1 FROM messages WHERE intent='send_unknown' AND needs_owner=1")
@@ -765,10 +766,10 @@ def test_draft_crash_after_send_does_not_resend(svc, fake_gi, clock, monkeypatch
     with pytest.raises(RuntimeError):
         svc.inbox.approve_draft(r["draft_id"])
     monkeypatch.setattr(svc, "_log_out", orig)
-    n = len(svc.sender.sent)
+    n = sent_mark(svc.sender.sent)
     clock.now += timedelta(hours=2)
     svc.dispatch()                               # flush של ה-cron
-    assert len(svc.sender.sent) == n
+    assert sent_mark(svc.sender.sent) == n
     d = svc.db.one("SELECT status FROM drafts WHERE id=?", (r["draft_id"],))
     assert d["status"] == "send_unknown"
     assert svc.db.one("SELECT 1 FROM messages WHERE intent='send_unknown' AND needs_owner=1")
@@ -799,7 +800,7 @@ def test_concurrent_approve_plan_sends_once(svc, fake_gi):
             pass
         return orig(cid)
     svc.refresh_customer = slow
-    n0 = len(svc.sender.sent)
+    n0 = sent_mark(svc.sender.sent)
     errs = []
 
     def go():
@@ -812,7 +813,7 @@ def test_concurrent_approve_plan_sends_once(svc, fake_gi):
         t.start()
     for t in ts:
         t.join()
-    assert len(svc.sender.sent) - n0 == 1, svc.sender.sent[n0:]
+    assert sent_mark(svc.sender.sent) - n0 == 1, sent_since(svc.sender.sent, n0)
     assert len(errs) == 1
 
 

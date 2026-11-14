@@ -87,3 +87,52 @@ def test_dashboard_and_outbox_counts_survive_cap(tmp_path):
         assert len(api.get("/outbox").json()["messages"]) == 5
     finally:
         svc.db.conn.close()
+
+
+# ── הפעלה 183: «מה נשלח מאז» לפי נקודת ייחוס לכל חיי התהליך, לא אינדקס מוחלט ──
+# `log[n:]` עם n = len(log) מחזיר ריק (או רשומות לא נכונות) אחרי שהיומן נקצץ בתקרה.
+
+def test_sent_since_is_correct_across_cap():
+    from app.channels import sent_mark, sent_since
+    log = SentLog(maxlen=4)
+    for i in range(3):
+        log.append(_rec(i))
+    m = sent_mark(log)
+    assert m == 3
+    for i in range(3, 6):
+        log.append(_rec(i))
+    assert len(log) == 4 and log.total == 6
+    assert log[m:] == [_rec(5)]          # הבאג שננעל: אינדקס מוחלט מפספס את 3 ו-4
+    assert sent_since(log, m) == [_rec(3), _rec(4), _rec(5)]
+    assert sent_since(log, sent_mark(log)) == []
+    # נקודת ייחוס שכבר נדחקה מהיומן ⇒ כל מה שנשאר, לא רשומות ישנות ולא חיתוך שלילי
+    for i in range(6, 12):
+        log.append(_rec(i))
+    assert sent_since(log, m) == [_rec(8), _rec(9), _rec(10), _rec(11)]
+    assert sent_since(log, 10) == [_rec(10), _rec(11)]
+    assert sent_since(log, 7) == [_rec(8), _rec(9), _rec(10), _rec(11)]   # רק אחת נדחקה אחרי הייחוס
+
+
+def test_sent_since_plain_list_unchanged():
+    from app.channels import sent_mark, sent_since
+    lst = [_rec(i) for i in range(5)]
+    assert sent_mark(lst) == 5
+    assert sent_since(lst, 2) == lst[2:] and sent_since(lst, 5) == [] and sent_since(lst, 0) == lst
+
+
+def test_demo_log_outbox_prints_new_messages_after_cap():
+    from app.demo import _log_outbox
+
+    class _Svc:
+        class sender:
+            sent = SentLog(maxlen=3)
+    for i in range(3):
+        _Svc.sender.sent.append(_rec(i, "sms") | {"provider": "dry", "length": {"segments": 1}})
+    lines: list[str] = []
+    n = _log_outbox(_Svc, 0, lines.append)
+    assert n == 3 and len(lines) == 3
+    for i in range(3, 5):
+        _Svc.sender.sent.append(_rec(i, "sms") | {"provider": "dry", "length": {"segments": 1}})
+    lines.clear()
+    assert _log_outbox(_Svc, n, lines.append) == 5
+    assert [ln.splitlines()[1].strip() for ln in lines] == ["3", "4"]

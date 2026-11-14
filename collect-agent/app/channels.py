@@ -89,6 +89,20 @@ class SentLog(list):
             del self[: len(self) - self.maxlen]
 
 
+def sent_mark(log) -> int:
+    """נקודת ייחוס ביומן ה-dry-run: מספר הרשומות שנרשמו אי-פעם (לא `len`, שנעצר בתקרה).
+    לשימוש עם `sent_since` — כך שקריאת «מה נשלח מאז» נשארת נכונה גם אחרי שהיומן נקצץ.
+    רשימה רגילה (sender מותאם) ⇒ `len`, כמו קודם."""
+    return getattr(log, "total", len(log))
+
+
+def sent_since(log, mark: int) -> list:
+    """הרשומות שנרשמו אחרי `mark` (שהתקבל מ-`sent_mark`). אחרי תקרה מחזיר רק את מה שעדיין
+    ביומן — לעולם לא רשומות ישנות שקדמו ל-mark (כמו ש-`log[mark:]` היה עושה אחרי קיצוץ)."""
+    new = max(0, sent_mark(log) - mark)
+    return list(log[max(0, len(log) - new):]) if new else []
+
+
 @dataclass
 class DryRunSender:
     """"שולחת" = בונה דרך ה-adapter של integrations את הבקשה המדויקת שהייתה יוצאת, ורושמת.

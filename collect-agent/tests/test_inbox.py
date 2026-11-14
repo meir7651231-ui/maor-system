@@ -3,6 +3,7 @@ from datetime import timedelta
 
 import pytest
 
+from app.channels import sent_mark
 from app.conversation import OwnerPolicy
 from app.inbox import ConversationInbox
 
@@ -26,7 +27,7 @@ def test_nothing_is_sent_without_owner_approval(inbox, svc):
     q = inbox.drafts()
     assert len(q) == 1 and q[0]["body"].startswith("סטודיו מאיר:")
     inbox.approve_draft(res["draft_id"])
-    assert len(svc.sender.sent) == 1
+    assert sent_mark(svc.sender.sent) == 1
     out = svc.sender.sent[0]
     assert out["channel"] == "sms" and out["to"] == "972501234567"
     assert "https://www.greeninvoice.co.il/pay/studio?invoice=1001" in out["body"]
@@ -61,7 +62,7 @@ def test_opt_out_is_immediate_and_later_drafts_blocked(inbox, svc):
     # critic סבב 58: נעצרת כבר בהסרה, וההסבר אומר זאת במפורש (היה «הוחלפה»)
     with pytest.raises(ValueError, match="ביקש הסרה"):
         inbox.approve_draft(first)
-    assert len(svc.sender.sent) == 1
+    assert sent_mark(svc.sender.sent) == 1
 
 
 def test_opted_out_customer_promise_gets_no_reply(inbox, svc):
@@ -112,7 +113,7 @@ def test_shabbat_approval_waits_for_window(inbox, svc, clock):
     clock.now += timedelta(days=6)          # שבת 14.11 10:00
     assert inbox.approve_draft(d)["status"] == "approved" and svc.sender.sent == []
     clock.now += timedelta(days=1)          # ראשון
-    assert inbox.flush() == [d] and len(svc.sender.sent) == 1
+    assert inbox.flush() == [d] and sent_mark(svc.sender.sent) == 1
 
 
 def test_owner_edit_is_filtered(inbox, svc):
@@ -150,7 +151,7 @@ def test_safe_auto_sends_information_only(svc):
     inbox = ConversationInbox(svc, OwnerPolicy(approval_mode="safe_auto"))
     assert inbox.handle("sms", DANA, "איך אפשר לשלם?")["auto_sent"] is True
     assert inbox.handle("sms", DANA, "אין לי כסף")["auto_sent"] is False
-    assert len(svc.sender.sent) == 1
+    assert sent_mark(svc.sender.sent) == 1
 
 
 def test_audit_trail(inbox, svc):
@@ -226,11 +227,11 @@ def test_plan_approval_via_plans_supersedes_parallel_draft(inbox, svc):
     draft_id, plan_id = res["draft_id"], res["plan_id"]
     assert inbox.drafts("pending_approval")
     svc.approve_plan(plan_id)
-    assert len(svc.sender.sent) == 1
+    assert sent_mark(svc.sender.sent) == 1
     assert inbox.drafts("pending_approval") == []
     with pytest.raises(ValueError, match="הטיוטה הוחלפה"):
         inbox.approve_draft(draft_id)
-    assert len(svc.sender.sent) == 1   # לא נשלח שוב
+    assert sent_mark(svc.sender.sent) == 1   # לא נשלח שוב
 
 
 def test_queued_approved_reply_goes_out_with_the_regular_dispatch_cron(svc, clock):
@@ -246,9 +247,9 @@ def test_queued_approved_reply_goes_out_with_the_regular_dispatch_cron(svc, cloc
     svc.dispatch()
     res = svc.inbound("sms", "0501234567", "אפשר לפרוס לשלושה תשלומים?")
     clock.now = _dt(2026, 11, 14, 11, 0, tzinfo=_TZ)              # שבת: בעל העסק מאשר
-    n = len(svc.sender.sent)
+    n = sent_mark(svc.sender.sent)
     out = svc.approve_plan(res["plan_id"])
-    assert out["queued"] is True and len(svc.sender.sent) == n
+    assert out["queued"] is True and sent_mark(svc.sender.sent) == n
     clock.now = _dt(2026, 11, 15, 8, 15, tzinfo=_TZ)              # ראשון: ה-cron הרגיל
     svc.dispatch()
-    assert len(svc.sender.sent) == n + 1 and "פריסה" in svc.sender.sent[-1]["body"]
+    assert sent_mark(svc.sender.sent) == n + 1 and "פריסה" in svc.sender.sent[-1]["body"]

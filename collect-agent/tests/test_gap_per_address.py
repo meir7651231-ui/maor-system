@@ -8,6 +8,7 @@ from datetime import timedelta
 
 from fastapi.testclient import TestClient
 
+from app.channels import sent_mark, sent_since
 from app.main import create_app
 from tests.conftest import AUTH, OWNER_TOKEN, gi_doc
 
@@ -23,9 +24,9 @@ def test_two_customers_on_one_phone_are_spaced(svc, fake_gi, clock):
     for _ in range(40):                               # 40 סבבים × 12 שעות = 20 יום
         for i in api.post("/plan").json()["created"]:
             api.post(f"/reminders/{i}/approve")
-        n0 = len(svc.sender.sent)
+        n0 = sent_mark(svc.sender.sent)
         api.post("/dispatch")
-        times += [clock.now for m in svc.sender.sent[n0:] if m["to"] == PHONE]
+        times += [clock.now for m in sent_since(svc.sender.sent, n0) if m["to"] == PHONE]
         clock.now += timedelta(hours=12)
     assert len(times) >= 2, times
     gaps = [b - a for a, b in zip(times, times[1:], strict=False)]

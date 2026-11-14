@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
+from app.channels import sent_mark, sent_since
 from app.config import SafetyError
 from app.main import create_app
 from app.policy import TZ
@@ -71,9 +72,9 @@ def test_every_reminder_needs_individual_approval(api, svc, clock):
     new = api.post("/plan").json()["created"]
     r = next(x for x in api.get("/reminders").json() if x["id"] in new and x["step"] == 1)
     assert r["status"] == "pending_approval" and r["template_key"] == "plan_offer"
-    before = len(svc.sender.sent)
+    before = sent_mark(svc.sender.sent)
     api.post("/dispatch")
-    assert len(svc.sender.sent) == before
+    assert sent_mark(svc.sender.sent) == before
 
 
 def test_72h_gap_and_shabbat(api, svc, clock):
@@ -614,13 +615,13 @@ def test_plan_approval_on_shabbat_waits_for_window(api, svc, clock):
     api.post("/dispatch")
     api.post("/inbound", json={"sender": "0501234567", "text": "אפשר פריסה ל-3 תשלומים?"})
     pid = api.get("/plans").json()[-1]["id"]
-    before = len(svc.sender.sent)
+    before = sent_mark(svc.sender.sent)
     clock.now = datetime(2026, 11, 14, 11, tzinfo=TZ)          # שבת
     r = api.post(f"/plans/{pid}/approve").json()
-    assert r["queued"] is True and len(svc.sender.sent) == before
+    assert r["queued"] is True and sent_mark(svc.sender.sent) == before
     clock.now = datetime(2026, 11, 15, 8, 30, tzinfo=TZ)       # ראשון
     svc.inbox.flush()
-    sent = svc.sender.sent[before:]
+    sent = sent_since(svc.sender.sent, before)
     assert len(sent) == 1 and "להסרה:" in sent[0]["body"]       # ממצא 2.3.5: הסרה גם בתשובה
 
 
@@ -630,9 +631,9 @@ def test_plan_approval_to_opted_out_customer_not_sent(api, svc):
     api.post("/inbound", json={"sender": "0501234567", "text": "אפשר פריסה?"})
     pid = api.get("/plans").json()[-1]["id"]
     svc._opt_out(1, "test")
-    before = len(svc.sender.sent)
+    before = sent_mark(svc.sender.sent)
     api.post(f"/plans/{pid}/approve")
-    assert len(svc.sender.sent) == before
+    assert sent_mark(svc.sender.sent) == before
 
 
 def test_shared_phone_suppressed_across_customers(api, svc, fake_gi):
@@ -683,14 +684,14 @@ def test_plan_offer_never_sent_twice(api, svc):
     pid = api.get("/plans").json()[-1]["id"]
     drafts = svc.db.q("SELECT id FROM drafts WHERE plan_id=? AND intent='plan_request'", (pid,))
     assert drafts, "המבחן חייב לכלול טיוטה מקבילה"
-    before = len(svc.sender.sent)
+    before = sent_mark(svc.sender.sent)
     api.post(f"/plans/{pid}/approve")
     for d in drafts:                       # בעל העסק מנסה לאשר גם את הטיוטה המקבילה
         api.post(f"/conversation/drafts/{d['id']}/approve", json={})
-    offers = [m for m in svc.sender.sent[before:] if m["to"] == "972501234567"]
+    offers = [m for m in sent_since(svc.sender.sent, before) if m["to"] == "972501234567"]
     assert len(offers) == 1
     api.post(f"/plans/{pid}/approve")      # אישור כפול של ההסדר עצמו
-    assert len([m for m in svc.sender.sent[before:] if m["to"] == "972501234567"]) == 1
+    assert len([m for m in sent_since(svc.sender.sent, before) if m["to"] == "972501234567"]) == 1
 
 
 def test_trial_ending_notice_to_owner_once(gi_client, clock):

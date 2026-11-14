@@ -13,6 +13,7 @@ import json
 import pytest
 from fastapi.testclient import TestClient
 
+from app.channels import sent_mark
 from app.conversation import Intent
 from app.main import create_app
 from tests.conftest import AUTH, OWNER_TOKEN
@@ -171,7 +172,7 @@ def test_opted_out_customer_explicit_request_still_drafted(svc):
     r = svc.inbound("sms", DANA, "איך אפשר לשלם?")   # בקשה מפורשת ⇒ מותר (באישור)
     assert _draft(svc, r["draft_id"])["status"] == "pending_approval"
     svc.inbox.approve_draft(r["draft_id"])
-    assert len(svc.sender.sent) == 1
+    assert sent_mark(svc.sender.sent) == 1
 
 
 def test_conversation_routes_use_the_service_inbox(svc):
