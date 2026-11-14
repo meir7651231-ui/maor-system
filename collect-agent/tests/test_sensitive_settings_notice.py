@@ -297,3 +297,17 @@ def test_plain_list_outbox_excludes_owner_records():
     from app.service import _sent_count
     out = [{"channel": "email"}, {"channel": "email", "audience": "owner"}, {"channel": "sms"}]
     assert _sent_count(out, "email") == 1 and _sent_count(out, "sms") == 1
+
+
+def test_demo_check_locks_sent_email_unchanged_by_owner_mail():
+    """הפעלה 204 («הבא» 2 מ-203): `demo.sh --check` משווה את «מיילים שנשלחו» בדשבורד לפני ואחרי שינוי
+    ההגדרות (והחזרתן) — 2 מיילים לבעלים ב-/outbox, אפס שינוי במונה. מוטציה (_sent_count סופר גם owner) ⇒ demo נופל."""
+    from pathlib import Path
+    demo = (Path(__file__).resolve().parent.parent / "demo.sh").read_text(encoding="utf-8")
+    i_before = demo.index('se0 = json.loads(get("/dashboard"))["totals"]["sent_email"]')
+    i_put = demo.index('put("/api/settings", {"payment_link": "https://pay.example/gabi-other"')
+    i_revert = demo.index('put("/api/settings", {"payment_link": "https://pay.example/gabi-demo"')
+    i_after = demo.index('se1 = json.loads(get("/dashboard"))["totals"]["sent_email"]')
+    assert i_before < i_put < i_revert < i_after
+    assert "assert se1 == se0" in demo
+    assert '["messages"]) - n0 == 2' in demo

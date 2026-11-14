@@ -194,6 +194,7 @@ def put(path, body):
                                 headers={"content-type": "application/json", **AUTH})
     return json.loads(urllib.request.urlopen(rq, timeout=5).read())
 n0 = len(json.loads(get("/outbox"))["messages"])
+se0 = json.loads(get("/dashboard"))["totals"]["sent_email"]  # הפעלה 204: מייל לבעלים לא נספר
 put("/api/settings", {"payment_link": "https://pay.example/gabi-other", "email_reply_to": "new-owner@example.com"})
 new = json.loads(get("/outbox"))["messages"][n0:]
 alert = [m for m in new if m["channel"] == "email" and "שינוי בהגדרות רגישות" in (m.get("subject") or "")]
@@ -203,7 +204,10 @@ assert not any(m.get("to") == "new-owner@example.com" for m in new), "המייל
 assert any(m["intent"] == "settings_changed" for m in json.loads(get("/owner/inbox"))), "חסרה התראה בתיבה"
 assert any(a["action"] == "settings_changed_email_sent" for a in json.loads(get("/audit")))
 put("/api/settings", {"payment_link": "https://pay.example/gabi-demo", "email_reply_to": "owner@example.com"})
-print("✅ שינוי הגדרות רגישות: מייל לבעלים ב-/outbox לכתובת הקודמת (owner@), לא לחדשה + התראה בתיבה")
+se1 = json.loads(get("/dashboard"))["totals"]["sent_email"]
+assert se1 == se0, f"המייל לבעלים נספר כ«מייל שנשלח» בדשבורד: {se0} ⇒ {se1}"
+assert len(json.loads(get("/outbox"))["messages"]) - n0 == 2, "ב-/outbox צריכים להיות 2 מיילים לבעלים (שינוי+החזרה)"
+print("✅ שינוי הגדרות רגישות: מייל לבעלים ב-/outbox לכתובת הקודמת (owner@), לא לחדשה + התראה בתיבה; «מיילים שנשלחו» בדשבורד ללא שינוי")
 import http.client
 hc = http.client.HTTPConnection("127.0.0.1", int(sys.argv[1]), timeout=5); hc.request("GET", "/landing")
 loc = hc.getresponse().getheader("location"); assert loc in ("/app/", "/ui"), f"/landing לא מפנה: {loc}"
