@@ -15,7 +15,8 @@ cd collect-agent
 פיתוח:
 
 ```bash
-python3 -m pip install -e '.[dev]'        # או: source .venv/bin/activate אחרי ./demo.sh
+python3 -m pip install --require-hashes -r requirements-dev.lock   # נעול (sha256), כמו ה-CI
+python3 -m pip install --no-deps -e .        # או: source .venv/bin/activate אחרי ./demo.sh
 python3 -m pytest -q                      # ~1,970 בדיקות, בלי רשת
 python3 -I scripts/demo_dry_run.py        # התרחיש המלא בטרמינל, בלי שרת
 OWNER_API_TOKEN=<32+ תווים> DEMO=1 uvicorn app.main:_lazy_app --factory   # שרת עם נתוני דמו; בלי טוקן לא עולה

@@ -224,6 +224,9 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         resp.headers.setdefault("X-Content-Type-Options", "nosniff")
         resp.headers.setdefault("X-Frame-Options", "DENY")
         resp.headers.setdefault("Referrer-Policy", "no-referrer")
+        # critic סבב 70: עמוד החייב /p/ ו-/api/pay/ (סכום + מספר חשבונית) נשלחו בלי noindex; רק /u/ סומן. גבי אינו
+        # אתר תוכן ⇒ ברירת מחדל לכל תשובה (קישור שהועבר/פורסם לא יאונדקס)
+        resp.headers.setdefault("X-Robots-Tag", "noindex, nofollow")
         # הפעלה 172 (פתוח מביקורת 170): תשובות ה-API ועמודי /p/ מכילים שמות, טלפונים וסכומי חוב.
         # בלי Cache-Control דפדפן/פרוקסי רשאי לשמור אותן (מטמון היוריסטי, כפתור «אחורה» אחרי
         # יציאה). ברירת מחדל no-store לכל דבר; חריג יחיד: נכסי /app/ הסטטיים (JS/CSS בלי נתונים).

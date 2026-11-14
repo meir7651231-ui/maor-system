@@ -20,10 +20,13 @@ DEPS='import fastapi, httpx, uvicorn, cryptography, pydantic'
 if ! python3 -c "$DEPS" 2>/dev/null; then
   [[ -x .venv/bin/python3 ]] || { echo "▶ יוצר סביבה מקומית .venv…"; python3 -m venv .venv; }
   export PATH="$PWD/.venv/bin:$PATH"
-  echo "▶ מתקין תלויות ב-.venv…"; python3 -m pip install -q --disable-pip-version-check -e '.[dev]'
+  # critic סבב 70: מהנעילה עם sha256 (כמו ה-CI), לא '.[dev]' פתוח — ג'וב demo-clean מריץ את הסקריפט הזה ב-CI
+  echo "▶ מתקין תלויות ב-.venv (נעולות, sha256)…"
+  python3 -m pip install -q --disable-pip-version-check --require-hashes -r requirements-dev.lock
+  python3 -m pip install -q --disable-pip-version-check --no-deps -e .
 fi
 python3 -c "$DEPS" 2>/dev/null || {
-  echo "❌ חסרות תלויות ל-$(command -v python3): הריצו  python3 -m pip install -e '.[dev]'" >&2; exit 1; }
+  echo "❌ חסרות תלויות ל-$(command -v python3): הריצו  python3 -m pip install --require-hashes -r requirements-dev.lock && python3 -m pip install --no-deps -e ." >&2; exit 1; }
 # הממשק המעוצב (web/) — נבנה פעם אחת אם יש Node, ומוגש מ-/app/ (חי מול ה-API, dry-run).
 if [[ ! -f web/dist/index.html ]] && command -v npm >/dev/null 2>&1 && [[ "${SKIP_WEB:-}" != "1" ]]; then
   echo "▶ בונה את הממשק (web/)…"; (cd web && npm ci --no-audit --no-fund --silent && npm run build --silent) >/dev/null
