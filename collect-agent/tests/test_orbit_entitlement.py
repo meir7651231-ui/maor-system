@@ -301,7 +301,9 @@ def test_unlink_drops_entitlement(svc, api):
     assert svc.trial()["active"] is False
     assert api.post("/orbit/link/unlink").json() == {"unlinked": True}
     assert svc.db.one("SELECT COUNT(*) c FROM orbit_entitlements")["c"] == 0
-    assert svc.trial()["active"] is True and "source" not in svc.trial()
+    assert "source" not in svc.trial()   # הזכאות לא נגררת אחרי ניתוק
+    # critic סבב 68: היה גם `active is True` — ניתוק = חינם לתמיד. עכשיו עסק שקושר אי-פעם מקבל ניסיון מתאריך
+    # הקישור הראשון (tests/test_orbit_unlink_not_free.py). הכרעה הפיכה — critic.md 68.1
 
 
 # ---------- API ----------

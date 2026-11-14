@@ -50,6 +50,7 @@ from .security import clean_client_name
 # ימים אחרי מועד-התשלום לכל שלב
 STEP_OFFSETS_DAYS = (1, 7, 14)   # 3 תזכורות לכל היותר (הכרעת מאיר) ⇒ עצירה + התראה לבעל העסק
 ACTIVE = ("pending_approval", "approved")
+ORBIT_FIRST_LINK = "orbit_first_linked_at"   # critic סבב 68: סימון «היה מקושר לאורביט» (לא ניתן לעריכה ב-API)
 AWAITING_OWNER = "awaiting_owner"   # critic סבב 64: הודעת הלקוח ממתינה לבעל העסק ⇒ אין תזכורת עד שיטפל
 AMOUNT_CHECK = "amount_check"   # הפעלה 123: סכום חריג ⇒ אישור מפורש (לא חסימה קשה)
 HARD_BLOCKS = {"no_contact", "no_payment_link", "compliance", "no_reply_to"}
@@ -778,6 +779,19 @@ class CollectService:
                     trial_start = date.fromisoformat(str(link["created_at"])[:10]).isoformat()
                 except ValueError:   # תאריך פגום לא מפיל את trial(); שמרני ⇒ הניסיון מתחיל היום
                     trial_start = self.clock().date().isoformat()
+                # critic סבב 68: זוכרים שהעסק היה מקושר (גם לפריסות שקושרו לפני התיקון)
+                self.db.x("INSERT OR IGNORE INTO business_settings(key,value,updated_at) VALUES(?,?,?)",
+                          (ORBIT_FIRST_LINK, json.dumps(trial_start), _iso(self.clock())))
+            else:
+                # critic סבב 68: ניתוק מאורביט (`/orbit/link/unlink`, בעל העסק) מחק את הזכאות ⇒ «אין TRIAL_START
+                # ⇒ active לתמיד» ⇒ עסק שהמנוי שלו בוטל או שהניסיון נגמר המשיך בחינם בלי הגבלה. עסק **שאי-פעם**
+                # קושר ⇒ ניסיון מתאריך הקישור הראשון, כמו 21.1. עסק שמעולם לא קושר ⇒ כמו היום (PRICING.md).
+                first = self.db.one("SELECT value FROM business_settings WHERE key=?", (ORBIT_FIRST_LINK,))
+                if first:
+                    try:
+                        trial_start = date.fromisoformat(str(json.loads(first["value"]))[:10]).isoformat()
+                    except (ValueError, TypeError):   # סימון פגום ⇒ שמרני: הניסיון כבר נגמר
+                        trial_start = (self.clock().date() - timedelta(days=self.s.trial_days)).isoformat()
         if not trial_start:
             return {**info, "on_trial": False, "active": True, "days_left": None,
                     "ending_soon": False}

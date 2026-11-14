@@ -173,6 +173,10 @@ class OrbitConnect:
         else:
             self.db.x("INSERT INTO orbit_links(business_id, org, created_at, rotated_at) "
                       "VALUES(?,?,?,?)", (BUSINESS_ID, org, at, at))
+            # critic סבב 68: סימון קבוע «היה מקושר» — ניתוק לא מחזיר ל«פעיל לתמיד» (service.trial)
+            if re.match(r"\d{4}-\d{2}-\d{2}", str(at)):   # בלי תאריך תקין ⇒ service.trial ירשום לפי הקישור
+                self.db.x("INSERT OR IGNORE INTO business_settings(key,value,updated_at) VALUES(?,?,?)",
+                          ("orbit_first_linked_at", json.dumps(str(at)[:10]), str(at)))
         return secret
 
     def unlink(self) -> bool:
