@@ -290,6 +290,7 @@ class CollectService:
             raise ValueError("; ".join(f"{'.'.join(map(str, x['loc']))}: {x['msg']}"
                                        for x in e.errors())) from None
         new, keys = settings_api.apply(self.s, data)
+        old_s = self.s
         settings_api.save_overrides(self.db, new, keys, _iso(self.clock()))
         keys += settings_api.save_profile(self.db, data, _iso(self.clock()))
         switched = new.source_system != self.s.source_system
@@ -303,7 +304,26 @@ class CollectService:
             self.sender = build_dry_sender(new) if not self.sender.sent else \
                 _rebuild_keep_log(self.sender, new)
         self.audit(actor, "settings_updated", {"fields": keys})
+        self._notify_sensitive_settings(old_s, new, actor)
         return self.settings_view()
+
+    _SENSITIVE_SETTINGS = {"payment_link": "קישור התשלום", "payment_provider": "ספק התשלום",
+                           "email_reply_to": "כתובת התשובה (Reply-To)", "sms_sender_id": "שם השולח ב-SMS",
+                           "business_name": "שם העסק"}
+
+    def _notify_sensitive_settings(self, old_s: Settings, new: Settings, actor: str) -> None:
+        """critic סבב 72: אין תפקידים — כל עובד מחובר יכול לשנות את קישור התשלום (לעמוד שלו אצל אותו ספק) או את
+        Reply-To. ה-audit רשם רק שמות שדות ובעל העסק לא ידע. עכשיו: ישן→חדש ומי ב-audit, והודעה אחת לבעל העסק."""
+        changed = [(k, getattr(old_s, k), getattr(new, k)) for k in self._SENSITIVE_SETTINGS
+                   if getattr(old_s, k) != getattr(new, k)]
+        for k, a, b in changed:
+            self.audit(actor, "settings_sensitive_changed", {"field": k, "from": a, "to": b})
+        if changed:
+            lines = "; ".join(f"{self._SENSITIVE_SETTINGS[k]}: «{a or '—'}» ⇒ «{b or '—'}»" for k, a, b in changed)
+            self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,created_at) "
+                      "VALUES(NULL,'system','owner',?,'settings_changed',1,?)",
+                      (f"הגדרות רגישות שונו על ידי {actor}: {lines}. אם לא אתם שיניתם — בדקו מיד.",
+                       _iso(self.clock())))
 
     # ---------- audit ----------
     def audit(self, actor: str, action: str, detail: Any = None) -> None:
