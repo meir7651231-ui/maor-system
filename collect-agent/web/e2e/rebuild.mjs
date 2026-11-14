@@ -11,7 +11,7 @@
 import { createRequire } from 'node:module';
 import { spawn } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
-import { assertPortFree, srvStdio, srvLogLevel } from './lib.mjs';
+import { assertPortFree, srvStdio, srvLogLevel, waitHealthy } from './lib.mjs';
 const { chromium } = createRequire(import.meta.url)('playwright');
 const out = process.argv[2];
 const PORT = 8145, GI_PORT = 8146, base = `http://127.0.0.1:${PORT}`, gi = `http://127.0.0.1:${GI_PORT}/api/v1`;
@@ -23,14 +23,13 @@ await assertPortFree(PORT); await assertPortFree(GI_PORT);
 const mock = spawn('python3', ['-m', 'app.gi_mock', '--port', String(GI_PORT), '--seed', 'demo',
   '--webhook', `${base}/webhooks/greeninvoice?k=${WH_KEY}`], { cwd: ROOT, stdio: srvStdio('mock-rebuild') });
 const rawFetch = globalThis.fetch;
-const up = async url => { for (let i = 0; i < 80; i++) { try { await rawFetch(url); return; } catch { /* עוד עולה */ } await new Promise(r => setTimeout(r, 250)); } throw new Error('לא עלה: ' + url); };
 let srv = null;
 process.on('exit', () => { mock.kill(); srv?.kill(); });   // גם ביציאה על חריגה — לא משאירים שרתים על הפורטים
-await up(gi + '/users/me');
+await waitHealthy(gi, mock, { name: 'ה-mock של חשבונית ירוקה', path: '/users/me', anyStatus: true });
 srv = spawn('python3', ['-m', 'uvicorn', 'app.main:_lazy_app', '--factory', '--port', String(PORT), '--log-level', srvLogLevel()],
   { cwd: ROOT, env: { ...process.env, DEMO: '1', PORT: String(PORT), OWNER_API_TOKEN: TOKEN, GI_WEBHOOK_KEY: WH_KEY,
     GREENINVOICE_ENV: 'mock', GREENINVOICE_MOCK_URL: gi }, stdio: srvStdio('server-rebuild') });
-await up(base + '/health');
+await waitHealthy(base, srv);
 const ok = (c, m) => { if (!c) throw new Error(m); };
 const H = { Authorization: `Bearer ${TOKEN}`, 'Content-Type': 'application/json' };
 const api = async p => (await rawFetch(base + p, { headers: H })).json();

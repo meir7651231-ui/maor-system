@@ -1,10 +1,33 @@
-# STATUS — גבי, תזכורות תשלום · שלב 1 · עודכן 6.11.2026 (סבב אינטגרציה, הפעלה 21 · מנהל: הפעלה 197, 14.11)
+# STATUS — גבי, תזכורות תשלום · שלב 1 · עודכן 6.11.2026 (סבב אינטגרציה, הפעלה 21 · מנהל: הפעלה 198, 14.11)
 
 ענף אינטגרציה: `collect-agent` (לא מוזג ל-main, ולא ימוזג בלי אישור מפורש של מאיר). תיקייה: `collect-agent/`.
 
 ## 📌 הכרעות מאיר — מחייבות כל תפקיד (6.11.2026)
 - **מחיר יחיד:** ₪119 לחודש **או** ₪1,190 לשנה · 14 ימי ניסיון. **אין ₪79**, אין A/B, אין מסלולים או מחירונים אחרים. מקור יחיד: `docs/PRICING.md` · בקוד: `Settings.price_ils_month=119`, `price_ils_year=1190`, `trial_days=14` · בדף הנחיתה: `PRICE` ב-`web/src/pages/Landing.tsx`. (ניסוח המע״מ «כולל מע״מ ככל שחל» — עדיין לאישור רו״ח/עו״ד, `docs/PRICING.md`.)
 - **אין הרשמה לשום חשבון sandbox** (חשבונית ירוקה, 019, InforU, Twilio, ספק מייל) **בלי אישור מפורש של מאיר.** עד אז כל הפיתוח והבדיקות מול `app/gi_mock.py` ו-DryRunSender בלבד; פריטי «לאמת» נשארים פתוחים.
+
+## 🧭 הפעלת מנהל · 14.11.2026 (הפעלה 198)
+- **מיזוג:** אין ענפי `claude/*` חדשים ב-`collect-agent/` מלבד `stoic-mccarthy-23f03p` (נדחה ומכוסה, ראו 107). ה-workflow `collect-agent.yml` קיים ומריץ רק על `collect-agent/`.
+- **CI:** ריצה 534 (`e448600b`, 197) **אדומה** — 4 ג׳ובים (test 3.11/3.13, sqlcipher 3.11/3.13), בדיקה אחת: `test_demo_without_curl_fails_with_clear_message` ⇒ `FileExistsError` על `/bin/grub-ntldr-img`.
+  - **שורש:** הבדיקה בנתה PATH-ראי של `/usr/bin` + `/bin` ודילגה על כפילויות ב-`.exists()`. ב-runner של ubuntu ‏`/bin` הוא קישור ל-`/usr/bin`, ויש בו קישור שבור — `exists()` מחזיר False עליו ⇒ ניסיון ליצור אותו פעמיים. מקומית אין קישור שבור ⇒ לא נתפס. באג בבדיקה בלבד; `demo.sh` תקין.
+  - **תיקון:** `_mirror_bins_without` עם `os.path.lexists` + בדיקה `test_mirror_bins_survives_dangling_links_and_duplicate_dirs` (תיקייה כפולה דרך קישור + קישור שבור + תיקייה חסרה). **מוטציה:** חזרה ל-`exists()` ⇒ נופלת.
+- **המשימה:** «הבא» (2) מ-197 — `rebuild.mjs` המתין ל-mock ולשרת בלולאת `up()` שזרקה רק אחרי 20 שניות ולא זיהתה תהליך שמת.
+  - `waitHealthy` קיבל `path` + `anyStatus` (ה-mock עונה על `/users/me` גם בלי 200 — כל תשובה = עלה). ברירת מחדל ביט-זהה.
+  - `rebuild.mjs`: ה-mock וגם השרת דרך `waitHealthy` עם התהליך ⇒ קריסה בעלייה = כשל מיידי עם קוד היציאה.
+  - **ננעל:** `test_every_spawned_python_process_is_watched` (כל `spawn('python3'` בסוויטה ⇒ `waitHealthy` משלו, אין `const up = async`) · `test_wait_healthy_path_and_any_status` (שרת node שעונה 401: anyStatus עובר, strict זורק עם הנתיב). **מוטציה:** `rebuild.mjs` של 197 ⇒ נופלת.
+- **אומת:** pytest **2007 passed / 19 skipped** · ruff נקי · `demo.sh --check` ירוק (הדגמה מקצה לקצה) · `e2e/rebuild.mjs` ירוק מול mock אמיתי · `e2e/csp.mjs` 7/7.
+- **מצב לפי תפקיד:**
+  - פיתוח — בלי חסם.
+  - ביקורת — א/ב/ג מ-186 ו-💡2 מ-71 ללא שינוי.
+  - עיצוב — עדיין לאשר בעין `server-p-mobile.png` (188).
+  - QA — כל התהליכים שה-e2e מרים מנוטרים; לקח: בדיקות שבונות PATH-ראי צריכות `lexists` (runner ≠ מקומי).
+  - שיווק/משפטי/מכירות — ממתינים להכרעות מאיר.
+- **הבא (פיתוח):**
+  - (1) לבדוק שריצת ה-CI של הקומיט הזה ירוקה (כל 8 הג׳ובים).
+  - (2) לסרוק בדיקות אחרות שבונות PATH מלאכותי (`test_demo_sh_portable.py`, ‏`test_smoke_server_portable.py`) לאותה הנחה «מקומי = runner».
+  - (3) לשקול להעביר את סקריפטי המיתוג ל-`createRequire(import.meta.url)` (נוחות).
+  - (4) ‏`/outbox` limit — אחרי הכרעות הביקורת (א/ג מ-186).
+- **חסמים (מאיר), ללא שינוי:** sandbox לספקים, ניסוח מע״מ, הספים של 120/121/123, ובנייה מחדש של תזכורת מאושרת בסנכרון.
 
 ## 🧭 הפעלת מנהל · 14.11.2026 (הפעלה 197)
 - **מיזוג:** אין ענפי `claude/*` חדשים ב-`collect-agent/` מלבד `stoic-mccarthy-23f03p` (נדחה ומכוסה, ראו 107). ה-workflow `collect-agent.yml` קיים ומריץ רק על `collect-agent/`.

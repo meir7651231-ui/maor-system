@@ -58,6 +58,33 @@ def test_every_e2e_server_suite_waits_loudly():
         assert "waitHealthy(" in s or "throw new Error('לא עלה" in s, f.name
 
 
+def test_every_spawned_python_process_is_watched():
+    # הפעלה 198: rebuild.mjs המתין ל-mock ולשרת בלולאה שזרקה רק אחרי 20 שניות ולא זיהתה תהליך שמת.
+    # כל spawn של python3 בסוויטות e2e ⇒ waitHealthy משלו (שמזהה יציאה מיידית).
+    for f in E2E.glob("*.mjs"):
+        s = f.read_text(encoding="utf-8")
+        spawned = s.count("spawn('python3'")
+        if f.name == "lib.mjs" or not spawned:
+            continue
+        assert s.count("waitHealthy(") >= spawned, (f.name, spawned)
+        assert "const up = async" not in s, f.name
+
+
+@pytest.mark.skipif(not NODE, reason="node לא מותקן")
+def test_wait_healthy_path_and_any_status():
+    # ה-mock עונה 401/404 על /users/me בלי טוקן — anyStatus מקבל כל תשובה; בלי anyStatus — ממשיך לחכות
+    r = _run_node("""
+      import http from 'node:http'; import { waitHealthy } from './lib.mjs';
+      const s = http.createServer((q, a) => { a.statusCode = q.url === '/users/me' ? 401 : 500; a.end(); });
+      await new Promise(r => s.listen(0, '127.0.0.1', r)); const b = 'http://127.0.0.1:' + s.address().port;
+      await waitHealthy(b, null, { path: '/users/me', anyStatus: true, tries: 3, ms: 10 }); console.log('ANY-OK');
+      try { await waitHealthy(b, null, { path: '/users/me', tries: 3, ms: 10 }); console.log('STRICT-PASSED'); }
+      catch (e) { console.log('STRICT-THREW ' + e.message); }
+      s.close();
+    """)
+    assert "ANY-OK" in r.stdout and "STRICT-THREW" in r.stdout and "/users/me" in r.stdout, r.stdout + r.stderr
+
+
 def _run_node(js):
     return subprocess.run([NODE, "--input-type=module", "-e", js], cwd=E2E, capture_output=True,  # noqa: S603
                           text=True, timeout=30)
@@ -97,15 +124,39 @@ def _python_with_deps():
     return sys.executable
 
 
+def _mirror_bins_without(dest: Path, dirs, exclude: str) -> None:
+    """מראה של תיקיות bin בלי פקודה אחת. lexists ולא exists: ב-ubuntu /bin ⇒ /usr/bin, ושם יש
+    קישורים שבורים (grub-ntldr-img) — exists() מחזיר False עליהם ⇒ הקישור נוצר פעמיים ⇒ FileExistsError
+    (CI ריצה 534, הפעלה 198)."""
+    dest.mkdir(exist_ok=True)
+    for d in dirs:
+        if not os.path.isdir(d):
+            continue
+        for p in Path(d).iterdir():
+            if p.name != exclude and not os.path.lexists(dest / p.name):
+                (dest / p.name).symlink_to(p)
+
+
+def test_mirror_bins_survives_dangling_links_and_duplicate_dirs(tmp_path):
+    # ראי של סביבת ה-runner: אותה תיקייה פעמיים (/bin ⇒ /usr/bin) ובה קישור שבור
+    src = tmp_path / "usrbin"
+    src.mkdir()
+    (src / "curl").write_text("")
+    (src / "ok").write_text("")
+    (src / "dangling").symlink_to(tmp_path / "nope")
+    alias = tmp_path / "bin"
+    alias.symlink_to(src)
+    dest = tmp_path / "out"
+    _mirror_bins_without(dest, (str(src), str(alias), str(tmp_path / "missing")), "curl")
+    names = sorted(x.name for x in dest.iterdir())
+    assert names == ["dangling", "ok"]
+
+
 @pytest.mark.skipif(not BASH or not _python_with_deps(), reason="צריך bash ופייתון עם התלויות")
 def test_demo_without_curl_fails_with_clear_message(tmp_path):
     # PATH מלאכותי: כל /usr/bin ו-/bin חוץ מ-curl, ו-python3 = המפרש הנוכחי (עם התלויות)
     b = tmp_path / "bin"
-    b.mkdir()
-    for d in ("/usr/bin", "/bin"):
-        for p in Path(d).iterdir():
-            if p.name != "curl" and not (b / p.name).exists():
-                (b / p.name).symlink_to(p)
+    _mirror_bins_without(b, ("/usr/bin", "/bin"), "curl")
     for n in ("python3", "python"):
         (b / n).unlink(missing_ok=True)
         (b / n).symlink_to(sys.executable)

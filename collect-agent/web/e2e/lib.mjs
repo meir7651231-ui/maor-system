@@ -61,7 +61,8 @@ export const smallTargets = () => [...document.querySelectorAll('button,a[href],
 /** הפעלה 197 (סריקת «פקודה חסרה/כשל ⇒ ממשיך בשקט», «הבא» 2 מ-195): לולאת ההמתנה ל-/health נגמרה בשקט כשהשרת
  *  לא עלה (מפרש בלי תלויות, פורט, קריסה בעלייה) ⇒ הבדיקה המשיכה ונפלה 20 שניות אחר כך בשגיאה לא קשורה
  *  (fetch failed / timeout של playwright). עכשיו: שרת שיצא ⇒ כשל מיידי עם קוד היציאה; לא עלה בזמן ⇒ כשל ברור. */
-export async function waitHealthy(base, srv, { tries = 80, ms = 250, name = 'השרת' } = {}) {
+/*  הפעלה 198: path + anyStatus — גם ל-mock של חשבונית ירוקה (rebuild.mjs, ‏/users/me: כל תשובת HTTP = עלה). */
+export async function waitHealthy(base, srv, { tries = 80, ms = 250, name = 'השרת', path = '/health', anyStatus = false } = {}) {
   let exit = null, spawnErr = null;
   if (srv) {
     if (srv.exitCode !== null || srv.signalCode !== null) exit = srv.exitCode ?? srv.signalCode;
@@ -71,8 +72,8 @@ export async function waitHealthy(base, srv, { tries = 80, ms = 250, name = 'ה�
   for (let i = 0; i < tries; i++) {
     if (spawnErr) throw new Error(`${name} לא הופעל: ${spawnErr.message} (python3 ב-PATH?)`);
     if (exit !== null) throw new Error(`${name} יצא לפני שעלה (קוד ${exit}) — חסרות תלויות? הריצו ../demo.sh --check, או E2E_LOG_DIR=… לפלט`);
-    try { if ((await globalThis.fetch(base + '/health')).ok) return; } catch { /* עוד עולה */ }
+    try { const r = await globalThis.fetch(base + path); if (anyStatus || r.ok) return; } catch { /* עוד עולה */ }
     await new Promise(r => setTimeout(r, ms));
   }
-  throw new Error(`${name} לא עלה ב-${(tries * ms) / 1000} שניות: ${base}/health`);
+  throw new Error(`${name} לא עלה ב-${(tries * ms) / 1000} שניות: ${base}${path}`);
 }
