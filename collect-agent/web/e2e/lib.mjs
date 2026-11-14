@@ -18,11 +18,31 @@ export const srvLogLevel = () => (process.env.E2E_LOG_DIR ? 'info' : 'warning');
  *  כל שגיאה אחרת בתוך היירוט (כולל ok שנכשל) נרשמת ב-routeErrors, והקורא מכשיל את הריצה בסוף. */
 export function makeInject(routeErrors) {
   return (pg, pattern, fn) => pg.route(pattern, async route => {
-    try { await fn(route); } catch (e) {
+    try { await fn(retryingRoute(route)); } catch (e) {
       if (/disposed|has been closed|Target closed|Route is already handled/i.test(String(e))) return;
       routeErrors.push('יירוט ' + pattern + ': ' + String(e));
       try { await route.continue(); } catch { /* הבקשה כבר נסגרה */ }
     }
+  });
+}
+/** הפעלה 189: route.fetch() של GET נכשל לעיתים ב«socket hang up» (live.mjs, 1 מ-6 ריצות מקומית, יירוט /dashboard):
+ *  ה-APIRequest של Playwright ממחזר חיבור keep-alive ש-uvicorn סגר באותו רגע. זה מרוץ ברשת של הבדיקה, לא תשובה
+ *  של השרת ⇒ ל-GET בלבד ניסיון חוזר אחד. POST וכו׳ לא חוזרים (ניסיון חוזר עלול לרשום פעולה פעמיים — שלב 1014
+ *  שולח אישור פעמיים במכוון). כל שגיאה אחרת עולה כרגיל. */
+export const TRANSIENT_FETCH = /socket hang up|ECONNRESET|ECONNREFUSED|EPIPE/i;
+export function retryingRoute(route) {
+  return new Proxy(route, {
+    get(t, k) {
+      if (k === 'fetch') return async opts => {
+        try { return await t.fetch(opts); } catch (e) {
+          const method = (opts?.method ?? t.request().method()).toUpperCase();
+          if (method !== 'GET' || !TRANSIENT_FETCH.test(String(e))) throw e;
+          return await t.fetch(opts);
+        }
+      };
+      const v = Reflect.get(t, k, t);
+      return typeof v === 'function' ? v.bind(t) : v;
+    },
   });
 }
 /** שרת יתום מהרצה קודמת על אותו פורט (טוקן אחר) גורם לכישלון מבלבל ⇒ עוצרים מיד עם הסבר. */

@@ -279,13 +279,18 @@ try {
     await p.getByTestId('paused-table').click();
     await p.getByTestId('filter-paused').filter({ hasText: `מושהים (${want.length})` }).waitFor();
     ok(await p.getByTestId('filter-paused').getAttribute('aria-pressed') === 'true', 'הצ׳יפ «מושהים» לא נבחר מהקישור');
-    let req174 = 0; const onReq = () => { req174++; }; p.on('request', onReq);
+    // הפעלה 189: 1 מ-4 ריצות נפל כאן («שלח 6 בקשות») — כנראה בקשות שהניווט ל-#/invoices?f=paused עצמו עוד לא סיים.
+    //   מחכים לשקט ברשת לפני הספירה, סופרים רק בקשות ל-API (כמו בחיפוש, 156; לא נכסי /app/), ובכישלון — הכתובות.
+    await p.waitForLoadState('networkidle');
+    let req174 = 0; const urls174 = [];
+    const onReq = r => { if (r.url().startsWith(base) && !r.url().includes('/app/')) { req174++; urls174.push(r.method() + ' ' + r.url().slice(base.length)); } };
+    p.on('request', onReq);
     const rowsNow = async () => (await p.locator('tbody tr td:nth-child(2) .num').allTextContents()).map(x => x.trim()).sort();
     ok(JSON.stringify(await rowsNow()) === JSON.stringify(want), `סינון מושהים: ציפיתי ${want}, קיבלתי ${await rowsNow()}`);
     await p.getByRole('button', { name: 'הכול', exact: true }).click();
     ok((await rowsNow()).length > want.length, '«הכול» לא החזיר את שאר החשבוניות');
     p.off('request', onReq);
-    ok(req174 === 0, `הסינון שלח ${req174} בקשות לשרת`);
+    ok(req174 === 0, `הסינון שלח ${req174} בקשות לשרת: ${urls174.join(', ')}`);
     await p.goto(base + '/app/#/dashboard');
     await p.getByTestId('needs-you').waitFor();
     console.log(`  ✓ סינון «מושהים (${want.length})» בטבלת החשבוניות`);
