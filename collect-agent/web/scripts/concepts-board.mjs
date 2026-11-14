@@ -1,5 +1,5 @@
 // לוח קונספטים: כל כיוון × 512/64/24 × בהיר/כהה. כותב SVG לכל וריאציה + board.html, ומצלם PNG.
-// הרצה: NODE_PATH=$(npm root -g) node scripts/concepts-board.mjs
+// הרצה (מתוך web/, אחרי npm ci): node scripts/concepts-board.mjs
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { CONCEPTS, C, svgFor } from './concepts.mjs';

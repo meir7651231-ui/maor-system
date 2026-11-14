@@ -10,5 +10,5 @@
 - `filing-combined-bw.png` — תמונת-הגשה ברזולוציה גבוהה (רשם הסימנים מקבל תמונה).
 
 **קבצים:** סמל (4 גרסאות צבע), אייקון-אפליקציה 1024 + apple-touch 180, iOS כהה, Android (חזית/רקע/מונוכרום), favicon.ico (16/32/48) + PNG, סימן-מילה בהיר/כהה, קובץ-הגשה SVG+PNG, לוח `board.png`.
-**מקור:** `web/scripts/concepts-final.mjs` → `NODE_PATH=$(npm root -g) node scripts/concepts-final-gaps.mjs && node scripts/concepts-final-board.mjs` (מתוך `collect-agent/web`).
+**מקור:** `web/scripts/concepts-final.mjs` → `node scripts/concepts-final-gaps.mjs && node scripts/concepts-final-board.mjs` (מתוך `collect-agent/web`).
 **עדיין לא הוחל על המוצר** (`web/src/brand/logo.ts`) — ממתין להחלטת הבעלים.

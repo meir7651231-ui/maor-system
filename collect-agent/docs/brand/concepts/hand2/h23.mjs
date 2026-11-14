@@ -17,7 +17,7 @@ let FITON=true;
 const V={A:{t:'א · מרחקים שווים',d:55,th:15}};
 const t=(k,bg,ink,g,px)=>`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="${px}" height="${px}"><rect width="64" height="64" rx="14" fill="${bg}"/><g class="m">${comp(V[k].d,ink,g,bg,V[k].th)}</g></svg>`;
 writeFileSync('h23.html',`<!doctype html><html dir="rtl"><meta charset="utf8"><body style="margin:0;padding:20px;background:#eef0f3;font-family:Arial"><h2 style="margin:0 0 12px">גבי — היד הקודמת, מסובבת כך שתיקרא כ-ג מהצד</h2>${Object.keys(V).map(k=>`<div style="display:flex;gap:14px;align-items:end;margin-bottom:14px;background:#fff;padding:12px;border-radius:12px"><b style="width:120px">${V[k].t}</b>${t(k,C,N,GL,160)}${t(k,N,C,G,160)}${t(k,N,C,G,48)}${t(k,N,C,G,32)}</div>`).join('')}</body>`);
-const {chromium}=createRequire(process.env.NODE_PATH+'/')('playwright');const b=await chromium.launch();const p=await b.newPage({viewport:{width:760,height:340},deviceScaleFactor:2});
+const {chromium}=createRequire(new URL('../../../../web/package.json', import.meta.url))('playwright');const b=await chromium.launch();const p=await b.newPage({viewport:{width:760,height:340},deviceScaleFactor:2});
 await p.goto('file://'+process.cwd()+'/h23.html');
 await p.evaluate(()=>{for(const g of document.querySelectorAll('g.m')){const b=g.getBBox();const k=Math.min(50/b.width,50/b.height);g.setAttribute('transform',`translate(${32-k*(b.x+b.width/2)} ${32-k*(b.y+b.height/2)}) scale(${k})`);}});
 await p.screenshot({path:'h23.png',fullPage:true});await b.close();

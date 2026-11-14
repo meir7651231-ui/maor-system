@@ -3,7 +3,7 @@ const src=readFileSync('h22.mjs','utf8');
 const palm=src.match(/const palm=`([^`]*)`/)[1], thumb=src.match(/const thumb=`([^`]*)`/)[1];
 const D=55,TH=15;
 const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="640" height="640"><g id="h" transform="rotate(${D} 32 32) translate(0 82) scale(1 -1)"><path id="p" d="${palm}"/><path id="t" d="${thumb}" transform="rotate(${TH} 39.4 31)"/></g></svg>`;
-const {chromium}=createRequire(process.env.NODE_PATH+'/')('playwright');const b=await chromium.launch();const p=await b.newPage();
+const {chromium}=createRequire(new URL('../../../../web/package.json', import.meta.url))('playwright');const b=await chromium.launch();const p=await b.newPage();
 await p.setContent(svg);
 const pts=await p.evaluate(()=>{const out=[];for(const id of ['p','t']){const el=document.getElementById(id);const m=el.getCTM();const svg=el.ownerSVGElement;const L=el.getTotalLength();
  for(let i=0;i<600;i++){const q=el.getPointAtLength(L*i/600);const pt=svg.createSVGPoint();pt.x=q.x;pt.y=q.y;const r=pt.matrixTransform(m);out.push([r.x/10,r.y/10]);}}return out;});

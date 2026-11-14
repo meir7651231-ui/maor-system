@@ -17,5 +17,5 @@ ${tile(k,C,GL,160)}${tile(k,N,G,160,C)}
 <div style="display:flex;gap:10px;align-items:end">${tile(k,C,GL,48)}${tile(k,C,GL,24)}${tile(k,C,GL,16)}</div></div>`).join('')}
 </body></html>`;
 import {writeFileSync} from 'fs'; writeFileSync('sketch.html',html);
-import {createRequire} from 'module'; const {chromium}=createRequire(process.env.NODE_PATH+'/')('playwright'); const b=await chromium.launch(); const p=await b.newPage({viewport:{width:900,height:800},deviceScaleFactor:2});
+import {createRequire} from 'module'; const {chromium}=createRequire(new URL('../../../../web/package.json', import.meta.url))('playwright'); const b=await chromium.launch(); const p=await b.newPage({viewport:{width:900,height:800},deviceScaleFactor:2});
 await p.goto('file://'+process.cwd()+'/sketch.html'); await p.screenshot({path:'sketch.png',fullPage:true}); await b.close(); console.log('ok');

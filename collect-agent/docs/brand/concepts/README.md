@@ -9,7 +9,7 @@
 - `<id>-light.svg` / `<id>-dark.svg`: קובצי 512.
 - `board.html`: לוח אינטראקטיבי.
 
-**מקור יחיד:** `web/scripts/concepts.mjs`. כדי לייצר מחדש: `NODE_PATH=$(npm root -g) node web/scripts/concepts-board.mjs`.
+**מקור יחיד:** `web/scripts/concepts.mjs`. כדי לייצר מחדש: `cd web && npm ci && node scripts/concepts-board.mjs` (playwright נטען מ-`web/node_modules`).
 **פלטה:** ירוק `#10B981` (התנועה והכסף), נייבי `#0F172A` (הפרט המוביל), קרם `#FBF8F1`. על רקע כהה הנייבי מתחלף לקרם, ולכן אין צורך באריח.
 
 | # | כיוון | הסיפור | הצורה | חוזקות | סיכונים |

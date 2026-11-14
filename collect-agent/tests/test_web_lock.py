@@ -77,3 +77,56 @@ def test_guard_catches_old_ci(tmp_path):
     p = tmp_path / "wf.yml"
     p.write_text(old, encoding="utf-8")
     assert len(_violations(p)) >= 3
+
+
+
+_DOC_REQ = re.compile(r"createRequire\(new URL\('([^']+)', import\.meta\.url\)\)\('playwright'\)")
+
+
+def _brand_violations(f: Path, at: Path | None = None) -> list[str]:
+    """סקריפט מיתוג שטוען playwright חייב לטעון מ-web/node_modules, לא מ-NODE_PATH גלובלי.
+    `at` = המיקום שממנו נפתר הנתיב היחסי (ברירת מחדל: הקובץ עצמו)."""
+    at = at or f
+    s = f.read_text(encoding="utf-8")
+    if "'playwright'" not in s:
+        return []
+    bad = []
+    if "NODE_PATH" in s:
+        bad.append(f"{at}: תלוי ב-NODE_PATH גלובלי")
+    if at.is_relative_to(WEB):
+        if "createRequire(import.meta.url)('playwright')" not in s:
+            bad.append(f"{at}: טעינה שלא מ-web/node_modules")
+    else:
+        m = _DOC_REQ.search(s)
+        if not m or (at.parent / m.group(1)).resolve() != (WEB / "package.json").resolve():
+            bad.append(f"{at}: חייב createRequire(new URL('…/web/package.json', import.meta.url))")
+    return bad
+
+
+def _brand_scripts() -> list[Path]:
+    return sorted((WEB / "scripts").glob("*.mjs")) + sorted((ROOT / "docs" / "brand").rglob("*.mjs"))
+
+
+def test_brand_scripts_resolve_playwright_from_web():
+    """הפעלה 205 (STATUS «הבא» (2)): 19 סקריפטי מיתוג ב-docs/brand טענו playwright דרך
+    createRequire(process.env.NODE_PATH+'/') ⇒ בלי NODE_PATH גלובלי נפלו. עכשיו מ-web/node_modules
+    (ה-require של CJS עדיין מכבד NODE_PATH כגיבוי, כך שאין שבירה למי שהגדיר אותו)."""
+    files = _brand_scripts()
+    assert sum("'playwright'" in f.read_text(encoding="utf-8") for f in files) >= 50
+    bad = [b for f in files for b in _brand_violations(f)]
+    assert not bad, "\n".join(bad)
+
+
+def test_brand_guard_catches_node_path(tmp_path):
+    """מוטציה: הצורה הישנה (NODE_PATH), נתיב שגוי ל-package.json, או טעינה רגילה ב-web/scripts ⇒ המגן נופל."""
+    hand2 = ROOT / "docs" / "brand" / "concepts" / "hand2" / "x.mjs"
+    cases = [
+        ("const {chromium}=createRequire(process.env.NODE_PATH+'/')('playwright');\n", hand2),
+        ("const {chromium}=createRequire(new URL('../../web/package.json', import.meta.url))('playwright');\n", hand2),
+        ("import { chromium } from 'playwright';\n", WEB / "scripts" / "x.mjs"),
+    ]
+    ok = "const {chromium}=createRequire(new URL('../../../../web/package.json', import.meta.url))('playwright');\n"
+    for i, (src, at) in enumerate(cases + [(ok, hand2)]):
+        p = tmp_path / f"m{i}.mjs"
+        p.write_text(src, encoding="utf-8")
+        assert bool(_brand_violations(p, at)) == (i < len(cases)), src

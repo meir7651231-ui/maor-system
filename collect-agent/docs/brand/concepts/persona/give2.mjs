@@ -20,5 +20,5 @@ ${V[k].word? `<div style="background:${C};padding:14px;border-radius:14px">${wor
 writeFileSync('give2.html',`<!doctype html><html dir="rtl"><meta charset="utf8"><body style="margin:0;background:#EEF0F4;font-family:Rubik,Arial;padding:24px">
 <h2 style="margin:0 0 4px">גבי — «טיפלתי בזה. הנה הכסף.» · בלי ג׳ (סקיצות)</h2><div style="color:#475569;margin-bottom:16px">הרגע של המסירה: מישהו מושיט לך את הכסף שלך — העבודה כבר נעשתה.</div>
 ${Object.keys(V).map(row).join('')}</body></html>`);
-const {chromium}=createRequire(process.env.NODE_PATH+'/')('playwright'); const b=await chromium.launch(); const p=await b.newPage({viewport:{width:900,height:800},deviceScaleFactor:2});
+const {chromium}=createRequire(new URL('../../../../web/package.json', import.meta.url))('playwright'); const b=await chromium.launch(); const p=await b.newPage({viewport:{width:900,height:800},deviceScaleFactor:2});
 await p.goto('file://'+process.cwd()+'/give2.html'); await p.screenshot({path:'give2.png',fullPage:true}); await b.close(); console.log('ok');
