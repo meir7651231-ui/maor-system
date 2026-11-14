@@ -121,27 +121,27 @@ jobs:
         run: npm test
       - name: typecheck + build
         run: npm run build
-      - name: Playwright (גרסה מקובעת, chromium בלבד)
-        run: |
-          npm i -g playwright@1.63.0
-          npx -y playwright@1.63.0 install --with-deps chromium
+      # הפעלה 196 (critic סבב 71 💡1): playwright הוא devDependency מדויק ב-package-lock (עם integrity),
+      # מותקן ב-npm ci למעלה. בלי npm i -g ובלי npx -y (מחוץ לנעילה). --no-install: הבינארי המקומי בלבד.
+      - name: Playwright (מהנעילה, chromium בלבד)
+        run: npx --no-install playwright install --with-deps chromium
       - name: לוג השרתים של בדיקות הדפדפן ⇒ תיקיית הצילומים (עולה כ-artifact בכישלון)
         # ההקשר runner לא זמין ב-env ברמת הג'וב (ריצה 479 נפסלה על זה) ⇒ דרך GITHUB_ENV. e2e/lib.mjs srvStdio
         run: echo "E2E_LOG_DIR=$RUNNER_TEMP/shots" >> "$GITHUB_ENV"
       - name: e2e מוק — 6 מסכים, דסקטופ+מובייל, 0 בקשות חיצוניות
-        run: mkdir -p "$RUNNER_TEMP/shots" && NODE_PATH="$(npm root -g)" TZ=Asia/Jerusalem node e2e/shots.mjs "$RUNNER_TEMP/shots"
+        run: mkdir -p "$RUNNER_TEMP/shots" && TZ=Asia/Jerusalem node e2e/shots.mjs "$RUNNER_TEMP/shots"
       - name: e2e חי מול שרת DEMO=1 (dry-run)
-        run: NODE_PATH="$(npm root -g)" TZ=UTC node e2e/live.mjs "$RUNNER_TEMP/shots"
+        run: TZ=UTC node e2e/live.mjs "$RUNNER_TEMP/shots"
       - name: e2e התראות לבעל העסק (סוף ניסיון) מול DEMO=1
-        run: NODE_PATH="$(npm root -g)" TZ=UTC node e2e/notices.mjs
+        run: TZ=UTC node e2e/notices.mjs
       - name: e2e הדשבורד הפשוט (/ui) — אישור סכום חריג מול DEMO=1
-        run: NODE_PATH="$(npm root -g)" TZ=UTC node e2e/ui.mjs "$RUNNER_TEMP/shots"
+        run: TZ=UTC node e2e/ui.mjs "$RUNNER_TEMP/shots"
       - name: e2e בנייה מחדש אמיתית של תזכורת מול ה-mock של חשבונית ירוקה (בלי יירוט, /ui ו-/app/)
-        run: NODE_PATH="$(npm root -g)" TZ=UTC node e2e/rebuild.mjs "$RUNNER_TEMP/shots"
+        run: TZ=UTC node e2e/rebuild.mjs "$RUNNER_TEMP/shots"
       - name: e2e CSP — 7 עמודי HTML (/p, /p-404, /ui, /app, /pay, /connect/orbit) בלי הפרות, וסקריפט מוזרק נחסם
-        run: NODE_PATH="$(npm root -g)" TZ=UTC node e2e/csp.mjs
+        run: TZ=UTC node e2e/csp.mjs
       - name: e2e מצבי הטעינה של /app/ (דסקטופ+מובייל) — שלד לפי מסך, תצוגה מקדימה בטעינה ובכשל, ערוץ בלי הודעה, תזכורת שהוחלפה
-        run: NODE_PATH="$(npm root -g)" TZ=UTC node e2e/preview.mjs "$RUNNER_TEMP/shots"
+        run: TZ=UTC node e2e/preview.mjs "$RUNNER_TEMP/shots"
       - name: לוג השרתים של בדיקות הדפדפן (רק בכישלון, 200 שורות אחרונות לכל קובץ)
         if: failure()
         run: |

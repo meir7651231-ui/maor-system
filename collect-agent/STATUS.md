@@ -1,10 +1,35 @@
-# STATUS — גבי, תזכורות תשלום · שלב 1 · עודכן 6.11.2026 (סבב אינטגרציה, הפעלה 21 · מנהל: הפעלה 195, 14.11)
+# STATUS — גבי, תזכורות תשלום · שלב 1 · עודכן 6.11.2026 (סבב אינטגרציה, הפעלה 21 · מנהל: הפעלה 196, 14.11)
 
 ענף אינטגרציה: `collect-agent` (לא מוזג ל-main, ולא ימוזג בלי אישור מפורש של מאיר). תיקייה: `collect-agent/`.
 
 ## 📌 הכרעות מאיר — מחייבות כל תפקיד (6.11.2026)
 - **מחיר יחיד:** ₪119 לחודש **או** ₪1,190 לשנה · 14 ימי ניסיון. **אין ₪79**, אין A/B, אין מסלולים או מחירונים אחרים. מקור יחיד: `docs/PRICING.md` · בקוד: `Settings.price_ils_month=119`, `price_ils_year=1190`, `trial_days=14` · בדף הנחיתה: `PRICE` ב-`web/src/pages/Landing.tsx`. (ניסוח המע״מ «כולל מע״מ ככל שחל» — עדיין לאישור רו״ח/עו״ד, `docs/PRICING.md`.)
 - **אין הרשמה לשום חשבון sandbox** (חשבונית ירוקה, 019, InforU, Twilio, ספק מייל) **בלי אישור מפורש של מאיר.** עד אז כל הפיתוח והבדיקות מול `app/gi_mock.py` ו-DryRunSender בלבד; פריטי «לאמת» נשארים פתוחים.
+
+## 🧭 הפעלת מנהל · 14.11.2026 (הפעלה 196)
+- **מיזוג:** אין ענפי `claude/*` חדשים ב-`collect-agent/` מלבד `stoic-mccarthy-23f03p` (נדחה ומכוסה, ראו 107). ה-workflow `collect-agent.yml` קיים ומריץ רק על `collect-agent/`.
+- **CI:** סבב ביקורת 71 מדווח ריצות 528–531 ירוקות (כולל 195) ⇒ (1) מ-195 סגור.
+- **המשימה:** 💡1 מסבב 71 — ב-CI ‏`npm i -g playwright@1.63.0` + ‏`npx -y playwright@…`: גרסה מדויקת אבל **מחוץ לנעילה** (בלי integrity, הורדה מהרשת בכל ריצה). אותה משפחה כמו 70.1 בצד הפייתון.
+- **בוצע:**
+  - `playwright` = devDependency מדויק (`1.63.0`) ב-`web/package.json`; ‏`package-lock.json` עם sha512 ל-`playwright` ול-`playwright-core` ⇒ מותקן ב-`npm ci` הקיים.
+  - ה-workflow: `npx --no-install playwright install --with-deps chromium` (הבינארי המקומי בלבד). בלי `npm i -g`, בלי `npx -y`, ובלי `NODE_PATH="$(npm root -g)"` ב-7 צעדי ה-e2e — הסקריפטים כבר טוענים דרך `createRequire(import.meta.url)` ⇒ ‏`web/node_modules`.
+- **ננעל:** `tests/test_web_lock.py`, 6 בדיקות: גרסה מדויקת · ב-lock עם integrity ומסונכרן ל-package.json · אין התקנת npm גלובלית/`npx` בלי `--no-install`/`NODE_PATH` ב-workflow · התקנת הדפדפן מהמקומי · כל סקריפטי e2e טוענים מקומית · מוטציה (ה-CI של 195 ⇒ 3+ הפרות).
+  - **מוטציה:** workflow + package.json של 195 ⇒ 4 מתוך 6 נופלות.
+  - **נתפס בדרך:** סימן RTL נסתר (U+200F) שהקלדתי בבדיקה החדשה נתפס ע״י `test_no_trojan_source_bidi_chars` ⇒ הוסר.
+  - pytest **1996 passed / 19 skipped** · ruff נקי · web `npm test` 72/72 + build · `e2e/csp.mjs` ו-`e2e/notices.mjs` ירוקים עם playwright מ-`web/node_modules` בלבד (בלי NODE_PATH) · `demo.sh --check` ירוק (הדגמה מקצה לקצה).
+- **לא נגעתי:** סקריפטי מיתוג חד-פעמיים (`docs/brand/concepts/**`, ‏`web/scripts/concepts-*.mjs`, ‏`marketing/video/compose`) עדיין עם `NODE_PATH` גלובלי — לא רצים ב-CI.
+- **מצב לפי תפקיד:**
+  - פיתוח — בלי חסם.
+  - ביקורת — 💡1 של 71 סגור. 💡2 (שער בטא 2 = פרטי מפעיל placeholder ⇒ סירוב) ממתין למסלול שליחה אמיתי. א/ב/ג מ-186 ללא שינוי.
+  - עיצוב — עדיין לאשר בעין `server-p-mobile.png` (188).
+  - QA — ללא שינוי (mac: מגן סטטי + סימולציה).
+  - שיווק/משפטי/מכירות — ממתינים להכרעות מאיר.
+- **הבא (פיתוח):**
+  - (1) לבדוק שריצת ה-CI של הקומיט הזה ירוקה — במיוחד צעד ההתקנה החדש (`npx --no-install`) וכל 7 סוויטות הדפדפן בלי NODE_PATH.
+  - (2) מ-195: לסרוק את `web/e2e/*.mjs` ו-`demo.sh` לדפוס «פקודה חסרה ⇒ if שקט עובר» (exit 127 בתוך תנאי שלילי).
+  - (3) לשקול להעביר גם את סקריפטי המיתוג ל-`createRequire(import.meta.url)` (נוחות, לא אבטחה).
+  - (4) ‏`/outbox` limit — אחרי הכרעות הביקורת (א/ג מ-186).
+- **חסמים (מאיר), ללא שינוי:** sandbox לספקים, ניסוח מע״מ, הספים של 120/121/123, ובנייה מחדש של תזכורת מאושרת בסנכרון.
 
 ## 🧭 הפעלת מנהל · 14.11.2026 (הפעלה 195)
 - **מיזוג:** אין ענפי `claude/*` חדשים ב-`collect-agent/` מלבד `stoic-mccarthy-23f03p` (נדחה ומכוסה, ראו 107). `claude/gabi-unify-*` לא נוגעים ב-`collect-agent/`. ה-workflow `collect-agent.yml` קיים ומריץ רק על `collect-agent/`.
