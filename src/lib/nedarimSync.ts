@@ -103,6 +103,25 @@ function keysOf(o: { extId?: string; idNum?: string; zeout?: string; phone?: str
   return ks;
 }
 
+/** מפתחות-טלפון של "טלפונים נוספים" (`phones[]`) של כרטיס — לחיפוש-שיוך בלבד.
+ *  תיקון (לילה 14.11): המנוע הכיר רק את `sp.phone` ⇒ תורם שהמספר-הנוסף שלו הוא
+ *  זה שבנדרים לא זוהה — נוצר ככרטיס-כפול בסנכרון, והתשלום לא שויך אוטומטית.
+ *  נרשמים **אחרי** המפתחות-הראשיים של כל הכרטיסים (ראשון-גובר) ⇒ טלפון-ראשי של
+ *  כרטיס אחר לעולם לא מוצל על-ידי מספר-נוסף. */
+function extraPhoneKeys(sp: Pick<Supporter, 'phones'>): string[] {
+  const ks: string[] = [];
+  for (const p of sp.phones ?? []) {
+    const ph = normPhone((p && p.num) || '');
+    if (ph.length >= 7) ks.push('ph:' + ph);
+  }
+  return ks;
+}
+
+/** כל מפתחות-השיוך של כרטיס קיים — ראשיים ואז טלפונים-נוספים. */
+function supMatchKeys(sp: Supporter): string[] {
+  return [...keysOf({ extId: sp.extId, idNum: sp.idNum, phone: sp.phone, email: sp.email }), ...extraPhoneKeys(sp)];
+}
+
 /** מטבע מנורמל מעסקה (תומך '₪'/'$' וגם קידוד-נדרים '1'/'2'). */
 function curOf(charge: SyncCharge): '₪' | '$' {
   const raw = String(charge.currency || '').trim();
@@ -281,7 +300,7 @@ export function candidateSupportersForCharge(charge: SyncCharge, supporters: Sup
   const cName = nameSortKey(charge.name || '');
   const scored: { sp: Supporter; score: number }[] = [];
   for (const sp of supporters) {
-    const sk = keysOf({ extId: sp.extId, idNum: sp.idNum, phone: sp.phone, email: sp.email });
+    const sk = supMatchKeys(sp);
     let score = 0;
     for (const k of sk) {
       if (!ck.has(k)) continue;
@@ -408,7 +427,7 @@ export function strongMatchForCharge(charge: SyncCharge, supporters: Supporter[]
   let best: { sp: Supporter; score: number } | null = null;
   for (const sp of supporters) {
     let score = 0;
-    for (const k of keysOf({ extId: sp.extId, idNum: sp.idNum, phone: sp.phone, email: sp.email })) {
+    for (const k of supMatchKeys(sp)) {
       if (!ck.has(k)) continue;
       if (k.startsWith('ext:')) score = Math.max(score, 5);
       else if (k.startsWith('id:')) score = Math.max(score, 4);
@@ -430,6 +449,10 @@ export function autoMatchCharges(charges: SyncCharge[], supporters: Supporter[])
     for (const k of keysOf({ extId: sp.extId, idNum: sp.idNum, phone: sp.phone, email: sp.email })) {
       if (!idx.has(k)) idx.set(k, sp.id);
     }
+  }
+  // טלפונים-נוספים — רק אחרי כל המפתחות-הראשיים (לא מצלים על טלפון-ראשי של אחר).
+  for (const sp of supporters) {
+    for (const k of extraPhoneKeys(sp)) if (!idx.has(k)) idx.set(k, sp.id);
   }
   const out: { supId: string; charge: SyncCharge }[] = [];
   for (const c of charges) {
@@ -559,11 +582,17 @@ export function planNedarimSync(
     if (prev == null) nameIndex.set(nk, idx);
     else if (prev !== idx) nameIndex.set(nk, -1); // שם משותף ל-2 כרטיסים ⇒ עמום
   };
+  const registerKeys = (keys: string[], idx: number) => {
+    for (const k of keys) if (!keyIndex.has(k)) keyIndex.set(k, idx);
+  };
   const register = (idx: number) => {
-    for (const k of keysOf(out[idx])) if (!keyIndex.has(k)) keyIndex.set(k, idx);
+    registerKeys(keysOf(out[idx]), idx);
+    registerKeys(extraPhoneKeys(out[idx]), idx);
     registerName(idx);
   };
-  out.forEach((_, i) => register(i));
+  // רישום-ראשוני בשני מעברים: מפתחות-ראשיים של כולם ⇒ ואז טלפונים-נוספים.
+  out.forEach((_, i) => { registerKeys(keysOf(out[i]), i); registerName(i); });
+  out.forEach((_, i) => registerKeys(extraPhoneKeys(out[i]), i));
   const findIdx = (keys: string[]): number => {
     for (const k of keys) {
       const i = keyIndex.get(k);
