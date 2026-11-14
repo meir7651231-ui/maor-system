@@ -477,8 +477,8 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         return guard(svc.set_legal_hold, cid, b.note, request.state.actor)
 
     @app.post("/maintenance/purge", dependencies=auth)
-    def purge():                                     # ר-10 (רץ גם בכל plan)
-        return svc.purge_closed()
+    def purge(request: Request):                     # ר-10 (רץ גם בכל plan)
+        return svc.purge_closed(request.state.actor)   # critic סבב 73: מי הפעיל
 
     @app.get("/outbox", dependencies=auth)
     def outbox(limit: int | None = None):
@@ -847,6 +847,10 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
             raise HTTPException(503, "אין מפתח הצפנה (COLLECT_MASTER_KEYS)") from None
         if done:
             svc.audit(request.state.actor, "orbit_unlinked", {"org": link["org"] if link else ""})
+            # critic סבב 73: ניתוק יכול לעצור את השירות (68–69) ⇒ בעל העסק יודע מי ניתק
+            svc.notify_owner_sensitive(f"הקישור לאורביט נותק על ידי {request.state.actor} (ארגון: "
+                                       f"{link['org'] if link else '—'}). החיוב והזכאות כבר לא מתעדכנים. "
+                                       "אם לא אתם ניתקתם — בדקו מיד.", request.state.actor)
         return {"unlinked": done}
 
     # ---------- מנוע השיחה (app/conversation.py + app/inbox.py) ----------

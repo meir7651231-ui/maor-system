@@ -186,3 +186,39 @@ def test_demo_check_shows_owner_email_on_sensitive_change():
     assert '"new-owner@example.com" for m in new' in tail
     assert "settings_changed_email_sent" in tail
     assert '"email_reply_to": "owner@example.com"' in tail, "ההדגמה מחזירה את ההגדרות"
+
+
+def test_orbit_unlink_by_employee_tells_owner(svc, monkeypatch):
+    """critic סבב 73: ניתוק מאורביט (אחרי 68–69 יכול לעצור את השירות) נרשם ב-audit אבל בעל העסק לא קיבל הודעה."""
+    from app.orbit_connect import OrbitConnect
+    from app.secretbox import generate_key as gk
+    monkeypatch.setenv("COLLECT_MASTER_KEYS", f"k1:{gk()}")
+    OrbitConnect(svc.db).issue_secret("acme", at=svc.clock().isoformat())
+    api = TestClient(create_app(svc, owner_token=OWNER_TOKEN), headers=AUTH)
+    assert api.post("/orbit/link/unlink").json() == {"unlinked": True}
+    notes = [m for m in api.get("/owner/inbox").json() if m["intent"] == "settings_changed"]
+    assert notes and "אורביט" in notes[0]["body"] and "owner" in notes[0]["body"], notes
+
+
+def test_purge_records_who_triggered_it(svc):
+    """/maintenance/purge מעובד נרשם כ-«system» — אי אפשר לדעת מי מחק."""
+    from datetime import timedelta
+    api = TestClient(create_app(svc, owner_token=OWNER_TOKEN), headers=AUTH)
+    api.post("/sync")
+    svc.db.x("UPDATE invoices SET status='closed', closed_at=? WHERE id=1",
+             ((svc.clock() - timedelta(days=200)).isoformat(),))
+    api.post("/maintenance/purge")
+    rows = svc.db.q("SELECT actor FROM audit WHERE action='retention_purge'")
+    assert rows and rows[-1]["actor"] == "owner", [r["actor"] for r in rows]
+
+
+def test_unlinker_cannot_dismiss_own_unlink_alert(svc):
+    """critic סבב 73: אותו כלל של הפעלה 199 גם להתראת הניתוק — מי שניתק לא סוגר אותה בעצמו כשיש עובד אחר."""
+    users = Users(svc.db, svc.clock)
+    users.create("a@example.co.il", "א", PW)
+    users.create("b@example.co.il", "ב", PW)
+    svc.notify_owner_sensitive("הקישור לאורביט נותק על ידי user:1", "user:1")
+    mid = svc.db.one("SELECT id FROM messages WHERE intent='settings_changed' ORDER BY id DESC")["id"]
+    with pytest.raises(ValueError, match="עובד אחר"):
+        svc.owner_message_done(mid, "user:1")
+    assert svc.owner_message_done(mid, "user:2")["done"]

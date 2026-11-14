@@ -307,6 +307,13 @@ class CollectService:
         self._notify_sensitive_settings(old_s, new, actor)
         return self.settings_view()
 
+    def notify_owner_sensitive(self, text: str, actor: str) -> None:
+        """critic סבב 73: פעולה רגישה שאינה הגדרה (ניתוק אורביט) ⇒ אותה הודעה לבעל העסק כמו settings_changed,
+        **עם המשנה ב-message_id** (הפעלה 199) — מי שניתק לא סוגר בעצמו את ההתראה."""
+        self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,message_id,"
+                  "created_at) VALUES(NULL,'system','owner',?,'settings_changed',1,?,?)",
+                  (text, f"settings_changed:{actor}", _iso(self.clock())))
+
     _SENSITIVE_SETTINGS = {"payment_link": "קישור התשלום", "payment_provider": "ספק התשלום",
                            "email_reply_to": "כתובת התשובה (Reply-To)", "sms_sender_id": "שם השולח ב-SMS",
                            "business_name": "שם העסק"}
@@ -1246,14 +1253,15 @@ class CollectService:
                                          "note_id": note_id})
         return dict(self.db.one("SELECT * FROM customers WHERE id=?", (customer_id,)))
 
-    def purge_closed(self) -> dict[str, int]:
+    def purge_closed(self, actor: str = "system") -> dict[str, int]:
         """חוב סגור מעל 90 יום ⇒ ריקון תוכן ההודעות והתממת הלקוח (כשאין לו חוב פתוח),
         אלא אם יש legal hold מתועד. רשימת ההסרה (suppressions, גיבוב בלבד) ו-audit נשארים.
         critic סבב 37: הכול בטרנזקציה אחת — אטומי (אין לקוח חצי-מותמם) ו-commit אחד במקום ~5 לחוב."""
         with self.db.batch():
             inv_n, cust_n, unk = self._purge_rows()
         if inv_n or cust_n or unk:
-            self.audit("system", "retention_purge", {"invoices": inv_n, "customers": cust_n,
+            # critic סבב 73: הפעלה ידנית (/maintenance/purge) נרשמת עם מי שהפעיל, לא «system»
+            self.audit(actor, "retention_purge", {"invoices": inv_n, "customers": cust_n,
                                                      "unknown_messages": unk})
             self.db.scrub()   # critic סבב 24: גם דפים פנויים מלפני secure_delete (DB קיים)
         return {"invoices": inv_n, "customers": cust_n}
