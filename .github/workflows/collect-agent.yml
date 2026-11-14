@@ -153,6 +153,24 @@ jobs:
           path: ${{ runner.temp }}/shots
           retention-days: 7
 
+  # הפעלה 192 — ההדגמה במכונה נקייה: container של הפצה, פייתון של המערכת, בלי setup-python (שמסתיר את
+  # באג 191: pip של פייתון אחר + cryptography של debian ⇒ demo.sh נפל). ‏ci_clean_demo.sh מוודא שהמכונה
+  # נקייה, ש-demo.sh יצר .venv ועבר, ושריצה שנייה עוברת מה-.venv הקיים. SKIP_WEB=1 (הממשק נבדק בג'וב web).
+  demo-clean:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        image: ["debian:bookworm", "ubuntu:24.04"]
+    container: ${{ matrix.image }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: ./demo.sh --check במכונה נקייה (פעמיים)
+        run: bash scripts/ci_clean_demo.sh
+
   security:
     runs-on: ubuntu-latest
     timeout-minutes: 10
