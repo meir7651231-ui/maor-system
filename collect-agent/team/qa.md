@@ -152,7 +152,7 @@
 ```bash
 cd collect-agent && pip install -e '.[dev]'
 ruff check . && bandit -q -r app scripts && python3 -m pytest -q
-bash scripts/smoke_server.sh
+bash scripts/smoke_server.sh   # רץ גם ב-macOS (bash 3.2, בלי timeout/stat -c) — הפעלה 195
 ```
 
 ## קבצים

@@ -1,30 +1,35 @@
 #!/usr/bin/env bash
-# בדיקת עשן לשרת אמיתי (uvicorn על 127.0.0.1 בלבד) — רץ ב-CI. dry-run, בלי Green Invoice.
+# בדיקת עשן לשרת אמיתי (uvicorn על 127.0.0.1 בלבד) — רץ ב-CI וגם מקומית (team/qa.md §6). dry-run, בלי Green Invoice.
+# תואם bash 3.2 + כלי BSD (macOS): בלי timeout ובלי stat -c — אחרת המעקות "עוברים" בשקט (exit 127). הפעלה 195.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 PORT="${PORT:-8765}"
 TMP="$(mktemp -d)"
-trap 'kill "${PID:-0}" 2>/dev/null || true; rm -rf "$TMP"' EXIT
+# PID ריק עד שהשרת עולה — `kill 0` היה הורג את כל קבוצת התהליכים (המעטפת/pytest/ה-CI). הפעלה 195.
+PID=""
+trap 'if [ -n "$PID" ]; then kill "$PID" 2>/dev/null || true; fi; rm -rf "$TMP"' EXIT
 export OWNER_API_TOKEN="$(python3 -c 'import secrets;print(secrets.token_urlsafe(32))')"
 export INBOUND_WEBHOOK_SECRET="$(python3 -c 'import secrets;print(secrets.token_urlsafe(32))')"
 export SMS_WEBHOOK_KEY="$(python3 -c 'import secrets;print(secrets.token_urlsafe(24))')"
 export DB_PATH="$TMP/smoke.sqlite3" SEND_MODE=dry_run GREENINVOICE_ENV=sandbox
 
 fail() { echo "❌ $*"; exit 1; }
+# המפרש עצמו מגביל את זמנו (SIGALRM) — במקום timeout של GNU, שלא קיים ב-mac.
+BOOT='import signal; signal.alarm(20); from app.main import _lazy_app; _lazy_app()'
+python3 -c 'import app.main' 2>/dev/null || fail "python3 לא מייבא את app.main (חסרות תלויות? ./demo.sh יוצר .venv)"
 
 # 1. מעקה: בלי טוקן — השרת לא עולה
-if OWNER_API_TOKEN= timeout 20 python3 -c 'from app.main import _lazy_app; _lazy_app()' 2>/dev/null; then
+if OWNER_API_TOKEN= python3 -c "$BOOT" 2>/dev/null; then
   fail "האפליקציה עלתה בלי OWNER_API_TOKEN"
 fi
 # 2. מעקה: SEND_MODE=live — קורס
-if SEND_MODE=live timeout 20 python3 -c 'from app.main import _lazy_app; _lazy_app()' 2>/dev/null; then
+if SEND_MODE=live python3 -c "$BOOT" 2>/dev/null; then
   fail "האפליקציה עלתה עם SEND_MODE=live"
 fi
 
 # 3. שער 5 (רק כש-DB_ENCRYPTION=sqlcipher): הצפנה דלוקה בלי COLLECT_MASTER_KEYS ⇒ לא עולה, ולא נוצר קובץ
 if [[ "${DB_ENCRYPTION:-}" == "sqlcipher" ]]; then
-  if COLLECT_MASTER_KEYS= DB_PATH="$TMP/nokey.sqlite3" timeout 20 python3 -c \
-      'from app.main import _lazy_app; _lazy_app()' 2>/dev/null; then
+  if COLLECT_MASTER_KEYS= DB_PATH="$TMP/nokey.sqlite3" python3 -c "$BOOT" 2>/dev/null; then
     fail "האפליקציה עלתה עם DB_ENCRYPTION=sqlcipher בלי מפתח"
   fi
   [ ! -e "$TMP/nokey.sqlite3" ] || fail "נוצר קובץ DB למרות שההצפנה נכשלה"
@@ -52,7 +57,7 @@ echo "$H" | grep -q '"dry_run":true' || fail "/health לא מדווח dry_run: $
 sleep 0.3
 grep -q "webhooks/sms/019" "$TMP/server.log" || fail "לוג הגישה ריק — בדיקת הדליפה לא בודקת כלום"
 if grep -q "$SMS_WEBHOOK_KEY" "$TMP/server.log"; then fail "מפתח ה-webhook דלף ללוג הגישה"; fi
-PERM="$(stat -c '%a' "$DB_PATH")"
+PERM="$(python3 -c 'import os,stat,sys; print(format(stat.S_IMODE(os.stat(sys.argv[1]).st_mode), "o"))' "$DB_PATH")"
 [ "$PERM" = 600 ] || fail "הרשאות DB $PERM (צריך 600)"
 if grep -q "$OWNER_API_TOKEN" "$TMP/server.log"; then fail "הטוקן דלף ללוג"; fi
 if [[ "${DB_ENCRYPTION:-}" == "sqlcipher" ]]; then
