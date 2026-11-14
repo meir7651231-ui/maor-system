@@ -320,10 +320,11 @@ class CollectService:
             self.audit(actor, "settings_sensitive_changed", {"field": k, "from": a, "to": b})
         if changed:
             lines = "; ".join(f"{self._SENSITIVE_SETTINGS[k]}: «{a or '—'}» ⇒ «{b or '—'}»" for k, a, b in changed)
-            self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,created_at) "
-                      "VALUES(NULL,'system','owner',?,'settings_changed',1,?)",
+            # הפעלה 199: מי ששינה נשמר ב-message_id ⇒ owner_message_done לא נותן לו לסמן «טופל» בעצמו
+            self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,message_id,"
+                      "created_at) VALUES(NULL,'system','owner',?,'settings_changed',1,?,?)",
                       (f"הגדרות רגישות שונו על ידי {actor}: {lines}. אם לא אתם שיניתם — בדקו מיד.",
-                       _iso(self.clock())))
+                       f"settings_changed:{actor}", _iso(self.clock())))
 
     # ---------- audit ----------
     def audit(self, actor: str, action: str, detail: Any = None) -> None:
@@ -1096,11 +1097,31 @@ class CollectService:
     def owner_message_done(self, mid: int, actor: str = "owner") -> dict:
         """critic סבב 34: בעל העסק מסמן הודעה כ«טופל». רק needs_owner=1 ⇒ 0 (התוכן לא נמחק — ר-10 מטפל
         בזה). הדה-דופ של ההתראות (message_id) לא תלוי ב-needs_owner, ולכן היא לא נוצרת מחדש."""
-        if not self.db.one("SELECT 1 FROM messages WHERE id=? AND needs_owner=1", (mid,)):
+        row = self.db.one("SELECT intent, message_id FROM messages WHERE id=? AND needs_owner=1", (mid,))
+        if not row:
             raise KeyError(mid)
+        if self._self_dismiss_blocked(row, actor):
+            self.audit(actor, "owner_message_done_refused", {"message": mid, "reason": "self_dismiss"})
+            raise ValueError("את ההתראה על שינוי ההגדרות הרגישות צריך לסמן «טופל» עובד אחר — לא מי שביצע את השינוי.")
         self.db.x("UPDATE messages SET needs_owner=0 WHERE id=?", (mid,))
         self.audit(actor, "owner_message_done", {"message": mid})
         return {"id": mid, "done": True}
+
+    def _self_dismiss_blocked(self, row, actor: str) -> bool:
+        """הפעלה 199 (critic סבב 72, המגבלה שנשארה): ההתראה settings_changed נכנסת לתיבה המשותפת, ומי שהחליף את
+        קישור התשלום יכול היה לסמן אותה «טופל» מיד — ובעל העסק לא רואה כלום. עכשיו: עובד (user:N) שביצע את השינוי
+        לא סוגר את ההתראה בעצמו, **כל עוד יש עובד פעיל אחר** שיכול (עסק עם עובד יחיד לא ננעל לנצח). הטוקן המשותף
+        (owner) הוא בעל העסק עצמו ⇒ מותר."""
+        if row["intent"] != "settings_changed" or not actor.startswith("user:"):
+            return False
+        if row["message_id"] != f"settings_changed:{actor}":
+            return False
+        try:
+            others = self.db.one("SELECT COUNT(*) AS n FROM users WHERE active=1 AND id<>?",
+                                 (int(actor.split(":", 1)[1]),))
+        except Exception:  # noqa: BLE001 — בלי טבלת users (דמו) אין עובד אחר
+            return False
+        return bool(others and others["n"])
 
     def _notify_no_due(self, inv_row, cust) -> None:
         key = f"nodue:{inv_row['id']}"
