@@ -782,6 +782,15 @@ class CollectService:
                 # critic סבב 68: זוכרים שהעסק היה מקושר (גם לפריסות שקושרו לפני התיקון)
                 self.db.x("INSERT OR IGNORE INTO business_settings(key,value,updated_at) VALUES(?,?,?)",
                           (ORBIT_FIRST_LINK, json.dumps(trial_start), _iso(self.clock())))
+                # critic סבב 69: הניסיון מהקישור **הראשון**. «ניתוק» + קישור מחדש נתן created_at = היום ⇒ עוד 14 יום,
+                # וכך כל שבועיים
+                first = self.db.one("SELECT value FROM business_settings WHERE key=?", (ORBIT_FIRST_LINK,))
+                try:
+                    f = date.fromisoformat(str(json.loads(first["value"]))[:10]).isoformat() if first else ""
+                except (ValueError, TypeError):
+                    f = ""
+                if f and f < trial_start:
+                    trial_start = f
             else:
                 # critic סבב 68: ניתוק מאורביט (`/orbit/link/unlink`, בעל העסק) מחק את הזכאות ⇒ «אין TRIAL_START
                 # ⇒ active לתמיד» ⇒ עסק שהמנוי שלו בוטל או שהניסיון נגמר המשיך בחינם בלי הגבלה. עסק **שאי-פעם**

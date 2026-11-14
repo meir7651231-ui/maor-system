@@ -64,3 +64,29 @@ def test_marker_is_not_settable_via_settings_api(svc):
     s2 = overlay(svc.s, {"orbit_first_linked_at": "2000-01-01"})
     assert s2 is svc.s
     assert ORG
+
+
+def test_relink_does_not_restart_the_trial(svc, api, clock):
+    """critic סבב 69: הניסיון של «מקושר בלי זכאות» (21.1) נספר מ-created_at של הקישור **הנוכחי**. ניסיון נגמר ⇒
+    «ניתוק» + קישור מחדש (אותו ארגון או אחר) ⇒ created_at = היום ⇒ עוד 14 יום, וכך כל שבועיים = חינם לתמיד.
+    הניסיון נספר מהקישור **הראשון** (הסימון של סבב 68), לא מהנוכחי."""
+    _link(svc)
+    clock.now += timedelta(days=20)
+    assert svc.trial()["active"] is False                       # הניסיון נגמר
+    api.post("/orbit/link/unlink")
+    OrbitConnect(svc.db).issue_secret("other-org", at=svc.clock().isoformat())
+    t = svc.trial()
+    assert t["active"] is False, t                               # היה: ניסיון חדש של 14 יום
+    api.post("/orbit/link/unlink")
+    OrbitConnect(svc.db).issue_secret(ORG, at=svc.clock().isoformat())
+    assert svc.trial()["active"] is False
+
+
+def test_paid_business_relinking_is_not_blocked(svc, api, clock):
+    """הכיוון ההפוך: עסק משלם שמקושר מחדש ומקבל זכאות פעילה — פעיל (הסימון לא חוסם עסק עם זכאות)."""
+    _link(svc)
+    clock.now += timedelta(days=40)
+    api.post("/orbit/link/unlink")
+    _link(svc)
+    _ingest(svc, _ent(svc, status="active", paid_until=(clock.now + timedelta(days=20)).date().isoformat()))
+    assert svc.trial()["active"] is True and svc.trial()["state"] == "active"
