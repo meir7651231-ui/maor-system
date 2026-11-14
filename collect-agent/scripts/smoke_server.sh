@@ -38,7 +38,14 @@ fi
 python3 -m uvicorn app.main:_lazy_app --factory --host 127.0.0.1 --port "$PORT" \
   --log-level info >"$TMP/server.log" 2>&1 &
 PID=$!
-for _ in $(seq 1 50); do curl -fsS "http://127.0.0.1:$PORT/health" >/dev/null 2>&1 && break; sleep 0.2; done
+# הפעלה 197: הלולאה נגמרה בשקט כשהשרת קרס בעלייה ⇒ «curl: (7)» בלי הלוג. עכשיו: מת/לא עלה ⇒ fail עם הלוג.
+UP=""
+for _ in $(seq 1 50); do
+  if curl -fsS -m 2 "http://127.0.0.1:$PORT/health" >/dev/null 2>&1; then UP=1; break; fi
+  kill -0 "$PID" 2>/dev/null || { cat "$TMP/server.log"; fail "השרת יצא לפני שעלה (הלוג למעלה)"; }
+  sleep 0.2
+done
+[ -n "$UP" ] || { cat "$TMP/server.log"; fail "השרת לא עלה תוך 10 שניות (הלוג למעלה)"; }
 
 H="$(curl -fsS "http://127.0.0.1:$PORT/health")"
 echo "$H" | grep -q '"dry_run":true' || fail "/health לא מדווח dry_run: $H"

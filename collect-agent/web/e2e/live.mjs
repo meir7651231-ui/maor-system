@@ -6,7 +6,7 @@ import { randomBytes } from 'node:crypto';
 import { mkdtempSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { assertPortFree, makeInject, smallTargets, srvStdio, srvLogLevel } from './lib.mjs';
+import { assertPortFree, makeInject, smallTargets, srvStdio, srvLogLevel, waitHealthy } from './lib.mjs';
 const { chromium } = createRequire(import.meta.url)('playwright');
 const out = process.argv[2];
 const PORT = 8141, base = `http://127.0.0.1:${PORT}`;
@@ -31,7 +31,7 @@ const H = { Authorization: `Bearer ${TOKEN}` };
 const rawFetch = globalThis.fetch;
 const fetch = (u, init = {}) => rawFetch(u, { ...init, headers: { ...H, ...init.headers } }); // fetch של הבדיקה = עם טוקן
 const api = async p => (await fetch(base + p)).json();
-for (let i = 0; i < 80; i++) { try { if ((await fetch(base + '/health')).ok) break; } catch { /* עוד עולה */ } await new Promise(r => setTimeout(r, 250)); }
+await waitHealthy(base, srv);
 
 // צילום עמוד מלא נאמן: מגדילים את ה-viewport לגובה הדף (אחרת סרגל-צד sticky "צף" בצילום fullPage)
 async function fullShot(pg, path) {

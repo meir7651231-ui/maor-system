@@ -4,7 +4,7 @@
 // דרישה: npm run build. הרצה: node e2e/csp.mjs
 import { createRequire } from 'node:module';
 import { spawn } from 'node:child_process';
-import { srvStdio, srvLogLevel, assertPortFree } from './lib.mjs';
+import { srvStdio, srvLogLevel, assertPortFree, waitHealthy } from './lib.mjs';
 const { chromium } = createRequire(import.meta.url)('playwright');
 const root = new URL('../..', import.meta.url).pathname;
 const ok = (c, m) => { if (!c) throw new Error(m); };
@@ -13,7 +13,7 @@ await assertPortFree(port);
 const TOKEN = (await import('node:crypto')).randomBytes(32).toString('base64url');
 const srv = spawn('python3', ['-m', 'uvicorn', 'app.main:_lazy_app', '--factory', '--port', String(port), '--log-level', srvLogLevel()],
   { cwd: root, env: { ...process.env, DEMO: '1', OWNER_API_TOKEN: TOKEN, PORT: String(port) }, stdio: srvStdio(`server-csp-${port}`) });
-for (let i = 0; i < 80; i++) { try { if ((await fetch(base + '/health')).ok) break; } catch { /* עולה */ } await new Promise(r => setTimeout(r, 250)); }
+await waitHealthy(base, srv);
 const H = { Authorization: 'Bearer ' + TOKEN };
 const api = async (p, m = 'GET') => (await fetch(base + p, { method: m, headers: H })).json();
 

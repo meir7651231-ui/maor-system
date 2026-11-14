@@ -3,7 +3,7 @@
 // דרישה: npm run build. הרצה: node e2e/notices.mjs
 import { createRequire } from 'node:module';
 import { spawn } from 'node:child_process';
-import { srvStdio, srvLogLevel } from './lib.mjs';
+import { srvStdio, srvLogLevel, waitHealthy } from './lib.mjs';
 const { chromium } = createRequire(import.meta.url)('playwright');
 const root = new URL('../..', import.meta.url).pathname;
 const ok = (c, m) => { if (!c) throw new Error(m); };
@@ -13,7 +13,7 @@ async function run(port, trialStart) {
   const TOKEN = (await import('node:crypto')).randomBytes(32).toString('base64url');
   const srv = spawn('python3', ['-m', 'uvicorn', 'app.main:_lazy_app', '--factory', '--port', String(port), '--log-level', srvLogLevel()],
     { cwd: root, env: { ...process.env, DEMO: '1', OWNER_API_TOKEN: TOKEN, PORT: String(port), DEMO_TRIAL_START: trialStart }, stdio: srvStdio(`server-notices-${port}`) });
-  for (let i = 0; i < 80; i++) { try { if ((await fetch(base + '/health')).ok) break; } catch { /* עולה */ } await new Promise(r => setTimeout(r, 250)); }
+  await waitHealthy(base, srv);
   const b = await chromium.launch(); const errors = []; const seen = {};
   try {
     for (const [name, vp] of [['desktop', { width: 1366, height: 900 }], ['mobile', { width: 390, height: 844 }]]) {

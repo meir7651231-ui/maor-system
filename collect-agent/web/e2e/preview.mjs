@@ -9,7 +9,7 @@
 import { createRequire } from 'node:module';
 import { spawn } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
-import { assertPortFree, makeInject, srvStdio, srvLogLevel } from './lib.mjs';
+import { assertPortFree, makeInject, srvStdio, srvLogLevel, waitHealthy } from './lib.mjs';
 const { chromium } = createRequire(import.meta.url)('playwright');
 const out = process.argv[2];
 const PORT = 8147, base = `http://127.0.0.1:${PORT}`;
@@ -22,7 +22,7 @@ process.on('exit', () => srv.kill());
 const ok = (c, m) => { if (!c) throw new Error(m); };
 const routeErrors = [];
 const inject = makeInject(routeErrors);
-for (let i = 0; i < 80; i++) { try { if ((await fetch(base + '/health')).ok) break; } catch { /* עוד עולה */ } await new Promise(r => setTimeout(r, 250)); }
+await waitHealthy(base, srv);
 
 const errors = [];
 let expect503 = 0, seen503 = 0, console503 = 0, expectCut = 0, seenCut = 0;

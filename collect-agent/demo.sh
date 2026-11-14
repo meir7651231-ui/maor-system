@@ -48,6 +48,22 @@ fi
 # ה-API דורש טוקן בעלים (team/qa.md S1). להדגמה: טוקן חד-פעמי אקראי, אלא אם הוגדר.
 export OWNER_API_TOKEN="${OWNER_API_TOKEN:-$(python3 -c 'import secrets;print(secrets.token_urlsafe(32))')}"
 
+# הפעלה 197 («פקודה חסרה ⇒ ממשיך בשקט», «הבא» 2 מ-195): לולאות ההמתנה היו `curl … && break` ⇒ בלי curl
+# (exit 127), או כששרת קרס בעלייה, הלולאה נגמרה בשקט אחרי 15 שניות וההדגמה נפלה אחר כך ב-«Connection refused»
+# בלי הסבר. עכשיו: curl נבדק מראש; תהליך שמת ⇒ עצירה מיידית עם הלוג שלו; לא עלה בזמן ⇒ הודעה ו-exit 1.
+command -v curl >/dev/null 2>&1 || {
+  echo "❌ חסר curl (נדרש להמתנה לשרתים). macOS: מגיע עם המערכת · Debian/Ubuntu: apt install curl" >&2; exit 1; }
+wait_up() {  # URL PID שם LOG [-f = רק 2xx]
+  local i
+  for i in $(seq 1 60); do
+    if [[ "${5:-}" == "-f" ]]; then curl -sf -m 2 -o /dev/null "$1" && return 0
+    else curl -s -m 2 -o /dev/null "$1" && return 0; fi
+    kill -0 "$2" 2>/dev/null || { echo "❌ $3 יצא לפני שעלה (${1}). הפלט שלו:" >&2; cat "$4" >&2; exit 1; }
+    sleep 0.25
+  done
+  echo "❌ $3 לא עלה תוך 15 שניות: $1. הפלט שלו:" >&2; cat "$4" >&2; exit 1
+}
+
 # --- mock של חשבונית ירוקה (תהליך נפרד, HTTP אמיתי) ---
 GI_PORT="${GI_PORT:-$((PORT + 1))}"
 export GI_WEBHOOK_KEY="${GI_WEBHOOK_KEY:-$(python3 -c 'import secrets;print(secrets.token_urlsafe(24))')}"
@@ -58,7 +74,7 @@ python3 -m app.gi_mock --port "$GI_PORT" --seed demo \
 GI_PID=$!
 cleanup() { kill "${PID:-}" "$GI_PID" 2>/dev/null || true; rm -f "${LOG:-}" "$GI_LOG" "${DEMO_USER_SECRET_FILE:-}"; }
 trap cleanup EXIT INT TERM
-for _ in $(seq 1 60); do curl -s -o /dev/null "http://127.0.0.1:${GI_PORT}/api/v1/users/me" && break; sleep 0.25; done
+wait_up "http://127.0.0.1:${GI_PORT}/api/v1/users/me" "$GI_PID" "שרת ה-mock של חשבונית ירוקה" "$GI_LOG"
 cat "$GI_LOG"
 
 if [[ "${1:-}" != "--check" ]]; then
@@ -76,7 +92,7 @@ LOG="$(mktemp)"
 export DEMO_USER_EMAIL="dana@example.co.il" DEMO_USER_PASSWORD="demo-pass-12345" DEMO_USER_SECRET_FILE="$(mktemp)"
 DEMO=1 python3 -m uvicorn app.main:_lazy_app --factory --host 127.0.0.1 --port "$PORT" --log-level warning >"$LOG" 2>&1 &
 PID=$!
-for _ in $(seq 1 60); do curl -sf "http://127.0.0.1:${PORT}/health" >/dev/null && break; sleep 0.25; done
+wait_up "http://127.0.0.1:${PORT}/health" "$PID" "שרת גבי" "$LOG" -f
 cat "$LOG"
 python3 - "$PORT" <<'PY'
 import json, os, sys, urllib.error, urllib.request
