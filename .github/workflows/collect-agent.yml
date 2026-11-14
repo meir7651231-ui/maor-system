@@ -138,6 +138,8 @@ jobs:
         run: NODE_PATH="$(npm root -g)" TZ=UTC node e2e/ui.mjs "$RUNNER_TEMP/shots"
       - name: e2e בנייה מחדש אמיתית של תזכורת מול ה-mock של חשבונית ירוקה (בלי יירוט, /ui ו-/app/)
         run: NODE_PATH="$(npm root -g)" TZ=UTC node e2e/rebuild.mjs "$RUNNER_TEMP/shots"
+      - name: e2e CSP — 7 עמודי HTML (/p, /p-404, /ui, /app, /pay, /connect/orbit) בלי הפרות, וסקריפט מוזרק נחסם
+        run: NODE_PATH="$(npm root -g)" TZ=UTC node e2e/csp.mjs
       - name: e2e מצבי הטעינה של /app/ (דסקטופ+מובייל) — שלד לפי מסך, תצוגה מקדימה בטעינה ובכשל, ערוץ בלי הודעה, תזכורת שהוחלפה
         run: NODE_PATH="$(npm root -g)" TZ=UTC node e2e/preview.mjs "$RUNNER_TEMP/shots"
       - name: לוג השרתים של בדיקות הדפדפן (רק בכישלון, 200 שורות אחרונות לכל קובץ)

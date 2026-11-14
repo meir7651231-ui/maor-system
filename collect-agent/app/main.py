@@ -18,7 +18,7 @@ from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
 from pydantic import BaseModel, Field
 
-from . import dbcrypt, security
+from . import csp, dbcrypt, security
 from .config import SafetyError, Settings, load_settings
 from .db import DB
 from .greeninvoice import GreenInvoiceClient
@@ -66,6 +66,7 @@ def gzip_json(request: Request, data) -> Response:
                     headers={"Content-Encoding": "gzip", "Vary": "Accept-Encoding"})
 
 UI_HTML = (Path(__file__).parent / "ui.html").read_text(encoding="utf-8")
+UI_CSP = csp.inline_script_csp(UI_HTML)
 
 
 MAX_WEBHOOK_BODY = 16 * 1024
@@ -232,6 +233,10 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
         # יציאה). ברירת מחדל no-store לכל דבר; חריג יחיד: נכסי /app/ הסטטיים (JS/CSS בלי נתונים).
         if not _cacheable_static(request.url.path):
             resp.headers.setdefault("Cache-Control", "no-store")
+        # הפעלה 193 (critic סבב 70 💡): CSP לכל HTML. עמוד שלא קבע מדיניות משלו ⇒ לפי הנתיב (csp.for_path):
+        # עמודי החייב בלי סקריפט בכלל; /app/ ו-/pay/ סקריפטים מ-self בלבד
+        if (resp.headers.get("content-type") or "").startswith("text/html"):
+            resp.headers.setdefault("Content-Security-Policy", csp.for_path(request.url.path))
         return resp
 
     users = Users(svc.db, svc.clock)
@@ -349,7 +354,7 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
     @app.get("/", response_class=HTMLResponse)
     @app.get("/ui", response_class=HTMLResponse)
     def ui():
-        return UI_HTML
+        return HTMLResponse(UI_HTML, headers={"Content-Security-Policy": UI_CSP})
 
     # הכרעת מאיר 6.11: הדף המעוצב ב-/app/ הוא דף הנחיתה היחיד. /landing = הפניה מקומית בלבד
     # (התוכן הייחודי שלו הועבר ל-web/src/pages/Landing.tsx). בלי build — נופלים ל-/ui.
@@ -744,13 +749,15 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
     entitlements = OrbitEntitlements(svc.db)
     app.state.orbit_entitlements = entitlements
     connect_next = "/app/#/dashboard" if (web_dist / "index.html").is_file() else "/ui"
+    connect_html = CONNECT_PAGE.replace("__NEXT__", connect_next)
+    connect_csp = csp.inline_script_csp(connect_html)   # ה-hash אחרי ההחלפה — זה מה שהדפדפן מקבל
 
     @app.get("/connect/orbit", response_class=HTMLResponse)
     def connect_orbit_page():
         """ציבורי: דף סטטי. הטוקן ב-fragment (#h=…) — לא מגיע לשרת; הדף שולח אותו ב-POST."""
-        return HTMLResponse(CONNECT_PAGE.replace("__NEXT__", connect_next),
+        return HTMLResponse(connect_html,
                             headers={"Cache-Control": "no-store", "X-Robots-Tag": "noindex",
-                                     "Referrer-Policy": "no-referrer"})
+                                     "Referrer-Policy": "no-referrer", "Content-Security-Policy": connect_csp})
 
     @app.post("/api/connect/orbit")
     async def connect_orbit_verify(request: Request):
