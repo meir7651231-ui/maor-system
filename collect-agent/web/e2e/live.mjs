@@ -6,7 +6,7 @@ import { randomBytes } from 'node:crypto';
 import { mkdtempSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { assertPortFree, makeInject, srvStdio, srvLogLevel } from './lib.mjs';
+import { assertPortFree, makeInject, smallTargets, srvStdio, srvLogLevel } from './lib.mjs';
 const { chromium } = createRequire(import.meta.url)('playwright');
 const out = process.argv[2];
 const PORT = 8141, base = `http://127.0.0.1:${PORT}`;
@@ -549,6 +549,50 @@ try {
   ok((await pm.getByTestId('pay-done').textContent()).includes('4 תשלומים'), 'אישור בקשת הפריסה חסר');
   await pctx.close();
   console.log('  ✓ נחיתה + /landing⇒/app/ + עמוד החייב');
+
+  // הפעלה 188 (פתוח מ-187): עמודי השרת שנפתחים ישירות מה-SMS/המייל — /p/<קוד> (כל קוד ביומן, כולל הודעה
+  // מאוחדת) ו-/u/<טוקן> — ב-390px וב-320px: אף יעד-לחיצה <40px ובלי גלילה רוחבית.
+  // נמדד לפני: «לתשלום» לכל חשבונית בהודעה מאוחדת 17px; כל השאר כבר 48px.
+  {
+    const all = (await api('/outbox')).messages;
+    const pCodes = [...new Set(all.flatMap(x => [...x.body.matchAll(/\/p\/([A-Za-z0-9_-]+)/g)].map(mm => mm[1])))];
+    const uPaths = [...new Set(all.flatMap(x => [...(x.body + JSON.stringify(x.headers ?? {})).matchAll(/\/u\/([A-Za-z0-9_-]{16,64})/g)].map(mm => mm[1])))];
+    ok(pCodes.length >= 2, 'פחות משני קודי /p/ ביומן: ' + pCodes.length);
+    const sp = await b.newPage({ viewport: { width: 390, height: 844 } });
+    sp.on('pageerror', e => errors.push(String(e)));
+    let merged = 0;
+    for (const [w, h] of [[390, 844], [320, 700]]) {
+      await sp.setViewportSize({ width: w, height: h });
+      for (const path of [...pCodes.map(c => `/p/${c}`), ...uPaths.slice(0, 2).map(t => `/u/${t}`)]) {
+        await sp.goto(base + path);
+        if (w === 390 && await sp.getByTestId('landing-invoices').count()) merged++;
+        await noHScroll(sp, `${w}px ${path.slice(0, 3)}`);
+        const small = await sp.evaluate(smallTargets);
+        ok(small.length === 0, `${w}px ${path.slice(0, 3)}: יעדי-לחיצה מתחת ל-40px: ` + JSON.stringify(small));
+      }
+    }
+    // ההדגמה לא מייצרת הודעה מאוחדת ⇒ אותה פונקציה של השרת (app.main.landing_page) על חשבוניות מומצאות,
+    // עם/בלי קישור משותף — כאן נתפס «לתשלום» לכל חשבונית (17px לפני התיקון).
+    const mergedHtml = JSON.parse(execFileSync('python3', ['-c', `
+import json; from app.main import landing_page
+b = dict(business="מוסך הדגמה", number="1001", due="2026-11-20", open=True, code="ABCD1234", amount="₪450", pay_url="https://pay.example/x",
+         opted_out=False, total="₪900", pay_shared=False,
+         invoices=[dict(number=n, amount="₪450", due="2026-11-20", code=c, can_pay=True) for n, c in (("1001", "AAAA1111"), ("1002", "BBBB2222"))])
+print(json.dumps([landing_page(b), landing_page(dict(b, pay_shared=True)), landing_page(dict(b, opted_out=True))]))`], { cwd: ROOT }).toString());
+    for (const [w, h] of [[390, 844], [320, 700]]) {
+      await sp.setViewportSize({ width: w, height: h });
+      for (const [i, html] of mergedHtml.entries()) {
+        await sp.setContent(html);
+        ok(await sp.getByTestId('landing-invoices').count() === 1, 'הודעה מאוחדת בלי רשימת החשבוניות');
+        await noHScroll(sp, `${w}px /p מאוחדת ${i}`);
+        const small = await sp.evaluate(smallTargets);
+        ok(small.length === 0, `${w}px /p מאוחדת ${i}: יעדי-לחיצה מתחת ל-40px: ` + JSON.stringify(small));
+      }
+    }
+    if (out) await sp.screenshot({ path: `${out}/server-p-mobile.png`, fullPage: true });
+    await sp.close();
+    console.log(`  ✓ עמודי השרת: ${pCodes.length} /p (${merged} מאוחדות) + ${Math.min(uPaths.length, 2)} /u + 3 מאוחדות מרונדרות — ≥40px, בלי גלילה רוחבית`);
+  }
 
   // 8) מובייל: אין גלילה רוחבית בשום מסך
   const m = await ctx.newPage();

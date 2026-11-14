@@ -2,6 +2,7 @@
 // דרישה: npm run build. הרצה: node e2e/shots.mjs <תיקיית-צילומים>
 import { createRequire } from 'node:module';
 import { spawn } from 'node:child_process';
+import { smallTargets } from './lib.mjs';
 const { chromium } = createRequire(import.meta.url)('playwright');
 const out = process.argv[2] ?? 'screenshots';
 const srv = spawn('npx', ['vite', 'preview', '--port', '4319', '--strictPort'], { stdio: 'ignore' });
@@ -31,11 +32,6 @@ async function page(vp) {
   });
   return p;
 }
-// יעדי-לחיצה גלויים מתחת ל-40px (גובה או רוחב). sr-only פטור (קלט הקובץ).
-const smallTargets = () => [...document.querySelectorAll('button,a[href],select,input:not([type=hidden]),[role=button],[role=radio],summary')]
-  .filter(e => e.getClientRects().length && !e.classList.contains('sr-only') && getComputedStyle(e).visibility !== 'hidden')
-  .map(e => { const q = e.getBoundingClientRect(); return [(e.textContent || e.getAttribute('aria-label') || e.tagName).trim().slice(0, 24), Math.round(q.height), Math.round(q.width)]; })
-  .filter(([, h, w]) => h < 40 || w < 40);
 const ROUTES = ['', '#/signup', '#/login', '#/dashboard', '#/invoices', '#/inbox', '#/settings'];
 try {
   const p = await page({ width: 1366, height: 900 });

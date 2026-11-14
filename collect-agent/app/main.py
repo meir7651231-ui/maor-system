@@ -945,7 +945,9 @@ _PAGE = ('<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8">'
          '.p{{background:var(--brand);border-color:var(--brand);color:var(--brand-ink);font-weight:700}}'
          'form{{margin:0}}select{{font:inherit;padding:8px;min-height:48px;border-radius:8px;width:100%;margin-top:8px;'
          'background:var(--card);color:var(--ink);border:1px solid var(--line)}}'
-         '.f{{margin-top:18px;font-size:12px;color:var(--muted)}}</style></head>'
+         '.f{{margin-top:18px;font-size:12px;color:var(--muted)}}'
+         # הפעלה 188: קישור «לתשלום» לכל חשבונית בהודעה מאוחדת — יעד-לחיצה 40px במובייל (היה 17)
+         '.l{{display:inline-flex;align-items:center;min-height:40px;padding:0 12px;color:var(--brand)}}</style></head>'
          '<body><main class="c">{body}<p class="f">הודעה אוטומטית מטעם העסק. '
          'הקישור אישי — אל תעבירו אותו.</p></main></body></html>')
 
@@ -971,7 +973,7 @@ def landing_page(info: dict | None) -> str:
             f'<li>חשבונית {e(i["number"] or "(ללא מספר)")} — {e(i["amount"])}'
             + (f' · מועד {e(i["due"])}' if i["due"] else "")
             + ("" if info["pay_shared"] or not i["can_pay"] else
-               f' · <a href="/p/{e(i["code"])}/pay">לתשלום</a>') + "</li>" for i in items)
+               f' · <a class="l" href="/p/{e(i["code"])}/pay">לתשלום</a>') + "</li>" for i in items)
         head += f'<ul class="m" data-testid="landing-invoices">{rows}</ul>'
         pay = (f'<a class="b p" href="{base}/pay">לתשלום מאובטח</a>' if info["pay_shared"]
                else "" if any(i["can_pay"] for i in items)

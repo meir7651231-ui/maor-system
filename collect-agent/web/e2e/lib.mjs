@@ -31,3 +31,10 @@ export async function assertPortFree(port) {
   console.error(`פורט ${port} תפוס (שרת מהרצה קודמת?) — עצרו אותו והריצו שוב`);
   process.exit(1);
 }
+
+// יעדי-לחיצה גלויים מתחת ל-40px (גובה או רוחב). sr-only פטור (קלט הקובץ).
+// משותף ל-shots (מוק) ול-live (עמודי השרת /p ו-/u, הפעלה 188). רץ בתוך הדף (page.evaluate).
+export const smallTargets = () => [...document.querySelectorAll('button,a[href],select,input:not([type=hidden]),[role=button],[role=radio],summary')]
+  .filter(e => e.getClientRects().length && !e.classList.contains('sr-only') && getComputedStyle(e).visibility !== 'hidden')
+  .map(e => { const q = e.getBoundingClientRect(); return [(e.textContent || e.getAttribute('aria-label') || e.tagName).trim().slice(0, 24), Math.round(q.height), Math.round(q.width)]; })
+  .filter(([, h, w]) => h < 40 || w < 40);
