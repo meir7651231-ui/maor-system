@@ -325,6 +325,29 @@ class CollectService:
                       "created_at) VALUES(NULL,'system','owner',?,'settings_changed',1,?,?)",
                       (f"הגדרות רגישות שונו על ידי {actor}: {lines}. אם לא אתם שיניתם — בדקו מיד.",
                        f"settings_changed:{actor}", _iso(self.clock())))
+            self._email_owner_settings_changed(old_s, actor, lines)
+
+    def _email_owner_settings_changed(self, old_s: Settings, actor: str, lines: str) -> None:
+        """הפעלה 200 («הבא» 2 מ-199): ההתראה בתיבה המשותפת היא רשת ביטחון **בתוך** המערכת — מי שגנב סשן רואה
+        אותה ויכול לחכות. עכשיו גם מייל לבעל העסק, לכתובת ה-Reply-To **הקודמת** (לפני השינוי): אם התוקף החליף את
+        Reply-To לכתובת שלו, ההתראה עדיין מגיעה לבעלים האמיתי — ולעולם לא לכתובת החדשה. השליחה דרך self.sender
+        (DryRunSender עד אישור ספק). אין כתובת / אין ערוץ מייל / כשל ספק ⇒ audit בלבד, השמירה לא נכשלת."""
+        to = clean_email(old_s.email_reply_to or "")
+        if not valid_email(to) or getattr(self.sender, "email", None) is None:
+            self.audit("system", "settings_changed_email_skipped",
+                       {"reason": "no_owner_address" if not valid_email(to) else "no_email_channel"})
+            return
+        msg = Message("email", to,
+                      f"שלום,\n\nבמערכת גבי של {old_s.business_name} שונו הגדרות רגישות על ידי {actor}:\n{lines}\n\n"
+                      "אם לא אתם שיניתם — היכנסו מיד, החזירו את הערכים והחליפו סיסמאות.\n"
+                      "ההודעה נשלחה לכתובת התשובות שהייתה מוגדרת לפני השינוי.",
+                      subject=f"גבי: שינוי בהגדרות רגישות ({old_s.business_name})")
+        try:
+            mid = self.sender.send(msg)
+        except IntegrationError as e:
+            self.audit("system", "settings_changed_email_failed", {"to": to, "error": str(e)[:300]})
+            return
+        self.audit("system", "settings_changed_email_sent", {"to": to, "message": mid})
 
     # ---------- audit ----------
     def audit(self, actor: str, action: str, detail: Any = None) -> None:

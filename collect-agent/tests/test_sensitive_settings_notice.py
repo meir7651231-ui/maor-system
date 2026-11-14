@@ -109,3 +109,67 @@ def test_other_notices_unaffected(svc):
              "VALUES(NULL,'system','owner','x','max_reminders',1,'2026-11-14T10:00:00')")
     mid = svc.db.one("SELECT max(id) AS m FROM messages")["m"]
     assert svc.owner_message_done(mid, "user:1")["done"]
+
+
+# הפעלה 200 («הבא» 2 מ-199): ההתראה בתוך המערכת לא מספיקה — מי שגנב סשן רואה אותה בתיבה. מייל לבעל העסק,
+# לכתובת ה-Reply-To **הקודמת**: גם אם התוקף החליף אותה לשלו, ההודעה מגיעה לבעלים האמיתי ולא אליו.
+from dataclasses import replace as _replace  # noqa: E402
+
+from app.channels import sent_mark, sent_since  # noqa: E402
+from app.integrations.base import IntegrationError  # noqa: E402
+
+
+def _with_reply_to(svc, addr):
+    svc.update_settings({"email_reply_to": addr}, actor="owner")
+    return sent_mark(svc.sender.sent)
+
+
+def _owner_mails(svc, mark):
+    return [r for r in sent_since(svc.sender.sent, mark)
+            if r["channel"] == "email" and "הגדרות רגישות" in r["body"]]
+
+
+def test_reply_to_hijack_emails_the_previous_address_not_the_new_one(svc):
+    mark = _with_reply_to(svc, "owner@biz.example")
+    svc.update_settings({"email_reply_to": "x@evil.example", "payment_link": NEW_LINK}, actor="user:7")
+    mails = _owner_mails(svc, mark)
+    assert [m["to"] for m in mails] == ["owner@biz.example"], mails
+    assert NEW_LINK in mails[0]["body"] and "x@evil.example" in mails[0]["body"] and "user:7" in mails[0]["body"]
+    assert not [r for r in sent_since(svc.sender.sent, mark) if r["to"] == "x@evil.example"]
+    assert svc.db.q("SELECT 1 FROM audit WHERE action='settings_changed_email_sent'")
+
+
+def test_payment_link_change_emails_current_reply_to(svc):
+    mark = _with_reply_to(svc, "owner@biz.example")
+    svc.update_settings({"payment_link": NEW_LINK}, actor="user:3")
+    assert [m["to"] for m in _owner_mails(svc, mark)] == ["owner@biz.example"]
+
+
+def test_harmless_change_sends_no_mail(svc):
+    mark = _with_reply_to(svc, "owner@biz.example")
+    svc.update_settings({"extra_holidays": ["2026-12-25"]}, actor="user:3")
+    assert not _owner_mails(svc, mark)
+
+
+def test_no_owner_address_is_audited_and_save_still_succeeds(svc):
+    svc.s = _replace(svc.s, email_reply_to="")
+    mark = sent_mark(svc.sender.sent)
+    svc.update_settings({"payment_link": NEW_LINK}, actor="user:3")
+    assert svc.s.payment_link == NEW_LINK
+    assert not _owner_mails(svc, mark)
+    row = svc.db.one("SELECT detail FROM audit WHERE action='settings_changed_email_skipped'")
+    assert row and json.loads(row["detail"])["reason"] == "no_owner_address"
+
+
+def test_provider_failure_does_not_break_the_save(svc, monkeypatch):
+    _with_reply_to(svc, "owner@biz.example")
+
+    from app.channels import DryRunSender
+
+    def boom(self, msg):
+        raise IntegrationError("down")
+    monkeypatch.setattr(DryRunSender, "send", boom)   # השמירה בונה sender חדש ⇒ על המחלקה
+    svc.update_settings({"payment_link": NEW_LINK}, actor="user:3")
+    assert svc.s.payment_link == NEW_LINK
+    assert svc.db.q("SELECT 1 FROM audit WHERE action='settings_changed_email_failed'")
+    assert [m for m in svc.db.q("SELECT intent FROM messages WHERE intent='settings_changed'")]
