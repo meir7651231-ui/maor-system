@@ -188,6 +188,22 @@ wk = [p for p in d2["series"] if p.get("other")]
 assert len(wk) == 1 and wk[0]["collected_agorot"] == 210000 \
     and wk[0]["other"] == [{"currency": "USD", "collected_agorot": 50000}], d2["series"]
 print("✅ גבייה במטבע אחר: 2,100 ₪ בגרף + $500 בנפרד (בלי המרה, בלי חיבור)")
+# הפעלה 201 («הבא» 2 מ-200): שינוי הגדרות רגישות (קישור תשלום + Reply-To) ⇒ מייל לבעלים לכתובת הקודמת בלבד
+def put(path, body):
+    rq = urllib.request.Request(base + path, data=json.dumps(body).encode(), method="PUT",
+                                headers={"content-type": "application/json", **AUTH})
+    return json.loads(urllib.request.urlopen(rq, timeout=5).read())
+n0 = len(json.loads(get("/outbox"))["messages"])
+put("/api/settings", {"payment_link": "https://pay.example/gabi-other", "email_reply_to": "new-owner@example.com"})
+new = json.loads(get("/outbox"))["messages"][n0:]
+alert = [m for m in new if m["channel"] == "email" and "שינוי בהגדרות רגישות" in (m.get("subject") or "")]
+assert len(alert) == 1 and alert[0]["to"] == "owner@example.com", new
+assert "pay.example/gabi-other" in alert[0]["body"], alert[0]["body"]
+assert not any(m.get("to") == "new-owner@example.com" for m in new), "המייל נשלח לכתובת החדשה"
+assert any(m["intent"] == "settings_changed" for m in json.loads(get("/owner/inbox"))), "חסרה התראה בתיבה"
+assert any(a["action"] == "settings_changed_email_sent" for a in json.loads(get("/audit")))
+put("/api/settings", {"payment_link": "https://pay.example/gabi-demo", "email_reply_to": "owner@example.com"})
+print("✅ שינוי הגדרות רגישות: מייל לבעלים ב-/outbox לכתובת הקודמת (owner@), לא לחדשה + התראה בתיבה")
 import http.client
 hc = http.client.HTTPConnection("127.0.0.1", int(sys.argv[1]), timeout=5); hc.request("GET", "/landing")
 loc = hc.getresponse().getheader("location"); assert loc in ("/app/", "/ui"), f"/landing לא מפנה: {loc}"

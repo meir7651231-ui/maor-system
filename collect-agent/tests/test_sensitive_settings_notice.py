@@ -173,3 +173,16 @@ def test_provider_failure_does_not_break_the_save(svc, monkeypatch):
     assert svc.s.payment_link == NEW_LINK
     assert svc.db.q("SELECT 1 FROM audit WHERE action='settings_changed_email_failed'")
     assert [m for m in svc.db.q("SELECT intent FROM messages WHERE intent='settings_changed'")]
+
+
+def test_demo_check_shows_owner_email_on_sensitive_change():
+    """הפעלה 201 («הבא» 2 מ-200): ההדגמה מקצה לקצה (`demo.sh --check`, רצה ב-CI) משנה קישור תשלום + Reply-To
+    ובודקת ב-/outbox מייל אחד לכתובת הקודמת ולא לחדשה. מוטציה (שליחה ל-self.s.email_reply_to) ⇒ demo.sh נופל."""
+    from pathlib import Path
+    demo = (Path(__file__).resolve().parent.parent / "demo.sh").read_text(encoding="utf-8")
+    i = demo.index('"email_reply_to": "new-owner@example.com"')
+    tail = demo[i:i + 1500]
+    assert 'alert[0]["to"] == "owner@example.com"' in tail
+    assert '"new-owner@example.com" for m in new' in tail
+    assert "settings_changed_email_sent" in tail
+    assert '"email_reply_to": "owner@example.com"' in tail, "ההדגמה מחזירה את ההגדרות"
