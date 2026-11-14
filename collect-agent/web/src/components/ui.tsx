@@ -11,7 +11,7 @@ const VARIANT: Record<Variant, string> = {
 };
 export function Button({ variant = 'primary', size = 'md', className = '', ...p }:
   ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant; size?: 'sm' | 'md' | 'lg' }) {
-  const sz = size === 'sm' ? 'h-9 px-3 text-sm' : size === 'lg' ? 'h-13 px-7 text-lg' : 'h-11 px-5';
+  const sz = size === 'sm' ? 'h-10 sm:h-9 px-3 text-sm' : size === 'lg' ? 'h-13 px-7 text-lg' : 'h-11 px-5';
   return <button {...p} className={`inline-flex items-center justify-center gap-2 rounded-xl font-bold transition-colors disabled:opacity-50 cursor-pointer ${sz} ${VARIANT[variant]} ${className}`} />;
 }
 

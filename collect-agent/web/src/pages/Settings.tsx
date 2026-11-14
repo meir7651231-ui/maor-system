@@ -127,7 +127,7 @@ export function Settings() {
           {SOURCE_SYSTEMS.map(o => (
             <button key={o.key} role="radio" aria-checked={f.source_system === o.key} onClick={() => set('source_system', o.key)}
               data-testid={`source-${o.key}`} title={o.note}
-              className={`rounded-full px-4 py-2 text-sm font-bold border cursor-pointer ${f.source_system === o.key ? 'bg-ink-900 text-white border-ink-900' : 'bg-white border-ink-200'}`}>
+              className={`min-h-10 rounded-full px-4 py-2 text-sm font-bold border cursor-pointer ${f.source_system === o.key ? 'bg-ink-900 text-white border-ink-900' : 'bg-white border-ink-200'}`}>
               {o.label}
             </button>
           ))}
@@ -188,7 +188,7 @@ export function Settings() {
         <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="עמוד תשלום">
           {PAY.map(([k, t]) => (
             <button key={k} role="radio" aria-checked={f.pay_provider === k} onClick={() => set('pay_provider', k)}
-              className={`rounded-full px-4 py-2 text-sm font-bold border cursor-pointer ${f.pay_provider === k ? 'bg-ink-900 text-white border-ink-900' : 'bg-white border-ink-200'}`}>{t}</button>
+              className={`min-h-10 rounded-full px-4 py-2 text-sm font-bold border cursor-pointer ${f.pay_provider === k ? 'bg-ink-900 text-white border-ink-900' : 'bg-white border-ink-200'}`}>{t}</button>
           ))}
         </div>
         <Field label="כתובת עמוד התשלום" hint={err('pay_url') ?? 'https בלבד, ובדומיין של הספק שנבחר (נבדק בשרת).'}>

@@ -141,6 +141,16 @@ try {
   });
   ok(Math.abs(inv.inp - inv.sel) < 1, `מובייל: חיפוש החשבוניות לא ברוחב מלא (${inv.inp} מול ${inv.sel})`);
   ok(inv.chips.length >= 4 && inv.chips.every(([, h]) => h >= 40), 'מובייל: צ׳יפ סינון נמוך מ-40px: ' + JSON.stringify(inv.chips));
+  // הפעלה 186 (פתוח מ-185): כל יעד-לחיצה גלוי בארבעת מסכי האפליקציה ב-390px ≥40px גובה ורוחב.
+  // נמדד לפני: כפתורי size="sm" 36px (תצוגה ואישור/שולם/תזכורת), כפתורי הספקים בהגדרות 38px, לוגו הכותרת 28px.
+  for (const r of ['#/dashboard', '#/invoices', '#/inbox', '#/settings']) {
+    await m.goto(base + r); await m.waitForTimeout(300);
+    const small = await m.evaluate(() => [...document.querySelectorAll('button,a[href],select,input:not([type=hidden]),[role=button],summary')]
+      .filter(e => e.getClientRects().length && !e.classList.contains('sr-only') && getComputedStyle(e).visibility !== 'hidden')
+      .map(e => { const q = e.getBoundingClientRect(); return [(e.textContent || e.getAttribute('aria-label') || e.tagName).trim().slice(0, 24), Math.round(q.height), Math.round(q.width)]; })
+      .filter(([, h, w]) => h < 40 || w < 40));
+    ok(small.length === 0, `מובייל ${r}: יעדי-לחיצה מתחת ל-40px: ` + JSON.stringify(small));
+  }
   await m.setViewportSize({ width: 320, height: 700 });
   for (const r of ['#/dashboard', '#/invoices', '#/inbox', '#/settings']) { await m.goto(base + r); await m.waitForTimeout(300); await noHScroll(m, `320px ${r}`); }
   await m.goto(base + '#/dashboard'); await m.getByTestId('queue-find').waitFor();

@@ -35,10 +35,10 @@ export function Shell({ route, children }: { route: Route; children: ReactNode }
         <div className="flex flex-col md:sticky md:top-0 md:h-screen md:overflow-y-auto">
         {/* מובייל: לוגו + מצב חיבור תמיד גלויים (dry-run/מוק/נעול לא מוסתר) */}
         <div className="md:hidden flex items-center justify-between gap-2 px-3 pt-3">
-          <button onClick={() => go('landing')} className="cursor-pointer flex items-center gap-2" aria-label="גבי – לדף הבית"><LogoMark size={28} dark /><b className="font-display">גבי</b></button>
+          <button onClick={() => go('landing')} className="cursor-pointer flex items-center gap-2 min-h-10" aria-label="גבי – לדף הבית"><LogoMark size={28} dark /><b className="font-display">גבי</b></button>
           <span className="flex items-center gap-2 min-w-0">
             <span className="text-[11px] text-brand truncate" data-testid="mode-mobile">{modeText}</span>
-            {mode === 'live' && <button onClick={() => void logout()} className="shrink-0 text-[11px] font-bold rounded-lg border border-white/20 px-2 py-1 cursor-pointer" data-testid="logout-mobile">יציאה</button>}
+            {mode === 'live' && <button onClick={() => void logout()} className="shrink-0 min-h-10 text-[11px] font-bold rounded-lg border border-white/20 px-3 cursor-pointer" data-testid="logout-mobile">יציאה</button>}
           </span>
         </div>
         <div className="p-4 md:p-6 hidden md:block"><button onClick={() => go('landing')} className="cursor-pointer"><Logo dark /></button></div>
