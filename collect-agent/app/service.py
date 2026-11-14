@@ -349,8 +349,11 @@ class CollectService:
                       "אם לא אתם שיניתם — היכנסו מיד, החזירו את הערכים והחליפו סיסמאות.\n"
                       "ההודעה נשלחה לכתובת התשובות שהייתה מוגדרת לפני השינוי.",
                       subject=f"גבי: שינוי בהגדרות רגישות ({old_s.business_name})")
+        # הפעלה 203: דרך send_owner ⇒ לא נספר במונה «מיילים שנשלחו» (פניות ללקוחות). sender מותאם בלי
+        # send_owner ⇒ send רגיל, כמו קודם
+        send = getattr(self.sender, "send_owner", None) or self.sender.send
         try:
-            mid = self.sender.send(msg)
+            mid = send(msg)
         except IntegrationError as e:
             self.audit("system", "settings_changed_email_failed", {"to": to, "error": str(e)[:300]})
             return
@@ -2462,11 +2465,12 @@ class _CreditHeld(Exception):  # noqa: N818
 
 def _sent_count(outbox, channel: str) -> int:
     """הפעלה 182: מהמונה לכל חיי התהליך (SentLog.by_channel) — היומן עצמו בתקרה. sender מותאם
-    שמחזיק רשימה רגילה ⇒ ספירה כמו קודם."""
+    שמחזיק רשימה רגילה ⇒ ספירה כמו קודם. הפעלה 203: הודעות לבעל העסק (audience='owner') לא נספרות —
+    המונה בדשבורד = הודעות ללקוחות."""
     by = getattr(outbox, "by_channel", None)
     if by is not None:
-        return by.get(channel, 0)
-    return sum(m["channel"] == channel for m in outbox)
+        return by.get(channel, 0) - getattr(outbox, "owner_by_channel", {}).get(channel, 0)
+    return sum(m["channel"] == channel and m.get("audience") != "owner" for m in outbox)
 
 
 def _rebuild_keep_log(old: DryRunSender, s: Settings) -> DryRunSender:

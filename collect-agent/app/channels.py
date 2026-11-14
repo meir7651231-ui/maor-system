@@ -77,14 +77,30 @@ class SentLog(list):
         self.maxlen = maxlen
         self.total = 0
         self.by_channel: dict[str, int] = {}
+        # הפעלה 203: הודעות לבעל העסק (audience='owner', למשל מייל «שינוי בהגדרות רגישות») נספרות בנפרד —
+        # מונה «מיילים שנשלחו» בדשבורד = הודעות ללקוחות בלבד
+        self.owner_by_channel: dict[str, int] = {}
         for it in items:
             self.append(it)
+
+    def mark_owner(self, msg_id: str) -> None:
+        """הפעלה 203: מסמן רשומה שכבר נרשמה כהודעה לבעל העסק (audience='owner') ומעדכן את המונה הנפרד.
+        פעם אחת לכל רשומה; מזהה שלא נמצא (נדחק מהתקרה) ⇒ בלי שינוי."""
+        for rec in reversed(self):
+            if isinstance(rec, dict) and rec.get("id") == msg_id:
+                if rec.get("audience") != "owner":
+                    rec["audience"] = "owner"
+                    ch = rec.get("channel", "")
+                    self.owner_by_channel[ch] = self.owner_by_channel.get(ch, 0) + 1
+                return
 
     def append(self, rec) -> None:  # type: ignore[override]
         super().append(rec)
         self.total += 1
         ch = rec.get("channel", "") if isinstance(rec, dict) else ""
         self.by_channel[ch] = self.by_channel.get(ch, 0) + 1
+        if isinstance(rec, dict) and rec.get("audience") == "owner":
+            self.owner_by_channel[ch] = self.owner_by_channel.get(ch, 0) + 1
         if len(self) > self.maxlen:
             del self[: len(self) - self.maxlen]
 
@@ -150,6 +166,20 @@ class DryRunSender:
             out["subject"] = msg.subject
             out["html"] = msg.html
         return out
+
+    def send_owner(self, msg: Message) -> str:
+        """הפעלה 203: הודעה לבעל העסק (לא ללקוח). אותה שליחה בדיוק, והרשומה ביומן מסומנת
+        audience='owner' ⇒ לא נספרת במונה «מיילים/SMS שנשלחו» של הדשבורד (שסופר פניות ללקוחות)."""
+        mid = self.send(msg)
+        mark = getattr(self.sent, "mark_owner", None)
+        if mark is not None:
+            mark(mid)
+        else:   # רשימה רגילה (sender מותאם בבדיקות) ⇒ תיוג ישיר
+            for rec in reversed(self.sent):
+                if rec.get("id") == mid:
+                    rec["audience"] = "owner"
+                    break
+        return mid
 
     def send(self, msg: Message) -> str:
         """דרך ה-adapter עצמו (Notifier): SMS ⇒ 019, ובכשל זמני ⇒ InforU. כשל בכל הספקים ⇒

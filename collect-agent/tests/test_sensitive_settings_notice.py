@@ -253,3 +253,47 @@ def test_interactive_demo_step_8_source_guard():
     assert "show_sensitive_settings_notice(svc, out)" in inspect.getsource(demo.run_scenario)
     src = inspect.getsource(demo.show_sensitive_settings_notice)
     assert "email_reply_to\":" not in src and "\"email_reply_to\"" not in src
+
+
+# הפעלה 203 («הבא» 2 מ-202): מונה «מיילים שנשלחו» בדשבורד ספר גם את המייל לבעל העסק ⇒ אחרי שלב ⑧ בהדגמה
+# הוצג 7 במקום 5. עכשיו: הרשומה ביומן מסומנת audience='owner', נשארת ב-/outbox, ולא נספרת במונה הלקוחות.
+from app.channels import SentLog  # noqa: E402
+
+
+def test_owner_email_is_not_counted_as_customer_email_on_dashboard(svc):
+    _with_reply_to(svc, "owner@biz.example")
+    before = svc.dashboard()["totals"]["sent_email"]
+    mark = sent_mark(svc.sender.sent)
+    svc.update_settings({"payment_link": NEW_LINK}, actor="user:3")
+    mails = _owner_mails(svc, mark)
+    assert len(mails) == 1 and mails[0]["audience"] == "owner", mails
+    assert svc.dashboard()["totals"]["sent_email"] == before, "מייל לבעלים נספר כמייל ללקוח"
+    assert svc.sender.sent.by_channel["email"] >= 1, "היומן עצמו (/outbox) עדיין כולל את המייל"
+
+
+def test_customer_records_have_no_audience_key(svc):
+    """רשומות ללקוחות ביט-זהות לקודם (בלי מפתח audience)."""
+    from app.channels import Message
+    mid = svc.sender.send(Message("email", "c@example.com", "x", subject="s"))
+    rec = next(r for r in svc.sender.sent if r["id"] == mid)
+    assert "audience" not in rec
+
+
+def test_mark_owner_counts_once_and_survives_cap():
+    log = SentLog(maxlen=2)
+    log.append({"id": "a", "channel": "email"})
+    log.mark_owner("a")
+    log.mark_owner("a")   # פעמיים ⇒ נספר פעם אחת
+    assert log.owner_by_channel == {"email": 1}
+    for i in range(3):    # «a» נדחק מהתקרה — המונה לכל חיי התהליך נשמר
+        log.append({"id": f"c{i}", "channel": "email"})
+    log.mark_owner("missing")
+    assert log.by_channel["email"] == 4 and log.owner_by_channel == {"email": 1}
+    # בנייה מחדש מרשומות קיימות שומרת את הסיווג
+    assert SentLog([{"id": "o", "channel": "email", "audience": "owner"}]).owner_by_channel == {"email": 1}
+
+
+def test_plain_list_outbox_excludes_owner_records():
+    from app.service import _sent_count
+    out = [{"channel": "email"}, {"channel": "email", "audience": "owner"}, {"channel": "sms"}]
+    assert _sent_count(out, "email") == 1 and _sent_count(out, "sms") == 1
