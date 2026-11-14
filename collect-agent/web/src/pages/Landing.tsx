@@ -246,7 +246,7 @@ function TimeCalculator() {
   const [hours, setHours] = useState(4);
   const [hourly, setHourly] = useState(DEFAULT_HOURLY);
   const r = timeValue({ hoursPerMonth: hours, hourlyValue: hourly });
-  const slider = 'w-full accent-[#10B981] h-2 cursor-pointer';
+  const slider = 'w-full accent-[#10B981] h-10 cursor-pointer'; // הפעלה 187: 40px יעד-לחיצה במובייל (היה h-2 = 8px)
   return (
     <section id="time" className="bg-ink-900 text-white" aria-labelledby="time-title">
       <div className="max-w-6xl mx-auto px-4 py-20 grid md:grid-cols-2 gap-10 items-center">

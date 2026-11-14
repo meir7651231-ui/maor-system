@@ -53,7 +53,7 @@ export function Login() {
               <input id="login-pw" className={`${inputCls} pe-20`} type={show ? 'text' : 'password'} autoComplete="current-password"
                 value={f.password} onChange={e => setF({ ...f, password: e.target.value })} />
               <button type="button" onClick={() => setShow(v => !v)} aria-pressed={show} aria-label={show ? 'הסתרת התווים' : 'הצגת התווים'}
-                className="absolute inset-y-0 end-2 my-auto h-8 px-2.5 rounded-lg text-xs font-bold text-ink-700 hover:bg-ink-100 cursor-pointer">
+                className="absolute inset-y-0 end-1 my-auto h-10 min-w-10 px-2.5 rounded-lg text-xs font-bold text-ink-700 hover:bg-ink-100 cursor-pointer">
                 {show ? 'הסתרה' : 'הצגה'}
               </button>
             </div>
@@ -72,7 +72,7 @@ export function Login() {
             <CodeGate />
           </details>
         )}
-        <p className="text-center mt-5"><a href="#" className="text-sm text-ink-400 hover:text-white">← חזרה לדף הבית</a></p>
+        <p className="text-center mt-5"><a href="#" className="inline-flex min-h-10 items-center px-3 text-sm text-ink-400 hover:text-white">← חזרה לדף הבית</a></p>
       </div>
     </div>
   );

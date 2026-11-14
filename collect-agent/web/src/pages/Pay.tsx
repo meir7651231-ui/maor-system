@@ -57,7 +57,7 @@ export function Pay({ code }: { code: string }) {
                     <li key={i.code} className="flex items-center justify-between gap-2 py-2">
                       <span>חשבונית <span className="num">{i.number || '(ללא מספר)'}</span>{i.due && <> · <span className="num">{fmtDate(i.due)}</span></>}</span>
                       <span className="flex items-center gap-2"><b className="num">{i.amount}</b>
-                        {v.open && !v.pay_shared && i.can_pay && <a href={payer.goUrl(i.code, 'page')} className="rounded-lg bg-brand px-2.5 py-1 font-bold text-ink-900">לתשלום</a>}</span>
+                        {v.open && !v.pay_shared && i.can_pay && <a href={payer.goUrl(i.code, 'page')} className="inline-flex min-h-10 items-center rounded-lg bg-brand px-3 font-bold text-ink-900">לתשלום</a>}</span>
                     </li>))}
                 </ul>
               </> : <>
@@ -111,7 +111,7 @@ export function Pay({ code }: { code: string }) {
         <section className="w-full max-w-md mx-auto px-4" aria-labelledby="why-privacy" data-testid="pay-legal">
           <p className="text-sm text-ink-700 leading-relaxed">{v.legal.why}</p>
           <details className="mt-3 rounded-2xl bg-white shadow-card p-4 text-sm text-ink-700">
-            <summary id="why-privacy" className="cursor-pointer font-bold text-ink-900">פרטיות ומחיקת מידע</summary>
+            <summary id="why-privacy" className="cursor-pointer py-2.5 -my-2.5 font-bold text-ink-900">פרטיות ומחיקת מידע</summary>
             <div className="mt-3 space-y-2 leading-relaxed">
               <p>{v.legal.controller}</p><p>{v.legal.use}</p><p>{v.legal.retention}</p><p>{v.legal.contact}</p>
               <p className="text-xs text-ink-500"><span className="rounded border border-ink-200 px-1.5">{v.legal.label}</span></p>

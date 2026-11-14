@@ -31,6 +31,11 @@ async function page(vp) {
   });
   return p;
 }
+// יעדי-לחיצה גלויים מתחת ל-40px (גובה או רוחב). sr-only פטור (קלט הקובץ).
+const smallTargets = () => [...document.querySelectorAll('button,a[href],select,input:not([type=hidden]),[role=button],[role=radio],summary')]
+  .filter(e => e.getClientRects().length && !e.classList.contains('sr-only') && getComputedStyle(e).visibility !== 'hidden')
+  .map(e => { const q = e.getBoundingClientRect(); return [(e.textContent || e.getAttribute('aria-label') || e.tagName).trim().slice(0, 24), Math.round(q.height), Math.round(q.width)]; })
+  .filter(([, h, w]) => h < 40 || w < 40);
 const ROUTES = ['', '#/signup', '#/login', '#/dashboard', '#/invoices', '#/inbox', '#/settings'];
 try {
   const p = await page({ width: 1366, height: 900 });
@@ -143,13 +148,32 @@ try {
   ok(inv.chips.length >= 4 && inv.chips.every(([, h]) => h >= 40), 'מובייל: צ׳יפ סינון נמוך מ-40px: ' + JSON.stringify(inv.chips));
   // הפעלה 186 (פתוח מ-185): כל יעד-לחיצה גלוי בארבעת מסכי האפליקציה ב-390px ≥40px גובה ורוחב.
   // נמדד לפני: כפתורי size="sm" 36px (תצוגה ואישור/שולם/תזכורת), כפתורי הספקים בהגדרות 38px, לוגו הכותרת 28px.
-  for (const r of ['#/dashboard', '#/invoices', '#/inbox', '#/settings']) {
+  // הפעלה 187 (פתוח מ-186): גם דפי הציבור — נחיתה, הרשמה, כניסה — ועמוד החייב /pay/<קוד> (אחת + כמה חשבוניות).
+  // נמדד לפני: מחווני המחשבון בנחיתה 8px, «הצגה» בכניסה 32px, «חזרה לדף הבית» 21px, «לתשלום» בעמוד החייב 28px, «פרטיות ומחיקת מידע» 20px.
+  for (const r of ['#/dashboard', '#/invoices', '#/inbox', '#/settings', '', '#/signup', '#/login']) {
     await m.goto(base + r); await m.waitForTimeout(300);
-    const small = await m.evaluate(() => [...document.querySelectorAll('button,a[href],select,input:not([type=hidden]),[role=button],summary')]
-      .filter(e => e.getClientRects().length && !e.classList.contains('sr-only') && getComputedStyle(e).visibility !== 'hidden')
-      .map(e => { const q = e.getBoundingClientRect(); return [(e.textContent || e.getAttribute('aria-label') || e.tagName).trim().slice(0, 24), Math.round(q.height), Math.round(q.width)]; })
-      .filter(([, h, w]) => h < 40 || w < 40));
-    ok(small.length === 0, `מובייל ${r}: יעדי-לחיצה מתחת ל-40px: ` + JSON.stringify(small));
+    const small = await m.evaluate(smallTargets);
+    ok(small.length === 0, `מובייל ${r || 'נחיתה'}: יעדי-לחיצה מתחת ל-40px: ` + JSON.stringify(small));
+  }
+  {
+    const legal = { why: 'הודעה זו אינה הודעה פרסומית', controller: 'c', use: 'u', retention: 'r', contact: 'x', label: 'l' };
+    const one = { code: 'ABCD1234', business: 'מוסך הדגמה', number: '1001', amount: '₪1,200', amount_agorot: 120000, currency: 'ILS', due: '2026-11-01',
+      open: true, opted_out: false, can_pay: true, methods: ['page'], plan_options: [2, 3, 4], dry_run: true, pay_host: 'pay.example', pay_provider: 'ספק', legal };
+    const inv = (number, code) => ({ number, due: '2026-11-01', amount: '₪1,200', amount_agorot: 120000, code, can_pay: true });
+    const many = { ...one, pay_shared: false, total: '₪2,400', invoices: [inv('1001', 'AAAA1111'), inv('1002', 'BBBB2222')] };
+    for (const [name, view] of [['אחת', one], ['כמה', many]]) {
+      const pp = await page({ width: 390, height: 844 });
+      // base './' ⇒ ב-/pay/<קוד> הנכסים נטענים מ-/pay/assets (השרת של גבי מגיש אותם; vite preview לא)
+      await pp.route('**/pay/assets/**', r => r.fulfill({ path: 'dist/' + new URL(r.request().url()).pathname.replace(/^\/pay\//, '') }));
+      await pp.route('**/api/pay/**', r => r.fulfill({ json: view }));
+      await pp.goto(base + 'pay/ABCD1234'); await pp.getByTestId('pay-amount').waitFor();
+      await noHScroll(pp, `עמוד החייב (${name})`);
+      const small = await pp.evaluate(smallTargets);
+      ok(small.length === 0, `מובייל עמוד החייב (${name}): יעדי-לחיצה מתחת ל-40px: ` + JSON.stringify(small));
+      await pp.getByText('הפסקת תזכורות').click();
+      ok((await pp.evaluate(smallTargets)).length === 0, `עמוד החייב (${name}) אחרי «הפסקת תזכורות»: יעד <40px`);
+      await pp.close();
+    }
   }
   await m.setViewportSize({ width: 320, height: 700 });
   for (const r of ['#/dashboard', '#/invoices', '#/inbox', '#/settings']) { await m.goto(base + r); await m.waitForTimeout(300); await noHScroll(m, `320px ${r}`); }
