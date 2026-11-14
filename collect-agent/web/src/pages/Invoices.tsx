@@ -47,12 +47,13 @@ export function Invoices() {
         <h1 className="text-3xl font-extrabold">חשבוניות שלא שולמו</h1>
         <p className="text-ink-500 mt-1">{live ? 'מסונכרן מחשבונית ירוקה (sandbox מדומה)' : 'מסונכרן מחשבונית ירוקה (דמו)'} · <b className="text-ink-900 num">{rows.length}</b> חשבוניות · <b className="text-ink-900">{fmtTotal(rows)}</b></p>
       </div>
+      {/* הפעלה 185: במובייל (<640) החיפוש ברוחב מלא כמו המיון, והצ׳יפים 40px+ גובה (יעד-לחיצה) */}
       <div className="flex flex-wrap gap-3 items-center">
-        <input className={`${inputCls} max-w-xs`} type="search" placeholder="חיפוש לפי שם, מס׳ חשבונית או טלפון" value={q} onChange={e => setQ(e.target.value)} aria-label="חיפוש בחשבוניות" data-testid="inv-find" autoComplete="off" />
+        <input className={`${inputCls} sm:max-w-xs`} type="search" placeholder="חיפוש לפי שם, מס׳ חשבונית או טלפון" value={q} onChange={e => setQ(e.target.value)} aria-label="חיפוש בחשבוניות" data-testid="inv-find" autoComplete="off" />
         <div className="flex flex-wrap gap-1.5">
           {chips.map(([k, l]) => (
             <button key={k} onClick={() => setF(k)} aria-pressed={f === k} {...(k === 'drift' || k === 'paused' ? { 'data-testid': `filter-${k}` } : {})}
-              className={`rounded-full px-3.5 py-1.5 text-sm font-medium cursor-pointer ${f === k ? 'bg-ink-900 text-white' : 'bg-white border border-ink-200 hover:bg-ink-50'}`}>{l}</button>
+              className={`inline-flex min-h-10 items-center rounded-full px-3.5 py-1.5 text-sm font-medium cursor-pointer ${f === k ? 'bg-ink-900 text-white' : 'bg-white border border-ink-200 hover:bg-ink-50'}`}>{l}</button>
           ))}
         </div>
         <select className={`${inputCls} w-auto ms-auto`} value={sort} onChange={e => setSort(e.target.value as Sort)} aria-label="מיון">

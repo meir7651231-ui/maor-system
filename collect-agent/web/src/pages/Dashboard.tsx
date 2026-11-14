@@ -73,7 +73,8 @@ export function Dashboard() {
 
       <CollectionChart bars={bars} live={live} cum={cumulative(bars)} other={live ? (series ? plusOther(otherInSeries(series), 'collected_agorot') : '') : plusOther(oc, 'collected_agorot')} />
 
-      <div className="grid lg:grid-cols-[1.5fr_1fr] gap-6 items-start">
+      {/* הפעלה 185: grid-cols-1 = minmax(0,1fr) — בלי זה העמודה המובלעת ב-320px מתרחבת לשם הארוך (truncate) ויוצרת גלילה רוחבית */}
+      <div className="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-6 items-start">
         <Card className="p-5">
           <h2 className="text-lg font-extrabold mb-1">תור האישורים של היום</h2>
           <p className="text-sm text-ink-500 mb-4">גבי הכין את ההודעות. תסתכל/י, תאשר/י — והוא שולח בשעות המותרות.</p>

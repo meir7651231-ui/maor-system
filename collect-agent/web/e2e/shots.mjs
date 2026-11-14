@@ -130,6 +130,24 @@ try {
   await m.screenshot({ path: `${out}/09-mobile-preview.png` });
   await noHScroll(m, 'מובייל תצוגה מקדימה');
 
+  // הפעלה 185 (עיצוב, פתוח מ-171/174): ב-390px החיפוש בחשבוניות ברוחב מלא (היה max-w-xs ⇒ רווח 38px מול המיון),
+  // צ׳יפי הסינון ≥40px גובה (היו 34px), וב-320px הדשבורד בלי גלילה רוחבית (העמודה המובלעת התרחבה לשם הארוך)
+  await m.goto(base + '#/invoices'); await m.getByTestId('inv-find').waitFor();
+  const inv = await m.evaluate(() => {
+    const w = e => e.getBoundingClientRect().width;
+    const inp = document.querySelector('[data-testid=inv-find]');
+    return { inp: w(inp), sel: w(document.querySelector('select[aria-label="מיון"]')),
+      chips: [...inp.nextElementSibling.querySelectorAll('button')].map(c => [c.textContent, c.getBoundingClientRect().height]) };
+  });
+  ok(Math.abs(inv.inp - inv.sel) < 1, `מובייל: חיפוש החשבוניות לא ברוחב מלא (${inv.inp} מול ${inv.sel})`);
+  ok(inv.chips.length >= 4 && inv.chips.every(([, h]) => h >= 40), 'מובייל: צ׳יפ סינון נמוך מ-40px: ' + JSON.stringify(inv.chips));
+  await m.setViewportSize({ width: 320, height: 700 });
+  for (const r of ['#/dashboard', '#/invoices', '#/inbox', '#/settings']) { await m.goto(base + r); await m.waitForTimeout(300); await noHScroll(m, `320px ${r}`); }
+  await m.goto(base + '#/dashboard'); await m.getByTestId('queue-find').waitFor();
+  const qf = await m.getByTestId('queue-find').boundingBox();
+  ok(qf && qf.x >= 0 && qf.x + qf.width <= 320, '320px: חיפוש התור חורג מהמסך: ' + JSON.stringify(qf));
+  await m.setViewportSize({ width: 390, height: 844 });
+
   // לוגו: על רקע כהה — גרסת-כהה (דיו קרם); על בהיר — דיו נייבי; המטבע הירוק היחיד
   for (const [pg, url] of [[p, base + '#/dashboard'], [p, base], [m, base + '#/dashboard']]) {
     await pg.goto(url); await pg.waitForTimeout(300);
