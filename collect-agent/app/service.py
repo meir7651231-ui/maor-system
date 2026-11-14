@@ -2166,6 +2166,8 @@ class CollectService:
                                                 "status='pending_approval'")["n"],
                 "sent_sms": _sent_count(outbox, "sms"),
                 "sent_email": _sent_count(outbox, "email"),
+                # הפעלה 206: הודעות לבעל העסק (audience='owner') — מונה נפרד ותוספתי; לא נוגע במוני הלקוחות
+                "sent_owner": _owner_sent_count(outbox),
                 "owner_inbox": self.db.one("SELECT COUNT(*) n FROM messages WHERE "
                                            "needs_owner=1")["n"],
                 # review חור 7: חשבוניות CSV פתוחות שלא הופיעו בייבוא האחרון (אולי שולמו)
@@ -2471,6 +2473,15 @@ def _sent_count(outbox, channel: str) -> int:
     if by is not None:
         return by.get(channel, 0) - getattr(outbox, "owner_by_channel", {}).get(channel, 0)
     return sum(m["channel"] == channel and m.get("audience") != "owner" for m in outbox)
+
+
+def _owner_sent_count(outbox) -> int:
+    """הפעלה 206: כמה הודעות יצאו לבעל העסק (כל הערוצים) לכל חיי התהליך — מ-SentLog.owner_by_channel,
+    כך שנשאר מדויק גם אחרי תקרת היומן. sender מותאם עם רשימה רגילה ⇒ ספירת audience='owner'."""
+    owner = getattr(outbox, "owner_by_channel", None)
+    if owner is not None:
+        return sum(owner.values())
+    return sum(isinstance(m, dict) and m.get("audience") == "owner" for m in outbox)
 
 
 def _rebuild_keep_log(old: DryRunSender, s: Settings) -> DryRunSender:

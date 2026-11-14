@@ -311,3 +311,26 @@ def test_demo_check_locks_sent_email_unchanged_by_owner_mail():
     assert i_before < i_put < i_revert < i_after
     assert "assert se1 == se0" in demo
     assert '["messages"]) - n0 == 2' in demo
+
+
+# הפעלה 206 («הבא» 2 מ-203–205): מונה תוספתי `sent_owner` בדשבורד — כמה הודעות יצאו לבעל העסק.
+# מוני הלקוחות (sent_sms/sent_email) ביט-זהים; המונה נשען על owner_by_channel ⇒ שורד את תקרת היומן.
+def test_dashboard_sent_owner_counts_owner_mail_only(svc):
+    _with_reply_to(svc, "owner@biz.example")
+    t0 = svc.dashboard()["totals"]
+    svc.update_settings({"payment_link": NEW_LINK}, actor="user:3")
+    t1 = svc.dashboard()["totals"]
+    assert t1["sent_owner"] == t0["sent_owner"] + 1, (t0, t1)
+    assert (t1["sent_email"], t1["sent_sms"]) == (t0["sent_email"], t0["sent_sms"])
+
+
+def test_owner_sent_count_survives_cap_and_plain_list():
+    from app.service import _owner_sent_count
+    log = SentLog(maxlen=1)
+    log.append({"id": "a", "channel": "email"})
+    log.mark_owner("a")
+    log.append({"id": "b", "channel": "sms"})   # «a» נדחק — המונה נשמר
+    assert _owner_sent_count(log) == 1
+    out = [{"channel": "email"}, {"channel": "email", "audience": "owner"}, {"channel": "sms", "audience": "owner"}]
+    assert _owner_sent_count(out) == 2
+    assert _owner_sent_count([]) == 0

@@ -101,7 +101,7 @@ export interface DashRow {
 export interface OtherCurrency { currency: string; open_invoices: number; open_agorot: number; overdue_agorot: number; at_risk_agorot: number; collected_agorot: number }
 export interface Dashboard {
   today: string;
-  totals: { open_invoices: number; open_agorot: number; overdue_agorot: number; closed_invoices: number; pending_approval: number; sent_sms: number; sent_email: number; owner_inbox: number;
+  totals: { open_invoices: number; open_agorot: number; overdue_agorot: number; closed_invoices: number; pending_approval: number; sent_sms: number; sent_email: number; sent_owner?: number; owner_inbox: number;
     other_currency?: OtherCurrency[];
     collected_agorot?: number; recovery_rate_pct?: number; avg_days_overdue?: number; at_risk_agorot?: number;
     reminders_sent?: number; customers_messaged?: number; reply_rate_pct?: number;
