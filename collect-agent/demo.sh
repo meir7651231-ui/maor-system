@@ -11,7 +11,19 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 PORT="${PORT:-8000}"
-python3 -c "import fastapi, httpx, uvicorn" 2>/dev/null || pip install -q -e '.[dev]'
+# הפעלה 191: תלויות. היה `pip install` עיוור — במכונה שבה `pip` שייך לפייתון אחר (pip=3.13, python3=3.11)
+# ההתקנה נחתה במפרש הלא נכון וההדגמה נפלה ב-«Connection refused» בלי הסבר; וגם עם `python3 -m pip`
+# חבילת מערכת (cryptography של debian) חוסמת שדרוג. לכן: אם לפייתון של המערכת חסר משהו ⇒ `.venv` מקומי
+# (מתעלם ב-git), והוא קודם ב-PATH ⇒ כל `python3` בהמשך הסקריפט הוא של ה-venv.
+DEPS='import fastapi, httpx, uvicorn, cryptography, pydantic'
+[[ -x .venv/bin/python3 ]] && export PATH="$PWD/.venv/bin:$PATH"
+if ! python3 -c "$DEPS" 2>/dev/null; then
+  [[ -x .venv/bin/python3 ]] || { echo "▶ יוצר סביבה מקומית .venv…"; python3 -m venv .venv; }
+  export PATH="$PWD/.venv/bin:$PATH"
+  echo "▶ מתקין תלויות ב-.venv…"; python3 -m pip install -q --disable-pip-version-check -e '.[dev]'
+fi
+python3 -c "$DEPS" 2>/dev/null || {
+  echo "❌ חסרות תלויות ל-$(command -v python3): הריצו  python3 -m pip install -e '.[dev]'" >&2; exit 1; }
 # הממשק המעוצב (web/) — נבנה פעם אחת אם יש Node, ומוגש מ-/app/ (חי מול ה-API, dry-run).
 if [[ ! -f web/dist/index.html ]] && command -v npm >/dev/null 2>&1 && [[ "${SKIP_WEB:-}" != "1" ]]; then
   echo "▶ בונה את הממשק (web/)…"; (cd web && npm ci --no-audit --no-fund --silent && npm run build --silent) >/dev/null
