@@ -96,7 +96,7 @@ try {
   // critic סבב 56: תצוגה מקדימה ישנה (התזכורת נבנתה מחדש מאז) ⇒ השרת מסרב לאשר, לא יוצא דבר.
   // הפעלה 149: התצוגה נטענת מחדש לבד, עם «הסכום השתנה מ-… ל-…», בלי שורת שגיאה ובלי «פתחו שוב».
   let pv149 = 0, total149 = null;
-  await p.route('**/reminders/*/preview', async route => {
+  await inject(p, '**/reminders/*/preview', async route => {   // הפעלה 190: דרך inject ⇒ retryingRoute (GET)
     const res = await route.fetch(); const j = await res.json(); total149 = j.total_text;
     if (pv149++ === 0) { j.body_hash = 'stale-' + j.body_hash; j.total_text = '1 ₪'; }
     await route.fulfill({ response: res, json: j });

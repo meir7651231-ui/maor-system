@@ -1,6 +1,7 @@
 // הפעלה 189: ניסיון חוזר אחד ל-route.fetch של GET שנפל ב«socket hang up» (מרוץ keep-alive), ורק לו.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readdirSync, readFileSync } from 'node:fs';
 // @ts-expect-error — מודול JS בלי טיפוסים
 import { retryingRoute, makeInject } from '../e2e/lib.mjs';
 
@@ -50,4 +51,35 @@ test('שאר המתודות והשדות עוברים כרגיל; makeInject מ�
   makeInject(errs)(pg, '**/x', async (route: { fetch: () => Promise<unknown> }) => { got = await route.fetch(); });
   await handler!(r);
   assert.deepEqual(got, { ok: true, n: 2 }); assert.deepEqual(errs, []);
+});
+
+/** הפעלה 190: ui.mjs (שלב 149) יירט /preview ב-page.route ישיר עם route.fetch — עקף את retryingRoute של 189
+ *  (אותו מרוץ keep-alive). מגן-מקור: ב-e2e, כל קריאת ‎.route(…)‎ ישירה שה-callback שלה קורא ל-fetch — אסורה;
+ *  יירוט שמביא את התשובה האמיתית עובר דרך makeInject. (fulfill מוק בלי fetch — מותר, כמו shots.mjs.) */
+export function directRouteFetches(src: string): number[] {
+  const hits: number[] = [];
+  const re = /\.route\(/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(src))) {
+    let i = m.index + m[0].length, depth = 1;
+    while (i < src.length && depth > 0) { const c = src[i++]; if (c === '(') depth++; else if (c === ')') depth--; }
+    if (/\.fetch\(/.test(src.slice(m.index, i))) hits.push(src.slice(0, m.index).split('\n').length);
+  }
+  return hits;
+}
+
+test('מגן-מקור: אין page.route ישיר עם route.fetch ב-e2e (רק דרך makeInject)', () => {
+  const dir = new URL('../e2e/', import.meta.url);
+  const bad: string[] = [];
+  for (const f of readdirSync(dir)) {
+    if (!f.endsWith('.mjs') || f === 'lib.mjs') continue;
+    for (const line of directRouteFetches(readFileSync(new URL(f, dir), 'utf8'))) bad.push(`${f}:${line}`);
+  }
+  assert.deepEqual(bad, []);
+});
+
+test('המגן תופס יירוט ישיר עם fetch, ולא fulfill/unroute/inject', () => {
+  assert.deepEqual(directRouteFetches("x;\nawait p.route('**/a', async r => { const res = await r.fetch(); await r.fulfill({ response: res }); });"), [2]);
+  assert.deepEqual(directRouteFetches("await pp.route('**/api/pay/**', r => r.fulfill({ json: view }));"), []);
+  assert.deepEqual(directRouteFetches("await p.unroute('**/a'); await inject(p, '**/b', async r => { await r.fetch(); });"), []);
 });
