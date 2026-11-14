@@ -19,7 +19,7 @@ def test_no_bare_pip_install():
 
 
 def test_venv_fallback_before_first_python_use():
-    i_venv = CODE.index("python3 -m venv .venv")
+    i_venv = CODE.index('"$PY" -m venv .venv')  # 194: המפרש שנבחר (3.11+), לא python3 עיוור
     i_path = CODE.index('export PATH="$PWD/.venv/bin:$PATH"')
     i_mock = CODE.index("python3 -m app.gi_mock")
     assert i_path < i_mock and i_venv < i_mock

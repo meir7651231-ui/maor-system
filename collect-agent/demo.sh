@@ -16,9 +16,23 @@ PORT="${PORT:-8000}"
 # חבילת מערכת (cryptography של debian) חוסמת שדרוג. לכן: אם לפייתון של המערכת חסר משהו ⇒ `.venv` מקומי
 # (מתעלם ב-git), והוא קודם ב-PATH ⇒ כל `python3` בהמשך הסקריפט הוא של ה-venv.
 DEPS='import fastapi, httpx, uvicorn, cryptography, pydantic'
+# הפעלה 194 (QA macOS): הפרויקט דורש Python 3.11+ (pyproject), אבל python3 של macOS הוא 3.9 ⇒ ה-.venv
+# נוצר מ-3.9 וה-pip נפל בשגיאת נעילה לא מובנת. לכן: בודקים גרסה, בוחרים מפרש 3.11+ מ-PATH
+# (python3.13/3.12/3.11 של brew), ו-.venv שנוצר ממפרש ישן נבנה מחדש. תואם bash 3.2 (ראו test_demo_sh_portable).
+PY_OK='import sys; sys.exit(sys.version_info < (3, 11))'
+if [[ -x .venv/bin/python3 ]] && ! .venv/bin/python3 -c "$PY_OK" 2>/dev/null; then
+  echo "▶ .venv נוצר מפייתון ישן מ-3.11 — יוצר מחדש"; rm -rf .venv
+fi
 [[ -x .venv/bin/python3 ]] && export PATH="$PWD/.venv/bin:$PATH"
-if ! python3 -c "$DEPS" 2>/dev/null; then
-  [[ -x .venv/bin/python3 ]] || { echo "▶ יוצר סביבה מקומית .venv…"; python3 -m venv .venv; }
+if ! python3 -c "$PY_OK" 2>/dev/null || ! python3 -c "$DEPS" 2>/dev/null; then
+  PY=""
+  for c in python3 python3.13 python3.12 python3.11; do
+    if command -v "$c" >/dev/null 2>&1 && "$c" -c "$PY_OK" 2>/dev/null; then PY="$c"; break; fi
+  done
+  [[ -n "$PY" ]] || {
+    echo "❌ דרוש Python 3.11 ומעלה (נמצא: $(python3 --version 2>&1 || echo 'אין python3'))." >&2
+    echo "   macOS:  brew install python@3.12   ·   Debian/Ubuntu:  apt install python3.11-venv" >&2; exit 1; }
+  [[ -x .venv/bin/python3 ]] || { echo "▶ יוצר סביבה מקומית .venv ($("$PY" --version 2>&1))…"; "$PY" -m venv .venv; }
   export PATH="$PWD/.venv/bin:$PATH"
   # critic סבב 70: מהנעילה עם sha256 (כמו ה-CI), לא '.[dev]' פתוח — ג'וב demo-clean מריץ את הסקריפט הזה ב-CI
   echo "▶ מתקין תלויות ב-.venv (נעולות, sha256)…"
