@@ -132,7 +132,44 @@ def run_scenario(svc: CollectService, fake, out: Callable[[str], None] = print) 
     out(f"   נגבה: {collected_text(d)} (מטבע אחר מוצג בנפרד, בלי המרה)")
     assert [(o["currency"], o["collected_agorot"]) for o in d["other_currency"]] == [("USD", 50000)], \
         d["other_currency"]
+    show_sensitive_settings_notice(svc, out)
     return d
+
+
+DEMO_WORKER = "עובד/ת (דמו)"
+DEMO_OTHER_LINK = "https://pay.example/gabi-other"
+
+
+def show_sensitive_settings_notice(svc: CollectService, out: Callable[[str], None] = print) -> None:
+    """הפעלה 202 («הבא» 2 מ-201): שלב ⑧ בהדגמה האינטראקטיבית — עובד מחליף את קישור התשלום ⇒ מייל לבעל העסק
+    לכתובת ה-Reply-To שהייתה מוגדרת (owner@) + התראה בתיבה שנשארת פתוחה ב-/ui. אחר כך בעל העסק מחזיר את הקישור
+    (כדי שהקישורים ב-SMS ימשיכו להוביל לדף הדמו) ומסמן «טופל» רק את ההתראה על השינוי שלו עצמו.
+    רק קישור התשלום משתנה: שינוי Reply-To והחזרתו היו שולחים את מייל ההחזרה לכתובת הזמנית ומבלבלים.
+    המיילים לא נרשמים בטבלת messages ⇒ מגיני ה-outbox ללקוחות לא מושפעים; הם כן נספרים ב-/outbox."""
+    owner_to = svc.s.email_reply_to
+    mark = sent_mark(svc.sender.sent)
+    svc.update_settings({"payment_link": DEMO_OTHER_LINK}, DEMO_WORKER)
+    mails = [m for m in sent_since(svc.sender.sent, mark)
+             if m["channel"] == "email" and "שינוי בהגדרות רגישות" in m.get("subject", "")]
+    assert len(mails) == 1 and mails[0]["to"] == owner_to, mails
+    assert DEMO_OTHER_LINK in mails[0]["body"], mails[0]["body"]
+    out(f"⑧ {DEMO_WORKER} החליף/ה את קישור התשלום ל-{DEMO_OTHER_LINK} ⇒")
+    out(f"   ✉️  מייל לבעל העסק → {mails[0]['to']} (הכתובת שהייתה מוגדרת, dry-run)"
+        f"  נושא: {mails[0]['subject']}")
+    notice = svc.db.one("SELECT id FROM messages WHERE intent='settings_changed' AND needs_owner=1 "
+                        "AND message_id=?", (f"settings_changed:{DEMO_WORKER}",))
+    assert notice, "חסרה התראת settings_changed בתיבה"
+    out(f"   🔔 התראה #{notice['id']} בתיבת בעל העסק (/ui) — נשארת פתוחה")
+    mark = sent_mark(svc.sender.sent)
+    svc.update_settings({"payment_link": DEMO_PAY_LINK}, "owner")
+    assert svc.s.payment_link == DEMO_PAY_LINK
+    back = [m for m in sent_since(svc.sender.sent, mark) if m["channel"] == "email"]
+    assert [m["to"] for m in back] == [owner_to], back
+    mine = svc.db.one("SELECT id FROM messages WHERE intent='settings_changed' AND needs_owner=1 "
+                      "AND message_id='settings_changed:owner'")
+    if mine:
+        svc.owner_message_done(mine["id"], "owner")
+    out(f"   ↩️  בעל העסק החזיר את הקישור ל-{DEMO_PAY_LINK} (מייל אישור נוסף → {owner_to})")
 
 
 def collected_text(totals: dict) -> str:

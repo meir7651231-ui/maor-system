@@ -222,3 +222,34 @@ def test_unlinker_cannot_dismiss_own_unlink_alert(svc):
     with pytest.raises(ValueError, match="עובד אחר"):
         svc.owner_message_done(mid, "user:1")
     assert svc.owner_message_done(mid, "user:2")["done"]
+
+
+def test_interactive_demo_shows_owner_email_step_8():
+    """הפעלה 202 («הבא» 2 מ-201): ההדגמה האינטראקטיבית (./demo.sh, app/demo.py) — לא רק --check — מציגה בלוג
+    את שלב ⑧: עובד מחליף קישור תשלום ⇒ מייל לבעל העסק ל-owner@ + התראה פתוחה בתיבה; בעל העסק מחזיר את הקישור
+    (הקישורים ב-SMS ממשיכים לדף הדמו) וסוגר רק את ההתראה על השינוי שלו."""
+    from app.demo import DEMO_OTHER_LINK, DEMO_PAY_LINK, DEMO_WORKER, build_demo_service, run_scenario
+    svc, fake, _ = build_demo_service()
+    lines: list[str] = []
+    t = run_scenario(svc, fake, out=lines.append)
+    assert t["owner_inbox"] == 2   # הסיכום של ⑦ לא השתנה
+    assert any(x.startswith("⑧") and DEMO_OTHER_LINK in x for x in lines), lines[-5:]
+    assert any("owner@example.com" in x and "שינוי בהגדרות רגישות" in x for x in lines)
+    mails = [m for m in svc.sender.sent if "שינוי בהגדרות רגישות" in (m.get("subject") or "")]
+    assert [m["to"] for m in mails] == ["owner@example.com", "owner@example.com"]
+    assert svc.s.payment_link == DEMO_PAY_LINK
+    open_ = svc.db.q("SELECT message_id FROM messages WHERE intent='settings_changed' AND needs_owner=1")
+    assert [r["message_id"] for r in open_] == [f"settings_changed:{DEMO_WORKER}"]
+    acts = [r["action"] for r in svc.db.q("SELECT action FROM audit")]
+    assert acts.count("settings_changed_email_sent") == 2
+
+
+def test_interactive_demo_step_8_source_guard():
+    """מגן-מקור: השלב רץ מתוך run_scenario (ולכן גם בשרת ההדגמה), ומשנה רק את קישור התשלום — שינוי Reply-To
+    והחזרתו היו שולחים את מייל ההחזרה לכתובת הזמנית."""
+    import inspect
+
+    from app import demo
+    assert "show_sensitive_settings_notice(svc, out)" in inspect.getsource(demo.run_scenario)
+    src = inspect.getsource(demo.show_sensitive_settings_notice)
+    assert "email_reply_to\":" not in src and "\"email_reply_to\"" not in src
