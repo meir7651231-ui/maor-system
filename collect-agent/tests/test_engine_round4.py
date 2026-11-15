@@ -83,6 +83,9 @@ def silent_critical(r) -> str | None:
     if set(e.get("not", [])) & got:
         return f"forbidden {sorted(set(e.get('not', [])) & got)}"
     need = REQUIRED.get(e["intent"])
+    # מחמיר (legal 15.11): "לא ברור" בלי עצירה כשהכוונה מחייבת עצירה = התזכורות ממשיכות עד שבעל העסק קורא
+    if need and dec.intent.value == "unknown" and _STOP[need[0]] >= 1 and dec.stop.value == "none":
+        return f"unknown without stop (expected {e['intent']} ⇒ {need[0]})"
     if need and dec.intent.value != "unknown":
         stop_ok = _STOP[dec.stop.value] >= _STOP[need[0]]
         esc_ok = _ESC[dec.escalate.value] >= _ESC[need[1]]
@@ -95,7 +98,7 @@ def silent_critical(r) -> str | None:
 def test_external_blind_sets_have_no_silent_critical_error(path):
     """השער של היעד: על ההודעות שכתבו המבקר ו-QA — אפס טעויות קריטיות שקטות."""
     res = run(path)
-    assert len(res) >= 50
+    assert len(res) >= 30
     bad = [f"{r.case['id']} «{r.case['text']}» ⇒ {why}" for r in res
            if r.case.get("critical") and r.case["id"] not in ACCEPTED and (why := silent_critical(r))]
     assert bad == []

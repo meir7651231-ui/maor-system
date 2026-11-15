@@ -5,3 +5,10 @@
 {"id": "lk05", "text": "האם יש לכם עורך דין שמטפל בגבייה?", "ctx": {"channel": "sms"}, "expect": {"intent": "unknown", "not": ["legal"]}, "critical": true}
 {"id": "lk06", "text": "ומה יקרה אם לא אשלם עד סוף החודש?", "ctx": {"channel": "sms"}, "expect": {"intent": "unknown", "not": ["dispute"]}, "critical": true}
 {"id": "lk07", "text": "ההעברה שלי לא עברה, יש דרך אחרת לשלם?", "ctx": {"channel": "sms"}, "expect": {"intent": "how_to_pay", "not": ["dispute", "paid_claim"]}, "critical": true}
+{"id": "lk08", "text": "נא למחוק את כל הנתונים שלי מהמאגר", "ctx": {"channel": "email"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "lk09", "text": "תפסיקו כבר להציק עם התזכורות", "ctx": {"channel": "email"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
+{"id": "lk10", "text": "לפי חוק הגנת הפרטיות, מה שמור אצלכם עליי?", "ctx": {"channel": "email"}, "expect": {"intent": "legal", "escalate": "urgent"}, "critical": true}
+{"id": "lk11", "text": "הבת שלי בכיתה ו׳ ענתה לכם מהטלפון שלי", "ctx": {"channel": "email"}, "expect": {"intent": "minor", "escalate": "urgent"}, "critical": true}
+{"id": "lk12", "text": "קיבלתי את זה בטעות, אני לא אבי", "ctx": {"channel": "email"}, "expect": {"intent": "wrong_person", "stop": "permanent", "no_pii": true}, "critical": true}
+{"id": "lk13", "text": "מצורפת קבלה מהבנק על ההעברה", "ctx": {"channel": "email"}, "expect": {"intent": "paid_claim", "stop": "pause"}, "critical": true}
+{"id": "lk14", "text": "יש עליי תיק איחוד, משלם רק דרך הלשכה", "ctx": {"channel": "email"}, "expect": {"intent": "cant_pay", "escalate": "urgent", "stop": "pause", "tags": ["insolvency"]}, "critical": true}
