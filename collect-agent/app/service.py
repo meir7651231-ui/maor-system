@@ -1811,8 +1811,33 @@ class CollectService:
         text = self.LANDING_TEXT[action]
         if action == "plan" and installments:
             text += f" ב-{int(installments)} תשלומים"
-        res = self._handle(cust, "web", text)
+        with self.db.lock:   # בדיקה+יצירה כיחידה אחת (שתי לחיצות מהירות לא עוקפות את הדדופ)
+            dup = self._landing_duplicate(cust["id"], text)
+            if dup is not None:
+                self.audit("customer", "landing_duplicate", {"customer": cust["id"], "action": action,
+                                                             "draft": dup})
+                return {"action": action, "ok": True, "duplicate": True, "draft_id": dup}
+            res = self._handle(cust, "web", text)
         return {"action": action, "ok": True, **res}
+
+    LANDING_DEDUPE_MIN = 30
+
+    def _landing_duplicate(self, cid: int, text: str) -> int | None:
+        """הפעלה 210: «שילמתי»/פריסה כפולים מעמוד החייב. PRG (209) לא מכסה לחיצה כפולה מהירה,
+        שליחה משני מכשירים או «חזרה» לטופס ושליחה מחדש — כל אחת יצרה כרטיס נוסף אצל בעל העסק (ובפריסה:
+        הסדר נוסף, והכרטיס הקודם נשאר מצביע על הסדר שנדחה). אותו טקסט בדיוק מאותו לקוח מהעמוד, תוך
+        LANDING_DEDUPE_MIN דקות, כשהכרטיס שנוצר ממנו עדיין פתוח ⇒ המזהה שלו (בלי פעולה חדשה).
+        בעל העסק כבר הכריע / עבר הזמן / טקסט אחר (מספר תשלומים אחר) ⇒ None, פעולה רגילה."""
+        m = self.db.one("SELECT body, created_at FROM messages WHERE customer_id=? AND direction='in' "
+                        "AND channel='web' ORDER BY id DESC LIMIT 1", (cid,))
+        at = _dt(m["created_at"]) if m else None
+        if not m or m["body"] != text or at is None or \
+                self.clock() - at > timedelta(minutes=self.LANDING_DEDUPE_MIN):
+            return None
+        d = self.db.one("SELECT id FROM drafts WHERE customer_id=? AND channel='web' AND created_at>=? "
+                        "AND status IN ('pending_approval','needs_owner') ORDER BY id DESC LIMIT 1",
+                        (cid, m["created_at"]))
+        return d["id"] if d else None
 
     def email_webhook(self, sender: str, text: str, message_id: str = "", *,
                       auth_results: str = "") -> dict:
