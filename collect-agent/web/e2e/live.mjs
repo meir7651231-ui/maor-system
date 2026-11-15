@@ -3,21 +3,20 @@
 import { createRequire } from 'node:module';
 import { spawn, execFileSync } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
-import { mkdtempSync, existsSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { assertPortFree, makeInject, smallTargets, srvStdio, srvLogLevel, waitHealthy } from './lib.mjs';
+import { assertPortFree, tempDir, trackProc, makeInject, smallTargets, srvStdio, srvLogLevel, waitHealthy } from './lib.mjs';
 const { chromium } = createRequire(import.meta.url)('playwright');
 const out = process.argv[2];
 const PORT = 8141, base = `http://127.0.0.1:${PORT}`;
 const TOKEN = randomBytes(32).toString('base64url'); // קוד גישה חד-פעמי לבדיקה (השרת דורש 32+ תווים)
 const ROOT = new URL('../..', import.meta.url).pathname;
 // שער 6: עובד דמו אמיתי (מייל+סיסמה+סוד TOTP בקובץ זמני) — כמו demo.sh --check, רק דרך הדפדפן
-const STAFF = { email: 'dana@example.co.il', password: 'demo-pass-12345', secretFile: join(mkdtempSync(join(tmpdir(), 'gabi-e2e-')), 'totp') };
+const STAFF = { email: 'dana@example.co.il', password: 'demo-pass-12345', secretFile: join(tempDir('gabi-e2e-'), 'totp') }; // נמחק ביציאה (lib.mjs)
 await assertPortFree(PORT);
-const srv = spawn('python3', ['-m', 'uvicorn', 'app.main:_lazy_app', '--factory', '--port', String(PORT), '--log-level', srvLogLevel()],
+const srv = trackProc(spawn('python3', ['-m', 'uvicorn', 'app.main:_lazy_app', '--factory', '--port', String(PORT), '--log-level', srvLogLevel()],
   { cwd: ROOT, env: { ...process.env, DEMO: '1', OWNER_API_TOKEN: TOKEN,
-    DEMO_USER_EMAIL: STAFF.email, DEMO_USER_PASSWORD: STAFF.password, DEMO_USER_SECRET_FILE: STAFF.secretFile }, stdio: srvStdio('server-live') });
+    DEMO_USER_EMAIL: STAFF.email, DEMO_USER_PASSWORD: STAFF.password, DEMO_USER_SECRET_FILE: STAFF.secretFile }, stdio: srvStdio('server-live') }));
 // קוד ה-TOTP נגזר משעון הדמו הקבוע (app/demo.py DEMO_NOW) ומאותו מימוש בשרת (app/totp.py)
 const totpCode = () => execFileSync('python3', ['-c',
   'import sys; from app import totp; from app.demo import DEMO_NOW; print(totp.code_at(open(sys.argv[1]).read().strip(), DEMO_NOW.timestamp()))',

@@ -1,4 +1,4 @@
-# STATUS — גבי, תזכורות תשלום · שלב 1 · עודכן 6.11.2026 (סבב אינטגרציה, הפעלה 21 · מנהל: הפעלה 221, 15.11)
+# STATUS — גבי, תזכורות תשלום · שלב 1 · עודכן 6.11.2026 (סבב אינטגרציה, הפעלה 21 · מנהל: הפעלה 222, 15.11)
 
 ענף אינטגרציה: `collect-agent` (לא מוזג ל-main, ולא ימוזג בלי אישור מפורש של מאיר). תיקייה: `collect-agent/`.
 
@@ -14,6 +14,28 @@
 ## 📌 הכרעות מאיר — מחייבות כל תפקיד (6.11.2026)
 - **מחיר יחיד:** ₪119 לחודש **או** ₪1,190 לשנה · 14 ימי ניסיון. **אין ₪79**, אין A/B, אין מסלולים או מחירונים אחרים. מקור יחיד: `docs/PRICING.md` · בקוד: `Settings.price_ils_month=119`, `price_ils_year=1190`, `trial_days=14` · בדף הנחיתה: `PRICE` ב-`web/src/pages/Landing.tsx`. (ניסוח המע״מ «כולל מע״מ ככל שחל» — עדיין לאישור רו״ח/עו״ד, `docs/PRICING.md`.)
 - **אין הרשמה לשום חשבון sandbox** (חשבונית ירוקה, 019, InforU, Twilio, ספק מייל) **בלי אישור מפורש של מאיר.** עד אז כל הפיתוח והבדיקות מול `app/gi_mock.py` ו-DryRunSender בלבד; פריטי «לאמת» נשארים פתוחים.
+
+## 🧭 הפעלת מנהל · 15.11.2026 (הפעלה 222)
+- **מיזוג:** אין ענפי `claude/*` חדשים עם שינוי ב-`collect-agent/`. ‏`stoic-mccarthy-23f03p` — נדחה ומכוסה (107) · `bold-bell-xom3mc` — נעצר לפי מאיר. ה-workflow `collect-agent.yml` קיים ומריץ רק על `collect-agent/`.
+- **CI:** ריצה 709 (`52a5c36c`, 221) **ירוקה** ⇒ (1) מ-221 סגור. מקומית לפני השינוי: pytest מלא **2676 passed / 19 skipped**; `test_marketing_price_always_with_vat_and_yearly` עוברת.
+- **המשימה:** «הבא» (3) מ-221 — **QA: שאריות של בדיקות הדפדפן ב-`web/e2e/`.** נמצאו שתיים, בכל ריצה (גם בהצלחה):
+  - `live.mjs` השאיר ב-TMPDIR את `gabi-e2e-*/totp` — **סוד ה-TOTP של עובד הדמו**.
+  - `beta.mjs` השאיר 4 תיקיות `gabi-beta-*` עם sqlite של נתוני הענפים.
+  - ובנוסף: SIGINT/SIGTERM ל-`live.mjs` עקף את `process.on('exit')` (ברירת המחדל של node) ⇒ **שרת יתום על 8141**.
+  - **תיקון:** `tempDir(prefix)` + `trackProc(p)` ב-`e2e/lib.mjs`: מחיקה ביציאה רגילה / חריגה / SIGINT⇒130 / SIGTERM⇒143; שרתים רשומים נהרגים (SIGKILL) **לפני** ה-rm (לקח 221). `live.mjs` ו-`beta.mjs` עברו אליו. שאר הסקריפטים כותבים רק לתיקיית הצילומים שמועברת להם.
+- **ננעל:** `web/tests/e2e-tmp.check.ts` (6): kill לפני rm · תהליך node אמיתי עם TMPDIR פרטי — יציאה רגילה/חריגה/SIGINT/SIGTERM ⇒ ריק, 0/1/130/143 · מגן-מקור: אין `mkdtemp`/`tmpdir()` ישיר ב-`e2e/*.mjs` מחוץ ל-lib. **מוטציות:** בלי hook ל-SIGINT ⇒ 1 נופלת · rm לפני kill ⇒ 2 · בלי hook ל-exit ⇒ 5 · `live.mjs` הישן ⇒ מגן-המקור נופל.
+- **אומת מקומית:** `npm test` (web) **81/81** · typecheck נקי · `npm run build` · `node e2e/live.mjs` ו-`node e2e/beta.mjs` עם TMPDIR פרטי ⇒ עוברים, TMPDIR ריק · SIGINT ל-`live.mjs` אחרי 4 שניות ⇒ 130, TMPDIR ריק, הפורט פנוי.
+- **מצב לפי תפקיד:**
+  - פיתוח — בלי חסם. הבא: הצגת `sent_owner` אחרי הכרעת הביקורת.
+  - ביקורת — סבב 88: (א) הצגת `sent_owner` — מחכה להכרעה (מ-214). (ב) סגירת (ג) מ-186. (ג) הצהרת הנגישות. (ד) `wait` בתוך cleanup של demo.sh (מ-221).
+  - עיצוב — לאשר `ui-12-open-list.png` / `ui-13-open-list-mobile.png` (CI, `web-e2e-shots`) · צבעי סטטוס (ניגודיות).
+  - AI — לפני סבב 6: להריץ גם `tests/test_critic_round79_engine.py`.
+  - QA — ✅ shell (221) ו-`web/e2e` (222) לא משאירים קבצים זמניים. הבא: `web/scripts/concepts-*` (סקריפטי עיצוב) — לבדוק לאן הם כותבים.
+  - חיבורים — `CONTRACT_VERIFIED` ‏False עד מסמך API של 019 + חשבון בדיקה (מאיר). ⚠️ תיקייה זמנית ב-e2e = `tempDir` מ-`e2e/lib.mjs` (מגן-מקור).
+  - משפטי — placeholders ב-`/p`, `/u` ובהצהרת הנגישות ממתינים לפרטי החברה המפעילה. אחרי שינוי ב-`legal/` — להריץ `marketing/legal-pages/build.py`.
+  - שיווק/מכירות — חבילות מוכנות לחתימת מאיר.
+- **הבא (פיתוח):** (1) לבדוק שריצת ה-CI של הקומיט הזה ירוקה (ג׳וב ה-web/e2e עם `tempDir`). (2) אם הביקורת מאשרת — הצגת `sent_owner`. (3) QA — `web/scripts/concepts-*`.
+- **חסמים (מאיר):** ללא שינוי (sandbox לספקים, ניסוח מע״מ, פרטי החברה המפעילה, מסמך API של 019, ענף `bold-bell-xom3mc`).
 
 ## 🧭 הפעלת מנהל · 15.11.2026 (הפעלה 221)
 - **מיזוג:** אין ענפי `claude/*` חדשים עם שינוי ב-`collect-agent/`. ‏`stoic-mccarthy-23f03p` — נדחה ומכוסה (107) · `bold-bell-xom3mc` — נעצר לפי מאיר. ענפי `bridge-gabi-engine-*`/`gabi-*` לא נוגעים בתיקייה. ה-workflow `collect-agent.yml` קיים ומריץ רק על `collect-agent/`.

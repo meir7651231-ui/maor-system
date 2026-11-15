@@ -1,6 +1,32 @@
-// עזרים משותפים לבדיקות הדפדפן (live.mjs, ui.mjs, rebuild.mjs, notices.mjs).
-import { mkdirSync, openSync } from 'node:fs';
+// עזרים משותפים לבדיקות הדפדפן (live.mjs, ui.mjs, rebuild.mjs, notices.mjs, beta.mjs).
+import { mkdirSync, mkdtempSync, openSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+/** הפעלה 222 (QA, «הבא» 3 מ-221): live.mjs השאיר ב-TMPDIR תיקייה עם סוד ה-TOTP של עובד הדמו, ו-beta.mjs ארבע
+ *  תיקיות עם sqlite של נתוני הענף — בכל ריצה, גם בהצלחה. tempDir יוצר תיקייה זמנית ומוחק אותה ביציאה (רגילה,
+ *  חריגה שלא נתפסה, SIGINT⇒130, SIGTERM⇒143). שרתים שנרשמו ב-trackProc נהרגים (SIGKILL) *לפני* המחיקה — אחרת
+ *  שרת שעוד עולה כותב את הסוד אחרי ה-rm (אותו לקח כמו demo.sh, הפעלה 221). */
+const _temps = new Set(), _procs = new Set();
+let _hooked = false;
+export function cleanupTemps() {
+  for (const p of _procs) { try { if (p.exitCode === null && p.signalCode === null) p.kill('SIGKILL'); } catch { /* כבר מת */ } }
+  for (const d of _temps) { try { rmSync(d, { recursive: true, force: true }); } catch { /* מחיקה נכשלה — לא מפילים יציאה */ } }
+  _temps.clear();
+}
+function hookExit() {
+  if (_hooked) return;
+  _hooked = true;
+  process.on('exit', cleanupTemps);
+  process.once('SIGINT', () => process.exit(130));
+  process.once('SIGTERM', () => process.exit(143));
+}
+export function tempDir(prefix) {
+  hookExit();
+  const d = mkdtempSync(join(tmpdir(), prefix));
+  _temps.add(d);
+  return d;
+}
+export function trackProc(p) { hookExit(); _procs.add(p); return p; }
 /** stdio לשרת שהבדיקה מרימה. עם E2E_LOG_DIR (ב-CI: תיקיית הצילומים, שעולה כ-artifact בכישלון) stdout+stderr
  *  של השרת נכתבים ל-<שם>.log; בלי המשתנה — 'ignore', כמו קודם. הפעלה 156: כשל נדיר של live.mjs (154) ו-460
  *  לא ניתנו לאבחון בדיעבד כי הפלט של השרת נזרק. */

@@ -4,10 +4,8 @@
 // דרישה: npm run build. הרצה: node e2e/beta.mjs [תיקיית-צילומים]
 import { createRequire } from 'node:module';
 import { spawn } from 'node:child_process';
-import { mkdtempSync } from 'node:fs';
-import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { assertPortFree, srvStdio, srvLogLevel, waitHealthy } from './lib.mjs';
+import { assertPortFree, tempDir, trackProc, srvStdio, srvLogLevel, waitHealthy } from './lib.mjs';
 const { chromium } = createRequire(import.meta.url)('playwright');
 const root = new URL('../..', import.meta.url).pathname;
 const out = process.argv[2];
@@ -23,15 +21,15 @@ try {
     const TOKEN = (await import('node:crypto')).randomBytes(32).toString('base64url');
     const H = { Authorization: `Bearer ${TOKEN}` };
     await assertPortFree(P); await assertPortFree(G);
-    const gi = spawn('python3', ['-m', 'app.gi_mock', '--port', String(G), '--seed', v], { cwd: root, stdio: srvStdio(`gi-beta-${v}`) });
+    const gi = trackProc(spawn('python3', ['-m', 'app.gi_mock', '--port', String(G), '--seed', v], { cwd: root, stdio: srvStdio(`gi-beta-${v}`) }));
     const env = { ...process.env, OWNER_API_TOKEN: TOKEN, GREENINVOICE_ENV: 'mock',
       GREENINVOICE_MOCK_URL: `http://127.0.0.1:${G}/api/v1`, GREENINVOICE_API_ID: 'demo-id', GREENINVOICE_API_SECRET: 'demo-secret',
       BUSINESS_NAME: biz, SMS_SENDER_ID: 'GabiDemo', PAYMENT_LINK_MODE: 'static', PAYMENT_LINK: 'https://pay.example/gabi-demo',
       PAYMENT_DOMAINS: 'pay.example', EMAIL_FROM: 'gabi@example.com', EMAIL_REPLY_TO: 'owner@example.com',
-      PUBLIC_BASE_URL: `http://127.0.0.1:${P}`, DB_PATH: join(mkdtempSync(join(tmpdir(), 'gabi-beta-')), 'gabi.db') };
+      PUBLIC_BASE_URL: `http://127.0.0.1:${P}`, DB_PATH: join(tempDir('gabi-beta-'), 'gabi.db') }; // נמחק ביציאה (lib.mjs)
     delete env.DEMO;
-    const srv = spawn('python3', ['-m', 'uvicorn', 'app.main:_lazy_app', '--factory', '--port', String(P), '--log-level', srvLogLevel()],
-      { cwd: root, env, stdio: srvStdio(`server-beta-${v}`) });
+    const srv = trackProc(spawn('python3', ['-m', 'uvicorn', 'app.main:_lazy_app', '--factory', '--port', String(P), '--log-level', srvLogLevel()],
+      { cwd: root, env, stdio: srvStdio(`server-beta-${v}`) }));
     try {
       await waitHealthy(`http://127.0.0.1:${G}`, gi, { name: 'mock של חשבונית ירוקה', path: '/api/v1/users/me', anyStatus: true });
       const base = `http://127.0.0.1:${P}`;
