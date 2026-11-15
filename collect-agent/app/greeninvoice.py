@@ -35,6 +35,11 @@ CREDIT_TYPES = (TYPE_CREDIT,)
 CREDIT_STATUSES = (0, 1, 2)          # לא 3/4: זיכוי שבוטל לא מקטין כלום
 SUCCESSOR_TYPES = (305, 320)         # מה ש-300 יכול להפוך אליו (חשבונית מס · חשבונית מס/קבלה)
 SUCCESSOR_CLOSED_STATUSES = (1, 2)   # ה-305 כבר שולם/נסגר, וה-300 נשאר «פתוח» אצל morning
+# גבייה סוכן (15.11, יעד «אף לקוח ששילם לא מקבל תזכורת»): קבלה שהופקה על חשבונית שעדיין «פתוחה»
+# (העסק לא סגר אותה/לא קישר) = כנראה שולם. לא מנחשים: הלקוח עוצר ל-review עד שבעל העסק בודק.
+TYPE_RECEIPT = 400
+RECEIPT_TYPES = (TYPE_RECEIPT,)
+RECEIPT_STATUSES = (0, 1, 2)          # לא 3/4: קבלה שבוטלה לא מעידה על תשלום
 
 
 def token_body(api_id: str, api_secret: str) -> dict[str, str]:
@@ -197,7 +202,7 @@ class Netting:
 
 
 def net_credits(debts: list[Invoice], credits: list[Invoice],
-                successors: list[Invoice] = ()) -> Netting:
+                successors: list[Invoice] = (), receipts: list[Invoice] = ()) -> Netting:
     """טהור. ממצא מבקר 2.16 — שמרני: מקזזים רק כשהשיוך חד-משמעי. כל ספק ⇒ review ללקוח
     (גבי לא מזכירה ללקוח הזה עד שבעל העסק בודק), ולעולם לא מקטינים חוב לפי ניחוש.
 
@@ -239,6 +244,22 @@ def net_credits(debts: list[Invoice], credits: list[Invoice],
             review.append((d, "credit_after_partial"))
             continue
         credit_on[d.external_id] = credit_on.get(d.external_id, 0) + c.amount_agorot
+    # קבלות: מקושרת לחוב פתוח ⇒ review (שולם, המסמך לא נסגר). לא מקושרת, אבל אותו לקוח ואותו
+    # סכום בדיוק כמו חוב פתוח שהונפק לפניה ⇒ review. אף פעם לא סוגרים/מקטינים לפי ניחוש.
+    for rc in receipts:
+        if rc.amount_agorot <= 0:
+            continue
+        targets = {replaced.get(lid, lid) for lid in rc.linked_ids}
+        hit = [by_id[t] for t in sorted(targets) if t in open_ids]
+        if hit:
+            review.extend((d, "receipt_linked_open") for d in hit)
+            continue
+        if rc.linked_ids:
+            continue   # מקושרת למסמך שכבר סגור ⇒ אין על מה להזכיר ממילא
+        for d in debts:
+            if d.external_id in open_ids and rc.amount_agorot in (d.amount_agorot, d.gross_agorot) \
+                    and _same_client(d, rc) and (not d.issued or not rc.issued or rc.issued >= d.issued):
+                review.append((d, "receipt_unlinked_match"))
     out: list[Invoice] = []
     for d in debts:
         if d.external_id in replaced:
@@ -251,6 +272,13 @@ def net_credits(debts: list[Invoice], credits: list[Invoice],
         if d.amount_agorot > 0:
             out.append(d)
     return Netting(out, review)
+
+
+def _same_client(a: Invoice, b: Invoice) -> bool:
+    if a.client_external_id and b.client_external_id:
+        return a.client_external_id == b.client_external_id
+    ea, eb = (a.client_email or "").strip().lower(), (b.client_email or "").strip().lower()
+    return bool(ea) and ea == eb
 
 
 class GreenInvoiceClient:
@@ -426,7 +454,9 @@ class GreenInvoiceClient:
             successors = list(self._iter_docs(
                 types=SUCCESSOR_TYPES, statuses=SUCCESSOR_CLOSED_STATUSES, from_date=pstart,
                 page_size=page_size, max_pages=max_pages))
-        return net_credits(debts, credits, successors)
+        receipts = list(self._iter_docs(types=RECEIPT_TYPES, statuses=RECEIPT_STATUSES,
+                                        from_date=start, page_size=page_size, max_pages=max_pages))
+        return net_credits(debts, credits, successors, receipts)
 
     def iter_open_invoices(self, page_size: int = 50, max_pages: int = 200) -> Iterator[Invoice]:
         """גולמי — **לפני** קיזוז זיכויים והמרות 300⇒305. הסנכרון משתמש ב-open_debts()."""
