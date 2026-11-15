@@ -34,8 +34,14 @@ class SafetyError(RuntimeError):
     """הפרת מעקה-בטיחות של שלב 1."""
 
 
+# שער «אישור רשימת הפתוחות» (גבייה סוכן, 15.11): ברירת מחדל דלוק. בדיקות ישנות מכבות דרך conftest.
+OPEN_REVIEW_DEFAULT = "1"
+
 @dataclass(frozen=True)
 class Settings:
+    # מבקר סבב 1 #2: «פתוח בחשבונית ירוקה» ≠ «לא שולם» (ביט/העברה בלי סגירת מסמך). תזכורת נבנית
+    # רק על חשבונית שבעל העסק אישר ברשימת הפתוחות (POST /open-list/confirm).
+    open_review: bool = True
     greeninvoice_env: str = "sandbox"
     greeninvoice_api_id: str = ""
     greeninvoice_api_secret: str = field(default="", repr=False)  # לא לדלוף ל-repr/לוג
@@ -146,8 +152,10 @@ class Settings:
 
 def load_settings(env: dict[str, str] | None = None) -> Settings:
     e = os.environ if env is None else env
+    open_review = e.get("OPEN_REVIEW", OPEN_REVIEW_DEFAULT).strip().lower() in ("1", "true", "yes")
     hol = tuple(x.strip() for x in e.get("HOLIDAYS", "").split(",") if x.strip())
     return Settings(
+        open_review=open_review,
         greeninvoice_env=e.get("GREENINVOICE_ENV", "sandbox"),
         greeninvoice_api_id=e.get("GREENINVOICE_API_ID", ""),
         greeninvoice_api_secret=e.get("GREENINVOICE_API_SECRET", ""),

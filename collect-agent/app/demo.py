@@ -76,6 +76,10 @@ def run_scenario(svc: CollectService, fake, out: Callable[[str], None] = print) 
     r = svc.sync()
     out(f"① סנכרון חשבונית ירוקה (sandbox מדומה): {r['open']} חשבוניות פתוחות")
     assert r == {"open": 10, "closed": 0}, r
+    pending = [x["id"] for x in svc.open_list()["pending"]]
+    if pending:   # שער «אישור רשימת הפתוחות»: בעל העסק מאשר שכל החשבוניות בדמו עדיין פתוחות
+        svc.confirm_open_list(pending, [], actor="owner:demo")
+        out(f"①ב בעל העסק אישר את רשימת הפתוחות ({len(pending)} חשבוניות) — רק עליהן תיבנה תזכורת")
     created = svc.plan()
     out(f"② הוכנו {len(created)} תזכורות — כולן ממתינות לאישור בעל העסק"
         " (לגל שרון: הודעה אחת על 3 חשבוניות)")

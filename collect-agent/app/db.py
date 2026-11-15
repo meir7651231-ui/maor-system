@@ -153,6 +153,12 @@ class DB:
         if "source" not in icols:  # api | csv — ר-4: CSV לא ניתן לרענון ⇒ תוקף 24 שעות מהייבוא
             self.conn.execute("ALTER TABLE invoices ADD COLUMN source TEXT NOT NULL DEFAULT 'api'")
             self.conn.commit()
+        if "open_reviewed_at" not in icols:  # שער «אישור רשימת הפתוחות» — מתי בעל העסק אישר שהחוב פתוח
+            self.conn.execute("ALTER TABLE invoices ADD COLUMN open_reviewed_at TEXT")
+            self.conn.commit()
+        if "owner_paid_at" not in icols:  # בעל העסק סימן «שולם מחוץ למערכת» ⇒ סנכרון לא פותח מחדש
+            self.conn.execute("ALTER TABLE invoices ADD COLUMN owner_paid_at TEXT")
+            self.conn.commit()
         if "credit_agorot" not in icols:  # ממצא 2.16: זיכוי שקוזז (amount_agorot = נטו) — לרענון
             self.conn.execute("ALTER TABLE invoices ADD COLUMN credit_agorot INTEGER NOT NULL DEFAULT 0")
             self.conn.commit()
