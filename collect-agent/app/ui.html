@@ -68,6 +68,11 @@ button.resume{margin-inline-start:6px;padding:4px 10px;min-height:32px;font-size
 .sk.w{width:60%}.sk.big{height:24px;width:50%;margin-bottom:8px}.skitem{display:grid;gap:10px}
 @keyframes sk{50%{opacity:.45}}
 @media (prefers-reduced-motion:reduce){.sk{animation:none}}
+#ol{border-color:var(--warn);margin-bottom:12px}#ol[hidden]{display:none}#ol ul{list-style:none;margin:0;padding:0}
+#ol li{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--line)}
+#ol li .who{flex:1;min-width:180px}#ol li .mk{display:flex;gap:6px}#ol li .mk button{min-height:36px;padding:4px 12px;font-size:14px}
+#ol li .mk button[aria-pressed="true"]{background:var(--brand);border-color:var(--brand);color:var(--brand-ink);font-weight:600}
+#ol li .mk button.paid[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--card)}
 .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 </style>
 </head>
@@ -90,6 +95,11 @@ button.resume{margin-inline-start:6px;padding:4px 10px;min-height:32px;font-size
 <div class="err loaderr" id="locked" role="alert" hidden><span id="lockMsg"></span><button id="btnLogin" class="primary">כניסה</button></div>
 <div id="dash">
   <div class="kpis" id="kpis"></div>
+  <section class="card" id="ol" hidden aria-labelledby="olH"><h2 id="olH"></h2>
+    <p class="slogan">לפני תזכורת ראשונה: מה עדיין פתוח, ומה כבר שולם בביט, במזומן או בהעברה? על מה שלא סימנתם לא תצא תזכורת.</p>
+    <ul id="olList"></ul><div class="decide"><button class="primary" id="olOk" disabled>אישור (0)</button><button id="olAll">הכול עדיין פתוח</button></div>
+    <div class="err" id="olErr" role="alert"></div></section>
+  <div class="note" id="olDone" role="status" hidden></div>
   <section class="card"><div class="row"><h2>חובות פתוחים וסטטוס תזכורות</h2><span class="slogan" id="today"></span></div><input type="search" class="find" id="dFind" placeholder="חיפוש לפי שם לקוח, מספר חשבונית או טלפון" aria-label="חיפוש בחובות" autocomplete="off" hidden><div class="qf" id="df" role="group" aria-label="סינון החובות"></div>
     <div class="tbl"><table><thead><tr><th>לקוח</th><th>חשבונית</th><th>סכום</th><th>מועד</th><th>איחור</th>
     <th>תזכורות שנשלחו</th><th>סטטוס אחרון</th></tr></thead><tbody id="debts"></tbody></table></div><div id="dmore"></div></section>
@@ -168,7 +178,7 @@ function skel(){if(got.d&&got.q)return;
   if(!got.q)$("#list").innerHTML=Array(3).fill(`<div class="card skitem" aria-hidden="true"><span class="sk w"></span>${SK}</div>`).join("");
   $("#dash").setAttribute("aria-busy","true");$("#list").setAttribute("aria-busy","true");$("#busyMsg").textContent="טוען נתונים…"}
 function lock(had){locked=true;stale=false;clearTimeout(rt);sel=shown=null;$("#detail").removeAttribute("aria-busy");try{sessionStorage.removeItem(TOK)}catch(e){}got={d:false,q:false};busyOff();
-  for(const i of ["#kpis","#debts","#list","#df","#dmore","#qf","#qmore"])$(i).innerHTML="";dQ=qQ="";for(const i of ["#dFind","#qFind"]){$(i).value="";$(i).hidden=true}$("#today").textContent="";
+  for(const i of ["#kpis","#debts","#list","#df","#dmore","#qf","#qmore"])$(i).innerHTML="";$("#olList").innerHTML="";olItems=[];olMark={};$("#ol").hidden=$("#olDone").hidden=true;dQ=qQ="";for(const i of ["#dFind","#qFind"]){$(i).value="";$(i).hidden=true}$("#today").textContent="";
   $("#detail").innerHTML='<div class="empty">בחרו תזכורת כדי לראות תצוגה מקדימה של SMS ומייל</div>';
   $("#loaderr").hidden=$("#wunk").hidden=$("#acterr").hidden=true;hdr();
   $("#lockMsg").textContent=had?"תוקף הכניסה פג. הנתונים הוסרו מהמסך. היכנסו שוב כדי להמשיך"
@@ -211,7 +221,38 @@ async function loadDash(ask){
     ["דורש טיפול שלך",t.owner_inbox,t.owner_inbox>0],["נסגרו (שולמו)",t.closed_invoices]];
   $("#kpis").innerHTML=k.map(([l,v,w])=>`<div class="card kpi ${w?"warn":""}"><div class="v">${esc(v)}</div><div class="l">${esc(l)}</div></div>`).join("");
   dRows=d.invoices;drawDebts();
+  await loadOpen(t.open_unreviewed||0);
 }
+// הפעלה 214: שער «אישור רשימת הפתוחות» (critic 79) — ב-/app/ יש כרטיס (OpenListCard), אבל בעל עסק שעובד רק
+// ב-/ui (הדשבורד הפשוט, גם מה ש-demo.sh פותח בלי build) לא ראה כלום: חשבונית חדשה מסנכרון/CSV ממתינה לאישור,
+// גבי לא מתזכר עליה, ושום דבר במסך לא אומר למה. עכשיו: open_unreviewed>0 ב-/dashboard ⇒ כרטיס עם הממתינות
+// מ-/open-list, «עדיין פתוח» / «כבר שולם» לכל אחת, ו«אישור» שולח POST /open-list/confirm. סימון נשמר בין רענונים
+// (לפי מזהה); מה שכבר לא ממתין יורד. כשל בטעינת הרשימה לא מפיל את הדשבורד — הכרטיס מציג את המונה ואת השגיאה.
+let olItems=[],olMark={},olBusy=false;
+async function loadOpen(n){
+  if(!n){olItems=[];olMark={};return drawOpen()}
+  try{const r=await api("/open-list",{},false);olItems=r.enabled?r.pending:[];$("#olErr").textContent=""}
+  catch(e){if(e.auth)return;olItems=[];$("#olErr").textContent="רשימת הממתינות לא נטענה: "+e.message}
+  const live=new Set(olItems.map(i=>String(i.id)));for(const k in olMark)if(!live.has(k))delete olMark[k];
+  drawOpen(n)}
+function drawOpen(n=0){
+  const c=$("#ol"),cnt=olItems.length||n;c.hidden=!cnt;if(!cnt){$("#olList").innerHTML="";return}
+  $("#olH").textContent=(cnt===1?"חשבונית אחת מחכה":`יש ${cnt} חשבוניות שמחכות`)+" לאישור שלך";
+  $("#olList").innerHTML=olItems.map(i=>{const m=olMark[i.id];return `<li data-oid="${i.id}"><div class="who"><strong>${esc(i.customer)}</strong>
+    <div class="slogan">חשבונית ${esc(i.number)} · ${esc(fmtCur(i.amount_agorot,i.currency))}${i.due?` · לתשלום עד ${esc(i.due.split("-").reverse().join("."))}`:""}${i.source==="csv"?" · מקובץ CSV":""}</div></div>
+    <div class="mk" role="group" aria-label="חשבונית ${esc(i.number)}"><button type="button" data-m="open" aria-pressed="${m==="open"}"${olBusy?" disabled":""}>עדיין פתוח</button><button type="button" class="paid" data-m="paid" aria-pressed="${m==="paid"}"${olBusy?" disabled":""}>כבר שולם</button></div></li>`}).join("");
+  const k=Object.keys(olMark).length;$("#olOk").textContent=`אישור (${k})`;$("#olOk").disabled=olBusy||!k||locked;
+  $("#olAll").disabled=olBusy||!olItems.length||locked}
+$("#olList").addEventListener("click",e=>{const b=e.target.closest("button[data-m]");if(!b||olBusy)return;
+  const id=b.closest("li").dataset.oid;if(olMark[id]===b.dataset.m)delete olMark[id];else olMark[id]=b.dataset.m;drawOpen()});
+$("#olAll").onclick=()=>{for(const i of olItems)olMark[i.id]="open";drawOpen()};
+$("#olOk").onclick=async()=>{const ids=m=>Object.keys(olMark).filter(k=>olMark[k]===m).map(Number);
+  const open=ids("open"),paid=ids("paid");if(!open.length&&!paid.length)return;
+  olBusy=true;drawOpen();$("#olErr").textContent="";$("#olDone").hidden=true;
+  try{await api("/open-list/confirm",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({still_open:open,paid})});
+    olMark={};$("#olDone").textContent=`נשמר: ${open.length} פתוחות${paid.length?` · ${paid.length} סומנו כשולמו ולא יתוזכרו`:""}`;$("#olDone").hidden=false}
+  catch(e){failed(e,m=>{$("#olErr").textContent="האישור לא נשמר: "+m})}
+  finally{olBusy=false;await load()}};
 // הפעלה 167: טבלת החובות ציירה את כל החשבוניות (גם שנסגרו) בכל רענון. על 5,000 חשבוניות: 5,000 שורות ב-DOM,
 // 4.5–5.1 שנ׳ עד שהטבלה הופיעה (מעבד מואט ×4). עכשיו, כמו התור (165): ברירת מחדל «פתוחות» (סגורות מאחורי «הכול»)
 // ועד DPAGE שורות לפי סדר השרת (המועד המוקדם ראשון); «הצגת עוד» מוסיף עוד DPAGE. הסינון בצד הלקוח בלבד.
