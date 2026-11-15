@@ -264,7 +264,8 @@ class ConversationInbox:
         if d.stop == Stop.PAUSE:
             # רק הבטחה משתחררת לבד ⇒ רק לה יש תאריך בסיבה; השאר נקי לדשבורד ("paid_claim")
             auto_release = d.intent == Intent.PROMISE and d.pause_until
-            base = next((t for t in ("minor", "deceased", "insolvency") if t in d.tags), d.intent.value)
+            base = next((t for t in ("minor", "deceased", "insolvency", "channel_pref", "foreign_language")
+                         if t in d.tags), d.intent.value)
             reason = base + (f":until={d.pause_until.isoformat()}" if auto_release else "")
             old = (self.db.one("SELECT paused_reason FROM customers WHERE id=?", (cid,))["paused_reason"]
                    or "")

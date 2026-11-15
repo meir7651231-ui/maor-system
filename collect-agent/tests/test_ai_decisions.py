@@ -94,7 +94,7 @@ def test_foreign_language_detection(text, lang):
 def test_foreign_language_pauses_and_escalates_without_reply(inbox, svc):
     res = inbox.handle("sms", DANA, "Я уже оплатил счёт")
     assert res["intent"] == "unknown" and "foreign_language" in res["tags"]
-    assert res["stop"] == "pause" and cust(svc)["paused_reason"] == "unknown"
+    assert res["stop"] == "pause" and cust(svc)["paused_reason"] == "foreign_language"  # סבב 10ב: סיבה ייעודית
     assert cust(svc)["opted_out"] == 0                    # לא מסירים — רק עוצרים ומעבירים
     assert inbox.drafts()[0]["status"] == "needs_owner" and inbox.drafts()[0]["body"] == ""
 

@@ -119,7 +119,8 @@ const PAUSE={paid_claim:"כתב/ה ששילם/ה. בדקו בחשבון ואז �
   dispute:"יש מחלוקת על החשבונית",legal:"הוזכר עניין משפטי",distress:"נראה שהלקוח/ה במצוקה. כדאי לפנות אישית",
   callback:"ביקש/ה שתחזרו אליו/ה",wrong_person:"כתב/ה שזה לא המספר הנכון",abusive:"תגובה פוגענית. כדאי לטפל אישית",
   credit_review:"יש זיכוי שלא שויך לחשבונית. בדקו ואז חדשו",minor:"סימנתם: קטין/ה",deceased:"סימנתם: נפטר/ה",
-  insolvency:"סימנתם: הליך חדלות פירעון"};
+  insolvency:"סימנתם: הליך חדלות פירעון",channel_pref:"ביקש/ה ערוץ אחר (מייל/SMS). עדכנו ערוץ ואז חדשו",
+  foreign_language:"כתב/ה בשפה זרה. כדאי לענות אישית"};
 const pause=r=>{const [b,u]=String(r).split(":until=");const t=BLOCK[b]||PAUSE[b]||"מושהה עד שתבדקו";
   return u?t+" · עד "+u.split("-").reverse().join("."):t};
 const BLOCK={no_contact:"אין נייד או מייל תקין",compliance:"נחסם במסנן הניסוח",plan_active:"בהסדר תשלומים",disputed:"מחלוקת",no_payment_link:"אין קישור תשלום",
