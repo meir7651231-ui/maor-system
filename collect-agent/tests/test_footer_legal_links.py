@@ -41,3 +41,13 @@ def test_app_landing_links_legal_pages():
     t = (ROOT / "web/src/pages/Landing.tsx").read_text(encoding="utf-8")
     for target in ("terms.html", "privacy.html", "accessibility.html"):
         assert f'href="{target}"' in t, target
+
+
+def test_static_landing_links_every_vertical_page_and_library():
+    """דפי הענף וספריית הנוסחים לא יתומים: הדף הסטטי מקשר לכל אחד, והקישור מגיע לקובץ קיים (15.11)."""
+    page = MK / "landing/index.html"
+    hrefs = set(re.findall(r'href="([^"#]+\.html)"', page.read_text(encoding="utf-8")))
+    targets = {*(p.resolve() for p in (MK / "landing/for").glob("*.html")), (MK / "library/index.html").resolve()}
+    linked = {(page.parent / h).resolve() for h in hrefs}
+    assert targets <= linked, sorted(str(t.relative_to(ROOT)) for t in targets - linked)
+    assert all(t.is_file() for t in linked if "marketing" in str(t))
