@@ -19,3 +19,6 @@
 {"id": "lk19", "text": "you have the wrong number", "ctx": {"channel": "email"}, "expect": {"intent": "wrong_person", "stop": "permanent"}, "critical": true}
 {"id": "lk20", "text": "I dispute this, the repair was never completed", "ctx": {"channel": "email"}, "expect": {"intent": "dispute", "escalate": "urgent"}, "critical": true}
 {"id": "lk21", "text": "המייל הזה של המשרד, הוא עזב את החברה", "ctx": {"channel": "email"}, "expect": {"intent": "wrong_person", "stop": "permanent"}, "critical": true}
+{"id": "lk22", "text": "לא בסמס בבקשה, רק במייל", "ctx": {"channel": "email"}, "expect": {"intent": "unknown", "stop": "pause", "escalate": "normal", "tags": ["channel_pref"], "not": ["opt_out"]}, "critical": true}
+{"id": "lk23", "text": "אל תשלחו לי מיילים, רק הודעה לנייד", "ctx": {"channel": "email"}, "expect": {"intent": "unknown", "stop": "pause", "escalate": "normal", "tags": ["channel_pref"], "not": ["opt_out"]}, "critical": true}
+{"id": "lk24", "text": "אל תשלחו לי יותר שום מייל או סמס", "ctx": {"channel": "email"}, "expect": {"intent": "opt_out", "stop": "permanent"}, "critical": true}
