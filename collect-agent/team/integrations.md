@@ -118,3 +118,22 @@ app/greeninvoice.py             + מתודה ציבורית post() (רפקטור
   - סטטוס סופי לא נדרס, ו-webhook כפול לא מטופל פעמיים.
 - ⚠️ **חוזה ה-DLR של 019 לא מאומת** (שמות שדות וקודים), כמו השליחה. הפענוח סובלני (`shipment_id`/`msg_id`/`id`, ‏`status`/`dlr_status`/`status_text`), ולכן קוד מספרי לא מוכר נשאר `unknown` עד שיגיע מסמך רשמי.
 - **הוכחה:** `tests/test_dlr.py` (12 בדיקות, דרך ה-webhook האמיתי עם המפתח) · מוטציה 4/4 · **622 בדיקות עוברות**.
+
+## 11. בדיקת חוזה מול ה-sandbox — עשר דקות ביום האישור
+`scripts/gi_contract_check.py`: אותו חוזה ש-`tests/test_gi_contract.py` נועל מול ה-mock (28 בדיקות), בגרסה שרצה מול שרת אמיתי. **קריאה בלבד.** אין מפתחות בקוד, והסוד והטוקן לא מודפסים.
+```bash
+python3 -I scripts/gi_contract_check.py                                   # mock בתוך התהליך
+python3 -I scripts/gi_contract_check.py --mock-url http://127.0.0.1:8791/api/v1
+GREENINVOICE_API_ID=… GREENINVOICE_API_SECRET=… python3 -I scripts/gi_contract_check.py --sandbox --json sandbox-report.json
+```
+- **17 בדיקות:** טוקן (+grant_type, סוד שגוי, בלי טוקן), users/me, צורת החיפוש, עימוד, תקרת pageSize, סוג פסול, שדות המסמך שהמיפוי צריך (כולל dueDate, ‏amountDueVat ו-linkedDocumentIds), פרטי קשר או השלמה מ-/clients/{id}, ‏GET /documents/{id} (ר-4) ו-404, ‏map_document על הכול, ‏iter_open_invoices, וחיפוש/שליפת לקוח.
+- **SKIP (כתיבה, בכוונה):** payments/form, יצירה/עדכון/מחיקה של לקוח, webhook.
+- **פלט:** PASS / GAP (השרת שונה מההנחה, לא שובר) / FAIL / SKIP. כל GAP/FAIL ⇒ מעדכנים את `gi_mock.py`/`greeninvoice.py`, ואז מריצים `pytest tests/test_gi_contract.py`.
+- **מעקות:** `--sandbox` בלי שני משתני הסביבה ⇒ יציאה 2 בלי שום בקשה. כתובת שאינה sandbox או 127.0.0.1 ⇒ סירוב. במקום assert יש `need()`, כי ב-`python -O` כל assert נמחק.
+- **הוכחה:**
+  - מול mock בתוך התהליך: **15 PASS, ‏2 GAP, ‏0 FAIL, ‏3 SKIP** (קוד יציאה 0).
+  - מול gi_mock כשרת HTTP אמיתי: **16 PASS, ‏1 GAP, ‏0 FAIL**.
+  - אותה תוצאה גם ב-`python -O`.
+  - `tests/test_contract_check_script.py` (4 בדיקות): רץ בלי FAIL, לא שולח בקשות כתיבה והנתונים לא משתנים, אין סוד או טוקן בפלט, בלי מפתחות אין שום בקשה, וכתובת production נדחית.
+  - מוטציה: הדפסת הטוקן או בקשת כתיבה ⇒ בדיקה נכשלת.
+- **ה-GAP שנמצא מול ה-mock (ממצא אמיתי):** במסמכי הדמו אין `amountDueVat` ואין `linkedDocumentIds`. לכן תשלום חלקי נראה רק דרך `amount`, וזיכויים/המרות לא נבדקים בדמו. ב-sandbox לבדוק אם השדות קיימים.
