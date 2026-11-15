@@ -57,3 +57,30 @@ def test_claims_are_actually_present():
     for pat, _, key in CLAIMS:
         assert re.search(pat, allt), f"הטענה {key} לא נמצאה באף נכס — הדפוס לא תופס"
     assert CODE["ladder"] == (1, 7, 14) and CODE["short_end"] == "12:00"
+
+
+# ───────── מסכי הממשק (web/src) — הטקסט שבעל העסק והלקוח שלו רואים ─────────
+SCREENS = sorted([*(ROOT / "web/src/pages").glob("*.tsx"), *(ROOT / "web/src/components").glob("*.tsx")])
+_COMMENTS = re.compile(r"/\*.*?\*/|\{/\*.*?\*/\}|(?<![:\"'])//[^\n]*", re.S)
+# מותר במפורש: הסבר מסנן הניסוח לבעל העסק («המילה "חוב"» = למה הטיוטה נחסמה)
+SCREEN_ALLOWED = ('המילה "חוב"',)
+
+
+def _visible(p):
+    t = _COMMENTS.sub(" ", p.read_text(encoding="utf-8"))
+    for a in SCREEN_ALLOWED:
+        t = t.replace(a, " ")
+    return t
+
+
+@pytest.mark.parametrize("p", SCREENS, ids=lambda p: p.name)
+def test_screen_copy(p):
+    """team/messaging.md §3: «חשבונית פתוחה», לא «חוב» · אין הבטחות לעתיד («בקרוב») · אין ז'רגון פנימי
+    (MVP) · אין מילים אסורות · כל מספר (מחיר/ניסיון/תזכורות/שעות) = הקוד."""
+    t = _visible(p)
+    bad = [w for w in ("חוב", "בקרוב", "MVP", "וואטסאפ", "WhatsApp", "העוזר לגביית", "מובטח", "לפני מע״מ")
+           if re.search(r"(?<![א-ת])[הבלמושכ]{0,2}חוב(?![א-ת])" if w == "חוב" else re.escape(w), t)]
+    assert not bad, bad
+    for pat, conv, key in CLAIMS:
+        for m in re.finditer(pat, t):
+            assert conv(m.group(1)) == CODE[key], (key, m.group(0))

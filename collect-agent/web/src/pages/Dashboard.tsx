@@ -63,7 +63,7 @@ export function Dashboard() {
       {live && <OpenListCard count={totals?.open_unreviewed ?? 0} />}
       <section aria-label="מדדי גבייה" className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4" data-testid="kpis">
         <Kpi hero label="נגבה" value={fmtIls(collected)} sub={sub(live ? `${totals?.closed_invoices ?? 0} חשבוניות שולמו` : 'יוני–נובמבר', 'collected_agorot')} tone="good" />
-        <Kpi hero label="שיעור החזר" value={`${recovery}%`} sub={oc?.length ? 'מסך החוב ב-₪' : 'מסך החוב'} tone="good" meter={recovery} />
+        <Kpi hero label="שיעור החזר" value={`${recovery}%`} sub={oc?.length ? 'מסך החשבוניות הפתוחות ב-₪' : 'מסך החשבוניות הפתוחות'} tone="good" meter={recovery} />
         <Kpi label="פתוח לגבייה" value={fmtIls(k.openTotal)} sub={sub(`${k.openCount} חשבוניות`, 'open_agorot')} />
         <Kpi label="באיחור" value={fmtIls(k.overdueTotal)} sub={sub(`${k.overdueCount} חשבוניות`, 'overdue_agorot')} tone="late" />
         <Kpi label="ממוצע ימי איחור" value={String(t?.avg_days_overdue ?? k.avgDaysLate)} sub="ימים" />
@@ -128,8 +128,8 @@ export function Dashboard() {
 
         <div className="space-y-6">
           <Card className="p-5">
-            <h2 className="text-lg font-extrabold mb-3">גיל החוב</h2>
-            <div className="flex h-4 rounded-full overflow-hidden bg-ink-100" role="img" aria-label="התפלגות גיל החוב">
+            <h2 className="text-lg font-extrabold mb-3">כמה זמן החשבוניות פתוחות</h2>
+            <div className="flex h-4 rounded-full overflow-hidden bg-ink-100" role="img" aria-label="התפלגות לפי זמן פתיחה">
               {(Object.keys(aging) as Aging[]).map(a => aging[a] > 0 && <div key={a} className={AGING_COLOR[a]} style={{ width: `${(aging[a] / agingTotal) * 100}%` }} />)}
             </div>
             <ul className="mt-3 space-y-1.5 text-sm">

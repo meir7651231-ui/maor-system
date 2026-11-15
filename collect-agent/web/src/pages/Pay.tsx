@@ -70,7 +70,7 @@ export function Pay({ code }: { code: string }) {
             {done ? <DoneCard done={done} planN={planN} business={v.business} /> : v.open && (
               <>
                 {many && !v.pay_shared ? (many.some(i => i.can_pay) ? null
-                  : <p className="rounded-2xl bg-amber-50 text-amber-800 p-4">קישור התשלום עוד לא זמין — בעל העסק יעדכן בקרוב.</p>)
+                  : <p className="rounded-2xl bg-amber-50 text-amber-800 p-4">קישור התשלום עוד לא זמין — בעל העסק יעדכן אתכם.</p>)
                 : v.can_pay ? (
                   <section className="space-y-2.5" aria-label="אמצעי תשלום">
                     <a href={payer.goUrl(code, 'page')} data-testid="pay-page"
@@ -82,7 +82,7 @@ export function Pay({ code }: { code: string }) {
                       {v.pay_host && v.pay_host !== v.pay_provider && <> · <span dir="ltr" className="num">{v.pay_host}</span></>}. גבי לא רואה פרטי תשלום.
                     </p>
                   </section>
-                ) : <p className="rounded-2xl bg-amber-50 text-amber-800 p-4">קישור התשלום עוד לא זמין — בעל העסק יעדכן בקרוב.</p>}
+                ) : <p className="rounded-2xl bg-amber-50 text-amber-800 p-4">קישור התשלום עוד לא זמין — בעל העסק יעדכן אתכם.</p>}
 
                 <section className="rounded-2xl bg-white shadow-card p-5 space-y-3">
                   <h2 className="font-extrabold text-lg">צריכים פריסה?</h2>
