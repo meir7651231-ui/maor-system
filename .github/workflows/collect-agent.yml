@@ -132,7 +132,7 @@ jobs:
         run: echo "E2E_LOG_DIR=$RUNNER_TEMP/shots" >> "$GITHUB_ENV"
       - name: e2e מוק — 6 מסכים, דסקטופ+מובייל, 0 בקשות חיצוניות
         run: mkdir -p "$RUNNER_TEMP/shots" && TZ=Asia/Jerusalem node e2e/shots.mjs "$RUNNER_TEMP/shots"
-      - name: נגישות (ת״י 5568 / WCAG 2.1 AA) — 7 דפי שיווק, axe-core מקומי, נכשל על serious/critical
+      - name: נגישות (ת״י 5568 / WCAG 2.1 AA) — 7 דפי שיווק + 3 עמודי לקוח (/p /pay /u, DEMO=1), axe-core מקומי, נכשל על serious/critical
         run: node e2e/a11y.mjs
       - name: e2e חי מול שרת DEMO=1 (dry-run)
         run: TZ=UTC node e2e/live.mjs "$RUNNER_TEMP/shots"

@@ -4,6 +4,7 @@
 import { createRequire } from 'node:module';
 import { spawn } from 'node:child_process';
 import { readFileSync } from 'node:fs';
+import { randomBytes } from 'node:crypto';
 const { chromium, devices } = createRequire(import.meta.url)('playwright');
 const AXE = readFileSync(createRequire(import.meta.url).resolve('axe-core/axe.min.js'), 'utf8');
 const MK = new URL('../../marketing/', import.meta.url).pathname;
@@ -14,13 +15,25 @@ const pages = [
   ['דף נחיתה מעוצב /app/', 'http://localhost:4339/'],
 ];
 const srv = spawn('npx', ['vite', 'preview', '--port', '4339', '--strictPort'], { stdio: 'ignore' });
-await new Promise(r => setTimeout(r, 2500));
+// עמודי הלקוח של העסק (/p, /pay, /u) מוגשים מהשרת ⇒ שרת DEMO=1 (dry-run, נתונים בדויים), כמו live.mjs
+const TOKEN = randomBytes(32).toString('base64url'), API = 'http://127.0.0.1:8152';
+const api = spawn('python3', ['-m', 'uvicorn', 'app.main:_lazy_app', '--factory', '--port', '8152', '--log-level', 'warning'],
+  { cwd: new URL('../..', import.meta.url).pathname, env: { ...process.env, DEMO: '1', OWNER_API_TOKEN: TOKEN }, stdio: 'ignore' });
+for (let i = 0; i < 80; i++) { try { if ((await fetch(API + '/health')).ok) break; } catch { /* עולה */ } await new Promise(r => setTimeout(r, 250)); }
+const health = await (await fetch(API + '/health')).json();
+if (health.dry_run !== true) { api.kill(); srv.kill(); throw new Error('השרת לא ב-dry-run — עוצרים'); }
+const outbox = (await (await fetch(API + '/outbox', { headers: { Authorization: `Bearer ${TOKEN}` } })).json()).messages;
+const code = outbox.find(m => m.channel === 'sms' && m.body.includes('/p/')).body.split('/p/')[1].split(/\s/)[0];
+const unsub = outbox.map(m => (m.body.match(/\/u\/([A-Za-z0-9_-]+)/) || [])[1]).find(Boolean);
+pages.push(['עמוד הקישור הקצר /p (לקוח)', `${API}/p/${code}`], ['עמוד החייב /pay (לקוח)', `${API}/pay/${code}`],
+  ['עמוד הסרה /u (לקוח)', `${API}/u/${unsub}`]);
 const b = await chromium.launch();
 const failures = [];
 try {
   for (const [name, url] of pages) {
     for (const [vp, opts] of [['desktop', { viewport: { width: 1280, height: 900 } }], ['mobile', devices['iPhone 13']]]) {
-      const ctx = await b.newContext(opts); const p = await ctx.newPage();
+      // CSP קשוח בעמודי השרת חוסם הזרקת axe ⇒ עקיפה בבדיקה בלבד (המוצר לא משתנה)
+      const ctx = await b.newContext({ ...opts, bypassCSP: true }); const p = await ctx.newPage();
       await p.goto(url); await p.waitForTimeout(400);
       await p.addScriptTag({ content: AXE });
       const res = await p.evaluate(async () => await window.axe.run(document, {
@@ -32,6 +45,6 @@ try {
       await ctx.close();
     }
   }
-} finally { await b.close(); srv.kill(); }
+} finally { await b.close(); srv.kill(); api.kill(); }
 if (failures.length) { console.error('✗ נגישות: ' + failures.length + ' הפרות serious/critical\n' + failures.join('\n')); process.exit(1); }
 console.log(`✓ נגישות: ${pages.length} דפים × דסקטופ+מובייל · 0 הפרות serious/critical (WCAG 2.1 AA)`);
