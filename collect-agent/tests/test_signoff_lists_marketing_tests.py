@@ -10,7 +10,8 @@ MARKETING_TESTS = ["test_launch_domain", "test_vertical_pages", "test_template_l
                    "test_marketing_claims_match_code", "test_marketing_sources", "test_footer_legal_links",
                    "test_accessibility_statement", "test_video_transcript", "test_web_labels_cover_backend",
                    "test_customer_facing_no_time_promises", "test_compliance_lawyer_final_kaf",
-                   "test_compliance_hebrew_forms", "test_compliance_debt_word_steps", "test_signoff_lists_marketing_tests"]
+                   "test_compliance_hebrew_forms", "test_compliance_debt_word_steps",
+                   "test_signoff_lists_marketing_tests"]
 
 
 def test_every_listed_file_exists():

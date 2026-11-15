@@ -13,7 +13,7 @@
 
 from __future__ import annotations
 
-import subprocess
+import subprocess  # nosec B404 — רק git status בפקודה קבועה
 import sys
 from pathlib import Path
 
@@ -32,7 +32,7 @@ def _allowed(path: str) -> bool:
 
 def state(root: Path = ROOT) -> list[str]:
     """שורות `git status` (כולל מתעלמים, כל קובץ בנפרד) לתיקיית הפרויקט, בלי המותרים."""
-    out = subprocess.run(  # noqa: S603 — פקודה קבועה, בלי קלט חיצוני
+    out = subprocess.run(  # noqa: S603  # nosec B603 B607 — פקודה קבועה, בלי קלט חיצוני
         ["git", "status", "--porcelain", "--ignored", "--untracked-files=all", "--", "."],  # noqa: S607
         cwd=root,
         check=True,
