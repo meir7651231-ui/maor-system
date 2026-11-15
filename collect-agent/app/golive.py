@@ -112,6 +112,10 @@ def real_send_blockers(settings: config.Settings, *, gi_report: str | None = Non
     if missing:
         out.append(f"תשובות לקוחות: {', '.join(missing)} חסר ⇒ ה-webhook סגור, ו«הסר» שהלקוח "
                    "משיב לא מגיע למערכת (חובה לפי 30א)")
+    host = settings.smtp_host
+    if not host or host == "smtp.example" or host.endswith(".example"):
+        out.append("מייל: אין שרת SMTP אמיתי (SMTP_HOST). המשתמש והסיסמה ייכנסו דרך secretbox, "
+                   "לא כמשתני סביבה גלויים")
     b = _report_blocker(gi_report, name="חשבונית ירוקה", want_target="sandbox",
                         how="מריצים scripts/gi_contract_check.py --sandbox --json <קובץ>")
     if b:

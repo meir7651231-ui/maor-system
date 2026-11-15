@@ -169,6 +169,7 @@ def build_dry_sender(s: Settings) -> DryRunSender:
     """adapters של app/integrations (שכבת הספקים היחידה) במצב dry-run."""
     sms, email = build_adapters(provider=s.sms_provider, username=s.sms_username, token=s.sms_token,
                                 sender=s.sms_sender_id, email_from=s.email_from,
+                                smtp_host=s.smtp_host or "smtp.example",
                                 backup_username=s.sms_backup_username,
                                 backup_token=s.sms_backup_token)
     return DryRunSender(sms=sms, email=email, reply_to=s.email_reply_to)

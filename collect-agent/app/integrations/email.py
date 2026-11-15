@@ -10,7 +10,7 @@ import smtplib
 import ssl
 from collections.abc import Callable
 from email.message import EmailMessage
-from email.utils import formataddr, make_msgid
+from email.utils import formataddr, formatdate, make_msgid
 from typing import Any, Protocol
 
 import httpx
@@ -97,6 +97,8 @@ class SmtpEmail:
         m["To"] = msg.to
         m["Subject"] = msg.subject
         m["Message-ID"] = make_msgid(domain=self.from_addr.split("@", 1)[1])
+        # RFC 5322 §3.6: Date חובה (יחד עם From). בלעדיו שרתים מסמנים ספאם/דוחים
+        m["Date"] = formatdate(localtime=True)
         if msg.reply_to:
             m["Reply-To"] = msg.reply_to
         for k, v in unsubscribe_headers(msg).items():

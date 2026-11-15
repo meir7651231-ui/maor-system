@@ -36,7 +36,7 @@ const CSS = `@font-face{font-family:R;font-weight:800;src:url(${font('rubik/file
 .sub{font-family:H,sans-serif;opacity:.88;line-height:1.45}.fine{font-family:H,sans-serif;opacity:.6}`;
 
 const cta = domain ? domain : 'מתחילים חינם — 14 ימי ניסיון';
-const price = '₪119 לחודש · 14 ימי ניסיון בלי כרטיס אשראי';
+const price = '₪119 לחודש או ₪1,190 לשנה · כולל מע״מ ככל שחל · 14 ימי ניסיון בלי כרטיס אשראי';
 
 // כל נכס: [שם, רוחב, גובה, html]
 const phone = (w) => `<div class="phone" style="width:${w}px;height:${Math.round(w * 2.04)}px"><div class="scr"><img src="${DASH}"></div></div>`;
