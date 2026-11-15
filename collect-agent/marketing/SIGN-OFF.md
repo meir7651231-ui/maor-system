@@ -26,4 +26,4 @@
 | ערכת בטא + דף מסרים | `team/beta-kit.md`, `team/messaging.md` | — | 2 (פנייה לעסקים = אישור מאיר) |
 
 ## בדיקות שרצות על החבילה
-`tests/test_launch_domain.py` (12) · `tests/test_vertical_pages.py` (10) · `tests/test_template_library.py` (3) · `tests/test_seo_articles.py` (5) · `test_designed_landing_*` · `web/tests/lib.check.ts` · `web/e2e/live.mjs`.
+`tests/test_launch_domain.py` (12) · `tests/test_vertical_pages.py` (10) · `tests/test_template_library.py` (3) · `tests/test_seo_articles.py` (5) · `tests/test_marketing_claims_match_code.py` (19: כל מספר בכל נכס = הקוד) · `test_designed_landing_*` · `web/tests/lib.check.ts` · `web/e2e/live.mjs`.
