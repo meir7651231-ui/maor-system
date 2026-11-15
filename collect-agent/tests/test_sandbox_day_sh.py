@@ -67,7 +67,9 @@ def test_works_where_only_python3_exists(tmp_path):
     binx.mkdir()
     for d in ("/usr/local/bin", "/usr/bin", "/bin"):
         for p in Path(d).iterdir() if Path(d).is_dir() else []:
-            if re.fullmatch(r"python[\d.]*(-config)?", p.name) or (binx / p.name).exists():
+            # lexists ולא exists (הפעלה 221, CI 697 אדום): ב-Ubuntu /bin→/usr/bin, וקישור-מערכת שבור
+            # (grub-ntldr-img) נותן קישור משתלשל ש-exists() רואה כ«לא קיים» ⇒ FileExistsError בניסיון השני.
+            if re.fullmatch(r"python[\d.]*(-config)?", p.name) or os.path.lexists(binx / p.name):
                 continue
             (binx / p.name).symlink_to(p)
     # עטיפה ולא symlink (הפעלה 221): symlink למפרש של venv מחוץ לתיקיית ה-venv מאבד את site-packages
