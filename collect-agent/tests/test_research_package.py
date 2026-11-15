@@ -39,3 +39,19 @@ def test_signoff_package_complete_and_nothing_sent():
 def test_market_estimates_marked_unverified():
     assert "לא מאומת" in MARKET and "הערכה" in MARKET
     assert "₪119" in MARKET and "₪1,190" in MARKET and "כולל מע\"מ" in MARKET
+
+
+def test_beta_profiles_30_are_profiles_only():
+    """BACKLOG מחקר #3: 30 פרופילים — בלי שמות, טלפונים, מיילים או קישורים לעסק אמיתי."""
+    txt = (ROOT / "team" / "beta-profiles-30.md").read_text(encoding="utf-8")
+    rows = [ln for ln in txt.splitlines() if re.match(r"^\| \d+ \|", ln)]
+    assert len(rows) == 30
+    assert [int(r.split("|")[1]) for r in rows] == list(range(1, 31))
+    assert not EMAIL.search(txt) and not IL_PHONE.search(txt)
+    assert not re.search(r"https?://", txt), "קישור לעסק אמיתי"
+    assert "אין כאן אף עסק אמיתי" in txt
+    counts = {}
+    for r in rows:
+        slot = r.split("|")[2].strip().rsplit(" ", 1)[0]
+        counts[slot] = counts.get(slot, 0) + 1
+    assert counts == {"מספרה": 9, "מוסך": 6, "קליניקה": 6, "לקוח רו\"ח": 9}
