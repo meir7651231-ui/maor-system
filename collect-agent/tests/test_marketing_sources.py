@@ -80,3 +80,15 @@ def test_onboarding_texts_cover_all_supported_sources(p):
     assert "iCount" in t and "רווחית" in t
     for narrowing in ("נשאר רק לחבר את חשבונית ירוקה", "עוד לא חיברת את חשבונית ירוקה", "קריאה בלבד מחשבונית ירוקה"):
         assert narrowing not in t, narrowing
+
+
+NARROWING = ("נסגרת בחשבונית ירוקה", "קורא מחשבונית ירוקה בלבד", "רשום בחשבונית ירוקה", "חיבור לחשבונית ירוקה (",
+             "נשאר רק לחבר את חשבונית ירוקה", "עוד לא חיברת את חשבונית ירוקה", "קריאה בלבד מחשבונית ירוקה")
+
+
+@pytest.mark.parametrize("p", [*ASSETS, ROOT / "marketing/landing/for/build.py"],
+                         ids=lambda p: p.relative_to(ROOT).as_posix())
+def test_no_green_invoice_only_wording_in_generic_contexts(p):
+    """הקשר שנכון לכל מערכת חשבוניות (סגירת חשבונית, קריאה, רישום הלקוח) לא נכתב «בחשבונית ירוקה» בלבד."""
+    t = p.read_text(encoding="utf-8")
+    assert not [n for n in NARROWING if n in t]
