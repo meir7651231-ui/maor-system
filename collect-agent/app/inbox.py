@@ -284,14 +284,22 @@ class ConversationInbox:
             if last:
                 self.db.x("UPDATE plans SET status='rejected' WHERE id=?", (last["id"],))
                 self.svc.audit("customer", "plan_rejected_by_customer", {"plan": last["id"]})
+                # הפעלה 211: כרטיס פתוח של ההסדר שנדחה (בדרך כלל אין — הוא כבר נשלח) נסגר
+                self.svc._supersede_plan_drafts(last["id"], by="system:plan_replaced")
         if d.plan and d.intent != Intent.PLAN_ACCEPT:
             # מבקר §4.6: ההצעה (d.plan) נבנתה על כל החוב הפתוח (Context.total_agorot) ⇒ ההסדר נרשם
             # על כל החשבוניות, לא רק על הוותיקה. סה״כ לא תואם (מטבעות שונים) ⇒ לא נרשם הסדר.
             invs, total = self.svc.open_debt(cid)
             if invs and total == sum(i.amount_agorot for i in d.plan):
                 # הצעה חדשה מחליפה הצעה קודמת שעוד לא אושרה
+                replaced = [r["id"] for r in self.db.q(
+                    "SELECT id FROM plans WHERE customer_id=? AND status='proposed'", (cid,))]
                 self.db.x("UPDATE plans SET status='rejected' WHERE customer_id=? AND status='proposed'",
                           (cid,))
+                # הפעלה 211: הכרטיס הפתוח של ההסדר שנדחה נסגר — אחרת בעל העסק רואה כרטיס שמצביע על
+                # הסדר שאינו בתוקף (`_draft` סוגר רק pending_approval, וכרטיס פריסה הוא needs_owner)
+                for old in replaced:
+                    self.svc._supersede_plan_drafts(old, by="system:plan_replaced")
                 plan_id = self.db.x(
                     "INSERT INTO plans(customer_id,invoice_id,installments,status,created_at,"
                     "invoice_ids) VALUES(?,?,?, 'proposed', ?, ?)",

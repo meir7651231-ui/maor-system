@@ -2408,16 +2408,16 @@ class CollectService:
                 "text": text, "queued": not sent and dr["status"] == "approved",
                 "draft_status": dr["status"]}
 
-    def _supersede_plan_drafts(self, plan_id: int) -> None:
+    def _supersede_plan_drafts(self, plan_id: int, by: str = "system:plan_approved") -> None:
         """אישור הפריסה ב-/plans שולח את ההצעה ללקוח, ולכן טיוטת plan_request המקבילה
         (תור «תשובות לקוחות») נסגרת — אחרת בעל העסק יכול לאשר אותה ולשלוח הצעה פעמיים."""
         try:
-            self.db.x("UPDATE drafts SET status='superseded', decided_by='system:plan_approved' "
+            self.db.x("UPDATE drafts SET status='superseded', decided_by=? "
                       "WHERE plan_id=? AND status IN ('pending_approval','needs_owner')",
-                      (plan_id,))
+                      (by, plan_id))
         except self.db.OperationalError:   # טבלת הטיוטות נוצרת רק עם מנוע השיחה
             return
-        self.audit("system", "plan_drafts_superseded", {"plan": plan_id})
+        self.audit("system", "plan_drafts_superseded", {"plan": plan_id, "by": by})
 
     # ---------- helpers ----------
     def _reminder(self, rid: int):
