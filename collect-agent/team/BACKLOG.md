@@ -32,9 +32,9 @@
 - 🧱 דומיין + פרסום (מאיר).
 
 ## גבייה עיצוב
-- [ ] ‏`ui-12-open-list.png` / `ui-13-open-list-mobile.png`: מסך «אישור רשימת הפתוחות» בממשק `web/` מעל `GET /open-list` + `POST /open-list/confirm`, כולל מובייל.
-- [ ] צבעי סטטוס: ניגודיות AA לכל תגית סטטוס (בדיקה אוטומטית על ה-tokens).
-- [ ] לוגו לרקע כהה (`logo-dark.svg`) מאותו מקור (`brand/logo.ts`) + בדיקה.
+- [x] ✅ `4b86cf88` (+ `555b9175` כרטיס ב-`web/`, `b7e4d6fc` ב-`/ui`): מסך «אישור רשימת הפתוחות» מעל `GET /open-list` + `POST /open-list/confirm`; מובייל 390px נבדק ב-`live.mjs` (live-07b) וב-`ui-openlist.mjs` (ui-13).
+- [x] ✅ `dbb041de` צבעי סטטוס: ניגודיות AA לכל תגית סטטוס — `web/tests/contrast.check.ts` מחושב מה-tokens; נמצאו ותוקנו 3 גווני-טקסט שנכשלו (due/late/critical ⇒ *-ink).
+- [x] ✅ `34457f7c` לוגו לרקע כהה (`web/public/logo-dark.svg`) מאותו מקור (`brand/logo.ts`) + בדיקה ב-`tests/lib.check.ts`.
 - 🧱 אישור הלוגו הסופי (מאיר).
 
 ## גבי משפט
