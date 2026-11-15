@@ -126,3 +126,38 @@ def test_ci_guard_also_covers_sqlcipher_job() -> None:
     last_check = job.rindex("tree_guard.py check")
     for step in ("DB_ENCRYPTION=sqlcipher ./demo.sh --check", "bash scripts/smoke_server.sh"):
         assert i_snap < job.index(step) < last_check, step
+
+
+# --- הפעלה 219: מצב fs (בלי git) לג'וב demo-clean — ב-container אין git ואין .git ---
+
+
+def test_fs_mode_works_without_git_and_catches_new_files(tmp_path: Path) -> None:
+    (tmp_path / "old.txt").write_text("")
+    before = tg.fs_state(tmp_path)
+    (tmp_path / "leak" / "snaps").mkdir(parents=True)
+    (tmp_path / "leak" / "snaps" / "x.gbk").write_text("")
+    (tmp_path / "__pycache__").mkdir()
+    (tmp_path / "__pycache__" / "m.pyc").write_text("")
+    assert tg.diff(before, tg.fs_state(tmp_path)) == ["leak/snaps/x.gbk"]
+
+
+def test_fs_cli_ignores_its_own_snapshot_file(tmp_path: Path, capsys) -> None:
+    snap = tmp_path / "snap.txt"
+    assert tg.main(["tg", "fs-snapshot", str(snap), str(tmp_path)]) == 0
+    assert tg.main(["tg", "fs-check", str(snap), str(tmp_path)]) == 0, "קובץ הצילום עצמו אינו «דליפה»"
+    (tmp_path / "new.sqlite3").write_text("")
+    assert tg.main(["tg", "fs-check", str(snap), str(tmp_path)]) == 1
+    assert "new.sqlite3" in capsys.readouterr().out
+    assert tg.main(["tg", "fs-nope", str(snap)]) == 2
+
+
+def test_clean_demo_second_run_is_guarded_in_project_and_tmp() -> None:
+    script = (SCRIPT.parent / "ci_clean_demo.sh").read_text(encoding="utf-8")
+    run2 = script.index("ריצה 2: .venv קיים")
+    targets = ('"$SNAP_DIR/project.txt"', '"$SNAP_DIR/tmp.txt" "$TMP_ROOT"')
+    snaps = [script.index(f"fs-snapshot {t}") for t in targets]
+    checks = [script.index(f"fs-check {t}") for t in targets]
+    first_run_end = script.index("[[ -x .venv/bin/python3 ]]")
+    assert all(first_run_end < s < run2 for s in snaps), "הצילום אחרי ריצה 1 (ה-.venv כבר נוצר בכוונה)"
+    assert all(c > script.index('OUT="$(./demo.sh --check') for c in checks), "הבדיקה אחרי ריצה 2"
+    assert "git status" not in script and "tree_guard.py snapshot" not in script, "אין git ב-container"

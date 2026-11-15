@@ -9,10 +9,18 @@
     python3 -I scripts/tree_guard.py check /tmp/before.txt   # יציאה 1 + רשימה אם נוצר/השתנה משהו
 
 מותר (תוצרי לוואי של המפרש/הכלים): __pycache__, .pytest_cache, .ruff_cache, *.egg-info.
+
+מצב בלי git (הפעלה 219, ג'וב demo-clean): ב-container אין git, ו-actions/checkout מוריד את הקוד בלי .git.
+`fs-snapshot`/`fs-check` מצלמים את רשימת הקבצים בתיקייה (ברירת מחדל: הפרויקט) ישירות מהדיסק —
+לבדוק שריצה חוזרת של demo.sh לא מוסיפה קבצים, לא בפרויקט ולא ב-TMPDIR:
+
+    python3 -I scripts/tree_guard.py fs-snapshot /tmp/x.txt [DIR]
+    python3 -I scripts/tree_guard.py fs-check /tmp/x.txt [DIR]
 """
 
 from __future__ import annotations
 
+import os
 import subprocess  # nosec B404 — רק git status עם ארגומנטים קבועים
 import sys
 from pathlib import Path
@@ -59,15 +67,43 @@ def state(root: Path = ROOT) -> list[str]:
     return sorted(lines)
 
 
+def fs_state(root: Path) -> list[str]:
+    """כל הקבצים (וקישורים) מתחת ל-`root`, יחסית אליו, בלי המותרים. בלי git — לעבודה ב-container."""
+    out = []
+    for dirpath, dirnames, filenames in os.walk(root):
+        dirnames[:] = [d for d in dirnames if d not in ALLOWED_PARTS and not d.endswith(".egg-info")]
+        for name in filenames:
+            rel = Path(dirpath, name).relative_to(root).as_posix()
+            if not _allowed(rel):
+                out.append(rel)
+    return sorted(out)
+
+
 def diff(before: list[str], after: list[str]) -> list[str]:
     return sorted(set(after) - set(before))
 
 
 def main(argv: list[str]) -> int:
-    if len(argv) != 3 or argv[1] not in {"snapshot", "check"}:
-        print("שימוש: tree_guard.py snapshot|check FILE", file=sys.stderr)
+    fs_mode = len(argv) in {3, 4} and argv[1] in {"fs-snapshot", "fs-check"}
+    if not fs_mode and (len(argv) != 3 or argv[1] not in {"snapshot", "check"}):
+        print("שימוש: tree_guard.py snapshot|check FILE  ·  fs-snapshot|fs-check FILE [DIR]", file=sys.stderr)
         return 2
     snap = Path(argv[2])
+    if fs_mode:
+        root = Path(argv[3]).resolve() if len(argv) == 4 else ROOT
+        if argv[1] == "fs-snapshot":
+            snap.write_text("\n".join(fs_state(root)) + "\n", encoding="utf-8")
+            return 0
+        before = [ln for ln in snap.read_text(encoding="utf-8").splitlines() if ln]
+        snap_rel = snap.resolve().relative_to(root).as_posix() if snap.resolve().is_relative_to(root) else ""
+        new = [ln for ln in diff(before, fs_state(root)) if ln != snap_rel]
+        if new:
+            print(f"❌ נוצרו קבצים חדשים תחת {root}:")
+            for ln in new[:200]:
+                print("   ", ln)
+            return 1
+        print(f"✅ אין קבצים חדשים תחת {root}")
+        return 0
     if argv[1] == "snapshot":
         snap.write_text("\n".join(state(ROOT)) + "\n", encoding="utf-8")
         return 0
