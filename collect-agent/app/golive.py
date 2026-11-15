@@ -127,6 +127,26 @@ def real_send_blockers(settings: config.Settings, *, gi_report: str | None = Non
     return out
 
 
+# מי מזיז כל חוסם. היעד לפני השקה: כל חוסם שנשאר הוא של מאיר (הרשמה/תשלום/חתימה/הכרעה).
+# קטגוריה חדשה שהצוות יכול לסגור לבד ⇒ "צוות", ו-tests/test_golive_owners.py ייכשל עד שנסגור אותה.
+BLOCKER_OWNERS: dict[str, tuple[str, str]] = {
+    "קוד": ("מאיר", "אישור מפורש לשינוי הקוד שפותח שליחה אמיתית"),
+    "019": ("מאיר", "חשבון בדיקה ב-019 + מסמך API רשמי"),
+    "משפטי": ("מאיר", "ישות מפעילה, עו״ד, חתימה על DPA"),
+    "דומיין": ("מאיר", "רכישת דומיין"),
+    "הצפנה": ("מאיר", "שרת פריסה (אחסון) שבו יוגדר מפתח האב — המפתח עצמו נוצר אוטומטית"),
+    "מייל": ("מאיר", "דומיין + ספק SMTP (הרשמה)"),
+    "תשובות לקוחות": ("מאיר", "כתובת ציבורית (דומיין + אחסון) שאליה 019 והמייל ישלחו תשובות"),
+    "חשבונית ירוקה": ("מאיר", "הרשמה ל-sandbox של morning"),
+}
+
+
+def blocker_owner(blocker: str) -> tuple[str, str]:
+    """(מי, מה צריך ממנו). קטגוריה לא ידועה ⇒ ('לא מסווג', ...) — נתפס בבדיקה."""
+    cat = blocker.split(":", 1)[0].strip()
+    return BLOCKER_OWNERS.get(cat, ("לא מסווג", f"קטגוריה חדשה: {cat!r} — להוסיף ל-BLOCKER_OWNERS"))
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="שער המעבר לשליחה אמיתית — מה חסר")
     ap.add_argument("--gi-report", default="")
@@ -139,7 +159,8 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     print(f"🔒 השער סגור. {len(blockers)} חוסמים:")
     for i, b in enumerate(blockers, 1):
-        print(f"  {i}. {b}")
+        who, what = blocker_owner(b)
+        print(f"  {i}. [{who}: {what}] {b}")
     return 1
 
 
