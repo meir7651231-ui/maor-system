@@ -1,0 +1,6 @@
+{
+  "_note": "טיוטה – לבדיקת עו״ד. ממלאים רק אחרי פגישה עם עו״ד. שער המעבר (app/golive.py) קורא את הקובץ הזה.",
+  "lawyer_name": "",
+  "dpa_signed": false,
+  "answered_questions": []
+}
