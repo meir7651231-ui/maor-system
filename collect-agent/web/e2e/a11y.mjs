@@ -13,6 +13,8 @@ const pages = [
   ['דף נחיתה סטטי', 'file://' + MK + 'landing/index.html'],
   ...['barbers', 'garages', 'clinics', 'accountants-clients'].map(s => [`דף ענף ${s}`, `file://${MK}landing/for/${s}.html`]),
   ['ספריית נוסחים', 'file://' + MK + 'library/index.html'],
+  ['הצהרת נגישות', 'file://' + MK + 'accessibility.html'],
+  ['הצהרת נגישות (מוגשת מ-/app/)', 'http://localhost:4339/accessibility.html'],
   ['דף נחיתה מעוצב /app/', 'http://localhost:4339/'],
 ];
 const srv = spawn('npx', ['vite', 'preview', '--port', '4339', '--strictPort'], { stdio: 'ignore' });

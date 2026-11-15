@@ -194,7 +194,7 @@ export function Landing() {
       <footer className="bg-ink-900 border-t border-white/10 text-ink-400 text-sm">
         <div className="max-w-6xl mx-auto px-4 py-6 flex flex-col gap-2">
           <div className="flex flex-wrap gap-4 justify-between"><span>© 2026 גבי – תזכורות תשלום</span><span>אב-טיפוס · נתוני דמו בלבד</span></div>
-          <span>תנאי שימוש · מדיניות פרטיות · הצהרת נגישות (טיוטה – לבדיקת עו״ד) · [שם החברה, ח.פ., כתובת: ימולאו לפני השקה]</span>
+          <span>תנאי שימוש · מדיניות פרטיות · <a href="accessibility.html" className="underline inline-flex items-center min-h-10">הצהרת נגישות</a> (טיוטה – לבדיקת עו״ד) · [שם החברה, ח.פ., כתובת: ימולאו לפני השקה]</span>
           <span>חשבונית ירוקה ו-morning הם סימנים מסחריים של בעליהם. גבי הוא מוצר עצמאי ואינו קשור אליהם.</span>
         </div>
       </footer>

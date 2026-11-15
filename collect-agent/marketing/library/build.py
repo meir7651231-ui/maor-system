@@ -102,7 +102,8 @@ pre.tpl{{white-space:pre-wrap;background:var(--soft);border-radius:12px;padding:
 </div></section>
 </main>
 <footer><div class="wrap"><span>© 2026 גבי – תזכורות תשלום · [שם החברה בע״מ · ח.פ. ___ · כתובת: ימולאו לפני השקה]</span>
-<span>מידע כללי, לא ייעוץ משפטי.</span></div></footer>
+<span>מידע כללי, לא ייעוץ משפטי.</span>
+<span><a href="../accessibility.html" style="color:inherit">הצהרת נגישות</a> (טיוטה – לבדיקת עו״ד)</span></div></footer>
 <script>
 // העתקה ללוח בלבד (מקומי). אין שליחה ואין שמירה.
 document.querySelectorAll('button.copy').forEach(function (b) {{
