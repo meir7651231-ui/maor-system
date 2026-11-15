@@ -1051,6 +1051,15 @@ def _decide(t: str, intents: list[Intent], ctx: Context) -> Decision:
         if Intent.DISPUTE in allset or Intent.LEGAL in allset:
             summary += " ההודעה כוללת גם טענה נגד החוב."
             actions.append("לברר את הטענה אישית")
+        # critic סבב 89: הסרה + העדפת ערוץ / כוונת תשלום ⇒ ההסרה נשארת, אבל בעל העסק יודע (לא נעלם בשקט)
+        wants_channel = _s(r"(?:רק|אלא)\s+(?:ב|דרך\s+)?(?:ה)?(?:סמס|מסרון|sms|מייל|אימייל|וואטסאפ|ווטסאפ|טלפון|קישור|לינק)"
+                           r"|תשלחו\s+(?:לי\s+)?(?:רק\s+)?(?:ה)?(?:קישור|לינק)|\bonly\s+(?:by\s+|via\s+)?(?:sms|text|email)\b", t)
+        wants_pay = bool(allset & {Intent.PROMISE, Intent.HOW_TO_PAY, Intent.PLAN_REQUEST}) or _s(
+            r"(?<![\w])(?:אשלם|נשלם|משלם|משלמת|משלמים|אעביר|נעביר|מעביר|מעבירה)(?![\w])|\bi(?:'ll| will| am going to)\s+(?:pay|transfer)\b", t)
+        if wants_channel or wants_pay:
+            bump(Escalation.NORMAL)
+            summary += (" ביקש/ה ערוץ אחר." if wants_channel else "") + (" כתב/ה שמתכוון/ת לשלם." if wants_pay else "")
+            actions.append("ההסרה בתוקף — לפנות אישית רק אם ביקש/ה ערוץ אחר, או לחכות לתשלום ולסגור את החשבונית")
         state = State.OPTED_OUT
     elif primary == Intent.WRONG_PERSON:
         reply = f"סליחה על ההטרדה! נעדכן את הפרטים אצלנו ולא נפנה שוב למספר הזה.{sig}"
