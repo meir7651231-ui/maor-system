@@ -43,9 +43,9 @@
 - 🧱 פרטי החברה המפעילה + עו״ד (מאיר).
 
 ## גבי מנוע
-- [ ] לפני סבב 6: להריץ גם `tests/test_critic_round79_engine.py`; כל כשל ⇒ תיקון + בדיקה.
-- [ ] בדיקה עיוורת על סט 2 של גבי בדיקות (`c858444b`) — ריצה אחת, בלי כוונון, ודוח מספרים.
-- [ ] כל טעות קריטית שנמצאה ⇒ תיקון + מקרה eval נעול.
+- [x] ✅ לפני סבב 6: להריץ גם `tests/test_critic_round79_engine.py` — 54/54 ירוק יחד עם round80/engine_round4–6 (סבב 6 = `bb18bc5`).
+- [x] ✅ בדיקה עיוורת על סט 2 של גבי בדיקות (`c858444b`) — רצה פעם אחת לפני כל שינוי (`d265657`): 33/50 (66%), 5 טעויות קריטיות מזיקות. דוח: `evals/heldout/RESULTS.md`.
+- [x] ✅ כל טעות קריטית שנמצאה ⇒ תיקון (`7b028d0`, `bb18bc5`) + מקרה eval נעול: `evals/regress-locked-critical.jsonl` (7, בשער ה-evals) + שער 150 החיצוניות ב-`tests/test_engine_round4.py`.
 
 ## גבי בדיקות
 - [x] ✅ ‏`smoke_server.sh` + `ci_clean_demo.sh`: כל `mktemp` נמחק בכשל + מגן-מקור. (`41339456` — גם demo.sh; tests/test_shell_tmp_cleanup.py)
