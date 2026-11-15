@@ -11,6 +11,9 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 PORT="${PORT:-8000}"
+# critic סבב 86: מה ש-cleanup הורג/מוחק מתחיל ריק — משתנה בשם הזה שירש מהסביבה (BK=~/backups) לא יימחק
+# בכשל באמצע או ב-Ctrl+C. קובץ הסוד נמחק רק אם demo.sh יצר אותו (OWN_SECRET), לא DEMO_USER_SECRET_FILE של המשתמש.
+PID='' LOG='' BK='' WP='' EN='' OWN_SECRET=''
 # הפעלה 191: תלויות. היה `pip install` עיוור — במכונה שבה `pip` שייך לפייתון אחר (pip=3.13, python3=3.11)
 # ההתקנה נחתה במפרש הלא נכון וההדגמה נפלה ב-«Connection refused» בלי הסבר; וגם עם `python3 -m pip`
 # חבילת מערכת (cryptography של debian) חוסמת שדרוג. לכן: אם לפייתון של המערכת חסר משהו ⇒ `.venv` מקומי
@@ -80,7 +83,7 @@ GI_PID=$!
 # התיקיות הזמניות של בדיקות הגיבוי/מחיקה/הצפנה (sqlite עם נתוני דמו) נמחקות גם בכשל באמצע — לא רק במסלול ההצלחה
 cleanup() {
   kill "${PID:-}" "$GI_PID" 2>/dev/null || true
-  rm -f "${LOG:-}" "$GI_LOG" "${DEMO_USER_SECRET_FILE:-}"
+  rm -f "${LOG:-}" "$GI_LOG" "${OWN_SECRET:-}"
   rm -rf "${BK:-}" "${WP:-}" "${EN:-}"
 }
 trap cleanup EXIT INT TERM
@@ -99,7 +102,8 @@ fi
 
 LOG="$(mktemp)"
 # עובד דמו + סוד TOTP בקובץ זמני ⇒ בודקים כניסה אמיתית (מייל+סיסמה+קוד) מקצה לקצה
-export DEMO_USER_EMAIL="dana@example.co.il" DEMO_USER_PASSWORD="demo-pass-12345" DEMO_USER_SECRET_FILE="$(mktemp)"
+OWN_SECRET="$(mktemp)"
+export DEMO_USER_EMAIL="dana@example.co.il" DEMO_USER_PASSWORD="demo-pass-12345" DEMO_USER_SECRET_FILE="$OWN_SECRET"
 DEMO=1 python3 -m uvicorn app.main:_lazy_app --factory --host 127.0.0.1 --port "$PORT" --log-level warning >"$LOG" 2>&1 &
 PID=$!
 wait_up "http://127.0.0.1:${PORT}/health" "$PID" "שרת גבי" "$LOG" -f
