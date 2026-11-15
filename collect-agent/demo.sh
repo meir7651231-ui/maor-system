@@ -20,6 +20,11 @@ DEPS='import fastapi, httpx, uvicorn, cryptography, pydantic'
 # נוצר מ-3.9 וה-pip נפל בשגיאת נעילה לא מובנת. לכן: בודקים גרסה, בוחרים מפרש 3.11+ מ-PATH
 # (python3.13/3.12/3.11 של brew), ו-.venv שנוצר ממפרש ישן נבנה מחדש. תואם bash 3.2 (ראו test_demo_sh_portable).
 PY_OK='import sys; sys.exit(sys.version_info < (3, 11))'
+# הפעלה 215 (QA, מ-213): .venv שהמפרש שלו מת (symlink למפרש שנמחק — פייתון זמני, brew שהוסר) ⇒ `-x` שקרי,
+# ו-`python3 -m venv` על התיקייה הישנה השאיר קישור מת. בונים מחדש.
+if [[ -d .venv ]] && [[ ! -x .venv/bin/python3 ]]; then
+  echo "▶ .venv שבור (המפרש שלו לא קיים) — יוצר מחדש"; rm -rf .venv
+fi
 if [[ -x .venv/bin/python3 ]] && ! .venv/bin/python3 -c "$PY_OK" 2>/dev/null; then
   echo "▶ .venv נוצר מפייתון ישן מ-3.11 — יוצר מחדש"; rm -rf .venv
 fi

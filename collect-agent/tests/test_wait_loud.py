@@ -157,13 +157,21 @@ def test_demo_without_curl_fails_with_clear_message(tmp_path):
     # PATH מלאכותי: כל /usr/bin ו-/bin חוץ מ-curl, ו-python3 = המפרש הנוכחי (עם התלויות)
     b = tmp_path / "bin"
     _mirror_bins_without(b, ("/usr/bin", "/bin"), "curl")
+    # הפעלה 215: עטיפת exec ולא symlink — symlink למפרש של venv חיצוני מאבד את ה-venv (pyvenv.cfg נחפש
+    # ליד הקישור) ⇒ «חסרות תלויות» ⇒ demo.sh בנה collect-agent/.venv מהקישור הזמני ⇒ קישור מת בריצה הבאה.
     for n in ("python3", "python"):
         (b / n).unlink(missing_ok=True)
-        (b / n).symlink_to(sys.executable)
+        (b / n).write_text(f'#!/bin/sh\nexec "{sys.executable}" "$@"\n')
+        (b / n).chmod(0o755)
+    venv = ROOT / ".venv"
+    before = os.readlink(venv / "bin" / "python3") if os.path.islink(venv / "bin" / "python3") else venv.exists()
     env = {**os.environ, "PATH": str(b), "SKIP_WEB": "1", "PORT": "8971"}
     r = subprocess.run([BASH, str(DEMO), "--check"], cwd=ROOT, env=env, capture_output=True,  # noqa: S603
                        text=True, timeout=60)
     assert r.returncode == 1 and "חסר curl" in r.stderr, (r.returncode, r.stderr[-800:])
+    after = os.readlink(venv / "bin" / "python3") if os.path.islink(venv / "bin" / "python3") else venv.exists()
+    assert after == before, "הבדיקה לא אמורה ליצור/לשנות את collect-agent/.venv"
+    assert "יוצר סביבה מקומית" not in r.stdout, r.stdout[-500:]
 
 
 @pytest.mark.skipif(not BASH or not shutil.which("curl") or not _python_with_deps(),
