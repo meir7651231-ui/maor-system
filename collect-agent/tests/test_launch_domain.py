@@ -52,7 +52,8 @@ def test_release_gate_blocks_while_placeholder():
 
 
 def _copy_tree(tmp_path):
-    for rel in CFG["files"] + ["marketing/launch/launch.json"]:
+    for rel in CFG["files"] + ["marketing/launch/launch.json", "marketing/ads/launch.json",
+                               "marketing/ads/out/manifest.json"]:
         dst = tmp_path / rel
         dst.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy(ROOT / rel, dst)
@@ -70,9 +71,16 @@ def test_set_domain_switches_everything_and_release_passes(tmp_path):
     for rel in cfg["files"]:
         text = (root / rel).read_text(encoding="utf-8")
         assert "gabi.example" not in text and "[קישור לדף]" not in text and "[דומיין]" not in text, rel
+    ads = json.loads((root / "marketing/ads/launch.json").read_text(encoding="utf-8"))
+    assert ads["domain"] == "gabi-test.co.il", "set_domain לא סנכרן את מקור הדומיין של המודעות"
     out = check.findings(release=True, cfg=cfg, root=root)
-    assert out and all("סרטונים" in f for f in out), out   # נשאר רק: לרנדר את הסרטונים מחדש
+    # נשאר רק לרנדר מחדש: סרטונים + מודעות (ה-manifest עדיין של הרינדור הקודם)
+    assert out and all(("סרטונים" in f) or ("מודעות" in f) for f in out), out
     cfg["videos_rendered_for"] = "gabi-test.co.il"
+    man = root / "marketing/ads/out/manifest.json"
+    m = json.loads(man.read_text(encoding="utf-8"))
+    m["domain"] = "gabi-test.co.il"
+    man.write_text(json.dumps(m), encoding="utf-8")
     assert check.findings(release=True, cfg=cfg, root=root) == []
 
 
@@ -81,3 +89,22 @@ def test_set_domain_rejects_invalid(bad, tmp_path):
     root = _copy_tree(tmp_path)
     with pytest.raises(ValueError):
         setdom.set_domain(bad, root=root, cfg_path=root / "marketing/launch/launch.json")
+
+
+def test_package_ready_for_signature_only_meir_walls_left():
+    """יעד השיווק (הוראת מאיר 15.11): החבילה מוכנה ומחכה רק לחתימה. מה שבידי הצוות ירוק,
+    והאדום שנשאר בשער ההשקה נעלם ברגע שיש דומיין (מלבד רינדור מחדש)."""
+    assert check.readiness() == []
+    assert len(check.MEIR_WALLS) == 4
+
+
+def test_readiness_catches_team_side_problem(tmp_path):
+    """מוטציה: דומיין placeholder זר בפוסט ⇒ «לא מוכן» (זו בעיה של הצוות, לא של מאיר)."""
+    root = _copy_tree(tmp_path)
+    for g in check.GENERATORS:          # המחוללים נבדקים מול הקוד האמיתי — מעתיקים גם אותם
+        (root / g).parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy(ROOT / g, root / g)
+    p = root / "marketing/posts.md"
+    p.write_text(p.read_text(encoding="utf-8") + "\nhttps://other.example/x\n", encoding="utf-8")
+    probs = check.readiness(root=root)
+    assert any("other.example" in x for x in probs), probs

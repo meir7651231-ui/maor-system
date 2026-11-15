@@ -30,5 +30,6 @@
   ],
   "domain_placeholders": [
     "[דומיין]"
-  ]
+  ],
+  "ads_launch": "marketing/ads/launch.json"
 }
