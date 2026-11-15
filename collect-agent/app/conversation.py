@@ -889,6 +889,8 @@ def respond(text: str, ctx: Context, *, llm: LLMClassifier | None = None,
         # ערבית/רוסית: אין הבטחת תמיכה — עוצרים אוטומציה ומעבירים לבעל העסק, בלי ניחוש ובלי LLM
         return _foreign(lang, text, ctx)
     intents = detect(text, ctx)
+    # רצפת הגנה: תבניות מגינות שנתפסו בטקסט הגולמי לפני עידונים (חוקי discard)
+    raw_protective = {it for it in _FLOOR_INTENTS if _hits(RX[it], t, negatable=it in NEGATABLE)}
     confidence = "rules"
     if intents == [Intent.UNKNOWN] and llm is not None and t:
         try:
@@ -901,6 +903,15 @@ def respond(text: str, ctx: Context, *, llm: LLMClassifier | None = None,
     if intents == [Intent.UNKNOWN]:
         confidence = "none"
     d = _decide(t, intents, ctx)
+    dropped = raw_protective - set(d.all_intents)
+    if dropped and t:
+        # שורש משותף לרגרסיות (critic 80/88/91): עידון הוריד כוונה מגינה ולא בא דבר במקומה ⇒ לפחות השהיה + כרטיס
+        names = ", ".join(sorted(i.value for i in dropped))
+        d = replace(
+            d, stop=d.stop if d.stop != Stop.NONE else Stop.PAUSE,
+            escalate=max(d.escalate, Escalation.NORMAL, key=_esc_rank),
+            tags=d.tags + ("protective_floor",),
+            owner_actions=d.owner_actions + (f"לבדוק: בהודעה יש סימן ל-{names} שהמנוע לא אישר — להחליט אם לעצור",))
     d = replace(d, confidence=confidence)
     if confidence == "llm" and d.escalate == Escalation.NONE:
         d = replace(d, escalate=Escalation.NORMAL, tags=d.tags + ("llm_classified",))
@@ -964,6 +975,9 @@ def _foreign(lang: str, text: str, ctx: Context) -> Decision:
         owner_summary=f"🌐 {name} השיב/ה ב{label}: \"{_clip(text)}\". האוטומציה נעצרה; נדרש מענה אישי.",
         owner_actions=("לקרוא/לתרגם ולהשיב אישית", "לחדש תזכורות רק אחרי שבירור"),
         tags=("foreign_language", f"lang:{lang}"), confidence="none")
+
+
+_FLOOR_INTENTS = (Intent.OPT_OUT, Intent.DISPUTE, Intent.LEGAL, Intent.DISTRESS, Intent.MINOR, Intent.WRONG_PERSON)
 
 
 def _esc_rank(e: Escalation) -> int:
