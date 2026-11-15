@@ -189,3 +189,35 @@ def test_web_job_guards_dedicated_tmpdir_around_all_browser_steps() -> None:
     assert i_env < min(nodes) and i_snap < min(nodes), "TMPDIR והצילום לפני הדפדפן הראשון"
     assert max(nodes) < i_check, "הבדיקה אחרי הדפדפן האחרון"
     assert "e2e-tmp/" not in job, "הצילום מחוץ לתיקייה הנבדקת (אחרת הוא עצמו «דליפה»)"
+
+
+# --- הפעלה 225: מגן TMPDIR גם בג'וב test (pytest + evals + demo.sh + smoke + חוזים + sandbox) ---
+
+
+def test_test_job_guards_dedicated_tmpdir_around_all_steps() -> None:
+    """עד 225 ג׳וב test שמר רק על עץ הפרויקט: קובץ זמני שנשאר ב-/tmp (sqlite, מפתח, שרת שכתב לוג) לא נתפס.
+    pytest עצמו משאיר בכוונה pytest-of-* ⇒ --basetemp מחוץ לתיקייה הנבדקת, אחרת כל ריצה «דולפת»."""
+    wf = (SCRIPT.parent.parent.parent / ".github" / "workflows" / "collect-agent.yml").read_text(encoding="utf-8")
+    job = wf.split("\n  sqlcipher:")[0]
+    i_env = job.index('echo "TMPDIR=$RUNNER_TEMP/test-tmp" >> "$GITHUB_ENV"')
+    i_snap = job.index('fs-snapshot "$RUNNER_TEMP/test-tmp-before.txt" "$RUNNER_TEMP/test-tmp"')
+    i_check = job.index('fs-check "$RUNNER_TEMP/test-tmp-before.txt" "$RUNNER_TEMP/test-tmp"')
+    i_pytest = job.index("python -m pytest -q")
+    assert i_env < i_pytest and i_snap < i_pytest, "TMPDIR והצילום לפני pytest"
+    assert '--basetemp="$RUNNER_TEMP/pytest-base"' in job[i_pytest:job.index("\n", i_pytest)]
+    steps = ("python -m evals.harness", "./demo.sh --check", "bash scripts/smoke_server.sh",
+             "bash scripts/contract_checks_http.sh", "sandbox_day1_paid_check.py --mock no-status")
+    for step in steps:
+        assert i_pytest < job.index(step) < i_check, step
+    assert "test-tmp/" not in job, "הצילום וה-basetemp מחוץ לתיקייה הנבדקת"
+
+
+def test_fs_check_reports_count_beyond_200(tmp_path: Path, capsys) -> None:
+    """225: ה-fs-check חתך ל-200 שורות בלי לומר — 726 קבצי pytest נראו כ«200»."""
+    root, snap = tmp_path / "t", tmp_path / "snap.txt"
+    root.mkdir()
+    assert tg.main(["tg", "fs-snapshot", str(snap), str(root)]) == 0
+    for i in range(205):
+        (root / f"f{i:03}").write_text("")
+    assert tg.main(["tg", "fs-check", str(snap), str(root)]) == 1
+    assert "ועוד 5 (סה״כ 205)" in capsys.readouterr().out

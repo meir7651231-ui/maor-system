@@ -19,6 +19,9 @@
 
 ג׳וב web (הפעלה 224): TMPDIR ייעודי ($RUNNER_TEMP/e2e-tmp) לכל צעדי הדפדפן, fs-snapshot לפני ו-fs-check אחרי
 ⇒ סוד TOTP / sqlite / .org.chromium.* שנשארים ב-TMPDIR (222–223) נתפסים אוטומטית ב-CI.
+
+ג׳וב test (הפעלה 225): אותו מגן ($RUNNER_TEMP/test-tmp) סביב pytest, evals, demo.sh, smoke, חוזים ו-sandbox;
+pytest רץ עם --basetemp מחוץ לתיקייה (pytest-of-* נשמר בכוונה). רשימה מעל 200 ⇒ «ועוד N».
 """
 
 from __future__ import annotations
@@ -106,6 +109,8 @@ def main(argv: list[str]) -> int:
             print(f"❌ נוצרו קבצים חדשים תחת {root}:")
             for ln in new[:200]:
                 print("   ", ln)
+            if len(new) > 200:
+                print(f"    … ועוד {len(new) - 200} (סה״כ {len(new)})")
             return 1
         print(f"✅ אין קבצים חדשים תחת {root}")
         return 0

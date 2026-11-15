@@ -1,4 +1,4 @@
-# STATUS — גבי, תזכורות תשלום · שלב 1 · עודכן 6.11.2026 (סבב אינטגרציה, הפעלה 21 · מנהל: הפעלה 224, 15.11)
+# STATUS — גבי, תזכורות תשלום · שלב 1 · עודכן 6.11.2026 (סבב אינטגרציה, הפעלה 21 · מנהל: הפעלה 225, 15.11)
 
 ענף אינטגרציה: `collect-agent` (לא מוזג ל-main, ולא ימוזג בלי אישור מפורש של מאיר). תיקייה: `collect-agent/`.
 
@@ -14,6 +14,27 @@
 ## 📌 הכרעות מאיר — מחייבות כל תפקיד (6.11.2026)
 - **מחיר יחיד:** ₪119 לחודש **או** ₪1,190 לשנה · 14 ימי ניסיון. **אין ₪79**, אין A/B, אין מסלולים או מחירונים אחרים. מקור יחיד: `docs/PRICING.md` · בקוד: `Settings.price_ils_month=119`, `price_ils_year=1190`, `trial_days=14` · בדף הנחיתה: `PRICE` ב-`web/src/pages/Landing.tsx`. (ניסוח המע״מ «כולל מע״מ ככל שחל» — עדיין לאישור רו״ח/עו״ד, `docs/PRICING.md`.)
 - **אין הרשמה לשום חשבון sandbox** (חשבונית ירוקה, 019, InforU, Twilio, ספק מייל) **בלי אישור מפורש של מאיר.** עד אז כל הפיתוח והבדיקות מול `app/gi_mock.py` ו-DryRunSender בלבד; פריטי «לאמת» נשארים פתוחים.
+
+## 🧭 הפעלת מנהל · 15.11.2026 (הפעלה 225)
+- **מיזוג:** אין ענפי `claude/*` חדשים עם שינוי ב-`collect-agent/`. ‏`bold-bell-xom3mc` (רק מיזוגי collect-agent אליו, נעצר לפי מאיר) · `gabi-019-inbound` — בלי הפרש בתיקייה · `stoic-mccarthy-23f03p` — נדחה ומכוסה (107) · `bridge-gabi-engine-*` — רק `BRIDGE/`. ה-workflow `collect-agent.yml` קיים ומריץ רק על `collect-agent/`.
+- **CI:** ריצה 719 (`ad4cbd83`, 224, מגן TMPDIR בג׳וב web) **ירוקה** ⇒ (1) מ-224 סגור.
+- **המשימה:** «הבא» (2) מ-224 — **QA: מגן TMPDIR בג׳וב `test`.**
+  - **ב-CI:** צעד חדש לפני pytest — `TMPDIR=$RUNNER_TEMP/test-tmp` (דרך `GITHUB_ENV`, לכל הצעדים שאחריו: pytest, evals, demo.sh, smoke, חוזים, sandbox) + `fs-snapshot`; צעד אחרון `fs-check`.
+  - **ממצא:** pytest משאיר בכוונה `pytest-of-<user>/pytest-N` (שמירת 3 ריצות) — **726 קבצים** בריצה אחת, כולם «דליפה» לכאורה. ⇒ pytest רץ עם `--basetemp="$RUNNER_TEMP/pytest-base"` מחוץ לתיקייה הנבדקת. מחוץ לזה הכול נקי: evals, demo.sh, smoke, חוזים ו-sandbox לא משאירים כלום ב-TMPDIR (רק `node-compile-cache`, מותר).
+  - **`tree_guard.py`:** `fs-check` חתך את הרשימה ל-200 בלי לומר (726 נראו כ-200) ⇒ «… ועוד N (סה״כ M)».
+  - **ננעל:** `tests/test_tree_guard.py` (+2): מגן-workflow (env+צילום לפני pytest, `--basetemp` מחוץ, כל 5 הצעדים לפני הבדיקה) · ספירה מעבר ל-200. **מוטציות:** בלי `--basetemp` ⇒ 1 נופלת · הבדיקה לפני smoke ⇒ 1 נופלת · בלי «ועוד» ⇒ 1 נופלת · קובץ `leak.sqlite3` ב-TMPDIR ⇒ guard rc=1.
+  - **אומת מקומית (כמו ה-CI):** הג׳וב המלא עם TMPDIR ייעודי — `pytest` **2716 עברו**, 18 דולגו · evals/demo.sh/smoke/חוזים/sandbox ⇒ 0 · שני השומרים ✅ · `ruff check` נקי · YAML תקין.
+- **מצב לפי תפקיד:**
+  - פיתוח — בלי חסם. הבא: הצגת `sent_owner` אחרי הכרעת הביקורת.
+  - ביקורת — סבב 89: (א) הצגת `sent_owner` — מחכה להכרעה (מ-214). (ב) סגירת (ג) מ-186. (ג) הצהרת הנגישות. (ד) `wait` בתוך cleanup של demo.sh (מ-221).
+  - עיצוב — לאשר `ui-12-open-list.png` / `ui-13-open-list-mobile.png` (CI, `web-e2e-shots`) · צבעי סטטוס (ניגודיות). סקריפט board חדש = `launchChromium`.
+  - AI — לפני סבב 10: להריץ גם `tests/test_critic_round79_engine.py` ו-`test_engine_round9.py`.
+  - QA — ✅ מגן TMPDIR ב-web (224) וב-test (225). הבא: אותו מגן בג׳וב `sqlcipher` (pytest + demo.sh + smoke מוצפנים, מפתח חד-פעמי) — אז כל ג׳וב שמריץ קוד מכוסה.
+  - חיבורים — `CONTRACT_VERIFIED` ‏False עד מסמך API של 019 + חשבון בדיקה (מאיר).
+  - משפטי — placeholders ב-`/p`, `/u` ובהצהרת הנגישות ממתינים לפרטי החברה המפעילה. אחרי שינוי ב-`legal/` — להריץ `marketing/legal-pages/build.py`.
+  - שיווק/מכירות — חבילות מוכנות לחתימת מאיר.
+- **הבא (פיתוח):** (1) לבדוק שריצת ה-CI של הקומיט הזה ירוקה (צעד «שומר TMPDIR» בג׳וב test, על 3.11 ו-3.13). (2) QA — מגן TMPDIR בג׳וב `sqlcipher`. (3) אם הביקורת מאשרת — הצגת `sent_owner`.
+- **חסמים (מאיר):** ללא שינוי (sandbox לספקים, ניסוח מע״מ, פרטי החברה המפעילה, מסמך API של 019, ענף `bold-bell-xom3mc`).
 
 ## 🧭 הפעלת מנהל · 15.11.2026 (הפעלה 224)
 - **מיזוג:** אין ענפי `claude/*` חדשים עם שינוי ב-`collect-agent/`. ‏`stoic-mccarthy-23f03p` — נדחה ומכוסה (107) · `gabi-*` (כולל `gabi-019-inbound`) — כבר בענף או בלי הפרש בתיקייה · `bridge-gabi-engine-*` — רק `BRIDGE/`, לא נוגעים ב-`collect-agent/`. ה-workflow `collect-agent.yml` קיים ומריץ רק על `collect-agent/`.
