@@ -16,6 +16,9 @@
 
     python3 -I scripts/tree_guard.py fs-snapshot /tmp/x.txt [DIR]
     python3 -I scripts/tree_guard.py fs-check /tmp/x.txt [DIR]
+
+ג׳וב web (הפעלה 224): TMPDIR ייעודי ($RUNNER_TEMP/e2e-tmp) לכל צעדי הדפדפן, fs-snapshot לפני ו-fs-check אחרי
+⇒ סוד TOTP / sqlite / .org.chromium.* שנשארים ב-TMPDIR (222–223) נתפסים אוטומטית ב-CI.
 """
 
 from __future__ import annotations
@@ -26,7 +29,9 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-ALLOWED_PARTS = {"__pycache__", ".pytest_cache", ".ruff_cache"}
+# node-compile-cache (הפעלה 224): מטמון הקומפילציה של Node (npm/node 22 כותבים ל-os.tmpdir()) — לשימוש
+# חוזר, בלי נתונים. נשאר אחרי כל ריצת e2e גם כשהכול נקי ⇒ מותר, כדי שמגן ה-TMPDIR של ג׳וב web יתפוס רק דליפות.
+ALLOWED_PARTS = {"__pycache__", ".pytest_cache", ".ruff_cache", "node-compile-cache"}
 # תיקיות כבדות שנוצרות בכוונה בצעדי CI אחרים (npm/build) — לא חלק מסוויטת pytest.
 SKIP_PREFIXES = ("web/node_modules/", "web/dist/")
 

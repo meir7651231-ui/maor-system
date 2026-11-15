@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import importlib.util
+import re
 import subprocess
 from pathlib import Path
 
@@ -161,3 +162,30 @@ def test_clean_demo_second_run_is_guarded_in_project_and_tmp() -> None:
     assert all(first_run_end < s < run2 for s in snaps), "הצילום אחרי ריצה 1 (ה-.venv כבר נוצר בכוונה)"
     assert all(c > script.index('OUT="$(./demo.sh --check') for c in checks), "הבדיקה אחרי ריצה 2"
     assert "git status" not in script and "tree_guard.py snapshot" not in script, "אין git ב-container"
+
+
+# --- הפעלה 224: מגן TMPDIR בג'וב web — דליפות של בדיקות הדפדפן נתפסות אוטומטית ב-CI ---
+
+
+def test_fs_mode_allows_node_compile_cache_but_not_chromium_leftovers(tmp_path: Path) -> None:
+    before = tg.fs_state(tmp_path)
+    (tmp_path / "node-compile-cache" / "v22-x64").mkdir(parents=True)
+    (tmp_path / "node-compile-cache" / "v22-x64" / "2850518c").write_text("")
+    assert tg.diff(before, tg.fs_state(tmp_path)) == [], "מטמון Node — לא דליפה"
+    (tmp_path / ".org.chromium.Chromium.abc").write_text("")
+    (tmp_path / "gabi-live-x" / "totp.txt").parent.mkdir()
+    (tmp_path / "gabi-live-x" / "totp.txt").write_text("")
+    assert tg.diff(before, tg.fs_state(tmp_path)) == [".org.chromium.Chromium.abc", "gabi-live-x/totp.txt"]
+
+
+def test_web_job_guards_dedicated_tmpdir_around_all_browser_steps() -> None:
+    wf = (SCRIPT.parent.parent.parent / ".github" / "workflows" / "collect-agent.yml").read_text(encoding="utf-8")
+    job = wf.split("\n  web:")[1].split("\n  demo-clean:")[0]
+    i_env = job.index('echo "TMPDIR=$RUNNER_TEMP/e2e-tmp" >> "$GITHUB_ENV"')
+    i_snap = job.index('fs-snapshot "$RUNNER_TEMP/e2e-tmp-before.txt" "$RUNNER_TEMP/e2e-tmp"')
+    i_check = job.index('fs-check "$RUNNER_TEMP/e2e-tmp-before.txt" "$RUNNER_TEMP/e2e-tmp"')
+    nodes = [m.start() for m in re.finditer(r"node e2e/\w[\w-]*\.mjs", job)]
+    assert len(nodes) >= 12, "כל סקריפטי הדפדפן"
+    assert i_env < min(nodes) and i_snap < min(nodes), "TMPDIR והצילום לפני הדפדפן הראשון"
+    assert max(nodes) < i_check, "הבדיקה אחרי הדפדפן האחרון"
+    assert "e2e-tmp/" not in job, "הצילום מחוץ לתיקייה הנבדקת (אחרת הוא עצמו «דליפה»)"

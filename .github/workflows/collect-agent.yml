@@ -148,6 +148,12 @@ jobs:
       - name: לוג השרתים של בדיקות הדפדפן ⇒ תיקיית הצילומים (עולה כ-artifact בכישלון)
         # ההקשר runner לא זמין ב-env ברמת הג'וב (ריצה 479 נפסלה על זה) ⇒ דרך GITHUB_ENV. e2e/lib.mjs srvStdio
         run: echo "E2E_LOG_DIR=$RUNNER_TEMP/shots" >> "$GITHUB_ENV"
+      # הפעלה 224 (QA): TMPDIR ייעודי לכל צעדי הדפדפן + צילום לפני ⇒ fs-check אחרי (רואים גם .org.chromium.* / sqlite / סוד TOTP)
+      - name: TMPDIR ייעודי לבדיקות הדפדפן + צילום לפני
+        run: |
+          mkdir -p "$RUNNER_TEMP/e2e-tmp"
+          echo "TMPDIR=$RUNNER_TEMP/e2e-tmp" >> "$GITHUB_ENV"
+          python3 -I ../scripts/tree_guard.py fs-snapshot "$RUNNER_TEMP/e2e-tmp-before.txt" "$RUNNER_TEMP/e2e-tmp"
       - name: e2e מוק — 6 מסכים, דסקטופ+מובייל, 0 בקשות חיצוניות
         run: mkdir -p "$RUNNER_TEMP/shots" && TZ=Asia/Jerusalem node e2e/shots.mjs "$RUNNER_TEMP/shots"
       - name: נגישות (ת״י 5568 / WCAG 2.1 AA) — 7 דפי שיווק + 3 עמודי לקוח (/p /pay /u, DEMO=1), axe-core מקומי, נכשל על serious/critical
@@ -172,6 +178,9 @@ jobs:
         run: TZ=UTC node e2e/csp.mjs
       - name: e2e מצבי הטעינה של /app/ (דסקטופ+מובייל) — שלד לפי מסך, תצוגה מקדימה בטעינה ובכשל, ערוץ בלי הודעה, תזכורת שהוחלפה
         run: TZ=UTC node e2e/preview.mjs "$RUNNER_TEMP/shots"
+      - name: שומר TMPDIR — בדיקות הדפדפן לא השאירו קבצים (חוץ ממטמון node-compile-cache)
+        if: success()
+        run: python3 -I ../scripts/tree_guard.py fs-check "$RUNNER_TEMP/e2e-tmp-before.txt" "$RUNNER_TEMP/e2e-tmp"
       - name: לוג השרתים של בדיקות הדפדפן (רק בכישלון, 200 שורות אחרונות לכל קובץ)
         if: failure()
         run: |

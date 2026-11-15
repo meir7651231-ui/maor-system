@@ -1,4 +1,4 @@
-# STATUS — גבי, תזכורות תשלום · שלב 1 · עודכן 6.11.2026 (סבב אינטגרציה, הפעלה 21 · מנהל: הפעלה 223, 15.11)
+# STATUS — גבי, תזכורות תשלום · שלב 1 · עודכן 6.11.2026 (סבב אינטגרציה, הפעלה 21 · מנהל: הפעלה 224, 15.11)
 
 ענף אינטגרציה: `collect-agent` (לא מוזג ל-main, ולא ימוזג בלי אישור מפורש של מאיר). תיקייה: `collect-agent/`.
 
@@ -14,6 +14,26 @@
 ## 📌 הכרעות מאיר — מחייבות כל תפקיד (6.11.2026)
 - **מחיר יחיד:** ₪119 לחודש **או** ₪1,190 לשנה · 14 ימי ניסיון. **אין ₪79**, אין A/B, אין מסלולים או מחירונים אחרים. מקור יחיד: `docs/PRICING.md` · בקוד: `Settings.price_ils_month=119`, `price_ils_year=1190`, `trial_days=14` · בדף הנחיתה: `PRICE` ב-`web/src/pages/Landing.tsx`. (ניסוח המע״מ «כולל מע״מ ככל שחל» — עדיין לאישור רו״ח/עו״ד, `docs/PRICING.md`.)
 - **אין הרשמה לשום חשבון sandbox** (חשבונית ירוקה, 019, InforU, Twilio, ספק מייל) **בלי אישור מפורש של מאיר.** עד אז כל הפיתוח והבדיקות מול `app/gi_mock.py` ו-DryRunSender בלבד; פריטי «לאמת» נשארים פתוחים.
+
+## 🧭 הפעלת מנהל · 15.11.2026 (הפעלה 224)
+- **מיזוג:** אין ענפי `claude/*` חדשים עם שינוי ב-`collect-agent/`. ‏`stoic-mccarthy-23f03p` — נדחה ומכוסה (107) · `gabi-*` (כולל `gabi-019-inbound`) — כבר בענף או בלי הפרש בתיקייה · `bridge-gabi-engine-*` — רק `BRIDGE/`, לא נוגעים ב-`collect-agent/`. ה-workflow `collect-agent.yml` קיים ומריץ רק על `collect-agent/`.
+- **CI:** ריצה 717 (`89274338`, 223, `launchChromium`) **ירוקה** ⇒ (1) מ-223 סגור.
+- **המשימה:** «הבא» (2) מ-223 — **QA: מגן TMPDIR אוטומטי בג׳וב ה-web.**
+  - **ב-CI:** צעד חדש לפני הדפדפן הראשון — `TMPDIR=$RUNNER_TEMP/e2e-tmp` (דרך `GITHUB_ENV`, לכל 12 הצעדים) + `tree_guard.py fs-snapshot`; צעד אחרי `preview.mjs` — `fs-check` (נכשל ⇒ רשימת הקבצים בלוג). הצילום עצמו מחוץ לתיקייה הנבדקת.
+  - **`tree_guard.py`:** `node-compile-cache` נוסף למותרים — מטמון הקומפילציה של Node נשאר אחרי כל ריצה גם כשהכול נקי (אומת: a11y/notices/csp ⇒ רק הוא). `.org.chromium.*`, sqlite וסוד TOTP — נתפסים.
+  - **ננעל:** `tests/test_tree_guard.py` (+2): המטמון מותר אבל `.org.chromium.*`/`totp.txt` נתפסים · מגן-workflow: ה-env והצילום לפני כל `node e2e/*.mjs` (≥12), הבדיקה אחרי האחרון. **מוטציות:** בלי המטמון במותרים ⇒ בדיקה 1 נופלת + ה-guard האמיתי ⇒ rc=1 · הבדיקה לפני `preview.mjs` ⇒ 1 נופלת.
+  - **אומת מקומית (כמו ה-CI):** כל 12 סקריפטי ה-e2e עם TMPDIR ייעודי ⇒ כולם 0, ה-guard ⇒ ✅ · `pytest` **2706 עברו**, 19 דולגו (גם `test_marketing_price_always_with_vat_and_yearly` עוברת עכשיו) · `ruff check` נקי · YAML תקין.
+- **מצב לפי תפקיד:**
+  - פיתוח — בלי חסם. הבא: הצגת `sent_owner` אחרי הכרעת הביקורת.
+  - ביקורת — סבב 89: (א) הצגת `sent_owner` — מחכה להכרעה (מ-214). (ב) סגירת (ג) מ-186. (ג) הצהרת הנגישות. (ד) `wait` בתוך cleanup של demo.sh (מ-221).
+  - עיצוב — לאשר `ui-12-open-list.png` / `ui-13-open-list-mobile.png` (CI, `web-e2e-shots`) · צבעי סטטוס (ניגודיות). סקריפט board חדש = `launchChromium`.
+  - AI — לפני סבב 10: להריץ גם `tests/test_critic_round79_engine.py` ו-`test_engine_round9.py`.
+  - QA — ✅ shell (221), `web/e2e` (222), `web/scripts` + הדפדפן (223), **מגן TMPDIR אוטומטי בג׳וב web (224)**. הבא: אותו מגן TMPDIR בג׳וב `test` (pytest + demo.sh + smoke), שהיום שומר רק על עץ הפרויקט.
+  - חיבורים — `CONTRACT_VERIFIED` ‏False עד מסמך API של 019 + חשבון בדיקה (מאיר).
+  - משפטי — placeholders ב-`/p`, `/u` ובהצהרת הנגישות ממתינים לפרטי החברה המפעילה. אחרי שינוי ב-`legal/` — להריץ `marketing/legal-pages/build.py`.
+  - שיווק/מכירות — חבילות מוכנות לחתימת מאיר.
+- **הבא (פיתוח):** (1) לבדוק שריצת ה-CI של הקומיט הזה ירוקה (צעד «שומר TMPDIR» בג׳וב web). (2) QA — מגן TMPDIR בג׳וב `test`. (3) אם הביקורת מאשרת — הצגת `sent_owner`.
+- **חסמים (מאיר):** ללא שינוי (sandbox לספקים, ניסוח מע״מ, פרטי החברה המפעילה, מסמך API של 019, ענף `bold-bell-xom3mc`).
 
 ## 🧭 הפעלת מנהל · 15.11.2026 (הפעלה 223)
 - **מיזוג:** אין ענפי `claude/*` חדשים עם שינוי ב-`collect-agent/`. ‏`gabi-019-inbound` (תיקון Date במייל) — כבר בפנים (`formatdate` ב-`app/integrations/email.py`) · `stoic-mccarthy-23f03p` — נדחה ומכוסה (107) · `bold-bell-xom3mc` — נעצר לפי מאיר (רק מיזוגי collect-agent אליו מאז). ה-workflow `collect-agent.yml` קיים ומריץ רק על `collect-agent/`.
