@@ -126,6 +126,9 @@ SMS_HARD_MAX = 201        # 3 חלקים — תקרה משפטית (team/legal.m
 STOP_REPLY = "להסרה השיבו הסר"      # רק כשיש מספר שמקבל תשובות (2-way)
 STOP_LINK = "להפסקה: בקישור"         # שם שולח אלפאנומרי — ההפסקה בעמוד הקישור
 _ORG = re.compile(r"בע[\"״]?מ|חברת|עמותת|מרפאת|משרד|סטודיו|קבוצת|ltd|inc|llc", re.I)
+# גבי מכירות, ערכת בטא (קליניקה): «הורי איתי» ⇒ «שלום הורי,» — מילת קשר במקום שם. תיאור קבוצה בתחילת
+# השם נשמר בשלמותו (כמו ארגון), אם אינו ארוך מ-FIRST_MAX+12 (אחרת SMS עובר ל-3 חלקים) ⇒ «שלום,».
+_GROUP = re.compile(r"^(הורי|הוריו|הוריה|משפחת|אמא|אבא)(\s+של)?\s+\S")
 
 
 _TITLES = frozenset({"מר", "מרת", "גב'", "גב׳", "גברת", 'ד"ר', "ד״ר", "דר'", "דר׳", "הרב", "הרבנית",
@@ -143,6 +146,8 @@ def first_name(name: str) -> str:
         return ""
     if _ORG.search(n):
         return n
+    if _GROUP.match(n):
+        return n if len(n) <= FIRST_MAX + 12 else ""
     parts = n.split()
     if parts[0].lower() in _TITLES and len(parts) >= 2:
         first = parts[1] if len(parts) >= 3 else f"{parts[0]} {parts[1]}"
