@@ -40,7 +40,23 @@ CLAIMS = [
     ("ניסיון", f"{S.trial_days} יום", ("TERMS.md",)),
     ("מחיר חודשי", f"₪{S.price_ils_month}", ("TERMS.md", "LAWYER-BRIEF.md")),
     ("מחיר שנתי", f"₪{S.price_ils_year:,}", ("TERMS.md", "LAWYER-BRIEF.md")),
+    ("תוקף אישור", f"{policy.APPROVAL_VALID_DAYS} ימים", ("TERMS.md",)),
 ]
+
+
+def test_open_list_review_documented_when_on():
+    """15.11: «פתוחה» ≠ «לא שולמה». השער דלוק כברירת מחדל ⇒ המסמכים חייבים להגיד שהעסק מאשר כל חשבונית."""
+    assert S.open_review is True
+    for d in ("TERMS.md", "LAWYER-BRIEF.md"):
+        assert "רשימת הפתוחות" in DOCS[d], d
+    assert "לא שולמה" in DOCS["PRIVACY.md"]
+
+
+def test_credit_review_documented():
+    from app.service import CollectService
+    assert CollectService.CREDIT_REVIEW == "credit_review"
+    for d in ("TERMS.md", "PRIVACY.md", "LAWYER-BRIEF.md"):
+        assert "זיכוי" in DOCS[d], d
 
 
 @pytest.mark.parametrize("what,text,docs", CLAIMS, ids=[c[0] for c in CLAIMS])
