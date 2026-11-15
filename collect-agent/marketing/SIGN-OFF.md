@@ -20,7 +20,7 @@
 | ספריית נוסחים (כלי חינמי) | `marketing/library/index.html` | 6 נוסחים מ-`app/templates.py`, מסנן ניסוח, סנכרון לקוד (`test_template_library.py`) | 1, 2 |
 | 5 פוסטים | `marketing/posts.md` | כל טענה מגובה בבדיקה (`team/messaging.md` §2) | 1, 2 |
 | 7 מיילים לניסיון | `marketing/emails-trial.md` | מיושר ל-`trial()`/`trial_ending`; שירות מופרד מפרסומת | 1, 2, 3, 4 |
-| 4 מאמרי SEO | `marketing/seo/` | בלי מילים אסורות; ב«מתי לשלוח» ו«הצעת תשלומים» כל מספר = הכלל בקוד (`test_seo_articles.py`) | 1, 2 |
+| 5 מאמרי SEO | `marketing/seo/` | בלי מילים אסורות; «מתי לשלוח», «הצעת תשלומים» ו«שילמתי» נעולים לקוד ולמנוע השיחה (`test_seo_articles.py`) | 1, 2 |
 | סרטון + סטוריבורד | `marketing/video/` | פריימים מהמערכת האמיתית במצב בדיקה | 1 (רינדור מחדש), 2 |
 | מודעות לפי ענף (גבי עיצוב) | `marketing/ads/` | `check.mjs` של עיצוב; הדומיין מסונכרן מ-`set_domain.py` | 1 (רינדור מחדש), 2 |
 | ערכת בטא + דף מסרים | `team/beta-kit.md`, `team/messaging.md` | — | 2 (פנייה לעסקים = אישור מאיר) |

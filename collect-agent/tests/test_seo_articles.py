@@ -54,3 +54,26 @@ def test_payment_plan_article_numbers_match_code():
     assert sum(p.amount_agorot for p in parts) == total * 3 and parts[0].amount_agorot >= parts[1].amount_agorot
     assert "השארית" in t and "לתשלום הראשון" in t
     assert "בלי ריבית" in t
+
+
+PAID = SEO / "05-client-says-paid.md"
+
+
+@pytest.mark.parametrize("text,partial", [("שילמתי אתמול בביט", False),
+                                          ("כבר העברתי לכם", False),
+                                          ("שילמתי חלק, 500 ש״ח, את השאר בשבוע הבא", True)])
+def test_paid_claim_article_matches_engine(text, partial):
+    """מה שהמאמר אומר על גבי = מה שמנוע השיחה עושה על «שילמתי»: עוצר, טיוטה לאישור, מבקש אסמכתא,
+    ומזהה תשלום חלקי."""
+    from datetime import date
+
+    from app import conversation as c
+    t = PAID.read_text(encoding="utf-8")
+    ctx = c.Context(today=date(2026, 11, 8), business="סטודיו נועה", customer_name="דני כהן",
+                    invoices=(c.OpenInvoice("1043", 180000),), payment_link="https://pay.example/x")
+    d = c.respond(text, ctx)
+    assert d.intent == c.Intent.PAID_CLAIM
+    assert d.stop == c.Stop.PAUSE and "גבי עוצר את התזכורות" in t
+    assert d.auto_send is False and "שום תשובה לא יוצאת בלי אישורך" in t
+    assert d.reply and "אסמכתא" in d.reply and "אסמכתא" in t
+    assert ("partial" in d.tags) == partial and "תשלום חלקי" in t
