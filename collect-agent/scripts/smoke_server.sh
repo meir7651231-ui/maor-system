@@ -8,7 +8,21 @@ PORT="${PORT:-8765}"
 # ה-trap נרשם **לפני** mktemp (QA, BACKLOG): כשל בכל שורה אחרי היצירה לא משאיר תיקייה זמנית.
 PID=""
 TMP=""
-trap 'if [ -n "$PID" ]; then kill "$PID" 2>/dev/null || true; fi; [ -n "$TMP" ] && rm -rf "$TMP"' EXIT
+# הפעלה 230 (QA, «הבא» 2 מ-229): kill בלי wait ⇒ השרת עוד נסגר (כותב ללוג/ל-SQLite) כשה-rm -rf כבר רץ, ויוצאים
+# כשהוא מחזיק את 8765 ⇒ הריצה הבאה נופלת על «כתובת תפוסה» או מדברת עם השרת הישן. שרת שמתעלם מ-SIGTERM נשאר יתום.
+# כמו demo.sh (227) ו-contract_checks_http.sh (229): עד ~5 שניות לסגירה מסודרת ⇒ kill -9 ⇒ wait — לפני ה-rm.
+cleanup() {
+  local rc=$?
+  if [ -n "$PID" ]; then
+    kill "$PID" 2>/dev/null || true
+    for _ in $(seq 1 50); do kill -0 "$PID" 2>/dev/null || break; sleep 0.1; done
+    kill -9 "$PID" 2>/dev/null || true
+    wait "$PID" 2>/dev/null || true
+  fi
+  [ -n "$TMP" ] && rm -rf "$TMP"
+  exit "$rc"
+}
+trap cleanup EXIT
 TMP="$(mktemp -d)"
 export OWNER_API_TOKEN="$(python3 -c 'import secrets;print(secrets.token_urlsafe(32))')"
 export INBOUND_WEBHOOK_SECRET="$(python3 -c 'import secrets;print(secrets.token_urlsafe(32))')"
