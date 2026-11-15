@@ -1,0 +1,83 @@
+"""חבילת השקה: דומיין במקום אחד (marketing/launch/launch.json) ושער השקה שנכשל כל עוד נשאר placeholder.
+
+ההכרעה על הדומיין היא של מאיר. עד אז: הכול מסונכרן ל-gabi.example, וההחלפה היא פקודה אחת.
+"""
+import importlib.util
+import json
+import re
+import shutil
+from pathlib import Path
+
+import pytest
+
+ROOT = Path(__file__).resolve().parents[1]
+LAUNCH = ROOT / "marketing" / "launch"
+
+
+def _mod(name):
+    spec = importlib.util.spec_from_file_location(name, LAUNCH / f"{name}.py")
+    m = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(m)
+    return m
+
+
+check = _mod("check_launch")
+setdom = _mod("set_domain")
+CFG = json.loads((LAUNCH / "launch.json").read_text(encoding="utf-8"))
+
+
+def test_all_launch_materials_consistent_with_single_domain():
+    assert check.findings(release=False) == []
+
+
+def test_web_has_domain_only_in_site_ts():
+    """באג שנסגר: Landing.tsx ו-message.ts הקשיחו gabi.example ⇒ החלפת דומיין הייתה מפספסת אותם."""
+    hits = [p.relative_to(ROOT).as_posix() for p in (ROOT / "web" / "src").rglob("*.ts*")
+            if CFG["domain"] in p.read_text(encoding="utf-8")]
+    assert hits == ["web/src/lib/site.ts"], hits
+
+
+def test_site_ts_and_backend_default_match_launch_json():
+    site = (ROOT / "web/src/lib/site.ts").read_text(encoding="utf-8")
+    assert re.search(r"SITE_DOMAIN = '([^']+)'", site).group(1) == CFG["domain"]
+    from app.config import Settings
+    assert Settings.__dataclass_fields__["public_base_url"].default == f"https://{CFG['domain']}"
+
+
+def test_release_gate_blocks_while_placeholder():
+    """הקיר: בלי דומיין אמיתי (הכרעת מאיר) אין השקה. השער חייב להיות אדום היום."""
+    out = check.findings(release=True)
+    assert any("placeholder" in f and "launch.json" in f for f in out)
+    assert any("gabi.example" in f for f in out)
+
+
+def _copy_tree(tmp_path):
+    for rel in CFG["files"] + ["marketing/launch/launch.json"]:
+        dst = tmp_path / rel
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy(ROOT / rel, dst)
+    return tmp_path
+
+
+def test_set_domain_switches_everything_and_release_passes(tmp_path):
+    root = _copy_tree(tmp_path)
+    cfg_path = root / "marketing/launch/launch.json"
+    dry = setdom.set_domain("gabi-test.co.il", root=root, cfg_path=cfg_path, dry=True)
+    assert dry and "gabi.example" in (root / "web/src/lib/site.ts").read_text(encoding="utf-8")  # dry לא כותב
+    setdom.set_domain("https://Gabi-Test.co.il/", root=root, cfg_path=cfg_path)
+    cfg = json.loads(cfg_path.read_text(encoding="utf-8"))
+    assert cfg["domain"] == "gabi-test.co.il" and cfg["placeholder"] is False
+    for rel in cfg["files"]:
+        text = (root / rel).read_text(encoding="utf-8")
+        assert "gabi.example" not in text and "[קישור לדף]" not in text and "[דומיין]" not in text, rel
+    out = check.findings(release=True, cfg=cfg, root=root)
+    assert out and all("סרטונים" in f for f in out), out   # נשאר רק: לרנדר את הסרטונים מחדש
+    cfg["videos_rendered_for"] = "gabi-test.co.il"
+    assert check.findings(release=True, cfg=cfg, root=root) == []
+
+
+@pytest.mark.parametrize("bad", ["", "not a domain", "gabi", "-x.co.il", "a..co.il"])
+def test_set_domain_rejects_invalid(bad, tmp_path):
+    root = _copy_tree(tmp_path)
+    with pytest.raises(ValueError):
+        setdom.set_domain(bad, root=root, cfg_path=root / "marketing/launch/launch.json")

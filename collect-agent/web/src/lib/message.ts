@@ -2,6 +2,7 @@
 // הנוסחים = מראה של app/templates.py כדי שהתצוגה המקדימה = מה שיישלח בפועל.
 // ⚖️ חוק התקשורת סעיף 30א: תזכורת תשלום ללקוח קיים איננה "דבר פרסומת" — לכן אסור לערבב בה שיווק/מבצעים.
 import type { Business, Customer, Invoice, Step } from './domain.ts';
+import { siteUrl } from './site.ts';
 
 export const STEP_LABEL: Record<Step, string> = {
   friendly: 'תזכורת ידידותית', plan_offer: 'תזכורת + אפשרות פריסה', final: 'תזכורת אחרונה',
@@ -9,10 +10,12 @@ export const STEP_LABEL: Record<Step, string> = {
 // הכרעת מאיר 6.11: 3 תזכורות לכל היותר ⇒ עצירה והתראה לבעל העסק
 export const STEP_ORDER: Step[] = ['friendly', 'plan_offer', 'final'];
 /** כתובת הסרה בדמו (בבקאנד: `{PUBLIC_BASE_URL}/u/{unsub_token}`, service.unsub_url). */
-export const demoUnsubUrl = (c: Customer) => `https://gabi.example/u/${c.id}`;
+export const demoUnsubUrl = (c: Customer) => siteUrl(`/u/${c.id}`);
 /** קישור קצר בדמו (בבקאנד: `{PUBLIC_BASE_URL}/p/{short_code}`, 7 תווים, service.short_url). */
-export const demoShortUrl = (inv: Invoice) => `https://gabi.example/p/${inv.id.padEnd(7, 'x').slice(0, 7)}`;
+export const demoShortUrl = (inv: Invoice) => siteUrl(`/p/${inv.id.padEnd(7, 'x').slice(0, 7)}`);
 const ORG = /בע["״]?מ|חברת|עמותת|מרפאת|משרד|סטודיו|קבוצת|ltd|inc|llc/i;
+/** מראה של templates._GROUP: «הורי איתי» / «משפחת כהן» נשמרים בשלמותם (לא «שלום הורי,»). */
+const GROUP = /^(הורי|הוריו|הוריה|משפחת|אמא|אבא)(\s+של)?\s+\S/;
 const TITLES = new Set(['מר', 'מרת', "גב'", 'גב׳', 'גברת', 'ד"ר', 'ד״ר', "דר'", 'דר׳', 'הרב', 'הרבנית',
   'עו"ד', 'עו״ד', 'רו"ח', 'רו״ח', "פרופ'", 'פרופ׳', 'פרופסור',
   'mr', 'mr.', 'mrs', 'mrs.', 'ms', 'ms.', 'dr', 'dr.', 'prof', 'prof.']);
@@ -23,6 +26,7 @@ export const firstName = (name: string) => {
   const n = (name || '').trim();
   if (!n) return '';
   if (ORG.test(n)) return n;
+  if (GROUP.test(n)) return n.length <= FIRST_MAX + 12 ? n : '';
   const parts = n.split(/\s+/);
   let first = parts[0];
   if (TITLES.has(parts[0].toLowerCase()) && parts.length >= 2) first = parts.length >= 3 ? parts[1] : `${parts[0]} ${parts[1]}`;

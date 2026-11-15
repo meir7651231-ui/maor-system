@@ -360,13 +360,16 @@ def main(argv: list[str] | None = None) -> None:
 
     ap = argparse.ArgumentParser(description="Green Invoice mock server (127.0.0.1 בלבד)")
     ap.add_argument("--port", type=int, default=8090)
-    ap.add_argument("--seed", choices=["demo", "none"], default="demo")
+    ap.add_argument("--seed", choices=["demo", "none", "barber", "garage", "clinic", "cpa"],
+                    default="demo", help="demo · none · ענף בטא (app/beta_seeds.py)")
     ap.add_argument("--webhook", action="append", default=[], help="URL לוקאלי לאירועי מסמכים")
     a = ap.parse_args(argv)
+    from .beta_seeds import BETA_VERTICALS, beta_docs
     from .demo_data import DEMO_ID, DEMO_SECRET, demo_docs
 
-    mock = GreenInvoiceMock(api_id=DEMO_ID, api_secret=DEMO_SECRET,
-                            docs=demo_docs() if a.seed == "demo" else [])
+    docs = (demo_docs() if a.seed == "demo" else
+            beta_docs(a.seed) if a.seed in BETA_VERTICALS else [])
+    mock = GreenInvoiceMock(api_id=DEMO_ID, api_secret=DEMO_SECRET, docs=docs)
     for url in a.webhook:
         mock.route("POST", "/_mock/webhooks", {}, {"url": url})
     print(f"Green Invoice mock: http://127.0.0.1:{a.port}{API_PREFIX}  ({len(mock.docs)} מסמכים)",

@@ -122,16 +122,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const load = useCallback(async (): Promise<boolean> => {
     const my = ++loadSeq.current;
     const d = await api.dashboard(); // בקשה אחת קודם: קוד שגוי ⇒ 401 יחיד, לא חמישה
-    const [p, o, pl, dr, ib, who] = await Promise.all([api.pending(), api.outbox(), api.plans(), api.drafts().catch(() => [] as Draft[]),
-      api.ownerInbox().catch(() => []), api.me().catch(() => null)]);
+    const [p, o, pl, dr, ib, who, st] = await Promise.all([api.pending(), api.outbox(), api.plans(), api.drafts().catch(() => [] as Draft[]),
+      api.ownerInbox().catch(() => []), api.me().catch(() => null), api.settings().catch(() => null)]);
     if (my !== loadSeq.current) return false;   // התחיל רענון חדש יותר ⇒ התשובה הזו כבר לא עדכנית
     setMe(who);
     const m = fromDashboard(d, p);
     setCustomers(m.customers); setInvoices(m.invoices); setPendingBy(m.pendingBy); setMergedBy(m.mergedBy); setToday(m.today);
     setTotals(d.totals); setSeries(d.series ?? null); setOutbox(o.messages); setPlans(pl); setDrafts(dr); setNotices(systemNotices(ib));
-    // שם העסק בחי = הקידומת של הודעות השרת ("סטודיו דמו: …") — כך הממשק לא ממציא שם
-    const biz = o.messages.find(x => x.channel === 'sms')?.body.split(':')[0];
-    if (biz && biz.length < 40) setBusiness(b => ({ ...b, name: biz, ownerName: biz }));
+    // שם העסק בחי = ההגדרות בשרת (GET /settings). גבי מכירות, ערכת בטא: קודם נלקח רק מקידומת הודעות ה-SMS,
+    // ולפני האישור הראשון (outbox ריק) נשאר שם עסק הדמו («סטודיו לוטם עיצוב», «בוקר טוב, לוטם») — עסק בבטא
+    // היה רואה שם של עסק אחר. נפילה לקידומת ההודעות רק כשההגדרות לא זמינות.
+    const fromSettings = st?.business_name?.trim();
+    const biz = fromSettings || o.messages.find(x => x.channel === 'sms')?.body.split(':')[0];
+    if (biz && biz.length <= 40) setBusiness(b => ({ ...b, name: biz, ownerName: st?.owner_name?.trim() || biz }));
     return true;
   }, []);
   // 401 באמצע עבודה (הסשן פג אחרי 12 ש׳, העובד הושבת, יציאה מלשונית אחרת) ⇒ חזרה למסך הכניסה עם הסבר,
