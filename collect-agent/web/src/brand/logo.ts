@@ -69,11 +69,13 @@ const svg = (w: number, inner: string, label = NAME) =>
 export const markSvg = (tile: boolean, gap: number = GAPS.master): string =>
   svg(VIEWBOX, tile ? TILE + markInner({ onDark: true, size: 54, gap, id: 't' }) : markInner({ gap, id: 'm' }));
 
-/** סמל + שם + תיאור (לרקע בהיר). */
-export const wordmarkSvg = (): string =>
-  svg(220, `<g>${markInner({ gap: GAPS.inline, id: 'l' })}</g>`
-    + `<text x="76" y="38" font-family="Rubik, Heebo, Arial, sans-serif" font-weight="800" font-size="34" fill="${BRAND.navy}">${NAME}</text>`
-    + `<text x="76" y="56" font-family="Heebo, Arial, sans-serif" font-weight="500" font-size="12" fill="#475569">${SLOGAN}</text>`,
+/** טקסט-התיאור ליד השם: אפור כהה על בהיר, אפור בהיר על כהה (שניהם ≥4.5:1 מול הרקע). */
+export const SLOGAN_INK = { light: '#475569', dark: '#CBD5E1' } as const;
+/** סמל + שם + תיאור. onDark ⇒ לרקע כהה (נייבי): דיו קרם, מטבע #10B981, רקע שקוף. */
+export const wordmarkSvg = (onDark = false): string =>
+  svg(220, `<g>${markInner({ onDark, gap: GAPS.inline, id: onDark ? 'ld' : 'l' })}</g>`
+    + `<text x="76" y="38" font-family="Rubik, Heebo, Arial, sans-serif" font-weight="800" font-size="34" fill="${onDark ? BRAND.cream : BRAND.navy}">${NAME}</text>`
+    + `<text x="76" y="56" font-family="Heebo, Arial, sans-serif" font-weight="500" font-size="12" fill="${onDark ? SLOGAN_INK.dark : SLOGAN_INK.light}">${SLOGAN}</text>`,
   `${NAME} – ${SLOGAN}`);
 
 /** הקבצים הציבוריים שנגזרים מהמקור (נכתבים ב-`npm run logo`, ונבדקים שלא סטו). */
@@ -81,4 +83,5 @@ export const PUBLIC_FILES: Record<string, string> = {
   'logo-mark.svg': markSvg(false),
   'favicon.svg': markSvg(true, GAPS.favicon),   // אריח נייבי: נראה על לשונית בהירה וכהה
   'logo.svg': wordmarkSvg(),
+  'logo-dark.svg': wordmarkSvg(true),            // לרקע כהה (שקוף; דיו קרם)
 };

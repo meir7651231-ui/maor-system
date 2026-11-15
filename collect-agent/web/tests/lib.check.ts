@@ -227,7 +227,7 @@ test('סיבת השהיה מוצגת בעברית, לעולם לא כקוד גו
   assert.doesNotMatch(src, /מושהה: \$\{/, 'נפילה לקוד גולמי');
 });
 
-import { BRAND as LOGO_BRAND, P as LOGO_P, PUBLIC_FILES, markInner } from '../src/brand/logo.ts';
+import { BRAND as LOGO_BRAND, P as LOGO_P, PUBLIC_FILES, markInner, SLOGAN_INK } from '../src/brand/logo.ts';
 import { readdirSync } from 'node:fs';
 test('לוגו: מקור יחיד (עיצוב מאיר), ירוק רק במטבע, דיו לפי רקע, מזהים ייחודיים, קבצים ציבוריים מסונכרנים', () => {
   const light = markInner({ id: 'a' }), dark = markInner({ onDark: true, id: 'b' });
@@ -243,6 +243,15 @@ test('לוגו: מקור יחיד (עיצוב מאיר), ירוק רק במטב�
   // הקבצים ב-public = מה שהמקור מייצר (npm run logo)
   for (const [name, svg] of Object.entries(PUBLIC_FILES))
     assert.equal(readFileSync(new URL(`../public/${name}`, import.meta.url), 'utf8'), svg, `public/${name} סטה מ-brand/logo.ts — הריצו npm run logo`);
+  // logo-dark.svg (גבי עיצוב, BACKLOG): אותו מקור, לרקע כהה — דיו קרם, מטבע #10B981, בלי נייבי, תיאור ≥4.5:1 על נייבי
+  const ld = PUBLIC_FILES['logo-dark.svg'];
+  assert.ok(ld, 'חסר logo-dark.svg');
+  assert.ok(ld.includes(`fill="${LOGO_BRAND.cream}"`) && !ld.includes(`fill="${LOGO_BRAND.navy}"`), 'logo-dark: דיו קרם בלבד');
+  assert.match(ld, new RegExp(`<circle[^>]*fill="${LOGO_BRAND.green}"`));
+  assert.ok(ld.includes(SLOGAN_INK.dark) && !ld.includes(SLOGAN_INK.light));
+  const L = (h: string) => { const c = [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16) / 255).map(v => v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4); return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]; };
+  const cr = (a: string, b: string) => { const [x, y] = [L(a), L(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
+  assert.ok(cr(SLOGAN_INK.dark, LOGO_BRAND.navy) >= 4.5 && cr(SLOGAN_INK.light, '#FFFFFF') >= 4.5 && cr(LOGO_BRAND.cream, LOGO_BRAND.navy) >= 4.5, 'ניגודיות טקסט-הלוגו');
   // אין עותק שני של הצורה בקוד
   const walk = (d: URL): string[] => readdirSync(d, { withFileTypes: true }).flatMap(e =>
     e.isDirectory() ? walk(new URL(`${e.name}/`, d)) : [new URL(e.name, d).pathname]);
