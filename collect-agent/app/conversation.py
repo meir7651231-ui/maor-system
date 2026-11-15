@@ -676,6 +676,15 @@ def detect(text: str, ctx: Context | None = None) -> list[Intent]:
         found.add(Intent.HOW_TO_PAY)          # שאלה על הקישור לתשלום
     if not found and "?" not in t and _s(r"(?<![\w])(?:תודה|thanks)", t):
         found.add(Intent.THANKS)              # שבח + תודה בלי בקשה
+    # "התשלום/ההעברה לא בוצע/ה" = תקלה בתשלום: לא טענה נגד החוב (critic סבב 80 🟡) וגם לא "שילמתי" ⇒ how_to_pay
+    _failed_pay = r"(?:ה)?(?:תשלום|העברה|הפקדה|ביט|פייבוקס)\W+(?:\w+\W+){0,2}לא (?:בוצע|בוצעה|עבר|עברה|הצליח|הצליחה|נקלט|נקלטה)"
+    if Intent.PAID_CLAIM in found and _s(_failed_pay, t) and not _s(r"(?:כבר )?(?:שילמתי|שילמנו)(?![^.!?]*לא)", t):
+        found.discard(Intent.PAID_CLAIM)
+        found.add(Intent.HOW_TO_PAY)
+    if Intent.DISPUTE in found and _s(r"(?:ה)?(?:תשלום|העברה|הפקדה|ביט|פייבוקס)\W+(?:\w+\W+){0,2}לא (?:בוצע|בוצעה|עבר|עברה|הצליח|הצליחה|נקלט|נקלטה)", t) \
+            and not _s(_KEEPS_DISPUTE, t):
+        found.discard(Intent.DISPUTE)
+        found.add(Intent.HOW_TO_PAY)
     # "הלינק לא עובד" = בעיה טכנית בקישור, לא מחלוקת על החוב
     if Intent.DISPUTE in found and _s(r"(?:קישור|לינק)\W+(?:\w+\W+){0,2}(?:לא )(?:עובד|נפתח|נטען)", t) \
             and not _s(_KEEPS_DISPUTE + r"|לא אשלם", t):  # critic סבב 79
