@@ -97,21 +97,21 @@ export function Landing() {
       <section className="border-b border-ink-200">
         <div className="max-w-6xl mx-auto px-4 py-10 grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
           {[['כל', 'הודעה באישורכם'], ['3', 'תזכורות לכל היותר'], ['8:00–20:00', 'שעות שליחה'], ['0%', 'עמלה מהגבייה']].map(([n, l]) => (
-            <div key={l}><div className="text-3xl md:text-4xl font-extrabold text-brand-700 font-display"><bdi dir="ltr">{n}</bdi></div><div className="text-sm text-ink-500 mt-1">{l}</div></div>
+            <div key={l}><div className="text-3xl md:text-4xl font-extrabold text-brand-700 font-display"><bdi dir="ltr">{n}</bdi></div><div className="text-sm text-ink-700 mt-1">{l}</div></div>
           ))}
         </div>
       </section>
 
       <section id="how" className="max-w-6xl mx-auto px-4 py-20">
         <h2 className="text-3xl md:text-4xl font-extrabold text-center">איך גבי עובד</h2>
-        <p className="text-center text-ink-500 mt-3 text-lg">שלושה צעדים, ואתם כבר לא צריכים לעקוב בעצמכם.</p>
+        <p className="text-center text-ink-700 mt-3 text-lg">שלושה צעדים, ואתם כבר לא צריכים לעקוב בעצמכם.</p>
         <div className="grid md:grid-cols-3 gap-6 mt-12">
           {STEPS.map(([i, t, d], n) => (
             <div key={t} className="rounded-2xl border border-ink-200 bg-white p-6 relative">
               <div className="text-3xl">{i}</div>
               <div className="absolute top-6 left-6 text-5xl font-extrabold text-ink-100 font-display">{n + 1}</div>
               <h3 className="text-xl font-extrabold mt-4">{t}</h3>
-              <p className="text-ink-500 mt-2 leading-relaxed">{d}</p>
+              <p className="text-ink-700 mt-2 leading-relaxed">{d}</p>
             </div>
           ))}
         </div>
@@ -131,7 +131,7 @@ export function Landing() {
               ))}
             </ul>
             <div className="rounded-2xl bg-white shadow-card p-6 mt-8">
-              <div className="text-sm text-ink-500 mb-3">הסולם של גבי (ימים אחרי מועד התשלום)</div>
+              <div className="text-sm text-ink-700 mb-3">הסולם של גבי (ימים אחרי מועד התשלום)</div>
               {LADDER.map(([d, t, c]) => (
                 <div key={t} className="flex items-center gap-3 py-2.5"><span className={`h-3 w-3 rounded-full shrink-0 ${c}`} /><b className="w-16 text-right shrink-0">{d}</b><span>{t}</span></div>
               ))}
@@ -139,7 +139,7 @@ export function Landing() {
           </div>
           <div className="rounded-2xl bg-white shadow-card p-6 overflow-x-auto">
             <table className="w-full text-right" aria-label="מה גבי עושה כשהלקוח עונה">
-              <thead><tr className="text-sm text-ink-500"><th scope="col" className="pb-3 font-medium">הלקוח כותב</th><th scope="col" className="pb-3 font-medium">גבי</th></tr></thead>
+              <thead><tr className="text-sm text-ink-700"><th scope="col" className="pb-3 font-medium">הלקוח כותב</th><th scope="col" className="pb-3 font-medium">גבי</th></tr></thead>
               <tbody>
                 {REPLIES.map(([q, a]) => (
                   <tr key={q} className="border-t border-ink-200"><td className="py-3 pl-4 font-bold whitespace-nowrap">{q}</td><td className="py-3 text-ink-700">{a}</td></tr>
@@ -154,7 +154,7 @@ export function Landing() {
 
       <section id="pricing" className="max-w-6xl mx-auto px-4 py-20">
         <h2 className="text-3xl md:text-4xl font-extrabold text-center">מחיר אחד. פשוט.</h2>
-        <p className="text-center text-ink-500 mt-3 text-lg">{PRICE.trialDays} ימי ניסיון · בלי כרטיס אשראי · בלי אחוזים מהגבייה</p>
+        <p className="text-center text-ink-700 mt-3 text-lg">{PRICE.trialDays} ימי ניסיון · בלי כרטיס אשראי · בלי אחוזים מהגבייה</p>
         <div className="mt-12 max-w-md mx-auto rounded-2xl bg-ink-900 text-white p-8 ring-4 ring-brand/30" data-testid="price-card">
           <div className="flex items-center justify-between">
             <h3 className="text-xl font-extrabold">גבי</h3>
@@ -209,13 +209,13 @@ function Waitlist() {
   return (
     <form className="mt-8 max-w-md mx-auto" noValidate data-testid="waitlist"
       onSubmit={e => { e.preventDefault(); setMsg(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) ? 'תודה! (בטיוטה הזו הטופס לא שולח ולא שומר דבר.)' : 'נא להזין כתובת מייל תקינה.'); }}>
-      <label htmlFor="wait-email" className="block text-sm text-ink-500 mb-2 text-center">רוצים לשמוע כשהבטא נפתחת?</label>
+      <label htmlFor="wait-email" className="block text-sm text-ink-700 mb-2 text-center">רוצים לשמוע כשהבטא נפתחת?</label>
       <div className="flex gap-2">
         <input id="wait-email" type="email" dir="ltr" autoComplete="email" placeholder="המייל שלכם" value={email} onChange={e => setEmail(e.target.value)}
           className="flex-1 min-w-0 min-h-11 rounded-xl border border-ink-200 bg-white px-3" />
         <Button type="submit" variant="outline">לרשימת ההמתנה</Button>
       </div>
-      <p role="status" aria-live="polite" className="text-sm text-ink-500 mt-2 min-h-5 text-center">{msg}</p>
+      <p role="status" aria-live="polite" className="text-sm text-ink-700 mt-2 min-h-5 text-center">{msg}</p>
     </form>
   );
 }
@@ -230,7 +230,7 @@ function HeroPhone() {
           <div className="text-xs font-bold mt-1">LotemDesign</div>
         </div>
         <div className="p-3 space-y-2 text-ink-900 text-[13px] leading-relaxed min-h-72">
-          <div className="text-[10px] text-center text-ink-500">היום 09:00</div>
+          <div className="text-[10px] text-center text-ink-700">היום 09:00</div>
           <div className="bg-white rounded-2xl rounded-tr-md px-3 py-2 shadow-sm max-w-[90%]">
             סטודיו לוטם עיצוב: שלום אבי, חשבונית 1042 ע"ס 4,680 ₪ טרם סומנה כשולמה. לתשלום: <span className="text-info underline">{SITE_DOMAIN}/p/k3T9xQa</span> להפסקה: בקישור
           </div>
@@ -262,13 +262,13 @@ function TimeCalculator() {
           </div>
         </div>
         <div className="rounded-2xl bg-white text-ink-900 p-6 md:p-8 shadow-pop" data-testid="time-result">
-          <div className="text-sm text-ink-500">הזמן שאתם מקדישים היום למעקב שווה</div>
-          <div className="text-4xl font-extrabold font-display num text-brand-700">{fmtIls(r.timeValue)} <span className="text-base font-medium text-ink-500">בחודש</span></div>
+          <div className="text-sm text-ink-700">הזמן שאתם מקדישים היום למעקב שווה</div>
+          <div className="text-4xl font-extrabold font-display num text-brand-700">{fmtIls(r.timeValue)} <span className="text-base font-medium text-ink-700">בחודש</span></div>
           <div className="mt-5 rounded-xl bg-ink-50 p-4 text-sm">
             גבי עולה <b className="num">₪{GABI_PRICE}</b> לחודש (כולל מע״מ ככל שחל){r.priceInHours > 0 && <>, כמו <b className="num">{r.priceInHours}</b> שעות עבודה שלכם</>}.
           </div>
           <div className="mt-5 flex justify-end"><Button onClick={() => go('signup')}>להתחיל ניסיון</Button></div>
-          <p className="text-[11px] text-ink-500 mt-4 leading-relaxed">החישוב משווה רק לזמן העבודה. אין בו התחייבות שחשבונית כלשהי תשולם, והוא לא מעריך כמה כסף יחזור. גבי מכין את התזכורות; האישור, וחלק מהזמן, נשארים אצלכם.</p>
+          <p className="text-[11px] text-ink-700 mt-4 leading-relaxed">החישוב משווה רק לזמן העבודה. אין בו התחייבות שחשבונית כלשהי תשולם, והוא לא מעריך כמה כסף יחזור. גבי מכין את התזכורות; האישור, וחלק מהזמן, נשארים אצלכם.</p>
         </div>
       </div>
     </section>

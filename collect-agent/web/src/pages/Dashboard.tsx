@@ -190,7 +190,7 @@ function CollectionChart({ bars, cum, live, other }: { bars: Bar[]; cum: number[
               <rect x={x} y={H - h} width={bw * 0.56} height={Math.max(h, b.value ? 2 : 0)} rx="6" fill={i === bars.length - 1 ? '#10B981' : '#0F172A'} opacity={i === bars.length - 1 ? 1 : 0.85}>
                 <title>{`${b.label}: ${fmtIls(b.value)}`}</title>
               </rect>
-              <text x={x + bw * 0.28} y={H + 18} textAnchor="middle" fontSize="12" fill="#64748B">{b.label}</text>
+              <text x={x + bw * 0.28} y={H + 18} textAnchor="middle" fontSize="12" fill="#5F6F85">{b.label}</text>
             </g>
           );
         })}
