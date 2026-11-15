@@ -167,7 +167,7 @@ def page(vertical: str) -> str:
 <footer><div class="wrap">
   <span>© 2026 גבי – תזכורות תשלום · [שם החברה בע״מ · ח.פ. ___ · כתובת: ימולאו לפני השקה]</span>
   <span>חשבונית ירוקה ו-morning הם סימנים מסחריים של בעליהם. גבי הוא מוצר עצמאי ואינו קשור אליהם.</span>
-  <span><a href="../../accessibility.html" style="color:inherit">הצהרת נגישות</a> (טיוטה – לבדיקת עו״ד)</span>
+  <span><a href="../../terms.html" style="color:inherit">תנאי שימוש</a> · <a href="../../privacy.html" style="color:inherit">מדיניות פרטיות</a> · <a href="../../accessibility.html" style="color:inherit">הצהרת נגישות</a> (טיוטה – לבדיקת עו״ד)</span>
 </div></footer>
 </body>
 </html>

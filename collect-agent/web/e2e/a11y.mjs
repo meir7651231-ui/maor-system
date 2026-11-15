@@ -15,6 +15,8 @@ const pages = [
   ['ספריית נוסחים', 'file://' + MK + 'library/index.html'],
   ['הצהרת נגישות', 'file://' + MK + 'accessibility.html'],
   ['הצהרת נגישות (מוגשת מ-/app/)', 'http://localhost:4339/accessibility.html'],
+  ['תנאי שימוש', 'file://' + MK + 'terms.html'],
+  ['מדיניות פרטיות', 'file://' + MK + 'privacy.html'],
   ['דף נחיתה מעוצב /app/', 'http://localhost:4339/'],
 ];
 const srv = spawn('npx', ['vite', 'preview', '--port', '4339', '--strictPort'], { stdio: 'ignore' });
