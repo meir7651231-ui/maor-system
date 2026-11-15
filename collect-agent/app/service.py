@@ -1458,6 +1458,7 @@ class CollectService:
         # דרך אותו שער שליחה (הסרה, שעות, שבת וחג, ניסיון).
         self.inbox.flush()
         self._recover_stuck_sends(now)
+        self._recover_stuck_plans(now)
         rows = self.db.q("SELECT * FROM reminders WHERE status='approved' AND scheduled_for<=? "
                          "ORDER BY scheduled_for", (_iso(now),))
         # critic סבב 66: מרווח 72 השעות לפי **כתובת**, לא רק לפי רשומת לקוח (כמו ההסרה וההחזקה). שני לקוחות על
@@ -1537,6 +1538,19 @@ class CollectService:
         return out
 
     CLAIM_STALE = timedelta(minutes=30)
+
+    def _recover_stuck_plans(self, now: datetime) -> None:
+        """critic סבב 76: הסדר שנשאר `approving` (התהליך נהרג באמצע אישור; ה-finally לא רץ) היה תקוע לתמיד:
+        לא מוצג בממשק (רק proposed), וכל אישור חוזר ⇒ «נמצאת באישור כרגע». ישן מ-CLAIM_STALE (או בלי חותמת, מגרסה
+        קודמת) ⇒ אם כבר נוצרה טיוטת ההצעה (אחרי נקודת האל-חזור) — approved; אחרת — חזרה ל-proposed."""
+        cutoff = _iso(now - self.CLAIM_STALE)
+        for p in self.db.q("SELECT id FROM plans WHERE status='approving' AND (claimed_at IS NULL OR claimed_at<=?)",
+                           (cutoff,)):
+            offered = self._table_exists("drafts") and self.db.one(
+                "SELECT 1 FROM drafts WHERE plan_id=? AND intent='plan_offer'", (p["id"],))
+            new = "approved" if offered else "proposed"
+            if self.db.update("UPDATE plans SET status=? WHERE id=? AND status='approving'", (new, p["id"])) == 1:
+                self.audit("system", "plan_approving_recovered", {"plan": p["id"], "to": new})
 
     def _claim_reminder(self, rid: int) -> bool:
         """critic סבב 39: תפיסה אטומית לפני השליחה. False ⇒ מישהו אחר כבר תפס/שלח."""
@@ -2325,8 +2339,8 @@ class CollectService:
                              "יש לאשר במפורש שהסכום נכון (confirm_amount)")
         # critic סבב 40: תפיסה אטומית proposed ⇒ approving. שני אישורים במקביל (לחיצה כפולה / שתי
         # לשוניות) עברו שניהם את הבדיקה ⇒ שתי טיוטות ⇒ שני אישורי הסדר ללקוח.
-        if self.db.update("UPDATE plans SET status='approving' WHERE id=? AND status='proposed'",
-                          (plan_id,)) != 1:
+        if self.db.update("UPDATE plans SET status='approving', claimed_at=? WHERE id=? AND status='proposed'",
+                          (_iso(self.clock()), plan_id)) != 1:
             # מרוץ: מישהו תפס/הכריע בין הבדיקה לתפיסה ⇒ הנוסח לפי המצב העדכני
             now = self.db.one("SELECT status FROM plans WHERE id=?", (plan_id,))
             raise _plan_not_proposed(now["status"]) if now else ValueError("הסדר לא קיים או כבר הוכרע")
