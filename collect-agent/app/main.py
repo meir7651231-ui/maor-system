@@ -961,13 +961,21 @@ _PAGE = ('<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8">'
          'background:var(--card);color:var(--ink);border:1px solid var(--line)}}'
          '.f{{margin-top:18px;font-size:12px;color:var(--muted)}}'
          # הפעלה 188: קישור «לתשלום» לכל חשבונית בהודעה מאוחדת — יעד-לחיצה 40px במובייל (היה 17)
-         '.l{{display:inline-flex;align-items:center;min-height:40px;padding:0 12px;color:var(--brand)}}</style></head>'
+         '.l{{display:inline-flex;align-items:center;min-height:40px;padding:0 12px;color:var(--brand)}}'
+         # הפעלה 207 (בדיקת עין של server-p-mobile.png): ב-390px השורה נשברה באמצע («· לתשלום» בשורה לבד,
+         # «· 2026-11-20» בתחילת שורה). עכשיו כל חשבונית = שורה: פרטים (כל מקטע לא נשבר) + כפתור «לתשלום» מסומן.
+         '.iv{{list-style:none;padding:0;margin:12px 0 0}}.iv li{{display:flex;flex-wrap:wrap;align-items:center;'
+         'justify-content:space-between;gap:4px 8px;padding:6px 0;border-top:1px solid var(--line)}}'
+         '.iv .n{{white-space:nowrap}}.iv .l{{border:1px solid var(--brand);border-radius:10px;'
+         'text-decoration:none;font-weight:600}}</style></head>'
          '<body><main class="c">{body}<p class="f">הודעה אוטומטית מטעם העסק. '
          'הקישור אישי — אל תעבירו אותו.</p></main></body></html>')
 
 
 def landing_page(info: dict | None) -> str:
     from html import escape as e
+
+    from .templates import fmt_due
 
     if info is None:
         return _PAGE.format(title="קישור לא תקף", body="<h1>הקישור אינו תקף</h1>")
@@ -976,7 +984,7 @@ def landing_page(info: dict | None) -> str:
         head = f'<h1>{e(info["business"])}</h1><div class="m">{len(items)} חשבוניות פתוחות</div>'
     else:
         head = (f'<h1>{e(info["business"])}</h1><div class="m">חשבונית {e(info["number"] or "(ללא מספר)")}'
-                + (f' · מועד {e(info["due"])}' if info["due"] else "") + "</div>")
+                + (f' · מועד {e(fmt_due(info["due"]))}' if info["due"] else "") + "</div>")
     if not info["open"]:
         return _PAGE.format(title="שולם", body=head + "<p>החשבונית סגורה. תודה רבה!</p>")
     base = f'/p/{e(info["code"])}'
@@ -984,11 +992,12 @@ def landing_page(info: dict | None) -> str:
     if len(items) > 1:
         amount = info["total"]
         rows = "".join(
-            f'<li>חשבונית {e(i["number"] or "(ללא מספר)")} — {e(i["amount"])}'
-            + (f' · מועד {e(i["due"])}' if i["due"] else "")
+            f'<li><span><span class="n">חשבונית {e(i["number"] or "(ללא מספר)")}</span>'
+            f' — <span class="n">{e(i["amount"])}</span>'
+            + (f' · <span class="n">מועד {e(fmt_due(i["due"]))}</span>' if i["due"] else "") + "</span>"
             + ("" if info["pay_shared"] or not i["can_pay"] else
-               f' · <a class="l" href="/p/{e(i["code"])}/pay">לתשלום</a>') + "</li>" for i in items)
-        head += f'<ul class="m" data-testid="landing-invoices">{rows}</ul>'
+               f'<a class="l" href="/p/{e(i["code"])}/pay">לתשלום</a>') + "</li>" for i in items)
+        head += f'<ul class="m iv" data-testid="landing-invoices">{rows}</ul>'
         pay = (f'<a class="b p" href="{base}/pay">לתשלום מאובטח</a>' if info["pay_shared"]
                else "" if any(i["can_pay"] for i in items)
                else '<p class="m">קישור התשלום יישלח בהקדם.</p>')

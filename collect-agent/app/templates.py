@@ -108,6 +108,19 @@ def fmt_amount(agorot: int, currency: str = "ILS") -> str:
     return f"{s} {sym}" if sym == "₪" else f"{sym}{s}"
 
 
+def fmt_due(iso: str | None) -> str:
+    """הפעלה 207: מועד לתצוגה ללקוח-של-הלקוח — «20.11.2026» במקום ISO «2026-11-20» (עמוד /p).
+    התצוגה בלבד: ב-DB וב-API המועד נשאר ISO. ערך לא-ISO (או ריק) ⇒ כמו שהוא, לא נופלים."""
+    if not iso:
+        return ""
+    try:
+        from datetime import date
+        d = date.fromisoformat(str(iso)[:10])
+    except ValueError:
+        return str(iso)
+    return f"{d.day:02d}.{d.month:02d}.{d.year}"
+
+
 SMS_TARGET = 134          # 2 חלקי UCS-2 (67×2) — יעד עלות (team/market.md)
 SMS_HARD_MAX = 201        # 3 חלקים — תקרה משפטית (team/legal.md §3.1 סעיף 6)
 STOP_REPLY = "להסרה השיבו הסר"      # רק כשיש מספר שמקבל תשובות (2-way)
