@@ -105,7 +105,8 @@ def test_readiness_catches_team_side_problem(tmp_path):
     extra = ["legal/TERMS.md", "legal/PRIVACY.md", "scripts/legal_bundle.py", "marketing/terms.html",
              "marketing/privacy.html", "web/public/terms.html", "web/public/privacy.html",
              "marketing/video/compose/assets/captions.json", "marketing/video/compose/endcard.mjs",
-             "marketing/video/transcript.html", "web/public/video/transcript.html"]
+             "marketing/video/transcript.html", "web/public/video/transcript.html",
+             "marketing/video/scenes.json", "marketing/video/script.md"]
     for g in [*check.GENERATORS, *extra]:
         (root / g).parent.mkdir(parents=True, exist_ok=True)
         shutil.copy(ROOT / g, root / g)

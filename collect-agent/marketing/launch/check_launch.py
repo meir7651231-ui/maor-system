@@ -73,7 +73,8 @@ MEIR_WALLS = (
     "בדיקת עו״ד: §30א (שירות מול פרסומת), פרטי החברה בתחתית, «כולל מע״מ ככל שחל»",
 )
 GENERATORS = ("marketing/landing/for/build.py", "marketing/library/build.py", "marketing/legal-pages/build.py",
-              "marketing/video/transcript.py")
+              "marketing/video/transcript.py",
+              "marketing/video/script.py")
 
 
 def readiness(root: Path = ROOT) -> list[str]:

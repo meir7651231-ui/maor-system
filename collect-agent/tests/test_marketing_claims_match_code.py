@@ -95,3 +95,18 @@ def test_signup_does_not_call_a_supported_source_unsupported():
     for key, label in re.findall(r"\['(\w+)', '[^']+', '([^']+)'\]", signup):
         if key in supported:
             assert "לא נתמך" not in label, (key, label)
+
+
+def test_video_script_synced_with_scenes_and_clean():
+    """התסריט (script.md) נגזר מ-scenes.json; קריינות בלי «חוב» (messaging §3) ובאורך שנכנס ל-60 שניות."""
+    import importlib.util
+    import json
+    spec = importlib.util.spec_from_file_location("vscript", ROOT / "marketing/video/script.py")
+    m = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(m)
+    assert m.main(["--check"]) == 0
+    scenes = json.loads((ROOT / "marketing/video/scenes.json").read_text(encoding="utf-8"))
+    vo = " ".join(s["vo"] for s in scenes)
+    assert not re.search(r"(?<![א-ת])[הבלמושכ]{0,2}חוב(?![א-ת])", vo), "«חוב» בקריינות"
+    assert "EZcount" not in vo or "בבדיקה" in vo
+    assert len(vo.split()) / 2.3 <= 52, "הקריינות ארוכה מדי ל-60 שניות"

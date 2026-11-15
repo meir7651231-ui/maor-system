@@ -45,3 +45,14 @@ def test_faq_lists_every_source(p):
     for k in ("icount", "rivhit", "ezcount", "csv"):
         assert SOURCES[k][0].split(" ")[0].replace("קובץ", "CSV") in faq or k == "csv" and "CSV" in faq, k
     assert "חשבונית ירוקה" in faq
+
+
+@pytest.mark.parametrize("p", [ROOT / "marketing/landing/index.html", ROOT / "web/src/pages/Landing.tsx",
+                               ROOT / "team/messaging.md"], ids=lambda p: p.name)
+def test_main_message_names_supported_sources(p):
+    """המסר הראשי לא מצמצם את הקהל לחשבונית ירוקה בלבד (iCount ורווחית נתמכים; EZcount לא כ«נתמך»)."""
+    t = p.read_text(encoding="utf-8")
+    assert "מתחבר לחשבונית ירוקה," not in t
+    m = re.search(r"גבי מתחבר למערכת החשבוניות של(?:ך|כם) \(([^)]+)\)", t)
+    assert m, "המסר הראשי לא מזכיר את מערכות החשבוניות"
+    assert all(x in m.group(1) for x in ("חשבונית ירוקה", "iCount", "רווחית")) and "EZcount" not in m.group(1)
