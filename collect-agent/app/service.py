@@ -1298,6 +1298,8 @@ class CollectService:
                 self.db.x("UPDATE conversations SET offered_plan=NULL WHERE customer_id=?",
                           (c["id"],))
             self.db.x("DELETE FROM link_tokens WHERE customer_id=?", (c["id"],))
+            # critic סבב 75: גם יומן ה-dry-run בזיכרון (/outbox) — לפי הכתובות, לפני שמתממים אותן
+            self._scrub_sent_log(self.db.one("SELECT phone, email FROM customers WHERE id=?", (c["id"],)))
             self.db.x("UPDATE customers SET name=NULL, phone=NULL, email=NULL, blocked_phone=NULL,"
                       " blocked_email=NULL, purged_at=? WHERE id=?", (now, c["id"]))
             cust_n += 1
@@ -1310,6 +1312,23 @@ class CollectService:
         # ומזהה הודעת מייל יכול לשאת דומיין/שם שולח ⇒ אותו חלון שמירה.
         self.db.x("DELETE FROM webhook_dedupe WHERE at<=?", (cutoff,))
         return inv_n, cust_n, len(unk)
+
+    def _scrub_sent_log(self, cust) -> None:
+        """critic סבב 75 (ר-10): רשומות יומן ה-dry-run (`sender.sent`, /outbox) של לקוח שהותמם — נשחרות במקום:
+        הנמען, הגוף, הנושא, ה-HTML ובקשת הספק. לא נמחקות, כדי ש-total/sent_mark (מונים לכל חיי התהליך) יישארו נכונים."""
+        if not cust:
+            return
+        mine = {a for a in (normalize_il_phone(cust["phone"] or ""), (cust["email"] or "").strip().lower()) if a}
+        if not mine:
+            return
+        for rec in getattr(self.sender, "sent", []):
+            to = str(rec.get("to") or "")
+            if (normalize_il_phone(to) or to.strip().lower()) in mine:
+                for k in ("to", "body", "subject", "html"):
+                    if k in rec:
+                        rec[k] = ""
+                rec["request"] = {}
+                rec["purged"] = True
 
     def _table_exists(self, name: str) -> bool:
         return self.db.one("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?",
