@@ -28,8 +28,9 @@
 - 🧱 שליחת חבילת המכירות/בטא (מאיר).
 
 ## גבי שיווק
-- [ ] לתקן את `marketing/ads/*` כך ש-`test_marketing_price_always_with_vat_and_yearly` עובר.
-- [ ] דף «שאלות נפוצות» אחד שעונה על 10 ההתנגדויות מ-sales.md — כל תשובה נעולה לבדיקה בקוד.
+- ✅ לתקן את `marketing/ads/*` כך ש-`test_marketing_price_always_with_vat_and_yearly` עובר. (תוקן ב-`5eb2a8f4` של גבי עיצוב; אומת 15.11: עובר)
+- ✅ דף «שאלות נפוצות» אחד שעונה על 10 ההתנגדויות מ-sales.md — כל תשובה נעולה לבדיקה בקוד. (`marketing/faq/`, `tests/test_faq_page.py`)
+- ✅ טענות הבידול לפי ממצא המחקר (market.md §1.6): SMS ושבת אינם בידול ⇒ משפטי הפתיחה (דף סטטי, /app/, messaging, פוסט 1) = אישור לכל הודעה · תשובות הלקוח מגיעות לבעל העסק · עצירה אחרי 3. (`tests/test_differentiation_claims.py`)
 - 🧱 דומיין + פרסום (מאיר).
 
 ## גבייה עיצוב

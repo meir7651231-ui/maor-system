@@ -82,7 +82,7 @@ export function Landing() {
             <span className="inline-block rounded-full bg-brand/15 text-brand px-3 py-1 text-sm font-bold mb-5">גבי · תזכורות תשלום לעסקים קטנים</span>
             <h1 className="text-4xl md:text-6xl font-extrabold leading-[1.1]" data-testid="hero-title">הכסף שלך חוזר.<br /><span className="text-brand">בלי שתצטרך לרדוף.</span></h1>
             <p className="text-lg md:text-xl text-ink-400 mt-6 leading-relaxed max-w-lg">
-              גבי מתחבר למערכת החשבוניות שלכם (חשבונית ירוקה, iCount או רווחית), מוצא חשבוניות שלא שולמו ומכין ללקוחות שלכם תזכורות מנומסות ב-SMS ובמייל, עם קישור לתשלום. אתם מאשרים כל הודעה, והיא יוצאת בשם העסק שלכם.
+              גבי מתחבר למערכת החשבוניות שלכם (חשבונית ירוקה, iCount או רווחית), מוצא חשבוניות שלא שולמו ומכין ללקוחות שלכם תזכורות מנומסות בשם העסק, עם קישור לתשלום. אתם מאשרים כל הודעה לפני שהיא יוצאת, תשובות הלקוחות מגיעות אליכם, ואחרי 3 תזכורות גבי עוצר ומעדכן אתכם.
             </p>
             <div className="flex flex-wrap gap-3 mt-8">
               <Button size="lg" onClick={() => go('signup')}>התחילו {PRICE.trialDays} ימי ניסיון</Button>
