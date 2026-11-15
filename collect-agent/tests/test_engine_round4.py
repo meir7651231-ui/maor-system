@@ -7,7 +7,11 @@ import pytest
 from app.conversation import Escalation, Intent, Stop, respond
 from evals.harness import build_ctx, report, run  # noqa: F401
 
-EXTERNAL = sorted((Path(__file__).parent.parent / "evals" / "heldout").glob("external-*.jsonl"))
+HELDOUT = Path(__file__).parent.parent / "evals" / "heldout"
+# רק סטים שכבר נמדדו ונרשמו ב-RESULTS.md נכנסים לשער. סט חיצוני חדש נשאר עיוור עד הריצה היחידה
+# שלו — אחרת CI היה נשבר לכל הצוות ברגע ש-QA מוסיף סט, ומכריח כוונון לפני מדידה.
+_MEASURED = (HELDOUT / "RESULTS.md").read_text(encoding="utf-8")
+EXTERNAL = sorted(p for p in HELDOUT.glob("external-*.jsonl") if f"## {p.name}" in _MEASURED)
 
 
 def d(text):
@@ -82,3 +86,9 @@ def test_external_blind_sets_have_no_silent_critical_error(path):
     bad = [f"{r.case['id']} «{r.case['text']}» ⇒ {why}" for r in res
            if r.case.get("critical") and r.case["id"] not in ACCEPTED and (why := silent_critical(r))]
     assert bad == []
+
+
+def test_unmeasured_external_set_is_not_gated(tmp_path, monkeypatch):
+    """סט חיצוני חדש שעוד לא נרשם ב-RESULTS.md לא נכנס לשער (נשאר עיוור)."""
+    assert all(f"## {p.name}" in _MEASURED for p in EXTERNAL)
+    assert len(EXTERNAL) >= 2
