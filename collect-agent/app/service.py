@@ -752,8 +752,8 @@ class CollectService:
             # ר-1 (team/legal.md): מסנן הניסוח חוסם — לא מזהיר
             bad = compliance.violations(sms, compliance.Rules(
                 business=self.s.business_name, payment_link=short,
-                max_sms_chars=templates.SMS_HARD_MAX, allow_debt_word=step.key not in (
-                    "friendly", "second")))
+                max_sms_chars=templates.SMS_HARD_MAX,
+                allow_debt_word=templates.debt_word_allowed(step.key)))
             if bad:
                 return [], "compliance"
             msgs.append(Message("sms", phone, sms))
@@ -765,7 +765,7 @@ class CollectService:
             # ר-1 גם על המייל (מבקר סבב 3 🟠): שם לקוח מ-CSV עם «תביעה»/קישור זר נחסם
             bad = compliance.violations(subj + "\n" + text, compliance.Rules(
                 business="", payment_link=link, unsubscribe_url=unsub, channel="email",
-                own_name=self.s.business_name, allow_debt_word=step.key not in ("friendly", "second")))
+                own_name=self.s.business_name, allow_debt_word=templates.debt_word_allowed(step.key)))
             if bad:
                 return [], "compliance"
             msgs.append(Message("email", cust["email"], text, subject=subj, html=html,

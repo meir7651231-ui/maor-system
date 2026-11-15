@@ -101,6 +101,15 @@ if [s.key for s in STEPS_MULTI] != ["friendly", "plan_offer", "final"]:  # לא 
     raise RuntimeError("STEPS_MULTI: סדר השלבים השתנה")
 
 
+# §3.1 סעיף 4 (team/legal.md): המילה «חוב» אסורה בשתי התזכורות הראשונות. מקור יחיד — השירות וספריית
+# הנוסחים שואלים כאן (באג 15.11: השירות בדק שם שלב "second" שכבר לא קיים ⇒ «חוב» הותר בתזכורת השנייה).
+DEBT_WORD_FORBIDDEN_STEPS = tuple(s.key for s in STEPS[:2])
+
+
+def debt_word_allowed(step_key: str) -> bool:
+    return step_key not in DEBT_WORD_FORBIDDEN_STEPS
+
+
 def fmt_amount(agorot: int, currency: str = "ILS") -> str:
     sym = {"ILS": "₪", "USD": "$", "EUR": "€", "GBP": "£"}.get(currency, currency + " ")
     whole, frac = divmod(agorot, 100)

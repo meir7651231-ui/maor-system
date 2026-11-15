@@ -47,7 +47,7 @@ def check_variant(v: dict) -> list[str]:
     """אותם כללים שהשירות אוכף לפני שליחה (service.py: compliance.violations על כל SMS)."""
     bad = compliance.violations(v["sms"], compliance.Rules(
         business=BIZ, payment_link=SHORT, max_sms_chars=templates.SMS_HARD_MAX,
-        allow_debt_word=v["key"] not in ("friendly", "second")))
+        allow_debt_word=templates.debt_word_allowed(v["key"])))
     if compliance.sms_segments(v["sms"]) > 2:
         bad.append(f"sms_segments>{2}")
     return bad

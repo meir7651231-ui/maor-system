@@ -53,10 +53,10 @@ MARKETING_BLACKLIST: tuple[tuple[str, str], ...] = (
 _HEB_BANKS = (r"ה?פועלים|לאומי|דיסקונט|מזרחי|טפחות|ה?בינלאומי|מרכנתיל|ירושלים|יהב|מסד|אוצר החייל|"
               r"פאג[\"״']?י|פועלי אגודת ישראל|ה?דואר|פפר|ישראל|וואן\s?זירו")
 INSTITUTION: tuple[tuple[str, str], ...] = (
-    ("brand_bank", r"(?<![\w])[מלבו]?ה?בנק\s+(?:" + _HEB_BANKS + r")(?![\w])"
+    ("brand_bank", r"(?<![\w])[מלבו]?ה?בנק[\s\-]+(?:" + _HEB_BANKS + r")(?![\w])"
                    r"|מזרחי[\s\-]+טפחות|אוצר החייל|פאג[\"״']י(?![\w])|פועלי אגודת ישראל|מרכנתיל"
                    r"|ה?בינלאומי הראשון|וואן\s?זירו|פפר\s+(?:בנק|פיי)"
-                   r"|(?i:\b(?:bank\s+(?:hapoalim|leumi|discount|mizrahi|tefahot|jerusalem|yahav|massad|"
+                   r"|(?i:\b(?:bank[\s\-]+(?:hapoalim|leumi|discount|mizrahi|tefahot|jerusalem|yahav|massad|"
                    r"otsar|otzar|pagi|pepper|of\s+israel|of\s+jerusalem)|hapoalim|leumi|mizrahi[\s\-]?tefahot|"
                    r"discount\s+bank|mercantile\s+bank|first\s+international\s+bank|"
                    r"one\s?zero(?:\s+bank)?|pepper\s+bank)\b)"),
@@ -65,7 +65,7 @@ INSTITUTION: tuple[tuple[str, str], ...] = (
 )
 PAYMENT_APPS: tuple[tuple[str, str], ...] = (
     # "ביט" כמילה (גם "בביט"/"לביט"/"וביט"), לא "ביטוח"/"מביט"/"הביט"
-    ("brand_payapp", r"(?<![\w])[בלו]?ביט(?![\w])|פיי\s?בוקס|(?i:\bpay\s?box\b|\bbit\b|\bpepper\b)"),
+    ("brand_payapp", r"(?<![\w])[בלו]?ביט(?![\w])|פיי[\s\-]?בוקס|(?i:\bpay[\s\-]?box\b|\bbit\b|\bpepper\b)"),
 )
 BRANDS = INSTITUTION + PAYMENT_APPS
 # שם שולח (Sender ID, לטיני עד 11 תווים): "BankLeumi"/"PayBox" = התחזות. ללא גבולות מילה (אין רווחים)
