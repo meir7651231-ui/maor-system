@@ -25,13 +25,13 @@ trap 'exit 130' INT
 trap 'exit 143' TERM
 GI_LOG="$(mktemp)"
 SMS_LOG="$(mktemp)"
-python -m app.gi_mock --port "$GI_PORT" --seed demo >"$GI_LOG" 2>&1 & GI=$!
-python -m app.sms019_mock --port "$SMS_PORT" >"$SMS_LOG" 2>&1 & SMS=$!
+python3 -m app.gi_mock --port "$GI_PORT" --seed demo >"$GI_LOG" 2>&1 & GI=$!
+python3 -m app.sms019_mock --port "$SMS_PORT" >"$SMS_LOG" 2>&1 & SMS=$!
 up() { curl -s -o /dev/null "http://127.0.0.1:$GI_PORT/api/v1/users/me" \
        && curl -s -o /dev/null -X POST "http://127.0.0.1:$SMS_PORT/api/test"; }
 for _ in $(seq 60); do up && break; sleep 0.5; done
 up || { echo "❌ שרתי ה-mock לא עלו"; exit 1; }
-python -I scripts/gi_contract_check.py --mock-url "http://127.0.0.1:$GI_PORT/api/v1"
-python -I scripts/sms019_contract_check.py --mock-url "http://127.0.0.1:$SMS_PORT"
-python -I scripts/inforu_contract_check.py
+python3 -I scripts/gi_contract_check.py --mock-url "http://127.0.0.1:$GI_PORT/api/v1"
+python3 -I scripts/sms019_contract_check.py --mock-url "http://127.0.0.1:$SMS_PORT"
+python3 -I scripts/inforu_contract_check.py
 echo "✅ בדיקות החוזה מול mock ב-HTTP: אין FAIL"

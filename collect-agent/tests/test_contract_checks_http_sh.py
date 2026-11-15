@@ -28,7 +28,7 @@ def test_cleanup_trapped_on_exit_and_signals_and_kills_servers():
     assert re.search(r"^trap cleanup EXIT$", SRC, flags=re.M)
     assert re.search(r"^trap 'exit 130' INT$", SRC, flags=re.M)
     assert re.search(r"^trap 'exit 143' TERM$", SRC, flags=re.M)
-    assert SRC.index("trap cleanup") < SRC.index("python -m app.gi_mock")   # לפני שמרימים שרתים
+    assert SRC.index("trap cleanup") < SRC.index("python3 -m app.gi_mock")   # לפני שמרימים שרתים
     body = _cleanup_body()
     assert 'kill "$GI"' in body and 'kill "$SMS"' in body
     assert "$(mktemp" not in SRC.split("trap cleanup", 1)[0]                # אין mktemp לפני ה-trap

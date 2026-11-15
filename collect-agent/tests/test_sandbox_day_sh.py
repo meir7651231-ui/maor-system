@@ -40,7 +40,7 @@ def test_sandbox_without_keys_sends_nothing():
 
 def test_failure_means_do_not_launch(tmp_path):
     """python מזויף: בדיקת החוזה עוברת, בדיקת «פתוח = לא שולם» נכשלת ⇒ לא להשיק + הסיבה."""
-    fake = tmp_path / "python"
+    fake = tmp_path / "python3"   # critic סבב 87: הסקריפט קורא ל-python3
     fake.write_text(f'#!/usr/bin/env bash\ncase "$*" in *sandbox_day1_paid_check*) exit 1;; '
                     f'*) exec "{sys.executable}" "$@";; esac\n')
     fake.chmod(0o755)
@@ -57,3 +57,32 @@ def test_tempdir_cleanup_guard():
     assert 'rm -rf "$OUT"' in src and 'OUT="$(mktemp -d)"' in src
     assert src.index("trap cleanup EXIT") < src.index('OUT="$(mktemp -d)"')
     assert "sandbox-reports/" in (ROOT / ".gitignore").read_text("utf-8")   # דוחות אמיתיים לא נכנסים לגיט
+
+
+def test_works_where_only_python3_exists(tmp_path):
+    """critic סבב 87: הסקריפט קרא ל-`python` — ב-Debian/Ubuntu ובמק עדכני אין פקודה כזו (רק python3) ⇒ exit 127
+    בשני השלבים ⇒ «לא להשיק» מסיבה שקרית ביום ההשקה. מדמים מכונה בלי `python`: PATH עם כל כלי המערכת חוץ
+    מ-python*, ו-python3 בלבד."""
+    binx = tmp_path / "bin"
+    binx.mkdir()
+    for d in ("/usr/local/bin", "/usr/bin", "/bin"):
+        for p in Path(d).iterdir() if Path(d).is_dir() else []:
+            if re.fullmatch(r"python[\d.]*(-config)?", p.name) or (binx / p.name).exists():
+                continue
+            (binx / p.name).symlink_to(p)
+    (binx / "python3").symlink_to(sys.executable)
+    env = {k: v for k, v in os.environ.items() if k not in ("GREENINVOICE_API_ID", "GREENINVOICE_API_SECRET")}
+    env["PATH"] = str(binx)
+    r = subprocess.run([BASH, str(SH)], cwd=ROOT, env=env, capture_output=True,  # noqa: S603  # nosec B603
+                       text=True, timeout=120)
+    assert r.returncode == 0 and "✅ להשיק" in r.stdout, r.stdout[-600:] + r.stderr[-600:]
+
+
+def test_shell_scripts_never_call_bare_python():
+    """critic סבב 87: אין `python` בסקריפטי ה-shell — רק python3 (או .venv/bin/python3)."""
+    bad = []
+    for f in [ROOT / "demo.sh", *sorted((ROOT / "scripts").glob("*.sh"))]:
+        for n, line in enumerate(f.read_text("utf-8").splitlines(), 1):
+            if not line.lstrip().startswith("#") and re.search(r"(?:^|[;&|(`]\s*|\s)python(?:\s|$)", line):
+                bad.append(f"{f.name}:{n}")
+    assert not bad, bad

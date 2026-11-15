@@ -29,9 +29,9 @@ fi
 
 echo "══ יום ה-sandbox · יעד: $TARGET ══"
 echo; echo "① בדיקת החוזה (scripts/gi_contract_check.py)"
-python -I scripts/gi_contract_check.py "${MODE[@]}" --json "$OUT/gi-contract.json"; GI_RC=$?
+python3 -I scripts/gi_contract_check.py "${MODE[@]}" --json "$OUT/gi-contract.json"; GI_RC=$?
 echo; echo "② «פתוח = לא שולם» (scripts/sandbox_day1_paid_check.py)"
-python -I scripts/sandbox_day1_paid_check.py "${MODE[@]}" --json "$OUT/paid-check.json"; PAID_RC=$?
+python3 -I scripts/sandbox_day1_paid_check.py "${MODE[@]}" --json "$OUT/paid-check.json"; PAID_RC=$?
 
 echo; echo "══ החלטה ══"
 REASONS=()
