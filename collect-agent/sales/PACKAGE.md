@@ -68,6 +68,8 @@
 | "ההודעה קצרה, עד שני חלקי SMS" | `tests/test_units.py::test_sms_two_segments_worst_typical_case` |
 | "בקליניקה: שום פרט על הטיפול לא מופיע בהודעה" | `tests/test_beta_kit.py::test_clinic_privacy_no_treatment_words` |
 | "חשבונית בת יותר מ-3 שנים: רק טיפול ידני" | `tests/test_legal_requirements.py::test_r7_old_invoice_is_manual_only` |
+| "קודם אתה מאשר את רשימת הפתוחות. על מה שסימנת כשולם אין תזכורת" | `tests/test_open_list_gate.py::test_no_reminder_before_owner_confirms` |
+| "סכום חריג (למשל נקודה עשרונית שנשמטה)? גבי עוצר ושואל לפני שליחה" | `tests/test_amount_outlier.py::test_e2e_outlier_needs_explicit_confirm` |
 
 ### מה **אסור** לטעון (אין גיבוי, או שמדובר בהבטחה)
 - כל סכום או אחוז שייגבה, "מובטח", "החזר השקעה".

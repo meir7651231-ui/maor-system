@@ -91,7 +91,7 @@ SKIP_TRACK=1 ...                  # רק רינדור+אימות
 
 ## גימור (15.11.2026): כרטיס-סיום מתוקן + כתובת ההשקה + גרסה שקטה
 - `base/*-base.mp4` = פלט composite.py (קלט קבוע ⇒ הגימור אידמפוטנטי).
-- `node endcard.mjs end` — כרטיס-סיום חדש: פונטים מוטמעים (הישן נפל לסריף בשורות המחיר/הספקים) + כתובת ההשקה מ-`marketing/ads/launch.json` (null ⇒ בלי כתובת).
+- `node endcard.mjs end` — כרטיס-סיום חדש: פונטים מוטמעים (הישן נפל לסריף בשורות המחיר/הספקים) + כתובת ההשקה מ-`marketing/launch/launch.json` (placeholder ⇒ בלי כתובת).
 - `python finish.py end` — מחליף את הכרטיס גם בתוך המעבר (fr+k·(new−old) — מדויק) ומפיק `gabi-*.mp4` + `gabi-*-silent.mp4` (כתוביות בלבד).
 - `python finish_check.py end` — PSNR: כרטיס ≥40, צילום ≥39.5 (דור-שני crf 10), מעבר ≥39; זרמי אודיו נכונים.
-- ביום הדומיין: לעדכן launch.json ולהריץ את שלוש הפקודות.
+- ביום הדומיין: `set_domain.py`, להריץ את שלוש הפקודות, ולעדכן `videos_rendered_for` ב-launch.json (finish.py עושה זאת לבד כשיש דומיין).

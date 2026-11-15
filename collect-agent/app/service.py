@@ -620,9 +620,13 @@ class CollectService:
         label = SOURCE_SYSTEMS[self.s.source_system].label
         self.db.x("INSERT INTO messages(customer_id,direction,channel,body,intent,needs_owner,"
                   "message_id,created_at) VALUES(?,'system','owner',?,?,1,?,?)",
-                  (cust["id"], f"ל{cust['name'] or 'לקוח'} יש זיכוי או המרת מסמך שלא הצלחנו "
+                  (cust["id"], (f"ל{cust['name'] or 'לקוח'} יש קבלה על חשבונית שעדיין רשומה כפתוחה "
+                   "— ייתכן שהלקוח כבר שילם. כדי לא להזכיר למי ששילם, התזכורות ללקוח הזה "
+                   f"נעצרו. בדקו ב{label} (סגרו את החשבונית אם שולמה) ואז חדשו את התזכורות."
+                   if any(w.startswith("receipt") for w in docs.values()) else
+                   f"ל{cust['name'] or 'לקוח'} יש זיכוי או המרת מסמך שלא הצלחנו "
                    "לשייך בוודאות לחשבונית. כדי לא לדרוש סכום שגוי, התזכורות ללקוח הזה "
-                   f"נעצרו. בדקו ב{label} ואז חדשו את התזכורות.", self.CREDIT_REVIEW,
+                   f"נעצרו. בדקו ב{label} ואז חדשו את התזכורות."), self.CREDIT_REVIEW,
                    mid, _iso(self.clock())))
         self.audit("system", "credit_review", {"customer": cust["id"],
                                                "reasons": sorted(set(docs.values()))})

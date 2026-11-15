@@ -42,6 +42,15 @@ def set_domain(new: str, root: Path = ROOT, cfg_path: Path | None = None, dry: b
             changed[rel] = n
             if not dry:
                 p.write_text(text2, encoding="utf-8")
+    # מקור הדומיין של הנכסים החזותיים (גבי עיצוב): marketing/ads/launch.json — מסונכרן מכאן, לא נערך בנפרד
+    ads = root / cfg.get("ads_launch", "marketing/ads/launch.json")
+    if ads.is_file():
+        a = json.loads(ads.read_text(encoding="utf-8"))
+        if a.get("domain") != new:
+            changed[ads.relative_to(root).as_posix()] = 1
+            if not dry:
+                a["domain"] = new
+                ads.write_text(json.dumps(a, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     if not dry:
         cfg["domain"] = new
         cfg["placeholder"] = False
@@ -59,7 +68,8 @@ def main(argv: list[str]) -> int:
     for rel, n in changed.items():
         print(f"  {'(dry) ' if dry else ''}{rel}: {n} החלפות")
     print(f"✓ {sum(changed.values())} החלפות ב-{len(changed)} קבצים" + (" (dry-run, לא נכתב)" if dry else ""))
-    print("⚠️ לרנדר מחדש את הסרטונים ולעדכן videos_rendered_for ב-launch.json; ואז: check_launch.py --release")
+    print("⚠️ לרנדר מחדש: הסרטונים (ולעדכן videos_rendered_for), המודעות (node marketing/ads/render.mjs),")
+    print("   דפי הענף וספריית הנוסחים (build.py בכל תיקייה); ואז: check_launch.py --release")
     return 0
 
 
