@@ -134,6 +134,10 @@ def _install_log_redaction() -> None:
             lg.addFilter(_RedactQueryKey())
 
 
+_UNSUB_INVALID = ("<h1>הקישור אינו תקף</h1><p>ייתכן שהקישור הועתק חלקית או שכבר אינו בשימוש. "
+                  "כדי להפסיק תזכורות — השיבו «הסר» להודעה או פנו ישירות לבעל העסק.</p>")
+
+
 def _unsub_page(body: str, status: int = 200) -> HTMLResponse:
     # critic סבב 41: אותה תבנית כמו /p/ (מצב כהה, משתנים, כפתורים 48px) — היה HTML בלי עיצוב
     return HTMLResponse(_PAGE.format(title="הפסקת תזכורות", body=body),
@@ -610,14 +614,15 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
             raise HTTPException(404, "לא נמצא") from None
         except ValueError as e:
             raise HTTPException(400, str(e)) from e
-        return HTMLResponse(landing_done(action, res))
+        return HTMLResponse(landing_done(action, res, svc.s.business_name))
 
     @app.get("/u/{token}", response_class=HTMLResponse)
     def unsubscribe_page(token: str):
         """GET לא מסיר! סורקי-קישורים (Outlook Safe Links, תצוגה מקדימה של SMS, אנטי-וירוס)
         פותחים כל קישור ⇒ הסרה ב-GET הייתה מסירה לקוחות שלא ביקשו. כפתור אחד ⇒ POST."""
         if not svc.has_unsub_token(token):
-            return _unsub_page("הקישור אינו תקף.", 404)
+            # הפעלה 208 (בדיקת עין): היה משפט בודד בלי כותרת ובלי מה-עושים. עכשיו כמו /p לא-תקף + הכוונה.
+            return _unsub_page(_UNSUB_INVALID, 404)
         from . import legal
         biz = svc.s.business_name
         return _unsub_page(
@@ -636,7 +641,7 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
             from . import legal
             biz = html_escape(svc.s.business_name)
             return _unsub_page(f"<h1 style='font-size:20px'>הוסרתם</h1><p>לא יישלחו אליכם עוד "
-                               f"תזכורות אוטומטיות מ-{biz}. בעל העסק ייצור קשר במידת הצורך.</p>"
+                               f"תזכורות אוטומטיות מטעם {biz}. בעל העסק ייצור קשר במידת הצורך.</p>"
                                + legal.draft_footer())
         return {"unsubscribed": True}
 
@@ -1020,11 +1025,17 @@ def landing_page(info: dict | None) -> str:
     return _PAGE.format(title=f'תשלום · {e(info["business"])}', body=body)
 
 
-def landing_done(action: str, res: dict) -> str:
-    msg = {"plan": "הבקשה לפריסה התקבלה. בעל העסק יחזור אליכם עם הצעה ללא תוספת.",
-           "paid": "תודה! העברנו לבעל העסק לבדיקה, והתזכורות נעצרו בינתיים.",
-           "stop": "התזכורות האוטומטיות הופסקו."}[action]
-    return _PAGE.format(title="התקבל", body=f"<h1>התקבל</h1><p>{msg}</p>")
+def landing_done(action: str, res: dict, business: str = "") -> str:
+    """הפעלה 208 (בדיקת עין): העמוד היה «התקבל» בלבד — בלי שם העסק (החייב לא יודע מול מי) ובלי כותרת
+    שאומרת מה קרה. עכשיו: שם העסק כמו ב-/p, כותרת לפי הפעולה, ומשפט «מה הלאה»."""
+    from html import escape as e
+    head, msg = {"plan": ("בקשת הפריסה התקבלה", "בעל העסק יחזור אליכם עם הצעה ללא תוספת."),
+                 "paid": ("תודה, הדיווח התקבל", "העברנו לבעל העסק לבדיקה, והתזכורות נעצרו בינתיים."),
+                 "stop": ("התזכורות הופסקו", "התזכורות האוטומטיות על החשבונית הופסקו. "
+                                             "בעל העסק עשוי לפנות אליכם אישית.")}[action]
+    biz = f'<div class="m">{e(business)}</div>' if business else ""
+    return _PAGE.format(title=f"{head} · {e(business)}" if business else head,
+                        body=f"<h1>{head}</h1>{biz}<p>{msg}</p>")
 
 
 def _lazy_app() -> FastAPI:
