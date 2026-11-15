@@ -19,8 +19,7 @@
     },
     "גבי שיווק": {
       "session": "session_01DUoepEKhaA3apqS51avurB",
-      "wall": true,
-      "wall_reason": "חסום מ-commit/push בהרשאות הסשן — צריך אישור מאיר בסשן «גבי · שיווק» (15.11)"
+      "wall": false
     },
     "גבייה עיצוב": {
       "session": "session_01DUoepFMyWh2GQ6Tir1EZmV",
