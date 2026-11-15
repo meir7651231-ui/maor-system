@@ -678,7 +678,11 @@ def detect(text: str, ctx: Context | None = None) -> list[Intent]:
         found.add(Intent.THANKS)              # שבח + תודה בלי בקשה
     # "התשלום/ההעברה לא בוצע/ה" = תקלה בתשלום: לא טענה נגד החוב (critic סבב 80 🟡) וגם לא "שילמתי" ⇒ how_to_pay
     _failed_pay = r"(?:ה)?(?:תשלום|העברה|הפקדה|ביט|פייבוקס)\W+(?:\w+\W+){0,2}לא (?:בוצע|בוצעה|עבר|עברה|הצליח|הצליחה|נקלט|נקלטה)"
-    if Intent.PAID_CLAIM in found and _s(_failed_pay, t) and not _s(r"(?:כבר )?(?:שילמתי|שילמנו)(?![^.!?]*לא)", t):
+    # critic סבב 81: טענת תשלום מפורשת (גם כשאחריה «לא עבר») ⇒ נשאר paid_claim — אחרת ממשיכים לתזכר ושולחים קישור
+    # למי שהכסף ירד לו (חשש לתשלום כפול). רק תקלה בלי טענה ⇒ how_to_pay
+    _claims_paid = (r"(?<![\w])(?:כבר )?(?:שילמתי|שילמנו|העברתי|העברנו|הפקדתי|חויבתי|חויבנו)(?![\w])"
+                    r"|ירד (?:לי |לנו )?(?:ה?כסף |הסכום )?מ?ה?(?:חשבון|כרטיס|אשראי)|(?:הכסף|הסכום) ירד")
+    if Intent.PAID_CLAIM in found and _s(_failed_pay, t) and not _s(_claims_paid, t):
         found.discard(Intent.PAID_CLAIM)
         found.add(Intent.HOW_TO_PAY)
     if Intent.DISPUTE in found and _s(r"(?:ה)?(?:תשלום|העברה|הפקדה|ביט|פייבוקס)\W+(?:\w+\W+){0,2}לא (?:בוצע|בוצעה|עבר|עברה|הצליח|הצליחה|נקלט|נקלטה)", t) \

@@ -5,6 +5,7 @@ import { createRequire } from 'node:module';
 import { spawn } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { randomBytes } from 'node:crypto';
+import { assertPortFree, srvLogLevel, srvStdio, waitHealthy } from './lib.mjs';
 const { chromium, devices } = createRequire(import.meta.url)('playwright');
 const AXE = readFileSync(createRequire(import.meta.url).resolve('axe-core/axe.min.js'), 'utf8');
 const MK = new URL('../../marketing/', import.meta.url).pathname;
@@ -17,9 +18,11 @@ const pages = [
 const srv = spawn('npx', ['vite', 'preview', '--port', '4339', '--strictPort'], { stdio: 'ignore' });
 // עמודי הלקוח של העסק (/p, /pay, /u) מוגשים מהשרת ⇒ שרת DEMO=1 (dry-run, נתונים בדויים), כמו live.mjs
 const TOKEN = randomBytes(32).toString('base64url'), API = 'http://127.0.0.1:8152';
-const api = spawn('python3', ['-m', 'uvicorn', 'app.main:_lazy_app', '--factory', '--port', '8152', '--log-level', 'warning'],
-  { cwd: new URL('../..', import.meta.url).pathname, env: { ...process.env, DEMO: '1', OWNER_API_TOKEN: TOKEN }, stdio: 'ignore' });
-for (let i = 0; i < 80; i++) { try { if ((await fetch(API + '/health')).ok) break; } catch { /* עולה */ } await new Promise(r => setTimeout(r, 250)); }
+// critic סבב 81: כמו שאר הסוויטות — פלט השרת נשמר בכישלון (srvStdio), והמתנה שמזהה שרת שמת (waitHealthy)
+await assertPortFree(8152);
+const api = spawn('python3', ['-m', 'uvicorn', 'app.main:_lazy_app', '--factory', '--port', '8152', '--log-level', srvLogLevel()],
+  { cwd: new URL('../..', import.meta.url).pathname, env: { ...process.env, DEMO: '1', OWNER_API_TOKEN: TOKEN }, stdio: srvStdio('server-a11y') });
+await waitHealthy(API, api);
 const health = await (await fetch(API + '/health')).json();
 if (health.dry_run !== true) { api.kill(); srv.kill(); throw new Error('השרת לא ב-dry-run — עוצרים'); }
 const outbox = (await (await fetch(API + '/outbox', { headers: { Authorization: `Bearer ${TOKEN}` } })).json()).messages;
