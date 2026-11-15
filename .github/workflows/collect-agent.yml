@@ -60,6 +60,12 @@ jobs:
         run: bash scripts/smoke_server.sh
       - name: בדיקות חוזה מול mock כשרתי HTTP (חשבונית ירוקה · 019 · InforU) — נכשל על FAIL
         run: bash scripts/contract_checks_http.sh
+      - name: יום ראשון של ה-sandbox — כל ענפי ההחלטה מול mock (גבייה סוכן; ששילם לא מקבל תזכורת)
+        run: |
+          python3 -I scripts/sandbox_day1_paid_check.py --mock paid
+          python3 -I scripts/sandbox_day1_paid_check.py --mock clean
+          ! python3 -I scripts/sandbox_day1_paid_check.py --mock unlinked
+          ! python3 -I scripts/sandbox_day1_paid_check.py --mock no-status
       - name: שומר-עץ — גם evals, demo.sh --check, smoke וחוזים לא השאירו קבצים בפרויקט (QA, הפעלה 217)
         run: python3 -I scripts/tree_guard.py check "$RUNNER_TEMP/tree-before.txt"
 
@@ -152,6 +158,8 @@ jobs:
         run: TZ=UTC node e2e/notices.mjs
       - name: e2e ערכת בטא — יום ראשון לכל ענף (מספרה/מוסך/קליניקה/רו״ח) מול gi_mock
         run: TZ=UTC node e2e/beta.mjs
+      - name: e2e תסריט ההדגמה של מכירות (sales/demo-script.md, 6 שלבים) מול DEMO=1
+        run: TZ=UTC node e2e/sales-demo.mjs
       - name: e2e הדשבורד הפשוט (/ui) — אישור סכום חריג מול DEMO=1
         run: TZ=UTC node e2e/ui.mjs "$RUNNER_TEMP/shots"
       - name: e2e הדשבורד הפשוט (/ui) — אישור רשימת הפתוחות (CSV ⇒ כרטיס ⇒ «כבר שולם»/«עדיין פתוח» ⇒ השרת) מול DEMO=1

@@ -13,3 +13,4 @@ web/screenshots/
 .venv/
 # legal/dist = חבילת המסמכים לעו״ד, נבדקת כ-committed (tests/test_legal_bundle.py); dist/ בשורש מתעלם ממנה
 !legal/dist/
+sandbox-reports/

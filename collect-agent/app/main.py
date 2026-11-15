@@ -488,6 +488,10 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
     def customers():
         return [dict(r) for r in svc.db.q("SELECT * FROM customers ORDER BY id")]
 
+    @app.post("/invoices/{iid}/mark-paid", dependencies=auth)
+    def mark_paid(iid: int, request: Request):
+        return guard(svc.mark_paid_outside, iid, request.state.actor)
+
     @app.post("/customers/{cid}/resume", dependencies=auth)
     def resume(cid: int, request: Request):
         return guard(svc.resume_customer, cid, request.state.actor)

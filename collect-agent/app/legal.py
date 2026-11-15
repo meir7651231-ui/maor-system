@@ -4,15 +4,56 @@
 """
 from __future__ import annotations
 
+import os
+import re
+from collections.abc import Mapping
 from html import escape
+from pathlib import Path
 
 DRAFT_LABEL = "טיוטה – לבדיקת עו״ד"
-OPERATOR = {
+PLACEHOLDER_OPERATOR = {
     "legal_name": "[שם החברה המפעילה בע״מ — placeholder]",
     "company_id": "[ח.פ. — placeholder]",
     "address": "[כתובת רשומה — placeholder]",
     "privacy_email": "[privacy@… — placeholder]",
 }
+# פרטי המפעיל מגיעים מהסביבה, כולם או אף אחד (legal/OPERATOR-PLACEHOLDERS.md). לא ממציאים.
+OPERATOR_ENV = {"legal_name": "OPERATOR_NAME", "company_id": "OPERATOR_ID",
+                "address": "OPERATOR_ADDRESS", "privacy_email": "OPERATOR_PRIVACY_EMAIL"}
+
+
+def load_operator(env: Mapping[str, str]) -> dict[str, str]:
+    got = {k: (env.get(v) or "").strip() for k, v in OPERATOR_ENV.items()}
+    if not any(got.values()):
+        return dict(PLACEHOLDER_OPERATOR)
+    missing = [OPERATOR_ENV[k] for k, v in got.items() if not v]
+    if missing:   # חצי-מוגדר = עמוד משפטי חצי-אמיתי. עדיף לא לעלות
+        raise ValueError(f"פרטי מפעיל חלקיים — חסר: {', '.join(missing)}")
+    if "@" not in got["privacy_email"]:
+        raise ValueError("OPERATOR_PRIVACY_EMAIL אינו כתובת מייל")
+    return got
+
+
+OPERATOR = load_operator(os.environ)
+
+# קבצים סטטיים (לא נטענים מהסביבה) שבהם פרטי המפעיל עדיין placeholder ⇒ ממלאים ידנית ביום ההקמה
+_PLACEHOLDER_RX = re.compile(r"\[שם החברה|— placeholder\]|ימולאו לפני השקה")
+_SCAN_GLOBS = ("legal/*.md", "marketing/**/*.html", "marketing/**/*.md", "marketing/**/*.py",
+               "marketing/**/*.mjs", "web/src/**/*.tsx", "web/src/**/*.ts", "app/*.html")
+_ROOT = Path(__file__).resolve().parents[1]
+
+
+def static_placeholder_files(root: Path = _ROOT) -> list[str]:
+    """כל קובץ סטטי שעדיין מכיל placeholder של המפעיל (בלי dist/ ו-node_modules)."""
+    out = set()
+    for g in _SCAN_GLOBS:
+        for p in root.glob(g):
+            rel = p.relative_to(root).as_posix()
+            if any(x in rel for x in ("node_modules", "/dist/", "__pycache__")):
+                continue
+            if p.is_file() and _PLACEHOLDER_RX.search(p.read_text("utf-8", errors="ignore")):
+                out.add(rel)
+    return sorted(out)
 
 
 def why_you_got_this(business: str) -> str:

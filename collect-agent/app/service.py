@@ -942,6 +942,22 @@ class CollectService:
         self.audit(actor, "open_list_confirmed", done)
         return {**done, **self.open_list()}
 
+    def mark_paid_outside(self, iid: int, actor: str = "owner") -> dict:
+        """BACKLOG גבייה סוכן #3: «שולם מחוץ למערכת» (ביט/העברה/מזומן) מכל חשבונית פתוחה בדשבורד.
+        סוגר כאן, מבטל תזכורות פעילות (גם מאושרות), לא נפתח מחדש בסנכרון, ומתועד ב-audit."""
+        inv = self._invoice(iid)
+        if inv is None:
+            raise KeyError(iid)
+        if inv["status"] != "open":
+            raise ValueError("החשבונית כבר לא פתוחה")
+        now = _iso(self.clock())
+        self.db.x("UPDATE invoices SET status='closed', open_reviewed_at=COALESCE(open_reviewed_at,?), "
+                  "owner_paid_at=? WHERE id=?", (now, now, iid))
+        self._cancel_invoice(iid, "owner_marked_paid")
+        self.audit(actor, "invoice_marked_paid", {"invoice": iid, "number": inv["number"],
+                                                  "amount_agorot": inv["amount_agorot"]})
+        return dict(self._invoice(iid))
+
     def plan(self) -> list[int]:
         now = self.clock()
         t = self.trial()

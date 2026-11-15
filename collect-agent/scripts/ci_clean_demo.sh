@@ -27,6 +27,8 @@ echo "▶ ריצה 1: מכונה נקייה"
 [[ -x .venv/bin/python3 ]] || { echo "❌ demo.sh עבר בלי ליצור .venv — מסלול ההתקנה לא נבדק" >&2; exit 1; }
 STAMP="$(stat -c %Y .venv/bin/python3)"
 TMP_ROOT="${TMPDIR:-/tmp}"
+SNAP_DIR=""
+trap '[ -n "$SNAP_DIR" ] && rm -rf "$SNAP_DIR"' EXIT   # גם בכשל באמצע, לא רק בסוף (QA, BACKLOG)
 SNAP_DIR="$(mktemp -d)"
 python3 -I scripts/tree_guard.py fs-snapshot "$SNAP_DIR/project.txt"
 python3 -I scripts/tree_guard.py fs-snapshot "$SNAP_DIR/tmp.txt" "$TMP_ROOT"

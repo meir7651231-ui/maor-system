@@ -4,10 +4,12 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 PORT="${PORT:-8765}"
-TMP="$(mktemp -d)"
 # PID ריק עד שהשרת עולה — `kill 0` היה הורג את כל קבוצת התהליכים (המעטפת/pytest/ה-CI). הפעלה 195.
+# ה-trap נרשם **לפני** mktemp (QA, BACKLOG): כשל בכל שורה אחרי היצירה לא משאיר תיקייה זמנית.
 PID=""
-trap 'if [ -n "$PID" ]; then kill "$PID" 2>/dev/null || true; fi; rm -rf "$TMP"' EXIT
+TMP=""
+trap 'if [ -n "$PID" ]; then kill "$PID" 2>/dev/null || true; fi; [ -n "$TMP" ] && rm -rf "$TMP"' EXIT
+TMP="$(mktemp -d)"
 export OWNER_API_TOKEN="$(python3 -c 'import secrets;print(secrets.token_urlsafe(32))')"
 export INBOUND_WEBHOOK_SECRET="$(python3 -c 'import secrets;print(secrets.token_urlsafe(32))')"
 export SMS_WEBHOOK_KEY="$(python3 -c 'import secrets;print(secrets.token_urlsafe(24))')"
