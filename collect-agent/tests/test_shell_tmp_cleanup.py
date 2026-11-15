@@ -28,6 +28,8 @@ def _func_body(lines: list[str], name: str) -> str:
     out, inside = [], False
     for ln in lines:
         if re.match(rf"^\s*{re.escape(name)}\s*\(\)\s*\{{", ln):
+            if re.search(r"\}\s*$", ln):   # פונקציה בשורה אחת: cleanup() { ...; }
+                return ln
             inside = True
             continue
         if inside:
@@ -41,6 +43,21 @@ def _covers(handler: str, var: str) -> bool:
     return bool(re.search(rf"\$\{{?{var}\b", handler)) and "rm " in handler
 
 
+# שורות שלא יכולות להיכשל בין mktemp ל-trap (מוסכמת הצוות, test_contract_checks_http_sh):
+# השמה פשוטה, mktemp נוסף, הגדרת פונקציה, fi/else, הערה, שורה ריקה
+_SAFE = re.compile(r'^\s*(#.*|$|fi\b.*|else\b.*|[A-Za-z_][A-Za-z0-9_]*="[^"$`]*"(;\s*[A-Za-z_][A-Za-z0-9_]*'
+                   r'="[^"$`]*")*;?\s*(#.*)?|[A-Z_][A-Z0-9_]*="\$\(mktemp[^)]*\)"(;.*)?|'
+                   r'.*KEEP=\d.*)$')
+
+
+def _trap_covers(lines: list[str], line: str, var: str) -> bool:
+    t = TRAP.match(line)
+    if not t:
+        return False
+    handler = t.group(1) or t.group(2) or _func_body(lines, t.group(3))
+    return _covers(handler, var)
+
+
 def violations(text: str) -> list[str]:
     lines = text.splitlines()
     bad = []
@@ -49,14 +66,23 @@ def violations(text: str) -> list[str]:
         if not m:
             continue
         var = m.group(1)
-        ok = False
-        for prev in lines[:i]:
-            t = TRAP.match(prev)
-            if not t:
-                continue
-            handler = t.group(1) or t.group(2) or _func_body(lines, t.group(3))
-            if _covers(handler, var):
-                ok = True
+        # (א) trap שמכסה לפני ה-mktemp
+        ok = any(_trap_covers(lines, prev, var) for prev in lines[:i])
+        # (ב) או trap שמכסה מיד אחרי — כשבאמצע רק שורות שלא נכשלות / גוף הפונקציה שה-trap קורא לה
+        if not ok:
+            j, in_func = i + 1, False
+            while j < len(lines):
+                cur = lines[j]
+                if _trap_covers(lines, cur, var):
+                    ok = True
+                    break
+                if re.match(r"^\s*[A-Za-z_][A-Za-z0-9_]*\s*\(\)\s*\{", cur):
+                    in_func = not re.search(r"\}\s*$", cur)
+                elif in_func:
+                    in_func = not re.match(r"^\s*\}\s*$", cur)
+                elif not _SAFE.match(cur):
+                    break
+                j += 1
         if not ok:
             bad.append(f"שורה {i + 1}: {var}=$(mktemp) בלי trap שמוחק אותו לפני כן")
     return bad
@@ -74,9 +100,13 @@ def test_every_mktemp_has_trap_before_it(script):
 
 def test_guard_catches_the_original_bug():
     """מבחן למגן: הצורה הישנה של smoke_server.sh וזו של ci_clean_demo.sh — נתפסות."""
-    old_smoke = 'TMP="$(mktemp -d)"\nPID=""\ntrap \'rm -rf "$TMP"\' EXIT\n'
+    # smoke_server.sh הישן: export עם python3 (יכול להיכשל) לפני... לא — שם ה-trap היה אחרי השמות בלבד;
+    # המקרה המזיק: פקודה שיכולה להיכשל בין mktemp ל-trap, או בלי trap בכלל (ci_clean_demo הישן)
+    risky = 'TMP="$(mktemp -d)"\npython3 -c "x"\ntrap \'rm -rf "$TMP"\' EXIT\n'
     old_ci = 'SNAP_DIR="$(mktemp -d)"\necho x\nrm -rf "$SNAP_DIR"\n'
-    assert violations(old_smoke) and violations(old_ci)
+    assert violations(risky) and violations(old_ci)
+    ok_team = 'A="$(mktemp)"\nB="$(mktemp)"\nX=""\ncleanup() {\n  rm -f "$A" "$B"\n}\ntrap cleanup EXIT\n'
+    assert not violations(ok_team)
     assert violations("cleanup() {\n  echo hi\n}\ntrap cleanup EXIT\nX=\"$(mktemp)\"\n")
     assert not violations("cleanup() {\n  rm -f \"${X:-}\"\n}\ntrap cleanup EXIT\nX=\"$(mktemp)\"\n")
 
