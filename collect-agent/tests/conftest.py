@@ -59,10 +59,12 @@ class FakeGreenInvoice:
             body = json.loads(req.content)
             if set(body["type"]) & {300, 305} and 330 not in body["type"] and \
                     set(body["status"]) == {0}:
-                docs = self.docs                    # חיפוש החוב הפתוח — כמו קודם, בלי סינון סוג
+                # חיפוש החוב הפתוח — כמו קודם, בלי סינון סוג (מלבד קבלות, שאינן חוב)
+                docs = [d for d in self.docs if d.get("type") != 400]
             else:
-                # ממצא 2.16: זיכויים (330) / מסמכי-המשך סגורים — מסנן לפי סוג וסטטוס כמו השרת
-                assert body["type"] in ([330], [305, 320]), body
+                # ממצא 2.16: זיכויים (330) / מסמכי-המשך סגורים / קבלות (400, יעד «ששילם לא מקבל
+                # תזכורת») — מסנן לפי סוג וסטטוס כמו השרת
+                assert body["type"] in ([330], [305, 320], [400]), body
                 docs = [d for d in self.docs if d.get("type") in body["type"]
                         and d.get("status", 0) in body["status"]]
             page = body["page"]

@@ -51,13 +51,74 @@ def findings(release: bool, cfg: dict | None = None, root: Path = ROOT) -> list[
     if release:
         if cfg.get("placeholder") or dom == PLACEHOLDER_DOMAIN:
             out.insert(0, f"launch.json: הדומיין עדיין placeholder ({dom}) — דורש הכרעת מאיר")
+        ads = root / cfg.get("ads_launch", "marketing/ads/launch.json")
+        if ads.is_file():
+            a = json.loads(ads.read_text(encoding="utf-8"))
+            if a.get("domain") != dom:
+                out.append(f"marketing/ads/launch.json: domain={a.get('domain')!r} ≠ {dom} (set_domain.py מסנכרן)")
+            man = ads.parent / "out" / "manifest.json"
+            if man.is_file() and json.loads(man.read_text(encoding="utf-8")).get("domain") != dom:
+                out.append(f"מודעות (marketing/ads/out) רונדרו בלי {dom} — node marketing/ads/render.mjs")
         if cfg.get("videos_rendered_for") != dom:
             out.append(f"סרטונים ({', '.join(cfg.get('videos', []))}) רונדרו ל-{cfg.get('videos_rendered_for')}, "
                        f"לא ל-{dom} — יש לרנדר מחדש ולעדכן videos_rendered_for")
     return out
 
 
+# מה שרק מאיר יכול להזיז (team/marketing.md · marketing/SIGN-OFF.md). כל השאר — באחריות הצוות.
+MEIR_WALLS = (
+    "דומיין: לבחור (ולרכוש) — אחר כך set_domain.py + רינדור מחדש",
+    "אישור פרסום לכל נכס (דף, דפי ענף, ספריית נוסחים, פוסטים, מודעות, סרטון, מאמרים)",
+    "מערכת דיוור + SPF/DKIM לרצף מיילי הניסיון (הרשמה לשירות)",
+    "בדיקת עו״ד: §30א (שירות מול פרסומת), פרטי החברה בתחתית, «כולל מע״מ ככל שחל»",
+)
+GENERATORS = ("marketing/landing/for/build.py", "marketing/library/build.py")
+
+
+def readiness(root: Path = ROOT) -> list[str]:
+    """«מוכן לחתימה»: מה שבידי הצוות ירוק, ומה שנשאר אדום בשער ההשקה נעלם ברגע שיש דומיין
+    (מדמים set_domain על עותק) — חוץ מרינדור מחדש, שהוא פקודה. מחזיר רשימת בעיות; ריקה = מוכן."""
+    import importlib.util
+    import shutil
+    import tempfile
+
+    problems = [f"עקביות: {f}" for f in findings(release=False, root=root)]
+    for g in GENERATORS:
+        spec = importlib.util.spec_from_file_location(f"gen_{abs(hash(g))}", root / g)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        if mod.main(["--check"]) != 0:
+            problems.append(f"{g}: הדף לא מעודכן מול הקוד (הריצו את build.py)")
+    cfg = load()
+    sd_spec = importlib.util.spec_from_file_location("set_domain_r", Path(__file__).with_name("set_domain.py"))
+    sd = importlib.util.module_from_spec(sd_spec)
+    sd_spec.loader.exec_module(sd)
+    with tempfile.TemporaryDirectory() as tmp:
+        t = Path(tmp)
+        extra = ["marketing/launch/launch.json", cfg.get("ads_launch", "marketing/ads/launch.json"),
+                 "marketing/ads/out/manifest.json"]
+        for rel in cfg["files"] + extra:
+            if (root / rel).is_file():
+                (t / rel).parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy(root / rel, t / rel)
+        sd.set_domain("readiness-test.co.il", root=t, cfg_path=t / "marketing/launch/launch.json")
+        left = findings(release=True, cfg=json.loads((t / "marketing/launch/launch.json").read_text("utf-8")), root=t)
+        problems += [f"גם אחרי דומיין: {f}" for f in left if "סרטונים" not in f and "מודעות" not in f]
+    return problems
+
+
 def main(argv: list[str]) -> int:
+    if "--readiness" in argv:
+        probs = readiness()
+        if probs:
+            print(f"✗ לא מוכן לחתימה: {len(probs)} בעיות בידי הצוות")
+            for p in probs:
+                print("  -", p)
+            return 1
+        print("✓ מוכן לחתימה. החוסמים שנשארו הם רק של מאיר:")
+        for w in MEIR_WALLS:
+            print("  •", w)
+        return 0
     release = "--release" in argv
     out = findings(release)
     label = "שער השקה" if release else "עקביות דומיין"
