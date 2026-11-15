@@ -2,6 +2,7 @@
 // הנוסחים = מראה של app/templates.py כדי שהתצוגה המקדימה = מה שיישלח בפועל.
 // ⚖️ חוק התקשורת סעיף 30א: תזכורת תשלום ללקוח קיים איננה "דבר פרסומת" — לכן אסור לערבב בה שיווק/מבצעים.
 import type { Business, Customer, Invoice, Step } from './domain.ts';
+import { siteUrl } from './site.ts';
 
 export const STEP_LABEL: Record<Step, string> = {
   friendly: 'תזכורת ידידותית', plan_offer: 'תזכורת + אפשרות פריסה', final: 'תזכורת אחרונה',
@@ -9,9 +10,9 @@ export const STEP_LABEL: Record<Step, string> = {
 // הכרעת מאיר 6.11: 3 תזכורות לכל היותר ⇒ עצירה והתראה לבעל העסק
 export const STEP_ORDER: Step[] = ['friendly', 'plan_offer', 'final'];
 /** כתובת הסרה בדמו (בבקאנד: `{PUBLIC_BASE_URL}/u/{unsub_token}`, service.unsub_url). */
-export const demoUnsubUrl = (c: Customer) => `https://gabi.example/u/${c.id}`;
+export const demoUnsubUrl = (c: Customer) => siteUrl(`/u/${c.id}`);
 /** קישור קצר בדמו (בבקאנד: `{PUBLIC_BASE_URL}/p/{short_code}`, 7 תווים, service.short_url). */
-export const demoShortUrl = (inv: Invoice) => `https://gabi.example/p/${inv.id.padEnd(7, 'x').slice(0, 7)}`;
+export const demoShortUrl = (inv: Invoice) => siteUrl(`/p/${inv.id.padEnd(7, 'x').slice(0, 7)}`);
 const ORG = /בע["״]?מ|חברת|עמותת|מרפאת|משרד|סטודיו|קבוצת|ltd|inc|llc/i;
 /** מראה של templates._GROUP: «הורי איתי» / «משפחת כהן» נשמרים בשלמותם (לא «שלום הורי,»). */
 const GROUP = /^(הורי|הוריו|הוריה|משפחת|אמא|אבא)(\s+של)?\s+\S/;
