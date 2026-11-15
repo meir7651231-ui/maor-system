@@ -268,6 +268,11 @@ RX: dict[Intent, re.Pattern[str]] = {
         r"מספיק עם ההודעות", r"\bunsubscribe\b",
         # qa3: "stop worrying"/"don't stop" ≠ הסרה. stop רק כפקודה: לבד, או stop + שליחה/פנייה
         r"(?<!don't )(?<!dont )\bstop\b\W*(?:it\W*)?(?:please\W*)?$",
+        # critic סבב 90: מילות הסרה עבריות ב-SMS — «סטופ» (STOP בתעתיק), «עצור/עצרו» כפקודה, «הסר» בפתיחה + טקסט
+        r"(?:^|[.!?]\s*)\W*סטופ(?![\w])",
+        r"^\W*(?:עצור|עצרו|תעצרו|תעצור)\W*$",
+        r"(?:עצור|עצרו|תעצרו|תעצור)\s+(?:את\s+)?(?:כל\s+)?(?:ה)?(?:הודעות|שליחה|תזכורות|מסרונים|סמסים|מיילים)",
+        r"(?:^|[.!?]\s*)\W*(?:הסר|הסירו|תסירו)\W*(?:[.!?,]|$)",
         # critic סבב 88: STOP כפקודה בתחילת הודעה/משפט — גם כשבא אחריו טקסט («STOP. I already paid», «stop it, …»)
         r"(?:^|[.!?]\s*)\W*(?:please\s+)?stop\b(?!\s+(?:\w+ing|worry|by|at)\b)",  # stop worrying/stressing ≠ הסרה; stop sending — בחוק שלמעלה
         r"\bstop\s+(?:sending|messaging|texting|contacting|writing|emailing|calling)\b", r"\b(?:remove|take)\b.{0,20}\b(?:my|me)\b.{0,25}\b(?:list|number|email)",
