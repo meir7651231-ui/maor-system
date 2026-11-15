@@ -19,6 +19,7 @@ dev = ["pytest>=8", "ruff>=0.6", "bandit>=1.7", "pip-audit>=2.7"]
 sqlcipher = ["sqlcipher3==0.6.4"]
 
 [tool.pytest.ini_options]
+markers = ["open_review: שער «אישור רשימת הפתוחות» דלוק (ברירת המחדל במוצר)"]
 testpaths = ["tests"]
 pythonpath = ["."]
 

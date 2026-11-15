@@ -97,7 +97,8 @@ class LegalHoldIn(BaseModel):
 # מסכים שמחזירים מידע אישי של לקוחות (שם/טלפון/מייל/סכום/תוכן הודעות) ⇒ כל צפייה נרשמת
 PII_READ_ROUTES = frozenset({
     "/reminders", "/reminders/{rid}/preview", "/dashboard", "/customers", "/outbox",
-    "/owner/inbox", "/plans", "/audit", "/conversation/drafts", "/access-log"})
+    "/owner/inbox", "/plans", "/audit", "/conversation/drafts", "/access-log",
+    "/open-list"})   # שער רשימת הפתוחות: שמות לקוחות + סכומים
 
 
 class InboundIn(BaseModel):
@@ -455,6 +456,25 @@ def create_app(service: CollectService | None = None, *, owner_token: str | None
     @app.post("/dispatch", dependencies=auth)
     def dispatch():
         return {"dry_run": True, "sent": svc.dispatch()}
+
+    # ---------- שער «אישור רשימת הפתוחות» (לפני תזכורת ראשונה) ----------
+    @app.get("/open-list", dependencies=auth)
+    def open_list():
+        return svc.open_list()
+
+    @app.post("/open-list/confirm", dependencies=auth)
+    async def open_list_confirm(request: Request):
+        try:
+            body = await request.json()
+        except ValueError:
+            raise HTTPException(400, "JSON לא תקין") from None
+        if not isinstance(body, dict) or set(body) - {"still_open", "paid"}:
+            raise HTTPException(422, "גוף: {still_open: [id], paid: [id]}")
+        ids = {k: body.get(k, []) for k in ("still_open", "paid")}
+        if not all(isinstance(v, list) and all(isinstance(i, int) and not isinstance(i, bool)
+                                               for i in v) for v in ids.values()):
+            raise HTTPException(422, "still_open/paid: רשימות של מזהי חשבונית (מספרים)")
+        return guard(lambda: svc.confirm_open_list(ids["still_open"], ids["paid"]))
 
     @app.get("/dashboard", dependencies=auth)
     def dashboard(request: Request, view: str | None = None):

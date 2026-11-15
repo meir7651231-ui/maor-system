@@ -140,3 +140,11 @@ def no_real_network(monkeypatch):
 
     monkeypatch.setattr(socket, "create_connection", boom)
     monkeypatch.setattr(socket.socket, "connect", boom)
+
+
+@pytest.fixture(autouse=True)
+def _open_review_off_by_default(monkeypatch, request):
+    """שער «אישור רשימת הפתוחות» דלוק במוצר. הבדיקות הקיימות (לפניו) בונות תזכורות מיד אחרי sync ⇒
+    כאן כבוי כברירת מחדל. בדיקה שמסומנת `@pytest.mark.open_review` רצה עם השער דלוק."""
+    if request.node.get_closest_marker("open_review") is None:
+        monkeypatch.setattr("app.config.OPEN_REVIEW_DEFAULT", "0")
