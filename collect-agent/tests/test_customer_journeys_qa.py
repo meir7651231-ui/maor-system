@@ -171,3 +171,40 @@ def test_j22_two_invoices_one_customer_one_message_per_round(env, clock, fake_gi
         clock.now += timedelta(minutes=30)
     sms = [m for m in _to_c1(svc, mark) if m["channel"] == "sms"]
     assert len(sms) <= 1, [m["body"][:50] for m in sms]
+
+
+def _offer_plan(env):
+    """הלקוח מבקש פריסה ⇒ בעל העסק מאשר את טיוטת ההצעה ⇒ ההצעה נשלחה ללקוח."""
+    svc, api, _ = env
+    _first(env)
+    r = api.post("/inbound", json={"sender": "050-1234567",
+                                   "text": "אפשר לחלק את זה לכמה תשלומים?"}).json()
+    assert r["intent"] == "plan_request", r
+    mark = sent_mark(svc.sender.sent)
+    assert r.get("draft_id"), r
+    assert api.post(f"/conversation/drafts/{r['draft_id']}/approve", json={}).status_code == 200
+    offer = _to_c1(svc, mark)
+    assert offer, "הצעת הפריסה לא יצאה"
+    return r
+
+
+def test_j23_customer_accepts_offered_plan(env, clock):
+    """הערת המנוע (RESULTS.md, 15.11): «מאשר את הפריסה» בלי הקשר ⇒ לא אישור, בכוונה. בזרימה החיה,
+    אחרי שהצעה נשלחה — כן. כאן זה נבדק בפועל."""
+    svc, api, _ = env
+    _offer_plan(env)
+    r = api.post("/inbound", json={"sender": "050-1234567",
+                                   "text": "מאשר את הפריסה, 3 תשלומים זה בסדר"}).json()
+    assert r["intent"] == "plan_accept", r
+    _week_later_nothing(env, clock)
+
+
+def test_j24_customer_rejects_offered_plan_goes_to_owner(env, clock):
+    svc, api, _ = env
+    _offer_plan(env)
+    mark = sent_mark(svc.sender.sent)
+    r = api.post("/inbound", json={"sender": "050-1234567",
+                                   "text": "ההצעה לא מתאימה לי, זה עדיין יקר מדי בחודש"}).json()
+    assert r["intent"] == "plan_reject", r
+    assert r["escalation"] != "none", "דחיית הצעה לא הגיעה לבעל העסק"
+    assert _to_c1(svc, mark) == [], "יצא מענה אוטומטי לדחיית הצעה"
