@@ -11,7 +11,7 @@ import argparse
 import json
 import re
 import shutil
-import subprocess
+import subprocess  # nosec B404 — git בלבד, ארגומנטים קבועים
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
@@ -26,7 +26,7 @@ def open_rows(backlog: str, worker: str) -> int:
 def commits_since(session: str, since: str) -> list[dict]:
     git = shutil.which("git") or "git"
     # ארגומנטים קבועים בלבד (since מעוצב כ-ISO ע"י המקשר); בלי shell
-    out = subprocess.run([git, "log", "--all", f"--since={since}",  # noqa: S603
+    out = subprocess.run([git, "log", "--all", f"--since={since}",  # noqa: S603  # nosec B603
                           "--format=%h|%cI|%s|%b%x00", "--", "collect-agent/"],
                          cwd=ROOT.parent, capture_output=True, text=True).stdout
     rows = []
