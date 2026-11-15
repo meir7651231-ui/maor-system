@@ -64,6 +64,7 @@ class Settings:
     sms_backup_username: str = ""          # פרטי ספק הגיבוי (InforU כשהראשי 019, ולהפך)
     sms_backup_token: str = field(default="", repr=False)
     email_from: str = "no-reply@example.com"
+    smtp_host: str = ""                       # שרת SMTP לשליחת מייל (שלב 1: dry-run; ריק ⇒ smtp.example)
     email_reply_to: str = ""
     public_base_url: str = "https://gabi.example"   # לקישורי הסרה
     trial_start: str = ""        # ISO; ריק ⇒ אין מגבלת ניסיון (מנוי פעיל / הדגמה)
@@ -182,6 +183,7 @@ def load_settings(env: dict[str, str] | None = None) -> Settings:
         real_data_allowed=e.get("REAL_DATA_ALLOWED", "0").strip().lower() in ("1", "true", "yes"),
         sms_two_way=e.get("SMS_TWO_WAY", "0").strip().lower() in ("1", "true", "yes"),
         email_from=e.get("EMAIL_FROM", "no-reply@example.com"),
+        smtp_host=e.get("SMTP_HOST", ""),
         email_reply_to=e.get("EMAIL_REPLY_TO", ""),
         public_base_url=e.get("PUBLIC_BASE_URL", "https://gabi.example").rstrip("/"),
         payment_link_mode=e.get("PAYMENT_LINK_MODE", "static"),

@@ -86,21 +86,22 @@ def _report(tmp_path, name, target, statuses):
 
 
 def test_gate_closed_today_and_lists_every_missing_item():
-    """היום: 12 חוסמים — 6 טכניים, 3 משפטיים (legal/SIGNOFF.json) ו-3 של QA (מפתח הצפנה,
-    מייל על דומיין דוגמה, מפתחות webhook). כל אחד עם מה לעשות."""
+    """היום: 13 חוסמים — 7 טכניים (כולל שרת SMTP), 3 משפטיים (legal/SIGNOFF.json) ו-3 של QA (מפתח
+    הצפנה, מייל על דומיין דוגמה, מפתחות webhook). כל אחד עם מה לעשות."""
     b = golive.real_send_blockers(load_settings({}), master_keys="")
     joined = "\n".join(b)
-    assert len(b) == 12, b
+    assert len(b) == 13, b
     for must in ("ALLOWED_SEND_MODES", "CONTRACT_VERIFIED_019", "placeholder", "PUBLIC_BASE_URL",
                  "חשבונית ירוקה: אין דוח", "019: אין דוח", "DPA", "אין עו״ד", "בלי תשובה",
-                 "COLLECT_MASTER_KEYS", "EMAIL_FROM", "SMS_WEBHOOK_KEY"):
+                 "COLLECT_MASTER_KEYS", "EMAIL_FROM", "SMS_WEBHOOK_KEY", "SMTP_HOST"):
         assert must in joined, must
 
 
 def test_gate_opens_only_when_everything_is_closed(tmp_path):
     from app.secretbox import generate_key
     live_env = {"PUBLIC_BASE_URL": "https://gabi.co.il", "EMAIL_FROM": "no-reply@gabi.co.il",
-                "SMS_WEBHOOK_KEY": "k" * 32, "EMAIL_WEBHOOK_KEY": "e" * 32}
+                "SMS_WEBHOOK_KEY": "k" * 32, "EMAIL_WEBHOOK_KEY": "e" * 32,
+                "SMTP_HOST": "smtp.gabi.co.il"}
     s = load_settings(live_env)
     ok = dict(allowed_send_modes={"dry_run", "live"}, verified_019=True,
               master_keys=f"k1:{generate_key()}",
@@ -122,13 +123,21 @@ def test_gate_opens_only_when_everything_is_closed(tmp_path):
     assert len(golive.real_send_blockers(load_settings({**live_env, "PUBLIC_BASE_URL":
                                                         "https://gabi.example"}), **ok)) == 1
     for k, bad in (("EMAIL_FROM", "no-reply@example.com"), ("SMS_WEBHOOK_KEY", ""),
-                   ("EMAIL_WEBHOOK_KEY", "")):
+                   ("EMAIL_WEBHOOK_KEY", ""), ("SMTP_HOST", ""), ("SMTP_HOST", "smtp.example")):
         assert len(golive.real_send_blockers(load_settings({**live_env, k: bad}), **ok)) == 1, k
 
 
 def test_golive_cli_exit_code(capsys, monkeypatch):
     for k in ("COLLECT_MASTER_KEYS", "EMAIL_FROM", "SMS_WEBHOOK_KEY", "EMAIL_WEBHOOK_KEY",
-              "PUBLIC_BASE_URL"):
+              "PUBLIC_BASE_URL", "SMTP_HOST"):
         monkeypatch.delenv(k, raising=False)  # לא תלוי בסביבה של המריץ
     assert golive.main([]) == 1
-    assert "השער סגור. 12 חוסמים" in capsys.readouterr().out
+    assert "השער סגור. 13 חוסמים" in capsys.readouterr().out
+
+
+def test_smtp_host_reaches_the_email_adapter():
+    """SMTP_HOST מההגדרות מגיע ל-adapter (לא smtp.example קשיח). ריק ⇒ smtp.example, ב-dry-run."""
+    from app.service import build_dry_sender
+    assert build_dry_sender(load_settings({"SMTP_HOST": "smtp.gabi.co.il"})).email.host == "smtp.gabi.co.il"
+    snd = build_dry_sender(load_settings({}))
+    assert snd.email.host == "smtp.example" and snd.email.dry_run
