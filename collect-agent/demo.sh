@@ -76,17 +76,18 @@ wait_up() {  # URL PID שם LOG [-f = רק 2xx]
 GI_PORT="${GI_PORT:-$((PORT + 1))}"
 export GI_WEBHOOK_KEY="${GI_WEBHOOK_KEY:-$(python3 -c 'import secrets;print(secrets.token_urlsafe(24))')}"
 export GREENINVOICE_ENV=mock GREENINVOICE_MOCK_URL="http://127.0.0.1:${GI_PORT}/api/v1"
+# התיקיות הזמניות של בדיקות הגיבוי/מחיקה/הצפנה (sqlite עם נתוני דמו) נמחקות גם בכשל באמצע — לא רק במסלול ההצלחה.
+# ה-trap נרשם לפני ה-mktemp הראשון (QA, BACKLOG): גם כשל בין היצירה לרישום לא משאיר קובץ.
+cleanup() {
+  kill "${PID:-}" "${GI_PID:-}" 2>/dev/null || true
+  rm -f "${LOG:-}" "${GI_LOG:-}" "${OWN_SECRET:-}"
+  rm -rf "${BK:-}" "${WP:-}" "${EN:-}"
+}
+trap cleanup EXIT INT TERM
 GI_LOG="$(mktemp)"
 python3 -m app.gi_mock --port "$GI_PORT" --seed demo \
   --webhook "http://127.0.0.1:${PORT}/webhooks/greeninvoice?k=${GI_WEBHOOK_KEY}" >"$GI_LOG" 2>&1 &
 GI_PID=$!
-# התיקיות הזמניות של בדיקות הגיבוי/מחיקה/הצפנה (sqlite עם נתוני דמו) נמחקות גם בכשל באמצע — לא רק במסלול ההצלחה
-cleanup() {
-  kill "${PID:-}" "$GI_PID" 2>/dev/null || true
-  rm -f "${LOG:-}" "$GI_LOG" "${OWN_SECRET:-}"
-  rm -rf "${BK:-}" "${WP:-}" "${EN:-}"
-}
-trap cleanup EXIT INT TERM
 wait_up "http://127.0.0.1:${GI_PORT}/api/v1/users/me" "$GI_PID" "שרת ה-mock של חשבונית ירוקה" "$GI_LOG"
 cat "$GI_LOG"
 
