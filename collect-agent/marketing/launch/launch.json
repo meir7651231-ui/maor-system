@@ -14,9 +14,20 @@
     "marketing/video/storyboard.mjs",
     "marketing/video/storyboard.html",
     "marketing/video/compose/ui/meta.json",
-    "web/src/lib/site.ts"
+    "web/src/lib/site.ts",
+    "marketing/landing/for/barbers.html",
+    "marketing/landing/for/garages.html",
+    "marketing/landing/for/clinics.html",
+    "marketing/landing/for/accountants-clients.html"
   ],
-  "videos": ["marketing/video/gabi-demo-16x9.mp4", "marketing/video/gabi-reel-9x16.mp4"],
-  "link_placeholders": ["[קישור לדף]"],
-  "domain_placeholders": ["[דומיין]"]
+  "videos": [
+    "marketing/video/gabi-demo-16x9.mp4",
+    "marketing/video/gabi-reel-9x16.mp4"
+  ],
+  "link_placeholders": [
+    "[קישור לדף]"
+  ],
+  "domain_placeholders": [
+    "[דומיין]"
+  ]
 }
