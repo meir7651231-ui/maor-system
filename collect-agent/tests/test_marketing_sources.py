@@ -56,3 +56,18 @@ def test_main_message_names_supported_sources(p):
     m = re.search(r"גבי מתחבר למערכת החשבוניות של(?:ך|כם) \(([^)]+)\)", t)
     assert m, "המסר הראשי לא מזכיר את מערכות החשבוניות"
     assert all(x in m.group(1) for x in ("חשבונית ירוקה", "iCount", "רווחית")) and "EZcount" not in m.group(1)
+
+
+# critic סבב 82: ASSETS מחריג את compose/ ואת transcript.html ⇒ כרטיס הסיום של הסרטונים (endcard/overlays),
+# והתמליל שמחולל ממנו, הציגו «עובד עם … EZcount» בלי הסתייגות — בדיוק מה שסעיף (3) אוסר. בסרטון אין מקום
+# להסתייגות ⇒ EZcount לא מופיע בו כל עוד הוא «בבדיקה».
+VIDEO = [ROOT / "marketing/video/compose/endcard.mjs", ROOT / "marketing/video/compose/overlays.mjs",
+         ROOT / "marketing/video/transcript.html"]
+
+
+@pytest.mark.parametrize("p", VIDEO, ids=lambda p: p.name)
+def test_video_endcard_does_not_claim_ezcount(p):
+    if "בבדיקה" not in SOURCES["ezcount"][1]:
+        pytest.skip("EZcount כבר לא בבדיקה")
+    for m in re.finditer(r"עובד עם[^<\n]*", p.read_text(encoding="utf-8")):
+        assert "EZcount" not in m.group(0), (p.name, m.group(0))

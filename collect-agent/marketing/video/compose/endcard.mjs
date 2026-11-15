@@ -22,7 +22,7 @@ for (const [fmt, W, H] of [['h', 1280, 720], ['v', 720, 1280]]) {
 svg{width:${h ? 150 : 190}px;height:${h ? 150 : 190}px;border-radius:34px}.n{font-weight:800;font-size:${h ? 64 : 66}px;padding:0 24px}.s{font-weight:800;font-size:${h ? 34 : 40}px;color:#10B981;padding:0 30px}
 .p{font-family:H,sans-serif;font-size:${h ? 26 : 30}px;opacity:.9;padding:0 30px;line-height:1.45}.m{font-family:H,sans-serif;font-size:${h ? 18 : 22}px;opacity:.6;padding:0 30px}
 .d{margin-top:${h ? 10 : 18}px;background:#10B981;color:#0F172A;font-weight:800;font-size:${h ? 30 : 36}px;padding:${h ? '12px 34px' : '16px 42px'};border-radius:999px;direction:ltr}</style>
-${logo}<div class="n">גבי – תזכורות תשלום</div><div class="s">הכסף שלך חוזר. בלי שתצטרך לרדוף.</div><div class="p">${h ? '₪119 לחודש או ₪1,190 לשנה · כולל מע״מ ככל שחל<br>14 ימי ניסיון בלי כרטיס אשראי' : '₪119 לחודש או ₪1,190 לשנה<br>כולל מע״מ ככל שחל<br>14 ימי ניסיון בלי כרטיס אשראי'}</div><div class="m">עובד עם חשבונית ירוקה · iCount · רווחית · EZcount</div>${domain ? `<div class="d">${domain}</div>` : ''}`);
+${logo}<div class="n">גבי – תזכורות תשלום</div><div class="s">הכסף שלך חוזר. בלי שתצטרך לרדוף.</div><div class="p">${h ? '₪119 לחודש או ₪1,190 לשנה · כולל מע״מ ככל שחל<br>14 ימי ניסיון בלי כרטיס אשראי' : '₪119 לחודש או ₪1,190 לשנה<br>כולל מע״מ ככל שחל<br>14 ימי ניסיון בלי כרטיס אשראי'}</div><div class="m">עובד עם חשבונית ירוקה · iCount · רווחית</div>${domain ? `<div class="d">${domain}</div>` : ''}`);
   await p.evaluate(async () => { await Promise.all(['800 40px R', '500 20px H'].map(f => document.fonts.load(f, 'אבג'))); });
   const bad = await p.evaluate(() => ['800 40px R', '500 20px H'].filter(f => !document.fonts.check(f, 'אבג')));
   if (bad.length) throw new Error('font not loaded: ' + bad);
