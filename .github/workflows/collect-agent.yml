@@ -46,8 +46,12 @@ jobs:
           pip install --no-deps -e .
       - name: ruff (כולל כללי אבטחה S)
         run: ruff check .
+      - name: צילום העץ לפני pytest (שומר-עץ, כולל קבצים מתעלמים)
+        run: python3 -I scripts/tree_guard.py snapshot "$RUNNER_TEMP/tree-before.txt"
       - name: pytest (יחידה + אבטחה + E2E + סימולציית 60 יום)
         run: python -m pytest -q
+      - name: שומר-עץ — הבדיקות לא השאירו קבצים בפרויקט (.venv/sqlite/demo-output…)
+        run: python3 -I scripts/tree_guard.py check "$RUNNER_TEMP/tree-before.txt"
       - name: evals של מנוע השיחה (315 מקרים, נכשל על הפרת מעקה)
         run: python -m evals.harness
       - name: הדגמה מקצה לקצה (שרת + נתוני דמו + דשבורד, dry-run)
@@ -164,7 +168,7 @@ jobs:
           retention-days: 7
 
   # הפעלה 192 — ההדגמה במכונה נקייה: container של הפצה, פייתון של המערכת, בלי setup-python (שמסתיר את
-  # באג 191: pip של פייתון אחר + cryptography של debian ⇒ demo.sh נפל). ‏ci_clean_demo.sh מוודא שהמכונה
+  # באג 191: pip של פייתון אחר + cryptography של debian ⇒ demo.sh נפל). ci_clean_demo.sh מוודא שהמכונה
   # נקייה, ש-demo.sh יצר .venv ועבר, ושריצה שנייה עוברת מה-.venv הקיים. SKIP_WEB=1 (הממשק נבדק בג'וב web).
   demo-clean:
     runs-on: ubuntu-latest

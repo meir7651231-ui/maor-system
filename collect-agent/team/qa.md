@@ -129,6 +129,7 @@
 רץ רק כשמשהו תחת `collect-agent/` משתנה, על `collect-agent`, על `claude/**` ועל PR. ההרשאות `contents: read` בלבד, `persist-credentials: false`, ואין סודות.
 - **test** (Python 3.11 ו-3.13): ruff (כולל S), pytest מלא, **evals של מנוע השיחה**, `demo.sh --check` (עכשיו עם טוקן; גם מוודא ש-`/dashboard` בלי טוקן מחזיר 401), בדיקת עשן לשרת. ה-workflow של חבר הצוות מוזג לתוך זה, לא הוחלף.
 - **security:** bandit (SAST; `demo*.py` מוחרגים — asserts וטוקן-דמו מזויף), pip-audit (CVE ידועים בתלויות), סריקת סודות, Trojan Source ורשימת hosts.
+- **שומר-עץ (הפעלה 216):** ב-test, צילום של העץ לפני pytest ובדיקה אחריו (`scripts/tree_guard.py`, כולל קבצים **מתעלמים** — `.venv/`, ‏`*.sqlite3`, ‏`demo-output/`). בדיקה שמשאירה/משנה קובץ בפרויקט ⇒ ה-CI אדום. מותר: `__pycache__`, ‏`.pytest_cache`, ‏`.ruff_cache`, ‏`*.egg-info`. מקומית: `python3 -I scripts/tree_guard.py snapshot /tmp/b.txt` ⇒ pytest ⇒ `… check /tmp/b.txt`.
 - סריקות סטטיות שרצות כחלק מ-pytest:
   - SQL רק עם פרמטרים.
   - אין eval/exec/pickle/`shell=True`/`verify=False`.
