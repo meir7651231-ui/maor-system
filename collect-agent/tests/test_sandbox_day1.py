@@ -57,3 +57,20 @@ def test_missing_link_field_is_critical():
     gi = GreenInvoiceClient(day1.SANDBOX, i, s, transport=httpx.MockTransport(m.handler))
     rep = day1.run(gi, "test")
     assert rep["critical"] and "קישור" in rep["critical"][0]
+
+
+import pytest  # noqa: E402
+
+
+@pytest.mark.parametrize("scenario,code,suspects", [
+    ("paid", 0, 1), ("clean", 0, 0), ("unlinked", 1, None), ("no-status", 1, None)])
+def test_every_decision_branch(scenario, code, suspects, tmp_path):
+    """BACKLOG גבייה סוכן #1: כל ענף החלטה מוכח מול mock (רץ גם כצעד נפרד ב-CI)."""
+    out = tmp_path / "r.json"
+    assert day1.main(["--mock", scenario, "--json", str(out)]) == code
+    import json
+    rep = json.loads(out.read_text("utf-8"))
+    if suspects is not None:
+        assert rep["suspected_paid"] == suspects and rep["critical"] == []
+    else:
+        assert rep["critical"] and rep["verdict"].startswith("לא להשיק")
