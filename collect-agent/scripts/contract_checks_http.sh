@@ -6,21 +6,25 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 GI_PORT="${GI_PORT:-18791}"; SMS_PORT="${SMS_PORT:-18795}"
-GI_LOG="$(mktemp)"
-SMS_LOG="$(mktemp)"
-GI=""; SMS=""
+# אתחול לריק ⇒ cleanup ⇒ trap ⇒ mktemp (הפעלה 221): כשל/אות בין היצירה לרישום לא משאיר קובץ, ולא מוחקים ערך
+# שירשנו מהסביבה. INT/TERM ⇒ יציאה עם קוד-אות (cleanup עם rc=0 היה מסיים 0 אחרי Ctrl+C).
+GI_LOG=""; SMS_LOG=""; GI=""; SMS=""
 cleanup() {
   local rc=$?
   [[ -n "$GI" ]] && kill "$GI" 2>/dev/null || true
   [[ -n "$SMS" ]] && kill "$SMS" 2>/dev/null || true
   if [[ $rc -ne 0 ]]; then
-    echo "--- לוג gi_mock ---"; tail -n 30 "$GI_LOG" 2>/dev/null || true
-    echo "--- לוג sms019_mock ---"; tail -n 30 "$SMS_LOG" 2>/dev/null || true
+    echo "--- לוג gi_mock ---"; tail -n 30 "${GI_LOG:-/dev/null}" 2>/dev/null || true
+    echo "--- לוג sms019_mock ---"; tail -n 30 "${SMS_LOG:-/dev/null}" 2>/dev/null || true
   fi
-  rm -f "$GI_LOG" "$SMS_LOG"
+  rm -f "${GI_LOG:-}" "${SMS_LOG:-}"
   exit "$rc"
 }
-trap cleanup EXIT INT TERM
+trap cleanup EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
+GI_LOG="$(mktemp)"
+SMS_LOG="$(mktemp)"
 python -m app.gi_mock --port "$GI_PORT" --seed demo >"$GI_LOG" 2>&1 & GI=$!
 python -m app.sms019_mock --port "$SMS_PORT" >"$SMS_LOG" 2>&1 & SMS=$!
 up() { curl -s -o /dev/null "http://127.0.0.1:$GI_PORT/api/v1/users/me" \

@@ -19,12 +19,16 @@ def test_every_mktemp_is_removed_in_cleanup():
     assert temps, "לא נמצאו mktemp (אם הוסרו — להסיר גם את המגן)"
     body = _cleanup_body()
     for v in temps:
-        assert re.search(rf'rm -[rf]+ [^\n]*"\${v}"', body), f"{v} לא נמחק ב-cleanup"
+        assert re.search(rf'rm -[rf]+ [^\n]*"\$\{{?{v}(:-)?\}}?"', body), f"{v} לא נמחק ב-cleanup"
 
 
 def test_cleanup_trapped_on_exit_and_signals_and_kills_servers():
-    assert re.search(r"^trap cleanup EXIT INT TERM$", SRC, flags=re.M)
+    # הפעלה 221: יושר עם tests/test_shell_tmp_cleanup.py (QA) — ה-trap נרשם *לפני* כל mktemp (קודם: הדרישה
+    # הייתה הפוכה, «אין mktemp אחרי ה-trap», והשתיים סתרו זו את זו ⇒ הענף אדום). INT/TERM ⇒ יציאה עם קוד-אות.
+    assert re.search(r"^trap cleanup EXIT$", SRC, flags=re.M)
+    assert re.search(r"^trap 'exit 130' INT$", SRC, flags=re.M)
+    assert re.search(r"^trap 'exit 143' TERM$", SRC, flags=re.M)
     assert SRC.index("trap cleanup") < SRC.index("python -m app.gi_mock")   # לפני שמרימים שרתים
     body = _cleanup_body()
     assert 'kill "$GI"' in body and 'kill "$SMS"' in body
-    assert "mktemp" not in SRC.split("trap cleanup", 1)[1]                  # אין mktemp אחרי ה-trap
+    assert "$(mktemp" not in SRC.split("trap cleanup", 1)[0]                # אין mktemp לפני ה-trap

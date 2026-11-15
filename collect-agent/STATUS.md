@@ -22,15 +22,16 @@
   - **אות לסקריפט המשיך את ההדגמה:** `trap cleanup EXIT INT TERM` ⇒ SIGINT/SIGTERM לתהליך הסקריפט (`kill`, `timeout`, ביטול CI) הריץ cleanup (הרג שרתים, מחק קבצים) **וההדגמה המשיכה**, עד שקרסה בשגיאה מטעה (`cat: … No such file`, יציאה 1). עכשיו `trap cleanup EXIT` + `INT⇒exit 130` + `TERM⇒exit 143`. (Ctrl+C במסוף שולח לכל הקבוצה ⇒ שם זה עצר גם קודם.)
   - **סוד TOTP נשאר ב-TMPDIR:** SIGINT בזמן עליית השרת ⇒ השרת כתב את קובץ הסוד *אחרי* ה-`rm` ⇒ קובץ 32 תווים נשאר. עכשיו cleanup: `kill` ⇒ `wait` ⇒ `rm`.
   - **אתחול לריק:** `GI_LOG`/`GI_PID` נוספו לאתחול בשורה 16 (לקח סבב 86) — עכשיו כל משתני ה-mktemp בכל הסקריפטים מאותחלים לריק לפני ה-trap הראשון.
+  - **🔴 הענף היה אדום אחרי rebase:** שני סקריפטים חדשים (`contract_checks_http.sh` של חיבורים #2, `sandbox_day.sh` של חיבורים #3) יצרו `mktemp` **לפני** ה-trap — ומגן ה-QA (`test_shell_tmp_cleanup`) נפל. יותר מזה, `test_contract_checks_http_sh` דרש במפורש את ההפך («אין mktemp אחרי ה-trap») ⇒ שתי בדיקות של שני תפקידים סתרו זו את זו. יושר לכלל של QA: בשני הסקריפטים אתחול לריק ⇒ cleanup ⇒ `trap cleanup EXIT` + `INT⇒130`/`TERM⇒143` ⇒ mktemp; שתי בדיקות החיבורים עודכנו (trap לפני mktemp). שני הסקריפטים רצו מקומית: חוזה HTTP ✅, יום-sandbox ⇒ «להשיק» (mock), TMPDIR ריק.
 - **ננעל:** `tests/test_shell_tmp_traps.py` (10): אתחול-לריק לפני ה-trap (כל סקריפט) · אין trap על INT/TERM בלי `exit` · ה-traps האמיתיים של demo.sh: SIGINT ⇒ 130, cleanup פעם אחת, לא ממשיך · cleanup: kill<wait<rm. `test_demo_sh_tmp_cleanup.py` עודכן ל-traps החדשים. **מוטציות:** trap ישן `EXIT INT TERM` ⇒ 2 נופלות · בלי אתחול GI_LOG ⇒ 1 · בלי `wait` ⇒ 1.
-- **אומת מקומית (venv מחוץ לפרויקט):** ruff נקי · bandit 0 · pytest מלא **2591 passed / 19 skipped** · `SKIP_WEB=1 demo.sh --check` עם TMPDIR פרטי ⇒ ירוק, ריק בסוף · SIGINT לקבוצה ב-1.5–3.5 שניות ⇒ 130, TMPDIR ריק · SIGINT/SIGTERM לסקריפט בלבד ⇒ 130/143 (לפני: 1, ממשיך וקורס).
+- **אומת מקומית (venv מחוץ לפרויקט):** ruff נקי · bandit 0 · pytest מלא (אחרי rebase) **2641 passed / 19 skipped** · `SKIP_WEB=1 demo.sh --check` עם TMPDIR פרטי ⇒ ירוק, ריק בסוף · SIGINT לקבוצה ב-1.5–3.5 שניות ⇒ 130, TMPDIR ריק · SIGINT/SIGTERM לסקריפט בלבד ⇒ 130/143 (לפני: 1, ממשיך וקורס).
 - **מצב לפי תפקיד:**
   - פיתוח — בלי חסם. הבא: הצגת `sent_owner` אחרי הכרעת הביקורת.
   - ביקורת — סבב 87: (א) הצגת `sent_owner` — מחכה להכרעה (מ-214). (ב) סגירת (ג) מ-186. (ג) הצהרת הנגישות. (ד) לעבור על שינוי ה-traps ב-demo.sh (wait בתוך cleanup — לוודא שאין מצב שבו `wait` נתקע).
   - עיצוב — לאשר `ui-12-open-list.png` / `ui-13-open-list-mobile.png` (CI, `web-e2e-shots`) · צבעי סטטוס (ניגודיות).
   - AI — לפני סבב 6: להריץ גם `tests/test_critic_round79_engine.py`.
   - QA — ✅ כל סקריפטי ה-shell מכוסים במגן ה-mktemp (QA `7052f9d8` + 221). הבא: `web/` — סקריפטי e2e של Playwright (`mkdtemp`/צילומים) — שאין שאריות מחוץ ל-`test-results`.
-  - חיבורים — `CONTRACT_VERIFIED` ‏False עד מסמך API של 019 + חשבון בדיקה (מאיר).
+  - חיבורים — `CONTRACT_VERIFIED` ‏False עד מסמך API של 019 + חשבון בדיקה (מאיר). ⚠️ סקריפט shell חדש = trap לפני mktemp (`tests/test_shell_tmp_cleanup.py`); להריץ את הסוויטה המלאה לפני דחיפה.
   - משפטי — placeholders ב-`/p`, `/u` ובהצהרת הנגישות ממתינים לפרטי החברה המפעילה.
   - שיווק/מכירות — חבילות מוכנות לחתימת מאיר. ⚠️ `test_marketing_price_always_with_vat_and_yearly` (מ-15.11) — לבדוק שעוברת.
 - **הבא (פיתוח):** (1) לבדוק שריצת ה-CI של הקומיט הזה ירוקה (`demo-clean` ו-smoke ב-container עם ה-traps החדשים). (2) אם הביקורת מאשרת — הצגת `sent_owner`. (3) QA — שאריות של e2e ב-`web/`.

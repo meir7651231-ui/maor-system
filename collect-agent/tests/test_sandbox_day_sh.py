@@ -51,6 +51,9 @@ def test_failure_means_do_not_launch(tmp_path):
 
 def test_tempdir_cleanup_guard():
     src = SH.read_text("utf-8")
-    assert re.search(r"^trap cleanup EXIT INT TERM$", src, flags=re.M)
+    # הפעלה 221: trap לפני ה-mktemp (מגן QA), INT/TERM ⇒ יציאה עם קוד-אות
+    assert re.search(r"^trap cleanup EXIT$", src, flags=re.M)
+    assert re.search(r"^trap 'exit 130' INT$", src, flags=re.M)
     assert 'rm -rf "$OUT"' in src and 'OUT="$(mktemp -d)"' in src
+    assert src.index("trap cleanup EXIT") < src.index('OUT="$(mktemp -d)"')
     assert "sandbox-reports/" in (ROOT / ".gitignore").read_text("utf-8")   # דוחות אמיתיים לא נכנסים לגיט
